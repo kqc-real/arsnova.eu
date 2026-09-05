@@ -61,7 +61,7 @@
                   mat-stroked-button
                   type="button"
                   i18n="@@motd.archiveMarkAllRead"
-                  [disabled]="archiveUnreadCount() === 0"
+                  [disabled]="liveRefreshPending() || archiveUnreadCount() === 0"
                   (click)="markArchiveAllRead()"
                 >
                   Alles als gelesen markieren
@@ -117,6 +117,7 @@
                         class="news-archive-page__mark-read"
                         i18n-aria-label="@@motd.archiveMarkItemReadAria"
                         aria-label="Diese Meldung als gelesen markieren"
+                        [disabled]="liveRefreshPending()"
                         (click)="markArchiveItemRead(it, $event)"
                       >
                         <mat-icon aria-hidden="true">done</mat-icon>
@@ -129,6 +130,7 @@
                         class="news-archive-page__mark-unread"
                         i18n-aria-label="@@motd.archiveMarkItemUnreadAria"
                         aria-label="Diese Meldung als ungelesen markieren"
+                        [disabled]="liveRefreshPending()"
                         (click)="markArchiveItemUnread(it, $event)"
                       >
                         <mat-icon aria-hidden="true">undo</mat-icon>

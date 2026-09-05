@@ -506,7 +506,7 @@ describe('NewsArchivePageComponent', () => {
     expect(spy).toHaveBeenCalledOnce();
   });
 
-  it('markArchiveItemRead senkt den Zähler um 1 und erlaubt wieder Ungelesen', () => {
+  it('markArchiveItemRead senkt den Zähler um 1 und erlaubt wieder Ungelesen', async () => {
     const itemId = 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa';
     const withItems: NewsArchiveInitialModel = {
       ...emptyResolved,
@@ -535,6 +535,23 @@ describe('NewsArchivePageComponent', () => {
       setArchiveUnreadCount: vi.fn(),
     };
 
+    getHeaderStateQuery.mockResolvedValue({
+      hasActiveOverlay: false,
+      hasArchiveEntries: true,
+      archiveCount: 1,
+      archiveMaxCursor: {
+        startsAtIso: '2026-01-10T10:00:00.000Z',
+        motdId: itemId,
+        contentVersion: 1,
+      },
+      archiveMaxEndsAtIso: '2026-01-15T18:00:00.000Z',
+      archiveUnreadCount: 1,
+    });
+    listArchiveQuery.mockResolvedValue({
+      items: withItems.items,
+      nextCursor: null,
+    });
+
     TestBed.configureTestingModule({
       imports: [NewsArchivePageComponent],
       providers: [
@@ -553,6 +570,11 @@ describe('NewsArchivePageComponent', () => {
 
     const fixture = TestBed.createComponent(NewsArchivePageComponent);
     fixture.detectChanges();
+    await fixture.whenStable();
+    await Promise.resolve();
+    await Promise.resolve();
+    fixture.detectChanges();
+    expect(fixture.componentInstance.liveRefreshPending()).toBe(false);
     expect(fixture.nativeElement.querySelector('.news-archive-page__mark-read')).toBeTruthy();
     expect(
       fixture.nativeElement.querySelector('.news-archive-page__mark-read')?.textContent,
@@ -561,6 +583,7 @@ describe('NewsArchivePageComponent', () => {
     const markBtn = fixture.nativeElement.querySelector(
       '.news-archive-page__mark-read',
     ) as HTMLButtonElement;
+    expect(markBtn.disabled).toBe(false);
     markBtn.click();
     fixture.detectChanges();
 
@@ -582,5 +605,124 @@ describe('NewsArchivePageComponent', () => {
     expect(fixture.componentInstance.archiveUnreadCount()).toBe(1);
     expect(fixture.nativeElement.querySelector('.news-archive-page__mark-read')).toBeTruthy();
     expect(headerState.incrementArchiveUnreadCount).toHaveBeenCalled();
+  });
+
+  it('behält lokalen Ungelesen-Zähler wenn Live-Refresh danach mit veraltetem Stand kommt', async () => {
+    const itemId = 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa';
+    let resolveLive: ((value: unknown) => void) | undefined;
+    const liveFirstPage = new Promise((resolve) => {
+      resolveLive = resolve;
+    });
+    getHeaderStateQuery.mockResolvedValue({
+      hasActiveOverlay: false,
+      hasArchiveEntries: true,
+      archiveCount: 1,
+      archiveMaxCursor: {
+        startsAtIso: '2026-01-10T10:00:00.000Z',
+        motdId: itemId,
+        contentVersion: 1,
+      },
+      archiveMaxEndsAtIso: '2026-01-15T18:00:00.000Z',
+      archiveUnreadCount: 0,
+    });
+    listArchiveQuery.mockImplementation(() => liveFirstPage);
+
+    const withItems: NewsArchiveInitialModel = {
+      ...emptyResolved,
+      items: [
+        {
+          id: itemId,
+          contentVersion: 1,
+          markdown: '# Erste Meldung\n\nText',
+          startsAt: '2026-01-10T10:00:00.000Z',
+          endsAt: '2026-01-15T18:00:00.000Z',
+        },
+      ],
+      titleById: { [itemId]: 'Erste Meldung' },
+      htmlById: {},
+      archiveMaxCursor: {
+        startsAtIso: '2026-01-10T10:00:00.000Z',
+        motdId: itemId,
+        contentVersion: 1,
+      },
+      archiveUnreadCount: 0,
+    };
+
+    TestBed.configureTestingModule({
+      imports: [NewsArchivePageComponent],
+      providers: [
+        provideRouter([]),
+        { provide: MatDialog, useValue: { openDialogs: [] } },
+        { provide: LOCALE_ID, useValue: 'de' },
+        {
+          provide: ActivatedRoute,
+          useValue: { snapshot: { data: { newsArchive: withItems } } },
+        },
+        { provide: MatSnackBar, useValue: { open: vi.fn() } },
+        { provide: MotdHeaderRefreshService, useValue: { notifyMotdHeaderRefresh: vi.fn() } },
+        {
+          provide: MotdHeaderStateService,
+          useValue: {
+            decrementArchiveUnreadCount: vi.fn(),
+            incrementArchiveUnreadCount: vi.fn(),
+            setArchiveUnreadCount: vi.fn(),
+          },
+        },
+      ],
+    }).compileComponents();
+
+    const fixture = TestBed.createComponent(NewsArchivePageComponent);
+    fixture.detectChanges();
+    await Promise.resolve();
+    await Promise.resolve();
+    expect(fixture.componentInstance.liveRefreshPending()).toBe(true);
+    const pendingMarkRead = fixture.nativeElement.querySelector(
+      '.news-archive-page__mark-read',
+    ) as HTMLButtonElement;
+    expect(pendingMarkRead).toBeTruthy();
+    expect(pendingMarkRead.disabled).toBe(true);
+
+    // Epoch-Schutz: Mutation während Pending (Handler), dann veralteter Live-Stand.
+    fixture.componentInstance.liveRefreshPending.set(false);
+    const item = fixture.componentInstance.items()[0]!;
+    // Item ist ungelesen → erst als gelesen, dann ungelesen (Override-Pfad).
+    localStorage.setItem(
+      MOTD_LOCAL_STORAGE_KEY,
+      JSON.stringify({
+        dismissed: {},
+        interactions: {},
+        archiveSeenUpToCursor: {
+          startsAtIso: '2026-01-10T10:00:00.000Z',
+          motdId: itemId,
+          contentVersion: 1,
+        },
+      }),
+    );
+    fixture.componentInstance.archiveReadItems.set([]);
+    fixture.componentInstance.archiveUnreadItems.set([]);
+    expect(fixture.componentInstance.isArchiveItemUnread(item)).toBe(false);
+    fixture.componentInstance.markArchiveItemUnread(item, new Event('click'));
+    expect(fixture.componentInstance.archiveUnreadCount()).toBe(1);
+
+    resolveLive!({
+      items: [
+        {
+          id: itemId,
+          contentVersion: 1,
+          markdown: '# Erste Meldung\n\nText',
+          startsAt: '2026-01-10T10:00:00.000Z',
+          endsAt: '2026-01-15T18:00:00.000Z',
+        },
+      ],
+      nextCursor: null,
+    });
+    await fixture.whenStable();
+    await Promise.resolve();
+    await Promise.resolve();
+    fixture.detectChanges();
+
+    expect(fixture.componentInstance.liveRefreshPending()).toBe(false);
+    expect(fixture.componentInstance.archiveUnreadCount()).toBe(1);
+    expect(fixture.componentInstance.isArchiveItemUnread(item)).toBe(true);
   });
 });
