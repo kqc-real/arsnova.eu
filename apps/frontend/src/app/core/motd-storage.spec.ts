@@ -11,6 +11,7 @@ import {
   hasMotdOverlayBeenOfferedThisSession,
   isMotdDismissedForVersion,
   markMotdArchiveItemRead,
+  markMotdArchiveItemUnread,
   markMotdDismissed,
   markMotdInteractionRecorded,
   markMotdOverlayOfferedThisSession,
@@ -81,6 +82,44 @@ describe('motd-storage', () => {
     expect(getMotdArchiveReadItems()).toEqual([{ motdId: id, contentVersion: 1 }]);
     expect(motdGetHeaderStateClientInput()).toEqual({
       archiveReadItems: [{ motdId: id, contentVersion: 1 }],
+    });
+  });
+
+  it('markMotdArchiveItemUnread macht Einzel-Gelesen wieder ungelesen', () => {
+    const id = '00000000-0000-4000-8000-000000000015';
+    markMotdArchiveItemRead(id, 1);
+    expect(
+      markMotdArchiveItemUnread({
+        id,
+        contentVersion: 1,
+        startsAt: '2026-05-01T00:00:00.000Z',
+      }),
+    ).toBe(true);
+    expect(getMotdArchiveReadItems()).toEqual([]);
+    expect(motdGetHeaderStateClientInput().archiveUnreadItems).toBeUndefined();
+  });
+
+  it('markMotdArchiveItemUnread setzt Override unter der Wasserlinie', () => {
+    const id = '00000000-0000-4000-8000-000000000016';
+    setMotdArchiveSeenUpToCursor({
+      startsAtIso: '2026-06-01T00:00:00.000Z',
+      motdId: id,
+      contentVersion: 1,
+    });
+    expect(
+      markMotdArchiveItemUnread({
+        id,
+        contentVersion: 1,
+        startsAt: '2026-05-01T00:00:00.000Z',
+      }),
+    ).toBe(true);
+    expect(motdGetHeaderStateClientInput()).toEqual({
+      archiveSeenUpToCursor: {
+        startsAtIso: '2026-06-01T00:00:00.000Z',
+        motdId: id,
+        contentVersion: 1,
+      },
+      archiveUnreadItems: [{ motdId: id, contentVersion: 1 }],
     });
   });
 

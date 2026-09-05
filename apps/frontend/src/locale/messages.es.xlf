@@ -7975,6 +7975,14 @@
           <context context-type="linenumber">110</context>
         </context-group>
       </trans-unit>
+      <trans-unit id="motd.archiveMarkItemUnreadAction" datatype="html">
+        <source>Als ungelesen markieren</source>
+        <target>Marcar como no leído</target>
+      </trans-unit>
+      <trans-unit id="motd.archiveMarkItemUnreadAria" datatype="html">
+        <source>Diese Meldung als ungelesen markieren</source>
+        <target>Marcar este mensaje como no leído</target>
+      </trans-unit>
       <trans-unit id="motd.archiveLoadMore" datatype="html">
         <source> Weitere Meldungen laden </source>
         <target>Cargar más mensajes</target>

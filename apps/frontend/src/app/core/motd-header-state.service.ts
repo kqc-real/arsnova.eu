@@ -62,6 +62,10 @@ export class MotdHeaderStateService {
     this.archiveUnreadCount.update((n) => Math.max(0, n - 1));
   }
 
+  incrementArchiveUnreadCount(): void {
+    this.archiveUnreadCount.update((n) => n + 1);
+  }
+
   setArchiveUnreadCount(count: number): void {
     this.archiveUnreadCount.set(Math.max(0, count));
   }

@@ -24,7 +24,9 @@ import { MotdHeaderStateService } from '../../core/motd-header-state.service';
 import {
   getMotdArchiveReadItems,
   getMotdArchiveSeenUpToCursor,
+  getMotdArchiveUnreadItems,
   markMotdArchiveItemRead,
+  markMotdArchiveItemUnread,
   setMotdArchiveSeenUpToCursor,
 } from '../../core/motd-storage';
 import { resolveMotdAssetOrigin } from '../../core/motd-asset-origin';
@@ -122,6 +124,7 @@ export class NewsArchivePageComponent {
   readonly archiveMaxCursor = signal<MotdArchiveReadCursor | null>(null);
   readonly archiveUnreadCount = signal(0);
   readonly archiveReadItems = signal(getMotdArchiveReadItems());
+  readonly archiveUnreadItems = signal(getMotdArchiveUnreadItems());
   readonly titleById = signal<Record<string, string>>({});
   readonly htmlById = signal<Record<string, SafeHtml>>({});
 
@@ -146,6 +149,7 @@ export class NewsArchivePageComponent {
     this.archiveMaxCursor.set(data.archiveMaxCursor);
     this.archiveUnreadCount.set(data.archiveUnreadCount);
     this.archiveReadItems.set(getMotdArchiveReadItems());
+    this.archiveUnreadItems.set(getMotdArchiveUnreadItems());
     this.titleById.set(data.titleById);
     this.htmlById.set(data.htmlById);
     this.error.set(data.errorMessage);
@@ -231,6 +235,7 @@ export class NewsArchivePageComponent {
     }
     setMotdArchiveSeenUpToCursor(max);
     this.archiveReadItems.set([]);
+    this.archiveUnreadItems.set([]);
     this.archiveUnreadCount.set(0);
     this.motdHeaderState.setArchiveUnreadCount(0);
     this.snackBar.open(
@@ -242,7 +247,12 @@ export class NewsArchivePageComponent {
   }
 
   isArchiveItemUnread(item: MotdArchiveItemDTO): boolean {
-    return isMotdArchiveItemUnread(item, getMotdArchiveSeenUpToCursor(), this.archiveReadItems());
+    return isMotdArchiveItemUnread(
+      item,
+      getMotdArchiveSeenUpToCursor(),
+      this.archiveReadItems(),
+      this.archiveUnreadItems(),
+    );
   }
 
   markArchiveItemRead(item: MotdArchiveItemDTO, event: Event): void {
@@ -255,8 +265,26 @@ export class NewsArchivePageComponent {
       return;
     }
     this.archiveReadItems.set(getMotdArchiveReadItems());
+    this.archiveUnreadItems.set(getMotdArchiveUnreadItems());
     this.archiveUnreadCount.update((n) => Math.max(0, n - 1));
     this.motdHeaderState.decrementArchiveUnreadCount();
+    this.focusArchiveEntryTitle(event);
+    this.motdHeaderRefresh.notifyMotdHeaderRefresh();
+  }
+
+  markArchiveItemUnread(item: MotdArchiveItemDTO, event: Event): void {
+    event.preventDefault();
+    event.stopPropagation();
+    if (this.isArchiveItemUnread(item)) {
+      return;
+    }
+    if (!markMotdArchiveItemUnread(item)) {
+      return;
+    }
+    this.archiveReadItems.set(getMotdArchiveReadItems());
+    this.archiveUnreadItems.set(getMotdArchiveUnreadItems());
+    this.archiveUnreadCount.update((n) => n + 1);
+    this.motdHeaderState.incrementArchiveUnreadCount();
     this.focusArchiveEntryTitle(event);
     this.motdHeaderRefresh.notifyMotdHeaderRefresh();
   }

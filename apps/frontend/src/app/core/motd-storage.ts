@@ -3,9 +3,11 @@
  */
 import {
   MOTD_ARCHIVE_READ_ITEMS_MAX,
+  type MotdArchiveItemDTO,
   type MotdArchiveReadCursor,
   type MotdArchiveReadItem,
 } from '@arsnova/shared-types';
+import { isMotdArchiveItemNewerThanCursor } from '../shared/motd-archive-sort.util';
 
 export const MOTD_LOCAL_STORAGE_KEY = 'arsnova-motd-v2';
 
@@ -41,6 +43,11 @@ export type MotdClientStorageV1 = {
    * mitzuziehen.
    */
   archiveReadItems?: MotdArchiveReadItem[];
+  /**
+   * Explizit wieder ungelesene Archiv-MOTDs trotz Wasserlinien-Cursor
+   * („Als ungelesen markieren“ nach „Alles als gelesen“).
+   */
+  archiveUnreadItems?: MotdArchiveReadItem[];
 };
 
 const empty = (): MotdClientStorageV1 => ({ dismissed: {}, interactions: {} });
@@ -105,11 +112,13 @@ export function readMotdClientStorage(): MotdClientStorageV1 {
     const cursorRaw = o.archiveSeenUpToCursor;
     const archiveSeenUpToCursor = isMotdArchiveReadCursor(cursorRaw) ? cursorRaw : undefined;
     const archiveReadItems = parseArchiveReadItems(o.archiveReadItems);
+    const archiveUnreadItems = parseArchiveReadItems(o.archiveUnreadItems);
     return {
       dismissed,
       interactions,
       ...(archiveSeenUpToCursor ? { archiveSeenUpToCursor } : {}),
       ...(archiveReadItems.length ? { archiveReadItems } : {}),
+      ...(archiveUnreadItems.length ? { archiveUnreadItems } : {}),
     };
   } catch {
     return empty();
@@ -277,6 +286,7 @@ export function setMotdArchiveSeenUpToCursor(cursor: MotdArchiveReadCursor): voi
   const cur = readMotdClientStorage();
   cur.archiveSeenUpToCursor = cursor;
   delete cur.archiveReadItems;
+  delete cur.archiveUnreadItems;
   writeMotdClientStorage(cur);
 }
 
@@ -284,8 +294,16 @@ export function getMotdArchiveReadItems(): MotdArchiveReadItem[] {
   return readMotdClientStorage().archiveReadItems ?? [];
 }
 
+export function getMotdArchiveUnreadItems(): MotdArchiveReadItem[] {
+  return readMotdClientStorage().archiveUnreadItems ?? [];
+}
+
 export function motdArchiveReadItemsForApi(): MotdArchiveReadItem[] {
   return getMotdArchiveReadItems();
+}
+
+export function motdArchiveUnreadItemsForApi(): MotdArchiveReadItem[] {
+  return getMotdArchiveUnreadItems();
 }
 
 export function isMotdArchiveItemMarkedRead(motdId: string, contentVersion: number): boolean {
@@ -294,26 +312,103 @@ export function isMotdArchiveItemMarkedRead(motdId: string, contentVersion: numb
   );
 }
 
+function upsertArchiveItemList(
+  items: MotdArchiveReadItem[],
+  motdId: string,
+  contentVersion: number,
+): MotdArchiveReadItem[] {
+  const next = [...items];
+  const index = next.findIndex((item) => item.motdId === motdId);
+  if (index >= 0) {
+    next[index] = { motdId, contentVersion };
+  } else if (next.length >= MOTD_ARCHIVE_READ_ITEMS_MAX) {
+    next.shift();
+    next.push({ motdId, contentVersion });
+  } else {
+    next.push({ motdId, contentVersion });
+  }
+  return next;
+}
+
+function removeArchiveItemFromList(
+  items: MotdArchiveReadItem[],
+  motdId: string,
+): MotdArchiveReadItem[] {
+  return items.filter((item) => item.motdId !== motdId);
+}
+
 /**
  * Markiert eine Archiv-MOTD einzeln als gelesen.
- * @returns `false`, wenn diese Version (oder eine höhere) bereits gespeichert war.
+ * @returns `false`, wenn diese Version (oder eine höhere) bereits gespeichert war
+ * und kein Ungelesen-Override entfernt werden musste.
  */
 export function markMotdArchiveItemRead(motdId: string, contentVersion: number): boolean {
-  if (isMotdArchiveItemMarkedRead(motdId, contentVersion)) {
+  const cur = readMotdClientStorage();
+  const unreadItems = [...(cur.archiveUnreadItems ?? [])];
+  const unreadWithout = removeArchiveItemFromList(unreadItems, motdId);
+  const clearedUnread = unreadWithout.length !== unreadItems.length;
+
+  if (isMotdArchiveItemMarkedRead(motdId, contentVersion) && !clearedUnread) {
     return false;
   }
-  const cur = readMotdClientStorage();
-  const items = [...(cur.archiveReadItems ?? [])];
-  const index = items.findIndex((item) => item.motdId === motdId);
-  if (index >= 0) {
-    items[index] = { motdId, contentVersion };
-  } else if (items.length >= MOTD_ARCHIVE_READ_ITEMS_MAX) {
-    items.shift();
-    items.push({ motdId, contentVersion });
-  } else {
-    items.push({ motdId, contentVersion });
-  }
+
+  const items = upsertArchiveItemList(cur.archiveReadItems ?? [], motdId, contentVersion);
   cur.archiveReadItems = items;
+  if (unreadWithout.length) {
+    cur.archiveUnreadItems = unreadWithout;
+  } else {
+    delete cur.archiveUnreadItems;
+  }
+  writeMotdClientStorage(cur);
+  return true;
+}
+
+/**
+ * Markiert eine Archiv-MOTD wieder als ungelesen.
+ * Entfernt die Einzel-Markierung; bei Wasserlinien-Abdeckung setzt einen Ungelesen-Override.
+ * @returns `false`, wenn die Meldung bereits ungelesen war.
+ */
+export function markMotdArchiveItemUnread(
+  item: Pick<MotdArchiveItemDTO, 'id' | 'contentVersion' | 'startsAt'>,
+): boolean {
+  const cur = readMotdClientStorage();
+  const readItems = [...(cur.archiveReadItems ?? [])];
+  const unreadItems = [...(cur.archiveUnreadItems ?? [])];
+  const seen = cur.archiveSeenUpToCursor;
+
+  const wasIndividuallyRead = readItems.some(
+    (read) => read.motdId === item.id && read.contentVersion >= item.contentVersion,
+  );
+  const coveredByCursor = !!seen && !isMotdArchiveItemNewerThanCursor(item, seen);
+  const alreadyForced = unreadItems.some(
+    (unread) => unread.motdId === item.id && unread.contentVersion === item.contentVersion,
+  );
+
+  if (!wasIndividuallyRead && !coveredByCursor) {
+    return false;
+  }
+  if (alreadyForced && !wasIndividuallyRead) {
+    return false;
+  }
+
+  const nextRead = removeArchiveItemFromList(readItems, item.id);
+  if (nextRead.length) {
+    cur.archiveReadItems = nextRead;
+  } else {
+    delete cur.archiveReadItems;
+  }
+
+  if (coveredByCursor) {
+    cur.archiveUnreadItems = upsertArchiveItemList(unreadItems, item.id, item.contentVersion);
+  } else {
+    const without = removeArchiveItemFromList(unreadItems, item.id);
+    if (without.length) {
+      cur.archiveUnreadItems = without;
+    } else {
+      delete cur.archiveUnreadItems;
+    }
+  }
+
   writeMotdClientStorage(cur);
   return true;
 }
@@ -323,13 +418,16 @@ export function motdGetHeaderStateClientInput(): {
   archiveSeenUpToCursor?: MotdArchiveReadCursor;
   overlayDismissedUpTo?: MotdArchiveReadItem[];
   archiveReadItems?: MotdArchiveReadItem[];
+  archiveUnreadItems?: MotdArchiveReadItem[];
 } {
   const seen = getMotdArchiveSeenUpToCursor();
   const dismissed = motdDismissedPairsForApi();
   const readItems = motdArchiveReadItemsForApi();
+  const unreadItems = motdArchiveUnreadItemsForApi();
   return {
     ...(seen ? { archiveSeenUpToCursor: seen } : {}),
     ...(dismissed.length ? { overlayDismissedUpTo: dismissed } : {}),
     ...(readItems.length ? { archiveReadItems: readItems } : {}),
+    ...(unreadItems.length ? { archiveUnreadItems: unreadItems } : {}),
   };
 }

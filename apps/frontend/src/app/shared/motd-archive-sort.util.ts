@@ -24,7 +24,9 @@ export function sortMotdArchiveItemsNewFirst(items: MotdArchiveItemDTO[]): MotdA
   });
 }
 
-export function motdArchiveReadCursorForItem(item: MotdArchiveItemDTO): MotdArchiveReadCursor {
+export function motdArchiveReadCursorForItem(
+  item: Pick<MotdArchiveItemDTO, 'id' | 'contentVersion' | 'startsAt'>,
+): MotdArchiveReadCursor {
   return {
     startsAtIso: item.startsAt,
     motdId: item.id,
@@ -53,7 +55,7 @@ export function newestMotdArchiveReadCursor(
 }
 
 export function isMotdArchiveItemNewerThanCursor(
-  item: MotdArchiveItemDTO,
+  item: Pick<MotdArchiveItemDTO, 'id' | 'contentVersion' | 'startsAt'>,
   cursor: MotdArchiveReadCursor,
 ): boolean {
   return compareMotdArchiveReadCursors(motdArchiveReadCursorForItem(item), cursor) > 0;
@@ -68,11 +70,24 @@ export function isMotdArchiveItemIndividuallyRead(
   );
 }
 
+export function isMotdArchiveItemForcedUnread(
+  item: Pick<MotdArchiveItemDTO, 'id' | 'contentVersion'>,
+  unreadItems: ReadonlyArray<MotdArchiveReadItem>,
+): boolean {
+  return unreadItems.some(
+    (unread) => unread.motdId === item.id && unread.contentVersion === item.contentVersion,
+  );
+}
+
 export function isMotdArchiveItemUnread(
   item: MotdArchiveItemDTO,
   seen: MotdArchiveReadCursor | undefined,
   readItems: ReadonlyArray<MotdArchiveReadItem>,
+  unreadItems: ReadonlyArray<MotdArchiveReadItem> = [],
 ): boolean {
+  if (isMotdArchiveItemForcedUnread(item, unreadItems)) {
+    return true;
+  }
   if (seen && !isMotdArchiveItemNewerThanCursor(item, seen)) {
     return false;
   }
@@ -83,9 +98,10 @@ export function countMotdArchiveUnreadItems(
   items: MotdArchiveItemDTO[],
   seen: MotdArchiveReadCursor | undefined,
   readItems: ReadonlyArray<MotdArchiveReadItem>,
+  unreadItems: ReadonlyArray<MotdArchiveReadItem> = [],
 ): number {
   return items.reduce(
-    (count, item) => count + (isMotdArchiveItemUnread(item, seen, readItems) ? 1 : 0),
+    (count, item) => count + (isMotdArchiveItemUnread(item, seen, readItems, unreadItems) ? 1 : 0),
     0,
   );
 }

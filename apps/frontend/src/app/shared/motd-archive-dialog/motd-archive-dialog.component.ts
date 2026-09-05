@@ -25,7 +25,9 @@ import { MotdHeaderStateService } from '../../core/motd-header-state.service';
 import {
   getMotdArchiveReadItems,
   getMotdArchiveSeenUpToCursor,
+  getMotdArchiveUnreadItems,
   markMotdArchiveItemRead,
+  markMotdArchiveItemUnread,
   motdGetHeaderStateClientInput,
   setMotdArchiveSeenUpToCursor,
 } from '../../core/motd-storage';
@@ -95,8 +97,10 @@ export class MotdArchiveDialogComponent implements OnInit {
   readonly archiveMaxCursor = signal<MotdArchiveReadCursor | null>(null);
   /** Ungelesen relativ zum Client-Wasserzeichen und einzeln gelesenen Einträgen. */
   readonly archiveUnreadCount = signal(0);
-  /** Lokal einzeln als gelesen markierte MOTDs (für den Als-gelesen-Button). */
+  /** Lokal einzeln als gelesen markierte MOTDs (für den Gelesen-Toggle). */
   readonly archiveReadItems = signal(getMotdArchiveReadItems());
+  /** Explizit wieder ungelesene MOTDs trotz Wasserlinie. */
+  readonly archiveUnreadItems = signal(getMotdArchiveUnreadItems());
 
   /** motd id → Anzeige-Titel (Markdown-Überschrift oder Fallback) */
   readonly titleById = signal<Record<string, string>>({});
@@ -133,6 +137,7 @@ export class MotdArchiveDialogComponent implements OnInit {
     }
     setMotdArchiveSeenUpToCursor(max);
     this.archiveReadItems.set([]);
+    this.archiveUnreadItems.set([]);
     this.archiveUnreadCount.set(0);
     this.motdHeaderState.setArchiveUnreadCount(0);
     this.snackBar.open(
@@ -144,7 +149,12 @@ export class MotdArchiveDialogComponent implements OnInit {
   }
 
   isArchiveItemUnread(item: MotdArchiveItemDTO): boolean {
-    return isMotdArchiveItemUnread(item, getMotdArchiveSeenUpToCursor(), this.archiveReadItems());
+    return isMotdArchiveItemUnread(
+      item,
+      getMotdArchiveSeenUpToCursor(),
+      this.archiveReadItems(),
+      this.archiveUnreadItems(),
+    );
   }
 
   markArchiveItemRead(item: MotdArchiveItemDTO, event: Event): void {
@@ -157,8 +167,26 @@ export class MotdArchiveDialogComponent implements OnInit {
       return;
     }
     this.archiveReadItems.set(getMotdArchiveReadItems());
+    this.archiveUnreadItems.set(getMotdArchiveUnreadItems());
     this.archiveUnreadCount.update((n) => Math.max(0, n - 1));
     this.motdHeaderState.decrementArchiveUnreadCount();
+    this.focusArchivePanelHeader(event);
+    this.motdHeaderRefresh.notifyMotdHeaderRefresh();
+  }
+
+  markArchiveItemUnread(item: MotdArchiveItemDTO, event: Event): void {
+    event.preventDefault();
+    event.stopPropagation();
+    if (this.isArchiveItemUnread(item)) {
+      return;
+    }
+    if (!markMotdArchiveItemUnread(item)) {
+      return;
+    }
+    this.archiveReadItems.set(getMotdArchiveReadItems());
+    this.archiveUnreadItems.set(getMotdArchiveUnreadItems());
+    this.archiveUnreadCount.update((n) => n + 1);
+    this.motdHeaderState.incrementArchiveUnreadCount();
     this.focusArchivePanelHeader(event);
     this.motdHeaderRefresh.notifyMotdHeaderRefresh();
   }
@@ -175,6 +203,7 @@ export class MotdArchiveDialogComponent implements OnInit {
     this.loading.set(true);
     this.error.set(null);
     this.archiveReadItems.set(getMotdArchiveReadItems());
+    this.archiveUnreadItems.set(getMotdArchiveUnreadItems());
     const headerInput = {
       locale: this.data.locale,
       ...motdGetHeaderStateClientInput(),
@@ -275,7 +304,12 @@ export class MotdArchiveDialogComponent implements OnInit {
 
     if (!headerOk && items.length > 0) {
       this.archiveUnreadCount.set(
-        countMotdArchiveUnreadItems(items, getMotdArchiveSeenUpToCursor(), this.archiveReadItems()),
+        countMotdArchiveUnreadItems(
+          items,
+          getMotdArchiveSeenUpToCursor(),
+          this.archiveReadItems(),
+          this.archiveUnreadItems(),
+        ),
       );
     }
   }

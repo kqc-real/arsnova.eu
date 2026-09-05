@@ -506,7 +506,7 @@ describe('NewsArchivePageComponent', () => {
     expect(spy).toHaveBeenCalledOnce();
   });
 
-  it('markArchiveItemRead senkt den Zähler um 1 und zeigt den Gelesen-Status', () => {
+  it('markArchiveItemRead senkt den Zähler um 1 und erlaubt wieder Ungelesen', () => {
     const itemId = 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa';
     const withItems: NewsArchiveInitialModel = {
       ...emptyResolved,
@@ -531,6 +531,7 @@ describe('NewsArchivePageComponent', () => {
 
     const headerState = {
       decrementArchiveUnreadCount: vi.fn(),
+      incrementArchiveUnreadCount: vi.fn(),
       setArchiveUnreadCount: vi.fn(),
     };
 
@@ -556,9 +557,6 @@ describe('NewsArchivePageComponent', () => {
     expect(
       fixture.nativeElement.querySelector('.news-archive-page__mark-read')?.textContent,
     ).toContain('Als gelesen markieren');
-    expect(
-      fixture.nativeElement.querySelector('.news-archive-page__read-state--unread'),
-    ).toBeTruthy();
 
     const markBtn = fixture.nativeElement.querySelector(
       '.news-archive-page__mark-read',
@@ -570,13 +568,19 @@ describe('NewsArchivePageComponent', () => {
     expect(fixture.nativeElement.querySelector('.news-archive-page__mark-read')).toBeNull();
     expect(fixture.nativeElement.querySelector('.news-archive-page__entry--read')).toBeTruthy();
     expect(
-      fixture.nativeElement.querySelector('.news-archive-page__read-state')?.textContent,
-    ).toContain('Gelesen');
-    expect(
-      fixture.nativeElement.querySelector('.news-archive-page__read-state--unread'),
-    ).toBeNull();
+      fixture.nativeElement.querySelector('.news-archive-page__mark-unread')?.textContent,
+    ).toContain('Als ungelesen markieren');
     const stored = JSON.parse(localStorage.getItem(MOTD_LOCAL_STORAGE_KEY)!);
     expect(stored.archiveReadItems).toEqual([{ motdId: itemId, contentVersion: 1 }]);
     expect(headerState.decrementArchiveUnreadCount).toHaveBeenCalled();
+
+    const unmarkBtn = fixture.nativeElement.querySelector(
+      '.news-archive-page__mark-unread',
+    ) as HTMLButtonElement;
+    unmarkBtn.click();
+    fixture.detectChanges();
+    expect(fixture.componentInstance.archiveUnreadCount()).toBe(1);
+    expect(fixture.nativeElement.querySelector('.news-archive-page__mark-read')).toBeTruthy();
+    expect(headerState.incrementArchiveUnreadCount).toHaveBeenCalled();
   });
 });

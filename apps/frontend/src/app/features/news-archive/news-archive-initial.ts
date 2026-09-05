@@ -6,6 +6,7 @@ import { localizeKnownServerError } from '../../core/localize-known-server-messa
 import {
   getMotdArchiveReadItems,
   getMotdArchiveSeenUpToCursor,
+  getMotdArchiveUnreadItems,
   motdGetHeaderStateClientInput,
 } from '../../core/motd-storage';
 import { buildMotdArchiveItemDisplay } from '../../shared/motd-archive-render.util';
@@ -113,6 +114,7 @@ export async function loadNewsArchivePageModel(
         items,
         getMotdArchiveSeenUpToCursor(),
         getMotdArchiveReadItems(),
+        getMotdArchiveUnreadItems(),
       );
     } else {
       archiveUnreadCount = 0;

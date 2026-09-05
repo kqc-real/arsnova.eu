@@ -5533,6 +5533,14 @@ const MotdHeaderStateInputPayloadSchema = z.object({
    * Verhindert, dass „Gelesen“ auf einem Eintrag ältere ungelesene mitzieht.
    */
   archiveReadItems: z.array(MotdArchiveReadItemSchema).max(MOTD_ARCHIVE_READ_ITEMS_MAX).optional(),
+  /**
+   * Explizit wieder als ungelesen markierte Archiv-MOTDs (trotz Wasserlinien-Cursor).
+   * Ermöglicht „Als ungelesen markieren“ nach „Alles als gelesen“.
+   */
+  archiveUnreadItems: z
+    .array(MotdArchiveReadItemSchema)
+    .max(MOTD_ARCHIVE_READ_ITEMS_MAX)
+    .optional(),
 });
 
 export const MotdHeaderStateInputSchema = z.preprocess(
@@ -5551,8 +5559,9 @@ export const MotdHeaderStateOutputSchema = z.object({
   /** @deprecated Kompatibilität für Clients vor dem publikationsbasierten Lesecursor. */
   archiveMaxEndsAtIso: z.string().nullable(),
   /**
-   * Ungelesen relativ zum Cursor, abzüglich `archiveReadItems`.
-   * Ohne gültigen Cursor bzw. Legacy-Wasserzeichen = sichtbare Archivanzahl minus einzeln Gelesene.
+   * Ungelesen relativ zum Cursor, abzüglich `archiveReadItems`, zuzüglich `archiveUnreadItems`.
+   * Ohne gültigen Cursor bzw. Legacy-Wasserzeichen = sichtbare Archivanzahl minus einzeln Gelesene
+   * (bzw. plus explizit Ungelesene).
    */
   archiveUnreadCount: z.number().int().min(0),
 });
