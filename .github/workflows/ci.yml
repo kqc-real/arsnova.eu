@@ -1108,6 +1108,7 @@ jobs:
           npm run smoke:quiz-sync -w @arsnova/frontend
           npm run smoke:session-question-progress -w @arsnova/frontend
           npm run smoke:unified-session -w @arsnova/frontend
+          npm run smoke:product-feedback -w @arsnova/frontend
 
       - name: Upload E2E logs
         if: always() && needs.changes.outputs.docs_only != 'true'

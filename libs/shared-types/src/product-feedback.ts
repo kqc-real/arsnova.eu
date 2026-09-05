@@ -73,6 +73,35 @@ export const ProductFeedbackAreaEnum = z.union([
 ]);
 export type ProductFeedbackArea = z.infer<typeof ProductFeedbackAreaEnum>;
 
+/**
+ * Explizite UI-/DTO-Reihenfolge entlang des Nutzungsflows (nicht alphabetisch).
+ * Teilnehmende: Beitritt → Orientierung → Mitmachen → Ergebnis → Meta.
+ * Hosts: Vorbereiten → Starten → Einladen → Live → Auswerten → Meta.
+ */
+export const PRODUCT_FEEDBACK_PARTICIPANT_AREAS_FLOW = [
+  'JOIN',
+  'ORIENTATION',
+  'ANSWER',
+  'QA_OR_QUICKFEEDBACK',
+  'RESULTS',
+  'TECH',
+  'ACCESSIBILITY',
+  'OTHER',
+] as const satisfies readonly ProductFeedbackAreaParticipant[];
+
+export const PRODUCT_FEEDBACK_HOST_AREAS_FLOW = [
+  'PREPARE_QUIZ',
+  'START_SESSION',
+  'INVITE',
+  'LIVE_CONTROL',
+  'QA_OR_QUICKFEEDBACK',
+  'RESULTS',
+  'PDF_EXPORT',
+  'TECH',
+  'ACCESSIBILITY',
+  'OTHER',
+] as const satisfies readonly ProductFeedbackAreaHost[];
+
 export const ProductFeedbackSessionSizeClassEnum = z.enum(['XS', 'S', 'M', 'L', 'XL']);
 export type ProductFeedbackSessionSizeClass = z.infer<typeof ProductFeedbackSessionSizeClassEnum>;
 
@@ -94,11 +123,9 @@ export type ProductFeedbackAreaPromptKind = z.infer<typeof ProductFeedbackAreaPr
 export const ProductFeedbackLocaleEnum = z.enum(['de', 'en', 'fr', 'es', 'it']);
 export type ProductFeedbackLocale = z.infer<typeof ProductFeedbackLocaleEnum>;
 
+/** Positiv → ambivalent → negativ (Leserichtung LTR / oben→unten). */
 const EASE_ANSWERS = ['EASY', 'MINOR_FRICTION', 'HARD'] as const;
 const VALUE_ANSWERS = ['YES', 'PARTIAL', 'NO'] as const;
-
-const PARTICIPANT_AREAS = ProductFeedbackAreaParticipantEnum.options;
-const HOST_AREAS = ProductFeedbackAreaHostEnum.options;
 
 const PRIMARY_QUESTION_KEYS: Record<ProductFeedbackSurveyKey, string> = {
   POST_SESSION_EASE_PARTICIPANT_V1: 'productFeedback.ease.participant.primary',
@@ -141,7 +168,7 @@ export function getProductFeedbackSurveyDefinition(
         primaryQuestionKey: PRIMARY_QUESTION_KEYS[surveyKey],
         primaryAnswers: [...EASE_ANSWERS],
         areaPromptKind,
-        areas: [...PARTICIPANT_AREAS],
+        areas: [...PRODUCT_FEEDBACK_PARTICIPANT_AREAS_FLOW],
       };
     case 'POST_SESSION_VALUE_PARTICIPANT_V1':
       return {
@@ -151,7 +178,7 @@ export function getProductFeedbackSurveyDefinition(
         primaryQuestionKey: PRIMARY_QUESTION_KEYS[surveyKey],
         primaryAnswers: [...VALUE_ANSWERS],
         areaPromptKind,
-        areas: [...PARTICIPANT_AREAS],
+        areas: [...PRODUCT_FEEDBACK_PARTICIPANT_AREAS_FLOW],
       };
     case 'POST_SESSION_EASE_HOST_V1':
       return {
@@ -161,7 +188,7 @@ export function getProductFeedbackSurveyDefinition(
         primaryQuestionKey: PRIMARY_QUESTION_KEYS[surveyKey],
         primaryAnswers: [...EASE_ANSWERS],
         areaPromptKind,
-        areas: [...HOST_AREAS],
+        areas: [...PRODUCT_FEEDBACK_HOST_AREAS_FLOW],
       };
     case 'POST_SESSION_VALUE_HOST_V1':
       return {
@@ -171,7 +198,7 @@ export function getProductFeedbackSurveyDefinition(
         primaryQuestionKey: PRIMARY_QUESTION_KEYS[surveyKey],
         primaryAnswers: [...VALUE_ANSWERS],
         areaPromptKind,
-        areas: [...HOST_AREAS],
+        areas: [...PRODUCT_FEEDBACK_HOST_AREAS_FLOW],
       };
   }
 }

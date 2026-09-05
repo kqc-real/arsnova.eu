@@ -564,13 +564,16 @@
   }
 
   @if (hostProductFeedbackCode(); as pfCode) {
-    <div class="home-product-feedback-sheet" role="complementary">
-      <app-product-feedback-card
-        feedbackRole="HOST"
-        [sessionCode]="pfCode"
-        variant="sheet"
-        (dismissed)="dismissHostProductFeedback()"
-      />
+    <div class="home-product-feedback-layer">
+      <div class="home-product-feedback-scrim" aria-hidden="true"></div>
+      <div class="home-product-feedback-sheet" role="complementary">
+        <app-product-feedback-card
+          feedbackRole="HOST"
+          [sessionCode]="pfCode"
+          variant="sheet"
+          (dismissed)="dismissHostProductFeedback()"
+        />
+      </div>
     </div>
   }
 </div>

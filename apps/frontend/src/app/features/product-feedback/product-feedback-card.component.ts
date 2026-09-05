@@ -44,7 +44,7 @@ type Step = 'idle' | 'primary' | 'area' | 'thanks' | 'message' | 'done' | 'hidde
   standalone: true,
   imports: [MatButton, MatIconButton, MatIconModule, MatProgressSpinnerModule],
   templateUrl: './product-feedback-card.component.html',
-  styleUrl: './product-feedback-card.component.scss',
+  styleUrls: ['./product-feedback-card.component.scss'],
   encapsulation: ViewEncapsulation.None,
   host: { class: 'product-feedback-card-host' },
 })
@@ -146,7 +146,7 @@ export class ProductFeedbackCardComponent implements OnInit, OnDestroy {
   areaLabel(area: ProductFeedbackArea): string {
     const map: Record<string, string> = {
       JOIN: $localize`:@@productFeedback.area.join:Session beitreten`,
-      ORIENTATION: $localize`:@@productFeedback.area.orientation:Orientierung in der App`,
+      ORIENTATION: $localize`:@@productFeedback.area.orientation:Sich zurechtfinden`,
       ANSWER: $localize`:@@productFeedback.area.answer:Antwort abgeben`,
       QA_OR_QUICKFEEDBACK: $localize`:@@productFeedback.area.qaOrQf:Q&A oder Blitzlicht`,
       RESULTS:
@@ -159,7 +159,7 @@ export class ProductFeedbackCardComponent implements OnInit, OnDestroy {
       PREPARE_QUIZ: $localize`:@@productFeedback.area.prepareQuiz:Quiz vorbereiten`,
       START_SESSION: $localize`:@@productFeedback.area.startSession:Session starten`,
       INVITE: $localize`:@@productFeedback.area.invite:Teilnehmende einladen`,
-      LIVE_CONTROL: $localize`:@@productFeedback.area.liveControl:Live-Session steuern`,
+      LIVE_CONTROL: $localize`:@@productFeedback.area.liveControl:Live steuern`,
       PDF_EXPORT: $localize`:@@productFeedback.area.pdfExport:PDF oder Export`,
     };
     return map[area] ?? area;
@@ -183,8 +183,47 @@ export class ProductFeedbackCardComponent implements OnInit, OnDestroy {
 
   areaQuestion(): string {
     return this.areaPromptKind() === 'strength'
-      ? $localize`:@@productFeedback.q.strength:Was hat heute besonders gut funktioniert?`
-      : $localize`:@@productFeedback.q.hurdle:Wo lag die größte Hürde?`;
+      ? $localize`:@@productFeedback.q.strength:Was hat heute am besten geklappt?`
+      : $localize`:@@productFeedback.q.hurdle:Woran hat’s am meisten gehakt?`;
+  }
+
+  headingText(): string {
+    switch (this.step()) {
+      case 'primary':
+        return this.primaryQuestion();
+      case 'area':
+        return this.areaQuestion();
+      case 'thanks':
+        return $localize`:@@productFeedback.thanks:Noch einen Satz dazu?`;
+      case 'message':
+        return $localize`:@@productFeedback.messageHeading:Optionaler Satz`;
+      case 'done':
+        return $localize`:@@productFeedback.allDone:Gespeichert.`;
+      default:
+        return $localize`:@@productFeedback.title:Eine Frage zu arsnova.eu`;
+    }
+  }
+
+  /** Nur für aria-label — kein sichtbarer Brand-Titel (Doppelung mit Frage/Step-Heading). */
+  brandAriaLabel(): string {
+    return $localize`:@@productFeedback.title:Eine Frage zu arsnova.eu`;
+  }
+
+  stepNumber(): 1 | 2 {
+    return this.step() === 'area' ? 2 : 1;
+  }
+
+  isPrimaryTriad(): boolean {
+    const answers = this.survey()?.primaryAnswers ?? [];
+    return (
+      answers.length === 3 && answers.every((a) => a === 'YES' || a === 'PARTIAL' || a === 'NO')
+    );
+  }
+
+  /** Zeilen für spaltenweisen Area-Flow (linke Spalte = frühe Schritte). */
+  areaRowCount(): number {
+    const n = this.survey()?.areas?.length ?? 0;
+    return Math.max(1, Math.ceil(n / 2));
   }
 
   selectPrimary(answer: ProductFeedbackPrimaryAnswer): void {
@@ -221,9 +260,7 @@ export class ProductFeedbackCardComponent implements OnInit, OnDestroy {
       this.followUpCapability.set(result.followUpCapability);
       markProductFeedbackCooldown(survey.surveyKey);
       this.step.set('thanks');
-      this.statusMessage.set(
-        $localize`:@@productFeedback.status.saved:Danke! Deine Rückmeldung ist gespeichert.`,
-      );
+      this.statusMessage.set($localize`:@@productFeedback.status.saved:Gespeichert.`);
       this.completed.emit();
       this.moveFocusForStep();
     } catch {
@@ -237,7 +274,7 @@ export class ProductFeedbackCardComponent implements OnInit, OnDestroy {
       markProductFeedbackCooldown(survey.surveyKey);
       this.step.set('thanks');
       this.statusMessage.set(
-        $localize`:@@productFeedback.status.queued:Deine Rückmeldung ist auf diesem Gerät vorgemerkt und wird erneut gesendet, sobald arsnova.eu erreichbar ist.`,
+        $localize`:@@productFeedback.status.queued:Vorgemerkt auf diesem Gerät – senden wir, sobald die Verbindung wieder da ist.`,
       );
       this.completed.emit();
       this.moveFocusForStep();
@@ -274,9 +311,7 @@ export class ProductFeedbackCardComponent implements OnInit, OnDestroy {
         idempotencyKey,
       });
       if (this.destroyed) return;
-      this.statusMessage.set(
-        $localize`:@@productFeedback.status.messageSaved:Anmerkung gespeichert.`,
-      );
+      this.statusMessage.set($localize`:@@productFeedback.status.messageSaved:Gespeichert.`);
       this.step.set('done');
       this.moveFocusForStep();
       this.scheduleDismissAfterDone();
@@ -289,7 +324,7 @@ export class ProductFeedbackCardComponent implements OnInit, OnDestroy {
         createdAt: Date.now(),
       });
       this.statusMessage.set(
-        $localize`:@@productFeedback.status.messageQueued:Anmerkung vorgemerkt – wird bei Verbindung nachgereicht.`,
+        $localize`:@@productFeedback.status.messageQueued:Notiz vorgemerkt – kommt nach, sobald die Verbindung wieder da ist.`,
       );
       this.step.set('done');
       this.moveFocusForStep();
@@ -335,7 +370,11 @@ export class ProductFeedbackCardComponent implements OnInit, OnDestroy {
         const root = this.hostEl.nativeElement;
         const step = this.step();
         let target: HTMLElement | null = null;
-        if (step === 'primary' || step === 'area') {
+        if (step === 'primary') {
+          target =
+            (root.querySelector('.product-feedback-card__close') as HTMLElement | null) ??
+            (root.querySelector('#product-feedback-heading') as HTMLElement | null);
+        } else if (step === 'area') {
           target = root.querySelector(
             '.product-feedback-card__choice:not([disabled])',
           ) as HTMLElement | null;
@@ -346,7 +385,7 @@ export class ProductFeedbackCardComponent implements OnInit, OnDestroy {
         } else if (step === 'message') {
           target = root.querySelector('#product-feedback-message') as HTMLElement | null;
         } else if (step === 'done') {
-          target = root.querySelector('.product-feedback-card__done') as HTMLElement | null;
+          target = root.querySelector('#product-feedback-heading') as HTMLElement | null;
         }
         if (!target) {
           target = root.querySelector('#product-feedback-heading') as HTMLElement | null;

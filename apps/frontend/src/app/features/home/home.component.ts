@@ -32,7 +32,7 @@ import { MatSnackBar } from '@angular/material/snack-bar';
 import { MatTooltip } from '@angular/material/tooltip';
 import { setFeedbackHostToken } from '../../core/feedback-host-token';
 import { hasHostToken } from '../../core/host-session-token';
-import { setHostToken, trpc } from '../../core/trpc.client';
+import { setHostToken, setPendingHostSessionCode, trpc } from '../../core/trpc.client';
 import { createDefaultLiveSessionOnboardingProfile } from '../../core/home-preset-storage';
 import { ThemePresetService } from '../../core/theme-preset.service';
 import { PresetSnackbarFocusService } from '../../core/preset-snackbar-focus.service';
@@ -338,6 +338,8 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
       this.loadRecentSessionCodes();
       const pendingHost = consumePendingHostInvite();
       if (pendingHost?.sessionCode && hasHostToken(pendingHost.sessionCode)) {
+        // Damit claimInvite das x-host-token mitschickt (Home-Route hat keinen Session-Pfad).
+        setPendingHostSessionCode(pendingHost.sessionCode);
         this.hostProductFeedbackCode.set(pendingHost.sessionCode);
       }
       this.scheduleIdleWork(() => void this.validateRecentSessions(), 2000, 500);
@@ -1111,7 +1113,9 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   dismissHostProductFeedback(): void {
+    // Sheet inkl. Scrim-Layer schließen (Home bleibt bedienbar, Scrim war pointer-events: none).
     clearPendingHostInvite();
+    setPendingHostSessionCode(null);
     this.hostProductFeedbackCode.set(null);
   }
 

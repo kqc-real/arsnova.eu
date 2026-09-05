@@ -1,94 +1,190 @@
-/* ProductFeedback — MD3, Dual-Layer-fähig (Seriös-Basis). */
+/* ProductFeedback — ruhige Mikro-Umfrage (MD3, Dual-Layer). */
 .product-feedback-card-host {
   display: block;
 }
 
 .product-feedback-card {
-  display: grid;
-  gap: 1rem;
-  padding: 1rem 1.125rem 1.125rem;
-  border-radius: var(--mat-sys-corner-large);
-  border: 1px solid var(--mat-sys-outline-variant);
-  background: var(--mat-sys-surface-container-low);
+  display: flex;
+  flex-direction: column;
+  gap: 0.65rem;
+  padding: 1rem 1.05rem 1rem;
+  border-radius: var(--mat-sys-corner-extra-large, var(--mat-sys-corner-large));
+  /* Undurchsichtige Elevated Surface — klar gegen Glass-/Bühnenkarten. */
+  border: 1.5px solid color-mix(in srgb, var(--mat-sys-primary) 58%, var(--mat-sys-outline));
+  background-color: color-mix(
+    in srgb,
+    var(--mat-sys-on-surface) 6%,
+    var(--mat-sys-surface-container-high)
+  );
+  background-image: none;
   color: var(--mat-sys-on-surface);
+  box-shadow:
+    0 1px 2px color-mix(in srgb, var(--mat-sys-shadow) 28%, transparent),
+    0 10px 28px color-mix(in srgb, var(--mat-sys-shadow) 42%, transparent),
+    0 28px 56px color-mix(in srgb, var(--mat-sys-shadow) 28%, transparent);
+  min-inline-size: 0;
+  overflow: visible;
+  isolation: isolate;
+  backdrop-filter: none;
+  opacity: 1;
 }
 
 .product-feedback-card--sheet {
-  box-shadow: var(--mat-sys-level2);
-  border-color: color-mix(in srgb, var(--mat-sys-primary) 28%, var(--mat-sys-outline-variant));
+  background-color: color-mix(
+    in srgb,
+    var(--mat-sys-on-surface) 8%,
+    var(--mat-sys-surface-container-highest, var(--mat-sys-surface-container-high))
+  );
+  border-color: color-mix(in srgb, var(--mat-sys-primary) 72%, var(--mat-sys-outline));
+  box-shadow:
+    0 2px 4px color-mix(in srgb, var(--mat-sys-shadow) 30%, transparent),
+    0 14px 36px color-mix(in srgb, var(--mat-sys-shadow) 48%, transparent),
+    0 32px 64px color-mix(in srgb, var(--mat-sys-shadow) 32%, transparent),
+    0 0 0 1px color-mix(in srgb, var(--mat-sys-primary) 40%, transparent);
+  max-height: min(32rem, calc(100dvh - 2rem - env(safe-area-inset-bottom, 0px)));
 }
 
-.product-feedback-card__header {
+.product-feedback-card--inline {
+  background-color: color-mix(
+    in srgb,
+    var(--mat-sys-on-surface) 8%,
+    var(--mat-sys-surface-container-highest, var(--mat-sys-surface-container-high))
+  );
+  border-color: color-mix(in srgb, var(--mat-sys-primary) 68%, var(--mat-sys-outline));
+  box-shadow:
+    0 2px 4px color-mix(in srgb, var(--mat-sys-shadow) 28%, transparent),
+    0 12px 32px color-mix(in srgb, var(--mat-sys-shadow) 45%, transparent),
+    0 0 0 1px color-mix(in srgb, var(--mat-sys-primary) 36%, transparent);
+}
+
+.product-feedback-card__top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  flex-shrink: 0;
+  min-width: 0;
+}
+
+.product-feedback-card__brand {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  min-width: 0;
+  flex: 1;
+}
+
+.product-feedback-card__brand-icon-wrap {
   display: grid;
-  grid-template-columns: auto 1fr auto;
-  gap: 0.75rem;
-  align-items: start;
+  place-items: center;
+  flex-shrink: 0;
+  width: 2rem;
+  height: 2rem;
+  border-radius: var(--mat-sys-corner-medium);
+  background: var(--mat-sys-primary-container);
+  color: var(--mat-sys-on-primary-container);
 }
 
-.product-feedback-card__icon {
-  color: var(--mat-sys-primary);
-  font-size: 1.75rem;
-  width: 1.75rem;
-  height: 1.75rem;
-  margin-top: 0.125rem;
+.product-feedback-card__brand-icon {
+  width: 1.15rem;
+  height: 1.15rem;
+  font-size: 1.15rem;
 }
 
-.product-feedback-card__title {
-  margin: 0;
-  font: var(--mat-sys-title-medium);
-  font-weight: 700;
-  color: var(--mat-sys-on-surface);
-  outline: none;
-}
-
-.product-feedback-card__title:focus-visible,
-.product-feedback-card__done:focus-visible,
-.product-feedback-card__choice:focus-visible {
-  outline: 2px solid var(--mat-sys-primary);
-  outline-offset: 2px;
-}
-
-.product-feedback-card__lead {
-  margin: 0.25rem 0 0;
-  font: var(--mat-sys-body-medium);
+.product-feedback-card__step {
+  flex-shrink: 0;
+  margin-inline-start: 0.15rem;
+  padding: 0.1rem 0.4rem;
+  border-radius: var(--mat-sys-corner-full);
+  background: color-mix(in srgb, var(--mat-sys-on-surface) 8%, transparent);
+  font: var(--mat-sys-label-small);
+  font-variant-numeric: tabular-nums;
   color: var(--mat-sys-on-surface-variant);
 }
 
 .product-feedback-card__close {
-  margin: -0.35rem -0.35rem 0 0;
+  flex-shrink: 0;
+  margin: -0.25rem -0.35rem -0.25rem 0;
 }
 
-.product-feedback-card__group {
+.product-feedback-card__heading {
   margin: 0;
-  padding: 0;
-  border: 0;
-  min-inline-size: 0;
+  font-family: var(--mat-sys-body-medium-font, inherit);
+  font-size: 0.875rem;
+  font-weight: 500;
+  line-height: 1.45;
+  letter-spacing: 0.01em;
+  text-wrap: pretty;
+  color: var(--mat-sys-on-surface);
+  outline: none;
 }
 
-.product-feedback-card__question {
-  margin: 0 0 0.75rem;
-  padding: 0;
-  font: var(--mat-sys-title-small);
-  font-weight: 700;
-  color: var(--mat-sys-on-surface);
+.product-feedback-card__heading:focus-visible {
+  outline: 2px solid var(--mat-sys-primary);
+  outline-offset: 2px;
+  border-radius: var(--mat-sys-corner-small);
+}
+
+.product-feedback-card__heading--done {
+  font: var(--mat-sys-body-medium);
+  font-weight: 500;
+  color: var(--mat-sys-on-surface-variant);
+}
+
+.product-feedback-card__body {
+  display: grid;
+  gap: 0.6rem;
+  min-width: 0;
+  min-height: 0;
+  padding: 0.2rem;
+  margin: -0.2rem;
+}
+
+.product-feedback-card--sheet .product-feedback-card__body {
+  overflow-x: hidden;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior: contain;
+  padding: 0.3rem;
+  margin: -0.1rem;
 }
 
 .product-feedback-card__choices {
   display: grid;
-  gap: 0.5rem;
+  gap: 0.4rem;
+  padding: 0.15rem;
+  margin: 0;
 }
 
-.product-feedback-card__choices--wrap {
-  grid-template-columns: repeat(auto-fit, minmax(10.5rem, 1fr));
+.product-feedback-card__choices--triad {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.product-feedback-card__choices--areas {
+  /* Spaltenweise: linke Spalte früher Nutzungsflow, rechte später/Meta. */
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-rows: repeat(var(--pf-area-rows, 4), auto);
+  grid-auto-flow: column;
+  gap: 0.4rem;
 }
 
 .product-feedback-card__choice {
+  width: 100%;
   min-height: 44px;
+  max-width: 100%;
   justify-content: center;
   text-align: center;
   white-space: normal;
   line-height: 1.25;
+  padding-block: 0.35rem;
+  padding-inline: 0.55rem;
   border-radius: var(--mat-sys-corner-medium) !important;
+  box-sizing: border-box;
+  --mat-focus-indicator-border-radius: var(--mat-sys-corner-medium);
+  --mat-button-tonal-container-height: 2.75rem;
+  --mat-button-tonal-label-text-size: 0.8125rem;
+  --mat-button-tonal-label-text-weight: 500;
+  --mat-button-tonal-horizontal-padding: 0.55rem;
 }
 
 .product-feedback-card__choice--area {
@@ -96,94 +192,120 @@
   text-align: start;
 }
 
+.product-feedback-card__choice.mat-mdc-button-base:focus-visible {
+  outline: none;
+}
+
+.product-feedback-card__message {
+  display: grid;
+  gap: 0.5rem;
+  min-inline-size: 0;
+}
+
+.product-feedback-card__message-meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.35rem 0.75rem;
+}
+
 .product-feedback-card__actions {
   display: flex;
   flex-wrap: wrap;
-  gap: 0.5rem;
+  gap: 0.45rem;
   align-items: center;
+  margin: 0;
 }
 
-.product-feedback-card__actions .mdc-button {
+.product-feedback-card__actions > .mat-mdc-button-base {
   min-height: 44px;
 }
 
-.product-feedback-card__thanks-text,
-.product-feedback-card__done {
-  margin: 0;
-  font: var(--mat-sys-body-large);
+.product-feedback-card__actions > .mat-mdc-button-base:focus-visible {
+  outline: 2px solid var(--mat-sys-primary);
+  outline-offset: 2px;
 }
 
 .product-feedback-card__privacy {
-  margin: 0.5rem 0 0;
+  margin: 0;
+  flex: 1 1 10rem;
   font: var(--mat-sys-body-small);
+  line-height: 1.4;
   color: var(--mat-sys-on-surface-variant);
-}
-
-.product-feedback-card__message-label {
-  display: block;
-  margin-bottom: 0.35rem;
-  font: var(--mat-sys-label-large);
 }
 
 .product-feedback-card__textarea {
   width: 100%;
   box-sizing: border-box;
-  min-height: 5.5rem;
-  padding: 0.75rem;
+  min-height: 4.75rem;
+  padding: 0.65rem 0.75rem;
   border-radius: var(--mat-sys-corner-medium);
   border: 1px solid var(--mat-sys-outline);
   background: var(--mat-sys-surface);
   color: var(--mat-sys-on-surface);
   font: var(--mat-sys-body-medium);
+  line-height: 1.5;
   resize: vertical;
 }
 
 .product-feedback-card__textarea:focus-visible {
   outline: 2px solid var(--mat-sys-primary);
-  outline-offset: 2px;
+  outline-offset: -2px;
+  border-color: var(--mat-sys-primary);
 }
 
 .product-feedback-card__counter {
-  margin: 0.25rem 0 0;
-  font: var(--mat-sys-label-small);
-  color: var(--mat-sys-on-surface-variant);
-  text-align: end;
-}
-
-.product-feedback-card__status {
   margin: 0;
-  font: var(--mat-sys-body-small);
+  font: var(--mat-sys-label-small);
+  font-variant-numeric: tabular-nums;
   color: var(--mat-sys-on-surface-variant);
+  white-space: nowrap;
 }
 
 .product-feedback-card__never {
-  justify-self: start;
-  min-height: 44px;
+  align-self: start;
+  min-height: 40px;
+  margin: 0;
+  padding-inline: 0.15rem;
   color: var(--mat-sys-on-surface-variant);
 }
 
 .product-feedback-card__loading {
   display: grid;
   place-items: center;
-  min-height: 3rem;
+  min-height: 2.5rem;
+}
+
+@media (max-width: 359.98px) {
+  .product-feedback-card__choices--triad,
+  .product-feedback-card__choices--areas {
+    grid-template-columns: 1fr;
+    grid-template-rows: none;
+    grid-auto-flow: row;
+  }
 }
 
 @media (max-width: 599.98px) {
   .product-feedback-card--sheet {
     border-radius: var(--mat-sys-corner-large) var(--mat-sys-corner-large) 0 0;
+    max-height: min(
+      36rem,
+      calc(100dvh - 0.5rem - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px))
+    );
   }
 }
 
 @media (prefers-reduced-motion: no-preference) {
   .product-feedback-card {
-    animation: product-feedback-in 220ms ease-out;
+    animation: product-feedback-in 200ms ease-out;
   }
 }
 
 @keyframes product-feedback-in {
   from {
     opacity: 0;
-    transform: translateY(0.35rem);
+    transform: translateY(0.25rem);
   }
   to {
     opacity: 1;
@@ -192,10 +314,78 @@
 }
 
 html.preset-playful .product-feedback-card {
-  border-color: color-mix(in srgb, var(--mat-sys-primary) 35%, var(--mat-sys-outline-variant));
-  background: color-mix(
+  border-color: color-mix(in srgb, var(--mat-sys-primary) 70%, var(--mat-sys-outline-variant));
+  /* Solide „Paper“-Fläche wie Preset-Toast — nicht Glas wie Home-Karten. */
+  background-color: color-mix(
     in srgb,
-    var(--mat-sys-primary-container) 22%,
-    var(--mat-sys-surface-container-low)
+    var(--mat-sys-on-surface) 7%,
+    var(--mat-sys-surface-container-high)
   );
+  background-image:
+    radial-gradient(
+      ellipse 110% 80% at 100% 0%,
+      color-mix(in srgb, var(--mat-sys-primary) 14%, transparent),
+      transparent 58%
+    ),
+    linear-gradient(
+      168deg,
+      color-mix(
+          in srgb,
+          var(--mat-sys-primary-container) 16%,
+          var(--mat-sys-surface-container-high)
+        )
+        0%,
+      color-mix(in srgb, var(--mat-sys-on-surface) 7%, var(--mat-sys-surface-container-high)) 100%
+    );
+  box-shadow:
+    0 2px 4px color-mix(in srgb, var(--mat-sys-shadow) 35%, transparent),
+    var(
+      --app-shadow-card-playful,
+      0 8px 28px -6px color-mix(in srgb, var(--mat-sys-primary) 40%, transparent)
+    ),
+    0 22px 48px color-mix(in srgb, var(--mat-sys-shadow) 38%, transparent),
+    inset 0 0 0 1px color-mix(in srgb, var(--mat-sys-primary) 12%, transparent);
+}
+
+html.preset-playful .product-feedback-card--sheet {
+  box-shadow:
+    0 2px 6px color-mix(in srgb, var(--mat-sys-shadow) 35%, transparent),
+    var(
+      --app-shadow-accent,
+      0 14px 44px -10px color-mix(in srgb, var(--mat-sys-primary) 50%, transparent)
+    ),
+    0 28px 56px color-mix(in srgb, var(--mat-sys-shadow) 40%, transparent),
+    inset 0 0 0 1px color-mix(in srgb, var(--mat-sys-primary) 16%, transparent);
+}
+
+html.preset-playful .product-feedback-card--inline {
+  background-color: color-mix(
+    in srgb,
+    var(--mat-sys-on-surface) 7%,
+    var(--mat-sys-surface-container-high)
+  );
+  background-image:
+    radial-gradient(
+      ellipse 110% 80% at 100% 0%,
+      color-mix(in srgb, var(--mat-sys-primary) 12%, transparent),
+      transparent 58%
+    ),
+    linear-gradient(
+      168deg,
+      color-mix(
+          in srgb,
+          var(--mat-sys-primary-container) 14%,
+          var(--mat-sys-surface-container-high)
+        )
+        0%,
+      color-mix(in srgb, var(--mat-sys-on-surface) 7%, var(--mat-sys-surface-container-high)) 100%
+    );
+  box-shadow:
+    0 2px 4px color-mix(in srgb, var(--mat-sys-shadow) 32%, transparent),
+    var(
+      --app-shadow-card-playful,
+      0 8px 28px -6px color-mix(in srgb, var(--mat-sys-primary) 40%, transparent)
+    ),
+    0 18px 40px color-mix(in srgb, var(--mat-sys-shadow) 36%, transparent),
+    inset 0 0 0 1px color-mix(in srgb, var(--mat-sys-primary) 14%, transparent);
 }

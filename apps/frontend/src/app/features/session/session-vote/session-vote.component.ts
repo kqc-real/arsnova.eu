@@ -1956,10 +1956,7 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
       this.showFinishedActions() && this.sessionFeedbackAvailable() && !this.feedbackSubmitted(),
   );
   readonly sessionEndGateActionCount = computed(
-    () =>
-      Number(this.showSessionEndGateFeedbackAction()) +
-      Number(this.showSessionEndGateBonusAction()) +
-      Number(this.showSessionEndGate()),
+    () => Number(this.showSessionEndGateBonusAction()) + Number(this.showSessionEndGate()),
   );
   readonly finishedActionCount = computed(
     () =>

@@ -4,23 +4,21 @@
     [class.product-feedback-card--sheet]="variant() === 'sheet'"
     [class.product-feedback-card--inline]="variant() === 'inline'"
     [attr.aria-busy]="busy()"
+    [attr.aria-label]="brandAriaLabel()"
     aria-labelledby="product-feedback-heading"
     data-testid="product-feedback-card"
   >
-    <header class="product-feedback-card__header">
-      <mat-icon class="product-feedback-card__icon" aria-hidden="true">tips_and_updates</mat-icon>
-      <div class="product-feedback-card__titles">
-        <h2
-          id="product-feedback-heading"
-          class="product-feedback-card__title"
-          tabindex="-1"
-          i18n="@@productFeedback.title"
-        >
-          Eine Frage zu arsnova.eu
-        </h2>
-        <p class="product-feedback-card__lead" i18n="@@productFeedback.lead">
-          Zwei kurze Auswahlen helfen uns, die App zu verbessern – anonym und ohne E-Mail.
-        </p>
+    <header class="product-feedback-card__top">
+      <div class="product-feedback-card__brand">
+        <span class="product-feedback-card__brand-icon-wrap" aria-hidden="true">
+          <mat-icon class="product-feedback-card__brand-icon">feedback</mat-icon>
+        </span>
+        @if (step() === 'primary' || step() === 'area') {
+          <span class="product-feedback-card__step" aria-hidden="true">{{ stepNumber() }}/2</span>
+          <span class="sr-only" i18n="@@productFeedback.stepSr"
+            >Schritt {{ stepNumber() }} von 2</span
+          >
+        }
       </div>
       @if (step() === 'primary' || step() === 'area') {
         <button
@@ -36,24 +34,37 @@
       }
     </header>
 
+    <h2
+      id="product-feedback-heading"
+      class="product-feedback-card__heading"
+      [class.product-feedback-card__heading--done]="step() === 'done'"
+      tabindex="-1"
+    >
+      {{ headingText() }}
+    </h2>
+
     <p class="sr-only" role="status" aria-live="polite" aria-atomic="true">
       {{ statusMessage() }}
     </p>
 
-    @if (busy() && step() === 'idle') {
-      <div class="product-feedback-card__loading">
-        <mat-spinner diameter="28" />
-      </div>
-    }
+    <div class="product-feedback-card__body">
+      @if (busy() && step() === 'idle') {
+        <div class="product-feedback-card__loading">
+          <mat-spinner diameter="28" />
+        </div>
+      }
 
-    @if (step() === 'primary' && survey(); as s) {
-      <fieldset class="product-feedback-card__group">
-        <legend class="product-feedback-card__question">{{ primaryQuestion() }}</legend>
-        <div class="product-feedback-card__choices" role="group">
+      @if (step() === 'primary' && survey(); as s) {
+        <div
+          class="product-feedback-card__choices"
+          [class.product-feedback-card__choices--triad]="isPrimaryTriad()"
+          role="group"
+          [attr.aria-labelledby]="'product-feedback-heading'"
+        >
           @for (answer of s.primaryAnswers; track answer) {
             <button
               type="button"
-              matButton="filled"
+              matButton="tonal"
               class="product-feedback-card__choice"
               [disabled]="busy()"
               (click)="selectPrimary(answer)"
@@ -62,15 +73,14 @@
             </button>
           }
         </div>
-      </fieldset>
-    }
+      }
 
-    @if (step() === 'area' && survey(); as s) {
-      <fieldset class="product-feedback-card__group">
-        <legend class="product-feedback-card__question">{{ areaQuestion() }}</legend>
+      @if (step() === 'area' && survey(); as s) {
         <div
-          class="product-feedback-card__choices product-feedback-card__choices--wrap"
+          class="product-feedback-card__choices product-feedback-card__choices--areas"
+          [style.--pf-area-rows]="areaRowCount()"
           role="group"
+          [attr.aria-labelledby]="'product-feedback-heading'"
         >
           @for (area of s.areas; track area) {
             <button
@@ -84,18 +94,9 @@
             </button>
           }
         </div>
-      </fieldset>
-    }
+      }
 
-    @if (step() === 'thanks') {
-      <div class="product-feedback-card__thanks">
-        <p class="product-feedback-card__thanks-text" i18n="@@productFeedback.thanks">
-          Danke! Möchtest du noch etwas ergänzen? Ein Satz genügt.
-        </p>
-        <p class="product-feedback-card__privacy" i18n="@@productFeedback.privacyHint">
-          Bitte keine Namen, Sessioncodes oder personenbezogene bzw. fachliche Sessioninhalte
-          eingeben.
-        </p>
+      @if (step() === 'thanks') {
         <div class="product-feedback-card__actions">
           <button
             type="button"
@@ -103,60 +104,58 @@
             (click)="openMessage()"
             i18n="@@productFeedback.addNote"
           >
-            Anmerkung ergänzen
+            Schreiben
           </button>
           <button type="button" matButton="text" (click)="finish()" i18n="@@productFeedback.done">
             Fertig
           </button>
         </div>
-      </div>
-    }
+      }
 
-    @if (step() === 'message') {
-      <div class="product-feedback-card__message">
-        <label class="product-feedback-card__message-label" for="product-feedback-message">
-          <span i18n="@@productFeedback.messageLabel">Deine Anmerkung (optional)</span>
-        </label>
-        <textarea
-          id="product-feedback-message"
-          class="product-feedback-card__textarea"
-          rows="3"
-          maxlength="300"
-          [value]="messageDraft()"
-          (input)="onMessageInput($any($event.target).value)"
-        ></textarea>
-        <p class="product-feedback-card__counter">{{ messageLen() }} / 300</p>
-        <div class="product-feedback-card__actions">
-          <button
-            type="button"
-            matButton="filled"
-            [disabled]="busy() || messageLen() === 0"
-            (click)="submitMessage()"
-            i18n="@@productFeedback.sendNote"
+      @if (step() === 'message') {
+        <div class="product-feedback-card__message">
+          <label
+            class="sr-only"
+            for="product-feedback-message"
+            i18n="@@productFeedback.messageLabel"
+            >Dein Satz (max. 300 Zeichen)</label
           >
-            Anmerkung senden
-          </button>
-          <button
-            type="button"
-            matButton="text"
-            (click)="finish()"
-            i18n="@@productFeedback.skipNote"
-          >
-            Ohne Anmerkung abschließen
-          </button>
+          <textarea
+            id="product-feedback-message"
+            class="product-feedback-card__textarea"
+            rows="3"
+            maxlength="300"
+            [value]="messageDraft()"
+            (input)="onMessageInput($any($event.target).value)"
+          ></textarea>
+          <div class="product-feedback-card__message-meta">
+            <p class="product-feedback-card__privacy" i18n="@@productFeedback.privacyHint">
+              Keine Namen, Session-Codes oder personenbezogene Details.
+            </p>
+            <p class="product-feedback-card__counter">{{ messageLen() }} / 300</p>
+          </div>
+          <div class="product-feedback-card__actions">
+            <button
+              type="button"
+              matButton="filled"
+              [disabled]="busy() || messageLen() === 0"
+              (click)="submitMessage()"
+              i18n="@@productFeedback.sendNote"
+            >
+              Senden
+            </button>
+            <button
+              type="button"
+              matButton="text"
+              (click)="finish()"
+              i18n="@@productFeedback.skipNote"
+            >
+              Fertig
+            </button>
+          </div>
         </div>
-      </div>
-    }
-
-    @if (step() === 'done') {
-      <p class="product-feedback-card__done" tabindex="-1" i18n="@@productFeedback.allDone">
-        Alles klar – danke dir!
-      </p>
-    }
-
-    @if (statusMessage() && step() !== 'idle') {
-      <p class="product-feedback-card__status" aria-hidden="true">{{ statusMessage() }}</p>
-    }
+      }
+    </div>
 
     @if (step() === 'primary' || step() === 'area') {
       <button
@@ -166,7 +165,7 @@
         (click)="neverAsk()"
         i18n="@@productFeedback.neverAsk"
       >
-        Für diese Befragung nicht mehr fragen
+        Nicht mehr anzeigen
       </button>
     }
   </section>
