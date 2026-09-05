@@ -104,6 +104,7 @@ export class ProductFeedbackCardComponent implements OnInit, OnDestroy {
       if (this.destroyed) return;
       if (!claimed.inviteToken || !claimed.survey) {
         this.step.set('hidden');
+        this.dismissed.emit();
         return;
       }
       const surveyKey = claimed.survey.surveyKey;
@@ -113,6 +114,7 @@ export class ProductFeedbackCardComponent implements OnInit, OnDestroy {
           : PRODUCT_FEEDBACK_PARTICIPANT_COOLDOWN_MS;
       if (isProductFeedbackInCooldown(surveyKey, cooldownMs)) {
         this.step.set('hidden');
+        this.dismissed.emit();
         return;
       }
       this.inviteToken.set(claimed.inviteToken);
@@ -121,6 +123,7 @@ export class ProductFeedbackCardComponent implements OnInit, OnDestroy {
       this.moveFocusForStep();
     } catch {
       if (!this.destroyed) this.step.set('hidden');
+      if (!this.destroyed) this.dismissed.emit();
     } finally {
       if (!this.destroyed) this.busy.set(false);
     }
@@ -283,7 +286,16 @@ export class ProductFeedbackCardComponent implements OnInit, OnDestroy {
     }
   }
 
+  /** Freitext nur mit followUpCapability (nach erfolgreichem Submit, nicht bei Outbox-Queue). */
+  canAddMessage(): boolean {
+    return !!this.followUpCapability();
+  }
+
   openMessage(): void {
+    if (!this.canAddMessage()) {
+      this.finish();
+      return;
+    }
     this.step.set('message');
     this.statusMessage.set('');
     this.moveFocusForStep();
@@ -299,6 +311,7 @@ export class ProductFeedbackCardComponent implements OnInit, OnDestroy {
     const capability = this.followUpCapability();
     const message = this.messageDraft().trim();
     if (!capability || !message || this.busy()) {
+      // Ohne Capability keinen stillen „Erfolg“ vortäuschen — nur schließen.
       this.finish();
       return;
     }

@@ -4477,16 +4477,18 @@ export class SessionHostComponent implements OnInit, OnDestroy {
     return isDevMode() && (hostname === 'localhost' || hostname === '127.0.0.1');
   }
 
-  private clearSessionTokens(): void {
+  private clearSessionTokens(options?: { keepHostToken?: boolean }): void {
     if (!this.code) {
       return;
     }
-    clearHostToken(this.code);
+    if (!options?.keepHostToken) {
+      clearHostToken(this.code);
+      void this.sessionTokenStorage.clearHostToken(this.code);
+    }
     clearFeedbackHostToken(this.code);
-    void this.sessionTokenStorage.clearHostToken(this.code);
   }
 
-  private markSessionUnavailable(): void {
+  private markSessionUnavailable(options?: { keepHostToken?: boolean }): void {
     this.sessionUnavailable.set(true);
     this.stopCountdown();
     this.countdownSeconds.set(null);
@@ -4498,7 +4500,7 @@ export class SessionHostComponent implements OnInit, OnDestroy {
     });
     this.session.update((session) => (session ? { ...session, status: 'FINISHED' } : session));
     this.dismissHostSteeringCallout();
-    this.clearSessionTokens();
+    this.clearSessionTokens(options);
   }
 
   private markSessionFinishedLocally(): void {
@@ -4835,8 +4837,9 @@ export class SessionHostComponent implements OnInit, OnDestroy {
     }
     this.markSessionFinishedLocally();
     await this.dismissFinishProjection();
-    this.markSessionUnavailable();
+    // Host-Token behalten: Claim auf der Startseite braucht x-host-token.
     rememberPendingHostInvite(this.code.toUpperCase());
+    this.markSessionUnavailable({ keepHostToken: true });
     await this.exitFullscreenBeforeHomeNavigation();
     await this.ngZone.run(async () => {
       await this.router.navigateByUrl(this.localizedPath('/'), { replaceUrl: true });
@@ -4850,7 +4853,8 @@ export class SessionHostComponent implements OnInit, OnDestroy {
     }
     try {
       await this.dismissFinishProjection();
-      this.markSessionUnavailable();
+      rememberPendingHostInvite(this.code.toUpperCase());
+      this.markSessionUnavailable({ keepHostToken: true });
       await this.exitFullscreenBeforeHomeNavigation();
       await this.ngZone.run(async () => {
         await this.router.navigateByUrl(this.localizedPath('/'), { replaceUrl: true });

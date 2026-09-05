@@ -31,7 +31,7 @@ import { MatIcon } from '@angular/material/icon';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { MatTooltip } from '@angular/material/tooltip';
 import { setFeedbackHostToken } from '../../core/feedback-host-token';
-import { hasHostToken } from '../../core/host-session-token';
+import { clearHostToken, hasHostToken } from '../../core/host-session-token';
 import { setHostToken, setPendingHostSessionCode, trpc } from '../../core/trpc.client';
 import { createDefaultLiveSessionOnboardingProfile } from '../../core/home-preset-storage';
 import { ThemePresetService } from '../../core/theme-preset.service';
@@ -1114,9 +1114,12 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
 
   dismissHostProductFeedback(): void {
     // Sheet inkl. Scrim-Layer schließen (Home bleibt bedienbar, Scrim war pointer-events: none).
+    const code = this.hostProductFeedbackCode();
     clearPendingHostInvite();
     setPendingHostSessionCode(null);
     this.hostProductFeedbackCode.set(null);
+    // Nach Claim/Dismiss: Host-Token der beendeten Session nicht länger behalten.
+    if (code) clearHostToken(code);
   }
 
   async dismissMotdOverlay(

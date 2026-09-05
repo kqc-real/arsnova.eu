@@ -1953,7 +1953,8 @@ describe('SessionHostComponent', { timeout: 30_000 }, () => {
 
     expect(canLeave).toBe(false);
     expect(endMutateMock).toHaveBeenCalledWith({ code: 'ABC123' });
-    expect(clearHostTokenMock).toHaveBeenCalledWith('ABC123');
+    // Token bleibt bis ProductFeedback-Claim/Dismiss auf der Startseite.
+    expect(clearHostTokenMock).not.toHaveBeenCalled();
     expect(navigateByUrlSpy).toHaveBeenCalledWith('/', { replaceUrl: true });
     fixture.destroy();
   });
@@ -11814,7 +11815,9 @@ describe('SessionHostComponent', { timeout: 30_000 }, () => {
     await fixture.componentInstance.navigateHomeFromFinishedSession();
 
     expect(dismissFinishProjectionMutateMock).toHaveBeenCalledWith({ code: 'ABC123' });
+    expect(clearHostTokenMock).not.toHaveBeenCalled();
     expect(navSpy).toHaveBeenCalledWith('/', { replaceUrl: true });
+    expect(localStorage.getItem('productFeedback:pendingHost:v1')).toContain('ABC123');
     fixture.destroy();
   });
 
@@ -11863,7 +11866,8 @@ describe('SessionHostComponent', { timeout: 30_000 }, () => {
 
     expect(endMutateMock).toHaveBeenCalledWith({ code: 'ABC123' });
     expect(dismissFinishProjectionMutateMock).toHaveBeenCalledWith({ code: 'ABC123' });
-    expect(clearHostTokenMock).toHaveBeenCalledWith('ABC123');
+    // Host-Token bleibt für ProductFeedback-Claim auf der Startseite.
+    expect(clearHostTokenMock).not.toHaveBeenCalled();
     expect(navSpy).toHaveBeenCalledWith('/', { replaceUrl: true });
     fixture.destroy();
   });

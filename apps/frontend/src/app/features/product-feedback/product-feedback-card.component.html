@@ -98,14 +98,16 @@
 
       @if (step() === 'thanks') {
         <div class="product-feedback-card__actions">
-          <button
-            type="button"
-            matButton="filled"
-            (click)="openMessage()"
-            i18n="@@productFeedback.addNote"
-          >
-            Schreiben
-          </button>
+          @if (canAddMessage()) {
+            <button
+              type="button"
+              matButton="filled"
+              (click)="openMessage()"
+              i18n="@@productFeedback.addNote"
+            >
+              Schreiben
+            </button>
+          }
           <button type="button" matButton="text" (click)="finish()" i18n="@@productFeedback.done">
             Fertig
           </button>
