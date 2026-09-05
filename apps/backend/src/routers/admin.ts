@@ -43,6 +43,7 @@ import {
 import { logAdminLoginFailure, recordAdminLoginFailure } from '../lib/abuseTelemetry';
 import { prisma } from '../db';
 import { adminMotdRouter } from './adminMotd';
+import { adminProductFeedbackRouter } from './adminProductFeedback';
 import { fetchSecurityStats } from './health';
 import {
   getIncludedSessionQuestionIds,
@@ -464,6 +465,7 @@ function buildAuthorityAggregates(
 
 export const adminRouter = router({
   motd: adminMotdRouter,
+  productFeedback: adminProductFeedbackRouter,
 
   /** Admin-Login (Shared Secret). */
   login: publicProcedure

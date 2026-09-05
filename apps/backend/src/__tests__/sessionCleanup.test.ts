@@ -41,6 +41,15 @@ vi.mock('../lib/logger', () => ({
   logger: loggerMocks,
 }));
 
+vi.mock('../lib/productFeedbackInvite', () => ({
+  issueProductFeedbackInvitesAfterFinish: vi.fn(),
+}));
+
+vi.mock('../lib/productFeedbackCleanup', () => ({
+  cleanupProductFeedbackMessages: vi.fn(async () => 0),
+  cleanupProductFeedbackRecords: vi.fn(async () => 0),
+}));
+
 import {
   cleanupExpiredFinishedSessions,
   cleanupExpiredSessionFeedback,
@@ -60,6 +69,7 @@ describe('sessionCleanup', () => {
   });
 
   it('inkrementiert den completedSessionsCounter fuer automatisch beendete verwaiste Sessions', async () => {
+    prismaMock.session.findMany.mockResolvedValue([{ id: 's1' }, { id: 's2' }, { id: 's3' }]);
     prismaMock.session.updateMany.mockResolvedValue({ count: 3 });
 
     const result = await cleanupStaleSessions();
@@ -69,11 +79,12 @@ describe('sessionCleanup', () => {
   });
 
   it('inkrementiert den completedSessionsCounter nicht, wenn keine Session beendet wurde', async () => {
-    prismaMock.session.updateMany.mockResolvedValue({ count: 0 });
+    prismaMock.session.findMany.mockResolvedValue([]);
 
     const result = await cleanupStaleSessions();
 
     expect(result).toBe(0);
+    expect(prismaMock.session.updateMany).not.toHaveBeenCalled();
     expect(platformStatisticMocks.incrementCompletedSessionsTotal).not.toHaveBeenCalled();
   });
 

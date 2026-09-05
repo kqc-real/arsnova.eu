@@ -12,6 +12,7 @@
 
 ---
 
+- **Produktfeedback / ProductFeedback:** Anonyme Zwei-Klick-Rückmeldungen zur Bedienbarkeit und zum Nutzen von arsnova.eu (nicht zur Session). Sichtbar nur für Plattform-Admins; getrennt von Session-Bewertung und Blitzlicht. Vorkommen: Session-Ende, Startseite (Host), Admin. Vertiefung: Epic 12, Story 12.1.
 - **Access-Proof:** SHA-256-Nachweis über den kanonischen Upload-Snapshot einer Server-Quizkopie; schützt Sammlungs-Historie. Vorkommen: Quiz-Liste, Bonus-Historie. Vertiefung: ADR-0019.
 - **Admin:** Gesonderte Rolle: Inspektion, Löschen, behördliche Auszüge — **nicht** Session-Host. Vorkommen: Route `/admin`. Vertiefung: ADR-0006, Epic 9.
 - **Answer Streak / Serienbonus:** Fortlaufende Erfolgsserie bewertbarer Antworten, die als Motivations- und Multiplikator-Konzept in Scorecard, Leaderboard und Bonus-Logik einfließt. Vertiefung: Story 5.5.

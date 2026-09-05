@@ -1,0 +1,83 @@
+<section class="admin-pf" aria-labelledby="admin-pf-heading">
+  <header class="admin-pf__header">
+    <h2 id="admin-pf-heading" i18n="@@admin.productFeedback.heading">Produktfeedback</h2>
+    <button
+      matButton="tonal"
+      type="button"
+      [disabled]="loading()"
+      (click)="reload()"
+      i18n="@@admin.productFeedback.reload"
+    >
+      Aktualisieren
+    </button>
+  </header>
+
+  @if (loading()) {
+    <mat-spinner diameter="36" />
+  } @else if (error(); as err) {
+    <p class="admin-pf__error" role="alert">{{ err }}</p>
+  } @else if (stats(); as s) {
+    <mat-card class="admin-pf__card">
+      <mat-card-header>
+        <mat-card-title i18n="@@admin.productFeedback.totals">Antworten gesamt</mat-card-title>
+      </mat-card-header>
+      <mat-card-content>
+        <p class="admin-pf__total">{{ s.totals }}</p>
+      </mat-card-content>
+    </mat-card>
+
+    <div class="admin-pf__grid">
+      <mat-card>
+        <mat-card-header>
+          <mat-card-title i18n="@@admin.productFeedback.byPrimary">Primärantworten</mat-card-title>
+        </mat-card-header>
+        <mat-card-content>
+          <ul>
+            @for (b of s.byPrimaryAnswer; track b.key) {
+              <li>{{ b.key }}: {{ b.count }}</li>
+            }
+          </ul>
+        </mat-card-content>
+      </mat-card>
+      <mat-card>
+        <mat-card-header>
+          <mat-card-title i18n="@@admin.productFeedback.byArea">Bereiche</mat-card-title>
+        </mat-card-header>
+        <mat-card-content>
+          <ul>
+            @for (b of s.byArea; track b.key) {
+              <li>{{ b.key }}: {{ b.count }}</li>
+            }
+          </ul>
+        </mat-card-content>
+      </mat-card>
+      <mat-card>
+        <mat-card-header>
+          <mat-card-title i18n="@@admin.productFeedback.bySurvey">Fragefamilien</mat-card-title>
+        </mat-card-header>
+        <mat-card-content>
+          <ul>
+            @for (b of s.bySurveyKey; track b.key) {
+              <li>{{ b.key }}: {{ b.count }}</li>
+            }
+          </ul>
+        </mat-card-content>
+      </mat-card>
+    </div>
+
+    @if (s.bySurveyAndPrimary.length > 0) {
+      <mat-card>
+        <mat-card-header>
+          <mat-card-title i18n="@@admin.productFeedback.fine">Feine Segmente (≥5)</mat-card-title>
+        </mat-card-header>
+        <mat-card-content>
+          <ul>
+            @for (b of s.bySurveyAndPrimary; track b.surveyKey + b.primaryAnswer) {
+              <li>{{ b.surveyKey }} / {{ b.primaryAnswer }}: {{ b.count }}</li>
+            }
+          </ul>
+        </mat-card-content>
+      </mat-card>
+    }
+  }
+</section>

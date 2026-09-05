@@ -114,6 +114,7 @@ import {
 } from '../../../shared/emoji-shortcode.util';
 import type { Unsubscribable } from '@trpc/server/observable';
 import { FeedbackVoteComponent } from '../../feedback/feedback-vote.component';
+import { ProductFeedbackCardComponent } from '../../product-feedback/product-feedback-card.component';
 import { ItemSelectionRowComponent } from '../../../shared/item-selection-row/item-selection-row.component';
 
 const PARTICIPANT_STORAGE_KEY = 'arsnova-participant';
@@ -409,6 +410,7 @@ export function getNumericEstimateMotivation(input: {
     MarkdownImageLightboxDirective,
     AnswerOptionBadgeComponent,
     ItemSelectionRowComponent,
+    ProductFeedbackCardComponent,
   ],
   templateUrl: './session-vote.component.html',
   styleUrls: ['../../../shared/styles/dialog-title-header.scss', './session-vote.component.scss'],

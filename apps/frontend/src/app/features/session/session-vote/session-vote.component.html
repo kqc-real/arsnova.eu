@@ -275,6 +275,16 @@
       }
     }
 
+    @if (participantId()) {
+      <app-product-feedback-card
+        class="vote-session-end-gate__product-feedback"
+        feedbackRole="PARTICIPANT"
+        [sessionCode]="code"
+        [participantId]="participantId()"
+        variant="inline"
+      />
+    }
+
     <div
       class="vote-page__bottom-actions vote-page__bottom-actions--session-end"
       [class.vote-page__bottom-actions--single]="sessionEndGateActionCount() === 1"

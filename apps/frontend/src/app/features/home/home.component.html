@@ -562,4 +562,16 @@
       </dialog>
     </div>
   }
+
+  @if (hostProductFeedbackCode(); as pfCode) {
+    <div class="home-product-feedback-sheet" role="complementary">
+      <app-product-feedback-card
+        feedbackRole="HOST"
+        [sessionCode]="pfCode"
+        variant="sheet"
+        (dismissed)="dismissHostProductFeedback()"
+        (completed)="dismissHostProductFeedback()"
+      />
+    </div>
+  }
 </div>

@@ -59,6 +59,7 @@ import {
   type SupportedLocale,
 } from '../../../core/locale-from-path';
 import { trpc } from '../../../core/trpc.client';
+import { rememberPendingHostInvite } from '../../product-feedback/product-feedback-storage';
 import { getAnonymousClientId } from '../../../core/anonymous-client-id';
 import { renderMarkdownWithKatex } from '../../../shared/markdown-katex.util';
 import { decorateLeadingAnswerEmoji } from '../../../shared/leading-answer-emoji.util';
@@ -4835,6 +4836,7 @@ export class SessionHostComponent implements OnInit, OnDestroy {
     this.markSessionFinishedLocally();
     await this.dismissFinishProjection();
     this.markSessionUnavailable();
+    rememberPendingHostInvite(this.code.toUpperCase());
     await this.exitFullscreenBeforeHomeNavigation();
     await this.ngZone.run(async () => {
       await this.router.navigateByUrl(this.localizedPath('/'), { replaceUrl: true });

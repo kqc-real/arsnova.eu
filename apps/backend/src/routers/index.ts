@@ -9,6 +9,7 @@ import { adminRouter } from './admin';
 import { motdRouter } from './motd';
 import { wordCloudRouter } from './wordCloud';
 import { quizSyncRouter } from './quizSync';
+import { productFeedbackRouter } from './productFeedback';
 
 /**
  * Der zentrale App-Router.
@@ -26,6 +27,7 @@ export const appRouter = router({
   wordCloud: wordCloudRouter,
   admin: adminRouter,
   motd: motdRouter,
+  productFeedback: productFeedbackRouter,
 });
 
 /** Der exportierte Typ für den tRPC-Client im Frontend */

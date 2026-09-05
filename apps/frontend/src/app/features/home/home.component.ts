@@ -75,6 +75,11 @@ import {
 import { MarkdownImageLightboxDirective } from '../../shared/markdown-image-lightbox/markdown-image-lightbox.directive';
 import { hideMotdDecorativeEmojiInHeadingHtml } from '../../shared/motd-decorative-emoji.util';
 import { InfoLandingLinkComponent } from '../../shared/info-landing-link/info-landing-link.component';
+import { ProductFeedbackCardComponent } from '../product-feedback/product-feedback-card.component';
+import {
+  clearPendingHostInvite,
+  consumePendingHostInvite,
+} from '../product-feedback/product-feedback-storage';
 import { INFO_LANDING_ANCHORS } from '../../core/info-landing-url';
 
 type MotdReturnFocusOrigin = 'keyboard' | 'mouse' | 'touch' | 'program';
@@ -97,6 +102,7 @@ type MotdReturnFocusOrigin = 'keyboard' | 'mouse' | 'touch' | 'program';
     CdkTrapFocus,
     MarkdownImageLightboxDirective,
     InfoLandingLinkComponent,
+    ProductFeedbackCardComponent,
   ],
   templateUrl: './home.component.html',
   styleUrls: ['../../shared/styles/dialog-title-header.scss', './home.component.scss'],
@@ -123,6 +129,8 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
   ctaReady = signal(false);
   /** { code, usedAt } – usedAt in ms für relative Anzeige (z.B. „vor 2 Std.“). */
   recentSessionCodes = signal<{ code: string; usedAt: number }[]>([]);
+  /** Host ProductFeedback after session end (Story 12.1) */
+  readonly hostProductFeedbackCode = signal<string | null>(null);
   joinError = signal<string | null>(null);
   /** Set when join failed because session is finished (for showing host link). */
   joinErrorSessionFinished = signal(false);
@@ -328,6 +336,10 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
         this.markJoinIntentForMotd();
       }
       this.loadRecentSessionCodes();
+      const pendingHost = consumePendingHostInvite();
+      if (pendingHost?.sessionCode && hasHostToken(pendingHost.sessionCode)) {
+        this.hostProductFeedbackCode.set(pendingHost.sessionCode);
+      }
       this.scheduleIdleWork(() => void this.validateRecentSessions(), 2000, 500);
       // MOTD: bewusst etwas später laden, damit der Session-Einstieg auf Home
       // nicht direkt von einem Overlay unterbrochen wird.
@@ -1096,6 +1108,11 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
     if (dy > 88) {
       void this.dismissMotdOverlay('DISMISS_SWIPE', event);
     }
+  }
+
+  dismissHostProductFeedback(): void {
+    clearPendingHostInvite();
+    this.hostProductFeedbackCode.set(null);
   }
 
   async dismissMotdOverlay(

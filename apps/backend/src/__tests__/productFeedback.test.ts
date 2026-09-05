@@ -1,0 +1,246 @@
+/**
+ * ProductFeedback Story 12.1 — Contract-/Token-/Admin-Tests.
+ */
+import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { trpcDodIt } from './test-utils/trpc-dod-evidence';
+import { sampleParticipantIds } from '../lib/productFeedbackTokens';
+import { assignSurveyKey, resolveAreaPromptKind } from '../lib/productFeedbackSurvey';
+import {
+  PRODUCT_FEEDBACK_ADMIN_MIN_SEGMENT,
+  getProductFeedbackSurveyDefinition,
+  isAreaAllowedForSurvey,
+  isPrimaryAnswerAllowedForSurvey,
+  mapParticipantCountToSizeClass,
+} from '@arsnova/shared-types';
+
+const redisStore = new Map<string, string>();
+
+const { prismaMock, redisMock } = vi.hoisted(() => ({
+  prismaMock: {
+    session: { findUnique: vi.fn() },
+    participant: { findFirst: vi.fn() },
+    productFeedback: {
+      create: vi.fn(),
+      findUnique: vi.fn(),
+      update: vi.fn(),
+      count: vi.fn(),
+      groupBy: vi.fn(),
+      findMany: vi.fn(),
+    },
+    $queryRaw: vi.fn(),
+  },
+  redisMock: {
+    get: vi.fn(async (key: string) => redisStore.get(key) ?? null),
+    set: vi.fn(async (key: string, value: string, ...args: unknown[]) => {
+      const nx = args.includes('NX');
+      if (nx && redisStore.has(key)) return null;
+      redisStore.set(key, value);
+      return 'OK';
+    }),
+    del: vi.fn(async (key: string) => {
+      redisStore.delete(key);
+      return 1;
+    }),
+    ttl: vi.fn(async () => 3600),
+    mget: vi.fn(async (...keys: string[]) => keys.map((k) => redisStore.get(k) ?? null)),
+    smembers: vi.fn(async () => [] as string[]),
+    pipeline: vi.fn(() => {
+      const ops: Array<() => void> = [];
+      const api = {
+        set: (key: string, value: string, ..._args: unknown[]) => {
+          ops.push(() => {
+            redisStore.set(key, value);
+          });
+          return api;
+        },
+        exec: async () => {
+          for (const op of ops) op();
+          return [];
+        },
+      };
+      return api;
+    }),
+  },
+}));
+
+vi.mock('../db', () => ({ prisma: prismaMock }));
+vi.mock('../redis', () => ({ getRedis: () => redisMock }));
+vi.mock('../lib/rateLimit', () => ({
+  checkProductFeedbackClaimRate: vi.fn(async () => ({ allowed: true })),
+  checkProductFeedbackMutateRate: vi.fn(async () => ({ allowed: true })),
+}));
+vi.mock('../lib/hostAuth', () => ({
+  extractHostTokenFromContext: vi.fn(() => 'host-token'),
+  isHostSessionTokenValid: vi.fn(async () => true),
+}));
+
+import { productFeedbackRouter } from '../routers/productFeedback';
+import {
+  createInviteTokensForSession,
+  hashToken,
+  buildSlotKeyForTests,
+} from '../lib/productFeedbackTokens';
+import { buildProductFeedbackAdminStats } from '../lib/productFeedbackStats';
+
+const publicCaller = productFeedbackRouter.createCaller({ req: undefined });
+
+describe('ProductFeedback helpers', () => {
+  it('weist Ease/Value deterministisch zu', () => {
+    const a = assignSurveyKey('PARTICIPANT', 'sess:p1');
+    const b = assignSurveyKey('PARTICIPANT', 'sess:p1');
+    expect(a).toBe(b);
+    expect(
+      a === 'POST_SESSION_EASE_PARTICIPANT_V1' || a === 'POST_SESSION_VALUE_PARTICIPANT_V1',
+    ).toBe(true);
+  });
+
+  it('sampled max 25 und mind. 1 ab 3 Geeigneten', () => {
+    const ids = Array.from({ length: 3 }, (_, i) => `p${i}`);
+    expect(sampleParticipantIds('s1', ids).length).toBe(1);
+    const many = Array.from({ length: 400 }, (_, i) => `p${i}`);
+    expect(sampleParticipantIds('s1', many).length).toBeLessThanOrEqual(25);
+  });
+
+  it('mappt Größenklassen und Area-Prompt', () => {
+    expect(mapParticipantCountToSizeClass(5)).toBe('XS');
+    expect(mapParticipantCountToSizeClass(250)).toBe('XL');
+    expect(resolveAreaPromptKind('EASY')).toBe('strength');
+    expect(resolveAreaPromptKind('HARD')).toBe('hurdle');
+  });
+
+  it('validiert Primärantwort und Bereich je Survey', () => {
+    const key = 'POST_SESSION_EASE_HOST_V1' as const;
+    expect(isPrimaryAnswerAllowedForSurvey(key, 'EASY')).toBe(true);
+    expect(isPrimaryAnswerAllowedForSurvey(key, 'YES')).toBe(false);
+    expect(isAreaAllowedForSurvey(key, 'PREPARE_QUIZ')).toBe(true);
+    expect(isAreaAllowedForSurvey(key, 'JOIN')).toBe(false);
+    expect(getProductFeedbackSurveyDefinition(key).primaryAnswers).toHaveLength(3);
+  });
+});
+
+describe('productFeedback router', () => {
+  beforeEach(() => {
+    redisStore.clear();
+    vi.clearAllMocks();
+  });
+
+  trpcDodIt(
+    {
+      procedure: 'productFeedback.claimInvite',
+      case: 'happy',
+      mode: 'direct',
+      title: 'liefert null ohne Einladung',
+    },
+    async () => {
+      prismaMock.session.findUnique.mockResolvedValue({
+        id: 'sess-1',
+        status: 'FINISHED',
+      });
+      prismaMock.participant.findFirst.mockResolvedValue({ id: 'part-1' });
+      const out = await publicCaller.claimInvite({
+        sessionCode: 'ABC123',
+        role: 'PARTICIPANT',
+        participantId: '11111111-1111-4111-8111-111111111111',
+      });
+      expect(out.inviteToken).toBeNull();
+      expect(out.survey).toBeNull();
+    },
+  );
+
+  trpcDodIt(
+    {
+      procedure: 'productFeedback.submit',
+      case: 'error',
+      mode: 'direct',
+      contract: 'NOT_FOUND',
+      title: 'lehnt ungültiges Invite-Token ab',
+    },
+    async () => {
+      await expect(
+        publicCaller.submit({
+          inviteToken: 'missing-token-value-xx',
+          primaryAnswer: 'EASY',
+          area: 'JOIN',
+          locale: 'de',
+          deviceClass: 'DESKTOP',
+          idempotencyKey: '22222222-2222-4222-8222-222222222222',
+        }),
+      ).rejects.toMatchObject({ code: 'NOT_FOUND' });
+    },
+  );
+});
+
+describe('createInviteTokensForSession', () => {
+  beforeEach(() => {
+    redisStore.clear();
+    vi.clearAllMocks();
+  });
+
+  it('stellt Host- und Participant-Invites aus und speichert ohne Session-ID in späteren Claim-Slots', async () => {
+    prismaMock.session.findUnique.mockResolvedValue({
+      id: 'sess-1',
+      code: 'ABC123',
+      status: 'FINISHED',
+      quizStarted: true,
+      _count: { participants: 5 },
+    });
+    prismaMock.$queryRaw.mockResolvedValue([
+      { participantId: 'p1', source: 'vote' },
+      { participantId: 'p2', source: 'vote' },
+      { participantId: 'p3', source: 'vote' },
+    ]);
+
+    const result = await createInviteTokensForSession('sess-1');
+    expect(result.hostInvite).toBe(true);
+    expect(result.participantInvites).toBeGreaterThanOrEqual(1);
+
+    const hostSlot = buildSlotKeyForTests('sess-1', 'HOST', 'host');
+    expect(redisStore.has(hostSlot)).toBe(true);
+    const token = redisStore.get(hostSlot)!;
+    const payloadRaw = redisStore.get(`productFeedback:token:v1:${hashToken(token)}`);
+    expect(payloadRaw).toBeTruthy();
+    const payload = JSON.parse(payloadRaw!) as { sessionId: string; used: boolean };
+    expect(payload.sessionId).toBe('sess-1'); // nur Redis, nicht PG
+    expect(payload.used).toBe(false);
+  });
+});
+
+describe('admin productFeedback stats', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  it('unterdrückt feine Segmente unter MIN_SEGMENT', async () => {
+    prismaMock.productFeedback.count.mockResolvedValue(6);
+    prismaMock.productFeedback.groupBy.mockImplementation(async (args: { by: string[] }) => {
+      if (args.by.length === 2) {
+        return [
+          { surveyKey: 'POST_SESSION_EASE_HOST_V1', primaryAnswer: 'EASY', _count: { _all: 4 } },
+          { surveyKey: 'POST_SESSION_EASE_HOST_V1', primaryAnswer: 'HARD', _count: { _all: 5 } },
+        ];
+      }
+      if (args.by[0] === 'primaryAnswer') {
+        return [
+          { primaryAnswer: 'EASY', _count: { _all: 4 } },
+          { primaryAnswer: 'HARD', _count: { _all: 2 } },
+        ];
+      }
+      return [];
+    });
+
+    const stats = await buildProductFeedbackAdminStats({});
+    expect(stats.totals).toBe(6);
+    expect(
+      stats.bySurveyAndPrimary.every((r) => r.count >= PRODUCT_FEEDBACK_ADMIN_MIN_SEGMENT),
+    ).toBe(true);
+    expect(stats.bySurveyAndPrimary).toHaveLength(1);
+  });
+
+  it('liefert leere Admin-Stats', async () => {
+    prismaMock.productFeedback.count.mockResolvedValue(0);
+    prismaMock.productFeedback.groupBy.mockResolvedValue([]);
+    const out = await buildProductFeedbackAdminStats({});
+    expect(out.totals).toBe(0);
+    expect(out.byPrimaryAnswer).toEqual([]);
+  });
+});

@@ -1,0 +1,43 @@
+.admin-product-feedback-panel {
+  display: block;
+}
+
+.admin-pf {
+  display: grid;
+  gap: 1rem;
+}
+
+.admin-pf__header {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.admin-pf__header h2 {
+  margin: 0;
+  font: var(--mat-sys-title-large);
+  font-weight: 700;
+}
+
+.admin-pf__grid {
+  display: grid;
+  gap: 0.75rem;
+  grid-template-columns: repeat(auto-fit, minmax(14rem, 1fr));
+}
+
+.admin-pf__total {
+  margin: 0;
+  font: var(--mat-sys-display-small);
+  font-weight: 700;
+}
+
+.admin-pf__error {
+  color: var(--mat-sys-error);
+}
+
+.admin-pf ul {
+  margin: 0;
+  padding-inline-start: 1.1rem;
+}

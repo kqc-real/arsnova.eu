@@ -1,0 +1,193 @@
+/* ProductFeedback — MD3, Dual-Layer-fähig (Seriös-Basis). */
+.product-feedback-card-host {
+  display: block;
+}
+
+.product-feedback-card {
+  display: grid;
+  gap: 1rem;
+  padding: 1rem 1.125rem 1.125rem;
+  border-radius: var(--mat-sys-corner-large);
+  border: 1px solid var(--mat-sys-outline-variant);
+  background: var(--mat-sys-surface-container-low);
+  color: var(--mat-sys-on-surface);
+}
+
+.product-feedback-card--sheet {
+  box-shadow: var(--mat-sys-level2);
+  border-color: color-mix(in srgb, var(--mat-sys-primary) 28%, var(--mat-sys-outline-variant));
+}
+
+.product-feedback-card__header {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  gap: 0.75rem;
+  align-items: start;
+}
+
+.product-feedback-card__icon {
+  color: var(--mat-sys-primary);
+  font-size: 1.75rem;
+  width: 1.75rem;
+  height: 1.75rem;
+  margin-top: 0.125rem;
+}
+
+.product-feedback-card__title {
+  margin: 0;
+  font: var(--mat-sys-title-medium);
+  font-weight: 700;
+  color: var(--mat-sys-on-surface);
+}
+
+.product-feedback-card__lead {
+  margin: 0.25rem 0 0;
+  font: var(--mat-sys-body-medium);
+  color: var(--mat-sys-on-surface-variant);
+}
+
+.product-feedback-card__close {
+  margin: -0.35rem -0.35rem 0 0;
+}
+
+.product-feedback-card__group {
+  margin: 0;
+  padding: 0;
+  border: 0;
+  min-inline-size: 0;
+}
+
+.product-feedback-card__question {
+  margin: 0 0 0.75rem;
+  padding: 0;
+  font: var(--mat-sys-title-small);
+  font-weight: 700;
+  color: var(--mat-sys-on-surface);
+}
+
+.product-feedback-card__choices {
+  display: grid;
+  gap: 0.5rem;
+}
+
+.product-feedback-card__choices--wrap {
+  grid-template-columns: repeat(auto-fit, minmax(10.5rem, 1fr));
+}
+
+.product-feedback-card__choice {
+  min-height: 44px;
+  justify-content: center;
+  text-align: center;
+  white-space: normal;
+  line-height: 1.25;
+  border-radius: var(--mat-sys-corner-medium) !important;
+}
+
+.product-feedback-card__choice--area {
+  justify-content: flex-start;
+  text-align: start;
+}
+
+.product-feedback-card__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  align-items: center;
+}
+
+.product-feedback-card__actions .mdc-button {
+  min-height: 44px;
+}
+
+.product-feedback-card__thanks-text,
+.product-feedback-card__done {
+  margin: 0;
+  font: var(--mat-sys-body-large);
+}
+
+.product-feedback-card__privacy {
+  margin: 0.5rem 0 0;
+  font: var(--mat-sys-body-small);
+  color: var(--mat-sys-on-surface-variant);
+}
+
+.product-feedback-card__message-label {
+  display: block;
+  margin-bottom: 0.35rem;
+  font: var(--mat-sys-label-large);
+}
+
+.product-feedback-card__textarea {
+  width: 100%;
+  box-sizing: border-box;
+  min-height: 5.5rem;
+  padding: 0.75rem;
+  border-radius: var(--mat-sys-corner-medium);
+  border: 1px solid var(--mat-sys-outline);
+  background: var(--mat-sys-surface);
+  color: var(--mat-sys-on-surface);
+  font: var(--mat-sys-body-medium);
+  resize: vertical;
+}
+
+.product-feedback-card__textarea:focus-visible {
+  outline: 2px solid var(--mat-sys-primary);
+  outline-offset: 2px;
+}
+
+.product-feedback-card__counter {
+  margin: 0.25rem 0 0;
+  font: var(--mat-sys-label-small);
+  color: var(--mat-sys-on-surface-variant);
+  text-align: end;
+}
+
+.product-feedback-card__status {
+  margin: 0;
+  font: var(--mat-sys-body-small);
+  color: var(--mat-sys-on-surface-variant);
+}
+
+.product-feedback-card__never {
+  justify-self: start;
+  min-height: 44px;
+  color: var(--mat-sys-on-surface-variant);
+}
+
+.product-feedback-card__loading {
+  display: grid;
+  place-items: center;
+  min-height: 3rem;
+}
+
+@media (max-width: 599.98px) {
+  .product-feedback-card--sheet {
+    border-radius: var(--mat-sys-corner-large) var(--mat-sys-corner-large) 0 0;
+  }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .product-feedback-card {
+    animation: product-feedback-in 220ms ease-out;
+  }
+}
+
+@keyframes product-feedback-in {
+  from {
+    opacity: 0;
+    transform: translateY(0.35rem);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+html.preset-playful .product-feedback-card {
+  border-color: color-mix(in srgb, var(--mat-sys-primary) 35%, var(--mat-sys-outline-variant));
+  background: color-mix(
+    in srgb,
+    var(--mat-sys-primary-container) 22%,
+    var(--mat-sys-surface-container-low)
+  );
+}

@@ -31,6 +31,7 @@ import {
 import { MarkdownImageLightboxDirective } from '../../shared/markdown-image-lightbox/markdown-image-lightbox.directive';
 import { AdminMotdPanelComponent } from './admin-motd-panel.component';
 import { AdminMonitoringPanelComponent } from './admin-monitoring-panel.component';
+import { AdminProductFeedbackPanelComponent } from './admin-product-feedback-panel.component';
 import { getAdminToken, setAdminToken } from '../../core/trpc.client';
 import type {
   AdminSessionDetailDTO,
@@ -78,6 +79,7 @@ const ADMIN_SESSION_GROUP_ORDER: readonly SessionStatus[] = [
     MarkdownImageLightboxDirective,
     AdminMotdPanelComponent,
     AdminMonitoringPanelComponent,
+    AdminProductFeedbackPanelComponent,
   ],
   templateUrl: './admin.component.html',
   styleUrl: './admin.component.scss',
