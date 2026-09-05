@@ -15,6 +15,7 @@ import {
   AddQuestionInputSchema,
   CreateQuizInputSchema,
   DifficultyEnum,
+  MotifImageCreditSchema,
   MotifImageUrlSchema,
   NicknameThemeEnum,
   QuizImportSchema,
@@ -173,6 +174,8 @@ export interface QuizDocument {
   description: string | null;
   /** HTTPS-URL, optionales Motivbild (Host, Quiz-Kanal). */
   motifImageUrl: string | null;
+  /** Optionaler Bildnachweis zum Motivbild (Lobby / Quizstart). */
+  motifImageCredit: string | null;
   createdAt: string;
   updatedAt: string;
   updatedByDeviceId?: string | null;
@@ -316,6 +319,7 @@ export interface CreateQuizDocumentInput {
   name: string;
   description?: string;
   motifImageUrl?: string | null;
+  motifImageCredit?: string | null;
   settings?: Partial<QuizSettings>;
 }
 
@@ -568,6 +572,7 @@ const QuizMetadataSchema = CreateQuizInputSchema.pick({
   name: true,
   description: true,
   motifImageUrl: true,
+  motifImageCredit: true,
 });
 
 const QuizSettingsSchema = CreateQuizInputSchema.pick({
@@ -1227,6 +1232,7 @@ export class QuizStoreService implements OnDestroy {
       name: input.name.trim(),
       description: normalizeDescription(input.description),
       motifImageUrl: normalizeMotifImageUrlInput(input.motifImageUrl),
+      motifImageCredit: normalizeMotifImageCreditInput(input.motifImageCredit),
     });
 
     if (!parsed.success) {
@@ -1241,6 +1247,7 @@ export class QuizStoreService implements OnDestroy {
       name: parsed.data.name,
       description: parsed.data.description ?? null,
       motifImageUrl: parsed.data.motifImageUrl ?? null,
+      motifImageCredit: parsed.data.motifImageCredit ?? null,
       createdAt: now,
       updatedAt: now,
       ...this.currentQuizUpdateSource(),
@@ -1257,12 +1264,18 @@ export class QuizStoreService implements OnDestroy {
 
   updateQuizMetadata(
     quizId: string,
-    input: { name: string; description?: string | null; motifImageUrl?: string | null },
+    input: {
+      name: string;
+      description?: string | null;
+      motifImageUrl?: string | null;
+      motifImageCredit?: string | null;
+    },
   ): QuizDocument {
     const parsed = QuizMetadataSchema.safeParse({
       name: input.name.trim(),
       description: normalizeDescription(input.description),
       motifImageUrl: normalizeMotifImageUrlInput(input.motifImageUrl),
+      motifImageCredit: normalizeMotifImageCreditInput(input.motifImageCredit),
     });
     if (!parsed.success) {
       const message = parsed.error.issues[0]?.message ?? $localize`Ungültige Quiz-Metadaten.`;
@@ -1281,6 +1294,7 @@ export class QuizStoreService implements OnDestroy {
       name: parsed.data.name,
       description: parsed.data.description ?? null,
       motifImageUrl: parsed.data.motifImageUrl ?? null,
+      motifImageCredit: parsed.data.motifImageCredit ?? null,
       updatedAt,
       ...this.currentQuizUpdateSource(),
     };
@@ -1418,6 +1432,7 @@ export class QuizStoreService implements OnDestroy {
         name: document.name,
         ...(document.description ? { description: document.description } : {}),
         ...(document.motifImageUrl ? { motifImageUrl: document.motifImageUrl } : {}),
+        ...(document.motifImageCredit ? { motifImageCredit: document.motifImageCredit } : {}),
         showLeaderboard: document.settings.showLeaderboard,
         allowCustomNicknames: document.settings.allowCustomNicknames,
         defaultTimer: document.settings.defaultTimer,
@@ -1609,6 +1624,7 @@ export class QuizStoreService implements OnDestroy {
       name: document.name,
       ...(description ? { description } : {}),
       motifImageUrl: normalizeMotifImageUrlInput(document.motifImageUrl) ?? null,
+      motifImageCredit: normalizeMotifImageCreditInput(document.motifImageCredit) ?? null,
       showLeaderboard: document.settings.showLeaderboard,
       allowCustomNicknames: document.settings.allowCustomNicknames,
       defaultTimer: document.settings.defaultTimer,
@@ -1746,6 +1762,7 @@ export class QuizStoreService implements OnDestroy {
       name: quizData.name.trim(),
       description: normalizeDescription(quizData.description),
       motifImageUrl: normalizeMotifImageUrlInput(quizData.motifImageUrl),
+      motifImageCredit: normalizeMotifImageCreditInput(quizData.motifImageCredit),
     });
     if (!metadata.success) {
       const message = metadata.error.issues[0]?.message ?? $localize`Ungültige Import-Datei.`;
@@ -1758,6 +1775,7 @@ export class QuizStoreService implements OnDestroy {
       name: metadata.data.name,
       description: metadata.data.description ?? null,
       motifImageUrl: metadata.data.motifImageUrl ?? null,
+      motifImageCredit: metadata.data.motifImageCredit ?? null,
       createdAt: now,
       updatedAt: now,
       ...this.currentQuizUpdateSource(),
@@ -3235,6 +3253,15 @@ function normalizeMotifImageUrlInput(value: string | null | undefined): string |
   return t.length === 0 ? null : t;
 }
 
+function normalizeMotifImageCreditInput(
+  value: string | null | undefined,
+): string | null | undefined {
+  if (value === undefined) return undefined;
+  if (value === null) return null;
+  const t = String(value).trim();
+  return t.length === 0 ? null : t;
+}
+
 function readStoredMotifImageUrl(raw: unknown): string | null | undefined {
   if (raw === undefined) return undefined;
   if (raw === null) return null;
@@ -3242,6 +3269,15 @@ function readStoredMotifImageUrl(raw: unknown): string | null | undefined {
   const t = raw.trim();
   if (!t) return null;
   return MotifImageUrlSchema.safeParse(t).success ? t : null;
+}
+
+function readStoredMotifImageCredit(raw: unknown): string | null | undefined {
+  if (raw === undefined) return undefined;
+  if (raw === null) return null;
+  if (typeof raw !== 'string') return null;
+  const t = raw.trim();
+  if (!t) return null;
+  return MotifImageCreditSchema.safeParse(t).success ? t : null;
 }
 
 function normalizeStoredQuiz(value: unknown): QuizDocument | null {
@@ -3268,6 +3304,7 @@ function normalizeStoredQuiz(value: unknown): QuizDocument | null {
     name: candidate['name'],
     description,
     motifImageUrl: readStoredMotifImageUrl(candidate['motifImageUrl']),
+    motifImageCredit: readStoredMotifImageCredit(candidate['motifImageCredit']),
   });
   if (!metadata.success) return null;
 
@@ -3296,6 +3333,7 @@ function normalizeStoredQuiz(value: unknown): QuizDocument | null {
     name: metadata.data.name,
     description: metadata.data.description ?? null,
     motifImageUrl: metadata.data.motifImageUrl ?? null,
+    motifImageCredit: metadata.data.motifImageCredit ?? null,
     createdAt,
     updatedAt,
     updatedByDeviceId: readStringOrNull(candidate['updatedByDeviceId']) ?? null,

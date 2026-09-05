@@ -149,7 +149,7 @@ Jedes Quiz kann folgende Metadaten besitzen:
 
 - Name
 - Beschreibung
-- optionales Motivbild per URL oder Asset-Pfad
+- optionales Motivbild per URL oder Asset-Pfad inkl. optionalem Bildnachweis
 
 Die Beschreibung und Fragetexte unterstützen **Markdown** und **KaTeX**.
 

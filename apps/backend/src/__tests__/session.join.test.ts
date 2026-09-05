@@ -120,6 +120,7 @@ function buildSession() {
       teamAssignment: 'AUTO',
       teamNames: [],
       motifImageUrl: null,
+      motifImageCredit: null,
     },
     _count: { participants: 3 },
   };

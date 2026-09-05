@@ -8635,6 +8635,22 @@
           <context context-type="linenumber">97</context>
         </context-group>
       </trans-unit>
+      <trans-unit id="quizForm.motifImageCreditLabel" datatype="html">
+        <source>Bildnachweis zum Motivbild (optional)</source>
+        <target>Credito dell’immagine motivo (facoltativo)</target>
+      </trans-unit>
+      <trans-unit id="quizForm.motifImageCreditPlaceholder" datatype="html">
+        <source>z. B. Pass / Le Brun (1821), via Wikimedia Commons</source>
+        <target>es. Pass / Le Brun (1821), via Wikimedia Commons</target>
+      </trans-unit>
+      <trans-unit id="quizForm.motifImageCreditAria" datatype="html">
+        <source>Optionaler Bildnachweis zum Motivbild</source>
+        <target>Credito facoltativo dell’immagine motivo</target>
+      </trans-unit>
+      <trans-unit id="quizForm.motifImageCreditErrorMax" datatype="html">
+        <source>Der Nachweis darf maximal 300 Zeichen lang sein.</source>
+        <target>Il credito può contenere al massimo 300 caratteri.</target>
+      </trans-unit>
       <trans-unit id="3241474076591504793" datatype="html">
         <source>Gespeichert.</source>
         <target>Salvato.</target>

@@ -5,7 +5,7 @@ import { getDemoQuizPayload, getDemoQuizSeedFingerprint } from './demo-quiz-payl
 describe('getDemoQuizSeedFingerprint', () => {
   it('ändert sich mit exportVersion, Motiv-URL und komplettem Payload (Demo-Reseed)', () => {
     const de = getDemoQuizSeedFingerprint('de');
-    expect(de).toMatch(/^de\|29\|/);
+    expect(de).toMatch(/^de\|30\|/);
     expect(de).toContain(
       'https://upload.wikimedia.org/wikipedia/commons/b/b4/Sixteen_faces_expressing_the_human_passions._Wellcome_L0068375_%28cropped%29.jpg',
     );
@@ -15,8 +15,9 @@ describe('getDemoQuizSeedFingerprint', () => {
   it('nennt die Bildquelle unter dem Emotionsbild der ersten Frage', () => {
     for (const locale of ['de', 'en', 'fr', 'es', 'it'] as const) {
       const payload = getDemoQuizPayload(locale) as {
-        quiz?: { questions?: Array<{ text?: string }> };
+        quiz?: { motifImageCredit?: string | null; questions?: Array<{ text?: string }> };
       };
+      expect(payload.quiz?.motifImageCredit).toBe('Pass / Le Brun (1821), via Wikimedia Commons');
       expect(payload.quiz?.questions?.[0]?.text).toContain(
         '[credit] Pass / Le Brun (1821), via Wikimedia Commons',
       );
@@ -73,7 +74,7 @@ describe('getDemoQuizSeedFingerprint', () => {
         (question) => question.type === 'NUMERIC_ESTIMATE' && question.text?.includes(headline),
       );
 
-      expect(payload.exportVersion).toBe(29);
+      expect(payload.exportVersion).toBe(30);
       expect(payload.quiz?.questions).toHaveLength(13);
       expect(estimateQuestion?.text).toContain(headline);
       expect(estimateQuestion).toMatchObject({

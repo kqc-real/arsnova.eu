@@ -21,6 +21,7 @@ describe('QuizEditComponent', { timeout: 30_000 }, () => {
     name: 'Test-Quiz',
     description: 'Beschreibung',
     motifImageUrl: null,
+    motifImageCredit: null,
     createdAt: '2026-03-08T12:00:00.000Z',
     updatedAt: '2026-03-08T12:00:00.000Z',
     settings: {
@@ -509,6 +510,7 @@ describe('QuizEditComponent', { timeout: 30_000 }, () => {
       name: 'Gespeicherter Titel',
       description: 'Beschreibung',
       motifImageUrl: null,
+      motifImageCredit: null,
     });
     expect(component.hasPendingChanges()).toBe(false);
   });
@@ -556,6 +558,7 @@ describe('QuizEditComponent', { timeout: 30_000 }, () => {
       name: 'Neuer Titel',
       description: 'Beschreibung',
       motifImageUrl: null,
+      motifImageCredit: null,
     });
     expect(snackBarMock.open.mock.calls[0]?.[0]).toContain('Vorschau');
     expect(snackBarMock.open.mock.calls[0]?.[0]).toContain('Live-Quiz');
@@ -1895,6 +1898,7 @@ describe('QuizEditComponent', { timeout: 30_000 }, () => {
       name: 'Aktualisierter Name',
       description: 'Neue Beschreibung',
       motifImageUrl: null,
+      motifImageCredit: null,
     });
     expect(component.metadataSaved()).toBe(true);
   });
@@ -1939,6 +1943,7 @@ describe('QuizEditComponent', { timeout: 30_000 }, () => {
       name: 'Aktualisiertes Quiz',
       description: 'Neue Beschreibung',
       motifImageUrl: null,
+      motifImageCredit: null,
     });
     mockStore.updateQuizSettings.mockReturnValue({
       ...quiz.settings,
@@ -1970,6 +1975,7 @@ describe('QuizEditComponent', { timeout: 30_000 }, () => {
       name: 'Aktualisiertes Quiz',
       description: 'Neue Beschreibung',
       motifImageUrl: null,
+      motifImageCredit: null,
     });
     expect(mockStore.updateQuizSettings).toHaveBeenCalledWith(
       QUIZ_ID,

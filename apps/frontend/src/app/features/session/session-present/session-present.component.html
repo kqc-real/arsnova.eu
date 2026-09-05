@@ -445,6 +445,11 @@
                   referrerpolicy="strict-origin-when-cross-origin"
                   (error)="onPresenterImageError($event)"
                 />
+                @if (session()?.quizMotifImageCredit; as motifCredit) {
+                  <figcaption class="session-present__lobby-motif-credit">
+                    {{ motifCredit }}
+                  </figcaption>
+                }
               </figure>
             }
 
@@ -676,6 +681,7 @@
         [participantCount]="session()?.participantCount ?? 0"
         [countdownSeconds]="countdownSeconds()"
         [motifImageUrl]="session()?.quizMotifImageUrl ?? null"
+        [motifImageCredit]="session()?.quizMotifImageCredit ?? null"
         [emojiReactions]="emojiReactions()"
       />
     }

@@ -520,6 +520,7 @@ describe('SessionProjectionQuizComponent', () => {
   it('zeigt das Quiz-Motivbild nur bei der ersten Frage ohne eigenes Bild', () => {
     fixture.componentRef.setInput('question', choiceQuestion({ text: '### Ohne Bild' }));
     fixture.componentRef.setInput('motifImageUrl', 'https://example.com/motif.jpg');
+    fixture.componentRef.setInput('motifImageCredit', 'Pass / Le Brun');
     fixture.componentRef.setInput('status', 'ACTIVE');
     fixture.detectChanges();
 
@@ -527,6 +528,10 @@ describe('SessionProjectionQuizComponent', () => {
       '.session-projection-quiz__visual img',
     ) as HTMLImageElement | null;
     expect(img?.getAttribute('src')).toBe('https://example.com/motif.jpg');
+    const credit = fixture.nativeElement.querySelector(
+      '.session-projection-quiz__visual-credit',
+    ) as HTMLElement | null;
+    expect(credit?.textContent?.trim()).toBe('Pass / Le Brun');
   });
 
   it('blendet das Quiz-Motivbild ab der zweiten Frage aus', () => {

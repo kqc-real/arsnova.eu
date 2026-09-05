@@ -624,7 +624,7 @@
               <section class="session-lobby__hero-card">
                 <h1 class="session-lobby__hero-title">{{ heading }}</h1>
                 @if (activeChannel() === 'quiz' && session()?.quizMotifImageUrl; as motifUrl) {
-                  <div class="session-lobby__quiz-motif-wrap">
+                  <figure class="session-lobby__quiz-motif-wrap">
                     <img
                       class="session-lobby__quiz-motif"
                       [src]="motifUrl"
@@ -636,7 +636,12 @@
                       referrerpolicy="strict-origin-when-cross-origin"
                       (error)="onHostQuizMotifError($event)"
                     />
-                  </div>
+                    @if (session()?.quizMotifImageCredit; as motifCredit) {
+                      <figcaption class="session-lobby__quiz-motif-credit">
+                        {{ motifCredit }}
+                      </figcaption>
+                    }
+                  </figure>
                 }
                 <div class="session-lobby__actions session-lobby__actions--hero">
                   <button
@@ -3414,7 +3419,7 @@
               } @else {
                 @if (isQuizAwaitingFirstQuestion()) {
                   @if (session()?.quizMotifImageUrl; as runMotifUrl) {
-                    <div class="session-host__run-quiz-motif-wrap">
+                    <figure class="session-host__run-quiz-motif-wrap">
                       <img
                         class="session-host__run-quiz-motif"
                         [src]="runMotifUrl"
@@ -3426,7 +3431,12 @@
                         referrerpolicy="strict-origin-when-cross-origin"
                         (error)="onHostQuizMotifError($event)"
                       />
-                    </div>
+                      @if (session()?.quizMotifImageCredit; as runMotifCredit) {
+                        <figcaption class="session-host__run-quiz-motif-credit">
+                          {{ runMotifCredit }}
+                        </figcaption>
+                      }
+                    </figure>
                   }
                 } @else if (isHostQuestionDetailsPending()) {
                   <p class="session-host__no-question" i18n="@@sessionHost.questionDetailsPending">

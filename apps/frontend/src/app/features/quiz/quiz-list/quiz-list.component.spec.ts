@@ -63,6 +63,7 @@ describe('QuizListComponent', () => {
     name: 'Datenbanken',
     description: undefined,
     motifImageUrl: null,
+    motifImageCredit: null,
     showLeaderboard: true,
     allowCustomNicknames: true,
     defaultTimer: null,

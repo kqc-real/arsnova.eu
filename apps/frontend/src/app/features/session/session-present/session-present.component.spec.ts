@@ -1594,6 +1594,7 @@ describe('SessionPresentComponent', () => {
       participantCount: 3,
       teamMode: false,
       quizMotifImageUrl: 'https://example.com/motif.jpg',
+      quizMotifImageCredit: 'Pass / Le Brun (1821), via Wikimedia Commons',
     });
     liveQueryMock.mockResolvedValue({
       sessionId: '6a8edced-5f8f-4cfa-9176-454fac9570ad',
@@ -1622,6 +1623,10 @@ describe('SessionPresentComponent', () => {
       '.session-present__lobby-motif',
     ) as HTMLImageElement | null;
     expect(motif?.getAttribute('src')).toBe('https://example.com/motif.jpg');
+    const motifCredit = fixture.nativeElement.querySelector(
+      '.session-present__lobby-motif-credit',
+    ) as HTMLElement | null;
+    expect(motifCredit?.textContent?.trim()).toBe('Pass / Le Brun (1821), via Wikimedia Commons');
     expect(fixture.nativeElement.querySelector('.session-present__lobby-join-stack')).toBeTruthy();
     expect(
       fixture.nativeElement.querySelector('.session-present__lobby-stage--with-motif'),

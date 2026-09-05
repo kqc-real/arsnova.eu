@@ -97,6 +97,32 @@
             <mat-error i18n="@@quizForm.motifImageUrlErrorInvalid">Ungültige URL.</mat-error>
           }
         </mat-form-field>
+        <mat-form-field appearance="outline" floatLabel="always">
+          <mat-label i18n="@@quizForm.motifImageCreditLabel"
+            >Bildnachweis zum Motivbild (optional)</mat-label
+          >
+          <input
+            matInput
+            formControlName="motifImageCredit"
+            [maxlength]="motifImageCreditMaxLength"
+            autocomplete="off"
+            i18n-placeholder="@@quizForm.motifImageCreditPlaceholder"
+            placeholder="z. B. Pass / Le Brun (1821), via Wikimedia Commons"
+            i18n-aria-label="@@quizForm.motifImageCreditAria"
+            aria-label="Optionaler Bildnachweis zum Motivbild"
+          />
+          <mat-hint align="end"
+            >{{ motifImageCreditControl.value.length }}/{{ motifImageCreditMaxLength }}</mat-hint
+          >
+          @if (
+            motifImageCreditControl.hasError('maxlength') &&
+            (motifImageCreditControl.touched || submitted())
+          ) {
+            <mat-error i18n="@@quizForm.motifImageCreditErrorMax"
+              >Der Nachweis darf maximal 300 Zeichen lang sein.</mat-error
+            >
+          }
+        </mat-form-field>
 
         <div class="quiz-form__settings-toggle">
           <button mat-button type="button" (click)="showSettings.set(!showSettings())">

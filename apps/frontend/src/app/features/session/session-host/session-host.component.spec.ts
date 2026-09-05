@@ -209,6 +209,7 @@ const defaultSession = {
   serverTime: '2026-03-24T12:00:00.000Z',
   quizName: 'Demo Quiz',
   quizMotifImageUrl: null as string | null,
+  quizMotifImageCredit: null as string | null,
   title: null,
   participantCount: 0,
   nicknameTheme: 'HIGH_SCHOOL' as const,
@@ -252,6 +253,7 @@ const quizStoreMock = {
           name: 'Quiz Sammlung',
           description: 'Mitgebrachte Fragen',
           motifImageUrl: null,
+          motifImageCredit: null,
           createdAt: '2026-03-20T12:00:00.000Z',
           updatedAt: '2026-03-24T12:00:00.000Z',
           settings: {
@@ -282,6 +284,7 @@ const quizStoreMock = {
             name: 'Team Quiz',
             description: 'Nur für Teams',
             motifImageUrl: null,
+            motifImageCredit: null,
             createdAt: '2026-03-21T12:00:00.000Z',
             updatedAt: '2026-03-25T12:00:00.000Z',
             settings: {
@@ -312,6 +315,7 @@ const quizStoreMock = {
               name: 'Demo Quiz',
               description: 'Showcase',
               motifImageUrl: null,
+              motifImageCredit: null,
               createdAt: '2026-03-21T12:00:00.000Z',
               updatedAt: '2026-03-25T12:00:00.000Z',
               settings: {
@@ -508,6 +512,7 @@ describe('SessionHostComponent', { timeout: 30_000 }, () => {
       name: 'Quiz Sammlung',
       description: 'Mitgebrachte Fragen',
       motifImageUrl: null,
+      motifImageCredit: null,
       showLeaderboard: true,
       allowCustomNicknames: true,
       defaultTimer: 30,

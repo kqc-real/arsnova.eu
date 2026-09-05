@@ -46,6 +46,7 @@ describe('QuizPreviewComponent', () => {
     name: 'Preview Quiz',
     description: null,
     motifImageUrl: null,
+    motifImageCredit: null,
     createdAt: '2026-03-08T12:00:00.000Z',
     updatedAt: '2026-03-08T12:00:00.000Z',
     settings: {
@@ -116,6 +117,7 @@ describe('QuizPreviewComponent', () => {
     historyScopeId: document.id,
     name: document.name,
     motifImageUrl: document.motifImageUrl,
+    motifImageCredit: document.motifImageCredit,
     showLeaderboard: document.settings.showLeaderboard,
     allowCustomNicknames: document.settings.allowCustomNicknames,
     defaultTimer: document.settings.defaultTimer,

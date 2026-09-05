@@ -1,10 +1,11 @@
 {
-  "exportVersion": 29,
+  "exportVersion": 30,
   "exportedAt": "2026-05-24T10:00:00.000Z",
   "quiz": {
     "name": "Dimostrazione didattica: quiz a squadre",
     "description": "![Dimostrazione didattica](https://upload.wikimedia.org/wikipedia/commons/2/2a/Pi-unrolled-720.gif)\n\n# Dimostrazione didattica\n\nQueste 13 domande presentano tutti i dieci formati di quiz di arsnova.eu in una sequenza dal vivo compatta. Puoi usare immagini, Markdown e KaTeX, raccogliere il grado di sicurezza dopo le domande valutate e proporre una domanda numerica in due turni di discussione.\n\nLa dimostrazione mostra anche come **ordinare passaggi**, **abbinare termini uno a uno**, **classificare esempi** e raccogliere risposte aperte e discuterle sotto forma di nuvola di parole. Dopo la rivelazione, soluzioni e distribuzioni evidenziano incertezze e abbinamenti confusi.\n\nTimer, squadre, classifica e codici bonus danno ritmo. Partecipa da un secondo dispositivo durante la dimostrazione, poi apri l’editor per esplorare ogni domanda.",
     "motifImageUrl": "https://upload.wikimedia.org/wikipedia/commons/b/b4/Sixteen_faces_expressing_the_human_passions._Wellcome_L0068375_%28cropped%29.jpg",
+    "motifImageCredit": "Pass / Le Brun (1821), via Wikimedia Commons",
     "showLeaderboard": true,
     "allowCustomNicknames": false,
     "defaultTimer": 30,

@@ -28,6 +28,7 @@ const QUIZ_INPUT = {
   name: 'Chemie',
   description: undefined,
   motifImageUrl: null,
+  motifImageCredit: null,
   showLeaderboard: true,
   allowCustomNicknames: true,
   defaultTimer: null,
