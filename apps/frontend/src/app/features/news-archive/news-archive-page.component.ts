@@ -24,7 +24,9 @@ import { MotdHeaderStateService } from '../../core/motd-header-state.service';
 import {
   getMotdArchiveReadItems,
   getMotdArchiveSeenUpToCursor,
+  getMotdArchiveUnreadItems,
   markMotdArchiveItemRead,
+  markMotdArchiveItemUnread,
   setMotdArchiveSeenUpToCursor,
 } from '../../core/motd-storage';
 import { resolveMotdAssetOrigin } from '../../core/motd-asset-origin';
@@ -122,11 +124,14 @@ export class NewsArchivePageComponent {
   readonly archiveMaxCursor = signal<MotdArchiveReadCursor | null>(null);
   readonly archiveUnreadCount = signal(0);
   readonly archiveReadItems = signal(getMotdArchiveReadItems());
+  readonly archiveUnreadItems = signal(getMotdArchiveUnreadItems());
   readonly titleById = signal<Record<string, string>>({});
   readonly htmlById = signal<Record<string, SafeHtml>>({});
 
   private readonly archiveItemFallbackTitle = $localize`:@@motd.archiveItemFallbackTitle:Archiv-Meldung`;
   private readonly archiveLoadError = $localize`:@@motd.archiveLoadError:Archiv konnte nicht geladen werden.`;
+  /** Steigt bei lokalen Lese-Mutationen; schützt vor veraltetem Live-Refresh-Zähler. */
+  private readStateEpoch = 0;
 
   constructor() {
     const data = inject(ActivatedRoute).snapshot.data['newsArchive'] as NewsArchiveInitialModel;
@@ -140,12 +145,15 @@ export class NewsArchivePageComponent {
     );
   }
 
-  private applyModel(data: NewsArchiveInitialModel): void {
+  private applyModel(data: NewsArchiveInitialModel, options?: { keepUnreadCount?: boolean }): void {
     this.items.set(sortMotdArchiveItemsNewFirst(data.items));
     this.nextCursor.set(data.nextCursor);
     this.archiveMaxCursor.set(data.archiveMaxCursor);
-    this.archiveUnreadCount.set(data.archiveUnreadCount);
+    if (!options?.keepUnreadCount) {
+      this.archiveUnreadCount.set(data.archiveUnreadCount);
+    }
     this.archiveReadItems.set(getMotdArchiveReadItems());
+    this.archiveUnreadItems.set(getMotdArchiveUnreadItems());
     this.titleById.set(data.titleById);
     this.htmlById.set(data.htmlById);
     this.error.set(data.errorMessage);
@@ -156,6 +164,7 @@ export class NewsArchivePageComponent {
    * Fehler lassen die SSG-/Resolver-Daten stehen (kein leeres Archiv bei Kurzausfall).
    */
   private async refreshFirstPageFromLiveApi(): Promise<void> {
+    const epochAtStart = this.readStateEpoch;
     try {
       const live = await loadNewsArchivePageModel(
         this.locale,
@@ -166,7 +175,9 @@ export class NewsArchivePageComponent {
       if (live.errorMessage && live.items.length === 0 && this.items().length > 0) {
         return;
       }
-      this.applyModel(live);
+      this.applyModel(live, {
+        keepUnreadCount: epochAtStart !== this.readStateEpoch,
+      });
     } catch {
       /* Prerender-/Resolver-Stand behalten */
     } finally {
@@ -225,12 +236,17 @@ export class NewsArchivePageComponent {
   }
 
   markArchiveAllRead(): void {
+    if (this.liveRefreshPending()) {
+      return;
+    }
     const max = this.effectiveArchiveMaxCursor();
     if (!max) {
       return;
     }
     setMotdArchiveSeenUpToCursor(max);
+    this.readStateEpoch += 1;
     this.archiveReadItems.set([]);
+    this.archiveUnreadItems.set([]);
     this.archiveUnreadCount.set(0);
     this.motdHeaderState.setArchiveUnreadCount(0);
     this.snackBar.open(
@@ -242,21 +258,46 @@ export class NewsArchivePageComponent {
   }
 
   isArchiveItemUnread(item: MotdArchiveItemDTO): boolean {
-    return isMotdArchiveItemUnread(item, getMotdArchiveSeenUpToCursor(), this.archiveReadItems());
+    return isMotdArchiveItemUnread(
+      item,
+      getMotdArchiveSeenUpToCursor(),
+      this.archiveReadItems(),
+      this.archiveUnreadItems(),
+    );
   }
 
   markArchiveItemRead(item: MotdArchiveItemDTO, event: Event): void {
     event.preventDefault();
     event.stopPropagation();
-    if (!this.isArchiveItemUnread(item)) {
+    if (this.liveRefreshPending() || !this.isArchiveItemUnread(item)) {
       return;
     }
     if (!markMotdArchiveItemRead(item.id, item.contentVersion)) {
       return;
     }
+    this.readStateEpoch += 1;
     this.archiveReadItems.set(getMotdArchiveReadItems());
+    this.archiveUnreadItems.set(getMotdArchiveUnreadItems());
     this.archiveUnreadCount.update((n) => Math.max(0, n - 1));
     this.motdHeaderState.decrementArchiveUnreadCount();
+    this.focusArchiveEntryTitle(event);
+    this.motdHeaderRefresh.notifyMotdHeaderRefresh();
+  }
+
+  markArchiveItemUnread(item: MotdArchiveItemDTO, event: Event): void {
+    event.preventDefault();
+    event.stopPropagation();
+    if (this.liveRefreshPending() || this.isArchiveItemUnread(item)) {
+      return;
+    }
+    if (!markMotdArchiveItemUnread(item)) {
+      return;
+    }
+    this.readStateEpoch += 1;
+    this.archiveReadItems.set(getMotdArchiveReadItems());
+    this.archiveUnreadItems.set(getMotdArchiveUnreadItems());
+    this.archiveUnreadCount.update((n) => n + 1);
+    this.motdHeaderState.incrementArchiveUnreadCount();
     this.focusArchiveEntryTitle(event);
     this.motdHeaderRefresh.notifyMotdHeaderRefresh();
   }

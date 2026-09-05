@@ -251,6 +251,42 @@ describe('quiz.upload (Story 2.1a)', () => {
     expect(prismaMock.quiz.create.mock.calls[0]![0].data.nicknameTheme).toBe('KINDERGARTEN');
   });
 
+  it('speichert motifImageUrl und motifImageCredit (HTTPS)', async () => {
+    const input = {
+      name: 'Mit Motiv',
+      motifImageUrl: 'https://example.com/bild.png' as const,
+      motifImageCredit: 'Pass / Le Brun (1821)' as const,
+      showLeaderboard: true,
+      allowCustomNicknames: true,
+      enableSoundEffects: true,
+      enableRewardEffects: true,
+      enableMotivationMessages: true,
+      enableEmojiReactions: true,
+      anonymousMode: false,
+      teamMode: false,
+      teamNames: [],
+      nicknameTheme: 'NOBEL_LAUREATES' as const,
+      questions: [
+        {
+          text: 'Frage',
+          type: 'SINGLE_CHOICE' as const,
+          difficulty: 'MEDIUM' as const,
+          order: 0,
+          answers: [{ text: 'A', isCorrect: true }],
+        },
+      ],
+    };
+
+    await caller.upload(input);
+
+    expect(prismaMock.quiz.create.mock.calls[0]![0].data.motifImageUrl).toBe(
+      'https://example.com/bild.png',
+    );
+    expect(prismaMock.quiz.create.mock.calls[0]![0].data.motifImageCredit).toBe(
+      'Pass / Le Brun (1821)',
+    );
+  });
+
   it('speichert motifImageUrl (HTTPS)', async () => {
     const input = {
       name: 'Mit Motiv',

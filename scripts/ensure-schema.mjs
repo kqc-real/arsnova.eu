@@ -162,6 +162,7 @@ const statements = [
 
   // Quiz: optionales Motivbild (HTTPS-URL), synchron zu Prisma-Migration 20260324120000
   `ALTER TABLE "Quiz" ADD COLUMN IF NOT EXISTS "motifImageUrl" TEXT`,
+  `ALTER TABLE "Quiz" ADD COLUMN IF NOT EXISTS "motifImageCredit" TEXT`,
 
   // Story 4.6: BonusToken-Tabelle
   `CREATE TABLE IF NOT EXISTS "BonusToken" (

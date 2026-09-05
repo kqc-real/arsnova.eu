@@ -33,6 +33,30 @@ describe('SessionProjectionQuizComponent', () => {
     fixture = TestBed.createComponent(SessionProjectionQuizComponent);
   });
 
+  it('trennt Frage und Antwortoptionen über MD3 primary-container vs. surface-container', () => {
+    const styles = readFileSync(
+      resolve(__dirname, 'session-projection-quiz.component.scss'),
+      'utf8',
+    );
+    const playful = readFileSync(
+      resolve(__dirname, '../../../../styles/playful-inner-chrome.scss'),
+      'utf8',
+    );
+
+    expect(styles).toMatch(/\.session-projection-quiz__question\s*\{[^}]*primary-container/s);
+    expect(styles).toMatch(/\.session-projection-quiz__stage\s*\{[^}]*surface-container-low/s);
+    expect(styles).toMatch(/\.session-projection-quiz__answer\s*\{[^}]*surface-container-lowest/s);
+    expect(styles).toMatch(
+      /\.session-projection-quiz__option-chip\s*\{[^}]*surface-container-lowest/s,
+    );
+    expect(playful).toMatch(
+      /\.session-present mat-card\.session-projection-quiz__question\s*\{[^}]*primary-container/s,
+    );
+    expect(playful).toMatch(
+      /\.session-present mat-card\.session-projection-quiz__stage[\s\S]*?app-playful-inner-panel-muted/,
+    );
+  });
+
   it('zeigt in der Lesephase den Fragetext ohne Antwortoptionen', () => {
     fixture.componentRef.setInput('question', choiceQuestion());
     fixture.componentRef.setInput('status', 'QUESTION_OPEN');
@@ -362,6 +386,14 @@ describe('SessionProjectionQuizComponent', () => {
     expect(text).toContain('Vögel');
     expect(text).toContain('Delfin');
     expect(text).toContain('Adler');
+    const categorizationSections = fixture.nativeElement.querySelectorAll(
+      '.session-projection-quiz__option-board > section',
+    ) as NodeListOf<HTMLElement>;
+    expect(categorizationSections).toHaveLength(2);
+    expect(categorizationSections[0]?.querySelector('h2')?.textContent ?? '').toContain('Elemente');
+    expect(categorizationSections[1]?.querySelector('h2')?.textContent ?? '').toContain(
+      'Kategorien',
+    );
   });
 
   it('zeigt Schwierigkeit und Letzte-Frage-Hinweis wie in der Abstimmung', () => {
@@ -520,6 +552,7 @@ describe('SessionProjectionQuizComponent', () => {
   it('zeigt das Quiz-Motivbild nur bei der ersten Frage ohne eigenes Bild', () => {
     fixture.componentRef.setInput('question', choiceQuestion({ text: '### Ohne Bild' }));
     fixture.componentRef.setInput('motifImageUrl', 'https://example.com/motif.jpg');
+    fixture.componentRef.setInput('motifImageCredit', 'Pass / Le Brun');
     fixture.componentRef.setInput('status', 'ACTIVE');
     fixture.detectChanges();
 
@@ -527,6 +560,10 @@ describe('SessionProjectionQuizComponent', () => {
       '.session-projection-quiz__visual img',
     ) as HTMLImageElement | null;
     expect(img?.getAttribute('src')).toBe('https://example.com/motif.jpg');
+    const credit = fixture.nativeElement.querySelector(
+      '.session-projection-quiz__visual-credit',
+    ) as HTMLElement | null;
+    expect(credit?.textContent?.trim()).toBe('Pass / Le Brun');
   });
 
   it('blendet das Quiz-Motivbild ab der zweiten Frage aus', () => {

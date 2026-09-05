@@ -83,6 +83,7 @@ export class SessionProjectionQuizComponent {
   );
 
   readonly motifImageUrl = input<string | null>(null);
+  readonly motifImageCredit = input<string | null>(null);
 
   readonly isReadingPhase = computed(() => this.status() === 'QUESTION_OPEN');
   readonly isActive = computed(() => this.status() === 'ACTIVE');
@@ -322,7 +323,7 @@ export class SessionProjectionQuizComponent {
     return {
       url: motif,
       alt: $localize`:@@sessionHost.quizMotifImageAlt:Motivbild zum Quiz`,
-      credit: null,
+      credit: this.motifImageCredit()?.trim() || null,
     };
   });
 

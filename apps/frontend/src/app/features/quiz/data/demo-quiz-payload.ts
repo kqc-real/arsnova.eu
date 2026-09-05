@@ -27,7 +27,12 @@ export function getDemoQuizPayload(locale: SupportedLocale): unknown {
 
 type DemoExportShape = {
   exportVersion?: number;
-  quiz?: { name?: string; description?: string | null; motifImageUrl?: string | null };
+  quiz?: {
+    name?: string;
+    description?: string | null;
+    motifImageUrl?: string | null;
+    motifImageCredit?: string | null;
+  };
 };
 
 /** FNV-1a 32-bit (sync) — für Demo-Seed-Fingerprint ohne async crypto. */

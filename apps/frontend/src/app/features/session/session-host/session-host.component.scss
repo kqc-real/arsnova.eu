@@ -2558,6 +2558,17 @@
   background: transparent;
 }
 
+.session-lobby__quiz-motif-credit {
+  margin: 0.35rem 0 0;
+  padding: 0 0.5rem 0.35rem;
+  text-align: center;
+  font-size: 0.75rem;
+  line-height: 1.3;
+  font-style: italic;
+  font-weight: 400;
+  color: var(--mat-sys-on-surface-variant);
+}
+
 .session-host__run-quiz-motif-wrap {
   margin: 0 auto 1rem;
   width: 100%;
@@ -2573,6 +2584,17 @@
   height: auto;
   object-fit: contain;
   background: transparent;
+}
+
+.session-host__run-quiz-motif-credit {
+  margin: 0.35rem 0 0;
+  padding: 0 0.5rem 0.35rem;
+  text-align: center;
+  font-size: 0.75rem;
+  line-height: 1.3;
+  font-style: italic;
+  font-weight: 400;
+  color: var(--mat-sys-on-surface-variant);
 }
 
 .session-lobby__label {
@@ -4529,9 +4551,15 @@
   scroll-margin-top: var(--session-host-toolbar-clearance);
   min-width: 0;
   border-radius: var(--mat-sys-corner-large);
-  border: 1px solid var(--mat-sys-outline-variant);
-  background: var(--mat-sys-surface-container-low);
-  box-shadow: var(--mat-sys-level1);
+  /*
+   * MD3-Fokusfläche: volles primary-container (Light/Dark/Paletten automatisch).
+   * Antwortoptionen bleiben auf neutralen surface-container-lowest – chromatisch
+   * getrennt, nicht nur eine Stufe auf der Grau-Leiter.
+   */
+  border: 1px solid color-mix(in srgb, var(--mat-sys-primary) 48%, var(--mat-sys-outline-variant));
+  background: var(--mat-sys-primary-container);
+  color: var(--mat-sys-on-primary-container);
+  box-shadow: var(--mat-sys-level2);
   position: relative;
   z-index: 1;
   overflow: hidden;
@@ -4554,6 +4582,69 @@
     min-width: 0;
     padding: 0 var(--session-host-shell-inline) 1.25rem;
   }
+
+  .session-host__question-subtitle {
+    color: color-mix(in srgb, var(--mat-sys-on-primary-container) 82%, transparent);
+  }
+
+  .session-host__question-title,
+  .session-host__question-title-inner {
+    color: var(--mat-sys-on-primary-container);
+  }
+
+  .session-host__question-badge {
+    background: color-mix(in srgb, var(--mat-sys-on-primary-container) 16%, transparent);
+    color: var(--mat-sys-on-primary-container);
+  }
+
+  .session-host__question-badge--difficulty {
+    background: color-mix(in srgb, var(--mat-sys-on-primary-container) 22%, transparent);
+    color: var(--mat-sys-on-primary-container);
+  }
+
+  .session-host__question-last-badge {
+    color: var(--mat-sys-on-primary-container);
+    background: color-mix(in srgb, var(--mat-sys-on-primary-container) 14%, transparent);
+  }
+
+  .session-host__question-phase {
+    border-color: color-mix(in srgb, var(--mat-sys-on-primary-container) 28%, transparent);
+    background: color-mix(in srgb, var(--mat-sys-surface) 88%, transparent);
+    color: var(--mat-sys-on-surface);
+  }
+
+  .session-host__question-phase-icon {
+    color: var(--mat-sys-primary);
+  }
+
+  /* Lese-Banner und Fortschritt brauchen Kontrast *innerhalb* der Fokusfläche. */
+  .session-host__reading-banner {
+    background: var(--mat-sys-surface);
+    color: var(--mat-sys-on-surface);
+    border-color: color-mix(in srgb, var(--mat-sys-primary) 40%, var(--mat-sys-outline-variant));
+  }
+
+  .session-host__reading-banner-icon,
+  .session-host__reading-banner-title {
+    color: var(--mat-sys-primary);
+  }
+
+  .session-host__reading-banner-hint {
+    color: var(--mat-sys-on-surface-variant);
+  }
+
+  .session-host__vote-progress {
+    border-color: color-mix(in srgb, var(--mat-sys-on-primary-container) 28%, transparent);
+    background: linear-gradient(
+      90deg,
+      color-mix(in srgb, var(--mat-sys-primary) 22%, var(--mat-sys-surface)) 0,
+      color-mix(in srgb, var(--mat-sys-primary) 22%, var(--mat-sys-surface))
+        var(--session-host-vote-progress-fill),
+      var(--mat-sys-surface) var(--session-host-vote-progress-fill),
+      var(--mat-sys-surface) 100%
+    );
+    color: var(--mat-sys-on-surface);
+  }
 }
 
 .session-host__results-wrap {
@@ -4574,7 +4665,7 @@
   box-sizing: border-box;
   border-radius: var(--mat-sys-corner-large);
   border: 1px solid var(--mat-sys-outline-variant);
-  background: var(--mat-sys-surface-container);
+  background: var(--mat-sys-surface-container-low);
   box-shadow: var(--mat-sys-level1);
 
   .mat-mdc-card-content {
@@ -4710,7 +4801,7 @@
   gap: 0.75rem;
   padding: 0.625rem 0.75rem;
   border-radius: var(--mat-sys-corner-small);
-  background: var(--mat-sys-surface-container-high);
+  background: var(--mat-sys-surface-container-lowest);
   font: var(--mat-sys-title-medium);
   color: var(--mat-sys-on-surface);
   border: 1px solid var(--mat-sys-outline-variant);
@@ -7396,6 +7487,10 @@ $round2-color: var(--mat-sys-primary, #1565c0);
   align-items: stretch;
 }
 
+.session-host__categorization .session-host__neutral-columns {
+  gap: 1.25rem;
+}
+
 .session-host__categorization .session-host__neutral-columns > section {
   display: flex;
   flex-direction: column;
@@ -7404,35 +7499,35 @@ $round2-color: var(--mat-sys-primary, #1565c0);
 
 .session-host__categorization
   .session-host__neutral-columns
-  > section:first-child
+  > section:last-child
   .session-host__neutral-list {
   flex: 1 1 auto;
   justify-content: center;
 }
 
 .session-host__categorization .session-host__neutral-list {
-  gap: 0.25rem;
+  gap: 0.45rem;
 }
 
 .session-host__categorization .session-host__neutral-item--compact {
-  padding: 0.22rem 0.45rem;
-  line-height: 1.25;
+  padding: 0.45rem 0.75rem;
+  line-height: 1.35;
 }
 
 .session-host__categorization
   .session-host__neutral-columns
-  > section:last-child
+  > section:first-child
   .session-host__neutral-list:has(> :nth-child(n + 9)) {
-  gap: 0.18rem;
+  gap: 0.32rem;
 }
 
 .session-host__categorization
   .session-host__neutral-columns
-  > section:last-child
+  > section:first-child
   .session-host__neutral-list:has(> :nth-child(n + 9))
   .session-host__neutral-item--compact {
-  padding: 0.18rem 0.4rem;
-  line-height: 1.2;
+  padding: 0.35rem 0.65rem;
+  line-height: 1.3;
 }
 
 .session-host__neutral-item--compact {
@@ -7467,7 +7562,7 @@ $round2-color: var(--mat-sys-primary, #1565c0);
   padding: 0.6rem 0.75rem;
   border: 1px solid var(--mat-sys-outline-variant);
   border-radius: var(--mat-sys-corner-medium);
-  background: var(--mat-sys-surface-container-low);
+  background: var(--mat-sys-surface-container-lowest);
   color: var(--mat-sys-on-surface);
   font: var(--mat-sys-body-medium);
   line-height: 1.45;
@@ -7565,7 +7660,7 @@ $round2-color: var(--mat-sys-primary, #1565c0);
 
 .session-host__categorization-grid {
   display: grid;
-  gap: 0.45rem;
+  gap: 0.75rem;
   align-items: stretch;
   /* Default / 3 Kategorien */
   grid-template-columns: repeat(3, minmax(0, 1fr));
@@ -7631,10 +7726,10 @@ $round2-color: var(--mat-sys-primary, #1565c0);
 
 .session-host__category-name {
   margin: 0;
-  padding: 0.35rem 0.55rem;
+  padding: 0.55rem 0.75rem;
   font: var(--mat-sys-label-large);
   font-weight: 700;
-  line-height: 1.25;
+  line-height: 1.3;
   color: var(--mat-sys-on-secondary-container);
   background: color-mix(
     in srgb,
@@ -7649,35 +7744,35 @@ $round2-color: var(--mat-sys-primary, #1565c0);
 .session-host__category-items {
   list-style: none;
   margin: 0;
-  padding: 0.35rem 0.45rem 0.45rem;
+  padding: 0.55rem 0.65rem 0.65rem;
   display: flex;
   flex-direction: column;
-  gap: 0.2rem;
+  gap: 0.4rem;
   min-height: 0;
 }
 
 .session-host__category-item {
-  padding: 0.22rem 0.4rem;
+  padding: 0.4rem 0.65rem;
   border-radius: var(--mat-sys-corner-small);
   border: 1px solid color-mix(in srgb, var(--mat-sys-outline-variant) 78%, transparent);
   background: var(--mat-sys-surface-container-low);
   color: var(--mat-sys-on-surface);
   font: var(--mat-sys-body-small);
-  line-height: 1.25;
+  line-height: 1.35;
   overflow-wrap: anywhere;
 }
 
 /* Viele Elemente in einer Kategorie: noch dichter */
 .session-host__categorization-card:has(.session-host__category-item:nth-child(n + 5))
   .session-host__category-items {
-  gap: 0.15rem;
-  padding: 0.3rem 0.4rem 0.4rem;
+  gap: 0.3rem;
+  padding: 0.45rem 0.55rem 0.55rem;
 }
 
 .session-host__categorization-card:has(.session-host__category-item:nth-child(n + 5))
   .session-host__category-item {
-  padding: 0.18rem 0.35rem;
-  line-height: 1.2;
+  padding: 0.32rem 0.55rem;
+  line-height: 1.3;
 }
 
 .session-host__categorization-card:has(.session-host__category-item:nth-child(n + 8))

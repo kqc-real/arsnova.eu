@@ -14,7 +14,7 @@ function md(strings, ...values) {
   return String.raw({ raw: strings.raw }, ...values).trim();
 }
 
-const EXPORT_VERSION = 29;
+const EXPORT_VERSION = 30;
 const EXPORTED_AT = '2026-05-24T10:00:00.000Z';
 
 const EMOTION_IMAGE_URL =
@@ -103,6 +103,7 @@ function buildPayload(locale) {
       name: locale.name,
       description: locale.description,
       motifImageUrl: EMOTION_IMAGE_URL,
+      motifImageCredit: 'Pass / Le Brun (1821), via Wikimedia Commons',
       showLeaderboard: true,
       allowCustomNicknames: false,
       defaultTimer: 30,

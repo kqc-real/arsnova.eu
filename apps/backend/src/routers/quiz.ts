@@ -35,6 +35,7 @@ function buildQuizUploadPayloadFromStoredQuiz(quiz: {
   name: string;
   description: string | null;
   motifImageUrl: string | null;
+  motifImageCredit: string | null;
   showLeaderboard: boolean;
   allowCustomNicknames: boolean;
   defaultTimer: number | null;
@@ -103,6 +104,7 @@ function buildQuizUploadPayloadFromStoredQuiz(quiz: {
     name: quiz.name,
     ...(quiz.description ? { description: quiz.description } : {}),
     motifImageUrl: quiz.motifImageUrl ?? null,
+    motifImageCredit: quiz.motifImageCredit ?? null,
     showLeaderboard: quiz.showLeaderboard,
     allowCustomNicknames: quiz.allowCustomNicknames,
     defaultTimer: quiz.defaultTimer,
@@ -223,6 +225,7 @@ export const quizRouter = router({
           name: input.name,
           description: input.description ?? null,
           motifImageUrl: input.motifImageUrl ?? null,
+          motifImageCredit: input.motifImageCredit ?? null,
           showLeaderboard: input.showLeaderboard,
           allowCustomNicknames: input.allowCustomNicknames,
           defaultTimer: input.defaultTimer ?? null,
@@ -360,6 +363,7 @@ export const quizRouter = router({
             name: true,
             description: true,
             motifImageUrl: true,
+            motifImageCredit: true,
             showLeaderboard: true,
             allowCustomNicknames: true,
             defaultTimer: true,

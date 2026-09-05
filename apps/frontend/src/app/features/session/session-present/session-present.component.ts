@@ -1,6 +1,7 @@
-import { DecimalPipe, NgTemplateOutlet } from '@angular/common';
+import { DecimalPipe, DOCUMENT, NgTemplateOutlet } from '@angular/common';
 import {
   Component,
+  HostListener,
   LOCALE_ID,
   OnDestroy,
   OnInit,
@@ -18,6 +19,12 @@ import { WordCloudComponent } from './word-cloud.component';
 import { SessionProjectionQuizComponent } from './session-projection-quiz.component';
 import type { Unsubscribable } from '@trpc/server/observable';
 import { HostDisplayModeService } from '../../../core/host-display-mode.service';
+import {
+  getDocumentFullscreenElement,
+  isDocumentFullscreenEnterAvailable,
+  tryAutoRequestDocumentFullscreen,
+  tryRequestDocumentFullscreen,
+} from '../../../core/document-fullscreen.util';
 import { remainingCountdownSeconds, stableCountdownDeadlineMs } from '../session-countdown.util';
 import {
   localizeKnownServerError,
@@ -158,6 +165,7 @@ export class SessionPresentComponent implements OnInit, OnDestroy {
   private readonly wordCloudTermExtractor = inject(WordCloudTermExtractorService);
   private readonly themePreset = inject(ThemePresetService);
   private readonly hostDisplayMode = inject(HostDisplayModeService);
+  private readonly document = inject(DOCUMENT);
   private metaPollTimer: ReturnType<typeof setInterval> | null = null;
   private livePollTimer: ReturnType<typeof setInterval> | null = null;
   private boardPageTimer: ReturnType<typeof setInterval> | null = null;
@@ -184,7 +192,13 @@ export class SessionPresentComponent implements OnInit, OnDestroy {
     void this.refreshSessionMeta();
     void this.refreshPresenterLiveData();
   };
+  private readonly onFullscreenChange = () => {
+    this.syncFullscreenGate();
+  };
   readonly localizedPath = localizePath;
+
+  /** Browser-Vollbild fehlt → expliziter Gate (window.open verbraucht die User-Geste). */
+  readonly needsFullscreenGate = signal(false);
 
   readonly session = signal<SessionInfoDTO | null>(null);
   readonly personalLeaderboard = signal<LeaderboardEntryDTO[]>([]);
@@ -648,7 +662,12 @@ export class SessionPresentComponent implements OnInit, OnDestroy {
   async ngOnInit(): Promise<void> {
     if (typeof document !== 'undefined') {
       document.addEventListener('visibilitychange', this.onVisibilityChange);
+      document.addEventListener('fullscreenchange', this.onFullscreenChange);
+      document.addEventListener('webkitfullscreenchange', this.onFullscreenChange);
     }
+    // Best effort: oft blockiert, Gate-Button bleibt als zuverlässiger Pfad.
+    tryAutoRequestDocumentFullscreen(this.document, () => this.syncFullscreenGate());
+    this.syncFullscreenGate();
     if (this.code.length !== 6) {
       this.showHomeCta.set(true);
       this.presenterInfo.set($localize`Ungültiger Session-Code.`);
@@ -666,6 +685,8 @@ export class SessionPresentComponent implements OnInit, OnDestroy {
   ngOnDestroy(): void {
     if (typeof document !== 'undefined') {
       document.removeEventListener('visibilitychange', this.onVisibilityChange);
+      document.removeEventListener('fullscreenchange', this.onFullscreenChange);
+      document.removeEventListener('webkitfullscreenchange', this.onFullscreenChange);
     }
     this.stopPolling();
     this.stopBoardPageTimer();
@@ -675,6 +696,36 @@ export class SessionPresentComponent implements OnInit, OnDestroy {
     this.statusSub?.unsubscribe();
     this.clearLobbyAudience();
     this.hostDisplayMode.setHostSessionActive(false);
+  }
+
+  enterPresenterFullscreen(): void {
+    tryRequestDocumentFullscreen(this.document, () => this.syncFullscreenGate());
+  }
+
+  private syncFullscreenGate(): void {
+    if (!isDocumentFullscreenEnterAvailable(this.document)) {
+      this.needsFullscreenGate.set(false);
+      return;
+    }
+    this.needsFullscreenGate.set(!getDocumentFullscreenElement(this.document));
+  }
+
+  @HostListener('window:keydown', ['$event'])
+  onPresenterFullscreenShortcut(event: KeyboardEvent): void {
+    if (!this.needsFullscreenGate()) {
+      return;
+    }
+    if (event.key !== 'Enter' && event.key !== 'f' && event.key !== 'F') {
+      return;
+    }
+    if (event.target instanceof HTMLElement) {
+      const tag = event.target.tagName;
+      if (tag === 'INPUT' || tag === 'TEXTAREA' || event.target.isContentEditable) {
+        return;
+      }
+    }
+    event.preventDefault();
+    this.enterPresenterFullscreen();
   }
 
   private startPolling(): void {

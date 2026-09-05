@@ -19,7 +19,7 @@
     },
     "admin.exportSessionAsQuizImport": {
       "kind": "mutation",
-      "fingerprint": "sha256:25e9c86eed79b57afa5a6f331174332d7ef85a697850ccf1bfe5daafaf9b7657",
+      "fingerprint": "sha256:0ebe7dd80443ba789230067c58651c4655f98216fe5eb1112258009d2139f4ef",
       "missing": []
     },
     "admin.getSessionByCode": {
@@ -154,7 +154,7 @@
     },
     "motd.getHeaderState": {
       "kind": "query",
-      "fingerprint": "sha256:0cda0a5afbe858f1fc2b70338526692882b6119eff62c325dcde59c823f31ad7",
+      "fingerprint": "sha256:979cbd706737fe22d98fda80bb6505c8da0bab283aaf26325c4ce4c3933f52a0",
       "missing": []
     },
     "motd.listArchive": {
@@ -304,7 +304,7 @@
     },
     "quiz.upload": {
       "kind": "mutation",
-      "fingerprint": "sha256:3dedb19dc970a7f2933b8068ae2f88b8270140b9f1a8c878d7ceadb52e82da58",
+      "fingerprint": "sha256:f2d8871061da0211ff47c302634c10629a385e3bb8b0b12c20563463dc6c312e",
       "missing": []
     },
     "quizSync.createShare": {
@@ -519,7 +519,7 @@
     },
     "session.join": {
       "kind": "mutation",
-      "fingerprint": "sha256:a29a67340e06ba3a5075068517987078cfdae07198ba557e970aeae56e034e72",
+      "fingerprint": "sha256:f28ccc7c85aa1c34eeb0fc2a9707b36a5ec27c7a9d13e5d4115eac301ac0795c",
       "missing": []
     },
     "session.markParticipantOffline": {

@@ -7980,6 +7980,14 @@
           <context context-type="linenumber">110</context>
         </context-group>
       </trans-unit>
+      <trans-unit id="motd.archiveMarkItemUnreadAction" datatype="html">
+        <source>Als ungelesen markieren</source>
+        <target>Mark as unread</target>
+      </trans-unit>
+      <trans-unit id="motd.archiveMarkItemUnreadAria" datatype="html">
+        <source>Diese Meldung als ungelesen markieren</source>
+        <target>Mark this message as unread</target>
+      </trans-unit>
       <trans-unit id="motd.archiveLoadMore" datatype="html">
         <source> Weitere Meldungen laden </source>
         <target>Load more messages</target>
@@ -8644,6 +8652,22 @@
           <context context-type="sourcefile">src/app/features/quiz/quiz-new/quiz-new.component.html</context>
           <context context-type="linenumber">97</context>
         </context-group>
+      </trans-unit>
+      <trans-unit id="quizForm.motifImageCreditLabel" datatype="html">
+        <source>Bildnachweis zum Motivbild (optional)</source>
+        <target>Image credit for motif image (optional)</target>
+      </trans-unit>
+      <trans-unit id="quizForm.motifImageCreditPlaceholder" datatype="html">
+        <source>z. B. Pass / Le Brun (1821), via Wikimedia Commons</source>
+        <target>e.g. Pass / Le Brun (1821), via Wikimedia Commons</target>
+      </trans-unit>
+      <trans-unit id="quizForm.motifImageCreditAria" datatype="html">
+        <source>Optionaler Bildnachweis zum Motivbild</source>
+        <target>Optional image credit for the motif image</target>
+      </trans-unit>
+      <trans-unit id="quizForm.motifImageCreditErrorMax" datatype="html">
+        <source>Der Nachweis darf maximal 300 Zeichen lang sein.</source>
+        <target>The credit may be at most 300 characters long.</target>
       </trans-unit>
       <trans-unit id="3241474076591504793" datatype="html">
         <source>Gespeichert.</source>
@@ -24424,6 +24448,18 @@
       <trans-unit id="sessionPresent.quickFeedbackRevealHint" datatype="html">
         <source>Die Verteilung erscheint nach dem Pausieren oder Rundenende.</source>
         <target>The distribution appears when the round is paused or ends.</target>
+      </trans-unit>
+      <trans-unit id="sessionPresent.fullscreenGateTitle" datatype="html">
+        <source>Vollbild für Beamer</source>
+        <target state="translated">Fullscreen for projector</target>
+      </trans-unit>
+      <trans-unit id="sessionPresent.fullscreenGateHint" datatype="html">
+        <source>Browser erlauben Vollbild erst nach einem Klick im Presenter-Fenster.</source>
+        <target state="translated">Browsers only allow fullscreen after a click in the presenter window.</target>
+      </trans-unit>
+      <trans-unit id="sessionPresent.fullscreenGateAction" datatype="html">
+        <source>Vollbild starten</source>
+        <target state="translated">Enter fullscreen</target>
       </trans-unit>
     </body>
   </file>

@@ -182,6 +182,7 @@ function convertArsnovaClickExport(source: JsonRecord): NormalizedQuizImportPayl
     name,
     ...(description ? { description } : {}),
     motifImageUrl: null,
+    motifImageCredit: null,
     showLeaderboard: true,
     allowCustomNicknames,
     defaultTimer: null,

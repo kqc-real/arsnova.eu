@@ -32,6 +32,7 @@ const defaultHeaderState = {
 
 const motdHeaderStateMock = {
   decrementArchiveUnreadCount: vi.fn(),
+  incrementArchiveUnreadCount: vi.fn(),
   setArchiveUnreadCount: vi.fn(),
 };
 
@@ -43,6 +44,7 @@ describe('MotdArchiveDialogComponent', () => {
     getHeaderStateQuery.mockReset();
     getHeaderStateQuery.mockResolvedValue({ ...defaultHeaderState });
     motdHeaderStateMock.decrementArchiveUnreadCount.mockReset();
+    motdHeaderStateMock.incrementArchiveUnreadCount.mockReset();
     motdHeaderStateMock.setArchiveUnreadCount.mockReset();
   });
 
@@ -289,8 +291,8 @@ describe('MotdArchiveDialogComponent', () => {
     const root = fixture.nativeElement as HTMLElement;
     const items = [...root.querySelectorAll('.motd-archive__item')];
     expect(items).toHaveLength(2);
-    expect(items[0]!.querySelector('.motd-archive__read-state--unread')?.textContent).toContain(
-      'Ungelesen',
+    expect(items[0]!.querySelector('.motd-archive__mark-read')?.textContent).toContain(
+      'Als gelesen markieren',
     );
 
     const markBtn = items[0]!.querySelector<HTMLButtonElement>('.motd-archive__mark-read');
@@ -314,9 +316,22 @@ describe('MotdArchiveDialogComponent', () => {
     expect(items[0]!.classList.contains('motd-archive__item--read')).toBe(true);
     expect(panels[0]!.classList.contains('motd-archive__panel--read')).toBe(true);
     expect(panels[1]!.classList.contains('motd-archive__panel--read')).toBe(false);
-    expect(items[0]!.querySelector('.motd-archive__read-state')?.textContent).toContain('Gelesen');
     expect(items[0]!.querySelector('.motd-archive__mark-read')).toBeNull();
-    expect(items[1]!.querySelector('.motd-archive__read-state--unread')).toBeTruthy();
+    expect(items[0]!.querySelector('.motd-archive__mark-unread')?.textContent).toContain(
+      'Als ungelesen markieren',
+    );
+    expect(
+      items[0]!.querySelector('.motd-archive__mark-unread mat-icon')?.textContent?.trim(),
+    ).toBe('undo');
+    expect(items[1]!.querySelector('.motd-archive__mark-read')).toBeTruthy();
+
+    const unmarkBtn = items[0]!.querySelector<HTMLButtonElement>('.motd-archive__mark-unread');
+    unmarkBtn!.click();
+    fixture.detectChanges();
+    expect(fixture.componentInstance.isArchiveItemUnread(newer!)).toBe(true);
+    expect(fixture.componentInstance.archiveUnreadCount()).toBe(2);
+    expect(motdHeaderStateMock.incrementArchiveUnreadCount).toHaveBeenCalledTimes(1);
+    expect(items[0]!.querySelector('.motd-archive__mark-read')).toBeTruthy();
   });
 
   it('setzt inert auf zugeklappte Panel-Inhalte, damit Tab die Header erreicht', async () => {
@@ -396,14 +411,14 @@ describe('MotdArchiveDialogComponent', () => {
 
     const root = fixture.nativeElement as HTMLElement;
     const header = root.querySelector<HTMLElement>('.mat-expansion-panel-header');
-    const status = root.querySelector<HTMLElement>('.motd-archive__read-state');
+    const markBtn = root.querySelector<HTMLElement>('.motd-archive__mark-read');
     expect(header).toBeTruthy();
-    expect(status).toBeTruthy();
-    expect(header!.contains(status!)).toBe(false);
+    expect(markBtn).toBeTruthy();
+    expect(header!.contains(markBtn!)).toBe(false);
     expect(header!.getAttribute('aria-expanded')).toBe('false');
 
-    status!.dispatchEvent(new MouseEvent('pointerdown', { bubbles: true, cancelable: true }));
-    status!.dispatchEvent(new MouseEvent('click', { bubbles: true, cancelable: true }));
+    markBtn!.dispatchEvent(new MouseEvent('pointerdown', { bubbles: true, cancelable: true }));
+    markBtn!.dispatchEvent(new MouseEvent('click', { bubbles: true, cancelable: true }));
     fixture.detectChanges();
     await fixture.whenStable();
 
@@ -423,5 +438,9 @@ describe('MotdArchiveDialogComponent', () => {
     expect(styles).toMatch(
       /\.motd-archive__panel\.mat-expansion-panel \.mat-expansion-panel-header\s*\{/,
     );
+    expect(styles).toMatch(
+      /\.motd-archive__mark-unread\.mat-mdc-button\s*\{[^}]*--mat-sys-on-surface-variant/s,
+    );
+    expect(styles).toMatch(/\.motd-archive__mark-unread \.mat-icon\s*\{[^}]*on-surface-variant/s);
   });
 });

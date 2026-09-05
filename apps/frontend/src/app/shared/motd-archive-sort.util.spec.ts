@@ -55,4 +55,17 @@ describe('MOTD-Archivsortierung und Lesecursor', () => {
     ).toBe(false);
     expect(isMotdArchiveItemUnread(permanentWelcome, seenWelcome, [])).toBe(false);
   });
+
+  it('behandelt explizite Ungelesen-Overrides trotz Wasserlinie', () => {
+    const seenVision = newestMotdArchiveReadCursor([newerVision, permanentWelcome]);
+    expect(isMotdArchiveItemUnread(permanentWelcome, seenVision, [])).toBe(false);
+    expect(
+      isMotdArchiveItemUnread(
+        permanentWelcome,
+        seenVision,
+        [],
+        [{ motdId: permanentWelcome.id, contentVersion: permanentWelcome.contentVersion }],
+      ),
+    ).toBe(true);
+  });
 });

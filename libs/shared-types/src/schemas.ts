@@ -1282,6 +1282,8 @@ export function resolvePersonalTimerSeconds(
 
 /** Obergrenze Motivbild-URL (typische Bild-URLs; lange signierte CDN-Links bleiben i. d. R. darunter). */
 export const MOTIF_IMAGE_URL_MAX_LENGTH = 1024;
+/** Optionale Bildunterschrift / Nachweis zum Quiz-Motivbild (Lobby, Start). */
+export const MOTIF_IMAGE_CREDIT_MAX_LENGTH = 300;
 
 /**
  * Optionales Quiz-Motivbild (Host, Quiz-Kanal): HTTPS-URL oder root-relativer Pfad
@@ -1320,6 +1322,15 @@ export const QuizMotifImageUrlInputSchema = z
   .optional()
   .transform((v) => (v === '' || v === undefined ? null : v));
 
+/** Nicht-leerer Motivbild-Nachweis (Anzeige unter dem Motiv). */
+export const MotifImageCreditSchema = z.string().trim().min(1).max(MOTIF_IMAGE_CREDIT_MAX_LENGTH);
+
+/** Leerstring / null / undefined → null; sonst getrimmter Nachweis. */
+export const QuizMotifImageCreditInputSchema = z
+  .union([z.literal(''), MotifImageCreditSchema, z.null()])
+  .optional()
+  .transform((v) => (v === '' || v === undefined ? null : v));
+
 // ---------------------------------------------------------------------------
 // Quiz-Schemas (Zod) – werden in Backend (Validierung) & Frontend (Forms) genutzt
 // ---------------------------------------------------------------------------
@@ -1329,6 +1340,7 @@ export const CreateQuizInputSchema = z.object({
   name: z.string().min(1, { error: 'Quiz-Name darf nicht leer sein' }).max(200),
   description: z.string().max(5000).optional(),
   motifImageUrl: QuizMotifImageUrlInputSchema,
+  motifImageCredit: QuizMotifImageCreditInputSchema,
   showLeaderboard: z.boolean().optional().default(true),
   allowCustomNicknames: z.boolean().optional().default(false),
   defaultTimer: z.number().int().min(5).max(300).nullable().optional(),
@@ -2440,6 +2452,7 @@ export const QuizUploadInputSchema = z
     description: z.string().max(5000).optional(),
     /** Wie CreateQuiz: Leerstring/undefined → null (vermeidet Upload-Fehler bei leerem Feld). */
     motifImageUrl: QuizMotifImageUrlInputSchema,
+    motifImageCredit: QuizMotifImageCreditInputSchema,
     showLeaderboard: z.boolean(),
     allowCustomNicknames: z.boolean(),
     defaultTimer: z.number().int().min(5).max(300).nullable().optional(),
@@ -2538,6 +2551,7 @@ type QuizHistoryAccessMaterial = {
   name: string;
   description: string | null;
   motifImageUrl: string | null;
+  motifImageCredit: string | null;
   showLeaderboard: boolean;
   allowCustomNicknames: boolean;
   defaultTimer: number | null;
@@ -2620,6 +2634,7 @@ function buildQuizHistoryAccessMaterial(input: QuizUploadInput): QuizHistoryAcce
     name: parsed.name,
     description: parsed.description ?? null,
     motifImageUrl: parsed.motifImageUrl ?? null,
+    motifImageCredit: parsed.motifImageCredit ?? null,
     showLeaderboard: parsed.showLeaderboard,
     allowCustomNicknames: parsed.allowCustomNicknames,
     defaultTimer: parsed.defaultTimer ?? null,
@@ -3619,6 +3634,8 @@ export const SessionInfoDTOSchema = z.object({
   quizName: z.string().nullable(),
   /** Optionales Motivbild (HTTPS-URL), nur Host Quiz-Kanal. */
   quizMotifImageUrl: z.union([MotifImageUrlSchema, z.null()]).optional(),
+  /** Optionaler Bildnachweis zum Motivbild (Lobby / Quizstart). */
+  quizMotifImageCredit: z.union([MotifImageCreditSchema, z.null()]).optional(),
   title: z.string().nullable().optional(),
   channels: SessionChannelsDTOSchema.optional(), // ADR-0009: Übergangsweise optional für schrittweise Migration
   preferredChannel: SessionLiveChannelSchema.optional(),
@@ -4258,6 +4275,7 @@ export const QuizExportSchema = z.object({
     name: z.string().min(1).max(200),
     description: z.string().max(5000).optional(),
     motifImageUrl: z.union([MotifImageUrlSchema, z.null()]).optional(),
+    motifImageCredit: z.union([MotifImageCreditSchema, z.null()]).optional(),
     showLeaderboard: z.boolean(),
     allowCustomNicknames: z.boolean(),
     defaultTimer: z.number().int().min(5).max(300).nullable().optional(),
@@ -5515,6 +5533,14 @@ const MotdHeaderStateInputPayloadSchema = z.object({
    * Verhindert, dass „Gelesen“ auf einem Eintrag ältere ungelesene mitzieht.
    */
   archiveReadItems: z.array(MotdArchiveReadItemSchema).max(MOTD_ARCHIVE_READ_ITEMS_MAX).optional(),
+  /**
+   * Explizit wieder als ungelesen markierte Archiv-MOTDs (trotz Wasserlinien-Cursor).
+   * Ermöglicht „Als ungelesen markieren“ nach „Alles als gelesen“.
+   */
+  archiveUnreadItems: z
+    .array(MotdArchiveReadItemSchema)
+    .max(MOTD_ARCHIVE_READ_ITEMS_MAX)
+    .optional(),
 });
 
 export const MotdHeaderStateInputSchema = z.preprocess(
@@ -5533,8 +5559,9 @@ export const MotdHeaderStateOutputSchema = z.object({
   /** @deprecated Kompatibilität für Clients vor dem publikationsbasierten Lesecursor. */
   archiveMaxEndsAtIso: z.string().nullable(),
   /**
-   * Ungelesen relativ zum Cursor, abzüglich `archiveReadItems`.
-   * Ohne gültigen Cursor bzw. Legacy-Wasserzeichen = sichtbare Archivanzahl minus einzeln Gelesene.
+   * Ungelesen relativ zum Cursor, abzüglich `archiveReadItems`, zuzüglich `archiveUnreadItems`.
+   * Ohne gültigen Cursor bzw. Legacy-Wasserzeichen = sichtbare Archivanzahl minus einzeln Gelesene
+   * (bzw. plus explizit Ungelesene).
    */
   archiveUnreadCount: z.number().int().min(0),
 });

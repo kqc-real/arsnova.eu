@@ -72,23 +72,23 @@ Der Betreiber kann **kuratierte Hinweise** an **alle Nutzer:innen** ausspielen �
   Zusätzlich speichert der Client **einzeln gelesene** Archiv-MOTDs (`archiveReadItems`,
   max. 64 Paare `motdId` + `contentVersion`). So senkt **Als gelesen markieren** den
   Toolbar-Zähler um 1, ohne ältere ungelesene Einträge mitzuziehen.
-  Gelesene Meldungen bleiben in Archiv-Dialog und Archiv-Seite mit Status **Gelesen**
-  erkennbar (Häkchen); ungelesene tragen den Status **Ungelesen**. Im Archiv-Dialog
-  stehen Status und **Als gelesen markieren** außerhalb des Expansion-Headers.
+  **Als ungelesen markieren** entfernt die Einzelmarkierung bzw. setzt bei Wasserlinien-
+  Abdeckung einen Override (`archiveUnreadItems`). Im Archiv gibt es **einen** Toggle
+  (gelesen ↔ ungelesen), keinen parallelen Status-Text neben der Aktion.
   **Alles als gelesen markieren** setzt den Cursor auf den neuesten Eintrag und leert
-  die Einzelliste.
+  die Einzellisten (`archiveReadItems` und `archiveUnreadItems`).
 - **Schema-Version** im Key-Namespace für spätere Migration (aktuell **`arsnova-motd-v2`**).
 - Zusätzlich steuern **`arsnova-motd-mobile-home-seen`** (localStorage) und **`arsnova-motd-mobile-first-home-session`** (sessionStorage) die Unterdrückung beim ersten mobilen Startseiten-Besuch.
 - **`arsnova-motd-overlay-offered-session`** (sessionStorage) merkt, dass in dieser Browsersitzung bereits ein Auto-Overlay angeboten wurde; Reload und Rückkehr zur Startseite öffnen dann keines mehr.
 
 ### 3.7 Nutzerinteraktionen (getrennte Dimensionen)
 
-| Dimension         | Bedeutung                                                                     | Umsetzungshinweis                                                                                         |
-| ----------------- | ----------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------- |
-| **Dismiss**       | Overlay geschlossen (X, Swipe, Backdrop)                                      | Im aktuellen Frontend lokal gespeichert und zusätzlich per `recordInteraction` aggregierbar               |
-| **Kenntnisnahme** | Expliziter Button (Overlay: „Alles klar!“; Archiv: **Als gelesen markieren**) | Overlay: lokal + optionale Mutation. Archiv: lokal (`archiveReadItems` bzw. Wasserlinie) + Header-Refresh |
-| **Alles gelesen** | Archiv-Aktion für alle sichtbaren Meldungen                                   | Setzt den publikationsbasierten Cursor auf das neueste Item; Badge wird 0                                 |
-| **Feedback**      | Daumen hoch/runter                                                            | Optional; **ein Vote pro MOTD-Version pro Browser** über localStorage erzwingbar; Server nur aggregiert   |
+| Dimension         | Bedeutung                                                                               | Umsetzungshinweis                                                                                                                |
+| ----------------- | --------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------- |
+| **Dismiss**       | Overlay geschlossen (X, Swipe, Backdrop)                                                | Im aktuellen Frontend lokal gespeichert und zusätzlich per `recordInteraction` aggregierbar                                      |
+| **Kenntnisnahme** | Expliziter Toggle (Overlay: „Alles klar!“; Archiv: **Als gelesen/ungelesen markieren**) | Overlay: lokal + optionale Mutation. Archiv: lokal (`archiveReadItems` / `archiveUnreadItems` bzw. Wasserlinie) + Header-Refresh |
+| **Alles gelesen** | Archiv-Aktion für alle sichtbaren Meldungen                                             | Setzt den publikationsbasierten Cursor auf das neueste Item; Badge wird 0                                                        |
+| **Feedback**      | Daumen hoch/runter                                                                      | Optional; **ein Vote pro MOTD-Version pro Browser** über localStorage erzwingbar; Server nur aggregiert                          |
 
 **Semantik:** Dismiss ≠ Kenntnisnahme — beides getrennt auswertbar, falls Analytics gewünscht.
 
@@ -109,7 +109,7 @@ Der Betreiber kann **kuratierte Hinweise** an **alle Nutzer:innen** ausspielen �
 
 - `motd.getCurrent` — Input: `locale`, optional `overlayDismissedUpTo` (vom Client gemerkte Dismiss-Versionen pro `motdId`, damit die nächstpriore MOTD gewählt wird); Output: aktive MOTD oder leer.
 - `motd.listArchive` — Input: `locale`, Pagination; Output: nur freigegebene, vergangene/außerhalb Fenster.
-- `motd.getHeaderState` — Input: `locale`, optional `archiveSeenUpToCursor`, optional `archiveReadItems`, optional `overlayDismissedUpTo`; Output: ob aktives Overlay bzw. Archiv-Einträge existieren, `archiveMaxCursor` und ungelesene Archiv-Meldungen (Toolbar-Icon; einzeln Gelesene werden vom Zähler abgezogen). `archiveSeenUpToEndsAtIso` / `archiveMaxEndsAtIso` bleiben vorübergehend für ältere Clients kompatibel.
+- `motd.getHeaderState` — Input: `locale`, optional `archiveSeenUpToCursor`, optional `archiveReadItems`, optional `archiveUnreadItems`, optional `overlayDismissedUpTo`; Output: ob aktives Overlay bzw. Archiv-Einträge existieren, `archiveMaxCursor` und ungelesene Archiv-Meldungen (Toolbar-Icon; einzeln Gelesene werden vom Zähler abgezogen, explizit Ungelesene trotz Wasserlinie wieder addiert). `archiveSeenUpToEndsAtIso` / `archiveMaxEndsAtIso` bleiben vorübergehend für ältere Clients kompatibel.
 - `motd.recordInteraction` — Input: `motdId`, `contentVersion`, `kind` (`ACK` | `THUMB_UP` | `THUMB_DOWN` | `DISMISS_CLOSE` | `DISMISS_SWIPE`); streng rate-limited; Zähler in DB.
 - **Rendering:** Endnutzer- und Admin-Vorschau nutzen **`renderMarkdownWithoutKatex`** + **DomSanitizer** (`bypassSecurityTrustHtml` nur auf dieser Pipeline), analog zu anderen sicheren Markdown-Ansichten — kein rohes HTML aus dem MOTD-Text.
 - `admin.motd.*` — CRUD MOTD, Templates, Publish/Schedule, Archiv-Flag, Priorität.

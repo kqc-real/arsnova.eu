@@ -451,7 +451,7 @@
                 </fieldset>
               </div>
 
-              @if (question.type !== 'FREETEXT' && question.type !== 'RATING') {
+              @if (usesClassicAnswerOptions(question.type)) {
                 <div
                   class="quiz-preview-editor__answers"
                   [class.quiz-preview-editor__answers--invalid]="
@@ -523,6 +523,355 @@
                       Nutze die Auswahl links, um richtige Antworten direkt zu markieren.
                     </p>
                   }
+                </div>
+              }
+
+              @if (question.type === 'ORDERING') {
+                <div class="quiz-preview-editor__answers">
+                  <p class="quiz-preview-editor__label" i18n="@@quizEdit.orderingItemsSection">
+                    Reihenfolge-Elemente
+                  </p>
+                  <p class="quiz-preview-editor__hint" i18n="@@quizEdit.orderingItemsHint">
+                    3 bis 8 Elemente in der korrekten Reihenfolge (oben nach unten).
+                  </p>
+                  @for (item of question.orderingItems ?? []; track item.id; let i = $index) {
+                    <div class="quiz-preview-editor__answer-row">
+                      <label
+                        class="quiz-preview-editor__answer-label"
+                        [attr.for]="'quiz-preview-ordering-' + i"
+                        >{{ i + 1 }}.</label
+                      >
+                      <div class="quiz-preview-editor__answer-input">
+                        <app-markdown-katex-editor
+                          [fieldId]="'quiz-preview-ordering-' + i"
+                          [value]="orderingDraftTexts()[i] ?? item.text"
+                          (valueChange)="onOrderingDraftChanged(i, $event)"
+                          [rows]="2"
+                          [compact]="true"
+                        />
+                      </div>
+                    </div>
+                  }
+                </div>
+              }
+
+              @if (question.type === 'MATCHING') {
+                <div class="quiz-preview-editor__answers">
+                  <p class="quiz-preview-editor__label" i18n="@@quizEdit.matchingPairsSection">
+                    Zuordnungspaare
+                  </p>
+                  <p class="quiz-preview-editor__hint" i18n="@@quizEdit.matchingPairsHint">
+                    2 bis 6 Paare; linke und rechte Begriffe müssen jeweils eindeutig sein.
+                  </p>
+                  @for (pair of question.matchingPairs ?? []; track pair.leftId; let i = $index) {
+                    <div class="quiz-preview-editor__structured-row">
+                      <div class="quiz-preview-editor__answer-input">
+                        <label
+                          class="quiz-preview-editor__mini-label"
+                          [attr.for]="'quiz-preview-matching-left-' + i"
+                          i18n="@@quizEdit.matchingLeftLabel"
+                          >Links</label
+                        >
+                        <app-markdown-katex-editor
+                          [fieldId]="'quiz-preview-matching-left-' + i"
+                          [value]="matchingDraftPairs()[i]?.left ?? pair.left"
+                          (valueChange)="onMatchingDraftChanged(i, 'left', $event)"
+                          [rows]="2"
+                          [compact]="true"
+                        />
+                      </div>
+                      <mat-icon class="quiz-preview-editor__pair-arrow" aria-hidden="true"
+                        >arrow_forward</mat-icon
+                      >
+                      <div class="quiz-preview-editor__answer-input">
+                        <label
+                          class="quiz-preview-editor__mini-label"
+                          [attr.for]="'quiz-preview-matching-right-' + i"
+                          i18n="@@quizEdit.matchingRightLabel"
+                          >Rechts</label
+                        >
+                        <app-markdown-katex-editor
+                          [fieldId]="'quiz-preview-matching-right-' + i"
+                          [value]="matchingDraftPairs()[i]?.right ?? pair.right"
+                          (valueChange)="onMatchingDraftChanged(i, 'right', $event)"
+                          [rows]="2"
+                          [compact]="true"
+                        />
+                      </div>
+                    </div>
+                  }
+                </div>
+              }
+
+              @if (question.type === 'CATEGORIZATION') {
+                <div class="quiz-preview-editor__answers">
+                  <p class="quiz-preview-editor__label" i18n="@@quizEdit.categoriesSection">
+                    Kategorien
+                  </p>
+                  @for (category of question.categories ?? []; track category.id; let i = $index) {
+                    <div class="quiz-preview-editor__answer-row">
+                      <label
+                        class="quiz-preview-editor__answer-label"
+                        [attr.for]="'quiz-preview-category-' + i"
+                        >{{ i + 1 }}.</label
+                      >
+                      <div class="quiz-preview-editor__answer-input">
+                        <input
+                          matInput
+                          class="quiz-preview-editor__plain-input"
+                          [id]="'quiz-preview-category-' + i"
+                          [value]="categoryDraftNames()[i] ?? category.name"
+                          (input)="onCategoryDraftChanged(i, $any($event.target).value)"
+                          maxlength="200"
+                        />
+                      </div>
+                    </div>
+                  }
+
+                  <p
+                    class="quiz-preview-editor__label quiz-preview-editor__label--spaced"
+                    i18n="@@quizEdit.categorizationItemsSection"
+                  >
+                    Elemente
+                  </p>
+                  @for (item of question.categorizationItems ?? []; track item.id; let i = $index) {
+                    <div
+                      class="quiz-preview-editor__structured-row quiz-preview-editor__structured-row--stack"
+                    >
+                      <div class="quiz-preview-editor__answer-input">
+                        <label
+                          class="quiz-preview-editor__mini-label"
+                          [attr.for]="'quiz-preview-cat-item-' + i"
+                          i18n="@@quizEdit.categorizationItemLabel"
+                          >Element</label
+                        >
+                        <app-markdown-katex-editor
+                          [fieldId]="'quiz-preview-cat-item-' + i"
+                          [value]="categorizationItemDrafts()[i]?.text ?? item.text"
+                          (valueChange)="onCategorizationItemTextChanged(i, $event)"
+                          [rows]="2"
+                          [compact]="true"
+                        />
+                      </div>
+                      <mat-form-field
+                        appearance="outline"
+                        class="quiz-preview-editor__category-select"
+                      >
+                        <mat-label i18n="@@quizEdit.categorizationTargetLabel"
+                          >Zielkategorie</mat-label
+                        >
+                        <mat-select
+                          [value]="
+                            categorizationItemDrafts()[i]?.correctCategoryId ??
+                            item.correctCategoryId
+                          "
+                          (selectionChange)="onCategorizationItemCategoryChanged(i, $event.value)"
+                        >
+                          @for (category of draftCategories(); track category.id) {
+                            <mat-option [value]="category.id">{{ category.name }}</mat-option>
+                          }
+                        </mat-select>
+                      </mat-form-field>
+                    </div>
+                  }
+                </div>
+              }
+
+              @if (question.type === 'NUMERIC_ESTIMATE' && numericEstimateDraft(); as numeric) {
+                <div class="quiz-preview-editor__answers">
+                  <p
+                    class="quiz-preview-editor__label"
+                    i18n="@@quizEdit.numericEstimateToleranceSection"
+                  >
+                    Toleranzmodus
+                  </p>
+                  <div class="quiz-preview-editor__numeric-grid">
+                    <mat-form-field appearance="outline">
+                      <mat-label i18n="@@quizEdit.numericEstimateToleranceModeLabel"
+                        >Modus</mat-label
+                      >
+                      <mat-select
+                        [value]="numeric.numericToleranceMode"
+                        (selectionChange)="
+                          onNumericEstimateDraftChanged('numericToleranceMode', $event.value)
+                        "
+                      >
+                        <mat-option
+                          value="ABSOLUTE_INTERVAL"
+                          i18n="@@quizEdit.numericEstimateAbsoluteIntervalOption"
+                          >Absolutes Intervall [L, R]</mat-option
+                        >
+                        <mat-option
+                          value="RELATIVE_PERCENT"
+                          i18n="@@quizEdit.numericEstimateRelativePercentOption"
+                          >Relatives Toleranzband (V ± p%)</mat-option
+                        >
+                      </mat-select>
+                    </mat-form-field>
+                    <mat-form-field appearance="outline">
+                      <mat-label i18n="@@quizEdit.numericEstimateInputTypeLabel"
+                        >Eingabetyp</mat-label
+                      >
+                      <mat-select
+                        [value]="numeric.numericInputType"
+                        (selectionChange)="
+                          onNumericEstimateDraftChanged('numericInputType', $event.value)
+                        "
+                      >
+                        <mat-option value="INTEGER" i18n="@@quizEdit.numericEstimateIntegerOption"
+                          >Ganzzahl</mat-option
+                        >
+                        <mat-option value="DECIMAL" i18n="@@quizEdit.numericEstimateDecimalOption"
+                          >Dezimalzahl</mat-option
+                        >
+                      </mat-select>
+                    </mat-form-field>
+                  </div>
+
+                  @if (numeric.numericToleranceMode === 'ABSOLUTE_INTERVAL') {
+                    <div class="quiz-preview-editor__numeric-grid">
+                      <mat-form-field appearance="outline">
+                        <mat-label i18n="@@quizEdit.numericEstimateIntervalLeftLabel"
+                          >Linke Grenze L</mat-label
+                        >
+                        <input
+                          matInput
+                          type="number"
+                          [value]="numeric.numericIntervalLeft ?? ''"
+                          (input)="
+                            onNumericEstimateNumberChanged(
+                              'numericIntervalLeft',
+                              $any($event.target).value
+                            )
+                          "
+                        />
+                      </mat-form-field>
+                      <mat-form-field appearance="outline">
+                        <mat-label i18n="@@quizEdit.numericEstimateIntervalRightLabel"
+                          >Rechte Grenze R</mat-label
+                        >
+                        <input
+                          matInput
+                          type="number"
+                          [value]="numeric.numericIntervalRight ?? ''"
+                          (input)="
+                            onNumericEstimateNumberChanged(
+                              'numericIntervalRight',
+                              $any($event.target).value
+                            )
+                          "
+                        />
+                      </mat-form-field>
+                      <mat-form-field appearance="outline">
+                        <mat-label i18n="@@quizEdit.numericEstimateAbsoluteReferenceValueLabel"
+                          >Referenzwert für Auswertung</mat-label
+                        >
+                        <input
+                          matInput
+                          type="number"
+                          [value]="numeric.numericReferenceValue ?? ''"
+                          (input)="
+                            onNumericEstimateNumberChanged(
+                              'numericReferenceValue',
+                              $any($event.target).value
+                            )
+                          "
+                        />
+                      </mat-form-field>
+                    </div>
+                  }
+
+                  @if (numeric.numericToleranceMode === 'RELATIVE_PERCENT') {
+                    <div class="quiz-preview-editor__numeric-grid">
+                      <mat-form-field appearance="outline">
+                        <mat-label i18n="@@quizEdit.numericEstimateReferenceValueLabel"
+                          >Referenzwert V</mat-label
+                        >
+                        <input
+                          matInput
+                          type="number"
+                          [value]="numeric.numericReferenceValue ?? ''"
+                          (input)="
+                            onNumericEstimateNumberChanged(
+                              'numericReferenceValue',
+                              $any($event.target).value
+                            )
+                          "
+                        />
+                      </mat-form-field>
+                      <mat-form-field appearance="outline">
+                        <mat-label i18n="@@quizEdit.numericEstimateTolerancePercentLabel"
+                          >Toleranz p (%)</mat-label
+                        >
+                        <input
+                          matInput
+                          type="number"
+                          min="0"
+                          max="100"
+                          [value]="numeric.numericTolerancePercent ?? ''"
+                          (input)="
+                            onNumericEstimateNumberChanged(
+                              'numericTolerancePercent',
+                              $any($event.target).value
+                            )
+                          "
+                        />
+                      </mat-form-field>
+                    </div>
+                  }
+
+                  <div class="quiz-preview-editor__numeric-grid">
+                    <mat-form-field appearance="outline">
+                      <mat-label i18n="@@quizEdit.numericEstimateMinLabel">Min-Eingabe</mat-label>
+                      <input
+                        matInput
+                        type="number"
+                        [value]="numeric.numericMin ?? ''"
+                        (input)="
+                          onNumericEstimateNumberChanged('numericMin', $any($event.target).value)
+                        "
+                      />
+                    </mat-form-field>
+                    <mat-form-field appearance="outline">
+                      <mat-label i18n="@@quizEdit.numericEstimateMaxLabel">Max-Eingabe</mat-label>
+                      <input
+                        matInput
+                        type="number"
+                        [value]="numeric.numericMax ?? ''"
+                        (input)="
+                          onNumericEstimateNumberChanged('numericMax', $any($event.target).value)
+                        "
+                      />
+                    </mat-form-field>
+                    @if (numeric.numericInputType === 'DECIMAL') {
+                      <mat-form-field appearance="outline">
+                        <mat-label i18n="@@quizEdit.numericEstimateDecimalPlacesLabel"
+                          >Max. Nachkommastellen</mat-label
+                        >
+                        <input
+                          matInput
+                          type="number"
+                          min="0"
+                          max="10"
+                          [value]="numeric.numericDecimalPlaces ?? ''"
+                          (input)="
+                            onNumericEstimateNumberChanged(
+                              'numericDecimalPlaces',
+                              $any($event.target).value
+                            )
+                          "
+                        />
+                      </mat-form-field>
+                    }
+                  </div>
+
+                  <mat-checkbox
+                    [checked]="numeric.numericTwoRounds"
+                    (change)="onNumericEstimateDraftChanged('numericTwoRounds', $event.checked)"
+                    i18n="@@quizEdit.numericEstimateTwoRoundsToggle"
+                  >
+                    Zwei Abstimmungsrunden (Peer Instruction)
+                  </mat-checkbox>
                 </div>
               }
 

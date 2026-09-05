@@ -61,7 +61,7 @@
                   mat-stroked-button
                   type="button"
                   i18n="@@motd.archiveMarkAllRead"
-                  [disabled]="archiveUnreadCount() === 0"
+                  [disabled]="liveRefreshPending() || archiveUnreadCount() === 0"
                   (click)="markArchiveAllRead()"
                 >
                   Alles als gelesen markieren
@@ -102,18 +102,6 @@
                     @if (archiveMeta) {
                       <time [attr.datetime]="it.startsAt">{{ archiveMeta }}</time>
                     }
-                    <span
-                      class="news-archive-page__read-state"
-                      [class.news-archive-page__read-state--unread]="itemUnread"
-                    >
-                      @if (itemUnread) {
-                        <span class="news-archive-page__unread-dot" aria-hidden="true"></span>
-                        <span i18n="@@motd.archiveItemUnreadStatus">Ungelesen</span>
-                      } @else {
-                        <mat-icon aria-hidden="true">done</mat-icon>
-                        <span i18n="@@motd.archiveMarkItemRead">Gelesen</span>
-                      }
-                    </span>
                   </p>
                   @if (htmlById()[it.id]; as safe) {
                     <div
@@ -121,21 +109,37 @@
                       [innerHTML]="safe"
                     ></div>
                   }
-                  @if (itemUnread) {
-                    <div class="news-archive-page__item-actions">
+                  <div class="news-archive-page__item-actions">
+                    @if (itemUnread) {
                       <button
                         matButton="text"
                         type="button"
                         class="news-archive-page__mark-read"
                         i18n-aria-label="@@motd.archiveMarkItemReadAria"
                         aria-label="Diese Meldung als gelesen markieren"
+                        [disabled]="liveRefreshPending()"
                         (click)="markArchiveItemRead(it, $event)"
                       >
                         <mat-icon aria-hidden="true">done</mat-icon>
                         <span i18n="@@motd.archiveMarkItemReadAction">Als gelesen markieren</span>
                       </button>
-                    </div>
-                  }
+                    } @else {
+                      <button
+                        matButton="text"
+                        type="button"
+                        class="news-archive-page__mark-unread"
+                        i18n-aria-label="@@motd.archiveMarkItemUnreadAria"
+                        aria-label="Diese Meldung als ungelesen markieren"
+                        [disabled]="liveRefreshPending()"
+                        (click)="markArchiveItemUnread(it, $event)"
+                      >
+                        <mat-icon aria-hidden="true">undo</mat-icon>
+                        <span i18n="@@motd.archiveMarkItemUnreadAction"
+                          >Als ungelesen markieren</span
+                        >
+                      </button>
+                    }
+                  </div>
                 </section>
               }
             </div>

@@ -79,6 +79,7 @@ describe('QuizNewComponent', () => {
       name: 'Test-Quiz',
       description: '',
       motifImageUrl: null,
+      motifImageCredit: null,
       settings: expect.objectContaining({
         showLeaderboard: true,
         allowCustomNicknames: false,

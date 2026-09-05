@@ -13,12 +13,13 @@ import {
 } from '@angular/core';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
-import { MatButton } from '@angular/material/button';
+import { MatButton, MatIconButton } from '@angular/material/button';
 import { MatCard, MatCardContent } from '@angular/material/card';
 import { MatCheckbox } from '@angular/material/checkbox';
 import { MatDialog } from '@angular/material/dialog';
 import { MatFormField, MatLabel } from '@angular/material/form-field';
 import { MatIcon } from '@angular/material/icon';
+import { MatInput } from '@angular/material/input';
 import { MatOption } from '@angular/material/core';
 import { MatProgressBar } from '@angular/material/progress-bar';
 import { MatSelect } from '@angular/material/select';
@@ -35,6 +36,11 @@ import {
   resolveEffectiveQuestionTimer,
   type CreateSessionOutput,
   type Difficulty,
+  type MatchingPairInput,
+  type OrderingItemInput,
+  type CategorizationCategoryInput,
+  type CategorizationItemInput,
+  type QuestionNumericToleranceMode,
   type QuizUploadInput,
   type ShortAnswerEvaluationMode,
   type ToleranceLevel,
@@ -71,6 +77,34 @@ import { localizeKnownServerError } from '../../../core/localize-known-server-me
 
 type LiveStartMode = 'full' | 'current';
 type PreviewValidationWarning = { index: number; message: string };
+type NumericEstimateDraft = {
+  numericToleranceMode: QuestionNumericToleranceMode | null;
+  numericReferenceValue: number | null;
+  numericTolerancePercent: number | null;
+  numericIntervalLeft: number | null;
+  numericIntervalRight: number | null;
+  numericInputType: 'INTEGER' | 'DECIMAL' | null;
+  numericDecimalPlaces: number | null;
+  numericMin: number | null;
+  numericMax: number | null;
+  numericTwoRounds: boolean;
+};
+
+function usesClassicAnswerOptions(type: SupportedQuestionType): boolean {
+  return (
+    type === 'SINGLE_CHOICE' ||
+    type === 'MULTIPLE_CHOICE' ||
+    type === 'SURVEY' ||
+    type === 'SHORT_TEXT'
+  );
+}
+
+function parseOptionalNumber(raw: string): number | null {
+  const trimmed = raw.trim();
+  if (!trimmed) return null;
+  const value = Number(trimmed);
+  return Number.isFinite(value) ? value : null;
+}
 
 /**
  * Quiz-Preview & Schnellkorrektur (Epic 1).
@@ -82,6 +116,7 @@ type PreviewValidationWarning = { index: number; message: string };
   imports: [
     RouterLink,
     MatButton,
+    MatIconButton,
     MatCard,
     MatCardContent,
     MatIcon,
@@ -89,6 +124,7 @@ type PreviewValidationWarning = { index: number; message: string };
     MatCheckbox,
     MatFormField,
     MatLabel,
+    MatInput,
     MatSelect,
     MatOption,
     MarkdownKatexEditorComponent,
@@ -123,6 +159,13 @@ export class QuizPreviewComponent implements OnDestroy {
   readonly questionDraftText = signal('');
   readonly answerDraftTexts = signal<string[]>([]);
   readonly answerDraftCorrectFlags = signal<boolean[]>([]);
+  readonly orderingDraftTexts = signal<string[]>([]);
+  readonly matchingDraftPairs = signal<Array<{ left: string; right: string }>>([]);
+  readonly categoryDraftNames = signal<string[]>([]);
+  readonly categorizationItemDrafts = signal<Array<{ text: string; correctCategoryId: string }>>(
+    [],
+  );
+  readonly numericEstimateDraft = signal<NumericEstimateDraft | null>(null);
   readonly originalQuestionSnapshot = signal<AddQuizQuestionInput | null>(null);
   /** Wert beim Eintritt in den Inline-Edit (für Abbrechen); `undefined` = keine aktive Sitzung. */
   readonly quizDefaultTimerAtEditStart = signal<number | null | undefined>(undefined);
@@ -148,6 +191,12 @@ export class QuizPreviewComponent implements OnDestroy {
     if (!question) return null;
     if (!this.inlineEditMode()) return question;
 
+    const orderingItems = this.mergeOrderingDrafts(question);
+    const matchingPairs = this.mergeMatchingDrafts(question);
+    const categories = this.mergeCategoryDrafts(question);
+    const categorizationItems = this.mergeCategorizationItemDrafts(question);
+    const numeric = this.numericEstimateDraft();
+
     return {
       ...question,
       text: this.questionDraftText(),
@@ -156,6 +205,23 @@ export class QuizPreviewComponent implements OnDestroy {
         text: this.answerDraftTexts()[index] ?? answer.text,
         isCorrect: this.answerDraftCorrectFlags()[index] ?? answer.isCorrect,
       })),
+      ...(question.type === 'ORDERING' ? { orderingItems } : {}),
+      ...(question.type === 'MATCHING' ? { matchingPairs } : {}),
+      ...(question.type === 'CATEGORIZATION' ? { categories, categorizationItems } : {}),
+      ...(question.type === 'NUMERIC_ESTIMATE' && numeric
+        ? {
+            numericToleranceMode: numeric.numericToleranceMode,
+            numericReferenceValue: numeric.numericReferenceValue,
+            numericTolerancePercent: numeric.numericTolerancePercent,
+            numericIntervalLeft: numeric.numericIntervalLeft,
+            numericIntervalRight: numeric.numericIntervalRight,
+            numericInputType: numeric.numericInputType,
+            numericDecimalPlaces: numeric.numericDecimalPlaces,
+            numericMin: numeric.numericMin,
+            numericMax: numeric.numericMax,
+            numericTwoRounds: numeric.numericTwoRounds,
+          }
+        : {}),
     };
   });
   readonly inlineEditHasChanges = computed(() => {
@@ -201,6 +267,10 @@ export class QuizPreviewComponent implements OnDestroy {
       ) {
         return true;
       }
+    }
+
+    if (this.structuredInlineDraftsDiffer(original)) {
+      return true;
     }
 
     return false;
@@ -393,6 +463,33 @@ export class QuizPreviewComponent implements OnDestroy {
     this.questionDraftText.set(question.text);
     this.answerDraftTexts.set(question.answers.map((answer) => answer.text));
     this.answerDraftCorrectFlags.set(question.answers.map((answer) => answer.isCorrect));
+    this.orderingDraftTexts.set((question.orderingItems ?? []).map((item) => item.text));
+    this.matchingDraftPairs.set(
+      (question.matchingPairs ?? []).map((pair) => ({ left: pair.left, right: pair.right })),
+    );
+    this.categoryDraftNames.set((question.categories ?? []).map((category) => category.name));
+    this.categorizationItemDrafts.set(
+      (question.categorizationItems ?? []).map((item) => ({
+        text: item.text,
+        correctCategoryId: item.correctCategoryId,
+      })),
+    );
+    this.numericEstimateDraft.set(
+      question.type === 'NUMERIC_ESTIMATE'
+        ? {
+            numericToleranceMode: question.numericToleranceMode ?? 'ABSOLUTE_INTERVAL',
+            numericReferenceValue: question.numericReferenceValue ?? null,
+            numericTolerancePercent: question.numericTolerancePercent ?? null,
+            numericIntervalLeft: question.numericIntervalLeft ?? null,
+            numericIntervalRight: question.numericIntervalRight ?? null,
+            numericInputType: question.numericInputType ?? 'DECIMAL',
+            numericDecimalPlaces: question.numericDecimalPlaces ?? null,
+            numericMin: question.numericMin ?? null,
+            numericMax: question.numericMax ?? null,
+            numericTwoRounds: question.numericTwoRounds ?? false,
+          }
+        : null,
+    );
     this.inlineEditMode.set(true);
     this.scrollInlineEditorIntoView();
   }
@@ -563,6 +660,75 @@ export class QuizPreviewComponent implements OnDestroy {
     );
   }
 
+  onOrderingDraftChanged(index: number, value: string): void {
+    this.orderingDraftTexts.update((current) =>
+      current.map((entry, currentIndex) => (currentIndex === index ? value : entry)),
+    );
+  }
+
+  onMatchingDraftChanged(index: number, side: 'left' | 'right', value: string): void {
+    this.matchingDraftPairs.update((current) =>
+      current.map((pair, currentIndex) =>
+        currentIndex === index ? { ...pair, [side]: value } : pair,
+      ),
+    );
+  }
+
+  onCategoryDraftChanged(index: number, value: string): void {
+    this.categoryDraftNames.update((current) =>
+      current.map((entry, currentIndex) => (currentIndex === index ? value : entry)),
+    );
+  }
+
+  onCategorizationItemTextChanged(index: number, value: string): void {
+    this.categorizationItemDrafts.update((current) =>
+      current.map((item, currentIndex) =>
+        currentIndex === index ? { ...item, text: value } : item,
+      ),
+    );
+  }
+
+  onCategorizationItemCategoryChanged(index: number, categoryId: string): void {
+    this.categorizationItemDrafts.update((current) =>
+      current.map((item, currentIndex) =>
+        currentIndex === index ? { ...item, correctCategoryId: categoryId } : item,
+      ),
+    );
+  }
+
+  onNumericEstimateDraftChanged<K extends keyof NumericEstimateDraft>(
+    key: K,
+    value: NumericEstimateDraft[K],
+  ): void {
+    this.numericEstimateDraft.update((current) =>
+      current ? { ...current, [key]: value } : current,
+    );
+  }
+
+  onNumericEstimateNumberChanged(
+    key:
+      | 'numericReferenceValue'
+      | 'numericTolerancePercent'
+      | 'numericIntervalLeft'
+      | 'numericIntervalRight'
+      | 'numericDecimalPlaces'
+      | 'numericMin'
+      | 'numericMax',
+    raw: string,
+  ): void {
+    this.onNumericEstimateDraftChanged(key, parseOptionalNumber(raw));
+  }
+
+  usesClassicAnswerOptions(type: SupportedQuestionType): boolean {
+    return usesClassicAnswerOptions(type);
+  }
+
+  draftCategories(): Array<{ id: string; name: string }> {
+    const question = this.currentQuestion();
+    if (!question) return [];
+    return this.mergeCategoryDrafts(question);
+  }
+
   toggleCorrectAnswer(index: number): void {
     const question = this.currentQuestion();
     if (!question || !this.questionTypeHasCorrectAnswers(question.type) || !this.inlineEditMode()) {
@@ -671,6 +837,100 @@ export class QuizPreviewComponent implements OnDestroy {
 
   questionTypeHasCorrectAnswers(type: SupportedQuestionType): boolean {
     return type === 'SINGLE_CHOICE' || type === 'MULTIPLE_CHOICE';
+  }
+
+  private mergeOrderingDrafts(question: QuizQuestion): OrderingItemInput[] {
+    const drafts = this.orderingDraftTexts();
+    return (question.orderingItems ?? []).map((item, index) => ({
+      ...item,
+      text: drafts[index] ?? item.text,
+    }));
+  }
+
+  private mergeMatchingDrafts(question: QuizQuestion): MatchingPairInput[] {
+    const drafts = this.matchingDraftPairs();
+    return (question.matchingPairs ?? []).map((pair, index) => ({
+      ...pair,
+      left: drafts[index]?.left ?? pair.left,
+      right: drafts[index]?.right ?? pair.right,
+    }));
+  }
+
+  private mergeCategoryDrafts(question: QuizQuestion): CategorizationCategoryInput[] {
+    const drafts = this.categoryDraftNames();
+    return (question.categories ?? []).map((category, index) => ({
+      ...category,
+      name: drafts[index] ?? category.name,
+    }));
+  }
+
+  private mergeCategorizationItemDrafts(question: QuizQuestion): CategorizationItemInput[] {
+    const drafts = this.categorizationItemDrafts();
+    return (question.categorizationItems ?? []).map((item, index) => ({
+      ...item,
+      text: drafts[index]?.text ?? item.text,
+      correctCategoryId: drafts[index]?.correctCategoryId ?? item.correctCategoryId,
+    }));
+  }
+
+  private structuredInlineDraftsDiffer(original: AddQuizQuestionInput): boolean {
+    if (original.type === 'ORDERING') {
+      const originalItems = original.orderingItems ?? [];
+      const drafts = this.orderingDraftTexts();
+      if (drafts.length !== originalItems.length) return true;
+      return drafts.some((text, index) => text !== (originalItems[index]?.text ?? ''));
+    }
+
+    if (original.type === 'MATCHING') {
+      const originalPairs = original.matchingPairs ?? [];
+      const drafts = this.matchingDraftPairs();
+      if (drafts.length !== originalPairs.length) return true;
+      return drafts.some(
+        (pair, index) =>
+          pair.left !== (originalPairs[index]?.left ?? '') ||
+          pair.right !== (originalPairs[index]?.right ?? ''),
+      );
+    }
+
+    if (original.type === 'CATEGORIZATION') {
+      const originalCategories = original.categories ?? [];
+      const originalItems = original.categorizationItems ?? [];
+      const categoryDrafts = this.categoryDraftNames();
+      const itemDrafts = this.categorizationItemDrafts();
+      if (
+        categoryDrafts.length !== originalCategories.length ||
+        itemDrafts.length !== originalItems.length
+      ) {
+        return true;
+      }
+      if (categoryDrafts.some((name, index) => name !== (originalCategories[index]?.name ?? ''))) {
+        return true;
+      }
+      return itemDrafts.some(
+        (item, index) =>
+          item.text !== (originalItems[index]?.text ?? '') ||
+          item.correctCategoryId !== (originalItems[index]?.correctCategoryId ?? ''),
+      );
+    }
+
+    if (original.type === 'NUMERIC_ESTIMATE') {
+      const draft = this.numericEstimateDraft();
+      if (!draft) return false;
+      return (
+        (draft.numericToleranceMode ?? null) !== (original.numericToleranceMode ?? null) ||
+        (draft.numericReferenceValue ?? null) !== (original.numericReferenceValue ?? null) ||
+        (draft.numericTolerancePercent ?? null) !== (original.numericTolerancePercent ?? null) ||
+        (draft.numericIntervalLeft ?? null) !== (original.numericIntervalLeft ?? null) ||
+        (draft.numericIntervalRight ?? null) !== (original.numericIntervalRight ?? null) ||
+        (draft.numericInputType ?? null) !== (original.numericInputType ?? null) ||
+        (draft.numericDecimalPlaces ?? null) !== (original.numericDecimalPlaces ?? null) ||
+        (draft.numericMin ?? null) !== (original.numericMin ?? null) ||
+        (draft.numericMax ?? null) !== (original.numericMax ?? null) ||
+        draft.numericTwoRounds !== (original.numericTwoRounds ?? false)
+      );
+    }
+
+    return false;
   }
 
   getCategorizationItemsForCategory(question: QuizQuestion, categoryId: string) {
@@ -871,12 +1131,45 @@ export class QuizPreviewComponent implements OnDestroy {
       isCorrect: this.answerDraftCorrectFlags()[index] ?? answer.isCorrect,
     }));
 
+    const base = this.toQuestionInput(question);
+    const numeric = this.numericEstimateDraft();
+
     this.quizStore.updateQuestion(this.id, question.id, {
-      ...this.toQuestionInput(question),
+      ...base,
       text: this.questionDraftText(),
       timer: this.inlineQuestionTimerDraft(),
       answers,
       skipReadingPhase: this.inlineSkipReadingPhaseDraft(),
+      ...(question.type === 'ORDERING'
+        ? { orderingItems: this.mergeOrderingDrafts(question) }
+        : {}),
+      ...(question.type === 'MATCHING'
+        ? {
+            matchingPairs: this.mergeMatchingDrafts(question),
+            matchingShuffleRight: question.matchingShuffleRight ?? true,
+          }
+        : {}),
+      ...(question.type === 'CATEGORIZATION'
+        ? {
+            categories: this.mergeCategoryDrafts(question),
+            categorizationItems: this.mergeCategorizationItemDrafts(question),
+            categorizationShuffleItems: question.categorizationShuffleItems ?? true,
+          }
+        : {}),
+      ...(question.type === 'NUMERIC_ESTIMATE' && numeric
+        ? {
+            numericToleranceMode: numeric.numericToleranceMode ?? undefined,
+            numericReferenceValue: numeric.numericReferenceValue,
+            numericTolerancePercent: numeric.numericTolerancePercent,
+            numericIntervalLeft: numeric.numericIntervalLeft,
+            numericIntervalRight: numeric.numericIntervalRight,
+            numericInputType: numeric.numericInputType ?? undefined,
+            numericDecimalPlaces: numeric.numericDecimalPlaces,
+            numericMin: numeric.numericMin,
+            numericMax: numeric.numericMax,
+            numericTwoRounds: numeric.numericTwoRounds,
+          }
+        : {}),
     });
   }
 
@@ -931,6 +1224,11 @@ export class QuizPreviewComponent implements OnDestroy {
     this.questionDraftText.set('');
     this.answerDraftTexts.set([]);
     this.answerDraftCorrectFlags.set([]);
+    this.orderingDraftTexts.set([]);
+    this.matchingDraftPairs.set([]);
+    this.categoryDraftNames.set([]);
+    this.categorizationItemDrafts.set([]);
+    this.numericEstimateDraft.set(null);
   }
 
   inlineGlobalTimerEnabled(): boolean {

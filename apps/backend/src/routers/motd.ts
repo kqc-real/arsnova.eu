@@ -207,6 +207,16 @@ function isArchiveItemIndividuallyRead(
   );
 }
 
+function isArchiveItemForcedUnread(
+  item: { id: string; contentVersion: number },
+  unreadItems: ReadonlyArray<MotdArchiveReadItem> | undefined,
+): boolean {
+  if (!unreadItems?.length) return false;
+  return unreadItems.some(
+    (unread) => unread.motdId === item.id && unread.contentVersion === item.contentVersion,
+  );
+}
+
 /** Positiv, wenn `a` in der Archivsortierung neuer als `b` ist. */
 function compareArchiveReadCursors(a: MotdArchiveReadCursor, b: MotdArchiveReadCursor): number {
   const startsAtDifference = Date.parse(a.startsAtIso) - Date.parse(b.startsAtIso);
@@ -221,6 +231,7 @@ async function fetchArchiveHeaderStats(
   seenCursor: MotdArchiveReadCursor | null,
   legacySeenEndsAt: Date | null,
   archiveReadItems: ReadonlyArray<MotdArchiveReadItem> | undefined,
+  archiveUnreadItems: ReadonlyArray<MotdArchiveReadItem> | undefined,
 ) {
   const rows = await prisma.motd.findMany({
     where: motdArchiveListWhere(now),
@@ -244,6 +255,7 @@ async function fetchArchiveHeaderStats(
     null,
   );
   const archiveUnreadCount = visible.reduce((count, item) => {
+    if (isArchiveItemForcedUnread(item, archiveUnreadItems)) return count + 1;
     if (isArchiveItemIndividuallyRead(item, archiveReadItems)) return count;
     if (seenCursor) {
       return (
@@ -382,7 +394,14 @@ export const motdRouter = router({
       const dismissed = input.overlayDismissedUpTo;
       const [motd, archiveStats] = await Promise.all([
         fetchCurrentMotdDto(locale, now, dismissed),
-        fetchArchiveHeaderStats(locale, now, seenCursor, legacySeenEndsAt, input.archiveReadItems),
+        fetchArchiveHeaderStats(
+          locale,
+          now,
+          seenCursor,
+          legacySeenEndsAt,
+          input.archiveReadItems,
+          input.archiveUnreadItems,
+        ),
       ]);
 
       const { archiveCount, archiveMaxCursor, archiveMaxEndsAtIso, archiveUnreadCount } =

@@ -46,6 +46,7 @@ describe('QuizPreviewComponent', () => {
     name: 'Preview Quiz',
     description: null,
     motifImageUrl: null,
+    motifImageCredit: null,
     createdAt: '2026-03-08T12:00:00.000Z',
     updatedAt: '2026-03-08T12:00:00.000Z',
     settings: {
@@ -116,6 +117,7 @@ describe('QuizPreviewComponent', () => {
     historyScopeId: document.id,
     name: document.name,
     motifImageUrl: document.motifImageUrl,
+    motifImageCredit: document.motifImageCredit,
     showLeaderboard: document.settings.showLeaderboard,
     allowCustomNicknames: document.settings.allowCustomNicknames,
     defaultTimer: document.settings.defaultTimer,
@@ -386,6 +388,152 @@ describe('QuizPreviewComponent', () => {
     expect(savedInput).not.toHaveProperty('ratingMin');
     expect(savedInput).not.toHaveProperty('ratingMax');
     expect(component.inlineEditMode()).toBe(false);
+  });
+
+  it('zeigt in der Preview-Bearbeitung Optionen für Sortieren, Zuordnen, Kategorisieren und Schätzen', () => {
+    const originalQuestion = quiz.questions[0]!;
+    const cases: Array<{
+      question: QuizQuestion;
+      selectors: string[];
+      assert: (component: QuizPreviewComponent, root: HTMLElement) => void;
+    }> = [
+      {
+        question: {
+          id: 'ordering-q',
+          text: 'Ordne',
+          type: 'ORDERING',
+          difficulty: 'MEDIUM',
+          order: 0,
+          enabled: true,
+          timer: null,
+          answers: [],
+          ratingMin: null,
+          ratingMax: null,
+          ratingLabelMin: null,
+          ratingLabelMax: null,
+          orderingItems: [
+            { id: 'o1', text: 'Eins' },
+            { id: 'o2', text: 'Zwei' },
+            { id: 'o3', text: 'Drei' },
+          ],
+        },
+        selectors: [
+          '#quiz-preview-ordering-0',
+          '#quiz-preview-ordering-1',
+          '#quiz-preview-ordering-2',
+        ],
+        assert: (component) => {
+          component.onOrderingDraftChanged(1, 'Zwei geändert');
+          expect(component.inlineEditHasChanges()).toBe(true);
+        },
+      },
+      {
+        question: {
+          id: 'matching-q',
+          text: 'Ordne zu',
+          type: 'MATCHING',
+          difficulty: 'MEDIUM',
+          order: 0,
+          enabled: true,
+          timer: null,
+          answers: [],
+          ratingMin: null,
+          ratingMax: null,
+          ratingLabelMin: null,
+          ratingLabelMax: null,
+          matchingPairs: [
+            { leftId: 'l1', left: 'A', rightId: 'r1', right: '1' },
+            { leftId: 'l2', left: 'B', rightId: 'r2', right: '2' },
+          ],
+          matchingShuffleRight: true,
+        },
+        selectors: ['#quiz-preview-matching-left-0', '#quiz-preview-matching-right-0'],
+        assert: (component) => {
+          component.onMatchingDraftChanged(0, 'right', 'Eins');
+          expect(component.inlineEditHasChanges()).toBe(true);
+        },
+      },
+      {
+        question: {
+          id: 'categorization-q',
+          text: 'Kategorisiere',
+          type: 'CATEGORIZATION',
+          difficulty: 'MEDIUM',
+          order: 0,
+          enabled: true,
+          timer: null,
+          answers: [],
+          ratingMin: null,
+          ratingMax: null,
+          ratingLabelMin: null,
+          ratingLabelMax: null,
+          categories: [
+            { id: 'c1', name: 'Links' },
+            { id: 'c2', name: 'Rechts' },
+          ],
+          categorizationItems: [
+            { id: 'i1', text: 'A', correctCategoryId: 'c1' },
+            { id: 'i2', text: 'B', correctCategoryId: 'c1' },
+            { id: 'i3', text: 'C', correctCategoryId: 'c2' },
+            { id: 'i4', text: 'D', correctCategoryId: 'c2' },
+          ],
+          categorizationShuffleItems: true,
+        },
+        selectors: ['#quiz-preview-category-0', '#quiz-preview-cat-item-0'],
+        assert: (component) => {
+          component.onCategoryDraftChanged(0, 'Gruppe A');
+          expect(component.inlineEditHasChanges()).toBe(true);
+        },
+      },
+      {
+        question: {
+          id: 'numeric-q',
+          text: 'Schätze',
+          type: 'NUMERIC_ESTIMATE',
+          difficulty: 'MEDIUM',
+          order: 0,
+          enabled: true,
+          timer: null,
+          answers: [],
+          ratingMin: null,
+          ratingMax: null,
+          ratingLabelMin: null,
+          ratingLabelMax: null,
+          numericToleranceMode: 'ABSOLUTE_INTERVAL',
+          numericReferenceValue: 10,
+          numericIntervalLeft: 9,
+          numericIntervalRight: 11,
+          numericInputType: 'INTEGER',
+          numericTwoRounds: false,
+        },
+        selectors: [],
+        assert: (component, root) => {
+          expect(root.textContent).toContain('Toleranzmodus');
+          expect(root.textContent).toContain('Linke Grenze');
+          component.onNumericEstimateDraftChanged('numericReferenceValue', 12);
+          expect(component.inlineEditHasChanges()).toBe(true);
+        },
+      },
+    ];
+
+    try {
+      for (const testCase of cases) {
+        quiz.questions[0] = testCase.question;
+        const fixture = TestBed.createComponent(QuizPreviewComponent);
+        const component = fixture.componentInstance;
+        fixture.detectChanges();
+        component.enterInlineEditMode();
+        fixture.detectChanges();
+
+        for (const selector of testCase.selectors) {
+          expect(fixture.nativeElement.querySelector(selector)).toBeTruthy();
+        }
+        testCase.assert(component, fixture.nativeElement as HTMLElement);
+        fixture.destroy();
+      }
+    } finally {
+      quiz.questions[0] = originalQuestion;
+    }
   });
 
   it('bewahrt beim Preview-Speichern alle typabhaengigen Fragenfelder', () => {

@@ -209,6 +209,7 @@ const defaultSession = {
   serverTime: '2026-03-24T12:00:00.000Z',
   quizName: 'Demo Quiz',
   quizMotifImageUrl: null as string | null,
+  quizMotifImageCredit: null as string | null,
   title: null,
   participantCount: 0,
   nicknameTheme: 'HIGH_SCHOOL' as const,
@@ -252,6 +253,7 @@ const quizStoreMock = {
           name: 'Quiz Sammlung',
           description: 'Mitgebrachte Fragen',
           motifImageUrl: null,
+          motifImageCredit: null,
           createdAt: '2026-03-20T12:00:00.000Z',
           updatedAt: '2026-03-24T12:00:00.000Z',
           settings: {
@@ -282,6 +284,7 @@ const quizStoreMock = {
             name: 'Team Quiz',
             description: 'Nur für Teams',
             motifImageUrl: null,
+            motifImageCredit: null,
             createdAt: '2026-03-21T12:00:00.000Z',
             updatedAt: '2026-03-25T12:00:00.000Z',
             settings: {
@@ -312,6 +315,7 @@ const quizStoreMock = {
               name: 'Demo Quiz',
               description: 'Showcase',
               motifImageUrl: null,
+              motifImageCredit: null,
               createdAt: '2026-03-21T12:00:00.000Z',
               updatedAt: '2026-03-25T12:00:00.000Z',
               settings: {
@@ -508,6 +512,7 @@ describe('SessionHostComponent', { timeout: 30_000 }, () => {
       name: 'Quiz Sammlung',
       description: 'Mitgebrachte Fragen',
       motifImageUrl: null,
+      motifImageCredit: null,
       showLeaderboard: true,
       allowCustomNicknames: true,
       defaultTimer: 30,
@@ -7179,6 +7184,31 @@ describe('SessionHostComponent', { timeout: 30_000 }, () => {
     fixture.destroy();
   });
 
+  it('trennt Frage und Antwortoptionen über MD3 primary-container vs. surface-container', async () => {
+    const { readFileSync } = await import('node:fs');
+    const { dirname, join } = await import('node:path');
+    const { fileURLToPath } = await import('node:url');
+    const componentDir = dirname(fileURLToPath(import.meta.url));
+    const styles = readFileSync(join(componentDir, 'session-host.component.scss'), 'utf8');
+    const playful = readFileSync(
+      join(componentDir, '../../../../styles/playful-inner-chrome.scss'),
+      'utf8',
+    );
+
+    expect(styles).toMatch(
+      /\.session-host__question-card\s*\{[^}]*background:\s*var\(--mat-sys-primary-container\)/s,
+    );
+    expect(styles).toMatch(/\.session-host__answer\s*\{[^}]*surface-container-lowest/s);
+    expect(styles).toMatch(/\.session-host__neutral-item\s*\{[^}]*surface-container-lowest/s);
+    expect(styles).toMatch(/\.session-host__results-card\s*\{[^}]*surface-container-low/s);
+    expect(playful).toMatch(
+      /\.session-host mat-card\.session-host__question-card\s*\{[^}]*primary-container/s,
+    );
+    expect(playful).toMatch(
+      /\.session-host mat-card\.session-host__results-card\s*\{[^}]*app-playful-inner-panel-muted/s,
+    );
+  });
+
   it('empfiehlt bei passendem Korridor eine zweite Runde statt aktiver Ergebnisanzeige', async () => {
     getInfoQueryMock.mockResolvedValue({ ...defaultSession, status: 'ACTIVE' });
     getParticipantsQueryMock.mockResolvedValue({ participantCount: 4, participants: [] });
@@ -8751,9 +8781,14 @@ describe('SessionHostComponent', { timeout: 30_000 }, () => {
       }
       if (type === 'CATEGORIZATION') {
         expect(text).not.toContain('Element A → Kategorie A');
-        expect(
-          neutral.querySelectorAll(':scope > .session-host__neutral-columns > section'),
-        ).toHaveLength(2);
+        const sections = neutral.querySelectorAll(
+          ':scope > .session-host__neutral-columns > section',
+        );
+        expect(sections).toHaveLength(2);
+        expect(sections[0]?.textContent ?? '').toContain('Elemente');
+        expect(sections[0]?.textContent ?? '').toContain('Element A');
+        expect(sections[1]?.textContent ?? '').toContain('Kategorien');
+        expect(sections[1]?.textContent ?? '').toContain('Kategorie A');
       }
       fixture.destroy();
     },

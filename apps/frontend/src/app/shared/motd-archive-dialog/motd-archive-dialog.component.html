@@ -90,18 +90,6 @@
                 }
               </mat-expansion-panel>
               <div class="motd-archive__item-footer">
-                <span
-                  class="motd-archive__read-state"
-                  [class.motd-archive__read-state--unread]="itemUnread"
-                >
-                  @if (itemUnread) {
-                    <span class="motd-archive__unread-dot" aria-hidden="true"></span>
-                    <span i18n="@@motd.archiveItemUnreadStatus">Ungelesen</span>
-                  } @else {
-                    <mat-icon aria-hidden="true">done</mat-icon>
-                    <span i18n="@@motd.archiveMarkItemRead">Gelesen</span>
-                  }
-                </span>
                 @if (itemUnread) {
                   <button
                     matButton="text"
@@ -113,6 +101,18 @@
                   >
                     <mat-icon aria-hidden="true">done</mat-icon>
                     <span i18n="@@motd.archiveMarkItemReadAction">Als gelesen markieren</span>
+                  </button>
+                } @else {
+                  <button
+                    matButton="text"
+                    type="button"
+                    class="motd-archive__mark-unread"
+                    i18n-aria-label="@@motd.archiveMarkItemUnreadAria"
+                    aria-label="Diese Meldung als ungelesen markieren"
+                    (click)="markArchiveItemUnread(it, $event)"
+                  >
+                    <mat-icon aria-hidden="true">undo</mat-icon>
+                    <span i18n="@@motd.archiveMarkItemUnreadAction">Als ungelesen markieren</span>
                   </button>
                 }
               </div>

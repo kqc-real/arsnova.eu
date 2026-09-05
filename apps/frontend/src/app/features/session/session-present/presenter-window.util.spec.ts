@@ -6,6 +6,7 @@ import {
   PRESENTER_VIEW_OFFERED_MEDIA,
   presenterViewPath,
   presenterViewWindowName,
+  presenterWindowOpenFeatures,
   shouldOpenPresenterInUnnamedTab,
 } from './presenter-window.util';
 
@@ -26,24 +27,39 @@ describe('presenter-window.util', () => {
 
   it('öffnet die Presenter-Ansicht über about:blank und navigiert danach zu /present', async () => {
     const replace = vi.fn();
+    const requestFullscreen = vi.fn(() => Promise.resolve());
     const opened = {
       closed: false,
       location: { pathname: 'blank', replace },
       sessionStorage: window.sessionStorage,
       focus: vi.fn(),
+      document: {
+        documentElement: { requestFullscreen },
+        fullscreenEnabled: true,
+        fullscreenElement: null,
+      },
     };
     const open = vi.fn(() => opened);
     const win = {
       open,
       navigator: { maxTouchPoints: 0 },
       matchMedia: () => ({ matches: false }),
+      screen: { availWidth: 1920, availHeight: 1080, availLeft: 0, availTop: 0 },
+      innerWidth: 1280,
+      innerHeight: 800,
     } as unknown as Window;
     const tokenStorage = persistMock();
 
     const result = await openPresenterViewWindow(win, 'xy9k2p', tokenStorage);
 
     expect(open).toHaveBeenCalledWith('', presenterViewWindowName('xy9k2p'));
-    expect(open).toHaveBeenCalledWith('about:blank', presenterViewWindowName('xy9k2p'));
+    expect(open).toHaveBeenCalledWith(
+      'about:blank',
+      presenterViewWindowName('xy9k2p'),
+      expect.stringContaining('fullscreen'),
+    );
+    expect(open.mock.calls[1]?.[2]).toContain('width=1920');
+    expect(open.mock.calls[1]?.[2]).toContain('height=1080');
     expect(tokenStorage.persistCurrentHostToken).toHaveBeenCalledWith('xy9k2p');
     expect(replace).toHaveBeenCalledWith(expect.stringContaining('/session/XY9K2P/present'));
     expect(result).toBe(opened);
@@ -52,11 +68,17 @@ describe('presenter-window.util', () => {
   it('fokussiert ein bereits offenes Presenter-Fenster ohne Reload', async () => {
     const replace = vi.fn();
     const focus = vi.fn();
+    const requestFullscreen = vi.fn(() => Promise.resolve());
     const existing = {
       closed: false,
       location: { pathname: '/session/XY9K2P/present', replace },
       sessionStorage: { setItem: vi.fn() },
       focus,
+      document: {
+        documentElement: { requestFullscreen },
+        fullscreenEnabled: true,
+        fullscreenElement: null,
+      },
     };
     const open = vi.fn(() => existing);
     const win = {
@@ -73,6 +95,7 @@ describe('presenter-window.util', () => {
     expect(open).toHaveBeenCalledWith('', presenterViewWindowName('xy9k2p'));
     expect(replace).not.toHaveBeenCalled();
     expect(focus).toHaveBeenCalled();
+    expect(requestFullscreen).toHaveBeenCalled();
     expect(existing.sessionStorage.setItem).toHaveBeenCalled();
     expect(result).toBe(existing);
   });
@@ -97,6 +120,9 @@ describe('presenter-window.util', () => {
       open,
       navigator: { maxTouchPoints: 5 },
       matchMedia: () => ({ matches: true }),
+      screen: { availWidth: 1024, availHeight: 768, availLeft: 0, availTop: 0 },
+      innerWidth: 1024,
+      innerHeight: 768,
     } as unknown as Window;
     const tokenStorage = {
       persistCurrentHostToken: vi.fn(async () => {
@@ -107,7 +133,11 @@ describe('presenter-window.util', () => {
 
     await openPresenterViewWindow(win, 'xy9k2p', tokenStorage);
 
-    expect(open).toHaveBeenCalledWith('about:blank', '_blank');
+    expect(open).toHaveBeenCalledWith(
+      'about:blank',
+      '_blank',
+      expect.stringContaining('fullscreen'),
+    );
     expect(callOrder).toEqual(['open', 'persist']);
     expect(replace).toHaveBeenCalledWith(expect.stringContaining('/session/XY9K2P/present'));
     expect(opened.close).not.toHaveBeenCalled();
@@ -205,6 +235,21 @@ describe('presenter-window.util', () => {
 
   it('gibt null zurück, wenn kein Window vorhanden ist', async () => {
     expect(await openPresenterViewWindow(null, 'ABC123', persistMock())).toBeNull();
+  });
+
+  it('baut bildschirmfüllende Popup-Features inkl. fullscreen', () => {
+    const win = {
+      screen: { availWidth: 1600, availHeight: 900, availLeft: 10, availTop: 20 },
+      innerWidth: 1200,
+      innerHeight: 800,
+    } as unknown as Window;
+    const features = presenterWindowOpenFeatures(win);
+    expect(features).toContain('width=1600');
+    expect(features).toContain('height=900');
+    expect(features).toContain('left=10');
+    expect(features).toContain('top=20');
+    expect(features).toContain('fullscreen');
+    expect(features).toContain('popup=yes');
   });
 
   it('bietet die Presenter-Ansicht ohne matchMedia als Desktop an', () => {

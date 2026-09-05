@@ -59,6 +59,7 @@ import {
   DEFAULT_BONUS_TOKEN_COUNT,
   DEFAULT_TEAM_COUNT,
   DEFAULT_TIMER_SECONDS,
+  MOTIF_IMAGE_CREDIT_MAX_LENGTH,
   MOTIF_IMAGE_URL_MAX_LENGTH,
   NUMERIC_DEFAULT_INPUT_KIND,
   NUMERIC_DEFAULT_TOLERANCE_MODE,
@@ -320,12 +321,14 @@ type QuizMetadataFormGroup = FormGroup<{
   name: FormControl<string>;
   description: FormControl<string>;
   motifImageUrl: FormControl<string>;
+  motifImageCredit: FormControl<string>;
 }>;
 
 type QuizMetadataComparable = {
   name: string;
   description: string | null;
   motifImageUrl: string | null;
+  motifImageCredit: string | null;
 };
 
 /**
@@ -410,6 +413,7 @@ export class QuizEditComponent implements OnDestroy {
   readonly id = this.route.snapshot.paramMap.get('id') ?? '';
   /** Synchron zu MotifImageUrlSchema / maxlength im Metadaten-Formular. */
   readonly motifImageUrlMaxLength = MOTIF_IMAGE_URL_MAX_LENGTH;
+  readonly motifImageCreditMaxLength = MOTIF_IMAGE_CREDIT_MAX_LENGTH;
   readonly submitError = signal<string | null>(null);
   readonly submitted = signal(false);
   readonly editingQuestionId = signal<string | null>(null);
@@ -728,6 +732,9 @@ export class QuizEditComponent implements OnDestroy {
         motifImageUrlOptionalHttpsValidator,
       ],
     }),
+    motifImageCredit: this.formBuilder.control('', {
+      validators: [Validators.maxLength(MOTIF_IMAGE_CREDIT_MAX_LENGTH)],
+    }),
   });
 
   constructor() {
@@ -736,7 +743,12 @@ export class QuizEditComponent implements OnDestroy {
     }
     const quiz = this.quiz();
     if (quiz) {
-      this.patchMetadataForm(quiz.name, quiz.description, quiz.motifImageUrl);
+      this.patchMetadataForm(
+        quiz.name,
+        quiz.description,
+        quiz.motifImageUrl,
+        quiz.motifImageCredit,
+      );
       this.patchSettingsForm(quiz.settings);
       this.rememberSyncedFormBaseline(quiz);
     }
@@ -2433,11 +2445,17 @@ export class QuizEditComponent implements OnDestroy {
   private commitMetadata(): boolean {
     try {
       const updated = this.quizStore.updateQuizMetadata(this.id, this.readMetadataFromForm());
-      this.patchMetadataForm(updated.name, updated.description, updated.motifImageUrl);
+      this.patchMetadataForm(
+        updated.name,
+        updated.description,
+        updated.motifImageUrl,
+        updated.motifImageCredit,
+      );
       this.rememberSyncedMetadataBaseline({
         name: updated.name,
         description: updated.description,
         motifImageUrl: updated.motifImageUrl,
+        motifImageCredit: updated.motifImageCredit,
       });
       this.metadataSaved.set(true);
       return true;
@@ -2516,7 +2534,7 @@ export class QuizEditComponent implements OnDestroy {
     const quiz = this.quiz();
     if (!quiz) return;
 
-    this.patchMetadataForm(quiz.name, quiz.description, quiz.motifImageUrl);
+    this.patchMetadataForm(quiz.name, quiz.description, quiz.motifImageUrl, quiz.motifImageCredit);
     this.patchSettingsForm(quiz.settings);
     this.rememberSyncedFormBaseline(quiz);
     this.questionDrafts.set({});
@@ -2917,6 +2935,7 @@ export class QuizEditComponent implements OnDestroy {
         name: quiz.name.trim(),
         description: normalizeNullableText(quiz.description),
         motifImageUrl: normalizeNullableText(quiz.motifImageUrl),
+        motifImageCredit: normalizeNullableText(quiz.motifImageCredit),
       } satisfies QuizMetadataComparable)
     );
   }
@@ -2938,6 +2957,7 @@ export class QuizEditComponent implements OnDestroy {
       name: this.metadataForm.controls.name.value.trim(),
       description: normalizeNullableText(this.metadataForm.controls.description.value),
       motifImageUrl: normalizeNullableText(this.metadataForm.controls.motifImageUrl.value),
+      motifImageCredit: normalizeNullableText(this.metadataForm.controls.motifImageCredit.value),
     };
   }
 
@@ -2998,11 +3018,13 @@ export class QuizEditComponent implements OnDestroy {
     name: string,
     description: string | null,
     motifImageUrl: string | null,
+    motifImageCredit: string | null,
   ): void {
     this.metadataForm.setValue({
       name,
       description: description ?? '',
       motifImageUrl: motifImageUrl ?? '',
+      motifImageCredit: motifImageCredit ?? '',
     });
     this.metadataForm.markAsPristine();
     this.metadataForm.markAsUntouched();
@@ -3012,6 +3034,7 @@ export class QuizEditComponent implements OnDestroy {
     name: string;
     description: string | null;
     motifImageUrl: string | null;
+    motifImageCredit: string | null;
     settings: QuizSettings;
   }): void {
     this.rememberSyncedSettingsBaseline(quiz.settings);
@@ -3019,6 +3042,7 @@ export class QuizEditComponent implements OnDestroy {
       name: quiz.name,
       description: quiz.description,
       motifImageUrl: quiz.motifImageUrl,
+      motifImageCredit: quiz.motifImageCredit,
     });
   }
 
@@ -3030,11 +3054,13 @@ export class QuizEditComponent implements OnDestroy {
     name: string;
     description: string | null;
     motifImageUrl: string | null;
+    motifImageCredit: string | null;
   }): void {
     this.lastSyncedMetadataJson = JSON.stringify({
       name: metadata.name.trim(),
       description: normalizeNullableText(metadata.description),
       motifImageUrl: normalizeNullableText(metadata.motifImageUrl),
+      motifImageCredit: normalizeNullableText(metadata.motifImageCredit),
     } satisfies QuizMetadataComparable);
   }
 
@@ -3046,6 +3072,7 @@ export class QuizEditComponent implements OnDestroy {
     name: string;
     description: string | null;
     motifImageUrl: string | null;
+    motifImageCredit: string | null;
     settings: QuizSettings;
     questions: QuizQuestion[];
   }): void {
@@ -3060,10 +3087,16 @@ export class QuizEditComponent implements OnDestroy {
       name: quiz.name.trim(),
       description: normalizeNullableText(quiz.description),
       motifImageUrl: normalizeNullableText(quiz.motifImageUrl),
+      motifImageCredit: normalizeNullableText(quiz.motifImageCredit),
     } satisfies QuizMetadataComparable);
     const formMetadataJson = JSON.stringify(this.readMetadataFromForm());
     if (this.lastSyncedMetadataJson === null || formMetadataJson === this.lastSyncedMetadataJson) {
-      this.patchMetadataForm(quiz.name, quiz.description, quiz.motifImageUrl);
+      this.patchMetadataForm(
+        quiz.name,
+        quiz.description,
+        quiz.motifImageUrl,
+        quiz.motifImageCredit,
+      );
       this.lastSyncedMetadataJson = storeMetadataJson;
     }
 

@@ -211,10 +211,27 @@
   padding: 0 1rem 0.75rem;
 }
 
-.motd-archive__mark-read {
+.motd-archive__mark-read,
+.motd-archive__mark-unread {
   min-height: 2.5rem;
   white-space: normal;
   max-width: 100%;
+}
+
+/*
+ * Sekundäre Aktion: on-surface-variant (MD3), nicht Primary.
+ * Farbe explizit auf Label + Icon — Token allein reicht bei mat-icon oft nicht.
+ * Icon `undo` (im selbst gehosteten Material-Icons-Subset); `mark_as_unread` fehlt dort.
+ */
+.motd-archive__mark-unread.mat-mdc-button {
+  --mat-text-button-label-text-color: var(--mat-sys-on-surface-variant);
+  --mat-text-button-state-layer-color: var(--mat-sys-on-surface);
+  color: var(--mat-sys-on-surface-variant);
+}
+
+.motd-archive__mark-unread .mdc-button__label,
+.motd-archive__mark-unread .mat-icon {
+  color: var(--mat-sys-on-surface-variant);
 }
 
 /* Material Expansion-Header: ViewEncapsulation.None (kein Piercing-Selektor). */

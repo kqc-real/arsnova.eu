@@ -355,6 +355,7 @@ erDiagram
         string historyScopeId
         string name
         string motifImageUrl
+        string motifImageCredit
         boolean showLeaderboard
         boolean allowCustomNicknames
         int defaultTimer

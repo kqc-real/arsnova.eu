@@ -162,6 +162,7 @@ describe('session.getInfo (ADR-0009)', () => {
         bonusTokenCount: null,
         preset: 'PLAYFUL',
         motifImageUrl: null,
+        motifImageCredit: null,
       });
 
       const result = await caller.getInfo({ code: 'abc123' });
@@ -219,6 +220,7 @@ describe('session.getInfo (ADR-0009)', () => {
       bonusTokenCount: null,
       preset: 'PLAYFUL',
       motifImageUrl: null,
+      motifImageCredit: null,
     });
 
     const result = await caller.getInfo({ code: 'abc123' });
@@ -337,6 +339,7 @@ describe('session.getInfo (ADR-0009)', () => {
       bonusTokenCount: null,
       preset: 'PLAYFUL',
       motifImageUrl: null,
+      motifImageCredit: null,
       teamNames: [],
     });
 
@@ -382,6 +385,7 @@ describe('session.getInfo (ADR-0009)', () => {
       bonusTokenCount: null,
       preset: 'PLAYFUL',
       motifImageUrl: null,
+      motifImageCredit: null,
       teamNames: [],
     });
 

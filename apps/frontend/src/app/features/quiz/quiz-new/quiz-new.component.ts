@@ -31,6 +31,7 @@ import {
   DEFAULT_BONUS_TOKEN_COUNT,
   DEFAULT_TEAM_COUNT,
   DEFAULT_TIMER_SECONDS,
+  MOTIF_IMAGE_CREDIT_MAX_LENGTH,
   MOTIF_IMAGE_URL_MAX_LENGTH,
   MotifImageUrlSchema,
   PresetStorageEntrySchema,
@@ -110,6 +111,7 @@ export class QuizNewComponent implements OnInit, OnDestroy {
 
   /** Synchron zu MotifImageUrlSchema / maxlength im Template. */
   readonly motifImageUrlMaxLength = MOTIF_IMAGE_URL_MAX_LENGTH;
+  readonly motifImageCreditMaxLength = MOTIF_IMAGE_CREDIT_MAX_LENGTH;
 
   readonly isSaving = signal(false);
   readonly submitError = signal<string | null>(null);
@@ -127,6 +129,7 @@ export class QuizNewComponent implements OnInit, OnDestroy {
       '',
       [Validators.maxLength(MOTIF_IMAGE_URL_MAX_LENGTH), motifImageUrlOptionalHttpsValidator],
     ],
+    motifImageCredit: ['', [Validators.maxLength(MOTIF_IMAGE_CREDIT_MAX_LENGTH)]],
     showLeaderboard: [true],
     allowCustomNicknames: [false],
     defaultTimer: this.formBuilder.control<number | null>(null, {
@@ -156,6 +159,7 @@ export class QuizNewComponent implements OnInit, OnDestroy {
   readonly nameControl = this.form.controls.name;
   readonly descriptionControl = this.form.controls.description;
   readonly motifImageUrlControl = this.form.controls.motifImageUrl;
+  readonly motifImageCreditControl = this.form.controls.motifImageCredit;
   readonly defaultTimerControl = this.form.controls.defaultTimer;
   readonly teamCountControl = this.form.controls.teamCount;
   readonly teamNamesTextControl = this.form.controls.teamNamesText;
@@ -335,6 +339,9 @@ export class QuizNewComponent implements OnInit, OnDestroy {
         description: this.descriptionControl.value,
         motifImageUrl: this.motifImageUrlControl.value.trim()
           ? this.motifImageUrlControl.value.trim()
+          : null,
+        motifImageCredit: this.motifImageCreditControl.value.trim()
+          ? this.motifImageCreditControl.value.trim()
           : null,
         settings: this.readSettingsFromForm(),
       });
