@@ -267,7 +267,7 @@ import { pdfConcurrencyLimiter } from '../lib/pdfConcurrencyLimiter';
 import { prisma } from '../db';
 import { getRedis } from '../redis';
 import { createHostSessionToken } from '../lib/hostAuth';
-import { issueProductFeedbackInvitesAfterFinish } from '../lib/productFeedbackInvite';
+import { issueProductFeedbackInvitesAfterFinishAwait } from '../lib/productFeedbackInvite';
 import { checkSessionCreateRate, shouldBypassSessionCreateRate } from '../lib/rateLimit';
 import {
   buildAnswerDisplayOrderForQuiz,
@@ -6242,7 +6242,7 @@ export const sessionRouter = router({
       if (outcome.finished) {
         markFinishProjectionLeaderboard(code);
         await incrementCompletedSessionsTotal();
-        void issueProductFeedbackInvitesAfterFinish(outcome.sessionId);
+        await issueProductFeedbackInvitesAfterFinishAwait(outcome.sessionId);
       } else {
         void markCountdownSessionActive(outcome.sessionId);
       }
@@ -6621,7 +6621,7 @@ export const sessionRouter = router({
         if (outcome.finished) {
           markFinishProjectionLeaderboard(code);
           await incrementCompletedSessionsTotal();
-          void issueProductFeedbackInvitesAfterFinish(outcome.sessionId);
+          await issueProductFeedbackInvitesAfterFinishAwait(outcome.sessionId);
         } else {
           void markCountdownSessionActive(outcome.sessionId);
         }
@@ -8128,7 +8128,7 @@ export const sessionRouter = router({
       await incrementCompletedSessionsTotal();
       invalidateSessionStatusCachesForCode(code);
       void recordSessionTransitionActivity();
-      void issueProductFeedbackInvitesAfterFinish(identity.id);
+      await issueProductFeedbackInvitesAfterFinishAwait(identity.id);
 
       return {
         status: 'FINISHED' as const,

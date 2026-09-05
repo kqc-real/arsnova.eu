@@ -77,6 +77,7 @@ vi.mock('../lib/hostAuth', () => ({
 import { productFeedbackRouter } from '../routers/productFeedback';
 import {
   createInviteTokensForSession,
+  claimProductFeedbackInvite,
   hashToken,
   buildSlotKeyForTests,
 } from '../lib/productFeedbackTokens';
@@ -168,6 +169,56 @@ describe('productFeedback router', () => {
       ).rejects.toMatchObject({ code: 'NOT_FOUND' });
     },
   );
+
+  trpcDodIt(
+    {
+      procedure: 'productFeedback.submit',
+      case: 'happy',
+      mode: 'direct',
+      title: 'gibt Invite bei Persistenzfehler wieder frei',
+    },
+    async () => {
+      prismaMock.session.findUnique.mockResolvedValue({
+        id: 'sess-1',
+        code: 'ABC123',
+        status: 'FINISHED',
+        quizStarted: true,
+        _count: { participants: 5 },
+      });
+      prismaMock.$queryRaw.mockResolvedValue([{ participantId: 'p1', source: 'vote' }]);
+      await createInviteTokensForSession('sess-1');
+      const token = await claimProductFeedbackInvite({
+        sessionId: 'sess-1',
+        role: 'HOST',
+        subjectId: 'host',
+      });
+      expect(token).toBeTruthy();
+
+      prismaMock.productFeedback.create.mockRejectedValueOnce(new Error('db down'));
+      await expect(
+        publicCaller.submit({
+          inviteToken: token!,
+          primaryAnswer: 'EASY',
+          area: 'PREPARE_QUIZ',
+          locale: 'de',
+          deviceClass: 'DESKTOP',
+          idempotencyKey: '33333333-3333-4333-8333-333333333333',
+        }),
+      ).rejects.toThrow('db down');
+
+      prismaMock.productFeedback.create.mockResolvedValueOnce({ id: 'fb-1' });
+      const retry = await publicCaller.submit({
+        inviteToken: token!,
+        primaryAnswer: 'EASY',
+        area: 'PREPARE_QUIZ',
+        locale: 'de',
+        deviceClass: 'DESKTOP',
+        idempotencyKey: '44444444-4444-4444-8444-444444444444',
+      });
+      expect(retry.ok).toBe(true);
+      expect(retry.followUpCapability).toBeTruthy();
+    },
+  );
 });
 
 describe('createInviteTokensForSession', () => {
@@ -176,7 +227,7 @@ describe('createInviteTokensForSession', () => {
     vi.clearAllMocks();
   });
 
-  it('stellt Host- und Participant-Invites aus und speichert ohne Session-ID in späteren Claim-Slots', async () => {
+  it('stellt Eignungs-Slots ohne Klartext-Bearer und Claim liefert Token', async () => {
     prismaMock.session.findUnique.mockResolvedValue({
       id: 'sess-1',
       code: 'ABC123',
@@ -195,13 +246,36 @@ describe('createInviteTokensForSession', () => {
     expect(result.participantInvites).toBeGreaterThanOrEqual(1);
 
     const hostSlot = buildSlotKeyForTests('sess-1', 'HOST', 'host');
-    expect(redisStore.has(hostSlot)).toBe(true);
-    const token = redisStore.get(hostSlot)!;
-    const payloadRaw = redisStore.get(`productFeedback:token:v1:${hashToken(token)}`);
+    const slotRaw = redisStore.get(hostSlot);
+    expect(slotRaw).toBeTruthy();
+    const slot = JSON.parse(slotRaw!) as { claimed: boolean; sessionId: string };
+    expect(slot.claimed).toBe(false);
+    expect(slot.sessionId).toBe('sess-1');
+    expect(slotRaw).not.toMatch(/"used"/);
+
+    const token = await claimProductFeedbackInvite({
+      sessionId: 'sess-1',
+      role: 'HOST',
+      subjectId: 'host',
+    });
+    expect(token).toBeTruthy();
+    const payloadRaw = redisStore.get(`productFeedback:token:v1:${hashToken(token!)}`);
     expect(payloadRaw).toBeTruthy();
     const payload = JSON.parse(payloadRaw!) as { sessionId: string; used: boolean };
-    expect(payload.sessionId).toBe('sess-1'); // nur Redis, nicht PG
+    expect(payload.sessionId).toBe('sess-1');
     expect(payload.used).toBe(false);
+
+    const claimedSlot = JSON.parse(redisStore.get(hostSlot)!) as { claimed: boolean };
+    expect(claimedSlot.claimed).toBe(true);
+
+    // Zweiter Claim liefert null
+    expect(
+      await claimProductFeedbackInvite({
+        sessionId: 'sess-1',
+        role: 'HOST',
+        subjectId: 'host',
+      }),
+    ).toBeNull();
   });
 });
 

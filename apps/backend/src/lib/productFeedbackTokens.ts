@@ -1,6 +1,7 @@
 /**
  * ProductFeedback Invite-Tokens & Follow-up-Capabilities (Story 12.1).
  * Opaque tokens, SHA-256 in Redis, unabhängig vom Session-Redis-Cleanup.
+ * Claim-Slots speichern nur Eignungsdaten — kein Klartext-Bearer.
  */
 import { createHash, randomBytes } from 'node:crypto';
 import { Prisma } from '@prisma/client';
@@ -26,6 +27,9 @@ export const PRODUCT_FEEDBACK_TOKEN_PREFIX = 'productFeedback:token:v1:';
 export const PRODUCT_FEEDBACK_FOLLOWUP_PREFIX = 'productFeedback:followUp:v1:';
 export const PRODUCT_FEEDBACK_IDEM_PREFIX = 'productFeedback:idem:v1:';
 export const PRODUCT_FEEDBACK_META_PREFIX = 'productFeedback:meta:v1:';
+export const PRODUCT_FEEDBACK_CONSUME_PREFIX = 'productFeedback:consume:v1:';
+export const PRODUCT_FEEDBACK_CLAIM_LOCK_PREFIX = 'productFeedback:claimLock:v1:';
+export const PRODUCT_FEEDBACK_FOLLOWUP_CONSUME_PREFIX = 'productFeedback:followUpConsume:v1:';
 
 const HOST_SUBJECT_ID = 'host';
 
@@ -41,6 +45,11 @@ export type ProductFeedbackInvitePayload = {
   used: boolean;
 };
 
+/** Eignungs-Slot ohne Bearer-Token (Claim stellt den Token erst aus). */
+export type ProductFeedbackSlotPayload = Omit<ProductFeedbackInvitePayload, 'used'> & {
+  claimed: boolean;
+};
+
 export type ProductFeedbackFollowUpPayload = {
   feedbackId: string;
   used: boolean;
@@ -54,12 +63,24 @@ function slotKey(sessionId: string, role: ProductFeedbackRole, subjectId: string
   return `${PRODUCT_FEEDBACK_SLOT_PREFIX}${hashToken(`${sessionId}:${role}:${subjectId}`)}`;
 }
 
+function claimLockKey(sessionId: string, role: ProductFeedbackRole, subjectId: string): string {
+  return `${PRODUCT_FEEDBACK_CLAIM_LOCK_PREFIX}${hashToken(`${sessionId}:${role}:${subjectId}`)}`;
+}
+
 function tokenKey(tokenHash: string): string {
   return `${PRODUCT_FEEDBACK_TOKEN_PREFIX}${tokenHash}`;
 }
 
 function followUpKey(capabilityHash: string): string {
   return `${PRODUCT_FEEDBACK_FOLLOWUP_PREFIX}${capabilityHash}`;
+}
+
+function consumeKey(tokenHash: string): string {
+  return `${PRODUCT_FEEDBACK_CONSUME_PREFIX}${tokenHash}`;
+}
+
+function followUpConsumeKey(capabilityHash: string): string {
+  return `${PRODUCT_FEEDBACK_FOLLOWUP_CONSUME_PREFIX}${capabilityHash}`;
 }
 
 function idemKey(kind: string, key: string): string {
@@ -169,8 +190,8 @@ function resolveSessionKind(input: {
 }
 
 /**
- * Nach FINISHED: Eignung, Stichprobe, Tokens (pipelined Redis).
- * Best-effort — Session-Ende darf nicht fehlschlagen.
+ * Nach FINISHED: Eignung, Stichprobe, Eignungs-Slots (pipelined Redis).
+ * Best-effort bzgl. Fehlerbehandlung beim Aufrufer — Session-Ende darf nicht fehlschlagen.
  */
 export async function createInviteTokensForSession(
   sessionId: string,
@@ -239,9 +260,8 @@ export async function createInviteTokensForSession(
   for (let i = 0; i < pending.length; i += 1) {
     if (existing[i]) continue;
     const entry = pending[i]!;
-    const token = createOpaqueToken();
     const survey = getProductFeedbackSurveyDefinition(entry.surveyKey);
-    const payload: ProductFeedbackInvitePayload = {
+    const slotPayload: ProductFeedbackSlotPayload = {
       sessionId,
       role: entry.role,
       subjectId: entry.subjectId,
@@ -250,10 +270,10 @@ export async function createInviteTokensForSession(
       sessionKind,
       featureAreas,
       sessionSizeClass,
-      used: false,
+      claimed: false,
     };
-    pipe.set(slotKeys[i]!, token, 'EX', ttl, 'NX');
-    pipe.set(tokenKey(hashToken(token)), JSON.stringify(payload), 'EX', ttl, 'NX');
+    // Nur Eignungsdaten — kein Klartext-Bearer im Slot.
+    pipe.set(slotKeys[i]!, JSON.stringify(slotPayload), 'EX', ttl, 'NX');
     if (entry.role === 'HOST') hostInvite = true;
     else participantInvites += 1;
   }
@@ -274,6 +294,9 @@ export async function createInviteTokensForSession(
   return { participantInvites, hostInvite };
 }
 
+/**
+ * Stellt den Bearer erst beim Claim aus; Slot enthält danach nur claimed=true.
+ */
 export async function claimProductFeedbackInvite(params: {
   sessionId: string;
   role: ProductFeedbackRole;
@@ -281,22 +304,51 @@ export async function claimProductFeedbackInvite(params: {
 }): Promise<string | null> {
   const redis = getRedis();
   const slot = slotKey(params.sessionId, params.role, params.subjectId);
-  const token = await redis.get(slot);
-  if (!token) return null;
+  const lock = claimLockKey(params.sessionId, params.role, params.subjectId);
 
-  const raw = await redis.get(tokenKey(hashToken(token)));
-  if (!raw) {
-    await redis.del(slot);
-    return null;
-  }
-  let payload: ProductFeedbackInvitePayload;
+  const locked = await redis.set(lock, '1', 'EX', 30, 'NX');
+  if (locked !== 'OK') return null;
+
   try {
-    payload = JSON.parse(raw) as ProductFeedbackInvitePayload;
-  } catch {
-    return null;
+    const raw = await redis.get(slot);
+    if (!raw) return null;
+
+    let slotPayload: ProductFeedbackSlotPayload;
+    try {
+      slotPayload = JSON.parse(raw) as ProductFeedbackSlotPayload;
+    } catch {
+      return null;
+    }
+    if (slotPayload.claimed) return null;
+
+    const token = createOpaqueToken();
+    const invitePayload: ProductFeedbackInvitePayload = {
+      sessionId: slotPayload.sessionId,
+      role: slotPayload.role,
+      subjectId: slotPayload.subjectId,
+      surveyKey: slotPayload.surveyKey,
+      surveyVersion: slotPayload.surveyVersion,
+      sessionKind: slotPayload.sessionKind,
+      featureAreas: slotPayload.featureAreas,
+      sessionSizeClass: slotPayload.sessionSizeClass,
+      used: false,
+    };
+    const ttl = PRODUCT_FEEDBACK_INVITE_TTL_SECONDS;
+    const tokenOk = await redis.set(
+      tokenKey(hashToken(token)),
+      JSON.stringify(invitePayload),
+      'EX',
+      ttl,
+      'NX',
+    );
+    if (tokenOk !== 'OK') return null;
+
+    const claimedSlot: ProductFeedbackSlotPayload = { ...slotPayload, claimed: true };
+    await redis.set(slot, JSON.stringify(claimedSlot), 'EX', ttl);
+    return token;
+  } finally {
+    await redis.del(lock);
   }
-  if (payload.used) return null;
-  return token;
 }
 
 export async function getInvitePayloadByToken(
@@ -313,38 +365,60 @@ export async function getInvitePayloadByToken(
   }
 }
 
+/**
+ * Reserviert das Invite für Submit (NX), ohne es endgültig zu verbrauchen.
+ * Bei DB-Fehler muss `releaseInviteReservation` aufgerufen werden.
+ */
+export async function reserveInviteForSubmit(
+  inviteToken: string,
+): Promise<ProductFeedbackInvitePayload | null> {
+  const redis = getRedis();
+  const tokenHash = hashToken(inviteToken);
+  const claimed = await redis.set(
+    consumeKey(tokenHash),
+    '1',
+    'EX',
+    PRODUCT_FEEDBACK_INVITE_TTL_SECONDS,
+    'NX',
+  );
+  if (claimed !== 'OK') return null;
+
+  const payload = await getInvitePayloadByToken(inviteToken);
+  if (!payload) {
+    await redis.del(consumeKey(tokenHash));
+    return null;
+  }
+  return payload;
+}
+
+export async function releaseInviteReservation(inviteToken: string): Promise<void> {
+  await getRedis().del(consumeKey(hashToken(inviteToken)));
+}
+
+/** Markiert Invite nach erfolgreicher Persistenz als verbraucht. */
+export async function finalizeInviteUsed(
+  inviteToken: string,
+  payload: ProductFeedbackInvitePayload,
+): Promise<void> {
+  const redis = getRedis();
+  const key = tokenKey(hashToken(inviteToken));
+  const usedPayload: ProductFeedbackInvitePayload = { ...payload, used: true };
+  const ttl = await redis.ttl(key);
+  if (ttl > 0) {
+    await redis.set(key, JSON.stringify(usedPayload), 'EX', ttl);
+  } else {
+    await redis.set(key, JSON.stringify(usedPayload), 'EX', PRODUCT_FEEDBACK_INVITE_TTL_SECONDS);
+  }
+  await redis.del(slotKey(payload.sessionId, payload.role, payload.subjectId));
+}
+
+/** @deprecated Prefer reserveInviteForSubmit + finalizeInviteUsed */
 export async function markInviteUsed(
   inviteToken: string,
 ): Promise<{ payload: ProductFeedbackInvitePayload; consumed: boolean } | null> {
-  const redis = getRedis();
-  const tokenHash = hashToken(inviteToken);
-  const key = tokenKey(tokenHash);
-  const consumeKey = `productFeedback:consume:v1:${tokenHash}`;
-  const claimed = await redis.set(consumeKey, '1', 'EX', PRODUCT_FEEDBACK_INVITE_TTL_SECONDS, 'NX');
-  if (claimed !== 'OK') {
-    return null;
-  }
-
-  const raw = await redis.get(key);
-  if (!raw) {
-    await redis.del(consumeKey);
-    return null;
-  }
-  let payload: ProductFeedbackInvitePayload;
-  try {
-    payload = JSON.parse(raw) as ProductFeedbackInvitePayload;
-  } catch {
-    await redis.del(consumeKey);
-    return null;
-  }
-  payload.used = true;
-  const ttl = await redis.ttl(key);
-  if (ttl > 0) {
-    await redis.set(key, JSON.stringify(payload), 'EX', ttl);
-  } else {
-    await redis.set(key, JSON.stringify(payload), 'EX', PRODUCT_FEEDBACK_INVITE_TTL_SECONDS);
-  }
-  await redis.del(slotKey(payload.sessionId, payload.role, payload.subjectId));
+  const payload = await reserveInviteForSubmit(inviteToken);
+  if (!payload) return null;
+  await finalizeInviteUsed(inviteToken, payload);
   return { payload, consumed: true };
 }
 
@@ -364,19 +438,53 @@ export async function consumeFollowUpCapability(
   capability: string,
 ): Promise<ProductFeedbackFollowUpPayload | null> {
   const redis = getRedis();
-  const key = followUpKey(hashToken(capability));
+  const capabilityHash = hashToken(capability);
+  const key = followUpKey(capabilityHash);
+  const claimed = await redis.set(
+    followUpConsumeKey(capabilityHash),
+    '1',
+    'EX',
+    PRODUCT_FEEDBACK_FOLLOWUP_TTL_SECONDS,
+    'NX',
+  );
+  if (claimed !== 'OK') return null;
+
   const raw = await redis.get(key);
-  if (!raw) return null;
+  if (!raw) {
+    await redis.del(followUpConsumeKey(capabilityHash));
+    return null;
+  }
   let payload: ProductFeedbackFollowUpPayload;
   try {
     payload = JSON.parse(raw) as ProductFeedbackFollowUpPayload;
   } catch {
+    await redis.del(followUpConsumeKey(capabilityHash));
     return null;
   }
-  if (payload.used) return null;
+  if (payload.used) {
+    await redis.del(followUpConsumeKey(capabilityHash));
+    return null;
+  }
   payload.used = true;
   await redis.set(key, JSON.stringify(payload), 'EX', 60);
   return payload;
+}
+
+export async function releaseFollowUpReservation(capability: string): Promise<void> {
+  const redis = getRedis();
+  const capabilityHash = hashToken(capability);
+  const key = followUpKey(capabilityHash);
+  await redis.del(followUpConsumeKey(capabilityHash));
+  const raw = await redis.get(key);
+  if (!raw) return;
+  try {
+    const payload = JSON.parse(raw) as ProductFeedbackFollowUpPayload;
+    if (!payload.used) return;
+    payload.used = false;
+    await redis.set(key, JSON.stringify(payload), 'EX', PRODUCT_FEEDBACK_FOLLOWUP_TTL_SECONDS);
+  } catch {
+    // ignore corrupt payload
+  }
 }
 
 export async function getIdempotentResult<T>(

@@ -24,8 +24,11 @@ import {
   createFollowUpCapability,
   getIdempotentResult,
   getInvitePayloadByToken,
-  markInviteUsed,
+  finalizeInviteUsed,
+  releaseInviteReservation,
+  reserveInviteForSubmit,
   consumeFollowUpCapability,
+  releaseFollowUpReservation,
   setIdempotentResult,
   surveyDtoForKey,
 } from '../lib/productFeedbackTokens';
@@ -164,42 +167,48 @@ export const productFeedbackRouter = router({
         });
       }
 
-      const marked = await markInviteUsed(input.inviteToken);
-      if (!marked?.consumed) {
+      const reserved = await reserveInviteForSubmit(input.inviteToken);
+      if (!reserved) {
         throw new TRPCError({
           code: 'CONFLICT',
           message: 'Einladung wurde bereits verwendet.',
         });
       }
-      const used = marked.payload;
 
-      const row = await prisma.productFeedback.create({
-        data: {
-          source: 'POST_SESSION',
-          role: used.role,
-          surveyKey: used.surveyKey,
-          surveyVersion: used.surveyVersion,
-          primaryAnswer: input.primaryAnswer,
-          area: input.area,
-          locale: input.locale,
-          appVersion: input.appVersion?.slice(0, 64) ?? null,
-          sessionKind: used.sessionKind,
-          featureAreas: used.featureAreas,
-          sessionSizeClass: used.sessionSizeClass,
-          deviceClass: input.deviceClass,
-        },
-        select: { id: true },
-      });
+      try {
+        const row = await prisma.productFeedback.create({
+          data: {
+            source: 'POST_SESSION',
+            role: reserved.role,
+            surveyKey: reserved.surveyKey,
+            surveyVersion: reserved.surveyVersion,
+            primaryAnswer: input.primaryAnswer,
+            area: input.area,
+            locale: input.locale,
+            appVersion: input.appVersion?.slice(0, 64) ?? null,
+            sessionKind: reserved.sessionKind,
+            featureAreas: reserved.featureAreas,
+            sessionSizeClass: reserved.sessionSizeClass,
+            deviceClass: input.deviceClass,
+          },
+          select: { id: true },
+        });
 
-      const followUpCapability = await createFollowUpCapability(row.id);
-      const output = { ok: true as const, followUpCapability };
-      await setIdempotentResult(
-        'submit',
-        input.idempotencyKey,
-        output,
-        PRODUCT_FEEDBACK_INVITE_TTL_SECONDS,
-      );
-      return output;
+        await finalizeInviteUsed(input.inviteToken, reserved);
+
+        const followUpCapability = await createFollowUpCapability(row.id);
+        const output = { ok: true as const, followUpCapability };
+        await setIdempotentResult(
+          'submit',
+          input.idempotencyKey,
+          output,
+          PRODUCT_FEEDBACK_INVITE_TTL_SECONDS,
+        );
+        return output;
+      } catch (err) {
+        await releaseInviteReservation(input.inviteToken);
+        throw err;
+      }
     }),
 
   followUp: publicProcedure
@@ -227,30 +236,36 @@ export const productFeedbackRouter = router({
         });
       }
 
-      const existing = await prisma.productFeedback.findUnique({
-        where: { id: capability.feedbackId },
-        select: { id: true, message: true },
-      });
-      if (!existing) {
-        throw new TRPCError({
-          code: 'NOT_FOUND',
-          message: 'Rückmeldung nicht gefunden.',
+      try {
+        const existing = await prisma.productFeedback.findUnique({
+          where: { id: capability.feedbackId },
+          select: { id: true, message: true },
         });
-      }
-      if (!existing.message) {
-        await prisma.productFeedback.update({
-          where: { id: existing.id },
-          data: { message },
-        });
-      }
+        if (!existing) {
+          throw new TRPCError({
+            code: 'NOT_FOUND',
+            message: 'Rückmeldung nicht gefunden.',
+          });
+        }
+        if (!existing.message) {
+          await prisma.productFeedback.update({
+            where: { id: existing.id },
+            data: { message },
+          });
+        }
 
-      const output = { ok: true as const };
-      await setIdempotentResult(
-        'followUp',
-        input.idempotencyKey,
-        output,
-        PRODUCT_FEEDBACK_FOLLOWUP_TTL_SECONDS,
-      );
-      return output;
+        const output = { ok: true as const };
+        await setIdempotentResult(
+          'followUp',
+          input.idempotencyKey,
+          output,
+          PRODUCT_FEEDBACK_FOLLOWUP_TTL_SECONDS,
+        );
+        return output;
+      } catch (err) {
+        if (err instanceof TRPCError) throw err;
+        await releaseFollowUpReservation(input.followUpCapability);
+        throw err;
+      }
     }),
 });

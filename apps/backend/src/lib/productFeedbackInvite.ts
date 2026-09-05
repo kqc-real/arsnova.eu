@@ -1,22 +1,23 @@
 /**
  * ProductFeedback Invite-Ausstellung nach Session-Ende (Story 12.1).
  *
- * Best-effort nach erfolgreichem FINISHED-Commit: Fehler werden geloggt und
- * werfen nicht, damit session.end / nextQuestion / Cleanup niemals wegen
- * Produktfeedback zurückgerollt werden.
+ * Host-sichtbare Finish-Pfade (`session.end` / Finish via next/skip) awaiten die
+ * Ausstellung, damit claimInvite nicht gegen noch fehlende Slots race't.
+ * Fehler werden geloggt und werfen nicht — Finish wird nicht zurückgerollt.
+ * Stale-Cleanup bleibt fire-and-forget.
  */
 import { logger } from './logger';
 import { createInviteTokensForSession } from './productFeedbackTokens';
 
 /**
- * Fire-and-forget Wrapper für Session-Finish-Pfade.
+ * Fire-and-forget Wrapper (z. B. Stale-Cleanup).
  */
 export function issueProductFeedbackInvitesAfterFinish(sessionId: string): void {
   void issueProductFeedbackInvitesAfterFinishAwait(sessionId);
 }
 
 /**
- * Awaitable Variante für Tests und gezielte Aufrufe.
+ * Awaitable Variante für Finish-Pfade und Tests.
  */
 export async function issueProductFeedbackInvitesAfterFinishAwait(
   sessionId: string,
