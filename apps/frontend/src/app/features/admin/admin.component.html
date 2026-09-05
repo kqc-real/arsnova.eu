@@ -534,6 +534,11 @@
         <mat-tab i18n-label="@@admin.tabMotd" label="Startseiten-Meldungen">
           <app-admin-motd-panel />
         </mat-tab>
+        <mat-tab i18n-label="@@admin.tabProductFeedback" label="Produktfeedback">
+          <div class="admin-tab-panel">
+            <app-admin-product-feedback-panel />
+          </div>
+        </mat-tab>
         <mat-tab i18n-label="@@admin.tabMonitoring" label="Monitoring">
           <ng-template matTabContent>
             <app-admin-monitoring-panel (sessionExpired)="handleAdminSessionExpired()" />

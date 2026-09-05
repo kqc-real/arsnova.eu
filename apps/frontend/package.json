@@ -27,6 +27,7 @@
     "smoke:quiz-sync": "node scripts/check-quiz-sync-flow.mjs",
     "smoke:session-question-progress": "node scripts/check-session-question-progress-flow.mjs",
     "smoke:unified-session": "node scripts/check-unified-session-flow.mjs",
+    "smoke:product-feedback": "node scripts/check-product-feedback-flow.mjs",
     "lighthouse:a11y": "node scripts/lighthouse-a11y.mjs",
     "a11y:axe:static": "node scripts/check-a11y-static.mjs",
     "a11y:layout": "node scripts/check-viewport-320.mjs",

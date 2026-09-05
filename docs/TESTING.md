@@ -412,6 +412,7 @@ Auf dem Server übernimmt `scripts/deploy.sh` die Reihenfolge **Digest-Image pul
 | `e2e:motd-focus`                  | Desktop-MOTD: Tastatur-/Pointer-Rücksprung und fortgesetzte Tab-Reihe   |
 | `smoke:quiz-sync`                 | Quiz-Sync-Flow-Skript                                                   |
 | `smoke:unified-session`           | Unified-Session-Flow inklusive axe                                      |
+| `smoke:product-feedback`          | Zwei-Client ProductFeedback Host-Sheet + Vote-Sessionende (mit Shots)   |
 | `lighthouse:a11y`                 | Score und A11y-Einzelaudits (lokal)                                     |
 | `benchmark:word-cloud`            | Wortwolken-Benchmark / Regressionen                                     |
 
@@ -535,6 +536,7 @@ BASE_URL=http://localhost:4200 npm run smoke:host-music -w @arsnova/frontend
 BASE_URL=http://localhost:4200/de TRPC_URL=http://localhost:3000/trpc npm run smoke:presenter-viewports -w @arsnova/frontend
 BASE_URL=http://localhost:4200/de TRPC_URL=http://localhost:3000/trpc npm run smoke:session-question-progress -w @arsnova/frontend
 BASE_URL=http://localhost:4200 npm run smoke:unified-session -w @arsnova/frontend
+BASE_URL=http://localhost:4200 TRPC_URL=http://localhost:3000/trpc SMOKE_ARTIFACT_DIR=tmp/product-feedback-e2e npm run smoke:product-feedback -w @arsnova/frontend
 BASE_URL=http://localhost:4200 npm run e2e:confidence-summary-demo -w @arsnova/frontend
 ```
 

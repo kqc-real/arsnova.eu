@@ -340,6 +340,68 @@ model SessionFeedback {
   @@unique([sessionId, participantId]) // Nur eine Bewertung pro Person pro Session
 }
 
+// ─── Produktfeedback (Epic 12) — getrennt von SessionFeedback / Blitzlicht ───
+
+enum ProductFeedbackSource {
+  POST_SESSION
+  IN_APP
+}
+
+enum ProductFeedbackRole {
+  HOST
+  PARTICIPANT
+}
+
+/// Anonyme, strukturierte Produktsignale (Story 12.1). Keine Session-/Personen-IDs.
+model ProductFeedback {
+  id               String                 @id @default(uuid())
+  source           ProductFeedbackSource  @default(POST_SESSION)
+  role             ProductFeedbackRole
+  surveyKey        String
+  surveyVersion    Int                    @default(1)
+  primaryAnswer    String
+  area             String
+  message          String?                @db.VarChar(300)
+  messageClearedAt DateTime?
+  locale           String
+  appVersion       String?
+  sessionKind      String?
+  featureAreas     Json?
+  sessionSizeClass String?
+  deviceClass      String?
+  createdAt        DateTime               @default(now())
+
+  @@index([createdAt])
+  @@index([surveyKey, surveyVersion, createdAt])
+  @@index([source, role, createdAt])
+  @@index([primaryAnswer, createdAt])
+  @@index([area, createdAt])
+}
+
+
+/// Tägliche Invite-Zähler für Admin-Abschlussquote (Story 12.1). Keine Session-/Personen-IDs.
+model ProductFeedbackInviteLedger {
+  id    String               @id @default(cuid())
+  day   DateTime             @db.Date
+  role  ProductFeedbackRole
+  count Int                  @default(0)
+
+  @@unique([day, role])
+  @@index([day])
+}
+
+/// Idempotente Nacharbeit der Invite-Ausstellung nach FINISHED (Crash-Fenster schließen).
+model ProductFeedbackInviteJob {
+  sessionId   String    @id
+  createdAt   DateTime  @default(now())
+  completedAt DateTime?
+  attempts    Int       @default(0)
+  lastError   String?
+
+  @@index([completedAt, createdAt])
+}
+
+
 // ─── Q&A-Modus (Epic 8) ────────────────────────────────────────────────────
 
 // Eine eingereichte Frage in einer Q&A-Session (Story 8.2–8.4)

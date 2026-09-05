@@ -1876,3 +1876,45 @@ mat-card-actions.l-stack {
   .home-motd-sheet__thumb-btn:not(.home-motd-sheet__thumb-btn--chosen) {
   opacity: 0.42;
 }
+
+.home-product-feedback-layer {
+  position: fixed;
+  inset: 0;
+  /* Über Toolbar (20) und Snackbars (60), unter MOTD (1200). */
+  z-index: 1100;
+  pointer-events: none;
+}
+
+.home-product-feedback-scrim {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  /* Wie MOTD-Scrim, aber ohne Klick-Block — Seite bleibt bedienbar. */
+  background: color-mix(in srgb, var(--mat-sys-scrim, #000) 42%, transparent);
+}
+
+.home-product-feedback-sheet {
+  position: absolute;
+  z-index: 1;
+  inset-inline: 0;
+  bottom: 0;
+  padding: 0.75rem 0.75rem calc(0.75rem + env(safe-area-inset-bottom, 0px));
+  pointer-events: none;
+}
+
+.home-product-feedback-sheet > * {
+  pointer-events: auto;
+  max-width: 36rem;
+  margin-inline: auto;
+}
+
+@media (min-width: 600px) {
+  .home-product-feedback-sheet {
+    inset-inline: auto;
+    right: 1.25rem;
+    bottom: 1.25rem;
+    left: auto;
+    padding: 0;
+    width: min(26rem, calc(100vw - 2rem));
+  }
+}

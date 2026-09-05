@@ -31,8 +31,8 @@ import { MatIcon } from '@angular/material/icon';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { MatTooltip } from '@angular/material/tooltip';
 import { setFeedbackHostToken } from '../../core/feedback-host-token';
-import { hasHostToken } from '../../core/host-session-token';
-import { setHostToken, trpc } from '../../core/trpc.client';
+import { clearHostToken, hasHostToken } from '../../core/host-session-token';
+import { setHostToken, setPendingHostSessionCode, trpc } from '../../core/trpc.client';
 import { createDefaultLiveSessionOnboardingProfile } from '../../core/home-preset-storage';
 import { ThemePresetService } from '../../core/theme-preset.service';
 import { PresetSnackbarFocusService } from '../../core/preset-snackbar-focus.service';
@@ -75,6 +75,11 @@ import {
 import { MarkdownImageLightboxDirective } from '../../shared/markdown-image-lightbox/markdown-image-lightbox.directive';
 import { hideMotdDecorativeEmojiInHeadingHtml } from '../../shared/motd-decorative-emoji.util';
 import { InfoLandingLinkComponent } from '../../shared/info-landing-link/info-landing-link.component';
+import { ProductFeedbackCardComponent } from '../product-feedback/product-feedback-card.component';
+import {
+  clearPendingHostInvite,
+  consumePendingHostInvite,
+} from '../product-feedback/product-feedback-storage';
 import { INFO_LANDING_ANCHORS } from '../../core/info-landing-url';
 
 type MotdReturnFocusOrigin = 'keyboard' | 'mouse' | 'touch' | 'program';
@@ -97,6 +102,7 @@ type MotdReturnFocusOrigin = 'keyboard' | 'mouse' | 'touch' | 'program';
     CdkTrapFocus,
     MarkdownImageLightboxDirective,
     InfoLandingLinkComponent,
+    ProductFeedbackCardComponent,
   ],
   templateUrl: './home.component.html',
   styleUrls: ['../../shared/styles/dialog-title-header.scss', './home.component.scss'],
@@ -123,6 +129,8 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
   ctaReady = signal(false);
   /** { code, usedAt } – usedAt in ms für relative Anzeige (z.B. „vor 2 Std.“). */
   recentSessionCodes = signal<{ code: string; usedAt: number }[]>([]);
+  /** Host ProductFeedback after session end (Story 12.1) */
+  readonly hostProductFeedbackCode = signal<string | null>(null);
   joinError = signal<string | null>(null);
   /** Set when join failed because session is finished (for showing host link). */
   joinErrorSessionFinished = signal(false);
@@ -328,6 +336,12 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
         this.markJoinIntentForMotd();
       }
       this.loadRecentSessionCodes();
+      const pendingHost = consumePendingHostInvite();
+      if (pendingHost?.sessionCode && hasHostToken(pendingHost.sessionCode)) {
+        // Damit claimInvite das x-host-token mitschickt (Home-Route hat keinen Session-Pfad).
+        setPendingHostSessionCode(pendingHost.sessionCode);
+        this.hostProductFeedbackCode.set(pendingHost.sessionCode);
+      }
       this.scheduleIdleWork(() => void this.validateRecentSessions(), 2000, 500);
       // MOTD: bewusst etwas später laden, damit der Session-Einstieg auf Home
       // nicht direkt von einem Overlay unterbrochen wird.
@@ -1096,6 +1110,16 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
     if (dy > 88) {
       void this.dismissMotdOverlay('DISMISS_SWIPE', event);
     }
+  }
+
+  dismissHostProductFeedback(): void {
+    // Sheet inkl. Scrim-Layer schließen (Home bleibt bedienbar, Scrim war pointer-events: none).
+    const code = this.hostProductFeedbackCode();
+    clearPendingHostInvite();
+    setPendingHostSessionCode(null);
+    this.hostProductFeedbackCode.set(null);
+    // Nach Claim/Dismiss: Host-Token der beendeten Session nicht länger behalten.
+    if (code) clearHostToken(code);
   }
 
   async dismissMotdOverlay(

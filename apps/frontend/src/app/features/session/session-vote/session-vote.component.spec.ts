@@ -3496,13 +3496,17 @@ describe('SessionVoteComponent', { timeout: 30_000 }, () => {
     expect(text).toMatch(/Kurzes Feedback\?|Deine Meinung zählt/);
     const bottomActions = fixture.nativeElement.querySelector('.vote-page__bottom-actions');
     expect(bottomActions?.textContent).toContain('Zur Startseite');
-    expect(bottomActions?.textContent).toMatch(/Absenden!|Bewertung absenden/);
+    expect(bottomActions?.textContent).not.toMatch(/Absenden!|Bewertung absenden/);
     expect(bottomActions?.className).toContain('vote-page__bottom-actions--session-end');
+    const feedbackSubmit = fixture.nativeElement.querySelector(
+      '.vote-feedback-card--session-end-gate .vote-feedback-card__submit',
+    );
+    expect(feedbackSubmit?.textContent).toMatch(/Absenden!|Bewertung absenden/);
     expect(navSpy).not.toHaveBeenCalled();
     fixture.destroy();
   });
 
-  it('zeigt im Session-End-Gate Bonus, Feedback und Startseite gemeinsam im unteren Aktionsanker', async () => {
+  it('zeigt im Session-End-Gate Bonus und Startseite im Aktionsanker; Bewertung absenden in der Karte', async () => {
     getInfoQueryMock.mockResolvedValue({
       id: '6a8edced-5f8f-4cfa-9176-454fac9570ad',
       serverTime: MOCK_SERVER_TIME,
@@ -3537,9 +3541,13 @@ describe('SessionVoteComponent', { timeout: 30_000 }, () => {
     ) as HTMLElement | null;
     expect(bottomActions).not.toBeNull();
     expect(bottomActions?.textContent).toContain('Code kopieren');
-    expect(bottomActions?.textContent).toMatch(/Absenden!|Bewertung absenden/);
+    expect(bottomActions?.textContent).not.toMatch(/Absenden!|Bewertung absenden/);
     expect(bottomActions?.textContent).toContain('Zur Startseite');
     expect(bottomActions?.className).toContain('vote-page__bottom-actions--session-end');
+    const feedbackSubmit = fixture.nativeElement.querySelector(
+      '.vote-feedback-card--session-end-gate .vote-feedback-card__submit',
+    );
+    expect(feedbackSubmit?.textContent).toMatch(/Absenden!|Bewertung absenden/);
     expect(navSpy).not.toHaveBeenCalled();
     fixture.destroy();
   });

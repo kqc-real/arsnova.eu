@@ -44,6 +44,18 @@ export const RATE_LIMIT_ENV = {
   motdListArchivePerMinute: Number(process.env['RATE_LIMIT_MOTD_LIST_ARCHIVE_PER_MINUTE']) || 60,
   motdRecordInteractionPerMinute:
     Number(process.env['RATE_LIMIT_MOTD_RECORD_INTERACTION_PER_MINUTE']) || 40,
+  /**
+   * ProductFeedback (Epic 12): großzügig wegen Shared-NAT / Hörsaal.
+   * Globales Budget schützt vor Missbrauch; IP allein darf 500 Clients nicht blockieren.
+   */
+  productFeedbackClaimPerIpPerMinute:
+    Number(process.env['RATE_LIMIT_PRODUCT_FEEDBACK_CLAIM_PER_IP_PER_MINUTE']) || 600,
+  productFeedbackClaimGlobalPerMinute:
+    Number(process.env['RATE_LIMIT_PRODUCT_FEEDBACK_CLAIM_GLOBAL_PER_MINUTE']) || 6000,
+  productFeedbackMutatePerIpPerMinute:
+    Number(process.env['RATE_LIMIT_PRODUCT_FEEDBACK_MUTATE_PER_IP_PER_MINUTE']) || 300,
+  productFeedbackMutateGlobalPerMinute:
+    Number(process.env['RATE_LIMIT_PRODUCT_FEEDBACK_MUTATE_GLOBAL_PER_MINUTE']) || 3000,
   quizUploadAttemptPerIpPerHour: boundedPositiveIntegerEnv(
     'RATE_LIMIT_QUIZ_UPLOAD_ATTEMPT_PER_IP_PER_HOUR',
     QUIZ_UPLOAD_ATTEMPT_PER_IP_PER_WINDOW_DEFAULT,
@@ -407,6 +419,38 @@ export async function checkMotdRecordInteractionRate(ip: string) {
   return checkSlidingWindow(
     `motd:recordInteraction:${ip}`,
     RATE_LIMIT_ENV.motdRecordInteractionPerMinute,
+    60,
+  );
+}
+
+export async function checkProductFeedbackClaimRate(ip: string) {
+  return checkFixedWindowBudgets(
+    [
+      {
+        key: 'productFeedback:claim:global',
+        limit: RATE_LIMIT_ENV.productFeedbackClaimGlobalPerMinute,
+      },
+      {
+        key: `productFeedback:claim:ip:${ip}`,
+        limit: RATE_LIMIT_ENV.productFeedbackClaimPerIpPerMinute,
+      },
+    ],
+    60,
+  );
+}
+
+export async function checkProductFeedbackMutateRate(ip: string) {
+  return checkFixedWindowBudgets(
+    [
+      {
+        key: 'productFeedback:mutate:global',
+        limit: RATE_LIMIT_ENV.productFeedbackMutateGlobalPerMinute,
+      },
+      {
+        key: `productFeedback:mutate:ip:${ip}`,
+        limit: RATE_LIMIT_ENV.productFeedbackMutatePerIpPerMinute,
+      },
+    ],
     60,
   );
 }

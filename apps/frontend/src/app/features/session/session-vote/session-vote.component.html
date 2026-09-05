@@ -259,6 +259,16 @@
             </button>
           </div>
         </fieldset>
+
+        <button
+          mat-flat-button
+          type="button"
+          class="vote-feedback-card__submit"
+          [disabled]="feedbackOverall() === 0 || feedbackSubmitting()"
+          (click)="submitFeedback()"
+        >
+          <span>{{ vpc.voteFeedbackSubmit(isPlayfulPreset()) }}</span>
+        </button>
       </section>
     } @else if (sessionFeedbackAvailable()) {
       @if (feedbackSummary(); as summary) {
@@ -275,26 +285,25 @@
       }
     }
 
+    @if (participantId() && (!sessionFeedbackAvailable() || feedbackSubmitted())) {
+      <app-product-feedback-card
+        class="vote-session-end-gate__product-feedback"
+        feedbackRole="PARTICIPANT"
+        [sessionCode]="code"
+        [participantId]="participantId()"
+        variant="inline"
+      />
+    }
+
     <div
       class="vote-page__bottom-actions vote-page__bottom-actions--session-end"
       [class.vote-page__bottom-actions--single]="sessionEndGateActionCount() === 1"
       [class.vote-page__bottom-actions--double]="sessionEndGateActionCount() === 2"
       [class.vote-page__bottom-actions--triple]="sessionEndGateActionCount() === 3"
-      [class.vote-page__bottom-actions--with-primary]="showSessionEndGateFeedbackAction()"
+      [class.vote-page__bottom-actions--with-primary]="false"
       i18n-aria-label="@@sessionVote.sessionActionsAria"
       aria-label="Session-Aktionen"
     >
-      @if (showSessionEndGateFeedbackAction()) {
-        <button
-          mat-flat-button
-          type="button"
-          class="vote-feedback-card__submit vote-page__bottom-action vote-page__bottom-action--primary"
-          [disabled]="feedbackOverall() === 0 || feedbackSubmitting()"
-          (click)="submitFeedback()"
-        >
-          <span>{{ vpc.voteFeedbackSubmit(isPlayfulPreset()) }}</span>
-        </button>
-      }
       @if (showSessionEndGateBonusAction()) {
         <button
           matButton="tonal"

@@ -8,6 +8,14 @@ import { prisma } from '../db';
 import { logger } from './logger';
 import { incrementCompletedSessionsTotal } from './platformStatistic';
 import {
+  issueProductFeedbackInvitesAfterFinish,
+  retryPendingProductFeedbackInviteJobs,
+} from './productFeedbackInvite';
+import {
+  cleanupProductFeedbackMessages,
+  cleanupProductFeedbackRecords,
+} from './productFeedbackCleanup';
+import {
   ORPHAN_QUIZ_CLEANUP_BATCH_SIZE,
   ORPHAN_QUIZ_CLEANUP_MAX_BATCHES,
   ORPHAN_QUIZ_MAX_SESSIONLESS_PER_HISTORY_SCOPE,
@@ -42,10 +50,21 @@ export async function cleanupStaleSessions(): Promise<number> {
   const cutoff = new Date(Date.now() - STALE_SESSION_HOURS * 60 * 60 * 1000);
   const now = new Date();
 
-  const result = await prisma.session.updateMany({
+  const stale = await prisma.session.findMany({
     where: {
       status: { in: [...ACTIVE_SESSION_STATUSES] },
       startedAt: { lt: cutoff },
+    },
+    select: { id: true },
+    take: 200,
+  });
+  if (stale.length === 0) return 0;
+
+  const ids = stale.map((s) => s.id);
+  const result = await prisma.session.updateMany({
+    where: {
+      id: { in: ids },
+      status: { in: [...ACTIVE_SESSION_STATUSES] },
     },
     data: {
       status: 'FINISHED',
@@ -61,6 +80,9 @@ export async function cleanupStaleSessions(): Promise<number> {
     logger.info(
       `Session-Cleanup: ${result.count} verwaiste Session(s) nach ${STALE_SESSION_HOURS}h beendet.`,
     );
+    for (const id of ids) {
+      void issueProductFeedbackInvitesAfterFinish(id);
+    }
   }
 
   return result.count;
@@ -316,6 +338,15 @@ async function runAllCleanups(): Promise<void> {
   });
   await cleanupExpiredSessionFeedback().catch((err) => {
     logger.warn('SessionFeedback-Cleanup fehlgeschlagen:', (err as Error).message);
+  });
+  await retryPendingProductFeedbackInviteJobs().catch((err) => {
+    logger.warn('ProductFeedback-Invite-Job-Retry fehlgeschlagen:', (err as Error).message);
+  });
+  await cleanupProductFeedbackMessages().catch((err) => {
+    logger.warn('ProductFeedback-Message-Cleanup fehlgeschlagen:', (err as Error).message);
+  });
+  await cleanupProductFeedbackRecords().catch((err) => {
+    logger.warn('ProductFeedback-Cleanup fehlgeschlagen:', (err as Error).message);
   });
   await cleanupOrphanQuizUploads().catch((err) => {
     logger.warn('Quiz-Upload-Cleanup fehlgeschlagen:', (err as Error).message);

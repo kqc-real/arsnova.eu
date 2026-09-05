@@ -11,6 +11,7 @@
 ## Verwandte Memories:
 
 - `mem:core`
+- `mem:quality/agents`
 - `mem:quality/dod`
 - `mem:testing/core`
 - `mem:deployment/core`

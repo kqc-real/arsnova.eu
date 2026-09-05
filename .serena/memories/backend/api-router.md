@@ -1,7 +1,7 @@
 # Backend API Router
 
 - `apps/backend/src/routers/index.ts` composes the app router from domain routers.
-- Current router domains: `health`, `quiz`, `session`, `vote`, `qa`, `quickFeedback`, `motd`, `admin`, `adminMotd`, `wordCloud`.
+- Current router domains: `health`, `quiz`, `session`, `vote`, `qa`, `quickFeedback`, `motd`, `admin`, `adminMotd`, `wordCloud`, `productFeedback` (Epic 12 / Story 12.1), `admin.productFeedback`.
 - Procedure naming conventions: queries read (`getInfo`, `getLeaderboard`), mutations write (`create`, `join`, `submit`), subscriptions usually start with `on...`.
 - tRPC inputs/outputs must use schemas from `@arsnova/shared-types`; do not define parallel DTOs in router code.
 - Auth-sensitive router behavior:

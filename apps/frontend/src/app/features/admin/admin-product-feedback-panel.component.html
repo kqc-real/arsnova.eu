@@ -1,0 +1,213 @@
+<section class="admin-pf" aria-labelledby="admin-pf-heading">
+  <header class="admin-pf__header">
+    <h2 id="admin-pf-heading" i18n="@@admin.productFeedback.heading">Produktfeedback</h2>
+    <button
+      matButton="tonal"
+      type="button"
+      [disabled]="loading()"
+      (click)="reload()"
+      i18n="@@admin.productFeedback.reload"
+    >
+      Aktualisieren
+    </button>
+  </header>
+
+  <div class="admin-pf__filters" role="group" aria-label="Filter">
+    <mat-form-field appearance="outline">
+      <mat-label i18n="@@admin.productFeedback.filterRole">Rolle</mat-label>
+      <mat-select [(ngModel)]="roleFilter" name="pfRole">
+        <mat-option value="" i18n="@@admin.productFeedback.filterAll">Alle</mat-option>
+        @for (r of roleOptions; track r) {
+          <mat-option [value]="r">{{ r }}</mat-option>
+        }
+      </mat-select>
+    </mat-form-field>
+    <mat-form-field appearance="outline">
+      <mat-label i18n="@@admin.productFeedback.filterSurvey">Fragefamilie</mat-label>
+      <mat-select [(ngModel)]="surveyKeyFilter" name="pfSurvey">
+        <mat-option value="" i18n="@@admin.productFeedback.filterAll">Alle</mat-option>
+        @for (k of surveyKeyOptions; track k) {
+          <mat-option [value]="k">{{ k }}</mat-option>
+        }
+      </mat-select>
+    </mat-form-field>
+    <mat-form-field appearance="outline">
+      <mat-label i18n="@@admin.productFeedback.filterFrom">Von</mat-label>
+      <input matInput type="date" [(ngModel)]="fromDate" name="pfFrom" />
+    </mat-form-field>
+    <mat-form-field appearance="outline">
+      <mat-label i18n="@@admin.productFeedback.filterTo">Bis</mat-label>
+      <input matInput type="date" [(ngModel)]="toDate" name="pfTo" />
+    </mat-form-field>
+    <button
+      matButton="filled"
+      type="button"
+      [disabled]="loading()"
+      (click)="reload()"
+      i18n="@@admin.productFeedback.applyFilters"
+    >
+      Filter anwenden
+    </button>
+  </div>
+
+  @if (loading()) {
+    <mat-spinner diameter="36" />
+  } @else if (error(); as err) {
+    <p class="admin-pf__error" role="alert">{{ err }}</p>
+  } @else if (stats(); as s) {
+    <div class="admin-pf__grid admin-pf__grid--kpi">
+      <mat-card class="admin-pf__card">
+        <mat-card-header>
+          <mat-card-title i18n="@@admin.productFeedback.totals">Antworten gesamt</mat-card-title>
+        </mat-card-header>
+        <mat-card-content>
+          <p class="admin-pf__total">{{ s.totals }}</p>
+        </mat-card-content>
+      </mat-card>
+      <mat-card>
+        <mat-card-header>
+          <mat-card-title i18n="@@admin.productFeedback.invites">Einladungen</mat-card-title>
+        </mat-card-header>
+        <mat-card-content>
+          <p class="admin-pf__total">{{ s.invitationsIssued ?? '—' }}</p>
+        </mat-card-content>
+      </mat-card>
+      <mat-card>
+        <mat-card-header>
+          <mat-card-title i18n="@@admin.productFeedback.completion">Abschlussquote</mat-card-title>
+        </mat-card-header>
+        <mat-card-content>
+          <p class="admin-pf__total">{{ formatRate(s.invitationCompletionRate) }}</p>
+        </mat-card-content>
+      </mat-card>
+    </div>
+
+    <div class="admin-pf__grid">
+      <mat-card>
+        <mat-card-header>
+          <mat-card-title i18n="@@admin.productFeedback.byPrimary">Primärantworten</mat-card-title>
+        </mat-card-header>
+        <mat-card-content>
+          <ul>
+            @for (b of s.byPrimaryAnswer; track b.key) {
+              <li>{{ b.key }}: {{ b.count }}</li>
+            }
+          </ul>
+        </mat-card-content>
+      </mat-card>
+      <mat-card>
+        <mat-card-header>
+          <mat-card-title i18n="@@admin.productFeedback.byArea">Bereiche</mat-card-title>
+        </mat-card-header>
+        <mat-card-content>
+          <ul>
+            @for (b of s.byArea; track b.key) {
+              <li>{{ b.key }}: {{ b.count }}</li>
+            }
+          </ul>
+        </mat-card-content>
+      </mat-card>
+      <mat-card>
+        <mat-card-header>
+          <mat-card-title i18n="@@admin.productFeedback.bySurvey">Fragefamilien</mat-card-title>
+        </mat-card-header>
+        <mat-card-content>
+          <ul>
+            @for (b of s.bySurveyKey; track b.key) {
+              <li>{{ b.key }}: {{ b.count }}</li>
+            }
+          </ul>
+        </mat-card-content>
+      </mat-card>
+      <mat-card>
+        <mat-card-header>
+          <mat-card-title i18n="@@admin.productFeedback.byRole">Rollen</mat-card-title>
+        </mat-card-header>
+        <mat-card-content>
+          <ul>
+            @for (b of s.byRole; track b.key) {
+              <li>{{ b.key }}: {{ b.count }}</li>
+            }
+          </ul>
+        </mat-card-content>
+      </mat-card>
+      <mat-card>
+        <mat-card-header>
+          <mat-card-title i18n="@@admin.productFeedback.bySurveyVersion"
+            >Survey-Version</mat-card-title
+          >
+        </mat-card-header>
+        <mat-card-content>
+          <ul>
+            @for (b of s.bySurveyVersion; track b.key) {
+              <li>{{ b.key }}: {{ b.count }}</li>
+            }
+          </ul>
+        </mat-card-content>
+      </mat-card>
+      <mat-card>
+        <mat-card-header>
+          <mat-card-title i18n="@@admin.productFeedback.byAppVersion">App-Version</mat-card-title>
+        </mat-card-header>
+        <mat-card-content>
+          <ul>
+            @for (b of s.byAppVersion; track b.key) {
+              <li>{{ b.key }}: {{ b.count }}</li>
+            }
+          </ul>
+        </mat-card-content>
+      </mat-card>
+      <mat-card>
+        <mat-card-header>
+          <mat-card-title i18n="@@admin.productFeedback.byLocale">Locale (≥5)</mat-card-title>
+        </mat-card-header>
+        <mat-card-content>
+          <ul>
+            @for (b of s.byLocale; track b.key) {
+              <li>{{ b.key }}: {{ b.count }}</li>
+            }
+          </ul>
+        </mat-card-content>
+      </mat-card>
+      <mat-card>
+        <mat-card-header>
+          <mat-card-title i18n="@@admin.productFeedback.bySize">Sessiongröße (≥5)</mat-card-title>
+        </mat-card-header>
+        <mat-card-content>
+          <ul>
+            @for (b of s.bySessionSizeClass; track b.key) {
+              <li>{{ b.key }}: {{ b.count }}</li>
+            }
+          </ul>
+        </mat-card-content>
+      </mat-card>
+      <mat-card>
+        <mat-card-header>
+          <mat-card-title i18n="@@admin.productFeedback.byDevice">Geräteklasse (≥5)</mat-card-title>
+        </mat-card-header>
+        <mat-card-content>
+          <ul>
+            @for (b of s.byDeviceClass; track b.key) {
+              <li>{{ b.key }}: {{ b.count }}</li>
+            }
+          </ul>
+        </mat-card-content>
+      </mat-card>
+    </div>
+
+    @if (s.bySurveyAndPrimary.length > 0) {
+      <mat-card>
+        <mat-card-header>
+          <mat-card-title i18n="@@admin.productFeedback.fine">Feine Segmente (≥5)</mat-card-title>
+        </mat-card-header>
+        <mat-card-content>
+          <ul>
+            @for (b of s.bySurveyAndPrimary; track b.surveyKey + b.primaryAnswer) {
+              <li>{{ b.surveyKey }} / {{ b.primaryAnswer }}: {{ b.count }}</li>
+            }
+          </ul>
+        </mat-card-content>
+      </mat-card>
+    }
+  }
+</section>

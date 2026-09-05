@@ -38,7 +38,7 @@
 }
 
 .vote-page--with-session-end-actions {
-  padding-bottom: calc(env(safe-area-inset-bottom, 0px) + 13rem);
+  padding-bottom: calc(env(safe-area-inset-bottom, 0px) + 8.5rem);
 }
 
 /* Q&A: Texteingabe und Fragenliste brauchen mehr als die Quiz-Abstimmungsspalte (36rem).
@@ -393,11 +393,11 @@
   }
 
   .vote-page--with-session-end-actions {
-    padding-bottom: calc(var(--host-mobile-safe-bottom) + 18rem);
+    padding-bottom: calc(var(--host-mobile-safe-bottom) + 9rem);
   }
 
   .vote-page--session-end-gate {
-    padding-bottom: calc(var(--host-mobile-safe-bottom) + 18rem);
+    padding-bottom: calc(var(--host-mobile-safe-bottom) + 9rem);
   }
 
   .vote-page__bottom-actions--floating {
@@ -4154,7 +4154,7 @@
   gap: 1.25rem;
   max-width: 28rem;
   margin: 0 auto;
-  padding: 1.5rem 1rem calc(env(safe-area-inset-bottom, 0px) + 13rem);
+  padding: 1.5rem 1rem calc(env(safe-area-inset-bottom, 0px) + 8.5rem);
 }
 
 .vote-session-end-gate__hero.dialog-title-header {
@@ -4895,4 +4895,39 @@
     justify-content: flex-start;
     box-sizing: border-box;
   }
+}
+
+.vote-session-end-gate__product-feedback {
+  display: block;
+  /* Freitext-Schritt ist höher: Aktionen dürfen nicht unter Floating-Bar liegen. */
+  margin-block: 0.5rem 10.5rem;
+  scroll-margin-bottom: 11rem;
+}
+
+.vote-session-end-gate__product-feedback .product-feedback-card {
+  /* Klar über Session-Feedback-Glas: eigene Ebene + Spotlight. */
+  position: relative;
+  z-index: 1;
+}
+
+.vote-session-end-gate__product-feedback .product-feedback-card::before {
+  content: '';
+  position: absolute;
+  z-index: -1;
+  inset: -0.85rem -0.65rem -1rem;
+  border-radius: calc(var(--mat-sys-corner-extra-large, var(--mat-sys-corner-large)) + 0.45rem);
+  pointer-events: none;
+  background: radial-gradient(
+    ellipse 85% 75% at 50% 45%,
+    color-mix(in srgb, var(--mat-sys-scrim, #000) 55%, transparent) 0%,
+    color-mix(in srgb, var(--mat-sys-scrim, #000) 22%, transparent) 48%,
+    transparent 74%
+  );
+}
+
+.vote-feedback-card--session-end-gate .vote-feedback-card__submit {
+  display: block;
+  width: 100%;
+  max-width: none;
+  margin-top: 1.15rem;
 }
