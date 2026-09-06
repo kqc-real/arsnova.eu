@@ -57,6 +57,7 @@
     "seed:motd-session-results-pdf": "npx prisma db execute --file prisma/migrations/20260717153000_motd_session_results_pdf_report/migration.sql && npx prisma db execute --file prisma/migrations/20260717164000_motd_session_results_pdf_example_link/migration.sql && npx prisma db execute --file prisma/migrations/20260718083400_motd_session_results_pdf_nachbesprechungsplan/migration.sql && npx prisma db execute --file prisma/migrations/20260719071500_motd_session_results_pdf_locale_links/migration.sql",
     "seed:motd-accessibility-wcag": "npx prisma db execute --file prisma/migrations/20260722070000_motd_accessibility_wcag/migration.sql",
     "seed:motd-shared-insight-vision": "npx prisma db execute --file prisma/migrations/20260813120000_motd_shared_insight_vision/migration.sql",
+    "seed:motd-product-feedback": "npx prisma db execute --file prisma/migrations/20260906143000_motd_product_feedback/migration.sql",
     "seed:motd-templates": "node scripts/seed-motd-templates.mjs",
     "seed:qa-forum": "npm run seed:qa-forum -w @arsnova/backend",
     "seed:session-votes": "npm run seed:session-votes -w @arsnova/backend --",

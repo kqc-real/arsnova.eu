@@ -42,7 +42,31 @@ describe('ensure-schema MOTD runtime seeding', () => {
       'prisma/migrations/20260722070000_motd_accessibility_wcag/migration.sql',
       'prisma/migrations/20260809174500_motd_structured_question_types/migration.sql',
       'prisma/migrations/20260813120000_motd_shared_insight_vision/migration.sql',
+      'prisma/migrations/20260906143000_motd_product_feedback/migration.sql',
     ]);
+  });
+
+  it('liefert die Produktfeedback-MOTD kurz und vollständig in allen fünf Sprachen aus', () => {
+    const sql = readFileSync(
+      resolve(
+        process.cwd(),
+        '../../prisma/migrations/20260906143000_motd_product_feedback/migration.sql',
+      ),
+      'utf8',
+    );
+    const localeBlocks = [...sql.matchAll(/\$(md(?:de|en|fr|es|it))\$([\s\S]*?)\$\1\$/g)].map(
+      ([, , markdown]) => markdown ?? '',
+    );
+
+    expect(localeBlocks).toHaveLength(5);
+    for (const markdown of localeBlocks) {
+      const paragraphs = markdown.split('\n\n');
+      expect(paragraphs).toHaveLength(4);
+      expect(paragraphs[0]).toMatch(/^### 💬 /);
+      expect(paragraphs[1]).toMatch(/^\*\*.+(?:Tage|days|jours|días|giorni)\.\*\*/);
+      expect(markdown).toContain('arsnova.eu');
+      expect(markdown).not.toMatch(/Auswahl|selection|sélection|selección|selezione/i);
+    }
   });
 
   it('liefert die Vision-MOTD mit funktionsfähigen Backlog-Links in allen fünf Sprachen aus', () => {
