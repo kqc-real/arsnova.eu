@@ -3885,49 +3885,49 @@
         </context-group>
       </trans-unit>
       <trans-unit id="admin.productFeedback.reload" datatype="html">
-        <source> Aktualisieren </source>
+        <source>Aktualisieren</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/admin/admin-product-feedback-panel.component.html</context>
           <context context-type="linenumber">10,12</context>
         </context-group>
       </trans-unit>
       <trans-unit id="admin.productFeedback.totals" datatype="html">
-        <source>Antworten gesamt</source>
+        <source>Antworten</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/admin/admin-product-feedback-panel.component.html</context>
           <context context-type="linenumber">22</context>
         </context-group>
       </trans-unit>
       <trans-unit id="admin.productFeedback.byPrimary" datatype="html">
-        <source>Primärantworten</source>
+        <source>Kurzbewertung</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/admin/admin-product-feedback-panel.component.html</context>
           <context context-type="linenumber">32</context>
         </context-group>
       </trans-unit>
       <trans-unit id="admin.productFeedback.byArea" datatype="html">
-        <source>Bereiche</source>
+        <source>Genannte Stellen</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/admin/admin-product-feedback-panel.component.html</context>
           <context context-type="linenumber">44</context>
         </context-group>
       </trans-unit>
       <trans-unit id="admin.productFeedback.bySurvey" datatype="html">
-        <source>Fragefamilien</source>
+        <source>Nach Frage</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/admin/admin-product-feedback-panel.component.html</context>
           <context context-type="linenumber">56</context>
         </context-group>
       </trans-unit>
       <trans-unit id="admin.productFeedback.fine" datatype="html">
-        <source>Feine Segmente (≥5)</source>
+        <source>Häufige Kombinationen (ab 5)</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/admin/admin-product-feedback-panel.component.html</context>
           <context context-type="linenumber">71</context>
         </context-group>
       </trans-unit>
       <trans-unit id="admin.productFeedback.errorLoad" datatype="html">
-        <source>Produktfeedback-Statistik konnte nicht geladen werden.</source>
+        <source>Die Auswertung konnte nicht geladen werden.</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/admin/admin-product-feedback-panel.component.ts</context>
           <context context-type="linenumber">37</context>
@@ -22355,46 +22355,157 @@
         <source>Schließen</source>
       </trans-unit>
       <trans-unit id="admin.productFeedback.filterRole" datatype="html">
-        <source>Rolle</source>
+        <source>Perspektive</source>
       </trans-unit>
       <trans-unit id="admin.productFeedback.filterSurvey" datatype="html">
-        <source>Fragefamilie</source>
+        <source>Frage</source>
       </trans-unit>
       <trans-unit id="admin.productFeedback.filterAll" datatype="html">
         <source>Alle</source>
       </trans-unit>
       <trans-unit id="admin.productFeedback.filterFrom" datatype="html">
-        <source>Von</source>
+        <source>Zeitraum von</source>
       </trans-unit>
       <trans-unit id="admin.productFeedback.filterTo" datatype="html">
-        <source>Bis</source>
-      </trans-unit>
-      <trans-unit id="admin.productFeedback.applyFilters" datatype="html">
-        <source>Filter anwenden</source>
+        <source>Zeitraum bis</source>
       </trans-unit>
       <trans-unit id="admin.productFeedback.invites" datatype="html">
         <source>Einladungen</source>
       </trans-unit>
       <trans-unit id="admin.productFeedback.completion" datatype="html">
-        <source>Abschlussquote</source>
+        <source>Rücklauf</source>
       </trans-unit>
       <trans-unit id="admin.productFeedback.byRole" datatype="html">
-        <source>Rollen</source>
+        <source>Nach Perspektive</source>
       </trans-unit>
-      <trans-unit id="admin.productFeedback.bySurveyVersion" datatype="html">
-        <source>Survey-Version</source>
-      </trans-unit>
-      <trans-unit id="admin.productFeedback.byAppVersion" datatype="html">
-        <source>App-Version</source>
-      </trans-unit>
-      <trans-unit id="admin.productFeedback.byLocale" datatype="html">
-        <source>Locale (≥5)</source>
+                  <trans-unit id="admin.productFeedback.byLocale" datatype="html">
+        <source>Sprache (ab 5)</source>
       </trans-unit>
       <trans-unit id="admin.productFeedback.bySize" datatype="html">
-        <source>Sessiongröße (≥5)</source>
+        <source>Sessiongröße (ab 5)</source>
       </trans-unit>
       <trans-unit id="admin.productFeedback.byDevice" datatype="html">
-        <source>Geräteklasse (≥5)</source>
+        <source>Gerät (ab 5)</source>
+      </trans-unit>
+      <trans-unit id="admin.productFeedback.survey.easeParticipant" datatype="html">
+        <source>Teilnehmende · Bedienbarkeit</source>
+      </trans-unit>
+      <trans-unit id="admin.productFeedback.survey.valueParticipant" datatype="html">
+        <source>Teilnehmende · Nutzen</source>
+      </trans-unit>
+      <trans-unit id="admin.productFeedback.survey.easeHost" datatype="html">
+        <source>Host · Bedienbarkeit</source>
+      </trans-unit>
+      <trans-unit id="admin.productFeedback.survey.valueHost" datatype="html">
+        <source>Host · Nutzen</source>
+      </trans-unit>
+      <trans-unit id="admin.productFeedback.answer.easy" datatype="html">
+        <source>Einfach</source>
+      </trans-unit>
+      <trans-unit id="admin.productFeedback.answer.minorFriction" datatype="html">
+        <source>Mit kleinen Hürden</source>
+      </trans-unit>
+      <trans-unit id="admin.productFeedback.answer.hard" datatype="html">
+        <source>Schwierig</source>
+      </trans-unit>
+      <trans-unit id="admin.productFeedback.answer.yes" datatype="html">
+        <source>Ja</source>
+      </trans-unit>
+      <trans-unit id="admin.productFeedback.answer.partial" datatype="html">
+        <source>Teilweise</source>
+      </trans-unit>
+      <trans-unit id="admin.productFeedback.answer.no" datatype="html">
+        <source>Nein</source>
+      </trans-unit>
+      <trans-unit id="admin.productFeedback.role.host" datatype="html">
+        <source>Host</source>
+      </trans-unit>
+      <trans-unit id="admin.productFeedback.role.participant" datatype="html">
+        <source>Teilnehmende</source>
+      </trans-unit>
+      <trans-unit id="admin.productFeedback.intro" datatype="html">
+        <source>Kurzfeedback zur Bedienbarkeit und zum Nutzen von arsnova.eu nach der Session. Die Auswertung ist anonym – ohne Freitext und ohne Personenbezug. Kleine Gruppen bleiben zum Schutz ausgeblendet (erst ab fünf Antworten).</source>
+      </trans-unit>
+      <trans-unit id="admin.productFeedback.filtersLabel" datatype="html">
+        <source>Filter</source>
+      </trans-unit>
+      <trans-unit id="admin.productFeedback.clearFilters" datatype="html">
+        <source>Auswahl zurücksetzen</source>
+      </trans-unit>
+      <trans-unit id="admin.productFeedback.loading" datatype="html">
+        <source>Auswertung wird geladen …</source>
+      </trans-unit>
+      <trans-unit id="admin.productFeedback.totalsHint" datatype="html">
+        <source>Mit den aktuellen Filtern</source>
+      </trans-unit>
+      <trans-unit id="admin.productFeedback.invitesHint" datatype="html">
+        <source>Wie oft wir nach Feedback gefragt haben</source>
+      </trans-unit>
+      <trans-unit id="admin.productFeedback.completionHint" datatype="html">
+        <source>Anteil der Einladungen mit Antwort</source>
+      </trans-unit>
+      <trans-unit id="admin.productFeedback.sectionAnswers" datatype="html">
+        <source>Einschätzungen</source>
+      </trans-unit>
+      <trans-unit id="admin.productFeedback.sectionContext" datatype="html">
+        <source>Rahmen</source>
+      </trans-unit>
+      <trans-unit id="admin.productFeedback.privacyHint" datatype="html">
+        <source>Aus Datenschutzgründen erscheinen Aufschlüsselungen erst ab fünf Antworten.</source>
+      </trans-unit>
+      <trans-unit id="admin.productFeedback.empty" datatype="html">
+        <source>Für diese Auswahl gibt es noch keine Antworten.</source>
+      </trans-unit>
+      <trans-unit id="admin.productFeedback.emptyThreshold" datatype="html">
+        <source>Noch zu wenig Antworten für eine Auswertung.</source>
+      </trans-unit>
+      <trans-unit id="admin.productFeedback.fineHint" datatype="html">
+        <source>Frage und Kurzbewertung</source>
+      </trans-unit>
+            <trans-unit id="admin.productFeedback.area.results" datatype="html">
+        <source>Ergebnisse</source>
+      </trans-unit>
+      <trans-unit id="admin.productFeedback.device.phone" datatype="html">
+        <source>Smartphone</source>
+      </trans-unit>
+      <trans-unit id="admin.productFeedback.device.tablet" datatype="html">
+        <source>Tablet</source>
+      </trans-unit>
+      <trans-unit id="admin.productFeedback.device.desktop" datatype="html">
+        <source>Computer</source>
+      </trans-unit>
+      <trans-unit id="admin.productFeedback.device.unknown" datatype="html">
+        <source>Nicht erkannt</source>
+      </trans-unit>
+      <trans-unit id="admin.productFeedback.size.xs" datatype="html">
+        <source>bis 10 Personen</source>
+      </trans-unit>
+      <trans-unit id="admin.productFeedback.size.s" datatype="html">
+        <source>11–30 Personen</source>
+      </trans-unit>
+      <trans-unit id="admin.productFeedback.size.m" datatype="html">
+        <source>31–80 Personen</source>
+      </trans-unit>
+      <trans-unit id="admin.productFeedback.size.l" datatype="html">
+        <source>81–200 Personen</source>
+      </trans-unit>
+      <trans-unit id="admin.productFeedback.size.xl" datatype="html">
+        <source>über 200 Personen</source>
+      </trans-unit>
+      <trans-unit id="admin.productFeedback.locale.de" datatype="html">
+        <source>Deutsch</source>
+      </trans-unit>
+      <trans-unit id="admin.productFeedback.locale.en" datatype="html">
+        <source>Englisch</source>
+      </trans-unit>
+      <trans-unit id="admin.productFeedback.locale.fr" datatype="html">
+        <source>Französisch</source>
+      </trans-unit>
+      <trans-unit id="admin.productFeedback.locale.es" datatype="html">
+        <source>Spanisch</source>
+      </trans-unit>
+      <trans-unit id="admin.productFeedback.locale.it" datatype="html">
+        <source>Italienisch</source>
       </trans-unit>
     </body>
   </file>

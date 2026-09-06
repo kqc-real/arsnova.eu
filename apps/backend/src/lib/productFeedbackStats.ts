@@ -59,8 +59,6 @@ export async function buildProductFeedbackAdminStats(
     byDeviceClass,
     fineRows,
     byRole,
-    bySurveyVersion,
-    byAppVersion,
     inviteAgg,
   ] = await Promise.all([
     prisma.productFeedback.count({ where }),
@@ -104,16 +102,6 @@ export async function buildProductFeedbackAdminStats(
       where,
       _count: { _all: true },
     }),
-    prisma.productFeedback.groupBy({
-      by: ['surveyVersion'],
-      where,
-      _count: { _all: true },
-    }),
-    prisma.productFeedback.groupBy({
-      by: ['appVersion'],
-      where,
-      _count: { _all: true },
-    }),
     prisma.productFeedbackInviteLedger.aggregate({
       where: ledgerWhere,
       _sum: { count: true },
@@ -154,13 +142,6 @@ export async function buildProductFeedbackAdminStats(
     ),
     bySurveyAndPrimary,
     byRole: toBuckets(byRole.map((r) => ({ key: r.role, count: r._count._all }))),
-    bySurveyVersion: toBuckets(
-      bySurveyVersion.map((r) => ({ key: String(r.surveyVersion), count: r._count._all })),
-    ),
-    byAppVersion: toBuckets(
-      byAppVersion.map((r) => ({ key: r.appVersion, count: r._count._all })),
-      PRODUCT_FEEDBACK_ADMIN_MIN_SEGMENT,
-    ),
     invitationsIssued,
     invitationCompletionRate,
   };

@@ -8,8 +8,8 @@ keine Session-/Personen-IDs in PostgreSQL.
 
 Session-`FINISHED` → PG-Invite-Job + Redis-Eignungs-Slots (Stichprobe) → Claim →
 strukturierter Submit → optionales Follow-up. Admin: `admin.productFeedback.getStats`
-(Filter: Zeitraum, Rolle, Fragefamilie; Aggregation inkl. Rolle, Survey-Version,
-App-Version, Locale, Sessiongröße, Geräteklasse sowie Einladungs-/Abschlussquote).
+(Filter: Zeitraum, Perspektive, Frage; Aggregation inkl. Perspektive, Sprache, Sessiongröße,
+Gerät sowie Einladungs-/Rücklaufquote; UI mit lesbaren Labels und Anteilsbalken).
 
 Host-Home: Pending-Host-Invite beim Anzeigen der Karte, damit `claimInvite` das
 `x-host-token` mitschickt. Host-Token bleibt bis Claim/Dismiss erhalten.
