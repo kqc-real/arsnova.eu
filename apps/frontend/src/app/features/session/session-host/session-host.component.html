@@ -42,6 +42,16 @@
           >
             Seite neu laden
           </a>
+          @if (contextualFeedbackOffer.isAvailable(steer.errorRequestId)) {
+            <button
+              mat-button
+              type="button"
+              (click)="openHostProblemFeedback($event, steer)"
+              i18n="@@productFeedback.inApp.problemAction"
+            >
+              Problem melden
+            </button>
+          }
           <button
             mat-button
             type="button"
@@ -51,6 +61,14 @@
             Okay
           </button>
         </div>
+      </div>
+    }
+    @if (isImmersiveMode()) {
+      <div class="session-host__product-feedback-utility">
+        <button mat-button type="button" (click)="openHostProductFeedback($event)">
+          <mat-icon aria-hidden="true">campaign</mat-icon>
+          <span i18n="@@productFeedback.inApp.action">arsnova.eu verbessern</span>
+        </button>
       </div>
     }
     @if (showChannelTabs()) {

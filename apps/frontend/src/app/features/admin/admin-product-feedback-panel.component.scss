@@ -76,6 +76,172 @@
   gap: 1rem;
 }
 
+.admin-pf__inbox {
+  display: grid;
+  gap: 1rem;
+  padding-block: 1rem;
+  border-block: 1px solid var(--mat-sys-outline-variant);
+}
+
+.admin-pf__inbox-header h3,
+.admin-pf__detail h4,
+.admin-pf__inbox-header p {
+  margin: 0;
+}
+
+.admin-pf__inbox-header h3 {
+  font: var(--mat-sys-title-large);
+  font-weight: 700;
+}
+
+.admin-pf__inbox-header p {
+  margin-top: 0.25rem;
+  color: var(--mat-sys-on-surface-variant);
+  font: var(--mat-sys-body-medium);
+}
+
+.admin-pf__filters--inbox .mat-mdc-form-field {
+  max-width: 18rem;
+}
+
+.admin-pf__triage-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 1rem;
+}
+
+.admin-pf__inbox-list,
+.admin-pf__detail {
+  min-width: 0;
+  padding: 0.75rem;
+  border: 1px solid var(--mat-sys-outline-variant);
+  border-radius: var(--mat-sys-corner-large);
+  background: var(--mat-sys-surface-container);
+}
+
+.admin-pf__inbox-list ul {
+  display: grid;
+  gap: 0.5rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.admin-pf__inbox-item {
+  box-sizing: border-box;
+  display: grid;
+  gap: 0.25rem;
+  width: 100%;
+  min-height: 2.75rem;
+  padding: 0.75rem;
+  border: 1px solid var(--mat-sys-outline-variant);
+  border-radius: var(--mat-sys-corner-medium);
+  color: var(--mat-sys-on-surface);
+  background: var(--mat-sys-surface);
+  font: var(--mat-sys-body-small);
+  text-align: start;
+  cursor: pointer;
+}
+
+.admin-pf__inbox-item--selected {
+  border-color: var(--mat-sys-primary);
+  background: var(--mat-sys-primary-container);
+}
+
+.admin-pf__inbox-item:focus-visible {
+  outline: 3px solid var(--mat-sys-primary);
+  outline-offset: 2px;
+}
+
+.admin-pf__inbox-item-head {
+  display: flex;
+  justify-content: space-between;
+  gap: 0.5rem;
+}
+
+.admin-pf__detail {
+  display: grid;
+  align-content: start;
+  gap: 0.8rem;
+}
+
+.admin-pf__detail h4 {
+  font: var(--mat-sys-title-medium);
+  font-weight: 700;
+}
+
+.admin-pf__detail dl {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(10rem, 1fr));
+  gap: 0.5rem;
+  margin: 0;
+}
+
+.admin-pf__detail dl div {
+  min-width: 0;
+}
+
+.admin-pf__detail dt {
+  color: var(--mat-sys-on-surface-variant);
+  font: var(--mat-sys-label-medium);
+}
+
+.admin-pf__detail dd {
+  margin: 0;
+  overflow-wrap: anywhere;
+  font: var(--mat-sys-body-medium);
+}
+
+.admin-pf__message,
+.admin-pf__issue-preview pre {
+  margin: 0;
+  padding: 0.75rem;
+  overflow: auto;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  border: 1px solid var(--mat-sys-outline-variant);
+  border-radius: var(--mat-sys-corner-medium);
+  color: var(--mat-sys-on-surface);
+  background: var(--mat-sys-surface);
+  font: var(--mat-sys-body-medium);
+}
+
+.admin-pf__quarantine {
+  margin: 0;
+  padding: 0.75rem;
+  border-radius: var(--mat-sys-corner-medium);
+  color: var(--mat-sys-on-error-container);
+  background: var(--mat-sys-error-container);
+}
+
+.admin-pf__status-actions,
+.admin-pf__issue-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.admin-pf__detail-form,
+.admin-pf__issue-preview {
+  display: grid;
+  gap: 0.65rem;
+}
+
+.admin-pf__detail-form .mat-mdc-form-field {
+  width: 100%;
+}
+
+.admin-pf__delete {
+  justify-self: start;
+  color: var(--mat-sys-error);
+}
+
+@media (min-width: 64rem) {
+  .admin-pf__triage-layout {
+    grid-template-columns: minmax(16rem, 0.8fr) minmax(24rem, 1.2fr);
+  }
+}
+
 .admin-pf__body[aria-busy='true'] {
   opacity: 0.72;
   transition: opacity 120ms ease;

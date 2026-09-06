@@ -24,6 +24,7 @@ import { localizePath, resolveLocalizedAppUrl } from '../../core/locale-router';
 import { INFO_LANDING_ANCHORS } from '../../core/info-landing-url';
 import { dismissContentPage, shouldDeferContentPageEscape } from '../../shared/content-page-nav';
 import { InfoLandingLinkComponent } from '../../shared/info-landing-link/info-landing-link.component';
+import { ProductFeedbackLauncherService } from '../product-feedback/product-feedback-launcher.service';
 
 type HelpRoleSectionId = 'help-host' | 'help-participant';
 
@@ -57,6 +58,7 @@ export class HelpComponent implements AfterViewInit {
   private readonly router = inject(Router);
   private readonly dialog = inject(MatDialog);
   private readonly platformId = inject(PLATFORM_ID);
+  private readonly productFeedbackLauncher = inject(ProductFeedbackLauncherService);
 
   /** Erlaubter Deep-Link beim ersten Render (z. B. neuer Tab mit `#help-participant`). */
   private readonly hashSectionOnInit = this.readAllowedHelpSectionHash();
@@ -78,6 +80,14 @@ export class HelpComponent implements AfterViewInit {
   readonly localizedPath = localizePath;
   readonly infoLandingFeaturesAnchor = INFO_LANDING_ANCHORS.features;
   readonly infoLandingFeaturesLabel = $localize`:@@help.infoLandingLink:Hintergründe und Einsatzmöglichkeiten`;
+
+  openProductFeedback(event: Event): void {
+    const target = event.currentTarget instanceof HTMLElement ? event.currentTarget : null;
+    void this.productFeedbackLauncher.open(
+      { role: 'GENERAL', routeGroup: 'HELP', suggestedArea: 'HELP' },
+      target,
+    );
+  }
 
   constructor() {
     // Hydration / Browser: nach dem ersten Render denselben Scroll-/Fokuspfad wie beim Klick.

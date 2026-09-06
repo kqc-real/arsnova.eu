@@ -9,6 +9,7 @@ import {
   consumePendingHostInvite,
   suppressProductFeedbackSurvey,
   isProductFeedbackSuppressed,
+  removeProductFeedbackOutboxItem,
 } from './product-feedback-storage';
 
 describe('product-feedback-storage', () => {
@@ -52,6 +53,53 @@ describe('product-feedback-storage', () => {
     const left = loadProductFeedbackOutbox();
     expect(left).toHaveLength(1);
     expect(left[0]?.id).toBe('fail-1');
+  });
+
+  it('flusht IN_APP-Submit und Follow-up über getrennte Sender', async () => {
+    enqueueProductFeedbackOutbox({
+      id: 'in-app-submit',
+      kind: 'inAppSubmit',
+      payload: { idempotencyKey: 'same-key' },
+      createdAt: Date.now(),
+    });
+    enqueueProductFeedbackOutbox({
+      id: 'in-app-follow-up',
+      kind: 'inAppFollowUp',
+      payload: { idempotencyKey: 'follow-up-key' },
+      createdAt: Date.now(),
+    });
+    const inAppSubmit = vi.fn().mockResolvedValue({ ok: true });
+    const inAppFollowUp = vi.fn().mockResolvedValue({ ok: true });
+
+    await flushProductFeedbackOutbox({
+      submit: vi.fn(),
+      followUp: vi.fn(),
+      inAppSubmit,
+      inAppFollowUp,
+    });
+
+    expect(inAppSubmit).toHaveBeenCalledWith({ idempotencyKey: 'same-key' });
+    expect(inAppFollowUp).toHaveBeenCalledWith({ idempotencyKey: 'follow-up-key' });
+    expect(loadProductFeedbackOutbox()).toEqual([]);
+  });
+
+  it('dedupliziert nach Id und erlaubt gerätelokales Löschen', () => {
+    enqueueProductFeedbackOutbox({
+      id: 'same',
+      kind: 'inAppSubmit',
+      payload: { attempt: 1 },
+      createdAt: Date.now(),
+    });
+    enqueueProductFeedbackOutbox({
+      id: 'same',
+      kind: 'inAppSubmit',
+      payload: { attempt: 2 },
+      createdAt: Date.now(),
+    });
+    expect(loadProductFeedbackOutbox()).toHaveLength(1);
+    expect(loadProductFeedbackOutbox()[0]?.payload).toEqual({ attempt: 2 });
+    removeProductFeedbackOutboxItem('same');
+    expect(loadProductFeedbackOutbox()).toEqual([]);
   });
 });
 

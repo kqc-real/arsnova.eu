@@ -4,9 +4,14 @@
  */
 import { z } from 'zod';
 
-export const PRODUCT_FEEDBACK_MESSAGE_MAX = 300;
+export const PRODUCT_FEEDBACK_POST_SESSION_MESSAGE_MAX = 300;
+export const PRODUCT_FEEDBACK_IN_APP_MESSAGE_MAX = 500;
+/** @deprecated Für den Post-Session-Flow aus Story 12.1. */
+export const PRODUCT_FEEDBACK_MESSAGE_MAX = PRODUCT_FEEDBACK_POST_SESSION_MESSAGE_MAX;
 export const PRODUCT_FEEDBACK_INVITE_TTL_SECONDS = 86_400;
 export const PRODUCT_FEEDBACK_FOLLOWUP_TTL_SECONDS = 900;
+export const PRODUCT_FEEDBACK_IN_APP_CHALLENGE_TTL_SECONDS = 300;
+export const PRODUCT_FEEDBACK_OUTBOX_RETENTION_DAYS = 7;
 /** ~13 Monate für semesterbezogene Vergleiche */
 export const PRODUCT_FEEDBACK_STRUCTURED_RETENTION_DAYS = 395;
 export const PRODUCT_FEEDBACK_MESSAGE_RETENTION_DAYS = 90;
@@ -20,7 +25,7 @@ export const PRODUCT_FEEDBACK_PARTICIPANT_SAMPLE_MIN_ELIGIBLE = 3;
 export const ProductFeedbackSourceEnum = z.enum(['POST_SESSION', 'IN_APP']);
 export type ProductFeedbackSource = z.infer<typeof ProductFeedbackSourceEnum>;
 
-export const ProductFeedbackRoleEnum = z.enum(['HOST', 'PARTICIPANT']);
+export const ProductFeedbackRoleEnum = z.enum(['HOST', 'PARTICIPANT', 'GENERAL']);
 export type ProductFeedbackRole = z.infer<typeof ProductFeedbackRoleEnum>;
 
 export const ProductFeedbackSurveyKeyEnum = z.enum([
@@ -292,6 +297,440 @@ export const ProductFeedbackFollowUpOutputSchema = z.object({
   ok: z.literal(true),
 });
 export type ProductFeedbackFollowUpOutput = z.infer<typeof ProductFeedbackFollowUpOutputSchema>;
+
+// ─── Story 12.2: jederzeit erreichbarer IN_APP-Kanal ────────────────────────
+
+export const ProductFeedbackKindEnum = z.enum([
+  'NOT_WORKING',
+  'UNCLEAR',
+  'MISSING_FEATURE',
+  'PRAISE',
+]);
+export type ProductFeedbackKind = z.infer<typeof ProductFeedbackKindEnum>;
+
+export const ProductFeedbackImpactEnum = z.enum(['CONTINUED', 'RETRIED', 'BLOCKED']);
+export type ProductFeedbackImpact = z.infer<typeof ProductFeedbackImpactEnum>;
+
+export const ProductFeedbackInAppParticipantAreaEnum = z.enum([
+  'JOIN',
+  'QUIZ_OR_ANSWER',
+  'QA',
+  'QUICK_FEEDBACK',
+  'RESULTS_OR_SCORE',
+  'DISPLAY_OR_ACCESSIBILITY',
+  'TECH_OR_CONNECTION',
+  'OTHER',
+]);
+export type ProductFeedbackInAppParticipantArea = z.infer<
+  typeof ProductFeedbackInAppParticipantAreaEnum
+>;
+
+export const ProductFeedbackInAppHostAreaEnum = z.enum([
+  'QUIZ_LIBRARY_OR_EDITOR',
+  'SESSION_START_OR_INVITE',
+  'LIVE_CONTROL',
+  'QA',
+  'QUICK_FEEDBACK',
+  'RESULTS',
+  'PDF_OR_EXPORT',
+  'DISPLAY_OR_ACCESSIBILITY',
+  'TECH_OR_CONNECTION',
+  'OTHER',
+]);
+export type ProductFeedbackInAppHostArea = z.infer<typeof ProductFeedbackInAppHostAreaEnum>;
+
+export const ProductFeedbackInAppGeneralAreaEnum = z.enum([
+  'HOME_OR_ORIENTATION',
+  'HELP',
+  'QUIZ_LIBRARY_OR_EDITOR',
+  'DISPLAY_OR_ACCESSIBILITY',
+  'TECH_OR_CONNECTION',
+  'OTHER',
+]);
+export type ProductFeedbackInAppGeneralArea = z.infer<typeof ProductFeedbackInAppGeneralAreaEnum>;
+
+export const ProductFeedbackInAppAreaEnum = z.union([
+  ProductFeedbackInAppParticipantAreaEnum,
+  ProductFeedbackInAppHostAreaEnum,
+  ProductFeedbackInAppGeneralAreaEnum,
+]);
+export type ProductFeedbackInAppArea = z.infer<typeof ProductFeedbackInAppAreaEnum>;
+
+export const PRODUCT_FEEDBACK_IN_APP_PARTICIPANT_AREAS = [
+  'JOIN',
+  'QUIZ_OR_ANSWER',
+  'QA',
+  'QUICK_FEEDBACK',
+  'RESULTS_OR_SCORE',
+  'DISPLAY_OR_ACCESSIBILITY',
+  'TECH_OR_CONNECTION',
+  'OTHER',
+] as const satisfies readonly ProductFeedbackInAppParticipantArea[];
+
+export const PRODUCT_FEEDBACK_IN_APP_HOST_AREAS = [
+  'QUIZ_LIBRARY_OR_EDITOR',
+  'SESSION_START_OR_INVITE',
+  'LIVE_CONTROL',
+  'QA',
+  'QUICK_FEEDBACK',
+  'RESULTS',
+  'PDF_OR_EXPORT',
+  'DISPLAY_OR_ACCESSIBILITY',
+  'TECH_OR_CONNECTION',
+  'OTHER',
+] as const satisfies readonly ProductFeedbackInAppHostArea[];
+
+export const PRODUCT_FEEDBACK_IN_APP_GENERAL_AREAS = [
+  'HOME_OR_ORIENTATION',
+  'HELP',
+  'QUIZ_LIBRARY_OR_EDITOR',
+  'DISPLAY_OR_ACCESSIBILITY',
+  'TECH_OR_CONNECTION',
+  'OTHER',
+] as const satisfies readonly ProductFeedbackInAppGeneralArea[];
+
+export function isInAppAreaAllowedForRole(
+  role: ProductFeedbackRole,
+  area: ProductFeedbackInAppArea,
+): boolean {
+  const areas =
+    role === 'HOST'
+      ? PRODUCT_FEEDBACK_IN_APP_HOST_AREAS
+      : role === 'PARTICIPANT'
+        ? PRODUCT_FEEDBACK_IN_APP_PARTICIPANT_AREAS
+        : PRODUCT_FEEDBACK_IN_APP_GENERAL_AREAS;
+  return (areas as readonly string[]).includes(area);
+}
+
+export const ProductFeedbackRouteGroupEnum = z.enum([
+  'HOME',
+  'HELP',
+  'QUIZ_LIBRARY',
+  'QUIZ_EDITOR',
+  'SESSION_JOIN',
+  'SESSION_HOST',
+  'SESSION_VOTE',
+  'SESSION_RESULTS',
+  'QA',
+  'QUICK_FEEDBACK',
+  'OTHER',
+]);
+export type ProductFeedbackRouteGroup = z.infer<typeof ProductFeedbackRouteGroupEnum>;
+
+export const ProductFeedbackSessionPhaseEnum = z.enum([
+  'NONE',
+  'LOBBY',
+  'READING',
+  'ACTIVE',
+  'RESULTS',
+  'FINISHED',
+]);
+export type ProductFeedbackSessionPhase = z.infer<typeof ProductFeedbackSessionPhaseEnum>;
+
+export const ProductFeedbackActiveChannelEnum = z.enum([
+  'NONE',
+  'QUIZ',
+  'QA',
+  'QUICK_FEEDBACK',
+  'MIXED',
+]);
+export type ProductFeedbackActiveChannel = z.infer<typeof ProductFeedbackActiveChannelEnum>;
+
+export const ProductFeedbackBrowserFamilyEnum = z.enum([
+  'CHROME',
+  'EDGE',
+  'FIREFOX',
+  'SAFARI',
+  'OTHER',
+  'UNKNOWN',
+]);
+export type ProductFeedbackBrowserFamily = z.infer<typeof ProductFeedbackBrowserFamilyEnum>;
+
+export const ProductFeedbackOsFamilyEnum = z.enum([
+  'ANDROID',
+  'CHROMEOS',
+  'IOS',
+  'LINUX',
+  'MACOS',
+  'WINDOWS',
+  'OTHER',
+  'UNKNOWN',
+]);
+export type ProductFeedbackOsFamily = z.infer<typeof ProductFeedbackOsFamilyEnum>;
+
+export const ProductFeedbackOnlineStateEnum = z.enum(['ONLINE', 'OFFLINE']);
+export type ProductFeedbackOnlineState = z.infer<typeof ProductFeedbackOnlineStateEnum>;
+
+export const ProductFeedbackInAppContextSchema = z
+  .object({
+    locale: ProductFeedbackLocaleEnum,
+    appVersion: z.string().trim().min(1).max(64).optional(),
+    routeGroup: ProductFeedbackRouteGroupEnum,
+    sessionPhase: ProductFeedbackSessionPhaseEnum,
+    activeChannel: ProductFeedbackActiveChannelEnum,
+    deviceClass: ProductFeedbackDeviceClassEnum,
+    browserFamily: ProductFeedbackBrowserFamilyEnum,
+    browserMajorVersion: z.number().int().min(1).max(999).optional(),
+    osFamily: ProductFeedbackOsFamilyEnum,
+    onlineState: ProductFeedbackOnlineStateEnum,
+    errorRequestId: z
+      .string()
+      .trim()
+      .min(1)
+      .max(128)
+      .regex(/^[A-Za-z0-9._:-]+$/)
+      .optional(),
+  })
+  .strict();
+export type ProductFeedbackInAppContext = z.infer<typeof ProductFeedbackInAppContextSchema>;
+
+export const ProductFeedbackInAppChallengeInputSchema = z
+  .object({
+    idempotencyKey: z.uuid(),
+  })
+  .strict();
+export type ProductFeedbackInAppChallengeInput = z.infer<
+  typeof ProductFeedbackInAppChallengeInputSchema
+>;
+
+export const ProductFeedbackInAppChallengeOutputSchema = z.object({
+  challengeToken: z.string().min(32).max(128),
+  expiresAt: z.string().datetime(),
+});
+export type ProductFeedbackInAppChallengeOutput = z.infer<
+  typeof ProductFeedbackInAppChallengeOutputSchema
+>;
+
+export const ProductFeedbackInAppSubmitInputSchema = z
+  .object({
+    challengeToken: z.string().trim().min(32).max(128),
+    idempotencyKey: z.uuid(),
+    role: ProductFeedbackRoleEnum,
+    kind: ProductFeedbackKindEnum,
+    area: ProductFeedbackInAppAreaEnum,
+    context: ProductFeedbackInAppContextSchema,
+  })
+  .strict()
+  .superRefine((value, ctx) => {
+    if (!isInAppAreaAllowedForRole(value.role, value.area)) {
+      ctx.addIssue({
+        code: 'custom',
+        path: ['area'],
+        message: 'Bereich passt nicht zur Rolle.',
+      });
+    }
+  });
+export type ProductFeedbackInAppSubmitInput = z.infer<typeof ProductFeedbackInAppSubmitInputSchema>;
+
+export const ProductFeedbackInAppSubmitOutputSchema = z.object({
+  ok: z.literal(true),
+  followUpCapability: z.string().min(32).max(128),
+  followUpExpiresAt: z.string().datetime(),
+});
+export type ProductFeedbackInAppSubmitOutput = z.infer<
+  typeof ProductFeedbackInAppSubmitOutputSchema
+>;
+
+export const ProductFeedbackInAppFollowUpInputSchema = z
+  .object({
+    followUpCapability: z.string().trim().min(32).max(128),
+    idempotencyKey: z.uuid(),
+    message: z.string().trim().min(1).max(PRODUCT_FEEDBACK_IN_APP_MESSAGE_MAX).optional(),
+    impact: ProductFeedbackImpactEnum.optional(),
+  })
+  .strict()
+  .superRefine((value, ctx) => {
+    if (!value.message && !value.impact) {
+      ctx.addIssue({
+        code: 'custom',
+        path: ['message'],
+        message: 'Mindestens Anmerkung oder Auswirkung ist erforderlich.',
+      });
+    }
+  });
+export type ProductFeedbackInAppFollowUpInput = z.infer<
+  typeof ProductFeedbackInAppFollowUpInputSchema
+>;
+
+export const ProductFeedbackQuarantineStatusEnum = z.enum(['NONE', 'FLAGGED', 'CLEARED']);
+export type ProductFeedbackQuarantineStatus = z.infer<typeof ProductFeedbackQuarantineStatusEnum>;
+
+export const ProductFeedbackTriageStatusEnum = z.enum([
+  'NEW',
+  'REVIEWED',
+  'PLANNED',
+  'RESOLVED',
+  'DISCARDED',
+]);
+export type ProductFeedbackTriageStatus = z.infer<typeof ProductFeedbackTriageStatusEnum>;
+
+export const ProductFeedbackAuditActionEnum = z.enum([
+  'STATUS_CHANGED',
+  'DUPLICATE_LINKED',
+  'ISSUE_LINKED',
+  'ISSUE_DRAFTED',
+  'RESOLUTION_LINKED',
+  'QUARANTINE_CLEARED',
+  'DELETED',
+]);
+export type ProductFeedbackAuditAction = z.infer<typeof ProductFeedbackAuditActionEnum>;
+
+export const AdminProductFeedbackListInputSchema = z
+  .object({
+    cursor: z.string().trim().min(1).max(64).optional(),
+    limit: z.number().int().min(1).max(100).default(25),
+    from: z.string().datetime().optional(),
+    to: z.string().datetime().optional(),
+    source: ProductFeedbackSourceEnum.optional(),
+    role: ProductFeedbackRoleEnum.optional(),
+    kind: ProductFeedbackKindEnum.optional(),
+    area: z.union([ProductFeedbackAreaEnum, ProductFeedbackInAppAreaEnum]).optional(),
+    impact: ProductFeedbackImpactEnum.optional(),
+    appVersion: z.string().trim().min(1).max(64).optional(),
+    locale: ProductFeedbackLocaleEnum.optional(),
+    status: ProductFeedbackTriageStatusEnum.optional(),
+  })
+  .strict();
+export type AdminProductFeedbackListInput = z.infer<typeof AdminProductFeedbackListInputSchema>;
+
+export const AdminProductFeedbackListItemSchema = z.object({
+  id: z.uuid(),
+  source: ProductFeedbackSourceEnum,
+  role: ProductFeedbackRoleEnum,
+  kind: ProductFeedbackKindEnum.nullable(),
+  primaryAnswer: z.string().nullable(),
+  area: z.string(),
+  impact: ProductFeedbackImpactEnum.nullable(),
+  locale: ProductFeedbackLocaleEnum,
+  appVersion: z.string().nullable(),
+  routeGroup: ProductFeedbackRouteGroupEnum.nullable(),
+  status: ProductFeedbackTriageStatusEnum,
+  quarantineStatus: ProductFeedbackQuarantineStatusEnum,
+  duplicateOfId: z.uuid().nullable(),
+  duplicateCount: z.number().int().nonnegative(),
+  createdAt: z.string().datetime(),
+  updatedAt: z.string().datetime(),
+});
+export type AdminProductFeedbackListItem = z.infer<typeof AdminProductFeedbackListItemSchema>;
+
+export const AdminProductFeedbackListOutputSchema = z.object({
+  items: z.array(AdminProductFeedbackListItemSchema),
+  nextCursor: z.string().nullable(),
+});
+export type AdminProductFeedbackListOutput = z.infer<typeof AdminProductFeedbackListOutputSchema>;
+
+export const AdminProductFeedbackByIdInputSchema = z.object({ id: z.uuid() }).strict();
+export type AdminProductFeedbackByIdInput = z.infer<typeof AdminProductFeedbackByIdInputSchema>;
+
+export const AdminProductFeedbackDetailSchema = AdminProductFeedbackListItemSchema.extend({
+  message: z.string().max(PRODUCT_FEEDBACK_IN_APP_MESSAGE_MAX).nullable(),
+  sessionPhase: ProductFeedbackSessionPhaseEnum.nullable(),
+  activeChannel: ProductFeedbackActiveChannelEnum.nullable(),
+  deviceClass: ProductFeedbackDeviceClassEnum.nullable(),
+  browserFamily: ProductFeedbackBrowserFamilyEnum.nullable(),
+  browserMajorVersion: z.number().int().nullable(),
+  osFamily: ProductFeedbackOsFamilyEnum.nullable(),
+  onlineState: ProductFeedbackOnlineStateEnum.nullable(),
+  errorRequestId: z.string().nullable(),
+  githubIssueNumber: z.number().int().positive().nullable(),
+  githubIssueUrl: z.url().nullable(),
+  resolvedInVersion: z.string().nullable(),
+  publicResolutionUrl: z.url().nullable(),
+});
+export type AdminProductFeedbackDetail = z.infer<typeof AdminProductFeedbackDetailSchema>;
+
+export const AdminProductFeedbackUpdateTriageInputSchema = z
+  .object({
+    id: z.uuid(),
+    status: ProductFeedbackTriageStatusEnum,
+    resolvedInVersion: z.string().trim().min(1).max(64).nullable().optional(),
+    publicResolutionUrl: z.url().max(512).nullable().optional(),
+  })
+  .strict();
+export type AdminProductFeedbackUpdateTriageInput = z.infer<
+  typeof AdminProductFeedbackUpdateTriageInputSchema
+>;
+
+export const AdminProductFeedbackLinkDuplicateInputSchema = z
+  .object({
+    id: z.uuid(),
+    duplicateOfId: z.uuid().nullable(),
+  })
+  .strict()
+  .refine((value) => value.duplicateOfId !== value.id, {
+    path: ['duplicateOfId'],
+    message: 'Eine Rückmeldung kann nicht ihr eigenes Duplikat sein.',
+  });
+export type AdminProductFeedbackLinkDuplicateInput = z.infer<
+  typeof AdminProductFeedbackLinkDuplicateInputSchema
+>;
+
+export const AdminProductFeedbackLinkIssueInputSchema = z
+  .object({
+    id: z.uuid(),
+    issueNumber: z.number().int().positive(),
+    issueUrl: z.url().max(512),
+  })
+  .strict();
+export type AdminProductFeedbackLinkIssueInput = z.infer<
+  typeof AdminProductFeedbackLinkIssueInputSchema
+>;
+
+export const AdminProductFeedbackIssueDraftOutputSchema = z.object({
+  title: z.string().min(1).max(160),
+  body: z.string().min(1).max(5_000),
+});
+export type AdminProductFeedbackIssueDraftOutput = z.infer<
+  typeof AdminProductFeedbackIssueDraftOutputSchema
+>;
+
+export const AdminProductFeedbackMutationOutputSchema = z.object({
+  ok: z.literal(true),
+});
+export type AdminProductFeedbackMutationOutput = z.infer<
+  typeof AdminProductFeedbackMutationOutputSchema
+>;
+
+export const AdminProductFeedbackPublishIssueInputSchema = AdminProductFeedbackByIdInputSchema;
+export type AdminProductFeedbackPublishIssueInput = z.infer<
+  typeof AdminProductFeedbackPublishIssueInputSchema
+>;
+
+export const AdminProductFeedbackPublishIssueOutputSchema = z.object({
+  issueNumber: z.number().int().positive(),
+  issueUrl: z.url(),
+});
+export type AdminProductFeedbackPublishIssueOutput = z.infer<
+  typeof AdminProductFeedbackPublishIssueOutputSchema
+>;
+
+export const AdminProductFeedbackTriageStatsInputSchema = z
+  .object({
+    from: z.string().datetime().optional(),
+    to: z.string().datetime().optional(),
+    appVersion: z.string().trim().min(1).max(64).optional(),
+  })
+  .strict();
+export type AdminProductFeedbackTriageStatsInput = z.infer<
+  typeof AdminProductFeedbackTriageStatsInputSchema
+>;
+
+const AdminProductFeedbackTriageCountBucketSchema = z.object({
+  key: z.string().min(1),
+  count: z.number().int().nonnegative(),
+});
+
+export const AdminProductFeedbackTriageStatsDTOSchema = z.object({
+  totals: z.number().int().nonnegative(),
+  blocking: z.number().int().nonnegative(),
+  byKind: z.array(AdminProductFeedbackTriageCountBucketSchema),
+  byArea: z.array(AdminProductFeedbackTriageCountBucketSchema),
+  byStatus: z.array(AdminProductFeedbackTriageCountBucketSchema),
+  byAppVersion: z.array(AdminProductFeedbackTriageCountBucketSchema),
+});
+export type AdminProductFeedbackTriageStatsDTO = z.infer<
+  typeof AdminProductFeedbackTriageStatsDTOSchema
+>;
 
 export const AdminProductFeedbackStatsInputSchema = z.object({
   from: z.string().datetime().optional(),

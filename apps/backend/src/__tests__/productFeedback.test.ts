@@ -5,6 +5,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { trpcDodIt } from './test-utils/trpc-dod-evidence';
 import { sampleParticipantIds } from '../lib/productFeedbackTokens';
 import { assignSurveyKey, resolveAreaPromptKind } from '../lib/productFeedbackSurvey';
+import { isProductFeedbackOriginAllowed } from '../lib/productFeedbackInApp';
 import {
   PRODUCT_FEEDBACK_ADMIN_MIN_SEGMENT,
   getProductFeedbackSurveyDefinition,
@@ -24,9 +25,13 @@ const { prismaMock, redisMock, extractAdminTokenMock, isAdminSessionTokenValidMo
         create: vi.fn(),
         findUnique: vi.fn(),
         update: vi.fn(),
+        delete: vi.fn(),
         count: vi.fn(),
         groupBy: vi.fn(),
         findMany: vi.fn(),
+      },
+      productFeedbackAuditLog: {
+        create: vi.fn(),
       },
       productFeedbackInviteLedger: {
         upsert: vi.fn(async () => ({})),
@@ -38,6 +43,7 @@ const { prismaMock, redisMock, extractAdminTokenMock, isAdminSessionTokenValidMo
         findMany: vi.fn(async () => []),
       },
       $queryRaw: vi.fn(),
+      $transaction: vi.fn(async (operations: unknown[]) => Promise.all(operations)),
     },
     redisMock: {
       get: vi.fn(async (key: string) => redisStore.get(key) ?? null),
@@ -47,9 +53,12 @@ const { prismaMock, redisMock, extractAdminTokenMock, isAdminSessionTokenValidMo
         redisStore.set(key, value);
         return 'OK';
       }),
-      del: vi.fn(async (key: string) => {
-        redisStore.delete(key);
-        return 1;
+      del: vi.fn(async (...keys: string[]) => {
+        let deleted = 0;
+        for (const key of keys) {
+          if (redisStore.delete(key)) deleted += 1;
+        }
+        return deleted;
       }),
       ttl: vi.fn(async () => 3600),
       mget: vi.fn(async (...keys: string[]) => keys.map((k) => redisStore.get(k) ?? null)),
@@ -105,6 +114,61 @@ import { buildProductFeedbackAdminStats } from '../lib/productFeedbackStats';
 const publicCaller = productFeedbackRouter.createCaller({ req: undefined });
 const adminCaller = adminProductFeedbackRouter.createCaller({ req: {} as never });
 
+const inAppContext = {
+  locale: 'de' as const,
+  appVersion: '2026.9.0',
+  routeGroup: 'SESSION_VOTE' as const,
+  sessionPhase: 'ACTIVE' as const,
+  activeChannel: 'QUIZ' as const,
+  deviceClass: 'PHONE' as const,
+  browserFamily: 'SAFARI' as const,
+  browserMajorVersion: 26,
+  osFamily: 'IOS' as const,
+  onlineState: 'ONLINE' as const,
+  errorRequestId: 'vote.submit:timeout-42',
+};
+
+function adminFeedbackRow(overrides: Record<string, unknown> = {}) {
+  return {
+    id: '11111111-1111-4111-8111-111111111111',
+    source: 'IN_APP',
+    role: 'PARTICIPANT',
+    surveyKey: null,
+    surveyVersion: 1,
+    primaryAnswer: null,
+    feedbackKind: 'NOT_WORKING',
+    area: 'QUIZ_OR_ANSWER',
+    impact: 'BLOCKED',
+    message: 'Die Abstimmung blieb hängen.',
+    messageClearedAt: null,
+    locale: 'de',
+    appVersion: '2026.9.0',
+    sessionKind: null,
+    featureAreas: null,
+    sessionSizeClass: null,
+    deviceClass: 'PHONE',
+    routeGroup: 'SESSION_VOTE',
+    sessionPhase: 'ACTIVE',
+    activeChannel: 'QUIZ',
+    browserFamily: 'SAFARI',
+    browserMajorVersion: 26,
+    osFamily: 'IOS',
+    onlineState: 'ONLINE',
+    errorRequestId: 'vote.submit:timeout-42',
+    triageStatus: 'NEW',
+    quarantineStatus: 'NONE',
+    duplicateOfId: null,
+    githubIssueNumber: null,
+    githubIssueUrl: null,
+    resolvedInVersion: null,
+    publicResolutionUrl: null,
+    createdAt: new Date('2026-09-06T08:00:00.000Z'),
+    updatedAt: new Date('2026-09-06T08:00:00.000Z'),
+    _count: { duplicates: 0 },
+    ...overrides,
+  };
+}
+
 async function createHostInviteToken(): Promise<string> {
   prismaMock.session.findUnique.mockResolvedValue({
     id: 'sess-1',
@@ -125,6 +189,28 @@ async function createHostInviteToken(): Promise<string> {
 }
 
 describe('ProductFeedback helpers', () => {
+  it('akzeptiert die Angular-Dev-Origin auch ohne explizites NODE_ENV', () => {
+    expect(
+      isProductFeedbackOriginAllowed(
+        {
+          headers: { origin: 'http://localhost:4200' },
+        } as never,
+        undefined,
+      ),
+    ).toBe(true);
+  });
+
+  it('öffnet die Angular-Dev-Origin nicht im Produktionsmodus', () => {
+    expect(
+      isProductFeedbackOriginAllowed(
+        {
+          headers: { origin: 'http://localhost:4200' },
+        } as never,
+        'production',
+      ),
+    ).toBe(false);
+  });
+
   it('weist Ease/Value deterministisch zu', () => {
     const a = assignSurveyKey('PARTICIPANT', 'sess:p1');
     const b = assignSurveyKey('PARTICIPANT', 'sess:p1');
@@ -378,6 +464,195 @@ describe('productFeedback router', () => {
       ).rejects.toMatchObject({ code: 'NOT_FOUND' });
     },
   );
+
+  trpcDodIt(
+    {
+      procedure: 'productFeedback.getInAppChallenge',
+      case: 'happy',
+      mode: 'direct',
+      title: 'stellt eine kurzlebige IN_APP-Challenge idempotent aus',
+    },
+    async () => {
+      const input = { idempotencyKey: '88888888-8888-4888-8888-888888888888' };
+      const first = await publicCaller.getInAppChallenge(input);
+      const second = await publicCaller.getInAppChallenge(input);
+      expect(first.challengeToken).toHaveLength(43);
+      expect(second).toEqual(first);
+    },
+  );
+
+  trpcDodIt(
+    {
+      procedure: 'productFeedback.getInAppChallenge',
+      case: 'error',
+      mode: 'direct',
+      contract: 'FORBIDDEN',
+      title: 'lehnt eine fremde Browser-Origin ab',
+    },
+    async () => {
+      const foreignCaller = productFeedbackRouter.createCaller({
+        req: {
+          headers: {
+            origin: 'https://evil.example',
+            'x-forwarded-proto': 'https',
+            'x-forwarded-host': 'arsnova.eu',
+          },
+        } as never,
+      });
+      await expect(
+        foreignCaller.getInAppChallenge({
+          idempotencyKey: '89898989-8989-4989-8989-898989898989',
+        }),
+      ).rejects.toMatchObject({ code: 'FORBIDDEN' });
+    },
+  );
+
+  trpcDodIt(
+    {
+      procedure: 'productFeedback.submitInApp',
+      case: 'happy',
+      mode: 'direct',
+      title: 'persistiert nur den freigegebenen anonymen IN_APP-Kontext',
+    },
+    async () => {
+      const idempotencyKey = '99999999-9999-4999-8999-999999999999';
+      const challenge = await publicCaller.getInAppChallenge({ idempotencyKey });
+      prismaMock.productFeedback.create.mockResolvedValue({ id: 'fb-in-app-1' });
+
+      const output = await publicCaller.submitInApp({
+        challengeToken: challenge.challengeToken,
+        idempotencyKey,
+        role: 'PARTICIPANT',
+        kind: 'NOT_WORKING',
+        area: 'QUIZ_OR_ANSWER',
+        context: inAppContext,
+      });
+
+      expect(output.ok).toBe(true);
+      expect(output.followUpCapability).toHaveLength(43);
+      expect(prismaMock.productFeedback.create).toHaveBeenCalledWith({
+        data: expect.objectContaining({
+          source: 'IN_APP',
+          role: 'PARTICIPANT',
+          feedbackKind: 'NOT_WORKING',
+          area: 'QUIZ_OR_ANSWER',
+          routeGroup: 'SESSION_VOTE',
+          errorRequestId: 'vote.submit:timeout-42',
+        }),
+        select: { id: true },
+      });
+      expect(prismaMock.productFeedback.create.mock.calls[0]?.[0].data).not.toHaveProperty(
+        'sessionCode',
+      );
+    },
+  );
+
+  trpcDodIt(
+    {
+      procedure: 'productFeedback.submitInApp',
+      case: 'error',
+      mode: 'direct',
+      contract: 'CONFLICT',
+      title: 'lehnt eine fehlende oder fremd gebundene Challenge ab',
+    },
+    async () => {
+      await expect(
+        publicCaller.submitInApp({
+          challengeToken: 'missing-challenge-capability-value-12345',
+          idempotencyKey: 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa',
+          role: 'GENERAL',
+          kind: 'UNCLEAR',
+          area: 'HELP',
+          context: { ...inAppContext, routeGroup: 'HELP', sessionPhase: 'NONE' },
+        }),
+      ).rejects.toMatchObject({ code: 'CONFLICT' });
+    },
+  );
+
+  trpcDodIt(
+    {
+      procedure: 'productFeedback.followUpInApp',
+      case: 'happy',
+      mode: 'direct',
+      title: 'ergänzt Impact und quarantänemarkierten Plaintext capability-gebunden',
+    },
+    async () => {
+      const idempotencyKey = 'bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb';
+      const challenge = await publicCaller.getInAppChallenge({ idempotencyKey });
+      prismaMock.productFeedback.create.mockResolvedValue({ id: 'fb-in-app-2' });
+      const submitted = await publicCaller.submitInApp({
+        challengeToken: challenge.challengeToken,
+        idempotencyKey,
+        role: 'PARTICIPANT',
+        kind: 'NOT_WORKING',
+        area: 'QUIZ_OR_ANSWER',
+        context: inAppContext,
+      });
+      prismaMock.productFeedback.findUnique.mockResolvedValue({
+        id: 'fb-in-app-2',
+        source: 'IN_APP',
+        feedbackKind: 'NOT_WORKING',
+        message: null,
+        impact: null,
+      });
+      prismaMock.productFeedback.update.mockResolvedValue({ id: 'fb-in-app-2' });
+
+      const output = await publicCaller.followUpInApp({
+        followUpCapability: submitted.followUpCapability,
+        idempotencyKey: 'cccccccc-cccc-4ccc-8ccc-cccccccccccc',
+        message: 'Mein Sessioncode war ABC123.',
+        impact: 'BLOCKED',
+      });
+
+      expect(output).toEqual({ ok: true });
+      expect(prismaMock.productFeedback.update).toHaveBeenCalledWith({
+        where: { id: 'fb-in-app-2' },
+        data: {
+          message: 'Mein Sessioncode war ABC123.',
+          impact: 'BLOCKED',
+          quarantineStatus: 'FLAGGED',
+        },
+      });
+    },
+  );
+
+  trpcDodIt(
+    {
+      procedure: 'productFeedback.followUpInApp',
+      case: 'error',
+      mode: 'direct',
+      contract: 'BAD_REQUEST',
+      title: 'lehnt Impact bei positivem Feedback ab',
+    },
+    async () => {
+      const idempotencyKey = 'dddddddd-dddd-4ddd-8ddd-dddddddddddd';
+      const challenge = await publicCaller.getInAppChallenge({ idempotencyKey });
+      prismaMock.productFeedback.create.mockResolvedValue({ id: 'fb-in-app-3' });
+      const submitted = await publicCaller.submitInApp({
+        challengeToken: challenge.challengeToken,
+        idempotencyKey,
+        role: 'GENERAL',
+        kind: 'PRAISE',
+        area: 'HELP',
+        context: { ...inAppContext, routeGroup: 'HELP', sessionPhase: 'NONE' },
+      });
+      prismaMock.productFeedback.findUnique.mockResolvedValue({
+        id: 'fb-in-app-3',
+        source: 'IN_APP',
+        feedbackKind: 'PRAISE',
+        message: null,
+        impact: null,
+      });
+
+      await expect(
+        publicCaller.followUpInApp({
+          followUpCapability: submitted.followUpCapability,
+          idempotencyKey: 'eeeeeeee-eeee-4eee-8eee-eeeeeeeeeeee',
+          impact: 'CONTINUED',
+        }),
+      ).rejects.toMatchObject({ code: 'BAD_REQUEST' });
+    },
+  );
 });
 
 describe('createInviteTokensForSession', () => {
@@ -512,6 +787,404 @@ describe('admin productFeedback stats', () => {
     expect(out.totals).toBe(0);
     expect(out.byPrimaryAnswer).toEqual([]);
   });
+});
+
+describe('adminProductFeedback Triage', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    isAdminSessionTokenValidMock.mockResolvedValue(true);
+    extractAdminTokenMock.mockReturnValue('admin-session');
+    prismaMock.productFeedback.update.mockResolvedValue(adminFeedbackRow());
+    prismaMock.productFeedback.delete.mockResolvedValue(adminFeedbackRow());
+    prismaMock.productFeedbackAuditLog.create.mockResolvedValue({});
+  });
+
+  trpcDodIt(
+    {
+      procedure: 'admin.productFeedback.list',
+      case: 'happy',
+      mode: 'direct',
+      title: 'listet die gefilterte Inbox ohne Freitext',
+    },
+    async () => {
+      prismaMock.productFeedback.findMany.mockResolvedValue([adminFeedbackRow()]);
+      const output = await adminCaller.list({ limit: 25, source: 'IN_APP', status: 'NEW' });
+      expect(output.items).toHaveLength(1);
+      expect(output.items[0]).not.toHaveProperty('message');
+      expect(prismaMock.productFeedback.findMany).toHaveBeenCalledWith(
+        expect.objectContaining({
+          where: expect.objectContaining({ source: 'IN_APP', triageStatus: 'NEW' }),
+        }),
+      );
+    },
+  );
+
+  trpcDodIt(
+    {
+      procedure: 'admin.productFeedback.getTriageStats',
+      case: 'happy',
+      mode: 'direct',
+      title: 'aggregiert IN_APP-Arten, Blocker und Versionstrends',
+    },
+    async () => {
+      prismaMock.productFeedback.count.mockResolvedValueOnce(12).mockResolvedValueOnce(3);
+      prismaMock.productFeedback.groupBy.mockImplementation(async (args: { by: string[] }) => {
+        if (args.by[0] === 'feedbackKind') {
+          return [{ feedbackKind: 'NOT_WORKING', _count: { _all: 7 } }];
+        }
+        if (args.by[0] === 'area') {
+          return [{ area: 'QUIZ_OR_ANSWER', _count: { _all: 7 } }];
+        }
+        if (args.by[0] === 'triageStatus') {
+          return [{ triageStatus: 'NEW', _count: { _all: 7 } }];
+        }
+        return [{ appVersion: '2026.9.0', _count: { _all: 7 } }];
+      });
+      const output = await adminCaller.getTriageStats({});
+      expect(output).toMatchObject({ totals: 12, blocking: 3 });
+      expect(output.byAppVersion).toEqual([{ key: '2026.9.0', count: 7 }]);
+    },
+  );
+
+  trpcDodIt(
+    {
+      procedure: 'admin.productFeedback.getTriageStats',
+      case: 'error',
+      mode: 'direct',
+      contract: 'UNAUTHORIZED',
+      title: 'schützt IN_APP-Kennzahlen durch Admin-Authentifizierung',
+    },
+    async () => {
+      isAdminSessionTokenValidMock.mockResolvedValueOnce(false);
+      await expect(adminCaller.getTriageStats({})).rejects.toMatchObject({
+        code: 'UNAUTHORIZED',
+      });
+    },
+  );
+
+  trpcDodIt(
+    {
+      procedure: 'admin.productFeedback.list',
+      case: 'error',
+      mode: 'direct',
+      contract: 'UNAUTHORIZED',
+      title: 'verweigert die Inbox ohne gültige Admin-Session',
+    },
+    async () => {
+      isAdminSessionTokenValidMock.mockResolvedValueOnce(false);
+      await expect(adminCaller.list({ limit: 25 })).rejects.toMatchObject({
+        code: 'UNAUTHORIZED',
+      });
+    },
+  );
+
+  trpcDodIt(
+    {
+      procedure: 'admin.productFeedback.getDetail',
+      case: 'happy',
+      mode: 'direct',
+      title: 'lädt Freitext ausschließlich im Admin-Detail',
+    },
+    async () => {
+      prismaMock.productFeedback.findUnique.mockResolvedValue(adminFeedbackRow());
+      const output = await adminCaller.getDetail({
+        id: '11111111-1111-4111-8111-111111111111',
+      });
+      expect(output.message).toBe('Die Abstimmung blieb hängen.');
+    },
+  );
+
+  trpcDodIt(
+    {
+      procedure: 'admin.productFeedback.getDetail',
+      case: 'error',
+      mode: 'direct',
+      contract: 'NOT_FOUND',
+      title: 'meldet fehlendes Admin-Detail typisiert',
+    },
+    async () => {
+      prismaMock.productFeedback.findUnique.mockResolvedValue(null);
+      await expect(
+        adminCaller.getDetail({ id: '11111111-1111-4111-8111-111111111111' }),
+      ).rejects.toMatchObject({ code: 'NOT_FOUND' });
+    },
+  );
+
+  trpcDodIt(
+    {
+      procedure: 'admin.productFeedback.updateTriage',
+      case: 'happy',
+      mode: 'direct',
+      title: 'ändert Status und protokolliert nur Triage-Metadaten',
+    },
+    async () => {
+      prismaMock.productFeedback.findUnique.mockResolvedValue(adminFeedbackRow());
+      const output = await adminCaller.updateTriage({
+        id: '11111111-1111-4111-8111-111111111111',
+        status: 'REVIEWED',
+      });
+      expect(output.ok).toBe(true);
+      expect(prismaMock.productFeedbackAuditLog.create).toHaveBeenCalledWith({
+        data: expect.objectContaining({
+          action: 'STATUS_CHANGED',
+          fromStatus: 'NEW',
+          toStatus: 'REVIEWED',
+        }),
+      });
+      expect(prismaMock.productFeedbackAuditLog.create.mock.calls[0]?.[0].data).not.toHaveProperty(
+        'message',
+      );
+    },
+  );
+
+  trpcDodIt(
+    {
+      procedure: 'admin.productFeedback.updateTriage',
+      case: 'error',
+      mode: 'direct',
+      contract: 'NOT_FOUND',
+      title: 'lehnt Statusänderung für fehlenden Datensatz ab',
+    },
+    async () => {
+      prismaMock.productFeedback.findUnique.mockResolvedValue(null);
+      await expect(
+        adminCaller.updateTriage({
+          id: '11111111-1111-4111-8111-111111111111',
+          status: 'REVIEWED',
+        }),
+      ).rejects.toMatchObject({ code: 'NOT_FOUND' });
+    },
+  );
+
+  trpcDodIt(
+    {
+      procedure: 'admin.productFeedback.linkDuplicate',
+      case: 'happy',
+      mode: 'direct',
+      title: 'bündelt ein Duplikat direkt an einen Hauptdatensatz',
+    },
+    async () => {
+      prismaMock.productFeedback.findUnique.mockResolvedValue(
+        adminFeedbackRow({
+          id: '22222222-2222-4222-8222-222222222222',
+        }),
+      );
+      const output = await adminCaller.linkDuplicate({
+        id: '11111111-1111-4111-8111-111111111111',
+        duplicateOfId: '22222222-2222-4222-8222-222222222222',
+      });
+      expect(output.ok).toBe(true);
+    },
+  );
+
+  trpcDodIt(
+    {
+      procedure: 'admin.productFeedback.linkDuplicate',
+      case: 'error',
+      mode: 'direct',
+      contract: 'BAD_REQUEST',
+      title: 'verhindert Selbst-Duplikate',
+    },
+    async () => {
+      await expect(
+        adminCaller.linkDuplicate({
+          id: '11111111-1111-4111-8111-111111111111',
+          duplicateOfId: '11111111-1111-4111-8111-111111111111',
+        }),
+      ).rejects.toMatchObject({ code: 'BAD_REQUEST' });
+    },
+  );
+
+  trpcDodIt(
+    {
+      procedure: 'admin.productFeedback.createIssueDraft',
+      case: 'happy',
+      mode: 'direct',
+      title: 'erzeugt einen Issue-Entwurf ohne Originaltext',
+    },
+    async () => {
+      prismaMock.productFeedback.findUnique.mockResolvedValue(adminFeedbackRow());
+      const output = await adminCaller.createIssueDraft({
+        id: '11111111-1111-4111-8111-111111111111',
+      });
+      expect(output.title).toContain('Funktioniert nicht');
+      expect(output.body).toContain('Bereich: Quizfrage oder Antwort');
+      expect(output.body).not.toContain('Die Abstimmung blieb hängen.');
+    },
+  );
+
+  trpcDodIt(
+    {
+      procedure: 'admin.productFeedback.createIssueDraft',
+      case: 'error',
+      mode: 'direct',
+      contract: 'NOT_FOUND',
+      title: 'erzeugt keinen Entwurf für fehlendes Feedback',
+    },
+    async () => {
+      prismaMock.productFeedback.findUnique.mockResolvedValue(null);
+      await expect(
+        adminCaller.createIssueDraft({ id: '11111111-1111-4111-8111-111111111111' }),
+      ).rejects.toMatchObject({ code: 'NOT_FOUND' });
+    },
+  );
+
+  trpcDodIt(
+    {
+      procedure: 'admin.productFeedback.linkIssue',
+      case: 'happy',
+      mode: 'direct',
+      title: 'verknüpft ein bestehendes GitHub-Issue',
+    },
+    async () => {
+      const output = await adminCaller.linkIssue({
+        id: '11111111-1111-4111-8111-111111111111',
+        issueNumber: 42,
+        issueUrl: 'https://github.com/kqc-real/arsnova.eu/issues/42',
+      });
+      expect(output.ok).toBe(true);
+    },
+  );
+
+  trpcDodIt(
+    {
+      procedure: 'admin.productFeedback.linkIssue',
+      case: 'error',
+      mode: 'direct',
+      contract: 'BAD_REQUEST',
+      title: 'lehnt fremde Issue-Hosts ab',
+    },
+    async () => {
+      await expect(
+        adminCaller.linkIssue({
+          id: '11111111-1111-4111-8111-111111111111',
+          issueNumber: 42,
+          issueUrl: 'https://example.test/issues/42',
+        }),
+      ).rejects.toMatchObject({ code: 'BAD_REQUEST' });
+    },
+  );
+
+  trpcDodIt(
+    {
+      procedure: 'admin.productFeedback.publishIssue',
+      case: 'happy',
+      mode: 'direct',
+      title: 'veröffentlicht bewusst nur den bereinigten Entwurf',
+    },
+    async () => {
+      const previousRepository = process.env['PRODUCT_FEEDBACK_GITHUB_REPOSITORY'];
+      const previousToken = process.env['PRODUCT_FEEDBACK_GITHUB_TOKEN'];
+      process.env['PRODUCT_FEEDBACK_GITHUB_REPOSITORY'] = 'kqc-real/arsnova.eu';
+      process.env['PRODUCT_FEEDBACK_GITHUB_TOKEN'] = 'test-token';
+      prismaMock.productFeedback.findUnique.mockResolvedValue(adminFeedbackRow());
+      const fetchMock = vi.spyOn(globalThis, 'fetch').mockResolvedValue(
+        new Response(
+          JSON.stringify({
+            number: 43,
+            html_url: 'https://github.com/kqc-real/arsnova.eu/issues/43',
+          }),
+          { status: 201 },
+        ),
+      );
+      try {
+        const output = await adminCaller.publishIssue({
+          id: '11111111-1111-4111-8111-111111111111',
+        });
+        expect(output.issueNumber).toBe(43);
+        const request = JSON.parse(String(fetchMock.mock.calls[0]?.[1]?.body));
+        expect(request.body).not.toContain('Die Abstimmung blieb hängen.');
+      } finally {
+        fetchMock.mockRestore();
+        if (previousRepository === undefined)
+          delete process.env['PRODUCT_FEEDBACK_GITHUB_REPOSITORY'];
+        else process.env['PRODUCT_FEEDBACK_GITHUB_REPOSITORY'] = previousRepository;
+        if (previousToken === undefined) delete process.env['PRODUCT_FEEDBACK_GITHUB_TOKEN'];
+        else process.env['PRODUCT_FEEDBACK_GITHUB_TOKEN'] = previousToken;
+      }
+    },
+  );
+
+  trpcDodIt(
+    {
+      procedure: 'admin.productFeedback.publishIssue',
+      case: 'error',
+      mode: 'direct',
+      contract: 'PRECONDITION_FAILED',
+      title: 'veröffentlicht ohne explizite Konfiguration nichts',
+    },
+    async () => {
+      delete process.env['PRODUCT_FEEDBACK_GITHUB_REPOSITORY'];
+      delete process.env['PRODUCT_FEEDBACK_GITHUB_TOKEN'];
+      await expect(
+        adminCaller.publishIssue({ id: '11111111-1111-4111-8111-111111111111' }),
+      ).rejects.toMatchObject({ code: 'PRECONDITION_FAILED' });
+    },
+  );
+
+  trpcDodIt(
+    {
+      procedure: 'admin.productFeedback.clearQuarantine',
+      case: 'happy',
+      mode: 'direct',
+      title: 'gibt quarantänemarkierten Text nachvollziehbar frei',
+    },
+    async () => {
+      const output = await adminCaller.clearQuarantine({
+        id: '11111111-1111-4111-8111-111111111111',
+      });
+      expect(output.ok).toBe(true);
+    },
+  );
+
+  trpcDodIt(
+    {
+      procedure: 'admin.productFeedback.clearQuarantine',
+      case: 'error',
+      mode: 'direct',
+      contract: 'UNAUTHORIZED',
+      title: 'verweigert Quarantänefreigabe ohne Admin-Session',
+    },
+    async () => {
+      isAdminSessionTokenValidMock.mockResolvedValueOnce(false);
+      await expect(
+        adminCaller.clearQuarantine({ id: '11111111-1111-4111-8111-111111111111' }),
+      ).rejects.toMatchObject({ code: 'UNAUTHORIZED' });
+    },
+  );
+
+  trpcDodIt(
+    {
+      procedure: 'admin.productFeedback.delete',
+      case: 'happy',
+      mode: 'direct',
+      title: 'löscht Einzelfeedback endgültig und behält ein textfreies Audit',
+    },
+    async () => {
+      prismaMock.productFeedback.findUnique.mockResolvedValue(adminFeedbackRow());
+      const output = await adminCaller.delete({
+        id: '11111111-1111-4111-8111-111111111111',
+      });
+      expect(output.ok).toBe(true);
+      expect(prismaMock.productFeedback.delete).toHaveBeenCalled();
+    },
+  );
+
+  trpcDodIt(
+    {
+      procedure: 'admin.productFeedback.delete',
+      case: 'error',
+      mode: 'direct',
+      contract: 'NOT_FOUND',
+      title: 'meldet bereits gelöschtes Feedback typisiert',
+    },
+    async () => {
+      prismaMock.productFeedback.findUnique.mockResolvedValue(null);
+      await expect(
+        adminCaller.delete({ id: '11111111-1111-4111-8111-111111111111' }),
+      ).rejects.toMatchObject({ code: 'NOT_FOUND' });
+    },
+  );
 });
 
 describe('Invite nach Session-Cleanup', () => {

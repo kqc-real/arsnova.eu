@@ -1,3 +1,11 @@
+@if (!embeddedInSession()) {
+  <div class="feedback-host__product-feedback-utility">
+    <button mat-button type="button" (click)="openProductFeedback($event)">
+      <mat-icon aria-hidden="true">campaign</mat-icon>
+      <span i18n="@@productFeedback.inApp.action">arsnova.eu verbessern</span>
+    </button>
+  </div>
+}
 @if (showEmbeddedEmptyState()) {
   <mat-card
     appearance="outlined"

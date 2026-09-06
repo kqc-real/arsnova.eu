@@ -43,6 +43,16 @@
           gezielte Hilfe zu einzelnen Funktionen.
         </p>
 
+        <button
+          matButton="outlined"
+          type="button"
+          class="help-product-feedback"
+          (click)="openProductFeedback($event)"
+        >
+          <mat-icon aria-hidden="true">campaign</mat-icon>
+          <span i18n="@@productFeedback.inApp.action">arsnova.eu verbessern</span>
+        </button>
+
         <nav class="help-role-nav" i18n-aria-label="@@help.roleNavAria" aria-label="Rollenwahl">
           <a
             class="help-role-card"

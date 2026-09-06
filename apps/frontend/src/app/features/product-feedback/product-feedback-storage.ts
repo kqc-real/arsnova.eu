@@ -2,7 +2,11 @@
  * Client-seitiger Zustand für ProductFeedback (Cooldown, Abwahl, Offline-Postausgang).
  * Kein geräteübergreifendes Profil — nur localStorage.
  */
-import type { ProductFeedbackDeviceClass, ProductFeedbackSubmitInput } from '@arsnova/shared-types';
+import type {
+  ProductFeedbackDeviceClass,
+  ProductFeedbackInAppSubmitInput,
+  ProductFeedbackSubmitInput,
+} from '@arsnova/shared-types';
 
 const COOLDOWN_PREFIX = 'productFeedback:cooldown:v1:';
 const SUPPRESS_PREFIX = 'productFeedback:suppress:v1:';
@@ -15,7 +19,7 @@ export const PRODUCT_FEEDBACK_OUTBOX_MAX_AGE_MS = 7 * 24 * 60 * 60 * 1000;
 
 export type ProductFeedbackOutboxItem = {
   id: string;
-  kind: 'submit' | 'followUp';
+  kind: 'submit' | 'followUp' | 'inAppSubmit' | 'inAppFollowUp';
   payload: Record<string, unknown>;
   createdAt: number;
 };
@@ -127,7 +131,7 @@ export function saveProductFeedbackOutbox(items: ProductFeedbackOutboxItem[]): v
 }
 
 export function enqueueProductFeedbackOutbox(item: ProductFeedbackOutboxItem): void {
-  const items = loadProductFeedbackOutbox();
+  const items = loadProductFeedbackOutbox().filter((existing) => existing.id !== item.id);
   items.push(item);
   saveProductFeedbackOutbox(items);
 }
@@ -139,6 +143,8 @@ export function removeProductFeedbackOutboxItem(id: string): void {
 export type ProductFeedbackOutboxSender = {
   submit: (payload: Record<string, unknown>) => Promise<unknown>;
   followUp: (payload: Record<string, unknown>) => Promise<unknown>;
+  inAppSubmit?: (payload: Record<string, unknown>) => Promise<unknown>;
+  inAppFollowUp?: (payload: Record<string, unknown>) => Promise<unknown>;
 };
 
 /** Sendet vorgemerkte Payloads erneut; erfolgreiche Einträge werden entfernt. */
@@ -150,10 +156,21 @@ export async function flushProductFeedbackOutbox(
   const remaining: ProductFeedbackOutboxItem[] = [];
   for (const item of items) {
     try {
-      if (item.kind === 'submit') {
-        await sender.submit(item.payload);
-      } else {
-        await sender.followUp(item.payload);
+      switch (item.kind) {
+        case 'submit':
+          await sender.submit(item.payload);
+          break;
+        case 'followUp':
+          await sender.followUp(item.payload);
+          break;
+        case 'inAppSubmit':
+          if (!sender.inAppSubmit) throw new Error('IN_APP submit sender fehlt.');
+          await sender.inAppSubmit(item.payload);
+          break;
+        case 'inAppFollowUp':
+          if (!sender.inAppFollowUp) throw new Error('IN_APP follow-up sender fehlt.');
+          await sender.inAppFollowUp(item.payload);
+          break;
       }
     } catch {
       remaining.push(item);
@@ -189,4 +206,4 @@ export function newIdempotencyKey(): string {
   });
 }
 
-export type { ProductFeedbackSubmitInput };
+export type { ProductFeedbackInAppSubmitInput, ProductFeedbackSubmitInput };

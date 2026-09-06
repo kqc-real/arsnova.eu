@@ -100,6 +100,7 @@ export class ProductFeedbackCardComponent implements OnInit, OnDestroy {
   readonly followUpCapability = signal<string | null>(null);
   readonly messageDraft = signal('');
   readonly messageLen = signal(0);
+  readonly privacyHint = $localize`:@@productFeedback.privacyHint:Bitte nenne keine Namen oder Sessioncodes und füge keine Quiz- oder Q&A-Inhalte oder andere personenbezogene Angaben ein.`;
 
   private destroyed = false;
   private pendingArea: ProductFeedbackArea | null = null;
@@ -161,7 +162,7 @@ export class ProductFeedbackCardComponent implements OnInit, OnDestroy {
   primaryLabel(answer: ProductFeedbackPrimaryAnswer): string {
     switch (answer) {
       case 'EASY':
-        return $localize`:@@productFeedback.answer.easy:Einfach`;
+        return $localize`:@@productFeedback.answer.easy:Leicht`;
       case 'MINOR_FRICTION':
         return $localize`:@@productFeedback.answer.minorFriction:Mit kleinen Hürden`;
       case 'HARD':
@@ -201,11 +202,11 @@ export class ProductFeedbackCardComponent implements OnInit, OnDestroy {
     const key = this.survey()?.surveyKey;
     switch (key) {
       case 'POST_SESSION_EASE_PARTICIPANT_V1':
-        return $localize`:@@productFeedback.q.ease.participant:Wie einfach war die Teilnahme mit arsnova.eu heute?`;
+        return $localize`:@@productFeedback.q.ease.participant:Wie leicht fiel dir die Teilnahme mit arsnova.eu heute?`;
       case 'POST_SESSION_VALUE_PARTICIPANT_V1':
         return $localize`:@@productFeedback.q.value.participant:Hat arsnova.eu dir geholfen, dich aktiv an der Session zu beteiligen?`;
       case 'POST_SESSION_EASE_HOST_V1':
-        return $localize`:@@productFeedback.q.ease.host:Wie einfach war es heute, die Session mit arsnova.eu durchzuführen?`;
+        return $localize`:@@productFeedback.q.ease.host:Wie leicht fiel es dir heute, die Session mit arsnova.eu durchzuführen?`;
       case 'POST_SESSION_VALUE_HOST_V1':
         return $localize`:@@productFeedback.q.value.host:Hat arsnova.eu dir geholfen, deine Gruppe einzubeziehen und einzuschätzen?`;
       default:
@@ -215,8 +216,8 @@ export class ProductFeedbackCardComponent implements OnInit, OnDestroy {
 
   areaQuestion(): string {
     return this.areaPromptKind() === 'strength'
-      ? $localize`:@@productFeedback.q.strength:Was hat heute am besten geklappt?`
-      : $localize`:@@productFeedback.q.hurdle:Woran hat’s am meisten gehakt?`;
+      ? $localize`:@@productFeedback.q.strength:Was lief heute besonders gut?`
+      : $localize`:@@productFeedback.q.hurdle:Wo gab es die größte Hürde?`;
   }
 
   headingText(): string {
@@ -226,13 +227,13 @@ export class ProductFeedbackCardComponent implements OnInit, OnDestroy {
       case 'area':
         return this.areaQuestion();
       case 'thanks':
-        return $localize`:@@productFeedback.thanks:Noch einen Satz dazu?`;
+        return $localize`:@@productFeedback.thanks:Möchtest du noch etwas ergänzen?`;
       case 'message':
-        return $localize`:@@productFeedback.messageHeading:Optionaler Satz`;
+        return $localize`:@@productFeedback.messageHeading:Was möchtest du ergänzen?`;
       case 'error':
-        return $localize`:@@productFeedback.errorHeading:Das hat nicht geklappt`;
+        return $localize`:@@productFeedback.errorHeading:Senden nicht möglich`;
       case 'done':
-        return $localize`:@@productFeedback.allDone:Gespeichert.`;
+        return $localize`:@@productFeedback.allDone:Vielen Dank!`;
       default:
         return $localize`:@@productFeedback.title:Eine Frage zu arsnova.eu`;
     }
@@ -275,7 +276,9 @@ export class ProductFeedbackCardComponent implements OnInit, OnDestroy {
     if (!token || !primary || !survey || this.busy()) return;
 
     this.busy.set(true);
-    this.statusMessage.set($localize`:@@productFeedback.status.sending:Wird gesendet …`);
+    this.statusMessage.set(
+      $localize`:@@productFeedback.status.sending:Rückmeldung wird gesendet …`,
+    );
     const idempotencyKey = newIdempotencyKey();
     const locale = this.resolveLocale();
     const payload = {
@@ -294,7 +297,9 @@ export class ProductFeedbackCardComponent implements OnInit, OnDestroy {
       this.followUpCapability.set(result.followUpCapability);
       markProductFeedbackCooldown(survey.surveyKey);
       this.step.set('thanks');
-      this.statusMessage.set($localize`:@@productFeedback.status.saved:Gespeichert.`);
+      this.statusMessage.set(
+        $localize`:@@productFeedback.status.saved:Deine Rückmeldung ist angekommen.`,
+      );
       this.completed.emit();
       this.moveFocusForStep();
     } catch (err) {
@@ -309,7 +314,7 @@ export class ProductFeedbackCardComponent implements OnInit, OnDestroy {
         markProductFeedbackCooldown(survey.surveyKey);
         this.step.set('thanks');
         this.statusMessage.set(
-          $localize`:@@productFeedback.status.queued:Vorgemerkt auf diesem Gerät – senden wir, sobald die Verbindung wieder da ist.`,
+          $localize`:@@productFeedback.status.queued:Deine Rückmeldung ist auf diesem Gerät vorgemerkt. Wir senden sie automatisch, sobald arsnova.eu wieder erreichbar ist.`,
         );
         this.completed.emit();
         this.moveFocusForStep();
@@ -317,7 +322,7 @@ export class ProductFeedbackCardComponent implements OnInit, OnDestroy {
         this.pendingArea = area;
         this.step.set('error');
         this.statusMessage.set(
-          $localize`:@@productFeedback.status.rejected:Das hat nicht geklappt. Bitte erneut versuchen oder schließen.`,
+          $localize`:@@productFeedback.status.rejected:Deine Eingaben bleiben erhalten.`,
         );
         this.moveFocusForStep();
       }
@@ -364,7 +369,9 @@ export class ProductFeedbackCardComponent implements OnInit, OnDestroy {
         idempotencyKey,
       });
       if (this.destroyed) return;
-      this.statusMessage.set($localize`:@@productFeedback.status.messageSaved:Gespeichert.`);
+      this.statusMessage.set(
+        $localize`:@@productFeedback.status.messageSaved:Deine Ergänzung ist angekommen.`,
+      );
       this.step.set('done');
       this.moveFocusForStep();
       this.scheduleDismissAfterDone();
@@ -378,7 +385,7 @@ export class ProductFeedbackCardComponent implements OnInit, OnDestroy {
           createdAt: Date.now(),
         });
         this.statusMessage.set(
-          $localize`:@@productFeedback.status.messageQueued:Notiz vorgemerkt – kommt nach, sobald die Verbindung wieder da ist.`,
+          $localize`:@@productFeedback.status.messageQueued:Deine Ergänzung ist auf diesem Gerät vorgemerkt und wird automatisch nachgesendet.`,
         );
         this.step.set('done');
         this.moveFocusForStep();
@@ -387,7 +394,7 @@ export class ProductFeedbackCardComponent implements OnInit, OnDestroy {
         this.pendingMessage = true;
         this.step.set('error');
         this.statusMessage.set(
-          $localize`:@@productFeedback.status.messageRejected:Die Notiz konnte nicht gesendet werden. Bitte erneut versuchen oder schließen.`,
+          $localize`:@@productFeedback.status.rejected:Deine Eingaben bleiben erhalten.`,
         );
         this.moveFocusForStep();
       }

@@ -51,6 +51,7 @@ import {
   type QuickFeedbackType,
 } from '@arsnova/shared-types';
 import type { Unsubscribable } from '@trpc/server/observable';
+import { ProductFeedbackLauncherService } from '../product-feedback/product-feedback-launcher.service';
 
 type StarAverageIcon = 'star' | 'star_half' | 'star_border';
 type TempoViewMode = 'details' | 'trend';
@@ -91,10 +92,26 @@ export class FeedbackHostComponent implements OnInit, OnDestroy {
   private readonly document = inject(DOCUMENT);
   private readonly localeId = inject(LOCALE_ID) as string;
   private readonly injector = inject(Injector);
+  private readonly productFeedbackLauncher = inject(ProductFeedbackLauncherService);
   private subscription: Unsubscribable | null = null;
   private pollTimer: ReturnType<typeof setInterval> | null = null;
   readonly sessionCode = input('');
   readonly embeddedInSession = input(false);
+
+  openProductFeedback(event: Event): void {
+    const target = event.currentTarget instanceof HTMLElement ? event.currentTarget : null;
+    void this.productFeedbackLauncher.open(
+      {
+        role: 'HOST',
+        routeGroup: 'QUICK_FEEDBACK',
+        activeChannel: 'QUICK_FEEDBACK',
+        sessionPhase: 'ACTIVE',
+        suggestedArea: 'QUICK_FEEDBACK',
+        sessionRunning: true,
+      },
+      target,
+    );
+  }
 
   readonly code = computed(() =>
     (this.sessionCode() || (this.route.snapshot.paramMap.get('code') ?? '')).toUpperCase(),

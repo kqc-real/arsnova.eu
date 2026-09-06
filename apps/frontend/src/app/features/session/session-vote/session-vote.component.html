@@ -1404,6 +1404,17 @@
               <mat-icon class="vote-error__icon" aria-hidden="true">warning</mat-icon>
               <span class="vote-error__text">{{ voteError() }}</span>
             </p>
+            @if (contextualFeedbackOffer.isAvailable('vote.submit:failed')) {
+              <button
+                matButton
+                type="button"
+                class="vote-error__feedback-action"
+                (click)="openVoteProblemFeedback($event)"
+                i18n="@@productFeedback.inApp.problemAction"
+              >
+                Problem melden
+              </button>
+            }
           }
 
           @if (hasAnswers()) {

@@ -1,5 +1,5 @@
 /**
- * ProductFeedback Retention-Cleanup (Story 12.1).
+ * ProductFeedback Retention-Cleanup (Stories 12.1 und 12.2).
  * Freitext max. 90 Tage; strukturierte Datensätze max. ~13 Monate.
  */
 import {
@@ -34,11 +34,14 @@ export async function cleanupProductFeedbackMessages(): Promise<number> {
   return result.count;
 }
 
-/** Löscht strukturierte Datensätze nach ~13 Monaten. */
+/** Löscht strukturierte Datensätze und textfreie Auditmetadaten nach ~13 Monaten. */
 export async function cleanupProductFeedbackRecords(): Promise<number> {
   const cutoff = new Date(
     Date.now() - PRODUCT_FEEDBACK_STRUCTURED_RETENTION_DAYS * 24 * 60 * 60 * 1000,
   );
+  await prisma.productFeedbackAuditLog.deleteMany({
+    where: { createdAt: { lt: cutoff } },
+  });
   const result = await prisma.productFeedback.deleteMany({
     where: { createdAt: { lt: cutoff } },
   });

@@ -1,3 +1,13 @@
+.feedback-vote__product-feedback-utility {
+  display: flex;
+  justify-content: flex-end;
+  width: 100%;
+}
+
+.feedback-vote__product-feedback-utility button {
+  min-height: 2.75rem;
+}
+
 :host {
   display: block;
 }

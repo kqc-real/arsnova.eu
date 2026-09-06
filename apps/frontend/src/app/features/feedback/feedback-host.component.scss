@@ -1,3 +1,15 @@
+.feedback-host__product-feedback-utility {
+  display: flex;
+  justify-content: flex-end;
+  width: min(100%, var(--app-live-channel-max-width));
+  margin-inline: auto;
+  padding: 0.5rem;
+}
+
+.feedback-host__product-feedback-utility button {
+  min-height: 2.75rem;
+}
+
 :host {
   display: block;
 }
