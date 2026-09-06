@@ -3,8 +3,8 @@
     <div class="admin-pf__header-copy">
       <h2 id="admin-pf-heading" i18n="@@admin.productFeedback.heading">Produktfeedback</h2>
       <p class="admin-pf__intro" i18n="@@admin.productFeedback.intro">
-        Kurzfeedback zur Bedienbarkeit und zum Nutzen von arsnova.eu nach der Session. Die
-        Auswertung ist anonym – ohne Freitext und ohne Personenbezug.
+        Rückmeldungen aus der App und vom Sessionabschluss. Strukturierte Angaben werden anonym
+        ausgewertet; freiwillige Texte sind nur in der geschützten Bearbeitungsansicht sichtbar.
       </p>
     </div>
     <button matButton="tonal" type="button" [disabled]="loading()" (click)="reload()">
@@ -86,20 +86,384 @@
     <p class="admin-pf__error" role="alert">{{ err }}</p>
   }
 
+  <section class="admin-pf__inbox" aria-labelledby="admin-pf-inbox-heading">
+    <header class="admin-pf__inbox-header">
+      <div>
+        <h3 id="admin-pf-inbox-heading" i18n="@@admin.productFeedback.inboxHeading">
+          Rückmeldungen bearbeiten
+        </h3>
+        <p i18n="@@admin.productFeedback.inboxHint">
+          Rückmeldungen prüfen, ähnliche Beobachtungen bündeln und bei Bedarf mit GitHub verknüpfen.
+        </p>
+      </div>
+    </header>
+
+    @if (triageStats(); as triage) {
+      <div class="admin-pf__grid admin-pf__grid--kpi">
+        <mat-card appearance="outlined" class="admin-pf__card admin-pf__card--kpi">
+          <mat-card-header>
+            <mat-card-title i18n="@@admin.productFeedback.inAppVolume"
+              >In-App-Rückmeldungen</mat-card-title
+            >
+          </mat-card-header>
+          <mat-card-content
+            ><p class="admin-pf__total">{{ triage.totals }}</p></mat-card-content
+          >
+        </mat-card>
+        <mat-card appearance="outlined" class="admin-pf__card admin-pf__card--kpi">
+          <mat-card-header>
+            <mat-card-title i18n="@@admin.productFeedback.blocking"
+              >Davon blockierend</mat-card-title
+            >
+          </mat-card-header>
+          <mat-card-content
+            ><p class="admin-pf__total">{{ triage.blocking }}</p></mat-card-content
+          >
+        </mat-card>
+      </div>
+      <div class="admin-pf__grid">
+        <mat-card appearance="outlined" class="admin-pf__card">
+          <mat-card-header>
+            <mat-card-title i18n="@@admin.productFeedback.byKind">Feedbackarten</mat-card-title>
+          </mat-card-header>
+          <mat-card-content>
+            <ul class="admin-pf__bars">
+              @for (bucket of triage.byKind; track bucket.key) {
+                <li class="admin-pf__bar-meta">
+                  <span>{{ kindLabel($any(bucket.key)) }}</span
+                  ><strong>{{ bucket.count }}</strong>
+                </li>
+              }
+            </ul>
+          </mat-card-content>
+        </mat-card>
+        <mat-card appearance="outlined" class="admin-pf__card">
+          <mat-card-header>
+            <mat-card-title i18n="@@admin.productFeedback.versionTrend"
+              >App-Versionen (mindestens 5 Rückmeldungen)</mat-card-title
+            >
+          </mat-card-header>
+          <mat-card-content>
+            <ul class="admin-pf__bars">
+              @for (bucket of triage.byAppVersion; track bucket.key) {
+                <li class="admin-pf__bar-meta">
+                  <span>{{ bucket.key }}</span
+                  ><strong>{{ bucket.count }}</strong>
+                </li>
+              }
+            </ul>
+          </mat-card-content>
+        </mat-card>
+      </div>
+    }
+
+    <div
+      class="admin-pf__filters admin-pf__filters--inbox"
+      role="group"
+      i18n-aria-label="@@admin.productFeedback.inboxFilters"
+      aria-label="Rückmeldungen filtern"
+    >
+      <mat-form-field appearance="outline">
+        <mat-label i18n="@@admin.productFeedback.filterSource">Quelle</mat-label>
+        <mat-select
+          [(ngModel)]="inboxSourceFilter"
+          name="pfInboxSource"
+          (ngModelChange)="onInboxFiltersChanged()"
+        >
+          <mat-option value="" i18n="@@admin.productFeedback.filterAll">Alle</mat-option>
+          @for (source of sourceOptions; track source) {
+            <mat-option [value]="source">{{ sourceLabel(source) }}</mat-option>
+          }
+        </mat-select>
+      </mat-form-field>
+      <mat-form-field appearance="outline">
+        <mat-label i18n="@@admin.productFeedback.filterRole">Perspektive</mat-label>
+        <mat-select
+          [(ngModel)]="inboxRoleFilter"
+          name="pfInboxRole"
+          (ngModelChange)="onInboxFiltersChanged()"
+        >
+          <mat-option value="" i18n="@@admin.productFeedback.filterAll">Alle</mat-option>
+          @for (role of roleOptions; track role) {
+            <mat-option [value]="role">{{ roleLabel(role) }}</mat-option>
+          }
+        </mat-select>
+      </mat-form-field>
+      <mat-form-field appearance="outline">
+        <mat-label i18n="@@admin.productFeedback.filterKind">Feedbackart</mat-label>
+        <mat-select
+          [(ngModel)]="inboxKindFilter"
+          name="pfInboxKind"
+          (ngModelChange)="onInboxFiltersChanged()"
+        >
+          <mat-option value="" i18n="@@admin.productFeedback.filterAll">Alle</mat-option>
+          @for (kind of kindOptions; track kind) {
+            <mat-option [value]="kind">{{ kindLabel(kind) }}</mat-option>
+          }
+        </mat-select>
+      </mat-form-field>
+      <mat-form-field appearance="outline">
+        <mat-label i18n="@@admin.productFeedback.filterArea">Bereich</mat-label>
+        <input
+          matInput
+          [(ngModel)]="inboxAreaFilter"
+          name="pfInboxArea"
+          (change)="onInboxFiltersChanged()"
+        />
+      </mat-form-field>
+      <mat-form-field appearance="outline">
+        <mat-label i18n="@@admin.productFeedback.filterImpact">Auswirkung</mat-label>
+        <mat-select
+          [(ngModel)]="inboxImpactFilter"
+          name="pfInboxImpact"
+          (ngModelChange)="onInboxFiltersChanged()"
+        >
+          <mat-option value="" i18n="@@admin.productFeedback.filterAll">Alle</mat-option>
+          @for (impact of impactOptions; track impact) {
+            <mat-option [value]="impact">{{ impactLabel(impact) }}</mat-option>
+          }
+        </mat-select>
+      </mat-form-field>
+      <mat-form-field appearance="outline">
+        <mat-label i18n="@@admin.productFeedback.filterAppVersion">App-Version</mat-label>
+        <input
+          matInput
+          [(ngModel)]="inboxAppVersionFilter"
+          name="pfInboxAppVersion"
+          (change)="onInboxFiltersChanged()"
+        />
+      </mat-form-field>
+      <mat-form-field appearance="outline">
+        <mat-label i18n="@@admin.productFeedback.filterLocale">Sprache</mat-label>
+        <mat-select
+          [(ngModel)]="inboxLocaleFilter"
+          name="pfInboxLocale"
+          (ngModelChange)="onInboxFiltersChanged()"
+        >
+          <mat-option value="" i18n="@@admin.productFeedback.filterAll">Alle</mat-option>
+          @for (locale of localeOptions; track locale) {
+            <mat-option [value]="locale">{{ localeLabel(locale) }}</mat-option>
+          }
+        </mat-select>
+      </mat-form-field>
+      <mat-form-field appearance="outline">
+        <mat-label i18n="@@admin.productFeedback.filterStatus">Status</mat-label>
+        <mat-select
+          [(ngModel)]="inboxStatusFilter"
+          name="pfInboxStatus"
+          (ngModelChange)="onInboxFiltersChanged()"
+        >
+          <mat-option value="" i18n="@@admin.productFeedback.filterAll">Alle</mat-option>
+          @for (status of statusOptions; track status) {
+            <mat-option [value]="status">{{ statusLabel(status) }}</mat-option>
+          }
+        </mat-select>
+      </mat-form-field>
+    </div>
+
+    <div class="admin-pf__triage-layout">
+      <div class="admin-pf__inbox-list" aria-live="polite">
+        @if (inbox().length === 0) {
+          <p class="admin-pf__empty" i18n="@@admin.productFeedback.inboxEmpty">
+            Keine Rückmeldungen entsprechen den gewählten Filtern.
+          </p>
+        } @else {
+          <ul>
+            @for (item of inbox(); track item.id) {
+              <li>
+                <button
+                  type="button"
+                  class="admin-pf__inbox-item"
+                  [class.admin-pf__inbox-item--selected]="selected()?.id === item.id"
+                  (click)="selectFeedback(item.id)"
+                >
+                  <span class="admin-pf__inbox-item-head">
+                    <strong>{{ kindLabel(item.kind) }}</strong>
+                    <span>{{ statusLabel(item.status) }}</span>
+                  </span>
+                  <span>{{ areaLabel(item.area) }} · {{ roleLabel(item.role) }}</span>
+                  <span>{{ item.createdAt | date: 'short' }}</span>
+                  @if (item.duplicateCount > 0) {
+                    <span i18n="@@admin.productFeedback.duplicates"
+                      >Ähnliche Rückmeldungen: {{ item.duplicateCount }}</span
+                    >
+                  }
+                </button>
+              </li>
+            }
+          </ul>
+          @if (nextCursor()) {
+            <button matButton type="button" (click)="loadInbox(false)">
+              <span i18n="@@admin.productFeedback.loadMore">Weitere Rückmeldungen laden</span>
+            </button>
+          }
+        }
+      </div>
+
+      <div class="admin-pf__detail">
+        @if (selected(); as detail) {
+          <h4>{{ kindLabel(detail.kind) }} · {{ areaLabel(detail.area) }}</h4>
+          <dl>
+            <div>
+              <dt i18n="@@admin.productFeedback.filterSource">Quelle</dt>
+              <dd>{{ sourceLabel(detail.source) }}</dd>
+            </div>
+            <div>
+              <dt i18n="@@admin.productFeedback.filterRole">Perspektive</dt>
+              <dd>{{ roleLabel(detail.role) }}</dd>
+            </div>
+            <div>
+              <dt i18n="@@admin.productFeedback.filterStatus">Status</dt>
+              <dd>{{ statusLabel(detail.status) }}</dd>
+            </div>
+            <div>
+              <dt i18n="@@admin.productFeedback.filterImpact">Auswirkung</dt>
+              <dd>{{ detail.impact ? impactLabel(detail.impact) : '—' }}</dd>
+            </div>
+            <div>
+              <dt i18n="@@admin.productFeedback.filterAppVersion">App-Version</dt>
+              <dd>{{ detail.appVersion ?? '—' }}</dd>
+            </div>
+            <div>
+              <dt i18n="@@admin.productFeedback.filterLocale">Sprache</dt>
+              <dd>{{ localeLabel(detail.locale) }}</dd>
+            </div>
+            <div>
+              <dt i18n="@@admin.productFeedback.context">Kontext</dt>
+              <dd>
+                {{ contextSummary(detail.routeGroup, detail.deviceClass, detail.browserFamily) }}
+              </dd>
+            </div>
+          </dl>
+
+          @if (detail.quarantineStatus === 'FLAGGED') {
+            <p class="admin-pf__quarantine" role="status" i18n="@@admin.productFeedback.quarantine">
+              Der freiwillige Text enthält möglicherweise schützenswerte Angaben. Prüfe ihn, bevor
+              du ihn weiterverwendest.
+            </p>
+          }
+          @if (detail.message) {
+            <pre class="admin-pf__message">{{ detail.message }}</pre>
+          }
+          @if (detail.quarantineStatus === 'FLAGGED') {
+            <button matButton type="button" (click)="clearQuarantine()">
+              <span i18n="@@admin.productFeedback.clearQuarantine"
+                >Text als unbedenklich markieren</span
+              >
+            </button>
+          }
+
+          <div
+            class="admin-pf__status-actions"
+            role="group"
+            i18n-aria-label="@@admin.productFeedback.statusActions"
+            aria-label="Bearbeitungsstatus ändern"
+          >
+            @for (status of statusOptions; track status) {
+              <button
+                matButton
+                type="button"
+                [disabled]="triageBusy() || detail.status === status"
+                (click)="updateStatus(status)"
+              >
+                {{ statusLabel(status) }}
+              </button>
+            }
+          </div>
+
+          <div class="admin-pf__detail-form">
+            <mat-form-field appearance="outline">
+              <mat-label i18n="@@admin.productFeedback.duplicateTarget"
+                >ID der Hauptrückmeldung (leer = keine Zuordnung)</mat-label
+              >
+              <input matInput [(ngModel)]="duplicateTargetId" name="pfDuplicateTarget" />
+            </mat-form-field>
+            <button matButton type="button" [disabled]="triageBusy()" (click)="linkDuplicate()">
+              <span i18n="@@admin.productFeedback.linkDuplicate">Zuordnung speichern</span>
+            </button>
+
+            <mat-form-field appearance="outline">
+              <mat-label i18n="@@admin.productFeedback.issueNumber">GitHub-Issue-Nummer</mat-label>
+              <input matInput type="number" [(ngModel)]="issueNumber" name="pfIssueNumber" />
+            </mat-form-field>
+            <mat-form-field appearance="outline">
+              <mat-label i18n="@@admin.productFeedback.issueUrl">Link zum GitHub-Issue</mat-label>
+              <input matInput type="url" [(ngModel)]="issueUrl" name="pfIssueUrl" />
+            </mat-form-field>
+            <button matButton type="button" [disabled]="triageBusy()" (click)="linkIssue()">
+              <span i18n="@@admin.productFeedback.linkIssue">Issue verknüpfen</span>
+            </button>
+
+            <mat-form-field appearance="outline">
+              <mat-label i18n="@@admin.productFeedback.resolvedVersion"
+                >Behoben in Version</mat-label
+              >
+              <input
+                matInput
+                [(ngModel)]="resolvedInVersion"
+                name="pfResolvedInVersion"
+                maxlength="64"
+              />
+            </mat-form-field>
+            <mat-form-field appearance="outline">
+              <mat-label i18n="@@admin.productFeedback.resolutionUrl"
+                >Öffentlicher Lösungslink</mat-label
+              >
+              <input matInput type="url" [(ngModel)]="publicResolutionUrl" name="pfResolutionUrl" />
+            </mat-form-field>
+          </div>
+
+          <div class="admin-pf__issue-actions">
+            <button matButton="tonal" type="button" (click)="createIssueDraft()">
+              <span i18n="@@admin.productFeedback.previewIssue">Issue-Entwurf prüfen</span>
+            </button>
+            @if (issueDraft(); as draft) {
+              <div class="admin-pf__issue-preview">
+                <strong>{{ draft.title }}</strong>
+                <pre>{{ draft.body }}</pre>
+                <button
+                  matButton="filled"
+                  type="button"
+                  [disabled]="triageBusy()"
+                  (click)="publishIssue()"
+                >
+                  <span i18n="@@admin.productFeedback.publishIssue"
+                    >Entwurf auf GitHub veröffentlichen</span
+                  >
+                </button>
+              </div>
+            }
+          </div>
+
+          <button
+            matButton
+            type="button"
+            class="admin-pf__delete"
+            [disabled]="triageBusy()"
+            (click)="deleteSelected()"
+          >
+            <span i18n="@@admin.productFeedback.delete">Rückmeldung endgültig löschen</span>
+          </button>
+        } @else {
+          <p class="admin-pf__empty" i18n="@@admin.productFeedback.selectDetail">
+            Wähle links eine Rückmeldung aus, um sie zu bearbeiten.
+          </p>
+        }
+      </div>
+    </div>
+  </section>
+
   @if (loading() && !stats()) {
     <div class="admin-pf__loading" role="status">
       <mat-spinner diameter="36" />
-      <span i18n="@@admin.productFeedback.loading">Auswertung wird geladen …</span>
+      <span i18n="@@admin.productFeedback.loading">Feedbackdaten werden geladen …</span>
     </div>
   } @else if (stats(); as s) {
     <div class="admin-pf__body" [attr.aria-busy]="loading()">
       <div class="admin-pf__grid admin-pf__grid--kpi">
         <mat-card appearance="outlined" class="admin-pf__card admin-pf__card--kpi">
           <mat-card-header>
-            <mat-card-title i18n="@@admin.productFeedback.totals">Antworten</mat-card-title>
-            <mat-card-subtitle i18n="@@admin.productFeedback.totalsHint"
-              >Mit den aktuellen Filtern</mat-card-subtitle
-            >
+            <mat-card-title i18n="@@admin.productFeedback.totals">Rückmeldungen</mat-card-title>
           </mat-card-header>
           <mat-card-content>
             <p class="admin-pf__total">{{ s.totals }}</p>
@@ -109,7 +473,7 @@
           <mat-card-header>
             <mat-card-title i18n="@@admin.productFeedback.invites">Einladungen</mat-card-title>
             <mat-card-subtitle i18n="@@admin.productFeedback.invitesHint"
-              >Wie oft wir nach Feedback gefragt haben</mat-card-subtitle
+              >Wie oft Feedback angeboten wurde</mat-card-subtitle
             >
           </mat-card-header>
           <mat-card-content>
@@ -120,7 +484,7 @@
           <mat-card-header>
             <mat-card-title i18n="@@admin.productFeedback.completion">Rücklauf</mat-card-title>
             <mat-card-subtitle i18n="@@admin.productFeedback.completionHint"
-              >Anteil der Einladungen mit Antwort</mat-card-subtitle
+              >Anteil beantworteter Einladungen</mat-card-subtitle
             >
           </mat-card-header>
           <mat-card-content>
@@ -130,18 +494,20 @@
       </div>
 
       <h3 class="admin-pf__section-title" i18n="@@admin.productFeedback.sectionAnswers">
-        Einschätzungen
+        Feedback nach der Session
       </h3>
 
       <div class="admin-pf__grid admin-pf__grid--primary">
         <mat-card appearance="outlined" class="admin-pf__card admin-pf__card--wide">
           <mat-card-header>
-            <mat-card-title i18n="@@admin.productFeedback.byPrimary">Kurzbewertung</mat-card-title>
+            <mat-card-title i18n="@@admin.productFeedback.byPrimary"
+              >Kurzbewertungen</mat-card-title
+            >
           </mat-card-header>
           <mat-card-content>
             @if (s.byPrimaryAnswer.length === 0) {
               <p class="admin-pf__empty" i18n="@@admin.productFeedback.empty">
-                Für diese Auswahl gibt es noch keine Antworten.
+                Für die gewählten Filter liegen noch keine Rückmeldungen vor.
               </p>
             } @else {
               <ul class="admin-pf__bars">
@@ -171,12 +537,12 @@
 
         <mat-card appearance="outlined" class="admin-pf__card">
           <mat-card-header>
-            <mat-card-title i18n="@@admin.productFeedback.byArea">Genannte Stellen</mat-card-title>
+            <mat-card-title i18n="@@admin.productFeedback.byArea">Genannte Bereiche</mat-card-title>
           </mat-card-header>
           <mat-card-content>
             @if (s.byArea.length === 0) {
               <p class="admin-pf__empty" i18n="@@admin.productFeedback.empty">
-                Für diese Auswahl gibt es noch keine Antworten.
+                Für die gewählten Filter liegen noch keine Rückmeldungen vor.
               </p>
             } @else {
               <ul class="admin-pf__bars">
@@ -210,7 +576,7 @@
           <mat-card-content>
             @if (s.byPositiveArea.length === 0) {
               <p class="admin-pf__empty" i18n="@@admin.productFeedback.emptyThreshold">
-                Noch zu wenig Antworten für eine Auswertung.
+                Noch zu wenige Rückmeldungen für diese Auswertung.
               </p>
             } @else {
               <ul class="admin-pf__bars">
@@ -242,7 +608,7 @@
           <mat-card-content>
             @if (s.byHurdleArea.length === 0) {
               <p class="admin-pf__empty" i18n="@@admin.productFeedback.emptyThreshold">
-                Noch zu wenig Antworten für eine Auswertung.
+                Noch zu wenige Rückmeldungen für diese Auswertung.
               </p>
             } @else {
               <ul class="admin-pf__bars">
@@ -274,7 +640,7 @@
           <mat-card-content>
             @if (s.bySurveyKey.length === 0) {
               <p class="admin-pf__empty" i18n="@@admin.productFeedback.empty">
-                Für diese Auswahl gibt es noch keine Antworten.
+                Für die gewählten Filter liegen noch keine Rückmeldungen vor.
               </p>
             } @else {
               <ul class="admin-pf__bars">
@@ -304,7 +670,7 @@
           <mat-card-content>
             @if (s.byRole.length === 0) {
               <p class="admin-pf__empty" i18n="@@admin.productFeedback.empty">
-                Für diese Auswahl gibt es noch keine Antworten.
+                Für die gewählten Filter liegen noch keine Rückmeldungen vor.
               </p>
             } @else {
               <ul class="admin-pf__bars">
@@ -328,21 +694,23 @@
         </mat-card>
       </div>
 
-      <h3 class="admin-pf__section-title" i18n="@@admin.productFeedback.sectionContext">Rahmen</h3>
+      <h3 class="admin-pf__section-title" i18n="@@admin.productFeedback.sectionContext">
+        Kontextdaten
+      </h3>
       <p class="admin-pf__section-hint" i18n="@@admin.productFeedback.privacyHint">
-        Aus Datenschutzgründen erscheinen Sprache, Sessiongröße, Gerät und häufige Kombinationen
-        erst ab fünf Antworten.
+        Zum Schutz der Privatsphäre erscheinen fein aufgeschlüsselte Daten erst ab fünf
+        Rückmeldungen.
       </p>
 
       <div class="admin-pf__grid">
         <mat-card appearance="outlined" class="admin-pf__card">
           <mat-card-header>
-            <mat-card-title i18n="@@admin.productFeedback.byLocale">Sprache (ab 5)</mat-card-title>
+            <mat-card-title i18n="@@admin.productFeedback.byLocale">Sprache</mat-card-title>
           </mat-card-header>
           <mat-card-content>
             @if (s.byLocale.length === 0) {
               <p class="admin-pf__empty" i18n="@@admin.productFeedback.emptyThreshold">
-                Noch zu wenig Antworten für eine Auswertung.
+                Noch zu wenige Rückmeldungen für diese Auswertung.
               </p>
             } @else {
               <ul class="admin-pf__bars">
@@ -367,14 +735,12 @@
 
         <mat-card appearance="outlined" class="admin-pf__card">
           <mat-card-header>
-            <mat-card-title i18n="@@admin.productFeedback.bySize"
-              >Sessiongröße (ab 5)</mat-card-title
-            >
+            <mat-card-title i18n="@@admin.productFeedback.bySize">Sessiongröße</mat-card-title>
           </mat-card-header>
           <mat-card-content>
             @if (s.bySessionSizeClass.length === 0) {
               <p class="admin-pf__empty" i18n="@@admin.productFeedback.emptyThreshold">
-                Noch zu wenig Antworten für eine Auswertung.
+                Noch zu wenige Rückmeldungen für diese Auswertung.
               </p>
             } @else {
               <ul class="admin-pf__bars">
@@ -399,12 +765,12 @@
 
         <mat-card appearance="outlined" class="admin-pf__card">
           <mat-card-header>
-            <mat-card-title i18n="@@admin.productFeedback.byDevice">Gerät (ab 5)</mat-card-title>
+            <mat-card-title i18n="@@admin.productFeedback.byDevice">Gerät</mat-card-title>
           </mat-card-header>
           <mat-card-content>
             @if (s.byDeviceClass.length === 0) {
               <p class="admin-pf__empty" i18n="@@admin.productFeedback.emptyThreshold">
-                Noch zu wenig Antworten für eine Auswertung.
+                Noch zu wenige Rückmeldungen für diese Auswertung.
               </p>
             } @else {
               <ul class="admin-pf__bars">
@@ -438,7 +804,7 @@
           <mat-card-content>
             @if (s.byAppVersion.length === 0) {
               <p class="admin-pf__empty" i18n="@@admin.productFeedback.emptyThreshold">
-                Noch zu wenig Antworten für eine Auswertung.
+                Noch zu wenige Rückmeldungen für diese Auswertung.
               </p>
             } @else {
               <ul class="admin-pf__bars">
@@ -464,7 +830,7 @@
           <mat-card-content>
             @if (s.bySurveyVersion.length === 0) {
               <p class="admin-pf__empty" i18n="@@admin.productFeedback.emptyThreshold">
-                Noch zu wenig Antworten für eine Auswertung.
+                Noch zu wenige Rückmeldungen für diese Auswertung.
               </p>
             } @else {
               <ul class="admin-pf__bars">
@@ -490,7 +856,7 @@
           <mat-card-content>
             @if (s.bySessionKind.length === 0) {
               <p class="admin-pf__empty" i18n="@@admin.productFeedback.emptyThreshold">
-                Noch zu wenig Antworten für eine Auswertung.
+                Noch zu wenige Rückmeldungen für diese Auswertung.
               </p>
             } @else {
               <ul class="admin-pf__bars">
@@ -516,7 +882,7 @@
           <mat-card-content>
             @if (s.byFeatureArea.length === 0) {
               <p class="admin-pf__empty" i18n="@@admin.productFeedback.emptyThreshold">
-                Noch zu wenig Antworten für eine Auswertung.
+                Noch zu wenige Rückmeldungen für diese Auswertung.
               </p>
             } @else {
               <ul class="admin-pf__bars">
@@ -538,7 +904,7 @@
         <mat-card appearance="outlined" class="admin-pf__card">
           <mat-card-header>
             <mat-card-title i18n="@@admin.productFeedback.fine"
-              >Häufige Kombinationen (ab 5)</mat-card-title
+              >Häufige Kombinationen</mat-card-title
             >
             <mat-card-subtitle i18n="@@admin.productFeedback.fineHint"
               >Frage und Kurzbewertung</mat-card-subtitle

@@ -102,6 +102,7 @@ import {
 } from '../../join/kindergarten-nickname-icons';
 import { getEffectiveLocale } from '../../../core/locale-from-path';
 import { formatLocaleCount } from '../../../core/locale-number.util';
+import { ContextualFeedbackOfferService } from '../../product-feedback/contextual-feedback-offer.service';
 import {
   areOriginalNicknamesExhausted,
   getGeneratedNicknameFallbackList,
@@ -431,6 +432,7 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
   private readonly el = inject(ElementRef);
   private readonly injector = inject(Injector);
   private readonly snackBar = inject(MatSnackBar);
+  readonly contextualFeedbackOffer = inject(ContextualFeedbackOfferService);
   private statusSub: Unsubscribable | null = null;
   private qaSub: Unsubscribable | null = null;
   private quickFeedbackSub: Unsubscribable | null = null;
@@ -482,6 +484,35 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
   readonly voteClosed = signal(false);
   readonly voteError = signal<string | null>(null);
   readonly voteSending = signal(false);
+
+  openVoteProblemFeedback(event: Event): void {
+    const target = event.currentTarget instanceof HTMLElement ? event.currentTarget : null;
+    const status = this.status();
+    this.contextualFeedbackOffer.open(
+      'vote.submit:failed',
+      {
+        role: 'PARTICIPANT',
+        routeGroup: 'SESSION_VOTE',
+        sessionPhase:
+          status === 'LOBBY'
+            ? 'LOBBY'
+            : status === 'RESULTS'
+              ? 'RESULTS'
+              : status === 'FINISHED'
+                ? 'FINISHED'
+                : 'ACTIVE',
+        activeChannel:
+          this.activeChannel() === 'qa'
+            ? 'QA'
+            : this.activeChannel() === 'quickFeedback'
+              ? 'QUICK_FEEDBACK'
+              : 'QUIZ',
+        suggestedArea: 'QUIZ_OR_ANSWER',
+        sessionRunning: status !== 'FINISHED',
+      },
+      target,
+    );
+  }
   readonly structuredRoundTransitionPending = signal(false);
   readonly readingReadySubmitting = signal(false);
   readonly freeTextValue = signal('');

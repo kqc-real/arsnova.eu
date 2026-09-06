@@ -2,6 +2,14 @@
   class="feedback-vote app-live-channel-shell"
   [class.feedback-vote--embedded]="embeddedInSession()"
 >
+  @if (!embeddedInSession()) {
+    <div class="feedback-vote__product-feedback-utility">
+      <button matButton type="button" (click)="openProductFeedback($event)">
+        <mat-icon aria-hidden="true">insights</mat-icon>
+        <span i18n="@@productFeedback.inApp.action">arsnova.eu verbessern</span>
+      </button>
+    </div>
+  }
   @if (showSessionContext()) {
     <section class="feedback-vote__context" [attr.aria-label]="sessionContextAriaLabel()">
       <div class="feedback-vote__context-main">

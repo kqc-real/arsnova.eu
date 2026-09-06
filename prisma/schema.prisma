@@ -11,35 +11,35 @@ datasource db {
 // Das Meta-Dokument für den Server (Session-Kopie beim Quiz-Upload, Story 2.1a).
 // Kein creatorId/User – die App ist accountfrei (Zero-Account, Local-First).
 model Quiz {
-  id                   String     @id @default(uuid())
-  historyScopeId       String?    @db.Uuid // Stabile Quiz-Identität über mehrere Upload-Kopien hinweg
-  name                 String
-  description          String?
-  motifImageUrl        String?    // HTTPS-URL, optionales Motivbild (Host, Quiz-Kanal)
-  motifImageCredit     String?    // Optionaler Bildnachweis zum Motivbild (Lobby / Quizstart)
-  showLeaderboard      Boolean    @default(true)   // Story 1.4: Leaderboard an/aus
-  allowCustomNicknames Boolean    @default(true)   // Story 1.4: Eigene Pseudonyme erlauben
-  defaultTimer         Int?                         // Story 1.4: Standard-Countdown in Sekunden
-  timerScaleByDifficulty Boolean  @default(true)   // Story 1.4: Timer nach EASY/MEDIUM/HARD skalieren
-  enableSoundEffects   Boolean    @default(true)   // Story 5.1: Sound-Effekte an/aus
-  enableRewardEffects  Boolean    @default(true)   // Story 5.4: Belohnungseffekte an/aus
-  enableMotivationMessages Boolean @default(true) // Story 5.7: Motivationsmeldungen an/aus
-  enableEmojiReactions Boolean    @default(true)   // Story 5.8: Emoji-Reaktionen an/aus
-  showQuestionTypeIndicators Boolean @default(true) // Antwort-Badges zeigen Single-/Multiple-Choice-Formen
-  anonymousMode        Boolean    @default(false)  // Story 3.6: Anonymer Modus (keine Nicknames)
-  teamMode             Boolean    @default(false)  // Story 7.1: Team-Modus an/aus
-  teamCount            Int?                         // Story 7.1: Anzahl Teams (2–8, null = kein Team-Modus)
-  teamAssignment       TeamAssignment @default(AUTO) // Story 7.1: Teamzuweisung
-  teamNames            String[]   @default([])       // Story 7.1b: Konfigurierbare Team-Namen
-  backgroundMusic      String?                      // Story 5.3: Track-Name (null = aus)
-  nicknameTheme        NicknameTheme @default(NOBEL_LAUREATES) // Story 3.2: Nickname-Liste
-  bonusTokenCount      Int?                         // Story 4.6: Anzahl Top-Plätze mit Bonus-Token (1–50, null = deaktiviert)
-  readingPhaseEnabled  Boolean    @default(true)   // Story 2.6: Zwei-Phasen-Frageanzeige (Lesephase vor Antworten)
-  preset               String     @default("PLAYFUL") // PLAYFUL oder SERIOUS – visuelles Theme für alle Clients
-  questions            Question[]
-  sessions             Session[]
-  createdAt            DateTime   @default(now())
-  updatedAt            DateTime   @updatedAt
+  id                         String         @id @default(uuid())
+  historyScopeId             String?        @db.Uuid // Stabile Quiz-Identität über mehrere Upload-Kopien hinweg
+  name                       String
+  description                String?
+  motifImageUrl              String? // HTTPS-URL, optionales Motivbild (Host, Quiz-Kanal)
+  motifImageCredit           String? // Optionaler Bildnachweis zum Motivbild (Lobby / Quizstart)
+  showLeaderboard            Boolean        @default(true) // Story 1.4: Leaderboard an/aus
+  allowCustomNicknames       Boolean        @default(true) // Story 1.4: Eigene Pseudonyme erlauben
+  defaultTimer               Int? // Story 1.4: Standard-Countdown in Sekunden
+  timerScaleByDifficulty     Boolean        @default(true) // Story 1.4: Timer nach EASY/MEDIUM/HARD skalieren
+  enableSoundEffects         Boolean        @default(true) // Story 5.1: Sound-Effekte an/aus
+  enableRewardEffects        Boolean        @default(true) // Story 5.4: Belohnungseffekte an/aus
+  enableMotivationMessages   Boolean        @default(true) // Story 5.7: Motivationsmeldungen an/aus
+  enableEmojiReactions       Boolean        @default(true) // Story 5.8: Emoji-Reaktionen an/aus
+  showQuestionTypeIndicators Boolean        @default(true) // Antwort-Badges zeigen Single-/Multiple-Choice-Formen
+  anonymousMode              Boolean        @default(false) // Story 3.6: Anonymer Modus (keine Nicknames)
+  teamMode                   Boolean        @default(false) // Story 7.1: Team-Modus an/aus
+  teamCount                  Int? // Story 7.1: Anzahl Teams (2–8, null = kein Team-Modus)
+  teamAssignment             TeamAssignment @default(AUTO) // Story 7.1: Teamzuweisung
+  teamNames                  String[]       @default([]) // Story 7.1b: Konfigurierbare Team-Namen
+  backgroundMusic            String? // Story 5.3: Track-Name (null = aus)
+  nicknameTheme              NicknameTheme  @default(NOBEL_LAUREATES) // Story 3.2: Nickname-Liste
+  bonusTokenCount            Int? // Story 4.6: Anzahl Top-Plätze mit Bonus-Token (1–50, null = deaktiviert)
+  readingPhaseEnabled        Boolean        @default(true) // Story 2.6: Zwei-Phasen-Frageanzeige (Lesephase vor Antworten)
+  preset                     String         @default("PLAYFUL") // PLAYFUL oder SERIOUS – visuelles Theme für alle Clients
+  questions                  Question[]
+  sessions                   Session[]
+  createdAt                  DateTime       @default(now())
+  updatedAt                  DateTime       @updatedAt
 
   @@index([historyScopeId, createdAt, id])
   @@index([createdAt, id])
@@ -47,66 +47,66 @@ model Quiz {
 
 // Eine einzelne Frage
 model Question {
-  id         String         @id @default(uuid())
-  text       String
-  type       QuestionType
-  timer      Int?           // Optionaler Countdown in Sekunden (überschreibt Quiz.defaultTimer)
-  difficulty Difficulty     @default(MEDIUM) // Schwierigkeitsgrad für Punkteberechnung
-  skipReadingPhase Boolean  @default(false) // Story 2.6a: Frage überspringt die globale Lesephase
-  ratingMin  Int?           // Story 1.2c: Untere Skalengrenze (nur bei RATING, default: 1)
-  ratingMax  Int?           // Story 1.2c: Obere Skalengrenze (nur bei RATING, default: 5)
-  ratingLabelMin String?    // Story 1.2c: Label für Minimum (z.B. "Stimme gar nicht zu")
-  ratingLabelMax String?    // Story 1.2c: Label für Maximum (z.B. "Stimme voll zu")
-  shortTextEvaluationKind String @default("text") // Story 1.2eb: text, numeric, numeric_unit
-  shortTextMaxLength Int?    // Story 1.2e: Maximale Eingabelänge für SHORT_TEXT
-  shortTextCaseSensitive Boolean @default(false) // Story 1.2e: Groß-/Kleinschreibung relevant
-  shortTextEvaluationMode String @default("auto") // Story 1.2e+: exact, hamming, levenshtein, auto
-  shortTextToleranceLevel String @default("low") // Story 1.2e+: none, low, medium, high
-  shortTextAllowPartialCredit Boolean @default(true) // Story 1.2e+: Teilpunkte nach Distanz erlauben
-  shortTextTrimWhitespace Boolean @default(true) // Story 1.2e+: Leerzeichen am Rand entfernen
-  shortTextNormalizeWhitespace Boolean @default(true) // Story 1.2e+: Mehrfach-Leerzeichen vereinheitlichen
-  numericInputKind String? // Story 1.2eb: integer, decimal
-  numericToleranceMode String? // Story 1.2eb / 1.2d: exact, absolute, relative / ABSOLUTE_INTERVAL, RELATIVE_PERCENT
-  numericAbsoluteTolerance Float?
+  id                              String         @id @default(uuid())
+  text                            String
+  type                            QuestionType
+  timer                           Int? // Optionaler Countdown in Sekunden (überschreibt Quiz.defaultTimer)
+  difficulty                      Difficulty     @default(MEDIUM) // Schwierigkeitsgrad für Punkteberechnung
+  skipReadingPhase                Boolean        @default(false) // Story 2.6a: Frage überspringt die globale Lesephase
+  ratingMin                       Int? // Story 1.2c: Untere Skalengrenze (nur bei RATING, default: 1)
+  ratingMax                       Int? // Story 1.2c: Obere Skalengrenze (nur bei RATING, default: 5)
+  ratingLabelMin                  String? // Story 1.2c: Label für Minimum (z.B. "Stimme gar nicht zu")
+  ratingLabelMax                  String? // Story 1.2c: Label für Maximum (z.B. "Stimme voll zu")
+  shortTextEvaluationKind         String         @default("text") // Story 1.2eb: text, numeric, numeric_unit
+  shortTextMaxLength              Int? // Story 1.2e: Maximale Eingabelänge für SHORT_TEXT
+  shortTextCaseSensitive          Boolean        @default(false) // Story 1.2e: Groß-/Kleinschreibung relevant
+  shortTextEvaluationMode         String         @default("auto") // Story 1.2e+: exact, hamming, levenshtein, auto
+  shortTextToleranceLevel         String         @default("low") // Story 1.2e+: none, low, medium, high
+  shortTextAllowPartialCredit     Boolean        @default(true) // Story 1.2e+: Teilpunkte nach Distanz erlauben
+  shortTextTrimWhitespace         Boolean        @default(true) // Story 1.2e+: Leerzeichen am Rand entfernen
+  shortTextNormalizeWhitespace    Boolean        @default(true) // Story 1.2e+: Mehrfach-Leerzeichen vereinheitlichen
+  numericInputKind                String? // Story 1.2eb: integer, decimal
+  numericToleranceMode            String? // Story 1.2eb / 1.2d: exact, absolute, relative / ABSOLUTE_INTERVAL, RELATIVE_PERCENT
+  numericAbsoluteTolerance        Float?
   numericRelativeTolerancePercent Float?
-  numericUnitFamily String? // Story 1.2eb: none, length, mass, time, volume
-  numericRequireUnit Boolean @default(false)
-  numericAcceptEquivalentUnits Boolean @default(true)
+  numericUnitFamily               String? // Story 1.2eb: none, length, mass, time, volume
+  numericRequireUnit              Boolean        @default(false)
+  numericAcceptEquivalentUnits    Boolean        @default(true)
   // Story 1.2d: Numerische Schätzfrage
-  numericReferenceValue Float?   // Referenzwert V (RELATIVE-Modus)
-  numericTolerancePercent Float? // Prozentwert p (RELATIVE-Modus, 0–100)
-  numericIntervalLeft   Float?   // Linke Grenze L (ABSOLUTE-Modus)
-  numericIntervalRight  Float?   // Rechte Grenze R (ABSOLUTE-Modus, L < R)
-  numericInputType      String?  // 'INTEGER' | 'DECIMAL'
-  numericDecimalPlaces  Int?     // Max. Nachkommastellen (nur bei DECIMAL)
-  numericMin            Float?   // Optionale Plausibilitätsgrenze (Eingabe)
-  numericMax            Float?   // Optionale Plausibilitätsgrenze (Eingabe)
-  numericTwoRounds      Boolean  @default(false) // Zwei-Runden-Option
-  confidenceEnabled     Boolean  @default(false) // Story 1.2i: Sicherheitsgrad abfragen
-  confidenceLabelLow    String?  // Story 1.2i: Label für niedrige Sicherheit (z. B. „geraten“)
-  confidenceLabelHigh   String?  // Story 1.2i: Label für hohe Sicherheit (z. B. „sehr sicher“)
-  matchingPairs         Json?    // Story 1.2g: Array aus { leftId, left, rightId, right }
-  matchingShuffleRight  Boolean  @default(true) // Rechte Seite pro Teilnehmer:in mischen
-  orderingItems         Json?    // Story 1.2h: Array aus { id, text }
-  categories            Json?    // Story 1.2j: Array aus { id, name }
-  categorizationItems   Json?    // Story 1.2j: Array aus { id, text, correctCategoryId }
-  categorizationShuffleItems Boolean @default(true) // Elemente pro Teilnehmer:in mischen
-  quizId     String
-  quiz       Quiz           @relation(fields: [quizId], references: [id], onDelete: Cascade)
-  answers    AnswerOption[]
-  votes      Vote[]
-  order      Int            // Sortierung
+  numericReferenceValue           Float? // Referenzwert V (RELATIVE-Modus)
+  numericTolerancePercent         Float? // Prozentwert p (RELATIVE-Modus, 0–100)
+  numericIntervalLeft             Float? // Linke Grenze L (ABSOLUTE-Modus)
+  numericIntervalRight            Float? // Rechte Grenze R (ABSOLUTE-Modus, L < R)
+  numericInputType                String? // 'INTEGER' | 'DECIMAL'
+  numericDecimalPlaces            Int? // Max. Nachkommastellen (nur bei DECIMAL)
+  numericMin                      Float? // Optionale Plausibilitätsgrenze (Eingabe)
+  numericMax                      Float? // Optionale Plausibilitätsgrenze (Eingabe)
+  numericTwoRounds                Boolean        @default(false) // Zwei-Runden-Option
+  confidenceEnabled               Boolean        @default(false) // Story 1.2i: Sicherheitsgrad abfragen
+  confidenceLabelLow              String? // Story 1.2i: Label für niedrige Sicherheit (z. B. „geraten“)
+  confidenceLabelHigh             String? // Story 1.2i: Label für hohe Sicherheit (z. B. „sehr sicher“)
+  matchingPairs                   Json? // Story 1.2g: Array aus { leftId, left, rightId, right }
+  matchingShuffleRight            Boolean        @default(true) // Rechte Seite pro Teilnehmer:in mischen
+  orderingItems                   Json? // Story 1.2h: Array aus { id, text }
+  categories                      Json? // Story 1.2j: Array aus { id, name }
+  categorizationItems             Json? // Story 1.2j: Array aus { id, text, correctCategoryId }
+  categorizationShuffleItems      Boolean        @default(true) // Elemente pro Teilnehmer:in mischen
+  quizId                          String
+  quiz                            Quiz           @relation(fields: [quizId], references: [id], onDelete: Cascade)
+  answers                         AnswerOption[]
+  votes                           Vote[]
+  order                           Int // Sortierung
 
   @@index([quizId, order])
 }
 
 // Die Antwortmöglichkeiten
 model AnswerOption {
-  id         String   @id @default(uuid())
-  text       String
-  isCorrect  Boolean  // WICHTIG: Darf im Live-Quiz niemals an Studenten geleakt werden!
-  questionId String
-  question   Question @relation(fields: [questionId], references: [id], onDelete: Cascade)
+  id          String       @id @default(uuid())
+  text        String
+  isCorrect   Boolean // WICHTIG: Darf im Live-Quiz niemals an Studenten geleakt werden!
+  questionId  String
+  question    Question     @relation(fields: [questionId], references: [id], onDelete: Cascade)
   voteAnswers VoteAnswer[] // MC: mehrere Votes pro Option möglich
 }
 
@@ -114,52 +114,52 @@ model AnswerOption {
 
 // Eine gestartete Quiz-Sitzung mit 6-stelligem Code
 model Session {
-  id              String        @id @default(uuid())
-  code            String        @unique // 6-stelliger Beitrittscode
-  type            SessionType   @default(QUIZ)    // Story 8.1: Quiz oder Q&A
-  status          SessionStatus @default(LOBBY)
-  statusChangedAt DateTime      @default(now())    // Zeitpunkt des letzten Statuswechsels (Story 3.5 Countdown-Sync)
-  activeQuestionStartedAt DateTime?                // Serverzeit, zu der die aktuell abstimmbare Frage/Runde gestartet wurde
-  pausedFromStatus SessionStatus?                  // Ausgangsphase einer Host-Pause (nur QUESTION_OPEN oder ACTIVE)
-  title           String?                          // Story 8.1: Titel für Q&A-Runden
-  moderationMode  Boolean       @default(false)   // Story 8.4: Q&A-Fragen vorab moderieren
-  qaEnabled       Boolean       @default(false)   // ADR-0009: Q&A-Kanal innerhalb einer Live-Session
-  qaOpen          Boolean       @default(false)   // ADR-0009: Q&A-Kanal aktuell für Teilnehmende geöffnet
-  qaTitle         String?                          // ADR-0009: Titel des Q&A-Kanals
-  qaModerationMode Boolean      @default(true)    // ADR-0009: Vorab-Moderation für Q&A-Kanal (Default: an)
-  quickFeedbackEnabled Boolean  @default(false)   // ADR-0009: Blitz-Feedback-Kanal innerhalb einer Session
-  quickFeedbackOpen Boolean     @default(false)   // ADR-0009: Blitz-Feedback-Kanal aktuell für Teilnehmende geöffnet
-  onboardingProfileConfigured Boolean @default(false) // Session-weites Onboarding-Profil aktiv
+  id                             String            @id @default(uuid())
+  code                           String            @unique // 6-stelliger Beitrittscode
+  type                           SessionType       @default(QUIZ) // Story 8.1: Quiz oder Q&A
+  status                         SessionStatus     @default(LOBBY)
+  statusChangedAt                DateTime          @default(now()) // Zeitpunkt des letzten Statuswechsels (Story 3.5 Countdown-Sync)
+  activeQuestionStartedAt        DateTime? // Serverzeit, zu der die aktuell abstimmbare Frage/Runde gestartet wurde
+  pausedFromStatus               SessionStatus? // Ausgangsphase einer Host-Pause (nur QUESTION_OPEN oder ACTIVE)
+  title                          String? // Story 8.1: Titel für Q&A-Runden
+  moderationMode                 Boolean           @default(false) // Story 8.4: Q&A-Fragen vorab moderieren
+  qaEnabled                      Boolean           @default(false) // ADR-0009: Q&A-Kanal innerhalb einer Live-Session
+  qaOpen                         Boolean           @default(false) // ADR-0009: Q&A-Kanal aktuell für Teilnehmende geöffnet
+  qaTitle                        String? // ADR-0009: Titel des Q&A-Kanals
+  qaModerationMode               Boolean           @default(true) // ADR-0009: Vorab-Moderation für Q&A-Kanal (Default: an)
+  quickFeedbackEnabled           Boolean           @default(false) // ADR-0009: Blitz-Feedback-Kanal innerhalb einer Session
+  quickFeedbackOpen              Boolean           @default(false) // ADR-0009: Blitz-Feedback-Kanal aktuell für Teilnehmende geöffnet
+  onboardingProfileConfigured    Boolean           @default(false) // Session-weites Onboarding-Profil aktiv
   onboardingAllowCustomNicknames Boolean?
-  onboardingAnonymousMode Boolean?
-  onboardingTeamMode Boolean?
-  onboardingTeamCount Int?
-  onboardingTeamAssignment TeamAssignment?
-  onboardingTeamNames String[]  @default([])
-  onboardingNicknameTheme NicknameTheme?
-  currentQuestion Int?                             // Index der aktuell aktiven Frage (0-basiert)
-  currentRound    Int              @default(1)     // Story 2.7: Peer Instruction – aktuelle Abstimmungsrunde (1 oder 2)
-  quizStarted     Boolean          @default(false) // Wurde mindestens eine Quizfrage gestartet?
+  onboardingAnonymousMode        Boolean?
+  onboardingTeamMode             Boolean?
+  onboardingTeamCount            Int?
+  onboardingTeamAssignment       TeamAssignment?
+  onboardingTeamNames            String[]          @default([])
+  onboardingNicknameTheme        NicknameTheme?
+  currentQuestion                Int? // Index der aktuell aktiven Frage (0-basiert)
+  currentRound                   Int               @default(1) // Story 2.7: Peer Instruction – aktuelle Abstimmungsrunde (1 oder 2)
+  quizStarted                    Boolean           @default(false) // Wurde mindestens eine Quizfrage gestartet?
   /// Stabile Frage-ID -> OPENED/COMPLETED/SKIPPED inkl. Zeitstempeln; null kennzeichnet Legacy-Sessions ohne autoritativen Verlauf.
-  questionProgress Json?
-  questionProgressComplete Boolean @default(false) // true nur für Sessions, deren Verlauf seit Erstellung vollständig erfasst wird
-  lastSkippedQuestionId String?                    // Nur für den aktuell letzten Skip-Übergang (Client-Ankündigung)
-  lastQuestionSkippedAt DateTime?
-  quizId          String?                          // null bei Q&A-Sessions
-  quiz            Quiz?         @relation(fields: [quizId], references: [id], onDelete: Cascade)
-  participants    Participant[]
-  teams           Team[]
-  votes           Vote[]
-  bonusTokens     BonusToken[]  // Story 4.6: Bonus-Tokens für Top-Platzierungen
-  sessionFeedbacks SessionFeedback[] // Story 4.8: Session-Bewertungen
-  qaQuestions     QaQuestion[]  // Story 8: Q&A-Fragen
-  startedAt       DateTime      @default(now())
-  endedAt         DateTime?
-  legalHoldUntil  DateTime?                         // Epic 9: schützt vor Purge bis Zeitpunkt
-  legalHoldReason String?                           // Epic 9: Begründung für Legal Hold
-  legalHoldSetAt  DateTime?                         // Epic 9: Zeitpunkt des letzten Hold-Setzens
+  questionProgress               Json?
+  questionProgressComplete       Boolean           @default(false) // true nur für Sessions, deren Verlauf seit Erstellung vollständig erfasst wird
+  lastSkippedQuestionId          String? // Nur für den aktuell letzten Skip-Übergang (Client-Ankündigung)
+  lastQuestionSkippedAt          DateTime?
+  quizId                         String? // null bei Q&A-Sessions
+  quiz                           Quiz?             @relation(fields: [quizId], references: [id], onDelete: Cascade)
+  participants                   Participant[]
+  teams                          Team[]
+  votes                          Vote[]
+  bonusTokens                    BonusToken[] // Story 4.6: Bonus-Tokens für Top-Platzierungen
+  sessionFeedbacks               SessionFeedback[] // Story 4.8: Session-Bewertungen
+  qaQuestions                    QaQuestion[] // Story 8: Q&A-Fragen
+  startedAt                      DateTime          @default(now())
+  endedAt                        DateTime?
+  legalHoldUntil                 DateTime? // Epic 9: schützt vor Purge bis Zeitpunkt
+  legalHoldReason                String? // Epic 9: Begründung für Legal Hold
+  legalHoldSetAt                 DateTime? // Epic 9: Zeitpunkt des letzten Hold-Setzens
   /// Pro Session gemischte Anzeige-Reihenfolge der Antwortoptionen: { [questionId]: answerOptionId[] } (einmal bei erster Frage)
-  answerDisplayOrder Json?
+  answerDisplayOrder             Json?
 
   @@index([status, startedAt, id])
   @@index([status, endedAt])
@@ -169,22 +169,22 @@ model Session {
 
 // Ein Teilnehmer in einer Live-Session (Story 3.1, 3.2)
 model Participant {
-  id        String   @id @default(uuid())
-  nickname  String
-  sessionId String
-  session   Session  @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  id                            String            @id @default(uuid())
+  nickname                      String
+  sessionId                     String
+  session                       Session           @relation(fields: [sessionId], references: [id], onDelete: Cascade)
   /// Gehashter, teilnehmerspezifischer Besitznachweis für ProductFeedback-Claims.
-  productFeedbackClaimTokenHash String? @unique @db.Char(64)
-  teamId    String?                                  // Story 7.1: Team-Zugehörigkeit (optional)
-  team      Team?    @relation(fields: [teamId], references: [id], onDelete: SetNull)
+  productFeedbackClaimTokenHash String?           @unique @db.Char(64)
+  teamId                        String? // Story 7.1: Team-Zugehörigkeit (optional)
+  team                          Team?             @relation(fields: [teamId], references: [id], onDelete: SetNull)
   /// Persönliche Timer-Anpassung (WCAG 2.2.1): DEFAULT | EXTENDED | OFF
-  timerAccommodation String @default("DEFAULT")
-  votes      Vote[]
-  bonusTokens BonusToken[] // Story 4.6: Ausgestellte Bonus-Tokens
-  sessionFeedbacks SessionFeedback[] // Story 4.8: Bewertungen
-  qaQuestions QaQuestion[] // Story 8.2: Eingereichte Q&A-Fragen
-  qaUpvotes  QaUpvote[]   // Story 8.3: Q&A-Upvotes
-  joinedAt   DateTime @default(now())
+  timerAccommodation            String            @default("DEFAULT")
+  votes                         Vote[]
+  bonusTokens                   BonusToken[] // Story 4.6: Ausgestellte Bonus-Tokens
+  sessionFeedbacks              SessionFeedback[] // Story 4.8: Bewertungen
+  qaQuestions                   QaQuestion[] // Story 8.2: Eingereichte Q&A-Fragen
+  qaUpvotes                     QaUpvote[] // Story 8.3: Q&A-Upvotes
+  joinedAt                      DateTime          @default(now())
 
   @@unique([sessionId, nickname]) // Kein doppelter Nickname pro Session
   @@index([sessionId, timerAccommodation]) // Host-Fortschritt für persönliche Zeitfenster
@@ -192,10 +192,10 @@ model Participant {
 
 // Singleton-Zeile: plattformweite Kennzahlen (höchste Teilnehmerzahl je Session)
 model PlatformStatistic {
-  id                          String @id // fest: "default"
-  maxParticipantsSingleSession Int   @default(0)
-  completedSessionsTotal      Int   @default(0) // Monotone Gesamtzahl beendeter Sessions (für health.stats)
-  updatedAt                   DateTime @updatedAt
+  id                           String   @id // fest: "default"
+  maxParticipantsSingleSession Int      @default(0)
+  completedSessionsTotal       Int      @default(0) // Monotone Gesamtzahl beendeter Sessions (für health.stats)
+  updatedAt                    DateTime @updatedAt
 }
 
 // Pro UTC-Tag genau ein Rekord für die größte einzelne Session (Story 0.4a)
@@ -209,8 +209,8 @@ model DailyStatistic {
 // Ein Team in einer Live-Session (Story 7.1)
 model Team {
   id           String        @id @default(uuid())
-  name         String                                // z.B. "Team A", "Team Blau"
-  color        String?                               // Optionale Farbcodierung (Hex)
+  name         String // z.B. "Team A", "Team Blau"
+  color        String? // Optionale Farbcodierung (Hex)
   sessionId    String
   session      Session       @relation(fields: [sessionId], references: [id], onDelete: Cascade)
   participants Participant[]
@@ -220,28 +220,28 @@ model Team {
 
 // Eine abgegebene Stimme (Story 3.3)
 model Vote {
-  id             String       @id @default(uuid())
-  sessionId      String
-  session        Session      @relation(fields: [sessionId], references: [id], onDelete: Cascade)
-  participantId  String
-  participant    Participant  @relation(fields: [participantId], references: [id], onDelete: Cascade)
-  questionId     String
-  question       Question     @relation(fields: [questionId], references: [id], onDelete: Cascade)
-  selectedAnswers VoteAnswer[] // MC: mehrere, SC: genau eine, FREETEXT/SHORT_TEXT/RATING: keine
-  freeText       String?      // Text-Antwort (bei QuestionType.FREETEXT oder SHORT_TEXT)
-  ratingValue    Int?         // Story 1.2c: Gewählter Skalenwert (nur bei QuestionType.RATING)
-  numericValue   Float?       // Story 1.2d: Numerische Schätzung (nur bei NUMERIC_ESTIMATE)
-  responseTimeMs Int?         // Antwortzeit in Millisekunden (für Zeitbonus)
-  score          Int          @default(0) // Berechnete Punkte (Schwierigkeit × Zeitbonus)
-  isCorrect      Boolean?     // Fachliche Korrektheit unabhängig von Zeitbonus/Punktehöhe
-  streakCount    Int          @default(0) // Story 5.5: Aktuelle Antwort-Serie (0 = kein Streak)
-  streakBonus    Float        @default(1.0) // Story 5.5: Angewandter Streak-Multiplikator
-  round          Int          @default(1) // Story 2.7: Peer Instruction – Runde (1 oder 2)
-  confidenceValue Int?        // Story 1.2i: Selbstberichteter Sicherheitsgrad (1–5)
-  matchingSelections Json?    // Story 1.2g: Array aus { leftId, rightId }
-  orderingSequence String[]   @default([]) // Story 1.2h: Reihung von Item-IDs/Texten
+  id                       String       @id @default(uuid())
+  sessionId                String
+  session                  Session      @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  participantId            String
+  participant              Participant  @relation(fields: [participantId], references: [id], onDelete: Cascade)
+  questionId               String
+  question                 Question     @relation(fields: [questionId], references: [id], onDelete: Cascade)
+  selectedAnswers          VoteAnswer[] // MC: mehrere, SC: genau eine, FREETEXT/SHORT_TEXT/RATING: keine
+  freeText                 String? // Text-Antwort (bei QuestionType.FREETEXT oder SHORT_TEXT)
+  ratingValue              Int? // Story 1.2c: Gewählter Skalenwert (nur bei QuestionType.RATING)
+  numericValue             Float? // Story 1.2d: Numerische Schätzung (nur bei NUMERIC_ESTIMATE)
+  responseTimeMs           Int? // Antwortzeit in Millisekunden (für Zeitbonus)
+  score                    Int          @default(0) // Berechnete Punkte (Schwierigkeit × Zeitbonus)
+  isCorrect                Boolean? // Fachliche Korrektheit unabhängig von Zeitbonus/Punktehöhe
+  streakCount              Int          @default(0) // Story 5.5: Aktuelle Antwort-Serie (0 = kein Streak)
+  streakBonus              Float        @default(1.0) // Story 5.5: Angewandter Streak-Multiplikator
+  round                    Int          @default(1) // Story 2.7: Peer Instruction – Runde (1 oder 2)
+  confidenceValue          Int? // Story 1.2i: Selbstberichteter Sicherheitsgrad (1–5)
+  matchingSelections       Json? // Story 1.2g: Array aus { leftId, rightId }
+  orderingSequence         String[]     @default([]) // Story 1.2h: Reihung von Item-IDs/Texten
   categorizationSelections Json? // Story 1.2j: Array aus { itemId, categoryId }
-  votedAt        DateTime     @default(now())
+  votedAt                  DateTime     @default(now())
 
   @@unique([sessionId, participantId, questionId, round]) // Nur eine Stimme pro Frage pro Runde
   @@index([sessionId, questionId, round])
@@ -267,45 +267,45 @@ enum QuestionType {
   FREETEXT
   SHORT_TEXT
   SURVEY
-  RATING           // Story 1.2c: Bewertungsskala (1–5 oder 1–10)
+  RATING // Story 1.2c: Bewertungsskala (1–5 oder 1–10)
   NUMERIC_ESTIMATE // Story 1.2d: Numerische Schätzfrage mit Toleranzintervall
-  MATCHING         // Story 1.2g: Zuordnungsfrage
-  ORDERING         // Story 1.2h: Reihenfolgefrage
-  CATEGORIZATION   // Story 1.2j: Gruppierungs-/Kategorisierungsfrage
+  MATCHING // Story 1.2g: Zuordnungsfrage
+  ORDERING // Story 1.2h: Reihenfolgefrage
+  CATEGORIZATION // Story 1.2j: Gruppierungs-/Kategorisierungsfrage
 }
 
 enum Difficulty {
-  EASY       // Multiplikator ×1
-  MEDIUM     // Multiplikator ×2
-  HARD       // Multiplikator ×3
+  EASY // Multiplikator ×1
+  MEDIUM // Multiplikator ×2
+  HARD // Multiplikator ×3
 }
 
 enum SessionStatus {
-  LOBBY          // Warten auf Teilnehmer
-  QUESTION_OPEN  // Story 2.6: Nur Fragenstamm sichtbar (Lesephase)
-  ACTIVE         // Antwortoptionen sichtbar, Countdown läuft
-  PAUSED         // Host-Unterbrechung derselben QUESTION_OPEN-/ACTIVE-Phase
-  RESULTS        // Ergebnisse werden angezeigt
-  DISCUSSION     // Story 2.7: Peer Instruction – Diskussionsphase zwischen Runde 1 und 2
-  FINISHED       // Session beendet
+  LOBBY // Warten auf Teilnehmer
+  QUESTION_OPEN // Story 2.6: Nur Fragenstamm sichtbar (Lesephase)
+  ACTIVE // Antwortoptionen sichtbar, Countdown läuft
+  PAUSED // Host-Unterbrechung derselben QUESTION_OPEN-/ACTIVE-Phase
+  RESULTS // Ergebnisse werden angezeigt
+  DISCUSSION // Story 2.7: Peer Instruction – Diskussionsphase zwischen Runde 1 und 2
+  FINISHED // Session beendet
 }
 
 enum NicknameTheme {
-  NOBEL_LAUREATES  // Nobelpreisträger (default, Hochschule)
-  KINDERGARTEN     // Kita: Tiere & Farben (z.B. "Blauer Elefant")
-  PRIMARY_SCHOOL   // Märchenfiguren (z.B. "Rotkäppchen")
-  MIDDLE_SCHOOL    // Superhelden & Entdecker (z.B. "Kolumbus")
-  HIGH_SCHOOL      // Wissenschaftler & Philosophen (z.B. "Kant")
+  NOBEL_LAUREATES // Nobelpreisträger (default, Hochschule)
+  KINDERGARTEN // Kita: Tiere & Farben (z.B. "Blauer Elefant")
+  PRIMARY_SCHOOL // Märchenfiguren (z.B. "Rotkäppchen")
+  MIDDLE_SCHOOL // Superhelden & Entdecker (z.B. "Kolumbus")
+  HIGH_SCHOOL // Wissenschaftler & Philosophen (z.B. "Kant")
 }
 
 enum TeamAssignment {
-  AUTO    // Round-Robin: System verteilt Studenten gleichmäßig
-  MANUAL  // Studenten wählen ihr Team selbst
+  AUTO // Round-Robin: System verteilt Studenten gleichmäßig
+  MANUAL // Studenten wählen ihr Team selbst
 }
 
 enum SessionType {
-  QUIZ       // Reguläres Quiz mit Fragen
-  Q_AND_A    // Q&A-Modus (Story 8.1)
+  QUIZ // Reguläres Quiz mit Fragen
+  Q_AND_A // Q&A-Modus (Story 8.1)
 }
 
 // ─── Bonus-Token (Story 4.6) ────────────────────────────────────────────────
@@ -313,15 +313,15 @@ enum SessionType {
 // Individuelles Token für Top-Platzierungen, einlösbar per E-Mail beim Dozenten
 model BonusToken {
   id            String      @id @default(uuid())
-  token         String      @unique  // Kryptografisch sicher, z.B. "BNS-A3F7-K2M9"
+  token         String      @unique // Kryptografisch sicher, z.B. "BNS-A3F7-K2M9"
   sessionId     String
   session       Session     @relation(fields: [sessionId], references: [id], onDelete: Cascade)
   participantId String
   participant   Participant @relation(fields: [participantId], references: [id], onDelete: Cascade)
-  nickname      String      // Snapshot des Pseudonyms zum Zeitpunkt der Generierung
-  quizName      String      // Snapshot des Quiz-Namens
-  totalScore    Int         // Erreichte Gesamtpunktzahl
-  rank          Int         // Platzierung im Leaderboard (1-basiert)
+  nickname      String // Snapshot des Pseudonyms zum Zeitpunkt der Generierung
+  quizName      String // Snapshot des Quiz-Namens
+  totalScore    Int // Erreichte Gesamtpunktzahl
+  rank          Int // Platzierung im Leaderboard (1-basiert)
   generatedAt   DateTime    @default(now())
 
   @@index([generatedAt])
@@ -334,9 +334,9 @@ model SessionFeedback {
   session               Session     @relation(fields: [sessionId], references: [id], onDelete: Cascade)
   participantId         String
   participant           Participant @relation(fields: [participantId], references: [id], onDelete: Cascade)
-  overallRating         Int         // 1–5 Sterne
-  questionQualityRating Int?        // 1–5 (optional)
-  wouldRepeat           Boolean?    // "Sollen wir regelmäßig solche Quizze machen?"
+  overallRating         Int // 1–5 Sterne
+  questionQualityRating Int? // 1–5 (optional)
+  wouldRepeat           Boolean? // "Sollen wir regelmäßig solche Quizze machen?"
   createdAt             DateTime    @default(now())
 
   @@unique([sessionId, participantId]) // Nur eine Bewertung pro Person pro Session
@@ -352,47 +352,113 @@ enum ProductFeedbackSource {
 enum ProductFeedbackRole {
   HOST
   PARTICIPANT
+  GENERAL
 }
 
-/// Anonyme, strukturierte Produktsignale (Story 12.1). Keine Session-/Personen-IDs.
+enum ProductFeedbackTriageStatus {
+  NEW
+  REVIEWED
+  PLANNED
+  RESOLVED
+  DISCARDED
+}
+
+enum ProductFeedbackQuarantineStatus {
+  NONE
+  FLAGGED
+  CLEARED
+}
+
+enum ProductFeedbackAuditAction {
+  STATUS_CHANGED
+  DUPLICATE_LINKED
+  ISSUE_LINKED
+  ISSUE_DRAFTED
+  RESOLUTION_LINKED
+  QUARANTINE_CLEARED
+  DELETED
+}
+
+/// Anonyme, strukturierte Produktsignale (Epic 12). Keine Session-/Personen-IDs.
 model ProductFeedback {
-  id               String                 @id @default(uuid())
+  id                      String                          @id @default(uuid())
   /// Hash des einmaligen Invite-Tokens; verhindert DB-Duplikate über Redis-Fehler hinweg.
-  inviteFingerprint String?                @unique @db.Char(64)
+  inviteFingerprint       String?                         @unique @db.Char(64)
   /// Hash des clientseitigen Idempotency-Keys; kein Bearer und kein Personenbezug.
-  submitIdempotencyHash String?            @unique @db.Char(64)
+  submitIdempotencyHash   String?                         @unique @db.Char(64)
   /// Hash des Idempotency-Keys der optionalen Einmal-Ergänzung.
-  followUpIdempotencyHash String?          @unique @db.Char(64)
-  source           ProductFeedbackSource  @default(POST_SESSION)
-  role             ProductFeedbackRole
-  surveyKey        String
-  surveyVersion    Int                    @default(1)
-  primaryAnswer    String
-  area             String
-  message          String?                @db.VarChar(300)
-  messageClearedAt DateTime?
-  locale           String
-  appVersion       String?
-  sessionKind      String?
-  featureAreas     Json?
-  sessionSizeClass String?
-  deviceClass      String?
-  createdAt        DateTime               @default(now())
+  followUpIdempotencyHash String?                         @unique @db.Char(64)
+  source                  ProductFeedbackSource           @default(POST_SESSION)
+  role                    ProductFeedbackRole
+  surveyKey               String?
+  surveyVersion           Int                             @default(1)
+  primaryAnswer           String?
+  feedbackKind            String?
+  area                    String
+  impact                  String?
+  message                 String?                         @db.VarChar(500)
+  messageClearedAt        DateTime?
+  locale                  String
+  appVersion              String?
+  sessionKind             String?
+  featureAreas            Json?
+  sessionSizeClass        String?
+  deviceClass             String?
+  routeGroup              String?
+  sessionPhase            String?
+  activeChannel           String?
+  browserFamily           String?
+  browserMajorVersion     Int?
+  osFamily                String?
+  onlineState             String?
+  errorRequestId          String?
+  triageStatus            ProductFeedbackTriageStatus     @default(NEW)
+  quarantineStatus        ProductFeedbackQuarantineStatus @default(NONE)
+  duplicateOfId           String?
+  duplicateOf             ProductFeedback?                @relation("ProductFeedbackDuplicates", fields: [duplicateOfId], references: [id], onDelete: SetNull)
+  duplicates              ProductFeedback[]               @relation("ProductFeedbackDuplicates")
+  githubIssueNumber       Int?
+  githubIssueUrl          String?
+  resolvedInVersion       String?
+  publicResolutionUrl     String?
+  createdAt               DateTime                        @default(now())
+  updatedAt               DateTime                        @default(now()) @updatedAt
 
   @@index([createdAt])
   @@index([surveyKey, surveyVersion, createdAt])
   @@index([source, role, createdAt])
   @@index([primaryAnswer, createdAt])
+  @@index([feedbackKind, createdAt])
   @@index([area, createdAt])
+  @@index([impact, createdAt])
+  @@index([triageStatus, createdAt])
+  @@index([appVersion, createdAt])
+  @@index([locale, createdAt])
+  @@index([duplicateOfId])
 }
 
+/// Datensparsames Triage-Audit ohne Kopie des optionalen Freitexts.
+model ProductFeedbackAuditLog {
+  id                String                       @id @default(uuid())
+  productFeedbackId String
+  action            ProductFeedbackAuditAction
+  adminIdentifier   String?
+  fromStatus        ProductFeedbackTriageStatus?
+  toStatus          ProductFeedbackTriageStatus?
+  relatedFeedbackId String?
+  issueNumber       Int?
+  createdAt         DateTime                     @default(now())
+
+  @@index([productFeedbackId, createdAt])
+  @@index([createdAt])
+}
 
 /// Tägliche Invite-Zähler für Admin-Abschlussquote (Story 12.1). Keine Session-/Personen-IDs.
 model ProductFeedbackInviteLedger {
-  id    String               @id @default(cuid())
-  day   DateTime             @db.Date
+  id    String              @id @default(cuid())
+  day   DateTime            @db.Date
   role  ProductFeedbackRole
-  count Int                  @default(0)
+  count Int                 @default(0)
 
   @@unique([day, role])
   @@index([day])
@@ -409,20 +475,19 @@ model ProductFeedbackInviteJob {
   @@index([completedAt, createdAt])
 }
 
-
 // ─── Q&A-Modus (Epic 8) ────────────────────────────────────────────────────
 
 // Eine eingereichte Frage in einer Q&A-Session (Story 8.2–8.4)
 model QaQuestion {
   id              String           @id @default(uuid())
-  text            String           // Fragetext (max. 500 Zeichen, Markdown erlaubt)
+  text            String // Fragetext (max. 500 Zeichen, Markdown erlaubt)
   upvoteCount     Int              @default(0)
   status          QaQuestionStatus @default(ACTIVE)
   sessionId       String
   session         Session          @relation(fields: [sessionId], references: [id], onDelete: Cascade)
-  participantId   String           // Story 8.2: Autor (für 3-Fragen-Limit pro Student)
+  participantId   String // Story 8.2: Autor (für 3-Fragen-Limit pro Student)
   participant     Participant      @relation(fields: [participantId], references: [id], onDelete: Cascade)
-  upvotes         QaUpvote[]       // Story 8.3: Einzelne Upvotes
+  upvotes         QaUpvote[] // Story 8.3: Einzelne Upvotes
   nlpStatus       QaNlpStatus      @default(DISABLED) // Story 8.9b: Host-only Hilfssignal
   nlpCategory     QaNlpCategory?
   nlpConfidence   Float?
@@ -439,11 +504,11 @@ model QaQuestion {
 
 // Vote-Tracking für Q&A-Fragen (Story 8.3): UP oder DOWN pro Teilnehmer
 model QaUpvote {
-  id            String         @id @default(uuid())
+  id            String          @id @default(uuid())
   qaQuestionId  String
-  qaQuestion    QaQuestion     @relation(fields: [qaQuestionId], references: [id], onDelete: Cascade)
+  qaQuestion    QaQuestion      @relation(fields: [qaQuestionId], references: [id], onDelete: Cascade)
   participantId String
-  participant   Participant    @relation(fields: [participantId], references: [id], onDelete: Cascade)
+  participant   Participant     @relation(fields: [participantId], references: [id], onDelete: Cascade)
   direction     QaVoteDirection @default(UP)
 
   @@unique([qaQuestionId, participantId])
@@ -456,11 +521,11 @@ enum QaVoteDirection {
 }
 
 enum QaQuestionStatus {
-  PENDING    // Wartet auf Moderation (bei moderationMode=true)
-  ACTIVE     // Sichtbar und votebar
-  PINNED     // Vom Dozenten hervorgehoben ("Wird gerade beantwortet")
-  ARCHIVED   // Als beantwortet markiert
-  DELETED    // Vom Dozenten entfernt
+  PENDING // Wartet auf Moderation (bei moderationMode=true)
+  ACTIVE // Sichtbar und votebar
+  PINNED // Vom Dozenten hervorgehoben ("Wird gerade beantwortet")
+  ARCHIVED // Als beantwortet markiert
+  DELETED // Vom Dozenten entfernt
 }
 
 // Story 8.9b / ADR-0032: optionale Q&A-NLP-Hilfssignale, nur Host-/Moderator-Sicht.
@@ -483,20 +548,20 @@ enum QaNlpCategory {
 // Protokollierung von Admin-Aktionen (Löschen, Export); keine FK zu Session,
 // damit Einträge nach Session-Löschung erhalten bleiben (Snapshot von code/id).
 model AdminAuditLog {
-  id               String           @id @default(uuid())
-  action           AdminAuditAction
-  sessionId        String           // Snapshot (Session kann danach gelöscht sein)
-  sessionCode      String           // 6-stelliger Code (Snapshot)
-  adminIdentifier  String?          // z. B. Token-ID oder "system" (aktuell: ein gemeinsamer Schlüssel)
-  reason           String?          // Optionaler Löschgrund (Story 9.2)
-  createdAt        DateTime         @default(now())
+  id              String           @id @default(uuid())
+  action          AdminAuditAction
+  sessionId       String // Snapshot (Session kann danach gelöscht sein)
+  sessionCode     String // 6-stelliger Code (Snapshot)
+  adminIdentifier String? // z. B. Token-ID oder "system" (aktuell: ein gemeinsamer Schlüssel)
+  reason          String? // Optionaler Löschgrund (Story 9.2)
+  createdAt       DateTime         @default(now())
 
   @@index([createdAt])
   @@index([sessionCode, createdAt])
 }
 
 enum AdminAuditAction {
-  SESSION_DELETE         // Story 9.2: Session inkl. Quiz-Daten gelöscht
+  SESSION_DELETE // Story 9.2: Session inkl. Quiz-Daten gelöscht
   EXPORT_FOR_AUTHORITIES // Story 9.3: Auszug für Behörden exportiert
 }
 
@@ -510,33 +575,33 @@ enum MotdStatus {
 }
 
 model MotdTemplate {
-  id           String   @id @default(uuid())
-  name         String
-  description  String?
-  markdownDe   String   @default("") @db.Text
-  markdownEn   String   @default("") @db.Text
-  markdownFr   String   @default("") @db.Text
-  markdownEs   String   @default("") @db.Text
-  markdownIt   String   @default("") @db.Text
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
-  motds        Motd[]
+  id          String   @id @default(uuid())
+  name        String
+  description String?
+  markdownDe  String   @default("") @db.Text
+  markdownEn  String   @default("") @db.Text
+  markdownFr  String   @default("") @db.Text
+  markdownEs  String   @default("") @db.Text
+  markdownIt  String   @default("") @db.Text
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  motds       Motd[]
 }
 
 model Motd {
-  id               String     @id @default(uuid())
-  status           MotdStatus @default(DRAFT)
-  priority         Int        @default(0)
+  id               String                   @id @default(uuid())
+  status           MotdStatus               @default(DRAFT)
+  priority         Int                      @default(0)
   startsAt         DateTime
   endsAt           DateTime
-  visibleInArchive Boolean    @default(false)
-  contentVersion   Int        @default(1)
+  visibleInArchive Boolean                  @default(false)
+  contentVersion   Int                      @default(1)
   templateId       String?
-  template         MotdTemplate? @relation(fields: [templateId], references: [id], onDelete: SetNull)
+  template         MotdTemplate?            @relation(fields: [templateId], references: [id], onDelete: SetNull)
   locales          MotdLocale[]
   interactions     MotdInteractionCounter[]
-  createdAt        DateTime   @default(now())
-  updatedAt        DateTime   @updatedAt
+  createdAt        DateTime                 @default(now())
+  updatedAt        DateTime                 @updatedAt
 
   @@index([status, startsAt, endsAt])
   @@index([visibleInArchive, endsAt])
@@ -556,12 +621,12 @@ model MotdLocale {
 model MotdInteractionCounter {
   motdId         String
   contentVersion Int
-  motd           Motd @relation(fields: [motdId], references: [id], onDelete: Cascade)
-  ackCount       Int  @default(0)
-  thumbUp        Int  @default(0)
-  thumbDown      Int  @default(0)
-  dismissClose   Int  @default(0)
-  dismissSwipe   Int  @default(0)
+  motd           Motd   @relation(fields: [motdId], references: [id], onDelete: Cascade)
+  ackCount       Int    @default(0)
+  thumbUp        Int    @default(0)
+  thumbDown      Int    @default(0)
+  dismissClose   Int    @default(0)
+  dismissSwipe   Int    @default(0)
 
   @@id([motdId, contentVersion])
   @@index([motdId])

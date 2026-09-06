@@ -157,6 +157,17 @@
       [attr.inert]="isContentOverlayRoute() ? '' : null"
     >
       <div class="app-footer__inner">
+        <div class="app-footer__utility">
+          <button
+            matButton
+            type="button"
+            class="app-footer__feedback-action"
+            (click)="openProductFeedback($event)"
+          >
+            <mat-icon aria-hidden="true">insights</mat-icon>
+            <span i18n="@@productFeedback.inApp.action">arsnova.eu verbessern</span>
+          </button>
+        </div>
         <div class="app-footer__row">
           <div
             class="app-footer__links"

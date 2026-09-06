@@ -26,7 +26,7 @@ Diese Checkliste ist für alle PRs mit UI-Änderungen in `apps/frontend` verpfli
 - [ ] Keine fragilen Overrides gegen interne Material-DOM-Strukturen in Feature-SCSS.
 - [ ] Kein `::ng-deep` und kein `:deep(...)`; Material-Internals / `innerHTML`-Markdown nur global gescoped in `styles.scss` oder per Shell-Klasse.
 - [ ] Globale Overlay-Regeln sind über enge `panelClass` / `backdropClass` begrenzt.
-- [ ] Standard-Dialoge nutzen `dialog-title-header`; Fullscreen-Tools (Word Cloud, Bild-Lightbox) sind als Ausnahme begründet und separat auf Fokus/Close/Scroll geprüft.
+- [ ] Standard-Dialoge nutzen `dialog-title-header`; Fullscreen-Tools (Word Cloud, Bild-Lightbox) und Produktfeedback-Sheets sind als Ausnahme begründet und separat auf Fokus/Close/Scroll geprüft.
 - [ ] Floating-Bottom-Contract eingehalten (Solo-CTA ohne Glas-Prospekt; Multi-Tray nur bei 2+ Aktionen) oder Ausnahme dokumentiert.
 
 ## 4) Layout und SCSS-Patterns

@@ -5,6 +5,7 @@ import {
   Directive,
   ElementRef,
   HostListener,
+  Injector,
   OnInit,
   OnDestroy,
   PLATFORM_ID,
@@ -51,7 +52,6 @@ import {
   isContentOverlayPath,
   rememberNonOverlayPath,
 } from './shared/content-page-nav';
-import { installProductFeedbackOutboxOnlineRetry } from './features/product-feedback/product-feedback-storage';
 
 const STORAGE_PLAYFUL_WELCOMED = 'home-playful-welcomed';
 const STORAGE_PWA_INSTALL_DISMISSED = 'pwa-install-dismissed';
@@ -169,12 +169,14 @@ export class AppComponent implements OnInit, OnDestroy {
   private readonly dialog = inject(MatDialog);
   private readonly hostDisplayMode = inject(HostDisplayModeService);
   private readonly seo = inject(SeoService);
+  private readonly injector = inject(Injector);
   private versionSub: Subscription | null = null;
   private routerSub: Subscription | null = null;
   private presetSub: Subscription | null = null;
   private removeProductFeedbackOnlineRetry: (() => void) | null = null;
   /** Browser: `setInterval` / `setTimeout` liefern `number` (nicht Node-`Timeout`). */
   private pwaUpdateIntervalId: number | null = null;
+  private destroyed = false;
   private pwaUpdateReadyFallbackId: number | null = null;
   private footerStatusIntervalId: number | null = null;
   private footerStatsLoadedAt = 0;
@@ -271,10 +273,15 @@ export class AppComponent implements OnInit, OnDestroy {
       clearStaleContentPageFocusReturn();
       // Capture: Flag setzen bevor Material das Menü schließt (HostListener wäre zu spät).
       document.addEventListener('keydown', this.footerMoreEscapeCapture, true);
-      this.removeProductFeedbackOnlineRetry = installProductFeedbackOutboxOnlineRetry({
-        submit: (payload) => trpc.productFeedback.submit.mutate(payload as never),
-        followUp: (payload) => trpc.productFeedback.followUp.mutate(payload as never),
-      });
+      void import('./features/product-feedback/product-feedback-storage').then(
+        ({ installProductFeedbackOutboxOnlineRetry }) => {
+          if (this.destroyed) return;
+          this.removeProductFeedbackOnlineRetry = installProductFeedbackOutboxOnlineRetry({
+            submit: (payload) => trpc.productFeedback.submit.mutate(payload as never),
+            followUp: (payload) => trpc.productFeedback.followUp.mutate(payload as never),
+          });
+        },
+      );
     }
     this.presetSub = this.themePreset.presetChanged$.subscribe(() => this.onPresetChanged());
     this.routerSub = this.router.events
@@ -341,6 +348,7 @@ export class AppComponent implements OnInit, OnDestroy {
         setTimeout(() => void this.loadConnectionBanner(), 0);
       }
       this.scheduleNonCriticalStartupWork();
+      void this.flushProductFeedbackOutbox();
       this.setupPwaInstallPrompt();
     }
   }
@@ -488,6 +496,7 @@ export class AppComponent implements OnInit, OnDestroy {
   }
 
   ngOnDestroy(): void {
+    this.destroyed = true;
     this.versionSub?.unsubscribe();
     this.routerSub?.unsubscribe();
     this.presetSub?.unsubscribe();
@@ -727,6 +736,7 @@ export class AppComponent implements OnInit, OnDestroy {
     this.isOnline.set(true);
     this.requestPwaUpdateCheck();
     this.refreshFooterStatusPollingState({ immediate: true });
+    void this.flushProductFeedbackOutbox();
   }
 
   @HostListener('window:offline')
@@ -747,6 +757,21 @@ export class AppComponent implements OnInit, OnDestroy {
     } else {
       window.location.reload();
     }
+  }
+
+  async openProductFeedback(event: Event): Promise<void> {
+    const target = event.currentTarget instanceof HTMLElement ? event.currentTarget : null;
+    const { ProductFeedbackLauncherService } =
+      await import('./features/product-feedback/product-feedback-launcher.service');
+    if (this.destroyed) return;
+    await this.injector.get(ProductFeedbackLauncherService).open({}, target);
+  }
+
+  private async flushProductFeedbackOutbox(): Promise<void> {
+    const { ProductFeedbackLauncherService } =
+      await import('./features/product-feedback/product-feedback-launcher.service');
+    if (this.destroyed) return;
+    await this.injector.get(ProductFeedbackLauncherService).flushOutbox();
   }
 
   async checkApiConnection(): Promise<void> {

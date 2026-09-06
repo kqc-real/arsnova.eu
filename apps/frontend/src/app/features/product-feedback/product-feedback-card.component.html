@@ -11,7 +11,7 @@
     <header class="product-feedback-card__top">
       <div class="product-feedback-card__brand">
         <span class="product-feedback-card__brand-icon-wrap" aria-hidden="true">
-          <mat-icon class="product-feedback-card__brand-icon">feedback</mat-icon>
+          <mat-icon class="product-feedback-card__brand-icon">insights</mat-icon>
         </span>
         @if (step() === 'primary' || step() === 'area') {
           <span class="product-feedback-card__step" aria-hidden="true">{{ stepNumber() }}/2</span>
@@ -111,7 +111,7 @@
               (click)="retryLastAction()"
               i18n="@@productFeedback.retry"
             >
-              Erneut versuchen
+              Erneut senden
             </button>
           }
           <button
@@ -134,7 +134,7 @@
               (click)="openMessage()"
               i18n="@@productFeedback.addNote"
             >
-              Anmerkung ergänzen
+              Ergänzung hinzufügen
             </button>
           }
           <button type="button" matButton="text" (click)="finish()" i18n="@@productFeedback.done">
@@ -149,7 +149,7 @@
             class="sr-only"
             for="product-feedback-message"
             i18n="@@productFeedback.messageLabel"
-            >Dein Satz (max. 300 Zeichen)</label
+            >Deine Ergänzung (maximal 300 Zeichen)</label
           >
           <textarea
             id="product-feedback-message"
@@ -160,10 +160,7 @@
             (input)="onMessageInput($any($event.target).value)"
           ></textarea>
           <div class="product-feedback-card__message-meta">
-            <p class="product-feedback-card__privacy" i18n="@@productFeedback.privacyHint">
-              Keine Namen, Session-Codes, Fragen, Antworten, Q&A-Inhalte oder personenbezogene
-              Details.
-            </p>
+            <p class="product-feedback-card__privacy">{{ privacyHint }}</p>
             <p class="product-feedback-card__counter">{{ messageLen() }} / 300</p>
           </div>
           <div class="product-feedback-card__actions">
@@ -174,7 +171,7 @@
               (click)="submitMessage()"
               i18n="@@productFeedback.sendNote"
             >
-              Senden
+              Ergänzung senden
             </button>
             <button
               type="button"
@@ -182,7 +179,7 @@
               (click)="finish()"
               i18n="@@productFeedback.skipNote"
             >
-              Fertig
+              Ohne Ergänzung abschließen
             </button>
           </div>
         </div>
@@ -197,7 +194,7 @@
         (click)="neverAsk()"
         i18n="@@productFeedback.neverAsk"
       >
-        Nicht mehr anzeigen
+        Auf diesem Gerät nicht mehr fragen
       </button>
     }
   </section>

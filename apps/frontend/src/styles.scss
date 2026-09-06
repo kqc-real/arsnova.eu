@@ -687,6 +687,55 @@ html {
   box-shadow: var(--mat-sys-level3);
 }
 
+/* In-App-ProductFeedback: dieselbe Sheet-/Kartenoptik wie Post-Session. */
+.cdk-overlay-backdrop.product-feedback-in-app-dialog-backdrop {
+  background: color-mix(in srgb, var(--mat-sys-scrim) 42%, transparent);
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .cdk-overlay-backdrop.product-feedback-in-app-dialog-backdrop {
+    backdrop-filter: blur(4px);
+    -webkit-backdrop-filter: blur(4px);
+  }
+}
+
+.cdk-overlay-pane.product-feedback-in-app-dialog-panel {
+  max-width: min(26rem, calc(100vw - 2rem));
+  height: auto;
+  max-height: calc(100dvh - 0.5rem);
+}
+
+.cdk-overlay-pane.product-feedback-in-app-dialog-panel .mat-mdc-dialog-container,
+.cdk-overlay-pane.product-feedback-in-app-dialog-panel .mat-mdc-dialog-surface {
+  padding: 0;
+  margin: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+  overflow: visible;
+  max-height: none;
+}
+
+.cdk-overlay-pane.product-feedback-in-app-dialog-panel .mat-mdc-dialog-title {
+  padding: 0;
+  margin: 0;
+}
+
+@media (max-width: 599.98px) {
+  /* Spezifischer als die globale Dialog-max-width (100vw - 1rem). */
+  .cdk-overlay-pane.product-feedback-in-app-dialog-panel.mat-mdc-dialog-panel {
+    left: 0 !important;
+    right: 0 !important;
+    bottom: 0 !important;
+    top: auto !important;
+    width: 100vw !important;
+    max-width: 100vw !important;
+    margin: 0 !important;
+    transform: none !important;
+  }
+}
+
 .cdk-overlay-backdrop.markdown-image-lightbox-dialog-backdrop {
   background: rgb(7 10 16 / 88%);
   backdrop-filter: blur(8px);

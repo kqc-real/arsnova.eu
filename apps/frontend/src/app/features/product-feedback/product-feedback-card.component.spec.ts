@@ -71,7 +71,7 @@ describe('ProductFeedbackCard', () => {
 
     expect(submitMock).not.toHaveBeenCalled();
     const easy = [...fixture.nativeElement.querySelectorAll('button')].find((button) =>
-      button.textContent.includes('Einfach'),
+      button.textContent.includes('Leicht'),
     ) as HTMLButtonElement;
     const status = fixture.nativeElement.querySelector('[role="status"]') as HTMLElement;
     expect(status.getAttribute('aria-live')).toBe('polite');
@@ -87,10 +87,9 @@ describe('ProductFeedbackCard', () => {
     fixture.detectChanges();
 
     expect(submitMock).toHaveBeenCalledOnce();
-    expect(fixture.nativeElement.textContent).toContain(
-      'Danke! Möchtest du noch etwas ergänzen? Ein Satz genügt.',
-    );
-    expect(fixture.nativeElement.textContent).toContain('Anmerkung ergänzen');
+    expect(fixture.nativeElement.textContent).toContain('Möchtest du noch etwas ergänzen?');
+    expect(fixture.nativeElement.textContent).toContain('Deine Rückmeldung ist angekommen.');
+    expect(fixture.nativeElement.textContent).toContain('Ergänzung hinzufügen');
   });
 
   it('bindet den Teilnehmer-Claim an den lokal gespeicherten Besitznachweis', async () => {
@@ -123,7 +122,7 @@ describe('ProductFeedbackCard', () => {
     expect(fixture.nativeElement.textContent).toContain(
       'Diese Rückmeldung kann nicht gesendet werden.',
     );
-    expect(fixture.nativeElement.textContent).not.toContain('Erneut versuchen');
+    expect(fixture.nativeElement.textContent).not.toContain('Erneut senden');
   });
 
   it('zeigt eine typisierte Einmaligkeitsablehnung ohne wirkungslosen Retry', async () => {
@@ -137,7 +136,7 @@ describe('ProductFeedbackCard', () => {
 
     (
       [...fixture.nativeElement.querySelectorAll('button')].find((button) =>
-        button.textContent.includes('Einfach'),
+        button.textContent.includes('Leicht'),
       ) as HTMLButtonElement
     ).click();
     fixture.detectChanges();
@@ -150,7 +149,7 @@ describe('ProductFeedbackCard', () => {
     fixture.detectChanges();
 
     expect(fixture.nativeElement.textContent).toContain('Diese Einladung wurde bereits verwendet.');
-    expect(fixture.nativeElement.textContent).not.toContain('Erneut versuchen');
+    expect(fixture.nativeElement.textContent).not.toContain('Erneut senden');
   });
 
   it('gibt den Fokus beim Schließen zuverlässig an den Auslöser zurück', async () => {

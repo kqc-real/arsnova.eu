@@ -66,6 +66,17 @@
   justify-content: flex-end;
 }
 
+.session-host__product-feedback-utility {
+  display: flex;
+  justify-content: flex-end;
+  width: var(--session-host-shell-width);
+  max-width: 100%;
+}
+
+.session-host__product-feedback-utility button {
+  min-height: 2.75rem;
+}
+
 @media (min-width: 600px) {
   .session-host__steering-callout-actions {
     width: auto;

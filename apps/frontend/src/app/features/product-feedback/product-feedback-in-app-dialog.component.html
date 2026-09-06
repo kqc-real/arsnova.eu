@@ -1,0 +1,231 @@
+<section
+  class="product-feedback-in-app-dialog__surface"
+  [attr.aria-busy]="busy() ? 'true' : null"
+  [attr.aria-label]="actionLabel"
+  aria-labelledby="product-feedback-in-app-title"
+>
+  <header class="product-feedback-in-app-dialog__header">
+    <div class="product-feedback-in-app-dialog__brand">
+      <span class="product-feedback-in-app-dialog__brand-icon-wrap" aria-hidden="true">
+        <mat-icon class="product-feedback-in-app-dialog__brand-icon">insights</mat-icon>
+      </span>
+      @if (step() === 'kind' || step() === 'area') {
+        <span class="product-feedback-in-app-dialog__step" aria-hidden="true"
+          >{{ stepNumber() }}/2</span
+        >
+        <span class="sr-only" i18n="@@productFeedback.stepSr"
+          >Schritt {{ stepNumber() }} von 2</span
+        >
+      }
+    </div>
+    <button
+      matIconButton
+      type="button"
+      class="product-feedback-in-app-dialog__close"
+      (click)="finish()"
+      i18n-aria-label="@@common.closeAria"
+      aria-label="Schließen"
+    >
+      <mat-icon aria-hidden="true">close</mat-icon>
+    </button>
+  </header>
+
+  <h2
+    mat-dialog-title
+    id="product-feedback-in-app-title"
+    class="product-feedback-in-app-dialog__heading"
+    [class.product-feedback-in-app-dialog__heading--done]="step() === 'saved' || step() === 'done'"
+    tabindex="-1"
+  >
+    @if (step() === 'kind') {
+      <span i18n="@@productFeedback.inApp.question">Was ist dir aufgefallen?</span>
+    } @else if (step() === 'area') {
+      <span i18n="@@productFeedback.inApp.areaQuestion">Worum geht es?</span>
+    } @else if (step() === 'detail') {
+      <span i18n="@@productFeedback.inApp.detailTitle">Möchtest du mehr dazu sagen?</span>
+    } @else if (step() === 'error') {
+      <span i18n="@@productFeedback.inApp.errorTitle">Senden nicht möglich</span>
+    } @else {
+      <span>{{ completionTitle }}</span>
+    }
+  </h2>
+
+  <div class="product-feedback-in-app-dialog__body">
+    @if (data.sessionRunning) {
+      <p class="product-feedback-in-app-dialog__session-note" role="note">
+        <mat-icon aria-hidden="true">play_circle</mat-icon>
+        <span i18n="@@productFeedback.inApp.sessionContinues"
+          >Du kannst weiterarbeiten – die Session läuft im Hintergrund weiter.</span
+        >
+      </p>
+    }
+
+    @if (step() === 'kind') {
+      <p class="product-feedback-in-app-dialog__hint" i18n="@@productFeedback.inApp.anonymousHint">
+        Du brauchst weder Anmeldung noch E-Mail-Adresse.
+      </p>
+      <div class="product-feedback-in-app-dialog__choices" role="group">
+        @for (option of kinds; track option; let first = $first) {
+          <button
+            matButton="tonal"
+            type="button"
+            class="product-feedback-in-app-dialog__choice"
+            [attr.data-feedback-step-focus]="first ? '' : null"
+            (click)="selectKind(option)"
+          >
+            {{ kindLabel(option) }}
+          </button>
+        }
+      </div>
+    } @else if (step() === 'area') {
+      <p class="product-feedback-in-app-dialog__context-note">
+        <mat-icon aria-hidden="true">privacy_tip</mat-icon>
+        <span i18n="@@productFeedback.inApp.contextDisclosure"
+          >Damit wir deine Rückmeldung einordnen können, senden wir nur grobe technische Angaben mit
+          – niemals Namen oder Sessioninhalte.</span
+        >
+      </p>
+      <div
+        class="product-feedback-in-app-dialog__choices product-feedback-in-app-dialog__choices--areas"
+        [style.--pf-area-rows]="areaRowCount()"
+        role="group"
+      >
+        @for (option of areas(); track option; let first = $first) {
+          <button
+            matButton="tonal"
+            type="button"
+            class="product-feedback-in-app-dialog__choice product-feedback-in-app-dialog__choice--area"
+            [attr.data-feedback-step-focus]="first ? '' : null"
+            [disabled]="busy()"
+            (click)="selectArea(option)"
+          >
+            {{ areaLabel(option) }}
+          </button>
+        }
+      </div>
+    } @else if (step() === 'saved') {
+      <div class="product-feedback-in-app-dialog__result" data-feedback-step-focus tabindex="-1">
+        <mat-icon aria-hidden="true">check_circle</mat-icon>
+        <p>{{ statusMessage() }}</p>
+      </div>
+      <div class="product-feedback-in-app-dialog__actions">
+        @if (followUpCapability()) {
+          <button matButton="filled" type="button" (click)="openDetail()">
+            <span i18n="@@productFeedback.inApp.addDetail">Ergänzung hinzufügen</span>
+          </button>
+        }
+        <button matButton="text" type="button" (click)="finish()" i18n="@@productFeedback.done">
+          Fertig
+        </button>
+      </div>
+    } @else if (step() === 'detail') {
+      @if (kind() === 'NOT_WORKING') {
+        <fieldset class="product-feedback-in-app-dialog__impact">
+          <legend i18n="@@productFeedback.inApp.impactLegend">Welche Auswirkung hatte das?</legend>
+          @for (option of impacts; track option) {
+            <label>
+              <input
+                type="radio"
+                name="impact"
+                [value]="option"
+                [checked]="impact() === option"
+                (change)="impact.set(option)"
+              />
+              <span>{{ impactLabel(option) }}</span>
+            </label>
+          }
+        </fieldset>
+      }
+      <div class="product-feedback-in-app-dialog__message">
+        <label
+          class="sr-only"
+          for="product-feedback-in-app-message"
+          i18n="@@productFeedback.inApp.messageLabel"
+          >Was ist passiert oder was hättest du erwartet?</label
+        >
+        <textarea
+          id="product-feedback-in-app-message"
+          class="product-feedback-in-app-dialog__textarea"
+          rows="3"
+          [value]="message()"
+          [attr.maxlength]="messageMax"
+          (input)="onMessage($any($event.target).value)"
+        ></textarea>
+        <div class="product-feedback-in-app-dialog__message-meta">
+          <p class="product-feedback-in-app-dialog__privacy">{{ privacyHint }}</p>
+          <p class="product-feedback-in-app-dialog__counter">
+            {{ message().length }} / {{ messageMax }}
+          </p>
+        </div>
+      </div>
+      <div class="product-feedback-in-app-dialog__actions">
+        <button
+          matButton="filled"
+          type="button"
+          [disabled]="busy() || (!message().trim() && !impact())"
+          (click)="submitDetail()"
+        >
+          @if (busy()) {
+            <mat-spinner diameter="20" />
+          }
+          <span i18n="@@productFeedback.inApp.saveDetail">Ergänzung speichern</span>
+        </button>
+        <button matButton="text" type="button" (click)="finish()">
+          <span i18n="@@productFeedback.inApp.finishWithoutDetail">Ohne Ergänzung schließen</span>
+        </button>
+      </div>
+    } @else if (step() === 'error') {
+      <p
+        class="product-feedback-in-app-dialog__error"
+        role="alert"
+        data-feedback-step-focus
+        tabindex="-1"
+      >
+        {{ statusMessage() }}
+      </p>
+      <div class="product-feedback-in-app-dialog__actions">
+        <button matButton="filled" type="button" (click)="retry()" i18n="@@productFeedback.retry">
+          Erneut senden
+        </button>
+        <button matButton="text" type="button" (click)="finish()">
+          <span i18n="@@common.close">Schließen</span>
+        </button>
+      </div>
+    } @else {
+      <div class="product-feedback-in-app-dialog__result" data-feedback-step-focus tabindex="-1">
+        <mat-icon aria-hidden="true">check_circle</mat-icon>
+        <p>{{ statusMessage() }}</p>
+      </div>
+      <div class="product-feedback-in-app-dialog__actions">
+        <button matButton="filled" type="button" (click)="finish()">
+          <span i18n="@@common.close">Schließen</span>
+        </button>
+      </div>
+    }
+
+    @if (outbox().length > 0) {
+      <details class="product-feedback-in-app-dialog__outbox">
+        <summary i18n="@@productFeedback.inApp.outboxSummary">
+          Ausstehende Rückmeldungen auf diesem Gerät ({{ outbox().length }})
+        </summary>
+        <ul>
+          @for (item of outbox(); track item.id) {
+            <li>
+              <span>{{ item.createdAt | date: 'short' }}</span>
+              <button matButton="text" type="button" (click)="removeOutboxItem(item.id)">
+                <span i18n="@@common.delete">Löschen</span>
+              </button>
+            </li>
+          }
+        </ul>
+      </details>
+    }
+
+    @if (busy()) {
+      <p class="product-feedback-in-app-dialog__status" aria-live="polite">
+        <mat-spinner diameter="20" />
+        {{ statusMessage() }}
+      </p>
+    }
+  </div>
+</section>

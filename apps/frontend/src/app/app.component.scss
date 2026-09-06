@@ -370,9 +370,27 @@
   max-width: 72rem;
   margin-inline: auto;
   display: flex;
-  flex-direction: row;
+  flex-direction: column;
   align-items: center;
   justify-content: center;
+}
+
+.app-footer__utility {
+  display: flex;
+  justify-content: center;
+  width: 100%;
+  padding-block: 0.2rem;
+  border-bottom: 1px solid var(--mat-sys-outline-variant);
+}
+
+.app-footer__feedback-action {
+  min-height: 2.75rem;
+  color: var(--mat-sys-primary);
+  font: var(--mat-sys-label-large);
+}
+
+.app-footer__feedback-action mat-icon {
+  margin-inline-end: 0.5rem;
 }
 
 .app-footer__row {
@@ -583,6 +601,15 @@
   .app-footer__inner {
     max-width: 72rem;
     margin-inline: auto;
+    flex-direction: row;
+    gap: 1rem;
+  }
+
+  .app-footer__utility {
+    width: auto;
+    padding-inline-end: 1rem;
+    border-right: 1px solid var(--mat-sys-outline-variant);
+    border-bottom: 0;
   }
 
   .app-footer__links {

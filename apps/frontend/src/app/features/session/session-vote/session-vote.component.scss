@@ -1863,6 +1863,11 @@
   border: 1px solid color-mix(in srgb, var(--mat-sys-error) 25%, transparent);
 }
 
+.vote-error__feedback-action {
+  min-height: 2.75rem;
+  margin-block: -0.75rem 1.25rem;
+}
+
 .session-channel-card__error-icon,
 .vote-error__icon {
   width: 1rem;

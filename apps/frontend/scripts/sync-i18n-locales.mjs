@@ -78,11 +78,11 @@ function parseUnits(content) {
   });
 }
 
-function buildTargetById(units) {
+function buildUnitById(units) {
   const map = new Map();
   units.forEach((unit) => {
     if (unit.target.trim().length > 0) {
-      map.set(unit.id, unit.target);
+      map.set(unit.id, unit);
     }
   });
   return map;
@@ -104,7 +104,10 @@ function insertTarget(inner, target) {
   if (targetRegex.test(inner)) {
     return inner.replace(targetRegex, `<target>${target}</target>`);
   }
-  return inner.replace(/(\s*<\/source>\s*)/, `</source>\n        <target>${target}</target>\n        `);
+  return inner.replace(
+    /(\s*<\/source>\s*)/,
+    `</source>\n        <target>${target}</target>\n        `,
+  );
 }
 
 function getBodyBounds(content) {
@@ -120,18 +123,23 @@ async function translateText(text, from, to) {
   if (!text.trim()) return text;
   const { protectedText, placeholders } = protectPlaceholders(text);
   const urlBase =
-    `https://translate.googleapis.com/translate_a/single?client=gtx&sl=${encodeURIComponent(from)}` +
-    `&tl=${encodeURIComponent(to)}&dt=t&q=`;
+    `https://translate.googleapis.com/translate_a/t?client=dict-chrome-ex&sl=${encodeURIComponent(from)}` +
+    `&tl=${encodeURIComponent(to)}&q=`;
   let lastError = null;
   for (let attempt = 1; attempt <= 5; attempt += 1) {
     const response = await fetch(`${urlBase}${encodeURIComponent(protectedText)}`);
     if (response.ok) {
       const json = await response.json();
-      const translated = (json?.[0] ?? []).map((part) => part?.[0] ?? '').join('');
+      const translated = Array.isArray(json?.[0])
+        ? json[0].map((part) => part?.[0] ?? '').join('')
+        : (json?.[0] ?? '');
       return restorePlaceholders(translated, placeholders);
     }
     lastError = new Error(`Translate request failed (${response.status})`);
-    await new Promise((resolve) => setTimeout(resolve, 250 * attempt));
+    const retryAfterSeconds = Number(response.headers.get('retry-after') ?? 0);
+    await new Promise((resolve) =>
+      setTimeout(resolve, Math.max(retryAfterSeconds * 1000, 1000 * attempt)),
+    );
   }
   throw lastError ?? new Error('Translate request failed');
 }
@@ -142,7 +150,7 @@ async function syncLocale(localeConfig, sourceUnits) {
   const localeUnits = parseUnits(localeContent);
   const sourceIds = new Set(sourceUnits.map((unit) => unit.id));
   const orphanCount = localeUnits.filter((unit) => !sourceIds.has(unit.id)).length;
-  const targetById = buildTargetById(localeUnits);
+  const unitById = buildUnitById(localeUnits);
   const targetBySource = buildTargetBySource(localeUnits);
   const translationCache = new Map();
 
@@ -153,12 +161,15 @@ async function syncLocale(localeConfig, sourceUnits) {
   const rebuiltUnits = [];
   for (const sourceUnit of sourceUnits) {
     const sourceKey = normalizeMessage(sourceUnit.source);
-    let target = targetById.get(sourceUnit.id) ?? targetBySource.get(sourceKey) ?? null;
+    const sameIdUnit = unitById.get(sourceUnit.id);
+    const targetByUnchangedId =
+      sameIdUnit && normalizeMessage(sameIdUnit.source) === sourceKey ? sameIdUnit.target : null;
+    let target = targetByUnchangedId ?? targetBySource.get(sourceKey) ?? null;
     let targetMarkup;
 
     if (target) {
       targetMarkup = target;
-      if (targetById.has(sourceUnit.id)) {
+      if (targetByUnchangedId) {
         reusedById += 1;
       } else {
         reusedBySource += 1;
@@ -172,6 +183,7 @@ async function syncLocale(localeConfig, sourceUnits) {
       }
       targetMarkup = encodeEntitiesPreservingPlaceholders(translatedText);
       translated += 1;
+      await new Promise((resolve) => setTimeout(resolve, 350));
     }
 
     rebuiltUnits.push(

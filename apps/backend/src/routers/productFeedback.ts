@@ -5,6 +5,8 @@ import { TRPCError } from '@trpc/server';
 import { Prisma } from '@prisma/client';
 import {
   PRODUCT_FEEDBACK_FOLLOWUP_TTL_SECONDS,
+  PRODUCT_FEEDBACK_IN_APP_CHALLENGE_TTL_SECONDS,
+  PRODUCT_FEEDBACK_IN_APP_MESSAGE_MAX,
   PRODUCT_FEEDBACK_INVITE_TTL_SECONDS,
   PRODUCT_FEEDBACK_MESSAGE_MAX,
   ProductFeedbackFollowUpInputSchema,
@@ -13,6 +15,11 @@ import {
   ProductFeedbackGetSurveyOutputSchema,
   ProductFeedbackInviteClaimInputSchema,
   ProductFeedbackInviteClaimOutputSchema,
+  ProductFeedbackInAppChallengeInputSchema,
+  ProductFeedbackInAppChallengeOutputSchema,
+  ProductFeedbackInAppFollowUpInputSchema,
+  ProductFeedbackInAppSubmitInputSchema,
+  ProductFeedbackInAppSubmitOutputSchema,
   ProductFeedbackSubmitInputSchema,
   ProductFeedbackSubmitOutputSchema,
   isAreaAllowedForSurvey,
@@ -20,6 +27,14 @@ import {
 } from '@arsnova/shared-types';
 import { prisma } from '../db';
 import { extractHostTokenFromContext, isHostSessionTokenValid } from '../lib/hostAuth';
+import {
+  createInAppChallenge,
+  finalizeInAppChallenge,
+  isProductFeedbackOriginAllowed,
+  releaseInAppChallenge,
+  reserveInAppChallenge,
+  shouldQuarantineProductFeedbackMessage,
+} from '../lib/productFeedbackInApp';
 import {
   claimProductFeedbackInvite,
   createFollowUpCapability,
@@ -57,6 +72,15 @@ async function enforceMutateRate(ctx: Context): Promise<void> {
     throw new TRPCError({
       code: 'TOO_MANY_REQUESTS',
       message: 'Zu viele Anfragen. Bitte kurz warten.',
+    });
+  }
+}
+
+function enforceInAppOrigin(ctx: Context): void {
+  if (!isProductFeedbackOriginAllowed(ctx.req)) {
+    throw new TRPCError({
+      code: 'FORBIDDEN',
+      message: 'Produktfeedback ist nur aus der arsnova.eu-App zulässig.',
     });
   }
 }
@@ -362,6 +386,249 @@ export const productFeedbackRouter = router({
           if (raced?.id === capability.feedbackId) return { ok: true as const };
         }
         throw err;
+      }
+    }),
+
+  /**
+   * Stellt eine kurzlebige, an den Idempotency-Key gebundene IN_APP-Challenge aus.
+   * Die Mutation ist auf Browser-Same-Origin begrenzt.
+   */
+  getInAppChallenge: publicProcedure
+    .input(ProductFeedbackInAppChallengeInputSchema)
+    .output(ProductFeedbackInAppChallengeOutputSchema)
+    .mutation(async ({ input, ctx }) => {
+      enforceInAppOrigin(ctx);
+      await enforceClaimRate(ctx);
+      const cached = await getIdempotentResult<{
+        challengeToken: string;
+        expiresAt: string;
+      }>('inAppChallenge', input.idempotencyKey);
+      if (cached) return cached;
+
+      const output = await createInAppChallenge(input.idempotencyKey);
+      await setIdempotentResult(
+        'inAppChallenge',
+        input.idempotencyKey,
+        output,
+        PRODUCT_FEEDBACK_IN_APP_CHALLENGE_TTL_SECONDS,
+      );
+      return output;
+    }),
+
+  /**
+   * Speichert nach zwei bewussten Auswahlen ein anonymes, strukturiertes IN_APP-Signal.
+   * Es werden ausschließlich Felder aus dem Shared-Context-Whitelist-Schema persistiert.
+   */
+  submitInApp: publicProcedure
+    .input(ProductFeedbackInAppSubmitInputSchema)
+    .output(ProductFeedbackInAppSubmitOutputSchema)
+    .mutation(async ({ input, ctx }) => {
+      enforceInAppOrigin(ctx);
+      await enforceMutateRate(ctx);
+      const submitIdempotencyHash = hashToken(input.idempotencyKey);
+      const cached = await getIdempotentResult<{
+        ok: true;
+        followUpCapability: string;
+        followUpExpiresAt: string;
+      }>('inAppSubmit', input.idempotencyKey);
+      if (cached) return cached;
+
+      const finishExistingInAppSubmit = async (row: {
+        id: string;
+        createdAt: Date;
+        source: string;
+      }) => {
+        if (row.source !== 'IN_APP') {
+          throw new TRPCError({
+            code: 'CONFLICT',
+            message: 'Idempotency-Key gehört zu einer anderen Rückmeldung.',
+          });
+        }
+        const followUpExpiresAt = new Date(
+          row.createdAt.getTime() + PRODUCT_FEEDBACK_FOLLOWUP_TTL_SECONDS * 1000,
+        );
+        const followUpCapability = await createFollowUpCapability(
+          row.id,
+          input.challengeToken,
+          followUpExpiresAt,
+        );
+        const output = {
+          ok: true as const,
+          followUpCapability,
+          followUpExpiresAt: followUpExpiresAt.toISOString(),
+        };
+        await finalizeInAppChallenge(input.challengeToken);
+        await setIdempotentResult(
+          'inAppSubmit',
+          input.idempotencyKey,
+          output,
+          PRODUCT_FEEDBACK_FOLLOWUP_TTL_SECONDS,
+        );
+        return output;
+      };
+
+      const existing = await prisma.productFeedback.findUnique({
+        where: { submitIdempotencyHash },
+        select: { id: true, createdAt: true, source: true },
+      });
+      if (existing) return finishExistingInAppSubmit(existing);
+
+      const reserved = await reserveInAppChallenge(input.challengeToken, input.idempotencyKey);
+      if (!reserved) {
+        throw new TRPCError({
+          code: 'CONFLICT',
+          message: 'Challenge ist abgelaufen, ungültig oder wurde bereits verwendet.',
+        });
+      }
+
+      try {
+        const row = await prisma.productFeedback.create({
+          data: {
+            submitIdempotencyHash,
+            source: 'IN_APP',
+            role: input.role,
+            surveyKey: null,
+            primaryAnswer: null,
+            feedbackKind: input.kind,
+            area: input.area,
+            locale: input.context.locale,
+            appVersion: resolveAppVersion(input.context.appVersion),
+            deviceClass: input.context.deviceClass,
+            routeGroup: input.context.routeGroup,
+            sessionPhase: input.context.sessionPhase,
+            activeChannel: input.context.activeChannel,
+            browserFamily: input.context.browserFamily,
+            browserMajorVersion: input.context.browserMajorVersion ?? null,
+            osFamily: input.context.osFamily,
+            onlineState: input.context.onlineState,
+            errorRequestId: input.context.errorRequestId ?? null,
+          },
+          select: { id: true, createdAt: true, source: true },
+        });
+
+        return finishExistingInAppSubmit(row);
+      } catch (error) {
+        await releaseInAppChallenge(input.challengeToken);
+        if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2002') {
+          const raced = await prisma.productFeedback.findUnique({
+            where: { submitIdempotencyHash },
+            select: { id: true, createdAt: true, source: true },
+          });
+          if (raced) return finishExistingInAppSubmit(raced);
+        }
+        throw error;
+      }
+    }),
+
+  /**
+   * Ergänzt genau einmal optionalen Plaintext und/oder die Auswirkung.
+   * Die Capability gewährt weder Lesezugriff noch Änderungen am strukturierten Signal.
+   */
+  followUpInApp: publicProcedure
+    .input(ProductFeedbackInAppFollowUpInputSchema)
+    .output(ProductFeedbackFollowUpOutputSchema)
+    .mutation(async ({ input, ctx }) => {
+      enforceInAppOrigin(ctx);
+      await enforceMutateRate(ctx);
+      const followUpFingerprint = hashToken(input.followUpCapability);
+      const followUpIdempotencyHash = hashToken(`${followUpFingerprint}:${input.idempotencyKey}`);
+      const idempotencyScope = `${followUpFingerprint}:${input.idempotencyKey}`;
+      const cached = await getIdempotentResult<{ ok: true }>('inAppFollowUp', idempotencyScope);
+      if (cached) return cached;
+      const prior = await prisma.productFeedback.findUnique({
+        where: { followUpIdempotencyHash },
+        select: { id: true },
+      });
+      if (prior) {
+        const output = { ok: true as const };
+        await finalizeFollowUpCapability(input.followUpCapability);
+        await setIdempotentResult(
+          'inAppFollowUp',
+          idempotencyScope,
+          output,
+          PRODUCT_FEEDBACK_FOLLOWUP_TTL_SECONDS,
+        );
+        return output;
+      }
+
+      const capability = await consumeFollowUpCapability(input.followUpCapability);
+      if (!capability) {
+        throw new TRPCError({
+          code: 'NOT_FOUND',
+          message: 'Ergänzung abgelaufen oder ungültig.',
+        });
+      }
+
+      try {
+        const existing = await prisma.productFeedback.findUnique({
+          where: { id: capability.feedbackId },
+          select: {
+            id: true,
+            source: true,
+            feedbackKind: true,
+            message: true,
+            impact: true,
+            followUpIdempotencyHash: true,
+          },
+        });
+        if (!existing || existing.source !== 'IN_APP') {
+          throw new TRPCError({
+            code: 'NOT_FOUND',
+            message: 'Rückmeldung nicht gefunden.',
+          });
+        }
+        if (
+          existing.followUpIdempotencyHash &&
+          existing.followUpIdempotencyHash !== followUpIdempotencyHash
+        ) {
+          throw new TRPCError({
+            code: 'CONFLICT',
+            message: 'Diese Rückmeldung wurde bereits ergänzt.',
+          });
+        }
+        if (input.impact && existing.feedbackKind !== 'NOT_WORKING') {
+          throw new TRPCError({
+            code: 'BAD_REQUEST',
+            message: 'Eine Auswirkung ist nur bei Funktionsproblemen zulässig.',
+          });
+        }
+
+        const message = input.message?.trim().slice(0, PRODUCT_FEEDBACK_IN_APP_MESSAGE_MAX);
+        await prisma.productFeedback.update({
+          where: { id: existing.id },
+          data: {
+            followUpIdempotencyHash,
+            ...(message && !existing.message ? { message } : {}),
+            ...(input.impact && !existing.impact ? { impact: input.impact } : {}),
+            ...(message && shouldQuarantineProductFeedbackMessage(message)
+              ? { quarantineStatus: 'FLAGGED' }
+              : {}),
+          },
+        });
+
+        const output = { ok: true as const };
+        await finalizeFollowUpCapability(input.followUpCapability);
+        await setIdempotentResult(
+          'inAppFollowUp',
+          idempotencyScope,
+          output,
+          PRODUCT_FEEDBACK_FOLLOWUP_TTL_SECONDS,
+        );
+        return output;
+      } catch (error) {
+        if (error instanceof TRPCError) {
+          await finalizeFollowUpCapability(input.followUpCapability);
+          throw error;
+        }
+        await releaseFollowUpReservation(input.followUpCapability);
+        if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2002') {
+          const raced = await prisma.productFeedback.findUnique({
+            where: { followUpIdempotencyHash },
+            select: { id: true },
+          });
+          if (raced?.id === capability.feedbackId) return { ok: true as const };
+        }
+        throw error;
       }
     }),
 });

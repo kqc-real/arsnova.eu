@@ -60,6 +60,7 @@ import {
 } from '../../../core/locale-from-path';
 import { trpc } from '../../../core/trpc.client';
 import { rememberPendingHostInvite } from '../../product-feedback/product-feedback-storage';
+import { ContextualFeedbackOfferService } from '../../product-feedback/contextual-feedback-offer.service';
 import { getAnonymousClientId } from '../../../core/anonymous-client-id';
 import { renderMarkdownWithKatex } from '../../../shared/markdown-katex.util';
 import { decorateLeadingAnswerEmoji } from '../../../shared/leading-answer-emoji.util';
@@ -98,6 +99,7 @@ import {
   isWordCloudPhraseAnalysisVariant,
   parseQaSummaryQuestionSourceId,
   type WordCloudLemmaLocale,
+  type ProductFeedbackInAppArea,
 } from '@arsnova/shared-types';
 import {
   canRequestQaSummary,
@@ -506,6 +508,8 @@ type HostSteeringCalloutState = {
   title: string;
   body: string;
   retry: () => void;
+  errorRequestId: string;
+  suggestedArea: ProductFeedbackInAppArea;
 };
 
 function musicTracksForPhase(
@@ -667,6 +671,7 @@ export class SessionHostComponent implements OnInit, OnDestroy {
   private readonly quizStore = inject(QuizStoreService);
   private readonly wordCloudTermExtractor = inject(WordCloudTermExtractorService);
   private readonly sessionTokenStorage = inject(SessionTokenStorageService);
+  readonly contextualFeedbackOffer = inject(ContextualFeedbackOfferService);
   private presenterWindowOpenInFlight = false;
   private auxPollTimer: ReturnType<typeof setInterval> | null = null;
   private clockPollTimer: ReturnType<typeof setInterval> | null = null;
@@ -4528,6 +4533,48 @@ export class SessionHostComponent implements OnInit, OnDestroy {
     this.hostSteeringCallout.set(null);
   }
 
+  openHostProblemFeedback(event: Event, state: HostSteeringCalloutState): void {
+    const target = event.currentTarget instanceof HTMLElement ? event.currentTarget : null;
+    this.contextualFeedbackOffer.open(
+      state.errorRequestId,
+      {
+        role: 'HOST',
+        routeGroup: 'SESSION_HOST',
+        sessionPhase: this.effectiveStatus() === 'FINISHED' ? 'FINISHED' : 'ACTIVE',
+        activeChannel:
+          this.activeChannel() === 'qa'
+            ? 'QA'
+            : this.activeChannel() === 'quickFeedback'
+              ? 'QUICK_FEEDBACK'
+              : 'QUIZ',
+        suggestedArea: state.suggestedArea,
+        sessionRunning: this.effectiveStatus() !== 'FINISHED',
+      },
+      target,
+    );
+  }
+
+  openHostProductFeedback(event: Event): void {
+    const target = event.currentTarget instanceof HTMLElement ? event.currentTarget : null;
+    this.contextualFeedbackOffer.open(
+      'host.utility:manual',
+      {
+        role: 'HOST',
+        routeGroup: 'SESSION_HOST',
+        sessionPhase: this.effectiveStatus() === 'FINISHED' ? 'FINISHED' : 'ACTIVE',
+        activeChannel:
+          this.activeChannel() === 'qa'
+            ? 'QA'
+            : this.activeChannel() === 'quickFeedback'
+              ? 'QUICK_FEEDBACK'
+              : 'QUIZ',
+        suggestedArea: 'LIVE_CONTROL',
+        sessionRunning: this.effectiveStatus() !== 'FINISHED',
+      },
+      target,
+    );
+  }
+
   hostSteeringCalloutReloadHref(): string {
     return this.document.location?.href ?? this.localizedPath('/');
   }
@@ -4537,6 +4584,8 @@ export class SessionHostComponent implements OnInit, OnDestroy {
       title: $localize`:@@sessionHost.steeringCalloutTitle:Das ist gerade nicht angekommen`,
       body: $localize`:@@sessionHost.steeringCalloutBody:Kein Stress – so was passiert manchmal (kurzer Ruckler oder instabiles WLAN). Warte zwei, drei Sekunden und tippe auf „Nochmal probieren“ – meist reicht das.`,
       retry,
+      errorRequestId: 'host.steering:failed',
+      suggestedArea: 'LIVE_CONTROL',
     });
     setTimeout(() => {
       const target = this.hostElement.nativeElement.querySelector<HTMLButtonElement>(
@@ -4553,6 +4602,8 @@ export class SessionHostComponent implements OnInit, OnDestroy {
       title: $localize`:@@sessionHost.steeringCalloutQaTitle:Mit den Fragen klappt es gerade nicht`,
       body: $localize`:@@sessionHost.steeringCalloutQaBody:Hier ist nichts kaputt – es hat nur gerade nicht geklappt. Kurz durchatmen, 2–3 Sekunden warten, dann „Nochmal probieren“ – oft läuft es gleich wieder.`,
       retry,
+      errorRequestId: 'host.qa:failed',
+      suggestedArea: 'QA',
     });
   }
 
@@ -4561,6 +4612,8 @@ export class SessionHostComponent implements OnInit, OnDestroy {
       title: $localize`:@@sessionHost.steeringCalloutExportTitle:Export noch nicht bereit`,
       body: $localize`:@@sessionHost.steeringCalloutExportBody:PDF- oder Excel-Export ist diesmal nicht durchgekommen. Warte ein paar Sekunden und tippe auf „Nochmal probieren“ – meist klappt’s beim zweiten Anlauf.`,
       retry,
+      errorRequestId: 'host.export:failed',
+      suggestedArea: 'PDF_OR_EXPORT',
     });
   }
 

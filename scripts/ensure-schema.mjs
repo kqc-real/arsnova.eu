@@ -246,6 +246,20 @@ const statements = [
   `ALTER TABLE "Session" ADD COLUMN IF NOT EXISTS "legalHoldUntil" TIMESTAMP(3)`,
   `ALTER TABLE "Session" ADD COLUMN IF NOT EXISTS "legalHoldReason" TEXT`,
   `ALTER TABLE "Session" ADD COLUMN IF NOT EXISTS "legalHoldSetAt" TIMESTAMP(3)`,
+
+  // Story 12.1: Invite-Fingerprint und persistente Submit-/Follow-up-Idempotenz
+  `ALTER TABLE "Participant" ADD COLUMN IF NOT EXISTS "productFeedbackClaimTokenHash" CHAR(64)`,
+  `CREATE UNIQUE INDEX IF NOT EXISTS "Participant_productFeedbackClaimTokenHash_key"
+     ON "Participant"("productFeedbackClaimTokenHash")`,
+  `ALTER TABLE "ProductFeedback" ADD COLUMN IF NOT EXISTS "inviteFingerprint" CHAR(64)`,
+  `ALTER TABLE "ProductFeedback" ADD COLUMN IF NOT EXISTS "submitIdempotencyHash" CHAR(64)`,
+  `ALTER TABLE "ProductFeedback" ADD COLUMN IF NOT EXISTS "followUpIdempotencyHash" CHAR(64)`,
+  `CREATE UNIQUE INDEX IF NOT EXISTS "ProductFeedback_inviteFingerprint_key"
+     ON "ProductFeedback"("inviteFingerprint")`,
+  `CREATE UNIQUE INDEX IF NOT EXISTS "ProductFeedback_submitIdempotencyHash_key"
+     ON "ProductFeedback"("submitIdempotencyHash")`,
+  `CREATE UNIQUE INDEX IF NOT EXISTS "ProductFeedback_followUpIdempotencyHash_key"
+     ON "ProductFeedback"("followUpIdempotencyHash")`,
 ];
 
 /**

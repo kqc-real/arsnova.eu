@@ -19,6 +19,7 @@ import { localizePath } from '../../core/locale-router';
 import { sessionCodeAriaLabel as i18nSessionCodeAria } from '../../core/session-code-aria';
 import { feedbackOptions, feedbackTitle, isTempoFeedbackType } from './feedback.config';
 import type { QuickFeedbackResult, QuickFeedbackType } from '@arsnova/shared-types';
+import { ProductFeedbackLauncherService } from '../product-feedback/product-feedback-launcher.service';
 
 const VOTER_ID_KEY = 'qf-voter-id';
 const TEMPO_DEFAULT_VALUE = 'FOLLOWING';
@@ -90,6 +91,7 @@ export class FeedbackVoteComponent implements OnInit, OnDestroy {
   readonly localizedPath = localizePath;
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
+  private readonly productFeedbackLauncher = inject(ProductFeedbackLauncherService);
   private pollTimer: ReturnType<typeof setInterval> | null = null;
   private subscription: Unsubscribable | null = null;
   private resultUpdatesStopped = false;
@@ -98,6 +100,21 @@ export class FeedbackVoteComponent implements OnInit, OnDestroy {
   private readonly tempoDefaultRegistrations = new Map<string, Promise<void>>();
   readonly sessionCode = input('');
   readonly participantId = input('');
+
+  openProductFeedback(event: Event): void {
+    const target = event.currentTarget instanceof HTMLElement ? event.currentTarget : null;
+    void this.productFeedbackLauncher.open(
+      {
+        role: 'PARTICIPANT',
+        routeGroup: 'QUICK_FEEDBACK',
+        activeChannel: 'QUICK_FEEDBACK',
+        sessionPhase: 'ACTIVE',
+        suggestedArea: 'QUICK_FEEDBACK',
+        sessionRunning: true,
+      },
+      target,
+    );
+  }
   readonly participantName = input<string | null>(null);
   readonly participantAvatar = input<string | null>(null);
   readonly participantAvatarSequence = input<string | null>(null);
