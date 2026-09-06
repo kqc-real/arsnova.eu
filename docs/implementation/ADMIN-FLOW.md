@@ -245,9 +245,11 @@ Die folgenden Prozedurnamen und Aufgaben sind **kanonisch**. Für Rohaufrufe per
 
 - UI-Tab im Admin-Dashboard: aggregierte Post-Session-Produktsignale.
 - tRPC: `admin.productFeedback.getStats` (nur `adminProcedure`).
-- Filter: optional Zeitraum (`from`/`to`), Rolle (`HOST`/`PARTICIPANT`), Fragefamilie.
-- Kennzahlen: Antwortanzahl, Einladungen (Ledger), Abschlussquote, Verteilungen
-  nach Primärantwort, Bereich, Fragefamilie/-version, Rolle, Locale, App-Version,
-  Sessiongröße und Geräteklasse. Feine Segmente erst ab ≥5 Antworten.
+- Filter: optional Zeitraum (`from`/`to`), Perspektive (`HOST`/`PARTICIPANT`), Frage;
+  Änderungen gelten sofort, mit optionalem Zurücksetzen.
+- Kennzahlen: Antworten, Einladungen (Ledger), Rücklauf; Verteilungen mit
+  lesbaren Labels und Anteilsbalken (Kurzbewertung, genannte Stellen, Frage, Perspektive,
+  Sprache, Sessiongröße, Gerät). Feine Kombinationen und Schwellen-Karten erst
+  ab ≥5 Antworten.
 - **Kein Freitext** und keine Session-/Personen-IDs in dieser Ansicht.
 - Fachdoku: [docs/features/product-feedback.md](../features/product-feedback.md).

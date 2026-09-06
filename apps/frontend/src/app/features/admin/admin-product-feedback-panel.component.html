@@ -1,213 +1,400 @@
 <section class="admin-pf" aria-labelledby="admin-pf-heading">
   <header class="admin-pf__header">
-    <h2 id="admin-pf-heading" i18n="@@admin.productFeedback.heading">Produktfeedback</h2>
-    <button
-      matButton="tonal"
-      type="button"
-      [disabled]="loading()"
-      (click)="reload()"
-      i18n="@@admin.productFeedback.reload"
-    >
-      Aktualisieren
+    <div class="admin-pf__header-copy">
+      <h2 id="admin-pf-heading" i18n="@@admin.productFeedback.heading">Produktfeedback</h2>
+      <p class="admin-pf__intro" i18n="@@admin.productFeedback.intro">
+        Kurzfeedback zur Bedienbarkeit und zum Nutzen von arsnova.eu nach der Session. Die
+        Auswertung ist anonym – ohne Freitext und ohne Personenbezug.
+      </p>
+    </div>
+    <button matButton="tonal" type="button" [disabled]="loading()" (click)="reload()">
+      @if (loading()) {
+        <mat-spinner diameter="18" />
+      }
+      <span i18n="@@admin.productFeedback.reload">Aktualisieren</span>
     </button>
   </header>
 
-  <div class="admin-pf__filters" role="group" aria-label="Filter">
+  <div
+    class="admin-pf__filters"
+    role="group"
+    i18n-aria-label="@@admin.productFeedback.filtersLabel"
+    aria-label="Filter"
+  >
     <mat-form-field appearance="outline">
-      <mat-label i18n="@@admin.productFeedback.filterRole">Rolle</mat-label>
-      <mat-select [(ngModel)]="roleFilter" name="pfRole">
+      <mat-label i18n="@@admin.productFeedback.filterRole">Perspektive</mat-label>
+      <mat-select [(ngModel)]="roleFilter" name="pfRole" (ngModelChange)="onFiltersChanged()">
         <mat-option value="" i18n="@@admin.productFeedback.filterAll">Alle</mat-option>
         @for (r of roleOptions; track r) {
-          <mat-option [value]="r">{{ r }}</mat-option>
+          <mat-option [value]="r">{{ roleLabel(r) }}</mat-option>
         }
       </mat-select>
     </mat-form-field>
     <mat-form-field appearance="outline">
-      <mat-label i18n="@@admin.productFeedback.filterSurvey">Fragefamilie</mat-label>
-      <mat-select [(ngModel)]="surveyKeyFilter" name="pfSurvey">
+      <mat-label i18n="@@admin.productFeedback.filterSurvey">Frage</mat-label>
+      <mat-select
+        [(ngModel)]="surveyKeyFilter"
+        name="pfSurvey"
+        (ngModelChange)="onFiltersChanged()"
+      >
         <mat-option value="" i18n="@@admin.productFeedback.filterAll">Alle</mat-option>
         @for (k of surveyKeyOptions; track k) {
-          <mat-option [value]="k">{{ k }}</mat-option>
+          <mat-option [value]="k">{{ surveyLabel(k) }}</mat-option>
         }
       </mat-select>
     </mat-form-field>
     <mat-form-field appearance="outline">
-      <mat-label i18n="@@admin.productFeedback.filterFrom">Von</mat-label>
-      <input matInput type="date" [(ngModel)]="fromDate" name="pfFrom" />
+      <mat-label i18n="@@admin.productFeedback.filterFrom">Zeitraum von</mat-label>
+      <mat-datepicker #fromDatePicker [touchUi]="true" />
+      <input
+        matInput
+        [matDatepicker]="fromDatePicker"
+        [max]="toDate ?? undefined"
+        [(ngModel)]="fromDate"
+        name="pfFrom"
+        (ngModelChange)="onFiltersChanged()"
+      />
+      <mat-datepicker-toggle matIconSuffix [for]="fromDatePicker" />
     </mat-form-field>
     <mat-form-field appearance="outline">
-      <mat-label i18n="@@admin.productFeedback.filterTo">Bis</mat-label>
-      <input matInput type="date" [(ngModel)]="toDate" name="pfTo" />
+      <mat-label i18n="@@admin.productFeedback.filterTo">Zeitraum bis</mat-label>
+      <mat-datepicker #toDatePicker [touchUi]="true" />
+      <input
+        matInput
+        [matDatepicker]="toDatePicker"
+        [min]="fromDate ?? undefined"
+        [(ngModel)]="toDate"
+        name="pfTo"
+        (ngModelChange)="onFiltersChanged()"
+      />
+      <mat-datepicker-toggle matIconSuffix [for]="toDatePicker" />
     </mat-form-field>
-    <button
-      matButton="filled"
-      type="button"
-      [disabled]="loading()"
-      (click)="reload()"
-      i18n="@@admin.productFeedback.applyFilters"
-    >
-      Filter anwenden
-    </button>
+    @if (hasActiveFilters()) {
+      <button
+        matButton="text"
+        type="button"
+        [disabled]="loading()"
+        (click)="clearFilters()"
+        i18n="@@admin.productFeedback.clearFilters"
+      >
+        Auswahl zurücksetzen
+      </button>
+    }
   </div>
 
-  @if (loading()) {
-    <mat-spinner diameter="36" />
-  } @else if (error(); as err) {
+  @if (error(); as err) {
     <p class="admin-pf__error" role="alert">{{ err }}</p>
+  }
+
+  @if (loading() && !stats()) {
+    <div class="admin-pf__loading" role="status">
+      <mat-spinner diameter="36" />
+      <span i18n="@@admin.productFeedback.loading">Auswertung wird geladen …</span>
+    </div>
   } @else if (stats(); as s) {
-    <div class="admin-pf__grid admin-pf__grid--kpi">
-      <mat-card class="admin-pf__card">
-        <mat-card-header>
-          <mat-card-title i18n="@@admin.productFeedback.totals">Antworten gesamt</mat-card-title>
-        </mat-card-header>
-        <mat-card-content>
-          <p class="admin-pf__total">{{ s.totals }}</p>
-        </mat-card-content>
-      </mat-card>
-      <mat-card>
-        <mat-card-header>
-          <mat-card-title i18n="@@admin.productFeedback.invites">Einladungen</mat-card-title>
-        </mat-card-header>
-        <mat-card-content>
-          <p class="admin-pf__total">{{ s.invitationsIssued ?? '—' }}</p>
-        </mat-card-content>
-      </mat-card>
-      <mat-card>
-        <mat-card-header>
-          <mat-card-title i18n="@@admin.productFeedback.completion">Abschlussquote</mat-card-title>
-        </mat-card-header>
-        <mat-card-content>
-          <p class="admin-pf__total">{{ formatRate(s.invitationCompletionRate) }}</p>
-        </mat-card-content>
-      </mat-card>
-    </div>
+    <div class="admin-pf__body" [attr.aria-busy]="loading()">
+      <div class="admin-pf__grid admin-pf__grid--kpi">
+        <mat-card appearance="outlined" class="admin-pf__card admin-pf__card--kpi">
+          <mat-card-header>
+            <mat-card-title i18n="@@admin.productFeedback.totals">Antworten</mat-card-title>
+            <mat-card-subtitle i18n="@@admin.productFeedback.totalsHint"
+              >Mit den aktuellen Filtern</mat-card-subtitle
+            >
+          </mat-card-header>
+          <mat-card-content>
+            <p class="admin-pf__total">{{ s.totals }}</p>
+          </mat-card-content>
+        </mat-card>
+        <mat-card appearance="outlined" class="admin-pf__card admin-pf__card--kpi">
+          <mat-card-header>
+            <mat-card-title i18n="@@admin.productFeedback.invites">Einladungen</mat-card-title>
+            <mat-card-subtitle i18n="@@admin.productFeedback.invitesHint"
+              >Wie oft wir nach Feedback gefragt haben</mat-card-subtitle
+            >
+          </mat-card-header>
+          <mat-card-content>
+            <p class="admin-pf__total">{{ s.invitationsIssued ?? '—' }}</p>
+          </mat-card-content>
+        </mat-card>
+        <mat-card appearance="outlined" class="admin-pf__card admin-pf__card--kpi">
+          <mat-card-header>
+            <mat-card-title i18n="@@admin.productFeedback.completion">Rücklauf</mat-card-title>
+            <mat-card-subtitle i18n="@@admin.productFeedback.completionHint"
+              >Anteil der Einladungen mit Antwort</mat-card-subtitle
+            >
+          </mat-card-header>
+          <mat-card-content>
+            <p class="admin-pf__total">{{ formatRate(s.invitationCompletionRate) }}</p>
+          </mat-card-content>
+        </mat-card>
+      </div>
 
-    <div class="admin-pf__grid">
-      <mat-card>
-        <mat-card-header>
-          <mat-card-title i18n="@@admin.productFeedback.byPrimary">Primärantworten</mat-card-title>
-        </mat-card-header>
-        <mat-card-content>
-          <ul>
-            @for (b of s.byPrimaryAnswer; track b.key) {
-              <li>{{ b.key }}: {{ b.count }}</li>
-            }
-          </ul>
-        </mat-card-content>
-      </mat-card>
-      <mat-card>
-        <mat-card-header>
-          <mat-card-title i18n="@@admin.productFeedback.byArea">Bereiche</mat-card-title>
-        </mat-card-header>
-        <mat-card-content>
-          <ul>
-            @for (b of s.byArea; track b.key) {
-              <li>{{ b.key }}: {{ b.count }}</li>
-            }
-          </ul>
-        </mat-card-content>
-      </mat-card>
-      <mat-card>
-        <mat-card-header>
-          <mat-card-title i18n="@@admin.productFeedback.bySurvey">Fragefamilien</mat-card-title>
-        </mat-card-header>
-        <mat-card-content>
-          <ul>
-            @for (b of s.bySurveyKey; track b.key) {
-              <li>{{ b.key }}: {{ b.count }}</li>
-            }
-          </ul>
-        </mat-card-content>
-      </mat-card>
-      <mat-card>
-        <mat-card-header>
-          <mat-card-title i18n="@@admin.productFeedback.byRole">Rollen</mat-card-title>
-        </mat-card-header>
-        <mat-card-content>
-          <ul>
-            @for (b of s.byRole; track b.key) {
-              <li>{{ b.key }}: {{ b.count }}</li>
-            }
-          </ul>
-        </mat-card-content>
-      </mat-card>
-      <mat-card>
-        <mat-card-header>
-          <mat-card-title i18n="@@admin.productFeedback.bySurveyVersion"
-            >Survey-Version</mat-card-title
-          >
-        </mat-card-header>
-        <mat-card-content>
-          <ul>
-            @for (b of s.bySurveyVersion; track b.key) {
-              <li>{{ b.key }}: {{ b.count }}</li>
-            }
-          </ul>
-        </mat-card-content>
-      </mat-card>
-      <mat-card>
-        <mat-card-header>
-          <mat-card-title i18n="@@admin.productFeedback.byAppVersion">App-Version</mat-card-title>
-        </mat-card-header>
-        <mat-card-content>
-          <ul>
-            @for (b of s.byAppVersion; track b.key) {
-              <li>{{ b.key }}: {{ b.count }}</li>
-            }
-          </ul>
-        </mat-card-content>
-      </mat-card>
-      <mat-card>
-        <mat-card-header>
-          <mat-card-title i18n="@@admin.productFeedback.byLocale">Locale (≥5)</mat-card-title>
-        </mat-card-header>
-        <mat-card-content>
-          <ul>
-            @for (b of s.byLocale; track b.key) {
-              <li>{{ b.key }}: {{ b.count }}</li>
-            }
-          </ul>
-        </mat-card-content>
-      </mat-card>
-      <mat-card>
-        <mat-card-header>
-          <mat-card-title i18n="@@admin.productFeedback.bySize">Sessiongröße (≥5)</mat-card-title>
-        </mat-card-header>
-        <mat-card-content>
-          <ul>
-            @for (b of s.bySessionSizeClass; track b.key) {
-              <li>{{ b.key }}: {{ b.count }}</li>
-            }
-          </ul>
-        </mat-card-content>
-      </mat-card>
-      <mat-card>
-        <mat-card-header>
-          <mat-card-title i18n="@@admin.productFeedback.byDevice">Geräteklasse (≥5)</mat-card-title>
-        </mat-card-header>
-        <mat-card-content>
-          <ul>
-            @for (b of s.byDeviceClass; track b.key) {
-              <li>{{ b.key }}: {{ b.count }}</li>
-            }
-          </ul>
-        </mat-card-content>
-      </mat-card>
-    </div>
+      <h3 class="admin-pf__section-title" i18n="@@admin.productFeedback.sectionAnswers">
+        Einschätzungen
+      </h3>
 
-    @if (s.bySurveyAndPrimary.length > 0) {
-      <mat-card>
-        <mat-card-header>
-          <mat-card-title i18n="@@admin.productFeedback.fine">Feine Segmente (≥5)</mat-card-title>
-        </mat-card-header>
-        <mat-card-content>
-          <ul>
-            @for (b of s.bySurveyAndPrimary; track b.surveyKey + b.primaryAnswer) {
-              <li>{{ b.surveyKey }} / {{ b.primaryAnswer }}: {{ b.count }}</li>
+      <div class="admin-pf__grid admin-pf__grid--primary">
+        <mat-card appearance="outlined" class="admin-pf__card admin-pf__card--wide">
+          <mat-card-header>
+            <mat-card-title i18n="@@admin.productFeedback.byPrimary">Kurzbewertung</mat-card-title>
+          </mat-card-header>
+          <mat-card-content>
+            @if (s.byPrimaryAnswer.length === 0) {
+              <p class="admin-pf__empty" i18n="@@admin.productFeedback.empty">
+                Für diese Auswahl gibt es noch keine Antworten.
+              </p>
+            } @else {
+              <ul class="admin-pf__bars">
+                @for (b of s.byPrimaryAnswer; track b.key) {
+                  <li>
+                    <div class="admin-pf__bar-meta">
+                      <span>{{ primaryAnswerLabel(b.key) }}</span>
+                      <span class="admin-pf__bar-value"
+                        >{{ b.count }}
+                        <span class="admin-pf__bar-share"
+                          >({{ formatShare(b.count, s.totals) }})</span
+                        ></span
+                      >
+                    </div>
+                    <div class="admin-pf__track" role="presentation" [attr.aria-hidden]="true">
+                      <span
+                        class="admin-pf__fill"
+                        [style.width.%]="barWidth(b.count, s.byPrimaryAnswer)"
+                      ></span>
+                    </div>
+                  </li>
+                }
+              </ul>
             }
-          </ul>
-        </mat-card-content>
-      </mat-card>
-    }
+          </mat-card-content>
+        </mat-card>
+
+        <mat-card appearance="outlined" class="admin-pf__card">
+          <mat-card-header>
+            <mat-card-title i18n="@@admin.productFeedback.byArea">Genannte Stellen</mat-card-title>
+          </mat-card-header>
+          <mat-card-content>
+            @if (s.byArea.length === 0) {
+              <p class="admin-pf__empty" i18n="@@admin.productFeedback.empty">
+                Für diese Auswahl gibt es noch keine Antworten.
+              </p>
+            } @else {
+              <ul class="admin-pf__bars">
+                @for (b of s.byArea; track b.key) {
+                  <li>
+                    <div class="admin-pf__bar-meta">
+                      <span>{{ areaLabel(b.key) }}</span>
+                      <span class="admin-pf__bar-value">{{ b.count }}</span>
+                    </div>
+                    <div class="admin-pf__track" role="presentation" aria-hidden="true">
+                      <span
+                        class="admin-pf__fill"
+                        [style.width.%]="barWidth(b.count, s.byArea)"
+                      ></span>
+                    </div>
+                  </li>
+                }
+              </ul>
+            }
+          </mat-card-content>
+        </mat-card>
+      </div>
+
+      <div class="admin-pf__grid">
+        <mat-card appearance="outlined" class="admin-pf__card">
+          <mat-card-header>
+            <mat-card-title i18n="@@admin.productFeedback.bySurvey">Nach Frage</mat-card-title>
+          </mat-card-header>
+          <mat-card-content>
+            @if (s.bySurveyKey.length === 0) {
+              <p class="admin-pf__empty" i18n="@@admin.productFeedback.empty">
+                Für diese Auswahl gibt es noch keine Antworten.
+              </p>
+            } @else {
+              <ul class="admin-pf__bars">
+                @for (b of s.bySurveyKey; track b.key) {
+                  <li>
+                    <div class="admin-pf__bar-meta">
+                      <span>{{ surveyLabel(b.key) }}</span>
+                      <span class="admin-pf__bar-value">{{ b.count }}</span>
+                    </div>
+                    <div class="admin-pf__track" role="presentation" aria-hidden="true">
+                      <span
+                        class="admin-pf__fill"
+                        [style.width.%]="barWidth(b.count, s.bySurveyKey)"
+                      ></span>
+                    </div>
+                  </li>
+                }
+              </ul>
+            }
+          </mat-card-content>
+        </mat-card>
+
+        <mat-card appearance="outlined" class="admin-pf__card">
+          <mat-card-header>
+            <mat-card-title i18n="@@admin.productFeedback.byRole">Nach Perspektive</mat-card-title>
+          </mat-card-header>
+          <mat-card-content>
+            @if (s.byRole.length === 0) {
+              <p class="admin-pf__empty" i18n="@@admin.productFeedback.empty">
+                Für diese Auswahl gibt es noch keine Antworten.
+              </p>
+            } @else {
+              <ul class="admin-pf__bars">
+                @for (b of s.byRole; track b.key) {
+                  <li>
+                    <div class="admin-pf__bar-meta">
+                      <span>{{ roleLabel(b.key) }}</span>
+                      <span class="admin-pf__bar-value">{{ b.count }}</span>
+                    </div>
+                    <div class="admin-pf__track" role="presentation" aria-hidden="true">
+                      <span
+                        class="admin-pf__fill"
+                        [style.width.%]="barWidth(b.count, s.byRole)"
+                      ></span>
+                    </div>
+                  </li>
+                }
+              </ul>
+            }
+          </mat-card-content>
+        </mat-card>
+      </div>
+
+      <h3 class="admin-pf__section-title" i18n="@@admin.productFeedback.sectionContext">Rahmen</h3>
+      <p class="admin-pf__section-hint" i18n="@@admin.productFeedback.privacyHint">
+        Aus Datenschutzgründen erscheinen Sprache, Sessiongröße, Gerät und häufige Kombinationen
+        erst ab fünf Antworten.
+      </p>
+
+      <div class="admin-pf__grid">
+        <mat-card appearance="outlined" class="admin-pf__card">
+          <mat-card-header>
+            <mat-card-title i18n="@@admin.productFeedback.byLocale">Sprache (ab 5)</mat-card-title>
+          </mat-card-header>
+          <mat-card-content>
+            @if (s.byLocale.length === 0) {
+              <p class="admin-pf__empty" i18n="@@admin.productFeedback.emptyThreshold">
+                Noch zu wenig Antworten für eine Auswertung.
+              </p>
+            } @else {
+              <ul class="admin-pf__bars">
+                @for (b of s.byLocale; track b.key) {
+                  <li>
+                    <div class="admin-pf__bar-meta">
+                      <span>{{ localeLabel(b.key) }}</span>
+                      <span class="admin-pf__bar-value">{{ b.count }}</span>
+                    </div>
+                    <div class="admin-pf__track" role="presentation" aria-hidden="true">
+                      <span
+                        class="admin-pf__fill"
+                        [style.width.%]="barWidth(b.count, s.byLocale)"
+                      ></span>
+                    </div>
+                  </li>
+                }
+              </ul>
+            }
+          </mat-card-content>
+        </mat-card>
+
+        <mat-card appearance="outlined" class="admin-pf__card">
+          <mat-card-header>
+            <mat-card-title i18n="@@admin.productFeedback.bySize"
+              >Sessiongröße (ab 5)</mat-card-title
+            >
+          </mat-card-header>
+          <mat-card-content>
+            @if (s.bySessionSizeClass.length === 0) {
+              <p class="admin-pf__empty" i18n="@@admin.productFeedback.emptyThreshold">
+                Noch zu wenig Antworten für eine Auswertung.
+              </p>
+            } @else {
+              <ul class="admin-pf__bars">
+                @for (b of s.bySessionSizeClass; track b.key) {
+                  <li>
+                    <div class="admin-pf__bar-meta">
+                      <span>{{ sizeLabel(b.key) }}</span>
+                      <span class="admin-pf__bar-value">{{ b.count }}</span>
+                    </div>
+                    <div class="admin-pf__track" role="presentation" aria-hidden="true">
+                      <span
+                        class="admin-pf__fill"
+                        [style.width.%]="barWidth(b.count, s.bySessionSizeClass)"
+                      ></span>
+                    </div>
+                  </li>
+                }
+              </ul>
+            }
+          </mat-card-content>
+        </mat-card>
+
+        <mat-card appearance="outlined" class="admin-pf__card">
+          <mat-card-header>
+            <mat-card-title i18n="@@admin.productFeedback.byDevice">Gerät (ab 5)</mat-card-title>
+          </mat-card-header>
+          <mat-card-content>
+            @if (s.byDeviceClass.length === 0) {
+              <p class="admin-pf__empty" i18n="@@admin.productFeedback.emptyThreshold">
+                Noch zu wenig Antworten für eine Auswertung.
+              </p>
+            } @else {
+              <ul class="admin-pf__bars">
+                @for (b of s.byDeviceClass; track b.key) {
+                  <li>
+                    <div class="admin-pf__bar-meta">
+                      <span>{{ deviceLabel(b.key) }}</span>
+                      <span class="admin-pf__bar-value">{{ b.count }}</span>
+                    </div>
+                    <div class="admin-pf__track" role="presentation" aria-hidden="true">
+                      <span
+                        class="admin-pf__fill"
+                        [style.width.%]="barWidth(b.count, s.byDeviceClass)"
+                      ></span>
+                    </div>
+                  </li>
+                }
+              </ul>
+            }
+          </mat-card-content>
+        </mat-card>
+      </div>
+
+      @if (s.bySurveyAndPrimary.length > 0) {
+        <mat-card appearance="outlined" class="admin-pf__card">
+          <mat-card-header>
+            <mat-card-title i18n="@@admin.productFeedback.fine"
+              >Häufige Kombinationen (ab 5)</mat-card-title
+            >
+            <mat-card-subtitle i18n="@@admin.productFeedback.fineHint"
+              >Frage und Kurzbewertung</mat-card-subtitle
+            >
+          </mat-card-header>
+          <mat-card-content>
+            <ul class="admin-pf__bars">
+              @for (b of s.bySurveyAndPrimary; track b.surveyKey + b.primaryAnswer) {
+                <li>
+                  <div class="admin-pf__bar-meta">
+                    <span
+                      >{{ surveyLabel(b.surveyKey) }} ·
+                      {{ primaryAnswerLabel(b.primaryAnswer) }}</span
+                    >
+                    <span class="admin-pf__bar-value">{{ b.count }}</span>
+                  </div>
+                  <div class="admin-pf__track" role="presentation" aria-hidden="true">
+                    <span
+                      class="admin-pf__fill"
+                      [style.width.%]="barWidth(b.count, s.bySurveyAndPrimary)"
+                    ></span>
+                  </div>
+                </li>
+              }
+            </ul>
+          </mat-card-content>
+        </mat-card>
+      }
+    </div>
   }
 </section>
