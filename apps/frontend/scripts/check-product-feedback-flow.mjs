@@ -189,7 +189,8 @@ async function completeProductFeedbackCard(page, shotPrefix, { withMessage = fal
     return {
       fitsViewport: documentElement.scrollWidth <= documentElement.clientWidth,
       targetsLargeEnough: buttons.every((button) => {
-        const rect = button.getBoundingClientRect();
+        const touchTarget = button.querySelector('.mat-mdc-button-touch-target');
+        const rect = (touchTarget ?? button).getBoundingClientRect();
         return rect.width >= 44 && rect.height >= 44;
       }),
     };
