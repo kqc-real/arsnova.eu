@@ -8,6 +8,7 @@ const COOLDOWN_PREFIX = 'productFeedback:cooldown:v1:';
 const SUPPRESS_PREFIX = 'productFeedback:suppress:v1:';
 const OUTBOX_KEY = 'productFeedback:outbox:v1';
 const PENDING_HOST_KEY = 'productFeedback:pendingHost:v1';
+const PARTICIPANT_CLAIM_PREFIX = 'productFeedback:participantClaim:v1:';
 
 export const PRODUCT_FEEDBACK_PARTICIPANT_COOLDOWN_MS = 30 * 24 * 60 * 60 * 1000;
 export const PRODUCT_FEEDBACK_HOST_COOLDOWN_MS = 14 * 24 * 60 * 60 * 1000;
@@ -39,19 +40,18 @@ export function suppressProductFeedbackSurvey(surveyKey: string): void {
   localStorage.setItem(`${SUPPRESS_PREFIX}${surveyKey}`, '1');
 }
 
-export function isProductFeedbackInCooldown(surveyKey: string, cooldownMs: number): boolean {
+export function isProductFeedbackInCooldown(scope: string, cooldownMs: number): boolean {
   if (!canUseStorage()) return false;
-  if (isProductFeedbackSuppressed(surveyKey)) return true;
-  const raw = localStorage.getItem(`${COOLDOWN_PREFIX}${surveyKey}`);
+  const raw = localStorage.getItem(`${COOLDOWN_PREFIX}${scope}`);
   if (!raw) return false;
   const at = Number(raw);
   if (!Number.isFinite(at)) return false;
   return Date.now() - at < cooldownMs;
 }
 
-export function markProductFeedbackCooldown(surveyKey: string): void {
+export function markProductFeedbackCooldown(scope: string): void {
   if (!canUseStorage()) return;
-  localStorage.setItem(`${COOLDOWN_PREFIX}${surveyKey}`, String(Date.now()));
+  localStorage.setItem(`${COOLDOWN_PREFIX}${scope}`, String(Date.now()));
 }
 
 export function rememberPendingHostInvite(sessionCode: string): void {
@@ -103,6 +103,22 @@ export function clearPendingHostInvite(): void {
   localStorage.removeItem(PENDING_HOST_KEY);
 }
 
+export function storeProductFeedbackParticipantClaimToken(
+  sessionCode: string,
+  token: string | null | undefined,
+): void {
+  if (!canUseStorage() || !token) return;
+  localStorage.setItem(`${PARTICIPANT_CLAIM_PREFIX}${sessionCode.trim().toUpperCase()}`, token);
+}
+
+export function getProductFeedbackParticipantClaimToken(sessionCode: string): string | undefined {
+  if (!canUseStorage()) return undefined;
+  return (
+    localStorage.getItem(`${PARTICIPANT_CLAIM_PREFIX}${sessionCode.trim().toUpperCase()}`) ??
+    undefined
+  );
+}
+
 export function loadProductFeedbackOutbox(): ProductFeedbackOutboxItem[] {
   if (!canUseStorage()) return [];
   try {
@@ -141,6 +157,37 @@ export type ProductFeedbackOutboxSender = {
   followUp: (payload: Record<string, unknown>) => Promise<unknown>;
 };
 
+/** Nur echte Netzwerk-/Serverfehler bleiben retryfähig; fachliche Ablehnungen nicht. */
+export function isRetriableProductFeedbackError(err: unknown): boolean {
+  if (!err || typeof err !== 'object') return true;
+  const anyErr = err as {
+    data?: { code?: string };
+    shape?: { data?: { code?: string } };
+    message?: string;
+  };
+  const code = anyErr.data?.code ?? anyErr.shape?.data?.code;
+  if (
+    code === 'BAD_REQUEST' ||
+    code === 'UNAUTHORIZED' ||
+    code === 'FORBIDDEN' ||
+    code === 'NOT_FOUND' ||
+    code === 'CONFLICT' ||
+    code === 'PRECONDITION_FAILED' ||
+    code === 'TOO_MANY_REQUESTS'
+  ) {
+    return false;
+  }
+  const message = String(anyErr.message ?? '').toLowerCase();
+  return (
+    !code ||
+    code === 'INTERNAL_SERVER_ERROR' ||
+    code === 'TIMEOUT' ||
+    message.includes('failed to fetch') ||
+    message.includes('network') ||
+    message.includes('timeout')
+  );
+}
+
 /** Sendet vorgemerkte Payloads erneut; erfolgreiche Einträge werden entfernt. */
 export async function flushProductFeedbackOutbox(
   sender: ProductFeedbackOutboxSender,
@@ -155,11 +202,23 @@ export async function flushProductFeedbackOutbox(
       } else {
         await sender.followUp(item.payload);
       }
-    } catch {
-      remaining.push(item);
+    } catch (error) {
+      if (isRetriableProductFeedbackError(error)) remaining.push(item);
     }
   }
   saveProductFeedbackOutbox(remaining);
+}
+
+/** Globaler Reconnect-Hook; Rückgabe entfernt den Listener wieder. */
+export function installProductFeedbackOutboxOnlineRetry(
+  sender: ProductFeedbackOutboxSender,
+): () => void {
+  if (typeof window === 'undefined') return () => undefined;
+  const flush = () => {
+    void flushProductFeedbackOutbox(sender);
+  };
+  window.addEventListener('online', flush);
+  return () => window.removeEventListener('online', flush);
 }
 
 export function detectProductFeedbackDeviceClass(): ProductFeedbackDeviceClass {

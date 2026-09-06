@@ -171,6 +171,7 @@
             }
             <input
               #sessionCodeInput
+              id="home-session-code-input"
               class="home-code-segments__input"
               type="text"
               maxlength="6"
@@ -570,6 +571,7 @@
         <app-product-feedback-card
           feedbackRole="HOST"
           [sessionCode]="pfCode"
+          fallbackFocusSelector="#home-session-code-input"
           variant="sheet"
           (dismissed)="dismissHostProductFeedback()"
         />

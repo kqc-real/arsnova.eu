@@ -182,6 +182,7 @@ describe('session team mode (Story 7.1)', () => {
         sessionId: SESSION_ID,
         nickname: 'Ada',
         teamId: TEAM_A_ID,
+        productFeedbackClaimTokenHash: expect.any(String),
       },
     });
     expect(joinAdmissionMocks.awaitJoinAdmissionSlot).toHaveBeenCalledWith(SESSION_ID);
@@ -227,6 +228,7 @@ describe('session team mode (Story 7.1)', () => {
         sessionId: SESSION_ID,
         nickname: 'Ada',
         teamId: TEAM_A_ID,
+        productFeedbackClaimTokenHash: expect.any(String),
       },
     });
     expect(joinAdmissionMocks.awaitJoinAdmissionSlot).toHaveBeenCalledWith(SESSION_ID);

@@ -229,13 +229,22 @@ export const ProductFeedbackInviteClaimInputSchema = z
     sessionCode: z.string().trim().length(6),
     role: ProductFeedbackRoleEnum,
     participantId: z.uuid().optional(),
+    participantClaimToken: z.string().trim().min(32).max(128).optional(),
   })
+  .strict()
   .superRefine((value, ctx) => {
     if (value.role === 'PARTICIPANT' && !value.participantId) {
       ctx.addIssue({
         code: 'custom',
         path: ['participantId'],
         message: 'participantId ist für PARTICIPANT erforderlich.',
+      });
+    }
+    if (value.role === 'PARTICIPANT' && !value.participantClaimToken) {
+      ctx.addIssue({
+        code: 'custom',
+        path: ['participantClaimToken'],
+        message: 'participantClaimToken ist für PARTICIPANT erforderlich.',
       });
     }
   });
@@ -311,11 +320,15 @@ export const AdminProductFeedbackStatsDTOSchema = z.object({
   totals: z.number().int().nonnegative(),
   byPrimaryAnswer: z.array(AdminProductFeedbackCountBucketSchema),
   byArea: z.array(AdminProductFeedbackCountBucketSchema),
+  byPositiveArea: z.array(AdminProductFeedbackCountBucketSchema),
+  byHurdleArea: z.array(AdminProductFeedbackCountBucketSchema),
   bySurveyKey: z.array(AdminProductFeedbackCountBucketSchema),
   /** Feinere Segmente nur bei count >= PRODUCT_FEEDBACK_ADMIN_MIN_SEGMENT */
   byLocale: z.array(AdminProductFeedbackCountBucketSchema),
   bySessionSizeClass: z.array(AdminProductFeedbackCountBucketSchema),
   byDeviceClass: z.array(AdminProductFeedbackCountBucketSchema),
+  bySessionKind: z.array(AdminProductFeedbackCountBucketSchema),
+  byFeatureArea: z.array(AdminProductFeedbackCountBucketSchema),
   bySurveyAndPrimary: z.array(
     z.object({
       surveyKey: z.string(),
@@ -324,6 +337,8 @@ export const AdminProductFeedbackStatsDTOSchema = z.object({
     }),
   ),
   byRole: z.array(AdminProductFeedbackCountBucketSchema),
+  bySurveyVersion: z.array(AdminProductFeedbackCountBucketSchema),
+  byAppVersion: z.array(AdminProductFeedbackCountBucketSchema),
   invitationsIssued: z.number().int().nonnegative().nullable(),
   invitationCompletionRate: z.number().min(0).max(1).nullable(),
 });

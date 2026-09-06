@@ -51,6 +51,7 @@ import {
   isContentOverlayPath,
   rememberNonOverlayPath,
 } from './shared/content-page-nav';
+import { installProductFeedbackOutboxOnlineRetry } from './features/product-feedback/product-feedback-storage';
 
 const STORAGE_PLAYFUL_WELCOMED = 'home-playful-welcomed';
 const STORAGE_PWA_INSTALL_DISMISSED = 'pwa-install-dismissed';
@@ -171,6 +172,7 @@ export class AppComponent implements OnInit, OnDestroy {
   private versionSub: Subscription | null = null;
   private routerSub: Subscription | null = null;
   private presetSub: Subscription | null = null;
+  private removeProductFeedbackOnlineRetry: (() => void) | null = null;
   /** Browser: `setInterval` / `setTimeout` liefern `number` (nicht Node-`Timeout`). */
   private pwaUpdateIntervalId: number | null = null;
   private pwaUpdateReadyFallbackId: number | null = null;
@@ -269,6 +271,10 @@ export class AppComponent implements OnInit, OnDestroy {
       clearStaleContentPageFocusReturn();
       // Capture: Flag setzen bevor Material das Menü schließt (HostListener wäre zu spät).
       document.addEventListener('keydown', this.footerMoreEscapeCapture, true);
+      this.removeProductFeedbackOnlineRetry = installProductFeedbackOutboxOnlineRetry({
+        submit: (payload) => trpc.productFeedback.submit.mutate(payload as never),
+        followUp: (payload) => trpc.productFeedback.followUp.mutate(payload as never),
+      });
     }
     this.presetSub = this.themePreset.presetChanged$.subscribe(() => this.onPresetChanged());
     this.routerSub = this.router.events
@@ -485,6 +491,8 @@ export class AppComponent implements OnInit, OnDestroy {
     this.versionSub?.unsubscribe();
     this.routerSub?.unsubscribe();
     this.presetSub?.unsubscribe();
+    this.removeProductFeedbackOnlineRetry?.();
+    this.removeProductFeedbackOnlineRetry = null;
     this.connectionBannerRef?.destroy();
     this.connectionBannerRef = null;
     if (this.snackbarTimer) clearTimeout(this.snackbarTimer);

@@ -8173,8 +8173,8 @@
         </context-group>
       </trans-unit>
       <trans-unit id="productFeedback.addNote" datatype="html">
-        <source> Schreiben </source>
-        <target>Write a note</target>
+        <source> Anmerkung ergänzen </source>
+        <target>Add a note</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/product-feedback/product-feedback-card.component.html</context>
           <context context-type="linenumber">100,102</context>
@@ -8197,8 +8197,8 @@
         </context-group>
       </trans-unit>
       <trans-unit id="productFeedback.privacyHint" datatype="html">
-        <source> Keine Namen, Session-Codes oder personenbezogene Details. </source>
-        <target>No names, session codes, or personal details.</target>
+        <source> Keine Namen, Session-Codes, Fragen, Antworten, Q&amp;A-Inhalte oder personenbezogene Details. </source>
+        <target>No names, session codes, questions, answers, Q&amp;A content, or personal details.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/product-feedback/product-feedback-card.component.html</context>
           <context context-type="linenumber">123,125</context>
@@ -8293,8 +8293,8 @@
         </context-group>
       </trans-unit>
       <trans-unit id="productFeedback.area.orientation" datatype="html">
-        <source>Sich zurechtfinden</source>
-        <target>Finding your way around</target>
+        <source>Orientierung in der App</source>
+        <target>Orientation in the app</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/product-feedback/product-feedback-card.component.ts</context>
           <context context-type="linenumber">149</context>
@@ -8310,7 +8310,7 @@
       </trans-unit>
       <trans-unit id="productFeedback.area.qaOrQf" datatype="html">
         <source>Q&amp;A oder Blitzlicht</source>
-        <target>Q&amp;A or flashlight</target>
+        <target>Q&amp;A or quick feedback</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/product-feedback/product-feedback-card.component.ts</context>
           <context context-type="linenumber">151</context>
@@ -8381,7 +8381,7 @@
         </context-group>
       </trans-unit>
       <trans-unit id="productFeedback.area.liveControl" datatype="html">
-        <source>Live steuern</source>
+        <source>Live-Session steuern</source>
         <target>Running the live session</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/product-feedback/product-feedback-card.component.ts</context>
@@ -8437,32 +8437,32 @@
         </context-group>
       </trans-unit>
       <trans-unit id="productFeedback.q.strength" datatype="html">
-        <source>Was hat heute am besten geklappt?</source>
-        <target>What worked best today?</target>
+        <source>Was hat heute besonders gut funktioniert?</source>
+        <target>What worked especially well today?</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/product-feedback/product-feedback-card.component.ts</context>
           <context context-type="linenumber">186</context>
         </context-group>
       </trans-unit>
       <trans-unit id="productFeedback.q.hurdle" datatype="html">
-        <source>Woran hat’s am meisten gehakt?</source>
-        <target>What got in the way most?</target>
+        <source>Wo lag die größte Hürde?</source>
+        <target>Where was the biggest hurdle?</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/product-feedback/product-feedback-card.component.ts</context>
           <context context-type="linenumber">187</context>
         </context-group>
       </trans-unit>
       <trans-unit id="productFeedback.thanks" datatype="html">
-        <source>Noch einen Satz dazu?</source>
-        <target>One more sentence?</target>
+        <source>Danke! Möchtest du noch etwas ergänzen? Ein Satz genügt.</source>
+        <target>Thanks! Would you like to add anything? One sentence is enough.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/product-feedback/product-feedback-card.component.ts</context>
           <context context-type="linenumber">197</context>
         </context-group>
       </trans-unit>
       <trans-unit id="productFeedback.messageHeading" datatype="html">
-        <source>Optionaler Satz</source>
-        <target>Optional note</target>
+        <source>Anmerkung ergänzen</source>
+        <target>Add a note</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/product-feedback/product-feedback-card.component.ts</context>
           <context context-type="linenumber">199</context>
@@ -25383,8 +25383,8 @@
         <target state="translated">That didn't work. Please try again or close.</target>
       </trans-unit>
       <trans-unit id="productFeedback.status.messageRejected" datatype="html">
-        <source>Die Notiz konnte nicht gesendet werden. Bitte erneut versuchen oder schließen.</source>
-        <target state="translated">The note could not be sent. Please try again or close.</target>
+        <source>Die Anmerkung konnte nicht gesendet werden. Bitte versuche es erneut oder schließe sie.</source>
+        <target state="translated">The note could not be sent. Please try again or close it.</target>
       </trans-unit>
       <trans-unit id="productFeedback.retry" datatype="html">
         <source>Erneut versuchen</source>
@@ -25597,6 +25597,82 @@
       <trans-unit id="admin.productFeedback.locale.it" datatype="html">
         <source>Italienisch</source>
         <target state="translated">Italian</target>
+      </trans-unit>
+      <trans-unit id="admin.productFeedback.positiveAreas" datatype="html">
+        <source>Was besonders gut funktioniert</source>
+        <target>What works especially well</target>
+      </trans-unit>
+      <trans-unit id="admin.productFeedback.hurdleAreas" datatype="html">
+        <source>Wo die größten Hürden liegen</source>
+        <target>Where the biggest hurdles are</target>
+      </trans-unit>
+      <trans-unit id="admin.productFeedback.byAppVersion" datatype="html">
+        <source>App-Version (ab 5)</source>
+        <target>App version (5 or more)</target>
+      </trans-unit>
+      <trans-unit id="admin.productFeedback.bySurveyVersion" datatype="html">
+        <source>Frageversion (ab 5)</source>
+        <target>Question version (5 or more)</target>
+      </trans-unit>
+      <trans-unit id="admin.productFeedback.bySessionKind" datatype="html">
+        <source>Sessionart (ab 5)</source>
+        <target>Session type (5 or more)</target>
+      </trans-unit>
+      <trans-unit id="admin.productFeedback.byFeatureArea" datatype="html">
+        <source>Genutzte Bereiche (ab 5)</source>
+        <target>Features used (5 or more)</target>
+      </trans-unit>
+      <trans-unit id="admin.productFeedback.sessionKind.quiz" datatype="html">
+        <source>Quiz</source>
+        <target>Quiz</target>
+      </trans-unit>
+      <trans-unit id="admin.productFeedback.sessionKind.quickFeedback" datatype="html">
+        <source>Blitzlicht</source>
+        <target>Quick feedback</target>
+      </trans-unit>
+      <trans-unit id="admin.productFeedback.sessionKind.mixed" datatype="html">
+        <source>Gemischt</source>
+        <target>Mixed</target>
+      </trans-unit>
+      <trans-unit id="admin.productFeedback.sessionKind.unknown" datatype="html">
+        <source>Nicht erkannt</source>
+        <target>Unknown</target>
+      </trans-unit>
+      <trans-unit id="admin.productFeedback.feature.quiz" datatype="html">
+        <source>Quiz</source>
+        <target>Quiz</target>
+      </trans-unit>
+      <trans-unit id="admin.productFeedback.feature.qa" datatype="html">
+        <source>Q&amp;A</source>
+        <target>Q&amp;A</target>
+      </trans-unit>
+      <trans-unit id="admin.productFeedback.feature.quickFeedback" datatype="html">
+        <source>Blitzlicht</source>
+        <target>Quick feedback</target>
+      </trans-unit>
+      <trans-unit id="productFeedback.status.followUpExpired" datatype="html">
+        <source>Die Zeit für die Ergänzung ist abgelaufen. Deine Zwei-Klick-Antwort bleibt gespeichert.</source>
+        <target>The time to add a note has expired. Your two-click response is still saved.</target>
+      </trans-unit>
+      <trans-unit id="productFeedback.status.inviteExpired" datatype="html">
+        <source>Diese Einladung ist abgelaufen.</source>
+        <target>This invitation has expired.</target>
+      </trans-unit>
+      <trans-unit id="productFeedback.status.alreadyUsed" datatype="html">
+        <source>Diese Einladung wurde bereits verwendet.</source>
+        <target>This invitation has already been used.</target>
+      </trans-unit>
+      <trans-unit id="productFeedback.status.rateLimited" datatype="html">
+        <source>Gerade sind viele Rückmeldungen unterwegs. Bitte versuche es gleich noch einmal.</source>
+        <target>Many responses are being sent right now. Please try again shortly.</target>
+      </trans-unit>
+      <trans-unit id="productFeedback.status.notAllowed" datatype="html">
+        <source>Diese Rückmeldung kann nicht gesendet werden.</source>
+        <target>This response cannot be sent.</target>
+      </trans-unit>
+      <trans-unit id="productFeedback.status.claimFailed" datatype="html">
+        <source>Die Frage konnte nicht geladen werden. Bitte versuche es erneut oder schließe sie.</source>
+        <target>The question could not be loaded. Please try again or close it.</target>
       </trans-unit>
     </body>
   </file>

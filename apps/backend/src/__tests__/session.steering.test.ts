@@ -18,6 +18,10 @@ const { prismaMock, hostAuthMocks, readingReadyMocks, platformStatisticMocks, lo
       bonusToken: {
         createMany: vi.fn(),
       },
+      productFeedbackInviteJob: {
+        upsert: vi.fn(),
+        updateMany: vi.fn(),
+      },
       $executeRaw: vi.fn(),
       $transaction: vi.fn(),
     },

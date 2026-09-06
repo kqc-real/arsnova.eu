@@ -53,9 +53,9 @@ export const RATE_LIMIT_ENV = {
   productFeedbackClaimGlobalPerMinute:
     Number(process.env['RATE_LIMIT_PRODUCT_FEEDBACK_CLAIM_GLOBAL_PER_MINUTE']) || 6000,
   productFeedbackMutatePerIpPerMinute:
-    Number(process.env['RATE_LIMIT_PRODUCT_FEEDBACK_MUTATE_PER_IP_PER_MINUTE']) || 300,
+    Number(process.env['RATE_LIMIT_PRODUCT_FEEDBACK_MUTATE_PER_IP_PER_MINUTE']) || 1200,
   productFeedbackMutateGlobalPerMinute:
-    Number(process.env['RATE_LIMIT_PRODUCT_FEEDBACK_MUTATE_GLOBAL_PER_MINUTE']) || 3000,
+    Number(process.env['RATE_LIMIT_PRODUCT_FEEDBACK_MUTATE_GLOBAL_PER_MINUTE']) || 12000,
   quizUploadAttemptPerIpPerHour: boundedPositiveIntegerEnv(
     'RATE_LIMIT_QUIZ_UPLOAD_ATTEMPT_PER_IP_PER_HOUR',
     QUIZ_UPLOAD_ATTEMPT_PER_IP_PER_WINDOW_DEFAULT,

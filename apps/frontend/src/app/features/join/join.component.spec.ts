@@ -429,6 +429,7 @@ describe('JoinComponent', () => {
       nickname: 'Ada Yonath',
       anonymousClientId: ANONYMOUS_CLIENT_ID,
       rejoinToken: undefined,
+      productFeedbackClaimToken: undefined,
     });
     expect(consumeParticipantJoinArrival('ABC123')).toBe(true);
     expect(navSpy).toHaveBeenCalledWith(['session', 'ABC123', 'vote']);
@@ -492,6 +493,7 @@ describe('JoinComponent', () => {
       nickname: longNickname.slice(0, 30),
       anonymousClientId: ANONYMOUS_CLIENT_ID,
       rejoinToken: undefined,
+      productFeedbackClaimToken: undefined,
     });
     expect(navSpy).toHaveBeenCalledWith(['session', 'ABC123', 'vote']);
   });
@@ -513,6 +515,7 @@ describe('JoinComponent', () => {
       nickname: 'Ada Yonath',
       anonymousClientId: ANONYMOUS_CLIENT_ID,
       rejoinToken: participantIds.existing,
+      productFeedbackClaimToken: undefined,
     });
   });
 
@@ -571,6 +574,7 @@ describe('JoinComponent', () => {
       anonymousClientId: ANONYMOUS_CLIENT_ID,
       teamId: 'team-b',
       rejoinToken: undefined,
+      productFeedbackClaimToken: undefined,
     });
     expect(navSpy).toHaveBeenCalledWith(['session', 'ABC123', 'vote']);
   });

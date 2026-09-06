@@ -4,7 +4,7 @@
  *
  * Ablauf:
  *  1. Quiz/Session anlegen, 3 Teilnehmende joinen und abstimmen (Stichprobe ≥1)
- *  2. Session serverseitig beenden (Invite-Ausstellung await), Host-Pending setzen → Home-Sheet
+ *  2. Session über die Host-UI beenden und zur Startseite zurückkehren → Home-Sheet
  *  3. Deterministisch gewählte:r Teilnehmende:r sieht die Karte am Session-Ende
  *  4. Beide Rollen: Zwei-Klick → Schreiben → Freitext-Screenshots → Senden
  *     Screenshots unterwegs (inkl. leeres/gefülltes Textfeld)
@@ -139,38 +139,6 @@ async function injectHostToken(page, code, hostToken) {
   );
 }
 
-async function prepareHostHomeForProductFeedback(page, code, hostToken) {
-  await page.evaluate(
-    ({ sessionCode, token, prefix }) => {
-      for (const key of Object.keys(globalThis.localStorage)) {
-        if (key.startsWith('productFeedback:')) {
-          globalThis.localStorage.removeItem(key);
-        }
-      }
-      globalThis.sessionStorage.setItem(`${prefix}${sessionCode}`, token);
-      globalThis.localStorage.setItem(
-        'productFeedback:pendingHost:v1',
-        JSON.stringify({ sessionCode, storedAt: Date.now() }),
-      );
-    },
-    { sessionCode: code, token: hostToken, prefix: HOST_TOKEN_STORAGE_PREFIX },
-  );
-}
-
-async function injectParticipantToken(page, code, participantId) {
-  await page.addInitScript(
-    ({ sessionCode, pid }) => {
-      globalThis.localStorage.setItem(`arsnova-participant-${sessionCode}`, pid);
-      for (const key of Object.keys(globalThis.localStorage)) {
-        if (key.startsWith('productFeedback:')) {
-          globalThis.localStorage.removeItem(key);
-        }
-      }
-    },
-    { sessionCode: code, pid: participantId },
-  );
-}
-
 async function shot(page, name) {
   const path = join(ARTIFACT_DIR, `${name}.png`);
   await page.screenshot({ path, fullPage: true });
@@ -213,6 +181,23 @@ async function completeProductFeedbackCard(page, shotPrefix, { withMessage = fal
     (await card.locator('#product-feedback-heading').count()) > 0,
     'ProductFeedback-Überschrift fehlt',
   );
+  const priorViewport = page.viewportSize() ?? DESKTOP;
+  await page.setViewportSize({ width: 320, height: 800 });
+  const layout = await card.evaluate((element) => {
+    const buttons = [...element.querySelectorAll('button')];
+    const documentElement = element.ownerDocument.documentElement;
+    return {
+      fitsViewport: documentElement.scrollWidth <= documentElement.clientWidth,
+      targetsLargeEnough: buttons.every((button) => {
+        const rect = button.getBoundingClientRect();
+        return rect.width >= 44 && rect.height >= 44;
+      }),
+    };
+  });
+  ensure(layout.fitsViewport, `${shotPrefix}: horizontaler Overflow bei 320 px`);
+  ensure(layout.targetsLargeEnough, `${shotPrefix}: Touch-Ziel kleiner als 44×44 px`);
+  await shot(page, `${shotPrefix}-00-primary-320`);
+  await page.setViewportSize(priorViewport);
   await shot(page, `${shotPrefix}-01-primary`);
 
   const primaryChoices = card.locator('button.product-feedback-card__choice');
@@ -227,13 +212,17 @@ async function completeProductFeedbackCard(page, shotPrefix, { withMessage = fal
 
   await card
     .getByText(
-      /Noch einen Satz|One more sentence|Encore une phrase|Una frase más|Ancora una frase/i,
+      /Möchtest du noch etwas ergänzen|Would you like to add anything|Souhaites-tu ajouter|Quieres añadir|Vuoi aggiungere/i,
     )
     .waitFor({ state: 'visible', timeout: 20_000 });
   await shot(page, `${shotPrefix}-03-thanks`);
 
   if (withMessage) {
-    await card.getByRole('button', { name: /Schreiben|Write|Écrire|Escribir|Scrivi/i }).click();
+    await card
+      .getByRole('button', {
+        name: /Anmerkung ergänzen|Add a note|Ajouter une note|Añadir una nota|Aggiungi una nota/i,
+      })
+      .click();
     await card.locator('#product-feedback-message').waitFor({ state: 'visible', timeout: 10_000 });
     await shot(page, `${shotPrefix}-04-message-empty`);
     await card.locator('#product-feedback-message').fill('Kurzer Test-Hinweis für den Screenshot.');
@@ -282,24 +271,46 @@ async function main() {
   const hostTrpc = createHostTrpc(hostToken);
   logStep('Session', code);
 
+  const browser = await launchBrowser();
+  const hostContext = await browser.newContext({ viewport: DESKTOP });
+  const hostPage = await hostContext.newPage();
   const participants = [];
-  let sessionId = null;
   for (let i = 0; i < 3; i += 1) {
-    const joined = await publicTrpc.session.join.mutate({
-      code,
-      nickname: `PfE2E${i + 1}`,
-      anonymousClientId: globalThis.crypto.randomUUID(),
+    const context = await browser.newContext({ viewport: DESKTOP });
+    const page = await context.newPage();
+    const nickname = `PfE2E${i + 1}`;
+    await page.goto(`${BASE_URL}/join/${code}`, {
+      waitUntil: 'domcontentloaded',
+      timeout: 30_000,
     });
-    ensure(typeof joined.participantId === 'string', `join ${i} ohne participantId`);
-    sessionId = joined.id;
+    await page.locator('input[matinput]').fill(nickname);
+    await page.locator('.join-card__submit').click();
+    await page.waitForURL(new RegExp(`/session/${code}/vote`), { timeout: 20_000 });
+    const joinedState = await page.evaluate(
+      (sessionCode) => ({
+        participantId: globalThis.localStorage.getItem(`arsnova-participant-${sessionCode}`),
+        productFeedbackClaimToken: globalThis.localStorage.getItem(
+          `productFeedback:participantClaim:v1:${sessionCode}`,
+        ),
+      }),
+      code,
+    );
+    ensure(joinedState.participantId, `UI-Join ${i} ohne participantId`);
+    ensure(
+      joinedState.productFeedbackClaimToken,
+      `UI-Join ${i} ohne ProductFeedback-Besitznachweis`,
+    );
     participants.push({
-      participantId: joined.participantId,
-      rejoinToken: joined.rejoinToken || joined.participantId,
-      nickname: `PfE2E${i + 1}`,
+      participantId: joinedState.participantId,
+      productFeedbackClaimToken: joinedState.productFeedbackClaimToken,
+      nickname,
+      context,
+      page,
     });
   }
-  ensure(sessionId, 'Session-ID fehlt nach Join');
-  logStep('Joins', `${participants.length} Teilnehmende`);
+  const sessionInfo = await publicTrpc.session.getInfo.query({ code });
+  const sessionId = sessionInfo.id;
+  logStep('UI-Joins', `${participants.length} getrennte Browser-Kontexte`);
 
   const sampledIds = sampleParticipantIds(
     sessionId,
@@ -310,9 +321,7 @@ async function main() {
     participants.find((p) => p.participantId === sampledIds[0]) ?? participants[0];
   logStep('Stichprobe', invitedParticipant.nickname);
 
-  const browser = await launchBrowser();
-  const hostPage = await browser.newPage({ viewport: DESKTOP });
-  const votePage = await browser.newPage({ viewport: DESKTOP });
+  const votePage = invitedParticipant.page;
 
   try {
     await injectHostToken(hostPage, code, hostToken);
@@ -328,30 +337,33 @@ async function main() {
     const question = await publicTrpc.session.getCurrentQuestionForStudent.query({ code });
     ensure(question?.id && question.answers?.[0]?.id, 'Frage nach nextQuestion fehlt');
 
-    for (const p of participants) {
-      await publicTrpc.vote.submit.mutate({
-        sessionId,
-        participantId: p.participantId,
-        questionId: question.id,
-        answerIds: [question.answers[0].id],
-        responseTimeMs: 800 + Math.floor(Math.random() * 400),
-        round: 1,
+    for (const participant of participants) {
+      await participant.page.locator('#vote-option-0').waitFor({
+        state: 'visible',
+        timeout: 20_000,
       });
-      await new Promise((r) => setTimeout(r, 200));
+      await participant.page.locator('#vote-option-0').click();
+      await participant.page.locator('#vote-submit').click();
+      await participant.page.waitForTimeout(250);
     }
-    logStep('Votes', '3 Antworten abgegeben');
+    logStep('UI-Votes', '3 Antworten in getrennten Browser-Kontexten abgegeben');
     await shot(hostPage, '01-host-after-votes');
 
-    // Serverseitig beenden (awaitet Invite-Ausstellung); UI-Pending injizieren
-    await hostTrpc.session.end.mutate({ code });
-    logStep('session.end', 'FINISHED + Invites');
+    await hostPage.getByRole('button', { name: /Session beenden|End session/i }).click();
+    await hostPage.getByRole('button', { name: /Trotzdem verlassen|Leave anyway/i }).click();
+    await hostPage.getByRole('button', { name: /Zur Startseite|Back to home/i }).waitFor({
+      state: 'visible',
+      timeout: 20_000,
+    });
+    ensure(
+      (await hostPage.locator('[data-testid="product-feedback-card"]').count()) === 0,
+      'ProductFeedback darf nicht im Hostresultat erscheinen',
+    );
+    logStep('UI-Sessionende', 'FINISHED + Invites');
     await shot(hostPage, '01b-host-after-api-end');
 
-    await prepareHostHomeForProductFeedback(hostPage, code, hostToken);
-    await hostPage.goto(`${BASE_URL}/`, {
-      waitUntil: 'domcontentloaded',
-      timeout: 30_000,
-    });
+    await hostPage.getByRole('button', { name: /Zur Startseite|Back to home/i }).click();
+    await hostPage.waitForURL(new RegExp(`${BASE_URL}/?$`), { timeout: 20_000 });
     await hostPage.waitForTimeout(1500);
     await dismissMotdIfPresent(hostPage);
     await shot(hostPage, '02-host-home-after-end');
@@ -367,11 +379,7 @@ async function main() {
     logStep('Host-Sheet', 'ProductFeedback sichtbar');
     await completeProductFeedbackCard(hostPage, 'host', { withMessage: true });
 
-    await injectParticipantToken(votePage, code, invitedParticipant.rejoinToken);
-    await votePage.goto(`${BASE_URL}/session/${code}/vote`, {
-      waitUntil: 'domcontentloaded',
-      timeout: 30_000,
-    });
+    await votePage.reload({ waitUntil: 'domcontentloaded', timeout: 30_000 });
     await votePage.waitForTimeout(2000);
     await shot(votePage, '10-vote-session-end');
 
@@ -410,6 +418,14 @@ async function main() {
     });
     logStep('Vote-Karte', 'ProductFeedback inline sichtbar');
     await completeProductFeedbackCard(votePage, 'vote', { withMessage: true });
+
+    const exportData = await hostTrpc.session.getExportData.query({ code });
+    const exportJson = JSON.stringify(exportData);
+    ensure(
+      !/productFeedback|followUpCapability|inviteFingerprint/i.test(exportJson),
+      'ProductFeedback ist im Sessionexport enthalten',
+    );
+    logStep('Export-Abgrenzung', 'keine ProductFeedback-Felder im Sessionexport');
 
     const continueHome = votePage.getByRole('button', {
       name: /Zur Startseite|Back to home|Accueil|Inicio/i,

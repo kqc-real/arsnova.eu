@@ -3886,6 +3886,7 @@ describe('SessionVoteComponent', { timeout: 30_000 }, () => {
         /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i,
       ),
       rejoinToken: undefined,
+      productFeedbackClaimToken: undefined,
     });
     expect(localStorage.getItem('arsnova-nickname-ABC123')).toBe('Grüner Frosch 2');
     expect(qaSubmitMutateMock).toHaveBeenCalledWith({
