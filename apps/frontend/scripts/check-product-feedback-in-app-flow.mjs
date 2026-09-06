@@ -30,6 +30,9 @@ const DESKTOP = { width: 1280, height: 900 };
 const MOBILE = { width: 390, height: 844 };
 const IMPROVE_NAME =
   /arsnova\.eu verbessern|improve arsnova\.eu|améliorer arsnova\.eu|mejorar arsnova\.eu|migliorare arsnova\.eu/i;
+const DONE_NAME = /Fertig|Done|Terminer|Listo|Fine|Fatto/i;
+const REVEAL_RESULTS_NAME =
+  /Ergebnis zeigen|Show results|Afficher le résultat|Mostrar resultado|Mostra risultato/i;
 
 const QUIZ_PAYLOAD = {
   name: `Product Feedback In-App E2E ${Date.now()}`,
@@ -212,10 +215,10 @@ async function completeTwoClick(page, shotPrefix) {
   await shot(page, `${shotPrefix}-02-area`);
   await surface.locator('button.product-feedback-in-app-dialog__choice--area').first().click();
   await surface
-    .getByRole('button', { name: /Fertig|Done|Terminer|Listo|Fine/i })
+    .getByRole('button', { name: DONE_NAME })
     .waitFor({ state: 'visible', timeout: 20_000 });
   await shot(page, `${shotPrefix}-03-saved`);
-  await surface.getByRole('button', { name: /Fertig|Done|Terminer|Listo|Fine/i }).click();
+  await surface.getByRole('button', { name: DONE_NAME }).click();
   await surface.waitFor({ state: 'hidden', timeout: 15_000 });
   logStep(shotPrefix, 'Zwei-Klick gespeichert');
 }
@@ -294,22 +297,19 @@ async function main() {
     await hostPage.waitForTimeout(1000);
     await closeHostJoinOverlay(hostPage);
 
-    // Immersive Utility (Default) oder Footer-Fallback
-    if (
-      await hostPage
-        .locator('.session-host__product-feedback-utility')
-        .isVisible()
-        .catch(() => false)
-    ) {
-      await openImprove(hostPage);
-      await shot(hostPage, '03-host-immersive-open');
-      await closeDialog(hostPage);
-      logStep('Host-Utility', 'immersiv sichtbar');
-    } else {
-      await openImprove(hostPage, { viaFooter: true });
-      await closeDialog(hostPage);
-      logStep('Host-Utility', 'Footer-Fallback');
-    }
+    // Immersive Host-Utility ist Pflicht für Story 12.2 (kein Footer-Fallback)
+    const immersiveUtility = hostPage.locator('.session-host__product-feedback-utility');
+    await immersiveUtility.waitFor({ state: 'visible', timeout: 20_000 });
+    await immersiveUtility.getByRole('button', { name: IMPROVE_NAME }).click();
+    await dialog(hostPage).waitFor({ state: 'visible', timeout: 15_000 });
+    const immersiveIcon = dialog(hostPage).locator('.product-feedback-in-app-dialog__brand-icon');
+    ensure(
+      (await immersiveIcon.textContent())?.trim() === 'insights',
+      'In-App-Dialog-Icon ist nicht insights',
+    );
+    await shot(hostPage, '03-host-immersive-open');
+    await closeDialog(hostPage);
+    logStep('Host-Utility', 'immersiv sichtbar und geklickt');
 
     const joinContext = await browser.newContext({ viewport: DESKTOP });
     const joinPage = await joinContext.newPage();
@@ -365,12 +365,20 @@ async function main() {
     );
     logStep('Zwei-Client ACTIVE', 'Dialog geschlossen und Vote erfolgreich');
 
-    // Hoststeuerung bleibt intakt (Reveal über Token-API, Host-Seite bleibt geladen)
-    await hostTrpc.session.revealResults.mutate({ code });
-    await hostPage.waitForTimeout(800);
+    // Hoststeuerung bleibt intakt: Reveal über UI-Button, DOM zeigt Ergebnisse
+    const revealButton = hostPage.getByRole('button', { name: REVEAL_RESULTS_NAME }).first();
+    await revealButton.waitFor({ state: 'visible', timeout: 20_000 });
+    await revealButton.click();
+    const hostShowsResults = await hostPage
+      .getByText(/Ergebnisse|Results|Résultats|Resultados|Risultati|100\s*%/i)
+      .first()
+      .waitFor({ state: 'visible', timeout: 20_000 })
+      .then(() => true)
+      .catch(() => false);
+    ensure(hostShowsResults, 'Host-UI zeigt nach Reveal keine Ergebnisse');
     ensure(!hostPage.isClosed(), 'Host-Seite nach Reveal unerwartet geschlossen');
     await shot(hostPage, '06-host-after-vote');
-    logStep('Hoststeuerung', 'weiter bedienbar');
+    logStep('Hoststeuerung', 'Reveal-Button bedienbar, Ergebnisse sichtbar');
 
     // Presenter ohne CTA
     const presentContext = await browser.newContext({ viewport: DESKTOP });
