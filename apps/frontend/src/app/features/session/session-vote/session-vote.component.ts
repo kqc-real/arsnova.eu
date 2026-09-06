@@ -3196,6 +3196,12 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
           const prevRound = this.currentRound();
           const newRound = data.currentRound ?? 1;
           this.status.set(data.status as SessionStatus);
+          if (data.currentQuestion !== null) {
+            this.sessionSettings.update((settings) => ({
+              ...settings,
+              quizStarted: true,
+            }));
+          }
           if (data.pausedFromStatus !== undefined) {
             this.sessionSettings.update((settings) => ({
               ...settings,
@@ -4292,6 +4298,12 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
         this.currentQuestion.set({ ...q, answers: prevAnswers } as CurrentQuestion);
       } else {
         this.currentQuestion.set(q);
+      }
+      if (q && this.sessionSettings().quizStarted !== true) {
+        this.sessionSettings.update((settings) => ({
+          ...settings,
+          quizStarted: true,
+        }));
       }
       this.ensureActiveChannel();
 
