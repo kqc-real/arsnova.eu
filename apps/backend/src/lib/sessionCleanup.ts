@@ -12,6 +12,7 @@ import {
   retryPendingProductFeedbackInviteJobs,
 } from './productFeedbackInvite';
 import {
+  cleanupProductFeedbackInviteJobs,
   cleanupProductFeedbackMessages,
   cleanupProductFeedbackRecords,
 } from './productFeedbackCleanup';
@@ -61,18 +62,25 @@ export async function cleanupStaleSessions(): Promise<number> {
   if (stale.length === 0) return 0;
 
   const ids = stale.map((s) => s.id);
-  const result = await prisma.session.updateMany({
-    where: {
-      id: { in: ids },
-      status: { in: [...ACTIVE_SESSION_STATUSES] },
-    },
-    data: {
-      status: 'FINISHED',
-      endedAt: now,
-      statusChangedAt: now,
-      currentQuestion: null,
-      currentRound: 1,
-    },
+  const result = await prisma.$transaction(async (tx) => {
+    const updated = await tx.session.updateMany({
+      where: {
+        id: { in: ids },
+        status: { in: [...ACTIVE_SESSION_STATUSES] },
+      },
+      data: {
+        status: 'FINISHED',
+        endedAt: now,
+        statusChangedAt: now,
+        currentQuestion: null,
+        currentRound: 1,
+      },
+    });
+    await tx.productFeedbackInviteJob.createMany({
+      data: ids.map((sessionId) => ({ sessionId })),
+      skipDuplicates: true,
+    });
+    return updated;
   });
 
   if (result.count > 0) {
@@ -347,6 +355,9 @@ async function runAllCleanups(): Promise<void> {
   });
   await cleanupProductFeedbackRecords().catch((err) => {
     logger.warn('ProductFeedback-Cleanup fehlgeschlagen:', (err as Error).message);
+  });
+  await cleanupProductFeedbackInviteJobs().catch((err) => {
+    logger.warn('ProductFeedback-Invite-Job-Cleanup fehlgeschlagen:', (err as Error).message);
   });
   await cleanupOrphanQuizUploads().catch((err) => {
     logger.warn('Quiz-Upload-Cleanup fehlgeschlagen:', (err as Error).message);

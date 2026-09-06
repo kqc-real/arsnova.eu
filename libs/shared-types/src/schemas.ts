@@ -3325,6 +3325,8 @@ export const JoinSessionInputSchema = z.object({
   anonymousClientId: z.uuid().optional(),
   teamId: z.uuid().optional(),
   rejoinToken: z.uuid().optional(),
+  /** Separater Besitznachweis ausschließlich für ProductFeedback-Claims. */
+  productFeedbackClaimToken: z.string().trim().min(32).max(128).optional(),
 });
 export type JoinSessionInput = z.infer<typeof JoinSessionInputSchema>;
 
@@ -3669,6 +3671,8 @@ export type SessionInfoDTO = z.infer<typeof SessionInfoDTOSchema>;
 export const JoinSessionOutputSchema = SessionInfoDTOSchema.extend({
   participantId: z.uuid(),
   rejoinToken: z.uuid(),
+  /** Nur beim neuen Join oder bei nachgewiesenem Rejoin zurückgegeben. */
+  productFeedbackClaimToken: z.string().min(32).max(128).nullable().optional(),
   teamId: z.uuid().nullable().optional(),
   teamName: z.string().nullable().optional(),
   /** Persönliche Timer-Anpassung (WCAG 2.2.1); bei Rejoin unverändert. */

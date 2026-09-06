@@ -125,7 +125,7 @@ export class ProductFeedbackInAppDialogComponent {
       if (!this.isRetriable(error)) {
         this.step.set('error');
         this.statusMessage.set(
-          $localize`:@@productFeedback.status.rejected:Deine Eingaben bleiben erhalten.`,
+          $localize`:@@productFeedback.inApp.rejected:Deine Eingaben bleiben erhalten.`,
         );
         this.focusStep();
         return;
@@ -186,7 +186,7 @@ export class ProductFeedbackInAppDialogComponent {
         this.pendingDetailRetry = true;
         this.step.set('error');
         this.statusMessage.set(
-          $localize`:@@productFeedback.status.rejected:Deine Eingaben bleiben erhalten.`,
+          $localize`:@@productFeedback.inApp.rejected:Deine Eingaben bleiben erhalten.`,
         );
         return;
       }
@@ -256,7 +256,7 @@ export class ProductFeedbackInAppDialogComponent {
       OTHER: $localize`:@@productFeedback.area.other:Etwas anderes`,
       QUIZ_LIBRARY_OR_EDITOR: $localize`:@@productFeedback.inApp.area.quizEditor:Quiz-Sammlung oder Editor`,
       SESSION_START_OR_INVITE: $localize`:@@productFeedback.inApp.area.sessionStart:Sessionstart und Einladung`,
-      LIVE_CONTROL: $localize`:@@productFeedback.area.liveControl:Live steuern`,
+      LIVE_CONTROL: $localize`:@@productFeedback.area.liveControl:Live-Session steuern`,
       RESULTS: $localize`:@@productFeedback.area.resultsHost:Ergebnisse auswerten`,
       PDF_OR_EXPORT: $localize`:@@productFeedback.area.pdfExport:PDF oder Export`,
       HOME_OR_ORIENTATION: $localize`:@@productFeedback.inApp.area.home:Start und Orientierung`,

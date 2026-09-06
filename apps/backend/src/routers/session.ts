@@ -267,7 +267,11 @@ import { pdfConcurrencyLimiter } from '../lib/pdfConcurrencyLimiter';
 import { prisma } from '../db';
 import { getRedis } from '../redis';
 import { createHostSessionToken } from '../lib/hostAuth';
-import { issueProductFeedbackInvitesAfterFinishAwait } from '../lib/productFeedbackInvite';
+import {
+  enqueueProductFeedbackInviteJob,
+  issueProductFeedbackInvitesAfterFinishAwait,
+} from '../lib/productFeedbackInvite';
+import { hashToken as hashProductFeedbackToken } from '../lib/productFeedbackTokens';
 import { checkSessionCreateRate, shouldBypassSessionCreateRate } from '../lib/rateLimit';
 import {
   buildAnswerDisplayOrderForQuiz,
@@ -6165,6 +6169,7 @@ export const sessionRouter = router({
             },
           });
           await generateBonusTokens(session, tx);
+          await enqueueProductFeedbackInviteJob(session.id, tx);
           return {
             finished: true as const,
             sessionId: session.id,
@@ -6531,6 +6536,7 @@ export const sessionRouter = router({
             },
           });
           await generateBonusTokens(session, tx);
+          await enqueueProductFeedbackInviteJob(session.id, tx);
           return {
             transitioned: true as const,
             finished: true,
@@ -7744,6 +7750,7 @@ export const sessionRouter = router({
       let assignedTeamId: string | undefined;
       let assignedTeamName: string | null = null;
       let participantId: string | null = null;
+      let productFeedbackClaimToken: string | null = null;
 
       let rejoinedTimerAccommodation: ReturnType<typeof normalizeTimerAccommodation> = 'DEFAULT';
       if (input.rejoinToken) {
@@ -7756,6 +7763,7 @@ export const sessionRouter = router({
             id: true,
             teamId: true,
             timerAccommodation: true,
+            productFeedbackClaimTokenHash: true,
             team: {
               select: {
                 name: true,
@@ -7770,6 +7778,13 @@ export const sessionRouter = router({
           rejoinedTimerAccommodation = normalizeTimerAccommodation(
             existingParticipant.timerAccommodation,
           );
+          if (
+            input.productFeedbackClaimToken &&
+            existingParticipant.productFeedbackClaimTokenHash ===
+              hashProductFeedbackToken(input.productFeedbackClaimToken)
+          ) {
+            productFeedbackClaimToken = input.productFeedbackClaimToken;
+          }
         }
       }
 
@@ -7809,12 +7824,14 @@ export const sessionRouter = router({
 
       if (!participantId) {
         await awaitJoinAdmissionSlot(session.id);
+        productFeedbackClaimToken = randomBytes(32).toString('base64url');
         try {
           const participant = await prisma.participant.create({
             data: {
               sessionId: session.id,
               nickname: trimmedNickname,
               teamId: assignedTeamId,
+              productFeedbackClaimTokenHash: hashProductFeedbackToken(productFeedbackClaimToken),
             },
           });
           participantId = participant.id;
@@ -7880,6 +7897,7 @@ export const sessionRouter = router({
         teamNames: responseProfile.teamMode ? buildEffectiveTeamNames(responseProfile) : [],
         participantId,
         rejoinToken: participantId,
+        productFeedbackClaimToken,
         teamId: assignedTeamId ?? null,
         teamName: assignedTeamName,
         timerAccommodation: rejoinedTimerAccommodation,
@@ -8122,6 +8140,7 @@ export const sessionRouter = router({
           },
         });
         await generateBonusTokens(session, tx);
+        await enqueueProductFeedbackInviteJob(session.id, tx);
       });
 
       markFinishProjectionLeaderboard(code);

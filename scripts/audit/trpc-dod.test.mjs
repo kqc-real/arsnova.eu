@@ -708,8 +708,8 @@ test('real router tree inventory follows mounted and nested routers exactly', as
   const { inventariseRouterTree } = await loadAudit();
   const procedures = inventariseRouterTree(join(repoRoot, 'apps/backend/src/routers/index.ts'));
   assert.equal(procedures.length, 135);
-  assert.equal(procedures.filter((procedure) => procedure.kind === 'query').length, 55);
-  assert.equal(procedures.filter((procedure) => procedure.kind === 'mutation').length, 72);
+  assert.equal(procedures.filter((procedure) => procedure.kind === 'query').length, 54);
+  assert.equal(procedures.filter((procedure) => procedure.kind === 'mutation').length, 73);
   assert.equal(procedures.filter((procedure) => procedure.kind === 'subscription').length, 8);
   assert.ok(procedures.some((procedure) => procedure.id === 'admin.motd.motdCreate'));
   assert.ok(procedures.some((procedure) => procedure.id === 'qa.summaryRuntime'));

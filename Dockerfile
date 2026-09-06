@@ -48,9 +48,12 @@ RUN npm run build:localize -w @arsnova/frontend
 # ─── Stage 2: Production ────────────────────────────────────────────────────
 FROM node:24-alpine@sha256:d32cdf619f63fe0471182d08996dd516c6275bb5fd31ae06e55a570bd9e1ad43 AS production
 
+ARG APP_VERSION=0.1.0
+
 WORKDIR /app
 
-ENV NODE_ENV=production
+ENV NODE_ENV=production \
+    APP_VERSION=$APP_VERSION
 
 # FROM ist per Digest unveränderlich gepinnt. apk upgrade spielt darüber hinaus
 # Security-Patches der Alpine-Pakete zum Image-Build-Zeitpunkt ein.

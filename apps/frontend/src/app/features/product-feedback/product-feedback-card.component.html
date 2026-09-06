@@ -104,14 +104,16 @@
 
       @if (step() === 'error') {
         <div class="product-feedback-card__actions">
-          <button
-            type="button"
-            matButton="filled"
-            (click)="retryLastAction()"
-            i18n="@@productFeedback.retry"
-          >
-            Erneut senden
-          </button>
+          @if (retryAvailable()) {
+            <button
+              type="button"
+              matButton="filled"
+              (click)="retryLastAction()"
+              i18n="@@productFeedback.retry"
+            >
+              Erneut senden
+            </button>
+          }
           <button
             type="button"
             matButton="text"

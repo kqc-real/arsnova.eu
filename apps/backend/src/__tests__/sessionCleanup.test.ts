@@ -19,6 +19,9 @@ const { prismaMock, platformStatisticMocks, loggerMocks } = vi.hoisted(() => ({
     sessionFeedback: {
       deleteMany: vi.fn(),
     },
+    productFeedbackInviteJob: {
+      createMany: vi.fn(),
+    },
   },
   platformStatisticMocks: {
     incrementCompletedSessionsTotal: vi.fn(),
@@ -48,6 +51,7 @@ vi.mock('../lib/productFeedbackInvite', () => ({
 vi.mock('../lib/productFeedbackCleanup', () => ({
   cleanupProductFeedbackMessages: vi.fn(async () => 0),
   cleanupProductFeedbackRecords: vi.fn(async () => 0),
+  cleanupProductFeedbackInviteJobs: vi.fn(async () => 0),
 }));
 
 import {

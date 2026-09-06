@@ -577,6 +577,7 @@ export class SessionHostComponent implements OnInit, OnDestroy {
   readonly infoLandingConfidenceLabel = $localize`:@@sessionHost.infoLandingConfidence:Selbsteinschätzung und Nachbesprechung verstehen`;
   session = signal<SessionInfoDTO | null>(null);
   readonly sessionUnavailable = signal(false);
+  private keepHostTokenOnDeactivate = false;
   /** Lobby: Live-Teilnehmerliste (Story 2.2). */
   readonly participantsPayload = signal<SessionParticipantsPayload | null>(null);
   readonly foyerArrivalChips = signal<FoyerEntranceChip[]>([]);
@@ -3937,6 +3938,7 @@ export class SessionHostComponent implements OnInit, OnDestroy {
     });
     recordServerTimeSample(session.serverTime, requestedAt);
     this.sessionUnavailable.set(false);
+    this.keepHostTokenOnDeactivate = false;
     this.session.set(session);
     this.syncQaTitleDraftFromSession();
     return session;
@@ -4494,6 +4496,7 @@ export class SessionHostComponent implements OnInit, OnDestroy {
   }
 
   private markSessionUnavailable(options?: { keepHostToken?: boolean }): void {
+    this.keepHostTokenOnDeactivate = options?.keepHostToken === true;
     this.sessionUnavailable.set(true);
     this.stopCountdown();
     this.countdownSeconds.set(null);
@@ -4776,7 +4779,7 @@ export class SessionHostComponent implements OnInit, OnDestroy {
       if (this.effectiveStatus() === 'FINISHED' && this.code) {
         try {
           await this.dismissFinishProjection();
-          this.clearSessionTokens();
+          this.clearSessionTokens({ keepHostToken: this.keepHostTokenOnDeactivate });
         } catch {
           // Token behalten, damit die Person den Dismiss nach Navigation/Relaunch erneut auslösen kann.
         }

@@ -169,20 +169,22 @@ model Session {
 
 // Ein Teilnehmer in einer Live-Session (Story 3.1, 3.2)
 model Participant {
-  id                 String            @id @default(uuid())
-  nickname           String
-  sessionId          String
-  session            Session           @relation(fields: [sessionId], references: [id], onDelete: Cascade)
-  teamId             String? // Story 7.1: Team-Zugehörigkeit (optional)
-  team               Team?             @relation(fields: [teamId], references: [id], onDelete: SetNull)
+  id                            String            @id @default(uuid())
+  nickname                      String
+  sessionId                     String
+  session                       Session           @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  /// Gehashter, teilnehmerspezifischer Besitznachweis für ProductFeedback-Claims.
+  productFeedbackClaimTokenHash String?           @unique @db.Char(64)
+  teamId                        String? // Story 7.1: Team-Zugehörigkeit (optional)
+  team                          Team?             @relation(fields: [teamId], references: [id], onDelete: SetNull)
   /// Persönliche Timer-Anpassung (WCAG 2.2.1): DEFAULT | EXTENDED | OFF
-  timerAccommodation String            @default("DEFAULT")
-  votes              Vote[]
-  bonusTokens        BonusToken[] // Story 4.6: Ausgestellte Bonus-Tokens
-  sessionFeedbacks   SessionFeedback[] // Story 4.8: Bewertungen
-  qaQuestions        QaQuestion[] // Story 8.2: Eingereichte Q&A-Fragen
-  qaUpvotes          QaUpvote[] // Story 8.3: Q&A-Upvotes
-  joinedAt           DateTime          @default(now())
+  timerAccommodation            String            @default("DEFAULT")
+  votes                         Vote[]
+  bonusTokens                   BonusToken[] // Story 4.6: Ausgestellte Bonus-Tokens
+  sessionFeedbacks              SessionFeedback[] // Story 4.8: Bewertungen
+  qaQuestions                   QaQuestion[] // Story 8.2: Eingereichte Q&A-Fragen
+  qaUpvotes                     QaUpvote[] // Story 8.3: Q&A-Upvotes
+  joinedAt                      DateTime          @default(now())
 
   @@unique([sessionId, nickname]) // Kein doppelter Nickname pro Session
   @@index([sessionId, timerAccommodation]) // Host-Fortschritt für persönliche Zeitfenster
@@ -379,42 +381,48 @@ enum ProductFeedbackAuditAction {
 
 /// Anonyme, strukturierte Produktsignale (Epic 12). Keine Session-/Personen-IDs.
 model ProductFeedback {
-  id                  String                          @id @default(uuid())
-  source              ProductFeedbackSource           @default(POST_SESSION)
-  role                ProductFeedbackRole
-  surveyKey           String?
-  surveyVersion       Int                             @default(1)
-  primaryAnswer       String?
-  feedbackKind        String?
-  area                String
-  impact              String?
-  message             String?                         @db.VarChar(500)
-  messageClearedAt    DateTime?
-  locale              String
-  appVersion          String?
-  sessionKind         String?
-  featureAreas        Json?
-  sessionSizeClass    String?
-  deviceClass         String?
-  routeGroup          String?
-  sessionPhase        String?
-  activeChannel       String?
-  browserFamily       String?
-  browserMajorVersion Int?
-  osFamily            String?
-  onlineState         String?
-  errorRequestId      String?
-  triageStatus        ProductFeedbackTriageStatus     @default(NEW)
-  quarantineStatus    ProductFeedbackQuarantineStatus @default(NONE)
-  duplicateOfId       String?
-  duplicateOf         ProductFeedback?                @relation("ProductFeedbackDuplicates", fields: [duplicateOfId], references: [id], onDelete: SetNull)
-  duplicates          ProductFeedback[]               @relation("ProductFeedbackDuplicates")
-  githubIssueNumber   Int?
-  githubIssueUrl      String?
-  resolvedInVersion   String?
-  publicResolutionUrl String?
-  createdAt           DateTime                        @default(now())
-  updatedAt           DateTime                        @default(now()) @updatedAt
+  id                      String                          @id @default(uuid())
+  /// Hash des einmaligen Invite-Tokens; verhindert DB-Duplikate über Redis-Fehler hinweg.
+  inviteFingerprint       String?                         @unique @db.Char(64)
+  /// Hash des clientseitigen Idempotency-Keys; kein Bearer und kein Personenbezug.
+  submitIdempotencyHash   String?                         @unique @db.Char(64)
+  /// Hash des Idempotency-Keys der optionalen Einmal-Ergänzung.
+  followUpIdempotencyHash String?                         @unique @db.Char(64)
+  source                  ProductFeedbackSource           @default(POST_SESSION)
+  role                    ProductFeedbackRole
+  surveyKey               String?
+  surveyVersion           Int                             @default(1)
+  primaryAnswer           String?
+  feedbackKind            String?
+  area                    String
+  impact                  String?
+  message                 String?                         @db.VarChar(500)
+  messageClearedAt        DateTime?
+  locale                  String
+  appVersion              String?
+  sessionKind             String?
+  featureAreas            Json?
+  sessionSizeClass        String?
+  deviceClass             String?
+  routeGroup              String?
+  sessionPhase            String?
+  activeChannel           String?
+  browserFamily           String?
+  browserMajorVersion     Int?
+  osFamily                String?
+  onlineState             String?
+  errorRequestId          String?
+  triageStatus            ProductFeedbackTriageStatus     @default(NEW)
+  quarantineStatus        ProductFeedbackQuarantineStatus @default(NONE)
+  duplicateOfId           String?
+  duplicateOf             ProductFeedback?                @relation("ProductFeedbackDuplicates", fields: [duplicateOfId], references: [id], onDelete: SetNull)
+  duplicates              ProductFeedback[]               @relation("ProductFeedbackDuplicates")
+  githubIssueNumber       Int?
+  githubIssueUrl          String?
+  resolvedInVersion       String?
+  publicResolutionUrl     String?
+  createdAt               DateTime                        @default(now())
+  updatedAt               DateTime                        @default(now()) @updatedAt
 
   @@index([createdAt])
   @@index([surveyKey, surveyVersion, createdAt])

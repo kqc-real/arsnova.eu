@@ -291,6 +291,7 @@
         feedbackRole="PARTICIPANT"
         [sessionCode]="code"
         [participantId]="participantId()"
+        fallbackFocusSelector="#session-end-home-button"
         variant="inline"
       />
     }
@@ -316,6 +317,7 @@
         </button>
       }
       <button
+        id="session-end-home-button"
         matButton="filled"
         type="button"
         class="vote-session-end-gate__continue vote-page__bottom-action"

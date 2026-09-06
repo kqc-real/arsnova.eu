@@ -1987,6 +1987,8 @@ jobs:
           load: true
           platforms: linux/arm64
           tags: arsnova-eu:production
+          build-args: |
+            APP_VERSION=${{ github.sha }}
           # Separater Cache-Scope, damit amd64-GHA-Cache den ARM64-Build nicht vergiftet.
           cache-from: type=gha,scope=production-arm64
           cache-to: type=gha,mode=max,scope=production-arm64

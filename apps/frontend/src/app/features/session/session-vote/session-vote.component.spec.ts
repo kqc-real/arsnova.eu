@@ -3422,6 +3422,40 @@ describe('SessionVoteComponent', { timeout: 30_000 }, () => {
     fixture.destroy();
   });
 
+  it('merkt sich nach einer gestarteten Frage den Quizstart aus dem Live-Status', () => {
+    type StatusPayload = {
+      status: string;
+      currentQuestion: number | null;
+      currentRound?: number;
+    };
+    let onStatusChanged: ((data: StatusPayload) => void) | undefined;
+    statusChangedSubscribeMock.mockImplementation(
+      (_input: unknown, observer: { onData: (data: StatusPayload) => void }) => {
+        onStatusChanged = observer.onData;
+        return { unsubscribe: vi.fn() };
+      },
+    );
+    currentQuestionQueryMock.mockResolvedValue(null);
+
+    const fixture = TestBed.createComponent(SessionVoteComponent);
+    const component = fixture.componentInstance;
+    component.sessionSettings.set({ quizStarted: false });
+    (
+      component as unknown as {
+        ensureStatusSubscription: () => void;
+      }
+    ).ensureStatusSubscription();
+
+    onStatusChanged?.({
+      status: 'QUESTION_OPEN',
+      currentQuestion: 0,
+      currentRound: 1,
+    });
+
+    expect(component.sessionFeedbackAvailable()).toBe(true);
+    fixture.destroy();
+  });
+
   it('leitet nach Session-Ende (FINISHED) zur Startseite um', async () => {
     getInfoQueryMock.mockResolvedValue({
       id: '6a8edced-5f8f-4cfa-9176-454fac9570ad',
@@ -3886,6 +3920,7 @@ describe('SessionVoteComponent', { timeout: 30_000 }, () => {
         /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i,
       ),
       rejoinToken: undefined,
+      productFeedbackClaimToken: undefined,
     });
     expect(localStorage.getItem('arsnova-nickname-ABC123')).toBe('Grüner Frosch 2');
     expect(qaSubmitMutateMock).toHaveBeenCalledWith({

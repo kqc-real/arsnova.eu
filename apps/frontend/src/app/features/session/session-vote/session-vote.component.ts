@@ -116,6 +116,10 @@ import {
 import type { Unsubscribable } from '@trpc/server/observable';
 import { FeedbackVoteComponent } from '../../feedback/feedback-vote.component';
 import { ProductFeedbackCardComponent } from '../../product-feedback/product-feedback-card.component';
+import {
+  getProductFeedbackParticipantClaimToken,
+  storeProductFeedbackParticipantClaimToken,
+} from '../../product-feedback/product-feedback-storage';
 import { ItemSelectionRowComponent } from '../../../shared/item-selection-row/item-selection-row.component';
 
 const PARTICIPANT_STORAGE_KEY = 'arsnova-participant';
@@ -828,10 +832,12 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
           nickname,
           anonymousClientId: getAnonymousClientId(),
           rejoinToken,
+          productFeedbackClaimToken: getProductFeedbackParticipantClaimToken(this.code),
         });
         if (join.timerAccommodation) {
           this.applyTimerAccommodation(join.timerAccommodation, { restartCountdown: false });
         }
+        storeProductFeedbackParticipantClaimToken(this.code, join.productFeedbackClaimToken);
         return {
           participantId: join.participantId,
           sessionId: join.id,
@@ -3221,6 +3227,12 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
           const prevRound = this.currentRound();
           const newRound = data.currentRound ?? 1;
           this.status.set(data.status as SessionStatus);
+          if (data.currentQuestion !== null) {
+            this.sessionSettings.update((settings) => ({
+              ...settings,
+              quizStarted: true,
+            }));
+          }
           if (data.pausedFromStatus !== undefined) {
             this.sessionSettings.update((settings) => ({
               ...settings,
@@ -4317,6 +4329,12 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
         this.currentQuestion.set({ ...q, answers: prevAnswers } as CurrentQuestion);
       } else {
         this.currentQuestion.set(q);
+      }
+      if (q && this.sessionSettings().quizStarted !== true) {
+        this.sessionSettings.update((settings) => ({
+          ...settings,
+          quizStarted: true,
+        }));
       }
       this.ensureActiveChannel();
 

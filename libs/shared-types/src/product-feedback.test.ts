@@ -2,9 +2,12 @@ import { describe, expect, it } from 'vitest';
 import {
   AdminProductFeedbackLinkDuplicateInputSchema,
   PRODUCT_FEEDBACK_IN_APP_MESSAGE_MAX,
+  ProductFeedbackFollowUpInputSchema,
   ProductFeedbackInAppFollowUpInputSchema,
   ProductFeedbackInAppSubmitInputSchema,
+  ProductFeedbackInviteClaimInputSchema,
   ProductFeedbackRoleEnum,
+  ProductFeedbackSubmitInputSchema,
   isInAppAreaAllowedForRole,
 } from './product-feedback';
 
@@ -28,33 +31,34 @@ describe('ProductFeedback Story 12.2 contracts', () => {
     expect(isInAppAreaAllowedForRole('PARTICIPANT', 'LIVE_CONTROL')).toBe(false);
     expect(isInAppAreaAllowedForRole('HOST', 'PDF_OR_EXPORT')).toBe(true);
     expect(isInAppAreaAllowedForRole('GENERAL', 'HELP')).toBe(true);
-
-    const parsed = ProductFeedbackInAppSubmitInputSchema.safeParse({
-      challengeToken: 'c'.repeat(43),
-      idempotencyKey: '11111111-1111-4111-8111-111111111111',
-      role: 'PARTICIPANT',
-      kind: 'NOT_WORKING',
-      area: 'LIVE_CONTROL',
-      context,
-    });
-    expect(parsed.success).toBe(false);
+    expect(
+      ProductFeedbackInAppSubmitInputSchema.safeParse({
+        challengeToken: 'c'.repeat(43),
+        idempotencyKey: '11111111-1111-4111-8111-111111111111',
+        role: 'PARTICIPANT',
+        kind: 'NOT_WORKING',
+        area: 'LIVE_CONTROL',
+        context,
+      }).success,
+    ).toBe(false);
   });
 
   it('lehnt nicht freigegebene Kontextfelder strikt ab', () => {
-    const parsed = ProductFeedbackInAppSubmitInputSchema.safeParse({
-      challengeToken: 'c'.repeat(43),
-      idempotencyKey: '11111111-1111-4111-8111-111111111111',
-      role: 'PARTICIPANT',
-      kind: 'NOT_WORKING',
-      area: 'QUIZ_OR_ANSWER',
-      context: {
-        ...context,
-        sessionCode: 'ABC123',
-        url: 'https://example.test/session/ABC123/vote',
-        nickname: 'Ada',
-      },
-    });
-    expect(parsed.success).toBe(false);
+    expect(
+      ProductFeedbackInAppSubmitInputSchema.safeParse({
+        challengeToken: 'c'.repeat(43),
+        idempotencyKey: '11111111-1111-4111-8111-111111111111',
+        role: 'PARTICIPANT',
+        kind: 'NOT_WORKING',
+        area: 'QUIZ_OR_ANSWER',
+        context: {
+          ...context,
+          sessionCode: 'ABC123',
+          url: 'https://example.test/session/ABC123/vote',
+          nickname: 'Ada',
+        },
+      }).success,
+    ).toBe(false);
   });
 
   it('begrenzt IN_APP-Freitext auf 500 Zeichen und erlaubt Impact ohne Text', () => {
@@ -86,6 +90,57 @@ describe('ProductFeedback Story 12.2 contracts', () => {
       AdminProductFeedbackLinkDuplicateInputSchema.safeParse({
         id: '33333333-3333-4333-8333-333333333333',
         duplicateOfId: '33333333-3333-4333-8333-333333333333',
+      }).success,
+    ).toBe(false);
+  });
+});
+
+describe('ProductFeedback contracts', () => {
+  it('verlangt für Teilnehmer-Claims ID und separaten Besitznachweis', () => {
+    expect(
+      ProductFeedbackInviteClaimInputSchema.safeParse({
+        sessionCode: 'ABC123',
+        role: 'PARTICIPANT',
+        participantId: '11111111-1111-4111-8111-111111111111',
+      }).success,
+    ).toBe(false);
+    expect(
+      ProductFeedbackInviteClaimInputSchema.safeParse({
+        sessionCode: 'ABC123',
+        role: 'PARTICIPANT',
+        participantId: '11111111-1111-4111-8111-111111111111',
+        participantClaimToken: 'participant-claim-token-value-1234567890',
+      }).success,
+    ).toBe(true);
+  });
+
+  it('verwirft unzulässigen Session- und Personenbezug beim Submit', () => {
+    const base = {
+      inviteToken: 'invite-token-value-123456789012345',
+      primaryAnswer: 'EASY',
+      area: 'JOIN',
+      locale: 'de',
+      deviceClass: 'DESKTOP',
+      idempotencyKey: '22222222-2222-4222-8222-222222222222',
+    };
+    expect(ProductFeedbackSubmitInputSchema.safeParse(base).success).toBe(true);
+    expect(
+      ProductFeedbackSubmitInputSchema.safeParse({
+        ...base,
+        sessionCode: 'ABC123',
+        participantId: '11111111-1111-4111-8111-111111111111',
+        questionText: 'Nicht zulässig',
+      }).success,
+    ).toBe(false);
+  });
+
+  it('begrenzt die Ergänzung auf Nachricht und Idempotency-Key', () => {
+    expect(
+      ProductFeedbackFollowUpInputSchema.safeParse({
+        followUpCapability: 'follow-up-capability-value-1234567890',
+        message: 'Kurze Ergänzung',
+        idempotencyKey: '33333333-3333-4333-8333-333333333333',
+        area: 'TECH',
       }).success,
     ).toBe(false);
   });

@@ -13,6 +13,7 @@ import {
 import { pingRedis, getRedis } from '../redis';
 import { prisma } from '../db';
 import { logger } from '../lib/logger';
+import { resolveAppVersion } from '../lib/appVersion';
 import {
   formatUtcDate,
   getUtcDayStart,
@@ -246,7 +247,7 @@ async function fetchHealthCheck() {
   return {
     status: 'ok' as const,
     timestamp: new Date().toISOString(),
-    version: '0.1.0',
+    version: resolveAppVersion(),
     redis: redisOk ? ('ok' as const) : ('unavailable' as const),
   };
 }

@@ -2,6 +2,7 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 import {
   enqueueProductFeedbackOutbox,
   flushProductFeedbackOutbox,
+  installProductFeedbackOutboxOnlineRetry,
   isProductFeedbackInCooldown,
   loadProductFeedbackOutbox,
   markProductFeedbackCooldown,
@@ -18,9 +19,10 @@ describe('product-feedback-storage', () => {
   });
 
   it('merkt Cooldown und Suppress lokal', () => {
-    expect(isProductFeedbackInCooldown('POST_SESSION_EASE_HOST_V1', 1000)).toBe(false);
-    markProductFeedbackCooldown('POST_SESSION_EASE_HOST_V1');
-    expect(isProductFeedbackInCooldown('POST_SESSION_EASE_HOST_V1', 60_000)).toBe(true);
+    expect(isProductFeedbackInCooldown('POST_SESSION_V1:HOST', 1000)).toBe(false);
+    markProductFeedbackCooldown('POST_SESSION_V1:HOST');
+    expect(isProductFeedbackInCooldown('POST_SESSION_V1:HOST', 60_000)).toBe(true);
+    expect(isProductFeedbackInCooldown('POST_SESSION_VALUE_HOST_V1', 60_000)).toBe(false);
     suppressProductFeedbackSurvey('POST_SESSION_VALUE_HOST_V1');
     expect(isProductFeedbackSuppressed('POST_SESSION_VALUE_HOST_V1')).toBe(true);
   });
@@ -99,6 +101,47 @@ describe('product-feedback-storage', () => {
     expect(loadProductFeedbackOutbox()).toHaveLength(1);
     expect(loadProductFeedbackOutbox()[0]?.payload).toEqual({ attempt: 2 });
     removeProductFeedbackOutboxItem('same');
+    expect(loadProductFeedbackOutbox()).toEqual([]);
+  });
+
+  it('sendet die Outbox beim Installieren und bei späterem Online-Event erneut', async () => {
+    enqueueProductFeedbackOutbox({
+      id: 'startup-1',
+      kind: 'submit',
+      payload: { a: 1 },
+      createdAt: Date.now(),
+    });
+    const submit = vi.fn().mockResolvedValue({ ok: true });
+    const remove = installProductFeedbackOutboxOnlineRetry({
+      submit,
+      followUp: vi.fn(),
+    });
+    await vi.waitFor(() => expect(submit).toHaveBeenCalledOnce());
+    expect(loadProductFeedbackOutbox()).toEqual([]);
+
+    enqueueProductFeedbackOutbox({
+      id: 'reconnect-1',
+      kind: 'submit',
+      payload: { a: 2 },
+      createdAt: Date.now(),
+    });
+    window.dispatchEvent(new Event('online'));
+    await vi.waitFor(() => expect(submit).toHaveBeenCalledTimes(2));
+    expect(loadProductFeedbackOutbox()).toEqual([]);
+    remove();
+  });
+
+  it('verwirft fachlich endgültig abgelehnte Outbox-Einträge', async () => {
+    enqueueProductFeedbackOutbox({
+      id: 'expired-1',
+      kind: 'submit',
+      payload: {},
+      createdAt: Date.now(),
+    });
+    await flushProductFeedbackOutbox({
+      submit: vi.fn().mockRejectedValue({ data: { code: 'NOT_FOUND' } }),
+      followUp: vi.fn(),
+    });
     expect(loadProductFeedbackOutbox()).toEqual([]);
   });
 });
