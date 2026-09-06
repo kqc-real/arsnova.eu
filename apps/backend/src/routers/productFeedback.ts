@@ -2,6 +2,7 @@
  * ProductFeedback — öffentlicher Post-Session-Kanal (Story 12.1).
  */
 import { TRPCError } from '@trpc/server';
+import { Prisma } from '@prisma/client';
 import {
   PRODUCT_FEEDBACK_FOLLOWUP_TTL_SECONDS,
   PRODUCT_FEEDBACK_INVITE_TTL_SECONDS,
@@ -22,6 +23,7 @@ import { extractHostTokenFromContext, isHostSessionTokenValid } from '../lib/hos
 import {
   claimProductFeedbackInvite,
   createFollowUpCapability,
+  finalizeFollowUpCapability,
   getIdempotentResult,
   getInvitePayloadByToken,
   finalizeInviteUsed,
@@ -31,8 +33,10 @@ import {
   releaseFollowUpReservation,
   setIdempotentResult,
   surveyDtoForKey,
+  hashToken,
 } from '../lib/productFeedbackTokens';
 import { checkProductFeedbackClaimRate, checkProductFeedbackMutateRate } from '../lib/rateLimit';
+import { resolveAppVersion } from '../lib/appVersion';
 import { publicProcedure, resolveClientIp, router, type Context } from '../trpc';
 
 async function enforceClaimRate(ctx: Context): Promise<void> {
@@ -65,7 +69,7 @@ export const productFeedbackRouter = router({
   claimInvite: publicProcedure
     .input(ProductFeedbackInviteClaimInputSchema)
     .output(ProductFeedbackInviteClaimOutputSchema)
-    .query(async ({ input, ctx }) => {
+    .mutation(async ({ input, ctx }) => {
       await enforceClaimRate(ctx);
       const code = input.sessionCode.toUpperCase();
       const session = await prisma.session.findUnique({
@@ -94,7 +98,11 @@ export const productFeedbackRouter = router({
           });
         }
         const participant = await prisma.participant.findFirst({
-          where: { id: input.participantId, sessionId: session.id },
+          where: {
+            id: input.participantId,
+            sessionId: session.id,
+            productFeedbackClaimTokenHash: hashToken(input.participantClaimToken ?? ''),
+          },
           select: { id: true },
         });
         if (!participant) {
@@ -107,6 +115,9 @@ export const productFeedbackRouter = router({
         sessionId: session.id,
         role: input.role,
         subjectId,
+        ...(input.role === 'PARTICIPANT'
+          ? { participantClaimToken: input.participantClaimToken }
+          : {}),
       });
       if (!inviteToken) return { inviteToken: null, survey: null };
       const payload = await getInvitePayloadByToken(inviteToken);
@@ -140,12 +151,56 @@ export const productFeedbackRouter = router({
     .output(ProductFeedbackSubmitOutputSchema)
     .mutation(async ({ input, ctx }) => {
       await enforceMutateRate(ctx);
+      const inviteFingerprint = hashToken(input.inviteToken);
+      const submitIdempotencyHash = hashToken(input.idempotencyKey);
+      const idempotencyKind = `submit:${inviteFingerprint}`;
 
       const cached = await getIdempotentResult<{
         ok: true;
         followUpCapability: string;
-      }>('submit', input.idempotencyKey);
+      }>(idempotencyKind, input.idempotencyKey);
       if (cached) return cached;
+
+      const finishExistingSubmit = async (row: {
+        id: string;
+        createdAt: Date;
+        inviteFingerprint: string | null;
+      }) => {
+        if (row.inviteFingerprint !== inviteFingerprint) {
+          throw new TRPCError({
+            code: 'CONFLICT',
+            message: 'Idempotency-Key gehört zu einer anderen Einladung.',
+          });
+        }
+        const storedInvite = await getInvitePayloadByToken(input.inviteToken, {
+          includeUsed: true,
+        });
+        if (storedInvite && !storedInvite.used) {
+          await finalizeInviteUsed(input.inviteToken, storedInvite);
+        }
+        const expiresAt = new Date(
+          row.createdAt.getTime() + PRODUCT_FEEDBACK_FOLLOWUP_TTL_SECONDS * 1000,
+        );
+        const followUpCapability = await createFollowUpCapability(
+          row.id,
+          input.inviteToken,
+          expiresAt,
+        );
+        const output = { ok: true as const, followUpCapability };
+        await setIdempotentResult(
+          idempotencyKind,
+          input.idempotencyKey,
+          output,
+          PRODUCT_FEEDBACK_INVITE_TTL_SECONDS,
+        );
+        return output;
+      };
+
+      const existing = await prisma.productFeedback.findUnique({
+        where: { submitIdempotencyHash },
+        select: { id: true, createdAt: true, inviteFingerprint: true },
+      });
+      if (existing) return finishExistingSubmit(existing);
 
       const payload = await getInvitePayloadByToken(input.inviteToken);
       if (!payload) {
@@ -178,6 +233,8 @@ export const productFeedbackRouter = router({
       try {
         const row = await prisma.productFeedback.create({
           data: {
+            inviteFingerprint,
+            submitIdempotencyHash,
             source: 'POST_SESSION',
             role: reserved.role,
             surveyKey: reserved.surveyKey,
@@ -185,28 +242,34 @@ export const productFeedbackRouter = router({
             primaryAnswer: input.primaryAnswer,
             area: input.area,
             locale: input.locale,
-            appVersion: input.appVersion?.slice(0, 64) ?? null,
+            appVersion: resolveAppVersion(input.appVersion),
             sessionKind: reserved.sessionKind,
             featureAreas: reserved.featureAreas,
             sessionSizeClass: reserved.sessionSizeClass,
             deviceClass: input.deviceClass,
           },
-          select: { id: true },
+          select: { id: true, createdAt: true, inviteFingerprint: true },
         });
 
         await finalizeInviteUsed(input.inviteToken, reserved);
-
-        const followUpCapability = await createFollowUpCapability(row.id);
-        const output = { ok: true as const, followUpCapability };
-        await setIdempotentResult(
-          'submit',
-          input.idempotencyKey,
-          output,
-          PRODUCT_FEEDBACK_INVITE_TTL_SECONDS,
-        );
-        return output;
+        return finishExistingSubmit(row);
       } catch (err) {
         await releaseInviteReservation(input.inviteToken);
+        if (err instanceof Prisma.PrismaClientKnownRequestError && err.code === 'P2002') {
+          const raced = await prisma.productFeedback.findFirst({
+            where: {
+              OR: [{ inviteFingerprint }, { submitIdempotencyHash }],
+            },
+            select: { id: true, createdAt: true, inviteFingerprint: true },
+          });
+          if (raced?.inviteFingerprint === inviteFingerprint) {
+            return finishExistingSubmit(raced);
+          }
+          throw new TRPCError({
+            code: 'CONFLICT',
+            message: 'Einladung wurde bereits verwendet.',
+          });
+        }
         throw err;
       }
     }),
@@ -217,8 +280,26 @@ export const productFeedbackRouter = router({
     .mutation(async ({ input, ctx }) => {
       await enforceMutateRate(ctx);
 
-      const cached = await getIdempotentResult<{ ok: true }>('followUp', input.idempotencyKey);
+      const followUpFingerprint = hashToken(input.followUpCapability);
+      const followUpIdempotencyHash = hashToken(`${followUpFingerprint}:${input.idempotencyKey}`);
+      const idempotencyKind = `followUp:${followUpFingerprint}`;
+      const cached = await getIdempotentResult<{ ok: true }>(idempotencyKind, input.idempotencyKey);
       if (cached) return cached;
+      const prior = await prisma.productFeedback.findUnique({
+        where: { followUpIdempotencyHash },
+        select: { id: true },
+      });
+      if (prior) {
+        const output = { ok: true as const };
+        await finalizeFollowUpCapability(input.followUpCapability);
+        await setIdempotentResult(
+          idempotencyKind,
+          input.idempotencyKey,
+          output,
+          PRODUCT_FEEDBACK_FOLLOWUP_TTL_SECONDS,
+        );
+        return output;
+      }
 
       const message = input.message.trim().slice(0, PRODUCT_FEEDBACK_MESSAGE_MAX);
       if (!message) {
@@ -239,7 +320,7 @@ export const productFeedbackRouter = router({
       try {
         const existing = await prisma.productFeedback.findUnique({
           where: { id: capability.feedbackId },
-          select: { id: true, message: true },
+          select: { id: true, message: true, followUpIdempotencyHash: true },
         });
         if (!existing) {
           throw new TRPCError({
@@ -247,24 +328,39 @@ export const productFeedbackRouter = router({
             message: 'Rückmeldung nicht gefunden.',
           });
         }
-        if (!existing.message) {
-          await prisma.productFeedback.update({
-            where: { id: existing.id },
-            data: { message },
+        if (existing.message && existing.followUpIdempotencyHash !== followUpIdempotencyHash) {
+          throw new TRPCError({
+            code: 'CONFLICT',
+            message: 'Diese Rückmeldung wurde bereits ergänzt.',
           });
         }
+        await prisma.productFeedback.update({
+          where: { id: existing.id },
+          data: { message, followUpIdempotencyHash },
+        });
 
         const output = { ok: true as const };
+        await finalizeFollowUpCapability(input.followUpCapability);
         await setIdempotentResult(
-          'followUp',
+          idempotencyKind,
           input.idempotencyKey,
           output,
           PRODUCT_FEEDBACK_FOLLOWUP_TTL_SECONDS,
         );
         return output;
       } catch (err) {
-        if (err instanceof TRPCError) throw err;
+        if (err instanceof TRPCError) {
+          await finalizeFollowUpCapability(input.followUpCapability);
+          throw err;
+        }
         await releaseFollowUpReservation(input.followUpCapability);
+        if (err instanceof Prisma.PrismaClientKnownRequestError && err.code === 'P2002') {
+          const raced = await prisma.productFeedback.findUnique({
+            where: { followUpIdempotencyHash },
+            select: { id: true },
+          });
+          if (raced?.id === capability.feedbackId) return { ok: true as const };
+        }
         throw err;
       }
     }),

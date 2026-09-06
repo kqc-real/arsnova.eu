@@ -173,6 +173,8 @@ model Participant {
   nickname  String
   sessionId String
   session   Session  @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  /// Gehashter, teilnehmerspezifischer Besitznachweis für ProductFeedback-Claims.
+  productFeedbackClaimTokenHash String? @unique @db.Char(64)
   teamId    String?                                  // Story 7.1: Team-Zugehörigkeit (optional)
   team      Team?    @relation(fields: [teamId], references: [id], onDelete: SetNull)
   /// Persönliche Timer-Anpassung (WCAG 2.2.1): DEFAULT | EXTENDED | OFF
@@ -355,6 +357,12 @@ enum ProductFeedbackRole {
 /// Anonyme, strukturierte Produktsignale (Story 12.1). Keine Session-/Personen-IDs.
 model ProductFeedback {
   id               String                 @id @default(uuid())
+  /// Hash des einmaligen Invite-Tokens; verhindert DB-Duplikate über Redis-Fehler hinweg.
+  inviteFingerprint String?                @unique @db.Char(64)
+  /// Hash des clientseitigen Idempotency-Keys; kein Bearer und kein Personenbezug.
+  submitIdempotencyHash String?            @unique @db.Char(64)
+  /// Hash des Idempotency-Keys der optionalen Einmal-Ergänzung.
+  followUpIdempotencyHash String?          @unique @db.Char(64)
   source           ProductFeedbackSource  @default(POST_SESSION)
   role             ProductFeedbackRole
   surveyKey        String

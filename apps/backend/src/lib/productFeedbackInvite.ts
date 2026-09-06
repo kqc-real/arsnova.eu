@@ -10,8 +10,13 @@ import { prisma } from '../db';
 import { logger } from './logger';
 import { createInviteTokensForSession } from './productFeedbackTokens';
 
-export async function enqueueProductFeedbackInviteJob(sessionId: string): Promise<void> {
-  await prisma.productFeedbackInviteJob.upsert({
+type ProductFeedbackInviteJobClient = Pick<typeof prisma, 'productFeedbackInviteJob'>;
+
+export async function enqueueProductFeedbackInviteJob(
+  sessionId: string,
+  client: ProductFeedbackInviteJobClient = prisma,
+): Promise<void> {
+  await client.productFeedbackInviteJob.upsert({
     where: { sessionId },
     create: { sessionId },
     update: {},

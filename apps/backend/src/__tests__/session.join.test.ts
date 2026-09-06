@@ -167,6 +167,7 @@ describe('session.join', () => {
         id: true,
         teamId: true,
         timerAccommodation: true,
+        productFeedbackClaimTokenHash: true,
         team: {
           select: {
             name: true,
@@ -208,11 +209,13 @@ describe('session.join', () => {
           sessionId: SESSION_ID,
           nickname: 'Ada Lovelace',
           teamId: undefined,
+          productFeedbackClaimTokenHash: expect.any(String),
         },
       });
       expect(joinAdmissionMocks.awaitJoinAdmissionSlot).toHaveBeenCalledWith(SESSION_ID);
       expect(result.participantId).toBe(PARTICIPANT_ID);
       expect(result.rejoinToken).toBe(PARTICIPANT_ID);
+      expect(result.productFeedbackClaimToken).toEqual(expect.any(String));
       expect(result.participantCount).toBe(4);
       expect(statsMocks.updateMaxParticipantsSingleSession).toHaveBeenCalledWith(4);
       expect(statsMocks.updateDailyMaxParticipants).toHaveBeenCalledWith(4);
@@ -259,6 +262,7 @@ describe('session.join', () => {
         sessionId: SESSION_ID,
         nickname: 'Late Joiner',
         teamId: undefined,
+        productFeedbackClaimTokenHash: expect.any(String),
       },
     });
     expect(prismaMock.participant.update).toHaveBeenCalledWith({

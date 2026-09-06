@@ -24,44 +24,46 @@ Navigation/Bonus. Area-Chips folgen dem Nutzungsflow (linke Spalte frühe
 Schritte, rechte Spalte später/Meta; mobil einspaltig).
 
 Fehlerzustände: Pending („Wird gesendet …“), Erfolg, Outbox-Hinweis bei
-Netzwerk/Timeout, typisierte Ablehnung mit „Erneut versuchen“ / „Schließen“.
-Outbox max. 7 Tage; abgelaufene Einträge werden aus localStorage entfernt.
+Netzwerk/Timeout und typisierte Ablehnungen für Ablauf, Einmaligkeit,
+Berechtigung und Rate-Limit. Nur technisch erneut versuchbare Fehler bieten
+„Erneut versuchen“ an. Der globale `online`-Hook sendet den lokalen Postausgang
+bei Wiederverbindung. Outbox max. 7 Tage; erfolgreiche, endgültig abgelehnte
+und abgelaufene Einträge werden aus localStorage entfernt.
 
-## Bewusste UX-Abweichungen vom Backlog-Wortlaut
-
-Die Backlog-Copy aus Story 12.1 bleibt fachliche Referenz; die produktive UI
-verwendet bewusst kürzere, idiomatische Texte nach UX-Abstimmung:
-
-| Ort                 | Backlog (sinngemäß)                                        | Umgesetzt                                                                  |
-| ------------------- | ---------------------------------------------------------- | -------------------------------------------------------------------------- |
-| Brand-Chrome        | Sichtbarer Titel „Eine Frage zu arsnova.eu“                | Titel nur als `aria-label`; sichtbare Überschrift = aktuelle Frage/Schritt |
-| Thanks              | „Danke! Möchtest du noch etwas ergänzen? Ein Satz genügt.“ | „Noch einen Satz dazu?“                                                    |
-| Freitext-CTA        | „Anmerkung ergänzen“                                       | „Schreiben“                                                                |
-| Abschluss           | längere Danke-Formulierung                                 | „Gespeichert.“ / „Fertig“                                                  |
-| Hürden-Prompt       | „Wo lag die größte Hürde?“                                 | „Woran hat’s am meisten gehakt?“                                           |
-| Stärke-Prompt       | „Was hat heute besonders gut funktioniert?“                | „Was hat heute am besten geklappt?“                                        |
-| Orientierungs-Label | „Orientierung in der App“                                  | „Sich zurechtfinden“                                                       |
-| Live-Steuerung      | „Live-Session steuern“                                     | „Live steuern“                                                             |
-| Privacy-Hinweis     | ausführlicher Lead inkl. Anonymität                        | Kurz: keine Namen/Session-Codes/personenbezogene Details                   |
-| Host-Sheet          | schlichte Karte                                            | Soft-Scrim + elevated Surface (MD3)                                        |
-
-Diese Abweichungen sind **kein** Regression-Bugfix-Ziel.
+Die Pflichttexte aus Story 12.1 werden unverändert verwendet, darunter
+„Danke! Möchtest du noch etwas ergänzen? Ein Satz genügt.“ und
+„Anmerkung ergänzen“. Vor dem Textfeld werden Namen, Session-Codes,
+personenbezogene Angaben sowie fachliche Sessioninhalte ausdrücklich
+ausgeschlossen. Beim Schließen wird der Fokus an den Auslöser beziehungsweise
+die priorisierte Folgeaktion zurückgegeben.
 
 ## Sicherheit & Retention
 
 - Invite-Tokens / Follow-up-Capabilities: Redis, SHA-256, TTL ≤24h bzw. ≤15 Min.
+- Teilnehmer-Claims benötigen zusätzlich einen beim Join ausgestellten,
+  teilnehmerspezifischen Besitznachweis. Participant-ID und Session-Code allein
+  reichen nicht.
 - Strukturiert ≤13 Monate, Freitext ≤90 Tage.
-- Finish schreibt Invite-Job in PostgreSQL; Ausstellung danach idempotent (NX-Slots);
-  Cleanup-Tick retried offene Jobs.
+- Die `FINISHED`-Transition schreibt den Invite-Job in derselben
+  PostgreSQL-Transaktion. Ausstellung und Claim sind idempotent beziehungsweise
+  per Redis-Lua atomar; PostgreSQL-Hashes von Invite und Idempotency-Key
+  verhindern Duplikate auch über Redis-/Prozessfehler hinweg.
+- Erledigte oder endgültig fehlgeschlagene Invite-Jobs werden nach sieben Tagen
+  entfernt.
 - Einladungszähler (Ledger) ohne Session-/Personen-IDs für Admin-Abschlussquote.
 - Freitext erscheint **nicht** in der Admin-Statistik-UI von 12.1.
+- Die App-Version kommt vorrangig aus `APP_VERSION` oder `GITHUB_SHA` des
+  Backends; der Clientwert ist nur ein Kompatibilitätsfallback.
 
 ## Tests / Smoke
 
 - Backend: `apps/backend/src/__tests__/productFeedback.test.ts`
-- Frontend-Storage: `product-feedback-storage.spec.ts`
+- Frontend-Komponente und Storage: `product-feedback-card.component.spec.ts`,
+  `product-feedback-storage.spec.ts`
 - E2E-Smoke: `npm run smoke:product-feedback -w @arsnova/frontend`
-  (Host-Sheet + Vote; Screenshots unter `SMOKE_ARTIFACT_DIR`, Default
+  (getrennte Browser-Kontexte für Host und drei Teilnehmende, UI-Join,
+  UI-Abstimmung, UI-Sessionende, Host-Sheet, Vote-Karte und negativer
+  Sessionexport-Nachweis; Screenshots unter `SMOKE_ARTIFACT_DIR`, Default
   `tmp/product-feedback-e2e`).
 
 ## Verwandte Docs

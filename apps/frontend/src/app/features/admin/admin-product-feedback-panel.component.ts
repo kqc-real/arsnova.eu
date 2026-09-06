@@ -1,4 +1,4 @@
-import { Component, OnInit, ViewEncapsulation, signal } from '@angular/core';
+import { Component, LOCALE_ID, OnInit, ViewEncapsulation, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { MatButton } from '@angular/material/button';
 import {
@@ -48,6 +48,11 @@ import { trpc } from '../../core/trpc.client';
   host: { class: 'admin-product-feedback-panel' },
 })
 export class AdminProductFeedbackPanelComponent implements OnInit {
+  private readonly percentFormatter = new Intl.NumberFormat(inject(LOCALE_ID), {
+    style: 'percent',
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 1,
+  });
   readonly loading = signal(false);
   readonly error = signal<string | null>(null);
   readonly stats = signal<AdminProductFeedbackStatsDTO | null>(null);
@@ -73,12 +78,11 @@ export class AdminProductFeedbackPanelComponent implements OnInit {
 
   formatRate(rate: number | null | undefined): string {
     if (rate === null || rate === undefined) return '—';
-    return `${Math.round(rate * 1000) / 10} %`;
+    return this.percentFormatter.format(rate);
   }
 
   formatShare(count: number, total: number): string {
-    if (!total) return '0 %';
-    return `${Math.round((count / total) * 1000) / 10} %`;
+    return this.percentFormatter.format(total ? count / total : 0);
   }
 
   barWidth(count: number, buckets: ReadonlyArray<{ count: number }>): number {
@@ -185,7 +189,7 @@ export class AdminProductFeedbackPanelComponent implements OnInit {
       case 'JOIN':
         return $localize`:@@productFeedback.area.join:Session beitreten`;
       case 'ORIENTATION':
-        return $localize`:@@productFeedback.area.orientation:Sich zurechtfinden`;
+        return $localize`:@@productFeedback.area.orientation:Orientierung in der App`;
       case 'ANSWER':
         return $localize`:@@productFeedback.area.answer:Antwort abgeben`;
       case 'QA_OR_QUICKFEEDBACK':
@@ -205,9 +209,37 @@ export class AdminProductFeedbackPanelComponent implements OnInit {
       case 'INVITE':
         return $localize`:@@productFeedback.area.invite:Teilnehmende einladen`;
       case 'LIVE_CONTROL':
-        return $localize`:@@productFeedback.area.liveControl:Live steuern`;
+        return $localize`:@@productFeedback.area.liveControl:Live-Session steuern`;
       case 'PDF_EXPORT':
         return $localize`:@@productFeedback.area.pdfExport:PDF oder Export`;
+      default:
+        return key;
+    }
+  }
+
+  sessionKindLabel(key: string): string {
+    switch (key) {
+      case 'QUIZ':
+        return $localize`:@@admin.productFeedback.sessionKind.quiz:Quiz`;
+      case 'QUICK_FEEDBACK':
+        return $localize`:@@admin.productFeedback.sessionKind.quickFeedback:Blitzlicht`;
+      case 'MIXED':
+        return $localize`:@@admin.productFeedback.sessionKind.mixed:Gemischt`;
+      case 'UNKNOWN':
+        return $localize`:@@admin.productFeedback.sessionKind.unknown:Nicht erkannt`;
+      default:
+        return key;
+    }
+  }
+
+  featureAreaLabel(key: string): string {
+    switch (key) {
+      case 'quiz':
+        return $localize`:@@admin.productFeedback.feature.quiz:Quiz`;
+      case 'qa':
+        return $localize`:@@admin.productFeedback.feature.qa:Q&A`;
+      case 'quickFeedback':
+        return $localize`:@@admin.productFeedback.feature.quickFeedback:Blitzlicht`;
       default:
         return key;
     }
@@ -237,11 +269,15 @@ export class AdminProductFeedbackPanelComponent implements OnInit {
 
   /** Kalendertag lokal → UTC-Tagesgrenze (wie zuvor bei `type="date"`). */
   private dayBoundIso(date: Date, endOfDay: boolean): string {
-    const y = date.getFullYear();
-    const m = String(date.getMonth() + 1).padStart(2, '0');
-    const d = String(date.getDate()).padStart(2, '0');
-    const time = endOfDay ? '23:59:59.999' : '00:00:00.000';
-    return new Date(`${y}-${m}-${d}T${time}Z`).toISOString();
+    return new Date(
+      date.getFullYear(),
+      date.getMonth(),
+      date.getDate(),
+      endOfDay ? 23 : 0,
+      endOfDay ? 59 : 0,
+      endOfDay ? 59 : 0,
+      endOfDay ? 999 : 0,
+    ).toISOString();
   }
 
   async reload(): Promise<void> {

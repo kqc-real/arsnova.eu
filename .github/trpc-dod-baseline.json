@@ -173,13 +173,13 @@
       "missing": []
     },
     "productFeedback.claimInvite": {
-      "kind": "query",
-      "fingerprint": "sha256:36456720b7055b106867abf35ecfe29655fa94b67c664b0a4654ad942a40d0ff",
+      "kind": "mutation",
+      "fingerprint": "sha256:9e921f41a4069bd6301f01371f809330670fdd822dd37b983d8d000911bda646",
       "missing": []
     },
     "productFeedback.followUp": {
       "kind": "mutation",
-      "fingerprint": "sha256:e6bf9d06caed974a8f1334b622c267d12652479909be64fce090273077f777ee",
+      "fingerprint": "sha256:3a550a276c137978f04afe26fce4e52e030c98f0a3f488a0f8069767891ce73e",
       "missing": []
     },
     "productFeedback.getSurvey": {
@@ -189,7 +189,7 @@
     },
     "productFeedback.submit": {
       "kind": "mutation",
-      "fingerprint": "sha256:6f5d76a05c2f2e65c3094e02bfce94bf98b6986cbf90a79c1e23354c93d50d47",
+      "fingerprint": "sha256:0cf6c0be6844f1648c90b08c134ca70f8b339f985e5e79e7249c04a881c1c1ec",
       "missing": []
     },
     "qa.deleteOwn": {
@@ -399,7 +399,7 @@
     },
     "session.end": {
       "kind": "mutation",
-      "fingerprint": "sha256:69d745ac8c2dae0bd20ff675657d05da099aeb4109794a83883851bc0d5eed9b",
+      "fingerprint": "sha256:242fef8725a7070cd3b7e7c6ca1b445c628c85025cfd6590cf102ef6a7f2d011",
       "missing": []
     },
     "session.getActiveQuizIds": {
@@ -544,7 +544,7 @@
     },
     "session.join": {
       "kind": "mutation",
-      "fingerprint": "sha256:f28ccc7c85aa1c34eeb0fc2a9707b36a5ec27c7a9d13e5d4115eac301ac0795c",
+      "fingerprint": "sha256:9cb78fe504674df1d74471bffc9a513b47e31b7920221156ace6c1d491bd7e0c",
       "missing": []
     },
     "session.markParticipantOffline": {
@@ -554,7 +554,7 @@
     },
     "session.nextQuestion": {
       "kind": "mutation",
-      "fingerprint": "sha256:5eecace1a6ce1414afbdc2f12ae26a20dd8478c54c8e4ec33e90177f945eb6b9",
+      "fingerprint": "sha256:1e1f8ed1c055e427115753ff1dbc813d83ec887eccd4d621fcd6840f9a998962",
       "missing": []
     },
     "session.onCurrentQuestionForHostChanged": {
@@ -634,7 +634,7 @@
     },
     "session.skipQuestion": {
       "kind": "mutation",
-      "fingerprint": "sha256:996147f8c06e77830ce9437255d723219ff6093388493300d81475051edf77da",
+      "fingerprint": "sha256:5812e0c9502be7f7002feda2ae675484ab73b00eb7e06ea5bddd14013c21a296",
       "missing": []
     },
     "session.startDiscussion": {

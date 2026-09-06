@@ -37,6 +37,10 @@ import {
   extractEdgeEmoji,
   stripEdgeEmojiMarker,
 } from '../../shared/emoji-shortcode.util';
+import {
+  getProductFeedbackParticipantClaimToken,
+  storeProductFeedbackParticipantClaimToken,
+} from '../product-feedback/product-feedback-storage';
 
 const PARTICIPANT_STORAGE_KEY = 'arsnova-participant';
 const NICKNAME_STORAGE_KEY = 'arsnova-nickname';
@@ -520,11 +524,13 @@ export class JoinComponent implements OnInit, OnDestroy {
         anonymousClientId: getAnonymousClientId(),
         teamId: this.selectedTeamId().trim() || undefined,
         rejoinToken: this.getStoredRejoinToken(),
+        productFeedbackClaimToken: getProductFeedbackParticipantClaimToken(this.code),
       });
       recordServerTimeIso(result.serverTime);
       if (typeof localStorage !== 'undefined') {
         localStorage.setItem(`${PARTICIPANT_STORAGE_KEY}-${this.code}`, result.participantId);
         localStorage.setItem(`${NICKNAME_STORAGE_KEY}-${this.code}`, nickname);
+        storeProductFeedbackParticipantClaimToken(this.code, result.productFeedbackClaimToken);
         refreshTrpcWsBinding();
       }
       this.persistConfirmedTeam(result.teamId);
@@ -553,11 +559,13 @@ export class JoinComponent implements OnInit, OnDestroy {
         anonymousClientId: getAnonymousClientId(),
         teamId: this.selectedTeamId().trim() || undefined,
         rejoinToken: this.getStoredRejoinToken(),
+        productFeedbackClaimToken: getProductFeedbackParticipantClaimToken(this.code),
       });
       recordServerTimeIso(result.serverTime);
       if (typeof localStorage !== 'undefined') {
         localStorage.setItem(`${PARTICIPANT_STORAGE_KEY}-${this.code}`, result.participantId);
         localStorage.setItem(`${NICKNAME_STORAGE_KEY}-${this.code}`, nickname);
+        storeProductFeedbackParticipantClaimToken(this.code, result.productFeedbackClaimToken);
         refreshTrpcWsBinding();
       }
       this.persistConfirmedTeam(result.teamId);

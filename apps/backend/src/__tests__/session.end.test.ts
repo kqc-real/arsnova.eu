@@ -13,6 +13,10 @@ const { prismaMock, hostAuthMocks, loadSignalMocks, platformStatisticMocks } = v
     bonusToken: {
       createMany: vi.fn(),
     },
+    productFeedbackInviteJob: {
+      upsert: vi.fn(),
+      updateMany: vi.fn(),
+    },
     $executeRaw: vi.fn(),
     $transaction: vi.fn(),
   },
@@ -88,6 +92,8 @@ describe('session.end', () => {
       currentQuestion: null,
       currentRound: 1,
     });
+    prismaMock.productFeedbackInviteJob.upsert.mockResolvedValue({});
+    prismaMock.productFeedbackInviteJob.updateMany.mockResolvedValue({ count: 1 });
   });
 
   it('vergibt keine Bonus-Codes, wenn die Session vor der letzten Frage beendet wird', async () => {
@@ -108,6 +114,14 @@ describe('session.end', () => {
     await caller.end({ code: 'ABC123' });
 
     expect(platformStatisticMocks.incrementCompletedSessionsTotal).toHaveBeenCalledWith();
+    expect(prismaMock.productFeedbackInviteJob.upsert).toHaveBeenCalledWith({
+      where: { sessionId: 'sess-1' },
+      create: { sessionId: 'sess-1' },
+      update: {},
+    });
+    expect(prismaMock.productFeedbackInviteJob.upsert.mock.invocationCallOrder[0]).toBeLessThan(
+      platformStatisticMocks.incrementCompletedSessionsTotal.mock.invocationCallOrder[0]!,
+    );
     expect(prismaMock.bonusToken.createMany).not.toHaveBeenCalled();
     expect(prismaMock.session.update).toHaveBeenCalledWith(
       expect.objectContaining({

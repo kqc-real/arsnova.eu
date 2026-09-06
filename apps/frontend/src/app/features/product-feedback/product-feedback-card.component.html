@@ -104,14 +104,16 @@
 
       @if (step() === 'error') {
         <div class="product-feedback-card__actions">
-          <button
-            type="button"
-            matButton="filled"
-            (click)="retryLastAction()"
-            i18n="@@productFeedback.retry"
-          >
-            Erneut versuchen
-          </button>
+          @if (retryAvailable()) {
+            <button
+              type="button"
+              matButton="filled"
+              (click)="retryLastAction()"
+              i18n="@@productFeedback.retry"
+            >
+              Erneut versuchen
+            </button>
+          }
           <button
             type="button"
             matButton="text"
@@ -132,7 +134,7 @@
               (click)="openMessage()"
               i18n="@@productFeedback.addNote"
             >
-              Schreiben
+              Anmerkung ergänzen
             </button>
           }
           <button type="button" matButton="text" (click)="finish()" i18n="@@productFeedback.done">
@@ -159,7 +161,8 @@
           ></textarea>
           <div class="product-feedback-card__message-meta">
             <p class="product-feedback-card__privacy" i18n="@@productFeedback.privacyHint">
-              Keine Namen, Session-Codes oder personenbezogene Details.
+              Keine Namen, Session-Codes, Fragen, Antworten, Q&A-Inhalte oder personenbezogene
+              Details.
             </p>
             <p class="product-feedback-card__counter">{{ messageLen() }} / 300</p>
           </div>
