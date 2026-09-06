@@ -210,6 +210,8 @@ export class AdminProductFeedbackPanelComponent implements OnInit {
     }
   }
 
+  private reloadGeneration = 0;
+
   onFiltersChanged(): void {
     this.syncFilterState();
     void this.reload();
@@ -231,6 +233,7 @@ export class AdminProductFeedbackPanelComponent implements OnInit {
   }
 
   async reload(): Promise<void> {
+    const generation = ++this.reloadGeneration;
     this.loading.set(true);
     this.error.set(null);
     try {
@@ -240,8 +243,10 @@ export class AdminProductFeedbackPanelComponent implements OnInit {
       if (this.fromDate) input.from = new Date(`${this.fromDate}T00:00:00.000Z`).toISOString();
       if (this.toDate) input.to = new Date(`${this.toDate}T23:59:59.999Z`).toISOString();
       const data = await trpc.admin.productFeedback.getStats.query(input);
+      if (generation !== this.reloadGeneration) return;
       this.stats.set(data);
     } catch (e) {
+      if (generation !== this.reloadGeneration) return;
       this.error.set(
         localizeKnownServerError(
           e,
@@ -249,7 +254,9 @@ export class AdminProductFeedbackPanelComponent implements OnInit {
         ),
       );
     } finally {
-      this.loading.set(false);
+      if (generation === this.reloadGeneration) {
+        this.loading.set(false);
+      }
     }
   }
 }

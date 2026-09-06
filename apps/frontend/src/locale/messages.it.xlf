@@ -25430,8 +25430,8 @@
         <target state="translated">Partecipanti</target>
       </trans-unit>
       <trans-unit id="admin.productFeedback.intro" datatype="html">
-        <source>Kurzfeedback zur Bedienbarkeit und zum Nutzen von arsnova.eu nach der Session. Die Auswertung ist anonym – ohne Freitext und ohne Personenbezug. Kleine Gruppen bleiben zum Schutz ausgeblendet (erst ab fünf Antworten).</source>
-        <target state="translated">Feedback breve su usabilità e utilità di arsnova.eu dopo una sessione. La panoramica è anonima – senza testo libero e senza riferimento personale. I gruppi piccoli restano nascosti per privacy (da cinque risposte).</target>
+        <source> Kurzfeedback zur Bedienbarkeit und zum Nutzen von arsnova.eu nach der Session. Die Auswertung ist anonym – ohne Freitext und ohne Personenbezug. </source>
+        <target state="translated">Feedback breve su usabilità e utilità di arsnova.eu dopo una sessione. La panoramica è anonima – senza testo libero e senza riferimento personale.</target>
       </trans-unit>
       <trans-unit id="admin.productFeedback.filtersLabel" datatype="html">
         <source>Filter</source>
@@ -25466,8 +25466,8 @@
         <target state="translated">Contesto</target>
       </trans-unit>
       <trans-unit id="admin.productFeedback.privacyHint" datatype="html">
-        <source>Aus Datenschutzgründen erscheinen Aufschlüsselungen erst ab fünf Antworten.</source>
-        <target state="translated">Per privacy, le suddivisioni compaiono solo a partire da cinque risposte.</target>
+        <source> Aus Datenschutzgründen erscheinen Sprache, Sessiongröße, Gerät und häufige Kombinationen erst ab fünf Antworten. </source>
+        <target state="translated">Per privacy, lingua, dimensione sessione, dispositivo e combinazioni frequenti compaiono solo a partire da cinque risposte.</target>
       </trans-unit>
       <trans-unit id="admin.productFeedback.empty" datatype="html">
         <source>Für diese Auswahl gibt es noch keine Antworten.</source>
