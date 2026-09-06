@@ -437,8 +437,6 @@ async function main() {
 
     console.log('\nProductFeedback In-App E2E bestanden.');
     console.log(`Screenshots: ${ARTIFACT_DIR}`);
-  } catch (err) {
-    throw err;
   } finally {
     await browser.close().catch(() => undefined);
   }
