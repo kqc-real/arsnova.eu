@@ -281,7 +281,7 @@ export const productFeedbackRouter = router({
       await enforceMutateRate(ctx);
 
       const followUpFingerprint = hashToken(input.followUpCapability);
-      const followUpIdempotencyHash = hashToken(input.idempotencyKey);
+      const followUpIdempotencyHash = hashToken(`${followUpFingerprint}:${input.idempotencyKey}`);
       const idempotencyKind = `followUp:${followUpFingerprint}`;
       const cached = await getIdempotentResult<{ ok: true }>(idempotencyKind, input.idempotencyKey);
       if (cached) return cached;

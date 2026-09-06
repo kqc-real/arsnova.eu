@@ -218,6 +218,7 @@ export function installProductFeedbackOutboxOnlineRetry(
     void flushProductFeedbackOutbox(sender);
   };
   window.addEventListener('online', flush);
+  flush();
   return () => window.removeEventListener('online', flush);
 }
 

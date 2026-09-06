@@ -56,9 +56,9 @@ describe('product-feedback-storage', () => {
     expect(left[0]?.id).toBe('fail-1');
   });
 
-  it('sendet die Outbox beim Online-Event erneut', async () => {
+  it('sendet die Outbox beim Installieren und bei späterem Online-Event erneut', async () => {
     enqueueProductFeedbackOutbox({
-      id: 'reconnect-1',
+      id: 'startup-1',
       kind: 'submit',
       payload: { a: 1 },
       createdAt: Date.now(),
@@ -68,8 +68,17 @@ describe('product-feedback-storage', () => {
       submit,
       followUp: vi.fn(),
     });
-    window.dispatchEvent(new Event('online'));
     await vi.waitFor(() => expect(submit).toHaveBeenCalledOnce());
+    expect(loadProductFeedbackOutbox()).toEqual([]);
+
+    enqueueProductFeedbackOutbox({
+      id: 'reconnect-1',
+      kind: 'submit',
+      payload: { a: 2 },
+      createdAt: Date.now(),
+    });
+    window.dispatchEvent(new Event('online'));
+    await vi.waitFor(() => expect(submit).toHaveBeenCalledTimes(2));
     expect(loadProductFeedbackOutbox()).toEqual([]);
     remove();
   });

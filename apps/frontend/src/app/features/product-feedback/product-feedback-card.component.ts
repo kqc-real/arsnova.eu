@@ -144,8 +144,9 @@ export class ProductFeedbackCardComponent implements OnInit, OnDestroy {
       this.moveFocusForStep();
     } catch (error) {
       if (!this.destroyed) {
-        this.pendingBootstrap = true;
-        this.retryAvailable.set(true);
+        const retryUseful = this.isActionRetryUseful(error);
+        this.pendingBootstrap = retryUseful;
+        this.retryAvailable.set(retryUseful);
         this.step.set('error');
         this.statusMessage.set(this.errorStatus(error, 'claim'));
         this.moveFocusForStep();

@@ -111,6 +111,21 @@ describe('ProductFeedbackCard', () => {
     });
   });
 
+  it('bietet bei dauerhaft abgelehntem Invite-Claim keinen wirkungslosen Retry an', async () => {
+    claimInviteMock.mockRejectedValue({ data: { code: 'UNAUTHORIZED' } });
+    const fixture = TestBed.createComponent(ProductFeedbackCardComponent);
+    fixture.componentRef.setInput('sessionCode', 'ABC123');
+    fixture.componentRef.setInput('feedbackRole', 'HOST');
+    fixture.detectChanges();
+    await vi.waitFor(() => expect(fixture.componentInstance.step()).toBe('error'));
+    fixture.detectChanges();
+
+    expect(fixture.nativeElement.textContent).toContain(
+      'Diese Rückmeldung kann nicht gesendet werden.',
+    );
+    expect(fixture.nativeElement.textContent).not.toContain('Erneut versuchen');
+  });
+
   it('zeigt eine typisierte Einmaligkeitsablehnung ohne wirkungslosen Retry', async () => {
     submitMock.mockRejectedValue({ data: { code: 'CONFLICT' } });
     const fixture = TestBed.createComponent(ProductFeedbackCardComponent);

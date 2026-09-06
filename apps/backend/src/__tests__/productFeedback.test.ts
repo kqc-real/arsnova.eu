@@ -255,14 +255,22 @@ describe('productFeedback router', () => {
     },
   );
 
-  it('bestätigt ein bereits persistiertes Follow-up auch nach verlorenem Redis-Resultat idempotent', async () => {
+  it('bindet persistierte Follow-up-Idempotenz an die verwendete Capability', async () => {
+    const capability = 'already-finalized-capability-value-123456';
+    const idempotencyKey = '99999999-9999-4999-8999-999999999999';
     prismaMock.productFeedback.findUnique.mockResolvedValueOnce({ id: 'fb-1' });
     const out = await publicCaller.followUp({
-      followUpCapability: 'already-finalized-capability-value-123456',
+      followUpCapability: capability,
       message: 'Bereits gespeichert',
-      idempotencyKey: '99999999-9999-4999-8999-999999999999',
+      idempotencyKey,
     });
     expect(out).toEqual({ ok: true });
+    expect(prismaMock.productFeedback.findUnique).toHaveBeenCalledWith({
+      where: {
+        followUpIdempotencyHash: hashToken(`${hashToken(capability)}:${idempotencyKey}`),
+      },
+      select: { id: true },
+    });
     expect(prismaMock.productFeedback.update).not.toHaveBeenCalled();
   });
 
@@ -440,7 +448,9 @@ describe('productFeedback router', () => {
         where: { id: 'fb-1' },
         data: {
           message: 'Die Vorbereitung könnte klarer sein.',
-          followUpIdempotencyHash: hashToken('66666666-6666-4666-8666-666666666666'),
+          followUpIdempotencyHash: hashToken(
+            `${hashToken(submitted.followUpCapability)}:66666666-6666-4666-8666-666666666666`,
+          ),
         },
       });
     },
