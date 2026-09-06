@@ -116,7 +116,7 @@ describe('ProductFeedbackInAppDialogComponent', () => {
     const step = fixture.nativeElement.querySelector(
       '.product-feedback-in-app-dialog__step',
     ) as HTMLElement | null;
-    expect(icon?.textContent?.trim()).toBe('feedback');
+    expect(icon?.textContent?.trim()).toBe('insights');
     expect(step?.textContent?.trim()).toBe('1/2');
     expect(
       fixture.nativeElement.querySelector('.product-feedback-in-app-dialog__choice'),
