@@ -99,6 +99,8 @@ Regeln:
   (`undo`-Icon aus dem selbst gehosteten Icon-Subset, Text/Icon `--mat-sys-on-surface-variant`).
   Kein paralleler Status-Text neben der Aktion. Neue Icon-Namen vorab gegen
   `assets/fonts/material-icons.woff2` prüfen (`mark_as_unread` fehlt dort).
+  Produktfeedback („arsnova.eu verbessern“) nutzt `insights`; MOTD behält
+  `campaign`, Session-Bewertung (4.8) behält `feedback`.
 - **Empfehlung:** Einheitlich `<div class="l-page l-section">` als Root der Feature-Komponente (oder `class="<feature>-page l-page"` wie Admin, wenn zusätzliche Feature-Styles nötig sind). So bleibt Abstand zur Toolbar (via `.app-main__content > * > .l-page:first-child`) und Innenabstand konsistent.
 - **Startseite:** Bleibt Sonderfall mit eigenem Grid/Hero; nutzt `.l-page` ohne `.l-section`. Abstand Toolbar → Hero-Band ist groesser als auf den inneren Seiten (`margin-top` 1,75–2,5 rem). Ab **960px** ist die Startseiten-`.l-page` **78rem** breit, damit Mitmachen, Blitzlicht und Veranstalten in **drei Spalten** nebeneinander Platz haben; **Blitzlicht** ist breiter (`1.4fr`) als die Seitenkarten (`1fr`), damit Chip-Icons in der Pill bleiben. Die Toolbar bleibt bei 56rem.
 

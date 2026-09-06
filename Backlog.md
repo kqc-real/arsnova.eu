@@ -6,7 +6,7 @@
 >
 > **Nächster Fokus (Auswahl offener Stories):** u. a. **2.9** (asynchrone Quiz-Modi, noch nicht beauftragt), **2.10** (vertrauenswürdige Paired Hosts), **1.2ec–1.2ed** (Kurzantwort-Ausbau), **1.14c** (Word Cloud 3.0 Q&A-Themen), **1.14d** (Freitext-Themen), **8.9c** (optionale generative Moderationszusammenfassung), **8.9d** (selbstgehosteter LLM-Server, [ADR-0035](docs/architecture/decisions/0035-self-hosted-llm-runtime-llama-cpp-over-ollama.md)) — **Epic 6** ist einschließlich der formalen WCAG-2.2-AA-Abnahme von **6.5** und der abgeschlossenen UX-Testreihen **6.6** umgesetzt ✅. **Lehre:** Greenfield-Demo **1.7a** in **3×45 Min.** — [`docs/didaktik/greenfield-demo-1-7a-vorlesung.md`](docs/didaktik/greenfield-demo-1-7a-vorlesung.md).
 >
-> **Weitere Parallelpfade:** Epic 9 ✅ (Admin: Inspektion, Löschen, Auszug für Behörden) · Epic 10 ✅ (MOTD / Plattform-Kommunikation — ADR-0018, `docs/features/motd.md`) · Epic 12 🟨 (12.1 ✅ Produktfeedback Post-Session · 12.2 ⬜ In-App + Admin-Triage)
+> **Weitere Parallelpfade:** Epic 9 ✅ (Admin: Inspektion, Löschen, Auszug für Behörden) · Epic 10 ✅ (MOTD / Plattform-Kommunikation — ADR-0018, `docs/features/motd.md`) · Epic 12 ✅ (Produktfeedback: 12.1 Post-Session · 12.2 In-App + Admin-Triage — `docs/features/product-feedback.md`)
 
 ---
 
@@ -134,8 +134,8 @@
 | 11   | 11.2  | Redaktionsbackend: Quizverwaltung (erstellen, speichern, importieren, exportieren) | 🔴   | ⬜ Offen       |
 | 11   | 11.3  | Redaktionsbackend: Veröffentlichung & Quizlink                                     | 🔴   | ⬜ Offen       |
 | 11   | 11.4  | Redaktionsbackend: Passwort/Token-Schutz & accountbezogener Gesamtexport           | 🔴   | ⬜ Offen       |
-| 12   | 12.1  | Rollenspezifisches Zwei-Klick-Produktfeedback nach Sessionende                     | 🟢   | ✅ Umgesetzt   |
-| 12   | 12.2  | Jederzeit erreichbares „arsnova.eu verbessern“ & Admin-Triage                      | 🟡   | ⬜ Offen       |
+| 12   | 12.1  | Rollenspezifisches Zwei-Klick-Produktfeedback nach Sessionende                     | 🟢   | ✅ Fertig      |
+| 12   | 12.2  | Jederzeit erreichbares „arsnova.eu verbessern“ & Admin-Triage                      | 🟡   | ✅ Fertig      |
 
 > **Repo-Abgleich (Codebase 2026-08-25):** Die weiterhin **offenen bzw. laufenden** Stories sind durch den Stand im Monorepo begründet: u. a. noch **kein** asynchroner Quizmodus mit teilnehmendenindividuellem Fortschritt, Feedback-Strategie und Host-/Presenter-Dashboard (**Story 2.9** bleibt Must, ist aber **noch nicht beauftragt** — analog Epic 11). Q&A-`moderatorView` ist ein hostgeschütztes Sichtflag und keine eigene Rolle; vertrauenswürdige Tutor:innen oder Moderator:innen sollen ausschließlich über separat widerrufbare Paired-Host-Zugänge aus **Story 2.10** delegiert werden. **Abgeschlossen** sind **0.7** (Baseline-Freigabe 2026-07-12), **0.9** (Astro 7.1.3 über W3.5 / PR [#150](https://github.com/kqc-real/arsnova.eu/pull/150)) sowie die strukturierten Fragentypen **1.2g–1.2h und 1.2j**. W3.6 / PR [#151](https://github.com/kqc-real/arsnova.eu/pull/151) liefert die externen Backups; W3.7 / PR [#154](https://github.com/kqc-real/arsnova.eu/pull/154) implementiert Monitoring-Poller und Admin-Tab, die operative Kanalabnahme bleibt offen. Die Dependabot-Policy aus PR [#160](https://github.com/kqc-real/arsnova.eu/pull/160), die Telemetrie-Ursprungstrennung aus PR [#161](https://github.com/kqc-real/arsnova.eu/pull/161) und der Blitzlicht-Ablauf-Fix aus PR [#164](https://github.com/kqc-real/arsnova.eu/pull/164) sind gemergt. **Story 0.8** (McCabe-/Komplexitätsabbau) wird **nicht weiterverfolgt**. **Story 6.5** (WCAG 2.2 AA) ist technisch weitgehend umgesetzt; die manuelle Assistive-Technology-, Zoom-, Hochkontrast- und PDF-Reader-Abnahme bleibt offen — siehe [`Accessibility-Umsetzungsjournal`](docs/praktikum/ACCESSIBILITY-UMSETZUNGSJOURNAL.md) und [`Accessibility-Audit`](docs/praktikum/ACCESSIBILITY-AUDIT-WCAG-2.2-AA.md). Offen bleiben beim Kurzantwort-Ausbau **1.2ec–1.2ed** und bei der Word Cloud **1.14c**; **1.14a** ist mit den produktiven Ausbaustufen 2.1 bis 2.5 seit Mai 2026 abgeschlossen, **1.14b** ist mit der optionalen spaCy-Glättung (Analyseversion `1.14b.7`, August 2026) abgeschlossen, und **1.14c** bleibt der im Cloud-Computing-Kurs zu untersuchende semantische Themenmodus. **Story 1.6c** ist technisch umgesetzt; lediglich der automatische UUID-only-Legacy-Cutoff zum **1. Oktober 2026** bleibt als betrieblicher Termin vorgemerkt. **Story 1.6d** wird ohne nachgewiesenes Performanceproblem nicht umgesetzt. **Story 1.2f** (Hotspot auf Bild) wird aus Gründen der Barrierefreiheit nicht weiterverfolgt: Die visuelle und positionsabhängige Interaktion lässt sich für blinde und motorisch eingeschränkte Nutzer:innen nicht gleichwertig abbilden. **Story 1.2i** (Sicherheitsgrad) ist umgesetzt — siehe [`docs/features/confidence-slider.md`](docs/features/confidence-slider.md).
 >
@@ -153,7 +153,7 @@
 >
 > **Legende Status:** ⬜ Offen · 🔨 In Arbeit · ✅ Fertig (DoD erfüllt) · 🚫 Geschlossen (nicht umgesetzt) · ❌ Blockiert
 >
-> **Statistik (aus der obigen Tabelle berechnet):** 🔴 Must: 34 · 🟡 Should: 75 · 🟢 Could: 13 = **122 Stories gesamt** (**104** ✅ Fertig · **0** 🔨 In Arbeit · **14** ⬜ Offen · **3** 🚫 Geschlossen · **1** 🗓️ Cutover)
+> **Statistik (aus der obigen Tabelle berechnet):** 🔴 Must: 34 · 🟡 Should: 75 · 🟢 Could: 13 = **122 Stories gesamt** (**106** ✅ Fertig · **0** 🔨 In Arbeit · **12** ⬜ Offen · **3** 🚫 Geschlossen · **1** 🗓️ Cutover)
 
 ---
 
@@ -2129,12 +2129,14 @@ ist abgeschlossen ✅. Damit ist Epic 6 geschlossen.
 
 ### Empfohlene Implementierungsreihenfolge
 
-1. **12.1** — gemeinsame `ProductFeedback`-Verträge, Persistenz, Einmal-Tokens, Aggregation und rollenspezifisches Zwei-Klick-Feedback nach Sessionende.
-2. **12.2** — jederzeit erreichbarer In-App-Kanal, Offline-Postausgang, Missbrauchsschutz und Admin-Triage auf derselben Domäne.
+1. **12.1** ✅ — gemeinsame `ProductFeedback`-Verträge, Persistenz, Einmal-Tokens, Aggregation und rollenspezifisches Zwei-Klick-Feedback nach Sessionende ([#358](https://github.com/kqc-real/arsnova.eu/pull/358)).
+2. **12.2** ✅ — jederzeit erreichbarer In-App-Kanal, Offline-Postausgang, Missbrauchsschutz und Admin-Triage auf derselben Domäne ([#361](https://github.com/kqc-real/arsnova.eu/pull/361)).
+
+Beide Stories sind im Repo umgesetzt; kanonische Fachdoku: [`docs/features/product-feedback.md`](docs/features/product-feedback.md).
 
 ---
 
-- **Story 12.1 (Rollenspezifisches Zwei-Klick-Produktfeedback nach Sessionende):** 🟢 Als Host oder teilnehmende Person möchte ich nach einer tatsächlich genutzten Session mit zwei kurzen Auswahlen anonym mitteilen können, wie einfach und hilfreich arsnova.eu für meine jeweilige Aufgabe war, damit der Betreiber kontinuierlich vergleichbare Produktsignale erhält, ohne mich zu einer E-Mail oder längeren Texteingabe zu zwingen.
+- **Story 12.1 (Rollenspezifisches Zwei-Klick-Produktfeedback nach Sessionende):** ✅ Als Host oder teilnehmende Person möchte ich nach einer tatsächlich genutzten Session mit zwei kurzen Auswahlen anonym mitteilen können, wie einfach und hilfreich arsnova.eu für meine jeweilige Aufgabe war, damit der Betreiber kontinuierlich vergleichbare Produktsignale erhält, ohne mich zu einer E-Mail oder längeren Texteingabe zu zwingen.
   - **Fachliche Trennung und Sichtbarkeit:**
     - Es entsteht eine eigene Domäne `ProductFeedback` mit eigener Persistenz, Shared-Zod-Schemas, DTOs und tRPC-Prozeduren; vorhandene Modelle, Router und UI-Begriffe für `SessionFeedback` und `quickFeedback` werden nicht semantisch überladen.
     - Die Oberfläche bezeichnet die Abfrage klar als **„Eine Frage zu arsnova.eu“** beziehungsweise **„arsnova.eu verbessern“**, nicht nur als „Feedback“.
@@ -2198,10 +2200,11 @@ ist abgeschlossen ✅. Damit ist Epic 6 geschlossen.
     - Echter Zwei-Client-E2E-Pfad: Host beendet eine genutzte Session; geeignete teilnehmende Person sieht eine nichtblockierende Einladung; Bonus/Story 4.8 und Heimnavigation bleiben funktionsfähig; Produktfeedback erscheint weder im Hostresultat noch im Sessionexport.
     - Datenschutzinformationen, Admin-/Betriebsdokumentation, Routen-/Story-Zuordnung und `ProductFeedback`-Glossareintrag werden synchron aktualisiert.
   - **Abhängigkeiten:** Story 4.2 (Sessionende/Cleanup), Story 4.8 (fachliche Abgrenzung), Epic 9 (Adminautorisierung), Story 10.6 (Vorbild für anonyme aggregierte Interaktionssignale), Stories 6.2/6.4/6.5 (i18n, Mobile, WCAG).
+  - **Umsetzungsnachweis:** PR [#358](https://github.com/kqc-real/arsnova.eu/pull/358); Fachdoku [`docs/features/product-feedback.md`](docs/features/product-feedback.md).
 
 ---
 
-- **Story 12.2 (Jederzeit erreichbares „arsnova.eu verbessern“ mit Admin-Triage):** 🟡 Als Nutzer:in möchte ich von jeder persönlichen arsnova.eu-Ansicht aus mit höchstens zwei kurzen Auswahlen ein Problem, eine Unklarheit, einen Wunsch oder eine Stärke melden können, damit meine Beobachtung ohne E-Mail, Login oder Kenntnis des GitHub-Repositories den Produktverantwortlichen mit dem notwendigen technischen Kontext erreicht.
+- **Story 12.2 (Jederzeit erreichbares „arsnova.eu verbessern“ mit Admin-Triage):** ✅ Als Nutzer:in möchte ich von jeder persönlichen arsnova.eu-Ansicht aus mit höchstens zwei kurzen Auswahlen ein Problem, eine Unklarheit, einen Wunsch oder eine Stärke melden können, damit meine Beobachtung ohne E-Mail, Login oder Kenntnis des GitHub-Repositories den Produktverantwortlichen mit dem notwendigen technischen Kontext erreicht.
   - **Auffindbarkeit und Informationsarchitektur:**
     - Der sichtbare, lokalisierte Aktionsname lautet überall **„arsnova.eu verbessern“**; ein alleinstehendes generisches Feedback-Icon ist nicht ausreichend.
     - Auf normalen persönlichen Ansichten ist die beschriftete Aktion als eigene, gut sichtbare Utility-Aktion im globalen App-Chrome unmittelbar erreichbar und öffnet den Produktfeedback-Dialog beziehungsweise das mobile Sheet ohne Umweg über eine Hilfeseite.
@@ -2281,3 +2284,4 @@ ist abgeschlossen ✅. Damit ist Epic 6 geschlossen.
     - E2E-Pfade für Desktop-Footer, mobile Hilfe, Host/Vote/Join/Blitzlicht sowie Negativnachweis, dass die Presenteransicht keinen CTA enthält.
     - Dokumentation umfasst Datenfluss, erlaubte Kontext-Whitelist, Aufbewahrung, Admin-Triage, Missbrauchsschutz, Offline-Lifecycle, Abgrenzung der drei Feedbackdomänen und Messdefinitionen.
   - **Abhängigkeiten:** Story 12.1 (`ProductFeedback`-Fundament), Epic 9 (Adminautorisierung und Auditmuster), Story 10.6 (anonyme Aggregationsmuster), Stories 6.2/6.4/6.5 (i18n, Mobile, WCAG), bestehende Hilfe-/Footer-Informationsarchitektur.
+  - **Umsetzungsnachweis:** PR [#361](https://github.com/kqc-real/arsnova.eu/pull/361) (inkl. UI-Angleichung an Post-Session-Kartenoptik und Icon `insights` statt MOTD-`campaign` / Session-Bewertung-`feedback`); Fachdoku [`docs/features/product-feedback.md`](docs/features/product-feedback.md).

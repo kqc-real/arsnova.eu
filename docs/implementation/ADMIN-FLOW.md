@@ -241,7 +241,9 @@ Die folgenden Prozedurnamen und Aufgaben sind **kanonisch**. Für Rohaufrufe per
 - Token lebt bewusst nur in `sessionStorage` (tab-/sitzungsgebunden).
 - Admin-Flow ersetzt keinen formalen Datenschutz-/Legal-Prozess; Betreiber müssen Zuständigkeiten, Aufbewahrung, Exportfreigabe und Incident-Kommunikation außerhalb der App festlegen.
 
-## ProductFeedback-Statistik (Story 12.1)
+## ProductFeedback (Epic 12)
+
+### Statistik (Story 12.1)
 
 - UI-Tab im Admin-Dashboard: aggregierte Post-Session-Produktsignale.
 - tRPC: `admin.productFeedback.getStats` (nur `adminProcedure`).
@@ -252,4 +254,17 @@ Die folgenden Prozedurnamen und Aufgaben sind **kanonisch**. Für Rohaufrufe per
   Sprache, Sessiongröße, Gerät). Feine Kombinationen und Schwellen-Karten erst
   ab ≥5 Antworten.
 - **Kein Freitext** und keine Session-/Personen-IDs in dieser Ansicht.
+
+### Triage / In-App-Postfach (Story 12.2)
+
+- Dieselbe Admin-Fläche um paginierte Inbox, Detail und Triage-KPIs ergänzt.
+- tRPC (nur `adminProcedure`): `list`, `getDetail`, `getTriageStats` sowie Mutationen
+  für Status, Duplikatbündel, Quarantäne, Issue-Verknüpfung, Rückkanal und endgültige
+  Löschung; Auditmetadaten ohne Volltextkopien.
+- Statusworkflow: `NEW → REVIEWED → PLANNED → RESOLVED` oder `DISCARDED`.
+- Optionaler GitHub-Issue-Entwurf nur nach Vorschau und bewusster Adminaktion;
+  benötigt `PRODUCT_FEEDBACK_GITHUB_REPOSITORY` und `PRODUCT_FEEDBACK_GITHUB_TOKEN`.
+  Originalfreitext wird nie übernommen.
 - Fachdoku: [docs/features/product-feedback.md](../features/product-feedback.md).
+  Betrieb: `PUBLIC_FRONTEND_URL` für öffentliche IN_APP-Origins
+  ([docs/ENVIRONMENT.md](../ENVIRONMENT.md)).
