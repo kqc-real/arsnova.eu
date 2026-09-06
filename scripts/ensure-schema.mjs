@@ -261,6 +261,36 @@ const statements = [
      ON "ProductFeedback"("submitIdempotencyHash")`,
   `CREATE UNIQUE INDEX IF NOT EXISTS "ProductFeedback_followUpIdempotencyHash_key"
      ON "ProductFeedback"("followUpIdempotencyHash")`,
+
+  // Story 12.3: textfreier LLM-Export-Audit (lokal ohne migrate deploy)
+  `CREATE TABLE IF NOT EXISTS "ProductFeedbackExportLog" (
+     "id" TEXT NOT NULL,
+     "adminIdentifier" TEXT,
+     "includeMessages" BOOLEAN NOT NULL,
+     "excludeDiscarded" BOOLEAN NOT NULL,
+     "caseCount" INTEGER NOT NULL,
+     "clusterCount" INTEGER NOT NULL,
+     "messageCount" INTEGER NOT NULL,
+     "truncated" BOOLEAN NOT NULL,
+     "filterJson" VARCHAR(1000) NOT NULL,
+     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+     CONSTRAINT "ProductFeedbackExportLog_pkey" PRIMARY KEY ("id")
+   )`,
+  `CREATE INDEX IF NOT EXISTS "ProductFeedbackExportLog_createdAt_idx"
+     ON "ProductFeedbackExportLog"("createdAt")`,
+
+  // Story 12.4: textfreier Massenlösch-Audit (lokal ohne migrate deploy)
+  `CREATE TABLE IF NOT EXISTS "ProductFeedbackPurgeLog" (
+     "id" TEXT NOT NULL,
+     "adminIdentifier" TEXT,
+     "scope" TEXT NOT NULL,
+     "untilCreatedAt" TIMESTAMP(3),
+     "deletedCount" INTEGER NOT NULL,
+     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+     CONSTRAINT "ProductFeedbackPurgeLog_pkey" PRIMARY KEY ("id")
+   )`,
+  `CREATE INDEX IF NOT EXISTS "ProductFeedbackPurgeLog_createdAt_idx"
+     ON "ProductFeedbackPurgeLog"("createdAt")`,
 ];
 
 /**

@@ -37,7 +37,7 @@ Ergänzend zur ADR `docs/architecture/decisions/0005-use-angular-material-design
 - Material-Internals (Expansion-Header, Tab-Body, MDC-Label, Form-Field-Infix, `innerHTML`-Markdown) nur über **enge globale Scope-Klassen** in `styles.scss` oder offizielle Override-Mixins.
 - Shell-/Layout-Regeln außerhalb von `:host` (z. B. Present-Vollfläche) gehören in die App-Shell (`app.component.scss` mit Route-Klasse), nicht in Feature-`::ng-deep`.
 - Komponentenanpassungen nur über offizielle Override-APIs.
-- Globale Overlay-Regeln sind nur mit enger `panelClass` / `backdropClass` zulässig, z. B. für MOTD-Archiv, Admin-MOTD-Template, Server-Status-Hilfe, Markdown-Bild-Lightbox, Word-Cloud-Fullscreen-Dialoge und den In-App-Produktfeedback-Dialog.
+- Globale Overlay-Regeln sind nur mit enger `panelClass` / `backdropClass` zulässig, z. B. für MOTD-Archiv, Admin-MOTD-Template, Admin-ProductFeedback-Dialoge, Server-Status-Hilfe, Markdown-Bild-Lightbox, Word-Cloud-Fullscreen-Dialoge und den In-App-Produktfeedback-Dialog.
 
 ## Material-Dialoge: Titelzeile mit Icon (MUSS, Standarddialoge)
 

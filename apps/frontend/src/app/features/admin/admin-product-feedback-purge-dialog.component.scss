@@ -1,0 +1,69 @@
+.admin-pf-purge__content {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  min-width: min(100%, 28rem);
+  box-sizing: border-box;
+}
+
+.admin-pf-purge__content p {
+  margin: 0;
+  font: var(--mat-sys-body-medium);
+  line-height: 1.5;
+  color: var(--mat-sys-on-surface-variant);
+}
+
+.admin-pf-purge__scopes {
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem;
+  align-items: flex-start;
+}
+
+.admin-pf-purge__date,
+.admin-pf-purge__confirm {
+  width: 100%;
+}
+
+.admin-pf-purge__count {
+  color: var(--mat-sys-on-surface);
+}
+
+.admin-pf-purge__phrase {
+  font: var(--mat-sys-label-large);
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  color: var(--mat-sys-on-surface);
+}
+
+.admin-pf-purge__error {
+  margin: 0;
+  padding: 0.5rem 0.65rem;
+  border-radius: var(--mat-sys-corner-small);
+  color: var(--mat-sys-on-error-container);
+  background: var(--mat-sys-error-container);
+  font: var(--mat-sys-body-medium);
+  line-height: 1.45;
+}
+
+.admin-pf-purge__status {
+  margin: 0;
+  color: var(--mat-sys-on-surface);
+  font: var(--mat-sys-body-medium);
+}
+
+.admin-pf-purge__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  justify-content: flex-end;
+}
+
+.admin-pf-purge__actions button {
+  min-height: 2.75rem;
+}
+
+.admin-pf-purge__submit {
+  background: var(--mat-sys-error);
+  color: var(--mat-sys-on-error);
+}

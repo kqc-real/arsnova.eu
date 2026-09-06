@@ -475,6 +475,35 @@ model ProductFeedbackInviteJob {
   @@index([completedAt, createdAt])
 }
 
+/// Textfreier Audit der LLM-Exporte (Story 12.3). Keine Prompt- oder Freitextkopie.
+model ProductFeedbackExportLog {
+  id               String   @id @default(uuid())
+  adminIdentifier  String?
+  includeMessages  Boolean
+  excludeDiscarded Boolean
+  caseCount        Int
+  clusterCount     Int
+  messageCount     Int
+  truncated        Boolean
+  filterJson       String   @db.VarChar(1000)
+  createdAt        DateTime @default(now())
+
+  @@index([createdAt])
+}
+
+/// Textfreier Audit der Massenlöschung (Story 12.4). Keine Feedback- oder Freitextkopie.
+model ProductFeedbackPurgeLog {
+  id              String    @id @default(uuid())
+  adminIdentifier String?
+  /// UNTIL | ALL
+  scope           String
+  untilCreatedAt  DateTime?
+  deletedCount    Int
+  createdAt       DateTime  @default(now())
+
+  @@index([createdAt])
+}
+
 // ─── Q&A-Modus (Epic 8) ────────────────────────────────────────────────────
 
 // Eine eingereichte Frage in einer Q&A-Session (Story 8.2–8.4)

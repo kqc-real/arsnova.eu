@@ -22,6 +22,17 @@
   flex: 1 1 16rem;
 }
 
+.admin-pf__header-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  align-items: center;
+}
+
+.admin-pf__purge {
+  color: var(--mat-sys-error);
+}
+
 .admin-pf__header h2 {
   margin: 0;
   font: var(--mat-sys-headline-small);
@@ -48,6 +59,7 @@
   align-items: center;
   gap: 0.5rem;
   flex: 0 0 auto;
+  min-height: 2.75rem;
 }
 
 .admin-pf__filters {
@@ -376,4 +388,38 @@
   .admin-pf__filters .mat-mdc-form-field {
     max-width: none;
   }
+}
+
+.cdk-overlay-backdrop.admin-product-feedback-dialog-backdrop {
+  background: color-mix(in srgb, var(--mat-sys-scrim) 45%, transparent);
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .cdk-overlay-backdrop.admin-product-feedback-dialog-backdrop {
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+  }
+}
+
+.cdk-overlay-pane.admin-product-feedback-dialog-panel .mat-mdc-dialog-surface {
+  border-radius: var(--mat-sys-corner-extra-large, var(--mat-sys-corner-large));
+  border: 1px solid var(--mat-sys-outline-variant);
+  background: var(--mat-sys-surface-container-high);
+  box-shadow: var(--mat-sys-level3);
+  padding: 1.25rem;
+  max-width: min(36rem, calc(100vw - 2rem));
+  box-sizing: border-box;
+}
+
+.cdk-overlay-pane.admin-product-feedback-dialog-panel .mat-mdc-dialog-content {
+  max-height: min(72dvh, 38rem);
+  overflow-x: hidden;
+  overflow-y: auto;
+  padding: 0.35rem 0 0.25rem !important;
+  margin: 0 !important;
+}
+
+.cdk-overlay-pane.admin-product-feedback-dialog-panel .mat-mdc-dialog-title {
+  padding: 0 0 0.35rem !important;
+  margin: 0 !important;
 }
