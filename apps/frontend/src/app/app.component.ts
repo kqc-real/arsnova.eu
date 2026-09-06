@@ -52,7 +52,6 @@ import {
   isContentOverlayPath,
   rememberNonOverlayPath,
 } from './shared/content-page-nav';
-import { installProductFeedbackOutboxOnlineRetry } from './features/product-feedback/product-feedback-storage';
 
 const STORAGE_PLAYFUL_WELCOMED = 'home-playful-welcomed';
 const STORAGE_PWA_INSTALL_DISMISSED = 'pwa-install-dismissed';
@@ -274,10 +273,15 @@ export class AppComponent implements OnInit, OnDestroy {
       clearStaleContentPageFocusReturn();
       // Capture: Flag setzen bevor Material das Menü schließt (HostListener wäre zu spät).
       document.addEventListener('keydown', this.footerMoreEscapeCapture, true);
-      this.removeProductFeedbackOnlineRetry = installProductFeedbackOutboxOnlineRetry({
-        submit: (payload) => trpc.productFeedback.submit.mutate(payload as never),
-        followUp: (payload) => trpc.productFeedback.followUp.mutate(payload as never),
-      });
+      void import('./features/product-feedback/product-feedback-storage').then(
+        ({ installProductFeedbackOutboxOnlineRetry }) => {
+          if (this.destroyed) return;
+          this.removeProductFeedbackOnlineRetry = installProductFeedbackOutboxOnlineRetry({
+            submit: (payload) => trpc.productFeedback.submit.mutate(payload as never),
+            followUp: (payload) => trpc.productFeedback.followUp.mutate(payload as never),
+          });
+        },
+      );
     }
     this.presetSub = this.themePreset.presetChanged$.subscribe(() => this.onPresetChanged());
     this.routerSub = this.router.events

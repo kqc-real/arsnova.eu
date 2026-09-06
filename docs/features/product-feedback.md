@@ -57,12 +57,11 @@ beschriftete Einstiege. Die Presenteransicht bleibt frei davon. Kontextuelle
 Host-/Vote-Angebote öffnen nie automatisch, ersetzen keinen Retry und
 verändern weder Session- noch Realtime-Zustand.
 
-Die Pflichttexte aus Story 12.1 werden unverändert verwendet, darunter
-„Danke! Möchtest du noch etwas ergänzen? Ein Satz genügt.“ und
-„Anmerkung ergänzen“. Vor dem Textfeld werden Namen, Session-Codes,
-personenbezogene Angaben sowie fachliche Sessioninhalte ausdrücklich
-ausgeschlossen. Beim Schließen wird der Fokus an den Auslöser beziehungsweise
-die priorisierte Folgeaktion zurückgegeben.
+Nach dem Speichern fragt die Post-Session-Karte, ob noch etwas ergänzt werden
+soll. Vor dem Textfeld werden Namen, Sessioncodes, Quiz- oder Q&A-Inhalte und
+andere personenbezogene Angaben ausdrücklich ausgeschlossen. Beim Schließen
+wird der Fokus an den Auslöser beziehungsweise die priorisierte Folgeaktion
+zurückgegeben.
 
 ## Sicherheit & Retention
 
