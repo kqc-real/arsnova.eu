@@ -112,13 +112,17 @@ Veröffentlichungen desselben Datensatzes werden atomar reserviert.
 ## Tests / Smoke
 
 - Backend: `apps/backend/src/__tests__/productFeedback.test.ts`
-- Frontend-Komponente und Storage: `product-feedback-card.component.spec.ts`,
-  `product-feedback-storage.spec.ts`
-- E2E-Smoke: `npm run smoke:product-feedback -w @arsnova/frontend`
-  (getrennte Browser-Kontexte für Host und drei Teilnehmende, UI-Join,
-  UI-Abstimmung, UI-Sessionende, Host-Sheet, Vote-Karte und negativer
-  Sessionexport-Nachweis; Screenshots unter `SMOKE_ARTIFACT_DIR`, Default
-  `tmp/product-feedback-e2e`).
+- Frontend: `product-feedback-card.component.spec.ts`,
+  `product-feedback-in-app-dialog.component.spec.ts`,
+  `product-feedback-launcher.service.spec.ts`,
+  `product-feedback-storage.spec.ts`,
+  Admin-Panel-Specs unter `admin-product-feedback-panel`
+- E2E-Smoke Post-Session (12.1): `npm run smoke:product-feedback -w @arsnova/frontend`
+  (Host-Sheet, Vote-Sessionende, Export-Abgrenzung).
+- E2E-Smoke In-App (12.2): `npm run smoke:product-feedback-in-app -w @arsnova/frontend`
+  (Desktop-Footer, mobile Hilfe, Join, immersive Host-Utility, Zwei-Client
+  während ACTIVE inkl. anschließendem Vote, eigenständiges Blitzlicht Host/Vote,
+  Presenter ohne CTA; Artefakte Default `tmp/product-feedback-in-app-e2e`).
 
 ## Verwandte Docs
 
@@ -126,3 +130,4 @@ Veröffentlichungen desselben Datensatzes werden atomar reserviert.
 - Admin: `docs/implementation/ADMIN-FLOW.md`
 - Routen: `docs/ROUTES_AND_STORIES.md`
 - Glossar: `docs/GLOSSAR.md`
+- Umgebung: `docs/ENVIRONMENT.md`
