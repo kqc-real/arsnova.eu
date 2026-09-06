@@ -1,7 +1,7 @@
 # Backend API Router
 
 - `apps/backend/src/routers/index.ts` composes the app router from domain routers.
-- Current router domains: `health`, `quiz`, `session`, `vote`, `qa`, `quickFeedback`, `motd`, `admin`, `adminMotd`, `wordCloud`, `productFeedback` (Epic 12 / Story 12.1), `admin.productFeedback`.
+- Current router domains: `health`, `quiz`, `session`, `vote`, `qa`, `quickFeedback`, `motd`, `admin`, `adminMotd`, `wordCloud`, `productFeedback` (Epic 12 / Stories 12.1–12.2: Post-Session + IN_APP Challenge/Submit/Follow-up), `admin.productFeedback` (Stats + Triage Inbox).
 - Procedure naming conventions: queries read (`getInfo`, `getLeaderboard`), mutations write (`create`, `join`, `submit`), subscriptions usually start with `on...`.
 - tRPC inputs/outputs must use schemas from `@arsnova/shared-types`; do not define parallel DTOs in router code.
 - Auth-sensitive router behavior:
@@ -9,6 +9,7 @@
   - quick feedback has session-bound and standalone ownership contexts.
   - admin/MOTD writes require admin token procedures.
   - public MOTD/read endpoints need rate limiting and minimal payloads.
+  - ProductFeedback IN_APP writes require Same-Origin via `PUBLIC_FRONTEND_URL` in production, Challenge token, and Shared-NAT-safe rate limits.
 - Session/history/export procedures must preserve ownership checks and DTO stripping.
 - New procedures normally need success and rejection/error tests in backend Vitest coverage.
 
