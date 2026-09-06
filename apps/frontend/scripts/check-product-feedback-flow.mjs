@@ -344,8 +344,14 @@ async function main() {
         timeout: 20_000,
       });
       await participant.page.locator('#vote-option-0').click();
+      const voteResponse = participant.page.waitForResponse(
+        (response) =>
+          response.request().method() === 'POST' && response.url().includes('/vote.submit'),
+        { timeout: 20_000 },
+      );
       await participant.page.locator('#vote-submit').click();
-      await participant.page.waitForTimeout(250);
+      const response = await voteResponse;
+      ensure(response.ok(), `Vote-Submit wurde mit HTTP ${response.status()} abgewiesen.`);
     }
     logStep('UI-Votes', '3 Antworten in getrennten Browser-Kontexten abgegeben');
     await shot(hostPage, '01-host-after-votes');
