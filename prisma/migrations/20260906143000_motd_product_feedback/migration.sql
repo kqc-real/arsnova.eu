@@ -105,6 +105,6 @@ VALUES (
 
 Dopo una sessione potremmo chiederti quanto sia stato semplice o utile usare arsnova.eu. Subito dopo ci indichi cosa ha funzionato particolarmente bene o dove hai incontrato difficoltà. Bastano due clic.
 
-Con **«Migliora arsnova.eu»** puoi inoltre scriverci in qualsiasi momento, in forma anonima e senza account né e-mail. Aggiungere un commento è facoltativo.$mdit$
+Con **«Aiutaci a migliorare arsnova.eu»** puoi inoltre scriverci in qualsiasi momento, in forma anonima e senza account né e-mail. Aggiungere un commento è facoltativo.$mdit$
 )
 ON CONFLICT ("motdId", "locale") DO UPDATE SET "markdown" = EXCLUDED."markdown";
