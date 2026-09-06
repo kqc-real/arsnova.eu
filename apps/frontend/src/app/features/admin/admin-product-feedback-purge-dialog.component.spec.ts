@@ -23,11 +23,13 @@ describe('AdminProductFeedbackPurgeDialogComponent', () => {
   let fixture: ComponentFixture<AdminProductFeedbackPurgeDialogComponent>;
   let component: AdminProductFeedbackPurgeDialogComponent;
   const close = vi.fn();
+  const dialogRef = { close, disableClose: false };
 
   beforeEach(async () => {
     queryMock.mockReset();
     mutateMock.mockReset();
     close.mockReset();
+    dialogRef.disableClose = false;
     queryMock.mockResolvedValue({ count: 4, scope: 'UNTIL' });
     mutateMock.mockResolvedValue({ deletedCount: 4, scope: 'UNTIL' });
     await TestBed.configureTestingModule({
@@ -35,7 +37,7 @@ describe('AdminProductFeedbackPurgeDialogComponent', () => {
       providers: [
         provideNativeDateAdapter(),
         { provide: MAT_DIALOG_DATA, useValue: { untilDate: new Date(2026, 7, 31) } },
-        { provide: MatDialogRef, useValue: { close } },
+        { provide: MatDialogRef, useValue: dialogRef },
       ],
     }).compileComponents();
     fixture = TestBed.createComponent(AdminProductFeedbackPurgeDialogComponent);
@@ -68,6 +70,34 @@ describe('AdminProductFeedbackPurgeDialogComponent', () => {
       }),
     );
     expect(close).toHaveBeenCalledWith({ deletedCount: 4, scope: 'UNTIL' });
+    expect(dialogRef.disableClose).toBe(false);
+  });
+
+  it('sperrt Escape während der Löschung', async () => {
+    component.confirmationText = PRODUCT_FEEDBACK_PURGE_CONFIRMATION;
+    let resolvePurge: (value: { deletedCount: number; scope: string }) => void = () => undefined;
+    mutateMock.mockImplementation(
+      () =>
+        new Promise((resolve) => {
+          resolvePurge = resolve;
+        }),
+    );
+    const pending = component.confirmPurge();
+    expect(dialogRef.disableClose).toBe(true);
+    resolvePurge({ deletedCount: 4, scope: 'UNTIL' });
+    await pending;
+    expect(dialogRef.disableClose).toBe(false);
+  });
+
+  it('lehnt ein Datum nach heute ab', async () => {
+    component.confirmationText = PRODUCT_FEEDBACK_PURGE_CONFIRMATION;
+    component.untilDate = new Date(2099, 0, 1);
+    expect(component.canPurge()).toBe(false);
+    await component.refreshCount();
+    expect(queryMock).not.toHaveBeenCalledWith(
+      expect.objectContaining({ until: expect.stringMatching(/2099/) }),
+    );
+    expect(component.count()).toBeNull();
   });
 
   it('zählt nach einer Anzahlabweichung neu, behält aber die Fehlermeldung', async () => {

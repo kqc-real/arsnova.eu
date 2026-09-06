@@ -42,7 +42,10 @@ import {
   buildProductFeedbackLlmExport,
   type ProductFeedbackLlmExportRow,
 } from '../lib/productFeedbackLlmExport';
-import { productFeedbackPurgeWhere } from '../lib/productFeedbackPurge';
+import {
+  productFeedbackPurgeWhere,
+  assertProductFeedbackPurgeUntil,
+} from '../lib/productFeedbackPurge';
 import { adminProcedure, router } from '../trpc';
 
 type FeedbackRow = Prisma.ProductFeedbackGetPayload<{
@@ -158,7 +161,7 @@ async function getFeedbackRow(id: string): Promise<FeedbackRow> {
   return row;
 }
 
-function buildAdminFeedbackWhere(
+function buildAdminFeedbackAttributeWhere(
   input: Pick<
     AdminProductFeedbackLlmExportInput,
     | 'from'
@@ -178,7 +181,6 @@ function buildAdminFeedbackWhere(
     return { id: { in: [] } };
   }
   return {
-    duplicateOfId: null,
     ...(input.from || input.to
       ? {
           createdAt: {
@@ -200,6 +202,27 @@ function buildAdminFeedbackWhere(
         ? { triageStatus: { not: 'DISCARDED' } }
         : {}),
   };
+}
+
+function buildAdminFeedbackWhere(
+  input: Pick<
+    AdminProductFeedbackLlmExportInput,
+    | 'from'
+    | 'to'
+    | 'source'
+    | 'role'
+    | 'kind'
+    | 'area'
+    | 'impact'
+    | 'appVersion'
+    | 'locale'
+    | 'status'
+    | 'excludeDiscarded'
+  >,
+): Prisma.ProductFeedbackWhereInput {
+  const attributes = buildAdminFeedbackAttributeWhere(input);
+  if (input.excludeDiscarded && input.status === 'DISCARDED') return attributes;
+  return { duplicateOfId: null, ...attributes };
 }
 
 function toLlmExportRow(row: FeedbackRow): ProductFeedbackLlmExportRow {
@@ -246,7 +269,13 @@ export const adminProductFeedbackRouter = router({
           where,
           orderBy: [{ createdAt: 'desc' }, { id: 'desc' }],
           take: PRODUCT_FEEDBACK_LLM_EXPORT_MAX_SCAN,
-          include: { _count: { select: { duplicates: true } } },
+          include: {
+            _count: {
+              select: {
+                duplicates: { where: buildAdminFeedbackAttributeWhere(input) },
+              },
+            },
+          },
         }),
         prisma.productFeedback.count({ where }),
         buildProductFeedbackAdminStats(
@@ -569,6 +598,7 @@ export const adminProductFeedbackRouter = router({
     .input(AdminProductFeedbackPurgePreviewInputSchema)
     .output(AdminProductFeedbackPurgePreviewOutputSchema)
     .query(async ({ input }) => {
+      if (input.scope === 'UNTIL') assertProductFeedbackPurgeUntil(input.until);
       const count = await prisma.productFeedback.count({
         where: productFeedbackPurgeWhere(input),
       });
@@ -588,6 +618,7 @@ export const adminProductFeedbackRouter = router({
       }
 
       const where = productFeedbackPurgeWhere(input);
+      if (input.scope === 'UNTIL') assertProductFeedbackPurgeUntil(input.until);
       return prisma.$transaction(async (tx) => {
         const currentCount = await tx.productFeedback.count({ where });
         if (currentCount !== input.expectedCount) {

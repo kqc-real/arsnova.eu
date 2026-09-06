@@ -57,10 +57,10 @@ export class AdminProductFeedbackPurgeDialogComponent {
   readonly dialogRef = inject(MatDialogRef<AdminProductFeedbackPurgeDialogComponent>);
   readonly data = inject<AdminProductFeedbackPurgeDialogData>(MAT_DIALOG_DATA);
   readonly confirmationPhrase = PRODUCT_FEEDBACK_PURGE_CONFIRMATION;
-  readonly maxUntilDate = new Date();
+  readonly maxUntilDate = this.startOfLocalDay(new Date());
 
   scope: ProductFeedbackPurgeScope = 'UNTIL';
-  untilDate: Date | null = this.data.untilDate ? new Date(this.data.untilDate) : new Date();
+  untilDate: Date | null = this.clampUntilDate(this.data.untilDate);
   confirmationText = '';
 
   readonly count = signal<number | null>(null);
@@ -90,7 +90,7 @@ export class AdminProductFeedbackPurgeDialogComponent {
       this.count() !== null &&
       (this.count() ?? 0) > 0 &&
       this.phraseMatches() &&
-      (this.scope === 'ALL' || this.untilDate !== null)
+      (this.scope === 'ALL' || this.isUntilDateAllowed(this.untilDate))
     );
   }
 
@@ -109,6 +109,7 @@ export class AdminProductFeedbackPurgeDialogComponent {
     if (expectedCount === null || !input) return;
 
     this.busy.set(true);
+    this.dialogRef.disableClose = true;
     this.error.set(null);
     this.status.set($localize`:@@admin.productFeedback.purgeBusy:Rückmeldungen werden gelöscht …`);
     try {
@@ -125,6 +126,7 @@ export class AdminProductFeedbackPurgeDialogComponent {
         await this.refreshCount({ keepError: true });
       }
     } finally {
+      this.dialogRef.disableClose = false;
       this.busy.set(false);
     }
   }
@@ -167,8 +169,24 @@ export class AdminProductFeedbackPurgeDialogComponent {
 
   private previewInput(): { scope: 'ALL' } | { scope: 'UNTIL'; until: string } | null {
     if (this.scope === 'ALL') return { scope: 'ALL' };
-    if (!this.untilDate) return null;
+    if (!this.isUntilDateAllowed(this.untilDate) || !this.untilDate) return null;
     return { scope: 'UNTIL', until: this.dayBoundIso(this.untilDate, true) };
+  }
+
+  private clampUntilDate(date: Date | null): Date {
+    const today = this.startOfLocalDay(new Date());
+    if (!date) return today;
+    const incoming = this.startOfLocalDay(date);
+    return incoming.getTime() > today.getTime() ? today : incoming;
+  }
+
+  private isUntilDateAllowed(date: Date | null): boolean {
+    if (!date) return false;
+    return this.startOfLocalDay(date).getTime() <= this.startOfLocalDay(new Date()).getTime();
+  }
+
+  private startOfLocalDay(date: Date): Date {
+    return new Date(date.getFullYear(), date.getMonth(), date.getDate());
   }
 
   private dayBoundIso(date: Date, endOfDay: boolean): string {

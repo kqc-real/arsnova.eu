@@ -1549,6 +1549,17 @@ describe('adminProductFeedback Triage', () => {
       expect(output.markdown).not.toContain('Die Abstimmung blieb hängen.');
       expect(output.markdown).not.toContain('11111111-1111-4111-8111-111111111111');
       expect(output.includeMessages).toBe(false);
+      expect(prismaMock.productFeedback.findMany).toHaveBeenCalledWith(
+        expect.objectContaining({
+          include: {
+            _count: {
+              select: {
+                duplicates: { where: { triageStatus: { not: 'DISCARDED' } } },
+              },
+            },
+          },
+        }),
+      );
       expect(prismaMock.productFeedbackExportLog.create).toHaveBeenCalledWith(
         expect.objectContaining({
           data: expect.objectContaining({
@@ -1627,6 +1638,45 @@ describe('adminProductFeedback Triage', () => {
       expect(prismaMock.productFeedback.count).toHaveBeenCalledWith({
         where: { createdAt: { lte: new Date('2026-09-06T21:59:59.999Z') } },
       });
+    },
+  );
+
+  trpcDodIt(
+    {
+      procedure: 'admin.productFeedback.countForPurge',
+      case: 'error',
+      mode: 'direct',
+      contract: 'UNAUTHORIZED',
+      title: 'weist Purge-Zählung ohne Admin-Sitzung ab',
+    },
+    async () => {
+      isAdminSessionTokenValidMock.mockResolvedValue(false);
+      await expect(
+        adminCaller.countForPurge({
+          scope: 'UNTIL',
+          until: '2026-09-06T21:59:59.999Z',
+        }),
+      ).rejects.toMatchObject({ code: 'UNAUTHORIZED' });
+      expect(prismaMock.productFeedback.count).not.toHaveBeenCalled();
+    },
+  );
+
+  trpcDodIt(
+    {
+      procedure: 'admin.productFeedback.countForPurge',
+      case: 'error',
+      mode: 'direct',
+      contract: 'BAD_REQUEST',
+      title: 'lehnt ein Purge-Datum weit in der Zukunft ab',
+    },
+    async () => {
+      await expect(
+        adminCaller.countForPurge({
+          scope: 'UNTIL',
+          until: '2099-01-01T23:59:59.999Z',
+        }),
+      ).rejects.toMatchObject({ code: 'BAD_REQUEST' });
+      expect(prismaMock.productFeedback.count).not.toHaveBeenCalled();
     },
   );
 
@@ -1748,6 +1798,27 @@ describe('adminProductFeedback Triage', () => {
         }),
       ).rejects.toMatchObject({ code: 'PRECONDITION_FAILED' });
       expect(prismaMock.productFeedbackPurgeLog.create).not.toHaveBeenCalled();
+    },
+  );
+
+  trpcDodIt(
+    {
+      procedure: 'admin.productFeedback.purge',
+      case: 'error',
+      mode: 'direct',
+      contract: 'BAD_REQUEST',
+      title: 'lehnt Massenlöschung mit Datum weit in der Zukunft ab',
+    },
+    async () => {
+      await expect(
+        adminCaller.purge({
+          scope: 'UNTIL',
+          until: '2099-01-01T23:59:59.999Z',
+          expectedCount: 1,
+          confirmationText: PRODUCT_FEEDBACK_PURGE_CONFIRMATION,
+        }),
+      ).rejects.toMatchObject({ code: 'BAD_REQUEST' });
+      expect(prismaMock.productFeedback.deleteMany).not.toHaveBeenCalled();
     },
   );
 
