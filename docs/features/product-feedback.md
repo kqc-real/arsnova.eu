@@ -121,7 +121,9 @@ Veröffentlichungen desselben Datensatzes werden atomar reserviert.
 
 `admin.productFeedback.exportForLlm` erzeugt eine Markdown-Datei mit
 versioniertem Auswertungsprompt im Vorspann, Lexikon, Aggregaten und
-kanonischen Fällen (`PF-001` …). arsnova.eu ruft kein Modell auf; Admins
+kanonischen Fällen (`PF-001` …). Aggregate nutzen dieselben Postfachfilter
+wie die Falltabelle (Quelle, Art, Bereich, Auswirkung, Locale, Status,
+App-Version, `excludeDiscarded`). arsnova.eu ruft kein Modell auf; Admins
 fügen die Datei in einem selbst gewählten Dienst ein (ADR-0007).
 
 Freitext ist standardmäßig nicht enthalten. Opt-in legt nur

@@ -249,16 +249,22 @@ export const adminProductFeedbackRouter = router({
           include: { _count: { select: { duplicates: true } } },
         }),
         prisma.productFeedback.count({ where }),
-        buildProductFeedbackAdminStats({
-          ...(input.from ? { from: input.from } : {}),
-          ...(input.to ? { to: input.to } : {}),
-          ...(input.role ? { role: input.role } : {}),
-        }),
-        buildProductFeedbackTriageStats({
-          ...(input.from ? { from: input.from } : {}),
-          ...(input.to ? { to: input.to } : {}),
-          ...(input.appVersion ? { appVersion: input.appVersion } : {}),
-        }),
+        buildProductFeedbackAdminStats(
+          {
+            ...(input.from ? { from: input.from } : {}),
+            ...(input.to ? { to: input.to } : {}),
+            ...(input.role ? { role: input.role } : {}),
+          },
+          where,
+        ),
+        buildProductFeedbackTriageStats(
+          {
+            ...(input.from ? { from: input.from } : {}),
+            ...(input.to ? { to: input.to } : {}),
+            ...(input.appVersion ? { appVersion: input.appVersion } : {}),
+          },
+          where,
+        ),
       ]);
       const output = buildProductFeedbackLlmExport({
         rows: rows.map(toLlmExportRow),

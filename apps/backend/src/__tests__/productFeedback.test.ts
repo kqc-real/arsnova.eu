@@ -1564,6 +1564,40 @@ describe('adminProductFeedback Triage', () => {
   trpcDodIt(
     {
       procedure: 'admin.productFeedback.exportForLlm',
+      case: 'happy',
+      mode: 'direct',
+      title: 'wendet Postfachfilter auch auf Export-Aggregate an',
+    },
+    async () => {
+      prismaMock.productFeedback.findMany.mockResolvedValue([adminFeedbackRow()]);
+      prismaMock.productFeedback.count.mockResolvedValue(1);
+      prismaMock.productFeedback.groupBy.mockResolvedValue([]);
+      await adminCaller.exportForLlm({
+        source: 'IN_APP',
+        locale: 'fr',
+        kind: 'NOT_WORKING',
+        area: 'QUIZ_OR_ANSWER',
+        impact: 'BLOCKED',
+        status: 'NEW',
+        appVersion: '2026.9.0',
+      });
+      const scopedCalls = [
+        ...prismaMock.productFeedback.count.mock.calls,
+        ...prismaMock.productFeedback.groupBy.mock.calls,
+      ].filter((call) => JSON.stringify(call[0]?.where ?? {}).includes('"AND"'));
+      expect(scopedCalls.length).toBeGreaterThan(0);
+      expect(JSON.stringify(scopedCalls)).toContain('"locale":"fr"');
+      expect(JSON.stringify(scopedCalls)).toContain('"feedbackKind":"NOT_WORKING"');
+      expect(JSON.stringify(scopedCalls)).toContain('"area":"QUIZ_OR_ANSWER"');
+      expect(JSON.stringify(scopedCalls)).toContain('"impact":"BLOCKED"');
+      expect(JSON.stringify(scopedCalls)).toContain('"triageStatus":"NEW"');
+      expect(JSON.stringify(scopedCalls)).toContain('"appVersion":"2026.9.0"');
+    },
+  );
+
+  trpcDodIt(
+    {
+      procedure: 'admin.productFeedback.exportForLlm',
       case: 'error',
       mode: 'direct',
       contract: 'UNAUTHORIZED',
