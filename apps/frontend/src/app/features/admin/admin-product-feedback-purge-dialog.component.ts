@@ -121,12 +121,15 @@ export class AdminProductFeedbackPurgeDialogComponent {
     } catch (error) {
       this.status.set(null);
       this.error.set(this.localizePurgeError(error));
+      if (this.trpcCode(error) === 'PRECONDITION_FAILED') {
+        await this.refreshCount({ keepError: true });
+      }
     } finally {
       this.busy.set(false);
     }
   }
 
-  async refreshCount(): Promise<void> {
+  async refreshCount(options?: { keepError?: boolean }): Promise<void> {
     const generation = ++this.countGeneration;
     const input = this.previewInput();
     if (!input) {
@@ -136,7 +139,9 @@ export class AdminProductFeedbackPurgeDialogComponent {
     }
 
     this.countBusy.set(true);
-    this.error.set(null);
+    if (!options?.keepError) {
+      this.error.set(null);
+    }
     this.status.set(null);
     try {
       const output = await trpc.admin.productFeedback.countForPurge.query(input);
@@ -176,6 +181,12 @@ export class AdminProductFeedbackPurgeDialogComponent {
       endOfDay ? 59 : 0,
       endOfDay ? 999 : 0,
     ).toISOString();
+  }
+
+  private trpcCode(error: unknown): string | undefined {
+    if (!error || typeof error !== 'object') return undefined;
+    const candidate = error as { data?: { code?: string }; shape?: { data?: { code?: string } } };
+    return candidate.data?.code ?? candidate.shape?.data?.code;
   }
 
   private localizePurgeError(error: unknown): string {

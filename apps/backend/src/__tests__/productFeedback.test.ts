@@ -1734,6 +1734,28 @@ describe('adminProductFeedback Triage', () => {
       procedure: 'admin.productFeedback.purge',
       case: 'error',
       mode: 'direct',
+      contract: 'PRECONDITION_FAILED',
+      title: 'bricht ab, wenn die gelöschte Anzahl von der Vorschau abweicht',
+    },
+    async () => {
+      prismaMock.productFeedback.count.mockResolvedValue(3);
+      prismaMock.productFeedback.deleteMany.mockResolvedValue({ count: 4 });
+      await expect(
+        adminCaller.purge({
+          scope: 'ALL',
+          expectedCount: 3,
+          confirmationText: PRODUCT_FEEDBACK_PURGE_CONFIRMATION,
+        }),
+      ).rejects.toMatchObject({ code: 'PRECONDITION_FAILED' });
+      expect(prismaMock.productFeedbackPurgeLog.create).not.toHaveBeenCalled();
+    },
+  );
+
+  trpcDodIt(
+    {
+      procedure: 'admin.productFeedback.purge',
+      case: 'error',
+      mode: 'direct',
       contract: 'UNAUTHORIZED',
       title: 'weist Massenlöschung ohne Admin-Sitzung ab',
     },

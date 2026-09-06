@@ -598,6 +598,12 @@ export const adminProductFeedbackRouter = router({
         }
 
         const deleted = await tx.productFeedback.deleteMany({ where });
+        if (deleted.count !== input.expectedCount) {
+          throw new TRPCError({
+            code: 'PRECONDITION_FAILED',
+            message: 'Die Auswahl hat sich geändert. Bitte neu zählen und erneut bestätigen.',
+          });
+        }
         await tx.productFeedbackPurgeLog.create({
           data: {
             adminIdentifier: adminIdentifier(ctx.adminToken),

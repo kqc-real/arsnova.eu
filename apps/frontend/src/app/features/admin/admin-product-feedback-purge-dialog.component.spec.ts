@@ -70,6 +70,20 @@ describe('AdminProductFeedbackPurgeDialogComponent', () => {
     expect(close).toHaveBeenCalledWith({ deletedCount: 4, scope: 'UNTIL' });
   });
 
+  it('zählt nach einer Anzahlabweichung neu, behält aber die Fehlermeldung', async () => {
+    component.confirmationText = PRODUCT_FEEDBACK_PURGE_CONFIRMATION;
+    mutateMock.mockRejectedValueOnce({
+      data: { code: 'PRECONDITION_FAILED' },
+      message: 'Die Auswahl hat sich geändert. Bitte neu zählen und erneut bestätigen.',
+    });
+    queryMock.mockResolvedValueOnce({ count: 7, scope: 'UNTIL' });
+    await component.confirmPurge();
+    expect(close).not.toHaveBeenCalled();
+    expect(component.error()).toContain('Die Anzahl hat sich geändert');
+    expect(component.count()).toBe(7);
+    expect(component.busy()).toBe(false);
+  });
+
   it('zählt bei „Alle“ ohne Datum', async () => {
     queryMock.mockResolvedValueOnce({ count: 9, scope: 'ALL' });
     component.scope = 'ALL';
