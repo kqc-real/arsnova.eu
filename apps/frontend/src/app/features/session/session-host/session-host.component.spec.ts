@@ -11813,9 +11813,12 @@ describe('SessionHostComponent', { timeout: 30_000 }, () => {
     fixture.detectChanges();
 
     await fixture.componentInstance.navigateHomeFromFinishedSession();
+    const canLeave = await fixture.componentInstance.canDeactivate();
 
+    expect(canLeave).toBe(true);
     expect(dismissFinishProjectionMutateMock).toHaveBeenCalledWith({ code: 'ABC123' });
     expect(clearHostTokenMock).not.toHaveBeenCalled();
+    expect(clearStoredHostTokenMock).not.toHaveBeenCalled();
     expect(navSpy).toHaveBeenCalledWith('/', { replaceUrl: true });
     expect(localStorage.getItem('productFeedback:pendingHost:v1')).toContain('ABC123');
     fixture.destroy();
