@@ -67,6 +67,7 @@ describe('ensure-schema MOTD runtime seeding', () => {
       expect(markdown).toContain('arsnova.eu');
       expect(markdown).not.toMatch(/Auswahl|selection|sélection|selección|selezione/i);
     }
+    expect(localeBlocks[4]).toContain('**«Aiutaci a migliorare arsnova.eu»**');
   });
 
   it('liefert die Vision-MOTD mit funktionsfähigen Backlog-Links in allen fünf Sprachen aus', () => {
