@@ -67,6 +67,7 @@ function getMotdFeatureSeedFiles() {
     'prisma/migrations/20260722070000_motd_accessibility_wcag/migration.sql',
     'prisma/migrations/20260809174500_motd_structured_question_types/migration.sql',
     'prisma/migrations/20260813120000_motd_shared_insight_vision/migration.sql',
+    'prisma/migrations/20260906143000_motd_product_feedback/migration.sql',
   ];
 }
 
