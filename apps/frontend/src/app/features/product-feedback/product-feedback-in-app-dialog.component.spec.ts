@@ -107,6 +107,53 @@ describe('ProductFeedbackInAppDialogComponent', () => {
     expect(component.step()).toBe('done');
   });
 
+  it('zeigt denselben Kartenkopf wie die Post-Session-Karte', () => {
+    const fixture = TestBed.createComponent(ProductFeedbackInAppDialogComponent);
+    fixture.detectChanges();
+    const icon = fixture.nativeElement.querySelector(
+      '.product-feedback-in-app-dialog__brand-icon',
+    ) as HTMLElement | null;
+    const step = fixture.nativeElement.querySelector(
+      '.product-feedback-in-app-dialog__step',
+    ) as HTMLElement | null;
+    expect(icon?.textContent?.trim()).toBe('feedback');
+    expect(step?.textContent?.trim()).toBe('1/2');
+    expect(
+      fixture.nativeElement.querySelector('.product-feedback-in-app-dialog__choice'),
+    ).toBeTruthy();
+  });
+
+  it('hält Overlay-Chrome und Sheet-Position an die Post-Session-Karte gekoppelt', async () => {
+    const { readFileSync } = await import('node:fs');
+    const { fileURLToPath } = await import('node:url');
+    const { dirname, join } = await import('node:path');
+    const dir = dirname(fileURLToPath(import.meta.url));
+    const scss = readFileSync(join(dir, 'product-feedback-in-app-dialog.component.scss'), 'utf8');
+    const styles = readFileSync(join(dir, '../../../styles.scss'), 'utf8');
+    const launcher = readFileSync(join(dir, 'product-feedback-launcher.service.ts'), 'utf8');
+
+    expect(launcher).toContain("panelClass: 'product-feedback-in-app-dialog-panel'");
+    expect(launcher).toContain("backdropClass: 'product-feedback-in-app-dialog-backdrop'");
+    expect(launcher).toMatch(/position:\s*\{\s*bottom:\s*'1\.25rem',\s*right:\s*'1\.25rem'\s*\}/);
+    expect(styles).toMatch(
+      /\.cdk-overlay-backdrop\.product-feedback-in-app-dialog-backdrop\s*\{[^}]*--mat-sys-scrim/,
+    );
+    expect(styles).toContain(
+      '.cdk-overlay-pane.product-feedback-in-app-dialog-panel .mat-mdc-dialog-surface',
+    );
+    expect(styles).toMatch(/background:\s*transparent/);
+    expect(styles).toContain('bottom: 0 !important');
+    expect(styles).toContain('margin: 0 !important');
+    expect(scss).toContain('var(--mat-sys-primary-container)');
+    expect(scss).toContain('--app-shadow-accent');
+    expect(scss).toContain(':host-context(html.preset-playful)');
+    expect(scss).not.toMatch(/max-height:\s*min\(\s*32rem/);
+    expect(scss).not.toMatch(/max-height:\s*min\(\s*36rem/);
+    expect(scss).toContain('100dvh');
+    expect(scss).not.toContain('::ng-deep');
+    expect(scss).not.toContain(':deep(');
+  });
+
   it('wiederholt nach einem Ergänzungsfehler nur die Ergänzung', async () => {
     followUpMock
       .mockRejectedValueOnce({ data: { code: 'BAD_REQUEST' } })

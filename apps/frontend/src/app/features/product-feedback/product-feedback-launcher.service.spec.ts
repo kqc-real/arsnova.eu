@@ -1,5 +1,9 @@
-import { describe, expect, it } from 'vitest';
+import { TestBed } from '@angular/core/testing';
+import { MatDialog } from '@angular/material/dialog';
+import { provideRouter } from '@angular/router';
+import { describe, expect, it, vi } from 'vitest';
 import {
+  ProductFeedbackLauncherService,
   resolveProductFeedbackRole,
   resolveProductFeedbackRouteGroup,
 } from './product-feedback-launcher.service';
@@ -21,5 +25,30 @@ describe('ProductFeedbackLauncher route context', () => {
     const routeGroup = resolveProductFeedbackRouteGroup('/session/ABC123/present');
     expect(routeGroup).toBe('OTHER');
     expect(resolveProductFeedbackRole(routeGroup)).toBe('GENERAL');
+  });
+});
+
+describe('ProductFeedbackLauncher overlay', () => {
+  it('öffnet den In-App-Dialog als Sheet mit Post-Session-Chrome', async () => {
+    const open = vi.fn().mockReturnValue({ afterClosed: () => ({ subscribe: vi.fn() }) });
+    TestBed.configureTestingModule({
+      providers: [
+        ProductFeedbackLauncherService,
+        provideRouter([]),
+        { provide: MatDialog, useValue: { open } },
+      ],
+    });
+
+    await TestBed.inject(ProductFeedbackLauncherService).open();
+
+    expect(open).toHaveBeenCalledWith(
+      expect.anything(),
+      expect.objectContaining({
+        hasBackdrop: true,
+        panelClass: 'product-feedback-in-app-dialog-panel',
+        backdropClass: 'product-feedback-in-app-dialog-backdrop',
+        position: { bottom: '1.25rem', right: '1.25rem' },
+      }),
+    );
   });
 });

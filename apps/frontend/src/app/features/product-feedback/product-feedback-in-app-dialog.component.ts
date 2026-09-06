@@ -74,6 +74,10 @@ export class ProductFeedbackInAppDialogComponent {
     this.focusStep();
   }
 
+  stepNumber(): 1 | 2 {
+    return this.step() === 'area' ? 2 : 1;
+  }
+
   areas(): readonly ProductFeedbackInAppArea[] {
     const base =
       this.data.role === 'HOST'
@@ -84,6 +88,11 @@ export class ProductFeedbackInAppDialogComponent {
     const suggested = this.data.suggestedArea ?? this.defaultSuggestedArea();
     if (!suggested || !(base as readonly string[]).includes(suggested)) return base;
     return [suggested, ...base.filter((area) => area !== suggested)];
+  }
+
+  /** Zeilen für spaltenweisen Area-Flow (linke Spalte = frühe Schritte). */
+  areaRowCount(): number {
+    return Math.max(1, Math.ceil(this.areas().length / 2));
   }
 
   selectKind(kind: ProductFeedbackKind): void {

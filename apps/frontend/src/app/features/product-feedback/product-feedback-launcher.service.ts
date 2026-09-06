@@ -82,10 +82,13 @@ export class ProductFeedbackLauncherService {
       data,
       autoFocus: false,
       restoreFocus: false,
+      hasBackdrop: true,
       panelClass: 'product-feedback-in-app-dialog-panel',
-      width: 'min(42rem, calc(100vw - 1rem))',
+      backdropClass: 'product-feedback-in-app-dialog-backdrop',
+      width: 'min(26rem, calc(100vw - 2rem))',
       maxWidth: '100vw',
-      maxHeight: 'calc(100dvh - 1rem)',
+      maxHeight: 'calc(100dvh - 0.5rem)',
+      position: { bottom: '1.25rem', right: '1.25rem' },
     });
     ref.afterClosed().subscribe(() => this.restoreFocus(focusReturn));
   }

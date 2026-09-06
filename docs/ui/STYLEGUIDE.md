@@ -37,7 +37,7 @@ Ergänzend zur ADR `docs/architecture/decisions/0005-use-angular-material-design
 - Material-Internals (Expansion-Header, Tab-Body, MDC-Label, Form-Field-Infix, `innerHTML`-Markdown) nur über **enge globale Scope-Klassen** in `styles.scss` oder offizielle Override-Mixins.
 - Shell-/Layout-Regeln außerhalb von `:host` (z. B. Present-Vollfläche) gehören in die App-Shell (`app.component.scss` mit Route-Klasse), nicht in Feature-`::ng-deep`.
 - Komponentenanpassungen nur über offizielle Override-APIs.
-- Globale Overlay-Regeln sind nur mit enger `panelClass` / `backdropClass` zulässig, z. B. für MOTD-Archiv, Admin-MOTD-Template, Server-Status-Hilfe, Markdown-Bild-Lightbox und Word-Cloud-Fullscreen-Dialoge.
+- Globale Overlay-Regeln sind nur mit enger `panelClass` / `backdropClass` zulässig, z. B. für MOTD-Archiv, Admin-MOTD-Template, Server-Status-Hilfe, Markdown-Bild-Lightbox, Word-Cloud-Fullscreen-Dialoge und den In-App-Produktfeedback-Dialog.
 
 ## Material-Dialoge: Titelzeile mit Icon (MUSS, Standarddialoge)
 
@@ -47,7 +47,7 @@ Ergänzend zur ADR `docs/architecture/decisions/0005-use-angular-material-design
 - **Einbindung:** Zusätzlich zur Komponenten-SCSS `styleUrls` um diese Datei erweitern (Pfad je nach Ordner, z. B. `../../../shared/styles/dialog-title-header.scss` aus `features/quiz/quiz-list/`).
 - **Warnung / Verlassen:** Bestätigungsdialoge mit kritischem Inhalt: Icon-Wrapper mit `dialog-title-header__icon dialog-title-header__icon--warn` (Farbton aus Error-/Error-Container-Tokens).
 - **Seiten- und Kartenköpfe:** Für große Seitenköpfe kann dieselbe Struktur mit `dialog-title-header--page` genutzt werden, wenn Icon+Titel semantisch zur Orientierung beitragen.
-- **Ausnahmen:** Fullscreen-Arbeitsflächen wie Word-Cloud-Dialoge und die Markdown-Bild-Lightbox nutzen eigene Toolbars/Close-Buttons. Sie müssen über enge `panelClass` / `backdropClass` gestylt, tastaturbedienbar und in der PR-Checkliste als Ausnahme benannt sein.
+- **Ausnahmen:** Fullscreen-Arbeitsflächen wie Word-Cloud-Dialoge und die Markdown-Bild-Lightbox nutzen eigene Toolbars/Close-Buttons. Sie müssen über enge `panelClass` / `backdropClass` gestylt, tastaturbedienbar und in der PR-Checkliste als Ausnahme benannt sein. Produktfeedback-Sheets (Post-Session-Karte und In-App-Dialog) nutzen dieselbe Kartenoptik statt `dialog-title-header`; der In-App-Dialog wird über `product-feedback-in-app-dialog-panel` / `product-feedback-in-app-dialog-backdrop` gestylt.
 - **Neue Dialoge:** Keine rein textlichen `mat-dialog-title`-Zeilen ohne Icon-Kachel, außer bei den genannten Fullscreen-Tool-Ausnahmen.
 
 ## Token-Nutzung

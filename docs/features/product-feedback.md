@@ -35,7 +35,10 @@ Screenshots oder IP-Adresse als Feedbackattribut.
 ## UI
 
 Kompakte Mikro-Umfrage (Frage als Überschrift, tonale Chips, Schritt 1/2);
-Host als Bottom-Sheet, Teilnehmende inline auf Session-Ende. Session-Bewertung
+Host als Bottom-Sheet, Teilnehmende inline auf Session-Ende. Der IN_APP-Dialog
+nutzt dieselbe Kartenoptik (Primary-Rand, Elevated Surface, Icon-Kachel,
+Schritt-Badge); modal mit 42-Prozent-Scrim und leichtem Blur, Desktop unten rechts,
+mobil als Bottom-Sheet. Session-Bewertung
 (4.8) hat Vorrang — Produktfrage erscheint bei Teilnehmenden erst nach Absenden
 der Session-Bewertung (oder wenn 4.8 fehlt / `quizStarted` false). Floating-Tray:
 Navigation/Bonus. Area-Chips folgen dem Nutzungsflow (linke Spalte frühe
