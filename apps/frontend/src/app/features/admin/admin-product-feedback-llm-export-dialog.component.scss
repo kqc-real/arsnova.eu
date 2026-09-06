@@ -1,0 +1,51 @@
+.admin-pf-llm-export__content {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  min-width: min(100%, 28rem);
+  box-sizing: border-box;
+}
+
+.admin-pf-llm-export__content p {
+  margin: 0;
+  font: var(--mat-sys-body-medium);
+  line-height: 1.5;
+  color: var(--mat-sys-on-surface-variant);
+}
+
+.admin-pf-llm-export__warn {
+  margin: 0;
+  padding: 0.65rem 0.75rem;
+  border-radius: var(--mat-sys-corner-small);
+  background: var(--mat-sys-error-container);
+  color: var(--mat-sys-on-error-container);
+  font: var(--mat-sys-body-small);
+  line-height: 1.45;
+}
+
+.admin-pf-llm-export__error {
+  margin: 0;
+  padding: 0.5rem 0.65rem;
+  border-radius: var(--mat-sys-corner-small);
+  color: var(--mat-sys-on-error-container);
+  background: var(--mat-sys-error-container);
+  font: var(--mat-sys-body-medium);
+  line-height: 1.45;
+}
+
+.admin-pf-llm-export__status {
+  margin: 0;
+  color: var(--mat-sys-on-surface);
+  font: var(--mat-sys-body-medium);
+}
+
+.admin-pf-llm-export__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  justify-content: flex-end;
+}
+
+.admin-pf-llm-export__actions button {
+  min-height: 2.75rem;
+}

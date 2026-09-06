@@ -7,12 +7,33 @@
         ausgewertet; freiwillige Texte sind nur in der geschützten Bearbeitungsansicht sichtbar.
       </p>
     </div>
-    <button matButton="tonal" type="button" [disabled]="loading()" (click)="reload()">
-      @if (loading()) {
-        <mat-spinner diameter="18" />
-      }
-      <span i18n="@@admin.productFeedback.reload">Aktualisieren</span>
-    </button>
+    <div class="admin-pf__header-actions">
+      <button
+        matButton="tonal"
+        type="button"
+        [disabled]="loading()"
+        (click)="openLlmExportDialog()"
+        i18n="@@admin.productFeedback.exportLlm"
+      >
+        Für LLM exportieren
+      </button>
+      <button matButton="tonal" type="button" [disabled]="loading()" (click)="reload()">
+        @if (loading()) {
+          <mat-spinner diameter="18" />
+        }
+        <span i18n="@@admin.productFeedback.reload">Aktualisieren</span>
+      </button>
+      <button
+        matButton="outlined"
+        type="button"
+        class="admin-pf__purge"
+        [disabled]="loading()"
+        (click)="openPurgeDialog()"
+        i18n="@@admin.productFeedback.purge"
+      >
+        Rückmeldungen löschen
+      </button>
+    </div>
   </header>
 
   <div

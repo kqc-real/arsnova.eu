@@ -22,22 +22,33 @@ function toBuckets(
     .sort((a, b) => b.count - a.count || a.key.localeCompare(b.key));
 }
 
+function mergeWhere(
+  base: Prisma.ProductFeedbackWhereInput,
+  extra?: Prisma.ProductFeedbackWhereInput,
+): Prisma.ProductFeedbackWhereInput {
+  return extra ? { AND: [base, extra] } : base;
+}
+
 export async function buildProductFeedbackAdminStats(
   input: AdminProductFeedbackStatsInput,
+  extraWhere?: Prisma.ProductFeedbackWhereInput,
 ): Promise<AdminProductFeedbackStatsDTO> {
-  const where: Prisma.ProductFeedbackWhereInput = {
-    source: 'POST_SESSION',
-    ...(input.surveyKey ? { surveyKey: input.surveyKey } : {}),
-    ...(input.role ? { role: input.role } : {}),
-    ...(input.from || input.to
-      ? {
-          createdAt: {
-            ...(input.from ? { gte: new Date(input.from) } : {}),
-            ...(input.to ? { lte: new Date(input.to) } : {}),
-          },
-        }
-      : {}),
-  };
+  const where = mergeWhere(
+    {
+      source: 'POST_SESSION',
+      ...(input.surveyKey ? { surveyKey: input.surveyKey } : {}),
+      ...(input.role ? { role: input.role } : {}),
+      ...(input.from || input.to
+        ? {
+            createdAt: {
+              ...(input.from ? { gte: new Date(input.from) } : {}),
+              ...(input.to ? { lte: new Date(input.to) } : {}),
+            },
+          }
+        : {}),
+    },
+    extraWhere,
+  );
 
   const ledgerWhere: Prisma.ProductFeedbackInviteLedgerWhereInput = {
     ...(input.role ? { role: input.role } : {}),
@@ -240,19 +251,23 @@ export async function buildProductFeedbackAdminStats(
 
 export async function buildProductFeedbackTriageStats(
   input: AdminProductFeedbackTriageStatsInput,
+  extraWhere?: Prisma.ProductFeedbackWhereInput,
 ): Promise<AdminProductFeedbackTriageStatsDTO> {
-  const where: Prisma.ProductFeedbackWhereInput = {
-    source: 'IN_APP',
-    ...(input.appVersion ? { appVersion: input.appVersion } : {}),
-    ...(input.from || input.to
-      ? {
-          createdAt: {
-            ...(input.from ? { gte: new Date(input.from) } : {}),
-            ...(input.to ? { lte: new Date(input.to) } : {}),
-          },
-        }
-      : {}),
-  };
+  const where = mergeWhere(
+    {
+      source: 'IN_APP',
+      ...(input.appVersion ? { appVersion: input.appVersion } : {}),
+      ...(input.from || input.to
+        ? {
+            createdAt: {
+              ...(input.from ? { gte: new Date(input.from) } : {}),
+              ...(input.to ? { lte: new Date(input.to) } : {}),
+            },
+          }
+        : {}),
+    },
+    extraWhere,
+  );
   const [totals, blocking, byKind, byArea, byStatus, byAppVersion] = await Promise.all([
     prisma.productFeedback.count({ where }),
     prisma.productFeedback.count({ where: { ...where, impact: 'BLOCKED' } }),

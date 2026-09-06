@@ -265,6 +265,12 @@ Die folgenden Prozedurnamen und Aufgaben sind **kanonisch**. Für Rohaufrufe per
 - Optionaler GitHub-Issue-Entwurf nur nach Vorschau und bewusster Adminaktion;
   benötigt `PRODUCT_FEEDBACK_GITHUB_REPOSITORY` und `PRODUCT_FEEDBACK_GITHUB_TOKEN`.
   Originalfreitext wird nie übernommen.
+- LLM-Export (Story 12.3): `exportForLlm` liefert Markdown mit Promptvorspann;
+  Freitext nur bei ausdrücklichem Opt-in; Audit in `ProductFeedbackExportLog`
+  ohne Textkopie. Kein serverseitiger Modellaufruf.
+- Massenlöschung (Story 12.4): `countForPurge` / `purge` löschen bis Datum oder
+  vollständig; Phrase `RUECKMELDUNGEN LOESCHEN`; Audit in
+  `ProductFeedbackPurgeLog` ohne Textkopie. Kein Undo.
 - Fachdoku: [docs/features/product-feedback.md](../features/product-feedback.md).
   Betrieb: `PUBLIC_FRONTEND_URL` für öffentliche IN_APP-Origins
   ([docs/ENVIRONMENT.md](../ENVIRONMENT.md)).

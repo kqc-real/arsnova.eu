@@ -1,6 +1,7 @@
 import { LOCALE_ID } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
-import { beforeEach, describe, expect, it } from 'vitest';
+import { MatDialog } from '@angular/material/dialog';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { AdminProductFeedbackPanelComponent } from './admin-product-feedback-panel.component';
 
 describe('AdminProductFeedbackPanelComponent formatting', () => {
@@ -8,7 +9,15 @@ describe('AdminProductFeedbackPanelComponent formatting', () => {
 
   beforeEach(() => {
     TestBed.configureTestingModule({
-      providers: [{ provide: LOCALE_ID, useValue: 'de-DE' }],
+      providers: [
+        { provide: LOCALE_ID, useValue: 'de-DE' },
+        {
+          provide: MatDialog,
+          useValue: {
+            open: vi.fn(() => ({ afterClosed: () => ({ subscribe: vi.fn() }) })),
+          },
+        },
+      ],
     });
     component = TestBed.runInInjectionContext(() => new AdminProductFeedbackPanelComponent());
   });
@@ -30,5 +39,31 @@ describe('AdminProductFeedbackPanelComponent formatting', () => {
     expect(to.getDate()).toBe(6);
     expect(to.getHours()).toBe(23);
     expect(to.getMinutes()).toBe(59);
+  });
+
+  it('übernimmt Postfachfilter in den LLM-Export', () => {
+    component.fromDate = new Date(2026, 7, 1);
+    component.inboxSourceFilter = 'IN_APP';
+    component.inboxRoleFilter = 'HOST';
+    component.inboxKindFilter = 'NOT_WORKING';
+    const filters = component.currentLlmExportFilters();
+    expect(filters.source).toBe('IN_APP');
+    expect(filters.role).toBe('HOST');
+    expect(filters.kind).toBe('NOT_WORKING');
+    expect(filters.from).toBeDefined();
+  });
+
+  it('öffnet den Löschdialog mit dem Filterdatum „bis“', () => {
+    const dialog = TestBed.inject(MatDialog);
+    const open = vi.mocked(dialog.open);
+    component.toDate = new Date(2026, 7, 31);
+    component.openPurgeDialog();
+    expect(open).toHaveBeenCalledWith(
+      expect.anything(),
+      expect.objectContaining({
+        data: { untilDate: component.toDate },
+        panelClass: 'admin-product-feedback-dialog-panel',
+      }),
+    );
   });
 });

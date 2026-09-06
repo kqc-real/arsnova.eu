@@ -17,6 +17,12 @@ export const PRODUCT_FEEDBACK_STRUCTURED_RETENTION_DAYS = 395;
 export const PRODUCT_FEEDBACK_MESSAGE_RETENTION_DAYS = 90;
 /** Fein segmentierte Admin-Statistik erst ab dieser Antwortanzahl */
 export const PRODUCT_FEEDBACK_ADMIN_MIN_SEGMENT = 5;
+/** Kanonische Fälle in einer LLM-Exportdatei (Story 12.3). */
+export const PRODUCT_FEEDBACK_LLM_EXPORT_MAX_CASES = 300;
+/** Maximal gelesene Filtertreffer vor der Fallauswahl (Story 12.3). */
+export const PRODUCT_FEEDBACK_LLM_EXPORT_MAX_SCAN = 2_000;
+export const PRODUCT_FEEDBACK_LLM_EXPORT_PROMPT_VERSION = 2;
+export const PRODUCT_FEEDBACK_LLM_EXPORT_MARKDOWN_MAX = 500_000;
 export const PRODUCT_FEEDBACK_PARTICIPANT_SAMPLE_RATE = 0.1;
 export const PRODUCT_FEEDBACK_PARTICIPANT_SAMPLE_MAX = 25;
 /** Ab dieser Anzahl Geeigneter mind. eine Einladung */
@@ -782,3 +788,83 @@ export const AdminProductFeedbackStatsDTOSchema = z.object({
   invitationCompletionRate: z.number().min(0).max(1).nullable(),
 });
 export type AdminProductFeedbackStatsDTO = z.infer<typeof AdminProductFeedbackStatsDTOSchema>;
+
+export const AdminProductFeedbackLlmExportInputSchema = AdminProductFeedbackListInputSchema.omit({
+  cursor: true,
+  limit: true,
+})
+  .extend({
+    includeMessages: z.boolean().default(false),
+    excludeDiscarded: z.boolean().default(true),
+  })
+  .strict();
+export type AdminProductFeedbackLlmExportInput = z.infer<
+  typeof AdminProductFeedbackLlmExportInputSchema
+>;
+
+export const AdminProductFeedbackLlmExportOutputSchema = z.object({
+  fileName: z.string().trim().min(1).max(128),
+  markdown: z.string().min(1).max(PRODUCT_FEEDBACK_LLM_EXPORT_MARKDOWN_MAX),
+  prompt: z.string().min(1).max(20_000),
+  promptVersion: z.number().int().positive(),
+  caseCount: z.number().int().nonnegative(),
+  clusterCount: z.number().int().nonnegative(),
+  messageCount: z.number().int().nonnegative(),
+  truncated: z.boolean(),
+  includeMessages: z.boolean(),
+});
+export type AdminProductFeedbackLlmExportOutput = z.infer<
+  typeof AdminProductFeedbackLlmExportOutputSchema
+>;
+
+/** ASCII-Phrase, sprachunabhängig — analog `ALLE SESSIONS LOESCHEN`. */
+export const PRODUCT_FEEDBACK_PURGE_CONFIRMATION = 'RUECKMELDUNGEN LOESCHEN';
+
+export const ProductFeedbackPurgeScopeEnum = z.enum(['UNTIL', 'ALL']);
+export type ProductFeedbackPurgeScope = z.infer<typeof ProductFeedbackPurgeScopeEnum>;
+
+export const AdminProductFeedbackPurgePreviewInputSchema = z.discriminatedUnion('scope', [
+  z
+    .object({
+      scope: z.literal('UNTIL'),
+      until: z.string().datetime(),
+    })
+    .strict(),
+  z.object({ scope: z.literal('ALL') }).strict(),
+]);
+export type AdminProductFeedbackPurgePreviewInput = z.infer<
+  typeof AdminProductFeedbackPurgePreviewInputSchema
+>;
+
+export const AdminProductFeedbackPurgePreviewOutputSchema = z.object({
+  count: z.number().int().nonnegative(),
+  scope: ProductFeedbackPurgeScopeEnum,
+});
+export type AdminProductFeedbackPurgePreviewOutput = z.infer<
+  typeof AdminProductFeedbackPurgePreviewOutputSchema
+>;
+
+export const AdminProductFeedbackPurgeInputSchema = z.discriminatedUnion('scope', [
+  z
+    .object({
+      scope: z.literal('UNTIL'),
+      until: z.string().datetime(),
+      expectedCount: z.number().int().min(0).max(1_000_000),
+      confirmationText: z.string().trim().min(1).max(80),
+    })
+    .strict(),
+  z
+    .object({
+      scope: z.literal('ALL'),
+      expectedCount: z.number().int().min(0).max(1_000_000),
+      confirmationText: z.string().trim().min(1).max(80),
+    })
+    .strict(),
+]);
+export type AdminProductFeedbackPurgeInput = z.infer<typeof AdminProductFeedbackPurgeInputSchema>;
+
+export const AdminProductFeedbackPurgeOutputSchema = z.object({
+  deletedCount: z.number().int().nonnegative(),
+  scope: ProductFeedbackPurgeScopeEnum,
+});
+export type AdminProductFeedbackPurgeOutput = z.infer<typeof AdminProductFeedbackPurgeOutputSchema>;

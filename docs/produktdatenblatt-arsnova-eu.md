@@ -22,8 +22,8 @@ Die Lösung ist auf zwei Zielgruppen gleichzeitig ausgelegt:
 Diese Produktbeschreibung wurde aus zwei Primärquellen konsolidiert:
 
 - **Backlog-Quelle:** `Backlog.md`
-  - Gesamtumfang: **122 Stories**
-  - Status laut Story-Übersicht: **106 fertig**, **0 in Arbeit**, **12 offen**
+  - Gesamtumfang: **124 Stories**
+  - Status laut Story-Übersicht: **108 fertig**, **0 in Arbeit**, **12 offen**
     (plus **3** geschlossen, **1** Cutover)
   - Epics: **0 bis 10** und **Epic 12** (Produktfeedback) umgesetzt; **Epic 11**
     bleibt noch nicht beauftragter Erweiterungspfad
@@ -168,7 +168,7 @@ Produktionsbaselines.
 - Paired Host für eigene Zweitgeräte und vertrauenswürdige Tutor:innen oder Moderator:innen (2.10); Q&A-Moderation sowie 8.6/8.7 sind umgesetzt
 - Optionale generative Moderationszusammenfassung (8.9c Slice 4 / echtes Modell; Slices 1–3 und 8.9a/8.9b umgesetzt)
 - Word Cloud 3.0 Stufe 1 (1.14c Encoder + Clustering, Kill-Switch default aus); Stufe 2 LLM-Labels offen; 1.14a/1.14b sind umgesetzt
-- Epic 12 (Post-Session- und In-App-Produktfeedback inkl. Admin-Triage) ist umgesetzt; siehe [features/product-feedback.md](features/product-feedback.md)
+- Epic 12 (Post-Session- und In-App-Produktfeedback, Admin-Triage, LLM-Export und Massenlöschung) ist umgesetzt; siehe [features/product-feedback.md](features/product-feedback.md)
 
 ---
 

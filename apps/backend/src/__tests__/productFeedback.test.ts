@@ -9,6 +9,7 @@ import { resolveAppVersion } from '../lib/appVersion';
 import { isProductFeedbackOriginAllowed } from '../lib/productFeedbackInApp';
 import {
   PRODUCT_FEEDBACK_ADMIN_MIN_SEGMENT,
+  PRODUCT_FEEDBACK_PURGE_CONFIRMATION,
   SessionExportDTOSchema,
   getProductFeedbackSurveyDefinition,
   isAreaAllowedForSurvey,
@@ -39,6 +40,9 @@ const { prismaMock, redisMock, extractAdminTokenMock, isAdminSessionTokenValidMo
         create: vi.fn(),
         deleteMany: vi.fn(),
       },
+      productFeedbackExportLog: {
+        create: vi.fn(async () => ({})),
+      },
       productFeedbackInviteLedger: {
         upsert: vi.fn(async () => ({})),
         aggregate: vi.fn(async () => ({ _sum: { count: 0 } })),
@@ -49,8 +53,16 @@ const { prismaMock, redisMock, extractAdminTokenMock, isAdminSessionTokenValidMo
         findMany: vi.fn(async () => []),
         deleteMany: vi.fn(async () => ({ count: 0 })),
       },
+      productFeedbackPurgeLog: {
+        create: vi.fn(async () => ({})),
+      },
       $queryRaw: vi.fn(),
-      $transaction: vi.fn(async (operations: unknown[]) => Promise.all(operations)),
+      $transaction: vi.fn(async (arg: unknown) => {
+        if (typeof arg === 'function') {
+          return (arg as (tx: unknown) => Promise<unknown>)(prismaMock);
+        }
+        return Promise.all(arg as unknown[]);
+      }),
     },
     redisMock: {
       get: vi.fn(async (key: string) => redisStore.get(key) ?? null),
@@ -1088,6 +1100,7 @@ describe('adminProductFeedback Triage', () => {
     prismaMock.productFeedback.update.mockResolvedValue(adminFeedbackRow());
     prismaMock.productFeedback.delete.mockResolvedValue(adminFeedbackRow());
     prismaMock.productFeedbackAuditLog.create.mockResolvedValue({});
+    prismaMock.productFeedbackExportLog.create.mockResolvedValue({});
   });
 
   trpcDodIt(
@@ -1513,6 +1526,320 @@ describe('adminProductFeedback Triage', () => {
       await expect(
         adminCaller.delete({ id: '11111111-1111-4111-8111-111111111111' }),
       ).rejects.toMatchObject({ code: 'NOT_FOUND' });
+    },
+  );
+
+  trpcDodIt(
+    {
+      procedure: 'admin.productFeedback.exportForLlm',
+      case: 'happy',
+      mode: 'direct',
+      title: 'liefert Markdown mit Promptvorspann und ohne Freitext im Default',
+    },
+    async () => {
+      prismaMock.productFeedback.findMany.mockResolvedValue([adminFeedbackRow()]);
+      prismaMock.productFeedback.count.mockResolvedValue(1);
+      prismaMock.productFeedback.groupBy.mockResolvedValue([]);
+      const output = await adminCaller.exportForLlm({});
+      expect(output.fileName).toMatch(/^arsnova-product-feedback_/);
+      expect(output.markdown.indexOf('## Anweisung an das Modell')).toBeGreaterThan(0);
+      expect(output.markdown.indexOf('## Anweisung an das Modell')).toBeLessThan(
+        output.markdown.indexOf('## Fälle'),
+      );
+      expect(output.markdown).not.toContain('Die Abstimmung blieb hängen.');
+      expect(output.markdown).not.toContain('11111111-1111-4111-8111-111111111111');
+      expect(output.includeMessages).toBe(false);
+      expect(prismaMock.productFeedback.findMany).toHaveBeenCalledWith(
+        expect.objectContaining({
+          include: {
+            _count: {
+              select: {
+                duplicates: { where: { triageStatus: { not: 'DISCARDED' } } },
+              },
+            },
+          },
+        }),
+      );
+      expect(prismaMock.productFeedbackExportLog.create).toHaveBeenCalledWith(
+        expect.objectContaining({
+          data: expect.objectContaining({
+            includeMessages: false,
+            messageCount: 0,
+            filterJson: expect.not.stringContaining('Die Abstimmung blieb hängen.'),
+          }),
+        }),
+      );
+    },
+  );
+
+  trpcDodIt(
+    {
+      procedure: 'admin.productFeedback.exportForLlm',
+      case: 'happy',
+      mode: 'direct',
+      title: 'wendet Postfachfilter auch auf Export-Aggregate an',
+    },
+    async () => {
+      prismaMock.productFeedback.findMany.mockResolvedValue([adminFeedbackRow()]);
+      prismaMock.productFeedback.count.mockResolvedValue(1);
+      prismaMock.productFeedback.groupBy.mockResolvedValue([]);
+      await adminCaller.exportForLlm({
+        source: 'IN_APP',
+        locale: 'fr',
+        kind: 'NOT_WORKING',
+        area: 'QUIZ_OR_ANSWER',
+        impact: 'BLOCKED',
+        status: 'NEW',
+        appVersion: '2026.9.0',
+      });
+      const scopedCalls = [
+        ...prismaMock.productFeedback.count.mock.calls,
+        ...prismaMock.productFeedback.groupBy.mock.calls,
+      ].filter((call) => JSON.stringify(call[0]?.where ?? {}).includes('"AND"'));
+      expect(scopedCalls.length).toBeGreaterThan(0);
+      expect(JSON.stringify(scopedCalls)).toContain('"locale":"fr"');
+      expect(JSON.stringify(scopedCalls)).toContain('"feedbackKind":"NOT_WORKING"');
+      expect(JSON.stringify(scopedCalls)).toContain('"area":"QUIZ_OR_ANSWER"');
+      expect(JSON.stringify(scopedCalls)).toContain('"impact":"BLOCKED"');
+      expect(JSON.stringify(scopedCalls)).toContain('"triageStatus":"NEW"');
+      expect(JSON.stringify(scopedCalls)).toContain('"appVersion":"2026.9.0"');
+    },
+  );
+
+  trpcDodIt(
+    {
+      procedure: 'admin.productFeedback.exportForLlm',
+      case: 'error',
+      mode: 'direct',
+      contract: 'UNAUTHORIZED',
+      title: 'weist LLM-Exporte ohne Admin-Sitzung ab',
+    },
+    async () => {
+      isAdminSessionTokenValidMock.mockResolvedValue(false);
+      await expect(adminCaller.exportForLlm({})).rejects.toMatchObject({ code: 'UNAUTHORIZED' });
+      expect(prismaMock.productFeedback.findMany).not.toHaveBeenCalled();
+    },
+  );
+
+  trpcDodIt(
+    {
+      procedure: 'admin.productFeedback.countForPurge',
+      case: 'happy',
+      mode: 'direct',
+      title: 'zählt Rückmeldungen bis einschließlich des gewählten Zeitpunkts',
+    },
+    async () => {
+      prismaMock.productFeedback.count.mockResolvedValue(7);
+      const output = await adminCaller.countForPurge({
+        scope: 'UNTIL',
+        until: '2026-09-06T21:59:59.999Z',
+      });
+      expect(output).toEqual({ count: 7, scope: 'UNTIL' });
+      expect(prismaMock.productFeedback.count).toHaveBeenCalledWith({
+        where: { createdAt: { lte: new Date('2026-09-06T21:59:59.999Z') } },
+      });
+    },
+  );
+
+  trpcDodIt(
+    {
+      procedure: 'admin.productFeedback.countForPurge',
+      case: 'error',
+      mode: 'direct',
+      contract: 'UNAUTHORIZED',
+      title: 'weist Purge-Zählung ohne Admin-Sitzung ab',
+    },
+    async () => {
+      isAdminSessionTokenValidMock.mockResolvedValue(false);
+      await expect(
+        adminCaller.countForPurge({
+          scope: 'UNTIL',
+          until: '2026-09-06T21:59:59.999Z',
+        }),
+      ).rejects.toMatchObject({ code: 'UNAUTHORIZED' });
+      expect(prismaMock.productFeedback.count).not.toHaveBeenCalled();
+    },
+  );
+
+  trpcDodIt(
+    {
+      procedure: 'admin.productFeedback.countForPurge',
+      case: 'error',
+      mode: 'direct',
+      contract: 'BAD_REQUEST',
+      title: 'lehnt ein Purge-Datum weit in der Zukunft ab',
+    },
+    async () => {
+      await expect(
+        adminCaller.countForPurge({
+          scope: 'UNTIL',
+          until: '2099-01-01T23:59:59.999Z',
+        }),
+      ).rejects.toMatchObject({ code: 'BAD_REQUEST' });
+      expect(prismaMock.productFeedback.count).not.toHaveBeenCalled();
+    },
+  );
+
+  trpcDodIt(
+    {
+      procedure: 'admin.productFeedback.purge',
+      case: 'happy',
+      mode: 'direct',
+      title: 'löscht alle Rückmeldungen nach Phrase und erwarteter Anzahl',
+    },
+    async () => {
+      prismaMock.productFeedback.count.mockResolvedValue(3);
+      prismaMock.productFeedback.deleteMany.mockResolvedValue({ count: 3 });
+      const output = await adminCaller.purge({
+        scope: 'ALL',
+        expectedCount: 3,
+        confirmationText: PRODUCT_FEEDBACK_PURGE_CONFIRMATION,
+      });
+      expect(output).toEqual({ deletedCount: 3, scope: 'ALL' });
+      expect(prismaMock.productFeedback.deleteMany).toHaveBeenCalledWith({ where: {} });
+      expect(prismaMock.productFeedbackPurgeLog.create).toHaveBeenCalledWith({
+        data: expect.objectContaining({
+          scope: 'ALL',
+          untilCreatedAt: null,
+          deletedCount: 3,
+        }),
+      });
+    },
+  );
+
+  trpcDodIt(
+    {
+      procedure: 'admin.productFeedback.purge',
+      case: 'happy',
+      mode: 'direct',
+      title: 'löscht Rückmeldungen bis einschließlich des Datums',
+    },
+    async () => {
+      prismaMock.productFeedback.count.mockResolvedValue(2);
+      prismaMock.productFeedback.deleteMany.mockResolvedValue({ count: 2 });
+      const until = '2026-08-31T21:59:59.999Z';
+      const output = await adminCaller.purge({
+        scope: 'UNTIL',
+        until,
+        expectedCount: 2,
+        confirmationText: PRODUCT_FEEDBACK_PURGE_CONFIRMATION.toLowerCase(),
+      });
+      expect(output.deletedCount).toBe(2);
+      expect(prismaMock.productFeedback.deleteMany).toHaveBeenCalledWith({
+        where: { createdAt: { lte: new Date(until) } },
+      });
+      expect(prismaMock.productFeedbackPurgeLog.create).toHaveBeenCalledWith({
+        data: expect.objectContaining({
+          scope: 'UNTIL',
+          untilCreatedAt: new Date(until),
+          deletedCount: 2,
+        }),
+      });
+    },
+  );
+
+  trpcDodIt(
+    {
+      procedure: 'admin.productFeedback.purge',
+      case: 'error',
+      mode: 'direct',
+      contract: 'BAD_REQUEST',
+      title: 'lehnt eine falsche Sicherheitsphrase ab',
+    },
+    async () => {
+      await expect(
+        adminCaller.purge({
+          scope: 'ALL',
+          expectedCount: 1,
+          confirmationText: 'LOESCHEN',
+        }),
+      ).rejects.toMatchObject({ code: 'BAD_REQUEST' });
+      expect(prismaMock.productFeedback.deleteMany).not.toHaveBeenCalled();
+    },
+  );
+
+  trpcDodIt(
+    {
+      procedure: 'admin.productFeedback.purge',
+      case: 'error',
+      mode: 'direct',
+      contract: 'PRECONDITION_FAILED',
+      title: 'bricht ab, wenn sich die Anzahl seit der Vorschau geändert hat',
+    },
+    async () => {
+      prismaMock.productFeedback.count.mockResolvedValue(4);
+      await expect(
+        adminCaller.purge({
+          scope: 'ALL',
+          expectedCount: 3,
+          confirmationText: PRODUCT_FEEDBACK_PURGE_CONFIRMATION,
+        }),
+      ).rejects.toMatchObject({ code: 'PRECONDITION_FAILED' });
+      expect(prismaMock.productFeedback.deleteMany).not.toHaveBeenCalled();
+    },
+  );
+
+  trpcDodIt(
+    {
+      procedure: 'admin.productFeedback.purge',
+      case: 'error',
+      mode: 'direct',
+      contract: 'PRECONDITION_FAILED',
+      title: 'bricht ab, wenn die gelöschte Anzahl von der Vorschau abweicht',
+    },
+    async () => {
+      prismaMock.productFeedback.count.mockResolvedValue(3);
+      prismaMock.productFeedback.deleteMany.mockResolvedValue({ count: 4 });
+      await expect(
+        adminCaller.purge({
+          scope: 'ALL',
+          expectedCount: 3,
+          confirmationText: PRODUCT_FEEDBACK_PURGE_CONFIRMATION,
+        }),
+      ).rejects.toMatchObject({ code: 'PRECONDITION_FAILED' });
+      expect(prismaMock.productFeedbackPurgeLog.create).not.toHaveBeenCalled();
+    },
+  );
+
+  trpcDodIt(
+    {
+      procedure: 'admin.productFeedback.purge',
+      case: 'error',
+      mode: 'direct',
+      contract: 'BAD_REQUEST',
+      title: 'lehnt Massenlöschung mit Datum weit in der Zukunft ab',
+    },
+    async () => {
+      await expect(
+        adminCaller.purge({
+          scope: 'UNTIL',
+          until: '2099-01-01T23:59:59.999Z',
+          expectedCount: 1,
+          confirmationText: PRODUCT_FEEDBACK_PURGE_CONFIRMATION,
+        }),
+      ).rejects.toMatchObject({ code: 'BAD_REQUEST' });
+      expect(prismaMock.productFeedback.deleteMany).not.toHaveBeenCalled();
+    },
+  );
+
+  trpcDodIt(
+    {
+      procedure: 'admin.productFeedback.purge',
+      case: 'error',
+      mode: 'direct',
+      contract: 'UNAUTHORIZED',
+      title: 'weist Massenlöschung ohne Admin-Sitzung ab',
+    },
+    async () => {
+      isAdminSessionTokenValidMock.mockResolvedValue(false);
+      await expect(
+        adminCaller.purge({
+          scope: 'ALL',
+          expectedCount: 1,
+          confirmationText: PRODUCT_FEEDBACK_PURGE_CONFIRMATION,
+        }),
+      ).rejects.toMatchObject({ code: 'UNAUTHORIZED' });
+      expect(prismaMock.productFeedback.deleteMany).not.toHaveBeenCalled();
     },
   );
 });
