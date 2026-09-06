@@ -1,6 +1,6 @@
 # ProductFeedback (Stories 12.1–12.4)
 
-> **Status:** In Produkt umgesetzt (Epic 12: 12.1 Post-Session [#358](https://github.com/kqc-real/arsnova.eu/pull/358), 12.2 In-App + Admin-Triage [#361](https://github.com/kqc-real/arsnova.eu/pull/361), 12.3 LLM-Export, 12.4 Massenlöschung).
+> **Status:** In Produkt umgesetzt (Epic 12: 12.1 Post-Session [#358](https://github.com/kqc-real/arsnova.eu/pull/358), 12.2 In-App + Admin-Triage [#361](https://github.com/kqc-real/arsnova.eu/pull/361), 12.3 LLM-Export und 12.4 Massenlöschung [#365](https://github.com/kqc-real/arsnova.eu/pull/365)).
 > **Abgleich mit Code:** `apps/backend` (`productFeedback`, `admin.productFeedback`), `apps/frontend/src/app/features/product-feedback/`, Admin-Tab unter `/admin`.
 
 Domäne `ProductFeedback` ist strikt getrennt von SessionFeedback (4.8) und

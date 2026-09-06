@@ -2133,8 +2133,8 @@ ist abgeschlossen ✅. Damit ist Epic 6 geschlossen.
 
 1. **12.1** ✅ — gemeinsame `ProductFeedback`-Verträge, Persistenz, Einmal-Tokens, Aggregation und rollenspezifisches Zwei-Klick-Feedback nach Sessionende ([#358](https://github.com/kqc-real/arsnova.eu/pull/358)).
 2. **12.2** ✅ — jederzeit erreichbarer In-App-Kanal, Offline-Postausgang, Missbrauchsschutz und Admin-Triage auf derselben Domäne ([#361](https://github.com/kqc-real/arsnova.eu/pull/361)).
-3. **12.3** ✅ — Admin-Markdown-Export mit versioniertem Auswertungsprompt für ein vom Betreiber gewähltes externes LLM; kein serverseitiger Modellaufruf.
-4. **12.4** ✅ — Admin-Massenlöschung gespeicherter Rückmeldungen bis einschließlich eines Datums oder vollständig, mit Zählvorschau und Sicherheitsphrase.
+3. **12.3** ✅ — Admin-Markdown-Export mit versioniertem Auswertungsprompt für ein vom Betreiber gewähltes externes LLM; kein serverseitiger Modellaufruf ([#365](https://github.com/kqc-real/arsnova.eu/pull/365)).
+4. **12.4** ✅ — Admin-Massenlöschung gespeicherter Rückmeldungen bis einschließlich eines Datums oder vollständig, mit Zählvorschau und Sicherheitsphrase ([#365](https://github.com/kqc-real/arsnova.eu/pull/365)).
 
 12.1–12.4 sind im Repo umgesetzt; kanonische Fachdoku: [`docs/features/product-feedback.md`](docs/features/product-feedback.md).
 
@@ -2337,7 +2337,7 @@ ist abgeschlossen ✅. Damit ist Epic 6 geschlossen.
     - Frontendtests: Dialog öffnen mit aktuellen Filtern, Default-Schalter, Warnung bei Text-Opt-in, Download und Prompt-Kopie, Fokus nach Schließen, lokalisierte Labels.
     - Fachdoku, Admin-Flow, Glossar, Routen-/Story-Zuordnung, Funktionsübersicht und Datenschutzhinweise (alle fünf Sprachen) beschreiben den Opt-in-Charakter der Textübermittlung.
   - **Abhängigkeiten:** Stories 12.1 und 12.2 (`ProductFeedback`-Verträge, Admin-Triage, Aggregate), Epic 9 (`adminProcedure`, Auditmuster), ADR-0007 (externes LLM, Prompt als Artefakt), Stories 6.2/6.4/6.5 (i18n, Mobile, WCAG).
-  - **Umsetzungsnachweis:** Fachdoku [`docs/features/product-feedback.md`](docs/features/product-feedback.md); tRPC `admin.productFeedback.exportForLlm`.
+  - **Umsetzungsnachweis:** PR [#365](https://github.com/kqc-real/arsnova.eu/pull/365); Fachdoku [`docs/features/product-feedback.md`](docs/features/product-feedback.md); tRPC `admin.productFeedback.exportForLlm`.
 
 ---
 
@@ -2366,4 +2366,4 @@ ist abgeschlossen ✅. Damit ist Epic 6 geschlossen.
     - Frontendtests: Dialog mit Datepicker-Default, Phrase-Sperre, Scope `ALL` ohne Datum, Panel öffnet den Dialog mit Filterdatum „bis“.
     - Fachdoku, Admin-Flow, Glossar, Routen-/Story-Zuordnung, Funktionsübersicht und Datenschutzhinweise (alle fünf Sprachen) beschreiben die vorzeitige Löschung.
   - **Abhängigkeiten:** Stories 12.1 und 12.2 (`ProductFeedback`-Verträge, Admin-Triage, Einzelfalllöschung), Epic 9 (`adminProcedure`, Audit- und Phrase-Muster), Stories 6.2/6.4/6.5 (i18n, Mobile, WCAG).
-  - **Umsetzungsnachweis:** Fachdoku [`docs/features/product-feedback.md`](docs/features/product-feedback.md); tRPC `admin.productFeedback.purge`.
+  - **Umsetzungsnachweis:** PR [#365](https://github.com/kqc-real/arsnova.eu/pull/365); Fachdoku [`docs/features/product-feedback.md`](docs/features/product-feedback.md); tRPC `admin.productFeedback.purge`.
