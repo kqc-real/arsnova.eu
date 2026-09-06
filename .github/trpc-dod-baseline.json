@@ -107,9 +107,59 @@
       "fingerprint": "sha256:72c643ae1aa7e6e0b84b8f17dd8bd7ba1f718776deb9d36f9c0010321c2c4252",
       "missing": []
     },
+    "admin.productFeedback.clearQuarantine": {
+      "kind": "mutation",
+      "fingerprint": "sha256:138ab7d74c6986e7edd78361d91298cafa27b3ff75b3496ef0e3d94edc25582c",
+      "missing": []
+    },
+    "admin.productFeedback.createIssueDraft": {
+      "kind": "mutation",
+      "fingerprint": "sha256:8c9997ddd75a10548535ef802a61867f18c32960c698f99cd2ab577a46650f0c",
+      "missing": []
+    },
+    "admin.productFeedback.delete": {
+      "kind": "mutation",
+      "fingerprint": "sha256:4cf38d07d5a07edab2f1098292c58bd5582f4f15bb3044d8813f05875819e72e",
+      "missing": []
+    },
+    "admin.productFeedback.getDetail": {
+      "kind": "query",
+      "fingerprint": "sha256:5e50540cea403571308b0ea3cec404a03e53ebe20c58b956f82851144578991d",
+      "missing": []
+    },
     "admin.productFeedback.getStats": {
       "kind": "query",
       "fingerprint": "sha256:84cb6dbaabfc031b95c3d84c2e5dda4e8604b74664c8db29be25c0d49820bff3",
+      "missing": []
+    },
+    "admin.productFeedback.getTriageStats": {
+      "kind": "query",
+      "fingerprint": "sha256:c2bfb3592f6be305bed178e9ad238b88bef424abfbaf66788791582e1ec2c9f7",
+      "missing": []
+    },
+    "admin.productFeedback.linkDuplicate": {
+      "kind": "mutation",
+      "fingerprint": "sha256:043db0b04e4752e65f64608b48b497a4a1a4563cbbf290569201af4336e80c2b",
+      "missing": []
+    },
+    "admin.productFeedback.linkIssue": {
+      "kind": "mutation",
+      "fingerprint": "sha256:c025aea9d076772f68852814f37ac69028192495abde07aac11a55d4cc59f84d",
+      "missing": []
+    },
+    "admin.productFeedback.list": {
+      "kind": "query",
+      "fingerprint": "sha256:93f80ade03d9c15c7504cb1744d2ad6f4a9de75232478f4e43874980e10e93a9",
+      "missing": []
+    },
+    "admin.productFeedback.publishIssue": {
+      "kind": "mutation",
+      "fingerprint": "sha256:702e4f37433cc6361ab95d0dba508c828f7492fdb1950c11a59b72f03e07f256",
+      "missing": []
+    },
+    "admin.productFeedback.updateTriage": {
+      "kind": "mutation",
+      "fingerprint": "sha256:0ed55c47f07ec309a1527733077ccf5d01abfbbf6e0dc5affb4f5fe81dac0326",
       "missing": []
     },
     "admin.resetMaxParticipantsRecord": {
@@ -182,6 +232,16 @@
       "fingerprint": "sha256:3a550a276c137978f04afe26fce4e52e030c98f0a3f488a0f8069767891ce73e",
       "missing": []
     },
+    "productFeedback.followUpInApp": {
+      "kind": "mutation",
+      "fingerprint": "sha256:dc3a4218490cca76ddc5bd31b13479556e6d72c5ebce4db241697f005e9d50ec",
+      "missing": []
+    },
+    "productFeedback.getInAppChallenge": {
+      "kind": "mutation",
+      "fingerprint": "sha256:d8f8e067cf55f15d57be110f90c00f1f4d4854fe490b2643a253c6d2a7f04b5d",
+      "missing": []
+    },
     "productFeedback.getSurvey": {
       "kind": "query",
       "fingerprint": "sha256:423f0d09e9cfa04d8c8540ca9ccd17752b5d3f8828f1c853c468725cae40ccde",
@@ -190,6 +250,11 @@
     "productFeedback.submit": {
       "kind": "mutation",
       "fingerprint": "sha256:0cf6c0be6844f1648c90b08c134ca70f8b339f985e5e79e7249c04a881c1c1ec",
+      "missing": []
+    },
+    "productFeedback.submitInApp": {
+      "kind": "mutation",
+      "fingerprint": "sha256:79de213e06ab521191247364f11d53b0f832d2c43ba601f9099e671aae8a6c6f",
       "missing": []
     },
     "qa.deleteOwn": {

@@ -5,6 +5,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { trpcDodIt } from './test-utils/trpc-dod-evidence';
 import { sampleParticipantIds } from '../lib/productFeedbackTokens';
 import { assignSurveyKey, resolveAreaPromptKind } from '../lib/productFeedbackSurvey';
+import { resolveAppVersion } from '../lib/appVersion';
 import { isProductFeedbackOriginAllowed } from '../lib/productFeedbackInApp';
 import {
   PRODUCT_FEEDBACK_ADMIN_MIN_SEGMENT,
@@ -236,6 +237,59 @@ describe('ProductFeedback helpers', () => {
         'production',
       ),
     ).toBe(false);
+  });
+
+  it('vergleicht die Produktions-Origin nur mit PUBLIC_FRONTEND_URL', () => {
+    const previous = process.env['PUBLIC_FRONTEND_URL'];
+    process.env['PUBLIC_FRONTEND_URL'] = 'https://arsnova.eu';
+    try {
+      expect(
+        isProductFeedbackOriginAllowed(
+          {
+            headers: {
+              origin: 'https://evil.example',
+              'x-forwarded-host': 'evil.example',
+              'x-forwarded-proto': 'https',
+              host: 'evil.example',
+            },
+          } as never,
+          'production',
+        ),
+      ).toBe(false);
+      expect(
+        isProductFeedbackOriginAllowed(
+          {
+            headers: {
+              origin: 'https://arsnova.eu',
+              'x-forwarded-host': 'evil.example',
+              host: 'evil.example',
+            },
+          } as never,
+          'production',
+        ),
+      ).toBe(true);
+    } finally {
+      if (previous === undefined) delete process.env['PUBLIC_FRONTEND_URL'];
+      else process.env['PUBLIC_FRONTEND_URL'] = previous;
+    }
+  });
+
+  it('lehnt Produktions-Origins ohne konfigurierte Vertrauensquelle ab', () => {
+    const previous = process.env['PUBLIC_FRONTEND_URL'];
+    delete process.env['PUBLIC_FRONTEND_URL'];
+    try {
+      expect(
+        isProductFeedbackOriginAllowed(
+          {
+            headers: { origin: 'https://arsnova.eu' },
+          } as never,
+          'production',
+        ),
+      ).toBe(false);
+    } finally {
+      if (previous === undefined) delete process.env['PUBLIC_FRONTEND_URL'];
+      else process.env['PUBLIC_FRONTEND_URL'] = previous;
+    }
   });
 
   it('weist Ease/Value deterministisch zu', () => {
@@ -611,9 +665,11 @@ describe('productFeedback router', () => {
     async () => {
       const idempotencyKey = '99999999-9999-4999-8999-999999999999';
       const challenge = await publicCaller.getInAppChallenge({ idempotencyKey });
+      prismaMock.productFeedback.findUnique.mockResolvedValue(null);
       prismaMock.productFeedback.create.mockResolvedValue({
         id: 'fb-in-app-1',
-        expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000),
+        createdAt: new Date('2026-09-06T08:00:00.000Z'),
+        source: 'IN_APP',
       });
 
       const output = await publicCaller.submitInApp({
@@ -635,12 +691,45 @@ describe('productFeedback router', () => {
           area: 'QUIZ_OR_ANSWER',
           routeGroup: 'SESSION_VOTE',
           errorRequestId: 'vote.submit:timeout-42',
+          appVersion: resolveAppVersion(inAppContext.appVersion),
+          submitIdempotencyHash: hashToken(idempotencyKey),
         }),
-        select: { id: true },
+        select: { id: true, createdAt: true, source: true },
       });
       expect(prismaMock.productFeedback.create.mock.calls[0]?.[0].data).not.toHaveProperty(
         'sessionCode',
       );
+    },
+  );
+
+  trpcDodIt(
+    {
+      procedure: 'productFeedback.submitInApp',
+      case: 'happy',
+      mode: 'direct',
+      title: 'stellt nach Redis-Verlust denselben IN_APP-Datensatz wieder her',
+    },
+    async () => {
+      const idempotencyKey = '88888888-8888-4888-8888-888888888888';
+      const challenge = await publicCaller.getInAppChallenge({ idempotencyKey });
+      prismaMock.productFeedback.findUnique.mockResolvedValue({
+        id: 'fb-in-app-replay',
+        createdAt: new Date('2026-09-06T08:00:00.000Z'),
+        source: 'IN_APP',
+      });
+
+      const output = await publicCaller.submitInApp({
+        challengeToken: challenge.challengeToken,
+        idempotencyKey,
+        role: 'PARTICIPANT',
+        kind: 'UNCLEAR',
+        area: 'QUIZ_OR_ANSWER',
+        context: inAppContext,
+      });
+
+      expect(output.ok).toBe(true);
+      expect(output.followUpCapability).toHaveLength(64);
+      expect(prismaMock.productFeedback.create).not.toHaveBeenCalled();
     },
   );
 
@@ -676,9 +765,11 @@ describe('productFeedback router', () => {
     async () => {
       const idempotencyKey = 'bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb';
       const challenge = await publicCaller.getInAppChallenge({ idempotencyKey });
+      prismaMock.productFeedback.findUnique.mockResolvedValue(null);
       prismaMock.productFeedback.create.mockResolvedValue({
         id: 'fb-in-app-2',
-        expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000),
+        createdAt: new Date(Date.now() + 24 * 60 * 60 * 1000),
+        source: 'IN_APP',
       });
       const submitted = await publicCaller.submitInApp({
         challengeToken: challenge.challengeToken,
@@ -688,12 +779,13 @@ describe('productFeedback router', () => {
         area: 'QUIZ_OR_ANSWER',
         context: inAppContext,
       });
-      prismaMock.productFeedback.findUnique.mockResolvedValue({
+      prismaMock.productFeedback.findUnique.mockResolvedValueOnce(null).mockResolvedValueOnce({
         id: 'fb-in-app-2',
         source: 'IN_APP',
         feedbackKind: 'NOT_WORKING',
         message: null,
         impact: null,
+        followUpIdempotencyHash: null,
       });
       prismaMock.productFeedback.update.mockResolvedValue({ id: 'fb-in-app-2' });
 
@@ -708,6 +800,7 @@ describe('productFeedback router', () => {
       expect(prismaMock.productFeedback.update).toHaveBeenCalledWith({
         where: { id: 'fb-in-app-2' },
         data: {
+          followUpIdempotencyHash: expect.stringMatching(/^[a-f0-9]{64}$/),
           message: 'Mein Sessioncode war ABC123.',
           impact: 'BLOCKED',
           quarantineStatus: 'FLAGGED',
@@ -727,9 +820,11 @@ describe('productFeedback router', () => {
     async () => {
       const idempotencyKey = 'dddddddd-dddd-4ddd-8ddd-dddddddddddd';
       const challenge = await publicCaller.getInAppChallenge({ idempotencyKey });
+      prismaMock.productFeedback.findUnique.mockResolvedValue(null);
       prismaMock.productFeedback.create.mockResolvedValue({
         id: 'fb-in-app-3',
-        expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000),
+        createdAt: new Date(Date.now() + 24 * 60 * 60 * 1000),
+        source: 'IN_APP',
       });
       const submitted = await publicCaller.submitInApp({
         challengeToken: challenge.challengeToken,
@@ -739,12 +834,13 @@ describe('productFeedback router', () => {
         area: 'HELP',
         context: { ...inAppContext, routeGroup: 'HELP', sessionPhase: 'NONE' },
       });
-      prismaMock.productFeedback.findUnique.mockResolvedValue({
+      prismaMock.productFeedback.findUnique.mockResolvedValueOnce(null).mockResolvedValueOnce({
         id: 'fb-in-app-3',
         source: 'IN_APP',
         feedbackKind: 'PRAISE',
         message: null,
         impact: null,
+        followUpIdempotencyHash: null,
       });
 
       await expect(
@@ -1289,6 +1385,45 @@ describe('adminProductFeedback Triage', () => {
         expect(output.issueNumber).toBe(43);
         const request = JSON.parse(String(fetchMock.mock.calls[0]?.[1]?.body));
         expect(request.body).not.toContain('Die Abstimmung blieb hängen.');
+      } finally {
+        fetchMock.mockRestore();
+        if (previousRepository === undefined)
+          delete process.env['PRODUCT_FEEDBACK_GITHUB_REPOSITORY'];
+        else process.env['PRODUCT_FEEDBACK_GITHUB_REPOSITORY'] = previousRepository;
+        if (previousToken === undefined) delete process.env['PRODUCT_FEEDBACK_GITHUB_TOKEN'];
+        else process.env['PRODUCT_FEEDBACK_GITHUB_TOKEN'] = previousToken;
+      }
+    },
+  );
+
+  trpcDodIt(
+    {
+      procedure: 'admin.productFeedback.publishIssue',
+      case: 'happy',
+      mode: 'direct',
+      title: 'gibt eine bereits verknüpfte Issue-URL ohne zweiten GitHub-Aufruf zurück',
+    },
+    async () => {
+      const previousRepository = process.env['PRODUCT_FEEDBACK_GITHUB_REPOSITORY'];
+      const previousToken = process.env['PRODUCT_FEEDBACK_GITHUB_TOKEN'];
+      process.env['PRODUCT_FEEDBACK_GITHUB_REPOSITORY'] = 'kqc-real/arsnova.eu';
+      process.env['PRODUCT_FEEDBACK_GITHUB_TOKEN'] = 'test-token';
+      prismaMock.productFeedback.findUnique.mockResolvedValue(
+        adminFeedbackRow({
+          githubIssueNumber: 43,
+          githubIssueUrl: 'https://github.com/kqc-real/arsnova.eu/issues/43',
+        }),
+      );
+      const fetchMock = vi.spyOn(globalThis, 'fetch');
+      try {
+        const output = await adminCaller.publishIssue({
+          id: '11111111-1111-4111-8111-111111111111',
+        });
+        expect(output).toEqual({
+          issueNumber: 43,
+          issueUrl: 'https://github.com/kqc-real/arsnova.eu/issues/43',
+        });
+        expect(fetchMock).not.toHaveBeenCalled();
       } finally {
         fetchMock.mockRestore();
         if (previousRepository === undefined)

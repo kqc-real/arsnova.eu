@@ -221,7 +221,7 @@ async function completeProductFeedbackCard(page, shotPrefix, { withMessage = fal
   if (withMessage) {
     await card
       .getByRole('button', {
-        name: /Anmerkung ergänzen|Add a note|Ajouter une note|Añadir una nota|Aggiungi una nota/i,
+        name: /Ergänzung hinzufügen|Add details|Ajouter un complément|Añadir información adicional|Aggiungi dettagli/i,
       })
       .click();
     await card.locator('#product-feedback-message').waitFor({ state: 'visible', timeout: 10_000 });
@@ -229,7 +229,11 @@ async function completeProductFeedbackCard(page, shotPrefix, { withMessage = fal
     await card.locator('#product-feedback-message').fill('Kurzer Test-Hinweis für den Screenshot.');
     await page.waitForTimeout(200);
     await shot(page, `${shotPrefix}-05-message-filled`);
-    await card.getByRole('button', { name: /Senden|Send|Envoyer|Enviar|Invia/i }).click();
+    await card
+      .getByRole('button', {
+        name: /Ergänzung senden|Send details|Envoyer le complément|Enviar información adicional|Invia dettagli/i,
+      })
+      .click();
     await page.waitForTimeout(900);
     await shot(page, `${shotPrefix}-06-after-message`);
     logStep(`${shotPrefix} Zwei-Klick + Freitext abgeschlossen`);

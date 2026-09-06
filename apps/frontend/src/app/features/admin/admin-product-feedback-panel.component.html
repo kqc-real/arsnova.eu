@@ -421,7 +421,12 @@
               <div class="admin-pf__issue-preview">
                 <strong>{{ draft.title }}</strong>
                 <pre>{{ draft.body }}</pre>
-                <button matButton="filled" type="button" (click)="publishIssue()">
+                <button
+                  matButton="filled"
+                  type="button"
+                  [disabled]="triageBusy()"
+                  (click)="publishIssue()"
+                >
                   <span i18n="@@admin.productFeedback.publishIssue"
                     >Entwurf auf GitHub veröffentlichen</span
                   >

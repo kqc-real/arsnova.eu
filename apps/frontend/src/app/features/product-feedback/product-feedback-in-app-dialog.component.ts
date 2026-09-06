@@ -1,7 +1,7 @@
 import { Component, ElementRef, Injector, afterNextRender, inject, signal } from '@angular/core';
 import { DatePipe } from '@angular/common';
 import { MatButton, MatIconButton } from '@angular/material/button';
-import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
+import { MAT_DIALOG_DATA, MatDialogRef, MatDialogTitle } from '@angular/material/dialog';
 import { MatIcon } from '@angular/material/icon';
 import { MatProgressSpinner } from '@angular/material/progress-spinner';
 import {
@@ -35,7 +35,7 @@ type ResolvedLaunchContext = Required<
 @Component({
   selector: 'app-product-feedback-in-app-dialog',
   standalone: true,
-  imports: [DatePipe, MatButton, MatIconButton, MatIcon, MatProgressSpinner],
+  imports: [DatePipe, MatButton, MatIconButton, MatDialogTitle, MatIcon, MatProgressSpinner],
   templateUrl: './product-feedback-in-app-dialog.component.html',
   styleUrl: './product-feedback-in-app-dialog.component.scss',
   host: { class: 'product-feedback-in-app-dialog' },

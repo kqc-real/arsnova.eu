@@ -67,6 +67,11 @@ zurückgegeben.
 
 - Invite-Tokens / Follow-up-Capabilities: Redis, SHA-256, TTL ≤24h bzw. ≤15 Min.
 - IN_APP-Challenges: Redis, SHA-256, TTL ≤5 Min.; Browser-Same-Origin ist Pflicht.
+  In Produktion zählt ausschließlich `PUBLIC_FRONTEND_URL`, niemals
+  `Host` oder `X-Forwarded-Host`.
+- IN_APP-Submit und Follow-up speichern denselben PostgreSQL-Idempotenz-Hash
+  wie der Post-Session-Pfad, damit Outbox-Retries nach Redis-Verlust keine
+  zweiten Datensätze anlegen.
 - Teilnehmer-Claims benötigen zusätzlich einen beim Join ausgestellten,
   teilnehmerspezifischen Besitznachweis. Participant-ID und Session-Code allein
   reichen nicht.
@@ -98,6 +103,8 @@ Originaltext wird nie übernommen. `publishIssue` benötigt
 `PRODUCT_FEEDBACK_GITHUB_REPOSITORY` und einen minimal berechtigten
 `PRODUCT_FEEDBACK_GITHUB_TOKEN`; erst die gesonderte Adminaktion nach sichtbarer
 Vorschau veröffentlicht. Ohne Konfiguration bleibt der Pfad geschlossen.
+Bereits verknüpfte Issues werden idempotent zurückgegeben; parallele
+Veröffentlichungen desselben Datensatzes werden atomar reserviert.
 
 ## Tests / Smoke
 

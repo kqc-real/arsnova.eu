@@ -1,14 +1,8 @@
-<section
-  class="product-feedback-in-app-dialog__surface"
-  role="dialog"
-  aria-modal="true"
-  aria-labelledby="product-feedback-in-app-title"
-  [attr.aria-busy]="busy() ? 'true' : null"
->
+<section class="product-feedback-in-app-dialog__surface" [attr.aria-busy]="busy() ? 'true' : null">
   <header class="product-feedback-in-app-dialog__header">
     <div>
       <p class="product-feedback-in-app-dialog__eyebrow">{{ actionLabel }}</p>
-      <h2 id="product-feedback-in-app-title" tabindex="-1">
+      <h2 mat-dialog-title id="product-feedback-in-app-title" tabindex="-1">
         @if (step() === 'kind') {
           <span i18n="@@productFeedback.inApp.question">Was ist dir aufgefallen?</span>
         } @else if (step() === 'area') {

@@ -23,6 +23,7 @@ import {
 } from '@arsnova/shared-types';
 import type { Prisma } from '@prisma/client';
 import { prisma } from '../db';
+import { getRedis } from '../redis';
 import {
   buildProductFeedbackAdminStats,
   buildProductFeedbackTriageStats,
@@ -152,6 +153,38 @@ function buildIssueDraft(row: FeedbackRow): AdminProductFeedbackIssueDraftOutput
     '_Der freiwillige Originaltext ist aus Datenschutzgründen nicht enthalten._',
   ].filter((line): line is string => line !== null);
   return { title, body: lines.join('\n') };
+}
+
+const GITHUB_PUBLISH_LOCK_PREFIX = 'productFeedback:githubPublish:v1:';
+const GITHUB_PUBLISH_LOCK_TTL_SECONDS = 120;
+
+async function reserveGithubPublish(id: string): Promise<boolean> {
+  return (
+    (await getRedis().set(
+      `${GITHUB_PUBLISH_LOCK_PREFIX}${id}`,
+      '1',
+      'EX',
+      GITHUB_PUBLISH_LOCK_TTL_SECONDS,
+      'NX',
+    )) === 'OK'
+  );
+}
+
+async function releaseGithubPublish(id: string): Promise<void> {
+  await getRedis().del(`${GITHUB_PUBLISH_LOCK_PREFIX}${id}`);
+}
+
+function publishedIssueFromRow(row: FeedbackRow): { issueNumber: number; issueUrl: string } | null {
+  if (
+    typeof row.githubIssueNumber === 'number' &&
+    Number.isSafeInteger(row.githubIssueNumber) &&
+    row.githubIssueNumber > 0 &&
+    typeof row.githubIssueUrl === 'string' &&
+    row.githubIssueUrl.startsWith('https://github.com/')
+  ) {
+    return { issueNumber: row.githubIssueNumber, issueUrl: row.githubIssueUrl };
+  }
+  return null;
 }
 
 async function getFeedbackRow(id: string): Promise<FeedbackRow> {
@@ -340,51 +373,66 @@ export const adminProductFeedbackRouter = router({
         });
       }
       const row = await getFeedbackRow(input.id);
+      const alreadyPublished = publishedIssueFromRow(row);
+      if (alreadyPublished) return alreadyPublished;
+      const reserved = await reserveGithubPublish(input.id);
+      if (!reserved) {
+        const latest = publishedIssueFromRow(await getFeedbackRow(input.id));
+        if (latest) return latest;
+        throw new TRPCError({
+          code: 'CONFLICT',
+          message: 'Die Veröffentlichung läuft bereits.',
+        });
+      }
       const draft = buildIssueDraft(row);
-      const response = await fetch(`https://api.github.com/repos/${repository}/issues`, {
-        method: 'POST',
-        headers: {
-          Accept: 'application/vnd.github+json',
-          Authorization: `Bearer ${token}`,
-          'Content-Type': 'application/json',
-          'X-GitHub-Api-Version': '2022-11-28',
-        },
-        body: JSON.stringify(draft),
-      });
-      if (!response.ok) {
-        throw new TRPCError({
-          code: 'BAD_GATEWAY',
-          message: 'GitHub-Issue konnte nicht veröffentlicht werden.',
-        });
-      }
-      const published = (await response.json()) as { number?: number; html_url?: string };
-      if (
-        !Number.isSafeInteger(published.number) ||
-        typeof published.html_url !== 'string' ||
-        !published.html_url.startsWith('https://github.com/')
-      ) {
-        throw new TRPCError({
-          code: 'BAD_GATEWAY',
-          message: 'GitHub hat eine ungültige Issue-Antwort geliefert.',
-        });
-      }
-      const issueNumber = published.number as number;
-      const issueUrl = published.html_url;
-      await prisma.$transaction([
-        prisma.productFeedback.update({
-          where: { id: input.id },
-          data: { githubIssueNumber: issueNumber, githubIssueUrl: issueUrl },
-        }),
-        prisma.productFeedbackAuditLog.create({
-          data: {
-            productFeedbackId: input.id,
-            action: 'ISSUE_LINKED',
-            adminIdentifier: adminIdentifier(ctx.adminToken),
-            issueNumber,
+      try {
+        const response = await fetch(`https://api.github.com/repos/${repository}/issues`, {
+          method: 'POST',
+          headers: {
+            Accept: 'application/vnd.github+json',
+            Authorization: `Bearer ${token}`,
+            'Content-Type': 'application/json',
+            'X-GitHub-Api-Version': '2022-11-28',
           },
-        }),
-      ]);
-      return { issueNumber, issueUrl };
+          body: JSON.stringify(draft),
+        });
+        if (!response.ok) {
+          throw new TRPCError({
+            code: 'BAD_GATEWAY',
+            message: 'GitHub-Issue konnte nicht veröffentlicht werden.',
+          });
+        }
+        const published = (await response.json()) as { number?: number; html_url?: string };
+        if (
+          !Number.isSafeInteger(published.number) ||
+          typeof published.html_url !== 'string' ||
+          !published.html_url.startsWith('https://github.com/')
+        ) {
+          throw new TRPCError({
+            code: 'BAD_GATEWAY',
+            message: 'GitHub hat eine ungültige Issue-Antwort geliefert.',
+          });
+        }
+        const issueNumber = published.number as number;
+        const issueUrl = published.html_url;
+        await prisma.$transaction([
+          prisma.productFeedback.update({
+            where: { id: input.id },
+            data: { githubIssueNumber: issueNumber, githubIssueUrl: issueUrl },
+          }),
+          prisma.productFeedbackAuditLog.create({
+            data: {
+              productFeedbackId: input.id,
+              action: 'ISSUE_LINKED',
+              adminIdentifier: adminIdentifier(ctx.adminToken),
+              issueNumber,
+            },
+          }),
+        ]);
+        return { issueNumber, issueUrl };
+      } finally {
+        await releaseGithubPublish(input.id);
+      }
     }),
 
   clearQuarantine: adminProcedure

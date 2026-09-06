@@ -425,6 +425,7 @@ export const productFeedbackRouter = router({
     .mutation(async ({ input, ctx }) => {
       enforceInAppOrigin(ctx);
       await enforceMutateRate(ctx);
+      const submitIdempotencyHash = hashToken(input.idempotencyKey);
       const cached = await getIdempotentResult<{
         ok: true;
         followUpCapability: string;
@@ -432,40 +433,19 @@ export const productFeedbackRouter = router({
       }>('inAppSubmit', input.idempotencyKey);
       if (cached) return cached;
 
-      const reserved = await reserveInAppChallenge(input.challengeToken, input.idempotencyKey);
-      if (!reserved) {
-        throw new TRPCError({
-          code: 'CONFLICT',
-          message: 'Challenge ist abgelaufen, ungültig oder wurde bereits verwendet.',
-        });
-      }
-
-      try {
-        const row = await prisma.productFeedback.create({
-          data: {
-            source: 'IN_APP',
-            role: input.role,
-            surveyKey: null,
-            primaryAnswer: null,
-            feedbackKind: input.kind,
-            area: input.area,
-            locale: input.context.locale,
-            appVersion: input.context.appVersion ?? null,
-            deviceClass: input.context.deviceClass,
-            routeGroup: input.context.routeGroup,
-            sessionPhase: input.context.sessionPhase,
-            activeChannel: input.context.activeChannel,
-            browserFamily: input.context.browserFamily,
-            browserMajorVersion: input.context.browserMajorVersion ?? null,
-            osFamily: input.context.osFamily,
-            onlineState: input.context.onlineState,
-            errorRequestId: input.context.errorRequestId ?? null,
-          },
-          select: { id: true },
-        });
-
+      const finishExistingInAppSubmit = async (row: {
+        id: string;
+        createdAt: Date;
+        source: string;
+      }) => {
+        if (row.source !== 'IN_APP') {
+          throw new TRPCError({
+            code: 'CONFLICT',
+            message: 'Idempotency-Key gehört zu einer anderen Rückmeldung.',
+          });
+        }
         const followUpExpiresAt = new Date(
-          Date.now() + PRODUCT_FEEDBACK_FOLLOWUP_TTL_SECONDS * 1_000,
+          row.createdAt.getTime() + PRODUCT_FEEDBACK_FOLLOWUP_TTL_SECONDS * 1000,
         );
         const followUpCapability = await createFollowUpCapability(
           row.id,
@@ -485,8 +465,57 @@ export const productFeedbackRouter = router({
           PRODUCT_FEEDBACK_FOLLOWUP_TTL_SECONDS,
         );
         return output;
+      };
+
+      const existing = await prisma.productFeedback.findUnique({
+        where: { submitIdempotencyHash },
+        select: { id: true, createdAt: true, source: true },
+      });
+      if (existing) return finishExistingInAppSubmit(existing);
+
+      const reserved = await reserveInAppChallenge(input.challengeToken, input.idempotencyKey);
+      if (!reserved) {
+        throw new TRPCError({
+          code: 'CONFLICT',
+          message: 'Challenge ist abgelaufen, ungültig oder wurde bereits verwendet.',
+        });
+      }
+
+      try {
+        const row = await prisma.productFeedback.create({
+          data: {
+            submitIdempotencyHash,
+            source: 'IN_APP',
+            role: input.role,
+            surveyKey: null,
+            primaryAnswer: null,
+            feedbackKind: input.kind,
+            area: input.area,
+            locale: input.context.locale,
+            appVersion: resolveAppVersion(input.context.appVersion),
+            deviceClass: input.context.deviceClass,
+            routeGroup: input.context.routeGroup,
+            sessionPhase: input.context.sessionPhase,
+            activeChannel: input.context.activeChannel,
+            browserFamily: input.context.browserFamily,
+            browserMajorVersion: input.context.browserMajorVersion ?? null,
+            osFamily: input.context.osFamily,
+            onlineState: input.context.onlineState,
+            errorRequestId: input.context.errorRequestId ?? null,
+          },
+          select: { id: true, createdAt: true, source: true },
+        });
+
+        return finishExistingInAppSubmit(row);
       } catch (error) {
         await releaseInAppChallenge(input.challengeToken);
+        if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2002') {
+          const raced = await prisma.productFeedback.findUnique({
+            where: { submitIdempotencyHash },
+            select: { id: true, createdAt: true, source: true },
+          });
+          if (raced) return finishExistingInAppSubmit(raced);
+        }
         throw error;
       }
     }),
@@ -501,9 +530,26 @@ export const productFeedbackRouter = router({
     .mutation(async ({ input, ctx }) => {
       enforceInAppOrigin(ctx);
       await enforceMutateRate(ctx);
-      const idempotencyScope = `${hashToken(input.followUpCapability)}:${input.idempotencyKey}`;
+      const followUpFingerprint = hashToken(input.followUpCapability);
+      const followUpIdempotencyHash = hashToken(`${followUpFingerprint}:${input.idempotencyKey}`);
+      const idempotencyScope = `${followUpFingerprint}:${input.idempotencyKey}`;
       const cached = await getIdempotentResult<{ ok: true }>('inAppFollowUp', idempotencyScope);
       if (cached) return cached;
+      const prior = await prisma.productFeedback.findUnique({
+        where: { followUpIdempotencyHash },
+        select: { id: true },
+      });
+      if (prior) {
+        const output = { ok: true as const };
+        await finalizeFollowUpCapability(input.followUpCapability);
+        await setIdempotentResult(
+          'inAppFollowUp',
+          idempotencyScope,
+          output,
+          PRODUCT_FEEDBACK_FOLLOWUP_TTL_SECONDS,
+        );
+        return output;
+      }
 
       const capability = await consumeFollowUpCapability(input.followUpCapability);
       if (!capability) {
@@ -522,12 +568,22 @@ export const productFeedbackRouter = router({
             feedbackKind: true,
             message: true,
             impact: true,
+            followUpIdempotencyHash: true,
           },
         });
         if (!existing || existing.source !== 'IN_APP') {
           throw new TRPCError({
             code: 'NOT_FOUND',
             message: 'Rückmeldung nicht gefunden.',
+          });
+        }
+        if (
+          existing.followUpIdempotencyHash &&
+          existing.followUpIdempotencyHash !== followUpIdempotencyHash
+        ) {
+          throw new TRPCError({
+            code: 'CONFLICT',
+            message: 'Diese Rückmeldung wurde bereits ergänzt.',
           });
         }
         if (input.impact && existing.feedbackKind !== 'NOT_WORKING') {
@@ -541,6 +597,7 @@ export const productFeedbackRouter = router({
         await prisma.productFeedback.update({
           where: { id: existing.id },
           data: {
+            followUpIdempotencyHash,
             ...(message && !existing.message ? { message } : {}),
             ...(input.impact && !existing.impact ? { impact: input.impact } : {}),
             ...(message && shouldQuarantineProductFeedbackMessage(message)
@@ -550,6 +607,7 @@ export const productFeedbackRouter = router({
         });
 
         const output = { ok: true as const };
+        await finalizeFollowUpCapability(input.followUpCapability);
         await setIdempotentResult(
           'inAppFollowUp',
           idempotencyScope,
@@ -558,7 +616,18 @@ export const productFeedbackRouter = router({
         );
         return output;
       } catch (error) {
+        if (error instanceof TRPCError) {
+          await finalizeFollowUpCapability(input.followUpCapability);
+          throw error;
+        }
         await releaseFollowUpReservation(input.followUpCapability);
+        if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2002') {
+          const raced = await prisma.productFeedback.findUnique({
+            where: { followUpIdempotencyHash },
+            select: { id: true },
+          });
+          if (raced?.id === capability.feedbackId) return { ok: true as const };
+        }
         throw error;
       }
     }),

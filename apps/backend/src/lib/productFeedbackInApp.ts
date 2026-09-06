@@ -75,6 +75,12 @@ export async function finalizeInAppChallenge(challengeToken: string): Promise<vo
   await redis.del(challengeKey(challengeToken), challengeConsumeKey(challengeToken));
 }
 
+const DEV_IN_APP_ORIGINS = new Set([
+  'http://localhost:4200',
+  'http://127.0.0.1:4200',
+  'http://[::1]:4200',
+]);
+
 function canonicalOrigin(value: string): string | null {
   if (value === 'null' || value.length > 256) return null;
   try {
@@ -84,6 +90,32 @@ function canonicalOrigin(value: string): string | null {
   } catch {
     return null;
   }
+}
+
+function originFromConfiguredUrl(value: string): string | null {
+  if (!value || value.length > 256) return null;
+  try {
+    const parsed = new URL(value);
+    if (parsed.username || parsed.password) return null;
+    if (parsed.protocol !== 'http:' && parsed.protocol !== 'https:') return null;
+    return parsed.origin;
+  } catch {
+    return null;
+  }
+}
+
+/** Produktions-Origins kommen nur aus fester Konfiguration, nie aus Host-Headern. */
+export function trustedProductFeedbackOrigins(
+  nodeEnv = process.env['NODE_ENV'],
+  publicFrontendUrl = process.env['PUBLIC_FRONTEND_URL'],
+): Set<string> {
+  if (nodeEnv !== 'production') return new Set(DEV_IN_APP_ORIGINS);
+  const origins = new Set<string>();
+  for (const part of (publicFrontendUrl ?? '').split(',')) {
+    const origin = originFromConfiguredUrl(part.trim());
+    if (origin) origins.add(origin);
+  }
+  return origins;
 }
 
 /** Die öffentliche IN_APP-Schreib-API akzeptiert ausschließlich Browser-Same-Origin. */
@@ -96,20 +128,7 @@ export function isProductFeedbackOriginAllowed(
   if (typeof originHeader !== 'string') return false;
   const origin = canonicalOrigin(originHeader);
   if (!origin) return false;
-
-  if (nodeEnv !== 'production') {
-    return new Set(['http://localhost:4200', 'http://127.0.0.1:4200', 'http://[::1]:4200']).has(
-      origin,
-    );
-  }
-
-  const forwardedProto = req.headers['x-forwarded-proto'];
-  const protocol =
-    typeof forwardedProto === 'string' ? forwardedProto.split(',')[0]?.trim() : undefined;
-  const host = req.headers['x-forwarded-host'] ?? req.headers.host;
-  const canonicalHost = Array.isArray(host) ? host[0] : host?.split(',')[0]?.trim();
-  if (!canonicalHost || (protocol !== 'http' && protocol !== 'https')) return false;
-  return origin === `${protocol}://${canonicalHost}`;
+  return trustedProductFeedbackOrigins(nodeEnv).has(origin);
 }
 
 /** Auffälliger Text bleibt Plaintext, wird aber bis zur Adminprüfung quarantänemarkiert. */
