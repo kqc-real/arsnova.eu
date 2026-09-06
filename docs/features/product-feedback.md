@@ -1,5 +1,8 @@
 # ProductFeedback (Stories 12.1 und 12.2)
 
+> **Status:** In Produkt umgesetzt (Epic 12 vollständig: 12.1 Post-Session [#358](https://github.com/kqc-real/arsnova.eu/pull/358), 12.2 In-App + Admin-Triage [#361](https://github.com/kqc-real/arsnova.eu/pull/361)).
+> **Abgleich mit Code:** `apps/backend` (`productFeedback`, `admin.productFeedback`), `apps/frontend/src/app/features/product-feedback/`, Admin-Tab unter `/admin`.
+
 Domäne `ProductFeedback` ist strikt getrennt von SessionFeedback (4.8) und
 quickFeedback/Blitzlicht. Öffentliche Mutationen sind Token-/Capability-basiert;
 in PostgreSQL landen keine Session-/Personen-IDs.
@@ -43,6 +46,11 @@ mobil als Bottom-Sheet. Session-Bewertung
 der Session-Bewertung (oder wenn 4.8 fehlt / `quizStarted` false). Floating-Tray:
 Navigation/Bonus. Area-Chips folgen dem Nutzungsflow (linke Spalte frühe
 Schritte, rechte Spalte später/Meta; mobil einspaltig).
+
+**Icon:** Einstiege und Kacheln nutzen das MD3-Icon `insights` aus dem
+selbst gehosteten Subset. MOTD behält `campaign`; die Session-Bewertung (4.8)
+behält `feedback`. Neue Icon-Namen vorab gegen
+`apps/frontend/src/assets/fonts/material-icons.woff2` prüfen.
 
 Fehlerzustände: Pending („Wird gesendet …“), Erfolg, Outbox-Hinweis bei
 Netzwerk/Timeout und typisierte Ablehnungen für Ablauf, Einmaligkeit,
@@ -109,12 +117,28 @@ Vorschau veröffentlicht. Ohne Konfiguration bleibt der Pfad geschlossen.
 Bereits verknüpfte Issues werden idempotent zurückgegeben; parallele
 Veröffentlichungen desselben Datensatzes werden atomar reserviert.
 
+## Betrieb
+
+Pflicht für öffentliche IN_APP-Schreibpfade in Produktion:
+
+```bash
+PUBLIC_FRONTEND_URL=https://arsnova.eu
+```
+
+Apex und `www` als kommagetrennte Origins, falls beide live sind. Nach Änderung
+der Env-Datei Container mit `--force-recreate` neu starten (einfaches `restart`
+lädt `env_file` nicht neu). Details: `docs/ENVIRONMENT.md`,
+`.env.production.example`.
+
 ## Tests / Smoke
 
 - Backend: `apps/backend/src/__tests__/productFeedback.test.ts`
-- Frontend-Komponente und Storage: `product-feedback-card.component.spec.ts`,
-  `product-feedback-storage.spec.ts`
-- E2E-Smoke: `npm run smoke:product-feedback -w @arsnova/frontend`
+- Frontend: `product-feedback-card.component.spec.ts`,
+  `product-feedback-in-app-dialog.component.spec.ts`,
+  `product-feedback-launcher.service.spec.ts`,
+  `product-feedback-storage.spec.ts`,
+  Admin-Panel-Specs unter `admin-product-feedback-panel`
+- E2E-Smoke Post-Session: `npm run smoke:product-feedback -w @arsnova/frontend`
   (getrennte Browser-Kontexte für Host und drei Teilnehmende, UI-Join,
   UI-Abstimmung, UI-Sessionende, Host-Sheet, Vote-Karte und negativer
   Sessionexport-Nachweis; Screenshots unter `SMOKE_ARTIFACT_DIR`, Default
@@ -126,3 +150,4 @@ Veröffentlichungen desselben Datensatzes werden atomar reserviert.
 - Admin: `docs/implementation/ADMIN-FLOW.md`
 - Routen: `docs/ROUTES_AND_STORIES.md`
 - Glossar: `docs/GLOSSAR.md`
+- Umgebung: `docs/ENVIRONMENT.md`

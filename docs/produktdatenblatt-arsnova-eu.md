@@ -22,9 +22,11 @@ Die Lösung ist auf zwei Zielgruppen gleichzeitig ausgelegt:
 Diese Produktbeschreibung wurde aus zwei Primärquellen konsolidiert:
 
 - **Backlog-Quelle:** `Backlog.md`
-  - Gesamtumfang: **115 Stories**
-  - Status laut Story-Übersicht: **98 fertig**, **0 in Arbeit**, **17 offen**
-  - Epics: **0 bis 10** plus **Epic 11** als noch nicht beauftragter Erweiterungspfad
+  - Gesamtumfang: **122 Stories**
+  - Status laut Story-Übersicht: **106 fertig**, **0 in Arbeit**, **12 offen**
+    (plus **3** geschlossen, **1** Cutover)
+  - Epics: **0 bis 10** und **Epic 12** (Produktfeedback) umgesetzt; **Epic 11**
+    bleibt noch nicht beauftragter Erweiterungspfad
 - **Test-Quelle:** alle automatisierten Unit-/Komponententests in Backend und Frontend
   - **Frontend:** 43 Spec-Dateien (`*.spec.ts`)
   - **Backend:** 27 Testdateien (`*.test.ts`)
@@ -149,8 +151,8 @@ Damit ist die Produktbeschreibung nicht nur backlog-basiert, sondern auch verhal
 ## 8. Aktueller Lieferstand und offene Produktinkremente
 
 **Lieferstand:** Kernprodukt inkl. Sessionsteuerung, Teilnehmerfluss, Auswertung,
-Admin und MOTD ist produktiv funktionsfähig und durch Unit-, API- und
-Lasttests breit abgesichert. Der
+Admin, MOTD und kontinuierlichem Produktfeedback (Epic 12) ist produktiv
+funktionsfähig und durch Unit-, API- und Lasttests breit abgesichert. Der
 [QA-Nachlauf vom 2026-07-11](implementation/LOCAL-QA-RECHECK-2026-07-11.md)
 belegt grüne lokale Browser-, Yjs-, Vote-Latenz- und Lighthouse-Gates. Eine
 vollständige Performance-Freigabe benötigt zusätzlich Staging-Langläufe und
@@ -166,6 +168,7 @@ Produktionsbaselines.
 - Paired Host für eigene Zweitgeräte und vertrauenswürdige Tutor:innen oder Moderator:innen (2.10); Q&A-Moderation sowie 8.6/8.7 sind umgesetzt
 - Optionale generative Moderationszusammenfassung (8.9c Slice 4 / echtes Modell; Slices 1–3 und 8.9a/8.9b umgesetzt)
 - Word Cloud 3.0 Stufe 1 (1.14c Encoder + Clustering, Kill-Switch default aus); Stufe 2 LLM-Labels offen; 1.14a/1.14b sind umgesetzt
+- Epic 12 (Post-Session- und In-App-Produktfeedback inkl. Admin-Triage) ist umgesetzt; siehe [features/product-feedback.md](features/product-feedback.md)
 
 ---
 

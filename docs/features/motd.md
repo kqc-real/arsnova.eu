@@ -18,8 +18,10 @@ Der Betreiber kann **kuratierte Hinweise** an **alle Nutzer:innen** ausspielen �
 
 | Akteur                | Sicht                                                                                                                                      |
 | --------------------- | ------------------------------------------------------------------------------------------------------------------------------------------ |
-| **Endnutzer:innen**   | Aktive MOTD auf der **Startseite** (Overlay), **Archiv** über Icon im **App-Header** und über die Route **`/news-archive`**                |
+| **Endnutzer:innen**   | Aktive MOTD auf der **Startseite** (Overlay), **Archiv** über Icon im **App-Header** (`campaign`) und über die Route **`/news-archive`**   |
 | **Admin** (Betreiber) | **CMS-light** unter **`/admin`** (nach bestehendem Admin-Login): Templates, MOTDs anlegen/bearbeiten, Zeiträume, Archiv-Freigabe, Vorschau |
+
+> Hinweis: Das Toolbar-Icon `campaign` ist MOTD-spezifisch. Produktfeedback („arsnova.eu verbessern“) nutzt `insights` — siehe [product-feedback.md](product-feedback.md).
 
 ## 3. Funktionale Anforderungen (Kanon)
 

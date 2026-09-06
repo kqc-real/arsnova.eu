@@ -1,6 +1,6 @@
 # arsnova.eu – ausführliche Funktionsübersicht der App
 
-> Stand dieser Übersicht: 2026-08-20
+> Stand dieser Übersicht: 2026-09-06
 >
 > Grundlage: Auswertung des aktuellen Repos, insbesondere `apps/frontend`, `apps/backend`, `libs/shared-types`, `prisma/schema.prisma`, `README.md`, `docs/README.md`, `docs/ROUTES_AND_STORIES.md`, `docs/TESTING.md` und der Feature-Dokumente unter `docs/features/`.
 
@@ -54,7 +54,7 @@ Rollenrechte werden dabei **nicht nur über die URL**, sondern zusätzlich über
 | Session Present       | `/session/:code/present`                                     | Beamer- / Raumansicht                                                                  |
 | Session Vote          | `/session/:code/vote`                                        | Teilnehmendenansicht für Antworten, Q&A, Blitzlicht, Ergebnis und Feedback             |
 | Standalone-Blitzlicht | `/feedback/:code`, `/feedback/:code/vote`                    | Schnelle Feedback-Runden außerhalb einer normalen Quiz-Session                         |
-| Admin                 | `/admin`                                                     | Betreiberzugriff auf Sessions, Exporte, Löschungen, Legal Hold, MOTD                   |
+| Admin                 | `/admin`                                                     | Betreiberzugriff auf Sessions, Exporte, Löschungen, Legal Hold, MOTD, Produktfeedback  |
 | Hilfe und Info        | `/help`, `/news-archive`, `/legal/imprint`, `/legal/privacy` | Produktbeschreibung, Nachrichtenarchiv, Impressum, Datenschutz                         |
 
 Zusätzlich werden **Locale-Präfixe** wie `/de/...`, `/en/...`, `/fr/...`, `/es/...`, `/it/...` unterstützt. Fachlich sind das dieselben Routen mit lokalisierter Oberfläche.
@@ -692,6 +692,14 @@ Unterstützt werden:
 - Angabe, ob man ein solches Format wiederholen würde
 - aggregierte Auswertung für Host und Sammlung
 
+### 7.6a Produktfeedback (Epic 12)
+
+Strikte Trennung von Session-Feedback und Blitzlicht: Bewertung von **Bedienbarkeit und Nutzen von arsnova.eu**, nur für Plattform-Admins sichtbar.
+
+- **Post-Session (12.1):** rollenspezifische Zwei-Klick-Mikroumfrage nach genutzten Sessions (Host-Sheet / Vote-Ende); optionale kurze Ergänzung; Stichprobe und Einmal-Tokens.
+- **In-App (12.2):** jederzeit **„arsnova.eu verbessern“** (Footer-Utility, Hilfe, immersive Hostansicht, eigenständiges Blitzlicht); Icon `insights`; Offline-Outbox; Admin-Triage inkl. optionalem GitHub-Entwurf ohne Originalfreitext.
+- Presenteransicht ohne CTA. Fachdoku: [features/product-feedback.md](features/product-feedback.md).
+
 ### 7.7 Exporte
 
 Die App unterstützt mehrere Exportarten:
@@ -758,6 +766,7 @@ Admins können außerdem:
 - den Rekord für maximale Teilnehmerzahl zurücksetzen
 - plattformweite Rekordwerte über Server-Status / Detaildialog nachvollziehen
 - MOTD-Interaktionsstatistiken gezielt zurücksetzen
+- Produktfeedback-Statistik (Post-Session) und In-App-Triage-Postfach auswerten
 
 ## 9. MOTD, News-Archiv und Plattformkommunikation
 
@@ -910,6 +919,7 @@ Im Datenmodell existieren unter anderem:
 - Team
 - BonusToken
 - SessionFeedback
+- ProductFeedback
 - QaQuestion
 - QaUpvote
 - Motd
@@ -929,6 +939,7 @@ Wichtige Lebenszyklusregeln im Ist-Stand:
 - beendete Sessions werden nach **24 Stunden** gelöscht, sofern kein Legal Hold und keine noch aufzubewahrenden Bonuscodes oder Feedbackdaten entgegenstehen
 - Bonuscodes werden nach **90 Tagen** bereinigt
 - Session-Feedback wird nach **90 Tagen** bereinigt
+- Produktfeedback: strukturierte Datensätze höchstens **13 Monate**, optionale Freitexte höchstens **90 Tage**, lokale Outbox höchstens **7 Tage**
 - Quick-Feedback-Zustände laufen nach etwa **30 Minuten** ab
 - Presence-Daten sind kurzlebig
 - Readiness-Daten werden pro Frage separat gehalten
@@ -1018,4 +1029,4 @@ Zusammengefasst ist `arsnova.eu` im aktuellen Stand keine einzelne Quizmaske, so
 - plattformweiter Kommunikation
 - mehrsprachiger, installierbarer Web-App-Infrastruktur
 
-Gerade die Kombination aus **Quiz**, **Q&A**, **Blitzlicht**, **local-first Sammlung**, **mehrsprachiger App-Shell**, **Admin-/Legal-Pfad** und **MOTD-System** macht den Funktionsumfang deutlich größer als bei einer reinen „Frage anzeigen und Antwort einsammeln“-App.
+Gerade die Kombination aus **Quiz**, **Q&A**, **Blitzlicht**, **local-first Sammlung**, **mehrsprachiger App-Shell**, **Admin-/Legal-Pfad**, **MOTD-System** und **kontinuierlichem Produktfeedback** macht den Funktionsumfang deutlich größer als bei einer reinen „Frage anzeigen und Antwort einsammeln“-App.
