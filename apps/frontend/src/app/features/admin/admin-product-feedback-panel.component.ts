@@ -8,7 +8,8 @@ import {
   MatCardSubtitle,
   MatCardTitle,
 } from '@angular/material/card';
-import { MatFormField, MatLabel } from '@angular/material/form-field';
+import { MatDatepickerModule } from '@angular/material/datepicker';
+import { MatFormField, MatLabel, MatSuffix } from '@angular/material/form-field';
 import { MatInput } from '@angular/material/input';
 import { MatProgressSpinner } from '@angular/material/progress-spinner';
 import { MatSelect, MatOption } from '@angular/material/select';
@@ -32,8 +33,10 @@ import { trpc } from '../../core/trpc.client';
     MatCardHeader,
     MatCardSubtitle,
     MatCardTitle,
+    MatDatepickerModule,
     MatFormField,
     MatLabel,
+    MatSuffix,
     MatInput,
     MatProgressSpinner,
     MatSelect,
@@ -51,8 +54,8 @@ export class AdminProductFeedbackPanelComponent implements OnInit {
 
   roleFilter: ProductFeedbackRole | '' = '';
   surveyKeyFilter: ProductFeedbackSurveyKey | '' = '';
-  fromDate = '';
-  toDate = '';
+  fromDate: Date | null = null;
+  toDate: Date | null = null;
 
   readonly roleOptions: ProductFeedbackRole[] = ['HOST', 'PARTICIPANT'];
   readonly surveyKeyOptions: ProductFeedbackSurveyKey[] = [
@@ -220,8 +223,8 @@ export class AdminProductFeedbackPanelComponent implements OnInit {
   clearFilters(): void {
     this.roleFilter = '';
     this.surveyKeyFilter = '';
-    this.fromDate = '';
-    this.toDate = '';
+    this.fromDate = null;
+    this.toDate = null;
     this.syncFilterState();
     void this.reload();
   }
@@ -232,6 +235,15 @@ export class AdminProductFeedbackPanelComponent implements OnInit {
     );
   }
 
+  /** Kalendertag lokal → UTC-Tagesgrenze (wie zuvor bei `type="date"`). */
+  private dayBoundIso(date: Date, endOfDay: boolean): string {
+    const y = date.getFullYear();
+    const m = String(date.getMonth() + 1).padStart(2, '0');
+    const d = String(date.getDate()).padStart(2, '0');
+    const time = endOfDay ? '23:59:59.999' : '00:00:00.000';
+    return new Date(`${y}-${m}-${d}T${time}Z`).toISOString();
+  }
+
   async reload(): Promise<void> {
     const generation = ++this.reloadGeneration;
     this.loading.set(true);
@@ -240,8 +252,8 @@ export class AdminProductFeedbackPanelComponent implements OnInit {
       const input: AdminProductFeedbackStatsInput = {};
       if (this.roleFilter) input.role = this.roleFilter;
       if (this.surveyKeyFilter) input.surveyKey = this.surveyKeyFilter;
-      if (this.fromDate) input.from = new Date(`${this.fromDate}T00:00:00.000Z`).toISOString();
-      if (this.toDate) input.to = new Date(`${this.toDate}T23:59:59.999Z`).toISOString();
+      if (this.fromDate) input.from = this.dayBoundIso(this.fromDate, false);
+      if (this.toDate) input.to = this.dayBoundIso(this.toDate, true);
       const data = await trpc.admin.productFeedback.getStats.query(input);
       if (generation !== this.reloadGeneration) return;
       this.stats.set(data);

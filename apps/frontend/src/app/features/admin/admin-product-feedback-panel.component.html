@@ -45,23 +45,29 @@
     </mat-form-field>
     <mat-form-field appearance="outline">
       <mat-label i18n="@@admin.productFeedback.filterFrom">Zeitraum von</mat-label>
+      <mat-datepicker #fromDatePicker [touchUi]="true" />
       <input
         matInput
-        type="date"
+        [matDatepicker]="fromDatePicker"
+        [max]="toDate ?? undefined"
         [(ngModel)]="fromDate"
         name="pfFrom"
         (ngModelChange)="onFiltersChanged()"
       />
+      <mat-datepicker-toggle matIconSuffix [for]="fromDatePicker" />
     </mat-form-field>
     <mat-form-field appearance="outline">
       <mat-label i18n="@@admin.productFeedback.filterTo">Zeitraum bis</mat-label>
+      <mat-datepicker #toDatePicker [touchUi]="true" />
       <input
         matInput
-        type="date"
+        [matDatepicker]="toDatePicker"
+        [min]="fromDate ?? undefined"
         [(ngModel)]="toDate"
         name="pfTo"
         (ngModelChange)="onFiltersChanged()"
       />
+      <mat-datepicker-toggle matIconSuffix [for]="toDatePicker" />
     </mat-form-field>
     @if (hasActiveFilters()) {
       <button
