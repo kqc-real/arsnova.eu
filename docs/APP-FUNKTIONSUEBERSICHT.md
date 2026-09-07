@@ -1017,7 +1017,7 @@ Dazu gehören laut Root-Dokumentation insbesondere:
   Hochkontrast und PDF-Readern; technische Befunde und automatisierte Gates
   sind umgesetzt
 - Confidence-Erweiterungen und weitere Auswertungsvarianten
-- Paired Hosts: Contracts, Request-and-approve, Dialog „Präsentation starten“, Geräteverwaltung und sofortiger Widerruf (HTTP und Host-WebSockets) sind umgesetzt; Lastnachweis und Thinking-Aloud-Usability folgen nicht in Slice 4
+- Paired Hosts: Contracts, Request-and-approve, Dialog „Präsentation starten“, Geräteverwaltung, sofortiger Widerruf (HTTP und Host-WebSockets) sowie Security-/Classroom-Lastnachweise sind umgesetzt; das Thinking-Aloud mit einer Nicht-Techniker:in bleibt ein menschlicher Abnahmeschritt (`docs/implementation/HOST-PAIRING-2.10-SLICE-5-DOD.md`)
 - weitere Word-Cloud-Ausbaustufen
 - Härtung einzelner Sync-/Komplexitätsbereiche
 

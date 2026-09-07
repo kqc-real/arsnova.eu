@@ -1096,6 +1096,7 @@ jobs:
           BASE_URL=http://localhost:4200 npm run a11y:axe:static -w @arsnova/frontend
           BASE_URL=http://localhost:4200 npm run a11y:layout -w @arsnova/frontend
           npm run smoke:host-present-auth -w @arsnova/frontend
+          npm run smoke:host-pairing-security -w @arsnova/frontend
           npm run smoke:presenter-viewports -w @arsnova/frontend
           PRESENTER_NICKNAME_THEME=MIDDLE_SCHOOL npm run smoke:presenter-viewports -w @arsnova/frontend
           PRESENTER_NICKNAME_THEME=HIGH_SCHOOL npm run smoke:presenter-viewports -w @arsnova/frontend
@@ -1463,6 +1464,8 @@ jobs:
           REPORT_FILE="$REPORT_DIR/ws-vote-progress.json" JUNIT_FILE="$REPORT_DIR/ws-vote-progress.junit.xml" npm run load:smoke:ws-vote-progress-classroom-30
           REPORT_FILE="$REPORT_DIR/ws-reconnect-wave.json" JUNIT_FILE="$REPORT_DIR/ws-reconnect-wave.junit.xml" npm run load:smoke:ws-reconnect-wave-classroom-30
           REPORT_FILE="$REPORT_DIR/channel-ws-fanout.json" JUNIT_FILE="$REPORT_DIR/channel-ws-fanout.junit.xml" npm run load:smoke:channel-ws-fanout-classroom-30
+          REPORT_FILE="$REPORT_DIR/host-pairing-security.json" JUNIT_FILE="$REPORT_DIR/host-pairing-security.junit.xml" npm run load:smoke:host-pairing-security
+          REPORT_FILE="$REPORT_DIR/host-pairing-classroom-30.json" JUNIT_FILE="$REPORT_DIR/host-pairing-classroom-30.junit.xml" npm run load:smoke:host-pairing-classroom-30
 
       - name: Upload classroom smoke reports
         if: always() && needs.changes.outputs.docs_only != 'true'

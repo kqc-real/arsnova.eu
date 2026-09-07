@@ -27459,7 +27459,7 @@
       </trans-unit>
       <trans-unit id="hostPairing.capReachedHint" datatype="html">
         <source>Es sind bereits drei weitere Geräte verbunden. Trenne zuerst eine Verbindung.</source>
-        <target>Trois autres appareils sont déjà connectés. Déconnecte d’abord une liaison.</target>
+        <target>Trois autres appareils sont déjà connectés. Déconnecte d’abord un appareil.</target>
       </trans-unit>
       <trans-unit id="hostPairing.addAnother" datatype="html">
         <source>Weiteres Host-Gerät verbinden</source>
@@ -27483,7 +27483,7 @@
       </trans-unit>
       <trans-unit id="presentationStart.reviewRequest" datatype="html">
         <source>Anfrage prüfen</source>
-        <target>Voir la demande</target>
+        <target>Examiner la demande</target>
       </trans-unit>
       <trans-unit id="presentationStart.manageDevices" datatype="html">
         <source>Geräte verwalten</source>

@@ -61,7 +61,7 @@ Die Spezifikation in `Backlog.md` Story 2.10 legt zusätzlich fest:
 
 ## Umsetzungsstand
 
-Story 2.10 Slice 1–4 sind umgesetzt: Contracts/Caps, Request-and-approve Happy Path, Dialog „Präsentation starten“ (Sichtbarkeit default projiziert, kein silent grant) sowie Geräteverwaltung und Widerruf für den Original-Host. Widerruf wirkt sofort auf HTTP und bestehende Host-WebSockets; das widerrufene Gerät landet in einem sicheren Zustand ohne Host-Realtime. Paired Hosts nutzen dieselbe `/session/:code/host`-Shell mit Live-Primäraktionen und stummem Audio-Default. Lastnachweis (500er) und Thinking-Aloud-Usability folgen nicht in Slice 4. Es gibt weiterhin keine eigenständige Moderatorrolle. Pairing-Freigabe und Geräteverwaltung bleiben auf dem privaten Host-Client, nie auf der Presenter-Route.
+Story 2.10 Slice 1–5 sind umgesetzt: Contracts/Caps, Request-and-approve Happy Path, Dialog „Präsentation starten“ (Sichtbarkeit default projiziert, kein silent grant), Geräteverwaltung und Widerruf sowie der DoD-Nachweis (Security-E2E, Browser-Smoke, Classroom-30 in CI, operatorgesteuerter 500er-Cap-Lauf). Widerruf wirkt sofort auf HTTP und bestehende Host-WebSockets; das widerrufene Gerät landet in einem sicheren Zustand ohne Host-Realtime. Paired Hosts nutzen dieselbe `/session/:code/host`-Shell mit Live-Primäraktionen und stummem Audio-Default. Das Thinking-Aloud mit einer Person ohne Architekturkenntnis bleibt ein menschlicher Abnahmeschritt; Vorlage und Erfolgskriterien stehen in `docs/implementation/HOST-PAIRING-2.10-SLICE-5-DOD.md`. Es gibt weiterhin keine eigenständige Moderatorrolle. Pairing-Freigabe und Geräteverwaltung bleiben auf dem privaten Host-Client, nie auf der Presenter-Route.
 
 ---
 

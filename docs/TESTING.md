@@ -403,6 +403,7 @@ Auf dem Server übernimmt `scripts/deploy.sh` die Reihenfolge **Digest-Image pul
 | `a11y:layout`                     | Reflow, Fokus, 24px-Ziele, Skip-Link, Join-Fokus und mobiles Disclosure          |
 | `check:viewport`                  | Alias/älterer 320px-Reflow-Smoke                                                 |
 | `smoke:host-present-auth`         | Host/Present-Auth-Smoke                                                          |
+| `smoke:host-pairing-security`     | Story 2.10: Host / Smartphone / Presenter, Missbrauch + Lifecycle + Widerruf     |
 | `smoke:presenter-viewports`       | Gefüllte Presenter-Lobby in vier Tablet-/Beamer-Viewports                        |
 | `smoke:host-music`                | Host-Musik-/Sound-Smoke                                                          |
 | `smoke:short-text`                | Kurzantwort-Flow inklusive axe                                                   |
@@ -566,7 +567,7 @@ Session-Summary, Quiz-Historienzugriff, Host-Abschlussansicht und CSV-Export. De
 über `CONFIDENCE_SEED` anpassbar; der Host-Screenshot wird standardmäßig im temporären
 Verzeichnis `arsnova-confidence-summary-demo-e2e` abgelegt.
 
-Für Performance-/Lastarbeit ist [PERFORMANCE-TESTING.md](PERFORMANCE-TESTING.md) das aktuelle Inventar. Die sechs **Classroom-Szenario-Smokes** (`load:smoke:*-classroom-30`, inkl. WebSocket Vote-Progress, Reconnect-Welle und Q&A-/Blitzlicht-Fan-out) laufen in CI im Job `classroom-smokes`; schwere Last-Smokes (200–600 TN), Yjs, Soak und k6-Produktion bleiben manuell/Schedule. Der mit PR [#165](https://github.com/kqc-real/arsnova.eu/pull/165) bereitgestellte Demo-Classroom-Dauerlauf ist davon getrennt: **lokal validiert**, ausschließlich manuell lokal und kein PR-Gate. Praktikums-Einstieg: [`docs/praktikum/HANDOUT-LAST-UND-PERFORMANCE-TESTS.md`](praktikum/HANDOUT-LAST-UND-PERFORMANCE-TESTS.md).
+Für Performance-/Lastarbeit ist [PERFORMANCE-TESTING.md](PERFORMANCE-TESTING.md) das aktuelle Inventar. Die Classroom-Szenario-Smokes (`load:smoke:*-classroom-30`, inkl. WebSocket Vote-Progress, Reconnect-Welle, Q&A-/Blitzlicht-Fan-out sowie Host-Pairing Security/Cap) laufen in CI im Job `classroom-smokes`; schwere Last-Smokes (200–600 TN), Yjs, Soak und k6-Produktion bleiben manuell/Schedule. Der mit PR [#165](https://github.com/kqc-real/arsnova.eu/pull/165) bereitgestellte Demo-Classroom-Dauerlauf ist davon getrennt: **lokal validiert**, ausschließlich manuell lokal und kein PR-Gate. Praktikums-Einstieg: [`docs/praktikum/HANDOUT-LAST-UND-PERFORMANCE-TESTS.md`](praktikum/HANDOUT-LAST-UND-PERFORMANCE-TESTS.md).
 
 Der lokale 10-Minuten-Nachweis vom 2026-07-27 absolvierte 48 vollständige
 Runden, 1.440 Joins, 14.400/14.400 Votes und 19.104 HTTP-Aufrufe ohne Fehler.
@@ -657,6 +658,46 @@ in
 Session- und Hotpath-Skripte benötigen `SESSION_CODE` (6 Zeichen) bzw. bei Hotpath-Modi `PARTICIPANT_IDS`, `QUESTION_ID` usw. — siehe Kommentarkopf in den Skripten.
 
 Weitere Node-Last-Smokes (ohne k6): `npm run load:simulate:50`, `npm run load:simulate:session:50` (erfordert `SESSION_CODE`).
+
+### Host-Pairing DoD (Story 2.10 Slice 5)
+
+Missbrauchs- und Cap-Nachweise gegen ein laufendes Backend:
+
+```bash
+npm run dev:backend
+npm run load:smoke:host-pairing-security
+npm run load:smoke:host-pairing-classroom-30
+```
+
+Der Security-Lauf prüft öffentlich Pending→Reject ohne Token, Privat ohne Approve,
+Cap 3 inkl. Freigabe nach Widerruf sowie Approve→Host-Aktion→sofort totes HTTP/WS.
+Der Classroom-30-Lauf hält Original-Host + 3 Paired Hosts + Presenter-Status,
+joint 30 Teilnehmende vom selben Runner (Shared-NAT), sendet eine Vote-Welle,
+reconnectet einen Paired Host, wechselt den Presenter-Kanal und widerruft unter
+noch verbundenen Teilnehmenden. CI führt beide im Job `classroom-smokes` aus.
+
+Browser-Smoke mit getrennten Kontexten (Original-Host, Smartphone, Presenter):
+
+```bash
+BASE_URL=http://localhost:4200/de TRPC_URL=http://localhost:3000/trpc \
+  npm run smoke:host-pairing-security -w @arsnova/frontend
+```
+
+Der 500er-Cap-Worst-Case ist **kein PR-Gate**. Operatorbefehl:
+
+```bash
+npm run dev:backend
+PARTICIPANTS=500 npm run load:smoke:host-pairing-cap-500
+```
+
+Protokoll, Locale-Review und Usability-Vorlage:
+[HOST-PAIRING-2.10-SLICE-5-DOD.md](implementation/HOST-PAIRING-2.10-SLICE-5-DOD.md).
+
+Lokaler Nachweis 2026-09-07: Security-E2E bestanden (`K7E7GE`/`8LUY48`).
+Classroom-30 bestanden (`ZB2P7P`, Vote-p95 51 ms). 500er-Cap bestanden
+(`NKDM5P`, 500 Joins/Votes, Vote-p95 512 ms, 0 Fehlvotes, Host-Progress 4
+Messages, Current-Question nicht geflutet, Widerruf beendete die Host-WS).
+Browser-Smoke bestanden (`YEJDNT`). Der 500er bleibt kein CI-/PR-Gate.
 
 ### Host-Vote-Progress-Last-Smoke
 

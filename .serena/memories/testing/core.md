@@ -11,8 +11,10 @@
   Reflow/Fokus/Zielgrößen at 320 CSS px, weighted Lighthouse accessibility
   audits, the Landing axe check, and veraPDF PDF/UA-1 validation for five
   locales. Commands and scope are canonical in `docs/TESTING.md`.
-- Additional frontend smokes include host/present auth, host music, short text,
-  quiz sync, unified session, and the word-cloud benchmark.
+- Additional frontend smokes include host/present auth, host pairing security
+  (Story 2.10), host music, short text, quiz sync, unified session, and the
+  word-cloud benchmark. Pairing last: `load:smoke:host-pairing-security` and
+  `load:smoke:host-pairing-classroom-30` (CI); 500er-Cap ist operatorgesteuert.
 - spaCy sidecar checks (Story 1.14b): `npm run test:spacy-sidecar` and `npm run test:spacy-compose`; see `mem:session/word-cloud-spacy`.
 - Markdown-only changes: `npx prettier --check <touched-docs>` and `git diff --check -- <touched-docs>`.
 
