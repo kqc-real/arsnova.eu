@@ -193,6 +193,12 @@ describe('app routes', () => {
     expect(router.serializeUrl(result as ReturnType<Router['createUrlTree']>)).toBe('/join/ABC123');
   });
 
+  it('lässt die Pairing-Anfrage ohne Host-Token zu', () => {
+    const pair = findChildRoute('session/:code', 'pair');
+    expect(pair.canActivate).toBeUndefined();
+    expect(typeof pair.loadComponent).toBe('function');
+  });
+
   it('lädt die Present-Route lazy und hält den Guard aus dem App-Routing', () => {
     const present = findChildRoute('session/:code', 'present');
     expect(present.canActivate).toBeUndefined();

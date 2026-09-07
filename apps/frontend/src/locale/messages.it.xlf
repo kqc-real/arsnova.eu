@@ -27233,6 +27233,146 @@
           <context context-type="linenumber">170</context>
         </context-group>
       </trans-unit>
+      <trans-unit id="hostPairing.connectAria" datatype="html">
+        <source>Smartphone als weiteres Steuergerät verbinden</source>
+        <target>Collega lo smartphone come altro dispositivo di controllo</target>
+      </trans-unit>
+      <trans-unit id="hostPairing.connectTooltip" datatype="html">
+        <source>Smartphone verbinden</source>
+        <target>Collega lo smartphone</target>
+      </trans-unit>
+      <trans-unit id="hostPairing.connectLabel" datatype="html">
+        <source>Smartphone verbinden</source>
+        <target>Collega lo smartphone</target>
+      </trans-unit>
+      <trans-unit id="hostPairing.dialogTitle" datatype="html">
+        <source>Smartphone verbinden</source>
+        <target>Collega lo smartphone</target>
+      </trans-unit>
+      <trans-unit id="hostPairing.preparing" datatype="html">
+        <source>Verbindung wird vorbereitet…</source>
+        <target>Preparazione della connessione…</target>
+      </trans-unit>
+      <trans-unit id="hostPairing.dialogIntro" datatype="html">
+        <source>Scanne den Code oder öffne den Link auf deinem Smartphone. Die Verbindung wird erst frei, wenn du sie hier bestätigst.</source>
+        <target>Scansiona il codice o apri il link sul tuo smartphone. La connessione si attiva solo dopo la tua conferma qui.</target>
+      </trans-unit>
+      <trans-unit id="hostPairing.qrAlt" datatype="html">
+        <source>QR-Code zum Verbinden des Smartphones</source>
+        <target>Codice QR per collegare lo smartphone</target>
+      </trans-unit>
+      <trans-unit id="hostPairing.waitingScan" datatype="html">
+        <source>Warten auf Verbindungsanfrage…</source>
+        <target>In attesa di una richiesta di connessione…</target>
+      </trans-unit>
+      <trans-unit id="hostPairing.pendingTitle" datatype="html">
+        <source>Ein Smartphone möchte sich verbinden</source>
+        <target>Uno smartphone vuole connettersi</target>
+      </trans-unit>
+      <trans-unit id="hostPairing.pendingHint" datatype="html">
+        <source>Das Gerät kann danach Fragen steuern, Ergebnisse anzeigen und die Veranstaltung beenden.</source>
+        <target>Poi il dispositivo potrà guidare le domande, mostrare i risultati e chiudere la sessione.</target>
+      </trans-unit>
+      <trans-unit id="hostPairing.connected" datatype="html">
+        <source>Smartphone verbunden</source>
+        <target>Smartphone collegato</target>
+      </trans-unit>
+      <trans-unit id="hostPairing.connectedHint" datatype="html">
+        <source>Du kannst die Veranstaltung jetzt auch vom Smartphone steuern.</source>
+        <target>Ora puoi guidare la sessione anche dallo smartphone.</target>
+      </trans-unit>
+      <trans-unit id="hostPairing.reject" datatype="html">
+        <source>Ablehnen</source>
+        <target>Rifiuta</target>
+      </trans-unit>
+      <trans-unit id="hostPairing.approve" datatype="html">
+        <source>Als Host zulassen</source>
+        <target>Consenti il controllo</target>
+      </trans-unit>
+      <trans-unit id="hostPairing.retry" datatype="html">
+        <source>Neu versuchen</source>
+        <target>Riprova</target>
+      </trans-unit>
+      <trans-unit id="hostPairing.close" datatype="html">
+        <source>Schließen</source>
+        <target>Chiudi</target>
+      </trans-unit>
+      <trans-unit id="hostPairing.errorGeneric" datatype="html">
+        <source>Die Verbindung konnte nicht vorbereitet werden.</source>
+        <target>Non è stato possibile preparare la connessione.</target>
+      </trans-unit>
+      <trans-unit id="hostPairing.linkCopied" datatype="html">
+        <source>Link kopiert</source>
+        <target>Link copiato</target>
+      </trans-unit>
+      <trans-unit id="hostPairing.copyLink" datatype="html">
+        <source>Link kopieren</source>
+        <target>Copia il link</target>
+      </trans-unit>
+      <trans-unit id="hostPairing.copyFailed" datatype="html">
+        <source>Link konnte nicht kopiert werden.</source>
+        <target>Non è stato possibile copiare il link.</target>
+      </trans-unit>
+      <trans-unit id="hostPairing.errorRejected" datatype="html">
+        <source>Die Verbindung wurde abgelehnt.</source>
+        <target>La connessione è stata rifiutata.</target>
+      </trans-unit>
+      <trans-unit id="hostPairing.requestQuestion" datatype="html">
+        <source>Mit Veranstaltung <x id="sessionCode" equiv-text="this.code"/> verbinden?</source>
+        <target>Connettersi alla sessione <x id="sessionCode" equiv-text="this.code"/>?</target>
+      </trans-unit>
+      <trans-unit id="hostPairing.errorInvalidLink" datatype="html">
+        <source>Dieser Verbindungslink ist ungültig oder abgelaufen.</source>
+        <target>Questo link di connessione non è valido o è scaduto.</target>
+      </trans-unit>
+      <trans-unit id="hostPairing.errorAlreadyPending" datatype="html">
+        <source>Es wartet bereits eine Verbindungsanfrage.</source>
+        <target>C’è già una richiesta di connessione in attesa.</target>
+      </trans-unit>
+      <trans-unit id="hostPairing.requestTitle" datatype="html">
+        <source>Mit Veranstaltung verbinden</source>
+        <target>Connettersi alla sessione</target>
+      </trans-unit>
+      <trans-unit id="hostPairing.missingSecret" datatype="html">
+        <source>Dieser Link ist unvollständig. Bitte den QR-Code oder den vollständigen Link nutzen.</source>
+        <target>Questo link è incompleto. Usa il codice QR o il link completo.</target>
+      </trans-unit>
+      <trans-unit id="hostPairing.goHome" datatype="html">
+        <source>Zur Startseite</source>
+        <target>Torna alla home</target>
+      </trans-unit>
+      <trans-unit id="hostPairing.requestAction" datatype="html">
+        <source>Verbindung anfragen</source>
+        <target>Chiedi di connetterti</target>
+      </trans-unit>
+      <trans-unit id="hostPairing.requestWaiting" datatype="html">
+        <source>Warten auf Freigabe. Zeige dieses Zeichen der Lehrperson:</source>
+        <target>In attesa di conferma. Mostra questo segno a chi conduce la lezione:</target>
+      </trans-unit>
+      <trans-unit id="hostPairing.errorExpired" datatype="html">
+        <source>Die Verbindungsanfrage ist abgelaufen.</source>
+        <target>La richiesta di connessione è scaduta.</target>
+      </trans-unit>
+      <trans-unit id="hostPairing.errorCapReached" datatype="html">
+        <source>Es sind bereits drei weitere Geräte verbunden.</source>
+        <target>Ci sono già altri tre dispositivi collegati.</target>
+      </trans-unit>
+      <trans-unit id="hostPairing.errorNotOriginal" datatype="html">
+        <source>Nur du kannst weitere Geräte verbinden.</source>
+        <target>Solo tu puoi collegare altri dispositivi.</target>
+      </trans-unit>
+      <trans-unit id="hostPairing.errorNoRequest" datatype="html">
+        <source>Es gibt keine offene Verbindungsanfrage.</source>
+        <target>Non c’è nessuna richiesta di connessione aperta.</target>
+      </trans-unit>
+      <trans-unit id="hostPairing.errorSessionEnded" datatype="html">
+        <source>Die Veranstaltung ist bereits beendet.</source>
+        <target>La sessione è già terminata.</target>
+      </trans-unit>
+      <trans-unit id="hostPairing.errorRateLimited" datatype="html">
+        <source>Zu viele Verbindungsversuche. Bitte später erneut versuchen.</source>
+        <target>Troppi tentativi di connessione. Riprova più tardi.</target>
+      </trans-unit>
     </body>
   </file>
 </xliff>

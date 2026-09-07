@@ -207,6 +207,13 @@ const mainRoutes: Routes = [
             (m) => m.SessionVoteComponent,
           ),
       },
+      {
+        path: 'pair',
+        loadComponent: () =>
+          import('./features/session/host-pairing/session-host-pairing-request.component').then(
+            (m) => m.SessionHostPairingRequestComponent,
+          ),
+      },
     ],
   },
   {

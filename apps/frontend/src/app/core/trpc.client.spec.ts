@@ -127,6 +127,18 @@ describe('trpc.client host transport', () => {
     expect(headers).toEqual({ 'x-host-token': 'host-token-123' });
   });
 
+  it('haengt auf der Pairing-Anfrage kein Host-Token an', async () => {
+    getHostTokenMock.mockReturnValue('host-token-123');
+
+    await loadClientModule('/de/session/abc123/pair#s=should-not-reach-headers');
+
+    const httpOptions = httpBatchLinkMock.mock.calls[0]?.[0] as {
+      headers: () => Record<string, string>;
+    };
+    expect(httpOptions.headers()['x-host-token']).toBeUndefined();
+    expect(getHostTokenMock).not.toHaveBeenCalled();
+  });
+
   it('sendet Host-Token ueber WebSocket-Connection-Params fuer Host-Subscriptions', async () => {
     getHostTokenMock.mockReturnValue('host-token-123');
 

@@ -86,6 +86,7 @@ import {
   ConfirmLeaveDialogComponent,
   type ConfirmLeaveDialogData,
 } from '../../../shared/confirm-leave-dialog/confirm-leave-dialog.component';
+import { HostPairingDialogComponent } from '../host-pairing/host-pairing-dialog.component';
 import {
   createQuizHistoryAccessProof,
   resolveNumericEstimateToleranceMode,
@@ -1425,6 +1426,9 @@ export class SessionHostComponent implements OnInit, OnDestroy {
   });
   readonly showHostViewControls = computed(
     () => this.isRunningSession() || this.isQuizLobbyImmersive(),
+  );
+  readonly showHostPairingAction = computed(
+    () => this.session() !== null && this.effectiveStatus() !== 'FINISHED',
   );
   /** Quiz-Steuerung in der Aktionsleiste nur im Quiz-Kanal, nicht in Q&A oder Blitzlicht. */
   readonly showQuizAnchorActions = computed(() => {
@@ -4294,6 +4298,15 @@ export class SessionHostComponent implements OnInit, OnDestroy {
 
   toggleHostFrameMode(): void {
     this.hostDisplayMode.setPreferImmersiveHost(!this.isImmersiveMode());
+  }
+
+  openHostPairingDialog(): void {
+    this.dialog.open(HostPairingDialogComponent, {
+      data: { code: this.code.toUpperCase() },
+      autoFocus: 'first-tabbable',
+      restoreFocus: true,
+      panelClass: 'host-pairing-dialog-panel',
+    });
   }
 
   async openPresenterView(): Promise<void> {

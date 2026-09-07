@@ -1,0 +1,68 @@
+<section class="host-pairing-request">
+  <mat-card>
+    <mat-card-content>
+      <h1 class="host-pairing-request__title" i18n="@@hostPairing.requestTitle">
+        Mit Veranstaltung verbinden
+      </h1>
+
+      @if (view() === 'missing') {
+        <p class="host-pairing-request__hint" role="alert" i18n="@@hostPairing.missingSecret">
+          Dieser Link ist unvollständig. Bitte den QR-Code oder den vollständigen Link nutzen.
+        </p>
+        <button mat-flat-button type="button" (click)="goHome()" i18n="@@hostPairing.goHome">
+          Zur Startseite
+        </button>
+      } @else if (view() === 'ready') {
+        <p class="host-pairing-request__hint">
+          {{ requestQuestion() }}
+        </p>
+        <button
+          mat-flat-button
+          type="button"
+          data-testid="host-pairing-request"
+          (click)="requestConnection()"
+          i18n="@@hostPairing.requestAction"
+        >
+          Verbindung anfragen
+        </button>
+      } @else if (view() === 'requesting') {
+        <mat-progress-bar mode="indeterminate" />
+      } @else if (view() === 'pending') {
+        <p
+          class="host-pairing-request__status"
+          role="status"
+          aria-live="polite"
+          i18n="@@hostPairing.requestWaiting"
+        >
+          Warten auf Freigabe. Zeige dieses Zeichen der Lehrperson:
+        </p>
+        <p class="host-pairing-request__indicator" data-testid="host-pairing-request-indicator">
+          {{ indicator() }}
+        </p>
+      } @else if (view() === 'connected') {
+        <p class="host-pairing-request__status" role="status" i18n="@@hostPairing.connected">
+          Smartphone verbunden
+        </p>
+      } @else if (view() === 'rejected') {
+        <p class="host-pairing-request__hint" role="alert" i18n="@@hostPairing.errorRejected">
+          Die Verbindung wurde abgelehnt.
+        </p>
+        <button mat-flat-button type="button" (click)="goHome()" i18n="@@hostPairing.goHome">
+          Zur Startseite
+        </button>
+      } @else if (view() === 'expired') {
+        <p class="host-pairing-request__hint" role="alert" i18n="@@hostPairing.errorExpired">
+          Die Verbindungsanfrage ist abgelaufen.
+        </p>
+        <button mat-flat-button type="button" (click)="goHome()" i18n="@@hostPairing.goHome">
+          Zur Startseite
+        </button>
+      } @else if (error()) {
+        <p class="host-pairing-request__hint" role="alert">{{ error() }}</p>
+        <button mat-flat-button type="button" (click)="goHome()" i18n="@@hostPairing.goHome">
+          Zur Startseite
+        </button>
+      }
+    </mat-card-content>
+  </mat-card>
+</section>

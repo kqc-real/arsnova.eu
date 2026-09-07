@@ -687,6 +687,10 @@ html {
   box-shadow: var(--mat-sys-level3);
 }
 
+.cdk-overlay-pane.host-pairing-dialog-panel {
+  max-width: min(28rem, calc(100vw - 2rem));
+}
+
 /* In-App-ProductFeedback: dieselbe Sheet-/Kartenoptik wie Post-Session. */
 .cdk-overlay-backdrop.product-feedback-in-app-dialog-backdrop {
   background: color-mix(in srgb, var(--mat-sys-scrim) 42%, transparent);

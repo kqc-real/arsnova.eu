@@ -8,6 +8,7 @@
   - `/session/:code/host`: host control view.
   - `/session/:code/present`: projection/presenter view.
   - `/session/:code/vote`: participant voting view.
+  - `/session/:code/pair`: smartphone pairing request; secret only in the URL fragment; no host token and no approve UI.
 - Feedback routes include standalone host/vote flows; do not conflate feedback-host token with session-host token.
 - Quiz routes include list/new/edit/preview/sync areas; local-first quiz store/sync code lives under `features/quiz` and `features/quiz/data`.
 - Core/shared/features layout follows Angular style: avoid generic top-level `components/` or `services/` buckets.

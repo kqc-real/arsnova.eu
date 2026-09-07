@@ -720,14 +720,16 @@
     max-width: 100%;
   }
 
-  .session-host__view-toggle--presenter {
+  .session-host__view-toggle--presenter,
+  .session-host__view-toggle--connect {
     width: 2.75rem;
     min-width: 2.75rem;
     padding-inline: 0.5rem;
     gap: 0;
   }
 
-  .session-host__view-toggle--presenter .session-host__view-toggle-label {
+  .session-host__view-toggle--presenter .session-host__view-toggle-label,
+  .session-host__view-toggle--connect .session-host__view-toggle-label {
     display: none;
   }
 

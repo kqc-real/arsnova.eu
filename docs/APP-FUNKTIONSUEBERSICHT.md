@@ -53,6 +53,7 @@ Rollenrechte werden dabei **nicht nur über die URL**, sondern zusätzlich über
 | Session Host          | `/session/:code/host`                                        | Lehrendensteuerung für Quiz, Q&A und Blitzlicht                                        |
 | Session Present       | `/session/:code/present`                                     | Beamer- / Raumansicht                                                                  |
 | Session Vote          | `/session/:code/vote`                                        | Teilnehmendenansicht für Antworten, Q&A, Blitzlicht, Ergebnis und Feedback             |
+| Session Pair          | `/session/:code/pair`                                        | Smartphone fragt eine Host-Verbindung an; Freigabe bleibt auf `/host`                  |
 | Standalone-Blitzlicht | `/feedback/:code`, `/feedback/:code/vote`                    | Schnelle Feedback-Runden außerhalb einer normalen Quiz-Session                         |
 | Admin                 | `/admin`                                                     | Betreiberzugriff auf Sessions, Exporte, Löschungen, Legal Hold, MOTD, Produktfeedback  |
 | Hilfe und Info        | `/help`, `/news-archive`, `/legal/imprint`, `/legal/privacy` | Produktbeschreibung, Nachrichtenarchiv, Impressum, Datenschutz                         |

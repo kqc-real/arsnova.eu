@@ -11,6 +11,26 @@ const ADMIN_LOGIN_RATE_LIMIT_MESSAGES_DE = new Set([
   'Zu viele Admin-Login-Versuche. Bitte später erneut versuchen.',
   'Zu viele gleichzeitige Admin-Login-Versuche.',
 ]);
+const HOST_PAIRING_MESSAGES_DE: Record<string, () => string> = {
+  'Die Verbindungsanfrage ist abgelaufen.': () =>
+    $localize`:@@hostPairing.errorExpired:Die Verbindungsanfrage ist abgelaufen.`,
+  'Dieser Verbindungslink ist ungültig oder abgelaufen.': () =>
+    $localize`:@@hostPairing.errorInvalidLink:Dieser Verbindungslink ist ungültig oder abgelaufen.`,
+  'Es wartet bereits eine Verbindungsanfrage.': () =>
+    $localize`:@@hostPairing.errorAlreadyPending:Es wartet bereits eine Verbindungsanfrage.`,
+  'Es sind bereits drei weitere Host-Geräte verbunden.': () =>
+    $localize`:@@hostPairing.errorCapReached:Es sind bereits drei weitere Geräte verbunden.`,
+  'Nur die ursprüngliche Lehrperson kann weitere Geräte verbinden.': () =>
+    $localize`:@@hostPairing.errorNotOriginal:Nur du kannst weitere Geräte verbinden.`,
+  'Die Verbindung wurde abgelehnt.': () =>
+    $localize`:@@hostPairing.errorRejected:Die Verbindung wurde abgelehnt.`,
+  'Es gibt keine offene Verbindungsanfrage.': () =>
+    $localize`:@@hostPairing.errorNoRequest:Es gibt keine offene Verbindungsanfrage.`,
+  'Die Veranstaltung ist bereits beendet.': () =>
+    $localize`:@@hostPairing.errorSessionEnded:Die Veranstaltung ist bereits beendet.`,
+  'Zu viele Verbindungsversuche. Bitte später erneut versuchen.': () =>
+    $localize`:@@hostPairing.errorRateLimited:Zu viele Verbindungsversuche. Bitte später erneut versuchen.`,
+};
 const TRPC_CODE_PREFIXES = [
   'TOO_MANY_REQUESTS',
   'NOT_FOUND',
@@ -86,6 +106,10 @@ export function localizeKnownServerMessage(message: string): string {
   }
   if (ADMIN_LOGIN_RATE_LIMIT_MESSAGES_DE.has(normalized)) {
     return adminLoginRateLimitUiMessage();
+  }
+  const pairingMessage = HOST_PAIRING_MESSAGES_DE[normalized];
+  if (pairingMessage) {
+    return pairingMessage();
   }
   return normalized;
 }

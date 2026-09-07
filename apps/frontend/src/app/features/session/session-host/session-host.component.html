@@ -155,7 +155,7 @@
           }
         </div>
 
-        @if (showHostViewControls()) {
+        @if (showHostViewControls() || showHostPairingAction()) {
           <div class="session-host__view-controls session-host__view-controls--inline">
             @if (showPresenterViewButton()) {
               <button
@@ -189,6 +189,24 @@
                 >
               </button>
             }
+
+            <button
+              mat-button
+              type="button"
+              class="session-host__view-toggle session-host__view-toggle--labeled session-host__view-toggle--connect"
+              data-testid="connect-smartphone"
+              (click)="openHostPairingDialog()"
+              i18n-aria-label="@@hostPairing.connectAria"
+              aria-label="Smartphone als weiteres Steuergerät verbinden"
+              i18n-matTooltip="@@hostPairing.connectTooltip"
+              matTooltip="Smartphone verbinden"
+              matTooltipTouchGestures="off"
+            >
+              <mat-icon aria-hidden="true">smartphone</mat-icon>
+              <span class="session-host__view-toggle-label" i18n="@@hostPairing.connectLabel"
+                >Smartphone verbinden</span
+              >
+            </button>
 
             @if (isFullscreenSupported()) {
               <button
@@ -408,7 +426,7 @@
                   }
                   <span class="session-host__live-sound-label">{{ activeMusicLabel() }}</span>
                 </button>
-                @if (showHostViewControls() && !showChannelTabs()) {
+                @if ((showHostViewControls() || showHostPairingAction()) && !showChannelTabs()) {
                   <div class="session-host__view-controls session-host__view-controls--meta">
                     @if (activeChannelVisibilityActionLabel(); as visibilityActionLabel) {
                       <button
@@ -461,6 +479,26 @@
                         >
                       </button>
                     }
+
+                    <button
+                      mat-button
+                      type="button"
+                      class="session-host__view-toggle session-host__view-toggle--labeled session-host__view-toggle--connect"
+                      data-testid="connect-smartphone"
+                      (click)="openHostPairingDialog()"
+                      i18n-aria-label="@@hostPairing.connectAria"
+                      aria-label="Smartphone als weiteres Steuergerät verbinden"
+                      i18n-matTooltip="@@hostPairing.connectTooltip"
+                      matTooltip="Smartphone verbinden"
+                      matTooltipTouchGestures="off"
+                    >
+                      <mat-icon aria-hidden="true">smartphone</mat-icon>
+                      <span
+                        class="session-host__view-toggle-label"
+                        i18n="@@hostPairing.connectLabel"
+                        >Smartphone verbinden</span
+                      >
+                    </button>
 
                     @if (isFullscreenSupported()) {
                       <button

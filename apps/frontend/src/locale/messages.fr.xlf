@@ -27233,6 +27233,146 @@
           <context context-type="linenumber">170</context>
         </context-group>
       </trans-unit>
+      <trans-unit id="hostPairing.connectAria" datatype="html">
+        <source>Smartphone als weiteres Steuergerät verbinden</source>
+        <target>Connecter ton smartphone comme autre appareil de contrôle</target>
+      </trans-unit>
+      <trans-unit id="hostPairing.connectTooltip" datatype="html">
+        <source>Smartphone verbinden</source>
+        <target>Connecter le smartphone</target>
+      </trans-unit>
+      <trans-unit id="hostPairing.connectLabel" datatype="html">
+        <source>Smartphone verbinden</source>
+        <target>Connecter le smartphone</target>
+      </trans-unit>
+      <trans-unit id="hostPairing.dialogTitle" datatype="html">
+        <source>Smartphone verbinden</source>
+        <target>Connecter le smartphone</target>
+      </trans-unit>
+      <trans-unit id="hostPairing.preparing" datatype="html">
+        <source>Verbindung wird vorbereitet…</source>
+        <target>Préparation de la connexion…</target>
+      </trans-unit>
+      <trans-unit id="hostPairing.dialogIntro" datatype="html">
+        <source>Scanne den Code oder öffne den Link auf deinem Smartphone. Die Verbindung wird erst frei, wenn du sie hier bestätigst.</source>
+        <target>Scanne le code ou ouvre le lien sur ton smartphone. La connexion ne s’active qu’après ta confirmation ici.</target>
+      </trans-unit>
+      <trans-unit id="hostPairing.qrAlt" datatype="html">
+        <source>QR-Code zum Verbinden des Smartphones</source>
+        <target>QR code pour connecter le smartphone</target>
+      </trans-unit>
+      <trans-unit id="hostPairing.waitingScan" datatype="html">
+        <source>Warten auf Verbindungsanfrage…</source>
+        <target>En attente d’une demande de connexion…</target>
+      </trans-unit>
+      <trans-unit id="hostPairing.pendingTitle" datatype="html">
+        <source>Ein Smartphone möchte sich verbinden</source>
+        <target>Un smartphone souhaite se connecter</target>
+      </trans-unit>
+      <trans-unit id="hostPairing.pendingHint" datatype="html">
+        <source>Das Gerät kann danach Fragen steuern, Ergebnisse anzeigen und die Veranstaltung beenden.</source>
+        <target>L’appareil pourra ensuite piloter les questions, afficher les résultats et terminer la séance.</target>
+      </trans-unit>
+      <trans-unit id="hostPairing.connected" datatype="html">
+        <source>Smartphone verbunden</source>
+        <target>Smartphone connecté</target>
+      </trans-unit>
+      <trans-unit id="hostPairing.connectedHint" datatype="html">
+        <source>Du kannst die Veranstaltung jetzt auch vom Smartphone steuern.</source>
+        <target>Tu peux maintenant piloter la séance aussi depuis le smartphone.</target>
+      </trans-unit>
+      <trans-unit id="hostPairing.reject" datatype="html">
+        <source>Ablehnen</source>
+        <target>Refuser</target>
+      </trans-unit>
+      <trans-unit id="hostPairing.approve" datatype="html">
+        <source>Als Host zulassen</source>
+        <target>Autoriser le contrôle</target>
+      </trans-unit>
+      <trans-unit id="hostPairing.retry" datatype="html">
+        <source>Neu versuchen</source>
+        <target>Réessayer</target>
+      </trans-unit>
+      <trans-unit id="hostPairing.close" datatype="html">
+        <source>Schließen</source>
+        <target>Fermer</target>
+      </trans-unit>
+      <trans-unit id="hostPairing.errorGeneric" datatype="html">
+        <source>Die Verbindung konnte nicht vorbereitet werden.</source>
+        <target>La connexion n’a pas pu être préparée.</target>
+      </trans-unit>
+      <trans-unit id="hostPairing.linkCopied" datatype="html">
+        <source>Link kopiert</source>
+        <target>Lien copié</target>
+      </trans-unit>
+      <trans-unit id="hostPairing.copyLink" datatype="html">
+        <source>Link kopieren</source>
+        <target>Copier le lien</target>
+      </trans-unit>
+      <trans-unit id="hostPairing.copyFailed" datatype="html">
+        <source>Link konnte nicht kopiert werden.</source>
+        <target>Le lien n’a pas pu être copié.</target>
+      </trans-unit>
+      <trans-unit id="hostPairing.errorRejected" datatype="html">
+        <source>Die Verbindung wurde abgelehnt.</source>
+        <target>La connexion a été refusée.</target>
+      </trans-unit>
+      <trans-unit id="hostPairing.requestQuestion" datatype="html">
+        <source>Mit Veranstaltung <x id="sessionCode" equiv-text="this.code"/> verbinden?</source>
+        <target>Se connecter à la séance <x id="sessionCode" equiv-text="this.code"/> ?</target>
+      </trans-unit>
+      <trans-unit id="hostPairing.errorInvalidLink" datatype="html">
+        <source>Dieser Verbindungslink ist ungültig oder abgelaufen.</source>
+        <target>Ce lien de connexion est invalide ou a expiré.</target>
+      </trans-unit>
+      <trans-unit id="hostPairing.errorAlreadyPending" datatype="html">
+        <source>Es wartet bereits eine Verbindungsanfrage.</source>
+        <target>Une demande de connexion est déjà en attente.</target>
+      </trans-unit>
+      <trans-unit id="hostPairing.requestTitle" datatype="html">
+        <source>Mit Veranstaltung verbinden</source>
+        <target>Se connecter à la séance</target>
+      </trans-unit>
+      <trans-unit id="hostPairing.missingSecret" datatype="html">
+        <source>Dieser Link ist unvollständig. Bitte den QR-Code oder den vollständigen Link nutzen.</source>
+        <target>Ce lien est incomplet. Utilise le QR code ou le lien complet.</target>
+      </trans-unit>
+      <trans-unit id="hostPairing.goHome" datatype="html">
+        <source>Zur Startseite</source>
+        <target>Retour à l’accueil</target>
+      </trans-unit>
+      <trans-unit id="hostPairing.requestAction" datatype="html">
+        <source>Verbindung anfragen</source>
+        <target>Demander la connexion</target>
+      </trans-unit>
+      <trans-unit id="hostPairing.requestWaiting" datatype="html">
+        <source>Warten auf Freigabe. Zeige dieses Zeichen der Lehrperson:</source>
+        <target>En attente d’autorisation. Montre ce signe à la personne qui enseigne :</target>
+      </trans-unit>
+      <trans-unit id="hostPairing.errorExpired" datatype="html">
+        <source>Die Verbindungsanfrage ist abgelaufen.</source>
+        <target>La demande de connexion a expiré.</target>
+      </trans-unit>
+      <trans-unit id="hostPairing.errorCapReached" datatype="html">
+        <source>Es sind bereits drei weitere Geräte verbunden.</source>
+        <target>Trois autres appareils sont déjà connectés.</target>
+      </trans-unit>
+      <trans-unit id="hostPairing.errorNotOriginal" datatype="html">
+        <source>Nur du kannst weitere Geräte verbinden.</source>
+        <target>Seul toi peux connecter d’autres appareils.</target>
+      </trans-unit>
+      <trans-unit id="hostPairing.errorNoRequest" datatype="html">
+        <source>Es gibt keine offene Verbindungsanfrage.</source>
+        <target>Il n’y a pas de demande de connexion ouverte.</target>
+      </trans-unit>
+      <trans-unit id="hostPairing.errorSessionEnded" datatype="html">
+        <source>Die Veranstaltung ist bereits beendet.</source>
+        <target>La séance est déjà terminée.</target>
+      </trans-unit>
+      <trans-unit id="hostPairing.errorRateLimited" datatype="html">
+        <source>Zu viele Verbindungsversuche. Bitte später erneut versuchen.</source>
+        <target>Trop de tentatives de connexion. Réessaie un peu plus tard.</target>
+      </trans-unit>
     </body>
   </file>
 </xliff>

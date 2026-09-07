@@ -2427,6 +2427,30 @@ describe('SessionPresentComponent', () => {
     fixture.destroy();
   });
 
+  it('enthält keine Pairing-Freigabe und keine Pairing-Secrets', () => {
+    const html = readFileSync(
+      resolve(
+        process.cwd(),
+        'src/app/features/session/session-present/session-present.component.html',
+      ),
+      'utf8',
+    );
+    const ts = readFileSync(
+      resolve(
+        process.cwd(),
+        'src/app/features/session/session-present/session-present.component.ts',
+      ),
+      'utf8',
+    );
+    expect(html).not.toContain('host-pairing');
+    expect(html).not.toContain('Als Host zulassen');
+    expect(html).not.toContain('pairingSecret');
+    expect(html).not.toContain('connect-smartphone');
+    expect(ts).not.toContain('HostPairingDialog');
+    expect(ts).not.toContain('createHostPairingInvite');
+    expect(ts).not.toContain('approveHostPairing');
+  });
+
   it('hält Present-Display-Gewicht ohne font-weight 800', () => {
     const styles = readFileSync(
       resolve(

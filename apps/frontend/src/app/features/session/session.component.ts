@@ -9,7 +9,7 @@ import type { SessionInfoDTO } from '@arsnova/shared-types';
 import { recordServerTimeSample } from './session-server-clock';
 
 /**
- * Session-Shell (Epic 2 + 3). Child-Routes: host, present, vote. Redirect '' → host.
+ * Session-Shell (Epic 2 + 3). Child-Routes: host, present, vote, pair. Redirect '' → host.
  * Host- und Present-Route ohne l-page/l-section: Host braucht die volle Steuerbreite,
  * Present die volle HDMI-/Beamer-Bühne.
  */
