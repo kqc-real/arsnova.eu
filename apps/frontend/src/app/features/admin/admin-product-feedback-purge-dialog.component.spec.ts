@@ -58,6 +58,13 @@ describe('AdminProductFeedbackPurgeDialogComponent', () => {
     expect(component.canPurge()).toBe(false);
   });
 
+  it('weist darauf hin, dass Einladungszähler für denselben Zeitraum mitgelöscht werden', () => {
+    const text = (fixture.nativeElement as HTMLElement).textContent ?? '';
+    expect(text).toContain('Einladungszähler');
+    expect(text).toContain('denselben Zeitraum');
+    expect(text).toContain('Exportprotokolle bleiben erhalten');
+  });
+
   it('löscht erst nach korrekter Phrase und schließt mit der Anzahl', async () => {
     component.confirmationText = PRODUCT_FEEDBACK_PURGE_CONFIRMATION;
     expect(component.canPurge()).toBe(true);
@@ -120,5 +127,14 @@ describe('AdminProductFeedbackPurgeDialogComponent', () => {
     await component.refreshCount();
     expect(queryMock).toHaveBeenLastCalledWith({ scope: 'ALL' });
     expect(component.count()).toBe(9);
+  });
+
+  it('erlaubt die Phrase auch bei 0 Rückmeldungen, damit Einladungszähler zurückgesetzt werden', async () => {
+    queryMock.mockResolvedValueOnce({ count: 0, scope: 'ALL' });
+    component.scope = 'ALL';
+    await component.refreshCount();
+    expect(component.canPurge()).toBe(false);
+    component.confirmationText = PRODUCT_FEEDBACK_PURGE_CONFIRMATION;
+    expect(component.canPurge()).toBe(true);
   });
 });

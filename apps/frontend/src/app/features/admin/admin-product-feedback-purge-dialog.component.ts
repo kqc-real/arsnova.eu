@@ -88,7 +88,6 @@ export class AdminProductFeedbackPurgeDialogComponent {
       !this.busy() &&
       !this.countBusy() &&
       this.count() !== null &&
-      (this.count() ?? 0) > 0 &&
       this.phraseMatches() &&
       (this.scope === 'ALL' || this.isUntilDateAllowed(this.untilDate))
     );

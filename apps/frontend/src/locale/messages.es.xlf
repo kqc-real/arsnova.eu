@@ -4616,8 +4616,8 @@
         </context-group>
       </trans-unit>
       <trans-unit id="admin.productFeedback.purgeIntro" datatype="html">
-        <source>Gelöscht werden die gespeicherten Rückmeldungen. Das lässt sich nicht rückgängig machen. Einladungszähler und Exportprotokolle bleiben erhalten.</source>
-        <target>Se borrarán los comentarios guardados. Esta acción no se puede deshacer. Los contadores de invitaciones y los registros de exportación se conservan.</target>
+        <source>Gelöscht werden die gespeicherten Rückmeldungen und die Einladungszähler für denselben Zeitraum. Das lässt sich nicht rückgängig machen. Exportprotokolle bleiben erhalten.</source>
+        <target>Se borrarán los comentarios guardados y los contadores de invitaciones del mismo periodo. Esta acción no se puede deshacer. Los registros de exportación se conservan.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/admin/admin-product-feedback-purge-dialog.component.html</context>
           <context context-type="linenumber">1</context>

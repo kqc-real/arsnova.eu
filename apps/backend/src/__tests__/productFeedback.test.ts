@@ -46,6 +46,7 @@ const { prismaMock, redisMock, extractAdminTokenMock, isAdminSessionTokenValidMo
       productFeedbackInviteLedger: {
         upsert: vi.fn(async () => ({})),
         aggregate: vi.fn(async () => ({ _sum: { count: 0 } })),
+        deleteMany: vi.fn(async () => ({ count: 0 })),
       },
       productFeedbackInviteJob: {
         upsert: vi.fn(async () => ({})),
@@ -1510,6 +1511,7 @@ describe('adminProductFeedback Triage', () => {
       });
       expect(output.ok).toBe(true);
       expect(prismaMock.productFeedback.delete).toHaveBeenCalled();
+      expect(prismaMock.productFeedbackInviteLedger.deleteMany).not.toHaveBeenCalled();
     },
   );
 
@@ -1697,11 +1699,42 @@ describe('adminProductFeedback Triage', () => {
       });
       expect(output).toEqual({ deletedCount: 3, scope: 'ALL' });
       expect(prismaMock.productFeedback.deleteMany).toHaveBeenCalledWith({ where: {} });
+      expect(prismaMock.productFeedbackInviteLedger.deleteMany).toHaveBeenCalledWith({
+        where: {},
+      });
       expect(prismaMock.productFeedbackPurgeLog.create).toHaveBeenCalledWith({
         data: expect.objectContaining({
           scope: 'ALL',
           untilCreatedAt: null,
           deletedCount: 3,
+        }),
+      });
+    },
+  );
+
+  trpcDodIt(
+    {
+      procedure: 'admin.productFeedback.purge',
+      case: 'happy',
+      mode: 'direct',
+      title: 'setzt Einladungszähler zurück, wenn keine Rückmeldungen mehr vorhanden sind',
+    },
+    async () => {
+      prismaMock.productFeedback.count.mockResolvedValue(0);
+      prismaMock.productFeedback.deleteMany.mockResolvedValue({ count: 0 });
+      const output = await adminCaller.purge({
+        scope: 'ALL',
+        expectedCount: 0,
+        confirmationText: PRODUCT_FEEDBACK_PURGE_CONFIRMATION,
+      });
+      expect(output).toEqual({ deletedCount: 0, scope: 'ALL' });
+      expect(prismaMock.productFeedbackInviteLedger.deleteMany).toHaveBeenCalledWith({
+        where: {},
+      });
+      expect(prismaMock.productFeedbackPurgeLog.create).toHaveBeenCalledWith({
+        data: expect.objectContaining({
+          scope: 'ALL',
+          deletedCount: 0,
         }),
       });
     },
@@ -1727,6 +1760,9 @@ describe('adminProductFeedback Triage', () => {
       expect(output.deletedCount).toBe(2);
       expect(prismaMock.productFeedback.deleteMany).toHaveBeenCalledWith({
         where: { createdAt: { lte: new Date(until) } },
+      });
+      expect(prismaMock.productFeedbackInviteLedger.deleteMany).toHaveBeenCalledWith({
+        where: { day: { lte: new Date(until) } },
       });
       expect(prismaMock.productFeedbackPurgeLog.create).toHaveBeenCalledWith({
         data: expect.objectContaining({
@@ -1755,6 +1791,7 @@ describe('adminProductFeedback Triage', () => {
         }),
       ).rejects.toMatchObject({ code: 'BAD_REQUEST' });
       expect(prismaMock.productFeedback.deleteMany).not.toHaveBeenCalled();
+      expect(prismaMock.productFeedbackInviteLedger.deleteMany).not.toHaveBeenCalled();
     },
   );
 
@@ -1776,6 +1813,7 @@ describe('adminProductFeedback Triage', () => {
         }),
       ).rejects.toMatchObject({ code: 'PRECONDITION_FAILED' });
       expect(prismaMock.productFeedback.deleteMany).not.toHaveBeenCalled();
+      expect(prismaMock.productFeedbackInviteLedger.deleteMany).not.toHaveBeenCalled();
     },
   );
 
@@ -1798,6 +1836,7 @@ describe('adminProductFeedback Triage', () => {
         }),
       ).rejects.toMatchObject({ code: 'PRECONDITION_FAILED' });
       expect(prismaMock.productFeedbackPurgeLog.create).not.toHaveBeenCalled();
+      expect(prismaMock.productFeedbackInviteLedger.deleteMany).not.toHaveBeenCalled();
     },
   );
 
@@ -1819,6 +1858,7 @@ describe('adminProductFeedback Triage', () => {
         }),
       ).rejects.toMatchObject({ code: 'BAD_REQUEST' });
       expect(prismaMock.productFeedback.deleteMany).not.toHaveBeenCalled();
+      expect(prismaMock.productFeedbackInviteLedger.deleteMany).not.toHaveBeenCalled();
     },
   );
 
@@ -1840,6 +1880,7 @@ describe('adminProductFeedback Triage', () => {
         }),
       ).rejects.toMatchObject({ code: 'UNAUTHORIZED' });
       expect(prismaMock.productFeedback.deleteMany).not.toHaveBeenCalled();
+      expect(prismaMock.productFeedbackInviteLedger.deleteMany).not.toHaveBeenCalled();
     },
   );
 });

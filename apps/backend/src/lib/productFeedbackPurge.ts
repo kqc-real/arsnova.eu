@@ -24,3 +24,11 @@ export function productFeedbackPurgeWhere(
   if (input.scope === 'ALL') return {};
   return { createdAt: { lte: new Date(input.until) } };
 }
+
+/** Einladungszähler für denselben Zeitraum wie die gelöschten Rückmeldungen. */
+export function productFeedbackInviteLedgerPurgeWhere(
+  input: AdminProductFeedbackPurgePreviewInput,
+): Prisma.ProductFeedbackInviteLedgerWhereInput {
+  if (input.scope === 'ALL') return {};
+  return { day: { lte: new Date(input.until) } };
+}

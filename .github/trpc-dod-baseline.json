@@ -169,7 +169,7 @@
     },
     "admin.productFeedback.purge": {
       "kind": "mutation",
-      "fingerprint": "sha256:32f553ac63a017dc76254f2814c4e4f16ee7459e77ea28325352d41a54f247a4",
+      "fingerprint": "sha256:347598f873cef218d9d3f43a2f56957f540b8330a4b4f33131b80595d0b4b265",
       "missing": []
     },
     "admin.productFeedback.updateTriage": {

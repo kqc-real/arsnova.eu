@@ -2344,7 +2344,7 @@ ist abgeschlossen ✅. Damit ist Epic 6 geschlossen.
 - **Story 12.4 (Admin-Massenlöschung von Produktfeedback bis Datum oder vollständig):** ✅ Als Plattform-Admin möchte ich gespeicherte Produktfeedback-Datensätze bis einschließlich eines Datums oder vollständig endgültig löschen können, damit ich Aufbewahrungs- und Löschpflichten vor Ablauf der automatischen Retention erfüllen kann.
   - **Fachliche Abgrenzung:**
     - Die Aktion bleibt in der Domäne `ProductFeedback` und ist ausschließlich über `adminProcedure` erreichbar. Route `/admin` allein verleiht keine Berechtigung.
-    - Gelöscht werden nur `ProductFeedback`-Zeilen. Invite-Ledger, Invite-Jobs, LLM-Exportprotokolle und bestehende Triage-Auditzeilen bleiben erhalten.
+    - Gelöscht werden `ProductFeedback`-Zeilen und der Einladungszähler (`ProductFeedbackInviteLedger`) für denselben Zeitraum. Invite-Jobs, LLM-Exportprotokolle und bestehende Triage-Auditzeilen bleiben erhalten. Die Einzelfalllöschung aus 12.2 lässt das Ledger unberührt.
     - Die Einzelfalllöschung aus 12.2 bleibt parallel bestehen. Automatische Retention (13 Monate strukturiert, 90 Tage Freitext) bleibt unverändert.
     - Es gibt kein Undo und keine Wiederherstellung.
   - **Einstieg und Dialog:**
@@ -2362,7 +2362,7 @@ ist abgeschlossen ✅. Damit ist Epic 6 geschlossen.
     - Touch-Ziele mindestens 44 × 44 CSS-Pixel; 320-px-Reflow; Hochkontrast und `prefers-reduced-motion`; Bedeutung nicht allein über Farbe oder Icon.
   - **Tests und Dokumentation:**
     - Shared-Schema-Tests für `UNTIL`/`ALL`, strikte Zusatzfelder und Pflicht-Phrase.
-    - Backendtests: Admin-Grenze; Löschung bis Datum; vollständige Löschung; falsche Phrase; Anzahlabweichung; Audit ohne Textkopie.
+    - Backendtests: Admin-Grenze; Löschung bis Datum inkl. Einladungszähler; vollständige Löschung inkl. Ledger; Einzelfalllöschung ohne Ledger; falsche Phrase; Anzahlabweichung; Audit ohne Textkopie.
     - Frontendtests: Dialog mit Datepicker-Default, Phrase-Sperre, Scope `ALL` ohne Datum, Panel öffnet den Dialog mit Filterdatum „bis“.
     - Fachdoku, Admin-Flow, Glossar, Routen-/Story-Zuordnung, Funktionsübersicht und Datenschutzhinweise (alle fünf Sprachen) beschreiben die vorzeitige Löschung.
   - **Abhängigkeiten:** Stories 12.1 und 12.2 (`ProductFeedback`-Verträge, Admin-Triage, Einzelfalllöschung), Epic 9 (`adminProcedure`, Audit- und Phrase-Muster), Stories 6.2/6.4/6.5 (i18n, Mobile, WCAG).

@@ -4618,8 +4618,8 @@
         </context-group>
       </trans-unit>
       <trans-unit id="admin.productFeedback.purgeIntro" datatype="html">
-        <source>Gelöscht werden die gespeicherten Rückmeldungen. Das lässt sich nicht rückgängig machen. Einladungszähler und Exportprotokolle bleiben erhalten.</source>
-        <target>Stored feedback reports will be deleted. This cannot be undone. Invite counters and export logs are kept.</target>
+        <source>Gelöscht werden die gespeicherten Rückmeldungen und die Einladungszähler für denselben Zeitraum. Das lässt sich nicht rückgängig machen. Exportprotokolle bleiben erhalten.</source>
+        <target>Stored feedback reports and invite counters for the same period will be deleted. This cannot be undone. Export logs are kept.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/admin/admin-product-feedback-purge-dialog.component.html</context>
           <context context-type="linenumber">1</context>
