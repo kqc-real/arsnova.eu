@@ -87,7 +87,10 @@ export class SoundService {
     }
   }
 
-  async play(key: SoundKey): Promise<void> {
+  async play(
+    key: SoundKey,
+    opts?: { gain?: number; fadeInSeconds?: number; fadeOutSeconds?: number },
+  ): Promise<void> {
     const ctx = await this.ensureContextRunning();
     if (!ctx) return;
 
@@ -106,13 +109,62 @@ export class SoundService {
       }
     }
 
+    const peak =
+      typeof opts?.gain === 'number' && Number.isFinite(opts.gain) ? Math.max(0, opts.gain) : 1;
     const source = ctx.createBufferSource();
     source.buffer = buffer;
-    source.connect(ctx.destination);
+    const gain = ctx.createGain();
+    // Kurze Ein-/Ausblendung vermeidet Klicks an harten Sample-Rändern (z. B. Gong).
+    const now = ctx.currentTime;
+    const duration = Math.max(buffer.duration, 0.05);
+    const fadeIn = Math.min(
+      typeof opts?.fadeInSeconds === 'number' && Number.isFinite(opts.fadeInSeconds)
+        ? Math.max(0, opts.fadeInSeconds)
+        : 0.012,
+      duration / 4,
+    );
+    const fadeOut = Math.min(
+      typeof opts?.fadeOutSeconds === 'number' && Number.isFinite(opts.fadeOutSeconds)
+        ? Math.max(0, opts.fadeOutSeconds)
+        : 0.14,
+      duration * 0.6,
+    );
+    gain.gain.setValueAtTime(0, now);
+    if (fadeIn > 0) {
+      gain.gain.linearRampToValueAtTime(peak, now + fadeIn);
+    } else {
+      gain.gain.setValueAtTime(peak, now);
+    }
+    if (fadeOut > 0) {
+      gain.gain.setValueAtTime(peak, Math.max(now + fadeIn, now + duration - fadeOut));
+      gain.gain.linearRampToValueAtTime(0, now + duration);
+    }
+    source.connect(gain);
+    gain.connect(ctx.destination);
     source.start(0);
 
     this.activeSfxNodes.add(source);
     source.onended = () => this.activeSfxNodes.delete(source);
+  }
+
+  /** Lädt SFX-Buffer vor, damit Countdown-Cues ohne Fetch-Verzögerung starten. */
+  async preload(keys: readonly SoundKey[]): Promise<void> {
+    const ctx = await this.ensureContextRunning();
+    if (!ctx) return;
+    await Promise.all(
+      keys.map(async (key) => {
+        const path = SOUND_PATHS[key];
+        if (!path || this.buffers.has(path)) return;
+        try {
+          const response = await fetch(path);
+          const arrayBuffer = await response.arrayBuffer();
+          const buffer = await ctx.decodeAudioData(arrayBuffer);
+          this.buffers.set(path, buffer);
+        } catch {
+          /* best effort */
+        }
+      }),
+    );
   }
 
   /** Stoppt alle laufenden Sound-Effekte sofort. */
@@ -188,6 +240,13 @@ export class SoundService {
 
   stopMusic(): void {
     this.musicGeneration++;
+    if (this.musicGain && this.ctx) {
+      try {
+        this.musicGain.gain.cancelScheduledValues(this.ctx.currentTime);
+      } catch {
+        /* noop */
+      }
+    }
     for (const node of this.activeMusicNodes) {
       try {
         node.stop();
@@ -208,6 +267,28 @@ export class SoundService {
     this.currentMusicTrack = null;
     this.pendingMusicTrack = null;
     this.musicPlaying.set(false);
+  }
+
+  /**
+   * Blendet laufende Hintergrundmusik über `durationSeconds` auf 0 aus.
+   * Stoppt die Nodes nicht selbst – der Host setzt danach die SFX-Phase / stopMusic.
+   */
+  fadeOutMusic(durationSeconds: number): void {
+    const ctx = this.ctx;
+    const gainNode = this.musicGain;
+    if (!ctx || !gainNode || !this.musicPlaying()) {
+      return;
+    }
+    const now = ctx.currentTime;
+    const current = gainNode.gain.value;
+    const duration = Math.max(0.05, durationSeconds);
+    try {
+      gainNode.gain.cancelScheduledValues(now);
+      gainNode.gain.setValueAtTime(current, now);
+      gainNode.gain.linearRampToValueAtTime(0, now + duration);
+    } catch {
+      gainNode.gain.value = 0;
+    }
   }
 
   /** Bricht eine laufende Musik-Vorschau ab (ohne Callback). */

@@ -256,7 +256,7 @@ Abgeschlossen mit dem Token-/Chrome-Nachzug (Wellen 1–8). Bei **neuen oder ge�
 ### Bewusste Ausnahmen (nicht „fixen“)
 
 - Foyer-Einflug: Keyframes / `animation-*`-Longhands / `ViewEncapsulation.None` (Prod-Flug).
-- Live-Banner: Host/Vote dürfen bühnenhafter bleiben als flaches Blitzlicht-Standalone-Join.
+- Live-Banner Vote: kompakte Leiste (Code + Teilnehmerzahl, optional Titel) – kein Kanalstatus parallel zu den Tabs; vertikale Höhe klein halten, damit Abstimmen ohne Scrollen bleibt. Host-Join darf bühnenhafter bleiben.
 - Ankunfts-/Confetti-/Reward-Keyframes und Medaillenfarben nicht ohne Produktgrund antasten.
 
 ### Checkliste bei Style-PRs

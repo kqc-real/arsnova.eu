@@ -476,31 +476,20 @@
       <section class="vote-live-banner app-live-channel-shell">
         <div class="vote-live-banner__main">
           <div class="vote-live-banner__access">
-            <div class="vote-live-banner__code-block">
-              <p class="vote-live-banner__label" aria-hidden="true">
-                {{ vpc.voteLiveBannerCodeLabel(isPlayfulPreset()) }}
-              </p>
-              <p
-                class="vote-live-banner__code"
-                [attr.aria-label]="vpc.voteLiveBannerCodeLabel(isPlayfulPreset()) + ' ' + code"
-              >
-                {{ code }}
-              </p>
-              <p class="vote-live-banner__participants">
-                <span class="vote-live-banner__participants-count">{{
-                  liveParticipantCount()
-                }}</span>
-                <span>{{ vpc.voteLiveBannerParticipantsLabel(isPlayfulPreset()) }}</span>
-              </p>
-            </div>
+            <p
+              class="vote-live-banner__code"
+              [attr.aria-label]="vpc.voteLiveBannerCodeLabel(isPlayfulPreset()) + ' ' + code"
+            >
+              {{ code }}
+            </p>
+            <p class="vote-live-banner__participants">
+              <span class="vote-live-banner__participants-count">{{ liveParticipantCount() }}</span>
+              <span>{{ vpc.voteLiveBannerParticipantsLabel(isPlayfulPreset()) }}</span>
+            </p>
           </div>
-
-          <div class="vote-live-banner__meta">
-            @if (liveHeading(); as heading) {
-              <p class="vote-live-banner__heading" [attr.title]="heading">{{ heading }}</p>
-            }
-            <p class="vote-live-banner__status">{{ channelLabel(activeChannel()) }}</p>
-          </div>
+          @if (liveHeading(); as heading) {
+            <p class="vote-live-banner__heading" [attr.title]="heading">{{ heading }}</p>
+          }
         </div>
       </section>
     }
@@ -2782,6 +2771,8 @@
           [sessionTitle]="liveHeading()"
           [embeddedInSession]="true"
           [showSessionCode]="false"
+          [showAskQuestionButton]="showTempoAskQuestionShortcut()"
+          (askQuestion)="openQaAskView()"
         />
       }
     }

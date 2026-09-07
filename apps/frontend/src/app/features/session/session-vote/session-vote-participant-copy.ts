@@ -11,7 +11,7 @@ export function voteLiveBannerCodeLabel(playful: boolean): string {
 
 export function voteLiveBannerParticipantsLabel(playful: boolean): string {
   if (playful) {
-    return $localize`:@@sessionVote.liveParticipantsPlayful:Mit dabei`;
+    return $localize`:@@sessionVote.liveParticipantsPlayful:mit dabei`;
   }
   return $localize`:@@sessionVote.liveParticipantsSerious:Teilnehmende`;
 }

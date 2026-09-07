@@ -952,9 +952,10 @@ export class SessionHostComponent implements OnInit, OnDestroy {
   readonly countdownEnded = signal(false);
   private countdownTimer: ReturnType<typeof setInterval> | null = null;
   private fingerHideTimeout: ReturnType<typeof setTimeout> | null = null;
-  private countdownIntroSoundPlayed = false;
+  private countdownFingerSoundPlayed = false;
   private countdownFinalSoundPlayed = false;
-  /** true ab 7 Sek. vor Countdown-Ende → Musik aus, nur SFX. */
+  private countdownMusicFadeStarted = false;
+  /** true ab ≤7s Rest (nach Musik-Ausblendung) → kein Countdown-Track mehr, nur SFX. */
   readonly countdownSfxPhase = signal(false);
   readonly channelActivationPending = signal<SessionChannelTab | null>(null);
   readonly channelVisibilityPending = signal<SessionChannelTab | null>(null);
@@ -4950,34 +4951,47 @@ export class SessionHostComponent implements OnInit, OnDestroy {
     this.stopCountdown();
     this.countdownEnded.set(false);
     this.countdownSfxPhase.set(false);
-    this.countdownIntroSoundPlayed = false;
+    this.countdownFingerSoundPlayed = false;
     this.countdownFinalSoundPlayed = false;
+    this.countdownMusicFadeStarted = false;
     if (!timerSeconds || timerSeconds <= 0) {
       this.countdownSeconds.set(null);
       return;
     }
     const start = activeAt ? new Date(activeAt).getTime() : Date.now();
     const deadline = start + timerSeconds * 1000;
+    const sfxEnabled = () => !!this.session()?.enableSoundEffects && this.isPlayfulPreset();
+    if (sfxEnabled()) {
+      void this.sound.preload(['countdownEnd', 'sessionEnd']);
+    }
 
     const tick = (): void => {
       const remaining = remainingCountdownSeconds(deadline);
       this.countdownSeconds.set(remaining);
-      if (remaining <= 9 && !this.countdownSfxPhase()) {
+
+      // Ab 10s: Musik sanft ausblenden bis zum Gong (7s). Track bleibt aktiv, damit syncMusic nicht neu startet.
+      if (remaining <= 10 && remaining > 7 && !this.countdownMusicFadeStarted) {
+        this.countdownMusicFadeStarted = true;
+        this.sound.fadeOutMusic(Math.max(0.5, remaining - 7));
+      }
+      if (remaining <= 7 && !this.countdownSfxPhase()) {
+        this.countdownMusicFadeStarted = true;
         this.countdownSfxPhase.set(true);
       }
-      const sfxCountdown = !!this.session()?.enableSoundEffects && this.isPlayfulPreset();
-      if (remaining <= 6 && sfxCountdown) {
-        if (remaining === 6 && !this.countdownIntroSoundPlayed) {
-          void this.sound.play('countdownEnd');
-          this.countdownIntroSoundPlayed = true;
-        } else if (remaining === 1 && !this.countdownFinalSoundPlayed) {
-          void this.sound.play('sessionEnd');
-          this.countdownFinalSoundPlayed = true;
-        }
+
+      const sfxCountdown = sfxEnabled();
+      // Gong läutet die Fingerphase ein (ab 7s); am Ablauf leiser Pfiff statt Gong.
+      if (sfxCountdown && remaining <= 7 && remaining > 0 && !this.countdownFingerSoundPlayed) {
+        void this.sound.play('countdownEnd', { gain: 0.32, fadeOutSeconds: 0.55 });
+        this.countdownFingerSoundPlayed = true;
+      }
+      if (sfxCountdown && remaining === 1 && !this.countdownFinalSoundPlayed) {
+        void this.sound.play('sessionEnd', { gain: 0.4 });
+        this.countdownFinalSoundPlayed = true;
       }
       if (remaining <= 0) {
         if (sfxCountdown && !this.countdownFinalSoundPlayed) {
-          void this.sound.play('sessionEnd');
+          void this.sound.play('sessionEnd', { gain: 0.4 });
           this.countdownFinalSoundPlayed = true;
         }
         this.stopCountdown();

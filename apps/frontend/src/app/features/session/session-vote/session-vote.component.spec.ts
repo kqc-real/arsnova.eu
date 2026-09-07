@@ -39,6 +39,8 @@ const {
   voteSubmitMutateMock,
   confirmReadingReadyMutateMock,
   quickFeedbackResultsQueryMock,
+  quickFeedbackVoteMutateMock,
+  quickFeedbackLeaveTempoMutateMock,
   quickFeedbackOnResultsSubscribeMock,
   getParticipantSelfQueryMock,
   setTimerAccommodationMutateMock,
@@ -66,6 +68,8 @@ const {
   voteSubmitMutateMock: vi.fn(),
   confirmReadingReadyMutateMock: vi.fn(),
   quickFeedbackResultsQueryMock: vi.fn(),
+  quickFeedbackVoteMutateMock: vi.fn(),
+  quickFeedbackLeaveTempoMutateMock: vi.fn(),
   quickFeedbackOnResultsSubscribeMock: vi.fn(),
   getParticipantSelfQueryMock: vi.fn(),
   setTimerAccommodationMutateMock: vi.fn(),
@@ -115,6 +119,8 @@ vi.mock('../../../core/trpc.client', () => ({
     },
     quickFeedback: {
       results: { query: quickFeedbackResultsQueryMock },
+      vote: { mutate: quickFeedbackVoteMutateMock },
+      leaveTempo: { mutate: quickFeedbackLeaveTempoMutateMock },
       onResults: { subscribe: quickFeedbackOnResultsSubscribeMock },
     },
     qa: {
@@ -300,6 +306,8 @@ describe('SessionVoteComponent', { timeout: 30_000 }, () => {
     });
     voteSubmitMutateMock.mockResolvedValue({});
     quickFeedbackResultsQueryMock.mockRejectedValue(new Error('not found'));
+    quickFeedbackVoteMutateMock.mockResolvedValue({});
+    quickFeedbackLeaveTempoMutateMock.mockResolvedValue({ ok: true });
     quickFeedbackOnResultsSubscribeMock.mockReturnValue({ unsubscribe: vi.fn() });
     qaListQueryMock.mockResolvedValue([]);
     qaSubmitMutateMock.mockResolvedValue({});
@@ -3865,6 +3873,8 @@ describe('SessionVoteComponent', { timeout: 30_000 }, () => {
     expect(host.querySelector('.feedback-vote__context-item')).toBeNull();
     expect(host.textContent).not.toContain('Session ABC123');
     expect(host.querySelector('.vote-live-banner')).not.toBeNull();
+    expect(host.querySelector('.vote-live-banner__status')).toBeNull();
+    expect(host.querySelector('.vote-live-banner__code')?.textContent?.trim()).toBe('ABC123');
     expect(host.querySelector('.vote-live-banner__qr-wrap')).toBeNull();
     expect(host.querySelector('.vote-live-banner__join-icon-tile')).toBeNull();
     expect(
@@ -4550,6 +4560,280 @@ describe('SessionVoteComponent', { timeout: 30_000 }, () => {
     fixture.destroy();
   });
 
+  it('bietet im Session-Tempo einen Q&A-Shortcut und öffnet die Frageansicht', async () => {
+    getInfoQueryMock.mockResolvedValue({
+      id: '6a8edced-5f8f-4cfa-9176-454fac9570ad',
+      serverTime: MOCK_SERVER_TIME,
+      code: 'ABC123',
+      type: 'QUIZ',
+      status: 'ACTIVE',
+      quizName: 'Team-Quiz',
+      title: null,
+      participantCount: 6,
+      channels: {
+        quiz: { enabled: true },
+        qa: { enabled: true, open: true, title: 'Fragen', moderationMode: false },
+        quickFeedback: { enabled: true, open: true },
+      },
+    });
+    currentQuestionQueryMock.mockResolvedValue(null);
+    quickFeedbackResultsQueryMock.mockResolvedValue({
+      type: 'TEMPO',
+      locked: false,
+      discussion: false,
+      totalVotes: 0,
+      distribution: { SPEED_UP: 0, FOLLOWING: 0, SLOW_DOWN: 0, LOST: 0 },
+      currentRound: 1,
+    });
+    localStorage.setItem('arsnova-participant-ABC123', 'participant-tempo-1');
+
+    const fixture = TestBed.createComponent(SessionVoteComponent);
+    const component = fixture.componentInstance;
+    fixture.detectChanges();
+    await flushComponentAfterStable(fixture, 50);
+
+    component.status.set('ACTIVE');
+    component.participantId.set('participant-tempo-1');
+    component.sessionSettings.set({
+      id: '6a8edced-5f8f-4cfa-9176-454fac9570ad',
+      code: 'ABC123',
+      type: 'QUIZ',
+      status: 'ACTIVE',
+      serverTime: MOCK_SERVER_TIME,
+      quizName: 'Team-Quiz',
+      participantCount: 6,
+      channels: {
+        quiz: { enabled: true },
+        qa: { enabled: true, open: true, title: 'Fragen', moderationMode: false },
+        quickFeedback: { enabled: true, open: true },
+      },
+    } as never);
+    component.activeChannel.set('quickFeedback');
+    fixture.detectChanges();
+    await fixture.whenStable();
+    fixture.detectChanges();
+
+    expect(component.isQaChannelOpen()).toBe(true);
+    expect(component.showTempoAskQuestionShortcut()).toBe(true);
+
+    const host = fixture.nativeElement as HTMLElement;
+    await vi.waitFor(
+      () => {
+        fixture.detectChanges();
+        expect(host.querySelector('app-feedback-vote')).not.toBeNull();
+        expect(host.querySelector('.feedback-vote__ask-question')).not.toBeNull();
+      },
+      { timeout: 3000, interval: 20 },
+    );
+
+    const askButton = host.querySelector('.feedback-vote__ask-question') as HTMLButtonElement;
+    expect(askButton.textContent ?? '').toContain('Ich habe eine Frage');
+
+    askButton.click();
+    fixture.detectChanges();
+    await fixture.whenStable();
+    fixture.detectChanges();
+
+    expect(component.activeChannel()).toBe('qa');
+    expect(host.querySelector('#qa-draft')).not.toBeNull();
+    fixture.destroy();
+  });
+
+  it('blendet den Tempo-Q&A-Shortcut aus, wenn die Fragerunde noch nicht gestartet ist', async () => {
+    getInfoQueryMock.mockResolvedValue({
+      id: '6a8edced-5f8f-4cfa-9176-454fac9570ad',
+      serverTime: MOCK_SERVER_TIME,
+      code: 'ABC123',
+      type: 'Q_AND_A',
+      status: 'LOBBY',
+      quizName: null,
+      title: 'Offene Fragen',
+      participantCount: 6,
+      channels: {
+        quiz: { enabled: false },
+        qa: { enabled: true, open: true, title: 'Fragen', moderationMode: false },
+        quickFeedback: { enabled: true, open: true },
+      },
+    });
+    currentQuestionQueryMock.mockResolvedValue(null);
+    quickFeedbackResultsQueryMock.mockResolvedValue({
+      type: 'TEMPO',
+      locked: false,
+      discussion: false,
+      totalVotes: 0,
+      distribution: { SPEED_UP: 0, FOLLOWING: 0, SLOW_DOWN: 0, LOST: 0 },
+      currentRound: 1,
+    });
+    localStorage.setItem('arsnova-participant-ABC123', 'participant-tempo-lobby');
+
+    const fixture = TestBed.createComponent(SessionVoteComponent);
+    const component = fixture.componentInstance;
+    fixture.detectChanges();
+    await flushComponentAfterStable(fixture, 50);
+
+    component.status.set('LOBBY');
+    component.participantId.set('participant-tempo-lobby');
+    component.sessionSettings.set({
+      id: '6a8edced-5f8f-4cfa-9176-454fac9570ad',
+      code: 'ABC123',
+      type: 'Q_AND_A',
+      status: 'LOBBY',
+      serverTime: MOCK_SERVER_TIME,
+      quizName: null,
+      title: 'Offene Fragen',
+      participantCount: 6,
+      channels: {
+        quiz: { enabled: false },
+        qa: { enabled: true, open: true, title: 'Fragen', moderationMode: false },
+        quickFeedback: { enabled: true, open: true },
+      },
+    } as never);
+    component.activeChannel.set('quickFeedback');
+    fixture.detectChanges();
+    await fixture.whenStable();
+    fixture.detectChanges();
+
+    expect(component.isQaChannelOpen()).toBe(true);
+    expect(component.isLobby()).toBe(true);
+    expect(component.showTempoAskQuestionShortcut()).toBe(false);
+    expect(
+      (fixture.nativeElement as HTMLElement).querySelector('.feedback-vote__ask-question'),
+    ).toBeNull();
+    fixture.destroy();
+  });
+
+  it('blendet den Tempo-Q&A-Shortcut aus, wenn die Fragerunde geschlossen ist', async () => {
+    getInfoQueryMock.mockResolvedValue({
+      id: '6a8edced-5f8f-4cfa-9176-454fac9570ad',
+      serverTime: MOCK_SERVER_TIME,
+      code: 'ABC123',
+      type: 'QUIZ',
+      status: 'ACTIVE',
+      quizName: 'Team-Quiz',
+      title: null,
+      participantCount: 6,
+      channels: {
+        quiz: { enabled: true },
+        qa: { enabled: true, open: false, title: 'Fragen', moderationMode: false },
+        quickFeedback: { enabled: true, open: true },
+      },
+    });
+    currentQuestionQueryMock.mockResolvedValue(null);
+    quickFeedbackResultsQueryMock.mockResolvedValue({
+      type: 'TEMPO',
+      locked: false,
+      discussion: false,
+      totalVotes: 0,
+      distribution: { SPEED_UP: 0, FOLLOWING: 0, SLOW_DOWN: 0, LOST: 0 },
+      currentRound: 1,
+    });
+    localStorage.setItem('arsnova-participant-ABC123', 'participant-tempo-2');
+
+    const fixture = TestBed.createComponent(SessionVoteComponent);
+    const component = fixture.componentInstance;
+    fixture.detectChanges();
+    await flushComponentAfterStable(fixture, 50);
+
+    component.status.set('ACTIVE');
+    component.participantId.set('participant-tempo-2');
+    component.sessionSettings.set({
+      id: '6a8edced-5f8f-4cfa-9176-454fac9570ad',
+      code: 'ABC123',
+      type: 'QUIZ',
+      status: 'ACTIVE',
+      serverTime: MOCK_SERVER_TIME,
+      quizName: 'Team-Quiz',
+      participantCount: 6,
+      channels: {
+        quiz: { enabled: true },
+        qa: { enabled: true, open: false, title: 'Fragen', moderationMode: false },
+        quickFeedback: { enabled: true, open: true },
+      },
+    } as never);
+    component.activeChannel.set('quickFeedback');
+    fixture.detectChanges();
+    await fixture.whenStable();
+    fixture.detectChanges();
+
+    expect(component.isQaChannelOpen()).toBe(false);
+    expect(component.showTempoAskQuestionShortcut()).toBe(false);
+
+    await vi.waitFor(
+      () => {
+        fixture.detectChanges();
+        expect(
+          (fixture.nativeElement as HTMLElement).querySelector('app-feedback-vote'),
+        ).not.toBeNull();
+      },
+      { timeout: 3000, interval: 20 },
+    );
+    expect(
+      (fixture.nativeElement as HTMLElement).querySelector('.feedback-vote__ask-question'),
+    ).toBeNull();
+    fixture.destroy();
+  });
+
+  it('blendet den Tempo-Q&A-Shortcut aus, wenn Q&A in der Session nicht aktiviert ist', async () => {
+    getInfoQueryMock.mockResolvedValue({
+      id: '6a8edced-5f8f-4cfa-9176-454fac9570ad',
+      serverTime: MOCK_SERVER_TIME,
+      code: 'ABC123',
+      type: 'QUIZ',
+      status: 'ACTIVE',
+      quizName: 'Team-Quiz',
+      title: null,
+      participantCount: 6,
+      channels: {
+        quiz: { enabled: true },
+        qa: { enabled: false, open: false, title: null, moderationMode: false },
+        quickFeedback: { enabled: true, open: true },
+      },
+    });
+    currentQuestionQueryMock.mockResolvedValue(null);
+    quickFeedbackResultsQueryMock.mockResolvedValue({
+      type: 'TEMPO',
+      locked: false,
+      discussion: false,
+      totalVotes: 0,
+      distribution: { SPEED_UP: 0, FOLLOWING: 0, SLOW_DOWN: 0, LOST: 0 },
+      currentRound: 1,
+    });
+    localStorage.setItem('arsnova-participant-ABC123', 'participant-tempo-3');
+
+    const fixture = TestBed.createComponent(SessionVoteComponent);
+    const component = fixture.componentInstance;
+    fixture.detectChanges();
+    await flushComponentAfterStable(fixture, 50);
+
+    component.status.set('ACTIVE');
+    component.participantId.set('participant-tempo-3');
+    component.sessionSettings.set({
+      id: '6a8edced-5f8f-4cfa-9176-454fac9570ad',
+      code: 'ABC123',
+      type: 'QUIZ',
+      status: 'ACTIVE',
+      serverTime: MOCK_SERVER_TIME,
+      quizName: 'Team-Quiz',
+      participantCount: 6,
+      channels: {
+        quiz: { enabled: true },
+        qa: { enabled: false, open: false, title: null, moderationMode: false },
+        quickFeedback: { enabled: true, open: true },
+      },
+    } as never);
+    component.activeChannel.set('quickFeedback');
+    fixture.detectChanges();
+    await fixture.whenStable();
+    fixture.detectChanges();
+
+    expect(component.channels().qa).toBe(false);
+    expect(component.showTempoAskQuestionShortcut()).toBe(false);
+    expect(
+      (fixture.nativeElement as HTMLElement).querySelector('.feedback-vote__ask-question'),
+    ).toBeNull();
+    fixture.destroy();
+  });
+
   it('zieht Clients bei einer neuen Blitzlicht-Vergleichsrunde wieder in den Blitzlicht-Kanal', () => {
     const fixture = TestBed.createComponent(SessionVoteComponent);
     const component = fixture.componentInstance;
@@ -4734,7 +5018,7 @@ describe('SessionVoteComponent', { timeout: 30_000 }, () => {
     fixture.destroy();
   });
 
-  it('erzwingt Quiz-Kanal nur in Lesephase und Abstimmung, nicht in Ergebnisphase', async () => {
+  it('lässt den Kanalwechsel in der Ergebnisphase frei', async () => {
     getInfoQueryMock.mockResolvedValue({
       id: '6a8edced-5f8f-4cfa-9176-454fac9570ad',
       serverTime: MOCK_SERVER_TIME,
@@ -4770,14 +5054,14 @@ describe('SessionVoteComponent', { timeout: 30_000 }, () => {
     await flushMacroTask(0);
     fixture.detectChanges();
 
-    c.activeChannel.set('qa');
+    c.selectChannel('qa');
     fixture.detectChanges();
     expect(c.activeChannel()).toBe('qa');
 
     fixture.destroy();
   });
 
-  it('erzwingt Quiz-Kanal während ACTIVE mit laufender Frage solange nicht abgestimmt', async () => {
+  it('lässt den Kanalwechsel während ACTIVE mit laufender Frage auch ohne Abstimmung frei', async () => {
     getInfoQueryMock.mockResolvedValue({
       id: '6a8edced-5f8f-4cfa-9176-454fac9570ad',
       serverTime: MOCK_SERVER_TIME,
@@ -4815,7 +5099,126 @@ describe('SessionVoteComponent', { timeout: 30_000 }, () => {
     await flushMacroTask(0);
     fixture.detectChanges();
 
-    c.activeChannel.set('quickFeedback');
+    c.selectChannel('quickFeedback');
+    fixture.detectChanges();
+    expect(c.activeChannel()).toBe('quickFeedback');
+
+    fixture.destroy();
+  });
+
+  it('zieht bei Start einer neuen Quizfrage aus Q&A zurück in den Quiz-Kanal', async () => {
+    getInfoQueryMock.mockResolvedValue({
+      id: '6a8edced-5f8f-4cfa-9176-454fac9570ad',
+      serverTime: MOCK_SERVER_TIME,
+      code: 'ABC123',
+      type: 'QUIZ',
+      status: 'ACTIVE',
+      quizName: 'Team-Quiz',
+      title: null,
+      participantCount: 6,
+      preset: 'PLAYFUL',
+      channels: {
+        quiz: { enabled: true },
+        qa: { enabled: true, open: true, title: 'Fragen', moderationMode: false },
+        quickFeedback: { enabled: true, open: true },
+      },
+    });
+    const questionOne = {
+      id: '7ed3cc25-3179-4a91-9dc3-acc00971fb46',
+      order: 1,
+      text: 'Frage 1?',
+      type: 'SINGLE_CHOICE',
+      timer: 60,
+      difficulty: 'MEDIUM',
+      answers: [
+        { id: 'a1', text: 'A' },
+        { id: 'a2', text: 'B' },
+      ],
+    };
+    const questionTwo = {
+      ...questionOne,
+      id: '8ed3cc25-3179-4a91-9dc3-acc00971fb47',
+      order: 2,
+      text: 'Frage 2?',
+    };
+    currentQuestionQueryMock.mockResolvedValueOnce(questionOne).mockResolvedValueOnce(questionTwo);
+
+    const fixture = TestBed.createComponent(SessionVoteComponent);
+    fixture.detectChanges();
+    await fixture.whenStable();
+    const c = fixture.componentInstance;
+    await (c as unknown as { refreshQuestion: () => Promise<void> }).refreshQuestion();
+    await flushMacroTask(0);
+    fixture.detectChanges();
+
+    c.selectChannel('qa');
+    fixture.detectChanges();
+    expect(c.activeChannel()).toBe('qa');
+
+    await (c as unknown as { refreshQuestion: () => Promise<void> }).refreshQuestion();
+    await flushMacroTask(0);
+    fixture.detectChanges();
+    expect(c.activeChannel()).toBe('quiz');
+
+    fixture.destroy();
+  });
+
+  it('zieht bei Freigabe der Antwortoptionen (QUESTION_OPEN→ACTIVE) zurück in den Quiz-Kanal', async () => {
+    let statusListener: ((data: unknown) => void) | null = null;
+    statusChangedSubscribeMock.mockImplementation(
+      (_input: unknown, opts: { onData: (d: unknown) => void }) => {
+        statusListener = opts.onData;
+        return { unsubscribe: vi.fn() };
+      },
+    );
+    getInfoQueryMock.mockResolvedValue({
+      id: '6a8edced-5f8f-4cfa-9176-454fac9570ad',
+      serverTime: MOCK_SERVER_TIME,
+      code: 'ABC123',
+      type: 'QUIZ',
+      status: 'QUESTION_OPEN',
+      quizName: 'Team-Quiz',
+      title: null,
+      participantCount: 6,
+      preset: 'SERIOUS',
+      channels: {
+        quiz: { enabled: true },
+        qa: { enabled: true, open: true, title: 'Fragen', moderationMode: false },
+        quickFeedback: { enabled: true, open: true },
+      },
+    });
+    currentQuestionQueryMock.mockResolvedValue({
+      id: '7ed3cc25-3179-4a91-9dc3-acc00971fb46',
+      order: 1,
+      text: 'Frage?',
+      type: 'SINGLE_CHOICE',
+      difficulty: 'MEDIUM',
+      answers: [
+        { id: 'a1', text: 'A' },
+        { id: 'a2', text: 'B' },
+      ],
+    });
+
+    const fixture = TestBed.createComponent(SessionVoteComponent);
+    fixture.detectChanges();
+    await fixture.whenStable();
+    const c = fixture.componentInstance;
+    await (c as unknown as { refreshQuestion: () => Promise<void> }).refreshQuestion();
+    await flushMacroTask(0);
+    fixture.detectChanges();
+
+    c.selectChannel('qa');
+    fixture.detectChanges();
+    expect(c.activeChannel()).toBe('qa');
+
+    statusListener?.({
+      status: 'ACTIVE',
+      currentQuestion: 0,
+      currentRound: 1,
+      timer: 60,
+      activeAt: MOCK_SERVER_TIME,
+      serverTime: MOCK_SERVER_TIME,
+    });
     fixture.detectChanges();
     expect(c.activeChannel()).toBe('quiz');
 
@@ -5100,7 +5503,7 @@ describe('SessionVoteComponent', { timeout: 30_000 }, () => {
     expect(currentQuestionQueryMock).toHaveBeenCalledTimes(1);
     expect(fixture.nativeElement.querySelector('[data-testid="vote-quiz-paused"]')).not.toBeNull();
     fixture.componentInstance.selectChannel('qa');
-    expect(fixture.componentInstance.activeChannel()).toBe('quiz');
+    expect(fixture.componentInstance.activeChannel()).toBe('qa');
 
     statusListener?.({
       status: 'ACTIVE',

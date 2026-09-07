@@ -1121,6 +1121,15 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
   );
   readonly isQaChannelOpen = computed(() => this.channelOpenState().qa);
   readonly isQuickFeedbackChannelOpen = computed(() => this.channelOpenState().quickFeedback);
+  /**
+   * Tempo-Shortcut zur Frageansicht nur wenn:
+   * - Q&A in der Session aktiviert ist,
+   * - der Q&A-Kanal vom Host geöffnet ist, und
+   * - die Fragerunde gestartet wurde (`Fragerunde starten` → nicht mehr LOBBY).
+   */
+  readonly showTempoAskQuestionShortcut = computed(
+    () => !this.isFinished() && !this.isLobby() && this.channels().qa && this.isQaChannelOpen(),
+  );
   /** Live-Banner: Quiztitel (Anzeige mit Ellipse im Template). */
   readonly liveHeading = computed(
     () => this.sessionSettings().quizName ?? this.sessionSettings().title ?? null,
@@ -2493,6 +2502,26 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
     }
   }
 
+  /** Wechselt vom Session-Tempo-Blitzlicht zur Q&A-Ansicht zum Stellen einer Frage. */
+  openQaAskView(): void {
+    if (!this.showTempoAskQuestionShortcut()) {
+      return;
+    }
+    this.selectChannel('qa');
+    afterNextRender(
+      () => {
+        if (!this.showTempoAskQuestionShortcut()) {
+          return;
+        }
+        const el = this.qaTextareaRef?.nativeElement;
+        if (el) {
+          el.focus();
+        }
+      },
+      { injector: this.injector },
+    );
+  }
+
   qaStatusLabel(status: QaQuestionDTO['status']): string {
     switch (status) {
       case 'PINNED':
@@ -3225,6 +3254,7 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
             recordServerTimeIso(data.serverTime);
           }
           const prevRound = this.currentRound();
+          const prevStatus = this.status();
           const newRound = data.currentRound ?? 1;
           this.status.set(data.status as SessionStatus);
           if (data.currentQuestion !== null) {
@@ -3268,6 +3298,10 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
           }
           if (data.status === 'ACTIVE' && newRound === 2 && prevRound === 1) {
             this.resetForSecondRoundStart();
+            this.pullParticipantToQuizChannel();
+          } else if (data.status === 'ACTIVE' && prevStatus === 'QUESTION_OPEN') {
+            // Host: „Antwortoptionen freigeben“ – gleiche Frage, neue Abstimmungsphase.
+            this.pullParticipantToQuizChannel();
           }
           if (data.status === 'ACTIVE') {
             if (typeof data.timer === 'number' && data.timer > 0) {
@@ -3377,6 +3411,9 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
       if (nextStatus === 'FINISHED') {
         this.handleSessionFinished();
         return;
+      }
+      if (nextStatus === 'ACTIVE' && prevStatus === 'QUESTION_OPEN') {
+        this.pullParticipantToQuizChannel();
       }
       this.ensureStatusSubscription();
       this.ensureQaSubscription();
@@ -3756,26 +3793,18 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
   }
 
   /**
-   * Teilnehmende sollen Q&A und Blitzlicht parallel zum Quiz nutzen können (ADR-0009).
-   * Sperre nur: Lesephase (QUESTION_OPEN), Host-Pause derselben Frage (PAUSED) sowie Abstimmung
-   * (ACTIVE), solange die Antwort noch nicht gesendet wurde (`voteSent`). Danach z. B. Blitzlicht
-   * oder Q&A während laufendem Timer.
+   * Quiz-Startsignale: Override löschen und in den Quiz-Kanal ziehen.
+   * Auslöser: neue Frage, Antwortoptionen freigeben (QUESTION_OPEN→ACTIVE), PI-Runde 2.
+   * Dazwischen dürfen Teilnehmende Q&A/Blitzlicht frei nutzen (ADR-0009).
    */
-  private quizChannelLocksStudentNavigation(): boolean {
-    const s = this.status();
-    if (this.isPaused()) {
-      return true;
+  private pullParticipantToQuizChannel(): void {
+    if (!this.visibleChannels().includes('quiz')) {
+      return;
     }
-    if (this.currentQuestion() === null) {
-      return false;
+    this.clearParticipantLiveChannelOverride();
+    if (this.activeChannel() !== 'quiz') {
+      this.activeChannel.set('quiz');
     }
-    if (s === 'QUESTION_OPEN') {
-      return true;
-    }
-    if (s === 'ACTIVE') {
-      return !this.voteSent();
-    }
-    return false;
   }
 
   private ensureActiveChannel(): void {
@@ -3794,13 +3823,6 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
     const active = this.activeChannel();
     if (!visible.includes(active)) {
       this.activeChannel.set(visible[0]!);
-      return;
-    }
-
-    if (visible.includes('quiz') && this.quizChannelLocksStudentNavigation()) {
-      if (active !== 'quiz') {
-        this.activeChannel.set('quiz');
-      }
       return;
     }
 
@@ -4189,6 +4211,7 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
       if (qRound && qRound !== this.currentRound()) {
         if (this.status() === 'ACTIVE' && qRound === 2 && this.currentRound() === 1) {
           this.resetForSecondRoundStart();
+          this.pullParticipantToQuizChannel();
         }
         this.emojiSent.set(false);
         this.emojiSentEmoji.set('');
@@ -4221,6 +4244,9 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
         this.structuredRoundTransitionPending.set(false);
         this.clearStructuredRoundRefreshRetry();
         this.startCountdown(q);
+        if (newId) {
+          this.pullParticipantToQuizChannel();
+        }
       } else if (
         reinitStructuredForSecondRound ||
         this.shouldReinitStructuredQuestionState(prev, q)
