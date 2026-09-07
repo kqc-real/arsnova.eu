@@ -117,7 +117,7 @@ async function runCapAndRevokeSlot(originalTrpc, publicTrpc, code) {
     if (trpcErrorMessage(error).includes('Vierte Pairing')) throw error;
     const message = trpcErrorMessage(error);
     if (!message.includes('drei weitere Host-Geräte') && !message.includes('drei weitere')) {
-      throw new Error(`Cap-Negativ lieferte unerwartete Meldung: ${message}`);
+      throw new Error(`Cap-Negativ lieferte unerwartete Meldung: ${message}`, { cause: error });
     }
   }
   await originalTrpc.session.revokePairedHost.mutate({
@@ -172,7 +172,7 @@ async function runApproveActionRevoke(originalTrpc, publicTrpc, trpcUrl, wsUrl, 
   } catch (error) {
     if (trpcErrorMessage(error).includes('Widerrufenes Token')) throw error;
     if (!isUnauthorizedHostError(error)) {
-      throw new Error(`HTTP nach Widerruf: ${trpcErrorMessage(error)}`);
+      throw new Error(`HTTP nach Widerruf: ${trpcErrorMessage(error)}`, { cause: error });
     }
   }
   subscription.unsubscribe();

@@ -90,6 +90,7 @@ export async function expectHostMutationDenied(trpc, code, label) {
     }
     throw new Error(
       `${label}: erwartete Host-Verweigerung, erhielt ${trpcErrorCode(error) ?? 'ohne Code'}: ${trpcErrorMessage(error)}`,
+      { cause: error },
     );
   }
   throw new Error(`${label}: Host-Mutation wurde unerwartet angenommen.`);
