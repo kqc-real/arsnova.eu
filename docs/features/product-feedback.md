@@ -176,11 +176,16 @@ lädt `env_file` nicht neu). Details: `docs/ENVIRONMENT.md`,
   Admin-Panel-Specs unter `admin-product-feedback-panel`,
   `admin-product-feedback-llm-export-dialog` und
   `admin-product-feedback-purge-dialog`
-- E2E-Smoke Post-Session: `npm run smoke:product-feedback -w @arsnova/frontend`
+- E2E-Smoke Post-Session (12.1): `npm run smoke:product-feedback -w @arsnova/frontend`
   (getrennte Browser-Kontexte für Host und drei Teilnehmende, UI-Join,
   UI-Abstimmung, UI-Sessionende, Host-Sheet, Vote-Karte und negativer
   Sessionexport-Nachweis; Screenshots unter `SMOKE_ARTIFACT_DIR`, Default
   `tmp/product-feedback-e2e`).
+- E2E-Smoke In-App (12.2): `npm run smoke:product-feedback-in-app -w @arsnova/frontend`
+  (Desktop-Footer, mobile Hilfe, Join, immersive Host-Utility nach Schließen
+  des Beitritts-Overlays, Zwei-Client während ACTIVE inkl. anschließendem Vote,
+  eigenständiges Blitzlicht Host/Vote, Presenter ohne CTA; Artefakte Default
+  `tmp/product-feedback-in-app-e2e`).
 
 ## Verwandte Docs
 

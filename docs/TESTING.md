@@ -397,24 +397,25 @@ Auf dem Server übernimmt `scripts/deploy.sh` die Reihenfolge **Digest-Image pul
 
 ## Browser- und A11y-Checks
 
-| Befehl (Frontend-Workspace)       | Zweck                                                                                                    |
-| --------------------------------- | -------------------------------------------------------------------------------------------------------- |
-| `a11y:axe:static`                 | axe für statische Kernrouten/-zustände                                                                   |
-| `a11y:layout`                     | Reflow, Fokus, 24px-Ziele, Skip-Link, Join-Fokus und mobiles Disclosure                                  |
-| `check:viewport`                  | Alias/älterer 320px-Reflow-Smoke                                                                         |
-| `smoke:host-present-auth`         | Host/Present-Auth-Smoke                                                                                  |
-| `smoke:presenter-viewports`       | Gefüllte Presenter-Lobby in vier Tablet-/Beamer-Viewports                                                |
-| `smoke:host-music`                | Host-Musik-/Sound-Smoke                                                                                  |
-| `smoke:short-text`                | Kurzantwort-Flow inklusive axe                                                                           |
-| `smoke:numeric-estimate`          | Numerische-Schätzfrage-Flow-Smoke                                                                        |
-| `smoke:session-question-progress` | Zwei-Client-Smoke für späteren Start, Vote, Skip und Nachbesprechung                                     |
-| `e2e:confidence-summary-demo`     | Demo-Quiz: 30 TN + Confidence-Abschluss                                                                  |
-| `e2e:motd-focus`                  | Desktop-MOTD: Tastatur-/Pointer-Rücksprung und fortgesetzte Tab-Reihe                                    |
-| `smoke:quiz-sync`                 | Quiz-Sync-Flow-Skript                                                                                    |
-| `smoke:unified-session`           | Unified-Session-Flow inklusive axe                                                                       |
-| `smoke:product-feedback`          | ProductFeedback Post-Session: Host-Sheet + Vote-Sessionende (mit Shots); In-App/Admin siehe Feature-Doku |
-| `lighthouse:a11y`                 | Score und A11y-Einzelaudits (lokal)                                                                      |
-| `benchmark:word-cloud`            | Wortwolken-Benchmark / Regressionen                                                                      |
+| Befehl (Frontend-Workspace)       | Zweck                                                                            |
+| --------------------------------- | -------------------------------------------------------------------------------- |
+| `a11y:axe:static`                 | axe für statische Kernrouten/-zustände                                           |
+| `a11y:layout`                     | Reflow, Fokus, 24px-Ziele, Skip-Link, Join-Fokus und mobiles Disclosure          |
+| `check:viewport`                  | Alias/älterer 320px-Reflow-Smoke                                                 |
+| `smoke:host-present-auth`         | Host/Present-Auth-Smoke                                                          |
+| `smoke:presenter-viewports`       | Gefüllte Presenter-Lobby in vier Tablet-/Beamer-Viewports                        |
+| `smoke:host-music`                | Host-Musik-/Sound-Smoke                                                          |
+| `smoke:short-text`                | Kurzantwort-Flow inklusive axe                                                   |
+| `smoke:numeric-estimate`          | Numerische-Schätzfrage-Flow-Smoke                                                |
+| `smoke:session-question-progress` | Zwei-Client-Smoke für späteren Start, Vote, Skip und Nachbesprechung             |
+| `e2e:confidence-summary-demo`     | Demo-Quiz: 30 TN + Confidence-Abschluss                                          |
+| `e2e:motd-focus`                  | Desktop-MOTD: Tastatur-/Pointer-Rücksprung und fortgesetzte Tab-Reihe            |
+| `smoke:quiz-sync`                 | Quiz-Sync-Flow-Skript                                                            |
+| `smoke:unified-session`           | Unified-Session-Flow inklusive axe                                               |
+| `smoke:product-feedback`          | ProductFeedback 12.1: Host-Sheet + Vote-Sessionende                              |
+| `smoke:product-feedback-in-app`   | ProductFeedback 12.2: Footer/Hilfe/Host/Vote/Join/Blitzlicht + Presenter-Negativ |
+| `lighthouse:a11y`                 | Score und A11y-Einzelaudits (lokal)                                              |
+| `benchmark:word-cloud`            | Wortwolken-Benchmark / Regressionen                                              |
 
 Das PDF/UA-Gate liegt im Root-Workspace:
 
@@ -536,7 +537,8 @@ BASE_URL=http://localhost:4200 npm run smoke:host-music -w @arsnova/frontend
 BASE_URL=http://localhost:4200/de TRPC_URL=http://localhost:3000/trpc npm run smoke:presenter-viewports -w @arsnova/frontend
 BASE_URL=http://localhost:4200/de TRPC_URL=http://localhost:3000/trpc npm run smoke:session-question-progress -w @arsnova/frontend
 BASE_URL=http://localhost:4200 npm run smoke:unified-session -w @arsnova/frontend
-BASE_URL=http://localhost:4200 TRPC_URL=http://localhost:3000/trpc SMOKE_ARTIFACT_DIR=tmp/product-feedback-e2e npm run smoke:product-feedback -w @arsnova/frontend
+BASE_URL=http://localhost:4200 TRPC_URL=http://localhost:3000/trpc npm run smoke:product-feedback -w @arsnova/frontend
+BASE_URL=http://localhost:4200 TRPC_URL=http://localhost:3000/trpc SMOKE_ARTIFACT_DIR=tmp/product-feedback-in-app-e2e npm run smoke:product-feedback-in-app -w @arsnova/frontend
 BASE_URL=http://localhost:4200 npm run e2e:confidence-summary-demo -w @arsnova/frontend
 ```
 

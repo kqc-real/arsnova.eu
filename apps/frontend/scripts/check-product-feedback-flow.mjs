@@ -6,23 +6,18 @@
  *  1. Quiz/Session anlegen, 3 Teilnehmende joinen und abstimmen (Stichprobe ≥1)
  *  2. Session über die Host-UI beenden und zur Startseite zurückkehren → Home-Sheet
  *  3. Deterministisch gewählte:r Teilnehmende:r sieht die Karte am Session-Ende
- *  4. Beide Rollen: Zwei-Klick → Schreiben → Freitext-Screenshots → Senden
- *     Screenshots unterwegs (inkl. leeres/gefülltes Textfeld)
+ *  4. Beide Rollen: Zwei-Klick → Schreiben → optionale Ergänzung → Senden
  *
  * Run (Dev):
  *   BASE_URL=http://localhost:4200 TRPC_URL=http://localhost:3000/trpc \
- *     SMOKE_ARTIFACT_DIR=tmp/product-feedback-e2e \
  *     npm run smoke:product-feedback -w @arsnova/frontend
  */
 import { createHash } from 'node:crypto';
-import { mkdir } from 'node:fs/promises';
-import { join } from 'node:path';
 import { createTRPCProxyClient, httpBatchLink } from '@trpc/client';
 import { chromium, webkit } from 'playwright';
 
 const BASE_URL = (process.env.BASE_URL || 'http://localhost:4200').replace(/\/+$/, '');
 const TRPC_URL = (process.env.TRPC_URL || 'http://localhost:3000/trpc').replace(/\/+$/, '');
-const ARTIFACT_DIR = process.env.SMOKE_ARTIFACT_DIR || 'tmp/product-feedback-e2e';
 const HOST_TOKEN_STORAGE_PREFIX = 'arsnova-host-token:';
 const DESKTOP = { width: 1280, height: 900 };
 const SAMPLE_RATE = 0.1;
@@ -139,13 +134,6 @@ async function injectHostToken(page, code, hostToken) {
   );
 }
 
-async function shot(page, name) {
-  const path = join(ARTIFACT_DIR, `${name}.png`);
-  await page.screenshot({ path, fullPage: true });
-  console.log(`SHOT ${path}`);
-  return path;
-}
-
 async function dismissMotdIfPresent(page) {
   const close = page
     .locator(
@@ -174,7 +162,7 @@ async function bodySnippet(page, max = 900) {
   return text.slice(0, max);
 }
 
-async function completeProductFeedbackCard(page, shotPrefix, { withMessage = false } = {}) {
+async function completeProductFeedbackCard(page, label, { withMessage = false } = {}) {
   const card = page.locator('[data-testid="product-feedback-card"]');
   await card.waitFor({ state: 'visible', timeout: 25_000 });
   ensure(
@@ -195,17 +183,14 @@ async function completeProductFeedbackCard(page, shotPrefix, { withMessage = fal
       }),
     };
   });
-  ensure(layout.fitsViewport, `${shotPrefix}: horizontaler Overflow bei 320 px`);
-  ensure(layout.targetsLargeEnough, `${shotPrefix}: Touch-Ziel kleiner als 44×44 px`);
-  await shot(page, `${shotPrefix}-00-primary-320`);
+  ensure(layout.fitsViewport, `${label}: horizontaler Overflow bei 320 px`);
+  ensure(layout.targetsLargeEnough, `${label}: Touch-Ziel kleiner als 44×44 px`);
   await page.setViewportSize(priorViewport);
-  await shot(page, `${shotPrefix}-01-primary`);
 
   const primaryChoices = card.locator('button.product-feedback-card__choice');
   await primaryChoices.first().waitFor({ state: 'visible', timeout: 10_000 });
   await primaryChoices.first().click();
   await page.waitForTimeout(350);
-  await shot(page, `${shotPrefix}-02-area`);
 
   const areaChoices = card.locator('button.product-feedback-card__choice');
   await areaChoices.first().waitFor({ state: 'visible', timeout: 10_000 });
@@ -216,7 +201,6 @@ async function completeProductFeedbackCard(page, shotPrefix, { withMessage = fal
       /Möchtest du noch etwas ergänzen|Would you like to add anything|Souhaites-tu ajouter|Quieres añadir|Vuoi aggiungere/i,
     )
     .waitFor({ state: 'visible', timeout: 20_000 });
-  await shot(page, `${shotPrefix}-03-thanks`);
 
   if (withMessage) {
     await card
@@ -225,18 +209,15 @@ async function completeProductFeedbackCard(page, shotPrefix, { withMessage = fal
       })
       .click();
     await card.locator('#product-feedback-message').waitFor({ state: 'visible', timeout: 10_000 });
-    await shot(page, `${shotPrefix}-04-message-empty`);
-    await card.locator('#product-feedback-message').fill('Kurzer Test-Hinweis für den Screenshot.');
+    await card.locator('#product-feedback-message').fill('Kurzer Test-Hinweis für den E2E-Pfad.');
     await page.waitForTimeout(200);
-    await shot(page, `${shotPrefix}-05-message-filled`);
     await card
       .getByRole('button', {
         name: /Ergänzung senden|Send details|Envoyer le complément|Enviar información adicional|Invia dettagli/i,
       })
       .click();
     await page.waitForTimeout(900);
-    await shot(page, `${shotPrefix}-06-after-message`);
-    logStep(`${shotPrefix} Zwei-Klick + Freitext abgeschlossen`);
+    logStep(`${label} Zwei-Klick + Freitext abgeschlossen`);
     return;
   }
 
@@ -245,14 +226,10 @@ async function completeProductFeedbackCard(page, shotPrefix, { withMessage = fal
   });
   await doneBtn.click();
   await page.waitForTimeout(700);
-  await shot(page, `${shotPrefix}-04-after-done`);
-  logStep(`${shotPrefix} Zwei-Klick abgeschlossen`);
+  logStep(`${label} Zwei-Klick abgeschlossen`);
 }
 
 async function main() {
-  await mkdir(ARTIFACT_DIR, { recursive: true });
-  console.log(`Artefakte: ${ARTIFACT_DIR}`);
-
   ensure(await waitForServer(BASE_URL), `Frontend nicht erreichbar: ${BASE_URL}`);
   ensure(
     await waitForServer(`${TRPC_URL.replace(/\/trpc$/, '')}/health`).catch(() =>
@@ -336,7 +313,6 @@ async function main() {
     });
     await hostPage.waitForTimeout(1200);
     await closeHostJoinOverlay(hostPage);
-    await shot(hostPage, '00-host-lobby');
 
     await hostTrpc.session.nextQuestion.mutate({ code });
     const question = await publicTrpc.session.getCurrentQuestionForStudent.query({ code });
@@ -358,7 +334,6 @@ async function main() {
       ensure(response.ok(), `Vote-Submit wurde mit HTTP ${response.status()} abgewiesen.`);
     }
     logStep('UI-Votes', '3 Antworten in getrennten Browser-Kontexten abgegeben');
-    await shot(hostPage, '01-host-after-votes');
 
     await hostPage.getByRole('button', { name: /Session beenden|End session/i }).click();
     await hostPage.getByRole('button', { name: /Trotzdem verlassen|Leave anyway/i }).click();
@@ -371,13 +346,11 @@ async function main() {
       'ProductFeedback darf nicht im Hostresultat erscheinen',
     );
     logStep('UI-Sessionende', 'FINISHED + Invites');
-    await shot(hostPage, '01b-host-after-api-end');
 
     await hostPage.getByRole('button', { name: /Zur Startseite|Back to home/i }).click();
     await hostPage.waitForURL(new RegExp(`${BASE_URL}/?$`), { timeout: 20_000 });
     await hostPage.waitForTimeout(1500);
     await dismissMotdIfPresent(hostPage);
-    await shot(hostPage, '02-host-home-after-end');
 
     const hostCard = hostPage.locator(
       '.home-product-feedback-sheet [data-testid="product-feedback-card"], [data-testid="product-feedback-card"]',
@@ -392,7 +365,6 @@ async function main() {
 
     await votePage.reload({ waitUntil: 'domcontentloaded', timeout: 30_000 });
     await votePage.waitForTimeout(2000);
-    await shot(votePage, '10-vote-session-end');
 
     // SessionFeedback (4.8) hat Vorrang — Produktfrage erscheint erst danach.
     const sessionFeedbackCard = votePage.locator('.vote-feedback-card--session-end-gate');
@@ -442,15 +414,9 @@ async function main() {
       name: /Zur Startseite|Back to home|Accueil|Inicio/i,
     });
     await continueHome.first().waitFor({ state: 'visible', timeout: 10_000 });
-    await shot(votePage, '11-vote-home-still-available');
     logStep('Navigation', 'Zur Startseite weiterhin sichtbar');
 
     console.log('\nProductFeedback E2E bestanden.');
-    console.log(`Screenshots: ${ARTIFACT_DIR}`);
-  } catch (err) {
-    await shot(hostPage, 'failure-host').catch(() => undefined);
-    await shot(votePage, 'failure-vote').catch(() => undefined);
-    throw err;
   } finally {
     await browser.close().catch(() => undefined);
   }

@@ -119,6 +119,9 @@ describe('ProductFeedbackInAppDialogComponent', () => {
     expect(icon?.textContent?.trim()).toBe('insights');
     expect(step?.textContent?.trim()).toBe('1/2');
     expect(
+      fixture.nativeElement.querySelector('[data-testid="product-feedback-in-app-dialog"]'),
+    ).toBeTruthy();
+    expect(
       fixture.nativeElement.querySelector('.product-feedback-in-app-dialog__choice'),
     ).toBeTruthy();
   });
