@@ -125,7 +125,6 @@ export class MotdArchiveDialogComponent implements OnInit {
 
   private buildArchiveRender(it: MotdArchiveItemDTO): { title: string; html: SafeHtml } {
     return buildMotdArchiveItemDisplay(it, this.sanitizer, this.archiveItemFallbackTitle, {
-      repeatTitleInMarkdownBody: true,
       assetOrigin: resolveMotdAssetOrigin(),
     });
   }

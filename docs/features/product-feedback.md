@@ -140,8 +140,11 @@ Aktionen **Markdown herunterladen** und **Nur Anweisung kopieren**.
 
 `admin.productFeedback.countForPurge` und `admin.productFeedback.purge`
 löschen gespeicherte Rückmeldungen bis einschließlich eines lokalen
-Kalendertags oder vollständig. Nur `adminProcedure`. Invite-Ledger,
-Exportprotokolle und Triage-Auditzeilen bleiben. Die Sicherheitsphrase
+Kalendertags oder vollständig. Nur `adminProcedure`. Der Einladungszähler
+(`ProductFeedbackInviteLedger`, UTC-Tagesbucket) wird mitgelöscht, aber nur
+für vollständig in `until` liegende UTC-Tage; angeschnittene Buckets bleiben,
+damit die Abschlussquote nicht nach oben verzerrt wird.
+Invite-Jobs, Exportprotokolle und Triage-Auditzeilen bleiben. Die Sicherheitsphrase
 `RUECKMELDUNGEN LOESCHEN` wird serverseitig geprüft; die Mutation bricht ab,
 wenn sich die Anzahl seit der Vorschau geändert hat. Ein textfreier
 `ProductFeedbackPurgeLog` hält Umfang, optionale Datumsgrenze und Anzahl fest.

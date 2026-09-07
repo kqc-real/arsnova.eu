@@ -43,8 +43,9 @@ import {
   type ProductFeedbackLlmExportRow,
 } from '../lib/productFeedbackLlmExport';
 import {
-  productFeedbackPurgeWhere,
   assertProductFeedbackPurgeUntil,
+  productFeedbackInviteLedgerPurgeWhere,
+  productFeedbackPurgeWhere,
 } from '../lib/productFeedbackPurge';
 import { adminProcedure, router } from '../trpc';
 
@@ -635,6 +636,9 @@ export const adminProductFeedbackRouter = router({
             message: 'Die Auswahl hat sich geändert. Bitte neu zählen und erneut bestätigen.',
           });
         }
+        await tx.productFeedbackInviteLedger.deleteMany({
+          where: productFeedbackInviteLedgerPurgeWhere(input),
+        });
         await tx.productFeedbackPurgeLog.create({
           data: {
             adminIdentifier: adminIdentifier(ctx.adminToken),

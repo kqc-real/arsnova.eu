@@ -10,8 +10,9 @@ import { hideMotdDecorativeEmojiInHeadingHtml } from './motd-decorative-emoji.ut
 
 export type BuildMotdArchiveItemDisplayOptions = {
   /**
-   * z. B. Archiv-Dialog: Panel-Titel nutzt oft Ellipse — gleiche ATX-Überschrift im Rumpf wiederholen.
-   * Öffentliche Archiv-Seite zeigt den Titel bereits vollständig im Eintragskopf — typ. false.
+   * Optionales Wiederholen der ATX-Überschrift im Rumpf.
+   * Archiv-Dialog und öffentliche Archiv-Seite lassen das aus: der Titel steht
+   * bereits in der Lasche bzw. im Eintragskopf.
    */
   repeatTitleInMarkdownBody?: boolean;
   /** z. B. `resolveMotdAssetOrigin()` — absolute `img`-URLs für Banner unter `/assets/…`. */
