@@ -61,6 +61,14 @@ export function localizeCommands(commands: readonly RouterCommand[]): RouterComm
   const normalizedCommands = normalizeCommands(commands);
   const baseLocale = getLocaleFromBaseHref();
 
+  if (normalizedCommands.length === 0) {
+    if (baseLocale) {
+      return ['/'];
+    }
+    const locale = getLocaleFromPath();
+    return locale ? [locale] : ['/'];
+  }
+
   if (baseLocale) {
     if (isSupportedLocale(normalizedCommands[0])) {
       return normalizedCommands.slice(1);

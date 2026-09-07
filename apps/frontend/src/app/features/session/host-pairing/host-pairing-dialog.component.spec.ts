@@ -1,17 +1,26 @@
 import { TestBed, type ComponentFixture } from '@angular/core/testing';
 import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { HostPairingDialogComponent } from './host-pairing-dialog.component';
+import {
+  HostPairingDialogComponent,
+  type HostPairingDialogData,
+} from './host-pairing-dialog.component';
 
-const { createInviteMock, listPairedHostsMock, approveMock, rejectMock, revokeMock } = vi.hoisted(
-  () => ({
-    createInviteMock: vi.fn(),
-    listPairedHostsMock: vi.fn(),
-    approveMock: vi.fn(),
-    rejectMock: vi.fn(),
-    revokeMock: vi.fn(),
-  }),
-);
+const {
+  createInviteMock,
+  listPairedHostsMock,
+  approveMock,
+  rejectMock,
+  revokeMock,
+  dialogCloseMock,
+} = vi.hoisted(() => ({
+  createInviteMock: vi.fn(),
+  listPairedHostsMock: vi.fn(),
+  approveMock: vi.fn(),
+  rejectMock: vi.fn(),
+  revokeMock: vi.fn(),
+  dialogCloseMock: vi.fn(),
+}));
 
 vi.mock('../../../core/trpc.client', () => ({
   trpc: {
@@ -57,7 +66,7 @@ async function flush(): Promise<void> {
 
 describe('HostPairingDialogComponent', () => {
   let fixture: ComponentFixture<HostPairingDialogComponent> | undefined;
-  const dialogData: { code: string; screenVisibility?: 'PROJECTED' | 'PRIVATE' } = {
+  const dialogData: HostPairingDialogData = {
     code: 'ABC123',
   };
 
@@ -65,6 +74,7 @@ describe('HostPairingDialogComponent', () => {
     vi.useFakeTimers({ toFake: ['setInterval'] });
     vi.clearAllMocks();
     delete dialogData.screenVisibility;
+    delete dialogData.startPresenterView;
     createInviteMock.mockResolvedValue({
       inviteId: '11111111-1111-4111-8111-111111111111',
       pairingSecret: SECRET,
@@ -88,7 +98,7 @@ describe('HostPairingDialogComponent', () => {
       imports: [HostPairingDialogComponent],
       providers: [
         { provide: MAT_DIALOG_DATA, useValue: dialogData },
-        { provide: MatDialogRef, useValue: { close: vi.fn() } },
+        { provide: MatDialogRef, useValue: { close: dialogCloseMock } },
       ],
     }).compileComponents();
   });
@@ -109,19 +119,29 @@ describe('HostPairingDialogComponent', () => {
     return fixture;
   }
 
-  it('zeigt den Fragment-Link und kein Token vor der Freigabe', async () => {
+  it('zeigt den QR-Code ohne Secret-Link und kopiert nur das Fragment', async () => {
+    const writeText = vi.fn().mockResolvedValue(undefined);
+    Object.defineProperty(navigator, 'clipboard', {
+      configurable: true,
+      value: { writeText },
+    });
     const current = await render();
 
     expect(createInviteMock).toHaveBeenCalledWith({
       code: 'ABC123',
       screenVisibility: 'PROJECTED',
     });
-    const link = current.nativeElement.querySelector(
-      '[data-testid="host-pairing-link"]',
-    ) as HTMLElement;
-    expect(link.textContent).toContain('#s=');
-    expect(link.textContent).not.toContain('?s=');
+    expect(
+      current.nativeElement.querySelector('.dialog-title-header mat-icon')?.textContent?.trim(),
+    ).toBe('devices');
+    expect(current.nativeElement.querySelector('[data-testid="host-pairing-link"]')).toBeNull();
+    expect(current.nativeElement.textContent).not.toContain('#s=');
+    expect(current.nativeElement.textContent).not.toContain(SECRET);
     expect(current.nativeElement.querySelector('[data-testid="host-pairing-approve"]')).toBeNull();
+    current.nativeElement.querySelector('[data-testid="host-pairing-copy"]')?.click();
+    await flush();
+    expect(writeText).toHaveBeenCalledWith(`https://arsnova.eu/de/session/ABC123/pair#s=${SECRET}`);
+    expect(writeText.mock.calls[0]?.[0]).not.toContain('?s=');
     await vi.advanceTimersByTimeAsync(1600);
     await flush();
     current.detectChanges();
@@ -182,6 +202,80 @@ describe('HostPairingDialogComponent', () => {
     expect(approveMock).toHaveBeenCalledWith({ code: 'ABC123', requestId: REQUEST_ID });
     expect(current.nativeElement.textContent).toContain('Smartphone verbunden');
     expect(current.nativeElement.textContent).not.toContain('pairedHostToken');
+    expect(dialogCloseMock).not.toHaveBeenCalled();
+  });
+
+  it('startet die Presenter-Ansicht beim Freigeben aus Präsentation starten', async () => {
+    const startPresenterView = vi.fn().mockResolvedValue({ closed: false });
+    dialogData.startPresenterView = startPresenterView;
+    listPairedHostsMock.mockResolvedValue({
+      devices: [],
+      pending: {
+        requestId: REQUEST_ID,
+        confirmationIndicator: 'Eule · 47',
+        deviceLabel: 'Smartphone',
+        state: 'PENDING_APPROVAL',
+        expiresAt: '2026-09-07T14:00:00.000Z',
+        createdAt: '2026-09-07T13:55:00.000Z',
+      },
+      invite: null,
+      caps: EMPTY_CAPS,
+    });
+    approveMock.mockResolvedValue({
+      requestId: REQUEST_ID,
+      tokenId: '33333333-3333-4333-8333-333333333333',
+      state: 'CONNECTED',
+      confirmationIndicator: 'Eule · 47',
+    });
+
+    const current = await render();
+    await vi.waitFor(() => {
+      current.detectChanges();
+      expect(
+        current.nativeElement.querySelector('[data-testid="host-pairing-approve"]'),
+      ).toBeTruthy();
+    });
+    current.nativeElement.querySelector('[data-testid="host-pairing-approve"]')?.click();
+    await flush();
+    current.detectChanges();
+
+    expect(startPresenterView).toHaveBeenCalledTimes(1);
+    expect(approveMock).toHaveBeenCalledWith({ code: 'ABC123', requestId: REQUEST_ID });
+    expect(startPresenterView.mock.invocationCallOrder[0]).toBeLessThan(
+      approveMock.mock.invocationCallOrder[0],
+    );
+    expect(dialogCloseMock).toHaveBeenCalledWith({
+      connected: true,
+      presenterOpened: true,
+    });
+  });
+
+  it('startet die Presenter-Ansicht beim Schließen, wenn schon ein Gerät verbunden ist', async () => {
+    const startPresenterView = vi.fn().mockResolvedValue({ closed: false });
+    dialogData.startPresenterView = startPresenterView;
+    listPairedHostsMock.mockResolvedValue({
+      devices: [
+        {
+          tokenId: '33333333-3333-4333-8333-333333333333',
+          deviceLabel: 'Smartphone',
+          pairedAt: '2026-09-07T14:00:00.000Z',
+          state: 'CONNECTED',
+        },
+      ],
+      pending: null,
+      invite: null,
+      caps: EMPTY_CAPS,
+    });
+
+    const current = await render();
+    current.nativeElement.querySelector('[data-testid="host-pairing-close"]')?.click();
+    await flush();
+
+    expect(startPresenterView).toHaveBeenCalledTimes(1);
+    expect(dialogCloseMock).toHaveBeenCalledWith({
+      connected: true,
+      presenterOpened: true,
+    });
   });
 
   it('lehnt ab, ohne ein Token zu zeigen', async () => {

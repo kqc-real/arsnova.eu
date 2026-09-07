@@ -27254,8 +27254,8 @@
         <target>Preparando la conexión…</target>
       </trans-unit>
       <trans-unit id="hostPairing.dialogIntro" datatype="html">
-        <source>Scanne den Code oder öffne den Link auf deinem Smartphone. Die Verbindung wird erst frei, wenn du sie hier bestätigst.</source>
-        <target>Escanea el código o abre el enlace en tu móvil. La conexión no se activa hasta que la confirmes aquí.</target>
+        <source>Scanne den Code mit deinem Smartphone. Die Verbindung wird erst frei, wenn du sie hier bestätigst.</source>
+        <target>Escanea el código con tu móvil. La conexión no se activa hasta que la confirmes aquí.</target>
       </trans-unit>
       <trans-unit id="hostPairing.qrAlt" datatype="html">
         <source>QR-Code zum Verbinden des Smartphones</source>
@@ -27332,6 +27332,10 @@
       <trans-unit id="hostPairing.requestTitle" datatype="html">
         <source>Mit Veranstaltung verbinden</source>
         <target>Conectar con la sesión</target>
+      </trans-unit>
+      <trans-unit id="hostPairing.requestSub" datatype="html">
+        <source>Nach der Freigabe steuerst du die Veranstaltung von diesem Gerät.</source>
+        <target>Tras la confirmación, diriges la sesión desde este dispositivo.</target>
       </trans-unit>
       <trans-unit id="hostPairing.missingSecret" datatype="html">
         <source>Dieser Link ist unvollständig. Bitte den QR-Code oder den vollständigen Link nutzen.</source>

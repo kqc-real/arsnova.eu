@@ -2,6 +2,7 @@ import { Component, OnDestroy, OnInit, inject, signal } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { MatButton } from '@angular/material/button';
 import { MatCard, MatCardContent } from '@angular/material/card';
+import { MatIcon } from '@angular/material/icon';
 import { MatProgressBar } from '@angular/material/progress-bar';
 import {
   normalizeHostSessionCode,
@@ -9,7 +10,7 @@ import {
   setHostToken,
 } from '../../../core/host-session-token';
 import { localizeKnownServerError } from '../../../core/localize-known-server-message';
-import { localizeCommands } from '../../../core/locale-router';
+import { localizeCommands, localizePath } from '../../../core/locale-router';
 import { setPendingHostSessionCode, trpc } from '../../../core/trpc.client';
 import { readHostPairingSecretFromLocation } from './host-pairing-url';
 
@@ -21,9 +22,12 @@ const POLL_MS = 1500;
 @Component({
   selector: 'app-session-host-pairing-request',
   standalone: true,
-  imports: [MatButton, MatCard, MatCardContent, MatProgressBar],
+  imports: [MatButton, MatCard, MatCardContent, MatIcon, MatProgressBar],
   templateUrl: './session-host-pairing-request.component.html',
-  styleUrl: './session-host-pairing-request.component.scss',
+  styleUrls: [
+    '../../../shared/styles/dialog-title-header.scss',
+    './session-host-pairing-request.component.scss',
+  ],
 })
 export class SessionHostPairingRequestComponent implements OnInit, OnDestroy {
   private readonly route = inject(ActivatedRoute);
@@ -101,7 +105,7 @@ export class SessionHostPairingRequestComponent implements OnInit, OnDestroy {
   }
 
   goHome(): void {
-    void this.router.navigate(localizeCommands(['']));
+    void this.router.navigateByUrl(localizePath('/'), { replaceUrl: true });
   }
 
   private startPolling(): void {

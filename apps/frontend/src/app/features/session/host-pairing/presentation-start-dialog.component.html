@@ -1,25 +1,27 @@
 <h2 mat-dialog-title class="dialog-title-header">
   <span class="dialog-title-header__icon" aria-hidden="true">
-    <mat-icon>present_to_all</mat-icon>
+    <mat-icon>launch</mat-icon>
   </span>
   <span class="dialog-title-header__copy">
     <span class="dialog-title-header__heading" i18n="@@presentationStart.title"
       >Präsentation starten</span
     >
+    <span class="dialog-title-header__sub" i18n="@@presentationStart.intro"
+      >Zeige die Veranstaltung auf dem Beamer.</span
+    >
   </span>
 </h2>
 
 <mat-dialog-content class="presentation-start-dialog">
-  <p class="presentation-start-dialog__intro" i18n="@@presentationStart.intro">
-    Zeige die Veranstaltung auf dem Beamer.
-  </p>
-
   @if (pairingAdmin() || phoneConnected()) {
     <section
-      class="presentation-start-dialog__phone"
+      class="presentation-start-dialog__section"
       aria-labelledby="presentation-start-phone-title"
     >
       <h3 id="presentation-start-phone-title" class="presentation-start-dialog__subtitle">
+        <span class="presentation-start-dialog__subtitle-icon" aria-hidden="true">
+          <mat-icon>devices</mat-icon>
+        </span>
         <span i18n="@@presentationStart.phoneTitle">Mit Smartphone steuern</span>
       </h3>
       <p class="presentation-start-dialog__hint" i18n="@@presentationStart.phoneHint">
@@ -35,9 +37,6 @@
           i18n="@@hostPairing.connected"
         >
           Smartphone verbunden
-        </p>
-        <p class="presentation-start-dialog__hint" i18n="@@presentationStart.readyHint">
-          Du kannst jetzt präsentieren. Ein weiteres Gerät ist optional.
         </p>
       } @else {
         <fieldset class="presentation-start-dialog__visibility">
@@ -79,12 +78,16 @@
 
       @if (pairingAdmin() && pending()) {
         <p
-          class="presentation-start-dialog__hint"
+          class="presentation-start-dialog__notice"
           role="status"
           data-testid="presentation-start-pending"
-          i18n="@@hostPairing.pendingOpenHint"
         >
-          Es wartet bereits eine Verbindungsanfrage.
+          <span class="presentation-start-dialog__notice-icon" aria-hidden="true">
+            <mat-icon>hourglass_top</mat-icon>
+          </span>
+          <span i18n="@@hostPairing.pendingOpenHint"
+            >Es wartet bereits eine Verbindungsanfrage.</span
+          >
         </p>
         <button
           mat-stroked-button
@@ -106,9 +109,9 @@
           Es sind bereits drei weitere Geräte verbunden. Trenne zuerst eine Verbindung.
         </p>
         <button
-          mat-button
+          mat-stroked-button
           type="button"
-          class="presentation-start-dialog__cohost"
+          class="presentation-start-dialog__connect"
           data-testid="presentation-start-manage"
           (click)="openPairing()"
           i18n="@@presentationStart.manageDevices"
@@ -116,7 +119,21 @@
           Geräte verwalten
         </button>
       } @else if (pairingAdmin() && canAddAnother()) {
-        @if (!phoneConnected()) {
+        @if (phoneConnected()) {
+          <p class="presentation-start-dialog__hint" i18n="@@presentationStart.coHostHint">
+            Auch eine vertrauenswürdige Person kann sich so als weiteres Host-Gerät verbinden.
+          </p>
+          <button
+            mat-stroked-button
+            type="button"
+            class="presentation-start-dialog__connect"
+            data-testid="presentation-start-cohost"
+            (click)="openPairing()"
+            i18n="@@presentationStart.coHostAction"
+          >
+            Weiteres Host-Gerät verbinden
+          </button>
+        } @else {
           <button
             mat-stroked-button
             type="button"
@@ -128,19 +145,6 @@
             Smartphone verbinden
           </button>
         }
-        <p class="presentation-start-dialog__hint" i18n="@@presentationStart.coHostHint">
-          Auch eine vertrauenswürdige Person kann sich so als weiteres Host-Gerät verbinden.
-        </p>
-        <button
-          mat-button
-          type="button"
-          class="presentation-start-dialog__cohost"
-          data-testid="presentation-start-cohost"
-          (click)="openPairing()"
-          i18n="@@presentationStart.coHostAction"
-        >
-          Weiteres Host-Gerät verbinden
-        </button>
       }
     </section>
   }

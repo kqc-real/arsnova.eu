@@ -1,12 +1,41 @@
+.session-host.session-host--revoked {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  gap: 0;
+  min-height: calc(
+    100dvh - 4rem - var(--app-footer-visible-offset, 4.5rem) - env(safe-area-inset-bottom, 0px)
+  );
+  padding-block: 1rem;
+  padding-bottom: 1rem;
+  box-sizing: border-box;
+}
+
+@media (min-width: 600px) {
+  .session-host.session-host--revoked {
+    min-height: calc(
+      100dvh - 4.5rem - var(--app-footer-visible-offset, 4.5rem) - env(safe-area-inset-bottom, 0px)
+    );
+  }
+}
+
+@media (min-width: 840px) {
+  .session-host.session-host--revoked {
+    min-height: calc(
+      100dvh - 5rem - var(--app-footer-visible-offset, 4.5rem) - env(safe-area-inset-bottom, 0px)
+    );
+  }
+}
+
 .session-host__revoked {
   display: flex;
   flex-direction: column;
   align-items: flex-start;
-  gap: 0.75rem;
-  width: var(--session-host-shell-width);
+  gap: 1rem;
+  width: min(28rem, var(--session-host-shell-width));
   max-width: 100%;
   margin-inline: auto;
-  margin-bottom: var(--session-host-zone-gap);
   padding: clamp(0.85rem, 2vw, 1.15rem) clamp(1rem, 2.5vw, 1.25rem);
   box-sizing: border-box;
   border-radius: var(--mat-sys-corner-large);
@@ -15,20 +44,23 @@
   color: var(--mat-sys-on-error-container);
 }
 
-.session-host__revoked-title {
-  margin: 0;
-  font: var(--mat-sys-title-medium);
-  font-weight: 700;
+.session-host__revoked-head.dialog-title-header--page {
+  padding-bottom: 0;
 }
 
-.session-host__revoked-text {
-  margin: 0;
-  font: var(--mat-sys-body-medium);
-  line-height: 1.5;
+.session-host__revoked .dialog-title-header__heading,
+.session-host__revoked .dialog-title-header__sub {
+  color: var(--mat-sys-on-error-container);
+}
+
+.session-host__revoked .dialog-title-header__icon--warn {
+  background: color-mix(in srgb, var(--mat-sys-error) 42%, var(--mat-sys-error-container));
+  color: var(--mat-sys-on-error-container);
 }
 
 .session-host__revoked button {
   min-height: 2.75rem;
+  width: fit-content;
 }
 
 .session-host__steering-callout {
@@ -753,16 +785,14 @@
     max-width: 100%;
   }
 
-  .session-host__view-toggle--presenter,
-  .session-host__view-toggle--connect {
+  .session-host__view-toggle--presenter {
     width: 2.75rem;
     min-width: 2.75rem;
     padding-inline: 0.5rem;
     gap: 0;
   }
 
-  .session-host__view-toggle--presenter .session-host__view-toggle-label,
-  .session-host__view-toggle--connect .session-host__view-toggle-label {
+  .session-host__view-toggle--presenter .session-host__view-toggle-label {
     display: none;
   }
 

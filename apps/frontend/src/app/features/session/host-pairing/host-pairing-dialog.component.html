@@ -1,21 +1,20 @@
 <h2 mat-dialog-title class="dialog-title-header">
   <span class="dialog-title-header__icon" aria-hidden="true">
-    <mat-icon>smartphone</mat-icon>
+    <mat-icon>devices</mat-icon>
   </span>
   <span class="dialog-title-header__copy">
     <span class="dialog-title-header__heading" i18n="@@hostPairing.dialogTitle"
       >Smartphone verbinden</span
     >
+    <span class="dialog-title-header__sub" i18n="@@hostPairing.approveOnThisScreen"
+      >Eine Anfrage bestätigst du auf diesem Bildschirm, nicht auf der Präsentation.</span
+    >
   </span>
 </h2>
 
 <mat-dialog-content class="host-pairing-dialog">
-  <p class="host-pairing-dialog__hint" i18n="@@hostPairing.approveOnThisScreen">
-    Eine Anfrage bestätigst du auf diesem Bildschirm, nicht auf der Präsentation.
-  </p>
-
   @if (devices().length > 0) {
-    <section class="host-pairing-dialog__manage" aria-labelledby="host-pairing-devices-title">
+    <section class="host-pairing-dialog__section" aria-labelledby="host-pairing-devices-title">
       <h3
         id="host-pairing-devices-title"
         class="host-pairing-dialog__subtitle"
@@ -73,59 +72,66 @@
       Verbindung wird vorbereitet…
     </p>
   } @else if (view() === 'invite') {
-    @if (isPrivateScreen) {
-      <p class="host-pairing-dialog__hint" i18n="@@hostPairing.dialogIntroPrivate">
-        Scanne den Code auf diesem Bildschirm. Du bestätigst die Verbindung danach hier –
-        automatisch wird niemand Host.
+    <section class="host-pairing-dialog__section host-pairing-dialog__section--invite">
+      @if (isPrivateScreen) {
+        <p class="host-pairing-dialog__hint" i18n="@@hostPairing.dialogIntroPrivate">
+          Scanne den Code auf diesem Bildschirm. Du bestätigst die Verbindung danach hier –
+          automatisch wird niemand Host.
+        </p>
+      } @else {
+        <p class="host-pairing-dialog__hint" i18n="@@hostPairing.dialogIntro">
+          Scanne den Code mit deinem Smartphone. Die Verbindung wird erst frei, wenn du sie hier
+          bestätigst.
+        </p>
+      }
+      @if (qrDataUrl(); as qr) {
+        <figure class="host-pairing-dialog__qr-frame">
+          <img
+            class="host-pairing-dialog__qr app-qr-image"
+            [src]="qr"
+            width="192"
+            height="192"
+            i18n-alt="@@hostPairing.qrAlt"
+            alt="QR-Code zum Verbinden des Smartphones"
+          />
+        </figure>
+      }
+      <p class="host-pairing-dialog__status" aria-live="polite" i18n="@@hostPairing.waitingScan">
+        Warten auf Verbindungsanfrage…
       </p>
-    } @else {
-      <p class="host-pairing-dialog__hint" i18n="@@hostPairing.dialogIntro">
-        Scanne den Code oder öffne den Link auf deinem Smartphone. Die Verbindung wird erst frei,
-        wenn du sie hier bestätigst.
-      </p>
-    }
-    @if (qrDataUrl(); as qr) {
-      <img
-        class="host-pairing-dialog__qr"
-        [src]="qr"
-        width="192"
-        height="192"
-        i18n-alt="@@hostPairing.qrAlt"
-        alt="QR-Code zum Verbinden des Smartphones"
-      />
-    }
-    <p class="host-pairing-dialog__link" data-testid="host-pairing-link">{{ pairingUrl() }}</p>
-    <p class="host-pairing-dialog__status" aria-live="polite" i18n="@@hostPairing.waitingScan">
-      Warten auf Verbindungsanfrage…
-    </p>
+    </section>
   } @else if (view() === 'pending') {
-    <p class="host-pairing-dialog__status" role="status" aria-live="polite">
-      <span i18n="@@hostPairing.pendingTitle">Ein Smartphone möchte sich verbinden</span>
-    </p>
-    <p class="host-pairing-dialog__indicator" data-testid="host-pairing-indicator">
-      {{ pending()?.confirmationIndicator }}
-    </p>
-    <p class="host-pairing-dialog__hint" i18n="@@hostPairing.pendingHint">
-      Das Gerät kann danach Fragen steuern, Ergebnisse anzeigen und die Veranstaltung beenden.
-    </p>
+    <section class="host-pairing-dialog__section" role="status" aria-live="polite">
+      <p class="host-pairing-dialog__status">
+        <span i18n="@@hostPairing.pendingTitle">Ein Smartphone möchte sich verbinden</span>
+      </p>
+      <p class="host-pairing-dialog__indicator" data-testid="host-pairing-indicator">
+        {{ pending()?.confirmationIndicator }}
+      </p>
+      <p class="host-pairing-dialog__hint" i18n="@@hostPairing.pendingHint">
+        Das Gerät kann danach Fragen steuern, Ergebnisse anzeigen und die Veranstaltung beenden.
+      </p>
+    </section>
   } @else if (view() === 'manage') {
-    @if (devices().length > 0) {
-      <p
-        class="host-pairing-dialog__status"
-        role="status"
-        aria-live="polite"
-        i18n="@@hostPairing.connected"
-      >
-        Smartphone verbunden
-      </p>
-      <p class="host-pairing-dialog__hint" i18n="@@hostPairing.connectedHint">
-        Du kannst die Veranstaltung jetzt auch vom Smartphone steuern.
-      </p>
-    } @else {
-      <p class="host-pairing-dialog__hint" i18n="@@hostPairing.noDevices">
-        Kein weiteres Host-Gerät verbunden.
-      </p>
-    }
+    <section class="host-pairing-dialog__section">
+      @if (devices().length > 0) {
+        <p
+          class="host-pairing-dialog__status"
+          role="status"
+          aria-live="polite"
+          i18n="@@hostPairing.connected"
+        >
+          Smartphone verbunden
+        </p>
+        <p class="host-pairing-dialog__hint" i18n="@@hostPairing.connectedHint">
+          Du kannst die Veranstaltung jetzt auch vom Smartphone steuern.
+        </p>
+      } @else {
+        <p class="host-pairing-dialog__hint" i18n="@@hostPairing.noDevices">
+          Kein weiteres Host-Gerät verbunden.
+        </p>
+      }
+    </section>
   }
 
   @if (error()) {
@@ -183,7 +189,8 @@
   <button
     mat-button
     type="button"
-    [mat-dialog-close]="{ connected: devices().length > 0 }"
+    data-testid="host-pairing-close"
+    (click)="finish()"
     i18n="@@hostPairing.close"
   >
     Schließen

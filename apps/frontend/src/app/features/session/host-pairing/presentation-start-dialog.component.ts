@@ -13,7 +13,11 @@ import { MatIcon } from '@angular/material/icon';
 import { MatRadioButton, MatRadioGroup } from '@angular/material/radio';
 import type { HostPairingPendingDTO, HostPairingScreenVisibility } from '@arsnova/shared-types';
 import { trpc } from '../../../core/trpc.client';
-import { HostPairingDialogComponent } from './host-pairing-dialog.component';
+import {
+  HostPairingDialogComponent,
+  type HostPairingDialogData,
+  type HostPairingDialogResult,
+} from './host-pairing-dialog.component';
 
 export interface PresentationStartDialogData {
   code: string;
@@ -86,17 +90,27 @@ export class PresentationStartDialogComponent implements OnInit {
     if (!this.pairingAdmin()) {
       return;
     }
-    const ref = this.dialog.open(HostPairingDialogComponent, {
+    const ref = this.dialog.open<
+      HostPairingDialogComponent,
+      HostPairingDialogData,
+      HostPairingDialogResult
+    >(HostPairingDialogComponent, {
       data: {
         code: this.data.code,
         screenVisibility: this.visibility(),
+        startPresenterView: this.data.startPresenterView,
       },
       autoFocus: 'first-tabbable',
       restoreFocus: true,
       panelClass: 'host-pairing-dialog-panel',
+      backdropClass: 'host-pairing-dialog-backdrop',
     });
-    ref.afterClosed().subscribe(() => {
+    ref.afterClosed().subscribe((result) => {
       void this.refresh();
+      if (!result?.connected) {
+        return;
+      }
+      this.dialogRef.close(result.presenterOpened === false ? 'blocked' : 'start');
     });
   }
 

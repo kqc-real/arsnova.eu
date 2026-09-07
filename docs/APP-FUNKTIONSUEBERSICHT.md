@@ -295,7 +295,7 @@ In der Lobby sind verfügbar:
 - Anzeige aktiver Teilnehmer bzw. Presence
 - Umschalten in einen immersiven Hostmodus
 - Vollbildunterstützung (expliziter Schalter; beim Session-Start auf Android-Chrome kein automatisches Vollbild, weil Chrome sonst einen Systemhinweis über die Bedienung legt)
-- **Presenter-Ansicht** öffnet zuerst den Dialog **Präsentation starten**: Primäraktion **Präsentation im Vollbild starten**; optional **Mit Smartphone steuern** / **Smartphone verbinden**; Sichtbarkeit default projiziert, privat nur Komfort ohne automatische Freigabe; nach Kopplung **Smartphone verbunden**; Co-Host über **Weiteres Host-Gerät verbinden**. Der Original-Host verwaltet Geräte kompakt (Label, Status, **Verbindung trennen**); Widerruf beendet Host-Rechte sofort. Pairing blockiert den Start nicht. QR, Freigabe, Geräteverwaltung und Secrets bleiben auf `/host`, nie auf `/present`.
+- Die Host-Leiste **Präsentation starten** öffnet zuerst den Dialog **Präsentation starten**: Primäraktion **Präsentation im Vollbild starten**; optional **Mit Smartphone steuern** / **Smartphone verbinden**; Sichtbarkeit default projiziert, privat nur Komfort ohne automatische Freigabe; nach Kopplung startet die Presenter-Ansicht ohne zweiten Laptop-Klick. Co-Host über **Weiteres Host-Gerät verbinden**. Der Original-Host verwaltet Geräte kompakt (Label, Status, **Verbindung trennen**); Widerruf beendet Host-Rechte sofort. Das getrennte Gerät kann die Veranstaltung verlassen, ohne sie für alle zu beenden. Pairing liegt nur in diesem Dialog, nicht in der Host-Leiste. QR, Freigabe, Geräteverwaltung und Secrets bleiben auf `/host`, nie auf `/present`.
 
 #### Quiz-Steuerung
 

@@ -583,6 +583,10 @@ html {
   }
 }
 
+.app-main__content > * > .l-page.session-page-shell--pair:first-child {
+  margin-top: 0;
+}
+
 // ---------------------------------------------------------------------------
 // 4b) Dialog Overlays
 // ---------------------------------------------------------------------------
@@ -687,12 +691,31 @@ html {
   box-shadow: var(--mat-sys-level3);
 }
 
+.cdk-overlay-pane.presentation-start-dialog-panel {
+  max-width: min(32rem, calc(100vw - 2rem));
+}
+
 .cdk-overlay-pane.host-pairing-dialog-panel {
   max-width: min(28rem, calc(100vw - 2rem));
 }
 
-.cdk-overlay-pane.presentation-start-dialog-panel {
-  max-width: min(32rem, calc(100vw - 2rem));
+.cdk-overlay-pane.host-pairing-dialog-panel .mat-mdc-dialog-surface,
+.cdk-overlay-pane.presentation-start-dialog-panel .mat-mdc-dialog-surface {
+  border-radius: var(--mat-sys-corner-extra-large, var(--mat-sys-corner-large));
+  box-shadow: var(--mat-sys-level3);
+}
+
+.cdk-overlay-backdrop.host-pairing-dialog-backdrop,
+.cdk-overlay-backdrop.presentation-start-dialog-backdrop {
+  background: color-mix(in srgb, var(--mat-sys-scrim) 24%, transparent);
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .cdk-overlay-backdrop.host-pairing-dialog-backdrop,
+  .cdk-overlay-backdrop.presentation-start-dialog-backdrop {
+    backdrop-filter: blur(2px);
+    -webkit-backdrop-filter: blur(2px);
+  }
 }
 
 /* In-App-ProductFeedback: dieselbe Sheet-/Kartenoptik wie Post-Session. */

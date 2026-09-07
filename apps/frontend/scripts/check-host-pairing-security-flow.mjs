@@ -206,11 +206,15 @@ async function main() {
       timeout: 30_000,
     });
     await waitForPathSuffix(host, `/session/${code}/host`);
-    await host.locator('[data-testid="connect-smartphone"]').first().waitFor({
+    await host.locator('[data-testid="open-presenter-view"]').first().waitFor({
       state: 'visible',
       timeout: 20_000,
     });
-    logStep(true, 'Original-Host zeigt Smartphone-Verbinden');
+    const hostToolbarPairing = await hasTestId(host, 'connect-smartphone');
+    logStep(!hostToolbarPairing, 'Original-Host hat Pairing nur im Presenter-Dialog');
+    if (hostToolbarPairing) {
+      failures.push('Host-Leiste zeigte Smartphone-Verbinden außerhalb des Presenter-Dialogs.');
+    }
 
     await presenter.goto(`${BASE_URL}/session/${code}/present`, {
       waitUntil: 'domcontentloaded',
@@ -255,11 +259,20 @@ async function main() {
     logStep(true, 'Oeffentlicher Scan bleibt im Pending ohne Host-Rechte');
 
     await host
-      .locator('[data-testid="connect-smartphone"]')
+      .locator('[data-testid="open-presenter-view"]')
       .last()
       .evaluate((element) => {
         element.click();
       });
+    const reviewOrConnect = host
+      .locator(
+        '[data-testid="presentation-start-review-request"], [data-testid="presentation-start-connect"]',
+      )
+      .first();
+    await reviewOrConnect.waitFor({ state: 'visible', timeout: 15_000 });
+    await reviewOrConnect.evaluate((element) => {
+      element.click();
+    });
     await host.locator('[data-testid="host-pairing-reject"]').first().waitFor({
       state: 'visible',
       timeout: 15_000,

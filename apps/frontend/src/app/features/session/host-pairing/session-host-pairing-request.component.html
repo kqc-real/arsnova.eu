@@ -1,24 +1,50 @@
 <section class="host-pairing-request">
-  <mat-card>
-    <mat-card-content>
-      <h1 class="host-pairing-request__title" i18n="@@hostPairing.requestTitle">
-        Mit Veranstaltung verbinden
-      </h1>
+  <mat-card appearance="outlined" class="host-pairing-request__card">
+    <mat-card-content class="host-pairing-request__content">
+      <header class="dialog-title-header dialog-title-header--page host-pairing-request__head">
+        <span class="dialog-title-header__icon" aria-hidden="true">
+          <mat-icon>devices</mat-icon>
+        </span>
+        <span class="dialog-title-header__copy">
+          <h1
+            id="host-pairing-request-title"
+            class="dialog-title-header__heading"
+            i18n="@@hostPairing.requestTitle"
+          >
+            Mit Veranstaltung verbinden
+          </h1>
+          <span class="dialog-title-header__sub" i18n="@@hostPairing.requestSub">
+            Nach der Freigabe steuerst du die Veranstaltung von diesem Gerät.
+          </span>
+        </span>
+      </header>
 
       @if (view() === 'missing') {
-        <p class="host-pairing-request__hint" role="alert" i18n="@@hostPairing.missingSecret">
-          Dieser Link ist unvollständig. Bitte den QR-Code oder den vollständigen Link nutzen.
-        </p>
-        <button mat-flat-button type="button" (click)="goHome()" i18n="@@hostPairing.goHome">
-          Zur Startseite
-        </button>
-      } @else if (view() === 'ready') {
-        <p class="host-pairing-request__hint">
-          {{ requestQuestion() }}
-        </p>
+        <section class="host-pairing-request__section host-pairing-request__section--alert">
+          <p class="host-pairing-request__hint" role="alert" i18n="@@hostPairing.missingSecret">
+            Dieser Link ist unvollständig. Bitte den QR-Code oder den vollständigen Link nutzen.
+          </p>
+        </section>
         <button
           mat-flat-button
           type="button"
+          class="host-pairing-request__action"
+          data-testid="host-pairing-go-home"
+          (click)="goHome()"
+          i18n="@@hostPairing.goHome"
+        >
+          Zur Startseite
+        </button>
+      } @else if (view() === 'ready') {
+        <section class="host-pairing-request__section" aria-labelledby="host-pairing-request-title">
+          <p class="host-pairing-request__hint host-pairing-request__hint--confirm">
+            {{ requestQuestion() }}
+          </p>
+        </section>
+        <button
+          mat-flat-button
+          type="button"
+          class="host-pairing-request__action"
           data-testid="host-pairing-request"
           (click)="requestConnection()"
           i18n="@@hostPairing.requestAction"
@@ -26,40 +52,82 @@
           Verbindung anfragen
         </button>
       } @else if (view() === 'requesting') {
-        <mat-progress-bar mode="indeterminate" />
+        <section class="host-pairing-request__section">
+          <mat-progress-bar mode="indeterminate" />
+          <p class="host-pairing-request__hint" i18n="@@hostPairing.preparing">
+            Verbindung wird vorbereitet…
+          </p>
+        </section>
       } @else if (view() === 'pending') {
-        <p
-          class="host-pairing-request__status"
-          role="status"
-          aria-live="polite"
-          i18n="@@hostPairing.requestWaiting"
+        <section
+          class="host-pairing-request__section"
+          aria-labelledby="host-pairing-request-waiting"
         >
-          Warten auf Freigabe. Zeige dieses Zeichen der Lehrperson:
-        </p>
-        <p class="host-pairing-request__indicator" data-testid="host-pairing-request-indicator">
-          {{ indicator() }}
-        </p>
+          <p
+            id="host-pairing-request-waiting"
+            class="host-pairing-request__status"
+            role="status"
+            aria-live="polite"
+            i18n="@@hostPairing.requestWaiting"
+          >
+            Warten auf Freigabe. Zeige dieses Zeichen der Lehrperson:
+          </p>
+          <div class="host-pairing-request__indicator-frame">
+            <p class="host-pairing-request__indicator" data-testid="host-pairing-request-indicator">
+              {{ indicator() }}
+            </p>
+          </div>
+        </section>
       } @else if (view() === 'connected') {
-        <p class="host-pairing-request__status" role="status" i18n="@@hostPairing.connected">
-          Smartphone verbunden
-        </p>
+        <section class="host-pairing-request__section">
+          <p class="host-pairing-request__status" role="status" i18n="@@hostPairing.connected">
+            Smartphone verbunden
+          </p>
+        </section>
       } @else if (view() === 'rejected') {
-        <p class="host-pairing-request__hint" role="alert" i18n="@@hostPairing.errorRejected">
-          Die Verbindung wurde abgelehnt.
-        </p>
-        <button mat-flat-button type="button" (click)="goHome()" i18n="@@hostPairing.goHome">
+        <section class="host-pairing-request__section host-pairing-request__section--alert">
+          <p class="host-pairing-request__hint" role="alert" i18n="@@hostPairing.errorRejected">
+            Die Verbindung wurde abgelehnt.
+          </p>
+        </section>
+        <button
+          mat-flat-button
+          type="button"
+          class="host-pairing-request__action"
+          data-testid="host-pairing-go-home"
+          (click)="goHome()"
+          i18n="@@hostPairing.goHome"
+        >
           Zur Startseite
         </button>
       } @else if (view() === 'expired') {
-        <p class="host-pairing-request__hint" role="alert" i18n="@@hostPairing.errorExpired">
-          Die Verbindungsanfrage ist abgelaufen.
-        </p>
-        <button mat-flat-button type="button" (click)="goHome()" i18n="@@hostPairing.goHome">
+        <section class="host-pairing-request__section host-pairing-request__section--alert">
+          <p class="host-pairing-request__hint" role="alert" i18n="@@hostPairing.errorExpired">
+            Die Verbindungsanfrage ist abgelaufen.
+          </p>
+        </section>
+        <button
+          mat-flat-button
+          type="button"
+          class="host-pairing-request__action"
+          data-testid="host-pairing-go-home"
+          (click)="goHome()"
+          i18n="@@hostPairing.goHome"
+        >
           Zur Startseite
         </button>
       } @else if (error()) {
-        <p class="host-pairing-request__hint" role="alert">{{ error() }}</p>
-        <button mat-flat-button type="button" (click)="goHome()" i18n="@@hostPairing.goHome">
+        <section class="host-pairing-request__section host-pairing-request__section--alert">
+          <p class="host-pairing-request__hint" role="alert">{{ error() }}</p>
+        </section>
+        <button
+          mat-flat-button
+          type="button"
+          class="host-pairing-request__action"
+          data-testid="host-pairing-go-home"
+          (click)="goHome()"
+          i18n="@@hostPairing.goHome"
+        >
           Zur Startseite
         </button>
       }

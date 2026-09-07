@@ -3,6 +3,7 @@
   [class.l-page]="!isHostRoute() && !isPresentRoute()"
   [class.l-section]="!isHostRoute() && !isPresentRoute()"
   [class.session-page-shell--projection]="isPresentRoute()"
+  [class.session-page-shell--pair]="isPairRoute()"
 >
   @if (loading()) {
     <div class="session-page__state">

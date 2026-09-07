@@ -9,34 +9,85 @@
   max-width: 32rem;
 }
 
-.presentation-start-dialog__intro,
 .presentation-start-dialog__hint,
 .presentation-start-dialog__status {
   margin: 0;
   line-height: 1.5;
 }
 
-.presentation-start-dialog__intro {
-  font: var(--mat-sys-body-large);
-}
-
 .presentation-start-dialog__hint {
   color: var(--mat-sys-on-surface-variant);
 }
 
-.presentation-start-dialog__subtitle {
-  margin: 0 0 0.45rem;
-  font: var(--mat-sys-title-medium);
-}
-
-.presentation-start-dialog__phone {
+.presentation-start-dialog__section {
   display: flex;
   flex-direction: column;
   gap: 0.75rem;
+  padding: 0.85rem 1rem;
+  border: 1px solid var(--mat-sys-outline-variant);
+  border-radius: var(--mat-sys-corner-large);
+  background: var(--mat-sys-surface-container-low);
+}
+
+.presentation-start-dialog__subtitle {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  margin: 0;
+  font: var(--mat-sys-title-medium);
+}
+
+.presentation-start-dialog__subtitle-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 2.25rem;
+  height: 2.25rem;
+  border-radius: var(--mat-sys-corner-medium);
+  background: color-mix(in srgb, var(--mat-sys-primary-container) 65%, transparent);
+  color: var(--mat-sys-on-primary-container);
+
+  mat-icon {
+    font-size: 1.25rem;
+    width: 1.25rem;
+    height: 1.25rem;
+  }
 }
 
 .presentation-start-dialog__status {
   font: var(--mat-sys-title-medium);
+}
+
+.presentation-start-dialog__notice {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  margin: 0;
+  padding: 0.65rem 0.75rem;
+  border: 1px solid color-mix(in srgb, var(--mat-sys-tertiary) 36%, var(--mat-sys-outline-variant));
+  border-radius: var(--mat-sys-corner-medium);
+  background: color-mix(in srgb, var(--mat-sys-tertiary-container) 72%, transparent);
+  color: var(--mat-sys-on-tertiary-container);
+  line-height: 1.5;
+}
+
+.presentation-start-dialog__notice-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 2.25rem;
+  height: 2.25rem;
+  border-radius: var(--mat-sys-corner-medium);
+  background: color-mix(in srgb, var(--mat-sys-tertiary-container) 55%, var(--mat-sys-tertiary));
+  color: var(--mat-sys-on-tertiary);
+
+  mat-icon {
+    font-size: 1.25rem;
+    width: 1.25rem;
+    height: 1.25rem;
+  }
 }
 
 .presentation-start-dialog__visibility {
@@ -64,17 +115,12 @@
 }
 
 .presentation-start-dialog__connect,
-.presentation-start-dialog__cohost,
 .presentation-start-dialog__primary {
   min-height: 2.75rem;
 }
 
-.presentation-start-dialog__connect,
-.presentation-start-dialog__cohost {
-  align-self: flex-start;
-}
-
 .presentation-start-dialog__connect {
+  align-self: flex-start;
   width: fit-content;
 }
 

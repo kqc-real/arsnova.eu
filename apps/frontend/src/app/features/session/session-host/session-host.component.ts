@@ -90,7 +90,6 @@ import {
   ConfirmLeaveDialogComponent,
   type ConfirmLeaveDialogData,
 } from '../../../shared/confirm-leave-dialog/confirm-leave-dialog.component';
-import { HostPairingDialogComponent } from '../host-pairing/host-pairing-dialog.component';
 import { PresentationStartDialogComponent } from '../host-pairing/presentation-start-dialog.component';
 import {
   createQuizHistoryAccessProof,
@@ -1431,13 +1430,6 @@ export class SessionHostComponent implements OnInit, OnDestroy {
   });
   readonly showHostViewControls = computed(
     () => this.isRunningSession() || this.isQuizLobbyImmersive(),
-  );
-  readonly showHostPairingAction = computed(
-    () =>
-      this.session() !== null &&
-      this.effectiveStatus() !== 'FINISHED' &&
-      this.canManagePairedHosts() &&
-      !this.hostAccessRevoked(),
   );
   readonly pairedHostConnected = signal(false);
   readonly canManagePairedHosts = signal(getHostSessionRole(this.code) !== 'PAIRED_HOST');
@@ -4336,30 +4328,6 @@ export class SessionHostComponent implements OnInit, OnDestroy {
     this.hostDisplayMode.setPreferImmersiveHost(!this.isImmersiveMode());
   }
 
-  hostPairingToolbarLabel(): string {
-    return this.pairedHostConnected()
-      ? $localize`:@@hostPairing.connected:Smartphone verbunden`
-      : $localize`:@@hostPairing.connectLabel:Smartphone verbinden`;
-  }
-
-  hostPairingToolbarAria(): string {
-    return this.pairedHostConnected()
-      ? $localize`:@@hostPairing.connectedAria:Smartphone verbunden. Weiteres Gerät verbinden`
-      : $localize`:@@hostPairing.connectAria:Smartphone als weiteres Steuergerät verbinden`;
-  }
-
-  openHostPairingDialog(): void {
-    const ref = this.dialog.open(HostPairingDialogComponent, {
-      data: { code: this.code.toUpperCase(), screenVisibility: 'PROJECTED' },
-      autoFocus: 'first-tabbable',
-      restoreFocus: true,
-      panelClass: 'host-pairing-dialog-panel',
-    });
-    ref.afterClosed().subscribe(() => {
-      void this.refreshPairedHostStatus();
-    });
-  }
-
   async openPresenterView(): Promise<void> {
     if (!this.showPresenterViewButton() || this.presenterWindowOpenInFlight) {
       return;
@@ -4375,6 +4343,7 @@ export class SessionHostComponent implements OnInit, OnDestroy {
           autoFocus: 'first-tabbable',
           restoreFocus: true,
           panelClass: 'presentation-start-dialog-panel',
+          backdropClass: 'presentation-start-dialog-backdrop',
         })
         .afterClosed(),
     );
@@ -4472,7 +4441,9 @@ export class SessionHostComponent implements OnInit, OnDestroy {
 
   async goHomeAfterHostRevoke(): Promise<void> {
     await this.exitFullscreenBeforeHomeNavigation();
-    await this.router.navigateByUrl(this.localizedPath('/'), { replaceUrl: true });
+    await this.ngZone.run(async () => {
+      await this.router.navigateByUrl(this.localizedPath('/'), { replaceUrl: true });
+    });
   }
 
   private bindPresenterDesktopMedia(): void {
@@ -4625,6 +4596,9 @@ export class SessionHostComponent implements OnInit, OnDestroy {
   }
 
   private shouldWarnOnBeforeUnload(): boolean {
+    if (this.hostAccessRevoked()) {
+      return false;
+    }
     if (!this.unloadWarningEnabled || !this.isSessionActive()) {
       return false;
     }
@@ -4932,6 +4906,9 @@ export class SessionHostComponent implements OnInit, OnDestroy {
   }
 
   async canDeactivate(): Promise<boolean> {
+    if (this.hostAccessRevoked()) {
+      return true;
+    }
     if (!this.isSessionActive()) {
       if (this.effectiveStatus() === 'FINISHED' && this.code) {
         try {
@@ -4952,7 +4929,8 @@ export class SessionHostComponent implements OnInit, OnDestroy {
     try {
       await this.endSessionAndNavigateHome();
     } catch (error) {
-      if (this.isSessionNotFoundError(error)) {
+      if (this.isSessionNotFoundError(error) || isHostAccessRevokedError(error)) {
+        this.markHostAccessRevoked();
         await this.navigateHomeAfterSessionUnavailable();
         return false;
       }

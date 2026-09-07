@@ -7,6 +7,7 @@
   [class.session-host--with-live-banner]="effectiveStatus() !== 'FINISHED'"
   [class.session-host--immersive]="isImmersiveMode()"
   [class.session-host--word-cloud-overlay]="freetextWordCloudMaximized() || qaWordCloudDialogOpen()"
+  [class.session-host--revoked]="hostAccessRevoked()"
 >
   @if (hostAccessRevoked()) {
     <div
@@ -16,16 +17,27 @@
       aria-describedby="host-revoked-text"
       data-testid="host-access-revoked"
     >
-      <h2
-        id="host-revoked-title"
-        class="session-host__revoked-title"
-        i18n="@@hostAccess.revokedTitle"
-      >
-        Die Host-Verbindung wurde beendet.
-      </h2>
-      <p id="host-revoked-text" class="session-host__revoked-text" i18n="@@hostAccess.revokedHint">
-        Du kannst diese Veranstaltung von diesem Gerät nicht mehr steuern.
-      </p>
+      <header class="dialog-title-header dialog-title-header--page session-host__revoked-head">
+        <span class="dialog-title-header__icon dialog-title-header__icon--warn" aria-hidden="true">
+          <mat-icon>devices</mat-icon>
+        </span>
+        <span class="dialog-title-header__copy">
+          <h2
+            id="host-revoked-title"
+            class="dialog-title-header__heading"
+            i18n="@@hostAccess.revokedTitle"
+          >
+            Die Host-Verbindung wurde beendet.
+          </h2>
+          <span
+            id="host-revoked-text"
+            class="dialog-title-header__sub"
+            i18n="@@hostAccess.revokedHint"
+          >
+            Du kannst diese Veranstaltung von diesem Gerät nicht mehr steuern.
+          </span>
+        </span>
+      </header>
       <button
         mat-flat-button
         type="button"
@@ -183,7 +195,7 @@
           }
         </div>
 
-        @if (showHostViewControls() || showHostPairingAction()) {
+        @if (showHostViewControls()) {
           <div class="session-host__view-controls session-host__view-controls--inline">
             @if (showPresenterViewButton()) {
               <button
@@ -192,10 +204,10 @@
                 class="session-host__view-toggle session-host__view-toggle--labeled session-host__view-toggle--presenter"
                 data-testid="open-presenter-view"
                 (click)="openPresenterView()"
-                i18n-aria-label="@@sessionHost.presenterViewAria"
-                aria-label="Presenter-Ansicht in neuem Tab öffnen"
-                i18n-matTooltip="@@sessionHost.presenterViewTooltip"
-                matTooltip="Presenter-Ansicht (Beamer)"
+                i18n-aria-label="@@presentationStart.title"
+                aria-label="Präsentation starten"
+                i18n-matTooltip="@@presentationStart.title"
+                matTooltip="Präsentation starten"
                 matTooltipTouchGestures="off"
               >
                 <svg
@@ -210,27 +222,9 @@
                     d="M19 19H5V5h7V3H5c-1.11 0-2 .9-2 2v14c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2v-7h-2v7zM14 3v2h3.59l-9.83 9.83 1.41 1.41L19 6.41V10h2V3h-7z"
                   />
                 </svg>
-                <span
-                  class="session-host__view-toggle-label"
-                  i18n="@@sessionHost.presenterViewLabel"
-                  >Presenter-Ansicht</span
+                <span class="session-host__view-toggle-label" i18n="@@presentationStart.title"
+                  >Präsentation starten</span
                 >
-              </button>
-            }
-
-            @if (showHostPairingAction()) {
-              <button
-                mat-button
-                type="button"
-                class="session-host__view-toggle session-host__view-toggle--labeled session-host__view-toggle--connect"
-                data-testid="connect-smartphone"
-                (click)="openHostPairingDialog()"
-                [attr.aria-label]="hostPairingToolbarAria()"
-                [matTooltip]="hostPairingToolbarLabel()"
-                matTooltipTouchGestures="off"
-              >
-                <mat-icon aria-hidden="true">smartphone</mat-icon>
-                <span class="session-host__view-toggle-label">{{ hostPairingToolbarLabel() }}</span>
               </button>
             }
 
@@ -452,7 +446,7 @@
                   }
                   <span class="session-host__live-sound-label">{{ activeMusicLabel() }}</span>
                 </button>
-                @if ((showHostViewControls() || showHostPairingAction()) && !showChannelTabs()) {
+                @if (showHostViewControls() && !showChannelTabs()) {
                   <div class="session-host__view-controls session-host__view-controls--meta">
                     @if (activeChannelVisibilityActionLabel(); as visibilityActionLabel) {
                       <button
@@ -480,10 +474,10 @@
                         class="session-host__view-toggle session-host__view-toggle--labeled session-host__view-toggle--presenter"
                         data-testid="open-presenter-view"
                         (click)="openPresenterView()"
-                        i18n-aria-label="@@sessionHost.presenterViewAria"
-                        aria-label="Presenter-Ansicht in neuem Tab öffnen"
-                        i18n-matTooltip="@@sessionHost.presenterViewTooltip"
-                        matTooltip="Presenter-Ansicht (Beamer)"
+                        i18n-aria-label="@@presentationStart.title"
+                        aria-label="Präsentation starten"
+                        i18n-matTooltip="@@presentationStart.title"
+                        matTooltip="Präsentation starten"
                         matTooltipTouchGestures="off"
                       >
                         <svg
@@ -500,27 +494,9 @@
                         </svg>
                         <span
                           class="session-host__view-toggle-label"
-                          i18n="@@sessionHost.presenterViewLabel"
-                          >Presenter-Ansicht</span
+                          i18n="@@presentationStart.title"
+                          >Präsentation starten</span
                         >
-                      </button>
-                    }
-
-                    @if (showHostPairingAction()) {
-                      <button
-                        mat-button
-                        type="button"
-                        class="session-host__view-toggle session-host__view-toggle--labeled session-host__view-toggle--connect"
-                        data-testid="connect-smartphone"
-                        (click)="openHostPairingDialog()"
-                        [attr.aria-label]="hostPairingToolbarAria()"
-                        [matTooltip]="hostPairingToolbarLabel()"
-                        matTooltipTouchGestures="off"
-                      >
-                        <mat-icon aria-hidden="true">smartphone</mat-icon>
-                        <span class="session-host__view-toggle-label">{{
-                          hostPairingToolbarLabel()
-                        }}</span>
                       </button>
                     }
 

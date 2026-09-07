@@ -11,14 +11,12 @@
 
 .host-pairing-dialog__hint,
 .host-pairing-dialog__status,
-.host-pairing-dialog__error,
-.host-pairing-dialog__link {
+.host-pairing-dialog__error {
   margin: 0;
   line-height: 1.5;
 }
 
-.host-pairing-dialog__hint,
-.host-pairing-dialog__link {
+.host-pairing-dialog__hint {
   color: var(--mat-sys-on-surface-variant);
 }
 
@@ -30,23 +28,38 @@
   color: var(--mat-sys-error);
 }
 
+.host-pairing-dialog__section {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  padding: 0.85rem 1rem;
+  border: 1px solid var(--mat-sys-outline-variant);
+  border-radius: var(--mat-sys-corner-large);
+  background: var(--mat-sys-surface-container-low);
+}
+
+.host-pairing-dialog__section--invite {
+  align-items: stretch;
+}
+
 .host-pairing-dialog__indicator {
   margin: 0;
   font: var(--mat-sys-headline-small);
 }
 
-.host-pairing-dialog__qr {
-  display: block;
-  width: 12rem;
-  height: 12rem;
-  max-width: 100%;
-  align-self: center;
-  border-radius: var(--mat-sys-corner-small);
+.host-pairing-dialog__qr-frame {
+  display: flex;
+  justify-content: center;
+  margin: 0;
+  padding: 0;
+  background: transparent;
 }
 
-.host-pairing-dialog__link {
-  overflow-wrap: anywhere;
-  font: var(--mat-sys-body-small);
+.host-pairing-dialog__qr.app-qr-image {
+  width: 13.5rem;
+  height: 13.5rem;
+  max-width: 100%;
+  padding: 0.65rem;
 }
 
 .host-pairing-dialog__subtitle {
@@ -73,7 +86,7 @@
   padding: 0.75rem 0.85rem;
   border: 1px solid var(--mat-sys-outline-variant);
   border-radius: var(--mat-sys-corner-medium);
-  background: var(--mat-sys-surface-container-low);
+  background: var(--mat-sys-surface-container);
 }
 
 .host-pairing-dialog__device-copy {

@@ -4,8 +4,8 @@ import { MatButton } from '@angular/material/button';
 import {
   MAT_DIALOG_DATA,
   MatDialogActions,
-  MatDialogClose,
   MatDialogContent,
+  MatDialogRef,
   MatDialogTitle,
 } from '@angular/material/dialog';
 import { MatIcon } from '@angular/material/icon';
@@ -24,7 +24,14 @@ import { buildHostPairingUrl } from './host-pairing-url';
 export interface HostPairingDialogData {
   code: string;
   screenVisibility?: HostPairingScreenVisibility;
+  /** Nur aus „Präsentation starten“: öffnet den Presenter im Approve-/Schließen-Klick. */
+  startPresenterView?: () => Promise<Window | null>;
 }
+
+export type HostPairingDialogResult = {
+  connected: boolean;
+  presenterOpened?: boolean;
+};
 
 type DialogView = 'loading' | 'invite' | 'pending' | 'manage' | 'error';
 
@@ -40,15 +47,7 @@ const EMPTY_CAPS: HostPairingCaps = {
 @Component({
   selector: 'app-host-pairing-dialog',
   standalone: true,
-  imports: [
-    MatButton,
-    MatDialogActions,
-    MatDialogClose,
-    MatDialogContent,
-    MatDialogTitle,
-    MatIcon,
-    MatProgressBar,
-  ],
+  imports: [MatButton, MatDialogActions, MatDialogContent, MatDialogTitle, MatIcon, MatProgressBar],
   styleUrls: [
     '../../../shared/styles/dialog-title-header.scss',
     './host-pairing-dialog.component.scss',
@@ -57,6 +56,8 @@ const EMPTY_CAPS: HostPairingCaps = {
 })
 export class HostPairingDialogComponent implements OnDestroy {
   readonly data = inject<HostPairingDialogData>(MAT_DIALOG_DATA);
+  private readonly dialogRef =
+    inject<MatDialogRef<HostPairingDialogComponent, HostPairingDialogResult>>(MatDialogRef);
   private readonly locale = inject(LOCALE_ID);
   readonly view = signal<DialogView>('loading');
   readonly pairingUrl = signal('');
@@ -182,6 +183,7 @@ export class HostPairingDialogComponent implements OnDestroy {
   async approve(): Promise<void> {
     const requestId = this.pending()?.requestId;
     if (!requestId) return;
+    const presenterOpened = await this.startPresenterIfRequested();
     this.busy.set(true);
     try {
       await trpc.session.approveHostPairing.mutate({
@@ -190,6 +192,10 @@ export class HostPairingDialogComponent implements OnDestroy {
       });
       this.pending.set(null);
       this.stopPolling();
+      if (this.data.startPresenterView) {
+        this.dialogRef.close({ connected: true, presenterOpened });
+        return;
+      }
       const state = await trpc.session.listPairedHosts.query({ code: this.data.code });
       this.applyListedState(state);
       this.view.set('manage');
@@ -203,6 +209,16 @@ export class HostPairingDialogComponent implements OnDestroy {
     } finally {
       this.busy.set(false);
     }
+  }
+
+  async finish(): Promise<void> {
+    const connected = this.devices().length > 0;
+    if (connected && this.data.startPresenterView) {
+      const presenterOpened = await this.startPresenterIfRequested();
+      this.dialogRef.close({ connected: true, presenterOpened });
+      return;
+    }
+    this.dialogRef.close({ connected });
   }
 
   async reject(): Promise<void> {
@@ -278,6 +294,18 @@ export class HostPairingDialogComponent implements OnDestroy {
     }
   }
 
+  private async startPresenterIfRequested(): Promise<boolean | undefined> {
+    const start = this.data.startPresenterView;
+    if (!start) {
+      return undefined;
+    }
+    try {
+      return Boolean(await start());
+    } catch {
+      return false;
+    }
+  }
+
   private applyListedState(state: ListPairedHostsOutput): void {
     this.devices.set(state.devices);
     this.caps.set(state.caps);
@@ -307,7 +335,7 @@ export class HostPairingDialogComponent implements OnDestroy {
       const qr = qrcodeFactory(0, 'M');
       qr.addData(url);
       qr.make();
-      this.qrDataUrl.set(qr.createDataURL(8, 2));
+      this.qrDataUrl.set(qr.createDataURL(8, 4));
     } catch {
       this.qrDataUrl.set(null);
     }

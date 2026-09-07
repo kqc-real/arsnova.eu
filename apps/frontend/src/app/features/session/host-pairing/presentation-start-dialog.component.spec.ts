@@ -77,8 +77,21 @@ describe('PresentationStartDialogComponent', () => {
   it('startet die Präsentation ohne Pairing und defaultet auf projiziert', async () => {
     const current = await render();
     expect(current.nativeElement.textContent).toContain('Präsentation starten');
+    expect(
+      current.nativeElement.querySelector('.dialog-title-header mat-icon')?.textContent?.trim(),
+    ).toBe('launch');
     expect(current.nativeElement.textContent).toContain('Mit Smartphone steuern');
-    expect(current.nativeElement.textContent).toContain('Weiteres Host-Gerät verbinden');
+    expect(
+      current.nativeElement
+        .querySelector('.presentation-start-dialog__subtitle-icon mat-icon')
+        ?.textContent?.trim(),
+    ).toBe('devices');
+    expect(
+      current.nativeElement.querySelector('[data-testid="presentation-start-connect"]'),
+    ).not.toBeNull();
+    expect(
+      current.nativeElement.querySelector('[data-testid="presentation-start-cohost"]'),
+    ).toBeNull();
     expect(
       current.nativeElement.querySelector('[data-testid="presentation-start-connected"]'),
     ).toBeNull();
@@ -123,9 +136,61 @@ describe('PresentationStartDialogComponent', () => {
     expect(dialogOpenMock).toHaveBeenCalledWith(
       HostPairingDialogComponent,
       expect.objectContaining({
-        data: { code: 'ABC123', screenVisibility: 'PRIVATE' },
+        panelClass: 'host-pairing-dialog-panel',
+        backdropClass: 'host-pairing-dialog-backdrop',
+        data: {
+          code: 'ABC123',
+          screenVisibility: 'PRIVATE',
+          startPresenterView: undefined,
+        },
       }),
     );
+  });
+
+  it('reicht den Presenter-Start an den Pairing-Dialog weiter', async () => {
+    const startPresenterView = vi.fn().mockResolvedValue({ closed: false });
+    dialogData.startPresenterView = startPresenterView;
+    const current = await render();
+    current.nativeElement.querySelector('[data-testid="presentation-start-connect"]')?.click();
+    expect(dialogOpenMock).toHaveBeenCalledWith(
+      HostPairingDialogComponent,
+      expect.objectContaining({
+        data: expect.objectContaining({
+          code: 'ABC123',
+          startPresenterView,
+        }),
+      }),
+    );
+  });
+
+  it('schließt nach erfolgreichem Pairing mit gestartetem Presenter', async () => {
+    dialogOpenMock.mockReturnValue({
+      afterClosed: () => of({ connected: true, presenterOpened: true }),
+    });
+    const current = await render();
+    current.nativeElement.querySelector('[data-testid="presentation-start-connect"]')?.click();
+    await flush();
+    expect(dialogCloseMock).toHaveBeenCalledWith('start');
+  });
+
+  it('meldet einen blockierten Presenter nach dem Pairing', async () => {
+    dialogOpenMock.mockReturnValue({
+      afterClosed: () => of({ connected: true, presenterOpened: false }),
+    });
+    const current = await render();
+    current.nativeElement.querySelector('[data-testid="presentation-start-connect"]')?.click();
+    await flush();
+    expect(dialogCloseMock).toHaveBeenCalledWith('blocked');
+  });
+
+  it('bleibt offen, wenn Pairing ohne Verbindung geschlossen wird', async () => {
+    dialogOpenMock.mockReturnValue({
+      afterClosed: () => of({ connected: false }),
+    });
+    const current = await render();
+    current.nativeElement.querySelector('[data-testid="presentation-start-connect"]')?.click();
+    await flush();
+    expect(dialogCloseMock).not.toHaveBeenCalled();
   });
 
   it('lässt den Start zu, wenn Pairing nicht verfügbar ist', async () => {
@@ -137,6 +202,36 @@ describe('PresentationStartDialogComponent', () => {
     expect(current.nativeElement.textContent).not.toContain('Mit Smartphone steuern');
     current.nativeElement.querySelector('[data-testid="presentation-start-fullscreen"]')?.click();
     expect(dialogCloseMock).toHaveBeenCalledWith('start');
+  });
+
+  it('hebt eine wartende Verbindungsanfrage mit Icon und Farbe hervor', async () => {
+    listPairedHostsMock.mockResolvedValue({
+      devices: [],
+      pending: {
+        requestId: '22222222-2222-4222-8222-222222222222',
+        confirmationIndicator: 'Eule · 47',
+        deviceLabel: 'Smartphone',
+        state: 'PENDING_APPROVAL',
+        expiresAt: '2026-09-07T14:10:00.000Z',
+        createdAt: '2026-09-07T14:05:00.000Z',
+      },
+      invite: null,
+      caps: EMPTY_CAPS,
+    });
+    const current = await render();
+    const notice = current.nativeElement.querySelector(
+      '[data-testid="presentation-start-pending"]',
+    ) as HTMLElement | null;
+    expect(notice).toBeTruthy();
+    expect(notice?.classList.contains('presentation-start-dialog__notice')).toBe(true);
+    expect(notice?.textContent).toContain('Es wartet bereits eine Verbindungsanfrage.');
+    expect(notice?.querySelector('mat-icon')?.textContent?.trim()).toBe('hourglass_top');
+    expect(
+      current.nativeElement.querySelector('[data-testid="presentation-start-review-request"]'),
+    ).toBeTruthy();
+    expect(
+      current.nativeElement.querySelector('[data-testid="presentation-start-connect"]'),
+    ).toBeNull();
   });
 
   it('zeigt das Gerätelimit verständlich', async () => {

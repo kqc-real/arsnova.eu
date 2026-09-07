@@ -1,5 +1,5 @@
 import { TestBed, type ComponentFixture } from '@angular/core/testing';
-import { ActivatedRoute, convertToParamMap, provideRouter } from '@angular/router';
+import { ActivatedRoute, convertToParamMap, provideRouter, Router } from '@angular/router';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { SessionHostPairingRequestComponent } from './session-host-pairing-request.component';
 
@@ -94,6 +94,16 @@ describe('SessionHostPairingRequestComponent', () => {
     return fixture;
   }
 
+  it('zeigt den Pairing-Kopf mit MD3-devices-Icon', () => {
+    const current = render();
+    expect(current.nativeElement.querySelector('.dialog-title-header')).not.toBeNull();
+    expect(
+      current.nativeElement.querySelector('.dialog-title-header mat-icon')?.textContent?.trim(),
+    ).toBe('devices');
+    expect(current.nativeElement.textContent).toContain('Mit Veranstaltung verbinden');
+    expect(current.nativeElement.textContent).toContain('Nach der Freigabe');
+  });
+
   it('fragt die Verbindung an und bleibt ohne Approve im Pending', async () => {
     const current = render();
     current.nativeElement.querySelector('[data-testid="host-pairing-request"]')?.click();
@@ -176,5 +186,14 @@ describe('SessionHostPairingRequestComponent', () => {
     expect(current.nativeElement.textContent).toContain('unvollständig');
     expect(current.nativeElement.querySelector('[data-testid="host-pairing-request"]')).toBeNull();
     expect(requestMock).not.toHaveBeenCalled();
+  });
+
+  it('führt von der unvollständigen Pair-Karte zur Startseite', async () => {
+    window.history.replaceState(null, '', `/session/ABC123/pair?s=${SECRET}`);
+    const current = render();
+    const router = TestBed.inject(Router);
+    const navigateByUrl = vi.spyOn(router, 'navigateByUrl').mockResolvedValue(true);
+    current.nativeElement.querySelector('[data-testid="host-pairing-go-home"]')?.click();
+    expect(navigateByUrl).toHaveBeenCalledWith('/', { replaceUrl: true });
   });
 });

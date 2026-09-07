@@ -1022,7 +1022,7 @@ describe('SessionHostComponent', { timeout: 30_000 }, () => {
       '[data-testid="open-presenter-view"]',
     ) as HTMLButtonElement | null;
     expect(presenterButton).not.toBeNull();
-    expect(presenterButton?.textContent).toContain('Presenter-Ansicht');
+    expect(presenterButton?.textContent).toContain('Präsentation starten');
     expect(
       presenterButton?.querySelector(':scope > svg.session-host__view-toggle-icon'),
     ).not.toBeNull();
@@ -1059,12 +1059,14 @@ describe('SessionHostComponent', { timeout: 30_000 }, () => {
       PresentationStartDialogComponent,
       expect.objectContaining({
         panelClass: 'presentation-start-dialog-panel',
+        backdropClass: 'presentation-start-dialog-backdrop',
         data: expect.objectContaining({
           startPresenterView: expect.any(Function),
           phoneAlreadyConnected: expect.any(Boolean),
         }),
       }),
     );
+    expect(fixture.nativeElement.querySelector('[data-testid="connect-smartphone"]')).toBeNull();
     fixture.destroy();
   });
 
@@ -2027,6 +2029,66 @@ describe('SessionHostComponent', { timeout: 30_000 }, () => {
 
     expect(canLeave).toBe(false);
     expect(clearHostTokenMock).toHaveBeenCalledWith('ABC123');
+    expect(navigateByUrlSpy).toHaveBeenCalledWith('/', { replaceUrl: true });
+    fixture.destroy();
+  });
+
+  it('lässt nach Widerruf das Verlassen ohne Session-Ende zu', async () => {
+    getInfoQueryMock.mockResolvedValue({ ...defaultSession, status: 'ACTIVE' });
+
+    const fixture = setup();
+    const router = TestBed.inject(Router);
+    const navigateByUrlSpy = vi.spyOn(router, 'navigateByUrl').mockResolvedValue(true);
+    fixture.detectChanges();
+    await fixture.whenStable();
+
+    (
+      fixture.componentInstance as unknown as { markHostAccessRevoked(): void }
+    ).markHostAccessRevoked();
+    fixture.detectChanges();
+
+    dialogOpenMock.mockClear();
+    const canLeave = await fixture.componentInstance.canDeactivate();
+
+    expect(canLeave).toBe(true);
+    expect(endMutateMock).not.toHaveBeenCalled();
+    expect(dialogOpenMock).not.toHaveBeenCalled();
+    expect(
+      fixture.nativeElement.querySelector('[data-testid="host-access-revoked"]'),
+    ).not.toBeNull();
+    expect(
+      fixture.nativeElement.querySelector('[data-testid="host-access-revoked-home"]'),
+    ).not.toBeNull();
+    expect(fixture.nativeElement.querySelector('.session-host--revoked')).not.toBeNull();
+    expect(
+      fixture.nativeElement.querySelector('.session-host__revoked .dialog-title-header'),
+    ).not.toBeNull();
+    expect(
+      fixture.nativeElement.querySelector('.session-host__revoked mat-icon')?.textContent?.trim(),
+    ).toBe('devices');
+
+    await fixture.componentInstance.goHomeAfterHostRevoke();
+    expect(navigateByUrlSpy).toHaveBeenCalledWith('/', { replaceUrl: true });
+    fixture.destroy();
+  });
+
+  it('navigiert nach Home, wenn das Verlassen wegen widerrufenem Host-Token scheitert', async () => {
+    getInfoQueryMock.mockResolvedValue({ ...defaultSession, status: 'ACTIVE' });
+    endMutateMock.mockRejectedValueOnce({
+      data: { code: 'UNAUTHORIZED' },
+      message: 'Die Host-Verbindung wurde beendet.',
+    });
+
+    const fixture = setup();
+    const router = TestBed.inject(Router);
+    const navigateByUrlSpy = vi.spyOn(router, 'navigateByUrl').mockResolvedValue(true);
+    fixture.detectChanges();
+    await fixture.whenStable();
+
+    const canLeave = await fixture.componentInstance.canDeactivate();
+
+    expect(canLeave).toBe(false);
+    expect(fixture.componentInstance.hostAccessRevoked()).toBe(true);
     expect(navigateByUrlSpy).toHaveBeenCalledWith('/', { replaceUrl: true });
     fixture.destroy();
   });
