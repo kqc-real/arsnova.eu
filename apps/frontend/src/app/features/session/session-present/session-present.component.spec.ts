@@ -1761,8 +1761,39 @@ describe('SessionPresentComponent', () => {
     expect(
       fixture.nativeElement.querySelectorAll('.session-present__lobby-nick-mat-icon').length,
     ).toBe(2);
+    expect(fixture.nativeElement.querySelector('.session-present__lobby-team--crowd')).toBeNull();
     expect(fixture.nativeElement.querySelector('.session-present__lobby-team--packed')).toBeNull();
+    const sparseMembers = fixture.nativeElement.querySelector(
+      '.session-present__lobby-team-members',
+    ) as HTMLElement | null;
+    expect(sparseMembers?.style.gridTemplateColumns).toBe('repeat(1, minmax(0, 1fr))');
     fixture.destroy();
+  });
+
+  it('hält sparse Team-Pills kompakt statt Kartenhöhe und -breite', () => {
+    const styles = readFileSync(
+      resolve(
+        process.cwd(),
+        'src/app/features/session/session-present/session-present.component.scss',
+      ),
+      'utf8',
+    );
+
+    expect(styles).toMatch(
+      /\.session-present__lobby-team-members \{[\s\S]*?grid-auto-rows:\s*auto;[\s\S]*?align-items:\s*start;[\s\S]*?justify-items:\s*start;/,
+    );
+    expect(styles).toMatch(
+      /\.session-present__lobby-team-members li \{[\s\S]*?width:\s*fit-content;[\s\S]*?max-width:\s*100%;/,
+    );
+    expect(styles).not.toMatch(
+      /\.session-present__lobby-team-members li \{\s*container-type:\s*size;/,
+    );
+    expect(styles).toMatch(
+      /\.session-present__lobby-team--crowd \.session-present__lobby-team-members,[\s\S]*?\.session-present__lobby-team--packed \.session-present__lobby-team-members \{[\s\S]*?grid-auto-rows:\s*minmax\(0,\s*1fr\);[\s\S]*?align-items:\s*stretch;[\s\S]*?justify-items:\s*stretch;/,
+    );
+    expect(styles).toMatch(
+      /\.session-present__lobby-team--crowd \.session-present__lobby-team-members li,[\s\S]*?\.session-present__lobby-team--packed \.session-present__lobby-team-members li \{[\s\S]*?container-type:\s*size;/,
+    );
   });
 
   it('packt volle Teamspalten ohne Scroll und haelt Namen nur fuer den Screenreader', async () => {
