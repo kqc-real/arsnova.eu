@@ -1761,7 +1761,12 @@ describe('SessionPresentComponent', () => {
     expect(
       fixture.nativeElement.querySelectorAll('.session-present__lobby-nick-mat-icon').length,
     ).toBe(2);
+    expect(fixture.nativeElement.querySelector('.session-present__lobby-team--crowd')).toBeNull();
     expect(fixture.nativeElement.querySelector('.session-present__lobby-team--packed')).toBeNull();
+    const sparseMembers = fixture.nativeElement.querySelector(
+      '.session-present__lobby-team-members',
+    ) as HTMLElement | null;
+    expect(sparseMembers?.style.gridTemplateColumns).toBe('repeat(1, minmax(0, 1fr))');
     fixture.destroy();
   });
 
