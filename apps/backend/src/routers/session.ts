@@ -8151,7 +8151,11 @@ const sessionCoreRouter = router({
       await incrementCompletedSessionsTotal();
       invalidateSessionStatusCachesForCode(code);
       void recordSessionTransitionActivity();
-      await invalidateHostPairingForSession(code);
+      try {
+        await invalidateHostPairingForSession(code);
+      } catch {
+        /* Pairing-Registry ist Hilfszustand; Session-Ende bleibt maßgeblich. */
+      }
       await issueProductFeedbackInvitesAfterFinishAwait(identity.id);
 
       return {

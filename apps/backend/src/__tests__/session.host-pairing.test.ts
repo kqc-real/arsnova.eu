@@ -160,8 +160,8 @@ describe('session host pairing (Story 2.10 Slice 1)', () => {
         requestId: requested.requestId!,
         requestSecret: requested.requestSecret!,
       });
-      expect(replay.token).toBeNull();
-      expect(replay.state).toBe('CONNECTED');
+      expect(replay.state).toBe('PAIRED_HOST_TOKEN_ISSUED');
+      expect(replay.token?.pairedHostToken).toBe(pairedToken);
 
       await hostCaller(originalToken).revokePairedHost({
         code: CODE,

@@ -402,4 +402,54 @@ describe('HostPairingDialogComponent', () => {
     expect(current.nativeElement.textContent).not.toContain('WebSocket');
     expect(current.nativeElement.textContent).not.toContain('tokenId');
   });
+
+  it('beendet einen abgelaufenen QR und bietet Neu versuchen', async () => {
+    const current = await render();
+    expect(current.nativeElement.querySelector('[data-testid="host-pairing-copy"]')).toBeTruthy();
+    listPairedHostsMock.mockResolvedValue({
+      devices: [],
+      pending: null,
+      invite: null,
+      caps: EMPTY_CAPS,
+    });
+    await vi.advanceTimersByTimeAsync(1600);
+    await flush();
+    current.detectChanges();
+    expect(current.nativeElement.textContent).toContain('abgelaufen');
+    expect(current.nativeElement.querySelector('[data-testid="host-pairing-copy"]')).toBeNull();
+  });
+
+  it('beendet eine abgelaufene Freigabeanfrage', async () => {
+    listPairedHostsMock.mockResolvedValue({
+      devices: [],
+      pending: {
+        requestId: REQUEST_ID,
+        confirmationIndicator: 'Eule · 47',
+        deviceLabel: 'Smartphone',
+        state: 'PENDING_APPROVAL',
+        expiresAt: '2026-09-07T14:00:00.000Z',
+        createdAt: '2026-09-07T13:55:00.000Z',
+      },
+      invite: null,
+      caps: EMPTY_CAPS,
+    });
+    const current = await render();
+    await vi.waitFor(() => {
+      current.detectChanges();
+      expect(
+        current.nativeElement.querySelector('[data-testid="host-pairing-approve"]'),
+      ).toBeTruthy();
+    });
+    listPairedHostsMock.mockResolvedValue({
+      devices: [],
+      pending: null,
+      invite: null,
+      caps: EMPTY_CAPS,
+    });
+    await vi.advanceTimersByTimeAsync(1600);
+    await flush();
+    current.detectChanges();
+    expect(current.nativeElement.textContent).toContain('abgelaufen');
+    expect(current.nativeElement.querySelector('[data-testid="host-pairing-approve"]')).toBeNull();
+  });
 });

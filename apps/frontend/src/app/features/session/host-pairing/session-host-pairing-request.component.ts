@@ -143,6 +143,14 @@ export class SessionHostPairingRequestComponent implements OnInit, OnDestroy {
         await this.router.navigate(localizeCommands(['session', this.code, 'host']));
         return;
       }
+      if (result.state === 'CONNECTED' || result.state === 'PAIRED_HOST_TOKEN_ISSUED') {
+        this.stopPolling();
+        this.view.set('error');
+        this.error.set(
+          $localize`:@@hostPairing.errorExpired:Die Verbindungsanfrage ist abgelaufen.`,
+        );
+        return;
+      }
       if (result.state === 'REJECTED') {
         this.stopPolling();
         this.view.set('rejected');

@@ -318,6 +318,22 @@ export class HostPairingDialogComponent implements OnDestroy {
     if (this.view() === 'pending' && state.devices.length > 0) {
       this.view.set('manage');
       this.stopPolling();
+      return;
+    }
+    if (this.view() === 'pending') {
+      this.stopPolling();
+      this.error.set($localize`:@@hostPairing.errorExpired:Die Verbindungsanfrage ist abgelaufen.`);
+      this.view.set('error');
+      return;
+    }
+    if (this.view() === 'invite' && !state.invite) {
+      this.stopPolling();
+      if (state.devices.length > 0) {
+        this.view.set('manage');
+        return;
+      }
+      this.error.set($localize`:@@hostPairing.errorExpired:Die Verbindungsanfrage ist abgelaufen.`);
+      this.view.set('error');
     }
   }
 

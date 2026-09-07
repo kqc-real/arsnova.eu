@@ -1,7 +1,8 @@
 /**
  * Redis-backed Pairing-Registry für Story 2.10 Slice 1.
  * Secrets und Paired-Host-Tokens werden nur gehasht persistiert.
- * Das Klartext-Token existiert höchstens als einmaliges Claim-Kuvert.
+ * Das Klartext-Token bleibt im Claim-Kuvert bis zur Claim-TTL lesbar,
+ * damit ein verlorener Poll wiederholt werden kann.
  */
 import { createHash, randomBytes, timingSafeEqual } from 'node:crypto';
 import { randomUUID } from 'node:crypto';
@@ -46,6 +47,12 @@ const CONFIRMATION_WORDS = [
   'Reh',
   'Star',
 ] as const;
+
+const CONFIRMATION_INDICATORS: readonly string[] = Array.from({ length: 256 }, (_, index) => {
+  const word = CONFIRMATION_WORDS[index % CONFIRMATION_WORDS.length]!;
+  const number = 10 + (index % 90);
+  return `${word} · ${number}`;
+});
 
 export type HostPairingServiceError = Error & {
   pairingCode: HostPairingErrorCode;
@@ -134,9 +141,7 @@ function createSecret(): string {
 }
 
 function createConfirmationIndicator(): string {
-  const word = CONFIRMATION_WORDS[randomBytes(1)[0]! % CONFIRMATION_WORDS.length]!;
-  const number = (randomBytes(1)[0]! % 90) + 10;
-  return `${word} · ${number}`;
+  return CONFIRMATION_INDICATORS[randomBytes(1)[0]!]!;
 }
 
 function recordTtlSeconds(record: HostPairingRecord): number {
@@ -446,14 +451,21 @@ export async function invalidateHostPairingForSession(sessionCode: string): Prom
 
 export async function listHostPairingState(sessionCode: string): Promise<HostPairingRecord> {
   const current = await loadRecord(sessionCode);
-  const now = new Date();
-  const result = applyHostPairingCommand(current, { type: 'SWEEP_EXPIRED', now });
-  if (!result.ok) return current;
-  if (result.effects.length > 0) {
-    await applyEffects(sessionCode, result.effects);
-    await saveRecord(sessionCode, result.record);
+  const preview = applyHostPairingCommand(current, { type: 'SWEEP_EXPIRED', now: new Date() });
+  if (!preview.ok) return current;
+  if (preview.effects.length === 0) {
+    return preview.record;
   }
-  return result.record;
+  return withSessionLock(sessionCode, async () => {
+    const locked = await loadRecord(sessionCode);
+    const result = applyHostPairingCommand(locked, { type: 'SWEEP_EXPIRED', now: new Date() });
+    if (!result.ok) return locked;
+    if (result.effects.length > 0) {
+      await applyEffects(sessionCode, result.effects);
+      await saveRecord(sessionCode, result.record);
+    }
+    return result.record;
+  });
 }
 
 export async function getHostPairingRequest(params: {
@@ -494,7 +506,6 @@ export async function getHostPairingRequest(params: {
   const redis = getRedis();
   const claimRaw = await redis.get(claimKey(requestSecretHash));
   if (claimRaw) {
-    await redis.del(claimKey(requestSecretHash));
     const claim = JSON.parse(claimRaw) as ClaimEnvelope;
     if (claim.tokenId) {
       return {

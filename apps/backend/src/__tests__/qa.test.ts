@@ -942,6 +942,38 @@ describe('qa router (Epic 8)', () => {
     await iterator.return?.(undefined);
   });
 
+  it('beendet qa.onQuestionsUpdated nach Widerruf des Host-Tokens', async () => {
+    prismaMock.session.findUnique.mockResolvedValue({
+      id: SESSION_ID,
+      code: 'ABC123',
+      type: 'QUIZ',
+      qaEnabled: true,
+      qaOpen: true,
+    });
+    prismaMock.participant.count.mockResolvedValue(0);
+    prismaMock.qaQuestion.findMany.mockResolvedValue([]);
+    prismaMock.qaQuestion.aggregate.mockResolvedValue({
+      _count: { _all: 0 },
+      _max: { updatedAt: null },
+      _sum: { upvoteCount: 0 },
+    });
+
+    const stream = await hostCaller.onQuestionsUpdated({
+      sessionId: SESSION_ID,
+      moderatorView: true,
+    });
+    const iterator = stream[Symbol.asyncIterator]();
+    await iterator.next();
+
+    hostAuthMocks.isHostSessionTokenValidMock.mockResolvedValue(false);
+    await expect(iterator.next()).rejects.toMatchObject({
+      code: 'UNAUTHORIZED',
+      message: 'Die Host-Verbindung wurde beendet.',
+    });
+
+    await iterator.return?.(undefined);
+  });
+
   it('liefert für Teilnehmende keine Q&A-Inhalte, wenn der Kanal geschlossen ist', async () => {
     prismaMock.session.findUnique.mockResolvedValue({
       id: SESSION_ID,

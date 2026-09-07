@@ -147,6 +147,26 @@ describe('session.end', () => {
     );
   });
 
+  it('beendet die Session auch wenn Pairing-Invalidierung fehlschlägt', async () => {
+    prismaMock.session.findUnique.mockResolvedValue({
+      id: 'sess-1',
+      status: 'ACTIVE',
+      currentQuestion: 0,
+      quizId: 'quiz-1',
+      quiz: {
+        name: 'Quiz',
+        bonusTokenCount: 0,
+        questions: [{ type: 'SINGLE_CHOICE' }],
+      },
+      participants: [],
+      bonusTokens: [],
+    });
+    invalidateHostPairingForSessionMock.mockRejectedValueOnce(new Error('Redis nicht erreichbar'));
+
+    await expect(caller.end({ code: 'ABC123' })).resolves.toMatchObject({ status: 'FINISHED' });
+    expect(invalidateHostPairingForSessionMock).toHaveBeenCalledWith('ABC123');
+  });
+
   trpcDodIt(
     {
       procedure: 'session.end',

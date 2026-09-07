@@ -163,6 +163,20 @@ describe('SessionHostPairingRequestComponent', () => {
     expect(setHostTokenMock).not.toHaveBeenCalled();
   });
 
+  it('zeigt Ablauf, wenn das Claim ohne Token nur noch CONNECTED ist', async () => {
+    getRequestMock.mockResolvedValue(
+      pendingClaim({ state: 'CONNECTED', token: null, confirmationIndicator: null }),
+    );
+    const current = render();
+    current.nativeElement.querySelector('[data-testid="host-pairing-request"]')?.click();
+    await flush();
+    await vi.advanceTimersByTimeAsync(1600);
+    await flush();
+    current.detectChanges();
+    expect(current.nativeElement.textContent).toContain('abgelaufen');
+    expect(setHostTokenMock).not.toHaveBeenCalled();
+  });
+
   it('behandelt Replay / bereits angefragt ohne Token', async () => {
     requestMock.mockResolvedValue({
       requestId: null,
