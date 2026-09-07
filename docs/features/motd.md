@@ -47,6 +47,7 @@ Der Betreiber kann **kuratierte Hinweise** an **alle Nutzer:innen** ausspielen �
 
 - Admin entscheidet pro MOTD über `visibleInArchive`, ob es in der **nutzerseitigen Archivliste** erscheint.
 - Archiv zeigt nur **freigegebene** Einträge; **Paginierung** über `listArchive` mit `cursor`/`nextCursor`; im Dialog **„Weitere Meldungen laden“** unter der Liste; **lazy load** beim ersten Öffnen (Performance).
+- Im Archiv-Dialog steht der MOTD-Titel nur in der Expansion-Lasche; der Markdown-Rumpf wiederholt die führende ATX-Überschrift nicht. Lange Titel werden in der geschlossenen Lasche zweizeilig gekürzt und nach dem Öffnen vollständig gezeigt.
 
 ### 3.5 Startseiten-Overlay
 
@@ -178,3 +179,4 @@ Synergie: [`docs/didaktik/zweiter-kurs-und-agentische-ki.md`](../didaktik/zweite
 | 2026-08-19 | Abschnitte 3.6/3.7/4.1: Pro-MOTD-Button **Gelesen**; `archiveReadItems` ergänzt den Wasserlinien-Cursor (Badge −1); gelesene Meldungen bleiben in der Liste als **Gelesen** erkennbar.                                             |
 | 2026-09-01 | Abschnitte 3.6/3.7: Archiv-Aktion **Als gelesen markieren** (Text-Button, kein CTA); **Gelesen**/**Ungelesen** nur als Status.                                                                                                     |
 | 2026-09-06 | Abschnitt 9: lokale Seed-Kette um die Feature-MOTD zum anonymen Produktfeedback aus Epic 12 ergänzt.                                                                                                                               |
+| 2026-09-07 | Abschnitt 3.4: Archiv-Dialog ohne Titel-Duplikat im Markdown-Rumpf; volle Überschrift in der offenen Lasche.                                                                                                                       |
