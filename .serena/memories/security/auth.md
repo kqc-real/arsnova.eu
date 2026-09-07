@@ -2,6 +2,7 @@
 
 - Authorization is server-side. Routes, session codes, client state, `moderatorView`, or UI visibility are never permission proofs.
 - Host-only session actions must use `hostProcedure` or equivalent validated server token checks. `session.create` returns the host token; host requests use `x-host-token`.
+- Story 2.10 Slice 1: `isHostSessionTokenValid` accepts the original host token or a hashed `PAIRED_HOST` token. Pairing admin (`createHostPairingInvite`, approve/reject/revoke/list) requires `originalHostProcedure`. Session code, QR, or invite secret alone never grants host rights; no silent grant.
 - `/session/:code/host` and `/session/:code/present` are UX routes only. Client route guards improve navigation but do not authorize backend mutations/subscriptions.
 - Standalone quick feedback uses its own feedback-host token context (`x-feedback-host-token`); do not implicitly reuse session-host ownership.
 - Admin login uses `ADMIN_SECRET` only at login; subsequent admin access must use a TTL-backed admin session token and `adminProcedure`.

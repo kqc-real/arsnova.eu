@@ -3,6 +3,7 @@
 - `apps/backend/src/routers/index.ts` composes the app router from domain routers.
 - Current router domains: `health`, `quiz`, `session`, `vote`, `qa`, `quickFeedback`, `motd`, `admin`, `adminMotd`, `wordCloud`, `productFeedback` (Epic 12 / Stories 12.1–12.2: Post-Session + IN_APP Challenge/Submit/Follow-up), `admin.productFeedback` (Stats + Triage Inbox).
 - Procedure naming conventions: queries read (`getInfo`, `getLeaderboard`), mutations write (`create`, `join`, `submit`), subscriptions usually start with `on...`.
+- Story 2.10 Slice 1 pairing lives under `session.*` via `sessionHostPairingRouter`: `createHostPairingInvite`, `requestHostPairing`, `getHostPairingRequest`, `approveHostPairing`, `rejectHostPairing`, `revokePairedHost`, `listPairedHosts`. Invite/approve/revoke/list require `originalHostProcedure`; request/claim are public with invite/request secrets. Caps and hashed tokens are in `apps/backend/src/lib/hostPairing.ts`.
 - tRPC inputs/outputs must use schemas from `@arsnova/shared-types`; do not define parallel DTOs in router code.
 - Auth-sensitive router behavior:
   - session host/present/moderation paths require host token procedures.

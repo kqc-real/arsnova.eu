@@ -10,6 +10,7 @@ export function buildHostAuthTestMock(mocks: {
   extractHostToken: Mock;
   extractHostTokenFromConnectionParams: Mock;
   isHostSessionTokenValid: Mock;
+  isOriginalHostSessionToken?: Mock;
 }) {
   const extractHostTokenFromContext = (ctx: {
     req?: unknown;
@@ -45,11 +46,27 @@ export function buildHostAuthTestMock(mocks: {
     connectionParams?: unknown,
   ): Promise<string> => assertHostSessionAccessFromContext({ req, connectionParams }, sessionCode);
 
+  const isOriginalHostSessionToken =
+    mocks.isOriginalHostSessionToken ?? mocks.isHostSessionTokenValid;
+
+  const resolveHostSessionAccess = async (sessionCode: string, token: string) => {
+    const valid = await mocks.isHostSessionTokenValid(sessionCode, token);
+    if (!valid) return null;
+    const original = await isOriginalHostSessionToken(sessionCode, token);
+    return {
+      token,
+      role: original ? ('ORIGINAL_HOST' as const) : ('PAIRED_HOST' as const),
+    };
+  };
+
   return {
     extractHostToken: mocks.extractHostToken,
     extractHostTokenFromConnectionParams: mocks.extractHostTokenFromConnectionParams,
     extractHostTokenFromContext,
     isHostSessionTokenValid: mocks.isHostSessionTokenValid,
+    isOriginalHostSessionToken,
+    resolveHostSessionAccess,
+    hashHostSessionToken: (token: string) => token,
     assertHostSessionAccessFromContext,
     assertHostSessionAccess,
     createHostSessionToken: vi.fn(),

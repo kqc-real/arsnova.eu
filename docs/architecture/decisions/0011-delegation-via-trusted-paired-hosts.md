@@ -61,7 +61,7 @@ Die Spezifikation in `Backlog.md` Story 2.10 legt zusätzlich fest:
 
 ## Umsetzungsstand
 
-Story 2.10 ist offen. Im aktuellen Repo existieren weder Paired-Host-Pairing noch eine eigenständige Moderatorrolle. Die bestehende Host-Authentifizierung bleibt bis zur Umsetzung maßgeblich.
+Story 2.10 Slice 1 (Shared Contracts, Serverzustandsautomat, Caps, Pairing-Prozeduren und Backend-Tests) ist umgesetzt. Presenter-Start-Dialog, Geräteverwaltung-UI und Lastnachweis folgen in späteren Slices. Es gibt weiterhin keine eigenständige Moderatorrolle.
 
 ---
 

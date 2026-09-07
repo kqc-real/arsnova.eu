@@ -257,7 +257,9 @@ function setCachedParticipantNicknames(
 export function resetParticipantNicknameCacheForTests(): void {
   participantNicknameCache.clear();
 }
-import { publicProcedure, router, getClientIp, hostProcedure } from '../trpc';
+import { publicProcedure, router, mergeRouters, getClientIp, hostProcedure } from '../trpc';
+import { invalidateHostPairingForSession } from '../lib/hostPairing';
+import { sessionHostPairingRouter } from './sessionHostPairing';
 import { loadConfidenceResultForQuestion } from '../lib/confidenceAggregation';
 import {
   buildSessionResultsPdf,
@@ -4746,7 +4748,7 @@ async function resolvePublicSessionInfo(
   };
 }
 
-export const sessionRouter = router({
+const sessionCoreRouter = router({
   /** Session erstellen (Story 2.1a). Grobes globales und Shared-NAT-IP-Budget. */
   create: publicProcedure
     .input(CreateSessionInputSchema)
@@ -8147,6 +8149,7 @@ export const sessionRouter = router({
       await incrementCompletedSessionsTotal();
       invalidateSessionStatusCachesForCode(code);
       void recordSessionTransitionActivity();
+      await invalidateHostPairingForSession(code);
       await issueProductFeedbackInvitesAfterFinishAwait(identity.id);
 
       return {
@@ -9012,3 +9015,5 @@ export const sessionRouter = router({
       return { reactions: counts, total: map.size };
     }),
 });
+
+export const sessionRouter = mergeRouters(sessionCoreRouter, sessionHostPairingRouter);

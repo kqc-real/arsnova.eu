@@ -9,7 +9,11 @@ import {
   extractAdminDiagnosticSecret,
   verifyAdminDiagnosticSecret,
 } from './lib/diagnosticAuth';
-import { extractHostTokenFromContext, isHostSessionTokenValid } from './lib/hostAuth';
+import {
+  extractHostTokenFromContext,
+  isHostSessionTokenValid,
+  isOriginalHostSessionToken,
+} from './lib/hostAuth';
 import { TRPC_MAX_BODY_SIZE_LABEL } from './lib/requestLimits';
 import { isTrackedLiveProcedure, recordLiveRequestTelemetry } from './lib/sloTelemetry';
 import {
@@ -26,6 +30,7 @@ export type Context = {
   adminToken?: string;
   hostToken?: string;
   hostSessionCode?: string;
+  hostRole?: 'ORIGINAL_HOST' | 'PAIRED_HOST';
 };
 
 const t = initTRPC.context<Context>().create({
@@ -140,6 +145,7 @@ const telemetryProcedure = t.procedure.use(async ({ ctx, path, type, next }) => 
 
 /** tRPC Router Builder */
 export const router = t.router;
+export const mergeRouters = t.mergeRouters;
 
 /** Öffentliche Procedure (kein Auth nötig) */
 export const publicProcedure = telemetryProcedure;
@@ -249,6 +255,30 @@ export const hostProcedure = telemetryProcedure.use(async ({ ctx, getRawInput, n
       ...ctx,
       hostToken: token,
       hostSessionCode: sessionCode,
+    },
+  });
+});
+
+/** Pairing-Administration: nur der ursprüngliche Host, nie ein PAIRED_HOST. */
+export const originalHostProcedure = hostProcedure.use(async ({ ctx, next }) => {
+  const sessionCode = ctx.hostSessionCode;
+  const token = ctx.hostToken;
+  if (!sessionCode || !token) {
+    throw new TRPCError({ code: 'UNAUTHORIZED', message: 'Host-Authentifizierung erforderlich.' });
+  }
+
+  const original = await isOriginalHostSessionToken(sessionCode, token);
+  if (!original) {
+    throw new TRPCError({
+      code: 'FORBIDDEN',
+      message: 'Nur die ursprüngliche Lehrperson kann weitere Geräte verbinden.',
+    });
+  }
+
+  return next({
+    ctx: {
+      ...ctx,
+      hostRole: 'ORIGINAL_HOST' as const,
     },
   });
 });
