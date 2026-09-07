@@ -10,6 +10,7 @@ import {
   MatCardTitle,
 } from '@angular/material/card';
 import { MatDatepickerModule } from '@angular/material/datepicker';
+import { MatDialog } from '@angular/material/dialog';
 import { MatFormField, MatLabel, MatSuffix } from '@angular/material/form-field';
 import { MatInput } from '@angular/material/input';
 import { MatProgressSpinner } from '@angular/material/progress-spinner';
@@ -29,6 +30,11 @@ import type {
 } from '@arsnova/shared-types';
 import { localizeKnownServerError } from '../../core/localize-known-server-message';
 import { trpc } from '../../core/trpc.client';
+import {
+  AdminProductFeedbackLlmExportDialogComponent,
+  type AdminProductFeedbackLlmExportDialogData,
+} from './admin-product-feedback-llm-export-dialog.component';
+import { AdminProductFeedbackPurgeDialogComponent } from './admin-product-feedback-purge-dialog.component';
 
 @Component({
   selector: 'app-admin-product-feedback-panel',
@@ -62,6 +68,7 @@ export class AdminProductFeedbackPanelComponent implements OnInit {
     minimumFractionDigits: 0,
     maximumFractionDigits: 1,
   });
+  private readonly dialog = inject(MatDialog);
   readonly loading = signal(false);
   readonly error = signal<string | null>(null);
   readonly stats = signal<AdminProductFeedbackStatsDTO | null>(null);
@@ -501,6 +508,52 @@ export class AdminProductFeedbackPanelComponent implements OnInit {
         ),
       );
     });
+  }
+
+  openLlmExportDialog(): void {
+    this.dialog.open(AdminProductFeedbackLlmExportDialogComponent, {
+      data: this.currentLlmExportFilters(),
+      width: 'min(36rem, calc(100vw - 1.5rem))',
+      maxWidth: '100vw',
+      maxHeight: 'min(92dvh, calc(100vh - 1rem))',
+      autoFocus: 'first-tabbable',
+      panelClass: 'admin-product-feedback-dialog-panel',
+      backdropClass: 'admin-product-feedback-dialog-backdrop',
+    });
+  }
+
+  openPurgeDialog(): void {
+    const ref = this.dialog.open(AdminProductFeedbackPurgeDialogComponent, {
+      data: { untilDate: this.toDate },
+      width: 'min(36rem, calc(100vw - 1.5rem))',
+      maxWidth: '100vw',
+      maxHeight: 'min(92dvh, calc(100vh - 1rem))',
+      autoFocus: 'first-tabbable',
+      panelClass: 'admin-product-feedback-dialog-panel',
+      backdropClass: 'admin-product-feedback-dialog-backdrop',
+    });
+    ref.afterClosed().subscribe((result) => {
+      if (result && typeof result === 'object' && 'deletedCount' in result) {
+        void this.reload();
+      }
+    });
+  }
+
+  currentLlmExportFilters(): AdminProductFeedbackLlmExportDialogData {
+    return {
+      ...(this.fromDate ? { from: this.dayBoundIso(this.fromDate, false) } : {}),
+      ...(this.toDate ? { to: this.dayBoundIso(this.toDate, true) } : {}),
+      ...(this.inboxSourceFilter ? { source: this.inboxSourceFilter } : {}),
+      ...(this.inboxRoleFilter ? { role: this.inboxRoleFilter } : {}),
+      ...(this.inboxKindFilter ? { kind: this.inboxKindFilter } : {}),
+      ...(this.inboxAreaFilter.trim() ? { area: this.inboxAreaFilter.trim() as never } : {}),
+      ...(this.inboxImpactFilter ? { impact: this.inboxImpactFilter } : {}),
+      ...(this.inboxAppVersionFilter.trim()
+        ? { appVersion: this.inboxAppVersionFilter.trim() }
+        : {}),
+      ...(this.inboxLocaleFilter ? { locale: this.inboxLocaleFilter } : {}),
+      ...(this.inboxStatusFilter ? { status: this.inboxStatusFilter } : {}),
+    };
   }
 
   async selectFeedback(id: string): Promise<void> {

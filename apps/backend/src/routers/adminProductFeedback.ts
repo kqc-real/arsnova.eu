@@ -9,7 +9,13 @@ import {
   AdminProductFeedbackLinkIssueInputSchema,
   AdminProductFeedbackListInputSchema,
   AdminProductFeedbackListOutputSchema,
+  AdminProductFeedbackLlmExportInputSchema,
+  AdminProductFeedbackLlmExportOutputSchema,
   AdminProductFeedbackMutationOutputSchema,
+  AdminProductFeedbackPurgeInputSchema,
+  AdminProductFeedbackPurgeOutputSchema,
+  AdminProductFeedbackPurgePreviewInputSchema,
+  AdminProductFeedbackPurgePreviewOutputSchema,
   AdminProductFeedbackPublishIssueInputSchema,
   AdminProductFeedbackPublishIssueOutputSchema,
   AdminProductFeedbackStatsDTOSchema,
@@ -17,9 +23,12 @@ import {
   AdminProductFeedbackTriageStatsDTOSchema,
   AdminProductFeedbackTriageStatsInputSchema,
   AdminProductFeedbackUpdateTriageInputSchema,
+  PRODUCT_FEEDBACK_LLM_EXPORT_MAX_SCAN,
+  PRODUCT_FEEDBACK_PURGE_CONFIRMATION,
   type AdminProductFeedbackDetail,
   type AdminProductFeedbackIssueDraftOutput,
   type AdminProductFeedbackListItem,
+  type AdminProductFeedbackLlmExportInput,
 } from '@arsnova/shared-types';
 import type { Prisma } from '@prisma/client';
 import { prisma } from '../db';
@@ -28,6 +37,16 @@ import {
   buildProductFeedbackAdminStats,
   buildProductFeedbackTriageStats,
 } from '../lib/productFeedbackStats';
+import { productFeedbackLabel } from '../lib/productFeedbackLabels';
+import {
+  buildProductFeedbackLlmExport,
+  type ProductFeedbackLlmExportRow,
+} from '../lib/productFeedbackLlmExport';
+import {
+  assertProductFeedbackPurgeUntil,
+  productFeedbackInviteLedgerPurgeWhere,
+  productFeedbackPurgeWhere,
+} from '../lib/productFeedbackPurge';
 import { adminProcedure, router } from '../trpc';
 
 type FeedbackRow = Prisma.ProductFeedbackGetPayload<{
@@ -79,76 +98,21 @@ function toDetail(row: FeedbackRow): AdminProductFeedbackDetail {
 }
 
 function buildIssueDraft(row: FeedbackRow): AdminProductFeedbackIssueDraftOutput {
-  const labels: Record<string, string> = {
-    NOT_WORKING: 'Funktioniert nicht',
-    UNCLEAR: 'Unklar',
-    MISSING_FEATURE: 'Fehlende Funktion',
-    PRAISE: 'Positives Feedback',
-    EASY: 'Leicht',
-    MINOR_FRICTION: 'Mit kleinen Hürden',
-    HARD: 'Schwierig',
-    YES: 'Ja',
-    PARTIAL: 'Teilweise',
-    NO: 'Nein',
-    HOST: 'Host',
-    PARTICIPANT: 'Teilnehmende',
-    GENERAL: 'Allgemein',
-    POST_SESSION: 'Nach der Session',
-    IN_APP: 'In der App',
-    CONTINUED: 'Weiterarbeit war möglich',
-    RETRIED: 'Erneuter Versuch war nötig',
-    BLOCKED: 'Aufgabe konnte nicht abgeschlossen werden',
-    JOIN: 'Sessionbeitritt',
-    ORIENTATION: 'Orientierung',
-    ANSWER: 'Antwortabgabe',
-    QA_OR_QUICKFEEDBACK: 'Q&A oder Blitzlicht',
-    RESULTS: 'Ergebnisse',
-    TECH: 'Technik oder Verbindung',
-    ACCESSIBILITY: 'Barrierefreiheit',
-    OTHER: 'Anderer Bereich',
-    PREPARE_QUIZ: 'Quizvorbereitung',
-    START_SESSION: 'Sessionstart',
-    INVITE: 'Einladung',
-    LIVE_CONTROL: 'Live-Steuerung',
-    PDF_EXPORT: 'PDF oder Export',
-    QUIZ_OR_ANSWER: 'Quizfrage oder Antwort',
-    QA: 'Q&A',
-    QUICK_FEEDBACK: 'Blitzlicht',
-    RESULTS_OR_SCORE: 'Ergebnis oder Punkte',
-    DISPLAY_OR_ACCESSIBILITY: 'Darstellung oder Barrierefreiheit',
-    TECH_OR_CONNECTION: 'Technik oder Verbindung',
-    QUIZ_LIBRARY_OR_EDITOR: 'Quiz-Sammlung oder Editor',
-    SESSION_START_OR_INVITE: 'Sessionstart und Einladung',
-    PDF_OR_EXPORT: 'PDF oder Export',
-    HOME_OR_ORIENTATION: 'Start und Orientierung',
-    HELP: 'Hilfe',
-    HOME: 'Startseite',
-    QUIZ_LIBRARY: 'Quiz-Sammlung',
-    QUIZ_EDITOR: 'Quiz-Editor',
-    SESSION_JOIN: 'Sessionbeitritt',
-    SESSION_VOTE: 'Teilnahme',
-    SESSION_HOST: 'Sessionsteuerung',
-    SESSION_RESULTS: 'Ergebnisse',
-    PHONE: 'Smartphone',
-    TABLET: 'Tablet',
-    DESKTOP: 'Computer',
-    UNKNOWN: 'Nicht erkannt',
-  };
-  const label = (value: string | null) => (value ? (labels[value] ?? value) : null);
-  const signal = label(row.feedbackKind ?? row.primaryAnswer) ?? 'Allgemeine Rückmeldung';
-  const area = label(row.area) ?? row.area;
+  const signal =
+    productFeedbackLabel(row.feedbackKind ?? row.primaryAnswer) ?? 'Allgemeine Rückmeldung';
+  const area = productFeedbackLabel(row.area) ?? row.area;
   const title = `[Feedback] ${signal} – ${area}`.slice(0, 160);
   const lines = [
     '## Anonymisierte Rückmeldung',
     '',
     `- Art: ${signal}`,
     `- Bereich: ${area}`,
-    `- Perspektive: ${label(row.role)}`,
-    `- Quelle: ${label(row.source)}`,
-    row.impact ? `- Auswirkung: ${label(row.impact)}` : null,
+    `- Perspektive: ${productFeedbackLabel(row.role)}`,
+    `- Quelle: ${productFeedbackLabel(row.source)}`,
+    row.impact ? `- Auswirkung: ${productFeedbackLabel(row.impact)}` : null,
     row.appVersion ? `- App-Version: ${row.appVersion}` : null,
-    row.routeGroup ? `- App-Bereich: ${label(row.routeGroup)}` : null,
-    row.deviceClass ? `- Gerät: ${label(row.deviceClass)}` : null,
+    row.routeGroup ? `- App-Bereich: ${productFeedbackLabel(row.routeGroup)}` : null,
+    row.deviceClass ? `- Gerät: ${productFeedbackLabel(row.deviceClass)}` : null,
     '',
     '_Der freiwillige Originaltext ist aus Datenschutzgründen nicht enthalten._',
   ].filter((line): line is string => line !== null);
@@ -198,6 +162,93 @@ async function getFeedbackRow(id: string): Promise<FeedbackRow> {
   return row;
 }
 
+function buildAdminFeedbackAttributeWhere(
+  input: Pick<
+    AdminProductFeedbackLlmExportInput,
+    | 'from'
+    | 'to'
+    | 'source'
+    | 'role'
+    | 'kind'
+    | 'area'
+    | 'impact'
+    | 'appVersion'
+    | 'locale'
+    | 'status'
+    | 'excludeDiscarded'
+  >,
+): Prisma.ProductFeedbackWhereInput {
+  if (input.excludeDiscarded && input.status === 'DISCARDED') {
+    return { id: { in: [] } };
+  }
+  return {
+    ...(input.from || input.to
+      ? {
+          createdAt: {
+            ...(input.from ? { gte: new Date(input.from) } : {}),
+            ...(input.to ? { lte: new Date(input.to) } : {}),
+          },
+        }
+      : {}),
+    ...(input.source ? { source: input.source } : {}),
+    ...(input.role ? { role: input.role } : {}),
+    ...(input.kind ? { feedbackKind: input.kind } : {}),
+    ...(input.area ? { area: input.area } : {}),
+    ...(input.impact ? { impact: input.impact } : {}),
+    ...(input.appVersion ? { appVersion: input.appVersion } : {}),
+    ...(input.locale ? { locale: input.locale } : {}),
+    ...(input.status
+      ? { triageStatus: input.status }
+      : input.excludeDiscarded
+        ? { triageStatus: { not: 'DISCARDED' } }
+        : {}),
+  };
+}
+
+function buildAdminFeedbackWhere(
+  input: Pick<
+    AdminProductFeedbackLlmExportInput,
+    | 'from'
+    | 'to'
+    | 'source'
+    | 'role'
+    | 'kind'
+    | 'area'
+    | 'impact'
+    | 'appVersion'
+    | 'locale'
+    | 'status'
+    | 'excludeDiscarded'
+  >,
+): Prisma.ProductFeedbackWhereInput {
+  const attributes = buildAdminFeedbackAttributeWhere(input);
+  if (input.excludeDiscarded && input.status === 'DISCARDED') return attributes;
+  return { duplicateOfId: null, ...attributes };
+}
+
+function toLlmExportRow(row: FeedbackRow): ProductFeedbackLlmExportRow {
+  return {
+    id: row.id,
+    createdAt: row.createdAt,
+    duplicateOfId: row.duplicateOfId,
+    duplicateCount: row._count.duplicates,
+    source: row.source,
+    role: row.role,
+    kind: row.feedbackKind,
+    primaryAnswer: row.primaryAnswer,
+    area: row.area,
+    impact: row.impact,
+    locale: row.locale,
+    deviceClass: row.deviceClass,
+    sessionPhase: row.sessionPhase,
+    activeChannel: row.activeChannel,
+    appVersion: row.appVersion,
+    message: row.message,
+    quarantineStatus: row.quarantineStatus,
+    triageStatus: row.triageStatus,
+  };
+}
+
 export const adminProductFeedbackRouter = router({
   getStats: adminProcedure
     .input(AdminProductFeedbackStatsInputSchema)
@@ -208,6 +259,77 @@ export const adminProductFeedbackRouter = router({
     .input(AdminProductFeedbackTriageStatsInputSchema)
     .output(AdminProductFeedbackTriageStatsDTOSchema)
     .query(async ({ input }) => buildProductFeedbackTriageStats(input)),
+
+  exportForLlm: adminProcedure
+    .input(AdminProductFeedbackLlmExportInputSchema)
+    .output(AdminProductFeedbackLlmExportOutputSchema)
+    .mutation(async ({ input, ctx }) => {
+      const where = buildAdminFeedbackWhere(input);
+      const [rows, canonicalTotal, stats, triage] = await Promise.all([
+        prisma.productFeedback.findMany({
+          where,
+          orderBy: [{ createdAt: 'desc' }, { id: 'desc' }],
+          take: PRODUCT_FEEDBACK_LLM_EXPORT_MAX_SCAN,
+          include: {
+            _count: {
+              select: {
+                duplicates: { where: buildAdminFeedbackAttributeWhere(input) },
+              },
+            },
+          },
+        }),
+        prisma.productFeedback.count({ where }),
+        buildProductFeedbackAdminStats(
+          {
+            ...(input.from ? { from: input.from } : {}),
+            ...(input.to ? { to: input.to } : {}),
+            ...(input.role ? { role: input.role } : {}),
+          },
+          where,
+        ),
+        buildProductFeedbackTriageStats(
+          {
+            ...(input.from ? { from: input.from } : {}),
+            ...(input.to ? { to: input.to } : {}),
+            ...(input.appVersion ? { appVersion: input.appVersion } : {}),
+          },
+          where,
+        ),
+      ]);
+      const output = buildProductFeedbackLlmExport({
+        rows: rows.map(toLlmExportRow),
+        stats,
+        triage,
+        input,
+        canonicalTotal,
+      });
+      await prisma.productFeedbackExportLog.create({
+        data: {
+          adminIdentifier: adminIdentifier(ctx.adminToken),
+          includeMessages: output.includeMessages,
+          excludeDiscarded: input.excludeDiscarded,
+          caseCount: output.caseCount,
+          clusterCount: output.clusterCount,
+          messageCount: output.messageCount,
+          truncated: output.truncated,
+          filterJson: JSON.stringify({
+            from: input.from ?? null,
+            to: input.to ?? null,
+            source: input.source ?? null,
+            role: input.role ?? null,
+            kind: input.kind ?? null,
+            area: input.area ?? null,
+            impact: input.impact ?? null,
+            appVersion: input.appVersion ?? null,
+            locale: input.locale ?? null,
+            status: input.status ?? null,
+            includeMessages: input.includeMessages,
+            excludeDiscarded: input.excludeDiscarded,
+          }).slice(0, 1000),
+        },
+      });
+      return output;
+    }),
 
   /** Paginierte Inbox; optionale Freitexte werden erst im Detail geladen. */
   list: adminProcedure
@@ -471,5 +593,61 @@ export const adminProductFeedbackRouter = router({
         prisma.productFeedback.delete({ where: { id: input.id } }),
       ]);
       return { ok: true };
+    }),
+
+  countForPurge: adminProcedure
+    .input(AdminProductFeedbackPurgePreviewInputSchema)
+    .output(AdminProductFeedbackPurgePreviewOutputSchema)
+    .query(async ({ input }) => {
+      if (input.scope === 'UNTIL') assertProductFeedbackPurgeUntil(input.until);
+      const count = await prisma.productFeedback.count({
+        where: productFeedbackPurgeWhere(input),
+      });
+      return { count, scope: input.scope };
+    }),
+
+  purge: adminProcedure
+    .input(AdminProductFeedbackPurgeInputSchema)
+    .output(AdminProductFeedbackPurgeOutputSchema)
+    .mutation(async ({ input, ctx }) => {
+      const normalizedConfirmation = input.confirmationText.trim().toUpperCase();
+      if (normalizedConfirmation !== PRODUCT_FEEDBACK_PURGE_CONFIRMATION) {
+        throw new TRPCError({
+          code: 'BAD_REQUEST',
+          message: 'Sicherheitsabfrage fehlgeschlagen.',
+        });
+      }
+
+      const where = productFeedbackPurgeWhere(input);
+      if (input.scope === 'UNTIL') assertProductFeedbackPurgeUntil(input.until);
+      return prisma.$transaction(async (tx) => {
+        const currentCount = await tx.productFeedback.count({ where });
+        if (currentCount !== input.expectedCount) {
+          throw new TRPCError({
+            code: 'PRECONDITION_FAILED',
+            message: 'Die Auswahl hat sich geändert. Bitte neu zählen und erneut bestätigen.',
+          });
+        }
+
+        const deleted = await tx.productFeedback.deleteMany({ where });
+        if (deleted.count !== input.expectedCount) {
+          throw new TRPCError({
+            code: 'PRECONDITION_FAILED',
+            message: 'Die Auswahl hat sich geändert. Bitte neu zählen und erneut bestätigen.',
+          });
+        }
+        await tx.productFeedbackInviteLedger.deleteMany({
+          where: productFeedbackInviteLedgerPurgeWhere(input),
+        });
+        await tx.productFeedbackPurgeLog.create({
+          data: {
+            adminIdentifier: adminIdentifier(ctx.adminToken),
+            scope: input.scope,
+            untilCreatedAt: input.scope === 'UNTIL' ? new Date(input.until) : null,
+            deletedCount: deleted.count,
+          },
+        });
+        return { deletedCount: deleted.count, scope: input.scope };
+      });
     }),
 });

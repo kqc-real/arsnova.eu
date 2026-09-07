@@ -1,0 +1,114 @@
+<h2 mat-dialog-title class="dialog-title-header">
+  <span class="dialog-title-header__icon dialog-title-header__icon--warn" aria-hidden="true">
+    <mat-icon>warning</mat-icon>
+  </span>
+  <span class="dialog-title-header__copy">
+    <span class="dialog-title-header__heading" i18n="@@admin.productFeedback.purgeTitle"
+      >Rückmeldungen endgültig löschen</span
+    >
+  </span>
+</h2>
+
+<mat-dialog-content class="admin-pf-purge__content">
+  <p i18n="@@admin.productFeedback.purgeIntro">
+    Gelöscht werden die gespeicherten Rückmeldungen und die Einladungszähler für denselben Zeitraum.
+    Das lässt sich nicht rückgängig machen. Exportprotokolle bleiben erhalten.
+  </p>
+
+  <mat-radio-group
+    class="admin-pf-purge__scopes"
+    name="pfPurgeScope"
+    [(ngModel)]="scope"
+    (ngModelChange)="onScopeChanged()"
+    [disabled]="busy()"
+    i18n-aria-label="@@admin.productFeedback.purgeScopeLabel"
+    aria-label="Löschumfang"
+  >
+    <mat-radio-button value="UNTIL" i18n="@@admin.productFeedback.purgeScopeUntil">
+      Bis zu einem Datum (einschließlich)
+    </mat-radio-button>
+    <mat-radio-button value="ALL" i18n="@@admin.productFeedback.purgeScopeAll">
+      Alle Rückmeldungen
+    </mat-radio-button>
+  </mat-radio-group>
+
+  @if (scope === 'UNTIL') {
+    <mat-form-field appearance="outline" class="admin-pf-purge__date">
+      <mat-label i18n="@@admin.productFeedback.purgeUntil">Löschen bis einschließlich</mat-label>
+      <mat-datepicker #purgeUntilPicker [touchUi]="true" />
+      <input
+        matInput
+        [matDatepicker]="purgeUntilPicker"
+        [max]="maxUntilDate"
+        [(ngModel)]="untilDate"
+        name="pfPurgeUntil"
+        (ngModelChange)="onUntilDateChanged()"
+        [disabled]="busy()"
+      />
+      <mat-datepicker-toggle matIconSuffix [for]="purgeUntilPicker" />
+    </mat-form-field>
+  }
+
+  <p class="admin-pf-purge__count" aria-live="polite">
+    @if (countBusy()) {
+      <span i18n="@@admin.productFeedback.purgePending">Anzahl wird ermittelt …</span>
+    } @else if (count() === 0) {
+      <span i18n="@@admin.productFeedback.purgeCountNone"
+        >Keine Rückmeldungen in dieser Auswahl.</span
+      >
+    } @else if (count() !== null) {
+      <span i18n="@@admin.productFeedback.purgeCount"
+        >{{ count() }} Rückmeldungen würden endgültig gelöscht.</span
+      >
+    }
+  </p>
+
+  <p i18n="@@admin.productFeedback.purgePhraseHint">
+    Zur Bestätigung gib die Sicherheitsphrase ein.
+  </p>
+  <p class="admin-pf-purge__phrase" aria-live="polite">{{ confirmationPhrase }}</p>
+
+  <mat-form-field appearance="outline" class="admin-pf-purge__confirm">
+    <mat-label i18n="@@admin.productFeedback.purgePhraseLabel">Sicherheitsphrase</mat-label>
+    <input
+      matInput
+      type="text"
+      name="pfPurgeConfirm"
+      autocomplete="off"
+      maxlength="80"
+      [disabled]="busy()"
+      [(ngModel)]="confirmationText"
+    />
+  </mat-form-field>
+
+  @if (error(); as err) {
+    <p class="admin-pf-purge__error" role="alert">{{ err }}</p>
+  }
+  @if (status(); as statusText) {
+    <p class="admin-pf-purge__status" aria-live="polite">{{ statusText }}</p>
+  }
+</mat-dialog-content>
+
+<mat-dialog-actions align="end" class="admin-pf-purge__actions">
+  <button
+    matButton="text"
+    type="button"
+    (click)="close()"
+    [disabled]="busy()"
+    i18n="@@admin.productFeedback.purgeClose"
+  >
+    Abbrechen
+  </button>
+  <button
+    matButton="filled"
+    type="button"
+    class="admin-pf-purge__submit"
+    (click)="confirmPurge()"
+    [disabled]="!canPurge()"
+  >
+    @if (busy()) {
+      <mat-spinner diameter="18" />
+    }
+    <span i18n="@@admin.productFeedback.purgeSubmit">Endgültig löschen</span>
+  </button>
+</mat-dialog-actions>

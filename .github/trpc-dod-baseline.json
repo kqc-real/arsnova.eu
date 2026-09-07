@@ -112,6 +112,11 @@
       "fingerprint": "sha256:138ab7d74c6986e7edd78361d91298cafa27b3ff75b3496ef0e3d94edc25582c",
       "missing": []
     },
+    "admin.productFeedback.countForPurge": {
+      "kind": "query",
+      "fingerprint": "sha256:658210010f8f036cd037c66f38f62ada7e09345b0461d30802b6e08d2506a221",
+      "missing": []
+    },
     "admin.productFeedback.createIssueDraft": {
       "kind": "mutation",
       "fingerprint": "sha256:8c9997ddd75a10548535ef802a61867f18c32960c698f99cd2ab577a46650f0c",
@@ -120,6 +125,11 @@
     "admin.productFeedback.delete": {
       "kind": "mutation",
       "fingerprint": "sha256:4cf38d07d5a07edab2f1098292c58bd5582f4f15bb3044d8813f05875819e72e",
+      "missing": []
+    },
+    "admin.productFeedback.exportForLlm": {
+      "kind": "mutation",
+      "fingerprint": "sha256:b87e7ca320ed13b0344672a1c00a244cc0916c6a32d2d3aaa6a82a5470fece14",
       "missing": []
     },
     "admin.productFeedback.getDetail": {
@@ -155,6 +165,11 @@
     "admin.productFeedback.publishIssue": {
       "kind": "mutation",
       "fingerprint": "sha256:702e4f37433cc6361ab95d0dba508c828f7492fdb1950c11a59b72f03e07f256",
+      "missing": []
+    },
+    "admin.productFeedback.purge": {
+      "kind": "mutation",
+      "fingerprint": "sha256:347598f873cef218d9d3f43a2f56957f540b8330a4b4f33131b80595d0b4b265",
       "missing": []
     },
     "admin.productFeedback.updateTriage": {

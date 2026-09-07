@@ -4472,6 +4472,277 @@
           <context context-type="linenumber">14</context>
         </context-group>
       </trans-unit>
+
+      <trans-unit id="admin.productFeedback.exportLlm" datatype="html">
+        <source>Für LLM exportieren</source>
+        <target>Exportar para un LLM</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/admin/admin-product-feedback-panel.component.html</context>
+          <context context-type="linenumber">1</context>
+        </context-group>
+      </trans-unit>
+
+      <trans-unit id="admin.productFeedback.exportLlmTitle" datatype="html">
+        <source>Produktfeedback für ein LLM exportieren</source>
+        <target>Exportar comentarios de producto para un LLM</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/admin/admin-product-feedback-llm-export-dialog.component.html</context>
+          <context context-type="linenumber">1</context>
+        </context-group>
+      </trans-unit>
+
+      <trans-unit id="admin.productFeedback.exportLlmIntro" datatype="html">
+        <source>Du erhältst eine Markdown-Datei mit Auswertungsprompt, Kennzahlen und Fällen. arsnova.eu ruft kein Modell auf; du fügst die Datei in einem Dienst deiner Wahl ein.</source>
+        <target>Recibes un archivo Markdown con una instrucción de análisis, indicadores y casos. arsnova.eu no llama a ningún modelo; pegas el archivo en un servicio que elijas.</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/admin/admin-product-feedback-llm-export-dialog.component.html</context>
+          <context context-type="linenumber">1</context>
+        </context-group>
+      </trans-unit>
+
+      <trans-unit id="admin.productFeedback.exportLlmIncludeMessages" datatype="html">
+        <source>Freiwillige Texte beilegen</source>
+        <target>Incluir textos opcionales</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/admin/admin-product-feedback-llm-export-dialog.component.html</context>
+          <context context-type="linenumber">1</context>
+        </context-group>
+      </trans-unit>
+
+      <trans-unit id="admin.productFeedback.exportLlmIncludeHint" datatype="html">
+        <source>Die Datei verlässt arsnova.eu. Nutze ein Modell deiner Institution oder entferne die Texte vorher.</source>
+        <target>Este archivo sale de arsnova.eu. Usa un modelo de tu institución o quita los textos antes.</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/admin/admin-product-feedback-llm-export-dialog.component.html</context>
+          <context context-type="linenumber">1</context>
+        </context-group>
+      </trans-unit>
+
+      <trans-unit id="admin.productFeedback.exportLlmExcludeDiscarded" datatype="html">
+        <source>Verworfene Rückmeldungen auslassen</source>
+        <target>Omitir comentarios descartados</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/admin/admin-product-feedback-llm-export-dialog.component.html</context>
+          <context context-type="linenumber">1</context>
+        </context-group>
+      </trans-unit>
+
+      <trans-unit id="admin.productFeedback.exportLlmDownload" datatype="html">
+        <source>Markdown herunterladen</source>
+        <target>Descargar Markdown</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/admin/admin-product-feedback-llm-export-dialog.component.html</context>
+          <context context-type="linenumber">1</context>
+        </context-group>
+      </trans-unit>
+
+      <trans-unit id="admin.productFeedback.exportLlmCopyPrompt" datatype="html">
+        <source>Nur Anweisung kopieren</source>
+        <target>Copiar solo la instrucción</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/admin/admin-product-feedback-llm-export-dialog.component.html</context>
+          <context context-type="linenumber">1</context>
+        </context-group>
+      </trans-unit>
+
+      <trans-unit id="admin.productFeedback.exportLlmClose" datatype="html">
+        <source>Schließen</source>
+        <target>Cerrar</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/admin/admin-product-feedback-llm-export-dialog.component.html</context>
+          <context context-type="linenumber">1</context>
+        </context-group>
+      </trans-unit>
+
+      <trans-unit id="admin.productFeedback.exportLlmError" datatype="html">
+        <source>Der Export konnte nicht erstellt werden. Versuche es erneut.</source>
+        <target>No se ha podido crear la exportación. Inténtalo de nuevo.</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/admin/admin-product-feedback-llm-export-dialog.component.ts</context>
+          <context context-type="linenumber">1</context>
+        </context-group>
+      </trans-unit>
+
+      <trans-unit id="admin.productFeedback.exportLlmCopied" datatype="html">
+        <source>Anweisung kopiert.</source>
+        <target>Instrucción copiada.</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/admin/admin-product-feedback-llm-export-dialog.component.ts</context>
+          <context context-type="linenumber">1</context>
+        </context-group>
+      </trans-unit>
+
+      <trans-unit id="admin.productFeedback.exportLlmDownloaded" datatype="html">
+        <source>Markdown-Datei gespeichert.</source>
+        <target>Archivo Markdown guardado.</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/admin/admin-product-feedback-llm-export-dialog.component.ts</context>
+          <context context-type="linenumber">1</context>
+        </context-group>
+      </trans-unit>
+
+      <trans-unit id="admin.productFeedback.exportLlmCopyFailed" datatype="html">
+        <source>Die Anweisung konnte nicht kopiert werden.</source>
+        <target>No se ha podido copiar la instrucción.</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/admin/admin-product-feedback-llm-export-dialog.component.ts</context>
+          <context context-type="linenumber">1</context>
+        </context-group>
+      </trans-unit>
+
+      <trans-unit id="admin.productFeedback.exportLlmPending" datatype="html">
+        <source>Export wird vorbereitet …</source>
+        <target>Preparando la exportación…</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/admin/admin-product-feedback-llm-export-dialog.component.ts</context>
+          <context context-type="linenumber">1</context>
+        </context-group>
+      </trans-unit>
+
+      <trans-unit id="admin.productFeedback.purge" datatype="html">
+        <source>Rückmeldungen löschen</source>
+        <target>Borrar comentarios</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/admin/admin-product-feedback-panel.component.html</context>
+          <context context-type="linenumber">1</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="admin.productFeedback.purgeTitle" datatype="html">
+        <source>Rückmeldungen endgültig löschen</source>
+        <target>Borrar comentarios de forma definitiva</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/admin/admin-product-feedback-purge-dialog.component.html</context>
+          <context context-type="linenumber">1</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="admin.productFeedback.purgeIntro" datatype="html">
+        <source>Gelöscht werden die gespeicherten Rückmeldungen und die Einladungszähler für denselben Zeitraum. Das lässt sich nicht rückgängig machen. Exportprotokolle bleiben erhalten.</source>
+        <target>Se borrarán los comentarios guardados y los contadores de invitaciones del mismo periodo. Esta acción no se puede deshacer. Los registros de exportación se conservan.</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/admin/admin-product-feedback-purge-dialog.component.html</context>
+          <context context-type="linenumber">1</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="admin.productFeedback.purgeScopeLabel" datatype="html">
+        <source>Löschumfang</source>
+        <target>Alcance del borrado</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/admin/admin-product-feedback-purge-dialog.component.html</context>
+          <context context-type="linenumber">1</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="admin.productFeedback.purgeScopeUntil" datatype="html">
+        <source>Bis zu einem Datum (einschließlich)</source>
+        <target>Hasta una fecha (inclusive)</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/admin/admin-product-feedback-purge-dialog.component.html</context>
+          <context context-type="linenumber">1</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="admin.productFeedback.purgeScopeAll" datatype="html">
+        <source>Alle Rückmeldungen</source>
+        <target>Todos los comentarios</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/admin/admin-product-feedback-purge-dialog.component.html</context>
+          <context context-type="linenumber">1</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="admin.productFeedback.purgeUntil" datatype="html">
+        <source>Löschen bis einschließlich</source>
+        <target>Borrar hasta el (incluido)</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/admin/admin-product-feedback-purge-dialog.component.html</context>
+          <context context-type="linenumber">1</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="admin.productFeedback.purgePending" datatype="html">
+        <source>Anzahl wird ermittelt …</source>
+        <target>Contando…</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/admin/admin-product-feedback-purge-dialog.component.html</context>
+          <context context-type="linenumber">1</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="admin.productFeedback.purgeCountNone" datatype="html">
+        <source>Keine Rückmeldungen in dieser Auswahl.</source>
+        <target>No hay comentarios en esta selección.</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/admin/admin-product-feedback-purge-dialog.component.html</context>
+          <context context-type="linenumber">1</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="admin.productFeedback.purgeCount" datatype="html">
+        <source><x id="INTERPOLATION" equiv-text="{{ count() }}"/> Rückmeldungen würden endgültig gelöscht.</source>
+        <target><x id="INTERPOLATION" equiv-text="{{ count() }}"/> comentarios se borrarían de forma definitiva.</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/admin/admin-product-feedback-purge-dialog.component.html</context>
+          <context context-type="linenumber">1</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="admin.productFeedback.purgePhraseHint" datatype="html">
+        <source>Zur Bestätigung gib die Sicherheitsphrase ein.</source>
+        <target>Para confirmar, introduce la frase de seguridad.</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/admin/admin-product-feedback-purge-dialog.component.html</context>
+          <context context-type="linenumber">1</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="admin.productFeedback.purgePhraseLabel" datatype="html">
+        <source>Sicherheitsphrase</source>
+        <target>Frase de seguridad</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/admin/admin-product-feedback-purge-dialog.component.html</context>
+          <context context-type="linenumber">1</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="admin.productFeedback.purgeClose" datatype="html">
+        <source>Abbrechen</source>
+        <target>Cancelar</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/admin/admin-product-feedback-purge-dialog.component.html</context>
+          <context context-type="linenumber">1</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="admin.productFeedback.purgeSubmit" datatype="html">
+        <source>Endgültig löschen</source>
+        <target>Borrar definitivamente</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/admin/admin-product-feedback-purge-dialog.component.html</context>
+          <context context-type="linenumber">1</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="admin.productFeedback.purgeError" datatype="html">
+        <source>Die Löschung konnte nicht ausgeführt werden. Versuche es erneut.</source>
+        <target>No se ha podido completar el borrado. Inténtalo de nuevo.</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/admin/admin-product-feedback-purge-dialog.component.ts</context>
+          <context context-type="linenumber">1</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="admin.productFeedback.purgeChanged" datatype="html">
+        <source>Die Anzahl hat sich geändert. Zähle neu und bestätige erneut.</source>
+        <target>El recuento ha cambiado. Vuelve a contar y confirma otra vez.</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/admin/admin-product-feedback-purge-dialog.component.ts</context>
+          <context context-type="linenumber">1</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="admin.productFeedback.purgePhraseFailed" datatype="html">
+        <source>Die Sicherheitsphrase stimmt nicht.</source>
+        <target>La frase de seguridad no coincide.</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/admin/admin-product-feedback-purge-dialog.component.ts</context>
+          <context context-type="linenumber">1</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="admin.productFeedback.purgeBusy" datatype="html">
+        <source>Rückmeldungen werden gelöscht …</source>
+        <target>Borrando comentarios…</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/admin/admin-product-feedback-purge-dialog.component.ts</context>
+          <context context-type="linenumber">1</context>
+        </context-group>
+      </trans-unit>
       <trans-unit id="admin.productFeedback.filtersLabel" datatype="html">
         <source>Filter</source>
         <target>Filtros</target>

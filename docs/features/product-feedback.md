@@ -1,6 +1,6 @@
-# ProductFeedback (Stories 12.1 und 12.2)
+# ProductFeedback (Stories 12.1–12.4)
 
-> **Status:** In Produkt umgesetzt (Epic 12 vollständig: 12.1 Post-Session [#358](https://github.com/kqc-real/arsnova.eu/pull/358), 12.2 In-App + Admin-Triage [#361](https://github.com/kqc-real/arsnova.eu/pull/361)).
+> **Status:** In Produkt umgesetzt (Epic 12: 12.1 Post-Session [#358](https://github.com/kqc-real/arsnova.eu/pull/358), 12.2 In-App + Admin-Triage [#361](https://github.com/kqc-real/arsnova.eu/pull/361), 12.3 LLM-Export und 12.4 Massenlöschung [#365](https://github.com/kqc-real/arsnova.eu/pull/365)).
 > **Abgleich mit Code:** `apps/backend` (`productFeedback`, `admin.productFeedback`), `apps/frontend/src/app/features/product-feedback/`, Admin-Tab unter `/admin`.
 
 Domäne `ProductFeedback` ist strikt getrennt von SessionFeedback (4.8) und
@@ -117,6 +117,41 @@ Vorschau veröffentlicht. Ohne Konfiguration bleibt der Pfad geschlossen.
 Bereits verknüpfte Issues werden idempotent zurückgegeben; parallele
 Veröffentlichungen desselben Datensatzes werden atomar reserviert.
 
+## LLM-Export (12.3)
+
+`admin.productFeedback.exportForLlm` erzeugt eine Markdown-Datei mit
+versioniertem Auswertungsprompt im Vorspann, Lexikon, Aggregaten und
+kanonischen Fällen (`PF-001` …). Aggregate nutzen dieselben Postfachfilter
+wie die Falltabelle (Quelle, Art, Bereich, Auswirkung, Locale, Status,
+App-Version, `excludeDiscarded`). arsnova.eu ruft kein Modell auf; Admins
+fügen die Datei in einem selbst gewählten Dienst ein (ADR-0007).
+
+Freitext ist standardmäßig nicht enthalten. Opt-in legt nur
+nicht quarantänierte Texte bei und ersetzt heuristisch auffällige Inhalte
+(E-Mail, URL, Sessioncode-Muster). Datenbank-UUIDs, Hashes und
+`errorRequestId` kommen nicht in die Datei. Höchstens 300 Fälle, Priorität
+`BLOCKED`; ein textfreier `ProductFeedbackExportLog` hält Filter und Zähler
+fest.
+
+UI: Dialog **„Für LLM exportieren“** im Admin-Tab, `dialog-title-header`,
+Aktionen **Markdown herunterladen** und **Nur Anweisung kopieren**.
+
+## Massenlöschung (12.4)
+
+`admin.productFeedback.countForPurge` und `admin.productFeedback.purge`
+löschen gespeicherte Rückmeldungen bis einschließlich eines lokalen
+Kalendertags oder vollständig. Nur `adminProcedure`. Der Einladungszähler
+(`ProductFeedbackInviteLedger`, UTC-Tagesbucket) wird mitgelöscht, aber nur
+für vollständig in `until` liegende UTC-Tage; angeschnittene Buckets bleiben,
+damit die Abschlussquote nicht nach oben verzerrt wird.
+Invite-Jobs, Exportprotokolle und Triage-Auditzeilen bleiben. Die Sicherheitsphrase
+`RUECKMELDUNGEN LOESCHEN` wird serverseitig geprüft; die Mutation bricht ab,
+wenn sich die Anzahl seit der Vorschau geändert hat. Ein textfreier
+`ProductFeedbackPurgeLog` hält Umfang, optionale Datumsgrenze und Anzahl fest.
+
+UI: Dialog **„Rückmeldungen löschen“** mit Datepicker oder Option **Alle**,
+Warn-Icon, Zählvorschau und Phrase. Kein Undo.
+
 ## Betrieb
 
 Pflicht für öffentliche IN_APP-Schreibpfade in Produktion:
@@ -132,18 +167,25 @@ lädt `env_file` nicht neu). Details: `docs/ENVIRONMENT.md`,
 
 ## Tests / Smoke
 
-- Backend: `apps/backend/src/__tests__/productFeedback.test.ts`
+- Backend: `apps/backend/src/__tests__/productFeedback.test.ts`,
+  `apps/backend/src/lib/productFeedbackLlmExport.test.ts`
 - Frontend: `product-feedback-card.component.spec.ts`,
   `product-feedback-in-app-dialog.component.spec.ts`,
   `product-feedback-launcher.service.spec.ts`,
   `product-feedback-storage.spec.ts`,
-  Admin-Panel-Specs unter `admin-product-feedback-panel`
+  Admin-Panel-Specs unter `admin-product-feedback-panel`,
+  `admin-product-feedback-llm-export-dialog` und
+  `admin-product-feedback-purge-dialog`
 - E2E-Smoke Post-Session (12.1): `npm run smoke:product-feedback -w @arsnova/frontend`
-  (Host-Sheet, Vote-Sessionende, Export-Abgrenzung).
+  (getrennte Browser-Kontexte für Host und drei Teilnehmende, UI-Join,
+  UI-Abstimmung, UI-Sessionende, Host-Sheet, Vote-Karte und negativer
+  Sessionexport-Nachweis; Screenshots unter `SMOKE_ARTIFACT_DIR`, Default
+  `tmp/product-feedback-e2e`).
 - E2E-Smoke In-App (12.2): `npm run smoke:product-feedback-in-app -w @arsnova/frontend`
-  (Desktop-Footer, mobile Hilfe, Join, immersive Host-Utility, Zwei-Client
-  während ACTIVE inkl. anschließendem Vote, eigenständiges Blitzlicht Host/Vote,
-  Presenter ohne CTA; Artefakte Default `tmp/product-feedback-in-app-e2e`).
+  (Desktop-Footer, mobile Hilfe, Join, immersive Host-Utility nach Schließen
+  des Beitritts-Overlays, Zwei-Client während ACTIVE inkl. anschließendem Vote,
+  eigenständiges Blitzlicht Host/Vote, Presenter ohne CTA; Artefakte Default
+  `tmp/product-feedback-in-app-e2e`).
 
 ## Verwandte Docs
 

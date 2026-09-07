@@ -6,7 +6,7 @@
 >
 > **Nächster Fokus (Auswahl offener Stories):** u. a. **2.9** (asynchrone Quiz-Modi, noch nicht beauftragt), **2.10** (vertrauenswürdige Paired Hosts), **1.2ec–1.2ed** (Kurzantwort-Ausbau), **1.14c** (Word Cloud 3.0 Q&A-Themen), **1.14d** (Freitext-Themen), **8.9c** (optionale generative Moderationszusammenfassung), **8.9d** (selbstgehosteter LLM-Server, [ADR-0035](docs/architecture/decisions/0035-self-hosted-llm-runtime-llama-cpp-over-ollama.md)) — **Epic 6** ist einschließlich der formalen WCAG-2.2-AA-Abnahme von **6.5** und der abgeschlossenen UX-Testreihen **6.6** umgesetzt ✅. **Lehre:** Greenfield-Demo **1.7a** in **3×45 Min.** — [`docs/didaktik/greenfield-demo-1-7a-vorlesung.md`](docs/didaktik/greenfield-demo-1-7a-vorlesung.md).
 >
-> **Weitere Parallelpfade:** Epic 9 ✅ (Admin: Inspektion, Löschen, Auszug für Behörden) · Epic 10 ✅ (MOTD / Plattform-Kommunikation — ADR-0018, `docs/features/motd.md`) · Epic 12 ✅ (Produktfeedback: 12.1 Post-Session · 12.2 In-App + Admin-Triage — `docs/features/product-feedback.md`)
+> **Weitere Parallelpfade:** Epic 9 ✅ (Admin: Inspektion, Löschen, Auszug für Behörden) · Epic 10 ✅ (MOTD / Plattform-Kommunikation — ADR-0018, `docs/features/motd.md`) · Epic 12 ✅ (Produktfeedback: 12.1 Post-Session · 12.2 In-App + Admin-Triage · 12.3 LLM-Export · 12.4 Massenlöschung — `docs/features/product-feedback.md`)
 
 ---
 
@@ -136,6 +136,8 @@
 | 11   | 11.4  | Redaktionsbackend: Passwort/Token-Schutz & accountbezogener Gesamtexport           | 🔴   | ⬜ Offen       |
 | 12   | 12.1  | Rollenspezifisches Zwei-Klick-Produktfeedback nach Sessionende                     | 🟢   | ✅ Fertig      |
 | 12   | 12.2  | Jederzeit erreichbares „arsnova.eu verbessern“ & Admin-Triage                      | 🟡   | ✅ Fertig      |
+| 12   | 12.3  | Admin-Export von Produktfeedback für externe LLM-Auswertung                        | 🟡   | ✅ Fertig      |
+| 12   | 12.4  | Admin-Massenlöschung von Produktfeedback bis Datum oder vollständig                | 🟡   | ✅ Fertig      |
 
 > **Repo-Abgleich (Codebase 2026-08-25):** Die weiterhin **offenen bzw. laufenden** Stories sind durch den Stand im Monorepo begründet: u. a. noch **kein** asynchroner Quizmodus mit teilnehmendenindividuellem Fortschritt, Feedback-Strategie und Host-/Presenter-Dashboard (**Story 2.9** bleibt Must, ist aber **noch nicht beauftragt** — analog Epic 11). Q&A-`moderatorView` ist ein hostgeschütztes Sichtflag und keine eigene Rolle; vertrauenswürdige Tutor:innen oder Moderator:innen sollen ausschließlich über separat widerrufbare Paired-Host-Zugänge aus **Story 2.10** delegiert werden. **Abgeschlossen** sind **0.7** (Baseline-Freigabe 2026-07-12), **0.9** (Astro 7.1.3 über W3.5 / PR [#150](https://github.com/kqc-real/arsnova.eu/pull/150)) sowie die strukturierten Fragentypen **1.2g–1.2h und 1.2j**. W3.6 / PR [#151](https://github.com/kqc-real/arsnova.eu/pull/151) liefert die externen Backups; W3.7 / PR [#154](https://github.com/kqc-real/arsnova.eu/pull/154) implementiert Monitoring-Poller und Admin-Tab, die operative Kanalabnahme bleibt offen. Die Dependabot-Policy aus PR [#160](https://github.com/kqc-real/arsnova.eu/pull/160), die Telemetrie-Ursprungstrennung aus PR [#161](https://github.com/kqc-real/arsnova.eu/pull/161) und der Blitzlicht-Ablauf-Fix aus PR [#164](https://github.com/kqc-real/arsnova.eu/pull/164) sind gemergt. **Story 0.8** (McCabe-/Komplexitätsabbau) wird **nicht weiterverfolgt**. **Story 6.5** (WCAG 2.2 AA) ist technisch weitgehend umgesetzt; die manuelle Assistive-Technology-, Zoom-, Hochkontrast- und PDF-Reader-Abnahme bleibt offen — siehe [`Accessibility-Umsetzungsjournal`](docs/praktikum/ACCESSIBILITY-UMSETZUNGSJOURNAL.md) und [`Accessibility-Audit`](docs/praktikum/ACCESSIBILITY-AUDIT-WCAG-2.2-AA.md). Offen bleiben beim Kurzantwort-Ausbau **1.2ec–1.2ed** und bei der Word Cloud **1.14c**; **1.14a** ist mit den produktiven Ausbaustufen 2.1 bis 2.5 seit Mai 2026 abgeschlossen, **1.14b** ist mit der optionalen spaCy-Glättung (Analyseversion `1.14b.7`, August 2026) abgeschlossen, und **1.14c** bleibt der im Cloud-Computing-Kurs zu untersuchende semantische Themenmodus. **Story 1.6c** ist technisch umgesetzt; lediglich der automatische UUID-only-Legacy-Cutoff zum **1. Oktober 2026** bleibt als betrieblicher Termin vorgemerkt. **Story 1.6d** wird ohne nachgewiesenes Performanceproblem nicht umgesetzt. **Story 1.2f** (Hotspot auf Bild) wird aus Gründen der Barrierefreiheit nicht weiterverfolgt: Die visuelle und positionsabhängige Interaktion lässt sich für blinde und motorisch eingeschränkte Nutzer:innen nicht gleichwertig abbilden. **Story 1.2i** (Sicherheitsgrad) ist umgesetzt — siehe [`docs/features/confidence-slider.md`](docs/features/confidence-slider.md).
 >
@@ -2131,8 +2133,10 @@ ist abgeschlossen ✅. Damit ist Epic 6 geschlossen.
 
 1. **12.1** ✅ — gemeinsame `ProductFeedback`-Verträge, Persistenz, Einmal-Tokens, Aggregation und rollenspezifisches Zwei-Klick-Feedback nach Sessionende ([#358](https://github.com/kqc-real/arsnova.eu/pull/358)).
 2. **12.2** ✅ — jederzeit erreichbarer In-App-Kanal, Offline-Postausgang, Missbrauchsschutz und Admin-Triage auf derselben Domäne ([#361](https://github.com/kqc-real/arsnova.eu/pull/361)).
+3. **12.3** ✅ — Admin-Markdown-Export mit versioniertem Auswertungsprompt für ein vom Betreiber gewähltes externes LLM; kein serverseitiger Modellaufruf ([#365](https://github.com/kqc-real/arsnova.eu/pull/365)).
+4. **12.4** ✅ — Admin-Massenlöschung gespeicherter Rückmeldungen bis einschließlich eines Datums oder vollständig, mit Zählvorschau und Sicherheitsphrase ([#365](https://github.com/kqc-real/arsnova.eu/pull/365)).
 
-Beide Stories sind im Repo umgesetzt; kanonische Fachdoku: [`docs/features/product-feedback.md`](docs/features/product-feedback.md).
+12.1–12.4 sind im Repo umgesetzt; kanonische Fachdoku: [`docs/features/product-feedback.md`](docs/features/product-feedback.md).
 
 ---
 
@@ -2267,10 +2271,10 @@ Beide Stories sind im Repo umgesetzt; kanonische Fachdoku: [`docs/features/produ
   - **Auswertung und Kennzahlen:**
     - Dashboard zeigt Volumen und Anteil je Feedbackart/Bereich, blockierende Meldungen, häufigste Hürden und Stärken sowie Trends nach App-Version.
     - Wo ein belastbarer Nenner aus anonym aggregierten Produktinteraktionen verfügbar ist, wird zusätzlich **Problemmeldungen je 1.000 erfolgreiche Interaktionen** dargestellt; absolute Meldezahlen allein werden nicht als Qualitätsverschlechterung interpretiert.
-    - Freitext fließt nicht ungeprüft in automatische semantische oder generative Auswertungen ein. Eine spätere KI-Auswertung benötigt eine eigene Story mit Datenminimierung, nachvollziehbarer Qualität und deaktivierbarem Fallback.
+    - Freitext fließt nicht ungeprüft in automatische semantische oder generative Auswertungen ein. Die operatorgesteuerte Auswertung durch ein externes LLM ist **Story 12.3** (Markdown-Export mit Promptvorspann, Freitext nur als bewusste Opt-in-Übermittlung).
     - Fein segmentierte Kombinationen mit weniger als fünf Rückmeldungen werden nicht dargestellt.
   - **Aufbewahrung, Löschung und Datenschutz:**
-    - Für strukturierte Daten, Freitext und lokale Warteschlange gelten die in 12.1 definierten **Höchstfristen** und Cleanup-Verträge: strukturierte Produktfeedbackdaten höchstens 13 Monate, optionale Freitexte höchstens 90 Tage und lokal vorgemerkte Payloads höchstens sieben Tage. Admins können einzelne Rückmeldungen vorzeitig endgültig löschen.
+    - Für strukturierte Daten, Freitext und lokale Warteschlange gelten die in 12.1 definierten **Höchstfristen** und Cleanup-Verträge: strukturierte Produktfeedbackdaten höchstens 13 Monate, optionale Freitexte höchstens 90 Tage und lokal vorgemerkte Payloads höchstens sieben Tage. Admins können einzelne Rückmeldungen vorzeitig endgültig löschen. Die Massenlöschung bis Datum oder vollständig ist **Story 12.4**.
     - Datenschutztexte werden in allen fünf Sprachen ergänzt und unterscheiden Produktfeedback klar von Sessionfeedback, Betriebslogs und MOTD-Interaktionszählern.
     - Es entstehen keine persistenten Nutzerprofile, keine geräteübergreifende Wiedererkennung, kein Drittanbieter-Analytics-Skript und keine Werbe-/Tracking-Cookies.
   - **Barrierefreiheit und UX:**
@@ -2285,3 +2289,81 @@ Beide Stories sind im Repo umgesetzt; kanonische Fachdoku: [`docs/features/produ
     - Dokumentation umfasst Datenfluss, erlaubte Kontext-Whitelist, Aufbewahrung, Admin-Triage, Missbrauchsschutz, Offline-Lifecycle, Abgrenzung der drei Feedbackdomänen und Messdefinitionen.
   - **Abhängigkeiten:** Story 12.1 (`ProductFeedback`-Fundament), Epic 9 (Adminautorisierung und Auditmuster), Story 10.6 (anonyme Aggregationsmuster), Stories 6.2/6.4/6.5 (i18n, Mobile, WCAG), bestehende Hilfe-/Footer-Informationsarchitektur.
   - **Umsetzungsnachweis:** PR [#361](https://github.com/kqc-real/arsnova.eu/pull/361) (inkl. UI-Angleichung an Post-Session-Kartenoptik und Icon `insights` statt MOTD-`campaign` / Session-Bewertung-`feedback`); Fachdoku [`docs/features/product-feedback.md`](docs/features/product-feedback.md).
+
+---
+
+- **Story 12.3 (Admin-Export von Produktfeedback für externe LLM-Auswertung):** ✅ Als Plattform-Admin möchte ich die aktuellen Produktsignale als Markdown-Datei mit einem festen Auswertungsprompt im Vorspann herunterladen können, damit ich sie in einem von mir gewählten LLM auswerten kann, ohne dass arsnova.eu selbst ein Modell aufruft oder Freitext ungefragt an Dritte geht.
+  - **Fachliche Abgrenzung:**
+    - Der Export bleibt in der Domäne `ProductFeedback` und ist ausschließlich über `adminProcedure` erreichbar. Route `/admin` allein verleiht keine Berechtigung.
+    - Es gibt **keinen** serverseitigen Aufruf eines proprietären oder selbstgehosteten LLMs. Das entspricht ADR-0007 (externes Modell beim Nutzenden) und berührt Story 8.9d nicht.
+    - Der Export erscheint nicht in Sessionergebnissen, Session-CSV/PDF oder der Presenteransicht. GitHub-Issue-Entwürfe aus 12.2 bleiben textfrei; 12.3 ist der einzige bewusste Pfad, optionalen Freitext aus der App zu tragen.
+    - Die Datei ist ein Auswertungsartefakt für Betreiber:innen, kein maschinenlesbares Re-Import-Schema und kein Behördenexport aus Story 9.3.
+  - **Einstieg und Dialog:**
+    - Im Admin-Tab **Produktfeedback** gibt es die beschriftete Aktion **„Für LLM exportieren“**, unmittelbar neben **„Aktualisieren“**.
+    - Die Aktion öffnet einen Standard-`MatDialog` mit `dialog-title-header` (Icon `insights`). Sie startet den Export nicht still und sendet nichts an ein Modell.
+    - Der Dialog übernimmt die aktuell gesetzten Postfachfilter (Zeitraum, Quelle, Rolle, Art, Bereich, Auswirkung, App-Version, Locale, Status).
+    - Schalter **„Freiwillige Texte beilegen“** ist standardmäßig aus. Wenn er an ist, erscheint ein sichtbarer Hinweis: Die Datei verlässt arsnova.eu; nur ein Modell der eigenen Institution oder ein bewusst gewählter Dienst soll verwendet werden.
+    - Schalter **„Verworfene Rückmeldungen auslassen“** ist standardmäßig an.
+    - Zwei gleichwertige Aktionen: **„Markdown herunterladen“** und **„Nur Anweisung kopieren“**. Schließen/Escape gibt den Fokus an den Auslöser zurück. Pending sperrt beide Aktionen; Erfolg und Fehler haben eine Statusmeldung.
+  - **Dateiformat und Promptvorspann:**
+    - Eine UTF-8-Markdown-Datei, Dateiname `arsnova-product-feedback_YYYY-MM-DD_YYYY-MM-DD.md` (Filtergrenzen, sonst Exporttag).
+    - Reihenfolge im Dokument: Kurzkopf (Exportzeit, Filter, Fall-/Cluster-/Textzahl, Promptversion) → **Anweisung an das Modell** → **Lexikon** der Enums mit deutschen Labels → **Aggregate** (Post-Session-Statistik und In-App-Triage-KPIs derselben Filter) → **Fälle** als Tabelle mit exportlokalen IDs `PF-001` … → optional **Freitexte**.
+    - Prompt und Datei sind deutsch (Quellsprache, Operatorauswertung). Die Dialog-UI bleibt in `de`, `en`, `fr`, `es`, `it` lokalisiert.
+    - Der Prompt ist ein versioniertes Artefakt (`PRODUCT_FEEDBACK_LLM_EXPORT_PROMPT_VERSION`) mit mindestens: Produktidentität von arsnova.eu; Abgrenzung zu Session-Bewertung und Blitzlicht; Quellen `POST_SESSION` / `IN_APP`; Verbote (keine erfundenen Zitate oder Fälle, keine Re-Identifikation, keine Trends unter fünf Antworten analog `PRODUCT_FEEDBACK_ADMIN_MIN_SEGMENT`); Vorrang von `BLOCKED` / `HARD` / `NO` ohne alleinige Roadmap; Ausgabe als Kurzlage, Themen mit Beleg-IDs, Versionssignale, Datenlücken und Backlog-Schnitte.
+    - „Nur Anweisung kopieren“ liefert denselben Prompt ohne Aggregate und Fälle, damit ein bereits vorhandenes Korpus denselben Vertrag erhält.
+  - **Fallauswahl, Cluster und Kürzung:**
+    - Exportiert werden kanonische Datensätze (`duplicateOfId` leer). Duplikate erscheinen nur als Clustergröße, nicht als eigene Zeilen.
+    - Höchstens 2 000 Filtertreffer werden gelesen, höchstens **300** Fälle in die Datei übernommen. Priorität: zuerst `impact = BLOCKED`, dann vorhandene zulässige Freitexte (nur wenn beigelegt), dann neueste. Überzählige Treffer bleiben in den Aggregaten sichtbar; `truncated: true` steht im Kopf.
+    - Tabellenspalten mindestens: ID, Datum, Quelle, Rolle, Signal (`kind` oder `primaryAnswer`), Bereich, Auswirkung, Gerät, Locale, Phase, Kanal, Clustergröße. Keine Datenbank-UUIDs, keine Invite-/Idempotency-Hashes, keine `errorRequestId`, keine GitHub-URLs.
+  - **Freitext und Datenschutz:**
+    - Default ohne Freitext — analog zum GitHub-Entwurf aus 12.2.
+    - Texte nur bei ausdrücklichem Opt-in und nur für `quarantineStatus` `NONE` oder `CLEARED`. `FLAGGED` wird als `[ausgelassen: Quarantäne]` markiert, Inhalt nie ausgegeben.
+    - Konservative Heuristik entfernt oder ersetzt Texte mit E-Mail, URL oder sechsstelligem Sessioncode-Muster durch `[ausgelassen: möglicher Personenbezug]`. Das Modell wird angewiesen, solche Stellen nicht zu zitieren.
+    - Strukturierte Retention (13 Monate) und Freitext-Retention (90 Tage) bleiben unverändert; gelöschte Texte fehlen im Export.
+  - **API, Audit und Missbrauchsschutz:**
+    - Neue Mutation `admin.productFeedback.exportForLlm` mit Shared-Zod-Vertrag: List-Filter plus `includeMessages` und `excludeDiscarded`; Ausgabe `fileName`, `markdown`, `prompt`, Zähler und `truncated`.
+    - Jeder Export schreibt einen textfreien `ProductFeedbackExportLog`-Eintrag (Zeitpunkt, Admin-Kennung, Filter-JSON, Fall-/Cluster-/Textzahl, `includeMessages`, `truncated`). Keine Prompt- oder Freitextkopie im Audit.
+    - Keine ad-hoc REST-API; keine parallele DTO-Definition in der App.
+  - **Nicht-Ziele:**
+    - Kein serverseitiges Clustering, keine Embeddings, kein automatisches Anlegen von Backlog-Stories oder GitHub-Issues aus der Modellantwort.
+    - Kein CSV/JSON als Klebe-Pfad (optionaler maschinenlesbarer Anhang ist keine DoD-Pflicht).
+    - Kein Bring-your-own-Endpoint und kein stiller Fallback auf eine öffentliche Modell-API.
+  - **Barrierefreiheit und UX:**
+    - Dialog: semantische Überschrift, native Checkboxen und Buttons, sichtbarer Fokus, Escape/Schließen, Fokusrückgabe, `aria-live="polite"` für Pending/Erfolg/Fehler.
+    - Touch-Ziele mindestens 44 × 44 CSS-Pixel; 320-px-Reflow; Hochkontrast und `prefers-reduced-motion`; Bedeutung nicht allein über Farbe oder Icon.
+  - **Tests und Dokumentation:**
+    - Shared-Schema-Tests für Pflichtfelder, Defaults (`includeMessages = false`) und Längengrenzen.
+    - Backendtests: Admin-Grenze; Default ohne Freitext; Opt-in-Texte; `FLAGGED` und heuristisch auffällige Texte ausgelassen; keine UUIDs/Hashes/`errorRequestId` im Markdown; Prompt steht vor den Daten und enthält n≥5 sowie die Domänenabgrenzung; Kürzung auf 300 bei Priorität `BLOCKED`; Duplikate nur als Cluster; Audit ohne Textkopie; unautorisierte Aufrufe abgelehnt.
+    - Frontendtests: Dialog öffnen mit aktuellen Filtern, Default-Schalter, Warnung bei Text-Opt-in, Download und Prompt-Kopie, Fokus nach Schließen, lokalisierte Labels.
+    - Fachdoku, Admin-Flow, Glossar, Routen-/Story-Zuordnung, Funktionsübersicht und Datenschutzhinweise (alle fünf Sprachen) beschreiben den Opt-in-Charakter der Textübermittlung.
+  - **Abhängigkeiten:** Stories 12.1 und 12.2 (`ProductFeedback`-Verträge, Admin-Triage, Aggregate), Epic 9 (`adminProcedure`, Auditmuster), ADR-0007 (externes LLM, Prompt als Artefakt), Stories 6.2/6.4/6.5 (i18n, Mobile, WCAG).
+  - **Umsetzungsnachweis:** PR [#365](https://github.com/kqc-real/arsnova.eu/pull/365); Fachdoku [`docs/features/product-feedback.md`](docs/features/product-feedback.md); tRPC `admin.productFeedback.exportForLlm`.
+
+---
+
+- **Story 12.4 (Admin-Massenlöschung von Produktfeedback bis Datum oder vollständig):** ✅ Als Plattform-Admin möchte ich gespeicherte Produktfeedback-Datensätze bis einschließlich eines Datums oder vollständig endgültig löschen können, damit ich Aufbewahrungs- und Löschpflichten vor Ablauf der automatischen Retention erfüllen kann.
+  - **Fachliche Abgrenzung:**
+    - Die Aktion bleibt in der Domäne `ProductFeedback` und ist ausschließlich über `adminProcedure` erreichbar. Route `/admin` allein verleiht keine Berechtigung.
+    - Gelöscht werden `ProductFeedback`-Zeilen und vollständig in der Datumsgrenze liegende UTC-Tagesbucket des Einladungszählers (`ProductFeedbackInviteLedger`). Invite-Jobs, LLM-Exportprotokolle und bestehende Triage-Auditzeilen bleiben erhalten. Die Einzelfalllöschung aus 12.2 lässt das Ledger unberührt.
+    - Die Einzelfalllöschung aus 12.2 bleibt parallel bestehen. Automatische Retention (13 Monate strukturiert, 90 Tage Freitext) bleibt unverändert.
+    - Es gibt kein Undo und keine Wiederherstellung.
+  - **Einstieg und Dialog:**
+    - Im Admin-Tab **Produktfeedback** gibt es die beschriftete Aktion **„Rückmeldungen löschen“**.
+    - Die Aktion öffnet einen Standard-`MatDialog` mit `dialog-title-header` und Warn-Icon. Sie startet die Löschung nicht still.
+    - Zwei Umfänge: **„Bis zu einem Datum (einschließlich)“** mit Datepicker (lokaler Kalendertag, höchstens heute) oder **„Alle Rückmeldungen“**.
+    - Vor der Ausführung wird die betroffene Anzahl angezeigt. Die Sicherheitsphrase `RUECKMELDUNGEN LOESCHEN` wird client- und serverseitig geprüft. Die Mutation sendet die zuletzt gezählte Anzahl mit; bei Abweichung bricht sie ab.
+    - Schließen/Escape gibt den Fokus an den Auslöser zurück. Pending sperrt die Bestätigung; Erfolg schließt den Dialog und aktualisiert Postfach und Statistik.
+  - **API, Audit und Missbrauchsschutz:**
+    - Query `admin.productFeedback.countForPurge` und Mutation `admin.productFeedback.purge` mit Shared-Zod-Vertrag (`UNTIL` inkl. `until` als ISO-Datetime bzw. `ALL`).
+    - Jede Ausführung schreibt einen textfreien `ProductFeedbackPurgeLog`-Eintrag (Zeitpunkt, Admin-Kennung, Umfang, optionale Datumsgrenze, gelöschte Anzahl). Keine Feedback- oder Freitextkopie im Audit.
+    - Keine ad-hoc REST-API; keine parallele DTO-Definition in der App.
+  - **Barrierefreiheit und UX:**
+    - Dialog: semantische Überschrift, native Radios, Datepicker, Textfeld und Buttons, sichtbarer Fokus, Escape/Schließen, Fokusrückgabe, `aria-live="polite"` für Zählung/Pending/Fehler.
+    - Touch-Ziele mindestens 44 × 44 CSS-Pixel; 320-px-Reflow; Hochkontrast und `prefers-reduced-motion`; Bedeutung nicht allein über Farbe oder Icon.
+  - **Tests und Dokumentation:**
+    - Shared-Schema-Tests für `UNTIL`/`ALL`, strikte Zusatzfelder und Pflicht-Phrase.
+    - Backendtests: Admin-Grenze; Löschung bis Datum inkl. Einladungszähler; vollständige Löschung inkl. Ledger; Einzelfalllöschung ohne Ledger; falsche Phrase; Anzahlabweichung; Audit ohne Textkopie.
+    - Frontendtests: Dialog mit Datepicker-Default, Phrase-Sperre, Scope `ALL` ohne Datum, Panel öffnet den Dialog mit Filterdatum „bis“.
+    - Fachdoku, Admin-Flow, Glossar, Routen-/Story-Zuordnung, Funktionsübersicht und Datenschutzhinweise (alle fünf Sprachen) beschreiben die vorzeitige Löschung.
+  - **Abhängigkeiten:** Stories 12.1 und 12.2 (`ProductFeedback`-Verträge, Admin-Triage, Einzelfalllöschung), Epic 9 (`adminProcedure`, Audit- und Phrase-Muster), Stories 6.2/6.4/6.5 (i18n, Mobile, WCAG).
+  - **Umsetzungsnachweis:** PR [#365](https://github.com/kqc-real/arsnova.eu/pull/365); Fachdoku [`docs/features/product-feedback.md`](docs/features/product-feedback.md); tRPC `admin.productFeedback.purge`.

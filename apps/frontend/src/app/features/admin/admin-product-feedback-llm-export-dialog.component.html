@@ -1,0 +1,78 @@
+<h2 mat-dialog-title class="dialog-title-header">
+  <span class="dialog-title-header__icon" aria-hidden="true">
+    <mat-icon>insights</mat-icon>
+  </span>
+  <span class="dialog-title-header__copy">
+    <span class="dialog-title-header__heading" i18n="@@admin.productFeedback.exportLlmTitle"
+      >Produktfeedback für ein LLM exportieren</span
+    >
+  </span>
+</h2>
+
+<mat-dialog-content class="admin-pf-llm-export__content">
+  <p i18n="@@admin.productFeedback.exportLlmIntro">
+    Du erhältst eine Markdown-Datei mit Auswertungsprompt, Kennzahlen und Fällen. arsnova.eu ruft
+    kein Modell auf; du fügst die Datei in einem Dienst deiner Wahl ein.
+  </p>
+
+  <mat-checkbox
+    [(ngModel)]="includeMessages"
+    name="pfLlmIncludeMessages"
+    i18n="@@admin.productFeedback.exportLlmIncludeMessages"
+  >
+    Freiwillige Texte beilegen
+  </mat-checkbox>
+
+  @if (includeMessages) {
+    <p
+      class="admin-pf-llm-export__warn"
+      role="status"
+      i18n="@@admin.productFeedback.exportLlmIncludeHint"
+    >
+      Die Datei verlässt arsnova.eu. Nutze ein Modell deiner Institution oder entferne die Texte
+      vorher.
+    </p>
+  }
+
+  <mat-checkbox
+    [(ngModel)]="excludeDiscarded"
+    name="pfLlmExcludeDiscarded"
+    i18n="@@admin.productFeedback.exportLlmExcludeDiscarded"
+  >
+    Verworfene Rückmeldungen auslassen
+  </mat-checkbox>
+
+  @if (error(); as err) {
+    <p class="admin-pf-llm-export__error" role="alert">{{ err }}</p>
+  }
+  @if (status(); as statusText) {
+    <p class="admin-pf-llm-export__status" aria-live="polite">{{ statusText }}</p>
+  }
+</mat-dialog-content>
+
+<mat-dialog-actions align="end" class="admin-pf-llm-export__actions">
+  <button
+    matButton="text"
+    type="button"
+    (click)="close()"
+    [disabled]="busy()"
+    i18n="@@admin.productFeedback.exportLlmClose"
+  >
+    Schließen
+  </button>
+  <button
+    matButton="tonal"
+    type="button"
+    (click)="copyPrompt()"
+    [disabled]="busy()"
+    i18n="@@admin.productFeedback.exportLlmCopyPrompt"
+  >
+    Nur Anweisung kopieren
+  </button>
+  <button matButton="filled" type="button" (click)="downloadMarkdown()" [disabled]="busy()">
+    @if (busy()) {
+      <mat-spinner diameter="18" />
+    }
+    <span i18n="@@admin.productFeedback.exportLlmDownload">Markdown herunterladen</span>
+  </button>
+</mat-dialog-actions>

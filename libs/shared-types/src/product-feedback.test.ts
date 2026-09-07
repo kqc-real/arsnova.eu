@@ -1,7 +1,11 @@
 import { describe, expect, it } from 'vitest';
 import {
   AdminProductFeedbackLinkDuplicateInputSchema,
+  AdminProductFeedbackLlmExportInputSchema,
+  AdminProductFeedbackPurgeInputSchema,
+  AdminProductFeedbackPurgePreviewInputSchema,
   PRODUCT_FEEDBACK_IN_APP_MESSAGE_MAX,
+  PRODUCT_FEEDBACK_PURGE_CONFIRMATION,
   ProductFeedbackFollowUpInputSchema,
   ProductFeedbackInAppFollowUpInputSchema,
   ProductFeedbackInAppSubmitInputSchema,
@@ -141,6 +145,50 @@ describe('ProductFeedback contracts', () => {
         message: 'Kurze Ergänzung',
         idempotencyKey: '33333333-3333-4333-8333-333333333333',
         area: 'TECH',
+      }).success,
+    ).toBe(false);
+  });
+
+  it('unterscheidet Purge bis Datum und vollständig und verlangt die Phrase', () => {
+    expect(
+      AdminProductFeedbackPurgePreviewInputSchema.safeParse({
+        scope: 'UNTIL',
+        until: '2026-09-06T21:59:59.999Z',
+      }).success,
+    ).toBe(true);
+    expect(AdminProductFeedbackPurgePreviewInputSchema.safeParse({ scope: 'ALL' }).success).toBe(
+      true,
+    );
+    expect(
+      AdminProductFeedbackPurgePreviewInputSchema.safeParse({
+        scope: 'ALL',
+        until: '2026-09-06T21:59:59.999Z',
+      }).success,
+    ).toBe(false);
+    expect(
+      AdminProductFeedbackPurgeInputSchema.safeParse({
+        scope: 'ALL',
+        expectedCount: 12,
+        confirmationText: PRODUCT_FEEDBACK_PURGE_CONFIRMATION,
+      }).success,
+    ).toBe(true);
+    expect(
+      AdminProductFeedbackPurgeInputSchema.safeParse({
+        scope: 'UNTIL',
+        until: '2026-09-06T21:59:59.999Z',
+        expectedCount: 12,
+        confirmationText: 'falsch',
+      }).success,
+    ).toBe(true);
+  });
+
+  it('setzt LLM-Export-Defaults ohne Freitext und ohne Cursor', () => {
+    const parsed = AdminProductFeedbackLlmExportInputSchema.parse({});
+    expect(parsed.includeMessages).toBe(false);
+    expect(parsed.excludeDiscarded).toBe(true);
+    expect(
+      AdminProductFeedbackLlmExportInputSchema.safeParse({
+        cursor: '11111111-1111-4111-8111-111111111111',
       }).success,
     ).toBe(false);
   });

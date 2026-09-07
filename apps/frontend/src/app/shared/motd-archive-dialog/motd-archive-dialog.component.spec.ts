@@ -379,6 +379,52 @@ describe('MotdArchiveDialogComponent', () => {
     expect(body!.hasAttribute('inert')).toBe(false);
   });
 
+  it('wiederholt den Laschentitel nicht im geöffneten Markdown-Rumpf', async () => {
+    getHeaderStateQuery.mockResolvedValue({
+      ...defaultHeaderState,
+      hasArchiveEntries: true,
+      archiveCount: 1,
+      archiveMaxCursor: {
+        startsAtIso: '2026-01-10T10:00:00.000Z',
+        motdId: 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa',
+        contentVersion: 1,
+      },
+      archiveUnreadCount: 1,
+    });
+    listArchiveQuery.mockResolvedValue({
+      items: [
+        {
+          id: 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa',
+          contentVersion: 1,
+          markdown: '# What works well\n\nWe review every anonymous submission.',
+          startsAt: '2026-01-10T10:00:00.000Z',
+          endsAt: '2026-01-15T18:00:00.000Z',
+        },
+      ],
+      nextCursor: null,
+    });
+    configureDialog();
+    const fixture = TestBed.createComponent(MotdArchiveDialogComponent);
+    fixture.detectChanges();
+    await vi.waitFor(() => expect(fixture.componentInstance.loading()).toBe(false));
+    fixture.detectChanges();
+
+    const root = fixture.nativeElement as HTMLElement;
+    const header = root.querySelector<HTMLElement>('.mat-expansion-panel-header');
+    const title = root.querySelector('.motd-archive__panel-title-text');
+    const body = root.querySelector('.motd-archive__body');
+    expect(header).toBeTruthy();
+    expect(title?.textContent).toContain('What works well');
+    header!.click();
+    fixture.detectChanges();
+    await fixture.whenStable();
+    fixture.detectChanges();
+
+    expect(body?.querySelector('h1')).toBeNull();
+    expect(body?.textContent).toContain('We review every anonymous submission');
+    expect(body?.textContent).not.toMatch(/^\s*What works well/);
+  });
+
   it('Klick auf den Lesestatus klappt das Panel nicht um', async () => {
     getHeaderStateQuery.mockResolvedValue({
       ...defaultHeaderState,
@@ -435,8 +481,12 @@ describe('MotdArchiveDialogComponent', () => {
     );
 
     expect(styles).not.toContain('::ng-deep');
+    expect(styles).not.toContain(':deep(');
     expect(styles).toMatch(
       /\.motd-archive__panel\.mat-expansion-panel \.mat-expansion-panel-header\s*\{/,
+    );
+    expect(styles).toMatch(
+      /\.motd-archive__panel\.mat-expanded \.motd-archive__panel-title-text\s*\{/,
     );
     expect(styles).toMatch(
       /\.motd-archive__mark-unread\.mat-mdc-button\s*\{[^}]*--mat-sys-on-surface-variant/s,
