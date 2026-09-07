@@ -14,6 +14,9 @@ describe('Host-Pairing Oberflächengrenzen (Story 2.10)', () => {
     expect(hostTs).toContain('startPresenterView');
     expect(hostTs).toContain('openHostPairingDialog');
     expect(hostTs).toContain('showHostPairingAction');
+    expect(hostTs).toContain('markHostAccessRevoked');
+    expect(hostTs).toContain('setOutputEnabled');
+    expect(hostHtml).toContain('host-access-revoked');
   });
 
   it('hält Presenter frei von Pairing-Secrets und Freigabe-Aktionen', () => {
@@ -30,6 +33,11 @@ describe('Host-Pairing Oberflächengrenzen (Story 2.10)', () => {
     expect(presentTs).not.toContain('pairingSecret');
     expect(presentTs).not.toContain('PresentationStartDialog');
     expect(presentHtml).not.toContain('presentation-start-connect');
+    expect(presentTs).not.toContain('revokePairedHost');
+    expect(presentHtml).not.toContain('host-pairing-revoke');
+    expect(presentHtml).not.toContain('Verbindung trennen');
+    const pairingTs = readFileSync(root('host-pairing/host-pairing-dialog.component.ts'), 'utf8');
+    expect(pairingTs).toContain('revokePairedHost');
   });
 
   it('begrenzt Overlay-Anpassungen auf die Pairing-panelClass', () => {

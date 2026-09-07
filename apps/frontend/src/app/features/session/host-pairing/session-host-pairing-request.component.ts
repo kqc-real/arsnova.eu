@@ -3,7 +3,11 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { MatButton } from '@angular/material/button';
 import { MatCard, MatCardContent } from '@angular/material/card';
 import { MatProgressBar } from '@angular/material/progress-bar';
-import { normalizeHostSessionCode, setHostToken } from '../../../core/host-session-token';
+import {
+  normalizeHostSessionCode,
+  setHostSessionRole,
+  setHostToken,
+} from '../../../core/host-session-token';
 import { localizeKnownServerError } from '../../../core/localize-known-server-message';
 import { localizeCommands } from '../../../core/locale-router';
 import { setPendingHostSessionCode, trpc } from '../../../core/trpc.client';
@@ -129,6 +133,7 @@ export class SessionHostPairingRequestComponent implements OnInit, OnDestroy {
       if (result.token?.pairedHostToken) {
         this.stopPolling();
         setHostToken(this.code, result.token.pairedHostToken);
+        setHostSessionRole(this.code, 'PAIRED_HOST');
         setPendingHostSessionCode(this.code);
         this.view.set('connected');
         await this.router.navigate(localizeCommands(['session', this.code, 'host']));

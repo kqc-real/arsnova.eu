@@ -27433,6 +27433,62 @@
         <source>Smartphone verbunden. Weiteres Gerät verbinden</source>
         <target>Smartphone connecté. Connecter un autre appareil</target>
       </trans-unit>
+      <trans-unit id="hostPairing.approveOnThisScreen" datatype="html">
+        <source>Eine Anfrage bestätigst du auf diesem Bildschirm, nicht auf der Präsentation.</source>
+        <target>Tu confirmes une demande sur cet écran, pas sur la présentation.</target>
+      </trans-unit>
+      <trans-unit id="hostPairing.devicesTitle" datatype="html">
+        <source>Verbundene Geräte</source>
+        <target>Appareils connectés</target>
+      </trans-unit>
+      <trans-unit id="hostPairing.deviceFallback" datatype="html">
+        <source>Weiteres Host-Gerät</source>
+        <target>Autre appareil hôte</target>
+      </trans-unit>
+      <trans-unit id="hostPairing.deviceStatus" datatype="html">
+        <source>Verbunden</source>
+        <target>Connecté</target>
+      </trans-unit>
+      <trans-unit id="hostPairing.revoke" datatype="html">
+        <source>Verbindung trennen</source>
+        <target>Déconnecter</target>
+      </trans-unit>
+      <trans-unit id="hostPairing.revokedLive" datatype="html">
+        <source>Verbindung getrennt</source>
+        <target>Connexion coupée</target>
+      </trans-unit>
+      <trans-unit id="hostPairing.capReachedHint" datatype="html">
+        <source>Es sind bereits drei weitere Geräte verbunden. Trenne zuerst eine Verbindung.</source>
+        <target>Trois autres appareils sont déjà connectés. Déconnecte d’abord une liaison.</target>
+      </trans-unit>
+      <trans-unit id="hostPairing.addAnother" datatype="html">
+        <source>Weiteres Host-Gerät verbinden</source>
+        <target>Connecter un autre appareil hôte</target>
+      </trans-unit>
+      <trans-unit id="hostPairing.noDevices" datatype="html">
+        <source>Kein weiteres Host-Gerät verbunden.</source>
+        <target>Aucun autre appareil hôte n’est connecté.</target>
+      </trans-unit>
+      <trans-unit id="hostPairing.pendingOpenHint" datatype="html">
+        <source>Es wartet bereits eine Verbindungsanfrage.</source>
+        <target>Une demande de connexion est déjà en attente.</target>
+      </trans-unit>
+      <trans-unit id="hostAccess.revokedTitle" datatype="html">
+        <source>Die Host-Verbindung wurde beendet.</source>
+        <target>La connexion hôte est terminée.</target>
+      </trans-unit>
+      <trans-unit id="hostAccess.revokedHint" datatype="html">
+        <source>Du kannst diese Veranstaltung von diesem Gerät nicht mehr steuern.</source>
+        <target>Tu ne peux plus animer cette séance depuis cet appareil.</target>
+      </trans-unit>
+      <trans-unit id="presentationStart.reviewRequest" datatype="html">
+        <source>Anfrage prüfen</source>
+        <target>Voir la demande</target>
+      </trans-unit>
+      <trans-unit id="presentationStart.manageDevices" datatype="html">
+        <source>Geräte verwalten</source>
+        <target>Gérer les appareils</target>
+      </trans-unit>
     </body>
   </file>
 </xliff>

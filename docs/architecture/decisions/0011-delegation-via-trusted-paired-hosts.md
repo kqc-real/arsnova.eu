@@ -61,7 +61,7 @@ Die Spezifikation in `Backlog.md` Story 2.10 legt zusätzlich fest:
 
 ## Umsetzungsstand
 
-Story 2.10 Slice 1–3 sind umgesetzt: Contracts/Caps, Request-and-approve Happy Path und der gemeinsame Dialog „Präsentation starten“ (Sichtbarkeit default projiziert, kein silent grant, adaptive „Smartphone verbunden“, Co-Host-Hinweis). Geräteverwaltung-UI und Lastnachweis folgen in späteren Slices. Es gibt weiterhin keine eigenständige Moderatorrolle. Pairing-Freigabe bleibt auf dem privaten Host-Client.
+Story 2.10 Slice 1–4 sind umgesetzt: Contracts/Caps, Request-and-approve Happy Path, Dialog „Präsentation starten“ (Sichtbarkeit default projiziert, kein silent grant) sowie Geräteverwaltung und Widerruf für den Original-Host. Widerruf wirkt sofort auf HTTP und bestehende Host-WebSockets; das widerrufene Gerät landet in einem sicheren Zustand ohne Host-Realtime. Paired Hosts nutzen dieselbe `/session/:code/host`-Shell mit Live-Primäraktionen und stummem Audio-Default. Lastnachweis (500er) und Thinking-Aloud-Usability folgen nicht in Slice 4. Es gibt weiterhin keine eigenständige Moderatorrolle. Pairing-Freigabe und Geräteverwaltung bleiben auf dem privaten Host-Client, nie auf der Presenter-Route.
 
 ---
 

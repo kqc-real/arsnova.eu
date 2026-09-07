@@ -295,7 +295,7 @@ In der Lobby sind verfügbar:
 - Anzeige aktiver Teilnehmer bzw. Presence
 - Umschalten in einen immersiven Hostmodus
 - Vollbildunterstützung (expliziter Schalter; beim Session-Start auf Android-Chrome kein automatisches Vollbild, weil Chrome sonst einen Systemhinweis über die Bedienung legt)
-- **Presenter-Ansicht** öffnet zuerst den Dialog **Präsentation starten**: Primäraktion **Präsentation im Vollbild starten**; optional **Mit Smartphone steuern** / **Smartphone verbinden**; Sichtbarkeit default projiziert, privat nur Komfort ohne automatische Freigabe; nach Kopplung **Smartphone verbunden**; Co-Host über **Weiteres Host-Gerät verbinden**. Pairing blockiert den Start nicht. QR, Freigabe und Secrets bleiben auf `/host`.
+- **Presenter-Ansicht** öffnet zuerst den Dialog **Präsentation starten**: Primäraktion **Präsentation im Vollbild starten**; optional **Mit Smartphone steuern** / **Smartphone verbinden**; Sichtbarkeit default projiziert, privat nur Komfort ohne automatische Freigabe; nach Kopplung **Smartphone verbunden**; Co-Host über **Weiteres Host-Gerät verbinden**. Der Original-Host verwaltet Geräte kompakt (Label, Status, **Verbindung trennen**); Widerruf beendet Host-Rechte sofort. Pairing blockiert den Start nicht. QR, Freigabe, Geräteverwaltung und Secrets bleiben auf `/host`, nie auf `/present`.
 
 #### Quiz-Steuerung
 
@@ -1017,7 +1017,7 @@ Dazu gehören laut Root-Dokumentation insbesondere:
   Hochkontrast und PDF-Readern; technische Befunde und automatisierte Gates
   sind umgesetzt
 - Confidence-Erweiterungen und weitere Auswertungsvarianten
-- Paired Hosts: Contracts, Request-and-approve und Dialog „Präsentation starten“ sind umgesetzt; volle Geräteverwaltung-UI sowie Last-/Usability-Abnahme folgen
+- Paired Hosts: Contracts, Request-and-approve, Dialog „Präsentation starten“, Geräteverwaltung und sofortiger Widerruf (HTTP und Host-WebSockets) sind umgesetzt; Lastnachweis und Thinking-Aloud-Usability folgen nicht in Slice 4
 - weitere Word-Cloud-Ausbaustufen
 - Härtung einzelner Sync-/Komplexitätsbereiche
 

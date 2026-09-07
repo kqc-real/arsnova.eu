@@ -8,7 +8,35 @@
   [class.session-host--immersive]="isImmersiveMode()"
   [class.session-host--word-cloud-overlay]="freetextWordCloudMaximized() || qaWordCloudDialogOpen()"
 >
-  @if (session(); as s) {
+  @if (hostAccessRevoked()) {
+    <div
+      class="session-host__revoked"
+      role="alertdialog"
+      aria-labelledby="host-revoked-title"
+      aria-describedby="host-revoked-text"
+      data-testid="host-access-revoked"
+    >
+      <h2
+        id="host-revoked-title"
+        class="session-host__revoked-title"
+        i18n="@@hostAccess.revokedTitle"
+      >
+        Die Host-Verbindung wurde beendet.
+      </h2>
+      <p id="host-revoked-text" class="session-host__revoked-text" i18n="@@hostAccess.revokedHint">
+        Du kannst diese Veranstaltung von diesem Gerät nicht mehr steuern.
+      </p>
+      <button
+        mat-flat-button
+        type="button"
+        data-testid="host-access-revoked-home"
+        (click)="goHomeAfterHostRevoke()"
+        i18n="@@hostPairing.goHome"
+      >
+        Zur Startseite
+      </button>
+    </div>
+  } @else if (session(); as s) {
     @if (hostSteeringCallout(); as steer) {
       <div
         class="session-host__steering-callout"
@@ -190,19 +218,21 @@
               </button>
             }
 
-            <button
-              mat-button
-              type="button"
-              class="session-host__view-toggle session-host__view-toggle--labeled session-host__view-toggle--connect"
-              data-testid="connect-smartphone"
-              (click)="openHostPairingDialog()"
-              [attr.aria-label]="hostPairingToolbarAria()"
-              [matTooltip]="hostPairingToolbarLabel()"
-              matTooltipTouchGestures="off"
-            >
-              <mat-icon aria-hidden="true">smartphone</mat-icon>
-              <span class="session-host__view-toggle-label">{{ hostPairingToolbarLabel() }}</span>
-            </button>
+            @if (showHostPairingAction()) {
+              <button
+                mat-button
+                type="button"
+                class="session-host__view-toggle session-host__view-toggle--labeled session-host__view-toggle--connect"
+                data-testid="connect-smartphone"
+                (click)="openHostPairingDialog()"
+                [attr.aria-label]="hostPairingToolbarAria()"
+                [matTooltip]="hostPairingToolbarLabel()"
+                matTooltipTouchGestures="off"
+              >
+                <mat-icon aria-hidden="true">smartphone</mat-icon>
+                <span class="session-host__view-toggle-label">{{ hostPairingToolbarLabel() }}</span>
+              </button>
+            }
 
             @if (isFullscreenSupported()) {
               <button
@@ -476,21 +506,23 @@
                       </button>
                     }
 
-                    <button
-                      mat-button
-                      type="button"
-                      class="session-host__view-toggle session-host__view-toggle--labeled session-host__view-toggle--connect"
-                      data-testid="connect-smartphone"
-                      (click)="openHostPairingDialog()"
-                      [attr.aria-label]="hostPairingToolbarAria()"
-                      [matTooltip]="hostPairingToolbarLabel()"
-                      matTooltipTouchGestures="off"
-                    >
-                      <mat-icon aria-hidden="true">smartphone</mat-icon>
-                      <span class="session-host__view-toggle-label">{{
-                        hostPairingToolbarLabel()
-                      }}</span>
-                    </button>
+                    @if (showHostPairingAction()) {
+                      <button
+                        mat-button
+                        type="button"
+                        class="session-host__view-toggle session-host__view-toggle--labeled session-host__view-toggle--connect"
+                        data-testid="connect-smartphone"
+                        (click)="openHostPairingDialog()"
+                        [attr.aria-label]="hostPairingToolbarAria()"
+                        [matTooltip]="hostPairingToolbarLabel()"
+                        matTooltipTouchGestures="off"
+                      >
+                        <mat-icon aria-hidden="true">smartphone</mat-icon>
+                        <span class="session-host__view-toggle-label">{{
+                          hostPairingToolbarLabel()
+                        }}</span>
+                      </button>
+                    }
 
                     @if (isFullscreenSupported()) {
                       <button

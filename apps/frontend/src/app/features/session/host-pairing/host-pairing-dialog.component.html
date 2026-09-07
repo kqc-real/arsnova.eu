@@ -10,6 +10,63 @@
 </h2>
 
 <mat-dialog-content class="host-pairing-dialog">
+  <p class="host-pairing-dialog__hint" i18n="@@hostPairing.approveOnThisScreen">
+    Eine Anfrage bestätigst du auf diesem Bildschirm, nicht auf der Präsentation.
+  </p>
+
+  @if (devices().length > 0) {
+    <section class="host-pairing-dialog__manage" aria-labelledby="host-pairing-devices-title">
+      <h3
+        id="host-pairing-devices-title"
+        class="host-pairing-dialog__subtitle"
+        i18n="@@hostPairing.devicesTitle"
+      >
+        Verbundene Geräte
+      </h3>
+      <ul class="host-pairing-dialog__devices">
+        @for (device of devices(); track device.tokenId) {
+          <li class="host-pairing-dialog__device" data-testid="host-pairing-device">
+            <div class="host-pairing-dialog__device-copy">
+              <p class="host-pairing-dialog__device-label">{{ deviceLabel(device) }}</p>
+              <p class="host-pairing-dialog__device-meta">
+                <span i18n="@@hostPairing.deviceStatus">Verbunden</span>
+                @if (deviceSince(device.pairedAt); as since) {
+                  <span> · {{ since }}</span>
+                }
+              </p>
+            </div>
+            <button
+              mat-stroked-button
+              type="button"
+              class="host-pairing-dialog__revoke"
+              [disabled]="busy()"
+              (click)="revoke(device)"
+              data-testid="host-pairing-revoke"
+              i18n="@@hostPairing.revoke"
+            >
+              Verbindung trennen
+            </button>
+          </li>
+        }
+      </ul>
+    </section>
+  }
+
+  @if (capReached()) {
+    <p
+      class="host-pairing-dialog__hint"
+      role="status"
+      data-testid="host-pairing-cap"
+      i18n="@@hostPairing.capReachedHint"
+    >
+      Es sind bereits drei weitere Geräte verbunden. Trenne zuerst eine Verbindung.
+    </p>
+  }
+
+  @if (announcement(); as live) {
+    <p class="sr-only" role="status" aria-live="polite">{{ live }}</p>
+  }
+
   @if (view() === 'loading') {
     <mat-progress-bar mode="indeterminate" />
     <p class="host-pairing-dialog__hint" i18n="@@hostPairing.preparing">
@@ -51,20 +108,30 @@
     <p class="host-pairing-dialog__hint" i18n="@@hostPairing.pendingHint">
       Das Gerät kann danach Fragen steuern, Ergebnisse anzeigen und die Veranstaltung beenden.
     </p>
-  } @else if (view() === 'connected') {
-    <p
-      class="host-pairing-dialog__status"
-      role="status"
-      aria-live="polite"
-      i18n="@@hostPairing.connected"
-    >
-      Smartphone verbunden
+  } @else if (view() === 'manage') {
+    @if (devices().length > 0) {
+      <p
+        class="host-pairing-dialog__status"
+        role="status"
+        aria-live="polite"
+        i18n="@@hostPairing.connected"
+      >
+        Smartphone verbunden
+      </p>
+      <p class="host-pairing-dialog__hint" i18n="@@hostPairing.connectedHint">
+        Du kannst die Veranstaltung jetzt auch vom Smartphone steuern.
+      </p>
+    } @else {
+      <p class="host-pairing-dialog__hint" i18n="@@hostPairing.noDevices">
+        Kein weiteres Host-Gerät verbunden.
+      </p>
+    }
+  }
+
+  @if (error()) {
+    <p class="host-pairing-dialog__error" role="alert" data-testid="host-pairing-error">
+      {{ error() }}
     </p>
-    <p class="host-pairing-dialog__hint" i18n="@@hostPairing.connectedHint">
-      Du kannst die Veranstaltung jetzt auch vom Smartphone steuern.
-    </p>
-  } @else if (error()) {
-    <p class="host-pairing-dialog__error" role="alert">{{ error() }}</p>
   }
 </mat-dialog-content>
 
@@ -96,6 +163,18 @@
       Als Host zulassen
     </button>
   }
+  @if (view() === 'manage' && canAddAnother()) {
+    <button
+      mat-button
+      type="button"
+      [disabled]="busy()"
+      (click)="startInvite()"
+      data-testid="host-pairing-add-another"
+      i18n="@@hostPairing.addAnother"
+    >
+      Weiteres Host-Gerät verbinden
+    </button>
+  }
   @if (view() === 'error') {
     <button mat-button type="button" (click)="startInvite()" i18n="@@hostPairing.retry">
       Neu versuchen
@@ -104,7 +183,7 @@
   <button
     mat-button
     type="button"
-    [mat-dialog-close]="{ connected: view() === 'connected' }"
+    [mat-dialog-close]="{ connected: devices().length > 0 }"
     i18n="@@hostPairing.close"
   >
     Schließen

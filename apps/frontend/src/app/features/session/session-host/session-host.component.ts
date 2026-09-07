@@ -51,7 +51,11 @@ import { MatTooltip } from '@angular/material/tooltip';
 import { firstValueFrom } from 'rxjs';
 import type { Unsubscribable } from '@trpc/server/observable';
 import { clearFeedbackHostToken } from '../../../core/feedback-host-token';
-import { clearHostToken } from '../../../core/host-session-token';
+import { clearHostToken, getHostSessionRole, hasHostToken } from '../../../core/host-session-token';
+import {
+  isHostAccessRevokedError,
+  isOriginalHostForbiddenError,
+} from '../host-pairing/host-access-error';
 import { SessionTokenStorageService } from '../session-present/session-token-storage.service';
 import {
   getEffectiveLocale,
@@ -1429,9 +1433,16 @@ export class SessionHostComponent implements OnInit, OnDestroy {
     () => this.isRunningSession() || this.isQuizLobbyImmersive(),
   );
   readonly showHostPairingAction = computed(
-    () => this.session() !== null && this.effectiveStatus() !== 'FINISHED',
+    () =>
+      this.session() !== null &&
+      this.effectiveStatus() !== 'FINISHED' &&
+      this.canManagePairedHosts() &&
+      !this.hostAccessRevoked(),
   );
   readonly pairedHostConnected = signal(false);
+  readonly canManagePairedHosts = signal(getHostSessionRole(this.code) !== 'PAIRED_HOST');
+  readonly isPairedHostClient = signal(getHostSessionRole(this.code) === 'PAIRED_HOST');
+  readonly hostAccessRevoked = signal(false);
   /** Quiz-Steuerung in der Aktionsleiste nur im Quiz-Kanal, nicht in Q&A oder Blitzlicht. */
   readonly showQuizAnchorActions = computed(() => {
     if (this.isQaSession() || !this.channels().quiz) {
@@ -3901,6 +3912,9 @@ export class SessionHostComponent implements OnInit, OnDestroy {
 
   async ngOnInit(): Promise<void> {
     if (this.code.length !== 6) return;
+    if (this.isPairedHostClient()) {
+      this.sound.setOutputEnabled(false);
+    }
     if (typeof document !== 'undefined') {
       document.addEventListener('visibilitychange', this.onVisibilityChange);
     }
@@ -3953,7 +3967,7 @@ export class SessionHostComponent implements OnInit, OnDestroy {
   }
 
   private ensureParticipantSubscription(): void {
-    if (!this.code || this.participantSub) {
+    if (!this.code || this.participantSub || this.hostAccessRevoked()) {
       return;
     }
     this.participantSub = trpc.session.onParticipantJoined.subscribe(
@@ -3962,9 +3976,10 @@ export class SessionHostComponent implements OnInit, OnDestroy {
         onData: (data) => {
           this.updateParticipantsPayload(data);
         },
-        onError: () => {
+        onError: (error) => {
           this.participantSub?.unsubscribe();
           this.participantSub = null;
+          if (this.consumeHostUnauthorized(error)) return;
           this.burstHostFallbackAfterWsGap();
         },
       },
@@ -3972,7 +3987,7 @@ export class SessionHostComponent implements OnInit, OnDestroy {
   }
 
   private ensureStatusSubscription(): void {
-    if (!this.code || this.statusSub) {
+    if (!this.code || this.statusSub || this.hostAccessRevoked()) {
       return;
     }
     this.statusSub = trpc.session.onStatusChanged.subscribe(
@@ -4003,9 +4018,10 @@ export class SessionHostComponent implements OnInit, OnDestroy {
           this.statusUpdate.set(update);
           this.syncCountdownFromStatusUpdate(update);
         },
-        onError: () => {
+        onError: (error) => {
           this.statusSub?.unsubscribe();
           this.statusSub = null;
+          if (this.consumeHostUnauthorized(error)) return;
           this.burstHostFallbackAfterWsGap();
         },
       },
@@ -4013,7 +4029,7 @@ export class SessionHostComponent implements OnInit, OnDestroy {
   }
 
   private ensureCurrentQuestionSubscription(): void {
-    if (!this.code || this.currentQuestionSub) {
+    if (!this.code || this.currentQuestionSub || this.hostAccessRevoked()) {
       return;
     }
     this.currentQuestionSub = trpc.session.onCurrentQuestionForHostChanged.subscribe(
@@ -4024,9 +4040,10 @@ export class SessionHostComponent implements OnInit, OnDestroy {
           this.clearHostRealtimeSubscriptionRetry();
           this.syncCurrentQuestionForHost(data);
         },
-        onError: () => {
+        onError: (error) => {
           this.currentQuestionSub?.unsubscribe();
           this.currentQuestionSub = null;
+          if (this.consumeHostUnauthorized(error)) return;
           this.burstHostFallbackAfterWsGap();
         },
       },
@@ -4034,7 +4051,7 @@ export class SessionHostComponent implements OnInit, OnDestroy {
   }
 
   private ensureVoteProgressSubscription(): void {
-    if (!this.code || this.voteProgressSub) {
+    if (!this.code || this.voteProgressSub || this.hostAccessRevoked()) {
       return;
     }
     this.voteProgressSub = trpc.session.onHostVoteProgressChanged.subscribe(
@@ -4043,9 +4060,10 @@ export class SessionHostComponent implements OnInit, OnDestroy {
         onData: (data) => {
           this.syncHostVoteProgress(data);
         },
-        onError: () => {
+        onError: (error) => {
           this.voteProgressSub?.unsubscribe();
           this.voteProgressSub = null;
+          if (this.consumeHostUnauthorized(error)) return;
           this.burstHostFallbackAfterWsGap();
         },
       },
@@ -4053,6 +4071,9 @@ export class SessionHostComponent implements OnInit, OnDestroy {
   }
 
   private startHostPolling(): void {
+    if (this.hostAccessRevoked()) {
+      return;
+    }
     if (typeof document !== 'undefined' && document.hidden) {
       return;
     }
@@ -4118,6 +4139,9 @@ export class SessionHostComponent implements OnInit, OnDestroy {
   }
 
   private async refreshRealtimeHostFallback(): Promise<void> {
+    if (this.hostAccessRevoked()) {
+      return;
+    }
     if (typeof document !== 'undefined' && document.hidden) {
       return;
     }
@@ -4168,6 +4192,9 @@ export class SessionHostComponent implements OnInit, OnDestroy {
 
   /** Ein Poll-Zyklus ohne auf das Intervall zu warten (z. B. nach WS-Subscription-Fehler beim Deploy). */
   private burstHostFallbackAfterWsGap(): void {
+    if (this.hostAccessRevoked()) {
+      return;
+    }
     this.hostRealtimeFallbackActive = true;
     this.startHostPolling();
     this.runRealtimeFallbackCycle();
@@ -4176,6 +4203,9 @@ export class SessionHostComponent implements OnInit, OnDestroy {
   }
 
   private scheduleHostRealtimeSubscriptionRetry(): void {
+    if (this.hostAccessRevoked()) {
+      return;
+    }
     if (this.hostRealtimeSubscriptionRetryTimer) {
       return;
     }
@@ -4246,6 +4276,9 @@ export class SessionHostComponent implements OnInit, OnDestroy {
     this.stopCountdown();
     this.stopQaSummaryPolling();
     this.sound.stopAll();
+    if (this.isPairedHostClient() || this.hostAccessRevoked()) {
+      this.sound.setOutputEnabled(true);
+    }
     this.closeOpenWordCloudOverlays();
     if (this.emojiPulseTimer) {
       clearTimeout(this.emojiPulseTimer);
@@ -4376,10 +4409,70 @@ export class SessionHostComponent implements OnInit, OnDestroy {
       const listed = await trpc.session.listPairedHosts.query({
         code: this.code.toUpperCase(),
       });
+      if (this.hostAccessRevoked()) return;
       this.pairedHostConnected.set(listed.devices.length > 0);
-    } catch {
-      /* Nur der ursprüngliche Host darf Geräte listen. */
+      this.canManagePairedHosts.set(true);
+      this.applyHostTwinMode(false);
+    } catch (error: unknown) {
+      if (this.consumeHostUnauthorized(error)) {
+        return;
+      }
+      if (isOriginalHostForbiddenError(error)) {
+        this.canManagePairedHosts.set(false);
+        this.applyHostTwinMode(true);
+      }
     }
+  }
+
+  private applyHostTwinMode(paired: boolean): void {
+    this.isPairedHostClient.set(paired);
+    this.sound.setOutputEnabled(!paired && !this.hostAccessRevoked());
+    if (paired) {
+      this.sound.stopAll();
+    }
+  }
+
+  private consumeHostUnauthorized(error: unknown): boolean {
+    if (this.hostAccessRevoked()) {
+      return true;
+    }
+    if (!hasHostToken(this.code) && !this.isPairedHostClient()) {
+      return false;
+    }
+    if (!isHostAccessRevokedError(error)) {
+      return false;
+    }
+    this.markHostAccessRevoked();
+    return true;
+  }
+
+  private markHostAccessRevoked(): void {
+    if (this.hostAccessRevoked()) {
+      return;
+    }
+    this.hostAccessRevoked.set(true);
+    this.canManagePairedHosts.set(false);
+    this.participantSub?.unsubscribe();
+    this.participantSub = null;
+    this.statusSub?.unsubscribe();
+    this.statusSub = null;
+    this.currentQuestionSub?.unsubscribe();
+    this.currentQuestionSub = null;
+    this.voteProgressSub?.unsubscribe();
+    this.voteProgressSub = null;
+    this.qaSub?.unsubscribe();
+    this.qaSub = null;
+    this.clearHostRealtimeSubscriptionRetry();
+    this.stopHostPolling();
+    this.sound.setOutputEnabled(false);
+    this.sound.stopAll();
+    this.syncCurrentQuestionForHost(null);
+    this.clearSessionTokens();
+  }
+
+  async goHomeAfterHostRevoke(): Promise<void> {
+    await this.exitFullscreenBeforeHomeNavigation();
+    await this.router.navigateByUrl(this.localizedPath('/'), { replaceUrl: true });
   }
 
   private bindPresenterDesktopMedia(): void {
@@ -5104,6 +5197,10 @@ export class SessionHostComponent implements OnInit, OnDestroy {
 
   /** Synchronisiert Host-Hintergrundmusik phasenabhängig. */
   private syncMusic(): void {
+    if (this.isPairedHostClient() || this.hostAccessRevoked() || !this.sound.outputEnabled()) {
+      this.sound.stopMusic();
+      return;
+    }
     if (this.sound.musicPreviewing()) return;
     const session = this.session();
     const track = this.activeMusicTrack();
@@ -8230,7 +8327,10 @@ export class SessionHostComponent implements OnInit, OnDestroy {
           void this.reconcilePresentedChannel();
           this.dismissHostSteeringCallout();
         },
-        onError: () => this.burstHostFallbackAfterWsGap(),
+        onError: (error) => {
+          if (this.consumeHostUnauthorized(error)) return;
+          this.burstHostFallbackAfterWsGap();
+        },
       },
     );
     this.qaSubscriptionKey = subscriptionKey;
@@ -9773,7 +9873,10 @@ export class SessionHostComponent implements OnInit, OnDestroy {
         return;
       }
       this.syncCurrentQuestionForHost(q);
-    } catch {
+    } catch (error: unknown) {
+      if (this.consumeHostUnauthorized(error)) {
+        return;
+      }
       if (
         runId !== this.currentQuestionRefreshRunId ||
         this.effectiveStatus() !== expectedStatus ||

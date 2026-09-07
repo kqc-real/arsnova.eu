@@ -77,7 +77,45 @@
         </fieldset>
       }
 
-      @if (pairingAdmin() && canAddAnother()) {
+      @if (pairingAdmin() && pending()) {
+        <p
+          class="presentation-start-dialog__hint"
+          role="status"
+          data-testid="presentation-start-pending"
+          i18n="@@hostPairing.pendingOpenHint"
+        >
+          Es wartet bereits eine Verbindungsanfrage.
+        </p>
+        <button
+          mat-stroked-button
+          type="button"
+          class="presentation-start-dialog__connect"
+          data-testid="presentation-start-review-request"
+          (click)="openPairing()"
+          i18n="@@presentationStart.reviewRequest"
+        >
+          Anfrage prüfen
+        </button>
+      } @else if (pairingAdmin() && capReached()) {
+        <p
+          class="presentation-start-dialog__hint"
+          role="status"
+          data-testid="presentation-start-cap"
+          i18n="@@hostPairing.capReachedHint"
+        >
+          Es sind bereits drei weitere Geräte verbunden. Trenne zuerst eine Verbindung.
+        </p>
+        <button
+          mat-button
+          type="button"
+          class="presentation-start-dialog__cohost"
+          data-testid="presentation-start-manage"
+          (click)="openPairing()"
+          i18n="@@presentationStart.manageDevices"
+        >
+          Geräte verwalten
+        </button>
+      } @else if (pairingAdmin() && canAddAnother()) {
         @if (!phoneConnected()) {
           <button
             mat-stroked-button

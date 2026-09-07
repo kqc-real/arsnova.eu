@@ -138,6 +138,18 @@ describe('hostPairingState (Story 2.10 Slice 1)', () => {
     if (!afterRevokeInvite.ok) throw new Error('after revoke invite');
     const afterRevokeRequest = applyHostPairingCommand(afterRevokeInvite.record, requestCommand());
     expect(afterRevokeRequest.ok).toBe(true);
+
+    const revokeAgain = applyHostPairingCommand(revoked.record, {
+      type: 'REVOKE',
+      tokenId: '33333333-3333-4333-8333-333333333330',
+      now: NOW,
+    });
+    expect(revokeAgain.ok).toBe(true);
+    if (!revokeAgain.ok) return;
+    expect(revokeAgain.record.pairedHosts).toHaveLength(2);
+    expect(revokeAgain.effects.some((effect) => effect.type === 'INVALIDATE_TOKEN_HASH')).toBe(
+      false,
+    );
   });
 
   it('markiert abgelaufene Einladungen und Anfragen als EXPIRED ohne Token', () => {

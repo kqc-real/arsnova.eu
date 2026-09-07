@@ -139,6 +139,44 @@ describe('PresentationStartDialogComponent', () => {
     expect(dialogCloseMock).toHaveBeenCalledWith('start');
   });
 
+  it('zeigt das Gerätelimit verständlich', async () => {
+    listPairedHostsMock.mockResolvedValue({
+      devices: [
+        {
+          tokenId: '33333333-3333-4333-8333-333333333331',
+          deviceLabel: 'Gerät 1',
+          pairedAt: '2026-09-07T14:00:00.000Z',
+          state: 'CONNECTED',
+        },
+        {
+          tokenId: '33333333-3333-4333-8333-333333333332',
+          deviceLabel: 'Gerät 2',
+          pairedAt: '2026-09-07T14:01:00.000Z',
+          state: 'CONNECTED',
+        },
+        {
+          tokenId: '33333333-3333-4333-8333-333333333333',
+          deviceLabel: 'Gerät 3',
+          pairedAt: '2026-09-07T14:02:00.000Z',
+          state: 'CONNECTED',
+        },
+      ],
+      pending: null,
+      invite: null,
+      caps: EMPTY_CAPS,
+    });
+    const current = await render();
+    expect(
+      current.nativeElement.querySelector('[data-testid="presentation-start-cap"]'),
+    ).toBeTruthy();
+    expect(
+      current.nativeElement.querySelector('[data-testid="presentation-start-cohost"]'),
+    ).toBeNull();
+    expect(
+      current.nativeElement.querySelector('[data-testid="presentation-start-manage"]'),
+    ).toBeTruthy();
+  });
+
   it('öffnet die Presenter-Ansicht im Klick der Primäraktion', async () => {
     const startPresenterView = vi.fn().mockResolvedValue({ closed: false });
     dialogData.startPresenterView = startPresenterView;

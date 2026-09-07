@@ -376,6 +376,33 @@ describe('session host pairing (Story 2.10 Slice 1)', () => {
     });
   });
 
+  it('hält parallelen Widerruf idempotent und belebt kein zweites Gerät', async () => {
+    const first = await pairDevice(originalToken, 'Gerät A');
+    const second = await pairDevice(originalToken, 'Gerät B');
+    const firstToken = first.claimed.token!.pairedHostToken;
+    const secondToken = second.claimed.token!.pairedHostToken;
+
+    await Promise.all([
+      hostCaller(originalToken).revokePairedHost({
+        code: CODE,
+        tokenId: first.approved.tokenId,
+      }),
+      hostCaller(originalToken).revokePairedHost({
+        code: CODE,
+        tokenId: first.approved.tokenId,
+      }),
+    ]);
+
+    expect(await isHostSessionTokenValid(CODE, firstToken)).toBe(false);
+    expect(await isHostSessionTokenValid(CODE, secondToken)).toBe(true);
+    await expect(hostCaller(firstToken).listPairedHosts({ code: CODE })).rejects.toMatchObject({
+      code: 'UNAUTHORIZED',
+    });
+    const listed = await hostCaller(originalToken).listPairedHosts({ code: CODE });
+    expect(listed.devices).toHaveLength(1);
+    expect(listed.devices[0]?.deviceLabel).toBe('Gerät B');
+  });
+
   it('listet Geräte nur für den ursprünglichen Host und speichert Secrets gehasht', async () => {
     const paired = await pairDevice(originalToken, 'Tutorin');
     const listed = await hostCaller(originalToken).listPairedHosts({ code: CODE });

@@ -18,6 +18,7 @@ const { prismaMock, hostAuthMocks, presenceMocks, invalidSessionCodeMock } = vi.
     extractHostTokenMock: vi.fn(),
     extractHostTokenFromConnectionParamsMock: vi.fn(() => null as string | null),
     isHostSessionTokenValidMock: vi.fn(),
+    isOriginalHostSessionTokenMock: vi.fn(),
   },
   presenceMocks: {
     getActiveParticipantCountForSession: vi.fn(),
@@ -47,6 +48,7 @@ vi.mock('../lib/hostAuth', async () => {
     extractHostToken: hostAuthMocks.extractHostTokenMock,
     extractHostTokenFromConnectionParams: hostAuthMocks.extractHostTokenFromConnectionParamsMock,
     isHostSessionTokenValid: hostAuthMocks.isHostSessionTokenValidMock,
+    isOriginalHostSessionToken: hostAuthMocks.isOriginalHostSessionTokenMock,
   });
 });
 
@@ -72,6 +74,7 @@ describe('session participant access (Story 2.2)', () => {
     hostAuthMocks.extractHostTokenMock.mockReturnValue('host-token-123');
     hostAuthMocks.extractHostTokenFromConnectionParamsMock.mockReturnValue(null);
     hostAuthMocks.isHostSessionTokenValidMock.mockResolvedValue(true);
+    hostAuthMocks.isOriginalHostSessionTokenMock.mockResolvedValue(true);
     prismaMock.$executeRaw.mockResolvedValue(1);
     prismaMock.$transaction.mockImplementation(async (fn: (tx: typeof prismaMock) => unknown) =>
       fn(prismaMock),
@@ -458,6 +461,46 @@ describe('session participant access (Story 2.2)', () => {
     expect(prismaMock.session.findUnique).toHaveBeenCalledTimes(2);
 
     await iterator.return?.(undefined);
+  });
+
+  it('beendet die Host-Teilnehmer-Subscription nach Widerruf eines Paired-Host-Tokens', async () => {
+    const { hashHostPairingSecret, notifyPairedHostTokenInvalidated } =
+      await import('../lib/hostPairing');
+    hostAuthMocks.isOriginalHostSessionTokenMock.mockResolvedValue(false);
+    const p1Id = '11111111-1111-4111-8111-111111111111';
+    prismaMock.session.findUnique.mockResolvedValue({
+      id: SESSION_ID,
+      code: 'ABC123',
+      participants: [
+        {
+          id: p1Id,
+          nickname: 'Marie Curie',
+          teamId: null,
+          team: null,
+        },
+      ],
+    });
+
+    const stream = await hostCaller.onParticipantJoined({ code: 'ABC123' });
+    const iterator = stream[Symbol.asyncIterator]();
+    await iterator.next();
+    const pending = iterator.next();
+    await new Promise((resolve) => setTimeout(resolve, 20));
+    notifyPairedHostTokenInvalidated('ABC123', hashHostPairingSecret('host-token-123'));
+    await expect(pending).rejects.toMatchObject({
+      code: 'UNAUTHORIZED',
+      message: 'Die Host-Verbindung wurde beendet.',
+    });
+  });
+
+  it('stellt nach ungültigem Token keine Host-Subscription mehr her', async () => {
+    hostAuthMocks.isHostSessionTokenValidMock.mockResolvedValue(false);
+
+    await expect(hostCaller.onParticipantJoined({ code: 'ABC123' })).rejects.toMatchObject({
+      code: 'UNAUTHORIZED',
+      message: 'Host-Session ungültig oder abgelaufen.',
+    });
+    expect(prismaMock.session.findUnique).not.toHaveBeenCalled();
   });
 
   it('lehnt die Teilnehmer-Subscription ohne Host-Token ab', async () => {

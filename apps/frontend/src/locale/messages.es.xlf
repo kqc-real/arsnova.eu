@@ -27433,6 +27433,62 @@
         <source>Smartphone verbunden. Weiteres Gerät verbinden</source>
         <target>Móvil conectado. Conectar otro dispositivo</target>
       </trans-unit>
+      <trans-unit id="hostPairing.approveOnThisScreen" datatype="html">
+        <source>Eine Anfrage bestätigst du auf diesem Bildschirm, nicht auf der Präsentation.</source>
+        <target>Confirma las solicitudes en esta pantalla, no en la presentación.</target>
+      </trans-unit>
+      <trans-unit id="hostPairing.devicesTitle" datatype="html">
+        <source>Verbundene Geräte</source>
+        <target>Dispositivos conectados</target>
+      </trans-unit>
+      <trans-unit id="hostPairing.deviceFallback" datatype="html">
+        <source>Weiteres Host-Gerät</source>
+        <target>Otro dispositivo anfitrión</target>
+      </trans-unit>
+      <trans-unit id="hostPairing.deviceStatus" datatype="html">
+        <source>Verbunden</source>
+        <target>Conectado</target>
+      </trans-unit>
+      <trans-unit id="hostPairing.revoke" datatype="html">
+        <source>Verbindung trennen</source>
+        <target>Desconectar</target>
+      </trans-unit>
+      <trans-unit id="hostPairing.revokedLive" datatype="html">
+        <source>Verbindung getrennt</source>
+        <target>Conexión cerrada</target>
+      </trans-unit>
+      <trans-unit id="hostPairing.capReachedHint" datatype="html">
+        <source>Es sind bereits drei weitere Geräte verbunden. Trenne zuerst eine Verbindung.</source>
+        <target>Ya hay tres dispositivos más conectados. Desconecta primero uno.</target>
+      </trans-unit>
+      <trans-unit id="hostPairing.addAnother" datatype="html">
+        <source>Weiteres Host-Gerät verbinden</source>
+        <target>Conectar otro dispositivo anfitrión</target>
+      </trans-unit>
+      <trans-unit id="hostPairing.noDevices" datatype="html">
+        <source>Kein weiteres Host-Gerät verbunden.</source>
+        <target>No hay otro dispositivo anfitrión conectado.</target>
+      </trans-unit>
+      <trans-unit id="hostPairing.pendingOpenHint" datatype="html">
+        <source>Es wartet bereits eine Verbindungsanfrage.</source>
+        <target>Ya hay una solicitud de conexión en espera.</target>
+      </trans-unit>
+      <trans-unit id="hostAccess.revokedTitle" datatype="html">
+        <source>Die Host-Verbindung wurde beendet.</source>
+        <target>Se ha cerrado la conexión de anfitrión.</target>
+      </trans-unit>
+      <trans-unit id="hostAccess.revokedHint" datatype="html">
+        <source>Du kannst diese Veranstaltung von diesem Gerät nicht mehr steuern.</source>
+        <target>Ya no puedes dirigir esta sesión desde este dispositivo.</target>
+      </trans-unit>
+      <trans-unit id="presentationStart.reviewRequest" datatype="html">
+        <source>Anfrage prüfen</source>
+        <target>Revisar solicitud</target>
+      </trans-unit>
+      <trans-unit id="presentationStart.manageDevices" datatype="html">
+        <source>Geräte verwalten</source>
+        <target>Gestionar dispositivos</target>
+      </trans-unit>
     </body>
   </file>
 </xliff>

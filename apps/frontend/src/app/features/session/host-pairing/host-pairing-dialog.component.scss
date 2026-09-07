@@ -48,3 +48,51 @@
   overflow-wrap: anywhere;
   font: var(--mat-sys-body-small);
 }
+
+.host-pairing-dialog__subtitle {
+  margin: 0;
+  font: var(--mat-sys-title-small);
+  font-weight: 700;
+}
+
+.host-pairing-dialog__devices {
+  display: flex;
+  flex-direction: column;
+  gap: 0.65rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.host-pairing-dialog__device {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.65rem;
+  padding: 0.75rem 0.85rem;
+  border: 1px solid var(--mat-sys-outline-variant);
+  border-radius: var(--mat-sys-corner-medium);
+  background: var(--mat-sys-surface-container-low);
+}
+
+.host-pairing-dialog__device-copy {
+  min-width: 0;
+  flex: 1 1 10rem;
+}
+
+.host-pairing-dialog__device-label {
+  margin: 0;
+  font: var(--mat-sys-title-small);
+  font-weight: 700;
+}
+
+.host-pairing-dialog__device-meta {
+  margin: 0.25rem 0 0;
+  color: var(--mat-sys-on-surface-variant);
+  line-height: 1.5;
+}
+
+.host-pairing-dialog__revoke {
+  min-height: 2.75rem;
+}

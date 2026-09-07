@@ -381,7 +381,11 @@ export function applyHostPairingCommand(
     case 'REVOKE': {
       const target = record.pairedHosts.find((device) => device.tokenId === command.tokenId);
       if (!target) {
-        return fail('REQUEST_NOT_FOUND');
+        return {
+          ok: true,
+          record,
+          effects: baseEffects,
+        };
       }
       return {
         ok: true,

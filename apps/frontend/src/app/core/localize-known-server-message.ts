@@ -30,6 +30,8 @@ const HOST_PAIRING_MESSAGES_DE: Record<string, () => string> = {
     $localize`:@@hostPairing.errorSessionEnded:Die Veranstaltung ist bereits beendet.`,
   'Zu viele Verbindungsversuche. Bitte später erneut versuchen.': () =>
     $localize`:@@hostPairing.errorRateLimited:Zu viele Verbindungsversuche. Bitte später erneut versuchen.`,
+  'Die Host-Verbindung wurde beendet.': () =>
+    $localize`:@@hostAccess.revokedTitle:Die Host-Verbindung wurde beendet.`,
 };
 const TRPC_CODE_PREFIXES = [
   'TOO_MANY_REQUESTS',

@@ -11,7 +11,7 @@ import {
 } from '@angular/material/dialog';
 import { MatIcon } from '@angular/material/icon';
 import { MatRadioButton, MatRadioGroup } from '@angular/material/radio';
-import type { HostPairingScreenVisibility } from '@arsnova/shared-types';
+import type { HostPairingPendingDTO, HostPairingScreenVisibility } from '@arsnova/shared-types';
 import { trpc } from '../../../core/trpc.client';
 import { HostPairingDialogComponent } from './host-pairing-dialog.component';
 
@@ -54,6 +54,8 @@ export class PresentationStartDialogComponent implements OnInit {
   readonly visibility = signal<HostPairingScreenVisibility>('PROJECTED');
   readonly phoneConnected = signal(this.data.phoneAlreadyConnected === true);
   readonly canAddAnother = signal(true);
+  readonly capReached = signal(false);
+  readonly pending = signal<HostPairingPendingDTO | null>(null);
   readonly pairingAdmin = signal(true);
 
   async ngOnInit(): Promise<void> {
@@ -81,7 +83,7 @@ export class PresentationStartDialogComponent implements OnInit {
   }
 
   openPairing(): void {
-    if (!this.pairingAdmin() || !this.canAddAnother()) {
+    if (!this.pairingAdmin()) {
       return;
     }
     const ref = this.dialog.open(HostPairingDialogComponent, {
@@ -102,11 +104,17 @@ export class PresentationStartDialogComponent implements OnInit {
     try {
       const listed = await trpc.session.listPairedHosts.query({ code: this.data.code });
       this.phoneConnected.set(listed.devices.length > 0);
-      this.canAddAnother.set(listed.devices.length < listed.caps.maxPairedHosts);
+      this.canAddAnother.set(
+        listed.devices.length < listed.caps.maxPairedHosts && listed.pending === null,
+      );
+      this.capReached.set(listed.devices.length >= listed.caps.maxPairedHosts);
+      this.pending.set(listed.pending);
       this.pairingAdmin.set(true);
     } catch {
       this.pairingAdmin.set(false);
       this.canAddAnother.set(false);
+      this.capReached.set(false);
+      this.pending.set(null);
     }
   }
 }

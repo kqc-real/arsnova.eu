@@ -46,6 +46,15 @@ export class SoundService {
   readonly musicPreviewing = signal(false);
   /** Welcher Track gerade vorgehört wird (für Play/Stop-UI), sonst null. */
   readonly musicPreviewTrackId = signal<string | null>(null);
+  /** Paired Host startet stumm; Steuerdaten bleiben unverändert. */
+  readonly outputEnabled = signal(true);
+
+  setOutputEnabled(enabled: boolean): void {
+    this.outputEnabled.set(enabled);
+    if (!enabled) {
+      this.stopAll();
+    }
+  }
   private previewRunId = 0;
   private previewSource: AudioBufferSourceNode | null = null;
   private previewGain: GainNode | null = null;
@@ -91,6 +100,7 @@ export class SoundService {
     key: SoundKey,
     opts?: { gain?: number; fadeInSeconds?: number; fadeOutSeconds?: number },
   ): Promise<void> {
+    if (!this.outputEnabled()) return;
     const ctx = await this.ensureContextRunning();
     if (!ctx) return;
 
@@ -182,6 +192,7 @@ export class SoundService {
 
   /** Startet (oder hält) loopende Hintergrundmusik für den gewünschten Track. */
   async playMusic(track: string): Promise<void> {
+    if (!this.outputEnabled()) return;
     const ctx = await this.ensureContextRunning();
     if (!ctx) return;
     const path = MUSIC_PATHS[track];
@@ -320,6 +331,10 @@ export class SoundService {
    * Stoppt die laufende Hintergrundmusik; `onEnd` nach Ende oder Abbruch.
    */
   previewMusic(track: string, maxSeconds = 12, onEnd?: () => void): void {
+    if (!this.outputEnabled()) {
+      onEnd?.();
+      return;
+    }
     this.stopPreview();
     this.stopMusic();
     const runId = ++this.previewRunId;

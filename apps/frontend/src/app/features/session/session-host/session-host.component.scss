@@ -1,3 +1,36 @@
+.session-host__revoked {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.75rem;
+  width: var(--session-host-shell-width);
+  max-width: 100%;
+  margin-inline: auto;
+  margin-bottom: var(--session-host-zone-gap);
+  padding: clamp(0.85rem, 2vw, 1.15rem) clamp(1rem, 2.5vw, 1.25rem);
+  box-sizing: border-box;
+  border-radius: var(--mat-sys-corner-large);
+  border: 2px solid color-mix(in srgb, var(--mat-sys-error) 55%, var(--mat-sys-outline));
+  background: var(--mat-sys-error-container);
+  color: var(--mat-sys-on-error-container);
+}
+
+.session-host__revoked-title {
+  margin: 0;
+  font: var(--mat-sys-title-medium);
+  font-weight: 700;
+}
+
+.session-host__revoked-text {
+  margin: 0;
+  font: var(--mat-sys-body-medium);
+  line-height: 1.5;
+}
+
+.session-host__revoked button {
+  min-height: 2.75rem;
+}
+
 .session-host__steering-callout {
   display: flex;
   flex-wrap: wrap;

@@ -559,24 +559,41 @@ export function notifyPairedHostTokenInvalidated(sessionCode: string, tokenHash:
   invalidationWaiters.delete(invalidationKey(sessionCode, tokenHash));
 }
 
+export function subscribePairedHostTokenInvalidation(
+  sessionCode: string,
+  token: string,
+  onInvalidate: () => void,
+): () => void {
+  const key = invalidationKey(sessionCode, hashHostPairingSecret(token));
+  const waiters = invalidationWaiters.get(key) ?? new Set<() => void>();
+  waiters.add(onInvalidate);
+  invalidationWaiters.set(key, waiters);
+  return () => {
+    const current = invalidationWaiters.get(key);
+    if (!current) return;
+    current.delete(onInvalidate);
+    if (current.size === 0) invalidationWaiters.delete(key);
+  };
+}
+
 export function waitForPairedHostTokenInvalidation(
   sessionCode: string,
   token: string,
   timeoutMs: number,
 ): Promise<'invalidated' | 'timeout'> {
-  const key = invalidationKey(sessionCode, hashHostPairingSecret(token));
   return new Promise((resolve) => {
-    const waiters = invalidationWaiters.get(key) ?? new Set<() => void>();
+    let settled = false;
     const finish = (reason: 'invalidated' | 'timeout') => {
-      waiters.delete(onInvalidate);
-      if (waiters.size === 0) invalidationWaiters.delete(key);
+      if (settled) return;
+      settled = true;
+      unsubscribe();
       clearTimeout(timer);
       resolve(reason);
     };
-    const onInvalidate = () => finish('invalidated');
+    const unsubscribe = subscribePairedHostTokenInvalidation(sessionCode, token, () =>
+      finish('invalidated'),
+    );
     const timer = setTimeout(() => finish('timeout'), timeoutMs);
-    waiters.add(onInvalidate);
-    invalidationWaiters.set(key, waiters);
   });
 }
 

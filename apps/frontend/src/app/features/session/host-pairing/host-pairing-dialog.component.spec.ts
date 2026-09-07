@@ -3,12 +3,15 @@ import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { HostPairingDialogComponent } from './host-pairing-dialog.component';
 
-const { createInviteMock, listPairedHostsMock, approveMock, rejectMock } = vi.hoisted(() => ({
-  createInviteMock: vi.fn(),
-  listPairedHostsMock: vi.fn(),
-  approveMock: vi.fn(),
-  rejectMock: vi.fn(),
-}));
+const { createInviteMock, listPairedHostsMock, approveMock, rejectMock, revokeMock } = vi.hoisted(
+  () => ({
+    createInviteMock: vi.fn(),
+    listPairedHostsMock: vi.fn(),
+    approveMock: vi.fn(),
+    rejectMock: vi.fn(),
+    revokeMock: vi.fn(),
+  }),
+);
 
 vi.mock('../../../core/trpc.client', () => ({
   trpc: {
@@ -17,6 +20,7 @@ vi.mock('../../../core/trpc.client', () => ({
       listPairedHosts: { query: listPairedHostsMock },
       approveHostPairing: { mutate: approveMock },
       rejectHostPairing: { mutate: rejectMock },
+      revokePairedHost: { mutate: revokeMock },
     },
   },
 }));
@@ -126,24 +130,44 @@ describe('HostPairingDialogComponent', () => {
   });
 
   it('Happy Path: Pending erscheint, Freigabe ohne Token in der Host-UI', async () => {
-    listPairedHostsMock.mockResolvedValue({
-      devices: [],
-      pending: {
+    let approved = false;
+    listPairedHostsMock.mockImplementation(async () =>
+      approved
+        ? {
+            devices: [
+              {
+                tokenId: '33333333-3333-4333-8333-333333333333',
+                deviceLabel: 'Smartphone',
+                pairedAt: '2026-09-07T14:00:00.000Z',
+                state: 'CONNECTED',
+              },
+            ],
+            pending: null,
+            invite: null,
+            caps: EMPTY_CAPS,
+          }
+        : {
+            devices: [],
+            pending: {
+              requestId: REQUEST_ID,
+              confirmationIndicator: 'Eule · 47',
+              deviceLabel: 'Smartphone',
+              state: 'PENDING_APPROVAL',
+              expiresAt: '2026-09-07T14:00:00.000Z',
+              createdAt: '2026-09-07T13:55:00.000Z',
+            },
+            invite: null,
+            caps: EMPTY_CAPS,
+          },
+    );
+    approveMock.mockImplementation(async () => {
+      approved = true;
+      return {
         requestId: REQUEST_ID,
+        tokenId: '33333333-3333-4333-8333-333333333333',
+        state: 'CONNECTED',
         confirmationIndicator: 'Eule · 47',
-        deviceLabel: 'Smartphone',
-        state: 'PENDING_APPROVAL',
-        expiresAt: '2026-09-07T14:00:00.000Z',
-        createdAt: '2026-09-07T13:55:00.000Z',
-      },
-      invite: null,
-      caps: EMPTY_CAPS,
-    });
-    approveMock.mockResolvedValue({
-      requestId: REQUEST_ID,
-      tokenId: '33333333-3333-4333-8333-333333333333',
-      state: 'CONNECTED',
-      confirmationIndicator: 'Eule · 47',
+      };
     });
 
     const current = await render();
@@ -200,5 +224,88 @@ describe('HostPairingDialogComponent', () => {
     });
     expect(current.nativeElement.textContent).toContain('automatisch wird niemand Host');
     expect(current.nativeElement.querySelector('[data-testid="host-pairing-approve"]')).toBeNull();
+  });
+
+  it('zeigt Geräteverwaltung und trennt eine Verbindung', async () => {
+    const device = {
+      tokenId: '33333333-3333-4333-8333-333333333333',
+      deviceLabel: 'Tutorin',
+      pairedAt: '2026-09-07T14:02:00.000Z',
+      state: 'CONNECTED' as const,
+    };
+    listPairedHostsMock.mockResolvedValue({
+      devices: [device],
+      pending: null,
+      invite: null,
+      caps: EMPTY_CAPS,
+    });
+    revokeMock.mockResolvedValue({ tokenId: device.tokenId, state: 'REVOKED' });
+
+    const current = await render();
+    expect(createInviteMock).not.toHaveBeenCalled();
+    expect(current.nativeElement.textContent).toContain('Tutorin');
+    expect(current.nativeElement.textContent).toContain('Verbindung trennen');
+    expect(current.nativeElement.textContent).not.toContain(device.tokenId);
+
+    listPairedHostsMock.mockResolvedValue({
+      devices: [],
+      pending: null,
+      invite: null,
+      caps: EMPTY_CAPS,
+    });
+    current.nativeElement.querySelector('[data-testid="host-pairing-revoke"]')?.click();
+    await flush();
+    current.detectChanges();
+    expect(revokeMock).toHaveBeenCalledWith({
+      code: 'ABC123',
+      tokenId: device.tokenId,
+    });
+    expect(current.nativeElement.textContent).toContain('Verbindung getrennt');
+  });
+
+  it('zeigt das Limit verständlich und startet keine neue Einladung', async () => {
+    listPairedHostsMock.mockResolvedValue({
+      devices: [
+        {
+          tokenId: '33333333-3333-4333-8333-333333333331',
+          deviceLabel: 'Gerät 1',
+          pairedAt: '2026-09-07T14:00:00.000Z',
+          state: 'CONNECTED',
+        },
+        {
+          tokenId: '33333333-3333-4333-8333-333333333332',
+          deviceLabel: 'Gerät 2',
+          pairedAt: '2026-09-07T14:01:00.000Z',
+          state: 'CONNECTED',
+        },
+        {
+          tokenId: '33333333-3333-4333-8333-333333333333',
+          deviceLabel: 'Gerät 3',
+          pairedAt: '2026-09-07T14:02:00.000Z',
+          state: 'CONNECTED',
+        },
+      ],
+      pending: null,
+      invite: null,
+      caps: EMPTY_CAPS,
+    });
+    const current = await render();
+    expect(createInviteMock).not.toHaveBeenCalled();
+    expect(current.nativeElement.querySelector('[data-testid="host-pairing-cap"]')).toBeTruthy();
+    expect(
+      current.nativeElement.querySelector('[data-testid="host-pairing-add-another"]'),
+    ).toBeNull();
+    expect(current.nativeElement.textContent).toContain('drei weitere Geräte');
+  });
+
+  it('zeigt Rate-Limit ohne Technikbegriffe', async () => {
+    createInviteMock.mockRejectedValue({
+      data: { code: 'TOO_MANY_REQUESTS', retryAfterSeconds: 12 },
+      message: 'Zu viele Verbindungsversuche. Bitte später erneut versuchen.',
+    });
+    const current = await render();
+    expect(current.nativeElement.textContent).toContain('Zu viele Verbindungsversuche');
+    expect(current.nativeElement.textContent).not.toContain('WebSocket');
+    expect(current.nativeElement.textContent).not.toContain('tokenId');
   });
 });

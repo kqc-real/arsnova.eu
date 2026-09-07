@@ -214,6 +214,8 @@ vi.mock('qrcode', () => ({
 
 vi.mock('../../../core/host-session-token', () => ({
   clearHostToken: clearHostTokenMock,
+  getHostSessionRole: () => null,
+  hasHostToken: () => true,
 }));
 
 const defaultSession = {
