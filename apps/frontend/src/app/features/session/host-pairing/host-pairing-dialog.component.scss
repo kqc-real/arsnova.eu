@@ -1,0 +1,111 @@
+:host {
+  display: block;
+}
+
+.host-pairing-dialog {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  max-width: 28rem;
+}
+
+.host-pairing-dialog__hint,
+.host-pairing-dialog__status,
+.host-pairing-dialog__error {
+  margin: 0;
+  line-height: 1.5;
+}
+
+.host-pairing-dialog__hint {
+  color: var(--mat-sys-on-surface-variant);
+}
+
+.host-pairing-dialog__status {
+  font: var(--mat-sys-title-medium);
+}
+
+.host-pairing-dialog__error {
+  color: var(--mat-sys-error);
+}
+
+.host-pairing-dialog__section {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  padding: 0.85rem 1rem;
+  border: 1px solid var(--mat-sys-outline-variant);
+  border-radius: var(--mat-sys-corner-large);
+  background: var(--mat-sys-surface-container-low);
+}
+
+.host-pairing-dialog__section--invite {
+  align-items: stretch;
+}
+
+.host-pairing-dialog__indicator {
+  margin: 0;
+  font: var(--mat-sys-headline-small);
+}
+
+.host-pairing-dialog__qr-frame {
+  display: flex;
+  justify-content: center;
+  margin: 0;
+  padding: 0;
+  background: transparent;
+}
+
+.host-pairing-dialog__qr.app-qr-image {
+  width: 13.5rem;
+  height: 13.5rem;
+  max-width: 100%;
+  padding: 0.65rem;
+}
+
+.host-pairing-dialog__subtitle {
+  margin: 0;
+  font: var(--mat-sys-title-small);
+  font-weight: 700;
+}
+
+.host-pairing-dialog__devices {
+  display: flex;
+  flex-direction: column;
+  gap: 0.65rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.host-pairing-dialog__device {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.65rem;
+  padding: 0.75rem 0.85rem;
+  border: 1px solid var(--mat-sys-outline-variant);
+  border-radius: var(--mat-sys-corner-medium);
+  background: var(--mat-sys-surface-container);
+}
+
+.host-pairing-dialog__device-copy {
+  min-width: 0;
+  flex: 1 1 10rem;
+}
+
+.host-pairing-dialog__device-label {
+  margin: 0;
+  font: var(--mat-sys-title-small);
+  font-weight: 700;
+}
+
+.host-pairing-dialog__device-meta {
+  margin: 0.25rem 0 0;
+  color: var(--mat-sys-on-surface-variant);
+  line-height: 1.5;
+}
+
+.host-pairing-dialog__revoke {
+  min-height: 2.75rem;
+}

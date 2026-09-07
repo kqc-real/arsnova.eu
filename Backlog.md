@@ -75,7 +75,7 @@
 | 2    | 2.7   | Peer Instruction (zweite Abstimmung, Vorher/Nachher)                               | 🟡   | ✅ Fertig      |
 | 2    | 2.8   | Produktives Smartphone-Hosting für Live-Sessions                                   | 🔴   | ✅ Fertig      |
 | 2    | 2.9   | Asynchrone Quiz-Modi und Feedback-Strategien (noch nicht beauftragt)               | 🔴   | ⬜ Offen       |
-| 2    | 2.10  | Weiteres Gerät oder vertrauenswürdige Person als Host verbinden (Paired Host)      | 🟡   | ⬜ Offen       |
+| 2    | 2.10  | Paired Host: Presenter-Start, Smartphone-Pairing (UX/Security)                     | 🟡   | ⬜ Offen       |
 | 3    | 3.1   | Beitreten                                                                          | 🔴   | ✅ Fertig      |
 | 3    | 3.2   | Nicknames                                                                          | 🟡   | ✅ Fertig      |
 | 3    | 3.3a  | Frage empfangen                                                                    | 🔴   | ✅ Fertig      |
@@ -1200,11 +1200,53 @@ Eine Story gilt als **fertig**, wenn **alle** folgenden Kriterien erfüllt sind:
     - **Barrierefreiheit und i18n:** Alle neuen Modi, Warnhinweise, Dashboard-Legenden, Timeout-Zustände und Feedbacktexte sind für de/en/fr/es/it lokalisiert, per Tastatur bedienbar, screenreader-tauglich und farbunabhängig verständlich.
     - **Tests:** Unit-/Integrationstests decken mindestens Pacing-Konfiguration, Migrations-Defaults, Antwortabgabe im Self-Paced-Modus, timeboxed Timeout, sofortiges vs. verzögertes Feedback, Data-Stripping, Dashboard-Aggregation, Ergebnisexport und Bonuscode-Integration ab.
   - **Abhängigkeiten:** Story 2.1a (Session-Erstellung), Story 2.3 (Präsentations-Steuerung), Story 2.4 (Data-Stripping), Story 2.6 (Lesephase), Story 3.3a/b (Frage empfangen und Abstimmung), Story 3.4 (Feedback), Story 3.5 (Countdown), Story 4.1 (Leaderboard), Story 4.4 (Ergebnis-Visualisierung), Story 4.6 (Bonus-Codes), Story 4.7 (Export), Story 6.2 (i18n), Story 6.5 (Barrierefreiheit), ADR-0013 und ADR-0025 (Performance-Hotpaths).
-- **Story 2.10 (Smartphone oder vertrauenswürdige Person als zweiten Host verbinden / Paired Host):** 🟡 ⬜ Offen – Als Lehrperson möchte ich mein Smartphone oder das Gerät einer vertrauenswürdigen Tutor:in beziehungsweise Moderator:in mit einer bereits laufenden Veranstaltung als **zweiten vollwertigen Host** verbinden, damit die Veranstaltung parallel gesteuert und moderiert werden kann, während der Laptop oder ein anderer Bildschirm die Presenter-Ansicht zeigt.
+- **Story 2.10 (Smartphone oder vertrauenswürdige Person als zweiten Host verbinden / Paired Host; UX- und Sicherheits-Erweiterung für Presenter-Start und Smartphone-Pairing):** 🟡 ⬜ Offen – Als Lehrperson möchte ich mein Smartphone oder das Gerät einer vertrauenswürdigen Tutor:in beziehungsweise Moderator:in mit einer bereits laufenden Veranstaltung als **zweiten vollwertigen Host** verbinden, damit die Veranstaltung parallel gesteuert und moderiert werden kann, während der Laptop oder ein anderer Bildschirm die Presenter-Ansicht zeigt.
+  - **Produktziel und mentales Modell:**
+    - Die Smartphone-Kopplung wird nicht als technisches Zusatzfeature („Paired Host“, „Remote“, „Token“) präsentiert, sondern als natürlicher Bestandteil des Präsentationsstarts.
+    - Für Lehrpersonen lautet das mentale Modell: **Präsentation auf dem Beamer zeigen und optional mit dem Smartphone steuern.**
+    - Die reguläre UI verwendet nutzerorientierte Begriffe wie **Präsentieren**, **Präsentation starten**, **Präsentation im Vollbild starten**, **Mit Smartphone steuern**, **Smartphone verbinden**, **Weiteres Host-Gerät verbinden**.
+    - Technische Begriffe wie `Paired Host`, `HostPairingToken`, `PairedHostToken`, WebSocket oder Pairing-Secret erscheinen nicht in der normalen Lehrpersonen-UI.
+    - Der technische Domänenbegriff bleibt **Paired Host**.
   - **Produktbegriff und technische Benennung:**
     - Die UI verwendet je nach Einstieg die verständliche Bezeichnung **„Smartphone verbinden“** oder **„Weiteres Host-Gerät verbinden“**; der technische Domänenbegriff lautet **Paired Host**.
     - Ein Paired Host ist dieselbe fachliche Host-Rolle auf einem weiteren Gerät, keine reduzierte Fernbedienung und keine eigenständige eingeschränkte Moderatorrolle.
     - Vorgesehene technische Namen sind `HostDevicePairingService`, `HostDevicePairingDialogComponent`, `SessionHostPairingComponent`, `HostPairingToken`, `PairedHostToken` und die Rolle `PAIRED_HOST`.
+  - **Vereinheitlichung mit dem bestehenden Presenter-Start:**
+    - Der bestehende modale Dialog beim Öffnen der Presenter-Ansicht wird zu einem gemeinsamen **„Präsentation starten“**-Dialog weiterentwickelt.
+    - Er bündelt zwei logisch zusammengehörige Aufgaben: (1) die passive Presenter-/Beamer-Ansicht starten; (2) optional ein Smartphone als weiteres Host-Gerät verbinden.
+    - Die primäre Handlung bleibt immer das Starten der Präsentation. Die Smartphone-Steuerung ist ein sichtbarer, aber optionaler Vorbereitungsschritt.
+    - Beispielhafte Dialogstruktur:
+      ```text
+      ┌────────────────────────────────────────────────┐
+      │ Präsentation starten                           │
+      │                                                │
+      │ Zeigen Sie die Veranstaltung auf dem Beamer.   │
+      │                                                │
+      │ 📱 Mit Smartphone steuern                      │
+      │    Steuern Sie Fragen und Ergebnisse bequem    │
+      │    vom Smartphone – auch während Sie sich      │
+      │    im Raum bewegen.                            │
+      │                                                │
+      │    [ Smartphone verbinden ]                    │
+      │                                                │
+      │ ────────────────────────────────────────────── │
+      │                                                │
+      │ [ Präsentation im Vollbild starten ]           │
+      │                                                │
+      │                     Abbrechen                  │
+      └────────────────────────────────────────────────┘
+      ```
+    - Die UI darf Lehrpersonen nicht zunächst zu einer technischen Auswahl wie „Presenter / Host / Remote / Paired Host“ zwingen.
+  - **Discoverability und Erstnutzung:**
+    - Die Smartphone-Steuerung darf nicht ausschließlich in Einstellungen, einem Drei-Punkte-Menü oder einer Geräteverwaltung versteckt sein.
+    - Sie ist mindestens sichtbar: im gemeinsamen Dialog **„Präsentation starten“**; in der laufenden privaten Host-Ansicht als Aktion **„Smartphone verbinden“** beziehungsweise nach erfolgter Kopplung als Status **„Smartphone verbunden“**; in der Geräteverwaltung zusätzlich als **„Weiteres Host-Gerät verbinden“** für ein zweites eigenes Gerät oder eine vertrauenswürdige Tutor:in / Assistenz / Moderator:in.
+    - Der Primärpfad spricht die häufigste Nutzung an (**Smartphone**). Der Co-Host-Fall muss in Alltagssprache mitformuliert sein, ohne eine technische zweite Rolle einzuführen — beispielsweise sekundärer Hinweis: „Auch eine vertrauenswürdige Person kann sich so als weiteres Host-Gerät verbinden.“
+    - Beim ersten Öffnen des Präsentationsdialogs soll der Nutzen in Alltagssprache erklärt werden, beispielsweise: **Mit Smartphone steuern** — Steuern Sie Fragen und Ergebnisse vom Smartphone, während der Laptop die Präsentation zeigt.
+    - Keine Einführung in technische Architektur ist erforderlich.
+  - **Empfohlene Erstnutzungsreihenfolge:**
+    - Optimaler Ablauf: Host startet Session → „Präsentieren“ → Dialog „Präsentation starten“ → optional „Smartphone verbinden“ → Smartphone erfolgreich gekoppelt → „Präsentation im Vollbild starten“ → Laptop/Beamer zeigt Presenter, Smartphone zeigt Host-Steuerung.
+    - Die Informationsarchitektur soll den sicheren Ablauf begünstigen: **Steuergerät zuerst vorbereiten, Projektion danach starten.**
+    - Die Funktion muss trotzdem sicher bleiben, wenn diese Reihenfolge nicht eingehalten wird.
   - **Vertrauensmodell und Einsatz als Moderator:in:**
     - Eine Lehrperson darf nur eigene Geräte oder **persönlich vertrauenswürdige** Tutor:innen, Assistenzen beziehungsweise Moderator:innen koppeln.
     - „Moderator:in“ beschreibt in diesem Zusammenhang die Aufgabe in der Veranstaltung, **keine eigene technische Rolle**. Die gekoppelte Person arbeitet als vollwertiger Paired Host in derselben Host-Oberfläche.
@@ -1215,30 +1257,125 @@ Eine Story gilt als **fertig**, wenn **alle** folgenden Kriterien erfüllt sind:
     - Der Quiz-Sync-Link und sein Share-Token synchronisieren ausschließlich die Local-First-Quizsammlung und Presets über Yjs/IndexedDB.
     - Weder Session-Code noch Pairing-, Host- oder Paired-Host-Token werden aus dem Quiz-Sync-Token abgeleitet oder über das Yjs-Dokument verteilt.
     - Das Öffnen einer synchronisierten Quizsammlung verleiht niemals automatisch Rechte an einer bereits laufenden Session.
-  - **Akzeptanzkriterien – Pairing-UX:**
-    - Der ursprüngliche Host bietet in der laufenden Host-Ansicht die Aktion **„Smartphone verbinden“** an.
-    - Der Dialog zeigt einen QR-Code und die Aktion **„Link kopieren“** sowie den verständlichen Hinweis: „Das verbundene Gerät kann Fragen steuern, Ergebnisse anzeigen und die Veranstaltung beenden.“
-    - Technische Begriffe wie Pairing-, Remote- oder Host-Token werden in der regulären UI nicht angezeigt.
-    - Der Pairing-Link enthält den Session-Code und das geheime Pairing-Material so, dass das Geheimnis nicht als HTTP-Pfad oder Query-Parameter an Server-, Proxy- oder Analytics-Logs übertragen wird; bevorzugt wird ein URL-Fragment mit anschließendem explizitem Token-Austausch.
-    - Das Smartphone zeigt vor der Kopplung eine Bestätigung „Mit Veranstaltung {SESSION_CODE} verbinden?“ mit der primären Aktion **„Als Host verbinden“**.
-    - Nach erfolgreicher Kopplung wird das Smartphone auf dieselbe lokalisierte Route `/session/:code/host` weitergeleitet; es gibt keine dauerhaft separate Remote-Control-Oberfläche.
+  - **Sicherheitsmodell für sichtbare oder gespiegelte Bildschirme:**
+    - Es muss ausdrücklich davon ausgegangen werden, dass ein Host-Laptop per HDMI, AirPlay, Miracast, DisplayLink oder vergleichbarer Technik **gespiegelt** auf einen Beamer übertragen wird.
+    - Die Web-App kann nicht zuverlässig erkennen, ob ein Browserfenster gerade auf einem privaten Laptopdisplay, einem erweiterten zweiten Bildschirm, gespiegelt auf einem Beamer, in einer Videokonferenz oder per Screen Sharing sichtbar ist.
+    - Die Sicherheit darf deshalb **niemals** davon abhängen, dass ein Pairing-QR-Code vermeintlich nur auf einem privaten Bildschirm sichtbar ist.
+    - Zentrale Sicherheitsregel: **Das bloße Sehen, Fotografieren oder Scannen eines auf dem Beamer sichtbaren QR-Codes darf niemals unmittelbar volle Host-Rechte verleihen.**
+    - Insbesondere ist der Flow „QR gesehen → QR gescannt → vollwertiger Host“ nicht zulässig.
+    - Der QR-Code beziehungsweise Pairing-Link darf im sicheren Standardverfahren höchstens eine **Verbindungsanfrage** initiieren.
+    - Zielmodell: QR / Pairing-Link → Verbindungsanfrage → `PENDING_PAIRING` → explizite Bestätigung → `PAIRED_HOST`.
+  - **Pairing-UX – Schritt 1 (Smartphone verbinden):**
+    - Im Dialog **„Präsentation starten“** wählt die Lehrperson **Smartphone verbinden** (oder in der Geräteverwaltung **Weiteres Host-Gerät verbinden**).
+    - Daraufhin öffnet sich innerhalb derselben UX beziehungsweise als klar zugehöriger Dialog der Pairing-Schritt.
+    - **Sicherheitsdefault:** Der maßgebliche Serverflow ist immer **request-and-approve**. Die Sichtbarkeitsfrage steuert nur Komfort und Copy, niemals die Sicherheitsgrenze.
+    - Vor Anzeige sensibler Kopplungsinformationen wird berücksichtigt, dass der Bildschirm möglicherweise öffentlich sichtbar ist.
+    - Geeignete Formulierung: **Ist dieser Bildschirm für andere sichtbar?** Optionen: **Ja, der Bildschirm wird projiziert** (Default) / **Nein, dieser Bildschirm ist privat**.
+    - Die Auswahl dient der UX (Hinweise, Reihenfolge, optionaler Komfort), ist aber **keine Sicherheitsgrenze**. Auch bei „privat“ darf ein versehentlich sichtbarer QR-Code **niemals** ohne explizite Freigabe durch den ursprünglichen Host ein `PairedHostToken` ausstellen (**kein silent grant**).
+  - **Standardverfahren für projizierte oder möglicherweise sichtbare Bildschirme (request-and-approve):**
+    - Bei einem projizierten oder möglicherweise öffentlich sichtbaren Bildschirm wird ein **request-and-approve**-Verfahren verwendet.
+    - **Schritt 2 – ungefährliche Verbindungsanfrage:** Der Laptop zeigt Schritte wie „Öffnen Sie arsnova.eu auf Ihrem Smartphone“, „Scannen Sie den Code oder öffnen Sie den Link“, „Bestätigen Sie anschließend die Verbindung“ sowie QR-Code und **Link kopieren**.
+    - Der QR-Code enthält **kein dauerhaftes Host-Token** und darf nicht unmittelbar zur Ausstellung eines `PairedHostToken` führen. Er verweist lediglich auf eine kurzlebige, sessiongebundene Pairing-Einladung beziehungsweise erzeugt eine `PENDING_PAIRING`-Anfrage.
+    - Der öffentliche Session-Code allein bleibt weiterhin vollständig unzureichend für Host-Rechte.
+    - Der Pairing-Link enthält das geheime Pairing-Material so, dass das Geheimnis nicht als HTTP-Pfad oder Query-Parameter an Server-, Proxy- oder Analytics-Logs übertragen wird; bevorzugt wird ein URL-Fragment mit anschließendem explizitem Token-Austausch.
+    - **Schritt 3 – Bestätigung auf dem Smartphone:** Nach Scan beziehungsweise Öffnen des Links zeigt das Smartphone „Mit Veranstaltung {SESSION_CODE} verbinden?“ und die Aktion **„Verbindung anfragen“**. Noch werden keine Host-Rechte erteilt.
+    - Nach Absenden der Anfrage zeigt das Smartphone einen eindeutigen Bestätigungsindikator (z. B. „Eule · 47“ oder kurzer numerischer/alphanumerischer Code), damit die Lehrperson das physisch vorliegende Smartphone der angezeigten Anfrage zuordnen kann.
+    - **Schritt 4 – explizite Freigabe durch den ursprünglichen Host:** Der ursprüngliche Host erhält eine Anfrage „Ein Smartphone möchte sich verbinden“ inkl. Bestätigungsindikator und dem Hinweis, dass das Gerät danach Fragen steuern, Ergebnisse anzeigen und die Veranstaltung beenden kann, mit Aktionen **„Als Host zulassen“** und **„Ablehnen“**.
+    - Nur der **ursprüngliche Host** darf diese Freigabe durchführen. Ein bereits gekoppelter `PAIRED_HOST` darf keine weiteren Geräte bestätigen oder koppeln.
+  - **Schutz bei vollständig gespiegeltem Host-Bildschirm:**
+    - Da auch der Bestätigungsdialog selbst auf einem gespiegelten Beamer sichtbar sein kann, darf kein öffentlich sichtbarer Wert allein als Freigabegeheimnis dienen.
+    - Falls für die Pairing-Ceremony eine Codeeingabe erforderlich ist: Der entscheidende Bestätigungscode wird vorzugsweise auf dem **Smartphone** angezeigt; die Lehrperson überträgt ihn gegebenenfalls auf dem Laptop; ein Eingabefeld auf dem Laptop wird wie ein Passwort maskiert; der Code ist kurzlebig, einmal verwendbar und an genau die offene Pairing-Anfrage gebunden.
+    - Beobachten des Beamers allein reicht nicht aus, solange die angreifende Person nicht zugleich die private Smartphone-Anzeige beziehungsweise die physische Bestätigung kontrolliert.
+    - Eine solche Codeeingabe ist nur erforderlich, wenn sie gegenüber einer direkten „Zulassen“-Bestätigung tatsächlich zusätzlichen Schutz bietet. Die Pairing-UX soll nicht unnötig kompliziert werden.
+  - **Komfortpfad auf als privat markiertem Bildschirm (kein silent grant):**
+    - Auf einem als privat bestätigten Host-Bildschirm darf der Flow **komfortabler** sein (weniger Warncopy, kürzere Schritte, klarere Nähe von Scan und Freigabe), aber **nicht unsicherer**.
+    - Verbindlich auch im Privat-Pfad: kurzlebige Einladung; höchstens eine aktive Einladung; einmalige Einlösung; sessiongebundene Pairing-Anfrage; keine Wiederverwendung; **explizite Freigabe durch den ursprünglichen Host** vor Token-Ausstellung; atomare Ausstellung des `PairedHostToken`; klare Rückmeldung an den ursprünglichen Host.
+    - Ein privater QR-Code darf technisch als stärkeres Capability-Element genutzt werden (z. B. engere Bindung an die offene Anfrage), **ersetzt aber niemals** die explizite Freigabe. Es gibt keinen Pfad „Scan → sofort `PairedHostToken`“.
+    - Der öffentliche beziehungsweise potenziell projizierte Fall und der Privat-Pfad teilen denselben Serverzustandsautomaten; Unterschiede liegen nur in UX-Hinweisen und optionaler Codeeingabe.
+  - **Erfolgreiche Kopplung und adaptiver Presenter-Dialog:**
+    - Nach erfolgreicher Freigabe zeigt das Smartphone „Verbunden“ und leitet auf die normale lokalisierte Host-Route `/session/:code/host` weiter. Es gibt keine dauerhaft separate „Fernbedienungs“-Route.
+    - Der Laptop zeigt „Smartphone verbunden / Bereit zur Steuerung“ und die Aktion **„Präsentation im Vollbild starten“**.
+    - Wenn bereits ein Smartphone verbunden ist, zeigt der gemeinsame Präsentationsdialog diesen Zustand unmittelbar („Bereit zum Präsentieren“, „Smartphone verbunden“, optional „Smartphone wechseln · Geräte verwalten“).
+    - Die Lehrperson muss nicht erneut verstehen oder rekonstruieren, ob die Kopplung aktiv ist.
+  - **Presenter-/Beamer-Sicherheitsgrenze:**
+    - Die Presenter-Ansicht bleibt gemäß Story 2.5 vollständig passiv.
+    - Auf der Presenter-/Beamer-Route dürfen insbesondere niemals erscheinen: Host-Tokens; Paired-Host-Tokens; unmittelbar einlösbare Pairing-Secrets; geheime Kopplungscodes; Geräteverwaltung; Bestätigungsaktionen für neue Hosts; „Als Host zulassen“; sonstige Host-Steuerung.
+    - Ein öffentlich sichtbarer QR-Code auf der Presenter-Ansicht darf ausschließlich für ungefährliche Funktionen genutzt werden, beispielsweise den regulären Teilnehmerbeitritt.
+    - **Pairing-Geheimnisse gehören niemals in die Presenter-Projektion.**
+  - **Freigabe-UI bei laufendem Presenter:**
+    - Pairing-Freigabe, Ablehnung, Geräteverwaltung und Pairing-QR/-Link erscheinen **ausschließlich** auf dem privaten Host-Client (`/session/:code/host` oder gleichwertige private Host-Oberfläche), niemals auf `/session/:code/present`.
+    - Wenn die Presenter-Ansicht bereits im Vollbild/auf dem Beamer läuft und eine Pairing-Anfrage eintrifft, darf die Freigabe **nicht** in die Presenter-Projektion eingeblendet werden.
+    - Zulässige Lösungen: (a) Freigabe auf einem parallel offenen privaten Host-Tab/Fenster bzw. dem bereits gekoppelten Steuergerät; oder (b) verständlicher Hinweis in der privaten Host-Ansicht, die Presenter-Vollbildsitzung bewusst zu verlassen bzw. den privaten Host-Client zu fokussieren, bevor freigegeben wird.
+    - Die empfohlene Erstnutzungsreihenfolge (Steuergerät vor Projektion) bleibt bevorzugt; der umgekehrte Fall muss trotzdem sicher und bedienbar bleiben, ohne Presenter-Inhalte zu kompromittieren.
+    - Realtime-Benachrichtigungen über ausstehende Pairing-Anfragen dürfen den Presenter höchstens mit einem **nicht handlungsfähigen**, nicht geheimen Statussignal versorgen (optional, nicht erforderlich); jede Aktion bleibt host-privat.
+  - **Technischer Pairing-Zustandsautomat:**
+    - Der Pairing-Flow soll mindestens folgende Zustände unterscheiden: `IDLE` → `PAIRING_INVITE_CREATED` → `PAIRING_REQUESTED` → `PENDING_APPROVAL` → (`REJECTED` | `EXPIRED` | `APPROVED` → `PAIRED_HOST_TOKEN_ISSUED` → `CONNECTED` → `REVOKED` / `SESSION_ENDED`).
+    - Eine Pairing-Einladung allein erzeugt keine Host-Berechtigung.
+  - **Betriebsgrenzen, Caps und Rate-Limits:**
+    - Pro Session höchstens **3** gleichzeitig gültige `PAIRED_HOST`-Geräte (zuzüglich des ursprünglichen Hosts). Weitere Kopplungen werden verständlich abgelehnt, bis ein Gerät widerrufen wird.
+    - Pro Session höchstens **1** aktive Pairing-Einladung gleichzeitig. Eine neue Einladung ersetzt oder invalidiert die vorherige atomar; parallel offene Einladungen sind unzulässig.
+    - Pro aktiver Einladung höchstens **1** Anfrage im Zustand `PENDING_APPROVAL`. Weitere Scans derselben Einladung erzeugen keine zusätzliche Host-Berechtigung und werden als „bereits angefragt / wartet auf Freigabe“ bzw. gleichwertig behandelt.
+    - Pairing-Einladung und Pending-Anfrage sind kurzlebig (kurze TTL im Minutenbereich; konkrete Werte in Shared Types / Config, serverseitig erzwungen).
+    - Rate-Limits gelten **nur** für Pairing-Endpunkte (Einladung erzeugen, Anfrage stellen, Freigabe/Ablehnung, Widerruf) und dürfen Vote-/Join-Hotpaths sowie Shared-NAT-Teilnehmende nicht beeinträchtigen.
+    - Überschreiten von Caps oder Limits erzeugt verständliche UI-Fehler ohne interne Token-/Hash-Begriffe.
+  - **Akzeptanzkriterien – Präsentations-UX:**
+    - Der bestehende Presenter-Startdialog wird als gemeinsamer Dialog **„Präsentation starten“** gestaltet.
+    - Die primäre Aktion lautet sinngemäß **„Präsentation im Vollbild starten“**.
+    - Im selben Dialog ist **„Mit Smartphone steuern“ / „Smartphone verbinden“** als klar sichtbarer optionaler Vorbereitungsschritt erreichbar; der Co-Host-Fall ist über Alltagssprache und **„Weiteres Host-Gerät verbinden“** mitabgedeckt.
+    - Die Smartphone-/Host-Geräte-Funktion ist nicht ausschließlich in Einstellungen oder einem Overflow-Menü versteckt.
+    - Der Nutzen wird in Alltagssprache erklärt; technische Pairing-Begriffe erscheinen nicht in der regulären UI.
+    - Alle sichtbaren Texte (DE-Quelle und Locales) sind idiomatisch, klar und leicht verständlich; Locales enthalten keine ungeprüften Maschinenübersetzungen.
+    - Nach erfolgreicher Kopplung zeigt der Dialog sichtbar **„Smartphone verbunden“**.
+    - Die Lehrperson kann die Präsentation jederzeit auch ohne Smartphone starten.
+    - Ein fehlgeschlagenes oder abgebrochenes Pairing blockiert das Starten der Präsentation nicht.
+  - **Akzeptanzkriterien – Sicherheit bei Projektion:**
+    - Die Implementierung geht explizit davon aus, dass der Host-Bildschirm gespiegelt auf einem Beamer oder per Screen Sharing öffentlich sichtbar sein kann.
+    - Die Anwendung verlässt sich nicht darauf, diesen Zustand automatisch erkennen zu können.
+    - Ein auf einem Beamer sichtbarer QR-Code allein kann keine vollständigen Host-Rechte verleihen.
+    - In **jedem** Pairing-Pfad (projiziert und privat) erzeugt Scan/Link zunächst nur eine **Pairing-Anfrage** beziehungsweise `PENDING_PAIRING` / `PENDING_APPROVAL`. Es gibt keinen silent grant.
+    - Erst eine zusätzliche, explizite Freigabe durch den ursprünglichen Host darf zur Ausstellung eines `PairedHostToken` führen.
+    - Nur der ursprüngliche Host darf Pairing-Anfragen freigeben.
+    - Ein `PAIRED_HOST` kann keine weiteren Hosts koppeln oder freigeben.
+    - Falls ein Bestätigungscode verwendet wird, ist er kurzlebig, einmalig, an die konkrete Anfrage gebunden und bei Eingabe auf einem möglicherweise projizierten Host-Bildschirm maskiert.
+    - Pairing-Geheimnisse, Freigabe-/Ablehnungsaktionen und Geräteverwaltung werden niemals auf der Presenter-/Beamer-Route dargestellt.
+    - Bei laufendem Presenter erfolgt die Freigabe ausschließlich auf dem privaten Host-Client oder nach bewusstem Verlassen/Fokussieren der privaten Host-Oberfläche.
+    - Der Teilnehmer-QR-Code und der Host-Pairing-Flow bleiben strikt getrennt.
+  - **Akzeptanzkriterien – Pairing-Flow:**
+    - Der ursprüngliche Host bietet die Aktion **„Smartphone verbinden“** im gemeinsamen Präsentationsdialog und in der laufenden Host-Ansicht an; die Geräteverwaltung bietet zusätzlich **„Weiteres Host-Gerät verbinden“** mit verständlichem Co-Host-Hinweis.
+    - Der Default der Sichtbarkeitsfrage ist **projiziert / öffentlich sichtbar**; der Privat-Pfad bleibt Komfort ohne silent grant.
+    - Smartphone zeigt vor der Kopplung mindestens Session-Code und die Aktion **„Verbindung anfragen“** beziehungsweise fachlich gleichwertig.
+    - Der ursprüngliche Host erhält eine eindeutig zuordenbare Pairing-Anfrage auf dem **privaten** Host-Client.
+    - Die UI erklärt vor Freigabe, dass das Gerät Fragen steuern, Ergebnisse anzeigen und die Session beenden kann.
+    - Ablehnen, Ablauf, Abbruch, Cap-Überschreitung und Rate-Limit erzeugen keine Host-Berechtigung.
+    - Erfolgreiche Freigabe erzeugt ein separates, sessiongebundenes `PairedHostToken`.
+    - Nach erfolgreicher Kopplung landet das Smartphone auf derselben responsiven `/session/:code/host`-Route.
+    - Es entsteht keine dauerhaft separate Remote-Control-UI.
   - **Akzeptanzkriterien – Token- und Rollenmodell:**
-    - Der Session-Code allein bleibt ein öffentlicher Join-Zugang und gewährt weder Host- noch Pairing-Rechte.
-    - Der ursprüngliche Host erzeugt serverseitig ein kryptografisch starkes, einmalig verwendbares und kurzlebiges `HostPairingToken`, das genau an eine laufende Session gebunden ist.
-    - Das erfolgreiche Einlösen verbraucht das Pairing-Token atomar und erzeugt ein eigenes `PairedHostToken`; Wiederholung, Parallel-Einlösung, Ablauf und bereits verbrauchte Tokens werden sicher zurückgewiesen.
+    - Der ursprüngliche Host authentifiziert das Erzeugen einer Pairing-Einladung.
+    - Der Session-Code allein bleibt ein öffentlicher Join-Zugang und gewährt weder Host- noch Pairing-Rechte; er wird niemals in ein Host-Token umgewandelt und gewährt keine Pairing-Freigabe.
+    - Eine Pairing-Einladung ist kryptografisch stark, genau an eine Session gebunden, kurzlebig und einmal beziehungsweise nur für den vorgesehenen Pairing-Vorgang nutzbar.
+    - Der ursprüngliche Host erzeugt serverseitig ein kryptografisch starkes, einmalig verwendbares und kurzlebiges `HostPairingToken` / Pairing-Invite, das genau an eine laufende Session gebunden ist.
+    - Pairing-Secrets und spätere Paired-Host-Tokens werden serverseitig ausschließlich gehasht gespeichert.
+    - Nach erfolgreicher Freigabe erzeugt das Backend ein **separates `PairedHostToken`** für genau dieses Gerät; Wiederholung, Parallel-Einlösung, Ablauf und bereits verbrauchte Tokens werden sicher zurückgewiesen.
+    - Der ursprüngliche Host behält sein bestehendes Host-Token. Jedes gekoppelte Gerät besitzt eine eigene Token-ID, damit ein einzelnes Gerät widerrufen werden kann, ohne den ursprünglichen Host oder andere gekoppelte Geräte abzumelden.
     - Das `PairedHostToken` besitzt vollständige Host-Rechte für genau diese Session und wird von bestehenden Host-Prozeduren als Rolle `PAIRED_HOST` akzeptiert.
-    - Pairing- und Paired-Host-Tokens werden serverseitig ausschließlich gehasht gespeichert. Mehrere Host-Geräte erhalten getrennte Token-IDs, damit ein einzelnes Gerät widerrufen werden kann, ohne den ursprünglichen Host oder andere gekoppelte Geräte abzumelden.
-    - Nur der ursprüngliche Host darf neue Geräte koppeln, gekoppelte Geräte auflisten oder einzelne Paired Hosts widerrufen. Ein Paired Host darf keine weiteren Geräte koppeln und keine Host-Berechtigungen verwalten.
-    - Beim Session-Ende, bei Ablauf der Session-Berechtigung und beim sicherheitsbedingten Cleanup werden der ursprüngliche Host-Zugang, alle Pairing-Tokens und alle Paired-Host-Tokens serverseitig invalidiert; lokale Tokens werden auf allen erreichbaren Clients entfernt.
+    - Ein `PAIRED_HOST` besitzt reguläre Session-Host-Rechte, darf jedoch keine weiteren Hosts koppeln, keine Pairing-Anfragen freigeben und keine Geräteverwaltung beziehungsweise Host-Berechtigungen administrieren.
+    - Nur der ursprüngliche Host darf neue Geräte koppeln, gekoppelte Geräte auflisten oder einzelne Paired Hosts widerrufen.
+    - Serverseitig werden die Caps erzwungen: max. 3 `PAIRED_HOST` gleichzeitig, max. 1 aktive Pairing-Einladung, max. 1 Pending-Approval je Einladung, kurze TTLs.
+    - Beim Session-Ende, bei Ablauf der Session-Berechtigung und beim sicherheitsbedingten Cleanup werden der ursprüngliche Host-Zugang, alle Pairing-Einladungen/Tokens und alle Paired-Host-Tokens serverseitig invalidiert; lokale Tokens werden auf allen erreichbaren Clients entfernt.
     - Verlust, Widerruf und Ablauf werden auf HTTP- und WebSocket-Pfaden konsistent erkannt. Ein widerrufenes Gerät fällt in einen sicheren Einstieg zurück und behält keine Host-Daten aus neuen Realtime-Ereignissen.
   - **Akzeptanzkriterien – Host-Twin-Funktionalität:**
-    - Der Paired Host nutzt die bestehende responsive `SessionHostComponent` und sieht denselben autorisierten Session-Zustand wie der ursprüngliche Host: aktuelle Frage, Timer, Abstimmungsfortschritt, Ergebnisse, Leaderboards, Freitext-/Wortwolkenansichten, Moderationskompass, Q&A und Blitzlicht.
+    - Der Paired Host nutzt die bestehende responsive `SessionHostComponent` / Host-Oberfläche aus Story 2.8 und sieht denselben autorisierten Session-Zustand wie der ursprüngliche Host: aktuelle Frage, Timer, Abstimmungsfortschritt, Ergebnisse, Leaderboards, Freitext-/Wortwolkenansichten, Moderationskompass, Q&A und Blitzlicht.
+    - Die erste Ansicht soll unmittelbar den Live-Zustand vermitteln (z. B. „Frage 3 läuft / 84 Antworten“ mit Primäraktionen). Das Smartphone beginnt nicht mit einer Geräte-, Token- oder Verbindungskonfiguration.
+    - Primäre Live-Aktionen müssen auf kleinen Displays schnell und fingerfreundlich erreichbar sein.
     - Alle regulären Host-Aktionen bleiben verfügbar, insbesondere nächste/vorherige Frage, Lesephase beenden, Antworten und Ergebnisse freigeben, Frage auslassen, Peer-Instruction-Diskussion und zweite Runde, Kanalwechsel, Q&A-Moderation, Presenter-Flächenwechsel, Blitzlicht-Steuerung und Session-Ende.
     - Sicherheitskritische Aktionen wie **Session beenden** behalten ihre bestehende Bestätigung und dürfen nicht durch einen versehentlichen einzelnen Tap ausgelöst werden.
     - Die Presenter-Ansicht bleibt eine getrennte Anzeige ohne Steuerbedienelemente. Aktionen eines beliebigen autorisierten Hosts aktualisieren Presenter, ursprünglichen Host und weitere Paired Hosts über den kanonischen serverseitigen Session-Zustand.
     - Gerätebezogene Medienwiedergabe erzeugt keine unbeabsichtigten doppelten Sounds oder Hintergrundmusik. Ein neu gekoppeltes Smartphone startet standardmäßig ohne Audioausgabe; die Steuerdaten und sichtbaren Zustände bleiben davon unberührt.
   - **Akzeptanzkriterien – Synchronisation und Konkurrenz:**
     - Der aktuelle Session-Zustand in PostgreSQL bzw. den bestehenden kanonischen Laufzeitdiensten bleibt die einzige fachliche Wahrheit; Host-Geräte synchronisieren keine Session-Steuerung über Yjs oder Browser-Storage.
+    - Alle Geräte kommunizieren ausschließlich über den autoritativen ARSnova-Server (HTTPS/tRPC und WSS/Subscriptions). Das Smartphone steuert nicht direkt den Presenter-Browser.
+    - Smartphone und Laptop müssen nicht im selben WLAN sein (z. B. Laptop im Hochschul-WLAN, Smartphone über 5G). Es sind keine direkten LAN-, Bluetooth-, WebRTC-Peer-Verbindungen oder eingehenden Ports auf den Endgeräten erforderlich.
     - Bestehende tRPC-HTTP-Snapshots, WebSocket-Subscriptions und Reconnect-Fallbacks werden für alle Host-Geräte wiederverwendet.
     - Gleichzeitige oder nahezu gleichzeitige Aktionen mehrerer Hosts verletzen keine Statusinvarianten. Ungültig gewordene Übergänge werden serverseitig deterministisch zurückgewiesen und anschließend aus dem aktuellen Snapshot korrigiert angezeigt.
     - Wiederholte Klicks, Reconnect-Wiederholungen und doppelt gesendete Steuerbefehle erzeugen keine doppelten Fragen, Runden, Ergebnisfreigaben oder Session-Enden.
@@ -1251,28 +1388,68 @@ Eine Story gilt als **fertig**, wenn **alle** folgenden Kriterien erfüllt sind:
     - Der ursprüngliche Host sieht eine kompakte Liste gekoppelter Geräte mit verständlichem Geräte-/Browserlabel, Kopplungszeit, Verbindungsstatus und Aktion **„Verbindung trennen“**.
     - Geräte- und Browserlabels sind nur Vertrauenssignale und keine manipulationssicheren Identitätsnachweise. Es werden keine Accounts, dauerhaften Personenprofile oder unnötigen Gerätefingerprints eingeführt.
     - Die Anzeige und serverseitige Speicherung beschränken sich auf die für Kopplung, Widerruf und Betrieb erforderlichen Metadaten und folgen der Session-TTL.
+  - **Widerruf:**
+    - Der ursprüngliche Host kann ein gekoppeltes Gerät jederzeit über **„Verbindung trennen“** widerrufen.
+    - Der Widerruf muss serverseitig unmittelbar wirksam werden, für HTTP-Requests und bestehende WebSocket-Verbindungen gelten, weitere Realtime-Host-Daten für das widerrufene Gerät verhindern und das Smartphone in einen sicheren, verständlichen Zustand zurückführen (z. B. „Die Host-Verbindung wurde beendet.“ mit **„Zur Startseite“**).
+  - **Fehler- und Ablaufzustände:**
+    - Die UI benötigt verständliche Zustände mindestens für: Pairing-Einladung abgelaufen; Pairing-Anfrage abgelehnt; Pairing bereits verwendet; Smartphone bereits verbunden; maximales Host-Geräte-Limit erreicht; bereits eine offene Verbindungsanfrage; zu viele Pairing-Versuche (Rate-Limit); ursprünglicher Host nicht mehr berechtigt; Session bereits beendet; Verbindung unterbrochen; Paired Host widerrufen; Freigabe nur in der privaten Host-Ansicht möglich.
+    - Keine reguläre Fehlermeldung verwendet interne Begriffe wie Hash, JWT, WebSocket Authorization oder Token-ID.
+  - **Akzeptanzkriterien – Missbrauchsszenario:**
+    - Ein automatisierter beziehungsweise E2E-naher Sicherheitstest bildet mindestens folgenden Fall ab: Host öffnet „Smartphone verbinden“; Pairing-QR wird als öffentlich sichtbar angenommen; Browser/Client A scannt den QR; Client A darf zu diesem Zeitpunkt **keine** Host-Mutation erfolgreich durchführen und befindet sich ausschließlich im Pending-Zustand; der ursprüngliche Host lehnt ab; Client A erhält niemals ein gültiges `PairedHostToken`.
+    - Privat-Pfad-Negativtest: Sichtbarkeit „privat“ gewählt; Client scannt; ohne explizite Freigabe des ursprünglichen Hosts entsteht kein `PairedHostToken` (kein silent grant).
+    - Presenter-Negativtest: Während die Presenter-Route aktiv ist, erscheinen dort weder Pairing-QR/-Secret noch „Als Host zulassen“; eine ausstehende Anfrage ist nur über den privaten Host-Client freigebbar.
+    - Cap-Negativtest: Nach Erreichen von 3 Paired Hosts schlägt weitere Freigabe fehl; nach Widerruf eines Geräts ist erneute Freigabe wieder möglich.
+    - Zusätzlich: Client B scannt einen Pairing-Code; ursprünglicher Host bestätigt Client B; Client B kann danach reguläre Host-Aktionen durchführen; ursprünglicher Host widerruft Client B; HTTP- und WebSocket-Host-Zugriff von Client B werden unmittelbar ungültig.
+  - **Akzeptanzkriterien – Usability-Test:**
+    - Story 2.10 gilt UX-seitig erst als abnahmefähig, wenn mindestens ein Thinking-Aloud- beziehungsweise vergleichbarer Nutzertest den Presenter-/Smartphone-Flow mit einer Person prüft, die die technische Architektur nicht kennt.
+    - Testaufgabe sinngemäß: „Sie möchten Ihre Präsentation auf dem Beamer zeigen und sich anschließend mit Ihrem Smartphone im Raum bewegen und die Präsentation steuern.“
+    - Erfolgskriterien: Die Person findet die Smartphone-Steuerung ohne Anleitung; versteht, dass das Smartphone die laufende Präsentation steuern kann; muss die Begriffe `Paired Host`, Token oder WebSocket nicht kennen; erkennt, wann das Smartphone erfolgreich verbunden ist; kann anschließend die Präsentation starten; versteht bei einem als öffentlich beschriebenen Bildschirm, dass die eigentliche Freigabe noch bestätigt werden muss; der sichere Flow darf für eine Erstnutzerin nicht wie eine technische Administrationsaufgabe wirken.
   - **Performance und Betrieb:**
-    - Ein Paired Host verursacht höchstens konstant zusätzliche Host-Last; Abstimmungsfortschritt verwendet weiterhin den leichtgewichtigen Vote-Progress-Pfad statt vollständiger Frage-DTOs pro Stimme.
-    - Fallback-Polling läuft nicht parallel in hoher Frequenz, solange die jeweilige WebSocket-Verbindung gesund ist. Reconnects mehrerer Host-Geräte erzeugen keine rekursiven Refresh- oder Resubscribe-Schleifen.
+    - Das Pairing selbst liegt nicht im Vote-/Join-Hotpath.
+    - Ein Paired Host verursacht höchstens **O(1)** zusätzliche Host-Last je Gerät; Abstimmungsfortschritt verwendet weiterhin den leichtgewichtigen Vote-Progress-Pfad statt vollständiger Frage-DTOs pro Stimme.
+    - **Host-Subscription-Budget:** Paired Hosts abonnieren dieselben bestehenden Host-Kanäle wie der ursprüngliche Host. Session-Events an Hosts skalieren mit `O(Anzahl Host-Geräte)` und dürfen Participant-Payloads oder Vote-Hotpaths nicht aufblasen. Schwere Ableitungen (Moderation, Wortwolke, Export) bleiben serverseitig einmalig bzw. gecacht und werden nicht pro Host-Gerät neu berechnet.
+    - Nach Kopplung verwendet das Smartphone dieselben bestehenden tRPC-HTTP- und WebSocket-Pfade wie der ursprüngliche Host.
+    - Fallback-Polling startet nur, wenn die jeweilige WebSocket-Verbindung ungesund ist, und läuft nicht parallel in hoher Frequenz. Bei mehreren Host-Geräten erzeugt jeder Client höchstens den bestehenden Einzel-Host-Poll; es entstehen keine rekursiven Refresh- oder Resubscribe-Schleifen und keine multiplikative Poll-Amplikation über den Host-Cap hinaus.
+    - Reconnect erzeugt keine zusätzliche Pairing-Anfrage. Ein gültiges `PairedHostToken` wird bei Reconnect erneut autorisiert. Ein widerrufenes Token darf auch nach automatischem WebSocket-Reconnect nicht wieder Host-Rechte erhalten.
     - Teure Moderations-, Wortwolken- oder Exportberechnungen werden nicht allein durch das Vorhandensein eines zweiten Host-Geräts doppelt ausgelöst.
-    - Der Last- und Reconnect-Nachweis umfasst mindestens **ursprünglicher Host + Paired Host + Presenter + 500 Lecture-Hall-Clients**, einschließlich Shared-NAT, Abstimmungswelle, Host-Twin-Reconnect und Presenter-Wechseln.
+    - Der Last- und Reconnect-Nachweis umfasst mindestens **ursprünglicher Host + bis zu 3 Paired Hosts (Cap) + Presenter + 500 Lecture-Hall-Clients**, einschließlich Shared-NAT, Abstimmungswelle, Host-Twin-/Paired-Host-Reconnect, Presenter-Zustandswechsel und Widerruf eines verbundenen Geräts. Mindestens ein Lauf weist den Worst Case am Cap nach.
   - **Barrierefreiheit und i18n:**
-    - Pairing-Dialog, Smartphone-Bestätigung, Statusmeldungen, Ablauf-/Widerrufsfehler und Geräteverwaltung sind für `de`, `en`, `fr`, `es` und `it` synchronisiert.
-    - QR-Code und Link-Kopie besitzen eine gleichwertige textuelle Alternative. Pairing und Widerruf sind per Tastatur und Screenreader bedienbar; Fokus bleibt nach Erfolg, Fehler und Dialogschluss auf einem sichtbaren, sinnvollen Ziel.
+    - Sämtliche neuen Texte sowie Pairing-Dialog, Smartphone-Bestätigung, Statusmeldungen, Ablauf-/Widerrufsfehler und Geräteverwaltung sind für `de`, `en`, `fr`, `es` und `it` synchronisiert.
+    - Die Copy in allen Locales muss **idiomatisch, klar und leicht verständlich** sein: natürliche Lehrpersonen-Sprache, kurze Sätze, eindeutige Handlungen, keine technischen Pairing-/Token-Begriffe in der regulären UI.
+    - **Keine Maschinenübersetzungen** in den Locales: `en`, `fr`, `es` und `it` werden fachlich und sprachlich gegengeprüft (kein ungeprüftes Auto-Translate, keine wörtlichen Lehnübersetzungen aus dem Deutschen, keine inkonsistenten Fachbegriffe zwischen Sprachen). Quellsprache bleibt `de` gemäß ADR-0008.
+    - QR-Code besitzt immer eine gleichwertige textuelle beziehungsweise Link-Alternative. Pairing und Widerruf sind vollständig per Tastatur und Screenreader bedienbar.
+    - Dialoge besitzen sinnvollen Initialfokus und geben Fokus nach Schließen zurück. Fokus bleibt nach Erfolg, Fehler und Dialogschluss auf einem sichtbaren, sinnvollen Ziel.
+    - Statusänderungen wie „Verbindungsanfrage erhalten“, „Smartphone verbunden“, „abgelehnt“, „abgelaufen“ und „Verbindung getrennt“ werden screenreader-tauglich angekündigt.
+    - Touch-Ziele entsprechen dem projektweiten Mindeststandard. Sicherheitsinformationen werden nicht ausschließlich über Farbe oder Icons vermittelt.
     - Die bestehende mobile Host-Ansicht erfüllt weiterhin Story 2.8 und WCAG 2.2 AA bei 320 px Breite, Reflow, Zoom, Safe Areas und reduzierter Bewegung.
   - **Tests und Definition of Done:**
-    - Shared-Type-Contracttests decken Pairing-Erzeugung, Einlösung und Rollen-/Token-Ausgaben ab.
-    - Backendtests decken Happy Path, falschen Session-Code, fehlendes Primär-Host-Recht, Ablauf, Wiederverwendung, parallele Einlösung, Einzelwiderruf, Session-Ende sowie HTTP- und WebSocket-Autorisierung des `PAIRED_HOST` ab.
-    - Frontendtests decken Dialogzustände, QR-/Link-Fallback, Bestätigung, Redirect, lokale Token-Ablage, Widerruf, Reconnect, Fokusmanagement und die vollständige mobile Host-Shell ab.
+    - Shared-Type-Contracttests decken Pairing-Erzeugung, Anfrage, Freigabe/Ablehnung, Einlösung und Rollen-/Token-Ausgaben ab.
+    - Backendtests decken Happy Path, falschen Session-Code, fehlendes Primär-Host-Recht, Ablauf, Wiederverwendung, parallele Einlösung, Pending ohne Freigabe (inkl. Privat-Pfad), Ablehnung, Caps (max. Paired Hosts / aktive Einladung / Pending), Pairing-Rate-Limits, Einzelwiderruf, Session-Ende sowie HTTP- und WebSocket-Autorisierung des `PAIRED_HOST` ab.
+    - Frontendtests decken Dialogzustände inkl. „Präsentation starten“, Co-Host-Hinweis, Sichtbarkeitsfrage (Default projiziert), QR-/Link-Fallback, Verbindungsanfrage, Host-Freigabe nur auf privatem Host-Client, Presenter ohne Freigabe-UI, Redirect, lokale Token-Ablage, Widerruf, Reconnect, Fokusmanagement und die vollständige mobile Host-Shell ab.
     - Ein Browser-Smoke verwendet getrennte Browser-Kontexte für ursprünglichen Host, Smartphone-Host und Presenter und verifiziert mindestens `LOBBY → Frage → Ergebnis → Kanalwechsel → Session-Ende` sowie den sofortigen Entzug eines Paired Hosts.
+    - Der Missbrauchs-/Sicherheitstest aus den Akzeptanzkriterien ist Teil der DoD.
+    - Vor Abnahme werden alle neuen i18n-Strings in `de`/`en`/`fr`/`es`/`it` auf idiomatische Klarheit geprüft; ungeprüfte Maschinenübersetzungen sind ein Blocker.
     - Produktions-, Sicherheits-, Redis-, WebSocket-, Reconnect-, Accessibility-, lokalisierte Build- und Lastprüfungen werden entsprechend `AGENTS.md` und `docs/TESTING.md` ausgeführt und mit exakten Befehlen dokumentiert.
   - **Nicht-Ziele:**
+    - Keine ungeprüften Maschinenübersetzungen oder rein wörtlichen Locale-Übernahmen aus dem Deutschen.
+    - Keine direkte Smartphone-zu-Laptop-Steuerung.
+    - Kein Bluetooth-Pairing.
+    - Kein WebRTC-Peer-to-Peer-Remote-Control.
+    - Keine Abhängigkeit vom selben WLAN.
+    - Keine automatische Erkennung, ob ein Bildschirm tatsächlich gespiegelt oder projiziert wird.
+    - Keine Host-Rechte allein durch Kenntnis des Session-Codes.
+    - Keine vollen Host-Rechte allein durch einen öffentlich sichtbaren QR-Code.
+    - Kein silent grant im Privat-Pfad (Scan allein reicht nie).
+    - Keine Pairing-Freigabe, Geräteverwaltung oder Pairing-Secrets in der Presenter-Ansicht.
+    - Keine unbegrenzte Anzahl Paired Hosts und keine parallelen offenen Pairing-Einladungen.
     - Keine Kopplung über Quiz-Sync-Link oder Session-Code allein.
-    - Keine reduzierte Remote-Light-Oberfläche neben der bestehenden Host-Shell.
-    - Keine eingeschränkte Rolle für nicht vollständig vertrauenswürdige Personen.
-    - Keine Accountpflicht, dauerhafte Geräteidentität oder geräteübergreifende Speicherung des Host-Tokens im Quiz-Yjs-Dokument.
-    - Keine Steuerbedienelemente in der Presenter-Ansicht.
-  - **Abhängigkeiten:** Story 2.1c (Host-/Presenter-Token), Story 2.3 (Präsentations-Steuerung), Story 2.5 (Presenter), Story 2.8 (Smartphone-Hosting), Story 6.2 (i18n), Story 6.5 (Barrierefreiheit), ADR-0014 (Mobile Host), ADR-0019 (Session-Token), ADR-0025 (Live-Performance) sowie `docs/SECURITY-OVERVIEW.md`.
+    - Keine reduzierte Remote-Light-Oberfläche / dauerhaft separate Fernbedienungsoberfläche neben der bestehenden Host-Shell.
+    - Keine Host-Bedienelemente in der Presenter-Ansicht.
+    - Keine eingeschränkte / reduzierte Moderatorrolle für nicht vollständig vertrauenswürdige Personen.
+    - Keine Accountpflicht, dauerhafte Geräteidentität, invasives Fingerprinting oder geräteübergreifende Speicherung des Host-Tokens im Quiz-Yjs-Dokument.
+  - **Verbindliche UX-/Security-Kurzregel:**
+    - „Präsentieren“ ist die Nutzeraufgabe. „Smartphone verbinden“ / „Weiteres Host-Gerät verbinden“ ist ein optionaler Vorbereitungsschritt. Der Presenter ist die passive Projektion. Das Smartphone oder die vertrauenswürdige Person wird ein zweiter Host. Request-and-approve ist der Serverdefault in jedem Pfad. Ein QR-Code darf nur eine Anfrage auslösen — auch bei „privat“. Freigabe und Geräteverwaltung bleiben host-privat und erscheinen nie im Presenter. Volle Host-Rechte entstehen erst nach expliziter Freigabe; Caps begrenzen Einladungen und Paired Hosts.
+  - **Abhängigkeiten:** Story 2.1c (Host-/Presenter-Token), Story 2.3 (Präsentations-Steuerung), Story 2.5 (Presenter), Story 2.8 (Smartphone-Hosting), Story 6.2 (i18n), Story 6.5 (Barrierefreiheit), ADR-0011 (Delegation via trusted paired hosts), ADR-0014 (Mobile Host), ADR-0019 (Session-Token), ADR-0025 (Live-Performance) sowie `docs/SECURITY-OVERVIEW.md`.
 
 ---
 

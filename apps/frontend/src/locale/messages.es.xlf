@@ -19768,8 +19768,8 @@
         </context-group>
       </trans-unit>
       <trans-unit id="sessionHost.presenterViewPopupBlocked" datatype="html">
-        <source>Presenter-Ansicht konnte nicht geöffnet werden. Bitte Pop-ups erlauben oder den Host-Tab duplizieren und in der Adresse /present statt /host nutzen.</source>
-        <target>No se pudo abrir la vista de presentador. Permite las ventanas emergentes o duplica la pestaña de anfitrión y usa /present en lugar de /host en la dirección.</target>
+        <source>Das Präsentationsfenster konnte nicht geöffnet werden. Erlaube Pop-up-Fenster für diese Seite und versuche es erneut.</source>
+        <target>No se ha podido abrir la ventana de presentación. Permite las ventanas emergentes en esta página e inténtalo de nuevo.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.ts</context>
           <context context-type="linenumber">4311</context>
@@ -21602,24 +21602,24 @@
         </context-group>
       </trans-unit>
       <trans-unit id="sessionPresent.fullscreenGateTitle" datatype="html">
-        <source> Vollbild für Beamer</source>
-        <target>Pantalla completa para proyector</target>
+        <source>Präsentation im Vollbild</source>
+        <target>Presentación a pantalla completa</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-present/session-present.component.html</context>
           <context context-type="linenumber">25,27</context>
         </context-group>
       </trans-unit>
       <trans-unit id="sessionPresent.fullscreenGateHint" datatype="html">
-        <source> Browser erlauben Vollbild erst nach einem Klick im Presenter-Fenster.</source>
-        <target>Los navegadores sólo permiten la pantalla completa después de hacer clic en la ventana del presentador.</target>
+        <source>Tippe hier, damit der Browser das Vollbild für den Beamer erlaubt.</source>
+        <target>Toca aquí para que el navegador muestre la presentación a pantalla completa.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-present/session-present.component.html</context>
           <context context-type="linenumber">28,30</context>
         </context-group>
       </trans-unit>
       <trans-unit id="sessionPresent.fullscreenGateAction" datatype="html">
-        <source> Vollbild starten</source>
-        <target>Iniciar pantalla completa</target>
+        <source>Präsentation im Vollbild starten</source>
+        <target>Iniciar la presentación a pantalla completa</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-present/session-present.component.html</context>
           <context context-type="linenumber">38,40</context>
@@ -27232,6 +27232,326 @@
           <context context-type="sourcefile">src/app/shared/top-toolbar/top-toolbar.component.ts</context>
           <context context-type="linenumber">170</context>
         </context-group>
+      </trans-unit>
+      <trans-unit id="hostPairing.connectAria" datatype="html">
+        <source>Smartphone als weiteres Steuergerät verbinden</source>
+        <target>Conectar el smartphone como otro dispositivo de control</target>
+      </trans-unit>
+      <trans-unit id="hostPairing.connectTooltip" datatype="html">
+        <source>Smartphone verbinden</source>
+        <target>Conectar el móvil</target>
+      </trans-unit>
+      <trans-unit id="hostPairing.connectLabel" datatype="html">
+        <source>Smartphone verbinden</source>
+        <target>Conectar el móvil</target>
+      </trans-unit>
+      <trans-unit id="hostPairing.dialogTitle" datatype="html">
+        <source>Smartphone zum Steuern verbinden</source>
+        <target>Conectar un smartphone para controlar</target>
+      </trans-unit>
+      <trans-unit id="hostPairing.preparing" datatype="html">
+        <source>Verbindung wird vorbereitet…</source>
+        <target>Preparando la conexión…</target>
+      </trans-unit>
+      <trans-unit id="hostPairing.dialogIntro" datatype="html">
+        <source>Scanne den QR-Code mit deinem Smartphone. Die Verbindung wird erst aktiv, nachdem du sie hier bestätigt hast.</source>
+        <target>Escanea el código QR con tu smartphone. La conexión solo se activa cuando la confirmas aquí.</target>
+      </trans-unit>
+      <trans-unit id="hostPairing.qrAlt" datatype="html">
+        <source>QR-Code zum Verbinden des Smartphones</source>
+        <target>Código QR para conectar el móvil</target>
+      </trans-unit>
+      <trans-unit id="hostPairing.waitingScan" datatype="html">
+        <source>Warten auf Verbindungsanfrage…</source>
+        <target>Esperando una solicitud de conexión…</target>
+      </trans-unit>
+      <trans-unit id="hostPairing.pendingTitle" datatype="html">
+        <source>Steht auf dem Smartphone dasselbe Zeichen?</source>
+        <target>¿El smartphone muestra el mismo signo?</target>
+      </trans-unit>
+      <trans-unit id="hostPairing.pendingHint" datatype="html">
+        <source>Verbinde das Gerät nur, wenn auf beiden Geräten dasselbe Zeichen angezeigt wird.</source>
+        <target>Conecta el dispositivo solo si ambas pantallas muestran el mismo signo.</target>
+      </trans-unit>
+      <trans-unit id="hostPairing.connected" datatype="html">
+        <source>Smartphone verbunden</source>
+        <target>Móvil conectado</target>
+      </trans-unit>
+      <trans-unit id="hostPairing.connectedHint" datatype="html">
+        <source>Du kannst die Veranstaltung jetzt auch vom Smartphone steuern.</source>
+        <target>Ahora también puedes controlar la sesión desde el móvil.</target>
+      </trans-unit>
+      <trans-unit id="hostPairing.reject" datatype="html">
+        <source>Nein, ablehnen</source>
+        <target>No, rechazar</target>
+      </trans-unit>
+      <trans-unit id="hostPairing.approve" datatype="html">
+        <source>Ja, Gerät verbinden</source>
+        <target>Sí, conectar dispositivo</target>
+      </trans-unit>
+      <trans-unit id="hostPairing.retry" datatype="html">
+        <source>Neuen QR-Code anzeigen</source>
+        <target>Mostrar un código QR nuevo</target>
+      </trans-unit>
+      <trans-unit id="hostPairing.close" datatype="html">
+        <source>Schließen</source>
+        <target>Cerrar</target>
+      </trans-unit>
+      <trans-unit id="hostPairing.errorGeneric" datatype="html">
+        <source>Das Gerät konnte nicht verbunden werden. Bitte versuche es noch einmal.</source>
+        <target>No se ha podido conectar el dispositivo. Inténtalo de nuevo.</target>
+      </trans-unit>
+      <trans-unit id="hostPairing.linkCopied" datatype="html">
+        <source>Link kopiert</source>
+        <target>Enlace copiado</target>
+      </trans-unit>
+      <trans-unit id="hostPairing.copyLink" datatype="html">
+        <source>Link kopieren</source>
+        <target>Copiar enlace</target>
+      </trans-unit>
+      <trans-unit id="hostPairing.copyFailed" datatype="html">
+        <source>Link konnte nicht kopiert werden.</source>
+        <target>No se ha podido copiar el enlace.</target>
+      </trans-unit>
+      <trans-unit id="hostPairing.errorRejected" datatype="html">
+        <source>Die Verbindung wurde abgelehnt.</source>
+        <target>Se ha rechazado la conexión.</target>
+      </trans-unit>
+      <trans-unit id="hostPairing.requestQuestion" datatype="html">
+        <source>Mit der Veranstaltung <x id="sessionCode" equiv-text="this.code"/> verbinden?</source>
+        <target>¿Conectar con la sesión <x id="sessionCode" equiv-text="this.code"/>?</target>
+      </trans-unit>
+      <trans-unit id="hostPairing.errorInvalidLink" datatype="html">
+        <source>Dieser Link ist nicht mehr gültig. Bitte zeige einen neuen QR-Code an.</source>
+        <target>Este enlace ya no es válido. Muestra un código QR nuevo.</target>
+      </trans-unit>
+      <trans-unit id="hostPairing.errorAlreadyPending" datatype="html">
+        <source>Es wartet bereits ein anderes Gerät auf Bestätigung.</source>
+        <target>Ya hay otro dispositivo esperando confirmación.</target>
+      </trans-unit>
+      <trans-unit id="hostPairing.requestTitle" datatype="html">
+        <source>Mit Veranstaltung verbinden</source>
+        <target>Conectar con la sesión</target>
+      </trans-unit>
+      <trans-unit id="hostPairing.requestSub" datatype="html">
+        <source>Nach der Freigabe kannst du die Veranstaltung von diesem Gerät aus steuern.</source>
+        <target>Tras la autorización podrás controlar la sesión desde este dispositivo.</target>
+      </trans-unit>
+      <trans-unit id="hostPairing.missingSecret" datatype="html">
+        <source>Dieser Link ist unvollständig. Bitte den QR-Code oder den vollständigen Link nutzen.</source>
+        <target>Este enlace está incompleto. Usa el código QR o el enlace completo.</target>
+      </trans-unit>
+      <trans-unit id="hostPairing.goHome" datatype="html">
+        <source>Zur Startseite</source>
+        <target>Volver al inicio</target>
+      </trans-unit>
+      <trans-unit id="hostPairing.requestAction" datatype="html">
+        <source>Dieses Gerät verbinden</source>
+        <target>Conectar este dispositivo</target>
+      </trans-unit>
+      <trans-unit id="hostPairing.requestWaiting" datatype="html">
+        <source>Warte auf die Bestätigung durch die Lehrperson. Zeige ihr dieses Zeichen. Auf beiden Geräten muss dasselbe Zeichen stehen:</source>
+        <target>Espera la confirmación de quien dirige la sesión. Muéstrale este signo. Ambos dispositivos deben mostrar el mismo signo:</target>
+      </trans-unit>
+      <trans-unit id="hostPairing.errorExpired" datatype="html">
+        <source>Die Zeit zum Verbinden ist abgelaufen.</source>
+        <target>Se ha agotado el tiempo para conectar.</target>
+      </trans-unit>
+      <trans-unit id="hostPairing.errorCapReached" datatype="html">
+        <source>Es sind bereits drei weitere Geräte verbunden.</source>
+        <target>Ya hay otros tres dispositivos conectados.</target>
+      </trans-unit>
+      <trans-unit id="hostPairing.errorNotOriginal" datatype="html">
+        <source>Nur du kannst weitere Geräte verbinden.</source>
+        <target>Solo tú puedes conectar más dispositivos.</target>
+      </trans-unit>
+      <trans-unit id="hostPairing.errorNoRequest" datatype="html">
+        <source>Es gibt keine offene Verbindungsanfrage.</source>
+        <target>No hay ninguna solicitud de conexión pendiente.</target>
+      </trans-unit>
+      <trans-unit id="hostPairing.errorSessionEnded" datatype="html">
+        <source>Die Veranstaltung ist bereits beendet.</source>
+        <target>La sesión ya ha terminado.</target>
+      </trans-unit>
+      <trans-unit id="hostPairing.errorRateLimited" datatype="html">
+        <source>Zu viele Verbindungsversuche. Bitte später erneut versuchen.</source>
+        <target>Demasiados intentos de conexión. Inténtalo de nuevo más tarde.</target>
+      </trans-unit>
+      <trans-unit id="presentationStart.title" datatype="html">
+        <source>Präsentation starten</source>
+        <target>Iniciar la presentación</target>
+      </trans-unit>
+      <trans-unit id="presentationStart.intro" datatype="html">
+        <source>Zeige die Präsentation auf dem Beamer.</source>
+        <target>Muestra la presentación en el proyector.</target>
+      </trans-unit>
+      <trans-unit id="presentationStart.phoneTitle" datatype="html">
+        <source>Mit Smartphone steuern</source>
+        <target>Controlar con el móvil</target>
+      </trans-unit>
+      <trans-unit id="presentationStart.phoneHint" datatype="html">
+        <source>Steuere Fragen und Ergebnisse vom Smartphone, während der Laptop die Präsentation zeigt.</source>
+        <target>Controla las preguntas y los resultados desde el smartphone mientras el portátil muestra la presentación.</target>
+      </trans-unit>
+      <trans-unit id="presentationStart.readyHint" datatype="html">
+        <source>Du kannst jetzt präsentieren. Ein weiteres Gerät ist optional.</source>
+        <target>Ya puedes presentar. Otro dispositivo es opcional.</target>
+      </trans-unit>
+      <trans-unit id="presentationStart.visibilityLegend" datatype="html">
+        <source>Kann jemand außer dir diesen Bildschirm sehen?</source>
+        <target>¿Puede ver esta pantalla alguien además de ti?</target>
+      </trans-unit>
+      <trans-unit id="presentationStart.visibilityProjected" datatype="html">
+        <source>Ja, er wird zum Beispiel über einen Beamer gezeigt</source>
+        <target>Sí, se muestra por ejemplo en un proyector</target>
+      </trans-unit>
+      <trans-unit id="presentationStart.visibilityPrivate" datatype="html">
+        <source>Nein, nur ich kann diesen Bildschirm sehen</source>
+        <target>No, solo yo puedo ver esta pantalla</target>
+      </trans-unit>
+      <trans-unit id="presentationStart.visibilityHint" datatype="html">
+        <source>Die Verbindung wird immer auf diesem Bildschirm bestätigt. So kann niemand unbemerkt die Steuerung übernehmen.</source>
+        <target>La conexión siempre se confirma en esta pantalla. Así nadie puede tomar el control sin que te des cuenta.</target>
+      </trans-unit>
+      <trans-unit id="presentationStart.coHostHint" datatype="html">
+        <source>So kann sich auch eine vertrauenswürdige Person mit einem weiteren Gerät verbinden.</source>
+        <target>Una persona de confianza también puede conectarse con otro dispositivo.</target>
+      </trans-unit>
+      <trans-unit id="presentationStart.coHostAction" datatype="html">
+        <source>Weiteres Gerät verbinden</source>
+        <target>Conectar otro dispositivo</target>
+      </trans-unit>
+      <trans-unit id="presentationStart.cancel" datatype="html">
+        <source>Abbrechen</source>
+        <target>Cancelar</target>
+      </trans-unit>
+      <trans-unit id="presentationStart.primaryAction" datatype="html">
+        <source>Präsentation im Vollbild starten</source>
+        <target>Iniciar la presentación a pantalla completa</target>
+      </trans-unit>
+      <trans-unit id="hostPairing.dialogIntroPrivate" datatype="html">
+        <source>Scanne den QR-Code auf diesem Bildschirm. Bestätige die Verbindung anschließend hier – niemand erhält automatisch Host-Rechte.</source>
+        <target>Escanea el código QR en esta pantalla. Confirma después la conexión aquí: nadie obtiene el control automáticamente.</target>
+      </trans-unit>
+      <trans-unit id="hostPairing.connectedAria" datatype="html">
+        <source>Smartphone verbunden. Weiteres Gerät verbinden</source>
+        <target>Móvil conectado. Conectar otro dispositivo</target>
+      </trans-unit>
+      <trans-unit id="hostPairing.approveOnThisScreen" datatype="html">
+        <source>Bestätige Anfragen auf diesem Bildschirm, nicht in der Präsentationsansicht.</source>
+        <target>Confirma las solicitudes en esta pantalla, no en la vista de presentación.</target>
+      </trans-unit>
+      <trans-unit id="hostPairing.devicesTitle" datatype="html">
+        <source>Verbundene Geräte</source>
+        <target>Dispositivos conectados</target>
+      </trans-unit>
+      <trans-unit id="hostPairing.deviceFallback" datatype="html">
+        <source>Weiteres Gerät 3</source>
+        <target>Otro dispositivo 3</target>
+      </trans-unit>
+      <trans-unit id="hostPairing.deviceStatus" datatype="html">
+        <source>Verbunden</source>
+        <target>Conectado</target>
+      </trans-unit>
+      <trans-unit id="hostPairing.revoke" datatype="html">
+        <source>Verbindung trennen</source>
+        <target>Desconectar</target>
+      </trans-unit>
+      <trans-unit id="hostPairing.revokedLive" datatype="html">
+        <source>Gerät getrennt</source>
+        <target>Dispositivo desconectado</target>
+      </trans-unit>
+      <trans-unit id="hostPairing.capReachedHint" datatype="html">
+        <source>Es sind bereits drei weitere Geräte verbunden. Trenne zuerst eine Verbindung.</source>
+        <target>Ya hay otros tres dispositivos conectados. Desconecta uno primero.</target>
+      </trans-unit>
+      <trans-unit id="hostPairing.addAnother" datatype="html">
+        <source>Weiteres Gerät verbinden</source>
+        <target>Conectar otro dispositivo</target>
+      </trans-unit>
+      <trans-unit id="hostPairing.noDevices" datatype="html">
+        <source>Kein weiteres Gerät verbunden.</source>
+        <target>No hay ningún otro dispositivo conectado.</target>
+      </trans-unit>
+      <trans-unit id="hostPairing.pendingOpenHint" datatype="html">
+        <source>Es wartet bereits eine Verbindungsanfrage.</source>
+        <target>Ya hay una solicitud de conexión pendiente.</target>
+      </trans-unit>
+      <trans-unit id="hostAccess.revokedTitle" datatype="html">
+        <source>Die Verbindung wurde beendet.</source>
+        <target>La conexión ha finalizado.</target>
+      </trans-unit>
+      <trans-unit id="hostAccess.revokedHint" datatype="html">
+        <source>Dieses Gerät kann die Veranstaltung nicht mehr steuern.</source>
+        <target>Este dispositivo ya no puede controlar la sesión.</target>
+      </trans-unit>
+      <trans-unit id="presentationStart.reviewRequest" datatype="html">
+        <source>Anfrage prüfen</source>
+        <target>Revisar solicitud</target>
+      </trans-unit>
+      <trans-unit id="presentationStart.manageDevices" datatype="html">
+        <source>Geräte verwalten</source>
+        <target>Gestionar dispositivos</target>
+      </trans-unit>
+      <trans-unit id="hostPairing.dialogTitlePending" datatype="html">
+        <source>Smartphone bestätigen</source>
+        <target>Confirmar el smartphone</target>
+      </trans-unit>
+      <trans-unit id="hostPairing.dialogTitleAnother" datatype="html">
+        <source>Weiteres Gerät verbinden</source>
+        <target>Conectar otro dispositivo</target>
+      </trans-unit>
+      <trans-unit id="hostPairing.approveAndPresent" datatype="html">
+        <source>Gerät verbinden und Präsentation starten</source>
+        <target>Conectar el dispositivo e iniciar la presentación</target>
+      </trans-unit>
+      <trans-unit id="hostPairing.rejectRequest" datatype="html">
+        <source>Anfrage ablehnen</source>
+        <target>Rechazar la solicitud</target>
+      </trans-unit>
+      <trans-unit id="hostPairing.presentWithoutPhone" datatype="html">
+        <source>Ohne Smartphone präsentieren</source>
+        <target>Presentar sin smartphone</target>
+      </trans-unit>
+      <trans-unit id="hostPairing.deviceFallbackPhone" datatype="html">
+        <source>Smartphone 1</source>
+        <target>Smartphone 1</target>
+      </trans-unit>
+      <trans-unit id="hostPairing.deviceFallbackPhone2" datatype="html">
+        <source>Smartphone 2</source>
+        <target>Smartphone 2</target>
+      </trans-unit>
+      <trans-unit id="hostPairing.pendingAfterHint" datatype="html">
+        <source>Danach kannst du mit dem Gerät durch die Fragen navigieren, Ergebnisse anzeigen und die Veranstaltung beenden.</source>
+        <target>Una vez conectado, podrás usar este dispositivo para navegar por las preguntas, mostrar los resultados y finalizar la sesión.</target>
+      </trans-unit>
+      <trans-unit id="hostPairing.inviteRemaining" datatype="html">
+        <source>Noch <x id="remaining" equiv-text="remaining"/> Minuten Zeit, um den QR-Code zu scannen.</source>
+        <target>Quedan <x id="remaining" equiv-text="remaining"/> minutos para escanear el código QR.</target>
+      </trans-unit>
+      <trans-unit id="hostPairing.pendingRemaining" datatype="html">
+        <source>Noch <x id="remaining" equiv-text="remaining"/> Minuten Zeit, um zu bestätigen.</source>
+        <target>Quedan <x id="remaining" equiv-text="remaining"/> minutos para confirmar.</target>
+      </trans-unit>
+      <trans-unit id="hostPairing.requestRemaining" datatype="html">
+        <source>Warte auf die Bestätigung · noch <x id="remaining" equiv-text="remaining"/> Minuten</source>
+        <target>Esperando la confirmación · quedan <x id="remaining" equiv-text="remaining"/> minutos</target>
+      </trans-unit>
+      <trans-unit id="hostPairing.deviceNameLabel" datatype="html">
+        <source>Wie möchtest du dieses Gerät nennen? (optional)</source>
+        <target>¿Cómo quieres llamar a este dispositivo? (opcional)</target>
+      </trans-unit>
+      <trans-unit id="hostPairing.deviceNameHint" datatype="html">
+        <source>Zum Beispiel „Mein Smartphone“ oder „Tablet von Alex“</source>
+        <target>Por ejemplo “Mi smartphone” o “Tablet de Alex”</target>
+      </trans-unit>
+      <trans-unit id="hostPairing.declineConnect" datatype="html">
+        <source>Nicht verbinden</source>
+        <target>No conectar</target>
+      </trans-unit>
+      <trans-unit id="presentationStart.loadingAdmin" datatype="html">
+        <source>Verbindungsmöglichkeiten werden geladen …</source>
+        <target>Cargando las opciones de conexión…</target>
       </trans-unit>
     </body>
   </file>

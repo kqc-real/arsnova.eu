@@ -17552,7 +17552,7 @@
         </context-group>
       </trans-unit>
       <trans-unit id="sessionHost.presenterViewPopupBlocked" datatype="html">
-        <source>Presenter-Ansicht konnte nicht geöffnet werden. Bitte Pop-ups erlauben oder den Host-Tab duplizieren und in der Adresse /present statt /host nutzen.</source>
+        <source>Das Präsentationsfenster konnte nicht geöffnet werden. Erlaube Pop-up-Fenster für diese Seite und versuche es erneut.</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.ts</context>
           <context context-type="linenumber">4311</context>
@@ -19119,21 +19119,21 @@
         </context-group>
       </trans-unit>
       <trans-unit id="sessionPresent.fullscreenGateTitle" datatype="html">
-        <source> Vollbild für Beamer </source>
+        <source>Präsentation im Vollbild</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-present/session-present.component.html</context>
           <context context-type="linenumber">25,27</context>
         </context-group>
       </trans-unit>
       <trans-unit id="sessionPresent.fullscreenGateHint" datatype="html">
-        <source> Browser erlauben Vollbild erst nach einem Klick im Presenter-Fenster. </source>
+        <source>Tippe hier, damit der Browser das Vollbild für den Beamer erlaubt.</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-present/session-present.component.html</context>
           <context context-type="linenumber">28,30</context>
         </context-group>
       </trans-unit>
       <trans-unit id="sessionPresent.fullscreenGateAction" datatype="html">
-        <source> Vollbild starten </source>
+        <source>Präsentation im Vollbild starten</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-present/session-present.component.html</context>
           <context context-type="linenumber">38,40</context>
@@ -24053,6 +24053,246 @@
           <context context-type="sourcefile">src/app/shared/top-toolbar/top-toolbar.component.ts</context>
           <context context-type="linenumber">170</context>
         </context-group>
+      </trans-unit>
+      <trans-unit id="hostPairing.connectAria" datatype="html">
+        <source>Smartphone als weiteres Steuergerät verbinden</source>
+      </trans-unit>
+      <trans-unit id="hostPairing.connectTooltip" datatype="html">
+        <source>Smartphone verbinden</source>
+      </trans-unit>
+      <trans-unit id="hostPairing.connectLabel" datatype="html">
+        <source>Smartphone verbinden</source>
+      </trans-unit>
+      <trans-unit id="hostPairing.dialogTitle" datatype="html">
+        <source>Smartphone zum Steuern verbinden</source>
+      </trans-unit>
+      <trans-unit id="hostPairing.preparing" datatype="html">
+        <source>Verbindung wird vorbereitet…</source>
+      </trans-unit>
+      <trans-unit id="hostPairing.dialogIntro" datatype="html">
+        <source>Scanne den QR-Code mit deinem Smartphone. Die Verbindung wird erst aktiv, nachdem du sie hier bestätigt hast.</source>
+      </trans-unit>
+      <trans-unit id="hostPairing.qrAlt" datatype="html">
+        <source>QR-Code zum Verbinden des Smartphones</source>
+      </trans-unit>
+      <trans-unit id="hostPairing.waitingScan" datatype="html">
+        <source>Warten auf Verbindungsanfrage…</source>
+      </trans-unit>
+      <trans-unit id="hostPairing.pendingTitle" datatype="html">
+        <source>Steht auf dem Smartphone dasselbe Zeichen?</source>
+      </trans-unit>
+      <trans-unit id="hostPairing.pendingHint" datatype="html">
+        <source>Verbinde das Gerät nur, wenn auf beiden Geräten dasselbe Zeichen angezeigt wird.</source>
+      </trans-unit>
+      <trans-unit id="hostPairing.connected" datatype="html">
+        <source>Smartphone verbunden</source>
+      </trans-unit>
+      <trans-unit id="hostPairing.connectedHint" datatype="html">
+        <source>Du kannst die Veranstaltung jetzt auch vom Smartphone steuern.</source>
+      </trans-unit>
+      <trans-unit id="hostPairing.reject" datatype="html">
+        <source>Nein, ablehnen</source>
+      </trans-unit>
+      <trans-unit id="hostPairing.approve" datatype="html">
+        <source>Ja, Gerät verbinden</source>
+      </trans-unit>
+      <trans-unit id="hostPairing.retry" datatype="html">
+        <source>Neuen QR-Code anzeigen</source>
+      </trans-unit>
+      <trans-unit id="hostPairing.close" datatype="html">
+        <source>Schließen</source>
+      </trans-unit>
+      <trans-unit id="hostPairing.errorGeneric" datatype="html">
+        <source>Das Gerät konnte nicht verbunden werden. Bitte versuche es noch einmal.</source>
+      </trans-unit>
+      <trans-unit id="hostPairing.linkCopied" datatype="html">
+        <source>Link kopiert</source>
+      </trans-unit>
+      <trans-unit id="hostPairing.copyLink" datatype="html">
+        <source>Link kopieren</source>
+      </trans-unit>
+      <trans-unit id="hostPairing.copyFailed" datatype="html">
+        <source>Link konnte nicht kopiert werden.</source>
+      </trans-unit>
+      <trans-unit id="hostPairing.errorRejected" datatype="html">
+        <source>Die Verbindung wurde abgelehnt.</source>
+      </trans-unit>
+      <trans-unit id="hostPairing.requestQuestion" datatype="html">
+        <source>Mit der Veranstaltung <x id="sessionCode" equiv-text="this.code"/> verbinden?</source>
+      </trans-unit>
+      <trans-unit id="hostPairing.errorInvalidLink" datatype="html">
+        <source>Dieser Link ist nicht mehr gültig. Bitte zeige einen neuen QR-Code an.</source>
+      </trans-unit>
+      <trans-unit id="hostPairing.errorAlreadyPending" datatype="html">
+        <source>Es wartet bereits ein anderes Gerät auf Bestätigung.</source>
+      </trans-unit>
+      <trans-unit id="hostPairing.requestTitle" datatype="html">
+        <source>Mit Veranstaltung verbinden</source>
+      </trans-unit>
+      <trans-unit id="hostPairing.requestSub" datatype="html">
+        <source>Nach der Freigabe kannst du die Veranstaltung von diesem Gerät aus steuern.</source>
+      </trans-unit>
+      <trans-unit id="hostPairing.missingSecret" datatype="html">
+        <source>Dieser Link ist unvollständig. Bitte den QR-Code oder den vollständigen Link nutzen.</source>
+      </trans-unit>
+      <trans-unit id="hostPairing.goHome" datatype="html">
+        <source>Zur Startseite</source>
+      </trans-unit>
+      <trans-unit id="hostPairing.requestAction" datatype="html">
+        <source>Dieses Gerät verbinden</source>
+      </trans-unit>
+      <trans-unit id="hostPairing.requestWaiting" datatype="html">
+        <source>Warte auf die Bestätigung durch die Lehrperson. Zeige ihr dieses Zeichen. Auf beiden Geräten muss dasselbe Zeichen stehen:</source>
+      </trans-unit>
+      <trans-unit id="hostPairing.errorExpired" datatype="html">
+        <source>Die Zeit zum Verbinden ist abgelaufen.</source>
+      </trans-unit>
+      <trans-unit id="hostPairing.errorCapReached" datatype="html">
+        <source>Es sind bereits drei weitere Geräte verbunden.</source>
+      </trans-unit>
+      <trans-unit id="hostPairing.errorNotOriginal" datatype="html">
+        <source>Nur du kannst weitere Geräte verbinden.</source>
+      </trans-unit>
+      <trans-unit id="hostPairing.errorNoRequest" datatype="html">
+        <source>Es gibt keine offene Verbindungsanfrage.</source>
+      </trans-unit>
+      <trans-unit id="hostPairing.errorSessionEnded" datatype="html">
+        <source>Die Veranstaltung ist bereits beendet.</source>
+      </trans-unit>
+      <trans-unit id="hostPairing.errorRateLimited" datatype="html">
+        <source>Zu viele Verbindungsversuche. Bitte später erneut versuchen.</source>
+      </trans-unit>
+      <trans-unit id="presentationStart.title" datatype="html">
+        <source>Präsentation starten</source>
+      </trans-unit>
+      <trans-unit id="presentationStart.intro" datatype="html">
+        <source>Zeige die Präsentation auf dem Beamer.</source>
+      </trans-unit>
+      <trans-unit id="presentationStart.phoneTitle" datatype="html">
+        <source>Mit Smartphone steuern</source>
+      </trans-unit>
+      <trans-unit id="presentationStart.phoneHint" datatype="html">
+        <source>Steuere Fragen und Ergebnisse vom Smartphone, während der Laptop die Präsentation zeigt.</source>
+      </trans-unit>
+      <trans-unit id="presentationStart.readyHint" datatype="html">
+        <source>Du kannst jetzt präsentieren. Ein weiteres Gerät ist optional.</source>
+      </trans-unit>
+      <trans-unit id="presentationStart.visibilityLegend" datatype="html">
+        <source>Kann jemand außer dir diesen Bildschirm sehen?</source>
+      </trans-unit>
+      <trans-unit id="presentationStart.visibilityProjected" datatype="html">
+        <source>Ja, er wird zum Beispiel über einen Beamer gezeigt</source>
+      </trans-unit>
+      <trans-unit id="presentationStart.visibilityPrivate" datatype="html">
+        <source>Nein, nur ich kann diesen Bildschirm sehen</source>
+      </trans-unit>
+      <trans-unit id="presentationStart.visibilityHint" datatype="html">
+        <source>Die Verbindung wird immer auf diesem Bildschirm bestätigt. So kann niemand unbemerkt die Steuerung übernehmen.</source>
+      </trans-unit>
+      <trans-unit id="presentationStart.coHostHint" datatype="html">
+        <source>So kann sich auch eine vertrauenswürdige Person mit einem weiteren Gerät verbinden.</source>
+      </trans-unit>
+      <trans-unit id="presentationStart.coHostAction" datatype="html">
+        <source>Weiteres Gerät verbinden</source>
+      </trans-unit>
+      <trans-unit id="presentationStart.cancel" datatype="html">
+        <source>Abbrechen</source>
+      </trans-unit>
+      <trans-unit id="presentationStart.primaryAction" datatype="html">
+        <source>Präsentation im Vollbild starten</source>
+      </trans-unit>
+      <trans-unit id="hostPairing.dialogIntroPrivate" datatype="html">
+        <source>Scanne den QR-Code auf diesem Bildschirm. Bestätige die Verbindung anschließend hier – niemand erhält automatisch Host-Rechte.</source>
+      </trans-unit>
+      <trans-unit id="hostPairing.connectedAria" datatype="html">
+        <source>Smartphone verbunden. Weiteres Gerät verbinden</source>
+      </trans-unit>
+      <trans-unit id="hostPairing.approveOnThisScreen" datatype="html">
+        <source>Bestätige Anfragen auf diesem Bildschirm, nicht in der Präsentationsansicht.</source>
+      </trans-unit>
+      <trans-unit id="hostPairing.devicesTitle" datatype="html">
+        <source>Verbundene Geräte</source>
+      </trans-unit>
+      <trans-unit id="hostPairing.deviceFallback" datatype="html">
+        <source>Weiteres Gerät 3</source>
+      </trans-unit>
+      <trans-unit id="hostPairing.deviceStatus" datatype="html">
+        <source>Verbunden</source>
+      </trans-unit>
+      <trans-unit id="hostPairing.revoke" datatype="html">
+        <source>Verbindung trennen</source>
+      </trans-unit>
+      <trans-unit id="hostPairing.revokedLive" datatype="html">
+        <source>Gerät getrennt</source>
+      </trans-unit>
+      <trans-unit id="hostPairing.capReachedHint" datatype="html">
+        <source>Es sind bereits drei weitere Geräte verbunden. Trenne zuerst eine Verbindung.</source>
+      </trans-unit>
+      <trans-unit id="hostPairing.addAnother" datatype="html">
+        <source>Weiteres Gerät verbinden</source>
+      </trans-unit>
+      <trans-unit id="hostPairing.noDevices" datatype="html">
+        <source>Kein weiteres Gerät verbunden.</source>
+      </trans-unit>
+      <trans-unit id="hostPairing.pendingOpenHint" datatype="html">
+        <source>Es wartet bereits eine Verbindungsanfrage.</source>
+      </trans-unit>
+      <trans-unit id="hostAccess.revokedTitle" datatype="html">
+        <source>Die Verbindung wurde beendet.</source>
+      </trans-unit>
+      <trans-unit id="hostAccess.revokedHint" datatype="html">
+        <source>Dieses Gerät kann die Veranstaltung nicht mehr steuern.</source>
+      </trans-unit>
+      <trans-unit id="presentationStart.reviewRequest" datatype="html">
+        <source>Anfrage prüfen</source>
+      </trans-unit>
+      <trans-unit id="presentationStart.manageDevices" datatype="html">
+        <source>Geräte verwalten</source>
+      </trans-unit>
+      <trans-unit id="hostPairing.dialogTitlePending" datatype="html">
+        <source>Smartphone bestätigen</source>
+      </trans-unit>
+      <trans-unit id="hostPairing.dialogTitleAnother" datatype="html">
+        <source>Weiteres Gerät verbinden</source>
+      </trans-unit>
+      <trans-unit id="hostPairing.approveAndPresent" datatype="html">
+        <source>Gerät verbinden und Präsentation starten</source>
+      </trans-unit>
+      <trans-unit id="hostPairing.rejectRequest" datatype="html">
+        <source>Anfrage ablehnen</source>
+      </trans-unit>
+      <trans-unit id="hostPairing.presentWithoutPhone" datatype="html">
+        <source>Ohne Smartphone präsentieren</source>
+      </trans-unit>
+      <trans-unit id="hostPairing.deviceFallbackPhone" datatype="html">
+        <source>Smartphone 1</source>
+      </trans-unit>
+      <trans-unit id="hostPairing.deviceFallbackPhone2" datatype="html">
+        <source>Smartphone 2</source>
+      </trans-unit>
+      <trans-unit id="hostPairing.pendingAfterHint" datatype="html">
+        <source>Danach kannst du mit dem Gerät durch die Fragen navigieren, Ergebnisse anzeigen und die Veranstaltung beenden.</source>
+      </trans-unit>
+      <trans-unit id="hostPairing.inviteRemaining" datatype="html">
+        <source>Noch <x id="remaining" equiv-text="remaining"/> Minuten Zeit, um den QR-Code zu scannen.</source>
+      </trans-unit>
+      <trans-unit id="hostPairing.pendingRemaining" datatype="html">
+        <source>Noch <x id="remaining" equiv-text="remaining"/> Minuten Zeit, um zu bestätigen.</source>
+      </trans-unit>
+      <trans-unit id="hostPairing.requestRemaining" datatype="html">
+        <source>Warte auf die Bestätigung · noch <x id="remaining" equiv-text="remaining"/> Minuten</source>
+      </trans-unit>
+      <trans-unit id="hostPairing.deviceNameLabel" datatype="html">
+        <source>Wie möchtest du dieses Gerät nennen? (optional)</source>
+      </trans-unit>
+      <trans-unit id="hostPairing.deviceNameHint" datatype="html">
+        <source>Zum Beispiel „Mein Smartphone“ oder „Tablet von Alex“</source>
+      </trans-unit>
+      <trans-unit id="hostPairing.declineConnect" datatype="html">
+        <source>Nicht verbinden</source>
+      </trans-unit>
+      <trans-unit id="presentationStart.loadingAdmin" datatype="html">
+        <source>Verbindungsmöglichkeiten werden geladen …</source>
       </trans-unit>
     </body>
   </file>

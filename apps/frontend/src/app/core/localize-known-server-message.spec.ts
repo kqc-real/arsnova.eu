@@ -6,6 +6,15 @@ import {
 } from './localize-known-server-message';
 
 describe('localizeKnownServerError', () => {
+  it('lokalisiert Pairing-Ablehnung ohne Token-Jargon', () => {
+    expect(localizeKnownServerMessage('Die Verbindung wurde abgelehnt.')).toBe(
+      'Die Verbindung wurde abgelehnt.',
+    );
+    expect(
+      localizeKnownServerMessage('FORBIDDEN: Es sind bereits drei weitere Host-Geräte verbunden.'),
+    ).toBe('Es sind bereits drei weitere Geräte verbunden.');
+  });
+
   it('lokalisiert die bekannte Session-Create-Drosselung auch mit tRPC-Präfix', () => {
     loadTranslations({
       'errors.sessionCreateRateLimit':

@@ -1,0 +1,97 @@
+:host {
+  display: block;
+  width: 100%;
+}
+
+.host-pairing-request {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: stretch;
+  gap: 1rem;
+  width: 100%;
+}
+
+.host-pairing-request__card {
+  width: 100%;
+}
+
+.host-pairing-request__content {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 1rem;
+}
+
+.host-pairing-request__head.dialog-title-header--page {
+  padding-bottom: 0;
+}
+
+.host-pairing-request__section {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  padding: 0.85rem 1rem;
+  border: 1px solid var(--mat-sys-outline-variant);
+  border-radius: var(--mat-sys-corner-large);
+  background: var(--mat-sys-surface-container-low);
+}
+
+.host-pairing-request__section--alert {
+  border-color: color-mix(in srgb, var(--mat-sys-error) 40%, var(--mat-sys-outline-variant));
+  background: color-mix(in srgb, var(--mat-sys-error-container) 55%, transparent);
+}
+
+.host-pairing-request__hint,
+.host-pairing-request__status {
+  margin: 0;
+  line-height: 1.5;
+}
+
+.host-pairing-request__hint {
+  color: var(--mat-sys-on-surface-variant);
+}
+
+.host-pairing-request__hint--confirm {
+  text-align: center;
+}
+
+.host-pairing-request__section--alert .host-pairing-request__hint {
+  color: var(--mat-sys-on-error-container);
+}
+
+.host-pairing-request__status {
+  font: var(--mat-sys-title-small);
+}
+
+.host-pairing-request__indicator-frame {
+  display: flex;
+  justify-content: center;
+  margin: 0;
+  padding: 0.85rem;
+  border-radius: var(--mat-sys-corner-medium);
+  background: var(--mat-sys-surface-container-highest);
+}
+
+.host-pairing-request__indicator {
+  margin: 0;
+  font: var(--mat-sys-headline-small);
+  font-weight: 700;
+  text-align: center;
+}
+
+.host-pairing-request__name {
+  width: 100%;
+}
+
+.host-pairing-request__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+}
+
+.host-pairing-request__action {
+  min-height: 2.75rem;
+  align-self: flex-start;
+  width: fit-content;
+}

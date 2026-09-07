@@ -1,7 +1,9 @@
 import { createHash, randomBytes, timingSafeEqual } from 'crypto';
 import type { IncomingMessage } from 'http';
 import { TRPCError } from '@trpc/server';
+import type { HostSessionRole } from '@arsnova/shared-types';
 import { getRedis } from '../redis';
+import { findPairedHostByToken } from './hostPairing';
 
 const HOST_SESSION_PREFIX = 'host:session:';
 const DEFAULT_HOST_SESSION_TTL_SECONDS = 60 * 60 * 8; // 8h
@@ -24,9 +26,15 @@ function buildHostSessionKey(sessionCode: string): string {
   return `${HOST_SESSION_PREFIX}${normalizeSessionCode(sessionCode)}`;
 }
 
-function hashHostSessionToken(token: string): string {
+export function hashHostSessionToken(token: string): string {
   return createHash('sha256').update(token.trim(), 'utf8').digest('hex');
 }
+
+export type HostSessionAccess = {
+  token: string;
+  role: HostSessionRole;
+  tokenId?: string;
+};
 
 export function extractHostToken(req?: IncomingMessage): string | null {
   if (!req) return null;
@@ -98,10 +106,7 @@ export async function createHostSessionToken(sessionCode: string): Promise<strin
   return token;
 }
 
-export async function isHostSessionTokenValid(
-  sessionCode: string,
-  token: string,
-): Promise<boolean> {
+async function isOriginalHostTokenHashValid(sessionCode: string, token: string): Promise<boolean> {
   if (!token) return false;
 
   const redis = getRedis();
@@ -114,6 +119,33 @@ export async function isHostSessionTokenValid(
     return false;
   }
   return timingSafeEqual(configured, candidate);
+}
+
+export async function resolveHostSessionAccess(
+  sessionCode: string,
+  token: string,
+): Promise<HostSessionAccess | null> {
+  if (!token) return null;
+  if (await isOriginalHostTokenHashValid(sessionCode, token)) {
+    return { token, role: 'ORIGINAL_HOST' };
+  }
+  const paired = await findPairedHostByToken(sessionCode, token);
+  if (!paired) return null;
+  return { token, role: paired.role, tokenId: paired.tokenId };
+}
+
+export async function isHostSessionTokenValid(
+  sessionCode: string,
+  token: string,
+): Promise<boolean> {
+  return (await resolveHostSessionAccess(sessionCode, token)) !== null;
+}
+
+export async function isOriginalHostSessionToken(
+  sessionCode: string,
+  token: string,
+): Promise<boolean> {
+  return (await resolveHostSessionAccess(sessionCode, token))?.role === 'ORIGINAL_HOST';
 }
 
 export async function assertHostSessionAccessFromContext(

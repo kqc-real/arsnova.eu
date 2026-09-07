@@ -3,12 +3,13 @@
   [class.l-page]="!isHostRoute() && !isPresentRoute()"
   [class.l-section]="!isHostRoute() && !isPresentRoute()"
   [class.session-page-shell--projection]="isPresentRoute()"
+  [class.session-page-shell--pair]="isPairRoute()"
 >
-  @if (loading()) {
+  @if (loading() && !isHostRoute() && !isPresentRoute() && !isPairRoute()) {
     <div class="session-page__state">
       <p class="session-page__muted-text" i18n>Wird geladen…</p>
     </div>
-  } @else if (error()) {
+  } @else if (error() && !isHostRoute() && !isPresentRoute() && !isPairRoute()) {
     <mat-card class="session-page__error-card">
       <mat-card-header>
         <h1 mat-card-title>

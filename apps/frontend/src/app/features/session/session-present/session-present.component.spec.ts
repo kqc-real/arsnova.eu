@@ -197,7 +197,7 @@ describe('SessionPresentComponent', () => {
       const button = fixture.nativeElement.querySelector(
         '[data-testid="presenter-fullscreen-enter"]',
       ) as HTMLButtonElement | null;
-      expect(button?.textContent).toContain('Vollbild starten');
+      expect(button?.textContent).toContain('Präsentation im Vollbild starten');
       button?.click();
       expect(requestFullscreenSpy).toHaveBeenCalled();
       fixture.destroy();
@@ -2425,6 +2425,30 @@ describe('SessionPresentComponent', () => {
     expect(root.classList.contains('l-stack--sm')).toBe(false);
     expect(getComputedStyle(root).maxWidth).not.toBe('none');
     fixture.destroy();
+  });
+
+  it('enthält keine Pairing-Freigabe und keine Pairing-Secrets', () => {
+    const html = readFileSync(
+      resolve(
+        process.cwd(),
+        'src/app/features/session/session-present/session-present.component.html',
+      ),
+      'utf8',
+    );
+    const ts = readFileSync(
+      resolve(
+        process.cwd(),
+        'src/app/features/session/session-present/session-present.component.ts',
+      ),
+      'utf8',
+    );
+    expect(html).not.toContain('host-pairing');
+    expect(html).not.toContain('Als Host zulassen');
+    expect(html).not.toContain('pairingSecret');
+    expect(html).not.toContain('connect-smartphone');
+    expect(ts).not.toContain('HostPairingDialog');
+    expect(ts).not.toContain('createHostPairingInvite');
+    expect(ts).not.toContain('approveHostPairing');
   });
 
   it('hält Present-Display-Gewicht ohne font-weight 800', () => {

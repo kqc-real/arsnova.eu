@@ -44,4 +44,31 @@ describe('SoundService', () => {
     expect(resumeAttempts).toBe(2);
     expect((service as unknown as { unlocked: boolean }).unlocked).toBe(true);
   });
+
+  it('spielt ohne Ausgabe nichts ab, wenn der Ausgang aus ist', async () => {
+    const decodeAudioData = vi.fn();
+    class FakeAudioContext {
+      state: AudioContextState = 'running';
+      currentTime = 0;
+      destination = {} as AudioDestinationNode;
+      async resume(): Promise<void> {
+        this.state = 'running';
+      }
+      createBufferSource(): AudioBufferSourceNode {
+        throw new Error('output disabled');
+      }
+      createGain(): GainNode {
+        throw new Error('output disabled');
+      }
+      decodeAudioData = decodeAudioData;
+    }
+    globalThis.AudioContext = FakeAudioContext as unknown as typeof AudioContext;
+
+    const service = new SoundService();
+    service.setOutputEnabled(false);
+    await service.play('questionStart');
+    await service.playMusic('LOBBY_0');
+    expect(decodeAudioData).not.toHaveBeenCalled();
+    expect(service.outputEnabled()).toBe(false);
+  });
 });

@@ -59,6 +59,12 @@ describe('RATE_LIMIT_ENV – Umgebungsvariablen-Defaults (Story 0.5)', () => {
     expect(RATE_LIMIT_ENV.quickFeedbackStandalonePerIpPerHour).toBe(600);
     expect(RATE_LIMIT_ENV.quickFeedbackStandaloneGlobalPerHour).toBe(3000);
     expect(RATE_LIMIT_ENV.quickFeedbackSessionPerMinute).toBe(120);
+    expect(RATE_LIMIT_ENV.hostPairingInvitePerSessionPerHour).toBe(30);
+    expect(RATE_LIMIT_ENV.hostPairingDecisionPerSessionPerHour).toBe(60);
+    expect(RATE_LIMIT_ENV.hostPairingRequestPerIpPerMinute).toBe(2000);
+    expect(RATE_LIMIT_ENV.hostPairingRequestGlobalPerMinute).toBe(10_000);
+    expect(RATE_LIMIT_ENV.hostPairingClaimPerIpPerMinute).toBe(2000);
+    expect(RATE_LIMIT_ENV.hostPairingClaimGlobalPerMinute).toBe(10_000);
     expect(ORPHAN_QUIZ_CLEANUP_CAPACITY_PER_RUN).toBeGreaterThan(
       QUIZ_UPLOAD_ACCEPTED_GLOBAL_PER_WINDOW_DEFAULT * 2,
     );

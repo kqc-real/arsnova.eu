@@ -699,17 +699,55 @@ test('real mode accepts the Slice-2D full-coverage flag on a complete baseline',
     cwd: repoRoot,
   });
   assert.equal(run.status, 0, run.stderr || run.stdout);
-  assert.match(run.stdout, /Complete: 143/);
+  assert.match(run.stdout, /Complete: 150/);
   assert.match(run.stdout, /Incomplete: 0/);
   assert.match(run.stdout, /Untested: 0/);
+});
+
+test('router tree flattens mergeRouters parts under the same prefix', async () => {
+  const { inventariseRouterTree } = await loadAudit();
+  const dir = mkdtempSync(join(tmpdir(), 'trpc-dod-merge-'));
+  try {
+    writeFileSync(
+      join(dir, 'extra.ts'),
+      `export const extraRouter = router({
+  listPairedHosts: publicProcedure.query(async () => 1),
+});
+`,
+    );
+    writeFileSync(
+      join(dir, 'session.ts'),
+      `import { extraRouter } from './extra';
+const coreRouter = router({
+  end: publicProcedure.mutation(async () => 1),
+});
+export const sessionRouter = mergeRouters(coreRouter, extraRouter);
+`,
+    );
+    writeFileSync(
+      join(dir, 'index.ts'),
+      `import { sessionRouter } from './session';
+export const appRouter = router({
+  session: sessionRouter,
+});
+`,
+    );
+    const procedures = inventariseRouterTree(join(dir, 'index.ts'));
+    assert.deepEqual(
+      procedures.map((procedure) => `${procedure.id}:${procedure.kind}`),
+      ['session.end:mutation', 'session.listPairedHosts:query'],
+    );
+  } finally {
+    rmSync(dir, { recursive: true, force: true });
+  }
 });
 
 test('real router tree inventory follows mounted and nested routers exactly', async () => {
   const { inventariseRouterTree } = await loadAudit();
   const procedures = inventariseRouterTree(join(repoRoot, 'apps/backend/src/routers/index.ts'));
-  assert.equal(procedures.length, 151);
-  assert.equal(procedures.filter((procedure) => procedure.kind === 'query').length, 58);
-  assert.equal(procedures.filter((procedure) => procedure.kind === 'mutation').length, 85);
+  assert.equal(procedures.length, 158);
+  assert.equal(procedures.filter((procedure) => procedure.kind === 'query').length, 60);
+  assert.equal(procedures.filter((procedure) => procedure.kind === 'mutation').length, 90);
   assert.equal(procedures.filter((procedure) => procedure.kind === 'subscription').length, 8);
   assert.ok(procedures.some((procedure) => procedure.id === 'admin.motd.motdCreate'));
   assert.ok(procedures.some((procedure) => procedure.id === 'qa.summaryRuntime'));
@@ -718,6 +756,13 @@ test('real router tree inventory follows mounted and nested routers exactly', as
   assert.ok(procedures.some((procedure) => procedure.id === 'session.setPresenterSurface'));
   assert.ok(procedures.some((procedure) => procedure.id === 'session.pauseQuiz'));
   assert.ok(procedures.some((procedure) => procedure.id === 'session.resumeQuiz'));
+  assert.ok(procedures.some((procedure) => procedure.id === 'session.createHostPairingInvite'));
+  assert.ok(procedures.some((procedure) => procedure.id === 'session.requestHostPairing'));
+  assert.ok(procedures.some((procedure) => procedure.id === 'session.getHostPairingRequest'));
+  assert.ok(procedures.some((procedure) => procedure.id === 'session.approveHostPairing'));
+  assert.ok(procedures.some((procedure) => procedure.id === 'session.rejectHostPairing'));
+  assert.ok(procedures.some((procedure) => procedure.id === 'session.revokePairedHost'));
+  assert.ok(procedures.some((procedure) => procedure.id === 'session.listPairedHosts'));
   assert.ok(procedures.some((procedure) => procedure.id === 'quickFeedback.setLiveResults'));
   assert.ok(procedures.some((procedure) => procedure.id === 'productFeedback.submit'));
   assert.ok(procedures.some((procedure) => procedure.id === 'productFeedback.submitInApp'));
@@ -1390,8 +1435,8 @@ test('real gate report is deterministic and complete coverage has no legacy debt
     }
     assert.equal(readFileSync(outputs[0], 'utf8'), readFileSync(outputs[1], 'utf8'));
     const report = JSON.parse(readFileSync(outputs[0], 'utf8'));
-    assert.equal(report.summary.queriesMutations, 143);
-    assert.equal(report.summary.complete, 143);
+    assert.equal(report.summary.queriesMutations, 150);
+    assert.equal(report.summary.complete, 150);
     assert.equal(report.summary.untested, 0);
     assert.equal(report.summary.legacyProcedures, 0);
     assert.equal(report.summary.legacyMissingDimensions, 0);
@@ -1403,7 +1448,7 @@ test('real gate report is deterministic and complete coverage has no legacy debt
     const queriesMutations = report.procedures.filter(
       (procedure) => procedure.kind !== 'subscription',
     );
-    assert.equal(queriesMutations.length, 143);
+    assert.equal(queriesMutations.length, 150);
     assert.ok(
       queriesMutations.every(
         (procedure) =>

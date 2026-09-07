@@ -126,6 +126,9 @@ npm run load:smoke:blitzlicht-classroom-30
 npm run load:smoke:ws-vote-progress-classroom-30
 npm run load:smoke:ws-reconnect-wave-classroom-30
 npm run load:smoke:channel-ws-fanout-classroom-30
+npm run load:smoke:host-pairing-security
+npm run load:smoke:host-pairing-classroom-30
+PARTICIPANTS=500 npm run load:smoke:host-pairing-cap-500
 
 # Architektur-Hotpaths
 CLIENTS=30 npm run load:yjs:sync

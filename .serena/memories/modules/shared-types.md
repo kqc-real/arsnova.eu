@@ -4,6 +4,7 @@
 - This package is the API contract surface between backend and frontend.
 - Main files:
   - `src/schemas.ts`: Zod schemas/enums/DTOs for sessions, quizzes, votes, Q&A, quick feedback, MOTD/admin, health/status, word cloud, imports/exports, scoring/evaluation.
+  - `src/host-pairing.ts`: Story 2.10 Slice 1 contracts for Pairing-Invite, Request, Approve/Reject, PairedHostToken, caps and TTL constants.
   - `src/word-cloud-normalization.ts`: lemma/NONE contract for Story 1.14b (`mem:session/word-cloud-spacy`).
   - `src/index.ts`: normal package exports.
   - `src/index.workspace.ts`: workspace/testing export path used by frontend Vitest alias.

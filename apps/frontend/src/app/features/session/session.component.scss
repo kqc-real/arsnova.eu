@@ -15,6 +15,36 @@
   box-sizing: border-box;
 }
 
+/* Smartphone-Pair: Karte in der Mitte zwischen Toolbar und Footer. */
+.session-page-shell--pair {
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  justify-content: center;
+  box-sizing: border-box;
+  width: min(100%, 42rem);
+  min-height: calc(
+    100dvh - 4rem - var(--app-footer-visible-offset, 4.5rem) - env(safe-area-inset-bottom, 0px)
+  );
+  padding-block: 1rem;
+}
+
+@media (min-width: 600px) {
+  .session-page-shell--pair {
+    min-height: calc(
+      100dvh - 4.5rem - var(--app-footer-visible-offset, 4.5rem) - env(safe-area-inset-bottom, 0px)
+    );
+  }
+}
+
+@media (min-width: 840px) {
+  .session-page-shell--pair {
+    min-height: calc(
+      100dvh - 5rem - var(--app-footer-visible-offset, 4.5rem) - env(safe-area-inset-bottom, 0px)
+    );
+  }
+}
+
 /* Teilnehmer-Q&A: Texteingabe braucht mehr als die 42rem-Lesespalte. */
 .session-page-shell:has(.vote-page--qa) {
   width: min(100%, 48rem);

@@ -51,9 +51,17 @@ Benötigt eine Organisation Rechte für nicht vollständig vertrauenswürdige Pe
 - Fehlbedienung kann eine laufende Veranstaltung stören, auch wenn die Quizdefinition exportiert wurde.
 - Sicherheitskritische Aktionen benötigen weiterhin klare Bestätigungen und serverseitige Zustandsprüfung.
 
+## Betriebsgrenzen (Story 2.10)
+
+Die Spezifikation in `Backlog.md` Story 2.10 legt zusätzlich fest:
+
+- Request-and-approve ist der Serverdefault in jedem Pairing-Pfad; „privat“ ist nur ein UX-Komfortpfad ohne silent grant.
+- Pairing-Freigabe, Geräteverwaltung und Pairing-Secrets erscheinen nie auf der Presenter-Route.
+- Caps: max. 3 Paired Hosts je Session, max. 1 aktive Pairing-Einladung, max. 1 Pending-Approval je Einladung; Pairing-Endpunkte sind separat rate-limited.
+
 ## Umsetzungsstand
 
-Story 2.10 ist offen. Im aktuellen Repo existieren weder Paired-Host-Pairing noch eine eigenständige Moderatorrolle. Die bestehende Host-Authentifizierung bleibt bis zur Umsetzung maßgeblich.
+Story 2.10 Slice 1–5 sind umgesetzt: Contracts/Caps, Request-and-approve Happy Path, Dialog „Präsentation starten“ (Sichtbarkeit default projiziert, kein silent grant), Geräteverwaltung und Widerruf sowie der DoD-Nachweis (Security-E2E, Browser-Smoke, Classroom-30 in CI, operatorgesteuerter 500er-Cap-Lauf). Widerruf wirkt sofort auf HTTP und bestehende Host-WebSockets; das widerrufene Gerät landet in einem sicheren Zustand ohne Host-Realtime. Paired Hosts nutzen dieselbe `/session/:code/host`-Shell mit Live-Primäraktionen und stummem Audio-Default. Das Thinking-Aloud mit einer Person ohne Architekturkenntnis bleibt ein menschlicher Abnahmeschritt; Vorlage und Erfolgskriterien stehen in `docs/implementation/HOST-PAIRING-2.10-SLICE-5-DOD.md`. Es gibt weiterhin keine eigenständige Moderatorrolle. Pairing-Freigabe und Geräteverwaltung bleiben auf dem privaten Host-Client, nie auf der Presenter-Route.
 
 ---
 

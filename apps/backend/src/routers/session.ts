@@ -257,7 +257,10 @@ function setCachedParticipantNicknames(
 export function resetParticipantNicknameCacheForTests(): void {
   participantNicknameCache.clear();
 }
-import { publicProcedure, router, getClientIp, hostProcedure } from '../trpc';
+import { publicProcedure, router, mergeRouters, getClientIp, hostProcedure } from '../trpc';
+import { invalidateHostPairingForSession } from '../lib/hostPairing';
+import { waitWhileHostTokenValid } from '../lib/hostRealtimeGuard';
+import { sessionHostPairingRouter } from './sessionHostPairing';
 import { loadConfidenceResultForQuestion } from '../lib/confidenceAggregation';
 import {
   buildSessionResultsPdf,
@@ -4746,7 +4749,7 @@ async function resolvePublicSessionInfo(
   };
 }
 
-export const sessionRouter = router({
+const sessionCoreRouter = router({
   /** Session erstellen (Story 2.1a). Grobes globales und Shared-NAT-IP-Budget. */
   create: publicProcedure
     .input(CreateSessionInputSchema)
@@ -5721,8 +5724,9 @@ export const sessionRouter = router({
   /** Subscription: Lobby-Teilnehmerliste (Story 2.2). Wartet primär auf Signalereignisse und nutzt nur einen seltenen Timeout-Fallback. */
   onParticipantJoined: hostProcedure
     .input(GetSessionInfoInputSchema)
-    .subscription(async function* ({ input }) {
+    .subscription(async function* ({ input, ctx }) {
       const code = input.code.toUpperCase();
+      const token = ctx.hostToken;
       let lastJson = '';
       while (true) {
         const payload = await fetchParticipantsSnapshot(code);
@@ -5735,7 +5739,9 @@ export const sessionRouter = router({
           ? PARTICIPANT_EVENT_WAIT_ACTIVE_MS
           : PARTICIPANT_EVENT_WAIT_IDLE_MS;
         const currentVersion = getSessionParticipantSignalVersion(code);
-        await waitForSessionParticipantSignal(code, currentVersion, waitMs);
+        await waitWhileHostTokenValid(code, token, () =>
+          waitForSessionParticipantSignal(code, currentVersion, waitMs),
+        );
       }
     }),
 
@@ -7002,8 +7008,9 @@ export const sessionRouter = router({
 
   onCurrentQuestionForHostChanged: hostProcedure
     .input(GetSessionInfoInputSchema)
-    .subscription(async function* ({ input }) {
+    .subscription(async function* ({ input, ctx }) {
       const code = input.code.toUpperCase();
+      const token = ctx.hostToken;
       let lastJson = '';
       while (true) {
         const envelope = await fetchHostCurrentQuestionEnvelope(code);
@@ -7014,18 +7021,17 @@ export const sessionRouter = router({
           yield payload;
         }
         const currentVersion = getSessionCurrentQuestionSignalVersion(code);
-        await waitForSessionCurrentQuestionSignal(
-          code,
-          currentVersion,
-          CURRENT_QUESTION_EVENT_WAIT_MS,
+        await waitWhileHostTokenValid(code, token, () =>
+          waitForSessionCurrentQuestionSignal(code, currentVersion, CURRENT_QUESTION_EVENT_WAIT_MS),
         );
       }
     }),
 
   onHostVoteProgressChanged: hostProcedure
     .input(GetSessionInfoInputSchema)
-    .subscription(async function* ({ input }) {
+    .subscription(async function* ({ input, ctx }) {
       const code = input.code.toUpperCase();
+      const token = ctx.hostToken;
       let lastJson = '';
       while (true) {
         const payload = await fetchHostVoteProgress(code);
@@ -7035,10 +7041,8 @@ export const sessionRouter = router({
           yield payload;
         }
         const currentVersion = getSessionVoteProgressSignalVersion(code);
-        await waitForSessionVoteProgressSignal(
-          code,
-          currentVersion,
-          CURRENT_QUESTION_EVENT_WAIT_MS,
+        await waitWhileHostTokenValid(code, token, () =>
+          waitForSessionVoteProgressSignal(code, currentVersion, CURRENT_QUESTION_EVENT_WAIT_MS),
         );
       }
     }),
@@ -8147,6 +8151,11 @@ export const sessionRouter = router({
       await incrementCompletedSessionsTotal();
       invalidateSessionStatusCachesForCode(code);
       void recordSessionTransitionActivity();
+      try {
+        await invalidateHostPairingForSession(code);
+      } catch {
+        /* Pairing-Registry ist Hilfszustand; Session-Ende bleibt maßgeblich. */
+      }
       await issueProductFeedbackInvitesAfterFinishAwait(identity.id);
 
       return {
@@ -9012,3 +9021,5 @@ export const sessionRouter = router({
       return { reactions: counts, total: map.size };
     }),
 });
+
+export const sessionRouter = mergeRouters(sessionCoreRouter, sessionHostPairingRouter);

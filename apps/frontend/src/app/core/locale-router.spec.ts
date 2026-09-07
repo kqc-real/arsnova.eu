@@ -79,6 +79,11 @@ describe('locale-router', () => {
     it('localizeCommands: entfernt führendes Locale-Segment', () => {
       expect(localizeCommands(['de', 'quiz', 'abc'])).toEqual(['quiz', 'abc']);
     });
+
+    it('localizeCommands: leere Kommandos sind die Startseite', () => {
+      expect(localizeCommands([''])).toEqual(['/']);
+      expect(localizeCommands(['/'])).toEqual(['/']);
+    });
   });
 
   describe('mit <base href="/"> (Dev)', () => {
@@ -108,6 +113,11 @@ describe('locale-router', () => {
 
     it('localizeCommands: Locale voranstellen', () => {
       expect(localizeCommands(['quiz', 'x'])).toEqual(['de', 'quiz', 'x']);
+    });
+
+    it('localizeCommands: leere Kommandos sind die locale-Startseite', () => {
+      expect(localizeCommands([''])).toEqual(['de']);
+      expect(localizeCommands(['/'])).toEqual(['de']);
     });
   });
 });

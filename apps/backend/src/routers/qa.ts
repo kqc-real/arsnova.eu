@@ -19,6 +19,7 @@ import {
   UpvoteQaQuestionInputSchema,
 } from '@arsnova/shared-types';
 import { assertHostSessionAccessFromContext } from '../lib/hostAuth';
+import { waitWhileHostTokenValid } from '../lib/hostRealtimeGuard';
 import { prisma } from '../db';
 import { isQaNlpEnabled } from '../lib/qaNlpConfig';
 import { getQaNlpMetrics } from '../lib/qaNlpQueue';
@@ -1146,12 +1147,25 @@ export const qaRouter = router({
         yield [];
         return;
       }
+      let hostToken: string | undefined;
       if (input.moderatorView) {
-        await assertHostSessionAccessFromContext(ctx, gateSession.code);
+        hostToken = await assertHostSessionAccessFromContext(ctx, gateSession.code);
       } else if (!isQaOpenForParticipants(gateSession)) {
         yield [];
         return;
       }
+
+      const waitForNextTick = async () => {
+        const sleeper = () =>
+          new Promise<void>((resolve) => {
+            setTimeout(resolve, QA_SUBSCRIPTION_POLL_MS);
+          });
+        if (input.moderatorView) {
+          await waitWhileHostTokenValid(gateSession.code, hostToken, sleeper);
+          return;
+        }
+        await sleeper();
+      };
 
       while (true) {
         const session = await prisma.session.findUnique({
@@ -1204,7 +1218,7 @@ export const qaRouter = router({
           participantCountForControversy,
         );
         if (revisionKey === lastRevisionKey) {
-          await new Promise((resolve) => setTimeout(resolve, QA_SUBSCRIPTION_POLL_MS));
+          await waitForNextTick();
           continue;
         }
         lastRevisionKey = revisionKey;
@@ -1223,7 +1237,7 @@ export const qaRouter = router({
           yield payload;
         }
 
-        await new Promise((resolve) => setTimeout(resolve, QA_SUBSCRIPTION_POLL_MS));
+        await waitForNextTick();
       }
     }),
 });

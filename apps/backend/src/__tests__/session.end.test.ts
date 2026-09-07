@@ -1,7 +1,13 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { trpcDodIt } from './test-utils/trpc-dod-evidence';
 
-const { prismaMock, hostAuthMocks, loadSignalMocks, platformStatisticMocks } = vi.hoisted(() => ({
+const {
+  prismaMock,
+  hostAuthMocks,
+  loadSignalMocks,
+  platformStatisticMocks,
+  invalidateHostPairingForSessionMock,
+} = vi.hoisted(() => ({
   prismaMock: {
     session: {
       findUnique: vi.fn(),
@@ -32,6 +38,7 @@ const { prismaMock, hostAuthMocks, loadSignalMocks, platformStatisticMocks } = v
   platformStatisticMocks: {
     incrementCompletedSessionsTotal: vi.fn(),
   },
+  invalidateHostPairingForSessionMock: vi.fn(),
 }));
 
 const { redisMock } = vi.hoisted(() => ({
@@ -68,6 +75,12 @@ vi.mock('../lib/hostAuth', async () => {
     isHostSessionTokenValid: hostAuthMocks.isHostSessionTokenValidMock,
   });
 });
+
+vi.mock('../lib/hostPairing', () => ({
+  invalidateHostPairingForSession: (...args: unknown[]) =>
+    invalidateHostPairingForSessionMock(...args),
+  findPairedHostByToken: vi.fn(async () => null),
+}));
 
 import { sessionRouter, resetSessionReadCachesForTests } from '../routers/session';
 
@@ -113,6 +126,7 @@ describe('session.end', () => {
 
     await caller.end({ code: 'ABC123' });
 
+    expect(invalidateHostPairingForSessionMock).toHaveBeenCalledWith('ABC123');
     expect(platformStatisticMocks.incrementCompletedSessionsTotal).toHaveBeenCalledWith();
     expect(prismaMock.productFeedbackInviteJob.upsert).toHaveBeenCalledWith({
       where: { sessionId: 'sess-1' },
@@ -131,6 +145,26 @@ describe('session.end', () => {
         }),
       }),
     );
+  });
+
+  it('beendet die Session auch wenn Pairing-Invalidierung fehlschlägt', async () => {
+    prismaMock.session.findUnique.mockResolvedValue({
+      id: 'sess-1',
+      status: 'ACTIVE',
+      currentQuestion: 0,
+      quizId: 'quiz-1',
+      quiz: {
+        name: 'Quiz',
+        bonusTokenCount: 0,
+        questions: [{ type: 'SINGLE_CHOICE' }],
+      },
+      participants: [],
+      bonusTokens: [],
+    });
+    invalidateHostPairingForSessionMock.mockRejectedValueOnce(new Error('Redis nicht erreichbar'));
+
+    await expect(caller.end({ code: 'ABC123' })).resolves.toMatchObject({ status: 'FINISHED' });
+    expect(invalidateHostPairingForSessionMock).toHaveBeenCalledWith('ABC123');
   });
 
   trpcDodIt(

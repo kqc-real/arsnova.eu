@@ -122,6 +122,34 @@ export const RATE_LIMIT_ENV = {
     'RATE_LIMIT_YJS_SHARE_VALIDATE_GLOBAL_PER_MINUTE',
     10_000,
   ),
+  /**
+   * Story 2.10: nur Pairing-Endpunkte. Host-Aktionen sessiongebunden;
+   * Request/Claim Shared-NAT-freundlich, weil ein projizierter QR viele Scans auslösen kann.
+   */
+  hostPairingInvitePerSessionPerHour: positiveIntegerEnv(
+    'RATE_LIMIT_HOST_PAIRING_INVITE_PER_SESSION_PER_HOUR',
+    30,
+  ),
+  hostPairingDecisionPerSessionPerHour: positiveIntegerEnv(
+    'RATE_LIMIT_HOST_PAIRING_DECISION_PER_SESSION_PER_HOUR',
+    60,
+  ),
+  hostPairingRequestPerIpPerMinute: positiveIntegerEnv(
+    'RATE_LIMIT_HOST_PAIRING_REQUEST_PER_IP_PER_MINUTE',
+    2_000,
+  ),
+  hostPairingRequestGlobalPerMinute: positiveIntegerEnv(
+    'RATE_LIMIT_HOST_PAIRING_REQUEST_GLOBAL_PER_MINUTE',
+    10_000,
+  ),
+  hostPairingClaimPerIpPerMinute: positiveIntegerEnv(
+    'RATE_LIMIT_HOST_PAIRING_CLAIM_PER_IP_PER_MINUTE',
+    2_000,
+  ),
+  hostPairingClaimGlobalPerMinute: positiveIntegerEnv(
+    'RATE_LIMIT_HOST_PAIRING_CLAIM_GLOBAL_PER_MINUTE',
+    10_000,
+  ),
 } as const;
 
 const FIXED_WINDOW_BUDGET_SCRIPT = `
@@ -497,6 +525,62 @@ export async function checkYjsShareValidateRate(ip: string) {
       {
         key: `yjsShare:validate:ip:${ip}`,
         limit: RATE_LIMIT_ENV.yjsShareValidatePerIpPerMinute,
+      },
+    ],
+    60,
+  );
+}
+
+export async function checkHostPairingInviteRate(sessionCode: string) {
+  return checkFixedWindowBudgets(
+    [
+      {
+        key: `hostPairing:invite:session:${sessionCode.toUpperCase()}`,
+        limit: RATE_LIMIT_ENV.hostPairingInvitePerSessionPerHour,
+      },
+    ],
+    3600,
+  );
+}
+
+export async function checkHostPairingDecisionRate(sessionCode: string) {
+  return checkFixedWindowBudgets(
+    [
+      {
+        key: `hostPairing:decision:session:${sessionCode.toUpperCase()}`,
+        limit: RATE_LIMIT_ENV.hostPairingDecisionPerSessionPerHour,
+      },
+    ],
+    3600,
+  );
+}
+
+export async function checkHostPairingRequestRate(ip: string) {
+  return checkFixedWindowBudgets(
+    [
+      {
+        key: 'hostPairing:request:global',
+        limit: RATE_LIMIT_ENV.hostPairingRequestGlobalPerMinute,
+      },
+      {
+        key: `hostPairing:request:ip:${ip}`,
+        limit: RATE_LIMIT_ENV.hostPairingRequestPerIpPerMinute,
+      },
+    ],
+    60,
+  );
+}
+
+export async function checkHostPairingClaimRate(ip: string) {
+  return checkFixedWindowBudgets(
+    [
+      {
+        key: 'hostPairing:claim:global',
+        limit: RATE_LIMIT_ENV.hostPairingClaimGlobalPerMinute,
+      },
+      {
+        key: `hostPairing:claim:ip:${ip}`,
+        limit: RATE_LIMIT_ENV.hostPairingClaimPerIpPerMinute,
       },
     ],
     60,

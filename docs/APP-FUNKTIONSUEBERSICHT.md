@@ -1,6 +1,6 @@
 # arsnova.eu – ausführliche Funktionsübersicht der App
 
-> Stand dieser Übersicht: 2026-09-06
+> Stand dieser Übersicht: 2026-09-07
 >
 > Grundlage: Auswertung des aktuellen Repos, insbesondere `apps/frontend`, `apps/backend`, `libs/shared-types`, `prisma/schema.prisma`, `README.md`, `docs/README.md`, `docs/ROUTES_AND_STORIES.md`, `docs/TESTING.md` und der Feature-Dokumente unter `docs/features/`.
 
@@ -53,6 +53,7 @@ Rollenrechte werden dabei **nicht nur über die URL**, sondern zusätzlich über
 | Session Host          | `/session/:code/host`                                        | Lehrendensteuerung für Quiz, Q&A und Blitzlicht                                        |
 | Session Present       | `/session/:code/present`                                     | Beamer- / Raumansicht                                                                  |
 | Session Vote          | `/session/:code/vote`                                        | Teilnehmendenansicht für Antworten, Q&A, Blitzlicht, Ergebnis und Feedback             |
+| Session Pair          | `/session/:code/pair`                                        | Smartphone fragt eine Host-Verbindung an; Freigabe bleibt auf `/host`                  |
 | Standalone-Blitzlicht | `/feedback/:code`, `/feedback/:code/vote`                    | Schnelle Feedback-Runden außerhalb einer normalen Quiz-Session                         |
 | Admin                 | `/admin`                                                     | Betreiberzugriff auf Sessions, Exporte, Löschungen, Legal Hold, MOTD, Produktfeedback  |
 | Hilfe und Info        | `/help`, `/news-archive`, `/legal/imprint`, `/legal/privacy` | Produktbeschreibung, Nachrichtenarchiv, Impressum, Datenschutz                         |
@@ -294,6 +295,7 @@ In der Lobby sind verfügbar:
 - Anzeige aktiver Teilnehmer bzw. Presence
 - Umschalten in einen immersiven Hostmodus
 - Vollbildunterstützung (expliziter Schalter; beim Session-Start auf Android-Chrome kein automatisches Vollbild, weil Chrome sonst einen Systemhinweis über die Bedienung legt)
+- Die Host-Leiste **Präsentation starten** öffnet zuerst den Dialog **Präsentation starten**: Primäraktion **Präsentation im Vollbild starten**; optional **Mit Smartphone steuern** / **Smartphone verbinden**; Sichtbarkeit fragt, ob jemand außer der Lehrperson den Bildschirm sehen kann; nach Kopplung startet die Presenter-Ansicht ohne zweiten Laptop-Klick. Co-Host über **Weiteres Gerät verbinden**. Freigabe als Ja/Nein (**Ja, Gerät verbinden** / **Nein, ablehnen**) mit Zeichenabgleich. Der Original-Host verwaltet Geräte kompakt (Label, Status, **Verbindung trennen**); Widerruf beendet Host-Rechte sofort. Das getrennte Gerät kann die Veranstaltung verlassen, ohne sie für alle zu beenden. Pairing liegt nur in diesem Dialog, nicht in der Host-Leiste. QR, Freigabe, Geräteverwaltung und Secrets bleiben auf `/host`, nie auf `/present`.
 
 #### Quiz-Steuerung
 
@@ -1015,7 +1017,7 @@ Dazu gehören laut Root-Dokumentation insbesondere:
   Hochkontrast und PDF-Readern; technische Befunde und automatisierte Gates
   sind umgesetzt
 - Confidence-Erweiterungen und weitere Auswertungsvarianten
-- Paired Hosts für eigene Zweitgeräte und vertrauenswürdige Tutor:innen oder Moderator:innen
+- Paired Hosts: Contracts, Request-and-approve, Dialog „Präsentation starten“, Geräteverwaltung, sofortiger Widerruf (HTTP und Host-WebSockets) sowie Security-/Classroom-Lastnachweise sind umgesetzt; das Thinking-Aloud mit einer Nicht-Techniker:in bleibt ein menschlicher Abnahmeschritt (`docs/implementation/HOST-PAIRING-2.10-SLICE-5-DOD.md`)
 - weitere Word-Cloud-Ausbaustufen
 - Härtung einzelner Sync-/Komplexitätsbereiche
 

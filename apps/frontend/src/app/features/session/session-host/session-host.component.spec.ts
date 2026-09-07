@@ -13,6 +13,7 @@ import {
   flushMacroTask,
 } from '../../../../testing/component-test-utils';
 import { SessionHostComponent } from './session-host.component';
+import { PresentationStartDialogComponent } from '../host-pairing/presentation-start-dialog.component';
 import { WordCloudComponent } from '../session-present/word-cloud.component';
 import { SessionTokenStorageService } from '../session-present/session-token-storage.service';
 import { ThemePresetService } from '../../../core/theme-preset.service';
@@ -64,6 +65,7 @@ const {
   quickFeedbackHostResultsQueryMock,
   quickFeedbackToggleLockMutateMock,
   updateQaTitleMutateMock,
+  listPairedHostsQueryMock,
   quizUploadMutateMock,
   onParticipantJoinedSubscribeMock,
   onStatusChangedSubscribeMock,
@@ -116,6 +118,7 @@ const {
   quickFeedbackHostResultsQueryMock: vi.fn(),
   quickFeedbackToggleLockMutateMock: vi.fn(),
   updateQaTitleMutateMock: vi.fn(),
+  listPairedHostsQueryMock: vi.fn(),
   quizUploadMutateMock: vi.fn(),
   onParticipantJoinedSubscribeMock: vi.fn(() => ({ unsubscribe: unsubscribeMock })),
   onStatusChangedSubscribeMock: vi.fn(() => ({ unsubscribe: unsubscribeMock })),
@@ -165,6 +168,7 @@ vi.mock('../../../core/trpc.client', () => ({
       end: { mutate: endMutateMock },
       dismissFinishProjection: { mutate: dismissFinishProjectionMutateMock },
       updateQaTitle: { mutate: updateQaTitleMutateMock },
+      listPairedHosts: { query: listPairedHostsQueryMock },
       onParticipantJoined: { subscribe: onParticipantJoinedSubscribeMock },
       onStatusChanged: { subscribe: onStatusChangedSubscribeMock },
       onCurrentQuestionForHostChanged: { subscribe: onCurrentQuestionForHostChangedSubscribeMock },
@@ -199,6 +203,8 @@ vi.mock('qrcode', () => ({
 
 vi.mock('../../../core/host-session-token', () => ({
   clearHostToken: clearHostTokenMock,
+  getHostSessionRole: () => null,
+  hasHostToken: () => true,
 }));
 
 const defaultSession = {
@@ -397,6 +403,18 @@ describe('SessionHostComponent', { timeout: 30_000 }, () => {
     });
     getInfoQueryMock.mockResolvedValue({ ...defaultSession });
     getParticipantsQueryMock.mockResolvedValue({ participantCount: 0, participants: [] });
+    listPairedHostsQueryMock.mockResolvedValue({
+      devices: [],
+      pending: null,
+      invite: null,
+      caps: {
+        maxPairedHosts: 3,
+        maxActiveInvites: 1,
+        maxPendingPerInvite: 1,
+        inviteTtlSeconds: 300,
+        pendingTtlSeconds: 300,
+      },
+    });
     onParticipantJoinedSubscribeMock.mockImplementation(() => ({ unsubscribe: unsubscribeMock }));
     onStatusChangedSubscribeMock.mockImplementation(() => ({ unsubscribe: unsubscribeMock }));
     onCurrentQuestionForHostChangedSubscribeMock.mockImplementation(() => ({
@@ -1005,12 +1023,51 @@ describe('SessionHostComponent', { timeout: 30_000 }, () => {
       '[data-testid="open-presenter-view"]',
     ) as HTMLButtonElement | null;
     expect(presenterButton).not.toBeNull();
-    expect(presenterButton?.textContent).toContain('Presenter-Ansicht');
+    expect(presenterButton?.textContent).toContain('Präsentation starten');
     expect(
       presenterButton?.querySelector(':scope > svg.session-host__view-toggle-icon'),
     ).not.toBeNull();
     expect(presenterButton?.querySelector('.session-host__view-toggle-content')).toBeNull();
     expect(getComputedStyle(presenterButton!).alignItems).toBe('center');
+    fixture.destroy();
+  });
+
+  it('öffnet den Dialog Präsentation starten vor dem Presenter-Fenster', async () => {
+    getInfoQueryMock.mockResolvedValue({
+      ...defaultSession,
+      status: 'LOBBY',
+      channels: {
+        quiz: { enabled: true },
+        qa: { enabled: false, open: false, title: null, moderationMode: false },
+        quickFeedback: { enabled: false, open: false },
+      },
+    });
+
+    const fixture = setup();
+    fixture.detectChanges();
+    await fixture.whenStable();
+    fixture.detectChanges();
+
+    dialogOpenMock.mockClear();
+    dialogOpenMock.mockReturnValueOnce({ afterClosed: () => of(undefined) });
+    const presenterButton = fixture.nativeElement.querySelector(
+      '[data-testid="open-presenter-view"]',
+    ) as HTMLButtonElement;
+    presenterButton.click();
+    await fixture.whenStable();
+
+    expect(dialogOpenMock).toHaveBeenCalledWith(
+      PresentationStartDialogComponent,
+      expect.objectContaining({
+        panelClass: 'presentation-start-dialog-panel',
+        backdropClass: 'presentation-start-dialog-backdrop',
+        data: expect.objectContaining({
+          startPresenterView: expect.any(Function),
+          phoneAlreadyConnected: expect.any(Boolean),
+        }),
+      }),
+    );
+    expect(fixture.nativeElement.querySelector('[data-testid="connect-smartphone"]')).toBeNull();
     fixture.destroy();
   });
 
@@ -1974,6 +2031,84 @@ describe('SessionHostComponent', { timeout: 30_000 }, () => {
     expect(canLeave).toBe(false);
     expect(clearHostTokenMock).toHaveBeenCalledWith('ABC123');
     expect(navigateByUrlSpy).toHaveBeenCalledWith('/', { replaceUrl: true });
+    fixture.destroy();
+  });
+
+  it('lässt nach Widerruf das Verlassen ohne Session-Ende zu', async () => {
+    getInfoQueryMock.mockResolvedValue({ ...defaultSession, status: 'ACTIVE' });
+
+    const fixture = setup();
+    const router = TestBed.inject(Router);
+    const navigateByUrlSpy = vi.spyOn(router, 'navigateByUrl').mockResolvedValue(true);
+    fixture.detectChanges();
+    await fixture.whenStable();
+
+    (
+      fixture.componentInstance as unknown as { markHostAccessRevoked(): void }
+    ).markHostAccessRevoked();
+    fixture.detectChanges();
+
+    dialogOpenMock.mockClear();
+    const canLeave = await fixture.componentInstance.canDeactivate();
+
+    expect(canLeave).toBe(true);
+    expect(endMutateMock).not.toHaveBeenCalled();
+    expect(dialogOpenMock).not.toHaveBeenCalled();
+    expect(
+      fixture.nativeElement.querySelector('[data-testid="host-access-revoked"]'),
+    ).not.toBeNull();
+    expect(
+      fixture.nativeElement.querySelector('[data-testid="host-access-revoked-home"]'),
+    ).not.toBeNull();
+    expect(fixture.nativeElement.querySelector('.session-host--revoked')).not.toBeNull();
+    expect(
+      fixture.nativeElement.querySelector('.session-host__revoked .dialog-title-header'),
+    ).not.toBeNull();
+    expect(
+      fixture.nativeElement.querySelector('.session-host__revoked mat-icon')?.textContent?.trim(),
+    ).toBe('devices');
+
+    await fixture.componentInstance.goHomeAfterHostRevoke();
+    expect(navigateByUrlSpy).toHaveBeenCalledWith('/', { replaceUrl: true });
+    fixture.destroy();
+  });
+
+  it('navigiert nach Home, wenn das Verlassen wegen widerrufenem Host-Token scheitert', async () => {
+    getInfoQueryMock.mockResolvedValue({ ...defaultSession, status: 'ACTIVE' });
+    endMutateMock.mockRejectedValueOnce({
+      data: { code: 'UNAUTHORIZED' },
+      message: 'Die Host-Verbindung wurde beendet.',
+    });
+
+    const fixture = setup();
+    const router = TestBed.inject(Router);
+    const navigateByUrlSpy = vi.spyOn(router, 'navigateByUrl').mockResolvedValue(true);
+    fixture.detectChanges();
+    await fixture.whenStable();
+
+    const canLeave = await fixture.componentInstance.canDeactivate();
+
+    expect(canLeave).toBe(false);
+    expect(fixture.componentInstance.hostAccessRevoked()).toBe(true);
+    expect(navigateByUrlSpy).toHaveBeenCalledWith('/', { replaceUrl: true });
+    fixture.destroy();
+  });
+
+  it('bleibt steuerbar, wenn das Pairing-Listing nur ein fehlendes Token meldet', async () => {
+    listPairedHostsQueryMock.mockRejectedValueOnce({
+      data: { code: 'UNAUTHORIZED' },
+      message: 'Host-Authentifizierung erforderlich.',
+    });
+
+    const fixture = setup();
+    fixture.detectChanges();
+    await flushComponentAfterStable(fixture, 50);
+
+    expect(fixture.componentInstance.hostAccessRevoked()).toBe(false);
+    expect(
+      fixture.nativeElement.querySelector('.session-host__live-participants-count'),
+    ).not.toBeNull();
+    expect(fixture.nativeElement.querySelector('[data-testid="host-access-revoked"]')).toBeNull();
     fixture.destroy();
   });
 

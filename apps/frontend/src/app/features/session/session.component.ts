@@ -9,9 +9,9 @@ import type { SessionInfoDTO } from '@arsnova/shared-types';
 import { recordServerTimeSample } from './session-server-clock';
 
 /**
- * Session-Shell (Epic 2 + 3). Child-Routes: host, present, vote. Redirect '' → host.
+ * Session-Shell (Epic 2 + 3). Child-Routes: host, present, vote, pair. Redirect '' → host.
  * Host- und Present-Route ohne l-page/l-section: Host braucht die volle Steuerbreite,
- * Present die volle HDMI-/Beamer-Bühne.
+ * Present die volle HDMI-/Beamer-Bühne. Pair zentriert die Smartphone-Karte im Viewport.
  */
 @Component({
   selector: 'app-session',
@@ -27,6 +27,8 @@ export class SessionComponent implements OnInit, OnDestroy {
   isHostRoute = signal(false);
   /** true wenn Present-Route aktiv (volle Projektionsfläche). */
   isPresentRoute = signal(false);
+  /** true wenn Pair-Route aktiv (Smartphone-Karte in der Viewport-Mitte). */
+  isPairRoute = signal(false);
 
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
@@ -75,5 +77,6 @@ export class SessionComponent implements OnInit, OnDestroy {
       this.route.firstChild?.routeConfig?.path ?? this.route.snapshot.firstChild?.routeConfig?.path;
     this.isHostRoute.set(childPath === 'host');
     this.isPresentRoute.set(childPath === 'present');
+    this.isPairRoute.set(childPath === 'pair');
   }
 }
