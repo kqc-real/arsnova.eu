@@ -195,7 +195,10 @@ describe('HostPairingDialogComponent', () => {
       current.detectChanges();
       expect(current.nativeElement.textContent).toContain('Eule · 47');
     });
-    expect(current.nativeElement.textContent).toContain('Als Host zulassen');
+    expect(current.nativeElement.textContent).toContain('Ja, Gerät verbinden');
+    expect(current.nativeElement.textContent).toContain(
+      'Steht auf dem Smartphone dasselbe Zeichen?',
+    );
     current.nativeElement.querySelector('[data-testid="host-pairing-approve"]')?.click();
     await flush();
     current.detectChanges();
@@ -235,6 +238,7 @@ describe('HostPairingDialogComponent', () => {
         current.nativeElement.querySelector('[data-testid="host-pairing-approve"]'),
       ).toBeTruthy();
     });
+    expect(current.nativeElement.textContent).toContain('Gerät verbinden und Präsentation starten');
     current.nativeElement.querySelector('[data-testid="host-pairing-approve"]')?.click();
     await flush();
     current.detectChanges();
@@ -268,6 +272,9 @@ describe('HostPairingDialogComponent', () => {
     });
 
     const current = await render();
+    expect(
+      current.nativeElement.querySelector('[data-testid="host-pairing-close"]')?.textContent,
+    ).toContain('Präsentation starten');
     current.nativeElement.querySelector('[data-testid="host-pairing-close"]')?.click();
     await flush();
 
@@ -316,7 +323,7 @@ describe('HostPairingDialogComponent', () => {
       code: 'ABC123',
       screenVisibility: 'PRIVATE',
     });
-    expect(current.nativeElement.textContent).toContain('automatisch wird niemand Host');
+    expect(current.nativeElement.textContent).toContain('niemand erhält automatisch Host-Rechte');
     expect(current.nativeElement.querySelector('[data-testid="host-pairing-approve"]')).toBeNull();
   });
 
@@ -354,7 +361,7 @@ describe('HostPairingDialogComponent', () => {
       code: 'ABC123',
       tokenId: device.tokenId,
     });
-    expect(current.nativeElement.textContent).toContain('Verbindung getrennt');
+    expect(current.nativeElement.textContent).toContain('Gerät getrennt');
   });
 
   it('zeigt das Limit verständlich und startet keine neue Einladung', async () => {
@@ -451,5 +458,53 @@ describe('HostPairingDialogComponent', () => {
     current.detectChanges();
     expect(current.nativeElement.textContent).toContain('abgelaufen');
     expect(current.nativeElement.querySelector('[data-testid="host-pairing-approve"]')).toBeNull();
+    expect(current.nativeElement.textContent).toContain('Neuen QR-Code anzeigen');
+  });
+
+  it('zeigt die Restzeit am QR-Code und benennt das unbenannte Gerät', async () => {
+    const expiresAt = new Date(Date.now() + 4 * 60_000 + 32_000).toISOString();
+    createInviteMock.mockResolvedValue({
+      inviteId: '11111111-1111-4111-8111-111111111111',
+      pairingSecret: SECRET,
+      expiresAt,
+      state: 'PAIRING_INVITE_CREATED',
+      screenVisibility: 'PROJECTED',
+      caps: EMPTY_CAPS,
+    });
+    listPairedHostsMock.mockResolvedValue({
+      devices: [
+        {
+          tokenId: '33333333-3333-4333-8333-333333333333',
+          deviceLabel: null,
+          pairedAt: '2026-09-07T14:00:00.000Z',
+          state: 'CONNECTED',
+        },
+      ],
+      pending: null,
+      invite: {
+        inviteId: '11111111-1111-4111-8111-111111111111',
+        state: 'PAIRING_INVITE_CREATED',
+        screenVisibility: 'PROJECTED',
+        expiresAt,
+      },
+      caps: EMPTY_CAPS,
+    });
+    const current = await render();
+    expect(current.nativeElement.textContent).toContain('Smartphone 1');
+    current.nativeElement.querySelector('[data-testid="host-pairing-add-another"]')?.click();
+    await flush();
+    current.detectChanges();
+    expect(
+      current.nativeElement.querySelector('[data-testid="host-pairing-invite-remaining"]')
+        ?.textContent,
+    ).toMatch(/Noch \d+:\d{2} Minuten/);
+  });
+
+  it('bietet ohne verbundenes Gerät das Präsentieren ohne Smartphone an', async () => {
+    dialogData.startPresenterView = vi.fn().mockResolvedValue({ closed: false });
+    const current = await render();
+    expect(
+      current.nativeElement.querySelector('[data-testid="host-pairing-close"]')?.textContent,
+    ).toContain('Ohne Smartphone präsentieren');
   });
 });

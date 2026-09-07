@@ -2,8 +2,11 @@ import { Component, OnDestroy, OnInit, inject, signal } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { MatButton } from '@angular/material/button';
 import { MatCard, MatCardContent } from '@angular/material/card';
+import { MatFormField, MatHint, MatLabel } from '@angular/material/form-field';
 import { MatIcon } from '@angular/material/icon';
+import { MatInput } from '@angular/material/input';
 import { MatProgressBar } from '@angular/material/progress-bar';
+import { HOST_PAIRING_DEVICE_LABEL_MAX } from '@arsnova/shared-types';
 import {
   normalizeHostSessionCode,
   setHostSessionRole,
@@ -12,6 +15,7 @@ import {
 import { localizeKnownServerError } from '../../../core/localize-known-server-message';
 import { localizeCommands, localizePath } from '../../../core/locale-router';
 import { setPendingHostSessionCode, trpc } from '../../../core/trpc.client';
+import { formatHostPairingRemainingClock } from './host-pairing-remaining';
 import { readHostPairingSecretFromLocation } from './host-pairing-url';
 
 type RequestView =
@@ -22,7 +26,17 @@ const POLL_MS = 1500;
 @Component({
   selector: 'app-session-host-pairing-request',
   standalone: true,
-  imports: [MatButton, MatCard, MatCardContent, MatIcon, MatProgressBar],
+  imports: [
+    MatButton,
+    MatCard,
+    MatCardContent,
+    MatFormField,
+    MatHint,
+    MatIcon,
+    MatInput,
+    MatLabel,
+    MatProgressBar,
+  ],
   templateUrl: './session-host-pairing-request.component.html',
   styleUrls: [
     '../../../shared/styles/dialog-title-header.scss',
@@ -37,21 +51,37 @@ export class SessionHostPairingRequestComponent implements OnInit, OnDestroy {
   readonly view = signal<RequestView>('ready');
   readonly indicator = signal<string | null>(null);
   readonly error = signal<string | null>(null);
+  readonly deviceName = signal('');
+  readonly expiresAt = signal<string | null>(null);
+  readonly nowMs = signal(Date.now());
+  readonly deviceNameMax = HOST_PAIRING_DEVICE_LABEL_MAX;
 
   requestQuestion(): string {
-    return $localize`:@@hostPairing.requestQuestion:Mit Veranstaltung ${this.code}:sessionCode: verbinden?`;
+    return $localize`:@@hostPairing.requestQuestion:Mit der Veranstaltung ${this.code}:sessionCode: verbinden?`;
+  }
+
+  requestRemainingLabel(): string | null {
+    const remaining = formatHostPairingRemainingClock(this.expiresAt(), this.nowMs());
+    if (!remaining) return null;
+    return $localize`:@@hostPairing.requestRemaining:Warte auf die Bestätigung · noch ${remaining}:remaining: Minuten`;
+  }
+
+  onDeviceNameInput(event: Event): void {
+    const value = (event.target as HTMLInputElement | null)?.value ?? '';
+    this.deviceName.set(value.slice(0, HOST_PAIRING_DEVICE_LABEL_MAX));
   }
 
   private pairingSecret: string | null = null;
   private requestId: string | null = null;
   private requestSecret: string | null = null;
   private pollTimer: ReturnType<typeof setInterval> | null = null;
+  private remainingTimer: ReturnType<typeof setInterval> | null = null;
 
   ngOnInit(): void {
     if (this.code.length !== 6) {
       this.view.set('error');
       this.error.set(
-        $localize`:@@hostPairing.errorInvalidLink:Dieser Verbindungslink ist ungültig oder abgelaufen.`,
+        $localize`:@@hostPairing.errorInvalidLink:Dieser Link ist nicht mehr gültig. Bitte zeige einen neuen QR-Code an.`,
       );
       return;
     }
@@ -62,11 +92,13 @@ export class SessionHostPairingRequestComponent implements OnInit, OnDestroy {
       this.view.set('missing');
       return;
     }
+    this.remainingTimer = setInterval(() => this.nowMs.set(Date.now()), 15_000);
     this.stripSecretFromAddressBar();
   }
 
   ngOnDestroy(): void {
     this.stopPolling();
+    if (this.remainingTimer) clearInterval(this.remainingTimer);
   }
 
   async requestConnection(): Promise<void> {
@@ -77,20 +109,23 @@ export class SessionHostPairingRequestComponent implements OnInit, OnDestroy {
     this.view.set('requesting');
     this.error.set(null);
     try {
+      const deviceLabel = this.deviceName().trim();
       const requested = await trpc.session.requestHostPairing.mutate({
         code: this.code,
         pairingSecret: this.pairingSecret,
+        ...(deviceLabel ? { deviceLabel } : {}),
       });
       if (requested.alreadyPending || !requested.requestId || !requested.requestSecret) {
         this.view.set('error');
         this.error.set(
-          $localize`:@@hostPairing.errorAlreadyPending:Es wartet bereits eine Verbindungsanfrage.`,
+          $localize`:@@hostPairing.errorAlreadyPending:Es wartet bereits ein anderes Gerät auf Bestätigung.`,
         );
         return;
       }
       this.requestId = requested.requestId;
       this.requestSecret = requested.requestSecret;
       this.indicator.set(requested.confirmationIndicator);
+      this.expiresAt.set(requested.expiresAt);
       this.view.set('pending');
       this.startPolling();
     } catch (error: unknown) {
@@ -98,7 +133,7 @@ export class SessionHostPairingRequestComponent implements OnInit, OnDestroy {
       this.error.set(
         localizeKnownServerError(
           error,
-          $localize`:@@hostPairing.errorInvalidLink:Dieser Verbindungslink ist ungültig oder abgelaufen.`,
+          $localize`:@@hostPairing.errorInvalidLink:Dieser Link ist nicht mehr gültig. Bitte zeige einen neuen QR-Code an.`,
         ),
       );
     }
@@ -132,6 +167,7 @@ export class SessionHostPairingRequestComponent implements OnInit, OnDestroy {
       });
       if (result.state === 'PENDING_APPROVAL') {
         this.indicator.set(result.confirmationIndicator);
+        this.expiresAt.set(result.expiresAt);
         return;
       }
       if (result.token?.pairedHostToken) {
@@ -147,7 +183,7 @@ export class SessionHostPairingRequestComponent implements OnInit, OnDestroy {
         this.stopPolling();
         this.view.set('error');
         this.error.set(
-          $localize`:@@hostPairing.errorExpired:Die Verbindungsanfrage ist abgelaufen.`,
+          $localize`:@@hostPairing.errorExpired:Die Zeit zum Verbinden ist abgelaufen.`,
         );
         return;
       }
@@ -167,7 +203,7 @@ export class SessionHostPairingRequestComponent implements OnInit, OnDestroy {
       this.error.set(
         localizeKnownServerError(
           error,
-          $localize`:@@hostPairing.errorInvalidLink:Dieser Verbindungslink ist ungültig oder abgelaufen.`,
+          $localize`:@@hostPairing.errorInvalidLink:Dieser Link ist nicht mehr gültig. Bitte zeige einen neuen QR-Code an.`,
         ),
       );
     }

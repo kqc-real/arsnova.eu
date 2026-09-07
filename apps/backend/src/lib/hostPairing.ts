@@ -18,6 +18,11 @@ import {
 } from '@arsnova/shared-types';
 import { getRedis } from '../redis';
 import {
+  createPairedHostInvalidationHub,
+  PAIRED_HOST_INVALIDATION_CHANNEL,
+} from './hostPairingInvalidation';
+import { withHostPairingSessionLock } from './hostPairingLock';
+import {
   applyHostPairingCommand,
   emptyHostPairingRecord,
   hostPairingUserMessage,
@@ -32,8 +37,6 @@ const REQUEST_LOOKUP_PREFIX = 'host:pairing:v1:request:';
 const TOKEN_LOOKUP_PREFIX = 'host:pairing:v1:token:';
 const CLAIM_PREFIX = 'host:pairing:v1:claim:';
 const OUTCOME_PREFIX = 'host:pairing:v1:outcome:';
-const LOCK_PREFIX = 'host:pairing:v1:lock:';
-const LOCK_TTL_SECONDS = 2;
 
 const CONFIRMATION_WORDS = [
   'Eule',
@@ -130,10 +133,6 @@ function claimKey(requestSecretHash: string): string {
 
 function outcomeKey(requestSecretHash: string): string {
   return `${OUTCOME_PREFIX}${requestSecretHash}`;
-}
-
-function lockKey(sessionCode: string): string {
-  return `${LOCK_PREFIX}${normalizeSessionCode(sessionCode)}`;
 }
 
 function createSecret(): string {
@@ -264,20 +263,9 @@ async function applyEffects(
 }
 
 async function withSessionLock<T>(sessionCode: string, fn: () => Promise<T>): Promise<T> {
-  const redis = getRedis();
-  const key = lockKey(sessionCode);
-  for (let attempt = 0; attempt < 8; attempt += 1) {
-    const locked = await redis.set(key, '1', 'EX', LOCK_TTL_SECONDS, 'NX');
-    if (locked === 'OK') {
-      try {
-        return await fn();
-      } finally {
-        await redis.del(key);
-      }
-    }
-    await new Promise((resolve) => setTimeout(resolve, 25 * (attempt + 1)));
-  }
-  throw pairingError('RATE_LIMITED');
+  return withHostPairingSessionLock(sessionCode, fn, () => {
+    throw pairingError('RATE_LIMITED');
+  });
 }
 
 export async function createHostPairingInvite(params: {
@@ -557,17 +545,34 @@ export async function findPairedHostByToken(
   return { tokenId: device.tokenId, role: 'PAIRED_HOST' };
 }
 
-const invalidationWaiters = new Map<string, Set<() => void>>();
+type RedisPubSubClient = {
+  publish?: (channel: string, message: string) => Promise<unknown> | unknown;
+  duplicate?: () => RedisPubSubClient;
+  on?: (event: string, handler: (channel: string, message: string) => void) => void;
+  subscribe?: (channel: string) => Promise<unknown> | unknown;
+};
 
-function invalidationKey(sessionCode: string, tokenHash: string): string {
-  return `${normalizeSessionCode(sessionCode)}:${tokenHash}`;
-}
+const invalidationHub = createPairedHostInvalidationHub({
+  publish(channel, message) {
+    const redis = getRedis() as RedisPubSubClient;
+    if (typeof redis.publish !== 'function') return;
+    return redis.publish(channel, message);
+  },
+  ensureSubscribe(onMessage) {
+    const redis = getRedis() as RedisPubSubClient;
+    const subscriber = typeof redis.duplicate === 'function' ? redis.duplicate() : redis;
+    if (typeof subscriber.on !== 'function' || typeof subscriber.subscribe !== 'function') {
+      return;
+    }
+    subscriber.on('message', (channel, message) => {
+      if (channel === PAIRED_HOST_INVALIDATION_CHANNEL) onMessage(message);
+    });
+    void subscriber.subscribe(PAIRED_HOST_INVALIDATION_CHANNEL);
+  },
+});
 
 export function notifyPairedHostTokenInvalidated(sessionCode: string, tokenHash: string): void {
-  const waiters = invalidationWaiters.get(invalidationKey(sessionCode, tokenHash));
-  if (!waiters) return;
-  for (const resolve of waiters) resolve();
-  invalidationWaiters.delete(invalidationKey(sessionCode, tokenHash));
+  invalidationHub.notify(sessionCode, tokenHash);
 }
 
 export function subscribePairedHostTokenInvalidation(
@@ -575,16 +580,7 @@ export function subscribePairedHostTokenInvalidation(
   token: string,
   onInvalidate: () => void,
 ): () => void {
-  const key = invalidationKey(sessionCode, hashHostPairingSecret(token));
-  const waiters = invalidationWaiters.get(key) ?? new Set<() => void>();
-  waiters.add(onInvalidate);
-  invalidationWaiters.set(key, waiters);
-  return () => {
-    const current = invalidationWaiters.get(key);
-    if (!current) return;
-    current.delete(onInvalidate);
-    if (current.size === 0) invalidationWaiters.delete(key);
-  };
+  return invalidationHub.subscribe(sessionCode, hashHostPairingSecret(token), onInvalidate);
 }
 
 export function waitForPairedHostTokenInvalidation(
@@ -609,5 +605,5 @@ export function waitForPairedHostTokenInvalidation(
 }
 
 export function resetHostPairingInvalidationWaitersForTests(): void {
-  invalidationWaiters.clear();
+  invalidationHub.reset();
 }

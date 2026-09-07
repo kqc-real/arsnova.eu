@@ -74,6 +74,39 @@ describe('PresentationStartDialogComponent', () => {
     return fixture;
   }
 
+  it('blendet Verwaltungsaktionen erst nach der Serverantwort ein', async () => {
+    let resolveList: ((value: unknown) => void) | undefined;
+    listPairedHostsMock.mockReturnValue(
+      new Promise((resolve) => {
+        resolveList = resolve;
+      }),
+    );
+    fixture = TestBed.createComponent(PresentationStartDialogComponent);
+    fixture.detectChanges();
+    await flush();
+    fixture.detectChanges();
+    expect(
+      fixture.nativeElement.querySelector('[data-testid="presentation-start-loading"]'),
+    ).toBeTruthy();
+    expect(
+      fixture.nativeElement.querySelector('[data-testid="presentation-start-connect"]'),
+    ).toBeNull();
+    resolveList?.({
+      devices: [],
+      pending: null,
+      invite: null,
+      caps: EMPTY_CAPS,
+    });
+    await flush();
+    fixture.detectChanges();
+    expect(
+      fixture.nativeElement.querySelector('[data-testid="presentation-start-loading"]'),
+    ).toBeNull();
+    expect(
+      fixture.nativeElement.querySelector('[data-testid="presentation-start-connect"]'),
+    ).not.toBeNull();
+  });
+
   it('startet die Präsentation ohne Pairing und defaultet auf projiziert', async () => {
     const current = await render();
     expect(current.nativeElement.textContent).toContain('Präsentation starten');

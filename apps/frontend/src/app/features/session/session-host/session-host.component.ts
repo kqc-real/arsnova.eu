@@ -4355,7 +4355,7 @@ export class SessionHostComponent implements OnInit, OnDestroy {
     void this.refreshPairedHostStatus();
     if (decision === 'blocked') {
       this.snackBar.open(
-        $localize`:@@sessionHost.presenterViewPopupBlocked:Presenter-Ansicht konnte nicht geöffnet werden. Bitte Pop-ups erlauben oder den Host-Tab duplizieren und in der Adresse /present statt /host nutzen.`,
+        $localize`:@@sessionHost.presenterViewPopupBlocked:Das Präsentationsfenster konnte nicht geöffnet werden. Erlaube Pop-up-Fenster für diese Seite und versuche es erneut.`,
         '',
         { duration: 6000 },
       );

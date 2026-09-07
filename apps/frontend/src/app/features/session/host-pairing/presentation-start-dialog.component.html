@@ -7,13 +7,21 @@
       >Präsentation starten</span
     >
     <span class="dialog-title-header__sub" i18n="@@presentationStart.intro"
-      >Zeige die Veranstaltung auf dem Beamer.</span
+      >Zeige die Präsentation auf dem Beamer.</span
     >
   </span>
 </h2>
 
 <mat-dialog-content class="presentation-start-dialog">
-  @if (pairingAdmin() || phoneConnected()) {
+  @if (pairingAdminLoading()) {
+    <p
+      class="presentation-start-dialog__hint"
+      data-testid="presentation-start-loading"
+      i18n="@@presentationStart.loadingAdmin"
+    >
+      Verbindungsmöglichkeiten werden geladen …
+    </p>
+  } @else if (pairingAdmin() || phoneConnected()) {
     <section
       class="presentation-start-dialog__section"
       aria-labelledby="presentation-start-phone-title"
@@ -41,7 +49,7 @@
       } @else {
         <fieldset class="presentation-start-dialog__visibility">
           <legend i18n="@@presentationStart.visibilityLegend">
-            Ist dieser Bildschirm für andere sichtbar?
+            Kann jemand außer dir diesen Bildschirm sehen?
           </legend>
           <mat-radio-group
             class="presentation-start-dialog__radios"
@@ -55,14 +63,14 @@
               data-testid="presentation-start-visibility-projected"
               i18n="@@presentationStart.visibilityProjected"
             >
-              Ja, der Bildschirm wird projiziert
+              Ja, er wird zum Beispiel über einen Beamer gezeigt
             </mat-radio-button>
             <mat-radio-button
               value="PRIVATE"
               data-testid="presentation-start-visibility-private"
               i18n="@@presentationStart.visibilityPrivate"
             >
-              Nein, dieser Bildschirm ist privat
+              Nein, nur ich kann diesen Bildschirm sehen
             </mat-radio-button>
           </mat-radio-group>
           <p
@@ -70,8 +78,8 @@
             class="presentation-start-dialog__hint"
             i18n="@@presentationStart.visibilityHint"
           >
-            Auch bei einem privaten Bildschirm bestätigst du die Verbindung hier. Niemand wird
-            automatisch Host.
+            Die Verbindung wird immer auf diesem Bildschirm bestätigt. So kann niemand unbemerkt die
+            Steuerung übernehmen.
           </p>
         </fieldset>
       }
@@ -121,7 +129,7 @@
       } @else if (pairingAdmin() && canAddAnother()) {
         @if (phoneConnected()) {
           <p class="presentation-start-dialog__hint" i18n="@@presentationStart.coHostHint">
-            Auch eine vertrauenswürdige Person kann sich so als weiteres Host-Gerät verbinden.
+            So kann sich auch eine vertrauenswürdige Person mit einem weiteren Gerät verbinden.
           </p>
           <button
             mat-stroked-button
@@ -131,7 +139,7 @@
             (click)="openPairing()"
             i18n="@@presentationStart.coHostAction"
           >
-            Weiteres Host-Gerät verbinden
+            Weiteres Gerät verbinden
           </button>
         } @else {
           <button

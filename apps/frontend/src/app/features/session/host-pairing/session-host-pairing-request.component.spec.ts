@@ -106,6 +106,8 @@ describe('SessionHostPairingRequestComponent', () => {
 
   it('fragt die Verbindung an und bleibt ohne Approve im Pending', async () => {
     const current = render();
+    expect(current.nativeElement.textContent).toContain('Dieses Gerät verbinden');
+    expect(current.nativeElement.textContent).toContain('Nicht verbinden');
     current.nativeElement.querySelector('[data-testid="host-pairing-request"]')?.click();
     await flush();
     current.detectChanges();
@@ -200,6 +202,33 @@ describe('SessionHostPairingRequestComponent', () => {
     expect(current.nativeElement.textContent).toContain('unvollständig');
     expect(current.nativeElement.querySelector('[data-testid="host-pairing-request"]')).toBeNull();
     expect(requestMock).not.toHaveBeenCalled();
+  });
+
+  it('sendet den optionalen Gerätenamen mit der Anfrage', async () => {
+    const current = render();
+    const input = current.nativeElement.querySelector(
+      '[data-testid="host-pairing-device-name"]',
+    ) as HTMLInputElement | null;
+    expect(input).toBeTruthy();
+    input!.value = 'Mein Smartphone';
+    input!.dispatchEvent(new Event('input'));
+    current.detectChanges();
+    current.nativeElement.querySelector('[data-testid="host-pairing-request"]')?.click();
+    await flush();
+    expect(requestMock).toHaveBeenCalledWith({
+      code: 'ABC123',
+      pairingSecret: SECRET,
+      deviceLabel: 'Mein Smartphone',
+    });
+  });
+
+  it('führt mit Nicht verbinden zur Startseite und entfernt den Link', async () => {
+    const current = render();
+    const router = TestBed.inject(Router);
+    const navigateByUrl = vi.spyOn(router, 'navigateByUrl').mockResolvedValue(true);
+    expect(window.location.hash).toBe('');
+    current.nativeElement.querySelector('[data-testid="host-pairing-decline"]')?.click();
+    expect(navigateByUrl).toHaveBeenCalledWith('/', { replaceUrl: true });
   });
 
   it('führt von der unvollständigen Pair-Karte zur Startseite', async () => {

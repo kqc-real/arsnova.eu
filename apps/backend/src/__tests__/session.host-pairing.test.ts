@@ -22,12 +22,13 @@ type MemoryEntry = { value: string; expiresAt?: number };
 
 function createMemoryRedis() {
   const store = new Map<string, MemoryEntry>();
+  const messageListeners = new Set<(channel: string, message: string) => void>();
   const alive = (entry: MemoryEntry | undefined): entry is MemoryEntry => {
     if (!entry) return false;
     if (entry.expiresAt && entry.expiresAt <= Date.now()) return false;
     return true;
   };
-  return {
+  const client = {
     async get(key: string) {
       const entry = store.get(key);
       if (!alive(entry)) {
@@ -58,8 +59,28 @@ function createMemoryRedis() {
       }
       return removed;
     },
+    async eval(_script: string, _numKeys: number, key: string, owner: string) {
+      const current = await client.get(key);
+      if (current === owner) return client.del(key);
+      return 0;
+    },
+    async publish(channel: string, message: string) {
+      for (const listener of messageListeners) listener(channel, message);
+      return 1;
+    },
+    on(event: string, handler: (channel: string, message: string) => void) {
+      if (event === 'message') messageListeners.add(handler);
+      return client;
+    },
+    async subscribe() {
+      return 1;
+    },
+    duplicate() {
+      return client;
+    },
     store,
   };
+  return client;
 }
 
 const memoryRedis = createMemoryRedis();

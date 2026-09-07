@@ -60,7 +60,8 @@ export class PresentationStartDialogComponent implements OnInit {
   readonly canAddAnother = signal(true);
   readonly capReached = signal(false);
   readonly pending = signal<HostPairingPendingDTO | null>(null);
-  readonly pairingAdmin = signal(true);
+  readonly pairingAdmin = signal(false);
+  readonly pairingAdminLoading = signal(true);
 
   async ngOnInit(): Promise<void> {
     await this.refresh();
@@ -115,6 +116,7 @@ export class PresentationStartDialogComponent implements OnInit {
   }
 
   private async refresh(): Promise<void> {
+    this.pairingAdminLoading.set(true);
     try {
       const listed = await trpc.session.listPairedHosts.query({ code: this.data.code });
       this.phoneConnected.set(listed.devices.length > 0);
@@ -129,6 +131,8 @@ export class PresentationStartDialogComponent implements OnInit {
       this.canAddAnother.set(false);
       this.capReached.set(false);
       this.pending.set(null);
+    } finally {
+      this.pairingAdminLoading.set(false);
     }
   }
 }

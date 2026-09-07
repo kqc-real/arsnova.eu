@@ -19,6 +19,7 @@ import type {
 } from '@arsnova/shared-types';
 import { localizeKnownServerError } from '../../../core/localize-known-server-message';
 import { trpc } from '../../../core/trpc.client';
+import { formatHostPairingRemainingClock } from './host-pairing-remaining';
 import { buildHostPairingUrl } from './host-pairing-url';
 
 export interface HostPairingDialogData {
@@ -74,22 +75,83 @@ export class HostPairingDialogComponent implements OnDestroy {
   readonly isPrivateScreen = this.screenVisibility === 'PRIVATE';
   readonly capReached = computed(() => this.devices().length >= this.caps().maxPairedHosts);
   readonly canAddAnother = computed(() => !this.capReached() && this.pending() === null);
+  readonly inviteExpiresAt = signal<string | null>(null);
+  readonly nowMs = signal(Date.now());
 
   private pollTimer: ReturnType<typeof setInterval> | null = null;
   private copyResetTimer: ReturnType<typeof setTimeout> | null = null;
+  private remainingTimer: ReturnType<typeof setInterval> | null = null;
 
   constructor() {
+    this.remainingTimer = setInterval(() => this.nowMs.set(Date.now()), 15_000);
     void this.bootstrap();
   }
 
   ngOnDestroy(): void {
     this.stopPolling();
     if (this.copyResetTimer) clearTimeout(this.copyResetTimer);
+    if (this.remainingTimer) clearInterval(this.remainingTimer);
   }
 
-  deviceLabel(device: PairedHostDeviceDTO): string {
+  dialogTitle(): string {
+    if (this.view() === 'pending') {
+      return $localize`:@@hostPairing.dialogTitlePending:Smartphone bestätigen`;
+    }
+    if (this.view() === 'manage') {
+      return $localize`:@@hostPairing.devicesTitle:Verbundene Geräte`;
+    }
+    if (this.devices().length > 0) {
+      return $localize`:@@hostPairing.dialogTitleAnother:Weiteres Gerät verbinden`;
+    }
+    return $localize`:@@hostPairing.dialogTitle:Smartphone zum Steuern verbinden`;
+  }
+
+  closeLabel(): string {
+    if (this.data.startPresenterView) {
+      if (this.view() === 'manage' && this.devices().length > 0) {
+        return $localize`:@@presentationStart.title:Präsentation starten`;
+      }
+      if (this.view() === 'invite' || this.view() === 'loading') {
+        return $localize`:@@hostPairing.presentWithoutPhone:Ohne Smartphone präsentieren`;
+      }
+    }
+    return $localize`:@@hostPairing.close:Schließen`;
+  }
+
+  approveLabel(): string {
+    return this.data.startPresenterView
+      ? $localize`:@@hostPairing.approveAndPresent:Gerät verbinden und Präsentation starten`
+      : $localize`:@@hostPairing.approve:Ja, Gerät verbinden`;
+  }
+
+  rejectLabel(): string {
+    return this.data.startPresenterView
+      ? $localize`:@@hostPairing.rejectRequest:Anfrage ablehnen`
+      : $localize`:@@hostPairing.reject:Nein, ablehnen`;
+  }
+
+  inviteRemainingLabel(): string | null {
+    const remaining = formatHostPairingRemainingClock(this.inviteExpiresAt(), this.nowMs());
+    if (!remaining) return null;
+    return $localize`:@@hostPairing.inviteRemaining:Noch ${remaining}:remaining: Minuten Zeit, um den QR-Code zu scannen.`;
+  }
+
+  pendingRemainingLabel(): string | null {
+    const remaining = formatHostPairingRemainingClock(this.pending()?.expiresAt, this.nowMs());
+    if (!remaining) return null;
+    return $localize`:@@hostPairing.pendingRemaining:Noch ${remaining}:remaining: Minuten Zeit, um zu bestätigen.`;
+  }
+
+  deviceLabel(device: PairedHostDeviceDTO, index = 0): string {
     const label = device.deviceLabel?.trim();
-    return label ? label : $localize`:@@hostPairing.deviceFallback:Weiteres Host-Gerät`;
+    if (label) return label;
+    if (index <= 0) {
+      return $localize`:@@hostPairing.deviceFallbackPhone:Smartphone 1`;
+    }
+    if (index === 1) {
+      return $localize`:@@hostPairing.deviceFallbackPhone2:Smartphone 2`;
+    }
+    return $localize`:@@hostPairing.deviceFallback:Weiteres Gerät 3`;
   }
 
   deviceSince(iso: string): string {
@@ -120,7 +182,7 @@ export class HostPairingDialogComponent implements OnDestroy {
       this.error.set(
         localizeKnownServerError(
           error,
-          $localize`:@@hostPairing.errorGeneric:Die Verbindung konnte nicht vorbereitet werden.`,
+          $localize`:@@hostPairing.errorGeneric:Das Gerät konnte nicht verbunden werden. Bitte versuche es noch einmal.`,
         ),
       );
       this.view.set('error');
@@ -143,6 +205,7 @@ export class HostPairingDialogComponent implements OnDestroy {
         code: this.data.code,
         screenVisibility: this.screenVisibility,
       });
+      this.inviteExpiresAt.set(invite.expiresAt);
       const url = buildHostPairingUrl(this.data.code, invite.pairingSecret);
       this.pairingUrl.set(url);
       this.view.set('invite');
@@ -152,7 +215,7 @@ export class HostPairingDialogComponent implements OnDestroy {
       this.error.set(
         localizeKnownServerError(
           error,
-          $localize`:@@hostPairing.errorGeneric:Die Verbindung konnte nicht vorbereitet werden.`,
+          $localize`:@@hostPairing.errorGeneric:Das Gerät konnte nicht verbunden werden. Bitte versuche es noch einmal.`,
         ),
       );
       this.view.set(this.devices().length > 0 ? 'manage' : 'error');
@@ -203,7 +266,7 @@ export class HostPairingDialogComponent implements OnDestroy {
       this.error.set(
         localizeKnownServerError(
           error,
-          $localize`:@@hostPairing.errorGeneric:Die Verbindung konnte nicht vorbereitet werden.`,
+          $localize`:@@hostPairing.errorGeneric:Das Gerät konnte nicht verbunden werden. Bitte versuche es noch einmal.`,
         ),
       );
     } finally {
@@ -238,7 +301,7 @@ export class HostPairingDialogComponent implements OnDestroy {
       this.error.set(
         localizeKnownServerError(
           error,
-          $localize`:@@hostPairing.errorGeneric:Die Verbindung konnte nicht vorbereitet werden.`,
+          $localize`:@@hostPairing.errorGeneric:Das Gerät konnte nicht verbunden werden. Bitte versuche es noch einmal.`,
         ),
       );
     } finally {
@@ -254,7 +317,7 @@ export class HostPairingDialogComponent implements OnDestroy {
         code: this.data.code,
         tokenId: device.tokenId,
       });
-      this.announcement.set($localize`:@@hostPairing.revokedLive:Verbindung getrennt`);
+      this.announcement.set($localize`:@@hostPairing.revokedLive:Gerät getrennt`);
       const state = await trpc.session.listPairedHosts.query({ code: this.data.code });
       this.applyListedState(state);
       this.view.set('manage');
@@ -262,7 +325,7 @@ export class HostPairingDialogComponent implements OnDestroy {
       this.error.set(
         localizeKnownServerError(
           error,
-          $localize`:@@hostPairing.errorGeneric:Die Verbindung konnte nicht vorbereitet werden.`,
+          $localize`:@@hostPairing.errorGeneric:Das Gerät konnte nicht verbunden werden. Bitte versuche es noch einmal.`,
         ),
       );
     } finally {
@@ -309,6 +372,7 @@ export class HostPairingDialogComponent implements OnDestroy {
   private applyListedState(state: ListPairedHostsOutput): void {
     this.devices.set(state.devices);
     this.caps.set(state.caps);
+    this.inviteExpiresAt.set(state.invite?.expiresAt ?? this.inviteExpiresAt());
     if (state.pending) {
       this.pending.set(state.pending);
       this.view.set('pending');
@@ -322,7 +386,7 @@ export class HostPairingDialogComponent implements OnDestroy {
     }
     if (this.view() === 'pending') {
       this.stopPolling();
-      this.error.set($localize`:@@hostPairing.errorExpired:Die Verbindungsanfrage ist abgelaufen.`);
+      this.error.set($localize`:@@hostPairing.errorExpired:Die Zeit zum Verbinden ist abgelaufen.`);
       this.view.set('error');
       return;
     }
@@ -332,7 +396,7 @@ export class HostPairingDialogComponent implements OnDestroy {
         this.view.set('manage');
         return;
       }
-      this.error.set($localize`:@@hostPairing.errorExpired:Die Verbindungsanfrage ist abgelaufen.`);
+      this.error.set($localize`:@@hostPairing.errorExpired:Die Zeit zum Verbinden ist abgelaufen.`);
       this.view.set('error');
     }
   }

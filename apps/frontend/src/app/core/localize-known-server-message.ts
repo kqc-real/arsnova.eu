@@ -13,11 +13,11 @@ const ADMIN_LOGIN_RATE_LIMIT_MESSAGES_DE = new Set([
 ]);
 const HOST_PAIRING_MESSAGES_DE: Record<string, () => string> = {
   'Die Verbindungsanfrage ist abgelaufen.': () =>
-    $localize`:@@hostPairing.errorExpired:Die Verbindungsanfrage ist abgelaufen.`,
+    $localize`:@@hostPairing.errorExpired:Die Zeit zum Verbinden ist abgelaufen.`,
   'Dieser Verbindungslink ist ungültig oder abgelaufen.': () =>
-    $localize`:@@hostPairing.errorInvalidLink:Dieser Verbindungslink ist ungültig oder abgelaufen.`,
+    $localize`:@@hostPairing.errorInvalidLink:Dieser Link ist nicht mehr gültig. Bitte zeige einen neuen QR-Code an.`,
   'Es wartet bereits eine Verbindungsanfrage.': () =>
-    $localize`:@@hostPairing.errorAlreadyPending:Es wartet bereits eine Verbindungsanfrage.`,
+    $localize`:@@hostPairing.errorAlreadyPending:Es wartet bereits ein anderes Gerät auf Bestätigung.`,
   'Es sind bereits drei weitere Host-Geräte verbunden.': () =>
     $localize`:@@hostPairing.errorCapReached:Es sind bereits drei weitere Geräte verbunden.`,
   'Nur die ursprüngliche Lehrperson kann weitere Geräte verbinden.': () =>
@@ -31,7 +31,7 @@ const HOST_PAIRING_MESSAGES_DE: Record<string, () => string> = {
   'Zu viele Verbindungsversuche. Bitte später erneut versuchen.': () =>
     $localize`:@@hostPairing.errorRateLimited:Zu viele Verbindungsversuche. Bitte später erneut versuchen.`,
   'Die Host-Verbindung wurde beendet.': () =>
-    $localize`:@@hostAccess.revokedTitle:Die Host-Verbindung wurde beendet.`,
+    $localize`:@@hostAccess.revokedTitle:Die Verbindung wurde beendet.`,
 };
 const TRPC_CODE_PREFIXES = [
   'TOO_MANY_REQUESTS',
