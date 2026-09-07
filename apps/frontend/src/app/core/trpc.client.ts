@@ -47,8 +47,8 @@ function getRouteSegments(): string[] {
   }
 
   const segments = globalThis.window.location.pathname.split('/').filter(Boolean);
-  if (segments[0] && SUPPORTED_LOCALES.has(segments[0])) {
-    return segments.slice(1);
+  while (segments[0] && SUPPORTED_LOCALES.has(segments[0])) {
+    segments.shift();
   }
   return segments;
 }

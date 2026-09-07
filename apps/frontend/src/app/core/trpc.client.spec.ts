@@ -111,6 +111,18 @@ describe('trpc.client host transport', () => {
     globalThis.window.history.replaceState({}, '', '/');
   });
 
+  it('haengt Host-Token auch bei doppeltem Locale-Präfix an', async () => {
+    getHostTokenMock.mockReturnValue('host-token-123');
+
+    await loadClientModule('/de/de/session/abc123/host');
+
+    const httpOptions = httpBatchLinkMock.mock.calls[0]?.[0] as {
+      headers: () => Record<string, string>;
+    };
+    expect(httpOptions.headers()).toEqual({ 'x-host-token': 'host-token-123' });
+    expect(normalizeHostSessionCodeMock).toHaveBeenCalledWith('abc123');
+  });
+
   it('haengt Host-Token auf lokalisierter Presenter-Route an HTTP-Requests', async () => {
     getHostTokenMock.mockReturnValue('host-token-123');
 

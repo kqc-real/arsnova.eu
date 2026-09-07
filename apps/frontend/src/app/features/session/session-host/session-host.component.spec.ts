@@ -65,6 +65,7 @@ const {
   quickFeedbackHostResultsQueryMock,
   quickFeedbackToggleLockMutateMock,
   updateQaTitleMutateMock,
+  listPairedHostsQueryMock,
   quizUploadMutateMock,
   onParticipantJoinedSubscribeMock,
   onStatusChangedSubscribeMock,
@@ -117,6 +118,7 @@ const {
   quickFeedbackHostResultsQueryMock: vi.fn(),
   quickFeedbackToggleLockMutateMock: vi.fn(),
   updateQaTitleMutateMock: vi.fn(),
+  listPairedHostsQueryMock: vi.fn(),
   quizUploadMutateMock: vi.fn(),
   onParticipantJoinedSubscribeMock: vi.fn(() => ({ unsubscribe: unsubscribeMock })),
   onStatusChangedSubscribeMock: vi.fn(() => ({ unsubscribe: unsubscribeMock })),
@@ -166,20 +168,7 @@ vi.mock('../../../core/trpc.client', () => ({
       end: { mutate: endMutateMock },
       dismissFinishProjection: { mutate: dismissFinishProjectionMutateMock },
       updateQaTitle: { mutate: updateQaTitleMutateMock },
-      listPairedHosts: {
-        query: vi.fn().mockResolvedValue({
-          devices: [],
-          pending: null,
-          invite: null,
-          caps: {
-            maxPairedHosts: 3,
-            maxActiveInvites: 1,
-            maxPendingPerInvite: 1,
-            inviteTtlSeconds: 300,
-            pendingTtlSeconds: 300,
-          },
-        }),
-      },
+      listPairedHosts: { query: listPairedHostsQueryMock },
       onParticipantJoined: { subscribe: onParticipantJoinedSubscribeMock },
       onStatusChanged: { subscribe: onStatusChangedSubscribeMock },
       onCurrentQuestionForHostChanged: { subscribe: onCurrentQuestionForHostChangedSubscribeMock },
@@ -414,6 +403,18 @@ describe('SessionHostComponent', { timeout: 30_000 }, () => {
     });
     getInfoQueryMock.mockResolvedValue({ ...defaultSession });
     getParticipantsQueryMock.mockResolvedValue({ participantCount: 0, participants: [] });
+    listPairedHostsQueryMock.mockResolvedValue({
+      devices: [],
+      pending: null,
+      invite: null,
+      caps: {
+        maxPairedHosts: 3,
+        maxActiveInvites: 1,
+        maxPendingPerInvite: 1,
+        inviteTtlSeconds: 300,
+        pendingTtlSeconds: 300,
+      },
+    });
     onParticipantJoinedSubscribeMock.mockImplementation(() => ({ unsubscribe: unsubscribeMock }));
     onStatusChangedSubscribeMock.mockImplementation(() => ({ unsubscribe: unsubscribeMock }));
     onCurrentQuestionForHostChangedSubscribeMock.mockImplementation(() => ({
@@ -2090,6 +2091,24 @@ describe('SessionHostComponent', { timeout: 30_000 }, () => {
     expect(canLeave).toBe(false);
     expect(fixture.componentInstance.hostAccessRevoked()).toBe(true);
     expect(navigateByUrlSpy).toHaveBeenCalledWith('/', { replaceUrl: true });
+    fixture.destroy();
+  });
+
+  it('bleibt steuerbar, wenn das Pairing-Listing nur ein fehlendes Token meldet', async () => {
+    listPairedHostsQueryMock.mockRejectedValueOnce({
+      data: { code: 'UNAUTHORIZED' },
+      message: 'Host-Authentifizierung erforderlich.',
+    });
+
+    const fixture = setup();
+    fixture.detectChanges();
+    await flushComponentAfterStable(fixture, 50);
+
+    expect(fixture.componentInstance.hostAccessRevoked()).toBe(false);
+    expect(
+      fixture.nativeElement.querySelector('.session-host__live-participants-count'),
+    ).not.toBeNull();
+    expect(fixture.nativeElement.querySelector('[data-testid="host-access-revoked"]')).toBeNull();
     fixture.destroy();
   });
 

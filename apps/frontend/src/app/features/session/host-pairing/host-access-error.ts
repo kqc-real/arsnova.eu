@@ -24,9 +24,6 @@ function readTrpcCode(error: unknown): string | null {
 }
 
 export function isHostAccessRevokedError(error: unknown): boolean {
-  if (readTrpcCode(error) === 'UNAUTHORIZED') {
-    return true;
-  }
   const message = readMessage(error);
   return (
     message.includes('Die Host-Verbindung wurde beendet.') ||

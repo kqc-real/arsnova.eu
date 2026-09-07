@@ -3914,7 +3914,12 @@ export class SessionHostComponent implements OnInit, OnDestroy {
     this.musicMuted.set(this.themePreset.preset() === 'serious');
     try {
       await this.reloadSessionInfo();
-      void this.refreshPairedHostStatus();
+    } catch {
+      this.session.set(null);
+      return;
+    }
+    void this.refreshPairedHostStatus();
+    try {
       await this.refreshParticipantsPayload();
       await this.refreshLobbyTeams();
       await this.refreshQaQuestions();
@@ -3922,7 +3927,7 @@ export class SessionHostComponent implements OnInit, OnDestroy {
       await this.refreshQaSummaryRuntime();
       await this.refreshQuickFeedbackResult();
     } catch {
-      this.session.set(null);
+      // Session bleibt sichtbar; Kanal-Teilansichten können leer bleiben.
     }
 
     await this.generateQrCode();

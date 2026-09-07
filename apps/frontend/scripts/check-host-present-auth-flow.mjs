@@ -242,15 +242,33 @@ async function main() {
       timeout: 30_000,
     });
     await waitForPathSuffix(host, `/session/${code}/host`);
-    await host.waitForTimeout(2_000);
-    const hostJoinUiReady = await host
-      .locator('.session-host__live-participants-count')
+    const hostRoot = host.locator('.session-host').first();
+    await hostRoot.waitFor({ state: 'attached', timeout: 30_000 }).catch(() => undefined);
+    const revoked = await host
+      .locator('[data-testid="host-access-revoked"]')
       .first()
       .isVisible()
       .catch(() => false);
+    const countLocator = host.locator('.session-host__live-participants-count').first();
+    const hostJoinUiReady =
+      !revoked &&
+      (await countLocator.waitFor({ state: 'attached', timeout: 15_000 }).then(
+        () => true,
+        () => false,
+      ));
     logStep(hostJoinUiReady, 'Host-Route laedt mit lokalisiertem Pfad', code);
-    if (!hostJoinUiReady) {
-      failures.push('Host-Ansicht auf lokalisiertem Pfad zeigt die Live-Join-Oberflaeche nicht.');
+    if (revoked) {
+      failures.push('Host-Ansicht zeigt das Widerruf-Overlay statt der Live-Join-Oberflaeche.');
+    } else if (!hostJoinUiReady) {
+      const bodyText = (
+        (await host
+          .locator('body')
+          .innerText()
+          .catch(() => '')) || ''
+      ).slice(0, 800);
+      failures.push(
+        `Host-Ansicht auf lokalisiertem Pfad zeigt die Live-Join-Oberflaeche nicht. DOM: ${bodyText}`,
+      );
     }
 
     await presenter.goto(`${BASE_URL}/session/${code}/present`, {
@@ -266,13 +284,14 @@ async function main() {
       failures.push('Presenter-Ansicht meldet weiterhin fehlgeschlagene Live-Freitextdaten.');
     }
 
-    const initialCount = (
-      await host.locator('.session-host__live-participants-count').first().textContent()
-    )?.trim();
-    logStep(initialCount === '0', 'Host startet mit 0 Teilnehmenden', initialCount ?? 'unbekannt');
+    let initialCount = 'unbekannt';
+    if (hostJoinUiReady) {
+      initialCount = (await countLocator.textContent())?.trim() ?? 'unbekannt';
+    }
+    logStep(initialCount === '0', 'Host startet mit 0 Teilnehmenden', initialCount);
     if (initialCount !== '0') {
       failures.push(
-        `Host startet unerwartet nicht bei 0 Teilnehmenden, sondern bei ${initialCount ?? 'unbekannt'}.`,
+        `Host startet unerwartet nicht bei 0 Teilnehmenden, sondern bei ${initialCount}.`,
       );
     }
 

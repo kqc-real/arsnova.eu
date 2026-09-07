@@ -15,6 +15,12 @@ describe('host-access-error', () => {
       }),
     ).toBe(true);
     expect(isHostAccessRevokedError({ message: 'Session nicht gefunden.' })).toBe(false);
+    expect(
+      isHostAccessRevokedError({
+        data: { code: 'UNAUTHORIZED' },
+        message: 'Host-Authentifizierung erforderlich.',
+      }),
+    ).toBe(false);
   });
 
   it('erkennt Pairing-Administration nur für den Original-Host', () => {

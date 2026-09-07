@@ -66,8 +66,9 @@ ausführen.
 
 - Erkennung von `.query(`, `.mutation(`, `.subscription(` in `router({ ... })`-Objekten
 - rekursive Auflösung der im `appRouter` gemounteten benannten Router-Imports,
-  einschließlich verschachtelter Mounts wie `admin.motd`; nicht auflösbare Einträge
-  sind Strukturfehler statt stiller Auslassungen
+  einschließlich verschachtelter Mounts wie `admin.motd` und `mergeRouters(A, B)`
+  (Teile werden unter demselben Präfix flach inventarisiert); nicht auflösbare
+  Einträge sind Strukturfehler statt stiller Auslassungen
 - stabile ID aus Router-Präfix + Property-Name
 - Source-Fingerprint: SHA-256 über den mit dem TypeScript-Scanner
   (`skipTrivia: true`) normalisierten Tokenstrom — Kommentare/Whitespace entfallen,

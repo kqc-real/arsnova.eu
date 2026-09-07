@@ -414,4 +414,162 @@ describe('session host pairing (Story 2.10 Slice 1)', () => {
       JSON.stringify([...memoryRedis.store.values()].map((entry) => entry.value)),
     ).not.toContain(paired.invite.pairingSecret);
   });
+
+  trpcDodIt(
+    {
+      procedure: 'session.createHostPairingInvite',
+      case: 'error',
+      mode: 'direct',
+      contract: 'UNAUTHORIZED',
+      title: 'Invite ohne Host-Token wird abgelehnt',
+    },
+    async () => {
+      await expect(
+        hostCaller('').createHostPairingInvite({ code: CODE, screenVisibility: 'PROJECTED' }),
+      ).rejects.toBeInstanceOf(TRPCError);
+    },
+  );
+
+  trpcDodIt(
+    {
+      procedure: 'session.requestHostPairing',
+      case: 'happy',
+      mode: 'direct',
+      title: 'Anfrage mit gültigem Invite bleibt pending ohne Token',
+    },
+    async () => {
+      const invite = await hostCaller(originalToken).createHostPairingInvite({ code: CODE });
+      const requested = await publicCaller().requestHostPairing({
+        code: CODE,
+        pairingSecret: invite.pairingSecret,
+      });
+      expect(requested.state).toBe('PENDING_APPROVAL');
+      expect(requested.requestId).toBeTruthy();
+      expect(requested.requestSecret).toBeTruthy();
+    },
+  );
+
+  trpcDodIt(
+    {
+      procedure: 'session.getHostPairingRequest',
+      case: 'happy',
+      mode: 'direct',
+      title: 'Freigabe liefert das Paired-Host-Token an das anfragende Gerät',
+    },
+    async () => {
+      const { claimed } = await pairDevice(originalToken);
+      expect(claimed.state).toBe('PAIRED_HOST_TOKEN_ISSUED');
+      expect(claimed.token?.pairedHostToken).toBeTruthy();
+    },
+  );
+
+  trpcDodIt(
+    {
+      procedure: 'session.rejectHostPairing',
+      case: 'happy',
+      mode: 'direct',
+      title: 'Ablehnung durch den Original-Host bleibt ohne Token',
+    },
+    async () => {
+      const invite = await hostCaller(originalToken).createHostPairingInvite({ code: CODE });
+      const requested = await publicCaller().requestHostPairing({
+        code: CODE,
+        pairingSecret: invite.pairingSecret,
+      });
+      await hostCaller(originalToken).rejectHostPairing({
+        code: CODE,
+        requestId: requested.requestId!,
+      });
+      const rejected = await publicCaller().getHostPairingRequest({
+        code: CODE,
+        requestId: requested.requestId!,
+        requestSecret: requested.requestSecret!,
+      });
+      expect(rejected.state).toBe('REJECTED');
+      expect(rejected.token).toBeNull();
+    },
+  );
+
+  trpcDodIt(
+    {
+      procedure: 'session.approveHostPairing',
+      case: 'happy',
+      mode: 'direct',
+      title: 'Freigabe verbindet das Gerät',
+    },
+    async () => {
+      const { approved } = await pairDevice(originalToken);
+      expect(approved.state).toBe('CONNECTED');
+    },
+  );
+
+  trpcDodIt(
+    {
+      procedure: 'session.revokePairedHost',
+      case: 'happy',
+      mode: 'direct',
+      title: 'Widerruf entzieht dem Gerät die Host-Rechte',
+    },
+    async () => {
+      const paired = await pairDevice(originalToken);
+      await hostCaller(originalToken).revokePairedHost({
+        code: CODE,
+        tokenId: paired.approved.tokenId,
+      });
+      expect(await isHostSessionTokenValid(CODE, paired.claimed.token!.pairedHostToken)).toBe(
+        false,
+      );
+    },
+  );
+
+  trpcDodIt(
+    {
+      procedure: 'session.revokePairedHost',
+      case: 'error',
+      mode: 'direct',
+      contract: 'FORBIDDEN',
+      title: 'Widerruf nur durch den Original-Host',
+    },
+    async () => {
+      const paired = await pairDevice(originalToken);
+      await expect(
+        hostCaller(paired.claimed.token!.pairedHostToken).revokePairedHost({
+          code: CODE,
+          tokenId: paired.approved.tokenId,
+        }),
+      ).rejects.toMatchObject({ code: 'FORBIDDEN' });
+    },
+  );
+
+  trpcDodIt(
+    {
+      procedure: 'session.listPairedHosts',
+      case: 'happy',
+      mode: 'direct',
+      title: 'Original-Host sieht verbundene Geräte ohne Secrets',
+    },
+    async () => {
+      const paired = await pairDevice(originalToken, 'Tutorin');
+      const listed = await hostCaller(originalToken).listPairedHosts({ code: CODE });
+      expect(listed.devices).toHaveLength(1);
+      expect(listed.devices[0]?.deviceLabel).toBe('Tutorin');
+      expect(JSON.stringify(listed)).not.toContain(paired.claimed.token!.pairedHostToken);
+    },
+  );
+
+  trpcDodIt(
+    {
+      procedure: 'session.listPairedHosts',
+      case: 'error',
+      mode: 'direct',
+      contract: 'FORBIDDEN',
+      title: 'Paired Host darf Geräte nicht listen',
+    },
+    async () => {
+      const paired = await pairDevice(originalToken);
+      await expect(
+        hostCaller(paired.claimed.token!.pairedHostToken).listPairedHosts({ code: CODE }),
+      ).rejects.toMatchObject({ code: 'FORBIDDEN' });
+    },
+  );
 });

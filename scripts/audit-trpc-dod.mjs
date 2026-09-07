@@ -320,6 +320,42 @@ function collectRouters(sourceFile) {
   return routers;
 }
 
+function calleeIdentifier(expression) {
+  if (ts.isIdentifier(expression)) return expression.text;
+  if (ts.isPropertyAccessExpression(expression)) return expression.name.text;
+  return '';
+}
+
+function collectMergedRouters(sourceFile) {
+  const merges = [];
+
+  function visit(node) {
+    if (
+      ts.isVariableDeclaration(node) &&
+      node.name &&
+      ts.isIdentifier(node.name) &&
+      node.initializer &&
+      ts.isCallExpression(node.initializer) &&
+      calleeIdentifier(node.initializer.expression) === 'mergeRouters'
+    ) {
+      const parts = [];
+      for (const argument of node.initializer.arguments) {
+        if (!ts.isIdentifier(argument)) {
+          throw new Error(
+            `Unsupported mergeRouters argument in ${relPosix(sourceFile.fileName)}:${sourceLine(sourceFile, argument)}`,
+          );
+        }
+        parts.push(argument.text);
+      }
+      merges.push({ varName: node.name.text, parts });
+    }
+    ts.forEachChild(node, visit);
+  }
+
+  visit(sourceFile);
+  return merges;
+}
+
 function inventariseRouterFile(filePath, forcedPrefix = null) {
   const text = readFileSync(filePath, 'utf8');
   const sourceFile = ts.createSourceFile(filePath, text, ts.ScriptTarget.Latest, true);
@@ -380,6 +416,7 @@ function loadRouterModule(filePath) {
     text,
     sourceFile,
     routers: new Map(collectRouters(sourceFile).map((router) => [router.varName, router])),
+    merges: new Map(collectMergedRouters(sourceFile).map((merge) => [merge.varName, merge])),
     imports: collectNamedImports(sourceFile, absolute),
   };
 }
@@ -396,15 +433,37 @@ function inventariseRouterTree(entryFile, rootRouterName = 'appRouter') {
     return moduleCache.get(absolute);
   }
 
+  function resolveRouterName(module, name) {
+    if (module.routers.has(name) || module.merges.has(name)) {
+      return { filePath: module.filePath, routerName: name };
+    }
+    const imported = module.imports.get(name);
+    if (!imported) return null;
+    return { filePath: imported.filePath, routerName: imported.exportedName };
+  }
+
   function visitRouter(filePath, routerName, prefix, stack) {
     const module = getModule(filePath);
-    const router = module.routers.get(routerName);
     const key = `${module.filePath}#${routerName}`;
-    if (!router) {
-      throw new Error(`Could not resolve router ${routerName} in ${relPosix(module.filePath)}`);
-    }
     if (stack.includes(key)) {
       throw new Error(`Router cycle detected: ${[...stack, key].join(' -> ')}`);
+    }
+    const merged = module.merges.get(routerName);
+    if (merged) {
+      for (const part of merged.parts) {
+        const binding = resolveRouterName(module, part);
+        if (!binding) {
+          throw new Error(
+            `Could not resolve mergeRouters part ${part} for ${routerName} in ${relPosix(module.filePath)}`,
+          );
+        }
+        visitRouter(binding.filePath, binding.routerName, prefix, [...stack, key]);
+      }
+      return;
+    }
+    const router = module.routers.get(routerName);
+    if (!router) {
+      throw new Error(`Could not resolve router ${routerName} in ${relPosix(module.filePath)}`);
     }
 
     for (const prop of router.object.properties) {
@@ -441,17 +500,13 @@ function inventariseRouterTree(entryFile, rootRouterName = 'appRouter') {
         );
       }
       const nestedName = prop.initializer.text;
-      if (module.routers.has(nestedName)) {
-        visitRouter(module.filePath, nestedName, id, [...stack, key]);
-        continue;
-      }
-      const imported = module.imports.get(nestedName);
-      if (!imported) {
+      const binding = resolveRouterName(module, nestedName);
+      if (!binding) {
         throw new Error(
           `Unresolved router binding ${nestedName} for ${id} in ${relPosix(module.filePath)}`,
         );
       }
-      visitRouter(imported.filePath, imported.exportedName, id, [...stack, key]);
+      visitRouter(binding.filePath, binding.routerName, id, [...stack, key]);
     }
   }
 
