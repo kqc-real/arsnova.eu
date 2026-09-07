@@ -9,13 +9,18 @@ import {
 } from '@angular/material/dialog';
 import { MatIcon } from '@angular/material/icon';
 import { MatProgressBar } from '@angular/material/progress-bar';
-import type { HostPairingPendingDTO, ListPairedHostsOutput } from '@arsnova/shared-types';
+import type {
+  HostPairingPendingDTO,
+  HostPairingScreenVisibility,
+  ListPairedHostsOutput,
+} from '@arsnova/shared-types';
 import { localizeKnownServerError } from '../../../core/localize-known-server-message';
 import { trpc } from '../../../core/trpc.client';
 import { buildHostPairingUrl } from './host-pairing-url';
 
 export interface HostPairingDialogData {
   code: string;
+  screenVisibility?: HostPairingScreenVisibility;
 }
 
 type DialogView = 'loading' | 'invite' | 'pending' | 'connected' | 'error';
@@ -49,6 +54,9 @@ export class HostPairingDialogComponent implements OnDestroy {
   readonly error = signal<string | null>(null);
   readonly copyDone = signal(false);
   readonly busy = signal(false);
+  readonly screenVisibility: HostPairingScreenVisibility =
+    this.data.screenVisibility ?? 'PROJECTED';
+  readonly isPrivateScreen = this.screenVisibility === 'PRIVATE';
 
   private pollTimer: ReturnType<typeof setInterval> | null = null;
   private copyResetTimer: ReturnType<typeof setTimeout> | null = null;
@@ -70,7 +78,7 @@ export class HostPairingDialogComponent implements OnDestroy {
     try {
       const invite = await trpc.session.createHostPairingInvite.mutate({
         code: this.data.code,
-        screenVisibility: 'PROJECTED',
+        screenVisibility: this.screenVisibility,
       });
       const url = buildHostPairingUrl(this.data.code, invite.pairingSecret);
       this.pairingUrl.set(url);

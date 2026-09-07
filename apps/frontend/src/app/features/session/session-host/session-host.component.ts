@@ -87,6 +87,7 @@ import {
   type ConfirmLeaveDialogData,
 } from '../../../shared/confirm-leave-dialog/confirm-leave-dialog.component';
 import { HostPairingDialogComponent } from '../host-pairing/host-pairing-dialog.component';
+import { PresentationStartDialogComponent } from '../host-pairing/presentation-start-dialog.component';
 import {
   createQuizHistoryAccessProof,
   resolveNumericEstimateToleranceMode,
@@ -1430,6 +1431,7 @@ export class SessionHostComponent implements OnInit, OnDestroy {
   readonly showHostPairingAction = computed(
     () => this.session() !== null && this.effectiveStatus() !== 'FINISHED',
   );
+  readonly pairedHostConnected = signal(false);
   /** Quiz-Steuerung in der Aktionsleiste nur im Quiz-Kanal, nicht in Q&A oder Blitzlicht. */
   readonly showQuizAnchorActions = computed(() => {
     if (this.isQaSession() || !this.channels().quiz) {
@@ -3906,6 +3908,7 @@ export class SessionHostComponent implements OnInit, OnDestroy {
     this.musicMuted.set(this.themePreset.preset() === 'serious');
     try {
       await this.reloadSessionInfo();
+      void this.refreshPairedHostStatus();
       await this.refreshParticipantsPayload();
       await this.refreshLobbyTeams();
       await this.refreshQaQuestions();
@@ -4300,12 +4303,27 @@ export class SessionHostComponent implements OnInit, OnDestroy {
     this.hostDisplayMode.setPreferImmersiveHost(!this.isImmersiveMode());
   }
 
+  hostPairingToolbarLabel(): string {
+    return this.pairedHostConnected()
+      ? $localize`:@@hostPairing.connected:Smartphone verbunden`
+      : $localize`:@@hostPairing.connectLabel:Smartphone verbinden`;
+  }
+
+  hostPairingToolbarAria(): string {
+    return this.pairedHostConnected()
+      ? $localize`:@@hostPairing.connectedAria:Smartphone verbunden. Weiteres Gerät verbinden`
+      : $localize`:@@hostPairing.connectAria:Smartphone als weiteres Steuergerät verbinden`;
+  }
+
   openHostPairingDialog(): void {
-    this.dialog.open(HostPairingDialogComponent, {
-      data: { code: this.code.toUpperCase() },
+    const ref = this.dialog.open(HostPairingDialogComponent, {
+      data: { code: this.code.toUpperCase(), screenVisibility: 'PROJECTED' },
       autoFocus: 'first-tabbable',
       restoreFocus: true,
       panelClass: 'host-pairing-dialog-panel',
+    });
+    ref.afterClosed().subscribe(() => {
+      void this.refreshPairedHostStatus();
     });
   }
 
@@ -4313,22 +4331,54 @@ export class SessionHostComponent implements OnInit, OnDestroy {
     if (!this.showPresenterViewButton() || this.presenterWindowOpenInFlight) {
       return;
     }
+    const decision = await firstValueFrom(
+      this.dialog
+        .open(PresentationStartDialogComponent, {
+          data: {
+            code: this.code.toUpperCase(),
+            phoneAlreadyConnected: this.pairedHostConnected(),
+            startPresenterView: () => this.launchPresenterViewWindow(),
+          },
+          autoFocus: 'first-tabbable',
+          restoreFocus: true,
+          panelClass: 'presentation-start-dialog-panel',
+        })
+        .afterClosed(),
+    );
+    void this.refreshPairedHostStatus();
+    if (decision === 'blocked') {
+      this.snackBar.open(
+        $localize`:@@sessionHost.presenterViewPopupBlocked:Presenter-Ansicht konnte nicht geöffnet werden. Bitte Pop-ups erlauben oder den Host-Tab duplizieren und in der Adresse /present statt /host nutzen.`,
+        '',
+        { duration: 6000 },
+      );
+    }
+  }
+
+  private async launchPresenterViewWindow(): Promise<Window | null> {
+    if (this.presenterWindowOpenInFlight) {
+      return null;
+    }
     this.presenterWindowOpenInFlight = true;
     try {
-      const opened = await openPresenterViewWindow(
+      return await openPresenterViewWindow(
         this.document.defaultView,
         this.code,
         this.sessionTokenStorage,
       );
-      if (!opened) {
-        this.snackBar.open(
-          $localize`:@@sessionHost.presenterViewPopupBlocked:Presenter-Ansicht konnte nicht geöffnet werden. Bitte Pop-ups erlauben oder den Host-Tab duplizieren und in der Adresse /present statt /host nutzen.`,
-          '',
-          { duration: 6000 },
-        );
-      }
     } finally {
       this.presenterWindowOpenInFlight = false;
+    }
+  }
+
+  private async refreshPairedHostStatus(): Promise<void> {
+    try {
+      const listed = await trpc.session.listPairedHosts.query({
+        code: this.code.toUpperCase(),
+      });
+      this.pairedHostConnected.set(listed.devices.length > 0);
+    } catch {
+      /* Nur der ursprüngliche Host darf Geräte listen. */
     }
   }
 

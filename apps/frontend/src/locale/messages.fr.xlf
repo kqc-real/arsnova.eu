@@ -21602,24 +21602,24 @@
         </context-group>
       </trans-unit>
       <trans-unit id="sessionPresent.fullscreenGateTitle" datatype="html">
-        <source> Vollbild für Beamer</source>
-        <target>Plein écran pour projecteur</target>
+        <source>Präsentation im Vollbild</source>
+        <target>Présentation en plein écran</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-present/session-present.component.html</context>
           <context context-type="linenumber">25,27</context>
         </context-group>
       </trans-unit>
       <trans-unit id="sessionPresent.fullscreenGateHint" datatype="html">
-        <source> Browser erlauben Vollbild erst nach einem Klick im Presenter-Fenster.</source>
-        <target>Les navigateurs n&apos;autorisent le plein écran qu&apos;après un clic dans la fenêtre du présentateur.</target>
+        <source>Tippe hier, damit der Browser das Vollbild für den Beamer erlaubt.</source>
+        <target>Touche ici pour que le navigateur affiche la présentation en plein écran.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-present/session-present.component.html</context>
           <context context-type="linenumber">28,30</context>
         </context-group>
       </trans-unit>
       <trans-unit id="sessionPresent.fullscreenGateAction" datatype="html">
-        <source> Vollbild starten</source>
-        <target>Démarrer le plein écran</target>
+        <source>Präsentation im Vollbild starten</source>
+        <target>Lancer la présentation en plein écran</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-present/session-present.component.html</context>
           <context context-type="linenumber">38,40</context>
@@ -27372,6 +27372,66 @@
       <trans-unit id="hostPairing.errorRateLimited" datatype="html">
         <source>Zu viele Verbindungsversuche. Bitte später erneut versuchen.</source>
         <target>Trop de tentatives de connexion. Réessaie un peu plus tard.</target>
+      </trans-unit>
+      <trans-unit id="presentationStart.title" datatype="html">
+        <source>Präsentation starten</source>
+        <target>Lancer la présentation</target>
+      </trans-unit>
+      <trans-unit id="presentationStart.intro" datatype="html">
+        <source>Zeige die Veranstaltung auf dem Beamer.</source>
+        <target>Affiche la séance sur le projecteur.</target>
+      </trans-unit>
+      <trans-unit id="presentationStart.phoneTitle" datatype="html">
+        <source>Mit Smartphone steuern</source>
+        <target>Piloter avec le smartphone</target>
+      </trans-unit>
+      <trans-unit id="presentationStart.phoneHint" datatype="html">
+        <source>Steuere Fragen und Ergebnisse vom Smartphone, während der Laptop die Präsentation zeigt.</source>
+        <target>Pilote les questions et les résultats depuis le smartphone, pendant que l’ordinateur montre la présentation.</target>
+      </trans-unit>
+      <trans-unit id="presentationStart.readyHint" datatype="html">
+        <source>Du kannst jetzt präsentieren. Ein weiteres Gerät ist optional.</source>
+        <target>Tu peux présenter maintenant. Un autre appareil est facultatif.</target>
+      </trans-unit>
+      <trans-unit id="presentationStart.visibilityLegend" datatype="html">
+        <source>Ist dieser Bildschirm für andere sichtbar?</source>
+        <target>D’autres personnes peuvent-elles voir cet écran ?</target>
+      </trans-unit>
+      <trans-unit id="presentationStart.visibilityProjected" datatype="html">
+        <source>Ja, der Bildschirm wird projiziert</source>
+        <target>Oui, cet écran est projeté</target>
+      </trans-unit>
+      <trans-unit id="presentationStart.visibilityPrivate" datatype="html">
+        <source>Nein, dieser Bildschirm ist privat</source>
+        <target>Non, cet écran est privé</target>
+      </trans-unit>
+      <trans-unit id="presentationStart.visibilityHint" datatype="html">
+        <source>Auch bei einem privaten Bildschirm bestätigst du die Verbindung hier. Niemand wird automatisch Host.</source>
+        <target>Même sur un écran privé, tu confirmes la connexion ici. Personne ne devient hôte automatiquement.</target>
+      </trans-unit>
+      <trans-unit id="presentationStart.coHostHint" datatype="html">
+        <source>Auch eine vertrauenswürdige Person kann sich so als weiteres Host-Gerät verbinden.</source>
+        <target>Une personne de confiance peut aussi se connecter ainsi comme autre appareil hôte.</target>
+      </trans-unit>
+      <trans-unit id="presentationStart.coHostAction" datatype="html">
+        <source>Weiteres Host-Gerät verbinden</source>
+        <target>Connecter un autre appareil hôte</target>
+      </trans-unit>
+      <trans-unit id="presentationStart.cancel" datatype="html">
+        <source>Abbrechen</source>
+        <target>Annuler</target>
+      </trans-unit>
+      <trans-unit id="presentationStart.primaryAction" datatype="html">
+        <source>Präsentation im Vollbild starten</source>
+        <target>Lancer la présentation en plein écran</target>
+      </trans-unit>
+      <trans-unit id="hostPairing.dialogIntroPrivate" datatype="html">
+        <source>Scanne den Code auf diesem Bildschirm. Du bestätigst die Verbindung danach hier – automatisch wird niemand Host.</source>
+        <target>Scanne le code sur cet écran. Tu confirmes ensuite la connexion ici — personne ne devient hôte automatiquement.</target>
+      </trans-unit>
+      <trans-unit id="hostPairing.connectedAria" datatype="html">
+        <source>Smartphone verbunden. Weiteres Gerät verbinden</source>
+        <target>Smartphone connecté. Connecter un autre appareil</target>
       </trans-unit>
     </body>
   </file>

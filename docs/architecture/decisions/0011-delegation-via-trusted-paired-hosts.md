@@ -61,7 +61,7 @@ Die Spezifikation in `Backlog.md` Story 2.10 legt zusätzlich fest:
 
 ## Umsetzungsstand
 
-Story 2.10 Slice 1 (Shared Contracts, Serverzustandsautomat, Caps, Pairing-Prozeduren und Backend-Tests) und Slice 2 (Request-and-approve Happy Path über tRPC, Fragment-Link, minimale Host-Freigabe und Smartphone-Anfrage) sind umgesetzt. Presenter-Start-Dialog, Geräteverwaltung-UI und Lastnachweis folgen in späteren Slices. Es gibt weiterhin keine eigenständige Moderatorrolle.
+Story 2.10 Slice 1–3 sind umgesetzt: Contracts/Caps, Request-and-approve Happy Path und der gemeinsame Dialog „Präsentation starten“ (Sichtbarkeit default projiziert, kein silent grant, adaptive „Smartphone verbunden“, Co-Host-Hinweis). Geräteverwaltung-UI und Lastnachweis folgen in späteren Slices. Es gibt weiterhin keine eigenständige Moderatorrolle. Pairing-Freigabe bleibt auf dem privaten Host-Client.
 
 ---
 

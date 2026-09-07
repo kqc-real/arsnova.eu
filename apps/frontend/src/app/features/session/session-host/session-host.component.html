@@ -196,16 +196,12 @@
               class="session-host__view-toggle session-host__view-toggle--labeled session-host__view-toggle--connect"
               data-testid="connect-smartphone"
               (click)="openHostPairingDialog()"
-              i18n-aria-label="@@hostPairing.connectAria"
-              aria-label="Smartphone als weiteres Steuergerät verbinden"
-              i18n-matTooltip="@@hostPairing.connectTooltip"
-              matTooltip="Smartphone verbinden"
+              [attr.aria-label]="hostPairingToolbarAria()"
+              [matTooltip]="hostPairingToolbarLabel()"
               matTooltipTouchGestures="off"
             >
               <mat-icon aria-hidden="true">smartphone</mat-icon>
-              <span class="session-host__view-toggle-label" i18n="@@hostPairing.connectLabel"
-                >Smartphone verbinden</span
-              >
+              <span class="session-host__view-toggle-label">{{ hostPairingToolbarLabel() }}</span>
             </button>
 
             @if (isFullscreenSupported()) {
@@ -486,18 +482,14 @@
                       class="session-host__view-toggle session-host__view-toggle--labeled session-host__view-toggle--connect"
                       data-testid="connect-smartphone"
                       (click)="openHostPairingDialog()"
-                      i18n-aria-label="@@hostPairing.connectAria"
-                      aria-label="Smartphone als weiteres Steuergerät verbinden"
-                      i18n-matTooltip="@@hostPairing.connectTooltip"
-                      matTooltip="Smartphone verbinden"
+                      [attr.aria-label]="hostPairingToolbarAria()"
+                      [matTooltip]="hostPairingToolbarLabel()"
                       matTooltipTouchGestures="off"
                     >
                       <mat-icon aria-hidden="true">smartphone</mat-icon>
-                      <span
-                        class="session-host__view-toggle-label"
-                        i18n="@@hostPairing.connectLabel"
-                        >Smartphone verbinden</span
-                      >
+                      <span class="session-host__view-toggle-label">{{
+                        hostPairingToolbarLabel()
+                      }}</span>
                     </button>
 
                     @if (isFullscreenSupported()) {

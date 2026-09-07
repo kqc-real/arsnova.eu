@@ -13,6 +13,7 @@ import {
   flushMacroTask,
 } from '../../../../testing/component-test-utils';
 import { SessionHostComponent } from './session-host.component';
+import { PresentationStartDialogComponent } from '../host-pairing/presentation-start-dialog.component';
 import { WordCloudComponent } from '../session-present/word-cloud.component';
 import { SessionTokenStorageService } from '../session-present/session-token-storage.service';
 import { ThemePresetService } from '../../../core/theme-preset.service';
@@ -165,6 +166,20 @@ vi.mock('../../../core/trpc.client', () => ({
       end: { mutate: endMutateMock },
       dismissFinishProjection: { mutate: dismissFinishProjectionMutateMock },
       updateQaTitle: { mutate: updateQaTitleMutateMock },
+      listPairedHosts: {
+        query: vi.fn().mockResolvedValue({
+          devices: [],
+          pending: null,
+          invite: null,
+          caps: {
+            maxPairedHosts: 3,
+            maxActiveInvites: 1,
+            maxPendingPerInvite: 1,
+            inviteTtlSeconds: 300,
+            pendingTtlSeconds: 300,
+          },
+        }),
+      },
       onParticipantJoined: { subscribe: onParticipantJoinedSubscribeMock },
       onStatusChanged: { subscribe: onStatusChangedSubscribeMock },
       onCurrentQuestionForHostChanged: { subscribe: onCurrentQuestionForHostChangedSubscribeMock },
@@ -1011,6 +1026,43 @@ describe('SessionHostComponent', { timeout: 30_000 }, () => {
     ).not.toBeNull();
     expect(presenterButton?.querySelector('.session-host__view-toggle-content')).toBeNull();
     expect(getComputedStyle(presenterButton!).alignItems).toBe('center');
+    fixture.destroy();
+  });
+
+  it('öffnet den Dialog Präsentation starten vor dem Presenter-Fenster', async () => {
+    getInfoQueryMock.mockResolvedValue({
+      ...defaultSession,
+      status: 'LOBBY',
+      channels: {
+        quiz: { enabled: true },
+        qa: { enabled: false, open: false, title: null, moderationMode: false },
+        quickFeedback: { enabled: false, open: false },
+      },
+    });
+
+    const fixture = setup();
+    fixture.detectChanges();
+    await fixture.whenStable();
+    fixture.detectChanges();
+
+    dialogOpenMock.mockClear();
+    dialogOpenMock.mockReturnValueOnce({ afterClosed: () => of(undefined) });
+    const presenterButton = fixture.nativeElement.querySelector(
+      '[data-testid="open-presenter-view"]',
+    ) as HTMLButtonElement;
+    presenterButton.click();
+    await fixture.whenStable();
+
+    expect(dialogOpenMock).toHaveBeenCalledWith(
+      PresentationStartDialogComponent,
+      expect.objectContaining({
+        panelClass: 'presentation-start-dialog-panel',
+        data: expect.objectContaining({
+          startPresenterView: expect.any(Function),
+          phoneAlreadyConnected: expect.any(Boolean),
+        }),
+      }),
+    );
     fixture.destroy();
   });
 

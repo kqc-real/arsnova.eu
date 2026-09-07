@@ -1,6 +1,6 @@
 # arsnova.eu – ausführliche Funktionsübersicht der App
 
-> Stand dieser Übersicht: 2026-09-06
+> Stand dieser Übersicht: 2026-09-07
 >
 > Grundlage: Auswertung des aktuellen Repos, insbesondere `apps/frontend`, `apps/backend`, `libs/shared-types`, `prisma/schema.prisma`, `README.md`, `docs/README.md`, `docs/ROUTES_AND_STORIES.md`, `docs/TESTING.md` und der Feature-Dokumente unter `docs/features/`.
 
@@ -295,6 +295,7 @@ In der Lobby sind verfügbar:
 - Anzeige aktiver Teilnehmer bzw. Presence
 - Umschalten in einen immersiven Hostmodus
 - Vollbildunterstützung (expliziter Schalter; beim Session-Start auf Android-Chrome kein automatisches Vollbild, weil Chrome sonst einen Systemhinweis über die Bedienung legt)
+- **Presenter-Ansicht** öffnet zuerst den Dialog **Präsentation starten**: Primäraktion **Präsentation im Vollbild starten**; optional **Mit Smartphone steuern** / **Smartphone verbinden**; Sichtbarkeit default projiziert, privat nur Komfort ohne automatische Freigabe; nach Kopplung **Smartphone verbunden**; Co-Host über **Weiteres Host-Gerät verbinden**. Pairing blockiert den Start nicht. QR, Freigabe und Secrets bleiben auf `/host`.
 
 #### Quiz-Steuerung
 
@@ -1016,7 +1017,7 @@ Dazu gehören laut Root-Dokumentation insbesondere:
   Hochkontrast und PDF-Readern; technische Befunde und automatisierte Gates
   sind umgesetzt
 - Confidence-Erweiterungen und weitere Auswertungsvarianten
-- Paired Hosts für eigene Zweitgeräte und vertrauenswürdige Tutor:innen oder Moderator:innen
+- Paired Hosts: Contracts, Request-and-approve und Dialog „Präsentation starten“ sind umgesetzt; volle Geräteverwaltung-UI sowie Last-/Usability-Abnahme folgen
 - weitere Word-Cloud-Ausbaustufen
 - Härtung einzelner Sync-/Komplexitätsbereiche
 

@@ -53,10 +53,14 @@ async function flush(): Promise<void> {
 
 describe('HostPairingDialogComponent', () => {
   let fixture: ComponentFixture<HostPairingDialogComponent> | undefined;
+  const dialogData: { code: string; screenVisibility?: 'PROJECTED' | 'PRIVATE' } = {
+    code: 'ABC123',
+  };
 
   beforeEach(async () => {
     vi.useFakeTimers({ toFake: ['setInterval'] });
     vi.clearAllMocks();
+    delete dialogData.screenVisibility;
     createInviteMock.mockResolvedValue({
       inviteId: '11111111-1111-4111-8111-111111111111',
       pairingSecret: SECRET,
@@ -79,7 +83,7 @@ describe('HostPairingDialogComponent', () => {
     await TestBed.configureTestingModule({
       imports: [HostPairingDialogComponent],
       providers: [
-        { provide: MAT_DIALOG_DATA, useValue: { code: 'ABC123' } },
+        { provide: MAT_DIALOG_DATA, useValue: dialogData },
         { provide: MatDialogRef, useValue: { close: vi.fn() } },
       ],
     }).compileComponents();
@@ -185,5 +189,16 @@ describe('HostPairingDialogComponent', () => {
     expect(rejectMock).toHaveBeenCalled();
     expect(current.nativeElement.textContent).toContain('abgelehnt');
     expect(current.nativeElement.textContent).not.toContain('pairedHostToken');
+  });
+
+  it('nutzt die private Copy ohne automatische Freigabe', async () => {
+    dialogData.screenVisibility = 'PRIVATE';
+    const current = await render();
+    expect(createInviteMock).toHaveBeenCalledWith({
+      code: 'ABC123',
+      screenVisibility: 'PRIVATE',
+    });
+    expect(current.nativeElement.textContent).toContain('automatisch wird niemand Host');
+    expect(current.nativeElement.querySelector('[data-testid="host-pairing-approve"]')).toBeNull();
   });
 });

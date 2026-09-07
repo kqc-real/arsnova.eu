@@ -1,0 +1,126 @@
+<h2 mat-dialog-title class="dialog-title-header">
+  <span class="dialog-title-header__icon" aria-hidden="true">
+    <mat-icon>present_to_all</mat-icon>
+  </span>
+  <span class="dialog-title-header__copy">
+    <span class="dialog-title-header__heading" i18n="@@presentationStart.title"
+      >Präsentation starten</span
+    >
+  </span>
+</h2>
+
+<mat-dialog-content class="presentation-start-dialog">
+  <p class="presentation-start-dialog__intro" i18n="@@presentationStart.intro">
+    Zeige die Veranstaltung auf dem Beamer.
+  </p>
+
+  @if (pairingAdmin() || phoneConnected()) {
+    <section
+      class="presentation-start-dialog__phone"
+      aria-labelledby="presentation-start-phone-title"
+    >
+      <h3 id="presentation-start-phone-title" class="presentation-start-dialog__subtitle">
+        <span i18n="@@presentationStart.phoneTitle">Mit Smartphone steuern</span>
+      </h3>
+      <p class="presentation-start-dialog__hint" i18n="@@presentationStart.phoneHint">
+        Steuere Fragen und Ergebnisse vom Smartphone, während der Laptop die Präsentation zeigt.
+      </p>
+
+      @if (phoneConnected()) {
+        <p
+          class="presentation-start-dialog__status"
+          role="status"
+          aria-live="polite"
+          data-testid="presentation-start-connected"
+          i18n="@@hostPairing.connected"
+        >
+          Smartphone verbunden
+        </p>
+        <p class="presentation-start-dialog__hint" i18n="@@presentationStart.readyHint">
+          Du kannst jetzt präsentieren. Ein weiteres Gerät ist optional.
+        </p>
+      } @else {
+        <fieldset class="presentation-start-dialog__visibility">
+          <legend i18n="@@presentationStart.visibilityLegend">
+            Ist dieser Bildschirm für andere sichtbar?
+          </legend>
+          <mat-radio-group
+            class="presentation-start-dialog__radios"
+            name="screenVisibility"
+            [value]="visibility()"
+            (change)="onVisibilityChange($event.value)"
+            aria-describedby="presentation-start-visibility-hint"
+          >
+            <mat-radio-button
+              value="PROJECTED"
+              data-testid="presentation-start-visibility-projected"
+              i18n="@@presentationStart.visibilityProjected"
+            >
+              Ja, der Bildschirm wird projiziert
+            </mat-radio-button>
+            <mat-radio-button
+              value="PRIVATE"
+              data-testid="presentation-start-visibility-private"
+              i18n="@@presentationStart.visibilityPrivate"
+            >
+              Nein, dieser Bildschirm ist privat
+            </mat-radio-button>
+          </mat-radio-group>
+          <p
+            id="presentation-start-visibility-hint"
+            class="presentation-start-dialog__hint"
+            i18n="@@presentationStart.visibilityHint"
+          >
+            Auch bei einem privaten Bildschirm bestätigst du die Verbindung hier. Niemand wird
+            automatisch Host.
+          </p>
+        </fieldset>
+      }
+
+      @if (pairingAdmin() && canAddAnother()) {
+        @if (!phoneConnected()) {
+          <button
+            mat-stroked-button
+            type="button"
+            class="presentation-start-dialog__connect"
+            data-testid="presentation-start-connect"
+            (click)="openPairing()"
+            i18n="@@hostPairing.connectLabel"
+          >
+            Smartphone verbinden
+          </button>
+        }
+        <p class="presentation-start-dialog__hint" i18n="@@presentationStart.coHostHint">
+          Auch eine vertrauenswürdige Person kann sich so als weiteres Host-Gerät verbinden.
+        </p>
+        <button
+          mat-button
+          type="button"
+          class="presentation-start-dialog__cohost"
+          data-testid="presentation-start-cohost"
+          (click)="openPairing()"
+          i18n="@@presentationStart.coHostAction"
+        >
+          Weiteres Host-Gerät verbinden
+        </button>
+      }
+    </section>
+  }
+</mat-dialog-content>
+
+<mat-dialog-actions align="end" class="presentation-start-dialog__actions">
+  <button mat-button type="button" mat-dialog-close i18n="@@presentationStart.cancel">
+    Abbrechen
+  </button>
+  <button
+    mat-flat-button
+    type="button"
+    class="presentation-start-dialog__primary"
+    data-testid="presentation-start-fullscreen"
+    cdkFocusInitial
+    (click)="startPresentation()"
+    i18n="@@presentationStart.primaryAction"
+  >
+    Präsentation im Vollbild starten
+  </button>
+</mat-dialog-actions>

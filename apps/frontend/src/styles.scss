@@ -691,6 +691,10 @@ html {
   max-width: min(28rem, calc(100vw - 2rem));
 }
 
+.cdk-overlay-pane.presentation-start-dialog-panel {
+  max-width: min(32rem, calc(100vw - 2rem));
+}
+
 /* In-App-ProductFeedback: dieselbe Sheet-/Kartenoptik wie Post-Session. */
 .cdk-overlay-backdrop.product-feedback-in-app-dialog-backdrop {
   background: color-mix(in srgb, var(--mat-sys-scrim) 42%, transparent);

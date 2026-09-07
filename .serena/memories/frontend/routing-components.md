@@ -5,8 +5,8 @@
 - Locale-prefixed paths exist for localized builds, e.g. `/de/...`, `/en/...`, `/fr/...`, `/es/...`, `/it/...`.
 - Session routes:
   - `/session/:code` redirects/chooses entry behavior.
-  - `/session/:code/host`: host control view.
-  - `/session/:code/present`: projection/presenter view.
+  - `/session/:code/host`: host control view. Presenter-Ansicht opens the shared “Präsentation starten” dialog first (optional phone pairing, visibility default projected, no silent grant); pairing QR/approve stay host-private.
+  - `/session/:code/present`: projection/presenter view; fullscreen gate only, no pairing secrets or approve UI.
   - `/session/:code/vote`: participant voting view.
   - `/session/:code/pair`: smartphone pairing request; secret only in the URL fragment; no host token and no approve UI.
 - Feedback routes include standalone host/vote flows; do not conflate feedback-host token with session-host token.

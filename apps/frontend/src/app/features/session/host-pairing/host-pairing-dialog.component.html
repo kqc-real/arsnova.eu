@@ -16,10 +16,17 @@
       Verbindung wird vorbereitet…
     </p>
   } @else if (view() === 'invite') {
-    <p class="host-pairing-dialog__hint" i18n="@@hostPairing.dialogIntro">
-      Scanne den Code oder öffne den Link auf deinem Smartphone. Die Verbindung wird erst frei, wenn
-      du sie hier bestätigst.
-    </p>
+    @if (isPrivateScreen) {
+      <p class="host-pairing-dialog__hint" i18n="@@hostPairing.dialogIntroPrivate">
+        Scanne den Code auf diesem Bildschirm. Du bestätigst die Verbindung danach hier –
+        automatisch wird niemand Host.
+      </p>
+    } @else {
+      <p class="host-pairing-dialog__hint" i18n="@@hostPairing.dialogIntro">
+        Scanne den Code oder öffne den Link auf deinem Smartphone. Die Verbindung wird erst frei,
+        wenn du sie hier bestätigst.
+      </p>
+    }
     @if (qrDataUrl(); as qr) {
       <img
         class="host-pairing-dialog__qr"
@@ -94,5 +101,12 @@
       Neu versuchen
     </button>
   }
-  <button mat-button type="button" mat-dialog-close i18n="@@hostPairing.close">Schließen</button>
+  <button
+    mat-button
+    type="button"
+    [mat-dialog-close]="{ connected: view() === 'connected' }"
+    i18n="@@hostPairing.close"
+  >
+    Schließen
+  </button>
 </mat-dialog-actions>

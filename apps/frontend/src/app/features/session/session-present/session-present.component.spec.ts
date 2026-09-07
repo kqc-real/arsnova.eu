@@ -197,7 +197,7 @@ describe('SessionPresentComponent', () => {
       const button = fixture.nativeElement.querySelector(
         '[data-testid="presenter-fullscreen-enter"]',
       ) as HTMLButtonElement | null;
-      expect(button?.textContent).toContain('Vollbild starten');
+      expect(button?.textContent).toContain('Präsentation im Vollbild starten');
       button?.click();
       expect(requestFullscreenSpy).toHaveBeenCalled();
       fixture.destroy();
