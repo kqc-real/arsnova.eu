@@ -1770,6 +1770,32 @@ describe('SessionPresentComponent', () => {
     fixture.destroy();
   });
 
+  it('hält sparse Team-Pills kompakt statt Kartenhöhe und -breite', () => {
+    const styles = readFileSync(
+      resolve(
+        process.cwd(),
+        'src/app/features/session/session-present/session-present.component.scss',
+      ),
+      'utf8',
+    );
+
+    expect(styles).toMatch(
+      /\.session-present__lobby-team-members \{[\s\S]*?grid-auto-rows:\s*auto;[\s\S]*?align-items:\s*start;[\s\S]*?justify-items:\s*start;/,
+    );
+    expect(styles).toMatch(
+      /\.session-present__lobby-team-members li \{[\s\S]*?width:\s*fit-content;[\s\S]*?max-width:\s*100%;/,
+    );
+    expect(styles).not.toMatch(
+      /\.session-present__lobby-team-members li \{\s*container-type:\s*size;/,
+    );
+    expect(styles).toMatch(
+      /\.session-present__lobby-team--crowd \.session-present__lobby-team-members,[\s\S]*?\.session-present__lobby-team--packed \.session-present__lobby-team-members \{[\s\S]*?grid-auto-rows:\s*minmax\(0,\s*1fr\);[\s\S]*?align-items:\s*stretch;[\s\S]*?justify-items:\s*stretch;/,
+    );
+    expect(styles).toMatch(
+      /\.session-present__lobby-team--crowd \.session-present__lobby-team-members li,[\s\S]*?\.session-present__lobby-team--packed \.session-present__lobby-team-members li \{[\s\S]*?container-type:\s*size;/,
+    );
+  });
+
   it('packt volle Teamspalten ohne Scroll und haelt Namen nur fuer den Screenreader', async () => {
     const teamId = 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa';
     const participants = Array.from({ length: 30 }, (_, index) => ({
