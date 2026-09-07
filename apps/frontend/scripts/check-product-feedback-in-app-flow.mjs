@@ -150,23 +150,44 @@ async function dismissMotdIfPresent(page) {
 }
 
 async function closeHostJoinOverlay(page) {
+  const overlay = page
+    .locator('.session-host__join-viewport-overlay, .feedback-host__join-viewport-overlay')
+    .first();
   const closeButton = page
     .locator(
       '.session-host__join-viewport-overlay__close, .feedback-host__join-viewport-overlay__close',
     )
     .first();
-  if (await closeButton.isVisible().catch(() => false)) {
-    await closeButton.click();
-    await page.waitForTimeout(300);
-  }
-  // Fallback: Escape closes presentation overlays
-  const overlay = page
-    .locator('.session-host__join-viewport-overlay, .feedback-host__join-viewport-overlay')
-    .first();
+  const qrImage = overlay.locator('img.app-qr-image').first();
+
+  // Lobby öffnet das Overlay automatisch. QR-Bereitschaft öffnet es ein zweites
+  // Mal — erst schließen, wenn der QR sichtbar ist, sonst kommt es sofort zurück.
+  await overlay.waitFor({ state: 'visible', timeout: 12_000 }).catch(() => undefined);
   if (await overlay.isVisible().catch(() => false)) {
-    await page.keyboard.press('Escape').catch(() => undefined);
-    await page.waitForTimeout(300);
+    await qrImage.waitFor({ state: 'visible', timeout: 10_000 }).catch(() => undefined);
   }
+
+  const deadline = Date.now() + 10_000;
+  let hiddenSince = null;
+  while (Date.now() < deadline) {
+    if (await overlay.isVisible().catch(() => false)) {
+      hiddenSince = null;
+      if (await closeButton.isVisible().catch(() => false)) {
+        await closeButton.click({ timeout: 4_000 }).catch(() => undefined);
+      } else {
+        await page.keyboard.press('Escape').catch(() => undefined);
+      }
+      await overlay.waitFor({ state: 'hidden', timeout: 4_000 }).catch(() => undefined);
+      continue;
+    }
+    if (hiddenSince === null) hiddenSince = Date.now();
+    if (Date.now() - hiddenSince >= 1500) return;
+    await page.waitForTimeout(250);
+  }
+  ensure(
+    !(await overlay.isVisible().catch(() => false)),
+    'Beitritts-Overlay auf der Host-Ansicht ließ sich nicht schließen',
+  );
 }
 
 function improveButton(page) {
@@ -294,13 +315,18 @@ async function main() {
       waitUntil: 'domcontentloaded',
       timeout: 30_000,
     });
-    await hostPage.waitForTimeout(1000);
+    await hostPage.locator('.session-host').waitFor({ state: 'visible', timeout: 20_000 });
     await closeHostJoinOverlay(hostPage);
 
     // Immersive Host-Utility ist Pflicht für Story 12.2 (kein Footer-Fallback)
     const immersiveUtility = hostPage.locator('.session-host__product-feedback-utility');
     await immersiveUtility.waitFor({ state: 'visible', timeout: 20_000 });
-    await immersiveUtility.getByRole('button', { name: IMPROVE_NAME }).click();
+    try {
+      await immersiveUtility.getByRole('button', { name: IMPROVE_NAME }).click();
+    } catch (error) {
+      await shot(hostPage, '03-host-immersive-click-failed').catch(() => undefined);
+      throw error;
+    }
     await dialog(hostPage).waitFor({ state: 'visible', timeout: 15_000 });
     const immersiveIcon = dialog(hostPage).locator('.product-feedback-in-app-dialog__brand-icon');
     ensure(
@@ -414,7 +440,10 @@ async function main() {
       waitUntil: 'domcontentloaded',
       timeout: 30_000,
     });
-    await blitzHostPage.waitForTimeout(800);
+    await blitzHostPage
+      .locator('.feedback-host, .feedback-host__product-feedback-utility')
+      .first()
+      .waitFor({ state: 'visible', timeout: 20_000 });
     await closeHostJoinOverlay(blitzHostPage);
     await openImprove(blitzHostPage);
     await shot(blitzHostPage, '08-blitzlicht-host-open');
