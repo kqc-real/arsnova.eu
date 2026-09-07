@@ -63,7 +63,7 @@
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/product-feedback/product-feedback-in-app-dialog.component.html</context>
-          <context context-type="linenumber">30</context>
+          <context context-type="linenumber">28</context>
         </context-group>
       </trans-unit>
       <trans-unit id="804017840391960536" datatype="html">
@@ -234,21 +234,21 @@
         <source>Seriös gewählt – ruhig, klar und auf Inhalte fokussiert.</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/app.component.ts</context>
-          <context context-type="linenumber">222</context>
+          <context context-type="linenumber">221</context>
         </context-group>
       </trans-unit>
       <trans-unit id="app.snackbar.presetPlayful" datatype="html">
         <source>Spielerisch gewählt – lebendig, motivierend und mit mehr Tempo.</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/app.component.ts</context>
-          <context context-type="linenumber">223</context>
+          <context context-type="linenumber">222</context>
         </context-group>
       </trans-unit>
       <trans-unit id="2911090466936872230" datatype="html">
         <source>Verbinde…</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/app.component.ts</context>
-          <context context-type="linenumber">226</context>
+          <context context-type="linenumber">225</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/feedback/feedback-host.component.html</context>
@@ -263,7 +263,7 @@
         <source>Nochmal versuchen</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/app.component.ts</context>
-          <context context-type="linenumber">226</context>
+          <context context-type="linenumber">225</context>
         </context-group>
       </trans-unit>
       <trans-unit id="session.notFound" datatype="html">
@@ -3908,6 +3908,97 @@
           <context context-type="linenumber">143</context>
         </context-group>
       </trans-unit>
+      <trans-unit id="admin.productFeedback.exportLlmTitle" datatype="html">
+        <source>Produktfeedback für ein LLM exportieren</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/admin/admin-product-feedback-llm-export-dialog.component.html</context>
+          <context context-type="linenumber">7</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="admin.productFeedback.exportLlmIntro" datatype="html">
+        <source> Du erhältst eine Markdown-Datei mit Auswertungsprompt, Kennzahlen und Fällen. arsnova.eu ruft kein Modell auf; du fügst die Datei in einem Dienst deiner Wahl ein. </source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/admin/admin-product-feedback-llm-export-dialog.component.html</context>
+          <context context-type="linenumber">13,16</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="admin.productFeedback.exportLlmIncludeMessages" datatype="html">
+        <source> Freiwillige Texte beilegen </source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/admin/admin-product-feedback-llm-export-dialog.component.html</context>
+          <context context-type="linenumber">22,24</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="admin.productFeedback.exportLlmIncludeHint" datatype="html">
+        <source> Die Datei verlässt arsnova.eu. Nutze ein Modell deiner Institution oder entferne die Texte vorher. </source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/admin/admin-product-feedback-llm-export-dialog.component.html</context>
+          <context context-type="linenumber">31,34</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="admin.productFeedback.exportLlmExcludeDiscarded" datatype="html">
+        <source> Verworfene Rückmeldungen auslassen </source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/admin/admin-product-feedback-llm-export-dialog.component.html</context>
+          <context context-type="linenumber">41,43</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="admin.productFeedback.exportLlmClose" datatype="html">
+        <source> Schließen </source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/admin/admin-product-feedback-llm-export-dialog.component.html</context>
+          <context context-type="linenumber">60,62</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="admin.productFeedback.exportLlmCopyPrompt" datatype="html">
+        <source> Nur Anweisung kopieren </source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/admin/admin-product-feedback-llm-export-dialog.component.html</context>
+          <context context-type="linenumber">69,71</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="admin.productFeedback.exportLlmDownload" datatype="html">
+        <source>Markdown herunterladen</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/admin/admin-product-feedback-llm-export-dialog.component.html</context>
+          <context context-type="linenumber">76</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="admin.productFeedback.exportLlmDownloaded" datatype="html">
+        <source>Markdown-Datei gespeichert.</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/admin/admin-product-feedback-llm-export-dialog.component.ts</context>
+          <context context-type="linenumber">57</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="admin.productFeedback.exportLlmCopied" datatype="html">
+        <source>Anweisung kopiert.</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/admin/admin-product-feedback-llm-export-dialog.component.ts</context>
+          <context context-type="linenumber">66</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="admin.productFeedback.exportLlmCopyFailed" datatype="html">
+        <source>Die Anweisung konnte nicht kopiert werden.</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/admin/admin-product-feedback-llm-export-dialog.component.ts</context>
+          <context context-type="linenumber">69</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="admin.productFeedback.exportLlmPending" datatype="html">
+        <source>Export wird vorbereitet …</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/admin/admin-product-feedback-llm-export-dialog.component.ts</context>
+          <context context-type="linenumber">86</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="admin.productFeedback.exportLlmError" datatype="html">
+        <source>Der Export konnte nicht erstellt werden. Versuche es erneut.</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/admin/admin-product-feedback-llm-export-dialog.component.ts</context>
+          <context context-type="linenumber">98</context>
+        </context-group>
+      </trans-unit>
       <trans-unit id="admin.productFeedback.heading" datatype="html">
         <source>Produktfeedback</source>
         <context-group purpose="location">
@@ -3922,695 +4013,466 @@
           <context context-type="linenumber">5,8</context>
         </context-group>
       </trans-unit>
+      <trans-unit id="admin.productFeedback.exportLlm" datatype="html">
+        <source> Für LLM exportieren </source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/admin/admin-product-feedback-panel.component.html</context>
+          <context context-type="linenumber">17,19</context>
+        </context-group>
+      </trans-unit>
       <trans-unit id="admin.productFeedback.reload" datatype="html">
         <source>Aktualisieren</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/admin/admin-product-feedback-panel.component.html</context>
-          <context context-type="linenumber">14</context>
+          <context context-type="linenumber">24</context>
         </context-group>
       </trans-unit>
-
-      <trans-unit id="admin.productFeedback.exportLlm" datatype="html">
-        <source>Für LLM exportieren</source>
-        <context-group purpose="location">
-          <context context-type="sourcefile">src/app/features/admin/admin-product-feedback-panel.component.html</context>
-          <context context-type="linenumber">1</context>
-        </context-group>
-      </trans-unit>
-
-      <trans-unit id="admin.productFeedback.exportLlmTitle" datatype="html">
-        <source>Produktfeedback für ein LLM exportieren</source>
-        <context-group purpose="location">
-          <context context-type="sourcefile">src/app/features/admin/admin-product-feedback-llm-export-dialog.component.html</context>
-          <context context-type="linenumber">1</context>
-        </context-group>
-      </trans-unit>
-
-      <trans-unit id="admin.productFeedback.exportLlmIntro" datatype="html">
-        <source>Du erhältst eine Markdown-Datei mit Auswertungsprompt, Kennzahlen und Fällen. arsnova.eu ruft kein Modell auf; du fügst die Datei in einem Dienst deiner Wahl ein.</source>
-        <context-group purpose="location">
-          <context context-type="sourcefile">src/app/features/admin/admin-product-feedback-llm-export-dialog.component.html</context>
-          <context context-type="linenumber">1</context>
-        </context-group>
-      </trans-unit>
-
-      <trans-unit id="admin.productFeedback.exportLlmIncludeMessages" datatype="html">
-        <source>Freiwillige Texte beilegen</source>
-        <context-group purpose="location">
-          <context context-type="sourcefile">src/app/features/admin/admin-product-feedback-llm-export-dialog.component.html</context>
-          <context context-type="linenumber">1</context>
-        </context-group>
-      </trans-unit>
-
-      <trans-unit id="admin.productFeedback.exportLlmIncludeHint" datatype="html">
-        <source>Die Datei verlässt arsnova.eu. Nutze ein Modell deiner Institution oder entferne die Texte vorher.</source>
-        <context-group purpose="location">
-          <context context-type="sourcefile">src/app/features/admin/admin-product-feedback-llm-export-dialog.component.html</context>
-          <context context-type="linenumber">1</context>
-        </context-group>
-      </trans-unit>
-
-      <trans-unit id="admin.productFeedback.exportLlmExcludeDiscarded" datatype="html">
-        <source>Verworfene Rückmeldungen auslassen</source>
-        <context-group purpose="location">
-          <context context-type="sourcefile">src/app/features/admin/admin-product-feedback-llm-export-dialog.component.html</context>
-          <context context-type="linenumber">1</context>
-        </context-group>
-      </trans-unit>
-
-      <trans-unit id="admin.productFeedback.exportLlmDownload" datatype="html">
-        <source>Markdown herunterladen</source>
-        <context-group purpose="location">
-          <context context-type="sourcefile">src/app/features/admin/admin-product-feedback-llm-export-dialog.component.html</context>
-          <context context-type="linenumber">1</context>
-        </context-group>
-      </trans-unit>
-
-      <trans-unit id="admin.productFeedback.exportLlmCopyPrompt" datatype="html">
-        <source>Nur Anweisung kopieren</source>
-        <context-group purpose="location">
-          <context context-type="sourcefile">src/app/features/admin/admin-product-feedback-llm-export-dialog.component.html</context>
-          <context context-type="linenumber">1</context>
-        </context-group>
-      </trans-unit>
-
-      <trans-unit id="admin.productFeedback.exportLlmClose" datatype="html">
-        <source>Schließen</source>
-        <context-group purpose="location">
-          <context context-type="sourcefile">src/app/features/admin/admin-product-feedback-llm-export-dialog.component.html</context>
-          <context context-type="linenumber">1</context>
-        </context-group>
-      </trans-unit>
-
-      <trans-unit id="admin.productFeedback.exportLlmError" datatype="html">
-        <source>Der Export konnte nicht erstellt werden. Versuche es erneut.</source>
-        <context-group purpose="location">
-          <context context-type="sourcefile">src/app/features/admin/admin-product-feedback-llm-export-dialog.component.ts</context>
-          <context context-type="linenumber">1</context>
-        </context-group>
-      </trans-unit>
-
-      <trans-unit id="admin.productFeedback.exportLlmCopied" datatype="html">
-        <source>Anweisung kopiert.</source>
-        <context-group purpose="location">
-          <context context-type="sourcefile">src/app/features/admin/admin-product-feedback-llm-export-dialog.component.ts</context>
-          <context context-type="linenumber">1</context>
-        </context-group>
-      </trans-unit>
-
-      <trans-unit id="admin.productFeedback.exportLlmDownloaded" datatype="html">
-        <source>Markdown-Datei gespeichert.</source>
-        <context-group purpose="location">
-          <context context-type="sourcefile">src/app/features/admin/admin-product-feedback-llm-export-dialog.component.ts</context>
-          <context context-type="linenumber">1</context>
-        </context-group>
-      </trans-unit>
-
-      <trans-unit id="admin.productFeedback.exportLlmCopyFailed" datatype="html">
-        <source>Die Anweisung konnte nicht kopiert werden.</source>
-        <context-group purpose="location">
-          <context context-type="sourcefile">src/app/features/admin/admin-product-feedback-llm-export-dialog.component.ts</context>
-          <context context-type="linenumber">1</context>
-        </context-group>
-      </trans-unit>
-
-      <trans-unit id="admin.productFeedback.exportLlmPending" datatype="html">
-        <source>Export wird vorbereitet …</source>
-        <context-group purpose="location">
-          <context context-type="sourcefile">src/app/features/admin/admin-product-feedback-llm-export-dialog.component.ts</context>
-          <context context-type="linenumber">1</context>
-        </context-group>
-      </trans-unit>
-
       <trans-unit id="admin.productFeedback.purge" datatype="html">
-        <source>Rückmeldungen löschen</source>
+        <source> Rückmeldungen löschen </source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/admin/admin-product-feedback-panel.component.html</context>
-          <context context-type="linenumber">1</context>
-        </context-group>
-      </trans-unit>
-      <trans-unit id="admin.productFeedback.purgeTitle" datatype="html">
-        <source>Rückmeldungen endgültig löschen</source>
-        <context-group purpose="location">
-          <context context-type="sourcefile">src/app/features/admin/admin-product-feedback-purge-dialog.component.html</context>
-          <context context-type="linenumber">1</context>
-        </context-group>
-      </trans-unit>
-      <trans-unit id="admin.productFeedback.purgeIntro" datatype="html">
-        <source>Gelöscht werden die gespeicherten Rückmeldungen und die Einladungszähler für denselben Zeitraum. Das lässt sich nicht rückgängig machen. Exportprotokolle bleiben erhalten.</source>
-        <context-group purpose="location">
-          <context context-type="sourcefile">src/app/features/admin/admin-product-feedback-purge-dialog.component.html</context>
-          <context context-type="linenumber">1</context>
-        </context-group>
-      </trans-unit>
-      <trans-unit id="admin.productFeedback.purgeScopeLabel" datatype="html">
-        <source>Löschumfang</source>
-        <context-group purpose="location">
-          <context context-type="sourcefile">src/app/features/admin/admin-product-feedback-purge-dialog.component.html</context>
-          <context context-type="linenumber">1</context>
-        </context-group>
-      </trans-unit>
-      <trans-unit id="admin.productFeedback.purgeScopeUntil" datatype="html">
-        <source>Bis zu einem Datum (einschließlich)</source>
-        <context-group purpose="location">
-          <context context-type="sourcefile">src/app/features/admin/admin-product-feedback-purge-dialog.component.html</context>
-          <context context-type="linenumber">1</context>
-        </context-group>
-      </trans-unit>
-      <trans-unit id="admin.productFeedback.purgeScopeAll" datatype="html">
-        <source>Alle Rückmeldungen</source>
-        <context-group purpose="location">
-          <context context-type="sourcefile">src/app/features/admin/admin-product-feedback-purge-dialog.component.html</context>
-          <context context-type="linenumber">1</context>
-        </context-group>
-      </trans-unit>
-      <trans-unit id="admin.productFeedback.purgeUntil" datatype="html">
-        <source>Löschen bis einschließlich</source>
-        <context-group purpose="location">
-          <context context-type="sourcefile">src/app/features/admin/admin-product-feedback-purge-dialog.component.html</context>
-          <context context-type="linenumber">1</context>
-        </context-group>
-      </trans-unit>
-      <trans-unit id="admin.productFeedback.purgePending" datatype="html">
-        <source>Anzahl wird ermittelt …</source>
-        <context-group purpose="location">
-          <context context-type="sourcefile">src/app/features/admin/admin-product-feedback-purge-dialog.component.html</context>
-          <context context-type="linenumber">1</context>
-        </context-group>
-      </trans-unit>
-      <trans-unit id="admin.productFeedback.purgeCountNone" datatype="html">
-        <source>Keine Rückmeldungen in dieser Auswahl.</source>
-        <context-group purpose="location">
-          <context context-type="sourcefile">src/app/features/admin/admin-product-feedback-purge-dialog.component.html</context>
-          <context context-type="linenumber">1</context>
-        </context-group>
-      </trans-unit>
-      <trans-unit id="admin.productFeedback.purgeCount" datatype="html">
-        <source><x id="INTERPOLATION" equiv-text="{{ count() }}"/> Rückmeldungen würden endgültig gelöscht.</source>
-        <context-group purpose="location">
-          <context context-type="sourcefile">src/app/features/admin/admin-product-feedback-purge-dialog.component.html</context>
-          <context context-type="linenumber">1</context>
-        </context-group>
-      </trans-unit>
-      <trans-unit id="admin.productFeedback.purgePhraseHint" datatype="html">
-        <source>Zur Bestätigung gib die Sicherheitsphrase ein.</source>
-        <context-group purpose="location">
-          <context context-type="sourcefile">src/app/features/admin/admin-product-feedback-purge-dialog.component.html</context>
-          <context context-type="linenumber">1</context>
-        </context-group>
-      </trans-unit>
-      <trans-unit id="admin.productFeedback.purgePhraseLabel" datatype="html">
-        <source>Sicherheitsphrase</source>
-        <context-group purpose="location">
-          <context context-type="sourcefile">src/app/features/admin/admin-product-feedback-purge-dialog.component.html</context>
-          <context context-type="linenumber">1</context>
-        </context-group>
-      </trans-unit>
-      <trans-unit id="admin.productFeedback.purgeClose" datatype="html">
-        <source>Abbrechen</source>
-        <context-group purpose="location">
-          <context context-type="sourcefile">src/app/features/admin/admin-product-feedback-purge-dialog.component.html</context>
-          <context context-type="linenumber">1</context>
-        </context-group>
-      </trans-unit>
-      <trans-unit id="admin.productFeedback.purgeSubmit" datatype="html">
-        <source>Endgültig löschen</source>
-        <context-group purpose="location">
-          <context context-type="sourcefile">src/app/features/admin/admin-product-feedback-purge-dialog.component.html</context>
-          <context context-type="linenumber">1</context>
-        </context-group>
-      </trans-unit>
-      <trans-unit id="admin.productFeedback.purgeError" datatype="html">
-        <source>Die Löschung konnte nicht ausgeführt werden. Versuche es erneut.</source>
-        <context-group purpose="location">
-          <context context-type="sourcefile">src/app/features/admin/admin-product-feedback-purge-dialog.component.ts</context>
-          <context context-type="linenumber">1</context>
-        </context-group>
-      </trans-unit>
-      <trans-unit id="admin.productFeedback.purgeChanged" datatype="html">
-        <source>Die Anzahl hat sich geändert. Zähle neu und bestätige erneut.</source>
-        <context-group purpose="location">
-          <context context-type="sourcefile">src/app/features/admin/admin-product-feedback-purge-dialog.component.ts</context>
-          <context context-type="linenumber">1</context>
-        </context-group>
-      </trans-unit>
-      <trans-unit id="admin.productFeedback.purgePhraseFailed" datatype="html">
-        <source>Die Sicherheitsphrase stimmt nicht.</source>
-        <context-group purpose="location">
-          <context context-type="sourcefile">src/app/features/admin/admin-product-feedback-purge-dialog.component.ts</context>
-          <context context-type="linenumber">1</context>
-        </context-group>
-      </trans-unit>
-      <trans-unit id="admin.productFeedback.purgeBusy" datatype="html">
-        <source>Rückmeldungen werden gelöscht …</source>
-        <context-group purpose="location">
-          <context context-type="sourcefile">src/app/features/admin/admin-product-feedback-purge-dialog.component.ts</context>
-          <context context-type="linenumber">1</context>
+          <context context-type="linenumber">33,35</context>
         </context-group>
       </trans-unit>
       <trans-unit id="admin.productFeedback.filtersLabel" datatype="html">
         <source>Filter</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/admin/admin-product-feedback-panel.component.html</context>
-          <context context-type="linenumber">22</context>
+          <context context-type="linenumber">43</context>
         </context-group>
       </trans-unit>
       <trans-unit id="admin.productFeedback.filterRole" datatype="html">
         <source>Perspektive</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/admin/admin-product-feedback-panel.component.html</context>
-          <context context-type="linenumber">25</context>
+          <context context-type="linenumber">46</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/admin/admin-product-feedback-panel.component.html</context>
-          <context context-type="linenumber">180</context>
+          <context context-type="linenumber">201</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/admin/admin-product-feedback-panel.component.html</context>
-          <context context-type="linenumber">312</context>
+          <context context-type="linenumber">333</context>
         </context-group>
       </trans-unit>
       <trans-unit id="admin.productFeedback.filterAll" datatype="html">
         <source>Alle</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/admin/admin-product-feedback-panel.component.html</context>
-          <context context-type="linenumber">27</context>
+          <context context-type="linenumber">48</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/admin/admin-product-feedback-panel.component.html</context>
-          <context context-type="linenumber">40</context>
+          <context context-type="linenumber">61</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/admin/admin-product-feedback-panel.component.html</context>
-          <context context-type="linenumber">173</context>
+          <context context-type="linenumber">194</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/admin/admin-product-feedback-panel.component.html</context>
-          <context context-type="linenumber">186</context>
+          <context context-type="linenumber">207</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/admin/admin-product-feedback-panel.component.html</context>
-          <context context-type="linenumber">199</context>
+          <context context-type="linenumber">220</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/admin/admin-product-feedback-panel.component.html</context>
-          <context context-type="linenumber">221</context>
+          <context context-type="linenumber">242</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/admin/admin-product-feedback-panel.component.html</context>
-          <context context-type="linenumber">243</context>
+          <context context-type="linenumber">264</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/admin/admin-product-feedback-panel.component.html</context>
-          <context context-type="linenumber">256</context>
+          <context context-type="linenumber">277</context>
         </context-group>
       </trans-unit>
       <trans-unit id="admin.productFeedback.filterSurvey" datatype="html">
         <source>Frage</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/admin/admin-product-feedback-panel.component.html</context>
-          <context context-type="linenumber">34</context>
+          <context context-type="linenumber">55</context>
         </context-group>
       </trans-unit>
       <trans-unit id="admin.productFeedback.filterFrom" datatype="html">
         <source>Zeitraum von</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/admin/admin-product-feedback-panel.component.html</context>
-          <context context-type="linenumber">47</context>
+          <context context-type="linenumber">68</context>
         </context-group>
       </trans-unit>
       <trans-unit id="admin.productFeedback.filterTo" datatype="html">
         <source>Zeitraum bis</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/admin/admin-product-feedback-panel.component.html</context>
-          <context context-type="linenumber">60</context>
+          <context context-type="linenumber">81</context>
         </context-group>
       </trans-unit>
       <trans-unit id="admin.productFeedback.clearFilters" datatype="html">
         <source> Auswahl zurücksetzen </source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/admin/admin-product-feedback-panel.component.html</context>
-          <context context-type="linenumber">79,81</context>
+          <context context-type="linenumber">100,102</context>
         </context-group>
       </trans-unit>
       <trans-unit id="admin.productFeedback.inboxHeading" datatype="html">
         <source> Rückmeldungen bearbeiten </source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/admin/admin-product-feedback-panel.component.html</context>
-          <context context-type="linenumber">92,94</context>
+          <context context-type="linenumber">113,115</context>
         </context-group>
       </trans-unit>
       <trans-unit id="admin.productFeedback.inboxHint" datatype="html">
         <source> Rückmeldungen prüfen, ähnliche Beobachtungen bündeln und bei Bedarf mit GitHub verknüpfen. </source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/admin/admin-product-feedback-panel.component.html</context>
-          <context context-type="linenumber">95,97</context>
+          <context context-type="linenumber">116,118</context>
         </context-group>
       </trans-unit>
       <trans-unit id="admin.productFeedback.inAppVolume" datatype="html">
         <source>In-App-Rückmeldungen</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/admin/admin-product-feedback-panel.component.html</context>
-          <context context-type="linenumber">106</context>
+          <context context-type="linenumber">127</context>
         </context-group>
       </trans-unit>
       <trans-unit id="admin.productFeedback.blocking" datatype="html">
         <source>Davon blockierend</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/admin/admin-product-feedback-panel.component.html</context>
-          <context context-type="linenumber">116</context>
+          <context context-type="linenumber">137</context>
         </context-group>
       </trans-unit>
       <trans-unit id="admin.productFeedback.byKind" datatype="html">
         <source>Feedbackarten</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/admin/admin-product-feedback-panel.component.html</context>
-          <context context-type="linenumber">127</context>
+          <context context-type="linenumber">148</context>
         </context-group>
       </trans-unit>
       <trans-unit id="admin.productFeedback.versionTrend" datatype="html">
         <source>App-Versionen (mindestens 5 Rückmeldungen)</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/admin/admin-product-feedback-panel.component.html</context>
-          <context context-type="linenumber">143</context>
+          <context context-type="linenumber">164</context>
         </context-group>
       </trans-unit>
       <trans-unit id="admin.productFeedback.inboxFilters" datatype="html">
         <source>Rückmeldungen filtern</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/admin/admin-product-feedback-panel.component.html</context>
-          <context context-type="linenumber">164</context>
+          <context context-type="linenumber">185</context>
         </context-group>
       </trans-unit>
       <trans-unit id="admin.productFeedback.filterSource" datatype="html">
         <source>Quelle</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/admin/admin-product-feedback-panel.component.html</context>
-          <context context-type="linenumber">167</context>
+          <context context-type="linenumber">188</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/admin/admin-product-feedback-panel.component.html</context>
-          <context context-type="linenumber">308</context>
+          <context context-type="linenumber">329</context>
         </context-group>
       </trans-unit>
       <trans-unit id="admin.productFeedback.filterKind" datatype="html">
         <source>Feedbackart</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/admin/admin-product-feedback-panel.component.html</context>
-          <context context-type="linenumber">193</context>
+          <context context-type="linenumber">214</context>
         </context-group>
       </trans-unit>
       <trans-unit id="admin.productFeedback.filterArea" datatype="html">
         <source>Bereich</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/admin/admin-product-feedback-panel.component.html</context>
-          <context context-type="linenumber">206</context>
+          <context context-type="linenumber">227</context>
         </context-group>
       </trans-unit>
       <trans-unit id="admin.productFeedback.filterImpact" datatype="html">
         <source>Auswirkung</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/admin/admin-product-feedback-panel.component.html</context>
-          <context context-type="linenumber">215</context>
+          <context context-type="linenumber">236</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/admin/admin-product-feedback-panel.component.html</context>
-          <context context-type="linenumber">320</context>
+          <context context-type="linenumber">341</context>
         </context-group>
       </trans-unit>
       <trans-unit id="admin.productFeedback.filterAppVersion" datatype="html">
         <source>App-Version</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/admin/admin-product-feedback-panel.component.html</context>
-          <context context-type="linenumber">228</context>
+          <context context-type="linenumber">249</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/admin/admin-product-feedback-panel.component.html</context>
-          <context context-type="linenumber">324</context>
+          <context context-type="linenumber">345</context>
         </context-group>
       </trans-unit>
       <trans-unit id="admin.productFeedback.filterLocale" datatype="html">
         <source>Sprache</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/admin/admin-product-feedback-panel.component.html</context>
-          <context context-type="linenumber">237</context>
+          <context context-type="linenumber">258</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/admin/admin-product-feedback-panel.component.html</context>
-          <context context-type="linenumber">328</context>
+          <context context-type="linenumber">349</context>
         </context-group>
       </trans-unit>
       <trans-unit id="admin.productFeedback.filterStatus" datatype="html">
         <source>Status</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/admin/admin-product-feedback-panel.component.html</context>
-          <context context-type="linenumber">250</context>
+          <context context-type="linenumber">271</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/admin/admin-product-feedback-panel.component.html</context>
-          <context context-type="linenumber">316</context>
+          <context context-type="linenumber">337</context>
         </context-group>
       </trans-unit>
       <trans-unit id="admin.productFeedback.inboxEmpty" datatype="html">
         <source> Keine Rückmeldungen entsprechen den gewählten Filtern. </source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/admin/admin-product-feedback-panel.component.html</context>
-          <context context-type="linenumber">267,269</context>
+          <context context-type="linenumber">288,290</context>
         </context-group>
       </trans-unit>
       <trans-unit id="admin.productFeedback.duplicates" datatype="html">
         <source>Ähnliche Rückmeldungen: <x id="INTERPOLATION" equiv-text="{{ item.duplicateCount }}"/></source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/admin/admin-product-feedback-panel.component.html</context>
-          <context context-type="linenumber">288,289</context>
+          <context context-type="linenumber">309,310</context>
         </context-group>
       </trans-unit>
       <trans-unit id="admin.productFeedback.loadMore" datatype="html">
         <source>Weitere Rückmeldungen laden</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/admin/admin-product-feedback-panel.component.html</context>
-          <context context-type="linenumber">297</context>
+          <context context-type="linenumber">318</context>
         </context-group>
       </trans-unit>
       <trans-unit id="admin.productFeedback.context" datatype="html">
         <source>Kontext</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/admin/admin-product-feedback-panel.component.html</context>
-          <context context-type="linenumber">332</context>
+          <context context-type="linenumber">353</context>
         </context-group>
       </trans-unit>
       <trans-unit id="admin.productFeedback.quarantine" datatype="html">
         <source> Der freiwillige Text enthält möglicherweise schützenswerte Angaben. Prüfe ihn, bevor du ihn weiterverwendest. </source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/admin/admin-product-feedback-panel.component.html</context>
-          <context context-type="linenumber">340,343</context>
+          <context context-type="linenumber">361,364</context>
         </context-group>
       </trans-unit>
       <trans-unit id="admin.productFeedback.clearQuarantine" datatype="html">
         <source>Text als unbedenklich markieren</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/admin/admin-product-feedback-panel.component.html</context>
-          <context context-type="linenumber">351</context>
+          <context context-type="linenumber">372</context>
         </context-group>
       </trans-unit>
       <trans-unit id="admin.productFeedback.statusActions" datatype="html">
         <source>Bearbeitungsstatus ändern</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/admin/admin-product-feedback-panel.component.html</context>
-          <context context-type="linenumber">360</context>
+          <context context-type="linenumber">381</context>
         </context-group>
       </trans-unit>
       <trans-unit id="admin.productFeedback.duplicateTarget" datatype="html">
         <source>ID der Hauptrückmeldung (leer = keine Zuordnung)</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/admin/admin-product-feedback-panel.component.html</context>
-          <context context-type="linenumber">377</context>
+          <context context-type="linenumber">398</context>
         </context-group>
       </trans-unit>
       <trans-unit id="admin.productFeedback.linkDuplicate" datatype="html">
         <source>Zuordnung speichern</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/admin/admin-product-feedback-panel.component.html</context>
-          <context context-type="linenumber">382</context>
+          <context context-type="linenumber">403</context>
         </context-group>
       </trans-unit>
       <trans-unit id="admin.productFeedback.issueNumber" datatype="html">
         <source>GitHub-Issue-Nummer</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/admin/admin-product-feedback-panel.component.html</context>
-          <context context-type="linenumber">386</context>
+          <context context-type="linenumber">407</context>
         </context-group>
       </trans-unit>
       <trans-unit id="admin.productFeedback.issueUrl" datatype="html">
         <source>Link zum GitHub-Issue</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/admin/admin-product-feedback-panel.component.html</context>
-          <context context-type="linenumber">390</context>
+          <context context-type="linenumber">411</context>
         </context-group>
       </trans-unit>
       <trans-unit id="admin.productFeedback.linkIssue" datatype="html">
         <source>Issue verknüpfen</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/admin/admin-product-feedback-panel.component.html</context>
-          <context context-type="linenumber">394</context>
+          <context context-type="linenumber">415</context>
         </context-group>
       </trans-unit>
       <trans-unit id="admin.productFeedback.resolvedVersion" datatype="html">
         <source>Behoben in Version</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/admin/admin-product-feedback-panel.component.html</context>
-          <context context-type="linenumber">399</context>
+          <context context-type="linenumber">420</context>
         </context-group>
       </trans-unit>
       <trans-unit id="admin.productFeedback.resolutionUrl" datatype="html">
         <source>Öffentlicher Lösungslink</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/admin/admin-product-feedback-panel.component.html</context>
-          <context context-type="linenumber">410</context>
+          <context context-type="linenumber">431</context>
         </context-group>
       </trans-unit>
       <trans-unit id="admin.productFeedback.previewIssue" datatype="html">
         <source>Issue-Entwurf prüfen</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/admin/admin-product-feedback-panel.component.html</context>
-          <context context-type="linenumber">418</context>
+          <context context-type="linenumber">439</context>
         </context-group>
       </trans-unit>
       <trans-unit id="admin.productFeedback.publishIssue" datatype="html">
         <source>Entwurf auf GitHub veröffentlichen</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/admin/admin-product-feedback-panel.component.html</context>
-          <context context-type="linenumber">426</context>
+          <context context-type="linenumber">452</context>
         </context-group>
       </trans-unit>
       <trans-unit id="admin.productFeedback.delete" datatype="html">
         <source>Rückmeldung endgültig löschen</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/admin/admin-product-feedback-panel.component.html</context>
-          <context context-type="linenumber">440</context>
+          <context context-type="linenumber">466</context>
         </context-group>
       </trans-unit>
       <trans-unit id="admin.productFeedback.selectDetail" datatype="html">
         <source> Wähle links eine Rückmeldung aus, um sie zu bearbeiten. </source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/admin/admin-product-feedback-panel.component.html</context>
-          <context context-type="linenumber">443,445</context>
+          <context context-type="linenumber">469,471</context>
         </context-group>
       </trans-unit>
       <trans-unit id="admin.productFeedback.loading" datatype="html">
         <source>Feedbackdaten werden geladen …</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/admin/admin-product-feedback-panel.component.html</context>
-          <context context-type="linenumber">454</context>
+          <context context-type="linenumber">480</context>
         </context-group>
       </trans-unit>
       <trans-unit id="admin.productFeedback.totals" datatype="html">
         <source>Rückmeldungen</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/admin/admin-product-feedback-panel.component.html</context>
-          <context context-type="linenumber">461</context>
+          <context context-type="linenumber">487</context>
         </context-group>
       </trans-unit>
       <trans-unit id="admin.productFeedback.invites" datatype="html">
         <source>Einladungen</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/admin/admin-product-feedback-panel.component.html</context>
-          <context context-type="linenumber">469</context>
+          <context context-type="linenumber">495</context>
         </context-group>
       </trans-unit>
       <trans-unit id="admin.productFeedback.invitesHint" datatype="html">
         <source>Wie oft Feedback angeboten wurde</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/admin/admin-product-feedback-panel.component.html</context>
-          <context context-type="linenumber">471</context>
+          <context context-type="linenumber">497</context>
         </context-group>
       </trans-unit>
       <trans-unit id="admin.productFeedback.completion" datatype="html">
         <source>Rücklauf</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/admin/admin-product-feedback-panel.component.html</context>
-          <context context-type="linenumber">480</context>
+          <context context-type="linenumber">506</context>
         </context-group>
       </trans-unit>
       <trans-unit id="admin.productFeedback.completionHint" datatype="html">
         <source>Anteil beantworteter Einladungen</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/admin/admin-product-feedback-panel.component.html</context>
-          <context context-type="linenumber">482</context>
+          <context context-type="linenumber">508</context>
         </context-group>
       </trans-unit>
       <trans-unit id="admin.productFeedback.sectionAnswers" datatype="html">
         <source> Feedback nach der Session </source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/admin/admin-product-feedback-panel.component.html</context>
-          <context context-type="linenumber">491,493</context>
+          <context context-type="linenumber">517,519</context>
         </context-group>
       </trans-unit>
       <trans-unit id="admin.productFeedback.byPrimary" datatype="html">
         <source>Kurzbewertungen</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/admin/admin-product-feedback-panel.component.html</context>
-          <context context-type="linenumber">499</context>
+          <context context-type="linenumber">525</context>
         </context-group>
       </trans-unit>
       <trans-unit id="admin.productFeedback.empty" datatype="html">
         <source> Für die gewählten Filter liegen noch keine Rückmeldungen vor. </source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/admin/admin-product-feedback-panel.component.html</context>
-          <context context-type="linenumber">504,506</context>
+          <context context-type="linenumber">530,532</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/admin/admin-product-feedback-panel.component.html</context>
-          <context context-type="linenumber">539,541</context>
+          <context context-type="linenumber">565,567</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/admin/admin-product-feedback-panel.component.html</context>
-          <context context-type="linenumber">637,639</context>
+          <context context-type="linenumber">663,665</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/admin/admin-product-feedback-panel.component.html</context>
-          <context context-type="linenumber">667,669</context>
+          <context context-type="linenumber">693,695</context>
         </context-group>
       </trans-unit>
       <trans-unit id="admin.productFeedback.byArea" datatype="html">
         <source>Genannte Bereiche</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/admin/admin-product-feedback-panel.component.html</context>
-          <context context-type="linenumber">535</context>
+          <context context-type="linenumber">561</context>
         </context-group>
       </trans-unit>
       <trans-unit id="admin.productFeedback.positiveAreas" datatype="html">
         <source>Was besonders gut funktioniert</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/admin/admin-product-feedback-panel.component.html</context>
-          <context context-type="linenumber">568</context>
+          <context context-type="linenumber">594</context>
         </context-group>
       </trans-unit>
       <trans-unit id="admin.productFeedback.emptyThreshold" datatype="html">
         <source> Noch zu wenige Rückmeldungen für diese Auswertung. </source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/admin/admin-product-feedback-panel.component.html</context>
-          <context context-type="linenumber">573,575</context>
+          <context context-type="linenumber">599,601</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/admin/admin-product-feedback-panel.component.html</context>
-          <context context-type="linenumber">605,607</context>
+          <context context-type="linenumber">631,633</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/admin/admin-product-feedback-panel.component.html</context>
-          <context context-type="linenumber">707,709</context>
+          <context context-type="linenumber">733,735</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/admin/admin-product-feedback-panel.component.html</context>
-          <context context-type="linenumber">737,739</context>
+          <context context-type="linenumber">763,765</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/admin/admin-product-feedback-panel.component.html</context>
-          <context context-type="linenumber">767,769</context>
-        </context-group>
-        <context-group purpose="location">
-          <context context-type="sourcefile">src/app/features/admin/admin-product-feedback-panel.component.html</context>
-          <context context-type="linenumber">801,803</context>
+          <context context-type="linenumber">793,795</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/admin/admin-product-feedback-panel.component.html</context>
@@ -4624,138 +4486,142 @@
           <context context-type="sourcefile">src/app/features/admin/admin-product-feedback-panel.component.html</context>
           <context context-type="linenumber">879,881</context>
         </context-group>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/admin/admin-product-feedback-panel.component.html</context>
+          <context context-type="linenumber">905,907</context>
+        </context-group>
       </trans-unit>
       <trans-unit id="admin.productFeedback.hurdleAreas" datatype="html">
         <source>Wo die größten Hürden liegen</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/admin/admin-product-feedback-panel.component.html</context>
-          <context context-type="linenumber">600</context>
+          <context context-type="linenumber">626</context>
         </context-group>
       </trans-unit>
       <trans-unit id="admin.productFeedback.bySurvey" datatype="html">
         <source>Nach Frage</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/admin/admin-product-feedback-panel.component.html</context>
-          <context context-type="linenumber">633</context>
+          <context context-type="linenumber">659</context>
         </context-group>
       </trans-unit>
       <trans-unit id="admin.productFeedback.byRole" datatype="html">
         <source>Nach Perspektive</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/admin/admin-product-feedback-panel.component.html</context>
-          <context context-type="linenumber">663</context>
+          <context context-type="linenumber">689</context>
         </context-group>
       </trans-unit>
       <trans-unit id="admin.productFeedback.sectionContext" datatype="html">
         <source> Kontextdaten </source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/admin/admin-product-feedback-panel.component.html</context>
-          <context context-type="linenumber">692,694</context>
+          <context context-type="linenumber">718,720</context>
         </context-group>
       </trans-unit>
       <trans-unit id="admin.productFeedback.privacyHint" datatype="html">
         <source> Zum Schutz der Privatsphäre erscheinen fein aufgeschlüsselte Daten erst ab fünf Rückmeldungen. </source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/admin/admin-product-feedback-panel.component.html</context>
-          <context context-type="linenumber">695,698</context>
+          <context context-type="linenumber">721,724</context>
         </context-group>
       </trans-unit>
       <trans-unit id="admin.productFeedback.byLocale" datatype="html">
         <source>Sprache</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/admin/admin-product-feedback-panel.component.html</context>
-          <context context-type="linenumber">703</context>
+          <context context-type="linenumber">729</context>
         </context-group>
       </trans-unit>
       <trans-unit id="admin.productFeedback.bySize" datatype="html">
         <source>Sessiongröße</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/admin/admin-product-feedback-panel.component.html</context>
-          <context context-type="linenumber">733</context>
+          <context context-type="linenumber">759</context>
         </context-group>
       </trans-unit>
       <trans-unit id="admin.productFeedback.byDevice" datatype="html">
         <source>Gerät</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/admin/admin-product-feedback-panel.component.html</context>
-          <context context-type="linenumber">763</context>
+          <context context-type="linenumber">789</context>
         </context-group>
       </trans-unit>
       <trans-unit id="admin.productFeedback.byAppVersion" datatype="html">
         <source>App-Version (ab 5)</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/admin/admin-product-feedback-panel.component.html</context>
-          <context context-type="linenumber">796</context>
+          <context context-type="linenumber">822</context>
         </context-group>
       </trans-unit>
       <trans-unit id="admin.productFeedback.bySurveyVersion" datatype="html">
         <source>Frageversion (ab 5)</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/admin/admin-product-feedback-panel.component.html</context>
-          <context context-type="linenumber">822</context>
+          <context context-type="linenumber">848</context>
         </context-group>
       </trans-unit>
       <trans-unit id="admin.productFeedback.bySessionKind" datatype="html">
         <source>Sessionart (ab 5)</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/admin/admin-product-feedback-panel.component.html</context>
-          <context context-type="linenumber">848</context>
+          <context context-type="linenumber">874</context>
         </context-group>
       </trans-unit>
       <trans-unit id="admin.productFeedback.byFeatureArea" datatype="html">
         <source>Genutzte Bereiche (ab 5)</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/admin/admin-product-feedback-panel.component.html</context>
-          <context context-type="linenumber">874</context>
+          <context context-type="linenumber">900</context>
         </context-group>
       </trans-unit>
       <trans-unit id="admin.productFeedback.fine" datatype="html">
         <source>Häufige Kombinationen</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/admin/admin-product-feedback-panel.component.html</context>
-          <context context-type="linenumber">902</context>
+          <context context-type="linenumber">928</context>
         </context-group>
       </trans-unit>
       <trans-unit id="admin.productFeedback.fineHint" datatype="html">
         <source>Frage und Kurzbewertung</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/admin/admin-product-feedback-panel.component.html</context>
-          <context context-type="linenumber">905</context>
+          <context context-type="linenumber">931</context>
         </context-group>
       </trans-unit>
       <trans-unit id="admin.productFeedback.survey.easeParticipant" datatype="html">
         <source>Teilnehmende · Bedienbarkeit</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/admin/admin-product-feedback-panel.component.ts</context>
-          <context context-type="linenumber">141</context>
+          <context context-type="linenumber">148</context>
         </context-group>
       </trans-unit>
       <trans-unit id="admin.productFeedback.survey.valueParticipant" datatype="html">
         <source>Teilnehmende · Nutzen</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/admin/admin-product-feedback-panel.component.ts</context>
-          <context context-type="linenumber">143</context>
+          <context context-type="linenumber">150</context>
         </context-group>
       </trans-unit>
       <trans-unit id="admin.productFeedback.survey.easeHost" datatype="html">
         <source>Host · Bedienbarkeit</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/admin/admin-product-feedback-panel.component.ts</context>
-          <context context-type="linenumber">145</context>
+          <context context-type="linenumber">152</context>
         </context-group>
       </trans-unit>
       <trans-unit id="admin.productFeedback.survey.valueHost" datatype="html">
         <source>Host · Nutzen</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/admin/admin-product-feedback-panel.component.ts</context>
-          <context context-type="linenumber">147</context>
+          <context context-type="linenumber">154</context>
         </context-group>
       </trans-unit>
       <trans-unit id="productFeedback.answer.easy" datatype="html">
         <source>Leicht</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/admin/admin-product-feedback-panel.component.ts</context>
-          <context context-type="linenumber">156</context>
+          <context context-type="linenumber">163</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/product-feedback/product-feedback-card.component.ts</context>
@@ -4766,7 +4632,7 @@
         <source>Mit kleinen Hürden</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/admin/admin-product-feedback-panel.component.ts</context>
-          <context context-type="linenumber">158</context>
+          <context context-type="linenumber">165</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/product-feedback/product-feedback-card.component.ts</context>
@@ -4777,7 +4643,7 @@
         <source>Schwierig</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/admin/admin-product-feedback-panel.component.ts</context>
-          <context context-type="linenumber">160</context>
+          <context context-type="linenumber">167</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/product-feedback/product-feedback-card.component.ts</context>
@@ -4788,7 +4654,7 @@
         <source>Ja</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/admin/admin-product-feedback-panel.component.ts</context>
-          <context context-type="linenumber">162</context>
+          <context context-type="linenumber">169</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/product-feedback/product-feedback-card.component.ts</context>
@@ -4799,7 +4665,7 @@
         <source>Teilweise</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/admin/admin-product-feedback-panel.component.ts</context>
-          <context context-type="linenumber">164</context>
+          <context context-type="linenumber">171</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/product-feedback/product-feedback-card.component.ts</context>
@@ -4810,7 +4676,7 @@
         <source>Nein</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/admin/admin-product-feedback-panel.component.ts</context>
-          <context context-type="linenumber">166</context>
+          <context context-type="linenumber">173</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/product-feedback/product-feedback-card.component.ts</context>
@@ -4821,252 +4687,252 @@
         <source>Host</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/admin/admin-product-feedback-panel.component.ts</context>
-          <context context-type="linenumber">175</context>
+          <context context-type="linenumber">182</context>
         </context-group>
       </trans-unit>
       <trans-unit id="admin.productFeedback.role.participant" datatype="html">
         <source>Teilnehmende</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/admin/admin-product-feedback-panel.component.ts</context>
-          <context context-type="linenumber">177</context>
+          <context context-type="linenumber">184</context>
         </context-group>
       </trans-unit>
       <trans-unit id="admin.productFeedback.role.general" datatype="html">
         <source>Allgemein</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/admin/admin-product-feedback-panel.component.ts</context>
-          <context context-type="linenumber">179</context>
+          <context context-type="linenumber">186</context>
         </context-group>
       </trans-unit>
       <trans-unit id="admin.productFeedback.source.inApp" datatype="html">
         <source>In der App</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/admin/admin-product-feedback-panel.component.ts</context>
-          <context context-type="linenumber">187</context>
+          <context context-type="linenumber">194</context>
         </context-group>
       </trans-unit>
       <trans-unit id="admin.productFeedback.source.postSession" datatype="html">
         <source>Nach der Session</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/admin/admin-product-feedback-panel.component.ts</context>
-          <context context-type="linenumber">188</context>
+          <context context-type="linenumber">195</context>
         </context-group>
       </trans-unit>
       <trans-unit id="admin.productFeedback.impact.continued" datatype="html">
         <source>Weiterarbeit möglich</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/admin/admin-product-feedback-panel.component.ts</context>
-          <context context-type="linenumber">193</context>
+          <context context-type="linenumber">200</context>
         </context-group>
       </trans-unit>
       <trans-unit id="admin.productFeedback.impact.retried" datatype="html">
         <source>Erneuter Versuch nötig</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/admin/admin-product-feedback-panel.component.ts</context>
-          <context context-type="linenumber">194</context>
+          <context context-type="linenumber">201</context>
         </context-group>
       </trans-unit>
       <trans-unit id="admin.productFeedback.impact.blocked" datatype="html">
         <source>Aufgabe nicht abgeschlossen</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/admin/admin-product-feedback-panel.component.ts</context>
-          <context context-type="linenumber">195</context>
+          <context context-type="linenumber">202</context>
         </context-group>
       </trans-unit>
       <trans-unit id="admin.productFeedback.device.phone" datatype="html">
         <source>Smartphone</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/admin/admin-product-feedback-panel.component.ts</context>
-          <context context-type="linenumber">203</context>
+          <context context-type="linenumber">210</context>
         </context-group>
       </trans-unit>
       <trans-unit id="admin.productFeedback.device.tablet" datatype="html">
         <source>Tablet</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/admin/admin-product-feedback-panel.component.ts</context>
-          <context context-type="linenumber">205</context>
+          <context context-type="linenumber">212</context>
         </context-group>
       </trans-unit>
       <trans-unit id="admin.productFeedback.device.desktop" datatype="html">
         <source>Computer</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/admin/admin-product-feedback-panel.component.ts</context>
-          <context context-type="linenumber">207</context>
+          <context context-type="linenumber">214</context>
         </context-group>
       </trans-unit>
       <trans-unit id="admin.productFeedback.device.unknown" datatype="html">
         <source>Nicht erkannt</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/admin/admin-product-feedback-panel.component.ts</context>
-          <context context-type="linenumber">209</context>
+          <context context-type="linenumber">216</context>
         </context-group>
       </trans-unit>
       <trans-unit id="admin.productFeedback.contextUnavailable" datatype="html">
         <source>Nicht verfügbar</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/admin/admin-product-feedback-panel.component.ts</context>
-          <context context-type="linenumber">226</context>
+          <context context-type="linenumber">233</context>
         </context-group>
       </trans-unit>
       <trans-unit id="admin.productFeedback.route.home" datatype="html">
         <source>Startseite</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/admin/admin-product-feedback-panel.component.ts</context>
-          <context context-type="linenumber">232</context>
+          <context context-type="linenumber">239</context>
         </context-group>
       </trans-unit>
       <trans-unit id="admin.productFeedback.route.help" datatype="html">
         <source>Hilfe</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/admin/admin-product-feedback-panel.component.ts</context>
-          <context context-type="linenumber">233</context>
+          <context context-type="linenumber">240</context>
         </context-group>
       </trans-unit>
       <trans-unit id="admin.productFeedback.route.quizLibrary" datatype="html">
         <source>Quiz-Sammlung</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/admin/admin-product-feedback-panel.component.ts</context>
-          <context context-type="linenumber">234</context>
+          <context context-type="linenumber">241</context>
         </context-group>
       </trans-unit>
       <trans-unit id="admin.productFeedback.route.quizEditor" datatype="html">
         <source>Quiz-Editor</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/admin/admin-product-feedback-panel.component.ts</context>
-          <context context-type="linenumber">235</context>
+          <context context-type="linenumber">242</context>
         </context-group>
       </trans-unit>
       <trans-unit id="admin.productFeedback.route.sessionJoin" datatype="html">
         <source>Sessionbeitritt</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/admin/admin-product-feedback-panel.component.ts</context>
-          <context context-type="linenumber">236</context>
+          <context context-type="linenumber">243</context>
         </context-group>
       </trans-unit>
       <trans-unit id="admin.productFeedback.route.sessionVote" datatype="html">
         <source>Teilnahme</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/admin/admin-product-feedback-panel.component.ts</context>
-          <context context-type="linenumber">237</context>
+          <context context-type="linenumber">244</context>
         </context-group>
       </trans-unit>
       <trans-unit id="admin.productFeedback.route.sessionHost" datatype="html">
         <source>Sessionsteuerung</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/admin/admin-product-feedback-panel.component.ts</context>
-          <context context-type="linenumber">238</context>
+          <context context-type="linenumber">245</context>
         </context-group>
       </trans-unit>
       <trans-unit id="admin.productFeedback.route.sessionResults" datatype="html">
         <source>Ergebnisse</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/admin/admin-product-feedback-panel.component.ts</context>
-          <context context-type="linenumber">239</context>
+          <context context-type="linenumber">246</context>
         </context-group>
       </trans-unit>
       <trans-unit id="admin.productFeedback.route.qa" datatype="html">
         <source>Q&amp;A</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/admin/admin-product-feedback-panel.component.ts</context>
-          <context context-type="linenumber">240</context>
+          <context context-type="linenumber">247</context>
         </context-group>
       </trans-unit>
       <trans-unit id="admin.productFeedback.route.quickFeedback" datatype="html">
         <source>Blitzlicht</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/admin/admin-product-feedback-panel.component.ts</context>
-          <context context-type="linenumber">241</context>
+          <context context-type="linenumber">248</context>
         </context-group>
       </trans-unit>
       <trans-unit id="admin.productFeedback.route.other" datatype="html">
         <source>Anderer Bereich</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/admin/admin-product-feedback-panel.component.ts</context>
-          <context context-type="linenumber">242</context>
+          <context context-type="linenumber">249</context>
         </context-group>
       </trans-unit>
       <trans-unit id="admin.productFeedback.browser.other" datatype="html">
         <source>Anderer Browser</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/admin/admin-product-feedback-panel.component.ts</context>
-          <context context-type="linenumber">253</context>
+          <context context-type="linenumber">260</context>
         </context-group>
       </trans-unit>
       <trans-unit id="admin.productFeedback.size.xs" datatype="html">
         <source>bis 10 Personen</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/admin/admin-product-feedback-panel.component.ts</context>
-          <context context-type="linenumber">261</context>
+          <context context-type="linenumber">268</context>
         </context-group>
       </trans-unit>
       <trans-unit id="admin.productFeedback.size.s" datatype="html">
         <source>11–30 Personen</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/admin/admin-product-feedback-panel.component.ts</context>
-          <context context-type="linenumber">263</context>
+          <context context-type="linenumber">270</context>
         </context-group>
       </trans-unit>
       <trans-unit id="admin.productFeedback.size.m" datatype="html">
         <source>31–80 Personen</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/admin/admin-product-feedback-panel.component.ts</context>
-          <context context-type="linenumber">265</context>
+          <context context-type="linenumber">272</context>
         </context-group>
       </trans-unit>
       <trans-unit id="admin.productFeedback.size.l" datatype="html">
         <source>81–200 Personen</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/admin/admin-product-feedback-panel.component.ts</context>
-          <context context-type="linenumber">267</context>
+          <context context-type="linenumber">274</context>
         </context-group>
       </trans-unit>
       <trans-unit id="admin.productFeedback.size.xl" datatype="html">
         <source>über 200 Personen</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/admin/admin-product-feedback-panel.component.ts</context>
-          <context context-type="linenumber">269</context>
+          <context context-type="linenumber">276</context>
         </context-group>
       </trans-unit>
       <trans-unit id="admin.productFeedback.locale.de" datatype="html">
         <source>Deutsch</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/admin/admin-product-feedback-panel.component.ts</context>
-          <context context-type="linenumber">278</context>
+          <context context-type="linenumber">285</context>
         </context-group>
       </trans-unit>
       <trans-unit id="admin.productFeedback.locale.en" datatype="html">
         <source>Englisch</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/admin/admin-product-feedback-panel.component.ts</context>
-          <context context-type="linenumber">280</context>
+          <context context-type="linenumber">287</context>
         </context-group>
       </trans-unit>
       <trans-unit id="admin.productFeedback.locale.fr" datatype="html">
         <source>Französisch</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/admin/admin-product-feedback-panel.component.ts</context>
-          <context context-type="linenumber">282</context>
+          <context context-type="linenumber">289</context>
         </context-group>
       </trans-unit>
       <trans-unit id="admin.productFeedback.locale.es" datatype="html">
         <source>Spanisch</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/admin/admin-product-feedback-panel.component.ts</context>
-          <context context-type="linenumber">284</context>
+          <context context-type="linenumber">291</context>
         </context-group>
       </trans-unit>
       <trans-unit id="admin.productFeedback.locale.it" datatype="html">
         <source>Italienisch</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/admin/admin-product-feedback-panel.component.ts</context>
-          <context context-type="linenumber">286</context>
+          <context context-type="linenumber">293</context>
         </context-group>
       </trans-unit>
       <trans-unit id="productFeedback.area.join" datatype="html">
         <source>Session beitreten</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/admin/admin-product-feedback-panel.component.ts</context>
-          <context context-type="linenumber">295</context>
+          <context context-type="linenumber">302</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/product-feedback/product-feedback-card.component.ts</context>
@@ -5074,14 +4940,14 @@
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/product-feedback/product-feedback-in-app-dialog.component.ts</context>
-          <context context-type="linenumber">249</context>
+          <context context-type="linenumber">258</context>
         </context-group>
       </trans-unit>
       <trans-unit id="productFeedback.area.orientation" datatype="html">
         <source>Orientierung in der App</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/admin/admin-product-feedback-panel.component.ts</context>
-          <context context-type="linenumber">297</context>
+          <context context-type="linenumber">304</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/product-feedback/product-feedback-card.component.ts</context>
@@ -5092,7 +4958,7 @@
         <source>Antwort abgeben</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/admin/admin-product-feedback-panel.component.ts</context>
-          <context context-type="linenumber">299</context>
+          <context context-type="linenumber">306</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/product-feedback/product-feedback-card.component.ts</context>
@@ -5103,7 +4969,7 @@
         <source>Q&amp;A oder Blitzlicht</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/admin/admin-product-feedback-panel.component.ts</context>
-          <context context-type="linenumber">301</context>
+          <context context-type="linenumber">308</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/product-feedback/product-feedback-card.component.ts</context>
@@ -5114,18 +4980,18 @@
         <source>Ergebnisse</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/admin/admin-product-feedback-panel.component.ts</context>
-          <context context-type="linenumber">303</context>
+          <context context-type="linenumber">310</context>
         </context-group>
       </trans-unit>
       <trans-unit id="productFeedback.area.tech" datatype="html">
         <source>Technik oder Verbindung</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/admin/admin-product-feedback-panel.component.ts</context>
-          <context context-type="linenumber">305</context>
+          <context context-type="linenumber">312</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/admin/admin-product-feedback-panel.component.ts</context>
-          <context context-type="linenumber">331</context>
+          <context context-type="linenumber">338</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/product-feedback/product-feedback-card.component.ts</context>
@@ -5133,14 +4999,14 @@
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/product-feedback/product-feedback-in-app-dialog.component.ts</context>
-          <context context-type="linenumber">255</context>
+          <context context-type="linenumber">264</context>
         </context-group>
       </trans-unit>
       <trans-unit id="productFeedback.area.a11y" datatype="html">
         <source>Barrierefreiheit</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/admin/admin-product-feedback-panel.component.ts</context>
-          <context context-type="linenumber">307</context>
+          <context context-type="linenumber">314</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/product-feedback/product-feedback-card.component.ts</context>
@@ -5151,7 +5017,7 @@
         <source>Etwas anderes</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/admin/admin-product-feedback-panel.component.ts</context>
-          <context context-type="linenumber">309</context>
+          <context context-type="linenumber">316</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/product-feedback/product-feedback-card.component.ts</context>
@@ -5159,14 +5025,14 @@
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/product-feedback/product-feedback-in-app-dialog.component.ts</context>
-          <context context-type="linenumber">256</context>
+          <context context-type="linenumber">265</context>
         </context-group>
       </trans-unit>
       <trans-unit id="productFeedback.area.prepareQuiz" datatype="html">
         <source>Quiz vorbereiten</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/admin/admin-product-feedback-panel.component.ts</context>
-          <context context-type="linenumber">311</context>
+          <context context-type="linenumber">318</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/product-feedback/product-feedback-card.component.ts</context>
@@ -5177,7 +5043,7 @@
         <source>Session starten</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/admin/admin-product-feedback-panel.component.ts</context>
-          <context context-type="linenumber">313</context>
+          <context context-type="linenumber">320</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/product-feedback/product-feedback-card.component.ts</context>
@@ -5188,7 +5054,7 @@
         <source>Teilnehmende einladen</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/admin/admin-product-feedback-panel.component.ts</context>
-          <context context-type="linenumber">315</context>
+          <context context-type="linenumber">322</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/product-feedback/product-feedback-card.component.ts</context>
@@ -5199,7 +5065,7 @@
         <source>Live-Session steuern</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/admin/admin-product-feedback-panel.component.ts</context>
-          <context context-type="linenumber">317</context>
+          <context context-type="linenumber">324</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/product-feedback/product-feedback-card.component.ts</context>
@@ -5207,18 +5073,18 @@
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/product-feedback/product-feedback-in-app-dialog.component.ts</context>
-          <context context-type="linenumber">259</context>
+          <context context-type="linenumber">268</context>
         </context-group>
       </trans-unit>
       <trans-unit id="productFeedback.area.pdfExport" datatype="html">
         <source>PDF oder Export</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/admin/admin-product-feedback-panel.component.ts</context>
-          <context context-type="linenumber">319</context>
+          <context context-type="linenumber">326</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/admin/admin-product-feedback-panel.component.ts</context>
-          <context context-type="linenumber">337</context>
+          <context context-type="linenumber">344</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/product-feedback/product-feedback-card.component.ts</context>
@@ -5226,246 +5092,369 @@
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/product-feedback/product-feedback-in-app-dialog.component.ts</context>
-          <context context-type="linenumber">261</context>
+          <context context-type="linenumber">270</context>
         </context-group>
       </trans-unit>
       <trans-unit id="productFeedback.inApp.area.quizAnswer" datatype="html">
         <source>Quizfrage oder Antwort</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/admin/admin-product-feedback-panel.component.ts</context>
-          <context context-type="linenumber">321</context>
+          <context context-type="linenumber">328</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/product-feedback/product-feedback-in-app-dialog.component.ts</context>
-          <context context-type="linenumber">250</context>
+          <context context-type="linenumber">259</context>
         </context-group>
       </trans-unit>
       <trans-unit id="productFeedback.inApp.area.qa" datatype="html">
         <source>Q&amp;A</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/admin/admin-product-feedback-panel.component.ts</context>
-          <context context-type="linenumber">323</context>
+          <context context-type="linenumber">330</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/product-feedback/product-feedback-in-app-dialog.component.ts</context>
-          <context context-type="linenumber">251</context>
+          <context context-type="linenumber">260</context>
         </context-group>
       </trans-unit>
       <trans-unit id="productFeedback.inApp.area.quickFeedback" datatype="html">
         <source>Blitzlicht</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/admin/admin-product-feedback-panel.component.ts</context>
-          <context context-type="linenumber">325</context>
+          <context context-type="linenumber">332</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/product-feedback/product-feedback-in-app-dialog.component.ts</context>
-          <context context-type="linenumber">252</context>
+          <context context-type="linenumber">261</context>
         </context-group>
       </trans-unit>
       <trans-unit id="productFeedback.inApp.area.resultsScore" datatype="html">
         <source>Ergebnis oder Punkte</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/admin/admin-product-feedback-panel.component.ts</context>
-          <context context-type="linenumber">327</context>
-        </context-group>
-        <context-group purpose="location">
-          <context context-type="sourcefile">src/app/features/product-feedback/product-feedback-in-app-dialog.component.ts</context>
-          <context context-type="linenumber">253</context>
-        </context-group>
-      </trans-unit>
-      <trans-unit id="productFeedback.inApp.area.displayA11y" datatype="html">
-        <source>Darstellung oder Barrierefreiheit</source>
-        <context-group purpose="location">
-          <context context-type="sourcefile">src/app/features/admin/admin-product-feedback-panel.component.ts</context>
-          <context context-type="linenumber">329</context>
-        </context-group>
-        <context-group purpose="location">
-          <context context-type="sourcefile">src/app/features/product-feedback/product-feedback-in-app-dialog.component.ts</context>
-          <context context-type="linenumber">254</context>
-        </context-group>
-      </trans-unit>
-      <trans-unit id="productFeedback.inApp.area.quizEditor" datatype="html">
-        <source>Quiz-Sammlung oder Editor</source>
-        <context-group purpose="location">
-          <context context-type="sourcefile">src/app/features/admin/admin-product-feedback-panel.component.ts</context>
-          <context context-type="linenumber">333</context>
-        </context-group>
-        <context-group purpose="location">
-          <context context-type="sourcefile">src/app/features/product-feedback/product-feedback-in-app-dialog.component.ts</context>
-          <context context-type="linenumber">257</context>
-        </context-group>
-      </trans-unit>
-      <trans-unit id="productFeedback.inApp.area.sessionStart" datatype="html">
-        <source>Sessionstart und Einladung</source>
-        <context-group purpose="location">
-          <context context-type="sourcefile">src/app/features/admin/admin-product-feedback-panel.component.ts</context>
-          <context context-type="linenumber">335</context>
-        </context-group>
-        <context-group purpose="location">
-          <context context-type="sourcefile">src/app/features/product-feedback/product-feedback-in-app-dialog.component.ts</context>
-          <context context-type="linenumber">258</context>
-        </context-group>
-      </trans-unit>
-      <trans-unit id="productFeedback.inApp.area.home" datatype="html">
-        <source>Start und Orientierung</source>
-        <context-group purpose="location">
-          <context context-type="sourcefile">src/app/features/admin/admin-product-feedback-panel.component.ts</context>
-          <context context-type="linenumber">339</context>
+          <context context-type="linenumber">334</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/product-feedback/product-feedback-in-app-dialog.component.ts</context>
           <context context-type="linenumber">262</context>
         </context-group>
       </trans-unit>
-      <trans-unit id="productFeedback.inApp.area.help" datatype="html">
-        <source>Hilfe</source>
+      <trans-unit id="productFeedback.inApp.area.displayA11y" datatype="html">
+        <source>Darstellung oder Barrierefreiheit</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/admin/admin-product-feedback-panel.component.ts</context>
-          <context context-type="linenumber">341</context>
+          <context context-type="linenumber">336</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/product-feedback/product-feedback-in-app-dialog.component.ts</context>
           <context context-type="linenumber">263</context>
         </context-group>
       </trans-unit>
+      <trans-unit id="productFeedback.inApp.area.quizEditor" datatype="html">
+        <source>Quiz-Sammlung oder Editor</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/admin/admin-product-feedback-panel.component.ts</context>
+          <context context-type="linenumber">340</context>
+        </context-group>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/product-feedback/product-feedback-in-app-dialog.component.ts</context>
+          <context context-type="linenumber">266</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="productFeedback.inApp.area.sessionStart" datatype="html">
+        <source>Sessionstart und Einladung</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/admin/admin-product-feedback-panel.component.ts</context>
+          <context context-type="linenumber">342</context>
+        </context-group>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/product-feedback/product-feedback-in-app-dialog.component.ts</context>
+          <context context-type="linenumber">267</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="productFeedback.inApp.area.home" datatype="html">
+        <source>Start und Orientierung</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/admin/admin-product-feedback-panel.component.ts</context>
+          <context context-type="linenumber">346</context>
+        </context-group>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/product-feedback/product-feedback-in-app-dialog.component.ts</context>
+          <context context-type="linenumber">271</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="productFeedback.inApp.area.help" datatype="html">
+        <source>Hilfe</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/admin/admin-product-feedback-panel.component.ts</context>
+          <context context-type="linenumber">348</context>
+        </context-group>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/product-feedback/product-feedback-in-app-dialog.component.ts</context>
+          <context context-type="linenumber">272</context>
+        </context-group>
+      </trans-unit>
       <trans-unit id="admin.productFeedback.kind.notWorking" datatype="html">
         <source>Funktioniert nicht</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/admin/admin-product-feedback-panel.component.ts</context>
-          <context context-type="linenumber">350</context>
+          <context context-type="linenumber">357</context>
         </context-group>
       </trans-unit>
       <trans-unit id="admin.productFeedback.kind.unclear" datatype="html">
         <source>Unklar</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/admin/admin-product-feedback-panel.component.ts</context>
-          <context context-type="linenumber">351</context>
+          <context context-type="linenumber">358</context>
         </context-group>
       </trans-unit>
       <trans-unit id="admin.productFeedback.kind.missing" datatype="html">
         <source>Fehlende Funktion</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/admin/admin-product-feedback-panel.component.ts</context>
-          <context context-type="linenumber">352</context>
+          <context context-type="linenumber">359</context>
         </context-group>
       </trans-unit>
       <trans-unit id="admin.productFeedback.kind.praise" datatype="html">
         <source>Positives Feedback</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/admin/admin-product-feedback-panel.component.ts</context>
-          <context context-type="linenumber">353</context>
+          <context context-type="linenumber">360</context>
         </context-group>
       </trans-unit>
       <trans-unit id="admin.productFeedback.status.new" datatype="html">
         <source>Neu</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/admin/admin-product-feedback-panel.component.ts</context>
-          <context context-type="linenumber">360</context>
+          <context context-type="linenumber">367</context>
         </context-group>
       </trans-unit>
       <trans-unit id="admin.productFeedback.status.reviewed" datatype="html">
         <source>Geprüft</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/admin/admin-product-feedback-panel.component.ts</context>
-          <context context-type="linenumber">361</context>
+          <context context-type="linenumber">368</context>
         </context-group>
       </trans-unit>
       <trans-unit id="admin.productFeedback.status.planned" datatype="html">
         <source>Geplant</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/admin/admin-product-feedback-panel.component.ts</context>
-          <context context-type="linenumber">362</context>
+          <context context-type="linenumber">369</context>
         </context-group>
       </trans-unit>
       <trans-unit id="admin.productFeedback.status.resolved" datatype="html">
         <source>Behoben</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/admin/admin-product-feedback-panel.component.ts</context>
-          <context context-type="linenumber">363</context>
+          <context context-type="linenumber">370</context>
         </context-group>
       </trans-unit>
       <trans-unit id="admin.productFeedback.status.discarded" datatype="html">
         <source>Nicht weiterverfolgt</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/admin/admin-product-feedback-panel.component.ts</context>
-          <context context-type="linenumber">364</context>
+          <context context-type="linenumber">371</context>
         </context-group>
       </trans-unit>
       <trans-unit id="admin.productFeedback.sessionKind.quiz" datatype="html">
         <source>Quiz</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/admin/admin-product-feedback-panel.component.ts</context>
-          <context context-type="linenumber">372</context>
+          <context context-type="linenumber">379</context>
         </context-group>
       </trans-unit>
       <trans-unit id="admin.productFeedback.sessionKind.quickFeedback" datatype="html">
         <source>Blitzlicht</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/admin/admin-product-feedback-panel.component.ts</context>
-          <context context-type="linenumber">374</context>
+          <context context-type="linenumber">381</context>
         </context-group>
       </trans-unit>
       <trans-unit id="admin.productFeedback.sessionKind.mixed" datatype="html">
         <source>Gemischt</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/admin/admin-product-feedback-panel.component.ts</context>
-          <context context-type="linenumber">376</context>
+          <context context-type="linenumber">383</context>
         </context-group>
       </trans-unit>
       <trans-unit id="admin.productFeedback.sessionKind.unknown" datatype="html">
         <source>Nicht erkannt</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/admin/admin-product-feedback-panel.component.ts</context>
-          <context context-type="linenumber">378</context>
+          <context context-type="linenumber">385</context>
         </context-group>
       </trans-unit>
       <trans-unit id="admin.productFeedback.feature.quiz" datatype="html">
         <source>Quiz</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/admin/admin-product-feedback-panel.component.ts</context>
-          <context context-type="linenumber">387</context>
+          <context context-type="linenumber">394</context>
         </context-group>
       </trans-unit>
       <trans-unit id="admin.productFeedback.feature.qa" datatype="html">
         <source>Q&amp;A</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/admin/admin-product-feedback-panel.component.ts</context>
-          <context context-type="linenumber">389</context>
+          <context context-type="linenumber">396</context>
         </context-group>
       </trans-unit>
       <trans-unit id="admin.productFeedback.feature.quickFeedback" datatype="html">
         <source>Blitzlicht</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/admin/admin-product-feedback-panel.component.ts</context>
-          <context context-type="linenumber">391</context>
+          <context context-type="linenumber">398</context>
         </context-group>
       </trans-unit>
       <trans-unit id="admin.productFeedback.errorLoad" datatype="html">
         <source>Die Auswertung konnte nicht geladen werden. Versuche es erneut.</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/admin/admin-product-feedback-panel.component.ts</context>
-          <context context-type="linenumber">461</context>
+          <context context-type="linenumber">468</context>
         </context-group>
       </trans-unit>
       <trans-unit id="admin.productFeedback.inboxLoadError" datatype="html">
         <source>Die Rückmeldungen konnten nicht geladen werden. Versuche es erneut.</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/admin/admin-product-feedback-panel.component.ts</context>
-          <context context-type="linenumber">500</context>
+          <context context-type="linenumber">507</context>
         </context-group>
       </trans-unit>
       <trans-unit id="admin.productFeedback.deleteConfirm" datatype="html">
         <source>Möchtest du diese Rückmeldung wirklich endgültig löschen?</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/admin/admin-product-feedback-panel.component.ts</context>
-          <context context-type="linenumber">599</context>
+          <context context-type="linenumber">652</context>
         </context-group>
       </trans-unit>
       <trans-unit id="admin.productFeedback.triageError" datatype="html">
         <source>Die Änderung konnte nicht gespeichert werden. Versuche es erneut.</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/admin/admin-product-feedback-panel.component.ts</context>
-          <context context-type="linenumber">627</context>
+          <context context-type="linenumber">680</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="admin.productFeedback.purgeTitle" datatype="html">
+        <source>Rückmeldungen endgültig löschen</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/admin/admin-product-feedback-purge-dialog.component.html</context>
+          <context context-type="linenumber">7</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="admin.productFeedback.purgeIntro" datatype="html">
+        <source> Gelöscht werden die gespeicherten Rückmeldungen und die Einladungszähler für denselben Zeitraum. Das lässt sich nicht rückgängig machen. Exportprotokolle bleiben erhalten. </source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/admin/admin-product-feedback-purge-dialog.component.html</context>
+          <context context-type="linenumber">13,16</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="admin.productFeedback.purgeScopeLabel" datatype="html">
+        <source>Löschumfang</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/admin/admin-product-feedback-purge-dialog.component.html</context>
+          <context context-type="linenumber">25</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="admin.productFeedback.purgeScopeUntil" datatype="html">
+        <source> Bis zu einem Datum (einschließlich) </source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/admin/admin-product-feedback-purge-dialog.component.html</context>
+          <context context-type="linenumber">27,29</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="admin.productFeedback.purgeScopeAll" datatype="html">
+        <source> Alle Rückmeldungen </source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/admin/admin-product-feedback-purge-dialog.component.html</context>
+          <context context-type="linenumber">30,32</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="admin.productFeedback.purgeUntil" datatype="html">
+        <source>Löschen bis einschließlich</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/admin/admin-product-feedback-purge-dialog.component.html</context>
+          <context context-type="linenumber">37</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="admin.productFeedback.purgePending" datatype="html">
+        <source>Anzahl wird ermittelt …</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/admin/admin-product-feedback-purge-dialog.component.html</context>
+          <context context-type="linenumber">54</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="admin.productFeedback.purgeCountNone" datatype="html">
+        <source>Keine Rückmeldungen in dieser Auswahl.</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/admin/admin-product-feedback-purge-dialog.component.html</context>
+          <context context-type="linenumber">57</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="admin.productFeedback.purgeCount" datatype="html">
+        <source><x id="INTERPOLATION" equiv-text="Rückmeldungen würden endg"/> Rückmeldungen würden endgültig gelöscht.</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/admin/admin-product-feedback-purge-dialog.component.html</context>
+          <context context-type="linenumber">61</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="admin.productFeedback.purgePhraseHint" datatype="html">
+        <source> Zur Bestätigung gib die Sicherheitsphrase ein. </source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/admin/admin-product-feedback-purge-dialog.component.html</context>
+          <context context-type="linenumber">66,68</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="admin.productFeedback.purgePhraseLabel" datatype="html">
+        <source>Sicherheitsphrase</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/admin/admin-product-feedback-purge-dialog.component.html</context>
+          <context context-type="linenumber">72</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="admin.productFeedback.purgeClose" datatype="html">
+        <source> Abbrechen </source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/admin/admin-product-feedback-purge-dialog.component.html</context>
+          <context context-type="linenumber">99,101</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="admin.productFeedback.purgeSubmit" datatype="html">
+        <source>Endgültig löschen</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/admin/admin-product-feedback-purge-dialog.component.html</context>
+          <context context-type="linenumber">112</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="admin.productFeedback.purgeBusy" datatype="html">
+        <source>Rückmeldungen werden gelöscht …</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/admin/admin-product-feedback-purge-dialog.component.ts</context>
+          <context context-type="linenumber">113</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="admin.productFeedback.purgeError" datatype="html">
+        <source>Die Löschung konnte nicht ausgeführt werden. Versuche es erneut.</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/admin/admin-product-feedback-purge-dialog.component.ts</context>
+          <context context-type="linenumber">159</context>
+        </context-group>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/admin/admin-product-feedback-purge-dialog.component.ts</context>
+          <context context-type="linenumber">210</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="admin.productFeedback.purgeChanged" datatype="html">
+        <source>Die Anzahl hat sich geändert. Zähle neu und bestätige erneut.</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/admin/admin-product-feedback-purge-dialog.component.ts</context>
+          <context context-type="linenumber">213</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="admin.productFeedback.purgePhraseFailed" datatype="html">
+        <source>Die Sicherheitsphrase stimmt nicht.</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/admin/admin-product-feedback-purge-dialog.component.ts</context>
+          <context context-type="linenumber">216</context>
         </context-group>
       </trans-unit>
       <trans-unit id="admin.loginTitle" datatype="html">
@@ -6093,7 +6082,7 @@
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/feedback/feedback-vote.component.ts</context>
-          <context context-type="linenumber">189</context>
+          <context context-type="linenumber">193</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.ts</context>
@@ -6818,64 +6807,71 @@
           <context context-type="linenumber">242</context>
         </context-group>
       </trans-unit>
+      <trans-unit id="feedback.voteAskQuestion" datatype="html">
+        <source>Ich habe eine Frage</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/feedback/feedback-vote.component.html</context>
+          <context context-type="linenumber">284</context>
+        </context-group>
+      </trans-unit>
       <trans-unit id="feedback.voteContextParticipant" datatype="html">
         <source>Du bist als</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/feedback/feedback-vote.component.ts</context>
-          <context context-type="linenumber">166</context>
+          <context context-type="linenumber">170</context>
         </context-group>
       </trans-unit>
       <trans-unit id="feedback.voteParticipantContextAria" datatype="html">
         <source>Du bist als <x id="name" equiv-text="this.participantIdentityLabel()"/> dabei</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/feedback/feedback-vote.component.ts</context>
-          <context context-type="linenumber">192</context>
+          <context context-type="linenumber">196</context>
         </context-group>
       </trans-unit>
       <trans-unit id="feedback.voteParticipantRoleContextAria" datatype="html">
         <source>Teilnehmeransicht</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/feedback/feedback-vote.component.ts</context>
-          <context context-type="linenumber">193</context>
+          <context context-type="linenumber">197</context>
         </context-group>
       </trans-unit>
       <trans-unit id="feedback.voteParticipantTeamContextAria" datatype="html">
         <source>Team <x id="team" equiv-text="team"/></source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/feedback/feedback-vote.component.ts</context>
-          <context context-type="linenumber">201</context>
+          <context context-type="linenumber">205</context>
         </context-group>
       </trans-unit>
       <trans-unit id="feedback.starRatingAria" datatype="html">
         <source><x id="value" equiv-text="value"/> von 5 Sternen</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/feedback/feedback-vote.component.ts</context>
-          <context context-type="linenumber">211</context>
+          <context context-type="linenumber">215</context>
         </context-group>
       </trans-unit>
       <trans-unit id="feedback.tempoOptionDefaultSelectedAria" datatype="html">
         <source><x id="label" equiv-text="label"/> ausgewählt</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/feedback/feedback-vote.component.ts</context>
-          <context context-type="linenumber">217</context>
+          <context context-type="linenumber">221</context>
         </context-group>
       </trans-unit>
       <trans-unit id="feedback.tempoOptionSelectedAria" datatype="html">
         <source><x id="label" equiv-text="label"/> ausgewählt, erneut tippen zum Zurücksetzen</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/feedback/feedback-vote.component.ts</context>
-          <context context-type="linenumber">219</context>
+          <context context-type="linenumber">223</context>
         </context-group>
       </trans-unit>
       <trans-unit id="sessionTabs.quickFeedbackClosedNotice" datatype="html">
         <source>Der Blitzlicht-Kanal wurde von der Lehrperson geschlossen. Neue Abstimmungen sind gerade nicht möglich.</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/feedback/feedback-vote.component.ts</context>
-          <context context-type="linenumber">357</context>
+          <context context-type="linenumber">361</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/feedback/feedback-vote.component.ts</context>
-          <context context-type="linenumber">368</context>
+          <context context-type="linenumber">372</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-vote/session-vote.component.html</context>
@@ -6886,14 +6882,14 @@
         <source>Feedback-Runde nicht gefunden oder abgelaufen.</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/feedback/feedback-vote.component.ts</context>
-          <context context-type="linenumber">370</context>
+          <context context-type="linenumber">374</context>
         </context-group>
       </trans-unit>
       <trans-unit id="feedback.voteFailed" datatype="html">
         <source>Abstimmung fehlgeschlagen.</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/feedback/feedback-vote.component.ts</context>
-          <context context-type="linenumber">497</context>
+          <context context-type="linenumber">501</context>
         </context-group>
       </trans-unit>
       <trans-unit id="7366905277414998384" datatype="html">
@@ -8094,7 +8090,7 @@
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-vote/session-vote.component.ts</context>
-          <context context-type="linenumber">2518</context>
+          <context context-type="linenumber">2538</context>
         </context-group>
       </trans-unit>
       <trans-unit id="3532753318619772032" datatype="html">
@@ -8109,7 +8105,7 @@
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-vote/session-vote.component.ts</context>
-          <context context-type="linenumber">2520</context>
+          <context context-type="linenumber">2540</context>
         </context-group>
       </trans-unit>
       <trans-unit id="74432774947660496" datatype="html">
@@ -8124,7 +8120,7 @@
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-vote/session-vote.component.ts</context>
-          <context context-type="linenumber">2523</context>
+          <context context-type="linenumber">2543</context>
         </context-group>
       </trans-unit>
       <trans-unit id="276214048875673948" datatype="html">
@@ -8139,7 +8135,7 @@
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-vote/session-vote.component.ts</context>
-          <context context-type="linenumber">2523</context>
+          <context context-type="linenumber">2543</context>
         </context-group>
       </trans-unit>
       <trans-unit id="5356551916626450286" datatype="html">
@@ -8154,7 +8150,7 @@
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-vote/session-vote.component.ts</context>
-          <context context-type="linenumber">2525</context>
+          <context context-type="linenumber">2545</context>
         </context-group>
       </trans-unit>
       <trans-unit id="3903113005127984737" datatype="html">
@@ -8169,7 +8165,7 @@
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-vote/session-vote.component.ts</context>
-          <context context-type="linenumber">2525</context>
+          <context context-type="linenumber">2545</context>
         </context-group>
       </trans-unit>
       <trans-unit id="homeRemoveSession" datatype="html">
@@ -8399,7 +8395,7 @@
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-vote/session-vote.component.ts</context>
-          <context context-type="linenumber">2723</context>
+          <context context-type="linenumber">2743</context>
         </context-group>
       </trans-unit>
       <trans-unit id="6658206425619028413" datatype="html">
@@ -8418,7 +8414,7 @@
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-vote/session-vote.component.ts</context>
-          <context context-type="linenumber">2723</context>
+          <context context-type="linenumber">2743</context>
         </context-group>
       </trans-unit>
       <trans-unit id="5683915683305860193" datatype="html">
@@ -8508,11 +8504,11 @@
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-vote/session-vote.component.ts</context>
-          <context context-type="linenumber">2709</context>
+          <context context-type="linenumber">2729</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-vote/session-vote.component.ts</context>
-          <context context-type="linenumber">2718</context>
+          <context context-type="linenumber">2738</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/shared/preset-toast/preset-toast.component.ts</context>
@@ -8702,7 +8698,7 @@
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/shared/motd-archive-dialog/motd-archive-dialog.component.ts</context>
-          <context context-type="linenumber">241</context>
+          <context context-type="linenumber">240</context>
         </context-group>
       </trans-unit>
       <trans-unit id="motd.archiveMarkedAllReadSnack" datatype="html">
@@ -8713,7 +8709,7 @@
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/shared/motd-archive-dialog/motd-archive-dialog.component.ts</context>
-          <context context-type="linenumber">144</context>
+          <context context-type="linenumber">143</context>
         </context-group>
       </trans-unit>
       <trans-unit id="motd.archiveLoadMoreError" datatype="html">
@@ -8724,7 +8720,7 @@
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/shared/motd-archive-dialog/motd-archive-dialog.component.ts</context>
-          <context context-type="linenumber">285</context>
+          <context context-type="linenumber">284</context>
         </context-group>
       </trans-unit>
       <trans-unit id="productFeedback.stepSr" datatype="html">
@@ -8732,6 +8728,10 @@
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/product-feedback/product-feedback-card.component.html</context>
           <context context-type="linenumber">19</context>
+        </context-group>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/product-feedback/product-feedback-in-app-dialog.component.html</context>
+          <context context-type="linenumber">18</context>
         </context-group>
       </trans-unit>
       <trans-unit id="productFeedback.dismissAria" datatype="html">
@@ -8749,7 +8749,7 @@
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/product-feedback/product-feedback-in-app-dialog.component.html</context>
-          <context context-type="linenumber">155,157</context>
+          <context context-type="linenumber">188,190</context>
         </context-group>
       </trans-unit>
       <trans-unit id="productFeedback.dismissError" datatype="html">
@@ -8774,7 +8774,7 @@
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/product-feedback/product-feedback-in-app-dialog.component.html</context>
-          <context context-type="linenumber">93,95</context>
+          <context context-type="linenumber">118,120</context>
         </context-group>
       </trans-unit>
       <trans-unit id="productFeedback.messageLabel" datatype="html">
@@ -8824,7 +8824,7 @@
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/product-feedback/product-feedback-in-app-dialog.component.ts</context>
-          <context context-type="linenumber">260</context>
+          <context context-type="linenumber">269</context>
         </context-group>
       </trans-unit>
       <trans-unit id="productFeedback.area.results" datatype="html">
@@ -8934,7 +8934,7 @@
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/product-feedback/product-feedback-in-app-dialog.component.ts</context>
-          <context context-type="linenumber">103</context>
+          <context context-type="linenumber">112</context>
         </context-group>
       </trans-unit>
       <trans-unit id="productFeedback.status.saved" datatype="html">
@@ -8945,7 +8945,7 @@
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/product-feedback/product-feedback-in-app-dialog.component.ts</context>
-          <context context-type="linenumber">122</context>
+          <context context-type="linenumber">131</context>
         </context-group>
       </trans-unit>
       <trans-unit id="productFeedback.status.queued" datatype="html">
@@ -8956,7 +8956,7 @@
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/product-feedback/product-feedback-in-app-dialog.component.ts</context>
-          <context context-type="linenumber">142</context>
+          <context context-type="linenumber">151</context>
         </context-group>
       </trans-unit>
       <trans-unit id="productFeedback.status.messageSaved" datatype="html">
@@ -9033,190 +9033,190 @@
         <source>Was ist dir aufgefallen?</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/product-feedback/product-feedback-in-app-dialog.component.html</context>
-          <context context-type="linenumber">13</context>
+          <context context-type="linenumber">42</context>
         </context-group>
       </trans-unit>
       <trans-unit id="productFeedback.inApp.areaQuestion" datatype="html">
         <source>Worum geht es?</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/product-feedback/product-feedback-in-app-dialog.component.html</context>
-          <context context-type="linenumber">15</context>
+          <context context-type="linenumber">44</context>
         </context-group>
       </trans-unit>
       <trans-unit id="productFeedback.inApp.detailTitle" datatype="html">
         <source>Möchtest du mehr dazu sagen?</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/product-feedback/product-feedback-in-app-dialog.component.html</context>
-          <context context-type="linenumber">17</context>
+          <context context-type="linenumber">46</context>
         </context-group>
       </trans-unit>
       <trans-unit id="productFeedback.inApp.errorTitle" datatype="html">
         <source>Senden nicht möglich</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/product-feedback/product-feedback-in-app-dialog.component.html</context>
-          <context context-type="linenumber">19</context>
+          <context context-type="linenumber">48</context>
         </context-group>
       </trans-unit>
       <trans-unit id="productFeedback.inApp.sessionContinues" datatype="html">
         <source>Du kannst weiterarbeiten – die Session läuft im Hintergrund weiter.</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/product-feedback/product-feedback-in-app-dialog.component.html</context>
-          <context context-type="linenumber">40</context>
+          <context context-type="linenumber">59</context>
         </context-group>
       </trans-unit>
       <trans-unit id="productFeedback.inApp.anonymousHint" datatype="html">
         <source> Du brauchst weder Anmeldung noch E-Mail-Adresse. </source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/product-feedback/product-feedback-in-app-dialog.component.html</context>
-          <context context-type="linenumber">46,48</context>
+          <context context-type="linenumber">65,67</context>
         </context-group>
       </trans-unit>
       <trans-unit id="productFeedback.inApp.contextDisclosure" datatype="html">
         <source>Damit wir deine Rückmeldung einordnen können, senden wir nur grobe technische Angaben mit – niemals Namen oder Sessioninhalte.</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/product-feedback/product-feedback-in-app-dialog.component.html</context>
-          <context context-type="linenumber">65,66</context>
+          <context context-type="linenumber">85,86</context>
         </context-group>
       </trans-unit>
       <trans-unit id="productFeedback.inApp.addDetail" datatype="html">
         <source>Ergänzung hinzufügen</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/product-feedback/product-feedback-in-app-dialog.component.html</context>
-          <context context-type="linenumber">90</context>
+          <context context-type="linenumber">115</context>
         </context-group>
       </trans-unit>
       <trans-unit id="productFeedback.inApp.impactLegend" datatype="html">
         <source>Welche Auswirkung hatte das?</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/product-feedback/product-feedback-in-app-dialog.component.html</context>
-          <context context-type="linenumber">100</context>
+          <context context-type="linenumber">125</context>
         </context-group>
       </trans-unit>
       <trans-unit id="productFeedback.inApp.messageLabel" datatype="html">
         <source>Was ist passiert oder was hättest du erwartet?</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/product-feedback/product-feedback-in-app-dialog.component.html</context>
-          <context context-type="linenumber">116</context>
+          <context context-type="linenumber">145</context>
         </context-group>
       </trans-unit>
       <trans-unit id="productFeedback.inApp.saveDetail" datatype="html">
         <source>Ergänzung speichern</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/product-feedback/product-feedback-in-app-dialog.component.html</context>
-          <context context-type="linenumber">139</context>
+          <context context-type="linenumber">172</context>
         </context-group>
       </trans-unit>
       <trans-unit id="productFeedback.inApp.finishWithoutDetail" datatype="html">
         <source>Ohne Ergänzung schließen</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/product-feedback/product-feedback-in-app-dialog.component.html</context>
-          <context context-type="linenumber">142</context>
+          <context context-type="linenumber">175</context>
         </context-group>
       </trans-unit>
       <trans-unit id="common.close" datatype="html">
         <source>Schließen</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/product-feedback/product-feedback-in-app-dialog.component.html</context>
-          <context context-type="linenumber">159</context>
+          <context context-type="linenumber">192</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/product-feedback/product-feedback-in-app-dialog.component.html</context>
-          <context context-type="linenumber">168</context>
+          <context context-type="linenumber">202</context>
         </context-group>
       </trans-unit>
       <trans-unit id="productFeedback.inApp.outboxSummary" datatype="html">
         <source> Ausstehende Rückmeldungen auf diesem Gerät (<x id="INTERPOLATION" equiv-text="{{ outbox().length }}"/>) </source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/product-feedback/product-feedback-in-app-dialog.component.html</context>
-          <context context-type="linenumber">174,176</context>
+          <context context-type="linenumber">209,211</context>
         </context-group>
       </trans-unit>
       <trans-unit id="common.delete" datatype="html">
         <source>Löschen</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/product-feedback/product-feedback-in-app-dialog.component.html</context>
-          <context context-type="linenumber">182</context>
+          <context context-type="linenumber">217</context>
         </context-group>
       </trans-unit>
       <trans-unit id="productFeedback.inApp.rejected" datatype="html">
         <source>Deine Eingaben bleiben erhalten.</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/product-feedback/product-feedback-in-app-dialog.component.ts</context>
-          <context context-type="linenumber">128</context>
+          <context context-type="linenumber">137</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/product-feedback/product-feedback-in-app-dialog.component.ts</context>
-          <context context-type="linenumber">189</context>
+          <context context-type="linenumber">198</context>
         </context-group>
       </trans-unit>
       <trans-unit id="productFeedback.inApp.detailSaved" datatype="html">
         <source>Deine Ergänzung ist gespeichert.</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/product-feedback/product-feedback-in-app-dialog.component.ts</context>
-          <context context-type="linenumber">181</context>
+          <context context-type="linenumber">190</context>
         </context-group>
       </trans-unit>
       <trans-unit id="productFeedback.inApp.detailQueued" datatype="html">
         <source>Deine Ergänzung ist auf diesem Gerät vorgemerkt und wird automatisch nachgesendet.</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/product-feedback/product-feedback-in-app-dialog.component.ts</context>
-          <context context-type="linenumber">202</context>
+          <context context-type="linenumber">211</context>
         </context-group>
       </trans-unit>
       <trans-unit id="productFeedback.inApp.outboxDeleted" datatype="html">
         <source>Ausstehende Rückmeldung gelöscht.</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/product-feedback/product-feedback-in-app-dialog.component.ts</context>
-          <context context-type="linenumber">229</context>
+          <context context-type="linenumber">238</context>
         </context-group>
       </trans-unit>
       <trans-unit id="productFeedback.inApp.kind.notWorking" datatype="html">
         <source>Etwas funktioniert nicht</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/product-feedback/product-feedback-in-app-dialog.component.ts</context>
-          <context context-type="linenumber">239</context>
+          <context context-type="linenumber">248</context>
         </context-group>
       </trans-unit>
       <trans-unit id="productFeedback.inApp.kind.unclear" datatype="html">
         <source>Etwas ist unklar</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/product-feedback/product-feedback-in-app-dialog.component.ts</context>
-          <context context-type="linenumber">240</context>
+          <context context-type="linenumber">249</context>
         </context-group>
       </trans-unit>
       <trans-unit id="productFeedback.inApp.kind.missing" datatype="html">
         <source>Mir fehlt eine Funktion</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/product-feedback/product-feedback-in-app-dialog.component.ts</context>
-          <context context-type="linenumber">241</context>
+          <context context-type="linenumber">250</context>
         </context-group>
       </trans-unit>
       <trans-unit id="productFeedback.inApp.kind.praise" datatype="html">
         <source>Etwas gefällt mir</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/product-feedback/product-feedback-in-app-dialog.component.ts</context>
-          <context context-type="linenumber">242</context>
+          <context context-type="linenumber">251</context>
         </context-group>
       </trans-unit>
       <trans-unit id="productFeedback.inApp.impact.continued" datatype="html">
         <source>Ich konnte weitermachen</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/product-feedback/product-feedback-in-app-dialog.component.ts</context>
-          <context context-type="linenumber">270</context>
+          <context context-type="linenumber">279</context>
         </context-group>
       </trans-unit>
       <trans-unit id="productFeedback.inApp.impact.retried" datatype="html">
         <source>Ich musste es erneut versuchen</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/product-feedback/product-feedback-in-app-dialog.component.ts</context>
-          <context context-type="linenumber">271</context>
+          <context context-type="linenumber">280</context>
         </context-group>
       </trans-unit>
       <trans-unit id="productFeedback.inApp.impact.blocked" datatype="html">
         <source>Ich konnte die Aufgabe nicht abschließen</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/product-feedback/product-feedback-in-app-dialog.component.ts</context>
-          <context context-type="linenumber">272</context>
+          <context context-type="linenumber">281</context>
         </context-group>
       </trans-unit>
       <trans-unit id="quizImport.confidenceMappedMessage" datatype="html">
@@ -18599,7 +18599,7 @@
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-vote/session-vote.component.ts</context>
-          <context context-type="linenumber">2499</context>
+          <context context-type="linenumber">2519</context>
         </context-group>
       </trans-unit>
       <trans-unit id="sessionQa.statusActive" datatype="html">
@@ -18610,7 +18610,7 @@
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-vote/session-vote.component.ts</context>
-          <context context-type="linenumber">2501</context>
+          <context context-type="linenumber">2521</context>
         </context-group>
       </trans-unit>
       <trans-unit id="sessionQa.statusPending" datatype="html">
@@ -18621,7 +18621,7 @@
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-vote/session-vote.component.ts</context>
-          <context context-type="linenumber">2503</context>
+          <context context-type="linenumber">2523</context>
         </context-group>
       </trans-unit>
       <trans-unit id="sessionQa.statusArchived" datatype="html">
@@ -18632,7 +18632,7 @@
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-vote/session-vote.component.ts</context>
-          <context context-type="linenumber">2505</context>
+          <context context-type="linenumber">2525</context>
         </context-group>
       </trans-unit>
       <trans-unit id="sessionQa.statusDeleted" datatype="html">
@@ -18643,7 +18643,7 @@
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-vote/session-vote.component.ts</context>
-          <context context-type="linenumber">2507</context>
+          <context context-type="linenumber">2527</context>
         </context-group>
       </trans-unit>
       <trans-unit id="sessionQa.actionApprove" datatype="html">
@@ -19993,7 +19993,7 @@
         </context-group>
       </trans-unit>
       <trans-unit id="sessionVote.liveParticipantsPlayful" datatype="html">
-        <source>Mit dabei</source>
+        <source>mit dabei</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-vote/session-vote-participant-copy.ts</context>
           <context context-type="linenumber">14</context>
@@ -21445,21 +21445,21 @@
         <source>Abschluss-Aktionen</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-vote/session-vote.component.html</context>
-          <context context-type="linenumber">2797</context>
+          <context context-type="linenumber">2799</context>
         </context-group>
       </trans-unit>
       <trans-unit id="sessionVote.quizActionsAria" datatype="html">
         <source>Quiz-Aktionen</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-vote/session-vote.component.html</context>
-          <context context-type="linenumber">2835</context>
+          <context context-type="linenumber">2837</context>
         </context-group>
       </trans-unit>
       <trans-unit id="sessionVote.qaActionsAria" datatype="html">
         <source>Q&amp;A-Aktionen</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-vote/session-vote.component.html</context>
-          <context context-type="linenumber">2854</context>
+          <context context-type="linenumber">2856</context>
         </context-group>
       </trans-unit>
       <trans-unit id="2427920593873911865" datatype="html">
@@ -22161,541 +22161,541 @@
         <source>Finaler Score</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-vote/session-vote.component.ts</context>
-          <context context-type="linenumber">2561</context>
+          <context context-type="linenumber">2581</context>
         </context-group>
       </trans-unit>
       <trans-unit id="sessionVote.teamRewardTitleWinFin" datatype="html">
         <source>Ihr gewinnt als Team!</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-vote/session-vote.component.ts</context>
-          <context context-type="linenumber">2566</context>
+          <context context-type="linenumber">2586</context>
         </context-group>
       </trans-unit>
       <trans-unit id="sessionVote.teamRewardTitleFinishedOther" datatype="html">
         <source>Im Ziel</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-vote/session-vote.component.ts</context>
-          <context context-type="linenumber">2567</context>
+          <context context-type="linenumber">2587</context>
         </context-group>
       </trans-unit>
       <trans-unit id="sessionVote.teamRewardTitleChasingZero" datatype="html">
         <source>Jetzt nachlegen – ihr holt das noch!</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-vote/session-vote.component.ts</context>
-          <context context-type="linenumber">2571</context>
+          <context context-type="linenumber">2591</context>
         </context-group>
       </trans-unit>
       <trans-unit id="sessionVote.teamRewardTitleAllZero" datatype="html">
         <source>Zeigt, was in euch steckt!</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-vote/session-vote.component.ts</context>
-          <context context-type="linenumber">2572</context>
+          <context context-type="linenumber">2592</context>
         </context-group>
       </trans-unit>
       <trans-unit id="sessionVote.teamRewardTitleLeading" datatype="html">
         <source>Ihr führt gerade</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-vote/session-vote.component.ts</context>
-          <context context-type="linenumber">2575</context>
+          <context context-type="linenumber">2595</context>
         </context-group>
       </trans-unit>
       <trans-unit id="sessionVote.teamRewardTitleChasing" datatype="html">
         <source>Weitermachen</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-vote/session-vote.component.ts</context>
-          <context context-type="linenumber">2577</context>
+          <context context-type="linenumber">2597</context>
         </context-group>
       </trans-unit>
       <trans-unit id="sessionVote.teamRewardMsgWinFin" datatype="html">
         <source>Gemeinsam gewonnen: Platz 1 für euch.</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-vote/session-vote.component.ts</context>
-          <context context-type="linenumber">2595</context>
+          <context context-type="linenumber">2615</context>
         </context-group>
       </trans-unit>
       <trans-unit id="sessionVote.teamRewardMsgFinishedAllZero" datatype="html">
         <source>Quiz beendet – es wurden keine Team-Punkte vergeben.</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-vote/session-vote.component.ts</context>
-          <context context-type="linenumber">2598</context>
+          <context context-type="linenumber">2618</context>
         </context-group>
       </trans-unit>
       <trans-unit id="sessionVote.teamRewardMsgFinishedOwnZero" datatype="html">
         <source>Quiz beendet – ihr habt keine Team-Punkte gesammelt.</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-vote/session-vote.component.ts</context>
-          <context context-type="linenumber">2601</context>
+          <context context-type="linenumber">2621</context>
         </context-group>
       </trans-unit>
       <trans-unit id="sessionVote.teamRewardMsgFinishedOther" datatype="html">
         <source>Ihr beendet mit <x id="totalScore" equiv-text="formatLocaleCount(entry.totalScore, getEffectiveLocale())"/> Punkten auf Platz <x id="teamRank" equiv-text="formatLocaleCount(entry.rank, getEffectiveLocale())"/>.</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-vote/session-vote.component.ts</context>
-          <context context-type="linenumber">2603</context>
+          <context context-type="linenumber">2623</context>
         </context-group>
       </trans-unit>
       <trans-unit id="sessionVote.teamRewardMsgAllZero" datatype="html">
         <source>Mit richtigen Antworten sammelt ihr Punkte fürs Team.</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-vote/session-vote.component.ts</context>
-          <context context-type="linenumber">2607</context>
+          <context context-type="linenumber">2627</context>
         </context-group>
       </trans-unit>
       <trans-unit id="sessionVote.teamRewardMsgChasing" datatype="html">
         <source>Aktuell Platz <x id="teamRank" equiv-text="formatLocaleCount(entry.rank, getEffectiveLocale())"/> mit <x id="totalScore" equiv-text="formatLocaleCount(entry.totalScore, getEffectiveLocale())"/> Punkten.</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-vote/session-vote.component.ts</context>
-          <context context-type="linenumber">2609</context>
+          <context context-type="linenumber">2629</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-vote/session-vote.component.ts</context>
-          <context context-type="linenumber">2614</context>
+          <context context-type="linenumber">2634</context>
         </context-group>
       </trans-unit>
       <trans-unit id="sessionVote.teamRewardMsgLeading" datatype="html">
         <source>Mit <x id="totalScore" equiv-text="formatLocaleCount(entry.totalScore, getEffectiveLocale())"/> Punkten führt ihr.</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-vote/session-vote.component.ts</context>
-          <context context-type="linenumber">2612</context>
+          <context context-type="linenumber">2632</context>
         </context-group>
       </trans-unit>
       <trans-unit id="sessionVote.finishedTitlePlayfulLoading" datatype="html">
         <source>Ergebnis wird geladen…</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-vote/session-vote.component.ts</context>
-          <context context-type="linenumber">2656</context>
+          <context context-type="linenumber">2676</context>
         </context-group>
       </trans-unit>
       <trans-unit id="sessionVote.finishedTitlePlayfulNeutral" datatype="html">
         <source>Das war&apos;s – danke fürs Mitmachen!</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-vote/session-vote.component.ts</context>
-          <context context-type="linenumber">2661</context>
+          <context context-type="linenumber">2681</context>
         </context-group>
       </trans-unit>
       <trans-unit id="sessionVote.teamStandingNoRank" datatype="html">
         <source><x id="teamName" equiv-text="teamLabel"/> mit <x id="memberCountLabel" equiv-text="this.teamMemberLabel(entry.memberCount)"/> und <x id="totalScore" equiv-text="formatLocaleCount(entry.totalScore, getEffectiveLocale())"/> Team-Punkten, noch ohne Rang</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-vote/session-vote.component.ts</context>
-          <context context-type="linenumber">2702</context>
+          <context context-type="linenumber">2722</context>
         </context-group>
       </trans-unit>
       <trans-unit id="sessionVote.teamStandingWithMembers" datatype="html">
         <source>Platz <x id="teamRank" equiv-text="formatLocaleCount(entry.rank, getEffectiveLocale())"/>: <x id="teamName" equiv-text="teamLabel"/> mit <x id="memberCountLabel" equiv-text="this.teamMemberLabel(entry.memberCount)"/> und <x id="totalScore" equiv-text="formatLocaleCount(entry.totalScore, getEffectiveLocale())"/> Punkten</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-vote/session-vote.component.ts</context>
-          <context context-type="linenumber">2704</context>
+          <context context-type="linenumber">2724</context>
         </context-group>
       </trans-unit>
       <trans-unit id="2602080285199874401" datatype="html">
         <source><x id="PH" equiv-text="stars"/> von 5 Sternen</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-vote/session-vote.component.ts</context>
-          <context context-type="linenumber">2737</context>
+          <context context-type="linenumber">2757</context>
         </context-group>
       </trans-unit>
       <trans-unit id="sessionVote.countdownAriaOne" datatype="html">
         <source>1 Sekunde verbleibend</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-vote/session-vote.component.ts</context>
-          <context context-type="linenumber">2743</context>
+          <context context-type="linenumber">2763</context>
         </context-group>
       </trans-unit>
       <trans-unit id="sessionVote.countdownAriaMany" datatype="html">
         <source><x id="seconds" equiv-text="seconds"/> Sekunden verbleibend</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-vote/session-vote.component.ts</context>
-          <context context-type="linenumber">2744</context>
+          <context context-type="linenumber">2764</context>
         </context-group>
       </trans-unit>
       <trans-unit id="sessionVote.timerAccommodation.groupAria" datatype="html">
         <source>Persönliche Zeit</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-vote/session-vote.component.ts</context>
-          <context context-type="linenumber">2756</context>
+          <context context-type="linenumber">2776</context>
         </context-group>
       </trans-unit>
       <trans-unit id="sessionVote.timerAccommodation.extended" datatype="html">
         <source>10× Zeit</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-vote/session-vote.component.ts</context>
-          <context context-type="linenumber">2762</context>
+          <context context-type="linenumber">2782</context>
         </context-group>
       </trans-unit>
       <trans-unit id="sessionVote.timerAccommodation.off" datatype="html">
         <source>Ohne Frist</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-vote/session-vote.component.ts</context>
-          <context context-type="linenumber">2764</context>
+          <context context-type="linenumber">2784</context>
         </context-group>
       </trans-unit>
       <trans-unit id="sessionVote.timerAccommodation.default" datatype="html">
         <source>Standard</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-vote/session-vote.component.ts</context>
-          <context context-type="linenumber">2766</context>
+          <context context-type="linenumber">2786</context>
         </context-group>
       </trans-unit>
       <trans-unit id="sessionVote.timerAccommodation.pointsDefault" datatype="html">
         <source>Punkte folgen dem gemeinsamen Countdown</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-vote/session-vote.component.ts</context>
-          <context context-type="linenumber">2772</context>
+          <context context-type="linenumber">2792</context>
         </context-group>
       </trans-unit>
       <trans-unit id="sessionVote.timerAccommodation.pointsOvertime" datatype="html">
         <source>Früh abgeben lohnt sich · nach dem Countdown nur Mindestpunkte</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-vote/session-vote.component.ts</context>
-          <context context-type="linenumber">2774</context>
+          <context context-type="linenumber">2794</context>
         </context-group>
       </trans-unit>
       <trans-unit id="sessionVote.scorePreview.overtimeCorrect" datatype="html">
         <source>Nachlaufzeit · richtige Antwort</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-vote/session-vote.component.ts</context>
-          <context context-type="linenumber">2779</context>
+          <context context-type="linenumber">2799</context>
         </context-group>
       </trans-unit>
       <trans-unit id="sessionVote.scorePreview.upToNow" datatype="html">
         <source>Volle Wertung jetzt</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-vote/session-vote.component.ts</context>
-          <context context-type="linenumber">2782</context>
+          <context context-type="linenumber">2802</context>
         </context-group>
       </trans-unit>
       <trans-unit id="sessionVote.scorePreview.correctNow" datatype="html">
         <source>Richtige Antwort jetzt</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-vote/session-vote.component.ts</context>
-          <context context-type="linenumber">2783</context>
+          <context context-type="linenumber">2803</context>
         </context-group>
       </trans-unit>
       <trans-unit id="sessionVote.timerAccommodation.error" datatype="html">
         <source>Zeitanpassung konnte nicht gespeichert werden.</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-vote/session-vote.component.ts</context>
-          <context context-type="linenumber">2819</context>
+          <context context-type="linenumber">2839</context>
         </context-group>
       </trans-unit>
       <trans-unit id="sessionQa.removeUpvoteAria" datatype="html">
         <source>Positivbewertung zurücknehmen</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-vote/session-vote.component.ts</context>
-          <context context-type="linenumber">2830</context>
+          <context context-type="linenumber">2850</context>
         </context-group>
       </trans-unit>
       <trans-unit id="sessionQa.addUpvoteAria" datatype="html">
         <source>Positiv bewerten</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-vote/session-vote.component.ts</context>
-          <context context-type="linenumber">2831</context>
+          <context context-type="linenumber">2851</context>
         </context-group>
       </trans-unit>
       <trans-unit id="sessionQa.removeDownvoteAria" datatype="html">
         <source>Negativbewertung zurücknehmen</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-vote/session-vote.component.ts</context>
-          <context context-type="linenumber">2835</context>
+          <context context-type="linenumber">2855</context>
         </context-group>
       </trans-unit>
       <trans-unit id="sessionQa.addDownvoteAria" datatype="html">
         <source>Negativ bewerten</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-vote/session-vote.component.ts</context>
-          <context context-type="linenumber">2836</context>
+          <context context-type="linenumber">2856</context>
         </context-group>
       </trans-unit>
       <trans-unit id="5043949766391435553" datatype="html">
         <source>Bewertung von <x id="PH" equiv-text="this.ratingLabelMin()"/> bis <x id="PH_1" equiv-text="this.ratingLabelMax()"/></source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-vote/session-vote.component.ts</context>
-          <context context-type="linenumber">2840</context>
+          <context context-type="linenumber">2860</context>
         </context-group>
       </trans-unit>
       <trans-unit id="2721187191897749624" datatype="html">
         <source>Bewertung <x id="PH" equiv-text="value"/></source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-vote/session-vote.component.ts</context>
-          <context context-type="linenumber">2844</context>
+          <context context-type="linenumber">2864</context>
         </context-group>
       </trans-unit>
       <trans-unit id="sessionVote.confidenceAriaWithLabels" datatype="html">
         <source>Selbsteinschätzung von 1 bis 5, niedrig: <x id="low" equiv-text="low"/>, hoch: <x id="high" equiv-text="high"/></source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-vote/session-vote.component.ts</context>
-          <context context-type="linenumber">2871</context>
+          <context context-type="linenumber">2891</context>
         </context-group>
       </trans-unit>
       <trans-unit id="sessionVote.confidenceAriaWithLow" datatype="html">
         <source>Selbsteinschätzung von 1 bis 5, niedrig: <x id="low" equiv-text="low"/></source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-vote/session-vote.component.ts</context>
-          <context context-type="linenumber">2874</context>
+          <context context-type="linenumber">2894</context>
         </context-group>
       </trans-unit>
       <trans-unit id="sessionVote.confidenceAriaWithHigh" datatype="html">
         <source>Selbsteinschätzung von 1 bis 5, hoch: <x id="high" equiv-text="high"/></source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-vote/session-vote.component.ts</context>
-          <context context-type="linenumber">2877</context>
+          <context context-type="linenumber">2897</context>
         </context-group>
       </trans-unit>
       <trans-unit id="sessionVote.confidenceAria" datatype="html">
         <source>Selbsteinschätzung von 1 bis 5</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-vote/session-vote.component.ts</context>
-          <context context-type="linenumber">2879</context>
+          <context context-type="linenumber">2899</context>
         </context-group>
       </trans-unit>
       <trans-unit id="sessionVote.confidenceValueAria" datatype="html">
         <source>Selbsteinschätzung <x id="value" equiv-text="value"/></source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-vote/session-vote.component.ts</context>
-          <context context-type="linenumber">2883</context>
+          <context context-type="linenumber">2903</context>
         </context-group>
       </trans-unit>
       <trans-unit id="sessionVote.confidenceResultWithLowLabel" datatype="html">
         <source><x id="value" equiv-text="value"/> – <x id="label" equiv-text="low"/></source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-vote/session-vote.component.ts</context>
-          <context context-type="linenumber">2894</context>
+          <context context-type="linenumber">2914</context>
         </context-group>
       </trans-unit>
       <trans-unit id="sessionVote.confidenceResultWithHighLabel" datatype="html">
         <source><x id="value" equiv-text="value"/> – <x id="label" equiv-text="high"/></source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-vote/session-vote.component.ts</context>
-          <context context-type="linenumber">2897</context>
+          <context context-type="linenumber">2917</context>
         </context-group>
       </trans-unit>
       <trans-unit id="974858114847169012" datatype="html">
         <source>Reagiere mit <x id="PH" equiv-text="emoji"/></source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-vote/session-vote.component.ts</context>
-          <context context-type="linenumber">2917</context>
+          <context context-type="linenumber">2937</context>
         </context-group>
       </trans-unit>
       <trans-unit id="sessionVote.questionSkippedFinished" datatype="html">
         <source>Die Frage wurde ausgelassen. Die Session ist beendet.</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-vote/session-vote.component.ts</context>
-          <context context-type="linenumber">3417</context>
+          <context context-type="linenumber">3437</context>
         </context-group>
       </trans-unit>
       <trans-unit id="sessionVote.questionSkippedNext" datatype="html">
         <source>Die Frage wurde ausgelassen. Die nächste Frage startet.</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-vote/session-vote.component.ts</context>
-          <context context-type="linenumber">3418</context>
+          <context context-type="linenumber">3438</context>
         </context-group>
       </trans-unit>
       <trans-unit id="sessionQa.voteLoadError" datatype="html">
         <source>Fragen konnten nicht geladen werden.</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-vote/session-vote.component.ts</context>
-          <context context-type="linenumber">3869</context>
+          <context context-type="linenumber">3889</context>
         </context-group>
       </trans-unit>
       <trans-unit id="sessionQa.submitSuccess" datatype="html">
         <source>Frage gesendet.</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-vote/session-vote.component.ts</context>
-          <context context-type="linenumber">3912</context>
+          <context context-type="linenumber">3932</context>
         </context-group>
       </trans-unit>
       <trans-unit id="sessionQa.submitError" datatype="html">
         <source>Frage konnte nicht gesendet werden.</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-vote/session-vote.component.ts</context>
-          <context context-type="linenumber">3918</context>
+          <context context-type="linenumber">3938</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-vote/session-vote.component.ts</context>
-          <context context-type="linenumber">3941</context>
+          <context context-type="linenumber">3961</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-vote/session-vote.component.ts</context>
-          <context context-type="linenumber">3971</context>
+          <context context-type="linenumber">3991</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-vote/session-vote.component.ts</context>
-          <context context-type="linenumber">3979</context>
+          <context context-type="linenumber">3999</context>
         </context-group>
       </trans-unit>
       <trans-unit id="sessionQa.upvoteError" datatype="html">
         <source>Stimme konnte nicht gespeichert werden.</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-vote/session-vote.component.ts</context>
-          <context context-type="linenumber">4020</context>
+          <context context-type="linenumber">4040</context>
         </context-group>
       </trans-unit>
       <trans-unit id="sessionQa.deleteOwnError" datatype="html">
         <source>Frage konnte nicht gelöscht werden.</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-vote/session-vote.component.ts</context>
-          <context context-type="linenumber">4048</context>
+          <context context-type="linenumber">4068</context>
         </context-group>
       </trans-unit>
       <trans-unit id="sessionQa.snackModeratorRemovedOwnMany" datatype="html">
         <source>Die Moderation hat deine Fragen entfernt.</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-vote/session-vote.component.ts</context>
-          <context context-type="linenumber">4104</context>
+          <context context-type="linenumber">4124</context>
         </context-group>
       </trans-unit>
       <trans-unit id="sessionQa.snackModeratorRemovedOwn" datatype="html">
         <source>Die Moderation hat deine Frage entfernt.</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-vote/session-vote.component.ts</context>
-          <context context-type="linenumber">4105</context>
+          <context context-type="linenumber">4125</context>
         </context-group>
       </trans-unit>
       <trans-unit id="sessionQa.snackModeratorRemovedOthersMany" datatype="html">
         <source>Mehrere Fragen wurden von der Moderation entfernt.</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-vote/session-vote.component.ts</context>
-          <context context-type="linenumber">4109</context>
+          <context context-type="linenumber">4129</context>
         </context-group>
       </trans-unit>
       <trans-unit id="sessionQa.snackModeratorRemovedOther" datatype="html">
         <source>Eine Frage wurde von der Moderation entfernt.</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-vote/session-vote.component.ts</context>
-          <context context-type="linenumber">4110</context>
+          <context context-type="linenumber">4130</context>
         </context-group>
       </trans-unit>
       <trans-unit id="sessionVote.readingReadyError" datatype="html">
         <source>Bereitschaft konnte nicht bestätigt werden.</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-vote/session-vote.component.ts</context>
-          <context context-type="linenumber">4408</context>
+          <context context-type="linenumber">4428</context>
         </context-group>
       </trans-unit>
       <trans-unit id="sessionVote.orderingMovedAnnouncement" datatype="html">
         <source><x id="item" equiv-text="item.text"/> steht jetzt an Position <x id="position" equiv-text="nextIndex + 1"/> von <x id="total" equiv-text="items.length"/>.</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-vote/session-vote.component.ts</context>
-          <context context-type="linenumber">4499,4501</context>
+          <context context-type="linenumber">4519,4521</context>
         </context-group>
       </trans-unit>
       <trans-unit id="sessionVote.orderingMoveStartAria" datatype="html">
         <source><x id="item" equiv-text="itemText"/> an den Anfang verschieben</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-vote/session-vote.component.ts</context>
-          <context context-type="linenumber">4508</context>
+          <context context-type="linenumber">4528</context>
         </context-group>
       </trans-unit>
       <trans-unit id="sessionVote.orderingMoveEndAria" datatype="html">
         <source><x id="item" equiv-text="itemText"/> ans Ende verschieben</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-vote/session-vote.component.ts</context>
-          <context context-type="linenumber">4511</context>
+          <context context-type="linenumber">4531</context>
         </context-group>
       </trans-unit>
       <trans-unit id="sessionVote.orderingMoveUpAria" datatype="html">
         <source><x id="item" equiv-text="itemText"/> nach oben verschieben</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-vote/session-vote.component.ts</context>
-          <context context-type="linenumber">4514</context>
+          <context context-type="linenumber">4534</context>
         </context-group>
       </trans-unit>
       <trans-unit id="sessionVote.orderingMoveDownAria" datatype="html">
         <source><x id="item" equiv-text="itemText"/> nach unten verschieben</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-vote/session-vote.component.ts</context>
-          <context context-type="linenumber">4516</context>
+          <context context-type="linenumber">4536</context>
         </context-group>
       </trans-unit>
       <trans-unit id="sessionVote.orderingActionsAria" datatype="html">
         <source>Position von <x id="item" equiv-text="itemText"/> ändern</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-vote/session-vote.component.ts</context>
-          <context context-type="linenumber">4520</context>
+          <context context-type="linenumber">4540</context>
         </context-group>
       </trans-unit>
       <trans-unit id="sessionVote.matchingConflictClearedAnnouncement" datatype="html">
         <source>Die bisherige Zuordnung für „<x id="previousItem" equiv-text="conflictingSelection.leftText"/>“ wurde entfernt.</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-vote/session-vote.component.ts</context>
-          <context context-type="linenumber">4540</context>
+          <context context-type="linenumber">4560</context>
         </context-group>
       </trans-unit>
       <trans-unit id="sessionVote.matchingProgress" datatype="html">
         <source><x id="done" equiv-text="done"/> von <x id="total" equiv-text="total"/> zugeordnet</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-vote/session-vote.component.ts</context>
-          <context context-type="linenumber">4570</context>
+          <context context-type="linenumber">4590</context>
         </context-group>
       </trans-unit>
       <trans-unit id="sessionVote.matchingSelectAria" datatype="html">
         <source>Zuordnung für „<x id="item" equiv-text="left"/>“</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-vote/session-vote.component.ts</context>
-          <context context-type="linenumber">4574</context>
+          <context context-type="linenumber">4594</context>
         </context-group>
       </trans-unit>
       <trans-unit id="sessionVote.categorizationProgress" datatype="html">
         <source><x id="done" equiv-text="done"/> von <x id="total" equiv-text="total"/> eingeordnet</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-vote/session-vote.component.ts</context>
-          <context context-type="linenumber">4582</context>
+          <context context-type="linenumber">4602</context>
         </context-group>
       </trans-unit>
       <trans-unit id="sessionVote.categorizationSelectAria" datatype="html">
         <source>Kategorie für „<x id="item" equiv-text="itemText"/>“</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-vote/session-vote.component.ts</context>
-          <context context-type="linenumber">4586</context>
+          <context context-type="linenumber">4606</context>
         </context-group>
       </trans-unit>
       <trans-unit id="sessionVote.structuredCorrect" datatype="html">
         <source>Richtig</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-vote/session-vote.component.ts</context>
-          <context context-type="linenumber">4653</context>
+          <context context-type="linenumber">4673</context>
         </context-group>
       </trans-unit>
       <trans-unit id="sessionVote.structuredWrong" datatype="html">
         <source>Falsch</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-vote/session-vote.component.ts</context>
-          <context context-type="linenumber">4654</context>
+          <context context-type="linenumber">4674</context>
         </context-group>
       </trans-unit>
       <trans-unit id="sessionVote.structuredSummaryFullyCorrect" datatype="html">
         <source><x id="correct" equiv-text="correct"/> von <x id="total" equiv-text="total"/> richtig – vollständig korrekt</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-vote/session-vote.component.ts</context>
-          <context context-type="linenumber">4689</context>
+          <context context-type="linenumber">4709</context>
         </context-group>
       </trans-unit>
       <trans-unit id="sessionVote.structuredSummary" datatype="html">
         <source><x id="correct" equiv-text="correct"/> von <x id="total" equiv-text="total"/> richtig</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-vote/session-vote.component.ts</context>
-          <context context-type="linenumber">4690</context>
+          <context context-type="linenumber">4710</context>
         </context-group>
       </trans-unit>
       <trans-unit id="sessionVote.matchingIncomplete" datatype="html">
         <source>Ordne jedem linken Begriff genau einen rechten Begriff zu.</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-vote/session-vote.component.ts</context>
-          <context context-type="linenumber">4980</context>
+          <context context-type="linenumber">5000</context>
         </context-group>
       </trans-unit>
       <trans-unit id="sessionVote.categorizationIncomplete" datatype="html">
         <source>Ordne jedes Element einer Kategorie zu.</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-vote/session-vote.component.ts</context>
-          <context context-type="linenumber">4992</context>
+          <context context-type="linenumber">5012</context>
         </context-group>
       </trans-unit>
       <trans-unit id="sessionVote.confidenceRequired" datatype="html">
         <source>Gib deine Selbsteinschätzung an, bevor du absendest.</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-vote/session-vote.component.ts</context>
-          <context context-type="linenumber">5000</context>
+          <context context-type="linenumber">5020</context>
         </context-group>
       </trans-unit>
       <trans-unit id="9175670018185396326" datatype="html">

@@ -13,10 +13,12 @@
   @if (showSessionContext()) {
     <section class="feedback-vote__context" [attr.aria-label]="sessionContextAriaLabel()">
       <div class="feedback-vote__context-main">
-        <p class="feedback-vote__context-kicker">
-          <mat-icon aria-hidden="true">bolt</mat-icon>
-          <span i18n="@@sessionTabs.quickFeedback">Blitzlicht</span>
-        </p>
+        @if (!embeddedInSession()) {
+          <p class="feedback-vote__context-kicker">
+            <mat-icon aria-hidden="true">bolt</mat-icon>
+            <span i18n="@@sessionTabs.quickFeedback">Blitzlicht</span>
+          </p>
+        }
         @if (sessionTitleLabel(); as title) {
           <p class="feedback-vote__context-title" [attr.title]="title">{{ title }}</p>
         }
@@ -274,6 +276,12 @@
             </button>
           }
         </div>
+        @if (isTempoFeedback() && showAskQuestionButton()) {
+          <button type="button" class="feedback-vote__ask-question" (click)="askQuestion.emit()">
+            <mat-icon class="feedback-vote__ask-question-icon" aria-hidden="true">forum</mat-icon>
+            <span i18n="@@feedback.voteAskQuestion">Ich habe eine Frage</span>
+          </button>
+        }
       }
     </section>
   }

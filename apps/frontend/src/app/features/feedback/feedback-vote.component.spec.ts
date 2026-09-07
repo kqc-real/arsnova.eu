@@ -174,6 +174,7 @@ describe('FeedbackVoteComponent', () => {
     expect(text).not.toContain('Team Blau');
     expect(fixture.nativeElement.querySelector('.feedback-vote__context-item')).toBeNull();
     expect(fixture.nativeElement.querySelector('.feedback-vote__context-kita-avatar')).toBeNull();
+    expect(fixture.nativeElement.querySelector('.feedback-vote__context-kicker')).toBeNull();
     const context = fixture.nativeElement.querySelector('.feedback-vote__context');
     expect(context?.getAttribute('aria-label')).toContain('Ada');
     expect(text).toContain('Ja · Nein · Vielleicht');
@@ -224,9 +225,9 @@ describe('FeedbackVoteComponent', () => {
     expect(text).not.toContain('ABC123');
     expect(text).not.toContain('Ansicht');
     expect(text).not.toContain('Teilnehmende Person');
-    const context = fixture.nativeElement.querySelector('.feedback-vote__context');
-    expect(context?.getAttribute('aria-label')).toContain('Teilnehmeransicht');
-    expect(context?.querySelector('.feedback-vote__context-item')).toBeNull();
+    // Ohne Session-Titel entfällt der Context in der Session-Shell (Kanal steht im Live-Banner).
+    expect(fixture.nativeElement.querySelector('.feedback-vote__context')).toBeNull();
+    expect(fixture.nativeElement.querySelector('.feedback-vote__context-kicker')).toBeNull();
     fixture.destroy();
   });
 
@@ -767,5 +768,66 @@ describe('FeedbackVoteComponent', () => {
     expect(styles).not.toMatch(/border-radius:\s*1\.(1|15|25|35|65)rem/);
     expect(styles).toMatch(/border-radius:\s*var\(--mat-sys-corner-extra-large\)/);
     expect(styles).toMatch(/border-radius:\s*var\(--mat-sys-corner-medium\)/);
+  });
+
+  it('zeigt den Q&A-Shortcut nur bei Tempo mit showAskQuestionButton', async () => {
+    quickFeedbackResultsQueryMock.mockResolvedValue({
+      type: 'TEMPO',
+      locked: false,
+      discussion: false,
+      totalVotes: 0,
+      distribution: { SPEED_UP: 0, FOLLOWING: 0, SLOW_DOWN: 0, LOST: 0 },
+      currentRound: 1,
+    });
+
+    const fixture = TestBed.createComponent(FeedbackVoteComponent);
+    fixture.componentRef.setInput('sessionCode', 'ABC123');
+    fixture.componentRef.setInput('embeddedInSession', true);
+    fixture.componentRef.setInput('participantId', 'participant-1');
+    fixture.detectChanges();
+    await fixture.whenStable();
+    await new Promise((resolve) => setTimeout(resolve, 50));
+    fixture.detectChanges();
+
+    expect(fixture.nativeElement.querySelector('.feedback-vote__ask-question')).toBeNull();
+
+    fixture.componentRef.setInput('showAskQuestionButton', true);
+    fixture.detectChanges();
+
+    const askButton = fixture.nativeElement.querySelector(
+      '.feedback-vote__ask-question',
+    ) as HTMLButtonElement | null;
+    expect(askButton).not.toBeNull();
+    expect(askButton?.textContent ?? '').toContain('Ich habe eine Frage');
+
+    const askSpy = vi.fn();
+    fixture.componentInstance.askQuestion.subscribe(askSpy);
+    askButton!.click();
+    expect(askSpy).toHaveBeenCalledTimes(1);
+    fixture.destroy();
+  });
+
+  it('blendet den Q&A-Shortcut bei Nicht-Tempo auch mit showAskQuestionButton aus', async () => {
+    quickFeedbackResultsQueryMock.mockResolvedValue({
+      type: 'MOOD',
+      locked: false,
+      discussion: false,
+      totalVotes: 0,
+      distribution: { POSITIVE: 0, NEUTRAL: 0, NEGATIVE: 0 },
+      currentRound: 1,
+    });
+
+    const fixture = TestBed.createComponent(FeedbackVoteComponent);
+    fixture.componentRef.setInput('sessionCode', 'ABC123');
+    fixture.componentRef.setInput('embeddedInSession', true);
+    fixture.componentRef.setInput('participantId', 'participant-1');
+    fixture.componentRef.setInput('showAskQuestionButton', true);
+    fixture.detectChanges();
+    await fixture.whenStable();
+    await new Promise((resolve) => setTimeout(resolve, 50));
+    fixture.detectChanges();
+
+    expect(fixture.nativeElement.querySelector('.feedback-vote__ask-question')).toBeNull();
+    fixture.destroy();
   });
 });

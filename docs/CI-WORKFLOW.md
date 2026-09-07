@@ -266,17 +266,22 @@ Wichtig: Jobs ohne direkte Abhängigkeit laufen **parallel**.
 
 - **Was?** Installiert WebKit explizit über
   [../scripts/ci/playwright-install.sh](../scripts/ci/playwright-install.sh)
-  und führt einen Desktop-MOTD-Smoke aus.
-  Der Smoke prüft Tastatur- und Pointer-Rücksprung, die anschließende Tab-Reihe und bildet
-  Safaris fehlenden Pointer-Buttonfokus sowie ein fehlendes globales
-  `TouchEvent` nach.
-- **Wo?** Job in [../.github/workflows/ci.yml](../.github/workflows/ci.yml),
-  Browserwahl und Fokus-Smoke in
-  [../apps/frontend/scripts/check-motd-focus-flow.mjs](../apps/frontend/scripts/check-motd-focus-flow.mjs).
+  und führt zwei Safari-nahe Smokes aus:
+  den Desktop-MOTD-Smoke (Tastatur- und Pointer-Rücksprung, Tab-Reihe,
+  fehlender Pointer-Buttonfokus, fehlendes globales `TouchEvent`) sowie
+  `smoke:webkit-participant-vote` (Smartphone-Viewport, UI-Join, freie Vote-Kanäle,
+  Countdown, Abstimmung).
+- **Wo?** Job in [../.github/workflows/ci.yml](../.github/workflows/ci.yml);
+  MOTD in
+  [../apps/frontend/scripts/check-motd-focus-flow.mjs](../apps/frontend/scripts/check-motd-focus-flow.mjs),
+  Teilnahme in
+  [../apps/frontend/scripts/check-webkit-participant-vote-flow.mjs](../apps/frontend/scripts/check-webkit-participant-vote-flow.mjs).
 - **Wann?** Parallel zu `e2e-chromium` nach `build`, außer bei `schedule`.
 - **Warum?** Verhindert, dass WebKit nur als nie genutzter Chromium-Fallback
-  existiert. Playwright WebKit ersetzt dennoch keinen manuellen Safari-Smoke,
-  weil Safari- und macOS-Tastatureinstellungen außerhalb der Engine liegen.
+  existiert, und deckt den Teilnehmerpfad ab, den In-App-Feedback als
+  „Teilnahme · Smartphone · Safari“ meldet. Playwright WebKit ersetzt dennoch
+  keinen manuellen Safari-/iOS-Smoke, weil Safari-App, iOS und macOS-Tastatur
+  außerhalb der Engine liegen.
 
 ### 4.10 classroom-smokes
 
@@ -446,7 +451,7 @@ Vor dem eigentlichen Deploy müssen erfolgreich sein:
 8. docker
 9. typecheck
 10. lighthouse
-11. e2e-Aggregator mit Chromium (inklusive axe und Reflow/Fokus/Zielgrößen) und WebKit (MOTD-/Fokus-Smokes)
+11. e2e-Aggregator mit Chromium (inklusive axe und Reflow/Fokus/Zielgrößen) und WebKit (MOTD-/Fokus- und Smartphone-Teilnahme-Smokes)
 12. classroom-smokes
 13. audit
 14. trivy-fs
@@ -595,7 +600,7 @@ Kanonische Quelle: [`.github/required-checks.json`](../.github/required-checks.j
 | lint                           | CI-CD          | workflow: .github/workflows/ci.yml#lint                           | Anwendungs- und laufzeitspezifisches Skript-Linting.                      |
 | Migration Drift                | CI-CD          | workflow: .github/workflows/ci.yml#migration                      | Prisma-Migrationskette und Schema-Drift auf leerer Datenbank.             |
 | PDF/UA-1 Validation            | CI-CD          | workflow: .github/workflows/ci.yml#pdfua                          | PDF/UA-1-Konformität der lokalisierten Handouts.                          |
-| Playwright Smoke E2E           | CI-CD          | workflow: .github/workflows/ci.yml#e2e                            | Chromium-Axe-/Reflow-Smokes und WebKit-MOTD-/Fokus-Regressionen.          |
+| Playwright Smoke E2E           | CI-CD          | workflow: .github/workflows/ci.yml#e2e                            | Chromium-Axe-/Reflow-Smokes und WebKit-MOTD-/Teilnahme-Regressionen.      |
 | PR-Template vollständig        | main protected | workflow: .github/workflows/pr-template-gate.yml#validate-pr-body | Vollständige Risiko-, Validierungs- und Rollback-Beschreibung vor Review. |
 | Security Audit                 | CI-CD          | workflow: .github/workflows/ci.yml#audit                          | Produktionsabhängigkeits-Audit und SBOM-Erzeugung.                        |
 | Tests                          | CI-CD          | workflow: .github/workflows/ci.yml#test                           | Workspace-Tests mit absoluten Coverage-Gates.                             |

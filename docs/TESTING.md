@@ -159,7 +159,7 @@ Auslöser: **Push** und **Pull Request** auf `main`.
 | **trivy-image**                        | Docker-Image-Build für Scan + Trivy-Image-Scan (HIGH/CRITICAL, blockierend)                                                                                                                                                      |
 | **lighthouse**                         | Lighthouse Performance gegen Home DE/EN; separater A11y-Lauf gegen Home DE/EN, Quiz-Liste, Hilfe und Datenschutz, inklusive blockierender Einzelaudits                                                                           |
 | **e2e-chromium**                       | Chromium Smoke E2E mit Postgres/Redis, statischen und dynamischen axe-Scans sowie Reflow-/Fokus-/Zielgrößen-Gate                                                                                                                 |
-| **webkit-e2e**                         | Expliziter WebKit-Lauf Safari-naher MOTD-Pointer-, Fokus- und Tab-Regressionen                                                                                                                                                   |
+| **webkit-e2e**                         | Expliziter WebKit-Lauf Safari-naher MOTD-Pointer-/Fokus-Regressionen und Smartphone-Teilnahme (Join, Kanäle, Countdown, Vote)                                                                                                    |
 | **e2e**                                | Stabiler Required-Check, der die erfolgreichen Chromium- und WebKit-Jobs aggregiert; bei Workflow-Abbruch nicht nachträglich rot, bei Job-Timeout eines Browsers weiterhin rot                                                   |
 | **classroom-smokes**                   | Sechs Unterrichts-Szenario-Smokes (inkl. WS Vote-Progress, Reconnect und Q&A-/Blitzlicht-Fan-out, je 30 TN) gegen lokales Backend; JSON-/JUnit-Reports als Artifact                                                              |
 | **docker**                             | Docker-Image-Build (ohne Push), vollständiger Production-Compose-Start mit Migration/Healthcheck sowie Runtime-Smokes für Container-Härtung/Chromium-Maximalbericht und Yjs-Konvergenz inkl. Offline-Reconnect gegen Port 3002   |
@@ -410,6 +410,7 @@ Auf dem Server übernimmt `scripts/deploy.sh` die Reihenfolge **Digest-Image pul
 | `smoke:session-question-progress` | Zwei-Client-Smoke für späteren Start, Vote, Skip und Nachbesprechung             |
 | `e2e:confidence-summary-demo`     | Demo-Quiz: 30 TN + Confidence-Abschluss                                          |
 | `e2e:motd-focus`                  | Desktop-MOTD: Tastatur-/Pointer-Rücksprung und fortgesetzte Tab-Reihe            |
+| `smoke:webkit-participant-vote`   | WebKit/Safari-Engine: Smartphone-Teilnahme Join, Kanäle, Countdown, Vote         |
 | `smoke:quiz-sync`                 | Quiz-Sync-Flow-Skript                                                            |
 | `smoke:unified-session`           | Unified-Session-Flow inklusive axe                                               |
 | `smoke:product-feedback`          | ProductFeedback 12.1: Host-Sheet + Vote-Sessionende                              |
@@ -434,7 +435,8 @@ Der Presenter-Smoke legt vorab 50 Personen in einer Lobby an und blockiert bei
 Scroll, Clipping oder Überlappung in 712×1138, 1138×712, 820×1180 und
 1280×720 CSS-Pixeln; Fehlerscreenshots landen im E2E-Artefakt. Der Job
 `webkit-e2e` startet dieselben echten Backend-/Frontend-Services, wählt WebKit
-explizit und führt `e2e:motd-focus` aus. Der Required-Check `e2e` wird nur grün, wenn beide
+explizit und führt `e2e:motd-focus` sowie `smoke:webkit-participant-vote` aus.
+Der Required-Check `e2e` wird nur grün, wenn beide
 Browser-Jobs erfolgreich sind; ein abgebrochener Workflow färbt ihn nicht
 nachträglich rot. Playwright-Browser installiert
 [`scripts/ci/playwright-install.sh`](../scripts/ci/playwright-install.sh)
@@ -453,6 +455,7 @@ Lokal lassen sich dieselben browserabhängigen Prüfungen gezielt ausführen:
 ```bash
 BASE_URL=http://localhost:4200 PLAYWRIGHT_BROWSER=chromium npm run a11y:layout -w @arsnova/frontend
 BASE_URL=http://localhost:4200 PLAYWRIGHT_BROWSER=webkit npm run e2e:motd-focus -w @arsnova/frontend
+BASE_URL=http://localhost:4200/de TRPC_URL=http://localhost:3000/trpc npm run smoke:webkit-participant-vote -w @arsnova/frontend
 ```
 
 Playwright WebKit prüft die WebKit-Engine reproduzierbar, ist aber nicht die

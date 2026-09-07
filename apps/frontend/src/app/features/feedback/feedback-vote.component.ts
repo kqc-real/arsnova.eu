@@ -6,6 +6,7 @@ import {
   computed,
   inject,
   input,
+  output,
   signal,
 } from '@angular/core';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
@@ -122,6 +123,9 @@ export class FeedbackVoteComponent implements OnInit, OnDestroy {
   readonly sessionTitle = input<string | null>(null);
   readonly embeddedInSession = input(false);
   readonly showSessionCode = input(true);
+  /** Nur Session-Tempo: Shortcut zur Q&A-Fragenansicht (Kanal offen + Fragerunde gestartet). */
+  readonly showAskQuestionButton = input(false);
+  readonly askQuestion = output<void>();
 
   readonly code = computed(() =>
     (this.sessionCode() || (this.route.snapshot.paramMap.get('code') ?? '')).toUpperCase(),
@@ -181,9 +185,17 @@ export class FeedbackVoteComponent implements OnInit, OnDestroy {
   readonly showContextMeta = computed(
     () => this.showSessionCode() || this.showStandaloneParticipantMeta(),
   );
-  readonly showSessionContext = computed(
-    () => !!this.code() && (this.showSessionCode() || this.embeddedInSession()),
-  );
+  readonly showSessionContext = computed(() => {
+    if (!this.code()) {
+      return false;
+    }
+    if (this.showSessionCode() || this.showStandaloneParticipantMeta()) {
+      return true;
+    }
+    // In der Session-Vote-Shell stehen Kanal und Code schon im Live-Banner.
+    // Context nur noch bei eigenem Session-Titel (ohne redundantes „Blitzlicht“).
+    return this.embeddedInSession() && !!this.sessionTitleLabel();
+  });
   readonly sessionContextAriaLabel = computed(() => {
     const parts = [
       $localize`:@@sessionTabs.quickFeedback:Blitzlicht`,
