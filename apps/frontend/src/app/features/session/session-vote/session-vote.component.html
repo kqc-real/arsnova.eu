@@ -344,7 +344,7 @@
         <mat-button-toggle-group
           class="session-channel-tabs"
           [value]="activeChannel()"
-          (valueChange)="selectChannel($event)"
+          (valueChange)="onChannelTabValueChange($event)"
           i18n-aria-label="@@sessionTabs.voteAria"
           aria-label="Live-Bereich wählen"
         >

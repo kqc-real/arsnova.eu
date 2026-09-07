@@ -454,6 +454,8 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
     this.route.snapshot.queryParamMap.get('tab'),
   );
   private routeRequestedChannelConsumed = false;
+  /** Verhindert, dass programmatische activeChannel-Sets via mat-button-toggle valueChange als User-Override zählen. */
+  private suppressChannelTabWriteback = false;
 
   @ViewChild('qaTextarea') qaTextareaRef?: ElementRef<HTMLTextAreaElement>;
 
@@ -913,6 +915,11 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
   private lastAppliedPreferredChannel: SessionLiveChannel | null = null;
   private participantLiveChannelOverride: ParticipantLiveChannelTab | null = null;
   private participantLiveChannelOverrideQuickFeedbackPhase: QuickFeedbackPhaseKey = null;
+  /**
+   * Erst nach dem ersten erfolgreichen `refreshQuestion` dürfen Fragewechsel den Quiz-Kanal
+   * erzwingen – sonst überschreibt die Initial-Hydration `?tab=` / Preferred Channel.
+   */
+  private currentQuestionHydrated = false;
 
   /**
    * Nach Session-Ende: Bonus-Code sichern und/oder Session-Feedback, dann Startseite.
@@ -1168,7 +1175,7 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
 
     if (this.visibleChannels().includes(preferredChannel)) {
       this.clearParticipantLiveChannelOverride();
-      this.activeChannel.set(preferredChannel);
+      this.setActiveChannelProgrammatically(preferredChannel);
     }
     this.lastAppliedPreferredChannel = preferredChannel;
   }
@@ -1183,6 +1190,15 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
   private clearParticipantLiveChannelOverride(): void {
     this.participantLiveChannelOverride = null;
     this.participantLiveChannelOverrideQuickFeedbackPhase = null;
+  }
+
+  /** Programmatischer Kanalwechsel ohne valueChange→selectChannel-Override. */
+  private setActiveChannelProgrammatically(channel: SessionChannelTab): void {
+    this.suppressChannelTabWriteback = true;
+    this.activeChannel.set(channel);
+    queueMicrotask(() => {
+      this.suppressChannelTabWriteback = false;
+    });
   }
 
   private rememberParticipantLiveChannelOverride(channel: SessionChannelTab): void {
@@ -2502,6 +2518,14 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
     }
   }
 
+  /** mat-button-toggle valueChange – ignoriert programmatische Writes. */
+  onChannelTabValueChange(channel: string): void {
+    if (this.suppressChannelTabWriteback) {
+      return;
+    }
+    this.selectChannel(channel);
+  }
+
   /** Wechselt vom Session-Tempo-Blitzlicht zur Q&A-Ansicht zum Stellen einer Frage. */
   openQaAskView(): void {
     if (!this.showTempoAskQuestionShortcut()) {
@@ -3152,7 +3176,7 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
     }
 
     this.rememberParticipantLiveChannelOverride(this.routeRequestedChannel);
-    this.activeChannel.set(this.routeRequestedChannel);
+    this.setActiveChannelProgrammatically(this.routeRequestedChannel);
     return true;
   }
 
@@ -3794,8 +3818,8 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
 
   /**
    * Quiz-Startsignale: Override löschen und in den Quiz-Kanal ziehen.
-   * Auslöser: neue Frage, Antwortoptionen freigeben (QUESTION_OPEN→ACTIVE), PI-Runde 2.
-   * Dazwischen dürfen Teilnehmende Q&A/Blitzlicht frei nutzen (ADR-0009).
+   * Auslöser: neue Frage (nach Initial-Hydration), Antwortoptionen freigeben
+   * (QUESTION_OPEN→ACTIVE), PI-Runde 2. Dazwischen freie Kanalwahl (ADR-0009).
    */
   private pullParticipantToQuizChannel(): void {
     if (!this.visibleChannels().includes('quiz')) {
@@ -3803,8 +3827,29 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
     }
     this.clearParticipantLiveChannelOverride();
     if (this.activeChannel() !== 'quiz') {
-      this.activeChannel.set('quiz');
+      this.setActiveChannelProgrammatically('quiz');
     }
+  }
+
+  /** Frage-ID-Wechsel: nach Hydration immer; bei Initial-Load Tab/Preferred respektieren. */
+  private pullParticipantToQuizOnQuestionTransition(
+    newId: string | null,
+    prevId: string | null,
+  ): void {
+    if (!newId || newId === prevId) {
+      return;
+    }
+    if (!this.currentQuestionHydrated) {
+      // ?tab= / Override bzw. Host-Preferred (nicht Quiz) beim Join behalten.
+      const keepNonQuizChannel =
+        this.participantLiveChannelOverride !== null ||
+        (this.lastAppliedPreferredChannel !== null && this.lastAppliedPreferredChannel !== 'quiz');
+      if (keepNonQuizChannel) {
+        return;
+      }
+      // Sonst Quiz erzwingen (korrigiert kurzzeitigen Q&A-Auto-Switch vor Frage-Hydration).
+    }
+    this.pullParticipantToQuizChannel();
   }
 
   private ensureActiveChannel(): void {
@@ -3822,13 +3867,13 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
 
     const active = this.activeChannel();
     if (!visible.includes(active)) {
-      this.activeChannel.set(visible[0]!);
+      this.setActiveChannelProgrammatically(visible[0]!);
       return;
     }
 
     if (this.participantLiveChannelOverride) {
       if (active !== this.participantLiveChannelOverride) {
-        this.activeChannel.set(this.participantLiveChannelOverride);
+        this.setActiveChannelProgrammatically(this.participantLiveChannelOverride);
       }
       return;
     }
@@ -3852,7 +3897,7 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
       this.currentQuestion() === null;
 
     if (active !== 'quickFeedback' && quickFeedbackRoundVisible) {
-      this.activeChannel.set('quickFeedback');
+      this.setActiveChannelProgrammatically('quickFeedback');
       return;
     }
 
@@ -3862,12 +3907,12 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
       !quickFeedbackRoundVisible &&
       qaRoundVisible
     ) {
-      this.activeChannel.set('qa');
+      this.setActiveChannelProgrammatically('qa');
       return;
     }
 
     if (active === 'quiz' && qaRoundVisible) {
-      this.activeChannel.set('qa');
+      this.setActiveChannelProgrammatically('qa');
       return;
     }
   }
@@ -4221,6 +4266,7 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
         this.structuredRoundTransitionPending() &&
         qRound === 2 &&
         this.questionHasStructuredVotePayload(q);
+      let questionTransition: { newId: string | null; prevId: string | null } | null = null;
 
       if (newId !== prevId) {
         this.clearLateSubmitCloseTimeout();
@@ -4244,9 +4290,7 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
         this.structuredRoundTransitionPending.set(false);
         this.clearStructuredRoundRefreshRetry();
         this.startCountdown(q);
-        if (newId) {
-          this.pullParticipantToQuizChannel();
-        }
+        questionTransition = { newId, prevId };
       } else if (
         reinitStructuredForSecondRound ||
         this.shouldReinitStructuredQuestionState(prev, q)
@@ -4356,6 +4400,13 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
       } else {
         this.currentQuestion.set(q);
       }
+      if (questionTransition) {
+        // Nach currentQuestion.set: sonst zieht ensureActiveChannel-Effect bei null-Frage zurück nach Q&A.
+        this.pullParticipantToQuizOnQuestionTransition(
+          questionTransition.newId,
+          questionTransition.prevId,
+        );
+      }
       if (q && this.sessionSettings().quizStarted !== true) {
         this.sessionSettings.update((settings) => ({
           ...settings,
@@ -4397,6 +4448,7 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
       if (this.structuredRoundTransitionPending()) {
         this.scheduleStructuredRoundRefreshRetry();
       }
+      this.currentQuestionHydrated = true;
     } catch {
       this.scheduleStructuredRoundRefreshRetry();
     }
