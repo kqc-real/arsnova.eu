@@ -2344,7 +2344,7 @@ ist abgeschlossen ✅. Damit ist Epic 6 geschlossen.
 - **Story 12.4 (Admin-Massenlöschung von Produktfeedback bis Datum oder vollständig):** ✅ Als Plattform-Admin möchte ich gespeicherte Produktfeedback-Datensätze bis einschließlich eines Datums oder vollständig endgültig löschen können, damit ich Aufbewahrungs- und Löschpflichten vor Ablauf der automatischen Retention erfüllen kann.
   - **Fachliche Abgrenzung:**
     - Die Aktion bleibt in der Domäne `ProductFeedback` und ist ausschließlich über `adminProcedure` erreichbar. Route `/admin` allein verleiht keine Berechtigung.
-    - Gelöscht werden `ProductFeedback`-Zeilen und der Einladungszähler (`ProductFeedbackInviteLedger`) für denselben Zeitraum. Invite-Jobs, LLM-Exportprotokolle und bestehende Triage-Auditzeilen bleiben erhalten. Die Einzelfalllöschung aus 12.2 lässt das Ledger unberührt.
+    - Gelöscht werden `ProductFeedback`-Zeilen und vollständig in der Datumsgrenze liegende UTC-Tagesbucket des Einladungszählers (`ProductFeedbackInviteLedger`). Invite-Jobs, LLM-Exportprotokolle und bestehende Triage-Auditzeilen bleiben erhalten. Die Einzelfalllöschung aus 12.2 lässt das Ledger unberührt.
     - Die Einzelfalllöschung aus 12.2 bleibt parallel bestehen. Automatische Retention (13 Monate strukturiert, 90 Tage Freitext) bleibt unverändert.
     - Es gibt kein Undo und keine Wiederherstellung.
   - **Einstieg und Dialog:**

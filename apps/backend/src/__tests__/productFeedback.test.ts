@@ -151,6 +151,7 @@ import {
   cleanupProductFeedbackMessages,
   cleanupProductFeedbackRecords,
 } from '../lib/productFeedbackCleanup';
+import { productFeedbackInviteLedgerPurgeWhere } from '../lib/productFeedbackPurge';
 
 const publicCaller = productFeedbackRouter.createCaller({ req: undefined });
 const adminCaller = adminProductFeedbackRouter.createCaller({ req: {} as never });
@@ -1762,7 +1763,7 @@ describe('adminProductFeedback Triage', () => {
         where: { createdAt: { lte: new Date(until) } },
       });
       expect(prismaMock.productFeedbackInviteLedger.deleteMany).toHaveBeenCalledWith({
-        where: { day: { lte: new Date(until) } },
+        where: { day: { lt: new Date('2026-08-31T00:00:00.000Z') } },
       });
       expect(prismaMock.productFeedbackPurgeLog.create).toHaveBeenCalledWith({
         data: expect.objectContaining({
@@ -1770,6 +1771,29 @@ describe('adminProductFeedback Triage', () => {
           untilCreatedAt: new Date(until),
           deletedCount: 2,
         }),
+      });
+    },
+  );
+
+  trpcDodIt(
+    {
+      procedure: 'admin.productFeedback.purge',
+      case: 'happy',
+      mode: 'direct',
+      title: 'löscht nur vollständig abgedeckte UTC-Ledger-Tage',
+    },
+    async () => {
+      prismaMock.productFeedback.count.mockResolvedValue(1);
+      prismaMock.productFeedback.deleteMany.mockResolvedValue({ count: 1 });
+      const until = '2026-09-01T06:59:59.999Z';
+      await adminCaller.purge({
+        scope: 'UNTIL',
+        until,
+        expectedCount: 1,
+        confirmationText: PRODUCT_FEEDBACK_PURGE_CONFIRMATION,
+      });
+      expect(prismaMock.productFeedbackInviteLedger.deleteMany).toHaveBeenCalledWith({
+        where: { day: { lt: new Date('2026-09-01T00:00:00.000Z') } },
       });
     },
   );
@@ -1883,6 +1907,39 @@ describe('adminProductFeedback Triage', () => {
       expect(prismaMock.productFeedbackInviteLedger.deleteMany).not.toHaveBeenCalled();
     },
   );
+});
+
+describe('productFeedbackInviteLedgerPurgeWhere', () => {
+  it('löscht bei ALL das gesamte Ledger', () => {
+    expect(productFeedbackInviteLedgerPurgeWhere({ scope: 'ALL' })).toEqual({});
+  });
+
+  it('behält den UTC-Tag, der nur bis zum lokalen Tagesende teilweise überdeckt ist', () => {
+    expect(
+      productFeedbackInviteLedgerPurgeWhere({
+        scope: 'UNTIL',
+        until: '2026-08-31T21:59:59.999Z',
+      }),
+    ).toEqual({ day: { lt: new Date('2026-08-31T00:00:00.000Z') } });
+  });
+
+  it('behält den UTC-Tag, der nach einem westlichen lokalen Tagesende weiterläuft', () => {
+    expect(
+      productFeedbackInviteLedgerPurgeWhere({
+        scope: 'UNTIL',
+        until: '2026-09-01T06:59:59.999Z',
+      }),
+    ).toEqual({ day: { lt: new Date('2026-09-01T00:00:00.000Z') } });
+  });
+
+  it('löscht den UTC-Tag, wenn until dessen letztes Millisekunde erreicht', () => {
+    expect(
+      productFeedbackInviteLedgerPurgeWhere({
+        scope: 'UNTIL',
+        until: '2026-08-31T23:59:59.999Z',
+      }),
+    ).toEqual({ day: { lte: new Date('2026-08-31T00:00:00.000Z') } });
+  });
 });
 
 describe('Invite nach Session-Cleanup', () => {

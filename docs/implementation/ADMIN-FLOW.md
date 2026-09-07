@@ -269,9 +269,9 @@ Die folgenden Prozedurnamen und Aufgaben sind **kanonisch**. Für Rohaufrufe per
   Freitext nur bei ausdrücklichem Opt-in; Audit in `ProductFeedbackExportLog`
   ohne Textkopie. Kein serverseitiger Modellaufruf.
 - Massenlöschung (Story 12.4): `countForPurge` / `purge` löschen Rückmeldungen
-  und den Einladungszähler bis Datum oder vollständig; Phrase
-  `RUECKMELDUNGEN LOESCHEN`; Audit in `ProductFeedbackPurgeLog` ohne Textkopie.
-  Kein Undo.
+  und vollständig abgedeckte UTC-Tage des Einladungszählers bis Datum oder
+  vollständig; Phrase `RUECKMELDUNGEN LOESCHEN`; Audit in
+  `ProductFeedbackPurgeLog` ohne Textkopie. Kein Undo.
 - Fachdoku: [docs/features/product-feedback.md](../features/product-feedback.md).
   Betrieb: `PUBLIC_FRONTEND_URL` für öffentliche IN_APP-Origins
   ([docs/ENVIRONMENT.md](../ENVIRONMENT.md)).
