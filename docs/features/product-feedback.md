@@ -186,6 +186,9 @@ lädt `env_file` nicht neu). Details: `docs/ENVIRONMENT.md`,
   des Beitritts-Overlays, Zwei-Client während ACTIVE inkl. anschließendem Vote,
   eigenständiges Blitzlicht Host/Vote, Presenter ohne CTA; Artefakte Default
   `tmp/product-feedback-in-app-e2e`).
+- E2E-Smoke WebKit-Teilnahme: `npm run smoke:webkit-participant-vote -w @arsnova/frontend`
+  (Safari-Engine, iPhone-Viewport, UI-Join, freie Kanäle, Countdown, Vote;
+  entspricht dem In-App-Kontext Teilnahme · Smartphone · Safari).
 
 ## Verwandte Docs
 
