@@ -1,0 +1,54 @@
+---
+import type { Locale, Messages } from '@/i18n';
+
+export interface Props {
+  locale: Locale;
+  t: Messages;
+}
+
+const { t } = Astro.props;
+const p = t.pairing;
+---
+
+<section
+  id="host-pairing"
+  class="relative bg-landing-bg px-4 py-16 sm:px-6 sm:py-24"
+  aria-labelledby="pairing-heading"
+>
+  <div class="mx-auto grid min-w-0 max-w-6xl gap-10 lg:grid-cols-[1.05fr_0.95fr] lg:items-center">
+    <div class="min-w-0">
+      <p class="landing-eyebrow">{p.eyebrow}</p>
+      <h2
+        id="pairing-heading"
+        class="mt-3 break-words font-display text-3xl font-bold tracking-tight text-landing-fg sm:text-4xl"
+      >
+        {p.title}
+      </h2>
+      <p class="mt-5 text-lg leading-8 text-landing-fg-muted">{p.lead}</p>
+      <ul class="mt-8 grid gap-3 text-sm leading-6 text-landing-fg-body" role="list">
+        {p.summary.map((item) => (
+          <li class="rounded-landing-panel border border-landing-outline-variant bg-landing-surface-container p-4">
+            <span class="font-semibold text-landing-fg">{item}</span>
+          </li>
+        ))}
+      </ul>
+    </div>
+
+    <div class="landing-card min-w-0 p-5 shadow-landing-2 sm:p-6" role="region" aria-label={p.demoAria}>
+      <div class="grid gap-4 sm:grid-cols-2">
+        <div class="rounded-landing-panel border border-landing-outline-variant bg-landing-surface p-4">
+          <p class="text-xs font-semibold uppercase tracking-[0.12em] text-landing-primary">
+            {p.laptopLabel}
+          </p>
+          <p class="mt-2 leading-6 text-landing-fg-muted">{p.laptopText}</p>
+        </div>
+        <div class="rounded-landing-panel border border-landing-primary/35 bg-landing-primary-container p-4">
+          <p class="text-xs font-semibold uppercase tracking-[0.12em] text-landing-on-primary-container">
+            {p.phoneLabel}
+          </p>
+          <p class="mt-2 leading-6 text-landing-on-primary-container">{p.phoneText}</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>

@@ -58,7 +58,10 @@ const es: Messages = {
     a11yLink: 'Cumple las WCAG 2.2, nivel AA',
     a11ySuffix: '— teclado, lector de pantalla y tiempo de respuesta ajustable individualmente.',
     cards: [
-      { title: 'En directo al instante', text: 'Comparte la sesión con código o QR' },
+      {
+        title: 'Libre en la sala',
+        text: 'Controla la sesión desde el teléfono; el proyector sigue en el portátil',
+      },
       { title: 'Q&A con muro de preguntas', text: 'Moderación, votos y nube temática' },
       {
         title: 'Autoevaluación y análisis posterior',
@@ -215,13 +218,13 @@ const es: Messages = {
         number: '02',
         title: 'Iniciar una sesión',
         description:
-          'Empieza sin cuenta: abre una sesión, elige un estilo, comparte código o QR y usa la vista del presentador si lo necesitas.',
+          'Empieza sin cuenta: abre una sesión, elige un estilo, comparte código o QR. Opcionalmente conecta un teléfono o tablet y abre la vista del presentador para el proyector.',
       },
       {
         number: '03',
         title: 'Moderar en directo',
         description:
-          'Los participantes votan, formulan preguntas y priorizan juntos. El anfitrión y el presentador muestran el cuestionario, el muro de preguntas, la nube de palabras, la fase de lectura, la cuenta atrás, la segunda ronda y los resultados en un solo recorrido.',
+          'Te mueves por la sala y diriges la sesión en directo desde el teléfono. Los participantes votan, formulan preguntas y priorizan juntos. El anfitrión y el presentador muestran el cuestionario, el Q&A, el Sondeo rápido, la nube de palabras, la fase de lectura, la cuenta atrás, la segunda ronda y los resultados en un solo recorrido.',
       },
       {
         number: '04',
@@ -231,11 +234,32 @@ const es: Messages = {
       },
     ],
   },
+  pairing: {
+    eyebrow: 'Lo que nos distingue',
+    title: 'Presenta desde cualquier punto de la sala — con el teléfono o la tablet',
+    lead: 'Con Kahoot, Mentimeter, Slido o Particify sueles quedarte en el portátil. Con arsnova.eu conectas el teléfono: las diapositivas siguen en el proyector, tú recorres la sala y diriges la sesión en directo.',
+    summary: [
+      'Total libertad de movimiento mientras presentas — una ventaja clara para la didáctica y la puesta en escena.',
+      'El mismo control de sesión que en el portátil: preguntas, resultados, Q&A, Sondeo rápido, Finalizar sesión.',
+      'Pasa el control ad hoc a un tutor o moderador — no solo un clic para la siguiente diapositiva.',
+    ],
+    laptopLabel: 'Portátil y proyector',
+    laptopText: 'Muestran la presentación. Aquí confirmas la conexión.',
+    phoneLabel: 'Teléfono o tablet',
+    phoneText: 'Dirige la sesión en curso mientras estás en la sala.',
+    demoAria: 'El portátil muestra la presentación; el teléfono controla la sesión',
+  },
   features: {
     eyebrow: 'Lo que distingue a arsnova.eu',
     title: 'Hecho para la interacción en directo, no solo para encuestas en diapositivas',
     lead: 'arsnova.eu combina un arranque rápido, solidez didáctica y una base técnica transparente. La plataforma se mantiene sencilla en el día a día sin reducir las posibilidades.',
     items: [
+      {
+        title: 'Presenta desde cualquier punto de la sala',
+        description:
+          'Conecta un teléfono o tablet y dirige la sesión en movimiento: preguntas, resultados, Q&A, Sondeo rápido, Finalizar sesión. Sigues cerca del público y puedes ceder el control ad hoc — a diferencia de Kahoot, Mentimeter, Slido o Particify.',
+        icon: 'phone',
+      },
       {
         title: 'Listo en poco tiempo',
         description:
@@ -424,8 +448,13 @@ const es: Messages = {
   comparison: {
     eyebrow: 'Diferenciación',
     title: 'No solo un sustituto de Mentimeter o Kahoot',
-    lead: 'El objetivo no es únicamente votar, sino cubrir todo el proceso en directo: preparar, moderar, hacer visibles los resultados y mantener el control sobre contenidos y operación.',
+    lead: 'El objetivo no es únicamente votar, sino cubrir todo el proceso en directo: preparar, moderar desde cualquier punto de la sala, hacer visibles los resultados y mantener el control sobre contenidos y operación.',
     points: [
+      {
+        title: 'Libertad de movimiento, no atado al portátil',
+        description:
+          'Diriges la sesión desde un teléfono o tablet mientras la presentación sigue en el proyector. Es el control completo de la sesión en directo — preguntas, resultados, Q&A, Sondeo rápido, Finalizar sesión — y puedes cederlo ad hoc. Con Kahoot, Mentimeter, Slido o Particify sueles quedarte en el ordenador.',
+      },
       {
         title: 'Menos barreras de entrada',
         description:
@@ -454,6 +483,11 @@ const es: Messages = {
         question: '¿Necesitan cuenta anfitriones o participantes?',
         answer:
           'No. Una sesión puede iniciarse sin cuenta. Los participantes entran con código o QR.',
+      },
+      {
+        question: '¿Puedo controlar la sesión desde el teléfono?',
+        answer:
+          'Sí. Al iniciar la presentación conectas un teléfono o tablet por QR. El portátil muestra las diapositivas; tú recorres la sala. El dispositivo dirige la sesión en directo — preguntas, resultados, Q&A, Sondeo rápido, Finalizar sesión — no la colección de cuestionarios. También puedes ceder el control a un tutor o moderador de confianza. Esa es una diferencia clara frente a herramientas como Kahoot, Mentimeter, Slido o Particify.',
       },
       {
         question: '¿Dónde están los datos?',
@@ -518,6 +552,7 @@ const es: Messages = {
       'Preguntas de estimación numérica con dos rondas y estadística',
       'Muro de preguntas con moderación, votos a favor y en contra',
       'Sala de espera, presentador, QR/código',
+      'Control de la sesión en directo desde un teléfono o tablet (emparejamiento de anfitrión)',
       'Tipos de pregunta MC/SC/respuestas cortas/texto libre/encuesta/valoración/estimación numérica/relacionar/ordenar/clasificar',
       'Markdown y KaTeX',
       'Fase de lectura y Peer Instruction',

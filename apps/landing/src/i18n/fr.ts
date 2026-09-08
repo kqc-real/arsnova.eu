@@ -57,7 +57,10 @@ const fr: Messages = {
     a11yLink: 'Conforme aux WCAG 2.2, niveau AA',
     a11ySuffix: '— clavier, lecteur d’écran et temps de réponse ajustable individuellement.',
     cards: [
-      { title: 'Prêt en quelques secondes', text: 'Partager une session par code ou QR' },
+      {
+        title: 'Libre dans la salle',
+        text: 'Pilotez la session depuis le téléphone ; le projecteur reste sur l’ordinateur',
+      },
       { title: 'Q&A avec mur de questions', text: 'Modération, votes et nuage thématique' },
       {
         title: 'Autoévaluation et suivi',
@@ -213,13 +216,13 @@ const fr: Messages = {
         number: '02',
         title: 'Démarrer une session',
         description:
-          'Commencer sans compte : ouvrir une session, choisir un style, partager un code ou un QR et utiliser la vue présentateur si besoin.',
+          'Commencer sans compte : ouvrir une session, choisir un style, partager un code ou un QR. Optionnellement, relier un téléphone ou une tablette et ouvrir la vue présentateur pour le projecteur.',
       },
       {
         number: '03',
         title: 'Animer en direct',
         description:
-          'Les participants votent, posent des questions et définissent ensemble les priorités. L’animateur et le présentateur affichent le quiz, le mur de questions, le nuage de mots, la phase de lecture, le compte à rebours, le second tour et les résultats dans un seul déroulement.',
+          'Tu circules dans la salle et animes la session en direct depuis le téléphone. Les participants votent, posent des questions et définissent ensemble les priorités. L’animateur et le présentateur affichent le quiz, le Q&A, le sondage express, le nuage de mots, la phase de lecture, le compte à rebours, le second tour et les résultats dans un seul déroulement.',
       },
       {
         number: '04',
@@ -229,11 +232,32 @@ const fr: Messages = {
       },
     ],
   },
+  pairing: {
+    eyebrow: 'Ce qui nous distingue',
+    title: 'Présenter depuis n’importe où dans la salle — depuis le téléphone ou la tablette',
+    lead: 'Avec Kahoot, Mentimeter, Slido ou Particify, tu restes généralement devant l’ordinateur. Avec arsnova.eu, tu connectes ton téléphone : les diapos restent sur le projecteur, tu circules dans la salle et tu animes la session en direct.',
+    summary: [
+      'Pleine liberté de mouvement pendant la présentation — un vrai atout pédagogique et scénique.',
+      'Les mêmes commandes de session qu’à l’ordinateur : questions, résultats, Q&A, sondage express, Fin de séance.',
+      'Passer le contrôle ad hoc à un tuteur ou un animateur — pas seulement un clic pour la diapo suivante.',
+    ],
+    laptopLabel: 'Ordinateur et projecteur',
+    laptopText: 'Affichent la présentation. C’est ici que tu confirmes la connexion.',
+    phoneLabel: 'Téléphone ou tablette',
+    phoneText: 'Pilote la session en cours pendant que tu es dans la salle.',
+    demoAria: 'L’ordinateur affiche la présentation ; le téléphone pilote la session',
+  },
   features: {
     eyebrow: 'Ce qui distingue arsnova.eu',
     title: 'Conçu pour l’interaction en direct, pas seulement pour des sondages sur diapos',
     lead: 'arsnova.eu combine démarrage rapide, force pédagogique et socle technique transparent. La plateforme reste simple au quotidien sans restreindre les possibilités.',
     items: [
+      {
+        title: 'Présenter depuis n’importe où dans la salle',
+        description:
+          'Relie un téléphone ou une tablette et pilote la session en déplacement : questions, résultats, Q&A, sondage express, Fin de séance. Tu restes proche du public et peux transmettre le contrôle ad hoc — contrairement à Kahoot, Mentimeter, Slido ou Particify.',
+        icon: 'phone',
+      },
       {
         title: 'Prêt rapidement',
         description:
@@ -429,8 +453,13 @@ const fr: Messages = {
   comparison: {
     eyebrow: 'Positionnement',
     title: 'Pas seulement un substitut à Mentimeter ou Kahoot',
-    lead: 'L’objectif n’est pas seulement de voter, mais de couvrir tout le déroulement en direct : préparer, animer, rendre les résultats visibles et garder le contrôle sur les contenus et l’exploitation.',
+    lead: 'L’objectif n’est pas seulement de voter, mais de couvrir tout le déroulement en direct : préparer, animer depuis n’importe où dans la salle, rendre les résultats visibles et garder le contrôle sur les contenus et l’exploitation.',
     points: [
+      {
+        title: 'Liberté de mouvement, pas coincé·e à l’ordinateur',
+        description:
+          'Tu pilotes la session depuis un téléphone ou une tablette pendant que la présentation reste sur le projecteur. C’est le contrôle complet de la session en direct — questions, résultats, Q&A, sondage express, Fin de séance — et tu peux le transmettre ad hoc. Avec Kahoot, Mentimeter, Slido ou Particify, tu restes généralement devant l’ordinateur.',
+      },
       {
         title: 'Moins de freins à l’entrée',
         description:
@@ -459,6 +488,11 @@ const fr: Messages = {
         question: 'Les animateurs ou les participants ont-ils besoin d’un compte ?',
         answer:
           'Non. Une session peut démarrer sans compte. Les participants rejoignent via code ou QR.',
+      },
+      {
+        question: 'Puis-je piloter la session depuis mon téléphone ?',
+        answer:
+          'Oui. Au démarrage de la présentation, tu connectes un téléphone ou une tablette via QR. L’ordinateur affiche les diapos ; tu circules dans la salle. L’appareil pilote la session en direct — questions, résultats, Q&A, sondage express, Fin de séance — pas la collection de quiz. Tu peux aussi transmettre le contrôle à un tuteur ou un animateur de confiance. C’est une différence nette par rapport à des outils comme Kahoot, Mentimeter, Slido ou Particify.',
       },
       {
         question: 'Où sont les données ?',
@@ -523,6 +557,7 @@ const fr: Messages = {
       'Questions d’estimation numérique avec deux tours et statistiques',
       'Mur de questions avec modération, votes pour et contre',
       'Salle d’attente, présentateur, QR/code',
+      'Pilotage de la session en direct depuis un téléphone ou une tablette (couplage hôte)',
       'Types de questions QCM/QCU/réponses courtes/texte libre/sondage/évaluation/estimation numérique/association/mise en ordre/classement',
       'Markdown et KaTeX',
       'Phase de lecture et Peer Instruction',

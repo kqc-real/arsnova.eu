@@ -164,6 +164,13 @@
   color: var(--mat-sys-on-surface-variant);
 }
 
+.help-info-landing__links {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.5rem;
+}
+
 /* Material Expansion-Header: ViewEncapsulation.None (kein Piercing-Selektor). */
 .help-panel.mat-expansion-panel .mat-expansion-panel-header {
   height: auto;

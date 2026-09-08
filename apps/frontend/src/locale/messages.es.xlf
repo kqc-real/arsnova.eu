@@ -8338,8 +8338,8 @@
         </context-group>
       </trans-unit>
       <trans-unit id="help.infoLandingBody" datatype="html">
-        <source> Auf der Informationsseite findest du Einsatzmöglichkeiten, Hinweise zu Datenschutz und Barrierefreiheit sowie die Abgrenzung zu anderen Audience-Response-Systemen.</source>
-        <target>En la página de información encontrarás casos de uso, información sobre privacidad y accesibilidad, y la comparación con otros sistemas de respuesta del público.</target>
+        <source> Auf der Informationsseite findest du Einsatzmöglichkeiten, die Steuerung vom Smartphone, Hinweise zu Datenschutz und Barrierefreiheit sowie die Abgrenzung zu anderen Audience-Response-Systemen.</source>
+        <target>En la página de información encontrarás casos de uso, el control desde el teléfono, información sobre privacidad y accesibilidad, y la comparación con otros sistemas de respuesta del público.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/help/help.component.html</context>
           <context context-type="linenumber">103,106</context>
@@ -8366,8 +8366,8 @@
         </context-group>
       </trans-unit>
       <trans-unit id="help.hostCapabilitiesBody" datatype="html">
-        <source> Mit einem Quiz stellst du vorbereitete Wissens- oder Meinungsfragen. Im Q&amp;A sammelst und priorisierst du Fragen aus dem Publikum. Das Blitzlicht eignet sich für spontane Stimmungs-, Verständnis- und Tempoabfragen. Du kannst alle drei Bereiche in einer Live-Session verbinden.</source>
-        <target>Utiliza un cuestionario para plantear preguntas de conocimientos u opinión preparadas de antemano. Con el canal Q&amp;A puedes recopilar y priorizar las preguntas del público. El sondeo rápido es adecuado para valorar de forma espontánea el ambiente, la comprensión o el ritmo. Puedes combinar las tres funciones en una misma sesión en directo.</target>
+        <source> Mit einem Quiz stellst du vorbereitete Wissens- oder Meinungsfragen. Im Q&amp;A sammelst und priorisierst du Fragen aus dem Publikum. Das Blitzlicht eignet sich für spontane Stimmungs-, Verständnis- und Tempoabfragen. Du kannst alle drei Bereiche in einer Live-Session verbinden. Vom Smartphone oder Tablet steuerst du die laufende Veranstaltung frei im Raum und kannst die Steuerung ad hoc weitergeben.</source>
+        <target>Utiliza un cuestionario para plantear preguntas de conocimientos u opinión preparadas de antemano. Con el canal Q&amp;A puedes recopilar y priorizar las preguntas del público. El sondeo rápido es adecuado para valorar de forma espontánea el ambiente, la comprensión o el ritmo. Puedes combinar las tres funciones en una misma sesión en directo. Desde el teléfono o la tablet diriges la sesión en cualquier punto de la sala y puedes ceder el control ad hoc.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/help/help.component.html</context>
           <context context-type="linenumber">136,141</context>
@@ -8382,11 +8382,27 @@
         </context-group>
       </trans-unit>
       <trans-unit id="help.hostFirstSessionBody" datatype="html">
-        <source> Öffne die Quiz-Sammlung und nutze das Demo-Quiz oder erstelle ein eigenes Quiz. Wähle „Starten“, lege Stil und Optionen fest und teile anschließend den sechsstelligen Code oder QR-Code. In der Host-Ansicht zeigst du die nächste Frage, startest die Antwortphase und gibst das Ergebnis frei. Tipp: Teste die Vorschau vor dem ersten Einsatz einmal auf einem zweiten Gerät.</source>
-        <target>Abre la colección de cuestionarios y utiliza el cuestionario de demostración o crea uno propio. Selecciona «Iniciar», elige el estilo y las opciones y comparte el código de seis caracteres o el código QR. En la vista de moderación, muestra la siguiente pregunta, inicia la fase de respuesta y presenta los resultados. Consejo: prueba la vista previa en un segundo dispositivo antes de tu primera sesión.</target>
+        <source> Öffne die Quiz-Sammlung und nutze das Demo-Quiz oder erstelle ein eigenes Quiz. Wähle „Starten“, lege Stil und Optionen fest und teile anschließend den sechsstelligen Code oder QR-Code. In der Host-Ansicht zeigst du die nächste Frage, startest die Antwortphase und gibst das Ergebnis frei. Tipp: Teste die Vorschau vor dem ersten Einsatz einmal auf einem zweiten Gerät. Beim Start der Präsentation kannst du per QR Smartphone oder Tablet verbinden und die Session frei im Raum steuern.</source>
+        <target>Abre la colección de cuestionarios y utiliza el cuestionario de demostración o crea uno propio. Selecciona «Iniciar», elige el estilo y las opciones y comparte el código de seis caracteres o el código QR. En la vista de moderación, muestra la siguiente pregunta, inicia la fase de respuesta y presenta los resultados. Consejo: prueba la vista previa en un segundo dispositivo antes de tu primera sesión. Al iniciar la presentación puedes conectar un teléfono o tablet por QR y controlar la sesión desde cualquier punto de la sala.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/help/help.component.html</context>
           <context context-type="linenumber">155,161</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="help.hostPairingTitle" datatype="html">
+        <source>Wie steuere ich die Session vom Smartphone?</source>
+        <target>¿Cómo controlo la sesión desde el teléfono?</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/help/help.component.html</context>
+          <context context-type="linenumber">178</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="help.hostPairingBody" datatype="html">
+        <source> Beim Start der Präsentation verbindest du Smartphone oder Tablet per QR. Die Verbindung bestätigst du zuerst am Host-Gerät. Danach bleibt die Präsentation auf dem Beamer, und du gehst frei durch den Raum. Das Gerät steuert die laufende Veranstaltung: Fragen, Ergebnisse, Q&amp;A, Blitzlicht, Session beenden. Nicht aber: Quiz bearbeiten oder löschen. Die Steuerung kannst du ad hoc einer vertrauenswürdigen Tutor:in oder Moderator:in übergeben. Das ist ein klarer Unterschied zu Systemen wie Kahoot, Mentimeter, Slido oder Particify.</source>
+        <target>Al iniciar la presentación conectas un teléfono o tablet por QR. Confirmas primero la conexión en el dispositivo anfitrión. Después la presentación sigue en el proyector y recorres la sala. El dispositivo dirige la sesión en directo: preguntas, resultados, Q&amp;A, Sondeo rápido, Finalizar sesión. No: editar o borrar cuestionarios. Puedes ceder el control ad hoc a un tutor o moderador de confianza. Esa es una diferencia clara frente a herramientas como Kahoot, Mentimeter, Slido o Particify.</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/help/help.component.html</context>
+          <context context-type="linenumber">183,190</context>
         </context-group>
       </trans-unit>
       <trans-unit id="help.hostFinishTitle" datatype="html">
@@ -8665,6 +8681,14 @@
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/news-archive/news-archive-page.component.html</context>
           <context context-type="linenumber">177</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="help.infoLandingPairingLink" datatype="html">
+        <source>Frei im Raum präsentieren</source>
+        <target>Presenta desde cualquier punto de la sala</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/help/help.component.ts</context>
+          <context context-type="linenumber">82</context>
         </context-group>
       </trans-unit>
       <trans-unit id="help.infoLandingLink" datatype="html">

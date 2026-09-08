@@ -2,6 +2,7 @@
 export const CANONICAL_ANCHORS = [
   'workflow',
   'features',
+  'host-pairing',
   'numeric-estimate',
   'confidence',
   'qa-wall',

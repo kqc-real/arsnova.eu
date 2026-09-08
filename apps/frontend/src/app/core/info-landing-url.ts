@@ -9,6 +9,7 @@ export const INFO_LANDING_ANCHORS = {
   numericEstimate: 'numeric-estimate',
   confidence: 'confidence',
   qaWall: 'qa-wall',
+  hostPairing: 'host-pairing',
   features: 'features',
   accessibility: 'accessibility',
   trust: 'trust',

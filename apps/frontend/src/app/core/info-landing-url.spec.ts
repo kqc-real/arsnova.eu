@@ -17,6 +17,9 @@ describe('infoLandingUrl', () => {
     expect(infoLandingUrl(INFO_LANDING_ANCHORS.confidence, 'es')).toBe(
       'https://info.arsnova.eu/es/#confidence',
     );
+    expect(infoLandingUrl(INFO_LANDING_ANCHORS.hostPairing, 'de')).toBe(
+      'https://info.arsnova.eu/de/#host-pairing',
+    );
   });
 
   it('setzt theme als Query vor dem Hash für alle erlaubten Werte', () => {

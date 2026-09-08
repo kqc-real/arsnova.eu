@@ -15,6 +15,7 @@ const LOCALES = ['de', 'en', 'fr', 'it', 'es'];
 const CANONICAL_ANCHORS = [
   'workflow',
   'features',
+  'host-pairing',
   'numeric-estimate',
   'confidence',
   'qa-wall',
