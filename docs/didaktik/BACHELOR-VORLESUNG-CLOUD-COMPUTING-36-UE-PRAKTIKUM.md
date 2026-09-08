@@ -2,7 +2,7 @@
 
 # Lehrkonzept: Cloud Computing im Bachelor Informatik (36 UE)
 
-**Modul:** `DSCC0127` · **Kurs:** `DSCC012701` · **Studienformat:** Duales Studium · **Formalia:** [IU-Formalia](./CLOUD-COMPUTING-IU-FORMALIA.md), [Referatsprüfung](./CLOUD-COMPUTING-REFERAT-PRUEFUNG.md) · **Arbeitsmodell:** [Agentic-Lehrlabor](./CLOUD-COMPUTING-AGENTIC-LEHRLABOR.md) · **Projektstatus:** [Kurslandkarte](./CLOUD-COMPUTING-KURSREADME.md) · **Durchführung:** [12 Terminpläne](./vorlesungen-cloud-computing-termine.md), [Präsenz-/Zoom-Konzept](./CLOUD-COMPUTING-DURCHFUEHRUNG-PRAESENZ-ZOOM.md) · **Stand:** 2026-07-29
+**Modul:** `DSCC0127` · **Kurs:** `DSCC012701` · **Studienformat:** Duales Studium · **Formalia:** [IU-Formalia](./CLOUD-COMPUTING-IU-FORMALIA.md), [Referatsprüfung](./CLOUD-COMPUTING-REFERAT-PRUEFUNG.md) · **Arbeitsmodell:** [Agentic-Lehrlabor](./CLOUD-COMPUTING-AGENTIC-LEHRLABOR.md) · **Projektstatus:** [Kurslandkarte](./CLOUD-COMPUTING-KURSREADME.md) · **Durchführung:** [12 Terminpläne](./vorlesungen-cloud-computing-termine.md), [Präsenz-/Zoom-Konzept](./CLOUD-COMPUTING-DURCHFUEHRUNG-PRAESENZ-ZOOM.md) · **Stand:** 2026-09-08
 
 ## 1. Verbindlicher Rahmen
 
@@ -56,11 +56,14 @@ Die Studierenden lernen Cloud Computing als Zusammenspiel von Dienstmodell, tech
 - PostgreSQL für persistente Daten und Redis für flüchtigen Zustand und Schutzmechanismen;
 - Docker-Compose-Produktionspfad hinter Nginx/TLS;
 - einem gehärteten PDF-Worker als Kandidaten für die Serverless-/Hintergrundjob-Diskussion;
+- dem geplanten privaten `llama.cpp`/`llama-server`-Dienst aus Story 8.9d als Laborobjekt für Model Serving, Isolation, Kapazität und Fallback;
 - Last-, Monitoring-, Backup-, Security- und Abnahmedokumenten mit unterschiedlichen Evidenzstufen.
+
+8.9d ist durch [ADR-0035](../architecture/decisions/0035-self-hosted-llm-runtime-llama-cpp-over-ollama.md) spezifiziert, aber noch nicht implementiert. Kanonisches Ziel ist ein zweiter privater Host ohne öffentlichen Modellport; der aktuelle Live-Host führt kein LLM aus.
 
 Fallauftrag:
 
-> Steuert KI-Agenten so, dass sie einen isolierten Cloud-Server für `arsnova.eu` reproduzierbar bereitstellen, härten und hinsichtlich Sicherheit, Datenschutz, Performance, Resilienz und Wirtschaftlichkeit prüfen. Verbindet technische Evidenz mit TCO, FinOps, Unit Economics, Risiko und Exit zu einer verantworteten Entscheidung und bereitet sie für Einreichung, Vortrag und Diskussion des 15-minütigen Referats auf.
+> Steuert KI-Agenten so, dass sie einen isolierten Cloud-Server für `arsnova.eu` reproduzierbar bereitstellen, härten und hinsichtlich Sicherheit, Datenschutz, Performance, Resilienz und Wirtschaftlichkeit prüfen. Untersucht optional die geplante 8.9d-Inferenzrolle in einem isolierten Zwei-Server-Labor und weist Netzgrenze, Ressourcenbudget, Backpressure, Fallback und Rollback nach. Verbindet technische Evidenz mit TCO, FinOps, Unit Economics, Risiko und Exit zu einer verantworteten Entscheidung und bereitet sie für Einreichung, Vortrag und Diskussion des 15-minütigen Referats auf.
 
 Zwei ungetestete Lehrprofile strukturieren die Architekturarbeit:
 
@@ -79,7 +82,7 @@ Zusätzlich zur Formulierung des Modulhandbuchs werden die Ziele beobachtbar gem
 | K2   | Compute-, Container-, Speicher-, Netzwerk- und REST-Voraussetzungen eines Systems analysieren   | Ziel 2                  |
 | K3   | eine Funktion hinsichtlich Serverless-Eignung, Nutzen und Grenzen bewerten                      | Ziel 3                  |
 | K4   | GCP, AWS und Azure anhand gleicher Fähigkeiten, Verantwortungen und Risiken vergleichen         | Ziel 4                  |
-| K5   | geeignete Datenwissenschafts-/ML-Dienste der drei Plattformen beschreiben und abgrenzen         | Ziel 5                  |
+| K5   | Datenwissenschafts-/ML-Dienste sowie privates Model Serving beschreiben und abgrenzen           | Ziel 5                  |
 | K6   | eine Cloud-Entscheidung für `arsnova.eu` evidenzbasiert begründen und verständlich präsentieren | Ziele 1–5, Falltransfer |
 | K7   | einen KI-Agenten mit Auftrag, Rechten, Budget, Freigabegates und Akzeptanztests steuern         | Querschnittsmethode     |
 | K8   | einen isolierten Server agentisch installieren, härten, messen, prüfen und zurückbauen          | Ziele 1–4, Falltransfer |
@@ -93,7 +96,7 @@ Zusätzlich zur Formulierung des Modulhandbuchs werden die Ziele beobachtbar gem
 | K2/K8        | Provisioning-/Operations-Agent auf isoliertem Zielserver      | IaC, Systeminventar und Härtungsnachweis     | technologische Voraussetzungen des Falls    |
 | K3           | Serverless-Analyseagent mit Gegenbeispiel                     | Eignungsmatrix und isolierter Prototyp       | Funktion, Nutzen und Grenze von Serverless  |
 | K4           | Provider-Agent mit identischem Capability-/Quellenraster      | GCP-/AWS-/Azure-Matrix                       | Analyse etablierter Cloud-Angebote          |
-| K5           | Daten-/ML- und Privacy-Agent                                  | Datenfluss, Zweck-/Rollen- und Optionenblatt | passende Cloud-Option für einen Datenfall   |
+| K5           | Daten-/ML- und Privacy-Agent mit 8.9a–d-Vergleich              | Datenfluss, Zweck-/Rollen- und Optionenblatt | passende Cloud-Option für einen Datenfall   |
 | K6/K7        | Security-, Performance- und Review-Agenten mit Evidenzgates   | Befund-, Mess- und Verifikationsberichte     | verteidigbare technische Fallentscheidung   |
 | K9           | Economics-/FinOps-Agent auf Basis derselben technischen Daten | TCO, Unit Economics, Sensitivität und ADR    | verantwortbare Gesamtentscheidung           |
 
@@ -148,11 +151,11 @@ Die Detailzeiten stehen in den [Terminplänen](./vorlesungen-cloud-computing-ter
 |      3 | Tutorium         | Serverinstallation, `arsnova.eu`-Slice und Härtung   | reproduzierbarer Build und Härtungsnachweis |
 |      4 | Präsenz/synchron | Serverless-Agent und isolierter Prototyp             | Serverless-Eignungsmatrix                   |
 |      5 | Präsenz/synchron | Provider-Agent für Google Cloud, AWS und Azure       | Capability-/Verantwortungs-/Kostenvergleich |
-|      6 | Präsenz/synchron | Daten-/ML- und Privacy-Agent                         | Datenfluss und DS-/ML-Service-Mapping       |
+|      6 | Präsenz/synchron | Daten-/ML- und Privacy-Agent; 8.9a–d                 | Datenfluss und DS-/ML-Service-Mapping       |
 |      7 | Tutorium         | Recovery-Agent für Backup, Restore und Fehlerfälle   | ausgeführter Recovery-Nachweis              |
-|      8 | Tutorium         | Performance-Agent für Last, SLI/SLO und Resilienz    | reproduzierbarer Last-/Messbericht          |
-|      9 | Präsenz/synchron | Security-/Privacy-Agent und Observability            | Befund-Maßnahme-Verifikation-Restrisiko     |
-|     10 | Tutorium         | Economics-/FinOps-Agent, Providerentscheidung und 6R | TCO, Unit Economics, Sensitivität und ADR   |
+|      8 | Tutorium         | Performance-Agent; 8.9d-Slot, TTFT und Backpressure  | reproduzierbarer Last-/Messbericht          |
+|      9 | Präsenz/synchron | Security-/Privacy-Agent; privater 8.9d-Endpunkt       | Befund-Maßnahme-Verifikation-Restrisiko     |
+|     10 | Tutorium         | FinOps-Agent; CPU-/GPU-/Managed-Vergleich für 8.9d   | TCO, Unit Economics, Sensitivität und ADR   |
 |     11 | Tutorium         | Agentenevidenz in Referatsbestandteile überführen    | Einreichungs- und Vortragsskizze            |
 |     12 | Tutorium         | Probeprüfung und Verteidigung der Agentenergebnisse  | Vortrag plus Diskussion                     |
 
@@ -212,6 +215,14 @@ Falls myCampus Workbook ausweist, gelten Einzelarbeit, zentrale Aufgabenstruktur
 - [Monitoring-Runbook](../operations/MONITORING-RUNBOOK.md)
 - [Backup-/Restore-Runbook](../operations/BACKUP-RESTORE-RUNBOOK.md)
 
+### Moderationskompass und private Inferenz
+
+- [Lehrmatrix Moderationskompass 8.9a–d](./MODERATIONSKOMPASS-8.9A-D-MODULE-UND-PRAKTIKA.md)
+- [Story 8.9a: deterministischer Moderationskompass](../features/moderation-compass.md)
+- [Story 8.9b: optionale Q&A-NLP-Kaskade](../features/qa-nlp-moderation.md)
+- [Story 8.9c: quellengebundene Zusammenfassung](../features/qa-summary.md)
+- [ADR-0035: private Runtime für Story 8.9d](../architecture/decisions/0035-self-hosted-llm-runtime-llama-cpp-over-ollama.md)
+
 ### Evidenz und Transformation
 
 - [historischer Produktions-Join 500](../implementation/LASTTEST-500-PRODUKTION-6LTFZF-2026-05-09.md)
@@ -223,7 +234,7 @@ Falls myCampus Workbook ausweist, gelten Einzelarbeit, zentrale Aufgabenstruktur
 
 ## 11. Kurzfassung für die Modulplanung
 
-Die integrierte Vorlesung vermittelt Grundlagen, technologische Voraussetzungen, Serverless Computing, etablierte Cloud-Plattformen und Datenwissenschaft/ML in der Cloud. Lehrende und Studierende steuern dafür ausschließlich KI-Agenten: Sie stellen isolierte Server bereit, installieren und härten `arsnova.eu`, prüfen Security, Datenschutz, Performance und Resilienz und verbinden die Evidenz mit TCO, FinOps, Unit Economics, Risiko und Exit. Informatik und Wirtschaftsinformatik arbeiten in gemischten Rollen. Sechs Präsenz-/synchrone Termine und sechs Tutorien bilden die 36 UE; 123 Stunden Selbststudium dienen Agentic-Dossier, Lektüre und Referatsvorbereitung. Nach jedem Termin stehen 30 agentisch erzeugte MC-Test-Fragen zur freiwilligen Selbstüberprüfung bereit. Präsenz- und Zoom-Lauf nutzen denselben Agenten- und Laborplan. Formale Prüfungsbasis ist ein 15-minütiges Referat je Prüfling aus Einreichung, Vortrag und Diskussion.
+Die integrierte Vorlesung vermittelt Grundlagen, technologische Voraussetzungen, Serverless Computing, etablierte Cloud-Plattformen und Datenwissenschaft/ML in der Cloud. Lehrende und Studierende steuern dafür ausschließlich KI-Agenten: Sie stellen isolierte Server bereit, installieren und härten `arsnova.eu`, prüfen Security, Datenschutz, Performance und Resilienz und verbinden die Evidenz mit TCO, FinOps, Unit Economics, Risiko und Exit. Informatik und Wirtschaftsinformatik arbeiten in gemischten Rollen. Sechs Präsenz-/synchrone Termine und sechs Tutorien bilden die 36 UE; 123 Stunden Selbststudium dienen Agentic-Dossier, Lektüre und Referatsvorbereitung. Nach jedem Termin stehen 30 agentisch erzeugte MC-Test-Fragen zur freiwilligen Selbstüberprüfung bereit. Präsenz- und Zoom-Lauf nutzen denselben Agenten- und Laborplan. Story 8.9d ergänzt darin optional ein privates Zwei-Server-Inferenzlabor; sie gilt nicht als implementierte Produktfunktion. Formale Prüfungsbasis ist ein 15-minütiges Referat je Prüfling aus Einreichung, Vortrag und Diskussion.
 
 ## 12. Freigabecheck
 
@@ -238,6 +249,7 @@ Die integrierte Vorlesung vermittelt Grundlagen, technologische Voraussetzungen,
 - [ ] für jeden Termin Themen/Keywords zur Abdeckungssteuerung und eine versionierte autoritative Materialbasis für 30 agentisch erzeugte MC-Test-Fragen gepflegt
 - [ ] festgeschriebener MC-Test-Commit, vierstufige Artefaktpipeline, Validator, Generierungsmanifest und menschliches Freigabegate getestet
 - [ ] Serverinstallation/Härtung sowie Security-, Privacy-, Performance- und FinOps-Agentenlabor lauffähig
+- [ ] falls 8.9d genutzt wird: privater Endpunkt, Ein-Slot-Grenze, Timeout/Abort, Fallback, Messwerte und Rollback reproduzierbar nachgewiesen
 - [ ] gemischte Informatik-/Wirtschaftsinformatikrollen und gemeinsame Ergebnisverantwortung festgelegt
 - [ ] zulässige Agentennutzung und Offenlegung für die Referatsprüfung formal geklärt
 - [ ] Raum-/Netz-Fallback für Präsenz sowie Host-/Breakout-/Verbindungs-Fallback für Zoom getestet
