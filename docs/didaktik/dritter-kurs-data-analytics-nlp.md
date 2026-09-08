@@ -1,10 +1,12 @@
 # Dritter Kurs: Data Analytics und NLP (nicht zwingend parallel)
 
-> **Kurs 3** vertieft **NLP und Auswertelogik** rund um den didaktischen Moderationskompass: erklärbare Baselines, semantisches Bündeln von Freitext, optionale Q&A-Klassifikation und später ggf. quellengebundene Zusammenfassungen. Im aktuellen Repo existiert dafür bereits ein deterministischer `wordCloudRouter` mit `wordCloudAnalysis` als erklärbare Baseline; der Kurs kann diese Baseline evaluieren oder in Richtung Embeddings, SetFit/klassische Klassifikation und optional on-prem LLM erweitern. Der Kurs muss **nicht** parallel zu Kurs 1 (Entwicklung) und Kurs 2 (SQM) laufen — er eignet sich z. B. als **folgender** oder **eigenständiger** Block, sobald Produktkontext, [ADR-0032](../architecture/decisions/0032-optional-nlp-cascade-for-qa-moderation-signals.md) und Begriffe aus [`BEGRIFFE-FREITEXT-UND-SEMANTIK.md`](../praktikum/BEGRIFFE-FREITEXT-UND-SEMANTIK.md) bekannt sind.
+> **Kurs 3** vertieft **NLP und Auswertelogik** rund um den didaktischen Moderationskompass: erklärbare Baselines, semantisches Bündeln von Freitext, optionale Q&A-Klassifikation und später ggf. quellengebundene Zusammenfassungen. Im aktuellen Repo existiert dafür bereits ein deterministischer `wordCloudRouter` mit `wordCloudAnalysis` als erklärbare Baseline; der Kurs kann diese Baseline evaluieren oder in Richtung Embeddings, SetFit/klassische Klassifikation und optional eine private Open-Weight-Runtime nach Story 8.9d untersuchen. 8.9d ist durch [ADR-0035](../architecture/decisions/0035-self-hosted-llm-runtime-llama-cpp-over-ollama.md) als `llama.cpp`/`llama-server` auf einem zweiten privaten Host geplant, aber noch nicht implementiert. Der Kurs muss **nicht** parallel zu Kurs 1 (Entwicklung) und Kurs 2 (SQM) laufen — er eignet sich z. B. als **folgender** oder **eigenständiger** Block, sobald Produktkontext, [ADR-0032](../architecture/decisions/0032-optional-nlp-cascade-for-qa-moderation-signals.md) und Begriffe aus [`BEGRIFFE-FREITEXT-UND-SEMANTIK.md`](../praktikum/BEGRIFFE-FREITEXT-UND-SEMANTIK.md) bekannt sind.
 
 ### Ausführliche Praktikumsbeschreibung (studierendenfreundlich)
 
 **→ [`docs/praktikum/PRAKTIKUM-DATA-ANALYTICS.md`](../praktikum/PRAKTIKUM-DATA-ANALYTICS.md)**
+
+**→ [`Lehrmatrix Moderationskompass 8.9a–d`](./MODERATIONSKOMPASS-8.9A-D-MODULE-UND-PRAKTIKA.md)**
 
 ---
 
@@ -13,7 +15,7 @@
 | Aspekt           | Inhalt                                                                                                                                                                                                                                                           |
 | ---------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | **Produktbezug** | Gleiche Codebasis **arsnova.eu**; Fokus auf **Daten- und Sprachpipeline** für Freitext/Q&A (Host-Auswertung), nicht auf komplette Feature-Implementierung im Monorepo — es sei denn, die Betreuung koppelt explizit an Kurs 1.                                   |
-| **Schwerpunkt**  | **Modellvergleich und Evaluation** entlang der Storys **8.9a–8.9c**: deterministische Baseline, klassische NLP-/Klassifikationsansätze, mehrsprachige Encoder/Embeddings und optional lokale generative Zusammenfassung.                                         |
+| **Schwerpunkt**  | **Modellvergleich und Evaluation** entlang der Storys **8.9a–8.9d**: deterministische Baseline, klassische NLP-/Klassifikationsansätze, mehrsprachige Encoder/Embeddings, quellengebundene Zusammenfassung und optional private LLM-Runtime.                     |
 | **Synergie**     | Optional: Ergebnisse (Evaluationsprotokoll, JSON-Schema-Vorschläge, Modell-/Prompt-Bibliothek) können **Kurs 1** als Spezifikation dienen; **Kurs 2** kann Qualitätskriterien und Nachvollziehbarkeit der Evaluierung prüfen — **kein** Muss für den Kursablauf. |
 
 ## Zielbild: Semantische Cluster statt Tokenwolke
@@ -60,7 +62,7 @@ Die Zielbild-Screenshots im Screenshot-Ordner illustrieren genau diesen Soll-Zus
 - [Quiz-Freitext-Zielbild](../screenshots/Quiz-Freitext-Semantische-Begriffwolke-Zielbild.png) zeigt gebuendelte Bedeutungsraeume fuer Interpretation, Validierung und Lerntransfer.
 - [Screenshot-README](../screenshots/README.md) dokumentiert alle Vergleichsbilder zwischen heutigem lexikalischem Stand und semantischem Zielbild.
 
-Didaktisch ist diese Skizze fuer Kurs 3 nuetzlich, weil sie drei getrennte Arbeitsstraenge sichtbar macht:
+Didaktisch ist diese Skizze fuer Kurs 3 nuetzlich, weil sie drei getrennte Arbeitsstraenge sichtbar macht. Eine 8.9d-Vertiefung misst zusätzlich TTFT, Prefill, Tokens/s, Schemaerfüllung, Quellenbindung und Fallback-Rate; sie ersetzt weder die erklärbare Baseline noch den nicht generativen Vergleich.
 
 - Baseline und Vorverarbeitung: Was kann klassisches NLP ohne LLM bereits belastbar leisten?
 - Semantik und Clusterbildung: Wo beginnt echter Mehrwert durch Embeddings, SetFit, klassische Klassifikation oder selbst gehostete Sprachmodelle?
