@@ -27273,6 +27273,10 @@
         <source>Verbinde das Gerät nur, wenn auf beiden Geräten dasselbe angezeigt wird.</source>
         <target>Connecte l’appareil seulement si les deux écrans affichent la même chose.</target>
       </trans-unit>
+      <trans-unit id="hostPairing.pendingAfterHint" datatype="html">
+        <source>Das Gerät erhält dieselben Host-Rechte wie hier – keine reine Fernbedienung.</source>
+        <target>Cet appareil obtient les mêmes droits d’hôte qu’ici – ce n’est pas une simple télécommande.</target>
+      </trans-unit>
       <trans-unit id="hostPairing.connected" datatype="html">
         <source>Smartphone verbunden</source>
         <target>Smartphone connecté</target>

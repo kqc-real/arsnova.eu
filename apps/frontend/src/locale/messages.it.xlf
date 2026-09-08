@@ -27273,6 +27273,10 @@
         <source>Verbinde das Gerät nur, wenn auf beiden Geräten dasselbe angezeigt wird.</source>
         <target>Collega il dispositivo solo se entrambi gli schermi mostrano la stessa cosa.</target>
       </trans-unit>
+      <trans-unit id="hostPairing.pendingAfterHint" datatype="html">
+        <source>Das Gerät erhält dieselben Host-Rechte wie hier – keine reine Fernbedienung.</source>
+        <target>Questo dispositivo ottiene gli stessi diritti di host di qui – non è un semplice telecomando.</target>
+      </trans-unit>
       <trans-unit id="hostPairing.connected" datatype="html">
         <source>Smartphone verbunden</source>
         <target>Smartphone collegato</target>

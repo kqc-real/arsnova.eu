@@ -27330,6 +27330,10 @@
         <source>Verbinde das Gerät nur, wenn auf beiden Geräten dasselbe angezeigt wird.</source>
         <target>Connect the device only if both screens show the same.</target>
       </trans-unit>
+      <trans-unit id="hostPairing.pendingAfterHint" datatype="html">
+        <source>Das Gerät erhält dieselben Host-Rechte wie hier – keine reine Fernbedienung.</source>
+        <target>This device gets the same host rights as here — not just remote control.</target>
+      </trans-unit>
       <trans-unit id="hostPairing.connected" datatype="html">
         <source>Smartphone verbunden</source>
         <target>Phone connected</target>
