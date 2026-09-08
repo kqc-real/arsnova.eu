@@ -10,6 +10,10 @@
 import { PrismaClient } from '@prisma/client';
 import { PrismaPg } from '@prisma/adapter-pg';
 import pg from 'pg';
+import {
+  resolveDatabasePoolConnectionTimeoutMs,
+  resolveDatabasePoolMax,
+} from './lib/databasePoolConfig';
 import { serializeQueriesOnClient } from './lib/serializePgClientQueries';
 
 const connectionString =
@@ -17,7 +21,11 @@ const connectionString =
   'postgresql://arsnova_user:secretpassword@localhost:5432/arsnova_v3_dev?schema=public';
 
 function createPgPool(): pg.Pool {
-  const pool = new pg.Pool({ connectionString });
+  const pool = new pg.Pool({
+    connectionString,
+    max: resolveDatabasePoolMax(),
+    connectionTimeoutMillis: resolveDatabasePoolConnectionTimeoutMs(),
+  });
   const originalConnect = pool.connect.bind(pool);
 
   pool.connect = ((
@@ -54,7 +62,12 @@ export const prisma =
   globalForPrisma.prisma ??
   new PrismaClient({
     adapter,
-    log: process.env['NODE_ENV'] === 'development' ? ['query', 'error', 'warn'] : [], // In Production keine Prisma-Logs; Health-Stats fangen DB-Ausfall ab und liefern Fallback
+    log:
+      process.env['PRISMA_LOG_QUERIES'] === '1'
+        ? ['query', 'error', 'warn']
+        : process.env['NODE_ENV'] === 'development'
+          ? ['error', 'warn']
+          : [], // Query-Logs nur opt-in; Last-Smokes dürfen den Event-Loop nicht mit 600× Queries füllen
   });
 
 if (process.env['NODE_ENV'] !== 'production') {

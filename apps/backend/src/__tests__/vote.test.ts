@@ -35,7 +35,12 @@ vi.mock('../lib/rateLimit', () => ({
 }));
 
 import { checkVoteRate } from '../lib/rateLimit';
-import { resetVoteSubmitCachesForTests, voteRouter } from '../routers/vote';
+import {
+  resetVoteSubmitCachesForTests,
+  VOTE_TRANSACTION_MAX_WAIT_MS,
+  VOTE_TRANSACTION_TIMEOUT_MS,
+  voteRouter,
+} from '../routers/vote';
 
 const caller = voteRouter.createCaller({ req: undefined });
 const ANSWER_ID_1 = '11111111-1111-4111-8111-111111111111';
@@ -69,6 +74,32 @@ describe('vote.submit', () => {
     prismaMock.vote.findUnique.mockResolvedValue(null);
     prismaMock.vote.findFirst.mockResolvedValue(null);
     prismaMock.vote.create.mockResolvedValue({ id: '11111111-1111-4111-8111-111111111119' });
+  });
+
+  it('wartet auf einen Pool-Slot statt Vote-Transaktionen nach 2s abzubrechen', async () => {
+    prismaMock.question.findFirst.mockResolvedValue({
+      id: 'question-1',
+      quizId: 'quiz-1',
+      type: 'FREETEXT',
+      difficulty: 'MEDIUM',
+      shortTextMaxLength: null,
+      ratingMin: null,
+      ratingMax: null,
+      answers: [],
+    });
+
+    await caller.submit({
+      sessionId: '6a8edced-5f8f-4cfa-9176-454fac9570ad',
+      participantId: '7290465d-5982-4b3d-ab47-a2088830d4b0',
+      questionId: '7ed3cc25-3179-4a91-9dc3-acc00971fb46',
+      freeText: 'Hörsaal',
+    });
+
+    expect(prismaMock.$transaction).toHaveBeenCalledWith(expect.any(Function), {
+      maxWait: VOTE_TRANSACTION_MAX_WAIT_MS,
+      timeout: VOTE_TRANSACTION_TIMEOUT_MS,
+    });
+    expect(VOTE_TRANSACTION_MAX_WAIT_MS).toBeGreaterThanOrEqual(10_000);
   });
 
   it('vergibt für FREETEXT immer 0 Punkte und speichert keine selectedAnswers', async () => {

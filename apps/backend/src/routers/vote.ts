@@ -62,6 +62,10 @@ function normalizeNumericInputType(value: string | null | undefined): NumericInp
   return value === 'INTEGER' ? 'INTEGER' : 'DECIMAL';
 }
 
+/** Burst aus dem Hörsaal darf auf einen freien Pool-Slot warten statt hart zu scheitern. */
+export const VOTE_TRANSACTION_MAX_WAIT_MS = 10_000;
+export const VOTE_TRANSACTION_TIMEOUT_MS = 15_000;
+
 function isUniqueConstraintError(error: unknown): error is { code: 'P2002' } {
   return (
     typeof error === 'object' &&
@@ -766,57 +770,63 @@ export const voteRouter = router({
 
       let vote: { id: string };
       try {
-        vote = await prisma.$transaction(async (tx) => {
-          await lockVoteSessionRowForShare(tx, input.sessionId);
-          const lockedSession = await tx.session.findUnique({
-            where: { id: input.sessionId },
-            select: { status: true, currentQuestion: true, currentRound: true },
-          });
-          const lockedStatusAcceptsVote =
-            lockedSession?.status === 'ACTIVE' ||
-            (acceptsLateVote &&
-              (lockedSession?.status === 'RESULTS' || lockedSession?.status === 'DISCUSSION'));
-          if (
-            !lockedSession ||
-            !lockedStatusAcceptsVote ||
-            lockedSession.currentQuestion !== question.order ||
-            lockedSession.currentRound !== round
-          ) {
-            throw new TRPCError({
-              code: 'BAD_REQUEST',
-              message: 'Die Frage ist nicht mehr aktiv.',
+        vote = await prisma.$transaction(
+          async (tx) => {
+            await lockVoteSessionRowForShare(tx, input.sessionId);
+            const lockedSession = await tx.session.findUnique({
+              where: { id: input.sessionId },
+              select: { status: true, currentQuestion: true, currentRound: true },
             });
-          }
-          return tx.vote.create({
-            data: {
-              sessionId: input.sessionId,
-              participantId: input.participantId,
-              questionId: input.questionId,
-              freeText,
-              ratingValue: input.ratingValue ?? null,
-              numericValue: input.numericValue ?? null,
-              confidenceValue: input.confidenceValue ?? null,
-              matchingSelections:
-                questionType === 'MATCHING'
-                  ? (input.matchingSelections ?? Prisma.DbNull)
-                  : Prisma.DbNull,
-              orderingSequence: questionType === 'ORDERING' ? (input.orderingSequence ?? []) : [],
-              categorizationSelections:
-                questionType === 'CATEGORIZATION'
-                  ? (input.categorizationSelections ?? Prisma.DbNull)
-                  : Prisma.DbNull,
-              responseTimeMs,
-              score,
-              isCorrect: voteIsCorrect,
-              streakCount,
-              streakBonus: streakMultiplier,
-              round,
-              selectedAnswers: answerIds.length
-                ? { create: answerIds.map((answerOptionId: string) => ({ answerOptionId })) }
-                : undefined,
-            },
-          });
-        });
+            const lockedStatusAcceptsVote =
+              lockedSession?.status === 'ACTIVE' ||
+              (acceptsLateVote &&
+                (lockedSession?.status === 'RESULTS' || lockedSession?.status === 'DISCUSSION'));
+            if (
+              !lockedSession ||
+              !lockedStatusAcceptsVote ||
+              lockedSession.currentQuestion !== question.order ||
+              lockedSession.currentRound !== round
+            ) {
+              throw new TRPCError({
+                code: 'BAD_REQUEST',
+                message: 'Die Frage ist nicht mehr aktiv.',
+              });
+            }
+            return tx.vote.create({
+              data: {
+                sessionId: input.sessionId,
+                participantId: input.participantId,
+                questionId: input.questionId,
+                freeText,
+                ratingValue: input.ratingValue ?? null,
+                numericValue: input.numericValue ?? null,
+                confidenceValue: input.confidenceValue ?? null,
+                matchingSelections:
+                  questionType === 'MATCHING'
+                    ? (input.matchingSelections ?? Prisma.DbNull)
+                    : Prisma.DbNull,
+                orderingSequence: questionType === 'ORDERING' ? (input.orderingSequence ?? []) : [],
+                categorizationSelections:
+                  questionType === 'CATEGORIZATION'
+                    ? (input.categorizationSelections ?? Prisma.DbNull)
+                    : Prisma.DbNull,
+                responseTimeMs,
+                score,
+                isCorrect: voteIsCorrect,
+                streakCount,
+                streakBonus: streakMultiplier,
+                round,
+                selectedAnswers: answerIds.length
+                  ? { create: answerIds.map((answerOptionId: string) => ({ answerOptionId })) }
+                  : undefined,
+              },
+            });
+          },
+          {
+            maxWait: VOTE_TRANSACTION_MAX_WAIT_MS,
+            timeout: VOTE_TRANSACTION_TIMEOUT_MS,
+          },
+        );
       } catch (error) {
         if (!isUniqueConstraintError(error)) {
           throw error;
