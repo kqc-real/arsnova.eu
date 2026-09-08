@@ -147,11 +147,42 @@ async function dismissMotdIfPresent(page) {
   await page.keyboard.press('Escape').catch(() => undefined);
 }
 
-async function closeHostJoinOverlay(host) {
-  const closeButton = host.locator('.session-host__join-viewport-overlay__close').first();
-  if (await closeButton.isVisible().catch(() => false)) {
-    await closeButton.click();
+async function closeHostJoinOverlay(page, { waitForQrReopen = true } = {}) {
+  const overlay = page.locator('.session-host__join-viewport-overlay').first();
+  const closeButton = page.locator('.session-host__join-viewport-overlay__close').first();
+  const qrImage = overlay.locator('img.app-qr-image').first();
+
+  // Lobby öffnet das Overlay automatisch. QR-Bereitschaft öffnet es ein zweites
+  // Mal — erst schließen, wenn der QR sichtbar ist, sonst kommt es sofort zurück.
+  if (waitForQrReopen) {
+    await overlay.waitFor({ state: 'visible', timeout: 12_000 }).catch(() => undefined);
+    if (await overlay.isVisible().catch(() => false)) {
+      await qrImage.waitFor({ state: 'visible', timeout: 10_000 }).catch(() => undefined);
+    }
   }
+
+  const deadline = Date.now() + (waitForQrReopen ? 10_000 : 4_000);
+  let hiddenSince = null;
+  const stableMs = waitForQrReopen ? 1500 : 200;
+  while (Date.now() < deadline) {
+    if (await overlay.isVisible().catch(() => false)) {
+      hiddenSince = null;
+      if (await closeButton.isVisible().catch(() => false)) {
+        await closeButton.click({ timeout: 4_000 }).catch(() => undefined);
+      } else {
+        await page.keyboard.press('Escape').catch(() => undefined);
+      }
+      await overlay.waitFor({ state: 'hidden', timeout: 4_000 }).catch(() => undefined);
+      continue;
+    }
+    if (hiddenSince === null) hiddenSince = Date.now();
+    if (Date.now() - hiddenSince >= stableMs) return;
+    await page.waitForTimeout(250);
+  }
+  ensure(
+    !(await overlay.isVisible().catch(() => false)),
+    'Beitritts-Overlay auf der Host-Ansicht ließ sich nicht schließen',
+  );
 }
 
 async function bodySnippet(page, max = 900) {
@@ -335,6 +366,7 @@ async function main() {
     }
     logStep('UI-Votes', '3 Antworten in getrennten Browser-Kontexten abgegeben');
 
+    await closeHostJoinOverlay(hostPage, { waitForQrReopen: false });
     await hostPage.getByRole('button', { name: /Session beenden|End session/i }).click();
     await hostPage.getByRole('button', { name: /Trotzdem verlassen|Leave anyway/i }).click();
     await hostPage.getByRole('button', { name: /Zur Startseite|Back to home/i }).waitFor({

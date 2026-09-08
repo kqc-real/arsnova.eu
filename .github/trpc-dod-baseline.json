@@ -784,7 +784,7 @@
     },
     "vote.submit": {
       "kind": "mutation",
-      "fingerprint": "sha256:06d7d358d0e262e241f512adfdecdb9648164f33aad1606b04e3ff2c7ae54eef",
+      "fingerprint": "sha256:e5b917053c6f72550a47a8c45155471ef38a26c53085c788c14718b5283012d1",
       "missing": []
     },
     "wordCloud.analyze": {

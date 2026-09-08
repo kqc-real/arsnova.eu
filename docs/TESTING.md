@@ -764,7 +764,7 @@ Der Nightly vom 2026-09-08 scheiterte fachlich: 543/600 Karenz-Votes mit
 `Unable to start a transaction in the given time` (57×). Ursache war der
 node-pg-Default-Pool (10 Verbindungen) plus Prisma-`maxWait` 2 s. Der Vote-Hotpath
 wartet jetzt 10 s auf einen Pool-Slot, der Pool defaultet auf 40 Verbindungen
-(`DATABASE_POOL_MAX`).
+(`DATABASE_POOL_MAX`, Cap 80 unter Postgres-Default `max_connections=100`).
 
 Der Smoke ergänzt den Host-Progress-Smoke: Er misst nicht den WebSocket-Fan-out, sondern den
 serverseitigen Vote-Hotpath rund um Timerende, Karenz und Ergebnisfreigabe.
