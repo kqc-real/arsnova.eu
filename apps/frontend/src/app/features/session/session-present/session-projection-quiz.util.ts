@@ -281,10 +281,15 @@ export function presenterQuestionImage(markdown: string): PresenterQuestionVisua
 /**
  * Display-KaTeX (`$$...$$`) inkl. kurzer Label-Zeile davor für die Beamer-Abstimmung.
  * Bilder und Fließtext bleiben draußen; Inline-Math in der Überschrift bleibt über
- * `presenterCompactMarkdown` erhalten.
+ * `presenterCompactMarkdown` erhalten. Fenced-/Inline-Code wird ausgeschlossen, damit
+ * wörtliche `$$` (z. B. Shell-PID) nicht als Formeln extrahiert werden.
  */
 export function presenterQuestionMathMarkdown(markdown: string): string {
-  const text = String(markdown ?? '');
+  const text = presenterMarkdownWithoutCode(markdown)
+    .replace(/`+[^`\n]+`+/g, '')
+    .replace(/[ \t]+\n/g, '\n')
+    .replace(/\n{3,}/g, '\n\n')
+    .trim();
   const parts: string[] = [];
   const displayMathRe = /\$\$([\s\S]+?)\$\$/g;
   let match: RegExpExecArray | null;
