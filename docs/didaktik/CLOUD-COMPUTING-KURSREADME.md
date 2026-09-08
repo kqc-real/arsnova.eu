@@ -2,7 +2,7 @@
 
 # Cloud Computing an der IU: Kurslandkarte und Konzeptstand
 
-**Zweck:** Verbindlicher Einstieg in die Kursdokumentation und sachlicher Stand der Fallstudie `arsnova.eu` · **Adressaten:** Lehrende, Modulverantwortliche, Tutor:innen sowie Studierende der Informatik und Wirtschaftsinformatik · **Stand:** 2026-08-15
+**Zweck:** Verbindlicher Einstieg in die Kursdokumentation und sachlicher Stand der Fallstudie `arsnova.eu` · **Adressaten:** Lehrende, Modulverantwortliche, Tutor:innen sowie Studierende der Informatik und Wirtschaftsinformatik · **Stand:** 2026-09-08
 
 ## 1. Geltungsbereich
 
@@ -81,9 +81,9 @@ Verbindliche Evidenzquellen:
 
 ### 3.3 Semesterbegleitendes Studien- und Prüfungsobjekt: von der Begriffswolke zum Moderationskompass
 
-Die [Storys 1.14a–1.14c und 8.9a–8.9c](../../Backlog.md) bilden gemeinsam das verbindende Studienobjekt für Übungen und Referate. Story 1.14a liefert mit Word Cloud 2.1 bis 2.5 die produktive lexikalische Baseline. Story 1.14b liefert die optionale spaCy-Glättung als internen Sidecar auf dem bestehenden Single Host (umgesetzt August 2026, Default aus; Last-, Lizenz- und Fallbackmessungen bleiben Referatsthema). Story 1.14c ergänzt einen host-ausgelösten semantischen Q&A-Themenmodus mit mehrsprachigen Embeddings, deterministischem Clustering und optionaler quellengebundener Labelbildung durch ein Open-Weight-LLM. Die Storys 8.9a–8.9c führen diese Signale in einen zunächst deterministischen und später optional KI-gestützten Moderationskompass über.
+Die [Storys 1.14a–1.14c und 8.9a–8.9d](../../Backlog.md) bilden gemeinsam das verbindende Studienobjekt für Übungen und Referate. Story 1.14a liefert mit Word Cloud 2.1 bis 2.5 die produktive lexikalische Baseline. Story 1.14b liefert die optionale spaCy-Glättung als internen Sidecar auf dem bestehenden Single Host (umgesetzt August 2026, Default aus; Last-, Lizenz- und Fallbackmessungen bleiben Referatsthema). Story 1.14c ergänzt einen host-ausgelösten semantischen Q&A-Themenmodus mit mehrsprachigen Embeddings, deterministischem Clustering und optionaler quellengebundener Labelbildung durch ein Open-Weight-LLM. Die Storys 8.9a–8.9d führen diese Signale in einen zunächst deterministischen und später optional KI-gestützten Moderationskompass über. 8.9d plant dafür nach [ADR-0035](../architecture/decisions/0035-self-hosted-llm-runtime-llama-cpp-over-ollama.md) eine private `llama.cpp`/`llama-server`-Runtime; sie ist noch nicht implementiert.
 
-Der produktive Single Host für App, PostgreSQL und Redis ist die belegte Baseline und bleibt auch der vorgesehene Betriebsort für den begrenzten spaCy-Sidecar aus 1.14b. Der verteilte Sidecar-Default liefert die MIT-Modelle `de`/`en`; `fr`/`es` nur mit NOTICE- beziehungsweise GPL-Kennzeichnung; das italienische `it_core_news_sm` (CC BY-NC-SA 3.0) gehört nicht in den MIT-Default. Die Studierenden demonstrieren und implementieren für 1.14c sowie optional 8.9b/8.9c schrittweise einen davon getrennten, privat erreichbaren Inferenzserver. 1.14c und 8.9b dürfen dieselbe abgesicherte Serverrolle nutzen, behalten aber getrennte Schemas, Queues, Caches und Modelllebenszyklen. 8.9c verwendet diese Serverrolle über einen getrennten schema- und quellengebundenen Zusammenfassungsvertrag mit eigenem Anfrage-/Ergebnislebenszyklus; Betrieb, Modelllebenszyklus und Servergrenze bleiben bei 1.14c. Eine zusätzliche physische Trennung von PostgreSQL darf als Drei-Server-Variante untersucht werden, ist aber keine bereits umgesetzte Produktionseigenschaft.
+Der produktive Single Host für App, PostgreSQL und Redis ist die belegte Baseline und bleibt auch der vorgesehene Betriebsort für den begrenzten spaCy-Sidecar aus 1.14b. Der verteilte Sidecar-Default liefert die MIT-Modelle `de`/`en`; `fr`/`es` nur mit NOTICE- beziehungsweise GPL-Kennzeichnung; das italienische `it_core_news_sm` (CC BY-NC-SA 3.0) gehört nicht in den MIT-Default. Die Studierenden untersuchen für 1.14c Stufe 2 und 8.9c Slice 4 optional die geplante 8.9d-Runtime auf einem getrennten, privat erreichbaren Inferenzhost. Label- und Summary-Auftrag teilen höchstens einen `llama-server`-Slot, behalten aber getrennte Prompts, Schemas, App-Queues, Timeouts und Fallbacks. Die klassische 8.9b-Kaskade nutzt diesen Slot ausdrücklich nicht. Der aktuelle Live-Host mit App, PostgreSQL und Redis führt kein LLM aus. Eine zusätzliche physische Trennung von PostgreSQL darf als Drei-Server-Variante untersucht werden, ist aber keine bereits umgesetzte Produktionseigenschaft.
 
 Das Studienobjekt wird nicht auf eine Modell-Demo reduziert. Verbindliche Untersuchungsachsen sind:
 
@@ -105,9 +105,10 @@ Die Ergebnisse fließen als Messbericht, TCO-/FinOps-Modell und Architecture Dec
 3. **Agenten, Serverlabor und Evidenz:** [Agentic-Lehrlabor](./CLOUD-COMPUTING-AGENTIC-LEHRLABOR.md)
 4. **Referat vorbereiten, durchführen und bewerten:** [Referatsumsetzung](./CLOUD-COMPUTING-REFERAT-PRUEFUNG.md)
 5. **Modul und Constructive Alignment:** [Bachelor-Konzept 36 UE](./BACHELOR-VORLESUNG-CLOUD-COMPUTING-36-UE-PRAKTIKUM.md)
-6. **Präsenz und Zoom gleichwertig umsetzen:** [Durchführungskonzept](./CLOUD-COMPUTING-DURCHFUEHRUNG-PRAESENZ-ZOOM.md)
-7. **Semesterstart in 30 Minuten:** [Dozenten-Quickstart](./dozenten-quickstart-cloud-computing.md)
-8. **Durchführung und MC-Test-Vorgaben:** [12 Terminpläne](./vorlesungen-cloud-computing-termine.md)
+6. **Moderationskompass 8.9a–d in Lehre und Praktika:** [Lehrmatrix](./MODERATIONSKOMPASS-8.9A-D-MODULE-UND-PRAKTIKA.md)
+7. **Präsenz und Zoom gleichwertig umsetzen:** [Durchführungskonzept](./CLOUD-COMPUTING-DURCHFUEHRUNG-PRAESENZ-ZOOM.md)
+8. **Semesterstart in 30 Minuten:** [Dozenten-Quickstart](./dozenten-quickstart-cloud-computing.md)
+9. **Durchführung und MC-Test-Vorgaben:** [12 Terminpläne](./vorlesungen-cloud-computing-termine.md)
 
 ### Für die Fallstudie
 
@@ -120,7 +121,7 @@ Die Ergebnisse fließen als Messbericht, TCO-/FinOps-Modell und Architecture Dec
 | Welche Migration ist plausibel?                   | [6R-Einordnung](../implementation/CLOUD-COMPUTING-6R-EINORDNUNG.md)                                                                                                                           |
 | Welche Betriebsmodelle sind vergleichbar?         | [Provider-Vergleich](../implementation/CLOUD-PROVIDER-VERGLEICH-ARSNOVA-EU.md), [OpenStack/Kubernetes](../implementation/CLOUD-COMPUTING-OPENSTACK-UND-ALTERNATIVEN.md)                       |
 | Wie kann eine Hetzner-Variante kalkuliert werden? | [Stückliste](../implementation/CLOUD-COMPUTING-HETZNER-STUECKLISTE.md), [Kostenrechenblatt](../implementation/CLOUD-COMPUTING-HETZNER-KOSTENVORSCHLAG.md)                                     |
-| Welches Studienobjekt verbindet die Übungen?      | [Storys 1.14a–1.14c und 8.9a–8.9c](../../Backlog.md), [spaCy-Glättung 1.14b](../features/word-cloud-spacy.md), [Word-Cloud-3.0-Zielbild](../implementation/WORD-CLOUD-3.0-STORY-VORSCHLAG.md) |
+| Welches Studienobjekt verbindet die Übungen?      | [Storys 1.14a–1.14c und 8.9a–8.9d](../../Backlog.md), [Lehrmatrix 8.9a–d](./MODERATIONSKOMPASS-8.9A-D-MODULE-UND-PRAKTIKA.md), [ADR-0035 / 8.9d](../architecture/decisions/0035-self-hosted-llm-runtime-llama-cpp-over-ollama.md) |
 | Welche Referatsthemen werden vergeben?            | [Kanonischer Themenkatalog](./CLOUD-COMPUTING-REFERAT-PRUEFUNG.md#41-kanonischer-themenkatalog-für-die-fallstudie-arsnovaeu)                                                                  |
 
 Die Kostenunterlagen sind **volatile Rechenbeispiele**, keine Beschaffungsfreigabe und kein Kapazitätsnachweis. Vor jeder Verwendung müssen Preise, Produktverfügbarkeit, Architekturannahmen und Lastdaten neu geprüft werden.
