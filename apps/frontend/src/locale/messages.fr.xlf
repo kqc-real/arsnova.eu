@@ -27297,6 +27297,10 @@
         <source>Verbinde das Gerät nur, wenn auf beiden Geräten dasselbe angezeigt wird.</source>
         <target>Connecte l’appareil seulement si les deux écrans affichent la même chose.</target>
       </trans-unit>
+      <trans-unit id="hostPairing.pendingAfterHint" datatype="html">
+        <source>Das Gerät steuert die laufende Veranstaltung: Fragen, Ergebnisse, Q&amp;A, Blitzlicht, Session beenden. Nicht aber: Quiz bearbeiten oder löschen.</source>
+        <target>Cet appareil pilote la séance en cours : questions, résultats, Q&amp;A, Feedback express, Fin de séance. Mais pas : modifier ou supprimer des quiz.</target>
+      </trans-unit>
       <trans-unit id="hostPairing.connected" datatype="html">
         <source>Smartphone verbunden</source>
         <target>Smartphone connecté</target>
