@@ -2,9 +2,12 @@
 
 # Moderationskompass 8.9a–8.9d als Lehr- und Praktikumsobjekt
 
-**Zielgruppe:** Lehrende der Bachelormodule Statistik, Data Analytics und Big Data sowie Cloud Computing  
-**Stand:** 2026-09-08  
-**Produktbasis:** [Storys 8.9a–8.9d](../../Backlog.md) · [8.9a](../features/moderation-compass.md) · [8.9b](../features/qa-nlp-moderation.md) · [8.9c](../features/qa-summary.md) · [ADR-0035 / 8.9d](../architecture/decisions/0035-self-hosted-llm-runtime-llama-cpp-over-ollama.md)  
+**Zielgruppe:** Lehrende der Bachelormodule Statistik, Data Analytics und Big Data sowie Cloud Computing
+
+**Stand:** 2026-09-08
+
+**Produktbasis:** [Storys 8.9a–8.9d](../../Backlog.md) · [8.9a](../features/moderation-compass.md) · [8.9b](../features/qa-nlp-moderation.md) · [8.9c](../features/qa-summary.md) · [ADR-0035 / 8.9d](../architecture/decisions/0035-self-hosted-llm-runtime-llama-cpp-over-ollama.md)
+
 **Praktika:** [Data Analytics und NLP](../praktikum/PRAKTIKUM-DATA-ANALYTICS.md) · [Cloud Computing, 36 UE](./BACHELOR-VORLESUNG-CLOUD-COMPUTING-36-UE-PRAKTIKUM.md)
 
 ## 1. Verbindlicher Projektstand
