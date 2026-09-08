@@ -8,7 +8,7 @@
   box-sizing: border-box;
   width: 100%;
   padding: 0.95rem 1rem 1rem;
-  border-radius: var(--mat-sys-corner-large, 1rem);
+  border-radius: var(--mat-sys-corner-large);
   border: 1px solid color-mix(in srgb, var(--mat-sys-outline-variant) 75%, transparent);
   background: var(--mat-sys-surface-container-lowest);
 }
@@ -56,7 +56,7 @@
   box-sizing: border-box;
   margin: 0;
   padding: 0.85rem 0.9rem;
-  border-radius: var(--mat-sys-corner-medium, 0.75rem);
+  border-radius: var(--mat-sys-corner-medium);
   background: var(--mat-sys-surface-container-highest);
 }
 

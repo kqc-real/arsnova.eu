@@ -108,6 +108,19 @@ describe('session-projection-quiz.util', () => {
     expect(presenterQuestionMathMarkdown('### Nur Text')).toBe('');
   });
 
+  it('extrahiert kein Display-KaTeX aus Fenced- oder Inline-Code', () => {
+    const fencedOnly =
+      '### Shell-PID?\n\n```bash\necho $$\nps -p $$\n```\n\nWähle die richtige Ausgabe.';
+    expect(presenterQuestionMathMarkdown(fencedOnly)).toBe('');
+
+    const inlineOnly = '### Was gibt `echo $$` aus?\n\nVergleiche mit `kill $$`.';
+    expect(presenterQuestionMathMarkdown(inlineOnly)).toBe('');
+
+    const mixed =
+      '### Formel neben Code\n\n```bash\necho $$\n```\n\nEuler:\n\n$$e^{i \\pi} + 1 = 0$$\n\nUnd inline `$$` ignorieren.';
+    expect(presenterQuestionMathMarkdown(mixed)).toBe('Euler:\n\n$$e^{i \\pi} + 1 = 0$$');
+  });
+
   it('rechnet die Trefferquote je richtigem Paar', () => {
     const pairs = presenterCorrectPairResults(
       [{ id: 'l1', label: 'Berlin' }],
