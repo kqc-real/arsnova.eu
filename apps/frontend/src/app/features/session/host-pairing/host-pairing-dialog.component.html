@@ -4,9 +4,6 @@
   </span>
   <span class="dialog-title-header__copy">
     <span class="dialog-title-header__heading">{{ dialogTitle() }}</span>
-    <span class="dialog-title-header__sub" i18n="@@hostPairing.approveOnThisScreen"
-      >Bestätige Anfragen auf diesem Bildschirm, nicht in der Präsentationsansicht.</span
-    >
   </span>
 </h2>
 
@@ -33,7 +30,7 @@
               </p>
             </div>
             <button
-              mat-stroked-button
+              matButton="outlined"
               type="button"
               class="host-pairing-dialog__revoke"
               [disabled]="busy()"
@@ -106,17 +103,15 @@
   } @else if (view() === 'pending') {
     <section class="host-pairing-dialog__section" role="status" aria-live="polite">
       <p class="host-pairing-dialog__status" i18n="@@hostPairing.pendingTitle">
-        Steht auf dem Smartphone dasselbe Zeichen?
+        Steht auf dem Smartphone dasselbe?
       </p>
-      <p class="host-pairing-dialog__indicator" data-testid="host-pairing-indicator">
-        {{ pending()?.confirmationIndicator }}
-      </p>
+      <div class="host-pairing-dialog__indicator-frame">
+        <p class="host-pairing-dialog__indicator" data-testid="host-pairing-indicator">
+          {{ pending()?.confirmationIndicator }}
+        </p>
+      </div>
       <p class="host-pairing-dialog__hint" i18n="@@hostPairing.pendingHint">
-        Verbinde das Gerät nur, wenn auf beiden Geräten dasselbe Zeichen angezeigt wird.
-      </p>
-      <p class="host-pairing-dialog__hint" i18n="@@hostPairing.pendingAfterHint">
-        Danach kannst du mit dem Gerät durch die Fragen navigieren, Ergebnisse anzeigen und die
-        Veranstaltung beenden.
+        Verbinde das Gerät nur, wenn auf beiden Geräten dasselbe angezeigt wird.
       </p>
       @if (pendingRemainingLabel(); as remaining) {
         <p class="host-pairing-dialog__hint" data-testid="host-pairing-pending-remaining">
@@ -153,15 +148,15 @@
   }
 </mat-dialog-content>
 
-<mat-dialog-actions align="end">
+<mat-dialog-actions align="end" class="host-pairing-dialog__actions">
   @if (view() === 'invite') {
-    <button mat-button type="button" (click)="copyLink()" data-testid="host-pairing-copy">
+    <button matButton="text" type="button" (click)="copyLink()" data-testid="host-pairing-copy">
       {{ copyLabel() }}
     </button>
   }
   @if (view() === 'pending') {
     <button
-      mat-button
+      matButton="text"
       type="button"
       [disabled]="busy()"
       (click)="reject()"
@@ -170,8 +165,9 @@
       {{ rejectLabel() }}
     </button>
     <button
-      mat-flat-button
+      matButton="filled"
       type="button"
+      class="host-pairing-dialog__approve"
       [disabled]="busy()"
       (click)="approve()"
       data-testid="host-pairing-approve"
@@ -181,7 +177,7 @@
   }
   @if (view() === 'manage' && canAddAnother()) {
     <button
-      mat-button
+      matButton="tonal"
       type="button"
       [disabled]="busy()"
       (click)="startInvite()"
@@ -192,11 +188,11 @@
     </button>
   }
   @if (view() === 'error') {
-    <button mat-button type="button" (click)="startInvite()" i18n="@@hostPairing.retry">
+    <button matButton="tonal" type="button" (click)="startInvite()" i18n="@@hostPairing.retry">
       Neuen QR-Code anzeigen
     </button>
   }
-  <button mat-button type="button" data-testid="host-pairing-close" (click)="finish()">
+  <button matButton="text" type="button" data-testid="host-pairing-close" (click)="finish()">
     {{ closeLabel() }}
   </button>
 </mat-dialog-actions>

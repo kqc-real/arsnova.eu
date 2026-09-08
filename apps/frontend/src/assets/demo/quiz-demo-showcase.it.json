@@ -272,7 +272,7 @@
         "confidenceLabelHigh": "Molto sicuro/a"
       },
       {
-        "text": "### Classifica le sei opere seguenti per epoca letteraria.\n\n_Assegna ciascun elemento a uno dei tre movimenti letterari._",
+        "text": "### Classifica le sei opere seguenti per epoca letteraria.",
         "type": "CATEGORIZATION",
         "timer": null,
         "difficulty": "MEDIUM",

@@ -27246,8 +27246,8 @@
         <target>Conectar el móvil</target>
       </trans-unit>
       <trans-unit id="hostPairing.dialogTitle" datatype="html">
-        <source>Smartphone zum Steuern verbinden</source>
-        <target>Conectar un smartphone para controlar</target>
+        <source>Smartphone verbinden</source>
+        <target>Conectar el móvil</target>
       </trans-unit>
       <trans-unit id="hostPairing.preparing" datatype="html">
         <source>Verbindung wird vorbereitet…</source>
@@ -27266,12 +27266,12 @@
         <target>Esperando una solicitud de conexión…</target>
       </trans-unit>
       <trans-unit id="hostPairing.pendingTitle" datatype="html">
-        <source>Steht auf dem Smartphone dasselbe Zeichen?</source>
-        <target>¿El smartphone muestra el mismo signo?</target>
+        <source>Steht auf dem Smartphone dasselbe?</source>
+        <target>¿El smartphone muestra lo mismo?</target>
       </trans-unit>
       <trans-unit id="hostPairing.pendingHint" datatype="html">
-        <source>Verbinde das Gerät nur, wenn auf beiden Geräten dasselbe Zeichen angezeigt wird.</source>
-        <target>Conecta el dispositivo solo si ambas pantallas muestran el mismo signo.</target>
+        <source>Verbinde das Gerät nur, wenn auf beiden Geräten dasselbe angezeigt wird.</source>
+        <target>Conecta el dispositivo solo si ambas pantallas muestran lo mismo.</target>
       </trans-unit>
       <trans-unit id="hostPairing.connected" datatype="html">
         <source>Smartphone verbunden</source>
@@ -27350,8 +27350,8 @@
         <target>Conectar este dispositivo</target>
       </trans-unit>
       <trans-unit id="hostPairing.requestWaiting" datatype="html">
-        <source>Warte auf die Bestätigung durch die Lehrperson. Zeige ihr dieses Zeichen. Auf beiden Geräten muss dasselbe Zeichen stehen:</source>
-        <target>Espera la confirmación de quien dirige la sesión. Muéstrale este signo. Ambos dispositivos deben mostrar el mismo signo:</target>
+        <source>Steht auf dem Laptop dasselbe?</source>
+        <target>¿El portátil muestra lo mismo?</target>
       </trans-unit>
       <trans-unit id="hostPairing.errorExpired" datatype="html">
         <source>Die Zeit zum Verbinden ist abgelaufen.</source>
@@ -27381,37 +27381,17 @@
         <source>Präsentation starten</source>
         <target>Iniciar la presentación</target>
       </trans-unit>
-      <trans-unit id="presentationStart.intro" datatype="html">
-        <source>Zeige die Präsentation auf dem Beamer.</source>
-        <target>Muestra la presentación en el proyector.</target>
-      </trans-unit>
       <trans-unit id="presentationStart.phoneTitle" datatype="html">
         <source>Mit Smartphone steuern</source>
         <target>Controlar con el móvil</target>
       </trans-unit>
       <trans-unit id="presentationStart.phoneHint" datatype="html">
-        <source>Steuere Fragen und Ergebnisse vom Smartphone, während der Laptop die Präsentation zeigt.</source>
-        <target>Controla las preguntas y los resultados desde el smartphone mientras el portátil muestra la presentación.</target>
+        <source>Steuere Fragen und Ergebnisse live auf deinem Handy, während die Präsentation auf dem Laptop läuft.</source>
+        <target>Controla preguntas y resultados en vivo en tu móvil mientras la presentación se ejecuta en el portátil.</target>
       </trans-unit>
       <trans-unit id="presentationStart.readyHint" datatype="html">
         <source>Du kannst jetzt präsentieren. Ein weiteres Gerät ist optional.</source>
         <target>Ya puedes presentar. Otro dispositivo es opcional.</target>
-      </trans-unit>
-      <trans-unit id="presentationStart.visibilityLegend" datatype="html">
-        <source>Kann jemand außer dir diesen Bildschirm sehen?</source>
-        <target>¿Puede ver esta pantalla alguien además de ti?</target>
-      </trans-unit>
-      <trans-unit id="presentationStart.visibilityProjected" datatype="html">
-        <source>Ja, er wird zum Beispiel über einen Beamer gezeigt</source>
-        <target>Sí, se muestra por ejemplo en un proyector</target>
-      </trans-unit>
-      <trans-unit id="presentationStart.visibilityPrivate" datatype="html">
-        <source>Nein, nur ich kann diesen Bildschirm sehen</source>
-        <target>No, solo yo puedo ver esta pantalla</target>
-      </trans-unit>
-      <trans-unit id="presentationStart.visibilityHint" datatype="html">
-        <source>Die Verbindung wird immer auf diesem Bildschirm bestätigt. So kann niemand unbemerkt die Steuerung übernehmen.</source>
-        <target>La conexión siempre se confirma en esta pantalla. Así nadie puede tomar el control sin que te des cuenta.</target>
       </trans-unit>
       <trans-unit id="presentationStart.coHostHint" datatype="html">
         <source>So kann sich auch eine vertrauenswürdige Person mit einem weiteren Gerät verbinden.</source>
@@ -27436,10 +27416,6 @@
       <trans-unit id="hostPairing.connectedAria" datatype="html">
         <source>Smartphone verbunden. Weiteres Gerät verbinden</source>
         <target>Móvil conectado. Conectar otro dispositivo</target>
-      </trans-unit>
-      <trans-unit id="hostPairing.approveOnThisScreen" datatype="html">
-        <source>Bestätige Anfragen auf diesem Bildschirm, nicht in der Präsentationsansicht.</source>
-        <target>Confirma las solicitudes en esta pantalla, no en la vista de presentación.</target>
       </trans-unit>
       <trans-unit id="hostPairing.devicesTitle" datatype="html">
         <source>Verbundene Geräte</source>
@@ -27520,12 +27496,7 @@
       <trans-unit id="hostPairing.deviceFallbackPhone2" datatype="html">
         <source>Smartphone 2</source>
         <target>Smartphone 2</target>
-      </trans-unit>
-      <trans-unit id="hostPairing.pendingAfterHint" datatype="html">
-        <source>Danach kannst du mit dem Gerät durch die Fragen navigieren, Ergebnisse anzeigen und die Veranstaltung beenden.</source>
-        <target>Una vez conectado, podrás usar este dispositivo para navegar por las preguntas, mostrar los resultados y finalizar la sesión.</target>
-      </trans-unit>
-      <trans-unit id="hostPairing.inviteRemaining" datatype="html">
+      </trans-unit>      <trans-unit id="hostPairing.inviteRemaining" datatype="html">
         <source>Noch <x id="remaining" equiv-text="remaining"/> Minuten Zeit, um den QR-Code zu scannen.</source>
         <target>Quedan <x id="remaining" equiv-text="remaining"/> minutos para escanear el código QR.</target>
       </trans-unit>
@@ -27534,16 +27505,8 @@
         <target>Quedan <x id="remaining" equiv-text="remaining"/> minutos para confirmar.</target>
       </trans-unit>
       <trans-unit id="hostPairing.requestRemaining" datatype="html">
-        <source>Warte auf die Bestätigung · noch <x id="remaining" equiv-text="remaining"/> Minuten</source>
-        <target>Esperando la confirmación · quedan <x id="remaining" equiv-text="remaining"/> minutos</target>
-      </trans-unit>
-      <trans-unit id="hostPairing.deviceNameLabel" datatype="html">
-        <source>Wie möchtest du dieses Gerät nennen? (optional)</source>
-        <target>¿Cómo quieres llamar a este dispositivo? (opcional)</target>
-      </trans-unit>
-      <trans-unit id="hostPairing.deviceNameHint" datatype="html">
-        <source>Zum Beispiel „Mein Smartphone“ oder „Tablet von Alex“</source>
-        <target>Por ejemplo “Mi smartphone” o “Tablet de Alex”</target>
+        <source>Noch <x id="remaining" equiv-text="remaining"/> Minuten Zeit, um zu bestätigen.</source>
+        <target>Quedan <x id="remaining" equiv-text="remaining"/> minutos para confirmar.</target>
       </trans-unit>
       <trans-unit id="hostPairing.declineConnect" datatype="html">
         <source>Nicht verbinden</source>

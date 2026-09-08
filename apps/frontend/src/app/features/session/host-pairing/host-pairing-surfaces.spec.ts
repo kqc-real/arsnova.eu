@@ -61,6 +61,9 @@ describe('Host-Pairing Oberflächengrenzen (Story 2.10)', () => {
     expect(styles).toContain('.cdk-overlay-pane.presentation-start-dialog-panel');
     expect(styles).toContain('.cdk-overlay-backdrop.host-pairing-dialog-backdrop');
     expect(styles).toContain('.cdk-overlay-backdrop.presentation-start-dialog-backdrop');
+    expect(styles).toMatch(
+      /\.cdk-overlay-pane\.host-pairing-dialog-panel\s*\{[\s\S]*?width:\s*min\(28rem/,
+    );
     expect(styles).not.toMatch(/host-pairing[\s\S]*::ng-deep/);
   });
 
@@ -101,18 +104,31 @@ describe('Host-Pairing Oberflächengrenzen (Story 2.10)', () => {
     expect(pairingHtml).toContain('<mat-icon>devices</mat-icon>');
     expect(pairingHtml).not.toContain('<mat-icon>smartphone</mat-icon>');
     expect(pairingHtml).toContain('app-qr-image');
-    expect(startHtml).toContain('<mat-icon>devices</mat-icon>');
+    expect(pairingHtml).toContain('matButton="filled"');
+    expect(pairingHtml).toContain('matButton="text"');
     expect(startHtml).toContain('<mat-icon>launch</mat-icon>');
-    expect(startHtml).toContain('<mat-icon>hourglass_top</mat-icon>');
+    expect(startHtml).toContain('hourglass_top');
+    expect(startHtml).not.toContain('presentation-start-dialog__subtitle-icon');
+    expect(startHtml).toContain('matButton="filled"');
+    expect(startHtml).toContain('matButton="outlined"');
     expect(startHtml).toContain('presentation-start-dialog__notice');
     expect(startHtml).not.toContain('present_to_all');
+    expect(pairHtml).toContain('matButton="filled"');
+    expect(pairHtml).toContain('matButton="text"');
     const pairingTs = readFileSync(root('host-pairing/host-pairing-dialog.component.ts'), 'utf8');
     const pairingScss = readFileSync(
       root('host-pairing/host-pairing-dialog.component.scss'),
       'utf8',
     );
+    const startScss = readFileSync(
+      root('host-pairing/presentation-start-dialog.component.scss'),
+      'utf8',
+    );
     expect(pairingTs).toContain('createDataURL(8, 4)');
     expect(pairingScss).toContain('padding: 0.65rem');
+    expect(pairingScss).toContain('host-pairing-md3');
+    expect(startScss).toContain('host-pairing-md3');
+    expect(pairScss).toContain('host-pairing-md3');
   });
 
   it('zentriert die Smartphone-Pair-Karte in der verbleibenden Viewport-Höhe', () => {

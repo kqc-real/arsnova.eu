@@ -150,6 +150,7 @@ describe('SessionHostPairingRequestComponent', () => {
     await flush();
     current.detectChanges();
     expect(current.nativeElement.textContent).toContain('abgelehnt');
+    expect(current.nativeElement.textContent).not.toContain('Nach der Freigabe');
     expect(setHostTokenMock).not.toHaveBeenCalled();
   });
 
@@ -200,25 +201,21 @@ describe('SessionHostPairingRequestComponent', () => {
     window.history.replaceState(null, '', `/session/ABC123/pair?s=${SECRET}`);
     const current = render();
     expect(current.nativeElement.textContent).toContain('unvollständig');
+    expect(current.nativeElement.textContent).not.toContain('Nach der Freigabe');
     expect(current.nativeElement.querySelector('[data-testid="host-pairing-request"]')).toBeNull();
     expect(requestMock).not.toHaveBeenCalled();
   });
 
-  it('sendet den optionalen Gerätenamen mit der Anfrage', async () => {
+  it('sendet die Anfrage ohne Gerätenamen', async () => {
     const current = render();
-    const input = current.nativeElement.querySelector(
-      '[data-testid="host-pairing-device-name"]',
-    ) as HTMLInputElement | null;
-    expect(input).toBeTruthy();
-    input!.value = 'Mein Smartphone';
-    input!.dispatchEvent(new Event('input'));
-    current.detectChanges();
+    expect(
+      current.nativeElement.querySelector('[data-testid="host-pairing-device-name"]'),
+    ).toBeNull();
     current.nativeElement.querySelector('[data-testid="host-pairing-request"]')?.click();
     await flush();
     expect(requestMock).toHaveBeenCalledWith({
       code: 'ABC123',
       pairingSecret: SECRET,
-      deviceLabel: 'Mein Smartphone',
     });
   });
 

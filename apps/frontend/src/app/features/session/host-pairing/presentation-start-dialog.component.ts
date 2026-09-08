@@ -10,8 +10,7 @@ import {
   MatDialogTitle,
 } from '@angular/material/dialog';
 import { MatIcon } from '@angular/material/icon';
-import { MatRadioButton, MatRadioGroup } from '@angular/material/radio';
-import type { HostPairingPendingDTO, HostPairingScreenVisibility } from '@arsnova/shared-types';
+import type { HostPairingPendingDTO } from '@arsnova/shared-types';
 import { trpc } from '../../../core/trpc.client';
 import {
   HostPairingDialogComponent,
@@ -31,16 +30,7 @@ export type PresentationStartDialogResult = 'start' | 'blocked' | undefined;
 @Component({
   selector: 'app-presentation-start-dialog',
   standalone: true,
-  imports: [
-    MatButton,
-    MatDialogActions,
-    MatDialogClose,
-    MatDialogContent,
-    MatDialogTitle,
-    MatIcon,
-    MatRadioButton,
-    MatRadioGroup,
-  ],
+  imports: [MatButton, MatDialogActions, MatDialogClose, MatDialogContent, MatDialogTitle, MatIcon],
   styleUrls: [
     '../../../shared/styles/dialog-title-header.scss',
     './presentation-start-dialog.component.scss',
@@ -55,7 +45,6 @@ export class PresentationStartDialogComponent implements OnInit {
       MatDialogRef,
     );
 
-  readonly visibility = signal<HostPairingScreenVisibility>('PROJECTED');
   readonly phoneConnected = signal(this.data.phoneAlreadyConnected === true);
   readonly canAddAnother = signal(true);
   readonly capReached = signal(false);
@@ -65,12 +54,6 @@ export class PresentationStartDialogComponent implements OnInit {
 
   async ngOnInit(): Promise<void> {
     await this.refresh();
-  }
-
-  onVisibilityChange(value: string): void {
-    if (value === 'PROJECTED' || value === 'PRIVATE') {
-      this.visibility.set(value);
-    }
   }
 
   async startPresentation(): Promise<void> {
@@ -98,7 +81,6 @@ export class PresentationStartDialogComponent implements OnInit {
     >(HostPairingDialogComponent, {
       data: {
         code: this.data.code,
-        screenVisibility: this.visibility(),
         startPresenterView: this.data.startPresenterView,
       },
       autoFocus: 'first-tabbable',

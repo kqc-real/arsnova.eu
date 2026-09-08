@@ -195,10 +195,12 @@ describe('HostPairingDialogComponent', () => {
       current.detectChanges();
       expect(current.nativeElement.textContent).toContain('Eule · 47');
     });
+    const indicator = current.nativeElement.querySelector(
+      '[data-testid="host-pairing-indicator"]',
+    ) as HTMLElement | null;
+    expect(indicator?.closest('.host-pairing-dialog__indicator-frame')).toBeTruthy();
     expect(current.nativeElement.textContent).toContain('Ja, Gerät verbinden');
-    expect(current.nativeElement.textContent).toContain(
-      'Steht auf dem Smartphone dasselbe Zeichen?',
-    );
+    expect(current.nativeElement.textContent).toContain('Steht auf dem Smartphone dasselbe?');
     current.nativeElement.querySelector('[data-testid="host-pairing-approve"]')?.click();
     await flush();
     current.detectChanges();

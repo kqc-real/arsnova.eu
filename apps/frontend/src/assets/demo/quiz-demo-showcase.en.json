@@ -272,7 +272,7 @@
         "confidenceLabelHigh": "Very confident"
       },
       {
-        "text": "### Categorise the following six works by literary period.\n\n_Assign each item to one of the three literary movements._",
+        "text": "### Categorise the following six works by literary period.",
         "type": "CATEGORIZATION",
         "timer": null,
         "difficulty": "MEDIUM",

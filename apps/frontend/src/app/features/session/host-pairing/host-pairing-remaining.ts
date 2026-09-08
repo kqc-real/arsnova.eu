@@ -1,4 +1,6 @@
-/** Minuten:Sekunden bis Ablauf; Sekunden müssen nicht herunterzählen. */
+/** Minuten:Sekunden bis Ablauf (UI tickt einmal pro Sekunde). */
+export const HOST_PAIRING_REMAINING_TICK_MS = 1000;
+
 export function formatHostPairingRemainingClock(
   expiresAt: string | null | undefined,
   nowMs: number,

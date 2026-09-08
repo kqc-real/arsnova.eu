@@ -272,7 +272,7 @@
         "confidenceLabelHigh": "Sehr sicher"
       },
       {
-        "text": "### Ordne die folgenden sechs Werke der richtigen Literaturepoche zu.\n\n_Ordne jedes Element einer der drei Literaturepochen zu._",
+        "text": "### Ordne die folgenden sechs Werke der richtigen Literaturepoche zu.",
         "type": "CATEGORIZATION",
         "timer": null,
         "difficulty": "MEDIUM",

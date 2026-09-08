@@ -14,6 +14,7 @@ import {
   presenterQuestionCodeMarkdown,
   presenterQuestionHeading,
   presenterQuestionImage,
+  presenterQuestionMathMarkdown,
   ratingScaleValues,
   stableSeededShuffle,
 } from './session-projection-quiz.util';
@@ -73,6 +74,7 @@ describe('session-projection-quiz.util', () => {
     expect(presenterCompactMarkdown(markdown)).not.toContain('/assets/demo/bett.png');
     expect(presenterCompactMarkdown(markdown)).not.toContain('Bitte genau hinsehen');
     expect(presenterCompactMarkdown(markdown)).not.toContain('Pass / Le Brun');
+    expect(presenterQuestionMathMarkdown(markdown)).toBe('');
     expect(presenterQuestionImage(markdown)).toEqual({
       alt: 'Dach',
       url: '/assets/demo/bett.png',
@@ -93,6 +95,17 @@ describe('session-projection-quiz.util', () => {
       credit: null,
     });
     expect(presenterQuestionImage('### Nur Text')).toBeNull();
+  });
+
+  it('behält Display-KaTeX mit Label für die Beamer-Abstimmung', () => {
+    const markdown =
+      '### Runde $\\pi$ auf zwei Dezimalstellen.\n\n![Pi](https://example.com/pi.gif)\n\nLeonhard Euler:\n\n$$e^{i \\pi} + 1 = 0$$\n\nKarl Weierstraß:\n\n$$\\pi = \\int_{-\\infty}^{\\infty} \\frac{\\mathrm{d}x}{1 + x^2}$$';
+    expect(presenterCompactMarkdown(markdown)).toBe('### Runde $\\pi$ auf zwei Dezimalstellen.');
+    expect(presenterQuestionMathMarkdown(markdown)).toBe(
+      'Leonhard Euler:\n\n$$e^{i \\pi} + 1 = 0$$\n\nKarl Weierstraß:\n\n$$\\pi = \\int_{-\\infty}^{\\infty} \\frac{\\mathrm{d}x}{1 + x^2}$$',
+    );
+    expect(presenterQuestionMathMarkdown(markdown)).not.toContain('example.com/pi.gif');
+    expect(presenterQuestionMathMarkdown('### Nur Text')).toBe('');
   });
 
   it('rechnet die Trefferquote je richtigem Paar', () => {

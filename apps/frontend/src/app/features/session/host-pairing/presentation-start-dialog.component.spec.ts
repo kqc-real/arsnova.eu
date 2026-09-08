@@ -107,7 +107,7 @@ describe('PresentationStartDialogComponent', () => {
     ).not.toBeNull();
   });
 
-  it('startet die Präsentation ohne Pairing und defaultet auf projiziert', async () => {
+  it('startet die Präsentation ohne Pairing', async () => {
     const current = await render();
     expect(current.nativeElement.textContent).toContain('Präsentation starten');
     expect(
@@ -115,10 +115,14 @@ describe('PresentationStartDialogComponent', () => {
     ).toBe('launch');
     expect(current.nativeElement.textContent).toContain('Mit Smartphone steuern');
     expect(
-      current.nativeElement
-        .querySelector('.presentation-start-dialog__subtitle-icon mat-icon')
-        ?.textContent?.trim(),
-    ).toBe('devices');
+      current.nativeElement.querySelector('.presentation-start-dialog__subtitle'),
+    ).not.toBeNull();
+    expect(current.nativeElement.textContent).toContain(
+      'Steuere Fragen und Ergebnisse live auf deinem Handy',
+    );
+    expect(current.nativeElement.textContent).not.toContain(
+      'Kann jemand außer dir diesen Bildschirm sehen?',
+    );
     expect(
       current.nativeElement.querySelector('[data-testid="presentation-start-connect"]'),
     ).not.toBeNull();
@@ -128,10 +132,6 @@ describe('PresentationStartDialogComponent', () => {
     expect(
       current.nativeElement.querySelector('[data-testid="presentation-start-connected"]'),
     ).toBeNull();
-    const projected = current.nativeElement.querySelector(
-      '[data-testid="presentation-start-visibility-projected"] input',
-    ) as HTMLInputElement | null;
-    expect(projected?.checked).toBe(true);
     current.nativeElement.querySelector('[data-testid="presentation-start-fullscreen"]')?.click();
     expect(dialogCloseMock).toHaveBeenCalledWith('start');
   });
@@ -162,9 +162,8 @@ describe('PresentationStartDialogComponent', () => {
     expect(dialogCloseMock).toHaveBeenCalledWith('start');
   });
 
-  it('gibt die gewählte Sichtbarkeit an den Pairing-Dialog weiter', async () => {
+  it('öffnet den Pairing-Dialog ohne Sichtbarkeitswahl', async () => {
     const current = await render();
-    current.componentInstance.onVisibilityChange('PRIVATE');
     current.nativeElement.querySelector('[data-testid="presentation-start-connect"]')?.click();
     expect(dialogOpenMock).toHaveBeenCalledWith(
       HostPairingDialogComponent,
@@ -173,7 +172,6 @@ describe('PresentationStartDialogComponent', () => {
         backdropClass: 'host-pairing-dialog-backdrop',
         data: {
           code: 'ABC123',
-          screenVisibility: 'PRIVATE',
           startPresenterView: undefined,
         },
       }),

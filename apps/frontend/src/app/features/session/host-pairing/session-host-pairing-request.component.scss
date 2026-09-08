@@ -1,3 +1,5 @@
+@use './host-pairing-md3' as md3;
+
 :host {
   display: block;
   width: 100%;
@@ -28,28 +30,15 @@
 }
 
 .host-pairing-request__section {
-  display: flex;
-  flex-direction: column;
-  gap: 0.75rem;
-  padding: 0.85rem 1rem;
-  border: 1px solid var(--mat-sys-outline-variant);
-  border-radius: var(--mat-sys-corner-large);
-  background: var(--mat-sys-surface-container-low);
+  @include md3.pairing-section;
 }
 
 .host-pairing-request__section--alert {
-  border-color: color-mix(in srgb, var(--mat-sys-error) 40%, var(--mat-sys-outline-variant));
-  background: color-mix(in srgb, var(--mat-sys-error-container) 55%, transparent);
-}
-
-.host-pairing-request__hint,
-.host-pairing-request__status {
-  margin: 0;
-  line-height: 1.5;
+  @include md3.pairing-section-alert;
 }
 
 .host-pairing-request__hint {
-  color: var(--mat-sys-on-surface-variant);
+  @include md3.pairing-hint;
 }
 
 .host-pairing-request__hint--confirm {
@@ -61,27 +50,15 @@
 }
 
 .host-pairing-request__status {
-  font: var(--mat-sys-title-small);
+  @include md3.pairing-status;
 }
 
 .host-pairing-request__indicator-frame {
-  display: flex;
-  justify-content: center;
-  margin: 0;
-  padding: 0.85rem;
-  border-radius: var(--mat-sys-corner-medium);
-  background: var(--mat-sys-surface-container-highest);
+  @include md3.pairing-indicator-frame;
 }
 
 .host-pairing-request__indicator {
-  margin: 0;
-  font: var(--mat-sys-headline-small);
-  font-weight: 700;
-  text-align: center;
-}
-
-.host-pairing-request__name {
-  width: 100%;
+  @include md3.pairing-indicator;
 }
 
 .host-pairing-request__actions {
@@ -91,7 +68,19 @@
 }
 
 .host-pairing-request__action {
-  min-height: 2.75rem;
+  @include md3.pairing-touch-action;
   align-self: flex-start;
   width: fit-content;
+}
+
+@media (max-width: 30rem) {
+  .host-pairing-request__actions {
+    display: grid;
+    gap: 0.65rem;
+  }
+
+  .host-pairing-request__actions .host-pairing-request__action {
+    width: 100%;
+    justify-content: center;
+  }
 }
