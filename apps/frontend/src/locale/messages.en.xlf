@@ -27331,8 +27331,8 @@
         <target>Connect the device only if both screens show the same.</target>
       </trans-unit>
       <trans-unit id="hostPairing.pendingAfterHint" datatype="html">
-        <source>Das Gerät steuert die laufende Veranstaltung: Fragen, Ergebnisse, Beenden. Nicht: Quiz bearbeiten oder löschen.</source>
-        <target>This device controls the live session: questions, results, ending the session. Not: editing or deleting quizzes.</target>
+        <source>Das Gerät steuert die laufende Veranstaltung: Fragen, Ergebnisse, Q&amp;A, Blitzlicht, Session beenden. Nicht aber: Quiz bearbeiten oder löschen.</source>
+        <target>This device controls the live session: questions, results, Q&amp;A, quick feedback, ending the session. But not: editing or deleting quizzes.</target>
       </trans-unit>
       <trans-unit id="hostPairing.connected" datatype="html">
         <source>Smartphone verbunden</source>

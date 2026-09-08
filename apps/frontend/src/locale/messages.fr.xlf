@@ -27274,8 +27274,8 @@
         <target>Connecte l’appareil seulement si les deux écrans affichent la même chose.</target>
       </trans-unit>
       <trans-unit id="hostPairing.pendingAfterHint" datatype="html">
-        <source>Das Gerät steuert die laufende Veranstaltung: Fragen, Ergebnisse, Beenden. Nicht: Quiz bearbeiten oder löschen.</source>
-        <target>Cet appareil pilote la séance en cours : questions, résultats, clôture. Pas : modifier ou supprimer des quiz.</target>
+        <source>Das Gerät steuert die laufende Veranstaltung: Fragen, Ergebnisse, Q&amp;A, Blitzlicht, Session beenden. Nicht aber: Quiz bearbeiten oder löschen.</source>
+        <target>Cet appareil pilote la séance en cours : questions, résultats, Q&amp;R, feedback éclair, clôture de la séance. Mais pas : modifier ou supprimer des quiz.</target>
       </trans-unit>
       <trans-unit id="hostPairing.connected" datatype="html">
         <source>Smartphone verbunden</source>
