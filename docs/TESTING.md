@@ -760,6 +760,11 @@ p99 3095 ms; Vortag p95 2828 ms). Der Nightly vom 2026-08-17 zeigte den Keep-Ali
 nur 450/600 Karenz-Votes bei p95 2524 ms, nachdem Idle nach ACTIVE die 10s-Keep-Alives
 sterben ließ. Die 4000-ms-Gates und das Connection-Warm-up halten die funktionale Prüfung
 `accepted === 600` und geben GitHub-Runnern Abstand zur Burst-Latenz.
+Der Nightly vom 2026-09-08 scheiterte fachlich: 543/600 Karenz-Votes mit
+`Unable to start a transaction in the given time` (57×). Ursache war der
+node-pg-Default-Pool (10 Verbindungen) plus Prisma-`maxWait` 2 s. Der Vote-Hotpath
+wartet jetzt 10 s auf einen Pool-Slot, der Pool defaultet auf 40 Verbindungen
+(`DATABASE_POOL_MAX`, Cap 80 unter Postgres-Default `max_connections=100`).
 
 Der Smoke ergänzt den Host-Progress-Smoke: Er misst nicht den WebSocket-Fan-out, sondern den
 serverseitigen Vote-Hotpath rund um Timerende, Karenz und Ergebnisfreigabe.
