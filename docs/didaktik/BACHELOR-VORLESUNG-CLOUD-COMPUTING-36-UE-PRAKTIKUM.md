@@ -96,7 +96,7 @@ Zusätzlich zur Formulierung des Modulhandbuchs werden die Ziele beobachtbar gem
 | K2/K8        | Provisioning-/Operations-Agent auf isoliertem Zielserver      | IaC, Systeminventar und Härtungsnachweis     | technologische Voraussetzungen des Falls    |
 | K3           | Serverless-Analyseagent mit Gegenbeispiel                     | Eignungsmatrix und isolierter Prototyp       | Funktion, Nutzen und Grenze von Serverless  |
 | K4           | Provider-Agent mit identischem Capability-/Quellenraster      | GCP-/AWS-/Azure-Matrix                       | Analyse etablierter Cloud-Angebote          |
-| K5           | Daten-/ML- und Privacy-Agent mit 8.9a–d-Vergleich              | Datenfluss, Zweck-/Rollen- und Optionenblatt | passende Cloud-Option für einen Datenfall   |
+| K5           | Daten-/ML- und Privacy-Agent mit 8.9a–d-Vergleich             | Datenfluss, Zweck-/Rollen- und Optionenblatt | passende Cloud-Option für einen Datenfall   |
 | K6/K7        | Security-, Performance- und Review-Agenten mit Evidenzgates   | Befund-, Mess- und Verifikationsberichte     | verteidigbare technische Fallentscheidung   |
 | K9           | Economics-/FinOps-Agent auf Basis derselben technischen Daten | TCO, Unit Economics, Sensitivität und ADR    | verantwortbare Gesamtentscheidung           |
 
@@ -144,20 +144,20 @@ Präsenz- und Zoom-Lauf haben identische Lernziele, Inhalte, Nettozeiten, Agente
 
 Die Detailzeiten stehen in den [Terminplänen](./vorlesungen-cloud-computing-termine.md). `Präsenz/synchron` ist eine Workload-Kategorie: Im Präsenzlauf findet der Termin im Raum, im Onlinelauf synchron in Zoom statt. Die Tutorien werden ebenfalls im jeweiligen Kursmodus durchgeführt.
 
-| Termin | Typ              | Agentischer Schwerpunkt                              | Zentrales Lernprodukt                       |
-| -----: | ---------------- | ---------------------------------------------------- | ------------------------------------------- |
-|      1 | Präsenz/synchron | Cloud-Grundlagen und Agentenvertrag                  | Cloud-Einordnung mit Auftrag/Grenzen        |
-|      2 | Präsenz/synchron | Zielserver und technologische Basis als Code         | IaC-/Provisioning-Plan                      |
-|      3 | Tutorium         | Serverinstallation, `arsnova.eu`-Slice und Härtung   | reproduzierbarer Build und Härtungsnachweis |
-|      4 | Präsenz/synchron | Serverless-Agent und isolierter Prototyp             | Serverless-Eignungsmatrix                   |
-|      5 | Präsenz/synchron | Provider-Agent für Google Cloud, AWS und Azure       | Capability-/Verantwortungs-/Kostenvergleich |
-|      6 | Präsenz/synchron | Daten-/ML- und Privacy-Agent; 8.9a–d                 | Datenfluss und DS-/ML-Service-Mapping       |
-|      7 | Tutorium         | Recovery-Agent für Backup, Restore und Fehlerfälle   | ausgeführter Recovery-Nachweis              |
-|      8 | Tutorium         | Performance-Agent; 8.9d-Slot, TTFT und Backpressure  | reproduzierbarer Last-/Messbericht          |
-|      9 | Präsenz/synchron | Security-/Privacy-Agent; privater 8.9d-Endpunkt       | Befund-Maßnahme-Verifikation-Restrisiko     |
-|     10 | Tutorium         | FinOps-Agent; CPU-/GPU-/Managed-Vergleich für 8.9d   | TCO, Unit Economics, Sensitivität und ADR   |
-|     11 | Tutorium         | Agentenevidenz in Referatsbestandteile überführen    | Einreichungs- und Vortragsskizze            |
-|     12 | Tutorium         | Probeprüfung und Verteidigung der Agentenergebnisse  | Vortrag plus Diskussion                     |
+| Termin | Typ              | Agentischer Schwerpunkt                             | Zentrales Lernprodukt                       |
+| -----: | ---------------- | --------------------------------------------------- | ------------------------------------------- |
+|      1 | Präsenz/synchron | Cloud-Grundlagen und Agentenvertrag                 | Cloud-Einordnung mit Auftrag/Grenzen        |
+|      2 | Präsenz/synchron | Zielserver und technologische Basis als Code        | IaC-/Provisioning-Plan                      |
+|      3 | Tutorium         | Serverinstallation, `arsnova.eu`-Slice und Härtung  | reproduzierbarer Build und Härtungsnachweis |
+|      4 | Präsenz/synchron | Serverless-Agent und isolierter Prototyp            | Serverless-Eignungsmatrix                   |
+|      5 | Präsenz/synchron | Provider-Agent für Google Cloud, AWS und Azure      | Capability-/Verantwortungs-/Kostenvergleich |
+|      6 | Präsenz/synchron | Daten-/ML- und Privacy-Agent; 8.9a–d                | Datenfluss und DS-/ML-Service-Mapping       |
+|      7 | Tutorium         | Recovery-Agent für Backup, Restore und Fehlerfälle  | ausgeführter Recovery-Nachweis              |
+|      8 | Tutorium         | Performance-Agent; 8.9d-Slot, TTFT und Backpressure | reproduzierbarer Last-/Messbericht          |
+|      9 | Präsenz/synchron | Security-/Privacy-Agent; privater 8.9d-Endpunkt     | Befund-Maßnahme-Verifikation-Restrisiko     |
+|     10 | Tutorium         | FinOps-Agent; CPU-/GPU-/Managed-Vergleich für 8.9d  | TCO, Unit Economics, Sensitivität und ADR   |
+|     11 | Tutorium         | Agentenevidenz in Referatsbestandteile überführen   | Einreichungs- und Vortragsskizze            |
+|     12 | Tutorium         | Probeprüfung und Verteidigung der Agentenergebnisse | Vortrag plus Diskussion                     |
 
 Bilanz: sechs Präsenz-/synchrone Termine = 18 UE = 13,5 Stunden; sechs Tutorien = 18 UE = 13,5 Stunden.
 
