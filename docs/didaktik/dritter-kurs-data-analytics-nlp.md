@@ -4,7 +4,8 @@
 
 ### Ausführliche Praktikumsbeschreibung (studierendenfreundlich)
 
-**→ [`docs/praktikum/PRAKTIKUM-DATA-ANALYTICS.md`](../praktikum/PRAKTIKUM-DATA-ANALYTICS.md)**  
+**→ [`docs/praktikum/PRAKTIKUM-DATA-ANALYTICS.md`](../praktikum/PRAKTIKUM-DATA-ANALYTICS.md)**
+
 **→ [`Lehrmatrix Moderationskompass 8.9a–d`](./MODERATIONSKOMPASS-8.9A-D-MODULE-UND-PRAKTIKA.md)**
 
 ---
