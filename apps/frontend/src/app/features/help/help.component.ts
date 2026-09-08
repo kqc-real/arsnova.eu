@@ -78,6 +78,8 @@ export class HelpComponent implements AfterViewInit {
   readonly participantEntryExpanded = signal(this.hashSectionOnInit === 'help-participant');
 
   readonly localizedPath = localizePath;
+  readonly infoLandingPairingAnchor = INFO_LANDING_ANCHORS.hostPairing;
+  readonly infoLandingPairingLabel = $localize`:@@help.infoLandingPairingLink:Frei im Raum präsentieren`;
   readonly infoLandingFeaturesAnchor = INFO_LANDING_ANCHORS.features;
   readonly infoLandingFeaturesLabel = $localize`:@@help.infoLandingLink:Hintergründe und Einsatzmöglichkeiten`;
 

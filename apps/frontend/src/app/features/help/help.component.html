@@ -101,13 +101,20 @@
             Mehr zu Nutzen und Hintergründen
           </h2>
           <p class="help-info-landing__body" i18n="@@help.infoLandingBody">
-            Auf der Informationsseite findest du Einsatzmöglichkeiten, Hinweise zu Datenschutz und
-            Barrierefreiheit sowie die Abgrenzung zu anderen Audience-Response-Systemen.
+            Auf der Informationsseite findest du Einsatzmöglichkeiten, die Steuerung vom Smartphone,
+            Hinweise zu Datenschutz und Barrierefreiheit sowie die Abgrenzung zu anderen
+            Audience-Response-Systemen.
           </p>
-          <app-info-landing-link
-            [anchor]="infoLandingFeaturesAnchor"
-            [label]="infoLandingFeaturesLabel"
-          />
+          <div class="help-info-landing__links">
+            <app-info-landing-link
+              [anchor]="infoLandingPairingAnchor"
+              [label]="infoLandingPairingLabel"
+            />
+            <app-info-landing-link
+              [anchor]="infoLandingFeaturesAnchor"
+              [label]="infoLandingFeaturesLabel"
+            />
+          </div>
         </aside>
 
         <section id="help-host" class="help-section" aria-labelledby="help-host-title">
@@ -137,7 +144,9 @@
                   Mit einem Quiz stellst du vorbereitete Wissens- oder Meinungsfragen. Im Q&amp;A
                   sammelst und priorisierst du Fragen aus dem Publikum. Das Blitzlicht eignet sich
                   für spontane Stimmungs-, Verständnis- und Tempoabfragen. Du kannst alle drei
-                  Bereiche in einer Live-Session verbinden.
+                  Bereiche in einer Live-Session verbinden. Vom Smartphone oder Tablet steuerst du
+                  die laufende Veranstaltung frei im Raum und kannst die Steuerung ad hoc
+                  weitergeben.
                 </p>
               </div>
             </mat-expansion-panel>
@@ -157,7 +166,28 @@
                   Wähle „Starten“, lege Stil und Optionen fest und teile anschließend den
                   sechsstelligen Code oder QR-Code. In der Host-Ansicht zeigst du die nächste Frage,
                   startest die Antwortphase und gibst das Ergebnis frei. Tipp: Teste die Vorschau
-                  vor dem ersten Einsatz einmal auf einem zweiten Gerät.
+                  vor dem ersten Einsatz einmal auf einem zweiten Gerät. Beim Start der Präsentation
+                  kannst du per QR Smartphone oder Tablet verbinden und die Session frei im Raum
+                  steuern.
+                </p>
+              </div>
+            </mat-expansion-panel>
+
+            <mat-expansion-panel #hostPairingPanel class="help-panel">
+              <mat-expansion-panel-header>
+                <mat-panel-title i18n="@@help.hostPairingTitle"
+                  >Wie steuere ich die Session vom Smartphone?</mat-panel-title
+                >
+              </mat-expansion-panel-header>
+              <div class="help-panel__body" [attr.inert]="hostPairingPanel.expanded ? null : ''">
+                <p i18n="@@help.hostPairingBody">
+                  Beim Start der Präsentation verbindest du Smartphone oder Tablet per QR. Die
+                  Verbindung bestätigst du zuerst am Host-Gerät. Danach bleibt die Präsentation auf
+                  dem Beamer, und du gehst frei durch den Raum. Das Gerät steuert die laufende
+                  Veranstaltung: Fragen, Ergebnisse, Q&amp;A, Blitzlicht, Session beenden. Nicht
+                  aber: Quiz bearbeiten oder löschen. Die Steuerung kannst du ad hoc einer
+                  vertrauenswürdigen Tutor:in oder Moderator:in übergeben. Das ist ein klarer
+                  Unterschied zu Systemen wie Kahoot, Mentimeter, Slido oder Particify.
                 </p>
               </div>
             </mat-expansion-panel>

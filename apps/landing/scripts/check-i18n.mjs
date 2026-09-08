@@ -23,6 +23,7 @@ const legacyAliases = [
 const canonicalAnchors = [
   'workflow',
   'features',
+  'host-pairing',
   'structured-question-types',
   'numeric-estimate',
   'confidence',
@@ -36,6 +37,7 @@ const canonicalAnchors = [
 const sectionOrder = [
   'workflow',
   'features',
+  'host-pairing',
   'structured-question-types',
   'numeric-estimate',
   'confidence',
@@ -115,7 +117,7 @@ const tryNowLabels = {
   it: 'Provalo ora',
   es: 'Probar ahora',
 };
-const removedNavAnchors = ['numeric-estimate', 'qa-wall', 'confidence'];
+const removedNavAnchors = ['numeric-estimate', 'qa-wall', 'confidence', 'host-pairing'];
 const deSmokePhrases = [
   'Jetzt ausprobieren',
   'Zum Inhalt springen',
@@ -294,6 +296,8 @@ const localeContentSmoke = {
       'Aussagekräftige Wortwolke',
       'Live-Aktualisierung pausiert',
       'Was arsnova.eu auszeichnet',
+      'Frei im Raum präsentieren',
+      'Alleinstellungsmerkmal',
       'Auf langjähriger Erfahrung aufgebaut',
       'technischen Grundlagen für Bereitstellung und Betrieb',
     ],
@@ -325,6 +329,7 @@ const localeContentSmoke = {
       'Coming next: moderation compass',
       'Built on an established foundation',
       'The facilitator and presenter show the quiz, Q&amp;A wall, word cloud',
+      'Present from anywhere in the room',
       'Until then, only a neutral progress indicator is visible.',
       'Facilitator’s Q&amp;A view',
     ],
@@ -350,7 +355,8 @@ const localeContentSmoke = {
     wcag: 'Conforme aux WCAG 2.2, niveau AA',
     term: 'sondage express',
     editorial: [
-      'Prêt en quelques secondes',
+      'Libre dans la salle',
+      'Présenter depuis n’importe où dans la salle',
       'Publier les questions uniquement lorsqu’elles sont pertinentes dans le contexte pédagogique.',
       'À venir : boussole de modération',
       'L’animateur et le présentateur affichent le quiz,',
@@ -395,6 +401,7 @@ const localeContentSmoke = {
       'In arrivo: bussola di moderazione',
       'si adattano a contesti che vanno dalla classe e dal seminario al workshop',
       'mostrano il quiz, la bacheca delle domande',
+      'Presenta da qualsiasi punto della sala',
       'i punti di disaccordo e le esigenze di chiarimento',
       'modalità presentatore',
       'indicatore neutro di avanzamento',
@@ -434,6 +441,8 @@ const localeContentSmoke = {
       'El Q&amp;A permite premoderar',
       'infraestructura de despliegue y operación de la plataforma',
       'El anfitrión y el presentador muestran el cuestionario',
+      'Presenta desde cualquier punto de la sala',
+      'Libre en la sala',
       'indican las prioridades, los puntos de desacuerdo',
       'modo de presentación',
       'El objetivo no es únicamente votar',
@@ -576,7 +585,7 @@ function extractMainSectionOrder(html) {
   if (!mainMatch) return null;
   const order = [];
   const re =
-    /id="(workflow|features|structured-question-types|numeric-estimate|confidence|qa-wall|accessibility|trust|comparison|faq)"/g;
+    /id="(workflow|features|host-pairing|structured-question-types|numeric-estimate|confidence|qa-wall|accessibility|trust|comparison|faq)"/g;
   let match;
   while ((match = re.exec(mainMatch[1])) !== null) {
     order.push(match[1]);

@@ -57,7 +57,10 @@ const en: Messages = {
     a11yLink: 'Conforms to WCAG 2.2 Level AA',
     a11ySuffix: '— keyboard, screen reader and individually adjustable response time.',
     cards: [
-      { title: 'Live in seconds', text: 'Share a session via code or QR' },
+      {
+        title: 'Move freely',
+        text: 'Control the session from your phone; the projector stays on the laptop',
+      },
       { title: 'Q&A with a question wall', text: 'Moderation, voting and topic word cloud' },
       {
         title: 'Confidence rating & follow-up',
@@ -212,13 +215,13 @@ const en: Messages = {
         number: '02',
         title: 'Start a session',
         description:
-          'Start without an account: open a session, choose a style, share a code or QR and use the presenter view if needed.',
+          'Start without an account: open a session, choose a style, share a code or QR. Optionally connect a phone or tablet and open presenter view for the projector.',
       },
       {
         number: '03',
         title: 'Moderate live',
         description:
-          'Participants vote, ask questions and prioritise together. The facilitator and presenter show the quiz, Q&A wall, word cloud, reading phase, countdown, second round and results in one flow.',
+          'You walk the room and run the live session from your phone. Participants vote, ask questions and prioritise together. The facilitator and presenter show the quiz, Q&A wall, word cloud, Pulse Check, reading phase, countdown, second round and results in one flow.',
       },
       {
         number: '04',
@@ -228,11 +231,32 @@ const en: Messages = {
       },
     ],
   },
+  pairing: {
+    eyebrow: 'What sets us apart',
+    title: 'Present from anywhere in the room — from your phone or tablet',
+    lead: 'With Kahoot, Mentimeter, Slido or Particify you usually stay at the laptop. With arsnova.eu you connect your phone: the slides stay on the projector, you walk the room and run the live session.',
+    summary: [
+      'Full freedom of movement while you present — a clear teaching and staging advantage.',
+      'The same live-session controls as on the laptop: questions, results, Q&A, Pulse Check, End session.',
+      'Hand control over ad hoc to a tutor or facilitator — not just a clicker for the next slide.',
+    ],
+    laptopLabel: 'Laptop and projector',
+    laptopText: 'Show the presentation. You confirm the connection here.',
+    phoneLabel: 'Phone or tablet',
+    phoneText: 'Runs the live session while you are in the room.',
+    demoAria: 'Laptop shows the presentation; the phone controls the session',
+  },
   features: {
     eyebrow: 'What sets arsnova.eu apart',
     title: 'Built for live interaction, not only for polling slides',
     lead: 'arsnova.eu combines a fast start, pedagogical depth and a transparent technical foundation. The platform stays simple day to day without shrinking what you can do.',
     items: [
+      {
+        title: 'Present from anywhere in the room',
+        description:
+          'Connect a phone or tablet and run the live session on the move: questions, results, Q&A, Pulse Check, End session. You stay close to the audience and can hand over control ad hoc — unlike Kahoot, Mentimeter, Slido or Particify.',
+        icon: 'phone',
+      },
       {
         title: 'Ready in no time',
         description:
@@ -418,8 +442,13 @@ const en: Messages = {
   comparison: {
     eyebrow: 'Differentiation',
     title: 'Not just a Mentimeter or Kahoot substitute',
-    lead: 'The focus is not only voting, but the full live flow: prepare, facilitate, make results visible and keep control of content and operations.',
+    lead: 'The focus is not only voting, but the full live flow: prepare, facilitate from anywhere in the room, make results visible and keep control of content and operations.',
     points: [
+      {
+        title: 'Freedom to move, not tied to the laptop',
+        description:
+          'You run the session from a phone or tablet while the presentation stays on the projector. That is full live-session control — questions, results, Q&A, Pulse Check, End session — and you can hand it over ad hoc. With Kahoot, Mentimeter, Slido or Particify you typically stay at the computer.',
+      },
       {
         title: 'Lower barriers to entry',
         description:
@@ -448,6 +477,11 @@ const en: Messages = {
         question: 'Do facilitators or participants need an account?',
         answer:
           'No. A session can be started without an account. Participants join via code or QR.',
+      },
+      {
+        question: 'Can I control the session from my phone?',
+        answer:
+          'Yes. When you start the presentation you connect a phone or tablet via QR. The laptop shows the slides; you walk the room. The device runs the live session — questions, results, Q&A, Pulse Check, End session — not the quiz collection. You can also hand control to a trusted tutor or facilitator. That is a clear difference from tools such as Kahoot, Mentimeter, Slido or Particify.',
       },
       {
         question: 'Where is the data stored?',
@@ -512,6 +546,7 @@ const en: Messages = {
       'Numeric estimation questions with two rounds and statistics',
       'Q&A wall with moderation, upvoting and downvoting',
       'Waiting room, presenter, QR/code',
+      'Host pairing: live-session control from a phone or tablet',
       'Question types MC/SC/short answer/free text/survey/rating/numeric estimation/matching/ordering/categorisation',
       'Markdown and KaTeX',
       'Reading phase and Peer Instruction',

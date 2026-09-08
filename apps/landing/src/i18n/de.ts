@@ -57,7 +57,7 @@ const de: Messages = {
     a11yLink: 'Barrierefrei nach WCAG 2.2 AA',
     a11ySuffix: '— Tastatur, Screenreader und individuell anpassbare Bearbeitungszeit.',
     cards: [
-      { title: 'Sofort live', text: 'Session per Code oder QR teilen' },
+      { title: 'Frei im Raum', text: 'Session vom Smartphone steuern, Beamer bleibt am Laptop' },
       { title: 'Q&A mit Fragenwand', text: 'Moderation, Abstimmung und Themen-Wortwolke' },
       {
         title: 'Selbsteinschätzung & Nachbereitung',
@@ -212,13 +212,13 @@ const de: Messages = {
         number: '02',
         title: 'Session starten',
         description:
-          'Ohne Konto loslegen: Session öffnen, Stil wählen, Code oder QR teilen und bei Bedarf Presenter-Ansicht nutzen.',
+          'Ohne Konto loslegen: Session öffnen, Stil wählen, Code oder QR teilen. Optional verbindest du Smartphone oder Tablet und startest die Presenter-Ansicht für den Beamer.',
       },
       {
         number: '03',
         title: 'Live moderieren',
         description:
-          'Teilnehmende stimmen ab, stellen Fragen und setzen gemeinsam Prioritäten. Host und Presenter zeigen Quiz, Q&A-Fragenwand, Wortwolke, Lesephase, Countdown, zweite Runde und Ergebnisansicht in einem Ablauf.',
+          'Du gehst frei im Raum und steuerst die laufende Veranstaltung vom Handy. Teilnehmende stimmen ab, stellen Fragen und setzen gemeinsam Prioritäten. Host und Presenter zeigen Quiz, Q&A, Blitzlicht, Wortwolke, Lesephase, Countdown, zweite Runde und Ergebnisse in einem Ablauf.',
       },
       {
         number: '04',
@@ -228,11 +228,32 @@ const de: Messages = {
       },
     ],
   },
+  pairing: {
+    eyebrow: 'Alleinstellungsmerkmal',
+    title: 'Frei im Raum präsentieren — vom Smartphone oder Tablet',
+    lead: 'Bei Kahoot, Mentimeter, Slido oder Particify bleibst du meist am Laptop. Bei arsnova.eu verbindest du dein Handy: Die Präsentation läuft auf dem Beamer, du gehst durch den Raum und steuerst die laufende Veranstaltung.',
+    summary: [
+      'Volle Bewegungsfreiheit während der Präsentation — didaktisch und präsentationstechnisch ein klarer Vorteil.',
+      'Dieselbe Session-Steuerung wie am Laptop: Fragen, Ergebnisse, Q&A, Blitzlicht, Session beenden.',
+      'Steuerung ad hoc an eine Tutor:in oder Moderator:in übergeben — nicht nur Folien weiterrücken.',
+    ],
+    laptopLabel: 'Laptop und Beamer',
+    laptopText: 'Zeigen die Präsentation. Hier bestätigst du die Verbindung.',
+    phoneLabel: 'Smartphone oder Tablet',
+    phoneText: 'Steuert die laufende Veranstaltung, während du im Raum bist.',
+    demoAria: 'Laptop zeigt die Präsentation, Smartphone steuert die Session',
+  },
   features: {
     eyebrow: 'Was arsnova.eu auszeichnet',
     title: 'Gebaut für Live-Interaktion statt nur für Abstimmungsfolien',
     lead: 'arsnova.eu verbindet schnellen Einstieg, didaktische Stärke und einen transparenten technischen Unterbau. So bleibt die Plattform im Alltag einfach, ohne in den Möglichkeiten klein zu werden.',
     items: [
+      {
+        title: 'Frei im Raum präsentieren',
+        description:
+          'Verbinde Smartphone oder Tablet und steuere die laufende Veranstaltung unterwegs: Fragen, Ergebnisse, Q&A, Blitzlicht, Session beenden. So bleibst du nah am Publikum und kannst die Steuerung ad hoc weitergeben — anders als bei Kahoot, Mentimeter, Slido oder Particify.',
+        icon: 'phone',
+      },
       {
         title: 'Schnell im Einsatz',
         description:
@@ -421,8 +442,13 @@ const de: Messages = {
   comparison: {
     eyebrow: 'Abgrenzung',
     title: 'Nicht nur ein Ersatz für Mentimeter oder Kahoot',
-    lead: 'Im Mittelpunkt steht nicht nur Abstimmung, sondern der komplette Live-Ablauf: vorbereiten, moderieren, Ergebnisse sichtbar machen und dabei die Kontrolle über Inhalte und Betrieb behalten.',
+    lead: 'Im Mittelpunkt steht nicht nur Abstimmung, sondern der komplette Live-Ablauf: vorbereiten, frei im Raum moderieren, Ergebnisse sichtbar machen und dabei die Kontrolle über Inhalte und Betrieb behalten.',
     points: [
+      {
+        title: 'Bewegungsfreiheit statt Laptop-Fessel',
+        description:
+          'Du steuerst die Session vom Smartphone oder Tablet, während die Präsentation auf dem Beamer läuft. Das ist volle Session-Steuerung — Fragen, Ergebnisse, Q&A, Blitzlicht, Session beenden — und du kannst sie ad hoc weitergeben. Bei Kahoot, Mentimeter, Slido oder Particify bleibst du typischerweise am Rechner.',
+      },
       {
         title: 'Weniger Einstiegshürden',
         description:
@@ -451,6 +477,11 @@ const de: Messages = {
         question: 'Brauchen Hosts oder Teilnehmende einen Account?',
         answer:
           'Nein. Eine Session kann ohne Konto gestartet werden. Teilnehmende treten per Code oder QR bei.',
+      },
+      {
+        question: 'Kann ich die Session vom Smartphone steuern?',
+        answer:
+          'Ja. Beim Start der Präsentation verbindest du Smartphone oder Tablet per QR. Der Laptop zeigt die Präsentation, du gehst frei im Raum. Das Gerät steuert die laufende Veranstaltung — Fragen, Ergebnisse, Q&A, Blitzlicht, Session beenden — nicht die Quiz-Sammlung. Du kannst die Steuerung auch einer vertrauenswürdigen Tutor:in oder Moderator:in übergeben. Das ist ein klarer Unterschied zu Systemen wie Kahoot, Mentimeter, Slido oder Particify.',
       },
       {
         question: 'Wo liegen die Daten?',
@@ -515,6 +546,7 @@ const de: Messages = {
       'Numerische Schätzfragen mit zwei Runden und Statistik',
       'Q&A-Fragenwand mit Moderation, Zustimmungs- und Ablehnungsstimmen',
       'Warteraum, Presenter, QR/Code',
+      'Session-Steuerung vom Smartphone oder Tablet (Host-Pairing)',
       'Fragetypen MC/SC/Kurzantwort/Freitext/Umfrage/Bewertungsskala/Schätzfrage/Zuordnung/Sortierung/Kategorisierung',
       'Markdown und KaTeX',
       'Lesephase und Peer Instruction',

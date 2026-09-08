@@ -138,6 +138,18 @@ export interface WorkflowMessages {
   steps: Array<{ number: string; title: string; description: string }>;
 }
 
+export interface PairingMessages {
+  eyebrow: string;
+  title: string;
+  lead: string;
+  summary: string[];
+  laptopLabel: string;
+  laptopText: string;
+  phoneLabel: string;
+  phoneText: string;
+  demoAria: string;
+}
+
 export interface FeaturesMessages {
   eyebrow: string;
   title: string;
@@ -223,6 +235,7 @@ export interface Messages {
   confidence: ConfidenceMessages;
   qaWall: QaWallMessages;
   workflow: WorkflowMessages;
+  pairing: PairingMessages;
   features: FeaturesMessages;
   structuredQuestionTypes: StructuredQuestionTypesMessages;
   accessibility: AccessibilityMessages;

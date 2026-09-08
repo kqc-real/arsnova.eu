@@ -8343,8 +8343,8 @@
         </context-group>
       </trans-unit>
       <trans-unit id="help.infoLandingBody" datatype="html">
-        <source> Auf der Informationsseite findest du Einsatzmöglichkeiten, Hinweise zu Datenschutz und Barrierefreiheit sowie die Abgrenzung zu anderen Audience-Response-Systemen.</source>
-        <target>On the information site you will find use cases, notes on privacy and accessibility, and how arsnova.eu differs from other audience response systems.</target>
+        <source> Auf der Informationsseite findest du Einsatzmöglichkeiten, die Steuerung vom Smartphone, Hinweise zu Datenschutz und Barrierefreiheit sowie die Abgrenzung zu anderen Audience-Response-Systemen.</source>
+        <target>On the information site you will find use cases, phone control, notes on privacy and accessibility, and how arsnova.eu differs from other audience response systems.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/help/help.component.html</context>
           <context context-type="linenumber">103,106</context>
@@ -8371,8 +8371,8 @@
         </context-group>
       </trans-unit>
       <trans-unit id="help.hostCapabilitiesBody" datatype="html">
-        <source> Mit einem Quiz stellst du vorbereitete Wissens- oder Meinungsfragen. Im Q&amp;A sammelst und priorisierst du Fragen aus dem Publikum. Das Blitzlicht eignet sich für spontane Stimmungs-, Verständnis- und Tempoabfragen. Du kannst alle drei Bereiche in einer Live-Session verbinden.</source>
-        <target>Use a quiz for prepared knowledge or opinion questions. Use Q&amp;A to collect and prioritize questions from your audience. Pulse Check is designed for spontaneous mood, understanding, and pace checks. You can combine all three in one live session.</target>
+        <source> Mit einem Quiz stellst du vorbereitete Wissens- oder Meinungsfragen. Im Q&amp;A sammelst und priorisierst du Fragen aus dem Publikum. Das Blitzlicht eignet sich für spontane Stimmungs-, Verständnis- und Tempoabfragen. Du kannst alle drei Bereiche in einer Live-Session verbinden. Vom Smartphone oder Tablet steuerst du die laufende Veranstaltung frei im Raum und kannst die Steuerung ad hoc weitergeben.</source>
+        <target>Use a quiz for prepared knowledge or opinion questions. Use Q&amp;A to collect and prioritize questions from your audience. Pulse Check is designed for spontaneous mood, understanding, and pace checks. You can combine all three in one live session. From a phone or tablet you run the live session from anywhere in the room and can hand over control ad hoc.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/help/help.component.html</context>
           <context context-type="linenumber">136,141</context>
@@ -8387,11 +8387,27 @@
         </context-group>
       </trans-unit>
       <trans-unit id="help.hostFirstSessionBody" datatype="html">
-        <source> Öffne die Quiz-Sammlung und nutze das Demo-Quiz oder erstelle ein eigenes Quiz. Wähle „Starten“, lege Stil und Optionen fest und teile anschließend den sechsstelligen Code oder QR-Code. In der Host-Ansicht zeigst du die nächste Frage, startest die Antwortphase und gibst das Ergebnis frei. Tipp: Teste die Vorschau vor dem ersten Einsatz einmal auf einem zweiten Gerät.</source>
-        <target>Open the quiz library and use the demo quiz or create your own. Select “Start,” choose the style and options, then share the 6-character code or QR code. In the host view, show the next question, start the answer phase, and reveal the results. Tip: Try the preview on a second device before your first live session.</target>
+        <source> Öffne die Quiz-Sammlung und nutze das Demo-Quiz oder erstelle ein eigenes Quiz. Wähle „Starten“, lege Stil und Optionen fest und teile anschließend den sechsstelligen Code oder QR-Code. In der Host-Ansicht zeigst du die nächste Frage, startest die Antwortphase und gibst das Ergebnis frei. Tipp: Teste die Vorschau vor dem ersten Einsatz einmal auf einem zweiten Gerät. Beim Start der Präsentation kannst du per QR Smartphone oder Tablet verbinden und die Session frei im Raum steuern.</source>
+        <target>Open the quiz library and use the demo quiz or create your own. Select “Start,” choose the style and options, then share the 6-character code or QR code. In the host view, show the next question, start the answer phase, and reveal the results. Tip: Try the preview on a second device before your first live session. When you start the presentation you can connect a phone or tablet via QR and run the session from anywhere in the room.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/help/help.component.html</context>
           <context context-type="linenumber">155,161</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="help.hostPairingTitle" datatype="html">
+        <source>Wie steuere ich die Session vom Smartphone?</source>
+        <target>How do I control the session from my phone?</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/help/help.component.html</context>
+          <context context-type="linenumber">178</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="help.hostPairingBody" datatype="html">
+        <source> Beim Start der Präsentation verbindest du Smartphone oder Tablet per QR. Die Verbindung bestätigst du zuerst am Host-Gerät. Danach bleibt die Präsentation auf dem Beamer, und du gehst frei durch den Raum. Das Gerät steuert die laufende Veranstaltung: Fragen, Ergebnisse, Q&amp;A, Blitzlicht, Session beenden. Nicht aber: Quiz bearbeiten oder löschen. Die Steuerung kannst du ad hoc einer vertrauenswürdigen Tutor:in oder Moderator:in übergeben. Das ist ein klarer Unterschied zu Systemen wie Kahoot, Mentimeter, Slido oder Particify.</source>
+        <target>When you start the presentation you connect a phone or tablet via QR. You confirm the connection first on the host device. After that the presentation stays on the projector and you walk the room. The device runs the live session: questions, results, Q&amp;A, Pulse Check, End session. Not: editing or deleting quizzes. You can hand control over ad hoc to a trusted tutor or facilitator. That is a clear difference from tools such as Kahoot, Mentimeter, Slido or Particify.</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/help/help.component.html</context>
+          <context context-type="linenumber">183,190</context>
         </context-group>
       </trans-unit>
       <trans-unit id="help.hostFinishTitle" datatype="html">
@@ -8670,6 +8686,14 @@
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/news-archive/news-archive-page.component.html</context>
           <context context-type="linenumber">177</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="help.infoLandingPairingLink" datatype="html">
+        <source>Frei im Raum präsentieren</source>
+        <target>Present from anywhere in the room</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/help/help.component.ts</context>
+          <context context-type="linenumber">82</context>
         </context-group>
       </trans-unit>
       <trans-unit id="help.infoLandingLink" datatype="html">

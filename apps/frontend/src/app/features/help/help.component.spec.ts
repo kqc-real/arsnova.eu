@@ -330,15 +330,18 @@ describe('HelpComponent', () => {
     expect(infoAside!.textContent).toContain(
       'Auf der Informationsseite findest du Einsatzmöglichkeiten',
     );
+    expect(infoAside!.textContent).toContain('die Steuerung vom Smartphone');
 
-    const link = infoAside!.querySelector<HTMLAnchorElement>('a.info-landing-link');
-    expect(link).toBeTruthy();
-    expect(link!.getAttribute('href')).toBe(infoLandingUrl('features', undefined, 'dark'));
-    expect(link!.getAttribute('target')).toBe('_blank');
-    expect(link!.getAttribute('rel')).toBe('noopener noreferrer');
-    expect(link!.getAttribute('aria-label') ?? '').toContain('öffnet in neuem Tab');
-    expect(link!.textContent).toContain('Hintergründe und Einsatzmöglichkeiten');
-    expect(link!.querySelector('.sr-only')?.textContent?.trim()).toBe('öffnet in neuem Tab');
+    const links = Array.from(infoAside!.querySelectorAll<HTMLAnchorElement>('a.info-landing-link'));
+    expect(links).toHaveLength(2);
+    expect(links[0]!.getAttribute('href')).toBe(infoLandingUrl('host-pairing', undefined, 'dark'));
+    expect(links[0]!.textContent).toContain('Frei im Raum präsentieren');
+    expect(links[1]!.getAttribute('href')).toBe(infoLandingUrl('features', undefined, 'dark'));
+    expect(links[1]!.getAttribute('target')).toBe('_blank');
+    expect(links[1]!.getAttribute('rel')).toBe('noopener noreferrer');
+    expect(links[1]!.getAttribute('aria-label') ?? '').toContain('öffnet in neuem Tab');
+    expect(links[1]!.textContent).toContain('Hintergründe und Einsatzmöglichkeiten');
+    expect(links[1]!.querySelector('.sr-only')?.textContent?.trim()).toBe('öffnet in neuem Tab');
   });
 
   it('hält die Überschriftenreihenfolge für die Info-Landing-Aside ein', async () => {
@@ -364,16 +367,17 @@ describe('HelpComponent', () => {
     const fixture = await createFixture();
     const root = fixture.nativeElement as HTMLElement;
     const panels = root.querySelectorAll('mat-expansion-panel.help-panel');
-    expect(panels.length).toBe(17);
+    expect(panels.length).toBe(18);
     expect(root.querySelectorAll('mat-expansion-panel mat-expansion-panel').length).toBe(0);
     expect(root.querySelectorAll('mat-accordion').length).toBe(5);
+    expect(root.textContent).toContain('Wie steuere ich die Session vom Smartphone?');
   });
 
   it('lässt auf der Übersichtsansicht alle Akkordeons geschlossen', async () => {
     const fixture = await createFixture();
     const root = fixture.nativeElement as HTMLElement;
     const panels = root.querySelectorAll('mat-expansion-panel.help-panel');
-    expect(panels.length).toBe(17);
+    expect(panels.length).toBe(18);
     for (const panel of Array.from(panels)) {
       expect(panel.classList.contains('mat-expanded')).toBe(false);
     }
