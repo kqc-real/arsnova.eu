@@ -29,7 +29,8 @@ const p = t.pairing;
         {p.title}
       </h2>
       <p class="mt-5 text-lg leading-8 text-landing-fg-muted">{p.lead}</p>
-      <ul class="mt-8 grid gap-3 text-sm leading-6 text-landing-fg-body" role="list">
+      <p class="mt-6 font-display text-lg font-semibold text-landing-fg">{p.whyTitle}</p>
+      <ul class="mt-4 grid gap-3 text-sm leading-6 text-landing-fg-body" role="list">
         {p.summary.map((item) => (
           <li class="rounded-landing-panel border border-landing-outline-variant bg-landing-surface-container p-4">
             <span class="font-semibold text-landing-fg">{item}</span>

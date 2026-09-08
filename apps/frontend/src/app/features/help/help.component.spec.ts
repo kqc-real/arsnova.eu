@@ -373,6 +373,8 @@ describe('HelpComponent', () => {
     expect(root.querySelectorAll('mat-expansion-panel mat-expansion-panel').length).toBe(0);
     expect(root.querySelectorAll('mat-accordion').length).toBe(5);
     expect(root.textContent).toContain('Wie steuere ich die Session vom Smartphone?');
+    expect(root.textContent).toContain('keinen Account');
+    expect(root.textContent).toContain('Quiz-Sammlung bleibt am Laptop');
   });
 
   it('lässt auf der Übersichtsansicht alle Akkordeons geschlossen', async () => {

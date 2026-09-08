@@ -8398,11 +8398,19 @@
         </context-group>
       </trans-unit>
       <trans-unit id="help.hostPairingBody" datatype="html">
-        <source> Beim Start der Präsentation verbindest du Smartphone oder Tablet per QR. Die Verbindung bestätigst du zuerst am Host-Gerät. Danach bleibt die Präsentation auf dem Beamer, und du gehst frei durch den Raum. Das Gerät steuert die laufende Veranstaltung: Fragen, Ergebnisse, Q&amp;A, Blitzlicht, Session beenden. Nicht aber: Quiz bearbeiten oder löschen. Die Steuerung kannst du ad hoc einer vertrauenswürdigen Tutor:in oder Moderator:in übergeben. Das ist ein klarer Unterschied zu Systemen wie Kahoot, Mentimeter, Slido oder Particify.</source>
-        <target>Al iniciar la presentación conectas un teléfono o tablet por QR. Confirmas primero la conexión en el dispositivo anfitrión. Después la presentación sigue en el proyector y recorres la sala. El dispositivo dirige la sesión en directo: preguntas, resultados, Q&amp;A, Sondeo rápido, Finalizar sesión. No: editar o borrar cuestionarios. Puedes ceder el control ad hoc a un tutor o moderador de confianza. Esa es una diferencia clara frente a herramientas como Kahoot, Mentimeter, Slido o Particify.</target>
+        <source> Beim Start der Präsentation verbindest du Smartphone oder Tablet per QR. Die Verbindung bestätigst du zuerst am Host-Gerät. Danach bleibt die Präsentation auf dem Beamer, und du gehst frei durch den Raum. Das Gerät steuert die laufende Veranstaltung: Fragen, Ergebnisse, Q&amp;A, Blitzlicht, Session beenden. Nicht aber: Quiz bearbeiten oder löschen. Die Steuerung kannst du ad hoc einer vertrauenswürdigen Tutor:in, Assistenz oder Moderator:in übergeben.</source>
+        <target>Al iniciar la presentación conectas un teléfono o tablet por QR. Confirmas primero la conexión en el dispositivo anfitrión. Después la presentación sigue en el proyector y recorres la sala. El dispositivo dirige la sesión en directo: preguntas, resultados, Q&amp;A, Sondeo rápido, Finalizar sesión. No: editar o borrar cuestionarios. Puedes ceder el control ad hoc a un tutor, una persona de apoyo o un moderador de confianza.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/help/help.component.html</context>
           <context context-type="linenumber">183,190</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="help.hostPairingWhy" datatype="html">
+        <source> Andere Systeme bieten oft eine Fernbedienung mit extra Login oder nur als Folienklicker. Unser Pairing ist Local-First und datensparsam: Am Handy brauchst du keinen Account. Du kannst das Gerät weitergeben, ohne Passwörter zu teilen. Die Verbindung autorisierst du lokal per QR; die Quiz-Sammlung bleibt am Laptop.</source>
+        <target>Otros sistemas suelen ofrecer un mando con inicio de sesión extra o solo como pasador de diapositivas. Nuestro emparejamiento es local-first y con pocos datos: en el teléfono no necesitas cuenta. Puedes entregar el dispositivo sin compartir contraseñas. Autorizas la conexión en local por QR; la colección de cuestionarios permanece en el portátil.</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/help/help.component.html</context>
+          <context context-type="linenumber">192,196</context>
         </context-group>
       </trans-unit>
       <trans-unit id="help.hostFinishTitle" datatype="html">

@@ -142,6 +142,7 @@ export interface PairingMessages {
   eyebrow: string;
   title: string;
   lead: string;
+  whyTitle: string;
   summary: string[];
   laptopLabel: string;
   laptopText: string;

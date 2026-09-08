@@ -8398,11 +8398,19 @@
         </context-group>
       </trans-unit>
       <trans-unit id="help.hostPairingBody" datatype="html">
-        <source> Beim Start der Präsentation verbindest du Smartphone oder Tablet per QR. Die Verbindung bestätigst du zuerst am Host-Gerät. Danach bleibt die Präsentation auf dem Beamer, und du gehst frei durch den Raum. Das Gerät steuert die laufende Veranstaltung: Fragen, Ergebnisse, Q&amp;A, Blitzlicht, Session beenden. Nicht aber: Quiz bearbeiten oder löschen. Die Steuerung kannst du ad hoc einer vertrauenswürdigen Tutor:in oder Moderator:in übergeben. Das ist ein klarer Unterschied zu Systemen wie Kahoot, Mentimeter, Slido oder Particify.</source>
-        <target>Au démarrage de la présentation, tu connectes un téléphone ou une tablette via QR. Tu confirmes d’abord la connexion sur l’appareil hôte. Ensuite, la présentation reste sur le projecteur et tu circuls dans la salle. L’appareil pilote la session en direct : questions, résultats, Q&amp;A, Feedback express, Fin de séance. Pas : modifier ou supprimer un quiz. Tu peux transmettre le contrôle ad hoc à un tuteur ou un animateur de confiance. C’est une différence nette par rapport à des outils comme Kahoot, Mentimeter, Slido ou Particify.</target>
+        <source> Beim Start der Präsentation verbindest du Smartphone oder Tablet per QR. Die Verbindung bestätigst du zuerst am Host-Gerät. Danach bleibt die Präsentation auf dem Beamer, und du gehst frei durch den Raum. Das Gerät steuert die laufende Veranstaltung: Fragen, Ergebnisse, Q&amp;A, Blitzlicht, Session beenden. Nicht aber: Quiz bearbeiten oder löschen. Die Steuerung kannst du ad hoc einer vertrauenswürdigen Tutor:in, Assistenz oder Moderator:in übergeben.</source>
+        <target>Au démarrage de la présentation, tu connectes un téléphone ou une tablette via QR. Tu confirmes d’abord la connexion sur l’appareil hôte. Ensuite, la présentation reste sur le projecteur et tu circuls dans la salle. L’appareil pilote la session en direct : questions, résultats, Q&amp;A, Feedback express, Fin de séance. Pas : modifier ou supprimer un quiz. Tu peux transmettre le contrôle ad hoc à un tuteur, une assistance ou un animateur de confiance.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/help/help.component.html</context>
           <context context-type="linenumber">183,190</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="help.hostPairingWhy" datatype="html">
+        <source> Andere Systeme bieten oft eine Fernbedienung mit extra Login oder nur als Folienklicker. Unser Pairing ist Local-First und datensparsam: Am Handy brauchst du keinen Account. Du kannst das Gerät weitergeben, ohne Passwörter zu teilen. Die Verbindung autorisierst du lokal per QR; die Quiz-Sammlung bleibt am Laptop.</source>
+        <target>D’autres outils offrent souvent une télécommande avec login séparé ou seulement comme cliqueur de diapos. Notre couplage est local-first et économe en données : tu n’as pas besoin de compte sur le téléphone. Tu peux le tendre sans partager de mot de passe. Tu autorises la connexion localement par QR ; la collection de quiz reste sur l’ordinateur.</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/help/help.component.html</context>
+          <context context-type="linenumber">192,196</context>
         </context-group>
       </trans-unit>
       <trans-unit id="help.hostFinishTitle" datatype="html">

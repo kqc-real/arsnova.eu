@@ -237,16 +237,21 @@ const es: Messages = {
   pairing: {
     eyebrow: 'Lo que nos distingue',
     title: 'Presenta desde cualquier punto de la sala — con el teléfono o la tablet',
-    lead: 'Con Kahoot, Mentimeter, Slido o Particify sueles quedarte en el portátil. Con arsnova.eu conectas el teléfono: las diapositivas siguen en el proyector, tú recorres la sala y diriges la sesión en directo.',
+    lead: 'Otros sistemas de respuesta del público suelen ofrecer un mando — como pasador de diapositivas o con un inicio de sesión aparte. Con arsnova.eu conectas el teléfono en local-first: las diapositivas siguen en el proyector, tú recorres la sala y diriges la sesión en directo.',
+    whyTitle: 'Por qué este emparejamiento no es un mando más',
     summary: [
       'Total libertad de movimiento mientras presentas — una ventaja clara para la didáctica y la puesta en escena.',
-      'El mismo control de sesión que en el portátil: preguntas, resultados, Q&A, Sondeo rápido, Finalizar sesión.',
-      'Pasa el control ad hoc a un tutor o moderador — no solo un clic para la siguiente diapositiva.',
+      'El mismo control de sesión que en el portátil: preguntas, resultados, Q&A, Sondeo rápido, Finalizar sesión — no solo la siguiente diapositiva.',
+      'Sin cuenta en el teléfono: puedes dárselo a una persona de apoyo sin compartir contraseñas.',
+      'Local-first y con pocos datos: autorizas la conexión ad hoc por QR en el dispositivo anfitrión.',
+      'La colección de cuestionarios permanece en el portátil: editar o borrar solo allí, no desde el dispositivo emparejado.',
     ],
     laptopLabel: 'Portátil y proyector',
-    laptopText: 'Muestran la presentación. Aquí confirmas la conexión.',
+    laptopText:
+      'Muestran la presentación. Aquí confirmas la conexión. La colección de cuestionarios permanece aquí.',
     phoneLabel: 'Teléfono o tablet',
-    phoneText: 'Dirige la sesión en curso mientras estás en la sala.',
+    phoneText:
+      'Dirige la sesión en curso — sin inicio de sesión extra — mientras estás en la sala.',
     demoAria: 'El portátil muestra la presentación; el teléfono controla la sesión',
   },
   features: {
@@ -257,7 +262,7 @@ const es: Messages = {
       {
         title: 'Presenta desde cualquier punto de la sala',
         description:
-          'Conecta un teléfono o tablet y dirige la sesión en movimiento: preguntas, resultados, Q&A, Sondeo rápido, Finalizar sesión. Sigues cerca del público y puedes ceder el control ad hoc — a diferencia de Kahoot, Mentimeter, Slido o Particify.',
+          'Conecta un teléfono o tablet y dirige la sesión en movimiento: preguntas, resultados, Q&A, Sondeo rápido, Finalizar sesión. Sin cuenta en el teléfono, autorización por QR — la colección de cuestionarios permanece en el portátil. Puedes ceder el control ad hoc sin compartir contraseñas.',
         icon: 'presenter',
       },
       {
@@ -453,7 +458,7 @@ const es: Messages = {
       {
         title: 'Libertad de movimiento, no atado al portátil',
         description:
-          'Diriges la sesión desde un teléfono o tablet mientras la presentación sigue en el proyector. Es el control completo de la sesión en directo — preguntas, resultados, Q&A, Sondeo rápido, Finalizar sesión — y puedes cederlo ad hoc. Con Kahoot, Mentimeter, Slido o Particify sueles quedarte en el ordenador.',
+          'Otros sistemas suelen ofrecer un mando como pasador de diapositivas o con un inicio de sesión aparte. Aquí diriges la sesión desde el teléfono — sin cuenta en el dispositivo. Autorizas la conexión en local por QR; la colección de cuestionarios permanece en el portátil. Control completo: preguntas, resultados, Q&A, Sondeo rápido, Finalizar sesión.',
       },
       {
         title: 'Menos barreras de entrada',
@@ -487,7 +492,7 @@ const es: Messages = {
       {
         question: '¿Puedo controlar la sesión desde el teléfono?',
         answer:
-          'Sí. Al iniciar la presentación conectas un teléfono o tablet por QR. El portátil muestra las diapositivas; tú recorres la sala. El dispositivo dirige la sesión en directo — preguntas, resultados, Q&A, Sondeo rápido, Finalizar sesión — no la colección de cuestionarios. También puedes ceder el control a un tutor o moderador de confianza. Esa es una diferencia clara frente a herramientas como Kahoot, Mentimeter, Slido o Particify.',
+          'Sí. Al iniciar la presentación conectas un teléfono o tablet por QR — sin cuenta en el teléfono. El portátil muestra las diapositivas; tú recorres la sala. El dispositivo dirige la sesión en directo — preguntas, resultados, Q&A, Sondeo rápido, Finalizar sesión — no la colección de cuestionarios; editar o borrar permanece en el portátil. Puedes dar el teléfono a una persona de apoyo sin compartir contraseñas. Otros sistemas suelen tener un mando con inicio de sesión extra; aquí el emparejamiento es local-first y con pocos datos.',
       },
       {
         question: '¿Dónde están los datos?',

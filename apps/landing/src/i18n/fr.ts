@@ -235,16 +235,21 @@ const fr: Messages = {
   pairing: {
     eyebrow: 'Ce qui nous distingue',
     title: 'Présenter depuis n’importe où dans la salle — depuis le téléphone ou la tablette',
-    lead: 'Avec Kahoot, Mentimeter, Slido ou Particify, tu restes généralement devant l’ordinateur. Avec arsnova.eu, tu connectes ton téléphone : les diapos restent sur le projecteur, tu circules dans la salle et tu animes la session en direct.',
+    lead: 'D’autres systèmes de réponse du public offrent souvent une télécommande — comme cliqueur de diapos ou avec un login séparé. Avec arsnova.eu, tu connectes le téléphone en local-first : les diapos restent sur le projecteur, tu circules dans la salle et tu animes la session en direct.',
+    whyTitle: 'Pourquoi ce couplage n’est pas une simple télécommande',
     summary: [
       'Pleine liberté de mouvement pendant la présentation — un vrai atout pédagogique et scénique.',
-      'Les mêmes commandes de session qu’à l’ordinateur : questions, résultats, Q&A, sondage express, Fin de séance.',
-      'Passer le contrôle ad hoc à un tuteur ou un animateur — pas seulement un clic pour la diapo suivante.',
+      'Les mêmes commandes de session qu’à l’ordinateur : questions, résultats, Q&A, sondage express, Fin de séance — pas seulement la diapo suivante.',
+      'Sans compte sur le téléphone : tu peux le tendre à une assistance sans partager de mot de passe.',
+      'Local-first et économe en données : tu autorises la connexion ad hoc par QR sur l’appareil hôte.',
+      'La collection de quiz reste sur l’ordinateur — modifier ou supprimer uniquement là, pas depuis l’appareil couplé.',
     ],
     laptopLabel: 'Ordinateur et projecteur',
-    laptopText: 'Affichent la présentation. C’est ici que tu confirmes la connexion.',
+    laptopText:
+      'Affichent la présentation. C’est ici que tu confirmes la connexion. La collection de quiz reste ici.',
     phoneLabel: 'Téléphone ou tablette',
-    phoneText: 'Pilote la session en cours pendant que tu es dans la salle.',
+    phoneText:
+      'Pilote la session en cours — sans login supplémentaire — pendant que tu es dans la salle.',
     demoAria: 'L’ordinateur affiche la présentation ; le téléphone pilote la session',
   },
   features: {
@@ -255,7 +260,7 @@ const fr: Messages = {
       {
         title: 'Présenter depuis n’importe où dans la salle',
         description:
-          'Relie un téléphone ou une tablette et pilote la session en déplacement : questions, résultats, Q&A, sondage express, Fin de séance. Tu restes proche du public et peux transmettre le contrôle ad hoc — contrairement à Kahoot, Mentimeter, Slido ou Particify.',
+          'Relie un téléphone ou une tablette et pilote la session en déplacement : questions, résultats, Q&A, sondage express, Fin de séance. Sans compte sur le téléphone, autorisation par QR — la collection de quiz reste sur l’ordinateur. Tu peux transmettre le contrôle ad hoc sans partager de mot de passe.',
         icon: 'presenter',
       },
       {
@@ -458,7 +463,7 @@ const fr: Messages = {
       {
         title: 'Liberté de mouvement, pas coincé·e à l’ordinateur',
         description:
-          'Tu pilotes la session depuis un téléphone ou une tablette pendant que la présentation reste sur le projecteur. C’est le contrôle complet de la session en direct — questions, résultats, Q&A, sondage express, Fin de séance — et tu peux le transmettre ad hoc. Avec Kahoot, Mentimeter, Slido ou Particify, tu restes généralement devant l’ordinateur.',
+          'D’autres outils offrent souvent une télécommande comme cliqueur de diapos ou avec un login séparé. Ici, tu pilotes la session depuis le téléphone — sans compte sur l’appareil. Tu autorises la connexion localement par QR ; la collection de quiz reste sur l’ordinateur. Contrôle complet : questions, résultats, Q&A, sondage express, Fin de séance.',
       },
       {
         title: 'Moins de freins à l’entrée',
@@ -492,7 +497,7 @@ const fr: Messages = {
       {
         question: 'Puis-je piloter la session depuis mon téléphone ?',
         answer:
-          'Oui. Au démarrage de la présentation, tu connectes un téléphone ou une tablette via QR. L’ordinateur affiche les diapos ; tu circules dans la salle. L’appareil pilote la session en direct — questions, résultats, Q&A, sondage express, Fin de séance — pas la collection de quiz. Tu peux aussi transmettre le contrôle à un tuteur ou un animateur de confiance. C’est une différence nette par rapport à des outils comme Kahoot, Mentimeter, Slido ou Particify.',
+          'Oui. Au démarrage de la présentation, tu connectes un téléphone ou une tablette via QR — sans compte sur le téléphone. L’ordinateur affiche les diapos ; tu circules dans la salle. L’appareil pilote la session en direct — questions, résultats, Q&A, sondage express, Fin de séance — pas la collection de quiz ; modifier ou supprimer reste sur l’ordinateur. Tu peux tendre le téléphone à une assistance sans partager de mot de passe. D’autres outils ont souvent une télécommande avec login séparé ; ici le couplage est local-first et économe en données.',
       },
       {
         question: 'Où sont les données ?',
