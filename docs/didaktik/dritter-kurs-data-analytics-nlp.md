@@ -14,7 +14,7 @@
 | Aspekt           | Inhalt                                                                                                                                                                                                                                                           |
 | ---------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | **Produktbezug** | Gleiche Codebasis **arsnova.eu**; Fokus auf **Daten- und Sprachpipeline** für Freitext/Q&A (Host-Auswertung), nicht auf komplette Feature-Implementierung im Monorepo — es sei denn, die Betreuung koppelt explizit an Kurs 1.                                   |
-| **Schwerpunkt**  | **Modellvergleich und Evaluation** entlang der Storys **8.9a–8.9d**: deterministische Baseline, klassische NLP-/Klassifikationsansätze, mehrsprachige Encoder/Embeddings, quellengebundene Zusammenfassung und optional private LLM-Runtime.                                         |
+| **Schwerpunkt**  | **Modellvergleich und Evaluation** entlang der Storys **8.9a–8.9d**: deterministische Baseline, klassische NLP-/Klassifikationsansätze, mehrsprachige Encoder/Embeddings, quellengebundene Zusammenfassung und optional private LLM-Runtime.                     |
 | **Synergie**     | Optional: Ergebnisse (Evaluationsprotokoll, JSON-Schema-Vorschläge, Modell-/Prompt-Bibliothek) können **Kurs 1** als Spezifikation dienen; **Kurs 2** kann Qualitätskriterien und Nachvollziehbarkeit der Evaluierung prüfen — **kein** Muss für den Kursablauf. |
 
 ## Zielbild: Semantische Cluster statt Tokenwolke
