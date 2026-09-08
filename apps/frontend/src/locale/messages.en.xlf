@@ -27331,8 +27331,8 @@
         <target>Connect the device only if both screens show the same.</target>
       </trans-unit>
       <trans-unit id="hostPairing.pendingAfterHint" datatype="html">
-        <source>Das Gerät erhält dieselben Host-Rechte wie hier – keine reine Fernbedienung.</source>
-        <target>This device gets the same host rights as here — not just remote control.</target>
+        <source>Das Gerät steuert die laufende Veranstaltung: Fragen, Ergebnisse, Beenden. Nicht: Quiz bearbeiten oder löschen.</source>
+        <target>This device controls the live session: questions, results, ending the session. Not: editing or deleting quizzes.</target>
       </trans-unit>
       <trans-unit id="hostPairing.connected" datatype="html">
         <source>Smartphone verbunden</source>

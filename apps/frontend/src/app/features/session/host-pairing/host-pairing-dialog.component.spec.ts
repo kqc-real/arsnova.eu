@@ -201,7 +201,8 @@ describe('HostPairingDialogComponent', () => {
     expect(indicator?.closest('.host-pairing-dialog__indicator-frame')).toBeTruthy();
     expect(current.nativeElement.textContent).toContain('Ja, Gerät verbinden');
     expect(current.nativeElement.textContent).toContain('Steht auf dem Smartphone dasselbe?');
-    expect(current.nativeElement.textContent).toContain('keine reine Fernbedienung');
+    expect(current.nativeElement.textContent).toContain('Fragen, Ergebnisse, Beenden');
+    expect(current.nativeElement.textContent).toContain('Nicht: Quiz');
     current.nativeElement.querySelector('[data-testid="host-pairing-approve"]')?.click();
     await flush();
     current.detectChanges();
