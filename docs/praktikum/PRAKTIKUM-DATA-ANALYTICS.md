@@ -116,13 +116,13 @@ Die Betreuung legt **Gewichtung** und **Mindesttiefe** fest. Orientierung:
 
 ## 6. Technische Landkarte: Baseline, Embeddings, Kaskade, lokale LLMs
 
-| Werkzeug / Modellklasse                | Typische Rolle im Praktikum                                                                                                                                                       |
-| -------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **Produkt-Baseline**                   | Vorhandene Wortwolken- und Session-Signale; wichtig für Story **8.9a**, weil der erste Moderationskompass ohne neue Inferenz belastbar bleiben soll                               |
-| **spaCy / klassische NLP-Regeln**      | Schnelle **lokale** Pipeline: Tokenisierung, Lemmata, POS, NER; **Baseline** für Normalisierung; **kein** Ersatz für semantisches Bündeln großer Varianten                        |
-| **Hashing-/n-Gram-Klassifikatoren**    | Sehr schnelle CPU-Baseline für kurze Texte; geeignet als Gatekeeper-Vergleich für Story **8.9b**                                                                                  |
-| **Mehrsprachige Encoder / Embeddings** | **Dense Embeddings** für Ähnlichkeit, Clustering und semantische Nähe; Kandidaten sind z. B. moderne E5-/GTE-/BGE-Modelle statt nur mBERT/MiniLM                                  |
-| **SetFit / linear probing**            | Few-shot- oder leicht trainierbare Klassifikation auf Embeddings; möglicher Mittelweg zwischen klassischer Baseline und teurem generativem Modell                                 |
+| Werkzeug / Modellklasse                | Typische Rolle im Praktikum                                                                                                                                                    |
+| -------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| **Produkt-Baseline**                   | Vorhandene Wortwolken- und Session-Signale; wichtig für Story **8.9a**, weil der erste Moderationskompass ohne neue Inferenz belastbar bleiben soll                            |
+| **spaCy / klassische NLP-Regeln**      | Schnelle **lokale** Pipeline: Tokenisierung, Lemmata, POS, NER; **Baseline** für Normalisierung; **kein** Ersatz für semantisches Bündeln großer Varianten                     |
+| **Hashing-/n-Gram-Klassifikatoren**    | Sehr schnelle CPU-Baseline für kurze Texte; geeignet als Gatekeeper-Vergleich für Story **8.9b**                                                                               |
+| **Mehrsprachige Encoder / Embeddings** | **Dense Embeddings** für Ähnlichkeit, Clustering und semantische Nähe; Kandidaten sind z. B. moderne E5-/GTE-/BGE-Modelle statt nur mBERT/MiniLM                               |
+| **SetFit / linear probing**            | Few-shot- oder leicht trainierbare Klassifikation auf Embeddings; möglicher Mittelweg zwischen klassischer Baseline und teurem generativem Modell                              |
 | **Open-Weight-LLMs (lokal)**           | Optionale **generative** Zusammenfassung oder Label-Verbalisierung; 8.9d plant `llama-server` auf einem privaten zweiten Host für 8.9c Slice 4 und 1.14c Stufe 2, nie für 8.9b |
 
 **Merke:** Die stärkste Lösung ist nicht automatisch die größte. ADR-0032 verlangt eine messbare, abschaltbare Kaskade: erst günstige Baselines, dann semantischer Fallback, generative Modelle nur, wenn sie fachlich und betrieblich gerechtfertigt sind.
@@ -158,31 +158,31 @@ Beschreibe, wie ihr **kaputte** oder **halluzinierte** JSON-Antworten erkennt �
 
 ## 8. Bezug zur Codebasis
 
-| Thema              | Wo im Repo (Orientierung)                                                                                                                                                                                                |
-| ------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| Lexikalische Wolke | `apps/frontend/.../word-cloud-term.service.ts`, `word-cloud.util.ts`, `word-cloud.component.ts`                                                                                                                          |
-| Architektur Wolke  | [`docs/architecture/decisions/0012-use-d3-cloud-for-freetext-word-clouds.md`](../architecture/decisions/0012-use-d3-cloud-for-freetext-word-clouds.md)                                                                   |
-| Produkt-Stories    | [`Backlog.md`](../../Backlog.md) — **1.14a/b** fertig, **1.14c** offen; **8.9a/b** fertig, **8.9c** Slices 1–3, Slice 4 offen; **8.9d** geplant und nicht implementiert                                                                                            |
+| Thema              | Wo im Repo (Orientierung)                                                                                                                                                                                                                                                                                                                                                                                       |
+| ------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Lexikalische Wolke | `apps/frontend/.../word-cloud-term.service.ts`, `word-cloud.util.ts`, `word-cloud.component.ts`                                                                                                                                                                                                                                                                                                                 |
+| Architektur Wolke  | [`docs/architecture/decisions/0012-use-d3-cloud-for-freetext-word-clouds.md`](../architecture/decisions/0012-use-d3-cloud-for-freetext-word-clouds.md)                                                                                                                                                                                                                                                          |
+| Produkt-Stories    | [`Backlog.md`](../../Backlog.md) — **1.14a/b** fertig, **1.14c** offen; **8.9a/b** fertig, **8.9c** Slices 1–3, Slice 4 offen; **8.9d** geplant und nicht implementiert                                                                                                                                                                                                                                         |
 | Produktdoku        | [moderation-compass.md](../features/moderation-compass.md), [qa-nlp-moderation.md](../features/qa-nlp-moderation.md), [qa-summary.md](../features/qa-summary.md), [ADR-0035 / 8.9d](../architecture/decisions/0035-self-hosted-llm-runtime-llama-cpp-over-ollama.md), [Lehrmatrix 8.9a–d](../didaktik/MODERATIONSKOMPASS-8.9A-D-MODULE-UND-PRAKTIKA.md), [word-cloud-spacy.md](../features/word-cloud-spacy.md) |
-| Produktintegration | ggf. spätere Anbindung über tRPC, Zod und UI; in diesem Praktikum nur zur Einordnung relevant                                                                                                                            |
-| Sicherheit         | [`docs/SECURITY-OVERVIEW.md`](../SECURITY-OVERVIEW.md)                                                                                                                                                                   |
+| Produktintegration | ggf. spätere Anbindung über tRPC, Zod und UI; in diesem Praktikum nur zur Einordnung relevant                                                                                                                                                                                                                                                                                                                   |
+| Sicherheit         | [`docs/SECURITY-OVERVIEW.md`](../SECURITY-OVERVIEW.md)                                                                                                                                                                                                                                                                                                                                                          |
 
 ---
 
 ## 9. Vorschlag: 10 Blöcke à 4 Stunden
 
-| Block  | Schwerpunkt                     | Artefakte                                                                     |
-| ------ | ------------------------------- | ----------------------------------------------------------------------------- |
-| **1**  | Onboarding Produkt + Begriffe   | `BEGRIFFE-…` gelesen; 5 Beispiel-Freitextsätze für eigene Tests notiert       |
-| **2**  | Anforderungen + JSON-Zielbild   | Grobes Output-JSON skizziert; Datenschutz-Notizen                             |
-| **3**  | Deterministische/spaCy-Baseline | Kleines Skript oder Analyse: Lemmata/Stopwörter/Regeln; Grenzen dokumentieren |
-| **4**  | Klassischer Gatekeeper          | Hashing-/n-Gram- oder ähnlichen Klassifikator gegen Testset messen            |
-| **5**  | Embeddings / SetFit             | Ähnlichkeitsmatrix, Clustering oder Klassifikation; wann bricht es?           |
-| **6**  | ADR-0032-Kaskade skizzieren     | Ergebnisvertrag, Timeout, Fallback, Statusfelder und Messpunkte beschreiben   |
+| Block  | Schwerpunkt                     | Artefakte                                                                      |
+| ------ | ------------------------------- | ------------------------------------------------------------------------------ |
+| **1**  | Onboarding Produkt + Begriffe   | `BEGRIFFE-…` gelesen; 5 Beispiel-Freitextsätze für eigene Tests notiert        |
+| **2**  | Anforderungen + JSON-Zielbild   | Grobes Output-JSON skizziert; Datenschutz-Notizen                              |
+| **3**  | Deterministische/spaCy-Baseline | Kleines Skript oder Analyse: Lemmata/Stopwörter/Regeln; Grenzen dokumentieren  |
+| **4**  | Klassischer Gatekeeper          | Hashing-/n-Gram- oder ähnlichen Klassifikator gegen Testset messen             |
+| **5**  | Embeddings / SetFit             | Ähnlichkeitsmatrix, Clustering oder Klassifikation; wann bricht es?            |
+| **6**  | ADR-0032-Kaskade skizzieren     | Ergebnisvertrag, Timeout, Fallback, Statusfelder und Messpunkte beschreiben    |
 | **7**  | Optional 8.9c/8.9d              | Strukturierte Zusammenfassung plus TTFT, Prefill, Tokens/s und Fallback messen |
-| **8**  | Fehleranalyse                   | Fehlerklassen (Überbündeln, Sprachmix, JSON-Bruch); Gegenmaßnahmen im Prompt  |
-| **9**  | Hybrid-Idee                     | Baseline + Gatekeeper + Fallback; privater LLM-Slot nur für passende Fälle    |
-| **10** | Abgabe                          | Konzept final; Prompt-Bibliothek + Korpus/Notebook; Kurzvortrag oder Demo     |
+| **8**  | Fehleranalyse                   | Fehlerklassen (Überbündeln, Sprachmix, JSON-Bruch); Gegenmaßnahmen im Prompt   |
+| **9**  | Hybrid-Idee                     | Baseline + Gatekeeper + Fallback; privater LLM-Slot nur für passende Fälle     |
+| **10** | Abgabe                          | Konzept final; Prompt-Bibliothek + Korpus/Notebook; Kurzvortrag oder Demo      |
 
 ---
 
