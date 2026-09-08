@@ -33,13 +33,13 @@
 
 ## 1. Was ist das Ziel?
 
-In arsnova.eu sollen Lehrende bei der Auswertung von vielen Freitext- und Q&A-Eingaben durch eine **„Intelligente Moderationshilfe“** unterstützt werden. Ein zentraler Teil davon ist die **Wortwolke** (aktuell überwiegend **lexikalisch**: Stopwörter, Wortfamilien, Phrasen und Document-Frequency-Gewichtung, siehe `word-cloud-term.service.ts` und `word-cloud.util.ts`). Der Produktstand ist gestuft: der deterministische Moderationskompass (**8.9a**, umgesetzt) liest vorhandene Host-Signale; optional ergänzt eine asynchrone Q&A-NLP-Kaskade Kategorien und Unsicherheiten (**8.9b**, umgesetzt, Kill-Switch default aus, [ADR-0032](../architecture/decisions/0032-optional-nlp-cascade-for-qa-moderation-signals.md)); die generative Zusammenfassung (**8.9c**) hat Vertrag, Host-UI und privaten Adapter, Slice 4 (echtes Modell) bleibt offen. Semantische Wortwolken-Themen sind **1.14c**.
+In arsnova.eu sollen Lehrende bei der Auswertung von vielen Freitext- und Q&A-Eingaben durch eine **„Intelligente Moderationshilfe“** unterstützt werden. Ein zentraler Teil davon ist die **Wortwolke** (aktuell überwiegend **lexikalisch**: Stopwörter, Wortfamilien, Phrasen und Document-Frequency-Gewichtung, siehe `word-cloud-term.service.ts` und `word-cloud.util.ts`). Der Produktstand ist gestuft: der deterministische Moderationskompass (**8.9a**, umgesetzt) liest vorhandene Host-Signale; optional ergänzt eine asynchrone Q&A-NLP-Kaskade Kategorien und Unsicherheiten (**8.9b**, umgesetzt, Kill-Switch default aus, [ADR-0032](../architecture/decisions/0032-optional-nlp-cascade-for-qa-moderation-signals.md)); die generative Zusammenfassung (**8.9c**) hat Vertrag, Host-UI und privaten Adapter, Slice 4 (echtes Modell) bleibt offen. Die private Open-Weight-Runtime (**8.9d**) ist durch [ADR-0035](../architecture/decisions/0035-self-hosted-llm-runtime-llama-cpp-over-ollama.md) als `llama.cpp`/`llama-server` auf einem zweiten privaten Host geplant, aber noch nicht implementiert. Semantische Wortwolken-Themen sind **1.14c**.
 
 **Dein Praktikum** fokussiert **Data Analytics und NLP**:
 
 - Du bewertest **mehrere Schichten**: vorhandene deterministische/lexikalische Auswertung, klassische NLP-Baselines, leichte supervised Klassifikatoren, moderne mehrsprachige Embeddings und optional lokale generative Modelle.
-- Du zeigst, welche Schicht für welche Produktstufe sinnvoll ist: **8.9a** ohne neue Inferenz (fertig), **8.9b** asynchron und abschaltbar für Q&A-Hilfssignale (fertig, produktiv default aus), **8.9c** nur als quellengebundene Zusammenfassung (Slices 1–3 im Repo, Slice 4 offen).
-- Falls ein selbst gehostetes Sprachmodell verwendet wird, behandelst du es als **optionale Komfortschicht** mit klarer Validierung, Timeout, Fallback und Datenschutzgrenzen, nicht als Pflichtantwort auf jedes NLP-Problem.
+- Du zeigst, welche Schicht für welche Produktstufe sinnvoll ist: **8.9a** ohne neue Inferenz (fertig), **8.9b** asynchron und abschaltbar für Q&A-Hilfssignale (fertig, produktiv default aus), **8.9c** nur als quellengebundene Zusammenfassung (Slices 1–3 im Repo, Slice 4 offen) und **8.9d** als geplante private Serving-Runtime.
+- Falls ein selbst gehostetes Sprachmodell verwendet wird, behandelst du es als **optionale Komfortschicht** mit klarer Validierung, Timeout, Fallback und Datenschutzgrenzen, nicht als Pflichtantwort auf jedes NLP-Problem. 8.9b bleibt von diesem LLM-Slot unabhängig.
 
 So lernst du, **wann** welche Schicht sinnvoll ist — statt „alles mit einem großen LLM“ zu lösen.
 
@@ -92,7 +92,7 @@ Die Betreuung legt **Gewichtung** und **Mindesttiefe** fest. Orientierung:
 
 1. **Problem:** Warum reicht **rein lexikalisch** nicht? Was soll „intelligent“ **konkret** heißen (Bündeln, Labels, Datenschutz)?
 2. **Pipeline-Skizze:** Roh-Freitext/Q&A → vorhandene deterministische Signale → optional Gatekeeper → optional Embedding-/SetFit-Fallback → optional generative Zusammenfassung mit definiertem **Output-JSON**.
-3. **Modellwahl:** Mindestens **zwei Kandidaten aus verschiedenen Schichten** vergleichen, z. B. klassische Baseline vs. Embedding-/SetFit-Variante. Generative Kandidaten sind nur Pflicht, wenn die Betreuung ausdrücklich 8.9c einschließt.
+3. **Modellwahl:** Mindestens **zwei Kandidaten aus verschiedenen Schichten** vergleichen, z. B. klassische Baseline vs. Embedding-/SetFit-Variante. Generative Kandidaten sind nur Pflicht, wenn die Betreuung ausdrücklich 8.9c/8.9d einschließt. Bei 8.9d gehören Runtime- und Betriebsmessungen zur Aufgabe, nicht nur Modellantworten.
 4. **Strukturierte Ausgabe / Prompt-Strategie:** Wie steuerst du **Konsistenz**, **Sprache**, **keine erfundenen Antworten** und Quellenbindung? Prompts sind nur dort zentral, wo eine generative Schicht genutzt wird.
 5. **Baseline:** Was leisten vorhandene Wortwolkenlogik, spaCy, Hashing-/n-Gram-Modelle oder mehrsprachige Encoder **ohne** generatives LLM — und **wo** lohnt eine teurere Schicht?
 6. **Evaluierung:** Wie prüfst du „gut genug“? (Beispiele, Fehlerklassen, ggf. einfache Kennzahl.)
@@ -123,9 +123,11 @@ Die Betreuung legt **Gewichtung** und **Mindesttiefe** fest. Orientierung:
 | **Hashing-/n-Gram-Klassifikatoren**    | Sehr schnelle CPU-Baseline für kurze Texte; geeignet als Gatekeeper-Vergleich für Story **8.9b**                                                                                  |
 | **Mehrsprachige Encoder / Embeddings** | **Dense Embeddings** für Ähnlichkeit, Clustering und semantische Nähe; Kandidaten sind z. B. moderne E5-/GTE-/BGE-Modelle statt nur mBERT/MiniLM                                  |
 | **SetFit / linear probing**            | Few-shot- oder leicht trainierbare Klassifikation auf Embeddings; möglicher Mittelweg zwischen klassischer Baseline und teurem generativem Modell                                 |
-| **Open-Weight-LLMs (lokal)**           | Optionale **generative** Zusammenfassung oder Label-Verbalisierung; nur mit Quellenbindung, Schema-Validierung, Timeout und Fallback, typisch eher Story **8.9c** als Q&A-Hotpath |
+| **Open-Weight-LLMs (lokal)**           | Optionale **generative** Zusammenfassung oder Label-Verbalisierung; 8.9d plant `llama-server` auf einem privaten zweiten Host für 8.9c Slice 4 und 1.14c Stufe 2, nie für 8.9b |
 
 **Merke:** Die stärkste Lösung ist nicht automatisch die größte. ADR-0032 verlangt eine messbare, abschaltbare Kaskade: erst günstige Baselines, dann semantischer Fallback, generative Modelle nur, wenn sie fachlich und betrieblich gerechtfertigt sind.
+
+**Optionaler 8.9d-Nachweis:** Miss bei identischem Korpus mindestens Queue-Wartezeit, Time to First Token (TTFT), Prefill-Zeit, Tokens/s, Schemaerfüllung, Quellenbindung und Fallback-Rate. Halte Modell-, Prompt-, Schema- und Runtimeversion fest.
 
 ---
 
@@ -160,8 +162,8 @@ Beschreibe, wie ihr **kaputte** oder **halluzinierte** JSON-Antworten erkennt �
 | ------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
 | Lexikalische Wolke | `apps/frontend/.../word-cloud-term.service.ts`, `word-cloud.util.ts`, `word-cloud.component.ts`                                                                                                                          |
 | Architektur Wolke  | [`docs/architecture/decisions/0012-use-d3-cloud-for-freetext-word-clouds.md`](../architecture/decisions/0012-use-d3-cloud-for-freetext-word-clouds.md)                                                                   |
-| Produkt-Stories    | [`Backlog.md`](../../Backlog.md) — **1.14a/b** fertig, **1.14c** offen; **8.9a/b** fertig, **8.9c** Slices 1–3, Slice 4 offen                                                                                            |
-| Produktdoku        | [moderation-compass.md](../features/moderation-compass.md), [qa-nlp-moderation.md](../features/qa-nlp-moderation.md), [qa-summary.md](../features/qa-summary.md), [word-cloud-spacy.md](../features/word-cloud-spacy.md) |
+| Produkt-Stories    | [`Backlog.md`](../../Backlog.md) — **1.14a/b** fertig, **1.14c** offen; **8.9a/b** fertig, **8.9c** Slices 1–3, Slice 4 offen; **8.9d** geplant und nicht implementiert                                                                                            |
+| Produktdoku        | [moderation-compass.md](../features/moderation-compass.md), [qa-nlp-moderation.md](../features/qa-nlp-moderation.md), [qa-summary.md](../features/qa-summary.md), [ADR-0035 / 8.9d](../architecture/decisions/0035-self-hosted-llm-runtime-llama-cpp-over-ollama.md), [Lehrmatrix 8.9a–d](../didaktik/MODERATIONSKOMPASS-8.9A-D-MODULE-UND-PRAKTIKA.md), [word-cloud-spacy.md](../features/word-cloud-spacy.md) |
 | Produktintegration | ggf. spätere Anbindung über tRPC, Zod und UI; in diesem Praktikum nur zur Einordnung relevant                                                                                                                            |
 | Sicherheit         | [`docs/SECURITY-OVERVIEW.md`](../SECURITY-OVERVIEW.md)                                                                                                                                                                   |
 
@@ -177,9 +179,9 @@ Beschreibe, wie ihr **kaputte** oder **halluzinierte** JSON-Antworten erkennt �
 | **4**  | Klassischer Gatekeeper          | Hashing-/n-Gram- oder ähnlichen Klassifikator gegen Testset messen            |
 | **5**  | Embeddings / SetFit             | Ähnlichkeitsmatrix, Clustering oder Klassifikation; wann bricht es?           |
 | **6**  | ADR-0032-Kaskade skizzieren     | Ergebnisvertrag, Timeout, Fallback, Statusfelder und Messpunkte beschreiben   |
-| **7**  | Optional generative Schicht     | Nur falls vereinbart: strukturierte Zusammenfassung, Quellenbindung, Latenz   |
+| **7**  | Optional 8.9c/8.9d              | Strukturierte Zusammenfassung plus TTFT, Prefill, Tokens/s und Fallback messen |
 | **8**  | Fehleranalyse                   | Fehlerklassen (Überbündeln, Sprachmix, JSON-Bruch); Gegenmaßnahmen im Prompt  |
-| **9**  | Hybrid-Idee                     | Skizze: Baseline + Gatekeeper + Fallback, generativ nur für passende Fälle    |
+| **9**  | Hybrid-Idee                     | Baseline + Gatekeeper + Fallback; privater LLM-Slot nur für passende Fälle    |
 | **10** | Abgabe                          | Konzept final; Prompt-Bibliothek + Korpus/Notebook; Kurzvortrag oder Demo     |
 
 ---
@@ -205,6 +207,10 @@ Beschreibe, wie ihr **kaputte** oder **halluzinierte** JSON-Antworten erkennt �
 
 Als **alleinige** Praktikumsleistung meistens **nein** — der Schwerpunkt ist der **Vergleich**. Eine starke deterministische Baseline ist für Story 8.9a wertvoll, für Story 8.9b braucht ihr zusätzlich mindestens einen NLP-/Embedding- oder Klassifikationskandidaten.
 
+**Muss ich 8.9d implementieren?**
+
+Nein. 8.9d ist eine optionale Vertiefung nach Betreuungsabsprache. Ein Experiment darf offline oder in einem isolierten Zwei-Server-Labor erfolgen; ein produktiver Modellbetrieb ist nicht Teil der Pflichtleistung.
+
 **Welches Modell ist „richtig“?**
 
 Das hängt von **Aufgabe**, **Hardware** und **Richtlinien** ab. Ihr **begründet** eure Wahl anhand von Tests — nicht anhand von Marketing.
@@ -222,6 +228,7 @@ Nur **notwendige** Texte verarbeiten; **keine** personenbezogenen Zusatzinfos in
 - [ ] Baseline spaCy und/oder Embedding-Experiment dokumentiert
 - [ ] Kleines **Testkorpus** (DSGVO-konform) oder synthetische Daten
 - [ ] Optional: Notebook/Skript + README zum Nachlaufen
+- [ ] Falls 8.9d gewählt: privates Deployment, Runtime-Messwerte, Schemafehler und Fallback dokumentiert
 - [ ] Kurzpräsentation oder Demo (10–15 Min.)
 
 ---
@@ -232,6 +239,8 @@ Nur **notwendige** Texte verarbeiten; **keine** personenbezogenen Zusatzinfos in
 - [`docs/features/moderation-compass.md`](../features/moderation-compass.md)
 - [`docs/features/qa-nlp-moderation.md`](../features/qa-nlp-moderation.md)
 - [`docs/features/qa-summary.md`](../features/qa-summary.md)
+- [`ADR-0035: llama.cpp für 8.9d`](../architecture/decisions/0035-self-hosted-llm-runtime-llama-cpp-over-ollama.md)
+- [`Lehrmatrix Moderationskompass 8.9a–d`](../didaktik/MODERATIONSKOMPASS-8.9A-D-MODULE-UND-PRAKTIKA.md)
 - [`docs/SECURITY-OVERVIEW.md`](../SECURITY-OVERVIEW.md)
 - [`docs/vibe-coding/`](../vibe-coding/) — optional für Prompt-Stil und Arbeitsablauf
 
@@ -239,4 +248,4 @@ Nur **notwendige** Texte verarbeiten; **keine** personenbezogenen Zusatzinfos in
 
 ---
 
-_Stand: 2026-08-20 · Pflege: bei Änderungen am Praktikumsmodell dieses Dokument und Verweise in `docs/README.md` anpassen._
+_Stand: 2026-09-08 · Pflege: bei Änderungen am Praktikumsmodell dieses Dokument und Verweise in `docs/README.md` anpassen._
