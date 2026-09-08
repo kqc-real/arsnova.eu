@@ -533,8 +533,6 @@ _Wähle zu jedem Datum auf der linken Seite das historische Ereignis aus._
 ### Ordne die folgenden sechs Werke der richtigen Literaturepoche zu.
 
 > **Unterrichtsidee:** Nutze Kategorisierungsfragen im Deutsch- oder Fremdsprachenunterricht, um mehrere Texte, Schlüsselbegriffe oder Autoren Epochen und Stilrichtungen zuzuordnen.
-
-_Ordne jedes Element einer der drei Literaturepochen zu._
         `,
         categories: [
           { id: 'cat_aufklaerung', name: 'Aufklärung (ca. 1720–1785)' },
@@ -791,8 +789,6 @@ _Match each date on the left to its historical milestone on the right._
 ### Categorise the following six works by literary period.
 
 > **Teaching move:** Use categorization prompts in literature or language learning to sort works, concepts, or authors into literary periods.
-
-_Assign each item to one of the three literary movements._
         `,
         categories: [
           { id: 'cat_aufklaerung', name: 'Enlightenment (c. 1720–1785)' },
@@ -1049,8 +1045,6 @@ _Associe chaque date à gauche à l’événement historique correspondant à dr
 ### Classe les six œuvres suivantes dans leur période littéraire.
 
 > **Piste pédagogique :** utilisez des questions de catégorisation en littérature ou langues vivantes pour classer des mouvements littéraires.
-
-_Associe chaque élément à l’un des trois mouvements littéraires._
         `,
         categories: [
           { id: 'cat_aufklaerung', name: 'Lumières / Aufklärung (v. 1720–1785)' },
@@ -1307,8 +1301,6 @@ _Relaciona cada fecha de la izquierda con su hito histórico a la derecha._
 ### Clasifica las seis obras siguientes por época literaria.
 
 > **Uso didáctico:** Úsalo como pregunta de categorización en literatura para clasificar textos, conceptos o autores por movimientos literarios.
-
-_Asigna cada elemento a uno de los tres movimientos literarios._
         `,
         categories: [
           { id: 'cat_aufklaerung', name: 'Ilustración / Aufklärung (c. 1720–1785)' },
@@ -1565,8 +1557,6 @@ _Collega ciascuna data a sinistra con il relativo evento storico a destra._
 ### Classifica le sei opere seguenti per epoca letteraria.
 
 > **Uso didattico:** Usalo come domanda di categorizzazione in letteratura per classificare testi o autori per movimento letterario.
-
-_Assegna ciascun elemento a uno dei tre movimenti letterari._
         `,
         categories: [
           { id: 'cat_aufklaerung', name: 'Illuminismo / Aufklärung (c. 1720–1785)' },

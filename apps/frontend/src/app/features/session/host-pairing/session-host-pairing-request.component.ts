@@ -1,12 +1,9 @@
-import { Component, OnDestroy, OnInit, inject, signal } from '@angular/core';
+import { Component, OnDestroy, OnInit, computed, inject, signal } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { MatButton } from '@angular/material/button';
 import { MatCard, MatCardContent } from '@angular/material/card';
-import { MatFormField, MatHint, MatLabel } from '@angular/material/form-field';
 import { MatIcon } from '@angular/material/icon';
-import { MatInput } from '@angular/material/input';
 import { MatProgressBar } from '@angular/material/progress-bar';
-import { HOST_PAIRING_DEVICE_LABEL_MAX } from '@arsnova/shared-types';
 import {
   normalizeHostSessionCode,
   setHostSessionRole,
@@ -15,7 +12,10 @@ import {
 import { localizeKnownServerError } from '../../../core/localize-known-server-message';
 import { localizeCommands, localizePath } from '../../../core/locale-router';
 import { setPendingHostSessionCode, trpc } from '../../../core/trpc.client';
-import { formatHostPairingRemainingClock } from './host-pairing-remaining';
+import {
+  HOST_PAIRING_REMAINING_TICK_MS,
+  formatHostPairingRemainingClock,
+} from './host-pairing-remaining';
 import { readHostPairingSecretFromLocation } from './host-pairing-url';
 
 type RequestView =
@@ -26,17 +26,7 @@ const POLL_MS = 1500;
 @Component({
   selector: 'app-session-host-pairing-request',
   standalone: true,
-  imports: [
-    MatButton,
-    MatCard,
-    MatCardContent,
-    MatFormField,
-    MatHint,
-    MatIcon,
-    MatInput,
-    MatLabel,
-    MatProgressBar,
-  ],
+  imports: [MatButton, MatCard, MatCardContent, MatIcon, MatProgressBar],
   templateUrl: './session-host-pairing-request.component.html',
   styleUrls: [
     '../../../shared/styles/dialog-title-header.scss',
@@ -51,25 +41,18 @@ export class SessionHostPairingRequestComponent implements OnInit, OnDestroy {
   readonly view = signal<RequestView>('ready');
   readonly indicator = signal<string | null>(null);
   readonly error = signal<string | null>(null);
-  readonly deviceName = signal('');
   readonly expiresAt = signal<string | null>(null);
   readonly nowMs = signal(Date.now());
-  readonly deviceNameMax = HOST_PAIRING_DEVICE_LABEL_MAX;
 
   requestQuestion(): string {
     return $localize`:@@hostPairing.requestQuestion:Mit der Veranstaltung ${this.code}:sessionCode: verbinden?`;
   }
 
-  requestRemainingLabel(): string | null {
+  readonly requestRemainingLabel = computed(() => {
     const remaining = formatHostPairingRemainingClock(this.expiresAt(), this.nowMs());
     if (!remaining) return null;
-    return $localize`:@@hostPairing.requestRemaining:Warte auf die Bestätigung · noch ${remaining}:remaining: Minuten`;
-  }
-
-  onDeviceNameInput(event: Event): void {
-    const value = (event.target as HTMLInputElement | null)?.value ?? '';
-    this.deviceName.set(value.slice(0, HOST_PAIRING_DEVICE_LABEL_MAX));
-  }
+    return $localize`:@@hostPairing.requestRemaining:Noch ${remaining}:remaining: Minuten Zeit, um zu bestätigen.`;
+  });
 
   private pairingSecret: string | null = null;
   private requestId: string | null = null;
@@ -92,7 +75,10 @@ export class SessionHostPairingRequestComponent implements OnInit, OnDestroy {
       this.view.set('missing');
       return;
     }
-    this.remainingTimer = setInterval(() => this.nowMs.set(Date.now()), 15_000);
+    this.remainingTimer = setInterval(
+      () => this.nowMs.set(Date.now()),
+      HOST_PAIRING_REMAINING_TICK_MS,
+    );
     this.stripSecretFromAddressBar();
   }
 
@@ -109,11 +95,9 @@ export class SessionHostPairingRequestComponent implements OnInit, OnDestroy {
     this.view.set('requesting');
     this.error.set(null);
     try {
-      const deviceLabel = this.deviceName().trim();
       const requested = await trpc.session.requestHostPairing.mutate({
         code: this.code,
         pairingSecret: this.pairingSecret,
-        ...(deviceLabel ? { deviceLabel } : {}),
       });
       if (requested.alreadyPending || !requested.requestId || !requested.requestSecret) {
         this.view.set('error');

@@ -381,6 +381,26 @@
   color: var(--mat-sys-on-surface-variant);
 }
 
+.session-projection-quiz__math {
+  flex: 0 1 auto;
+  min-width: 0;
+  min-height: 0;
+  max-height: 100%;
+  overflow: auto;
+  font-size: clamp(1.05rem, 2.2vmin, 1.45rem);
+  line-height: 1.45;
+
+  :is(p, h1, h2, h3, h4) {
+    margin: 0 0 0.35rem;
+  }
+
+  .katex-display {
+    margin: 0.35rem 0 0.75rem;
+    overflow-x: auto;
+    overflow-y: hidden;
+  }
+}
+
 .session-projection-quiz__question {
   overflow: hidden;
   /*
@@ -398,6 +418,10 @@
   }
 
   .session-projection-quiz__title {
+    color: var(--mat-sys-on-primary-container);
+  }
+
+  .session-projection-quiz__math {
     color: var(--mat-sys-on-primary-container);
   }
 
@@ -515,6 +539,7 @@
   margin: 0;
   min-height: 0;
   font-size: clamp(1.45rem, 3.2vmin, 2.25rem);
+  font-weight: 700;
   line-height: 1.5;
   overflow-wrap: break-word;
   word-break: normal;
@@ -523,6 +548,8 @@
 
   :is(h1, h2, h3, h4, p) {
     margin: 0;
+    font-size: 1em;
+    font-weight: inherit;
     white-space: normal;
     overflow-wrap: break-word;
     word-break: normal;
@@ -547,7 +574,7 @@
 }
 
 .session-projection-quiz--reading .session-projection-quiz__title {
-  font-size: clamp(1.85rem, 4.2vmin, 3rem);
+  /* Gleiche Frageschrift wie im Antwortmodus – kein Lesemodus-Zoom. */
   text-align: center;
 
   :is(h1, h2, h3, h4, p) {

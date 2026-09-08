@@ -38,6 +38,7 @@ import {
   presenterQuestionCodeBlocks,
   presenterQuestionCodeColumnMarkdown,
   presenterQuestionImage,
+  presenterQuestionMathMarkdown,
   presenterCorrectPairResults,
   ratingScaleValues,
   stableSeededShuffle,
@@ -291,6 +292,14 @@ export class SessionProjectionQuizComponent {
       return presenterCompactMarkdown(withoutCode);
     }
     return this.isReadingPhase() ? text : this.compactQuestionMarkdown();
+  });
+
+  /** Display-KaTeX nach dem Bild in Abstimmung/Ergebnis (in der Lesephase steckt es im Volltext). */
+  readonly questionMathMarkdown = computed(() => {
+    if (this.isReadingPhase()) {
+      return '';
+    }
+    return presenterQuestionMathMarkdown(this.question()?.text ?? '');
   });
 
   readonly showStageColumn = computed(() => {

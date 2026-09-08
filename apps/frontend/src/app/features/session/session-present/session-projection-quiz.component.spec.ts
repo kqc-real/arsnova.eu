@@ -549,6 +549,45 @@ describe('SessionProjectionQuizComponent', () => {
     ).not.toContain('faces.jpg');
   });
 
+  it('zeigt Display-KaTeX in Abstimmung und Ergebnis unter dem Bild', () => {
+    const piQuestion = choiceQuestion({
+      type: 'NUMERIC_ESTIMATE',
+      text: '### Runde $\\pi$ auf zwei Dezimalstellen.\n\n![Pi](https://example.com/pi.gif)\n\nLeonhard Euler:\n\n$$e^{i \\pi} + 1 = 0$$\n\nKarl Weierstraß:\n\n$$\\pi = 1$$',
+      answers: [],
+    });
+    fixture.componentRef.setInput('question', piQuestion);
+    fixture.componentRef.setInput('status', 'ACTIVE');
+    fixture.detectChanges();
+
+    const math = fixture.nativeElement.querySelector(
+      '.session-projection-quiz__math',
+    ) as HTMLElement | null;
+    expect(math?.innerHTML).toContain('katex');
+    expect(math?.textContent).toContain('Leonhard Euler');
+    expect(math?.textContent).toContain('Karl Weierstraß');
+    expect(
+      (fixture.nativeElement.querySelector('.session-projection-quiz__title') as HTMLElement | null)
+        ?.innerHTML,
+    ).not.toContain('Leonhard Euler');
+    expect(
+      fixture.nativeElement
+        .querySelector('.session-projection-quiz__visual img')
+        ?.getAttribute('src'),
+    ).toBe('https://example.com/pi.gif');
+
+    fixture.componentRef.setInput('status', 'RESULTS');
+    fixture.detectChanges();
+    expect(fixture.nativeElement.querySelector('.session-projection-quiz__math')).toBeTruthy();
+
+    fixture.componentRef.setInput('status', 'QUESTION_OPEN');
+    fixture.detectChanges();
+    expect(fixture.nativeElement.querySelector('.session-projection-quiz__math')).toBeNull();
+    expect(
+      (fixture.nativeElement.querySelector('.session-projection-quiz__title') as HTMLElement | null)
+        ?.textContent,
+    ).toContain('Leonhard Euler');
+  });
+
   it('zeigt das Quiz-Motivbild nur bei der ersten Frage ohne eigenes Bild', () => {
     fixture.componentRef.setInput('question', choiceQuestion({ text: '### Ohne Bild' }));
     fixture.componentRef.setInput('motifImageUrl', 'https://example.com/motif.jpg');
@@ -599,6 +638,25 @@ describe('SessionProjectionQuizComponent', () => {
     expect(styles).toMatch(
       /\.session-projection-quiz__fingers\s*\{[\s\S]*?light-dark\(\s*var\(--mat-sys-primary\)/,
     );
+  });
+
+  it('hält die Frageschrift in Lese- und Antwortmodus gleich groß', () => {
+    const styles = readFileSync(
+      resolve(
+        process.cwd(),
+        'src/app/features/session/session-present/session-projection-quiz.component.scss',
+      ),
+      'utf8',
+    );
+    expect(styles).toMatch(
+      /\.session-projection-quiz__title\s*\{[\s\S]*?font-size:\s*clamp\(1\.45rem,\s*3\.2vmin,\s*2\.25rem\)/,
+    );
+    expect(styles).not.toContain('clamp(1.85rem, 4.2vmin, 3rem)');
+    const readingTitleBlock = styles.match(
+      /\.session-projection-quiz--reading\s+\.session-projection-quiz__title\s*\{[^}]*\}/,
+    )?.[0];
+    expect(readingTitleBlock).toBeTruthy();
+    expect(readingTitleBlock).not.toMatch(/font-size\s*:/);
   });
 
   it('legt Codefragen dreispaltig an: Frage, Code, Antworten', () => {

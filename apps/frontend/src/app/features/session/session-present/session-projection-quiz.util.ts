@@ -278,6 +278,39 @@ export function presenterQuestionImage(markdown: string): PresenterQuestionVisua
   };
 }
 
+/**
+ * Display-KaTeX (`$$...$$`) inkl. kurzer Label-Zeile davor für die Beamer-Abstimmung.
+ * Bilder und Fließtext bleiben draußen; Inline-Math in der Überschrift bleibt über
+ * `presenterCompactMarkdown` erhalten.
+ */
+export function presenterQuestionMathMarkdown(markdown: string): string {
+  const text = String(markdown ?? '');
+  const parts: string[] = [];
+  const displayMathRe = /\$\$([\s\S]+?)\$\$/g;
+  let match: RegExpExecArray | null;
+  while ((match = displayMathRe.exec(text)) !== null) {
+    const before = text.slice(0, match.index);
+    const prevLine =
+      before
+        .split(/\n/)
+        .map((line) => line.trim())
+        .filter(Boolean)
+        .at(-1) ?? '';
+    const block = `$$${match[1]}$$`;
+    const isLabel =
+      prevLine.length > 0 &&
+      prevLine.length <= 80 &&
+      !prevLine.startsWith('#') &&
+      !prevLine.startsWith('!') &&
+      !prevLine.startsWith('>') &&
+      !prevLine.startsWith('```') &&
+      !prevLine.startsWith('$$') &&
+      !prevLine.includes('$');
+    parts.push(isLabel ? `${prevLine}\n\n${block}` : block);
+  }
+  return parts.join('\n\n');
+}
+
 export function presenterCompactMarkdown(markdown: string): string {
   const heading = presenterQuestionHeading(markdown);
   return heading ? `### ${heading}` : '';

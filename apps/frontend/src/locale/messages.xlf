@@ -24064,7 +24064,7 @@
         <source>Smartphone verbinden</source>
       </trans-unit>
       <trans-unit id="hostPairing.dialogTitle" datatype="html">
-        <source>Smartphone zum Steuern verbinden</source>
+        <source>Smartphone verbinden</source>
       </trans-unit>
       <trans-unit id="hostPairing.preparing" datatype="html">
         <source>Verbindung wird vorbereitet…</source>
@@ -24079,10 +24079,10 @@
         <source>Warten auf Verbindungsanfrage…</source>
       </trans-unit>
       <trans-unit id="hostPairing.pendingTitle" datatype="html">
-        <source>Steht auf dem Smartphone dasselbe Zeichen?</source>
+        <source>Steht auf dem Smartphone dasselbe?</source>
       </trans-unit>
       <trans-unit id="hostPairing.pendingHint" datatype="html">
-        <source>Verbinde das Gerät nur, wenn auf beiden Geräten dasselbe Zeichen angezeigt wird.</source>
+        <source>Verbinde das Gerät nur, wenn auf beiden Geräten dasselbe angezeigt wird.</source>
       </trans-unit>
       <trans-unit id="hostPairing.connected" datatype="html">
         <source>Smartphone verbunden</source>
@@ -24142,7 +24142,7 @@
         <source>Dieses Gerät verbinden</source>
       </trans-unit>
       <trans-unit id="hostPairing.requestWaiting" datatype="html">
-        <source>Warte auf die Bestätigung durch die Lehrperson. Zeige ihr dieses Zeichen. Auf beiden Geräten muss dasselbe Zeichen stehen:</source>
+        <source>Steht auf dem Laptop dasselbe?</source>
       </trans-unit>
       <trans-unit id="hostPairing.errorExpired" datatype="html">
         <source>Die Zeit zum Verbinden ist abgelaufen.</source>
@@ -24165,29 +24165,14 @@
       <trans-unit id="presentationStart.title" datatype="html">
         <source>Präsentation starten</source>
       </trans-unit>
-      <trans-unit id="presentationStart.intro" datatype="html">
-        <source>Zeige die Präsentation auf dem Beamer.</source>
-      </trans-unit>
       <trans-unit id="presentationStart.phoneTitle" datatype="html">
         <source>Mit Smartphone steuern</source>
       </trans-unit>
       <trans-unit id="presentationStart.phoneHint" datatype="html">
-        <source>Steuere Fragen und Ergebnisse vom Smartphone, während der Laptop die Präsentation zeigt.</source>
+        <source>Steuere Fragen und Ergebnisse live auf deinem Handy, während die Präsentation auf dem Laptop läuft.</source>
       </trans-unit>
       <trans-unit id="presentationStart.readyHint" datatype="html">
         <source>Du kannst jetzt präsentieren. Ein weiteres Gerät ist optional.</source>
-      </trans-unit>
-      <trans-unit id="presentationStart.visibilityLegend" datatype="html">
-        <source>Kann jemand außer dir diesen Bildschirm sehen?</source>
-      </trans-unit>
-      <trans-unit id="presentationStart.visibilityProjected" datatype="html">
-        <source>Ja, er wird zum Beispiel über einen Beamer gezeigt</source>
-      </trans-unit>
-      <trans-unit id="presentationStart.visibilityPrivate" datatype="html">
-        <source>Nein, nur ich kann diesen Bildschirm sehen</source>
-      </trans-unit>
-      <trans-unit id="presentationStart.visibilityHint" datatype="html">
-        <source>Die Verbindung wird immer auf diesem Bildschirm bestätigt. So kann niemand unbemerkt die Steuerung übernehmen.</source>
       </trans-unit>
       <trans-unit id="presentationStart.coHostHint" datatype="html">
         <source>So kann sich auch eine vertrauenswürdige Person mit einem weiteren Gerät verbinden.</source>
@@ -24206,9 +24191,6 @@
       </trans-unit>
       <trans-unit id="hostPairing.connectedAria" datatype="html">
         <source>Smartphone verbunden. Weiteres Gerät verbinden</source>
-      </trans-unit>
-      <trans-unit id="hostPairing.approveOnThisScreen" datatype="html">
-        <source>Bestätige Anfragen auf diesem Bildschirm, nicht in der Präsentationsansicht.</source>
       </trans-unit>
       <trans-unit id="hostPairing.devicesTitle" datatype="html">
         <source>Verbundene Geräte</source>
@@ -24269,24 +24251,14 @@
       </trans-unit>
       <trans-unit id="hostPairing.deviceFallbackPhone2" datatype="html">
         <source>Smartphone 2</source>
-      </trans-unit>
-      <trans-unit id="hostPairing.pendingAfterHint" datatype="html">
-        <source>Danach kannst du mit dem Gerät durch die Fragen navigieren, Ergebnisse anzeigen und die Veranstaltung beenden.</source>
-      </trans-unit>
-      <trans-unit id="hostPairing.inviteRemaining" datatype="html">
+      </trans-unit>      <trans-unit id="hostPairing.inviteRemaining" datatype="html">
         <source>Noch <x id="remaining" equiv-text="remaining"/> Minuten Zeit, um den QR-Code zu scannen.</source>
       </trans-unit>
       <trans-unit id="hostPairing.pendingRemaining" datatype="html">
         <source>Noch <x id="remaining" equiv-text="remaining"/> Minuten Zeit, um zu bestätigen.</source>
       </trans-unit>
       <trans-unit id="hostPairing.requestRemaining" datatype="html">
-        <source>Warte auf die Bestätigung · noch <x id="remaining" equiv-text="remaining"/> Minuten</source>
-      </trans-unit>
-      <trans-unit id="hostPairing.deviceNameLabel" datatype="html">
-        <source>Wie möchtest du dieses Gerät nennen? (optional)</source>
-      </trans-unit>
-      <trans-unit id="hostPairing.deviceNameHint" datatype="html">
-        <source>Zum Beispiel „Mein Smartphone“ oder „Tablet von Alex“</source>
+        <source>Noch <x id="remaining" equiv-text="remaining"/> Minuten Zeit, um zu bestätigen.</source>
       </trans-unit>
       <trans-unit id="hostPairing.declineConnect" datatype="html">
         <source>Nicht verbinden</source>

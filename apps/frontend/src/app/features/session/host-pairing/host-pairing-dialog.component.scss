@@ -1,3 +1,5 @@
+@use './host-pairing-md3' as md3;
+
 :host {
   display: block;
 }
@@ -5,46 +7,34 @@
 .host-pairing-dialog {
   display: flex;
   flex-direction: column;
-  gap: 0.75rem;
-  max-width: 28rem;
-}
-
-.host-pairing-dialog__hint,
-.host-pairing-dialog__status,
-.host-pairing-dialog__error {
-  margin: 0;
-  line-height: 1.5;
+  gap: 1rem;
+  box-sizing: border-box;
+  width: 100%;
+  max-width: none;
 }
 
 .host-pairing-dialog__hint {
-  color: var(--mat-sys-on-surface-variant);
+  @include md3.pairing-hint;
 }
 
 .host-pairing-dialog__status {
-  font: var(--mat-sys-title-medium);
+  @include md3.pairing-status;
 }
 
 .host-pairing-dialog__error {
-  color: var(--mat-sys-error);
+  @include md3.pairing-error;
 }
 
 .host-pairing-dialog__section {
-  display: flex;
-  flex-direction: column;
-  gap: 0.75rem;
-  padding: 0.85rem 1rem;
-  border: 1px solid var(--mat-sys-outline-variant);
-  border-radius: var(--mat-sys-corner-large);
-  background: var(--mat-sys-surface-container-low);
+  @include md3.pairing-section;
 }
 
-.host-pairing-dialog__section--invite {
-  align-items: stretch;
+.host-pairing-dialog__indicator-frame {
+  @include md3.pairing-indicator-frame;
 }
 
 .host-pairing-dialog__indicator {
-  margin: 0;
-  font: var(--mat-sys-headline-small);
+  @include md3.pairing-indicator;
 }
 
 .host-pairing-dialog__qr-frame {
@@ -63,9 +53,7 @@
 }
 
 .host-pairing-dialog__subtitle {
-  margin: 0;
-  font: var(--mat-sys-title-small);
-  font-weight: 700;
+  @include md3.pairing-heading;
 }
 
 .host-pairing-dialog__devices {
@@ -83,9 +71,9 @@
   align-items: center;
   justify-content: space-between;
   gap: 0.65rem;
-  padding: 0.75rem 0.85rem;
-  border: 1px solid var(--mat-sys-outline-variant);
-  border-radius: var(--mat-sys-corner-medium);
+  padding: 0.8rem 0.9rem;
+  border: 1px solid color-mix(in srgb, var(--mat-sys-outline-variant) 75%, transparent);
+  border-radius: var(--mat-sys-corner-medium, 0.75rem);
   background: var(--mat-sys-surface-container);
 }
 
@@ -97,15 +85,27 @@
 .host-pairing-dialog__device-label {
   margin: 0;
   font: var(--mat-sys-title-small);
-  font-weight: 700;
+  font-weight: 600;
+  line-height: 1.35;
+  color: var(--mat-sys-on-surface);
 }
 
 .host-pairing-dialog__device-meta {
   margin: 0.25rem 0 0;
+  font: var(--mat-sys-body-medium);
+  line-height: 1.45;
   color: var(--mat-sys-on-surface-variant);
-  line-height: 1.5;
 }
 
 .host-pairing-dialog__revoke {
-  min-height: 2.75rem;
+  @include md3.pairing-touch-action;
+}
+
+.host-pairing-dialog__actions {
+  @include md3.pairing-dialog-actions;
+}
+
+.host-pairing-dialog__actions .host-pairing-dialog__approve,
+.host-pairing-dialog__actions button {
+  @include md3.pairing-touch-action;
 }

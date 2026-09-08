@@ -99,6 +99,13 @@
             </div>
           }
 
+          @if (questionMathMarkdown(); as mathMarkdown) {
+            <div
+              class="session-projection-quiz__math markdown-body"
+              [innerHTML]="renderMarkdown(mathMarkdown)"
+            ></div>
+          }
+
           @if (isReadingPhase() && !hasQuestionCode()) {
             <p class="session-projection-quiz__reading" role="status">
               <mat-icon class="session-projection-quiz__reading-icon" aria-hidden="true"

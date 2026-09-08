@@ -272,7 +272,7 @@
         "confidenceLabelHigh": "Muy seguro/a"
       },
       {
-        "text": "### Clasifica las seis obras siguientes por época literaria.\n\n_Asigna cada elemento a uno de los tres movimientos literarios._",
+        "text": "### Clasifica las seis obras siguientes por época literaria.",
         "type": "CATEGORIZATION",
         "timer": null,
         "difficulty": "MEDIUM",

@@ -19,7 +19,10 @@ import type {
 } from '@arsnova/shared-types';
 import { localizeKnownServerError } from '../../../core/localize-known-server-message';
 import { trpc } from '../../../core/trpc.client';
-import { formatHostPairingRemainingClock } from './host-pairing-remaining';
+import {
+  HOST_PAIRING_REMAINING_TICK_MS,
+  formatHostPairingRemainingClock,
+} from './host-pairing-remaining';
 import { buildHostPairingUrl } from './host-pairing-url';
 
 export interface HostPairingDialogData {
@@ -83,7 +86,10 @@ export class HostPairingDialogComponent implements OnDestroy {
   private remainingTimer: ReturnType<typeof setInterval> | null = null;
 
   constructor() {
-    this.remainingTimer = setInterval(() => this.nowMs.set(Date.now()), 15_000);
+    this.remainingTimer = setInterval(
+      () => this.nowMs.set(Date.now()),
+      HOST_PAIRING_REMAINING_TICK_MS,
+    );
     void this.bootstrap();
   }
 
@@ -103,7 +109,7 @@ export class HostPairingDialogComponent implements OnDestroy {
     if (this.devices().length > 0) {
       return $localize`:@@hostPairing.dialogTitleAnother:Weiteres Gerät verbinden`;
     }
-    return $localize`:@@hostPairing.dialogTitle:Smartphone zum Steuern verbinden`;
+    return $localize`:@@hostPairing.dialogTitle:Smartphone verbinden`;
   }
 
   closeLabel(): string {
@@ -130,17 +136,17 @@ export class HostPairingDialogComponent implements OnDestroy {
       : $localize`:@@hostPairing.reject:Nein, ablehnen`;
   }
 
-  inviteRemainingLabel(): string | null {
+  readonly inviteRemainingLabel = computed(() => {
     const remaining = formatHostPairingRemainingClock(this.inviteExpiresAt(), this.nowMs());
     if (!remaining) return null;
     return $localize`:@@hostPairing.inviteRemaining:Noch ${remaining}:remaining: Minuten Zeit, um den QR-Code zu scannen.`;
-  }
+  });
 
-  pendingRemainingLabel(): string | null {
+  readonly pendingRemainingLabel = computed(() => {
     const remaining = formatHostPairingRemainingClock(this.pending()?.expiresAt, this.nowMs());
     if (!remaining) return null;
     return $localize`:@@hostPairing.pendingRemaining:Noch ${remaining}:remaining: Minuten Zeit, um zu bestätigen.`;
-  }
+  });
 
   deviceLabel(device: PairedHostDeviceDTO, index = 0): string {
     const label = device.deviceLabel?.trim();

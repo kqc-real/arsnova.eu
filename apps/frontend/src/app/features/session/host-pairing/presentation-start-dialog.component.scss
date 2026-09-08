@@ -1,3 +1,5 @@
+@use './host-pairing-md3' as md3;
+
 :host {
   display: block;
 }
@@ -6,117 +8,52 @@
   display: flex;
   flex-direction: column;
   gap: 1rem;
+  width: 100%;
   max-width: 32rem;
-}
-
-.presentation-start-dialog__hint,
-.presentation-start-dialog__status {
-  margin: 0;
-  line-height: 1.5;
+  box-sizing: border-box;
 }
 
 .presentation-start-dialog__hint {
-  color: var(--mat-sys-on-surface-variant);
+  @include md3.pairing-hint;
 }
 
 .presentation-start-dialog__section {
-  display: flex;
-  flex-direction: column;
-  gap: 0.75rem;
-  padding: 0.85rem 1rem;
-  border: 1px solid var(--mat-sys-outline-variant);
-  border-radius: var(--mat-sys-corner-large);
-  background: var(--mat-sys-surface-container-low);
+  @include md3.pairing-section;
 }
 
 .presentation-start-dialog__subtitle {
-  display: flex;
-  align-items: center;
-  gap: 0.65rem;
-  margin: 0;
-  font: var(--mat-sys-title-medium);
-}
-
-.presentation-start-dialog__subtitle-icon {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-  width: 2.25rem;
-  height: 2.25rem;
-  border-radius: var(--mat-sys-corner-medium);
-  background: color-mix(in srgb, var(--mat-sys-primary-container) 65%, transparent);
-  color: var(--mat-sys-on-primary-container);
-
-  mat-icon {
-    font-size: 1.25rem;
-    width: 1.25rem;
-    height: 1.25rem;
-  }
+  @include md3.pairing-heading;
 }
 
 .presentation-start-dialog__status {
-  font: var(--mat-sys-title-medium);
+  @include md3.pairing-status;
 }
 
 .presentation-start-dialog__notice {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   gap: 0.65rem;
   margin: 0;
-  padding: 0.65rem 0.75rem;
-  border: 1px solid color-mix(in srgb, var(--mat-sys-tertiary) 36%, var(--mat-sys-outline-variant));
-  border-radius: var(--mat-sys-corner-medium);
-  background: color-mix(in srgb, var(--mat-sys-tertiary-container) 72%, transparent);
+  padding: 0.8rem 0.9rem;
+  border-radius: var(--mat-sys-corner-medium, 0.75rem);
+  background: color-mix(in srgb, var(--mat-sys-tertiary-container) 55%, transparent);
   color: var(--mat-sys-on-tertiary-container);
+  font: var(--mat-sys-body-large);
   line-height: 1.5;
 }
 
-.presentation-start-dialog__notice-icon {
-  display: flex;
-  align-items: center;
-  justify-content: center;
+.presentation-start-dialog__notice mat-icon {
   flex-shrink: 0;
-  width: 2.25rem;
-  height: 2.25rem;
-  border-radius: var(--mat-sys-corner-medium);
-  background: color-mix(in srgb, var(--mat-sys-tertiary-container) 55%, var(--mat-sys-tertiary));
-  color: var(--mat-sys-on-tertiary);
-
-  mat-icon {
-    font-size: 1.25rem;
-    width: 1.25rem;
-    height: 1.25rem;
-  }
-}
-
-.presentation-start-dialog__visibility {
-  margin: 0;
-  padding: 0;
-  border: 0;
-  min-width: 0;
-}
-
-.presentation-start-dialog__visibility legend {
-  padding: 0;
-  margin: 0 0 0.45rem;
-  font: var(--mat-sys-title-small);
-}
-
-.presentation-start-dialog__radios {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  gap: 0.45rem;
-}
-
-.presentation-start-dialog__radios mat-radio-button {
-  min-height: 2.75rem;
+  margin-top: 0.1rem;
+  font-size: 1.25rem;
+  width: 1.25rem;
+  height: 1.25rem;
+  color: var(--mat-sys-tertiary);
 }
 
 .presentation-start-dialog__connect,
 .presentation-start-dialog__primary {
-  min-height: 2.75rem;
+  @include md3.pairing-touch-action;
 }
 
 .presentation-start-dialog__connect {
@@ -125,6 +62,5 @@
 }
 
 .presentation-start-dialog__actions {
-  flex-wrap: wrap;
-  row-gap: 0.5rem;
+  @include md3.pairing-dialog-actions;
 }
