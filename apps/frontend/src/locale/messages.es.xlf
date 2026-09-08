@@ -8406,8 +8406,8 @@
         </context-group>
       </trans-unit>
       <trans-unit id="help.hostPairingWhy" datatype="html">
-        <source> Andere Systeme bieten oft eine Fernbedienung mit extra Login oder nur als Folienklicker. Unser Pairing ist Local-First und datensparsam: Am Handy brauchst du keinen Account. Du kannst das Gerät weitergeben, ohne Passwörter zu teilen. Die Verbindung autorisierst du lokal per QR; die Quiz-Sammlung bleibt am Laptop.</source>
-        <target>Otros sistemas suelen ofrecer un mando con inicio de sesión extra o solo como pasador de diapositivas. Nuestro emparejamiento es local-first y con pocos datos: en el teléfono no necesitas cuenta. Puedes entregar el dispositivo sin compartir contraseñas. Autorizas la conexión en local por QR; la colección de cuestionarios permanece en el portátil.</target>
+        <source> Andere Systeme bieten oft eine Fernbedienung mit extra Login oder nur als Folienklicker. Bei uns braucht das Handy kein Konto. Du zeigst den QR am Laptop und bestätigst dort die Verbindung. So kannst du das Gerät einer Assistenz in die Hand geben, ohne Passwörter zu teilen. Deine Quiz-Sammlung bleibt am Laptop.</source>
+        <target>Otros sistemas suelen ofrecer un mando con un inicio de sesión aparte, o solo como pasador de diapositivas. Aquí el teléfono no necesita cuenta. Muestras el QR en el portátil y confirmas la conexión allí. Puedes entregar el dispositivo a quien te ayude, sin compartir contraseñas. Tu colección de cuestionarios se queda en el portátil.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/help/help.component.html</context>
           <context context-type="linenumber">192,196</context>

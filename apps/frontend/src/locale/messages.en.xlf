@@ -8411,8 +8411,8 @@
         </context-group>
       </trans-unit>
       <trans-unit id="help.hostPairingWhy" datatype="html">
-        <source> Andere Systeme bieten oft eine Fernbedienung mit extra Login oder nur als Folienklicker. Unser Pairing ist Local-First und datensparsam: Am Handy brauchst du keinen Account. Du kannst das Gerät weitergeben, ohne Passwörter zu teilen. Die Verbindung autorisierst du lokal per QR; die Quiz-Sammlung bleibt am Laptop.</source>
-        <target>Other tools often offer a remote with an extra login or only as a slide clicker. Our pairing is local-first and data-sparing: you do not need an account on the phone. You can hand the device over without sharing passwords. You authorize the connection locally via QR; the quiz collection stays on the laptop.</target>
+        <source> Andere Systeme bieten oft eine Fernbedienung mit extra Login oder nur als Folienklicker. Bei uns braucht das Handy kein Konto. Du zeigst den QR am Laptop und bestätigst dort die Verbindung. So kannst du das Gerät einer Assistenz in die Hand geben, ohne Passwörter zu teilen. Deine Quiz-Sammlung bleibt am Laptop.</source>
+        <target>Other tools often offer a remote with a separate login, or only as a slide clicker. Here the phone does not need an account. You show the QR on the laptop and approve the connection there. You can hand the device to an assistant without sharing passwords. Your quiz collection stays on the laptop.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/help/help.component.html</context>
           <context context-type="linenumber">192,196</context>

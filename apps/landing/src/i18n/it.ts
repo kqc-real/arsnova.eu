@@ -237,13 +237,13 @@ const it: Messages = {
   pairing: {
     eyebrow: 'Cosa ci distingue',
     title: 'Presenta da qualsiasi punto della sala — dal telefono o dal tablet',
-    lead: 'Altri sistemi di audience response offrono spesso un telecomando — come clicker per le slide o con un login separato. Con arsnova.eu colleghi il telefono in local-first: le slide restano sul proiettore, tu ti muovi in sala e conduci la sessione in diretta.',
+    lead: 'Altri sistemi di audience response offrono spesso un telecomando — come clicker per le slide o con un account separato sul telefono. Con arsnova.eu inquadri un QR, confermi sul laptop e il telefono conduce solo la sessione in corso.',
     whyTitle: 'Perché questo accoppiamento non è un semplice telecomando',
     summary: [
       'Piena libertà di movimento durante la presentazione — un vantaggio chiaro per la didattica e la messa in scena.',
       'Lo stesso controllo di sessione che sul laptop: domande, risultati, Q&A, Sondaggio rapido, Termina sessione — non solo la slide successiva.',
-      'Senza account sul telefono: puoi passarlo a un’assistente senza condividere password.',
-      'Local-first e parsimonioso nei dati: autorizzi la connessione ad hoc tramite QR sul dispositivo host.',
+      'Senza account sul telefono: puoi passarlo a chi ti aiuta, senza condividere password.',
+      'Niente login in prestito: il QR compare sul laptop, e lì confermi. Il telefono ottiene la sessione, non il tuo account.',
       'La raccolta quiz resta sul laptop: modificare o eliminare solo lì, non dal dispositivo accoppiato.',
     ],
     laptopLabel: 'Laptop e proiettore',
@@ -261,7 +261,7 @@ const it: Messages = {
       {
         title: 'Presenta da qualsiasi punto della sala',
         description:
-          'Collega un telefono o un tablet e conduci la sessione in movimento: domande, risultati, Q&A, Sondaggio rapido, Termina sessione. Senza account sul telefono, autorizzazione tramite QR — la raccolta quiz resta sul laptop. Puoi passare il controllo ad hoc senza condividere password.',
+          'Collega un telefono o un tablet e conduci la sessione in movimento: domande, risultati, Q&A, Sondaggio rapido, Termina sessione. Senza account sul telefono: il QR è sul laptop e confermi lì. La raccolta quiz resta sul computer — puoi passare il dispositivo senza condividere password.',
         icon: 'presenter',
       },
       {
@@ -456,7 +456,7 @@ const it: Messages = {
       {
         title: 'Libertà di movimento, non legato al laptop',
         description:
-          'Altri strumenti offrono spesso un telecomando come clicker per le slide o con un login separato. Qui conduci la sessione dal telefono — senza account sul dispositivo. Autorizzi la connessione in locale tramite QR; la raccolta quiz resta sul laptop. Controllo completo: domande, risultati, Q&A, Sondaggio rapido, Termina sessione.',
+          'Altri strumenti offrono spesso un telecomando come clicker per le slide o con un login separato. Qui inquadri un QR e confermi sul laptop. Il telefono conduce la sessione senza un account proprio: domande, risultati, Q&A, Sondaggio rapido, Termina sessione. La raccolta quiz resta sul laptop.',
       },
       {
         title: 'Meno barriere d’ingresso',
@@ -490,7 +490,7 @@ const it: Messages = {
       {
         question: 'Posso controllare la sessione dal telefono?',
         answer:
-          'Sì. All’avvio della presentazione colleghi un telefono o un tablet tramite QR — senza account sul telefono. Il laptop mostra le slide; tu ti muovi in sala. Il dispositivo conduce la sessione in diretta — domande, risultati, Q&A, Sondaggio rapido, Termina sessione — non la raccolta quiz; modificare o eliminare resta sul laptop. Puoi passare il telefono a un’assistente senza condividere password. Altri strumenti hanno spesso un telecomando con login extra; qui l’accoppiamento è local-first e parsimonioso nei dati.',
+          'Sì. All’avvio della presentazione il QR compare sul laptop; confermi la connessione lì. Il telefono non ha bisogno di un account. Conduce la sessione in diretta — domande, risultati, Q&A, Sondaggio rapido, Termina sessione — non la raccolta quiz. Puoi passare il dispositivo a chi ti aiuta, senza condividere password. Altri strumenti hanno spesso un telecomando con login extra o solo come clicker per le slide.',
       },
       {
         question: 'Dove sono i dati?',

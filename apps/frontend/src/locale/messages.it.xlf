@@ -8399,15 +8399,15 @@
       </trans-unit>
       <trans-unit id="help.hostPairingBody" datatype="html">
         <source> Beim Start der Präsentation verbindest du Smartphone oder Tablet per QR. Die Verbindung bestätigst du zuerst am Host-Gerät. Danach bleibt die Präsentation auf dem Beamer, und du gehst frei durch den Raum. Das Gerät steuert die laufende Veranstaltung: Fragen, Ergebnisse, Q&amp;A, Blitzlicht, Session beenden. Nicht aber: Quiz bearbeiten oder löschen. Die Steuerung kannst du ad hoc einer vertrauenswürdigen Tutor:in, Assistenz oder Moderator:in übergeben.</source>
-        <target>All’avvio della presentazione colleghi un telefono o un tablet tramite QR. Confermi prima la connessione sul dispositivo host. Poi la presentazione resta sul proiettore e ti muovi in sala. Il dispositivo conduce la sessione in diretta: domande, risultati, Q&amp;A, Sondaggio rapido, Termina sessione. Non: modificare o eliminare i quiz. Puoi passare il controllo ad hoc a un tutor, a un’assistente o a un moderatore di fiducia.</target>
+        <target>All’avvio della presentazione colleghi un telefono o un tablet tramite QR. Confermi prima la connessione sul dispositivo host. Poi la presentazione resta sul proiettore e ti muovi in sala. Il dispositivo conduce la sessione in diretta: domande, risultati, Q&amp;A, Sondaggio rapido, Termina sessione. Non: modificare o eliminare i quiz. Puoi passare il controllo ad hoc a un tutor, a chi ti aiuta o a un moderatore di fiducia.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/help/help.component.html</context>
           <context context-type="linenumber">183,190</context>
         </context-group>
       </trans-unit>
       <trans-unit id="help.hostPairingWhy" datatype="html">
-        <source> Andere Systeme bieten oft eine Fernbedienung mit extra Login oder nur als Folienklicker. Unser Pairing ist Local-First und datensparsam: Am Handy brauchst du keinen Account. Du kannst das Gerät weitergeben, ohne Passwörter zu teilen. Die Verbindung autorisierst du lokal per QR; die Quiz-Sammlung bleibt am Laptop.</source>
-        <target>Altri strumenti offrono spesso un telecomando con login extra o solo come clicker per le slide. Il nostro accoppiamento è local-first e parsimonioso nei dati: sul telefono non serve un account. Puoi passare il dispositivo senza condividere password. Autorizzi la connessione in locale tramite QR; la raccolta quiz resta sul laptop.</target>
+        <source> Andere Systeme bieten oft eine Fernbedienung mit extra Login oder nur als Folienklicker. Bei uns braucht das Handy kein Konto. Du zeigst den QR am Laptop und bestätigst dort die Verbindung. So kannst du das Gerät einer Assistenz in die Hand geben, ohne Passwörter zu teilen. Deine Quiz-Sammlung bleibt am Laptop.</source>
+        <target>Altri strumenti offrono spesso un telecomando con un login a parte, o solo come clicker per le slide. Qui il telefono non ha bisogno di un account. Mostri il QR sul laptop e confermi la connessione lì. Puoi passare il dispositivo a chi ti aiuta, senza condividere password. La tua raccolta quiz resta sul laptop.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/help/help.component.html</context>
           <context context-type="linenumber">192,196</context>

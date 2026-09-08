@@ -235,13 +235,13 @@ const fr: Messages = {
   pairing: {
     eyebrow: 'Ce qui nous distingue',
     title: 'Présenter depuis n’importe où dans la salle — depuis le téléphone ou la tablette',
-    lead: 'D’autres systèmes de réponse du public offrent souvent une télécommande — comme cliqueur de diapos ou avec un login séparé. Avec arsnova.eu, tu connectes le téléphone en local-first : les diapos restent sur le projecteur, tu circules dans la salle et tu animes la session en direct.',
+    lead: 'D’autres systèmes de réponse du public offrent souvent une télécommande — comme cliqueur de diapos ou avec un compte séparé sur le téléphone. Avec arsnova.eu, tu scans un QR, tu confirmes sur l’ordinateur, et le téléphone pilote uniquement la session en cours.',
     whyTitle: 'Pourquoi ce couplage n’est pas une simple télécommande',
     summary: [
       'Pleine liberté de mouvement pendant la présentation — un vrai atout pédagogique et scénique.',
       'Les mêmes commandes de session qu’à l’ordinateur : questions, résultats, Q&A, sondage express, Fin de séance — pas seulement la diapo suivante.',
-      'Sans compte sur le téléphone : tu peux le tendre à une assistance sans partager de mot de passe.',
-      'Local-first et économe en données : tu autorises la connexion ad hoc par QR sur l’appareil hôte.',
+      'Sans compte sur le téléphone : tu peux le tendre à quelqu’un qui t’assiste, sans partager de mot de passe.',
+      'Pas de login à prêter : le QR s’affiche sur l’ordinateur, la confirmation aussi. Le téléphone reçoit la session — pas ton compte.',
       'La collection de quiz reste sur l’ordinateur — modifier ou supprimer uniquement là, pas depuis l’appareil couplé.',
     ],
     laptopLabel: 'Ordinateur et projecteur',
@@ -260,7 +260,7 @@ const fr: Messages = {
       {
         title: 'Présenter depuis n’importe où dans la salle',
         description:
-          'Relie un téléphone ou une tablette et pilote la session en déplacement : questions, résultats, Q&A, sondage express, Fin de séance. Sans compte sur le téléphone, autorisation par QR — la collection de quiz reste sur l’ordinateur. Tu peux transmettre le contrôle ad hoc sans partager de mot de passe.',
+          'Relie un téléphone ou une tablette et pilote la session en déplacement : questions, résultats, Q&A, sondage express, Fin de séance. Pas de compte sur le téléphone : le QR s’affiche sur l’ordinateur, tu confirmes sur place. La collection de quiz reste sur l’ordinateur — tu peux tendre l’appareil sans partager de mot de passe.',
         icon: 'presenter',
       },
       {
@@ -463,7 +463,7 @@ const fr: Messages = {
       {
         title: 'Liberté de mouvement, pas coincé·e à l’ordinateur',
         description:
-          'D’autres outils offrent souvent une télécommande comme cliqueur de diapos ou avec un login séparé. Ici, tu pilotes la session depuis le téléphone — sans compte sur l’appareil. Tu autorises la connexion localement par QR ; la collection de quiz reste sur l’ordinateur. Contrôle complet : questions, résultats, Q&A, sondage express, Fin de séance.',
+          'D’autres outils offrent souvent une télécommande comme cliqueur de diapos ou avec un login séparé. Ici, tu scans un QR et tu confirmes sur l’ordinateur. Le téléphone pilote la session sans compte propre : questions, résultats, Q&A, sondage express, Fin de séance. La collection de quiz reste sur l’ordinateur.',
       },
       {
         title: 'Moins de freins à l’entrée',
@@ -497,7 +497,7 @@ const fr: Messages = {
       {
         question: 'Puis-je piloter la session depuis mon téléphone ?',
         answer:
-          'Oui. Au démarrage de la présentation, tu connectes un téléphone ou une tablette via QR — sans compte sur le téléphone. L’ordinateur affiche les diapos ; tu circules dans la salle. L’appareil pilote la session en direct — questions, résultats, Q&A, sondage express, Fin de séance — pas la collection de quiz ; modifier ou supprimer reste sur l’ordinateur. Tu peux tendre le téléphone à une assistance sans partager de mot de passe. D’autres outils ont souvent une télécommande avec login séparé ; ici le couplage est local-first et économe en données.',
+          'Oui. Au démarrage de la présentation, le QR s’affiche sur l’ordinateur ; tu y confirmes la connexion. Le téléphone n’a pas besoin de compte. Il pilote la session en direct — questions, résultats, Q&A, sondage express, Fin de séance — pas la collection de quiz. Tu peux tendre l’appareil à quelqu’un qui t’assiste, sans partager de mot de passe. D’autres outils ont souvent une télécommande avec login séparé ou seulement comme cliqueur de diapos.',
       },
       {
         question: 'Où sont les données ?',

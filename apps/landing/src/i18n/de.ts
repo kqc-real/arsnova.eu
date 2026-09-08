@@ -231,13 +231,13 @@ const de: Messages = {
   pairing: {
     eyebrow: 'Alleinstellungsmerkmal',
     title: 'Frei im Raum präsentieren — vom Smartphone oder Tablet',
-    lead: 'Andere Audience-Response-Systeme bieten oft eine Fernbedienung — als Folienklicker oder mit extra Login. Bei arsnova.eu verbindest du das Handy Local-First: Die Präsentation bleibt auf dem Beamer, du gehst durch den Raum und steuerst die laufende Veranstaltung.',
+    lead: 'Andere Audience-Response-Systeme bieten oft eine Fernbedienung — als Folienklicker oder mit extra Konto auf dem Handy. Bei arsnova.eu scannst du einen QR, sagst am Laptop Ja, und das Handy steuert nur die laufende Veranstaltung.',
     whyTitle: 'Warum das Pairing anders ist als eine Fernbedienung',
     summary: [
       'Volle Bewegungsfreiheit während der Präsentation — didaktisch und präsentationstechnisch ein klarer Vorteil.',
       'Dieselbe Session-Steuerung wie am Laptop: Fragen, Ergebnisse, Q&A, Blitzlicht, Session beenden — nicht nur die nächste Folie.',
       'Ohne Account am Handy: du kannst das Gerät einer Assistenz in die Hand geben, ohne Passwörter zu teilen.',
-      'Local-First und datensparsam: die Verbindung autorisierst du ad hoc per QR am Host-Gerät.',
+      'Kein Login leihen: Der QR erscheint am Laptop, die Freigabe auch. Das Handy bekommt die Session — nicht dein Konto.',
       'Die Quiz-Sammlung bleibt am Laptop — bearbeiten oder löschen geht nur dort, nicht vom gekoppelten Gerät.',
     ],
     laptopLabel: 'Laptop und Beamer',
@@ -255,7 +255,7 @@ const de: Messages = {
       {
         title: 'Frei im Raum präsentieren',
         description:
-          'Verbinde Smartphone oder Tablet und steuere die laufende Veranstaltung unterwegs: Fragen, Ergebnisse, Q&A, Blitzlicht, Session beenden. Ohne Account am Handy, Freigabe per QR — die Quiz-Sammlung bleibt am Laptop. So kannst du die Steuerung ad hoc weitergeben, ohne Passwörter zu teilen.',
+          'Verbinde Smartphone oder Tablet und steuere die laufende Veranstaltung unterwegs: Fragen, Ergebnisse, Q&A, Blitzlicht, Session beenden. Kein Konto am Handy: QR am Laptop, dort bestätigst du. Die Quiz-Sammlung bleibt am Rechner — so kannst du das Gerät weitergeben, ohne Passwörter zu teilen.',
         icon: 'presenter',
       },
       {
@@ -451,7 +451,7 @@ const de: Messages = {
       {
         title: 'Bewegungsfreiheit statt Laptop-Fessel',
         description:
-          'Andere Systeme bieten oft eine Fernbedienung als Folienklicker oder mit extra Login. Hier steuerst du die Session vom Smartphone — ohne Account am Handy. Die Verbindung autorisierst du lokal per QR; die Quiz-Sammlung bleibt am Laptop. Volle Session-Steuerung: Fragen, Ergebnisse, Q&A, Blitzlicht, Session beenden.',
+          'Andere Systeme bieten oft eine Fernbedienung als Folienklicker oder mit extra Login. Hier scannst du einen QR und bestätigst am Laptop. Das Handy steuert die Session ohne eigenes Konto: Fragen, Ergebnisse, Q&A, Blitzlicht, Session beenden. Die Quiz-Sammlung bleibt am Laptop.',
       },
       {
         title: 'Weniger Einstiegshürden',
@@ -485,7 +485,7 @@ const de: Messages = {
       {
         question: 'Kann ich die Session vom Smartphone steuern?',
         answer:
-          'Ja. Beim Start der Präsentation verbindest du Smartphone oder Tablet per QR — ohne Account am Handy. Der Laptop zeigt die Präsentation, du gehst frei im Raum. Das Gerät steuert die laufende Veranstaltung — Fragen, Ergebnisse, Q&A, Blitzlicht, Session beenden — nicht die Quiz-Sammlung; bearbeiten oder löschen bleibt am Laptop. Du kannst das Handy einer Assistenz in die Hand geben, ohne Passwörter zu teilen. Andere Systeme haben oft eine Fernbedienung mit extra Login; hier ist das Pairing Local-First und datensparsam.',
+          'Ja. Beim Start der Präsentation erscheint der QR am Laptop; dort bestätigst du die Verbindung. Das Handy braucht kein Konto. Es steuert die laufende Veranstaltung — Fragen, Ergebnisse, Q&A, Blitzlicht, Session beenden — nicht die Quiz-Sammlung. Du kannst das Gerät einer Assistenz in die Hand geben, ohne Passwörter zu teilen. Andere Systeme haben oft eine Fernbedienung mit extra Login oder nur als Folienklicker.',
       },
       {
         question: 'Wo liegen die Daten?',

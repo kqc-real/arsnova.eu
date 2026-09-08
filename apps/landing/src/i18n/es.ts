@@ -237,13 +237,13 @@ const es: Messages = {
   pairing: {
     eyebrow: 'Lo que nos distingue',
     title: 'Presenta desde cualquier punto de la sala — con el teléfono o la tablet',
-    lead: 'Otros sistemas de respuesta del público suelen ofrecer un mando — como pasador de diapositivas o con un inicio de sesión aparte. Con arsnova.eu conectas el teléfono en local-first: las diapositivas siguen en el proyector, tú recorres la sala y diriges la sesión en directo.',
+    lead: 'Otros sistemas de respuesta del público suelen ofrecer un mando — como pasador de diapositivas o con una cuenta aparte en el teléfono. Con arsnova.eu escaneas un QR, confirmas en el portátil y el teléfono solo dirige la sesión en curso.',
     whyTitle: 'Por qué este emparejamiento no es un mando más',
     summary: [
       'Total libertad de movimiento mientras presentas — una ventaja clara para la didáctica y la puesta en escena.',
       'El mismo control de sesión que en el portátil: preguntas, resultados, Q&A, Sondeo rápido, Finalizar sesión — no solo la siguiente diapositiva.',
       'Sin cuenta en el teléfono: puedes dárselo a una persona de apoyo sin compartir contraseñas.',
-      'Local-first y con pocos datos: autorizas la conexión ad hoc por QR en el dispositivo anfitrión.',
+      'Sin prestar el acceso: el QR aparece en el portátil, y la confirmación también. El teléfono recibe la sesión, no tu cuenta.',
       'La colección de cuestionarios permanece en el portátil: editar o borrar solo allí, no desde el dispositivo emparejado.',
     ],
     laptopLabel: 'Portátil y proyector',
@@ -262,7 +262,7 @@ const es: Messages = {
       {
         title: 'Presenta desde cualquier punto de la sala',
         description:
-          'Conecta un teléfono o tablet y dirige la sesión en movimiento: preguntas, resultados, Q&A, Sondeo rápido, Finalizar sesión. Sin cuenta en el teléfono, autorización por QR — la colección de cuestionarios permanece en el portátil. Puedes ceder el control ad hoc sin compartir contraseñas.',
+          'Conecta un teléfono o tablet y dirige la sesión en movimiento: preguntas, resultados, Q&A, Sondeo rápido, Finalizar sesión. Sin cuenta en el teléfono: el QR está en el portátil y confirmas allí. La colección de cuestionarios permanece en el ordenador — puedes entregar el dispositivo sin compartir contraseñas.',
         icon: 'presenter',
       },
       {
@@ -458,7 +458,7 @@ const es: Messages = {
       {
         title: 'Libertad de movimiento, no atado al portátil',
         description:
-          'Otros sistemas suelen ofrecer un mando como pasador de diapositivas o con un inicio de sesión aparte. Aquí diriges la sesión desde el teléfono — sin cuenta en el dispositivo. Autorizas la conexión en local por QR; la colección de cuestionarios permanece en el portátil. Control completo: preguntas, resultados, Q&A, Sondeo rápido, Finalizar sesión.',
+          'Otros sistemas suelen ofrecer un mando como pasador de diapositivas o con un inicio de sesión aparte. Aquí escaneas un QR y confirmas en el portátil. El teléfono dirige la sesión sin cuenta propia: preguntas, resultados, Q&A, Sondeo rápido, Finalizar sesión. La colección de cuestionarios permanece en el portátil.',
       },
       {
         title: 'Menos barreras de entrada',
@@ -492,7 +492,7 @@ const es: Messages = {
       {
         question: '¿Puedo controlar la sesión desde el teléfono?',
         answer:
-          'Sí. Al iniciar la presentación conectas un teléfono o tablet por QR — sin cuenta en el teléfono. El portátil muestra las diapositivas; tú recorres la sala. El dispositivo dirige la sesión en directo — preguntas, resultados, Q&A, Sondeo rápido, Finalizar sesión — no la colección de cuestionarios; editar o borrar permanece en el portátil. Puedes dar el teléfono a una persona de apoyo sin compartir contraseñas. Otros sistemas suelen tener un mando con inicio de sesión extra; aquí el emparejamiento es local-first y con pocos datos.',
+          'Sí. Al iniciar la presentación el QR aparece en el portátil; confirmas la conexión allí. El teléfono no necesita cuenta. Dirige la sesión en directo — preguntas, resultados, Q&A, Sondeo rápido, Finalizar sesión — no la colección de cuestionarios. Puedes dar el dispositivo a una persona de apoyo sin compartir contraseñas. Otros sistemas suelen tener un mando con inicio de sesión extra o solo como pasador de diapositivas.',
       },
       {
         question: '¿Dónde están los datos?',
