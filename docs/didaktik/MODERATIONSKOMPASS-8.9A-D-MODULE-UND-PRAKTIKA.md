@@ -9,12 +9,12 @@
 
 ## 1. Verbindlicher Projektstand
 
-| Story | Rolle im Gesamtsystem | Stand | Didaktische Grenze |
-| ----- | --------------------- | ----- | ------------------ |
-| **8.9a** | deterministischer, quellenbelegter Moderationskompass | umgesetzt | keine NLP-/LLM-Inferenz |
-| **8.9b** | asynchrone Q&A-Klassifikation mit Hash-/n-Gramm-Naive-Bayes und k-NN-Fallback | umgesetzt; Kill-Switch produktiv default aus | kein Transformer und kein Auftrag auf dem LLM-Slot |
-| **8.9c** | on-demand, schema- und quellengebundene Moderationszusammenfassung | Vertrag, Host-UI, Snapshot-Ranking, Queue und privater Adapter im Repo; echtes Modell offen | Slice 4 folgt erst nach 8.9d und Prefill-Messung |
-| **8.9d** | private Open-Weight-LLM-Runtime für 1.14c Stufe 2 und 8.9c Slice 4 | geplant; Runtime durch ADR-0035 festgelegt, nicht implementiert | kein LLM auf dem Live-Host, kein öffentlicher Port, kein SaaS-Fallback |
+| Story    | Rolle im Gesamtsystem                                                         | Stand                                                                                       | Didaktische Grenze                                                     |
+| -------- | ----------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------- |
+| **8.9a** | deterministischer, quellenbelegter Moderationskompass                         | umgesetzt                                                                                   | keine NLP-/LLM-Inferenz                                                |
+| **8.9b** | asynchrone Q&A-Klassifikation mit Hash-/n-Gramm-Naive-Bayes und k-NN-Fallback | umgesetzt; Kill-Switch produktiv default aus                                                | kein Transformer und kein Auftrag auf dem LLM-Slot                     |
+| **8.9c** | on-demand, schema- und quellengebundene Moderationszusammenfassung            | Vertrag, Host-UI, Snapshot-Ranking, Queue und privater Adapter im Repo; echtes Modell offen | Slice 4 folgt erst nach 8.9d und Prefill-Messung                       |
+| **8.9d** | private Open-Weight-LLM-Runtime für 1.14c Stufe 2 und 8.9c Slice 4            | geplant; Runtime durch ADR-0035 festgelegt, nicht implementiert                             | kein LLM auf dem Live-Host, kein öffentlicher Port, kein SaaS-Fallback |
 
 8.9d entscheidet nach ADR-0035 über die Serving-Runtime `llama.cpp`/`llama-server`, nicht über eine automatische Produktivfreigabe. Kanonische Produktion ist ein zweiter privater Host. Label- und Summary-Auftrag teilen höchstens einen Server-Slot, behalten aber getrennte Prompts, Zod-Verträge, Queues, Timeouts und Fallbacks. 8.9b bleibt davon unabhängig.
 
@@ -33,18 +33,18 @@ In allen Modulen gilt: 8.9d ist eine zu prüfende Hypothese über zusätzlichen 
 
 ### 3.1 Methoden, Berechnungen und Demonstrationen
 
-| Gegenstand | Formel oder Verfahren | Demonstration mit 8.9a–d |
-| ---------- | --------------------- | ------------------------- |
-| Lage und Streuung | Mittelwert, Median, Varianz, Standardabweichung, Quantile | Quiz-, Latenz- und Token-Durchsatzverteilungen |
-| Anteilswerte | \(\hat p=x/n\), Konfidenzintervalle | Zustimmung, Coverage, Fehler- und Fallback-Rate |
-| Kontroversität | \(K=2\min(U,D)/(U+D+C)\) | kleine und große Sitzungen vergleichen |
-| Klassifikation | Konfusionsmatrix, Precision, Recall, Macro-F1 | 8.9b gegen LLM-Variante aus 8.9d |
-| Kalibrierung | Reliability Diagram, Brier Score, ECE | Konfidenzwerte der Kaskaden vergleichen |
-| Versuchsplanung | randomisierte Reihenfolge, Messwiederholung, Blockbildung | gleiche Moderationsfälle mit 8.9a, 8.9b und 8.9c/d |
-| Inferenz | Konfidenzintervall, Bootstrap, gepaarter Test | Differenz von Qualität, TTFT und Gesamtzeit |
-| Effektgröße | Cohen-\(d\), Cliff’s Delta oder rangbasierte Effektgröße | CPU- gegen GPU- oder extraktiv gegen generativ |
+| Gegenstand              | Formel oder Verfahren                                        | Demonstration mit 8.9a–d                                |
+| ----------------------- | ------------------------------------------------------------ | ------------------------------------------------------- |
+| Lage und Streuung       | Mittelwert, Median, Varianz, Standardabweichung, Quantile    | Quiz-, Latenz- und Token-Durchsatzverteilungen          |
+| Anteilswerte            | \(\hat p=x/n\), Konfidenzintervalle                          | Zustimmung, Coverage, Fehler- und Fallback-Rate         |
+| Kontroversität          | \(K=2\min(U,D)/(U+D+C)\)                                     | kleine und große Sitzungen vergleichen                  |
+| Klassifikation          | Konfusionsmatrix, Precision, Recall, Macro-F1                | 8.9b gegen LLM-Variante aus 8.9d                        |
+| Kalibrierung            | Reliability Diagram, Brier Score, ECE                        | Konfidenzwerte der Kaskaden vergleichen                 |
+| Versuchsplanung         | randomisierte Reihenfolge, Messwiederholung, Blockbildung    | gleiche Moderationsfälle mit 8.9a, 8.9b und 8.9c/d      |
+| Inferenz                | Konfidenzintervall, Bootstrap, gepaarter Test                | Differenz von Qualität, TTFT und Gesamtzeit             |
+| Effektgröße             | Cohen-\(d\), Cliff’s Delta oder rangbasierte Effektgröße     | CPU- gegen GPU- oder extraktiv gegen generativ          |
 | Interrater-Reliabilität | Cohen-\(\kappa\), Fleiss-\(\kappa\), Krippendorff-\(\alpha\) | menschliche Bewertung von Quellentreue und Nützlichkeit |
-| Survival-/Timeoutsicht | Anteil fristgerecht abgeschlossener Jobs | 8.9d unter verschiedenen Promptgrößen |
+| Survival-/Timeoutsicht  | Anteil fristgerecht abgeschlossener Jobs                     | 8.9d unter verschiedenen Promptgrößen                   |
 
 Für die Modellgüte einer Klasse \(c\):
 
@@ -57,6 +57,7 @@ Für die Modellgüte einer Klasse \(c\):
 \[
 F_{1,c}
 =
+
 2\frac{\operatorname{Precision}_c\operatorname{Recall}_c}
 {\operatorname{Precision}_c+\operatorname{Recall}_c}.
 \]
@@ -84,18 +85,18 @@ zu analysieren. Wegen schiefer Latenzen sind Median, Bootstrap-Konfidenzinterval
 
 ### 4.1 Methoden, Verfahren und Techniken
 
-| Analyseebene | 8.9a–d als Demonstrationsobjekt |
-| ------------ | ------------------------------- |
-| Datenaufnahme | Q&A-, Vote-, Quiz-, Feedback-, Queue- und Inferenzereignisse |
-| Datenmodellierung | gemeinsame Fakten mit Session-, Zeit-, Modell-, Prompt- und Hardwaredimension |
-| Feature Engineering | Normalisierung, n-Gramme, Hashing, Embeddings und Prompt-Snapshots |
-| Batch Analytics | Modell- und Promptversionen über reproduzierbare Korpora vergleichen |
-| Stream Analytics | Queue-Länge, Ankunftsrate, Durchsatz, Timeout und Backpressure |
-| Predictive Analytics | 8.9b-Klassifikation, Unsicherheit und Selective Classification |
-| Generative Analytics | 8.9c-Ausgabe auf 8.9d-Runtime mit Quellenbindung |
-| Data Quality | Dubletten, fehlende Quellen, Sprachslices, Labelrauschen und Domain Shift |
-| MLOps Analytics | Modellversion, Laufzeit, Fallback, Drift und Rollbackindikatoren |
-| FinOps Analytics | Qualität-Latenz-Kosten-Paretofront für CPU, GPU und Managed Alternative |
+| Analyseebene         | 8.9a–d als Demonstrationsobjekt                                               |
+| -------------------- | ----------------------------------------------------------------------------- |
+| Datenaufnahme        | Q&A-, Vote-, Quiz-, Feedback-, Queue- und Inferenzereignisse                  |
+| Datenmodellierung    | gemeinsame Fakten mit Session-, Zeit-, Modell-, Prompt- und Hardwaredimension |
+| Feature Engineering  | Normalisierung, n-Gramme, Hashing, Embeddings und Prompt-Snapshots            |
+| Batch Analytics      | Modell- und Promptversionen über reproduzierbare Korpora vergleichen          |
+| Stream Analytics     | Queue-Länge, Ankunftsrate, Durchsatz, Timeout und Backpressure                |
+| Predictive Analytics | 8.9b-Klassifikation, Unsicherheit und Selective Classification                |
+| Generative Analytics | 8.9c-Ausgabe auf 8.9d-Runtime mit Quellenbindung                              |
+| Data Quality         | Dubletten, fehlende Quellen, Sprachslices, Labelrauschen und Domain Shift     |
+| MLOps Analytics      | Modellversion, Laufzeit, Fallback, Drift und Rollbackindikatoren              |
+| FinOps Analytics     | Qualität-Latenz-Kosten-Paretofront für CPU, GPU und Managed Alternative       |
 
 Ein gemeinsames analytisches Ereignisschema sollte mindestens enthalten:
 
@@ -112,6 +113,7 @@ Die Kosten pro 1.000 erfolgreiche Ergebnisse können als
 \[
 C_{1000}
 =
+
 \frac{C_{\mathrm{fix}}+C_{\mathrm{compute}}+C_{\mathrm{storage}}+C_{\mathrm{egress}}}
 {N_{\mathrm{ready}}}
 \cdot 1000
@@ -136,20 +138,20 @@ berechnet werden. Als Mehrzielproblem ist eine Variante nur dann dominant, wenn 
 
 ### 5.1 Methoden, Berechnungen und Demonstrationen
 
-| Cloud-Thema | Demonstration mit 8.9a–d |
-| ----------- | ------------------------- |
-| Servicegrenzen | Live-App, Encoder und 8.9d-Inferenzrolle trennen |
-| Private/Hybrid Cloud | privates HTTP zur zweiten Inferenzbox; kein öffentlicher Modellport |
-| Container und IaC | eigenes Image und Compose-Profil `llm`; GGUF als Ops-Artefakt |
-| Queueing | getrennte App-Queues, aber ein gemeinsames Inflight auf dem LLM-Slot |
-| Backpressure | Slot-Sonde liefert bei Belegung 503; sofortiger Fallback |
-| Resilienz | Kill-Switch, Timeout, Abort, Circuit Breaker und extraktiver Fallback |
-| Security | API-Key, URL-Allowlist, kein WebUI, gepinnter Image-Digest |
-| Capacity Planning | Threads, RAM, KV-Cache, Kontextgröße und `n-predict` |
-| Observability | Queue-Wartezeit, TTFT, Prefill, Tokens/s, Fehler und Fallback |
-| FinOps | zweiter CPU-Host gegen GPU- oder Managed-Variante |
-| SLO | Kernfunktion 8.9a getrennt von optionalem KI-SLO bewerten |
-| Rollout | Offline → Zwei-Server-Labor → produktionsnahe Abnahme → bewusste Aktivierung |
+| Cloud-Thema          | Demonstration mit 8.9a–d                                                     |
+| -------------------- | ---------------------------------------------------------------------------- |
+| Servicegrenzen       | Live-App, Encoder und 8.9d-Inferenzrolle trennen                             |
+| Private/Hybrid Cloud | privates HTTP zur zweiten Inferenzbox; kein öffentlicher Modellport          |
+| Container und IaC    | eigenes Image und Compose-Profil `llm`; GGUF als Ops-Artefakt                |
+| Queueing             | getrennte App-Queues, aber ein gemeinsames Inflight auf dem LLM-Slot         |
+| Backpressure         | Slot-Sonde liefert bei Belegung 503; sofortiger Fallback                     |
+| Resilienz            | Kill-Switch, Timeout, Abort, Circuit Breaker und extraktiver Fallback        |
+| Security             | API-Key, URL-Allowlist, kein WebUI, gepinnter Image-Digest                   |
+| Capacity Planning    | Threads, RAM, KV-Cache, Kontextgröße und `n-predict`                         |
+| Observability        | Queue-Wartezeit, TTFT, Prefill, Tokens/s, Fehler und Fallback                |
+| FinOps               | zweiter CPU-Host gegen GPU- oder Managed-Variante                            |
+| SLO                  | Kernfunktion 8.9a getrennt von optionalem KI-SLO bewerten                    |
+| Rollout              | Offline → Zwei-Server-Labor → produktionsnahe Abnahme → bewusste Aktivierung |
 
 Für \(c\) Worker, Ankunftsrate \(\lambda\) und Bedienrate \(\mu\):
 
@@ -162,6 +164,7 @@ Die Mindestzahl von Worker-Slots bei Zielauslastung \(\rho_{\mathrm{Ziel}}\) ist
 \[
 c_{\min}
 =
+
 \left\lceil
 \frac{\lambda}{\mu\rho_{\mathrm{Ziel}}}
 \right\rceil.
@@ -174,14 +177,11 @@ Das Ende-zu-Ende-Latenzbudget lautet
 \[
 T_{\mathrm{gesamt}}
 =
-T_{\mathrm{Queue}}
-+
-T_{\mathrm{Netz}}
-+
-T_{\mathrm{Prefill}}
-+
-T_{\mathrm{Decode}}
-+
+
+T_{\mathrm{Queue}} +
+T_{\mathrm{Netz}} +
+T_{\mathrm{Prefill}} +
+T_{\mathrm{Decode}} +
 T_{\mathrm{Validierung}}.
 \]
 
