@@ -29,7 +29,12 @@ const p = t.pairing;
         {p.title}
       </h2>
       <p class="mt-5 text-lg leading-8 text-landing-fg-muted">{p.lead}</p>
-      <p class="mt-6 font-display text-lg font-semibold text-landing-fg">{p.whyTitle}</p>
+      <h3
+        id="pairing-why-heading"
+        class="mt-6 font-display text-lg font-semibold text-landing-fg"
+      >
+        {p.whyTitle}
+      </h3>
       <ul class="mt-4 grid gap-3 text-sm leading-6 text-landing-fg-body" role="list">
         {p.summary.map((item) => (
           <li class="rounded-landing-panel border border-landing-outline-variant bg-landing-surface-container p-4">
