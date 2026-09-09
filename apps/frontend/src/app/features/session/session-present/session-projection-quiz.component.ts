@@ -746,6 +746,12 @@ export class SessionProjectionQuizComponent {
   }
 
   private formatNumericValue(value: number): string {
+    if (this.numericUsesYearFormat()) {
+      return formatLocaleNumber(value, this.localeId, {
+        maximumFractionDigits: 0,
+        useGrouping: false,
+      });
+    }
     const abs = Math.abs(value);
     const maximumFractionDigits = Number.isInteger(value) ? 0 : abs >= 100 ? 1 : 2;
     return formatLocaleNumber(value, this.localeId, { maximumFractionDigits });
@@ -753,9 +759,41 @@ export class SessionProjectionQuizComponent {
 
   /** Eingabegrenzen mit konfigurierter Genauigkeit, nicht mit dem Statistik-Runder. */
   private formatNumericConstraintValue(value: number): string {
+    const year = this.numericUsesYearFormat();
     return formatLocaleNumber(value, this.localeId, {
-      maximumFractionDigits: this.numericConstraintFractionDigits(value),
+      maximumFractionDigits: year ? 0 : this.numericConstraintFractionDigits(value),
+      useGrouping: !year,
     });
+  }
+
+  private numericUsesIntegerFormat(): boolean {
+    const question = this.question();
+    return (
+      question?.type === 'NUMERIC_ESTIMATE' &&
+      (question.numericInputType === 'INTEGER' || question.numericDecimalPlaces === 0)
+    );
+  }
+
+  private numericUsesYearFormat(): boolean {
+    const question = this.question();
+    if (!this.numericUsesIntegerFormat() || !question || question.type !== 'NUMERIC_ESTIMATE') {
+      return false;
+    }
+    const textLooksLikeYear =
+      /\b(jahr|jahreszahl|year|année|annee|año|ano|anno)\b/i.test(question.text) ||
+      /\bwann\b/i.test(question.text);
+    if (textLooksLikeYear) {
+      return true;
+    }
+    const min = question.numericMin;
+    const max = question.numericMax;
+    return (
+      typeof min === 'number' &&
+      typeof max === 'number' &&
+      min >= 1000 &&
+      max <= 2200 &&
+      max - min <= 1000
+    );
   }
 
   private numericConstraintFractionDigits(value: number): number {
