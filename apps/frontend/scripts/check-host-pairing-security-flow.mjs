@@ -18,6 +18,9 @@ import { chromium, webkit } from 'playwright';
 const BASE_URL = process.env.BASE_URL || 'http://localhost:4200/de';
 const TRPC_URL = process.env.TRPC_URL || 'http://localhost:3000/trpc';
 const DESKTOP = { width: 1440, height: 1000 };
+function presenterStartButton(page) {
+  return page.locator('[data-testid="open-presenter-view"]').locator('visible=true').first();
+}
 const PRESENTER = { width: 1280, height: 720 };
 const MOBILE = { width: 430, height: 932 };
 const HOST_TOKEN_STORAGE_PREFIX = 'arsnova-host-token:';
@@ -206,7 +209,7 @@ async function main() {
       timeout: 30_000,
     });
     await waitForPathSuffix(host, `/session/${code}/host`);
-    await host.locator('[data-testid="open-presenter-view"]').first().waitFor({
+    await presenterStartButton(host).waitFor({
       state: 'visible',
       timeout: 20_000,
     });
@@ -258,12 +261,9 @@ async function main() {
       .waitFor({ state: 'visible', timeout: 15_000 });
     logStep(true, 'Oeffentlicher Scan bleibt im Pending ohne Host-Rechte');
 
-    await host
-      .locator('[data-testid="open-presenter-view"]')
-      .last()
-      .evaluate((element) => {
-        element.click();
-      });
+    await presenterStartButton(host).evaluate((element) => {
+      element.click();
+    });
     const reviewOrConnect = host
       .locator(
         '[data-testid="presentation-start-review-request"], [data-testid="presentation-start-connect"]',

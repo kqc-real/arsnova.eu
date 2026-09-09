@@ -53,6 +53,9 @@ describe('SessionProjectionQuizComponent', () => {
       /\.session-projection-quiz__answer-head\s*\{[^}]*align-items:\s*center/s,
     );
     expect(styles).toMatch(
+      /\.session-projection-quiz__answer-head[\s\S]*?\.markdown-body\s*\{[^}]*display:\s*block/s,
+    );
+    expect(styles).toMatch(
       /\.session-projection-quiz__answer-head[\s\S]*?\.markdown-body\s*\{[^}]*align-items:\s*center/s,
     );
     expect(styles).toMatch(/\.session-projection-quiz__answer-head[\s\S]*?line-height:\s*1/s);

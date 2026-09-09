@@ -158,6 +158,11 @@ describe('session-projection-quiz.util', () => {
         '### Foto?\n\n![Dach](/assets/demo/bett.png)\n\n*[credit] Pass / Le Brun*',
       ),
     ).toContain('![Dach](/assets/demo/bett.png)');
+    expect(
+      presenterMarkdownWithoutStageLinks(
+        '### Diagramm?\n\n![Schema](https://example.org/image.png)\n\nBitte ablesen.',
+      ),
+    ).toContain('![Schema](https://example.org/image.png)');
   });
 
   it('trennt Frage und Fenced-Code für die Beamer-Ansicht', () => {

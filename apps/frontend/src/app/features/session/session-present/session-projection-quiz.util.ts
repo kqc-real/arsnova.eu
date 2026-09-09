@@ -188,9 +188,10 @@ export function presenterMarkdownWithoutStageLinks(markdown: string): string {
       if (PRESENTER_STAGE_IMPULSE_RE.test(withoutHeading)) {
         return false;
       }
+      const withoutImages = trimmed.replace(/!\[[^\]]*]\([^)]*\)/g, '');
       return (
-        !PRESENTER_STAGE_MARKDOWN_LINK_RE.test(trimmed) &&
-        !PRESENTER_STAGE_BARE_URL_RE.test(trimmed)
+        !PRESENTER_STAGE_MARKDOWN_LINK_RE.test(withoutImages) &&
+        !PRESENTER_STAGE_BARE_URL_RE.test(withoutImages)
       );
     })
     .join('\n\n')
