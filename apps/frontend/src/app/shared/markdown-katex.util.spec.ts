@@ -243,6 +243,51 @@ describe('renderMarkdownWithKatex', () => {
     expect(result.html).toContain('referrerpolicy="no-referrer"');
   });
 
+  it('mappt GitHub-blob-raw-URLs auf raw.githubusercontent.com und behält CORS', () => {
+    const githubBlob =
+      'https://github.com/kqc-real/arsnova.eu/blob/main/apps/frontend/src/assets/icons/shortcut-join.png?raw=true';
+    const rawHref =
+      'https://raw.githubusercontent.com/kqc-real/arsnova.eu/main/apps/frontend/src/assets/icons/shortcut-join.png';
+    const result = renderMarkdownWithKatex(`![Join-Shortcut](${githubBlob})`, {
+      imagePolicy: 'external-https-only',
+    });
+
+    expect(result.html).toContain('<img');
+    expect(result.html).toContain(`src="${rawHref}"`);
+    expect(result.html).not.toContain(`src="${githubBlob}"`);
+    expect(result.html).toContain('alt="Join-Shortcut"');
+    expect(result.html).toContain('crossorigin="anonymous"');
+  });
+
+  it('mappt GitHub-/raw/-Pfade ebenfalls auf raw.githubusercontent.com', () => {
+    const githubRaw =
+      'https://github.com/kqc-real/arsnova.eu/raw/refs/heads/main/apps/frontend/src/assets/icons/shortcut-join.png';
+    const result = renderMarkdownWithKatex(`![Join](${githubRaw})`, {
+      imagePolicy: 'external-https-only',
+    });
+
+    expect(result.html).toContain(
+      'src="https://raw.githubusercontent.com/kqc-real/arsnova.eu/refs/heads/main/apps/frontend/src/assets/icons/shortcut-join.png"',
+    );
+    expect(result.html).toContain('crossorigin="anonymous"');
+  });
+
+  it('laesst Nicht-Blob-GitHub-URLs und fremde HTTPS-Bilder unveraendert', () => {
+    const issueUrl = 'https://github.com/kqc-real/arsnova.eu/issues/371';
+    const issue = renderMarkdownWithKatex(`![Issue](${issueUrl})`, {
+      imagePolicy: 'external-https-only',
+    });
+    expect(issue.html).toContain(`src="${issueUrl}"`);
+    expect(issue.html).toContain('crossorigin="anonymous"');
+
+    const cdn = 'https://example.org/diagram.png';
+    const other = renderMarkdownWithKatex(`![Diagram](${cdn})`, {
+      imagePolicy: 'external-https-only',
+    });
+    expect(other.html).toContain(`src="${cdn}"`);
+    expect(other.html).toContain('crossorigin="anonymous"');
+  });
+
   it('erlaubt im lockeren Bildmodus Blob-Bildquellen fuer lokale Vorschauen', () => {
     const result = renderMarkdownWithKatex('![Demo](blob:http://localhost:4200/preview-image)', {
       imagePolicy: 'allow-relative-and-https',

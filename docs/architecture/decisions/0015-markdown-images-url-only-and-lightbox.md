@@ -6,7 +6,7 @@
 **Datum:** 2026-03-20  
 **Entscheider:** Projektteam
 
-**Letzter Repo-Abgleich:** 2026-05-31
+**Letzter Repo-Abgleich:** 2026-09-09
 
 ## Kontext
 
@@ -56,9 +56,11 @@ Gleichzeitig soll die Darstellung auf **Smartphones** der gängigen Chat-/Messen
 - **Tracking / Drittanbieter**: externe Server können **Logs** schreiben; ggf. in **Hilfe/Datenschutz** hinweisen (Inhaltspflege durch Dozent:innen).
 - **Hotlinking-Richtlinien** fremder Sites können Bilder blockieren.
 
-## Repo-Abgleich 2026-05-31
+## Repo-Abgleich 2026-09-09
 
 Die URL-Policy ist in `renderMarkdownWithKatex` und den Shared-Type-Schemas abgebildet. Quiz-/Session-Inhalte verwenden HTTPS-Bilder; System-/Admin-Kontexte duerfen zusaetzlich App-Assets zulassen. Die Lightbox ist als `MarkdownImageLightboxDirective` plus Dialog implementiert und in Quiz-, Session-, Feedback-, MOTD- und News-/Legal-Kontexten eingebunden.
+
+Markdown-`<img>` laedt mit `crossorigin="anonymous"` und `referrerpolicy="no-referrer"`, damit das eifrige Anzeigen einer Frage keine Cookies oder HTTP-Auth an beliebige Bildhosts mitschickt. GitHub-`blob`/`raw`-URLs werden nur im Renderer auf `raw.githubusercontent.com` abgebildet (ACAO `*`); der Markdown-Quelltext bleibt unveraendert. Andere HTTPS-Quellen werden nicht umgeschrieben.
 
 ## Alternativen (geprüft)
 
