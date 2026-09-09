@@ -61,11 +61,15 @@ describe('SessionProjectionQuizComponent', () => {
       /\.session-projection-quiz__answer-head[\s\S]*?\.markdown-body\s*\{[^}]*align-items:\s*center/s,
     );
     expect(styles).toMatch(/\.session-projection-quiz__answer-head[\s\S]*?line-height:\s*1/s);
+    expect(styles).toMatch(/\.session-projection-quiz__reading\s*\{\s*flex:\s*0 0 auto/s);
     expect(styles).toMatch(
-      /\.session-projection-quiz--reading:not\(\.session-projection-quiz--split\)[\s\S]*?\.session-projection-quiz__reading\s*\{[^}]*flex:\s*1 1 auto/s,
+      /\.session-projection-quiz__reading\s*\{[^}]*min-height:\s*clamp\(12\.5rem, 30vmin, 16\.5rem\)/s,
     );
     expect(styles).toMatch(
-      /\.session-projection-quiz--reading:not\(\.session-projection-quiz--split\)[\s\S]*?\.session-projection-quiz__reading\s*\{[^}]*justify-content:\s*center/s,
+      /\.session-projection-quiz--reading:not\(\.session-projection-quiz--split\)[\s\S]*?\.session-projection-quiz__question-body\s*\{[^}]*justify-content:\s*space-evenly/s,
+    );
+    expect(styles).toMatch(
+      /mat-icon\.session-projection-quiz__reading-icon\s*\{[^}]*clamp\(4\.6rem, 12vmin, 8rem\)/s,
     );
     expect(styles).toMatch(
       /\.session-projection-quiz--reading\.session-projection-quiz--with-visual[\s\S]*?\.session-projection-quiz__visual\s*\{[^}]*flex:\s*0 1 auto/s,
@@ -235,15 +239,22 @@ describe('SessionProjectionQuizComponent', () => {
     fixture.componentRef.setInput('status', 'ACTIVE');
     fixture.detectChanges();
 
+    const labels = fixture.nativeElement.querySelector(
+      '.session-projection-quiz__rating-labels',
+    ) as HTMLElement | null;
     const poles = fixture.nativeElement.querySelectorAll(
       '.session-projection-quiz__rating-pole',
     ) as NodeListOf<HTMLElement>;
+    const icons = labels?.querySelectorAll(
+      ':scope > .session-projection-quiz__rating-pole-icon',
+    ) as NodeListOf<HTMLElement> | undefined;
     expect(poles).toHaveLength(2);
-    expect(poles[0]?.querySelector('.session-projection-quiz__rating-pole-icon')).toBeTruthy();
-    expect(poles[0]?.textContent).toContain('first_page');
+    expect(icons).toHaveLength(2);
+    expect(icons?.[0]?.textContent).toContain('first_page');
+    expect(icons?.[1]?.textContent).toContain('last_page');
+    expect(poles[0]?.querySelector('.session-projection-quiz__rating-pole-icon')).toBeNull();
     expect(poles[0]?.textContent).toContain('Sehr unwahrscheinlich');
     expect(poles[1]?.textContent).toContain('Sehr wahrscheinlich');
-    expect(poles[1]?.textContent).toContain('last_page');
 
     const styles = readFileSync(
       resolve(__dirname, 'session-projection-quiz.component.scss'),
@@ -255,7 +266,15 @@ describe('SessionProjectionQuizComponent', () => {
     expect(styles).toMatch(
       /\.session-projection-quiz__rating\s*\{[^}]*--pq-rating-pole-icon:\s*clamp\(1\.75rem, 4\.4vmin, 2\.75rem\)/s,
     );
-    expect(styles).toMatch(/\.session-projection-quiz__rating-pole\s*\{[^}]*min-width:\s*0/s);
+    expect(styles).toMatch(
+      /\.session-projection-quiz__rating-pole-icon--min\s*\{[^}]*grid-column:\s*1/s,
+    );
+    expect(styles).toMatch(
+      /\.session-projection-quiz__rating-pole-icon--max\s*\{[^}]*grid-column:\s*3/s,
+    );
+    expect(styles).toMatch(
+      /mat-icon\.session-projection-quiz__rating-pole-icon\s*\{[^}]*width:\s*var\(--pq-rating-pole-icon\)/s,
+    );
     expect(styles).not.toMatch(
       /\.session-projection-quiz__rating-pole[^}]*margin-inline-(?:start|end):\s*-/s,
     );
@@ -263,9 +282,7 @@ describe('SessionProjectionQuizComponent', () => {
     expect(styles).toMatch(
       /\.session-projection-quiz__bar,\s*\.session-projection-quiz__rating-labels\s*\{[^}]*grid-template-columns:\s*subgrid/s,
     );
-    expect(styles).toMatch(
-      /\.session-projection-quiz__rating-axis\s*\{[^}]*grid-column:\s*1 \/ -1/s,
-    );
+    expect(styles).toMatch(/\.session-projection-quiz__rating-axis\s*\{[^}]*grid-column:\s*2/s);
   });
 
   it('zeigt nach der Freigabe Verteilung und richtige Antwort', () => {
@@ -478,6 +495,19 @@ describe('SessionProjectionQuizComponent', () => {
     expect(categorizationSections[0]?.querySelector('h2')?.textContent ?? '').toContain('Elemente');
     expect(categorizationSections[1]?.querySelector('h2')?.textContent ?? '').toContain(
       'Kategorien',
+    );
+    const boardStyles = readFileSync(
+      resolve(__dirname, 'session-projection-quiz.component.scss'),
+      'utf8',
+    );
+    expect(boardStyles).toMatch(
+      /\.session-projection-quiz__option-board h2\s*\{[^}]*border-bottom:\s*1px solid var\(--mat-sys-outline-variant\)/s,
+    );
+    expect(boardStyles).toMatch(
+      /\.session-projection-quiz__option-board h2\s*\{[^}]*margin:\s*0 0 clamp\(1rem, 2\.6vmin, 1\.55rem\)/s,
+    );
+    expect(boardStyles).toMatch(
+      /\.session-projection-quiz__option-board:not\(\.session-projection-quiz__option-board--single\) ul\s*\{[^}]*align-content:\s*start/s,
     );
   });
 
@@ -886,6 +916,8 @@ describe('SessionProjectionQuizComponent', () => {
       'size(130, 130, OPENGL)',
     );
     expect(stage.textContent).toContain('Lesephase');
+    expect(stage.textContent).toContain('menu_book');
+    expect(stage.querySelector('.session-projection-quiz__reading-icon')).toBeTruthy();
     expect(stage.textContent).not.toContain('Groovy');
     expect(stage.textContent).not.toContain('Processing');
   });
