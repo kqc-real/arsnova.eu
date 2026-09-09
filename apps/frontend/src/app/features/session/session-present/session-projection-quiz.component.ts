@@ -51,6 +51,17 @@ type PresenterEmojiReactions = {
   total: number;
 };
 
+const NUMERIC_CONSTRAINT_MAX_FRACTION_DIGITS = 10;
+
+function countStoredFractionDigits(value: number): number {
+  if (!Number.isFinite(value) || Number.isInteger(value)) {
+    return 0;
+  }
+  const trimmed = value.toFixed(NUMERIC_CONSTRAINT_MAX_FRACTION_DIGITS).replace(/\.?0+$/, '');
+  const separator = trimmed.indexOf('.');
+  return separator === -1 ? 0 : trimmed.length - separator - 1;
+}
+
 @Component({
   selector: 'app-session-projection-quiz',
   standalone: true,
@@ -424,13 +435,13 @@ export class SessionProjectionQuizComponent {
     const min = question.numericMin;
     const max = question.numericMax;
     if (min !== undefined && min !== null && max !== undefined && max !== null) {
-      return $localize`:@@sessionVote.numericInputRangeBoth:Erlaubte Eingabe: ${min}:min: bis ${max}:max:`;
+      return $localize`:@@sessionVote.numericInputRangeBoth:Erlaubte Eingabe: ${this.formatNumericConstraintValue(min)}:min: bis ${this.formatNumericConstraintValue(max)}:max:`;
     }
     if (min !== undefined && min !== null) {
-      return $localize`:@@sessionVote.numericInputRangeMin:Erlaubte Eingabe: mindestens ${min}:min:`;
+      return $localize`:@@sessionVote.numericInputRangeMin:Erlaubte Eingabe: mindestens ${this.formatNumericConstraintValue(min)}:min:`;
     }
     if (max !== undefined && max !== null) {
-      return $localize`:@@sessionVote.numericInputRangeMax:Erlaubte Eingabe: höchstens ${max}:max:`;
+      return $localize`:@@sessionVote.numericInputRangeMax:Erlaubte Eingabe: höchstens ${this.formatNumericConstraintValue(max)}:max:`;
     }
     return null;
   });
@@ -459,12 +470,27 @@ export class SessionProjectionQuizComponent {
     }
     const maxDecimalPlaces = question.numericDecimalPlaces;
     if (maxDecimalPlaces !== undefined && maxDecimalPlaces !== null) {
-      return $localize`:@@sessionVote.numericFormatDecimalPlaces:Komma oder Punkt möglich, maximal ${maxDecimalPlaces}:maxDecimalPlaces: Nachkommastellen.`;
+      return null;
     }
     if (question.numericInputType === 'DECIMAL') {
       return $localize`:@@sessionVote.numericFormatDecimal:Komma oder Punkt möglich.`;
     }
     return null;
+  });
+
+  readonly numericMaxDecimalPlacesHint = computed(() => {
+    const question = this.question();
+    if (!question || question.type !== 'NUMERIC_ESTIMATE') {
+      return null;
+    }
+    if (question.numericInputType === 'INTEGER') {
+      return null;
+    }
+    const maxDecimalPlaces = question.numericDecimalPlaces;
+    if (maxDecimalPlaces === undefined || maxDecimalPlaces === null) {
+      return null;
+    }
+    return $localize`:@@sessionPresent.numericMaxDecimalPlaces:maximal ${maxDecimalPlaces}:maxDecimalPlaces: Nachkommastellen.`;
   });
 
   phaseLabel(): string {
@@ -593,7 +619,11 @@ export class SessionProjectionQuizComponent {
       question.type !== 'SURVEY' &&
       !this.showRoundComparison()
     ) {
-      return this.correctAllVotersLabel(question.correctVoterCount, question.totalVotes ?? 0);
+      return this.correctChoiceVotersLabel(
+        question.correctVoterCount,
+        question.totalVotes ?? 0,
+        question.type,
+      );
     }
     if ((question.totalVotes ?? 0) > 0) {
       return this.votesCastLabel(question.totalVotes ?? 0, this.participantCount());
@@ -721,6 +751,26 @@ export class SessionProjectionQuizComponent {
     return formatLocaleNumber(value, this.localeId, { maximumFractionDigits });
   }
 
+  /** Eingabegrenzen mit konfigurierter Genauigkeit, nicht mit dem Statistik-Runder. */
+  private formatNumericConstraintValue(value: number): string {
+    return formatLocaleNumber(value, this.localeId, {
+      maximumFractionDigits: this.numericConstraintFractionDigits(value),
+    });
+  }
+
+  private numericConstraintFractionDigits(value: number): number {
+    const question = this.question();
+    if (question?.numericInputType === 'INTEGER' || question?.numericDecimalPlaces === 0) {
+      return 0;
+    }
+    const configured =
+      typeof question?.numericDecimalPlaces === 'number' &&
+      Number.isFinite(question.numericDecimalPlaces)
+        ? Math.max(0, Math.min(10, Math.trunc(question.numericDecimalPlaces)))
+        : 0;
+    return Math.min(10, Math.max(configured, countStoredFractionDigits(value)));
+  }
+
   private votesCastLabel(votes: number, participantTotal: number | null | undefined): string {
     const totalStr =
       participantTotal !== undefined && participantTotal !== null
@@ -745,6 +795,24 @@ export class SessionProjectionQuizComponent {
     return $localize`:@@sessionHost.ratingSubmittedMany:${voteCount}:voteCount: von ${totalStr}:participantTotal: haben bewertet`;
   }
 
+  private correctChoiceVotersLabel(
+    correct: number,
+    total: number,
+    type: HostCurrentQuestionDTO['type'],
+  ): string {
+    if (type === 'MULTIPLE_CHOICE') {
+      return this.correctAllVotersLabel(correct, total);
+    }
+    return this.correctVotersLabel(correct, total);
+  }
+
+  /** Single-Choice- und Kurztext-Ergebnis: korrekt gewählte Antworten inkl. Prozent. */
+  private correctVotersLabel(correct: number, total: number): string {
+    const pct = total > 0 ? Math.round((correct / total) * 100) : 0;
+    return $localize`:@@sessionHost.correctVoters:${formatLocaleCount(correct, this.localeId)}:correctCount: von ${formatLocaleCount(total, this.localeId)}:voteTotal: richtig (${formatLocaleCount(pct, this.localeId)}:percentage:\u00a0%)`;
+  }
+
+  /** Multiple-Choice-Ergebnis: alle korrekten Optionen gewählt inkl. Prozent. */
   private correctAllVotersLabel(correct: number, total: number): string {
     const pct = total > 0 ? Math.round((correct / total) * 100) : 0;
     return $localize`:@@sessionHost.correctAllVoters:${formatLocaleCount(correct, this.localeId)}:correctCount: von ${formatLocaleCount(total, this.localeId)}:voteTotal: komplett richtig (${formatLocaleCount(pct, this.localeId)}:percentage:\u00a0%)`;

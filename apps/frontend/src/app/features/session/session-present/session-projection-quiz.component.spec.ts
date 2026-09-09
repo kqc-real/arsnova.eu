@@ -1,3 +1,4 @@
+import { LOCALE_ID } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
@@ -29,6 +30,7 @@ describe('SessionProjectionQuizComponent', () => {
   beforeEach(async () => {
     await TestBed.configureTestingModule({
       imports: [SessionProjectionQuizComponent],
+      providers: [{ provide: LOCALE_ID, useValue: 'de' }],
     }).compileComponents();
     fixture = TestBed.createComponent(SessionProjectionQuizComponent);
   });
@@ -59,6 +61,12 @@ describe('SessionProjectionQuizComponent', () => {
       /\.session-projection-quiz__answer-head[\s\S]*?\.markdown-body\s*\{[^}]*align-items:\s*center/s,
     );
     expect(styles).toMatch(/\.session-projection-quiz__answer-head[\s\S]*?line-height:\s*1/s);
+    expect(styles).toMatch(
+      /\.session-projection-quiz--reading:not\(\.session-projection-quiz--split\)[\s\S]*?\.session-projection-quiz__reading\s*\{[^}]*margin-block:\s*auto/s,
+    );
+    expect(styles).toMatch(
+      /\.session-projection-quiz__numeric-facts-stack\s*\{[^}]*flex-direction:\s*column/s,
+    );
     expect(styles).not.toMatch(
       /\.session-projection-quiz__answer\s*\{[^}]*align-self:\s*flex-start/s,
     );
@@ -606,6 +614,90 @@ describe('SessionProjectionQuizComponent', () => {
     ).not.toContain('faces.jpg');
   });
 
+  it('bricht den Dezimalstellen-Hinweis unter „Komma oder Punkt möglich,“ um', () => {
+    fixture.componentRef.setInput(
+      'question',
+      choiceQuestion({
+        type: 'NUMERIC_ESTIMATE',
+        answers: [],
+        numericInputType: 'DECIMAL',
+        numericDecimalPlaces: 2,
+      }),
+    );
+    fixture.componentRef.setInput('status', 'ACTIVE');
+    fixture.detectChanges();
+
+    const stack = fixture.nativeElement.querySelector(
+      '.session-projection-quiz__numeric-facts-stack',
+    ) as HTMLElement | null;
+    expect(stack).toBeTruthy();
+    const lines = Array.from(stack?.querySelectorAll(':scope > span') ?? []).map((node) =>
+      (node.textContent ?? '').trim(),
+    );
+    expect(lines).toEqual(['Komma oder Punkt möglich,', 'maximal 2 Nachkommastellen.']);
+    expect(stack?.textContent).not.toContain('Komma oder Punkt möglich, maximal');
+  });
+
+  it('formatiert den Eingabebereich locale-spezifisch mit Dezimaltrennzeichen', () => {
+    fixture.componentRef.setInput(
+      'question',
+      choiceQuestion({
+        type: 'NUMERIC_ESTIMATE',
+        answers: [],
+        numericInputType: 'DECIMAL',
+        numericDecimalPlaces: 2,
+        numericMin: 3,
+        numericMax: 3.5,
+      }),
+    );
+    fixture.componentRef.setInput('status', 'ACTIVE');
+    fixture.detectChanges();
+
+    const text = fixture.nativeElement.textContent as string;
+    expect(text).toContain('Erlaubte Eingabe: 3 bis 3,5');
+    expect(text).not.toContain('3.5');
+  });
+
+  it('zeigt Eingabegrenzen mit konfigurierter Dezimalgenauigkeit statt Statistikrundung', () => {
+    fixture.componentRef.setInput(
+      'question',
+      choiceQuestion({
+        type: 'NUMERIC_ESTIMATE',
+        answers: [],
+        numericInputType: 'DECIMAL',
+        numericDecimalPlaces: 3,
+        numericMin: 3.141,
+        numericMax: 3.142,
+      }),
+    );
+    fixture.componentRef.setInput('status', 'ACTIVE');
+    fixture.detectChanges();
+
+    const text = fixture.nativeElement.textContent as string;
+    expect(text).toContain('Erlaubte Eingabe: 3,141 bis 3,142');
+    expect(text).not.toContain('3,14 bis 3,14');
+  });
+
+  it('zeigt Eingabegrenzen über 100 ohne Statistikrundung auf eine Nachkommastelle', () => {
+    fixture.componentRef.setInput(
+      'question',
+      choiceQuestion({
+        type: 'NUMERIC_ESTIMATE',
+        answers: [],
+        numericInputType: 'DECIMAL',
+        numericDecimalPlaces: 2,
+        numericMin: 100.15,
+        numericMax: 100.16,
+      }),
+    );
+    fixture.componentRef.setInput('status', 'ACTIVE');
+    fixture.detectChanges();
+
+    const text = fixture.nativeElement.textContent as string;
+    expect(text).toContain('Erlaubte Eingabe: 100,15 bis 100,16');
+    expect(text).not.toContain('100,2');
+  });
+
   it('zeigt Display-KaTeX in Abstimmung und Ergebnis unter dem Bild', () => {
     const piQuestion = choiceQuestion({
       type: 'NUMERIC_ESTIMATE',
@@ -889,7 +981,7 @@ describe('SessionProjectionQuizComponent', () => {
     ).toBeTruthy();
   });
 
-  it('zeigt bei Wahlfragen die Korrektheitsauswertung', () => {
+  it('zeigt bei Single-Choice-Fragen die Korrektheitsauswertung ohne „komplett“', () => {
     fixture.componentRef.setInput(
       'question',
       choiceQuestion({
@@ -916,14 +1008,46 @@ describe('SessionProjectionQuizComponent', () => {
     fixture.componentRef.setInput('status', 'RESULTS');
     fixture.detectChanges();
 
-    expect(fixture.nativeElement.textContent).toContain('komplett richtig');
-    expect(fixture.nativeElement.textContent).toContain('36');
+    const text = fixture.nativeElement.textContent as string;
+    expect(text).toContain('36 von 50 richtig');
+    expect(text).not.toContain('komplett richtig');
     const evaluation = fixture.nativeElement.querySelector(
       '.session-projection-quiz__evaluation',
     ) as HTMLElement | null;
     expect(evaluation).toBeTruthy();
     expect(evaluation?.textContent).not.toContain('analytics');
     expect(evaluation?.querySelector('mat-icon')).toBeNull();
+  });
+
+  it('zeigt bei Multiple-Choice-Fragen „komplett richtig“', () => {
+    fixture.componentRef.setInput(
+      'question',
+      choiceQuestion({
+        type: 'MULTIPLE_CHOICE',
+        totalVotes: 50,
+        correctVoterCount: 36,
+        voteDistribution: [
+          {
+            id: 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa',
+            text: 'Drei',
+            isCorrect: false,
+            voteCount: 14,
+            votePercentage: 28,
+          },
+          {
+            id: 'bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb',
+            text: 'Vier',
+            isCorrect: true,
+            voteCount: 36,
+            votePercentage: 72,
+          },
+        ],
+      }),
+    );
+    fixture.componentRef.setInput('status', 'RESULTS');
+    fixture.detectChanges();
+
+    expect(fixture.nativeElement.textContent).toContain('36 von 50 komplett richtig');
   });
 
   it('zeigt bei Schätzfragen Toleranzband und Interpretation', () => {

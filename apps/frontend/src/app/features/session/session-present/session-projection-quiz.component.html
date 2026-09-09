@@ -298,7 +298,14 @@
                   @if (numericModeLabel(); as modeLabel) {
                     <li>{{ modeLabel }}</li>
                   }
-                  @if (numericFormatHint(); as formatHint) {
+                  @if (numericMaxDecimalPlacesHint(); as maxPlacesHint) {
+                    <li class="session-projection-quiz__numeric-facts-stack">
+                      <span i18n="@@sessionPresent.numericFormatDecimalLead"
+                        >Komma oder Punkt möglich,</span
+                      >
+                      <span>{{ maxPlacesHint }}</span>
+                    </li>
+                  } @else if (numericFormatHint(); as formatHint) {
                     <li>{{ formatHint }}</li>
                   }
                   @if (numericRangeHint(); as rangeHint) {

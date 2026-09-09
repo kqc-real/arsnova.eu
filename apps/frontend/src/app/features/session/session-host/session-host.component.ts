@@ -6268,7 +6268,24 @@ export class SessionHostComponent implements OnInit, OnDestroy {
     return $localize`:@@sessionHost.ratingSubmittedMany:${voteCount}:voteCount: von ${totalStr}:participantTotal: haben bewertet`;
   }
 
-  /** Multiple-Choice-Ergebnis: korrekt gewählte Antworten inkl. Prozent. */
+  correctChoiceVotersLabel(
+    correct: number,
+    total: number,
+    type: HostCurrentQuestionDTO['type'],
+  ): string {
+    if (type === 'MULTIPLE_CHOICE') {
+      return this.correctAllVotersLabel(correct, total);
+    }
+    return this.correctVotersLabel(correct, total);
+  }
+
+  /** Single-Choice-Ergebnis: korrekt gewählte Antwort inkl. Prozent. */
+  correctVotersLabel(correct: number, total: number): string {
+    const pct = total > 0 ? Math.round((correct / total) * 100) : 0;
+    return $localize`:@@sessionHost.correctVoters:${formatLocaleCount(correct, this.localeId)}:correctCount: von ${formatLocaleCount(total, this.localeId)}:voteTotal: richtig (${formatLocaleCount(pct, this.localeId)}:percentage:\u00a0%)`;
+  }
+
+  /** Multiple-Choice-Ergebnis: alle korrekten Optionen gewählt inkl. Prozent. */
   correctAllVotersLabel(correct: number, total: number): string {
     const pct = total > 0 ? Math.round((correct / total) * 100) : 0;
     return $localize`:@@sessionHost.correctAllVoters:${formatLocaleCount(correct, this.localeId)}:correctCount: von ${formatLocaleCount(total, this.localeId)}:voteTotal: komplett richtig (${formatLocaleCount(pct, this.localeId)}:percentage:\u00a0%)`;
@@ -6364,7 +6381,7 @@ export class SessionHostComponent implements OnInit, OnDestroy {
     }
     const labels: Record<SessionInfoDTO['status'], string> = {
       LOBBY: $localize`Lobby – Teilnehmende können beitreten`,
-      QUESTION_OPEN: $localize`Lesephase – Antworten noch gesperrt`,
+      QUESTION_OPEN: $localize`:@@sessionHost.phaseReadingLocked:Lesephase – Antwortoptionen noch gesperrt`,
       ACTIVE: $localize`Abstimmung läuft`,
       PAUSED: $localize`Pausiert`,
       RESULTS: $localize`Ergebnisse werden angezeigt`,

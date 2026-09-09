@@ -769,7 +769,7 @@ sequenceDiagram
 
     Note over S,BE: Phase 2a: Lesephase (QUESTION_OPEN, Story 2.6)
     BE->>FE: Event onQuestionRevealed (QuestionPreviewDTO, nur Fragenstamm)
-    FE->>S: Frage anzeigen, Hinweis „Antworten folgen gleich"
+    FE->>S: Frage anzeigen, Hinweis „Antwortoptionen folgen gleich"
 
     Note over S,BE: Phase 2b: Antwortphase (ACTIVE)
     BE->>FE: Event onAnswersRevealed (QuestionStudentDTO, kein isCorrect)
