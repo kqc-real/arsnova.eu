@@ -237,16 +237,20 @@ const it: Messages = {
   pairing: {
     eyebrow: 'Cosa ci distingue',
     title: 'Presenta da qualsiasi punto della sala — dal telefono o dal tablet',
-    lead: 'Con Kahoot, Mentimeter, Slido o Particify resti di solito al laptop. Con arsnova.eu colleghi il telefono: le slide restano sul proiettore, tu ti muovi in sala e conduci la sessione in diretta.',
+    lead: 'Altri sistemi di audience response offrono spesso un telecomando — come clicker per le slide o con un account separato sul telefono. Con arsnova.eu inquadri un QR, confermi sul laptop e il telefono conduce solo la sessione in corso.',
+    whyTitle: 'Perché questo accoppiamento non è un semplice telecomando',
     summary: [
       'Piena libertà di movimento durante la presentazione — un vantaggio chiaro per la didattica e la messa in scena.',
-      'Lo stesso controllo di sessione che sul laptop: domande, risultati, Q&A, Sondaggio rapido, Termina sessione.',
-      'Passa il controllo ad hoc a un tutor o a un moderatore — non solo un clic per la slide successiva.',
+      'Lo stesso controllo di sessione che sul laptop: domande, risultati, Q&A, Sondaggio rapido, Termina sessione — non solo la slide successiva.',
+      'Senza account sul telefono: puoi passarlo a chi ti aiuta, senza condividere password.',
+      'Niente login in prestito: il QR compare sul laptop, e lì confermi. Il telefono ottiene la sessione, non il tuo account.',
+      'La raccolta quiz resta sul laptop: modificare o eliminare solo lì, non dal dispositivo accoppiato.',
     ],
     laptopLabel: 'Laptop e proiettore',
-    laptopText: 'Mostrano la presentazione. Qui confermi la connessione.',
+    laptopText:
+      'Mostrano la presentazione. Qui confermi la connessione. La raccolta quiz resta qui.',
     phoneLabel: 'Telefono o tablet',
-    phoneText: 'Conduce la sessione in corso mentre sei in sala.',
+    phoneText: 'Conduce la sessione in corso — senza login extra — mentre sei in sala.',
     demoAria: 'Il laptop mostra la presentazione; il telefono controlla la sessione',
   },
   features: {
@@ -257,7 +261,7 @@ const it: Messages = {
       {
         title: 'Presenta da qualsiasi punto della sala',
         description:
-          'Collega un telefono o un tablet e conduci la sessione in movimento: domande, risultati, Q&A, Sondaggio rapido, Termina sessione. Resti vicino al pubblico e puoi passare il controllo ad hoc — a differenza di Kahoot, Mentimeter, Slido o Particify.',
+          'Collega un telefono o un tablet e conduci la sessione in movimento: domande, risultati, Q&A, Sondaggio rapido, Termina sessione. Senza account sul telefono: il QR è sul laptop e confermi lì. La raccolta quiz resta sul computer — puoi passare il dispositivo senza condividere password.',
         icon: 'presenter',
       },
       {
@@ -452,7 +456,7 @@ const it: Messages = {
       {
         title: 'Libertà di movimento, non legato al laptop',
         description:
-          'Conduci la sessione da un telefono o un tablet mentre la presentazione resta sul proiettore. È il controllo completo della sessione in diretta — domande, risultati, Q&A, Sondaggio rapido, Termina sessione — e puoi passarlo ad hoc. Con Kahoot, Mentimeter, Slido o Particify resti di solito al computer.',
+          'Altri strumenti offrono spesso un telecomando come clicker per le slide o con un login separato. Qui inquadri un QR e confermi sul laptop. Il telefono conduce la sessione senza un account proprio: domande, risultati, Q&A, Sondaggio rapido, Termina sessione. La raccolta quiz resta sul laptop.',
       },
       {
         title: 'Meno barriere d’ingresso',
@@ -486,7 +490,7 @@ const it: Messages = {
       {
         question: 'Posso controllare la sessione dal telefono?',
         answer:
-          'Sì. All’avvio della presentazione colleghi un telefono o un tablet tramite QR. Il laptop mostra le slide; tu ti muovi in sala. Il dispositivo conduce la sessione in diretta — domande, risultati, Q&A, Sondaggio rapido, Termina sessione — non la raccolta quiz. Puoi anche passare il controllo a un tutor o a un moderatore di fiducia. È una differenza chiara rispetto a strumenti come Kahoot, Mentimeter, Slido o Particify.',
+          'Sì. All’avvio della presentazione il QR compare sul laptop; confermi la connessione lì. Il telefono non ha bisogno di un account. Conduce la sessione in diretta — domande, risultati, Q&A, Sondaggio rapido, Termina sessione — non la raccolta quiz. Puoi passare il dispositivo a chi ti aiuta, senza condividere password. Altri strumenti hanno spesso un telecomando con login extra o solo come clicker per le slide.',
       },
       {
         question: 'Dove sono i dati?',

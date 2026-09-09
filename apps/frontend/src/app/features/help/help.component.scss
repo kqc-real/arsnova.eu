@@ -144,6 +144,10 @@
   line-height: 1.65;
 }
 
+.help-panel__body p + p {
+  margin-top: 0.75rem;
+}
+
 .help-info-landing {
   margin-top: 1.5rem;
   padding: 1rem 1.1rem;
