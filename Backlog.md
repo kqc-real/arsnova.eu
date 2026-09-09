@@ -1120,7 +1120,7 @@ Eine Story gilt als **fertig**, wenn **alle** folgenden Kriterien erfüllt sind:
       - Auf Beamer und Teilnehmenden-Geräten wird **nur der Fragenstamm** angezeigt (Markdown/KaTeX gerendert), ohne Antwortoptionen.
       - Kein Countdown läuft. Abstimmung ist nicht möglich.
       - Beamer: Frage großformatig zentriert, dezenter Hinweis „Gleich geht's los…".
-      - Teilnehmenden-Gerät: Frage wird angezeigt, Hinweis „Lies die Frage — Antworten folgen gleich.“
+      - Teilnehmenden-Gerät: Frage wird angezeigt, Hinweis „Lies die Frage — Antwortoptionen folgen gleich.“
       - Neues DTO `QuestionPreviewDTO` wird gesendet (enthält `id`, `text`, `type`, `difficulty`, `order` — **keine** `answers`).
     - **Phase 2 (Übergang zu `ACTIVE`):**
       - Die Lehrperson klickt den Button „Antworten freigeben“ (Story 2.3).
@@ -1486,7 +1486,7 @@ Eine Story gilt als **fertig**, wenn **alle** folgenden Kriterien erfüllt sind:
 - **Story 3.3a (Frage empfangen):** 🔴 Als Teilnehmende:r möchte ich die aktuell freigegebene Frage auf meinem Gerät in Echtzeit sehen.
   - **Akzeptanzkriterien:**
     - tRPC-Subscription `session.onQuestionRevealed` pusht die aktuelle Frage.
-    - **Lesephase (`QUESTION_OPEN`, Story 2.6):** Nur der Fragenstamm wird angezeigt (`QuestionPreviewDTO`, ohne Antwortoptionen). Antwort-Buttons und Countdown sind ausgeblendet. Hinweistext: „Lies die Frage — Antworten folgen gleich."
+    - **Lesephase (`QUESTION_OPEN`, Story 2.6):** Nur der Fragenstamm wird angezeigt (`QuestionPreviewDTO`, ohne Antwortoptionen). Antwort-Buttons und Countdown sind ausgeblendet. Hinweistext: „Lies die Frage — Antwortoptionen folgen gleich."
     - **Antwortphase (`ACTIVE`):** Die Antwortoptionen werden eingeblendet, der Countdown startet. Die vollständige Frage wird als `QuestionStudentDTO` (ohne `isCorrect`) angezeigt.
     - Wenn `readingPhaseEnabled=false`: Die Lesephase entfällt — die Frage wird sofort mit Antwortoptionen angezeigt (bisheriges Verhalten).
     - Fragenstamm und Antwortoptionen werden mit Markdown & KaTeX korrekt gerendert (siehe Story 1.7).

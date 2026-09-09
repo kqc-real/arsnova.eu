@@ -1761,8 +1761,11 @@
                           >menu_book</mat-icon
                         >
                         <p class="session-host__reading-banner-title" i18n>Lesephase</p>
-                        <p class="session-host__reading-banner-hint" i18n>
-                          Antworten folgen gleich.
+                        <p
+                          class="session-host__reading-banner-hint"
+                          i18n="@@sessionHost.readingBannerHint"
+                        >
+                          Antwortoptionen folgen gleich.
                         </p>
                         @if (allConnectedParticipantsReady()) {
                           <p class="session-host__all-voted" role="status" aria-live="polite">
@@ -3186,11 +3189,17 @@
                             @if (
                               q.correctVoterCount !== null &&
                               q.correctVoterCount !== undefined &&
-                              q.type === 'MULTIPLE_CHOICE'
+                              (q.type === 'MULTIPLE_CHOICE' || q.type === 'SINGLE_CHOICE')
                             ) {
                               <p class="session-host__vote-dist-correct">
                                 <mat-icon>check_circle</mat-icon>
-                                {{ correctAllVotersLabel(q.correctVoterCount, q.totalVotes ?? 0) }}
+                                {{
+                                  correctChoiceVotersLabel(
+                                    q.correctVoterCount,
+                                    q.totalVotes ?? 0,
+                                    q.type
+                                  )
+                                }}
                               </p>
                             }
                             <ul class="session-host__vote-dist-list" role="list">

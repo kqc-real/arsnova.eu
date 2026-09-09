@@ -269,7 +269,7 @@ export function voteReadingTitle(playful: boolean): string {
 
 export function voteReadingHint(playful: boolean): string {
   if (playful) {
-    return $localize`:@@sessionVote.readingHintPlayful:Nimm dir einen Moment – die Antworten kommen gleich.`;
+    return $localize`:@@sessionVote.readingHintPlayful:Nimm dir einen Moment – die Antwortoptionen kommen gleich.`;
   }
   return $localize`:@@sessionVote.readingHintSerious:Lies die Frage in Ruhe – die Antwortoptionen folgen gleich.`;
 }

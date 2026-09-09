@@ -194,6 +194,7 @@ describe('SessionPresentComponent', () => {
         '[data-testid="presenter-fullscreen-gate"]',
       ) as HTMLElement | null;
       expect(gate).toBeTruthy();
+      expect(gate?.textContent).toContain('Tippe hier, um Vollbild zu erlauben.');
       const button = fixture.nativeElement.querySelector(
         '[data-testid="presenter-fullscreen-enter"]',
       ) as HTMLButtonElement | null;

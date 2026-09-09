@@ -9202,7 +9202,9 @@ describe('SessionHostComponent', { timeout: 30_000 }, () => {
     await flushComponentAfterStable(fixture, 50);
     fixture.detectChanges();
 
-    expect(fixture.nativeElement.textContent ?? '').not.toContain('komplett richtig');
+    const text = fixture.nativeElement.textContent ?? '';
+    expect(text).not.toContain('komplett richtig');
+    expect(text).toContain('0 von 0 richtig');
     fixture.destroy();
   });
 

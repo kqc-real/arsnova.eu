@@ -15639,8 +15639,8 @@
           <context context-type="linenumber">1731</context>
         </context-group>
       </trans-unit>
-      <trans-unit id="6096095357858309629" datatype="html">
-        <source> Antworten folgen gleich. </source>
+      <trans-unit id="sessionHost.readingBannerHint" datatype="html">
+        <source> Antwortoptionen folgen gleich. </source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.html</context>
           <context context-type="linenumber">1732,1734</context>
@@ -17926,6 +17926,17 @@
           <context context-type="linenumber">738</context>
         </context-group>
       </trans-unit>
+      <trans-unit id="sessionHost.correctVoters" datatype="html">
+        <source><x id="correctCount" equiv-text="formatLocaleCount(correct, this.localeId)"/> von <x id="voteTotal" equiv-text="formatLocaleCount(total, this.localeId)"/> richtig (<x id="percentage" equiv-text="formatLocaleCount(pct, this.localeId)"/> %)</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.ts</context>
+          <context context-type="linenumber">6284</context>
+        </context-group>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/session-present/session-projection-quiz.component.ts</context>
+          <context context-type="linenumber">762</context>
+        </context-group>
+      </trans-unit>
       <trans-unit id="sessionHost.opinionShiftChangedMind" datatype="html">
         <source><x id="changed" equiv-text="formatLocaleCount(changed, this.localeId)"/> von <x id="both" equiv-text="formatLocaleCount(both, this.localeId)"/> (<x id="pct" equiv-text="formatLocaleCount(pct, this.localeId)"/> %) änderten ihre Meinung</source>
         <context-group purpose="location">
@@ -18037,8 +18048,8 @@
           <context context-type="linenumber">6212</context>
         </context-group>
       </trans-unit>
-      <trans-unit id="1220327087999810393" datatype="html">
-        <source>Lesephase – Antworten noch gesperrt</source>
+      <trans-unit id="sessionHost.phaseReadingLocked" datatype="html">
+        <source>Lesephase – Antwortoptionen noch gesperrt</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.ts</context>
           <context context-type="linenumber">6213</context>
@@ -19151,7 +19162,7 @@
         </context-group>
       </trans-unit>
       <trans-unit id="sessionPresent.fullscreenGateHint" datatype="html">
-        <source>Tippe hier, damit der Browser das Vollbild für den Beamer erlaubt.</source>
+        <source>Tippe hier, um Vollbild zu erlauben.</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-present/session-present.component.html</context>
           <context context-type="linenumber">28,30</context>
@@ -19638,6 +19649,20 @@
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-vote/session-vote.component.ts</context>
           <context context-type="linenumber">2117</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="sessionPresent.numericFormatDecimalLead" datatype="html">
+        <source>Komma oder Punkt möglich,</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/session-present/session-projection-quiz.component.html</context>
+          <context context-type="linenumber">303</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="sessionPresent.numericMaxDecimalPlaces" datatype="html">
+        <source>maximal <x id="maxDecimalPlaces" equiv-text="maxDecimalPlaces"/> Nachkommastellen.</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/session-present/session-projection-quiz.component.ts</context>
+          <context context-type="linenumber">482</context>
         </context-group>
       </trans-unit>
       <trans-unit id="sessionPresent.quizPhaseReading" datatype="html">
@@ -20529,7 +20554,7 @@
         </context-group>
       </trans-unit>
       <trans-unit id="sessionVote.readingHintPlayful" datatype="html">
-        <source>Nimm dir einen Moment – die Antworten kommen gleich.</source>
+        <source>Nimm dir einen Moment – die Antwortoptionen kommen gleich.</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-vote/session-vote-participant-copy.ts</context>
           <context context-type="linenumber">272</context>
