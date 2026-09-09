@@ -213,13 +213,13 @@ function parseMarkdownEscapingInlineHtml(
     if (!safeHref) {
       return escapeHtml(text);
     }
-    const hrefEsc = escapeHtml(safeHref);
+    const imageHref = canonicalizeGithubMarkdownImageUrl(safeHref);
+    const hrefEsc = escapeHtml(imageHref);
     const altEsc = escapeHtml(text);
     const hasTitle = title !== undefined && title !== null && String(title).trim() !== '';
     const tooltip = hasTitle ? String(title).trim() : text;
     const titleEsc = escapeHtml(tooltip);
-    // Kein crossorigin: CORS-Mode bricht GitHub-blob-Redirects ohne ACAO (#371).
-    return `<img src="${hrefEsc}" alt="${altEsc}" title="${titleEsc}" loading="eager" decoding="async" referrerpolicy="no-referrer" data-markdown-image-lightbox="true" data-markdown-image-state="loading" />`;
+    return `<img src="${hrefEsc}" alt="${altEsc}" title="${titleEsc}" loading="eager" decoding="async" crossorigin="anonymous" referrerpolicy="no-referrer" data-markdown-image-lightbox="true" data-markdown-image-state="loading" />`;
   };
   return marked.parse(source, { renderer }) as string;
 }
@@ -319,6 +319,46 @@ function renderMarkdownText(value: string): string {
 
 function looksLikeRenderedHtml(value: string): boolean {
   return /<\/?[a-z][^>]*>/i.test(value);
+}
+
+const GITHUB_MARKDOWN_IMAGE_HOSTS = new Set(['github.com', 'www.github.com']);
+const GITHUB_OWNER_OR_REPO = /^[A-Za-z0-9._-]+$/;
+
+/**
+ * GitHub `blob`/`raw`-Seiten liefern HTML bzw. Redirects ohne CORS.
+ * `raw.githubusercontent.com` hat ACAO `*` — so bleibt `crossorigin="anonymous"`.
+ */
+function canonicalizeGithubMarkdownImageUrl(href: string): string {
+  let parsed: URL;
+  try {
+    parsed = new URL(href);
+  } catch {
+    return href;
+  }
+  if (parsed.protocol !== 'https:') {
+    return href;
+  }
+  if (!GITHUB_MARKDOWN_IMAGE_HOSTS.has(parsed.hostname.toLowerCase())) {
+    return href;
+  }
+  const segments = parsed.pathname.split('/').filter((part) => part.length > 0);
+  if (segments.length < 4) {
+    return href;
+  }
+  const [owner, repo, kind, ...rest] = segments;
+  if (kind !== 'blob' && kind !== 'raw') {
+    return href;
+  }
+  if (!owner || !repo || rest.length === 0) {
+    return href;
+  }
+  if (!GITHUB_OWNER_OR_REPO.test(owner) || !GITHUB_OWNER_OR_REPO.test(repo)) {
+    return href;
+  }
+  if (rest.some((part) => part === '.' || part === '..')) {
+    return href;
+  }
+  return `https://raw.githubusercontent.com/${owner}/${repo}/${rest.join('/')}`;
 }
 
 function sanitizeMarkdownUrl(

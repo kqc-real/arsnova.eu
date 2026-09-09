@@ -60,7 +60,7 @@ Gleichzeitig soll die Darstellung auf **Smartphones** der gängigen Chat-/Messen
 
 Die URL-Policy ist in `renderMarkdownWithKatex` und den Shared-Type-Schemas abgebildet. Quiz-/Session-Inhalte verwenden HTTPS-Bilder; System-/Admin-Kontexte duerfen zusaetzlich App-Assets zulassen. Die Lightbox ist als `MarkdownImageLightboxDirective` plus Dialog implementiert und in Quiz-, Session-, Feedback-, MOTD- und News-/Legal-Kontexten eingebunden.
 
-Markdown-`<img>` setzt **kein** `crossorigin="anonymous"`. CORS-Mode wuerde Redirect-Ketten ohne `Access-Control-Allow-Origin` (typisch: GitHub `blob/…?raw=true`) als kaputtes Inline-Bild mit sichtbarem Alt-Text rendern, waehrend die Lightbox dasselbe `src` ohne CORS anzeigt. `referrerpolicy="no-referrer"` bleibt. Wikimedia-URLs wirkten zuvor „erlaubt“, weil der Bildhost ACAO direkt am Medium setzt.
+Markdown-`<img>` laedt mit `crossorigin="anonymous"` und `referrerpolicy="no-referrer"`, damit das eifrige Anzeigen einer Frage keine Cookies oder HTTP-Auth an beliebige Bildhosts mitschickt. GitHub-`blob`/`raw`-URLs werden nur im Renderer auf `raw.githubusercontent.com` abgebildet (ACAO `*`); der Markdown-Quelltext bleibt unveraendert. Andere HTTPS-Quellen werden nicht umgeschrieben.
 
 ## Alternativen (geprüft)
 
