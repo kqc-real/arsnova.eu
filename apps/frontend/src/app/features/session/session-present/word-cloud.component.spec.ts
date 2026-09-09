@@ -294,6 +294,11 @@ describe('WordCloudComponent', () => {
     const text = fixture.nativeElement.textContent as string;
     expect(text).toContain('Häufig genannte Wörter erscheinen größer.');
     expect(text).toContain('Je größer ein Wort, desto öfter wurde es genannt.');
+    const hint = fixture.nativeElement.querySelector(
+      '.word-cloud__meta .word-cloud__reading-hint',
+    ) as HTMLElement | null;
+    expect(hint).toBeTruthy();
+    expect(hint?.textContent).toContain('Je größer ein Wort, desto öfter wurde es genannt.');
   });
 
   it('kann öffentliche Presenter-Ansichten im Output-only-Modus ohne Bedien-UI rendern', () => {
@@ -311,6 +316,11 @@ describe('WordCloudComponent', () => {
     expect(fixture.nativeElement.querySelector('.word-cloud__supporting')).toBeNull();
     expect(fixture.nativeElement.querySelector('.word-cloud__word--output')).toBeTruthy();
     expect(fixture.nativeElement.querySelector('button.word-cloud__word')).toBeNull();
+    const hint = fixture.nativeElement.querySelector(
+      '.word-cloud__meta .word-cloud__reading-hint',
+    ) as HTMLElement | null;
+    expect(hint).toBeTruthy();
+    expect(hint?.textContent).toContain('Je größer ein Wort, desto öfter wurde es genannt.');
   });
 
   it('fuellt im Presentation-Modus die verfuegbare Host-Hoehe', () => {

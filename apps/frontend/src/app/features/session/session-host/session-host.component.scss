@@ -680,13 +680,64 @@
   padding-inline: 0.75rem;
 }
 
+.session-host__view-toggle.session-host__view-toggle--presenter {
+  --app-presenter-icon-size: 1.75rem;
+  border: 0;
+  background: var(--mat-sys-primary);
+  color: var(--mat-sys-on-primary);
+  box-shadow: var(--mat-sys-level1);
+
+  &.session-host__view-toggle--active {
+    border: 0;
+    background: var(--mat-sys-primary);
+    color: var(--mat-sys-on-primary);
+  }
+
+  .session-host__view-toggle-icon {
+    width: var(--app-presenter-icon-size);
+    height: var(--app-presenter-icon-size);
+    font-size: var(--app-presenter-icon-size);
+    line-height: 0;
+  }
+}
+
+.session-host__presenter-cta {
+  --app-presenter-icon-size: 1.75rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+
+  mat-icon,
+  app-presenter-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    align-self: center;
+    width: var(--app-presenter-icon-size);
+    height: var(--app-presenter-icon-size);
+    font-size: var(--app-presenter-icon-size);
+    line-height: 0;
+    vertical-align: middle;
+  }
+}
+
+.session-host:has(.session-host__presenter-cta) .session-host__view-toggle--presenter {
+  display: none;
+}
+
 .session-host__view-toggle-icon {
-  display: block;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  align-self: center;
   flex: 0 0 auto;
   width: 1.125rem;
   height: 1.125rem;
   margin: 0;
   overflow: visible;
+  line-height: 0;
+  vertical-align: middle;
   color: inherit;
   fill: currentColor;
 }
@@ -824,7 +875,8 @@
   /* Rahmen-Umschaltung bleibt sichtbar als Fokus-Fallback,
      wenn Presenter/Fullscreen unter 600px ausgeblendet werden. */
   .session-host__view-toggle--fullscreen,
-  .session-host__view-toggle--presenter {
+  .session-host__view-toggle--presenter,
+  .session-host__presenter-cta {
     display: none;
   }
 }
@@ -832,7 +884,8 @@
 /* Smartphone Landscape: Fullscreen- und Presenter-Button ausblenden (Höhe typisch < 500px). */
 @media (max-height: 499px) {
   .session-host__view-toggle--fullscreen,
-  .session-host__view-toggle--presenter {
+  .session-host__view-toggle--presenter,
+  .session-host__presenter-cta {
     display: none;
   }
 }
@@ -3066,6 +3119,10 @@
 }
 
 .session-lobby__actions--hero {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.65rem;
   margin-top: 0.25rem;
 }
 

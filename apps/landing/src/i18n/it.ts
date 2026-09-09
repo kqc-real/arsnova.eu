@@ -258,7 +258,7 @@ const it: Messages = {
         title: 'Presenta da qualsiasi punto della sala',
         description:
           'Collega un telefono o un tablet e conduci la sessione in movimento: domande, risultati, Q&A, Sondaggio rapido, Termina sessione. Resti vicino al pubblico e puoi passare il controllo ad hoc — a differenza di Kahoot, Mentimeter, Slido o Particify.',
-        icon: 'phone',
+        icon: 'presenter',
       },
       {
         title: 'Pronto in poco tempo',

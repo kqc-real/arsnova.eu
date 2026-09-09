@@ -9,6 +9,7 @@ import {
   presenterCompactMarkdown,
   presenterCorrectPairResults,
   presenterMarkdownWithoutCode,
+  presenterMarkdownWithoutStageLinks,
   presenterQuestionCodeBlocks,
   presenterQuestionCodeColumnMarkdown,
   presenterQuestionCodeMarkdown,
@@ -64,6 +65,13 @@ describe('session-projection-quiz.util', () => {
     expect(shuffled.map((item) => item.id).sort()).toEqual(['a', 'b', 'c']);
     expect(stableSeededShuffle(items, 'seed-1', (item) => item.id)).toEqual(shuffled);
     expect(reversed).toEqual(shuffled);
+  });
+
+  it('zieht für die Freitext-Wortwolke nur die Überschrift', () => {
+    const markdown =
+      '### Was hilft dir beim Lernen?\n\nDie Antworten werden als **Wortwolke** dargestellt.';
+    expect(presenterQuestionHeading(markdown)).toBe('Was hilft dir beim Lernen?');
+    expect(presenterQuestionHeading(markdown)).not.toContain('Wortwolke');
   });
 
   it('zieht für die Beamer-Abstimmung nur die Überschrift, das Bild separat', () => {
@@ -135,6 +143,26 @@ describe('session-projection-quiz.util', () => {
       { l1: 'r1' },
     );
     expect(pairs).toEqual([{ id: 'l1', from: 'Berlin', to: 'Deutschland', count: 6, percent: 75 }]);
+  });
+
+  it('entfernt optionale Impulse und externe Links für die Beamer-Lesephase', () => {
+    const markdown =
+      '### Aus wie vielen Cubies besteht ein 3×3-Zauberwürfel?\n\nGemeint ist der klassische Rubik’s Cube.\n\nOptionaler Impuls: [Wie man einen 3×3 Zauberwürfel löst](https://www.youtube.com/watch?v=EoINieyz6gE).';
+    expect(presenterMarkdownWithoutStageLinks(markdown)).toBe(
+      '### Aus wie vielen Cubies besteht ein 3×3-Zauberwürfel?\n\nGemeint ist der klassische Rubik’s Cube.',
+    );
+    expect(presenterMarkdownWithoutStageLinks(markdown)).not.toContain('Optionaler Impuls');
+    expect(presenterMarkdownWithoutStageLinks(markdown)).not.toContain('youtube.com');
+    expect(
+      presenterMarkdownWithoutStageLinks(
+        '### Foto?\n\n![Dach](/assets/demo/bett.png)\n\n*[credit] Pass / Le Brun*',
+      ),
+    ).toContain('![Dach](/assets/demo/bett.png)');
+    expect(
+      presenterMarkdownWithoutStageLinks(
+        '### Diagramm?\n\n![Schema](https://example.org/image.png)\n\nBitte ablesen.',
+      ),
+    ).toContain('![Schema](https://example.org/image.png)');
   });
 
   it('trennt Frage und Fenced-Code für die Beamer-Ansicht', () => {

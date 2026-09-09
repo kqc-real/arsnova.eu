@@ -30,6 +30,12 @@
           >{{ formatCount(responseSummary().total) }} {{ itemLabel(responseSummary().total) }}</span
         >
       </p>
+      @if (weightingHint()) {
+        <div class="word-cloud__reading-hint" role="note">
+          <mat-icon aria-hidden="true">insights</mat-icon>
+          <span>{{ weightingHint() }}</span>
+        </div>
+      }
       @if (analysisDetailLabel()) {
         <div class="word-cloud__filter-info">
           <p class="word-cloud__filter-info-line">
@@ -71,12 +77,6 @@
             </mat-button-toggle>
           }
         </mat-button-toggle-group>
-      </div>
-    }
-    @if (weightingHint()) {
-      <div class="word-cloud__reading-hint" role="note">
-        <mat-icon aria-hidden="true">insights</mat-icon>
-        <span>{{ weightingHint() }}</span>
       </div>
     }
     <div

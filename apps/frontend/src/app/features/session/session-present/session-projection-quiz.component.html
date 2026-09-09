@@ -112,7 +112,7 @@
                 >menu_book</mat-icon
               >
               <span i18n="@@sessionPresent.quizReadingHint"
-                >Lesephase – Antworten folgen gleich.</span
+                >Lesephase – Antwortoptionen folgen gleich.</span
               >
             </p>
           }
@@ -143,7 +143,6 @@
         <mat-card-content>
           @if (isResults() && evaluationHeadline(); as headline) {
             <p class="session-projection-quiz__evaluation" role="status">
-              <mat-icon aria-hidden="true">analytics</mat-icon>
               <span>{{ headline }}</span>
             </p>
           }
@@ -153,7 +152,7 @@
                 >menu_book</mat-icon
               >
               <span i18n="@@sessionPresent.quizReadingHint"
-                >Lesephase – Antworten folgen gleich.</span
+                >Lesephase – Antwortoptionen folgen gleich.</span
               >
             </p>
           } @else if (q.type === 'RATING') {
@@ -199,7 +198,7 @@
               }
             </div>
           } @else if (q.type === 'NUMERIC_ESTIMATE') {
-            @if (isResults() && q.numericHistogram?.length) {
+            @if (showNumericResults()) {
               <div class="session-projection-quiz__histogram" role="img">
                 @for (bin of q.numericHistogram; track $index) {
                   <div class="session-projection-quiz__hist-bin">
@@ -274,6 +273,19 @@
                   <p class="session-projection-quiz__stat">{{ reference }}</p>
                 }
               }
+            } @else if (isResults()) {
+              <div class="session-projection-quiz__numeric-prompt">
+                <p
+                  class="session-projection-quiz__waiting"
+                  role="status"
+                  i18n="@@sessionHost.numericNoData"
+                >
+                  Keine Schätzungen eingegangen.
+                </p>
+                @if (numericReferenceLabel(); as reference) {
+                  <p class="session-projection-quiz__stat">{{ reference }}</p>
+                }
+              </div>
             } @else {
               <div class="session-projection-quiz__numeric-prompt">
                 <p

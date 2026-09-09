@@ -1,4 +1,5 @@
 ---
+import PresenterIcon from '@/components/PresenterIcon.astro';
 import type { Locale, Messages } from '@/i18n';
 
 export interface Props {
@@ -29,7 +30,12 @@ const w = t.workflow;
       {w.steps.map((step) => (
         <li class="landing-card p-6 shadow-landing-1">
           <div class="flex items-center justify-between gap-4">
-            <span class="font-display text-4xl font-bold tracking-tight text-landing-fg">{step.number}</span>
+            <span class="flex items-center gap-3">
+              <span class="font-display text-4xl font-bold tracking-tight text-landing-fg">{step.number}</span>
+              {(step.number === '02' || step.number === '03') && (
+                <PresenterIcon class="h-8 w-8 text-landing-primary" />
+              )}
+            </span>
             <span class="rounded-full border border-landing-primary/30 bg-landing-primary-container px-3 py-1 text-xs font-semibold uppercase tracking-[0.2em] text-landing-on-primary-container">
               {w.stepLabel}
             </span>

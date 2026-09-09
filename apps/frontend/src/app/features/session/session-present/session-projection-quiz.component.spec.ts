@@ -49,6 +49,20 @@ describe('SessionProjectionQuizComponent', () => {
     expect(styles).toMatch(
       /\.session-projection-quiz__option-chip\s*\{[^}]*surface-container-lowest/s,
     );
+    expect(styles).toMatch(
+      /\.session-projection-quiz__answer-head\s*\{[^}]*align-items:\s*center/s,
+    );
+    expect(styles).toMatch(
+      /\.session-projection-quiz__answer-head[\s\S]*?\.markdown-body\s*\{[^}]*display:\s*block/s,
+    );
+    expect(styles).toMatch(
+      /\.session-projection-quiz__answer-head[\s\S]*?\.markdown-body\s*\{[^}]*align-items:\s*center/s,
+    );
+    expect(styles).toMatch(/\.session-projection-quiz__answer-head[\s\S]*?line-height:\s*1/s);
+    expect(styles).not.toMatch(
+      /\.session-projection-quiz__answer\s*\{[^}]*align-self:\s*flex-start/s,
+    );
+    expect(styles).not.toMatch(/session-projection-quiz__answer-leading-emoji/);
     expect(playful).toMatch(
       /\.session-present mat-card\.session-projection-quiz__question\s*\{[^}]*primary-container/s,
     );
@@ -65,10 +79,29 @@ describe('SessionProjectionQuizComponent', () => {
     const text = fixture.nativeElement.textContent as string;
     expect(text).toContain('Was ist 2 + 2?');
     expect(text).toContain('Lesephase');
+    expect(text).toContain('Antwortoptionen folgen gleich');
     expect(text).toContain('menu_book');
     expect(fixture.nativeElement.querySelector('.session-projection-quiz__reading')).toBeTruthy();
     expect(text).not.toContain('Drei');
     expect(text).not.toContain('Vier');
+  });
+
+  it('blendet optionale Impulse in der Lesephase aus', () => {
+    fixture.componentRef.setInput(
+      'question',
+      choiceQuestion({
+        text: '### Aus wie vielen Cubies besteht ein 3×3-Zauberwürfel?\n\nGemeint ist der klassische Rubik’s Cube.\n\nOptionaler Impuls: [Lösungsweg](https://www.youtube.com/watch?v=EoINieyz6gE).',
+      }),
+    );
+    fixture.componentRef.setInput('status', 'QUESTION_OPEN');
+    fixture.detectChanges();
+
+    const text = fixture.nativeElement.textContent as string;
+    expect(text).toContain('Zauberwürfel');
+    expect(text).toContain('Rubik');
+    expect(text).not.toContain('Optionaler Impuls');
+    expect(text).not.toContain('Lösungsweg');
+    expect(text).not.toContain('youtube.com');
   });
 
   it('zeigt während der Abstimmung die Optionen ohne Lösung', () => {
@@ -118,13 +151,17 @@ describe('SessionProjectionQuizComponent', () => {
     fixture.detectChanges();
 
     const emoji = fixture.nativeElement.querySelector(
-      '.session-projection-quiz__answer-leading-emoji',
+      '.session-projection-quiz__answer-head .answer-leading-emoji',
+    ) as HTMLElement | null;
+    const text = fixture.nativeElement.querySelector(
+      '.session-projection-quiz__answer-head .answer-leading-emoji-text',
     ) as HTMLElement | null;
     expect(emoji?.textContent).toBe('😐');
-    expect(emoji?.parentElement?.textContent).toContain('😐\u00a0Ganz okay');
+    expect(text?.textContent).toContain('Ganz okay');
     expect(
-      fixture.nativeElement.querySelectorAll('.session-projection-quiz__answer-leading-emoji')
-        .length,
+      fixture.nativeElement.querySelectorAll(
+        '.session-projection-quiz__answer-head .answer-leading-emoji',
+      ).length,
     ).toBe(1);
   });
 
@@ -192,6 +229,19 @@ describe('SessionProjectionQuizComponent', () => {
     expect(poles[0]?.textContent).toContain('Sehr unwahrscheinlich');
     expect(poles[1]?.textContent).toContain('Sehr wahrscheinlich');
     expect(poles[1]?.textContent).toContain('last_page');
+
+    const styles = readFileSync(
+      resolve(__dirname, 'session-projection-quiz.component.scss'),
+      'utf8',
+    );
+    expect(styles).toMatch(
+      /\.session-projection-quiz__rating-labels\s*\{[^}]*clamp\(0\.8rem, 1\.5vmin, 1\.05rem\)/s,
+    );
+    expect(styles).toMatch(/\.session-projection-quiz__rating\s*\{[^}]*--pq-rating-index:/s);
+    expect(styles).toMatch(
+      /\.session-projection-quiz__bar,\s*\.session-projection-quiz__rating-labels\s*\{[^}]*grid-template-columns:\s*subgrid/s,
+    );
+    expect(styles).toMatch(/\.session-projection-quiz__rating-axis\s*\{[^}]*grid-column:\s*2/s);
   });
 
   it('zeigt nach der Freigabe Verteilung und richtige Antwort', () => {
@@ -229,6 +279,13 @@ describe('SessionProjectionQuizComponent', () => {
     ) as NodeListOf<HTMLElement>;
     expect(answers[0].classList.contains('session-projection-quiz__answer--wrong')).toBe(true);
     expect(answers[1].classList.contains('session-projection-quiz__answer--correct')).toBe(true);
+    const projectionStyles = readFileSync(
+      resolve(__dirname, 'session-projection-quiz.component.scss'),
+      'utf8',
+    );
+    expect(projectionStyles).not.toMatch(
+      /\.session-projection-quiz__answer--(?:correct|wrong)\s*\{[^}]*box-shadow:/s,
+    );
     const fills = fixture.nativeElement.querySelectorAll(
       '.session-projection-quiz__bar-fill',
     ) as NodeListOf<HTMLElement>;
@@ -861,9 +918,12 @@ describe('SessionProjectionQuizComponent', () => {
 
     expect(fixture.nativeElement.textContent).toContain('komplett richtig');
     expect(fixture.nativeElement.textContent).toContain('36');
-    expect(
-      fixture.nativeElement.querySelector('.session-projection-quiz__evaluation'),
-    ).toBeTruthy();
+    const evaluation = fixture.nativeElement.querySelector(
+      '.session-projection-quiz__evaluation',
+    ) as HTMLElement | null;
+    expect(evaluation).toBeTruthy();
+    expect(evaluation?.textContent).not.toContain('analytics');
+    expect(evaluation?.querySelector('mat-icon')).toBeNull();
   });
 
   it('zeigt bei Schätzfragen Toleranzband und Interpretation', () => {
@@ -904,6 +964,27 @@ describe('SessionProjectionQuizComponent', () => {
     expect(text).toContain('Toleranzband');
     expect(text).toContain('Referenz');
     expect(fixture.nativeElement.querySelector('.session-projection-quiz__insights')).toBeTruthy();
+  });
+
+  it('zeigt bei Schätzfragen ohne Stimmen den Ergebnis-Leerstand statt des Abstimmungs-Prompts', () => {
+    fixture.componentRef.setInput(
+      'question',
+      choiceQuestion({
+        type: 'NUMERIC_ESTIMATE',
+        text: 'Runde π auf zwei Dezimalstellen.',
+        answers: [],
+        numericReferenceValue: 3.14,
+        numericHistogram: [],
+      }),
+    );
+    fixture.componentRef.setInput('status', 'RESULTS');
+    fixture.detectChanges();
+
+    const text = fixture.nativeElement.textContent as string;
+    expect(text).toContain('Keine Schätzungen eingegangen.');
+    expect(text).toContain('Referenz');
+    expect(text).not.toContain('Numerische Schätzung');
+    expect(fixture.nativeElement.querySelector('.session-projection-quiz__histogram')).toBeNull();
   });
 
   it('hält Markdown-/Token-Styles ohne ::ng-deep / font-weight 800', () => {

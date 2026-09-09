@@ -256,7 +256,7 @@ const fr: Messages = {
         title: 'Présenter depuis n’importe où dans la salle',
         description:
           'Relie un téléphone ou une tablette et pilote la session en déplacement : questions, résultats, Q&A, sondage express, Fin de séance. Tu restes proche du public et peux transmettre le contrôle ad hoc — contrairement à Kahoot, Mentimeter, Slido ou Particify.',
-        icon: 'phone',
+        icon: 'presenter',
       },
       {
         title: 'Prêt rapidement',

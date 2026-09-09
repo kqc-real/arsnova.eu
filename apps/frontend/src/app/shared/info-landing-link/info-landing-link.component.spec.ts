@@ -15,10 +15,20 @@ class InfoLandingLinkHostComponent {
   label = 'Einsatzmöglichkeiten';
 }
 
+@Component({
+  selector: 'app-info-landing-link-presenter-host',
+  imports: [InfoLandingLinkComponent],
+  template: `<app-info-landing-link [anchor]="anchor" [label]="label" leadIcon="presenter" />`,
+})
+class InfoLandingLinkPresenterHostComponent {
+  anchor = INFO_LANDING_ANCHORS.hostPairing;
+  label = 'Frei im Raum präsentieren';
+}
+
 describe('InfoLandingLinkComponent', () => {
   beforeEach(() => {
     TestBed.configureTestingModule({
-      imports: [InfoLandingLinkHostComponent],
+      imports: [InfoLandingLinkHostComponent, InfoLandingLinkPresenterHostComponent],
     });
   });
 
@@ -49,5 +59,13 @@ describe('InfoLandingLinkComponent', () => {
     themePreset.setPreset('serious', { silent: true });
     fixture.detectChanges();
     expect(link()?.getAttribute('href')).toBe('https://info.arsnova.eu/de/?theme=light#workflow');
+  });
+
+  it('zeigt optional die Beamer-Silhouette statt des Info-Icons', () => {
+    const fixture = TestBed.createComponent(InfoLandingLinkPresenterHostComponent);
+    fixture.detectChanges();
+    const root = fixture.nativeElement as HTMLElement;
+    expect(root.querySelector('app-presenter-icon.info-landing-link__lead-icon')).not.toBeNull();
+    expect(root.querySelector('mat-icon.info-landing-link__lead-icon')).toBeNull();
   });
 });

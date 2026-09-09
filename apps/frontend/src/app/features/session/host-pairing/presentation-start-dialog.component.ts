@@ -10,6 +10,7 @@ import {
   MatDialogTitle,
 } from '@angular/material/dialog';
 import { MatIcon } from '@angular/material/icon';
+import { PresenterIconComponent } from '../presenter-icon.component';
 import type { HostPairingPendingDTO } from '@arsnova/shared-types';
 import { trpc } from '../../../core/trpc.client';
 import {
@@ -30,7 +31,15 @@ export type PresentationStartDialogResult = 'start' | 'blocked' | undefined;
 @Component({
   selector: 'app-presentation-start-dialog',
   standalone: true,
-  imports: [MatButton, MatDialogActions, MatDialogClose, MatDialogContent, MatDialogTitle, MatIcon],
+  imports: [
+    MatButton,
+    MatDialogActions,
+    MatDialogClose,
+    MatDialogContent,
+    MatDialogTitle,
+    MatIcon,
+    PresenterIconComponent,
+  ],
   styleUrls: [
     '../../../shared/styles/dialog-title-header.scss',
     './presentation-start-dialog.component.scss',
