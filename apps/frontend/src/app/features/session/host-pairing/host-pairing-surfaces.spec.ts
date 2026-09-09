@@ -92,7 +92,11 @@ describe('Host-Pairing Oberflächengrenzen (Story 2.10)', () => {
     expect(hostHtml).toMatch(/host-access-revoked[\s\S]*dialog-title-header/);
     expect(hostHtml).toMatch(/host-access-revoked[\s\S]*<mat-icon>devices<\/mat-icon>/);
     expect(hostHtml).toContain('dialog-title-header__icon--warn');
+    expect(hostHtml).toContain('session-host__revoked-actions');
     expect(hostScss).toContain('.session-host__revoked-head');
+    expect(hostScss).toMatch(
+      /\.session-host__revoked-actions\s*\{[^}]*justify-content:\s*flex-end/s,
+    );
     const pairingHtml = readFileSync(
       root('host-pairing/host-pairing-dialog.component.html'),
       'utf8',

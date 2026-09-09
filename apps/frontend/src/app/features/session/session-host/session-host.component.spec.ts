@@ -2206,6 +2206,7 @@ describe('SessionHostComponent', { timeout: 30_000 }, () => {
     expect(
       fixture.nativeElement.querySelector('[data-testid="host-access-revoked-home"]'),
     ).not.toBeNull();
+    expect(fixture.nativeElement.querySelector('.session-host__revoked-actions')).not.toBeNull();
     expect(fixture.nativeElement.querySelector('.session-host--revoked')).not.toBeNull();
     expect(
       fixture.nativeElement.querySelector('.session-host__revoked .dialog-title-header'),

@@ -38,15 +38,17 @@
           </span>
         </span>
       </header>
-      <button
-        mat-flat-button
-        type="button"
-        data-testid="host-access-revoked-home"
-        (click)="goHomeAfterHostRevoke()"
-        i18n="@@hostPairing.goHome"
-      >
-        Zur Startseite
-      </button>
+      <div class="session-host__revoked-actions">
+        <button
+          mat-flat-button
+          type="button"
+          data-testid="host-access-revoked-home"
+          (click)="goHomeAfterHostRevoke()"
+          i18n="@@hostPairing.goHome"
+        >
+          Zur Startseite
+        </button>
+      </div>
     </div>
   } @else if (session(); as s) {
     @if (hostSteeringCallout(); as steer) {

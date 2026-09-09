@@ -58,6 +58,12 @@
   color: var(--mat-sys-on-error-container);
 }
 
+.session-host__revoked-actions {
+  display: flex;
+  justify-content: flex-end;
+  width: 100%;
+}
+
 .session-host__revoked button {
   min-height: 2.75rem;
   width: fit-content;
