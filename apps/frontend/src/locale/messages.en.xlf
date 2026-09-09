@@ -8403,11 +8403,19 @@
         </context-group>
       </trans-unit>
       <trans-unit id="help.hostPairingBody" datatype="html">
-        <source> Beim Start der Präsentation verbindest du Smartphone oder Tablet per QR. Die Verbindung bestätigst du zuerst am Host-Gerät. Danach bleibt die Präsentation auf dem Beamer, und du gehst frei durch den Raum. Das Gerät steuert die laufende Veranstaltung: Fragen, Ergebnisse, Q&amp;A, Blitzlicht, Session beenden. Nicht aber: Quiz bearbeiten oder löschen. Die Steuerung kannst du ad hoc einer vertrauenswürdigen Tutor:in oder Moderator:in übergeben. Das ist ein klarer Unterschied zu Systemen wie Kahoot, Mentimeter, Slido oder Particify.</source>
-        <target>When you start the presentation you connect a phone or tablet via QR. You confirm the connection first on the host device. After that the presentation stays on the projector and you walk the room. The device runs the live session: questions, results, Q&amp;A, Pulse Check, End session. Not: editing or deleting quizzes. You can hand control over ad hoc to a trusted tutor or facilitator. That is a clear difference from tools such as Kahoot, Mentimeter, Slido or Particify.</target>
+        <source> Beim Start der Präsentation verbindest du Smartphone oder Tablet per QR. Die Verbindung bestätigst du zuerst am Host-Gerät. Danach bleibt die Präsentation auf dem Beamer, und du gehst frei durch den Raum. Das Gerät steuert die laufende Veranstaltung: Fragen, Ergebnisse, Q&amp;A, Blitzlicht, Session beenden. Nicht aber: Quiz bearbeiten oder löschen. Die Steuerung kannst du ad hoc einer vertrauenswürdigen Tutor:in, Assistenz oder Moderator:in übergeben.</source>
+        <target>When you start the presentation you connect a phone or tablet via QR. You confirm the connection first on the host device. After that the presentation stays on the projector and you walk the room. The device runs the live session: questions, results, Q&amp;A, Pulse Check, End session. Not: editing or deleting quizzes. You can hand control over ad hoc to a trusted tutor, assistant or facilitator.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/help/help.component.html</context>
           <context context-type="linenumber">183,190</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="help.hostPairingWhy" datatype="html">
+        <source> Andere Systeme bieten oft eine Fernbedienung mit extra Login oder nur als Folienklicker. Bei uns braucht das Handy kein Konto. Du zeigst den QR am Laptop und bestätigst dort die Verbindung. So kannst du das Gerät einer Assistenz in die Hand geben, ohne Passwörter zu teilen. Deine Quiz-Sammlung bleibt am Laptop.</source>
+        <target>Other tools often offer a remote with a separate login, or only as a slide clicker. Here the phone does not need an account. You show the QR on the laptop and approve the connection there. You can hand the device to an assistant without sharing passwords. Your quiz collection stays on the laptop.</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/help/help.component.html</context>
+          <context context-type="linenumber">192,196</context>
         </context-group>
       </trans-unit>
       <trans-unit id="help.hostFinishTitle" datatype="html">

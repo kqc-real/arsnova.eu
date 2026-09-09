@@ -234,16 +234,20 @@ const en: Messages = {
   pairing: {
     eyebrow: 'What sets us apart',
     title: 'Present from anywhere in the room — from your phone or tablet',
-    lead: 'With Kahoot, Mentimeter, Slido or Particify you usually stay at the laptop. With arsnova.eu you connect your phone: the slides stay on the projector, you walk the room and run the live session.',
+    lead: 'Other audience-response tools often offer a remote — as a slide clicker or with a separate account on the phone. With arsnova.eu you scan a QR, approve on the laptop, and the phone only runs the live session.',
+    whyTitle: 'Why this pairing is different from a remote',
     summary: [
       'Full freedom of movement while you present — a clear teaching and staging advantage.',
-      'The same live-session controls as on the laptop: questions, results, Q&A, Pulse Check, End session.',
-      'Hand control over ad hoc to a tutor or facilitator — not just a clicker for the next slide.',
+      'The same live-session controls as on the laptop: questions, results, Q&A, Pulse Check, End session — not just the next slide.',
+      'No account on the phone: you can hand the device to an assistant without sharing passwords.',
+      'No login to lend: the QR appears on the laptop, and so does the approval. The phone gets the session — not your account.',
+      'The quiz collection stays on the laptop — edit or delete only there, not from the paired device.',
     ],
     laptopLabel: 'Laptop and projector',
-    laptopText: 'Show the presentation. You confirm the connection here.',
+    laptopText:
+      'Show the presentation. You confirm the connection here. The quiz collection stays here.',
     phoneLabel: 'Phone or tablet',
-    phoneText: 'Runs the live session while you are in the room.',
+    phoneText: 'Runs the live session — no extra login — while you are in the room.',
     demoAria: 'Laptop shows the presentation; the phone controls the session',
   },
   features: {
@@ -254,7 +258,7 @@ const en: Messages = {
       {
         title: 'Present from anywhere in the room',
         description:
-          'Connect a phone or tablet and run the live session on the move: questions, results, Q&A, Pulse Check, End session. You stay close to the audience and can hand over control ad hoc — unlike Kahoot, Mentimeter, Slido or Particify.',
+          'Connect a phone or tablet and run the live session on the move: questions, results, Q&A, Pulse Check, End session. No account on the phone: the QR is on the laptop, and you approve there. The quiz collection stays on the computer — you can hand the device over without sharing passwords.',
         icon: 'presenter',
       },
       {
@@ -447,7 +451,7 @@ const en: Messages = {
       {
         title: 'Freedom to move, not tied to the laptop',
         description:
-          'You run the session from a phone or tablet while the presentation stays on the projector. That is full live-session control — questions, results, Q&A, Pulse Check, End session — and you can hand it over ad hoc. With Kahoot, Mentimeter, Slido or Particify you typically stay at the computer.',
+          'Other tools often offer a remote as a slide clicker or with a separate login. Here you scan a QR and approve on the laptop. The phone runs the session without its own account: questions, results, Q&A, Pulse Check, End session. The quiz collection stays on the laptop.',
       },
       {
         title: 'Lower barriers to entry',
@@ -481,7 +485,7 @@ const en: Messages = {
       {
         question: 'Can I control the session from my phone?',
         answer:
-          'Yes. When you start the presentation you connect a phone or tablet via QR. The laptop shows the slides; you walk the room. The device runs the live session — questions, results, Q&A, Pulse Check, End session — not the quiz collection. You can also hand control to a trusted tutor or facilitator. That is a clear difference from tools such as Kahoot, Mentimeter, Slido or Particify.',
+          'Yes. When you start the presentation the QR appears on the laptop; you approve the connection there. The phone needs no account. It runs the live session — questions, results, Q&A, Pulse Check, End session — not the quiz collection. You can hand the device to an assistant without sharing passwords. Other tools often have a remote with an extra login or only as a slide clicker.',
       },
       {
         question: 'Where is the data stored?',

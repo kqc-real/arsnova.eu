@@ -231,16 +231,20 @@ const de: Messages = {
   pairing: {
     eyebrow: 'Alleinstellungsmerkmal',
     title: 'Frei im Raum präsentieren — vom Smartphone oder Tablet',
-    lead: 'Bei Kahoot, Mentimeter, Slido oder Particify bleibst du meist am Laptop. Bei arsnova.eu verbindest du dein Handy: Die Präsentation läuft auf dem Beamer, du gehst durch den Raum und steuerst die laufende Veranstaltung.',
+    lead: 'Andere Audience-Response-Systeme bieten oft eine Fernbedienung — als Folienklicker oder mit extra Konto auf dem Handy. Bei arsnova.eu scannst du einen QR, sagst am Laptop Ja, und das Handy steuert nur die laufende Veranstaltung.',
+    whyTitle: 'Warum das Pairing anders ist als eine Fernbedienung',
     summary: [
       'Volle Bewegungsfreiheit während der Präsentation — didaktisch und präsentationstechnisch ein klarer Vorteil.',
-      'Dieselbe Session-Steuerung wie am Laptop: Fragen, Ergebnisse, Q&A, Blitzlicht, Session beenden.',
-      'Steuerung ad hoc an eine Tutor:in oder Moderator:in übergeben — nicht nur Folien weiterrücken.',
+      'Dieselbe Session-Steuerung wie am Laptop: Fragen, Ergebnisse, Q&A, Blitzlicht, Session beenden — nicht nur die nächste Folie.',
+      'Ohne Account am Handy: du kannst das Gerät einer Assistenz in die Hand geben, ohne Passwörter zu teilen.',
+      'Kein Login leihen: Der QR erscheint am Laptop, die Freigabe auch. Das Handy bekommt die Session — nicht dein Konto.',
+      'Die Quiz-Sammlung bleibt am Laptop — bearbeiten oder löschen geht nur dort, nicht vom gekoppelten Gerät.',
     ],
     laptopLabel: 'Laptop und Beamer',
-    laptopText: 'Zeigen die Präsentation. Hier bestätigst du die Verbindung.',
+    laptopText:
+      'Zeigen die Präsentation. Hier bestätigst du die Verbindung. Die Quiz-Sammlung bleibt hier.',
     phoneLabel: 'Smartphone oder Tablet',
-    phoneText: 'Steuert die laufende Veranstaltung, während du im Raum bist.',
+    phoneText: 'Steuert die laufende Veranstaltung — ohne extra Login, während du im Raum bist.',
     demoAria: 'Laptop zeigt die Präsentation, Smartphone steuert die Session',
   },
   features: {
@@ -251,7 +255,7 @@ const de: Messages = {
       {
         title: 'Frei im Raum präsentieren',
         description:
-          'Verbinde Smartphone oder Tablet und steuere die laufende Veranstaltung unterwegs: Fragen, Ergebnisse, Q&A, Blitzlicht, Session beenden. So bleibst du nah am Publikum und kannst die Steuerung ad hoc weitergeben — anders als bei Kahoot, Mentimeter, Slido oder Particify.',
+          'Verbinde Smartphone oder Tablet und steuere die laufende Veranstaltung unterwegs: Fragen, Ergebnisse, Q&A, Blitzlicht, Session beenden. Kein Konto am Handy: QR am Laptop, dort bestätigst du. Die Quiz-Sammlung bleibt am Rechner — so kannst du das Gerät weitergeben, ohne Passwörter zu teilen.',
         icon: 'presenter',
       },
       {
@@ -447,7 +451,7 @@ const de: Messages = {
       {
         title: 'Bewegungsfreiheit statt Laptop-Fessel',
         description:
-          'Du steuerst die Session vom Smartphone oder Tablet, während die Präsentation auf dem Beamer läuft. Das ist volle Session-Steuerung — Fragen, Ergebnisse, Q&A, Blitzlicht, Session beenden — und du kannst sie ad hoc weitergeben. Bei Kahoot, Mentimeter, Slido oder Particify bleibst du typischerweise am Rechner.',
+          'Andere Systeme bieten oft eine Fernbedienung als Folienklicker oder mit extra Login. Hier scannst du einen QR und bestätigst am Laptop. Das Handy steuert die Session ohne eigenes Konto: Fragen, Ergebnisse, Q&A, Blitzlicht, Session beenden. Die Quiz-Sammlung bleibt am Laptop.',
       },
       {
         title: 'Weniger Einstiegshürden',
@@ -481,7 +485,7 @@ const de: Messages = {
       {
         question: 'Kann ich die Session vom Smartphone steuern?',
         answer:
-          'Ja. Beim Start der Präsentation verbindest du Smartphone oder Tablet per QR. Der Laptop zeigt die Präsentation, du gehst frei im Raum. Das Gerät steuert die laufende Veranstaltung — Fragen, Ergebnisse, Q&A, Blitzlicht, Session beenden — nicht die Quiz-Sammlung. Du kannst die Steuerung auch einer vertrauenswürdigen Tutor:in oder Moderator:in übergeben. Das ist ein klarer Unterschied zu Systemen wie Kahoot, Mentimeter, Slido oder Particify.',
+          'Ja. Beim Start der Präsentation erscheint der QR am Laptop; dort bestätigst du die Verbindung. Das Handy braucht kein Konto. Es steuert die laufende Veranstaltung — Fragen, Ergebnisse, Q&A, Blitzlicht, Session beenden — nicht die Quiz-Sammlung. Du kannst das Gerät einer Assistenz in die Hand geben, ohne Passwörter zu teilen. Andere Systeme haben oft eine Fernbedienung mit extra Login oder nur als Folienklicker.',
       },
       {
         question: 'Wo liegen die Daten?',
