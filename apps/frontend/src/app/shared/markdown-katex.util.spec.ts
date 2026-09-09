@@ -239,8 +239,22 @@ describe('renderMarkdownWithKatex', () => {
 
     expect(result.html).toContain('loading="eager"');
     expect(result.html).toContain('decoding="async"');
-    expect(result.html).toContain('crossorigin="anonymous"');
+    expect(result.html).not.toContain('crossorigin=');
     expect(result.html).toContain('referrerpolicy="no-referrer"');
+  });
+
+  it('rendert GitHub-blob-raw-URLs als img, nicht als Alt-Text-Link', () => {
+    const githubRaw =
+      'https://github.com/kqc-real/arsnova.eu/blob/main/apps/frontend/src/assets/icons/shortcut-join.png?raw=true';
+    const result = renderMarkdownWithKatex(`![Join-Shortcut](${githubRaw})`, {
+      imagePolicy: 'external-https-only',
+    });
+
+    expect(result.html).toContain('<img');
+    expect(result.html).toContain(`src="${githubRaw}"`);
+    expect(result.html).toContain('alt="Join-Shortcut"');
+    expect(result.html).not.toContain(`<a href="${githubRaw}"`);
+    expect(result.html).not.toContain('crossorigin=');
   });
 
   it('erlaubt im lockeren Bildmodus Blob-Bildquellen fuer lokale Vorschauen', () => {
