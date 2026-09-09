@@ -111,8 +111,8 @@ describe('PresentationStartDialogComponent', () => {
     const current = await render();
     expect(current.nativeElement.textContent).toContain('Präsentation starten');
     expect(
-      current.nativeElement.querySelector('.dialog-title-header mat-icon')?.textContent?.trim(),
-    ).toBe('launch');
+      current.nativeElement.querySelector('.dialog-title-header app-presenter-icon'),
+    ).not.toBeNull();
     expect(current.nativeElement.textContent).toContain('Mit Smartphone steuern');
     expect(
       current.nativeElement.querySelector('.presentation-start-dialog__subtitle'),

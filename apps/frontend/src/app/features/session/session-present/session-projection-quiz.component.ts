@@ -16,6 +16,7 @@ import { CountdownFingersComponent } from '../../../shared/countdown-fingers/cou
 import { formatLocaleCount, formatLocaleNumber } from '../../../core/locale-number.util';
 import { ThemePresetService } from '../../../core/theme-preset.service';
 import { MarkdownImageLightboxDirective } from '../../../shared/markdown-image-lightbox/markdown-image-lightbox.directive';
+import { decorateLeadingAnswerEmoji } from '../../../shared/leading-answer-emoji.util';
 import { renderMarkdownWithKatex } from '../../../shared/markdown-katex.util';
 import { questionTypeLabel } from '../../../shared/question-type-label';
 import {
@@ -35,6 +36,7 @@ import {
   presenterCodeColumnCount,
   presenterCompactMarkdown,
   presenterMarkdownWithoutCode,
+  presenterMarkdownWithoutStageLinks,
   presenterQuestionCodeBlocks,
   presenterQuestionCodeColumnMarkdown,
   presenterQuestionImage,
@@ -91,6 +93,9 @@ export class SessionProjectionQuizComponent {
   readonly isResults = computed(() => this.status() === 'RESULTS');
   readonly isDiscussion = computed(() => this.status() === 'DISCUSSION');
   readonly revealCorrectness = computed(() => this.isResults());
+  readonly showNumericResults = computed(
+    () => this.isResults() && (this.question()?.numericHistogram?.length ?? 0) > 0,
+  );
 
   readonly questionTypeName = computed(() => {
     const type = this.question()?.type;
@@ -287,11 +292,13 @@ export class SessionProjectionQuizComponent {
     if (this.hasQuestionCode()) {
       const withoutCode = presenterMarkdownWithoutCode(text);
       if (this.isReadingPhase()) {
-        return withoutCode;
+        return presenterMarkdownWithoutStageLinks(withoutCode);
       }
       return presenterCompactMarkdown(withoutCode);
     }
-    return this.isReadingPhase() ? text : this.compactQuestionMarkdown();
+    return this.isReadingPhase()
+      ? presenterMarkdownWithoutStageLinks(text)
+      : this.compactQuestionMarkdown();
   });
 
   /** Display-KaTeX nach dem Bild in Abstimmung/Ergebnis (in der Lesephase steckt es im Volltext). */
@@ -499,17 +506,13 @@ export class SessionProjectionQuizComponent {
   }
 
   renderAnswerMarkdown(value: string): SafeHtml {
-    const html = renderMarkdownWithKatex(value, {
-      headingStartLevel: 4,
-      imagePolicy: 'external-https-and-app-assets',
-      escapeListMarkers: true,
-    }).html;
-    const leadingEmoji =
-      /(<(?:p|h[1-6])(?:\s[^>]*)?>)(\p{Extended_Pictographic}(?:\uFE0F|\p{Emoji_Modifier})?(?:\u200D\p{Extended_Pictographic}(?:\uFE0F|\p{Emoji_Modifier})?)*)\s+/u;
     return this.sanitizer.bypassSecurityTrustHtml(
-      html.replace(
-        leadingEmoji,
-        '$1<span class="session-projection-quiz__answer-leading-emoji">$2</span>&nbsp;',
+      decorateLeadingAnswerEmoji(
+        renderMarkdownWithKatex(value, {
+          headingStartLevel: 4,
+          imagePolicy: 'external-https-and-app-assets',
+          escapeListMarkers: true,
+        }).html,
       ),
     );
   }

@@ -252,7 +252,7 @@ const de: Messages = {
         title: 'Frei im Raum präsentieren',
         description:
           'Verbinde Smartphone oder Tablet und steuere die laufende Veranstaltung unterwegs: Fragen, Ergebnisse, Q&A, Blitzlicht, Session beenden. So bleibst du nah am Publikum und kannst die Steuerung ad hoc weitergeben — anders als bei Kahoot, Mentimeter, Slido oder Particify.',
-        icon: 'phone',
+        icon: 'presenter',
       },
       {
         title: 'Schnell im Einsatz',

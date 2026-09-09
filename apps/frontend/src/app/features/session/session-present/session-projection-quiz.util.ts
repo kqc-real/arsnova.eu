@@ -169,6 +169,36 @@ export function presenterMarkdownWithoutCode(markdown: string): string {
     .trim();
 }
 
+/** Externe Links und optionale Impulse sind auf dem Beamer nicht bedienbar. */
+const PRESENTER_STAGE_MARKDOWN_LINK_RE =
+  /(?<!!)\[[^\]]*]\(\s*<?(?:https?:\/\/|mailto:|\/\/)[^)\s>]+[^)]*\)/i;
+const PRESENTER_STAGE_BARE_URL_RE = /https?:\/\/[^\s)]+/i;
+const PRESENTER_STAGE_IMPULSE_RE =
+  /^(optionaler\s+impuls|optional\s+(?:impulse|resource)|sugerencia\s+opcional|ressource\s+facultative|spunto\s+facoltativo)\b/i;
+
+export function presenterMarkdownWithoutStageLinks(markdown: string): string {
+  return String(markdown ?? '')
+    .split(/\n{2,}/)
+    .filter((block) => {
+      const trimmed = block.trim();
+      if (!trimmed) {
+        return false;
+      }
+      const withoutHeading = trimmed.replace(/^#{1,6}\s+/, '');
+      if (PRESENTER_STAGE_IMPULSE_RE.test(withoutHeading)) {
+        return false;
+      }
+      return (
+        !PRESENTER_STAGE_MARKDOWN_LINK_RE.test(trimmed) &&
+        !PRESENTER_STAGE_BARE_URL_RE.test(trimmed)
+      );
+    })
+    .join('\n\n')
+    .replace(/[ \t]+\n/g, '\n')
+    .replace(/\n{3,}/g, '\n\n')
+    .trim();
+}
+
 export function presenterQuestionCodeMarkdown(markdown: string): string {
   return presenterQuestionCodeBlocks(markdown)
     .map((block) => {

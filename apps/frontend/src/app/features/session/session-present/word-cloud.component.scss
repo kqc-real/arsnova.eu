@@ -163,20 +163,25 @@
 }
 
 .word-cloud__reading-hint {
-  display: grid;
-  grid-template-columns: auto 1fr;
-  gap: 0.6rem;
-  align-items: start;
-  padding: 0.8rem 0.95rem;
-  border-radius: 1rem;
-  background: color-mix(in srgb, var(--mat-sys-secondary-container) 26%, var(--mat-sys-surface));
+  display: inline-flex;
+  width: fit-content;
+  max-width: min(42rem, 100%);
+  box-sizing: border-box;
+  align-items: center;
+  gap: 0.45rem;
+  margin-inline-start: auto;
+  padding: 0.4rem 0.75rem;
+  border: 1px solid
+    color-mix(in srgb, var(--mat-sys-outline-variant) 78%, var(--mat-sys-primary) 22%);
+  border-radius: var(--mat-sys-corner-medium);
+  background: color-mix(in srgb, var(--mat-sys-surface) 88%, var(--mat-sys-secondary-container));
   color: var(--mat-sys-on-surface-variant);
   font: var(--mat-sys-body-small);
-  line-height: 1.5;
+  line-height: 1.4;
 }
 
 .word-cloud__reading-hint mat-icon {
-  margin-top: 0.05rem;
+  flex: 0 0 auto;
   color: var(--mat-sys-primary);
 }
 
@@ -405,6 +410,7 @@
 }
 
 .word-cloud__filter-info {
+  flex: 1 1 100%;
   display: grid;
   gap: 0.45rem;
 }

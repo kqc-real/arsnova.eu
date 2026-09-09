@@ -192,6 +192,7 @@ import { remainingCountdownSeconds } from '../session-countdown.util';
 import { recordServerTimeIso, recordServerTimeSample } from '../session-server-clock';
 import { MusicEqualizerIconComponent } from '../../../shared/music-equalizer-icon/music-equalizer-icon.component';
 import { ModerationCompassIconComponent } from './moderation-compass-icon.component';
+import { PresenterIconComponent } from '../presenter-icon.component';
 import { FeedbackHostComponent } from '../../feedback/feedback-host.component';
 import {
   feedbackDisplayLabel,
@@ -563,6 +564,7 @@ function musicTracksForPhase(
     CountdownFingersComponent,
     MusicEqualizerIconComponent,
     ModerationCompassIconComponent,
+    PresenterIconComponent,
     FeedbackHostComponent,
     MarkdownImageLightboxDirective,
     FoyerEntranceLayerComponent,
@@ -1422,15 +1424,12 @@ export class SessionHostComponent implements OnInit, OnDestroy {
     const status = this.effectiveStatus();
     return this.session() !== null && status !== 'LOBBY' && status !== 'FINISHED';
   });
-  readonly isQuizLobbyImmersive = computed(() => {
+  /** Host-Chrome inkl. Presenter: laufende Session und Lobby (Quiz, Q&A, Blitzlicht). */
+  readonly isLiveHostSurface = computed(() => {
     if (this.session() === null) return false;
-    if (this.effectiveStatus() !== 'LOBBY') return false;
-    if (!this.channels().quiz || this.isQaSession()) return false;
-    return this.activeChannel() === 'quiz';
+    return this.effectiveStatus() !== 'FINISHED';
   });
-  readonly showHostViewControls = computed(
-    () => this.isRunningSession() || this.isQuizLobbyImmersive(),
-  );
+  readonly showHostViewControls = computed(() => this.isLiveHostSurface());
   readonly pairedHostConnected = signal(false);
   readonly canManagePairedHosts = signal(getHostSessionRole(this.code) !== 'PAIRED_HOST');
   readonly isPairedHostClient = signal(getHostSessionRole(this.code) === 'PAIRED_HOST');
@@ -3177,9 +3176,7 @@ export class SessionHostComponent implements OnInit, OnDestroy {
       }
     });
     effect(() => {
-      this.hostDisplayMode.setHostSessionActive(
-        this.isRunningSession() || this.isQuizLobbyImmersive(),
-      );
+      this.hostDisplayMode.setHostSessionActive(this.isLiveHostSurface());
     });
     effect(() => {
       this.musicMuted.set(this.themePreset.preset() === 'serious');

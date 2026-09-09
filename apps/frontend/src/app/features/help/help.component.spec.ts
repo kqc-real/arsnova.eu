@@ -336,6 +336,8 @@ describe('HelpComponent', () => {
     expect(links).toHaveLength(2);
     expect(links[0]!.getAttribute('href')).toBe(infoLandingUrl('host-pairing', undefined, 'dark'));
     expect(links[0]!.textContent).toContain('Frei im Raum präsentieren');
+    expect(links[0]!.querySelector('app-presenter-icon')).not.toBeNull();
+    expect(links[1]!.querySelector('app-presenter-icon')).toBeNull();
     expect(links[1]!.getAttribute('href')).toBe(infoLandingUrl('features', undefined, 'dark'));
     expect(links[1]!.getAttribute('target')).toBe('_blank');
     expect(links[1]!.getAttribute('rel')).toBe('noopener noreferrer');

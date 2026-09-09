@@ -255,7 +255,7 @@ const en: Messages = {
         title: 'Present from anywhere in the room',
         description:
           'Connect a phone or tablet and run the live session on the move: questions, results, Q&A, Pulse Check, End session. You stay close to the audience and can hand over control ad hoc — unlike Kahoot, Mentimeter, Slido or Particify.',
-        icon: 'phone',
+        icon: 'presenter',
       },
       {
         title: 'Ready in no time',

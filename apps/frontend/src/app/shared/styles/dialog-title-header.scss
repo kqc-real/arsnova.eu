@@ -20,11 +20,13 @@
   border-radius: var(--mat-sys-corner-medium, 0.75rem);
   background: color-mix(in srgb, var(--mat-sys-primary-container) 65%, transparent);
   color: var(--mat-sys-on-primary-container);
+  --app-presenter-icon-size: 1.5rem;
 
-  mat-icon {
-    font-size: 1.375rem;
-    width: 1.375rem;
-    height: 1.375rem;
+  mat-icon,
+  app-presenter-icon {
+    font-size: var(--app-presenter-icon-size, 1.5rem);
+    width: var(--app-presenter-icon-size, 1.5rem);
+    height: var(--app-presenter-icon-size, 1.5rem);
   }
 }
 

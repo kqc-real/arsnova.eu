@@ -662,19 +662,17 @@
     height: var(--pq-answer-badge-size);
     border-radius: 1.25rem;
     transform: none;
-    align-self: flex-start;
+    align-self: center;
   }
 }
 
 .session-projection-quiz__answer--correct {
   outline: none;
-  box-shadow: inset 0 0 0 0.55rem var(--mat-sys-primary);
 }
 
 .session-projection-quiz__answer--wrong {
   outline: none;
   opacity: 1;
-  box-shadow: inset 0 0 0 0.55rem var(--mat-sys-error);
   background: var(--mat-sys-error-container);
   color: var(--mat-sys-on-error-container);
 }
@@ -687,19 +685,29 @@
   gap: var(--pq-space-sm) var(--pq-space-md);
   width: 100%;
   min-width: 0;
-  min-height: 0;
   font-size: inherit;
-  line-height: 1.3;
+  line-height: 1;
 
   app-answer-option-badge {
     align-self: center;
   }
 
   .markdown-body {
-    display: block;
+    --answer-leading-emoji-size: 1em;
+    --answer-leading-emoji-layout-size: 1em;
+    --answer-leading-emoji-visual-scale: 1;
+    --answer-leading-emoji-transform-origin: center center;
+    --answer-leading-emoji-gap: 0.35em;
+    --answer-leading-emoji-offset-y: 0;
+    --answer-leading-emoji-text-line-height: 1;
+
+    display: flex;
     flex: 1 1 auto;
+    align-items: center;
     align-self: center;
     min-width: 0;
+    min-height: 0;
+    line-height: 1;
     overflow-wrap: break-word;
     word-break: normal;
     hyphens: auto;
@@ -707,10 +715,37 @@
 
     :is(p, h1, h2, h3, h4) {
       display: block;
+      width: 100%;
       margin: 0;
+      line-height: 1;
       overflow-wrap: break-word;
       hyphens: auto;
       -webkit-hyphens: auto;
+    }
+
+    > p.answer-leading-emoji-block,
+    > p:has(> .answer-leading-emoji),
+    &:has(> .answer-leading-emoji) {
+      display: grid;
+      grid-template-columns: auto minmax(0, 1fr);
+      align-items: center;
+      column-gap: var(--answer-leading-emoji-gap);
+      line-height: 1;
+    }
+
+    .answer-leading-emoji {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      align-self: center;
+      margin: 0;
+      font-size: 1em;
+      line-height: 1;
+    }
+
+    .answer-leading-emoji-text {
+      align-self: center;
+      line-height: 1;
     }
   }
 
@@ -884,18 +919,17 @@
   }
 }
 
-.session-projection-quiz__bar,
-.session-projection-quiz__rating-labels {
-  display: grid;
-  grid-template-columns: 2ch minmax(0, 1fr) 4ch;
-  align-items: center;
-  gap: 0.65rem;
-}
-
 .session-projection-quiz__rating {
+  /* Index/Count in rem, nicht ch: Pole und Balken teilen dieselben Spuren
+     unabhängig von der kleineren Pol-Schrift. */
+  --pq-rating-index: minmax(2.5rem, max-content);
+  --pq-rating-count: minmax(2.75rem, max-content);
+  --pq-rating-column-gap: 0.65rem;
   display: grid;
+  grid-template-columns: var(--pq-rating-index) minmax(0, 1fr) var(--pq-rating-count);
+  column-gap: var(--pq-rating-column-gap);
+  row-gap: clamp(1.6rem, 4.6vmin, 3.2rem);
   align-content: center;
-  gap: clamp(1.6rem, 4.6vmin, 3.2rem);
   width: min(100%, 56rem);
   height: auto;
   max-height: 100%;
@@ -904,10 +938,22 @@
   padding-inline: clamp(0.4rem, 1.2vw, 1rem);
 }
 
+.session-projection-quiz__rating > * {
+  grid-column: 1 / -1;
+}
+
+.session-projection-quiz__bar,
+.session-projection-quiz__rating-labels {
+  display: grid;
+  grid-template-columns: subgrid;
+  align-items: center;
+}
+
 .session-projection-quiz__rating-labels {
   margin: 0;
-  font-size: clamp(1.4rem, 3.2vmin, 2.1rem);
+  font-size: clamp(0.8rem, 1.5vmin, 1.05rem);
   font-weight: 650;
+  line-height: 1.4;
 }
 
 .session-projection-quiz__rating-axis {
@@ -921,27 +967,38 @@
 .session-projection-quiz__rating-pole {
   display: inline-flex;
   align-items: center;
-  gap: 0.35rem;
+  gap: 0.3rem;
   max-width: 48%;
-  line-height: 1.25;
+  line-height: 1.4;
 
   mat-icon {
     flex: 0 0 auto;
-    width: 1.25em;
-    height: 1.25em;
-    font-size: 1.25em;
+    width: 1em;
+    height: 1em;
+    font-size: 1em;
     line-height: 1;
+    overflow: visible;
   }
+}
+
+.session-projection-quiz__rating-pole:first-child mat-icon {
+  /* first_page sitzt im Icon-Quadrat; an den Balkenanfang ziehen. */
+  margin-inline-start: -0.2em;
 }
 
 .session-projection-quiz__rating-pole--max {
   justify-content: flex-end;
   text-align: end;
+
+  mat-icon {
+    margin-inline-end: -0.2em;
+  }
 }
 
 .session-projection-quiz__bar {
   font-size: clamp(1.45rem, 3.4vmin, 2.2rem);
   font-weight: 700;
+  font-variant-numeric: tabular-nums;
 }
 
 .session-projection-quiz__bar-track {
@@ -1371,14 +1428,6 @@
 
 /* innerHTML-Markdown: ViewEncapsulation.None (kein Piercing-Selektor). */
 /* Presenter: innerHTML-Markdown liegt außerhalb der Component-Encapsulation. */
-.session-projection-quiz__answer-head
-  .markdown-body
-  .session-projection-quiz__answer-leading-emoji {
-  display: inline-block;
-  font-size: 1.12em;
-  line-height: 1;
-  vertical-align: -0.1em;
-}
 
 .session-projection-quiz .markdown-body img {
   width: auto !important;

@@ -1,4 +1,5 @@
 ---
+import PresenterIcon from '@/components/PresenterIcon.astro';
 import type { Locale, Messages } from '@/i18n';
 
 export interface Props {
@@ -17,7 +18,10 @@ const p = t.pairing;
 >
   <div class="mx-auto grid min-w-0 max-w-6xl gap-10 lg:grid-cols-[1.05fr_0.95fr] lg:items-center">
     <div class="min-w-0">
-      <p class="landing-eyebrow">{p.eyebrow}</p>
+      <p class="landing-eyebrow flex items-center gap-2">
+        <PresenterIcon class="h-5 w-5 shrink-0 -translate-y-[2px] sm:h-6 sm:w-6" />
+        <span>{p.eyebrow}</span>
+      </p>
       <h2
         id="pairing-heading"
         class="mt-3 break-words font-display text-3xl font-bold tracking-tight text-landing-fg sm:text-4xl"
@@ -37,8 +41,9 @@ const p = t.pairing;
     <div class="landing-card min-w-0 p-5 shadow-landing-2 sm:p-6" role="region" aria-label={p.demoAria}>
       <div class="grid gap-4 sm:grid-cols-2">
         <div class="rounded-landing-panel border border-landing-outline-variant bg-landing-surface p-4">
-          <p class="text-xs font-semibold uppercase tracking-[0.12em] text-landing-primary">
-            {p.laptopLabel}
+          <p class="flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.12em] text-landing-primary">
+            <PresenterIcon class="h-5 w-5 shrink-0" />
+            <span>{p.laptopLabel}</span>
           </p>
           <p class="mt-2 leading-6 text-landing-fg-muted">{p.laptopText}</p>
         </div>

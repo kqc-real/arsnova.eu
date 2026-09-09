@@ -221,6 +221,10 @@ describe('SessionPresentComponent', () => {
     expect(text).toContain('Live-Freitext');
     expect(text).toContain('Frage 2: Was war hilfreich?');
     expect(text).toContain('Häufige Wörter aus den Antworten.');
+    expect(text).toContain('Je größer ein Wort, desto öfter wurde es genannt.');
+    expect(
+      fixture.nativeElement.querySelector('.word-cloud__meta .word-cloud__reading-hint'),
+    ).toBeTruthy();
     expect(text).not.toContain('CSV speichern');
     expect(text).not.toContain('PNG speichern');
     expect(text).not.toContain('Antwort anzeigen');
@@ -320,7 +324,7 @@ describe('SessionPresentComponent', () => {
 
     const text = fixture.nativeElement.textContent as string;
     expect(text).toContain('Frage 2: Was hilft dir beim Lernen?');
-    expect(text).toContain('Die Antworten werden als Wortwolke dargestellt.');
+    expect(text).not.toContain('Die Antworten werden als Wortwolke dargestellt.');
     expect(text).not.toContain('###');
     expect(text).not.toContain('**Wortwolke**');
     fixture.destroy();
@@ -488,6 +492,10 @@ describe('SessionPresentComponent', () => {
     expect(idleText).toContain('arsnova.eu');
     expect(idleText).toContain('Die Session ist beendet.');
     expect(idle?.querySelector('.session-present__finish-brand')).toBeTruthy();
+    const finishIcon = idle?.querySelector(
+      '.session-present__finish-brand-icon',
+    ) as SVGElement | null;
+    expect(finishIcon?.querySelector('rect[x="2"]')).toBeNull();
     expect(idle?.querySelector('.session-present__finish-brand-title')?.textContent?.trim()).toBe(
       'arsnova.eu',
     );

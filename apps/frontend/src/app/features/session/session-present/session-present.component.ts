@@ -59,6 +59,7 @@ import {
   type SupportedLocale,
 } from '../../../core/locale-from-path';
 import { stripMarkdownToPlainText } from '../../../core/markdown-plain-text.util';
+import { presenterQuestionHeading } from './session-projection-quiz.util';
 import { MarkdownImageLightboxDirective } from '../../../shared/markdown-image-lightbox/markdown-image-lightbox.directive';
 import { ThemePresetService } from '../../../core/theme-preset.service';
 import {
@@ -1851,7 +1852,8 @@ export class SessionPresentComponent implements OnInit, OnDestroy {
     if (questionOrder === null || questionOrder === undefined) {
       return null;
     }
-    const plainText = stripMarkdownToPlainText(questionText ?? '');
+    const heading = presenterQuestionHeading(questionText ?? '');
+    const plainText = stripMarkdownToPlainText(heading);
     return $localize`Frage ${questionOrder + 1}:questionNumber:: ${plainText}:questionText:`;
   }
 }

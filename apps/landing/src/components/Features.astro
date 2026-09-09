@@ -1,4 +1,5 @@
 ---
+import PresenterIcon from '@/components/PresenterIcon.astro';
 import type { Locale, Messages } from '@/i18n';
 
 export interface Props {
@@ -27,12 +28,7 @@ const f = t.features;
             {item.icon === 'server' && '📦'}
             {item.icon === 'ai' && '🤖'}
             {item.icon === 'single' && '🔗'}
-            {item.icon === 'phone' && (
-              <svg class="h-6 w-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
-                <rect x="7" y="2.5" width="10" height="19" rx="2" />
-                <path stroke-linecap="round" d="M11 18.5h2" />
-              </svg>
-            )}
+            {item.icon === 'presenter' && <PresenterIcon class="h-6 w-6" />}
             {item.icon === 'book' && '📚'}
             {item.icon === 'tools' && '🧭'}
             {item.icon === 'a11y' && (

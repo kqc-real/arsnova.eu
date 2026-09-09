@@ -106,7 +106,8 @@ describe('Host-Pairing Oberflächengrenzen (Story 2.10)', () => {
     expect(pairingHtml).toContain('app-qr-image');
     expect(pairingHtml).toContain('matButton="filled"');
     expect(pairingHtml).toContain('matButton="text"');
-    expect(startHtml).toContain('<mat-icon>launch</mat-icon>');
+    expect(startHtml).toContain('app-presenter-icon');
+    expect(startHtml).not.toContain('<mat-icon>launch</mat-icon>');
     expect(startHtml).toContain('hourglass_top');
     expect(startHtml).not.toContain('presentation-start-dialog__subtitle-icon');
     expect(startHtml).toContain('matButton="filled"');

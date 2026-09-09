@@ -1024,11 +1024,50 @@ describe('SessionHostComponent', { timeout: 30_000 }, () => {
     ) as HTMLButtonElement | null;
     expect(presenterButton).not.toBeNull();
     expect(presenterButton?.textContent).toContain('Präsentation starten');
-    expect(
-      presenterButton?.querySelector(':scope > svg.session-host__view-toggle-icon'),
-    ).not.toBeNull();
+    expect(presenterButton?.querySelector('app-presenter-icon')).not.toBeNull();
     expect(presenterButton?.querySelector('.session-host__view-toggle-content')).toBeNull();
     expect(getComputedStyle(presenterButton!).alignItems).toBe('center');
+    const lobbyPresenterCta = fixture.nativeElement.querySelector(
+      '.session-lobby__actions--hero [data-testid="open-presenter-view"]',
+    ) as HTMLButtonElement | null;
+    expect(lobbyPresenterCta).not.toBeNull();
+    expect(lobbyPresenterCta?.textContent).toContain('Präsentation starten');
+    expect(lobbyPresenterCta?.querySelector('app-presenter-icon')).not.toBeNull();
+    const lobbyIcon = lobbyPresenterCta?.querySelector('app-presenter-icon');
+    const lobbyLabel = lobbyPresenterCta?.querySelector('.mdc-button__label');
+    expect(lobbyIcon).not.toBeNull();
+    expect(lobbyLabel).not.toBeNull();
+    expect(lobbyLabel?.contains(lobbyIcon!)).toBe(false);
+    expect(getComputedStyle(lobbyIcon!).alignSelf).toBe('center');
+    expect(getComputedStyle(lobbyIcon!).verticalAlign).toBe('middle');
+    expect(getComputedStyle(lobbyIcon!).width).toMatch(/1\.75rem|28px|app-presenter-icon-size/);
+    expect(getComputedStyle(lobbyIcon!).height).toMatch(/1\.75rem|28px|app-presenter-icon-size/);
+    const lobbyStartButton = Array.from(
+      fixture.nativeElement.querySelectorAll(
+        '.session-lobby__actions--hero button',
+      ) as NodeListOf<HTMLButtonElement>,
+    ).find((button) => button.textContent?.includes('Erste Frage starten'));
+    expect(lobbyStartButton).toBeTruthy();
+    expect(lobbyStartButton?.className ?? '').toMatch(/tonal/i);
+    const { readFileSync } = await import('node:fs');
+    const { fileURLToPath } = await import('node:url');
+    const { dirname, join } = await import('node:path');
+    const styles = readFileSync(
+      join(dirname(fileURLToPath(import.meta.url)), 'session-host.component.scss'),
+      'utf8',
+    );
+    expect(styles).toMatch(
+      /\.session-host__view-toggle\.session-host__view-toggle--presenter\s*\{[^}]*mat-sys-primary/s,
+    );
+    expect(styles).toMatch(
+      /\.session-host__view-toggle\.session-host__view-toggle--presenter\s*\{[^}]*mat-sys-on-primary/s,
+    );
+    expect(styles).toMatch(
+      /\.session-host__view-toggle\.session-host__view-toggle--presenter\s*\{[^}]*--app-presenter-icon-size:\s*1\.75rem/s,
+    );
+    expect(styles).toMatch(
+      /\.session-host__presenter-cta \{[^}]*--app-presenter-icon-size:\s*1\.75rem/s,
+    );
     fixture.destroy();
   });
 
@@ -1176,6 +1215,113 @@ describe('SessionHostComponent', { timeout: 30_000 }, () => {
     expect(fixture.componentInstance.activeChannel()).toBe('quickFeedback');
     expect(
       fixture.nativeElement.querySelector('[data-testid="open-presenter-view"]'),
+    ).not.toBeNull();
+    fixture.destroy();
+  });
+
+  it('bietet die Presenter-Ansicht im Blitzlicht-Foyer ohne Quiz an', async () => {
+    getInfoQueryMock.mockResolvedValue({
+      ...defaultSession,
+      status: 'LOBBY',
+      quizName: null,
+      preferredChannel: 'quickFeedback',
+      channels: {
+        quiz: { enabled: false },
+        qa: { enabled: false, open: false, title: null, moderationMode: false },
+        quickFeedback: { enabled: true, open: true },
+      },
+    });
+
+    const fixture = setup();
+    fixture.detectChanges();
+    await fixture.whenStable();
+    fixture.detectChanges();
+
+    expect(fixture.componentInstance.activeChannel()).toBe('quickFeedback');
+    expect(fixture.componentInstance.showHostViewControls()).toBe(true);
+    expect(fixture.componentInstance.isImmersiveMode()).toBe(true);
+    const toolbarPresenter = fixture.nativeElement.querySelector(
+      '.session-host__view-controls [data-testid="open-presenter-view"]',
+    ) as HTMLButtonElement | null;
+    expect(toolbarPresenter).not.toBeNull();
+    const toolbarIcon = toolbarPresenter?.querySelector('app-presenter-icon');
+    const toolbarLabel = toolbarPresenter?.querySelector('.mdc-button__label');
+    expect(toolbarIcon).not.toBeNull();
+    expect(toolbarLabel).not.toBeNull();
+    expect(toolbarLabel?.contains(toolbarIcon!)).toBe(false);
+    expect(getComputedStyle(toolbarPresenter!).alignItems).toBe('center');
+    expect(getComputedStyle(toolbarIcon!).alignSelf).toBe('center');
+    expect(getComputedStyle(toolbarIcon!).width).toMatch(/1\.75rem|28px|app-presenter-icon-size/);
+    expect(getComputedStyle(toolbarIcon!).height).toMatch(/1\.75rem|28px|app-presenter-icon-size/);
+    fixture.destroy();
+  });
+
+  it('bietet die Presenter-Ansicht im Blitzlicht-Kanal einer Quiz-Lobby an', async () => {
+    getInfoQueryMock.mockResolvedValue({
+      ...defaultSession,
+      status: 'LOBBY',
+      preferredChannel: 'quiz',
+      channels: {
+        quiz: { enabled: true },
+        qa: { enabled: false, open: false, title: null, moderationMode: false },
+        quickFeedback: { enabled: true, open: true },
+      },
+    });
+
+    const fixture = setup([
+      {
+        provide: ActivatedRoute,
+        useValue: {
+          snapshot: {
+            queryParamMap: convertToParamMap({ tab: 'quickFeedback' }),
+          },
+          parent: {
+            snapshot: {
+              paramMap: convertToParamMap({ code: 'ABC123' }),
+            },
+          },
+        },
+      },
+    ]);
+    fixture.detectChanges();
+    await fixture.whenStable();
+    fixture.detectChanges();
+
+    expect(fixture.componentInstance.activeChannel()).toBe('quickFeedback');
+    expect(fixture.componentInstance.showHostViewControls()).toBe(true);
+    expect(
+      fixture.nativeElement.querySelector(
+        '.session-host__view-controls [data-testid="open-presenter-view"]',
+      ),
+    ).not.toBeNull();
+    fixture.destroy();
+  });
+
+  it('bietet die Presenter-Ansicht im Q&A-Foyer ohne Quiz an', async () => {
+    getInfoQueryMock.mockResolvedValue({
+      ...defaultSession,
+      type: 'Q_AND_A',
+      status: 'LOBBY',
+      quizName: null,
+      preferredChannel: 'qa',
+      channels: {
+        quiz: { enabled: false },
+        qa: { enabled: true, open: true, title: 'Fragen', moderationMode: false },
+        quickFeedback: { enabled: false, open: false },
+      },
+    });
+
+    const fixture = setup();
+    fixture.detectChanges();
+    await fixture.whenStable();
+    fixture.detectChanges();
+
+    expect(fixture.componentInstance.activeChannel()).toBe('qa');
+    expect(fixture.componentInstance.showHostViewControls()).toBe(true);
+    expect(
+      fixture.nativeElement.querySelector(
+        '.session-host__view-controls [data-testid="open-presenter-view"]',
+      ),
     ).not.toBeNull();
     fixture.destroy();
   });
