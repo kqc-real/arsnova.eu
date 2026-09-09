@@ -51,6 +51,17 @@ type PresenterEmojiReactions = {
   total: number;
 };
 
+const NUMERIC_CONSTRAINT_MAX_FRACTION_DIGITS = 10;
+
+function countStoredFractionDigits(value: number): number {
+  if (!Number.isFinite(value) || Number.isInteger(value)) {
+    return 0;
+  }
+  const trimmed = value.toFixed(NUMERIC_CONSTRAINT_MAX_FRACTION_DIGITS).replace(/\.?0+$/, '');
+  const separator = trimmed.indexOf('.');
+  return separator === -1 ? 0 : trimmed.length - separator - 1;
+}
+
 @Component({
   selector: 'app-session-projection-quiz',
   standalone: true,
@@ -424,13 +435,13 @@ export class SessionProjectionQuizComponent {
     const min = question.numericMin;
     const max = question.numericMax;
     if (min !== undefined && min !== null && max !== undefined && max !== null) {
-      return $localize`:@@sessionVote.numericInputRangeBoth:Erlaubte Eingabe: ${this.formatNumericValue(min)}:min: bis ${this.formatNumericValue(max)}:max:`;
+      return $localize`:@@sessionVote.numericInputRangeBoth:Erlaubte Eingabe: ${this.formatNumericConstraintValue(min)}:min: bis ${this.formatNumericConstraintValue(max)}:max:`;
     }
     if (min !== undefined && min !== null) {
-      return $localize`:@@sessionVote.numericInputRangeMin:Erlaubte Eingabe: mindestens ${this.formatNumericValue(min)}:min:`;
+      return $localize`:@@sessionVote.numericInputRangeMin:Erlaubte Eingabe: mindestens ${this.formatNumericConstraintValue(min)}:min:`;
     }
     if (max !== undefined && max !== null) {
-      return $localize`:@@sessionVote.numericInputRangeMax:Erlaubte Eingabe: höchstens ${this.formatNumericValue(max)}:max:`;
+      return $localize`:@@sessionVote.numericInputRangeMax:Erlaubte Eingabe: höchstens ${this.formatNumericConstraintValue(max)}:max:`;
     }
     return null;
   });
@@ -738,6 +749,26 @@ export class SessionProjectionQuizComponent {
     const abs = Math.abs(value);
     const maximumFractionDigits = Number.isInteger(value) ? 0 : abs >= 100 ? 1 : 2;
     return formatLocaleNumber(value, this.localeId, { maximumFractionDigits });
+  }
+
+  /** Eingabegrenzen mit konfigurierter Genauigkeit, nicht mit dem Statistik-Runder. */
+  private formatNumericConstraintValue(value: number): string {
+    return formatLocaleNumber(value, this.localeId, {
+      maximumFractionDigits: this.numericConstraintFractionDigits(value),
+    });
+  }
+
+  private numericConstraintFractionDigits(value: number): number {
+    const question = this.question();
+    if (question?.numericInputType === 'INTEGER' || question?.numericDecimalPlaces === 0) {
+      return 0;
+    }
+    const configured =
+      typeof question?.numericDecimalPlaces === 'number' &&
+      Number.isFinite(question.numericDecimalPlaces)
+        ? Math.max(0, Math.min(10, Math.trunc(question.numericDecimalPlaces)))
+        : 0;
+    return Math.min(10, Math.max(configured, countStoredFractionDigits(value)));
   }
 
   private votesCastLabel(votes: number, participantTotal: number | null | undefined): string {

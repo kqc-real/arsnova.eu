@@ -658,6 +658,46 @@ describe('SessionProjectionQuizComponent', () => {
     expect(text).not.toContain('3.5');
   });
 
+  it('zeigt Eingabegrenzen mit konfigurierter Dezimalgenauigkeit statt Statistikrundung', () => {
+    fixture.componentRef.setInput(
+      'question',
+      choiceQuestion({
+        type: 'NUMERIC_ESTIMATE',
+        answers: [],
+        numericInputType: 'DECIMAL',
+        numericDecimalPlaces: 3,
+        numericMin: 3.141,
+        numericMax: 3.142,
+      }),
+    );
+    fixture.componentRef.setInput('status', 'ACTIVE');
+    fixture.detectChanges();
+
+    const text = fixture.nativeElement.textContent as string;
+    expect(text).toContain('Erlaubte Eingabe: 3,141 bis 3,142');
+    expect(text).not.toContain('3,14 bis 3,14');
+  });
+
+  it('zeigt Eingabegrenzen über 100 ohne Statistikrundung auf eine Nachkommastelle', () => {
+    fixture.componentRef.setInput(
+      'question',
+      choiceQuestion({
+        type: 'NUMERIC_ESTIMATE',
+        answers: [],
+        numericInputType: 'DECIMAL',
+        numericDecimalPlaces: 2,
+        numericMin: 100.15,
+        numericMax: 100.16,
+      }),
+    );
+    fixture.componentRef.setInput('status', 'ACTIVE');
+    fixture.detectChanges();
+
+    const text = fixture.nativeElement.textContent as string;
+    expect(text).toContain('Erlaubte Eingabe: 100,15 bis 100,16');
+    expect(text).not.toContain('100,2');
+  });
+
   it('zeigt Display-KaTeX in Abstimmung und Ergebnis unter dem Bild', () => {
     const piQuestion = choiceQuestion({
       type: 'NUMERIC_ESTIMATE',
