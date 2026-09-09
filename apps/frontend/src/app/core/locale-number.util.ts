@@ -5,6 +5,7 @@
 export interface FormatLocaleNumberOptions {
   minimumFractionDigits?: number;
   maximumFractionDigits?: number;
+  useGrouping?: boolean;
 }
 
 function normalizeLocale(locale: string): string {
@@ -28,10 +29,11 @@ export function formatLocaleNumber(
   locale = 'de',
   options: FormatLocaleNumberOptions = {},
 ): string {
-  const { minimumFractionDigits = 0, maximumFractionDigits = 0 } = options;
+  const { minimumFractionDigits = 0, maximumFractionDigits = 0, useGrouping = true } = options;
   return new Intl.NumberFormat(normalizeLocale(locale), {
     minimumFractionDigits,
     maximumFractionDigits,
+    useGrouping,
   }).format(safeFiniteNumber(value));
 }
 

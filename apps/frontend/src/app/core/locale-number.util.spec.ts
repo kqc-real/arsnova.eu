@@ -18,6 +18,11 @@ describe('locale-number util', () => {
     expect(formatLocaleCount(Number.POSITIVE_INFINITY, 'en')).toBe('0');
   });
 
+  it('kann Tausendertrenner für Jahreszahlen abschalten', () => {
+    expect(formatLocaleNumber(1789, 'de', { useGrouping: false })).toBe('1789');
+    expect(formatLocaleNumber(1789, 'de')).toBe('1.789');
+  });
+
   it('formatiert Dezimalzahlen mit konfigurierbaren Nachkommastellen', () => {
     expect(
       formatLocaleNumber(4.25, 'de', { minimumFractionDigits: 1, maximumFractionDigits: 1 }),

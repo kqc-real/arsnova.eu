@@ -62,7 +62,13 @@ describe('SessionProjectionQuizComponent', () => {
     );
     expect(styles).toMatch(/\.session-projection-quiz__answer-head[\s\S]*?line-height:\s*1/s);
     expect(styles).toMatch(
-      /\.session-projection-quiz--reading:not\(\.session-projection-quiz--split\)[\s\S]*?\.session-projection-quiz__reading\s*\{[^}]*margin-block:\s*auto/s,
+      /\.session-projection-quiz--reading:not\(\.session-projection-quiz--split\)[\s\S]*?\.session-projection-quiz__reading\s*\{[^}]*flex:\s*1 1 auto/s,
+    );
+    expect(styles).toMatch(
+      /\.session-projection-quiz--reading:not\(\.session-projection-quiz--split\)[\s\S]*?\.session-projection-quiz__reading\s*\{[^}]*justify-content:\s*center/s,
+    );
+    expect(styles).toMatch(
+      /\.session-projection-quiz--reading\.session-projection-quiz--with-visual[\s\S]*?\.session-projection-quiz__visual\s*\{[^}]*flex:\s*0 1 auto/s,
     );
     expect(styles).toMatch(
       /\.session-projection-quiz__numeric-facts-stack\s*\{[^}]*flex-direction:\s*column/s,
@@ -233,6 +239,7 @@ describe('SessionProjectionQuizComponent', () => {
       '.session-projection-quiz__rating-pole',
     ) as NodeListOf<HTMLElement>;
     expect(poles).toHaveLength(2);
+    expect(poles[0]?.querySelector('.session-projection-quiz__rating-pole-icon')).toBeTruthy();
     expect(poles[0]?.textContent).toContain('first_page');
     expect(poles[0]?.textContent).toContain('Sehr unwahrscheinlich');
     expect(poles[1]?.textContent).toContain('Sehr wahrscheinlich');
@@ -243,13 +250,22 @@ describe('SessionProjectionQuizComponent', () => {
       'utf8',
     );
     expect(styles).toMatch(
-      /\.session-projection-quiz__rating-labels\s*\{[^}]*clamp\(0\.8rem, 1\.5vmin, 1\.05rem\)/s,
+      /\.session-projection-quiz__rating-labels\s*\{[^}]*clamp\(1rem, 2\.2vmin, 1\.4rem\)/s,
+    );
+    expect(styles).toMatch(
+      /\.session-projection-quiz__rating\s*\{[^}]*--pq-rating-pole-icon:\s*clamp\(1\.75rem, 4\.4vmin, 2\.75rem\)/s,
+    );
+    expect(styles).toMatch(/\.session-projection-quiz__rating-pole\s*\{[^}]*min-width:\s*0/s);
+    expect(styles).not.toMatch(
+      /\.session-projection-quiz__rating-pole[^}]*margin-inline-(?:start|end):\s*-/s,
     );
     expect(styles).toMatch(/\.session-projection-quiz__rating\s*\{[^}]*--pq-rating-index:/s);
     expect(styles).toMatch(
       /\.session-projection-quiz__bar,\s*\.session-projection-quiz__rating-labels\s*\{[^}]*grid-template-columns:\s*subgrid/s,
     );
-    expect(styles).toMatch(/\.session-projection-quiz__rating-axis\s*\{[^}]*grid-column:\s*2/s);
+    expect(styles).toMatch(
+      /\.session-projection-quiz__rating-axis\s*\{[^}]*grid-column:\s*1 \/ -1/s,
+    );
   });
 
   it('zeigt nach der Freigabe Verteilung und richtige Antwort', () => {
@@ -287,9 +303,13 @@ describe('SessionProjectionQuizComponent', () => {
     ) as NodeListOf<HTMLElement>;
     expect(answers[0].classList.contains('session-projection-quiz__answer--wrong')).toBe(true);
     expect(answers[1].classList.contains('session-projection-quiz__answer--correct')).toBe(true);
+    expect(answers[1].querySelector('.session-projection-quiz__answer-correct-icon')).toBeTruthy();
     const projectionStyles = readFileSync(
       resolve(__dirname, 'session-projection-quiz.component.scss'),
       'utf8',
+    );
+    expect(projectionStyles).toMatch(
+      /\.session-projection-quiz__answer-correct-icon\s*\{[^}]*--arsnova-bar-correct/s,
     );
     expect(projectionStyles).not.toMatch(
       /\.session-projection-quiz__answer--(?:correct|wrong)\s*\{[^}]*box-shadow:/s,
@@ -1109,6 +1129,28 @@ describe('SessionProjectionQuizComponent', () => {
     expect(text).toContain('Referenz');
     expect(text).not.toContain('Numerische Schätzung');
     expect(fixture.nativeElement.querySelector('.session-projection-quiz__histogram')).toBeNull();
+  });
+
+  it('zeigt Jahres-Referenzen ohne Tausendertrenner', () => {
+    fixture.componentRef.setInput(
+      'question',
+      choiceQuestion({
+        type: 'NUMERIC_ESTIMATE',
+        text: 'In welchem Jahr begann die Französische Revolution?',
+        answers: [],
+        numericInputType: 'INTEGER',
+        numericReferenceValue: 1789,
+        numericMin: 1600,
+        numericMax: 2000,
+        numericHistogram: [],
+      }),
+    );
+    fixture.componentRef.setInput('status', 'RESULTS');
+    fixture.detectChanges();
+
+    const text = fixture.nativeElement.textContent as string;
+    expect(text).toContain('Referenz 1789');
+    expect(text).not.toContain('1.789');
   });
 
   it('hält Markdown-/Token-Styles ohne ::ng-deep / font-weight 800', () => {
