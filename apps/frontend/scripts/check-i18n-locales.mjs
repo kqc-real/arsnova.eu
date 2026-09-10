@@ -52,6 +52,7 @@ function sameValues(left, right) {
 }
 
 const NNBSP = '\u202f';
+const INNER_QUOTE_SPACE = /[ \t\u00a0\u202f]/;
 const DE_FORBIDDEN_QUOTES = /[„“”]/;
 const EN_FORBIDDEN_QUOTES = /[«»„]/;
 const FR_FORBIDDEN_QUOTES = /[„“”]/;
@@ -113,6 +114,15 @@ function quoteErrors(file, id, field, value) {
       errors.push(
         `${file}: ${id}: ${file.includes('.es.') ? 'spanische' : 'italienische'} Zieltexte brauchen «…»`,
       );
+    }
+    for (const match of value.matchAll(FR_GUILLEMET)) {
+      const inner = match[1];
+      if (INNER_QUOTE_SPACE.test(inner.slice(0, 1)) || INNER_QUOTE_SPACE.test(inner.slice(-1))) {
+        errors.push(
+          `${file}: ${id}: ${file.includes('.es.') ? 'spanische' : 'italienische'} Guillemets ohne Innenabstand`,
+        );
+        break;
+      }
     }
   }
   return errors;

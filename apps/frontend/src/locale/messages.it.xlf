@@ -3969,7 +3969,7 @@
       <trans-unit id="admin.motd.resetStatsNeedEdit" datatype="html">
         <source> Zum Zurücksetzen der Zähler zuerst die Meldung in der Liste oben mit »Bearbeiten« öffnen.</source>
         <target>
-          Per azzerare i contatori, apri prima il messaggio nell&apos;elenco in alto con « Modifica ».
+          Per azzerare i contatori, apri prima il messaggio nell&apos;elenco in alto con «Modifica».
         </target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/admin/admin-motd-panel.component.html</context>
@@ -15405,7 +15405,7 @@
       </trans-unit>
       <trans-unit id="quizList.deleteQuizBonusCodesHint" datatype="html">
         <source>Wenn Bonus-Codes vorhanden sind, exportiere sie vorher über »Bonus-Codes« &gt; »CSV exportieren«.</source>
-        <target>Se esistono codici bonus, esportali prima da « Codici bonus » &gt; « Esporta CSV ».</target>
+        <target>Se esistono codici bonus, esportali prima da «Codici bonus» &gt; «Esporta CSV».</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/quiz/quiz-list/quiz-list.component.ts</context>
           <context context-type="linenumber">558</context>
@@ -19829,7 +19829,7 @@
       </trans-unit>
       <trans-unit id="sessionHost.steeringCalloutBody" datatype="html">
         <source>Kein Stress – so was passiert manchmal (kurzer Ruckler oder instabiles WLAN). Warte zwei, drei Sekunden und tippe auf »Nochmal probieren« – meist reicht das.</source>
-        <target>Tranquillo, succede (un attimo di linea o Wi‑Fi ballerino). Aspetta qualche secondo e tocca « Riprova » — di solito basta.</target>
+        <target>Tranquillo, succede (un attimo di linea o Wi‑Fi ballerino). Aspetta qualche secondo e tocca «Riprova» — di solito basta.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.ts</context>
           <context context-type="linenumber">4585</context>
@@ -19845,7 +19845,7 @@
       </trans-unit>
       <trans-unit id="sessionHost.steeringCalloutQaBody" datatype="html">
         <source>Hier ist nichts kaputt – es hat nur gerade nicht geklappt. Kurz durchatmen, 2–3 Sekunden warten, dann »Nochmal probieren« – oft läuft es gleich wieder.</source>
-        <target>Non è rotto, è solo che non ha funzionato quel colpo. Aspetta 2–3 secondi e tocca « Riprova » — spesso si sistema subito.</target>
+        <target>Non è rotto, è solo che non ha funzionato quel colpo. Aspetta 2–3 secondi e tocca «Riprova» — spesso si sistema subito.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.ts</context>
           <context context-type="linenumber">4603</context>
@@ -19861,7 +19861,7 @@
       </trans-unit>
       <trans-unit id="sessionHost.steeringCalloutExportBody" datatype="html">
         <source>PDF- oder Excel-Export ist diesmal nicht durchgekommen. Warte ein paar Sekunden und tippe auf »Nochmal probieren« – meist klappt’s beim zweiten Anlauf.</source>
-        <target>L’export PDF o Excel non è arrivato questa volta. Aspetta qualche secondo e tocca « Riprova » — al secondo tentativo di solito va.</target>
+        <target>L’export PDF o Excel non è arrivato questa volta. Aspetta qualche secondo e tocca «Riprova» — al secondo tentativo di solito va.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.ts</context>
           <context context-type="linenumber">4613</context>
@@ -24863,7 +24863,7 @@
       </trans-unit>
       <trans-unit id="sessionVote.shortTextResultMatchedSolution" datatype="html">
         <source>Gewertet als Musterlösung »<x id="matchedModelAnswer" equiv-text="result.matchedModelAnswer"/>«.</source>
-        <target>Ricondotta alla soluzione modello « <x id="matchedModelAnswer" equiv-text="result.matchedModelAnswer"/> ».</target>
+        <target>Ricondotta alla soluzione modello «<x id="matchedModelAnswer" equiv-text="result.matchedModelAnswer"/>».</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-vote/session-vote.component.ts</context>
           <context context-type="linenumber">1610</context>
