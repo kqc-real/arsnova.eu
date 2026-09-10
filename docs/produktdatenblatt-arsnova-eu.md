@@ -1,6 +1,6 @@
 # Produktdatenblatt: arsnova.eu
 
-**Stand:** 2026-07-05
+**Stand:** 2026-09-10
 **Produktkategorie:** Webbasierte Interaktions- und Abstimmungsplattform  
 **Einsatzkontext:** Lehre, Training, Workshops, Konferenzen, Beteiligungsformate
 
@@ -25,8 +25,9 @@ Diese Produktbeschreibung wurde aus zwei Primärquellen konsolidiert:
   - Gesamtumfang: **124 Stories**
   - Status laut Story-Übersicht: **108 fertig**, **0 in Arbeit**, **12 offen**
     (plus **3** geschlossen, **1** Cutover)
-  - Epics: **0 bis 10** und **Epic 12** (Produktfeedback) umgesetzt; **Epic 11**
-    bleibt noch nicht beauftragter Erweiterungspfad
+  - Epics: **0 bis 10** und **Epic 12** (Produktfeedback: **12.1–12.4**
+    implementiert und am 2026-09-10 manuell abgenommen);
+    **Epic 11** bleibt noch nicht beauftragter Erweiterungspfad
 - **Test-Quelle:** alle automatisierten Unit-/Komponententests in Backend und Frontend
   - **Frontend:** 43 Spec-Dateien (`*.spec.ts`)
   - **Backend:** 27 Testdateien (`*.test.ts`)
@@ -101,6 +102,11 @@ Hinweis: Die Darstellung bleibt produktdatenblatt-typisch verdichtet, bezieht si
 
 - End-to-end umgesetzt: Modell, APIs, Admin-UI, Overlay/Archiv, Interaktionen, Härtung.
 
+## Epic 12 – Kontinuierliches Produktfeedback
+
+- **12.1–12.4** implementiert und am **2026-09-10 manuell abgenommen:** Post-Session-Zwei-Klick-Feedback, In-App-Kanal „arsnova.eu verbessern“ mit Admin-Triage, Markdown-Export für ein externes LLM, Admin-Massenlöschung.
+- Fachdoku: [features/product-feedback.md](features/product-feedback.md).
+
 ---
 
 ## 4. Produktnutzen für die didaktische Zielgruppe
@@ -167,7 +173,7 @@ Produktionsbaselines.
 - Asynchrone Quiz-Modi (2.9)
 - Optionale generative Moderationszusammenfassung (8.9c Slice 4 / echtes Modell; Slices 1–3 und 8.9a/8.9b umgesetzt)
 - Word Cloud 3.0 Stufe 1 (1.14c Encoder + Clustering, Kill-Switch default aus); Stufe 2 LLM-Labels offen; 1.14a/1.14b sind umgesetzt
-- Epic 12 (Post-Session- und In-App-Produktfeedback, Admin-Triage, LLM-Export und Massenlöschung) ist umgesetzt; siehe [features/product-feedback.md](features/product-feedback.md)
+- Epic 12 Stories **12.1–12.4** sind implementiert und am 2026-09-10 manuell abgenommen; siehe [features/product-feedback.md](features/product-feedback.md)
 
 ---
 

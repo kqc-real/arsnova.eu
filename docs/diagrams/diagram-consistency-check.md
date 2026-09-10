@@ -1,8 +1,8 @@
 # Konsistenzprüfung: Diagramme · Handbuch · Backlog · Code
 
-**Datum:** 2026-08-20
+**Datum:** 2026-09-10
 
-**Geprüft:** diagrams.md, architecture-overview.md, handbook.md, Backlog.md, ADR-0006, ADR-0012, ADR-0015/0016, ADR-0021, ADR-0028/0029, ADR-0032, ROUTES_AND_STORIES.md, GLOSSAR.md, onboarding.md, prisma/schema.prisma, libs/shared-types, apps/backend, apps/frontend, [server-status-widget.md](../features/server-status-widget.md), [numeric-estimate.md](../features/numeric-estimate.md), [moderation-compass.md](../features/moderation-compass.md), [word-cloud-spacy.md](../features/word-cloud-spacy.md), [qa-nlp-moderation.md](../features/qa-nlp-moderation.md), [qa-summary.md](../features/qa-summary.md).
+**Geprüft:** diagrams.md, architecture-overview.md, handbook.md, Backlog.md, ADR-0006, ADR-0012, ADR-0015/0016, ADR-0021, ADR-0028/0029, ADR-0032, ROUTES_AND_STORIES.md, GLOSSAR.md, onboarding.md, prisma/schema.prisma, libs/shared-types, apps/backend, apps/frontend, [server-status-widget.md](../features/server-status-widget.md), [numeric-estimate.md](../features/numeric-estimate.md), [moderation-compass.md](../features/moderation-compass.md), [word-cloud-spacy.md](../features/word-cloud-spacy.md), [qa-nlp-moderation.md](../features/qa-nlp-moderation.md), [qa-summary.md](../features/qa-summary.md), [product-feedback.md](../features/product-feedback.md).
 
 **Epic 0:** Alle Stories 0.1–0.6 umgesetzt (Redis, tRPC WebSocket, Yjs, Server-Status, Rate-Limiting, CI/CD). health.check, health.footerBundle, health.stats, health.ping, Rate-Limit-Service und Frontend ServerStatusWidget sind implementiert.
 
@@ -12,7 +12,7 @@
 
 ### 1.1 Backend-Komponenten
 
-- **Router:** health, quiz, session, vote, qa, quickFeedback, wordCloud, **admin** (Epic 9), **motd** (Epic 10) – untereinander konsistent; adminRouter mit PG/Cleanup; motdRouter mit PG/Rate-Limit; wordCloudRouter mit deterministischer Analyse ohne eigene Persistenz plus optionaler host-ausgelöster spaCy-Glättung (Story 1.14b, Unix-Socket-Sidecar); Verbindungen zu Services, DTO, Validation und PG/Redis/WebSocket/y-websocket stimmig.
+- **Router:** health, quiz, session, vote, qa, quickFeedback, wordCloud, **admin** (Epic 9), **motd** (Epic 10), **productFeedback** (Epic 12: 12.1–12.4 implementiert und am 2026-09-10 manuell abgenommen) – untereinander konsistent; adminRouter mit PG/Cleanup; motdRouter mit PG/Rate-Limit; productFeedbackRouter mit PG, Redis-Invite-Slots und Rate-Limit; wordCloudRouter mit deterministischer Analyse ohne eigene Persistenz plus optionaler host-ausgelöster spaCy-Glättung (Story 1.14b, Unix-Socket-Sidecar); Verbindungen zu Services, DTO, Validation und PG/Redis/WebSocket/y-websocket stimmig.
 - **DTO-Layer:** QuestionStudentDTO (kein isCorrect), QuestionRevealedDTO (mit isCorrect), SessionInfoDTO, LeaderboardEntryDTO, PersonalScorecardDTO und NumericEstimate-DTOs für Histogramm/Stats/Rundenvergleich – stimmt mit shared-types Zod-Schemas überein.
 - **Validation:** SubmitVoteInputSchema, CreateSessionInputSchema, QuizUploadInputSchema im Diagramm – alle drei existieren identisch in `libs/shared-types/src/schemas.ts`. ✓
 - **Header:** Epic 0 umgesetzt; healthRouter (check, stats, ping), sessionRouter (mit Rate-Limit), voteRouter (mit Rate-Limit), Yjs- und WebSocket-Server implementiert. ✓
@@ -24,9 +24,9 @@
 
 ### 1.3 Datenbank-Schema (erDiagram)
 
-- **Entitäten:** Quiz, Question, AnswerOption, Session, Participant, PlatformStatistic, DailyStatistic, Team, Vote, VoteAnswer, BonusToken, SessionFeedback, QaQuestion, QaUpvote, AdminAuditLog, MotdTemplate, Motd, MotdLocale, MotdInteractionCounter, MotdAuditLog – stimmen mit Prisma-Schema überein. ✓
-- **Relationen & Kardinalitäten:** Alle zentralen 1:n-, n:m- und Snapshot-Beziehungen korrekt; optionale Beziehungen (`Session.quizId`, `Participant.teamId`, `Motd.templateId`) sind im ER-Diagramm als optional bzw. kompakt dargestellt.
-- **Felder im erDiagram:** Bewusst fachlich gekürzte Auswahl. Neuere schema-relevante Felder sind sichtbar: SHORT_TEXT-/Numeric-Konfigurationen, `NUMERIC_ESTIMATE`-Felder (`numericReferenceValue`, Toleranzintervall, Eingabetyp, `numericTwoRounds`, `Vote.numericValue`), Session-Kanäle, Onboarding-/Legal-Hold-Hinweise, SessionFeedback, Platform/DailyStatistic, MOTD und Host-only Q&A-NLP (`QaQuestion.nlpStatus`, `nlpCategory`; weitere NLP-Felder nur in Prisma).
+- **Entitäten:** Quiz, Question, AnswerOption, Session, Participant, PlatformStatistic, DailyStatistic, Team, Vote, VoteAnswer, BonusToken, SessionFeedback, ProductFeedback, ProductFeedbackAuditLog, ProductFeedbackInviteLedger, ProductFeedbackInviteJob, ProductFeedbackExportLog, ProductFeedbackPurgeLog, QaQuestion, QaUpvote, AdminAuditLog, MotdTemplate, Motd, MotdLocale, MotdInteractionCounter, MotdAuditLog – stimmen mit Prisma-Schema überein. ✓
+- **Relationen & Kardinalitäten:** Alle zentralen 1:n-, n:m- und Snapshot-Beziehungen korrekt; optionale Beziehungen (`Session.quizId`, `Participant.teamId`, `Motd.templateId`, `ProductFeedback.duplicateOfId`) sind im ER-Diagramm als optional bzw. kompakt dargestellt. `ProductFeedbackAuditLog` ist ohne Prisma-FK (wie `MotdAuditLog`) gepunktet; Invite-Job, Ledger, Export- und Purge-Log sind eigenständig.
+- **Felder im erDiagram:** Bewusst fachlich gekürzte Auswahl. Neuere schema-relevante Felder sind sichtbar: SHORT_TEXT-/Numeric-Konfigurationen, `NUMERIC_ESTIMATE`-Felder (`numericReferenceValue`, Toleranzintervall, Eingabetyp, `numericTwoRounds`, `Vote.numericValue`), Session-Kanäle, Onboarding-/Legal-Hold-Hinweise, SessionFeedback, ProductFeedback (Epic 12, ohne Session-/Personen-FKs), Platform/DailyStatistic, MOTD und Host-only Q&A-NLP (`QaQuestion.nlpStatus`, `nlpCategory`; weitere NLP-Felder nur in Prisma).
 
 ### 1.4 Sequenzdiagramme (Dozent & Student)
 
@@ -150,6 +150,15 @@ Da beide Dateien als Living Documentation dienen, sollte architecture-overview.m
 - **Sicherheits-Architektur:** Rollen-Autorisierung (Host-Token, ADMIN_SECRET, admin.\* + Token) in architecture-overview ✓
 - **AdminAuditLog** in erDiagram (diagrams.md) und Prisma-Schema (Story 9.2 ✅) ✓
 
+### Epic 12: Produktfeedback
+
+- **productFeedbackRouter** in Backend-Diagramm (diagrams.md §1.1/1.2, architecture-overview, onboarding) mit Rate-Limit, PostgreSQL und Redis-Invite-Slots ✓
+- **admin.productFeedback** unter adminRouter (Stats, Triage, LLM-Export, Purge) in Admin-Sequenz §5b.3 und Lifecycle §6.2 ✓
+- **ER** ProductFeedback plus Audit, Invite-Ledger/Job, Export- und Purge-Log in diagrams.md §3.4 und architecture-overview ✓
+- **Admin-Tab** in der Frontend-Hierarchie (diagrams.md §2.3, architecture-overview) ✓
+- **Session-Ende** zeigt Zwei-Klick-Sheet 12.1 (diagrams.md §5.2, architecture-overview Datenfluss) ✓
+- Fachdoku: [product-feedback.md](../features/product-feedback.md)
+
 ### Epic 6: Theming, i18n, Legal
 
 - Theme (6.1) – ThemeSwitcherComponent + ThemeService ✓
@@ -203,6 +212,8 @@ Da beide Dateien als Living Documentation dienen, sollte architecture-overview.m
 | SubmitSessionFeedbackInputSchema                                             | SessionFeedback                                        | ✓ sessionId, participantId, Ratings                                                     |
 | ServerStatsDTOSchema                                                         | PlatformStatistic + DailyStatistic                     | ✓ Allzeit- und Tagesrekord-Metriken                                                     |
 | Motd\*Schemas                                                                | Motd, MotdLocale, MotdInteractionCounter, MotdTemplate | ✓ Public/Admin-Daten über DTOs statt Prisma-Rows                                        |
+| ProductFeedbackSource/Role/TriageStatus/QuarantineStatus/AuditAction         | ProductFeedback-Enums                                  | ✓ Werte identisch                                                                       |
+| ProductFeedback-Submit/Admin-DTOs                                            | ProductFeedback + Logs                                 | ✓ keine Session-/Personen-IDs; Freitext nur optional                                    |
 
 **Bewertung:** Prisma-Enums und Zod-Enums sind synchron, wo es echte DB-Enums gibt. SHORT_TEXT-/Numeric- und NUMERIC_ESTIMATE-Einstellungen sind bewusst als Prisma-Stringfelder modelliert und werden über Zod-Enums abgesichert. Input-/DTO-Schemas spiegeln die relevanten Modelle korrekt wider. ✓
 
@@ -259,20 +270,21 @@ Der repo-weite Mermaid-Render-Audit vom 2026-05-30 bleibt die letzte vollständi
 | `docs/features/preset-modes.md`                    | Foyer-Einflug an lokales UI-Preset `spielerisch` und Reward-Effekte gebunden; keine Host-Übersteuerung von Client-Presets          |
 | `docs/features/numeric-estimate.md`                | Neu: didaktisches Konzept, Plausibilitäts-/Toleranzband, Zwei-Runden-Flow, Data-Stripping, Nähe-Scoring, Statistik und Import      |
 | `docs/features/moderation-compass.md`              | Neu 2026-08-20: kanonische 8.9a-Doku; Diagramm §1.3                                                                                |
-| `docs/onboarding.md`                               | Backend-Diagramm um `wordCloudRouter`, `wordCloudAnalysis` und aktuellen Server-Status-Pfad ergänzt                                |
+| `docs/onboarding.md`                               | Backend-Diagramm um `wordCloudRouter`, `wordCloudAnalysis`, `productFeedbackRouter` und aktuellen Server-Status-Pfad ergänzt       |
+| `docs/features/product-feedback.md`                | Neu 2026-09-10: kanonische Epic-12-Doku; ER und Abläufe in diagrams.md §3.4 / §5.2 / §5b.3                                         |
 | `docs/didaktik/dritter-kurs-data-analytics-nlp.md` | Zielbild an bestehenden `wordCloudRouter` und deterministische `wordCloudAnalysis`-Baseline angepasst                              |
 | `docs/praktikum/HANDOUT-TAGESREKORD-KI-AGENT.md`   | Tagesrekord-Sequenzen auf `footerBundle`/`stats`-Trennung und dynamisches Chart-Lazy-Loading aktualisiert                          |
 | `docs/architecture/quiz-library-sync.md`           | Geprüft; keine fachliche Änderung nötig                                                                                            |
 
-Technische Plausibilitätschecks: Mermaid-Fences balanciert; alle 20 Prisma-Modelle erscheinen in den zentralen ER-Diagrammen; alle `appRouter`-Keys (`health`, `quiz`, `session`, `vote`, `qa`, `quickFeedback`, `wordCloud`, `admin`, `motd`) sind in Diagramm-/Onboarding-Doku abgebildet. Der letzte vollständige Render-Audit vom 2026-05-30 hat alle 68 Mermaid-Blöcke aus 11 getrackten Markdown-Dateien mit `mmdc 11.15.0` erfolgreich geprüft. Am 2026-08-20 kam ein fachlicher Abgleich für 1.14/8.9 hinzu (zwei neue Mermaid-Blöcke in `diagrams.md` und `architecture-overview.md`), aber kein neuer repo-weiter `mmdc`-Lauf.
+Technische Plausibilitätschecks: Mermaid-Fences balanciert; alle 26 Prisma-Modelle erscheinen in den zentralen ER-Diagrammen; alle `appRouter`-Keys (`health`, `quiz`, `session`, `vote`, `qa`, `quickFeedback`, `wordCloud`, `admin`, `motd`, `productFeedback`) sind in Diagramm-/Onboarding-Doku abgebildet. Der letzte vollständige Render-Audit vom 2026-05-30 hat alle 68 Mermaid-Blöcke aus 11 getrackten Markdown-Dateien mit `mmdc 11.15.0` erfolgreich geprüft. Am 2026-08-20 kam ein fachlicher Abgleich für 1.14/8.9 hinzu; am 2026-09-10 ProductFeedback (Epic 12) in Router-Kanten, ER und Admin-/Session-Ende-Abläufen, aber kein neuer repo-weiter `mmdc`-Lauf.
 
-| Aspekt                                     | Bewertung                                                                                                                             |
-| ------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------- |
-| **Diagramme intern**                       | ✓ Konsistent (Router, DTOs, Abläufe, DB-Schema stimmig)                                                                               |
-| **diagrams.md ↔ architecture-overview.md** | ✅ architecture-overview als vereinfachte Übersicht gekennzeichnet; Details in diagrams.md                                            |
-| **Diagramme ↔ Handbook**                   | ✓ Alle Kernkonzepte (Local-First, tRPC, Data-Stripping, Datenmodell) abgebildet; 1.14/8.9 im Handbuch als Verweis                     |
-| **Diagramme ↔ Backlog**                    | ✓ Relevante Stories aus Epics 0–8 abgedeckt; 0.4, 1.2d, 1.14, 8.9a–c in den jeweiligen Feature-Docs; offene Mini-Lücke §7.3 (Team-UI) |
-| **Zod-Schemas ↔ Prisma**                   | ✓ Alle Enums synchron, Input-Schemas spiegeln Modelle korrekt                                                                         |
-| **Diagramme ↔ Code**                       | ✓ Kernpfad (Router, DB, WS, Yjs, Frontend-Routen) plus optionale spaCy-/NLP-/Summary-Pfade                                            |
+| Aspekt                                     | Bewertung                                                                                                                                                |
+| ------------------------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Diagramme intern**                       | ✓ Konsistent (Router, DTOs, Abläufe, DB-Schema stimmig)                                                                                                  |
+| **diagrams.md ↔ architecture-overview.md** | ✅ architecture-overview als vereinfachte Übersicht gekennzeichnet; Details in diagrams.md                                                               |
+| **Diagramme ↔ Handbook**                   | ✓ Alle Kernkonzepte (Local-First, tRPC, Data-Stripping, Datenmodell) abgebildet; 1.14/8.9 im Handbuch als Verweis                                        |
+| **Diagramme ↔ Backlog**                    | ✓ Relevante Stories aus Epics 0–10 und 12 abgedeckt; 0.4, 1.2d, 1.14, 8.9a–c, 12.1–12.4 in den jeweiligen Feature-Docs; offene Mini-Lücke §7.3 (Team-UI) |
+| **Zod-Schemas ↔ Prisma**                   | ✓ Alle Enums synchron, Input-Schemas spiegeln Modelle korrekt                                                                                            |
+| **Diagramme ↔ Code**                       | ✓ Kernpfad (Router, DB, WS, Yjs, Frontend-Routen) plus optionale spaCy-/NLP-/Summary-Pfade                                                               |
 
-**Gesamtbewertung:** Die Diagramme sind intern konsistent und decken Handbook sowie Backlog umfassend ab. Die architecture-overview.md ist als vereinfachte Übersicht gekennzeichnet. Der `PAUSED`-Status ist dort als zustandserhaltende Host-Unterbrechung berücksichtigt. **Server-Status (0.4):** Ablauf in [server-status-widget.md](../features/server-status-widget.md). **Numerische Schätzfrage (1.2d):** Fachdetails in [numeric-estimate.md](../features/numeric-estimate.md). **Wortwolke / Kompass (1.14 / 8.9):** [moderation-compass.md](../features/moderation-compass.md), [word-cloud-spacy.md](../features/word-cloud-spacy.md), [qa-nlp-moderation.md](../features/qa-nlp-moderation.md), [qa-summary.md](../features/qa-summary.md). Team-Ranking: siehe [team-mode.md](../features/team-mode.md) statt eigener Diagramm-Komponente.
+**Gesamtbewertung:** Die Diagramme sind intern konsistent und decken Handbook sowie Backlog umfassend ab. Die architecture-overview.md ist als vereinfachte Übersicht gekennzeichnet. Der `PAUSED`-Status ist dort als zustandserhaltende Host-Unterbrechung berücksichtigt. **Server-Status (0.4):** Ablauf in [server-status-widget.md](../features/server-status-widget.md). **Numerische Schätzfrage (1.2d):** Fachdetails in [numeric-estimate.md](../features/numeric-estimate.md). **Wortwolke / Kompass (1.14 / 8.9):** [moderation-compass.md](../features/moderation-compass.md), [word-cloud-spacy.md](../features/word-cloud-spacy.md), [qa-nlp-moderation.md](../features/qa-nlp-moderation.md), [qa-summary.md](../features/qa-summary.md). **Produktfeedback (Epic 12):** [product-feedback.md](../features/product-feedback.md). Team-Ranking: siehe [team-mode.md](../features/team-mode.md) statt eigener Diagramm-Komponente.

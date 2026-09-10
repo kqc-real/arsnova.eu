@@ -2,7 +2,7 @@
 
 # 🎓 Onboarding: arsnova.eu
 
-**Stand:** 2026-08-16
+**Stand:** 2026-09-10
 
 Willkommen im Entwickler-Team von **arsnova.eu**. Dieses Dokument hilft dir als Studierende oder Studierender dabei, das Projekt zu verstehen, die Entwicklungsumgebung aufzusetzen und produktiv mitzuarbeiten.
 
@@ -296,29 +296,29 @@ Das System ist nach dem **Local-First**-Prinzip entworfen:
 
 ## 4. Aktueller Stand vs. Ziel-Architektur
 
-> **Epics 0–6, 7.1, 9 und 10 sind umgesetzt. Für Story 6.5 sind technische A11y-Gates und die formale Assistive-Technology-/Zoom-/OS-/Reader-Abnahme nach WCAG 2.2 AA abgeschlossen; Story 6.6 (UX-Testreihen) ist ebenfalls fertig. Epic 8 ist im Kern mit 8.1–8.4, 8.6–8.8, 8.9a und 8.9b umgesetzt (8.9b Kill-Switch default aus); **8.9c** Slices 1–3 sind im Repo (Kill-Switch default aus), Slice 4 bleibt offen. Vertrauenswürdige Co-Hosts werden ausschließlich über die offene Story **2.10** geplant.** Zusätzlich sind die numerische Schätzfrage 1.2d, Zuordnung 1.2g, Reihenfolge 1.2h, Confidence 1.2i, Kategorisierung 1.2j, Last-/Performance-Tests 0.7 sowie die Kurzantwort-/Scoring-Bausteine 1.2e–1.2eb umgesetzt. **Geschlossen (nicht umgesetzt)** sind **0.8** (McCabe-Refactor) und **1.2f** (Hotspot auf Bild, A11y). Offen bleiben u. a. **1.2ec–1.2ed**, **1.14c Stufe 2** (LLM-Labels), **1.14d** (Freitext-Themen), **2.9** und **2.10**; **1.14a/1.14b** sind fertig, **1.14c Stufe 1** (Encoder + Clustering) ist im Repo mit Kill-Switch default aus. Bei **1.6c** steht nur noch der betriebliche Legacy-Cutoff aus, **1.6d** ist geschlossen. Dieser Abschnitt zeigt den groben aktuellen Stand; für Architekturdetails sind `docs/architecture/handbook.md`, `docs/diagrams/` und die ADRs maßgeblich. A11y-Status: [`Accessibility-Umsetzungsjournal`](praktikum/ACCESSIBILITY-UMSETZUNGSJOURNAL.md). Offene Stories: [`Backlog.md`](../Backlog.md).
+> **Epics 0–6, 7.1, 9, 10 und 12 sind umgesetzt.** Epic 12: Stories 12.1–12.4 implementiert und am 2026-09-10 manuell abgenommen. **Für Story 6.5 sind technische A11y-Gates und die formale Assistive-Technology-/Zoom-/OS-/Reader-Abnahme nach WCAG 2.2 AA abgeschlossen; Story 6.6 (UX-Testreihen) ist ebenfalls fertig. Epic 8 ist im Kern mit 8.1–8.4, 8.6–8.8, 8.9a und 8.9b umgesetzt (8.9b Kill-Switch default aus); **8.9c** Slices 1–3 sind im Repo (Kill-Switch default aus), Slice 4 bleibt offen. Vertrauenswürdige Co-Hosts werden ausschließlich über die offene Story **2.10** geplant.** Zusätzlich sind die numerische Schätzfrage 1.2d, Zuordnung 1.2g, Reihenfolge 1.2h, Confidence 1.2i, Kategorisierung 1.2j, Last-/Performance-Tests 0.7 sowie die Kurzantwort-/Scoring-Bausteine 1.2e–1.2eb umgesetzt. **Geschlossen (nicht umgesetzt)** sind **0.8** (McCabe-Refactor) und **1.2f** (Hotspot auf Bild, A11y). Offen bleiben u. a. **1.2ec–1.2ed**, **1.14c Stufe 2** (LLM-Labels), **1.14d** (Freitext-Themen), **2.9** und **2.10**; **1.14a/1.14b** sind fertig, **1.14c Stufe 1** (Encoder + Clustering) ist im Repo mit Kill-Switch default aus. Bei **1.6c** steht nur noch der betriebliche Legacy-Cutoff aus, **1.6d** ist geschlossen. Dieser Abschnitt zeigt den groben aktuellen Stand; für Architekturdetails sind `docs/architecture/handbook.md`, `docs/diagrams/` und die ADRs maßgeblich. A11y-Status: [`Accessibility-Umsetzungsjournal`](praktikum/ACCESSIBILITY-UMSETZUNGSJOURNAL.md). Offene Stories: [`Backlog.md`](../Backlog.md).
 
-### Was bereits funktioniert (✅ Implementiert – Stand: 2026-08-09)
+### Was bereits funktioniert (✅ Implementiert – Stand: 2026-09-10)
 
-| Komponente                                                              | Beschreibung                                                                                                                            |
-| ----------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------- |
-| Express + tRPC-Server                                                   | Backend auf Port 3000 mit `health.check`, `health.footerBundle`, `health.stats`, `health.ping` (Subscription)                           |
-| Angular 21.2.x Frontend                                                 | Standalone Components, Signals, Angular Material 3, tokenbasiertes Theming, Startseite mit Server-Status-Widget                         |
-| tRPC-Client                                                             | `httpBatchLink` (Queries/Mutations) + `wsLink` (Subscriptions)                                                                          |
-| Redis-Anbindung                                                         | `ioredis`-Client, Health-Check, Rate-Limiting, NAT-tauglicher Session-Code-Soft-Cap                                                     |
-| tRPC WebSocket                                                          | Separater WebSocket-Server (Port 3001) für Subscriptions                                                                                |
-| Yjs y-websocket Relay                                                   | Backend startet y-websocket-Server (Port 3002) für Multi-Device-Sync                                                                    |
-| Server-Status (Epic 0.4)                                                | `health.footerBundle` im Footer, `health.stats` im Detaildialog, `PlatformStatistic`/`DailyStatistic`, Service-/Laststatus              |
-| Session-, Vote-, Q&A-, Blitzlicht-, Word-Cloud-, Admin- und MOTD-Router | `session`, `vote`, `qa`, `quickFeedback`, `wordCloud`, `admin`, `motd` mit Rate-Limiting; Live-Subscriptions für Session-Pfad           |
-| Tempo-Blitzlicht                                                        | `TEMPO` als `quickFeedback`-Template mit vier Icons, mutablem Redis-Hotpath, Tendenzmodus und Spotlight-Einstiegen                      |
-| Quiz-Scoring, Kurzantwort und Schätzfrage                               | `SINGLE_CHOICE`, `MULTIPLE_CHOICE`, `SHORT_TEXT` und `NUMERIC_ESTIMATE` sind bewertbar; Auswertungen nutzen die Effective-Vote-Regel    |
-| Strukturierte Fragentypen                                               | `MATCHING`, `ORDERING` und `CATEGORIZATION` inklusive mobiler Abstimmung, Lösungsschutz und Ergebnismatrizen                            |
-| Prisma-Schema                                                           | Vollständiges Datenbankmodell inkl. Q&A, MOTD, Admin-Audit, `PlatformStatistic` und `DailyStatistic`                                    |
-| Zod v4-Schemas (`shared-types`)                                         | Alle Input-/Output-Schemas, DTOs, Enums und Exportverträge definiert                                                                    |
-| Docker Compose                                                          | PostgreSQL 16 + Redis 7 (+ optional App-Container) per `docker compose up`                                                              |
-| CI/CD-Pipeline                                                          | GitHub Actions: Prisma, TypeScript, Tests, Docker sowie Template-A11y, axe, Lighthouse, Reflow und PDF/UA (Node 22/24)                  |
-| Session- und Besitzhärtung                                              | Host-Token, `hostProcedure`, Feedback-Host-Token, datensparsame Teilnehmerpfade und `accessProof` für Quiz-Historie                     |
-| Last-/Performance-Teststrecke                                           | k6, Artillery, sechs Classroom-Smokes, Yjs, Freitext, Soak, standardisierte Reports und Browser-Referenzflows; lokaler QA-Nachlauf grün |
+| Komponente                                                                                | Beschreibung                                                                                                                                                                        |
+| ----------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Express + tRPC-Server                                                                     | Backend auf Port 3000 mit `health.check`, `health.footerBundle`, `health.stats`, `health.ping` (Subscription)                                                                       |
+| Angular 21.2.x Frontend                                                                   | Standalone Components, Signals, Angular Material 3, tokenbasiertes Theming, Startseite mit Server-Status-Widget                                                                     |
+| tRPC-Client                                                                               | `httpBatchLink` (Queries/Mutations) + `wsLink` (Subscriptions)                                                                                                                      |
+| Redis-Anbindung                                                                           | `ioredis`-Client, Health-Check, Rate-Limiting, NAT-tauglicher Session-Code-Soft-Cap                                                                                                 |
+| tRPC WebSocket                                                                            | Separater WebSocket-Server (Port 3001) für Subscriptions                                                                                                                            |
+| Yjs y-websocket Relay                                                                     | Backend startet y-websocket-Server (Port 3002) für Multi-Device-Sync                                                                                                                |
+| Server-Status (Epic 0.4)                                                                  | `health.footerBundle` im Footer, `health.stats` im Detaildialog, `PlatformStatistic`/`DailyStatistic`, Service-/Laststatus                                                          |
+| Session-, Vote-, Q&A-, Blitzlicht-, Word-Cloud-, Admin-, MOTD- und ProductFeedback-Router | `session`, `vote`, `qa`, `quickFeedback`, `wordCloud`, `admin`, `motd`, `productFeedback` mit Rate-Limiting; Live-Subscriptions für Session-Pfad; Epic 12.1–12.4 manuell abgenommen |
+| Tempo-Blitzlicht                                                                          | `TEMPO` als `quickFeedback`-Template mit vier Icons, mutablem Redis-Hotpath, Tendenzmodus und Spotlight-Einstiegen                                                                  |
+| Quiz-Scoring, Kurzantwort und Schätzfrage                                                 | `SINGLE_CHOICE`, `MULTIPLE_CHOICE`, `SHORT_TEXT` und `NUMERIC_ESTIMATE` sind bewertbar; Auswertungen nutzen die Effective-Vote-Regel                                                |
+| Strukturierte Fragentypen                                                                 | `MATCHING`, `ORDERING` und `CATEGORIZATION` inklusive mobiler Abstimmung, Lösungsschutz und Ergebnismatrizen                                                                        |
+| Prisma-Schema                                                                             | Vollständiges Datenbankmodell inkl. Q&A, MOTD, Admin-Audit, `PlatformStatistic` und `DailyStatistic`                                                                                |
+| Zod v4-Schemas (`shared-types`)                                                           | Alle Input-/Output-Schemas, DTOs, Enums und Exportverträge definiert                                                                                                                |
+| Docker Compose                                                                            | PostgreSQL 16 + Redis 7 (+ optional App-Container) per `docker compose up`                                                                                                          |
+| CI/CD-Pipeline                                                                            | GitHub Actions: Prisma, TypeScript, Tests, Docker sowie Template-A11y, axe, Lighthouse, Reflow und PDF/UA (Node 22/24)                                                              |
+| Session- und Besitzhärtung                                                                | Host-Token, `hostProcedure`, Feedback-Host-Token, datensparsame Teilnehmerpfade und `accessProof` für Quiz-Historie                                                                 |
+| Last-/Performance-Teststrecke                                                             | k6, Artillery, sechs Classroom-Smokes, Yjs, Freitext, Soak, standardisierte Reports und Browser-Referenzflows; lokaler QA-Nachlauf grün                                             |
 
 ### Was als nächstes ansteht (🔲 Geplant / offen)
 
@@ -336,9 +336,9 @@ Vollständige Story-Liste und Status: [`Backlog.md`](../Backlog.md).
 
 ---
 
-## 5. Komponentenbeschreibung (Stand: 2026-07-05)
+## 5. Komponentenbeschreibung (Stand: 2026-09-10)
 
-Das folgende Diagramm zeigt eine vereinfachte **Backend-/Frontend-Architektur** des aktuellen Projektstands. Neben Quiz und Session sind `Q&A`, `Blitzlicht` inkl. Tempo-Template, `wordCloud`, `Admin` und **`motd` (Epic 10)** integriert.
+Das folgende Diagramm zeigt eine vereinfachte **Backend-/Frontend-Architektur** des aktuellen Projektstands. Neben Quiz und Session sind `Q&A`, `Blitzlicht` inkl. Tempo-Template, `wordCloud`, `Admin`, **`motd` (Epic 10)** und **`productFeedback` (Epic 12)** integriert.
 
 ```mermaid
 graph TB
@@ -358,6 +358,7 @@ graph TB
         wordcloud["wordCloudRouter ✅"]
         admin["adminRouter ✅"]
         motd["motdRouter ✅"]
+        productfb["productFeedbackRouter ✅"]
     end
 
     subgraph Services["Services"]
@@ -391,6 +392,7 @@ graph TB
     trpcmw --> wordcloud
     trpcmw --> admin
     trpcmw --> motd
+    trpcmw --> productfb
     session --> codegen
     vote --> ratelimit
     session --> ratelimit
@@ -398,6 +400,9 @@ graph TB
     quickfb --> ratelimit
     wordcloud --> wcanalysis
     motd --> ratelimit
+    productfb --> ratelimit
+    productfb --> pg
+    productfb --> redis
     session --> prevdto
     session --> studdto
     session --> revdto
@@ -411,7 +416,7 @@ graph TB
     express --> yws
 ```
 
-> ✅ = im Projektstand 2026-07-05 umgesetzt
+> ✅ = im Projektstand 2026-09-10 umgesetzt
 
 ### A. Frontend (Angular 21.2.x)
 

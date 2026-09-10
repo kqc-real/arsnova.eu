@@ -1,7 +1,7 @@
 # Frontend Routing Components
 
 - `apps/frontend/src/app/app.routes.ts` lazy-loads routed feature components.
-- Route domains: home, quiz, session, join, feedback, admin, help, news archive, legal.
+- Route domains: home, quiz, session, join, feedback, admin (incl. ProductFeedback tab, Epic 12: 12.1–12.4 manually accepted 2026-09-10), help, news archive, legal.
 - Locale-prefixed paths exist for localized builds, e.g. `/de/...`, `/en/...`, `/fr/...`, `/es/...`, `/it/...`.
 - Session routes:
   - `/session/:code` redirects/chooses entry behavior.

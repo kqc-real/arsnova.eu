@@ -1,7 +1,7 @@
 # Product Module
 
 - arsnova.eu is a modern TypeScript rewrite in the ARSnova tradition: zero-/low-account live interaction for teaching, training, workshops, and events.
-- Product scope: quiz, Q&A, quick feedback, live sessions, present/projection view, team mode, bonus tokens, admin/legal-hold/export, MOTD/news, continuous ProductFeedback (Epic 12: post-session + in-app improve channel), PWA/i18n.
+- Product scope: quiz, Q&A, quick feedback, live sessions, present/projection view, team mode, bonus tokens, admin/legal-hold/export, MOTD/news, continuous ProductFeedback (Epic 12: 12.1–12.4 implemented and manually accepted 2026-09-10), PWA/i18n.
 - Operating model: DSGVO-oriented self-hosting by institutions; no mandatory accounts for teachers or participants.
 - Local-first quiz creation: quiz collection primarily lives in the browser; server-side quiz/session copies are created for live runs.
 - ProductFeedback is a separate domain from SessionFeedback (4.8) and quickFeedback/Blitzlicht; admin-only visibility; feature doc `docs/features/product-feedback.md`.

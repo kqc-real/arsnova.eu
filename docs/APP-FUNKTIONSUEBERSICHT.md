@@ -1,6 +1,6 @@
 # arsnova.eu – ausführliche Funktionsübersicht der App
 
-> Stand dieser Übersicht: 2026-09-07
+> Stand dieser Übersicht: 2026-09-10
 >
 > Grundlage: Auswertung des aktuellen Repos, insbesondere `apps/frontend`, `apps/backend`, `libs/shared-types`, `prisma/schema.prisma`, `README.md`, `docs/README.md`, `docs/ROUTES_AND_STORIES.md`, `docs/TESTING.md` und der Feature-Dokumente unter `docs/features/`.
 
@@ -696,6 +696,8 @@ Unterstützt werden:
 - aggregierte Auswertung für Host und Sammlung
 
 ### 7.6a Produktfeedback (Epic 12)
+
+**Status:** Stories **12.1–12.4** sind implementiert und am **2026-09-10 manuell abgenommen**.
 
 Strikte Trennung von Session-Feedback und Blitzlicht: Bewertung von **Bedienbarkeit und Nutzen von arsnova.eu**, nur für Plattform-Admins sichtbar.
 

@@ -3,7 +3,7 @@
 # Diagramme: arsnova.eu
 
 Alle Diagramme sind in Mermaid geschrieben und werden von GitHub nativ gerendert.
-**Stand:** 2026-08-20 · **Epics 0–6 inkl. 5.4a, 7.1, 8.1–8.4, 8.6–8.8, 8.9a/8.9b, 9, 10 (MOTD) umgesetzt;** **1.14 / 1.14a / 1.14b** (Wortwolke inkl. optionaler spaCy-Glättung) fertig, **1.14c Stufe 1** (Encoder-Sidecar, Kill-Switch default aus) im Repo, **1.14c Stufe 2** und **8.9c Slice 4** offen; **8.9c** Slices 1–3 im Repo (Kill-Switch default aus). **6.5 Barrierefreiheit** ist technisch validiert und formal mit AT/Zoom/OS/PDF-Readern nach WCAG 2.2 AA abgenommen; **6.6 Thinking Aloud** ist fertig. Plattformstatistik Rekordteilnehmer und Tagesrekorde laufen über `health.footerBundle` / `health.stats` (`PlatformStatistic`, `DailyStatistic`). Kurzantwort (`SHORT_TEXT`) inkl. numerischer Bewertung, numerische Schätzfragen (`NUMERIC_ESTIMATE`) inkl. Zwei-Runden-Flow/Statistik und die Effective-Vote-Regel für Peer Instruction sind umgesetzt. Der Host-Live-Fortschritt während `ACTIVE` ist über `HostVoteProgressDTO` vom vollständigen Host-Fragen-DTO getrennt. Markdown-Erweiterungen **1.7a** und **1.7b** umgesetzt ([ADR-0015](../architecture/decisions/0015-markdown-images-url-only-and-lightbox.md), [ADR-0016](../architecture/decisions/0016-markdown-katex-editor-split-view-and-md3-toolbar.md)). `Blitzlicht` ist als Startseiten-Shortcut und Session-Kanal konsolidiert. `FINISHED` beendet die Session fuer Vote-Clients kanaluebergreifend und raeumt Live-Kanal-Subscriptions ab. Rollen/Routen/Autorisierung siehe [ADR-0006](../architecture/decisions/0006-roles-routes-authorization-host-admin.md), [ADR-0009](../architecture/decisions/0009-unified-live-session-channels.md), [ADR-0010](../architecture/decisions/0010-blitzlicht-as-core-live-mode.md), [ADR-0018](../architecture/decisions/0018-message-of-the-day-platform-communication.md), [ROUTES_AND_STORIES.md](../ROUTES_AND_STORIES.md). Wortwolke/Kompass: [moderation-compass.md](../features/moderation-compass.md), [word-cloud-spacy.md](../features/word-cloud-spacy.md), [word-cloud-semantic.md](../features/word-cloud-semantic.md), [qa-nlp-moderation.md](../features/qa-nlp-moderation.md), [qa-summary.md](../features/qa-summary.md).
+**Stand:** 2026-09-10 · **Epics 0–6 inkl. 5.4a, 7.1, 8.1–8.4, 8.6–8.8, 8.9a/8.9b, 9, 10 (MOTD), 12 (Produktfeedback 12.1–12.4 implementiert und am 2026-09-10 manuell abgenommen) umgesetzt;** **1.14 / 1.14a / 1.14b** (Wortwolke inkl. optionaler spaCy-Glättung) fertig, **1.14c Stufe 1** (Encoder-Sidecar, Kill-Switch default aus) im Repo, **1.14c Stufe 2** und **8.9c Slice 4** offen; **8.9c** Slices 1–3 im Repo (Kill-Switch default aus). **6.5 Barrierefreiheit** ist technisch validiert und formal mit AT/Zoom/OS/PDF-Readern nach WCAG 2.2 AA abgenommen; **6.6 Thinking Aloud** ist fertig. Plattformstatistik Rekordteilnehmer und Tagesrekorde laufen über `health.footerBundle` / `health.stats` (`PlatformStatistic`, `DailyStatistic`). Kurzantwort (`SHORT_TEXT`) inkl. numerischer Bewertung, numerische Schätzfragen (`NUMERIC_ESTIMATE`) inkl. Zwei-Runden-Flow/Statistik und die Effective-Vote-Regel für Peer Instruction sind umgesetzt. Der Host-Live-Fortschritt während `ACTIVE` ist über `HostVoteProgressDTO` vom vollständigen Host-Fragen-DTO getrennt. Markdown-Erweiterungen **1.7a** und **1.7b** umgesetzt ([ADR-0015](../architecture/decisions/0015-markdown-images-url-only-and-lightbox.md), [ADR-0016](../architecture/decisions/0016-markdown-katex-editor-split-view-and-md3-toolbar.md)). `Blitzlicht` ist als Startseiten-Shortcut und Session-Kanal konsolidiert. `FINISHED` beendet die Session fuer Vote-Clients kanaluebergreifend und raeumt Live-Kanal-Subscriptions ab. Rollen/Routen/Autorisierung siehe [ADR-0006](../architecture/decisions/0006-roles-routes-authorization-host-admin.md), [ADR-0009](../architecture/decisions/0009-unified-live-session-channels.md), [ADR-0010](../architecture/decisions/0010-blitzlicht-as-core-live-mode.md), [ADR-0018](../architecture/decisions/0018-message-of-the-day-platform-communication.md), [ROUTES_AND_STORIES.md](../ROUTES_AND_STORIES.md). Wortwolke/Kompass: [moderation-compass.md](../features/moderation-compass.md), [word-cloud-spacy.md](../features/word-cloud-spacy.md), [word-cloud-semantic.md](../features/word-cloud-semantic.md), [qa-nlp-moderation.md](../features/qa-nlp-moderation.md), [qa-summary.md](../features/qa-summary.md).
 
 > **VS Code:** Mermaid wird in der Standard-Markdown-Vorschau nicht gerendert. Bitte die Erweiterung **„Markdown Preview Mermaid Support“** (`bierner.markdown-mermaid`) installieren. Siehe [README.md](./README.md) in diesem Ordner.
 
@@ -34,6 +34,7 @@ graph LR
         wordcloud[wordCloudRouter]
         admin[adminRouter - Epic 9]
         motd[motdRouter - Epic 10]
+        productfb[productFeedbackRouter - Epic 12]
     end
 
     subgraph Modules["Domain/Infra-Module"]
@@ -71,6 +72,7 @@ graph LR
     trpcmw --> wordcloud
     trpcmw --> admin
     trpcmw --> motd
+    trpcmw --> productfb
 
     session --> scoring
     session --> cleanup
@@ -81,6 +83,7 @@ graph LR
     quickfb --> ratelimit
     admin --> adminauth
     motd --> ratelimit
+    productfb --> ratelimit
 
     session --> prevdto
     session --> studdto
@@ -108,6 +111,7 @@ graph LR
     WORDCLOUD[wordCloudRouter]
     ADMIN[adminRouter]
     MOTD[motdRouter]
+    PRODUCTFB[productFeedbackRouter]
     CLEANUP[sessionCleanup]
     RATELIMIT[rateLimit]
     SCORING[quizScoring]
@@ -126,6 +130,7 @@ graph LR
     QA --> RATELIMIT
     QUICKFB --> RATELIMIT
     MOTD --> RATELIMIT
+    PRODUCTFB --> RATELIMIT
 
     SCORING --> PG
     CLEANUP --> PG
@@ -136,6 +141,8 @@ graph LR
     ADMIN --> PG
     ADMIN --> CLEANUP
     MOTD --> PG
+    PRODUCTFB --> PG
+    PRODUCTFB --> REDIS
     REDIS --> WSS
     BACKEND_PROC -.-> YWS
 
@@ -320,12 +327,14 @@ graph LR
         ADELETE[Delete-Flow]
         AEXPORT[Export PDF/JSON]
         AMOTD[MOTD-Tab]
+        APF[Produktfeedback-Tab]
         AROOT --> ALOGIN
         AROOT --> ALIST
         ALIST --> ADETAIL
         ADETAIL --> ADELETE
         ADETAIL --> AEXPORT
         AROOT --> AMOTD
+        AROOT --> APF
     end
 ```
 
@@ -588,6 +597,64 @@ erDiagram
     }
 ```
 
+### 3.4 Produktfeedback (Epic 12)
+
+Eigene Domäne, ohne Session-/Personen-FKs. `ProductFeedbackInviteJob.sessionId` ist ein operativer Job-Schlüssel ohne Prisma-Relation. Audit-, Export- und Purge-Logs bleiben textfrei. Fachdoku: [product-feedback.md](../features/product-feedback.md).
+
+```mermaid
+%%{init: {'flowchart': {'nodeSpacing': 48, 'rankSpacing': 72, 'padding': 14}}}%%
+erDiagram
+    ProductFeedback |o--o{ ProductFeedback : duplikat_von
+    ProductFeedback ||..o{ ProductFeedbackAuditLog : triage_audit
+
+    ProductFeedback {
+        string id PK
+        enum source
+        enum role
+        string area
+        string impact
+        string message
+        enum triageStatus
+        enum quarantineStatus
+        string duplicateOfId FK
+        string locale
+        datetime createdAt
+    }
+    ProductFeedbackAuditLog {
+        string id PK
+        string productFeedbackId
+        enum action
+        string adminIdentifier
+        datetime createdAt
+    }
+    ProductFeedbackInviteLedger {
+        string id PK
+        date day
+        enum role
+        int count
+    }
+    ProductFeedbackInviteJob {
+        string sessionId PK
+        datetime createdAt
+        datetime completedAt
+        int attempts
+    }
+    ProductFeedbackExportLog {
+        string id PK
+        boolean includeMessages
+        int caseCount
+        boolean truncated
+        datetime createdAt
+    }
+    ProductFeedbackPurgeLog {
+        string id PK
+        string scope
+        datetime untilCreatedAt
+        int deletedCount
+        datetime createdAt
+    }
+```
+
 **Hinweis (Data-Stripping):** `AnswerOption.isCorrect` wird im Status ACTIVE niemals an Studenten gesendet; erst nach RESULTS-Auflösung (`QuestionRevealedDTO`). Bei `NUMERIC_ESTIMATE` werden während `ACTIVE` nur neutrale Fortschrittsdaten gezählt; Histogramm, Rohwerte, Statistik, Toleranztreffer und Lösungsnähe werden erst nach Ergebnisfreigabe ausgeliefert. Der Host erhält laufende Vote-Zähler über `HostVoteProgressDTO`; `HostCurrentQuestionDTO` wird bei Vote-Spitzen nicht pro Vote neu emittiert.
 **Session-Status:** `LOBBY → QUESTION_OPEN` (Lesephase, nur Fragenstamm) → `ACTIVE` → `RESULTS` → nächste Frage oder optional `DISCUSSION` → … → `FINISHED`. `PAUSED` unterbricht ausschließlich dieselbe `QUESTION_OPEN`- oder `ACTIVE`-Phase und setzt sie mit gleicher Frage, Runde und Restzeit fort. Optional überspringbar: bei `readingPhaseEnabled=false` geht „Nächste Frage" direkt zu `ACTIVE`.
 
@@ -817,6 +884,12 @@ sequenceDiagram
     opt kein Abschluss-Gate noetig
         FE->>S: Startseite per replaceUrl
     end
+    opt Produktfeedback 12.1
+        Note over BE: Invite-Job, Ledger und Redis-Slots nach FINISHED
+        FE->>BE: productFeedback.claimInvite
+        BE-->>FE: Survey
+        FE->>BE: productFeedback.submit
+    end
 ```
 
 ---
@@ -887,6 +960,42 @@ sequenceDiagram
         BE->>PG: AdminAuditLog INSERT (Export)
         BE-->>FE: ExportOutput (PDF/JSON, base64, sha256)
         FE->>A: JSON/PDF-Download
+    end
+```
+
+### 5b.3 Produktfeedback (Epic 12)
+
+Admin-Tab unter `/admin`. Öffentliche Mutationen laufen über `productFeedbackRouter`; Admin-Lesarten und Mutationen über `admin.productFeedback` (`adminProcedure`).
+
+```mermaid
+sequenceDiagram
+    participant A as Admin
+    participant FE as Browser Angular
+    participant BE as Backend tRPC
+    participant PG as PostgreSQL
+
+    Note over A,PG: Tab Produktfeedback
+    A->>FE: Statistik, Postfach, Filter
+    FE->>BE: admin.productFeedback.getStats / list / getTriageStats
+    BE->>PG: Aggregate und Inbox lesen
+    BE-->>FE: Stats / List / Detail
+    FE->>A: Balken, Postfach, Triage
+
+    opt LLM-Export 12.3
+        A->>FE: Fuer LLM exportieren
+        FE->>BE: admin.productFeedback.exportForLlm
+        BE->>PG: Faelle lesen, ProductFeedbackExportLog INSERT
+        BE-->>FE: Markdown-Datei
+        FE->>A: Download
+    end
+
+    opt Massenloeschung 12.4
+        A->>FE: Rueckmeldungen loeschen
+        FE->>BE: admin.productFeedback.countForPurge
+        BE-->>FE: Anzahl
+        FE->>BE: admin.productFeedback.purge plus Phrase
+        BE->>PG: Zeilen und Ledger loeschen, PurgeLog INSERT
+        BE-->>FE: deletedCount
     end
 ```
 
@@ -972,17 +1081,18 @@ flowchart LR
     ST6 --> D9
 ```
 
-### 6.2 Admin-Lifecycle (Epic 9)
+### 6.2 Admin-Lifecycle (Epic 9 und 12)
 
 ```mermaid
 %%{init: {'flowchart': {'curve': 'basis', 'nodeSpacing': 64, 'rankSpacing': 96, 'padding': 20}}}%%
 flowchart LR
-    subgraph Admin["Admin (Epic 9)"]
+    subgraph Admin["Admin (Epic 9 und 12)"]
         A1["/admin - Login mit Admin-Schlüssel"]
         A2[Session-Code eingeben oder Liste anzeigen]
         A3[Session-Detail + Quiz-Inhalt einsehen]
         A4[Optional: Session löschen - rechtlich]
         A5[Optional: Auszug für Behörden exportieren]
+        A6[Produktfeedback-Tab - Statistik, Triage, LLM-Export, Loeschung]
     end
 
     subgraph Server["Server"]
@@ -990,6 +1100,7 @@ flowchart LR
         S8["admin.listSessions / getSessionByCode"]
         S9["admin.deleteSession + AuditLog"]
         S10["admin.exportForAuthorities + AuditLog"]
+        S11["admin.productFeedback Stats, Triage, Export, Purge"]
     end
 
     A1 --> S7
@@ -998,6 +1109,7 @@ flowchart LR
     A4 --> S9
     A3 --> A5
     A5 --> S10
+    S7 --> A6 --> S11
 ```
 
 **Legende:**
@@ -1009,6 +1121,7 @@ flowchart LR
 - **Lesephase:** Bei `readingPhaseEnabled=false` wird `QUESTION_OPEN` übersprungen — „Nächste Frage" wechselt direkt zu `ACTIVE` (D5 → S3b, D5b/ST3a entfallen).
 - **Bonus-Token (Story 4.6):** Nur für Top-X, individuell per `onPersonalResult`.
 - **Admin (Epic 9):** Eigener Ablauf; Zugriff nur mit Admin-Credentials (ADMIN_SECRET → Session-Token). Route `/admin`; Inspektion, Löschen, Auszug für Behörden; Audit-Log für Lösch- und Export-Aktionen. Siehe ADR-0006.
+- **Produktfeedback (Epic 12):** Nach `FINISHED` kann Host oder Teilnehmende ein Zwei-Klick-Sheet absenden (`productFeedbackRouter`). Admins sehen Statistik, Triage, LLM-Export und Massenlöschung im Tab Produktfeedback (`admin.productFeedback`). Siehe [product-feedback.md](../features/product-feedback.md).
 
 ### 6.3 Blitzlicht-Lifecycle (Startseite oder Session-Kanal)
 

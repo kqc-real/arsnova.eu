@@ -2,12 +2,12 @@
 
 # 🏛️ Architektur-Handbuch: arsnova.eu
 
-**Zuletzt aktualisiert:** 2026-08-21
+**Zuletzt aktualisiert:** 2026-09-10
 **Rolle:** Living Documentation (Documentation as Code)
 
-**Produktstatus (Stand 2026-08-25):**
+**Produktstatus (Stand 2026-09-10):**
 
-- Produktionsreif umgesetzt: Epics **0–6** (einschließlich formaler WCAG-2.2-AA-Abnahme von **6.5** und UX-Testreihen **6.6**), **7.1** (Team-Modus), der Kern von **8** (Q&A inkl. Sortiermodi, Tempo-Blitzlicht, Moderationskompass **8.9a** und optionaler Q&A-NLP-Kaskade **8.9b**; offen: 8.9c Slice 4), **9** (Admin) und **10** (MOTD — ADR-0018, `docs/features/motd.md`).
+- Produktionsreif umgesetzt: Epics **0–6** (einschließlich formaler WCAG-2.2-AA-Abnahme von **6.5** und UX-Testreihen **6.6**), **7.1** (Team-Modus), der Kern von **8** (Q&A inkl. Sortiermodi, Tempo-Blitzlicht, Moderationskompass **8.9a** und optionaler Q&A-NLP-Kaskade **8.9b**; offen: 8.9c Slice 4), **9** (Admin), **10** (MOTD — ADR-0018, `docs/features/motd.md`) und **12** (Produktfeedback: **12.1–12.4 implementiert und am 2026-09-10 manuell abgenommen** — [product-feedback.md](../features/product-feedback.md)).
 - **Wortwolke:** **1.14 / 1.14a** lexikalisch produktiv; **1.14b** optionale spaCy-Glättung (Kill-Switch default aus); **1.14c Stufe 1** privater Encoder + Clustering für Host-Q&A-Themen (`WORD_CLOUD_SEMANTIC_ENABLED` default aus); Stufe 2 LLM-Labels offen; **1.14d** Host-Freitext-Themen (offen, gleicher Encoder). Kanonisch: [word-cloud-spacy.md](../features/word-cloud-spacy.md), [word-cloud-semantic.md](../features/word-cloud-semantic.md), [`WORD-CLOUD-3.0-STORY-VORSCHLAG.md`](../implementation/WORD-CLOUD-3.0-STORY-VORSCHLAG.md).
 - **Moderationshilfe:** **8.9a** regelbasiert im Host; **8.9b** asynchron, Host-only, `QA_NLP_ENABLED` default aus; **8.9c** Slices 1–3 (Vertrag, Host-Button, privater Adapter, Loopback-Helfer), Kill-Switch default aus, echtes Modell erst mit Slice 4 nach 1.14c Stufe 1. Kanonisch: [moderation-compass.md](../features/moderation-compass.md), [qa-nlp-moderation.md](../features/qa-nlp-moderation.md), [qa-summary.md](../features/qa-summary.md). Diagramm: [diagrams.md §1.3](../diagrams/diagrams.md).
 - **Plattformstatistik:** Rekord **max. Teilnehmende je Session** (`PlatformStatistic`) plus 30-Tage-Verlauf der Session-Tagesrekorde (`DailyStatistic`, `dailyHighscores`) in `health.stats` und im Server-Status-Hilfedialog.
@@ -115,7 +115,7 @@ Wir dokumentieren jede signifikante Änderung an der Architektur, neue Bibliothe
 
 ## 5. Datenmodell (Single Source of Truth)
 
-Unser relationales Datenmodell für flüchtige Live-Sessions, Quiz-Session-Kopien, Teilnehmende, Votes, Bonus-Token, Q&A, Session-Kanäle wie Blitzlicht, Session-Feedback sowie **MOTD** (Meldungen, Vorlagen, Locale-Texte, Interaktionszähler, Audit) und Plattformstatistiken (**`PlatformStatistic`**, **`DailyStatistic`**) wird zentral über Prisma verwaltet. Das aktuelle Schema findet sich in `prisma/schema.prisma`.
+Unser relationales Datenmodell für flüchtige Live-Sessions, Quiz-Session-Kopien, Teilnehmende, Votes, Bonus-Token, Q&A, Session-Kanäle wie Blitzlicht, Session-Feedback, **Produktfeedback** (Epic 12, ohne Session-/Personen-FKs) sowie **MOTD** (Meldungen, Vorlagen, Locale-Texte, Interaktionszähler, Audit) und Plattformstatistiken (**`PlatformStatistic`**, **`DailyStatistic`**) wird zentral über Prisma verwaltet. Das aktuelle Schema findet sich in `prisma/schema.prisma`. ER: [diagrams.md §3.4](../diagrams/diagrams.md).
 
 **Hinweis zur Anonymität:** Die App ist bewusst **accountfrei**. Es gibt kein User-/Account-Modell. Lehrende und Teilnehmende nutzen die App ohne Registrierung. Die Zuordnung Quiz ↔ Lehrperson erfolgt ausschließlich über Local-First (Yjs/IndexedDB) im Browser; der Server speichert keine Nutzerkonten.
 
