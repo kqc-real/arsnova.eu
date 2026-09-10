@@ -492,7 +492,7 @@ describe('FeedbackHostComponent', () => {
     expect(onActionSubscribe).toHaveBeenCalled();
   });
 
-  it('fixiert im Standalone-Host die primaere Aktion "Vergleichsrunde" unten neben "Session beenden"', () => {
+  it('fixiert im Standalone-Host die primaere Aktion "Vergleichsrunde" unten neben "Blitzlicht beenden"', () => {
     const fixture = TestBed.createComponent(FeedbackHostComponent);
     const comp = fixture.componentInstance;
     comp.result.set({
@@ -511,11 +511,11 @@ describe('FeedbackHostComponent', () => {
     ) as HTMLElement | null;
 
     expect(bottomActions?.textContent).toContain('Vergleichsrunde');
-    expect(bottomActions?.textContent).toContain('Session beenden');
+    expect(bottomActions?.textContent).toContain('Blitzlicht beenden');
     expect(inlineActions?.textContent).toContain('Link kopieren');
     expect(inlineActions?.textContent).toContain('Zurücksetzen');
     expect(inlineActions?.textContent).not.toContain('Vergleichsrunde');
-    expect(inlineActions?.textContent).not.toContain('Session beenden');
+    expect(inlineActions?.textContent).not.toContain('Blitzlicht beenden');
   });
 
   it('fixiert im Standalone-Host bei Diskussionsphase die Aktion "Zweite Abstimmung" unten', () => {
@@ -535,7 +535,7 @@ describe('FeedbackHostComponent', () => {
     ) as HTMLElement | null;
 
     expect(bottomActions?.textContent).toContain('Zweite Abstimmung');
-    expect(bottomActions?.textContent).toContain('Session beenden');
+    expect(bottomActions?.textContent).toContain('Blitzlicht beenden');
   });
 
   it('leitet Wheel- und Touch-Scrollen über den Standalone-Aktionen an den Hauptinhalt weiter', () => {
@@ -617,7 +617,7 @@ describe('FeedbackHostComponent', () => {
     expect(styles).toMatch(/border-radius:\s*var\(--mat-sys-corner-medium\)/);
   });
 
-  it('rendert im eingebetteten Session-Host keine eigene Bottom-Leiste mit "Session beenden"', () => {
+  it('rendert im eingebetteten Session-Host keine eigene Bottom-Leiste mit "Blitzlicht beenden"', () => {
     window.history.replaceState({}, '', '/session/ABC123/host');
     const fixture = TestBed.createComponent(FeedbackHostComponent);
     fixture.componentRef.setInput('embeddedInSession', true);
@@ -635,7 +635,7 @@ describe('FeedbackHostComponent', () => {
     ) as HTMLElement | null;
 
     expect(bottomActions).toBeNull();
-    expect(fixture.nativeElement.textContent).not.toContain('Session beenden');
+    expect(fixture.nativeElement.textContent).not.toContain('Blitzlicht beenden');
   });
 
   it('zeigt im Standalone-Tempo-Modus Tendenz, Zaehler, Umschalter und Ende-Aktion', () => {
@@ -667,7 +667,7 @@ describe('FeedbackHostComponent', () => {
     expect(text).not.toContain('9 Rückmeldungen');
     expect(text).toContain('Details');
     expect(text).toContain('Tendenz');
-    expect(text).toContain('Session beenden');
+    expect(text).toContain('Blitzlicht beenden');
     expect(
       fixture.nativeElement.querySelector('.feedback-host__tempo-trend--standalone'),
     ).toBeTruthy();

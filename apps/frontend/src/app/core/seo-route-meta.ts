@@ -105,11 +105,11 @@ function seoDescQuizPreview(): string {
 }
 
 function seoTitleQuizSync(): string {
-  return $localize`:@@seo.titleQuizSync:Quiz-Bibliothek teilen – arsnova.eu`;
+  return $localize`:@@seo.titleQuizSync:Quiz-Sammlung teilen – arsnova.eu`;
 }
 
 function seoDescQuizSync(): string {
-  return $localize`:@@seo.descQuizSync:Bibliothek zwischen Geräten synchronisieren – gemeinsame Sync-ID und geteilter Zugriff.`;
+  return $localize`:@@seo.descQuizSync:Sammlung zwischen Geräten synchronisieren – den Link auf der Startseite einfügen.`;
 }
 
 function seoTitleHelp(): string {

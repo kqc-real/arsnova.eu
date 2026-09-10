@@ -203,7 +203,7 @@ const fr: Messages = {
   workflow: {
     eyebrow: 'Pour l’enseignement, la formation et les ateliers',
     title: 'De l’idée à la session en direct en quelques minutes',
-    lead: 'De la question à la session en cours, le parcours évite volontairement les étapes inutiles. C’est ce qui rend le démarrage rapide et fiable pour les enseignant·es, formateur·rices et animateur·rices.',
+    lead: 'De la préparation à la session en cours, le parcours évite volontairement les étapes inutiles. C’est ce qui rend le démarrage rapide et fiable pour les enseignant·es, formateur·rices et animateur·rices.',
     stepLabel: 'Étape',
     steps: [
       {
@@ -214,18 +214,24 @@ const fr: Messages = {
       },
       {
         number: '02',
+        title: 'Partager la collection',
+        description:
+          'La collection de quiz reste sur ton appareil — important pour le RGPD. Si tu dois utiliser un ordinateur d’emprunt dans la salle, tu la récupères avec un lien de sync plutôt qu’avec une clé USB. Tu peux donner le même lien à des collègues pour utiliser et modifier la collection ensemble. Tu crées le lien dans la collection de quiz ; tu colles le lien reçu sur la page d’accueil.',
+      },
+      {
+        number: '03',
         title: 'Démarrer une session',
         description:
           'Commencer sans compte : ouvrir une session, choisir un style, partager un code ou un QR. Optionnellement, relier un téléphone ou une tablette et ouvrir la vue présentateur pour le projecteur.',
       },
       {
-        number: '03',
+        number: '04',
         title: 'Animer en direct',
         description:
           'Tu circules dans la salle et animes la session en direct depuis le téléphone. Les participants votent, posent des questions et définissent ensemble les priorités. L’animateur et le présentateur affichent le quiz, le Q&A, le sondage express, le nuage de mots, la phase de lecture, le compte à rebours, le second tour et les résultats dans un seul déroulement.',
       },
       {
-        number: '04',
+        number: '05',
         title: 'Suivre et exporter',
         description:
           'Après la fin de session, le rapport de résultats (PDF) est prêt — avec état d’apprentissage, autoévaluation et textes complets des questions. Dans la collection de quiz, tu trouves bilan et PDF du dernier passage ; CSV pour Excel sous « Plus ».',
@@ -503,6 +509,12 @@ const fr: Messages = {
         question: 'Où sont les données ?',
         answer:
           'Les contenus de quiz restent sur ton appareil. Pour les sessions en direct, seules les données de session techniquement nécessaires sont traitées ; si tu héberges toi-même, l’exploitation reste dans ton infrastructure.',
+      },
+      {
+        question:
+          'Puis-je utiliser la collection de quiz sur un autre appareil ou avec des collègues ?',
+        answer:
+          'Oui. La collection reste volontairement sur ton appareil — important pour le RGPD. Si tu dois utiliser un ordinateur d’emprunt dans la salle, tu la récupères avec un lien de sync plutôt qu’avec une clé USB. Tu peux donner le même lien à des collègues pour utiliser et modifier la collection ensemble. Tu crées le lien dans la collection de quiz ; tu colles le lien reçu sur la page d’accueil.',
       },
       {
         question: 'Puis-je héberger arsnova.eu moi-même ?',

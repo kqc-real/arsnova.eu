@@ -192,7 +192,7 @@ Die folgenden Ansichten und Interaktionsflächen sind aus dem Produktcode für d
 **Quizmaster**
 
 - Startseite mit dem Einstieg **„Quiz starten“** oder **„Deine Quiz-Sammlung“**
-- Quizsammlung mit leerem Startzustand, Demo-Karte, **„Neues Quiz erstellen“**, **„Vorschau“**, **„Starten“** und Kartenmenü
+- Quizsammlung mit leerem Startzustand, Demo-Karte, **„Quiz erstellen“**, **„Vorschau“**, **„Starten“** und Kartenmenü
 - Formular **„Neues Quiz erstellen“** mit **„Titel des Quiz“**, optionaler Beschreibung, optionalem Motivbild, Einstellungen, Preset **„Spielerisch“**, Teammodus, Pseudonym-Einstellungen und **„Weiter zu den Fragen“**
 - Einstellungen mit **„Im Team spielen“**, **„Anzahl Teams“**, **„Mit einem Pseudonym teilnehmen…“** und **„Altersgruppe für Pseudonyme“**
 - Frageneditor mit Panel **„Neue Frage“**, Feld **„Fragetext“**, Auswahl **„Fragetyp“**, Antwortoptionen, Korrekt-Markierung, **„Antwort hinzufügen“**, **„Gesamtvorschau“**, **„Speichern“** und **„Vorschau“**

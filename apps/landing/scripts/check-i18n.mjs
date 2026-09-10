@@ -128,6 +128,8 @@ const deSmokePhrases = [
   'Bereit für die nächste Live-Session?',
   'Darstellung wählen',
   'Systemeinstellung',
+  'Sammlung teilen',
+  'Kann ich die Quiz-Sammlung auf einem anderen Gerät',
 ];
 
 const errors = [];
@@ -303,8 +305,19 @@ const localeContentSmoke = {
       'Warum das Pairing anders ist als eine Fernbedienung',
       'Auf langjähriger Erfahrung aufgebaut',
       'technischen Grundlagen für Bereitstellung und Betrieb',
+      'Sammlung teilen',
+      'per Sync-Link statt per USB-Stick',
+      'gemeinsam nutzen und bearbeiten könnt',
+      'Kann ich die Quiz-Sammlung auf einem anderen Gerät oder mit Kolleg:innen nutzen?',
     ],
     banned: ['selbstsicher falsch', 'Elaborierte Word Cloud', 'didaktischen Moment passen'],
+    workflowSteps: [
+      'Quiz vorbereiten',
+      'Sammlung teilen',
+      'Session starten',
+      'Live moderieren',
+      'Nachbereiten und exportieren',
+    ],
   },
   en: {
     structured: [
@@ -338,8 +351,19 @@ const localeContentSmoke = {
       'Why this pairing is different from a remote',
       'Until then, only a neutral progress indicator is visible.',
       'Facilitator’s Q&amp;A view',
+      'Share the collection',
+      'instead of a USB stick',
+      'so you can use and edit the collection together',
+      'Can I use the quiz collection on another device or with colleagues?',
     ],
     banned: ['Until then only neutral progress', 'Facilitator view Q&amp;A'],
+    workflowSteps: [
+      'Prepare a quiz',
+      'Share the collection',
+      'Start a session',
+      'Moderate live',
+      'Follow up and export',
+    ],
   },
   fr: {
     structured: [
@@ -373,6 +397,10 @@ const localeContentSmoke = {
       'indicateur neutre de progression',
       'mode présentateur',
       'croisement entre l’exactitude des réponses et le degré de confiance',
+      'Partager la collection',
+      'plutôt qu’avec une clé USB',
+      'utiliser et modifier la collection ensemble',
+      'Puis-je utiliser la collection de quiz sur un autre appareil ou avec des collègues ?',
     ],
     banned: [
       'Feedback express',
@@ -382,6 +410,13 @@ const localeContentSmoke = {
       'Vue de l’animateur Q&amp;A',
       'flux présentateur',
       'progression neutre',
+    ],
+    workflowSteps: [
+      'Préparer un quiz',
+      'Partager la collection',
+      'Démarrer une session',
+      'Animer en direct',
+      'Suivre et exporter',
     ],
   },
   it: {
@@ -415,6 +450,10 @@ const localeContentSmoke = {
       'i punti di disaccordo e le esigenze di chiarimento',
       'modalità presentatore',
       'indicatore neutro di avanzamento',
+      'Condividi la raccolta',
+      'invece che con una chiavetta USB',
+      'usare e modificare la raccolta insieme',
+      'Posso usare la raccolta quiz su un altro dispositivo o con colleghi e colleghe?',
     ],
     banned: [
       'superficie di moderazione',
@@ -422,6 +461,13 @@ const localeContentSmoke = {
       'priorità, attrito',
       'flusso presentatore',
       'progresso neutrale',
+    ],
+    workflowSteps: [
+      'Prepara un quiz',
+      'Condividi la raccolta',
+      'Avvia una sessione',
+      'Modera in diretta',
+      'Analisi successiva ed esportazione',
     ],
   },
   es: {
@@ -461,6 +507,10 @@ const localeContentSmoke = {
       'indicador neutro de progreso',
       'Compatibilidad con lectores de pantalla',
       'en directo',
+      'Compartir la colección',
+      'en lugar de una memoria USB',
+      'usar y editar la colección juntos',
+      '¿Puedo usar la colección de cuestionarios en otro dispositivo o con colegas?',
     ],
     banned: [
       'en vivo',
@@ -470,6 +520,13 @@ const localeContentSmoke = {
       'El centro no es solo',
       'progreso neutro',
       'Apoyo de lector',
+    ],
+    workflowSteps: [
+      'Preparar un cuestionario',
+      'Compartir la colección',
+      'Iniciar una sesión',
+      'Moderar en directo',
+      'Análisis posterior y exportación',
     ],
   },
 };
@@ -509,6 +566,26 @@ function checkLocaleContentSmoke() {
     for (const banned of smoke.banned || []) {
       if (html.includes(banned))
         fail(`/${locale}/ contains banned phrase ${JSON.stringify(banned)}`);
+    }
+    const workflowHtml = html.match(/id="workflow"[\s\S]*?<\/section>/)?.[0] ?? '';
+    if (!workflowHtml) {
+      fail(`/${locale}/ missing #workflow section`);
+    } else {
+      let pos = -1;
+      for (const title of smoke.workflowSteps ?? []) {
+        const next = workflowHtml.indexOf(title);
+        if (next === -1) {
+          fail(`/${locale}/ missing workflow step ${JSON.stringify(title)}`);
+          continue;
+        }
+        if (next < pos) {
+          fail(
+            `/${locale}/ workflow step order expected ${(smoke.workflowSteps ?? []).join(' → ')}`,
+          );
+          break;
+        }
+        pos = next;
+      }
     }
   }
 }

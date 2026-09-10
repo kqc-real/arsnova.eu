@@ -79,6 +79,10 @@ describe('BonusCodesDialogComponent', () => {
     expect(fixture.componentInstance.loading()).toBe(false);
     expect(fixture.componentInstance.loadError()).toBe(false);
     expect(fixture.componentInstance.sessions()).toHaveLength(1);
+    fixture.detectChanges();
+    const text = fixture.nativeElement.textContent as string;
+    expect(text).toContain('Bonus-Code prüfen');
+    expect(text).not.toContain('Bitte nur privat einsehen');
   });
 
   it('setzt Load-Error wenn Initial-Laden fehlschlaegt', async () => {

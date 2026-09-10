@@ -279,9 +279,9 @@
               </mat-expansion-panel-header>
               <div class="help-panel__body" [attr.inert]="hostPulsePanel.expanded ? null : ''">
                 <p i18n="@@help.hostPulseBody">
-                  Starte ein Blitzlicht aus der Live-Session oder über „Live mit einem Klick“ auf
-                  der Startseite. Du kannst die Abstimmung pausieren, fortsetzen, zurücksetzen oder
-                  als neue Runde starten. Beim Tempo-Feedback ändern Teilnehmende ihre Rückmeldung
+                  Starte ein Blitzlicht aus der Live-Session oder über „Nur ein Klick“ auf der
+                  Startseite. Du kannst die Abstimmung pausieren, fortsetzen, zurücksetzen oder als
+                  neue Runde starten. Beim Tempo-Feedback ändern Teilnehmende ihre Rückmeldung
                   jederzeit; du siehst nur die aggregierte Tendenz.
                 </p>
               </div>
@@ -290,17 +290,26 @@
             <mat-expansion-panel #hostLibraryPanel class="help-panel">
               <mat-expansion-panel-header>
                 <mat-panel-title i18n="@@help.hostLibraryTitle"
-                  >Quiz-Sammlung und Einstellungen verwalten</mat-panel-title
+                  >Quiz-Sammlung teilen und verwalten</mat-panel-title
                 >
               </mat-expansion-panel-header>
               <div class="help-panel__body" [attr.inert]="hostLibraryPanel.expanded ? null : ''">
+                <p i18n="@@help.hostLibraryWhy">
+                  Die Quiz-Sammlung bleibt bewusst lokal auf deinem Gerät — das schützt Inhalte im
+                  Sinne der DSGVO. Wenn du im Vortragsraum ein fremdes Gerät nutzen musst, holst du
+                  sie per Sync-Link statt per USB-Stick. Denselben Link kannst du Kolleg:innen
+                  geben, damit ihr die Sammlung gemeinsam nutzen und bearbeiten könnt.
+                </p>
                 <p i18n="@@help.hostLibraryBody">
                   In der Quiz-Sammlung bearbeitest und sortierst du Fragen, prüfst die Vorschau und
-                  importierst oder exportierst Quizze als JSON. Über den Sync-Link kannst du die
-                  Sammlung teilen oder auf einem anderen Gerät fortsetzen. KI-Vorlagen unterstützen
-                  dich beim Erstellen und Prüfen von Quizzen, ohne dass Inhalte an arsnova.eu
-                  gesendet werden. Beim Session-Start konfigurierst du unter anderem Stil,
-                  Rangliste, Sound, Teams, Nicknamen, Timer und Bonus-Codes.
+                  importierst oder exportierst Quizze als JSON. Über „Sammlung teilen“ erzeugst du
+                  einen Sync-Link, mit dem andere Geräte dieselbe Sammlung nutzen können. Mit
+                  „Teilen beenden“ setzt du eine ausprobierte Freigabe zurück; deine Quizzes bleiben
+                  auf diesem Gerät. Auf der Startseite fügst du unter „Geteilte Sammlung nutzen“
+                  einen empfangenen Link ein. KI-Vorlagen unterstützen dich beim Erstellen und
+                  Prüfen von Quizzen, ohne dass Inhalte an arsnova.eu gesendet werden. Beim
+                  Session-Start konfigurierst du unter anderem Stil, Rangliste, Sound, Teams,
+                  Nicknamen, Timer und Bonus-Codes.
                 </p>
               </div>
             </mat-expansion-panel>

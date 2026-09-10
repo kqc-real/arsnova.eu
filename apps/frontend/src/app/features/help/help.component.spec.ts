@@ -550,6 +550,10 @@ describe('HelpComponent', () => {
     expect(text).toContain('Tempo-Feedback');
     expect(text).toContain('Nachbesprechungsplan');
     expect(text).toContain('Sync-Link');
+    expect(text).toContain('USB-Stick');
+    expect(text).toContain('Kolleg:innen');
+    expect(text).toContain('Quiz-Sammlung teilen und verwalten');
+    expect(text.indexOf('USB-Stick')).toBeLessThan(text.indexOf('KI-Vorlagen'));
     expect(text).toContain('sechsstelligen Code');
     expect(text).toContain('Demo-Quiz');
     expect(text).not.toContain('Moderationskompass');

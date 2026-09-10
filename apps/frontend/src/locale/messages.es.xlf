@@ -427,16 +427,16 @@
         </context-group>
       </trans-unit>
       <trans-unit id="seo.titleQuizSync" datatype="html">
-        <source>Quiz-Bibliothek teilen – arsnova.eu</source>
-        <target>Compartir biblioteca de cuestionarios – arsnova.eu</target>
+        <source>Quiz-Sammlung teilen – arsnova.eu</source>
+        <target>Compartir la colección de cuestionarios – arsnova.eu</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/core/seo-route-meta.ts</context>
           <context context-type="linenumber">108</context>
         </context-group>
       </trans-unit>
       <trans-unit id="seo.descQuizSync" datatype="html">
-        <source>Bibliothek zwischen Geräten synchronisieren – gemeinsame Sync-ID und geteilter Zugriff.</source>
-        <target>Biblioteca de sincronización entre dispositivos: ID de sincronización compartida y acceso compartido.</target>
+        <source>Sammlung zwischen Geräten synchronisieren – den Link auf der Startseite einfügen.</source>
+        <target>Sincroniza la colección de cuestionarios entre dispositivos – pega el enlace en la página de inicio.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/core/seo-route-meta.ts</context>
           <context context-type="linenumber">112</context>
@@ -7253,9 +7253,9 @@
           <context context-type="linenumber">754,757</context>
         </context-group>
       </trans-unit>
-      <trans-unit id="7656929751445617164" datatype="html">
-        <source>Session beenden</source>
-        <target>Finalizar sesión</target>
+      <trans-unit id="feedback.endStandaloneAction" datatype="html">
+        <source>Blitzlicht beenden</source>
+        <target>Finalizar Sondeo rápido</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/feedback/feedback-host.component.html</context>
           <context context-type="linenumber">878</context>
@@ -8498,27 +8498,35 @@
         </context-group>
       </trans-unit>
       <trans-unit id="help.hostPulseBody" datatype="html">
-        <source> Starte ein Blitzlicht aus der Live-Session oder über „Live mit einem Klick“ auf der Startseite. Du kannst die Abstimmung pausieren, fortsetzen, zurücksetzen oder als neue Runde starten. Beim Tempo-Feedback ändern Teilnehmende ihre Rückmeldung jederzeit; du siehst nur die aggregierte Tendenz.</source>
-        <target>Inicia un sondeo rápido desde la sesión en directo o mediante «En vivo con un clic» en la página de inicio. Puedes pausarlo, reanudarlo, reiniciarlo o comenzar una nueva ronda. En la valoración del ritmo, los participantes pueden cambiar su respuesta en cualquier momento; tú solo ves la tendencia agregada.</target>
+        <source> Starte ein Blitzlicht aus der Live-Session oder über „Nur ein Klick“ auf der Startseite. Du kannst die Abstimmung pausieren, fortsetzen, zurücksetzen oder als neue Runde starten. Beim Tempo-Feedback ändern Teilnehmende ihre Rückmeldung jederzeit; du siehst nur die aggregierte Tendenz.</source>
+        <target>Inicia un sondeo rápido desde la sesión en directo o mediante «Solo un clic» en la página de inicio. Puedes pausarlo, reanudarlo, reiniciarlo o comenzar una nueva ronda. En la valoración del ritmo, los participantes pueden cambiar su respuesta en cualquier momento; tú solo ves la tendencia agregada.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/help/help.component.html</context>
           <context context-type="linenumber">245,250</context>
         </context-group>
       </trans-unit>
       <trans-unit id="help.hostLibraryTitle" datatype="html">
-        <source>Quiz-Sammlung und Einstellungen verwalten</source>
-        <target>Gestionar cuestionarios y ajustes</target>
+        <source>Quiz-Sammlung teilen und verwalten</source>
+        <target>Compartir y gestionar la colección de cuestionarios</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/help/help.component.html</context>
           <context context-type="linenumber">257</context>
         </context-group>
       </trans-unit>
       <trans-unit id="help.hostLibraryBody" datatype="html">
-        <source> In der Quiz-Sammlung bearbeitest und sortierst du Fragen, prüfst die Vorschau und importierst oder exportierst Quizze als JSON. Über den Sync-Link kannst du die Sammlung teilen oder auf einem anderen Gerät fortsetzen. KI-Vorlagen unterstützen dich beim Erstellen und Prüfen von Quizzen, ohne dass Inhalte an arsnova.eu gesendet werden. Beim Session-Start konfigurierst du unter anderem Stil, Rangliste, Sound, Teams, Nicknamen, Timer und Bonus-Codes.</source>
-        <target>En la colección de cuestionarios puedes editar y reordenar preguntas, comprobar la vista previa e importar o exportar cuestionarios en formato JSON. El enlace de sincronización permite compartir la colección o continuar en otro dispositivo. Las plantillas de IA te ayudan a crear y revisar cuestionarios sin enviar el contenido a arsnova.eu. Al iniciar una sesión, configura opciones como el estilo, la clasificación, el sonido, los equipos, los alias, el temporizador y los códigos de bonificación.</target>
+        <source> In der Quiz-Sammlung bearbeitest und sortierst du Fragen, prüfst die Vorschau und importierst oder exportierst Quizze als JSON. Über „Sammlung teilen“ erzeugst du einen Sync-Link, mit dem andere Geräte dieselbe Sammlung nutzen können. Mit „Teilen beenden“ setzt du eine ausprobierte Freigabe zurück; deine Quizzes bleiben auf diesem Gerät. Auf der Startseite fügst du unter „Geteilte Sammlung nutzen“ einen empfangenen Link ein. KI-Vorlagen unterstützen dich beim Erstellen und Prüfen von Quizzen, ohne dass Inhalte an arsnova.eu gesendet werden. Beim Session-Start konfigurierst du unter anderem Stil, Rangliste, Sound, Teams, Nicknamen, Timer und Bonus-Codes.</source>
+        <target>En la colección de cuestionarios puedes editar y reordenar preguntas, comprobar la vista previa e importar o exportar cuestionarios en formato JSON. «Compartir la colección» crea un enlace de sync para que otros dispositivos usen la misma colección. Con «Dejar de compartir» restableces un enlace de prueba; tus cuestionarios se quedan en este dispositivo. En la página de inicio, «Usar una colección compartida» sirve para pegar un enlace recibido. Las plantillas de IA te ayudan a crear y revisar cuestionarios sin enviar el contenido a arsnova.eu. Al iniciar una sesión, configura opciones como el estilo, la clasificación, el sonido, los equipos, los alias, el temporizador y los códigos de bonificación.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/help/help.component.html</context>
           <context context-type="linenumber">261,268</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="help.hostLibraryWhy" datatype="html">
+        <source> Die Quiz-Sammlung bleibt bewusst lokal auf deinem Gerät — das schützt Inhalte im Sinne der DSGVO. Wenn du im Vortragsraum ein fremdes Gerät nutzen musst, holst du sie per Sync-Link statt per USB-Stick. Denselben Link kannst du Kolleg:innen geben, damit ihr die Sammlung gemeinsam nutzen und bearbeiten könnt.</source>
+        <target>La colección de cuestionarios permanece a propósito en tu dispositivo — importante para el RGPD. Si en la sala tienes que usar un ordenador ajeno, la traes con un enlace de sync en lugar de una memoria USB. Puedes dar el mismo enlace a colegas para que podáis usar y editar la colección juntos.</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/help/help.component.html</context>
+          <context context-type="linenumber">309,313</context>
         </context-group>
       </trans-unit>
       <trans-unit id="help.participantJoinTitle" datatype="html">
@@ -8952,24 +8960,24 @@
         </context-group>
       </trans-unit>
       <trans-unit id="homeFeedbackCard.title" datatype="html">
-        <source> Live mit einem Klick</source>
-        <target>En vivo con un clic</target>
+        <source> Nur ein Klick</source>
+        <target>Solo un clic</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/home/home.component.html</context>
           <context context-type="linenumber">244,246</context>
         </context-group>
       </trans-unit>
       <trans-unit id="homeHostCard.title" datatype="html">
-        <source> Quiz vorbereiten</source>
-        <target>Preparar un quiz</target>
+        <source> Vorbereiten</source>
+        <target>Preparar</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/home/home.component.html</context>
           <context context-type="linenumber">309,311</context>
         </context-group>
       </trans-unit>
       <trans-unit id="homeHostCard.syncPanelCta" datatype="html">
-        <source>Zwischen Geräten wechseln</source>
-        <target>Cambiar entre dispositivos</target>
+        <source>Geteilte Sammlung nutzen</source>
+        <target>Usar una colección compartida</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/home/home.component.html</context>
           <context context-type="linenumber">322</context>
@@ -9003,33 +9011,9 @@
           <context context-type="linenumber">364</context>
         </context-group>
       </trans-unit>
-      <trans-unit id="homeHostCard.syncShareHint" datatype="html">
-        <source> Mit anderen teilen oder auf einem zweiten Gerät dieselbe Sammlung nutzen:</source>
-        <target>Compartir con otras personas o usar la misma colección en un segundo dispositivo:</target>
-        <context-group purpose="location">
-          <context context-type="sourcefile">src/app/features/home/home.component.html</context>
-          <context context-type="linenumber">379,381</context>
-        </context-group>
-      </trans-unit>
-      <trans-unit id="homeHostCard.syncShareAria" datatype="html">
-        <source>Sync-Link anzeigen</source>
-        <target>Mostrar enlace de sync</target>
-        <context-group purpose="location">
-          <context context-type="sourcefile">src/app/features/home/home.component.html</context>
-          <context context-type="linenumber">388</context>
-        </context-group>
-      </trans-unit>
-      <trans-unit id="homeHostCard.syncShareLink" datatype="html">
-        <source>Sync-Link anzeigen</source>
-        <target>Mostrar enlace de sync</target>
-        <context-group purpose="location">
-          <context context-type="sourcefile">src/app/features/home/home.component.html</context>
-          <context context-type="linenumber">391</context>
-        </context-group>
-      </trans-unit>
       <trans-unit id="homeHostCard.syncOpenHint" datatype="html">
-        <source> Empfangenen Sync-Link hier einfügen:</source>
-        <target>Pega aquí el enlace de sync recibido:</target>
+        <source> Füge den Link ein, den du von einem anderen Gerät bekommen hast.</source>
+        <target>Pega el enlace que te han enviado desde otro dispositivo.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/home/home.component.html</context>
           <context context-type="linenumber">397,399</context>
@@ -9052,24 +9036,24 @@
         </context-group>
       </trans-unit>
       <trans-unit id="homeHostCard.syncLinkInputAria" datatype="html">
-        <source>Sync-Link einfügen</source>
-        <target>Introducir enlace de sync</target>
+        <source>Link einer geteilten Sammlung einfügen</source>
+        <target>Pegar el enlace de una colección compartida</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/home/home.component.html</context>
           <context context-type="linenumber">421</context>
         </context-group>
       </trans-unit>
       <trans-unit id="homeHostCard.syncLinkSubmit" datatype="html">
-        <source> Öffnen</source>
-        <target>Abrir</target>
+        <source> Sammlung nutzen</source>
+        <target>Usar la colección</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/home/home.component.html</context>
           <context context-type="linenumber">429,431</context>
         </context-group>
       </trans-unit>
       <trans-unit id="homeHostCard.syncLinkedHintWithOrigin" datatype="html">
-        <source> Quizze werden mit <x id="INTERPOLATION" equiv-text="{{ originSummary }}"/> geteilt.</source>
-        <target>Los quizzes se comparten con <x id="INTERPOLATION" equiv-text="{{ originSummary }}"/>.</target>
+        <source> Du nutzt die Sammlung von <x id="INTERPOLATION" equiv-text="{{ originSummary }}"/>.</source>
+        <target>Estás usando la colección de <x id="INTERPOLATION" equiv-text="{{ originSummary }}"/>.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/home/home.component.html</context>
           <context context-type="linenumber">445,447</context>
@@ -9077,7 +9061,7 @@
       </trans-unit>
       <trans-unit id="homeHostCard.syncUnlinkCta" datatype="html">
         <source>Verknüpfung lösen</source>
-        <target>Quitar vínculo</target>
+        <target>Desconectar</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/home/home.component.html</context>
           <context context-type="linenumber">459</context>
@@ -9279,6 +9263,10 @@
           <context context-type="linenumber">635</context>
         </context-group>
       </trans-unit>
+      <trans-unit id="homeHostCard.syncLinkOwnError" datatype="html">
+        <source>Das ist dein eigener Sync-Link. Hier fügst du den Link einer anderen Sammlung ein.</source>
+        <target>Ese es tu propio enlace de sync. Pega aquí el enlace de otra colección.</target>
+      </trans-unit>
       <trans-unit id="homeHostCard.syncLinkError" datatype="html">
         <source>Bitte einen gültigen Sync-Link einfügen.</source>
         <target>Introduce un enlace de sync válido.</target>
@@ -9289,7 +9277,7 @@
       </trans-unit>
       <trans-unit id="homeHostCard.syncUnlinkConfirmPrompt" datatype="html">
         <source>Verknüpfung wirklich lösen? Die aktuelle Quiz-Sammlung bleibt auf diesem Gerät erhalten.</source>
-        <target>¿Quitar el vínculo de verdad? La biblioteca de quizzes actual se mantendrá en este dispositivo.</target>
+        <target>¿Desconectar esta colección compartida? Tus cuestionarios se quedan en este dispositivo.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/home/home.component.ts</context>
           <context context-type="linenumber">713</context>
@@ -9297,7 +9285,7 @@
       </trans-unit>
       <trans-unit id="homeHostCard.syncUnlinkSuccess" datatype="html">
         <source>Verknüpfung gelöst. Die Quiz-Sammlung ist jetzt nur auf diesem Gerät aktiv.</source>
-        <target>Vínculo quitado. La biblioteca de quizzes ahora solo está activa en este dispositivo.</target>
+        <target>Desconectado. La colección ahora solo está activa en este dispositivo.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/home/home.component.ts</context>
           <context context-type="linenumber">721</context>
@@ -14423,14 +14411,6 @@
           <context context-type="linenumber">23,26</context>
         </context-group>
       </trans-unit>
-      <trans-unit id="quizList.bonusCodesDialogPrivacyHint" datatype="html">
-        <source> Bitte nur privat einsehen – nicht im Hörsaal oder bei Zuschauer:innen sichtbar machen.</source>
-        <target>Véalo únicamente de forma privada; no lo haga visible en la sala de conferencias ni para los espectadores.</target>
-        <context-group purpose="location">
-          <context context-type="sourcefile">src/app/features/quiz/quiz-list/bonus-codes-dialog.component.html</context>
-          <context context-type="linenumber">32,34</context>
-        </context-group>
-      </trans-unit>
       <trans-unit id="quizList.bonusCodesVerifyHeading" datatype="html">
         <source> Bonus-Code prüfen</source>
         <target>Comprobar código de bonificación</target>
@@ -14611,33 +14591,17 @@
           <context context-type="linenumber">215</context>
         </context-group>
       </trans-unit>
-      <trans-unit id="quizList.emptyWelcome" datatype="html">
-        <source>Willkommen!</source>
-        <target>¡Bienvenido!</target>
-        <context-group purpose="location">
-          <context context-type="sourcefile">src/app/features/quiz/quiz-list/quiz-list.component.html</context>
-          <context context-type="linenumber">6</context>
-        </context-group>
-      </trans-unit>
-      <trans-unit id="quizList.emptyHint" datatype="html">
-        <source> Du hast noch kein eigenes Quiz. Erstelle eins oder probiere zuerst die Demo aus.</source>
-        <target>Aún no tienes tu propio quiz. Crea uno o prueba primero la demo.</target>
-        <context-group purpose="location">
-          <context context-type="sourcefile">src/app/features/quiz/quiz-list/quiz-list.component.html</context>
-          <context context-type="linenumber">7,9</context>
-        </context-group>
-      </trans-unit>
       <trans-unit id="quizList.createAria" datatype="html">
-        <source>Neues Quiz erstellen</source>
-        <target>Crear nuevo cuestionario</target>
+        <source>Quiz erstellen</source>
+        <target>Crear cuestionario</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/quiz/quiz-list/quiz-list.component.html</context>
           <context context-type="linenumber">18</context>
         </context-group>
       </trans-unit>
-      <trans-unit id="1571519885027613921" datatype="html">
-        <source>Neues Quiz erstellen</source>
-        <target>Crear nuevo cuestionario</target>
+      <trans-unit id="quizList.create" datatype="html">
+        <source>Quiz erstellen</source>
+        <target>Crear cuestionario</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/quiz/quiz-list/quiz-list.component.html</context>
           <context context-type="linenumber">21</context>
@@ -14664,19 +14628,11 @@
         </context-group>
       </trans-unit>
       <trans-unit id="quizList.demoQuizTry" datatype="html">
-        <source> Demo-Quiz ausprobieren</source>
-        <target>Pruebe el cuestionario de demostración</target>
+        <source> Demo-Quiz</source>
+        <target>Cuestionario demo</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/quiz/quiz-list/quiz-list.component.html</context>
           <context context-type="linenumber">49,51</context>
-        </context-group>
-      </trans-unit>
-      <trans-unit id="4508779711899061183" datatype="html">
-        <source> Die Demo ist ein Probelauf. Für deine Veranstaltung erstelle oben ein eigenes Quiz.</source>
-        <target>La demostración es una prueba. Crea tu propio cuestionario arriba para tu evento.</target>
-        <context-group purpose="location">
-          <context context-type="sourcefile">src/app/features/quiz/quiz-list/quiz-list.component.html</context>
-          <context context-type="linenumber">52,54</context>
         </context-group>
       </trans-unit>
       <trans-unit id="quizList.importSkippedWarningsTitle" datatype="html">
@@ -14983,13 +14939,41 @@
           <context context-type="linenumber">438</context>
         </context-group>
       </trans-unit>
-      <trans-unit id="quizList.chipDemo" datatype="html">
-        <source>Demo</source>
-        <target>Demo</target>
-        <context-group purpose="location">
-          <context context-type="sourcefile">src/app/features/quiz/quiz-list/quiz-list.component.html</context>
-          <context context-type="linenumber">453</context>
-        </context-group>
+      <trans-unit id="quizList.syncUnlinkAria" datatype="html">
+        <source>Teilen beenden und wieder nur auf diesem Gerät arbeiten</source>
+        <target>Dejar de compartir y seguir solo en este dispositivo</target>
+      </trans-unit>
+      <trans-unit id="quizList.syncUnlinkCta" datatype="html">
+        <source>Teilen beenden</source>
+        <target>Dejar de compartir</target>
+      </trans-unit>
+      <trans-unit id="quizList.syncUnlinkTitle" datatype="html">
+        <source>Teilen beenden?</source>
+        <target>¿Dejar de compartir?</target>
+      </trans-unit>
+      <trans-unit id="quizList.syncUnlinkMessage" datatype="html">
+        <source>Die Quiz-Sammlung bleibt auf diesem Gerät. Die Sync-Verknüpfung und der Änderungsstatus werden zurückgesetzt.</source>
+        <target>La colección de cuestionarios se queda en este dispositivo. Se restablecerán el enlace de sincronización y el estado de los cambios.</target>
+      </trans-unit>
+      <trans-unit id="quizList.syncUnlinkConsequencePeers" datatype="html">
+        <source>Andere Geräte behalten ihren letzten Stand, sind aber nicht mehr mit dir verbunden.</source>
+        <target>Los demás dispositivos conservan su última copia, pero ya no están vinculados contigo.</target>
+      </trans-unit>
+      <trans-unit id="quizList.syncUnlinkConsequenceNewLink" datatype="html">
+        <source>Ein neuer Klick auf „Sammlung teilen“ startet eine frische Verknüpfung.</source>
+        <target>Volver a pulsar «Compartir la colección» inicia un enlace nuevo.</target>
+      </trans-unit>
+      <trans-unit id="quizList.syncUnlinkConfirm" datatype="html">
+        <source>Teilen beenden</source>
+        <target>Dejar de compartir</target>
+      </trans-unit>
+      <trans-unit id="quizList.syncUnlinkCancel" datatype="html">
+        <source>Abbrechen</source>
+        <target>Cancelar</target>
+      </trans-unit>
+      <trans-unit id="quizList.syncUnlinkSuccess" datatype="html">
+        <source>Teilen beendet. Die Sammlung ist wieder nur auf diesem Gerät aktiv.</source>
+        <target>Has dejado de compartir. La colección solo está activa en este dispositivo.</target>
       </trans-unit>
       <trans-unit id="quizList.chipLive" datatype="html">
         <source>Live</source>
@@ -15321,6 +15305,14 @@
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/quiz/quiz-list/quiz-list.component.ts</context>
           <context context-type="linenumber">336</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="quizList.syncLocalChangeStatus" datatype="html">
+        <source>Hier geändert · <x id="timestamp" equiv-text="timestamp"/></source>
+        <target>Cambiado aquí · <x id="timestamp" equiv-text="timestamp"/></target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/quiz/quiz-list/quiz-list.component.ts</context>
+          <context context-type="linenumber">349</context>
         </context-group>
       </trans-unit>
       <trans-unit id="quizList.syncDeviceUnknown" datatype="html">
@@ -15996,8 +15988,8 @@
         </context-group>
       </trans-unit>
       <trans-unit id="quizSync.intro" datatype="html">
-        <source> Verschick den Link – damit können andere dieselbe Sammlung auf ihrem Gerät öffnen.</source>
-        <target>Envía el enlace para que otras personas puedan abrir la misma colección en su dispositivo.</target>
+        <source> Kopiere den Sync-Link. Auf dem anderen Gerät fügst du ihn auf der Startseite unter „Geteilte Sammlung nutzen“ ein.</source>
+        <target>Copia el enlace de sync. En el otro dispositivo, pégalo en la página de inicio bajo «Usar una colección compartida».</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/quiz/quiz-sync/quiz-sync.component.html</context>
           <context context-type="linenumber">11,13</context>
@@ -16018,6 +16010,10 @@
           <context context-type="sourcefile">src/app/features/quiz/quiz-sync/quiz-sync.component.html</context>
           <context context-type="linenumber">34</context>
         </context-group>
+      </trans-unit>
+      <trans-unit id="quizSync.invalidateAria" datatype="html">
+        <source>Sync-Link ungültig machen — danach gilt er für niemanden mehr</source>
+        <target>Invalidar el enlace de sync — dejará de funcionar para todos</target>
       </trans-unit>
       <trans-unit id="quizSync.secureLink" datatype="html">
         <source>Neuen abgesicherten Sync-Link erstellen</source>
@@ -16044,8 +16040,8 @@
         </context-group>
       </trans-unit>
       <trans-unit id="quizSync.securityHint" datatype="html">
-        <source> Wer den Sync-Link hat, kann die Sammlung lesen und ändern. Mit „ungültig machen“ stirbt der alte Link; bereits geöffnete Geräte arbeiten lokal weiter, bis sie den neuen Link importieren.</source>
-        <target>Cualquiera que tenga el enlace de sincronización puede leer y cambiar la colección. Con “invalidar” el antiguo vínculo muere; Los dispositivos que ya están abiertos continúan funcionando localmente hasta que importen el nuevo enlace.</target>
+        <source> Wer den Sync-Link hat, kann die Sammlung lesen und ändern. „Ungültig machen“ lässt den Link für alle sterben; bereits geöffnete Geräte arbeiten lokal weiter, bis sie einen neuen Link einfügen. „Teilen beenden“ löst nur dieses Gerät — der Link bleibt gültig.</source>
+        <target>Cualquiera que tenga el enlace de sync puede leer y cambiar la colección. «Invalidar enlace de sincronización» mata el enlace para todos; los dispositivos ya abiertos siguen en local hasta que peguen un nuevo enlace. «Dejar de compartir» solo desvincula este dispositivo — el enlace sigue siendo válido.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/quiz/quiz-sync/quiz-sync.component.html</context>
           <context context-type="linenumber">63,66</context>

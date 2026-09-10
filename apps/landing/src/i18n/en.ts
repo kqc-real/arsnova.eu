@@ -202,7 +202,7 @@ const en: Messages = {
   workflow: {
     eyebrow: 'For teaching, training and workshops',
     title: 'From idea to live session in a few minutes',
-    lead: 'From the question to the running session, the flow deliberately avoids unnecessary steps. That is what makes getting started fast and reliable for educators, trainers and facilitators.',
+    lead: 'From preparation to the running session, the flow deliberately avoids unnecessary steps. That is what makes getting started fast and reliable for educators, trainers and facilitators.',
     stepLabel: 'Step',
     steps: [
       {
@@ -213,18 +213,24 @@ const en: Messages = {
       },
       {
         number: '02',
+        title: 'Share the collection',
+        description:
+          'The quiz collection stays on your device — important for GDPR. If you have to use someone else’s computer in the lecture room, you bring it over with a sync link instead of a USB stick. You can give the same link to colleagues so you can use and edit the collection together. Create the link in the quiz collection; paste a received link on the home page.',
+      },
+      {
+        number: '03',
         title: 'Start a session',
         description:
           'Start without an account: open a session, choose a style, share a code or QR. Optionally connect a phone or tablet and open presenter view for the projector.',
       },
       {
-        number: '03',
+        number: '04',
         title: 'Moderate live',
         description:
           'You walk the room and run the live session from your phone. Participants vote, ask questions and prioritise together. The facilitator and presenter show the quiz, Q&A wall, word cloud, Pulse Check, reading phase, countdown, second round and results in one flow.',
       },
       {
-        number: '04',
+        number: '05',
         title: 'Follow up and export',
         description:
           'After the session ends, the results report (PDF) is ready — with learning progress, confidence rating and full question text. In the quiz collection you will find debriefing and PDF for the last run; CSV for Excel under “More”.',
@@ -491,6 +497,11 @@ const en: Messages = {
         question: 'Where is the data stored?',
         answer:
           'Quiz content stays on your device. For live sessions only the technically necessary session data is processed; when you run it yourself, operations stay in your own infrastructure.',
+      },
+      {
+        question: 'Can I use the quiz collection on another device or with colleagues?',
+        answer:
+          'Yes. The collection stays on your device on purpose — important for GDPR. If you have to use someone else’s computer in the lecture room, you bring it over with a sync link instead of a USB stick. You can give the same link to colleagues so you can use and edit the collection together. Create the link in the quiz collection; paste a received link on the home page.',
       },
       {
         question: 'Can I run arsnova.eu on my own infrastructure?',

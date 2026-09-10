@@ -205,7 +205,7 @@ const es: Messages = {
   workflow: {
     eyebrow: 'Para docencia, formación y talleres',
     title: 'De la idea a la sesión en directo en pocos minutos',
-    lead: 'De la pregunta a la sesión en curso, el recorrido evita a propósito pasos innecesarios. Eso hace que el arranque sea rápido y fiable para docentes, formadores y moderadores.',
+    lead: 'De la preparación a la sesión en curso, el recorrido evita a propósito pasos innecesarios. Eso hace que el arranque sea rápido y fiable para docentes, formadores y moderadores.',
     stepLabel: 'Paso',
     steps: [
       {
@@ -216,18 +216,24 @@ const es: Messages = {
       },
       {
         number: '02',
+        title: 'Compartir la colección',
+        description:
+          'La colección de cuestionarios permanece en tu dispositivo — importante para el RGPD. Si en la sala tienes que usar un ordenador ajeno, la traes con un enlace de sync en lugar de una memoria USB. Puedes dar el mismo enlace a colegas para usar y editar la colección juntos. Creas el enlace en la colección de cuestionarios; pegas el enlace recibido en la página de inicio.',
+      },
+      {
+        number: '03',
         title: 'Iniciar una sesión',
         description:
           'Empieza sin cuenta: abre una sesión, elige un estilo, comparte código o QR. Opcionalmente conecta un teléfono o tablet y abre la vista del presentador para el proyector.',
       },
       {
-        number: '03',
+        number: '04',
         title: 'Moderar en directo',
         description:
           'Te mueves por la sala y diriges la sesión en directo desde el teléfono. Los participantes votan, formulan preguntas y priorizan juntos. El anfitrión y el presentador muestran el cuestionario, el Q&A, el Sondeo rápido, la nube de palabras, la fase de lectura, la cuenta atrás, la segunda ronda y los resultados en un solo recorrido.',
       },
       {
-        number: '04',
+        number: '05',
         title: 'Análisis posterior y exportación',
         description:
           'Al terminar la sesión, el informe de resultados (PDF) está listo — con estado de aprendizaje, autoevaluación y textos completos de las preguntas. En la colección de cuestionarios encuentras puesta en común y PDF de la última ejecución; CSV para Excel en «Más».',
@@ -498,6 +504,11 @@ const es: Messages = {
         question: '¿Dónde están los datos?',
         answer:
           'Los contenidos del cuestionario permanecen en tu dispositivo. En sesiones en directo solo se procesan los datos de sesión técnicamente necesarios; con autoalojamiento, la operación permanece en tu infraestructura.',
+      },
+      {
+        question: '¿Puedo usar la colección de cuestionarios en otro dispositivo o con colegas?',
+        answer:
+          'Sí. La colección permanece a propósito en tu dispositivo — importante para el RGPD. Si en la sala tienes que usar un ordenador ajeno, la traes con un enlace de sync en lugar de una memoria USB. Puedes dar el mismo enlace a colegas para usar y editar la colección juntos. Creas el enlace en la colección de cuestionarios; pegas el enlace recibido en la página de inicio.',
       },
       {
         question: '¿Puedo autoalojar arsnova.eu?',
