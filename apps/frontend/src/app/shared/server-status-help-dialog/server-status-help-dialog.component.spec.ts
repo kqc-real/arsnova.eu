@@ -62,7 +62,7 @@ describe('ServerStatusHelpDialogComponent', () => {
     expect(text).toContain('Betriebsstatus & Systemlast');
     expect(text).toContain('Systemlast-Indikatoren');
     expect(text).toContain(
-      'Die Statusanzeige findest du im Footer-Menü „Mehr“. Sie zeigt, wie stabil Live-Quizze gerade laufen.',
+      'Die Statusanzeige findest du im Footer-Menü »Mehr«. Sie zeigt, wie stabil Live-Quizze gerade laufen.',
     );
     expect(text).toContain('Systemlast:');
     expect(text).toContain('Aktuelle Lage');

@@ -128,7 +128,7 @@ describe('QuizEditComponent', { timeout: 30_000 }, () => {
     vi.useRealTimers();
   });
 
-  it('hält das Panel „Neue Frage“ bei leerem Quiz zunächst geschlossen', () => {
+  it('hält das Panel »Neue Frage« bei leerem Quiz zunächst geschlossen', () => {
     quiz.questions = [];
     const fixture = TestBed.createComponent(QuizEditComponent);
     const component = fixture.componentInstance;
@@ -224,6 +224,23 @@ describe('QuizEditComponent', { timeout: 30_000 }, () => {
         anonymousMode: true,
       }),
     );
+  });
+
+  it('zeigt den Hinweis zur persönlichen Zeit, sobald ein Zeitlimit aktiv ist', () => {
+    quiz.settings = { ...quiz.settings, defaultTimer: 60 };
+    const fixture = TestBed.createComponent(QuizEditComponent);
+    const component = fixture.componentInstance;
+    component.showSettings.set(true);
+    fixture.detectChanges();
+
+    const hint = fixture.nativeElement.querySelector(
+      '[data-testid="quiz-edit-timer-accommodation-hint"]',
+    ) as HTMLElement | null;
+    expect(hint?.textContent).toContain('Persönliche Zeit');
+    expect(hint?.textContent).toContain('»10× Zeit«');
+    expect(hint?.textContent).toContain('»Ohne Frist«');
+    expect(hint?.textContent).toContain('Mindestpunkte');
+    expect(hint?.querySelectorAll('p').length).toBe(4);
   });
 
   it('speichert per Handler gesetzte Zeitlimit-Änderungen ohne Angular-dirty-Status', () => {
@@ -1364,7 +1381,7 @@ describe('QuizEditComponent', { timeout: 30_000 }, () => {
     expect(component.hasPendingChanges()).toBe(false);
   });
 
-  it('blendet das Panel „Neue Frage“ aus und aktiviert den Bearbeitungsmodus', () => {
+  it('blendet das Panel »Neue Frage« aus und aktiviert den Bearbeitungsmodus', () => {
     quiz.questions = [
       {
         id: QUESTION_ID,

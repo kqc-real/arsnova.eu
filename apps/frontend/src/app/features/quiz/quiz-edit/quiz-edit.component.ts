@@ -1637,8 +1637,8 @@ export class QuizEditComponent implements OnDestroy {
 
     return this.isShortTextNumericMode()
       ? this.isShortTextUnitMode()
-        ? $localize`:@@quizEdit.shortTextSolutionsHintNumericUnit:Hinterlege mindestens eine und höchstens zehn Referenzlösungen mit unterstützter Einheit, zum Beispiel „2 m“.`
-        : $localize`:@@quizEdit.shortTextSolutionsHintNumeric:Hinterlege mindestens eine und höchstens zehn Referenzlösungen als Zahl, zum Beispiel „3,5“.`
+        ? $localize`:@@quizEdit.shortTextSolutionsHintNumericUnit:Hinterlege mindestens eine und höchstens zehn Referenzlösungen mit unterstützter Einheit, zum Beispiel »2 m«.`
+        : $localize`:@@quizEdit.shortTextSolutionsHintNumeric:Hinterlege mindestens eine und höchstens zehn Referenzlösungen als Zahl, zum Beispiel »3,5«.`
       : $localize`:@@quizEdit.shortTextSolutionsHint:Hinterlege mindestens eine und höchstens zehn Musterlösungen. Alle Varianten gelten als richtige Kurzantwort.`;
   }
 

@@ -164,7 +164,7 @@
               >
                 <p i18n="@@help.hostFirstSessionBody">
                   Öffne die Quiz-Sammlung und nutze das Demo-Quiz oder erstelle ein eigenes Quiz.
-                  Wähle „Starten“, lege Stil und Optionen fest und teile anschließend den
+                  Wähle »Starten«, lege Stil und Optionen fest und teile anschließend den
                   sechsstelligen Code oder QR-Code. In der Host-Ansicht zeigst du die nächste Frage,
                   startest die Antwortphase und gibst das Ergebnis frei. Tipp: Teste die Vorschau
                   vor dem ersten Einsatz einmal auf einem zweiten Gerät. Beim Start der Präsentation
@@ -208,7 +208,7 @@
                 <p i18n="@@help.hostFinishBody">
                   Beende die Session in der Host-Ansicht. Danach stehen die zusammengefassten
                   Ergebnisse zur Verfügung. Nutze den Nachbesprechungsplan als PDF für die
-                  didaktische Auswertung; den CSV-Export findest du unter „Mehr“. Der
+                  didaktische Auswertung; den CSV-Export findest du unter »Mehr«. Der
                   Nachbesprechungsplan bleibt über die Quizkarte erreichbar.
                 </p>
               </div>
@@ -251,6 +251,31 @@
                   Diskussionsphase und öffnest anschließend eine zweite Abstimmung. Der
                   Vorher-Nachher-Vergleich macht Veränderungen sichtbar.
                 </p>
+                <p i18n="@@help.hostModerationTimer">
+                  Beim Timer können Teilnehmende mehr Zeit wählen. Nach dem Countdown gibt es nur
+                  Mindestpunkte – das reicht selten nach vorn.
+                </p>
+              </div>
+            </mat-expansion-panel>
+
+            <mat-expansion-panel #hostTimerPanel class="help-panel">
+              <mat-expansion-panel-header>
+                <mat-panel-title i18n="@@help.hostTimerTitle"
+                  >Persönliche Zeit beim Countdown</mat-panel-title
+                >
+              </mat-expansion-panel-header>
+              <div class="help-panel__body" [attr.inert]="hostTimerPanel.expanded ? null : ''">
+                <p i18n="@@help.hostTimerChoice">
+                  Teilnehmende können »10× Zeit« oder »Ohne Frist« wählen. Abschalten geht nicht.
+                </p>
+                <p i18n="@@help.hostTimerScore">
+                  Mehr Zeit hilft nicht. Wer nach dem Countdown noch richtig antwortet, bekommt nur
+                  Mindestpunkte und kommt damit selten nach vorn.
+                </p>
+                <p i18n="@@help.hostTimerControl">
+                  Die Frage beendest du weiter selbst. »Ohne Frist« hält dich nicht auf. »10× Zeit«
+                  kannst du nach dem Countdown trotzdem beenden.
+                </p>
               </div>
             </mat-expansion-panel>
 
@@ -279,7 +304,7 @@
               </mat-expansion-panel-header>
               <div class="help-panel__body" [attr.inert]="hostPulsePanel.expanded ? null : ''">
                 <p i18n="@@help.hostPulseBody">
-                  Starte ein Blitzlicht aus der Live-Session oder über „Nur ein Klick“ auf der
+                  Starte ein Blitzlicht aus der Live-Session oder über »Nur ein Klick« auf der
                   Startseite. Du kannst die Abstimmung pausieren, fortsetzen, zurücksetzen oder als
                   neue Runde starten. Beim Tempo-Feedback ändern Teilnehmende ihre Rückmeldung
                   jederzeit; du siehst nur die aggregierte Tendenz.
@@ -302,10 +327,10 @@
                 </p>
                 <p i18n="@@help.hostLibraryBody">
                   In der Quiz-Sammlung bearbeitest und sortierst du Fragen, prüfst die Vorschau und
-                  importierst oder exportierst Quizze als JSON. Über „Sammlung teilen“ erzeugst du
+                  importierst oder exportierst Quizze als JSON. Über »Sammlung teilen« erzeugst du
                   einen Sync-Link, mit dem andere Geräte dieselbe Sammlung nutzen können. Mit
-                  „Teilen beenden“ setzt du eine ausprobierte Freigabe zurück; deine Quizzes bleiben
-                  auf diesem Gerät. Auf der Startseite fügst du unter „Geteilte Sammlung nutzen“
+                  »Teilen beenden« setzt du eine ausprobierte Freigabe zurück; deine Quizzes bleiben
+                  auf diesem Gerät. Auf der Startseite fügst du unter »Geteilte Sammlung nutzen«
                   einen empfangenen Link ein. KI-Vorlagen unterstützen dich beim Erstellen und
                   Prüfen von Quizzen, ohne dass Inhalte an arsnova.eu gesendet werden. Beim
                   Session-Start konfigurierst du unter anderem Stil, Rangliste, Sound, Teams,
@@ -367,6 +392,10 @@
                   aktiviert, bewertest du anschließend auf einer Skala von 1 bis 5, wie sicher du
                   dir bist. Bei einem Zeitlimit zeigt dir ein Countdown die verbleibende Zeit. Das
                   Ergebnis erscheint, sobald die Veranstaltungsleitung es freigibt.
+                </p>
+                <p i18n="@@help.participantAnswerTimer">
+                  Unter Zeit anpassen wählst du »10× Zeit« oder »Ohne Frist«. Mehr Zeit hilft nicht.
+                  Nach dem Countdown gibt es nur Mindestpunkte; vorn landest du damit selten.
                 </p>
               </div>
             </mat-expansion-panel>

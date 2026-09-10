@@ -251,17 +251,39 @@
                         <mat-error i18n>Höchstens 300 Sekunden.</mat-error>
                       }
                     </mat-form-field>
-                    <mat-checkbox
-                      formControlName="timerScaleByDifficulty"
-                      i18n="@@quizForm.timerScaleByDifficultyLabel"
-                    >
-                      Fragezeit nach Schwierigkeit anpassen
-                    </mat-checkbox>
+                    <div class="quiz-form__timer-scale-group">
+                      <mat-checkbox
+                        formControlName="timerScaleByDifficulty"
+                        i18n="@@quizForm.timerScaleByDifficultyLabel"
+                      >
+                        Fragezeit nach Schwierigkeit anpassen
+                      </mat-checkbox>
+                      <div
+                        class="quiz-form__timer-scale"
+                        i18n="@@quizForm.timerScaleByDifficultyHint"
+                      >
+                        Leicht = wie eingestellt, Mittel = ×1,5, Schwer = ×2,0
+                      </div>
+                    </div>
                     <div
-                      class="quiz-form__timer-scale"
-                      i18n="@@quizForm.timerScaleByDifficultyHint"
+                      class="quiz-form__timer-accommodation"
+                      data-testid="quiz-new-timer-accommodation-hint"
                     >
-                      Leicht = wie eingestellt, Mittel = ×1,5, Schwer = ×2,0
+                      <p
+                        class="quiz-form__timer-accommodation-title"
+                        i18n="@@quizForm.timerAccommodationTitle"
+                      >
+                        Persönliche Zeit
+                      </p>
+                      <p i18n="@@quizForm.timerAccommodationHint">
+                        »10× Zeit« und »Ohne Frist« bleiben wählbar.
+                      </p>
+                      <p i18n="@@quizForm.timerAccommodationScore">
+                        Nach dem Countdown gibt es nur Mindestpunkte – das reicht selten nach vorn.
+                      </p>
+                      <p i18n="@@quizForm.timerAccommodationControl">
+                        Die Frage beendest du weiter selbst.
+                      </p>
                     </div>
                   </div>
                 }

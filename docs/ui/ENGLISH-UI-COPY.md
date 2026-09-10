@@ -49,7 +49,7 @@ Preset and theme wording should not imply that a host forces a participant’s U
 - **Sentence breaks:** Prefer the **em dash (—)** without spaces for sharp breaks in short UI copy (_Stay on this page—we’ll update for you_). Avoid **space-hyphen-space** (`-`) as a sentence dash; hyphens stay for **compound modifiers** (_high-energy_, _on-the-fly_).
 - **En dash (–):** Acceptable where the German source uses it for **paired labels** (_Lobby – participants can join_); keep **consistent** within the same UI surface.
 - **Apostrophes in XLF:** Use **`&apos;`** in `<target>` where escaping keeps the file uniform (_Time&apos;s up_, _You&apos;re in_).
-- **Quotation marks in help text:** Curly/smart quotes in English are fine if the XLF remains **well-formed**; match **Angular/Material button labels** exactly when quoting controls.
+- **Quotation marks:** US typographic **“…”** (not UK `‘…’`, not straight `"`, not `«…»`). Quote **actual** English control labels. Canonical table for all locales: [STYLEGUIDE.md](STYLEGUIDE.md) (Wording: Anführungszeichen).
 
 ---
 

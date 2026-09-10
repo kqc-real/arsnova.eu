@@ -980,7 +980,7 @@
       </trans-unit>
       <trans-unit id="sessionReport.confidenceNotSupportedForQuestion" datatype="html">
         <source>Selbsteinschätzung wird für den Fragetyp »{0}« nicht angeboten.</source>
-        <target>L’autoévaluation n’est pas proposée pour le type de question « {0} ».</target>
+        <target>L’autoévaluation n’est pas proposée pour le type de question « {0} ».</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/core/session-results-report-labels.ts</context>
           <context context-type="linenumber">52</context>
@@ -1339,56 +1339,56 @@
         </context-group>
       </trans-unit>
       <trans-unit id="sessionReport.confidenceTopSignalTemplate" datatype="html">
-        <source>{1} Teilnehmende wählten „{0}“ falsch und mit hoher Sicherheit.</source>
-        <target>{1} participants ont choisi « {0} » incorrectement et avec forte certitude.</target>
+        <source>{1} Teilnehmende wählten »{0}« falsch und mit hoher Sicherheit.</source>
+        <target>{1} participants ont choisi « {0} » incorrectement et avec forte certitude.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/core/session-results-report-labels.ts</context>
           <context context-type="linenumber">97</context>
         </context-group>
       </trans-unit>
       <trans-unit id="sessionReport.confidenceActionRecommendationTemplate" datatype="html">
-        <source>Empfehlung: Greife „{0}“ erneut auf, lasse die Wahl begründen und stelle sie der richtigen Lösung gegenüber.</source>
-        <target>Recommandation : Reprenez « {0} », expliquez le choix et comparez-le avec la bonne solution.</target>
+        <source>Empfehlung: Greife »{0}« erneut auf, lasse die Wahl begründen und stelle sie der richtigen Lösung gegenüber.</source>
+        <target>Recommandation : Reprenez « {0} », expliquez le choix et comparez-le avec la bonne solution.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/core/session-results-report-labels.ts</context>
           <context context-type="linenumber">98</context>
         </context-group>
       </trans-unit>
       <trans-unit id="sessionReport.confidenceOmissionSignalTemplate" datatype="html">
-        <source>{1} Teilnehmende beantworteten die Frage falsch und mit hoher Sicherheit. Häufig übersehen: „{0}“ ({2}×).</source>
-        <target>{1} Les participants ont répondu à la question de manière incorrecte et avec un degré élevé de certitude. Souvent négligé : « {0} » ({2}×).</target>
+        <source>{1} Teilnehmende beantworteten die Frage falsch und mit hoher Sicherheit. Häufig übersehen: »{0}« ({2}×).</source>
+        <target>{1} Les participants ont répondu à la question de manière incorrecte et avec un degré élevé de certitude. Souvent négligé : « {0} » ({2}×).</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/core/session-results-report-labels.ts</context>
           <context context-type="linenumber">99</context>
         </context-group>
       </trans-unit>
       <trans-unit id="sessionReport.confidenceOmissionActionTemplate" datatype="html">
-        <source>Empfehlung: Kläre, warum „{0}“ zur vollständigen Lösung gehört, und lasse typische Auslassungen begründen.</source>
-        <target>Recommandation : Clarifiez pourquoi « {0} » fait partie de la solution complète et fournissez les raisons des omissions typiques.</target>
+        <source>Empfehlung: Kläre, warum »{0}« zur vollständigen Lösung gehört, und lasse typische Auslassungen begründen.</source>
+        <target>Recommandation : Clarifiez pourquoi « {0} » fait partie de la solution complète et fournissez les raisons des omissions typiques.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/core/session-results-report-labels.ts</context>
           <context context-type="linenumber">100</context>
         </context-group>
       </trans-unit>
       <trans-unit id="sessionReport.confidenceMcCombinedAllOmittedTemplate" datatype="html">
-        <source>{0} Teilnehmende beantworteten die Frage falsch und mit hoher Sicherheit. Alle übersahen die richtige Option „{1}“. {2} wählten zusätzlich „{3}“.</source>
-        <target>{0} Les participants ont répondu à la question de manière incorrecte et avec un degré élevé de certitude. Tout le monde a manqué la bonne option « {1} ». {2} a également choisi « {3} ».</target>
+        <source>{0} Teilnehmende beantworteten die Frage falsch und mit hoher Sicherheit. Alle übersahen die richtige Option »{1}«. {2} wählten zusätzlich »{3}«.</source>
+        <target>{0} Les participants ont répondu à la question de manière incorrecte et avec un degré élevé de certitude. Tout le monde a manqué la bonne option « {1} ». {2} a également choisi « {3} ».</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/core/session-results-report-labels.ts</context>
           <context context-type="linenumber">101</context>
         </context-group>
       </trans-unit>
       <trans-unit id="sessionReport.confidenceMcCombinedActionTemplate" datatype="html">
-        <source>Kläre zuerst, dass „{0}“ zur vollständigen Lösung gehört. Stelle anschließend heraus, weshalb „{1}“ nicht zutrifft.</source>
-        <target>Précisez d’abord que « {0} » fait partie de la solution complète. Expliquez ensuite pourquoi « {1} » n&apos;est pas vrai.</target>
+        <source>Kläre zuerst, dass »{0}« zur vollständigen Lösung gehört. Stelle anschließend heraus, weshalb »{1}« nicht zutrifft.</source>
+        <target>Précisez d’abord que « {0} » fait partie de la solution complète. Expliquez ensuite pourquoi « {1} » n&apos;est pas vrai.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/core/session-results-report-labels.ts</context>
           <context context-type="linenumber">102</context>
         </context-group>
       </trans-unit>
       <trans-unit id="sessionReport.confidenceScCombinedActionTemplate" datatype="html">
-        <source>Erkläre zuerst, warum „{0}“ die richtige Antwort ist. Stelle anschließend heraus, weshalb „{1}“ nicht zutrifft.</source>
-        <target>Expliquez d’abord pourquoi « {0} » est la bonne réponse. Précisez ensuite pourquoi « {1} » est incorrect.</target>
+        <source>Erkläre zuerst, warum »{0}« die richtige Antwort ist. Stelle anschließend heraus, weshalb »{1}« nicht zutrifft.</source>
+        <target>Expliquez d’abord pourquoi « {0} » est la bonne réponse. Précisez ensuite pourquoi « {1} » est incorrect.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/core/session-results-report-labels.ts</context>
           <context context-type="linenumber">103</context>
@@ -1723,24 +1723,24 @@
         </context-group>
       </trans-unit>
       <trans-unit id="sessionReport.nextStepsDebriefOmitTemplate" datatype="html">
-        <source>Bei Frage {0} die übersehene Option „{1}“ klären.</source>
-        <target>Pour la question {0}, clarifiez l&apos;option négligée « {1} ».</target>
+        <source>Bei Frage {0} die übersehene Option »{1}« klären.</source>
+        <target>Pour la question {0}, clarifiez l&apos;option négligée « {1} ».</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/core/session-results-report-labels.ts</context>
           <context context-type="linenumber">145</context>
         </context-group>
       </trans-unit>
       <trans-unit id="sessionReport.nextStepsDebriefWrongTemplate" datatype="html">
-        <source>Bei Frage {0} die Unterscheidung bei „{1}“ erklären.</source>
-        <target>Pour la question {0}, expliquez la distinction dans « {1} ».</target>
+        <source>Bei Frage {0} die Unterscheidung bei »{1}« erklären.</source>
+        <target>Pour la question {0}, expliquez la distinction dans « {1} ».</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/core/session-results-report-labels.ts</context>
           <context context-type="linenumber">146</context>
         </context-group>
       </trans-unit>
       <trans-unit id="sessionReport.nextStepsDebriefWrongVsCorrectTemplate" datatype="html">
-        <source>Bei Frage {0} erklären, warum „{1}“ falsch und „{2}“ richtig ist.</source>
-        <target>Pour la question {0}, expliquez pourquoi « {1} » est faux et « {2} » est correct.</target>
+        <source>Bei Frage {0} erklären, warum »{1}« falsch und »{2}« richtig ist.</source>
+        <target>Pour la question {0}, expliquez pourquoi « {1} » est faux et « {2} » est correct.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/core/session-results-report-labels.ts</context>
           <context context-type="linenumber">147</context>
@@ -1899,8 +1899,8 @@
         </context-group>
       </trans-unit>
       <trans-unit id="sessionReport.shortTextIncorrectItemTemplate" datatype="html">
-        <source>„{0}“ · {1} von {2}</source>
-        <target>« {0} » · {1} sur {2}</target>
+        <source>»{0}« · {1} von {2}</source>
+        <target>« {0} » · {1} sur {2}</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/core/session-results-report-labels.ts</context>
           <context context-type="linenumber">167</context>
@@ -2447,8 +2447,8 @@
         </context-group>
       </trans-unit>
       <trans-unit id="sessionReport.structuredSwapItemTemplate" datatype="html">
-        <source>„{0}“ ↔ „{1}“ ({2})</source>
-        <target>« {0} » ↔ « {1} » ({2})</target>
+        <source>»{0}« ↔ »{1}« ({2})</source>
+        <target>« {0} » ↔ « {1} » ({2})</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/core/session-results-report-labels.ts</context>
           <context context-type="linenumber">231</context>
@@ -2663,8 +2663,8 @@
         </context-group>
       </trans-unit>
       <trans-unit id="sessionReport.hardestQuestionDifficultyMismatchTemplate" datatype="html">
-        <source>Als „{0}“ konfiguriert, aber nur {1} der bewerteten Antworten vollständig richtig – Schwierigkeit oder Formulierung prüfen.</source>
-        <target>Configurée comme « {0} », mais seulement {1} des réponses évaluées entièrement correctes – vérifier la difficulté ou la formulation.</target>
+        <source>Als »{0}« konfiguriert, aber nur {1} der bewerteten Antworten vollständig richtig – Schwierigkeit oder Formulierung prüfen.</source>
+        <target>Configurée comme « {0} », mais seulement {1} des réponses évaluées entièrement correctes – vérifier la difficulté ou la formulation.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/core/session-results-report-labels.ts</context>
           <context context-type="linenumber">258</context>
@@ -2815,8 +2815,8 @@
         </context-group>
       </trans-unit>
       <trans-unit id="sessionReport.unusedDistractorTemplate" datatype="html">
-        <source>Die falsche Option „{0}“ wurde in dieser Session nicht gewählt. Bei wiederholtem Auftreten Überarbeitung prüfen.</source>
-        <target>L’option incorrecte « {0} » n’a pas été choisie dans cette séance. En cas de répétition, envisagez une révision.</target>
+        <source>Die falsche Option »{0}« wurde in dieser Session nicht gewählt. Bei wiederholtem Auftreten Überarbeitung prüfen.</source>
+        <target>L’option incorrecte « {0} » n’a pas été choisie dans cette séance. En cas de répétition, envisagez une révision.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/core/session-results-report-labels.ts</context>
           <context context-type="linenumber">277</context>
@@ -3787,8 +3787,8 @@
         </context-group>
       </trans-unit>
       <trans-unit id="admin.motd.reloadTooltip" datatype="html">
-        <source>Holt Meldungen und Textvorlagen erneut vom Server. Das ist nicht dasselbe wie „Speichern“: Das Formular wird dabei nicht auf den Server geschrieben.</source>
-        <target>Recharge les messages et les modèles de texte depuis le serveur. Ce n&apos;est pas la même chose qu&apos;« Enregistrer » : le formulaire n&apos;est pas envoyé au serveur.</target>
+        <source>Holt Meldungen und Textvorlagen erneut vom Server. Das ist nicht dasselbe wie »Speichern«: Das Formular wird dabei nicht auf den Server geschrieben.</source>
+        <target>Recharge les messages et les modèles de texte depuis le serveur. Ce n&apos;est pas la même chose qu&apos;« Enregistrer » : le formulaire n&apos;est pas envoyé au serveur.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/admin/admin-motd-panel.component.html</context>
           <context context-type="linenumber">32</context>
@@ -3903,7 +3903,7 @@
         </context-group>
       </trans-unit>
       <trans-unit id="admin.motd.tplSectionHelp" datatype="html">
-        <source> Wiederverwendbare Textbausteine in allen Sprachen; in Meldungen über „Vorlage übernehmen“ nutzbar. Beispielvorlagen für Wartung, Feature und Spende liefert das Setup-Skript im Repository (siehe README).</source>
+        <source> Wiederverwendbare Textbausteine in allen Sprachen; in Meldungen über »Vorlage übernehmen« nutzbar. Beispielvorlagen für Wartung, Feature und Spende liefert das Setup-Skript im Repository (siehe README).</source>
         <target>Blocs de texte réutilisables dans toutes les langues ; lors de l&apos;édition d&apos;un message, choisissez un modèle puis chargez-le dans les champs. Des modèles d&apos;exemple (maintenance, nouveauté, don) sont fournis par le script de configuration du dépôt (voir README).</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/admin/admin-motd-panel.component.html</context>
@@ -3967,9 +3967,9 @@
         </context-group>
       </trans-unit>
       <trans-unit id="admin.motd.resetStatsNeedEdit" datatype="html">
-        <source> Zum Zurücksetzen der Zähler zuerst die Meldung in der Liste oben mit „Bearbeiten“ öffnen.</source>
+        <source> Zum Zurücksetzen der Zähler zuerst die Meldung in der Liste oben mit »Bearbeiten« öffnen.</source>
         <target>
-          Pour réinitialiser les compteurs, ouvrez d&apos;abord le message dans la liste ci-dessus via « Modifier ».
+          Pour réinitialiser les compteurs, ouvrez d&apos;abord le message dans la liste ci-dessus via « Modifier ».
         </target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/admin/admin-motd-panel.component.html</context>
@@ -8370,8 +8370,8 @@
         </context-group>
       </trans-unit>
       <trans-unit id="help.hostFirstSessionBody" datatype="html">
-        <source> Öffne die Quiz-Sammlung und nutze das Demo-Quiz oder erstelle ein eigenes Quiz. Wähle „Starten“, lege Stil und Optionen fest und teile anschließend den sechsstelligen Code oder QR-Code. In der Host-Ansicht zeigst du die nächste Frage, startest die Antwortphase und gibst das Ergebnis frei. Tipp: Teste die Vorschau vor dem ersten Einsatz einmal auf einem zweiten Gerät. Beim Start der Präsentation kannst du per QR Smartphone oder Tablet verbinden und die Session frei im Raum steuern.</source>
-        <target>Ouvre ta collection de quiz et utilise le quiz de démonstration ou crée le tien. Sélectionne « Démarrer », choisis le style et les options, puis partage le code à six caractères ou le QR code. Dans la vue d’animation, affiche la question suivante, lance la phase de réponse et révèle les résultats. Conseil : teste l’aperçu sur un deuxième appareil avant ta première session. Au démarrage de la présentation, tu peux connecter un téléphone ou une tablette via QR et piloter la session partout dans la salle.</target>
+        <source> Öffne die Quiz-Sammlung und nutze das Demo-Quiz oder erstelle ein eigenes Quiz. Wähle »Starten«, lege Stil und Optionen fest und teile anschließend den sechsstelligen Code oder QR-Code. In der Host-Ansicht zeigst du die nächste Frage, startest die Antwortphase und gibst das Ergebnis frei. Tipp: Teste die Vorschau vor dem ersten Einsatz einmal auf einem zweiten Gerät. Beim Start der Präsentation kannst du per QR Smartphone oder Tablet verbinden und die Session frei im Raum steuern.</source>
+        <target>Ouvre ta collection de quiz et utilise le quiz de démonstration ou crée le tien. Sélectionne « Démarrer », choisis le style et les options, puis partage le code à six caractères ou le QR code. Dans la vue d’animation, affiche la question suivante, lance la phase de réponse et révèle les résultats. Conseil : teste l’aperçu sur un deuxième appareil avant ta première session. Au démarrage de la présentation, tu peux connecter un téléphone ou une tablette via QR et piloter la session partout dans la salle.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/help/help.component.html</context>
           <context context-type="linenumber">155,161</context>
@@ -8410,8 +8410,8 @@
         </context-group>
       </trans-unit>
       <trans-unit id="help.hostFinishBody" datatype="html">
-        <source> Beende die Session in der Host-Ansicht. Danach stehen die zusammengefassten Ergebnisse zur Verfügung. Nutze den Nachbesprechungsplan als PDF für die didaktische Auswertung; den CSV-Export findest du unter „Mehr“. Der Nachbesprechungsplan bleibt über die Quizkarte erreichbar.</source>
-        <target>Termine la session dans la vue d’animation. Un récapitulatif des résultats est alors disponible. Utilise le plan de débriefing au format PDF pour l’analyse pédagogique ; l’export CSV se trouve sous « Plus ». Le plan reste accessible depuis la carte du quiz.</target>
+        <source> Beende die Session in der Host-Ansicht. Danach stehen die zusammengefassten Ergebnisse zur Verfügung. Nutze den Nachbesprechungsplan als PDF für die didaktische Auswertung; den CSV-Export findest du unter »Mehr«. Der Nachbesprechungsplan bleibt über die Quizkarte erreichbar.</source>
+        <target>Termine la session dans la vue d’animation. Un récapitulatif des résultats est alors disponible. Utilise le plan de débriefing au format PDF pour l’analyse pédagogique ; l’export CSV se trouve sous « Plus ». Le plan reste accessible depuis la carte du quiz.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/help/help.component.html</context>
           <context context-type="linenumber">172,177</context>
@@ -8461,6 +8461,26 @@
           <context context-type="linenumber">210,217</context>
         </context-group>
       </trans-unit>
+      <trans-unit id="help.hostModerationTimer" datatype="html">
+        <source> Beim Timer können Teilnehmende mehr Zeit wählen. Nach dem Countdown gibt es nur Mindestpunkte – das reicht selten nach vorn. </source>
+        <target>Avec un minuteur, les participant·e·s peuvent prendre plus de temps. Après le compte à rebours, il ne reste que le minimum de points – rarement de quoi arriver en tête.</target>
+      </trans-unit>
+      <trans-unit id="help.hostTimerTitle" datatype="html">
+        <source>Persönliche Zeit beim Countdown</source>
+        <target>Temps personnel pendant le compte à rebours</target>
+      </trans-unit>
+      <trans-unit id="help.hostTimerChoice" datatype="html">
+        <source> Teilnehmende können »10× Zeit« oder »Ohne Frist« wählen. Abschalten geht nicht. </source>
+        <target>Les participant·e·s peuvent choisir « Temps ×10 » ou « Sans délai ». On ne peut pas désactiver ces options.</target>
+      </trans-unit>
+      <trans-unit id="help.hostTimerScore" datatype="html">
+        <source> Mehr Zeit hilft nicht. Wer nach dem Countdown noch richtig antwortet, bekommt nur Mindestpunkte und kommt damit selten nach vorn. </source>
+        <target>Prendre plus de temps n’apporte rien. Répondre encore juste après le compte à rebours ne rapporte que le minimum de points et place rarement en tête.</target>
+      </trans-unit>
+      <trans-unit id="help.hostTimerControl" datatype="html">
+        <source> Die Frage beendest du weiter selbst. »Ohne Frist« hält dich nicht auf. »10× Zeit« kannst du nach dem Countdown trotzdem beenden. </source>
+        <target>C’est toujours toi qui termines la question. « Sans délai » ne te retient pas. Après le compte à rebours, tu peux quand même arrêter « Temps ×10 ».</target>
+      </trans-unit>
       <trans-unit id="help.hostQaTitle" datatype="html">
         <source>Die Q&amp;A-Fragenwand moderieren</source>
         <target>Modérer le mur de questions Q&amp;A</target>
@@ -8486,8 +8506,8 @@
         </context-group>
       </trans-unit>
       <trans-unit id="help.hostPulseBody" datatype="html">
-        <source> Starte ein Blitzlicht aus der Live-Session oder über „Nur ein Klick“ auf der Startseite. Du kannst die Abstimmung pausieren, fortsetzen, zurücksetzen oder als neue Runde starten. Beim Tempo-Feedback ändern Teilnehmende ihre Rückmeldung jederzeit; du siehst nur die aggregierte Tendenz.</source>
-        <target>Lance un Feedback express depuis la session en direct ou avec « Un seul clic » sur la page d’accueil. Tu peux le mettre en pause, le reprendre, le réinitialiser ou démarrer un nouveau tour. Pour le retour sur le rythme, les participant·es peuvent modifier leur réponse à tout moment ; tu ne vois que la tendance agrégée.</target>
+        <source> Starte ein Blitzlicht aus der Live-Session oder über »Nur ein Klick« auf der Startseite. Du kannst die Abstimmung pausieren, fortsetzen, zurücksetzen oder als neue Runde starten. Beim Tempo-Feedback ändern Teilnehmende ihre Rückmeldung jederzeit; du siehst nur die aggregierte Tendenz.</source>
+        <target>Lance un Feedback express depuis la session en direct ou avec « Un seul clic » sur la page d’accueil. Tu peux le mettre en pause, le reprendre, le réinitialiser ou démarrer un nouveau tour. Pour le retour sur le rythme, les participant·es peuvent modifier leur réponse à tout moment ; tu ne vois que la tendance agrégée.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/help/help.component.html</context>
           <context context-type="linenumber">245,250</context>
@@ -8502,8 +8522,8 @@
         </context-group>
       </trans-unit>
       <trans-unit id="help.hostLibraryBody" datatype="html">
-        <source> In der Quiz-Sammlung bearbeitest und sortierst du Fragen, prüfst die Vorschau und importierst oder exportierst Quizze als JSON. Über „Sammlung teilen“ erzeugst du einen Sync-Link, mit dem andere Geräte dieselbe Sammlung nutzen können. Mit „Teilen beenden“ setzt du eine ausprobierte Freigabe zurück; deine Quizzes bleiben auf diesem Gerät. Auf der Startseite fügst du unter „Geteilte Sammlung nutzen“ einen empfangenen Link ein. KI-Vorlagen unterstützen dich beim Erstellen und Prüfen von Quizzen, ohne dass Inhalte an arsnova.eu gesendet werden. Beim Session-Start konfigurierst du unter anderem Stil, Rangliste, Sound, Teams, Nicknamen, Timer und Bonus-Codes.</source>
-        <target>Dans la collection de quiz, modifie et réorganise les questions, vérifie l’aperçu et importe ou exporte des quiz au format JSON. « Partager la collection » crée un lien de sync pour que d’autres appareils utilisent la même collection. « Arrêter le partage » remet à zéro un essai de lien ; tes quiz restent sur cet appareil. Sur la page d’accueil, « Utiliser une collection partagée » sert à coller un lien reçu. Les modèles d’IA t’aident à créer et à vérifier des quiz sans envoyer tes contenus à arsnova.eu. Au démarrage, règle notamment le style, le classement, le son, les équipes, les pseudonymes, le minuteur et les codes bonus.</target>
+        <source> In der Quiz-Sammlung bearbeitest und sortierst du Fragen, prüfst die Vorschau und importierst oder exportierst Quizze als JSON. Über »Sammlung teilen« erzeugst du einen Sync-Link, mit dem andere Geräte dieselbe Sammlung nutzen können. Mit »Teilen beenden« setzt du eine ausprobierte Freigabe zurück; deine Quizzes bleiben auf diesem Gerät. Auf der Startseite fügst du unter »Geteilte Sammlung nutzen« einen empfangenen Link ein. KI-Vorlagen unterstützen dich beim Erstellen und Prüfen von Quizzen, ohne dass Inhalte an arsnova.eu gesendet werden. Beim Session-Start konfigurierst du unter anderem Stil, Rangliste, Sound, Teams, Nicknamen, Timer und Bonus-Codes.</source>
+        <target>Dans la collection de quiz, modifie et réorganise les questions, vérifie l’aperçu et importe ou exporte des quiz au format JSON. « Partager la collection » crée un lien de sync pour que d’autres appareils utilisent la même collection. « Arrêter le partage » remet à zéro un essai de lien ; tes quiz restent sur cet appareil. Sur la page d’accueil, « Utiliser une collection partagée » sert à coller un lien reçu. Les modèles d’IA t’aident à créer et à vérifier des quiz sans envoyer tes contenus à arsnova.eu. Au démarrage, règle notamment le style, le classement, le son, les équipes, les pseudonymes, le minuteur et les codes bonus.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/help/help.component.html</context>
           <context context-type="linenumber">261,268</context>
@@ -8548,6 +8568,10 @@
           <context context-type="sourcefile">src/app/features/help/help.component.html</context>
           <context context-type="linenumber">320,325</context>
         </context-group>
+      </trans-unit>
+      <trans-unit id="help.participantAnswerTimer" datatype="html">
+        <source> Unter Zeit anpassen wählst du »10× Zeit« oder »Ohne Frist«. Mehr Zeit hilft nicht. Nach dem Countdown gibt es nur Mindestpunkte; vorn landest du damit selten. </source>
+        <target>Sous Adapter le temps, tu choisis « Temps ×10 » ou « Sans délai ». Prendre plus de temps n’apporte rien. Après le compte à rebours, il ne reste que le minimum de points ; tu arrives rarement en tête.</target>
       </trans-unit>
       <trans-unit id="help.participantContributeTitle" datatype="html">
         <source>Wie stelle ich eine Frage oder gebe Feedback?</source>
@@ -11343,6 +11367,22 @@
           <context context-type="linenumber">263,265</context>
         </context-group>
       </trans-unit>
+      <trans-unit id="quizForm.timerAccommodationHint" datatype="html">
+        <source> »10× Zeit« und »Ohne Frist« bleiben wählbar. </source>
+        <target>« Temps ×10 » et « Sans délai » restent disponibles.</target>
+      </trans-unit>
+      <trans-unit id="quizForm.timerAccommodationTitle" datatype="html">
+        <source>Persönliche Zeit</source>
+        <target>Temps personnel</target>
+      </trans-unit>
+      <trans-unit id="quizForm.timerAccommodationScore" datatype="html">
+        <source> Nach dem Countdown gibt es nur Mindestpunkte – das reicht selten nach vorn. </source>
+        <target>Après le compte à rebours, il ne reste que le minimum de points – rarement de quoi arriver en tête.</target>
+      </trans-unit>
+      <trans-unit id="quizForm.timerAccommodationControl" datatype="html">
+        <source> Die Frage beendest du weiter selbst. </source>
+        <target>C’est toujours toi qui termines la question.</target>
+      </trans-unit>
       <trans-unit id="2198730230681840467" datatype="html">
         <source>Teilnahme &amp; Namen</source>
         <target>Participation et noms</target>
@@ -11796,8 +11836,8 @@
         </context-group>
       </trans-unit>
       <trans-unit id="quiz.edit.questionEditSaveHint" datatype="html">
-        <source> Du bearbeitest eine vorhandene Frage. Mit „Änderungen speichern“ übernimmst du die Änderungen.</source>
-        <target>Vous modifiez une question existante. Cliquez sur « Enregistrer les modifications » pour appliquer les changements.</target>
+        <source> Du bearbeitest eine vorhandene Frage. Mit »Änderungen speichern« übernimmst du die Änderungen.</source>
+        <target>Vous modifiez une question existante. Cliquez sur « Enregistrer les modifications » pour appliquer les changements.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/quiz/quiz-edit/quiz-edit.component.html</context>
           <context context-type="linenumber">534,537</context>
@@ -13960,20 +14000,24 @@
         </context-group>
       </trans-unit>
       <trans-unit id="quizEdit.shortTextSolutionsHintNumericUnit" datatype="html">
-        <source>Hinterlege mindestens eine und höchstens zehn Referenzlösungen mit unterstützter Einheit, zum Beispiel „2 m“.</source>
-        <target>Ajoutez entre une et dix réponses de référence avec une unité prise en charge, par exemple « 2 m ».</target>
+        <source>Hinterlege mindestens eine und höchstens zehn Referenzlösungen mit unterstützter Einheit, zum Beispiel »2 m«.</source>
+        <target>Ajoutez entre une et dix réponses de référence avec une unité prise en charge, par exemple « 2 m ».</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/quiz/quiz-edit/quiz-edit.component.ts</context>
           <context context-type="linenumber">1640</context>
         </context-group>
       </trans-unit>
       <trans-unit id="quizEdit.shortTextSolutionsHintNumeric" datatype="html">
-        <source>Hinterlege mindestens eine und höchstens zehn Referenzlösungen als Zahl, zum Beispiel „3,5“.</source>
-        <target>Ajoutez entre une et dix réponses de référence sous forme de nombre, par exemple « 3,5 ».</target>
+        <source>Hinterlege mindestens eine und höchstens zehn Referenzlösungen als Zahl, zum Beispiel »3,5«.</source>
+        <target>Ajoutez entre une et dix réponses de référence sous forme de nombre, par exemple « 3,5 ».</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/quiz/quiz-edit/quiz-edit.component.ts</context>
           <context context-type="linenumber">1641</context>
         </context-group>
+      </trans-unit>
+      <trans-unit id="quizEdit.shortTextPreviewQuotedAnswer" datatype="html">
+        <source>»<x id="INTERPOLATION" equiv-text="{{ example.studentAnswer }}"/>«</source>
+        <target>« <x id="INTERPOLATION" equiv-text="{{ example.studentAnswer }"/> »</target>
       </trans-unit>
       <trans-unit id="quizEdit.shortTextSolutionsHint" datatype="html">
         <source>Hinterlege mindestens eine und höchstens zehn Musterlösungen. Alle Varianten gelten als richtige Kurzantwort.</source>
@@ -14948,8 +14992,8 @@
         <target>Les autres appareils gardent leur dernière version, mais ne sont plus liés au tien.</target>
       </trans-unit>
       <trans-unit id="quizList.syncUnlinkConsequenceNewLink" datatype="html">
-        <source>Ein neuer Klick auf „Sammlung teilen“ startet eine frische Verknüpfung.</source>
-        <target>Un nouveau clic sur « Partager la collection » crée un lien tout neuf.</target>
+        <source>Ein neuer Klick auf »Sammlung teilen« startet eine frische Verknüpfung.</source>
+        <target>Un nouveau clic sur « Partager la collection » crée un lien tout neuf.</target>
       </trans-unit>
       <trans-unit id="quizList.syncUnlinkConfirm" datatype="html">
         <source>Teilen beenden</source>
@@ -15320,8 +15364,8 @@
         </context-group>
       </trans-unit>
       <trans-unit id="3293413491190500382" datatype="html">
-        <source>„<x id="PH" equiv-text="duplicate.name"/>“ wurde dupliziert.</source>
-        <target>« <x id="PH" equiv-text="duplicate.name"/> » a été dupliqué.</target>
+        <source>»<x id="PH" equiv-text="duplicate.name"/>« wurde dupliziert.</source>
+        <target>« <x id="PH" equiv-text="duplicate.name"/> » a été dupliqué.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/quiz/quiz-list/quiz-list.component.ts</context>
           <context context-type="linenumber">537</context>
@@ -15336,8 +15380,8 @@
         </context-group>
       </trans-unit>
       <trans-unit id="1590286753172731809" datatype="html">
-        <source>„<x id="PH" equiv-text="quizName"/>“ ist gerade live und kann nicht gelöscht werden.</source>
-        <target>« <x id="PH" equiv-text="quizName"/> » est actuellement en ligne et ne peut pas être supprimé.</target>
+        <source>»<x id="PH" equiv-text="quizName"/>« ist gerade live und kann nicht gelöscht werden.</source>
+        <target>« <x id="PH" equiv-text="quizName"/> » est actuellement en ligne et ne peut pas être supprimé.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/quiz/quiz-list/quiz-list.component.ts</context>
           <context context-type="linenumber">549</context>
@@ -15352,16 +15396,16 @@
         </context-group>
       </trans-unit>
       <trans-unit id="quizList.deleteQuizDialogMessage" datatype="html">
-        <source>Das Quiz „<x id="PH" equiv-text="quizName"/>“ wird aus deiner Sammlung entfernt.</source>
-        <target>Le quiz « <x id="PH" equiv-text="quizName"/> » sera supprimé de votre collection.</target>
+        <source>Das Quiz »<x id="PH" equiv-text="quizName"/>« wird aus deiner Sammlung entfernt.</source>
+        <target>Le quiz « <x id="PH" equiv-text="quizName"/> » sera supprimé de votre collection.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/quiz/quiz-list/quiz-list.component.ts</context>
           <context context-type="linenumber">555</context>
         </context-group>
       </trans-unit>
       <trans-unit id="quizList.deleteQuizBonusCodesHint" datatype="html">
-        <source>Wenn Bonus-Codes vorhanden sind, exportiere sie vorher über „Bonus-Codes“ &gt; „CSV exportieren“.</source>
-        <target>Si des codes bonus existent, exporte-les d&apos;abord via « Codes bonus » &gt; « Exporter en CSV ».</target>
+        <source>Wenn Bonus-Codes vorhanden sind, exportiere sie vorher über »Bonus-Codes« &gt; »CSV exportieren«.</source>
+        <target>Si des codes bonus existent, exporte-les d&apos;abord via « Codes bonus » &gt; « Exporter en CSV ».</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/quiz/quiz-list/quiz-list.component.ts</context>
           <context context-type="linenumber">558</context>
@@ -15384,16 +15428,16 @@
         </context-group>
       </trans-unit>
       <trans-unit id="4443887030685792442" datatype="html">
-        <source>„<x id="PH" equiv-text="quizName"/>“ wurde gelöscht.</source>
-        <target>« <x id="PH" equiv-text="quizName"/> » a été supprimé.</target>
+        <source>»<x id="PH" equiv-text="quizName"/>« wurde gelöscht.</source>
+        <target>« <x id="PH" equiv-text="quizName"/> » a été supprimé.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/quiz/quiz-list/quiz-list.component.ts</context>
           <context context-type="linenumber">573</context>
         </context-group>
       </trans-unit>
       <trans-unit id="6566123000837537104" datatype="html">
-        <source>„<x id="PH" equiv-text="quiz.quiz.name"/>“ wurde exportiert.</source>
-        <target>« <x id="PH" equiv-text="quiz.quiz.name"/> » a été exporté.</target>
+        <source>»<x id="PH" equiv-text="quiz.quiz.name"/>« wurde exportiert.</source>
+        <target>« <x id="PH" equiv-text="quiz.quiz.name"/> » a été exporté.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/quiz/quiz-list/quiz-list.component.ts</context>
           <context context-type="linenumber">596</context>
@@ -15976,8 +16020,8 @@
         </context-group>
       </trans-unit>
       <trans-unit id="quizSync.intro" datatype="html">
-        <source> Kopiere den Sync-Link. Auf dem anderen Gerät fügst du ihn auf der Startseite unter „Geteilte Sammlung nutzen“ ein.</source>
-        <target>Copie le lien de sync. Sur l’autre appareil, colle-le sur la page d’accueil sous « Utiliser une collection partagée ».</target>
+        <source> Kopiere den Sync-Link. Auf dem anderen Gerät fügst du ihn auf der Startseite unter »Geteilte Sammlung nutzen« ein.</source>
+        <target>Copie le lien de sync. Sur l’autre appareil, colle-le sur la page d’accueil sous « Utiliser une collection partagée ».</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/quiz/quiz-sync/quiz-sync.component.html</context>
           <context context-type="linenumber">11,13</context>
@@ -16028,8 +16072,8 @@
         </context-group>
       </trans-unit>
       <trans-unit id="quizSync.securityHint" datatype="html">
-        <source> Wer den Sync-Link hat, kann die Sammlung lesen und ändern. „Ungültig machen“ lässt den Link für alle sterben; bereits geöffnete Geräte arbeiten lokal weiter, bis sie einen neuen Link einfügen. „Teilen beenden“ löst nur dieses Gerät — der Link bleibt gültig.</source>
-        <target>Toute personne disposant du lien de sync peut lire et modifier la collection. « Invalider le lien de synchronisation » fait mourir le lien pour tout le monde ; les appareils déjà ouverts continuent en local jusqu’à ce qu’ils collent un nouveau lien. « Arrêter le partage » ne détache que cet appareil — le lien reste valable.</target>
+        <source> Wer den Sync-Link hat, kann die Sammlung lesen und ändern. »Ungültig machen« lässt den Link für alle sterben; bereits geöffnete Geräte arbeiten lokal weiter, bis sie einen neuen Link einfügen. »Teilen beenden« löst nur dieses Gerät — der Link bleibt gültig.</source>
+        <target>Toute personne disposant du lien de sync peut lire et modifier la collection. « Invalider le lien de synchronisation » fait mourir le lien pour tout le monde ; les appareils déjà ouverts continuent en local jusqu’à ce qu’ils collent un nouveau lien. « Arrêter le partage » ne détache que cet appareil — le lien reste valable.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/quiz/quiz-sync/quiz-sync.component.html</context>
           <context context-type="linenumber">63,66</context>
@@ -17564,8 +17608,8 @@
         </context-group>
       </trans-unit>
       <trans-unit id="sessionHost.timerAccommodationNote" datatype="html">
-        <source>Persönliche Antwortzeit erlaubt</source>
-        <target>Temps de réponse individuel autorisé</target>
+        <source>Mehr Zeit hilft nicht. Nach dem Countdown gibt es nur Mindestpunkte.</source>
+        <target>Prendre plus de temps n’apporte rien. Après le compte à rebours, il ne reste que le minimum de points.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.html</context>
           <context context-type="linenumber">1709</context>
@@ -17834,6 +17878,10 @@
           <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.html</context>
           <context context-type="linenumber">2589,2591</context>
         </context-group>
+      </trans-unit>
+      <trans-unit id="sessionHost.structuredSwapChip" datatype="html">
+        <source>»<x id="INTERPOLATION" equiv-text="{{ swap.itemAText }}"/>« ↔ »<x id="INTERPOLATION_1" equiv-text="{{ swap.itemBText }}"/>«</source>
+        <target>« <x id="INTERPOLATION" equiv-text="{{ swap.itemAText }"/> » ↔ « <x id="INTERPOLATION_1" equiv-text="{{ swap.itemBText }"/> »</target>
       </trans-unit>
       <trans-unit id="sessionHost.matchingNeutralOptions" datatype="html">
         <source> Zuordnen</source>
@@ -18465,7 +18513,7 @@
       </trans-unit>
       <trans-unit id="sessionQa.filterEmptyHint" datatype="html">
         <source> Nur hervorgehobene aktiv – noch keine hervorgehobenen Fragen.</source>
-        <target>Vue « mises en avant » – aucune question mise en avant pour le moment.</target>
+        <target>Vue « mises en avant » – aucune question mise en avant pour le moment.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.html</context>
           <context context-type="linenumber">4268,4270</context>
@@ -19780,8 +19828,8 @@
         </context-group>
       </trans-unit>
       <trans-unit id="sessionHost.steeringCalloutBody" datatype="html">
-        <source>Kein Stress – so was passiert manchmal (kurzer Ruckler oder instabiles WLAN). Warte zwei, drei Sekunden und tippe auf „Nochmal probieren“ – meist reicht das.</source>
-        <target>Pas de stress, ça arrive (petit à-coup ou Wi‑Fi capricieux). Compte jusqu’à trois, puis appuie sur « Réessayer » — en général ça suffit.</target>
+        <source>Kein Stress – so was passiert manchmal (kurzer Ruckler oder instabiles WLAN). Warte zwei, drei Sekunden und tippe auf »Nochmal probieren« – meist reicht das.</source>
+        <target>Pas de stress, ça arrive (petit à-coup ou Wi‑Fi capricieux). Compte jusqu’à trois, puis appuie sur « Réessayer » — en général ça suffit.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.ts</context>
           <context context-type="linenumber">4585</context>
@@ -19796,8 +19844,8 @@
         </context-group>
       </trans-unit>
       <trans-unit id="sessionHost.steeringCalloutQaBody" datatype="html">
-        <source>Hier ist nichts kaputt – es hat nur gerade nicht geklappt. Kurz durchatmen, 2–3 Sekunden warten, dann „Nochmal probieren“ – oft läuft es gleich wieder.</source>
-        <target>Rien n’est cassé, ça n’a juste pas marché cette fois. Respire un coup, attends 2–3 secondes, puis « Réessayer » — souvent ça repart.</target>
+        <source>Hier ist nichts kaputt – es hat nur gerade nicht geklappt. Kurz durchatmen, 2–3 Sekunden warten, dann »Nochmal probieren« – oft läuft es gleich wieder.</source>
+        <target>Rien n’est cassé, ça n’a juste pas marché cette fois. Respire un coup, attends 2–3 secondes, puis « Réessayer » — souvent ça repart.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.ts</context>
           <context context-type="linenumber">4603</context>
@@ -19812,8 +19860,8 @@
         </context-group>
       </trans-unit>
       <trans-unit id="sessionHost.steeringCalloutExportBody" datatype="html">
-        <source>PDF- oder Excel-Export ist diesmal nicht durchgekommen. Warte ein paar Sekunden und tippe auf „Nochmal probieren“ – meist klappt’s beim zweiten Anlauf.</source>
-        <target>L’export PDF ou Excel n’est pas passé cette fois. Attends quelques secondes et appuie sur « Réessayer » — le deuxième essai fait souvent l’affaire.</target>
+        <source>PDF- oder Excel-Export ist diesmal nicht durchgekommen. Warte ein paar Sekunden und tippe auf »Nochmal probieren« – meist klappt’s beim zweiten Anlauf.</source>
+        <target>L’export PDF ou Excel n’est pas passé cette fois. Attends quelques secondes et appuie sur « Réessayer » — le deuxième essai fait souvent l’affaire.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.ts</context>
           <context context-type="linenumber">4613</context>
@@ -20036,8 +20084,8 @@
         </context-group>
       </trans-unit>
       <trans-unit id="sessionHost.timerAccommodationBlockingOneForce" datatype="html">
-        <source>Eine Person nutzt noch ihre 10× Zeit. „Trotzdem freigeben“ beendet ihr persönliches Fenster.</source>
-        <target>Une personne utilise encore son temps ×10. « Publier quand même » termine sa fenêtre personnelle.</target>
+        <source>Eine Person nutzt noch ihre 10× Zeit. »Trotzdem freigeben« beendet ihr persönliches Fenster.</source>
+        <target>Une personne utilise encore son temps ×10. « Publier quand même » termine sa fenêtre personnelle.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.ts</context>
           <context context-type="linenumber">6069</context>
@@ -20052,8 +20100,8 @@
         </context-group>
       </trans-unit>
       <trans-unit id="sessionHost.timerAccommodationBlockingManyForce" datatype="html">
-        <source><x id="count" equiv-text="formatLocaleCount(blockingCount, this.localeId)"/> Personen nutzen noch ihre 10× Zeit. „Trotzdem freigeben“ beendet ihre persönlichen Fenster.</source>
-        <target><x id="count" equiv-text="formatLocaleCount(blockingCount, this.localeId)"/> personnes utilisent encore leur temps ×10. « Publier quand même » termine leurs fenêtres personnelles.</target>
+        <source><x id="count" equiv-text="formatLocaleCount(blockingCount, this.localeId)"/> Personen nutzen noch ihre 10× Zeit. »Trotzdem freigeben« beendet ihre persönlichen Fenster.</source>
+        <target><x id="count" equiv-text="formatLocaleCount(blockingCount, this.localeId)"/> personnes utilisent encore leur temps ×10. « Publier quand même » termine leurs fenêtres personnelles.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.ts</context>
           <context context-type="linenumber">6074</context>
@@ -20068,16 +20116,16 @@
         </context-group>
       </trans-unit>
       <trans-unit id="sessionHost.timerAccommodationPendingOne" datatype="html">
-        <source>Eine Person antwortet ohne persönliche Frist. „Ergebnis zeigen“ beendet ihre Eingabe.</source>
-        <target>Une personne répond sans délai personnel. « Afficher le résultat » ferme sa saisie.</target>
+        <source>Eine Person antwortet ohne persönliche Frist. »Ergebnis zeigen« beendet ihre Eingabe.</source>
+        <target>Une personne répond sans délai personnel. « Afficher le résultat » ferme sa saisie.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.ts</context>
           <context context-type="linenumber">6078</context>
         </context-group>
       </trans-unit>
       <trans-unit id="sessionHost.timerAccommodationPendingMany" datatype="html">
-        <source><x id="count" equiv-text="formatLocaleCount(count, this.localeId)"/> Personen antworten ohne persönliche Frist. „Ergebnis zeigen“ beendet ihre Eingabe.</source>
-        <target><x id="count" equiv-text="formatLocaleCount(count, this.localeId)"/> personnes répondent sans délai personnel. « Afficher le résultat » ferme leur saisie.</target>
+        <source><x id="count" equiv-text="formatLocaleCount(count, this.localeId)"/> Personen antworten ohne persönliche Frist. »Ergebnis zeigen« beendet ihre Eingabe.</source>
+        <target><x id="count" equiv-text="formatLocaleCount(count, this.localeId)"/> personnes répondent sans délai personnel. « Afficher le résultat » ferme leur saisie.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.ts</context>
           <context context-type="linenumber">6080</context>
@@ -23874,8 +23922,8 @@
         </context-group>
       </trans-unit>
       <trans-unit id="sessionVote.timerAccommodation.help" datatype="html">
-        <source> Vor der Frage wählen · 10× Zeit = zehnfacher Raum-Countdown</source>
-        <target>À choisir avant la question · Temps ×10 = dix fois le compte à rebours de la salle</target>
+        <source> Vor der Frage wählen · »10× Zeit« = zehnfacher Raum-Countdown </source>
+        <target>À choisir avant la question · « Temps ×10 » = dix fois le compte à rebours de la salle</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-vote/session-vote.component.html</context>
           <context context-type="linenumber">36,38</context>
@@ -23914,8 +23962,8 @@
         </context-group>
       </trans-unit>
       <trans-unit id="sessionVote.scoringInfo.time" datatype="html">
-        <source> Zeit: Je früher du beim gemeinsamen Raum-Countdown richtig antwortest, desto höher der Zeitanteil. Nach Ablauf bleiben noch 10 % davon. Deine persönliche Frist ändert nur, wie lange du antworten darfst – nicht diese Zeitwertung.</source>
-        <target>Temps : plus tu réponds correctement tôt pendant le compte à rebours commun de la salle, plus ta part de temps est élevée. Après expiration, il en reste 10 %. Ton délai personnel change seulement la durée pendant laquelle tu peux répondre — pas ce score lié au temps.</target>
+        <source> Zeit: Je früher du richtig antwortest, desto mehr Punkte bekommst du. Nach dem Countdown bleiben nur noch 10 % – damit kommst du selten nach vorn. Mehr Zeit ändert nur, wie lange du antworten darfst. </source>
+        <target>Temps : plus tu donnes tôt la bonne réponse, plus tu gagnes de points. Après le compte à rebours, il ne reste que 10 % des points – rarement de quoi arriver en tête. Plus de temps change seulement la durée pendant laquelle tu peux répondre.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-vote/session-vote.component.html</context>
           <context context-type="linenumber">54,58</context>
@@ -24814,8 +24862,8 @@
         </context-group>
       </trans-unit>
       <trans-unit id="sessionVote.shortTextResultMatchedSolution" datatype="html">
-        <source>Gewertet als Musterlösung „<x id="matchedModelAnswer" equiv-text="result.matchedModelAnswer"/>“.</source>
-        <target>Rapprochée de la réponse modèle « <x id="matchedModelAnswer" equiv-text="result.matchedModelAnswer"/> ».</target>
+        <source>Gewertet als Musterlösung »<x id="matchedModelAnswer" equiv-text="result.matchedModelAnswer"/>«.</source>
+        <target>Rapprochée de la réponse modèle « <x id="matchedModelAnswer" equiv-text="result.matchedModelAnswer"/> ».</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-vote/session-vote.component.ts</context>
           <context context-type="linenumber">1610</context>
@@ -25618,8 +25666,8 @@
         </context-group>
       </trans-unit>
       <trans-unit id="sessionVote.matchingConflictClearedAnnouncement" datatype="html">
-        <source>Die bisherige Zuordnung für „<x id="previousItem" equiv-text="conflictingSelection.leftText"/>“ wurde entfernt.</source>
-        <target>L’affectation précédente de « <x id="previousItem" equiv-text="conflictingSelection.leftText"/> » a été supprimée.</target>
+        <source>Die bisherige Zuordnung für »<x id="previousItem" equiv-text="conflictingSelection.leftText"/>« wurde entfernt.</source>
+        <target>L’affectation précédente de « <x id="previousItem" equiv-text="conflictingSelection.leftText"/> » a été supprimée.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-vote/session-vote.component.ts</context>
           <context context-type="linenumber">4560</context>
@@ -25634,8 +25682,8 @@
         </context-group>
       </trans-unit>
       <trans-unit id="sessionVote.matchingSelectAria" datatype="html">
-        <source>Zuordnung für „<x id="item" equiv-text="left"/>“</source>
-        <target>Association pour « <x id="item" equiv-text="left"/> »</target>
+        <source>Zuordnung für »<x id="item" equiv-text="left"/>«</source>
+        <target>Association pour « <x id="item" equiv-text="left"/> »</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-vote/session-vote.component.ts</context>
           <context context-type="linenumber">4594</context>
@@ -25650,8 +25698,8 @@
         </context-group>
       </trans-unit>
       <trans-unit id="sessionVote.categorizationSelectAria" datatype="html">
-        <source>Kategorie für „<x id="item" equiv-text="itemText"/>“</source>
-        <target>Catégorie pour « <x id="item" equiv-text="itemText"/> »</target>
+        <source>Kategorie für »<x id="item" equiv-text="itemText"/>«</source>
+        <target>Catégorie pour « <x id="item" equiv-text="itemText"/> »</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-vote/session-vote.component.ts</context>
           <context context-type="linenumber">4606</context>
@@ -26438,8 +26486,8 @@
         </context-group>
       </trans-unit>
       <trans-unit id="1142074417906009348" datatype="html">
-        <source> Tippen zum An- oder Ausschalten. Mit „Speichern“ übernehmen.</source>
-        <target>Appuyez pour activer ou désactiver. Validez avec « Enregistrer ».</target>
+        <source> Tippen zum An- oder Ausschalten. Mit »Speichern« übernehmen.</source>
+        <target>Appuyez pour activer ou désactiver. Validez avec « Enregistrer ».</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/shared/preset-toast/preset-toast.component.html</context>
           <context context-type="linenumber">63,65</context>
@@ -27038,8 +27086,8 @@
         </context-group>
       </trans-unit>
       <trans-unit id="app.footer.statusHelpDot" datatype="html">
-        <source> Die Statusanzeige findest du im Footer-Menü „Mehr“. Sie zeigt, wie stabil Live-Quizze gerade laufen.</source>
-        <target>L’indicateur d’état se trouve dans le menu « Plus » du pied de page. Il montre à quel point les quiz en direct sont stables en ce moment.</target>
+        <source> Die Statusanzeige findest du im Footer-Menü »Mehr«. Sie zeigt, wie stabil Live-Quizze gerade laufen.</source>
+        <target>L’indicateur d’état se trouve dans le menu « Plus » du pied de page. Il montre à quel point les quiz en direct sont stables en ce moment.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/shared/server-status-help-dialog/server-status-help-dialog.component.ts</context>
           <context context-type="linenumber">352,355</context>

@@ -350,7 +350,7 @@ export interface ServerStatusHelpDialogData {
             class="status-help-dialog__copy status-help-dialog__copy--compact"
             i18n="@@app.footer.statusHelpDot"
           >
-            Die Statusanzeige findest du im Footer-Menü „Mehr“. Sie zeigt, wie stabil Live-Quizze
+            Die Statusanzeige findest du im Footer-Menü »Mehr«. Sie zeigt, wie stabil Live-Quizze
             gerade laufen.
           </p>
         </div>

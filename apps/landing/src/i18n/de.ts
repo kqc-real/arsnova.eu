@@ -134,7 +134,7 @@ const de: Messages = {
     debriefing: 'Nachbesprechung',
     resultsPdf: 'Ergebnisbericht (PDF)',
     exportNote:
-      'Druckfertiger Bericht mit Lernstand, farbcodierter Übersicht und Fragentexten — in der Host-Ansicht und auf der Quizkarte. CSV für Excel bleibt unter „Mehr“ verfügbar.',
+      'Druckfertiger Bericht mit Lernstand, farbcodierter Übersicht und Fragentexten — in der Host-Ansicht und auf der Quizkarte. CSV für Excel bleibt unter »Mehr« verfügbar.',
   },
   qaWall: {
     eyebrow: 'Live-Q&A als Moderationsraum',
@@ -233,7 +233,7 @@ const de: Messages = {
         number: '05',
         title: 'Nachbereiten und exportieren',
         description:
-          'Nach Session-Ende steht der Ergebnisbericht (PDF) bereit — mit Lernstand, Selbsteinschätzung und vollständigen Fragentexten. In der Quiz-Sammlung findest du Nachbesprechung und PDF für den letzten Durchlauf; CSV für Excel unter „Mehr“.',
+          'Nach Session-Ende steht der Ergebnisbericht (PDF) bereit — mit Lernstand, Selbsteinschätzung und vollständigen Fragentexten. In der Quiz-Sammlung findest du Nachbesprechung und PDF für den letzten Durchlauf; CSV für Excel unter »Mehr«.',
       },
     ],
   },
@@ -288,7 +288,7 @@ const de: Messages = {
       {
         title: 'Ergebnisbericht für die Nachbereitung',
         description:
-          'Nach Session-Ende exportierst du einen druckfertigen PDF-Bericht mit Diagrammen, Fragentexten und Selbsteinschätzung. CSV für Excel bleibt optional unter „Mehr“.',
+          'Nach Session-Ende exportierst du einen druckfertigen PDF-Bericht mit Diagrammen, Fragentexten und Selbsteinschätzung. CSV für Excel bleibt optional unter »Mehr«.',
         icon: 'export',
       },
       {
@@ -476,7 +476,7 @@ const de: Messages = {
       {
         title: 'Weniger Einstiegshürden',
         description:
-          'Keine getrennte Produktlogik für „Erstellen“ und „Beitreten“. Hosts starten ohne Account, Teilnehmende kommen per Code oder QR in die Session.',
+          'Keine getrennte Produktlogik für »Erstellen« und »Beitreten«. Hosts starten ohne Account, Teilnehmende kommen per Code oder QR in die Session.',
       },
       {
         title: 'Mehr Interaktionsformate',
@@ -536,7 +536,7 @@ const de: Messages = {
       {
         question: 'Kann ich Session-Ergebnisse exportieren?',
         answer:
-          'Ja. Nach Session-Ende steht der Ergebnisbericht (PDF) als primäres Format bereit — inklusive Selbsteinschätzung, Prioritäten für die Nachbesprechung und vollständiger Fragentexte. In der Quiz-Sammlung findest du Nachbesprechung und PDF für den letzten Durchlauf. Tabellarische CSV-Daten sind unter „Mehr“ für Excel verfügbar.',
+          'Ja. Nach Session-Ende steht der Ergebnisbericht (PDF) als primäres Format bereit — inklusive Selbsteinschätzung, Prioritäten für die Nachbesprechung und vollständiger Fragentexte. In der Quiz-Sammlung findest du Nachbesprechung und PDF für den letzten Durchlauf. Tabellarische CSV-Daten sind unter »Mehr« für Excel verfügbar.',
       },
       {
         question: 'Was ist an der numerischen Schätzfrage besonders?',

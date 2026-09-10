@@ -152,7 +152,7 @@ export class QuizSyncComponent {
         message: $localize`:@@quizList.syncUnlinkMessage:Die Quiz-Sammlung bleibt auf diesem Gerät. Die Sync-Verknüpfung und der Änderungsstatus werden zurückgesetzt.`,
         consequences: [
           $localize`:@@quizList.syncUnlinkConsequencePeers:Andere Geräte behalten ihren letzten Stand, sind aber nicht mehr mit dir verbunden.`,
-          $localize`:@@quizList.syncUnlinkConsequenceNewLink:Ein neuer Klick auf „Sammlung teilen“ startet eine frische Verknüpfung.`,
+          $localize`:@@quizList.syncUnlinkConsequenceNewLink:Ein neuer Klick auf »Sammlung teilen« startet eine frische Verknüpfung.`,
         ],
         confirmLabel: $localize`:@@quizList.syncUnlinkConfirm:Teilen beenden`,
         cancelLabel: $localize`:@@quizList.syncUnlinkCancel:Abbrechen`,

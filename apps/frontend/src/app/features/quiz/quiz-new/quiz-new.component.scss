@@ -281,12 +281,47 @@
   margin-top: 0.35rem;
 }
 
+.quiz-form__default-timer--nested {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.quiz-form__timer-scale-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.1rem;
+}
+
 .quiz-form__timer-scale {
-  margin-top: 0.1rem;
+  margin: 0;
   padding-left: 2rem;
   color: var(--mat-sys-on-surface-variant);
   font: var(--mat-sys-body-small);
   line-height: 1.4;
+}
+
+.quiz-form__timer-accommodation {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  margin: 0;
+  padding-top: 0.65rem;
+  border-top: 1px solid var(--mat-sys-outline-variant);
+}
+
+.quiz-form__timer-accommodation-title {
+  margin: 0;
+  color: var(--mat-sys-on-surface);
+  font: var(--mat-sys-label-medium);
+  font-weight: 600;
+}
+
+.quiz-form__timer-accommodation p:not(.quiz-form__timer-accommodation-title) {
+  margin: 0;
+  color: var(--mat-sys-on-surface-variant);
+  font: var(--mat-sys-body-small);
+  line-height: 1.5;
 }
 
 @media (max-width: 599px) {

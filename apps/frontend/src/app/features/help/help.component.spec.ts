@@ -369,7 +369,7 @@ describe('HelpComponent', () => {
     const fixture = await createFixture();
     const root = fixture.nativeElement as HTMLElement;
     const panels = root.querySelectorAll('mat-expansion-panel.help-panel');
-    expect(panels.length).toBe(18);
+    expect(panels.length).toBe(19);
     expect(root.querySelectorAll('mat-expansion-panel mat-expansion-panel').length).toBe(0);
     expect(root.querySelectorAll('mat-accordion').length).toBe(5);
     expect(root.textContent).toContain('Wie steuere ich die Session vom Smartphone?');
@@ -381,7 +381,7 @@ describe('HelpComponent', () => {
     const fixture = await createFixture();
     const root = fixture.nativeElement as HTMLElement;
     const panels = root.querySelectorAll('mat-expansion-panel.help-panel');
-    expect(panels.length).toBe(18);
+    expect(panels.length).toBe(19);
     for (const panel of Array.from(panels)) {
       expect(panel.classList.contains('mat-expanded')).toBe(false);
     }
@@ -545,6 +545,9 @@ describe('HelpComponent', () => {
     expect(text).toContain('Single Choice');
     expect(text).toContain('Selbsteinschätzung');
     expect(text).toContain('Peer Instruction');
+    expect(text).toContain('Persönliche Zeit beim Countdown');
+    expect(text).toContain('»10× Zeit«');
+    expect(text).toContain('Mindestpunkte');
     expect(text).toContain('Q&A');
     expect(text).toContain('Blitzlicht');
     expect(text).toContain('Tempo-Feedback');

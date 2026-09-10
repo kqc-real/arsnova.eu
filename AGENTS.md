@@ -25,7 +25,9 @@ Critical instructions for AI coding agents working in arsnova.eu.
   `docs/ui/STYLEGUIDE.md` (especially **Style-Vertraege fuer Erweiterungen**),
   `docs/ui/TOKENS.md`, and `docs/ui/PR-CHECKLIST-UI.md`.
 - Keep all user-facing text synchronized across `de`, `en`, `fr`, `es`, and
-  `it`.
+  `it`. Use locale-specific quotation marks from `docs/ui/STYLEGUIDE.md`
+  (Wording: Anführungszeichen): de `»…«`, en `“…”`, fr `« … »` (U+202F),
+  es/it `«…»`.
 - Preserve the established WCAG 2.2 AA accessibility level. UI changes must
   not regress keyboard operation, screen-reader semantics, focus management,
   reflow, zoom, contrast, or reduced-motion behavior.
