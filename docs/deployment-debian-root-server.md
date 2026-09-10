@@ -937,7 +937,7 @@ Deployments laufen automatisch, **nur wenn alle CI-Jobs erfolgreich sind** (Buil
 
 ### 10.1 Ablauf
 
-1. Push auf `main` oder einen zusätzlich konfigurierten Deploy-Branch → CI startet (Build, Lint, Tests, Docker Build).
+1. Push auf `main` oder einen zusätzlich konfigurierten Deploy-Branch → CI startet (Build, Lint, Tests, Docker Build). Ein reiner Doku-/Memory-Commit auf `main` nutzt **keinen** docs-only-Fast-Pass, damit Freshness und Deploy den aktuellen HEAD noch ausrollen können.
 2. Sind alle Jobs grün und die Variable **`DEPLOY_ENABLED`** ist auf `true` gesetzt → **Deploy-Job** startet. **Ohne Server:** `DEPLOY_ENABLED` nicht setzen → Deploy wird übersprungen, CI bleibt grün.
 3. Deploy-Job verbindet sich per SSH mit dem Server, übergibt `DEPLOY_IMAGE` (Digest aus `publish-image`) und `DEPLOY_SHA`, und führt `./scripts/deploy.sh` aus (Image-Pull, kein Server-Build).
 
