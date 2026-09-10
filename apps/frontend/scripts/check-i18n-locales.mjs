@@ -97,7 +97,7 @@ function quoteErrors(file, id, field, value) {
   }
   if (file === 'messages.fr.xlf' && field === 'target') {
     if (FR_FORBIDDEN_QUOTES.test(visible) || STRAIGHT_DOUBLE.test(visible)) {
-      errors.push(`${file}: ${id}: französische Zieltexte brauchen « … »`);
+      errors.push(`${file}: ${id}: französische Zieltexte brauchen «${NNBSP}…${NNBSP}»`);
     }
     for (const match of value.matchAll(FR_GUILLEMET)) {
       if (!match[1].startsWith(NNBSP) || !match[1].endsWith(NNBSP)) {
