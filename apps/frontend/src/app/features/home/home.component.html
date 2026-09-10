@@ -9,7 +9,7 @@
         (click)="closeSyncLinkEntry()"
       ></button>
     }
-    <div class="home-hero-band">
+    <div class="home-hero-band" [attr.inert]="syncLinkVisible() ? '' : null">
       <h1 class="home-hero">
         <span class="home-hero-channels">
           <span i18n="@@homeHero.channelQuiz">Quiz</span>
@@ -116,7 +116,12 @@
       </div>
     </div>
 
-    <mat-card appearance="raised" id="participant-entry" class="home-card home-card--stage-main">
+    <mat-card
+      appearance="raised"
+      id="participant-entry"
+      class="home-card home-card--stage-main"
+      [attr.inert]="syncLinkVisible() ? '' : null"
+    >
       <mat-card-header>
         <div class="home-card__heading">
           <span class="home-card__icon-wrap">
@@ -244,6 +249,7 @@
       appearance="raised"
       id="host-quick-feedback"
       class="home-card home-card--feedback home-card--stage-side"
+      [attr.inert]="syncLinkVisible() ? '' : null"
     >
       <mat-card-header>
         <div class="home-card__heading">
@@ -339,7 +345,7 @@
       </mat-card-header>
 
       <mat-card-actions class="l-stack l-stack--sm">
-        <div class="home-card__cta-stack">
+        <div class="home-card__cta-stack" [attr.inert]="syncLinkVisible() ? '' : null">
           @if (hasHostedQuiz()) {
             <a
               matButton="filled"
@@ -376,7 +382,7 @@
             </a>
           </div>
         </div>
-        <div class="home-card__tertiary">
+        <div class="home-card__tertiary" [attr.inert]="syncLinkVisible() ? '' : null">
           <app-info-landing-link
             class="home-card__info-landing"
             [anchor]="infoLandingWorkflowAnchor"
@@ -385,7 +391,7 @@
           />
         </div>
         @if (syncLinkVisible()) {
-          <div id="home-sync-entry" class="home-sync-entry">
+          <div id="home-sync-entry" class="home-sync-entry" cdkTrapFocus>
             <p class="home-sync-entry__action-hint" i18n="@@homeHostCard.syncOpenHint">
               Füge den Link ein, den du von einem anderen Gerät bekommen hast.
             </p>

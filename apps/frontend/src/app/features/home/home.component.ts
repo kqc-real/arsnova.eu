@@ -148,15 +148,9 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
   readonly librarySharingMode = this.quizStore.librarySharingMode;
   readonly syncOriginDeviceLabel = this.quizStore.originDeviceLabel;
   readonly syncOriginBrowserLabel = this.quizStore.originBrowserLabel;
-  readonly syncPeerInfos = this.quizStore.syncPeerInfos;
   readonly currentDeviceLabel = this.quizStore.currentDeviceLabel;
   readonly currentBrowserLabel = this.quizStore.currentBrowserLabel;
   readonly hostSharingOriginSummary = computed(() => {
-    const peer = this.syncPeerInfos()[0] ?? null;
-    if (peer) {
-      return $localize`:@@home.syncOrigin:${peer.browserLabel}:browser: auf ${peer.deviceLabel}:device:`;
-    }
-
     const deviceLabel = this.syncOriginDeviceLabel();
     const browserLabel = this.syncOriginBrowserLabel();
     if (!deviceLabel || !browserLabel) {
@@ -702,7 +696,7 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
       return;
     }
 
-    if (this.isCurrentLibrarySyncId(parsed.docId)) {
+    if (this.isUnchangedOwnSyncLink(parsed.docId, parsed.shareToken)) {
       this.syncLinkError.set(
         $localize`:@@homeHostCard.syncLinkOwnError:Das ist dein eigener Sync-Link. Hier fügst du den Link einer anderen Sammlung ein.`,
       );
@@ -1262,9 +1256,18 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
     }
   }
 
-  private isCurrentLibrarySyncId(docId: string): boolean {
+  /** Eigener unveränderter Link: gleiche Sammlung und gleiches bzw. fehlendes Token. */
+  private isUnchangedOwnSyncLink(docId: string, shareToken: string | null): boolean {
     const current = this.quizStore.syncRoomId().trim();
-    return current.length > 0 && current.toLowerCase() === docId.trim().toLowerCase();
+    if (!current || current.toLowerCase() !== docId.trim().toLowerCase()) {
+      return false;
+    }
+    const incomingToken = shareToken?.trim() || null;
+    if (!incomingToken) {
+      return true;
+    }
+    const currentToken = this.quizStore.syncShareToken()?.trim() || null;
+    return incomingToken === currentToken;
   }
 
   private extractSyncLink(value: string): { docId: string; shareToken: string | null } | null {
