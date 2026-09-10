@@ -1,7 +1,7 @@
 # Backend API Router
 
 - `apps/backend/src/routers/index.ts` composes the app router from domain routers.
-- Current router domains: `health`, `quiz`, `session`, `vote`, `qa`, `quickFeedback`, `motd`, `admin`, `adminMotd`, `wordCloud`, `productFeedback` (Epic 12: 12.1–12.4 implemented and manually accepted 2026-09-10; Post-Session + IN_APP + LLM export + purge), `admin.productFeedback` (Stats, Triage Inbox, LLM export, purge).
+- Current router domains: `health`, `quiz`, `session`, `vote`, `qa`, `quickFeedback`, `motd`, `admin`, `adminMotd`, `wordCloud`, `productFeedback` (Epic 12: 12.1–12.4 implemented and manually accepted 2026-09-10; public Post-Session invite/survey/submit/follow-up + IN_APP only), `admin.productFeedback` (Stats, Triage Inbox, LLM export, purge; exclusively `adminProcedure`).
 - Procedure naming conventions: queries read (`getInfo`, `getLeaderboard`), mutations write (`create`, `join`, `submit`), subscriptions usually start with `on...`.
 - Story 2.10 Slices 1–5 pairing lives under `session.*` via `sessionHostPairingRouter`: `createHostPairingInvite`, `requestHostPairing`, `getHostPairingRequest`, `approveHostPairing`, `rejectHostPairing`, `revokePairedHost`, `listPairedHosts`. Invite/approve/revoke/list require `originalHostProcedure`; request/claim are public with invite/request secrets. Caps and hashed tokens are in `apps/backend/src/lib/hostPairing.ts`. Host subscriptions (`onCurrentQuestionForHostChanged`, `onHostVoteProgressChanged`, `onParticipantJoined`) stop after paired-token revoke via `waitWhileHostTokenValid`.
 - tRPC inputs/outputs must use schemas from `@arsnova/shared-types`; do not define parallel DTOs in router code.
@@ -11,6 +11,7 @@
   - admin/MOTD writes require admin token procedures.
   - public MOTD/read endpoints need rate limiting and minimal payloads.
   - ProductFeedback IN_APP writes require Same-Origin via `PUBLIC_FRONTEND_URL` in production, Challenge token, and Shared-NAT-safe rate limits.
+  - ProductFeedback LLM export and purge live only under `admin.productFeedback` (`adminProcedure`); never add them to the public `productFeedback` router.
 - Session/history/export procedures must preserve ownership checks and DTO stripping.
 - New procedures normally need success and rejection/error tests in backend Vitest coverage.
 
