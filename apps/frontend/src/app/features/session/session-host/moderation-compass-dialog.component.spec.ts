@@ -50,7 +50,7 @@ describe('ModerationCompassDialogComponent', () => {
     const text = fixture.nativeElement.textContent as string;
     expect(text).toContain('Moderationskompass');
     expect(text).toContain(
-      'Sobald Fragen oder ein Blitzlicht da sind, siehst du hier Themen, Klärbedarf, umstrittene Fragen und Tempo.',
+      'Sobald Fragen oder ein Blitzlicht da sind, siehst du hier Themen, Klärungsbedarf, umstrittene Fragen und Feedback zum Vortragstempo.',
     );
     expect(text).toContain('Du entscheidest, welche Themen behandelt werden.');
     expect(text).not.toContain(
@@ -154,6 +154,18 @@ describe('ModerationCompassDialogComponent', () => {
 
     expect(fixture.nativeElement.textContent).toContain('Kommen nicht mit');
     expect(fixture.nativeElement.textContent).not.toMatch(/\bTempo\b/);
+  });
+
+  it('benennt neutrales Tempo-Signal als Feedback zum Vortragstempo', () => {
+    const { fixture } = setup([
+      {
+        kind: 'tempo',
+        sources: [{ kind: 'tempo', label: 'Die meisten können folgen.' }],
+      },
+    ]);
+
+    expect(fixture.nativeElement.textContent).toContain('Feedback zum Vortragstempo');
+    expect(fixture.nativeElement.textContent).not.toContain('Kommen nicht mit');
   });
 
   it('zeigt für Umfragen keinen Lösungshinweis', () => {

@@ -246,7 +246,6 @@ export class SessionPresentComponent implements OnInit, OnDestroy {
   readonly qaWordCloudItemSingular = $localize`:@@sessionQa.wordCloudItemSingular:Frage`;
   readonly qaWordCloudItemPlural = $localize`:@@sessionQa.wordCloudItemPlural:Fragen`;
   readonly qaWordCloudWeightingHint = $localize`:@@sessionWordCloud.qaHint:Große Wörter und Phrasen kommen aus häufiger genannten oder stärker unterstützten Fragen. Ähnliche Schreibweisen können zusammengefasst sein.`;
-  readonly presenterStandbyEyebrow = $localize`:@@sessionHost.presenterViewLabel:Presenter-Ansicht`;
   readonly quizPausedTitle = $localize`:@@sessionPresent.quizPausedTitle:Quiz pausiert`;
   readonly quizPausedMessage = $localize`:@@sessionPresent.quizPausedMessage:Gleich geht es mit derselben Frage weiter.`;
   readonly isPlayfulPreset = computed(() => this.themePreset.preset() === 'spielerisch');

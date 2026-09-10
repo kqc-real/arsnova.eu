@@ -6271,17 +6271,6 @@
           <context context-type="linenumber">350</context>
         </context-group>
       </trans-unit>
-      <trans-unit id="306838304286854307" datatype="html">
-        <source>Beitritt</source>
-        <context-group purpose="location">
-          <context context-type="sourcefile">src/app/features/feedback/feedback-host.component.html</context>
-          <context context-type="linenumber">301</context>
-        </context-group>
-        <context-group purpose="location">
-          <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.html</context>
-          <context context-type="linenumber">353</context>
-        </context-group>
-      </trans-unit>
       <trans-unit id="sessionHost.joinOverlayCloseAria" datatype="html">
         <source>Beitrittsinformationen schließen</source>
         <context-group purpose="location">
@@ -14435,7 +14424,7 @@
         </context-group>
       </trans-unit>
       <trans-unit id="sessionHost.moderationEmptyHint" datatype="html">
-        <source> Sobald Fragen oder ein Blitzlicht da sind, siehst du hier Themen, Klärbedarf, umstrittene Fragen und Tempo. </source>
+        <source> Sobald Fragen oder ein Blitzlicht da sind, siehst du hier Themen, Klärungsbedarf, umstrittene Fragen und Feedback zum Vortragstempo. </source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-host/moderation-compass-dialog.component.html</context>
           <context context-type="linenumber">158,161</context>
@@ -14581,7 +14570,7 @@
         </context-group>
       </trans-unit>
       <trans-unit id="sessionHost.moderationCardTempo" datatype="html">
-        <source>Tempo</source>
+        <source>Feedback zum Vortragstempo</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-host/moderation-compass-dialog.component.ts</context>
           <context context-type="linenumber">248</context>
@@ -15026,21 +15015,6 @@
           <context context-type="linenumber">442</context>
         </context-group>
       </trans-unit>
-      <trans-unit id="sessionHost.presenterViewLabel" datatype="html">
-        <source>Presenter-Ansicht</source>
-        <context-group purpose="location">
-          <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.html</context>
-          <context context-type="linenumber">188</context>
-        </context-group>
-        <context-group purpose="location">
-          <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.html</context>
-          <context context-type="linenumber">460</context>
-        </context-group>
-        <context-group purpose="location">
-          <context context-type="sourcefile">src/app/features/session/session-present/session-present.component.ts</context>
-          <context context-type="linenumber">248</context>
-        </context-group>
-      </trans-unit>
       <trans-unit id="sessionHost.fullscreenToggleAria" datatype="html">
         <source>Vollbild umschalten</source>
         <context-group purpose="location">
@@ -15112,13 +15086,6 @@
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.html</context>
           <context context-type="linenumber">402</context>
-        </context-group>
-      </trans-unit>
-      <trans-unit id="sessionHost.joinOverlayTip" datatype="html">
-        <source> Live-Ansicht: </source>
-        <context-group purpose="location">
-          <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.html</context>
-          <context context-type="linenumber">569,571</context>
         </context-group>
       </trans-unit>
       <trans-unit id="sessionHost.joinOverlayBackToLobby" datatype="html">
@@ -19195,7 +19162,7 @@
         </context-group>
       </trans-unit>
       <trans-unit id="sessionPresent.lobbyAudienceTitle" datatype="html">
-        <source>Warten auf die Teilnehmenden...</source>
+        <source>Warten auf die anderen...</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-present/session-present.component.html</context>
           <context context-type="linenumber">509</context>

@@ -351,25 +351,36 @@
 }
 
 .feedback-host__standalone-join-control {
-  --mdc-icon-button-state-layer-size: 3.35rem;
+  --mat-icon-button-state-layer-size: 3.25rem;
+  --mat-icon-button-icon-size: 2.5rem;
+  --mdc-icon-button-state-layer-size: var(--mat-icon-button-state-layer-size);
   margin-left: 0;
   justify-self: center;
-  width: var(--mdc-icon-button-state-layer-size);
-  height: var(--mdc-icon-button-state-layer-size);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: var(--mat-icon-button-state-layer-size);
+  height: var(--mat-icon-button-state-layer-size);
   padding: 0;
   border: none;
   background: transparent;
   box-shadow: none;
   color: var(--mat-sys-on-surface-variant);
   border-radius: var(--mat-sys-corner-full);
+  line-height: 0;
   transition:
     background-color 180ms ease,
     color 180ms ease;
 
   mat-icon {
-    font-size: 2.125rem;
-    width: 2.125rem;
-    height: 2.125rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: var(--mat-icon-button-icon-size);
+    width: var(--mat-icon-button-icon-size);
+    height: var(--mat-icon-button-icon-size);
+    line-height: 1;
+    overflow: hidden;
   }
 
   &:hover {
@@ -387,10 +398,6 @@
   &:active {
     background: color-mix(in srgb, var(--mat-sys-on-surface) 12%, transparent);
   }
-}
-
-.feedback-host__standalone-join-label {
-  display: none;
 }
 
 .feedback-host__standalone-code-block {
@@ -643,38 +650,6 @@
 }
 
 @media (min-width: 840px) {
-  .feedback-host__standalone-join-control {
-    --mdc-icon-button-state-layer-size: 3rem;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    gap: 0.45rem;
-    width: auto;
-    min-width: 0;
-    height: 3rem;
-    padding-inline: 0.35rem 0.85rem;
-    border-radius: var(--mat-sys-corner-full);
-
-    mat-icon {
-      font-size: 2.35rem;
-      width: 2.35rem;
-      height: 2.35rem;
-    }
-  }
-
-  .feedback-host__standalone-join-label {
-    display: inline-flex;
-    align-items: center;
-    min-width: 0;
-    max-width: 8rem;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-    font: var(--mat-sys-label-medium);
-    font-weight: 600;
-    line-height: 1.2;
-  }
-
   .feedback-host__join-menu-head.feedback-host__join-menu-title-header.dialog-title-header {
     gap: 0.85rem;
     padding-block: 0.35rem 0.45rem;

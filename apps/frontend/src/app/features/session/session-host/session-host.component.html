@@ -380,7 +380,6 @@
                 aria-label="Beitrittsinformationen öffnen"
               >
                 <mat-icon aria-hidden="true">qr_code_2</mat-icon>
-                <span class="session-host__live-join-label" i18n>Beitritt</span>
               </button>
               <div class="session-host__live-code-block">
                 <p
@@ -586,9 +585,6 @@
                     />
                   </div>
                 }
-                <p class="session-host__join-menu-tip" i18n="@@sessionHost.joinOverlayTip">
-                  Live-Ansicht:
-                </p>
                 <button
                   mat-flat-button
                   color="primary"
@@ -3194,14 +3190,14 @@
                               (q.type === 'MULTIPLE_CHOICE' || q.type === 'SINGLE_CHOICE')
                             ) {
                               <p class="session-host__vote-dist-correct">
-                                <mat-icon>check_circle</mat-icon>
-                                {{
+                                <mat-icon aria-hidden="true">check_circle</mat-icon>
+                                <span>{{
                                   correctChoiceVotersLabel(
                                     q.correctVoterCount,
                                     q.totalVotes ?? 0,
                                     q.type
                                   )
-                                }}
+                                }}</span>
                               </p>
                             }
                             <ul class="session-host__vote-dist-list" role="list">

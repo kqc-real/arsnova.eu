@@ -1018,6 +1018,7 @@ describe('SessionPresentComponent', () => {
       '[data-testid="presenter-quiz-paused"]',
     ) as HTMLElement | null;
     expect(paused?.dataset['state']).toBe('paused');
+    expect(paused?.textContent).not.toContain('Presenter-Ansicht');
     expect(paused?.textContent).toContain('Quiz pausiert');
     expect(paused?.textContent).toContain('Gleich geht es mit derselben Frage weiter.');
     expect(paused?.textContent).toContain('ABC123');
@@ -1130,7 +1131,7 @@ describe('SessionPresentComponent', () => {
     expect(root.classList.contains('session-present--standby')).toBe(true);
     expect(root.classList.contains('session-present--lobby')).toBe(false);
     expect(standby?.dataset['channel']).toBe('qa');
-    expect(standby?.textContent).toContain('Presenter-Ansicht');
+    expect(standby?.textContent).not.toContain('Presenter-Ansicht');
     expect(standby?.textContent).toContain('Fragen');
     expect(standby?.textContent).toContain('Noch keine freigegebenen Fragen.');
     expect(standby?.textContent).toContain('ABC123');
@@ -1671,7 +1672,7 @@ describe('SessionPresentComponent', () => {
     const text = fixture.nativeElement.textContent as string;
     expect(text).toContain('ABC123');
     expect(text).toContain('arsnova.eu');
-    expect(text).toContain('Warten auf die Teilnehmenden');
+    expect(text).toContain('Warten auf die anderen');
     expect(text).not.toContain('Mit Code oder QR-Code teilnehmen.');
     expect(fixture.nativeElement.querySelector('.session-present__lobby-brand')).toBeTruthy();
     expect(text).not.toContain('Aktuelle Frage ist keine Freitext-Frage.');
@@ -1754,7 +1755,7 @@ describe('SessionPresentComponent', () => {
     expect(text).toContain('Blau');
     expect(text).toContain('Luna');
     expect(text).toContain('Milo');
-    expect(text).toContain('Warten auf die Teilnehmenden');
+    expect(text).toContain('Warten auf die anderen');
     expect(text).toContain('2 Teilnehmende');
     expect(fixture.nativeElement.querySelector('.session-present__lobby-audience')).toBeTruthy();
     expect(fixture.nativeElement.querySelector('.session-present__lobby-teams-grid')).toBeTruthy();
@@ -2069,7 +2070,7 @@ describe('SessionPresentComponent', () => {
     expect(fixture.nativeElement.querySelector('.session-present__lobby-teams-grid')).toBeNull();
     expect(fixture.nativeElement.querySelector('.session-present__lobby-people-cols')).toBeNull();
     expect(fixture.nativeElement.textContent).toContain('ABC123');
-    expect(fixture.nativeElement.textContent).toContain('Warten auf die Teilnehmenden');
+    expect(fixture.nativeElement.textContent).toContain('Warten auf die anderen');
     fixture.destroy();
   });
 

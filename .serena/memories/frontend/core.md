@@ -14,6 +14,6 @@
   - Locale subpaths are `/de/`, `/en/`, `/fr/`, `/it/`, `/es/`; language switching reloads the app and can drop unsaved in-memory edit state.
 - Production frontend build is not just `ng build`: `build:localize` runs Angular browser/server builds, prerenders localized routes, patches noscript/sitemap/PWA manifests/ngsw, writes root index, and checks MOTD assets.
 - Frontend Vitest config uses jsdom, Angular Vite plugin, `src/test-setup.ts`, and aliases `@arsnova/shared-types` to `libs/shared-types/src/index.workspace.ts`.
-- UI work must follow `docs/ui/` and Angular Material 3 tokens; no Tailwind classes/system in this app.
+- UI work must follow `docs/ui/` and Angular Material 3 tokens; no Tailwind classes/system in this app. Host live-bar / QR icon-button / compass alignment: `mem:frontend/session-host-live-chrome` and STYLEGUIDE Style-Vertraege _Host-Live-Zeile_.
 - Do not use `::ng-deep` (deprecated). Style host-owned markup, official Material override mixins, or tightly scoped global/`panelClass` rules. Canonical: `docs/ui/TOKENS.md`, `docs/ui/PR-CHECKLIST-UI.md`.
 - Quiz editor persisted metadata/settings/question changes use a centralized `hasPendingChanges()` + `saveAll()` contract; read `mem:frontend/quiz-editor-save-flow` before changing quiz-edit forms, handlers, presets, or question-type parameters.

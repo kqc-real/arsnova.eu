@@ -2,7 +2,7 @@
 
 # UI Styleguide (Angular Material 3)
 
-**Stand:** 2026-09-03 — abgeglichen mit Angular 21.2, `apps/frontend/src/styles.scss`, `apps/frontend/src/styles/playful-inner-chrome.scss`, den Shared-Styles unter `apps/frontend/src/app/shared/styles/`, [TOKENS.md](TOKENS.md) und [PR-CHECKLIST-UI.md](PR-CHECKLIST-UI.md).
+**Stand:** 2026-09-10 — abgeglichen mit Angular 21.2, `apps/frontend/src/styles.scss`, `apps/frontend/src/styles/playful-inner-chrome.scss`, den Shared-Styles unter `apps/frontend/src/app/shared/styles/`, [TOKENS.md](TOKENS.md) und [PR-CHECKLIST-UI.md](PR-CHECKLIST-UI.md).
 
 ## Ziel und Geltungsbereich
 
@@ -116,7 +116,7 @@ Regeln:
 - **Kontext:** Nach „Nur ein Klick“ auf der Startseite landet die Veranstaltende auf der **Blitzlicht-Host-Ansicht** (`FeedbackHostComponent`, Route `feedback/:code`, **nicht** eingebettet in Session-Host).
 - **Above-the-fold-Umsetzung:**
   - **Ergebnisbereich zuerst** (CSS `order` im Wrapper): Balken/Titel/Stimmen-Zeile liegen im oberen Viewport; Steueraktionen und Formatwahl folgen in derselben Karte darunter.
-  - **Beitritt / QR** in einer **kompakten Live-Leiste** unterhalb der Ergebnisse (analog Quiz-Live-Kanal): QR-Icon oeffnet dasselbe **Viewport-Overlay** wie im Kanal Blitzlicht beim Session-Host (`role=dialog`, scrollbarer Vollflaechen-Hintergrund, Schliessen-Button, Hinweis auf schmalen Viewports, „Session-Link kopieren“); das Overlay oeffnet nach dem Laden **einmal automatisch** (wie Lobby-Join beim Session-Host).
+  - **QR-Icon** in einer **kompakten Live-Leiste** unterhalb der Ergebnisse (analog Quiz-Live-Kanal): das Icon oeffnet dasselbe **Viewport-Overlay** wie im Kanal Blitzlicht beim Session-Host (`role=dialog`, scrollbarer Vollflaechen-Hintergrund, Schliessen-Button, Hinweis auf schmalen Viewports, „Session-Link kopieren“); das Overlay oeffnet nach dem Laden **einmal automatisch** (wie Lobby-Join beim Session-Host).
   - **Keine doppelte Stimmen-Zeile** in der Leiste (Zaehlung nur im Ergebnisbereich).
   - **Karten-Optik** des Dialogs: globales Styling fuer `feedback-host__join-viewport-overlay__surface.feedback-host__join-menu-panel` in `styles.scss` (gleiche Oberflaeche wie `session-host__join-viewport-overlay__surface`).
 - **Referenz-Dateien:** `apps/frontend/src/app/features/feedback/feedback-host.component.{html,scss,ts}`; gemeinsame Join-Karten-Optik in `apps/frontend/src/styles.scss`; Session-Host-Referenz: `session-host__join-viewport-overlay` in `session-host.component.*`.
@@ -254,6 +254,15 @@ Abgeschlossen mit dem Token-/Chrome-Nachzug (Wellen 1–8). Bei **neuen oder ge�
 - `.session-page-shell.l-section` als Flex-Kind braucht **`width: min(100%, …)`**, nicht nur `max-width` (sonst shrink-to-fit).
 - Standard-Kanalbreite folgt `--app-live-channel-max-width` (36rem); Teilnehmer-Q&amp;A: Shell + `--app-live-channel-max-width` auf **48rem** via `:has(.vote-page--qa)`.
 
+### Host-Live-Zeile, Icon-Buttons und Kapseln (Session-Host)
+
+Gilt fuer `.session-host__live-shell-row` und analoge Join-Trigger (Standalone-Blitzlicht). Referenz: `session-host.component.{html,scss}`, `feedback-host.component.{html,scss}`.
+
+- **Gemeinsame Fluchtlinie:** Live-Zeile, Kanal-Tabs (`.session-channel-tabs-shell`) und Kanal-Karten (`.session-host__channel-panel`) teilen **`--session-host-shell-width`**, `max-width: 100%` und `margin-inline: auto`. Mobil **kein** `width: 100%` auf der Live-Zeile – sonst fallen Join-Kapsel und Kompass aus der Aussenkante von Tabs, Rahmen-Button und Fragekarten.
+- **Kompakte Join-Kapsel:** `.session-host__live-banner` bleibt **`width: max-content`** / `flex: 0 1 auto`. Nicht `flex: 1` und nicht `width: auto` nur wegen Channel-Tabs – das zieht die Kapsel bis an den Kompass. Der QR-Trigger ist **icon-only** (`qr_code_2`); der sichtbare Text „Beitritt“ entfaellt, der zugaengliche Name bleibt `aria-label` (`@@sessionHost.joinControlAria`). Kompass sitzt rechts (`justify-content: space-between` unter 600px; darueber Grid + `justify-self: end`).
+- **Vergroesserte `mat-icon-button`:** `.mat-mdc-icon-button` ist `display: inline-block` und zentriert das Glyph ueber `padding: calc((state-layer - icon-size) / 2)` mit **`--mat-icon-button-state-layer-size`** und **`--mat-icon-button-icon-size`**. Nur `--mdc-icon-button-state-layer-size` plus `padding: 0` verschiebt Icon gegen Fokusring und Hover-Flaeche (Schrift-Baseline). Token setzen **und** `display: inline-flex; align-items: center; justify-content: center`. Touch-Target bleibt mindestens 44px.
+- **Icon+Text-Kapseln** (z. B. `.session-host__vote-dist-correct`): `align-items: center`, Label in einem `span`, Icon ohne `margin-top`-Korrektur. `align-items: flex-start` setzt einzeiligen Body-Text optisch an den oberen Kapselrand.
+
 ### Bewusste Ausnahmen (nicht „fixen“)
 
 - Foyer-Einflug: Keyframes / `animation-*`-Longhands / `ViewEncapsulation.None` (Prod-Flug).
@@ -266,6 +275,7 @@ Abgeschlossen mit dem Token-/Chrome-Nachzug (Wellen 1–8). Bei **neuen oder ge�
 - [ ] Keine neuen `::ng-deep` / `:deep` / `999px` / `font-weight: 800` / Hex-Token-Fallbacks
 - [ ] Material-Internals global oder per Mixin; Markdown/`innerHTML` global gescoped
 - [ ] Floating-Bottom-Muster eingehalten oder Ausnahme dokumentiert
+- [ ] Host-Live-Zeile: Shell-Fluchtlinie, kompakte Join-Kapsel, Icon im Fokusring zentriert
 - [ ] Mobile, längere Locales, Fokus/Kontrast nicht regressiert
 - [ ] Nächster Spec-Check auf Token-/Piercing-Regression, wo sinnvoll
 

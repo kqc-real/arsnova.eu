@@ -205,16 +205,9 @@ app-session-projection-quiz,
   text-align: center;
 }
 
-.session-present__standby-eyebrow,
 .session-present__standby-title,
 .session-present__standby-message {
   margin: 0;
-}
-
-.session-present__standby-eyebrow {
-  color: var(--mat-sys-primary);
-  font: var(--mat-sys-title-medium);
-  letter-spacing: 0.04em;
 }
 
 .session-present__standby-title {

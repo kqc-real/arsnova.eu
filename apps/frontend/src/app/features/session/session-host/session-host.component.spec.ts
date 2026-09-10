@@ -756,7 +756,7 @@ describe('SessionHostComponent', { timeout: 30_000 }, () => {
       (button.textContent ?? '').includes('Zur Lobby'),
     ) as HTMLButtonElement | undefined;
 
-    expect(text).toContain('Live-Ansicht:');
+    expect(text).not.toContain('Live-Ansicht:');
     expect(closeButton).toBeDefined();
     expect(fixture.nativeElement.querySelectorAll('.cdk-focus-trap-anchor')).toHaveLength(2);
 
@@ -766,6 +766,23 @@ describe('SessionHostComponent', { timeout: 30_000 }, () => {
 
     expect(fixture.componentInstance.joinInfoPopoverOpen()).toBe(false);
     expect(document.activeElement).toBe(trigger);
+    fixture.destroy();
+  });
+
+  it('zeigt den Join-Trigger nur als QR-Icon mit zugaenglichem Namen', async () => {
+    const fixture = setup();
+    fixture.detectChanges();
+    await fixture.whenStable();
+    fixture.detectChanges();
+
+    const joinControl = fixture.nativeElement.querySelector(
+      '.session-host__live-join-control',
+    ) as HTMLButtonElement | null;
+
+    expect(joinControl).not.toBeNull();
+    expect(joinControl?.getAttribute('aria-label')).toBe('Beitrittsinformationen öffnen');
+    expect(joinControl?.querySelector('mat-icon')?.textContent?.trim()).toBe('qr_code_2');
+    expect(joinControl?.textContent?.replace(/\s+/g, ' ').trim()).toBe('qr_code_2');
     fixture.destroy();
   });
 
@@ -4753,12 +4770,21 @@ describe('SessionHostComponent', { timeout: 30_000 }, () => {
     );
     expect(styles).toMatch(/\.session-host__live-shell-row \{[^}]*padding-inline:\s*0/);
     expect(styles).toMatch(
+      /@media \(max-width: 599px\)[\s\S]*?\.session-host__live-shell-row \{\s*display:\s*flex;[\s\S]*?width:\s*var\(--session-host-shell-width\)/,
+    );
+    expect(styles).toMatch(
       /\.session-host__live-shell-row \{[^}]*grid-template-columns:\s*minmax\(0,\s*1fr\)\s+auto/,
     );
     expect(styles).toMatch(/\.session-host__live-banner \{[^}]*grid-column:\s*1/);
     expect(styles).toMatch(/\.session-host__live-banner \{[^}]*justify-self:\s*start/);
     expect(styles).toMatch(/\.session-host__live-banner \{[^}]*width:\s*max-content/);
     expect(styles).toMatch(/\.session-host__live-banner \{[^}]*max-width:\s*100%/);
+    expect(styles).toMatch(
+      /@media \(max-width: 599px\)[\s\S]*?\.session-host__live-banner \{\s*grid-column:\s*auto;\s*flex:\s*0 1 auto/,
+    );
+    expect(styles).not.toMatch(
+      /@media \(max-width: 599px\)[\s\S]*?\.session-host__live-banner \{[^}]*flex:\s*1 1 0/,
+    );
     expect(styles).toMatch(
       /\.session-host__live-access \{[^}]*grid-template-columns:\s*auto\s+minmax\(0,\s*1fr\)\s+auto/,
     );
@@ -4767,6 +4793,7 @@ describe('SessionHostComponent', { timeout: 30_000 }, () => {
     expect(styles).toMatch(
       /\.session-host__live-sound-label \{[^}]*max-width:\s*none[^}]*overflow:\s*visible/,
     );
+    expect(styles).toMatch(/\.session-host__vote-dist-correct \{[^}]*align-items:\s*center/);
     expect(styles).toMatch(/\.session-host__moderation-control \{[^}]*flex:\s*0 0 auto/);
     expect(styles).toMatch(/\.session-host__moderation-control \{[^}]*min-height:\s*3\.4rem/);
     expect(styles).toMatch(
