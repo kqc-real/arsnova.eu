@@ -59,16 +59,28 @@ const ROMANCE_FORBIDDEN_QUOTES = /[„“”]/;
 const STRAIGHT_DOUBLE = /"/;
 const FR_GUILLEMET = /«([\s\S]*?)»/g;
 
-function visibleQuoteText(value) {
-  return value
-    .replace(/<[^>]+>/g, '')
-    .replace(/&quot;/g, '"')
-    .replace(/&apos;/g, "'")
-    .replace(/&amp;/g, '&');
+/** XLIFF-Textknoten ohne Markup; kein HTML-Sanitize, nur Zeichenprüfung. */
+function xliffTextNodes(value) {
+  let text = '';
+  let index = 0;
+  while (index < value.length) {
+    const open = value.indexOf('<', index);
+    if (open === -1) {
+      text += value.slice(index);
+      break;
+    }
+    text += value.slice(index, open);
+    const close = value.indexOf('>', open + 1);
+    if (close === -1) {
+      break;
+    }
+    index = close + 1;
+  }
+  return text.replaceAll('&quot;', '"').replaceAll('&apos;', "'").replaceAll('&amp;', '&');
 }
 
 function quoteErrors(file, id, field, value) {
-  const visible = visibleQuoteText(value);
+  const visible = xliffTextNodes(value);
   const errors = [];
   if (file === sourceFile && field === 'source') {
     if (DE_FORBIDDEN_QUOTES.test(visible)) {
