@@ -56,6 +56,7 @@ Diese Checkliste ist für alle PRs mit UI-Änderungen in `apps/frontend` verpfli
 - [ ] Neue oder geänderte UI-Texte sind in `de`, `en`, `fr`, `es`, `it` synchron.
 - [ ] Bei Legal-Texten sind die passenden Markdown-Dateien je Locale geprüft.
 - [ ] Wording entspricht dem Styleguide: Du-Ansprache, zielgruppenneutral, keine unnötigen Anglizismen.
+- [ ] Anführungszeichen sind locale-spezifisch (`docs/ui/STYLEGUIDE.md`: de `»…«`, en `“…”`, fr `« … »`, es/it `«…»`).
 - [ ] Feste Übersetzungs-IDs (`@@...`) bleiben stabil oder wurden bewusst migriert.
 - [ ] Datum/Zeit ist in deutscher UI als `de-DE` formatiert.
 - [ ] Deutsche UI nutzt „Vorschau“, „Tastenkürzel“, „gültig“ und vermeidet technische Begriffe in Primärtexten.

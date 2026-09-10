@@ -1632,7 +1632,7 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
       }
 
       const matchedSolution = result.matchedModelAnswer
-        ? $localize`:@@sessionVote.shortTextResultMatchedSolution:Gewertet als Musterlösung „${result.matchedModelAnswer}:matchedModelAnswer:“.`
+        ? $localize`:@@sessionVote.shortTextResultMatchedSolution:Gewertet als Musterlösung »${result.matchedModelAnswer}:matchedModelAnswer:«.`
         : null;
       const reason = this.shortTextNumericResultReason(result);
 
@@ -1648,7 +1648,7 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
     }
 
     const matchedSolution = result.matchedModelAnswer
-      ? $localize`:@@sessionVote.shortTextResultMatchedSolution:Gewertet als Musterlösung „${result.matchedModelAnswer}:matchedModelAnswer:“.`
+      ? $localize`:@@sessionVote.shortTextResultMatchedSolution:Gewertet als Musterlösung »${result.matchedModelAnswer}:matchedModelAnswer:«.`
       : null;
     const reason = this.shortTextResultReason(result);
 
@@ -2725,7 +2725,7 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
       return null;
     }
     const question = this.currentQuestion()!;
-    // Strukturierte Typen haben schon „Keine Antwort abgegeben.“ unter „Deine Antwort“.
+    // Strukturierte Typen haben schon »Keine Antwort abgegeben.« unter »Deine Antwort«.
     if (
       (question.type === 'ORDERING' ||
         question.type === 'MATCHING' ||
@@ -2981,7 +2981,7 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
         renderMarkdownWithKatex(value, {
           imagePolicy: 'external-https-and-app-assets',
           headingStartLevel,
-          // Kurzlabels (Antworten/Ordering/Matching): „2. Schritt“ nicht als <ol>→„1.“.
+          // Kurzlabels (Antworten/Ordering/Matching): »2. Schritt« nicht als <ol>→»1.«.
           escapeListMarkers: headingStartLevel >= 4,
         }).html,
       ),
@@ -2991,7 +2991,7 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
   }
 
   renderOrderingItemMarkdown(value: string): SafeHtml {
-    // Leading numbers like „9. November“ must stay; escapeListMarkers avoids <ol> renumbering.
+    // Leading numbers like »9. November« must stay; escapeListMarkers avoids <ol> renumbering.
     return this.renderMarkdown(value, 4);
   }
 
@@ -3324,7 +3324,7 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
             this.resetForSecondRoundStart();
             this.pullParticipantToQuizChannel();
           } else if (data.status === 'ACTIVE' && prevStatus === 'QUESTION_OPEN') {
-            // Host: „Antwortoptionen freigeben“ – gleiche Frage, neue Abstimmungsphase.
+            // Host: »Antwortoptionen freigeben« – gleiche Frage, neue Abstimmungsphase.
             this.pullParticipantToQuizChannel();
           }
           if (data.status === 'ACTIVE') {
@@ -4615,7 +4615,7 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
     this.matchingSelectionsState.set(selections);
     if (conflictingSelection) {
       this.matchingAnnouncement.set(
-        $localize`:@@sessionVote.matchingConflictClearedAnnouncement:Die bisherige Zuordnung für „${conflictingSelection.leftText}:previousItem:“ wurde entfernt.`,
+        $localize`:@@sessionVote.matchingConflictClearedAnnouncement:Die bisherige Zuordnung für »${conflictingSelection.leftText}:previousItem:« wurde entfernt.`,
       );
     } else {
       this.matchingAnnouncement.set('');
@@ -4649,7 +4649,7 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
   }
 
   matchingSelectAriaLabel(left: string): string {
-    return $localize`:@@sessionVote.matchingSelectAria:Zuordnung für „${left}:item:“`;
+    return $localize`:@@sessionVote.matchingSelectAria:Zuordnung für »${left}:item:«`;
   }
 
   categorizationProgressLabel(): string {
@@ -4661,7 +4661,7 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
   }
 
   categorizationSelectAriaLabel(itemText: string): string {
-    return $localize`:@@sessionVote.categorizationSelectAria:Kategorie für „${itemText}:item:“`;
+    return $localize`:@@sessionVote.categorizationSelectAria:Kategorie für »${itemText}:item:«`;
   }
 
   setCategorizationSelection(itemId: string, categoryId: string): void {
@@ -5150,7 +5150,7 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
 
   /**
    * Nach erfolgreichem Absenden verschwindet der Floating-Submit (#vote-submit) —
-   * Fokus ginge sonst verloren und die Live-Region „Antwort gesendet“ würde von
+   * Fokus ginge sonst verloren und die Live-Region »Antwort gesendet« würde von
    * Screenreadern oft nicht angekündigt. Fokus + Scroll auf die sichtbare Bestätigung;
    * aria-atomic liest Titel und Hinweis zusammen. Nur nach bestätigtem mutate aufrufen.
    */

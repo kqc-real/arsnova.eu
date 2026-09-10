@@ -9,7 +9,7 @@ Canonical file: `AGENTS.md` (Repo-Root). Bei Konflikt gilt die Datei; dieses Mem
 - Participant-Payloads minimal; kein `isCorrect`/Solution-Data bei aktiver Frage. Details: `mem:security/dto-stripping`, `mem:security/auth`.
 - Effective-Vote-Regel für Peer Instruction (Scoring, Leaderboard, Bonus, Analytics, Export) erhalten.
 - Frontend: Standalone, Signals, Material 3 tokens; kein `BehaviorSubject`/RxJS-Store für UI-State; kein Tailwind; kein `::ng-deep`/`:deep(...)`. UI: `docs/ui/STYLEGUIDE.md` (Style-Verträge), `docs/ui/TOKENS.md`, `docs/ui/PR-CHECKLIST-UI.md`.
-- i18n sync: `de`, `en`, `fr`, `es`, `it`. WCAG 2.2 AA nicht regressieren (Keyboard, SR, Focus, Reflow, Zoom, Contrast, reduced-motion).
+- i18n sync: `de`, `en`, `fr`, `es`, `it`. Anführungszeichen locale-spezifisch nach `docs/ui/STYLEGUIDE.md` (de `»…«`, en `“…”`, fr `« … »`, es/it `«…»`); Details `mem:frontend/i18n-ui`. WCAG 2.2 AA nicht regressieren (Keyboard, SR, Focus, Reflow, Zoom, Contrast, reduced-motion).
 - Tests + Docs gehören zu Done bei Behavior-/Setup-/Env-/Deploy-/Security-/Admin-/Route-Änderungen.
 - Keine Secrets/`.env`/Credentials/Keys/Tokens/DB-Dumps committen.
 - Produktion: ≥500 Concurrent Clients inkl. Shared-NAT; Rate-Limits dürfen Shared-IP-Traffic nicht blockieren. Kein CDN/WAF/Unique-IP-Annahme.

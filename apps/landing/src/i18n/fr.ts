@@ -107,7 +107,7 @@ const fr: Messages = {
       'Pas un type de question à part — optionnel sur les questions notées.',
       'Échelle 1–5 après la réponse, sans effet sur les points.',
       'Après publication, l’animateur voit le croisement entre l’exactitude des réponses et le degré de confiance.',
-      '« Erroné et sûr » signale d’éventuelles idées fausses.',
+      '« Erroné et sûr » signale d’éventuelles idées fausses.',
       'Après la session : rapport de résultats (PDF) et bilan.',
     ],
     docsConfidence: 'Doc autoévaluation',
@@ -135,7 +135,7 @@ const fr: Messages = {
     debriefing: 'Bilan',
     resultsPdf: 'Rapport de résultats (PDF)',
     exportNote:
-      'Rapport prêt à imprimer avec état d’apprentissage, carte de chaleur et textes des questions — dans la vue de l’animateur et sur la carte quiz. Le CSV pour Excel reste disponible sous « Plus ».',
+      'Rapport prêt à imprimer avec état d’apprentissage, carte de chaleur et textes des questions — dans la vue de l’animateur et sur la carte quiz. Le CSV pour Excel reste disponible sous « Plus ».',
   },
   qaWall: {
     eyebrow: 'Q&A en direct comme espace de modération',
@@ -234,7 +234,7 @@ const fr: Messages = {
         number: '05',
         title: 'Suivre et exporter',
         description:
-          'Après la fin de session, le rapport de résultats (PDF) est prêt — avec état d’apprentissage, autoévaluation et textes complets des questions. Dans la collection de quiz, tu trouves bilan et PDF du dernier passage ; CSV pour Excel sous « Plus ».',
+          'Après la fin de session, le rapport de résultats (PDF) est prêt — avec état d’apprentissage, autoévaluation et textes complets des questions. Dans la collection de quiz, tu trouves bilan et PDF du dernier passage ; CSV pour Excel sous « Plus ».',
       },
     ],
   },
@@ -290,7 +290,7 @@ const fr: Messages = {
       {
         title: 'Rapport de résultats pour le suivi',
         description:
-          'Après la fin de session, tu exportes un rapport PDF prêt à imprimer avec graphiques, textes des questions et autoévaluation. Le CSV pour Excel reste optionnel sous « Plus ».',
+          'Après la fin de session, tu exportes un rapport PDF prêt à imprimer avec graphiques, textes des questions et autoévaluation. Le CSV pour Excel reste optionnel sous « Plus ».',
         icon: 'export',
       },
       {
@@ -485,7 +485,7 @@ const fr: Messages = {
       {
         title: 'Moins de freins à l’entrée',
         description:
-          'Pas de logique produit séparée pour « créer » et « rejoindre ». Les animateurs démarrent sans compte, les participants entrent via code ou QR.',
+          'Pas de logique produit séparée pour « créer » et « rejoindre ». Les animateurs démarrent sans compte, les participants entrent via code ou QR.',
       },
       {
         title: 'Plus de formats d’interaction',
@@ -546,7 +546,7 @@ const fr: Messages = {
       {
         question: 'Puis-je exporter les résultats de session ?',
         answer:
-          'Oui. Après la fin de session, le rapport de résultats (PDF) est le format principal — y compris autoévaluation, priorités de bilan et textes complets des questions. Dans la collection de quiz, tu trouves bilan et PDF du dernier passage. Les données CSV tabulaires sont disponibles sous « Plus » pour Excel.',
+          'Oui. Après la fin de session, le rapport de résultats (PDF) est le format principal — y compris autoévaluation, priorités de bilan et textes complets des questions. Dans la collection de quiz, tu trouves bilan et PDF du dernier passage. Les données CSV tabulaires sont disponibles sous « Plus » pour Excel.',
       },
       {
         question: 'Qu’a de particulier la question d’estimation numérique ?',

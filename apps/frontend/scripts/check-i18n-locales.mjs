@@ -51,6 +51,83 @@ function sameValues(left, right) {
   return left.length === right.length && left.every((value, index) => value === right[index]);
 }
 
+const NNBSP = '\u202f';
+const INNER_QUOTE_SPACE = /[ \t\u00a0\u202f]/;
+const DE_FORBIDDEN_QUOTES = /[„“”]/;
+const EN_FORBIDDEN_QUOTES = /[«»„]/;
+const FR_FORBIDDEN_QUOTES = /[„“”]/;
+const ROMANCE_FORBIDDEN_QUOTES = /[„“”]/;
+const STRAIGHT_DOUBLE = /"/;
+const FR_GUILLEMET = /«([\s\S]*?)»/g;
+
+/** XLIFF-Textknoten ohne Markup; kein HTML-Sanitize, nur Zeichenprüfung. */
+function xliffTextNodes(value) {
+  let text = '';
+  let index = 0;
+  while (index < value.length) {
+    const open = value.indexOf('<', index);
+    if (open === -1) {
+      text += value.slice(index);
+      break;
+    }
+    text += value.slice(index, open);
+    const close = value.indexOf('>', open + 1);
+    if (close === -1) {
+      break;
+    }
+    index = close + 1;
+  }
+  return text.replaceAll('&quot;', '"').replaceAll('&apos;', "'").replaceAll('&amp;', '&');
+}
+
+function quoteErrors(file, id, field, value) {
+  const visible = xliffTextNodes(value);
+  const errors = [];
+  if (file === sourceFile && field === 'source') {
+    if (DE_FORBIDDEN_QUOTES.test(visible)) {
+      errors.push(`${file}: ${id}: Quelltext braucht de-DE-Anführungszeichen »…«`);
+    }
+    if (STRAIGHT_DOUBLE.test(visible)) {
+      errors.push(`${file}: ${id}: gerade Anführungszeichen im Quelltext`);
+    }
+  }
+  if (file === 'messages.en.xlf' && field === 'target') {
+    if (EN_FORBIDDEN_QUOTES.test(visible) || STRAIGHT_DOUBLE.test(visible)) {
+      errors.push(`${file}: ${id}: englische Zieltexte brauchen “…”`);
+    }
+  }
+  if (file === 'messages.fr.xlf' && field === 'target') {
+    if (FR_FORBIDDEN_QUOTES.test(visible) || STRAIGHT_DOUBLE.test(visible)) {
+      errors.push(`${file}: ${id}: französische Zieltexte brauchen «${NNBSP}…${NNBSP}»`);
+    }
+    for (const match of value.matchAll(FR_GUILLEMET)) {
+      if (!match[1].startsWith(NNBSP) || !match[1].endsWith(NNBSP)) {
+        errors.push(
+          `${file}: ${id}: französische Guillemets brauchen schmales geschütztes Leerzeichen`,
+        );
+        break;
+      }
+    }
+  }
+  if ((file === 'messages.es.xlf' || file === 'messages.it.xlf') && field === 'target') {
+    if (ROMANCE_FORBIDDEN_QUOTES.test(visible) || STRAIGHT_DOUBLE.test(visible)) {
+      errors.push(
+        `${file}: ${id}: ${file.includes('.es.') ? 'spanische' : 'italienische'} Zieltexte brauchen «…»`,
+      );
+    }
+    for (const match of value.matchAll(FR_GUILLEMET)) {
+      const inner = match[1];
+      if (INNER_QUOTE_SPACE.test(inner.slice(0, 1)) || INNER_QUOTE_SPACE.test(inner.slice(-1))) {
+        errors.push(
+          `${file}: ${id}: ${file.includes('.es.') ? 'spanische' : 'italienische'} Guillemets ohne Innenabstand`,
+        );
+        break;
+      }
+    }
+  }
+  return errors;
+}
+
 function validateLocale(file, sourceUnits) {
   const { units, duplicates } = parseUnits(file);
   const errors = duplicates.map((id) => `${file}: doppelte trans-unit-ID ${id}`);
@@ -72,6 +149,7 @@ function validateLocale(file, sourceUnits) {
         `${file}: Platzhalterabweichung für ${id} (source=${sourcePlaceholders.join(',') || '-'}, target=${targetPlaceholders.join(',') || '-'})`,
       );
     }
+    errors.push(...quoteErrors(file, id, 'target', translatedUnit.target));
   }
 
   for (const id of units.keys()) {
@@ -85,6 +163,9 @@ function validateLocale(file, sourceUnits) {
 
 const { units: sourceUnits, duplicates: sourceDuplicates } = parseUnits(sourceFile);
 const failures = sourceDuplicates.map((id) => `${sourceFile}: doppelte trans-unit-ID ${id}`);
+for (const [id, sourceUnit] of sourceUnits) {
+  failures.push(...quoteErrors(sourceFile, id, 'source', sourceUnit.source));
+}
 
 for (const file of translatedFiles) {
   const result = validateLocale(file, sourceUnits);

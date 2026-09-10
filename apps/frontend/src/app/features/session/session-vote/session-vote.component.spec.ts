@@ -424,7 +424,7 @@ describe('SessionVoteComponent', { timeout: 30_000 }, () => {
     expect(timerCard?.querySelector('h2')?.textContent).toContain('Zeit anpassen');
     expect(timerCard?.querySelector('mat-button-toggle-group')).toBeTruthy();
     expect(host.textContent).toContain('Zeit anpassen');
-    expect(host.textContent).toContain('10× Zeit = zehnfacher Raum-Countdown');
+    expect(host.textContent).toContain('»10× Zeit« = zehnfacher Raum-Countdown');
     expect(host.textContent).toContain('Punkte folgen dem gemeinsamen Countdown');
     expect(host.textContent).toContain('So werden Punkte berechnet');
     expect(host.textContent).not.toContain('danach nur Mindestpunkte');
@@ -437,6 +437,8 @@ describe('SessionVoteComponent', { timeout: 30_000 }, () => {
     expect(scoringInfo!.textContent).toContain('Leicht ×1, Mittel ×2, Schwer ×3');
     expect(scoringInfo!.textContent).toContain('ab 5× ×1,5');
     expect(scoringInfo!.textContent).toContain('ohne Serien-Bonus');
+    expect(scoringInfo!.textContent).toContain('Nach dem Countdown bleiben nur noch 10');
+    expect(scoringInfo!.textContent).toContain('selten nach vorn');
     expect(host.textContent).toContain('Ohne Frist');
     expect(host.textContent).toContain('10× Zeit');
     expect(host.textContent).toContain('Standard');
@@ -483,7 +485,7 @@ describe('SessionVoteComponent', { timeout: 30_000 }, () => {
     expect(lobbyPanel).toBeTruthy();
     expect(lobbyPanel?.open).toBe(true);
     expect((fixture.nativeElement as HTMLElement).textContent).toContain(
-      'Vor der Frage wählen · 10× Zeit = zehnfacher Raum-Countdown',
+      'Vor der Frage wählen · »10× Zeit« = zehnfacher Raum-Countdown',
     );
     fixture.destroy();
   });
@@ -1403,7 +1405,7 @@ describe('SessionVoteComponent', { timeout: 30_000 }, () => {
     fixture.destroy();
   });
 
-  it('behauptet bei 0 Team-Punkten für alle nicht „Ihr führt gerade“', async () => {
+  it('behauptet bei 0 Team-Punkten für alle nicht »Ihr führt gerade«', async () => {
     getTeamLeaderboardQueryMock.mockResolvedValue([
       {
         rank: 1,
@@ -3002,7 +3004,7 @@ describe('SessionVoteComponent', { timeout: 30_000 }, () => {
     const host = fixture.nativeElement as HTMLElement;
     expect(host.querySelector('.vote-freetext__own--partial')).not.toBeNull();
     expect(host.textContent).toContain('Teilweise gewertet');
-    expect(host.textContent).toContain('Gewertet als Musterlösung „Paris“.');
+    expect(host.textContent).toContain('Gewertet als Musterlösung »Paris«.');
     expect(host.textContent).toContain(
       'Ein fehlendes oder zusätzliches Zeichen lag noch innerhalb der Toleranz.',
     );
@@ -3425,7 +3427,7 @@ describe('SessionVoteComponent', { timeout: 30_000 }, () => {
     const host = fixture.nativeElement as HTMLElement;
     expect(host.querySelector('.vote-freetext__own--partial')).not.toBeNull();
     expect(host.textContent).toContain('Teilweise gewertet');
-    expect(host.textContent).toContain('Gewertet als Musterlösung „2 m“.');
+    expect(host.textContent).toContain('Gewertet als Musterlösung »2 m«.');
     expect(host.textContent).toContain('die verlangte Einheit fehlte');
     fixture.destroy();
   });
@@ -6409,7 +6411,7 @@ describe('SessionVoteComponent', { timeout: 30_000 }, () => {
     expect(blocks[0]?.textContent).not.toContain('Kanonisch zuerst');
     expect(blocks[1]?.textContent).toContain('Kanonisch zuerst');
     expect(host.querySelector('.structured-result-summary')).toBeNull();
-    // Keine zweite Missed-/Timeout-Zeile unter „Deine Antwort“.
+    // Keine zweite Missed-/Timeout-Zeile unter »Deine Antwort«.
     expect(component.unansweredResultsMessage()).toBeNull();
     expect(host.querySelector('#vote-result-message')).toBeNull();
     expect(host.querySelector('.vote-timeout')).toBeNull();

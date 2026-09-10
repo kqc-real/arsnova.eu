@@ -356,6 +356,23 @@ Gilt fuer `.session-host__live-shell-row` und analoge Join-Trigger (Standalone-B
 - **Session-Code (Startseite):** Sichtbar nur zentrierte Bezeichnung **Session-Code**; Details (6 Zeichen) in **aria-label** des Overlays.
 - **Server-Status:** "Verbunden" / "Keine Verbindung" (statt "Server erreichbar/nicht erreichbar"). "Nochmal versuchen" (statt "Erneut verbinden").
 
+### Anführungszeichen (locale-spezifisch) (MUSS)
+
+Die App liefert nur `de` und `en` ohne Region. Quellsprache ist Deutsch nach **DE/AT** (`»…«`). Es gibt kein `de-CH` und kein `en-GB`. Dieselbe Tabelle gilt für Frontend-XLF, `$localize`, Templates und die Landing-Copy.
+
+| Locale | Zeichen   | Nicht verwenden                                                            | Beispiel      |
+| ------ | --------- | -------------------------------------------------------------------------- | ------------- |
+| **de** | **»…«**   | Schweizer `«…»`, klassisch `„…“`, gerade `"`                               | »10× Zeit«    |
+| **en** | **“…”**   | UK `‘…’`, gerade `"`                                                       | “10× time”    |
+| **fr** | **« … »** | ohne schmales geschütztes Leerzeichen (U+202F), `« … »` mit normalem Space | « Temps ×10 » |
+| **es** | **«…»**   | englische `“…”`, französisches U+202F                                      | «Tiempo ×10»  |
+| **it** | **«…»**   | englische `“…”`, französisches U+202F                                      | «Tempo ×10»   |
+
+- **Nur Bezeichner:** Anführungszeichen um UI-Namen (Buttons, Auswahloptionen, Menüpunkte), nicht um ganze Sätze und nicht um umschriebene Handlungen.
+- **Dynamische Namen** in Anführungszeichen (`»{{ name }}«`) brauchen ein eigenes i18n-Markup; sonst bleiben die deutschen Zeichen in allen Locales.
+- Gerade ASCII-`"` in sichtbarer Copy vermeiden. HTML-Entities in XLF-`<target>` (`&quot;Edit&quot;`) durch die locale-richtigen Zeichen ersetzen.
+- Prüfung: `npm run check:i18n -w @arsnova/frontend` (`apps/frontend/scripts/check-i18n-locales.mjs`). Englische Zusatzregeln: [ENGLISH-UI-COPY.md](ENGLISH-UI-COPY.md).
+
 ### Micro-Copy: Natuerlichkeit, Geraet, Denglisch (Empfehlung)
 
 Leitplanken aus der Teilnehmer-Session (Preset **Ernst** / **Spielerisch**); zentrale Texte u. a. in `apps/frontend/src/app/features/session/session-vote/session-vote-participant-copy.ts`.
@@ -456,3 +473,4 @@ Die App richtet sich auch an Trainer:innen, Workshop- und Event-Moderation sowie
 - Tokens: `docs/ui/TOKENS.md`
 - Guideline: `docs/ui/BLITZLICHT-GUIDELINES.md`
 - PR-Checkliste: `docs/ui/PR-CHECKLIST-UI.md`
+- i18n / Anführungszeichen: `docs/I18N-ANGULAR.md`, `docs/ui/ENGLISH-UI-COPY.md`

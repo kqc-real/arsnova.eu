@@ -419,6 +419,11 @@ describe('QuizNewComponent', () => {
     expect(html).not.toContain('quiz-edit-form__');
     expect(html).toMatch(/class="quiz-form__fieldset"[\s\S]*?Belohnung/);
     expect(html).toContain('quiz-form__fieldset-hint');
+    expect(html).toContain('quiz-new-timer-accommodation-hint');
+    expect(html).toContain('quiz-form__timer-accommodation-title');
+    expect(html).toContain('Persönliche Zeit');
+    expect(html).toContain('»10× Zeit«');
+    expect(html).toContain('»Ohne Frist«');
     expect(scss).toMatch(/\.quiz-form__fieldset-hint\s*\{/);
     expect(scss).toMatch(
       /\.quiz-form__markdown-hints\s*\{[^}]*font:\s*var\(--mat-sys-label-small\)/,

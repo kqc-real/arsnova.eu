@@ -1443,7 +1443,7 @@ export class SessionHostComponent implements OnInit, OnDestroy {
   });
   /**
    * Quiz-Kanal: ACTIVE (z. B. nach Fragerunden-Start), aber noch keine Quiz-Frage – kein Voting,
-   * daher keine „Ergebnis zeigen“-Steuerung; erste Frage explizit starten.
+   * daher keine »Ergebnis zeigen«-Steuerung; erste Frage explizit starten.
    */
   readonly isQuizAwaitingFirstQuestion = computed(() => {
     if (this.isQaSession()) return false;
@@ -3259,7 +3259,7 @@ export class SessionHostComponent implements OnInit, OnDestroy {
 
       untracked(() => this.scrollHostTargetIntoView(this.hostQuestionCardRef));
     });
-    /** Nach Session-Ende automatisch Vollbild beenden (z. B. nach „Veranstaltung starten“). */
+    /** Nach Session-Ende automatisch Vollbild beenden (z. B. nach »Veranstaltung starten«). */
     effect(() => {
       if (this.effectiveStatus() !== 'FINISHED') {
         return;
@@ -4715,7 +4715,7 @@ export class SessionHostComponent implements OnInit, OnDestroy {
   private openHostSteeringCalloutForSteeringFailure(retry: () => void): void {
     this.hostSteeringCallout.set({
       title: $localize`:@@sessionHost.steeringCalloutTitle:Das ist gerade nicht angekommen`,
-      body: $localize`:@@sessionHost.steeringCalloutBody:Kein Stress – so was passiert manchmal (kurzer Ruckler oder instabiles WLAN). Warte zwei, drei Sekunden und tippe auf „Nochmal probieren“ – meist reicht das.`,
+      body: $localize`:@@sessionHost.steeringCalloutBody:Kein Stress – so was passiert manchmal (kurzer Ruckler oder instabiles WLAN). Warte zwei, drei Sekunden und tippe auf »Nochmal probieren« – meist reicht das.`,
       retry,
       errorRequestId: 'host.steering:failed',
       suggestedArea: 'LIVE_CONTROL',
@@ -4733,7 +4733,7 @@ export class SessionHostComponent implements OnInit, OnDestroy {
   private openHostSteeringCalloutForQaFailure(retry: () => void): void {
     this.hostSteeringCallout.set({
       title: $localize`:@@sessionHost.steeringCalloutQaTitle:Mit den Fragen klappt es gerade nicht`,
-      body: $localize`:@@sessionHost.steeringCalloutQaBody:Hier ist nichts kaputt – es hat nur gerade nicht geklappt. Kurz durchatmen, 2–3 Sekunden warten, dann „Nochmal probieren“ – oft läuft es gleich wieder.`,
+      body: $localize`:@@sessionHost.steeringCalloutQaBody:Hier ist nichts kaputt – es hat nur gerade nicht geklappt. Kurz durchatmen, 2–3 Sekunden warten, dann »Nochmal probieren« – oft läuft es gleich wieder.`,
       retry,
       errorRequestId: 'host.qa:failed',
       suggestedArea: 'QA',
@@ -4743,7 +4743,7 @@ export class SessionHostComponent implements OnInit, OnDestroy {
   private openHostSteeringCalloutForExportFailure(retry: () => void): void {
     this.hostSteeringCallout.set({
       title: $localize`:@@sessionHost.steeringCalloutExportTitle:Export noch nicht bereit`,
-      body: $localize`:@@sessionHost.steeringCalloutExportBody:PDF- oder Excel-Export ist diesmal nicht durchgekommen. Warte ein paar Sekunden und tippe auf „Nochmal probieren“ – meist klappt’s beim zweiten Anlauf.`,
+      body: $localize`:@@sessionHost.steeringCalloutExportBody:PDF- oder Excel-Export ist diesmal nicht durchgekommen. Warte ein paar Sekunden und tippe auf »Nochmal probieren« – meist klappt’s beim zweiten Anlauf.`,
       retry,
       errorRequestId: 'host.export:failed',
       suggestedArea: 'PDF_OR_EXPORT',
@@ -6220,18 +6220,18 @@ export class SessionHostComponent implements OnInit, OnDestroy {
     const roomCountdownEnded = this.countdownEnded();
     if (blockingCount === 1) {
       return roomCountdownEnded
-        ? $localize`:@@sessionHost.timerAccommodationBlockingOneForce:Eine Person nutzt noch ihre 10× Zeit. „Trotzdem freigeben“ beendet ihr persönliches Fenster.`
+        ? $localize`:@@sessionHost.timerAccommodationBlockingOneForce:Eine Person nutzt noch ihre 10× Zeit. »Trotzdem freigeben« beendet ihr persönliches Fenster.`
         : $localize`:@@sessionHost.timerAccommodationBlockingOne:Eine Person nutzt noch ihre 10× Zeit. Warte auf den Raum-Countdown oder bis die 10× Zeit endet.`;
     }
     if (blockingCount > 1) {
       return roomCountdownEnded
-        ? $localize`:@@sessionHost.timerAccommodationBlockingManyForce:${formatLocaleCount(blockingCount, this.localeId)}:count: Personen nutzen noch ihre 10× Zeit. „Trotzdem freigeben“ beendet ihre persönlichen Fenster.`
+        ? $localize`:@@sessionHost.timerAccommodationBlockingManyForce:${formatLocaleCount(blockingCount, this.localeId)}:count: Personen nutzen noch ihre 10× Zeit. »Trotzdem freigeben« beendet ihre persönlichen Fenster.`
         : $localize`:@@sessionHost.timerAccommodationBlockingMany:${formatLocaleCount(blockingCount, this.localeId)}:count: Personen nutzen noch ihre 10× Zeit. Warte auf den Raum-Countdown oder bis die 10× Zeit endet.`;
     }
     if (count === 1) {
-      return $localize`:@@sessionHost.timerAccommodationPendingOne:Eine Person antwortet ohne persönliche Frist. „Ergebnis zeigen“ beendet ihre Eingabe.`;
+      return $localize`:@@sessionHost.timerAccommodationPendingOne:Eine Person antwortet ohne persönliche Frist. »Ergebnis zeigen« beendet ihre Eingabe.`;
     }
-    return $localize`:@@sessionHost.timerAccommodationPendingMany:${formatLocaleCount(count, this.localeId)}:count: Personen antworten ohne persönliche Frist. „Ergebnis zeigen“ beendet ihre Eingabe.`;
+    return $localize`:@@sessionHost.timerAccommodationPendingMany:${formatLocaleCount(count, this.localeId)}:count: Personen antworten ohne persönliche Frist. »Ergebnis zeigen« beendet ihre Eingabe.`;
   }
 
   voteProgressAria(votes: number, participants: number, percentage: number): string {
@@ -6242,7 +6242,7 @@ export class SessionHostComponent implements OnInit, OnDestroy {
     return $localize`:@@sessionHost.voteProgressAriaMany:${formatLocaleCount(votes, this.localeId)}:votes: von ${formatLocaleCount(participants, this.localeId)}:participants: Teilnehmenden haben abgestimmt. ${formattedPercentage}:percentage: Prozent erreicht.`;
   }
 
-  /** Ergebnisansicht: „X von Y hat/haben abgestimmt“ (Plural nach Anzahl abgegebener Stimmen). */
+  /** Ergebnisansicht: »X von Y hat/haben abgestimmt« (Plural nach Anzahl abgegebener Stimmen). */
   votesCastLabel(votes: number, participantTotal: number | null | undefined): string {
     const totalStr =
       participantTotal !== undefined && participantTotal !== null
@@ -6255,7 +6255,7 @@ export class SessionHostComponent implements OnInit, OnDestroy {
     return $localize`:@@sessionHost.votesCastMany:${voteCount}:voteCount: von ${totalStr}:participantTotal: haben abgestimmt`;
   }
 
-  /** Bewertungsfrage Ergebnis: „X von Y hat/haben bewertet“. */
+  /** Bewertungsfrage Ergebnis: »X von Y hat/haben bewertet«. */
   ratingSubmittedLabel(count: number, participantTotal: number | null | undefined): string {
     const totalStr =
       participantTotal !== undefined && participantTotal !== null
@@ -6526,7 +6526,7 @@ export class SessionHostComponent implements OnInit, OnDestroy {
   }
 
   renderOrderingItemMarkdown(value: string): SafeHtml {
-    // Leading numbers like „9. November“ must stay; escapeListMarkers avoids <ol> renumbering.
+    // Leading numbers like »9. November« must stay; escapeListMarkers avoids <ol> renumbering.
     return this.renderMarkdown(value, 4);
   }
 

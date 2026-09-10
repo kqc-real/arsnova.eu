@@ -7,9 +7,17 @@ export interface Props {
   t: Messages;
 }
 
-const { t } = Astro.props;
+const { locale, t } = Astro.props;
 const tr = t.trust;
 const researchPdfUrl = `${GITHUB_URL}/blob/main/docs/deep-research-arsnova.click/ARSnova-Recherche.pdf`;
+const quoteMarks: Record<Locale, readonly [string, string]> = {
+  de: ['»', '«'],
+  en: ['“', '”'],
+  fr: ['«\u202f', '\u202f»'],
+  es: ['«', '»'],
+  it: ['«', '»'],
+};
+const [quoteOpen, quoteClose] = quoteMarks[locale];
 ---
 
 <section
@@ -37,7 +45,7 @@ const researchPdfUrl = `${GITHUB_URL}/blob/main/docs/deep-research-arsnova.click
         <li class="landing-card flex flex-col p-5 transition duration-landing-fast hover:border-landing-primary/40">
           <span class="mb-2 inline-flex w-fit rounded-full bg-landing-primary-container px-2.5 py-0.5 text-xs font-medium text-landing-on-primary-container">{item.tag}</span>
           <blockquote class="flex-1 text-sm leading-relaxed text-landing-fg-body">
-            „{item.quote}“
+            {quoteOpen}{item.quote}{quoteClose}
           </blockquote>
           <cite class="mt-3 text-xs not-italic text-landing-fg-muted">
             — {item.source}

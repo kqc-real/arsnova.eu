@@ -572,7 +572,7 @@ export class QuizListComponent implements OnInit {
         message: $localize`:@@quizList.syncUnlinkMessage:Die Quiz-Sammlung bleibt auf diesem Gerät. Die Sync-Verknüpfung und der Änderungsstatus werden zurückgesetzt.`,
         consequences: [
           $localize`:@@quizList.syncUnlinkConsequencePeers:Andere Geräte behalten ihren letzten Stand, sind aber nicht mehr mit dir verbunden.`,
-          $localize`:@@quizList.syncUnlinkConsequenceNewLink:Ein neuer Klick auf „Sammlung teilen“ startet eine frische Verknüpfung.`,
+          $localize`:@@quizList.syncUnlinkConsequenceNewLink:Ein neuer Klick auf »Sammlung teilen« startet eine frische Verknüpfung.`,
         ],
         confirmLabel: $localize`:@@quizList.syncUnlinkConfirm:Teilen beenden`,
         cancelLabel: $localize`:@@quizList.syncUnlinkCancel:Abbrechen`,
@@ -603,7 +603,7 @@ export class QuizListComponent implements OnInit {
     try {
       const duplicate = this.quizStore.duplicateQuiz(quizId);
       this.actionInfoWarnings.set([]);
-      this.actionInfo.set($localize`„${duplicate.name}“ wurde dupliziert.`);
+      this.actionInfo.set($localize`»${duplicate.name}« wurde dupliziert.`);
     } catch (error) {
       this.actionError.set(
         error instanceof Error ? error.message : $localize`Duplizieren fehlgeschlagen.`,
@@ -615,16 +615,16 @@ export class QuizListComponent implements OnInit {
     this.actionError.set(null);
     if (this.isQuizLive(quizId)) {
       this.actionInfoWarnings.set([]);
-      this.actionInfo.set($localize`„${quizName}“ ist gerade live und kann nicht gelöscht werden.`);
+      this.actionInfo.set($localize`»${quizName}« ist gerade live und kann nicht gelöscht werden.`);
       return;
     }
     const dialogRef = this.dialog.open(ConfirmLeaveDialogComponent, {
       data: {
         title: $localize`:@@quizList.deleteQuizDialogTitle:Quiz löschen?`,
-        message: $localize`:@@quizList.deleteQuizDialogMessage:Das Quiz „${quizName}“ wird aus deiner Sammlung entfernt.`,
+        message: $localize`:@@quizList.deleteQuizDialogMessage:Das Quiz »${quizName}« wird aus deiner Sammlung entfernt.`,
         consequences: [
           $localize`:@@quiz.deleteIrreversible:Das lässt sich nicht rückgängig machen.`,
-          $localize`:@@quizList.deleteQuizBonusCodesHint:Wenn Bonus-Codes vorhanden sind, exportiere sie vorher über „Bonus-Codes“ > „CSV exportieren“.`,
+          $localize`:@@quizList.deleteQuizBonusCodesHint:Wenn Bonus-Codes vorhanden sind, exportiere sie vorher über »Bonus-Codes« > »CSV exportieren«.`,
         ],
         confirmLabel: $localize`:@@quizList.deleteQuizConfirm:Löschen`,
         cancelLabel: $localize`:@@quizList.deleteQuizCancel:Abbrechen`,
@@ -639,7 +639,7 @@ export class QuizListComponent implements OnInit {
       try {
         this.quizStore.deleteQuiz(quizId);
         this.actionInfoWarnings.set([]);
-        this.actionInfo.set($localize`„${quizName}“ wurde gelöscht.`);
+        this.actionInfo.set($localize`»${quizName}« wurde gelöscht.`);
       } catch (error) {
         this.actionError.set(
           error instanceof Error ? error.message : $localize`Löschen fehlgeschlagen.`,
@@ -662,7 +662,7 @@ export class QuizListComponent implements OnInit {
       anchor.click();
       URL.revokeObjectURL(url);
       this.actionInfoWarnings.set([]);
-      this.actionInfo.set($localize`„${quiz.quiz.name}“ wurde exportiert.`);
+      this.actionInfo.set($localize`»${quiz.quiz.name}« wurde exportiert.`);
     } catch (error) {
       this.actionError.set(
         error instanceof Error ? error.message : $localize`Export fehlgeschlagen.`,
@@ -1126,7 +1126,7 @@ export class QuizListComponent implements OnInit {
         (warning) => warning.kind === 'skipped_question' || warning.kind === 'mapped_question',
       ),
     );
-    return `„${result.quiz.name}“ wurde importiert.`;
+    return `»${result.quiz.name}« wurde importiert.`;
   }
 
   formatImportWarning(warning: QuizImportResult['warnings'][number]): string {

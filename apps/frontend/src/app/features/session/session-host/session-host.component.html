@@ -1736,7 +1736,8 @@
                             >timer</mat-icon
                           >
                           <span i18n="@@sessionHost.timerAccommodationNote"
-                            >Persönliche Antwortzeit erlaubt</span
+                            >Mehr Zeit hilft nicht. Nach dem Countdown gibt es nur
+                            Mindestpunkte.</span
                           >
                         </p>
                       }
@@ -2628,8 +2629,10 @@
                                       track swap.itemAId + swap.itemBId
                                     ) {
                                       <li class="session-host__structured-chip">
-                                        <span class="session-host__structured-chip-label"
-                                          >„{{ swap.itemAText }}“ ↔ „{{ swap.itemBText }}“</span
+                                        <span
+                                          class="session-host__structured-chip-label"
+                                          i18n="@@sessionHost.structuredSwapChip"
+                                          >»{{ swap.itemAText }}« ↔ »{{ swap.itemBText }}«</span
                                         >
                                         <span class="session-host__structured-chip-count">{{
                                           formatCount(swap.count)

@@ -336,6 +336,7 @@ Betroffene Stellen im Code:
 Verbindliche Vorgaben für alle Übersetzungen sind in **ADR-0008** (Abschnitt 4) festgehalten. Kurzüberblick:
 
 - **Sprachstil:** Informelle Anrede (Duzen), zeitgemäßer Sprachstil in allen Sprachen.
+- **Anführungszeichen:** Locale-spezifisch nach [STYLEGUIDE.md](ui/STYLEGUIDE.md) (Wording: Anführungszeichen). Kurz: de `»…«`, en `“…”`, fr `« … »` (U+202F), es/it `«…»`. `npm run check:i18n -w @arsnova/frontend` prüft das mit.
 - **Referenz Deutsch:** Deutscher Quelltext ist in Form und Länge geprüft und gilt als **Maßstab**; Übersetzungen sollen nicht unnötig länger werden und die vorgegebene Struktur wahren.
 - **Visuelle Prüfung, Mobile-First:** Längere Texte in Zielsprachen können **Strukturbrüche** verursachen. Es muss **stets visuell geprüft** werden – **zuerst auf Smartphone**, danach auf Desktop (Mobile-First). Pro View, pro Locale, ggf. pro Breakpoint. Bei Überlängen: kürzere Formulierung wählen oder Layout anpassen (Umbrüche, Truncation).
 - **Zwei Übersetzungen (Mobile/Desktop):** Wenn ein Text auf Smartphone bricht, auf Desktop aber passt, sind **zwei Varianten** erlaubt (kurz für Mobile, voll für Desktop); Quelltexte (Deutsch) liefern dann ebenfalls zwei Varianten.
