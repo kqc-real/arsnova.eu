@@ -4,7 +4,7 @@ const de: Messages = {
   meta: {
     homeTitle: 'arsnova.eu | Live-Quiz, Schätzfragen und Q&A-Fragenwand',
     homeDescription:
-      'Open-Source Audience Response für Bildung, Training und Organisationen: Live-Quiz mit Zuordnung, Sortierung und Kategorisierung, Selbsteinschätzung, Ergebnisbericht (PDF), numerische Schätzfragen, moderierbare Q&A-Fragenwand, Wortwolke und Rückmeldung — barrierefrei nach WCAG 2.2 AA, kostenlos, auf eigener Infrastruktur betreibbar und ohne Account startklar.',
+      'Open-Source Audience Response für Bildung, Training und Organisationen: Quiz-Erstellung und Host-Ansicht zuerst fürs Smartphone, Live-Quiz mit Zuordnung, Sortierung und Kategorisierung, Selbsteinschätzung, Ergebnisbericht (PDF), numerische Schätzfragen, moderierbare Q&A-Fragenwand, Wortwolke und Rückmeldung — barrierefrei nach WCAG 2.2 AA, kostenlos, auf eigener Infrastruktur betreibbar und ohne Account startklar.',
     siteNameInfo: 'arsnova.eu – Informationen',
     ogLocale: 'de_DE',
   },
@@ -53,11 +53,14 @@ const de: Messages = {
     titleLine2: 'Fragen moderieren',
     titleAccent1: 'live und kostenlos',
     titleAccent2: ' ohne Account.',
-    lead: 'arsnova.eu bündelt Live-Quiz, numerische Schätzfragen, Selbsteinschätzung bei bewertbaren Fragen, Q&A-Fragenwand, Wortwolken-Analyse und Blitzlicht-Rückmeldung in einer Oberfläche für Schulen, Hochschulen, Weiterbildung, Workshops und Unternehmen. Open Source, auf eigener Infrastruktur betreibbar und für den Betrieb mit Ausrichtung auf die DSGVO ausgelegt.',
+    lead: 'arsnova.eu bündelt Live-Quiz, numerische Schätzfragen, Selbsteinschätzung bei bewertbaren Fragen, Q&A-Fragenwand, Wortwolken-Analyse und Blitzlicht-Rückmeldung in einer Oberfläche für Schulen, Hochschulen, Weiterbildung, Workshops und Unternehmen. Quiz-Erstellung und Host-Ansicht für Lehrende und Vortragende sind zuerst fürs Smartphone gebaut — alle Frageformate, nicht vom Desktop heruntergebrochen. Open Source, auf eigener Infrastruktur betreibbar und für den Betrieb mit Ausrichtung auf die DSGVO ausgelegt.',
     a11yLink: 'Barrierefrei nach WCAG 2.2 AA',
     a11ySuffix: '— Tastatur, Screenreader und individuell anpassbare Bearbeitungszeit.',
     cards: [
-      { title: 'Frei im Raum', text: 'Session vom Smartphone steuern, Beamer bleibt am Laptop' },
+      {
+        title: 'Zuerst fürs Handy',
+        text: 'Quiz in allen Formaten erstellen und live steuern — vom Smartphone her gedacht, nicht vom Desktop geschrumpft',
+      },
       { title: 'Q&A mit Fragenwand', text: 'Moderation, Abstimmung und Themen-Wortwolke' },
       {
         title: 'Selbsteinschätzung & Nachbereitung',
@@ -206,7 +209,7 @@ const de: Messages = {
         number: '01',
         title: 'Quiz vorbereiten',
         description:
-          'Fragen direkt erstellen oder vorhandene Inhalte importieren. Markdown, KaTeX, Kurzantwort, Schätzfragen sowie Zuordnen, Sortieren und Kategorisieren sind direkt eingebaut.',
+          'Fragen direkt erstellen oder vorhandene Inhalte importieren — vollständig auf dem Smartphone, in allen Frageformaten. Markdown, KaTeX, Kurzantwort, Schätzfragen sowie Zuordnen, Sortieren und Kategorisieren sind direkt eingebaut, nicht als abgespeckte Handy-Version.',
       },
       {
         number: '02',
@@ -224,7 +227,7 @@ const de: Messages = {
         number: '04',
         title: 'Live moderieren',
         description:
-          'Du gehst frei im Raum und steuerst die laufende Veranstaltung vom Handy. Teilnehmende stimmen ab, stellen Fragen und setzen gemeinsam Prioritäten. Host und Presenter zeigen Quiz, Q&A, Blitzlicht, Wortwolke, Lesephase, Countdown, zweite Runde und Ergebnisse in einem Ablauf.',
+          'Du gehst frei im Raum und steuerst die laufende Veranstaltung vom Handy. Die Host-Ansicht ist dafür gebaut, nicht vom Desktop heruntergebrochen. Teilnehmende stimmen ab, stellen Fragen und setzen gemeinsam Prioritäten. Host und Presenter zeigen Quiz, Q&A, Blitzlicht, Wortwolke, Lesephase, Countdown, zweite Runde und Ergebnisse in einem Ablauf.',
       },
       {
         number: '05',
@@ -237,7 +240,7 @@ const de: Messages = {
   pairing: {
     eyebrow: 'Alleinstellungsmerkmal',
     title: 'Frei im Raum präsentieren — vom Smartphone oder Tablet',
-    lead: 'Andere Audience-Response-Systeme bieten oft eine Fernbedienung — als Folienklicker oder mit extra Konto auf dem Handy. Bei arsnova.eu scannst du einen QR, sagst am Laptop Ja, und das Handy steuert nur die laufende Veranstaltung.',
+    lead: 'Das Pairing trägt, weil die Host-Ansicht selbst zuerst fürs Smartphone gedacht ist. Andere Audience-Response-Systeme bieten oft eine Fernbedienung — als Folienklicker oder mit extra Konto auf dem Handy. Bei arsnova.eu scannst du einen QR, sagst am Laptop Ja, und das Handy steuert nur die laufende Veranstaltung.',
     whyTitle: 'Warum das Pairing anders ist als eine Fernbedienung',
     summary: [
       'Volle Bewegungsfreiheit während der Präsentation — didaktisch und präsentationstechnisch ein klarer Vorteil.',
@@ -258,6 +261,12 @@ const de: Messages = {
     title: 'Gebaut für Live-Interaktion statt nur für Abstimmungsfolien',
     lead: 'arsnova.eu verbindet schnellen Einstieg, didaktische Stärke und einen transparenten technischen Unterbau. So bleibt die Plattform im Alltag einfach, ohne in den Möglichkeiten klein zu werden.',
     items: [
+      {
+        title: 'Erstellen und hosten zuerst fürs Handy',
+        description:
+          'Andere Audience-Response-Systeme kommen für Lehrende oft aus der Desktop-Perspektive. Hier erstellst du ein Quiz auf dem Smartphone in allen Frageformaten — und dieselbe Host-Ansicht steuert Quiz, Q&A, Blitzlicht und Ergebnisse in der Hand, auch ohne Laptop. Pairing mit Beamer ist optional.',
+        icon: 'phone',
+      },
       {
         title: 'Frei im Raum präsentieren',
         description:
@@ -335,7 +344,7 @@ const de: Messages = {
   structuredQuestionTypes: {
     eyebrow: 'Strukturierte Fragetypen',
     title: 'Zuordnen, sortieren und kategorisieren — vollständig und auswertbar',
-    lead: 'Drei Formate machen Beziehungen, Abläufe und Begriffsgrenzen interaktiv. Während der Abstimmung bleibt die Lösung verborgen; nach der Freigabe werden Musterlösung und typische Fehlmuster verständlich sichtbar.',
+    lead: 'Drei Formate machen Beziehungen, Abläufe und Begriffsgrenzen interaktiv — und du erstellst sie vollständig auf dem Smartphone. Während der Abstimmung bleibt die Lösung verborgen; nach der Freigabe werden Musterlösung und typische Fehlmuster verständlich sichtbar.',
     interactionLabel: 'Interaktion',
     exampleLabel: 'Einsatzbeispiel',
     resultLabel: 'Auswertung',
@@ -452,8 +461,13 @@ const de: Messages = {
   comparison: {
     eyebrow: 'Abgrenzung',
     title: 'Nicht nur ein Ersatz für Mentimeter oder Kahoot',
-    lead: 'Im Mittelpunkt steht nicht nur Abstimmung, sondern der komplette Live-Ablauf: vorbereiten, frei im Raum moderieren, Ergebnisse sichtbar machen und dabei die Kontrolle über Inhalte und Betrieb behalten.',
+    lead: 'Im Mittelpunkt steht nicht nur Abstimmung, sondern der komplette Live-Ablauf: vom Handy vorbereiten, frei im Raum moderieren, Ergebnisse sichtbar machen und dabei die Kontrolle über Inhalte und Betrieb behalten.',
     points: [
+      {
+        title: 'Erstellen und hosten zuerst fürs Handy',
+        description:
+          'Andere Audience-Response-Systeme bauen Erstellung und Lehrkraft-Rolle oft vom großen Bildschirm her. Hier erstellst du alle Frageformate auf dem Smartphone und steuerst Quiz, Q&A, Blitzlicht und Ergebnisse in der Hand. Laptop und Beamer bleiben möglich — sie sind kein Muss, damit etwas bedienbar wird.',
+      },
       {
         title: 'Bewegungsfreiheit statt Laptop-Fessel',
         description:
@@ -487,6 +501,11 @@ const de: Messages = {
         question: 'Brauchen Hosts oder Teilnehmende einen Account?',
         answer:
           'Nein. Eine Session kann ohne Konto gestartet werden. Teilnehmende treten per Code oder QR bei.',
+      },
+      {
+        question: 'Kann ich Quiz und Session wirklich komplett vom Handy machen?',
+        answer:
+          'Ja. Du erstellst ein Quiz auf dem Smartphone in allen Frageformaten — von Einfach- und Mehrfachantwort über Kurzantwort und Schätzfrage bis Zuordnen, Sortieren und Kategorisieren. Dieselbe Host-Ansicht steuert die Live-Session: Quiz, Q&A, Blitzlicht und Ergebnisse. Beides ist zuerst fürs Handy entworfen, nicht als verkleinerter Desktop. Optional koppelst du ein zweites Gerät: der Beamer bleibt am Laptop, das Handy steuert unterwegs, ohne extra Konto.',
       },
       {
         question: 'Kann ich die Session vom Smartphone steuern?',
@@ -554,7 +573,7 @@ const de: Messages = {
   jsonLd: {
     websiteName: 'arsnova.eu – Informationen',
     webAppDescription:
-      'Open-Source Audience Response für Bildung, Training und Organisationen: Live-Quiz mit Zuordnung, Sortierung und Kategorisierung, Selbsteinschätzung, Ergebnisbericht (PDF), numerische Schätzfragen, moderierbare Q&A-Fragenwand, Wortwolke und Rückmeldung — barrierefrei nach WCAG 2.2 AA, kostenlos, auf eigener Infrastruktur betreibbar und ohne Account startklar.',
+      'Open-Source Audience Response für Bildung, Training und Organisationen: Quiz-Erstellung und Host-Ansicht zuerst fürs Smartphone, Live-Quiz mit Zuordnung, Sortierung und Kategorisierung, Selbsteinschätzung, Ergebnisbericht (PDF), numerische Schätzfragen, moderierbare Q&A-Fragenwand, Wortwolke und Rückmeldung — barrierefrei nach WCAG 2.2 AA, kostenlos, auf eigener Infrastruktur betreibbar und ohne Account startklar.',
     featureList: [
       'Live-Quiz und Abstimmungen',
       'Selbsteinschätzung bei bewertbaren Fragen',
@@ -562,6 +581,7 @@ const de: Messages = {
       'Numerische Schätzfragen mit zwei Runden und Statistik',
       'Q&A-Fragenwand mit Moderation, Zustimmungs- und Ablehnungsstimmen',
       'Warteraum, Presenter, QR/Code',
+      'Quiz-Erstellung und Host-Ansicht zuerst fürs Smartphone — alle Frageformate, produktiver Modus für Lehrende',
       'Session-Steuerung vom Smartphone oder Tablet (Host-Pairing)',
       'Fragetypen MC/SC/Kurzantwort/Freitext/Umfrage/Bewertungsskala/Schätzfrage/Zuordnung/Sortierung/Kategorisierung',
       'Markdown und KaTeX',

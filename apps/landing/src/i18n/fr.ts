@@ -4,7 +4,7 @@ const fr: Messages = {
   meta: {
     homeTitle: 'arsnova.eu | Quiz en direct, questions d’estimation numérique et mur de questions',
     homeDescription:
-      'Plateforme open source de réponse interactive pour l’éducation, la formation et les organisations : quiz en direct avec association, mise en ordre et classement, autoévaluation, rapport de résultats (PDF), questions d’estimation numérique, mur de questions modérable, nuage de mots et sondage express — conforme aux WCAG 2.2, niveau AA, gratuite, exploitable sur votre propre infrastructure et prête sans compte.',
+      'Plateforme open source de réponse interactive pour l’éducation, la formation et les organisations : création de quiz et animation d’abord pour le téléphone, quiz en direct avec association, mise en ordre et classement, autoévaluation, rapport de résultats (PDF), questions d’estimation numérique, mur de questions modérable, nuage de mots et sondage express — conforme aux WCAG 2.2, niveau AA, gratuite, exploitable sur votre propre infrastructure et prête sans compte.',
     siteNameInfo: 'arsnova.eu – Informations',
     ogLocale: 'fr_FR',
   },
@@ -53,13 +53,13 @@ const fr: Messages = {
     titleLine2: 'modérer les questions',
     titleAccent1: 'en direct et gratuitement',
     titleAccent2: ' sans compte.',
-    lead: 'arsnova.eu réunit quiz en direct, questions d’estimation numérique, autoévaluation sur les questions notées, mur de questions, analyse en nuage de mots et sondage express dans une seule interface pour les écoles, les universités, la formation continue, les ateliers et le monde professionnel. Open source, exploitable sur votre propre infrastructure et conçu pour un fonctionnement dans le respect du RGPD.',
+    lead: 'arsnova.eu réunit quiz en direct, questions d’estimation numérique, autoévaluation sur les questions notées, mur de questions, analyse en nuage de mots et sondage express dans une seule interface pour les écoles, les universités, la formation continue, les ateliers et le monde professionnel. La création de quiz et la vue d’animation pour enseignant·e·s et intervenant·e·s sont conçues d’abord pour le téléphone — tous les formats de questions, pas réduites depuis un bureau. Open source, exploitable sur votre propre infrastructure et conçu pour un fonctionnement dans le respect du RGPD.',
     a11yLink: 'Conforme aux WCAG 2.2, niveau AA',
     a11ySuffix: '— clavier, lecteur d’écran et temps de réponse ajustable individuellement.',
     cards: [
       {
-        title: 'Libre dans la salle',
-        text: 'Pilotez la session depuis le téléphone ; le projecteur reste sur l’ordinateur',
+        title: 'D’abord pour le téléphone',
+        text: 'Crée tous les formats et anime en direct — pensé pour le téléphone, pas un bureau réduit',
       },
       { title: 'Q&A avec mur de questions', text: 'Modération, votes et nuage thématique' },
       {
@@ -210,7 +210,7 @@ const fr: Messages = {
         number: '01',
         title: 'Préparer un quiz',
         description:
-          'Crée directement des questions ou importe des contenus existants. Markdown, KaTeX, réponse courte, estimation numérique, association, mise en ordre et classement sont intégrés.',
+          'Crée directement des questions ou importe des contenus existants — entièrement sur smartphone, dans tous les formats. Markdown, KaTeX, réponse courte, estimation numérique, association, mise en ordre et classement sont intégrés, pas dans une version mobile allégée.',
       },
       {
         number: '02',
@@ -228,7 +228,7 @@ const fr: Messages = {
         number: '04',
         title: 'Animer en direct',
         description:
-          'Tu circules dans la salle et animes la session en direct depuis le téléphone. Les participants votent, posent des questions et définissent ensemble les priorités. L’animateur et le présentateur affichent le quiz, le Q&A, le sondage express, le nuage de mots, la phase de lecture, le compte à rebours, le second tour et les résultats dans un seul déroulement.',
+          'Tu circules dans la salle et animes la session en direct depuis le téléphone. La vue d’animation est faite pour ça — pas réduite depuis un bureau. Les participants votent, posent des questions et définissent ensemble les priorités. L’animateur et le présentateur affichent le quiz, le Q&A, le sondage express, le nuage de mots, la phase de lecture, le compte à rebours, le second tour et les résultats dans un seul déroulement.',
       },
       {
         number: '05',
@@ -241,7 +241,7 @@ const fr: Messages = {
   pairing: {
     eyebrow: 'Ce qui nous distingue',
     title: 'Présenter depuis n’importe où dans la salle — depuis le téléphone ou la tablette',
-    lead: 'D’autres systèmes de réponse du public offrent souvent une télécommande — comme cliqueur de diapos ou avec un compte séparé sur le téléphone. Avec arsnova.eu, tu scans un QR, tu confirmes sur l’ordinateur, et le téléphone pilote uniquement la session en cours.',
+    lead: 'Le couplage tient, parce que la vue d’animation est elle-même pensée d’abord pour le téléphone. D’autres systèmes de réponse du public offrent souvent une télécommande — comme cliqueur de diapos ou avec un compte séparé sur le téléphone. Avec arsnova.eu, tu scans un QR, tu confirmes sur l’ordinateur, et le téléphone pilote uniquement la session en cours.',
     whyTitle: 'Pourquoi ce couplage n’est pas une simple télécommande',
     summary: [
       'Pleine liberté de mouvement pendant la présentation — un vrai atout pédagogique et scénique.',
@@ -263,6 +263,12 @@ const fr: Messages = {
     title: 'Conçu pour l’interaction en direct, pas seulement pour des sondages sur diapos',
     lead: 'arsnova.eu combine démarrage rapide, force pédagogique et socle technique transparent. La plateforme reste simple au quotidien sans restreindre les possibilités.',
     items: [
+      {
+        title: 'Créer et animer d’abord sur téléphone',
+        description:
+          'D’autres systèmes de réponse du public traitent souvent la création et le rôle enseignant comme des produits de bureau. Ici, tu crées un quiz sur smartphone dans tous les formats — et la même vue d’animation pilote quiz, Q&A, sondage express et résultats dans la main, même sans ordinateur. Le couplage avec un projecteur est optionnel.',
+        icon: 'phone',
+      },
       {
         title: 'Présenter depuis n’importe où dans la salle',
         description:
@@ -340,7 +346,7 @@ const fr: Messages = {
   structuredQuestionTypes: {
     eyebrow: 'Formats de questions structurées',
     title: 'Associer, ordonner et classer — des interactions complètes et analysables',
-    lead: 'Trois formats rendent interactifs les relations, les enchaînements et les distinctions entre notions. Les solutions restent cachées pendant le vote ; elles apparaissent avec les erreurs fréquentes après la révélation.',
+    lead: 'Trois formats rendent interactifs les relations, les enchaînements et les distinctions entre notions — et tu les crées entièrement sur smartphone. Les solutions restent cachées pendant le vote ; elles apparaissent avec les erreurs fréquentes après la révélation.',
     interactionLabel: 'Interaction',
     exampleLabel: 'Exemple pédagogique',
     resultLabel: 'Résultats',
@@ -464,8 +470,13 @@ const fr: Messages = {
   comparison: {
     eyebrow: 'Positionnement',
     title: 'Pas seulement un substitut à Mentimeter ou Kahoot',
-    lead: 'L’objectif n’est pas seulement de voter, mais de couvrir tout le déroulement en direct : préparer, animer depuis n’importe où dans la salle, rendre les résultats visibles et garder le contrôle sur les contenus et l’exploitation.',
+    lead: 'L’objectif n’est pas seulement de voter, mais de couvrir tout le déroulement en direct : préparer sur le téléphone, animer n’importe où dans la salle, rendre les résultats visibles et garder le contrôle sur les contenus et l’exploitation.',
     points: [
+      {
+        title: 'Créer et animer d’abord sur téléphone',
+        description:
+          'La plupart des systèmes de réponse du public conçoivent la création et le rôle de l’enseignant·e ou de l’intervenant·e depuis un grand écran. Ici, tu crées tous les formats sur smartphone et tu pilotes quiz, Q&A, sondage express et résultats dans la main. Ordinateur et projecteur restent possibles — ce n’est pas une condition pour que la console soit utilisable.',
+      },
       {
         title: 'Liberté de mouvement, pas coincé·e à l’ordinateur',
         description:
@@ -499,6 +510,12 @@ const fr: Messages = {
         question: 'Les animateurs ou les participants ont-ils besoin d’un compte ?',
         answer:
           'Non. Une session peut démarrer sans compte. Les participants rejoignent via code ou QR.',
+      },
+      {
+        question:
+          'Puis-je vraiment créer un quiz et animer une session entièrement depuis le téléphone ?',
+        answer:
+          'Oui. Tu crées un quiz sur smartphone dans tous les formats — QCU et QCM, réponse courte, estimation numérique, association, mise en ordre et classement. La même vue d’animation pilote la session en direct : quiz, Q&A, sondage express et résultats. Les deux sont pensés d’abord pour le téléphone, pas comme un bureau réduit. En option, tu couples un second appareil : le projecteur reste sur l’ordinateur, le téléphone pilote la session, sans compte séparé.',
       },
       {
         question: 'Puis-je piloter la session depuis mon téléphone ?',
@@ -566,7 +583,7 @@ const fr: Messages = {
   jsonLd: {
     websiteName: 'arsnova.eu – Informations',
     webAppDescription:
-      'Plateforme open source de réponse interactive pour l’éducation, la formation et les organisations : quiz en direct avec association, mise en ordre et classement, autoévaluation, rapport de résultats (PDF), questions d’estimation numérique, mur de questions modérable, nuage de mots et sondage express — conforme aux WCAG 2.2, niveau AA, gratuite, exploitable sur votre propre infrastructure et prête sans compte.',
+      'Plateforme open source de réponse interactive pour l’éducation, la formation et les organisations : création de quiz et animation d’abord pour le téléphone, quiz en direct avec association, mise en ordre et classement, autoévaluation, rapport de résultats (PDF), questions d’estimation numérique, mur de questions modérable, nuage de mots et sondage express — conforme aux WCAG 2.2, niveau AA, gratuite, exploitable sur votre propre infrastructure et prête sans compte.',
     featureList: [
       'Quiz en direct et votes',
       'Autoévaluation sur les questions notées',
@@ -574,6 +591,7 @@ const fr: Messages = {
       'Questions d’estimation numérique avec deux tours et statistiques',
       'Mur de questions avec modération, votes pour et contre',
       'Salle d’attente, présentateur, QR/code',
+      'Création de quiz et animation d’abord pour le téléphone — tous les formats, mode productif pour enseigner et présenter',
       'Pilotage de la session en direct depuis un téléphone ou une tablette (couplage hôte)',
       'Types de questions QCM/QCU/réponses courtes/texte libre/sondage/évaluation/estimation numérique/association/mise en ordre/classement',
       'Markdown et KaTeX',
