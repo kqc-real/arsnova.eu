@@ -86,6 +86,15 @@ jobs:
               echo "docs_only=false" >> "$GITHUB_OUTPUT"
               exit 0
             fi
+            # main-Push immer voll prüfen und (bei DEPLOY_ENABLED) HEAD deployen.
+            # Sonst überspringt Freshness den älteren UI-Lauf, und der
+            # docs-only-Nachfolger baut kein Image — Produktion bleibt stehen
+            # (#390 Host-Chrome, danach #391 Memory).
+            if [[ "${GITHUB_REF_NAME}" == "main" ]]; then
+              echo "docs_only=false" >> "$GITHUB_OUTPUT"
+              echo "main-push: docs_only forced false so HEAD can deploy."
+              exit 0
+            fi
             # HEAD_SHA is provided through the step environment.
             base_sha="$PUSH_BEFORE"
             # shellcheck disable=SC2153

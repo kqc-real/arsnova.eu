@@ -121,8 +121,8 @@ Wichtig: Jobs ohne direkte Abhängigkeit laufen **parallel**.
 
 - **Was?** Ermittelt, ob der Change-Set ausschließlich Doku-Dateien enthält (`docs/*` und `*.md`).
 - **Wo?** Job `changes` in [../.github/workflows/ci.yml](../.github/workflows/ci.yml).
-- **Wann?** Bei `push` und `pull_request` (bei `schedule`/`workflow_dispatch` standardmäßig `docs_only=false`).
-- **Warum?** Spart Runner-Zeit: Bei docs-only laufen die Jobs weiter (Ruleset-Pflichtchecks behalten Matrix-Namen), schwere Steps werden per Fast Pass übersprungen.
+- **Wann?** Bei `push` und `pull_request` (bei `schedule`/`workflow_dispatch` standardmäßig `docs_only=false`). **Push auf `main`:** `docs_only` bleibt `false`, auch wenn nur Markdown/Memories geändert wurden.
+- **Warum?** Spart Runner-Zeit auf PRs: Bei docs-only laufen die Jobs weiter (Ruleset-Pflichtchecks behalten Matrix-Namen), schwere Steps werden per Fast Pass übersprungen. Auf `main` darf ein docs-only-Nachfolger den Fast Pass nicht nutzen: Freshness überspringt sonst den älteren UI-Lauf, und ohne Image-Build bleibt Produktion auf dem letzten erfolgreichen Deploy stehen.
 
 ### 4.1 dependency-review
 
@@ -398,8 +398,8 @@ nicht die offene S6.5-Zielhostabnahme.
 
 - **Was?** Prüft kurz vor dem Production-Deploy, ob der geprüfte Commit (`github.sha`) noch der aktuelle `main`-HEAD ist.
 - **Wo?** Deploy-Freshness-Job in [../.github/workflows/ci.yml](../.github/workflows/ci.yml).
-- **Wann?** Nur bei `push` auf `main` und wenn `DEPLOY_ENABLED=true` gesetzt ist, nach allen Quality-Gates.
-- **Warum?** Verhindert stale Deployments: Ein älterer, langsamer CI-Lauf darf keinen inzwischen überholten Commit mehr produktiv ausrollen.
+- **Wann?** Nur bei `push` auf `main` und wenn `DEPLOY_ENABLED=true` gesetzt ist, nach allen Quality-Gates. Läuft auch nach einem docs-only-Commit auf `main`, weil `docs_only` dort nicht gesetzt wird.
+- **Warum?** Verhindert stale Deployments: Ein älterer, langsamer CI-Lauf darf keinen inzwischen überholten Commit mehr produktiv ausrollen. Der neuere `main`-HEAD muss dann selbst deployen können, sonst bleibt ein bereits gebautes UI-Image unveröffentlicht.
 
 ### 4.17 deploy
 

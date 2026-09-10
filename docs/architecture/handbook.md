@@ -130,7 +130,7 @@ Der produktive Rollout erfolgt über GitHub Actions (`.github/workflows/ci.yml`)
 3. Tests
 4. Docker-Build
 5. Deploy-Freshness-Check: Nur der aktuelle `main`-HEAD darf weiter zum Production-Deploy.
-6. Deploy-Job, nur bei Push auf `main` **und** Repository-Variable `DEPLOY_ENABLED=true`; **Voraussetzung:** Alle Quality-Gates waren erfolgreich und `github.sha` ist weiterhin aktueller `main`-HEAD.
+6. Deploy-Job, nur bei Push auf `main` **und** Repository-Variable `DEPLOY_ENABLED=true`; **Voraussetzung:** Alle Quality-Gates waren erfolgreich und `github.sha` ist weiterhin aktueller `main`-HEAD. Ein docs-only-Nachfolger auf `main` bleibt deshalb ein voller CI-/Deploy-Lauf, damit ein zuvor übersprungener UI-Commit nicht in Produktion hängen bleibt.
 
 Der Deploy-Job ist an **production** als GitHub Environment gebunden und führt serverseitig `scripts/deploy.sh` mit `DEPLOY_IMAGE` (Digest) und `DEPLOY_SHA` aus. Das Skript pullt das gescannte GHCR-Image (kein Server-Build), migriert und prüft Health.
 
