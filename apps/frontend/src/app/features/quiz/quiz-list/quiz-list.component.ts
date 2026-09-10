@@ -14,7 +14,7 @@ import {
 } from '@angular/core';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { MatButton, MatIconButton } from '@angular/material/button';
-import { MatCard, MatCardContent } from '@angular/material/card';
+import { MatCard, MatCardActions, MatCardContent } from '@angular/material/card';
 import { MatDialog } from '@angular/material/dialog';
 import { MatFormField, MatLabel } from '@angular/material/form-field';
 import { MatIcon } from '@angular/material/icon';
@@ -92,6 +92,7 @@ const QUIZ_HISTORY_SCOPE_ID_PATTERN =
     MatButton,
     MatIconButton,
     MatCard,
+    MatCardActions,
     MatCardContent,
     MatFormField,
     MatIcon,
@@ -125,7 +126,7 @@ export class QuizListComponent implements OnInit {
     ),
   );
   readonly hasUserQuizzes = computed(() => this.quizzes().some((q) => q.id !== DEMO_QUIZ_ID));
-  /** Nur-Demo-Sammlung: Demo-Karte direkt unter der Willkommenszeile, nicht in der Hauptliste. */
+  /** Nur-Demo-Sammlung: Demo-Karte direkt unter der Aktionsleiste, nicht in der Hauptliste. */
   readonly demoQuizWhenLibraryEmpty = computed(() => {
     if (this.hasUserQuizzes()) return null;
     return this.quizzes().find((q) => q.id === DEMO_QUIZ_ID) ?? null;
@@ -219,6 +220,8 @@ export class QuizListComponent implements OnInit {
     return ['de', 'en', 'fr', 'es', 'it'].includes(lang) ? lang : 'de';
   }
   readonly sessionPdfExportQuizId = signal<string | null>(null);
+  readonly syncDetailsOpen = signal(false);
+  private lastSyncChangeFingerprint: string | null = null;
   private readonly descriptionMarkdownCache = new Map<string, SafeHtml>();
   private lastQuizHistoryAvailabilityKey = '';
   private quizHistoryAvailabilityRequestId = 0;
@@ -242,6 +245,20 @@ export class QuizListComponent implements OnInit {
       );
       untracked(() => void this.refreshQuizHistoryAvailability(quizzes, requestKey));
     });
+    effect(() => {
+      const fingerprint = `${this.lastRemoteSyncAt() ?? ''}|${this.lastLocalChangeAt() ?? ''}`;
+      const previous = this.lastSyncChangeFingerprint;
+      this.lastSyncChangeFingerprint = fingerprint;
+      if (previous !== null && previous !== fingerprint) {
+        untracked(() => this.syncDetailsOpen.set(false));
+      }
+    });
+  }
+
+  onSyncDetailsToggle(event: Event): void {
+    const details = event.currentTarget;
+    if (!(details instanceof HTMLDetailsElement)) return;
+    this.syncDetailsOpen.set(details.open);
   }
 
   /** Für i18n-matTooltip: Mindestens eine Frage erforderlich. */
@@ -339,6 +356,19 @@ export class QuizListComponent implements OnInit {
     return `${quizName} · ${timestamp}`;
   }
 
+  syncChangeStatusLine(): string {
+    const remoteMs = this.syncTimestampMs(this.lastRemoteSyncAt());
+    const localMs = this.syncTimestampMs(this.lastLocalChangeAt());
+    if (localMs === null && remoteMs === null) {
+      return $localize`:@@quizList.syncNoRemoteChangesYet:Bisher keine übernommene Änderung`;
+    }
+    if (localMs !== null && (remoteMs === null || localMs > remoteMs)) {
+      const timestamp = this.formatSyncDateTime(this.lastLocalChangeAt());
+      return $localize`:@@quizList.syncLocalChangeStatus:Hier geändert · ${timestamp}:timestamp:`;
+    }
+    return this.lastRemoteSyncSummary();
+  }
+
   lastRemoteChangedDeviceSummary(): string {
     const deviceLabel = this.lastRemoteChangedByDeviceLabel();
     const browserLabel = this.lastRemoteChangedByBrowserLabel();
@@ -369,6 +399,12 @@ export class QuizListComponent implements OnInit {
         return Date.parse(quiz.updatedAt) > Date.parse(latest.updatedAt) ? quiz : latest;
       }, null)?.name ?? null
     );
+  }
+
+  private syncTimestampMs(value: string | null): number | null {
+    if (!value) return null;
+    const ms = Date.parse(value);
+    return Number.isFinite(ms) ? ms : null;
   }
 
   private formatSyncDateTimeOrNull(value: string | null): string | null {
@@ -527,6 +563,39 @@ export class QuizListComponent implements OnInit {
     this.actionError.set(null);
     this.actionInfo.set(null);
     this.actionInfoWarnings.set([]);
+  }
+
+  async unlinkSharedLibrary(): Promise<void> {
+    const dialogRef = this.dialog.open(ConfirmLeaveDialogComponent, {
+      data: {
+        title: $localize`:@@quizList.syncUnlinkTitle:Teilen beenden?`,
+        message: $localize`:@@quizList.syncUnlinkMessage:Die Quiz-Sammlung bleibt auf diesem Gerät. Die Sync-Verknüpfung und der Änderungsstatus werden zurückgesetzt.`,
+        consequences: [
+          $localize`:@@quizList.syncUnlinkConsequencePeers:Andere Geräte behalten ihren letzten Stand, sind aber nicht mehr mit dir verbunden.`,
+          $localize`:@@quizList.syncUnlinkConsequenceNewLink:Ein neuer Klick auf „Sammlung teilen“ startet eine frische Verknüpfung.`,
+        ],
+        confirmLabel: $localize`:@@quizList.syncUnlinkConfirm:Teilen beenden`,
+        cancelLabel: $localize`:@@quizList.syncUnlinkCancel:Abbrechen`,
+      } satisfies ConfirmLeaveDialogData,
+      width: 'min(26rem, calc(100vw - 1.5rem))',
+      maxWidth: '100vw',
+      autoFocus: 'dialog',
+    });
+
+    const confirmed = await firstValueFrom(dialogRef.afterClosed());
+    if (confirmed !== true) return;
+
+    this.quizStore.unlinkSharedLibrary();
+    this.syncDetailsOpen.set(false);
+    this.snackBar.open(
+      $localize`:@@quizList.syncUnlinkSuccess:Teilen beendet. Die Sammlung ist wieder nur auf diesem Gerät aktiv.`,
+      '',
+      {
+        duration: 4500,
+        verticalPosition: 'top',
+        horizontalPosition: 'center',
+      },
+    );
   }
 
   duplicateQuiz(quizId: string): void {

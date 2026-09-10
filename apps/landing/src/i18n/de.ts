@@ -199,7 +199,7 @@ const de: Messages = {
   workflow: {
     eyebrow: 'Für Unterricht, Training und Workshops',
     title: 'In wenigen Minuten von der Idee zur Live-Session',
-    lead: 'Von der Frage bis zur laufenden Session führt der Ablauf bewusst ohne unnötige Zwischenschritte. Genau das macht den Einstieg für Lehrende, Trainer:innen und Moderator:innen schnell und verlässlich.',
+    lead: 'Von der Vorbereitung bis zur laufenden Session führt der Ablauf bewusst ohne unnötige Zwischenschritte. Genau das macht den Einstieg für Lehrende, Trainer:innen und Moderator:innen schnell und verlässlich.',
     stepLabel: 'Schritt',
     steps: [
       {
@@ -210,18 +210,24 @@ const de: Messages = {
       },
       {
         number: '02',
+        title: 'Sammlung teilen',
+        description:
+          'Die Quiz-Sammlung bleibt lokal auf deinem Gerät — wichtig für die DSGVO. Wenn du im Vortragsraum ein fremdes Gerät nutzen musst, holst du sie per Sync-Link statt per USB-Stick. Denselben Link kannst du Kolleg:innen geben, damit ihr die Sammlung gemeinsam nutzen und bearbeiten könnt. Den Link erzeugst du in der Quiz-Sammlung; den empfangenen Link fügst du auf der Startseite ein.',
+      },
+      {
+        number: '03',
         title: 'Session starten',
         description:
           'Ohne Konto loslegen: Session öffnen, Stil wählen, Code oder QR teilen. Optional verbindest du Smartphone oder Tablet und startest die Presenter-Ansicht für den Beamer.',
       },
       {
-        number: '03',
+        number: '04',
         title: 'Live moderieren',
         description:
           'Du gehst frei im Raum und steuerst die laufende Veranstaltung vom Handy. Teilnehmende stimmen ab, stellen Fragen und setzen gemeinsam Prioritäten. Host und Presenter zeigen Quiz, Q&A, Blitzlicht, Wortwolke, Lesephase, Countdown, zweite Runde und Ergebnisse in einem Ablauf.',
       },
       {
-        number: '04',
+        number: '05',
         title: 'Nachbereiten und exportieren',
         description:
           'Nach Session-Ende steht der Ergebnisbericht (PDF) bereit — mit Lernstand, Selbsteinschätzung und vollständigen Fragentexten. In der Quiz-Sammlung findest du Nachbesprechung und PDF für den letzten Durchlauf; CSV für Excel unter „Mehr“.',
@@ -491,6 +497,12 @@ const de: Messages = {
         question: 'Wo liegen die Daten?',
         answer:
           'Quiz-Inhalte bleiben lokal auf deinem Gerät. Für Live-Sessions werden nur die technisch nötigen Sitzungsdaten verarbeitet; bei Betrieb auf eigener Infrastruktur liegt der Betrieb bei dir.',
+      },
+      {
+        question:
+          'Kann ich die Quiz-Sammlung auf einem anderen Gerät oder mit Kolleg:innen nutzen?',
+        answer:
+          'Ja. Die Sammlung liegt bewusst lokal auf deinem Gerät — das schützt Inhalte im Sinne der DSGVO. Wenn du im Vortragsraum ein fremdes Gerät nutzen musst, holst du sie per Sync-Link statt per USB-Stick. Denselben Link kannst du Kolleg:innen geben, damit ihr die Sammlung gemeinsam nutzen und bearbeiten könnt. Den Link erzeugst du in der Quiz-Sammlung; den empfangenen Link fügst du auf der Startseite ein.',
       },
       {
         question: 'Kann ich arsnova.eu selbst hosten?',

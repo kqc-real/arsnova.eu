@@ -145,20 +145,12 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
   /** Nur Preset Spielerisch: Bühne-Intro und Layout-Hinweise im Template. */
   readonly isPlayfulPreset = computed(() => this.themePreset.preset() === 'spielerisch');
   private readonly quizStore = inject(QuizStoreService);
-  /** Sync-Raum-ID für Links zur Quiz-Sync-Seite (z. B. von der Startseite). */
-  readonly syncRoomId = this.quizStore.syncRoomId;
   readonly librarySharingMode = this.quizStore.librarySharingMode;
   readonly syncOriginDeviceLabel = this.quizStore.originDeviceLabel;
   readonly syncOriginBrowserLabel = this.quizStore.originBrowserLabel;
-  readonly syncPeerInfos = this.quizStore.syncPeerInfos;
   readonly currentDeviceLabel = this.quizStore.currentDeviceLabel;
   readonly currentBrowserLabel = this.quizStore.currentBrowserLabel;
   readonly hostSharingOriginSummary = computed(() => {
-    const peer = this.syncPeerInfos()[0] ?? null;
-    if (peer) {
-      return $localize`:@@home.syncOrigin:${peer.browserLabel}:browser: auf ${peer.deviceLabel}:device:`;
-    }
-
     const deviceLabel = this.syncOriginDeviceLabel();
     const browserLabel = this.syncOriginBrowserLabel();
     if (!deviceLabel || !browserLabel) {
@@ -418,10 +410,16 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
 
   @HostListener('document:keydown', ['$event'])
   onDocumentKeydownMotd(e: KeyboardEvent): void {
-    if (!this.motd()) return;
     if (e.key !== 'Escape') return;
-    e.preventDefault();
-    void this.dismissMotdOverlay('DISMISS_CLOSE', e);
+    if (this.motd()) {
+      e.preventDefault();
+      void this.dismissMotdOverlay('DISMISS_CLOSE', e);
+      return;
+    }
+    if (this.syncLinkVisible()) {
+      e.preventDefault();
+      this.closeSyncLinkEntry();
+    }
   }
 
   /** Entfernt Sessions, die nicht mehr besucht werden können (cron gelöscht, beendet). */
@@ -665,18 +663,21 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   toggleSyncLinkEntry(): void {
-    const nextVisible = !this.syncLinkVisible();
-    this.syncLinkVisible.set(nextVisible);
-    this.syncLinkError.set(null);
-    if (!nextVisible) {
-      this.syncLinkValue.set('');
-      this.scheduleTimeout(
-        () => this.syncToggleBtn?.nativeElement.focus({ preventScroll: true }),
-        0,
-      );
+    if (this.syncLinkVisible()) {
+      this.closeSyncLinkEntry();
       return;
     }
+    this.syncLinkVisible.set(true);
+    this.syncLinkError.set(null);
     this.scheduleTimeout(() => this.syncLinkInput?.nativeElement.focus(), 0);
+  }
+
+  closeSyncLinkEntry(): void {
+    if (!this.syncLinkVisible()) return;
+    this.syncLinkVisible.set(false);
+    this.syncLinkError.set(null);
+    this.syncLinkValue.set('');
+    this.scheduleTimeout(() => this.syncToggleBtn?.nativeElement.focus({ preventScroll: true }), 0);
   }
 
   onSyncLinkInput(event: Event): void {
@@ -690,6 +691,14 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
     if (!parsed) {
       this.syncLinkError.set(
         $localize`:@@homeHostCard.syncLinkError:Bitte einen gültigen Sync-Link einfügen.`,
+      );
+      this.syncLinkInput?.nativeElement.focus();
+      return;
+    }
+
+    if (this.isUnchangedOwnSyncLink(parsed.docId, parsed.shareToken)) {
+      this.syncLinkError.set(
+        $localize`:@@homeHostCard.syncLinkOwnError:Das ist dein eigener Sync-Link. Hier fügst du den Link einer anderen Sammlung ein.`,
       );
       this.syncLinkInput?.nativeElement.focus();
       return;
@@ -1245,6 +1254,20 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
     } catch {
       /* optional: still allow dismiss */
     }
+  }
+
+  /** Eigener unveränderter Link: gleiche Sammlung und gleiches bzw. fehlendes Token. */
+  private isUnchangedOwnSyncLink(docId: string, shareToken: string | null): boolean {
+    const current = this.quizStore.syncRoomId().trim();
+    if (!current || current.toLowerCase() !== docId.trim().toLowerCase()) {
+      return false;
+    }
+    const incomingToken = shareToken?.trim() || null;
+    if (!incomingToken) {
+      return true;
+    }
+    const currentToken = this.quizStore.syncShareToken()?.trim() || null;
+    return incomingToken === currentToken;
   }
 
   private extractSyncLink(value: string): { docId: string; shareToken: string | null } | null {

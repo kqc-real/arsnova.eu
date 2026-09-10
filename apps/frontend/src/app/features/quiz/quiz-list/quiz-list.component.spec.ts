@@ -134,6 +134,7 @@ describe('QuizListComponent', () => {
     importQuiz: vi.fn(),
     setLastServerUploadAccess: vi.fn(),
     setLastServerQuizAccessProof: vi.fn(),
+    unlinkSharedLibrary: vi.fn(),
   };
 
   beforeEach(() => {
@@ -179,12 +180,40 @@ describe('QuizListComponent', () => {
     });
   });
 
-  it('zeigt den Empty-State ohne Quizzes', () => {
+  it('startet ohne eigene Quizzes bei der Aktionsleiste statt einem Willkommen-Text', () => {
     const fixture = TestBed.createComponent(QuizListComponent);
     fixture.detectChanges();
 
-    expect(fixture.nativeElement.textContent).toContain('Willkommen!');
-    expect(fixture.nativeElement.textContent).toContain('Neues Quiz erstellen');
+    const text = fixture.nativeElement.textContent as string;
+    expect(text).not.toContain('Willkommen!');
+    expect(text).not.toContain('Du hast noch kein eigenes Quiz');
+    expect(text).not.toContain('Die Demo ist ein Probelauf');
+    expect(text).toContain('Quiz erstellen');
+    expect(text).not.toContain('Neues Quiz erstellen');
+  });
+
+  it('betitelt die Demo-Sektion nur mit Demo-Quiz', () => {
+    quizzesSignal.set([
+      {
+        id: DEMO_QUIZ_ID,
+        name: 'Praxis-Showcase: Team-Quiz',
+        description: 'Showcase',
+        createdAt: '2026-03-08T10:00:00.000Z',
+        updatedAt: '2026-03-08T11:30:00.000Z',
+        questionCount: 3,
+        teamMode: false,
+        hasBonus: false,
+        lastServerQuizId: null,
+        lastServerQuizAccessProof: null,
+      },
+    ]);
+
+    const fixture = TestBed.createComponent(QuizListComponent);
+    fixture.detectChanges();
+
+    const heading = fixture.nativeElement.querySelector('#quiz-demo-heading') as HTMLElement | null;
+    expect(heading?.textContent?.replace(/\s+/g, ' ').trim()).toBe('Demo-Quiz');
+    expect(fixture.nativeElement.textContent).not.toContain('Demo-Quiz ausprobieren');
   });
 
   it('zeigt den Sync-Button in der Sammlung', () => {
@@ -235,6 +264,82 @@ describe('QuizListComponent', () => {
     expect(text).toContain('Kam von');
     expect(text).toContain('iPad · Safari');
     expect(text).toContain('Zuletzt hier geändert');
+    const details = fixture.nativeElement.querySelector(
+      '.quiz-list__sync-status-expander',
+    ) as HTMLDetailsElement;
+    expect(details.open).toBe(false);
+    const statusLine = fixture.nativeElement.querySelector(
+      '.quiz-list__sync-status-summary-meta',
+    ) as HTMLElement;
+    expect(statusLine.textContent).toContain('Datenbanken');
+    expect(text).toContain('Teilen beenden');
+  });
+
+  it('klappt Sync-Details nach einer Änderung zu und zeigt die Statuszeile', () => {
+    mockStore.librarySharingMode.set('shared');
+    mockStore.lastRemoteSyncAt.set('2026-03-16T18:06:00.000Z');
+    mockStore.lastRemoteChangedQuizName.set('Datenbanken');
+    mockStore.lastLocalChangeAt.set('2026-03-16T18:05:00.000Z');
+
+    const fixture = TestBed.createComponent(QuizListComponent);
+    fixture.detectChanges();
+
+    const details = fixture.nativeElement.querySelector(
+      '.quiz-list__sync-status-expander',
+    ) as HTMLDetailsElement;
+    const statusLine = () =>
+      (fixture.nativeElement.querySelector('.quiz-list__sync-status-summary-meta') as HTMLElement)
+        .textContent;
+
+    expect(details.open).toBe(false);
+    expect(statusLine()).toContain('Datenbanken');
+
+    fixture.componentInstance.syncDetailsOpen.set(true);
+    fixture.detectChanges();
+    expect(details.open).toBe(true);
+
+    mockStore.lastLocalChangeAt.set('2026-03-16T18:09:00.000Z');
+    fixture.detectChanges();
+
+    expect(fixture.componentInstance.syncDetailsOpen()).toBe(false);
+    expect(details.open).toBe(false);
+    expect(statusLine()).toContain('Hier geändert');
+    expect(statusLine()).not.toContain('Datenbanken');
+  });
+
+  it('beendet Teilen nach Bestaetigung und setzt die Verknuepfung zurueck', async () => {
+    const { of } = await import('rxjs');
+    mockStore.librarySharingMode.set('shared');
+
+    const fixture = TestBed.createComponent(QuizListComponent);
+    const dialogOpenSpy = vi.spyOn(fixture.componentInstance['dialog'], 'open').mockReturnValue({
+      afterClosed: () => of(true),
+    } as never);
+
+    await fixture.componentInstance.unlinkSharedLibrary();
+
+    expect(dialogOpenSpy).toHaveBeenCalled();
+    expect(mockStore.unlinkSharedLibrary).toHaveBeenCalledTimes(1);
+    expect(snackBarOpenMock).toHaveBeenCalledWith(
+      expect.stringContaining('Teilen beendet'),
+      '',
+      expect.objectContaining({ duration: 4500 }),
+    );
+  });
+
+  it('laesst die geteilte Sammlung unveraendert wenn Teilen beenden abgebrochen wird', async () => {
+    const { of } = await import('rxjs');
+    mockStore.librarySharingMode.set('shared');
+
+    const fixture = TestBed.createComponent(QuizListComponent);
+    vi.spyOn(fixture.componentInstance['dialog'], 'open').mockReturnValue({
+      afterClosed: () => of(false),
+    } as never);
+
+    await fixture.componentInstance.unlinkSharedLibrary();
+
+    expect(mockStore.unlinkSharedLibrary).not.toHaveBeenCalled();
+    expect(snackBarOpenMock).not.toHaveBeenCalled();
   });
 
   it('zeigt bei geteilter Bibliothek ohne weitere Geräte den Status "Bereit"', () => {
@@ -392,6 +497,8 @@ describe('QuizListComponent', () => {
     expect(component.demoSessionResultsPdfUaUrl).toContain(
       `/assets/demo/demo-session-results-30.${demoLocale}-pdfua.pdf`,
     );
+
+    expect(fixture.nativeElement.querySelector('.quiz-list-item__feature-chip--demo')).toBeNull();
 
     const demoPdfTrigger = fixture.nativeElement.querySelector(
       'button.quiz-list-item__demo-pdf',
@@ -1295,6 +1402,10 @@ Viel Erfolg beim Import.`);
     expect(playful).not.toMatch(/quiz-list__ai-card:hover/);
     expect(playful).toMatch(/\.quiz-list-page \.quiz-list__sync-callout/);
     expect(playful).toMatch(/\.quiz-list-page \.quiz-list__lead-demo/);
+    expect(scss).toMatch(
+      /\.quiz-list-item__actions\s*\{[^}]*border-top:\s*1px solid var\(--mat-sys-outline\)/,
+    );
+    expect(scss).toMatch(/\.quiz-list-item__actions\s*\{[^}]*cursor:\s*default/);
     const aiMarkdown = styles.slice(styles.indexOf('.quiz-list__ai-prompt-markdown'));
     expect(aiMarkdown).toMatch(
       /\.quiz-list__ai-prompt-markdown pre\s*\{[\s\S]*?font-size:\s*0\.8125em/,

@@ -1,5 +1,7 @@
 import { signal } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
+import { MatDialog } from '@angular/material/dialog';
+import { MatSnackBar } from '@angular/material/snack-bar';
 import { ActivatedRoute, convertToParamMap, provideRouter, Router } from '@angular/router';
 import { describe, expect, it, beforeEach, afterEach, vi } from 'vitest';
 import { QuizSyncComponent } from './quiz-sync.component';
@@ -19,6 +21,7 @@ describe('QuizSyncComponent', () => {
     activateSyncRoom: vi.fn(),
     buildSyncShareLink: vi.fn((roomId: string) => `${window.location.origin}/quiz/sync/${roomId}`),
     invalidateSyncShareLink: vi.fn(),
+    unlinkSharedLibrary: vi.fn(),
     createSecuredSyncShareLink: vi.fn(),
     syncConnectionState: signal<'connected' | 'connecting' | 'disconnected'>('connected'),
     syncPeerInfos: signal<Array<{ deviceId: string; deviceLabel: string; browserLabel: string }>>(
@@ -62,6 +65,8 @@ describe('QuizSyncComponent', () => {
           },
         },
         { provide: QuizStoreService, useValue: mockStore },
+        { provide: MatDialog, useValue: { open: vi.fn() } },
+        { provide: MatSnackBar, useValue: { open: vi.fn() } },
       ],
     });
   });
@@ -83,6 +88,8 @@ describe('QuizSyncComponent', () => {
     const text = fixture.nativeElement.textContent as string;
     expect(text).toContain('Quiz-Sammlung teilen');
     expect(text).toContain('Sync-Link kopieren');
+    expect(text).toContain('Geteilte Sammlung nutzen');
+    expect(text).not.toContain('Verschick den Link');
     expect(text).toContain('Status:');
     expect(text).toContain('Bereit');
   });
@@ -105,6 +112,8 @@ describe('QuizSyncComponent', () => {
           },
         },
         { provide: QuizStoreService, useValue: mockStore },
+        { provide: MatDialog, useValue: { open: vi.fn() } },
+        { provide: MatSnackBar, useValue: { open: vi.fn() } },
       ],
     });
 
@@ -138,6 +147,8 @@ describe('QuizSyncComponent', () => {
           },
         },
         { provide: QuizStoreService, useValue: mockStore },
+        { provide: MatDialog, useValue: { open: vi.fn() } },
+        { provide: MatSnackBar, useValue: { open: vi.fn() } },
       ],
     });
     const router = TestBed.inject(Router);
@@ -248,5 +259,33 @@ describe('QuizSyncComponent', () => {
     await fixture.whenStable();
 
     expect(mockStore.createSecuredSyncShareLink).toHaveBeenCalledOnce();
+  });
+
+  it('zeigt Teilen beenden in einer geteilten Sammlung', () => {
+    mockStore.librarySharingMode.set('shared');
+    const fixture = TestBed.createComponent(QuizSyncComponent);
+    fixture.detectChanges();
+
+    expect(fixture.nativeElement.textContent).toContain('Teilen beenden');
+  });
+
+  it('unterscheidet Ungueltig-machen und Teilen beenden', () => {
+    mockStore.canInvalidateSyncLink.set(true);
+    mockStore.syncShareToken.set('v1.token');
+    mockStore.syncShareStatus.set('ready');
+    mockStore.librarySharingMode.set('shared');
+    const fixture = TestBed.createComponent(QuizSyncComponent);
+    fixture.detectChanges();
+
+    const root = fixture.nativeElement as HTMLElement;
+    const invalidate = root.querySelector('.quiz-sync__invalidate') as HTMLButtonElement;
+    const unlink = root.querySelector('.quiz-sync__unlink') as HTMLButtonElement;
+    expect(invalidate).toBeTruthy();
+    expect(unlink).toBeTruthy();
+    expect(invalidate.querySelector('mat-icon')?.textContent?.trim()).toBe('link_off');
+    expect(unlink.querySelector('mat-icon')?.textContent?.trim()).toBe('phonelink_off');
+    expect(invalidate.getAttribute('aria-label')).toContain('für niemanden mehr');
+    expect(unlink.getAttribute('aria-label')).toContain('nur auf diesem Gerät');
+    expect(root.textContent).toContain('nur dieses Gerät');
   });
 });

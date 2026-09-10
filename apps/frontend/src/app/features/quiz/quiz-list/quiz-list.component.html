@@ -1,24 +1,13 @@
 <section class="quiz-list-page l-stack l-stack--sm">
-  @if (!hasUserQuizzes()) {
-    <div class="quiz-empty-state quiz-empty-state--lead">
-      <div class="quiz-empty-state__content">
-        <mat-icon class="quiz-empty-state__icon">library_books</mat-icon>
-        <h2 class="quiz-empty-state__text" i18n="@@quizList.emptyWelcome">Willkommen!</h2>
-        <p class="quiz-empty-state__hint" i18n="@@quizList.emptyHint">
-          Du hast noch kein eigenes Quiz. Erstelle eins oder probiere zuerst die Demo aus.
-        </p>
-      </div>
-    </div>
-  }
   <div class="quiz-list__actions">
     <a
       matButton="filled"
       routerLink="new"
       i18n-aria-label="@@quizList.createAria"
-      aria-label="Neues Quiz erstellen"
+      aria-label="Quiz erstellen"
     >
       <mat-icon>add_circle</mat-icon>
-      <span i18n>Neues Quiz erstellen</span>
+      <span i18n="@@quizList.create">Quiz erstellen</span>
     </a>
     <button
       matButton="tonal"
@@ -47,11 +36,8 @@
         <mat-icon aria-hidden="true">school</mat-icon>
         <div>
           <h2 id="quiz-demo-heading" class="quiz-list__demo-title" i18n="@@quizList.demoQuizTry">
-            Demo-Quiz ausprobieren
+            Demo-Quiz
           </h2>
-          <p class="quiz-list__demo-hint" i18n>
-            Die Demo ist ein Probelauf. Für deine Veranstaltung erstelle oben ein eigenes Quiz.
-          </p>
         </div>
       </div>
       <ng-container
@@ -355,7 +341,11 @@
             <span>{{ syncStatusLabel() }}</span>
           </span>
         </div>
-        <details class="quiz-list__sync-status-expander">
+        <details
+          class="quiz-list__sync-status-expander"
+          [open]="syncDetailsOpen()"
+          (toggle)="onSyncDetailsToggle($event)"
+        >
           <summary>
             <span class="quiz-list__sync-status-summary-copy">
               <span
@@ -364,7 +354,7 @@
               >
                 Mehr zur Synchronisierung
               </span>
-              <span class="quiz-list__sync-status-summary-meta">{{ lastRemoteSyncSummary() }}</span>
+              <span class="quiz-list__sync-status-summary-meta">{{ syncChangeStatusLine() }}</span>
             </span>
           </summary>
           <div class="quiz-list__sync-status-panel">
@@ -427,16 +417,31 @@
         </details>
       </div>
     }
-    <a
-      matButton="text"
-      class="quiz-list__sync-cta"
-      [routerLink]="['sync', syncRoomId()]"
-      i18n-aria-label="@@quizList.syncCta"
-      aria-label="Sammlung teilen"
-    >
-      <mat-icon>devices</mat-icon>
-      <span i18n="@@quizList.syncCta">Sammlung teilen</span>
-    </a>
+    <div class="quiz-list__sync-actions">
+      <a
+        matButton="text"
+        class="quiz-list__sync-cta"
+        [routerLink]="['sync', syncRoomId()]"
+        i18n-aria-label="@@quizList.syncCta"
+        aria-label="Sammlung teilen"
+      >
+        <mat-icon>share</mat-icon>
+        <span i18n="@@quizList.syncCta">Sammlung teilen</span>
+      </a>
+      @if (isSharedLibrary()) {
+        <button
+          matButton="text"
+          type="button"
+          class="quiz-list__sync-reset"
+          (click)="unlinkSharedLibrary()"
+          i18n-aria-label="@@quizList.syncUnlinkAria"
+          aria-label="Teilen beenden und wieder nur auf diesem Gerät arbeiten"
+        >
+          <mat-icon>phonelink_off</mat-icon>
+          <span i18n="@@quizList.syncUnlinkCta">Teilen beenden</span>
+        </button>
+      }
+    </div>
   </div>
 
   <ng-template #quizItemCard let-quiz>
@@ -445,15 +450,8 @@
         <div class="quiz-list-item__main">
           <a class="quiz-list-item__link" [routerLink]="quiz.id">
             <h2 class="quiz-list-item__title">{{ quiz.name }}</h2>
-            <div class="quiz-list-item__badges">
-              @if (quiz.id === demoQuizId) {
-                <span
-                  class="quiz-list-item__feature-chip quiz-list-item__feature-chip--demo"
-                  i18n="@@quizList.chipDemo"
-                  >Demo</span
-                >
-              }
-              @if (isQuizLive(quiz.id)) {
+            @if (isQuizLive(quiz.id)) {
+              <div class="quiz-list-item__badges">
                 <span
                   class="quiz-list-item__feature-chip quiz-list-item__feature-chip--live"
                   i18n="@@quizList.chipLive"
@@ -467,8 +465,8 @@
                     {{ formatCount(liveParticipantCount) }} live dabei
                   </span>
                 }
-              }
-            </div>
+              </div>
+            }
             <div class="quiz-list-item__meta">
               <span
                 class="quiz-list-item__badge"
@@ -533,161 +531,157 @@
             </div>
           }
         </div>
+      </mat-card-content>
 
-        <div class="quiz-list-item__actions">
-          <div class="quiz-list-item__actions-secondary">
-            @if (quiz.hasBonus) {
-              <span
-                [matTooltip]="bonusCodesTooltip(quiz)"
-                [matTooltipDisabled]="!bonusCodesTooltip(quiz)"
-              >
-                <button
-                  mat-button
-                  type="button"
-                  [disabled]="!hasAvailableBonusCodes(quiz)"
-                  (click)="openBonusCodesDialog(quiz)"
-                >
-                  <mat-icon>emoji_events</mat-icon>
-                  <span i18n="@@quizList.bonusCodes">Bonus-Codes</span>
-                </button>
-              </span>
-            }
-            <span [matTooltip]="lastSessionReportPdfTooltip(quiz)">
+      <mat-card-actions class="quiz-list-item__actions">
+        <div class="quiz-list-item__actions-secondary">
+          @if (quiz.hasBonus) {
+            <span
+              [matTooltip]="bonusCodesTooltip(quiz)"
+              [matTooltipDisabled]="!bonusCodesTooltip(quiz)"
+            >
               <button
                 mat-button
                 type="button"
-                [disabled]="
-                  !hasAvailableLastSessionAnalysis(quiz) || isSessionPdfExportPending(quiz.id)
-                "
-                [matMenuTriggerFor]="lastSessionPdfMenu"
+                [disabled]="!hasAvailableBonusCodes(quiz)"
+                (click)="openBonusCodesDialog(quiz)"
               >
-                <mat-icon aria-hidden="true">psychology</mat-icon>
-                <span i18n="@@quizList.exportLastSessionPdf">Nachbesprechungsplan ansehen</span>
+                <mat-icon>emoji_events</mat-icon>
+                <span i18n="@@quizList.bonusCodes">Bonus-Codes</span>
+              </button>
+            </span>
+          }
+          <span [matTooltip]="lastSessionReportPdfTooltip(quiz)">
+            <button
+              mat-button
+              type="button"
+              [disabled]="
+                !hasAvailableLastSessionAnalysis(quiz) || isSessionPdfExportPending(quiz.id)
+              "
+              [matMenuTriggerFor]="lastSessionPdfMenu"
+            >
+              <mat-icon aria-hidden="true">psychology</mat-icon>
+              <span i18n="@@quizList.exportLastSessionPdf">Nachbesprechungsplan ansehen</span>
+              <mat-icon aria-hidden="true" class="quiz-list-item__menu-caret">expand_more</mat-icon>
+            </button>
+          </span>
+          <mat-menu #lastSessionPdfMenu="matMenu">
+            <button
+              mat-menu-item
+              type="button"
+              [disabled]="
+                !hasAvailableLastSessionAnalysis(quiz) || isSessionPdfExportPending(quiz.id)
+              "
+              (click)="exportLastSessionPdf(quiz, 'visual')"
+            >
+              <mat-icon aria-hidden="true">bar_chart</mat-icon>
+              <span i18n="@@quizList.exportLastSessionPdfVisual">Standard (mit Diagrammen)</span>
+            </button>
+            <button
+              mat-menu-item
+              type="button"
+              [disabled]="
+                !hasAvailableLastSessionAnalysis(quiz) || isSessionPdfExportPending(quiz.id)
+              "
+              (click)="exportLastSessionPdf(quiz, 'pdfUa')"
+            >
+              <mat-icon aria-hidden="true">accessibility</mat-icon>
+              <span i18n="@@quizList.exportLastSessionPdfUa">Barrierefrei (PDF/UA-1)</span>
+            </button>
+          </mat-menu>
+          @if (quiz.id === demoQuizId) {
+            <span [matTooltip]="demoSessionResultsPdfTooltip">
+              <button
+                mat-button
+                class="quiz-list-item__demo-pdf"
+                type="button"
+                [matMenuTriggerFor]="demoSessionPdfMenu"
+              >
+                <mat-icon aria-hidden="true">description</mat-icon>
+                <span i18n="@@quizList.demoSessionResultsPdf">Beispiel-Nachbesprechungsplan</span>
                 <mat-icon aria-hidden="true" class="quiz-list-item__menu-caret"
                   >expand_more</mat-icon
                 >
               </button>
             </span>
-            <mat-menu #lastSessionPdfMenu="matMenu">
-              <button
+            <mat-menu #demoSessionPdfMenu="matMenu">
+              <a
                 mat-menu-item
-                type="button"
-                [disabled]="
-                  !hasAvailableLastSessionAnalysis(quiz) || isSessionPdfExportPending(quiz.id)
-                "
-                (click)="exportLastSessionPdf(quiz, 'visual')"
+                [href]="demoSessionResultsPdfUrl"
+                target="_blank"
+                rel="noopener noreferrer"
               >
                 <mat-icon aria-hidden="true">bar_chart</mat-icon>
                 <span i18n="@@quizList.exportLastSessionPdfVisual">Standard (mit Diagrammen)</span>
-              </button>
-              <button
+              </a>
+              <a
                 mat-menu-item
-                type="button"
-                [disabled]="
-                  !hasAvailableLastSessionAnalysis(quiz) || isSessionPdfExportPending(quiz.id)
-                "
-                (click)="exportLastSessionPdf(quiz, 'pdfUa')"
+                [href]="demoSessionResultsPdfUaUrl"
+                target="_blank"
+                rel="noopener noreferrer"
               >
                 <mat-icon aria-hidden="true">accessibility</mat-icon>
                 <span i18n="@@quizList.exportLastSessionPdfUa">Barrierefrei (PDF/UA-1)</span>
-              </button>
+              </a>
             </mat-menu>
-            @if (quiz.id === demoQuizId) {
-              <span [matTooltip]="demoSessionResultsPdfTooltip">
-                <button
-                  mat-button
-                  class="quiz-list-item__demo-pdf"
-                  type="button"
-                  [matMenuTriggerFor]="demoSessionPdfMenu"
-                >
-                  <mat-icon aria-hidden="true">description</mat-icon>
-                  <span i18n="@@quizList.demoSessionResultsPdf">Beispiel-Nachbesprechungsplan</span>
-                  <mat-icon aria-hidden="true" class="quiz-list-item__menu-caret"
-                    >expand_more</mat-icon
-                  >
-                </button>
-              </span>
-              <mat-menu #demoSessionPdfMenu="matMenu">
-                <a
-                  mat-menu-item
-                  [href]="demoSessionResultsPdfUrl"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                >
-                  <mat-icon aria-hidden="true">bar_chart</mat-icon>
-                  <span i18n="@@quizList.exportLastSessionPdfVisual"
-                    >Standard (mit Diagrammen)</span
-                  >
-                </a>
-                <a
-                  mat-menu-item
-                  [href]="demoSessionResultsPdfUaUrl"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                >
-                  <mat-icon aria-hidden="true">accessibility</mat-icon>
-                  <span i18n="@@quizList.exportLastSessionPdfUa">Barrierefrei (PDF/UA-1)</span>
-                </a>
-              </mat-menu>
-            }
-            <a
-              mat-button
-              type="button"
-              [routerLink]="[quiz.id, 'preview']"
-              [queryParams]="{ returnTo: 'list' }"
-            >
-              <mat-icon>visibility</mat-icon>
-              <span i18n>Vorschau</span>
-            </a>
-          </div>
-          <div class="quiz-list-item__actions-primary">
-            <button
-              matButton="tonal"
-              type="button"
-              [disabled]="liveStartPending()"
-              [matTooltip]="quiz.questionCount === 0 ? tooltipMinQuestions() : null"
-              (click)="openLiveStartDialog(quiz.id, quiz.name, quiz.questionCount)"
-            >
-              <mat-icon>play_circle</mat-icon>
-              <span i18n="@@quizList.startSession">Starten</span>
-            </button>
-            <button
-              mat-icon-button
-              class="quiz-list-item__menu-trigger"
-              type="button"
-              [disableRipple]="true"
-              [matMenuTriggerFor]="quizMenu"
-              [attr.aria-label]="getQuizActionsAriaLabel(quiz.name)"
-            >
-              <mat-icon>more_vert</mat-icon>
-            </button>
-          </div>
-          <mat-menu #quizMenu="matMenu">
-            <a mat-menu-item [routerLink]="[quiz.id]">
-              <mat-icon>edit</mat-icon>
-              <span i18n="@@quizList.edit">Bearbeiten</span>
-            </a>
-            <button mat-menu-item type="button" (click)="exportQuiz(quiz.id)">
-              <mat-icon>download</mat-icon>
-              <span i18n>Exportieren</span>
-            </button>
-            <button mat-menu-item type="button" (click)="duplicateQuiz(quiz.id)">
-              <mat-icon>content_copy</mat-icon>
-              <span i18n>Duplizieren</span>
-            </button>
-            @if (isQuizLive(quiz.id)) {
-              <button mat-menu-item type="button" disabled [matTooltip]="tooltipDeleteLive()">
-                <mat-icon>delete</mat-icon>
-                <span i18n>Löschen (live)</span>
-              </button>
-            } @else {
-              <button mat-menu-item type="button" (click)="deleteQuiz(quiz.id, quiz.name)">
-                <mat-icon>delete</mat-icon>
-                <span i18n>Löschen</span>
-              </button>
-            }
-          </mat-menu>
+          }
+          <a
+            mat-button
+            type="button"
+            [routerLink]="[quiz.id, 'preview']"
+            [queryParams]="{ returnTo: 'list' }"
+          >
+            <mat-icon>visibility</mat-icon>
+            <span i18n>Vorschau</span>
+          </a>
         </div>
+        <div class="quiz-list-item__actions-primary">
+          <button
+            matButton="tonal"
+            type="button"
+            [disabled]="liveStartPending()"
+            [matTooltip]="quiz.questionCount === 0 ? tooltipMinQuestions() : null"
+            (click)="openLiveStartDialog(quiz.id, quiz.name, quiz.questionCount)"
+          >
+            <mat-icon>play_circle</mat-icon>
+            <span i18n="@@quizList.startSession">Starten</span>
+          </button>
+          <button
+            mat-icon-button
+            class="quiz-list-item__menu-trigger"
+            type="button"
+            [disableRipple]="true"
+            [matMenuTriggerFor]="quizMenu"
+            [attr.aria-label]="getQuizActionsAriaLabel(quiz.name)"
+          >
+            <mat-icon>more_vert</mat-icon>
+          </button>
+        </div>
+        <mat-menu #quizMenu="matMenu">
+          <a mat-menu-item [routerLink]="[quiz.id]">
+            <mat-icon>edit</mat-icon>
+            <span i18n="@@quizList.edit">Bearbeiten</span>
+          </a>
+          <button mat-menu-item type="button" (click)="exportQuiz(quiz.id)">
+            <mat-icon>download</mat-icon>
+            <span i18n>Exportieren</span>
+          </button>
+          <button mat-menu-item type="button" (click)="duplicateQuiz(quiz.id)">
+            <mat-icon>content_copy</mat-icon>
+            <span i18n>Duplizieren</span>
+          </button>
+          @if (isQuizLive(quiz.id)) {
+            <button mat-menu-item type="button" disabled [matTooltip]="tooltipDeleteLive()">
+              <mat-icon>delete</mat-icon>
+              <span i18n>Löschen (live)</span>
+            </button>
+          } @else {
+            <button mat-menu-item type="button" (click)="deleteQuiz(quiz.id, quiz.name)">
+              <mat-icon>delete</mat-icon>
+              <span i18n>Löschen</span>
+            </button>
+          }
+        </mat-menu>
         @if (isSessionPdfExportPending(quiz.id)) {
           <div
             class="quiz-list-item__export-progress"
@@ -702,7 +696,7 @@
             <mat-progress-bar class="quiz-list-item__export-progress-bar" mode="indeterminate" />
           </div>
         }
-      </mat-card-content>
+      </mat-card-actions>
     </mat-card>
   </ng-template>
 </section>

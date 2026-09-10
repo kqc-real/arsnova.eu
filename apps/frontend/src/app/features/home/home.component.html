@@ -1,6 +1,15 @@
 <div class="l-page">
   <div class="home-main" [attr.inert]="motd() ? '' : null">
-    <div class="home-hero-band">
+    @if (syncLinkVisible()) {
+      <button
+        type="button"
+        class="home-sync-backdrop"
+        aria-hidden="true"
+        tabindex="-1"
+        (click)="closeSyncLinkEntry()"
+      ></button>
+    }
+    <div class="home-hero-band" [attr.inert]="syncLinkVisible() ? '' : null">
       <h1 class="home-hero">
         <span class="home-hero-channels">
           <span i18n="@@homeHero.channelQuiz">Quiz</span>
@@ -107,7 +116,12 @@
       </div>
     </div>
 
-    <mat-card appearance="raised" id="participant-entry" class="home-card home-card--stage-main">
+    <mat-card
+      appearance="raised"
+      id="participant-entry"
+      class="home-card home-card--stage-main"
+      [attr.inert]="syncLinkVisible() ? '' : null"
+    >
       <mat-card-header>
         <div class="home-card__heading">
           <span class="home-card__icon-wrap">
@@ -235,6 +249,7 @@
       appearance="raised"
       id="host-quick-feedback"
       class="home-card home-card--feedback home-card--stage-side"
+      [attr.inert]="syncLinkVisible() ? '' : null"
     >
       <mat-card-header>
         <div class="home-card__heading">
@@ -242,7 +257,7 @@
             <mat-icon class="home-card__icon">bolt</mat-icon>
           </span>
           <h2 mat-card-title class="home-card__title" i18n="@@homeFeedbackCard.title">
-            Live mit einem Klick
+            Nur ein Klick
           </h2>
         </div>
       </mat-card-header>
@@ -300,15 +315,17 @@
       </mat-card-content>
     </mat-card>
 
-    <mat-card appearance="raised" class="home-card home-card--create home-card--stage-side">
+    <mat-card
+      appearance="raised"
+      class="home-card home-card--create home-card--stage-side"
+      [class.home-card--sync-open]="syncLinkVisible()"
+    >
       <mat-card-header class="home-card__header-with-action">
         <div class="home-card__heading">
           <span class="home-card__icon-wrap">
             <mat-icon class="home-card__icon">event</mat-icon>
           </span>
-          <h2 mat-card-title class="home-card__title" i18n="@@homeHostCard.title">
-            Quiz vorbereiten
-          </h2>
+          <h2 mat-card-title class="home-card__title" i18n="@@homeHostCard.title">Vorbereiten</h2>
         </div>
         <button
           #syncToggleBtn
@@ -319,16 +336,16 @@
           [attr.aria-expanded]="syncLinkVisible()"
           [attr.aria-controls]="syncLinkVisible() ? 'home-sync-entry' : null"
           i18n-aria-label="@@homeHostCard.syncPanelCta"
-          aria-label="Zwischen Geräten wechseln"
+          aria-label="Geteilte Sammlung nutzen"
           i18n-matTooltip="@@homeHostCard.syncPanelCta"
-          matTooltip="Zwischen Geräten wechseln"
+          matTooltip="Geteilte Sammlung nutzen"
         >
           <mat-icon aria-hidden="true">devices</mat-icon>
         </button>
       </mat-card-header>
 
       <mat-card-actions class="l-stack l-stack--sm">
-        <div class="home-card__cta-stack">
+        <div class="home-card__cta-stack" [attr.inert]="syncLinkVisible() ? '' : null">
           @if (hasHostedQuiz()) {
             <a
               matButton="filled"
@@ -365,7 +382,7 @@
             </a>
           </div>
         </div>
-        <div class="home-card__tertiary">
+        <div class="home-card__tertiary" [attr.inert]="syncLinkVisible() ? '' : null">
           <app-info-landing-link
             class="home-card__info-landing"
             [anchor]="infoLandingWorkflowAnchor"
@@ -374,66 +391,46 @@
           />
         </div>
         @if (syncLinkVisible()) {
-          <div id="home-sync-entry" class="home-sync-entry">
-            <div class="home-sync-entry__block">
-              <p class="home-sync-entry__action-hint" i18n="@@homeHostCard.syncShareHint">
-                Mit anderen teilen oder auf einem zweiten Gerät dieselbe Sammlung nutzen:
-              </p>
-              <div class="home-sync-entry__share">
-                <a
-                  matButton="text"
-                  class="home-sync-entry__share-link"
-                  [routerLink]="localizedCommands(['quiz', 'sync', syncRoomId()])"
-                  i18n-aria-label="@@homeHostCard.syncShareAria"
-                  aria-label="Sync-Link anzeigen"
-                >
-                  <mat-icon class="home-sync-entry__share-icon">share</mat-icon>
-                  <span i18n="@@homeHostCard.syncShareLink">Sync-Link anzeigen</span>
-                </a>
-              </div>
-            </div>
-            <hr class="home-sync-entry__divider" aria-hidden="true" />
-            <div class="home-sync-entry__block">
-              <p class="home-sync-entry__action-hint" i18n="@@homeHostCard.syncOpenHint">
-                Empfangenen Sync-Link hier einfügen:
-              </p>
-              <label
-                class="home-sync-entry__label"
-                for="home-sync-link"
-                i18n="@@homeHostCard.syncLinkLabel"
-                >Sync-Link</label
+          <div id="home-sync-entry" class="home-sync-entry" cdkTrapFocus>
+            <p class="home-sync-entry__action-hint" i18n="@@homeHostCard.syncOpenHint">
+              Füge den Link ein, den du von einem anderen Gerät bekommen hast.
+            </p>
+            <label
+              class="home-sync-entry__label"
+              for="home-sync-link"
+              i18n="@@homeHostCard.syncLinkLabel"
+              >Sync-Link</label
+            >
+            <div class="home-sync-entry__form">
+              <input
+                #syncLinkInput
+                id="home-sync-link"
+                class="home-sync-entry__input"
+                type="url"
+                [value]="syncLinkValue()"
+                (input)="onSyncLinkInput($event)"
+                (keydown.enter)="openSyncLink()"
+                placeholder="sync-room-12345678"
+                i18n-placeholder="@@homeHostCard.syncLinkPlaceholder"
+                autocapitalize="off"
+                autocomplete="off"
+                spellcheck="false"
+                i18n-aria-label="@@homeHostCard.syncLinkInputAria"
+                aria-label="Link einer geteilten Sammlung einfügen"
+              />
+              <button
+                matButton="tonal"
+                type="button"
+                class="home-sync-entry__submit"
+                (click)="openSyncLink()"
+                i18n="@@homeHostCard.syncLinkSubmit"
               >
-              <div class="home-sync-entry__form">
-                <input
-                  #syncLinkInput
-                  id="home-sync-link"
-                  class="home-sync-entry__input"
-                  type="url"
-                  [value]="syncLinkValue()"
-                  (input)="onSyncLinkInput($event)"
-                  (keydown.enter)="openSyncLink()"
-                  placeholder="sync-room-12345678"
-                  i18n-placeholder="@@homeHostCard.syncLinkPlaceholder"
-                  autocapitalize="off"
-                  autocomplete="off"
-                  spellcheck="false"
-                  i18n-aria-label="@@homeHostCard.syncLinkInputAria"
-                  aria-label="Sync-Link einfügen"
-                />
-                <button
-                  matButton="tonal"
-                  type="button"
-                  class="home-sync-entry__submit"
-                  (click)="openSyncLink()"
-                  i18n="@@homeHostCard.syncLinkSubmit"
-                >
-                  Öffnen
-                </button>
-              </div>
-              @if (syncLinkError()) {
-                <p class="home-error" role="alert">{{ syncLinkError() }}</p>
-              }
+                Sammlung nutzen
+              </button>
             </div>
+            @if (syncLinkError()) {
+              <p class="home-error" role="alert">{{ syncLinkError() }}</p>
+            }
           </div>
         }
         @if (showHostSharingHint()) {
@@ -443,7 +440,7 @@
               <span class="home-host-sharing-hint__text">
                 @if (hostSharingOriginSummary(); as originSummary) {
                   <span i18n="@@homeHostCard.syncLinkedHintWithOrigin">
-                    Quizze werden mit {{ originSummary }} geteilt.
+                    Du nutzt die Sammlung von {{ originSummary }}.
                   </span>
                 }
               </span>

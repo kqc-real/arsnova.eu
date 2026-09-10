@@ -100,7 +100,7 @@ Ein Klick erzeugt eine neue Runde, Host-Token und Beitrittslink. Danach wechselt
 
 ### 2.4 Sync-Link für die Quiz-Sammlung
 
-Auf der Startseite kann auch ein **Quiz-Sync-Link** eingefügt werden. Damit lässt sich eine geteilte Quiz-Sammlung direkt auf einem anderen Gerät oder in einem anderen Tab öffnen.
+Auf der Startseite fügst du unter **Geteilte Sammlung nutzen** einen empfangenen Sync-Link ein, um die Sammlung eines anderen Geräts zu nutzen. Den Link selbst erzeugst du in der Quiz-Sammlung über **Sammlung teilen**.
 
 ### 2.5 MOTD und News
 
@@ -243,7 +243,8 @@ Ein großer Teil der Sammlungsfunktion ist die **Yjs-basierte Synchronisierung**
 Umgesetzt sind:
 
 - Sync-Raum-ID
-- Öffnen der Sammlung auf einem zweiten Gerät per Link
+- Sync-Link in der Quiz-Sammlung erzeugen (**Sammlung teilen**)
+- empfangenen Sync-Link auf der Startseite einfügen (**Geteilte Sammlung nutzen**)
 - geteilte Bibliothek statt nur lokalem Zustand
 - IndexedDB-/Browser-Persistenz als lokaler Spiegel
 - Anzeige anderer aktiver Geräte

@@ -296,7 +296,7 @@ describe('HomeComponent', () => {
       expect(hero.textContent).toMatch(/Quiz/);
       expect(hero.querySelector('.home-hero-divider')).not.toBeNull();
       expect(cardTitles).toEqual(
-        expect.arrayContaining(['Mitmachen', 'Live mit einem Klick', 'Quiz vorbereiten']),
+        expect.arrayContaining(['Mitmachen', 'Nur ein Klick', 'Vorbereiten']),
       );
       const headings = Array.from(
         fixture.nativeElement.querySelectorAll('.home-card__heading'),
@@ -1977,7 +1977,7 @@ describe('HomeComponent', () => {
       const btn = header.querySelector('.home-card__sync-btn') as HTMLButtonElement | null;
 
       expect(btn).not.toBeNull();
-      expect(btn?.getAttribute('aria-label')).toBe('Zwischen Geräten wechseln');
+      expect(btn?.getAttribute('aria-label')).toBe('Geteilte Sammlung nutzen');
       expect(header.lastElementChild).toBe(btn);
       expect(fixture.nativeElement.querySelector('.home-card__tertiary-link')).toBeNull();
 
@@ -1986,9 +1986,81 @@ describe('HomeComponent', () => {
 
       expect(fixture.componentInstance.syncLinkVisible()).toBe(true);
       expect(fixture.nativeElement.querySelector('#home-sync-entry')).not.toBeNull();
+      expect(fixture.nativeElement.querySelector('.home-sync-backdrop')).not.toBeNull();
+      expect(
+        fixture.nativeElement
+          .querySelector('.home-card--create')
+          ?.classList.contains('home-card--sync-open'),
+      ).toBe(true);
+      expect(fixture.nativeElement.querySelector('.home-hero-band')?.hasAttribute('inert')).toBe(
+        true,
+      );
+      expect(fixture.nativeElement.querySelector('#participant-entry')?.hasAttribute('inert')).toBe(
+        true,
+      );
+      expect(
+        fixture.nativeElement.querySelector('#host-quick-feedback')?.hasAttribute('inert'),
+      ).toBe(true);
+      expect(
+        fixture.nativeElement.querySelector('.home-card__cta-stack')?.hasAttribute('inert'),
+      ).toBe(true);
+      expect(fixture.nativeElement.querySelectorAll('.cdk-focus-trap-anchor')).toHaveLength(2);
     });
 
-    it('ordnet Teilen- und Oeffnen-Hinweis je zum passenden Widget', () => {
+    it('legt die offene Sync-Karte im Preset Spielerisch ueber den Backdrop', async () => {
+      const { readFileSync } = await import('node:fs');
+      const { fileURLToPath } = await import('node:url');
+      const { dirname, join } = await import('node:path');
+      const scssPath = join(dirname(fileURLToPath(import.meta.url)), 'home.component.scss');
+      const scss = readFileSync(scssPath, 'utf8');
+      const playful = scss.slice(scss.indexOf(':host-context(html.preset-playful)'));
+
+      expect(scss).toMatch(/\.home-sync-backdrop\s*\{[^}]*z-index:\s*1080/);
+      expect(scss).toMatch(/\.home-card\.home-card--sync-open\s*\{[^}]*z-index:\s*1081/);
+      expect(playful).toMatch(
+        /\.home-card\.home-card--stage-side\.home-card--sync-open\s*\{[^}]*z-index:\s*1081/,
+      );
+    });
+
+    it('schliesst das Sync-Panel per Backdrop und legt den Fokus auf das Icon zurueck', () => {
+      const fixture = createHomeFixture();
+      fixture.detectChanges();
+      const btn = fixture.nativeElement.querySelector(
+        '.home-card--create .home-card__sync-btn',
+      ) as HTMLButtonElement;
+
+      btn.click();
+      fixture.detectChanges();
+      expect(fixture.componentInstance.syncLinkVisible()).toBe(true);
+
+      const backdrop = fixture.nativeElement.querySelector(
+        '.home-sync-backdrop',
+      ) as HTMLButtonElement;
+      backdrop.click();
+      fixture.detectChanges();
+      vi.advanceTimersByTime(0);
+
+      expect(fixture.componentInstance.syncLinkVisible()).toBe(false);
+      expect(fixture.nativeElement.querySelector('#home-sync-entry')).toBeNull();
+      expect(document.activeElement).toBe(btn);
+    });
+
+    it('schliesst das Sync-Panel per Escape', () => {
+      const fixture = createHomeFixture();
+      const comp = fixture.componentInstance;
+      fixture.detectChanges();
+
+      comp.toggleSyncLinkEntry();
+      fixture.detectChanges();
+      expect(comp.syncLinkVisible()).toBe(true);
+
+      document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true }));
+      fixture.detectChanges();
+
+      expect(comp.syncLinkVisible()).toBe(false);
+    });
+
+    it('bietet auf der Startseite nur das Nutzen einer geteilten Sammlung', () => {
       const fixture = createHomeFixture();
       const comp = fixture.componentInstance;
 
@@ -1996,9 +2068,11 @@ describe('HomeComponent', () => {
       fixture.detectChanges();
 
       const text = fixture.nativeElement.textContent as string;
-      expect(text).toContain('Mit anderen teilen');
-      expect(text).toContain('Empfangenen Sync-Link hier einfügen');
-      expect(text).toContain('Sync-Link anzeigen');
+      expect(text).toContain('Füge den Link ein, den du von einem anderen Gerät bekommen hast');
+      expect(text).toContain('Sammlung nutzen');
+      expect(text).not.toContain('Sync-Link anzeigen');
+      expect(text).not.toContain('Sammlung teilen');
+      expect(fixture.nativeElement.querySelector('.home-sync-entry__share-link')).toBeNull();
     });
 
     it('aktiviert mit kompletter Sync-URL den Raum und oeffnet die Quiz-Sammlung', async () => {
@@ -2059,6 +2133,48 @@ describe('HomeComponent', () => {
       });
     });
 
+    it('lehnt den eigenen Sync-Link der aktuellen Sammlung ab', async () => {
+      const comp = createHomeComponent();
+      const router = TestBed.inject(Router);
+      const quizStore = TestBed.inject(QuizStoreService);
+      const activateSpy = vi.spyOn(quizStore, 'activateSyncRoom').mockImplementation(() => {});
+      const navSpy = vi.spyOn(router, 'navigate').mockResolvedValue(true);
+      const ownId = quizStore.syncRoomId();
+
+      comp.syncLinkValue.set(`https://arsnova.eu/quiz/sync/${ownId}`);
+      await comp.openSyncLink();
+
+      expect(activateSpy).not.toHaveBeenCalled();
+      expect(navSpy).not.toHaveBeenCalled();
+      expect(comp.syncLinkError()).toBe(
+        'Das ist dein eigener Sync-Link. Hier fügst du den Link einer anderen Sammlung ein.',
+      );
+    });
+
+    it('laesst denselben Raum mit rotiertem Share-Token zu', async () => {
+      const comp = createHomeComponent();
+      const router = TestBed.inject(Router);
+      const quizStore = TestBed.inject(QuizStoreService);
+      const activateSpy = vi.spyOn(quizStore, 'activateSyncRoom').mockImplementation(() => {});
+      const navSpy = vi.spyOn(router, 'navigate').mockResolvedValue(true);
+      const ownId = quizStore.syncRoomId();
+      const currentToken = `v1.${ownId}.1.${'a'.repeat(43)}`;
+      const rotatedToken = `v1.${ownId}.2.${'b'.repeat(43)}`;
+      quizStore.syncShareToken.set(currentToken);
+
+      comp.syncLinkValue.set(`https://arsnova.eu/quiz/sync/${ownId}#s=${rotatedToken}`);
+      await comp.openSyncLink();
+
+      expect(activateSpy).toHaveBeenCalledWith(ownId, {
+        markShared: true,
+        shareToken: rotatedToken,
+      });
+      expect(navSpy).toHaveBeenCalledWith(['quiz'], {
+        queryParams: { syncImported: 1 },
+      });
+      expect(comp.syncLinkError()).toBeNull();
+    });
+
     it('zeigt einen Fehler bei ungueltigem Sync-Link', async () => {
       const comp = createHomeComponent();
       const router = TestBed.inject(Router);
@@ -2101,11 +2217,11 @@ describe('HomeComponent', () => {
         '.home-host-sharing-hint',
       ) as HTMLElement | null;
       expect(hint).not.toBeNull();
-      expect(hint?.textContent).toContain('Quizze werden mit');
+      expect(hint?.textContent).toContain('Du nutzt die Sammlung von');
       expect(hint?.textContent).toContain('Chrome auf Mac');
     });
 
-    it('bevorzugt den verbundenen Peer statt der eigenen Origin im Hinweis', () => {
+    it('zeigt die Origin der geteilten Sammlung, nicht den verbundenen Peer', () => {
       const quizStore = TestBed.inject(QuizStoreService);
       quizStore.librarySharingMode.set('shared');
       quizStore.originDeviceLabel.set('Mac');
@@ -2125,8 +2241,30 @@ describe('HomeComponent', () => {
         '.home-host-sharing-hint',
       ) as HTMLElement | null;
       expect(hint).not.toBeNull();
-      expect(hint?.textContent).toContain('Chrome auf Mac');
-      expect(hint?.textContent).not.toContain('Firefox auf Mac');
+      expect(hint?.textContent).toContain('Firefox auf Mac');
+      expect(hint?.textContent).not.toContain('Chrome auf Mac');
+    });
+
+    it('zeigt auf dem Origin-Geraet keinen Nutzen-Hinweis, auch wenn Peers verbunden sind', () => {
+      const quizStore = TestBed.inject(QuizStoreService);
+      quizStore.librarySharingMode.set('shared');
+      quizStore.originDeviceLabel.set(quizStore.currentDeviceLabel());
+      quizStore.originBrowserLabel.set(quizStore.currentBrowserLabel());
+      quizStore.syncPeerInfos.set([
+        {
+          deviceId: 'peer-device',
+          deviceLabel: 'iPhone',
+          browserLabel: 'Safari',
+        },
+      ]);
+
+      const fixture = createHomeFixture();
+      fixture.detectChanges();
+
+      const hint = fixture.nativeElement.querySelector(
+        '.home-host-sharing-hint',
+      ) as HTMLElement | null;
+      expect(hint).toBeNull();
     });
 
     it('zeigt nie das eigene Gerät als Gegenstelle im Hinweis', () => {

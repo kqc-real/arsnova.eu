@@ -26,13 +26,13 @@ const w = t.workflow;
       <p class="mt-4 text-lg text-landing-fg-muted">{w.lead}</p>
     </div>
 
-    <ol class="mt-12 grid gap-6 sm:grid-cols-2 xl:grid-cols-4">
+    <ol class="mt-12 grid gap-6 sm:grid-cols-2 xl:grid-cols-3">
       {w.steps.map((step) => (
         <li class="landing-card p-6 shadow-landing-1">
           <div class="flex items-center justify-between gap-4">
             <span class="flex items-center gap-3">
               <span class="font-display text-4xl font-bold tracking-tight text-landing-fg">{step.number}</span>
-              {(step.number === '02' || step.number === '03') && (
+              {(step.number === '03' || step.number === '04') && (
                 <PresenterIcon class="h-8 w-8 text-landing-primary" />
               )}
             </span>

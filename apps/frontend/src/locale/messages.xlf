@@ -379,14 +379,14 @@
         </context-group>
       </trans-unit>
       <trans-unit id="seo.titleQuizSync" datatype="html">
-        <source>Quiz-Bibliothek teilen – arsnova.eu</source>
+        <source>Quiz-Sammlung teilen – arsnova.eu</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/core/seo-route-meta.ts</context>
           <context context-type="linenumber">108</context>
         </context-group>
       </trans-unit>
       <trans-unit id="seo.descQuizSync" datatype="html">
-        <source>Bibliothek zwischen Geräten synchronisieren – gemeinsame Sync-ID und geteilter Zugriff.</source>
+        <source>Sammlung zwischen Geräten synchronisieren – den Link auf der Startseite einfügen.</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/core/seo-route-meta.ts</context>
           <context context-type="linenumber">112</context>
@@ -6405,8 +6405,8 @@
           <context context-type="linenumber">754,757</context>
         </context-group>
       </trans-unit>
-      <trans-unit id="7656929751445617164" datatype="html">
-        <source>Session beenden</source>
+      <trans-unit id="feedback.endStandaloneAction" datatype="html">
+        <source>Blitzlicht beenden</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/feedback/feedback-host.component.html</context>
           <context context-type="linenumber">878</context>
@@ -7511,24 +7511,31 @@
         </context-group>
       </trans-unit>
       <trans-unit id="help.hostPulseBody" datatype="html">
-        <source> Starte ein Blitzlicht aus der Live-Session oder über „Live mit einem Klick“ auf der Startseite. Du kannst die Abstimmung pausieren, fortsetzen, zurücksetzen oder als neue Runde starten. Beim Tempo-Feedback ändern Teilnehmende ihre Rückmeldung jederzeit; du siehst nur die aggregierte Tendenz. </source>
+        <source> Starte ein Blitzlicht aus der Live-Session oder über „Nur ein Klick“ auf der Startseite. Du kannst die Abstimmung pausieren, fortsetzen, zurücksetzen oder als neue Runde starten. Beim Tempo-Feedback ändern Teilnehmende ihre Rückmeldung jederzeit; du siehst nur die aggregierte Tendenz. </source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/help/help.component.html</context>
           <context context-type="linenumber">245,250</context>
         </context-group>
       </trans-unit>
       <trans-unit id="help.hostLibraryTitle" datatype="html">
-        <source>Quiz-Sammlung und Einstellungen verwalten</source>
+        <source>Quiz-Sammlung teilen und verwalten</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/help/help.component.html</context>
           <context context-type="linenumber">257</context>
         </context-group>
       </trans-unit>
       <trans-unit id="help.hostLibraryBody" datatype="html">
-        <source> In der Quiz-Sammlung bearbeitest und sortierst du Fragen, prüfst die Vorschau und importierst oder exportierst Quizze als JSON. Über den Sync-Link kannst du die Sammlung teilen oder auf einem anderen Gerät fortsetzen. KI-Vorlagen unterstützen dich beim Erstellen und Prüfen von Quizzen, ohne dass Inhalte an arsnova.eu gesendet werden. Beim Session-Start konfigurierst du unter anderem Stil, Rangliste, Sound, Teams, Nicknamen, Timer und Bonus-Codes. </source>
+        <source> In der Quiz-Sammlung bearbeitest und sortierst du Fragen, prüfst die Vorschau und importierst oder exportierst Quizze als JSON. Über „Sammlung teilen“ erzeugst du einen Sync-Link, mit dem andere Geräte dieselbe Sammlung nutzen können. Mit „Teilen beenden“ setzt du eine ausprobierte Freigabe zurück; deine Quizzes bleiben auf diesem Gerät. Auf der Startseite fügst du unter „Geteilte Sammlung nutzen“ einen empfangenen Link ein. KI-Vorlagen unterstützen dich beim Erstellen und Prüfen von Quizzen, ohne dass Inhalte an arsnova.eu gesendet werden. Beim Session-Start konfigurierst du unter anderem Stil, Rangliste, Sound, Teams, Nicknamen, Timer und Bonus-Codes. </source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/help/help.component.html</context>
           <context context-type="linenumber">261,268</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="help.hostLibraryWhy" datatype="html">
+        <source> Die Quiz-Sammlung bleibt bewusst lokal auf deinem Gerät — das schützt Inhalte im Sinne der DSGVO. Wenn du im Vortragsraum ein fremdes Gerät nutzen musst, holst du sie per Sync-Link statt per USB-Stick. Denselben Link kannst du Kolleg:innen geben, damit ihr die Sammlung gemeinsam nutzen und bearbeiten könnt. </source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/help/help.component.html</context>
+          <context context-type="linenumber">309,313</context>
         </context-group>
       </trans-unit>
       <trans-unit id="help.participantJoinTitle" datatype="html">
@@ -7917,21 +7924,21 @@
         </context-group>
       </trans-unit>
       <trans-unit id="homeFeedbackCard.title" datatype="html">
-        <source> Live mit einem Klick </source>
+        <source> Nur ein Klick </source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/home/home.component.html</context>
           <context context-type="linenumber">244,246</context>
         </context-group>
       </trans-unit>
       <trans-unit id="homeHostCard.title" datatype="html">
-        <source> Quiz vorbereiten </source>
+        <source> Vorbereiten </source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/home/home.component.html</context>
           <context context-type="linenumber">309,311</context>
         </context-group>
       </trans-unit>
       <trans-unit id="homeHostCard.syncPanelCta" datatype="html">
-        <source>Zwischen Geräten wechseln</source>
+        <source>Geteilte Sammlung nutzen</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/home/home.component.html</context>
           <context context-type="linenumber">322</context>
@@ -7962,29 +7969,8 @@
           <context context-type="linenumber">364</context>
         </context-group>
       </trans-unit>
-      <trans-unit id="homeHostCard.syncShareHint" datatype="html">
-        <source> Mit anderen teilen oder auf einem zweiten Gerät dieselbe Sammlung nutzen: </source>
-        <context-group purpose="location">
-          <context context-type="sourcefile">src/app/features/home/home.component.html</context>
-          <context context-type="linenumber">379,381</context>
-        </context-group>
-      </trans-unit>
-      <trans-unit id="homeHostCard.syncShareAria" datatype="html">
-        <source>Sync-Link anzeigen</source>
-        <context-group purpose="location">
-          <context context-type="sourcefile">src/app/features/home/home.component.html</context>
-          <context context-type="linenumber">388</context>
-        </context-group>
-      </trans-unit>
-      <trans-unit id="homeHostCard.syncShareLink" datatype="html">
-        <source>Sync-Link anzeigen</source>
-        <context-group purpose="location">
-          <context context-type="sourcefile">src/app/features/home/home.component.html</context>
-          <context context-type="linenumber">391</context>
-        </context-group>
-      </trans-unit>
       <trans-unit id="homeHostCard.syncOpenHint" datatype="html">
-        <source> Empfangenen Sync-Link hier einfügen: </source>
+        <source> Füge den Link ein, den du von einem anderen Gerät bekommen hast. </source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/home/home.component.html</context>
           <context context-type="linenumber">397,399</context>
@@ -8005,21 +7991,21 @@
         </context-group>
       </trans-unit>
       <trans-unit id="homeHostCard.syncLinkInputAria" datatype="html">
-        <source>Sync-Link einfügen</source>
+        <source>Link einer geteilten Sammlung einfügen</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/home/home.component.html</context>
           <context context-type="linenumber">421</context>
         </context-group>
       </trans-unit>
       <trans-unit id="homeHostCard.syncLinkSubmit" datatype="html">
-        <source> Öffnen </source>
+        <source> Sammlung nutzen </source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/home/home.component.html</context>
           <context context-type="linenumber">429,431</context>
         </context-group>
       </trans-unit>
       <trans-unit id="homeHostCard.syncLinkedHintWithOrigin" datatype="html">
-        <source> Quizze werden mit <x id="INTERPOLATION" equiv-text="{{ originSummary }}"/> geteilt. </source>
+        <source> Du nutzt die Sammlung von <x id="INTERPOLATION" equiv-text="{{ originSummary }}"/>. </source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/home/home.component.html</context>
           <context context-type="linenumber">445,447</context>
@@ -8209,6 +8195,9 @@
           <context context-type="sourcefile">src/app/features/home/home.component.ts</context>
           <context context-type="linenumber">635</context>
         </context-group>
+      </trans-unit>
+      <trans-unit id="homeHostCard.syncLinkOwnError" datatype="html">
+        <source>Das ist dein eigener Sync-Link. Hier fügst du den Link einer anderen Sammlung ein.</source>
       </trans-unit>
       <trans-unit id="homeHostCard.syncLinkError" datatype="html">
         <source>Bitte einen gültigen Sync-Link einfügen.</source>
@@ -12820,13 +12809,6 @@
           <context context-type="linenumber">23,26</context>
         </context-group>
       </trans-unit>
-      <trans-unit id="quizList.bonusCodesDialogPrivacyHint" datatype="html">
-        <source> Bitte nur privat einsehen – nicht im Hörsaal oder bei Zuschauer:innen sichtbar machen. </source>
-        <context-group purpose="location">
-          <context context-type="sourcefile">src/app/features/quiz/quiz-list/bonus-codes-dialog.component.html</context>
-          <context context-type="linenumber">32,34</context>
-        </context-group>
-      </trans-unit>
       <trans-unit id="quizList.bonusCodesVerifyHeading" datatype="html">
         <source> Bonus-Code prüfen </source>
         <context-group purpose="location">
@@ -12988,29 +12970,15 @@
           <context context-type="linenumber">215</context>
         </context-group>
       </trans-unit>
-      <trans-unit id="quizList.emptyWelcome" datatype="html">
-        <source>Willkommen!</source>
-        <context-group purpose="location">
-          <context context-type="sourcefile">src/app/features/quiz/quiz-list/quiz-list.component.html</context>
-          <context context-type="linenumber">6</context>
-        </context-group>
-      </trans-unit>
-      <trans-unit id="quizList.emptyHint" datatype="html">
-        <source> Du hast noch kein eigenes Quiz. Erstelle eins oder probiere zuerst die Demo aus. </source>
-        <context-group purpose="location">
-          <context context-type="sourcefile">src/app/features/quiz/quiz-list/quiz-list.component.html</context>
-          <context context-type="linenumber">7,9</context>
-        </context-group>
-      </trans-unit>
       <trans-unit id="quizList.createAria" datatype="html">
-        <source>Neues Quiz erstellen</source>
+        <source>Quiz erstellen</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/quiz/quiz-list/quiz-list.component.html</context>
           <context context-type="linenumber">18</context>
         </context-group>
       </trans-unit>
-      <trans-unit id="1571519885027613921" datatype="html">
-        <source>Neues Quiz erstellen</source>
+      <trans-unit id="quizList.create" datatype="html">
+        <source>Quiz erstellen</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/quiz/quiz-list/quiz-list.component.html</context>
           <context context-type="linenumber">21</context>
@@ -13035,17 +13003,10 @@
         </context-group>
       </trans-unit>
       <trans-unit id="quizList.demoQuizTry" datatype="html">
-        <source> Demo-Quiz ausprobieren </source>
+        <source> Demo-Quiz </source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/quiz/quiz-list/quiz-list.component.html</context>
           <context context-type="linenumber">49,51</context>
-        </context-group>
-      </trans-unit>
-      <trans-unit id="4508779711899061183" datatype="html">
-        <source> Die Demo ist ein Probelauf. Für deine Veranstaltung erstelle oben ein eigenes Quiz. </source>
-        <context-group purpose="location">
-          <context context-type="sourcefile">src/app/features/quiz/quiz-list/quiz-list.component.html</context>
-          <context context-type="linenumber">52,54</context>
         </context-group>
       </trans-unit>
       <trans-unit id="quizList.importSkippedWarningsTitle" datatype="html">
@@ -13315,12 +13276,32 @@
           <context context-type="linenumber">438</context>
         </context-group>
       </trans-unit>
-      <trans-unit id="quizList.chipDemo" datatype="html">
-        <source>Demo</source>
-        <context-group purpose="location">
-          <context context-type="sourcefile">src/app/features/quiz/quiz-list/quiz-list.component.html</context>
-          <context context-type="linenumber">453</context>
-        </context-group>
+      <trans-unit id="quizList.syncUnlinkAria" datatype="html">
+        <source>Teilen beenden und wieder nur auf diesem Gerät arbeiten</source>
+      </trans-unit>
+      <trans-unit id="quizList.syncUnlinkCta" datatype="html">
+        <source>Teilen beenden</source>
+      </trans-unit>
+      <trans-unit id="quizList.syncUnlinkTitle" datatype="html">
+        <source>Teilen beenden?</source>
+      </trans-unit>
+      <trans-unit id="quizList.syncUnlinkMessage" datatype="html">
+        <source>Die Quiz-Sammlung bleibt auf diesem Gerät. Die Sync-Verknüpfung und der Änderungsstatus werden zurückgesetzt.</source>
+      </trans-unit>
+      <trans-unit id="quizList.syncUnlinkConsequencePeers" datatype="html">
+        <source>Andere Geräte behalten ihren letzten Stand, sind aber nicht mehr mit dir verbunden.</source>
+      </trans-unit>
+      <trans-unit id="quizList.syncUnlinkConsequenceNewLink" datatype="html">
+        <source>Ein neuer Klick auf „Sammlung teilen“ startet eine frische Verknüpfung.</source>
+      </trans-unit>
+      <trans-unit id="quizList.syncUnlinkConfirm" datatype="html">
+        <source>Teilen beenden</source>
+      </trans-unit>
+      <trans-unit id="quizList.syncUnlinkCancel" datatype="html">
+        <source>Abbrechen</source>
+      </trans-unit>
+      <trans-unit id="quizList.syncUnlinkSuccess" datatype="html">
+        <source>Teilen beendet. Die Sammlung ist wieder nur auf diesem Gerät aktiv.</source>
       </trans-unit>
       <trans-unit id="quizList.chipLive" datatype="html">
         <source>Live</source>
@@ -13614,6 +13595,13 @@
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/quiz/quiz-list/quiz-list.component.ts</context>
           <context context-type="linenumber">336</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="quizList.syncLocalChangeStatus" datatype="html">
+        <source>Hier geändert · <x id="timestamp" equiv-text="timestamp"/></source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/quiz/quiz-list/quiz-list.component.ts</context>
+          <context context-type="linenumber">349</context>
         </context-group>
       </trans-unit>
       <trans-unit id="quizList.syncDeviceUnknown" datatype="html">
@@ -14206,7 +14194,7 @@
         </context-group>
       </trans-unit>
       <trans-unit id="quizSync.intro" datatype="html">
-        <source> Verschick den Link – damit können andere dieselbe Sammlung auf ihrem Gerät öffnen. </source>
+        <source> Kopiere den Sync-Link. Auf dem anderen Gerät fügst du ihn auf der Startseite unter „Geteilte Sammlung nutzen“ ein. </source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/quiz/quiz-sync/quiz-sync.component.html</context>
           <context context-type="linenumber">11,13</context>
@@ -14225,6 +14213,9 @@
           <context context-type="sourcefile">src/app/features/quiz/quiz-sync/quiz-sync.component.html</context>
           <context context-type="linenumber">34</context>
         </context-group>
+      </trans-unit>
+      <trans-unit id="quizSync.invalidateAria" datatype="html">
+        <source>Sync-Link ungültig machen — danach gilt er für niemanden mehr</source>
       </trans-unit>
       <trans-unit id="quizSync.secureLink" datatype="html">
         <source>Neuen abgesicherten Sync-Link erstellen</source>
@@ -14248,7 +14239,7 @@
         </context-group>
       </trans-unit>
       <trans-unit id="quizSync.securityHint" datatype="html">
-        <source> Wer den Sync-Link hat, kann die Sammlung lesen und ändern. Mit „ungültig machen“ stirbt der alte Link; bereits geöffnete Geräte arbeiten lokal weiter, bis sie den neuen Link importieren. </source>
+        <source> Wer den Sync-Link hat, kann die Sammlung lesen und ändern. „Ungültig machen“ lässt den Link für alle sterben; bereits geöffnete Geräte arbeiten lokal weiter, bis sie einen neuen Link einfügen. „Teilen beenden“ löst nur dieses Gerät — der Link bleibt gültig. </source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/quiz/quiz-sync/quiz-sync.component.html</context>
           <context context-type="linenumber">63,66</context>

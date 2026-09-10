@@ -3,8 +3,15 @@ import { Component, computed, effect, inject, signal } from '@angular/core';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { MatButton } from '@angular/material/button';
 import { MatCard, MatCardContent } from '@angular/material/card';
+import { MatDialog } from '@angular/material/dialog';
 import { MatIcon } from '@angular/material/icon';
+import { MatSnackBar } from '@angular/material/snack-bar';
+import { firstValueFrom } from 'rxjs';
 import { localizePath } from '../../../core/locale-router';
+import {
+  ConfirmLeaveDialogComponent,
+  type ConfirmLeaveDialogData,
+} from '../../../shared/confirm-leave-dialog/confirm-leave-dialog.component';
 import { QuizStoreService } from '../data/quiz-store.service';
 
 /**
@@ -24,6 +31,9 @@ export class QuizSyncComponent {
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
   private readonly quizStore = inject(QuizStoreService);
+  private readonly dialog = inject(MatDialog);
+  private readonly snackBar = inject(MatSnackBar);
+  readonly isSharedLibrary = computed(() => this.quizStore.librarySharingMode() === 'shared');
 
   readonly docId = this.route.snapshot.paramMap.get('docId') ?? '';
   readonly syncConnectionState = this.quizStore.syncConnectionState;
@@ -133,6 +143,39 @@ export class QuizSyncComponent {
     } finally {
       this.invalidatePending.set(false);
     }
+  }
+
+  async unlinkSharedLibrary(): Promise<void> {
+    const dialogRef = this.dialog.open(ConfirmLeaveDialogComponent, {
+      data: {
+        title: $localize`:@@quizList.syncUnlinkTitle:Teilen beenden?`,
+        message: $localize`:@@quizList.syncUnlinkMessage:Die Quiz-Sammlung bleibt auf diesem Gerät. Die Sync-Verknüpfung und der Änderungsstatus werden zurückgesetzt.`,
+        consequences: [
+          $localize`:@@quizList.syncUnlinkConsequencePeers:Andere Geräte behalten ihren letzten Stand, sind aber nicht mehr mit dir verbunden.`,
+          $localize`:@@quizList.syncUnlinkConsequenceNewLink:Ein neuer Klick auf „Sammlung teilen“ startet eine frische Verknüpfung.`,
+        ],
+        confirmLabel: $localize`:@@quizList.syncUnlinkConfirm:Teilen beenden`,
+        cancelLabel: $localize`:@@quizList.syncUnlinkCancel:Abbrechen`,
+      } satisfies ConfirmLeaveDialogData,
+      width: 'min(26rem, calc(100vw - 1.5rem))',
+      maxWidth: '100vw',
+      autoFocus: 'dialog',
+    });
+
+    const confirmed = await firstValueFrom(dialogRef.afterClosed());
+    if (confirmed !== true) return;
+
+    this.quizStore.unlinkSharedLibrary();
+    this.snackBar.open(
+      $localize`:@@quizList.syncUnlinkSuccess:Teilen beendet. Die Sammlung ist wieder nur auf diesem Gerät aktiv.`,
+      '',
+      {
+        duration: 4500,
+        verticalPosition: 'top',
+        horizontalPosition: 'center',
+      },
+    );
+    await this.router.navigateByUrl(localizePath('/quiz'));
   }
 
   async createSecuredSyncLink(): Promise<void> {

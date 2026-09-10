@@ -147,28 +147,6 @@
 }
 
 html.preset-playful {
-  .quiz-list-page > .quiz-empty-state--lead {
-    border-radius: var(--mat-sys-corner-extra-large);
-    border: 1px solid
-      color-mix(in srgb, var(--mat-sys-outline-variant) 48%, var(--mat-sys-primary) 28%);
-    background:
-      radial-gradient(
-        ellipse 92% 70% at 88% 8%,
-        color-mix(in srgb, var(--mat-sys-primary) 14%, transparent),
-        transparent 55%
-      ),
-      linear-gradient(
-        168deg,
-        color-mix(in srgb, var(--mat-sys-primary-container) 30%, var(--mat-sys-surface)) 0%,
-        color-mix(in srgb, var(--mat-sys-surface-container-high) 90%, var(--mat-sys-tertiary) 8%)
-          100%
-      );
-    box-shadow:
-      var(--mat-sys-level1),
-      0 6px 22px -10px color-mix(in srgb, var(--mat-sys-primary) 18%, transparent),
-      inset 0 0 0 1px color-mix(in srgb, var(--mat-sys-primary) 6%, transparent);
-  }
-
   .quiz-list-page .quiz-list__lead-demo,
   .quiz-list-page .quiz-list__sync-callout {
     @include app-playful-inner-panel-muted;

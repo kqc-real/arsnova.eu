@@ -20,17 +20,6 @@
   padding-inline: 0.125rem;
 }
 
-.bonus-codes-dialog__hint-box {
-  margin: 0 0 1.75rem;
-  padding: 1rem 1.125rem 1.125rem;
-  border-radius: var(--mat-sys-corner-large, 1rem);
-  background: var(--mat-sys-surface-container-low);
-  border: 1px solid color-mix(in srgb, var(--mat-sys-outline-variant) 80%, transparent);
-  font: var(--mat-sys-body-large);
-  line-height: 1.55;
-  color: var(--mat-sys-on-surface-variant);
-}
-
 .bonus-codes-dialog__verify {
   margin: 0 0 1.5rem;
   padding: 0.95rem 1rem 1rem;

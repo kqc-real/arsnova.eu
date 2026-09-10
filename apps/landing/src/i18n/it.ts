@@ -205,7 +205,7 @@ const it: Messages = {
   workflow: {
     eyebrow: 'Per didattica, formazione e workshop',
     title: 'Dall’idea alla sessione in diretta in pochi minuti',
-    lead: 'Dalla domanda alla sessione in corso, il percorso evita di proposito passaggi inutili. È questo che rende l’avvio rapido e affidabile per docenti, formatori e moderatori.',
+    lead: 'Dalla preparazione alla sessione in corso, il percorso evita di proposito passaggi inutili. È questo che rende l’avvio rapido e affidabile per docenti, formatori e moderatori.',
     stepLabel: 'Passo',
     steps: [
       {
@@ -216,18 +216,24 @@ const it: Messages = {
       },
       {
         number: '02',
+        title: 'Condividi la raccolta',
+        description:
+          'La raccolta quiz resta sul tuo dispositivo — importante per il GDPR. Se in aula devi usare un dispositivo di altri, la recuperi con un link di sync invece che con una chiavetta USB. Puoi dare lo stesso link a colleghi e colleghe per usare e modificare la raccolta insieme. Crei il link nella raccolta quiz; incolli il link ricevuto nella pagina iniziale.',
+      },
+      {
+        number: '03',
         title: 'Avvia una sessione',
         description:
           'Parti senza account: apri una sessione, scegli uno stile, condividi codice o QR. In alternativa collega un telefono o un tablet e apri la vista presentatore per il proiettore.',
       },
       {
-        number: '03',
+        number: '04',
         title: 'Modera in diretta',
         description:
           'Ti muovi in sala e conduci la sessione in diretta dal telefono. I partecipanti votano, pongono domande e definiscono insieme le priorità. Chi conduce e il presentatore mostrano il quiz, la bacheca delle domande, il Sondaggio rapido, la nuvola di parole, la fase di lettura, il conto alla rovescia, il secondo turno e i risultati in un unico percorso.',
       },
       {
-        number: '04',
+        number: '05',
         title: 'Analisi successiva ed esportazione',
         description:
           'A fine sessione il rapporto dei risultati (PDF) è pronto — con stato di apprendimento, autovalutazione e testi completi delle domande. Nella raccolta quiz trovi discussione dei risultati e PDF dell’ultima esecuzione; CSV per Excel sotto «Altro».',
@@ -496,6 +502,11 @@ const it: Messages = {
         question: 'Dove sono i dati?',
         answer:
           'I contenuti del quiz restano sul tuo dispositivo. Per le sessioni in diretta vengono elaborati solo i dati di sessione tecnicamente necessari; con gestione sulla propria infrastruttura il controllo resta a te.',
+      },
+      {
+        question: 'Posso usare la raccolta quiz su un altro dispositivo o con colleghi e colleghe?',
+        answer:
+          'Sì. La raccolta resta volutamente sul tuo dispositivo — importante per il GDPR. Se in aula devi usare un dispositivo di altri, la recuperi con un link di sync invece che con una chiavetta USB. Puoi dare lo stesso link a colleghi e colleghe per usare e modificare la raccolta insieme. Crei il link nella raccolta quiz; incolli il link ricevuto nella pagina iniziale.',
       },
       {
         question: 'Posso eseguire arsnova.eu sulla mia infrastruttura?',
