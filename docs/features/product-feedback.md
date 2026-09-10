@@ -1,6 +1,6 @@
 # ProductFeedback (Stories 12.1–12.4)
 
-> **Status:** In Produkt umgesetzt (Epic 12: 12.1 Post-Session [#358](https://github.com/kqc-real/arsnova.eu/pull/358), 12.2 In-App + Admin-Triage [#361](https://github.com/kqc-real/arsnova.eu/pull/361), 12.3 LLM-Export und 12.4 Massenlöschung [#365](https://github.com/kqc-real/arsnova.eu/pull/365)).
+> **Status:** **12.1–12.4** sind implementiert und am **2026-09-10 manuell abgenommen** (12.1 Post-Session [#358](https://github.com/kqc-real/arsnova.eu/pull/358), 12.2 In-App + Admin-Triage [#361](https://github.com/kqc-real/arsnova.eu/pull/361), 12.3 LLM-Export und 12.4 Massenlöschung [#365](https://github.com/kqc-real/arsnova.eu/pull/365)). Epic 12 ist damit vollständig abgenommen.
 > **Abgleich mit Code:** `apps/backend` (`productFeedback`, `admin.productFeedback`), `apps/frontend/src/app/features/product-feedback/`, Admin-Tab unter `/admin`.
 
 Domäne `ProductFeedback` ist strikt getrennt von SessionFeedback (4.8) und
@@ -195,5 +195,13 @@ lädt `env_file` nicht neu). Details: `docs/ENVIRONMENT.md`,
 - Datenschutz: `apps/frontend/src/assets/legal/privacy.*.md`
 - Admin: `docs/implementation/ADMIN-FLOW.md`
 - Routen: `docs/ROUTES_AND_STORIES.md`
+- Diagramme: `docs/diagrams/diagrams.md` (§3.4 ER, §5.2 Session-Ende, §5b.3 Admin)
 - Glossar: `docs/GLOSSAR.md`
 - Umgebung: `docs/ENVIRONMENT.md`
+
+## Änderung
+
+| Datum      | Änderung                                                                                              |
+| ---------- | ----------------------------------------------------------------------------------------------------- |
+| 2026-09-10 | Stories **12.1–12.4** manuell abgenommen und in den Statusübersichten als implementiert dokumentiert. |
+| 2026-09-10 | Mermaid-Diagramme: Router-Kanten, ProductFeedback-ER, Session-Ende und Admin-Ablauf nachgezogen.      |

@@ -4,6 +4,8 @@
 > **Architektur-Entscheidungen:** [ADR-0006: Rollen, Routen und Autorisierung (Host, Teilnehmer, Admin)](../architecture/decisions/0006-roles-routes-authorization-host-admin.md).
 >
 > **Wichtig:** Diese Datei beschreibt primär den **aktuellen Angular-Router und den Repo-Ist-Stand**. Die konkrete Härtung des Host- und Sammlungszugriffs ist zusätzlich in [ADR-0019](../architecture/decisions/0019-host-hardening-and-owner-bound-session-access.md) beschrieben.
+>
+> **Epic 12:** Stories **12.1–12.4** sind implementiert und am **2026-09-10 manuell abgenommen**. Fachdoku: [features/product-feedback.md](features/product-feedback.md).
 
 ---
 

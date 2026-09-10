@@ -4,11 +4,11 @@
 
 **Erstellt:** 2026-02-20
 
-**Zuletzt aktualisiert:** 2026-08-20
+**Zuletzt aktualisiert:** 2026-09-10
 
 **Zweck:** Visualisierung der gesamten Codebasis-Struktur und Architektur
 
-**Status:** Epics 0–6 inkl. 5.4a, 7.1, 8.1–8.4, 8.6–8.8, **8.9a/8.9b**, 9, **10 (MOTD)** umgesetzt · **1.14 / 1.14a / 1.14b** fertig, **1.14c Stufe 1** im Repo (Kill-Switch default aus), **1.14c Stufe 2** und **8.9c Slice 4** offen; **8.9c** Slices 1–3 im Repo (Kill-Switch default aus) · 6.5 technisch validiert und formal mit AT/Zoom/OS/PDF-Readern nach WCAG 2.2 AA abgenommen; 6.6 fertig · Plattformstatistik Rekordteilnehmer und Tagesrekorde (`PlatformStatistic`, `DailyStatistic`) in `health.footerBundle` / `health.stats` · Kurzantwort (`SHORT_TEXT`) inkl. numerischer Bewertung, numerische Schätzfrage (`NUMERIC_ESTIMATE`) inkl. Zwei-Runden-Flow/Statistik und Effective-Vote-Regel umgesetzt · Host-Live-Fortschritt in `ACTIVE` läuft getrennt über `HostVoteProgressDTO` statt über vote-getriebene Full-Question-Events · Host-Härtung, Feedback-Host-Token und besitzgebundene Quiz-Historie umgesetzt · Markdown-Stories **1.7a** und **1.7b** umgesetzt ([ADR-0015](../architecture/decisions/0015-markdown-images-url-only-and-lightbox.md), [ADR-0016](../architecture/decisions/0016-markdown-katex-editor-split-view-and-md3-toolbar.md), [ADR-0017](../architecture/decisions/0017-markdown-editor-ui-scope-and-ki-import-paste-field.md) — Geltungsbereich Editor vs. KI-Paste). Blitzlicht ist als Startseiten-Shortcut und Session-Kanal konsolidiert; `FINISHED` beendet den Session-Vote kanaluebergreifend und stoppt Q&A-/Blitzlicht-Live-Subscriptions. Rollen/Routen/Autorisierung inkl. Admin, Host-Härtung und MOTD siehe [ADR-0006](../architecture/decisions/0006-roles-routes-authorization-host-admin.md), [ADR-0019](../architecture/decisions/0019-host-hardening-and-owner-bound-session-access.md), [ADR-0009](../architecture/decisions/0009-unified-live-session-channels.md), [ADR-0010](../architecture/decisions/0010-blitzlicht-as-core-live-mode.md), [ADR-0018](../architecture/decisions/0018-message-of-the-day-platform-communication.md), [ROUTES_AND_STORIES.md](../ROUTES_AND_STORIES.md). Wortwolke/Kompass: [moderation-compass.md](../features/moderation-compass.md), [word-cloud-spacy.md](../features/word-cloud-spacy.md), [qa-nlp-moderation.md](../features/qa-nlp-moderation.md), [qa-summary.md](../features/qa-summary.md).
+**Status:** Epics 0–6 inkl. 5.4a, 7.1, 8.1–8.4, 8.6–8.8, **8.9a/8.9b**, 9, **10 (MOTD)**, **12 (Produktfeedback 12.1–12.4 implementiert und am 2026-09-10 manuell abgenommen)** umgesetzt · **1.14 / 1.14a / 1.14b** fertig, **1.14c Stufe 1** im Repo (Kill-Switch default aus), **1.14c Stufe 2** und **8.9c Slice 4** offen; **8.9c** Slices 1–3 im Repo (Kill-Switch default aus) · 6.5 technisch validiert und formal mit AT/Zoom/OS/PDF-Readern nach WCAG 2.2 AA abgenommen; 6.6 fertig · Plattformstatistik Rekordteilnehmer und Tagesrekorde (`PlatformStatistic`, `DailyStatistic`) in `health.footerBundle` / `health.stats` · Kurzantwort (`SHORT_TEXT`) inkl. numerischer Bewertung, numerische Schätzfrage (`NUMERIC_ESTIMATE`) inkl. Zwei-Runden-Flow/Statistik und Effective-Vote-Regel umgesetzt · Host-Live-Fortschritt in `ACTIVE` läuft getrennt über `HostVoteProgressDTO` statt über vote-getriebene Full-Question-Events · Host-Härtung, Feedback-Host-Token und besitzgebundene Quiz-Historie umgesetzt · Markdown-Stories **1.7a** und **1.7b** umgesetzt ([ADR-0015](../architecture/decisions/0015-markdown-images-url-only-and-lightbox.md), [ADR-0016](../architecture/decisions/0016-markdown-katex-editor-split-view-and-md3-toolbar.md), [ADR-0017](../architecture/decisions/0017-markdown-editor-ui-scope-and-ki-import-paste-field.md) — Geltungsbereich Editor vs. KI-Paste). Blitzlicht ist als Startseiten-Shortcut und Session-Kanal konsolidiert; `FINISHED` beendet den Session-Vote kanaluebergreifend und stoppt Q&A-/Blitzlicht-Live-Subscriptions. Rollen/Routen/Autorisierung inkl. Admin, Host-Härtung und MOTD siehe [ADR-0006](../architecture/decisions/0006-roles-routes-authorization-host-admin.md), [ADR-0019](../architecture/decisions/0019-host-hardening-and-owner-bound-session-access.md), [ADR-0009](../architecture/decisions/0009-unified-live-session-channels.md), [ADR-0010](../architecture/decisions/0010-blitzlicht-as-core-live-mode.md), [ADR-0018](../architecture/decisions/0018-message-of-the-day-platform-communication.md), [ROUTES_AND_STORIES.md](../ROUTES_AND_STORIES.md). Wortwolke/Kompass: [moderation-compass.md](../features/moderation-compass.md), [word-cloud-spacy.md](../features/word-cloud-spacy.md), [qa-nlp-moderation.md](../features/qa-nlp-moderation.md), [qa-summary.md](../features/qa-summary.md).
 
 ## System-Architektur-Diagramm
 
@@ -26,7 +26,7 @@ graph LR
         subgraph "Backend - Node.js + tRPC (Epic 0 ✅)"
             BE[Express Server<br/>Port 3000]
             TRPC["tRPC Router<br/>/trpc"]
-            ROUTERS[Router Layer<br/>health · quiz · session · vote · qa · quickFeedback · wordCloud · admin · motd]
+            ROUTERS[Router Layer<br/>health · quiz · session · vote · qa · quickFeedback · wordCloud · admin · motd · productFeedback]
             SERVICES[Domain/Infra Layer<br/>quizScoring · wordCloudAnalysis · rateLimit · sessionCleanup · adminAuth]
             DTO[DTO Layer<br/>Data Stripping<br/>QuestionPreviewDTO<br/>QuestionStudentDTO<br/>QuestionRevealedDTO<br/>HostVoteProgressDTO<br/>NumericEstimate Stats erst in RESULTS]
         end
@@ -37,7 +37,7 @@ graph LR
     end
 
     subgraph "Datenbanken & Storage (Epic 0.1 ✅)"
-        PG[(PostgreSQL<br/>Prisma ORM<br/>Sessions · Votes · Feedback<br/>MOTD · Platform/DailyStatistic)]
+        PG[(PostgreSQL<br/>Prisma ORM<br/>Sessions · Votes · Feedback<br/>MOTD · ProductFeedback<br/>Platform/DailyStatistic)]
         REDIS[(Redis<br/>Rate-Limit · Token-TTLs<br/>Live-Hilfsdaten)]
         IDB[(IndexedDB<br/>Yjs CRDT<br/>Local-First Quizzes)]
     end
@@ -45,7 +45,7 @@ graph LR
     subgraph "Externe Clients"
         DOZENT[Dozent Client<br/>Quiz-Erstellung<br/>Session-Steuerung]
         STUDENT[Teilnehmer-Client<br/>Quiz · Q&A · Blitzlicht<br/>Voting · Leaderboard]
-        ADMIN["Admin Client<br/>/admin · Inspektion<br/>Löschen · Auszug"]
+        ADMIN["Admin Client<br/>/admin · Inspektion<br/>Löschen · Auszug<br/>MOTD · Produktfeedback"]
     end
 
     subgraph "Echtzeit-Kommunikation (Epic 0.2, 0.3 ✅)"
@@ -206,9 +206,18 @@ sequenceDiagram
     D->>FE: Session beenden
     FE->>BE: session.end
     BE->>PG: Status FINISHED
+    opt Produktfeedback 12.1
+        BE->>PG: Invite-Job + Ledger
+        BE->>R: Eignungs-Slots
+    end
     BE-->>S: onStatusChanged FINISHED
     S->>S: Abschluss-Gate oder Home anzeigen
     Note right of S: Q&A- und Blitzlicht-Subscriptions stoppen
+    opt Produktfeedback-Sheet
+        S->>FE: Zwei-Klick-Feedback
+        FE->>BE: productFeedback.claimInvite / submit
+        BE->>PG: ProductFeedback ohne Session-IDs
+    end
 ```
 
 ### Admin-Datenfluss (Epic 9)
@@ -236,6 +245,12 @@ sequenceDiagram
         BE->>BE: Retention prüfen (PURGED -> reject)
         BE->>PG: Löschen oder Lesen + AuditLog
         BE-->>FE: success / Export-Daten
+    end
+    opt Produktfeedback Epic 12
+        A->>FE: Tab Produktfeedback
+        FE->>BE: admin.productFeedback getStats / list / exportForLlm / purge
+        BE->>PG: Aggregate, Inbox, ExportLog oder Purge
+        BE-->>FE: Stats / Markdown / deletedCount
     end
 ```
 
@@ -359,12 +374,14 @@ graph LR
         AEXPORT[Export PDF/JSON]
         ADELETE[Delete-Flow]
         AMOTD[MOTD-Tab]
+        APF[Produktfeedback-Tab]
         AROOT --> ALOGIN
         AROOT --> ALIST
         ALIST --> ADETAIL
         ADETAIL --> AEXPORT
         ADETAIL --> ADELETE
         AROOT --> AMOTD
+        AROOT --> APF
     end
 ```
 
@@ -617,6 +634,55 @@ erDiagram
         enum action
         string motdId
         text metadataJson
+        datetime createdAt
+    }
+```
+
+### Produktfeedback (Epic 12)
+
+Eigene Domäne ohne Session-/Personen-FKs. Kompakte Feldauswahl; vollständig: [`prisma/schema.prisma`](../../prisma/schema.prisma), [product-feedback.md](../features/product-feedback.md).
+
+```mermaid
+%%{init: {'flowchart': {'nodeSpacing': 46, 'rankSpacing': 70, 'padding': 14}}}%%
+erDiagram
+    ProductFeedback |o--o{ ProductFeedback : duplikat_von
+    ProductFeedback ||..o{ ProductFeedbackAuditLog : triage_audit
+
+    ProductFeedback {
+        string id PK
+        enum source
+        enum role
+        string area
+        enum triageStatus
+        string locale
+        datetime createdAt
+    }
+    ProductFeedbackAuditLog {
+        string id PK
+        string productFeedbackId
+        enum action
+        datetime createdAt
+    }
+    ProductFeedbackInviteLedger {
+        string id PK
+        date day
+        enum role
+        int count
+    }
+    ProductFeedbackInviteJob {
+        string sessionId PK
+        datetime completedAt
+    }
+    ProductFeedbackExportLog {
+        string id PK
+        boolean includeMessages
+        int caseCount
+        datetime createdAt
+    }
+    ProductFeedbackPurgeLog {
+        string id PK
+        string scope
+        int deletedCount
         datetime createdAt
     }
 ```

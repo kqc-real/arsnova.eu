@@ -243,6 +243,8 @@ Die folgenden Prozedurnamen und Aufgaben sind **kanonisch**. Für Rohaufrufe per
 
 ## ProductFeedback (Epic 12)
 
+**Status:** Stories **12.1–12.4** sind implementiert und am **2026-09-10 manuell abgenommen**. Fachdoku: [`docs/features/product-feedback.md`](../features/product-feedback.md).
+
 ### Statistik (Story 12.1)
 
 - UI-Tab im Admin-Dashboard: aggregierte Post-Session-Produktsignale.

@@ -1,7 +1,7 @@
 # Core
 
 - Root memory for arsnova.eu agent context. Use this graph for long-lived AI context.
-- Project: account-light, DSGVO-oriented audience-response system for quiz, Q&A, quick feedback, team/bonus modes, present view, admin, MOTD/news, PWA/i18n.
+- Project: account-light, DSGVO-oriented audience-response system for quiz, Q&A, quick feedback, team/bonus modes, present view, admin, MOTD/news, ProductFeedback (Epic 12: 12.1–12.4 manually accepted 2026-09-10), PWA/i18n.
 - Repo root: `/Users/kqc/arsnova.eu`; npm workspaces monorepo with `apps/*`, `libs/*`, Prisma, docs, Docker assets, and repo-level scripts.
 - Serena-indexed repository languages currently matter beyond code: TypeScript for executable app/tooling logic, Markdown for docs/ADRs/backlog/handbooks, JSON for package and workspace config. Treat Markdown and JSON as first-class sources when the task touches docs, build, or workspace configuration.
 - Start with module memories:

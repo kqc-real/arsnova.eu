@@ -3,12 +3,12 @@
 # Didaktische Reihenfolge: Offene User Stories
 
 **Zielgruppe:** Betreuende, Studierende im Praktikum  
-**Voraussetzung:** Die folgende Reihenfolge richtet sich nach den **aktuell offenen bzw. laufenden Stories** im Produkt-Backlog. Bereits erledigte Stories sind aus der studentischen Ticketstrecke entfernt; das betrifft inzwischen u. a. **5.4a**, **8.6**, **8.7**, **1.2g–1.2h**, **1.2j**, **1.7a**, **1.7b**, **1.14a** und **1.14b**, die im Backlog als **✅ Fertig** geführt werden. **Epic 10 (MOTD)** bleibt im Repo **bereits fertig** und dient bei Bedarf als Referenzcode. **Epic 11** ist ein noch nicht beauftragter Angebots-/Produktpfad und gehört nicht zur Standardstrecke. Die **Reihenfolge** bleibt entscheidend für **Verständnis**, **Lernkurve** und **Review-Sicherheit**, wenn du **überwiegend mit KI-Unterstützung** arbeitest und die Umsetzung **überwachst, steuerst und abnimmst**.
+**Voraussetzung:** Die folgende Reihenfolge richtet sich nach den **aktuell offenen bzw. laufenden Stories** im Produkt-Backlog. Bereits erledigte Stories sind aus der studentischen Ticketstrecke entfernt; das betrifft inzwischen u. a. **5.4a**, **8.6**, **8.7**, **1.2g–1.2h**, **1.2j**, **1.7a**, **1.7b**, **1.14a** und **1.14b**, die im Backlog als **✅ Fertig** geführt werden. **Epic 10 (MOTD)** bleibt im Repo **bereits fertig** und dient bei Bedarf als Referenzcode. **Epic 12** Stories **12.1–12.4** sind implementiert und am 2026-09-10 manuell abgenommen und gehören ebenfalls nicht zur offenen Ticketstrecke. **Epic 11** ist ein noch nicht beauftragter Angebots-/Produktpfad und gehört nicht zur Standardstrecke. Die **Reihenfolge** bleibt entscheidend für **Verständnis**, **Lernkurve** und **Review-Sicherheit**, wenn du **überwiegend mit KI-Unterstützung** arbeitest und die Umsetzung **überwachst, steuerst und abnimmst**.
 
 **Verbindlicher Rahmen:** Jede studierende Person bearbeitet die **gesamte Ticketstrecke** in der hier empfohlenen Reihenfolge. Der frühere Regelfall **„Pflichtkern + Vertiefungspfad“** gilt für dieses Dokument nicht mehr.
 
 **Referenz:** [`Backlog.md`](../../Backlog.md) (Status ⬜ Offen).  
-**Stand dieser Empfehlung:** 2026-08-15 — bei Änderungen im Backlog Reihenfolge und Begründungen anpassen.
+**Stand dieser Empfehlung:** 2026-09-10 — bei Änderungen im Backlog Reihenfolge und Begründungen anpassen.
 
 ## Kurz gesagt
 
@@ -59,7 +59,7 @@ Kurz übersetzt:
 
 ## 3. Verbindliche Reihenfolge aller Studententickets
 
-Die folgende Struktur listet die **offenen oder laufenden, für dich relevanten Stories** didaktisch geordnet. **Epic 10 (MOTD)** bleibt herausgenommen, weil es laut Backlog bereits fertig ist. **Epic 11** bleibt herausgenommen, solange der Erweiterungspfad nicht beauftragt ist.
+Die folgende Struktur listet die **offenen oder laufenden, für dich relevanten Stories** didaktisch geordnet. **Epic 10 (MOTD)** und **Epic 12 (Produktfeedback, 12.1–12.4 manuell abgenommen)** bleiben herausgenommen, weil sie laut Backlog bereits fertig sind. **Epic 11** bleibt herausgenommen, solange der Erweiterungspfad nicht beauftragt ist.
 
 ### 3.1 Verbindliche Ticketstrecke
 
@@ -123,6 +123,7 @@ Abweichungen sind möglich, aber nur **begründet und dokumentiert**, z. B.:
 | [`docs/praktikum/PRAKTIKUM.md`](./PRAKTIKUM.md)                                                    | Rahmen Praktikum, Bewertung, Ablauf                             |
 | [`EINSTIEG-TOOLS-UND-STACK.md`](./EINSTIEG-TOOLS-UND-STACK.md)                                     | **Pflicht-Orientierung** bei fehlender Tool-/Stack-Vorerfahrung |
 | [`docs/features/motd.md`](../features/motd.md)                                                     | MOTD, Epic 10 (optional Referenzcode)                           |
+| [`docs/features/product-feedback.md`](../features/product-feedback.md)                             | Produktfeedback, Epic 12 (12.1–12.4 manuell abgenommen)         |
 | [`AGENTS.md`](../../AGENTS.md)                                                                     | Arbeitsweise mit KI im Editor                                   |
 
 ---

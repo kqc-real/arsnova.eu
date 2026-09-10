@@ -6,7 +6,7 @@
 >
 > **Nächster Fokus (Auswahl offener Stories):** u. a. **2.9** (asynchrone Quiz-Modi, noch nicht beauftragt), **2.10** (vertrauenswürdige Paired Hosts), **1.2ec–1.2ed** (Kurzantwort-Ausbau), **1.14c** (Word Cloud 3.0 Q&A-Themen), **1.14d** (Freitext-Themen), **8.9c** (optionale generative Moderationszusammenfassung), **8.9d** (selbstgehosteter LLM-Server, [ADR-0035](docs/architecture/decisions/0035-self-hosted-llm-runtime-llama-cpp-over-ollama.md)) — **Epic 6** ist einschließlich der formalen WCAG-2.2-AA-Abnahme von **6.5** und der abgeschlossenen UX-Testreihen **6.6** umgesetzt ✅. **Lehre:** Greenfield-Demo **1.7a** in **3×45 Min.** — [`docs/didaktik/greenfield-demo-1-7a-vorlesung.md`](docs/didaktik/greenfield-demo-1-7a-vorlesung.md).
 >
-> **Weitere Parallelpfade:** Epic 9 ✅ (Admin: Inspektion, Löschen, Auszug für Behörden) · Epic 10 ✅ (MOTD / Plattform-Kommunikation — ADR-0018, `docs/features/motd.md`) · Epic 12 ✅ (Produktfeedback: 12.1 Post-Session · 12.2 In-App + Admin-Triage · 12.3 LLM-Export · 12.4 Massenlöschung — `docs/features/product-feedback.md`)
+> **Weitere Parallelpfade:** Epic 9 ✅ (Admin: Inspektion, Löschen, Auszug für Behörden) · Epic 10 ✅ (MOTD / Plattform-Kommunikation — ADR-0018, `docs/features/motd.md`) · Epic 12 ✅ (Produktfeedback: **12.1–12.4 implementiert und am 2026-09-10 manuell abgenommen** — `docs/features/product-feedback.md`)
 
 ---
 
@@ -2313,11 +2313,11 @@ ist abgeschlossen ✅. Damit ist Epic 6 geschlossen.
 3. **12.3** ✅ — Admin-Markdown-Export mit versioniertem Auswertungsprompt für ein vom Betreiber gewähltes externes LLM; kein serverseitiger Modellaufruf ([#365](https://github.com/kqc-real/arsnova.eu/pull/365)).
 4. **12.4** ✅ — Admin-Massenlöschung gespeicherter Rückmeldungen bis einschließlich eines Datums oder vollständig, mit Zählvorschau und Sicherheitsphrase ([#365](https://github.com/kqc-real/arsnova.eu/pull/365)).
 
-12.1–12.4 sind im Repo umgesetzt; kanonische Fachdoku: [`docs/features/product-feedback.md`](docs/features/product-feedback.md).
+**12.1–12.4** sind implementiert und am **2026-09-10 manuell abgenommen**. Kanonische Fachdoku: [`docs/features/product-feedback.md`](docs/features/product-feedback.md).
 
 ---
 
-- **Story 12.1 (Rollenspezifisches Zwei-Klick-Produktfeedback nach Sessionende):** ✅ Als Host oder teilnehmende Person möchte ich nach einer tatsächlich genutzten Session mit zwei kurzen Auswahlen anonym mitteilen können, wie einfach und hilfreich arsnova.eu für meine jeweilige Aufgabe war, damit der Betreiber kontinuierlich vergleichbare Produktsignale erhält, ohne mich zu einer E-Mail oder längeren Texteingabe zu zwingen.
+- **Story 12.1 (Rollenspezifisches Zwei-Klick-Produktfeedback nach Sessionende):** ✅ Implementiert und am **2026-09-10 manuell abgenommen.** Als Host oder teilnehmende Person möchte ich nach einer tatsächlich genutzten Session mit zwei kurzen Auswahlen anonym mitteilen können, wie einfach und hilfreich arsnova.eu für meine jeweilige Aufgabe war, damit der Betreiber kontinuierlich vergleichbare Produktsignale erhält, ohne mich zu einer E-Mail oder längeren Texteingabe zu zwingen.
   - **Fachliche Trennung und Sichtbarkeit:**
     - Es entsteht eine eigene Domäne `ProductFeedback` mit eigener Persistenz, Shared-Zod-Schemas, DTOs und tRPC-Prozeduren; vorhandene Modelle, Router und UI-Begriffe für `SessionFeedback` und `quickFeedback` werden nicht semantisch überladen.
     - Die Oberfläche bezeichnet die Abfrage klar als **„Eine Frage zu arsnova.eu“** beziehungsweise **„arsnova.eu verbessern“**, nicht nur als „Feedback“.
@@ -2385,7 +2385,7 @@ ist abgeschlossen ✅. Damit ist Epic 6 geschlossen.
 
 ---
 
-- **Story 12.2 (Jederzeit erreichbares „arsnova.eu verbessern“ mit Admin-Triage):** ✅ Als Nutzer:in möchte ich von jeder persönlichen arsnova.eu-Ansicht aus mit höchstens zwei kurzen Auswahlen ein Problem, eine Unklarheit, einen Wunsch oder eine Stärke melden können, damit meine Beobachtung ohne E-Mail, Login oder Kenntnis des GitHub-Repositories den Produktverantwortlichen mit dem notwendigen technischen Kontext erreicht.
+- **Story 12.2 (Jederzeit erreichbares „arsnova.eu verbessern“ mit Admin-Triage):** ✅ Implementiert und am **2026-09-10 manuell abgenommen.** Als Nutzer:in möchte ich von jeder persönlichen arsnova.eu-Ansicht aus mit höchstens zwei kurzen Auswahlen ein Problem, eine Unklarheit, einen Wunsch oder eine Stärke melden können, damit meine Beobachtung ohne E-Mail, Login oder Kenntnis des GitHub-Repositories den Produktverantwortlichen mit dem notwendigen technischen Kontext erreicht.
   - **Auffindbarkeit und Informationsarchitektur:**
     - Der sichtbare, lokalisierte Aktionsname lautet überall **„arsnova.eu verbessern“**; ein alleinstehendes generisches Feedback-Icon ist nicht ausreichend.
     - Auf normalen persönlichen Ansichten ist die beschriftete Aktion als eigene, gut sichtbare Utility-Aktion im globalen App-Chrome unmittelbar erreichbar und öffnet den Produktfeedback-Dialog beziehungsweise das mobile Sheet ohne Umweg über eine Hilfeseite.
@@ -2469,7 +2469,7 @@ ist abgeschlossen ✅. Damit ist Epic 6 geschlossen.
 
 ---
 
-- **Story 12.3 (Admin-Export von Produktfeedback für externe LLM-Auswertung):** ✅ Als Plattform-Admin möchte ich die aktuellen Produktsignale als Markdown-Datei mit einem festen Auswertungsprompt im Vorspann herunterladen können, damit ich sie in einem von mir gewählten LLM auswerten kann, ohne dass arsnova.eu selbst ein Modell aufruft oder Freitext ungefragt an Dritte geht.
+- **Story 12.3 (Admin-Export von Produktfeedback für externe LLM-Auswertung):** ✅ Implementiert und am **2026-09-10 manuell abgenommen.** Als Plattform-Admin möchte ich die aktuellen Produktsignale als Markdown-Datei mit einem festen Auswertungsprompt im Vorspann herunterladen können, damit ich sie in einem von mir gewählten LLM auswerten kann, ohne dass arsnova.eu selbst ein Modell aufruft oder Freitext ungefragt an Dritte geht.
   - **Fachliche Abgrenzung:**
     - Der Export bleibt in der Domäne `ProductFeedback` und ist ausschließlich über `adminProcedure` erreichbar. Route `/admin` allein verleiht keine Berechtigung.
     - Es gibt **keinen** serverseitigen Aufruf eines proprietären oder selbstgehosteten LLMs. Das entspricht ADR-0007 (externes Modell beim Nutzenden) und berührt Story 8.9d nicht.
@@ -2518,7 +2518,7 @@ ist abgeschlossen ✅. Damit ist Epic 6 geschlossen.
 
 ---
 
-- **Story 12.4 (Admin-Massenlöschung von Produktfeedback bis Datum oder vollständig):** ✅ Als Plattform-Admin möchte ich gespeicherte Produktfeedback-Datensätze bis einschließlich eines Datums oder vollständig endgültig löschen können, damit ich Aufbewahrungs- und Löschpflichten vor Ablauf der automatischen Retention erfüllen kann.
+- **Story 12.4 (Admin-Massenlöschung von Produktfeedback bis Datum oder vollständig):** ✅ Implementiert und am **2026-09-10 manuell abgenommen.** Als Plattform-Admin möchte ich gespeicherte Produktfeedback-Datensätze bis einschließlich eines Datums oder vollständig endgültig löschen können, damit ich Aufbewahrungs- und Löschpflichten vor Ablauf der automatischen Retention erfüllen kann.
   - **Fachliche Abgrenzung:**
     - Die Aktion bleibt in der Domäne `ProductFeedback` und ist ausschließlich über `adminProcedure` erreichbar. Route `/admin` allein verleiht keine Berechtigung.
     - Gelöscht werden `ProductFeedback`-Zeilen und vollständig in der Datumsgrenze liegende UTC-Tagesbucket des Einladungszählers (`ProductFeedbackInviteLedger`). Invite-Jobs, LLM-Exportprotokolle und bestehende Triage-Auditzeilen bleiben erhalten. Die Einzelfalllöschung aus 12.2 lässt das Ledger unberührt.
