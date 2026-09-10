@@ -19,7 +19,7 @@ Er ist die Fallback-Basis für 8.9b und 8.9c: ohne NLP, ohne LLM, ohne neuen Dau
 
 Button **Kompass** neben der Live-Leiste, in allen Live-Kanälen, als kompakte Pille oben an der Join-Karte (nicht über deren volle Höhe). Present/Vote und `FINISHED` ohne Kompass. Der Dialog bleibt erreichbar, auch wenn noch keine Karte entsteht; dann erscheint der Leertext, der die vier Kartenarten nennt. Sobald mindestens eine Karte da ist, trägt der Button `has-signals`. Die Dialogfläche liegt auf `surface-container-high` (Dark: `surface-container-highest`) mit eigenem Scrim-Backdrop, damit sie sich vom Host-Verlauf abhebt.
 
-Leseordnung im Dialog: zuerst **Als Nächstes** (ein Vorschlag aus der stärksten Karte), dann die Signalkarten. Reihenfolge der Karten: **Tempo**, **Reibung**, **Klärung**, **Themen**. Tempo mit Vorsicht oder Alarm heißt **Kommen nicht mit**. Der nächste Schritt steht nur in der Handlungszeile, nicht noch einmal auf der Karte. Tautologische Vorschläge auf einer einzelnen Karte entfallen.
+Leseordnung im Dialog: zuerst **Als Nächstes** (ein Vorschlag aus der stärksten Karte), dann die Signalkarten. Reihenfolge der Karten: **Feedback zum Vortragstempo**, **Reibung**, **Klärung**, **Themen**. Tempo mit Vorsicht oder Alarm heißt **Kommen nicht mit**. Der nächste Schritt steht nur in der Handlungszeile, nicht noch einmal auf der Karte. Tautologische Vorschläge auf einer einzelnen Karte entfallen.
 
 Quellen sind Sprungzeilen mit Ziel (**Q&A**, **Wortwolke**, **Quiz**, **Blitzlicht**). Pro Karte sind drei Quellen sichtbar, weitere hinter **Noch … anzeigen**. Quellenklicks wechseln den Kanal, heben Forum-Beiträge hervor (Badge **Aus dem Kompass · …**) oder öffnen die Wortwolke zum Begriff. **Zurück zum Kompass** stellt den vorherigen Kanal wieder her und öffnet den Dialog erneut. **Markierung lösen** entfernt die Hervorhebung.
 
@@ -40,13 +40,13 @@ Vor Ergebnisfreigabe gelten die Data-Stripping-Regeln weiter. Keine Rohverteilun
 
 Es gibt **keine** globale Teilnehmer- oder Frageschwelle für den Dialog. Karten entstehen nur bei belastbarer Evidenz (`buildModerationCompassCards`). Ohne Quellen keine Karte.
 
-| Karte            | Schwelle (Auszug)                                                                                                 |
-| ---------------- | ----------------------------------------------------------------------------------------------------------------- |
-| Themen           | Begriff mindestens zweimal (`documentFrequency >= 2` oder `sourceCount >= 2`)                                     |
-| Klärung          | ausstehende Q&A und/oder Quiz-Fakten (u. a. Histogramm-Spitze ≥ 30 %, numerisch n ≥ 8, Freitext-Wiederholung ≥ 2) |
-| Reibung          | `controversyScore > 0.5` oder explizit kontrovers; Archiv/gelöscht ohne Reibung                                   |
-| Tempo            | nur wenn eine Tempo-/Feedback-Tendenz vorliegt; Split z. B. Mehrheit &lt; 60 % und Zweite ≥ 30 %                  |
-| Nächster Schritt | nur wenn bereits eine andere Karte da ist                                                                         |
+| Karte                      | Schwelle (Auszug)                                                                                                 |
+| -------------------------- | ----------------------------------------------------------------------------------------------------------------- |
+| Themen                     | Begriff mindestens zweimal (`documentFrequency >= 2` oder `sourceCount >= 2`)                                     |
+| Klärung                    | ausstehende Q&A und/oder Quiz-Fakten (u. a. Histogramm-Spitze ≥ 30 %, numerisch n ≥ 8, Freitext-Wiederholung ≥ 2) |
+| Reibung                    | `controversyScore > 0.5` oder explizit kontrovers; Archiv/gelöscht ohne Reibung                                   |
+| Feedback zum Vortragstempo | nur wenn eine Tempo-/Feedback-Tendenz vorliegt; Split z. B. Mehrheit &lt; 60 % und Zweite ≥ 30 %                  |
+| Nächster Schritt           | nur wenn bereits eine andere Karte da ist                                                                         |
 
 Die optionale 8.9c-Kurzfassung ist kein Signalkarten-Typ. Sie erscheint nur bei Kill-Switch, konfiguriertem privatem Endpunkt und mindestens drei sichtbaren Q&A-Beiträgen; siehe [qa-summary.md](qa-summary.md).
 

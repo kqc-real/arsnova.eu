@@ -424,7 +424,6 @@
         data-testid="presenter-quiz-paused"
       >
         <div class="session-present__standby-copy">
-          <p class="session-present__standby-eyebrow">{{ presenterStandbyEyebrow }}</p>
           <h1 class="session-present__standby-title">{{ quizPausedTitle }}</h1>
           <p class="session-present__standby-message">{{ quizPausedMessage }}</p>
         </div>
@@ -440,7 +439,6 @@
         data-testid="presenter-channel-standby"
       >
         <div class="session-present__standby-copy">
-          <p class="session-present__standby-eyebrow">{{ presenterStandbyEyebrow }}</p>
           <h1 class="session-present__standby-title">{{ presenterStandbyTitle() }}</h1>
           <p class="session-present__standby-message">{{ presenterStandbyMessage() }}</p>
         </div>
@@ -496,9 +494,7 @@
               </div>
             }
             <h2 id="session-present-lobby-audience" class="session-present__lobby-audience-title">
-              <span i18n="@@sessionPresent.lobbyAudienceTitle"
-                >Warten auf die Teilnehmenden...</span
-              >
+              <span i18n="@@sessionPresent.lobbyAudienceTitle">Warten auf die anderen...</span>
               <span class="session-present__lobby-audience-count" aria-live="polite">{{
                 lobbyAudienceCountLabel()
               }}</span>

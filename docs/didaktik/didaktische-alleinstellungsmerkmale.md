@@ -16,7 +16,7 @@
   keine Abo-Kosten; WCAG 2.2 AA ist der dokumentierte Zielstandard. Technische
   Gates sind umgesetzt, die vollständige manuelle Konformitätsabnahme steht
   noch aus.
-- **Live-Hosting ohne Desktop:** arsnova.eu kann produktiv direkt vom Smartphone aus gehostet werden. Das ist nicht nur Responsive Design, sondern ein eigener Core Use Case fuer Lehre ohne Laptop, Beamer oder stationaeres Setup.
+- **Live-Hosting ohne Desktop:** arsnova.eu kann produktiv direkt vom Smartphone aus gehostet werden — einschließlich der Quiz-Erstellung in allen Frageformaten. Das ist nicht nur Responsive Design, sondern ein eigener Core Use Case fuer Lehre ohne Laptop, Beamer oder stationaeres Setup.
 
 ---
 
@@ -34,7 +34,7 @@
 
 - **Story 1.14 (Word Cloud)** ist im ARS-Vergleich genannt, fehlt aber in der Backlog-Tabelle → als Story aufnehmen und als „Mentimeter-Level Freitext-Auswertung“ kommunizieren.
 - **Story 2.6 (Lesephase)** in Außendarstellung klar als didaktisches Alleinstellungsmerkmal hervorheben („Frage zuerst lesen, dann antworten“).
-- **Story 2.8 (Produktives Smartphone-Hosting)** als strategisches Gegenmodell zu Desktop-zentrierten ARS-Systemen kommunizieren: „Live unterrichten, moderieren und steuern direkt vom Smartphone aus.“
+- ~~**Story 2.8 (Produktives Smartphone-Hosting)** als strategisches Gegenmodell zu Desktop-zentrierten ARS-Systemen kommunizieren.~~ ✅ Auf der Landing verankert (Hero, Ablauf, Features, Vergleich, FAQ, SEO): Quiz-Erstellung in allen Formaten und Host-Ansicht zuerst fürs Smartphone; Pairing bleibt der getrennte Zwei-Geräte-Claim.
 - **Presets (1.11)** in Docs und UI mit kurzer didaktischer Begründung versehen („Spielerisch: Motivation, Wettbewerb, Action Sounds“ / „Seriös: Lesephase, ohne Leaderboard-Druck, Pseudonyme statt freier Namen“) — siehe [`preset-modes.md`](../features/preset-modes.md).
 
 ### 2.3 Neue / erweiterte Backlog-Ideen (didaktisch)

@@ -4,7 +4,7 @@ const en: Messages = {
   meta: {
     homeTitle: 'arsnova.eu | Live quiz, numeric estimation questions and Q&A wall',
     homeDescription:
-      'Open-source audience response for education, training and organisations: live quiz with matching, ordering and categorisation, confidence rating, results report (PDF), numeric estimation questions, moderated Q&A wall, word cloud and feedback — conforms to WCAG 2.2 Level AA, free, runnable on your own infrastructure and ready without an account.',
+      'Open-source audience response for education, training and organisations: create quizzes and host first on a phone, live quiz with matching, ordering and categorisation, confidence rating, results report (PDF), numeric estimation questions, moderated Q&A wall, word cloud and feedback — conforms to WCAG 2.2 Level AA, free, runnable on your own infrastructure and ready without an account.',
     siteNameInfo: 'arsnova.eu – Information',
     ogLocale: 'en_US',
   },
@@ -53,13 +53,13 @@ const en: Messages = {
     titleLine2: 'moderate questions',
     titleAccent1: 'live and free',
     titleAccent2: ' without an account.',
-    lead: 'arsnova.eu brings together live quizzes, numeric estimation questions, confidence ratings on scored questions, a Q&A wall, word-cloud analysis and Pulse Check feedback in one interface for schools, universities, continuing education, workshops and business. Open source, runnable on your own infrastructure and designed for operation with GDPR in mind.',
+    lead: 'arsnova.eu brings together live quizzes, numeric estimation questions, confidence ratings on scored questions, a Q&A wall, word-cloud analysis and Pulse Check feedback in one interface for schools, universities, continuing education, workshops and business. The quiz editor and host view for teachers and presenters are built for a phone first — every question format, not scaled down from a desktop. Open source, runnable on your own infrastructure and designed for operation with GDPR in mind.',
     a11yLink: 'Conforms to WCAG 2.2 Level AA',
     a11ySuffix: '— keyboard, screen reader and individually adjustable response time.',
     cards: [
       {
-        title: 'Move freely',
-        text: 'Control the session from your phone; the projector stays on the laptop',
+        title: 'Create and host on a phone',
+        text: 'Build every question format and run the live session — designed for a phone, not a desktop console squeezed down',
       },
       { title: 'Q&A with a question wall', text: 'Moderation, voting and topic word cloud' },
       {
@@ -209,7 +209,7 @@ const en: Messages = {
         number: '01',
         title: 'Prepare a quiz',
         description:
-          'Create questions directly or import existing content. Markdown, KaTeX, short answer, numeric estimation, matching, ordering and categorisation are built in.',
+          'Create questions directly or import existing content — fully on a smartphone, in every question format. Markdown, KaTeX, short answer, numeric estimation, matching, ordering and categorisation are built in, not a cut-down mobile editor.',
       },
       {
         number: '02',
@@ -227,7 +227,7 @@ const en: Messages = {
         number: '04',
         title: 'Moderate live',
         description:
-          'You walk the room and run the live session from your phone. Participants vote, ask questions and prioritise together. The facilitator and presenter show the quiz, Q&A wall, word cloud, Pulse Check, reading phase, countdown, second round and results in one flow.',
+          'You walk the room and run the live session from your phone. The host view is built for that — not scaled down from a desktop. Participants vote, ask questions and prioritise together. The facilitator and presenter show the quiz, Q&A wall, word cloud, Pulse Check, reading phase, countdown, second round and results in one flow.',
       },
       {
         number: '05',
@@ -240,7 +240,7 @@ const en: Messages = {
   pairing: {
     eyebrow: 'What sets us apart',
     title: 'Present from anywhere in the room — from your phone or tablet',
-    lead: 'Other audience-response tools often offer a remote — as a slide clicker or with a separate account on the phone. With arsnova.eu you scan a QR, approve on the laptop, and the phone only runs the live session.',
+    lead: 'Pairing works because the host view itself is designed for a phone first. Other audience-response tools often offer a remote — as a slide clicker or with a separate account on the phone. With arsnova.eu you scan a QR, approve on the laptop, and the phone only runs the live session.',
     whyTitle: 'Why this pairing is different from a remote',
     summary: [
       'Full freedom of movement while you present — a clear teaching and staging advantage.',
@@ -261,6 +261,12 @@ const en: Messages = {
     title: 'Built for live interaction, not only for polling slides',
     lead: 'arsnova.eu combines a fast start, pedagogical depth and a transparent technical foundation. The platform stays simple day to day without shrinking what you can do.',
     items: [
+      {
+        title: 'Create and host on your phone',
+        description:
+          'Other audience-response tools usually treat authoring and the teacher role as desktop products. Here you create a quiz on a smartphone in every question format — and the same host view runs quiz, Q&A, Pulse Check and results in your hand, even without a laptop. Pairing with a projector is optional.',
+        icon: 'phone',
+      },
       {
         title: 'Present from anywhere in the room',
         description:
@@ -338,7 +344,7 @@ const en: Messages = {
   structuredQuestionTypes: {
     eyebrow: 'Structured question types',
     title: 'Match, order and categorise — complete interactions with useful results',
-    lead: 'Three formats turn relationships, sequences and conceptual boundaries into active tasks. Solutions stay hidden while voting is open; model answers and common error patterns appear only after reveal.',
+    lead: 'Three formats turn relationships, sequences and conceptual boundaries into active tasks — and you create them fully on a smartphone. Solutions stay hidden while voting is open; model answers and common error patterns appear only after reveal.',
     interactionLabel: 'Interaction',
     exampleLabel: 'Teaching example',
     resultLabel: 'Results',
@@ -452,8 +458,13 @@ const en: Messages = {
   comparison: {
     eyebrow: 'Differentiation',
     title: 'Not just a Mentimeter or Kahoot substitute',
-    lead: 'The focus is not only voting, but the full live flow: prepare, facilitate from anywhere in the room, make results visible and keep control of content and operations.',
+    lead: 'The focus is not only voting, but the full live flow: prepare on your phone, facilitate from anywhere in the room, make results visible and keep control of content and operations.',
     points: [
+      {
+        title: 'Create and host on a phone first',
+        description:
+          'Most audience-response tools design quiz authoring and the teacher role for a desk and a large screen. Here you create every question format on a smartphone and run the quiz, Q&A, Pulse Check and results in your hand. A laptop and projector remain optional — not a requirement for the console to be usable.',
+      },
       {
         title: 'Freedom to move, not tied to the laptop',
         description:
@@ -487,6 +498,11 @@ const en: Messages = {
         question: 'Do facilitators or participants need an account?',
         answer:
           'No. A session can be started without an account. Participants join via code or QR.',
+      },
+      {
+        question: 'Can I really create a quiz and run a session entirely from my phone?',
+        answer:
+          'Yes. You create a quiz on a smartphone in every question format — single- and multiple-answer, short answer, numeric estimation, matching, ordering and categorisation. The same host view runs the live session: quiz, Q&A, Pulse Check and results. Both are designed for a phone first, not as a shrunken desktop. Optionally you pair a second device: the projector stays on the laptop, the phone runs the live session, without a separate account.',
       },
       {
         question: 'Can I control the session from my phone?',
@@ -553,7 +569,7 @@ const en: Messages = {
   jsonLd: {
     websiteName: 'arsnova.eu – Information',
     webAppDescription:
-      'Open-source audience response for education, training and organisations: live quiz with matching, ordering and categorisation, confidence rating, results report (PDF), numeric estimation questions, moderated Q&A wall, word cloud and feedback — conforms to WCAG 2.2 Level AA, free, runnable on your own infrastructure and ready without an account.',
+      'Open-source audience response for education, training and organisations: create quizzes and host first on a phone, live quiz with matching, ordering and categorisation, confidence rating, results report (PDF), numeric estimation questions, moderated Q&A wall, word cloud and feedback — conforms to WCAG 2.2 Level AA, free, runnable on your own infrastructure and ready without an account.',
     featureList: [
       'Live quiz and voting',
       'Confidence rating on scored questions',
@@ -561,6 +577,7 @@ const en: Messages = {
       'Numeric estimation questions with two rounds and statistics',
       'Q&A wall with moderation, upvoting and downvoting',
       'Waiting room, presenter, QR/code',
+      'Create quizzes and host first on a phone — every question format, a productive mode for teachers and presenters',
       'Host pairing: live-session control from a phone or tablet',
       'Question types MC/SC/short answer/free text/survey/rating/numeric estimation/matching/ordering/categorisation',
       'Markdown and KaTeX',

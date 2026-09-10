@@ -4,7 +4,7 @@ const it: Messages = {
   meta: {
     homeTitle: 'arsnova.eu | Quiz in diretta, domande di stima numerica e bacheca delle domande',
     homeDescription:
-      'Piattaforma open source di risposta interattiva per istruzione, formazione e organizzazioni: quiz in diretta con abbinamento, ordinamento e classificazione, autovalutazione, rapporto dei risultati (PDF), domande di stima numerica, bacheca delle domande moderabile, nuvola di parole e sondaggio rapido — conforme alle WCAG 2.2, livello AA, gratuita, eseguibile sulla propria infrastruttura e pronta senza account.',
+      'Piattaforma open source di risposta interattiva per istruzione, formazione e organizzazioni: creazione del quiz e vista di chi conduce pensate per il telefono, quiz in diretta con abbinamento, ordinamento e classificazione, autovalutazione, rapporto dei risultati (PDF), domande di stima numerica, bacheca delle domande moderabile, nuvola di parole e sondaggio rapido — conforme alle WCAG 2.2, livello AA, gratuita, eseguibile sulla propria infrastruttura e pronta senza account.',
     siteNameInfo: 'arsnova.eu – Informazioni',
     ogLocale: 'it_IT',
   },
@@ -53,13 +53,13 @@ const it: Messages = {
     titleLine2: 'moderazione delle domande',
     titleAccent1: 'in diretta e gratis',
     titleAccent2: ' senza account.',
-    lead: 'arsnova.eu unisce quiz in diretta, domande di stima numerica, autovalutazione sulle domande valutate, bacheca delle domande, analisi a nuvola di parole e sondaggio rapido in un’unica interfaccia per scuole, università, formazione continua, workshop e imprese. Open source, eseguibile sulla propria infrastruttura e pensato per un funzionamento nel rispetto del GDPR.',
+    lead: 'arsnova.eu unisce quiz in diretta, domande di stima numerica, autovalutazione sulle domande valutate, bacheca delle domande, analisi a nuvola di parole e sondaggio rapido in un’unica interfaccia per scuole, università, formazione continua, workshop e imprese. La creazione del quiz e la vista di chi conduce, per chi insegna o presenta, sono pensate prima per il telefono — tutti i formati, non rimpicciolite da un desktop. Open source, eseguibile sulla propria infrastruttura e pensato per un funzionamento nel rispetto del GDPR.',
     a11yLink: 'Conforme alle WCAG 2.2, livello AA',
     a11ySuffix: '— tastiera, screen reader e tempo di risposta regolabile individualmente.',
     cards: [
       {
-        title: 'Libero in sala',
-        text: 'Controlla la sessione dal telefono; il proiettore resta sul laptop',
+        title: 'Prima per il telefono',
+        text: 'Crea tutti i formati e conduci in diretta — pensato per il telefono, non un desktop rimpicciolito',
       },
       {
         title: 'Q&A con bacheca delle domande',
@@ -212,7 +212,7 @@ const it: Messages = {
         number: '01',
         title: 'Prepara un quiz',
         description:
-          'Crea domande direttamente o importa contenuti esistenti. Markdown, KaTeX, risposta breve, stima numerica, abbinamento, ordinamento e classificazione sono integrati.',
+          'Crea domande direttamente o importa contenuti esistenti — per intero sullo smartphone, in tutti i formati. Markdown, KaTeX, risposta breve, stima numerica, abbinamento, ordinamento e classificazione sono integrati, non in una versione mobile ridotta.',
       },
       {
         number: '02',
@@ -230,7 +230,7 @@ const it: Messages = {
         number: '04',
         title: 'Modera in diretta',
         description:
-          'Ti muovi in sala e conduci la sessione in diretta dal telefono. I partecipanti votano, pongono domande e definiscono insieme le priorità. Chi conduce e il presentatore mostrano il quiz, la bacheca delle domande, il Sondaggio rapido, la nuvola di parole, la fase di lettura, il conto alla rovescia, il secondo turno e i risultati in un unico percorso.',
+          'Ti muovi in sala e conduci la sessione in diretta dal telefono. La vista di chi conduce è fatta per questo — non rimpicciolita da un desktop. I partecipanti votano, pongono domande e definiscono insieme le priorità. Chi conduce e il presentatore mostrano il quiz, la bacheca delle domande, il Sondaggio rapido, la nuvola di parole, la fase di lettura, il conto alla rovescia, il secondo turno e i risultati in un unico percorso.',
       },
       {
         number: '05',
@@ -243,7 +243,7 @@ const it: Messages = {
   pairing: {
     eyebrow: 'Cosa ci distingue',
     title: 'Presenta da qualsiasi punto della sala — dal telefono o dal tablet',
-    lead: 'Altri sistemi di audience response offrono spesso un telecomando — come clicker per le slide o con un account separato sul telefono. Con arsnova.eu inquadri un QR, confermi sul laptop e il telefono conduce solo la sessione in corso.',
+    lead: 'L’accoppiamento regge perché la vista di chi conduce è pensata prima per il telefono. Altri sistemi di audience response offrono spesso un telecomando — come clicker per le slide o con un account separato sul telefono. Con arsnova.eu inquadri un QR, confermi sul laptop e il telefono conduce solo la sessione in corso.',
     whyTitle: 'Perché questo accoppiamento non è un semplice telecomando',
     summary: [
       'Piena libertà di movimento durante la presentazione — un vantaggio chiaro per la didattica e la messa in scena.',
@@ -264,6 +264,12 @@ const it: Messages = {
     title: 'Pensato per l’interazione in diretta, non solo per sondaggi su slide',
     lead: 'arsnova.eu unisce avvio rapido, solidità didattica e una base tecnica trasparente. La piattaforma resta semplice nel quotidiano senza ridurre le possibilità.',
     items: [
+      {
+        title: 'Crea e conduci prima dal telefono',
+        description:
+          'Altri sistemi di audience response trattano spesso creazione e ruolo di chi insegna come prodotti da desktop. Qui crei un quiz sullo smartphone in tutti i formati — e la stessa vista di chi conduce gestisce quiz, Q&A, Sondaggio rapido e risultati in mano, anche senza laptop. L’accoppiamento con un proiettore è opzionale.',
+        icon: 'phone',
+      },
       {
         title: 'Presenta da qualsiasi punto della sala',
         description:
@@ -341,7 +347,7 @@ const it: Messages = {
   structuredQuestionTypes: {
     eyebrow: 'Tipi di domanda strutturati',
     title: 'Abbinare, ordinare e classificare con interazioni complete e risultati utili',
-    lead: 'Tre formati trasformano relazioni, sequenze e confini concettuali in attività interattive. Le soluzioni restano nascoste durante la votazione e compaiono con gli errori frequenti solo dopo la rivelazione.',
+    lead: 'Tre formati trasformano relazioni, sequenze e confini concettuali in attività interattive — e li crei per intero sullo smartphone. Le soluzioni restano nascoste durante la votazione e compaiono con gli errori frequenti solo dopo la rivelazione.',
     interactionLabel: 'Interazione',
     exampleLabel: 'Esempio didattico',
     resultLabel: 'Risultati',
@@ -457,8 +463,13 @@ const it: Messages = {
   comparison: {
     eyebrow: 'Differenziazione',
     title: 'Non solo un sostituto di Mentimeter o Kahoot',
-    lead: 'L’obiettivo non è solo votare, ma coprire l’intero percorso in diretta: preparare, moderare da qualsiasi punto della sala, rendere visibili i risultati e mantenere il controllo su contenuti e gestione.',
+    lead: 'L’obiettivo non è solo votare, ma coprire l’intero percorso in diretta: preparare sul telefono, moderare da qualsiasi punto della sala, rendere visibili i risultati e mantenere il controllo su contenuti e gestione.',
     points: [
+      {
+        title: 'Crea e conduci prima dal telefono',
+        description:
+          'La maggior parte dei sistemi di audience response progetta creazione e ruolo di chi insegna a partire da uno schermo grande. Qui crei tutti i formati sullo smartphone e conduci quiz, Q&A, Sondaggio rapido e risultati in mano. Laptop e proiettore restano possibili — non sono una condizione perché la console sia usabile.',
+      },
       {
         title: 'Libertà di movimento, non legato al laptop',
         description:
@@ -492,6 +503,11 @@ const it: Messages = {
         question: 'Chi conduce o i partecipanti hanno bisogno di un account?',
         answer:
           'No. Una sessione può partire senza account. I partecipanti entrano con codice o QR.',
+      },
+      {
+        question: 'Posso creare un quiz e condurre una sessione per intero dal telefono?',
+        answer:
+          'Sì. Crei un quiz sullo smartphone in tutti i formati — risposta singola e multipla, risposta breve, stima numerica, abbinamento, ordinamento e classificazione. La stessa vista di chi conduce gestisce la sessione in diretta: quiz, Q&A, Sondaggio rapido e risultati. Entrambi sono pensati prima per il telefono, non come un desktop rimpicciolito. Opzionalmente accoppi un secondo dispositivo: il proiettore resta sul laptop, il telefono conduce la sessione, senza un account separato.',
       },
       {
         question: 'Posso controllare la sessione dal telefono?',
@@ -558,7 +574,7 @@ const it: Messages = {
   jsonLd: {
     websiteName: 'arsnova.eu – Informazioni',
     webAppDescription:
-      'Piattaforma open source di risposta interattiva per istruzione, formazione e organizzazioni: quiz in diretta con abbinamento, ordinamento e classificazione, autovalutazione, rapporto dei risultati (PDF), domande di stima numerica, bacheca delle domande moderabile, nuvola di parole e sondaggio rapido — conforme alle WCAG 2.2, livello AA, gratuita, eseguibile sulla propria infrastruttura e pronta senza account.',
+      'Piattaforma open source di risposta interattiva per istruzione, formazione e organizzazioni: creazione del quiz e vista di chi conduce pensate per il telefono, quiz in diretta con abbinamento, ordinamento e classificazione, autovalutazione, rapporto dei risultati (PDF), domande di stima numerica, bacheca delle domande moderabile, nuvola di parole e sondaggio rapido — conforme alle WCAG 2.2, livello AA, gratuita, eseguibile sulla propria infrastruttura e pronta senza account.',
     featureList: [
       'Quiz in diretta e votazioni',
       'Autovalutazione sulle domande valutate',
@@ -566,6 +582,7 @@ const it: Messages = {
       'Domande di stima numerica con due turni e statistica',
       'Bacheca delle domande con moderazione, voti a favore e contro',
       'Sala d’attesa, presentatore, QR/codice',
+      'Creazione del quiz e vista di chi conduce pensate per il telefono — tutti i formati, modalità produttiva per chi insegna o presenta',
       'Controllo della sessione in diretta da telefono o tablet (accoppiamento host)',
       'Tipi di domanda MC/SC/risposte brevi/testo libero/sondaggio/valutazione/stima numerica/abbinamento/ordinamento/classificazione',
       'Markdown e KaTeX',

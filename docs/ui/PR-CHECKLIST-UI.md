@@ -2,7 +2,7 @@
 
 Diese Checkliste ist für alle PRs mit UI-Änderungen in `apps/frontend` verpflichtend.
 
-**Stand:** 2026-09-03 — abgeglichen mit [STYLEGUIDE.md](STYLEGUIDE.md) (inkl. Style-Vertraege), [TOKENS.md](TOKENS.md), Angular 21.2, den aktuellen Frontend-Skripten und der i18n-Dokumentation.
+**Stand:** 2026-09-10 — abgeglichen mit [STYLEGUIDE.md](STYLEGUIDE.md) (inkl. Style-Vertraege), [TOKENS.md](TOKENS.md), Angular 21.2, den aktuellen Frontend-Skripten und der i18n-Dokumentation.
 
 ## 1) Design-System-Konformität
 
@@ -38,6 +38,7 @@ Diese Checkliste ist für alle PRs mit UI-Änderungen in `apps/frontend` verpfli
 - [ ] Lesbarkeits-Mindestwerte eingehalten: Body `line-height >= 1.5`, Hint/Error `>= 1.4`, Feldabstand `>= 1rem`.
 - [ ] Luftiger Vertikalrhythmus eingehalten: Hilfetext zu Widget `>= 0.45rem`, aufeinanderfolgende Aktions-Widgets `>= 0.65rem`.
 - [ ] 320 px Breite ohne horizontales Scrollen geprüft.
+- [ ] Host-Live-Zeile (falls betroffen): `--session-host-shell-width` statt `width: 100%`; Join-Kapsel `max-content`; Kompass an der rechten Shell-Kante; vergrösserte Icon-Buttons im Fokusring zentriert (`--mat-icon-button-*` + Flex, nicht nur `padding: 0`).
 
 ## 5) Accessibility und Interaction States
 

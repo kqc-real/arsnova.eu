@@ -365,6 +365,28 @@ describe('FeedbackHostComponent', () => {
     fixture.destroy();
   });
 
+  it('zeigt den Standalone-Join-Trigger nur als QR-Icon mit zugaenglichem Namen', () => {
+    const fixture = TestBed.createComponent(FeedbackHostComponent);
+    fixture.componentRef.setInput('embeddedInSession', false);
+    fixture.componentInstance.result.set({
+      type: 'MOOD',
+      locked: false,
+      totalVotes: 0,
+      distribution: { POSITIVE: 0, NEUTRAL: 0, NEGATIVE: 0 },
+    });
+    fixture.detectChanges();
+
+    const joinControl = fixture.nativeElement.querySelector(
+      '.feedback-host__standalone-join-control',
+    ) as HTMLButtonElement | null;
+
+    expect(joinControl).not.toBeNull();
+    expect(joinControl?.getAttribute('aria-label')).toBe('Beitrittsinformationen öffnen');
+    expect(joinControl?.querySelector('mat-icon')?.textContent?.trim()).toBe('qr_code_2');
+    expect(joinControl?.textContent?.replace(/\s+/g, ' ').trim()).toBe('qr_code_2');
+    fixture.destroy();
+  });
+
   it('zeigt im Beitritts-Overlay Host und Code im Kopf sowie Link kopieren', () => {
     const fixture = TestBed.createComponent(FeedbackHostComponent);
     fixture.componentRef.setInput('embeddedInSession', false);

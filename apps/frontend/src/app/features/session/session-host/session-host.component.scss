@@ -1447,16 +1447,37 @@
 }
 
 .session-host__live-join-control {
+  --mat-icon-button-state-layer-size: 3.25rem;
+  --mat-icon-button-icon-size: 2.5rem;
+  --mdc-icon-button-state-layer-size: var(--mat-icon-button-state-layer-size);
   grid-column: 1;
   justify-self: start;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: var(--mat-icon-button-state-layer-size);
+  height: var(--mat-icon-button-state-layer-size);
+  padding: 0;
   border: none;
   background: transparent;
   box-shadow: none;
   color: var(--mat-sys-on-surface-variant);
   border-radius: var(--mat-sys-corner-full);
+  line-height: 0;
   transition:
     background-color 180ms ease,
     color 180ms ease;
+
+  mat-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: var(--mat-icon-button-icon-size);
+    width: var(--mat-icon-button-icon-size);
+    height: var(--mat-icon-button-icon-size);
+    line-height: 1;
+    overflow: hidden;
+  }
 
   &:hover {
     background: color-mix(in srgb, var(--mat-sys-on-surface) 8%, transparent);
@@ -1475,7 +1496,6 @@
   }
 }
 
-.session-host__live-join-label,
 .session-host__live-sound-label {
   display: none;
 }
@@ -1515,16 +1535,6 @@
   letter-spacing: 0.02em;
   color: var(--mat-sys-on-surface-variant);
   line-height: 1.3;
-}
-
-.session-host__join-menu-tip {
-  margin: 0;
-  padding: 0;
-  font-size: clamp(0.82rem, 2.7vw, 0.95rem);
-  font-weight: 500;
-  line-height: 1.2;
-  color: var(--mat-sys-on-surface);
-  white-space: nowrap;
 }
 
 .session-host__join-menu-close-action {
@@ -1716,7 +1726,6 @@
     margin-top: 0.15rem;
   }
 
-  .session-host__live-join-control,
   .session-host__live-sound-control {
     display: inline-flex;
     align-items: center;
@@ -1735,11 +1744,8 @@
 
   .session-host__live-join-control {
     justify-self: start;
-    padding-inline: 0.75rem;
-    gap: 0.35rem;
   }
 
-  .session-host__live-join-label,
   .session-host__live-sound-label {
     display: inline-flex;
     align-items: center;
@@ -1765,23 +1771,22 @@
     z-index: auto;
   }
 
-  .session-host--with-channel-tabs .session-host__live-banner {
-    width: auto;
-  }
-
   .session-host__live-shell-row {
     display: flex;
     align-items: stretch;
-    justify-content: flex-start;
-    width: 100%;
+    justify-content: space-between;
+    width: var(--session-host-shell-width);
+    max-width: 100%;
+    margin-inline: auto;
     gap: 0.45rem;
   }
 
   .session-host__live-banner {
     grid-column: auto;
-    flex: 1 1 0;
+    flex: 0 1 auto;
+    width: max-content;
     min-width: 0;
-    max-width: none;
+    max-width: 100%;
     gap: 0.45rem;
     margin: 0;
     padding: var(--host-mobile-card-padding);
@@ -1791,6 +1796,7 @@
   .session-host__moderation-stack {
     grid-column: auto;
     justify-self: auto;
+    flex: 0 0 auto;
     gap: 0.35rem;
     min-width: 4.6rem;
     width: 4.6rem;
@@ -1825,7 +1831,9 @@
   }
 
   .session-host__live-access {
-    grid-template-columns: auto minmax(0, 1fr) auto;
+    grid-template-columns: auto auto auto;
+    width: max-content;
+    max-width: 100%;
     gap: 0.5rem;
     align-items: center;
     text-align: center;
@@ -1871,16 +1879,6 @@
 
   .session-host__live-sound-control.session-host__meta-sound-control--active {
     background: transparent;
-  }
-
-  .session-host__live-join-control,
-  .session-host__live-sound-control {
-    width: 2.75rem;
-    height: 2.75rem;
-    padding: 0;
-    border: none;
-    background: transparent;
-    box-shadow: none;
   }
 
   .session-host__live-join-control {
@@ -6153,16 +6151,17 @@ $confidence-heat-tones: (
 
 .session-host__vote-dist-correct {
   display: inline-flex;
-  align-items: flex-start;
+  align-items: center;
   gap: 0.5rem;
+  margin: 0 0 0.75rem;
+  padding: 0.5rem 1rem;
   font: var(--mat-sys-body-large);
   font-weight: 400;
+  line-height: 1.4;
   color: var(--mat-sys-on-surface);
   background: color-mix(in srgb, var(--arsnova-bar-correct) 12%, transparent);
   border: 2px solid var(--arsnova-bar-correct);
   border-radius: 0.75rem;
-  padding: 0.5rem 1rem;
-  margin-bottom: 0.75rem;
   white-space: normal;
 }
 
@@ -6171,8 +6170,12 @@ $confidence-heat-tones: (
   width: 1.35rem;
   height: 1.35rem;
   font-size: 1.35rem;
-  line-height: 1.35rem;
-  margin-top: 0.05rem;
+  line-height: 1;
+}
+
+.session-host__vote-dist-correct > span {
+  min-width: 0;
+  line-height: 1.4;
 }
 
 .session-host__vote-dist-list {

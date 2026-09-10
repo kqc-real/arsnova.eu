@@ -5,7 +5,7 @@ const es: Messages = {
     homeTitle:
       'arsnova.eu | Cuestionario en directo, preguntas de estimación numérica y muro de preguntas',
     homeDescription:
-      'Plataforma de respuesta interactiva de código abierto para educación, formación y organizaciones: cuestionario en directo para relacionar, ordenar y clasificar, autoevaluación, informe de resultados (PDF), preguntas de estimación numérica, muro de preguntas moderable, nube de palabras y sondeo rápido — cumple las WCAG 2.2, nivel AA, gratuita, ejecutable en tu propia infraestructura y lista sin cuenta.',
+      'Plataforma de respuesta interactiva de código abierto para educación, formación y organizaciones: creación del cuestionario y vista de anfitrión pensadas para el móvil, cuestionario en directo para relacionar, ordenar y clasificar, autoevaluación, informe de resultados (PDF), preguntas de estimación numérica, muro de preguntas moderable, nube de palabras y sondeo rápido — cumple las WCAG 2.2, nivel AA, gratuita, ejecutable en tu propia infraestructura y lista sin cuenta.',
     siteNameInfo: 'arsnova.eu – Información',
     ogLocale: 'es_ES',
   },
@@ -54,13 +54,13 @@ const es: Messages = {
     titleLine2: 'moderación de preguntas',
     titleAccent1: 'en directo y gratis',
     titleAccent2: ' sin cuenta.',
-    lead: 'arsnova.eu reúne cuestionarios en directo, preguntas de estimación numérica, autoevaluación en preguntas puntuables, muro de preguntas, análisis de nube de palabras y sondeo rápido en una sola interfaz para escuelas, universidades, formación continua, talleres y empresas. Código abierto, ejecutable en tu propia infraestructura y pensado para un funcionamiento respetuoso con el RGPD.',
+    lead: 'arsnova.eu reúne cuestionarios en directo, preguntas de estimación numérica, autoevaluación en preguntas puntuables, muro de preguntas, análisis de nube de palabras y sondeo rápido en una sola interfaz para escuelas, universidades, formación continua, talleres y empresas. La creación del cuestionario y la vista de anfitrión para quienes enseñan o presentan están pensadas primero para el móvil — todos los formatos, no reducidas desde un escritorio. Código abierto, ejecutable en tu propia infraestructura y pensado para un funcionamiento respetuoso con el RGPD.',
     a11yLink: 'Cumple las WCAG 2.2, nivel AA',
     a11ySuffix: '— teclado, lector de pantalla y tiempo de respuesta ajustable individualmente.',
     cards: [
       {
-        title: 'Libre en la sala',
-        text: 'Controla la sesión desde el teléfono; el proyector sigue en el portátil',
+        title: 'Primero para el móvil',
+        text: 'Crea todos los formatos y dirige en directo — nace en el móvil, no es un escritorio encogido',
       },
       { title: 'Q&A con muro de preguntas', text: 'Moderación, votos y nube temática' },
       {
@@ -212,7 +212,7 @@ const es: Messages = {
         number: '01',
         title: 'Preparar un cuestionario',
         description:
-          'Crea preguntas directamente o importa contenidos existentes. Markdown, KaTeX, respuesta corta, estimación numérica, relacionar, ordenar y clasificar están integrados.',
+          'Crea preguntas directamente o importa contenidos existentes — por completo en el móvil, en todos los formatos. Markdown, KaTeX, respuesta corta, estimación numérica, relacionar, ordenar y clasificar están integrados, no en una versión móvil recortada.',
       },
       {
         number: '02',
@@ -230,7 +230,7 @@ const es: Messages = {
         number: '04',
         title: 'Moderar en directo',
         description:
-          'Te mueves por la sala y diriges la sesión en directo desde el teléfono. Los participantes votan, formulan preguntas y priorizan juntos. El anfitrión y el presentador muestran el cuestionario, el Q&A, el Sondeo rápido, la nube de palabras, la fase de lectura, la cuenta atrás, la segunda ronda y los resultados en un solo recorrido.',
+          'Te mueves por la sala y diriges la sesión en directo desde el teléfono. La vista de anfitrión está hecha para eso — no reducida desde un escritorio. Los participantes votan, formulan preguntas y priorizan juntos. El anfitrión y el presentador muestran el cuestionario, el Q&A, el Sondeo rápido, la nube de palabras, la fase de lectura, la cuenta atrás, la segunda ronda y los resultados en un solo recorrido.',
       },
       {
         number: '05',
@@ -243,7 +243,7 @@ const es: Messages = {
   pairing: {
     eyebrow: 'Lo que nos distingue',
     title: 'Presenta desde cualquier punto de la sala — con el teléfono o la tablet',
-    lead: 'Otros sistemas de respuesta del público suelen ofrecer un mando — como pasador de diapositivas o con una cuenta aparte en el teléfono. Con arsnova.eu escaneas un QR, confirmas en el portátil y el teléfono solo dirige la sesión en curso.',
+    lead: 'El emparejamiento funciona porque la vista de anfitrión está pensada primero para el móvil. Otros sistemas de respuesta del público suelen ofrecer un mando — como pasador de diapositivas o con una cuenta aparte en el teléfono. Con arsnova.eu escaneas un QR, confirmas en el portátil y el teléfono solo dirige la sesión en curso.',
     whyTitle: 'Por qué este emparejamiento no es un mando más',
     summary: [
       'Total libertad de movimiento mientras presentas — una ventaja clara para la didáctica y la puesta en escena.',
@@ -265,6 +265,12 @@ const es: Messages = {
     title: 'Hecho para la interacción en directo, no solo para encuestas en diapositivas',
     lead: 'arsnova.eu combina un arranque rápido, solidez didáctica y una base técnica transparente. La plataforma se mantiene sencilla en el día a día sin reducir las posibilidades.',
     items: [
+      {
+        title: 'Crear y dirigir primero en el móvil',
+        description:
+          'Otros sistemas de respuesta del público suelen tratar la creación y el rol docente como productos de escritorio. Aquí creas un cuestionario en el móvil en todos los formatos — y la misma vista de anfitrión dirige el cuestionario, el Q&A, el Sondeo rápido y los resultados en la mano, también sin portátil. El emparejamiento con un proyector es opcional.',
+        icon: 'phone',
+      },
       {
         title: 'Presenta desde cualquier punto de la sala',
         description:
@@ -342,7 +348,7 @@ const es: Messages = {
   structuredQuestionTypes: {
     eyebrow: 'Tipos de pregunta estructurados',
     title: 'Relacionar, ordenar y clasificar con interacciones completas y resultados útiles',
-    lead: 'Tres formatos convierten relaciones, secuencias y límites conceptuales en tareas activas. Las soluciones permanecen ocultas durante la votación y se muestran con los errores frecuentes después de revelar los resultados.',
+    lead: 'Tres formatos convierten relaciones, secuencias y límites conceptuales en tareas activas — y los creas por completo en el móvil. Las soluciones permanecen ocultas durante la votación y se muestran con los errores frecuentes después de revelar los resultados.',
     interactionLabel: 'Interacción',
     exampleLabel: 'Ejemplo didáctico',
     resultLabel: 'Resultados',
@@ -459,8 +465,13 @@ const es: Messages = {
   comparison: {
     eyebrow: 'Diferenciación',
     title: 'No solo un sustituto de Mentimeter o Kahoot',
-    lead: 'El objetivo no es únicamente votar, sino cubrir todo el proceso en directo: preparar, moderar desde cualquier punto de la sala, hacer visibles los resultados y mantener el control sobre contenidos y operación.',
+    lead: 'El objetivo no es únicamente votar, sino cubrir todo el proceso en directo: preparar en el móvil, moderar en cualquier punto de la sala, hacer visibles los resultados y mantener el control sobre contenidos y operación.',
     points: [
+      {
+        title: 'Crear y dirigir primero en el móvil',
+        description:
+          'La mayoría de los sistemas de respuesta del público diseñan la creación y el rol docente desde una pantalla grande. Aquí creas todos los formatos en el móvil y diriges el cuestionario, el Q&A, el Sondeo rápido y los resultados en la mano. Portátil y proyector siguen siendo posibles — no son un requisito para que la consola se pueda usar.',
+      },
       {
         title: 'Libertad de movimiento, no atado al portátil',
         description:
@@ -494,6 +505,11 @@ const es: Messages = {
         question: '¿Necesitan cuenta anfitriones o participantes?',
         answer:
           'No. Una sesión puede iniciarse sin cuenta. Los participantes entran con código o QR.',
+      },
+      {
+        question: '¿Puedo crear un cuestionario y dirigir una sesión por completo desde el móvil?',
+        answer:
+          'Sí. Creas un cuestionario en el smartphone en todos los formatos — respuesta única y múltiple, respuesta corta, estimación numérica, relacionar, ordenar y clasificar. La misma vista de anfitrión dirige la sesión en directo: cuestionario, Q&A, Sondeo rápido y resultados. Ambos están pensados primero para el móvil, no como un escritorio encogido. Opcionalmente emparejas un segundo dispositivo: el proyector sigue en el portátil, el teléfono dirige la sesión, sin una cuenta aparte.',
       },
       {
         question: '¿Puedo controlar la sesión desde el teléfono?',
@@ -560,7 +576,7 @@ const es: Messages = {
   jsonLd: {
     websiteName: 'arsnova.eu – Información',
     webAppDescription:
-      'Plataforma de respuesta interactiva de código abierto para educación, formación y organizaciones: cuestionario en directo para relacionar, ordenar y clasificar, autoevaluación, informe de resultados (PDF), preguntas de estimación numérica, muro de preguntas moderable, nube de palabras y sondeo rápido — cumple las WCAG 2.2, nivel AA, gratuita, ejecutable en tu propia infraestructura y lista sin cuenta.',
+      'Plataforma de respuesta interactiva de código abierto para educación, formación y organizaciones: creación del cuestionario y vista de anfitrión pensadas para el móvil, cuestionario en directo para relacionar, ordenar y clasificar, autoevaluación, informe de resultados (PDF), preguntas de estimación numérica, muro de preguntas moderable, nube de palabras y sondeo rápido — cumple las WCAG 2.2, nivel AA, gratuita, ejecutable en tu propia infraestructura y lista sin cuenta.',
     featureList: [
       'Cuestionario en directo y votaciones',
       'Autoevaluación en preguntas puntuables',
@@ -568,6 +584,7 @@ const es: Messages = {
       'Preguntas de estimación numérica con dos rondas y estadística',
       'Muro de preguntas con moderación, votos a favor y en contra',
       'Sala de espera, presentador, QR/código',
+      'Creación del cuestionario y vista de anfitrión pensadas para el móvil — todos los formatos, modo productivo para quien enseña o presenta',
       'Control de la sesión en directo desde un teléfono o tablet (emparejamiento de anfitrión)',
       'Tipos de pregunta MC/SC/respuestas cortas/texto libre/encuesta/valoración/estimación numérica/relacionar/ordenar/clasificar',
       'Markdown y KaTeX',

@@ -245,7 +245,7 @@ export class ModerationCompassDialogComponent {
       case 'tempo':
         return card.tone === 'alert' || card.tone === 'caution'
           ? $localize`:@@sessionHost.moderationCardTempoBehind:Kommen nicht mit`
-          : $localize`:@@sessionHost.moderationCardTempo:Tempo`;
+          : $localize`:@@sessionHost.moderationCardTempo:Feedback zum Vortragstempo`;
       case 'nextStep':
         return $localize`:@@sessionHost.moderationNowHeading:Als Nächstes`;
     }
