@@ -2961,7 +2961,11 @@ export class SessionHostComponent implements OnInit, OnDestroy {
     const votes = this.getVoteCountForCurrentQuestion(this.displayedCurrentQuestionForHost());
     return votes >= participants;
   });
+  readonly timerAccommodationEnabled = computed(
+    () => this.session()?.enableTimerAccommodation !== false,
+  );
   readonly pendingTimerAccommodationCount = computed(() => {
+    if (!this.timerAccommodationEnabled()) return 0;
     if (this.effectiveStatus() !== 'ACTIVE') return 0;
     const question = this.displayedCurrentQuestionForHost();
     const progress = this.hostVoteProgress();
@@ -2970,6 +2974,7 @@ export class SessionHostComponent implements OnInit, OnDestroy {
       : 0;
   });
   readonly blockingTimerAccommodationCount = computed(() => {
+    if (!this.timerAccommodationEnabled()) return 0;
     if (this.effectiveStatus() !== 'ACTIVE') return 0;
     const question = this.displayedCurrentQuestionForHost();
     const progress = this.hostVoteProgress();

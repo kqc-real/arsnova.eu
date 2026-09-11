@@ -836,7 +836,9 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
           rejoinToken,
           productFeedbackClaimToken: getProductFeedbackParticipantClaimToken(this.code),
         });
-        if (join.timerAccommodation) {
+        if (join.enableTimerAccommodation === false) {
+          this.applyTimerAccommodation('DEFAULT', { restartCountdown: false });
+        } else if (join.timerAccommodation) {
           this.applyTimerAccommodation(join.timerAccommodation, { restartCountdown: false });
         }
         storeProductFeedbackParticipantClaimToken(this.code, join.productFeedbackClaimToken);
@@ -1279,9 +1281,18 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
   );
   readonly voteSubmissionLocked = computed(() => this.voteSent() || this.voteClosed());
 
+  readonly timerAccommodationEnabled = computed(
+    () => this.sessionSettings().enableTimerAccommodation !== false,
+  );
+
   /** Zeitanpassung nur bei aktiver, getimter Quizfrage (Runde 1) und vor dem Absenden. */
   readonly showTimerAccommodationControls = computed(() => {
-    if (!this.isActive() || this.voteSent() || this.currentRound() === 2) {
+    if (
+      !this.timerAccommodationEnabled() ||
+      !this.isActive() ||
+      this.voteSent() ||
+      this.currentRound() === 2
+    ) {
       return false;
     }
     const sessionTimer = this.sessionTimerSeconds();
@@ -1289,7 +1300,11 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
   });
 
   readonly showLobbyTimerAccommodationControls = computed(
-    () => this.isLobby() && !this.isStandaloneQaSession() && !!this.participantId(),
+    () =>
+      this.timerAccommodationEnabled() &&
+      this.isLobby() &&
+      !this.isStandaloneQaSession() &&
+      !!this.participantId(),
   );
 
   /** Verfügbarkeit der rein lokalen Punktvorschau; verursacht keine Netzwerkanfrage. */
@@ -1300,18 +1315,35 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
     if (!this.currentQuestionIsScored()) {
       return false;
     }
-    const sessionTimer = this.sessionTimerSeconds();
+    const sessionTimer = this.effectiveSessionTimerSeconds();
     return typeof sessionTimer === 'number' && sessionTimer > 0;
   });
+
+  /** Punkteerklärung unabhängig von »Persönliche Zeit« – nur die Optionen verschwinden. */
+  readonly showStandaloneScoringInfo = computed(
+    () => this.liveScorePreviewAvailable() && !this.showTimerAccommodationControls(),
+  );
   readonly showLiveScorePreview = computed(
     () => this.liveScorePreviewAvailable() && this.liveScorePreviewVisible(),
   );
+
+  private effectiveSessionTimerSeconds(): number | null {
+    const fromSignal = this.sessionTimerSeconds();
+    if (typeof fromSignal === 'number' && fromSignal > 0) {
+      return fromSignal;
+    }
+    const question = this.currentQuestion();
+    if (question && 'sessionTimer' in question && typeof question.sessionTimer === 'number') {
+      return question.sessionTimer > 0 ? question.sessionTimer : null;
+    }
+    return null;
+  }
 
   readonly liveScorePreviewPoints = computed(() => {
     if (!this.showLiveScorePreview()) {
       return null;
     }
-    const sessionTimer = this.sessionTimerSeconds();
+    const sessionTimer = this.effectiveSessionTimerSeconds();
     const question = this.currentQuestion();
     if (
       typeof sessionTimer !== 'number' ||
@@ -1339,7 +1371,7 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
   });
 
   readonly liveScorePreviewInOvertime = computed(() => {
-    const sessionTimer = this.sessionTimerSeconds();
+    const sessionTimer = this.effectiveSessionTimerSeconds();
     return (
       typeof sessionTimer === 'number' &&
       sessionTimer > 0 &&
@@ -2832,7 +2864,7 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
       return $localize`:@@sessionVote.scorePreview.overtimeCorrect:Nachlaufzeit · richtige Antwort`;
     }
     return this.liveScorePreviewUsesUpperBound()
-      ? $localize`:@@sessionVote.scorePreview.upToNow:Volle Wertung jetzt`
+      ? $localize`:@@sessionVote.scorePreview.upToNow:Höchstens jetzt`
       : $localize`:@@sessionVote.scorePreview.correctNow:Richtige Antwort jetzt`;
   }
 
@@ -2845,6 +2877,10 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
   }
 
   async setTimerAccommodation(mode: TimerAccommodation): Promise<void> {
+    if (!this.timerAccommodationEnabled()) {
+      this.applyTimerAccommodation('DEFAULT', { restartCountdown: true });
+      return;
+    }
     const accommodation = normalizeTimerAccommodation(mode);
     if (accommodation === this.timerAccommodation() || this.timerAccommodationSaving()) {
       return;
@@ -3602,7 +3638,9 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
         this.sessionTimerSeconds.set(studentQ.timer);
       }
     }
-    if (studentQ.timerAccommodation) {
+    if (!this.timerAccommodationEnabled()) {
+      this.applyTimerAccommodation('DEFAULT', { restartCountdown: false });
+    } else if (studentQ.timerAccommodation) {
       this.applyTimerAccommodation(studentQ.timerAccommodation, { restartCountdown: false });
     }
     const activeAt =
@@ -3623,7 +3661,10 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
           ? new Date(activeAtIsoOrMs).getTime()
           : Date.now();
     this.questionActiveAtMs = Number.isFinite(activeAtMs) ? activeAtMs : Date.now();
-    const personalTimer = resolvePersonalTimerSeconds(sessionTimer, this.timerAccommodation());
+    const personalTimer = resolvePersonalTimerSeconds(
+      sessionTimer,
+      this.timerAccommodationEnabled() ? this.timerAccommodation() : 'DEFAULT',
+    );
     if (!personalTimer || personalTimer <= 0) {
       this.stopCountdown();
       this.countdownSeconds.set(null);
@@ -3634,6 +3675,7 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
     }
     this.stopScorePreviewTicker();
     this.startCountdownFromDeadline(activeAtMs + personalTimer * 1000);
+    this.syncScorePreviewTicker();
   }
 
   private applyTimerAccommodation(
@@ -3651,6 +3693,10 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
   }
 
   private async syncTimerAccommodationPreference(): Promise<void> {
+    if (!this.timerAccommodationEnabled()) {
+      this.applyTimerAccommodation('DEFAULT', { restartCountdown: false });
+      return;
+    }
     const participantId = this.participantId();
     if (!this.code || !participantId) {
       return;
@@ -3705,13 +3751,11 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
 
   private startCountdownFromDeadline(deadline: number): void {
     this.stopCountdown();
-    this.stopScorePreviewTicker();
     this.clearLateSubmitCloseTimeout();
     this.timeoutMessage.set(null);
     const tick = (): void => {
       const remaining = remainingCountdownSeconds(deadline);
       this.countdownSeconds.set(remaining);
-      this.updateScorePreviewElapsedFromCountdown(remaining);
       if (remaining <= 0) {
         this.stopCountdown();
         this.countdownSeconds.set(0);
@@ -3733,15 +3777,6 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
     this.countdownTimer = setInterval(tick, 1000);
   }
 
-  private updateScorePreviewElapsedFromCountdown(remainingSeconds: number): void {
-    const sessionTimer = this.sessionTimerSeconds();
-    const personalTimer = resolvePersonalTimerSeconds(sessionTimer, this.timerAccommodation());
-    if (typeof personalTimer !== 'number' || personalTimer <= 0) {
-      return;
-    }
-    this.setScorePreviewElapsedSeconds(Math.max(0, personalTimer - remainingSeconds));
-  }
-
   private setScorePreviewElapsedSeconds(elapsedSeconds: number): void {
     const next = Math.max(0, Math.floor(elapsedSeconds));
     if (this.scorePreviewElapsedSeconds() !== next) {
@@ -3750,13 +3785,10 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
   }
 
   private syncScorePreviewTicker(): void {
-    const needsTicker =
-      this.showLiveScorePreview() &&
-      this.timerAccommodation() === 'OFF' &&
-      this.questionActiveAtMs !== null;
+    const needsTicker = this.liveScorePreviewAvailable() && this.questionActiveAtMs !== null;
     if (!needsTicker) {
       this.stopScorePreviewTicker();
-      if (!this.showLiveScorePreview()) {
+      if (!this.liveScorePreviewAvailable()) {
         this.scorePreviewElapsedSeconds.set(0);
       }
       return;
@@ -3765,7 +3797,7 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
       return;
     }
     const tick = (): void => {
-      if (!this.showLiveScorePreview() || this.timerAccommodation() !== 'OFF') {
+      if (!this.liveScorePreviewAvailable()) {
         this.stopScorePreviewTicker();
         return;
       }

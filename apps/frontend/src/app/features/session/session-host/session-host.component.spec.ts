@@ -8635,6 +8635,62 @@ describe('SessionHostComponent', { timeout: 30_000 }, () => {
     fixture.destroy();
   });
 
+  it('blendet Hinweise zur persönlichen Zeit aus, wenn sie am Quiz aus ist', async () => {
+    const fixture = setup();
+    fixture.detectChanges();
+    await fixture.whenStable();
+    const component = fixture.componentInstance;
+    const question = {
+      questionId: 'bbbbbbbb-2222-4222-8222-222222222222',
+      order: 0,
+      totalQuestions: 3,
+      text: 'Welche Antwort ist richtig?',
+      type: 'SINGLE_CHOICE' as const,
+      difficulty: 'MEDIUM' as const,
+      currentRound: 1,
+      timer: 30,
+      answers: [
+        { id: 'aaaaaaaa-1111-4111-8111-111111111111', text: 'A', isCorrect: false },
+        { id: 'bbbbbbbb-2222-4222-8222-222222222222', text: 'B', isCorrect: true },
+      ],
+      totalVotes: 0,
+      correctVoterCount: 0,
+    };
+
+    component.session.set({
+      ...defaultSession,
+      status: 'ACTIVE',
+      enableTimerAccommodation: false,
+    });
+    component.currentQuestionForHost.set(question);
+    component.statusUpdate.set({
+      status: 'ACTIVE',
+      currentQuestion: 0,
+      currentRound: 1,
+    } as unknown as Parameters<typeof component.statusUpdate.set>[0]);
+    component.countdownSeconds.set(12);
+    component.hostVoteProgress.set({
+      questionId: question.questionId,
+      questionOrder: 0,
+      round: 1,
+      totalVotes: 0,
+      pendingTimerAccommodationCount: 1,
+      blockingTimerAccommodationCount: 1,
+    });
+    fixture.detectChanges();
+
+    const host = fixture.nativeElement as HTMLElement;
+    expect(component.timerAccommodationEnabled()).toBe(false);
+    expect(component.pendingTimerAccommodationCount()).toBe(0);
+    expect(component.blockingTimerAccommodationCount()).toBe(0);
+    expect(host.querySelector('.session-host__timer-a11y-note')).toBeNull();
+    expect(host.textContent).not.toContain('Mehr Zeit hilft nicht');
+    expect(host.querySelector('.session-host__timer-accommodation-warning')).toBeNull();
+    expect(host.textContent).not.toContain('10× Zeit');
+    expect(host.textContent).not.toContain('Trotzdem freigeben');
+    fixture.destroy();
+  });
+
   it('zeigt im Host live den Abstimmungsfortschritt als Prozent mit Stimmenzaehler', async () => {
     getInfoQueryMock.mockResolvedValue({
       ...defaultSession,

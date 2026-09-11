@@ -469,6 +469,73 @@ describe('SessionVoteComponent', { timeout: 30_000 }, () => {
     fixture.destroy();
   });
 
+  it('blendet Zeitanpassung aus, wenn Persönliche Zeit am Quiz aus ist', async () => {
+    getInfoQueryMock.mockResolvedValue({
+      id: '6a8edced-5f8f-4cfa-9176-454fac9570ad',
+      serverTime: MOCK_SERVER_TIME,
+      code: 'ABC123',
+      type: 'QUIZ',
+      status: 'ACTIVE',
+      quizName: 'Q',
+      title: null,
+      participantCount: 2,
+      teamMode: false,
+      enableRewardEffects: false,
+      preset: 'SERIOUS',
+      enableEmojiReactions: false,
+      enableTimerAccommodation: false,
+      channels: {
+        quiz: { enabled: true },
+        qa: { enabled: false, open: false, title: null, moderationMode: false },
+        quickFeedback: { enabled: false, open: false },
+      },
+    });
+    currentQuestionQueryMock.mockResolvedValue({
+      id: 'timer-a11y-question',
+      text: 'Frage mit Timer',
+      type: 'SINGLE_CHOICE',
+      difficulty: 'MEDIUM',
+      order: 0,
+      totalQuestions: 1,
+      answers: [
+        { id: 'a1', text: 'A' },
+        { id: 'a2', text: 'B' },
+      ],
+      activeAt: new Date().toISOString(),
+      timer: 300,
+      sessionTimer: 30,
+      timerAccommodation: 'EXTENDED',
+      currentRound: 1,
+      totalVotes: 0,
+      participantCount: 2,
+    });
+
+    const fixture = TestBed.createComponent(SessionVoteComponent);
+    fixture.detectChanges();
+    const component = fixture.componentInstance;
+    for (let attempt = 0; attempt < 10 && !component.sessionId(); attempt += 1) {
+      await flushComponentAfterStable(fixture, 50);
+      fixture.detectChanges();
+    }
+
+    expect(component.timerAccommodationEnabled()).toBe(false);
+    expect(component.showTimerAccommodationControls()).toBe(false);
+    expect(component.timerAccommodation()).toBe('DEFAULT');
+    expect(component.liveScorePreviewAvailable()).toBe(true);
+    expect(component.showStandaloneScoringInfo()).toBe(true);
+    const host = fixture.nativeElement as HTMLElement;
+    expect(host.querySelector('[data-testid="vote-timer-accommodation"]')).toBeNull();
+    expect(host.textContent).not.toContain('Zeit anpassen');
+    expect(host.textContent).not.toContain('10× Zeit');
+    expect(host.textContent).not.toContain('Ohne Frist');
+    expect(host.querySelector('[data-testid="vote-score-preview"]')).toBeTruthy();
+    expect(host.querySelector('[data-testid="vote-scoring-info"]')).toBeTruthy();
+    expect(host.textContent).toContain('So werden Punkte berechnet');
+    expect(host.textContent).toContain('Die Live-Punktvorschau zeigt');
+    expect(host.textContent).not.toContain('Mehr Zeit ändert');
+    fixture.destroy();
+  });
+
   it('bietet die Zeitanpassung bereits in der Quiz-Lobby an', () => {
     const fixture = TestBed.createComponent(SessionVoteComponent);
     const component = fixture.componentInstance;
@@ -487,6 +554,23 @@ describe('SessionVoteComponent', { timeout: 30_000 }, () => {
     expect((fixture.nativeElement as HTMLElement).textContent).toContain(
       'Vor der Frage wählen · »10× Zeit« = zehnfacher Raum-Countdown',
     );
+    fixture.destroy();
+  });
+
+  it('blendet die Lobby-Zeitanpassung aus, wenn Persönliche Zeit aus ist', () => {
+    const fixture = TestBed.createComponent(SessionVoteComponent);
+    const component = fixture.componentInstance;
+    component.status.set('LOBBY');
+    component.participantId.set('11111111-1111-4111-8111-111111111111');
+    component.sessionSettings.set({ type: 'QUIZ', enableTimerAccommodation: false });
+    fixture.detectChanges();
+
+    expect(component.showLobbyTimerAccommodationControls()).toBe(false);
+    expect(
+      (fixture.nativeElement as HTMLElement).querySelector(
+        '[data-testid="vote-timer-accommodation"]',
+      ),
+    ).toBeNull();
     fixture.destroy();
   });
 
@@ -601,9 +685,20 @@ describe('SessionVoteComponent', { timeout: 30_000 }, () => {
     expect(component.showLiveScorePreview()).toBe(true);
     expect(component.liveScorePreviewPoints()).toBe(2000);
 
+    component.scorePreviewElapsedSeconds.set(1);
+    expect(component.liveScorePreviewPoints()).toBe(1950);
+
     component.scorePreviewElapsedSeconds.set(30);
     expect(component.liveScorePreviewPoints()).toBe(1000);
     expect(component.liveScorePreviewCaption()).toBe('Richtige Antwort jetzt');
+
+    component.currentQuestion.update((question) =>
+      question ? { ...question, type: 'NUMERIC_ESTIMATE' } : question,
+    );
+    expect(component.liveScorePreviewCaption()).toBe('Höchstens jetzt');
+    component.currentQuestion.update((question) =>
+      question ? { ...question, type: 'SINGLE_CHOICE' } : question,
+    );
 
     component.scorePreviewElapsedSeconds.set(90);
     expect(component.liveScorePreviewPoints()).toBe(200);
@@ -619,6 +714,11 @@ describe('SessionVoteComponent', { timeout: 30_000 }, () => {
     );
     expect(
       floatingPreview
+        ?.querySelector('.vote-score-preview__points')
+        ?.textContent?.replace(/\s+/g, ''),
+    ).toBe('200');
+    expect(
+      floatingPreview
         ?.querySelector('.vote-score-preview__value')
         ?.textContent?.replace(/\s+/g, ''),
     ).toContain('200Punkte');
@@ -628,6 +728,9 @@ describe('SessionVoteComponent', { timeout: 30_000 }, () => {
     fixture.detectChanges();
     expect(component.showLiveScorePreview()).toBe(false);
     expect(component.liveScorePreviewPoints()).toBeNull();
+    expect(
+      (fixture.nativeElement as HTMLElement).querySelector('[data-testid="vote-score-preview"]'),
+    ).toBeNull();
     expect(
       (fixture.nativeElement as HTMLElement).querySelector('.vote-score-preview-toggle')
         ?.textContent,
@@ -714,13 +817,17 @@ describe('SessionVoteComponent', { timeout: 30_000 }, () => {
     expect(component.liveScorePreviewAvailable()).toBe(true);
     expect(component.liveScorePreviewPoints()).toBeNull();
     expect(
+      (fixture.nativeElement as HTMLElement).querySelector('[data-testid="vote-score-preview"]'),
+    ).toBeNull();
+    expect(
       (fixture.nativeElement as HTMLElement)
         .querySelector('.vote-score-preview-toggle')
         ?.getAttribute('aria-pressed'),
     ).toBe('false');
     expect(
-      (fixture.nativeElement as HTMLElement).querySelector('[data-testid="vote-score-preview"]'),
-    ).toBeNull();
+      (fixture.nativeElement as HTMLElement).querySelector('.vote-score-preview-toggle')
+        ?.textContent,
+    ).toContain('Live-Punkte anzeigen');
     fixture.destroy();
   });
 

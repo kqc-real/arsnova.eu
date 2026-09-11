@@ -161,9 +161,19 @@ export const MAX_BASE_POINTS = 1000;
  */
 export const MIN_ACCEPTED_TIME_SCORE_RATIO = 0.1;
 
+/** Anzeigeraster der Live-Punktvorschau. Die echte Wertung bleibt sekundengenau. */
+export const SCORE_PREVIEW_DISPLAY_STEP = 50;
+
+function roundScorePreviewToDisplayStep(points: number, maxPoints: number): number {
+  const stepped = Math.round(points / SCORE_PREVIEW_DISPLAY_STEP) * SCORE_PREVIEW_DISPLAY_STEP;
+  const minPoints = Math.round(maxPoints * MIN_ACCEPTED_TIME_SCORE_RATIO);
+  return Math.min(maxPoints, Math.max(minPoints, stepped));
+}
+
 /**
  * Punktvorschau für eine volle richtige Antwort zum aktuellen Zeitpunkt.
  * Bewertungsbasis ist immer der Session-Timer – nicht die persönliche Verlängerung.
+ * Die Anzeige rastet auf 50er-Schritte; Backend-Scoring bleibt ungerastert.
  */
 export function previewMaxCorrectScoreAtElapsedSeconds(input: {
   difficulty: Difficulty;
@@ -173,13 +183,13 @@ export function previewMaxCorrectScoreAtElapsedSeconds(input: {
   const multiplier = DIFFICULTY_MULTIPLIER[input.difficulty];
   const maxBeforeTime = MAX_BASE_POINTS * multiplier;
   if (!(input.sessionTimerSeconds > 0)) {
-    return Math.round(maxBeforeTime);
+    return roundScorePreviewToDisplayStep(Math.round(maxBeforeTime), maxBeforeTime);
   }
   const responseTimeMs = Math.max(0, input.elapsedSeconds) * 1000;
   const timerDurationMs = input.sessionTimerSeconds * 1000;
   const rawTimeFraction = Math.max(0, 1 - responseTimeMs / timerDurationMs);
   const timeFraction = Math.max(rawTimeFraction, MIN_ACCEPTED_TIME_SCORE_RATIO);
-  return Math.round(maxBeforeTime * timeFraction);
+  return roundScorePreviewToDisplayStep(Math.round(maxBeforeTime * timeFraction), maxBeforeTime);
 }
 
 /** Standard- und Obergrenzen für bewertbare Kurzantworten (Story 1.2e). */
@@ -1263,6 +1273,11 @@ export function normalizeTimerAccommodation(value: unknown): TimerAccommodation 
   return 'DEFAULT';
 }
 
+/** Host-Schalter im Quiz; fehlend oder nicht `false` bleibt an (Default). */
+export function isTimerAccommodationEnabled(value: boolean | null | undefined): boolean {
+  return value !== false;
+}
+
 export function resolvePersonalTimerSeconds(
   baseTimerSeconds: number | null | undefined,
   accommodation: TimerAccommodation | null | undefined,
@@ -1345,6 +1360,7 @@ export const CreateQuizInputSchema = z.object({
   allowCustomNicknames: z.boolean().optional().default(false),
   defaultTimer: z.number().int().min(5).max(300).nullable().optional(),
   timerScaleByDifficulty: z.boolean().optional().default(true),
+  enableTimerAccommodation: z.boolean().optional().default(true),
   enableSoundEffects: z.boolean().optional().default(true),
   enableRewardEffects: z.boolean().optional().default(true),
   enableMotivationMessages: z.boolean().optional().default(true),
@@ -2457,6 +2473,7 @@ export const QuizUploadInputSchema = z
     allowCustomNicknames: z.boolean(),
     defaultTimer: z.number().int().min(5).max(300).nullable().optional(),
     timerScaleByDifficulty: z.boolean().optional(),
+    enableTimerAccommodation: z.boolean().optional(),
     enableSoundEffects: z.boolean(),
     enableRewardEffects: z.boolean(),
     enableMotivationMessages: z.boolean(),
@@ -2556,6 +2573,7 @@ type QuizHistoryAccessMaterial = {
   allowCustomNicknames: boolean;
   defaultTimer: number | null;
   timerScaleByDifficulty: boolean;
+  enableTimerAccommodation: boolean;
   enableSoundEffects: boolean;
   enableRewardEffects: boolean;
   enableMotivationMessages: boolean;
@@ -2639,6 +2657,7 @@ function buildQuizHistoryAccessMaterial(input: QuizUploadInput): QuizHistoryAcce
     allowCustomNicknames: parsed.allowCustomNicknames,
     defaultTimer: parsed.defaultTimer ?? null,
     timerScaleByDifficulty: parsed.timerScaleByDifficulty ?? true,
+    enableTimerAccommodation: parsed.enableTimerAccommodation ?? true,
     enableSoundEffects: parsed.enableSoundEffects,
     enableRewardEffects: parsed.enableRewardEffects,
     enableMotivationMessages: parsed.enableMotivationMessages,
@@ -3658,6 +3677,7 @@ export const SessionInfoDTOSchema = z.object({
   quizStarted: z.boolean().optional(),
   defaultTimer: z.number().nullable().optional(),
   timerScaleByDifficulty: z.boolean().optional(),
+  enableTimerAccommodation: z.boolean().optional(),
   backgroundMusic: z.string().nullable().optional(),
   teamMode: z.boolean().optional(),
   teamCount: z.number().nullable().optional(),
@@ -4284,6 +4304,7 @@ export const QuizExportSchema = z.object({
     allowCustomNicknames: z.boolean(),
     defaultTimer: z.number().int().min(5).max(300).nullable().optional(),
     timerScaleByDifficulty: z.boolean().optional(),
+    enableTimerAccommodation: z.boolean().optional(),
     enableSoundEffects: z.boolean(),
     enableRewardEffects: z.boolean(),
     enableMotivationMessages: z.boolean(),

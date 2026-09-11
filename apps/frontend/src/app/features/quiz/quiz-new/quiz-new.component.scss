@@ -310,15 +310,17 @@
   border-top: 1px solid var(--mat-sys-outline-variant);
 }
 
-.quiz-form__timer-accommodation-title {
-  margin: 0;
+.quiz-form__timer-accommodation-lead {
+  margin: 0.15rem 0 0;
+  padding-left: 2rem;
   color: var(--mat-sys-on-surface);
   font: var(--mat-sys-label-medium);
   font-weight: 600;
 }
 
-.quiz-form__timer-accommodation p:not(.quiz-form__timer-accommodation-title) {
+.quiz-form__timer-accommodation p:not(.quiz-form__timer-accommodation-lead) {
   margin: 0;
+  padding-left: 2rem;
   color: var(--mat-sys-on-surface-variant);
   font: var(--mat-sys-body-small);
   line-height: 1.5;

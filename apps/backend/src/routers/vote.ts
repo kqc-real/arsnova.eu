@@ -14,6 +14,7 @@ import {
   hasAtMostNumericDecimalPlaces,
   normalizeShortTextValue,
   normalizeTimerAccommodation,
+  isTimerAccommodationEnabled,
   resolveEffectiveQuestionTimer,
   resolvePersonalTimerSeconds,
   resolveNumericQuestionEvaluationSettings,
@@ -97,7 +98,13 @@ function fetchVoteQuestion(questionId: string, quizId: string) {
     where: { id: questionId, quizId },
     include: {
       answers: { select: { id: true, text: true, isCorrect: true } },
-      quiz: { select: { defaultTimer: true, timerScaleByDifficulty: true } },
+      quiz: {
+        select: {
+          defaultTimer: true,
+          timerScaleByDifficulty: true,
+          enableTimerAccommodation: true,
+        },
+      },
     },
   });
 }
@@ -200,7 +207,11 @@ export const voteRouter = router({
         question.quiz ??
         (await prisma.quiz.findUnique({
           where: { id: sessionQuizId },
-          select: { defaultTimer: true, timerScaleByDifficulty: true },
+          select: {
+            defaultTimer: true,
+            timerScaleByDifficulty: true,
+            enableTimerAccommodation: true,
+          },
         }));
       // Bewertungsbasis bleibt der Session-Timer; die persönliche Deadline steuert nur die Annahme.
       const baseTimerSeconds =
@@ -212,9 +223,11 @@ export const voteRouter = router({
               question.difficulty as Difficulty,
               quiz?.timerScaleByDifficulty ?? true,
             );
-      const timerAccommodation = normalizeTimerAccommodation(
-        (participant as { timerAccommodation?: string | null }).timerAccommodation,
-      );
+      const timerAccommodation = isTimerAccommodationEnabled(quiz?.enableTimerAccommodation)
+        ? normalizeTimerAccommodation(
+            (participant as { timerAccommodation?: string | null }).timerAccommodation,
+          )
+        : 'DEFAULT';
       const timerSeconds = resolvePersonalTimerSeconds(baseTimerSeconds, timerAccommodation);
 
       const statusChangedAtMs = participant.session.statusChangedAt

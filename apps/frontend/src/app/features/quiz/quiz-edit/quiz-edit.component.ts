@@ -300,6 +300,7 @@ type QuizSettingsFormGroup = FormGroup<{
   allowCustomNicknames: FormControl<boolean>;
   defaultTimer: FormControl<number | null>;
   timerScaleByDifficulty: FormControl<boolean>;
+  enableTimerAccommodation: FormControl<boolean>;
   enableSoundEffects: FormControl<boolean>;
   enableRewardEffects: FormControl<boolean>;
   enableMotivationMessages: FormControl<boolean>;
@@ -698,6 +699,7 @@ export class QuizEditComponent implements OnDestroy {
       validators: [Validators.min(5), Validators.max(300)],
     }),
     timerScaleByDifficulty: this.formBuilder.control(true),
+    enableTimerAccommodation: this.formBuilder.control(true),
     enableSoundEffects: this.formBuilder.control(true),
     enableRewardEffects: this.formBuilder.control(true),
     enableMotivationMessages: this.formBuilder.control(true),
@@ -2870,6 +2872,7 @@ export class QuizEditComponent implements OnDestroy {
         allowCustomNicknames: settings.allowCustomNicknames,
         defaultTimer: settings.defaultTimer,
         timerScaleByDifficulty: settings.timerScaleByDifficulty ?? true,
+        enableTimerAccommodation: settings.enableTimerAccommodation ?? true,
         enableSoundEffects: settings.enableSoundEffects,
         enableRewardEffects: settings.enableRewardEffects,
         enableMotivationMessages: settings.enableMotivationMessages,
@@ -2901,6 +2904,7 @@ export class QuizEditComponent implements OnDestroy {
       allowCustomNicknames: this.settingsForm.controls.allowCustomNicknames.value,
       defaultTimer: this.settingsForm.controls.defaultTimer.value,
       timerScaleByDifficulty: this.settingsForm.controls.timerScaleByDifficulty.value,
+      enableTimerAccommodation: this.settingsForm.controls.enableTimerAccommodation.value,
       enableSoundEffects: this.settingsForm.controls.enableSoundEffects.value,
       enableRewardEffects: this.settingsForm.controls.enableRewardEffects.value,
       enableMotivationMessages: this.settingsForm.controls.enableMotivationMessages.value,
@@ -2967,6 +2971,7 @@ export class QuizEditComponent implements OnDestroy {
       allowCustomNicknames: settings.allowCustomNicknames,
       defaultTimer: settings.defaultTimer ?? null,
       timerScaleByDifficulty: settings.timerScaleByDifficulty ?? true,
+      enableTimerAccommodation: settings.enableTimerAccommodation ?? true,
       enableSoundEffects: settings.enableSoundEffects,
       enableRewardEffects: settings.enableRewardEffects,
       enableMotivationMessages: settings.enableMotivationMessages,

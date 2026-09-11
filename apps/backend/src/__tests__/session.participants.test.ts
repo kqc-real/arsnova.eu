@@ -302,6 +302,40 @@ describe('session participant access (Story 2.2)', () => {
 
   trpcDodIt(
     {
+      procedure: 'session.setTimerAccommodation',
+      case: 'happy',
+      mode: 'direct',
+      title: 'erzwingt DEFAULT, wenn Persönliche Zeit am Quiz aus ist',
+    },
+    async () => {
+      const participantId = '11111111-1111-4111-8111-111111111111';
+      prismaMock.participant.findFirst.mockResolvedValue({
+        id: participantId,
+        sessionId: SESSION_ID,
+        session: { quiz: { enableTimerAccommodation: false } },
+      });
+      prismaMock.participant.update.mockResolvedValue({
+        id: participantId,
+        timerAccommodation: 'DEFAULT',
+      });
+
+      await expect(
+        caller.setTimerAccommodation({
+          code: 'ABC123',
+          participantId,
+          accommodation: 'OFF',
+        }),
+      ).resolves.toEqual({ timerAccommodation: 'DEFAULT' });
+
+      expect(prismaMock.participant.update).toHaveBeenCalledWith({
+        where: { id: participantId },
+        data: { timerAccommodation: 'DEFAULT' },
+      });
+    },
+  );
+
+  trpcDodIt(
+    {
       procedure: 'session.markParticipantOffline',
       case: 'happy',
       mode: 'direct',

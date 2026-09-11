@@ -112,6 +112,7 @@ import {
   buildCategorizationStats,
   normalizeShortTextValue,
   normalizeTimerAccommodation,
+  isTimerAccommodationEnabled,
   resolveEffectiveQuestionTimer,
   resolvePersonalTimerSeconds,
   resolveNumericQuestionEvaluationSettings,
@@ -794,6 +795,7 @@ async function fetchStatusSnapshot(code: string): Promise<StatusSnapshotPayload>
             select: {
               defaultTimer: true,
               timerScaleByDifficulty: true,
+              enableTimerAccommodation: true,
               questions: {
                 orderBy: { order: 'asc' },
                 select: { timer: true, difficulty: true },
@@ -2327,6 +2329,7 @@ const quizHistoryAccessQuizSelect = Prisma.validator<Prisma.QuizSelect>()({
   allowCustomNicknames: true,
   defaultTimer: true,
   timerScaleByDifficulty: true,
+  enableTimerAccommodation: true,
   enableSoundEffects: true,
   enableRewardEffects: true,
   enableMotivationMessages: true,
@@ -2416,6 +2419,7 @@ function buildQuizHistoryAccessPayload(
     allowCustomNicknames: quiz.allowCustomNicknames,
     defaultTimer: quiz.defaultTimer,
     timerScaleByDifficulty: quiz.timerScaleByDifficulty ?? true,
+    enableTimerAccommodation: quiz.enableTimerAccommodation ?? true,
     enableSoundEffects: quiz.enableSoundEffects,
     enableRewardEffects: quiz.enableRewardEffects,
     enableMotivationMessages: quiz.enableMotivationMessages,
@@ -3486,6 +3490,7 @@ type HostCurrentQuestionSession = {
   quiz: {
     defaultTimer: number | null;
     timerScaleByDifficulty: boolean | null;
+    enableTimerAccommodation?: boolean | null;
     showQuestionTypeIndicators: boolean | null;
     preset: string | null;
     questions: Array<{
@@ -4337,6 +4342,7 @@ async function fetchHostCurrentQuestionEnvelope(
           },
           defaultTimer: true,
           timerScaleByDifficulty: true,
+          enableTimerAccommodation: true,
           showQuestionTypeIndicators: true,
           preset: true,
         },
@@ -4362,6 +4368,7 @@ type TimerAccommodationProgressInput = {
   round: number;
   activeQuestionStartedAt: Date | null;
   baseTimerSeconds: number | null;
+  enableTimerAccommodation?: boolean | null;
 };
 
 type TimerDbClient = Pick<typeof prisma, 'participant'> & {
@@ -4379,6 +4386,7 @@ async function getTimerAccommodationProgress(
   db: TimerDbClient = prisma,
 ): Promise<{ pendingCount: number; blockingCount: number }> {
   if (
+    !isTimerAccommodationEnabled(input.enableTimerAccommodation) ||
     input.round !== 1 ||
     !input.activeQuestionStartedAt ||
     !input.baseTimerSeconds ||
@@ -4485,6 +4493,7 @@ async function fetchHostVoteProgress(code: string): Promise<HostVoteProgressDTO 
         select: {
           defaultTimer: true,
           timerScaleByDifficulty: true,
+          enableTimerAccommodation: true,
           questions: {
             orderBy: { order: 'asc' },
             select: {
@@ -4545,6 +4554,7 @@ async function fetchHostVoteProgress(code: string): Promise<HostVoteProgressDTO 
     round,
     activeQuestionStartedAt: session.activeQuestionStartedAt,
     baseTimerSeconds,
+    enableTimerAccommodation: session.quiz.enableTimerAccommodation,
   });
   const base = {
     questionId: question.id,
@@ -4672,6 +4682,7 @@ async function resolvePublicSessionInfo(
                 readingPhaseEnabled: true,
                 defaultTimer: true,
                 timerScaleByDifficulty: true,
+                enableTimerAccommodation: true,
                 backgroundMusic: true,
                 teamMode: true,
                 teamCount: true,
@@ -4732,6 +4743,7 @@ async function resolvePublicSessionInfo(
           quizStarted: session.quizStarted,
           defaultTimer: q.defaultTimer,
           timerScaleByDifficulty: q.timerScaleByDifficulty,
+          enableTimerAccommodation: q.enableTimerAccommodation ?? true,
           backgroundMusic: q.backgroundMusic,
           bonusTokenCount: q.bonusTokenCount,
         }),
@@ -5498,7 +5510,10 @@ const sessionCoreRouter = router({
       const code = input.code.toUpperCase();
       const session = await prisma.session.findUnique({
         where: { code },
-        select: { id: true },
+        select: {
+          id: true,
+          quiz: { select: { enableTimerAccommodation: true } },
+        },
       });
       if (!session) {
         return rejectInvalidSessionCode(undefined, code, 'pollReconnect');
@@ -5521,12 +5536,16 @@ const sessionCoreRouter = router({
         return null;
       }
 
+      const timerAccommodation = isTimerAccommodationEnabled(session.quiz?.enableTimerAccommodation)
+        ? normalizeTimerAccommodation(participant.timerAccommodation)
+        : 'DEFAULT';
+
       return {
         id: participant.id,
         nickname: participant.nickname,
         teamId: participant.teamId ?? null,
         teamName: participant.team?.name ?? null,
-        timerAccommodation: normalizeTimerAccommodation(participant.timerAccommodation),
+        timerAccommodation,
       };
     }),
 
@@ -5545,7 +5564,11 @@ const sessionCoreRouter = router({
           id: input.participantId,
           session: { code },
         },
-        select: { id: true, sessionId: true },
+        select: {
+          id: true,
+          sessionId: true,
+          session: { select: { quiz: { select: { enableTimerAccommodation: true } } } },
+        },
       });
       if (!participant) {
         throw new TRPCError({
@@ -5554,18 +5577,24 @@ const sessionCoreRouter = router({
         });
       }
 
+      const effectiveAccommodation = isTimerAccommodationEnabled(
+        participant.session?.quiz?.enableTimerAccommodation,
+      )
+        ? accommodation
+        : 'DEFAULT';
+
       await prisma.$transaction(async (tx) => {
         await lockSessionRow(tx, participant.sessionId);
         await tx.participant.update({
           where: { id: participant.id },
-          data: { timerAccommodation: accommodation },
+          data: { timerAccommodation: effectiveAccommodation },
         });
       });
       void touchParticipantPresence(participant.sessionId, participant.id);
       // Persönliche Felder liegen außerhalb des gemeinsamen ACTIVE-Caches.
       clearCurrentQuestionCache(code);
 
-      return { timerAccommodation: accommodation };
+      return { timerAccommodation: effectiveAccommodation };
     }),
 
   /** Teilnehmende verlassen die Live-Ansicht: nur Online-Presence entfernen, nicht die Teilnahme. */
@@ -6088,6 +6117,7 @@ const sessionCoreRouter = router({
                 readingPhaseEnabled: true,
                 defaultTimer: true,
                 timerScaleByDifficulty: true,
+                enableTimerAccommodation: true,
                 bonusTokenCount: true,
                 questions: {
                   orderBy: { order: 'asc' },
@@ -6356,6 +6386,7 @@ const sessionCoreRouter = router({
             select: {
               defaultTimer: true,
               timerScaleByDifficulty: true,
+              enableTimerAccommodation: true,
               questions: {
                 orderBy: { order: 'asc' },
                 select: { id: true, timer: true, difficulty: true },
@@ -6458,6 +6489,7 @@ const sessionCoreRouter = router({
                 readingPhaseEnabled: true,
                 defaultTimer: true,
                 timerScaleByDifficulty: true,
+                enableTimerAccommodation: true,
                 bonusTokenCount: true,
                 questions: {
                   orderBy: { order: 'asc' },
@@ -6662,6 +6694,7 @@ const sessionCoreRouter = router({
             select: {
               defaultTimer: true,
               timerScaleByDifficulty: true,
+              enableTimerAccommodation: true,
               questions: {
                 orderBy: { order: 'asc' },
                 select: {
@@ -6798,6 +6831,7 @@ const sessionCoreRouter = router({
             select: {
               defaultTimer: true,
               timerScaleByDifficulty: true,
+              enableTimerAccommodation: true,
               questions: {
                 orderBy: { order: 'asc' },
                 select: {
@@ -7067,6 +7101,7 @@ const sessionCoreRouter = router({
               },
               defaultTimer: true,
               timerScaleByDifficulty: true,
+              enableTimerAccommodation: true,
               showQuestionTypeIndicators: true,
               preset: true,
             },
@@ -7326,7 +7361,9 @@ const sessionCoreRouter = router({
           where: { id: participantId, sessionId: session.id },
           select: { timerAccommodation: true },
         });
-        const timerAccommodation = normalizeTimerAccommodation(participant?.timerAccommodation);
+        const timerAccommodation = isTimerAccommodationEnabled(quiz.enableTimerAccommodation)
+          ? normalizeTimerAccommodation(participant?.timerAccommodation)
+          : 'DEFAULT';
         const sessionTimer = personalizedDto.sessionTimer ?? personalizedDto.timer;
         return QuestionStudentDTOSchema.parse({
           ...personalizedDto,
@@ -7738,6 +7775,7 @@ const sessionCoreRouter = router({
               teamNames: true,
               motifImageUrl: true,
               motifImageCredit: true,
+              enableTimerAccommodation: true,
             },
           },
           _count: { select: { participants: true } },
@@ -7779,9 +7817,11 @@ const sessionCoreRouter = router({
           participantId = existingParticipant.id;
           assignedTeamId = existingParticipant.teamId ?? undefined;
           assignedTeamName = existingParticipant.team?.name ?? null;
-          rejoinedTimerAccommodation = normalizeTimerAccommodation(
-            existingParticipant.timerAccommodation,
-          );
+          rejoinedTimerAccommodation = isTimerAccommodationEnabled(
+            session.quiz?.enableTimerAccommodation,
+          )
+            ? normalizeTimerAccommodation(existingParticipant.timerAccommodation)
+            : 'DEFAULT';
           if (
             input.productFeedbackClaimToken &&
             existingParticipant.productFeedbackClaimTokenHash ===
@@ -7905,6 +7945,7 @@ const sessionCoreRouter = router({
         teamId: assignedTeamId ?? null,
         teamName: assignedTeamName,
         timerAccommodation: rejoinedTimerAccommodation,
+        enableTimerAccommodation: session.quiz?.enableTimerAccommodation ?? true,
       };
     }),
 
