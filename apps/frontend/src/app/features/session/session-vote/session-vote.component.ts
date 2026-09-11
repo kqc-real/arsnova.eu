@@ -3323,12 +3323,15 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
           const newRound = data.currentRound ?? 1;
           this.status.set(data.status as SessionStatus);
           if (data.enableTimerAccommodation !== undefined) {
+            const wasEnabled = this.timerAccommodationEnabled();
             this.sessionSettings.update((settings) => ({
               ...settings,
               enableTimerAccommodation: data.enableTimerAccommodation,
             }));
             if (data.enableTimerAccommodation === false) {
               this.applyTimerAccommodation('DEFAULT', { restartCountdown: true });
+            } else if (!wasEnabled) {
+              void this.syncTimerAccommodationPreference();
             }
           }
           if (data.currentQuestion !== null) {
