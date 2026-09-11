@@ -4008,7 +4008,15 @@ export class SessionHostComponent implements OnInit, OnDestroy {
             channels: data.channels,
             preferredChannel: data.preferredChannel,
             presenterSurface: data.presenterSurface,
+            enableTimerAccommodation: data.enableTimerAccommodation,
           } satisfies SessionStatusUpdate;
+          if (data.enableTimerAccommodation !== undefined) {
+            this.session.update((current) =>
+              current
+                ? { ...current, enableTimerAccommodation: data.enableTimerAccommodation }
+                : current,
+            );
+          }
           if (update.status === 'LOBBY' || update.status === 'FINISHED') {
             this.quizStartQuestionPending.set(false);
             this.clearHostQuestionDetailsRetry();

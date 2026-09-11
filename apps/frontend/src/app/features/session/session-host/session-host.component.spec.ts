@@ -8691,6 +8691,39 @@ describe('SessionHostComponent', { timeout: 30_000 }, () => {
     fixture.destroy();
   });
 
+  it('übernimmt das Flag für persönliche Zeit aus dem Live-Status', async () => {
+    const fixture = setup();
+    fixture.detectChanges();
+    await vi.waitUntil(() => onStatusChangedSubscribeMock.mock.calls.length > 0, {
+      timeout: 5000,
+      interval: 25,
+    });
+    const component = fixture.componentInstance;
+    component.session.set({
+      ...defaultSession,
+      status: 'LOBBY',
+      enableTimerAccommodation: false,
+    });
+    expect(component.timerAccommodationEnabled()).toBe(false);
+
+    const statusHandler = onStatusChangedSubscribeMock.mock.calls[0]?.[1]?.onData as
+      | ((data: {
+          status: string;
+          currentQuestion: number | null;
+          enableTimerAccommodation?: boolean;
+        }) => void)
+      | undefined;
+    statusHandler?.({
+      status: 'LOBBY',
+      currentQuestion: null,
+      enableTimerAccommodation: true,
+    });
+
+    expect(component.session()?.enableTimerAccommodation).toBe(true);
+    expect(component.timerAccommodationEnabled()).toBe(true);
+    fixture.destroy();
+  });
+
   it('zeigt im Host live den Abstimmungsfortschritt als Prozent mit Stimmenzaehler', async () => {
     getInfoQueryMock.mockResolvedValue({
       ...defaultSession,
