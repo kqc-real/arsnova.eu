@@ -19296,6 +19296,13 @@
           <context context-type="linenumber">1473</context>
         </context-group>
       </trans-unit>
+      <trans-unit id="sessionHost.phasePersonalTimeShort" datatype="html">
+        <source>Persönliche Zeit</source>
+        <target>Personal time</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.ts</context>
+        </context-group>
+      </trans-unit>
       <trans-unit id="sessionHost.musicLabelOff" datatype="html">
         <source>Musik aus</source>
         <target>Music off</target>
@@ -20042,6 +20049,30 @@
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.ts</context>
           <context context-type="linenumber">5088</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="sessionHost.musicPhaseMute" datatype="html">
+        <source>Diese Phase stumm</source>
+        <target>Mute this phase</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.ts</context>
+          <context context-type="linenumber">5355</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="sessionHost.musicPhaseUnmute" datatype="html">
+        <source>Diese Phase hörbar</source>
+        <target>Unmute this phase</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.ts</context>
+          <context context-type="linenumber">5354</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="sessionHost.musicPhaseMutedSaved" datatype="html">
+        <source>Stumm</source>
+        <target>Mute</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.ts</context>
+          <context context-type="linenumber">5360</context>
         </context-group>
       </trans-unit>
       <trans-unit id="sessionHost.participantCountOne" datatype="html">

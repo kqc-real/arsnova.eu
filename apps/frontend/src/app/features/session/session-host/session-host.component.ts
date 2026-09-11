@@ -369,15 +369,17 @@ type HostMusicTrack =
   | 'COUNTDOWN_1'
   | 'COUNTDOWN_2';
 
-type MusicPhase = 'lobby' | 'reading' | 'countdown';
+type MusicPhase = 'lobby' | 'reading' | 'countdown' | 'personalTime';
 
 const PHASE_TRACK_DEFAULTS: Record<MusicPhase, HostMusicTrack> = {
   lobby: 'LOBBY_2',
   reading: 'READING_0',
-  countdown: 'COUNTDOWN_0',
+  countdown: 'COUNTDOWN_1',
+  personalTime: 'COUNTDOWN_0',
 };
 
 const MUSIC_PHASE_STORAGE_KEY = 'arsnova-host-phase-tracks';
+const MUSIC_PHASE_IDS = ['lobby', 'reading', 'countdown', 'personalTime'] as const;
 
 const LEGACY_HOST_MUSIC_TRACKS: Record<string, HostMusicTrack> = {
   CONNECTING_0: 'READING_0',
@@ -395,25 +397,64 @@ function normalizeStoredHostMusicTrack(value: unknown): HostMusicTrack | null {
   return isValidTrack(migrated) ? migrated : null;
 }
 
-function loadPhaseTracksFromStorage(): Record<MusicPhase, HostMusicTrack> {
+function isMusicPhaseId(value: unknown): value is MusicPhase {
+  return (
+    value === 'lobby' || value === 'reading' || value === 'countdown' || value === 'personalTime'
+  );
+}
+
+function readStoredPhaseMusicRaw(): Record<string, unknown> | null {
   try {
     const raw =
       globalThis.localStorage === undefined
         ? null
         : globalThis.localStorage.getItem(MUSIC_PHASE_STORAGE_KEY);
-    if (!raw) return { ...PHASE_TRACK_DEFAULTS };
-    const parsed = JSON.parse(raw) as Record<string, string>;
-    return {
-      lobby: normalizeStoredHostMusicTrack(parsed['lobby']) ?? PHASE_TRACK_DEFAULTS.lobby,
-      reading:
-        normalizeStoredHostMusicTrack(parsed['reading'] ?? parsed['connecting']) ??
-        PHASE_TRACK_DEFAULTS.reading,
-      countdown:
-        normalizeStoredHostMusicTrack(parsed['countdown'] ?? parsed['running']) ??
-        PHASE_TRACK_DEFAULTS.countdown,
-    };
+    if (!raw) return null;
+    const parsed: unknown = JSON.parse(raw);
+    return parsed && typeof parsed === 'object' && !Array.isArray(parsed)
+      ? (parsed as Record<string, unknown>)
+      : null;
   } catch {
-    return { ...PHASE_TRACK_DEFAULTS };
+    return null;
+  }
+}
+
+function loadPhaseTracksFromStorage(): Record<MusicPhase, HostMusicTrack> {
+  const parsed = readStoredPhaseMusicRaw();
+  if (!parsed) return { ...PHASE_TRACK_DEFAULTS };
+  return {
+    lobby: normalizeStoredHostMusicTrack(parsed['lobby']) ?? PHASE_TRACK_DEFAULTS.lobby,
+    reading:
+      normalizeStoredHostMusicTrack(parsed['reading'] ?? parsed['connecting']) ??
+      PHASE_TRACK_DEFAULTS.reading,
+    countdown:
+      normalizeStoredHostMusicTrack(parsed['countdown'] ?? parsed['running']) ??
+      PHASE_TRACK_DEFAULTS.countdown,
+    personalTime:
+      normalizeStoredHostMusicTrack(parsed['personalTime']) ?? PHASE_TRACK_DEFAULTS.personalTime,
+  };
+}
+
+function loadMutedMusicPhasesFromStorage(): ReadonlySet<MusicPhase> {
+  const raw = readStoredPhaseMusicRaw()?.['mutedPhases'];
+  if (!Array.isArray(raw)) return new Set();
+  return new Set(raw.filter(isMusicPhaseId));
+}
+
+function persistPhaseMusicSettings(
+  tracks: Record<MusicPhase, HostMusicTrack>,
+  mutedPhases: ReadonlySet<MusicPhase>,
+): void {
+  try {
+    localStorage.setItem(
+      MUSIC_PHASE_STORAGE_KEY,
+      JSON.stringify({
+        ...tracks,
+        mutedPhases: MUSIC_PHASE_IDS.filter((phase) => mutedPhases.has(phase)),
+      }),
+    );
+  } catch {
+    /* quota */
   }
 }
 
@@ -527,6 +568,7 @@ function musicTracksForPhase(
     case 'reading':
       return ALL_MUSIC_TRACKS.filter((t) => t.value.startsWith('READING_'));
     case 'countdown':
+    case 'personalTime':
       return ALL_MUSIC_TRACKS.filter((t) => t.value.startsWith('COUNTDOWN_'));
   }
 }
@@ -1476,25 +1518,50 @@ export class SessionHostComponent implements OnInit, OnDestroy {
     }
     this.showPresenterViewButton.set(offered);
   };
-  readonly musicPhases: ReadonlyArray<{ id: MusicPhase; label: string }> = [
-    { id: 'lobby', label: $localize`:@@sessionHost.phaseLobbyShort:Lobby` },
-    { id: 'reading', label: $localize`:@@sessionHost.phaseConnectingShort:Lesen` },
-    { id: 'countdown', label: $localize`:@@sessionHost.phaseRunningShort:Countdown` },
-  ];
+  readonly musicPhases = computed<ReadonlyArray<{ id: MusicPhase; label: string }>>(() => {
+    const phases: Array<{ id: MusicPhase; label: string }> = [
+      { id: 'lobby', label: $localize`:@@sessionHost.phaseLobbyShort:Lobby` },
+      { id: 'reading', label: $localize`:@@sessionHost.phaseConnectingShort:Lesen` },
+      { id: 'countdown', label: $localize`:@@sessionHost.phaseRunningShort:Countdown` },
+    ];
+    if (this.timerAccommodationEnabled()) {
+      phases.push({
+        id: 'personalTime',
+        label: $localize`:@@sessionHost.phasePersonalTimeShort:Persönliche Zeit`,
+      });
+    }
+    return phases;
+  });
   /** Im Musik-Menü: welche Phase bearbeitet wird (Tracks-Liste gefiltert). */
   readonly musicMenuEditPhase = signal<MusicPhase>('lobby');
   readonly musicMenuTracksForSelection = computed(() =>
     musicTracksForPhase(this.musicMenuEditPhase()),
   );
   readonly phaseTracks = signal<Record<MusicPhase, HostMusicTrack>>(loadPhaseTracksFromStorage());
+  readonly mutedMusicPhases = signal<ReadonlySet<MusicPhase>>(loadMutedMusicPhasesFromStorage());
   readonly musicMuted = signal(false);
   readonly currentMusicPhase = computed<MusicPhase | null>(() => {
     const status = this.effectiveStatus();
     if (status === 'LOBBY') return 'lobby';
     if (status === 'QUESTION_OPEN') return 'reading';
-    if (status === 'ACTIVE') return 'countdown';
+    if (status === 'ACTIVE') {
+      return this.personalTimeOvertimeActive() && this.countdownSeconds() === null
+        ? 'personalTime'
+        : 'countdown';
+    }
     return null;
   });
+  readonly isCurrentMusicPhaseMuted = computed(() => {
+    const phase = this.currentMusicPhase();
+    return phase !== null && this.mutedMusicPhases().has(phase);
+  });
+  readonly personalTimeOvertimeActive = computed(
+    () =>
+      this.timerAccommodationEnabled() &&
+      this.effectiveStatus() === 'ACTIVE' &&
+      this.countdownEnded() &&
+      (this.blockingTimerAccommodationCount() > 0 || this.pendingTimerAccommodationCount() > 0),
+  );
   readonly activeMusicTrack = computed<HostMusicTrack | null>(() => {
     if (this.musicMuted()) return null;
     if (this.activeChannel() === 'qa') return null;
@@ -1503,10 +1570,12 @@ export class SessionHostComponent implements OnInit, OnDestroy {
     }
     const phase = this.currentMusicPhase();
     if (!phase) return null;
+    if (this.allHaveVoted()) return null;
+    if (this.showFingerCountdown()) return null;
     if (phase === 'countdown' && (this.countdownSfxPhase() || this.countdownEnded())) {
       return null;
     }
-    if (this.allHaveVoted()) return null;
+    if (this.mutedMusicPhases().has(phase)) return null;
     return this.phaseTracks()[phase];
   });
   readonly activeMusicLabel = computed(() => {
@@ -5146,13 +5215,7 @@ export class SessionHostComponent implements OnInit, OnDestroy {
           void this.sound.play('sessionEnd', { gain: 0.4 });
           this.countdownFinalSoundPlayed = true;
         }
-        this.stopCountdown();
-        this.countdownSeconds.set(0);
-        this.countdownEnded.set(true);
-        this.fingerHideTimeout = setTimeout(() => {
-          this.countdownSeconds.set(null);
-          this.fingerHideTimeout = null;
-        }, 5000);
+        this.finishRoomCountdown();
       }
     };
 
@@ -5191,6 +5254,17 @@ export class SessionHostComponent implements OnInit, OnDestroy {
     }
   }
 
+  /** Raum-Countdown ist bei 0: Finger/Zahl bleiben kurz, persönliche Zeit-Musik erst danach. */
+  private finishRoomCountdown(): void {
+    this.stopCountdown();
+    this.countdownSeconds.set(0);
+    this.countdownEnded.set(true);
+    this.fingerHideTimeout = setTimeout(() => {
+      this.countdownSeconds.set(null);
+      this.fingerHideTimeout = null;
+    }, 5000);
+  }
+
   /** Synchronisiert Host-Hintergrundmusik phasenabhängig. */
   private syncMusic(): void {
     if (this.isPairedHostClient() || this.hostAccessRevoked() || !this.sound.outputEnabled()) {
@@ -5216,12 +5290,19 @@ export class SessionHostComponent implements OnInit, OnDestroy {
   /** Beim Öffnen: Bearbeitungs-Phase an live-Phase anlehnen. */
   onHostMusicMenuOpening(): void {
     const live = this.currentMusicPhase();
+    if (live === 'personalTime' && !this.timerAccommodationEnabled()) {
+      this.musicMenuEditPhase.set('countdown');
+      return;
+    }
     this.musicMenuEditPhase.set(live ?? 'lobby');
   }
 
   onMusicMenuPhaseToggle(ev: { value: unknown }): void {
     const v = ev.value;
-    if (v === 'lobby' || v === 'reading' || v === 'countdown') {
+    if (v === 'personalTime' && !this.timerAccommodationEnabled()) {
+      return;
+    }
+    if (v === 'lobby' || v === 'reading' || v === 'countdown' || v === 'personalTime') {
       this.musicMenuEditPhase.set(v);
     }
   }
@@ -5261,17 +5342,43 @@ export class SessionHostComponent implements OnInit, OnDestroy {
   setPhaseTrack(phase: MusicPhase, track: HostMusicTrack): void {
     this.sound.unlock();
     this.sound.stopPreview();
-    const next = { ...this.phaseTracks(), [phase]: track };
-    this.phaseTracks.set(next);
-    try {
-      localStorage.setItem(MUSIC_PHASE_STORAGE_KEY, JSON.stringify(next));
-    } catch {
-      /* quota */
-    }
+    const nextTracks = { ...this.phaseTracks(), [phase]: track };
+    const nextMuted = new Set(this.mutedMusicPhases());
+    nextMuted.delete(phase);
+    this.phaseTracks.set(nextTracks);
+    this.mutedMusicPhases.set(nextMuted);
+    persistPhaseMusicSettings(nextTracks, nextMuted);
     this.syncMusic();
   }
 
+  isMusicPhaseMuted(phase: MusicPhase): boolean {
+    return this.mutedMusicPhases().has(phase);
+  }
+
+  toggleMusicPhaseMute(phase: MusicPhase): void {
+    this.sound.unlock();
+    this.sound.stopPreview();
+    const nextMuted = new Set(this.mutedMusicPhases());
+    if (nextMuted.has(phase)) {
+      nextMuted.delete(phase);
+    } else {
+      nextMuted.add(phase);
+    }
+    this.mutedMusicPhases.set(nextMuted);
+    persistPhaseMusicSettings(this.phaseTracks(), nextMuted);
+    this.syncMusic();
+  }
+
+  musicPhaseMuteLabel(phase: MusicPhase): string {
+    return this.isMusicPhaseMuted(phase)
+      ? $localize`:@@sessionHost.musicPhaseUnmute:Diese Phase hörbar`
+      : $localize`:@@sessionHost.musicPhaseMute:Diese Phase stumm`;
+  }
+
   phaseTrackLabel(phase: MusicPhase): string {
+    if (this.isMusicPhaseMuted(phase)) {
+      return $localize`:@@sessionHost.musicPhaseMutedSaved:Stumm`;
+    }
     const track = this.phaseTracks()[phase];
     return ALL_MUSIC_TRACKS.find((t) => t.value === track)?.label ?? track;
   }
@@ -8593,9 +8700,7 @@ export class SessionHostComponent implements OnInit, OnDestroy {
       this.startCountdown(remaining);
       return;
     }
-    this.stopCountdown();
-    this.countdownSeconds.set(0);
-    this.countdownEnded.set(true);
+    this.finishRoomCountdown();
   }
 
   private focusAfterQuestionSkip(status: SessionStatus): void {

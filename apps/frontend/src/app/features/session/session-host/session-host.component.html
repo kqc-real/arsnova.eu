@@ -305,11 +305,15 @@
           [value]="musicMenuEditPhase()"
           (change)="onMusicMenuPhaseToggle($event)"
         >
-          @for (phase of musicPhases; track phase.id) {
+          @for (phase of musicPhases(); track phase.id) {
             <mat-button-toggle [value]="phase.id">
               <span class="session-host__music-phase-toggle-inner">
                 <span class="session-host__music-phase-toggle-label">{{ phase.label }}</span>
-                @if (currentMusicPhase() === phase.id && !musicMuted()) {
+                @if (isMusicPhaseMuted(phase.id)) {
+                  <mat-icon class="session-host__music-phase-toggle-mute" aria-hidden="true"
+                    >volume_off</mat-icon
+                  >
+                } @else if (currentMusicPhase() === phase.id && !musicMuted()) {
                   <app-music-equalizer-icon
                     class="session-host__music-phase-toggle-live"
                     size="small"
@@ -325,6 +329,17 @@
             phaseTrackLabel(musicMenuEditPhase())
           }}</span>
         </p>
+        <button
+          type="button"
+          class="session-host__music-phase-mute"
+          [attr.aria-pressed]="isMusicPhaseMuted(musicMenuEditPhase())"
+          (click)="toggleMusicPhaseMute(musicMenuEditPhase())"
+        >
+          <mat-icon aria-hidden="true">{{
+            isMusicPhaseMuted(musicMenuEditPhase()) ? 'volume_up' : 'volume_off'
+          }}</mat-icon>
+          <span>{{ musicPhaseMuteLabel(musicMenuEditPhase()) }}</span>
+        </button>
       </div>
       <div class="session-host__music-track-list">
         @for (track of musicMenuTracksForSelection(); track track.value) {
@@ -424,13 +439,15 @@
                   mat-icon-button
                   type="button"
                   class="session-host__meta-sound-control session-host__live-sound-control"
-                  [class.session-host__meta-sound-control--active]="!musicMuted()"
+                  [class.session-host__meta-sound-control--active]="
+                    !musicMuted() && !isCurrentMusicPhaseMuted()
+                  "
                   [matMenuTriggerFor]="hostMusicMenu"
                   (click)="onHostMusicMenuOpening()"
                   i18n-aria-label="@@sessionHost.musicControlAria"
                   aria-label="Soundsteuerung öffnen"
                 >
-                  @if (musicMuted()) {
+                  @if (musicMuted() || isCurrentMusicPhaseMuted()) {
                     <mat-icon aria-hidden="true">volume_off</mat-icon>
                   } @else {
                     <app-music-equalizer-icon class="session-host__live-sound-icon" />

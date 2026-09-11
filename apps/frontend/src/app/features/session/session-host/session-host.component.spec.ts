@@ -360,6 +360,7 @@ describe('SessionHostComponent', { timeout: 30_000 }, () => {
 
   beforeEach(() => {
     sessionStorage.removeItem('arsnova.wordCloudLemmaLocale.ABC123');
+    localStorage.removeItem('arsnova-host-phase-tracks');
     vi.clearAllMocks();
     resetServerClockSkew();
     vi.stubGlobal('crypto', {
@@ -7602,6 +7603,27 @@ describe('SessionHostComponent', { timeout: 30_000 }, () => {
 
     const component = fixture.componentInstance;
     component.musicMuted.set(false);
+    component.participantsPayload.set({ participantCount: 4, participants: [] });
+    component.currentQuestionForHost.set({
+      questionId: 'bbbbbbbb-2222-4222-8222-222222222222',
+      order: 0,
+      totalQuestions: 3,
+      text: 'Was ist 2+2?',
+      type: 'SINGLE_CHOICE',
+      currentRound: 1,
+      totalVotes: 4,
+      answers: [
+        { id: 'aaaaaaaa-1111-4111-8111-111111111111', text: '3', isCorrect: false },
+        { id: 'bbbbbbbb-2222-4222-8222-222222222222', text: '4', isCorrect: true },
+      ],
+    });
+    component.statusUpdate.set({
+      status: 'ACTIVE',
+      currentQuestion: 0,
+      currentRound: 1,
+    } as unknown as Parameters<typeof component.statusUpdate.set>[0]);
+    component.countdownSfxPhase.set(false);
+    component.countdownEnded.set(false);
     fixture.detectChanges();
 
     expect(component.allHaveVoted()).toBe(true);
@@ -7611,7 +7633,7 @@ describe('SessionHostComponent', { timeout: 30_000 }, () => {
     fixture.detectChanges();
 
     expect(component.allHaveVoted()).toBe(false);
-    expect(component.activeMusicTrack()).toBe('COUNTDOWN_0');
+    expect(component.activeMusicTrack()).toBe('COUNTDOWN_1');
     fixture.destroy();
   });
 
@@ -7679,7 +7701,7 @@ describe('SessionHostComponent', { timeout: 30_000 }, () => {
 
     playMusicSpy.mockClear();
     statusHandler?.({ status: 'ACTIVE', currentQuestion: 0, activeAt: null });
-    await vi.waitUntil(() => playMusicSpy.mock.calls.some(([track]) => track === 'COUNTDOWN_0'), {
+    await vi.waitUntil(() => playMusicSpy.mock.calls.some(([track]) => track === 'COUNTDOWN_1'), {
       timeout: 1000,
       interval: 10,
     });
@@ -7827,7 +7849,7 @@ describe('SessionHostComponent', { timeout: 30_000 }, () => {
     component.activeChannel.set('quickFeedback');
     fixture.detectChanges();
 
-    expect(component.activeMusicTrack()).toBe('COUNTDOWN_0');
+    expect(component.activeMusicTrack()).toBe('COUNTDOWN_1');
 
     quickFeedbackToggleLockMutateMock.mockResolvedValueOnce({ locked: true });
     await component.toggleQuickFeedbackRoundLock();
@@ -7843,8 +7865,8 @@ describe('SessionHostComponent', { timeout: 30_000 }, () => {
     fixture.detectChanges();
 
     expect(component.quickFeedbackResult()?.locked).toBe(false);
-    expect(component.activeMusicTrack()).toBe('COUNTDOWN_0');
-    expect(playMusicSpy).toHaveBeenCalledWith('COUNTDOWN_0');
+    expect(component.activeMusicTrack()).toBe('COUNTDOWN_1');
+    expect(playMusicSpy).toHaveBeenCalledWith('COUNTDOWN_1');
 
     fixture.destroy();
   });
@@ -7880,6 +7902,273 @@ describe('SessionHostComponent', { timeout: 30_000 }, () => {
     expect(component.musicMuted()).toBe(true);
     expect(component.activeMusicTrack()).toBeNull();
     expect(playMusicSpy).not.toHaveBeenCalled();
+
+    fixture.destroy();
+  });
+
+  it('wechselt nach Raum-Countdown auf Fokus-Musik, solange persönliche Zeit läuft', async () => {
+    getInfoQueryMock.mockResolvedValue({ ...defaultSession, status: 'ACTIVE', preset: 'PLAYFUL' });
+
+    const fixture = setup();
+    fixture.detectChanges();
+    await flushComponentAfterStable(fixture, 50);
+
+    const component = fixture.componentInstance;
+    const question = {
+      questionId: 'bbbbbbbb-2222-4222-8222-222222222222',
+      order: 0,
+      totalQuestions: 3,
+      text: 'Was ist 2+2?',
+      type: 'SINGLE_CHOICE' as const,
+      currentRound: 1,
+      timer: 30,
+      answers: [
+        { id: 'aaaaaaaa-1111-4111-8111-111111111111', text: '3', isCorrect: false },
+        { id: 'bbbbbbbb-2222-4222-8222-222222222222', text: '4', isCorrect: true },
+      ],
+      totalVotes: 0,
+    };
+    component.musicMuted.set(false);
+    component.session.set({
+      ...defaultSession,
+      status: 'ACTIVE',
+      enableTimerAccommodation: true,
+    });
+    component.currentQuestionForHost.set(question);
+    component.statusUpdate.set({
+      status: 'ACTIVE',
+      currentQuestion: 0,
+      currentRound: 1,
+    } as unknown as Parameters<typeof component.statusUpdate.set>[0]);
+    component.countdownSfxPhase.set(false);
+    component.countdownEnded.set(false);
+    fixture.detectChanges();
+
+    expect(component.activeMusicTrack()).toBe('COUNTDOWN_1');
+
+    component.countdownSfxPhase.set(true);
+    component.countdownSeconds.set(5);
+    fixture.detectChanges();
+    expect(component.showFingerCountdown()).toBe(true);
+    expect(component.personalTimeOvertimeActive()).toBe(false);
+    expect(component.currentMusicPhase()).toBe('countdown');
+    expect(component.activeMusicTrack()).toBeNull();
+
+    component.countdownEnded.set(true);
+    component.countdownSeconds.set(0);
+    fixture.detectChanges();
+    expect(component.personalTimeOvertimeActive()).toBe(false);
+    expect(component.activeMusicTrack()).toBeNull();
+
+    component.hostVoteProgress.set({
+      questionId: 'bbbbbbbb-2222-4222-8222-222222222222',
+      questionOrder: 0,
+      round: 1,
+      totalVotes: 0,
+      pendingTimerAccommodationCount: 0,
+      blockingTimerAccommodationCount: 1,
+    });
+    fixture.detectChanges();
+
+    expect(component.blockingTimerAccommodationCount()).toBe(1);
+    expect(component.personalTimeOvertimeActive()).toBe(true);
+    expect(component.showFingerCountdown()).toBe(true);
+    expect(component.currentMusicPhase()).toBe('countdown');
+    expect(component.activeMusicTrack()).toBeNull();
+
+    component.countdownSeconds.set(null);
+    fixture.detectChanges();
+    expect(component.showFingerCountdown()).toBe(false);
+    expect(component.currentMusicPhase()).toBe('personalTime');
+    expect(component.musicPhases().map((phase) => phase.id)).toEqual([
+      'lobby',
+      'reading',
+      'countdown',
+      'personalTime',
+    ]);
+    expect(component.musicPhases().some((phase) => phase.label === 'Persönliche Zeit')).toBe(true);
+    expect(component.phaseTracks().personalTime).toBe('COUNTDOWN_0');
+    expect(component.activeMusicTrack()).toBe('COUNTDOWN_0');
+
+    component.setPhaseTrack('personalTime', 'COUNTDOWN_2');
+    fixture.detectChanges();
+    expect(component.activeMusicTrack()).toBe('COUNTDOWN_2');
+
+    component.hostVoteProgress.set({
+      questionId: 'bbbbbbbb-2222-4222-8222-222222222222',
+      questionOrder: 0,
+      round: 1,
+      totalVotes: 1,
+      pendingTimerAccommodationCount: 0,
+      blockingTimerAccommodationCount: 0,
+    });
+    fixture.detectChanges();
+
+    expect(component.personalTimeOvertimeActive()).toBe(false);
+    expect(component.activeMusicTrack()).toBeNull();
+    fixture.destroy();
+  });
+
+  it('blendet die Musikphase Persönliche Zeit aus, wenn sie im Quiz ausgeschaltet ist', async () => {
+    getInfoQueryMock.mockResolvedValue({
+      ...defaultSession,
+      status: 'LOBBY',
+      preset: 'PLAYFUL',
+      enableTimerAccommodation: false,
+    });
+
+    const fixture = setup();
+    fixture.detectChanges();
+    await flushComponentAfterStable(fixture, 50);
+
+    const component = fixture.componentInstance;
+    component.session.set({
+      ...defaultSession,
+      status: 'LOBBY',
+      preset: 'PLAYFUL',
+      enableTimerAccommodation: false,
+    });
+    component.musicMenuEditPhase.set('personalTime');
+    fixture.detectChanges();
+
+    expect(component.timerAccommodationEnabled()).toBe(false);
+    expect(component.musicPhases().map((phase) => phase.id)).toEqual([
+      'lobby',
+      'reading',
+      'countdown',
+    ]);
+    expect(component.musicPhases().some((phase) => phase.id === 'personalTime')).toBe(false);
+
+    component.onHostMusicMenuOpening();
+    expect(component.musicMenuEditPhase()).toBe('lobby');
+
+    component.onMusicMenuPhaseToggle({ value: 'personalTime' });
+    expect(component.musicMenuEditPhase()).toBe('lobby');
+
+    fixture.destroy();
+  });
+
+  it('lässt jede Musikphase stumm schalten und merkt die Auswahl', async () => {
+    getInfoQueryMock.mockResolvedValue({
+      ...defaultSession,
+      status: 'ACTIVE',
+      preset: 'PLAYFUL',
+    });
+
+    const fixture = setup();
+    fixture.detectChanges();
+    await flushComponentAfterStable(fixture, 50);
+
+    const component = fixture.componentInstance;
+    component.musicMuted.set(false);
+    component.session.set({
+      ...defaultSession,
+      status: 'ACTIVE',
+      preset: 'PLAYFUL',
+    });
+    component.statusUpdate.set({
+      status: 'ACTIVE',
+      currentQuestion: 0,
+      currentRound: 1,
+    } as unknown as Parameters<typeof component.statusUpdate.set>[0]);
+    component.countdownSfxPhase.set(false);
+    component.countdownEnded.set(false);
+    fixture.detectChanges();
+
+    expect(component.currentMusicPhase()).toBe('countdown');
+    expect(component.activeMusicTrack()).toBe('COUNTDOWN_1');
+    expect(component.isMusicPhaseMuted('countdown')).toBe(false);
+
+    component.toggleMusicPhaseMute('countdown');
+    fixture.detectChanges();
+
+    expect(component.isMusicPhaseMuted('countdown')).toBe(true);
+    expect(component.isCurrentMusicPhaseMuted()).toBe(true);
+    expect(component.activeMusicTrack()).toBeNull();
+    expect(component.phaseTracks().countdown).toBe('COUNTDOWN_1');
+    expect(component.phaseTrackLabel('countdown')).toBe('Stumm');
+    expect(component.musicPhaseMuteLabel('countdown')).toBe('Diese Phase hörbar');
+
+    const storedMuted = JSON.parse(localStorage.getItem('arsnova-host-phase-tracks') ?? '{}') as {
+      countdown?: string;
+      mutedPhases?: string[];
+    };
+    expect(storedMuted.countdown).toBe('COUNTDOWN_1');
+    expect(storedMuted.mutedPhases).toEqual(['countdown']);
+
+    component.toggleMusicPhaseMute('countdown');
+    fixture.detectChanges();
+
+    expect(component.isMusicPhaseMuted('countdown')).toBe(false);
+    expect(component.activeMusicTrack()).toBe('COUNTDOWN_1');
+    expect(
+      (
+        JSON.parse(localStorage.getItem('arsnova-host-phase-tracks') ?? '{}') as {
+          mutedPhases?: string[];
+        }
+      ).mutedPhases,
+    ).toEqual([]);
+
+    component.toggleMusicPhaseMute('countdown');
+    component.setPhaseTrack('countdown', 'COUNTDOWN_2');
+    fixture.detectChanges();
+
+    expect(component.isMusicPhaseMuted('countdown')).toBe(false);
+    expect(component.phaseTracks().countdown).toBe('COUNTDOWN_2');
+    expect(component.activeMusicTrack()).toBe('COUNTDOWN_2');
+
+    component.toggleMusicPhaseMute('lobby');
+    fixture.detectChanges();
+    expect(component.isMusicPhaseMuted('lobby')).toBe(true);
+    expect(component.isMusicPhaseMuted('countdown')).toBe(false);
+    expect(component.activeMusicTrack()).toBe('COUNTDOWN_2');
+
+    fixture.destroy();
+  });
+
+  it('lädt gemutete Musikphasen aus dem Speicher', async () => {
+    localStorage.setItem(
+      'arsnova-host-phase-tracks',
+      JSON.stringify({
+        lobby: 'READING_0',
+        reading: 'READING_0',
+        countdown: 'COUNTDOWN_1',
+        personalTime: 'COUNTDOWN_0',
+        mutedPhases: ['countdown', 'personalTime'],
+      }),
+    );
+    getInfoQueryMock.mockResolvedValue({
+      ...defaultSession,
+      status: 'ACTIVE',
+      preset: 'PLAYFUL',
+    });
+
+    const fixture = setup();
+    fixture.detectChanges();
+    await flushComponentAfterStable(fixture, 50);
+
+    const component = fixture.componentInstance;
+    component.musicMuted.set(false);
+    component.session.set({
+      ...defaultSession,
+      status: 'ACTIVE',
+      preset: 'PLAYFUL',
+    });
+    component.statusUpdate.set({
+      status: 'ACTIVE',
+      currentQuestion: 0,
+      currentRound: 1,
+    } as unknown as Parameters<typeof component.statusUpdate.set>[0]);
+    component.countdownSfxPhase.set(false);
+    component.countdownEnded.set(false);
+    fixture.detectChanges();
+
+    expect(component.isMusicPhaseMuted('countdown')).toBe(true);
+    expect(component.isMusicPhaseMuted('personalTime')).toBe(true);
+    expect(component.isMusicPhaseMuted('lobby')).toBe(false);
+    expect(component.isCurrentMusicPhaseMuted()).toBe(true);
+    expect(component.activeMusicTrack()).toBeNull();
+    expect(component.phaseTracks().countdown).toBe('COUNTDOWN_1');
 
     fixture.destroy();
   });
