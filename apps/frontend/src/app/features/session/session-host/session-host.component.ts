@@ -6343,13 +6343,13 @@ export class SessionHostComponent implements OnInit, OnDestroy {
     const roomCountdownEnded = this.countdownEnded();
     if (blockingCount === 1) {
       return roomCountdownEnded
-        ? $localize`:@@sessionHost.timerAccommodationBlockingOneForce:Eine Person nutzt noch ihre »10× Zeit«. »Trotzdem freigeben« beendet ihr persönliches Fenster.`
-        : $localize`:@@sessionHost.timerAccommodationBlockingOne:Eine Person nutzt noch ihre »10× Zeit«. Warte auf den Raum-Countdown oder bis die »10× Zeit« endet.`;
+        ? $localize`:@@sessionHost.timerAccommodationBlockingOneForce:Eine Person nutzt ihre »10× Zeit«. »Trotzdem freigeben« beendet ihr persönliches Fenster.`
+        : $localize`:@@sessionHost.timerAccommodationBlockingOne:Eine Person nutzt ihre »10× Zeit«. Warte auf den Raum-Countdown oder bis die »10× Zeit« endet.`;
     }
     if (blockingCount > 1) {
       return roomCountdownEnded
-        ? $localize`:@@sessionHost.timerAccommodationBlockingManyForce:${formatLocaleCount(blockingCount, this.localeId)}:count: Personen nutzen noch ihre »10× Zeit«. »Trotzdem freigeben« beendet ihre persönlichen Fenster.`
-        : $localize`:@@sessionHost.timerAccommodationBlockingMany:${formatLocaleCount(blockingCount, this.localeId)}:count: Personen nutzen noch ihre »10× Zeit«. Warte auf den Raum-Countdown oder bis die »10× Zeit« endet.`;
+        ? $localize`:@@sessionHost.timerAccommodationBlockingManyForce:${formatLocaleCount(blockingCount, this.localeId)}:count: Personen nutzen ihre »10× Zeit«. »Trotzdem freigeben« beendet ihre persönlichen Fenster.`
+        : $localize`:@@sessionHost.timerAccommodationBlockingMany:${formatLocaleCount(blockingCount, this.localeId)}:count: Personen nutzen ihre »10× Zeit«. Warte auf den Raum-Countdown oder bis die »10× Zeit« endet.`;
     }
     if (count === 1) {
       return $localize`:@@sessionHost.timerAccommodationPendingOne:Eine Person antwortet ohne persönliche Frist. »Ergebnis zeigen« beendet ihre Eingabe.`;

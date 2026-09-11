@@ -13,6 +13,7 @@ import { PresetSnackbarFocusService } from '../../core/preset-snackbar-focus.ser
 describe('TopToolbarComponent', () => {
   beforeEach(() => {
     localStorage.clear();
+    sessionStorage.clear();
     document.documentElement.classList.remove('preset-playful', 'dark', 'light');
     TestBed.configureTestingModule({
       imports: [TopToolbarComponent],
@@ -22,9 +23,14 @@ describe('TopToolbarComponent', () => {
 
   afterEach(() => {
     localStorage.clear();
+    sessionStorage.clear();
     document.documentElement.classList.remove('preset-playful', 'dark', 'light');
     const motdHeader = TestBed.inject(MotdHeaderStateService);
     motdHeader.motdToolbarIcon.set(false);
+    motdHeader.hasActiveOverlay.set(false);
+    motdHeader.activeOverlayRef.set(null);
+    motdHeader.seenOverlayRef.set(null);
+    motdHeader.unseenCurrentMotdAcked.set(false);
     motdHeader.archiveUnreadCount.set(0);
   });
 
@@ -222,6 +228,96 @@ describe('TopToolbarComponent', () => {
     expect(fixture.componentInstance.motdArchiveBadgeText()).toBe('');
     expect(btn.classList.contains('mat-badge-hidden')).toBe(true);
     fixture.destroy();
+  });
+
+  it('hebt das Megafon hervor, wenn eine aktuelle MOTD noch nicht angezeigt wurde', () => {
+    const motdHeader = TestBed.inject(MotdHeaderStateService);
+    motdHeader.motdToolbarIcon.set(true);
+    motdHeader.hasActiveOverlay.set(true);
+    const fixture = createToolbar();
+    const btn = fixture.nativeElement.querySelector('.top-toolbar__motd-btn') as HTMLElement;
+
+    expect(btn.classList.contains('top-toolbar__motd-btn--attention')).toBe(true);
+    fixture.destroy();
+  });
+
+  it('nimmt die Megafon-Hervorhebung zurück, sobald das Archiv geöffnet wird', () => {
+    const motdHeader = TestBed.inject(MotdHeaderStateService);
+    motdHeader.motdToolbarIcon.set(true);
+    motdHeader.hasActiveOverlay.set(true);
+    const dialog = TestBed.inject(MatDialog);
+    vi.mocked(dialog.open).mockReturnValue({
+      afterClosed: () => ({ subscribe: vi.fn() }),
+    } as never);
+    const fixture = createToolbar();
+    const btn = fixture.nativeElement.querySelector('.top-toolbar__motd-btn') as HTMLButtonElement;
+
+    btn.click();
+    fixture.detectChanges();
+
+    expect(motdHeader.motdToolbarAttention()).toBe(false);
+    expect(btn.classList.contains('top-toolbar__motd-btn--attention')).toBe(false);
+    fixture.destroy();
+  });
+
+  it('hebt das Megafon wieder hervor, wenn eine andere Overlay-MOTD aktuell wird', () => {
+    const motdHeader = TestBed.inject(MotdHeaderStateService);
+    motdHeader.motdToolbarIcon.set(true);
+    motdHeader.hasActiveOverlay.set(true);
+    motdHeader.activeOverlayRef.set({
+      motdId: '00000000-0000-4000-8000-000000000001',
+      contentVersion: 1,
+    });
+    motdHeader.acknowledgeUnseenCurrentMotd();
+    expect(motdHeader.motdToolbarAttention()).toBe(false);
+
+    motdHeader.activeOverlayRef.set({
+      motdId: '00000000-0000-4000-8000-000000000002',
+      contentVersion: 1,
+    });
+    expect(motdHeader.motdToolbarAttention()).toBe(true);
+  });
+
+  it('hält die Megafon-Hervorhebung nach Reload für dieselbe bereits gezeigte MOTD zurück', () => {
+    const motdHeader = TestBed.inject(MotdHeaderStateService);
+    motdHeader.motdToolbarIcon.set(true);
+    motdHeader.hasActiveOverlay.set(true);
+    motdHeader.activeOverlayRef.set({
+      motdId: '00000000-0000-4000-8000-000000000001',
+      contentVersion: 2,
+    });
+    motdHeader.acknowledgeUnseenCurrentMotd();
+    motdHeader.unseenCurrentMotdAcked.set(false);
+    motdHeader.seenOverlayRef.set(null);
+    motdHeader.restoreSeenOverlayFromSession();
+
+    expect(motdHeader.motdToolbarAttention()).toBe(false);
+  });
+
+  it('hebt das Megafon nicht hervor, wenn keine aktuelle Overlay-MOTD offen ist', () => {
+    const motdHeader = TestBed.inject(MotdHeaderStateService);
+    motdHeader.motdToolbarIcon.set(true);
+    motdHeader.hasActiveOverlay.set(false);
+    motdHeader.archiveUnreadCount.set(2);
+    const fixture = createToolbar();
+    const btn = fixture.nativeElement.querySelector('.top-toolbar__motd-btn') as HTMLElement;
+
+    expect(btn.classList.contains('top-toolbar__motd-btn--attention')).toBe(false);
+    fixture.destroy();
+  });
+
+  it('stilisiert die Megafon-Hervorhebung tokenbasiert und ohne Bewegung bei reduced-motion', async () => {
+    const { readFileSync } = await import('node:fs');
+    const { fileURLToPath } = await import('node:url');
+    const { dirname, join } = await import('node:path');
+    const scssPath = join(dirname(fileURLToPath(import.meta.url)), './top-toolbar.component.scss');
+    const scss = readFileSync(scssPath, 'utf8');
+    expect(scss).toMatch(/\.top-toolbar__motd-btn--attention/);
+    expect(scss).toMatch(/--mat-sys-primary/);
+    expect(scss).toMatch(/prefers-reduced-motion:\s*no-preference/);
+    expect(scss).toMatch(/top-toolbar-motd-attention/);
+    const playful = scss.slice(scss.indexOf(':host-context(html.preset-playful)'));
+    expect(playful).toMatch(/\.top-toolbar__motd-btn--attention/);
   });
 
   it('zeigt den MOTD-Zähler nur bei ungelesenen Meldungen', () => {
