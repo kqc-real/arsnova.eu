@@ -165,7 +165,7 @@ export class ModerationCompassDialogComponent {
 
   summarySourceJumpAria(source: QaSummarySource): string {
     const destination = this.summarySourceDestinationLabel();
-    return $localize`:@@sessionHost.moderationSummarySourceOpenAria:Öffnet ${destination}:destination:: ${source.label}:label:`;
+    return $localize`:@@sessionHost.moderationSummarySourceOpenAria:Öffnet ${destination}:destination:: ${this.displaySourceLabel(source.label)}:label:`;
   }
 
   summarySourcesToggleLabel(count: number): string {

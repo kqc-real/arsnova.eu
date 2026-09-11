@@ -99,7 +99,7 @@ Der Betreiber kann **kuratierte Hinweise** an **alle Nutzer:innen** ausspielen �
 
 - **Nachrichten-Icon** öffnet Archiv/Übersicht (Sheet, Dialog oder eigene kleine View — Mobile-first).
 - **Ungelesen-Zähler** nur bei `archiveUnreadCount > 0`. Bei null ungelesenen Meldungen ist der Badge **vollständig unsichtbar** (kein leerer Punkt). Das Icon selbst bleibt, solange Archiv oder aktive MOTD existieren.
-- **Megafon-Hervorhebung:** Solange `getHeaderState.hasActiveOverlay` gilt (aktuelle MOTD noch nicht overlay-dismissed) und die Meldung in dieser Sitzung **weder als Overlay noch im Archiv** gezeigt wurde, erhält das Campaign-Icon eine Primary-Fläche und einen dezenten Puls (ohne Bewegung bei `prefers-reduced-motion`). Der Ungelesen-Badge bleibt davon unabhängig.
+- **Megafon-Hervorhebung:** Solange `getHeaderState.hasActiveOverlay` gilt (aktuelle MOTD noch nicht overlay-dismissed) und die Meldung in dieser Sitzung **weder als Overlay noch im Archiv** gezeigt wurde, erhält das Campaign-Icon eine Primary-Fläche und einen dezenten Puls (ohne Bewegung bei `prefers-reduced-motion`). Der Client vergleicht dafür `getHeaderState.activeOverlay` mit der sitzungsbezogen gemerkten Identität; Reload und eine nachrückende MOTD teilen sich kein bloßes Boolean. Der Ungelesen-Badge bleibt davon unabhängig.
 - Wenn **kein Archiv-Eintrag** freigegeben und **kein aktives MOTD**: Icon **ausblenden** oder **deaktivieren** mit erklärendem Tooltip (i18n).
 
 ## 4. Technische Leitplanken
@@ -113,7 +113,7 @@ Der Betreiber kann **kuratierte Hinweise** an **alle Nutzer:innen** ausspielen �
 
 - `motd.getCurrent` — Input: `locale`, optional `overlayDismissedUpTo` (vom Client gemerkte Dismiss-Versionen pro `motdId`, damit die nächstpriore MOTD gewählt wird); Output: aktive MOTD oder leer.
 - `motd.listArchive` — Input: `locale`, Pagination; Output: nur freigegebene, vergangene/außerhalb Fenster.
-- `motd.getHeaderState` — Input: `locale`, optional `archiveSeenUpToCursor`, optional `archiveReadItems`, optional `archiveUnreadItems`, optional `overlayDismissedUpTo`; Output: ob aktives Overlay bzw. Archiv-Einträge existieren, `archiveMaxCursor` und ungelesene Archiv-Meldungen (Toolbar-Icon; einzeln Gelesene werden vom Zähler abgezogen, explizit Ungelesene trotz Wasserlinie wieder addiert). `archiveSeenUpToEndsAtIso` / `archiveMaxEndsAtIso` bleiben vorübergehend für ältere Clients kompatibel.
+- `motd.getHeaderState` — Input: `locale`, optional `archiveSeenUpToCursor`, optional `archiveReadItems`, optional `archiveUnreadItems`, optional `overlayDismissedUpTo`; Output: ob aktives Overlay bzw. Archiv-Einträge existieren, `activeOverlay` (`motdId` + `contentVersion` oder `null`), `archiveMaxCursor` und ungelesene Archiv-Meldungen (Toolbar-Icon; einzeln Gelesene werden vom Zähler abgezogen, explizit Ungelesene trotz Wasserlinie wieder addiert). `archiveSeenUpToEndsAtIso` / `archiveMaxEndsAtIso` bleiben vorübergehend für ältere Clients kompatibel.
 - `motd.recordInteraction` — Input: `motdId`, `contentVersion`, `kind` (`ACK` | `THUMB_UP` | `THUMB_DOWN` | `DISMISS_CLOSE` | `DISMISS_SWIPE`); streng rate-limited; Zähler in DB.
 - **Rendering:** Endnutzer- und Admin-Vorschau nutzen **`renderMarkdownWithoutKatex`** + **DomSanitizer** (`bypassSecurityTrustHtml` nur auf dieser Pipeline), analog zu anderen sicheren Markdown-Ansichten — kein rohes HTML aus dem MOTD-Text.
 - `admin.motd.*` — CRUD MOTD, Templates, Publish/Schedule, Archiv-Flag, Priorität.
@@ -184,3 +184,4 @@ Synergie: [`docs/didaktik/zweiter-kurs-und-agentische-ki.md`](../didaktik/zweite
 | 2026-09-11 | Abschnitt 9: lokale Seed-Kette um die Feature-MOTD **Persönliche Zeit** ergänzt.                                                                                                                                                   |
 | 2026-09-11 | Abschnitte 3.5/9: Neue MOTD darf in einer **neuen Browsersitzung** als Overlay erscheinen; kein Stapel nur noch in derselben Sitzung. **Jetzt aktualisieren** löst die Sitzungssperre.                                             |
 | 2026-09-11 | Abschnitt 3.8: Campaign-Icon in der Toolbar optisch hervorheben, wenn eine aktuelle MOTD existiert, aber in dieser Sitzung noch nicht angezeigt wurde.                                                                             |
+| 2026-09-11 | Abschnitte 3.8/4.1: Megafon-Ack merkt die Overlay-Identität in der Sitzung; `getHeaderState.activeOverlay` liefert `motdId` und `contentVersion`.                                                                                  |

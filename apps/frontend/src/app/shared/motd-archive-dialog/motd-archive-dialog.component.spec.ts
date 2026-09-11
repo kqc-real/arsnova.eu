@@ -23,6 +23,7 @@ vi.mock('../../core/trpc.client', () => ({
 
 const defaultHeaderState = {
   hasActiveOverlay: false,
+  activeOverlay: null,
   hasArchiveEntries: false,
   archiveCount: 0,
   archiveMaxCursor: null,

@@ -13,6 +13,7 @@ import { PresetSnackbarFocusService } from '../../core/preset-snackbar-focus.ser
 describe('TopToolbarComponent', () => {
   beforeEach(() => {
     localStorage.clear();
+    sessionStorage.clear();
     document.documentElement.classList.remove('preset-playful', 'dark', 'light');
     TestBed.configureTestingModule({
       imports: [TopToolbarComponent],
@@ -22,10 +23,13 @@ describe('TopToolbarComponent', () => {
 
   afterEach(() => {
     localStorage.clear();
+    sessionStorage.clear();
     document.documentElement.classList.remove('preset-playful', 'dark', 'light');
     const motdHeader = TestBed.inject(MotdHeaderStateService);
     motdHeader.motdToolbarIcon.set(false);
     motdHeader.hasActiveOverlay.set(false);
+    motdHeader.activeOverlayRef.set(null);
+    motdHeader.seenOverlayRef.set(null);
     motdHeader.unseenCurrentMotdAcked.set(false);
     motdHeader.archiveUnreadCount.set(0);
   });
@@ -254,6 +258,40 @@ describe('TopToolbarComponent', () => {
     expect(motdHeader.motdToolbarAttention()).toBe(false);
     expect(btn.classList.contains('top-toolbar__motd-btn--attention')).toBe(false);
     fixture.destroy();
+  });
+
+  it('hebt das Megafon wieder hervor, wenn eine andere Overlay-MOTD aktuell wird', () => {
+    const motdHeader = TestBed.inject(MotdHeaderStateService);
+    motdHeader.motdToolbarIcon.set(true);
+    motdHeader.hasActiveOverlay.set(true);
+    motdHeader.activeOverlayRef.set({
+      motdId: '00000000-0000-4000-8000-000000000001',
+      contentVersion: 1,
+    });
+    motdHeader.acknowledgeUnseenCurrentMotd();
+    expect(motdHeader.motdToolbarAttention()).toBe(false);
+
+    motdHeader.activeOverlayRef.set({
+      motdId: '00000000-0000-4000-8000-000000000002',
+      contentVersion: 1,
+    });
+    expect(motdHeader.motdToolbarAttention()).toBe(true);
+  });
+
+  it('hält die Megafon-Hervorhebung nach Reload für dieselbe bereits gezeigte MOTD zurück', () => {
+    const motdHeader = TestBed.inject(MotdHeaderStateService);
+    motdHeader.motdToolbarIcon.set(true);
+    motdHeader.hasActiveOverlay.set(true);
+    motdHeader.activeOverlayRef.set({
+      motdId: '00000000-0000-4000-8000-000000000001',
+      contentVersion: 2,
+    });
+    motdHeader.acknowledgeUnseenCurrentMotd();
+    motdHeader.unseenCurrentMotdAcked.set(false);
+    motdHeader.seenOverlayRef.set(null);
+    motdHeader.restoreSeenOverlayFromSession();
+
+    expect(motdHeader.motdToolbarAttention()).toBe(false);
   });
 
   it('hebt das Megafon nicht hervor, wenn keine aktuelle Overlay-MOTD offen ist', () => {

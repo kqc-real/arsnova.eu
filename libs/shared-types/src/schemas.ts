@@ -5578,6 +5578,11 @@ export type MotdHeaderStateInput = z.infer<typeof MotdHeaderStateInputPayloadSch
 
 export const MotdHeaderStateOutputSchema = z.object({
   hasActiveOverlay: z.boolean(),
+  /**
+   * Identität der aktuellen Overlay-MOTD, wenn `hasActiveOverlay`.
+   * Client merkt damit sitzungsbezogen, welche Meldung schon gesehen wurde.
+   */
+  activeOverlay: MotdOverlayDismissedPairSchema.nullable(),
   hasArchiveEntries: z.boolean(),
   /** Anzahl MOTDs, die ins Nutzer-Archiv zählen (gleiche Filterlogik wie listArchive, ohne leere Markdown-Fallbacks). */
   archiveCount: z.number().int().min(0),

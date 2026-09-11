@@ -42,6 +42,7 @@ vi.mock('../../core/trpc.client', () => ({
       getHeaderState: {
         query: vi.fn().mockResolvedValue({
           hasActiveOverlay: false,
+          activeOverlay: null,
           hasArchiveEntries: false,
           archiveCount: 0,
           archiveMaxCursor: null,

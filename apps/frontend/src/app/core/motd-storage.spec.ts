@@ -4,17 +4,20 @@ import {
   MOTD_MOBILE_FIRST_HOME_SESSION_KEY,
   MOTD_MOBILE_HOME_SEEN_KEY,
   MOTD_OVERLAY_OFFERED_SESSION_KEY,
+  MOTD_SEEN_OVERLAY_SESSION_KEY,
   MOTD_SUPPRESS_OVERLAY_AFTER_RELOAD_KEY,
   clearMotdSessionOverlayLocks,
   clearMotdThumbInteractionKeys,
   consumeMotdOverlayReloadSuppress,
   getMotdArchiveSeenUpToCursor,
+  getMotdCurrentOverlaySeenThisSession,
   hasMotdOverlayBeenOfferedThisSession,
   isMotdDismissedForVersion,
   markMotdArchiveItemRead,
   markMotdArchiveItemUnread,
   markMotdDismissed,
   markMotdInteractionRecorded,
+  markMotdCurrentOverlaySeenThisSession,
   markMotdOverlayOfferedThisSession,
   markMotdOverlayReloadSuppress,
   hasMotdInteractionRecorded,
@@ -188,12 +191,22 @@ describe('motd-storage', () => {
     expect(hasMotdOverlayBeenOfferedThisSession()).toBe(true);
   });
 
+  it('merkt die in dieser Sitzung gezeigte Overlay-MOTD per Identität', () => {
+    const motdId = '00000000-0000-4000-8000-000000000011';
+    expect(getMotdCurrentOverlaySeenThisSession()).toBeNull();
+    markMotdCurrentOverlaySeenThisSession(motdId, 3);
+    expect(getMotdCurrentOverlaySeenThisSession()).toEqual({ motdId, contentVersion: 3 });
+    expect(sessionStorage.getItem(MOTD_SEEN_OVERLAY_SESSION_KEY)).toContain(motdId);
+  });
+
   it('löst Sitzungssperren für das Overlay nach einem App-Update', () => {
     markMotdOverlayOfferedThisSession();
+    markMotdCurrentOverlaySeenThisSession('00000000-0000-4000-8000-000000000011', 1);
     markMotdOverlayReloadSuppress();
     sessionStorage.setItem(MOTD_MOBILE_FIRST_HOME_SESSION_KEY, '1');
     clearMotdSessionOverlayLocks();
     expect(hasMotdOverlayBeenOfferedThisSession()).toBe(false);
+    expect(getMotdCurrentOverlaySeenThisSession()).toBeNull();
     expect(sessionStorage.getItem(MOTD_SUPPRESS_OVERLAY_AFTER_RELOAD_KEY)).toBeNull();
     expect(sessionStorage.getItem(MOTD_MOBILE_FIRST_HOME_SESSION_KEY)).toBeNull();
   });

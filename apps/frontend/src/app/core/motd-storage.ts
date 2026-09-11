@@ -30,6 +30,12 @@ export const MOTD_MOBILE_FIRST_HOME_SESSION_KEY = 'arsnova-motd-mobile-first-hom
  */
 export const MOTD_OVERLAY_OFFERED_SESSION_KEY = 'arsnova-motd-overlay-offered-session';
 
+/**
+ * Welche Overlay-MOTD in dieser Sitzung bereits als Overlay oder Archiv
+ * gezeigt wurde (`motdId` + `contentVersion`).
+ */
+export const MOTD_SEEN_OVERLAY_SESSION_KEY = 'arsnova-motd-seen-overlay-session';
+
 export type MotdClientStorageV1 = {
   /** motdId → zuletzt bestätigte contentVersion (diese Version nicht mehr als Overlay) */
   dismissed: Record<string, number>;
@@ -189,6 +195,34 @@ export function hasMotdOverlayBeenOfferedThisSession(): boolean {
   }
 }
 
+/** Merkt die in dieser Sitzung bereits gezeigte Overlay-MOTD. */
+export function markMotdCurrentOverlaySeenThisSession(
+  motdId: string,
+  contentVersion: number,
+): void {
+  if (typeof sessionStorage === 'undefined') return;
+  try {
+    sessionStorage.setItem(
+      MOTD_SEEN_OVERLAY_SESSION_KEY,
+      JSON.stringify({ motdId, contentVersion }),
+    );
+  } catch {
+    /* ignore quota / private mode */
+  }
+}
+
+export function getMotdCurrentOverlaySeenThisSession(): MotdArchiveReadItem | null {
+  if (typeof sessionStorage === 'undefined') return null;
+  try {
+    const raw = sessionStorage.getItem(MOTD_SEEN_OVERLAY_SESSION_KEY);
+    if (!raw) return null;
+    const parsed = JSON.parse(raw) as unknown;
+    return isMotdArchiveReadItem(parsed) ? parsed : null;
+  } catch {
+    return null;
+  }
+}
+
 /** Nach PWA-/App-Update: Sitzungssperren lösen, damit die aktuelle MOTD erscheinen darf. */
 export function clearMotdSessionOverlayLocks(): void {
   if (typeof sessionStorage === 'undefined') return;
@@ -196,6 +230,7 @@ export function clearMotdSessionOverlayLocks(): void {
     sessionStorage.removeItem(MOTD_OVERLAY_OFFERED_SESSION_KEY);
     sessionStorage.removeItem(MOTD_SUPPRESS_OVERLAY_AFTER_RELOAD_KEY);
     sessionStorage.removeItem(MOTD_MOBILE_FIRST_HOME_SESSION_KEY);
+    sessionStorage.removeItem(MOTD_SEEN_OVERLAY_SESSION_KEY);
   } catch {
     /* ignore quota / private mode */
   }

@@ -893,7 +893,10 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
   private openMotdOverlay(motd: MotdPublicDTO, activeElement: Element | null): void {
     this.clearToolbarMotdDefer();
     markMotdOverlayOfferedThisSession();
-    this.motdHeaderState.acknowledgeUnseenCurrentMotd();
+    this.motdHeaderState.acknowledgeUnseenCurrentMotd({
+      motdId: motd.id,
+      contentVersion: motd.contentVersion,
+    });
     const focusReturnCandidate =
       activeElement instanceof HTMLElement &&
       activeElement !== document.body &&
