@@ -86,7 +86,11 @@ import {
 import { CountdownFingersComponent } from '../../../shared/countdown-fingers/countdown-fingers.component';
 import { MarkdownImageLightboxDirective } from '../../../shared/markdown-image-lightbox/markdown-image-lightbox.directive';
 import { remainingCountdownSeconds } from '../session-countdown.util';
-import { recordServerTimeIso, recordServerTimeSample } from '../session-server-clock';
+import {
+  getSkewAdjustedNow,
+  recordServerTimeIso,
+  recordServerTimeSample,
+} from '../session-server-clock';
 import {
   consumeParticipantJoinArrival,
   hasParticipantJoinArrival,
@@ -3805,7 +3809,7 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
       if (activeAt === null) {
         return;
       }
-      this.setScorePreviewElapsedSeconds((Date.now() - activeAt) / 1000);
+      this.setScorePreviewElapsedSeconds((getSkewAdjustedNow() - activeAt) / 1000);
     };
     tick();
     this.scorePreviewTimer = setInterval(tick, 1000);

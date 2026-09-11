@@ -314,42 +314,41 @@
                       Leicht = wie eingestellt, Mittel = ×1,5, Schwer = ×2,0
                     </div>
                   </div>
-                  <div
-                    class="quiz-edit-form__timer-accommodation"
-                    data-testid="quiz-edit-timer-accommodation-hint"
-                  >
-                    <mat-checkbox
-                      formControlName="enableTimerAccommodation"
-                      i18n="@@quizForm.timerAccommodationTitle"
-                    >
-                      Persönliche Zeit
-                    </mat-checkbox>
-                    @if (settingsForm.controls.enableTimerAccommodation.value) {
-                      <p
-                        class="quiz-edit-form__timer-accommodation-lead"
-                        i18n="@@quizForm.timerAccommodationLead"
-                      >
-                        Faire Teilnahme ermöglichen
-                      </p>
-                      <p i18n="@@quizForm.timerAccommodationHint">
-                        Zusätzliche Antwortzeit gleicht Barrieren aus – etwa bei Legasthenie,
-                        Dyskalkulie, Seh- oder motorischen Beeinträchtigungen sowie bei der Nutzung
-                        assistiver Technologien wie Screenreadern. Lass »10× Zeit« und »Ohne Frist«
-                        deshalb wählbar, damit alle ihr Wissen unter fairen Bedingungen zeigen
-                        können.
-                      </p>
-                      <p i18n="@@quizForm.timerAccommodationScore">
-                        Nach dem regulären Countdown sind höchstens die Punkte der letzten
-                        Countdown-Sekunde erreichbar. So entsteht durch den Nachteilsausgleich kein
-                        Wettbewerbsvorteil.
-                      </p>
-                      <p i18n="@@quizForm.timerAccommodationControl">
-                        Du entscheidest weiterhin, wann die Frage endet.
-                      </p>
-                    }
-                  </div>
                 </div>
               }
+              <div
+                class="quiz-edit-form__timer-accommodation"
+                data-testid="quiz-edit-timer-accommodation-hint"
+              >
+                <mat-checkbox
+                  formControlName="enableTimerAccommodation"
+                  i18n="@@quizForm.timerAccommodationTitle"
+                >
+                  Persönliche Zeit
+                </mat-checkbox>
+                @if (settingsForm.controls.enableTimerAccommodation.value) {
+                  <p
+                    class="quiz-edit-form__timer-accommodation-lead"
+                    i18n="@@quizForm.timerAccommodationLead"
+                  >
+                    Faire Teilnahme ermöglichen
+                  </p>
+                  <p i18n="@@quizForm.timerAccommodationHint">
+                    Zusätzliche Antwortzeit gleicht Barrieren aus – etwa bei Legasthenie,
+                    Dyskalkulie, Seh- oder motorischen Beeinträchtigungen sowie bei der Nutzung
+                    assistiver Technologien wie Screenreadern. Lass »10× Zeit« und »Ohne Frist«
+                    deshalb wählbar, damit alle ihr Wissen unter fairen Bedingungen zeigen können.
+                  </p>
+                  <p i18n="@@quizForm.timerAccommodationScore">
+                    Nach dem regulären Countdown sind höchstens die Punkte der letzten
+                    Countdown-Sekunde erreichbar. So entsteht durch den Nachteilsausgleich kein
+                    Wettbewerbsvorteil.
+                  </p>
+                  <p i18n="@@quizForm.timerAccommodationControl">
+                    Du entscheidest weiterhin, wann die Frage endet.
+                  </p>
+                }
+              </div>
             </fieldset>
 
             <fieldset class="quiz-edit-form__fieldset">

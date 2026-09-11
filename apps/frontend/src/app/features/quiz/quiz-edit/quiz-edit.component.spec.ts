@@ -255,6 +255,21 @@ describe('QuizEditComponent', { timeout: 30_000 }, () => {
     expect(hint?.textContent).not.toContain('Nachteilsausgleich');
   });
 
+  it('zeigt die Checkbox für persönliche Zeit auch ohne quizweites Zeitlimit', () => {
+    quiz.settings = { ...quiz.settings, defaultTimer: null };
+    const fixture = TestBed.createComponent(QuizEditComponent);
+    const component = fixture.componentInstance;
+    component.showSettings.set(true);
+    fixture.detectChanges();
+
+    const hint = fixture.nativeElement.querySelector(
+      '[data-testid="quiz-edit-timer-accommodation-hint"]',
+    ) as HTMLElement | null;
+    expect(hint).toBeTruthy();
+    expect(component.settingsTimerControl.value).toBeNull();
+    expect(hint?.querySelector('mat-checkbox')?.textContent).toContain('Persönliche Zeit');
+  });
+
   it('speichert das Ausschalten der persönlichen Zeit über saveAll', () => {
     quiz.settings = { ...quiz.settings, defaultTimer: 60, enableTimerAccommodation: true };
     mockStore.updateQuizSettings.mockReturnValue({

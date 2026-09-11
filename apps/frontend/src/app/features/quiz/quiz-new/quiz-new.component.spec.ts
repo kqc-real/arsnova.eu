@@ -431,6 +431,22 @@ describe('QuizNewComponent', () => {
     expect(hint?.textContent).not.toContain('Nachteilsausgleich');
   });
 
+  it('zeigt die Checkbox für persönliche Zeit auch ohne quizweites Zeitlimit', () => {
+    const fixture = TestBed.createComponent(QuizNewComponent);
+    const component = fixture.componentInstance;
+    fixture.detectChanges();
+    component.showSettings.set(true);
+    component.onDefaultTimerEnabledChange(false);
+    fixture.detectChanges();
+
+    expect(component.defaultTimerControl.value).toBeNull();
+    const hint = fixture.nativeElement.querySelector(
+      '[data-testid="quiz-new-timer-accommodation-hint"]',
+    ) as HTMLElement | null;
+    expect(hint).toBeTruthy();
+    expect(hint?.querySelector('mat-checkbox')?.textContent).toContain('Persönliche Zeit');
+  });
+
   it('hält Bonus-Fieldset, Tokens und Playful-Chrome der Erstell-Seite konsistent', async () => {
     const { readFileSync } = await import('node:fs');
     const { fileURLToPath } = await import('node:url');

@@ -28,6 +28,7 @@ import {
   setConfirmedParticipantTeam,
 } from '../../../core/participant-team-confirmation';
 import { ThemePresetService } from '../../../core/theme-preset.service';
+import { recordServerTimeIso, resetServerClockSkew } from '../session-server-clock';
 
 registerLocaleData(localeDe);
 
@@ -154,6 +155,7 @@ async function findNumericEstimateInput(
 describe('SessionVoteComponent', { timeout: 30_000 }, () => {
   afterEach(() => {
     vi.useRealTimers();
+    resetServerClockSkew();
     localStorage.removeItem('arsnova-live-score-preview');
     localStorage.removeItem('arsnova-timer-accommodation');
     for (let index = localStorage.length - 1; index >= 0; index -= 1) {
@@ -737,6 +739,48 @@ describe('SessionVoteComponent', { timeout: 30_000 }, () => {
     ).toContain('Live-Punkte anzeigen');
     expect(localStorage.getItem('arsnova-live-score-preview')).toBe('false');
     fixture.destroy();
+  });
+
+  it('berechnet die Punktvorschau mit der kalibrierten Serveruhr statt Date.now', () => {
+    const deviceNow = Date.parse('2026-09-11T12:00:00.000Z');
+    const serverNow = deviceNow - 5 * 60_000;
+    const nowSpy = vi.spyOn(Date, 'now').mockReturnValue(deviceNow);
+    recordServerTimeIso(new Date(serverNow).toISOString(), deviceNow);
+
+    const fixture = TestBed.createComponent(SessionVoteComponent);
+    const component = fixture.componentInstance;
+    component.status.set('ACTIVE');
+    component.currentRound.set(1);
+    component.voteSent.set(false);
+    component.voteClosed.set(false);
+    component.sessionTimerSeconds.set(60);
+    component.currentQuestion.set({
+      id: 'score-preview-skew',
+      text: 'Frage',
+      type: 'SINGLE_CHOICE',
+      difficulty: 'MEDIUM',
+      order: 0,
+      totalQuestions: 1,
+      answers: [
+        { id: 'a1', text: 'A' },
+        { id: 'a2', text: 'B' },
+      ],
+      activeAt: new Date(serverNow).toISOString(),
+      timer: 60,
+      sessionTimer: 60,
+      timerAccommodation: 'DEFAULT',
+      currentRound: 1,
+      totalVotes: 0,
+      participantCount: 1,
+    });
+    component['questionActiveAtMs'] = serverNow;
+    component['stopScorePreviewTicker']();
+    component['syncScorePreviewTicker']();
+
+    expect(component.scorePreviewElapsedSeconds()).toBe(0);
+    expect(component.liveScorePreviewPoints()).toBe(2000);
+    fixture.destroy();
+    nowSpy.mockRestore();
   });
 
   it('stellt die ausgeblendete Punktvorschau aus localStorage wieder her', async () => {
