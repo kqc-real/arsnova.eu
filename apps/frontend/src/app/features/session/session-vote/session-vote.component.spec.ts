@@ -783,6 +783,50 @@ describe('SessionVoteComponent', { timeout: 30_000 }, () => {
     nowSpy.mockRestore();
   });
 
+  it('startet die Punktvorschau nach einem abgelehnten Vote erneut', async () => {
+    voteSubmitMutateMock.mockRejectedValueOnce(new Error('Netzwerkfehler'));
+    const fixture = TestBed.createComponent(SessionVoteComponent);
+    const component = fixture.componentInstance;
+    component.status.set('ACTIVE');
+    component.sessionId.set('session-1');
+    component.participantId.set('11111111-1111-4111-8111-111111111111');
+    component.currentRound.set(1);
+    component.voteSent.set(false);
+    component.voteClosed.set(false);
+    component.sessionTimerSeconds.set(60);
+    component.selectedAnswerIds.set(new Set(['a1']));
+    component.currentQuestion.set({
+      id: 'score-preview-retry',
+      text: 'Frage',
+      type: 'SINGLE_CHOICE',
+      difficulty: 'MEDIUM',
+      order: 0,
+      totalQuestions: 1,
+      answers: [
+        { id: 'a1', text: 'A' },
+        { id: 'a2', text: 'B' },
+      ],
+      activeAt: new Date().toISOString(),
+      timer: 60,
+      sessionTimer: 60,
+      timerAccommodation: 'DEFAULT',
+      currentRound: 1,
+      totalVotes: 0,
+      participantCount: 1,
+    });
+    component['questionActiveAtMs'] = Date.now();
+    component['stopScorePreviewTicker']();
+    component['syncScorePreviewTicker']();
+    expect(component['scorePreviewTimer']).toBeTruthy();
+
+    await component.submitVote();
+
+    expect(component.voteSent()).toBe(false);
+    expect(component.voteClosed()).toBe(false);
+    expect(component['scorePreviewTimer']).toBeTruthy();
+    fixture.destroy();
+  });
+
   it('stellt die ausgeblendete Punktvorschau aus localStorage wieder her', async () => {
     localStorage.setItem('arsnova-live-score-preview', 'false');
     getInfoQueryMock.mockResolvedValue({

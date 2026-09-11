@@ -5180,6 +5180,7 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
       this.focusVoteError();
     } finally {
       this.voteSending.set(false);
+      this.syncScorePreviewTicker();
       setTimeout(() => this.debounced.set(false), 300);
     }
   }
