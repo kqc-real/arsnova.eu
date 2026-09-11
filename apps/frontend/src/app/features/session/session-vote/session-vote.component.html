@@ -76,8 +76,10 @@
       <p class="vote-timer-a11y__help" i18n="@@sessionVote.timerAccommodation.help">
         Vor der Frage wählen · »10× Zeit« = zehnfacher Raum-Countdown
       </p>
-      <p class="vote-timer-a11y__points">{{ timerAccommodationPointsHint() }}</p>
-      <ng-container [ngTemplateOutlet]="scoringInfoPanel" />
+      @if (showTimerAccommodationScoringCopy()) {
+        <p class="vote-timer-a11y__points">{{ timerAccommodationPointsHint() }}</p>
+        <ng-container [ngTemplateOutlet]="scoringInfoPanel" />
+      }
       <mat-button-toggle-group
         class="vote-timer-a11y__options"
         [value]="timerAccommodation()"
@@ -91,7 +93,7 @@
           </mat-button-toggle>
         }
       </mat-button-toggle-group>
-      @if (timerAccommodation() === 'OFF') {
+      @if (timerAccommodation() === 'OFF' && showTimerAccommodationScoringCopy()) {
         <p
           class="vote-timer-a11y__status"
           role="status"

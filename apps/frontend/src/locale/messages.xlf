@@ -7485,13 +7485,16 @@
         <source>Persönliche Zeit beim Countdown</source>
       </trans-unit>
       <trans-unit id="help.hostTimerChoice" datatype="html">
-        <source> Teilnehmende können »10× Zeit« oder »Ohne Frist« wählen, wenn »Persönliche Zeit« im Quiz eingeschaltet ist. </source>
+        <source> Teilnehmende können »10× Zeit« oder »Ohne Frist« wählen, wenn »Persönliche Zeit« im Quiz aktiviert ist. </source>
+      </trans-unit>
+      <trans-unit id="help.hostTimerFairness" datatype="html">
+        <source> Zusätzliche Antwortzeit gleicht Barrieren aus – etwa bei Legasthenie, Dyskalkulie, Sehbeeinträchtigungen oder der Nutzung assistiver Technologien wie Screenreadern. So können alle ihr Wissen unter fairen Bedingungen zeigen. </source>
       </trans-unit>
       <trans-unit id="help.hostTimerScore" datatype="html">
-        <source> Mehr Zeit hilft nicht. Wer nach dem Countdown noch richtig antwortet, bekommt nur Mindestpunkte und kommt damit selten nach vorn. </source>
+        <source> Richtige Antworten nach dem regulären Countdown erhalten nur Mindestpunkte. Der Nachteilsausgleich verschafft daher keinen Wettbewerbsvorteil. </source>
       </trans-unit>
       <trans-unit id="help.hostTimerControl" datatype="html">
-        <source> Die Frage beendest du weiter selbst. »Ohne Frist« hält dich nicht auf. »10× Zeit« kannst du nach dem Countdown trotzdem beenden. </source>
+        <source> Du entscheidest weiterhin selbst, wann die Frage endet: Auch bei »10× Zeit« und »Ohne Frist« kannst du sie nach dem regulären Countdown jederzeit beenden. </source>
       </trans-unit>
       <trans-unit id="help.hostQaTitle" datatype="html">
         <source>Die Q&amp;A-Fragenwand moderieren</source>
@@ -7571,7 +7574,7 @@
         </context-group>
       </trans-unit>
       <trans-unit id="help.participantAnswerTimer" datatype="html">
-        <source> Falls angeboten, wählst du unter Zeit anpassen »10× Zeit« oder »Ohne Frist«. Mehr Zeit hilft nicht. Nach dem Countdown gibt es nur Mindestpunkte; vorn landest du damit selten. </source>
+        <source> Falls angeboten, wählst du unter »Zeit anpassen« »10× Zeit« oder »Ohne Frist«. Mehr Zeit hilft nicht. Nach dem Countdown gibt es nur Mindestpunkte; vorn landest du damit selten. </source>
       </trans-unit>
       <trans-unit id="help.participantContributeTitle" datatype="html">
         <source>Wie stelle ich eine Frage oder gebe Feedback?</source>
@@ -15627,7 +15630,7 @@
         </context-group>
       </trans-unit>
       <trans-unit id="sessionHost.timerAccommodationNote" datatype="html">
-        <source>Mehr Zeit hilft nicht. Nach dem Countdown gibt es nur Mindestpunkte.</source>
+        <source>Mehr Zeit schafft Fairness – danach gibt es Mindestpunkte.</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.html</context>
           <context context-type="linenumber">1709</context>
@@ -16092,7 +16095,7 @@
         </context-group>
       </trans-unit>
       <trans-unit id="sessionHost.peerSuggestionNext" datatype="html">
-        <source> Diskussion starten oder Ergebnis zeigen. </source>
+        <source> »Diskussionsphase« oder »Ergebnis zeigen«. </source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.html</context>
           <context context-type="linenumber">3268,3270</context>
@@ -17070,6 +17073,12 @@
           <context context-type="linenumber">1473</context>
         </context-group>
       </trans-unit>
+      <trans-unit id="sessionHost.phasePersonalTimeShort" datatype="html">
+        <source>Persönliche Zeit</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.ts</context>
+        </context-group>
+      </trans-unit>
       <trans-unit id="sessionHost.musicLabelOff" datatype="html">
         <source>Musik aus</source>
         <context-group purpose="location">
@@ -17727,6 +17736,27 @@
           <context context-type="linenumber">5088</context>
         </context-group>
       </trans-unit>
+      <trans-unit id="sessionHost.musicPhaseMute" datatype="html">
+        <source>Diese Phase stumm</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.ts</context>
+          <context context-type="linenumber">5355</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="sessionHost.musicPhaseUnmute" datatype="html">
+        <source>Diese Phase hörbar</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.ts</context>
+          <context context-type="linenumber">5354</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="sessionHost.musicPhaseMutedSaved" datatype="html">
+        <source>Stumm</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.ts</context>
+          <context context-type="linenumber">5360</context>
+        </context-group>
+      </trans-unit>
       <trans-unit id="sessionHost.participantCountOne" datatype="html">
         <source>teilnehmende Person</source>
         <context-group purpose="location">
@@ -17820,28 +17850,28 @@
         </context-group>
       </trans-unit>
       <trans-unit id="sessionHost.timerAccommodationBlockingOneForce" datatype="html">
-        <source>Eine Person nutzt noch ihre 10× Zeit. »Trotzdem freigeben« beendet ihr persönliches Fenster.</source>
+        <source>Eine Person nutzt noch ihre »10× Zeit«. »Trotzdem freigeben« beendet ihr persönliches Fenster.</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.ts</context>
           <context context-type="linenumber">6069</context>
         </context-group>
       </trans-unit>
       <trans-unit id="sessionHost.timerAccommodationBlockingOne" datatype="html">
-        <source>Eine Person nutzt noch ihre 10× Zeit. Warte auf den Raum-Countdown oder bis die 10× Zeit endet.</source>
+        <source>Eine Person nutzt noch ihre »10× Zeit«. Warte auf den Raum-Countdown oder bis die »10× Zeit« endet.</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.ts</context>
           <context context-type="linenumber">6070</context>
         </context-group>
       </trans-unit>
       <trans-unit id="sessionHost.timerAccommodationBlockingManyForce" datatype="html">
-        <source><x id="count" equiv-text="formatLocaleCount(blockingCount, this.localeId)"/> Personen nutzen noch ihre 10× Zeit. »Trotzdem freigeben« beendet ihre persönlichen Fenster.</source>
+        <source><x id="count" equiv-text="formatLocaleCount(blockingCount, this.localeId)"/> Personen nutzen noch ihre »10× Zeit«. »Trotzdem freigeben« beendet ihre persönlichen Fenster.</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.ts</context>
           <context context-type="linenumber">6074</context>
         </context-group>
       </trans-unit>
       <trans-unit id="sessionHost.timerAccommodationBlockingMany" datatype="html">
-        <source><x id="count" equiv-text="formatLocaleCount(blockingCount, this.localeId)"/> Personen nutzen noch ihre 10× Zeit. Warte auf den Raum-Countdown oder bis die 10× Zeit endet.</source>
+        <source><x id="count" equiv-text="formatLocaleCount(blockingCount, this.localeId)"/> Personen nutzen noch ihre »10× Zeit«. Warte auf den Raum-Countdown oder bis die »10× Zeit« endet.</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.ts</context>
           <context context-type="linenumber">6075</context>

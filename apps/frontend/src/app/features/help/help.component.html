@@ -267,15 +267,20 @@
               <div class="help-panel__body" [attr.inert]="hostTimerPanel.expanded ? null : ''">
                 <p i18n="@@help.hostTimerChoice">
                   Teilnehmende können »10× Zeit« oder »Ohne Frist« wählen, wenn »Persönliche Zeit«
-                  im Quiz eingeschaltet ist.
+                  im Quiz aktiviert ist.
+                </p>
+                <p i18n="@@help.hostTimerFairness">
+                  Zusätzliche Antwortzeit gleicht Barrieren aus – etwa bei Legasthenie, Dyskalkulie,
+                  Sehbeeinträchtigungen oder der Nutzung assistiver Technologien wie Screenreadern.
+                  So können alle ihr Wissen unter fairen Bedingungen zeigen.
                 </p>
                 <p i18n="@@help.hostTimerScore">
-                  Mehr Zeit hilft nicht. Wer nach dem Countdown noch richtig antwortet, bekommt nur
-                  Mindestpunkte und kommt damit selten nach vorn.
+                  Richtige Antworten nach dem regulären Countdown erhalten nur Mindestpunkte. Der
+                  Nachteilsausgleich verschafft daher keinen Wettbewerbsvorteil.
                 </p>
                 <p i18n="@@help.hostTimerControl">
-                  Die Frage beendest du weiter selbst. »Ohne Frist« hält dich nicht auf. »10× Zeit«
-                  kannst du nach dem Countdown trotzdem beenden.
+                  Du entscheidest weiterhin selbst, wann die Frage endet: Auch bei »10× Zeit« und
+                  »Ohne Frist« kannst du sie nach dem regulären Countdown jederzeit beenden.
                 </p>
               </div>
             </mat-expansion-panel>
@@ -395,9 +400,9 @@
                   Ergebnis erscheint, sobald die Veranstaltungsleitung es freigibt.
                 </p>
                 <p i18n="@@help.participantAnswerTimer">
-                  Falls angeboten, wählst du unter Zeit anpassen »10× Zeit« oder »Ohne Frist«. Mehr
-                  Zeit hilft nicht. Nach dem Countdown gibt es nur Mindestpunkte; vorn landest du
-                  damit selten.
+                  Falls angeboten, wählst du unter »Zeit anpassen« »10× Zeit« oder »Ohne Frist«.
+                  Mehr Zeit hilft nicht. Nach dem Countdown gibt es nur Mindestpunkte; vorn landest
+                  du damit selten.
                 </p>
               </div>
             </mat-expansion-panel>

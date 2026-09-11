@@ -3371,6 +3371,14 @@
   width: 100%;
 }
 
+.session-host__music-phase-toggle-mute {
+  flex-shrink: 0;
+  width: 1.125rem;
+  height: 1.125rem;
+  font-size: 1.125rem;
+  color: var(--mat-sys-on-surface-variant);
+}
+
 .session-host__music-phase-toggle-live {
   flex-shrink: 0;
 
@@ -3396,6 +3404,32 @@
   margin-top: 0.15rem;
   font-weight: 600;
   color: var(--mat-sys-on-surface);
+}
+
+.session-host__music-phase-mute {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  min-height: 2.75rem;
+  margin-top: 0.1rem;
+  padding: 0;
+  border: 0;
+  border-radius: var(--mat-sys-corner-small);
+  background: transparent;
+  color: var(--mat-sys-primary);
+  font: var(--mat-sys-label-large);
+  cursor: pointer;
+
+  mat-icon {
+    width: 1.25rem;
+    height: 1.25rem;
+    font-size: 1.25rem;
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--mat-sys-primary);
+    outline-offset: 2px;
+  }
 }
 
 .session-host__music-track-list {

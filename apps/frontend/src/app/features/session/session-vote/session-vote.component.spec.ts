@@ -471,6 +471,52 @@ describe('SessionVoteComponent', { timeout: 30_000 }, () => {
     fixture.destroy();
   });
 
+  it('blendet Punktehinweise bei unbewertetem Freitext aus, lässt Zeit anpassen sichtbar', () => {
+    const fixture = TestBed.createComponent(SessionVoteComponent);
+    const component = fixture.componentInstance;
+    component.status.set('ACTIVE');
+    component.currentRound.set(1);
+    component.voteSent.set(false);
+    component.voteClosed.set(false);
+    component.sessionTimerSeconds.set(30);
+    component.countdownSeconds.set(18);
+    component.sessionSettings.set({ type: 'QUIZ', enableTimerAccommodation: true });
+    component.timerAccommodation.set('DEFAULT');
+    component.currentQuestion.set({
+      id: 'freetext-timer-question',
+      text: 'Was hilft dir beim Lernen?',
+      type: 'FREETEXT',
+      difficulty: 'EASY',
+      order: 1,
+      totalQuestions: 3,
+      answers: [],
+      activeAt: MOCK_SERVER_TIME,
+      timer: 30,
+      sessionTimer: 30,
+      timerAccommodation: 'DEFAULT',
+      currentRound: 1,
+      totalVotes: 0,
+      participantCount: 1,
+    });
+    fixture.detectChanges();
+
+    const host = fixture.nativeElement as HTMLElement;
+    expect(component.showTimerAccommodationControls()).toBe(true);
+    expect(component.showTimerAccommodationScoringCopy()).toBe(false);
+    expect(component.liveScorePreviewAvailable()).toBe(false);
+    expect(host.querySelector('[data-testid="vote-timer-accommodation"]')).toBeTruthy();
+    expect(host.querySelector('[data-testid="vote-scoring-info"]')).toBeNull();
+    expect(host.querySelector('[data-testid="vote-score-preview"]')).toBeNull();
+    expect(host.textContent).not.toContain('Mindestpunkte');
+    expect(host.textContent).not.toContain('Punkte folgen dem gemeinsamen Countdown');
+    expect(host.textContent).toContain('Zeit anpassen');
+
+    component.timerAccommodation.set('OFF');
+    fixture.detectChanges();
+    expect(host.textContent).not.toContain('Punkte weiter nach dem Raum-Timer');
+    fixture.destroy();
+  });
+
   it('blendet Zeitanpassung aus, wenn Persönliche Zeit am Quiz aus ist', async () => {
     getInfoQueryMock.mockResolvedValue({
       id: '6a8edced-5f8f-4cfa-9176-454fac9570ad',

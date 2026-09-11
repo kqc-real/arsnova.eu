@@ -43,6 +43,7 @@ describe('ensure-schema MOTD runtime seeding', () => {
       'prisma/migrations/20260809174500_motd_structured_question_types/migration.sql',
       'prisma/migrations/20260813120000_motd_shared_insight_vision/migration.sql',
       'prisma/migrations/20260906143000_motd_product_feedback/migration.sql',
+      'prisma/migrations/20260911140000_motd_personal_time/migration.sql',
     ]);
   });
 
@@ -121,6 +122,36 @@ describe('ensure-schema MOTD runtime seeding', () => {
       '### 🧩 Novedad: relaciona, ordena y clasifica.\n\n¡Ya están aquí tres nuevos tipos de pregunta! Haz que tus participantes relacionen conceptos, pongan los pasos en el orden correcto y clasifiquen contenidos por categorías. Convierte una simple comprobación de conocimientos en una actividad que invite a pensar – directamente en tu quiz en directo.\n\n**¡Crea una pregunta y pruébalos ahora!**',
     ]);
     expect(sql).not.toMatch(/\b(?:Assignment|Series)\b/);
+  });
+
+  it('liefert die Persönliche-Zeit-MOTD strukturgleich in allen fünf Sprachen aus', () => {
+    const sql = readFileSync(
+      resolve(
+        process.cwd(),
+        '../../prisma/migrations/20260911140000_motd_personal_time/migration.sql',
+      ),
+      'utf8',
+    );
+    const localeBlocks = [...sql.matchAll(/\$(md(?:de|en|fr|it|es))\$([\s\S]*?)\$\1\$/g)].map(
+      ([, , markdown]) => markdown ?? '',
+    );
+
+    expect(localeBlocks).toHaveLength(5);
+    for (const markdown of localeBlocks) {
+      const paragraphs = markdown.split('\n\n');
+      expect(paragraphs).toHaveLength(2);
+      expect(paragraphs[0]).toMatch(/^### /);
+      expect(paragraphs.every((paragraph) => !paragraph.includes('\n'))).toBe(true);
+      expect(markdown).not.toMatch(
+        /Fairness-Option|Explore the fairness|Découvrir|Scopri|Descubre/i,
+      );
+    }
+    expect(localeBlocks[0]).toContain('»Persönliche Zeit«');
+    expect(localeBlocks[1]).toContain('“Personal time”');
+    expect(localeBlocks[2]).toContain('« Temps personnalisé »');
+    expect(localeBlocks[3]).toContain('«Tempo personalizzato»');
+    expect(localeBlocks[4]).toContain('«Tiempo personalizado»');
+    expect(sql).toContain("'c0777777-c777-4c77-8c77-c07777777777'");
   });
 
   it('seedet die Welcome-MOTD vor der Making-of-Kette', () => {
