@@ -1323,6 +1323,11 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
     return typeof sessionTimer === 'number' && sessionTimer > 0;
   });
 
+  /** Punktehinweise nur, wenn die aktuelle Frage bewertet wird (Lobby: Quiz-Erklärung). */
+  readonly showTimerAccommodationScoringCopy = computed(
+    () => !this.currentQuestion() || this.currentQuestionIsScored(),
+  );
+
   /** Punkteerklärung unabhängig von »Persönliche Zeit« – nur die Optionen verschwinden. */
   readonly showStandaloneScoringInfo = computed(
     () => this.liveScorePreviewAvailable() && !this.showTimerAccommodationControls(),

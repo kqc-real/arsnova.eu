@@ -546,7 +546,9 @@ describe('HelpComponent', () => {
     expect(text).toContain('Selbsteinschätzung');
     expect(text).toContain('Peer Instruction');
     expect(text).toContain('Persönliche Zeit beim Countdown');
+    expect(text).toContain('»Zeit anpassen«');
     expect(text).toContain('»10× Zeit«');
+    expect(text).toContain('Nachteilsausgleich');
     expect(text).toContain('Mindestpunkte');
     expect(text).toContain('Q&A');
     expect(text).toContain('Blitzlicht');

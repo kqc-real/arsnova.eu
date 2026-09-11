@@ -8547,7 +8547,7 @@ describe('SessionHostComponent', { timeout: 30_000 }, () => {
       '.session-host__timer-accommodation-warning',
     );
     expect(timerWarning?.textContent).toContain(
-      'Eine Person nutzt noch ihre 10× Zeit. Warte auf den Raum-Countdown oder bis die 10× Zeit endet.',
+      'Eine Person nutzt noch ihre »10× Zeit«. Warte auf den Raum-Countdown oder bis die »10× Zeit« endet.',
     );
     const resultButton = Array.from(
       (fixture.nativeElement as HTMLElement).querySelectorAll('button'),
@@ -8684,10 +8684,66 @@ describe('SessionHostComponent', { timeout: 30_000 }, () => {
     expect(component.pendingTimerAccommodationCount()).toBe(0);
     expect(component.blockingTimerAccommodationCount()).toBe(0);
     expect(host.querySelector('.session-host__timer-a11y-note')).toBeNull();
-    expect(host.textContent).not.toContain('Mehr Zeit hilft nicht');
+    expect(host.textContent).not.toContain('Mehr Zeit schafft Fairness');
     expect(host.querySelector('.session-host__timer-accommodation-warning')).toBeNull();
     expect(host.textContent).not.toContain('10× Zeit');
     expect(host.textContent).not.toContain('Trotzdem freigeben');
+    fixture.destroy();
+  });
+
+  it('blendet den Mindestpunkte-Hinweis bei unbewertetem Freitext aus', async () => {
+    const fixture = setup();
+    fixture.detectChanges();
+    await fixture.whenStable();
+    const component = fixture.componentInstance;
+    const question = {
+      questionId: 'bbbbbbbb-2222-4222-8222-222222222222',
+      order: 1,
+      totalQuestions: 3,
+      text: 'Was hilft dir beim Lernen?',
+      type: 'FREETEXT' as const,
+      difficulty: 'EASY' as const,
+      currentRound: 1,
+      timer: 30,
+      answers: [] as { id: string; text: string; isCorrect: boolean }[],
+      totalVotes: 0,
+      correctVoterCount: 0,
+    };
+
+    component.session.set({
+      ...defaultSession,
+      status: 'ACTIVE',
+      enableTimerAccommodation: true,
+    });
+    component.currentQuestionForHost.set(question);
+    component.statusUpdate.set({
+      status: 'ACTIVE',
+      currentQuestion: 1,
+      currentRound: 1,
+    } as unknown as Parameters<typeof component.statusUpdate.set>[0]);
+    component.countdownSeconds.set(18);
+    fixture.detectChanges();
+
+    const host = fixture.nativeElement as HTMLElement;
+    expect(component.currentQuestionIsScored()).toBe(false);
+    expect(host.querySelector('.session-host__timer-a11y-note')).toBeNull();
+    expect(host.textContent).not.toContain('Mehr Zeit schafft Fairness');
+    expect(host.textContent).not.toContain('Mindestpunkte');
+
+    component.currentQuestionForHost.set({
+      ...question,
+      type: 'SINGLE_CHOICE',
+      answers: [
+        { id: 'aaaaaaaa-1111-4111-8111-111111111111', text: 'A', isCorrect: false },
+        { id: 'bbbbbbbb-3333-4333-8333-333333333333', text: 'B', isCorrect: true },
+      ],
+    });
+    fixture.detectChanges();
+    expect(component.currentQuestionIsScored()).toBe(true);
+    expect(host.querySelector('.session-host__timer-a11y-note')).toBeTruthy();
+    expect(host.textContent).toContain(
+      'Mehr Zeit schafft Fairness – danach gibt es Mindestpunkte.',
+    );
     fixture.destroy();
   });
 

@@ -8472,19 +8472,23 @@
       </trans-unit>
       <trans-unit id="help.hostTimerTitle" datatype="html">
         <source>Persönliche Zeit beim Countdown</source>
-        <target>Personal time on timed questions</target>
+        <target>Personal time during the countdown</target>
       </trans-unit>
       <trans-unit id="help.hostTimerChoice" datatype="html">
-        <source> Teilnehmende können »10× Zeit« oder »Ohne Frist« wählen, wenn »Persönliche Zeit« im Quiz eingeschaltet ist. </source>
-        <target>Participants can choose “10× time” or “No deadline” when “Personal time” is enabled on the quiz.</target>
+        <source> Teilnehmende können »10× Zeit« oder »Ohne Frist« wählen, wenn »Persönliche Zeit« im Quiz aktiviert ist. </source>
+        <target>Participants can choose “10× time” or “No time limit” when “Personal time” is enabled for the quiz.</target>
+      </trans-unit>
+      <trans-unit id="help.hostTimerFairness" datatype="html">
+        <source> Zusätzliche Antwortzeit gleicht Barrieren aus – etwa bei Legasthenie, Dyskalkulie, Sehbeeinträchtigungen oder der Nutzung assistiver Technologien wie Screenreadern. So können alle ihr Wissen unter fairen Bedingungen zeigen. </source>
+        <target>Additional response time helps remove barriers – for example, for people with dyslexia, dyscalculia or visual impairments, or those who use assistive technologies such as screen readers. This allows everyone to demonstrate their knowledge under fair conditions.</target>
       </trans-unit>
       <trans-unit id="help.hostTimerScore" datatype="html">
-        <source> Mehr Zeit hilft nicht. Wer nach dem Countdown noch richtig antwortet, bekommt nur Mindestpunkte und kommt damit selten nach vorn. </source>
-        <target>Extra time doesn’t help. Anyone who still answers correctly after the countdown only gets minimum points and rarely finishes near the top.</target>
+        <source> Richtige Antworten nach dem regulären Countdown erhalten nur Mindestpunkte. Der Nachteilsausgleich verschafft daher keinen Wettbewerbsvorteil. </source>
+        <target>Correct answers submitted after the regular countdown earn only minimum points. The accommodation therefore provides no competitive advantage.</target>
       </trans-unit>
       <trans-unit id="help.hostTimerControl" datatype="html">
-        <source> Die Frage beendest du weiter selbst. »Ohne Frist« hält dich nicht auf. »10× Zeit« kannst du nach dem Countdown trotzdem beenden. </source>
-        <target>You still end the question yourself. “No deadline” won’t hold you up. After the countdown, you can still end “10× time”.</target>
+        <source> Du entscheidest weiterhin selbst, wann die Frage endet: Auch bei »10× Zeit« und »Ohne Frist« kannst du sie nach dem regulären Countdown jederzeit beenden. </source>
+        <target>You still decide when the question ends: With either “10× time” or “No time limit”, you can end it at any time after the regular countdown.</target>
       </trans-unit>
       <trans-unit id="help.hostQaTitle" datatype="html">
         <source>Die Q&amp;A-Fragenwand moderieren</source>
@@ -8575,8 +8579,8 @@
         </context-group>
       </trans-unit>
       <trans-unit id="help.participantAnswerTimer" datatype="html">
-        <source> Falls angeboten, wählst du unter Zeit anpassen »10× Zeit« oder »Ohne Frist«. Mehr Zeit hilft nicht. Nach dem Countdown gibt es nur Mindestpunkte; vorn landest du damit selten. </source>
-        <target>If offered, under Adjust time choose “10× time” or “No deadline”. Extra time doesn’t help. After the countdown, only minimum points remain; that rarely puts you near the top.</target>
+        <source> Falls angeboten, wählst du unter »Zeit anpassen« »10× Zeit« oder »Ohne Frist«. Mehr Zeit hilft nicht. Nach dem Countdown gibt es nur Mindestpunkte; vorn landest du damit selten. </source>
+        <target>If offered, under “Adjust time” choose “10× time” or “No deadline”. Extra time doesn’t help. After the countdown, only minimum points remain; that rarely puts you near the top.</target>
       </trans-unit>
       <trans-unit id="help.participantContributeTitle" datatype="html">
         <source>Wie stelle ich eine Frage oder gebe Feedback?</source>
@@ -17668,8 +17672,8 @@
         </context-group>
       </trans-unit>
       <trans-unit id="sessionHost.timerAccommodationNote" datatype="html">
-        <source>Mehr Zeit hilft nicht. Nach dem Countdown gibt es nur Mindestpunkte.</source>
-        <target>Extra time doesn’t help. After the countdown, only minimum points remain.</target>
+        <source>Mehr Zeit schafft Fairness – danach gibt es Mindestpunkte.</source>
+        <target>More time makes it fair – only minimum points are awarded afterward.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.html</context>
           <context context-type="linenumber">1709</context>
@@ -18192,8 +18196,8 @@
         </context-group>
       </trans-unit>
       <trans-unit id="sessionHost.peerSuggestionNext" datatype="html">
-        <source> Diskussion starten oder Ergebnis zeigen.</source>
-        <target>Start discussion or show results.</target>
+        <source> »Diskussionsphase« oder »Ergebnis zeigen«.</source>
+        <target>“Discussion phase” or “Show results”.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.html</context>
           <context context-type="linenumber">3268,3270</context>
@@ -20145,32 +20149,32 @@
         </context-group>
       </trans-unit>
       <trans-unit id="sessionHost.timerAccommodationBlockingOneForce" datatype="html">
-        <source>Eine Person nutzt noch ihre 10× Zeit. »Trotzdem freigeben« beendet ihr persönliches Fenster.</source>
-        <target>One person is still using their 10× time. “Release anyway” ends their personal window.</target>
+        <source>Eine Person nutzt noch ihre »10× Zeit«. »Trotzdem freigeben« beendet ihr persönliches Fenster.</source>
+        <target>One person is still using their “10× time”. “Release anyway” ends their personal window.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.ts</context>
           <context context-type="linenumber">6069</context>
         </context-group>
       </trans-unit>
       <trans-unit id="sessionHost.timerAccommodationBlockingOne" datatype="html">
-        <source>Eine Person nutzt noch ihre 10× Zeit. Warte auf den Raum-Countdown oder bis die 10× Zeit endet.</source>
-        <target>One person is still using their 10× time. Wait for the room countdown or until the 10× time ends.</target>
+        <source>Eine Person nutzt noch ihre »10× Zeit«. Warte auf den Raum-Countdown oder bis die »10× Zeit« endet.</source>
+        <target>One person is still using their “10× time”. Wait for the room countdown or until the “10× time” ends.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.ts</context>
           <context context-type="linenumber">6070</context>
         </context-group>
       </trans-unit>
       <trans-unit id="sessionHost.timerAccommodationBlockingManyForce" datatype="html">
-        <source><x id="count" equiv-text="formatLocaleCount(blockingCount, this.localeId)"/> Personen nutzen noch ihre 10× Zeit. »Trotzdem freigeben« beendet ihre persönlichen Fenster.</source>
-        <target><x id="count" equiv-text="formatLocaleCount(blockingCount, this.localeId)"/> people are still using their 10× time. “Release anyway” ends their personal windows.</target>
+        <source><x id="count" equiv-text="formatLocaleCount(blockingCount, this.localeId)"/> Personen nutzen noch ihre »10× Zeit«. »Trotzdem freigeben« beendet ihre persönlichen Fenster.</source>
+        <target><x id="count" equiv-text="formatLocaleCount(blockingCount, this.localeId)"/> people are still using their “10× time”. “Release anyway” ends their personal windows.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.ts</context>
           <context context-type="linenumber">6074</context>
         </context-group>
       </trans-unit>
       <trans-unit id="sessionHost.timerAccommodationBlockingMany" datatype="html">
-        <source><x id="count" equiv-text="formatLocaleCount(blockingCount, this.localeId)"/> Personen nutzen noch ihre 10× Zeit. Warte auf den Raum-Countdown oder bis die 10× Zeit endet.</source>
-        <target><x id="count" equiv-text="formatLocaleCount(blockingCount, this.localeId)"/> people are still using their 10× time. Wait for the room countdown or until the 10× time ends.</target>
+        <source><x id="count" equiv-text="formatLocaleCount(blockingCount, this.localeId)"/> Personen nutzen noch ihre »10× Zeit«. Warte auf den Raum-Countdown oder bis die »10× Zeit« endet.</source>
+        <target><x id="count" equiv-text="formatLocaleCount(blockingCount, this.localeId)"/> people are still using their “10× time”. Wait for the room countdown or until the “10× time” ends.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.ts</context>
           <context context-type="linenumber">6075</context>

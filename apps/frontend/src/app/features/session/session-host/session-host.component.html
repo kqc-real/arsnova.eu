@@ -1728,6 +1728,7 @@
                       </div>
                       @if (
                         timerAccommodationEnabled() &&
+                        currentQuestionIsScored() &&
                         countdownSeconds() !== null &&
                         effectiveStatus() === 'ACTIVE' &&
                         (displayedCurrentQuestionForHost()?.timer ?? 0) > 0
@@ -1737,8 +1738,7 @@
                             >timer</mat-icon
                           >
                           <span i18n="@@sessionHost.timerAccommodationNote"
-                            >Mehr Zeit hilft nicht. Nach dem Countdown gibt es nur
-                            Mindestpunkte.</span
+                            >Mehr Zeit schafft Fairness – danach gibt es Mindestpunkte.</span
                           >
                         </p>
                       }
@@ -3309,7 +3309,7 @@
                                 class="session-host__peer-suggestion-next"
                                 i18n="@@sessionHost.peerSuggestionNext"
                               >
-                                Diskussion starten oder Ergebnis zeigen.
+                                »Diskussionsphase« oder »Ergebnis zeigen«.
                               </p>
                             </div>
                           }
