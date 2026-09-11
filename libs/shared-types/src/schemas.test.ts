@@ -403,6 +403,32 @@ describe('öffentliche Contract-Schemas', () => {
       }).enableTimerAccommodation,
     ).toBe(false);
 
+    const historyQuestion = {
+      text: 'Frage',
+      type: 'SINGLE_CHOICE' as const,
+      difficulty: 'MEDIUM' as const,
+      order: 0,
+      answers: [{ text: 'A', isCorrect: true }],
+    };
+    const historyWithoutFlag = serializeQuizHistoryAccessMaterial({
+      ...quizUploadBase,
+      questions: [historyQuestion],
+    } as Parameters<typeof serializeQuizHistoryAccessMaterial>[0]);
+    const historyWithDefaultTrue = serializeQuizHistoryAccessMaterial({
+      ...quizUploadBase,
+      enableTimerAccommodation: true,
+      questions: [historyQuestion],
+    } as Parameters<typeof serializeQuizHistoryAccessMaterial>[0]);
+    const historyWithDisabled = serializeQuizHistoryAccessMaterial({
+      ...quizUploadBase,
+      enableTimerAccommodation: false,
+      questions: [historyQuestion],
+    } as Parameters<typeof serializeQuizHistoryAccessMaterial>[0]);
+    expect(historyWithoutFlag).toBe(historyWithDefaultTrue);
+    expect(historyWithoutFlag).not.toContain('enableTimerAccommodation');
+    expect(historyWithDisabled).toContain('"enableTimerAccommodation":false');
+    expect(historyWithDisabled).not.toBe(historyWithoutFlag);
+
     const parsed = QuestionStudentDTOSchema.parse({
       id: questionId,
       text: 'Frage',

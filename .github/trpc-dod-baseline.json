@@ -724,7 +724,7 @@
     },
     "session.revealResults": {
       "kind": "mutation",
-      "fingerprint": "sha256:567778cc5f13aec8efa26a422dc59fde6dfe30726dd4fd0a221680daa1077680",
+      "fingerprint": "sha256:4b0b05e0a2e5f6f4f3badfc1c0c0f2fa9e65ae7f5bbe9c2d6cb046dfcab5abf6",
       "missing": []
     },
     "session.revokePairedHost": {
@@ -754,7 +754,7 @@
     },
     "session.startDiscussion": {
       "kind": "mutation",
-      "fingerprint": "sha256:75cbc4901fed2cc85ac095a3865472992ff1f4b0217663fd9f73b18206507f4e",
+      "fingerprint": "sha256:d19947fb626f7b7c4cc28908b0448f0bd84cc4b522ae19b1400a1b63b4a64b42",
       "missing": []
     },
     "session.startQa": {

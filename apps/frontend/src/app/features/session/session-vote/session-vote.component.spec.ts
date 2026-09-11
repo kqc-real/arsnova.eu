@@ -3661,6 +3661,44 @@ describe('SessionVoteComponent', { timeout: 30_000 }, () => {
     fixture.destroy();
   });
 
+  it('übernimmt das Flag für persönliche Zeit aus dem Live-Status', () => {
+    type StatusPayload = {
+      status: string;
+      currentQuestion: number | null;
+      currentRound?: number;
+      enableTimerAccommodation?: boolean;
+    };
+    let onStatusChanged: ((data: StatusPayload) => void) | undefined;
+    statusChangedSubscribeMock.mockImplementation(
+      (_input: unknown, observer: { onData: (data: StatusPayload) => void }) => {
+        onStatusChanged = observer.onData;
+        return { unsubscribe: vi.fn() };
+      },
+    );
+    currentQuestionQueryMock.mockResolvedValue(null);
+
+    const fixture = TestBed.createComponent(SessionVoteComponent);
+    const component = fixture.componentInstance;
+    component.sessionSettings.set({ type: 'QUIZ', enableTimerAccommodation: true });
+    component.timerAccommodation.set('EXTENDED');
+    (
+      component as unknown as {
+        ensureStatusSubscription: () => void;
+      }
+    ).ensureStatusSubscription();
+
+    onStatusChanged?.({
+      status: 'LOBBY',
+      currentQuestion: null,
+      currentRound: 1,
+      enableTimerAccommodation: false,
+    });
+
+    expect(component.timerAccommodationEnabled()).toBe(false);
+    expect(component.timerAccommodation()).toBe('DEFAULT');
+    fixture.destroy();
+  });
+
   it('leitet nach Session-Ende (FINISHED) zur Startseite um', async () => {
     getInfoQueryMock.mockResolvedValue({
       id: '6a8edced-5f8f-4cfa-9176-454fac9570ad',

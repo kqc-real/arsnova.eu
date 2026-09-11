@@ -2573,7 +2573,7 @@ type QuizHistoryAccessMaterial = {
   allowCustomNicknames: boolean;
   defaultTimer: number | null;
   timerScaleByDifficulty: boolean;
-  enableTimerAccommodation: boolean;
+  enableTimerAccommodation?: boolean;
   enableSoundEffects: boolean;
   enableRewardEffects: boolean;
   enableMotivationMessages: boolean;
@@ -2657,7 +2657,7 @@ function buildQuizHistoryAccessMaterial(input: QuizUploadInput): QuizHistoryAcce
     allowCustomNicknames: parsed.allowCustomNicknames,
     defaultTimer: parsed.defaultTimer ?? null,
     timerScaleByDifficulty: parsed.timerScaleByDifficulty ?? true,
-    enableTimerAccommodation: parsed.enableTimerAccommodation ?? true,
+    ...(parsed.enableTimerAccommodation === false ? { enableTimerAccommodation: false } : {}),
     enableSoundEffects: parsed.enableSoundEffects,
     enableRewardEffects: parsed.enableRewardEffects,
     enableMotivationMessages: parsed.enableMotivationMessages,
@@ -3002,6 +3002,8 @@ export const SessionStatusUpdateSchema = z.object({
   skippedQuestionId: z.string().uuid().optional(),
   /** ISO-8601-Zeitpunkt des Auslassens; dient Clients als idempotenter Ereignisschlüssel. */
   questionSkippedAt: z.string().datetime().optional(),
+  /** Quiz-Flag für persönliche Zeit; bei Quiz-Wechsel über den Status-Kanal nachziehen. */
+  enableTimerAccommodation: z.boolean().optional(),
 });
 export type SessionStatusUpdate = z.infer<typeof SessionStatusUpdateSchema>;
 

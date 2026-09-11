@@ -326,6 +326,7 @@ type StatusSnapshotPayload = {
   finishProjection?: z.infer<typeof SessionFinishProjectionSchema>;
   skippedQuestionId?: string;
   questionSkippedAt?: string;
+  enableTimerAccommodation?: boolean;
 };
 
 type VoteSummary = {
@@ -843,6 +844,7 @@ async function fetchStatusSnapshot(code: string): Promise<StatusSnapshotPayload>
           activeAt: (session.activeQuestionStartedAt ?? session.statusChangedAt).toISOString(),
           timer: currentTimer,
         }),
+        enableTimerAccommodation: session.quiz?.enableTimerAccommodation ?? true,
       };
     },
   );
@@ -6723,11 +6725,12 @@ const sessionCoreRouter = router({
           ? (session.quiz?.questions[session.currentQuestion] ?? null)
           : null;
       if (question && session.quiz) {
+        const quiz = session.quiz;
         const baseTimerSeconds = resolveEffectiveQuestionTimer(
           question.timer,
-          session.quiz.defaultTimer,
+          quiz.defaultTimer,
           question.difficulty as Difficulty,
-          session.quiz.timerScaleByDifficulty,
+          quiz.timerScaleByDifficulty,
         );
         await prisma.$transaction(async (tx) => {
           await lockSessionRow(tx, session.id);
@@ -6752,6 +6755,7 @@ const sessionCoreRouter = router({
               round: session.currentRound,
               activeQuestionStartedAt: session.activeQuestionStartedAt,
               baseTimerSeconds,
+              enableTimerAccommodation: quiz.enableTimerAccommodation,
             },
             {
               forceClosePersonalTimers: input.forceClosePersonalTimers,
@@ -6868,11 +6872,12 @@ const sessionCoreRouter = router({
           message: 'Diese Frage ist nicht für eine zweite Runde konfiguriert.',
         });
       }
+      const quiz = session.quiz;
       const baseTimerSeconds = resolveEffectiveQuestionTimer(
         question.timer,
-        session.quiz.defaultTimer,
+        quiz.defaultTimer,
         question.difficulty as Difficulty,
-        session.quiz.timerScaleByDifficulty,
+        quiz.timerScaleByDifficulty,
       );
       await prisma.$transaction(async (tx) => {
         await lockSessionRow(tx, session.id);
@@ -6924,6 +6929,7 @@ const sessionCoreRouter = router({
             round: session.currentRound,
             activeQuestionStartedAt: session.activeQuestionStartedAt,
             baseTimerSeconds,
+            enableTimerAccommodation: quiz.enableTimerAccommodation,
           },
           {
             forceClosePersonalTimers: input.forceClosePersonalTimers,

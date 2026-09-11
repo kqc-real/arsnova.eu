@@ -3312,6 +3312,7 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
           serverTime?: string;
           skippedQuestionId?: string;
           questionSkippedAt?: string;
+          enableTimerAccommodation?: boolean;
         }) => {
           this.deactivateSessionFallback();
           if (data.serverTime) {
@@ -3321,6 +3322,15 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
           const prevStatus = this.status();
           const newRound = data.currentRound ?? 1;
           this.status.set(data.status as SessionStatus);
+          if (data.enableTimerAccommodation !== undefined) {
+            this.sessionSettings.update((settings) => ({
+              ...settings,
+              enableTimerAccommodation: data.enableTimerAccommodation,
+            }));
+            if (data.enableTimerAccommodation === false) {
+              this.applyTimerAccommodation('DEFAULT', { restartCountdown: true });
+            }
+          }
           if (data.currentQuestion !== null) {
             this.sessionSettings.update((settings) => ({
               ...settings,
