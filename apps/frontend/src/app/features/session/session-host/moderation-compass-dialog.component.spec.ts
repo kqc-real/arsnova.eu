@@ -168,6 +168,26 @@ describe('ModerationCompassDialogComponent', () => {
     expect(fixture.nativeElement.textContent).not.toContain('Kommen nicht mit');
   });
 
+  it('zeigt Emoji-Shortcodes in Quiz-Quellen als Icon', () => {
+    const { fixture } = setup([
+      {
+        kind: 'clarification',
+        nextStepReason: 'quiz-survey',
+        sources: [
+          {
+            kind: 'quiz-result',
+            label: 'Häufigste Antwort: :cry: Gerade etwas überfordert',
+          },
+        ],
+      },
+    ]);
+
+    const text = fixture.nativeElement.textContent as string;
+    expect(text).toContain('😭');
+    expect(text).toContain('Gerade etwas überfordert');
+    expect(text).not.toContain(':cry:');
+  });
+
   it('zeigt für Umfragen keinen Lösungshinweis', () => {
     const { fixture } = setup([
       {

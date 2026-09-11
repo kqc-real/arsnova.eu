@@ -1,4 +1,4 @@
-import { Injectable, PLATFORM_ID, inject, signal } from '@angular/core';
+import { Injectable, PLATFORM_ID, computed, inject, signal } from '@angular/core';
 import { isPlatformBrowser } from '@angular/common';
 import { DOCUMENT } from '@angular/common';
 import { LOCALE_ID } from '@angular/core';
@@ -39,6 +39,26 @@ export class MotdHeaderStateService {
   /** Aktive Meldung oder Archiv-Einträge → Campaign-Icon in der Toolbar. */
   readonly motdToolbarIcon = signal(false);
 
+  /**
+   * Es gibt eine aktuelle Overlay-MOTD, die lokal noch nicht dismissed ist
+   * (`motd.getCurrent` nach `overlayDismissedUpTo`).
+   */
+  readonly hasActiveOverlay = signal(false);
+
+  /**
+   * Nutzer:in hat die aktuelle MOTD in dieser Sitzung bereits gesehen
+   * (Overlay geöffnet oder Archiv über das Megafon).
+   */
+  readonly unseenCurrentMotdAcked = signal(false);
+
+  /**
+   * Megafon hervorheben: aktuelle MOTD existiert, wurde aber noch nicht
+   * als Overlay oder Archiv angezeigt.
+   */
+  readonly motdToolbarAttention = computed(
+    () => this.hasActiveOverlay() && !this.unseenCurrentMotdAcked(),
+  );
+
   /** Ungelesene Archiv-MOTDs relativ zum Client-Wasserzeichen und einzeln Gelesenen. */
   readonly archiveUnreadCount = signal(0);
 
@@ -70,6 +90,11 @@ export class MotdHeaderStateService {
     this.archiveUnreadCount.set(Math.max(0, count));
   }
 
+  /** Overlay oder Archiv hat die aktuelle MOTD in dieser Sitzung gezeigt. */
+  acknowledgeUnseenCurrentMotd(): void {
+    this.unseenCurrentMotdAcked.set(true);
+  }
+
   async refresh(options?: { force?: boolean }): Promise<void> {
     if (!isPlatformBrowser(this.platformId)) {
       return;
@@ -98,10 +123,16 @@ export class MotdHeaderStateService {
           ...motdGetHeaderStateClientInput(),
         });
         this.motdToolbarIcon.set(s.hasActiveOverlay || s.hasArchiveEntries);
+        this.hasActiveOverlay.set(s.hasActiveOverlay);
+        if (!s.hasActiveOverlay) {
+          this.unseenCurrentMotdAcked.set(false);
+        }
         this.archiveUnreadCount.set(s.archiveUnreadCount);
         this.archiveTotalCount.set(s.archiveCount);
       } catch {
         this.motdToolbarIcon.set(false);
+        this.hasActiveOverlay.set(false);
+        this.unseenCurrentMotdAcked.set(false);
         this.archiveUnreadCount.set(0);
         this.archiveTotalCount.set(0);
       }

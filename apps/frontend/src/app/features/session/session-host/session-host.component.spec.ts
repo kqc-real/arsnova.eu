@@ -8836,7 +8836,7 @@ describe('SessionHostComponent', { timeout: 30_000 }, () => {
       '.session-host__timer-accommodation-warning',
     );
     expect(timerWarning?.textContent).toContain(
-      'Eine Person nutzt noch ihre »10× Zeit«. Warte auf den Raum-Countdown oder bis die »10× Zeit« endet.',
+      'Eine Person nutzt ihre »10× Zeit«. Warte auf den Raum-Countdown oder bis die »10× Zeit« endet.',
     );
     const resultButton = Array.from(
       (fixture.nativeElement as HTMLElement).querySelectorAll('button'),

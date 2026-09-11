@@ -67,6 +67,7 @@ import {
 } from '../../core/motd-storage';
 import { resolveMotdAssetOrigin } from '../../core/motd-asset-origin';
 import { MotdCurrentService } from '../../core/motd-current.service';
+import { MotdHeaderStateService } from '../../core/motd-header-state.service';
 import {
   absolutizeMarkdownHtmlRootAssetImgSrc,
   appendMotdContentVersionToAssetImgSrc,
@@ -187,6 +188,7 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
   private readonly platformId = inject(PLATFORM_ID);
   private readonly sanitizer = inject(DomSanitizer);
   private readonly motdCurrent = inject(MotdCurrentService);
+  private readonly motdHeaderState = inject(MotdHeaderStateService);
   private readonly focusMonitor = inject(FocusMonitor);
   private readonly localeId = inject(LOCALE_ID) as string;
   private readonly injector = inject(Injector);
@@ -891,6 +893,7 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
   private openMotdOverlay(motd: MotdPublicDTO, activeElement: Element | null): void {
     this.clearToolbarMotdDefer();
     markMotdOverlayOfferedThisSession();
+    this.motdHeaderState.acknowledgeUnseenCurrentMotd();
     const focusReturnCandidate =
       activeElement instanceof HTMLElement &&
       activeElement !== document.body &&

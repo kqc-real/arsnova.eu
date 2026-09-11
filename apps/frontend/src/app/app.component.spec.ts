@@ -526,10 +526,12 @@ describe('AppComponent', () => {
       .spyOn(component as unknown as { reloadPage: () => void }, 'reloadPage')
       .mockImplementation(() => undefined);
 
+    sessionStorage.setItem('arsnova-motd-overlay-offered-session', '1');
     component.reloadWithUpdate();
     component.reloadWithUpdate();
 
     expect(component.updateReloading()).toBe(true);
+    expect(sessionStorage.getItem('arsnova-motd-overlay-offered-session')).toBeNull();
     expect(reloadPageSpy).toHaveBeenCalledTimes(1);
     expect(activateUpdateMock).not.toHaveBeenCalled();
 

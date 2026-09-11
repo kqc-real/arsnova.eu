@@ -189,15 +189,24 @@ export function hasMotdOverlayBeenOfferedThisSession(): boolean {
   }
 }
 
+/** Nach PWA-/App-Update: Sitzungssperren lösen, damit die aktuelle MOTD erscheinen darf. */
+export function clearMotdSessionOverlayLocks(): void {
+  if (typeof sessionStorage === 'undefined') return;
+  try {
+    sessionStorage.removeItem(MOTD_OVERLAY_OFFERED_SESSION_KEY);
+    sessionStorage.removeItem(MOTD_SUPPRESS_OVERLAY_AFTER_RELOAD_KEY);
+    sessionStorage.removeItem(MOTD_MOBILE_FIRST_HOME_SESSION_KEY);
+  } catch {
+    /* ignore quota / private mode */
+  }
+}
+
 /**
- * Nach dem Dismiss einer MOTD keine *andere* MOTD mehr automatisch öffnen.
- * Eine höhere `contentVersion` derselben ID darf weiter unterbrechen (ADR-0018).
+ * In derselben Browsersitzung keine zweite Auto-MOTD öffnen.
+ * Eine spätere Sitzung darf die dann aktuelle, noch nicht dismissed MOTD zeigen.
  */
-export function shouldSkipQueuedMotdAutoOverlay(motdId: string): boolean {
-  const dismissed = readMotdClientStorage().dismissed;
-  const dismissedIds = Object.keys(dismissed);
-  if (dismissedIds.length === 0) return false;
-  return !Object.prototype.hasOwnProperty.call(dismissed, motdId);
+export function shouldSkipQueuedMotdAutoOverlay(_motdId: string): boolean {
+  return hasMotdOverlayBeenOfferedThisSession();
 }
 
 /** Handy-Layout oder grober Primärzeiger: typischer Teilnehmer-Einstieg. */

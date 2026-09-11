@@ -8,6 +8,7 @@ import { provideHttpClient } from '@angular/common/http';
 import { HomeComponent } from './home.component';
 import { QuizStoreService } from '../quiz/data/quiz-store.service';
 import { clearHostToken, setHostToken } from '../../core/host-session-token';
+import { MotdHeaderStateService } from '../../core/motd-header-state.service';
 
 const { setFeedbackHostTokenMock } = vi.hoisted(() => ({
   setFeedbackHostTokenMock: vi.fn(),
@@ -38,6 +39,16 @@ vi.mock('../../core/trpc.client', () => ({
     },
     motd: {
       getCurrent: { query: vi.fn().mockResolvedValue({ motd: null }) },
+      getHeaderState: {
+        query: vi.fn().mockResolvedValue({
+          hasActiveOverlay: false,
+          hasArchiveEntries: false,
+          archiveCount: 0,
+          archiveMaxCursor: null,
+          archiveMaxEndsAtIso: null,
+          archiveUnreadCount: 0,
+        }),
+      },
       recordInteraction: { mutate: vi.fn().mockResolvedValue({ ok: true }) },
     },
     session: {
@@ -1714,6 +1725,10 @@ describe('HomeComponent', () => {
       input.focus();
       expect(document.activeElement).toBe(input);
 
+      const motdHeader = TestBed.inject(MotdHeaderStateService);
+      motdHeader.hasActiveOverlay.set(true);
+      expect(motdHeader.motdToolbarAttention()).toBe(true);
+
       comp['openMotdOverlay'](
         {
           id: 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa',
@@ -1724,6 +1739,7 @@ describe('HomeComponent', () => {
         input,
       );
       fixture.detectChanges();
+      expect(motdHeader.motdToolbarAttention()).toBe(false);
       document.body.setAttribute('tabindex', '-1');
       document.body.focus();
       document.body.removeAttribute('tabindex');
@@ -1832,7 +1848,7 @@ describe('HomeComponent', () => {
       expect(comp.motd()).toBeNull();
     });
 
-    it('öffnet nach einem Dismiss nicht automatisch die nächste andere MOTD', async () => {
+    it('öffnet in einer neuen Sitzung die aktuelle ungelesene MOTD, auch wenn eine andere bereits dismissed ist', async () => {
       const { trpc } = await import('../../core/trpc.client');
       const { markMotdDismissed } = await import('../../core/motd-storage');
       markMotdDismissed('aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa', 7);
@@ -1848,7 +1864,7 @@ describe('HomeComponent', () => {
       const comp = createHomeComponent();
       await comp['loadMotdOverlay']();
 
-      expect(comp.motd()).toBeNull();
+      expect(comp.motd()?.id).toBe('bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb');
     });
 
     it('öffnet eine neue Inhaltsversion derselben MOTD nach Dismiss weiterhin automatisch', async () => {
