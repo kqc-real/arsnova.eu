@@ -8471,7 +8471,7 @@
       </trans-unit>
       <trans-unit id="help.hostTimerChoice" datatype="html">
         <source> Teilnehmende können »10× Zeit« oder »Ohne Frist« wählen, wenn »Persönliche Zeit« im Quiz aktiviert ist. </source>
-        <target>I partecipanti possono scegliere «Tempo × 10» o «Senza limiti di tempo» quando l’opzione «Tempo personalizzato» è attiva nel quiz.</target>
+        <target>I partecipanti possono scegliere «Tempo ×10» o «Senza scadenza» quando l’opzione «Tempo personalizzato» è attiva nel quiz.</target>
       </trans-unit>
       <trans-unit id="help.hostTimerFairness" datatype="html">
         <source> Zusätzliche Antwortzeit gleicht Barrieren aus – etwa bei Legasthenie, Dyskalkulie, Sehbeeinträchtigungen oder der Nutzung assistiver Technologien wie Screenreadern. So können alle ihr Wissen unter fairen Bedingungen zeigen. </source>
@@ -8483,7 +8483,7 @@
       </trans-unit>
       <trans-unit id="help.hostTimerControl" datatype="html">
         <source> Du entscheidest weiterhin selbst, wann die Frage endet: Auch bei »10× Zeit« und »Ohne Frist« kannst du sie nach dem regulären Countdown jederzeit beenden. </source>
-        <target>Sei sempre tu a decidere quando termina la domanda: sia con «Tempo × 10» sia con «Senza limiti di tempo», puoi chiuderla in qualsiasi momento dopo il normale conto alla rovescia.</target>
+        <target>Sei sempre tu a decidere quando termina la domanda: sia con «Tempo ×10» sia con «Senza scadenza», puoi chiuderla in qualsiasi momento dopo il normale conto alla rovescia.</target>
       </trans-unit>
       <trans-unit id="help.hostQaTitle" datatype="html">
         <source>Die Q&amp;A-Fragenwand moderieren</source>
@@ -11373,7 +11373,7 @@
       </trans-unit>
       <trans-unit id="quizForm.timerAccommodationHint" datatype="html">
         <source> Zusätzliche Antwortzeit gleicht Barrieren aus – etwa bei Legasthenie, Dyskalkulie, Seh- oder motorischen Beeinträchtigungen sowie bei der Nutzung assistiver Technologien wie Screenreadern. Lass »10× Zeit« und »Ohne Frist« deshalb wählbar, damit alle ihr Wissen unter fairen Bedingungen zeigen können. </source>
-        <target>Un tempo di risposta aggiuntivo aiuta a rimuovere le barriere – ad esempio in caso di dislessia, discalculia o disabilità visive o motorie, oppure quando si utilizzano tecnologie assistive come gli screen reader. Lascia disponibili le opzioni «Tempo × 10» e «Senza limiti di tempo», affinché tutte le persone possano dimostrare le proprie conoscenze in condizioni eque.</target>
+        <target>Un tempo di risposta aggiuntivo aiuta a rimuovere le barriere – ad esempio in caso di dislessia, discalculia o disabilità visive o motorie, oppure quando si utilizzano tecnologie assistive come gli screen reader. Lascia disponibili le opzioni «Tempo ×10» e «Senza scadenza», affinché tutte le persone possano dimostrare le proprie conoscenze in condizioni eque.</target>
       </trans-unit>
       <trans-unit id="quizForm.timerAccommodationTitle" datatype="html">
         <source>Persönliche Zeit</source>

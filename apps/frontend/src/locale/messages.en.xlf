@@ -8476,7 +8476,7 @@
       </trans-unit>
       <trans-unit id="help.hostTimerChoice" datatype="html">
         <source> Teilnehmende können »10× Zeit« oder »Ohne Frist« wählen, wenn »Persönliche Zeit« im Quiz aktiviert ist. </source>
-        <target>Participants can choose “10× time” or “No time limit” when “Personal time” is enabled for the quiz.</target>
+        <target>Participants can choose “10× time” or “No deadline” when “Personal time” is enabled for the quiz.</target>
       </trans-unit>
       <trans-unit id="help.hostTimerFairness" datatype="html">
         <source> Zusätzliche Antwortzeit gleicht Barrieren aus – etwa bei Legasthenie, Dyskalkulie, Sehbeeinträchtigungen oder der Nutzung assistiver Technologien wie Screenreadern. So können alle ihr Wissen unter fairen Bedingungen zeigen. </source>
@@ -8488,7 +8488,7 @@
       </trans-unit>
       <trans-unit id="help.hostTimerControl" datatype="html">
         <source> Du entscheidest weiterhin selbst, wann die Frage endet: Auch bei »10× Zeit« und »Ohne Frist« kannst du sie nach dem regulären Countdown jederzeit beenden. </source>
-        <target>You still decide when the question ends: With either “10× time” or “No time limit”, you can end it at any time after the regular countdown.</target>
+        <target>You still decide when the question ends: With either “10× time” or “No deadline”, you can end it at any time after the regular countdown.</target>
       </trans-unit>
       <trans-unit id="help.hostQaTitle" datatype="html">
         <source>Die Q&amp;A-Fragenwand moderieren</source>
@@ -11390,7 +11390,7 @@
       </trans-unit>
       <trans-unit id="quizForm.timerAccommodationHint" datatype="html">
         <source> Zusätzliche Antwortzeit gleicht Barrieren aus – etwa bei Legasthenie, Dyskalkulie, Seh- oder motorischen Beeinträchtigungen sowie bei der Nutzung assistiver Technologien wie Screenreadern. Lass »10× Zeit« und »Ohne Frist« deshalb wählbar, damit alle ihr Wissen unter fairen Bedingungen zeigen können. </source>
-        <target>Additional response time helps remove barriers – for example, for people with dyslexia, dyscalculia, visual or motor impairments, or those who use assistive technologies such as screen readers. Keep “10× time” and “No time limit” available so everyone can demonstrate their knowledge under fair conditions.</target>
+        <target>Additional response time helps remove barriers – for example, for people with dyslexia, dyscalculia, visual or motor impairments, or those who use assistive technologies such as screen readers. Keep “10× time” and “No deadline” available so everyone can demonstrate their knowledge under fair conditions.</target>
       </trans-unit>
       <trans-unit id="quizForm.timerAccommodationTitle" datatype="html">
         <source>Persönliche Zeit</source>
