@@ -40,6 +40,7 @@ function buildQuizUploadPayloadFromStoredQuiz(quiz: {
   allowCustomNicknames: boolean;
   defaultTimer: number | null;
   timerScaleByDifficulty: boolean;
+  enableTimerAccommodation: boolean;
   enableSoundEffects: boolean;
   enableRewardEffects: boolean;
   enableMotivationMessages: boolean;
@@ -109,6 +110,7 @@ function buildQuizUploadPayloadFromStoredQuiz(quiz: {
     allowCustomNicknames: quiz.allowCustomNicknames,
     defaultTimer: quiz.defaultTimer,
     timerScaleByDifficulty: quiz.timerScaleByDifficulty,
+    enableTimerAccommodation: quiz.enableTimerAccommodation ?? true,
     enableSoundEffects: quiz.enableSoundEffects,
     enableRewardEffects: quiz.enableRewardEffects,
     enableMotivationMessages: quiz.enableMotivationMessages,
@@ -230,6 +232,7 @@ export const quizRouter = router({
           allowCustomNicknames: input.allowCustomNicknames,
           defaultTimer: input.defaultTimer ?? null,
           timerScaleByDifficulty: input.timerScaleByDifficulty ?? true,
+          enableTimerAccommodation: input.enableTimerAccommodation ?? true,
           enableSoundEffects: input.enableSoundEffects,
           enableRewardEffects: input.enableRewardEffects,
           enableMotivationMessages: input.enableMotivationMessages,
@@ -368,6 +371,7 @@ export const quizRouter = router({
             allowCustomNicknames: true,
             defaultTimer: true,
             timerScaleByDifficulty: true,
+            enableTimerAccommodation: true,
             enableSoundEffects: true,
             enableRewardEffects: true,
             enableMotivationMessages: true,

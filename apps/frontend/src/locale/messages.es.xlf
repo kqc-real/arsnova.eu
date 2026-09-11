@@ -8470,8 +8470,8 @@
         <target>Tiempo personal en la cuenta atrás</target>
       </trans-unit>
       <trans-unit id="help.hostTimerChoice" datatype="html">
-        <source> Teilnehmende können »10× Zeit« oder »Ohne Frist« wählen. Abschalten geht nicht. </source>
-        <target>Quien participa puede elegir «Tiempo ×10» o «Sin plazo». Eso no se puede desactivar.</target>
+        <source> Teilnehmende können »10× Zeit« oder »Ohne Frist« wählen, wenn »Persönliche Zeit« im Quiz eingeschaltet ist. </source>
+        <target>Quien participa puede elegir «Tiempo ×10» o «Sin plazo» si «Tiempo personalizado» está activado en el cuestionario.</target>
       </trans-unit>
       <trans-unit id="help.hostTimerScore" datatype="html">
         <source> Mehr Zeit hilft nicht. Wer nach dem Countdown noch richtig antwortet, bekommt nur Mindestpunkte und kommt damit selten nach vorn. </source>
@@ -8570,8 +8570,8 @@
         </context-group>
       </trans-unit>
       <trans-unit id="help.participantAnswerTimer" datatype="html">
-        <source> Unter Zeit anpassen wählst du »10× Zeit« oder »Ohne Frist«. Mehr Zeit hilft nicht. Nach dem Countdown gibt es nur Mindestpunkte; vorn landest du damit selten. </source>
-        <target>En Ajustar tiempo eliges «Tiempo ×10» o «Sin plazo». Más tiempo no da ventaja. Tras la cuenta atrás solo queda el mínimo de puntos; rara vez quedas arriba.</target>
+        <source> Falls angeboten, wählst du unter Zeit anpassen »10× Zeit« oder »Ohne Frist«. Mehr Zeit hilft nicht. Nach dem Countdown gibt es nur Mindestpunkte; vorn landest du damit selten. </source>
+        <target>Si está disponible, en Ajustar tiempo eliges «Tiempo ×10» o «Sin plazo». Más tiempo no da ventaja. Tras la cuenta atrás solo queda el mínimo de puntos; rara vez quedas arriba.</target>
       </trans-unit>
       <trans-unit id="help.participantContributeTitle" datatype="html">
         <source>Wie stelle ich eine Frage oder gebe Feedback?</source>
@@ -11368,20 +11368,24 @@
         </context-group>
       </trans-unit>
       <trans-unit id="quizForm.timerAccommodationHint" datatype="html">
-        <source> »10× Zeit« und »Ohne Frist« bleiben wählbar. </source>
-        <target>«Tiempo ×10» y «Sin plazo» siguen disponibles.</target>
+        <source> Zusätzliche Antwortzeit gleicht Barrieren aus – etwa bei Legasthenie, Dyskalkulie, Seh- oder motorischen Beeinträchtigungen sowie bei der Nutzung assistiver Technologien wie Screenreadern. Lass »10× Zeit« und »Ohne Frist« deshalb wählbar, damit alle ihr Wissen unter fairen Bedingungen zeigen können. </source>
+        <target>Disponer de más tiempo para responder ayuda a eliminar barreras – por ejemplo, en casos de dislexia, discalculia o discapacidad visual o motora, así como al utilizar tecnologías de apoyo, como los lectores de pantalla. Mantén disponibles las opciones «Tiempo × 10» y «Sin límite de tiempo» para que todas las personas puedan demostrar sus conocimientos en condiciones equitativas.</target>
       </trans-unit>
       <trans-unit id="quizForm.timerAccommodationTitle" datatype="html">
         <source>Persönliche Zeit</source>
-        <target>Tiempo personal</target>
+        <target>Tiempo personalizado</target>
+      </trans-unit>
+      <trans-unit id="quizForm.timerAccommodationLead" datatype="html">
+        <source>Faire Teilnahme ermöglichen</source>
+        <target>Facilita una participación equitativa</target>
       </trans-unit>
       <trans-unit id="quizForm.timerAccommodationScore" datatype="html">
-        <source> Nach dem Countdown gibt es nur Mindestpunkte – das reicht selten nach vorn. </source>
-        <target>Tras la cuenta atrás solo quedan puntos mínimos: rara vez alcanza para quedar arriba.</target>
+        <source> Nach dem regulären Countdown sind höchstens die Punkte der letzten Countdown-Sekunde erreichbar. So entsteht durch den Nachteilsausgleich kein Wettbewerbsvorteil. </source>
+        <target>Una vez finalizada la cuenta atrás habitual, una respuesta puede obtener, como máximo, los puntos correspondientes al último segundo. De este modo, la adaptación no proporciona ninguna ventaja en la competición.</target>
       </trans-unit>
       <trans-unit id="quizForm.timerAccommodationControl" datatype="html">
-        <source> Die Frage beendest du weiter selbst. </source>
-        <target>La pregunta la cierras tú.</target>
+        <source> Du entscheidest weiterhin, wann die Frage endet. </source>
+        <target>Tú sigues decidiendo cuándo termina la pregunta.</target>
       </trans-unit>
       <trans-unit id="2198730230681840467" datatype="html">
         <source>Teilnahme &amp; Namen</source>
@@ -23969,6 +23973,14 @@
           <context context-type="linenumber">54,58</context>
         </context-group>
       </trans-unit>
+      <trans-unit id="sessionVote.scoringInfo.timeRoom" datatype="html">
+        <source> Zeit: Je früher du richtig antwortest, desto mehr Punkte bekommst du. Nach dem Countdown bleiben nur noch 10 % – damit kommst du selten nach vorn. </source>
+        <target>Tiempo: cuanto antes aciertes, más puntos obtienes. Tras la cuenta atrás solo queda el 10 % de los puntos: rara vez alcanza para quedar arriba.</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/session-vote/session-vote.component.html</context>
+          <context context-type="linenumber">54,58</context>
+        </context-group>
+      </trans-unit>
       <trans-unit id="sessionVote.scoringInfo.streak" datatype="html">
         <source> Serie: Mehrere richtige Antworten hintereinander geben Bonus – 1× ×1,0 · 2× ×1,1 · 3× ×1,2 · 4× ×1,3 · ab 5× ×1,5. Eine falsche bewertbare Antwort setzt die Serie zurück. Umfragen und unbewerteter Freitext unterbrechen sie nicht.</source>
         <target>Racha: varias respuestas correctas seguidas dan bonificación – 1× ×1,0 · 2× ×1,1 · 3× ×1,2 · 4× ×1,3 · desde 5× ×1,5. Una respuesta incorrecta puntuable reinicia la racha. Las encuestas y el texto libre sin puntuación no la interrumpen.</target>
@@ -23978,8 +23990,8 @@
         </context-group>
       </trans-unit>
       <trans-unit id="sessionVote.scoringInfo.preview" datatype="html">
-        <source> Die Live-Punktvorschau zeigt den aktuellen Stand ohne Serien-Bonus.</source>
-        <target>La vista previa de puntos en vivo muestra el valor actual sin la bonificación de racha.</target>
+        <source> Die Live-Punktvorschau zeigt den aktuellen Stand ohne Serien-Bonus, in 50er-Schritten.</source>
+        <target>La vista previa de puntos en vivo muestra el valor actual sin la bonificación de racha, en pasos de 50.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-vote/session-vote.component.html</context>
           <context context-type="linenumber">64,66</context>
@@ -25374,8 +25386,8 @@
         </context-group>
       </trans-unit>
       <trans-unit id="sessionVote.scorePreview.upToNow" datatype="html">
-        <source>Volle Wertung jetzt</source>
-        <target>Puntuación completa ahora</target>
+        <source>Höchstens jetzt</source>
+        <target>Como máximo ahora</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-vote/session-vote.component.ts</context>
           <context context-type="linenumber">2802</context>

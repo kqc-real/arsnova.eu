@@ -8470,8 +8470,8 @@
         <target>Temps personnel pendant le compte à rebours</target>
       </trans-unit>
       <trans-unit id="help.hostTimerChoice" datatype="html">
-        <source> Teilnehmende können »10× Zeit« oder »Ohne Frist« wählen. Abschalten geht nicht. </source>
-        <target>Les participant·e·s peuvent choisir « Temps ×10 » ou « Sans délai ». On ne peut pas désactiver ces options.</target>
+        <source> Teilnehmende können »10× Zeit« oder »Ohne Frist« wählen, wenn »Persönliche Zeit« im Quiz eingeschaltet ist. </source>
+        <target>Les participant·e·s peuvent choisir « Temps ×10 » ou « Sans délai » si « Temps personnalisé » est activé dans le quiz.</target>
       </trans-unit>
       <trans-unit id="help.hostTimerScore" datatype="html">
         <source> Mehr Zeit hilft nicht. Wer nach dem Countdown noch richtig antwortet, bekommt nur Mindestpunkte und kommt damit selten nach vorn. </source>
@@ -8570,8 +8570,8 @@
         </context-group>
       </trans-unit>
       <trans-unit id="help.participantAnswerTimer" datatype="html">
-        <source> Unter Zeit anpassen wählst du »10× Zeit« oder »Ohne Frist«. Mehr Zeit hilft nicht. Nach dem Countdown gibt es nur Mindestpunkte; vorn landest du damit selten. </source>
-        <target>Sous Adapter le temps, tu choisis « Temps ×10 » ou « Sans délai ». Prendre plus de temps n’apporte rien. Après le compte à rebours, il ne reste que le minimum de points ; tu arrives rarement en tête.</target>
+        <source> Falls angeboten, wählst du unter Zeit anpassen »10× Zeit« oder »Ohne Frist«. Mehr Zeit hilft nicht. Nach dem Countdown gibt es nur Mindestpunkte; vorn landest du damit selten. </source>
+        <target>Si l’option est proposée, sous Adapter le temps tu choisis « Temps ×10 » ou « Sans délai ». Prendre plus de temps n’apporte rien. Après le compte à rebours, il ne reste que le minimum de points ; tu arrives rarement en tête.</target>
       </trans-unit>
       <trans-unit id="help.participantContributeTitle" datatype="html">
         <source>Wie stelle ich eine Frage oder gebe Feedback?</source>
@@ -11368,20 +11368,24 @@
         </context-group>
       </trans-unit>
       <trans-unit id="quizForm.timerAccommodationHint" datatype="html">
-        <source> »10× Zeit« und »Ohne Frist« bleiben wählbar. </source>
-        <target>« Temps ×10 » et « Sans délai » restent disponibles.</target>
+        <source> Zusätzliche Antwortzeit gleicht Barrieren aus – etwa bei Legasthenie, Dyskalkulie, Seh- oder motorischen Beeinträchtigungen sowie bei der Nutzung assistiver Technologien wie Screenreadern. Lass »10× Zeit« und »Ohne Frist« deshalb wählbar, damit alle ihr Wissen unter fairen Bedingungen zeigen können. </source>
+        <target>Un temps de réponse supplémentaire permet de lever certains obstacles – par exemple en cas de dyslexie, de dyscalculie ou de déficience visuelle ou motrice, ainsi que lors de l’utilisation de technologies d’assistance telles qu’un lecteur d’écran. Laisse donc les options « Temps × 10 » et « Sans limite de temps » disponibles afin que tout le monde puisse montrer ses connaissances dans des conditions équitables.</target>
       </trans-unit>
       <trans-unit id="quizForm.timerAccommodationTitle" datatype="html">
         <source>Persönliche Zeit</source>
-        <target>Temps personnel</target>
+        <target>Temps personnalisé</target>
+      </trans-unit>
+      <trans-unit id="quizForm.timerAccommodationLead" datatype="html">
+        <source>Faire Teilnahme ermöglichen</source>
+        <target>Favoriser une participation équitable</target>
       </trans-unit>
       <trans-unit id="quizForm.timerAccommodationScore" datatype="html">
-        <source> Nach dem Countdown gibt es nur Mindestpunkte – das reicht selten nach vorn. </source>
-        <target>Après le compte à rebours, il ne reste que le minimum de points – rarement de quoi arriver en tête.</target>
+        <source> Nach dem regulären Countdown sind höchstens die Punkte der letzten Countdown-Sekunde erreichbar. So entsteht durch den Nachteilsausgleich kein Wettbewerbsvorteil. </source>
+        <target>Une fois le compte à rebours normal terminé, une réponse ne peut rapporter plus que le nombre de points attribué pendant sa dernière seconde. Ainsi, cet aménagement ne procure aucun avantage dans la compétition.</target>
       </trans-unit>
       <trans-unit id="quizForm.timerAccommodationControl" datatype="html">
-        <source> Die Frage beendest du weiter selbst. </source>
-        <target>C’est toujours toi qui termines la question.</target>
+        <source> Du entscheidest weiterhin, wann die Frage endet. </source>
+        <target>Tu décides toujours du moment où la question prend fin.</target>
       </trans-unit>
       <trans-unit id="2198730230681840467" datatype="html">
         <source>Teilnahme &amp; Namen</source>
@@ -23969,6 +23973,14 @@
           <context context-type="linenumber">54,58</context>
         </context-group>
       </trans-unit>
+      <trans-unit id="sessionVote.scoringInfo.timeRoom" datatype="html">
+        <source> Zeit: Je früher du richtig antwortest, desto mehr Punkte bekommst du. Nach dem Countdown bleiben nur noch 10 % – damit kommst du selten nach vorn. </source>
+        <target>Temps : plus tu donnes tôt la bonne réponse, plus tu gagnes de points. Après le compte à rebours, il ne reste que 10 % des points – rarement de quoi arriver en tête.</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/session-vote/session-vote.component.html</context>
+          <context context-type="linenumber">54,58</context>
+        </context-group>
+      </trans-unit>
       <trans-unit id="sessionVote.scoringInfo.streak" datatype="html">
         <source> Serie: Mehrere richtige Antworten hintereinander geben Bonus – 1× ×1,0 · 2× ×1,1 · 3× ×1,2 · 4× ×1,3 · ab 5× ×1,5. Eine falsche bewertbare Antwort setzt die Serie zurück. Umfragen und unbewerteter Freitext unterbrechen sie nicht.</source>
         <target>Série : plusieurs bonnes réponses d’affilée donnent un bonus – 1× ×1,0 · 2× ×1,1 · 3× ×1,2 · 4× ×1,3 · à partir de 5× ×1,5. Une mauvaise réponse notée remet la série à zéro. Les sondages et le texte libre non noté ne l’interrompent pas.</target>
@@ -23978,8 +23990,8 @@
         </context-group>
       </trans-unit>
       <trans-unit id="sessionVote.scoringInfo.preview" datatype="html">
-        <source> Die Live-Punktvorschau zeigt den aktuellen Stand ohne Serien-Bonus.</source>
-        <target>L’aperçu des points en direct montre la valeur actuelle sans le bonus de série.</target>
+        <source> Die Live-Punktvorschau zeigt den aktuellen Stand ohne Serien-Bonus, in 50er-Schritten.</source>
+        <target>L’aperçu des points en direct montre la valeur actuelle sans le bonus de série, par pas de 50.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-vote/session-vote.component.html</context>
           <context context-type="linenumber">64,66</context>
@@ -25374,8 +25386,8 @@
         </context-group>
       </trans-unit>
       <trans-unit id="sessionVote.scorePreview.upToNow" datatype="html">
-        <source>Volle Wertung jetzt</source>
-        <target>Note maximale maintenant</target>
+        <source>Höchstens jetzt</source>
+        <target>Au maximum maintenant</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-vote/session-vote.component.ts</context>
           <context context-type="linenumber">2802</context>

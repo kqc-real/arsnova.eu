@@ -407,6 +407,46 @@ describe('QuizNewComponent', () => {
     expect(matDialogMock.open).not.toHaveBeenCalled();
   });
 
+  it('blendet die Erklärung zur persönlichen Zeit aus, wenn die Checkbox aus ist', () => {
+    const fixture = TestBed.createComponent(QuizNewComponent);
+    const component = fixture.componentInstance;
+    fixture.detectChanges();
+    component.showSettings.set(true);
+    component.onDefaultTimerEnabledChange(true);
+    fixture.detectChanges();
+
+    const hint = fixture.nativeElement.querySelector(
+      '[data-testid="quiz-new-timer-accommodation-hint"]',
+    ) as HTMLElement | null;
+    expect(hint?.querySelector('mat-checkbox')?.textContent).toContain('Persönliche Zeit');
+    expect(hint?.querySelectorAll('p').length).toBe(4);
+    expect(hint?.textContent).toContain('Faire Teilnahme ermöglichen');
+
+    component.form.controls.enableTimerAccommodation.setValue(false);
+    fixture.detectChanges();
+
+    expect(hint?.querySelector('mat-checkbox')?.textContent).toContain('Persönliche Zeit');
+    expect(hint?.querySelectorAll('p').length).toBe(0);
+    expect(hint?.textContent).not.toContain('Faire Teilnahme ermöglichen');
+    expect(hint?.textContent).not.toContain('Nachteilsausgleich');
+  });
+
+  it('zeigt die Checkbox für persönliche Zeit auch ohne quizweites Zeitlimit', () => {
+    const fixture = TestBed.createComponent(QuizNewComponent);
+    const component = fixture.componentInstance;
+    fixture.detectChanges();
+    component.showSettings.set(true);
+    component.onDefaultTimerEnabledChange(false);
+    fixture.detectChanges();
+
+    expect(component.defaultTimerControl.value).toBeNull();
+    const hint = fixture.nativeElement.querySelector(
+      '[data-testid="quiz-new-timer-accommodation-hint"]',
+    ) as HTMLElement | null;
+    expect(hint).toBeTruthy();
+    expect(hint?.querySelector('mat-checkbox')?.textContent).toContain('Persönliche Zeit');
+  });
+
   it('hält Bonus-Fieldset, Tokens und Playful-Chrome der Erstell-Seite konsistent', async () => {
     const { readFileSync } = await import('node:fs');
     const { fileURLToPath } = await import('node:url');
@@ -420,10 +460,14 @@ describe('QuizNewComponent', () => {
     expect(html).toMatch(/class="quiz-form__fieldset"[\s\S]*?Belohnung/);
     expect(html).toContain('quiz-form__fieldset-hint');
     expect(html).toContain('quiz-new-timer-accommodation-hint');
-    expect(html).toContain('quiz-form__timer-accommodation-title');
+    expect(html).toContain('formControlName="enableTimerAccommodation"');
+    expect(html).toContain('<mat-checkbox');
+    expect(html).toContain('quiz-form__timer-accommodation-lead');
     expect(html).toContain('Persönliche Zeit');
+    expect(html).toContain('Faire Teilnahme ermöglichen');
     expect(html).toContain('»10× Zeit«');
     expect(html).toContain('»Ohne Frist«');
+    expect(html).toContain('@if (form.controls.enableTimerAccommodation.value)');
     expect(scss).toMatch(/\.quiz-form__fieldset-hint\s*\{/);
     expect(scss).toMatch(
       /\.quiz-form__markdown-hints\s*\{[^}]*font:\s*var\(--mat-sys-label-small\)/,

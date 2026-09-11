@@ -265,28 +265,41 @@
                         Leicht = wie eingestellt, Mittel = ×1,5, Schwer = ×2,0
                       </div>
                     </div>
-                    <div
-                      class="quiz-form__timer-accommodation"
-                      data-testid="quiz-new-timer-accommodation-hint"
-                    >
-                      <p
-                        class="quiz-form__timer-accommodation-title"
-                        i18n="@@quizForm.timerAccommodationTitle"
-                      >
-                        Persönliche Zeit
-                      </p>
-                      <p i18n="@@quizForm.timerAccommodationHint">
-                        »10× Zeit« und »Ohne Frist« bleiben wählbar.
-                      </p>
-                      <p i18n="@@quizForm.timerAccommodationScore">
-                        Nach dem Countdown gibt es nur Mindestpunkte – das reicht selten nach vorn.
-                      </p>
-                      <p i18n="@@quizForm.timerAccommodationControl">
-                        Die Frage beendest du weiter selbst.
-                      </p>
-                    </div>
                   </div>
                 }
+                <div
+                  class="quiz-form__timer-accommodation"
+                  data-testid="quiz-new-timer-accommodation-hint"
+                >
+                  <mat-checkbox
+                    formControlName="enableTimerAccommodation"
+                    i18n="@@quizForm.timerAccommodationTitle"
+                  >
+                    Persönliche Zeit
+                  </mat-checkbox>
+                  @if (form.controls.enableTimerAccommodation.value) {
+                    <p
+                      class="quiz-form__timer-accommodation-lead"
+                      i18n="@@quizForm.timerAccommodationLead"
+                    >
+                      Faire Teilnahme ermöglichen
+                    </p>
+                    <p i18n="@@quizForm.timerAccommodationHint">
+                      Zusätzliche Antwortzeit gleicht Barrieren aus – etwa bei Legasthenie,
+                      Dyskalkulie, Seh- oder motorischen Beeinträchtigungen sowie bei der Nutzung
+                      assistiver Technologien wie Screenreadern. Lass »10× Zeit« und »Ohne Frist«
+                      deshalb wählbar, damit alle ihr Wissen unter fairen Bedingungen zeigen können.
+                    </p>
+                    <p i18n="@@quizForm.timerAccommodationScore">
+                      Nach dem regulären Countdown sind höchstens die Punkte der letzten
+                      Countdown-Sekunde erreichbar. So entsteht durch den Nachteilsausgleich kein
+                      Wettbewerbsvorteil.
+                    </p>
+                    <p i18n="@@quizForm.timerAccommodationControl">
+                      Du entscheidest weiterhin, wann die Frage endet.
+                    </p>
+                  }
+                </div>
               </fieldset>
 
               <fieldset class="quiz-form__fieldset">

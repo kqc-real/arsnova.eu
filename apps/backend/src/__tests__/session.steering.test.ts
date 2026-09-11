@@ -1095,6 +1095,44 @@ describe('session.revealResults (Story 2.3)', () => {
     expect(prismaMock.session.update).not.toHaveBeenCalled();
   });
 
+  it('blockiert Ergebnisanzeige nicht, wenn persönliche Zeit im Quiz aus ist', async () => {
+    prismaMock.session.findUnique.mockResolvedValue({
+      id: SESSION_ID,
+      status: 'ACTIVE',
+      currentQuestion: 0,
+      currentRound: 1,
+      activeQuestionStartedAt: new Date(),
+      quiz: {
+        defaultTimer: 30,
+        timerScaleByDifficulty: true,
+        enableTimerAccommodation: false,
+        questions: [
+          {
+            id: '11111111-1111-4111-8111-111111111111',
+            type: 'SINGLE_CHOICE',
+            timer: null,
+            difficulty: 'MEDIUM',
+            numericTwoRounds: false,
+          },
+        ],
+      },
+    });
+    prismaMock.participant.groupBy.mockResolvedValue([
+      { timerAccommodation: 'EXTENDED', _count: { _all: 1 } },
+    ]);
+    prismaMock.session.update.mockResolvedValue({
+      id: SESSION_ID,
+      status: 'RESULTS',
+      currentQuestion: 0,
+    });
+
+    const result = await caller.revealResults({ code: CODE });
+
+    expect(result.status).toBe('RESULTS');
+    expect(prismaMock.participant.groupBy).not.toHaveBeenCalled();
+    expect(prismaMock.session.update).toHaveBeenCalled();
+  });
+
   it('lehnt Force-Close ab solange der Raum-Countdown läuft', async () => {
     prismaMock.session.findUnique.mockResolvedValue({
       id: SESSION_ID,

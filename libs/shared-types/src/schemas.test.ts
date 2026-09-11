@@ -12,6 +12,8 @@ import {
   QuestionRevealedDTOSchema,
   QuestionStudentDTOSchema,
   resolvePersonalTimerSeconds,
+  isTimerAccommodationEnabled,
+  CreateQuizInputSchema,
   serializeQuizHistoryAccessMaterial,
   SetTimerAccommodationInputSchema,
   SubmitVoteInputSchema,
@@ -367,6 +369,65 @@ describe('öffentliche Contract-Schemas', () => {
     );
     expect(resolvePersonalTimerSeconds(30, 'OFF')).toBeNull();
     expect(resolvePersonalTimerSeconds(null, 'EXTENDED')).toBeNull();
+    expect(isTimerAccommodationEnabled(undefined)).toBe(true);
+    expect(isTimerAccommodationEnabled(true)).toBe(true);
+    expect(isTimerAccommodationEnabled(false)).toBe(false);
+    expect(CreateQuizInputSchema.parse({ name: 'Quiz' }).enableTimerAccommodation).toBe(true);
+    expect(
+      QuizUploadInputSchema.parse({
+        ...quizUploadBase,
+        questions: [
+          {
+            text: 'Frage',
+            type: 'SINGLE_CHOICE',
+            difficulty: 'MEDIUM',
+            order: 0,
+            answers: [{ text: 'A', isCorrect: true }],
+          },
+        ],
+      }).enableTimerAccommodation,
+    ).toBeUndefined();
+    expect(
+      QuizUploadInputSchema.parse({
+        ...quizUploadBase,
+        enableTimerAccommodation: false,
+        questions: [
+          {
+            text: 'Frage',
+            type: 'SINGLE_CHOICE',
+            difficulty: 'MEDIUM',
+            order: 0,
+            answers: [{ text: 'A', isCorrect: true }],
+          },
+        ],
+      }).enableTimerAccommodation,
+    ).toBe(false);
+
+    const historyQuestion = {
+      text: 'Frage',
+      type: 'SINGLE_CHOICE' as const,
+      difficulty: 'MEDIUM' as const,
+      order: 0,
+      answers: [{ text: 'A', isCorrect: true }],
+    };
+    const historyWithoutFlag = serializeQuizHistoryAccessMaterial({
+      ...quizUploadBase,
+      questions: [historyQuestion],
+    } as Parameters<typeof serializeQuizHistoryAccessMaterial>[0]);
+    const historyWithDefaultTrue = serializeQuizHistoryAccessMaterial({
+      ...quizUploadBase,
+      enableTimerAccommodation: true,
+      questions: [historyQuestion],
+    } as Parameters<typeof serializeQuizHistoryAccessMaterial>[0]);
+    const historyWithDisabled = serializeQuizHistoryAccessMaterial({
+      ...quizUploadBase,
+      enableTimerAccommodation: false,
+      questions: [historyQuestion],
+    } as Parameters<typeof serializeQuizHistoryAccessMaterial>[0]);
+    expect(historyWithoutFlag).toBe(historyWithDefaultTrue);
+    expect(historyWithoutFlag).not.toContain('enableTimerAccommodation');
+    expect(historyWithDisabled).toContain('"enableTimerAccommodation":false');
+    expect(historyWithDisabled).not.toBe(historyWithoutFlag);
 
     const parsed = QuestionStudentDTOSchema.parse({
       id: questionId,
@@ -408,6 +469,20 @@ describe('öffentliche Contract-Schemas', () => {
         elapsedSeconds: 0,
       }),
     ).toBe(2000);
+    expect(
+      previewMaxCorrectScoreAtElapsedSeconds({
+        difficulty: 'MEDIUM',
+        sessionTimerSeconds: 60,
+        elapsedSeconds: 1,
+      }),
+    ).toBe(1950);
+    expect(
+      previewMaxCorrectScoreAtElapsedSeconds({
+        difficulty: 'MEDIUM',
+        sessionTimerSeconds: 60,
+        elapsedSeconds: 2,
+      }),
+    ).toBe(1950);
     expect(
       previewMaxCorrectScoreAtElapsedSeconds({
         difficulty: 'MEDIUM',

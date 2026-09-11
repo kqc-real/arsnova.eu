@@ -237,10 +237,59 @@ describe('QuizEditComponent', { timeout: 30_000 }, () => {
       '[data-testid="quiz-edit-timer-accommodation-hint"]',
     ) as HTMLElement | null;
     expect(hint?.textContent).toContain('Persönliche Zeit');
+    expect(hint?.textContent).toContain('Faire Teilnahme ermöglichen');
     expect(hint?.textContent).toContain('»10× Zeit«');
     expect(hint?.textContent).toContain('»Ohne Frist«');
-    expect(hint?.textContent).toContain('Mindestpunkte');
+    expect(hint?.textContent).toContain('Nachteilsausgleich');
+    expect(hint?.textContent).toContain('Du entscheidest weiterhin');
+    expect(hint?.querySelector('mat-checkbox')?.textContent).toContain('Persönliche Zeit');
+    expect(component.settingsForm.controls.enableTimerAccommodation.value).toBe(true);
     expect(hint?.querySelectorAll('p').length).toBe(4);
+
+    component.settingsForm.controls.enableTimerAccommodation.setValue(false);
+    fixture.detectChanges();
+
+    expect(hint?.querySelector('mat-checkbox')?.textContent).toContain('Persönliche Zeit');
+    expect(hint?.querySelectorAll('p').length).toBe(0);
+    expect(hint?.textContent).not.toContain('Faire Teilnahme ermöglichen');
+    expect(hint?.textContent).not.toContain('Nachteilsausgleich');
+  });
+
+  it('zeigt die Checkbox für persönliche Zeit auch ohne quizweites Zeitlimit', () => {
+    quiz.settings = { ...quiz.settings, defaultTimer: null };
+    const fixture = TestBed.createComponent(QuizEditComponent);
+    const component = fixture.componentInstance;
+    component.showSettings.set(true);
+    fixture.detectChanges();
+
+    const hint = fixture.nativeElement.querySelector(
+      '[data-testid="quiz-edit-timer-accommodation-hint"]',
+    ) as HTMLElement | null;
+    expect(hint).toBeTruthy();
+    expect(component.settingsTimerControl.value).toBeNull();
+    expect(hint?.querySelector('mat-checkbox')?.textContent).toContain('Persönliche Zeit');
+  });
+
+  it('speichert das Ausschalten der persönlichen Zeit über saveAll', () => {
+    quiz.settings = { ...quiz.settings, defaultTimer: 60, enableTimerAccommodation: true };
+    mockStore.updateQuizSettings.mockReturnValue({
+      ...quiz.settings,
+      defaultTimer: 60,
+      enableTimerAccommodation: false,
+    });
+    const fixture = TestBed.createComponent(QuizEditComponent);
+    const component = fixture.componentInstance;
+    component.showSettings.set(true);
+    fixture.detectChanges();
+
+    component.settingsForm.controls.enableTimerAccommodation.setValue(false);
+
+    expect(component.hasPendingChanges()).toBe(true);
+    component.saveAll();
+    expect(mockStore.updateQuizSettings).toHaveBeenCalledWith(
+      QUIZ_ID,
+      expect.objectContaining({ enableTimerAccommodation: false }),
+    );
   });
 
   it('speichert per Handler gesetzte Zeitlimit-Änderungen ohne Angular-dirty-Status', () => {
