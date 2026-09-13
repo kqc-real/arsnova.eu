@@ -1,0 +1,551 @@
+{
+  "meta": {
+    "title": "P0-03 MC-Test – Woche 05: Verteilungen und Stichprobenvariabilität",
+    "updated": "2026-09-13",
+    "language": "de",
+    "target_audience": "Bachelorstudierende aus BWL, Management, Wirtschaftsinformatik und Informatik ohne vorausgesetzte Statistikkenntnisse",
+    "question_count": 30,
+    "difficulty_profile": {
+      "leicht": 8,
+      "mittel": 16,
+      "schwer": 6
+    },
+    "time_per_weight_minutes": {
+      "1": 0.5,
+      "2": 0.75,
+      "3": 1.0
+    },
+    "additional_buffer_minutes": 5,
+    "test_duration_minutes": 27
+  },
+  "questions": [
+    {
+      "question": "1. Was kennzeichnet eine Zufallsvariable?",
+      "options": [
+        "Sie ordnet jedem möglichen Ergebnis eines Zufallsexperiments eine Zahl zu.",
+        "Sie enthält nur die tatsächlich beobachteten Werte einer einzelnen Stichprobe.",
+        "Sie ist jede Variable, deren Messwert vor der Erhebung unbekannt ist.",
+        "Sie gibt stets die Wahrscheinlichkeit eines einzelnen Ergebnisses an."
+      ],
+      "answer": 0,
+      "explanation": "Eine Zufallsvariable übersetzt mögliche Ergebnisse eines Zufallsexperiments in Zahlen. Eine Liste beobachteter Werte ist dagegen eine konkrete Stichprobe; die Zufallsvariable beschreibt die Zuordnung schon vor der Beobachtung.",
+      "weight": 1,
+      "topic": "Zufallsvariablen und Verteilungen",
+      "concept": "Definition der Zufallsvariable",
+      "cognitive_level": "Reproduktion",
+      "mini_glossary": {
+        "Zufallsvariable": "Eine numerische Zuordnung zu den möglichen Ergebnissen eines Zufallsexperiments.",
+        "Zufallsexperiment": "Ein wiederholbarer Vorgang mit vorab beschreibbaren, aber im Einzelfall ungewissen Ergebnissen."
+      }
+    },
+    {
+      "question": "2. Welche Zuordnung ist für einen digitalen Service angemessen?",
+      "options": [
+        "Anzahl fehlgeschlagener Anfragen: stetig; Antwortdauer: diskret",
+        "Anzahl fehlgeschlagener Anfragen: diskret; Antwortdauer: stetig",
+        "Anzahl fehlgeschlagener Anfragen: ordinal; Antwortdauer: nominal",
+        "Anzahl fehlgeschlagener Anfragen: stetig; Antwortdauer: nominal"
+      ],
+      "answer": 1,
+      "explanation": "Eine Anzahl nimmt abzählbare ganzzahlige Werte an und ist diskret. Eine Antwortdauer kann innerhalb eines Messbereichs grundsätzlich beliebig fein gemessen werden und wird daher als stetig behandelt.",
+      "weight": 1,
+      "topic": "Zufallsvariablen und Verteilungen",
+      "concept": "Diskrete und stetige Zufallsvariablen",
+      "cognitive_level": "Reproduktion",
+      "mini_glossary": {
+        "Diskrete Zufallsvariable": "Eine Zufallsvariable mit abzählbaren möglichen Werten, etwa 0, 1, 2, ….",
+        "Stetige Zufallsvariable": "Eine Zufallsvariable, die innerhalb eines Bereichs grundsätzlich jeden reellen Wert annehmen kann."
+      }
+    },
+    {
+      "question": "3. Wie ist der Erwartungswert einer Zufallsvariable zu verstehen?",
+      "options": [
+        "Als größter Wert, der bei einer einzelnen Durchführung auftreten kann",
+        "Als Wert, der bei jeder Durchführung tatsächlich eintreten muss",
+        "Als langfristiger Mittelwert bei sehr vielen gleichartigen Wiederholungen",
+        "Als Median der in einer einzelnen Stichprobe beobachteten Werte"
+      ],
+      "answer": 2,
+      "explanation": "Der Erwartungswert beschreibt den langfristigen Durchschnitt unter dem festgelegten Zufallsmodell. Er muss weder bei jeder Wiederholung noch überhaupt als möglicher Einzelwert auftreten.",
+      "weight": 1,
+      "topic": "Zufallsvariablen und Verteilungen",
+      "concept": "Interpretation des Erwartungswerts",
+      "cognitive_level": "Reproduktion",
+      "mini_glossary": {
+        "Erwartungswert": "Der langfristige Mittelwert einer Zufallsvariable bei sehr vielen gleichartigen Wiederholungen; er muss kein möglicher Einzelwert sein.",
+        "Wahrscheinlichkeitsverteilung": "Eine Beschreibung, welche möglichen Werte eine Zufallsvariable mit welchen Wahrscheinlichkeiten annimmt."
+      }
+    },
+    {
+      "question": "4. Welche Kombination nennt genau die Bedingungen eines Binomialmodells?",
+      "options": [
+        "Variable Versuchszahl, beliebig viele Ausgänge, konstantes Mittel und gleiche Streuung",
+        "Feste Versuchszahl, zwei Ausgänge, konstantes $p$ und unabhängige Versuche",
+        "Feste Versuchszahl, normalverteilte Einzelwerte, unbekanntes $p$ und abhängige Versuche",
+        "Beliebige Versuchszahl, zwei Ausgänge, wechselndes $p$ und unabhängige Versuche"
+      ],
+      "answer": 1,
+      "explanation": "Für $X\\sim Bin(n,p)$ müssen $n$ fest, die Ausgänge binär, $p$ konstant und die Versuche unabhängig sein. Fehlt eine dieser Modellannahmen, darf die Binomialformel nicht mechanisch eingesetzt werden.",
+      "weight": 1,
+      "topic": "Binomialverteilung",
+      "concept": "Bedingungen des Binomialmodells",
+      "cognitive_level": "Reproduktion",
+      "mini_glossary": {
+        "Binomialverteilung": "Modell für die Anzahl der Erfolge in $n$ unabhängigen Versuchen mit zwei Ausgängen und konstantem $p$.",
+        "Unabhängigkeit": "Zwei Ereignisse sind unabhängig, wenn das Eintreten des einen die Wahrscheinlichkeit des anderen nicht verändert."
+      }
+    },
+    {
+      "question": "5. Welche Aussage beschreibt eine Normalverteilung?",
+      "options": [
+        "Sie ist symmetrisch um ihren Mittelwert und wird durch Mittelwert und Standardabweichung bestimmt.",
+        "Sie ist stets rechtsschief und wird nur durch ihren Median bestimmt.",
+        "Sie beschreibt ausschließlich diskrete Anzahlen von Erfolgen.",
+        "Sie entsteht automatisch bei jeder ausreichend großen Stichprobe von Einzelwerten."
+      ],
+      "answer": 0,
+      "explanation": "Eine Normalverteilung ist eine symmetrische stetige Modellverteilung mit den Parametern $\\mu$ und $\\sigma$. Ein großes $n$ macht die Verteilung der einzelnen Beobachtungen nicht automatisch normal.",
+      "weight": 1,
+      "topic": "Normalverteilung und Standardisierung",
+      "concept": "Eigenschaften der Normalverteilung",
+      "cognitive_level": "Reproduktion",
+      "mini_glossary": {
+        "Normalverteilung": "Eine symmetrische, glockenförmige stetige Verteilung, bestimmt durch Mittelwert $\\mu$ und Standardabweichung $\\sigma$.",
+        "Parameter": "Eine feste, meist unbekannte Kenngröße einer Grundgesamtheit oder eines ausdrücklich festgelegten Modells."
+      }
+    },
+    {
+      "question": "6. Was bedeutet ein z-Wert von $z=-2$?",
+      "options": [
+        "Der Wert liegt zwei Einheiten unter null.",
+        "Der Wert liegt zwei Standardabweichungen unter dem Mittelwert.",
+        "Der Wert ist mit einer Wahrscheinlichkeit von 2 % beobachtet worden.",
+        "Der Wert liegt zwei Standardabweichungen über dem Mittelwert."
+      ],
+      "answer": 1,
+      "explanation": "Ein z-Wert misst den Abstand vom Mittelwert in Einheiten der Standardabweichung. Das negative Vorzeichen bezeichnet die Lage unterhalb des Mittelwerts; es ist keine Wahrscheinlichkeit.",
+      "weight": 1,
+      "topic": "Normalverteilung und Standardisierung",
+      "concept": "Bedeutung eines z-Werts",
+      "cognitive_level": "Reproduktion",
+      "mini_glossary": {
+        "z-Wert": "Der standardisierte Abstand eines Werts vom Mittelwert in Einheiten der Standardabweichung.",
+        "Standardisierung": "Die Umrechnung $z=(x-\\mu)/\\sigma$, durch die ein Wert als Abstand vom Mittelwert in Standardabweichungen ausgedrückt wird."
+      }
+    },
+    {
+      "question": "7. Worin unterscheiden sich Populationsverteilung und Stichprobenverteilung?",
+      "options": [
+        "Die Populationsverteilung betrifft Stichprobenkennwerte, die Stichprobenverteilung einzelne Personen.",
+        "Beide Begriffe bezeichnen stets dieselbe Verteilung, nur mit unterschiedlichem Stichprobenumfang.",
+        "Die Populationsverteilung betrifft Einzelwerte, die Stichprobenverteilung Kennwerte aus vielen Stichproben.",
+        "Eine Stichprobenverteilung enthält ausschließlich die Rohwerte einer einzigen Stichprobe."
+      ],
+      "answer": 2,
+      "explanation": "Die Populationsverteilung beschreibt die Einzelwerte in der Grundgesamtheit. Eine Stichprobenverteilung entsteht gedanklich oder simulativ aus einem Kennwert, der über viele gleichartig gezogene Stichproben berechnet wird.",
+      "weight": 1,
+      "topic": "Stichprobenvariabilität",
+      "concept": "Population versus Stichprobenverteilung",
+      "cognitive_level": "Reproduktion",
+      "mini_glossary": {
+        "Populationsverteilung": "Die Verteilung der Einzelwerte eines Merkmals in der festgelegten Grundgesamtheit.",
+        "Stichprobenverteilung": "Die Verteilung eines Stichprobenkennwerts über viele gleichartige Stichproben gleicher Größe."
+      }
+    },
+    {
+      "question": "8. Was beschreibt der Standardfehler?",
+      "options": [
+        "Den Anteil falsch eingegebener Werte in einem Datensatz",
+        "Die Streuung der Einzelwerte um ihren Stichprobenmittelwert",
+        "Den Abstand eines Schätzwerts vom unbekannten Parameter in genau einer Stichprobe",
+        "Die modellbedingte Streuung eines Schätzers über viele gleichartige Stichproben"
+      ],
+      "answer": 3,
+      "explanation": "Der Standardfehler beschreibt, wie stark ein Stichprobenkennwert bei wiederholtem Sampling typischerweise schwankt. Er ist weder eine Datenfehlerquote noch die Standardabweichung der Einzelwerte.",
+      "weight": 1,
+      "topic": "Stichprobenvariabilität",
+      "concept": "Bedeutung des Standardfehlers",
+      "cognitive_level": "Reproduktion",
+      "mini_glossary": {
+        "Standardfehler": "Die modellbedingte Standardabweichung der Stichprobenverteilung eines Schätzers; er ist nicht die Streuung der Einzelwerte.",
+        "Stichprobenkennwert": "Eine aus Stichprobendaten berechnete Größe, etwa $\\bar{x}$ oder $\\hat{p}$."
+      }
+    },
+    {
+      "question": "9. Ein Callcenter betrachtet 20 modellhaft unabhängige Anrufe. Die Wahrscheinlichkeit einer Weiterleitung beträgt bei jedem Anruf $p=0{,}30$. Wie viele Weiterleitungen sind langfristig zu erwarten?",
+      "options": ["3", "6", "10", "14"],
+      "answer": 1,
+      "explanation": "Für eine binomialverteilte Erfolgszahl gilt $E(X)=np=20\\cdot0{,}30=6$. Der Erwartungswert ist ein langfristiger Durchschnitt und verspricht nicht genau sechs Weiterleitungen in jedem 20er-Block.",
+      "weight": 2,
+      "topic": "Binomialverteilung",
+      "concept": "Erwartungswert einer Binomialverteilung",
+      "cognitive_level": "Anwendung",
+      "mini_glossary": {
+        "Erwartungswert": "Der langfristige Mittelwert einer Zufallsvariable bei sehr vielen gleichartigen Wiederholungen; er muss kein möglicher Einzelwert sein.",
+        "Binomialverteilung": "Modell für die Anzahl der Erfolge in $n$ unabhängigen Versuchen mit zwei Ausgängen und konstantem $p$."
+      }
+    },
+    {
+      "question": "10. Eine faire Münze wird viermal unabhängig geworfen. Wie groß ist die Wahrscheinlichkeit für genau zwei Köpfe?",
+      "options": ["0,250", "0,375", "0,500", "0,625"],
+      "answer": 1,
+      "explanation": "Mit $X\\sim Bin(4;0{,}5)$ gilt $P(X=2)=\\binom{4}{2}0{,}5^2 0{,}5^2=6/16=0{,}375$. Der Faktor $\\binom{4}{2}$ berücksichtigt die sechs möglichen Anordnungen der zwei Köpfe.",
+      "weight": 2,
+      "topic": "Binomialverteilung",
+      "concept": "Wahrscheinlichkeit für genau k Erfolge",
+      "cognitive_level": "Anwendung",
+      "mini_glossary": {
+        "Binomialwahrscheinlichkeit": "Für $X\\sim Bin(n,p)$ gilt $P(X=k)=\\binom{n}{k}p^k(1-p)^{n-k}$.",
+        "Binomialkoeffizient": "Die Zahl $\\binom{n}{k}$ gibt an, auf wie viele Arten $k$ Erfolge auf $n$ Versuche verteilt werden können."
+      }
+    },
+    {
+      "question": "11. Bei drei modellhaft unabhängigen Bestellungen beträgt die Wahrscheinlichkeit einer Reklamation jeweils $0{,}20$. Wie groß ist die Wahrscheinlichkeit für mindestens eine Reklamation?",
+      "options": ["0,200", "0,488", "0,512", "0,600"],
+      "answer": 1,
+      "explanation": "Das Gegenereignis lautet »keine Reklamation« und hat die Wahrscheinlichkeit $0{,}8^3=0{,}512$. Daher gilt $P(X\\ge1)=1-0{,}512=0{,}488$; drei Einzelwahrscheinlichkeiten werden nicht einfach addiert.",
+      "weight": 2,
+      "topic": "Binomialverteilung",
+      "concept": "Mindestens ein Erfolg über das Gegenereignis",
+      "cognitive_level": "Anwendung",
+      "mini_glossary": {
+        "Gegenereignis": "Das Ereignis, dass $A$ nicht eintritt; seine Wahrscheinlichkeit ist $1-P(A)$.",
+        "Mindestens ein Erfolg": "Das Ereignis $X\\ge1$; sein Gegenereignis ist $X=0$."
+      }
+    },
+    {
+      "question": "12. Für zehn unterschiedlich schwere Prüfungsfragen soll die Zahl richtiger Antworten binomialverteilt modelliert werden. Welche Annahme ist am ehesten verletzt?",
+      "options": [
+        "Die Zahl der betrachteten Fragen ist fest.",
+        "Jede Antwort kann als richtig oder nicht richtig eingeteilt werden.",
+        "Die Erfolgswahrscheinlichkeit ist bei allen Fragen gleich.",
+        "Die Erfolgszahl kann nur ganzzahlige Werte annehmen."
+      ],
+      "answer": 2,
+      "explanation": "Unterschiedliche Aufgabenschwierigkeiten sprechen gegen ein konstantes $p$ über alle zehn Versuche. Eine feste Zahl binärer Ausgänge genügt allein nicht; die Binomialbedingungen werden vor jeder Rechnung geprüft.",
+      "weight": 2,
+      "topic": "Binomialverteilung",
+      "concept": "Konstante Erfolgswahrscheinlichkeit",
+      "cognitive_level": "Anwendung",
+      "mini_glossary": {
+        "Erfolgswahrscheinlichkeit": "Die im Modell für jeden Versuch geltende Wahrscheinlichkeit $p$ des als Erfolg definierten Ausgangs.",
+        "Modellannahme": "Eine Voraussetzung, unter der ein statistisches Modell den betrachteten Vorgang angemessen vereinfacht."
+      }
+    },
+    {
+      "question": "13. Die Bearbeitungszeit eines standardisierten Vorgangs wird mit Mittelwert $100$ Sekunden und Standardabweichung $15$ Sekunden modelliert. Welchen z-Wert hat eine Zeit von $130$ Sekunden?",
+      "options": ["$z=-2$", "$z=-0{,}5$", "$z=0{,}5$", "$z=2$"],
+      "answer": 3,
+      "explanation": "Die Standardisierung ergibt $z=(130-100)/15=2$. Der Vorgang liegt damit zwei Standardabweichungen über dem Modellmittelwert; daraus folgt ohne geeignetes Verteilungsmodell noch keine Wahrscheinlichkeit.",
+      "weight": 2,
+      "topic": "Normalverteilung und Standardisierung",
+      "concept": "Berechnung eines z-Werts",
+      "cognitive_level": "Anwendung",
+      "mini_glossary": {
+        "z-Wert": "Der standardisierte Abstand eines Werts vom Mittelwert in Einheiten der Standardabweichung.",
+        "Standardisierung": "Die Umrechnung $z=(x-\\mu)/\\sigma$, durch die ein Wert als Abstand vom Mittelwert in Standardabweichungen ausgedrückt wird."
+      }
+    },
+    {
+      "question": "14. Zwei Lieferzeiten stammen aus verschiedenen Referenzverteilungen. Für Auftrag A gilt $z=-1{,}5$, für Auftrag B $z=0{,}5$. Welche Aussage ist korrekt?",
+      "options": [
+        "A liegt relativ weiter unter seinem Mittelwert als B.",
+        "A dauert absolut genau zwei Minuten weniger als B.",
+        "B ist mit einer Wahrscheinlichkeit von 50 % verspätet.",
+        "Beide Aufträge liegen unter dem jeweiligen Mittelwert."
+      ],
+      "answer": 0,
+      "explanation": "A liegt 1,5 Standardabweichungen unter seinem Referenzmittelwert, B dagegen 0,5 Standardabweichungen darüber. z-Werte erlauben relative Vergleiche, nennen aber ohne die ursprünglichen Einheiten keine absolute Zeitdifferenz.",
+      "weight": 2,
+      "topic": "Normalverteilung und Standardisierung",
+      "concept": "Vergleich standardisierter Werte",
+      "cognitive_level": "Anwendung",
+      "mini_glossary": {
+        "z-Wert": "Der standardisierte Abstand eines Werts vom Mittelwert in Einheiten der Standardabweichung.",
+        "Referenzverteilung": "Die ausdrücklich festgelegte Verteilung, deren Mittelwert und Standardabweichung für einen Vergleich verwendet werden."
+      }
+    },
+    {
+      "question": "15. Aus einem Pool von 100 Datensätzen sind 20 als fehlerhaft markiert. Es wird zufällig mit Zurücklegen gezogen. Der erste gezogene Datensatz ist nicht fehlerhaft. Wie groß ist die Fehlerwahrscheinlichkeit beim zweiten Zug?",
+      "options": ["0,19", "0,20", "0,21", "0,25"],
+      "answer": 1,
+      "explanation": "Beim Sampling mit Zurücklegen wird der erste Datensatz vor dem zweiten Zug zurückgelegt. Der Pool hat daher wieder 20 fehlerhafte von 100 Datensätzen, also bleibt die Wahrscheinlichkeit $0{,}20$; ohne Zurücklegen wäre sie anders.",
+      "weight": 2,
+      "topic": "Stichprobenvariabilität",
+      "concept": "Sampling mit Zurücklegen",
+      "cognitive_level": "Anwendung",
+      "mini_glossary": {
+        "Sampling mit Zurücklegen": "Nach jedem Zug wird die ausgewählte Einheit in den Pool zurückgelegt; sie kann erneut gezogen werden und die Ziehwahrscheinlichkeiten bleiben konstant.",
+        "Unabhängigkeit": "Zwei Ereignisse sind unabhängig, wenn das Eintreten des einen die Wahrscheinlichkeit des anderen nicht verändert."
+      }
+    },
+    {
+      "question": "16. In einer Stichprobe aus $n=36$ modellhaft unabhängigen, gleichartig verteilten Servicefällen beträgt die Stichprobenstandardabweichung $s=18$ Sekunden. Wie groß ist der geschätzte Standardfehler des Mittelwerts?",
+      "options": ["0,5 Sekunden", "3 Sekunden", "6 Sekunden", "18 Sekunden"],
+      "answer": 1,
+      "explanation": "Unter der angegebenen Modellannahme unabhängiger, gleichartig verteilter Servicefälle gilt $SE(\\bar{x})=s/\\sqrt{n}=18/6=3$ Sekunden. Die 18 Sekunden beschreiben die Streuung der Einzelwerte, während 3 Sekunden die modellbedingte Streuung der Stichprobenmittelwerte beschreiben.",
+      "weight": 2,
+      "topic": "Stichprobenvariabilität",
+      "concept": "Standardfehler des Mittelwerts",
+      "cognitive_level": "Anwendung",
+      "mini_glossary": {
+        "Standardfehler": "Die modellbedingte Standardabweichung der Stichprobenverteilung eines Schätzers; er ist nicht die Streuung der Einzelwerte.",
+        "Stichprobenstandardabweichung": "Ein mit dem Nenner $n-1$ berechnetes Streuungsmaß der beobachteten Einzelwerte.",
+        "Unabhängigkeit": "Modellannahme, dass eine Beobachtung die Verteilung einer anderen Beobachtung nicht verändert."
+      }
+    },
+    {
+      "question": "17. Die Standardabweichung modellhaft unabhängiger, gleichartig verteilter Einzelwerte beträgt in einem Lehrmodell 20. Wie ändern sich die Standardfehler der Mittelwerte beim Wechsel von $n=25$ zu $n=100$?",
+      "options": [
+        "Sie ändern sich von 4 auf 2.",
+        "Sie ändern sich von 4 auf 1.",
+        "Sie ändern sich von 20 auf 10.",
+        "Sie bleiben beide bei 20."
+      ],
+      "answer": 0,
+      "explanation": "Unter der angegebenen Modellannahme unabhängiger, gleichartig verteilter Einzelwerte gilt für $n=25$ der Standardfehler $20/\\sqrt{25}=4$, für $n=100$ gilt $20/\\sqrt{100}=2$. Eine Vervierfachung von $n$ halbiert den Standardfehler, verändert aber nicht automatisch die Streuung der Einzelwerte.",
+      "weight": 2,
+      "topic": "Stichprobenvariabilität",
+      "concept": "Einfluss der Stichprobengröße auf den Standardfehler",
+      "cognitive_level": "Anwendung",
+      "mini_glossary": {
+        "Standardfehler": "Die modellbedingte Standardabweichung der Stichprobenverteilung eines Schätzers; er ist nicht die Streuung der Einzelwerte.",
+        "Stichprobengröße": "Die Zahl $n$ der tatsächlich ausgewerteten Beobachtungen einer Stichprobe.",
+        "Unabhängigkeit": "Modellannahme, dass eine Beobachtung die Verteilung einer anderen Beobachtung nicht verändert."
+      }
+    },
+    {
+      "question": "18. Aus derselben festgelegten Population werden 1.000 Zufallsstichproben mit jeweils $n=30$ gezogen. Von jeder Stichprobe wird der Mittelwert gespeichert. Was bilden die 1.000 gespeicherten Mittelwerte näherungsweise ab?",
+      "options": [
+        "Die Populationsverteilung der 30.000 Einzelwerte",
+        "Die Stichprobenverteilung des Mittelwerts bei $n=30$",
+        "Die Verteilung der Messfehler jedes einzelnen Werts",
+        "Die Stichprobenverteilung des Medians bei $n=1.000$"
+      ],
+      "answer": 1,
+      "explanation": "Jede Wiederholung liefert genau einen Stichprobenmittelwert für $n=30$. Die 1.000 Mittelwerte approximieren daher die Stichprobenverteilung von $\\bar{x}$ bei dieser Stichprobengröße, nicht die Verteilung aller Einzelwerte.",
+      "weight": 2,
+      "topic": "Stichprobenvariabilität",
+      "concept": "Simulation einer Stichprobenverteilung",
+      "cognitive_level": "Anwendung",
+      "mini_glossary": {
+        "Stichprobenverteilung": "Die Verteilung eines Stichprobenkennwerts über viele gleichartige Stichproben gleicher Größe.",
+        "Stichprobenmittelwert": "Das arithmetische Mittel der gültigen metrischen Werte in einer Stichprobe."
+      }
+    },
+    {
+      "question": "19. Eine Simulation wird von 200 auf 2.000 Wiederholungsstichproben erweitert; jede Stichprobe behält $n=25$. Welche Wirkung ist zu erwarten?",
+      "options": [
+        "Der theoretische Standardfehler wird allein durch mehr Wiederholungen halbiert.",
+        "Die simulierte Stichprobenverteilung wird genauer sichtbar, der Standardfehler für $n=25$ bleibt aber gleich.",
+        "Jede der 2.000 Stichproben enthält nun automatisch 250 Beobachtungen.",
+        "Die Auswahlverzerrung der zugrunde liegenden Population verschwindet durch mehr Wiederholungen."
+      ],
+      "answer": 1,
+      "explanation": "Mehr Simulationswiederholungen bilden die für $n=25$ geltende Stichprobenverteilung stabiler ab. Sie vergrößern aber nicht die einzelne Stichprobe und ändern deshalb deren theoretischen Standardfehler nicht.",
+      "weight": 2,
+      "topic": "Stichprobenvariabilität",
+      "concept": "Anzahl der Wiederholungen versus Stichprobengröße",
+      "cognitive_level": "Anwendung",
+      "mini_glossary": {
+        "Simulationswiederholung": "Eine erneute Ziehung und Auswertung unter demselben festgelegten Stichprobenmodell.",
+        "Stichprobengröße": "Die Zahl $n$ der tatsächlich ausgewerteten Beobachtungen einer Stichprobe."
+      }
+    },
+    {
+      "question": "20. Ein Unternehmen befragt freiwillig die Nutzenden seiner Beschwerde-App und möchte daraus die Zufriedenheit aller Kundinnen und Kunden ableiten. Was ist das zentrale Problem?",
+      "options": [
+        "Die Zielvariable ist grundsätzlich nicht messbar.",
+        "Die freiwillig Antwortenden können sich systematisch von allen Kundinnen und Kunden unterscheiden.",
+        "Eine Stichprobe darf nur aus Beschäftigten des Unternehmens bestehen.",
+        "Zufriedenheit kann ausschließlich durch eine Vollerhebung untersucht werden."
+      ],
+      "answer": 1,
+      "explanation": "Die freiwillige Teilnahme kann Personen mit besonders starken Erfahrungen überrepräsentieren und damit Auswahlverzerrung erzeugen. Ein größerer Antwortumfang würde die Zufallsschwankung senken, dieses Auswahlproblem aber nicht automatisch beseitigen.",
+      "weight": 2,
+      "topic": "Kumulative Datenkompetenz",
+      "concept": "Selbstselektion und Generalisierung",
+      "cognitive_level": "Anwendung",
+      "mini_glossary": {
+        "Selbstselektion": "Ein Auswahlprozess, bei dem Einheiten selbst über ihre Teilnahme entscheiden und sich Teilnehmende dadurch systematisch unterscheiden können.",
+        "Auswahlverzerrung": "Eine systematische Verzerrung, die entsteht, wenn der Auswahlmechanismus bestimmte Einheiten bevorzugt oder ausschließt."
+      }
+    },
+    {
+      "question": "21. Die Antwortkategorien einer Befragung lauten »sehr unzufrieden«, »unzufrieden«, »zufrieden« und »sehr zufrieden«. Welche Darstellung passt am besten?",
+      "options": [
+        "Ein Balkendiagramm in der sachlichen Reihenfolge der ordinalen Kategorien",
+        "Ein Histogramm mit frei gewählten Klassenbreiten für die vier Kategorien",
+        "Ein Streudiagramm mit Kundennummer auf der x-Achse",
+        "Ein Boxplot, der die Abstände zwischen den Kategorien als exakt gleich voraussetzt"
+      ],
+      "answer": 0,
+      "explanation": "Die Kategorien sind ordinal geordnet, ihre Abstände aber nicht als metrisch festgelegt. Ein geordnetes Balkendiagramm zeigt die Häufigkeiten ohne künstliche Klassenbreiten oder unterstellte Zahlenabstände.",
+      "weight": 2,
+      "topic": "Kumulative Datenkompetenz",
+      "concept": "Diagrammwahl für ordinale Daten",
+      "cognitive_level": "Anwendung",
+      "mini_glossary": {
+        "Ordinalskala": "Eine Skala mit geordneten Kategorien, deren Abstände nicht als gleich groß festgelegt sind.",
+        "Balkendiagramm": "Eine Darstellung von Häufigkeiten kategorialer Ausprägungen durch getrennte Balken."
+      }
+    },
+    {
+      "question": "22. Von 60 eingegangenen Supportanfragen werden 45 am selben Tag gelöst. Wie lautet die relative Häufigkeit?",
+      "options": [
+        "0,25 beziehungsweise 25 %",
+        "0,45 beziehungsweise 45 %",
+        "0,60 beziehungsweise 60 %",
+        "0,75 beziehungsweise 75 %"
+      ],
+      "answer": 3,
+      "explanation": "Der Zähler ist 45 und der Nenner sind die 60 eingegangenen Anfragen: $45/60=0{,}75=75\\,\\%$. Die Anzahl gelöster Fälle darf nicht mit dem Prozentwert verwechselt werden.",
+      "weight": 2,
+      "topic": "Kumulative Deskription",
+      "concept": "Relative Häufigkeit und Nenner",
+      "cognitive_level": "Anwendung",
+      "mini_glossary": {
+        "Relative Häufigkeit": "Der Anteil einer Kategorie an der festgelegten Bezugsmenge: $h_i=n_i/n$.",
+        "Nenner": "Die Bezugsgröße, auf die sich ein Anteil oder eine bedingte Wahrscheinlichkeit bezieht."
+      }
+    },
+    {
+      "question": "23. Neun Systemantworten dauern jeweils 100 ms, eine dauert 1.000 ms. Welche Beschreibung ist korrekt?",
+      "options": [
+        "Mittelwert und Median betragen beide 100 ms.",
+        "Der Mittelwert beträgt 190 ms, der Median 100 ms.",
+        "Der Mittelwert beträgt 100 ms, der Median 190 ms.",
+        "Mittelwert und Median betragen beide 190 ms."
+      ],
+      "answer": 1,
+      "explanation": "Der Mittelwert ist $(9\\cdot100+1.000)/10=190$ ms, während der Median der sortierten Werte 100 ms beträgt. Der einzelne hohe Wert zieht den Mittelwert nach oben; der Median bleibt für die typische Lage robuster.",
+      "weight": 2,
+      "topic": "Kumulative Deskription",
+      "concept": "Ausreißereinfluss auf Mittelwert und Median",
+      "cognitive_level": "Anwendung",
+      "mini_glossary": {
+        "Arithmetisches Mittel": "Die Summe aller gültigen metrischen Werte geteilt durch deren Anzahl; es reagiert empfindlich auf Extremwerte.",
+        "Median": "Zentraler Lagewert geordneter Daten; bei geradem n wird nur für metrische Werte das arithmetische Mittel der beiden mittleren Werte gebildet, bei ordinalen Kategorien ist die verwendete Konvention anzugeben."
+      }
+    },
+    {
+      "question": "24. Fünf vollständig vorliegende metrische Messwerte sollen einmal deskriptiv als vollständige Session und einmal als Stichprobe für eine größere Population ausgewertet werden. Welche Nenner passen zur Varianz?",
+      "options": [
+        "Deskriptiv $n-1$, als Stichprobenschätzer $n$",
+        "In beiden Fällen zwingend $n$",
+        "Deskriptiv $n$, als Stichprobenschätzer $n-1$",
+        "In beiden Fällen zwingend $n-1$"
+      ],
+      "answer": 2,
+      "explanation": "Für die reine Beschreibung der vollständig vorliegenden Wertemenge wird durch $n$ geteilt. Für den im Modul verwendeten Stichprobenschätzer einer unbekannten Populationsvarianz gilt der Nenner $n-1$; die Zielsetzung entscheidet über die Konvention.",
+      "weight": 2,
+      "topic": "Kumulative Deskription",
+      "concept": "Varianznenner n versus n minus 1",
+      "cognitive_level": "Anwendung",
+      "mini_glossary": {
+        "Deskriptive Varianz": "Die mit dem Nenner $n$ berechnete Varianz zur Beschreibung genau der vorliegenden Wertemenge.",
+        "Stichprobenvarianz": "Die mit dem Nenner $n-1$ berechnete Varianz zur Schätzung der Streuung in einer größeren Population."
+      }
+    },
+    {
+      "question": "25. In einer Gruppe antworten 60 Personen. 24 geben hohe Sicherheit an, davon antworten 18 richtig. Insgesamt antworten 34 Personen richtig. Welche Aussage stimmt?",
+      "options": [
+        "$P(\\text{richtig}\\mid\\text{hoch})=18/34\\approx0{,}529$",
+        "$P(\\text{hoch}\\mid\\text{richtig})=18/24=0{,}750$",
+        "$P(\\text{richtig}\\mid\\text{hoch})=18/24=0{,}750$",
+        "$P(\\text{hoch}\\mid\\text{richtig})=24/60=0{,}400$"
+      ],
+      "answer": 2,
+      "explanation": "Bei $P(\\text{richtig}\\mid\\text{hoch})$ bilden die 24 hoch sicheren Personen den Nenner, also $18/24=0{,}750$. Die inverse Bedingung hätte den Nenner 34 und ergäbe $18/34\\approx0{,}529$; beide Wahrscheinlichkeiten sind nicht austauschbar.",
+      "weight": 3,
+      "topic": "Kumulative Wahrscheinlichkeit",
+      "concept": "Inverse bedingte Wahrscheinlichkeiten",
+      "cognitive_level": "Analyse",
+      "mini_glossary": {
+        "Bedingte Wahrscheinlichkeit": "Die Wahrscheinlichkeit eines Ereignisses innerhalb einer vorgegebenen Bezugsgruppe; der Nenner wird durch die Bedingung festgelegt.",
+        "Inverse Bedingung": "Der Tausch von Ereignis und Bedingung, etwa von $P(A\\mid B)$ zu $P(B\\mid A)$; die Werte sind im Allgemeinen verschieden."
+      }
+    },
+    {
+      "question": "26. An jedem von zwei Tagen tritt modellhaft unabhängig mit Wahrscheinlichkeit $0{,}10$ eine kurze Systemstörung auf. Wie groß ist die Wahrscheinlichkeit für mindestens eine Störung in den zwei Tagen?",
+      "options": ["0,01", "0,10", "0,19", "0,20"],
+      "answer": 2,
+      "explanation": "Das Gegenereignis »an keinem Tag eine Störung« hat die Wahrscheinlichkeit $0{,}9^2=0{,}81$. Damit beträgt die gesuchte Wahrscheinlichkeit $1-0{,}81=0{,}19$; $0{,}20$ würde die Möglichkeit zweier Störungen doppelt zählen.",
+      "weight": 3,
+      "topic": "Kumulative Wahrscheinlichkeit",
+      "concept": "Gegenereignis bei unabhängigen Wiederholungen",
+      "cognitive_level": "Analyse",
+      "mini_glossary": {
+        "Gegenereignis": "Das Ereignis, dass $A$ nicht eintritt; seine Wahrscheinlichkeit ist $1-P(A)$.",
+        "Unabhängigkeit": "Zwei Ereignisse sind unabhängig, wenn das Eintreten des einen die Wahrscheinlichkeit des anderen nicht verändert."
+      }
+    },
+    {
+      "question": "27. 20 % aller Lieferungen sind verspätet. Unter den verspäteten Lieferungen werden 30 % storniert. Welcher Anteil aller Lieferungen ist zugleich verspätet und storniert?",
+      "options": ["6 %", "10 %", "30 %", "50 %"],
+      "answer": 0,
+      "explanation": "Die Multiplikationsregel liefert $P(\\text{verspätet und storniert})=0{,}20\\cdot0{,}30=0{,}06$. Die 30 % beziehen sich nur auf die verspäteten Lieferungen und dürfen nicht als Anteil aller Lieferungen gelesen werden.",
+      "weight": 3,
+      "topic": "Kumulative Wahrscheinlichkeit",
+      "concept": "Multiplikationsregel mit bedingter Wahrscheinlichkeit",
+      "cognitive_level": "Analyse",
+      "mini_glossary": {
+        "Multiplikationsregel": "Für zwei Ereignisse gilt $P(A\\cap B)=P(B\\mid A)\\cdot P(A)$.",
+        "Bedingte Wahrscheinlichkeit": "Die Wahrscheinlichkeit eines Ereignisses innerhalb einer vorgegebenen Bezugsgruppe; der Nenner wird durch die Bedingung festgelegt."
+      }
+    },
+    {
+      "question": "28. Von 1.000 Supporttickets sind 50 tatsächlich technisch. Ein Filter markiert 40 dieser 50 technischen und zusätzlich 95 der 950 nicht technischen Tickets. Wie groß ist unter den markierten Tickets der Anteil tatsächlich technischer Tickets?",
+      "options": ["8,0 %", "29,6 %", "80,0 %", "95,0 %"],
+      "answer": 1,
+      "explanation": "Markiert werden $40+95=135$ Tickets, davon sind 40 tatsächlich technisch. Der gesuchte bedingte Anteil ist $40/135\\approx0{,}296=29{,}6\\,\\%$; die Trefferquote 80 % innerhalb der technischen Tickets beantwortet eine andere Bedingung.",
+      "weight": 3,
+      "topic": "Kumulative Wahrscheinlichkeit",
+      "concept": "Basisrate und positive Vorhersage",
+      "cognitive_level": "Analyse",
+      "mini_glossary": {
+        "Basisrate": "Der Anteil des interessierenden Merkmals in der gesamten betrachteten Population vor einem weiteren Signal.",
+        "Positive Vorhersage": "Ein vom Filter als positiv markierter Fall; sie ist nicht automatisch sachlich richtig."
+      }
+    },
+    {
+      "question": "29. In einem dokumentierten Lastszenario beträgt die p95-Latenz 121 ms. Welche Schlussfolgerung ist durch diese Angabe gedeckt?",
+      "options": [
+        "Ungefähr 95 % der gemessenen Requests hatten höchstens 121 ms Latenz.",
+        "Jeder zwanzigste Request hatte exakt 121 ms Latenz.",
+        "Die mittlere Latenz aller Requests betrug 121 ms.",
+        "95 % aller künftigen Produktionsrequests werden unabhängig vom Lastszenario höchstens 121 ms benötigen."
+      ],
+      "answer": 0,
+      "explanation": "p95 ist ein Quantil: Im dokumentierten Messlauf lagen ungefähr 95 % der Messwerte bei höchstens 121 ms. Daraus lassen sich weder der Mittelwert noch eine szenariounabhängige Garantie für zukünftige Produktion ableiten.",
+      "weight": 3,
+      "topic": "Kumulative Deskription",
+      "concept": "Interpretation eines hohen Quantils",
+      "cognitive_level": "Analyse",
+      "mini_glossary": {
+        "p95": "Das 95-%-Quantil; ungefähr 95 % der beobachteten Werte liegen höchstens auf diesem Niveau.",
+        "Messszenario": "Die Bedingungen einer Messung, etwa Last, Hardware und Requestmix, die für die Übertragbarkeit der Kennzahlen relevant sind."
+      }
+    },
+    {
+      "question": "30. Ein Onlinepanel überrepräsentiert besonders technikaffine Kundinnen und Kunden. Aus diesem festen Panel werden mit Zurücklegen immer größere Zufallsstichproben gezogen. Was geschieht mit den Stichprobenmittelwerten?",
+      "options": [
+        "Sie streuen weniger und nähern sich dem Panelmittelwert; die Verzerrung gegenüber allen Kundinnen und Kunden kann bleiben.",
+        "Sie streuen stärker, weil dieselbe Person beim Ziehen mit Zurücklegen mehrfach vorkommen kann.",
+        "Sie nähern sich zwingend dem Mittelwert aller Kundinnen und Kunden, sobald $n$ groß genug ist.",
+        "Sie werden exakt normalverteilt und deshalb automatisch repräsentativ."
+      ],
+      "answer": 0,
+      "explanation": "Größeres $n$ verringert die Stichprobenvariabilität, sodass sich die Mittelwerte enger um den Parameter des verwendeten Panels sammeln. Ist dieses Panel gegenüber der Zielpopulation verzerrt, macht hohe Präzision die Schätzung nicht repräsentativ.",
+      "weight": 3,
+      "topic": "Stichprobenvariabilität",
+      "concept": "Präzision trotz Auswahlverzerrung",
+      "cognitive_level": "Analyse",
+      "mini_glossary": {
+        "Auswahlverzerrung": "Eine systematische Verzerrung, die entsteht, wenn der Auswahlmechanismus bestimmte Einheiten bevorzugt oder ausschließt.",
+        "Präzision": "Das Ausmaß der statistischen Unsicherheit einer Schätzung; kleinere Standardfehler und schmalere Intervalle bedeuten höhere Präzision.",
+        "Repräsentativität": "Die Frage, wie gut die Stichprobe die Zielpopulation hinsichtlich der relevanten Merkmale abbildet; sie folgt nicht allein aus großem $n$."
+      }
+    }
+  ]
+}

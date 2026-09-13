@@ -1,0 +1,532 @@
+{
+  "meta": {
+    "title": "P0-03 MC-Test Woche 04 – Wahrscheinlichkeit und bedingte Wahrscheinlichkeit",
+    "updated": "2026-09-13",
+    "language": "de",
+    "target_audience": "Bachelorstudierende aus BWL, Management, Wirtschaftsinformatik und Informatik ohne vorausgesetzte Statistikkenntnisse",
+    "question_count": 30,
+    "difficulty_profile": {
+      "leicht": 8,
+      "mittel": 16,
+      "schwer": 6
+    },
+    "time_per_weight_minutes": {
+      "1": 0.5,
+      "2": 0.75,
+      "3": 1.0
+    },
+    "additional_buffer_minutes": 5,
+    "test_duration_minutes": 27
+  },
+  "questions": [
+    {
+      "question": "1. Welcher Vorgang ist ein Zufallsexperiment mit klar beschriebenen Ergebnissen?",
+      "options": [
+        "Einen idealen Würfel zweimal werfen und das geordnete Zahlenpaar notieren",
+        "Den Mittelwert einer bereits vollständig bekannten Tabelle erneut berechnen",
+        "Eine Definition aus einem Glossar abschreiben",
+        "Eine feste Zahl zweimal in denselben Taschenrechner eingeben"
+      ],
+      "answer": 0,
+      "explanation": "Beim zweimaligen Würfeln sind die möglichen Ergebnisse beschreibbar, der konkrete Ausgang ist aber vorab ungewiss. Eine deterministische Wiederholungsrechnung ist kein Zufallsexperiment. Das theoretische Modell eines idealen Würfels muss von einem realen, möglicherweise verzerrten Würfel unterschieden werden.",
+      "weight": 1,
+      "topic": "Ereignisse und Gegenereignisse",
+      "concept": "Zufallsexperiment",
+      "cognitive_level": "Reproduktion",
+      "mini_glossary": {
+        "Zufallsexperiment": "Wiederholbarer Vorgang mit vorab beschreibbaren möglichen Ergebnissen, dessen konkreter Ausgang ungewiss ist.",
+        "Ergebnis": "Ein einzelner möglicher Ausgang eines Zufallsexperiments."
+      }
+    },
+    {
+      "question": "2. Beim zweimaligen Würfeln lautet A: »Mindestens einmal fällt eine Sechs.« Was ist A?",
+      "options": [
+        "Ein einzelnes Ergebnis",
+        "Die Grundgesamtheit aller Studierenden",
+        "Ein Ereignis aus mehreren möglichen Ergebnissen",
+        "Das Gegenereignis zu jedem Würfelergebnis"
+      ],
+      "answer": 2,
+      "explanation": "A umfasst alle geordneten Würfelpaare, in denen mindestens eine Sechs vorkommt, und ist damit ein Ereignis. Ein einzelnes Paar wie (6, 2) wäre nur ein Ergebnis. Die Ereignisdefinition sagt noch nichts darüber aus, ob ein realer Würfel ideal ist.",
+      "weight": 1,
+      "topic": "Ereignisse und Gegenereignisse",
+      "concept": "Ereignis als Ergebnismenge",
+      "cognitive_level": "Verständnis",
+      "mini_glossary": {
+        "Ereignis": "Menge von Ergebnissen eines Zufallsexperiments, die eine festgelegte Bedingung erfüllen.",
+        "Ergebnis": "Ein einzelner möglicher Ausgang eines Zufallsexperiments."
+      }
+    },
+    {
+      "question": "3. Die Wahrscheinlichkeit, dass eine Anfrage innerhalb einer Zielzeit beantwortet wird, beträgt 0,72. Wie groß ist die Wahrscheinlichkeit des Gegenereignisses?",
+      "options": ["0,18", "0,28", "0,72", "1,72"],
+      "answer": 1,
+      "explanation": "Für das Gegenereignis gilt P(nicht A) = 1 − P(A) = 1 − 0,72 = 0,28. 0,72 beschreibt das ursprüngliche Ereignis. Die Rechnung setzt voraus, dass »innerhalb« und »nicht innerhalb« alle Fälle eindeutig und überschneidungsfrei abdecken.",
+      "weight": 1,
+      "topic": "Ereignisse und Gegenereignisse",
+      "concept": "Gegenereignis berechnen",
+      "cognitive_level": "Anwendung",
+      "mini_glossary": {
+        "Gegenereignis": "Ereignis, dass A nicht eintritt; seine Wahrscheinlichkeit ist 1 − P(A).",
+        "Wahrscheinlichkeit": "Zahl zwischen 0 und 1 zur Beschreibung der Chance eines Ereignisses in einem festgelegten Modell."
+      }
+    },
+    {
+      "question": "4. Beim ersten Kundenkontakt werden 35 % der Fälle ausschließlich per E-Mail und 25 % ausschließlich per Chat bearbeitet. Wie wahrscheinlich ist »E-Mail oder Chat«?",
+      "options": ["8,75 %", "35 %", "50 %", "60 %"],
+      "answer": 3,
+      "explanation": "Die Kategorien sind ausdrücklich disjunkt, daher werden sie addiert: 0,35 + 0,25 = 0,60 = 60 %. Eine Multiplikation zu 8,75 % würde einen gemeinsamen Pfad statt einer Oder-Verknüpfung berechnen. Bei überlappenden Ereignissen müsste ihre Schnittmenge abgezogen werden.",
+      "weight": 2,
+      "topic": "Ereignisse und Gegenereignisse",
+      "concept": "Addition disjunkter Ereignisse",
+      "cognitive_level": "Anwendung",
+      "mini_glossary": {
+        "Disjunkte Ereignisse": "Ereignisse, die nicht gleichzeitig eintreten können und daher keine gemeinsame Schnittmenge besitzen.",
+        "Additionsregel": "Für A oder B gilt P(A ∪ B) = P(A) + P(B) − P(A ∩ B); bei disjunkten Ereignissen entfällt der letzte Term."
+      }
+    },
+    {
+      "question": "5. Zwei technisch unabhängige Prüfungen bestehen mit Wahrscheinlichkeiten 0,8 und 0,9. Wie wahrscheinlich ist es, dass beide bestehen?",
+      "options": ["0,17", "0,70", "0,72", "0,98"],
+      "answer": 2,
+      "explanation": "Bei Unabhängigkeit wird entlang des gemeinsamen Pfades multipliziert: 0,8 · 0,9 = 0,72. Die Summe 1,7 wäre keine gültige Wahrscheinlichkeit. Unabhängigkeit ist eine Modellannahme und muss sachlich begründet sein.",
+      "weight": 1,
+      "topic": "Baumdiagramm und Multiplikation",
+      "concept": "Pfadwahrscheinlichkeit bei Unabhängigkeit",
+      "cognitive_level": "Anwendung",
+      "mini_glossary": {
+        "Unabhängigkeit": "Zwei Ereignisse sind unabhängig, wenn das Eintreten des einen die Wahrscheinlichkeit des anderen nicht verändert.",
+        "Multiplikationsregel": "Berechnet die Wahrscheinlichkeit eines Pfades als Produkt aus der Wahrscheinlichkeit der ersten Stufe und der bedingten Wahrscheinlichkeit der zweiten."
+      }
+    },
+    {
+      "question": "6. In einem Baumdiagramm gilt P(A) = 0,7 und P(B | A) = 0,6. Wie groß ist P(A ∩ B)?",
+      "options": ["0,42", "0,60", "0,70", "1,30"],
+      "answer": 0,
+      "explanation": "Die Pfadwahrscheinlichkeit lautet P(A ∩ B) = P(A) · P(B | A) = 0,7 · 0,6 = 0,42. Die beiden Wahrscheinlichkeiten werden nicht addiert. Weil eine bedingte Wahrscheinlichkeit gegeben ist, muss keine Unabhängigkeit angenommen werden.",
+      "weight": 2,
+      "topic": "Baumdiagramm und Multiplikation",
+      "concept": "Multiplikationsregel mit Bedingung",
+      "cognitive_level": "Anwendung",
+      "mini_glossary": {
+        "Bedingte Wahrscheinlichkeit": "Wahrscheinlichkeit eines Ereignisses innerhalb einer vorgegebenen Bezugsgruppe; P(A | B) bezieht sich nur auf B.",
+        "Multiplikationsregel": "Berechnet die Wahrscheinlichkeit eines Pfades als Produkt aus der Wahrscheinlichkeit der ersten Stufe und der bedingten Wahrscheinlichkeit der zweiten.",
+        "Schnittmenge": "Ereignis, dass A und B gemeinsam eintreten."
+      }
+    },
+    {
+      "question": "7. Zwei unabhängige Sicherungen funktionieren jeweils mit Wahrscheinlichkeit 0,8. Wie wahrscheinlich ist es, dass mindestens eine funktioniert?",
+      "options": ["0,64", "0,96", "1,60", "0,04"],
+      "answer": 1,
+      "explanation": "Das Gegenereignis lautet »beide funktionieren nicht« und hat Wahrscheinlichkeit 0,2 · 0,2 = 0,04. Daher gilt P(mindestens eine) = 1 − 0,04 = 0,96. 0,64 ist nur die Wahrscheinlichkeit, dass beide funktionieren.",
+      "weight": 2,
+      "topic": "Baumdiagramm und Multiplikation",
+      "concept": "Mindestens ein Erfolg über das Gegenereignis",
+      "cognitive_level": "Anwendung",
+      "mini_glossary": {
+        "Gegenereignis": "Ereignis, dass A nicht eintritt; seine Wahrscheinlichkeit ist 1 − P(A).",
+        "Unabhängigkeit": "Zwei Ereignisse sind unabhängig, wenn das Eintreten des einen die Wahrscheinlichkeit des anderen nicht verändert.",
+        "Mindestens ein Erfolg": "Ereignis, dass ein Erfolg einmal oder mehrfach eintritt; oft einfacher über das Gegenereignis »kein Erfolg« zu berechnen."
+      }
+    },
+    {
+      "question": "8. Es gilt P(A) = 0,4, P(B) = 0,5 und P(A ∩ B) = 0,2. Welche Diagnose ist korrekt?",
+      "options": [
+        "A und B sind disjunkt, weil ihre Wahrscheinlichkeiten kleiner als 1 sind.",
+        "A und B sind abhängig, weil sie gemeinsam eintreten können.",
+        "Die Angaben widersprechen sich, weil 0,4 + 0,5 nicht 1 ergibt.",
+        "A und B sind unabhängig, weil 0,4 · 0,5 = 0,2 gilt."
+      ],
+      "answer": 3,
+      "explanation": "Für unabhängige Ereignisse gilt P(A ∩ B) = P(A)P(B); hier ist 0,4 · 0,5 = 0,2. Gemeinsames Eintreten widerspricht Unabhängigkeit nicht. Disjunkte Ereignisse mit positiven Wahrscheinlichkeiten wären dagegen nicht unabhängig, weil das eine das andere ausschließt.",
+      "weight": 3,
+      "topic": "Baumdiagramm und Multiplikation",
+      "concept": "Unabhängigkeit rechnerisch prüfen",
+      "cognitive_level": "Analyse",
+      "mini_glossary": {
+        "Unabhängigkeit": "Zwei Ereignisse sind unabhängig, wenn das Eintreten des einen die Wahrscheinlichkeit des anderen nicht verändert.",
+        "Disjunkte Ereignisse": "Ereignisse, die nicht gleichzeitig eintreten können und daher keine gemeinsame Schnittmenge besitzen.",
+        "Schnittmenge": "Ereignis, dass A und B gemeinsam eintreten."
+      }
+    },
+    {
+      "question": "9. An zwei aufeinanderfolgenden Tagen fällt derselbe gemeinsam genutzte Server jeweils mit beobachteter Wahrscheinlichkeit 0,1 aus. Welche Rechnung für zwei Ausfälle ist fachlich vertretbar?",
+      "options": [
+        "Immer 0,1 + 0,1 = 0,2, weil es zwei Tage gibt",
+        "Immer 1 − 0,1 = 0,9, weil der zweite Tag das Gegenereignis ist",
+        "0,1 · 0,1 = 0,01 nur dann, wenn die Unabhängigkeit der Tagesausfälle begründet ist",
+        "Genau 0,1, weil an beiden Tagen derselbe Server genutzt wird"
+      ],
+      "answer": 2,
+      "explanation": "Das Produkt 0,01 setzt Unabhängigkeit voraus. Gemeinsame Ursachen wie ein ungelöstes Hardwareproblem können Tagesausfälle abhängig machen; aus gleichen Randwahrscheinlichkeiten folgt keine Unabhängigkeit. Für eine belastbare Rechnung werden daher bedingte Wahrscheinlichkeiten oder eine begründete Modellannahme benötigt.",
+      "weight": 2,
+      "topic": "Baumdiagramm und Multiplikation",
+      "concept": "Unabhängigkeitsannahme im Transfer",
+      "cognitive_level": "Analyse",
+      "mini_glossary": {
+        "Unabhängigkeit": "Zwei Ereignisse sind unabhängig, wenn das Eintreten des einen die Wahrscheinlichkeit des anderen nicht verändert.",
+        "Randwahrscheinlichkeit": "Wahrscheinlichkeit eines Ereignisses ohne zusätzliche Bedingung.",
+        "Bedingte Wahrscheinlichkeit": "Wahrscheinlichkeit eines Ereignisses innerhalb einer vorgegebenen Bezugsgruppe; P(A | B) bezieht sich nur auf B."
+      }
+    },
+    {
+      "question": "10. Eine Kontingenztafel enthält 60 Antworten: niedrig sicher 6 richtig/16 falsch, mittel sicher 7/5 und hoch sicher 21/5. Wie groß ist P(richtig)?",
+      "options": ["34/60 ≈ 56,7 %", "21/26 ≈ 80,8 %", "34/34 = 100 %", "26/60 ≈ 43,3 %"],
+      "answer": 0,
+      "explanation": "Richtig sind 6 + 7 + 21 = 34 von insgesamt 60 Antworten, also 34/60 ≈ 56,7 %. 21/26 wäre der richtige Anteil nur innerhalb der Gruppe mit hoher Sicherheit. Der Gesamtanteil benötigt den Gesamtnenner 60.",
+      "weight": 1,
+      "topic": "Kontingenztafel und Bedingungen",
+      "concept": "Randwahrscheinlichkeit aus einer Kontingenztafel",
+      "cognitive_level": "Anwendung",
+      "mini_glossary": {
+        "Kontingenztafel": "Tabelle gemeinsamer und Randhäufigkeiten zweier kategorialer Merkmale.",
+        "Randhäufigkeit": "Summe einer Zeile oder Spalte einer Kontingenztafel unabhängig von der jeweils anderen Variable.",
+        "Nenner": "Bezugsgröße, durch die bei einer Rechnung geteilt wird."
+      }
+    },
+    {
+      "question": "11. In derselben Tafel sind unter 26 hoch sicheren Antworten 21 richtig. Wie groß ist P(richtig | hohe Sicherheit)?",
+      "options": ["21/60 = 35,0 %", "5/26 ≈ 19,2 %", "21/34 ≈ 61,8 %", "21/26 ≈ 80,8 %"],
+      "answer": 3,
+      "explanation": "Die Bedingung »hohe Sicherheit« begrenzt die Bezugsgruppe auf 26 Antworten. Davon sind 21 richtig, also 21/26 ≈ 80,8 %. 21/34 verwendet dagegen alle richtigen Antworten und beantwortet die inverse Frage P(hoch | richtig).",
+      "weight": 2,
+      "topic": "Kontingenztafel und Bedingungen",
+      "concept": "Bedingter richtiger Anteil",
+      "cognitive_level": "Anwendung",
+      "mini_glossary": {
+        "Bedingte Wahrscheinlichkeit": "Wahrscheinlichkeit eines Ereignisses innerhalb einer vorgegebenen Bezugsgruppe; P(A | B) bezieht sich nur auf B.",
+        "Bezugsgruppe": "Durch die Bedingung festgelegte Teilmenge, die den Nenner einer bedingten Wahrscheinlichkeit bildet.",
+        "Confidence": "Antwortbezogene Selbsteinschätzung auf geordneten Stufen; Abstände zwischen Stufen sind nicht als gleich groß gesichert."
+      }
+    },
+    {
+      "question": "12. In der Tafel sind insgesamt 34 Antworten richtig, davon 21 mit hoher Sicherheit. Wie groß ist P(hohe Sicherheit | richtig)?",
+      "options": ["5/26 ≈ 19,2 %", "21/34 ≈ 61,8 %", "21/26 ≈ 80,8 %", "34/60 ≈ 56,7 %"],
+      "answer": 1,
+      "explanation": "Die Bedingung »richtig« legt den Nenner 34 fest. Unter diesen 34 richtigen Antworten sind 21 hoch sicher, also 21/34 ≈ 61,8 %. Die häufige Verwechslung mit 21/26 = P(richtig | hoch) ändert die Bezugsgruppe und damit die Frage.",
+      "weight": 2,
+      "topic": "Kontingenztafel und Bedingungen",
+      "concept": "Inverse bedingte Wahrscheinlichkeit",
+      "cognitive_level": "Anwendung",
+      "mini_glossary": {
+        "Inverse Bedingung": "Vertauschung von Ereignis und Bedingung; P(A | B) und P(B | A) haben meist verschiedene Nenner.",
+        "Bedingte Wahrscheinlichkeit": "Wahrscheinlichkeit eines Ereignisses innerhalb einer vorgegebenen Bezugsgruppe; P(A | B) bezieht sich nur auf B.",
+        "Bezugsgruppe": "Durch die Bedingung festgelegte Teilmenge, die den Nenner einer bedingten Wahrscheinlichkeit bildet."
+      }
+    },
+    {
+      "question": "13. Unter den 22 Antworten mit niedriger Sicherheit sind 16 falsch. Wie groß ist P(falsch | niedrige Sicherheit)?",
+      "options": ["6/22 ≈ 27,3 %", "16/60 ≈ 26,7 %", "16/22 ≈ 72,7 %", "16/26 ≈ 61,5 %"],
+      "answer": 2,
+      "explanation": "Die Bedingung »niedrige Sicherheit« bestimmt den Nenner 22. Davon sind 16 falsch, also 16/22 ≈ 72,7 %. 16/26 würde stattdessen den Anteil niedrig sicherer Antworten unter allen 26 falschen Antworten berechnen.",
+      "weight": 2,
+      "topic": "Kontingenztafel und Bedingungen",
+      "concept": "Bedingter falscher Anteil",
+      "cognitive_level": "Anwendung",
+      "mini_glossary": {
+        "Bedingte Wahrscheinlichkeit": "Wahrscheinlichkeit eines Ereignisses innerhalb einer vorgegebenen Bezugsgruppe; P(A | B) bezieht sich nur auf B.",
+        "Bezugsgruppe": "Durch die Bedingung festgelegte Teilmenge, die den Nenner einer bedingten Wahrscheinlichkeit bildet.",
+        "Nenner": "Bezugsgröße, durch die bei einer Rechnung geteilt wird."
+      }
+    },
+    {
+      "question": "14. Die Tafel liefert P(richtig | hoch) = 21/26 ≈ 80,8 % und P(hoch | richtig) = 21/34 ≈ 61,8 %. Welche Erklärung trifft zu?",
+      "options": [
+        "Die Werte unterscheiden sich, weil die erste Bezugsgruppe 26 hoch sichere und die zweite 34 richtige Antworten umfasst.",
+        "Einer der Werte muss falsch sein, weil inverse Bedingungen immer gleich sind.",
+        "Der Unterschied entsteht ausschließlich durch Rundung.",
+        "Beide Werte müssten durch 60 geteilt werden, weil die Tafel 60 Antworten enthält."
+      ],
+      "answer": 0,
+      "explanation": "Die gemeinsame Zelle 21 ist gleich, aber die Bedingungen erzeugen verschiedene Nenner: 26 beziehungsweise 34. Deshalb sind inverse bedingte Wahrscheinlichkeiten im Allgemeinen verschieden. Eine sprachliche Interpretation mit genannter Bezugsgruppe verhindert die Vertauschung.",
+      "weight": 3,
+      "topic": "Kontingenztafel und Bedingungen",
+      "concept": "Vergleich inverser Bedingungen",
+      "cognitive_level": "Analyse",
+      "mini_glossary": {
+        "Inverse Bedingung": "Vertauschung von Ereignis und Bedingung; P(A | B) und P(B | A) haben meist verschiedene Nenner.",
+        "Bezugsgruppe": "Durch die Bedingung festgelegte Teilmenge, die den Nenner einer bedingten Wahrscheinlichkeit bildet.",
+        "Kontingenztafel": "Tabelle gemeinsamer und Randhäufigkeiten zweier kategorialer Merkmale."
+      }
+    },
+    {
+      "question": "15. In der Tafel sind 21 von 60 Antworten zugleich richtig und hoch sicher. Wie groß ist P(richtig ∩ hohe Sicherheit)?",
+      "options": ["21/26 ≈ 80,8 %", "21/34 ≈ 61,8 %", "34/60 ≈ 56,7 %", "21/60 = 35,0 %"],
+      "answer": 3,
+      "explanation": "Für das gemeinsame Ereignis innerhalb aller Antworten ist der Gesamtnenner 60 zu verwenden: 21/60 = 0,35 = 35,0 %. Die Nenner 26 und 34 gehören zu bedingten Wahrscheinlichkeiten. Der gemeinsame Anteil beschreibt die Tafel, aber keine Ursache zwischen Sicherheit und Korrektheit.",
+      "weight": 2,
+      "topic": "Kontingenztafel und Bedingungen",
+      "concept": "Gemeinsame Wahrscheinlichkeit",
+      "cognitive_level": "Anwendung",
+      "mini_glossary": {
+        "Schnittmenge": "Ereignis, dass A und B gemeinsam eintreten.",
+        "Kontingenztafel": "Tabelle gemeinsamer und Randhäufigkeiten zweier kategorialer Merkmale.",
+        "Nenner": "Bezugsgröße, durch die bei einer Rechnung geteilt wird."
+      }
+    },
+    {
+      "question": "16. Von 200 Supporttickets sind 20 tatsächlich technisch. Ein Filter markiert 18 davon sowie 36 der 180 nicht technischen Tickets. Wie groß ist P(technisch | markiert)?",
+      "options": ["18/20 = 90,0 %", "18/54 ≈ 33,3 %", "36/54 ≈ 66,7 %", "54/200 = 27,0 %"],
+      "answer": 1,
+      "explanation": "Markiert sind 18 + 36 = 54 Tickets; davon sind 18 tatsächlich technisch. Somit gilt P(technisch | markiert) = 18/54 = 1/3 ≈ 33,3 %. 18/20 = 90 % beschreibt die inverse Bedingung P(markiert | technisch), nicht die Zusammensetzung der markierten Gruppe.",
+      "weight": 2,
+      "topic": "Inverse Bedingungen und Bayes-Idee",
+      "concept": "Positive Vorhersage bei seltener Basisrate",
+      "cognitive_level": "Anwendung",
+      "mini_glossary": {
+        "Basisrate": "Anteil des interessierenden Ereignisses in der Gesamtgruppe vor Berücksichtigung eines Signals oder Tests.",
+        "Inverse Bedingung": "Vertauschung von Ereignis und Bedingung; P(A | B) und P(B | A) haben meist verschiedene Nenner.",
+        "Falsch-positiver Fall": "Fall ohne das interessierende Merkmal, der durch ein Signal dennoch positiv markiert wird."
+      }
+    },
+    {
+      "question": "17. Was bezeichnet die Basisrate in einem Triagefall?",
+      "options": [
+        "Den Anteil markierter Fälle, die tatsächlich relevant sind",
+        "Die Kosten einer Fehlentscheidung",
+        "Den Anteil tatsächlich relevanter Fälle in der Gesamtgruppe vor der Filtermeldung",
+        "Die Wahrscheinlichkeit, dass ein relevanter Fall markiert wird"
+      ],
+      "answer": 2,
+      "explanation": "Die Basisrate ist der Ausgangsanteil tatsächlich relevanter Fälle in der betrachteten Gesamtgruppe. Der Anteil relevanter Fälle unter den Markierungen ist eine bedingte Wahrscheinlichkeit in der umgekehrten Richtung. Basisraten hängen von der betrachteten Population und dem Zeitraum ab.",
+      "weight": 1,
+      "topic": "Inverse Bedingungen und Bayes-Idee",
+      "concept": "Basisrate",
+      "cognitive_level": "Reproduktion",
+      "mini_glossary": {
+        "Basisrate": "Anteil des interessierenden Ereignisses in der Gesamtgruppe vor Berücksichtigung eines Signals oder Tests.",
+        "Triage": "Priorisierung von Fällen nach festgelegten Kriterien, damit begrenzte Bearbeitungskapazität gezielt eingesetzt wird.",
+        "Population": "Gesamtheit der Einheiten, über die eine Untersuchung eine Aussage anstrebt."
+      }
+    },
+    {
+      "question": "18. Ein Filter markiert 90 % der tatsächlich technischen Tickets. Welche Aussage folgt daraus allein nicht?",
+      "options": [
+        "90 % der markierten Tickets sind tatsächlich technisch.",
+        "Unter den technischen Tickets werden 10 % nicht markiert.",
+        "P(markiert | technisch) beträgt 0,90.",
+        "Die Erkennungsrate innerhalb der technischen Tickets ist hoch."
+      ],
+      "answer": 0,
+      "explanation": "90 % ist P(markiert | technisch), nicht P(technisch | markiert). Für die inverse Wahrscheinlichkeit werden zusätzlich die Basisrate und Markierungen nicht technischer Tickets benötigt. Der häufige Basisratenfehler verwechselt eine hohe Erkennungsrate mit einer ebenso hohen Verlässlichkeit jeder einzelnen Markierung.",
+      "weight": 2,
+      "topic": "Inverse Bedingungen und Bayes-Idee",
+      "concept": "Basisratenfehler",
+      "cognitive_level": "Verständnis",
+      "mini_glossary": {
+        "Basisrate": "Anteil des interessierenden Ereignisses in der Gesamtgruppe vor Berücksichtigung eines Signals oder Tests.",
+        "Inverse Bedingung": "Vertauschung von Ereignis und Bedingung; P(A | B) und P(B | A) haben meist verschiedene Nenner.",
+        "Erkennungsrate": "Anteil der tatsächlich relevanten Fälle, die durch ein Signal als relevant markiert werden."
+      }
+    },
+    {
+      "question": "19. Ein Filter erkennt 80 % relevanter Fälle und markiert 10 % nicht relevanter Fälle fälschlich. In Gruppe A sind 5 % von 1.000 Fällen relevant, in Gruppe B 50 % von ebenfalls 1.000 Fällen. Welche Aussage ist korrekt?",
+      "options": [
+        "In beiden Gruppen sind genau 80 % der Markierungen relevant.",
+        "In A sind 40 von 95 Markierungen relevant, also 42,1 %.",
+        "In B sind 400 von 950 Markierungen relevant, also 42,1 %.",
+        "In A sind 40 von 135 Markierungen relevant, also 29,6 %; in B 400 von 450, also 88,9 %."
+      ],
+      "answer": 3,
+      "explanation": "In A werden 0,8 · 50 = 40 relevante und 0,1 · 950 = 95 nicht relevante Fälle markiert: 40/135 ≈ 29,6 %. In B sind es 400 relevante und 50 nicht relevante Markierungen: 400/450 ≈ 88,9 %. Gleiche Filterraten führen bei unterschiedlichen Basisraten zu stark verschiedenen inversen Wahrscheinlichkeiten.",
+      "weight": 3,
+      "topic": "Inverse Bedingungen und Bayes-Idee",
+      "concept": "Einfluss der Basisrate",
+      "cognitive_level": "Analyse",
+      "mini_glossary": {
+        "Basisrate": "Anteil des interessierenden Ereignisses in der Gesamtgruppe vor Berücksichtigung eines Signals oder Tests.",
+        "Falsch-positiver Fall": "Fall ohne das interessierende Merkmal, der durch ein Signal dennoch positiv markiert wird.",
+        "Bedingte Wahrscheinlichkeit": "Wahrscheinlichkeit eines Ereignisses innerhalb einer vorgegebenen Bezugsgruppe; P(A | B) bezieht sich nur auf B."
+      }
+    },
+    {
+      "question": "20. Von 1.000 Tickets sind 100 technisch. Ein Filter markiert 90 davon und verpasst 10; zusätzlich markiert er 180 nicht technische Tickets. Ein verpasstes technisches Ticket kostet 50 €, eine unnötige Markierung 2 €. Welche Kostenrechnung ist richtig?",
+      "options": [
+        "10 · 2 € + 180 · 50 € = 9.020 €",
+        "90 · 50 € + 180 · 2 € = 4.860 €",
+        "10 · 50 € + 180 · 2 € = 860 €",
+        "100 · 50 € + 900 · 2 € = 6.800 €"
+      ],
+      "answer": 2,
+      "explanation": "Die zehn verpassten technischen Tickets verursachen 10 · 50 € = 500 €, die 180 unnötigen Markierungen 180 · 2 € = 360 €; zusammen sind es 860 €. Für eine Managemententscheidung zählen neben Wahrscheinlichkeiten die Folgen beider Fehlerarten. Die Rechnung ist ein vereinfachtes Lehrmodell und ersetzt keine empirisch belegte Kostenschätzung.",
+      "weight": 3,
+      "topic": "Inverse Bedingungen und Bayes-Idee",
+      "concept": "Triageentscheidung mit Fehlkosten",
+      "cognitive_level": "Analyse",
+      "mini_glossary": {
+        "Triage": "Priorisierung von Fällen nach festgelegten Kriterien, damit begrenzte Bearbeitungskapazität gezielt eingesetzt wird.",
+        "Falsch-positiver Fall": "Fall ohne das interessierende Merkmal, der durch ein Signal dennoch positiv markiert wird.",
+        "Falsch-negativer Fall": "Fall mit dem interessierenden Merkmal, der durch ein Signal nicht positiv markiert wird.",
+        "Fehlkosten": "Bewertete Folgen einer falschen Entscheidung; verschiedene Fehlerarten können unterschiedliche Kosten haben."
+      }
+    },
+    {
+      "question": "21. Eine Datentabelle enthält pro Zeile genau eine abgegebene Antwort mit Korrektheit und Sicherheit. Was ist die Beobachtungseinheit?",
+      "options": [
+        "Die gesamte Lehrveranstaltung",
+        "Eine einzelne abgegebene Antwort",
+        "Die Variable Sicherheit",
+        "Der Anteil richtiger Antworten"
+      ],
+      "answer": 1,
+      "explanation": "Eine Zeile repräsentiert eine einzelne abgegebene Antwort und ist damit die Beobachtungseinheit. Korrektheit und Sicherheit sind Merkmale dieser Einheit. Diese Festlegung ist nötig, bevor Häufigkeiten oder eine Kontingenztafel gebildet werden.",
+      "weight": 1,
+      "topic": "Kumulative Wiederholung: Datenstruktur",
+      "concept": "Beobachtungseinheit einer Antworttabelle",
+      "cognitive_level": "Reproduktion",
+      "mini_glossary": {
+        "Beobachtungseinheit": "Einzelne Einheit, auf die sich eine Zeile beziehungsweise Beobachtung bezieht.",
+        "Merkmal": "Erhobene Eigenschaft einer Beobachtungseinheit, die in einer Variable festgehalten wird."
+      }
+    },
+    {
+      "question": "22. Warum wird eine Confidence-Angabe von 1 bis 5 als ordinal behandelt?",
+      "options": [
+        "Weil die Stufen keine natürliche Reihenfolge besitzen",
+        "Weil nur zwei verschiedene Werte zulässig sind",
+        "Weil jede Stufe zwingend den gleichen Wahrscheinlichkeitsabstand ausdrückt",
+        "Weil die Stufen geordnet sind, gleiche Abstände zwischen ihnen aber nicht gesichert sind"
+      ],
+      "answer": 3,
+      "explanation": "Die Stufen 1 bis 5 besitzen eine klare Reihenfolge, doch der subjektive Abstand zwischen 1 und 2 muss nicht dem zwischen 4 und 5 entsprechen. Daher ist »ordinal« richtig, nicht nominal oder automatisch metrisch. Confidence ist eine Selbstauskunft und keine gemessene Erfolgswahrscheinlichkeit.",
+      "weight": 1,
+      "topic": "Kumulative Wiederholung: Skalenniveau",
+      "concept": "Ordinales Skalenniveau von Confidence",
+      "cognitive_level": "Verständnis",
+      "mini_glossary": {
+        "Ordinalskala": "Skalenniveau mit geordneten Kategorien, bei dem gleiche Abstände zwischen benachbarten Stufen nicht vorausgesetzt werden.",
+        "Confidence": "Antwortbezogene Selbsteinschätzung auf geordneten Stufen; Abstände zwischen Stufen sind nicht als gleich groß gesichert."
+      }
+    },
+    {
+      "question": "23. Von 24 abgegebenen Antworten sind 18 korrekt. Wie groß ist die relative Häufigkeit korrekter Antworten?",
+      "options": ["75 %", "24 %", "18 %", "133,3 %"],
+      "answer": 0,
+      "explanation": "Es gilt 18/24 = 0,75 = 75 %. Der Nenner sind die 24 abgegebenen Antworten, nicht automatisch alle eingeschriebenen Personen. Der beobachtete Anteil ist eine empirische Häufigkeit und keine theoretisch garantierte Wahrscheinlichkeit.",
+      "weight": 2,
+      "topic": "Kumulative Wiederholung: Häufigkeiten",
+      "concept": "Relative Häufigkeit",
+      "cognitive_level": "Anwendung",
+      "mini_glossary": {
+        "Relative Häufigkeit": "Anteil einer Kategorie an einer klar benannten Bezugsmenge; berechnet als Anzahl der Kategorie geteilt durch den Nenner.",
+        "Nenner": "Bezugsgröße, durch die bei einer Rechnung geteilt wird.",
+        "Empirische Häufigkeit": "In beobachteten Daten festgestellter Anteil eines Ereignisses."
+      }
+    },
+    {
+      "question": "24. Wie groß ist der arithmetische Mittelwert der Werte 2, 4, 6 und 8?",
+      "options": ["4", "4,5", "5", "6"],
+      "answer": 2,
+      "explanation": "Die Summe beträgt 2 + 4 + 6 + 8 = 20; geteilt durch n = 4 ergibt das 5. 4,5 wäre weder Summe durch Anzahl noch der Median dieses Datensatzes. Der Wert 5 beschreibt die beobachtete Lage, nicht die Streuung.",
+      "weight": 2,
+      "topic": "Kumulative Wiederholung: Lage",
+      "concept": "Arithmetischer Mittelwert",
+      "cognitive_level": "Anwendung",
+      "mini_glossary": {
+        "Mittelwert": "Summe aller Werte geteilt durch ihre Anzahl; er reagiert empfindlich auf Extremwerte.",
+        "Streuung": "Ausmaß, in dem Beobachtungen um eine Lage oder untereinander variieren."
+      }
+    },
+    {
+      "question": "25. Wie groß ist der Median der geordneten Werte 10, 11, 12 und 100?",
+      "options": ["11", "11,5", "12", "33,25"],
+      "answer": 1,
+      "explanation": "Bei vier Werten ist der Median der Mittelwert der beiden mittleren Werte: (11 + 12)/2 = 11,5. 33,25 ist der arithmetische Mittelwert und wird durch 100 stark beeinflusst. Der Median bleibt gegenüber diesem hohen Wert vergleichsweise robust.",
+      "weight": 2,
+      "topic": "Kumulative Wiederholung: Lage",
+      "concept": "Median bei gerader Anzahl",
+      "cognitive_level": "Anwendung",
+      "mini_glossary": {
+        "Median": "Zentraler Lagewert geordneter Daten; bei geradem n wird nur für metrische Werte das arithmetische Mittel der beiden mittleren Werte gebildet, bei ordinalen Kategorien ist die verwendete Konvention anzugeben.",
+        "Mittelwert": "Summe aller Werte geteilt durch ihre Anzahl; er reagiert empfindlich auf Extremwerte.",
+        "Robustheit": "Geringe Empfindlichkeit einer Kennzahl gegenüber einzelnen extremen Beobachtungen."
+      }
+    },
+    {
+      "question": "26. Die Werte lauten 7, 9, 12 und 15. Wie groß ist ihre Spannweite?",
+      "options": ["6", "7", "7,5", "8"],
+      "answer": 3,
+      "explanation": "Die Spannweite ist Maximum minus Minimum: 15 − 7 = 8. Sie ist nicht die Hälfte dieses Abstands und nicht der Mittelwert. Da nur die beiden Extremwerte eingehen, sollte sie bei auffälligen Werten durch weitere Streuungsmaße ergänzt werden.",
+      "weight": 2,
+      "topic": "Kumulative Wiederholung: Streuung",
+      "concept": "Spannweite berechnen",
+      "cognitive_level": "Anwendung",
+      "mini_glossary": {
+        "Spannweite": "Differenz zwischen größtem und kleinstem beobachteten Wert; sie nutzt nur die beiden Extremwerte.",
+        "Minimum": "Kleinster beobachteter Wert eines Datensatzes.",
+        "Maximum": "Größter beobachteter Wert eines Datensatzes."
+      }
+    },
+    {
+      "question": "27. Für die vollständig vorliegenden Sessionwerte 0, 2 und 4 soll die deskriptive Varianz mit Nenner n berechnet werden. Welcher Wert ergibt sich?",
+      "options": ["8/3 ≈ 2,67", "2", "4", "8"],
+      "answer": 0,
+      "explanation": "Der Mittelwert ist 2; die quadrierten Abweichungen sind 4, 0 und 4, ihre Summe ist 8. Deskriptiv wird durch n = 3 geteilt: 8/3 ≈ 2,67. Der Wert 4 ergäbe sich bei n − 1 und hätte ein anderes Auswertungsziel.",
+      "weight": 2,
+      "topic": "Kumulative Wiederholung: Streuung",
+      "concept": "Deskriptive Varianz",
+      "cognitive_level": "Anwendung",
+      "mini_glossary": {
+        "Deskriptive Varianz": "Varianz zur Beschreibung aller vorliegenden Werte mit dem Nenner n.",
+        "Varianz": "Mittlere quadrierte Abweichung vom Mittelwert; ihre Einheit ist die quadrierte Dateneinheit.",
+        "Quadratsumme": "Summe der quadrierten Abweichungen aller Werte vom Mittelwert."
+      }
+    },
+    {
+      "question": "28. Dieselben Werte 0, 2 und 4 werden als Stichprobe zur Schätzung einer Populationsvarianz verwendet. Wie groß ist die Stichprobenvarianz mit n − 1?",
+      "options": ["8/3 ≈ 2,67", "3", "4", "8"],
+      "answer": 2,
+      "explanation": "Die Quadratsumme ist 8 und der Nenner n − 1 = 2, daher beträgt die Stichprobenvarianz 8/2 = 4. 8/3 ist die deskriptive Varianz der drei vorliegenden Werte. Die Korrektur des Nenners beseitigt keine Auswahlverzerrung der Stichprobe.",
+      "weight": 2,
+      "topic": "Kumulative Wiederholung: Streuung",
+      "concept": "Stichprobenvarianz",
+      "cognitive_level": "Anwendung",
+      "mini_glossary": {
+        "Stichprobenvarianz": "Varianzschätzer für eine größere Population mit dem Nenner n − 1.",
+        "Population": "Gesamtheit der Einheiten, über die eine Untersuchung eine Aussage anstrebt.",
+        "Auswahlverzerrung": "Systematische Abweichung, weil die beobachteten Einheiten nicht angemessen für die Zielpopulation ausgewählt wurden."
+      }
+    },
+    {
+      "question": "29. Es gelten Q1 = 10 und Q3 = 14. Nach der 1,5·IQR-Regel werden 4, 10, 20 und 25 geprüft. Welche Aussage ist korrekt?",
+      "options": [
+        "4 und 20 sind Ausreißer, weil sie auf den Grenzen liegen.",
+        "Nur 25 liegt außerhalb der Grenzen 4 und 20.",
+        "10 und 14 sind Ausreißer, weil sie Quartile sind.",
+        "Kein Wert ist auffällig, weil der IQR positiv ist."
+      ],
+      "answer": 1,
+      "explanation": "Der IQR beträgt 14 − 10 = 4. Die Grenzen sind 10 − 1,5 · 4 = 4 und 14 + 1,5 · 4 = 20; Werte auf den Grenzen gelten hier nicht als außerhalb, 25 liegt darüber. Auch ein markierter Wert darf erst nach Prüfung von Quelle, Einheit und Kontext behandelt werden.",
+      "weight": 3,
+      "topic": "Kumulative Wiederholung: Quartile und Ausreißer",
+      "concept": "Beidseitige Ausreißergrenzen",
+      "cognitive_level": "Analyse",
+      "mini_glossary": {
+        "Interquartilsabstand": "Differenz Q3 − Q1 und Breite der mittleren 50 % der geordneten Daten.",
+        "Ausreißer": "Beobachtung, die nach einer festgelegten Regel auffällig weit vom übrigen Datenbereich liegt; das ist kein automatischer Löschgrund.",
+        "Untere Ausreißergrenze": "Rechnerische Schwelle Q1 − 1,5 · IQR zur explorativen Markierung niedriger auffälliger Werte."
+      }
+    },
+    {
+      "question": "30. Zwei kleine Gelegenheitsstichproben von Filialwartezeiten lauten X = 4, 5, 6 und Y = 4, 5, 20 Minuten. Welcher Befund ist angemessen?",
+      "options": [
+        "Beide Mediane sind 5; Y hat Mittelwert 9,67 und Spannweite 16 statt 2, doch daraus folgt keine Wahrscheinlichkeit für alle künftigen Wartezeiten.",
+        "Y ist in jeder Filiale künftig sicher viermal langsamer, weil 20/5 = 4 gilt.",
+        "Beide Verteilungen sind gleich, weil ihr Minimum 4 beträgt.",
+        "X streut stärker, weil sein Mittelwert kleiner ist."
+      ],
+      "answer": 0,
+      "explanation": "X hat Mittelwert und Median 5 sowie Spannweite 2. Y hat Median 5, Mittelwert 29/3 ≈ 9,67 und Spannweite 20 − 4 = 16; der hohe Wert beeinflusst Mittelwert und Spannweite stark. Die Gelegenheitsstichproben erlauben eine deskriptive Gegenüberstellung, aber keine allgemeine Wahrscheinlichkeits- oder Kausalaussage.",
+      "weight": 3,
+      "topic": "Kumulative Wiederholung: Transfer und Datenkritik",
+      "concept": "Deskriptiver Vergleich ohne Übertragung",
+      "cognitive_level": "Analyse",
+      "mini_glossary": {
+        "Gelegenheitsstichprobe": "Stichprobe aus leicht verfügbaren Einheiten ohne gesicherte repräsentative Auswahl.",
+        "Mittelwert": "Summe aller Werte geteilt durch ihre Anzahl; er reagiert empfindlich auf Extremwerte.",
+        "Spannweite": "Differenz zwischen größtem und kleinstem beobachteten Wert; sie nutzt nur die beiden Extremwerte.",
+        "Übertragbarkeit": "Grad, in dem ein Ergebnis über die tatsächlich untersuchten Einheiten hinaus begründet gelten kann."
+      }
+    }
+  ]
+}

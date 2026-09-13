@@ -1,0 +1,152 @@
+{
+  "exportVersion": 1,
+  "exportedAt": "2026-09-13T00:00:00.000Z",
+  "quiz": {
+    "name": "P0-03 ARSnova – Woche 09: Train/Test und Metriken",
+    "description": "Diagnosefragen zu Generalisierung, Overfitting, Confusion Matrix, Fehlkosten und Coverage.",
+    "showLeaderboard": false,
+    "allowCustomNicknames": false,
+    "defaultTimer": null,
+    "timerScaleByDifficulty": false,
+    "enableTimerAccommodation": true,
+    "enableSoundEffects": false,
+    "enableRewardEffects": false,
+    "enableMotivationMessages": false,
+    "enableEmojiReactions": false,
+    "anonymousMode": true,
+    "teamMode": false,
+    "teamCount": null,
+    "teamAssignment": "AUTO",
+    "backgroundMusic": null,
+    "nicknameTheme": "HIGH_SCHOOL",
+    "bonusTokenCount": null,
+    "readingPhaseEnabled": true,
+    "questions": [
+      {
+        "text": "### 98 % im Training, 71 % im Test\n\nEin Klassifikator erreicht auf Trainingsdaten 98 % und auf getrennten Testdaten 71 % Accuracy.\n\nWelche Diagnose ist am angemessensten?",
+        "type": "SINGLE_CHOICE",
+        "timer": null,
+        "difficulty": "EASY",
+        "order": 0,
+        "answers": [
+          {
+            "text": "Die Generalisierung ist schwächer; Overfitting, Stichprobenschwankung und Domain Shift müssen geprüft werden.",
+            "isCorrect": true
+          },
+          {
+            "text": "Das Modell generalisiert sicher mit 98 %, weil Training wichtiger als Test ist.",
+            "isCorrect": false
+          },
+          {
+            "text": "Der Unterschied beweist, dass die Testlabels falsch sind.",
+            "isCorrect": false
+          },
+          {
+            "text": "Training und Test müssen immer exakt dieselbe Accuracy haben.",
+            "isCorrect": false
+          }
+        ]
+      },
+      {
+        "text": "### Wann wird der Test irreführend?\n\nWelche Situationen können die Aussagekraft einer Testevaluation beeinträchtigen?",
+        "type": "MULTIPLE_CHOICE",
+        "timer": null,
+        "difficulty": "MEDIUM",
+        "order": 1,
+        "answers": [
+          {
+            "text": "Nahezu identische Fälle liegen sowohl im Training als auch im Test.",
+            "isCorrect": true
+          },
+          {
+            "text": "Die Entscheidungsschwelle wird wiederholt anhand desselben Tests optimiert.",
+            "isCorrect": true
+          },
+          {
+            "text": "Die spätere Einsatzpopulation unterscheidet sich systematisch von den Testdaten.",
+            "isCorrect": true
+          },
+          {
+            "text": "Der Testsatz bleibt bis zur abschließenden Evaluation unangetastet.",
+            "isCorrect": false
+          }
+        ]
+      },
+      {
+        "text": "### Confusion Matrix auswerten\n\nEin binärer Q&A-Filter liefert $TP=42$, $FN=8$, $FP=18$ und $TN=132$.\n\nWelche Kennzahlen sind korrekt?",
+        "type": "MULTIPLE_CHOICE",
+        "timer": null,
+        "difficulty": "MEDIUM",
+        "order": 2,
+        "answers": [
+          {
+            "text": "$Recall=42/(42+8)=84\\,\\%$",
+            "isCorrect": true
+          },
+          {
+            "text": "$Precision=42/(42+18)=70\\,\\%$",
+            "isCorrect": true
+          },
+          {
+            "text": "$Accuracy=(42+132)/200=87\\,\\%$",
+            "isCorrect": true
+          },
+          {
+            "text": "Die Falsch-Positiv-Rate beträgt $18/200=9\\,\\%$.",
+            "isCorrect": false
+          }
+        ]
+      },
+      {
+        "text": "### Fehlkosten bestimmen die Zielmetrik\n\nEine tatsächlich technische Frage zu übersehen verursacht einen teuren Serviceausfall. Zusätzliche manuelle Prüfungen falsch markierter Fragen sind vergleichsweise günstig.\n\nWelche Metrik sollte vorrangig hoch sein?",
+        "type": "SINGLE_CHOICE",
+        "timer": null,
+        "difficulty": "MEDIUM",
+        "order": 3,
+        "answers": [
+          {
+            "text": "Recall für technische Fragen",
+            "isCorrect": true
+          },
+          {
+            "text": "Precision allein, unabhängig vom Recall",
+            "isCorrect": false
+          },
+          {
+            "text": "Accuracy auf den Trainingsdaten",
+            "isCorrect": false
+          },
+          {
+            "text": "Anzahl der Modellparameter",
+            "isCorrect": false
+          }
+        ]
+      },
+      {
+        "text": "### Accuracy und Coverage gemeinsam lesen\n\nBei derselben dokumentierten Schwelle erreicht Variante G Classified-Accuracy/Coverage 0,84/0,97 und Variante K 0,87/0,85.\n\nWelche Aussage ist korrekt?",
+        "type": "SINGLE_CHOICE",
+        "timer": null,
+        "difficulty": "HARD",
+        "order": 4,
+        "answers": [
+          {
+            "text": "K ist auf akzeptierten Fällen genauer, G akzeptiert mehr Fälle; ohne Fehlkosten gibt es keinen eindeutigen Gesamtsieger.",
+            "isCorrect": true
+          },
+          {
+            "text": "K ist eindeutig besser, weil 0,87 größer als 0,84 ist und Coverage keine Rolle spielt.",
+            "isCorrect": false
+          },
+          {
+            "text": "G ist auf akzeptierten Fällen genauer und lässt mehr Fälle unbearbeitet.",
+            "isCorrect": false
+          },
+          {
+            "text": "Aus den vier Werten lässt sich eine vollständige Confusion Matrix rekonstruieren.",
+            "isCorrect": false
+          }
+        ]
+      }
+    ]
+  }
+}

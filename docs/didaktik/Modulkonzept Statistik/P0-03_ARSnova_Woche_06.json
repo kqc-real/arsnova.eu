@@ -1,0 +1,152 @@
+{
+  "exportVersion": 1,
+  "exportedAt": "2026-09-13T00:00:00.000Z",
+  "quiz": {
+    "name": "P0-03 ARSnova – Woche 06: Konfidenzintervalle",
+    "description": "Konzeptfragen zu Punktschätzung, Standardfehler, Intervallbreite und Intervallinterpretation.",
+    "showLeaderboard": false,
+    "allowCustomNicknames": false,
+    "defaultTimer": null,
+    "timerScaleByDifficulty": false,
+    "enableTimerAccommodation": true,
+    "enableSoundEffects": false,
+    "enableRewardEffects": false,
+    "enableMotivationMessages": false,
+    "enableEmojiReactions": false,
+    "anonymousMode": true,
+    "teamMode": false,
+    "teamCount": null,
+    "teamAssignment": "AUTO",
+    "backgroundMusic": null,
+    "nicknameTheme": "HIGH_SCHOOL",
+    "bonusTokenCount": null,
+    "readingPhaseEnabled": true,
+    "questions": [
+      {
+        "text": "### Gleicher Anteil, anderes n\n\nZwei Sessions haben jeweils 71,2 % korrekte Antworten. In Session A gilt $n=52$, in Session B $n=520$.\n\nWelche Aussagen sind korrekt?",
+        "type": "MULTIPLE_CHOICE",
+        "timer": null,
+        "difficulty": "EASY",
+        "order": 0,
+        "answers": [
+          {
+            "text": "Beide Sessions haben denselben Punktschätzer für den Anteil.",
+            "isCorrect": true
+          },
+          {
+            "text": "Unter vergleichbaren Annahmen ist die Stichprobenunsicherheit bei $n=520$ kleiner.",
+            "isCorrect": true
+          },
+          {
+            "text": "Ein größeres n beseitigt eine mögliche Selbstselektionsverzerrung automatisch.",
+            "isCorrect": false
+          },
+          {
+            "text": "Aus dem Anteil allein folgt für keine der Sessions Repräsentativität.",
+            "isCorrect": true
+          }
+        ]
+      },
+      {
+        "text": "### Ein 95%-Intervall korrekt lesen\n\n37 von 52 antwortenden Personen lösen eine Frage richtig. Ein 95%-Konfidenzintervall für den zugrunde gelegten Anteil lautet $[0{,}58;0{,}82]$.\n\nWelche Interpretation ist angemessen?",
+        "type": "SINGLE_CHOICE",
+        "timer": null,
+        "difficulty": "MEDIUM",
+        "order": 1,
+        "answers": [
+          {
+            "text": "Das Intervall enthält unter dem Modell plausible Parameterwerte; 95 % bezeichnet die langfristige Trefferquote des Verfahrens.",
+            "isCorrect": true
+          },
+          {
+            "text": "Mit 95 % Wahrscheinlichkeit liegt der feste Parameter nach der Berechnung in genau diesem Intervall.",
+            "isCorrect": false
+          },
+          {
+            "text": "95 % der antwortenden Personen haben einen Wert zwischen 0,58 und 0,82.",
+            "isCorrect": false
+          },
+          {
+            "text": "Das Intervall beweist, dass 58 % bis 82 % aller Studierenden richtig antworten würden.",
+            "isCorrect": false
+          }
+        ]
+      },
+      {
+        "text": "### Was verändert die Intervallbreite?\n\nWelche Aussagen gelten bei sonst vergleichbaren Bedingungen?",
+        "type": "MULTIPLE_CHOICE",
+        "timer": null,
+        "difficulty": "MEDIUM",
+        "order": 2,
+        "answers": [
+          {
+            "text": "Ein größeres n macht ein Konfidenzintervall typischerweise schmaler.",
+            "isCorrect": true
+          },
+          {
+            "text": "Eine größere Streuung macht ein Mittelwertintervall typischerweise breiter.",
+            "isCorrect": true
+          },
+          {
+            "text": "Ein höheres Konfidenzniveau macht ein Intervall typischerweise breiter.",
+            "isCorrect": true
+          },
+          {
+            "text": "Ein schmales Intervall beweist, dass die Stichprobe unverzerrt ausgewählt wurde.",
+            "isCorrect": false
+          }
+        ]
+      },
+      {
+        "text": "### 1 von 1 oder 100 von 102?\n\nFrage A erhält eine positive Bewertung bei einer Bewertung. Frage B erhält 100 positive Bewertungen bei 102 Bewertungen.\n\nWelche Aussage trifft den Zweck einer Wilson-Untergrenze im Ranking?",
+        "type": "SINGLE_CHOICE",
+        "timer": null,
+        "difficulty": "HARD",
+        "order": 3,
+        "answers": [
+          {
+            "text": "Sie berücksichtigt, dass 1 von 1 trotz 100 % mit großer Unsicherheit verbunden ist.",
+            "isCorrect": true
+          },
+          {
+            "text": "Sie setzt jede Frage mit weniger als 100 Bewertungen automatisch auf 0 %.",
+            "isCorrect": false
+          },
+          {
+            "text": "Sie ist identisch mit dem beobachteten positiven Anteil.",
+            "isCorrect": false
+          },
+          {
+            "text": "Sie beweist, welche Frage inhaltlich wichtiger ist.",
+            "isCorrect": false
+          }
+        ]
+      },
+      {
+        "text": "### Wann ist die einfache Wald-Näherung fraglich?\n\nIn einer Stichprobe treten 3 Erfolge und 17 Misserfolge auf. Für die Lehrregel sollen beide erwarteten Anzahlen mindestens 10 betragen.\n\nWelche Beurteilung passt?",
+        "type": "SINGLE_CHOICE",
+        "timer": null,
+        "difficulty": "HARD",
+        "order": 4,
+        "answers": [
+          {
+            "text": "Die Erfolgszahl ist zu klein; ein bereitgestelltes Wilson-Intervall ist geeigneter.",
+            "isCorrect": true
+          },
+          {
+            "text": "Die Wald-Näherung ist immer exakt, sobald $n=20$ erreicht ist.",
+            "isCorrect": false
+          },
+          {
+            "text": "Nur die Gesamtzahl 20 zählt; die Aufteilung in Erfolg und Misserfolg ist irrelevant.",
+            "isCorrect": false
+          },
+          {
+            "text": "Ein Konfidenzintervall ist bei Anteilen grundsätzlich nicht möglich.",
+            "isCorrect": false
+          }
+        ]
+      }
+    ]
+  }
+}

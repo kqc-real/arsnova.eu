@@ -1,0 +1,130 @@
+{
+  "exportVersion": 1,
+  "exportedAt": "2026-09-13T00:00:00.000Z",
+  "quiz": {
+    "name": "P0-03 ARSnova – Woche 04: Bedingte Wahrscheinlichkeit",
+    "description": "Diagnosefragen zu Ereignissen, Unabhängigkeit, Kontingenztafeln und Basisraten.",
+    "showLeaderboard": false,
+    "allowCustomNicknames": false,
+    "defaultTimer": null,
+    "timerScaleByDifficulty": false,
+    "enableTimerAccommodation": true,
+    "enableSoundEffects": false,
+    "enableRewardEffects": false,
+    "enableMotivationMessages": false,
+    "enableEmojiReactions": false,
+    "anonymousMode": true,
+    "teamMode": false,
+    "teamCount": null,
+    "teamAssignment": "AUTO",
+    "backgroundMusic": null,
+    "nicknameTheme": "HIGH_SCHOOL",
+    "bonusTokenCount": null,
+    "readingPhaseEnabled": true,
+    "questions": [
+      {
+        "text": "### Genau einmal Kopf\n\nEine faire Münze wird zweimal geworfen. Wie groß ist die Wahrscheinlichkeit für genau einmal Kopf?",
+        "type": "SINGLE_CHOICE",
+        "timer": null,
+        "difficulty": "EASY",
+        "order": 0,
+        "answers": [
+          {
+            "text": "$\\frac{1}{4}$",
+            "isCorrect": false
+          },
+          {
+            "text": "$\\frac{1}{2}$",
+            "isCorrect": true
+          },
+          {
+            "text": "$\\frac{3}{4}$",
+            "isCorrect": false
+          },
+          {
+            "text": "$1$",
+            "isCorrect": false
+          }
+        ]
+      },
+      {
+        "text": "### Zwei unabhängige Serviceschritte\n\nZwei idealisierte Serviceschritte gelingen jeweils mit Wahrscheinlichkeit 0,9. Für die Aufgabe werden die Schritte als unabhängig modelliert.\n\nWie groß ist die Wahrscheinlichkeit, dass beide gelingen?",
+        "type": "SINGLE_CHOICE",
+        "timer": null,
+        "difficulty": "MEDIUM",
+        "order": 1,
+        "answers": [
+          {
+            "text": "0,18",
+            "isCorrect": false
+          },
+          {
+            "text": "0,81",
+            "isCorrect": true
+          },
+          {
+            "text": "0,90",
+            "isCorrect": false
+          },
+          {
+            "text": "1,80",
+            "isCorrect": false
+          }
+        ]
+      },
+      {
+        "text": "### Bedingung bestimmt den Nenner\n\n| Ergebnis | niedrige Sicherheit | mittlere Sicherheit | hohe Sicherheit |\n| --- | ---: | ---: | ---: |\n| richtig | 6 | 8 | 18 |\n| falsch | 9 | 5 | 4 |\n\nWelche Aussagen sind korrekt?",
+        "type": "MULTIPLE_CHOICE",
+        "timer": null,
+        "difficulty": "MEDIUM",
+        "order": 2,
+        "answers": [
+          {
+            "text": "$P(\\text{richtig}\\mid\\text{hoch})=18/22$",
+            "isCorrect": true
+          },
+          {
+            "text": "$P(\\text{hoch}\\mid\\text{richtig})=18/32$",
+            "isCorrect": true
+          },
+          {
+            "text": "$P(\\text{hoch})=22/50$",
+            "isCorrect": true
+          },
+          {
+            "text": "Die beiden bedingten Wahrscheinlichkeiten sind gleich, weil ihr Zähler 18 ist.",
+            "isCorrect": false
+          }
+        ],
+        "confidenceEnabled": true,
+        "confidenceLabelLow": "Sehr unsicher",
+        "confidenceLabelHigh": "Sehr sicher"
+      },
+      {
+        "text": "### Basisrate beim Q&A-Filter\n\nUnter 1.000 Fragen sind 50 tatsächlich technisch. Ein Filter markiert 40 technische und 95 nichttechnische Fragen.\n\nWelche Aussagen folgen aus diesen Zahlen?",
+        "type": "MULTIPLE_CHOICE",
+        "timer": null,
+        "difficulty": "HARD",
+        "order": 3,
+        "answers": [
+          {
+            "text": "Der Filter markiert insgesamt 135 Fragen.",
+            "isCorrect": true
+          },
+          {
+            "text": "Unter den markierten Fragen sind ungefähr 29,6 % tatsächlich technisch.",
+            "isCorrect": true
+          },
+          {
+            "text": "Der Filter findet 80 % der tatsächlich technischen Fragen.",
+            "isCorrect": true
+          },
+          {
+            "text": "Weil 80 % der technischen Fragen gefunden werden, sind auch 80 % der Markierungen richtig.",
+            "isCorrect": false
+          }
+        ]
+      }
+    ]
+  }
+}

@@ -1,0 +1,156 @@
+{
+  "exportVersion": 1,
+  "exportedAt": "2026-09-13T00:00:00.000Z",
+  "quiz": {
+    "name": "P0-03 ARSnova – Woche 05: Verteilungen und Stichproben",
+    "description": "Live-Fragen zu Zufallsvariablen, Modellannahmen und Stichprobenvariabilität.",
+    "showLeaderboard": false,
+    "allowCustomNicknames": false,
+    "defaultTimer": null,
+    "timerScaleByDifficulty": false,
+    "enableTimerAccommodation": true,
+    "enableSoundEffects": false,
+    "enableRewardEffects": false,
+    "enableMotivationMessages": false,
+    "enableEmojiReactions": false,
+    "anonymousMode": true,
+    "teamMode": false,
+    "teamCount": null,
+    "teamAssignment": "AUTO",
+    "backgroundMusic": null,
+    "nicknameTheme": "HIGH_SCHOOL",
+    "bonusTokenCount": null,
+    "readingPhaseEnabled": true,
+    "questions": [
+      {
+        "text": "### Diskret oder stetig?\n\nWelche Zuordnung ist für eine Quiz-Session am angemessensten?",
+        "type": "SINGLE_CHOICE",
+        "timer": null,
+        "difficulty": "EASY",
+        "order": 0,
+        "answers": [
+          {
+            "text": "Anzahl korrekter Antworten: diskret; Bearbeitungsdauer: stetig",
+            "isCorrect": true
+          },
+          {
+            "text": "Anzahl korrekter Antworten: stetig; Bearbeitungsdauer: diskret",
+            "isCorrect": false
+          },
+          {
+            "text": "Beide Variablen sind nominal.",
+            "isCorrect": false
+          },
+          {
+            "text": "Beide Variablen sind immer binär.",
+            "isCorrect": false
+          }
+        ]
+      },
+      {
+        "text": "### Passt ein Binomialmodell?\n\nDie Zufallsvariable $X$ soll die Zahl korrekter Antworten auf zehn Concept Questions zählen.\n\nWelche Bedingungen wären für ein Binomialmodell erforderlich?",
+        "type": "MULTIPLE_CHOICE",
+        "timer": null,
+        "difficulty": "MEDIUM",
+        "order": 1,
+        "answers": [
+          {
+            "text": "Die Zahl der betrachteten Fragen ist mit zehn fest.",
+            "isCorrect": true
+          },
+          {
+            "text": "Jede Frage wird für das Modell in korrekt oder nicht korrekt eingeteilt.",
+            "isCorrect": true
+          },
+          {
+            "text": "Die Erfolgswahrscheinlichkeit wird über alle zehn Fragen als konstant angenommen.",
+            "isCorrect": true
+          },
+          {
+            "text": "Die Antworten werden als unabhängig angenommen.",
+            "isCorrect": true
+          },
+          {
+            "text": "Unterschiedliche Aufgabenschwierigkeiten sichern eine konstante Erfolgswahrscheinlichkeit.",
+            "isCorrect": false
+          }
+        ]
+      },
+      {
+        "text": "### Normalverteilung nicht automatisch annehmen\n\nEin Histogramm von Servicezeiten ist deutlich rechtsschief und enthält wenige sehr große Werte.\n\nWelche Beurteilung ist angemessen?",
+        "type": "SINGLE_CHOICE",
+        "timer": null,
+        "difficulty": "MEDIUM",
+        "order": 2,
+        "answers": [
+          {
+            "text": "Die Verteilung ist nicht allein deshalb normalverteilt, weil die Variable metrisch ist.",
+            "isCorrect": true
+          },
+          {
+            "text": "Bei genügend Messwerten wird die Verteilung der einzelnen Servicezeiten zwingend normal.",
+            "isCorrect": false
+          },
+          {
+            "text": "Jede rechtsschiefe Verteilung hat Mittelwert und Median an derselben Stelle.",
+            "isCorrect": false
+          },
+          {
+            "text": "Eine berechenbare Standardabweichung beweist Normalverteilung.",
+            "isCorrect": false
+          }
+        ]
+      },
+      {
+        "text": "### Streuung von Stichprobenmittelwerten\n\nIn einem Lehrmodell beträgt die Standardabweichung der Einzelwerte 20. Verglichen werden Stichprobenmittelwerte bei $n=25$ und $n=100$.\n\nWelche Aussage zum Standardfehler trifft zu?",
+        "type": "SINGLE_CHOICE",
+        "timer": null,
+        "difficulty": "HARD",
+        "order": 3,
+        "answers": [
+          {
+            "text": "Er sinkt von 4 auf 2.",
+            "isCorrect": true
+          },
+          {
+            "text": "Er sinkt von 20 auf 5.",
+            "isCorrect": false
+          },
+          {
+            "text": "Er bleibt 20, weil die Einzelwerte unverändert sind.",
+            "isCorrect": false
+          },
+          {
+            "text": "Er steigt von 2 auf 4.",
+            "isCorrect": false
+          }
+        ]
+      },
+      {
+        "text": "### Was zeigt eine Stichprobensimulation?\n\nAus derselben festgelegten Population werden wiederholt Zufallsstichproben gezogen und ihre Mittelwerte gespeichert.\n\nWelche Aussagen sind korrekt?",
+        "type": "MULTIPLE_CHOICE",
+        "timer": null,
+        "difficulty": "HARD",
+        "order": 4,
+        "answers": [
+          {
+            "text": "Die gespeicherten Mittelwerte bilden eine Stichprobenverteilung.",
+            "isCorrect": true
+          },
+          {
+            "text": "Größere Stichproben führen im Modell zu weniger streuenden Mittelwerten.",
+            "isCorrect": true
+          },
+          {
+            "text": "Mehr Wiederholungen zeigen die Simulationsverteilung genauer, erhöhen aber nicht die Größe jeder Einzelstichprobe.",
+            "isCorrect": true
+          },
+          {
+            "text": "Jede Einzelstichprobe muss exakt denselben Mittelwert wie die Population haben.",
+            "isCorrect": false
+          }
+        ]
+      }
+    ]
+  }
+}
