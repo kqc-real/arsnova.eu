@@ -23,7 +23,7 @@
     "readingPhaseEnabled": true,
     "questions": [
       {
-        "text": "### Servicezeit erneut schätzen\n\nDie 20 Servicezeiten in Sekunden werden diesmal ungeordnet gezeigt:\n\n125, 80, 150, 110, 60, 135, 122, 95, 180, 115, 105, 160, 128, 70, 140, 118, 90, 130, 100, 170\n\nSchätze den Mittelwert.",
+        "text": "### Servicezeit erneut schätzen\n\nDie 20 Servicezeiten in Sekunden werden diesmal ungeordnet gezeigt:\n\n125, 80, 150, 110, 60, 135, 122, 112, 180, 115, 105, 160, 128, 70, 140, 118, 90, 130, 100, 170\n\nSchätze den Mittelwert.",
         "type": "NUMERIC_ESTIMATE",
         "timer": null,
         "difficulty": "MEDIUM",

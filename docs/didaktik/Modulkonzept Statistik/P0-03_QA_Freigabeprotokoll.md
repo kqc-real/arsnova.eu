@@ -1,6 +1,6 @@
 # P0-03 – QA- und Freigabeprotokoll
 
-**Version:** 2.1.0 · **Stand:** 13.09.2026<br>
+**Version:** 2.1.1 · **Stand:** 13.09.2026<br>
 **Status:** statische Paketprüfung bestanden; operative Pilotfreigabe offen
 
 **Bezugsdokumente:** [Materialpaket Pilotlauf](./P0-03_Materialpaket_Pilotlauf.md) · [Lehrenden-Runbook](./P0-03_Lehrenden_Runbook.md) · [Datenmanagement- und Exportplan](./P0-02_Datenmanagement_Exportplan.md)
@@ -88,7 +88,7 @@ b3a6e8b838fac15b232ad9d20acdf838b9f0e78103495aba4ffc937d469d8627  P0-03_Lehrdate
 a4d3733c7ba14591be239abe155c3982cfdca45b3e9d5816007560d62cf82349  P0-03_Lehrdaten_S6_Modelllaeufe.csv
 6626131f317aea1209b0a2e4266da97bedeaf92571910bee3b955afbc5da4c60  P0-03_ARSnova_Woche_01.json
 4179200ba0904b41e187d7a8b85ded3d190ad476cc423fcbb777f2e1f92a1f72  P0-03_ARSnova_Woche_02.json
-af8f563479dd2834f13b67b480efe77884f2355fde1c935be50f8c5a49a1ffb1  P0-03_ARSnova_Woche_03.json
+538271d462fe6b4d77efd5bf736280991a0508cea451630289f712e7f17a2260  P0-03_ARSnova_Woche_03.json
 f2f8f6d64b11f42c65713efeb01a2caf266662eb0a5dfa00e17e769a794de7b0  P0-03_ARSnova_Woche_04.json
 460e60fbb823bf564fd8325640f668ccbe5c604e3d09ba662c9dbded918514c2  P0-03_ARSnova_Woche_05.json
 30f8f6a1afb3987362abb995eccf0bcf06bd8d8d297f910e56cc5e1ea6b6af0d  P0-03_ARSnova_Woche_06.json

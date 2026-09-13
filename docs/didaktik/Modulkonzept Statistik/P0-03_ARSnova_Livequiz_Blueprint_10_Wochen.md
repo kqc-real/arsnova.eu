@@ -1,6 +1,6 @@
 # P0-03 – ARSnova-Livequiz-Blueprint für 10 Wochen
 
-**Version:** 1.2.0 · **Stand:** 13.09.2026 · **Status:** normative Spezifikation für den synchronen Pilotbetrieb
+**Version:** 1.2.1 · **Stand:** 13.09.2026 · **Status:** normative Spezifikation für den synchronen Pilotbetrieb
 
 **Kanonischer Index:** [P0-03_Materialpaket_Pilotlauf.md](./P0-03_Materialpaket_Pilotlauf.md)
 
@@ -409,7 +409,7 @@ Nicht übernommen werden Name, Nickname, E-Mail-Adresse, Session-Code, Host-Toke
 
 Eine Wochen-Datei ist erst freigegeben, wenn:
 
-1. der Fragenbestand der JSON-Datei der Wochensumme in Abschnitt 1 entspricht und zwischen 3 und 6 liegt;
+1. der Fragenbestand der JSON-Datei der Wochensumme in Abschnitt 1 entspricht und zwischen 4 und 6 liegt;
 2. `order` lückenlos bei 0 beginnt und exakt den redaktionellen IDs entspricht;
 3. alle Nicht-Spiel-Einstellungen aus Abschnitt 1.1 im importierten Quiz geprüft sind;
 4. jede Frage `timer=null` verwendet;
