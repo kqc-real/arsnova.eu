@@ -2,7 +2,7 @@
 
 # Cloud-Betriebsmodelle und Providervergleich für arsnova.eu
 
-**Zweck:** Entscheidungsrahmen für Lehre und Architekturplanung, nicht Beschaffungsempfehlung · **Stand:** 2026-07-28 · **Projektstatus:** [betriebliche Cloud-Einordnung](./CLOUD-COMPUTING-EINORDNUNG-BETRIEBLICH.md) · **Kurskontext:** [Cloud-Computing-Kurslandkarte](../didaktik/CLOUD-COMPUTING-KURSREADME.md)
+**Zweck:** Entscheidungsrahmen für Lehre und Architekturplanung, nicht Beschaffungsempfehlung · **Stand:** 2026-07-28 · **Projektstatus:** [betriebliche Cloud-Einordnung](./CLOUD-COMPUTING-EINORDNUNG-BETRIEBLICH.md) · **Kurskontext:** [Technische Quellen des Modulkonzepts](../didaktik/Modulkonzept%20Cloud%20Computing/Technische_Quellen_ARSnova.md)
 
 ## 1. Ausgangslage
 

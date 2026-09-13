@@ -1,0 +1,270 @@
+{
+  "generatedFrom": [
+    "MC-Test_Woche_01.json",
+    "MC-Test_Woche_02.json",
+    "MC-Test_Woche_03.json",
+    "MC-Test_Woche_04.json",
+    "MC-Test_Woche_05.json",
+    "MC-Test_Woche_06.json",
+    "MC-Test_Woche_07.json",
+    "MC-Test_Woche_08.json",
+    "MC-Test_Woche_09.json",
+    "MC-Test_Woche_10.json",
+    "MC-Test_Woche_11.json",
+    "MC-Test_Woche_12.json"
+  ],
+  "weeks": {
+    "W01": {
+      "file": "MC-Test_Woche_01.json",
+      "questionCount": 30,
+      "topic": {
+        "Cloud-Einordnung": 6,
+        "Cloud-Merkmale": 5,
+        "Deployment-Modelle": 4,
+        "Service-Modelle": 5,
+        "Shared Responsibility": 5,
+        "Sicherer Agentenauftrag": 5
+      },
+      "cognitive_level": {
+        "Analyse": 18,
+        "Anwendung": 8,
+        "Verständnis": 4
+      },
+      "weight": {
+        "2": 12,
+        "3": 18
+      }
+    },
+    "W02": {
+      "file": "MC-Test_Woche_02.json",
+      "questionCount": 30,
+      "topic": {
+        "Container und Images": 5,
+        "Netzwerk und DNS": 5,
+        "Orchestrierung und IaC": 5,
+        "Speicher und Zustände": 5,
+        "TLS und Load Balancing": 5,
+        "Virtualisierung": 5
+      },
+      "cognitive_level": {
+        "Analyse": 18,
+        "Anwendung": 8,
+        "Verständnis": 4
+      },
+      "weight": {
+        "2": 12,
+        "3": 18
+      }
+    },
+    "W03": {
+      "file": "MC-Test_Woche_03.json",
+      "questionCount": 30,
+      "topic": {
+        "Echtzeit und Skalierung": 5,
+        "Härtung und Betrieb": 5,
+        "Reproduzierbare Bereitstellung": 5,
+        "Single-Host-Architektur": 5,
+        "Vertrauensgrenzen": 5,
+        "Zustand und Persistenz": 5
+      },
+      "cognitive_level": {
+        "Analyse": 18,
+        "Anwendung": 8,
+        "Verständnis": 4
+      },
+      "weight": {
+        "2": 12,
+        "3": 18
+      }
+    },
+    "W04": {
+      "file": "MC-Test_Woche_04.json",
+      "questionCount": 30,
+      "topic": {
+        "Eignung von Workloads": 5,
+        "Kosten und Skalierung": 5,
+        "Laufzeit und Cold Starts": 5,
+        "Lock-in und Entscheidung": 5,
+        "Serverless-Grundlagen": 5,
+        "Trigger und Zustandslosigkeit": 5
+      },
+      "cognitive_level": {
+        "Analyse": 18,
+        "Anwendung": 8,
+        "Verständnis": 4
+      },
+      "weight": {
+        "2": 12,
+        "3": 18
+      }
+    },
+    "W05": {
+      "file": "MC-Test_Woche_05.json",
+      "questionCount": 30,
+      "topic": {
+        "Capability-Vergleich": 5,
+        "Identity and Access Management (IAM) und Netzwerk": 5,
+        "Kosten und Datenresidenz": 5,
+        "Lock-in und Exit": 5,
+        "Regionen und Resilienz": 5,
+        "Shared Responsibility": 5
+      },
+      "cognitive_level": {
+        "Analyse": 12,
+        "Anwendung": 12,
+        "Verständnis": 6
+      },
+      "weight": {
+        "2": 12,
+        "3": 18
+      }
+    },
+    "W06": {
+      "file": "MC-Test_Woche_06.json",
+      "questionCount": 30,
+      "topic": {
+        "Batch und Streaming": 5,
+        "Datenpipeline": 5,
+        "Datenschutz und Reproduzierbarkeit": 5,
+        "Embeddings und Clustering": 5,
+        "Managed ML und private Inferenz": 5,
+        "MLOps und Exit": 5
+      },
+      "cognitive_level": {
+        "Analyse": 12,
+        "Anwendung": 12,
+        "Verständnis": 6
+      },
+      "weight": {
+        "2": 12,
+        "3": 18
+      }
+    },
+    "W07": {
+      "file": "MC-Test_Woche_07.json",
+      "questionCount": 30,
+      "topic": {
+        "Backup und Snapshots": 5,
+        "Konsistenz und Integrität": 5,
+        "PostgreSQL, Redis und Yjs": 5,
+        "Restore und Disaster Recovery": 5,
+        "RPO und RTO": 5,
+        "Speicherarten": 5
+      },
+      "cognitive_level": {
+        "Analyse": 12,
+        "Anwendung": 12,
+        "Verständnis": 6
+      },
+      "weight": {
+        "2": 12,
+        "3": 18
+      }
+    },
+    "W08": {
+      "file": "MC-Test_Woche_08.json",
+      "questionCount": 30,
+      "topic": {
+        "Caching und Graceful Degradation": 5,
+        "Lastprofile und verteilte Systeme": 5,
+        "Load Balancing und Zustandsgrenzen": 5,
+        "Performance-Metriken": 5,
+        "Queueing und Backpressure": 5,
+        "Skalierungsstrategien": 5
+      },
+      "cognitive_level": {
+        "Analyse": 12,
+        "Anwendung": 12,
+        "Verständnis": 6
+      },
+      "weight": {
+        "2": 12,
+        "3": 18
+      }
+    },
+    "W09": {
+      "file": "MC-Test_Woche_09.json",
+      "questionCount": 30,
+      "topic": {
+        "Datenschutz und Telemetrie": 5,
+        "IAM und Netzwerk": 5,
+        "Remediation und Verifikation": 5,
+        "Resilienz und Degradation": 5,
+        "Secrets und Supply Chain": 5,
+        "SLI, SLO und Alerting": 5
+      },
+      "cognitive_level": {
+        "Analyse": 16,
+        "Anwendung": 9,
+        "Verständnis": 5
+      },
+      "weight": {
+        "2": 12,
+        "3": 18
+      }
+    },
+    "W10": {
+      "file": "MC-Test_Woche_10.json",
+      "questionCount": 30,
+      "topic": {
+        "6R und Migration": 5,
+        "Lock-in, Exit und ADR": 5,
+        "Nachhaltigkeit und Effizienz": 5,
+        "Provider und Build-or-Buy": 5,
+        "TCO und Kostenmodell": 5,
+        "Unit Economics und Szenarien": 5
+      },
+      "cognitive_level": {
+        "Analyse": 12,
+        "Anwendung": 11,
+        "Verständnis": 7
+      },
+      "weight": {
+        "2": 12,
+        "3": 18
+      }
+    },
+    "W11": {
+      "file": "MC-Test_Woche_11.json",
+      "questionCount": 30,
+      "topic": {
+        "Agentenoffenlegung": 5,
+        "Messung und Visualisierung": 5,
+        "Prüfungsdesign und Zeit": 5,
+        "Quellen und Evidenz": 5,
+        "These und Argumentation": 5,
+        "Verteidigung und Gegenalternative": 5
+      },
+      "cognitive_level": {
+        "Analyse": 11,
+        "Anwendung": 12,
+        "Verständnis": 7
+      },
+      "weight": {
+        "2": 12,
+        "3": 18
+      }
+    },
+    "W12": {
+      "file": "MC-Test_Woche_12.json",
+      "questionCount": 30,
+      "topic": {
+        "Cloud-Grundlagen und Service-Modelle": 5,
+        "Container, IaC und Serverless": 5,
+        "Daten, Storage und Recovery": 5,
+        "FinOps, Evidenz und Verteidigung": 5,
+        "Security, SRE und Betrieb": 5,
+        "Skalierung und verteilte Systeme": 5
+      },
+      "cognitive_level": {
+        "Analyse": 11,
+        "Anwendung": 12,
+        "Verständnis": 7
+      },
+      "weight": {
+        "2": 12,
+        "3": 18
+      }
+    }
+  }
+}

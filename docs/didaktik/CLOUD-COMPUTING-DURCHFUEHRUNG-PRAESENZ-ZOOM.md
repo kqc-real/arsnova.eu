@@ -2,7 +2,7 @@
 
 # Cloud Computing: äquivalente Durchführung in Präsenz und Zoom
 
-**Modul:** `DSCC0127` / `DSCC012701` · **Zweck:** Ein gemeinsamer Kursplan für zwei getrennte Kursläufe mit modalitätsspezifischer Umsetzung · **Lehrkonzept:** [36-UE-Konzept](./BACHELOR-VORLESUNG-CLOUD-COMPUTING-36-UE-PRAKTIKUM.md) · **Arbeitsmodell:** [Agentic-Lehrlabor](./CLOUD-COMPUTING-AGENTIC-LEHRLABOR.md) · **Prüfung:** [Referatsumsetzung](./CLOUD-COMPUTING-REFERAT-PRUEFUNG.md) · **Ablauf:** [12 Termine](./vorlesungen-cloud-computing-termine.md) · **Stand:** 2026-07-29
+**Modul:** `DSCC0127` / `DSCC012701` · **Zweck:** Ein gemeinsamer Kursplan für zwei getrennte Kursläufe mit modalitätsspezifischer Umsetzung · **Lehrkonzept:** [Modulkonzept Cloud Computing](./Modulkonzept%20Cloud%20Computing/Modulkonzept_Cloud_Computing.md) · **Arbeitsmodell:** [Agentic-Lehrlabor](./CLOUD-COMPUTING-AGENTIC-LEHRLABOR.md) · **Prüfung:** [Referatsumsetzung](./CLOUD-COMPUTING-REFERAT-PRUEFUNG.md) · **Ablauf:** [Wochenlehrplan](./Modulkonzept%20Cloud%20Computing/Wochenlehrplan_Cloud_Computing_12_Wochen.md) · **Stand:** 2026-07-29
 
 ## 1. Grundentscheidung
 
@@ -13,9 +13,9 @@ Es gibt **keinen fachlich unterschiedlichen Präsenz- und Onlinekurs**. Beide Ku
 - dieselbe Workload-Bilanz aus 18 UE Präsenz/synchron, 18 UE Tutorium und 123 Stunden Selbststudium;
 - dieselben formativen Lernprodukte und denselben Referatsbezug;
 - dieselben Qualitäts-, Quellen- und Bewertungskriterien;
-- dieselben freigegebenen Agenten, Modelle, Systemaufträge, Werkzeugprofile und Versionen;
+- dieselben freigegebenen Agenten- und gleichwertigen Alternativwege, Modelle, Systemaufträge, Werkzeugprofile und Versionen;
 - dieselben isolierten Zielserver, Rechte, Budgets, Freigabegates und Abnahmetests;
-- dieselben 30 agentisch erzeugten MC-Test-Fragen zur Selbstüberprüfung nach jedem Termin;
+- dieselben 30 redaktionell freigegebenen MC-Test-Items aus der jeweiligen Wochen-JSON zur freiwilligen Selbstüberprüfung;
 - denselben dokumentierten Stand der Fallstudie `arsnova.eu`.
 
 Unterschiedlich sind **Sozialform, Moderation, Medien, technische Vorbereitung und Ausfallplan**. Der Ausdruck `Präsenz/synchron` in den Kursdokumenten bezeichnet die gemeinsame Workload-Kategorie des Modulhandbuchs: Im Präsenzlauf findet sie im Raum statt, im Onlinelauf synchron in Zoom.
@@ -26,18 +26,18 @@ Geplant sind zwei getrennte Kursläufe, kein hybrider Simultanunterricht. Eine s
 
 Beide Kursläufe sind gleichwertig, wenn je Termin Folgendes übereinstimmt:
 
-| Kriterium      | Gemeinsamer Mindeststandard                                                        |
-| -------------- | ---------------------------------------------------------------------------------- |
-| Lernziel       | identische Kompetenz und identischer Modulhandbuchbezug                            |
-| Nettozeit      | 135 Minuten je Termin; Pausen zusätzlich oder im institutionell bestätigten Raster |
-| Agent          | identisches Modell, Systemauftrag, Werkzeugprofil und Ausführungslimit             |
-| Labor          | gleichwertiger isolierter Zielserver mit gleichem Ausgangszustand                  |
-| Kontrolle      | identische Rechte, Risiko-/Kostengates, Abbruch- und Cleanup-Regeln                |
-| Anwendungszeit | vergleichbare Zeit für Agentensteuerung, Ausführung und Evidenzreview              |
-| Lernprodukt    | identisches digitales Format und identische Abgabestelle                           |
-| Betreuung      | vergleichbare Feedback- und Rückfragemöglichkeit                                   |
-| Quellen        | identische Ausgangsdokumente und derselbe Repo-Stichtag                            |
-| Prüfung        | identische formale Aufgabe und Kriterien gemäß myCampus                            |
+| Kriterium      | Gemeinsamer Mindeststandard                                              |
+| -------------- | ------------------------------------------------------------------------ |
+| Lernziel       | identische Kompetenz und identischer Modulhandbuchbezug                  |
+| Nettozeit      | 135 Minuten: 90 Minuten LE plus 45 Minuten MC-Test-UE; Pausen zusätzlich |
+| Agent          | identisches Modell, Systemauftrag, Werkzeugprofil und Ausführungslimit   |
+| Labor          | gleichwertiger isolierter Zielserver mit gleichem Ausgangszustand        |
+| Kontrolle      | identische Rechte, Risiko-/Kostengates, Abbruch- und Cleanup-Regeln      |
+| Anwendungszeit | vergleichbare Zeit für Agentensteuerung, Ausführung und Evidenzreview    |
+| Lernprodukt    | identisches digitales Format und identische Abgabestelle                 |
+| Betreuung      | vergleichbare Feedback- und Rückfragemöglichkeit                         |
+| Quellen        | identische Ausgangsdokumente und derselbe Repo-Stichtag                  |
+| Prüfung        | identische formale Aufgabe und Kriterien gemäß myCampus                  |
 
 Nicht erforderlich ist, dieselbe Methode mechanisch zu kopieren. Eine Galerie im Seminarraum und eine strukturierte Review-Rotation in Breakout-Räumen können didaktisch dieselbe Funktion erfüllen.
 

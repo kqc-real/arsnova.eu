@@ -1,6 +1,6 @@
 # Cloud-Computing-Einordnung: betriebliche Fassung
 
-**Zweck:** Aktuellen Betriebsstand, belastbare Evidenz und Cloud-Transformationsbedarf von `arsnova.eu` trennen · **Stand:** 2026-07-28 · **Kurskontext:** [Cloud-Computing-Kurslandkarte](../didaktik/CLOUD-COMPUTING-KURSREADME.md)
+**Zweck:** Aktuellen Betriebsstand, belastbare Evidenz und Cloud-Transformationsbedarf von `arsnova.eu` trennen · **Stand:** 2026-07-28 · **Kurskontext:** [Modulkonzept Cloud Computing](../didaktik/Modulkonzept%20Cloud%20Computing/Modulkonzept_Cloud_Computing.md)
 
 ## 1. Ist-System
 
