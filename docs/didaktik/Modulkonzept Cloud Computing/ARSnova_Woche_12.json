@@ -1,0 +1,328 @@
+{
+  "exportVersion": 1,
+  "exportedAt": "2026-09-13T00:00:00.000Z",
+  "quiz": {
+    "name": "ARSnova – Woche 12: Kumulative Cloud-Synthese und Verteidigung",
+    "description": "10 kumulative Architekturfragen zu Infrastructure, Platform und Software as a Service (IaaS/PaaS/SaaS), Infrastructure as Code (IaC), Function as a Service (FaaS), Machine Learning (ML), Site Reliability Engineering (SRE), Financial Operations (FinOps), Service Level Indicator und Service Level Objective (SLI/SLO), Total Cost of Ownership (TCO), Recovery und Evidenzgrenzen – mit allen zehn ARSnova-Fragetypen.",
+    "showLeaderboard": true,
+    "allowCustomNicknames": false,
+    "defaultTimer": 60,
+    "timerScaleByDifficulty": true,
+    "enableTimerAccommodation": true,
+    "enableSoundEffects": true,
+    "enableRewardEffects": true,
+    "enableMotivationMessages": true,
+    "enableEmojiReactions": true,
+    "anonymousMode": false,
+    "teamMode": true,
+    "teamCount": 4,
+    "teamAssignment": "AUTO",
+    "teamNames": ["Apfel :apple:", "Birne :pear:", "Banane :banana:", "Apfelsine :orange:"],
+    "backgroundMusic": null,
+    "nicknameTheme": "KINDERGARTEN",
+    "bonusTokenCount": 3,
+    "readingPhaseEnabled": true,
+    "questions": [
+      {
+        "text": "### Architekturbausteine nach primärer Rolle ordnen\n\nEine Zielarchitektur kombiniert Container, deklarative Bereitstellung, Datenhaltung und betriebliche Evidenz. Ordne jeden Baustein seiner primären Rolle zu.",
+        "type": "CATEGORIZATION",
+        "timer": null,
+        "difficulty": "HARD",
+        "order": 0,
+        "answers": [],
+        "categories": [
+          {
+            "id": "w12-cat-runtime",
+            "name": "Ausführung und Skalierung"
+          },
+          {
+            "id": "w12-cat-state",
+            "name": "Zustand und Wiederherstellung"
+          },
+          {
+            "id": "w12-cat-control",
+            "name": "Steuerung und Nachweis"
+          }
+        ],
+        "categorizationItems": [
+          {
+            "id": "w12-item-container",
+            "text": "Unveränderliches Anwendungsimage mit definiertem Laufzeitvertrag",
+            "correctCategoryId": "w12-cat-runtime"
+          },
+          {
+            "id": "w12-item-function",
+            "text": "Kurzlebige ereignisgesteuerte Funktion ohne lokalen Dauerzustand",
+            "correctCategoryId": "w12-cat-runtime"
+          },
+          {
+            "id": "w12-item-db",
+            "text": "Persistente relationale Datenbank mit Konsistenzanforderungen",
+            "correctCategoryId": "w12-cat-state"
+          },
+          {
+            "id": "w12-item-backup",
+            "text": "Verschlüsseltes Offsite-Backup mit ausgeführtem Restore-Test",
+            "correctCategoryId": "w12-cat-state"
+          },
+          {
+            "id": "w12-item-iac",
+            "text": "Versionierte Infrastrukturdefinition mit prüfbarem Plan",
+            "correctCategoryId": "w12-cat-control"
+          },
+          {
+            "id": "w12-item-slo",
+            "text": "Nutzerbezogenes Ziel mit Messsignal und Alarmweg",
+            "correctCategoryId": "w12-cat-control"
+          }
+        ],
+        "categorizationShuffleItems": true,
+        "confidenceEnabled": true,
+        "confidenceLabelLow": "Sehr unsicher",
+        "confidenceLabelHigh": "Sehr sicher"
+      },
+      {
+        "text": "### Elastizitätsbehauptung vollständig prüfen\n\nEin Agent empfiehlt eine Managed-Containerplattform und behauptet damit automatische horizontale Skalierbarkeit der gesamten Live-Anwendung. Welche Prüfungen sind erforderlich, bevor die Aussage tragfähig wird? _Mehrere Antworten sind richtig._",
+        "type": "MULTIPLE_CHOICE",
+        "timer": null,
+        "difficulty": "HARD",
+        "order": 1,
+        "answers": [
+          {
+            "text": "Prozesslokale Signale, WebSocket-Zuordnung und instanzübergreifende Schutzlimits unter mindestens zwei Instanzen prüfen.",
+            "isCorrect": true
+          },
+          {
+            "text": "State, Failover, Reconnect und Backpressure mit getrennten Lastprofilen und dokumentierten Abbruchkriterien testen.",
+            "isCorrect": true
+          },
+          {
+            "text": "Den Produktnamen der Plattform als Nachweis akzeptieren, sofern Autoscaling in der Leistungsbeschreibung vorkommt.",
+            "isCorrect": false
+          },
+          {
+            "text": "Eine steigende Instanzzahl als ausreichendes Erfolgssignal verwenden, ohne Ende-zu-Ende-Latenz und Fehlerrate zu messen.",
+            "isCorrect": false
+          }
+        ],
+        "confidenceEnabled": true,
+        "confidenceLabelLow": "Sehr unsicher",
+        "confidenceLabelHigh": "Sehr sicher"
+      },
+      {
+        "text": "### Optionalen ML-Pfad aus dem Hotpath halten\n\nEine semantische Themenanalyse soll ergänzt werden. Q&A-Submit, Join, Vote und Realtime dürfen bei langsamer oder ausgefallener Inferenz nicht warten. Welche Architektur erfüllt diese Forderung am besten?",
+        "type": "SINGLE_CHOICE",
+        "timer": null,
+        "difficulty": "HARD",
+        "order": 2,
+        "answers": [
+          {
+            "text": "Inferenz synchron vor jeder Q&A-Persistenz ausführen und bei Timeout denselben Request wiederholen.",
+            "isCorrect": false
+          },
+          {
+            "text": "Inferenz im Browser aller Teilnehmenden ausführen und Ergebnisse über den Session-Code zusammenführen.",
+            "isCorrect": false
+          },
+          {
+            "text": "Inferenz asynchron oder host-initiiert hinter begrenzter Queue ausführen und auf einen deterministischen Kernpfad zurückfallen.",
+            "isCorrect": true
+          },
+          {
+            "text": "Inferenz und Live-API in denselben Prozess legen und bei Überlastung zuerst die Realtime-Verbindungen drosseln.",
+            "isCorrect": false
+          }
+        ],
+        "confidenceEnabled": true,
+        "confidenceLabelLow": "Sehr unsicher",
+        "confidenceLabelHigh": "Sehr sicher"
+      },
+      {
+        "text": "### Eine Cloud-Entscheidung end-to-end entwickeln\n\nOrdne die Schritte vom Bedarf bis zur verteidigbaren Betriebsentscheidung.",
+        "type": "ORDERING",
+        "timer": null,
+        "difficulty": "HARD",
+        "order": 3,
+        "answers": [],
+        "orderingItems": [
+          {
+            "id": "w12-order-1",
+            "text": "Nutzerbedarf, Cloud-Merkmale und erforderliches Service-Modell präzisieren"
+          },
+          {
+            "id": "w12-order-2",
+            "text": "Daten-, Zustands-, Netzwerk- und Verantwortungsgrenzen modellieren"
+          },
+          {
+            "id": "w12-order-3",
+            "text": "Container-, IaC-, Serverless- und Provideroptionen auf Fähigkeiten abbilden"
+          },
+          {
+            "id": "w12-order-4",
+            "text": "Security-, Recovery-, Skalierungs- und Degradationsversuche mit Gates planen"
+          },
+          {
+            "id": "w12-order-5",
+            "text": "TCO, Unit Economics, Ressourcenwirkung und Exit in Szenarien vergleichen"
+          },
+          {
+            "id": "w12-order-6",
+            "text": "Entscheidung samt Gegenoption, Evidenzgrenze und Restrisiko individuell verteidigen"
+          }
+        ],
+        "confidenceEnabled": true,
+        "confidenceLabelLow": "Sehr unsicher",
+        "confidenceLabelHigh": "Sehr sicher"
+      },
+      {
+        "text": "### Cloud-Optionen anhand ihrer stärksten Grenze vergleichen\n\nOrdne jeder Option die Grenze zu, die in der Verteidigung besonders geprüft werden muss.",
+        "type": "MATCHING",
+        "timer": null,
+        "difficulty": "HARD",
+        "order": 4,
+        "answers": [],
+        "matchingPairs": [
+          {
+            "leftId": "w12-match-iaas",
+            "left": "Self-managed IaaS",
+            "rightId": "w12-match-iaas-value",
+            "right": "Patchen, Wiederherstellen und Hochverfügbarkeit bleiben weitgehend Betriebsaufgabe"
+          },
+          {
+            "leftId": "w12-match-managed",
+            "left": "Managed Datendienst",
+            "rightId": "w12-match-managed-value",
+            "right": "Export, Datenfluss und konkrete Verantwortungsgrenze müssen nachgewiesen werden"
+          },
+          {
+            "leftId": "w12-match-faas",
+            "left": "Function as a Service",
+            "rightId": "w12-match-faas-value",
+            "right": "Laufzeit-, Zustands- und Cold-Start-Eignung begrenzen den Einsatz"
+          },
+          {
+            "leftId": "w12-match-container",
+            "left": "Portables Containerimage",
+            "rightId": "w12-match-container-value",
+            "right": "Image-Portabilität überträgt keine IAM-, Netzwerk- oder Datenplattformsemantik"
+          },
+          {
+            "leftId": "w12-match-ml",
+            "left": "Managed ML-Plattform",
+            "rightId": "w12-match-ml-value",
+            "right": "Modell-, Daten-, Kosten- und Exitpfade können proprietär gekoppelt sein"
+          }
+        ],
+        "matchingShuffleRight": true,
+        "confidenceEnabled": true,
+        "confidenceLabelLow": "Sehr unsicher",
+        "confidenceLabelHigh": "Sehr sicher"
+      },
+      {
+        "text": "### Degradationsrate berechnen\n\nIn einem **hypothetischen Testlauf** werden 1.200 Analyseaufträge angenommen. 1.080 liefern rechtzeitig das optionale ML-Ergebnis; 120 wechseln kontrolliert in den deterministischen Fallback. Wie hoch ist die Fallback-Rate in Prozent?",
+        "type": "NUMERIC_ESTIMATE",
+        "timer": null,
+        "difficulty": "MEDIUM",
+        "order": 5,
+        "answers": [],
+        "numericToleranceMode": "ABSOLUTE_INTERVAL",
+        "numericReferenceValue": 10,
+        "numericIntervalLeft": 9.99,
+        "numericIntervalRight": 10.01,
+        "numericInputType": "DECIMAL",
+        "numericDecimalPlaces": 1,
+        "numericMin": 0,
+        "numericMax": 100,
+        "numericTwoRounds": true,
+        "confidenceEnabled": true,
+        "confidenceLabelLow": "Sehr unsicher",
+        "confidenceLabelHigh": "Sehr sicher"
+      },
+      {
+        "text": "### Geteilte Sicherheitsverantwortung benennen\n\nWie heißt das Modell, nach dem Cloud-Anbieter und nutzende Organisation je nach Service-Modell unterschiedliche Sicherheits- und Betriebsaufgaben tragen?",
+        "type": "SHORT_TEXT",
+        "timer": null,
+        "difficulty": "MEDIUM",
+        "order": 6,
+        "answers": [
+          {
+            "text": "Shared Responsibility",
+            "isCorrect": true
+          },
+          {
+            "text": "Shared Responsibility Model",
+            "isCorrect": true
+          },
+          {
+            "text": "Shared-Responsibility-Modell",
+            "isCorrect": true
+          },
+          {
+            "text": "Modell der geteilten Verantwortung",
+            "isCorrect": true
+          },
+          {
+            "text": "Geteilte Verantwortung",
+            "isCorrect": true
+          }
+        ],
+        "shortTextEvaluationKind": "text",
+        "shortTextMaxLength": 64,
+        "shortTextCaseSensitive": false,
+        "shortTextEvaluationMode": "exact",
+        "shortTextToleranceLevel": "none",
+        "shortTextAllowPartialCredit": false,
+        "shortTextTrimWhitespace": true,
+        "shortTextNormalizeWhitespace": true,
+        "confidenceEnabled": true,
+        "confidenceLabelLow": "Sehr unsicher",
+        "confidenceLabelHigh": "Sehr sicher"
+      },
+      {
+        "text": "### Providerempfehlung kumulativ verteidigen\n\nEin Agent empfiehlt eine Managed Application Platform, weil sie Autoscaling, Datenbank und Monitoring anbietet. Formuliere in drei bis vier Sätzen eine fachliche Gegenprüfung, die Cloud-Eignung, Daten/Recovery, verteilten Zustand, Security/SRE, Kosten/Nachhaltigkeit und Exit verbindet.",
+        "type": "FREETEXT",
+        "timer": null,
+        "difficulty": "HARD",
+        "order": 7,
+        "answers": []
+      },
+      {
+        "text": "### Größte Evidenzlücke priorisieren\n\nEine Abschlussarchitektur besitzt IaC, ein Datenflussdiagramm und eine TCO-Sensitivität. Nicht ausgeführt wurden Restore, Zwei-Instanz-Fan-out, Inferenz-Fault-Injection und Exittest. Welches Experiment sollte die Gruppe zuerst verteidigen? Die Abstimmung priorisiert die Diskussion; es gibt keine Musterlösung.",
+        "type": "SURVEY",
+        "timer": null,
+        "difficulty": "MEDIUM",
+        "order": 8,
+        "answers": [
+          {
+            "text": "Den Restore in eine frische Zielumgebung mit Integritäts- und Zeitmessung",
+            "isCorrect": false
+          },
+          {
+            "text": "Den Zwei-Instanz-Betrieb mit Reconnect, Status- und Vote-Fan-out",
+            "isCorrect": false
+          },
+          {
+            "text": "Den langsamen und ausgefallenen Inferenzpfad mit Kernfunktionsprüfung",
+            "isCorrect": false
+          },
+          {
+            "text": "Den Daten-, Konfigurations- und Telemetrieexport in eine Gegenplattform",
+            "isCorrect": false
+          }
+        ]
+      },
+      {
+        "text": "### Synthesereife statt Produktwissen einschätzen\n\nEine Person kann Cloud-Merkmale, Service-Modell, Daten- und Laufzeitgrenzen, Fehlerpfade, SLO, TCO und Exit zu einer Entscheidung verbinden. Sie korrigiert eine plausible Agentenantwort anhand von Code, Messung und Originalquelle und nennt die Reichweite jedes Belegs. Wie hoch ist die fachliche Synthesereife?",
+        "type": "RATING",
+        "timer": null,
+        "difficulty": "MEDIUM",
+        "order": 9,
+        "answers": [],
+        "ratingMin": 1,
+        "ratingMax": 5,
+        "ratingLabelMin": "1 = isoliertes Begriffswissen",
+        "ratingLabelMax": "5 = integrierte Verteidigung"
+      }
+    ]
+  }
+}

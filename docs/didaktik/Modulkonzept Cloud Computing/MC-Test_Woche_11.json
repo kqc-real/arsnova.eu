@@ -1,0 +1,623 @@
+{
+  "meta": {
+    "title": "Cloud Computing – MC-Test Woche 11: Evidenzbasierte Architekturentscheidung und Referatswerkstatt",
+    "target_audience": "Bachelorstudierende der Informatik und Wirtschaftsinformatik im Modul Cloud Computing",
+    "question_count": 30,
+    "difficulty_profile": {
+      "leicht": 0,
+      "mittel": 12,
+      "schwer": 18
+    },
+    "time_per_weight_minutes": {
+      "1": 0.5,
+      "2": 0.75,
+      "3": 1.0
+    },
+    "additional_buffer_minutes": 5,
+    "test_duration_minutes": 32,
+    "language": "de",
+    "updated": "2026-09-13"
+  },
+  "questions": [
+    {
+      "question": "1. Welche These eignet sich am besten für ein evidenzbasiertes Referat zur Cloud-Architektur von arsnova.eu?",
+      "options": [
+        "Ein Managed-Betriebsmodell ist vorzuziehen, wenn der Anbieter mehr standardisierte Dienste bereitstellt.",
+        "Amazon Web Services (AWS), Microsoft Azure und Google Cloud bieten vielfältige Dienste für moderne Anwendungen.",
+        "Ein getrennter Inferenzdienst ist vertretbar, wenn Fault-Injection den unabhängigen Live-Pfad im definierten Workload bestätigt.",
+        "Eine Container- und Serverless-Kombination ist wegen ihrer Verbreitung die passende Zielarchitektur."
+      ],
+      "answer": 2,
+      "explanation": "Eine tragfähige These ist abgegrenzt, widerlegbar und verbindet Architekturentscheidung mit messbarem Nachweis. Allgemeine Wertungen, Produktübersichten und Trendbehauptungen besitzen weder klare Systemgrenze noch Entscheidungskriterium.",
+      "weight": 2,
+      "topic": "These und Argumentation",
+      "concept": "Widerlegbare Cloud-These",
+      "cognitive_level": "Verständnis",
+      "mini_glossary": {
+        "These": "Präzise Behauptung, die begründet und prinzipiell widerlegt werden kann.",
+        "Fault-Injection": "Kontrolliertes Einbringen definierter Fehler.",
+        "Workload": "Dokumentierte Form und Menge der ausgeführten Last."
+      }
+    },
+    {
+      "question": "2. Im Dossier steht: »Der aktuelle Pfad ist als Single-Host-Compose-Stack dokumentiert. Wir erwarten nächstes Jahr doppelte Nutzung. Deshalb prüfen wir Replatform vor Refactor.« Wie sind die drei Sätze einzuordnen?",
+      "options": [
+        "Annahme, Fakt, Entscheidung",
+        "Fakt, Annahme, Entscheidung",
+        "Fakt, Entscheidung, Annahme",
+        "Entscheidung, Annahme, Fakt"
+      ],
+      "answer": 1,
+      "explanation": "Der dokumentierte Ist-Pfad ist ein belegbarer Fakt, die künftige Nutzung eine Prognoseannahme und die gewählte Prüfsequenz eine Entscheidung. Ihre Trennung verhindert, dass unsichere Zukunftswerte als Systembefund erscheinen.",
+      "weight": 2,
+      "topic": "These und Argumentation",
+      "concept": "Fakt, Annahme und Entscheidung",
+      "cognitive_level": "Anwendung",
+      "mini_glossary": {
+        "Fakt": "Durch geeignete Quelle oder Messung belegte Aussage.",
+        "Annahme": "Noch nicht bestätigte Voraussetzung einer Analyse.",
+        "Entscheidung": "Begründete Wahl zwischen Handlungsoptionen."
+      }
+    },
+    {
+      "question": "3. Ein Lasttest zeigt, dass ein optionaler Machine-Learning-(ML-)Dienst bei künstlicher Verzögerung keine Vote-Latenz verändert. Welche Schlussfolgerung ist am genauesten?",
+      "options": [
+        "Der ML-Dienst ist im geprüften Fehlerfall entkoppelt und bleibt damit auch bei höherer Last hinreichend risikoarm.",
+        "Die stabile Vote-Latenz stützt zugleich geringe Kosten- und Datenschutzfolgen des ML-Dienstes.",
+        "Die bestätigte Entkopplung macht ein Providerprodukt gegenüber Self-hosted-Varianten vorzugswürdig.",
+        "Im dokumentierten Testaufbau stützt die Messung die Entkopplung des Vote-Pfads; andere Lasten und Fehler bleiben offen."
+      ],
+      "answer": 3,
+      "explanation": "Die Messung trägt eine begrenzte Aussage für Umgebung, Workload und injizierten Fehler. Sie beweist weder universelle Resilienz noch Wirtschaftlichkeit, Datenschutz oder Providerüberlegenheit.",
+      "weight": 3,
+      "topic": "These und Argumentation",
+      "concept": "Begrenzte Schlussfolgerung aus Messung",
+      "cognitive_level": "Anwendung",
+      "mini_glossary": {
+        "Testaufbau": "Dokumentierte Umgebung, Konfiguration und Versuchsdurchführung.",
+        "Entkopplung": "Begrenzung der Laufzeitabhängigkeit zwischen Komponenten.",
+        "Gültigkeitsbereich": "Kontext, für den eine Aussage durch Evidenz getragen wird."
+      }
+    },
+    {
+      "question": "4. Eine Gruppe empfiehlt Managed PostgreSQL. Welche Gegenalternative ist für die Argumentationsqualität am stärksten?",
+      "options": [
+        "Ein konkret abgegrenzter Self-managed-Betrieb mit gleicher Leistungsbasis, Restore-Test, Personalaufwand und Exitpfad",
+        "Ein beliebiger NoSQL-Dienst mit anderem Datenmodell und ohne Migrationsplan",
+        "Der vollständige Verzicht auf Persistenz unabhängig von Produktanforderungen",
+        "Eine ältere Managed-Variante desselben Anbieters ohne Support und Messdaten"
+      ],
+      "answer": 0,
+      "explanation": "Die stärkste Gegenalternative erfüllt denselben Bedarf und wird unter gleicher System- und Leistungsgrenze geprüft. Ein anderes Datenmodell, Funktionsverzicht oder künstlich schwache Altvariante erzeugt einen unfairen Vergleich.",
+      "weight": 3,
+      "topic": "These und Argumentation",
+      "concept": "Steelman-Gegenalternative",
+      "cognitive_level": "Anwendung",
+      "mini_glossary": {
+        "Gegenalternative": "Ernsthaft prüfbare, nicht gewählte Handlungsoption.",
+        "Leistungsbasis": "Vergleichbarer Funktions- und Qualitätsumfang.",
+        "Steelman": "Stärkstmögliche faire Fassung eines Gegenarguments."
+      }
+    },
+    {
+      "question": "5. Warum ist »Vergleich der Cloudprodukte von Anbieter X« als Referatsthema zu breit?",
+      "options": [
+        "Weil Produktnamen nur als Quellenbeleg, nicht als Gegenstand einer Architekturentscheidung dienen können",
+        "Weil ein Cloud-Referat den Vergleich auf quelloffene Komponenten mit prüfbarem Code begrenzen sollte",
+        "Weil Leitfrage, überprüfbare These, technischer Nachweis und Entscheidungsfolge fehlen",
+        "Weil ein Providervergleich alle potenziell ersetzbaren Dienste des gewählten Anbieters abdecken sollte"
+      ],
+      "answer": 2,
+      "explanation": "Ein Produktkatalog ist noch keine akademische Fallanalyse. Er benötigt eine abgegrenzte Cloud-Fähigkeit, widerlegbare These, Evidenz, Gegenoption und begründete Entscheidung; Produktnamen sind mit erklärter Funktion durchaus zulässig.",
+      "weight": 3,
+      "topic": "These und Argumentation",
+      "concept": "Themenfokus statt Produktkatalog",
+      "cognitive_level": "Analyse",
+      "mini_glossary": {
+        "Leitfrage": "Frage, die Umfang und Ziel einer Untersuchung bestimmt.",
+        "Entscheidungsfolge": "Aus Evidenz und Kriterien abgeleitete Handlungswahl.",
+        "Themenfokus": "Bewusste sachliche Eingrenzung eines Untersuchungsgegenstands."
+      }
+    },
+    {
+      "question": "6. Welche Quelle belegt am direktesten, welche Datenflüsse ein konkreter Managed-ML-Dienst in einer bestimmten Region zum Prüfzeitpunkt unterstützt?",
+      "options": [
+        "Ein undatierter Blogbeitrag eines Beratungsunternehmens",
+        "Eine Agentenzusammenfassung mehrerer Suchtreffer",
+        "Die versionierte offizielle Dienst- und Regionsdokumentation des Anbieters",
+        "Eine allgemeine Cloud-Lehrbuchdefinition von Machine Learning"
+      ],
+      "answer": 2,
+      "explanation": "Volatile Funktions- und Regionsangaben müssen an der datierten offiziellen Ursprungsdokumentation geprüft werden. Sekundärtexte und Agentenantworten können suchen helfen; ein Lehrbuch trägt keine konkrete aktuelle Produktaussage.",
+      "weight": 2,
+      "topic": "Quellen und Evidenz",
+      "concept": "Primärquelle für volatile Providerfunktion",
+      "cognitive_level": "Verständnis",
+      "mini_glossary": {
+        "Primärquelle": "Quelle mit unmittelbarem Ursprung der untersuchten Information.",
+        "volatil": "Zeitlich veränderlich und daher aktualisierungsbedürftig.",
+        "Abrufdatum": "Dokumentierter Zeitpunkt des Zugriffs auf eine Quelle."
+      }
+    },
+    {
+      "question": "7. Ein Kostenvergleich zitiert eine offizielle Preisseite, nennt aber weder Region noch Währung, Steuerbasis oder Abrufdatum. Wie ist der Beleg zu bewerten?",
+      "options": [
+        "Die Quelle ist grundsätzlich geeignet, aber die konkrete Kostenbehauptung bleibt wegen fehlender Vergleichsparameter unzureichend belegt.",
+        "Die Quelle ist vollständig ausreichend, weil offizielle Preise weltweit und zeitlich identisch sein müssen.",
+        "Die Quelle ist ungeeignet, weil offizielle Anbieterpreise niemals in akademischen Arbeiten verwendet werden dürfen.",
+        "Die Quelle belegt zugleich die gesamten Lebenszykluskosten, weil Nebenkosten in offiziellen Preisseiten enthalten sind."
+      ],
+      "answer": 0,
+      "explanation": "Die offizielle Quelle ist ein guter Ausgangspunkt, doch der Zahlenwert ist ohne Kontext nicht reproduzierbar oder vergleichbar. Listenpreise bilden außerdem nicht automatisch Egress, Betrieb, Support, Migration und Exit ab.",
+      "weight": 2,
+      "topic": "Quellen und Evidenz",
+      "concept": "Kontext einer Preisquelle",
+      "cognitive_level": "Anwendung",
+      "mini_glossary": {
+        "Steuerbasis": "Angabe, ob und welche Steuern im Preis berücksichtigt sind.",
+        "Listenpreis": "Veröffentlichter Standardpreis ohne zwingend alle Nutzungseffekte.",
+        "Reproduzierbarkeit": "Möglichkeit, eine Herleitung mit denselben Angaben nachzuvollziehen."
+      }
+    },
+    {
+      "question": "8. Ein Repositorytest beweist, dass ein Host-only-Pfad Aufrufe ohne Token ablehnt. Welche Aussage trägt diese Evidenz?",
+      "options": [
+        "Jeder mögliche Autorisierungsfehler des Gesamtsystems ist ausgeschlossen.",
+        "Der geprüfte Pfad weist im festgelegten Commit und Testszenario die erwartete Ablehnung auf.",
+        "Der produktive Betrieb ist gegen jede zukünftige Schwachstelle abgesichert.",
+        "Die gesamte Cloud-Infrastruktur erfüllt damit ein Audit des Identity and Access Management (IAM)."
+      ],
+      "answer": 1,
+      "explanation": "Ein Test belegt konkretes Verhalten für seinen Pfad, Codezustand und Inputraum. Er ist wichtige Regressionsevidenz, aber kein universeller Security- oder Produktionsnachweis.",
+      "weight": 2,
+      "topic": "Quellen und Evidenz",
+      "concept": "Reichweite eines Codetests",
+      "cognitive_level": "Verständnis",
+      "mini_glossary": {
+        "Regressionsevidenz": "Nachweis, dass ein erwartetes Verhalten im getesteten Stand erhalten bleibt.",
+        "Commit": "Versionierter Zustand des Repositorys.",
+        "Inputraum": "Menge der durch einen Test abgedeckten Eingaben."
+      }
+    },
+    {
+      "question": "9. Ein Agent nennt drei Studien, von denen eine nicht existiert und eine den behaupteten Befund nicht enthält. Welche Reaktion ist akademisch korrekt?",
+      "options": [
+        "Alle drei Quellen behalten, solange die Agentenantwort sprachlich plausibel ist.",
+        "Nur die URLs prüfen und die inhaltliche Zuordnung dem Agenten überlassen.",
+        "Die Agentenantwort als eigene Sekundärquelle verwenden und die Studien nicht öffnen.",
+        "Existenz, Autorenschaft, Fundstelle und Aussage am Original prüfen und nicht tragfähige Belege entfernen."
+      ],
+      "answer": 3,
+      "explanation": "Literaturangaben und ihre Zuordnung müssen am Original verifiziert werden. Plausible Formulierung, erreichbare URL oder Agentenautorität ersetzen weder Existenzprüfung noch inhaltliche Quellenkritik.",
+      "weight": 3,
+      "topic": "Quellen und Evidenz",
+      "concept": "Verifikation agentisch gefundener Quellen",
+      "cognitive_level": "Anwendung",
+      "mini_glossary": {
+        "Fundstelle": "Konkrete Seite, Abschnitt oder Position einer belegenden Aussage.",
+        "Halluzination": "Plausibel wirkende, aber nicht belegte oder erfundene Ausgabe eines Modells.",
+        "Quellenkritik": "Prüfung von Herkunft, Qualität, Aussage und Passung einer Quelle."
+      }
+    },
+    {
+      "question": "10. Ein Providerbenchmark zeigt die eigene Plattform als schnellste, verwendet aber für Wettbewerber kleinere Instanzen und andere Regionen. Welche Kritik ist entscheidend?",
+      "options": [
+        "Der Benchmark bleibt als relative Rangfolge nutzbar, wenn alle Ergebnisse vom selben Autor stammen.",
+        "Theoretische Hardwaredaten können die unterschiedlichen Instanzgrößen nachträglich ausreichend normieren.",
+        "Regionsunterschiede betreffen primär Kosten und können für den Latenzvergleich vernachlässigt werden.",
+        "Die asymmetrische Konfiguration verhindert eine kausale Zuordnung des Unterschieds zur Plattform."
+      ],
+      "answer": 3,
+      "explanation": "Unterschiedliche Ressourcen und Regionen sind konkurrierende Erklärungen für das Ergebnis. Der Benchmark kann Hinweise liefern, aber ohne kontrollierte Leistungsbasis keinen fairen Plattformvergleich tragen.",
+      "weight": 3,
+      "topic": "Quellen und Evidenz",
+      "concept": "Quellenkritik eines Anbieterbenchmarks",
+      "cognitive_level": "Analyse",
+      "mini_glossary": {
+        "Benchmark": "Standardisierter Leistungsvergleich unter dokumentierten Bedingungen.",
+        "Konfundierung": "Vermischung des untersuchten Effekts mit anderen Einflussgrößen.",
+        "Leistungsbasis": "Vergleichbare Ressourcen, Konfigurationen und Qualitätsanforderungen."
+      }
+    },
+    {
+      "question": "11. Zwei Lastberichte nennen p95-Latenzen, einer für 30 lokale Clients, einer für 500 Produktions-Joins. Welche Voraussetzung fehlt für einen direkten Zahlenvergleich?",
+      "options": [
+        "Beide Berichte müssen vom selben Agenten formuliert worden sein.",
+        "Beide Berichte müssen denselben Providerproduktnamen verwenden.",
+        "Beide Berichte müssen als identische Diagrammfarbe dargestellt werden.",
+        "Workload, Umgebung, Messpunkt, Protokoll und Erfolgsdefinition müssen vergleichbar dokumentiert sein."
+      ],
+      "answer": 3,
+      "explanation": "Ein Quantil ist nur im Kontext seiner Messpopulation und Messgrenze vergleichbar. Autor, Produktname oder Visualisierung gleichen unterschiedliche Lastform, Umgebung und Erfolgsdefinition nicht aus.",
+      "weight": 2,
+      "topic": "Messung und Visualisierung",
+      "concept": "Vergleichbarkeit von Latenzmessungen",
+      "cognitive_level": "Anwendung",
+      "mini_glossary": {
+        "p95": "Wert, den 95 Prozent der gemessenen Beobachtungen nicht überschreiten.",
+        "Messpunkt": "Technische Stelle, an der Beginn und Ende einer Dauer erfasst werden.",
+        "Erfolgsdefinition": "Kriterium, nach dem ein Vorgang als erfolgreich zählt."
+      }
+    },
+    {
+      "question": "12. Welche Visualisierung zeigt für drei Betriebsmodelle gleichzeitig die Bandbreite der Total Cost of Ownership (TCO), den Base Case und Rangwechsel bei wachsendem Egress am transparentesten?",
+      "options": [
+        "Ein Sensitivitätsdiagramm mit beschrifteten Szenariobändern und gemeinsamem Egress-Parameter",
+        "Ein Kreisdiagramm mit dem Marktanteil der drei Provider",
+        "Ein Architekturdiagramm ohne Kostenachse und Nutzungsszenario",
+        "Eine Tabelle nur mit dem jeweils niedrigsten gefundenen Monatswert"
+      ],
+      "answer": 0,
+      "explanation": "Ein Sensitivitätsdiagramm kann Bandbreiten, Zentralwert und Kipppunkt auf derselben Vergleichsbasis zeigen. Marktanteil, reine Topologie oder isolierte Minimalwerte beantworten die Kostenwirkung des Egress-Treibers nicht.",
+      "weight": 2,
+      "topic": "Messung und Visualisierung",
+      "concept": "Visualisierung einer Kostensensitivität",
+      "cognitive_level": "Anwendung",
+      "mini_glossary": {
+        "Sensitivitätsdiagramm": "Grafik der Ergebnisänderung bei Variation einer Annahme.",
+        "Szenarioband": "Visualisierter Bereich plausibler Ergebniswerte.",
+        "Kipppunkt": "Parameterwert, an dem sich die bevorzugte Alternative ändert."
+      }
+    },
+    {
+      "question": "13. Ein Balkendiagramm beginnt die Kostenachse knapp unter dem Wert der günstigsten Variante und lässt einen kleinen Unterschied zehnmal größer wirken. Welche Korrektur ist methodisch am besten?",
+      "options": [
+        "Den engen Achsenbereich beibehalten, aber den Achsenbruch und die günstigere Variante deutlich markieren.",
+        "Die Werte auf ganze Einheiten runden und den relativen Abstand zusätzlich in der Legende erläutern.",
+        "Die teurere Variante in eine zweite Grafik verschieben und den absoluten Unterschied im Text nennen.",
+        "Achsenursprung und Skala transparent wählen sowie absolute und relative Differenz ausweisen."
+      ],
+      "answer": 3,
+      "explanation": "Transparente Skala und beide Differenzmaße verhindern eine visuelle Überdehnung. Farbe, Rundung oder Ausblenden verändert die rhetorische Wirkung, behebt aber die irreführende Größenrelation nicht.",
+      "weight": 3,
+      "topic": "Messung und Visualisierung",
+      "concept": "Nicht irreführende Diagrammskala",
+      "cognitive_level": "Analyse",
+      "mini_glossary": {
+        "Achsenursprung": "Startwert einer Diagrammachse.",
+        "absolute Differenz": "Unterschied in der ursprünglichen Einheit.",
+        "relative Differenz": "Unterschied im Verhältnis zu einem Bezugswert."
+      }
+    },
+    {
+      "question": "14. Ein Agent fasst aus fünf Wiederholungen nur den besten Latenzwert zusammen. Welche Darstellung unterstützt eine faire Architekturentscheidung?",
+      "options": [
+        "Den besten Lauf mit vollständiger Konfiguration als technisch erreichbaren Referenzwert ausweisen",
+        "Alle Wiederholungen mit Lage, Streuung, Ausfällen und dokumentierter Auswahlregel",
+        "Den Median aus bestem und schlechtestem Lauf zusammen mit den beiden Ausgangswerten ausweisen",
+        "Den schlechtesten Lauf mit Fehlerursache als konservativen Referenzwert für den Betrieb verwenden"
+      ],
+      "answer": 1,
+      "explanation": "Wiederholungen sollen typische Lage, Varianz und Fehler sichtbar machen; eine vorab definierte Auswertung verhindert selektive Ergebniswahl. Einzelne Best- oder Schlechtwerte beantworten weder Stabilität noch Reproduzierbarkeit.",
+      "weight": 3,
+      "topic": "Messung und Visualisierung",
+      "concept": "Wiederholungsmessung ohne Cherry-Picking",
+      "cognitive_level": "Analyse",
+      "mini_glossary": {
+        "Cherry-Picking": "Selektive Auswahl günstiger Beobachtungen.",
+        "Streuung": "Variation von Messwerten zwischen Wiederholungen.",
+        "Rohdaten": "Unverdichtete ursprüngliche Messergebnisse."
+      }
+    },
+    {
+      "question": "15. Ein Diagramm zeigt fallende durchschnittliche CPU-Auslastung nach Scale-out. Warum wird zusätzlich ein nutzerbezogener Service Level Indicator (SLI) benötigt?",
+      "options": [
+        "CPU ist eine Ressourcenmetrik; Erfolg, Ende-zu-Ende-Latenz, Fehler und Reconnect müssen zusätzlich gemessen werden.",
+        "CPU-Werte sind erst nach Normalisierung über alle Instanzen als alleinige Nutzerleistungsmetrik verwendbar.",
+        "Scale-out ist anhand der Zahl konfigurierter Regionen statt anhand einzelner Requests zu bewerten.",
+        "Nutzerleistung kann aus Arbeitsspeicher und mittlerer CPU-Auslastung gemeinsam abgeleitet werden."
+      ],
+      "answer": 0,
+      "explanation": "Niedrigere CPU kann Lastverteilung anzeigen, sagt aber nicht, ob Requests erfolgreich und rechtzeitig enden. Nutzerbezogene SLIs und Fehlerpfade sind nötig; Regionen oder RAM allein liefern ebenfalls keinen Ende-zu-Ende-Nachweis.",
+      "weight": 3,
+      "topic": "Messung und Visualisierung",
+      "concept": "Ressourcenmetrik versus Nutzer-SLI",
+      "cognitive_level": "Analyse",
+      "mini_glossary": {
+        "Scale-out": "Erhöhung der Kapazität durch zusätzliche Instanzen.",
+        "Ressourcenmetrik": "Messwert zur Nutzung von CPU, RAM, Netz oder ähnlichen Ressourcen.",
+        "Nutzer-SLI": "Messgröße für eine aus Nutzersicht relevante Leistung."
+      }
+    },
+    {
+      "question": "16. Welche Offenlegung ist bei erlaubter Agentennutzung für ein Cloud-Referat angemessen?",
+      "options": [
+        "Nur der Satz »KI wurde verwendet«, ohne Modell, Auftrag oder übernommenen Beitrag",
+        "Agenten, Modelle, wesentliche Aufträge und substanziell übernommene Beiträge im vorgegebenen Rahmen",
+        "Vollständige Rohprotokolle einschließlich Secrets und vertraulicher Systemdaten",
+        "Keine Offenlegung, sobald jede Agentenantwort sprachlich überarbeitet wurde"
+      ],
+      "answer": 1,
+      "explanation": "Transparenz muss die Rolle des Agenten nachvollziehbar machen, ohne Geheimnisse oder personenbezogene Daten offenzulegen. Eine pauschale Formel ist zu unbestimmt; sprachliche Überarbeitung beseitigt den substanziellen Beitrag nicht.",
+      "weight": 2,
+      "topic": "Agentenoffenlegung",
+      "concept": "Transparente Agentenbeiträge",
+      "cognitive_level": "Verständnis",
+      "mini_glossary": {
+        "Agentenoffenlegung": "Kennzeichnung eingesetzter Modelle, Aufträge und übernommener Beiträge.",
+        "substanzieller Beitrag": "Inhaltlicher Anteil, der Argument, Analyse oder Ergebnis wesentlich prägt.",
+        "Secret": "Vertrauliches Credential oder anderer schutzbedürftiger Wert."
+      }
+    },
+    {
+      "question": "17. Ein Agent erzeugt ein plausibles Architekturdiagramm ohne Quellen- oder Codeprüfung. Welchen Evidenzstatus besitzt es?",
+      "options": [
+        "Es ist ein Implementierungsnachweis, weil Diagramme nur aus vorhandenen Komponenten erzeugt werden können.",
+        "Es ist eine Primärquelle, weil der Agent den Entwurf selbst erstellt hat.",
+        "Es ist eine prüfbare Hypothese oder Darstellung, aber noch kein Nachweis des Ist-Systems.",
+        "Es ist wertlos und darf auch nach Verifikation nicht im Vortrag verwendet werden."
+      ],
+      "answer": 2,
+      "explanation": "Ein generierter Entwurf kann die Analyse strukturieren, muss aber gegen Code, Konfiguration und Messung geprüft werden. Urheberschaft durch ein Modell macht ihn weder zur Systemprimärquelle noch dauerhaft unbrauchbar.",
+      "weight": 3,
+      "topic": "Agentenoffenlegung",
+      "concept": "Epistemischer Status eines Agentenentwurfs",
+      "cognitive_level": "Analyse",
+      "mini_glossary": {
+        "Hypothese": "Vorläufige, überprüfbare Annahme.",
+        "Ist-System": "Tatsächlich implementierte und betriebene Systemkonfiguration.",
+        "Verifikation": "Prüfung einer Aussage gegen geeignete Evidenz."
+      }
+    },
+    {
+      "question": "18. Ein Agentenprotokoll enthält versehentlich ein API-Token. Was ist zuerst zu tun?",
+      "options": [
+        "Das Token im PDF schwärzen und im Quellsystem unverändert lassen.",
+        "Das Token widerrufen oder rotieren und Verbreitung sowie Berechtigungsumfang untersuchen.",
+        "Das Protokoll komprimieren, damit Suchwerkzeuge den Token nicht mehr finden.",
+        "Das Token als Beleg für die praktische Agentennutzung in den Anhang aufnehmen."
+      ],
+      "answer": 1,
+      "explanation": "Ein exponiertes Credential muss zuerst unwirksam gemacht werden; danach folgen Umfangs- und Zugriffsprüfung. Schwärzen oder Komprimieren verhindert weitere Sichtbarkeit, neutralisiert aber keine bereits kopierte Berechtigung.",
+      "weight": 3,
+      "topic": "Agentenoffenlegung",
+      "concept": "Secret-Leak im Arbeitsartefakt",
+      "cognitive_level": "Anwendung",
+      "mini_glossary": {
+        "API-Token": "Credential für den Zugriff auf eine Programmierschnittstelle.",
+        "Widerruf": "Ungültigmachung einer bestehenden Berechtigung.",
+        "Berechtigungsumfang": "Menge der mit einem Credential erlaubten Aktionen."
+      }
+    },
+    {
+      "question": "19. Worin liegt die individuelle Eigenleistung bei einem agent-first erstellten Providervergleich?",
+      "options": [
+        "Im möglichst langen unveränderten Abdruck der Agentenantwort",
+        "In Begrenzung, Freigabe, Quellenprüfung, Gegenprobe, Entscheidung und fachlicher Verteidigung",
+        "In der Wahl des sprachlich überzeugendsten Modells ohne weitere Kontrolle",
+        "In der Delegation aller Rückfragen an denselben Agenten während der Diskussion"
+      ],
+      "answer": 1,
+      "explanation": "Eigenständigkeit zeigt sich im verantworteten Erkenntnis- und Entscheidungsprozess. Umfang oder Stil einer Modellausgabe und erneute Delegation belegen nicht, dass die Person Quellen, Fehler und Folgen verstanden hat.",
+      "weight": 2,
+      "topic": "Agentenoffenlegung",
+      "concept": "Individuelle Verantwortung",
+      "cognitive_level": "Verständnis",
+      "mini_glossary": {
+        "agent-first": "Arbeitsmodell, in dem substanzielle Aufgaben über Agenten geplant und geprüft werden.",
+        "Gegenprobe": "Test einer alternativen Erklärung oder eines Fehlerfalls.",
+        "fachliche Verteidigung": "Eigenständige Begründung und Kritik einer Entscheidung im Dialog."
+      }
+    },
+    {
+      "question": "20. Ein Lehrendenagent schlägt Prüfungsfragen und markiert Evidenzlücken. Welche Grenze bleibt verbindlich?",
+      "options": [
+        "Der Agent darf die Note autonom berechnen, wenn alle Kriterien maschinenlesbar sind.",
+        "Auswahl der Fragen, Würdigung des individuellen Beitrags und Benotung bleiben bei der prüfenden Person.",
+        "Der Agent darf bei Gruppenarbeiten eine gemeinsame Note vergeben, wenn Beiträge ähnlich wirken.",
+        "Der Agent darf nicht zur Vorprüfung verwendet werden, weil jede Unterstützung eine autonome Benotung darstellt."
+      ],
+      "answer": 1,
+      "explanation": "Agenten können vorbereitend prüfen und Fragen vorschlagen, aber keine prüfungsrechtliche Würdigung und Notenentscheidung übernehmen. Vorprüfung ist daher nicht mit autonomer Benotung gleichzusetzen.",
+      "weight": 3,
+      "topic": "Agentenoffenlegung",
+      "concept": "Menschliche Bewertungsverantwortung",
+      "cognitive_level": "Anwendung",
+      "mini_glossary": {
+        "Vorprüfung": "Unterstützende Prüfung auf formale oder evidenzbezogene Lücken.",
+        "Würdigung": "Qualitative Bewertung einer individuellen Leistung.",
+        "Benotung": "Verbindliche Zuordnung einer Prüfungsleistung zu einer Note."
+      }
+    },
+    {
+      "question": "21. Wie ist die dokumentierte Dauer der Referatsprüfung für DSCC0127 zu verstehen?",
+      "options": [
+        "Insgesamt 15 Minuten mündliche Prüfung je Prüfling einschließlich Vortrag und anschließender Befragung beziehungsweise Diskussion",
+        "15 Minuten Vortrag je Gruppe zuzüglich einer von der Gruppengröße abhängigen individuellen Diskussion",
+        "15 Minuten Folienvortrag je Prüfling; die fachliche Diskussion wird anschließend schriftlich bewertet",
+        "15 Minuten je vergebenem Thema; bei Gruppenarbeit wird diese Zeit auf die beteiligten Personen verteilt"
+      ],
+      "answer": 0,
+      "explanation": "Die Planung setzt 15 Minuten mündliche Gesamtzeit je Person an und muss darin Vortrag sowie dialogischen Teil sichern. Gruppenformat ändert weder individuelle Zeit noch individuelle Bewertung.",
+      "weight": 2,
+      "topic": "Prüfungsdesign und Zeit",
+      "concept": "Prüfungsdauer je Person",
+      "cognitive_level": "Verständnis",
+      "mini_glossary": {
+        "Prüfling": "Person, deren individuelle Leistung bewertet wird.",
+        "Befragung": "Dialogischer Prüfungsteil mit fachlichen Rückfragen.",
+        "Gruppenreferat": "Gemeinsames Thema bei weiterhin individueller Leistung und Bewertung."
+      }
+    },
+    {
+      "question": "22. Eine Gruppe übt fast nur den Folienvortrag, obwohl Einreichung, Vortrag und Befragung beziehungsweise Diskussion mit 30/30/40 gewichtet sind. Welche Anpassung folgt aus dieser Gewichtung?",
+      "options": [
+        "Einreichung und Vortrag erhalten je 40 % der Übungszeit; für die Diskussion bleiben 20 %.",
+        "Die Einreichung erhält 20 %, Vortrag und Diskussion erhalten jeweils 40 % der Übungszeit.",
+        "Einreichung und Vortrag werden solide vorbereitet; für die mit 40 % gewichtete Verteidigung wird der größte Anteil eingeplant.",
+        "Alle drei Bestandteile erhalten unabhängig von ihrer Gewichtung exakt ein Drittel der Übungszeit."
+      ],
+      "answer": 2,
+      "explanation": "Schriftliche Einreichung und visuell unterstützter Vortrag zählen jeweils 30 Prozent, der dialogische Teil 40 Prozent. Übungszeit muss die Qualität aller Teile sichern; der größte gewichtete Anteil darf nicht durch nahezu ausschließliche Folienarbeit verdrängt werden.",
+      "weight": 2,
+      "topic": "Prüfungsdesign und Zeit",
+      "concept": "Gewichtung 30/30/40",
+      "cognitive_level": "Anwendung",
+      "mini_glossary": {
+        "Einreichung": "Schriftlicher Leistungsbeitrag als Handout oder Poster.",
+        "Vortrag": "Visuell unterstützte mündliche Darstellung.",
+        "Diskussion": "Dialogischer Teil zur fachlichen Reflexion und Verteidigung."
+      }
+    },
+    {
+      "question": "23. Drei Personen bearbeiten gemeinsam ein Thema. Welche Gestaltung erfüllt die Individualitätsanforderung?",
+      "options": [
+        "Eine gemeinsame Einreichung ohne Namenszuordnung und eine identische Gruppennote",
+        "Eine zufällige Person beantwortet alle Fragen stellvertretend für die Gruppe",
+        "Nur die Redezeit wird individuell markiert; schriftliche Beiträge bleiben absichtlich anonym",
+        "Beiträge werden in Einreichung und Vortrag ad personam gekennzeichnet, Zeit und Bewertung bleiben individuell"
+      ],
+      "answer": 3,
+      "explanation": "Auch im Gruppenformat muss jede Person ihren Beitrag erkennbar leisten und fachlich vertreten. Stellvertretung, anonyme Teile oder Gruppennote widersprechen der individuellen Bewertung.",
+      "weight": 3,
+      "topic": "Prüfungsdesign und Zeit",
+      "concept": "Individuelle Leistung im Gruppenreferat",
+      "cognitive_level": "Anwendung",
+      "mini_glossary": {
+        "ad personam": "Eindeutig einer konkreten Person zugeordnet.",
+        "individuelle Bewertung": "Eigenständige Würdigung jeder teilnehmenden Person.",
+        "Beitragskennzeichnung": "Sichtbare Zuordnung von Inhalten und Vortragsteilen."
+      }
+    },
+    {
+      "question": "24. Ein Thema wird 18 Tage vor der Abgabe verbindlich festgestellt; die Gruppe hält die kurze Frist wegen erlaubter Agentennutzung für ausreichend. Wie ist das zu bewerten?",
+      "options": [
+        "Die Planung unterschreitet die dokumentierte Mindestbearbeitungszeit von vier Wochen; Agentennutzung ändert daran nichts.",
+        "Die Planung ist zulässig, weil mindestens zehn Kalendertage zur Bearbeitung verbleiben.",
+        "Die Planung ist nur unzulässig, wenn weniger als ein halbes Semester zur Bearbeitung verbleibt.",
+        "Die Planung ist zulässig, sobald Agenten die Recherche und Strukturierung nachweislich beschleunigen."
+      ],
+      "answer": 0,
+      "explanation": "Die dokumentierte Referatsumsetzung verlangt mindestens vier Wochen. Agentische Werkzeuge verkürzen diese formale Bearbeitungszeit nicht und ersetzen keine rechtzeitige Themenzuordnung.",
+      "weight": 2,
+      "topic": "Prüfungsdesign und Zeit",
+      "concept": "Mindestbearbeitungszeit",
+      "cognitive_level": "Verständnis",
+      "mini_glossary": {
+        "Themenfeststellung": "Verbindliche Zuordnung oder Abstimmung des Prüfungsthemas.",
+        "Bearbeitungszeit": "Zeitraum zur Erstellung der Prüfungsleistung.",
+        "Abgabe": "Fristgerechte Übermittlung der geforderten PDF-Unterlagen."
+      }
+    },
+    {
+      "question": "25. Eine Probe reserviert von 15 Minuten nur eine Minute für Diskussion. Welche Revision ist fachlich begründet?",
+      "options": [
+        "Die Diskussion durch schriftliche Fragen im Anhang ersetzen und die Vortragsstruktur beibehalten.",
+        "Die Folien schneller präsentieren und für die Diskussion nur Verständnisfragen einplanen.",
+        "Die Einreichung im Vortrag zusammenfassen, damit alle drei Leistungsbestandteile ähnlich lang erscheinen.",
+        "Den Vortrag auf These, Kernbeleg und Entscheidung verdichten und mehr Zeit für die gewichtete Verteidigung schaffen."
+      ],
+      "answer": 3,
+      "explanation": "Der größte gewichtete Leistungsbeitrag ist dialogisch und braucht realistische Übungszeit. Eine starre exakte Minutenquote ist nicht vorgegeben, doch bloßes Beschleunigen oder Wiederholen verhindert fachliche Priorisierung.",
+      "weight": 3,
+      "topic": "Prüfungsdesign und Zeit",
+      "concept": "Zeitbudget für Verteidigung",
+      "cognitive_level": "Analyse",
+      "mini_glossary": {
+        "Zeitbudget": "Geplante Verteilung einer begrenzten Gesamtdauer.",
+        "Kernbeleg": "Zentraler Nachweis, der die These trägt oder begrenzt.",
+        "Verdichtung": "Reduktion auf entscheidungsrelevante Aussagen ohne Evidenzverlust."
+      }
+    },
+    {
+      "question": "26. Eine Person verteidigt einen privaten Inferenzserver und nennt als Gegenoption nur »kein ML«. Welche Verbesserung ist am stärksten?",
+      "options": [
+        "Die Gegenoption entfernen, weil eine klare These keine Alternative benötigt.",
+        "Eine absichtlich überdimensionierte GPU-Lösung als leicht widerlegbaren Vergleich ergänzen.",
+        "Eine kleinere Encoder-/CPU- oder geeignete Managed-Variante unter gleicher Qualität, Last und Datenanforderung prüfen.",
+        "Alle verfügbaren KI-Produkte auflisten, ohne eines technisch zu testen."
+      ],
+      "answer": 2,
+      "explanation": "Eine ernsthafte Gegenalternative erfüllt denselben Bedarf mit anderem Betriebs- oder Ressourcenmodell. Funktionsverzicht, Strohmann oder Produktliste testen die konkrete Architekturentscheidung nicht fair.",
+      "weight": 3,
+      "topic": "Verteidigung und Gegenalternative",
+      "concept": "Fachlich gleichwertige Gegenoption",
+      "cognitive_level": "Analyse",
+      "mini_glossary": {
+        "Encoder": "Modell, das Texte in numerische Repräsentationen überführt.",
+        "Strohmann": "Künstlich schwache Fassung einer Gegenposition.",
+        "Datenanforderung": "Vorgabe zu Art, Umfang, Ort und Schutz der verarbeiteten Daten."
+      }
+    },
+    {
+      "question": "27. Ein Managed-Dienst erfüllt im Test das Latenzziel, die Self-hosted-Alternative ist langsamer. Welche Verteidigungsfrage bleibt entscheidend?",
+      "options": [
+        "Ob der Managed-Dienst neben der gemessenen Latenz mehr dokumentierte Plattformfunktionen bereitstellt",
+        "Ob die Self-hosted-Variante bei gleicher Benennung und Darstellung als technisch gleichwertig erscheint",
+        "Ob Datenfluss, Kosten, Verantwortungsgrenze, Ausfallverhalten und Exit den Geschwindigkeitsvorteil rechtfertigen",
+        "Ob der schnellste Einzellauf den Median beider Varianten in der Präsentation sinnvoll ergänzen kann"
+      ],
+      "answer": 2,
+      "explanation": "Latenz ist ein wichtiges, aber nicht hinreichendes Kriterium. Die Wahl muss auch Privacy, Betrieb, Resilienz, TCO und Bindung unter derselben Leistungsbasis erklären; Marketing und Darstellung liefern keine Entscheidungslogik.",
+      "weight": 3,
+      "topic": "Verteidigung und Gegenalternative",
+      "concept": "Mehrdimensionale Architekturverteidigung",
+      "cognitive_level": "Analyse",
+      "mini_glossary": {
+        "Ausfallverhalten": "Beobachtete Systemreaktion auf definierte Störungen.",
+        "TCO": "Gesamtkosten über Einführung, Betrieb, Änderung und Exit.",
+        "Exit": "Kontrollierter Wechsel von einem Anbieter oder Dienst."
+      }
+    },
+    {
+      "question": "28. Ein Lasttest wurde nur lokal mit synthetischen Daten ausgeführt. Welche Formulierung wahrt die Evidenzgrenze?",
+      "options": [
+        "Die Architektur trägt die im Test beobachtete Last und damit vergleichbare künftige Produktionslasten.",
+        "Die synthetische Messung stützt dasselbe Nutzerverhalten in Regionen mit ähnlicher Netzlatenz.",
+        "Der lokale Test stützt das Verhalten für die dokumentierte Umgebung; Zielhost, Netzpfade und größere Lasten bleiben offen.",
+        "Der lokale Test eignet sich nur für Funktionsprüfung und liefert für Architekturentscheidungen keinen belastbaren Beitrag."
+      ],
+      "answer": 2,
+      "explanation": "Lokale synthetische Tests können Mechanismen reproduzierbar prüfen, tragen aber keine automatische Produktions- oder Skalierungszusage. Ihr Wert bleibt erhalten, wenn Umgebung und offene Übertragungsschritte klar benannt werden.",
+      "weight": 3,
+      "topic": "Verteidigung und Gegenalternative",
+      "concept": "Messgrenze eines lokalen Tests",
+      "cognitive_level": "Analyse",
+      "mini_glossary": {
+        "synthetische Daten": "Künstlich erzeugte Daten mit kontrollierten Eigenschaften.",
+        "Zielhost": "Vorgesehene technische Umgebung für eine spätere Abnahme.",
+        "Übertragbarkeit": "Gültigkeit eines Befunds in einem anderen Kontext."
+      }
+    },
+    {
+      "question": "29. Eine Diskussion driftet von der These zur allgemeinen Frage ab, welcher Hyperscaler weltweit der beste sei. Wie reagiert die vortragende Person fachlich?",
+      "options": [
+        "Sie nennt spontan den Anbieter mit dem größten bekannten Marktanteil.",
+        "Sie verweigert jede Rückfrage, weil Diskussionen nur den Wortlaut der Folien wiederholen dürfen.",
+        "Sie erweitert die These nachträglich auf sämtliche Provider und Dienste.",
+        "Sie bindet die Antwort an gestellte Leitfrage, Kriterien und Systemgrenze und benennt, was außerhalb des Themas liegt."
+      ],
+      "answer": 3,
+      "explanation": "Eine gute Verteidigung erklärt die Grenze des eigenen Arguments und beantwortet relevante Rückfragen innerhalb des gestellten Themas. Marktanteil oder spontane Scope-Ausweitung ersetzen keine kontextgebundene Providerentscheidung.",
+      "weight": 3,
+      "topic": "Verteidigung und Gegenalternative",
+      "concept": "Themen- und Systemgrenze in der Diskussion",
+      "cognitive_level": "Anwendung",
+      "mini_glossary": {
+        "Hyperscaler": "Sehr großer Anbieter global skalierter Cloudplattformen.",
+        "Systemgrenze": "Abgrenzung der in Analyse und Entscheidung einbezogenen Komponenten.",
+        "Scope Creep": "Unkontrollierte Erweiterung eines vereinbarten Untersuchungsumfangs."
+      }
+    },
+    {
+      "question": "30. Welche Probe bereitet am besten auf eine individuelle Cloud-Verteidigung vor?",
+      "options": [
+        "Eine realistische Befragung zu These, Messung, Fehlern, Kosten, Gegenoption, Agentenbeitrag und Restrisiko",
+        "Ein vollständiger Probelauf der Folien mit Rückfragen erst nach dem gemeinsam gehaltenen Gruppenvortrag",
+        "Eine gemeinsame Gruppenantwort, bei der Detailfragen nach den jeweiligen Arbeitspaketen verteilt werden",
+        "Eine Liste vorformulierter Kurzantworten, deren Quellen vor der Probe gemeinsam dokumentiert wurden"
+      ],
+      "answer": 0,
+      "explanation": "Die Prüfung verlangt individuelle, dialogische Fachvertretung. Eine realistische Probe verbindet Cloudtechnik, Evidenz, Wirtschaftlichkeit und Eigenverantwortung; reines Vorlesen, Stellvertretung oder ungeprüfte Skripte testen diese Fähigkeit nicht.",
+      "weight": 3,
+      "topic": "Verteidigung und Gegenalternative",
+      "concept": "Integrierte Probeverteidigung",
+      "cognitive_level": "Analyse",
+      "mini_glossary": {
+        "Probeverteidigung": "Simulation von Vortrag und fachlicher Befragung.",
+        "Restrisiko": "Nach Maßnahmen verbleibendes bewusst bewertetes Risiko.",
+        "Agentenstellvertretung": "Unzulässiger Ersatz eigener Erklärung durch eine Modellausgabe."
+      }
+    }
+  ]
+}

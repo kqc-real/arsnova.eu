@@ -2,23 +2,23 @@
 
 # Agentic Cloud Engineering: Lehrlabor und Arbeitsmodell
 
-**Modul:** `DSCC0127` / `DSCC012701` · **Zweck:** Verbindliches agent-first-Arbeitsmodell für Lehrende und Studierende · **Lehrkonzept:** [Cloud Computing 36 UE](./BACHELOR-VORLESUNG-CLOUD-COMPUTING-36-UE-PRAKTIKUM.md) · **Prüfung:** [Referatsumsetzung](./CLOUD-COMPUTING-REFERAT-PRUEFUNG.md) · **Stand:** 2026-08-13
+**Modul:** `DSCC0127` / `DSCC012701` · **Zweck:** Ergänzende Regeln für kontrolliert agentengestützte Laborarbeit · **Lehrkonzept:** [Cloud Computing 36 UE](./Modulkonzept%20Cloud%20Computing/Modulkonzept_Cloud_Computing.md) · **Prüfung:** [Referatsumsetzung](./CLOUD-COMPUTING-REFERAT-PRUEFUNG.md) · **Stand:** 2026-08-13
 
-## 1. Grundentscheidung: ausschließlich agent-first
+## 1. Grundentscheidung: agentengestützt mit menschlicher Verantwortung
 
-Alle substanziellen Praxis-, Analyse- und Bewertungsaufgaben des Kurses werden mit **KI-Agenten im Sinne des Agentic Software Engineering** bearbeitet. Das gilt symmetrisch für Lehrende und Studierende. Der Kurs enthält keine manuell nachzuklickenden Cloud-Tutorials und keine konventionellen Laboraufgaben, deren eigentliche Bearbeitung außerhalb des Agentenprozesses stattfindet.
+Praxis- und Analyseaufgaben können mit freigegebenen **KI-Agenten im Sinne des Agentic Software Engineering** bearbeitet werden. Das gilt symmetrisch für Lehrende und Studierende. Ein Agentenlauf ist nur dann fachliche Evidenz, wenn Auftrag, Grenzen, Ausführung und Ergebnis überprüfbar sind. Bei fehlendem Agentenzugang, technischer Störung oder individuellem Zugangsbedarf steht ein gleichwertiger vorbereiteter Analyse-, Repository- oder Laborweg bereit. ARSnova- und MC-Test-Teilnahme bleiben freiwillig und ohne Notennachteil.
 
 Ein KI-Agent ist hier kein reiner Chatbot. Er erhält einen prüfbaren Auftrag, liest freigegebene Quellen und Systemzustände, erstellt einen Plan, verwendet kontrollierte Werkzeuge, verändert eine isolierte Umgebung, prüft das Ergebnis und legt Evidenz vor. Jede Aktivität folgt demselben Zyklus:
 
 > Auftrag → Plan → Risiko- und Kostenprüfung → menschliche Freigabe → Agentenausführung → technische Verifikation → Evidenz → fachliche Bewertung
 
-`Agent-first` bedeutet nicht `human-out-of-the-loop`:
+Agentengestützte Arbeit bedeutet nicht `human-out-of-the-loop`:
 
 - Menschen definieren Ziel, Akzeptanzkriterien, Berechtigungen und Budget.
 - Menschen genehmigen privilegierte, destruktive, externe oder kostenwirksame Schritte.
 - Menschen prüfen Quellen, Resultate, Nebenwirkungen und Zielerreichung.
 - Die prüfende Person trägt die Prüfungs- und Notenverantwortung; Agenten dürfen Feedback vorbereiten, aber nicht autonom benoten.
-- Manuelle Eingriffe sind nur als Sicherheits-, Wiederherstellungs- oder Barrierefreiheitsfallback zulässig und werden im Agentenprotokoll begründet.
+- Manuelle Eingriffe und gleichwertige Alternativwege werden als Sicherheits-, Wiederherstellungs-, Technik- oder Barrierefreiheitsfallback begründet und mit derselben fachlichen Evidenz geprüft.
 
 ## 2. Kompetenzziel
 
@@ -164,7 +164,7 @@ Lehrende nutzen Agenten für:
 - Erzeugung absichtlich fehlerhafter, aber sicher isolierter Ausgangszustände;
 - Vergleich von Studierendenevidenz mit Akzeptanzkriterien;
 - formative Feedbackvorschläge und Erkennung fehlender Nachweise;
-- Erzeugung und Vorprüfung von jeweils 30 MC-Test-Fragen nach dem festgeschriebenen vierstufigen [Generatorvertrag](./vorlesungen-cloud-computing-termine.md#verbindlicher-mc-test-generatorvertrag); Themen und Keywords steuern die Abdeckung, die freigegebene Materialbasis liefert das Fachwissen.
+- redaktionelle Vorprüfung der festgeschriebenen 30 MC-Test-Items je Woche nach [MC-Test-Blueprint](./Modulkonzept%20Cloud%20Computing/MC-Test_Blueprint_12_Wochen.md) und Wochen-JSONs; Agenten dürfen Prüfhinweise liefern, aber weder Lösungsschlüssel noch Veröffentlichung autonom bestimmen.
 
 Lehrendenagenten erhalten keine autonome Notenhoheit und verändern keine studentischen Abgaben. Aufgabe, Agentenkonfiguration, verwendete Prüfroutinen und wesentliche Modellgrenzen werden transparent gemacht.
 
@@ -209,7 +209,7 @@ Das formative Cloud-Readiness-Dossier wird zum **Agentic Cloud Engineering Dossi
 - Agentenevidenz und individuelle kritische Reflexion.
 - für den Pfad von der Begriffswolke zum Moderationskompass: Single-Host-spaCy-Nachweis, Zwei-Server-IaC, getrennte Inferenzverträge, Modell-/Lizenzmanifest, Qualitäts-/Ressourcen-/Resilienzbericht, TCO-/FinOps-Modell und Architecture Decision Record.
 
-Das Dossier ist die Arbeits- und Quellenbasis des Referats, aber kein zusätzlicher benoteter Prüfungsbestandteil. Das individuelle Referat wird aus dem [kanonischen Themenkatalog](./CLOUD-COMPUTING-REFERAT-PRUEFUNG.md#41-kanonischer-themenkatalog-für-die-fallstudie-arsnovaeu) vergeben, übernimmt den dort ausgewiesenen offiziellen Qualifikationsbezug und muss eine überprüfbare These, technische Evidenz, eine ernsthafte Gegenalternative sowie eine wirtschaftliche, betriebliche oder verantwortungsbezogene Entscheidung vertreten. Für das Referat gelten ausschließlich die offiziellen Bestandteile und Gewichte.
+Das Dossier ist die Arbeits- und Quellenbasis des Referats, aber kein zusätzlicher benoteter Prüfungsbestandteil. Das individuelle Referat wird aus dem [kanonischen Themenkatalog](./Modulkonzept%20Cloud%20Computing/Referatsthemen_Cloud_Computing_ARSnova.md) vergeben, übernimmt den dort ausgewiesenen offiziellen Qualifikationsbezug und muss eine überprüfbare These, technische Evidenz, eine ernsthafte Gegenalternative sowie eine wirtschaftliche, betriebliche oder verantwortungsbezogene Entscheidung vertreten. Für das Referat gelten ausschließlich die offiziellen Bestandteile und Gewichte.
 
 ## 9. Zuordnung zu den zwölf Terminen
 
@@ -232,13 +232,13 @@ Das Dossier ist die Arbeits- und Quellenbasis des Referats, aber kein zusätzlic
 
 Beide Kursläufe nutzen dieselbe remote erreichbare oder identisch reproduzierbare Laborplattform, dieselben Agentenkonfigurationen, Aufgaben, Berechtigungen, Budgets und Abnahmetests. Im Präsenzlauf arbeiten Teams am Tisch mit dem Agenten; im Zoom-Lauf steuern sie denselben Prozess in Breakouts mit geteilter Evidenzansicht. Lokale Rechner dienen nur als Zugang, nicht als unterschiedlich leistungsfähige Zielumgebungen.
 
-Für die freiwillige Selbstüberprüfung wird nach jedem Termin in beiden Kursläufen derselbe Satz von 30 agentisch erzeugten MC-Test-Fragen bereitgestellt.
+Für die freiwillige Selbstüberprüfung wird nach jedem Termin in beiden Kursläufen derselbe redaktionell freigegebene Satz von 30 MC-Test-Items aus der jeweiligen Wochen-JSON bereitgestellt.
 
 Bildschirmfreigabe oder Projektion zeigt bevorzugt Auftrag, Plan, Diff, Test und Entscheidung – nicht lange unkommentierte Agentenläufe. Asynchrone Agentenausführung muss einen definierten Rückkehrpunkt, Statuskanal und Abbruchweg besitzen.
 
 ## 11. Prüfungs- und Integritätsregel
 
-Der Kurs setzt Agenten durchgängig ein. Ob und in welchem Umfang KI-Agenten bei der Erstellung der formalen Referatsunterlagen als Hilfsmittel zulässig sind, muss dennoch im Prüfungsauftrag beziehungsweise in myCampus ausdrücklich bestätigt werden. Bis zur formalen Bestätigung ist Agentennutzung im Lernprozess nicht automatisch eine Freigabe für die Prüfungsabgabe.
+Der Kurs ermöglicht agentengestützte Arbeit über alle Themenwochen hinweg und hält gleichwertige Alternativwege bereit. Ob und in welchem Umfang KI-Agenten bei der Erstellung der formalen Referatsunterlagen als Hilfsmittel zulässig sind, muss dennoch im Prüfungsauftrag beziehungsweise in myCampus ausdrücklich bestätigt werden. Bis zur formalen Bestätigung ist Agentennutzung im Lernprozess nicht automatisch eine Freigabe für die Prüfungsabgabe.
 
 Bei erlaubter Agentennutzung gilt:
 
@@ -260,6 +260,6 @@ Bei erlaubter Agentennutzung gilt:
 - [ ] Themen aus dem kanonischen Referatsthemenkatalog ausgewählt und mit dem ausgewiesenen offiziellen Qualifikationsbezug, individueller These, Evidenzauftrag und Gegenalternative veröffentlicht
 - [ ] gemischte Informatik-/Wirtschaftsinformatikrollen und gemeinsame Ergebnisverantwortung erklärt
 - [ ] Lehrendenagenten für Labor, Vorprüfung und formatives Feedback getestet
-- [ ] festgeschriebener MC-Test-Commit, vierstufige Artefaktpipeline, Validator, Generierungsmanifest und menschliches Freigabegate für 30 Fragen je Termin getestet
+- [ ] zwölf MC-Test-Wochen-JSONs mit je 30 Items, Profil `0/12/18`, Schema- und Qualitätsvalidator sowie menschlichem Freigabegate geprüft
 - [ ] keine autonome Notengebung oder ungeprüfte Übernahme von Agentenaussagen vorgesehen
 - [ ] erlaubter KI-Einsatz in der Referatsprüfung formal geklärt und veröffentlicht

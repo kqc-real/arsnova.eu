@@ -2,7 +2,7 @@
 
 # IU-Formalia: Cloud Computing (DSCC0127)
 
-**Zweck:** Verbindlicher Abgleich der Kursplanung mit den bereitgestellten IU-Unterlagen · **Geltungsbereich:** Duales Studium, Bachelor Informatik · **Prüfstand:** 2026-07-29 · **Kurskonzept:** [Cloud-Computing-Kurslandkarte](./CLOUD-COMPUTING-KURSREADME.md)
+**Zweck:** Verbindlicher Abgleich der Kursplanung mit den bereitgestellten IU-Unterlagen · **Geltungsbereich:** Duales Studium, Bachelor Informatik · **Prüfstand:** 2026-07-29 · **Kurskonzept:** [Modulkonzept Cloud Computing](./Modulkonzept%20Cloud%20Computing/Modulkonzept_Cloud_Computing.md)
 
 ## 1. Ausgewertete Quellen
 
@@ -80,19 +80,19 @@ Nach dem Modulhandbuch sollen Studierende nach erfolgreichem Abschluss:
 4. Merkmale etablierter Cloud-Angebote analysieren;
 5. Cloud-Optionen für Datenwissenschaft und maschinelles Lernen beschreiben.
 
-Die operationalisierten Lernergebnisse und Prüfungsbezüge stehen im [Lehrkonzept](./BACHELOR-VORLESUNG-CLOUD-COMPUTING-36-UE-PRAKTIKUM.md).
+Die operationalisierten Lernergebnisse und Prüfungsbezüge stehen in der [Lernziel- und Alignment-Matrix](./Modulkonzept%20Cloud%20Computing/Lernziel_Alignment_Matrix.md).
 
 Die Teilnahme von Studierenden der Wirtschaftsinformatik ändert diese modulspezifischen Ziele und die Prüfungsform nicht. TCO, FinOps, Unit Economics, Build/Buy, Risiko und Exit werden als fallbezogener Transfer ergänzt und stets an die offiziellen Cloud-Inhalte zurückgebunden.
 
 ## 5. Verbindliche Inhaltsabdeckung
 
-| Modulhandbuch                  | Unterpunkte                                             | Abdeckung im 12-Termine-Plan |
-| ------------------------------ | ------------------------------------------------------- | ---------------------------- |
-| Einführung in Cloud Computing  | Grundlagen, Service-Modelle, Nutzen und Risiken         | Termin 1                     |
-| Technologische Voraussetzungen | Virtualisierung/Container, Speicher, Netzwerke und REST | Termine 2, 3 und 7           |
-| Serverloses Rechnen            | Einführung, Vorteile und Einschränkungen                | Termin 4                     |
-| Etablierte Cloud-Plattformen   | Google Cloud, AWS und Microsoft Azure                   | Termine 5 und 10             |
-| Datenwissenschaft in der Cloud | Datenwissenschafts- und ML-Dienste der drei Plattformen | Termin 6                     |
+| Modulhandbuch                  | Unterpunkte                                             | Abdeckung im 12-Wochen-Plan |
+| ------------------------------ | ------------------------------------------------------- | --------------------------- |
+| Einführung in Cloud Computing  | Grundlagen, Service-Modelle, Nutzen und Risiken         | Woche 1                     |
+| Technologische Voraussetzungen | Virtualisierung/Container, Speicher, Netzwerke und REST | Wochen 2, 3 und 7           |
+| Serverloses Rechnen            | Einführung, Vorteile und Einschränkungen                | Woche 4                     |
+| Etablierte Cloud-Plattformen   | Google Cloud, AWS und Microsoft Azure                   | Wochen 5 und 10             |
+| Datenwissenschaft in der Cloud | Datenwissenschafts- und ML-Dienste der drei Plattformen | Woche 6                     |
 
 Skalierung, Observability, Sicherheit, 6R und FinOps sind fallstudienbezogene Vertiefungen. Sie dürfen die fünf offiziellen Inhaltsblöcke nicht verdrängen.
 
@@ -120,7 +120,7 @@ Das semesterbegleitende Agentic Cloud Engineering Dossier ist:
 
 Thema, Einzel-/Gruppenformat, Handout-/Posterformat, Terminierung und zugelassene Hilfsmittel werden für den konkreten Kurslauf veröffentlicht. Die Gewichte und Kriterien des bereitgestellten Bewertungsbogens dürfen nicht lokal durch Konstruktionen wie „Portfolio 60 %, ADR 20 %, Verteidigung 20 %“ ersetzt werden.
 
-Da KI-Agenten im Kurs verbindliches Arbeitsmittel sind, muss ihre Zulässigkeit für die formale Referatsabgabe ausdrücklich in myCampus beziehungsweise im Prüfungsauftrag geregelt werden. Die Lehrentscheidung `agent-first` ersetzt keine prüfungsrechtliche Hilfsmittelfreigabe. Bei erlaubter Nutzung gelten transparente Kennzeichnung, Quellen-/Evidenzprüfung und individuelle Verantwortlichkeit; Agenten dürfen nicht autonom benoten.
+Da KI-Agenten im Kurs als Lern- und Arbeitsmittel eingesetzt werden können, muss ihre Zulässigkeit für die formale Referatsabgabe ausdrücklich in myCampus beziehungsweise im Prüfungsauftrag geregelt werden. Die didaktische Nutzung ersetzt keine prüfungsrechtliche Hilfsmittelfreigabe. Bei erlaubter Nutzung gelten transparente Kennzeichnung, Quellen-/Evidenzprüfung und individuelle Verantwortlichkeit; Agenten dürfen nicht autonom benoten.
 
 ## 7. Alternativpfad: Workbook nur nach Bestätigung
 

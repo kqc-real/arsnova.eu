@@ -1,0 +1,326 @@
+{
+  "exportVersion": 1,
+  "exportedAt": "2026-09-13T00:00:00.000Z",
+  "quiz": {
+    "name": "Cloud Computing – Woche 01: Merkmale, Modelle und sicherer Agentenauftrag",
+    "description": "10 anspruchsvolle Live-Fragen zu Cloud-Merkmalen, Service- und Deployment-Modellen, Shared Responsibility sowie zu begrenzten, prüfbaren Agentenaufträgen.",
+    "showLeaderboard": true,
+    "allowCustomNicknames": false,
+    "defaultTimer": 60,
+    "timerScaleByDifficulty": true,
+    "enableTimerAccommodation": true,
+    "enableSoundEffects": true,
+    "enableRewardEffects": true,
+    "enableMotivationMessages": true,
+    "enableEmojiReactions": true,
+    "anonymousMode": false,
+    "teamMode": true,
+    "teamCount": 4,
+    "teamAssignment": "AUTO",
+    "teamNames": ["Apfel :apple:", "Birne :pear:", "Banane :banana:", "Apfelsine :orange:"],
+    "backgroundMusic": null,
+    "nicknameTheme": "KINDERGARTEN",
+    "bonusTokenCount": 3,
+    "readingPhaseEnabled": true,
+    "questions": [
+      {
+        "text": "### Welche Cloud-Behauptung hält dem Fehlerfall stand?\n\nEin Portal nimmt Ressourcenanforderungen ohne Personal entgegen und zeigt Verbrauchswerte an. Während einer regionalen Sättigung bleiben bestätigte Anforderungen jedoch lange unerfüllt, zugleich werden reservierte Einheiten berechnet. Welche Bewertung trennt die Cloud-Merkmale und die Betriebsfolge am saubersten?",
+        "type": "SINGLE_CHOICE",
+        "timer": null,
+        "difficulty": "HARD",
+        "order": 0,
+        "answers": [
+          {
+            "text": "Die bestätigte Anforderung belegt sämtliche Cloud-Merkmale; Wartezeit und Abrechnung sind davon unabhängig.",
+            "isCorrect": false
+          },
+          {
+            "text": "Self-Service und Nutzungsmessung sind beobachtbar; Kapazitätsreaktion und Abrechnungssemantik bleiben gesondert zu prüfen.",
+            "isCorrect": true
+          },
+          {
+            "text": "Die regionale Sättigung widerlegt Cloud Computing insgesamt; geteilte Ressourcen dürfen keine Engpässe aufweisen.",
+            "isCorrect": false
+          },
+          {
+            "text": "Die Verbrauchsanzeige beweist ausreichende Kapazität; gemessene Einheiten entsprechen stets erfolgreich nutzbaren Ressourcen.",
+            "isCorrect": false
+          }
+        ],
+        "confidenceEnabled": true,
+        "confidenceLabelLow": "Sehr unsicher",
+        "confidenceLabelHigh": "Sehr sicher"
+      },
+      {
+        "text": "### Welche Verantwortungen bleiben beim Anwendungsteam?\n\nEin Team betreibt seine Anwendung auf einer virtuellen Maschine (VM) eines Anbieters für Infrastructure as a Service (IaaS). Wähle alle Aufgaben, die nicht allein durch den Wechsel auf IaaS entfallen.",
+        "type": "MULTIPLE_CHOICE",
+        "timer": null,
+        "difficulty": "HARD",
+        "order": 1,
+        "answers": [
+          {
+            "text": "Das Gastbetriebssystem und die installierten Laufzeitkomponenten zeitnah patchen",
+            "isCorrect": true
+          },
+          {
+            "text": "Anwendungsrollen, Secrets und Datenzugriffe nach dem eigenen Schutzbedarf konfigurieren",
+            "isCorrect": true
+          },
+          {
+            "text": "Die physische Zutrittskontrolle zum Rechenzentrum des Anbieters selbst betreiben",
+            "isCorrect": false
+          },
+          {
+            "text": "Die Firmware jedes physischen Storage-Controllers des Anbieters selbst aktualisieren",
+            "isCorrect": false
+          }
+        ],
+        "confidenceEnabled": true,
+        "confidenceLabelLow": "Sehr unsicher",
+        "confidenceLabelHigh": "Sehr sicher"
+      },
+      {
+        "text": "### Welches Sicherheitsprinzip begrenzt den Agentenzugriff?\n\nEin Provisioning-Agent erhält nur die für einen Dry-Run erforderlichen Leserechte; eine zeitlich begrenzte Erweiterung wird erst nach menschlicher Freigabe erteilt. Nenne das zugrunde liegende Prinzip mit einem Fachbegriff.",
+        "type": "SHORT_TEXT",
+        "timer": null,
+        "difficulty": "HARD",
+        "order": 2,
+        "answers": [
+          {
+            "text": "Least Privilege",
+            "isCorrect": true
+          },
+          {
+            "text": "Principle of Least Privilege",
+            "isCorrect": true
+          },
+          {
+            "text": "Prinzip der geringsten Privilegien",
+            "isCorrect": true
+          },
+          {
+            "text": "Prinzip minimaler Rechte",
+            "isCorrect": true
+          },
+          {
+            "text": "Minimalprinzip der Rechtevergabe",
+            "isCorrect": true
+          }
+        ],
+        "shortTextMaxLength": 48,
+        "shortTextEvaluationKind": "text",
+        "shortTextCaseSensitive": false,
+        "shortTextEvaluationMode": "exact",
+        "shortTextToleranceLevel": "none",
+        "shortTextAllowPartialCredit": false,
+        "shortTextTrimWhitespace": true,
+        "shortTextNormalizeWhitespace": true,
+        "confidenceEnabled": true,
+        "confidenceLabelLow": "Sehr unsicher",
+        "confidenceLabelHigh": "Sehr sicher"
+      },
+      {
+        "text": "### Wie viele vollständige Teststunden passen ins Budget?\n\nEine isolierte Sandbox kostet während der Laufzeit 1,80 Euro pro Stunde. Für Speicher fallen einmalig 9 Euro an. Das genehmigte Gesamtbudget beträgt 72 Euro; Teilstunden dürfen nicht gestartet werden. Wie viele vollständige Laufzeitstunden sind höchstens zulässig?",
+        "type": "NUMERIC_ESTIMATE",
+        "timer": null,
+        "difficulty": "HARD",
+        "order": 3,
+        "answers": [],
+        "numericToleranceMode": "ABSOLUTE_INTERVAL",
+        "numericReferenceValue": 35,
+        "numericIntervalLeft": 34.5,
+        "numericIntervalRight": 35.5,
+        "numericInputType": "INTEGER",
+        "numericDecimalPlaces": 0,
+        "numericMin": 0,
+        "numericMax": 40,
+        "numericTwoRounds": true,
+        "confidenceEnabled": true,
+        "confidenceLabelLow": "Sehr unsicher",
+        "confidenceLabelHigh": "Sehr sicher"
+      },
+      {
+        "text": "### Ordne Risikosignal und erforderlichen Nachweis zu\n\nOrdne jedem beobachteten Risikosignal den Nachweis zu, der die zugrunde liegende Cloud-Entscheidung am besten prüfbar macht.",
+        "type": "MATCHING",
+        "timer": null,
+        "difficulty": "HARD",
+        "order": 4,
+        "answers": [],
+        "matchingPairs": [
+          {
+            "leftId": "w01-match-metering",
+            "left": "Die Rechnung steigt trotz unveränderter Zahl aktiver Nutzender",
+            "rightId": "w01-match-metering-value",
+            "right": "Messgrößen, Einheiten und Kostentreiber des Abrechnungszeitraums prüfen"
+          },
+          {
+            "leftId": "w01-match-region",
+            "left": "Ein Workload darf eine festgelegte Datenregion nicht verlassen",
+            "rightId": "w01-match-region-value",
+            "right": "Speicherorte, Replikationspfade und Unterauftragnehmer belegen"
+          },
+          {
+            "leftId": "w01-match-incident",
+            "left": "Bei einem Vorfall ist die zuständige Partei zwischen Kunde und Anbieter unklar",
+            "rightId": "w01-match-incident-value",
+            "right": "Kontrollen, Betreiber und Eskalationswege schichtweise zuordnen"
+          },
+          {
+            "leftId": "w01-match-exit",
+            "left": "Ein proprietäres Exportformat erschwert den Anbieterwechsel",
+            "rightId": "w01-match-exit-value",
+            "right": "Export, Konvertierung und Wiederanlauf bei einer Alternative testen"
+          }
+        ],
+        "matchingShuffleRight": true,
+        "confidenceEnabled": true,
+        "confidenceLabelLow": "Sehr unsicher",
+        "confidenceLabelHigh": "Sehr sicher"
+      },
+      {
+        "text": "### Bringe einen riskanten Agentenauftrag unter Kontrolle\n\nOrdne die Schritte so, dass ein Agent keine kostenwirksame Cloud-Änderung ausführt, bevor Umfang und Nachweis geklärt sind.",
+        "type": "ORDERING",
+        "timer": null,
+        "difficulty": "HARD",
+        "order": 5,
+        "answers": [],
+        "orderingItems": [
+          {
+            "id": "w01-order-1",
+            "text": "Ziel, Ausgangszustand und ausgeschlossene Systeme festhalten"
+          },
+          {
+            "id": "w01-order-2",
+            "text": "Werkzeuge, Rechte, Laufzeit und Kostenobergrenze begrenzen"
+          },
+          {
+            "id": "w01-order-3",
+            "text": "Akzeptanz-, Abbruch- und Cleanup-Kriterien prüfbar formulieren"
+          },
+          {
+            "id": "w01-order-4",
+            "text": "Plan und Dry-Run ohne Produktivzugriff erzeugen lassen"
+          },
+          {
+            "id": "w01-order-5",
+            "text": "Privilegierte oder kostenwirksame Schritte menschlich freigeben"
+          },
+          {
+            "id": "w01-order-6",
+            "text": "Ausführung, Evidenz, Nebenwirkungen und Cleanup verifizieren"
+          }
+        ],
+        "confidenceEnabled": true,
+        "confidenceLabelLow": "Sehr unsicher",
+        "confidenceLabelHigh": "Sehr sicher"
+      },
+      {
+        "text": "### Klassifiziere Deployment-Szenarien nach ihrer Topologie\n\nOrdne jedes Szenario dem passenden Deployment-Modell zu. Entscheidend ist die tatsächlich gekoppelte Bereitstellung, nicht die Produktbezeichnung.",
+        "type": "CATEGORIZATION",
+        "timer": null,
+        "difficulty": "HARD",
+        "order": 6,
+        "answers": [],
+        "categories": [
+          {
+            "id": "w01-cat-public",
+            "name": "Public Cloud"
+          },
+          {
+            "id": "w01-cat-private",
+            "name": "Private Cloud"
+          },
+          {
+            "id": "w01-cat-hybrid",
+            "name": "Hybrid Cloud"
+          },
+          {
+            "id": "w01-cat-multi",
+            "name": "Multi-Cloud"
+          }
+        ],
+        "categorizationItems": [
+          {
+            "id": "w01-item-public",
+            "text": "Ein allgemein angebotener mandantenfähiger Provider-Ressourcenpool wird von unabhängigen Kunden genutzt",
+            "correctCategoryId": "w01-cat-public"
+          },
+          {
+            "id": "w01-item-private",
+            "text": "Cloud-Fähigkeiten werden exklusiv für eine Organisation im eigenen Rechenzentrum betrieben",
+            "correctCategoryId": "w01-cat-private"
+          },
+          {
+            "id": "w01-item-hybrid",
+            "text": "Private Verarbeitung und Public-Cloud-Spitzenlast sind über einen Datenfluss gekoppelt",
+            "correctCategoryId": "w01-cat-hybrid"
+          },
+          {
+            "id": "w01-item-multi",
+            "text": "Unabhängige Dienste zweier Public-Cloud-Anbieter werden parallel eingesetzt",
+            "correctCategoryId": "w01-cat-multi"
+          },
+          {
+            "id": "w01-item-private-managed",
+            "text": "Dedizierte Cloud-Plattform dient nur einer Organisation und wird von einem Dienstleister betrieben",
+            "correctCategoryId": "w01-cat-private"
+          },
+          {
+            "id": "w01-item-multi-split",
+            "text": "Analyse und Archivierung laufen bei zwei Providern ohne private Cloud-Komponente",
+            "correctCategoryId": "w01-cat-multi"
+          }
+        ],
+        "categorizationShuffleItems": true,
+        "confidenceEnabled": true,
+        "confidenceLabelLow": "Sehr unsicher",
+        "confidenceLabelHigh": "Sehr sicher"
+      },
+      {
+        "text": "### Welche Evidenz fehlt für die Cloud-Einordnung?\n\nEin Anbieter nennt seinen extern betriebenen, festen Server »Private Cloud«. Formuliere zwei prüfbare Beobachtungen, mit denen du zwischen bloßem Hosting und tatsächlich cloudtypischer Bereitstellung unterscheiden würdest.",
+        "type": "FREETEXT",
+        "timer": null,
+        "difficulty": "MEDIUM",
+        "order": 7,
+        "answers": []
+      },
+      {
+        "text": "### Welches Risiko soll zuerst in den Review?\n\nEin Agent soll eine isolierte IaaS-Sandbox anlegen. Dokumentiert sind Ziel und gewünschtes Image; offen sind Rechteumfang, Kostenlimit, erlaubter Egress und Cleanup. Welche Lücke soll das Team zuerst im Plenum vertiefen? Die Abstimmung priorisiert die Diskussion; es gibt keine Musterlösung.",
+        "type": "SURVEY",
+        "timer": null,
+        "difficulty": "MEDIUM",
+        "order": 8,
+        "answers": [
+          {
+            "text": "Den Umfang und die Ablaufzeit der Agentenrechte verbindlich begrenzen",
+            "isCorrect": false
+          },
+          {
+            "text": "Die Kostenobergrenze und den automatischen Stopp verbindlich begrenzen",
+            "isCorrect": false
+          },
+          {
+            "text": "Die erreichbaren Netzziele und Datenabflüsse verbindlich begrenzen",
+            "isCorrect": false
+          },
+          {
+            "text": "Den Destroy-Nachweis und die verbleibenden Ressourcen verbindlich begrenzen",
+            "isCorrect": false
+          }
+        ]
+      },
+      {
+        "text": "### Wie sicher kannst du eine Cloud-Behauptung prüfen?\n\nBewerte, wie sicher du einen Dienst anhand beobachtbarer Merkmale, Verantwortungsgrenzen und Betriebsfolgen einordnen kannst, ohne dich auf Marketingbegriffe zu verlassen.",
+        "type": "RATING",
+        "timer": null,
+        "difficulty": "MEDIUM",
+        "order": 9,
+        "answers": [],
+        "ratingMin": 1,
+        "ratingMax": 5,
+        "ratingLabelMin": "Noch nicht ohne Hilfe",
+        "ratingLabelMax": "Sicher mit eigener Begründung"
+      }
+    ]
+  }
+}

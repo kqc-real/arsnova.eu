@@ -1,0 +1,593 @@
+{
+  "meta": {
+    "title": "MC-Test – Woche 08: Elastizität, Skalierung und verteilte Systeme",
+    "target_audience": "Bachelorstudierende der Informatik und Wirtschaftsinformatik im Modul Cloud Computing",
+    "question_count": 30,
+    "difficulty_profile": {
+      "leicht": 0,
+      "mittel": 12,
+      "schwer": 18
+    },
+    "time_per_weight_minutes": {
+      "1": 0.5,
+      "2": 0.75,
+      "3": 1.0
+    },
+    "additional_buffer_minutes": 5,
+    "test_duration_minutes": 32,
+    "language": "de",
+    "updated": "2026-09-13"
+  },
+  "questions": [
+    {
+      "question": "1. Welche Aussage grenzt vertikale und horizontale Skalierung korrekt ab?",
+      "options": [
+        "Vertikale Skalierung vergrößert einen Knoten; horizontale Skalierung verteilt Arbeit auf mehrere Knoten und verlangt verteilte Zustandssemantik.",
+        "Vertikale Skalierung fügt immer Replikate hinzu, horizontale Skalierung nur mehr RAM.",
+        "Beide Begriffe unterscheiden ausschließlich die Höhe monatlicher Kosten.",
+        "Horizontale Skalierung beseitigt automatisch jeden Single Point of Failure."
+      ],
+      "answer": 0,
+      "explanation": "Scale-up und Scale-out ändern unterschiedliche Architekturgrenzen. Mehr Replikate bringen zusätzliche Zustands- und Fehlerfragen; weder Kosten noch Hochverfügbarkeit folgen automatisch.",
+      "weight": 2,
+      "topic": "Skalierungsstrategien",
+      "concept": "Scale-up versus Scale-out",
+      "cognitive_level": "Verständnis",
+      "mini_glossary": {
+        "Vertikale Skalierung": "Mehr Ressourcen für eine bestehende Instanz oder einen bestehenden Knoten.",
+        "Horizontale Skalierung": "Verteilung der Arbeit auf mehrere Instanzen oder Knoten."
+      }
+    },
+    {
+      "question": "2. Ein Single-Host-Dienst hat messbar CPU-Reserve verloren, besitzt aber viele prozesslokale Live-Pfade. Welche kurzfristige Maßnahme kann risikoärmer sein, bevor Scale-out entworfen ist?",
+      "options": [
+        "Zwei Replikate mit Session-Affinität starten, während lokaler Zustand und Instanzfailover zunächst ungeprüft bleiben.",
+        "Den bestehenden Knoten innerhalb getesteter Grenzen vertikal vergrößern und parallel die horizontale Zielarchitektur vorbereiten.",
+        "Rechenintensive Autorisierungsprüfungen entfernen und den Zugriff stattdessen allein über das private Netzwerk begrenzen.",
+        "Die Lasttests durch dokumentierte Hardwaredaten ersetzen und daraus die neue Kapazitätsgrenze des Knotens ableiten."
+      ],
+      "answer": 1,
+      "explanation": "Scale-up kann die bestehende Semantik zunächst erhalten, sofern Grenzen erneut gemessen werden. Ungeplanter Scale-out, Sicherheitsabbau oder unbelegte Kapazitätsannahmen erhöhen das Risiko.",
+      "weight": 2,
+      "topic": "Skalierungsstrategien",
+      "concept": "Gestufter Skalierungspfad",
+      "cognitive_level": "Anwendung",
+      "mini_glossary": {
+        "Vertikale Skalierung": "Mehr Ressourcen für eine bestehende Instanz oder einen bestehenden Knoten.",
+        "Horizontale Skalierung": "Verteilung der Arbeit auf mehrere Instanzen oder Knoten."
+      }
+    },
+    {
+      "question": "3. Nach dem Hinzufügen von vier App-Replikaten bleibt der Durchsatz nahezu gleich; PostgreSQL ist zu 100 % ausgelastet. Welche Diagnose ist am stärksten?",
+      "options": [
+        "Die Datenbank ist der aktuelle Engpass; zusätzliche App-Replikate können den Gesamtdurchsatz ohne Änderung dieses Engpasses kaum erhöhen.",
+        "Der Load Balancer muss zwangsläufig defekt sein, weil jede Replikatverdopplung den Durchsatz exakt verdoppelt.",
+        "Horizontale Skalierung wirkt nur bei geringer CPU-Auslastung der Datenbank.",
+        "Die Fehlerrate kann nicht steigen, solange mehr App-Prozesse existieren."
+      ],
+      "answer": 0,
+      "explanation": "Ende-zu-Ende-Durchsatz wird vom limitierenden Engpass bestimmt. Lineare Skalierung ist keine Garantie; mehr App-Parallelität kann eine gesättigte Datenbank sogar stärker belasten.",
+      "weight": 2,
+      "topic": "Skalierungsstrategien",
+      "concept": "Engpass jenseits der App-Schicht",
+      "cognitive_level": "Analyse",
+      "mini_glossary": {
+        "Vertikale Skalierung": "Mehr Ressourcen für eine bestehende Instanz oder einen bestehenden Knoten.",
+        "Horizontale Skalierung": "Verteilung der Arbeit auf mehrere Instanzen oder Knoten."
+      }
+    },
+    {
+      "question": "4. Was unterscheidet Elastizität von bloßer Skalierbarkeit?",
+      "options": [
+        "Elastizität beschreibt die zeitnahe Anpassung bereitgestellter Ressourcen an wechselnde Last, einschließlich Rückskalierung und Kontrollgrenzen.",
+        "Elastizität bedeutet ausschließlich den Kauf der größten dauerhaft verfügbaren Instanz.",
+        "Skalierbarkeit und Elastizität sind identisch mit einem einmaligen Lasttest.",
+        "Elastizität garantiert unabhängig von Architektur und Limits linearen Durchsatz."
+      ],
+      "answer": 0,
+      "explanation": "Elastizität umfasst dynamische Anpassung in beide Richtungen; Skalierbarkeit beschreibt allgemeiner die Fähigkeit, mehr Last durch Ressourcen oder Architektur zu tragen. Weder Maximalgröße noch ein Test oder Linearität definieren sie.",
+      "weight": 2,
+      "topic": "Skalierungsstrategien",
+      "concept": "Elastische Ressourcenanpassung",
+      "cognitive_level": "Verständnis",
+      "mini_glossary": {
+        "Vertikale Skalierung": "Mehr Ressourcen für eine bestehende Instanz oder einen bestehenden Knoten.",
+        "Horizontale Skalierung": "Verteilung der Arbeit auf mehrere Instanzen oder Knoten."
+      }
+    },
+    {
+      "question": "5. Eine Vorlesung erzeugt innerhalb von zehn Sekunden eine vorhersehbare Join-Welle; Autoscaling reagiert erst nach zwei Minuten. Welche Maßnahme adressiert die Lücke?",
+      "options": [
+        "Die Mindestkapazität vor dem Termin auf null setzen und den ersten Burst bis zur Skalierungsreaktion puffern.",
+        "Kapazität vorab bereitstellen und die Join-Welle mit Admission Control statt nur durch reaktives Autoscaling glätten.",
+        "Den Skalierungsschwellwert erst nach der Veranstaltung anheben und die aktuelle Join-Welle unverändert ausführen.",
+        "Fehlgeschlagene Joins sofort parallel wiederholen und dadurch die Zeit bis zur Skalierungsreaktion überbrücken."
+      ],
+      "answer": 1,
+      "explanation": "Ein schneller Burst kann vor der Skalierungsreaktion eintreffen; Pre-Warming und kontrollierte Aufnahme überbrücken diese Zeit. Nullkapazität, Retry-Stürme oder spätere Änderungen helfen dem aktuellen Ereignis nicht.",
+      "weight": 2,
+      "topic": "Skalierungsstrategien",
+      "concept": "Burst vor Autoscaling-Reaktion",
+      "cognitive_level": "Anwendung",
+      "mini_glossary": {
+        "Vertikale Skalierung": "Mehr Ressourcen für eine bestehende Instanz oder einen bestehenden Knoten.",
+        "Horizontale Skalierung": "Verteilung der Arbeit auf mehrere Instanzen oder Knoten."
+      }
+    },
+    {
+      "question": "6. WebSocket-Verbindungen werden per Round Robin auf zwei Replikate verteilt; der Sessionzustand liegt nur im Speicher jeder Instanz. Was ist beim Reconnect plausibel?",
+      "options": [
+        "Round Robin sorgt dafür, dass jeder Client immer dieselbe Instanz erhält.",
+        "Der Browser kopiert automatisch den Prozessspeicher der vorherigen Instanz.",
+        "Ein Client landet auf einer anderen Instanz und sieht ohne gemeinsamen Zustand oder Resynchronisation einen abweichenden Sessionstand.",
+        "PostgreSQL verhindert jede Abweichung, auch wenn der Zustand dort nie gespeichert oder erneut gelesen wird."
+      ],
+      "answer": 2,
+      "explanation": "Load Balancing verteilt Verbindungen, repliziert aber keinen Prozessspeicher. Ohne gemeinsame Quelle, Eventbus oder Resync kann ein Reconnect einen anderen Zustand sehen.",
+      "weight": 2,
+      "topic": "Load Balancing und Zustandsgrenzen",
+      "concept": "Reconnect über Instanzgrenzen",
+      "cognitive_level": "Analyse",
+      "mini_glossary": {
+        "Load Balancer": "Komponente, die neue Verbindungen oder Requests nach einer Regel auf Ziele verteilt.",
+        "Prozesslokaler Zustand": "Zustand, der nur innerhalb einer einzelnen laufenden Anwendungsinstanz sichtbar ist."
+      }
+    },
+    {
+      "question": "7. Welche Funktion übernimmt ein Load Balancer nicht automatisch?",
+      "options": [
+        "Er kann neue Verbindungen nach konfigurierten Regeln auf gesunde Ziele verteilen.",
+        "Er kann je nach Produkt Healthchecks in die Zielauswahl einbeziehen.",
+        "Er bildet eine Netzgrenze zwischen Clients und mehreren Zielinstanzen.",
+        "Er repliziert weder Anwendungszustand noch prozesslokale Events oder globale Schutzbudgets zwischen Backend-Instanzen."
+      ],
+      "answer": 3,
+      "explanation": "Ein Load Balancer entscheidet über Routing und gegebenenfalls Gesundheit, nicht über fachliche Zustandsreplikation. Prozesssignale und globale Limits benötigen eigene Mechanismen.",
+      "weight": 2,
+      "topic": "Load Balancing und Zustandsgrenzen",
+      "concept": "Grenze des Load Balancings",
+      "cognitive_level": "Verständnis",
+      "mini_glossary": {
+        "Load Balancer": "Komponente, die neue Verbindungen oder Requests nach einer Regel auf Ziele verteilt.",
+        "Prozesslokaler Zustand": "Zustand, der nur innerhalb einer einzelnen laufenden Anwendungsinstanz sichtbar ist."
+      }
+    },
+    {
+      "question": "8. Sticky Sessions halten einen WebSocket-Client meist auf derselben Replik. Welche Restlücke bleibt?",
+      "options": [
+        "Bei Instanzausfall oder Neuzuweisung fehlen ohne externen Zustand weiterhin Events, Recovery und überprüfbare Konsistenz.",
+        "Sticky Sessions machen ein einzelnes Replikat automatisch hochverfügbar.",
+        "Sticky Sessions synchronisieren In-Memory-Caches aller Replikate.",
+        "Sticky Sessions ersetzen globale Rate-Limits und einen Reconnect-Test."
+      ],
+      "answer": 0,
+      "explanation": "Affinität kann lokale Zustandsannahmen zeitweise kaschieren, schützt aber nicht vor Instanzverlust oder Neuverteilung. Sie repliziert weder Cache noch Limits und braucht weiterhin Recovery-Evidenz.",
+      "weight": 2,
+      "topic": "Load Balancing und Zustandsgrenzen",
+      "concept": "Grenze von Session-Affinität",
+      "cognitive_level": "Anwendung",
+      "mini_glossary": {
+        "Load Balancer": "Komponente, die neue Verbindungen oder Requests nach einer Regel auf Ziele verteilt.",
+        "Prozesslokaler Zustand": "Zustand, der nur innerhalb einer einzelnen laufenden Anwendungsinstanz sichtbar ist."
+      }
+    },
+    {
+      "question": "9. Jede App-Replik begrenzt lokal 100 gleichzeitige Jobs. Nach Scale-out auf fünf Replikate werden 500 Jobs zugelassen, obwohl global 100 sicher wären. Welche Korrektur ist nötig?",
+      "options": [
+        "Das Budget instanzübergreifend koordinieren oder Arbeit über eine globale Queue mit verbindlicher Kapazitätsgrenze zulassen.",
+        "Den lokalen Grenzwert beibehalten, weil ein Load Balancer ihn automatisch global interpretiert.",
+        "Die Zahl der Replikate weiter erhöhen, damit die globale Grenze wieder 100 wird.",
+        "Nur die Logstufe reduzieren, ohne Zulassungslogik oder Queue zu ändern."
+      ],
+      "answer": 0,
+      "explanation": "Prozesslokale Caps multiplizieren sich mit der Replikzahl. Eine gemeinsame Zulassungsinstanz oder Queue bildet das echte globale Ressourcenbudget ab.",
+      "weight": 2,
+      "topic": "Load Balancing und Zustandsgrenzen",
+      "concept": "Globale statt lokale Limits",
+      "cognitive_level": "Analyse",
+      "mini_glossary": {
+        "Load Balancer": "Komponente, die neue Verbindungen oder Requests nach einer Regel auf Ziele verteilt.",
+        "Prozesslokaler Zustand": "Zustand, der nur innerhalb einer einzelnen laufenden Anwendungsinstanz sichtbar ist."
+      }
+    },
+    {
+      "question": "10. Yjs-Dokumente und Awareness-Zustand werden in einem einzelnen Relay-Prozess gehalten. Was muss vor mehreren Relay-Replikaten geklärt werden?",
+      "options": [
+        "Nur die Farbe der Load-Balancer-Oberfläche muss vereinheitlicht werden.",
+        "Jede Replik kann denselben Raum unabhängig bearbeiten, ohne Updates auszutauschen.",
+        "Mehr Replikate garantieren automatisch CRDT-Konvergenz, selbst wenn sie nie kommunizieren.",
+        "Raumzuordnung, Dokumentzustand, Broadcast, Verbindungswechsel und Schutzlimits benötigen eine getestete instanzübergreifende Semantik."
+      ],
+      "answer": 3,
+      "explanation": "CRDT-Merge funktioniert nur mit ausgetauschten Updates und klarer Verbindungstopologie. Ohne Routing, Austausch und globale Grenzen können Räume auseinanderlaufen oder Limits umgangen werden.",
+      "weight": 2,
+      "topic": "Load Balancing und Zustandsgrenzen",
+      "concept": "Yjs-Routing im Scale-out",
+      "cognitive_level": "Verständnis",
+      "mini_glossary": {
+        "Load Balancer": "Komponente, die neue Verbindungen oder Requests nach einer Regel auf Ziele verteilt.",
+        "Prozesslokaler Zustand": "Zustand, der nur innerhalb einer einzelnen laufenden Anwendungsinstanz sichtbar ist."
+      }
+    },
+    {
+      "question": "11. Eine Inferenzqueue erhält kurzfristig 300 Jobs pro Minute, verarbeitet aber 180. Welche Reaktion begrenzt den Schaden?",
+      "options": [
+        "Jeden abgelehnten Job ohne Verzögerung unbegrenzt neu einstellen.",
+        "Die Queue unbegrenzt wachsen lassen und nur den Durchschnitt der Bearbeitungszeit berichten.",
+        "Den Live-Hotpath warten lassen, bis die gesamte optionale Queue leer ist.",
+        "Queue-Limit, Priorisierung und Backpressure anwenden, zusätzliche sichere Kapazität aktivieren oder optionale Jobs kontrolliert ablehnen."
+      ],
+      "answer": 3,
+      "explanation": "Bei Überlast muss die Ankunft kontrolliert oder die Service-Rate sicher erhöht werden. Unbegrenzte Retries, Queuewachstum und Kopplung an Kernpfade erzeugen kaskadierende Fehler.",
+      "weight": 2,
+      "topic": "Queueing und Backpressure",
+      "concept": "Kontrollierte Überlastaufnahme",
+      "cognitive_level": "Anwendung",
+      "mini_glossary": {
+        "Queue": "Warteschlange zwischen Ankunft und Bearbeitung von Arbeit.",
+        "Backpressure": "Kontrollierte Begrenzung, Drosselung oder Abweisung neuer Arbeit bei Sättigung."
+      }
+    },
+    {
+      "question": "12. Ein Downstream-Dienst ist langsam. Jeder Timeout löst sofort drei parallele Retries aus. Warum kann das System kollabieren?",
+      "options": [
+        "Retries reduzieren die Last, weil jede Anfrage kürzer im Client wartet.",
+        "Retry-Amplifikation erhöht die Ankunftsrate am bereits gesättigten Dienst und verlängert Queue sowie Tail-Latenz weiter.",
+        "Parallele Retries garantieren, dass nur eine Anfrage den Downstream erreicht.",
+        "Timeouts wirken als globale Queue und koordinieren automatisch alle Clients."
+      ],
+      "answer": 1,
+      "explanation": "Unkoordinierte Retries vervielfachen Arbeit genau während der Störung. Begrenzte Versuche, Backoff, Jitter und Budgets sind nötig; ein Timeout allein steuert keine Gesamtrate.",
+      "weight": 2,
+      "topic": "Queueing und Backpressure",
+      "concept": "Retry-Sturm",
+      "cognitive_level": "Analyse",
+      "mini_glossary": {
+        "Queue": "Warteschlange zwischen Ankunft und Bearbeitung von Arbeit.",
+        "Backpressure": "Kontrollierte Begrenzung, Drosselung oder Abweisung neuer Arbeit bei Sättigung."
+      }
+    },
+    {
+      "question": "13. Welche Beziehung beschreibt Little’s Law in einem stabilen Warteschlangensystem vereinfacht?",
+      "options": [
+        "Die Latenz des 99. Perzentils entspricht immer exakt der CPU-Auslastung in Prozent.",
+        "Die Fehlerrate ist unabhängig von Ankunftsrate und Queuegröße stets null.",
+        "Die mittlere Zahl im System entspricht mittlerem Durchsatz multipliziert mit mittlerer Verweildauer.",
+        "Die maximale Kapazität entspricht automatisch der Zahl der Worker zum Quadrat."
+      ],
+      "answer": 2,
+      "explanation": "Little’s Law verbindet mittlere Bestandsgröße, Rate und Zeit unter stabilen Bedingungen. Es ist keine Formel für Perzentile, Fehlerfreiheit oder quadratische Skalierung.",
+      "weight": 3,
+      "topic": "Queueing und Backpressure",
+      "concept": "Bestand, Rate und Verweildauer",
+      "cognitive_level": "Verständnis",
+      "mini_glossary": {
+        "Queue": "Warteschlange zwischen Ankunft und Bearbeitung von Arbeit.",
+        "Backpressure": "Kontrollierte Begrenzung, Drosselung oder Abweisung neuer Arbeit bei Sättigung."
+      }
+    },
+    {
+      "question": "14. Join/Vote und optionale Modellanalyse teilen eine Queue. Unter Last verdrängen lange Modelljobs die Kernoperationen. Welcher Entwurf ist angemessen?",
+      "options": [
+        "Alle Jobs strikt nach maximaler Laufzeit absteigend sortieren.",
+        "Die Modelljobs als nicht abbrechbar markieren und das Join-Timeout erhöhen.",
+        "Nur einen gemeinsamen unbeschränkten Workerpool verwenden.",
+        "Getrennte Queues und Budgets mit Vorrang für Kernpfade sowie begrenztem, abbrechbarem optionalem Workload."
+      ],
+      "answer": 3,
+      "explanation": "Isolation von Queues und Ressourcen verhindert, dass optionale Arbeit Kernpfade blockiert. Longest-first, längere Timeouts oder unbeschränkte Konkurrenz verstärken Head-of-Line-Blocking.",
+      "weight": 3,
+      "topic": "Queueing und Backpressure",
+      "concept": "Workload-Isolation",
+      "cognitive_level": "Anwendung",
+      "mini_glossary": {
+        "Queue": "Warteschlange zwischen Ankunft und Bearbeitung von Arbeit.",
+        "Backpressure": "Kontrollierte Begrenzung, Drosselung oder Abweisung neuer Arbeit bei Sättigung."
+      }
+    },
+    {
+      "question": "15. Eine unbeschränkte Queue hält bei Downstream-Ausfall jeden Payload im RAM. Welcher Fehlerpfad ist realistisch?",
+      "options": [
+        "Nur die Medianlatenz sinkt, während Speicherbedarf und Fehlerrate unverändert bleiben.",
+        "Nur die Medianlatenz sinkt, während Speicher und Fehlerrate unverändert bleiben.",
+        "Mehr eintreffende Arbeit beschleunigt den ausgefallenen Downstream zwangsläufig.",
+        "Speicher wächst bis zu starker Garbage-Collection oder Prozessabbruch; danach gehen auch bereits angenommene Jobs und Kernfunktionen verloren."
+      ],
+      "answer": 3,
+      "explanation": "Unbegrenzte Annahme verschiebt Überlast in Speicher und Latenz, bis der Prozess selbst ausfällt. Automatische Kompression oder selbstheilender Durchsatz ist nicht gegeben.",
+      "weight": 3,
+      "topic": "Queueing und Backpressure",
+      "concept": "Unbounded Queue als Ausfallverstärker",
+      "cognitive_level": "Analyse",
+      "mini_glossary": {
+        "Queue": "Warteschlange zwischen Ankunft und Bearbeitung von Arbeit.",
+        "Backpressure": "Kontrollierte Begrenzung, Drosselung oder Abweisung neuer Arbeit bei Sättigung."
+      }
+    },
+    {
+      "question": "16. Welche Eigenschaft muss ein Cache besitzen, damit sein Verlust fachlich beherrschbar bleibt?",
+      "options": [
+        "Cache-Schlüssel, Gültigkeitsregel und autoritative Quelle beziehungsweise deterministische Neuberechnung müssen definiert sein.",
+        "Der Cache muss alle Primärdaten als einzige dauerhafte Kopie enthalten und dadurch ohne weitere Quelle auskommen.",
+        "Der Cache darf weder invalidiert noch versioniert werden, damit alte und neue Einträge jederzeit gemeinsam nutzbar bleiben.",
+        "Der Cache muss unabhängig von Eingabe und Modell denselben Wert liefern, damit sein Verlust keine Unterschiede erzeugt."
+      ],
+      "answer": 0,
+      "explanation": "Ein Cache ist eine abgeleitete, erneuerbare Beschleunigung mit expliziter Gültigkeit. Eine einzige Primärkopie, fehlende Invalidierung oder inhaltsblinde Werte widersprechen dieser Rolle.",
+      "weight": 3,
+      "topic": "Caching und Graceful Degradation",
+      "concept": "Wiederaufbaubare Cache-Semantik",
+      "cognitive_level": "Verständnis",
+      "mini_glossary": {
+        "Cache": "Beschleunigende Kopie oder Vorberechnung, die mit klarer Gültigkeit wiederaufbaubar sein muss.",
+        "Graceful Degradation": "Gezielter Erhalt von Kernfunktionen durch kontrolliertes Reduzieren optionaler Qualität oder Features."
+      }
+    },
+    {
+      "question": "17. Embeddings werden gecacht. Welche Cache-Key-Zusammensetzung verhindert Versionsvermischung?",
+      "options": [
+        "Hash der Eingabe und aktuelle Clusterzahl verwenden, Modell- und Vorverarbeitungsversion jedoch nicht berücksichtigen.",
+        "Hash der normalisierten Eingabe, Modell-, Tokenizer- und Vorverarbeitungsversion sowie relevante Parameter verwenden.",
+        "Hash der Rohzeichenfolge und Anzeigename des Cloud-Projekts verwenden, den Modellstand jedoch nicht berücksichtigen.",
+        "Hash der Eingabe und Zeitpunkt des letzten Serverstarts verwenden, die Transformationsversion jedoch nicht berücksichtigen."
+      ],
+      "answer": 1,
+      "explanation": "Ein belastbarer Cache-Key bindet alle ergebniswirksamen Eingaben und Versionen. Clusterzahl, Projektname oder Serverstart unterscheiden Modell- und Transformationsstände nicht zuverlässig und können inkompatible Ergebnisse vermischen.",
+      "weight": 3,
+      "topic": "Caching und Graceful Degradation",
+      "concept": "Versionsgebundener Inferenzcache",
+      "cognitive_level": "Anwendung",
+      "mini_glossary": {
+        "Cache": "Beschleunigende Kopie oder Vorberechnung, die mit klarer Gültigkeit wiederaufbaubar sein muss.",
+        "Graceful Degradation": "Gezielter Erhalt von Kernfunktionen durch kontrolliertes Reduzieren optionaler Qualität oder Features."
+      }
+    },
+    {
+      "question": "18. Nach Cache-Ablauf fordern 5.000 Clients gleichzeitig dasselbe teure Ergebnis an. Welche Maßnahme verhindert einen Cache Stampede?",
+      "options": [
+        "Jeden Cache-Miss parallel berechnen und die gleichzeitige Inferenzzahl ausschließlich durch das Clienttempo begrenzen.",
+        "Den Cache vor der Ablaufwelle vollständig leeren und alle identischen Ergebnisse anschließend parallel neu berechnen.",
+        "Fehlgeschlagene Cache-Anfragen sofort wiederholen und identische Berechnungen auf alle verfügbaren Worker verteilen.",
+        "Identische Anfragen per Single-Flight bündeln, Ablaufzeiten staffeln und Ergebnisse begrenzt im Hintergrund erneuern."
+      ],
+      "answer": 3,
+      "explanation": "Single-Flight bündelt identische Arbeit; gestaffelte Ablaufzeiten und kontrollierte Erneuerung vermeiden synchrone Lastspitzen. Parallele Neuberechnung oder ungebremste Wiederholung verstärkt den Stampede.",
+      "weight": 3,
+      "topic": "Caching und Graceful Degradation",
+      "concept": "Cache Stampede",
+      "cognitive_level": "Analyse",
+      "mini_glossary": {
+        "Cache": "Beschleunigende Kopie oder Vorberechnung, die mit klarer Gültigkeit wiederaufbaubar sein muss.",
+        "Graceful Degradation": "Gezielter Erhalt von Kernfunktionen durch kontrolliertes Reduzieren optionaler Qualität oder Features."
+      }
+    },
+    {
+      "question": "19. Der private Inferenzdienst von arsnova.eu ist langsam oder ausgefallen. Welches Verhalten entspricht dem dokumentierten Zielbild?",
+      "options": [
+        "Join und Vote warten, bis der Inferenzdienst wieder erreichbar ist.",
+        "Die lexikalische Wortwolke bleibt sofort nutzbar; optionale semantische Analyse endet begrenzt und meldet kontrollierten Fallback.",
+        "Die Wortwolkenkarte bleibt leer, um alte Ergebnisse zu vermeiden.",
+        "Teilnehmerbrowser wechseln direkt auf den privaten Modellport."
+      ],
+      "answer": 1,
+      "explanation": "Die optionale Inferenz ist vom Live-Hotpath getrennt, und die lexikalische Baseline bleibt der sichere Pfad. Blockieren, leere UI oder Browserdirektzugriff verletzen diese Grenze.",
+      "weight": 3,
+      "topic": "Caching und Graceful Degradation",
+      "concept": "Lexikalischer Fallback",
+      "cognitive_level": "Anwendung",
+      "mini_glossary": {
+        "Cache": "Beschleunigende Kopie oder Vorberechnung, die mit klarer Gültigkeit wiederaufbaubar sein muss.",
+        "Graceful Degradation": "Gezielter Erhalt von Kernfunktionen durch kontrolliertes Reduzieren optionaler Qualität oder Features."
+      }
+    },
+    {
+      "question": "20. Unter Sättigung werden Animationen und optionale Analyse deaktiviert, während Join, Vote und Q&A-Submit innerhalb ihrer Ziele bleiben. Wie ist das zu bewerten?",
+      "options": [
+        "Als vollständiger Ausfall, weil jede optionale Funktion immer verfügbar sein muss.",
+        "Als unbegrenzte Kapazitätsgarantie für alle künftigen Lastprofile.",
+        "Als geplante Graceful Degradation, sofern Nutzerzustand, Beobachtbarkeit und Rückkehrbedingungen klar definiert sind.",
+        "Als Sicherheitskontrolle, die Lasttests und SLOs überflüssig macht."
+      ],
+      "answer": 2,
+      "explanation": "Kontrollierte Reduktion schützt Kernnutzen und ist nur mit klarer Sichtbarkeit und Erholung belastbar. Sie belegt weder unbegrenzte Kapazität noch ersetzt sie Tests.",
+      "weight": 3,
+      "topic": "Caching und Graceful Degradation",
+      "concept": "Priorisierte Kernfunktionen",
+      "cognitive_level": "Analyse",
+      "mini_glossary": {
+        "Cache": "Beschleunigende Kopie oder Vorberechnung, die mit klarer Gültigkeit wiederaufbaubar sein muss.",
+        "Graceful Degradation": "Gezielter Erhalt von Kernfunktionen durch kontrolliertes Reduzieren optionaler Qualität oder Features."
+      }
+    },
+    {
+      "question": "21. Ein Bericht nennt das 50. Perzentil (p50) mit 100 ms, das 95. Perzentil (p95) mit 700 ms und das 99. Perzentil (p99) mit 2.000 ms. Welche Interpretation ist korrekt?",
+      "options": [
+        "50 Prozent der Werte liegen höchstens bei 100 ms, 95 Prozent höchstens bei 700 ms und 99 Prozent höchstens bei 2.000 ms.",
+        "Alle beobachteten Werte liegen zwischen 100 ms und 2.000 ms, weil die drei Perzentile die vollständige Spannweite angeben.",
+        "Jeweils 50, 95 und 99 Prozent der Requests dauern exakt 100 ms, 700 ms beziehungsweise 2.000 ms.",
+        "Der Mittelwert beträgt den Durchschnitt der drei Perzentilwerte, weil diese die Messwerte gleichmäßig repräsentieren."
+      ],
+      "answer": 0,
+      "explanation": "Perzentile sind Schwellen einer Verteilung: Der jeweilige Anteil liegt höchstens beim angegebenen Wert. Sie legen weder die vollständige Spannweite noch exakte Häufigkeiten einzelner Werte oder den arithmetischen Mittelwert fest.",
+      "weight": 3,
+      "topic": "Performance-Metriken",
+      "concept": "Interpretation von Latenzperzentilen",
+      "cognitive_level": "Anwendung",
+      "mini_glossary": {
+        "Perzentil": "Schwellenwert, unter dem ein bestimmter Anteil beobachteter Messwerte liegt.",
+        "Durchsatz": "Erfolgreich abgeschlossene Arbeit pro Zeiteinheit unter einer definierten Last."
+      }
+    },
+    {
+      "question": "22. Ein System erhöht den Durchsatz von 800 auf 1.100 erfolgreiche Requests pro Sekunde, während p99 und Fehlerrate stark steigen. Welche Schlussfolgerung ist angemessen?",
+      "options": [
+        "Der höhere Durchsatz allein genügt nicht; Latenz- und Fehlerziele müssen unter derselben definierten Last ebenfalls erfüllt sein.",
+        "Das System ist verbessert, weil zusätzlicher Durchsatz steigende Tail-Latenz und Fehlerrate grundsätzlich kompensiert.",
+        "Die Bewertung kann allein auf den Durchsatz gestützt werden, wenn die Medianlatenz im selben Test nicht erfasst wurde.",
+        "Schnell zurückgegebene Fehler dürfen dem erfolgreichen Durchsatz zugerechnet werden, weil sie wenig Ressourcen binden."
+      ],
+      "answer": 0,
+      "explanation": "Kapazität ist mehrdimensional: erfolgreicher Durchsatz, Latenzverteilung und Fehler müssen gemeinsam bewertet werden. Mehr Arbeit kompensiert weder verletzte Latenzziele noch fehlgeschlagene Operationen.",
+      "weight": 3,
+      "topic": "Performance-Metriken",
+      "concept": "Gemeinsame SLO-Bewertung",
+      "cognitive_level": "Analyse",
+      "mini_glossary": {
+        "Perzentil": "Schwellenwert, unter dem ein bestimmter Anteil beobachteter Messwerte liegt.",
+        "Durchsatz": "Erfolgreich abgeschlossene Arbeit pro Zeiteinheit unter einer definierten Last."
+      }
+    },
+    {
+      "question": "23. Ein geschlossener Lastgenerator sendet erst nach jeder Antwort die nächste Anfrage. Bei Serververlangsamung sinkt dadurch die angebotene Last. Welches Messrisiko entsteht?",
+      "options": [
+        "Die angebotene Last wird überschätzt, weil der Generator während langsamer Antworten zusätzliche Anfragen vorzeitig sendet.",
+        "Die Fehlerrate wird überschätzt, weil jede langsame Antwort automatisch als zwei fehlgeschlagene Anfragen gezählt wird.",
+        "Tail-Latenz und Überlast werden unterschätzt, weil der Generator während langsamer Antworten ungewollt weniger Arbeit anbietet.",
+        "Die Perzentile werden angeglichen, weil ein geschlossener Generator alle Antwortzeiten auf dasselbe Zeitfenster normiert."
+      ],
+      "answer": 2,
+      "explanation": "Ein geschlossener Generator koppelt neue Arbeit an abgeschlossene Antworten und kann bei Verlangsamung die angebotene Last reduzieren. Er erzeugt weder automatisch Zusatzanfragen oder Doppelfehler noch identische Perzentile.",
+      "weight": 3,
+      "topic": "Performance-Metriken",
+      "concept": "Coordinated Omission",
+      "cognitive_level": "Anwendung",
+      "mini_glossary": {
+        "Perzentil": "Schwellenwert, unter dem ein bestimmter Anteil beobachteter Messwerte liegt.",
+        "Durchsatz": "Erfolgreich abgeschlossene Arbeit pro Zeiteinheit unter einer definierten Last."
+      }
+    },
+    {
+      "question": "24. Ein Lasttest zählt erwartete 429-Antworten aus einem ausdrücklich geprüften Abuse-Limit. Wie sollte die Fehlerrate berichtet werden?",
+      "options": [
+        "Erwartete 429-Antworten als erfolgreiche Nutzeroperationen werten und aus dem separaten Schutzsignal entfernen.",
+        "Alle 4xx- und 5xx-Antworten aus dem Bericht entfernen und ausschließlich erfolgreiche Antwortzeiten auswerten.",
+        "Erwartete Schutzablehnungen getrennt ausweisen und unerwartete Fehler des normalen Servicepfads unverfälscht messen.",
+        "Nur die Gesamtzahl aller Antworten berichten und erwartete Schutzablehnungen nicht von Servicefehlern unterscheiden."
+      ],
+      "answer": 2,
+      "explanation": "Ein erwartetes Sicherheitsgate ist ein eigener Service Level Indicator (SLI) und darf normale Servicefehler weder aufblasen noch verstecken. Pauschales Umdeuten, Entfernen oder Zusammenfassen zerstört die Aussagekraft.",
+      "weight": 3,
+      "topic": "Performance-Metriken",
+      "concept": "Fehlerklassifikation im Lasttest",
+      "cognitive_level": "Analyse",
+      "mini_glossary": {
+        "Perzentil": "Schwellenwert, unter dem ein bestimmter Anteil beobachteter Messwerte liegt.",
+        "Durchsatz": "Erfolgreich abgeschlossene Arbeit pro Zeiteinheit unter einer definierten Last."
+      }
+    },
+    {
+      "question": "25. Ein historischer Produktionslauf verarbeitete 500 gleichzeitige Joins ohne HTTP-Fehler, erreichte aber p95=3,57 s bei einem damaligen Ziel unter 3 s. Welche Aussage ist korrekt?",
+      "options": [
+        "Der gesamte 500er-Livebetrieb ist damit ohne Einschränkung formal abgenommen.",
+        "Der Lauf ist vollständig wertlos, weil ein Latenzziel verfehlt wurde.",
+        "Der Join war funktional erfolgreich, verfehlte aber das Latenzziel und belegt keinen vollständigen Vote-, WebSocket- oder Livebetrieb mit 500 Personen.",
+        "Die null HTTP-Fehler beweisen automatisch niedrige p99-Latenz und ausreichende Ressourcenreserve."
+      ],
+      "answer": 2,
+      "explanation": "Der Lauf liefert konkrete Join-Evidenz und zugleich eine Zielverletzung. Seine Systemgrenze umfasst nicht automatisch spätere Livepfade oder eine formale Gesamtfreigabe.",
+      "weight": 3,
+      "topic": "Performance-Metriken",
+      "concept": "Begrenzte Aussage eines Lastnachweises",
+      "cognitive_level": "Anwendung",
+      "mini_glossary": {
+        "Perzentil": "Schwellenwert, unter dem ein bestimmter Anteil beobachteter Messwerte liegt.",
+        "Durchsatz": "Erfolgreich abgeschlossene Arbeit pro Zeiteinheit unter einer definierten Last."
+      }
+    },
+    {
+      "question": "26. Warum können 100 Sessions mit je 50 Personen ein anderes Lastprofil als eine Session mit 5.000 Personen erzeugen?",
+      "options": [
+        "Bei gleicher Gesamtzahl sind beide Profile praktisch gleich; Unterschiede entstehen nur durch die mittlere CPU-Auslastung.",
+        "Viele kleine Sessions sind grundsätzlich schwerer, weil nur ihr Zustands-Overhead zählt und Fan-out keine Rolle spielt.",
+        "Ein einzelner Hotspot ist grundsätzlich schwerer, weil Session-Overhead und gemeinsam genutzte Ressourcen keine Rolle spielen.",
+        "Viele Sessions vervielfachen Zustände und Steuerereignisse; ein Hotspot konzentriert Fan-out und Konkurrenz auf gemeinsame Ressourcen."
+      ],
+      "answer": 3,
+      "explanation": "Gleiche Gesamtzahl bedeutet nicht gleiche Verteilung von Zuständen und Ereignissen. Pauschale Rangfolgen blenden entweder Fan-out und gemeinsame Hotspots oder den vervielfachten Session-Overhead aus.",
+      "weight": 3,
+      "topic": "Lastprofile und verteilte Systeme",
+      "concept": "Verteilungsform der Last",
+      "cognitive_level": "Analyse",
+      "mini_glossary": {
+        "Fan-out": "Verteilung eines Ereignisses oder Ergebnisses an viele verbundene Empfänger.",
+        "SLI/SLO": "Gemessene Servicekennzahl und dazugehöriges Ziel für eine definierte Systemgrenze."
+      }
+    },
+    {
+      "question": "27. Wie sollte die WebSocket-Skalierung für mehrere App-Replikate geprüft werden?",
+      "options": [
+        "Je Replikat nur HTTP-Healthchecks und die Zahl akzeptierter Verbindungen messen, aber keine Live-Ereignisse auslösen.",
+        "Nur Betriebssystemgrenzen für offene TCP-Sockets messen, aber Routing und Sessionzustand nicht in den Test einbeziehen.",
+        "Verbindungsaufbau, Fan-out, Statuswechsel, Reconnect nach Instanzfehlern und Zustandskonsistenz gemeinsam messen.",
+        "Nur die Medianlatenz eines einzelnen dauerhaft verbundenen Clients ohne Broadcast- oder Reconnect-Ereignisse messen."
+      ],
+      "answer": 2,
+      "explanation": "WebSocket-Skalierung umfasst langlebige Verbindungen, Broadcast, Routing und Recovery über Instanzgrenzen. Healthchecks, Socketlimits oder ein einzelner ruhiger Client prüfen diese verteilte Semantik nicht.",
+      "weight": 3,
+      "topic": "Lastprofile und verteilte Systeme",
+      "concept": "Mehrinstanz-WebSocket-Test",
+      "cognitive_level": "Anwendung",
+      "mini_glossary": {
+        "Fan-out": "Verteilung eines Ereignisses oder Ergebnisses an viele verbundene Empfänger.",
+        "SLI/SLO": "Gemessene Servicekennzahl und dazugehöriges Ziel für eine definierte Systemgrenze."
+      }
+    },
+    {
+      "question": "28. Lokale Tests zeigen 500 erfolgreiche Joins, Votes, WebSockets und Reconnects. Welche Aussage zur Produktion ist belastbar?",
+      "options": [
+        "Die lokalen Werte sind ohne weitere Prüfung ein Produktionsziel (Service Level Objective, SLO) für jede Hardware und Region.",
+        "Sie bilden eine Entwicklungsbaseline; eine Produktionsfreigabe benötigt weiterhin eine vergleichbare Zielumgebung, vollständige Reports und den vorgesehenen Abnahmevermerk.",
+        "Die historische Produktionsmessung wird durch den lokalen Lauf automatisch überschrieben.",
+        "Die Zielbilder 100 × 50 und 1 × 5.000 gelten dadurch als nachgewiesene Kapazität."
+      ],
+      "answer": 1,
+      "explanation": "Lokale Evidenz ist wertvoll, aber an Umgebung und Commit gebunden. Sie ersetzt weder Produktionsmessung noch formale Abnahme und extrapoliert nicht auf ungeprüfte Lehrszenarien.",
+      "weight": 3,
+      "topic": "Lastprofile und verteilte Systeme",
+      "concept": "Evidenzstufen von Lasttests",
+      "cognitive_level": "Analyse",
+      "mini_glossary": {
+        "Fan-out": "Verteilung eines Ereignisses oder Ergebnisses an viele verbundene Empfänger.",
+        "SLI/SLO": "Gemessene Servicekennzahl und dazugehöriges Ziel für eine definierte Systemgrenze."
+      }
+    },
+    {
+      "question": "29. arsnova.eu soll von einem App-Prozess auf mehrere Replikate wechseln. Welche Architekturkombination adressiert die dokumentierten Lücken am direktesten?",
+      "options": [
+        "Nur einen Load Balancer ergänzen und Prozesszustände sowie Schutzlimits weiterhin unkoordiniert je Replikat halten.",
+        "Instanzübergreifenden Live-Bus, definierte WebSocket/Yjs-Zuständigkeit, externe Zustände und globale Schutzlimits einführen.",
+        "Nur größere Replikate bereitstellen und auf Reconnect-, Fan-out-, Zustands- sowie Ausfalltests vorerst verzichten.",
+        "Nur ein gemeinsames Logdashboard aufbauen, das Ereignisse, Verbindungszuständigkeit und Schutzlimits nicht koordiniert."
+      ],
+      "answer": 1,
+      "explanation": "Scale-out verlangt Kommunikation, Ownership und globale Budgets jenseits des Load Balancers. Größere Knoten oder Beobachtung allein ändern die Zustandssemantik nicht.",
+      "weight": 3,
+      "topic": "Lastprofile und verteilte Systeme",
+      "concept": "Voraussetzungen für Multi-Instanz-Betrieb",
+      "cognitive_level": "Anwendung",
+      "mini_glossary": {
+        "Fan-out": "Verteilung eines Ereignisses oder Ergebnisses an viele verbundene Empfänger.",
+        "SLI/SLO": "Gemessene Servicekennzahl und dazugehöriges Ziel für eine definierte Systemgrenze."
+      }
+    },
+    {
+      "question": "30. Der optionale Inferenzserver fällt unter Last aus, während Q&A-Submit und WebSockets gesund sind. Welche Reaktion ist systemisch am besten?",
+      "options": [
+        "Alle gesunden Kernpfade gemeinsam mit dem optionalen Inferenzdienst neu starten und währenddessen keine Anfragen annehmen.",
+        "Inferenzjobs ohne Retry-Budget wiederholen und die gemeinsame Infrastruktur bis zur Erholung vollständig auslasten.",
+        "Den Inferenzfehler verbergen und eine leere Themenansicht als erfolgreiches semantisches Ergebnis zurückgeben.",
+        "Inferenzjobs begrenzt abbrechen, sichtbaren Fallback liefern, Kernziele überwachen und kontrolliert wieder zuschalten."
+      ],
+      "answer": 3,
+      "explanation": "Graceful Degradation isoliert den optionalen Fehler, erhält Kernpfade und macht den Zustand sichtbar. Gemeinsamer Neustart, Retry-Sturm oder ein fälschlicher Erfolg weiten den Schaden aus.",
+      "weight": 3,
+      "topic": "Lastprofile und verteilte Systeme",
+      "concept": "Isolierte Degradation und Recovery",
+      "cognitive_level": "Analyse",
+      "mini_glossary": {
+        "Fan-out": "Verteilung eines Ereignisses oder Ergebnisses an viele verbundene Empfänger.",
+        "SLI/SLO": "Gemessene Servicekennzahl und dazugehöriges Ziel für eine definierte Systemgrenze."
+      }
+    }
+  ]
+}

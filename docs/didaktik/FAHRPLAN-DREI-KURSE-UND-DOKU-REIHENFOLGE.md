@@ -7,14 +7,10 @@
 **Anpassung:** Wochen sind **Richtwerte**; die **Greenfield-Demo 1.7a** passt in **3×45 Min.** (eine Woche oder drei aufeinanderfolgende Termine) — [`greenfield-demo-1-7a-vorlesung.md`](./greenfield-demo-1-7a-vorlesung.md). Inhalte aus Woche 1–3 FSE bei Zeitdruck **zusammenlegen**.
 
 **Separater Kurs:** Bachelor-**Cloud Computing** hat einen eigenen Strang und gehört **nicht** in diesen Fahrplan —
-[`CLOUD-COMPUTING-KURSREADME.md`](./CLOUD-COMPUTING-KURSREADME.md),
-[`CLOUD-COMPUTING-IU-FORMALIA.md`](./CLOUD-COMPUTING-IU-FORMALIA.md),
-[`CLOUD-COMPUTING-AGENTIC-LEHRLABOR.md`](./CLOUD-COMPUTING-AGENTIC-LEHRLABOR.md),
-[`CLOUD-COMPUTING-REFERAT-PRUEFUNG.md`](./CLOUD-COMPUTING-REFERAT-PRUEFUNG.md),
-[`CLOUD-COMPUTING-DURCHFUEHRUNG-PRAESENZ-ZOOM.md`](./CLOUD-COMPUTING-DURCHFUEHRUNG-PRAESENZ-ZOOM.md),
-[`dozenten-quickstart-cloud-computing.md`](./dozenten-quickstart-cloud-computing.md),
-[`BACHELOR-VORLESUNG-CLOUD-COMPUTING-36-UE-PRAKTIKUM.md`](./BACHELOR-VORLESUNG-CLOUD-COMPUTING-36-UE-PRAKTIKUM.md),
-[`vorlesungen-cloud-computing-termine.md`](./vorlesungen-cloud-computing-termine.md).
+[`Modulkonzept_Cloud_Computing.md`](./Modulkonzept%20Cloud%20Computing/Modulkonzept_Cloud_Computing.md),
+[`Wochenlehrplan_Cloud_Computing_12_Wochen.md`](./Modulkonzept%20Cloud%20Computing/Wochenlehrplan_Cloud_Computing_12_Wochen.md),
+[`Materialindex.md`](./Modulkonzept%20Cloud%20Computing/Materialindex.md) und
+[`Lehrenden_Runbook.md`](./Modulkonzept%20Cloud%20Computing/Lehrenden_Runbook.md).
 
 **Wenn du nur 10 Minuten hast:** Starte mit [`dozenten-quickstart.md`](./dozenten-quickstart.md), dann erst in dieses Dokument.
 
