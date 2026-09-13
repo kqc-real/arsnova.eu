@@ -137,18 +137,19 @@ Die Typzuordnung ergibt genau 18 UE Präsenz beziehungsweise synchron und 18 UE 
 
 ### Verbindlicher Fachwortschatz
 
-| Begriff                                 | Arbeitsdefinition                                                                                                                              |
-| --------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------- |
-| Cloud Computing                         | bedarfsgerechter Netzzugriff auf einen gemeinsam nutzbaren Pool konfigurierbarer Ressourcen mit schneller Bereitstellung und messbarer Nutzung |
-| On-demand Self-service                  | Nutzende können vereinbarte Ressourcen ohne einzelne manuelle Anbieterfreigabe anfordern                                                       |
-| Broad Network Access                    | Fähigkeiten sind standardisiert über Netze und unterschiedliche Clientklassen erreichbar                                                       |
-| Resource Pooling                        | Anbieterressourcen bedienen mehrere Bedarfe dynamisch, ohne feste exklusive Zuordnung jeder Ressource                                          |
-| Rapid Elasticity                        | Kapazität kann dem Bedarf zeitnah folgen; ein großer Server allein ist noch nicht elastisch                                                    |
-| Measured Service                        | Nutzung wird durch geeignete Messgrößen transparent erfasst und steuerbar gemacht                                                              |
-| IaaS, PaaS, SaaS                        | Infrastructure, Platform und Software as a Service mit jeweils anderer Verantwortungsgrenze                                                    |
-| Public, Private, Hybrid und Multi-Cloud | Bereitstellungsmodelle nach Eigentum, Zugriffs- und Kombinationsform; Multi-Cloud nutzt mehrere Anbieter                                       |
-| Hosting                                 | Betrieb einer Anwendung auf fremder oder eigener Infrastruktur, ohne dadurch automatisch alle Cloud-Merkmale zu erfüllen                       |
-| Shared Responsibility                   | Aufteilung von Schutz-, Betriebs- und Compliance-Aufgaben zwischen Anbieter und Kunde                                                          |
+| Begriff                                     | Arbeitsdefinition                                                                                                                              |
+| ------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------- |
+| Cloud Computing                             | bedarfsgerechter Netzzugriff auf einen gemeinsam nutzbaren Pool konfigurierbarer Ressourcen mit schneller Bereitstellung und messbarer Nutzung |
+| On-demand Self-service                      | Nutzende können vereinbarte Ressourcen ohne einzelne manuelle Anbieterfreigabe anfordern                                                       |
+| Broad Network Access                        | Fähigkeiten sind standardisiert über Netze und unterschiedliche Clientklassen erreichbar                                                       |
+| Resource Pooling                            | Anbieterressourcen bedienen mehrere Bedarfe dynamisch, ohne feste exklusive Zuordnung jeder Ressource                                          |
+| Rapid Elasticity                            | Kapazität kann dem Bedarf zeitnah folgen; ein großer Server allein ist noch nicht elastisch                                                    |
+| Measured Service                            | Nutzung wird durch geeignete Messgrößen transparent erfasst und steuerbar gemacht                                                              |
+| IaaS, PaaS, SaaS                            | Infrastructure, Platform und Software as a Service mit jeweils anderer Verantwortungsgrenze                                                    |
+| Public, Private, Community und Hybrid Cloud | die vier NIST-Bereitstellungsmodelle nach Nutzungsgruppe und Kopplung eigenständiger Cloud-Infrastrukturen                                     |
+| Multi-Cloud                                 | anbieterübergreifende Strategie mit Diensten mehrerer Cloud-Anbieter; kein fünftes NIST-Bereitstellungsmodell                                  |
+| Hosting                                     | Betrieb einer Anwendung auf fremder oder eigener Infrastruktur, ohne dadurch automatisch alle Cloud-Merkmale zu erfüllen                       |
+| Shared Responsibility                       | Aufteilung von Schutz-, Betriebs- und Compliance-Aufgaben zwischen Anbieter und Kunde                                                          |
 
 ### UE 1 und UE 2
 

@@ -215,7 +215,7 @@
         "confidenceLabelHigh": "Sehr sicher"
       },
       {
-        "text": "### Klassifiziere Deployment-Szenarien nach ihrer Topologie\n\nOrdne jedes Szenario dem passenden Deployment-Modell zu. Entscheidend ist die tatsächlich gekoppelte Bereitstellung, nicht die Produktbezeichnung.",
+        "text": "### Klassifiziere Cloud-Szenarien nach NIST-Bereitstellungsmodell\n\nOrdne jedes Szenario dem passenden Bereitstellungsmodell zu. Entscheidend sind Nutzungsgruppe und Kopplung der Cloud-Infrastrukturen, nicht die Produktbezeichnung.",
         "type": "CATEGORIZATION",
         "timer": null,
         "difficulty": "HARD",
@@ -235,8 +235,8 @@
             "name": "Hybrid Cloud"
           },
           {
-            "id": "w01-cat-multi",
-            "name": "Multi-Cloud"
+            "id": "w01-cat-community",
+            "name": "Community Cloud"
           }
         ],
         "categorizationItems": [
@@ -256,9 +256,9 @@
             "correctCategoryId": "w01-cat-hybrid"
           },
           {
-            "id": "w01-item-multi",
-            "text": "Unabhängige Dienste zweier Public-Cloud-Anbieter werden parallel eingesetzt",
-            "correctCategoryId": "w01-cat-multi"
+            "id": "w01-item-community",
+            "text": "Mehrere Hochschulen nutzen exklusiv eine gemeinsame Cloud für geteilte Sicherheits- und Compliance-Anforderungen",
+            "correctCategoryId": "w01-cat-community"
           },
           {
             "id": "w01-item-private-managed",
@@ -266,9 +266,9 @@
             "correctCategoryId": "w01-cat-private"
           },
           {
-            "id": "w01-item-multi-split",
-            "text": "Analyse und Archivierung laufen bei zwei Providern ohne private Cloud-Komponente",
-            "correctCategoryId": "w01-cat-multi"
+            "id": "w01-item-community-managed",
+            "text": "Ein Dienstleister betreibt eine Cloud exklusiv für Behörden mit gemeinsamer Mission und gemeinsamen Richtlinien",
+            "correctCategoryId": "w01-cat-community"
           }
         ],
         "categorizationShuffleItems": true,

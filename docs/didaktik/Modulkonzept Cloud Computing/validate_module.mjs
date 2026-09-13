@@ -656,17 +656,37 @@ async function validateGeneratedArtifacts(distributions) {
   }
 
   try {
-    const lines = (await readFile(resolve(moduleDirectory, checksumFile), 'utf8'))
-      .trim()
-      .split('\n')
-      .filter(Boolean);
-    const checksumMap = new Map(lines.map((line) => [line.slice(66), line.slice(0, 64)]));
     const expectedFiles = [
       ...arsnovaFiles,
       ...mcTestFiles,
       shortTextCasesFile,
       distributionFile,
     ].sort((left, right) => left.localeCompare(right, 'de'));
+    const manifest = await readFile(resolve(moduleDirectory, checksumFile), 'utf8');
+    const lines = manifest.split(/\r?\n/);
+    if (lines.at(-1) === '') {
+      lines.pop();
+    }
+    if (lines.length !== expectedFiles.length) {
+      fail(
+        `${checksumFile}: genau ${expectedFiles.length} Einträge erwartet, gefunden ${lines.length}.`,
+      );
+    }
+
+    const entries = [];
+    for (const [index, line] of lines.entries()) {
+      const match = /^([0-9a-f]{64})  (.+)$/.exec(line);
+      if (!match) {
+        fail(`${checksumFile}: Zeile ${index + 1} verletzt das Format "<sha256>  <datei>".`);
+        continue;
+      }
+      entries.push([match[2], match[1]]);
+    }
+    const listedFiles = entries.map(([filename]) => filename);
+    if (new Set(listedFiles).size !== listedFiles.length) {
+      fail(`${checksumFile}: Dateinamen dürfen nicht mehrfach aufgeführt werden.`);
+    }
+    const checksumMap = new Map(entries);
     if (!sameJson([...checksumMap.keys()].sort(), expectedFiles)) {
       fail(
         `${checksumFile}: Dateimenge stimmt nicht mit den maschinenlesbaren Artefakten überein.`,

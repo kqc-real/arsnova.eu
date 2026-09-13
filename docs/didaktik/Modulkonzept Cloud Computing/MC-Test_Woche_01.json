@@ -235,7 +235,7 @@
       "concept": "Extern betriebene Private Cloud",
       "cognitive_level": "Anwendung",
       "mini_glossary": {
-        "Private Cloud": "Exklusiv für eine Organisation oder abgegrenzte Gemeinschaft bereitgestellte Cloud.",
+        "Private Cloud": "Cloud-Infrastruktur, die exklusiv für eine einzelne Organisation bereitgestellt wird.",
         "Fremdbetrieb": "Betrieb einer Ressource durch einen externen Dienstleister."
       }
     },
@@ -254,7 +254,7 @@
       "concept": "Kopplung eigenständiger Clouds",
       "cognitive_level": "Analyse",
       "mini_glossary": {
-        "Hybrid Cloud": "Gekoppelte Nutzung eigenständiger privater und öffentlicher Cloud-Infrastrukturen.",
+        "Hybrid Cloud": "Verbund aus mindestens zwei eigenständigen privaten, Community- oder öffentlichen Cloud-Infrastrukturen.",
         "Portabilität": "Übertragbarkeit von Daten oder Workloads zwischen Umgebungen."
       }
     },
@@ -267,33 +267,33 @@
         "Multi-Cloud, weil Dienste mehrerer Cloud-Anbieter gemeinsam eingesetzt werden"
       ],
       "answer": 3,
-      "explanation": "Multi-Cloud bezeichnet die Nutzung von Cloud-Diensten mehrerer Anbieter. Hybrid Cloud setzt dagegen eine Kopplung unterschiedlicher Deployment-Formen voraus; verschiedene Schichten oder getrennte Mandanten genügen dafür nicht.",
+      "explanation": "Multi-Cloud bezeichnet die Nutzung von Cloud-Diensten mehrerer Anbieter. Hybrid Cloud setzt dagegen einen Verbund eigenständiger Cloud-Infrastrukturen voraus. Multi-Cloud ist eine Anbieterstrategie und kein fünftes NIST-Bereitstellungsmodell.",
       "weight": 3,
-      "topic": "Deployment-Modelle",
-      "concept": "Multi-Cloud ohne private Komponente",
+      "topic": "Cloud-Einordnung",
+      "concept": "Multi-Cloud als anbieterübergreifende Strategie",
       "cognitive_level": "Analyse",
       "mini_glossary": {
-        "Multi-Cloud": "Gemeinsamer Einsatz von Diensten mehrerer Cloud-Anbieter.",
-        "Deployment-Modell": "Organisationsform und Zugänglichkeit einer Cloud-Infrastruktur."
+        "Multi-Cloud": "Strategie, die Dienste mehrerer Cloud-Anbieter einsetzt.",
+        "Bereitstellungsmodell": "NIST-Klassifikation einer Cloud-Infrastruktur nach Nutzungsgruppe und Kopplung."
       }
     },
     {
-      "question": "15. Ein Produkt wird als »Hybrid Cloud Edition« beworben. Welche Prüfung liefert die belastbarste Einordnung?",
+      "question": "15. Mehrere kommunale Gesundheitsämter nutzen exklusiv eine gemeinsame Cloud-Infrastruktur, weil sie dieselben gesetzlichen, Sicherheits- und Compliance-Anforderungen teilen. Welche Einordnung nach NIST ist korrekt?",
       "options": [
-        "Tatsächliche Umgebungen, Kopplung, Datenflüsse und Verantwortungsgrenzen dokumentieren",
-        "Produktnamen, Lizenzstufe, Logo und Vertragsüberschrift gemeinsam auswerten",
-        "Anzahl der verwendeten Container, Images, Ports und Programmiersprachen zählen",
-        "Rechenzentrumsdistanz, Rackhöhe, Prozessortakt und Speichergröße miteinander vergleichen"
+        "Community Cloud, weil eine abgegrenzte Gemeinschaft mehrerer Organisationen gemeinsame Anforderungen teilt",
+        "Private Cloud, weil jede exklusiv zugängliche Infrastruktur nur einer einzelnen Organisation dienen darf",
+        "Public Cloud, weil öffentlich-rechtliche Organisationen automatisch die allgemeine Öffentlichkeit bilden",
+        "Multi-Cloud, weil mehrere Organisationen unabhängig von der Zahl der eingesetzten Anbieter beteiligt sind"
       ],
       "answer": 0,
-      "explanation": "Ein Deployment-Modell folgt aus realer Topologie, Kopplung und Zugänglichkeit, nicht aus einer Editionbezeichnung. Technische Detailzahlen können relevant sein, beantworten aber die organisatorische und architektonische Einordnung nicht.",
+      "explanation": "NIST definiert die Community Cloud als exklusiv für eine bestimmte Gemeinschaft von Organisationen mit gemeinsamen Anliegen bereitgestellte Infrastruktur. Mehrere öffentliche Stellen machen sie weder zur Public Cloud noch zu einer Multi-Cloud-Strategie.",
       "weight": 3,
       "topic": "Deployment-Modelle",
-      "concept": "Evidenz statt Produktbezeichnung",
+      "concept": "Community Cloud für organisationsübergreifend geteilte Anliegen",
       "cognitive_level": "Analyse",
       "mini_glossary": {
-        "Topologie": "Struktur der beteiligten Systeme und ihrer Verbindungen.",
-        "Evidenz": "Nachprüfbarer Beleg für eine fachliche Aussage."
+        "Community Cloud": "Cloud-Infrastruktur zur exklusiven Nutzung durch eine bestimmte Gemeinschaft mehrerer Organisationen.",
+        "Gemeinsame Anliegen": "Geteilte Mission, Sicherheitsanforderungen, Richtlinien oder Compliance-Vorgaben."
       }
     },
     {

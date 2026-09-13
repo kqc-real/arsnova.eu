@@ -18,9 +18,9 @@
       "file": "MC-Test_Woche_01.json",
       "questionCount": 30,
       "topic": {
-        "Cloud-Einordnung": 5,
+        "Cloud-Einordnung": 6,
         "Cloud-Merkmale": 5,
-        "Deployment-Modelle": 5,
+        "Deployment-Modelle": 4,
         "Service-Modelle": 5,
         "Shared Responsibility": 5,
         "Sicherer Agentenauftrag": 5
