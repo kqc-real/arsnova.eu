@@ -1,6 +1,8 @@
 # Musterlösung zur Probeklausur – Angewandte Statistik
 
-- **Version:** 2.0.0 · **Stand:** 13.09.2026
+**Kürzel vorab:** **MZ7** bezeichnet das siebte Modulziel „Statistische Evidenz kommunizieren und begrenzen“, **W09** die neunte Kurswoche und **`source_ref`** die Quellenkennung eines Datensatzes. **A1–A6** und **V1** innerhalb dieser Quellenkennungen bezeichnen Klausuraufgabe 1–6 und Datensatzversion 1.
+
+- **Version:** 2.0.1 · **Stand:** 13.09.2026
 - **Gesamt:** 60 Punkte
 - **Bezugsdokument:** `P0-03_Probeklausur_90_Minuten.md`
 

@@ -3,149 +3,328 @@
   "exportedAt": "2026-09-13T00:00:00.000Z",
   "quiz": {
     "name": "P0-03 ARSnova – Woche 01: Daten und Messung",
-    "description": "Diagnosefragen zu Beobachtungseinheit, Merkmalen, Skalenniveaus, Stichproben und Datenqualität.",
-    "showLeaderboard": false,
+    "description": "10 anspruchsvolle Live-Fragen zum statistischen Prozess, zu Bezugsgruppen, Beobachtungseinheiten, Merkmalen, Skalenniveaus, Datenqualität und Aussagegrenzen. Der Satz nutzt jeden der zehn ARSnova-Fragetypen genau einmal.",
+    "showLeaderboard": true,
     "allowCustomNicknames": false,
-    "defaultTimer": null,
-    "timerScaleByDifficulty": false,
+    "defaultTimer": 60,
+    "timerScaleByDifficulty": true,
     "enableTimerAccommodation": true,
-    "enableSoundEffects": false,
-    "enableRewardEffects": false,
-    "enableMotivationMessages": false,
-    "enableEmojiReactions": false,
-    "anonymousMode": true,
-    "teamMode": false,
-    "teamCount": null,
+    "enableSoundEffects": true,
+    "enableRewardEffects": true,
+    "enableMotivationMessages": true,
+    "enableEmojiReactions": true,
+    "anonymousMode": false,
+    "teamMode": true,
+    "teamCount": 4,
     "teamAssignment": "AUTO",
+    "teamNames": ["Apfel :apple:", "Birne :pear:", "Banane :banana:", "Apfelsine :orange:"],
     "backgroundMusic": null,
-    "nicknameTheme": "HIGH_SCHOOL",
-    "bonusTokenCount": null,
+    "nicknameTheme": "KINDERGARTEN",
+    "bonusTokenCount": 3,
     "readingPhaseEnabled": true,
     "questions": [
       {
-        "text": "### Was beschreibt eine Tabellenzeile?\n\nEine Datentabelle enthält pro Zeile genau eine abgegebene Antwort. Die Spalten heißen Frage, gewählte Option und Bearbeitungsdauer.\n\nWas ist hier die Beobachtungseinheit?",
+        "text": "### Welche Einheit beschreibt eine Tabellenzeile?\n\nEin Supportexport enthält die Spalten Kontakt-ID, Ticket-ID, Zeitstempel, Kontaktkanal und Bearbeitungsdauer. Dieselbe Ticket-ID kann in mehreren Zeilen vorkommen, jede Kontakt-ID dagegen nur einmal. Welche Beschreibung des Datenaufbaus ist korrekt?",
         "type": "SINGLE_CHOICE",
         "timer": null,
-        "difficulty": "EASY",
+        "difficulty": "HARD",
         "order": 0,
         "answers": [
           {
-            "text": "eine abgegebene Antwort",
+            "text": "Eine Zeile steht für ein Supportticket; wiederholte Ticket-IDs kennzeichnen fehlerhafte Dubletten.",
+            "isCorrect": false
+          },
+          {
+            "text": "Eine Zeile steht für eine Statusänderung; die Kontakt-ID kennzeichnet den jeweiligen Bearbeitungsstatus.",
+            "isCorrect": false
+          },
+          {
+            "text": "Eine Zeile steht für einen Supportkontakt; die Spalten beschreiben Eigenschaften dieses Kontakts.",
             "isCorrect": true
           },
           {
-            "text": "die gesamte Lehrveranstaltung",
-            "isCorrect": false
-          },
-          {
-            "text": "die Spalte Bearbeitungsdauer",
-            "isCorrect": false
-          },
-          {
-            "text": "jede mögliche Antwortoption",
-            "isCorrect": false
-          }
-        ]
-      },
-      {
-        "text": "### Wen repräsentiert die Abstimmung?\n\nVon 60 anwesenden Personen beantworten 42 eine anonyme Frage; 30 davon wählen »stimme zu«.\n\nWelche Aussagen sind durch diese Angaben gedeckt?",
-        "type": "MULTIPLE_CHOICE",
-        "timer": null,
-        "difficulty": "MEDIUM",
-        "order": 1,
-        "answers": [
-          {
-            "text": "30 der 42 antwortenden Personen wählen »stimme zu«.",
-            "isCorrect": true
-          },
-          {
-            "text": "Die Teilnahmequote unter den Anwesenden beträgt 70 %.",
-            "isCorrect": true
-          },
-          {
-            "text": "Genau die Hälfte der gesamten Kohorte stimmt zu.",
-            "isCorrect": false
-          },
-          {
-            "text": "Die 18 nicht antwortenden Personen hätten sicher nicht zugestimmt.",
+            "text": "Eine Zeile steht für eine beschäftigte Person; die Ticket-ID kennzeichnet deren bearbeitete Fälle.",
             "isCorrect": false
           }
-        ]
+        ],
+        "confidenceEnabled": true,
+        "confidenceLabelLow": "Sehr unsicher",
+        "confidenceLabelHigh": "Sehr sicher"
       },
       {
-        "text": "### Skalen richtig zuordnen\n\nWelche Zuordnungen passen zur Datenerhebung in einer Quiz-Session?",
-        "type": "MULTIPLE_CHOICE",
-        "timer": null,
-        "difficulty": "MEDIUM",
-        "order": 2,
-        "answers": [
-          {
-            "text": "gewählte Antwortoption: nominal",
-            "isCorrect": true
-          },
-          {
-            "text": "Antwortsicherheit auf einer Stufe von 1 bis 5: ordinal",
-            "isCorrect": true
-          },
-          {
-            "text": "Bearbeitungsdauer in Sekunden: metrisch",
-            "isCorrect": true
-          },
-          {
-            "text": "Session-Code: metrisch, weil er Ziffern enthalten kann",
-            "isCorrect": false
-          }
-        ]
-      },
-      {
-        "text": "### Ist eine schnelle Antwort automatisch besser?\n\nEine Gruppe beantwortet dieselbe Frage schneller als eine andere. Welche Einwände müssen vor einer Kompetenzinterpretation geprüft werden?",
+        "text": "### Welche Anteile sind durch die Daten gedeckt?\n\nVon 80 Eingeschriebenen sind 50 anwesend. 40 Anwesende beantworten eine Frage; 28 davon wählen »stimme zu«. Wähle alle Aussagen, deren Bezugsgruppe und Rechnung stimmen.",
         "type": "MULTIPLE_CHOICE",
         "timer": null,
         "difficulty": "HARD",
-        "order": 3,
+        "order": 1,
         "answers": [
           {
-            "text": "Gerät und Netzwerk können die gemessene Dauer beeinflussen.",
+            "text": "Unter den 80 Eingeschriebenen beträgt der Zustimmungsanteil 70 %.",
+            "isCorrect": false
+          },
+          {
+            "text": "Unter den 40 Antwortenden beträgt der Zustimmungsanteil 70 %.",
             "isCorrect": true
           },
           {
-            "text": "Unterschiedliche Lesewege können zu unterschiedlichen Antwortzeiten führen.",
+            "text": "Unter den 50 Anwesenden beträgt der Ablehnungsanteil 44 %.",
+            "isCorrect": false
+          },
+          {
+            "text": "Unter den 50 Anwesenden beträgt der nachgewiesene Zustimmungsanteil 56 %.",
+            "isCorrect": true
+          }
+        ],
+        "confidenceEnabled": true,
+        "confidenceLabelLow": "Sehr unsicher",
+        "confidenceLabelHigh": "Sehr sicher"
+      },
+      {
+        "text": "### Welches Skalenniveau bleibt trotz Zahlencodes bestehen?\n\nEin Lieferantenrisiko wird als »niedrig«, »mittel« oder »hoch« erhoben und für den Export mit 1, 2 oder 3 codiert. Nenne das Skalenniveau der ursprünglichen Risikostufen mit einem Fachwort.",
+        "type": "SHORT_TEXT",
+        "timer": null,
+        "difficulty": "HARD",
+        "order": 2,
+        "answers": [
+          {
+            "text": "Ordinalskala",
             "isCorrect": true
           },
           {
-            "text": "Nicht abgegebene Antworten fehlen in einem Vergleich der Antwortzeiten.",
+            "text": "ordinal",
             "isCorrect": true
           },
           {
-            "text": "Eine kürzere Dauer beweist unabhängig von der Korrektheit höhere Kompetenz.",
+            "text": "Ordinalniveau",
+            "isCorrect": true
+          },
+          {
+            "text": "ordinales Skalenniveau",
+            "isCorrect": true
+          },
+          {
+            "text": "ordinales Messniveau",
+            "isCorrect": true
+          },
+          {
+            "text": "Rangskala",
+            "isCorrect": true
+          }
+        ],
+        "shortTextMaxLength": 32,
+        "shortTextCaseSensitive": false,
+        "shortTextEvaluationMode": "exact",
+        "shortTextToleranceLevel": "none",
+        "shortTextAllowPartialCredit": false,
+        "shortTextTrimWhitespace": true,
+        "shortTextNormalizeWhitespace": true,
+        "confidenceEnabled": true,
+        "confidenceLabelLow": "Sehr unsicher",
+        "confidenceLabelHigh": "Sehr sicher"
+      },
+      {
+        "text": "### Wie viele verschiedene Datensätze sind auffällig?\n\nIn einem Export mit 1.200 Datensätzen haben 18 Datensätze eine doppelte Ticket-ID und 12 Datensätze ein unmögliches Datum. Bei 5 Datensätzen treten beide Fehler auf. Wie viele verschiedene Datensätze sind durch mindestens eine der beiden Prüfregeln markiert? Gib die Anzahl in Datensätzen an.",
+        "type": "NUMERIC_ESTIMATE",
+        "timer": null,
+        "difficulty": "HARD",
+        "order": 3,
+        "answers": [],
+        "numericToleranceMode": "ABSOLUTE_INTERVAL",
+        "numericReferenceValue": 25,
+        "numericIntervalLeft": 24.5,
+        "numericIntervalRight": 25.5,
+        "numericInputType": "INTEGER",
+        "numericDecimalPlaces": 0,
+        "numericMin": 0,
+        "numericMax": 1200,
+        "numericTwoRounds": true,
+        "confidenceEnabled": true,
+        "confidenceLabelLow": "Sehr unsicher",
+        "confidenceLabelHigh": "Sehr sicher"
+      },
+      {
+        "text": "### Ordne die Bestandteile einer Rücksendeanalyse zu\n\nEin Onlinehändler untersucht Rücksendungen von Bestellungen im zweiten Quartal. Ordne jedem statistischen Begriff die passende Festlegung zu.",
+        "type": "MATCHING",
+        "timer": null,
+        "difficulty": "HARD",
+        "order": 4,
+        "answers": [],
+        "matchingPairs": [
+          {
+            "leftId": "w01-match-target",
+            "left": "Zielpopulation",
+            "rightId": "w01-match-target-value",
+            "right": "alle 12.000 Onlinebestellungen des zweiten Quartals"
+          },
+          {
+            "leftId": "w01-match-frame",
+            "left": "Auswahlrahmen",
+            "rightId": "w01-match-frame-value",
+            "right": "Exportliste mit 11.760 auswählbaren Bestell-IDs"
+          },
+          {
+            "leftId": "w01-match-sample",
+            "left": "Stichprobe",
+            "rightId": "w01-match-sample-value",
+            "right": "300 zufällig gezogene Bestellungen aus der Exportliste"
+          },
+          {
+            "leftId": "w01-match-unit",
+            "left": "Beobachtungseinheit",
+            "rightId": "w01-match-unit-value",
+            "right": "eine einzelne Onlinebestellung"
+          },
+          {
+            "leftId": "w01-match-feature",
+            "left": "Merkmal",
+            "rightId": "w01-match-feature-value",
+            "right": "Rücksendung innerhalb von 30 Tagen: ja oder nein"
+          }
+        ],
+        "matchingShuffleRight": true,
+        "confidenceEnabled": true,
+        "confidenceLabelLow": "Sehr unsicher",
+        "confidenceLabelHigh": "Sehr sicher"
+      },
+      {
+        "text": "### Bringe den Statistikprozess in eine prüfbare Reihenfolge\n\nOrdne die Arbeitsschritte so, dass aus einer Managementfrage eine nachvollziehbare statistische Aussage entsteht.",
+        "type": "ORDERING",
+        "timer": null,
+        "difficulty": "HARD",
+        "order": 5,
+        "answers": [],
+        "orderingItems": [
+          {
+            "id": "w01-order-1",
+            "text": "Untersuchungsfrage und angestrebte Aussage präzisieren"
+          },
+          {
+            "id": "w01-order-2",
+            "text": "Zielpopulation, Beobachtungseinheit und Merkmale festlegen"
+          },
+          {
+            "id": "w01-order-3",
+            "text": "Auswahl- und Messverfahren vorab planen"
+          },
+          {
+            "id": "w01-order-4",
+            "text": "Daten nach dem festgelegten Verfahren erheben"
+          },
+          {
+            "id": "w01-order-5",
+            "text": "Datenqualität prüfen und Behandlungen dokumentieren"
+          },
+          {
+            "id": "w01-order-6",
+            "text": "Ergebnisse auswerten und mit Aussagegrenzen berichten"
+          }
+        ],
+        "confidenceEnabled": true,
+        "confidenceLabelLow": "Sehr unsicher",
+        "confidenceLabelHigh": "Sehr sicher"
+      },
+      {
+        "text": "### Klassifiziere Merkmale nach ihrem Skalenniveau\n\nOrdne jedes Merkmal dem höchsten ohne Zusatzannahmen gerechtfertigten Skalenniveau zu.",
+        "type": "CATEGORIZATION",
+        "timer": null,
+        "difficulty": "HARD",
+        "order": 6,
+        "answers": [],
+        "categories": [
+          {
+            "id": "w01-cat-nominal",
+            "name": "Nominalskala"
+          },
+          {
+            "id": "w01-cat-ordinal",
+            "name": "Ordinalskala"
+          },
+          {
+            "id": "w01-cat-metric",
+            "name": "Metrische Skala"
+          }
+        ],
+        "categorizationItems": [
+          {
+            "id": "w01-item-payment",
+            "text": "Zahlungsart: Karte, Rechnung oder Lastschrift",
+            "correctCategoryId": "w01-cat-nominal"
+          },
+          {
+            "id": "w01-item-postcode",
+            "text": "Postleitzahl des Lieferorts",
+            "correctCategoryId": "w01-cat-nominal"
+          },
+          {
+            "id": "w01-item-priority",
+            "text": "Priorität: niedrig, mittel, hoch oder kritisch",
+            "correctCategoryId": "w01-cat-ordinal"
+          },
+          {
+            "id": "w01-item-rating",
+            "text": "Zufriedenheit: sehr unzufrieden bis sehr zufrieden",
+            "correctCategoryId": "w01-cat-ordinal"
+          },
+          {
+            "id": "w01-item-duration",
+            "text": "Bearbeitungsdauer in Sekunden",
+            "correctCategoryId": "w01-cat-metric"
+          },
+          {
+            "id": "w01-item-count",
+            "text": "Anzahl der Reklamationen pro Auftrag",
+            "correctCategoryId": "w01-cat-metric"
+          }
+        ],
+        "categorizationShuffleItems": true,
+        "confidenceEnabled": true,
+        "confidenceLabelLow": "Sehr unsicher",
+        "confidenceLabelHigh": "Sehr sicher"
+      },
+      {
+        "text": "### Welche Aussagegrenze fehlt?\n\nDrei von 40 Filialen melden sich freiwillig zu einem Prozessvergleich. In allen drei Filialen sinkt anschließend die Wartezeit. Formuliere einen zusätzlichen Prüfbedarf oder eine Aussagegrenze, die vor einer Übertragung auf alle Filialen genannt werden muss.",
+        "type": "FREETEXT",
+        "timer": null,
+        "difficulty": "MEDIUM",
+        "order": 7,
+        "answers": []
+      },
+      {
+        "text": "### Prüfbedarf vor einem Ergebnisbericht priorisieren\n\nEin neuer Export enthält zugleich fehlende Weiterempfehlungsangaben, mehrfach vorkommende Ticket-IDs, als 1, 2 oder 3 codierte Risikostufen und Antworten aus drei freiwillig teilnehmenden Filialen. Welche Prüfung sollte die Lerngruppe vor dem Ergebnisbericht zuerst vertiefen? Die Abstimmung priorisiert die Nachbesprechung; es gibt keine Musterlösung.",
+        "type": "SURVEY",
+        "timer": null,
+        "difficulty": "MEDIUM",
+        "order": 8,
+        "answers": [
+          {
+            "text": "Den gültigen Nenner bei fehlenden Angaben nachvollziehbar prüfen",
+            "isCorrect": false
+          },
+          {
+            "text": "Die Beobachtungseinheit hinter mehrfachen Ticket-IDs nachvollziehbar prüfen",
+            "isCorrect": false
+          },
+          {
+            "text": "Das Skalenniveau der codierten Risikostufen nachvollziehbar prüfen",
+            "isCorrect": false
+          },
+          {
+            "text": "Die Übertragbarkeit der freiwilligen Filialstichprobe nachvollziehbar prüfen",
             "isCorrect": false
           }
         ]
       },
       {
-        "text": "### Schwerpunkt für das nächste Gegenbeispiel\n\nWelcher Aspekt soll in der gemeinsamen Auswertung zuerst an einem weiteren Fall geprüft werden?",
-        "type": "SURVEY",
+        "text": "### Wie sicher kannst du eine überzogene Aussage erkennen?\n\nBewerte, wie sicher du bei einem neuen Fall Datenbasis, Bezugsgruppe und Aussagegrenze gemeinsam prüfen kannst.",
+        "type": "RATING",
         "timer": null,
-        "difficulty": "EASY",
-        "order": 4,
-        "answers": [
-          {
-            "text": "Beobachtungseinheit und Merkmal unterscheiden",
-            "isCorrect": false
-          },
-          {
-            "text": "Grundgesamtheit und Stichprobe abgrenzen",
-            "isCorrect": false
-          },
-          {
-            "text": "Skalenniveaus zuordnen",
-            "isCorrect": false
-          },
-          {
-            "text": "Verzerrungsquellen erkennen",
-            "isCorrect": false
-          }
-        ]
+        "difficulty": "MEDIUM",
+        "order": 9,
+        "answers": [],
+        "ratingMin": 1,
+        "ratingMax": 5,
+        "ratingLabelMin": "Noch nicht ohne Hilfe",
+        "ratingLabelMax": "Sicher ohne Hilfe"
       }
     ]
   }

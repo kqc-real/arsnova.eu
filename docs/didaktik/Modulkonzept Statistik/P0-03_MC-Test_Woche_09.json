@@ -6,9 +6,9 @@
     "target_audience": "Bachelorstudierende aus BWL, Management, Wirtschaftsinformatik und Informatik ohne vorausgesetzte Statistikkenntnisse",
     "question_count": 30,
     "difficulty_profile": {
-      "leicht": 8,
-      "mittel": 16,
-      "schwer": 6
+      "leicht": 0,
+      "mittel": 12,
+      "schwer": 18
     },
     "time_per_weight_minutes": {
       "1": 0.5,
@@ -16,579 +16,597 @@
       "3": 1.0
     },
     "additional_buffer_minutes": 5,
-    "test_duration_minutes": 27
+    "test_duration_minutes": 32
   },
   "questions": [
     {
-      "question": "1. Wozu wird ein vorhandener Datensatz in Trainings- und Testdaten getrennt?",
+      "question": "1. Ein Datensatz enthält fehlende Werte und unterschiedlich skalierte Merkmale. Welcher Ablauf verhindert, dass Informationen des Testsatzes in die Modellanpassung gelangen?",
       "options": [
-        "Damit beide Teilmengen zwingend dieselbe Accuracy erhalten",
-        "Damit das Modell angepasst und anschließend an nicht zur Anpassung genutzten Fällen beurteilt wird",
-        "Damit alle Fälle mehrfach in die Auswertung eingehen",
-        "Damit keine Zielklasse mehr vorab festgelegt werden muss"
-      ],
-      "answer": 1,
-      "explanation": "Trainingsdaten dienen der Modellanpassung, Testdaten der Beurteilung an zuvor nicht dafür genutzten Fällen. Gleiche Kennzahlen in beiden Teilmengen sind weder Zweck noch Voraussetzung der Trennung.",
-      "weight": 1,
-      "topic": "Train/Test und Generalisierung",
-      "concept": "Funktion der Train/Test-Trennung",
-      "cognitive_level": "Reproduktion",
-      "mini_glossary": {
-        "Trainingsdaten": "Fälle, anhand derer ein Modell angepasst wird.",
-        "Testdaten": "Getrennte Fälle zur Beurteilung der Leistung nach der Anpassung.",
-        "Generalisierung": "Leistung eines Modells auf passenden neuen Fällen."
-      }
-    },
-    {
-      "question": "2. Welche Leistung ist für die Generalisierung eines fertig angepassten Modells am aussagekräftigsten?",
-      "options": [
-        "Die höchste während der Anpassung beobachtete Trainingsleistung",
-        "Der Mittelwert aus doppelt gezählten Trainingsfällen",
-        "Die Leistung auf einem bis dahin unangetasteten, zur Zielpopulation passenden Testsatz",
-        "Die Zahl der verwendeten Modellparameter"
-      ],
-      "answer": 2,
-      "explanation": "Ein unangetasteter und zur Zielpopulation passender Testsatz liefert die relevante Evidenz für neue Fälle. Trainingsleistung kann durch Anpassung an Besonderheiten der Trainingsdaten zu optimistisch sein.",
-      "weight": 1,
-      "topic": "Train/Test und Generalisierung",
-      "concept": "Testleistung als Generalisierungsevidenz",
-      "cognitive_level": "Reproduktion",
-      "mini_glossary": {
-        "Testsatz": "Für die abschließende Evaluation zurückgehaltene Fallmenge.",
-        "Zielpopulation": "Gesamtheit der Fälle, für die Aussagen gelten sollen.",
-        "Trainingsleistung": "Auf den Anpassungsdaten gemessene Modellleistung."
-      }
-    },
-    {
-      "question": "3. Was bedeutet Generalisierung in einer Klassifikationsaufgabe?",
-      "options": [
-        "Das Modell erzielt auf passenden neuen Fällen eine belastbare Leistung.",
-        "Das Modell merkt sich sämtliche Trainingsfälle fehlerfrei.",
-        "Das Modell erreicht in jeder denkbaren Population dieselbe Kennzahl.",
-        "Das Modell liefert für jeden Einzelfall eine sichere Wahrheit."
+        "Zuerst aufteilen, Imputation und Skalierung im Training schätzen, unverändert auf den Test anwenden und dort einmal evaluieren",
+        "Zuerst Imputation und Skalierung mit allen Fällen schätzen, danach aufteilen und das Modell nur im Training anpassen",
+        "Zuerst aufteilen, Imputation im Training schätzen, die Skalierung jedoch anhand der Testverteilung nachjustieren",
+        "Zuerst aufteilen, das Modell im Training anpassen und seine Entscheidungsschwelle wiederholt am Testsatz optimieren"
       ],
       "answer": 0,
-      "explanation": "Generalisierung bezeichnet die Leistung auf passenden neuen Fällen außerhalb der Anpassungsdaten. Sie ist keine Garantie für jede andere Population und macht eine Modellvorhersage nicht zur sachlichen Wahrheit.",
-      "weight": 1,
-      "topic": "Train/Test und Generalisierung",
-      "concept": "Bedeutung von Generalisierung",
-      "cognitive_level": "Reproduktion",
-      "mini_glossary": {
-        "Generalisierung": "Leistung eines Modells auf passenden neuen Fällen.",
-        "Neuer Fall": "Beobachtung, die nicht zur Modellanpassung verwendet wurde.",
-        "Modellvorhersage": "Vom Modell ausgegebene Zuordnung, nicht die sachliche Wahrheit."
-      }
-    },
-    {
-      "question": "4. Ein Modell wurde wiederholt so verändert, dass seine Kennzahl auf demselben Testsatz steigt. Warum ist dieser Testsatz danach für eine abschließende Evaluation problematisch?",
-      "options": [
-        "Weil Testdaten grundsätzlich keine beobachteten Zielklassen enthalten dürfen",
-        "Weil die Zahl der Testfälle durch jede Auswertung automatisch sinkt",
-        "Weil eine Kennzahl nur auf Trainingsdaten berechnet werden darf",
-        "Weil Informationen aus dem Testsatz indirekt in die Modellauswahl eingeflossen sind"
-      ],
-      "answer": 3,
-      "explanation": "Durch die wiederholte Auswahl anhand desselben Testsatzes fließt dessen Information indirekt in die Anpassung ein. Die dortige Kennzahl kann deshalb die Leistung auf wirklich neuen Fällen überschätzen.",
+      "explanation": "Nur der Ablauf mit Aufteilung vor jeder Schätzung hält sämtliche lernbaren Verarbeitungsschritte vom Testsatz fern. Die Variante mit global geschätzter Vorverarbeitung leakt bereits Lage- und Streuungsinformationen aus dem Test und kann die Testleistung zu günstig erscheinen lassen.",
       "weight": 2,
       "topic": "Train/Test und Generalisierung",
-      "concept": "Indirekte Anpassung an den Testsatz",
+      "concept": "Leakage-freie Vorverarbeitung nach der Aufteilung",
       "cognitive_level": "Anwendung",
       "mini_glossary": {
-        "Modellauswahl": "Entscheidung zwischen Modellvarianten anhand festgelegter Kriterien.",
-        "Testinformation": "Eigenschaften des Testsatzes, die eine Auswahl beeinflussen können.",
-        "Abschließende Evaluation": "Einmalige Beurteilung mit zuvor unangetasteten Daten."
+        "Datenleck": "Nutzung von Evaluationsinformation während Anpassung oder Auswahl.",
+        "Imputation": "Regel zum Ersetzen fehlender Werte, die nur aus Trainingsdaten geschätzt werden soll.",
+        "Pipeline": "Festgelegte Folge aus Vorverarbeitung, Modell und Entscheidungsregel."
       }
     },
     {
-      "question": "5. Vertiefung – nicht summativ prüfbar: Ein fester Evaluationsdatensatz liefert einen dokumentierten REPO-Evaluationsstand; daneben liegen zwölf vorab festgelegte synthetische Resamples als LEHRDATEN vor. Welche Gegenüberstellung ist fachlich korrekt?",
+      "question": "2. In der Zielpopulation sind 5 % der Anfragen technisch. Accuracy und Recall sollen für den späteren Einsatz geschätzt werden. Welche Bildung des Testsatzes ist am besten begründet?",
       "options": [
-        "Der feste Evaluationsdatensatz ist eine repräsentative Feldstudie; die Resamples sind Produktivprotokolle.",
-        "Der feste Evaluationsdatensatz beschreibt genau diesen einen Evaluationsstand; die zwölf synthetischen Resamples veranschaulichen nur für diese Lehrdaten, wie Kennzahlen über vorab festgelegte Fallzusammenstellungen schwanken.",
-        "Der feste Evaluationsdatensatz und die zwölf Resamples beweisen gemeinsam die Qualität in jeder künftigen Population.",
-        "Der feste Evaluationsdatensatz und die Resamples sind dieselbe Datenmenge und können ohne Kennzeichnung ausgetauscht werden."
-      ],
-      "answer": 1,
-      "explanation": "Der feste Evaluationsdatensatz ist hier die festgelegte Menge ausgewerteter Fälle und kein Seed im Sinn eines Zufallsstartwerts. Er liefert einen einzelnen dokumentierten REPO-Stand. Die zwölf vorab definierten synthetischen Resamples zeigen ausschließlich innerhalb der LEHRDATEN Kennzahlenschwankungen; sie bilden weder eine Feldstudie noch einen Nachweis produktiver Qualität.",
-      "weight": 3,
-      "topic": "Coverage und Evaluationstransfer",
-      "concept": "Fester Evaluationsdatensatz versus zwölf synthetische Resamples",
-      "cognitive_level": "Analyse",
-      "mini_glossary": {
-        "Evaluationsdatensatz": "Festgelegte Menge von Fällen, an der ein Modell beurteilt wird; hier kein Zufallsstartwert.",
-        "Resample": "Vorab festgelegte synthetische Fallzusammenstellung zur Untersuchung von Kennzahlenschwankungen.",
-        "REPO": "Kennzeichnung für einen dokumentierten Repository-Nachweis.",
-        "LEHRDATEN": "Für Unterricht und Übung konstruierte Daten."
-      }
-    },
-    {
-      "question": "6. Ein Klassifikator erreicht 98 % Accuracy im Training und 71 % auf getrennten Testdaten. Wie groß ist der Leistungsabfall?",
-      "options": ["0,27 Prozentpunkte", "27 Prozent", "27 Prozentpunkte", "69,58 Prozentpunkte"],
-      "answer": 2,
-      "explanation": "Die Differenz beträgt 98 % − 71 % = 27 Prozentpunkte. Eine relative Abnahme in Prozent wäre eine andere Rechnung mit 98 % als Bezugswert.",
-      "weight": 2,
-      "topic": "Overfitting und Domain Shift",
-      "concept": "Prozentpunkte beim Train/Test-Abstand",
-      "cognitive_level": "Anwendung",
-      "mini_glossary": {
-        "Prozentpunkt": "Absolute Differenz zwischen zwei Prozentangaben.",
-        "Train/Test-Abstand": "Differenz einer Kennzahl zwischen Trainings- und Testdaten.",
-        "Accuracy": "Anteil aller korrekt klassifizierten ausgewerteten Fälle."
-      }
-    },
-    {
-      "question": "7. Welche Diagnose ist bei 98 % Trainings- und 71 % Test-Accuracy am angemessensten?",
-      "options": [
-        "Der Abstand ist mit Overfitting vereinbar, beweist es aber ohne Prüfung weiterer Ursachen nicht.",
-        "Der Abstand beweist, dass sämtliche Testlabels falsch sind.",
-        "Das Modell generalisiert mit 98 %, weil der Trainingswert höher ist.",
-        "Die Testleistung ist bedeutungslos, sobald Trainingsdaten vorliegen."
-      ],
-      "answer": 0,
-      "explanation": "Ein deutlicher Leistungsabfall ist ein typisches Warnsignal für Overfitting. Auch Stichprobenschwankung, andere Klassenanteile oder Domain Shift können zum Abstand beitragen.",
-      "weight": 2,
-      "topic": "Overfitting und Domain Shift",
-      "concept": "Overfitting als plausible, nicht eindeutige Diagnose",
-      "cognitive_level": "Anwendung",
-      "mini_glossary": {
-        "Overfitting": "Zu starke Anpassung an Besonderheiten der Trainingsdaten.",
-        "Test-Accuracy": "Accuracy auf getrennten Evaluationsfällen.",
-        "Alternativerklärung": "Weitere plausible Ursache für denselben Befund."
-      }
-    },
-    {
-      "question": "8. Ein Modell wurde mit kurzen, formal formulierten Anfragen trainiert. Im späteren Testsatz stehen überwiegend lange umgangssprachliche Anfragen. Welche Erklärung für einen Leistungsabfall passt am besten?",
-      "options": [
-        "Ein Nullnenner bei der Accuracy",
-        "Eine unvermeidbare Vertauschung von Precision und Recall",
-        "Eine Vergrößerung der Trainingsstichprobe ohne Inhaltsänderung",
-        "Ein Domain Shift zwischen Trainings- und Einsatzfällen"
+        "Eine ausgeglichene Auswahl mit 50 % technischen Fällen und einer direkten Deutung ihrer Accuracy als Einsatz-Accuracy",
+        "Eine Auswahl der Fälle mit den höchsten Modellwerten und eine gemeinsame Auswertung von Accuracy und Recall",
+        "Eine Duplikation technischer Fälle vor der Aufteilung und eine zufällige Verteilung der Kopien auf beide Teilmengen",
+        "Eine geschichtete Zufallsaufteilung mit ungefähr 5 % technischen Fällen und einer Unsicherheitsangabe für den Recall"
       ],
       "answer": 3,
-      "explanation": "Die Verteilung relevanter Merkmale unterscheidet sich zwischen Training und späteren Fällen; das ist ein Domain Shift. Der Befund sagt noch nicht, welche konkrete Modelländerung optimal wäre.",
+      "explanation": "Die geschichtete Aufteilung erhält die einsatzrelevante Klassenverteilung und sichert genügend positive Fälle für den Recall; dessen Präzision bleibt offenzulegen. Ein ausgeglichener Testsatz kann diagnostisch nützlich sein, seine Accuracy entspricht aber nicht ohne Gewichtung der Einsatz-Accuracy.",
       "weight": 2,
-      "topic": "Overfitting und Domain Shift",
-      "concept": "Domain Shift durch veränderte Fallstruktur",
+      "topic": "Train/Test und Generalisierung",
+      "concept": "Zielpopulationsnahe geschichtete Testaufteilung",
       "cognitive_level": "Anwendung",
       "mini_glossary": {
-        "Domain Shift": "Systematischer Unterschied zwischen Trainings- und späterer Datenverteilung.",
-        "Datenverteilung": "Häufigkeit und Struktur der in einer Fallmenge vorkommenden Merkmale.",
-        "Einsatzfall": "Neuer Fall aus dem vorgesehenen Anwendungskontext."
-      }
-    },
-    {
-      "question": "9. Zwei Lehrmodelle werden auf denselben zwölf synthetischen Resamples mit jeweils 80 Fällen verglichen. Welche Auswertung ist am belastbarsten?",
-      "options": [
-        "Nur den besten Einzelwert jedes Modells berichten und alle übrigen Läufe verwerfen",
-        "Alle 24 Läufe als unabhängige Belege aus einer realen Einsatzpopulation ausgeben",
-        "Die gepaarten Kennzahlen je Resample sowie Lage und Streuung der Unterschiede vergleichen und die synthetische Herkunft offenlegen",
-        "Die Trainingsleistung eines Modells mit der Testleistung des anderen direkt gleichsetzen"
-      ],
-      "answer": 2,
-      "explanation": "Da beide Modelle jeweils dasselbe Resample erhalten, sind die Ergebnisse sinnvoll paarweise zu vergleichen. Lage und Streuung der Unterschiede zeigen Stabilität, doch synthetische Lehrdaten erlauben keinen Nachweis realer Produktivqualität.",
-      "weight": 3,
-      "topic": "Overfitting und Domain Shift",
-      "concept": "Paarweiser Modellvergleich über synthetische Resamples",
-      "cognitive_level": "Analyse",
-      "mini_glossary": {
-        "Gepaartes Resample": "Dieselbe Fallzusammenstellung, auf der zwei Modelle verglichen werden.",
-        "Kennzahlenschwankung": "Variation eines Messwerts zwischen wiederholten Evaluationen.",
-        "Synthetische Daten": "Konstruierte Daten, die keinen realen Feldeinsatz dokumentieren.",
-        "Stabilität": "Geringe und nachvollziehbare Schwankung über vergleichbare Läufe."
-      }
-    },
-    {
-      "question": "10. Für alle folgenden Matrixaufgaben gilt: Zeilen = tatsächliche Klasse, Spalten = vorhergesagte Klasse; »Technik« ist positiv. Wie heißt die Zelle tatsächlich Technik und vorhergesagt Technik?",
-      "options": [
-        "True Positive (TP)",
-        "False Positive (FP)",
-        "False Negative (FN)",
-        "True Negative (TN)"
-      ],
-      "answer": 0,
-      "explanation": "Der Fall ist tatsächlich positiv und wird positiv vorhergesagt, also ist er ein True Positive. »Positiv« bezeichnet hier die vorab festgelegte Klasse »Technik«.",
-      "weight": 1,
-      "topic": "Confusion Matrix",
-      "concept": "True Positive bei fester Matrixorientierung",
-      "cognitive_level": "Reproduktion",
-      "mini_glossary": {
-        "True Positive": "Tatsächlich positiver und positiv vorhergesagter Fall.",
-        "Positive Klasse": "Vorab als Zielklasse festgelegte Kategorie.",
-        "Matrixorientierung": "Festlegung, welche Dimension in Zeilen und Spalten steht."
-      }
-    },
-    {
-      "question": "11. Es gilt: Zeilen = tatsächliche Klasse, Spalten = vorhergesagte Klasse; »Technik« ist positiv. Wie heißt die Zelle tatsächlich Technik und vorhergesagt Nicht-Technik?",
-      "options": [
-        "True Positive (TP)",
-        "False Positive (FP)",
-        "True Negative (TN)",
-        "False Negative (FN)"
-      ],
-      "answer": 3,
-      "explanation": "Ein tatsächlich positiver Fall wurde negativ vorhergesagt und damit übersehen; das ist ein False Negative. Diese Zelle gehört zum Nenner des Recall.",
-      "weight": 1,
-      "topic": "Confusion Matrix",
-      "concept": "False Negative bei fester Matrixorientierung",
-      "cognitive_level": "Reproduktion",
-      "mini_glossary": {
-        "False Negative": "Tatsächlich positiver, aber negativ vorhergesagter Fall.",
-        "Recall": "Anteil erkannter Fälle unter allen tatsächlich positiven Fällen.",
-        "Übersehener Fall": "Alltagssprachliche Bezeichnung für einen False Negative."
-      }
-    },
-    {
-      "question": "12. Es gilt: Zeilen = tatsächliche Klasse, Spalten = vorhergesagte Klasse; »Technik« ist positiv. Ein nicht technischer Fall wird als Technik vorhergesagt. Welche Zelle ist das?",
-      "options": [
-        "False Negative (FN)",
-        "False Positive (FP)",
-        "True Positive (TP)",
-        "True Negative (TN)"
-      ],
-      "answer": 1,
-      "explanation": "Der Fall ist tatsächlich negativ, wurde aber positiv vorhergesagt; daher ist er ein False Positive. Er erhöht den Nenner der Precision, nicht den Nenner des Recall.",
-      "weight": 2,
-      "topic": "Confusion Matrix",
-      "concept": "False Positive und zugehöriger Nenner",
-      "cognitive_level": "Anwendung",
-      "mini_glossary": {
-        "False Positive": "Tatsächlich negativer, aber positiv vorhergesagter Fall.",
-        "Precision": "Anteil richtiger positiver Fälle unter allen positiven Vorhersagen.",
-        "Positive Vorhersage": "Zuordnung des Modells zur festgelegten positiven Klasse."
-      }
-    },
-    {
-      "question": "13. Es gilt: Zeilen = tatsächliche Klasse, Spalten = vorhergesagte Klasse; »Technik« ist positiv. Wo steht TN?",
-      "options": [
-        "In der Zeile Technik und der Spalte Technik",
-        "In der Zeile Technik und der Spalte Nicht-Technik",
-        "In der Zeile Nicht-Technik und der Spalte Nicht-Technik",
-        "In der Zeile Nicht-Technik und der Spalte Technik"
-      ],
-      "answer": 2,
-      "explanation": "TN sind tatsächlich negative Fälle mit negativer Vorhersage. Bei der festgelegten Orientierung steht TN daher in der Zeile »Nicht-Technik« und der Spalte »Nicht-Technik«.",
-      "weight": 2,
-      "topic": "Confusion Matrix",
-      "concept": "Position von True Negative",
-      "cognitive_level": "Anwendung",
-      "mini_glossary": {
-        "True Negative": "Tatsächlich negativer und negativ vorhergesagter Fall.",
-        "Zeile": "Hier die tatsächliche Klasse.",
-        "Spalte": "Hier die vorhergesagte Klasse."
-      }
-    },
-    {
-      "question": "14. Es gilt: Zeilen = tatsächliche Klasse, Spalten = vorhergesagte Klasse; »Technik« ist positiv. Die Zeile Technik enthält 32 Vorhersagen Technik und 8 Vorhersagen Nicht-Technik. Welche Zuordnung stimmt?",
-      "options": [
-        "TP = 32 und FN = 8",
-        "FP = 32 und TN = 8",
-        "TP = 8 und FN = 32",
-        "TN = 32 und FP = 8"
-      ],
-      "answer": 0,
-      "explanation": "In der tatsächlichen positiven Zeile sind positive Vorhersagen TP und negative Vorhersagen FN. Damit wurden 32 technische Fälle erkannt und 8 technische Fälle übersehen.",
-      "weight": 2,
-      "topic": "Confusion Matrix",
-      "concept": "Positive Ist-Zeile in TP und FN zerlegen",
-      "cognitive_level": "Anwendung",
-      "mini_glossary": {
-        "Ist-Zeile": "Zeile der tatsächlich beobachteten Klasse.",
-        "TP": "Richtig als positiv vorhergesagte Fälle.",
-        "FN": "Fälschlich als negativ vorhergesagte positive Fälle."
-      }
-    },
-    {
-      "question": "15. Es gilt: Zeilen = tatsächliche Klasse, Spalten = vorhergesagte Klasse; »Technik« ist positiv. Die Matrix enthält TP = 32, FN = 8, FP = 6 und TN = 34. Welche Randzahl gehört zur Zeile Nicht-Technik?",
-      "options": ["32", "38", "46", "40"],
-      "answer": 3,
-      "explanation": "Die tatsächliche negative Zeile besteht aus FP + TN = 6 + 34 = 40 Fällen. TP und FN gehören dagegen zur tatsächlichen positiven Zeile.",
-      "weight": 2,
-      "topic": "Confusion Matrix",
-      "concept": "Zeilensumme der tatsächlichen negativen Klasse",
-      "cognitive_level": "Anwendung",
-      "mini_glossary": {
-        "Randzahl": "Summe einer vollständigen Zeile oder Spalte.",
-        "Tatsächlich negativ": "Fälle, die nicht zur positiven Zielklasse gehören.",
-        "FP + TN": "Aufteilung aller tatsächlich negativen Fälle nach Vorhersage."
-      }
-    },
-    {
-      "question": "16. Es gilt: Zeilen = tatsächliche Klasse, Spalten = vorhergesagte Klasse; »Technik« ist positiv. In einem Bericht stehen nur »40 richtig« und »40 falsch«. Warum reicht das nicht zur Rekonstruktion von TP, FN, FP und TN?",
-      "options": [
-        "Weil eine binäre Matrix mindestens drei Zielklassen benötigt",
-        "Weil die beiden Summen nicht zeigen, wie richtige und falsche Fälle auf positive und negative Klassen verteilt sind",
-        "Weil Accuracy nur mit Trainingsdaten definiert ist",
-        "Weil Zeilen und Spalten bei jeder Berechnung zufällig vertauscht werden müssen"
-      ],
-      "answer": 1,
-      "explanation": "Die Gesamtsummen liefern nur TP + TN und FP + FN, nicht die vier Einzelzellen. Ohne weitere Angaben sind viele verschiedene Matrizen mit denselben Summen möglich.",
-      "weight": 3,
-      "topic": "Confusion Matrix",
-      "concept": "Nicht eindeutige Rekonstruktion aus Aggregaten",
-      "cognitive_level": "Analyse",
-      "mini_glossary": {
-        "Aggregat": "Zusammengefasster Wert aus mehreren Zellen.",
-        "Rekonstruktion": "Ableitung unbekannter Einzelwerte aus gegebenen Angaben.",
-        "Identifizierbarkeit": "Eindeutige Bestimmbarkeit gesuchter Größen aus den Daten."
-      }
-    },
-    {
-      "question": "17. Für eine Testmatrix gelten TP = 32, FN = 8, FP = 6 und TN = 34. Wie groß ist die Accuracy?",
-      "options": ["0,400", "0,800", "0,825", "0,842"],
-      "answer": 2,
-      "explanation": "Accuracy = (TP + TN) / (TP + TN + FP + FN) = 66 / 80 = 0,825. Ihr Nenner umfasst alle 80 ausgewerteten Testfälle.",
-      "weight": 1,
-      "topic": "Klassifikationsmetriken",
-      "concept": "Accuracy mit Gesamtnenner",
-      "cognitive_level": "Reproduktion",
-      "mini_glossary": {
-        "Accuracy": "Anteil aller korrekt klassifizierten ausgewerteten Fälle.",
-        "Gesamtnenner": "Alle einmal ausgewerteten Fälle der Matrix.",
-        "Korrekte Klassifikation": "True Positive oder True Negative."
-      }
-    },
-    {
-      "question": "18. Für eine Testmatrix gelten TP = 32, FN = 8, FP = 6 und TN = 34. Wie groß ist die Precision für »Technik«?",
-      "options": ["32 / 38 ≈ 0,842", "32 / 40 = 0,800", "66 / 80 = 0,825", "32 / 46 ≈ 0,696"],
-      "answer": 0,
-      "explanation": "Precision = TP / (TP + FP) = 32 / 38 ≈ 0,842. Der Nenner umfasst alle als »Technik« vorhergesagten Fälle.",
-      "weight": 1,
-      "topic": "Klassifikationsmetriken",
-      "concept": "Precision und positive Vorhersagen",
-      "cognitive_level": "Reproduktion",
-      "mini_glossary": {
-        "Precision": "Anteil richtiger positiver Fälle unter allen positiven Vorhersagen.",
-        "TP + FP": "Zahl aller als positiv vorhergesagten Fälle.",
-        "Positive Klasse": "Vorab als Zielklasse festgelegte Kategorie."
-      }
-    },
-    {
-      "question": "19. Für eine Testmatrix gelten TP = 32, FN = 8, FP = 6 und TN = 34. Wie groß ist der Recall für »Technik«?",
-      "options": ["34 / 40 = 0,850", "66 / 80 = 0,825", "32 / 38 ≈ 0,842", "32 / 40 = 0,800"],
-      "answer": 3,
-      "explanation": "Recall = TP / (TP + FN) = 32 / 40 = 0,800. Der Nenner besteht aus allen tatsächlich technischen Fällen.",
-      "weight": 2,
-      "topic": "Klassifikationsmetriken",
-      "concept": "Recall und tatsächliche Positive",
-      "cognitive_level": "Anwendung",
-      "mini_glossary": {
-        "Recall": "Anteil erkannter Fälle unter allen tatsächlich positiven Fällen.",
-        "TP + FN": "Zahl aller tatsächlich positiven Fälle.",
-        "Erkennungsquote": "Alltagssprachliche Bezeichnung für Recall im gegebenen Kontext."
-      }
-    },
-    {
-      "question": "20. Die Matrix hat Accuracy 0,825, Precision 0,842 und Recall 0,800. Welche Interpretation ist korrekt?",
-      "options": [
-        "84,2 % aller Testfälle sind tatsächlich Technik.",
-        "Von den positiven Vorhersagen sind etwa 84,2 % richtig; von den tatsächlich positiven Fällen werden 80,0 % erkannt.",
-        "82,5 % der positiven Vorhersagen sind richtig und 80,0 % aller Fälle sind positiv.",
-        "Die drei Werte beweisen identische Fehlerkosten für FP und FN."
-      ],
-      "answer": 1,
-      "explanation": "Precision bedingt auf positive Vorhersagen, Recall auf tatsächlich positive Fälle. Accuracy verwendet alle Fälle; keine dieser Kennzahlen legt die wirtschaftlichen Fehlerkosten fest.",
-      "weight": 2,
-      "topic": "Klassifikationsmetriken",
-      "concept": "Unterschiedliche Bezugsgruppen der Metriken",
-      "cognitive_level": "Anwendung",
-      "mini_glossary": {
-        "Bezugsgruppe": "Fallmenge im Nenner einer Kennzahl.",
-        "Precision": "Anteil richtiger positiver Fälle unter allen positiven Vorhersagen.",
-        "Recall": "Anteil erkannter Fälle unter allen tatsächlich positiven Fällen.",
-        "Fehlkosten": "Konsequenzen einer Fehlklassifikation im Anwendungskontext."
-      }
-    },
-    {
-      "question": "21. Nach der verbindlichen Nullnennerkonvention wird eine Metrik bei Nenner 0 als nicht definiert berichtet; F1 wird in Zählform berechnet. Von 100 Fällen sind 5 tatsächlich positiv. Ein Modell sagt alle 100 Fälle negativ voraus. Welche Bewertung trifft zu?",
-      "options": [
-        "Accuracy und Recall betragen beide 0,950.",
-        "Precision und F1 betragen beide 1,000, weil kein FP vorkommt.",
-        "Accuracy = 0,950, Recall = 0 und F1 = 0; Precision ist wegen TP + FP = 0 nicht definiert.",
-        "Precision und F1 sind beide nicht definiert, weil TP = 0 ist."
-      ],
-      "answer": 2,
-      "explanation": "Es gelten TP = 0, FN = 5, FP = 0 und TN = 95. Damit sind Accuracy = 95 / 100 = 0,950 und Recall = 0 / 5 = 0. Precision ist wegen TP + FP = 0 nicht definiert. Die Zählform liefert F1 = 2TP / (2TP + FP + FN) = 0 / 5 = 0.",
-      "weight": 3,
-      "topic": "Fehlkosten und Klassenverteilung",
-      "concept": "Hohe Accuracy bei verfehlter seltener Zielklasse",
-      "cognitive_level": "Analyse",
-      "mini_glossary": {
-        "Klassenungleichgewicht": "Stark unterschiedliche Häufigkeiten der Zielklassen.",
-        "Nullnenner": "Ist der Nenner einer Metrik 0, wird sie als nicht definiert berichtet; es wird nicht eigenmächtig 0 oder 1 eingesetzt.",
-        "F1-Score": "Zählform: 2TP/(2TP+FP+FN). Bei TP = 0 und FP + FN > 0 ergibt sich F1 = 0.",
-        "Seltene Zielklasse": "Positive Klasse mit geringem Anteil an allen Fällen."
-      }
-    },
-    {
-      "question": "22. Das Übersehen eines tatsächlich technischen Falls verursacht hohe Ausfallkosten; eine unnötige manuelle Prüfung ist deutlich günstiger. Welche Metrik sollte vorrangig hoch sein?",
-      "options": [
-        "Recall für die positive Klasse",
-        "Precision ohne Berücksichtigung des Recall",
-        "Trainings-Accuracy",
-        "Anteil negativer Fälle im Testsatz"
-      ],
-      "answer": 0,
-      "explanation": "Recall misst, welcher Anteil der tatsächlich positiven Fälle erkannt wird, und reagiert direkt auf False Negatives. Precision bleibt für den Prüfaufwand relevant, ist bei den gegebenen Fehlkosten aber nachrangig.",
-      "weight": 2,
-      "topic": "Fehlkosten und Klassenverteilung",
-      "concept": "Recall bei teuren False Negatives",
-      "cognitive_level": "Anwendung",
-      "mini_glossary": {
-        "Fehlkosten": "Konsequenzen einer Fehlklassifikation im Anwendungskontext.",
-        "False Negative": "Tatsächlich positiver, aber negativ vorhergesagter Fall.",
+        "Schichtung": "Aufteilung unter kontrollierter Berücksichtigung von Klassenanteilen.",
+        "Klassenprävalenz": "Anteil einer Zielklasse in einer Population.",
         "Recall": "Anteil erkannter Fälle unter allen tatsächlich positiven Fällen."
       }
     },
     {
-      "question": "23. Jede fälschlich als »Technik« markierte Anfrage löst eine sehr teure Spezialprüfung aus; ein übersehener Technikfall ist vergleichsweise günstig. Welche Metrik ist vorrangig?",
+      "question": "3. Aus 20 Modellvarianten soll eine ausgewählt und anschließend ehrlich beurteilt werden. Welcher Umgang mit Training, Validierung und Test liefert die belastbarste Leistungsschätzung?",
       "options": [
-        "Recall, weil er nur TN berücksichtigt",
-        "Accuracy auf Trainingsdaten",
-        "Coverage ohne Blick auf Fehler",
-        "Precision, weil sie den Anteil richtiger Fälle unter den positiven Vorhersagen bewertet"
+        "Varianten im Training anpassen, anhand des Tests auswählen und die Validierung anschließend als Abschlusswert berichten",
+        "Varianten im Training anpassen, anhand der Trainingsleistung auswählen und Training sowie Test gemeinsam neu auswerten",
+        "Varianten in allen drei Teilmengen anpassen, anhand des Mittelwerts auswählen und den höchsten Teilmengenwert berichten",
+        "Varianten im Training anpassen, anhand der Validierung auswählen, die Auswahl einfrieren und einmal am Test beurteilen"
       ],
       "answer": 3,
-      "explanation": "Bei teuren False Positives soll ein positiver Alarm möglichst verlässlich sein; dafür ist Precision vorrangig. Die Entscheidung gilt nur unter den genannten Fehlkosten und macht Recall nicht grundsätzlich unwichtig.",
+      "explanation": "Die Validierung übernimmt die Modellauswahl; der unangetastete Test schätzt danach die Leistung des festgelegten Verfahrens. Bei Auswahl anhand des Tests wird dessen Ergebnis bereits für eine Anpassungsentscheidung genutzt und verliert diese Schlussrolle.",
       "weight": 2,
-      "topic": "Fehlkosten und Klassenverteilung",
-      "concept": "Precision bei teuren False Positives",
-      "cognitive_level": "Anwendung",
+      "topic": "Train/Test und Generalisierung",
+      "concept": "Getrennte Rollen von Validierung und Test",
+      "cognitive_level": "Verständnis",
       "mini_glossary": {
-        "False Positive": "Tatsächlich negativer, aber positiv vorhergesagter Fall.",
-        "Precision": "Anteil richtiger positiver Fälle unter allen positiven Vorhersagen.",
-        "Spezialprüfung": "Kontextabhängige Folge einer positiven Modellvorhersage."
+        "Validierungsdaten": "Daten für Modellauswahl und Abstimmung.",
+        "Testdaten": "Bis zur Schlussbewertung zurückgehaltene Daten.",
+        "Modellauswahl": "Entscheidung zwischen vorab definierten Modellvarianten."
       }
     },
     {
-      "question": "24. Für eine Testmatrix gelten TP = 32, FP = 6 und FN = 8. Wie groß ist der binäre F1-Score?",
-      "options": ["0,800", "64 / 78 ≈ 0,821", "66 / 80 = 0,825", "32 / 38 ≈ 0,842"],
+      "question": "4. Ein Team hat zwölf Modelländerungen jeweils anhand desselben finalen Testsatzes bewertet und die beste Variante gewählt. Wie lässt sich wieder eine glaubwürdige Abschlussevaluation herstellen?",
+      "options": [
+        "Die zwölf Testwerte mitteln und den Mittelwert als unverzerrte Leistung der gewählten Variante verwenden",
+        "Einen neuen zielpopulationsnahen Testsatz zurückhalten und die bereits gewählte Pipeline dort ohne weitere Anpassung einmal prüfen",
+        "Die beste Testleistung um ihren Standardfehler vermindern und denselben Testsatz als unangetastet kennzeichnen",
+        "Die Labels desselben Testsatzes neu codieren und die gewählte Variante auf diesen Fällen erneut berechnen"
+      ],
       "answer": 1,
-      "explanation": "F1 = 2TP / (2TP + FP + FN) = 64 / 78 ≈ 0,821. TN geht nicht in diese Kennzahl ein.",
+      "explanation": "Nach wiederholter Auswahl ist der alte Testsatz Teil des Auswahlprozesses geworden; ein frischer, passender Holdout stellt die Trennung wieder her. Das Mitteln der zwölf Werte korrigiert die adaptive Auswahl nicht, weil alle Werte auf denselben offengelegten Fällen beruhen.",
       "weight": 2,
-      "topic": "F1 und Nullnenner",
-      "concept": "Binären F1-Score berechnen",
+      "topic": "Train/Test und Generalisierung",
+      "concept": "Erneuerung eines kontaminierten Testsatzes",
       "cognitive_level": "Anwendung",
+      "mini_glossary": {
+        "Testkontamination": "Indirekte Anpassung an einen wiederholt ausgewerteten Testsatz.",
+        "Holdout": "Bis zur vorgesehenen Schlussprüfung zurückgehaltene Fallmenge.",
+        "Adaptive Auswahl": "Entscheidung, die von zuvor gesehenen Evaluationsergebnissen abhängt."
+      }
+    },
+    {
+      "question": "5. Ein fester REPO-Evaluationsdatensatz und zwölf vorab festgelegte synthetische LEHRDATEN-Resamples liefern unterschiedliche Kennzahlen. Welche gemeinsame Schlussfolgerung wahrt den Quellenstatus?",
+      "options": [
+        "Der REPO-Datensatz dokumentiert einen versionierten Einzelstand; die Resamples zeigen Schwankungen innerhalb der konstruierten Lehrdaten, nicht im Feldeinsatz",
+        "Der REPO-Datensatz schätzt die Einsatzpopulation; die Resamples liefern zwölf unabhängige Replikationen desselben produktiven Betriebs",
+        "Der REPO-Datensatz und die Resamples bilden eine gemeinsame Zufallsstichprobe; ihr Gesamtmittel schätzt daher die künftige Produktivleistung",
+        "Der REPO-Datensatz liefert den Referenzwert; das beste Resample bestimmt eine belastbare obere Leistungsgrenze für den späteren Einsatz"
+      ],
+      "answer": 0,
+      "explanation": "REPO belegt den dokumentierten Repository-Stand, LEHRDATEN ermöglichen reproduzierbare Demonstrationen von Kennzahlenschwankungen. Die plausible Idee unabhängiger Replikationen scheitert daran, dass synthetische Resamples keine wiederholten Feldstichproben aus der Einsatzpopulation sind.",
+      "weight": 3,
+      "topic": "Train/Test und Generalisierung",
+      "concept": "Quellenkritischer Vergleich von REPO und LEHRDATEN",
+      "cognitive_level": "Analyse",
+      "mini_glossary": {
+        "REPO": "Kennzeichnung eines versionierten Repository-Nachweises.",
+        "LEHRDATEN": "Für Unterricht und Übung konstruierte Daten.",
+        "Resample": "Erneute Fallzusammenstellung zur Untersuchung von Kennzahlenschwankungen.",
+        "Feldevidenz": "Beobachtung unter realen Einsatzbedingungen."
+      }
+    },
+    {
+      "question": "6. Ein Klassifikator erreicht 0,92 Accuracy im Training und 0,78 auf einem getrennten Test. Welche quantitative Beschreibung des Rückgangs ist korrekt?",
+      "options": [
+        "Der Rückgang beträgt 14 Prozentpunkte; relativ zum Trainingswert sind das rund 15,2 %",
+        "Der Rückgang beträgt 14 Prozent; relativ zum Trainingswert sind das rund 14,0 Prozentpunkte",
+        "Der Rückgang beträgt 15,2 Prozentpunkte; relativ zum Trainingswert sind das rund 14,0 %",
+        "Der Rückgang beträgt 0,14 Prozentpunkte; relativ zum Testwert sind das rund 17,9 %"
+      ],
+      "answer": 0,
+      "explanation": "Die absolute Differenz ist 0,92 − 0,78 = 0,14, also 14 Prozentpunkte. Relativ zum Trainingswert ergibt sich 0,14 / 0,92 ≈ 15,2 %; der häufige Distraktor verwechselt Prozent und Prozentpunkte.",
+      "weight": 2,
+      "topic": "Overfitting und Domain Shift",
+      "concept": "Absoluter und relativer Train-Test-Rückgang",
+      "cognitive_level": "Anwendung",
+      "mini_glossary": {
+        "Prozentpunkt": "Absolute Differenz zweier Prozentangaben.",
+        "Relativer Rückgang": "Differenz geteilt durch den festgelegten Ausgangswert.",
+        "Train-Test-Abstand": "Differenz einer Kennzahl zwischen Training und Test."
+      }
+    },
+    {
+      "question": "7. Ein Modell erreicht 0,97 im Training, 0,86 auf einem gleich erhobenen In-Domain-Holdout und 0,68 auf einem einsatznahen Test. Nach stärkerer Regularisierung lauten die Werte 0,92 / 0,89 / 0,70. Welche Diagnose ist am besten gestützt?",
+      "options": [
+        "Die verbesserte In-Domain-Leistung spricht stärker für Domain Shift; der Train-Holdout-Abstand wird dadurch für die Diagnose nachrangig",
+        "Die verbesserte In-Domain-Leistung stützt einen Overfitting-Anteil; der zusätzliche Einbruch im einsatznahen Test ist mit Domain Shift vereinbar",
+        "Die ähnliche einsatznahe Leistung spricht stärker für Overfitting; der Abstand zwischen In-Domain- und Einsatztest wird dadurch nachrangig",
+        "Die niedrigere Trainingsleistung spricht für eine schwächere Modellklasse; die höheren Testwerte können aus Stichprobenschwankung stammen"
+      ],
+      "answer": 1,
+      "explanation": "Dass Regularisierung den gleich erhobenen Holdout verbessert, spricht für zu starke Anpassung als Teilursache. Der weiterhin große Abstand zwischen In-Domain- und einsatznahem Test passt zusätzlich zu Domain Shift; die Daten beweisen jedoch keine einzelne Ursache.",
+      "weight": 3,
+      "topic": "Overfitting und Domain Shift",
+      "concept": "Gemeinsame Diagnose von Overfitting und Domain Shift",
+      "cognitive_level": "Analyse",
+      "mini_glossary": {
+        "Overfitting": "Zu starke Anpassung an Besonderheiten der Trainingsdaten.",
+        "Domain Shift": "Systematischer Unterschied zwischen Trainings- und Einsatzverteilung.",
+        "Regularisierung": "Begrenzung der Modellkomplexität zur Verbesserung der Generalisierung."
+      }
+    },
+    {
+      "question": "8. Das Training enthält kurze formale Anfragen, der Einsatz überwiegend lange umgangssprachliche Anfragen. Welche Zusatzanalyse prüft am gezieltesten, ob der Stilunterschied den Leistungsabfall trägt?",
+      "options": [
+        "Die gelabelte Testleistung nach Sprachstil bei vergleichbaren Klassenanteilen getrennt auswerten",
+        "Die vorhergesagten Klassenanteile nach Sprachstil mit der gesamten Trainings-Accuracy vergleichen",
+        "Die Trainingsfälle nach Textlänge sortieren und nur das kürzeste Sprachstil-Segment neu anpassen",
+        "Die gesamte Test-Accuracy erneut berechnen und nach Sprachstil unterschiedlich runden"
+      ],
+      "answer": 0,
+      "explanation": "Eine nach Stil geschichtete, gelabelte Auswertung trennt den vermuteten Merkmals-Shift besser von bloßen Prävalenzunterschieden. Eine präzisere Rundung derselben Gesamt-Accuracy liefert dagegen keine neue Evidenz zur Ursache des Abfalls.",
+      "weight": 2,
+      "topic": "Overfitting und Domain Shift",
+      "concept": "Stratifizierte Diagnose eines Merkmals-Shifts",
+      "cognitive_level": "Anwendung",
+      "mini_glossary": {
+        "Merkmals-Shift": "Änderung der Verteilung modellrelevanter Eingaben.",
+        "Stratifizierung": "Getrennte Auswertung sinnvoll definierter Teilgruppen.",
+        "Konfundierung": "Vermischung mehrerer Erklärungen in einem Gesamtvergleich."
+      }
+    },
+    {
+      "question": "9. Die zwölf gepaarten S6-LEHRDATEN-Resamples aus P0-03_Lehrdaten_S6_Modelllaeufe.csv ergeben für F1(A)−F1(B) den Mittelwert −0,046399, den Median −0,048487, den Wertebereich [−0,051282; −0,039557] und die Spannweite 0,011725; alle zwölf Differenzen sind negativ. Welche Aussage ist angemessen?",
+      "options": [
+        "B liegt in allen zwölf Lehrresamples vorn; das beschreibt diesen konstruierten Datensatz, belegt aber keine Produktivüberlegenheit.",
+        "A liegt in allen zwölf Lehrresamples vorn; negative Werte von F1(A)−F1(B) kennzeichnen dabei einen Vorteil von A.",
+        "B verbessert den erwarteten F1 im Produktivbetrieb um 0,046399; der negative Lehrdatenmittelwert überträgt sich direkt.",
+        "B ist mit 100 % Wahrscheinlichkeit im Produktivbetrieb besser; zwölf negative Differenzen bilden eine Feldwahrscheinlichkeit."
+      ],
+      "answer": 0,
+      "explanation": "Aus den TP-, FP- und FN-Zahlen der CSV neu berechnete F1-Differenzen haben Mittelwert −0,046399023, Median −0,048486629, Minimum −0,051282051, Maximum −0,039556962 und Spannweite 0,011725089; alle zwölf sind negativ. Damit liegt B in jedem dokumentierten Lehrresample vorn. Die konstruierten Resamples sind jedoch keine Feldstichproben und tragen weder eine Produktivwahrscheinlichkeit noch eine erwartete Einsatzdifferenz.",
+      "weight": 3,
+      "topic": "Overfitting und Domain Shift",
+      "concept": "Stabilität gepaarter Modellunterschiede",
+      "cognitive_level": "Analyse",
+      "mini_glossary": {
+        "Gepaarter Vergleich": "Vergleich zweier Modelle auf jeweils denselben Fällen.",
+        "Wertebereich": "Intervall vom kleinsten bis zum größten beobachteten Wert.",
+        "Spannweite": "Differenz zwischen größtem und kleinstem beobachteten Wert.",
+        "Synthetische Daten": "Konstruierte Daten ohne unmittelbaren Feldnachweis."
+      }
+    },
+    {
+      "question": "10. »Technik« ist die positive Klasse. Unter 20 Fehlklassifikationen sind sechs tatsächlich technische Fälle als »Nicht-Technik« und vierzehn tatsächlich nicht technische Fälle als »Technik« vorhergesagt. Welche Zellen werden erhöht?",
+      "options": [
+        "FP erhöht sich um 6 und FN erhöht sich um 14",
+        "TP erhöht sich um 6 und TN erhöht sich um 14",
+        "TN erhöht sich um 6 und TP erhöht sich um 14",
+        "FN erhöht sich um 6 und FP erhöht sich um 14"
+      ],
+      "answer": 3,
+      "explanation": "Übersehene tatsächlich positive Technikfälle sind False Negatives; falsche Technikalarme bei tatsächlich negativen Fällen sind False Positives. Der naheliegende Distraktor vertauscht FP und FN, weil er die Vorhersage statt der tatsächlichen Klasse als Ausgangspunkt nimmt.",
+      "weight": 2,
+      "topic": "Confusion Matrix",
+      "concept": "Fehlerfälle in FN und FP einordnen",
+      "cognitive_level": "Anwendung",
+      "mini_glossary": {
+        "False Negative": "Tatsächlich positiver, aber negativ vorhergesagter Fall.",
+        "False Positive": "Tatsächlich negativer, aber positiv vorhergesagter Fall.",
+        "Positive Klasse": "Vorab als fachlich positiv festgelegte Kategorie."
+      }
+    },
+    {
+      "question": "11. Eine Schwellenänderung verändert die Matrix von TP = 32, FN = 8, FP = 6, TN = 34 zu TP = 36, FN = 4, FP = 14, TN = 26. Welche Kennzahlenänderung ist korrekt?",
+      "options": [
+        "Recall steigt von 0,842 auf 0,900; Precision fällt von 0,800 auf 0,720; Accuracy steigt von 0,775 auf 0,825",
+        "Recall fällt von 0,900 auf 0,800; Precision steigt von 0,720 auf 0,842; Accuracy bleibt bei 0,800",
+        "Recall steigt von 0,800 auf 0,900; Precision steigt von 0,720 auf 0,842; Accuracy fällt von 0,825 auf 0,775",
+        "Recall steigt von 0,800 auf 0,900; Precision fällt von 0,842 auf 0,720; Accuracy fällt von 0,825 auf 0,775"
+      ],
+      "answer": 3,
+      "explanation": "Vorher gilt Recall 32/40 = 0,800, Precision 32/38 ≈ 0,842 und Accuracy 66/80 = 0,825; danach 36/40 = 0,900, 36/50 = 0,720 und 62/80 = 0,775. Mehr positive Vorhersagen verbessern Recall, erzeugen hier aber zusätzliche FP.",
+      "weight": 2,
+      "topic": "Confusion Matrix",
+      "concept": "Matrixänderung durch eine niedrigere Schwelle",
+      "cognitive_level": "Anwendung",
+      "mini_glossary": {
+        "Entscheidungsschwelle": "Grenzwert zur Umwandlung eines Modellwerts in eine Klasse.",
+        "Recall": "TP geteilt durch TP plus FN.",
+        "Precision": "TP geteilt durch TP plus FP.",
+        "Accuracy": "TP plus TN geteilt durch alle Fälle."
+      }
+    },
+    {
+      "question": "12. Für »Technik« als positive Klasse gilt TP = 32, FN = 8, FP = 6 und TN = 34. Nun soll dieselbe Matrix mit »Nicht-Technik« als positiver Klasse berichtet werden. Welche Umbenennung ist korrekt?",
+      "options": [
+        "TP = 34, FN = 8, FP = 6 und TN = 32",
+        "TP = 34, FN = 6, FP = 8 und TN = 32",
+        "TP = 6, FN = 34, FP = 32 und TN = 8",
+        "TP = 32, FN = 6, FP = 8 und TN = 34"
+      ],
+      "answer": 1,
+      "explanation": "Beim Wechsel der positiven Klasse werden alte TN zu neuen TP, alte FP zu neuen FN, alte FN zu neuen FP und alte TP zu neuen TN. Die Variante mit unveränderten FN und FP übersieht, dass beide Fehlerarten von der festgelegten positiven Klasse abhängen.",
+      "weight": 2,
+      "topic": "Confusion Matrix",
+      "concept": "Matrixzellen beim Wechsel der positiven Klasse",
+      "cognitive_level": "Anwendung",
+      "mini_glossary": {
+        "Klassenwechsel": "Neufestlegung, welche der beiden Klassen als positiv gilt.",
+        "True Positive": "Richtig erkannter Fall der jeweils positiven Klasse.",
+        "Fehlerart": "Einordnung eines Fehlers als FP oder FN relativ zur positiven Klasse."
+      }
+    },
+    {
+      "question": "13. Ein Test umfasst 120 Fälle. Davon sind 50 tatsächlich positiv, 44 werden positiv vorhergesagt und 38 sind True Positives. Wie groß ist TN?",
+      "options": ["56", "50", "64", "70"],
+      "answer": 2,
+      "explanation": "Aus TP = 38 folgen FN = 50 − 38 = 12 und FP = 44 − 38 = 6. Damit ist TN = 120 − 38 − 12 − 6 = 64; 70 wäre nur die Zahl aller tatsächlich negativen Fälle vor ihrer Aufteilung in FP und TN.",
+      "weight": 2,
+      "topic": "Confusion Matrix",
+      "concept": "Matrix aus Randsummen und TP rekonstruieren",
+      "cognitive_level": "Anwendung",
+      "mini_glossary": {
+        "Randsumme": "Summe einer vollständigen Matrixzeile oder -spalte.",
+        "Tatsächlich positiv": "TP plus FN.",
+        "Positiv vorhergesagt": "TP plus FP."
+      }
+    },
+    {
+      "question": "14. Ein Bericht nennt für 200 Fälle TP = 42, FN = 8, FP = 18 und TN = 132 sowie 50 tatsächlich Positive, 60 positive Vorhersagen und Accuracy = 0,900. Welche Konsistenzprüfung ist korrekt?",
+      "options": [
+        "Die Matrix verletzt die Ist-Randsumme; mit TP+FP=60 seien 60 statt 50 Fälle tatsächlich positiv, die Accuracy bleibe 0,900.",
+        "Die Matrix erfüllt beide Randsummen; die Accuracy 0,900 bleibe korrekt, wenn die acht False Negatives aus dem Bezugsnenner entfallen.",
+        "Die Matrix verletzt die Prognose-Randsumme; mit TP+FN=50 seien nur 50 statt 60 Fälle positiv vorhergesagt, die Accuracy bleibe 0,900.",
+        "Die Matrix erfüllt beide Randsummen; nur die Accuracy ist falsch und muss (42+132)/200=0,870 lauten."
+      ],
+      "answer": 3,
+      "explanation": "Die Zellen summieren sich zu 200; TP+FN=42+8=50 und TP+FP=42+18=60 stimmen mit beiden Randsummen überein. Für die Accuracy zählen aber nur TP und TN: (42+132)/200=174/200=0,870. Die Angabe 0,900 ist daher der einzige Widerspruch.",
+      "weight": 3,
+      "topic": "Confusion Matrix",
+      "concept": "Konsistenzprüfung von Matrix, Randsummen und Accuracy",
+      "cognitive_level": "Analyse",
+      "mini_glossary": {
+        "Ist-Randsumme": "Summe TP plus FN für die tatsächlich positive Klasse.",
+        "Prognose-Randsumme": "Summe TP plus FP für die positiv vorhergesagte Klasse.",
+        "Konsistenzprüfung": "Gemeinsame Kontrolle von Zellen, Randsummen, Gesamtzahl und Kennzahlen."
+      }
+    },
+    {
+      "question": "15. Eine Tabelle verwendet Zeilen = Vorhersage und Spalten = tatsächliche Klasse. Die Zeile »Technik« enthält 42 unter tatsächlich »Technik« und 18 unter tatsächlich »Nicht-Technik«; die zweite Zeile enthält 8 und 132. Welche Korrektur eines irrtümlich zeilenweisen Berichts ist nötig?",
+      "options": [
+        "TP = 42, FP = 8, FN = 18, TN = 132; damit Precision = 0,840 und Recall = 0,700",
+        "TP = 132, FP = 18, FN = 8, TN = 42; damit Precision = 0,880 und Recall = 0,943",
+        "TP = 42, FP = 18, FN = 8, TN = 132; damit Precision = 0,700 und Recall = 0,840",
+        "TP = 42, FP = 18, FN = 8, TN = 132; damit Precision = 0,840 und Recall = 0,700"
+      ],
+      "answer": 2,
+      "explanation": "Bei Zeilen als Vorhersage sind 18 positiv vorhergesagte, tatsächlich negative Fälle und somit FP; 8 sind FN. Daher gilt Precision 42/60 = 0,700 und Recall 42/50 = 0,840. Die vertauschten Werte entstehen durch die hier falsche Annahme »Zeilen = tatsächliche Klasse«.",
+      "weight": 3,
+      "topic": "Confusion Matrix",
+      "concept": "Matrixorientierung vor der Metrikberechnung prüfen",
+      "cognitive_level": "Analyse",
+      "mini_glossary": {
+        "Matrixorientierung": "Festlegung der tatsächlichen und vorhergesagten Dimension auf Zeilen und Spalten.",
+        "Precision": "Anteil richtiger Fälle unter den positiven Vorhersagen.",
+        "Recall": "Anteil erkannter Fälle unter den tatsächlich positiven Fällen."
+      }
+    },
+    {
+      "question": "16. Für 100 Fälle werden 84 korrekte Klassifikationen, 30 tatsächlich positive Fälle und 34 positive Vorhersagen berichtet. Welche Matrix ist damit eindeutig bestimmt?",
+      "options": [
+        "TP = 20, FN = 10, FP = 14, TN = 56",
+        "TP = 30, FN = 0, FP = 4, TN = 66",
+        "TP = 24, FN = 6, FP = 10, TN = 60",
+        "TP = 34, FN = 4, FP = 0, TN = 62"
+      ],
+      "answer": 2,
+      "explanation": "Mit FN = 30 − TP, FP = 34 − TP und TN = 84 − TP ergibt die Gesamtsumme 148 − 2TP = 100, also TP = 24. Die Matrix mit TP = 20 erfüllt zwar beide Randsummen, enthält aber nur 76 statt 84 korrekte Klassifikationen.",
+      "weight": 3,
+      "topic": "Confusion Matrix",
+      "concept": "Matrix aus Accuracy-Zähler und Randsummen lösen",
+      "cognitive_level": "Analyse",
+      "mini_glossary": {
+        "Korrekte Klassifikation": "True Positive oder True Negative.",
+        "Gleichungssystem": "Mehrere Bedingungen zur gemeinsamen Bestimmung unbekannter Werte.",
+        "Identifizierbarkeit": "Eindeutige Bestimmbarkeit aus den gegebenen Aggregaten."
+      }
+    },
+    {
+      "question": "17. Für TP = 32, FN = 8, FP = 6 und TN = 34 beträgt die Accuracy 0,825. Eine Prüfung entfernt zehn doppelt gezählte TN; alle anderen Zellen bleiben gleich. Welche Accuracy ist danach zu berichten?",
+      "options": ["56 / 70 = 0,800", "66 / 70 ≈ 0,943", "56 / 80 = 0,700", "66 / 80 = 0,825"],
+      "answer": 0,
+      "explanation": "Nach der Bereinigung gilt TN = 24, also 56 korrekte unter 70 verbleibenden Fällen und Accuracy = 0,800. Der Wert 66/70 nutzt noch den alten Zähler und entfernt die Duplikate fälschlich nur aus dem Nenner.",
+      "weight": 2,
+      "topic": "Klassifikationsmetriken",
+      "concept": "Accuracy nach Datenbereinigung neu berechnen",
+      "cognitive_level": "Anwendung",
+      "mini_glossary": {
+        "Accuracy": "Anteil korrekter Klassifikationen an allen ausgewerteten Fällen.",
+        "Duplikat": "Mehrfach erfasster Fall, der den Nenner und gegebenenfalls den Zähler verzerrt.",
+        "Datenbereinigung": "Dokumentierte Korrektur fehlerhafter oder mehrfacher Beobachtungen."
+      }
+    },
+    {
+      "question": "18. Ein einsatznaher Test liefert TP = 45, FP = 15, FN = 5 und TN = 135. Welche Precision für »Technik« ist korrekt?",
+      "options": ["45 / 60 = 0,750", "45 / 50 = 0,900", "180 / 200 = 0,900", "45 / 65 ≈ 0,692"],
+      "answer": 0,
+      "explanation": "Precision bedingt auf positive Vorhersagen und ist daher 45/(45+15) = 0,750. 45/50 = 0,900 ist der Recall und damit der naheliegendste Distraktor, weil er tatsächliche statt vorhergesagte Positive als Nenner verwendet.",
+      "weight": 2,
+      "topic": "Klassifikationsmetriken",
+      "concept": "Precision mit korrektem Prognosenenner",
+      "cognitive_level": "Anwendung",
+      "mini_glossary": {
+        "Precision": "TP geteilt durch TP plus FP.",
+        "Positive Vorhersage": "Vom Modell der positiven Klasse zugeordneter Fall.",
+        "Recall": "TP geteilt durch TP plus FN."
+      }
+    },
+    {
+      "question": "19. Auf 200 Fällen haben zwei Modelle dieselbe Accuracy von 0,875. Modell A: TP = 45, FN = 5, FP = 20, TN = 130. Modell B: TP = 35, FN = 15, FP = 10, TN = 140. False Negatives sind zehnmal teurer als False Positives. Welche Wahl ist besser begründet?",
+      "options": [
+        "Modell B, weil seine höhere Precision und zehn vermiedene FP den Aufwand trotz der zusätzlichen FN stärker senken",
+        "Modell A, weil es zehn FN vermeidet und dafür zehn zusätzliche FP erzeugt; die gleiche Accuracy verdeckt diesen kostenrelevanten Tausch",
+        "Beide Modelle, weil gleiche Accuracy bei gleicher Fallzahl auch gleiche erwartete Fehlkosten bedeutet",
+        "Modell A, weil sein Recall von 0,900 zugleich eine Precision von 0,900 für positive Vorhersagen bedeutet"
+      ],
+      "answer": 1,
+      "explanation": "A tauscht gegenüber B zehn FN gegen zehn FP; bei zehnfachen FN-Kosten ist dieser Tausch vorteilhaft. B hat zwar die höhere Precision, doch dieser plausible Einwand reicht ohne Gewichtung der deutlich teureren übersehenen Fälle nicht aus.",
+      "weight": 3,
+      "topic": "Klassifikationsmetriken",
+      "concept": "Gleiche Accuracy bei unterschiedlichen Fehlkosten",
+      "cognitive_level": "Analyse",
+      "mini_glossary": {
+        "Fehlkosten": "Kontextabhängige Folgen verschiedener Fehlklassifikationen.",
+        "Metrikprofil": "Gemeinsame Betrachtung mehrerer Kennzahlen eines Modells.",
+        "Accuracy-Paradox": "Ähnliche Accuracy trotz fachlich verschiedener Fehlerstruktur."
+      }
+    },
+    {
+      "question": "20. Bei 1.000 Fällen erreicht Variante G selektive Accuracy 0,84 bei Coverage 0,97; Variante K erreicht 0,87 bei Coverage 0,85. Welche quantitative Aussage folgt direkt?",
+      "options": [
+        "G liefert erwartbar rund 840 korrekte automatische Entscheidungen, K rund 870; Coverage verändert nur die Zahl der Rückstellungen",
+        "G liefert erwartbar rund 815 korrekte automatische Entscheidungen, K rund 740; Fehler und Rückstellungen bleiben getrennt zu bewerten",
+        "K erzeugt rund 111 automatische Fehlentscheidungen, G rund 155; damit ist K unabhängig von den zusätzlichen Rückstellungen insgesamt besser",
+        "G liefert erwartbar rund 970 korrekte automatische Entscheidungen, K rund 850; selektive Accuracy beschreibt nur Rückstellungen"
+      ],
+      "answer": 1,
+      "explanation": "Korrekte automatische Entscheidungen ergeben sich aus Fallzahl × Coverage × selektiver Accuracy: G = 1.000×0,97×0,84 = 814,8 und K = 739,5. Die Werte 840 und 870 behandeln die bedingte Accuracy fälschlich als Anteil an allen Fällen. K hat zwar nur rund 111 statt 155 automatische Fehler, stellt aber 120 zusätzliche Fälle zurück; ohne deren Qualität oder Kosten folgt daraus keine Gesamtüberlegenheit.",
+      "weight": 3,
+      "topic": "Klassifikationsmetriken",
+      "concept": "Selektive Accuracy mit Coverage quantifizieren",
+      "cognitive_level": "Analyse",
+      "mini_glossary": {
+        "Coverage": "Anteil der Fälle mit automatischer Entscheidung.",
+        "Selektive Accuracy": "Accuracy innerhalb der automatisch entschiedenen Fälle.",
+        "Rückstellung": "Fall ohne automatische Entscheidung, der anderweitig bearbeitet wird."
+      }
+    },
+    {
+      "question": "21. Von 100 Fällen sind fünf tatsächlich positiv. Ein Modell sagt alle Fälle negativ voraus. Nach der Konvention »Nenner null = nicht definiert« und mit F1 in Zählform: Welche Bewertung stimmt?",
+      "options": [
+        "Accuracy = 0,050, Recall = 0, Precision = 0 und F1 = 0",
+        "Accuracy = 0,950, Recall = 0, Precision = 1 und F1 = nicht definiert",
+        "Accuracy = 0,950, Recall = 0, Precision = nicht definiert und F1 = 0",
+        "Accuracy = 0,950, Recall = 0, Precision = nicht definiert und F1 = nicht definiert"
+      ],
+      "answer": 2,
+      "explanation": "Es gilt TP = FP = 0, FN = 5 und TN = 95. Precision hat den Nullnenner TP+FP, während Recall 0/5 = 0 und F1 = 2TP/(2TP+FP+FN) = 0/5 = 0 sind; die undefinierte Precision macht F1 in der Zählform nicht undefiniert.",
+      "weight": 3,
+      "topic": "Fehlkosten und Klassenverteilung",
+      "concept": "Mehrere Metriken beim All-Negative-Modell",
+      "cognitive_level": "Analyse",
+      "mini_glossary": {
+        "Klassenungleichgewicht": "Stark unterschiedliche Häufigkeiten der Zielklassen.",
+        "Nullnenner": "Nenner mit Wert null, für den kein Kennzahlenwert eingesetzt wird.",
+        "F1-Zählform": "2TP geteilt durch 2TP plus FP plus FN."
+      }
+    },
+    {
+      "question": "22. Ein False Negative kostet 500 €, ein False Positive 20 €. Modell A erzeugt FN = 4 und FP = 20; Modell B FN = 8 und FP = 5. Welche Kostenentscheidung ist korrekt?",
+      "options": [
+        "Modell B mit 2.660 € statt Modell A mit 10.080 € erwarteten Fehlkosten wählen",
+        "Modell B mit 260 € statt Modell A mit 480 € erwarteten Fehlkosten wählen",
+        "Modell A mit 2.400 € statt Modell B mit 4.100 € erwarteten Fehlkosten wählen",
+        "Modell B mit 4.100 € statt Modell A mit 2.400 € erwarteten Fehlkosten wählen"
+      ],
+      "answer": 2,
+      "explanation": "Für A entstehen 4×500 € + 20×20 € = 2.400 €, für B 8×500 € + 5×20 € = 4.100 €. Die Werte 10.080 € und 2.660 € vertauschen die Kosten von FN und FP; 480 € und 260 € setzen fälschlich für beide Fehlerarten 20 € an. Die Wahl von B trotz der richtigen Summen kehrt das Entscheidungskriterium »geringere Kosten« um.",
+      "weight": 3,
+      "topic": "Fehlkosten und Klassenverteilung",
+      "concept": "Fehlkosten zweier Modelle vergleichen",
+      "cognitive_level": "Analyse",
+      "mini_glossary": {
+        "False-Negative-Kosten": "Folgekosten eines übersehenen positiven Falls.",
+        "False-Positive-Kosten": "Folgekosten eines falschen positiven Alarms.",
+        "Kostenfunktion": "Regel zur Gewichtung und Summierung von Fehlerfolgen."
+      }
+    },
+    {
+      "question": "23. Bei einer niedrigen Schwelle gilt TP = 46, FN = 4, FP = 30, TN = 120; bei einer hohen Schwelle TP = 40, FN = 10, FP = 8, TN = 142. Ein FN kostet 300 €, ein FP 20 €. Welche Schwelle minimiert die angegebenen Fehlkosten?",
+      "options": [
+        "Die niedrige Schwelle mit 3.160 €, weil ihr Recall geringer ausfällt",
+        "Die hohe Schwelle mit 1.800 €, obwohl sie mehr False Negatives erzeugt",
+        "Die hohe Schwelle mit 3.160 €, weil ihre Precision höher ausfällt",
+        "Die niedrige Schwelle mit 1.800 €, obwohl ihre Precision geringer ist"
+      ],
+      "answer": 3,
+      "explanation": "Niedrig: 4×300 € + 30×20 € = 1.800 €; hoch: 10×300 € + 8×20 € = 3.160 €. Die hohe Schwelle bietet die höhere Precision, doch dieser plausible Vorteil wird unter den vorgegebenen Kosten von den zusätzlichen FN übertroffen.",
+      "weight": 3,
+      "topic": "Fehlkosten und Klassenverteilung",
+      "concept": "Entscheidungsschwelle über Fehlkosten wählen",
+      "cognitive_level": "Analyse",
+      "mini_glossary": {
+        "Schwelle": "Grenzwert für die Zuordnung zur positiven Klasse.",
+        "Kostenminimum": "Einstellung mit der kleinsten gewichteten Summe der Fehler.",
+        "Trade-off": "Zielkonflikt zwischen weniger FP und weniger FN."
+      }
+    },
+    {
+      "question": "24. Modell Alt hat TP = 32, FP = 6, FN = 8; Modell Neu TP = 34, FP = 10, FN = 6. Welche F1-Bewertung ist korrekt?",
+      "options": [
+        "Alt: 32/40 = 0,800; Neu: 34/40 = 0,850; Neu hat deshalb auch den höheren F1",
+        "Alt: 64/78 ≈ 0,821; Neu: 68/84 ≈ 0,810; Alt hat trotz niedrigerem Recall den höheren F1",
+        "Alt: 32/38 ≈ 0,842; Neu: 34/44 ≈ 0,773; beide Werte sind die jeweiligen F1-Scores",
+        "Alt: 32/46 ≈ 0,696; Neu: 34/50 = 0,680; Alt hat deshalb den höheren F1"
+      ],
+      "answer": 1,
+      "explanation": "F1 = 2TP/(2TP+FP+FN): Alt 64/(64+6+8)=64/78≈0,821, Neu 68/(68+10+6)=68/84≈0,810. Die Rechnung mit 32/46 beziehungsweise 34/50 lässt im Zähler und Nenner jeweils ein TP aus; der reine Recall- oder Precision-Vergleich übersieht jeweils eine Fehlerart.",
+      "weight": 3,
+      "topic": "F1 und Nullnenner",
+      "concept": "F1-Trade-off nach einer Modelländerung",
+      "cognitive_level": "Analyse",
       "mini_glossary": {
         "F1-Score": "Harmonische Zusammenfassung von Precision und Recall.",
-        "Zählform": "F1 = 2TP / (2TP + FP + FN).",
-        "True Negative": "Tatsächlich negativer und negativ vorhergesagter Fall."
+        "Harmonisches Mittel": "Mittelwert, der niedrige Komponenten stark berücksichtigt.",
+        "Precision-Recall-Trade-off": "Gegenläufige Veränderung der beiden Kennzahlen."
       }
     },
     {
-      "question": "25. Eine Matrix enthält TP = 0, FP = 0, FN = 7 und TN = 43. Welche Kombination folgt aus der verbindlichen Nullnenner-Konvention?",
+      "question": "25. Eine Matrix enthält TP = 0, FP = 6, FN = 0 und TN = 44. Welche Kombination folgt aus der festgelegten Konvention »Nenner null = nicht definiert« und der F1-Zählform?",
       "options": [
-        "Precision = 0, Recall = n. d., F1 = n. d.",
-        "Precision = 1, Recall = 0, F1 = 1",
-        "Precision = n. d., Recall = 0, F1 = 0",
-        "Precision = n. d., Recall = n. d., F1 = n. d."
-      ],
-      "answer": 2,
-      "explanation": "Precision ist ohne positive Vorhersage nicht definiert, denn TP + FP = 0. Recall = 0 / 7 = 0 und F1 = 0 / 7 = 0, weil der F1-Nenner größer als null ist.",
-      "weight": 2,
-      "topic": "F1 und Nullnenner",
-      "concept": "Unterschiedliche Nullnenner bei Precision, Recall und F1",
-      "cognitive_level": "Anwendung",
-      "mini_glossary": {
-        "n. d.": "Nicht definiert, weil der Nenner null ist.",
-        "Precision-Nenner": "TP + FP, also alle positiven Vorhersagen.",
-        "F1-Nenner": "2TP + FP + FN."
-      }
-    },
-    {
-      "question": "26. In 40 ausgewerteten Fällen ist kein Fall tatsächlich positiv und das Modell sagt alle Fälle negativ voraus: TP = FP = FN = 0, TN = 40. Welche Aussage ist korrekt?",
-      "options": [
-        "Accuracy = 1,000; Precision, Recall und F1 sind jeweils nicht definiert.",
-        "Alle vier Metriken betragen 1,000.",
-        "Accuracy = 0; Precision, Recall und F1 betragen ebenfalls 0.",
-        "Accuracy ist nicht definiert, weil keine positiven Fälle vorkommen."
-      ],
-      "answer": 0,
-      "explanation": "Accuracy = 40 / 40 = 1,000, weil ausgewertete Fälle vorhanden und alle korrekt sind. Precision, Recall und F1 haben nach der festgelegten Konvention jeweils Nenner null und werden als nicht definiert berichtet.",
-      "weight": 3,
-      "topic": "F1 und Nullnenner",
-      "concept": "Grenzfall ohne tatsächliche und vorhergesagte Positive",
-      "cognitive_level": "Analyse",
-      "mini_glossary": {
-        "Accuracy-Nenner": "TP + TN + FP + FN, hier 40.",
-        "Recall-Nenner": "TP + FN, hier 0.",
-        "Nicht definiert": "Kein Zahlenwert wird eingesetzt, wenn der erforderliche Nenner null ist.",
-        "Grenzfall": "Sonderfall, an dem Definitionsvoraussetzungen sichtbar werden."
-      }
-    },
-    {
-      "question": "27. Welche Aussage hält die curriculare Grenze für Coverage, selektive Accuracy und Macro-F1 ein?",
-      "options": [
-        "Aus selektiver Accuracy und Coverage muss eine vollständige Confusion Matrix rekonstruiert werden.",
-        "Macro-F1 muss für jede Mehrklassenmatrix ohne Hilfsmittel berechnet werden.",
-        "Coverage ersetzt Accuracy, Precision, Recall und binären F1 im Pflichtkern.",
-        "Bereitgestellte Werte dürfen qualitativ als Zielkonflikt gelesen werden; Mehrklassen-Macro-F1 und Schwellenoptimierung sind kein Pflichtrechnen."
+        "Precision = 0, Recall = nicht definiert und F1 = nicht definiert",
+        "Precision = nicht definiert, Recall = 0 und F1 = 0",
+        "Precision = 0, Recall = 1 wegen fehlender FN und F1 = 1",
+        "Precision = 0, Recall = nicht definiert und F1 = 0"
       ],
       "answer": 3,
-      "explanation": "Coverage beschreibt den Anteil automatisch entschiedener Fälle, während selektive Accuracy nur diese akzeptierte Teilmenge betreffen kann. Coverage, selektive Accuracy und bereitgestelltes Macro-F1 dienen hier dem Transfer; Pflichtrechnen bleibt auf die binäre Matrix und ihre vier Kernmetriken begrenzt.",
-      "weight": 2,
-      "topic": "Coverage und Evaluationstransfer",
-      "concept": "Coverage und Macro-F1 als nicht prüfbarer Transfer",
-      "cognitive_level": "Anwendung",
-      "mini_glossary": {
-        "Coverage": "Anteil der Fälle, für die ein System automatisch eine Entscheidung trifft.",
-        "Selektive Accuracy": "Accuracy innerhalb der automatisch klassifizierten Teilmenge.",
-        "Macro-F1": "Ungewichteter Mittelwert klassenweiser F1-Werte.",
-        "Transfer": "Qualitative Anwendung eines Kernprinzips außerhalb des Pflichtrechnens."
-      }
-    },
-    {
-      "question": "28. Eine Regressionsgerade sagt 94 ms voraus, beobachtet wurden 100 ms. Wie groß ist das Residuum e = y − ŷ?",
-      "options": ["−194 ms", "+6 ms", "−6 ms", "+194 ms"],
-      "answer": 1,
-      "explanation": "Das Residuum ist 100 ms − 94 ms = +6 ms. Der positive Wert bedeutet, dass die Beobachtung über der Vorhersage liegt.",
-      "weight": 1,
-      "topic": "Kumulative Regression und Inferenz",
-      "concept": "Vorzeichen eines Residuums",
-      "cognitive_level": "Reproduktion",
-      "mini_glossary": {
-        "Residuum": "Beobachteter Wert minus Modellvorhersage.",
-        "Vorhersage": "Vom Regressionsmodell geschätzter Wert.",
-        "Positives Residuum": "Die Beobachtung liegt über der Vorhersage."
-      }
-    },
-    {
-      "question": "29. Ein zweiseitiger gepaarter Test liefert p = 0,032 bei α = 0,05. Welche Schlussfolgerung ist korrekt?",
-      "options": [
-        "Die Nullhypothese ist mit Wahrscheinlichkeit 3,2 % wahr.",
-        "Der beobachtete Effekt ist automatisch praktisch bedeutsam.",
-        "Die Nullhypothese wird auf dem 5-%-Niveau verworfen; Größe und Kausalität sind getrennt zu beurteilen.",
-        "Der Test beweist die Ursache der beobachteten Veränderung."
-      ],
-      "answer": 2,
-      "explanation": "Da p = 0,032 kleiner als α = 0,05 ist, wird die Nullhypothese im festgelegten Test verworfen. Der p-Wert ist weder die Wahrscheinlichkeit der Nullhypothese noch ein Maß für praktische Bedeutung oder Kausalität.",
-      "weight": 2,
-      "topic": "Kumulative Regression und Inferenz",
-      "concept": "Testentscheidung ohne p-Wert-Überinterpretation",
-      "cognitive_level": "Anwendung",
-      "mini_glossary": {
-        "p-Wert": "Wahrscheinlichkeit mindestens so extremer Daten unter der Nullhypothese.",
-        "Signifikanzniveau": "Vorab festgelegte Schwelle für die Testentscheidung.",
-        "Praktische Bedeutung": "Sachliche Größe und Relevanz eines Effekts."
-      }
-    },
-    {
-      "question": "30. Ein Modell schneidet auf einer einzigen kleinen Gelegenheitsstichprobe besser ab als ein anderes. Welcher Befund ist statistisch am tragfähigsten?",
-      "options": [
-        "In dieser Stichprobe war die festgelegte Testmetrik höher; Stichprobenumfang, Datenherkunft und Unsicherheit sind vor einer Generalisierung zu prüfen.",
-        "Das bessere Modell ist damit für alle künftigen Populationen bewiesen.",
-        "Eine höhere Testmetrik schließt Domain Shift und Auswahlverzerrung aus.",
-        "Die Stichprobe darf nachträglich als repräsentativ definiert werden."
-      ],
-      "answer": 0,
-      "explanation": "Der beobachtete Vergleich darf zunächst nur für die ausgewertete Stichprobe berichtet werden. Für Generalisierung sind eine passende Zielpopulation, belastbare neue Daten, Stichprobenvariabilität und mögliche Auswahlverzerrungen zu prüfen.",
+      "explanation": "Precision = 0/(0+6) = 0. Recall ist wegen TP+FN = 0 nicht definiert, während F1 = 2TP/(2TP+FP+FN) = 0/6 = 0 bleibt. Fehlende False Negatives machen Recall nicht zu 1; die undefinierte Recall-Komponente macht die separat definierte F1-Zählform nicht undefiniert.",
       "weight": 3,
-      "topic": "Kumulative Regression und Inferenz",
-      "concept": "Modellvergleich ohne externe Überinterpretation",
+      "topic": "F1 und Nullnenner",
+      "concept": "Komplementärer Nullnennerfall bei Recall und F1",
       "cognitive_level": "Analyse",
       "mini_glossary": {
-        "Gelegenheitsstichprobe": "Leicht verfügbare, nicht zufällig repräsentative Fallauswahl.",
-        "Auswahlverzerrung": "Systematische Abweichung durch den Auswahlprozess.",
-        "Generalisierung": "Leistung eines Modells auf passenden neuen Fällen.",
-        "Unsicherheit": "Schwankung und begrenzte Präzision eines Stichprobenergebnisses."
+        "Precision-Nenner": "TP plus FP.",
+        "Recall-Nenner": "TP plus FN.",
+        "F1-Nenner": "2TP plus FP plus FN."
+      }
+    },
+    {
+      "question": "26. Segment A hat TP = 0, FP = 0, FN = 5, TN = 15; Segment B TP = 10, FP = 0, FN = 0, TN = 70. F1 wird in Zählform je Segment berechnet und anschließend ungewichtet gemittelt. Welches Ergebnis folgt?",
+      "options": [
+        "F1(A) = 0, F1(B) = 1 und der ungewichtete Mittelwert beträgt 0,5",
+        "F1(A) = nicht definiert, F1(B) = 1 und der Mittelwert ist nicht definiert",
+        "F1(A) = 0, F1(B) = 1 und der nach Fallzahl gewichtete Mittelwert beträgt 0,8",
+        "F1(A) = 1, F1(B) = 1 und der ungewichtete Mittelwert beträgt 1,0"
+      ],
+      "answer": 0,
+      "explanation": "In A ist der F1-Nenner 5 und damit F1 = 0; in B ist F1 = 20/20 = 1. Das gefragte ungewichtete Mittel ist (0+1)/2 = 0,5. Eine Gewichtung nach 20 beziehungsweise 80 Fällen ergäbe stattdessen 0,8; TN und Segmentgröße gehen aber nicht in den separat definierten F1 ein.",
+      "weight": 3,
+      "topic": "F1 und Nullnenner",
+      "concept": "Segmentweiser F1 bei undefinierter Precision",
+      "cognitive_level": "Analyse",
+      "mini_glossary": {
+        "Segment": "Vorab definierte Teilgruppe der ausgewerteten Fälle.",
+        "Ungewichteter Mittelwert": "Summe der Segmentwerte geteilt durch die Zahl der Segmente.",
+        "Zählform": "Direkte F1-Berechnung aus TP, FP und FN."
+      }
+    },
+    {
+      "question": "27. Ein Modell gibt für einen konkreten Fall die modellierte Wahrscheinlichkeit 0,80 aus. In 100 vergleichbaren synthetischen Fällen derselben Modellwertgruppe sind 80 tatsächlich positiv; das Label des konkreten Falls ist negativ. Welche Aussage trennt Modellwert, Gruppenhäufigkeit und konkretes Ergebnis korrekt?",
+      "options": [
+        "Der Modellwert 0,80 ist die zu 80 % wahre Klasse des Einzelfalls; die Gruppenhäufigkeit und das negative Label sind dafür unerheblich.",
+        "0,80 ist eine Modellausgabe, 80/100 eine empirische Gruppenhäufigkeit und »negativ« das konkrete Label; keine Ebene ersetzt die andere.",
+        "Die Häufigkeit 80/100 beweist Kalibrierung für jeden Einzelfall; das abweichende negative Label muss deshalb ein Messfehler sein.",
+        "Das negative Label widerlegt den Modellwert 0,80 und die Gruppenhäufigkeit 80/100; ein gültiges Modell dürfte keinen solchen Fall erzeugen."
+      ],
+      "answer": 1,
+      "explanation": "Die modellierte Wahrscheinlichkeit ist eine fallbezogene Modellausgabe, 80/100 ist eine beobachtete Häufigkeit in einer Vergleichsgruppe, und das negative Label beschreibt den realisierten Ausgang dieses Falls. Auch bei gruppenweiser Übereinstimmung können einzelne negative Fälle auftreten; die synthetische Gruppe belegt zudem keine Kalibrierung im Produktivbetrieb.",
+      "weight": 3,
+      "topic": "Klassifikationsmetriken",
+      "concept": "Modellwahrscheinlichkeit, Gruppenhäufigkeit und Einzelfallwahrheit",
+      "cognitive_level": "Analyse",
+      "mini_glossary": {
+        "Modellwert": "Vom Modell ausgegebene fallbezogene Wahrscheinlichkeit oder Bewertung.",
+        "Gruppenhäufigkeit": "Beobachteter positiver Anteil in einer festgelegten Vergleichsgruppe.",
+        "Einzelfallwahrheit": "Tatsächlich beobachtetes Label eines konkreten Falls.",
+        "Kalibrierung": "Übereinstimmung von Modellwerten und Häufigkeiten über geeignete Gruppen."
+      }
+    },
+    {
+      "question": "28. Für zwei Fälle sagt eine Regression 94 ms und 112 ms voraus; beobachtet werden 100 ms und 105 ms. Mit e = y − ŷ: Welche Residuen und welcher Mittelwert ergeben sich?",
+      "options": [
+        "Residuen −6 ms und +7 ms; Mittelwert +0,5 ms",
+        "Residuen +6 ms und +7 ms; Mittelwert +6,5 ms",
+        "Residuen +6 ms und −7 ms; Mittelwert −0,5 ms",
+        "Residuen −6 ms und −7 ms; Mittelwert −6,5 ms"
+      ],
+      "answer": 2,
+      "explanation": "Die Differenzen y−ŷ sind +6 ms und −7 ms; ihr Mittel ist (6−7)/2 = −0,5 ms. Die Vorzeichenfolge −6 ms und +7 ms verwendet durchgehend die umgekehrte Definition ŷ−y.",
+      "weight": 3,
+      "topic": "Kumulative Regression und Inferenz",
+      "concept": "Mehrere Residuen mit Vorzeichen zusammenfassen",
+      "cognitive_level": "Analyse",
+      "mini_glossary": {
+        "Residuum": "Beobachteter Wert minus Modellvorhersage.",
+        "Untervorhersage": "Positive Abweichung, weil die Beobachtung höher liegt.",
+        "Übervorhersage": "Negative Abweichung, weil die Beobachtung niedriger liegt."
+      }
+    },
+    {
+      "question": "29. Ein Testbericht nennt für 100 Fälle Accuracy = 0,860 gegenüber den Referenzlabels von Beurteilerin A. Eine unabhängige Zweitbeurteilung weicht bei 18 Fällen von A ab. Welche Bewertung der Evidenz ist methodisch angemessen?",
+      "options": [
+        "Die Accuracy 0,860 belegt 86 sachlich wahre Modellentscheidungen, weil Referenzlabels einer einzelnen Beurteilerin definitionsgemäß fehlerfrei sind.",
+        "Die Accuracy muss auf 0,680 korrigiert werden, weil alle 18 abweichenden Zweitbeurteilungen als zusätzliche Modellfehler zählen.",
+        "Die Accuracy 0,860 beschreibt die Übereinstimmung mit den Labels von A; die 18 Abweichungen zeigen Unsicherheit des Referenzmaßstabs und begrenzen eine Wahrheitsaussage.",
+        "Die Accuracy ist nicht definiert, weil bereits eine abweichende Zweitbeurteilung sämtliche 100 Referenzlabels für die Auswertung unbrauchbar macht."
+      ],
+      "answer": 2,
+      "explanation": "Die berichtete Accuracy bedeutet 86 Übereinstimmungen mit den 100 Labels von A. Aus den 18 Abweichungen zwischen A und der Zweitbeurteilung folgt weder, welche Beurteilung sachlich zutrifft, noch wie das Modell in diesen Fällen entschieden hat; ein Abzug von 18 Prozentpunkten ist daher unbegründet. Die Labelunsicherheit muss durch einen dokumentierten Klärungsprozess oder eine entsprechend begrenzte Aussage berücksichtigt werden.",
+      "weight": 3,
+      "topic": "Klassifikationsmetriken",
+      "concept": "Referenzlabel und sachliche Wahrheit trennen",
+      "cognitive_level": "Analyse",
+      "mini_glossary": {
+        "Referenzlabel": "Festgelegte Vergleichsklasse zur Bewertung einer Modellvorhersage.",
+        "Zweitbeurteilung": "Unabhängige erneute Einordnung desselben Falls.",
+        "Labelunsicherheit": "Unsicherheit darüber, welche sachliche Klasse einem Fall zugeordnet werden soll."
+      }
+    },
+    {
+      "question": "30. Auf einer kleinen Gelegenheitsstichprobe erreicht Modell A F1 = 0,84 und Modell B F1 = 0,80; ein 95-%-Bootstrap-Intervall für A−B lautet [−0,03; 0,11]. Die spätere Zielpopulation unterscheidet sich zudem sprachlich. Welcher Befund ist tragfähig?",
+      "options": [
+        "A ist für die Zielpopulation überlegen, weil die beobachtete Differenz positiv ist und der Test dieselbe Aufgabenart verwendet",
+        "In der Stichprobe liegt A um 0,04 vorn; das Intervall umfasst auch Nachteile, und der Sprachunterschied begrenzt die Übertragung auf den Einsatz",
+        "A und B sind in der Zielpopulation gleichwertig, weil das Intervall den Wert null enthält und damit Gleichheit nachweist",
+        "B ist für die Zielpopulation vorzuziehen, weil die untere Intervallgrenze negativ ist und Domain Shift A stärker betrifft"
+      ],
+      "answer": 1,
+      "explanation": "Die Punktschätzung begünstigt A, das Intervall ist aber mit kleinen Vor- und Nachteilen vereinbar; zusätzlich besteht ein externer Domain Shift. Null im Intervall belegt keine Gleichheit, sondern zeigt, dass die Daten auch keinen Unterschied enthalten können.",
+      "weight": 3,
+      "topic": "Kumulative Regression und Inferenz",
+      "concept": "Modellvergleich mit Unsicherheit und externer Grenze",
+      "cognitive_level": "Analyse",
+      "mini_glossary": {
+        "Bootstrap-Intervall": "Durch wiederholtes Resampling geschätzter Unsicherheitsbereich.",
+        "Gelegenheitsstichprobe": "Leicht verfügbare, nicht repräsentativ gezogene Fallauswahl.",
+        "Externe Validität": "Übertragbarkeit eines Befunds auf andere Zielbedingungen.",
+        "Punktschätzung": "Ein einzelner aus den Daten berechneter Schätzwert."
       }
     }
   ]

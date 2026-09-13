@@ -6,9 +6,9 @@
     "target_audience": "Bachelorstudierende aus BWL, Management, Wirtschaftsinformatik und Informatik ohne vorausgesetzte Statistikkenntnisse",
     "question_count": 30,
     "difficulty_profile": {
-      "leicht": 8,
-      "mittel": 16,
-      "schwer": 6
+      "leicht": 0,
+      "mittel": 12,
+      "schwer": 18
     },
     "time_per_weight_minutes": {
       "1": 0.5,
@@ -16,540 +16,554 @@
       "3": 1.0
     },
     "additional_buffer_minutes": 5,
-    "test_duration_minutes": 27
+    "test_duration_minutes": 32
   },
   "questions": [
     {
-      "question": "1. Was ist eine Punktschätzung?",
+      "question": "1. Filiale A beobachtet 52 zufriedene Personen unter 80 Befragten, Filiale B 520 unter 800. Welche Aussage trennt Punktschätzung und Präzision korrekt?",
       "options": [
-        "Eine Zahl aus der Stichprobe zur Schätzung eines Parameters",
-        "Die vollständige Liste aller Einzelwerte einer Grundgesamtheit",
-        "Ein Bereich, der stets 95 % aller Einzelwerte enthält",
-        "Die Wahrscheinlichkeit, dass ein Populationsparameter wahr ist"
-      ],
-      "answer": 0,
-      "explanation": "Eine Punktschätzung liefert einen einzelnen Schätzwert, etwa den Stichprobenanteil $\\hat{p}$. Sie zeigt die Stichprobenunsicherheit nicht als Bereich; dafür dient eine Intervallschätzung.",
-      "weight": 1,
-      "topic": "Punkt- und Intervallschätzung",
-      "concept": "Definition der Punktschätzung",
-      "cognitive_level": "Reproduktion",
-      "mini_glossary": {
-        "Punktschätzung": "Eine einzelne Zahl aus der Stichprobe als Schätzung eines unbekannten Populationsparameters.",
-        "Parameter": "Eine feste, meist unbekannte Kenngröße einer Grundgesamtheit oder eines ausdrücklich festgelegten Modells."
-      }
-    },
-    {
-      "question": "2. Welche zusätzliche Information liefert eine Intervallschätzung gegenüber einer Punktschätzung?",
-      "options": [
-        "Sie beweist die Repräsentativität der Stichprobe.",
-        "Sie zeigt die modellbedingte Unsicherheit als Wertebereich.",
-        "Sie enthält die Rohwerte aller untersuchten Einheiten.",
-        "Sie beseitigt Mess- und Auswahlfehler der Datenerhebung."
-      ],
-      "answer": 1,
-      "explanation": "Eine Intervallschätzung ergänzt den Punktwert um einen Bereich, der die modellbedingte Stichprobenunsicherheit ausdrückt. Sie repariert weder Messfehler noch eine verzerrte Auswahl.",
-      "weight": 1,
-      "topic": "Punkt- und Intervallschätzung",
-      "concept": "Zusatzinformation der Intervallschätzung",
-      "cognitive_level": "Reproduktion",
-      "mini_glossary": {
-        "Intervallschätzung": "Ein aus Stichprobendaten berechneter Wertebereich, der die Unsicherheit der Schätzung sichtbar macht.",
-        "Punktschätzung": "Eine einzelne Zahl aus der Stichprobe als Schätzung eines unbekannten Populationsparameters."
-      }
-    },
-    {
-      "question": "3. Welche Formel wird im Modul für den geschätzten Standardfehler eines Mittelwerts verwendet?",
-      "options": [
-        "$SE(\\bar{x})=s\\sqrt{n}$",
-        "$SE(\\bar{x})=n/s$",
-        "$SE(\\bar{x})=s/\\sqrt{n}$",
-        "$SE(\\bar{x})=s/(n-1)$"
+        "Beide Punktschätzer sind 0,65; Filiale A hat unter gleichen Annahmen den kleineren Standardfehler.",
+        "Die Punktschätzer sind 0,065 und 0,650; Filiale B hat den kleineren Standardfehler.",
+        "Beide Punktschätzer sind 0,65; Filiale B hat unter gleichen Annahmen den kleineren Standardfehler.",
+        "Die Punktschätzer sind 0,650 und 0,065; Filiale A hat den kleineren Standardfehler."
       ],
       "answer": 2,
-      "explanation": "Der geschätzte Standardfehler lautet $SE(\\bar{x})=s/\\sqrt{n}$. Dabei ist $s$ die mit $n-1$ berechnete Stichprobenstandardabweichung; der Standardfehler beschreibt nicht die Streuung der Einzelwerte.",
-      "weight": 1,
-      "topic": "Standardfehler",
-      "concept": "Standardfehler des Mittelwerts",
-      "cognitive_level": "Reproduktion",
-      "mini_glossary": {
-        "Standardfehler": "Die modellbedingte Standardabweichung der Stichprobenverteilung eines Schätzers; er ist nicht die Streuung der Einzelwerte.",
-        "Stichprobenstandardabweichung": "Ein mit dem Nenner $n-1$ berechnetes Streuungsmaß der beobachteten Einzelwerte."
-      }
-    },
-    {
-      "question": "4. Welche Formel beschreibt den geschätzten Standardfehler eines Anteils?",
-      "options": [
-        "$SE(\\hat{p})=\\sqrt{\\hat{p}/n}$",
-        "$SE(\\hat{p})=\\sqrt{\\hat{p}(1-\\hat{p})/n}$",
-        "$SE(\\hat{p})=\\sqrt{n\\hat{p}(1-\\hat{p})}$",
-        "$SE(\\hat{p})=\\sqrt{(1-\\hat{p})/n}$"
-      ],
-      "answer": 1,
-      "explanation": "Für ein binäres Merkmal gilt $SE(\\hat{p})=\\sqrt{\\hat{p}(1-\\hat{p})/n}$. Dieser Wert ist eine Unsicherheitsgröße des geschätzten Anteils und weder eine Fehlerrate noch bereits ein Konfidenzintervall.",
-      "weight": 1,
-      "topic": "Standardfehler",
-      "concept": "Standardfehler eines Anteils",
-      "cognitive_level": "Reproduktion",
-      "mini_glossary": {
-        "Stichprobenanteil": "Der beobachtete Anteil $\\hat{p}=x/n$ eines binären Merkmals in der Stichprobe.",
-        "Standardfehler": "Die modellbedingte Standardabweichung der Stichprobenverteilung eines Schätzers; er ist nicht die Streuung der Einzelwerte."
-      }
-    },
-    {
-      "question": "5. Wie verändert sich der Standardfehler bei gleicher Streuung näherungsweise, wenn die Stichprobengröße vervierfacht wird?",
-      "options": [
-        "Er verdoppelt sich.",
-        "Er bleibt unverändert.",
-        "Er halbiert sich.",
-        "Er sinkt auf ein Viertel."
-      ],
-      "answer": 2,
-      "explanation": "Da der Standardfehler mit $1/\\sqrt{n}$ skaliert, führt vierfaches $n$ zum Faktor $1/\\sqrt{4}=1/2$. Die Unsicherheit sinkt also nicht proportional zu $n$.",
-      "weight": 1,
-      "topic": "Standardfehler",
-      "concept": "Einfluss der Stichprobengröße",
-      "cognitive_level": "Reproduktion",
-      "mini_glossary": {
-        "Standardfehler": "Die modellbedingte Standardabweichung der Stichprobenverteilung eines Schätzers; er ist nicht die Streuung der Einzelwerte.",
-        "Stichprobengröße": "Die Zahl $n$ der tatsächlich ausgewerteten Beobachtungen einer Stichprobe."
-      }
-    },
-    {
-      "question": "6. Welche Aussage beschreibt ein 95-%-Konfidenzintervall korrekt?",
-      "options": [
-        "Der feste Parameter liegt nach der Berechnung mit 95 % Wahrscheinlichkeit in genau diesem Intervall.",
-        "95 % der Einzelwerte der Stichprobe liegen zwischen den beiden Intervallgrenzen.",
-        "Bei vielen gleichartigen Stichproben enthalten ungefähr 95 % der so berechneten Intervalle den festen Parameter.",
-        "Mit 95 % Wahrscheinlichkeit ist die Stichprobe repräsentativ für jede denkbare Population."
-      ],
-      "answer": 2,
-      "explanation": "Die 95 % beziehen sich auf die langfristige Trefferquote des Intervallverfahrens bei gleichartigen Wiederholungen. Der Parameter ist im frequentistischen Modell fest; das einzelne berechnete Intervall ist kein Wahrscheinlichkeitsbehälter für ihn.",
-      "weight": 1,
-      "topic": "Konfidenzintervalle",
-      "concept": "Frequentistische 95-Prozent-Interpretation",
-      "cognitive_level": "Reproduktion",
-      "mini_glossary": {
-        "Konfidenzintervall": "Ein nach einem festgelegten Verfahren aus Stichprobendaten berechneter Bereich plausibler Parameterwerte.",
-        "Konfidenzniveau": "Die langfristige Trefferquote des Intervallverfahrens bei sehr vielen gleichartigen Stichproben."
-      }
-    },
-    {
-      "question": "7. Welche Aussage trennt Präzision und Repräsentativität korrekt?",
-      "options": [
-        "Ein schmales Intervall zeigt hohe Präzision, beweist aber keine unverzerrte Auswahl.",
-        "Ein schmales Intervall beweist, dass jede Einheit dieselbe Auswahlchance hatte.",
-        "Eine repräsentative Stichprobe hat unabhängig von $n$ stets ein schmales Intervall.",
-        "Präzision und Repräsentativität sind zwei Wörter für denselben Sachverhalt."
-      ],
-      "answer": 0,
-      "explanation": "Ein schmales Intervall zeigt geringe modellbedingte Stichprobenunsicherheit und damit hohe Präzision. Ob die Auswahl die Zielpopulation angemessen abbildet, ist eine getrennte Frage des Erhebungsdesigns.",
-      "weight": 1,
-      "topic": "Präzision und Generalisierung",
-      "concept": "Präzision versus Repräsentativität",
-      "cognitive_level": "Reproduktion",
-      "mini_glossary": {
-        "Präzision": "Das Ausmaß der statistischen Unsicherheit einer Schätzung; kleinere Standardfehler und schmalere Intervalle bedeuten höhere Präzision.",
-        "Repräsentativität": "Die Frage, wie gut die Stichprobe die Zielpopulation hinsichtlich der relevanten Merkmale abbildet; sie folgt nicht allein aus großem $n$."
-      }
-    },
-    {
-      "question": "8. Welche Lehrregel gilt für die einfache Wald-Näherung eines Anteils?",
-      "options": [
-        "Es müssen mindestens zehn Beobachtungen insgesamt vorliegen.",
-        "Mindestens zehn Erfolge und zehn Misserfolge müssen vorliegen.",
-        "Der beobachtete Anteil muss exakt 0,50 betragen.",
-        "Die Stichprobe muss mindestens 1.000 Beobachtungen umfassen."
-      ],
-      "answer": 1,
-      "explanation": "Im Modul wird das Wald-Intervall nur verwendet, wenn $n\\hat{p}\\ge10$ und $n(1-\\hat{p})\\ge10$, also mindestens zehn Erfolge und zehn Misserfolge vorliegen. Die Gesamtzahl allein reicht zur Prüfung nicht aus.",
-      "weight": 1,
-      "topic": "Anteilsintervalle",
-      "concept": "Einsatzgrenze des Wald-Intervalls",
-      "cognitive_level": "Reproduktion",
-      "mini_glossary": {
-        "Wald-Intervall": "Die Näherung $\\hat{p}\\pm z\\sqrt{\\hat{p}(1-\\hat{p})/n}$ für einen Anteil; im Modul nur bei mindestens zehn Erfolgen und zehn Misserfolgen.",
-        "Erfolg": "Der für eine binäre Auswertung vorab als interessierend festgelegte Ausgang."
-      }
-    },
-    {
-      "question": "9. Von 60 zufällig ausgewählten Bestellungen werden 42 fristgerecht geliefert. Wie lautet die Punktschätzung für den Anteil fristgerechter Lieferungen?",
-      "options": ["0,300", "0,420", "0,600", "0,700"],
-      "answer": 3,
-      "explanation": "Der Stichprobenanteil ist $\\hat{p}=42/60=0{,}700$. Er schätzt den unbekannten Populationsanteil punktuell, ohne dessen Stichprobenunsicherheit allein schon abzubilden.",
+      "explanation": "Beide Anteile sind 52/80=520/800=0,65. Bei vergleichbarem Design sinkt der Standardfehler mit wachsendem n; der plausible Distraktor mit kleinerem Fehler für A kehrt diese Beziehung um.",
       "weight": 2,
       "topic": "Punkt- und Intervallschätzung",
-      "concept": "Punktschätzung eines Anteils",
+      "concept": "Gleicher Punktschätzer bei unterschiedlicher Präzision",
       "cognitive_level": "Anwendung",
       "mini_glossary": {
-        "Stichprobenanteil": "Der beobachtete Anteil $\\hat{p}=x/n$ eines binären Merkmals in der Stichprobe.",
-        "Punktschätzung": "Eine einzelne Zahl aus der Stichprobe als Schätzung eines unbekannten Populationsparameters."
+        "Punktschätzer": "Eine aus Stichprobendaten berechnete einzelne Schätzung eines Parameters.",
+        "Präzision": "Das Ausmaß zufallsbedingter Unsicherheit; kleinere Standardfehler bedeuten höhere Präzision."
       }
     },
     {
-      "question": "10. In einer Stichprobe mit $n=100$ beträgt der beobachtete Anteil $\\hat{p}=0{,}64$. Wie groß ist der geschätzte Standardfehler des Anteils?",
-      "options": ["0,024", "0,048", "0,064", "0,230"],
+      "question": "2. Für eine Zufallsstichprobe beträgt der geschätzte Mittelwert 12,0 Minuten und das 95-%-Konfidenzintervall [11,2; 12,8] Minuten. Welche Zusatzinformation liefert das Intervall?",
+      "options": [
+        "Es beschreibt modellbedingte Stichprobenunsicherheit und lässt die Qualität des Auswahlprozesses getrennt beurteilen.",
+        "Es beschreibt die Spannweite der Einzelwerte und lässt die Qualität des Auswahlprozesses getrennt beurteilen.",
+        "Es beschreibt modellbedingte Stichprobenunsicherheit und bildet Auswahlverzerrung in seiner Breite mit ab.",
+        "Es beschreibt die Spannweite der Einzelwerte und bildet Auswahlverzerrung in seiner Breite mit ab."
+      ],
+      "answer": 0,
+      "explanation": "Das Konfidenzintervall ergänzt den Punktwert um die unter dem Modell quantifizierte Stichprobenunsicherheit. Der plausible Distraktor deutet die Grenzen als Spannweite der Einzelwerte; sie beziehen sich jedoch auf plausible Parameterwerte.",
+      "weight": 2,
+      "topic": "Punkt- und Intervallschätzung",
+      "concept": "Informationsgewinn durch Intervallschätzung",
+      "cognitive_level": "Verständnis",
+      "mini_glossary": {
+        "Intervallschätzung": "Ein aus Stichprobendaten berechneter Bereich zur Darstellung von Schätzunsicherheit.",
+        "Auswahlverzerrung": "Systematische Abweichung durch einen Auswahlprozess, die ein Standardintervall nicht automatisch korrigiert."
+      }
+    },
+    {
+      "question": "3. Für n=64 unabhängig erhobene Bearbeitungszeiten gelten x̄=30 Minuten und s=16 Minuten. Welche Aussage zum geschätzten Standardfehler ist korrekt?",
+      "options": [
+        "SE(x̄)=8 Minuten; er beschreibt die geschätzte Streuung von Mittelwerten gleich großer Stichproben.",
+        "SE(x̄)=16 Minuten; er beschreibt die beobachtete Streuung der 64 Einzelzeiten um null.",
+        "SE(x̄)=30 Minuten; er beschreibt den Abstand des Stichprobenmittelwerts vom Parameter.",
+        "SE(x̄)=2 Minuten; er beschreibt die geschätzte Streuung von Mittelwerten gleich großer Stichproben."
+      ],
+      "answer": 3,
+      "explanation": "SE(x̄)=s/√n=16/8=2 Minuten. Der plausible Distraktor 16 Minuten verwechselt Standardabweichung der Einzelwerte und Standardfehler des Mittelwerts; der Standardfehler ist auch nicht der unbekannte tatsächliche Schätzfehler.",
+      "weight": 2,
+      "topic": "Standardfehler",
+      "concept": "Standardfehler eines Mittelwerts",
+      "cognitive_level": "Anwendung",
+      "mini_glossary": {
+        "Standardfehler": "Die geschätzte Standardabweichung der Stichprobenverteilung eines Schätzers.",
+        "Stichprobenstandardabweichung": "Die beobachtete Streuung der Einzelwerte um ihren Stichprobenmittelwert."
+      }
+    },
+    {
+      "question": "4. In einer Stichprobe mit n=250 beträgt der beobachtete Anteil p̂=0,40. Wie groß ist der geschätzte Standardfehler des Anteils?",
+      "options": ["0,0240", "0,0310", "0,0400", "0,2400"],
       "answer": 1,
-      "explanation": "Es gilt $SE(\\hat{p})=\\sqrt{0{,}64\\cdot0{,}36/100}=\\sqrt{0{,}002304}=0{,}048$. Der Wert 0,2304 vor Division durch 100 ist das Produkt $\\hat{p}(1-\\hat{p})$, nicht der Standardfehler.",
+      "explanation": "SE(p̂)=√(0,40·0,60/250)=√0,00096≈0,03098≈0,0310. Der plausible Distraktor 0,2400 ist nur das Produkt p̂(1−p̂) vor Division durch n und Wurzelziehen.",
       "weight": 2,
       "topic": "Standardfehler",
       "concept": "Berechnung des Anteilsstandardfehlers",
       "cognitive_level": "Anwendung",
       "mini_glossary": {
-        "Stichprobenanteil": "Der beobachtete Anteil $\\hat{p}=x/n$ eines binären Merkmals in der Stichprobe.",
-        "Standardfehler": "Die modellbedingte Standardabweichung der Stichprobenverteilung eines Schätzers; er ist nicht die Streuung der Einzelwerte."
+        "Stichprobenanteil": "Der beobachtete Anteil p̂=x/n eines binären Merkmals.",
+        "Anteilsstandardfehler": "Die geschätzte Streuung von Stichprobenanteilen, √(p̂(1−p̂)/n)."
       }
     },
     {
-      "question": "11. Für $n=36$ beobachtete Bearbeitungszeiten beträgt die Stichprobenstandardabweichung $s=12$ Minuten. Wie groß ist der geschätzte Standardfehler des Mittelwerts?",
-      "options": ["0,33 Minuten", "2 Minuten", "6 Minuten", "12 Minuten"],
-      "answer": 1,
-      "explanation": "Mit $SE(\\bar{x})=s/\\sqrt{n}$ folgt $12/6=2$ Minuten. Die 12 Minuten beschreiben die Streuung der Einzelzeiten, die 2 Minuten die modellbedingte Streuung der Stichprobenmittelwerte.",
+      "question": "5. Bei n=100 soll der Standardfehler unter unveränderter Streuung auf höchstens 70 % seines bisherigen Werts sinken. Welches kleinste ganzzahlige n erfüllt das Ziel?",
+      "options": ["205", "143", "200", "400"],
+      "answer": 0,
+      "explanation": "Aus SE_neu/SE_alt=√(100/n_neu)≤0,70 folgt n_neu≥100/0,49≈204,08, also mindestens 205. Der plausible Distraktor 143 skaliert n linear mit 1/0,70 und missachtet die Quadratwurzel.",
       "weight": 2,
       "topic": "Standardfehler",
-      "concept": "Berechnung des Mittelwertstandardfehlers",
-      "cognitive_level": "Anwendung",
-      "mini_glossary": {
-        "Standardfehler": "Die modellbedingte Standardabweichung der Stichprobenverteilung eines Schätzers; er ist nicht die Streuung der Einzelwerte.",
-        "Stichprobenmittelwert": "Das arithmetische Mittel der gültigen metrischen Werte in einer Stichprobe."
-      }
-    },
-    {
-      "question": "12. Bei unveränderter Streuung soll der Standardfehler eines Mittelwerts von 4 auf 2 sinken. Wie muss sich die Stichprobengröße ändern?",
-      "options": [
-        "Sie muss verdoppelt werden.",
-        "Sie muss verdreifacht werden.",
-        "Sie muss vervierfacht werden.",
-        "Sie muss verachtfacht werden."
-      ],
-      "answer": 2,
-      "explanation": "Eine Halbierung des Standardfehlers erfordert wegen $SE\\propto1/\\sqrt{n}$ eine Vervierfachung von $n$. Doppelte Stichprobengröße würde nur den Faktor $1/\\sqrt{2}$ bewirken.",
-      "weight": 2,
-      "topic": "Standardfehler",
-      "concept": "Planung der Stichprobengröße",
-      "cognitive_level": "Anwendung",
-      "mini_glossary": {
-        "Standardfehler": "Die modellbedingte Standardabweichung der Stichprobenverteilung eines Schätzers; er ist nicht die Streuung der Einzelwerte.",
-        "Stichprobengröße": "Die Zahl $n$ der tatsächlich ausgewerteten Beobachtungen einer Stichprobe."
-      }
-    },
-    {
-      "question": "13. Für $n=100$ und $\\hat{p}=0{,}60$ soll ein 95-%-Wald-Intervall mit $z=1{,}96$ berechnet werden. Welches Ergebnis ist auf drei Dezimalen korrekt?",
-      "options": [
-        "$[0{,}408;0{,}792]$",
-        "$[0{,}504;0{,}696]$",
-        "$[0{,}551;0{,}649]$",
-        "$[0{,}580;0{,}620]$"
-      ],
-      "answer": 1,
-      "explanation": "Der Standardfehler ist $\\sqrt{0{,}60\\cdot0{,}40/100}\\approx0{,}048990$ und die Fehlerspanne $1{,}96\\cdot0{,}048990\\approx0{,}096020$. Damit ergibt sich $[0{,}503980;0{,}696020]\\approx[0{,}504;0{,}696]$; beide Wald-Bedingungszahlen sind 60 beziehungsweise 40.",
-      "weight": 2,
-      "topic": "Anteilsintervalle",
-      "concept": "Berechnung eines Wald-Intervalls",
-      "cognitive_level": "Anwendung",
-      "mini_glossary": {
-        "Wald-Intervall": "Die Näherung $\\hat{p}\\pm z\\sqrt{\\hat{p}(1-\\hat{p})/n}$ für einen Anteil; im Modul nur bei mindestens zehn Erfolgen und zehn Misserfolgen.",
-        "Fehlerspanne": "Das Produkt aus kritischem Wert und Standardfehler, das vom Punktschätzer abgezogen und zu ihm addiert wird."
-      }
-    },
-    {
-      "question": "14. In einer Stichprobe werden 12 Erfolge und 28 Misserfolge beobachtet. Wie ist die Wald-Lehrregel zu beurteilen?",
-      "options": [
-        "Sie ist erfüllt, weil beide Anzahlen mindestens 10 betragen.",
-        "Sie ist verletzt, weil nur die Erfolgszahl durch 10 teilbar sein müsste.",
-        "Sie ist verletzt, weil ein Wald-Intervall erst ab insgesamt 100 Fällen zulässig ist.",
-        "Sie ist erfüllt, weil ausschließlich die Gesamtzahl 40 geprüft wird."
-      ],
-      "answer": 0,
-      "explanation": "Die beiden zu prüfenden Anzahlen sind 12 und 28; beide erreichen mindestens 10. Damit ist diese Lehrregel erfüllt, auch wenn zusätzlich das binäre Stichprobenmodell und die Unabhängigkeit sachlich plausibel sein müssen.",
-      "weight": 2,
-      "topic": "Anteilsintervalle",
-      "concept": "Prüfung der Wald-Bedingungen",
-      "cognitive_level": "Anwendung",
-      "mini_glossary": {
-        "Wald-Intervall": "Die Näherung $\\hat{p}\\pm z\\sqrt{\\hat{p}(1-\\hat{p})/n}$ für einen Anteil; im Modul nur bei mindestens zehn Erfolgen und zehn Misserfolgen.",
-        "Modellannahme": "Eine Voraussetzung, unter der ein statistisches Modell den betrachteten Vorgang angemessen vereinfacht."
-      }
-    },
-    {
-      "question": "15. In einer Stichprobe treten 3 Erfolge und 17 Misserfolge auf. Welche Vorgehensweise entspricht dem Modul?",
-      "options": [
-        "Das Wald-Intervall berechnen und negative Grenzen bei Bedarf auf null setzen",
-        "Die Wald-Lehrregel als erfüllt ansehen, weil insgesamt 20 Fälle vorliegen",
-        "Ein ausdrücklich bereitgestelltes Wilson-Intervall lesen, weil die Erfolgszahl zu klein ist",
-        "Auf jede Intervallschätzung verzichten, weil der beobachtete Anteil unter 0,50 liegt"
-      ],
-      "answer": 2,
-      "explanation": "Mit nur drei Erfolgen ist die Lehrregel von mindestens zehn Erfolgen und zehn Misserfolgen verletzt. Ein bereitgestelltes Wilson-Intervall ist hier robuster; eine unplausible Wald-Grenze wird nicht willkürlich abgeschnitten.",
-      "weight": 2,
-      "topic": "Anteilsintervalle",
-      "concept": "Wald-Grenze und bereitgestelltes Wilson-Intervall",
-      "cognitive_level": "Anwendung",
-      "mini_glossary": {
-        "Wilson-Intervall": "Ein robusteres Anteilsintervall, das in diesem Modul ausdrücklich bereitgestellt und nur gelesen, nicht hergeleitet wird.",
-        "Wald-Intervall": "Die Näherung $\\hat{p}\\pm z\\sqrt{\\hat{p}(1-\\hat{p})/n}$ für einen Anteil; im Modul nur bei mindestens zehn Erfolgen und zehn Misserfolgen."
-      }
-    },
-    {
-      "question": "16. Für 7 Erfolge unter 20 Beobachtungen wird ein 95-%-Wilson-Intervall von $[0{,}181;0{,}567]$ bereitgestellt. Welche Aussage ist korrekt?",
-      "options": [
-        "Der beobachtete Punktschätzer bleibt $7/20=0{,}350$.",
-        "Der beobachtete Punktschätzer wird durch die Untergrenze 0,181 ersetzt.",
-        "Das Wilson-Intervall wird im Modul mit der Wald-Formel nachgerechnet.",
-        "Das Intervall bedeutet, dass 95 % der 20 Einzelwerte zwischen 0,181 und 0,567 liegen."
-      ],
-      "answer": 0,
-      "explanation": "Der beobachtete Anteil ist weiterhin $\\hat{p}=7/20=0{,}350$; das bereitgestellte Wilson-Intervall ergänzt ihn um Unsicherheit. Seine Grenzen sind weder Einzelwerte noch Ersatz für den Punktschätzer, und die Wilson-Formel wird hier nicht hergeleitet.",
-      "weight": 2,
-      "topic": "Anteilsintervalle",
-      "concept": "Wilson-Intervall als bereitgestellte Ausgabe",
-      "cognitive_level": "Anwendung",
-      "mini_glossary": {
-        "Wilson-Intervall": "Ein robusteres Anteilsintervall, das in diesem Modul ausdrücklich bereitgestellt und nur gelesen, nicht hergeleitet wird.",
-        "Stichprobenanteil": "Der beobachtete Anteil $\\hat{p}=x/n$ eines binären Merkmals in der Stichprobe."
-      }
-    },
-    {
-      "question": "17. Für Frage A mit 1 positiver von 1 Bewertung wird eine Wilson-Untergrenze von 0,207 bereitgestellt; für Frage B mit 100 positiven von 102 Bewertungen eine Untergrenze von 0,931. Welche Rangfolge nutzt das konservative Signal?",
-      "options": [
-        "A vor B, weil nur der beobachtete Anteil von 100 % zählt",
-        "B vor A, weil ihre bereitgestellte Wilson-Untergrenze höher ist",
-        "Beide gleichauf, weil beide beobachteten Anteile über 95 % liegen",
-        "Keine Rangfolge, weil die Untergrenze kein vollständiges Intervall ist"
-      ],
-      "answer": 1,
-      "explanation": "Das bereitgestellte Rangsignal ordnet B wegen $0{,}931>0{,}207$ vor A und berücksichtigt so die große Unsicherheit von 1/1. Die Untergrenze ist weder der beobachtete Anteil noch ein vollständiges Intervall oder ein Beweis inhaltlicher Wichtigkeit.",
-      "weight": 2,
-      "topic": "Anteilsintervalle",
-      "concept": "Wilson-Untergrenze als Rangmaß",
-      "cognitive_level": "Anwendung",
-      "mini_glossary": {
-        "Wilson-Untergrenze": "Die untere Grenze eines Wilson-Intervalls; sie kann als konservatives Rankingsignal dienen, ist aber weder der beobachtete Anteil noch ein vollständiges Intervall.",
-        "Rangmaß": "Eine Kennzahl, mit der Fälle nach einem festgelegten Kriterium sortiert werden; sie ist nicht automatisch ein Signifikanztest."
-      }
-    },
-    {
-      "question": "18. Für $n=25$ Servicezeiten gelten $\\bar{x}=120$ Sekunden und $s=15$ Sekunden. Der bereitgestellte kritische Wert ist $t=2{,}064$. Welches 95-%-Konfidenzintervall für den Mittelwert ergibt sich?",
-      "options": [
-        "$[105{,}00;135{,}00]$ Sekunden",
-        "$[113{,}81;126{,}19]$ Sekunden",
-        "$[117{,}00;123{,}00]$ Sekunden",
-        "$[119{,}38;120{,}62]$ Sekunden"
-      ],
-      "answer": 1,
-      "explanation": "Der Standardfehler beträgt $15/\\sqrt{25}=3$ Sekunden, die Fehlerspanne $2{,}064\\cdot3=6{,}192$ Sekunden. Somit ergibt sich $120\\pm6{,}192=[113{,}808;126{,}192]\\approx[113{,}81;126{,}19]$ Sekunden.",
-      "weight": 2,
-      "topic": "Mittelwertintervalle",
-      "concept": "Berechnung eines t-Konfidenzintervalls",
-      "cognitive_level": "Anwendung",
-      "mini_glossary": {
-        "t-Konfidenzintervall": "Das Mittelwertintervall $\\bar{x}\\pm t\\,s/\\sqrt{n}$ mit einem zur Freiheitsgradzahl passenden bereitgestellten t-Wert.",
-        "Fehlerspanne": "Das Produkt aus kritischem Wert und Standardfehler, das vom Punktschätzer abgezogen und zu ihm addiert wird."
-      }
-    },
-    {
-      "question": "19. Zwei Mittelwertstichproben haben dasselbe $n$, denselben Mittelwert und denselben kritischen t-Wert. In Stichprobe B ist $s$ doppelt so groß wie in A. Wie verhalten sich die Intervallbreiten?",
-      "options": [
-        "Das Intervall von B ist halb so breit.",
-        "Beide Intervalle sind gleich breit.",
-        "Das Intervall von B ist doppelt so breit.",
-        "Das Intervall von B ist viermal so breit."
-      ],
-      "answer": 2,
-      "explanation": "Bei festem $n$ und t-Wert ist die Fehlerspanne direkt proportional zu $s$. Verdoppelt sich die Streuung, verdoppeln sich Fehlerspanne und gesamte Intervallbreite; der gemeinsame Mittelwert ändert daran nichts.",
-      "weight": 2,
-      "topic": "Mittelwertintervalle",
-      "concept": "Einfluss der Streuung auf die Intervallbreite",
-      "cognitive_level": "Anwendung",
-      "mini_glossary": {
-        "Intervallbreite": "Die Differenz zwischen Ober- und Untergrenze eines Intervalls; sie beträgt bei symmetrischen Intervallen das Doppelte der Fehlerspanne.",
-        "Stichprobenstandardabweichung": "Ein mit dem Nenner $n-1$ berechnetes Streuungsmaß der beobachteten Einzelwerte."
-      }
-    },
-    {
-      "question": "20. Aus einer Grundgesamtheit werden wiederholt Stichproben gleicher Größe gezogen und jeweils die Mittelwerte berechnet. Welche Verteilung entsteht aus diesen Mittelwerten?",
-      "options": [
-        "Die Populationsverteilung der Einzelwerte",
-        "Die Stichprobenverteilung des Mittelwerts",
-        "Die Häufigkeitsverteilung der Stichprobenumfänge",
-        "Die Verteilung der Messfehler in einer einzelnen Stichprobe"
-      ],
-      "answer": 1,
-      "explanation": "Die wiederholt berechneten Mittelwerte bilden die Stichprobenverteilung von $\\bar{x}$. Ihre Streuung wird durch den Standardfehler beschrieben und ist von der Verteilung der einzelnen Populationswerte zu unterscheiden.",
-      "weight": 2,
-      "topic": "Kumulative Stichprobenvariabilität",
-      "concept": "Stichprobenverteilung des Mittelwerts",
-      "cognitive_level": "Anwendung",
-      "mini_glossary": {
-        "Stichprobenverteilung": "Die Verteilung eines Stichprobenkennwerts über viele gleichartige Stichproben gleicher Größe.",
-        "Populationsverteilung": "Die Verteilung der Einzelwerte eines Merkmals in der festgelegten Grundgesamtheit."
-      }
-    },
-    {
-      "question": "21. Ein Pool enthält 50 Verträge, davon 10 Premiumverträge. Es wird zufällig mit Zurücklegen gezogen. Der erste Zug ergibt einen Premiumvertrag. Wie groß ist die Wahrscheinlichkeit für einen Premiumvertrag im zweiten Zug?",
-      "options": ["9/49", "10/49", "10/50", "11/50"],
-      "answer": 2,
-      "explanation": "Durch das Zurücklegen enthält der Pool vor dem zweiten Zug wieder 10 Premiumverträge unter 50 Verträgen. Die Wahrscheinlichkeit bleibt daher $10/50=0{,}20$; der erste Zug verändert die Zusammensetzung nicht.",
-      "weight": 2,
-      "topic": "Kumulative Stichprobenvariabilität",
-      "concept": "Konstante Ziehwahrscheinlichkeit beim Zurücklegen",
-      "cognitive_level": "Anwendung",
-      "mini_glossary": {
-        "Sampling mit Zurücklegen": "Nach jedem Zug wird die ausgewählte Einheit in den Pool zurückgelegt; sie kann erneut gezogen werden und die Ziehwahrscheinlichkeiten bleiben konstant.",
-        "Unabhängigkeit": "Zwei Ereignisse sind unabhängig, wenn das Eintreten des einen die Wahrscheinlichkeit des anderen nicht verändert."
-      }
-    },
-    {
-      "question": "22. Bei drei unabhängigen Qualitätsprüfungen beträgt die Beanstandungswahrscheinlichkeit jeweils $p=0{,}20$. Wie groß ist die Wahrscheinlichkeit für genau eine Beanstandung?",
-      "options": ["0,096", "0,384", "0,488", "0,512"],
-      "answer": 1,
-      "explanation": "Mit $X\\sim Bin(3;0{,}20)$ gilt $P(X=1)=\\binom{3}{1}0{,}2\\cdot0{,}8^2=3\\cdot0{,}2\\cdot0{,}64=0{,}384$. Der Wert 0,512 ist die Wahrscheinlichkeit für keine Beanstandung.",
-      "weight": 2,
-      "topic": "Kumulative Verteilungen",
-      "concept": "Binomialwahrscheinlichkeit für genau einen Erfolg",
-      "cognitive_level": "Anwendung",
-      "mini_glossary": {
-        "Binomialverteilung": "Modell für die Anzahl der Erfolge in $n$ unabhängigen Versuchen mit zwei Ausgängen und konstantem $p$.",
-        "Binomialkoeffizient": "Die Zahl $\\binom{n}{k}$ gibt an, auf wie viele Arten $k$ Erfolge auf $n$ Versuche verteilt werden können."
-      }
-    },
-    {
-      "question": "23. Ein Leistungswert wird mit $\\mu=70$ und $\\sigma=8$ modelliert. Welchen z-Wert hat ein beobachteter Wert von 86?",
-      "options": ["$z=-2$", "$z=-0{,}5$", "$z=0{,}5$", "$z=2$"],
-      "answer": 3,
-      "explanation": "Die Standardisierung ergibt $z=(86-70)/8=2$. Der Wert liegt zwei Standardabweichungen über dem Modellmittelwert; Standardisieren allein macht eine nicht normale Verteilung nicht normal.",
-      "weight": 2,
-      "topic": "Kumulative Verteilungen",
-      "concept": "Standardisierung eines Einzelwerts",
-      "cognitive_level": "Anwendung",
-      "mini_glossary": {
-        "z-Wert": "Der standardisierte Abstand eines Werts vom Mittelwert in Einheiten der Standardabweichung.",
-        "Standardisierung": "Die Umrechnung $z=(x-\\mu)/\\sigma$, durch die ein Wert als Abstand vom Mittelwert in Standardabweichungen ausgedrückt wird."
-      }
-    },
-    {
-      "question": "24. Bei 50 modellhaft unabhängigen Anfragen beträgt die konstante Fehlerwahrscheinlichkeit $p=0{,}04$. Wie viele Fehler sind langfristig pro 50 Anfragen zu erwarten?",
-      "options": ["0,04 Fehler", "0,50 Fehler", "2,00 Fehler", "12,5 Fehler"],
-      "answer": 2,
-      "explanation": "Für die binomialverteilte Fehlerzahl gilt $E(X)=np=50\\cdot0{,}04=2$. Das ist der langfristige Mittelwert vieler 50er-Blöcke, nicht die Zusage von genau zwei Fehlern in jedem einzelnen Block.",
-      "weight": 2,
-      "topic": "Kumulative Verteilungen",
-      "concept": "Erwartungswert einer Erfolgszahl",
-      "cognitive_level": "Anwendung",
-      "mini_glossary": {
-        "Erwartungswert": "Der langfristige Mittelwert einer Zufallsvariable bei sehr vielen gleichartigen Wiederholungen; er muss kein möglicher Einzelwert sein.",
-        "Binomialverteilung": "Modell für die Anzahl der Erfolge in $n$ unabhängigen Versuchen mit zwei Ausgängen und konstantem $p$."
-      }
-    },
-    {
-      "question": "25. Von 80 Mitarbeitenden haben 32 eine Schulung besucht. Unter den Geschulten bestehen 24 einen Wissenstest; insgesamt bestehen 44 den Test. Welche Aussage ist korrekt?",
-      "options": [
-        "$P(\\text{bestanden}\\mid\\text{geschult})=24/32=0{,}750$",
-        "$P(\\text{geschult}\\mid\\text{bestanden})=24/32=0{,}750$",
-        "$P(\\text{bestanden}\\mid\\text{geschult})=24/44\\approx0{,}545$",
-        "$P(\\text{geschult}\\mid\\text{bestanden})=32/80=0{,}400$"
-      ],
-      "answer": 0,
-      "explanation": "Für $P(\\text{bestanden}\\mid\\text{geschult})$ bilden die 32 Geschulten die Bezugsgruppe, also $24/32=0{,}750$. Die inverse Wahrscheinlichkeit hätte den Nenner 44 und ergäbe $24/44\\approx0{,}545$; aus dem Vergleich folgt noch keine kausale Schulungswirkung.",
-      "weight": 3,
-      "topic": "Kumulative Wahrscheinlichkeit",
-      "concept": "Bedingte Wahrscheinlichkeit und Kausalitätsgrenze",
+      "concept": "Stichprobengröße für relative SE-Senkung",
       "cognitive_level": "Analyse",
       "mini_glossary": {
-        "Bedingte Wahrscheinlichkeit": "Die Wahrscheinlichkeit eines Ereignisses innerhalb einer vorgegebenen Bezugsgruppe; der Nenner wird durch die Bedingung festgelegt.",
-        "Kausalität": "Eine Ursache-Wirkungs-Beziehung, die nicht allein aus einem beobachteten Gruppenunterschied folgt."
+        "Quadratwurzelgesetz": "Der Standardfehler sinkt bei sonst gleichen Bedingungen proportional zu 1/√n.",
+        "Aufrunden": "Bei Mindeststichprobenumfängen wird auf die nächste ganze Zahl nach oben gerundet."
       }
     },
     {
-      "question": "26. Neun Monatsgehälter betragen jeweils 3.000 Euro, ein Gehalt beträgt 30.000 Euro. Welche Kennzahl beschreibt ein typisches Gehalt dieser kleinen Gruppe robuster?",
+      "question": "6. Ein festes 95-%-Intervall wurde aus einer Stichprobe berechnet. Welche Aussage verwendet die frequentistische Interpretation korrekt?",
       "options": [
-        "Der Mittelwert von 3.000 Euro",
-        "Der Mittelwert von 5.700 Euro",
-        "Der Median von 3.000 Euro",
-        "Der Median von 5.700 Euro"
+        "Das berechnete Intervall enthält nach Sichtung der Daten mit 95 % Wahrscheinlichkeit den unbekannten Parameter.",
+        "Das berechnete Intervall enthält ungefähr 95 % der Einzelwerte aus der zugrunde gelegten Population.",
+        "Das Verfahren erzeugt bei vielen gleichartigen Stichproben ungefähr 95 % Intervalle, die den festen Parameter überdecken.",
+        "Das berechnete Intervall enthält ungefähr 95 % der mit den Daten vereinbaren Parameterwerte."
       ],
       "answer": 2,
-      "explanation": "Der Median beträgt 3.000 Euro und wird vom einzelnen hohen Wert nicht nach oben gezogen. Der Mittelwert ist $(9\\cdot3.000+30.000)/10=5.700$ Euro und für die typische Lage dieser stark schiefen Gruppe weniger robust.",
+      "explanation": "Die 95 % sind die langfristige Überdeckungsrate des Verfahrens. Der häufigste Distraktor weist dem bereits berechneten Intervall eine 95-%-Wahrscheinlichkeit für einen im frequentistischen Modell festen Parameter zu.",
+      "weight": 2,
+      "topic": "Konfidenzintervalle",
+      "concept": "Langfristige Interpretation des Konfidenzniveaus",
+      "cognitive_level": "Verständnis",
+      "mini_glossary": {
+        "Konfidenzniveau": "Die langfristige Überdeckungsrate eines Intervallverfahrens unter seinem Modell.",
+        "Parameter": "Eine feste, meist unbekannte Kenngröße der festgelegten Population."
+      }
+    },
+    {
+      "question": "7. Studie A nutzt eine Zufallsstichprobe mit n=200 und erhält ein breiteres Intervall. Studie B nutzt eine freiwillige Abstimmung mit n=5.000 und erhält ein schmaleres Intervall. Welche Beurteilung ist angemessen?",
+      "options": [
+        "A ist rechnerisch präziser, während B die populationsbezogene Übertragung besser stützen kann.",
+        "B ist rechnerisch präziser, während A die populationsbezogene Übertragung besser stützen kann.",
+        "B ist rechnerisch präziser und stützt wegen des größeren n auch die populationsbezogene Übertragung besser.",
+        "A ist rechnerisch präziser und stützt wegen des breiteren Intervalls auch die populationsbezogene Übertragung besser."
+      ],
+      "answer": 1,
+      "explanation": "Das schmalere Intervall spricht für höhere rechnerische Präzision von B unter ihrem Auswahlprozess. Die Zufallsauswahl von A bietet aber die bessere Grundlage für Generalisierung; der plausible Distraktor setzt großes n fälschlich mit Repräsentativität gleich.",
+      "weight": 2,
+      "topic": "Präzision und Generalisierung",
+      "concept": "Präzision versus Repräsentativität",
+      "cognitive_level": "Analyse",
+      "mini_glossary": {
+        "Repräsentativität": "Die Eignung einer Stichprobe zur Abbildung der festgelegten Zielpopulation.",
+        "Selbstselektion": "Ein Auswahlprozess, bei dem Personen selbst über ihre Teilnahme entscheiden."
+      }
+    },
+    {
+      "question": "8. In einer Stichprobe treten 9 Erfolge und 41 Misserfolge auf. Welche Entscheidung folgt aus der Modulregel für ein einfaches Wald-Intervall?",
+      "options": [
+        "Die Regel ist erfüllt, weil insgesamt mindestens 10 Beobachtungen vorliegen.",
+        "Die Regel ist erfüllt, weil die Zahl der Misserfolge mindestens 10 beträgt.",
+        "Die Regel ist verletzt, weil der beobachtete Anteil unter 0,50 liegt.",
+        "Die Regel ist verletzt, weil die Zahl der Erfolge unter 10 liegt."
+      ],
+      "answer": 3,
+      "explanation": "Die Lehrregel verlangt mindestens zehn Erfolge und zehn Misserfolge. Neun Erfolge reichen nicht; der plausible Distraktor prüft nur die Gesamtzahl oder nur die größere der beiden Zellen.",
+      "weight": 2,
+      "topic": "Anteilsintervalle",
+      "concept": "Prüfung beider Wald-Bedingungszahlen",
+      "cognitive_level": "Anwendung",
+      "mini_glossary": {
+        "Wald-Intervall": "Die Näherung p̂±z·√(p̂(1−p̂)/n) für einen Anteil.",
+        "Wald-Lehrregel": "Im Modul mindestens zehn Erfolge und zehn Misserfolge vor Verwendung der einfachen Näherung."
+      }
+    },
+    {
+      "question": "9. Von 120 zufällig ausgewählten Lieferungen kommen 84 fristgerecht an. Welches Paar aus Punktschätzer für »fristgerecht« und komplementärem Anteil »nicht fristgerecht« ist korrekt?",
+      "options": [
+        "p̂=0,70 und 1−p̂=0,30",
+        "p̂=0,30 und 1−p̂=0,70",
+        "p̂=0,84 und 1−p̂=0,16",
+        "p̂≈0,41 und 1−p̂≈0,59"
+      ],
+      "answer": 0,
+      "explanation": "Der Punktschätzer ist 84/120=0,70, der komplementäre Anteil 36/120=0,30. Der Wert 0,84 verwechselt die absolute Erfolgszahl mit einem Prozentanteil; 84/(84+120)≈0,41 zählt die 84 Erfolge im Nenner fälschlich ein zweites Mal.",
+      "weight": 2,
+      "topic": "Punkt- und Intervallschätzung",
+      "concept": "Stichprobenanteil und Komplement",
+      "cognitive_level": "Anwendung",
+      "mini_glossary": {
+        "Punktschätzung": "Eine einzelne Zahl aus der Stichprobe zur Schätzung eines Parameters.",
+        "Komplementärer Anteil": "Der Gegenanteil 1−p̂ bei einer binären Einteilung."
+      }
+    },
+    {
+      "question": "10. Für n=100 und p̂=0,64 wird ein 95-%-Wald-Intervall mit z=1,96 vorbereitet. Welches Paar aus Standardfehler und Fehlerspanne ist korrekt?",
+      "options": [
+        "SE=0,0240 und Fehlerspanne=0,0470",
+        "SE=0,0640 und Fehlerspanne=0,1254",
+        "SE=0,0480 und Fehlerspanne=0,0941",
+        "SE=0,2304 und Fehlerspanne=0,4516"
+      ],
+      "answer": 2,
+      "explanation": "SE=√(0,64·0,36/100)=0,0480; die Fehlerspanne ist 1,96·0,0480=0,09408≈0,0941. Der plausible Distraktor 0,2304 verwendet das Produkt p̂(1−p̂) als Standardfehler.",
+      "weight": 2,
+      "topic": "Standardfehler",
+      "concept": "Standardfehler und Fehlerspanne eines Anteils",
+      "cognitive_level": "Anwendung",
+      "mini_glossary": {
+        "Fehlerspanne": "Das Produkt aus kritischem Wert und Standardfehler.",
+        "Kritischer Wert": "Ein vom Konfidenzniveau und Verfahren bestimmter Multiplikator."
+      }
+    },
+    {
+      "question": "11. Für n=36 Bearbeitungszeiten gelten s=12 Minuten und der bereitgestellte kritische Wert t=2,03. Welches Paar aus Standardfehler und Fehlerspanne ist korrekt?",
+      "options": [
+        "SE=2,03 Minuten und Fehlerspanne=4,00 Minuten",
+        "SE=2,00 Minuten und Fehlerspanne=4,06 Minuten",
+        "SE=6,00 Minuten und Fehlerspanne=12,18 Minuten",
+        "SE=12,00 Minuten und Fehlerspanne=24,36 Minuten"
+      ],
+      "answer": 1,
+      "explanation": "SE=s/√n=12/6=2 Minuten; die Fehlerspanne beträgt 2,03·2=4,06 Minuten. Der plausible Distraktor mit SE=12 verwechselt erneut Einzelwertstreuung und Schätzerstreuung.",
+      "weight": 2,
+      "topic": "Standardfehler",
+      "concept": "Fehlerspanne eines Mittelwertintervalls",
+      "cognitive_level": "Anwendung",
+      "mini_glossary": {
+        "t-Wert": "Ein kritischer Wert der t-Verteilung, abhängig von Konfidenzniveau und Freiheitsgraden.",
+        "Mittelwertintervall": "Ein Intervall der Form x̄±t·s/√n."
+      }
+    },
+    {
+      "question": "12. Bei unveränderter Streuung und gleichem kritischem Wert soll die Fehlerspanne eines Mittelwertintervalls ausgehend von n=75 halbiert werden. Welcher Stichprobenumfang ist erforderlich?",
+      "options": ["150", "225", "600", "300"],
+      "answer": 3,
+      "explanation": "Die Fehlerspanne ist proportional zu 1/√n. Für die Halbierung muss n vervierfacht werden: 4·75=300. Der plausible Distraktor 150 nimmt fälschlich eine lineare Halbierung durch Verdopplung an.",
+      "weight": 2,
+      "topic": "Standardfehler",
+      "concept": "Stichprobengröße für halbierte Fehlerspanne",
+      "cognitive_level": "Analyse",
+      "mini_glossary": {
+        "Intervallbreite": "Die Differenz zwischen oberer und unterer Grenze; bei symmetrischen Intervallen doppelte Fehlerspanne.",
+        "Stichprobenplanung": "Die Festlegung von n anhand eines Präzisionsziels und weiterer Annahmen."
+      }
+    },
+    {
+      "question": "13. Für n=100 und p̂=0,60 soll ein 95-%-Wald-Intervall mit z=1,96 berechnet werden. Welche vollständige Auswertung ist korrekt?",
+      "options": [
+        "Die Bedingungen 60 und 40 sind erfüllt; das Intervall ist näherungsweise [0,551; 0,649].",
+        "Die Bedingungen 60 und 40 sind erfüllt; das Intervall ist näherungsweise [0,504; 0,696].",
+        "Die Bedingungen 60 und 40 sind verletzt; das Intervall ist näherungsweise [0,504; 0,696].",
+        "Die Bedingungen 60 und 40 sind verletzt; das Intervall ist näherungsweise [0,408; 0,792]."
+      ],
+      "answer": 1,
+      "explanation": "SE=√(0,6·0,4/100)≈0,04899 und die Fehlerspanne ist 1,96·SE≈0,09602. Damit folgt [0,50398; 0,69602]; 60 Erfolge und 40 Misserfolge erfüllen die Lehrregel. Der engere Distraktor verwendet ungefähr nur einen Standardfehler.",
+      "weight": 3,
+      "topic": "Anteilsintervalle",
+      "concept": "Wald-Intervall mit Bedingungsprüfung",
+      "cognitive_level": "Analyse",
+      "mini_glossary": {
+        "Wald-Intervall": "Das näherungsweise Anteilsintervall p̂±z·√(p̂(1−p̂)/n).",
+        "Bedingungszahl": "Die beobachtete Anzahl der Erfolge beziehungsweise Misserfolge."
+      }
+    },
+    {
+      "question": "14. Stichprobe A enthält 12 Erfolge und 28 Misserfolge, Stichprobe B 9 Erfolge und 191 Misserfolge. Für A soll bei erfüllter Lehrregel ein 95-%-Wald-Intervall mit z=1,96 berechnet werden; für B ist das 95-%-Wilson-Intervall [0,024; 0,083] bereitgestellt. Welche vollständige Auswertung ist korrekt?",
+      "options": [
+        "A erfüllt die Lehrregel und erhält [0,158; 0,442]; B erfüllt sie wegen n=200 ebenfalls und soll das Wald-Verfahren verwenden.",
+        "A verletzt die Lehrregel wegen p̂<0,50 und soll Wilson verwenden; B verletzt sie wegen neun Erfolgen und soll Wilson verwenden.",
+        "A erfüllt die Lehrregel und erhält [0,158; 0,442]; B verletzt sie wegen neun Erfolgen und soll das bereitgestellte Wilson-Intervall verwenden.",
+        "A erfüllt die Lehrregel und erhält [0,228; 0,372]; B verletzt sie wegen neun Erfolgen und soll das bereitgestellte Wilson-Intervall verwenden."
+      ],
+      "answer": 2,
+      "explanation": "Für A gilt p̂=12/40=0,30 und SE=√(0,30·0,70/40)≈0,07246. Mit der Fehlerspanne 1,96·SE≈0,1420 folgt [0,158; 0,442]; 12 Erfolge und 28 Misserfolge erfüllen die Lehrregel. B verletzt sie trotz n=200 wegen nur neun Erfolgen, daher ist das bereitgestellte Wilson-Intervall zu verwenden. Der Gesamtumfang allein, p̂<0,50 und die Verwendung nur eines Standardfehlers sind jeweils ungeeignete Entscheidungskriterien.",
+      "weight": 3,
+      "topic": "Anteilsintervalle",
+      "concept": "Verfahrenswahl und Wald-Intervall bei unbalancierten Anteilen",
+      "cognitive_level": "Analyse",
+      "mini_glossary": {
+        "Erfolgszahl": "Die beobachtete Anzahl des vorab interessierenden binären Ausgangs.",
+        "Misserfolgszahl": "Die beobachtete Anzahl des komplementären binären Ausgangs."
+      }
+    },
+    {
+      "question": "15. Bei 3 Erfolgen unter 20 Beobachtungen ergibt die Wald-Rechnung ungefähr [−0,006; 0,306]; bereitgestellt ist das 95-%-Wilson-Intervall [0,052; 0,360]. Welche Berichtsweise ist angemessen?",
+      "options": [
+        "Den Punktschätzer 0,15 mit dem Wilson-Intervall berichten und die geringe Erfolgszahl nennen.",
+        "Den Punktschätzer 0,15 mit dem bei null abgeschnittenen Wald-Intervall berichten und die Bedingung ignorieren.",
+        "Die Wilson-Untergrenze 0,052 als neuen Punktschätzer berichten und das Intervall weglassen.",
+        "Die Wilson-Obergrenze 0,360 als neuen Punktschätzer berichten und das Intervall weglassen."
+      ],
+      "answer": 0,
+      "explanation": "Der Punktschätzer bleibt 3/20=0,15; wegen nur drei Erfolgen ist die Wald-Lehrregel verletzt, während das bereitgestellte Wilson-Intervall im zulässigen Parameterbereich bleibt. Willkürliches Abschneiden des Wald-Intervalls, der plausible Distraktor, ergibt kein korrekt kalibriertes Verfahren.",
+      "weight": 3,
+      "topic": "Anteilsintervalle",
+      "concept": "Wilson-Intervall bei kleiner Erfolgszahl",
+      "cognitive_level": "Analyse",
+      "mini_glossary": {
+        "Wilson-Intervall": "Ein Anteilsintervall mit robusterem Verhalten als das einfache Wald-Intervall bei kleinen Zellzahlen.",
+        "Parameterraum": "Die Menge möglicher Parameterwerte; für Anteile das Intervall von 0 bis 1."
+      }
+    },
+    {
+      "question": "16. Für 7 Erfolge unter 20 Beobachtungen ist das 95-%-Wilson-Intervall [0,181; 0,567] gegeben. Welche Aussage verbindet Punktschätzer und plausible Parameterwerte korrekt?",
+      "options": [
+        "p̂=0,181; der Wert 0,500 liegt im Intervall, der Wert 0,600 liegt außerhalb.",
+        "p̂=0,350; der Wert 0,500 liegt außerhalb, der Wert 0,600 liegt im Intervall.",
+        "p̂=0,567; der Wert 0,500 liegt außerhalb, der Wert 0,600 liegt im Intervall.",
+        "p̂=0,350; der Wert 0,500 liegt im Intervall, der Wert 0,600 liegt außerhalb."
+      ],
+      "answer": 3,
+      "explanation": "Der Punktschätzer bleibt 7/20=0,350. 0,500 liegt zwischen den Grenzen, 0,600 oberhalb der Obergrenze. Der plausible Distraktor ersetzt p̂ durch die Wilson-Untergrenze, obwohl Grenze und Punktschätzer verschiedene Rollen haben.",
+      "weight": 3,
+      "topic": "Anteilsintervalle",
+      "concept": "Lesen eines bereitgestellten Wilson-Intervalls",
+      "cognitive_level": "Analyse",
+      "mini_glossary": {
+        "Intervallgrenze": "Eine untere oder obere Begrenzung des berechneten Wertebereichs.",
+        "Plausibler Parameterwert": "Ein Wert, der unter dem verwendeten Intervallverfahren nicht durch die Daten ausgeschlossen wird."
+      }
+    },
+    {
+      "question": "17. Für drei Produkte sind jeweils die Untergrenzen des zweiseitigen 95-%-Wilson-Intervalls gegeben: A hat 3 positive von 3 Bewertungen mit Untergrenze 0,438, B hat 90 von 100 mit 0,826 und C hat 18 von 20 mit 0,699. Das konservative Rangsignal sortiert absteigend nach der Untergrenze; freigegeben werden nur Produkte mit Untergrenze mindestens 0,700. Welche Auswertung ist korrekt?",
+      "options": [
+        "Rangfolge B vor C vor A; nur B wird freigegeben.",
+        "Rangfolge A vor B vor C; A und B werden freigegeben.",
+        "Rangfolge B vor C vor A; B und C werden freigegeben.",
+        "Rangfolge B vor A vor C; nur B wird freigegeben."
+      ],
+      "answer": 0,
+      "explanation": "Für das festgelegte Signal gilt 0,826>0,699>0,438, also B vor C vor A. Nur 0,826 erreicht die Schwelle von 0,700; 0,699 darf nicht vor dem Schwellenvergleich auf 0,70 gerundet werden. Eine Rangfolge nach den beobachteten Anteilen würde die unterschiedliche Unsicherheit ignorieren.",
+      "weight": 3,
+      "topic": "Anteilsintervalle",
+      "concept": "Wilson-Untergrenze für Rangfolge und Schwellenentscheidung",
+      "cognitive_level": "Analyse",
+      "mini_glossary": {
+        "Wilson-Untergrenze": "Die untere Grenze eines Wilson-Intervalls für einen Anteil.",
+        "Konservatives Rangsignal": "Eine Rangkennzahl, die neben dem Punktwert auch statistische Unsicherheit berücksichtigt."
+      }
+    },
+    {
+      "question": "18. Stichprobe A hat n=25, x̄=120 Sekunden, s=15 Sekunden und t=2,064. Stichprobe B hat n=100, denselben Mittelwert und dieselbe Streuung sowie t=1,984. Welche Intervalle sind korrekt?",
+      "options": [
+        "A: [117,02; 122,98], B: [113,81; 126,19] Sekunden",
+        "A: [105,00; 135,00], B: [105,00; 135,00] Sekunden",
+        "A: [113,81; 126,19], B: [117,02; 122,98] Sekunden",
+        "A: [119,38; 120,62], B: [119,70; 120,30] Sekunden"
+      ],
+      "answer": 2,
+      "explanation": "Für A ist SE=15/5=3 und die Fehlerspanne 2,064·3=6,192. Für B ist SE=15/10=1,5 und die Fehlerspanne 1,984·1,5=2,976. Der vertauschte Distraktor missachtet den Präzisionsgewinn durch größeres n.",
+      "weight": 3,
+      "topic": "Mittelwertintervalle",
+      "concept": "Vergleich zweier t-Konfidenzintervalle",
+      "cognitive_level": "Analyse",
+      "mini_glossary": {
+        "t-Konfidenzintervall": "Das Mittelwertintervall x̄±t·s/√n.",
+        "Freiheitsgrade": "Eine vom Stichprobenumfang abhängige Größe, die den kritischen t-Wert beeinflusst."
+      }
+    },
+    {
+      "question": "19. Bei n=400 hat ein 95-%-Intervall die gewünschte Breite. Bei gleicher Streuung soll stattdessen ein 99-%-Intervall gleich breit sein; gegeben sind z95=1,960 und z99=2,576. Welches n wird ungefähr benötigt?",
+      "options": ["233", "400", "526", "691"],
+      "answer": 3,
+      "explanation": "Für gleiche Fehlerspanne gilt n_neu=400·(2,576/1,960)²≈690,9, also ungefähr 691. Der plausible Distraktor 526 skaliert n nur linear mit dem Verhältnis der kritischen Werte statt mit dessen Quadrat.",
+      "weight": 3,
+      "topic": "Mittelwertintervalle",
+      "concept": "Stichprobengröße bei höherem Konfidenzniveau",
+      "cognitive_level": "Analyse",
+      "mini_glossary": {
+        "Konfidenzniveau": "Die angestrebte langfristige Überdeckungsrate des Intervallverfahrens.",
+        "Kritischer z-Wert": "Der Standardnormalwert, der die gewünschte zentrale Wahrscheinlichkeit begrenzt."
+      }
+    },
+    {
+      "question": "20. Aus einer stark rechtsschiefen Population werden unabhängige Stichprobenmittelwerte für n=25 und n=100 gebildet. Welche Veränderung ist unter endlicher Varianz zu erwarten?",
+      "options": [
+        "Beide Verteilungen bleiben um μ zentriert; bei n=100 ist der Standardfehler vervierfacht und die Normalnäherung meist schlechter.",
+        "Beide Verteilungen bleiben um μ zentriert; bei n=100 ist der Standardfehler halbiert und die Normalnäherung meist besser.",
+        "Beide Verteilungen verschieben sich zu null; bei n=100 ist der Standardfehler halbiert und die Normalnäherung meist schlechter.",
+        "Beide Verteilungen verschieben sich zu σ; bei n=100 ist der Standardfehler vervierfacht und die Normalnäherung meist besser."
+      ],
+      "answer": 1,
+      "explanation": "Der Erwartungswert von x̄ bleibt μ, während σ/√n beim Wechsel von 25 auf 100 halbiert wird. Größeres n verbessert typischerweise die Normalnäherung der Mittelwerte; der plausible Distraktor verwechselt die Vervierfachung von n mit einer Vervierfachung des Standardfehlers.",
+      "weight": 3,
+      "topic": "Kumulative Stichprobenvariabilität",
+      "concept": "Stichprobenumfang und Form der Mittelwertverteilung",
+      "cognitive_level": "Analyse",
+      "mini_glossary": {
+        "Zentraler Grenzwertsatz": "Begründet unter geeigneten Bedingungen eine Normalnäherung für Summen oder Mittelwerte bei wachsendem n.",
+        "Endliche Varianz": "Eine Bedingung, dass die mittlere quadrierte Abweichung in der Population begrenzt ist."
+      }
+    },
+    {
+      "question": "21. Ein Pool enthält 50 Verträge, davon 10 Premiumverträge. Es wird ohne Zurücklegen gezogen; der erste Vertrag ist Premium. Wie groß ist die bedingte Wahrscheinlichkeit, dass unter dem zweiten und dritten Zug genau ein weiterer Premiumvertrag ist?",
+      "options": [
+        "(9/49)·(8/48)+(40/49)·(39/48)≈0,6939",
+        "(9/49)·(40/49)+(40/49)·(9/49)≈0,2999",
+        "(9/49)·(40/48)+(40/49)·(9/48)≈0,3061",
+        "(10/50)·(40/49)+(40/50)·(10/49)≈0,3265"
+      ],
+      "answer": 2,
+      "explanation": "Nach dem ersten Zug verbleiben 9 Premium- und 40 Standardverträge unter 49. Genau ein weiterer Premiumvertrag kann in den Reihenfolgen Premium–Standard oder Standard–Premium auftreten. Daher gilt (9/49)·(40/48)+(40/49)·(9/48)=720/2352≈0,3061. Die Alternativen addieren die Fälle »zwei oder kein Premiumvertrag«, rechnen fälschlich mit Zurücklegen oder ignorieren die bekannte erste Ziehung.",
+      "weight": 3,
+      "topic": "Kumulative Stichprobenvariabilität",
+      "concept": "Mehrstufige abhängige Ziehungen ohne Zurücklegen",
+      "cognitive_level": "Analyse",
+      "mini_glossary": {
+        "Ohne Zurücklegen": "Gezogene Einheiten bleiben aus dem Pool entfernt.",
+        "Bedingte Ziehwahrscheinlichkeit": "Die Wahrscheinlichkeit eines späteren Zugs nach bekannten früheren Zügen."
+      }
+    },
+    {
+      "question": "22. Bei fünf unabhängigen Qualitätsprüfungen beträgt die Beanstandungswahrscheinlichkeit jeweils p=0,20. Wie groß ist die Wahrscheinlichkeit für höchstens eine Beanstandung?",
+      "options": ["0,73728", "0,32768", "0,40960", "0,94208"],
+      "answer": 0,
+      "explanation": "P(X≤1)=P(X=0)+P(X=1)=0,8⁵+5·0,2·0,8⁴=0,32768+0,40960=0,73728. Der plausible Distraktor 0,40960 berücksichtigt nur genau eine Beanstandung und lässt null Beanstandungen aus.",
+      "weight": 3,
+      "topic": "Kumulative Verteilungen",
+      "concept": "Kumulative Binomialwahrscheinlichkeit",
+      "cognitive_level": "Analyse",
+      "mini_glossary": {
+        "Höchstens ein Erfolg": "Das zusammengesetzte Ereignis X=0 oder X=1.",
+        "Kumulative Wahrscheinlichkeit": "Die Summe der Wahrscheinlichkeiten aller Ausprägungen bis zu einer Grenze."
+      }
+    },
+    {
+      "question": "23. Ein Leistungswert ist normalverteilt mit μ=70 und σ=8. Für x=86 ist Φ(2)=0,9772 gegeben. Welche Aussage verbindet z-Wert und Rangposition korrekt?",
+      "options": [
+        "z=2; ungefähr 2,28 % der Modellwerte liegen höchstens bei 86.",
+        "z=2; ungefähr 97,72 % der Modellwerte liegen höchstens bei 86.",
+        "z=−2; ungefähr 97,72 % der Modellwerte liegen höchstens bei 86.",
+        "z=−2; ungefähr 2,28 % der Modellwerte liegen höchstens bei 86."
+      ],
+      "answer": 1,
+      "explanation": "z=(86−70)/8=2 und Φ(2)=P(X≤86)=0,9772. Der plausible Distraktor 2,28 % verwendet die obere Schwanzfläche, obwohl nach dem Anteil unterhalb des Werts gefragt ist.",
+      "weight": 3,
+      "topic": "Kumulative Verteilungen",
+      "concept": "z-Wert und kumulierter Normalanteil",
+      "cognitive_level": "Analyse",
+      "mini_glossary": {
+        "Perzentilrang": "Der Anteil der Verteilung, der höchstens bei einem Wert liegt.",
+        "Standardnormalverteilung": "Die Normalverteilung mit Mittelwert 0 und Standardabweichung 1."
+      }
+    },
+    {
+      "question": "24. Bei 50 unabhängigen Anfragen beträgt die konstante Fehlerwahrscheinlichkeit p=0,04. Welches Paar aus erwarteter Fehlerzahl und Wahrscheinlichkeit für keinen Fehler ist korrekt?",
+      "options": [
+        "E(X)=0,04 und P(X=0)≈0,1299",
+        "E(X)=2,00 und P(X=0)≈0,8701",
+        "E(X)=12,50 und P(X=0)≈0,8701",
+        "E(X)=2,00 und P(X=0)≈0,1299"
+      ],
+      "answer": 3,
+      "explanation": "E(X)=50·0,04=2 und P(X=0)=0,96⁵⁰≈0,1299. Der plausible Distraktor 0,8701 verwendet das Komplement und gibt die Wahrscheinlichkeit für mindestens einen Fehler an.",
+      "weight": 3,
+      "topic": "Kumulative Verteilungen",
+      "concept": "Erwartungswert und Nullwahrscheinlichkeit",
+      "cognitive_level": "Analyse",
+      "mini_glossary": {
+        "Nullwahrscheinlichkeit": "Bei einem Binomialmodell P(X=0)=(1−p)ⁿ.",
+        "Erwartungswert": "Die langfristig mittlere Erfolgszahl np."
+      }
+    },
+    {
+      "question": "25. Von 80 Mitarbeitenden sind 32 geschult; 24 davon bestehen einen Test. Unter 48 Ungeschulten bestehen 20. Welche Schlussfolgerung ist aus diesen Beobachtungsdaten gedeckt?",
+      "options": [
+        "Die Bestehensanteile sind 75,0 % und 41,7 %; der Unterschied belegt ohne Randomisierung keine Schulungswirkung.",
+        "Die Bestehensanteile sind 41,7 % und 75,0 %; der Unterschied belegt ohne Randomisierung keine Schulungswirkung.",
+        "Die Bestehensanteile sind 75,0 % und 41,7 %; der Unterschied schätzt ohne weitere Kontrolle eine Schulungswirkung von 33,3 Prozentpunkten.",
+        "Die Bestehensanteile sind 30,0 % und 25,0 %; der Unterschied schätzt ohne weitere Kontrolle eine Schulungswirkung von 5,0 Prozentpunkten."
+      ],
+      "answer": 0,
+      "explanation": "Geschult: 24/32=0,750; ungeschult: 20/48≈0,417. Der Unterschied beträgt rund 33,3 Prozentpunkte, kann aber durch Selbstselektion oder andere Gruppenunterschiede erklärt sein. Der plausible Distraktor deutet die korrekte Assoziation vorschnell kausal.",
+      "weight": 3,
+      "topic": "Kumulative Wahrscheinlichkeit",
+      "concept": "Gruppenanteile und Kausalitätsgrenze",
+      "cognitive_level": "Analyse",
+      "mini_glossary": {
+        "Assoziation": "Ein beobachteter statistischer Zusammenhang zwischen Merkmalen.",
+        "Randomisierung": "Zufällige Zuweisung, die bekannte und unbekannte Störfaktoren im Mittel ausgleicht.",
+        "Prozentpunkt": "Die absolute Differenz zweier Prozentanteile."
+      }
+    },
+    {
+      "question": "26. Neun Monatsgehälter betragen 3.000 Euro, eines 30.000 Euro. Für einen Bericht werden Mittelwert und Median berechnet; anschließend wird das hohe Gehalt ausgeschlossen. Welche Veränderung tritt ein?",
+      "options": [
+        "Der Mittelwert bleibt bei 5.700 Euro, der Median sinkt von 5.700 auf 3.000 Euro.",
+        "Der Mittelwert sinkt von 5.700 auf 3.000 Euro, der Median bleibt bei 3.000 Euro.",
+        "Der Mittelwert sinkt von 30.000 auf 5.700 Euro, der Median bleibt bei 3.000 Euro.",
+        "Der Mittelwert bleibt bei 3.000 Euro, der Median steigt von 3.000 auf 5.700 Euro."
+      ],
+      "answer": 1,
+      "explanation": "Mit allen zehn Werten ist der Mittelwert (27.000+30.000)/10=5.700 Euro und der Median 3.000 Euro. Nach Ausschluss bleiben neunmal 3.000 Euro. Der plausible Distraktor verwechselt Mittelwert und Median vor der Änderung.",
       "weight": 3,
       "topic": "Kumulative Deskription",
-      "concept": "Robuste Lage bei einem Extremwert",
+      "concept": "Robustheit bei Sensitivitätsanalyse",
       "cognitive_level": "Analyse",
       "mini_glossary": {
-        "Median": "Der mittlere Wert der sortierten Daten; bei geradem $n$ der Mittelwert der beiden mittleren Werte.",
-        "Robustheit": "Geringe Empfindlichkeit einer Kennzahl gegenüber einzelnen Extremwerten oder Ausreißern."
+        "Sensitivitätsanalyse": "Prüfung, wie stark ein Ergebnis auf begründete Änderungen der Datengrundlage reagiert.",
+        "Robustheit": "Geringe Empfindlichkeit einer Kennzahl gegenüber einzelnen Extremwerten."
       }
     },
     {
-      "question": "27. Zwei voneinander unabhängige Zahlungsversuche scheitern jeweils mit Wahrscheinlichkeit $0{,}10$. Wie groß ist die Wahrscheinlichkeit, dass mindestens ein Versuch erfolgreich ist?",
-      "options": ["0,01", "0,10", "0,90", "0,99"],
+      "question": "27. Zwei unabhängige Zahlungsversuche scheitern mit Wahrscheinlichkeiten 0,10 und 0,20. Welches Paar aus Wahrscheinlichkeit für mindestens einen Erfolg und erwarteter Erfolgszahl ist korrekt?",
+      "options": [
+        "P(mindestens ein Erfolg)=0,80 und E(X)=0,98",
+        "P(mindestens ein Erfolg)=0,90 und E(X)=1,10",
+        "P(mindestens ein Erfolg)=1,00 und E(X)=2,00",
+        "P(mindestens ein Erfolg)=0,98 und E(X)=1,70"
+      ],
       "answer": 3,
-      "explanation": "Das Gegenereignis »beide Versuche scheitern« hat wegen der Modellannahme der Unabhängigkeit die Wahrscheinlichkeit $0{,}1^2=0{,}01$. Somit beträgt die Wahrscheinlichkeit für mindestens einen Erfolg $1-0{,}01=0{,}99$.",
+      "explanation": "Beide scheitern mit 0,10·0,20=0,02, also gelingt mindestens einer mit 0,98. Die erwartete Erfolgszahl ist 0,90+0,80=1,70. Der plausible Distraktor setzt Wahrscheinlichkeit und erwartete Anzahl gleich.",
       "weight": 3,
       "topic": "Kumulative Wahrscheinlichkeit",
-      "concept": "Gegenereignis und Unabhängigkeit",
+      "concept": "Unterschiedliche Erfolgswahrscheinlichkeiten",
       "cognitive_level": "Analyse",
       "mini_glossary": {
-        "Gegenereignis": "Das Ereignis, dass $A$ nicht eintritt; seine Wahrscheinlichkeit ist $1-P(A)$.",
-        "Unabhängigkeit": "Zwei Ereignisse sind unabhängig, wenn das Eintreten des einen die Wahrscheinlichkeit des anderen nicht verändert."
+        "Erwartete Anzahl": "Die Summe der Einzelwahrscheinlichkeiten der gezählten Indikatorereignisse.",
+        "Unabhängigkeit": "Eine Modellannahme, unter der gemeinsame Wahrscheinlichkeiten multipliziert werden können."
       }
     },
     {
-      "question": "28. Ein freiwilliges Online-Rating mit $n=2.000$ ergibt ein sehr schmales 95-%-Intervall. Besonders unzufriedene Kundinnen und Kunden nehmen überproportional häufig teil. Welche Bewertung ist angemessen?",
+      "question": "28. Aus einer Zufallsstichprobe von 400 Personen antworten 90 Unzufriedene und 140 Zufriedene. Aus einer Nachfassstudie sind die gruppenspezifischen Antwortquoten bekannt: 75 % bei Unzufriedenen und 50 % bei Zufriedenen. Welche inverse Antwortgewichtung und Interpretation ist angemessen?",
       "options": [
-        "Das schmale Intervall zeigt hohe Präzision für das Auswahlmodell, beseitigt aber die Selbstselektionsverzerrung nicht.",
-        "Das große $n$ beweist, dass das Ergebnis für alle Kundinnen und Kunden repräsentativ ist.",
-        "Die Selbstselektion verbreitert das berechnete Intervall automatisch so stark, dass keine Aussage möglich ist.",
-        "Ein Konfidenzintervall korrigiert die Auswahlwahrscheinlichkeiten ohne weitere Informationen."
+        "p̂w=90/(90+140)≈0,391; die ursprüngliche Zufallsauswahl beseitigt Nichtantwortverzerrung ohne Gewichtung.",
+        "p̂w=(90/0,75)/(90/0,75+140/0,50)=0,300; die Gewichtung garantiert auch bei falschen Antwortquoten eine unverzerrte Schätzung.",
+        "p̂w=(90/0,75)/(90/0,75+140/0,50)=0,300; die Korrektur adressiert den bekannten Antwortmechanismus, kann aber bei falschen Quoten verzerrt bleiben.",
+        "p̂w=(90·0,75)/(90·0,75+140·0,50)≈0,491; inverse Gewichtung multipliziert beobachtete Fälle mit ihrer Antwortquote."
       ],
-      "answer": 0,
-      "explanation": "Viele Antworten können die modellbedingte Zufallsschwankung und damit die Intervallbreite verringern. Wenn die Teilnahme systematisch von der Zufriedenheit abhängt, bleibt die Übertragung auf alle Kundinnen und Kunden dennoch verzerrungsgefährdet.",
+      "answer": 2,
+      "explanation": "Inverse Antwortgewichtung teilt die beobachteten Gruppenzahlen durch ihre Antwortquoten: 90/0,75=120 und 140/0,50=280. Der gewichtete Anteil Unzufriedener ist daher 120/(120+280)=0,300. Der ungewichtete Anteil ignoriert differenzielle Nichtantwort, Multiplikation verwendet die Quoten in der falschen Richtung, und auch eine rechnerisch korrekte Gewichtung ist nur so belastbar wie die verwendeten Antwortquoten.",
       "weight": 3,
       "topic": "Präzision und Generalisierung",
-      "concept": "Schmales Intervall trotz Selbstselektion",
+      "concept": "Inverse Antwortgewichtung bei differenzieller Nichtantwort",
       "cognitive_level": "Analyse",
       "mini_glossary": {
-        "Selbstselektion": "Ein Auswahlprozess, bei dem Einheiten selbst über ihre Teilnahme entscheiden und sich Teilnehmende dadurch systematisch unterscheiden können.",
-        "Präzision": "Das Ausmaß der statistischen Unsicherheit einer Schätzung; kleinere Standardfehler und schmalere Intervalle bedeuten höhere Präzision.",
-        "Repräsentativität": "Die Frage, wie gut die Stichprobe die Zielpopulation hinsichtlich der relevanten Merkmale abbildet; sie folgt nicht allein aus großem $n$."
+        "Inverse Antwortgewichtung": "Gewichtung beobachteter Fälle mit dem Kehrwert ihrer gruppenspezifischen Antwortwahrscheinlichkeit.",
+        "Nichtantwortverzerrung": "Systematische Abweichung, wenn Antwortwahrscheinlichkeit und Untersuchungsmerkmal zusammenhängen."
       }
     },
     {
-      "question": "29. Für denselben beobachteten Anteil $\\hat{p}=0{,}50$ werden Stichproben mit $n=100$ und $n=400$ verglichen. Welche Aussage verbindet Rechnung und Grenze korrekt?",
+      "question": "29. Für p̂=0,50 werden n=100 und n=400 verglichen. Welche Werte für Standardfehler und gesamte 95-%-Wald-Intervallbreite sind mit z=1,96 korrekt?",
       "options": [
-        "Die Standardfehler betragen 0,050 und 0,025; ein Auswahlbias bleibt davon dennoch unberührt.",
-        "Die Standardfehler betragen 0,025 und 0,050; das größere $n$ erhöht die Auswahlverzerrung.",
-        "Die Standardfehler betragen 0,500 und 0,250; beide Stichproben sind deshalb repräsentativ.",
-        "Beide Standardfehler betragen 0,050; nur das Konfidenzniveau beeinflusst die Präzision."
-      ],
-      "answer": 0,
-      "explanation": "Es gilt $SE=\\sqrt{0{,}5\\cdot0{,}5/n}$, also 0,050 bei $n=100$ und 0,025 bei $n=400$. Das größere $n$ erhöht die Präzision, sagt aber ohne Prüfung des Auswahlverfahrens nichts über systematischen Bias aus.",
-      "weight": 3,
-      "topic": "Standardfehler",
-      "concept": "Präzisionsgewinn ohne Bias-Korrektur",
-      "cognitive_level": "Analyse",
-      "mini_glossary": {
-        "Standardfehler": "Die modellbedingte Standardabweichung der Stichprobenverteilung eines Schätzers; er ist nicht die Streuung der Einzelwerte.",
-        "Auswahlverzerrung": "Eine systematische Verzerrung, die entsteht, wenn der Auswahlmechanismus bestimmte Einheiten bevorzugt oder ausschließt.",
-        "Präzision": "Das Ausmaß der statistischen Unsicherheit einer Schätzung; kleinere Standardfehler und schmalere Intervalle bedeuten höhere Präzision."
-      }
-    },
-    {
-      "question": "30. Filiale A zieht 100 Kundinnen und Kunden zufällig aus der Zielpopulation; 60 % sind zufrieden, das 95-%-Intervall lautet $[0{,}50;0{,}70]$. Filiale B nutzt eine freiwillige Website-Abstimmung mit $n=1.000$, ebenfalls 60 %, und erhält $[0{,}57;0{,}63]$. Welche Schlussfolgerung ist am besten begründet?",
-      "options": [
-        "B ist wegen des schmaleren Intervalls sowohl präziser als auch sicher repräsentativer.",
-        "A ist weniger präzise, stützt wegen der Zufallsauswahl aber die Übertragung besser.",
-        "A und B sind gleich aussagekräftig, weil ihre Punktschätzungen übereinstimmen.",
-        "A ist zwingend sachlich falsch, weil ihr Intervall breiter als das von B ist."
+        "SE: 0,025 und 0,050; Breite: 0,098 und 0,196",
+        "SE: 0,050 und 0,025; Breite: 0,196 und 0,098",
+        "SE: 0,050 und 0,025; Breite: 0,098 und 0,049",
+        "SE: 0,500 und 0,250; Breite: 1,960 und 0,980"
       ],
       "answer": 1,
-      "explanation": "B hat unter seinem Modell das schmalere Intervall und damit die höhere rechnerische Präzision. Die freiwillige Teilnahme kann jedoch Auswahlverzerrung erzeugen; A bietet trotz breiterem Intervall durch die Zufallsauswahl die bessere Grundlage für eine populationsbezogene Aussage.",
+      "explanation": "SE=√(0,25/n) ergibt 0,050 und 0,025. Die gesamte Breite ist 2·1,96·SE, also 0,196 und 0,098. Der plausible Distraktor verwendet nur die Fehlerspanne und halbiert damit die Intervallbreite nochmals.",
       "weight": 3,
-      "topic": "Präzision und Generalisierung",
-      "concept": "Gemeinsame Beurteilung von Intervall und Stichprobendesign",
+      "topic": "Standardfehler",
+      "concept": "Standardfehler und gesamte Intervallbreite",
       "cognitive_level": "Analyse",
       "mini_glossary": {
-        "Zufallsstichprobe": "Eine Stichprobe, die nach einem Zufallsmechanismus aus der festgelegten Zielpopulation gezogen wird.",
-        "Präzision": "Das Ausmaß der statistischen Unsicherheit einer Schätzung; kleinere Standardfehler und schmalere Intervalle bedeuten höhere Präzision.",
-        "Repräsentativität": "Die Frage, wie gut die Stichprobe die Zielpopulation hinsichtlich der relevanten Merkmale abbildet; sie folgt nicht allein aus großem $n$."
+        "Fehlerspanne": "Der Abstand vom Punktschätzer zu einer Grenze des symmetrischen Intervalls.",
+        "Gesamte Intervallbreite": "Das Doppelte der Fehlerspanne."
+      }
+    },
+    {
+      "question": "30. Für denselben Zielparameter ist Schätzer A unverzerrt mit SE=0,050. Schätzer B aus einem selbstselektierten Panel hat Bias=+0,080 und SE=0,015. Mit RMSE=√(Bias²+SE²): Welche Auswertung von Präzision und Gesamtfehler ist korrekt?",
+      "options": [
+        "RMSE(A)=0,050 und RMSE(B)≈0,081; B streut weniger, hat wegen seines Bias aber den größeren Gesamtfehler.",
+        "RMSE(A)=0,050 und RMSE(B)=0,015; der kleinere Standardfehler von B beweist den kleineren Gesamtfehler.",
+        "RMSE(A)=0,050 und RMSE(B)=0,095; Bias und Standardfehler werden für den RMSE linear addiert.",
+        "RMSE(A)=0,050 und RMSE(B)≈0,081; A ist wegen seines größeren Standardfehlers stärker verzerrt."
+      ],
+      "answer": 0,
+      "explanation": "Für A gilt RMSE=√(0²+0,050²)=0,050. Für B folgt RMSE=√(0,080²+0,015²)=√0,006625≈0,081. B besitzt zwar den kleineren Standardfehler und damit höhere Präzision um seinen verzerrten Zielwert, aber der systematische Fehler dominiert seinen RMSE. Standardfehler ist weder mit Bias gleichzusetzen noch linear mit ihm zu addieren.",
+      "weight": 3,
+      "topic": "Präzision und Generalisierung",
+      "concept": "RMSE als Verbindung von Bias und Präzision",
+      "cognitive_level": "Analyse",
+      "mini_glossary": {
+        "Bias": "Die systematische Differenz zwischen dem Erwartungswert eines Schätzers und dem Zielparameter.",
+        "RMSE": "Die Wurzel aus Bias zum Quadrat plus Varianz; hier √(Bias²+SE²).",
+        "Präzision": "Geringe zufallsbedingte Streuung eines Schätzers, sichtbar an einem kleinen Standardfehler."
       }
     }
   ]

@@ -3,153 +3,327 @@
   "exportedAt": "2026-09-13T00:00:00.000Z",
   "quiz": {
     "name": "P0-03 ARSnova – Woche 05: Verteilungen und Stichproben",
-    "description": "Live-Fragen zu Zufallsvariablen, Modellannahmen und Stichprobenvariabilität.",
-    "showLeaderboard": false,
+    "description": "Zehn anspruchsvolle Live-Fragen zu Zufallsvariablen, Binomial- und Normalmodell, Standardisierung sowie Stichprobenvariabilität. Das Quiz nutzt alle zehn ARSnova-Fragetypen genau einmal.",
+    "showLeaderboard": true,
     "allowCustomNicknames": false,
-    "defaultTimer": null,
-    "timerScaleByDifficulty": false,
+    "defaultTimer": 60,
+    "timerScaleByDifficulty": true,
     "enableTimerAccommodation": true,
-    "enableSoundEffects": false,
-    "enableRewardEffects": false,
-    "enableMotivationMessages": false,
-    "enableEmojiReactions": false,
-    "anonymousMode": true,
-    "teamMode": false,
-    "teamCount": null,
+    "enableSoundEffects": true,
+    "enableRewardEffects": true,
+    "enableMotivationMessages": true,
+    "enableEmojiReactions": true,
+    "anonymousMode": false,
+    "teamMode": true,
+    "teamCount": 4,
     "teamAssignment": "AUTO",
+    "teamNames": ["Apfel :apple:", "Birne :pear:", "Banane :banana:", "Apfelsine :orange:"],
     "backgroundMusic": null,
-    "nicknameTheme": "HIGH_SCHOOL",
-    "bonusTokenCount": null,
+    "nicknameTheme": "KINDERGARTEN",
+    "bonusTokenCount": 3,
     "readingPhaseEnabled": true,
     "questions": [
       {
-        "text": "### Diskret oder stetig?\n\nWelche Zuordnung ist für eine Quiz-Session am angemessensten?",
-        "type": "SINGLE_CHOICE",
+        "text": "### Ist das Binomialmodell vertretbar?\n\nEin Lieferdienst zählt bei den nächsten 40 Bestellungen die verspäteten Lieferungen. Mehrere Bestellungen können von derselben Verkehrsstörung betroffen sein, und die Liefergebiete unterscheiden sich deutlich.\n\nWelche Beurteilungen sind fachlich begründet?",
+        "type": "MULTIPLE_CHOICE",
         "timer": null,
-        "difficulty": "EASY",
+        "difficulty": "HARD",
         "order": 0,
         "answers": [
           {
-            "text": "Anzahl korrekter Antworten: diskret; Bearbeitungsdauer: stetig",
+            "text": "Die feste Zahl von 40 Bestellungen und die binäre Verspätungsklassifikation erfüllen zwei Modellbedingungen.",
             "isCorrect": true
           },
           {
-            "text": "Anzahl korrekter Antworten: stetig; Bearbeitungsdauer: diskret",
+            "text": "Die unterschiedlichen Liefergebiete machen eine konstante Verspätungswahrscheinlichkeit begründungsbedürftig.",
+            "isCorrect": true
+          },
+          {
+            "text": "Die feste Zahl von 40 Bestellungen gleicht wechselnde Wahrscheinlichkeiten und Abhängigkeiten im Modell aus.",
             "isCorrect": false
           },
           {
-            "text": "Beide Variablen sind nominal.",
-            "isCorrect": false
-          },
-          {
-            "text": "Beide Variablen sind immer binär.",
-            "isCorrect": false
+            "text": "Die gemeinsame Verkehrsstörung macht die Unabhängigkeit mehrerer Bestellungen begründungsbedürftig.",
+            "isCorrect": true
           }
-        ]
+        ],
+        "confidenceEnabled": true,
+        "confidenceLabelLow": "Sehr unsicher",
+        "confidenceLabelHigh": "Sehr sicher"
       },
       {
-        "text": "### Passt ein Binomialmodell?\n\nDie Zufallsvariable $X$ soll die Zahl korrekter Antworten auf zehn Concept Questions zählen.\n\nWelche Bedingungen wären für ein Binomialmodell erforderlich?",
-        "type": "MULTIPLE_CHOICE",
+        "text": "### Zwei Werte standardisiert vergleichen\n\nFür Prozess A gelten $x=82$, $μ=70$ und $σ=6$. Für Prozess B gelten $x=130$, $μ=100$ und $σ=20$.\n\nWelche Aussage folgt aus den z-Werten?",
+        "type": "SINGLE_CHOICE",
         "timer": null,
-        "difficulty": "MEDIUM",
+        "difficulty": "HARD",
         "order": 1,
         "answers": [
           {
-            "text": "Die Zahl der betrachteten Fragen ist mit zehn fest.",
+            "text": "Prozess B liegt relativ weiter oberhalb seines Referenzmittelwerts als Prozess A.",
+            "isCorrect": false
+          },
+          {
+            "text": "Prozess A und Prozess B liegen relativ gleich weit oberhalb ihrer Referenzmittelwerte.",
+            "isCorrect": false
+          },
+          {
+            "text": "Prozess A liegt relativ weiter oberhalb seines Referenzmittelwerts als Prozess B.",
             "isCorrect": true
           },
           {
-            "text": "Jede Frage wird für das Modell in korrekt oder nicht korrekt eingeteilt.",
-            "isCorrect": true
-          },
-          {
-            "text": "Die Erfolgswahrscheinlichkeit wird über alle zehn Fragen als konstant angenommen.",
-            "isCorrect": true
-          },
-          {
-            "text": "Die Antworten werden als unabhängig angenommen.",
-            "isCorrect": true
-          },
-          {
-            "text": "Unterschiedliche Aufgabenschwierigkeiten sichern eine konstante Erfolgswahrscheinlichkeit.",
+            "text": "Prozess B liegt relativ unterhalb seines Referenzmittelwerts, Prozess A dagegen oberhalb.",
             "isCorrect": false
           }
-        ]
+        ],
+        "confidenceEnabled": true,
+        "confidenceLabelLow": "Sehr unsicher",
+        "confidenceLabelHigh": "Sehr sicher"
       },
       {
-        "text": "### Normalverteilung nicht automatisch annehmen\n\nEin Histogramm von Servicezeiten ist deutlich rechtsschief und enthält wenige sehr große Werte.\n\nWelche Beurteilung ist angemessen?",
-        "type": "SINGLE_CHOICE",
+        "text": "### Rückgang des Standardfehlers berechnen\n\nIn einem Lehrmodell beträgt die Standardabweichung der Einzelzeiten 18 Sekunden. Der Stichprobenumfang steigt von $n=36$ auf $n=144$.\n\nUm wie viele Sekunden sinkt der Standardfehler des Mittelwerts? Gib den Betrag mit höchstens zwei Nachkommastellen an.",
+        "type": "NUMERIC_ESTIMATE",
         "timer": null,
-        "difficulty": "MEDIUM",
+        "difficulty": "HARD",
         "order": 2,
-        "answers": [
-          {
-            "text": "Die Verteilung ist nicht allein deshalb normalverteilt, weil die Variable metrisch ist.",
-            "isCorrect": true
-          },
-          {
-            "text": "Bei genügend Messwerten wird die Verteilung der einzelnen Servicezeiten zwingend normal.",
-            "isCorrect": false
-          },
-          {
-            "text": "Jede rechtsschiefe Verteilung hat Mittelwert und Median an derselben Stelle.",
-            "isCorrect": false
-          },
-          {
-            "text": "Eine berechenbare Standardabweichung beweist Normalverteilung.",
-            "isCorrect": false
-          }
-        ]
+        "answers": [],
+        "numericToleranceMode": "ABSOLUTE_INTERVAL",
+        "numericReferenceValue": 1.5,
+        "numericIntervalLeft": 1.495,
+        "numericIntervalRight": 1.505,
+        "numericInputType": "DECIMAL",
+        "numericDecimalPlaces": 2,
+        "numericMin": 0,
+        "numericMax": 18,
+        "numericTwoRounds": true,
+        "confidenceEnabled": true,
+        "confidenceLabelLow": "Sehr unsicher",
+        "confidenceLabelHigh": "Sehr sicher"
       },
       {
-        "text": "### Streuung von Stichprobenmittelwerten\n\nIn einem Lehrmodell beträgt die Standardabweichung der Einzelwerte 20. Verglichen werden Stichprobenmittelwerte bei $n=25$ und $n=100$.\n\nWelche Aussage zum Standardfehler trifft zu?",
-        "type": "SINGLE_CHOICE",
+        "text": "### Modellgrößen eindeutig zuordnen\n\nOrdne jeder Situation die passende statistische Größe oder Verteilung zu.",
+        "type": "MATCHING",
         "timer": null,
         "difficulty": "HARD",
         "order": 3,
+        "answers": [],
+        "matchingPairs": [
+          {
+            "leftId": "w05_match_left_1",
+            "left": "Zahl der Erfolge in 25 unabhängigen Versuchen mit konstantem p",
+            "rightId": "w05_match_right_1",
+            "right": "Binomialverteilung"
+          },
+          {
+            "leftId": "w05_match_left_2",
+            "left": "Abstand eines Einzelwerts vom Mittelwert in Standardabweichungen",
+            "rightId": "w05_match_right_2",
+            "right": "z-Wert"
+          },
+          {
+            "leftId": "w05_match_left_3",
+            "left": "Verteilung der Mittelwerte aus vielen Stichproben mit n = 64",
+            "rightId": "w05_match_right_3",
+            "right": "Stichprobenverteilung des Mittelwerts"
+          },
+          {
+            "leftId": "w05_match_left_4",
+            "left": "Standardabweichung der Mittelwerte aus gleich großen Stichproben",
+            "rightId": "w05_match_right_4",
+            "right": "Standardfehler des Mittelwerts"
+          }
+        ],
+        "matchingShuffleRight": true,
+        "confidenceEnabled": true,
+        "confidenceLabelLow": "Sehr unsicher",
+        "confidenceLabelHigh": "Sehr sicher"
+      },
+      {
+        "text": "### Binomialmodell systematisch prüfen\n\nBringe die fünf Arbeitsschritte in eine fachlich sinnvolle Reihenfolge. Die Prüfung soll vor der Wahrscheinlichkeitsrechnung abgeschlossen sein.",
+        "type": "ORDERING",
+        "timer": null,
+        "difficulty": "HARD",
+        "order": 4,
+        "answers": [],
+        "orderingItems": [
+          {
+            "id": "w05_order_1",
+            "text": "Zufallsversuch, interessierenden Erfolg und Erfolgszahl X inhaltlich festlegen"
+          },
+          {
+            "id": "w05_order_2",
+            "text": "Am Entstehungsprozess feste Versuchszahl, zwei Ausgänge, konstantes p und Unabhängigkeit dokumentieren"
+          },
+          {
+            "id": "w05_order_3",
+            "text": "Auf Grundlage der dokumentierten Bedingungen die Vertretbarkeit des Binomialmodells beurteilen"
+          },
+          {
+            "id": "w05_order_4",
+            "text": "Bei vertretbarem Modell n und p einsetzen und das gesuchte Ereignis mit X ~ Bin(n; p) formulieren"
+          },
+          {
+            "id": "w05_order_5",
+            "text": "Die Ereigniswahrscheinlichkeit berechnen und unter den geprüften Modellgrenzen interpretieren"
+          }
+        ],
+        "confidenceEnabled": true,
+        "confidenceLabelLow": "Sehr unsicher",
+        "confidenceLabelHigh": "Sehr sicher"
+      },
+      {
+        "text": "### Situationen nach geeignetem Modell klassifizieren\n\nOrdne jede Situation dem Modell zu, das durch die Angaben am besten begründet ist.",
+        "type": "CATEGORIZATION",
+        "timer": null,
+        "difficulty": "HARD",
+        "order": 5,
+        "answers": [],
+        "categories": [
+          {
+            "id": "w05_cat_binomial",
+            "name": "Binomialmodell begründet"
+          },
+          {
+            "id": "w05_cat_normal",
+            "name": "Normalmodell für Einzelwerte begründet"
+          },
+          {
+            "id": "w05_cat_neither",
+            "name": "Keines der beiden Modelle begründet"
+          }
+        ],
+        "categorizationItems": [
+          {
+            "id": "w05_item_1",
+            "text": "Ausfallzahl unter 100 unabhängig geprüften Bauteilen mit identischer Ausfallwahrscheinlichkeit",
+            "correctCategoryId": "w05_cat_binomial"
+          },
+          {
+            "id": "w05_item_2",
+            "text": "Klickzahl bei 30 unabhängigen Einblendungen desselben Angebots mit konstantem p",
+            "correctCategoryId": "w05_cat_binomial"
+          },
+          {
+            "id": "w05_item_3",
+            "text": "Symmetrische, glockenförmige Messfehler um null ohne auffällige Ausreißer",
+            "correctCategoryId": "w05_cat_normal"
+          },
+          {
+            "id": "w05_item_4",
+            "text": "Symmetrische, glockenförmige Füllgewichte um 500 Gramm mit stabiler Streuung",
+            "correctCategoryId": "w05_cat_normal"
+          },
+          {
+            "id": "w05_item_5",
+            "text": "Deutlich rechtsschiefe Servicezeiten mit mehreren extrem langen Wartezeiten",
+            "correctCategoryId": "w05_cat_neither"
+          },
+          {
+            "id": "w05_item_6",
+            "text": "Tägliche Beschwerdezahl ohne festgelegte Zahl gleichartiger Gelegenheiten",
+            "correctCategoryId": "w05_cat_neither"
+          }
+        ],
+        "categorizationShuffleItems": true,
+        "confidenceEnabled": true,
+        "confidenceLabelLow": "Sehr unsicher",
+        "confidenceLabelHigh": "Sehr sicher"
+      },
+      {
+        "text": "### Simulation fachlich benennen\n\nAus derselben Population werden 2.000 Zufallsstichproben mit jeweils $n=50$ gezogen. Von jeder Stichprobe wird der Mittelwert gespeichert.\n\nWie heißt die Verteilung dieser 2.000 Mittelwerte?",
+        "type": "SHORT_TEXT",
+        "timer": null,
+        "difficulty": "MEDIUM",
+        "order": 6,
         "answers": [
           {
-            "text": "Er sinkt von 4 auf 2.",
+            "text": "Stichprobenverteilung des Mittelwerts",
             "isCorrect": true
           },
           {
-            "text": "Er sinkt von 20 auf 5.",
+            "text": "Stichprobenverteilung der Mittelwerte",
+            "isCorrect": true
+          },
+          {
+            "text": "Verteilung der Stichprobenmittelwerte",
+            "isCorrect": true
+          },
+          {
+            "text": "Samplingverteilung des Mittelwerts",
+            "isCorrect": true
+          },
+          {
+            "text": "Samplingverteilung der Mittelwerte",
+            "isCorrect": true
+          },
+          {
+            "text": "Verteilung des Stichprobenmittelwerts",
+            "isCorrect": true
+          },
+          {
+            "text": "Stichprobenmittelwertverteilung",
+            "isCorrect": true
+          },
+          {
+            "text": "Stichprobenverteilung der Stichprobenmittelwerte",
+            "isCorrect": true
+          }
+        ],
+        "shortTextEvaluationKind": "text",
+        "shortTextMaxLength": 80,
+        "shortTextCaseSensitive": false,
+        "shortTextEvaluationMode": "exact",
+        "shortTextToleranceLevel": "none",
+        "shortTextAllowPartialCredit": false,
+        "shortTextTrimWhitespace": true,
+        "shortTextNormalizeWhitespace": true,
+        "confidenceEnabled": true,
+        "confidenceLabelLow": "Sehr unsicher",
+        "confidenceLabelHigh": "Sehr sicher"
+      },
+      {
+        "text": "### Eine Schlussfolgerung kritisch prüfen\n\nEin Team behauptet: »Bei $n=1.000$ sind die einzelnen Servicezeiten automatisch normalverteilt, und die Stichprobe ist automatisch repräsentativ.«\n\nFormuliere knapp zwei getrennte Einwände: einen zur Verteilungsform der Einzelwerte und einen zur Auswahl der Stichprobe.",
+        "type": "FREETEXT",
+        "timer": null,
+        "difficulty": "MEDIUM",
+        "order": 7,
+        "answers": []
+      },
+      {
+        "text": "### Modellrisiko für die Nachbesprechung priorisieren\n\nBei 40 Lieferungen unterscheiden sich die Liefergebiete deutlich, und mehrere Bestellungen können von derselben Verkehrsstörung betroffen sein. Das Team möchte dennoch eine Binomialwahrscheinlichkeit berechnen und auf künftige Lieferungen übertragen. Welche Prüfung sollte die Lerngruppe zuerst vertiefen? Die Abstimmung eröffnet die Begründungsdiskussion; es gibt keine Musterlösung.",
+        "type": "SURVEY",
+        "timer": null,
+        "difficulty": "MEDIUM",
+        "order": 8,
+        "answers": [
+          {
+            "text": "Die Konstanz der Verspätungswahrscheinlichkeit zwischen Liefergebieten prüfen",
             "isCorrect": false
           },
           {
-            "text": "Er bleibt 20, weil die Einzelwerte unverändert sind.",
+            "text": "Die Abhängigkeit gemeinsam von Verkehrsstörungen betroffener Bestellungen prüfen",
             "isCorrect": false
           },
           {
-            "text": "Er steigt von 2 auf 4.",
+            "text": "Die Empfindlichkeit der Binomialrechnung gegenüber Modellverletzungen prüfen",
+            "isCorrect": false
+          },
+          {
+            "text": "Die Übertragbarkeit der 40 Bestellungen auf künftige Lieferungen prüfen",
             "isCorrect": false
           }
         ]
       },
       {
-        "text": "### Was zeigt eine Stichprobensimulation?\n\nAus derselben festgelegten Population werden wiederholt Zufallsstichproben gezogen und ihre Mittelwerte gespeichert.\n\nWelche Aussagen sind korrekt?",
-        "type": "MULTIPLE_CHOICE",
+        "text": "### Eigene Erklärungssicherheit einschätzen\n\nWie sicher kannst du anhand eines konkreten Beispiels erklären, warum die Standardabweichung der Einzelwerte und der Standardfehler des Mittelwerts unterschiedliche Größen sind?",
+        "type": "RATING",
         "timer": null,
-        "difficulty": "HARD",
-        "order": 4,
-        "answers": [
-          {
-            "text": "Die gespeicherten Mittelwerte bilden eine Stichprobenverteilung.",
-            "isCorrect": true
-          },
-          {
-            "text": "Größere Stichproben führen im Modell zu weniger streuenden Mittelwerten.",
-            "isCorrect": true
-          },
-          {
-            "text": "Mehr Wiederholungen zeigen die Simulationsverteilung genauer, erhöhen aber nicht die Größe jeder Einzelstichprobe.",
-            "isCorrect": true
-          },
-          {
-            "text": "Jede Einzelstichprobe muss exakt denselben Mittelwert wie die Population haben.",
-            "isCorrect": false
-          }
-        ]
+        "difficulty": "MEDIUM",
+        "order": 9,
+        "answers": [],
+        "ratingMin": 1,
+        "ratingMax": 5,
+        "ratingLabelMin": "Noch nicht sicher begründbar",
+        "ratingLabelMax": "Sicher und nachvollziehbar begründbar"
       }
     ]
   }

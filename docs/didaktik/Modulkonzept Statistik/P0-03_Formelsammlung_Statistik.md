@@ -4,7 +4,7 @@
   Wirtschaftsinformatik und Informatik
 - **Arbeitsmittel in der Klausur:** diese Formelsammlung und ein nicht
   programmierbarer Taschenrechner
-- **Analyseumgebung in Lehrveranstaltung und Fallstudie:** JASP
+- **Analysesoftware in Lehrveranstaltung und Fallstudie:** JASP
 
 ## 0. So wird die Formelsammlung benutzt
 

@@ -1,9 +1,19 @@
 # Angewandte Statistik – Daten verstehen, Entscheidungen begründen
 
 **Modulbeschreibung für Studierende**<br>
-**Version:** 1.0.0 · **Stand:** 13.09.2026<br>
-**Umfang:** 10 Wochen, 48 Unterrichtseinheiten à 45 Minuten, 3 ECTS beziehungsweise etwa 90 Stunden Gesamtaufwand<br>
-**Zielgruppe:** Bachelorstudierende aus BWL, Management, Wirtschaftsinformatik und Informatik ohne vorausgesetzte Statistikkenntnisse
+**Umfang:** 10 Wochen mit 24 Vorlesungs- beziehungsweise Lerneinheiten (LE) à 90 Minuten. Eine LE besteht aus zwei Unterrichtseinheiten (UE) à 45 Minuten; insgesamt sind das 48 UE beziehungsweise 36 Präsenzstunden.<br>
+**Studienumfang:** 3 ECTS-Leistungspunkte (European Credit Transfer and Accumulation System) beziehungsweise etwa 90 Stunden Gesamtaufwand<br>
+**Zielgruppe:** Bachelorstudierende aus Betriebswirtschaftslehre (BWL), Management, Wirtschaftsinformatik und Informatik ohne vorausgesetzte Statistikkenntnisse
+
+## Kurze Lesehilfe
+
+- **W01–W10** bezeichnet die zehn Kurswochen.
+- **LE** bezeichnet eine 90-minütige Vorlesungs- beziehungsweise Lerneinheit aus zwei **UE**; eine UE dauert 45 Minuten.
+- **ARSnova.eu** ist das Live-Werkzeug für Aktivierung, Diskussion und motivierende Spielelemente.
+- **MC-Test** ist die browserbasierte Lernanwendung für den wöchentlichen Präsenztest und die Lernmethode **Spaced Repetition**, also Wiederholung in geplanten zeitlichen Abständen.
+- **JASP** ist die frei verfügbare Analysesoftware mit grafischer Oberfläche; du musst dafür nicht programmieren.
+- **Q&A** bedeutet »Fragen und Antworten«.
+- **LIVE**, **REPO** und **LEHRDATEN** unterscheiden Kursdaten, dokumentierte Repository-Nachweise und eigens konstruierte Übungsdaten.
 
 ## Willkommen im Modul
 
@@ -69,7 +79,7 @@ Jede neue Methode folgt möglichst demselben Weg:
 
 > Situation → Alltagssprache → Grafik → Formel → Rechnung → Interpretation → typische Fehlinterpretation → Transfer
 
-Die Formelsammlung begleitet dich ab der ersten Woche und steht auch in der Klausur zur Verfügung. Kleine Datensätze, ausgeschriebene Zwischenschritte und feste Rundungsregeln helfen dir beim Einstieg. Mit JASP untersuchst du vorbereitete Daten, ohne programmieren zu müssen. Die Arbeitsumgebung und die benötigten Dateien werden institutionell bereitgestellt.
+Die Formelsammlung begleitet dich ab der ersten Woche und steht auch in der Klausur zur Verfügung. Kleine Datensätze, ausgeschriebene Zwischenschritte und feste Rundungsregeln helfen dir beim Einstieg. Mit JASP untersuchst du vorbereitete Daten, ohne programmieren zu müssen. Die Software ist frei verfügbar; Installationshinweise, Datendateien und Klickpfade werden im Kurs bereitgestellt.
 
 Vor der ersten Präsenzveranstaltung bearbeitest du eine kurze, unbenotete Mathematikdiagnostik. Sie prüft Grundlagen wie Brüche, Prozentrechnung, Wurzeln, einfache Gleichungen, Taschenrechnerbedienung sowie das Lesen von Tabellen und Diagrammen. Das Ergebnis ist keine Zulassungshürde und keine Note. Es führt lediglich zu passenden Brückenübungen mit Lösungen.
 
@@ -81,7 +91,8 @@ Vor der ersten Präsenzveranstaltung bearbeitest du eine kurze, unbenotete Mathe
 
 Je nach Thema:
 
-- beantwortest du kurze Verständnis- und Transferfragen,
+- arbeitest du pro Woche mit zehn Livefragen, die alle zehn ARSnova-Fragetypen von Auswahl über Kurztext bis Zuordnung, Reihenfolge und Kategorisierung einmal nutzen,
+- beantwortest du anspruchsvolle Verständnis-, Anwendungs- und Transferfragen,
 - gibst du eine numerische Schätzung ab,
 - ordnest du bei ausgewählten Fragen zusätzlich deine Sicherheit ein; alternativ steht ein gleichwertiger Weg ohne Confidence-Eingabe bereit,
 - vergleichst du eine erste Antwort mit einer Antwort nach der Diskussion,
@@ -99,23 +110,25 @@ Damit ist ARSnova.eu zugleich:
 - ein **Lernwerkzeug**, das dich aktiv in die Veranstaltung einbindet, und
 - ein **Studienobjekt**, an dem du lernst, angezeigte Kennzahlen und Datenquellen kritisch zu prüfen.
 
-### Was ARSnova.eu nicht ist
+### Wie Gamification eingesetzt wird
 
-Im Statistikmodul gibt es bei den Live-Aktivitäten keine Rangliste, keinen Antworttimer, keine Teamwertung und keine Bonuspunkte. Deine Teilnahme ist freiwillig und hat keine Notenwirkung. Die Antworten werden im Kurs anonym dargestellt; technisch verwendet die Anwendung sitzungsgebundene Kennungen. Deshalb sprechen wir nicht von absoluter technischer Anonymität.
+ARSnova.eu nutzt Rangliste, automatisch gebildete Teams, Bonuspunkte, kurze Zeitphasen, Sound- und Belohnungseffekte, Motivationstexte sowie Emoji-Reaktionen bewusst, um Aufmerksamkeit, Beteiligung und gemeinsames Üben zu fördern. Du trittst mit einem automatisch vergebenen Pseudonym aus dem Thema »Kindergarten« statt mit deinem Klarnamen an und wirst automatisch einem der vier Teams Apfel, Birne, Banane oder Apfelsine zugeordnet. Die Spielelemente schaffen einen freundlichen Lernanreiz; sie entscheiden weder über deine Note noch über deine fachliche Eignung.
 
-Aus deinen Live-Antworten wird kein individuelles Leistungsprofil erstellt. Wenn du kein eigenes Gerät verwenden kannst oder möchtest, steht eine fachlich gleichwertige Papier- oder Partneralternative ohne Nachteil bereit.
+Vor einem Antworttimer gibt es eine gemeinsame Lesephase. Persönlich freigegebene Zeitverlängerungen werden technisch berücksichtigt; außerdem steht immer ein gleichwertiger Weg ohne Zeitdruck und ohne öffentliches Antworten bereit. Quizpunkte, Geschwindigkeit, Teamstand und Bonus werden nicht als Kompetenzmaß ausgewertet und nicht zu einem individuellen Leistungsprofil verdichtet. Sound, Farbe, Animation, Motivationstext oder Emoji ergänzen das Spiel nur; keine fachliche Information und keine notwendige Teilnahmehandlung wird ausschließlich darüber vermittelt.
+
+Deine Teilnahme ist freiwillig und hat keine Notenwirkung. Technisch verwendet die Anwendung sitzungsgebundene Kennungen und zufällige Pseudonyme; deshalb sprechen wir nicht von absoluter technischer Anonymität. Wenn du kein eigenes Gerät verwenden kannst oder möchtest, steht eine fachlich gleichwertige Papier- oder Partneralternative ohne Nachteil bereit.
 
 ### ARSnova.eu auf Tablet und Laptop
 
 Auf Tablet und Laptop verwendest du ARSnova.eu direkt in einem aktuellen Browser. Auf dem Tablet eignet sich die touchbasierte Ansicht besonders für schnelle Live-Antworten am Platz; auf dem Laptop kannst du dieselbe Session parallel zu digitalen Notizen geöffnet halten. Du brauchst weder eine Installation noch ein persönliches Benutzerkonto. Wenn Browser, Netzwerk oder Gerät ausfallen, wechselst du ohne Notennachteil auf die vorbereitete gleichwertige Alternative.
 
-## MC-Test – selbstständig üben, verstehen und gezielt wiederholen
+## MC-Test – mit Spaced Repetition nachhaltig lernen
 
-Zwischen den Präsenzveranstaltungen arbeitest du mit der Streamlit-Anwendung [MC-Test](https://mc-test.streamlit.app). Du wählst einen pseudonymen Zugang, ohne ein persönliches Konto anlegen zu müssen. Das Pseudonym vermeidet unnötige persönliche Angaben, ist technisch aber keine vollständige Anonymisierung.
+In der letzten UE jeder Woche arbeitest du in Präsenz mit der Streamlit-Anwendung [MC-Test](https://mc-test.streamlit.app). Du wählst einen pseudonymen Zugang, ohne ein persönliches Konto anlegen zu müssen. Das Pseudonym vermeidet unnötige persönliche Angaben, ist technisch aber keine vollständige Anonymisierung. Nach dem Präsenzdurchlauf bleibt der Fragensatz für geplante Wiederholungen verfügbar.
 
 ### Was du mit MC-Test machst
 
-Nach jedem Wochenblock steht ein Satz mit 30 Multiple-Choice-Fragen bereit. Die Fragen greifen neue und frühere Inhalte auf. Sie enthalten außerdem typische Fehlvorstellungen und kurze Transfersituationen aus BWL, Management, Wirtschaftsinformatik und Informatik.
+Jede Woche bearbeitest du einen Satz mit 30 Multiple-Choice-Fragen. Die Fragen greifen neue und frühere Inhalte auf und sind mindestens mittel, überwiegend schwer. Ihre drei falschen Optionen sind keine Scherzantworten, sondern plausible typische Fehlvorstellungen oder realistische Rechen- und Interpretationsfehler. Alle vier Optionen sind bewusst ähnlich formuliert, damit du nach dem Inhalt und nicht nach sprachlichen Hinweisen entscheidest. Die Fragen enthalten außerdem Transfersituationen aus BWL, Management, Wirtschaftsinformatik und Informatik.
 
 Im verbindlichen Lernmodus:
 
@@ -125,13 +138,13 @@ Im verbindlichen Lernmodus:
 - findest du zu jeder Frage ein kleines Glossar wichtiger Begriffe,
 - erkennst du in der Auswertung, welche Themen bereits sicher sind und was du wiederholen solltest.
 
-Die im Fragensatz genannten 27 Minuten sind nur ein Planwert und keine Zeitbegrenzung. Zwei vollständige Lerndurchläufe werden empfohlen, aber nicht technisch erzwungen.
+Die im Fragensatz genannten 32 Minuten sind der Richtwert für den ersten Durchlauf in der letzten Präsenz-UE und keine technische Zeitbegrenzung. Anschließend besprechen wir die aggregierten Ergebnisse, erklären Lösungen und klären besonders häufig gewählte Distraktoren. Einen zweiten vollständigen Durchlauf bearbeitest du idealerweise nach zwei bis drei Tagen. Zentrale Inhalte erscheinen zusätzlich nach zwei bis vier Wochen in einem neuen Fragensatz.
 
 ### Warum MC-Test wichtig ist
 
-Verstehen in der Veranstaltung ist der erste Schritt; Wissen nach einigen Tagen zuverlässig abrufen und auf einen neuen Fall übertragen zu können, ist der zweite. MC-Test verteilt die Wiederholung über das Semester. Dadurch bemerkst du Lücken frühzeitig und musst vor der Klausur nicht den gesamten Stoff auf einmal neu lernen.
+Verstehen in der Veranstaltung ist der erste Schritt; Wissen nach einigen Tagen zuverlässig abrufen und auf einen neuen Fall übertragen zu können, ist der zweite. **Spaced Repetition** verteilt diese Wiederholungen gezielt über das Semester: erster Durchlauf in Präsenz, korrigierende Wiederholung nach wenigen Tagen und erneute Begegnung mit Kernideen nach einigen Wochen. Dadurch bemerkst du Lücken frühzeitig und musst vor der Klausur nicht den gesamten Stoff auf einmal neu lernen.
 
-Eine falsche Antwort endet nicht bei »falsch«. Erklärung und Mini-Glossar zeigen dir, warum die richtige Lösung trägt und welchen Begriff du nacharbeiten solltest. MC-Test dient damit deiner Selbstdiagnose, deiner regelmäßigen Retrieval-Praxis und einer planbaren Klausurvorbereitung.
+Eine falsche Antwort endet nicht bei »falsch«. Erklärung, gemeinsame Lösungsbesprechung und Mini-Glossar zeigen dir, warum die richtige Lösung trägt und welchen Begriff du nacharbeiten solltest. MC-Test dient damit deiner Selbstdiagnose, der systematischen Wiederholung mit Spaced Repetition und einer planbaren Klausurvorbereitung.
 
 ### Was MC-Test nicht ist
 
@@ -143,7 +156,7 @@ Auch MC-Test läuft im Browser und erfordert auf Tablet oder Laptop keine Instal
 
 ## JASP – Daten selbst untersuchen und Ergebnisse nachvollziehen
 
-[JASP](https://jasp-stats.org/) ist die verbindliche Analyseumgebung des Moduls. Die Software arbeitet mit einer grafischen Oberfläche: Du wählst Variablen und ein passendes Verfahren aus und erhältst Tabellen oder Grafiken, ohne Programmcode schreiben zu müssen. Im Kurs verwenden wir die festgelegte Version 0.98.1 und vorbereitete CSV-Dateien.
+[JASP](https://jasp-stats.org/) ist die verbindliche Analysesoftware des Moduls. Die Software arbeitet mit einer grafischen Oberfläche: Du wählst Variablen und ein passendes Verfahren aus und erhältst Tabellen oder Grafiken, ohne Programmcode schreiben zu müssen. Im Kurs verwenden wir die festgelegte Version 0.98.1 und vorbereitete CSV-Dateien.
 
 ### Was du mit JASP machst
 
@@ -166,15 +179,15 @@ Die Bedienung von JASP wird in der Klausur nicht geprüft. Dort erhältst du die
 
 ### JASP auf Laptop und Tablet
 
-Für vollständige Analysen verwendest du eine institutionell vorbereitete und unterstützte Rechnerumgebung. Auf einem geeigneten Laptop oder Arbeitsplatzrechner kannst du die CSV-Datei importieren, Einstellungen prüfen, Analysen verändern und eine `.jasp`-Arbeitsdatei speichern. JASP 0.98.1 unterstützt laut den [offiziellen Systemanforderungen](https://jasp-stats.org/download/) insbesondere geeignete 64-Bit-Systeme mit Windows, macOS oder Linux sowie vorbereitete unterstützte Chromebooks.
+Für vollständige Analysen installierst du JASP 0.98.1 kostenlos auf einem kompatiblen Laptop oder Desktop-Rechner. Dort kannst du die CSV-Datei importieren, Einstellungen prüfen, Analysen verändern und eine `.jasp`-Arbeitsdatei speichern. JASP unterstützt laut den [offiziellen Systemanforderungen](https://jasp-stats.org/download/) insbesondere geeignete 64-Bit-Systeme mit Windows, macOS oder Linux sowie unterstützte Chromebooks. Es gibt keine institutionell bereitgestellte JASP-Analyseumgebung.
 
-Auf iPads, iPhones und Android-Tablets läuft JASP nicht nativ. Auch Windows-Tablets mit ARM-Prozessor sind von JASP derzeit nicht offiziell unterstützt. Auf solchen Geräten kannst du bereitgestellte HTML-/PDF-Auszüge, lineare Tabellenfassungen, Grafikerklärungen und die Formelsammlung lesen. Wenn eine vollständige interaktive Analyse erforderlich ist, wird dafür eine kompatible institutionelle Arbeitsumgebung bereitgestellt; die technische Installation oder Fehlersuche ist keine studentische Prüfungsleistung.
+Auf iPads, iPhones und Android-Tablets läuft JASP nicht nativ. Auch Windows-Tablets mit ARM-Prozessor sind von JASP derzeit nicht offiziell unterstützt. Auf solchen Geräten kannst du bereitgestellte HTML-/PDF-Auszüge, lineare Tabellenfassungen, Grafikerklärungen und die Formelsammlung lesen. Wenn dir kein kompatibles Gerät zur Verfügung steht, arbeitest du ohne Nachteil in einer Partner- oder Kleingruppe, verfolgst die Lehrdemonstration und nutzt die vorbereiteten, inhaltlich gleichwertigen Ausgaben. Installation und technische Fehlersuche sind keine Prüfungsleistung.
 
 Eine `.jasp`-Datei kann die verwendeten Daten enthalten. Lade daher keine Kursdatei ungeprüft in öffentliche Cloudspeicher oder Repositories hoch. Für LIVE-Daten gelten die geschützten Ablage- und Löschregeln des Kurses.
 
 ## Das ARSnova.eu-Repository – Quellen prüfen statt Zahlen nur glauben
 
-Die öffentlich einsehbare Anwendung besitzt ein [ARSnova.eu-Repository auf GitHub](https://github.com/kqc-real/arsnova.eu). Dort liegen unter anderem Quellcode, technische Dokumentation, Datenverträge, Tests und ausgewählte Leistungsnachweise. Im Kurs arbeiten wir mit einem [festgelegten Referenzstand](https://github.com/kqc-real/arsnova.eu/tree/d2eb75d134712b637410ac3ca6e9f059b9eac0f5), damit eine zitierte Definition oder Berechnungsregel während des Semesters nachvollziehbar bleibt.
+Die öffentlich einsehbare Anwendung besitzt ein [ARSnova.eu-Repository auf GitHub](https://github.com/kqc-real/arsnova.eu). Dort liegen unter anderem Quellcode, technische Dokumentation, Datenverträge, Tests und ausgewählte Leistungsnachweise. Für jede Kursaufgabe erhältst du einen kuratierten Direktlink auf die tatsächlich verwendete Definition oder Berechnungsregel.
 
 ### Was du mit dem Repository machst
 
@@ -191,7 +204,7 @@ Deine Aufgabe ist nicht, große Quellcodedateien zu verstehen. Du folgst kuratie
 
 ### Warum das Repository wichtig ist
 
-Dashboards, Apps und KI-Systeme präsentieren Zahlen oft so, als seien sie selbsterklärend. Das Repository zeigt, dass hinter jeder Zahl Entscheidungen stehen: Datenmodell, Filter, Aggregation, Rundung, Testdesign und Softwareversion. Indem du diese Herkunft prüfst, trainierst du eine zentrale Kompetenz für Studium und Beruf: digitale Kennzahlen nicht nur zu verwenden, sondern ihre Entstehung und Belastbarkeit zu auditieren.
+Dashboards, Apps und KI-Systeme präsentieren Zahlen oft so, als seien sie selbsterklärend. Das Repository zeigt, dass hinter jeder Zahl Entscheidungen stehen: Datenmodell, Filter, Aggregation, Rundung, Testdesign und Softwareversion. Indem du diese Herkunft prüfst, trainierst du eine zentrale Kompetenz für Studium und Beruf: digitale Kennzahlen nicht nur zu verwenden, sondern ihre Entstehung und Belastbarkeit nachzuvollziehen.
 
 Repository-Werte sind nicht automatisch Produktionsmessungen. Ein Testlauf, ein synthetischer Datensatz und eine Live-Erhebung beantworten unterschiedliche Fragen. Diese Unterscheidung schützt dich vor überzogenen Aussagen und macht deine eigenen Analysen reproduzierbar.
 
@@ -209,7 +222,7 @@ Du musst das Repository weder klonen noch Git-Befehle ausführen oder das Projek
 ARSnova.eu, MC-Test, JASP und das ARSnova.eu-Repository erfüllen unterschiedliche Aufgaben:
 
 - **ARSnova.eu unterstützt das gemeinsame Lernen im Augenblick.** Du antwortest live, siehst die Verteilung der Gruppe, diskutierst Begründungen und erhältst unmittelbar eine neue Lernchance.
-- **MC-Test unterstützt dein individuelles Lernen zwischen den Sitzungen.** Du übst im eigenen Tempo, bekommst Erklärfeedback und wiederholst Inhalte mit zeitlichem Abstand.
+- **MC-Test verbindet Präsenz und individuelles Lernen.** Du bearbeitest den Wochencheck gemeinsam im Kurs, besprichst Lösungen und wiederholst die Inhalte danach mit Spaced Repetition.
 - **JASP unterstützt die eigentliche Datenanalyse.** Du erzeugst oder liest Tabellen, Grafiken und Kennwerte und verbindest sie mit einer fachlich begründeten Aussage.
 - **Das ARSnova.eu-Repository unterstützt die Quellen- und Methodenkritik.** Du prüfst, woher eine Definition oder Kennzahl stammt und welche Aussage der dokumentierte Nachweis trägt.
 
@@ -223,11 +236,12 @@ Keines der Werkzeuge ersetzt dein eigenes Urteil. Zusammen bilden sie jedoch ein
 ## Dein typischer Lernrhythmus
 
 1. **Vor dem Start:** Du nutzt die Mathematikdiagnostik zur Selbstkontrolle und bearbeitest bei Bedarf einen kurzen Brückenpfad.
-2. **In der Präsenzveranstaltung:** Du lernst an Fällen, beantwortest ausgewählte ARSnova-Fragen, diskutierst Lösungswege und arbeitest mit JASP oder vorbereiteten Ausgaben.
-3. **Nach dem Wochenblock:** Du bearbeitest den MC-Test im eigenen Tempo und nutzt das Feedback für eine gezielte Wiederholung.
+2. **In den 90-minütigen Lerneinheiten:** Du lernst an Fällen, beantwortest ARSnova-Fragen, nutzt motivierende Spielphasen, diskutierst Lösungswege und arbeitest mit JASP oder vorbereiteten Ausgaben.
+3. **In der letzten UE jeder Woche:** Du bearbeitest den 30-Fragen-MC-Test; anschließend diskutieren wir Ergebnisse, Lösungen und typische Fehlvorstellungen.
 4. **Bei ausgewählten Kennzahlen:** Du vergleichst Anzeige, Dokumentation oder Testnachweis mit einem kuratierten Ausschnitt aus dem ARSnova.eu-Repository.
-5. **Über das Semester:** Du entwickelst schrittweise einen kurzen Statistikbefund zu einer Fallstudie und erhältst formative Rückmeldung.
-6. **Vor der Klausur:** Du arbeitest mit derselben Formelsammlung, vergleichbaren Aufgabentypen und einer vollständigen Probeklausur.
+5. **Zwischen den Wochen:** Du wiederholst den MC-Test nach zwei bis drei Tagen; ältere Kernideen kehren nach zwei bis vier Wochen wieder.
+6. **Über das Semester:** Du entwickelst schrittweise einen kurzen Statistikbefund zu einer Fallstudie und erhältst formative Rückmeldung.
+7. **Vor der Klausur:** Du arbeitest mit derselben Formelsammlung, vergleichbaren Aufgabentypen und einer vollständigen Probeklausur.
 
 ## Prüfung und Vorbereitung
 
@@ -259,7 +273,7 @@ Wenn du diese Fragen stellen und begründet beantworten kannst, hast du den wich
 - [Mathematikdiagnostik und Brückenpfade](./P0-03_Mathematikdiagnostik_Brueckenpfade.md)
 - [Formelsammlung Statistik](./P0-03_Formelsammlung_Statistik.md)
 - [JASP-Analyseleitfaden](./P0-03_JASP_Analyseleitfaden.md)
-- [ARSnova.eu-Repository am Referenzstand](https://github.com/kqc-real/arsnova.eu/tree/d2eb75d134712b637410ac3ca6e9f059b9eac0f5)
+- [ARSnova.eu-Repository](https://github.com/kqc-real/arsnova.eu)
 - [Probeklausur](./P0-03_Probeklausur_90_Minuten.md) und [Musterlösung](./P0-03_Probeklausur_Musterloesung.md)
 - [Hinweise zu gleichwertigen Zugangswegen](./P0-03_Barrierefreiheit_Material_und_Probe.md)
 

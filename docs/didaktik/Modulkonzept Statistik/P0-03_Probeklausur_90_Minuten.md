@@ -1,6 +1,8 @@
 # Probeklausur – Angewandte Statistik
 
-- **Version:** 2.0.0 · **Stand:** 13.09.2026
+**Kürzel vorab:** **MZ7** bezeichnet das siebte Modulziel „Statistische Evidenz kommunizieren und begrenzen“, **W09** die neunte Kurswoche, **JASP** die verwendete Analysesoftware und **`source_ref`** die Quellenkennung eines Datensatzes. **A1–A6** und **V1** innerhalb dieser Quellenkennungen bezeichnen Klausuraufgabe 1–6 und Datensatzversion 1, nicht die Formelblöcke oder curriculare Vertiefungscodes.
+
+- **Version:** 2.0.1 · **Stand:** 13.09.2026
 - **Bearbeitungszeit:** 90 Minuten
 - **Gesamtpunktzahl:** 60 Punkte
 - **Hilfsmittel:** offizielle Formelsammlung und nicht programmierbarer
@@ -18,7 +20,7 @@
    Klausurwerte ohne Datenregister tragen im Aufgabenstamm eine stabile
    `source_ref`-Bezeichnung. Daraus dürfen keine stärkeren Aussagen abgeleitet
    werden, als die Datenherkunft erlaubt.
-5. JASP ist die verbindliche Analyseumgebung des Moduls. In dieser
+5. JASP ist die verbindliche Analysesoftware des Moduls. In dieser
    Papierklausur müssen Sie JASP nicht bedienen; alle benötigten
    JASP-Ausgaben sind abgedruckt.
 6. Es werden keine Schaltflächen, Einstellungen oder sonstigen
@@ -151,7 +153,7 @@ Für 100 anonymisierte Einzelantworten wurde festgehalten:
 | **Summe**                |          **24** |                          **76** | **100** |
 
 Ein gesondertes idealisiertes Übungsmodell nimmt für drei gleichartige
-Retrievalfragen unabhängige Versuche mit konstanter
+Abruffragen unabhängige Versuche mit konstanter
 Erfolgswahrscheinlichkeit \(p=0{,}70\) an.
 
 ### Teilaufgaben

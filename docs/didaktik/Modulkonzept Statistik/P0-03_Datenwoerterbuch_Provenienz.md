@@ -1,8 +1,10 @@
 # P0-03: Datenwörterbuch und Provenienz
 
+**Kürzel vorab:** **CSV** bezeichnet das Tabellenformat, **LIVE** Daten aus dem laufenden Kurs, **REPO** versionierte Repository-Nachweise und **LEHRDATEN** synthetische Übungsdaten. **S1–S6** sind die Fallstudienstränge, **W01–W10** die Kurswochen, **ID** eine technische Kennung, **`source_ref`** die Quellenkennung und ein Suffix wie **V1** die Version eines Datensatzes, nicht die curriculare Vertiefung V1.
+
 - **Stand:** 13.09.2026
 - **Geltungsbereich:** die sieben CSV-Dateien dieses P0-03-Lehrdatenpakets
-- **Fachliche Grundlage:** `Modulkonzept_48UE_BWL_Management_WI_Informatik_v4_Repoabgleich.md`
+- **Fachliche Grundlage:** [Modulkonzept „Angewandte Statistik“](./Modulkonzept_48UE_BWL_Management_WI_Informatik.md)
 
 ## 1. Verbindlicher Datenstatus
 

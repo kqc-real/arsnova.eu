@@ -1,6 +1,8 @@
 # P0-03 – Mathematikdiagnostik und Brückenpfade
 
-**Version:** 1.0.0 · **Stand:** 13.09.2026<br>
+**Kürzel vorab:** **W01** bezeichnet Kurswoche 1, **UE** eine 45-minütige Unterrichtseinheit, **MC** Multiple Choice und **LMS** ein Learning-Management-System.
+
+**Version:** 1.0.1 · **Stand:** 13.09.2026<br>
 **Status:** verbindliches, unbenotetes W01-Diagnose- und Fördermaterial
 
 **Bezugsdokumente:** [Kerncurriculum](./P0-01_Kerncurriculum_Lernzielmatrix.md) · [Formelsammlung](./P0-03_Formelsammlung_Statistik.md) · [Lehrenden-Runbook](./P0-03_Lehrenden_Runbook.md)

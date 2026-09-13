@@ -3,141 +3,332 @@
   "exportedAt": "2026-09-13T00:00:00.000Z",
   "quiz": {
     "name": "P0-03 ARSnova – Woche 02: Häufigkeiten und Lage",
-    "description": "Live-Fragen zu Bezugsgrößen, Diagrammen sowie Mittelwert, Median und Modus.",
-    "showLeaderboard": false,
+    "description": "10 anspruchsvolle Live-Fragen zu Häufigkeiten, Nennern, Diagrammen, Lagewerten, Robustheit und zur kumulativen Wiederholung aus Woche 01. Der Satz nutzt jeden der zehn ARSnova-Fragetypen genau einmal.",
+    "showLeaderboard": true,
     "allowCustomNicknames": false,
-    "defaultTimer": null,
-    "timerScaleByDifficulty": false,
+    "defaultTimer": 60,
+    "timerScaleByDifficulty": true,
     "enableTimerAccommodation": true,
-    "enableSoundEffects": false,
-    "enableRewardEffects": false,
-    "enableMotivationMessages": false,
-    "enableEmojiReactions": false,
-    "anonymousMode": true,
-    "teamMode": false,
-    "teamCount": null,
+    "enableSoundEffects": true,
+    "enableRewardEffects": true,
+    "enableMotivationMessages": true,
+    "enableEmojiReactions": true,
+    "anonymousMode": false,
+    "teamMode": true,
+    "teamCount": 4,
     "teamAssignment": "AUTO",
+    "teamNames": ["Apfel :apple:", "Birne :pear:", "Banane :banana:", "Apfelsine :orange:"],
     "backgroundMusic": null,
-    "nicknameTheme": "HIGH_SCHOOL",
-    "bonusTokenCount": null,
+    "nicknameTheme": "KINDERGARTEN",
+    "bonusTokenCount": 3,
     "readingPhaseEnabled": true,
     "questions": [
       {
-        "text": "### Welcher Nenner passt?\n\n48 Personen sind im Raum. 36 beantworten eine Single-Choice-Frage, 24 davon wählen Option A.\n\nWie groß ist der Anteil von Option A unter den abgegebenen Antworten?",
+        "text": "### Welcher Nenner beantwortet die Frage?\n\nVon 80 Eingeladenen senden 64 einen Fragebogen zurück. Bei 56 Fragebögen ist die Angabe zur Weiterempfehlung gültig; 35 davon lauten »ja«. Welcher Bericht beantwortet den Anteil unter den gültigen Angaben korrekt?",
         "type": "SINGLE_CHOICE",
         "timer": null,
-        "difficulty": "EASY",
+        "difficulty": "HARD",
         "order": 0,
         "answers": [
           {
-            "text": "50,0 %",
-            "isCorrect": false
-          },
-          {
-            "text": "66,7 %",
+            "text": "Der Empfehlungsanteil beträgt 62,5 % bezogen auf 56 gültige Angaben.",
             "isCorrect": true
           },
           {
-            "text": "75,0 %",
+            "text": "Der Empfehlungsanteil beträgt 87,5 % bezogen auf 64 Rückläufe.",
             "isCorrect": false
           },
           {
-            "text": "88,9 %",
+            "text": "Der Empfehlungsanteil beträgt 43,8 % bezogen auf 80 Eingeladene.",
+            "isCorrect": false
+          },
+          {
+            "text": "Der Empfehlungsanteil beträgt 54,7 % bezogen auf 64 Rückläufe.",
             "isCorrect": false
           }
-        ]
+        ],
+        "confidenceEnabled": true,
+        "confidenceLabelLow": "Sehr unsicher",
+        "confidenceLabelHigh": "Sehr sicher"
       },
       {
-        "text": "### Mehrfachnennungen richtig lesen\n\n30 Personen dürfen mehrere Optionen wählen. Option A erhält 18, Option B 15 und Option C 9 Nennungen.\n\nWelche Aussagen sind korrekt?",
-        "type": "MULTIPLE_CHOICE",
-        "timer": null,
-        "difficulty": "MEDIUM",
-        "order": 1,
-        "answers": [
-          {
-            "text": "Option A wurde von 60 % der teilnehmenden Personen gewählt.",
-            "isCorrect": true
-          },
-          {
-            "text": "Die 42 Nennungen können von 30 Personen stammen.",
-            "isCorrect": true
-          },
-          {
-            "text": "42 Personen haben an der Frage teilgenommen.",
-            "isCorrect": false
-          },
-          {
-            "text": "Die drei Optionsanteile müssen zusammen genau 100 % ergeben.",
-            "isCorrect": false
-          }
-        ]
-      },
-      {
-        "text": "### Servicezeit schätzen\n\nDie folgenden 20 Servicezeiten sind in Sekunden angegeben:\n\n60, 70, 80, 90, 100, 105, 110, 112, 115, 118, 122, 125, 128, 130, 135, 140, 150, 160, 170, 180\n\nSchätze den Mittelwert ohne vollständige Einzelrechnung.",
-        "type": "NUMERIC_ESTIMATE",
-        "timer": null,
-        "difficulty": "MEDIUM",
-        "order": 2,
-        "answers": [],
-        "numericToleranceMode": "ABSOLUTE_INTERVAL",
-        "numericReferenceValue": 120,
-        "numericTolerancePercent": null,
-        "numericIntervalLeft": 108,
-        "numericIntervalRight": 132,
-        "numericInputType": "INTEGER",
-        "numericMin": 50,
-        "numericMax": 200,
-        "numericTwoRounds": true
-      },
-      {
-        "text": "### Typischer Wert trotz Ausreißer\n\nFür fünf Bearbeitungsdauern gelten die Werte 4, 5, 5, 6 und 40 Sekunden.\n\nWelche Aussage beschreibt die Lage am angemessensten?",
-        "type": "SINGLE_CHOICE",
-        "timer": null,
-        "difficulty": "MEDIUM",
-        "order": 3,
-        "answers": [
-          {
-            "text": "Der Median von 5 Sekunden beschreibt die Mitte robuster als der Mittelwert.",
-            "isCorrect": true
-          },
-          {
-            "text": "Der Mittelwert von 12 Sekunden bleibt vom Wert 40 unbeeinflusst.",
-            "isCorrect": false
-          },
-          {
-            "text": "Der Modus beträgt 40 Sekunden, weil dies der größte Wert ist.",
-            "isCorrect": false
-          },
-          {
-            "text": "Median und Mittelwert müssen bei fünf Werten übereinstimmen.",
-            "isCorrect": false
-          }
-        ]
-      },
-      {
-        "text": "### Diagramm und Datentyp\n\nWelche Aussagen zur Darstellung von Quiz- und Servicezeitdaten sind angemessen?",
+        "text": "### Welche Schlüsse sind bei Mehrfachnennungen zulässig?\n\n40 Personen dürfen mehrere Kanäle auswählen. Kanal A erhält 22, Kanal B 18 und Kanal C 14 Nennungen. Wähle alle Aussagen, die aus diesen Angaben folgen.",
         "type": "MULTIPLE_CHOICE",
         "timer": null,
         "difficulty": "HARD",
-        "order": 4,
+        "order": 1,
         "answers": [
           {
-            "text": "Häufigkeiten nominaler Antwortoptionen lassen sich in einem Balkendiagramm vergleichen.",
+            "text": "Die 54 Nennungen können von insgesamt 40 Personen stammen.",
             "isCorrect": true
           },
           {
-            "text": "Klassierte Servicezeiten lassen sich in einem Histogramm darstellen.",
+            "text": "Die Summe von 135 % belegt einen Fehler in der Datenerfassung.",
+            "isCorrect": false
+          },
+          {
+            "text": "Der Optionsanteil von Kanal A beträgt 55 % der teilnehmenden Personen.",
             "isCorrect": true
           },
           {
-            "text": "Eine unmarkiert abgeschnittene Achse kann kleine Balkenunterschiede überbetonen.",
+            "text": "Die Differenz von 14 Nennungen belegt 14 Personen mit Doppelauswahl.",
+            "isCorrect": false
+          }
+        ],
+        "confidenceEnabled": true,
+        "confidenceLabelLow": "Sehr unsicher",
+        "confidenceLabelHigh": "Sehr sicher"
+      },
+      {
+        "text": "### Welcher Lagewert passt zur Fragestellung?\n\nFünf Bearbeitungszeiten lauten 8, 9, 10, 11 und 84 Minuten. Gesucht ist eine typische Zeit, die durch den einzelnen Extremwert möglichst wenig verschoben wird. Nenne den geeigneten Lagewert mit einem Fachwort.",
+        "type": "SHORT_TEXT",
+        "timer": null,
+        "difficulty": "HARD",
+        "order": 2,
+        "answers": [
+          {
+            "text": "Median",
             "isCorrect": true
           },
           {
-            "text": "Zwischen nominalen Antwortoptionen müssen Balken ohne Abstand aneinanderliegen.",
+            "text": "Zentralwert",
+            "isCorrect": true
+          },
+          {
+            "text": "50%-Quantil",
+            "isCorrect": true
+          },
+          {
+            "text": "50-%-Quantil",
+            "isCorrect": true
+          },
+          {
+            "text": "50. Perzentil",
+            "isCorrect": true
+          },
+          {
+            "text": "zweites Quartil",
+            "isCorrect": true
+          },
+          {
+            "text": "2. Quartil",
+            "isCorrect": true
+          },
+          {
+            "text": "0,5-Quantil",
+            "isCorrect": true
+          }
+        ],
+        "shortTextMaxLength": 32,
+        "shortTextCaseSensitive": false,
+        "shortTextEvaluationMode": "exact",
+        "shortTextToleranceLevel": "none",
+        "shortTextAllowPartialCredit": false,
+        "shortTextTrimWhitespace": true,
+        "shortTextNormalizeWhitespace": true,
+        "confidenceEnabled": true,
+        "confidenceLabelLow": "Sehr unsicher",
+        "confidenceLabelHigh": "Sehr sicher"
+      },
+      {
+        "text": "### Berechne den Mittelwert aus Häufigkeiten\n\nDrei Servicefälle dauern je 4 Minuten, fünf Fälle je 6 Minuten und zwei Fälle je 10 Minuten. Wie groß ist die mittlere Bearbeitungsdauer? Gib den Wert in Minuten mit einer Dezimalstelle an.",
+        "type": "NUMERIC_ESTIMATE",
+        "timer": null,
+        "difficulty": "HARD",
+        "order": 3,
+        "answers": [],
+        "numericToleranceMode": "ABSOLUTE_INTERVAL",
+        "numericReferenceValue": 6.2,
+        "numericIntervalLeft": 6.15,
+        "numericIntervalRight": 6.25,
+        "numericInputType": "DECIMAL",
+        "numericDecimalPlaces": 1,
+        "numericMin": 4,
+        "numericMax": 10,
+        "numericTwoRounds": true,
+        "confidenceEnabled": true,
+        "confidenceLabelLow": "Sehr unsicher",
+        "confidenceLabelHigh": "Sehr sicher"
+      },
+      {
+        "text": "### Ordne Analyseziel und Diagramm zu\n\nWähle für jedes Analyseziel die passende Standarddarstellung.",
+        "type": "MATCHING",
+        "timer": null,
+        "difficulty": "HARD",
+        "order": 4,
+        "answers": [],
+        "matchingPairs": [
+          {
+            "leftId": "w02-match-categories",
+            "left": "Häufigkeiten nominaler Kontaktkanäle vergleichen",
+            "rightId": "w02-match-bar",
+            "right": "Balkendiagramm"
+          },
+          {
+            "leftId": "w02-match-distribution",
+            "left": "Form einer stetigen Servicezeitverteilung anhand von Klassenhäufigkeiten untersuchen",
+            "rightId": "w02-match-histogram",
+            "right": "Histogramm"
+          },
+          {
+            "leftId": "w02-match-relationship",
+            "left": "Zusammenhang zweier metrischer Merkmale prüfen",
+            "rightId": "w02-match-scatter",
+            "right": "Streudiagramm"
+          },
+          {
+            "leftId": "w02-match-summary",
+            "left": "Median, Quartile und mögliche Ausreißer zeigen",
+            "rightId": "w02-match-boxplot",
+            "right": "Boxplot"
+          },
+          {
+            "leftId": "w02-match-time",
+            "left": "Monatliche Kennzahl im Zeitverlauf darstellen",
+            "rightId": "w02-match-line",
+            "right": "Liniendiagramm"
+          }
+        ],
+        "matchingShuffleRight": true,
+        "confidenceEnabled": true,
+        "confidenceLabelLow": "Sehr unsicher",
+        "confidenceLabelHigh": "Sehr sicher"
+      },
+      {
+        "text": "### Ordne die Medianbestimmung mit fehlenden Angaben\n\nBringe die Arbeitsschritte in eine fachlich nachvollziehbare Reihenfolge.",
+        "type": "ORDERING",
+        "timer": null,
+        "difficulty": "HARD",
+        "order": 5,
+        "answers": [],
+        "orderingItems": [
+          {
+            "id": "w02-order-1",
+            "text": "Regel für gültige und fehlende Zeitangaben festlegen"
+          },
+          {
+            "id": "w02-order-2",
+            "text": "Fehlende oder ungültige Angaben kennzeichnen"
+          },
+          {
+            "id": "w02-order-3",
+            "text": "Gültige Zeitwerte aufsteigend sortieren und ihre Anzahl n festhalten"
+          },
+          {
+            "id": "w02-order-4",
+            "text": "Aus n die eine oder zwei mittleren Positionen bestimmen"
+          },
+          {
+            "id": "w02-order-5",
+            "text": "Wert an der mittleren Position ablesen oder das mittlere Wertepaar mitteln"
+          }
+        ],
+        "confidenceEnabled": true,
+        "confidenceLabelLow": "Sehr unsicher",
+        "confidenceLabelHigh": "Sehr sicher"
+      },
+      {
+        "text": "### Welche Darstellung passt zur Datenfrage?\n\nOrdne jede Datenfrage der geeigneten Darstellung zu. Wähle »andere Darstellung«, wenn weder Balkendiagramm noch Histogramm passt.",
+        "type": "CATEGORIZATION",
+        "timer": null,
+        "difficulty": "HARD",
+        "order": 6,
+        "answers": [],
+        "categories": [
+          {
+            "id": "w02-cat-bar",
+            "name": "Balkendiagramm"
+          },
+          {
+            "id": "w02-cat-histogram",
+            "name": "Histogramm"
+          },
+          {
+            "id": "w02-cat-other",
+            "name": "Andere Darstellung"
+          }
+        ],
+        "categorizationItems": [
+          {
+            "id": "w02-item-channel",
+            "text": "Anzahl der Tickets je Kontaktkanal",
+            "correctCategoryId": "w02-cat-bar"
+          },
+          {
+            "id": "w02-item-tariff",
+            "text": "Anteil der Verträge je Tarifkategorie",
+            "correctCategoryId": "w02-cat-bar"
+          },
+          {
+            "id": "w02-item-duration",
+            "text": "Verteilung der Bearbeitungsdauer in Zeitklassen",
+            "correctCategoryId": "w02-cat-histogram"
+          },
+          {
+            "id": "w02-item-order-value",
+            "text": "Verteilung metrischer Bestellwerte in Euroklassen",
+            "correctCategoryId": "w02-cat-histogram"
+          },
+          {
+            "id": "w02-item-relationship",
+            "text": "Zusammenhang zwischen Systemlast und Antwortzeit",
+            "correctCategoryId": "w02-cat-other"
+          },
+          {
+            "id": "w02-item-timeline",
+            "text": "Zeitpunkte einzelner Systemausfälle in ihrer Abfolge auf einer Zeitachse",
+            "correctCategoryId": "w02-cat-other"
+          }
+        ],
+        "categorizationShuffleItems": true,
+        "confidenceEnabled": true,
+        "confidenceLabelLow": "Sehr unsicher",
+        "confidenceLabelHigh": "Sehr sicher"
+      },
+      {
+        "text": "### Welche Informationen fehlen für eine faire Grafik?\n\nEin Balkendiagramm zeigt für zwei Filialen 82 % und 88 %. Die y-Achse beginnt bei 80 %; Fallzahlen und Definition eines gültigen Falls fehlen. Formuliere zwei konkrete Prüfhinweise für die Interpretation.",
+        "type": "FREETEXT",
+        "timer": null,
+        "difficulty": "MEDIUM",
+        "order": 7,
+        "answers": []
+      },
+      {
+        "text": "### Prüfung einer Kennzahlenfolie priorisieren\n\nEine Kennzahlenfolie nennt 62,5 % Zustimmung unter 56 gültigen Angaben, zeigt zwei Filialwerte auf einer bei 80 % beginnenden y-Achse und fasst Bearbeitungszeiten mit einem einzelnen Extremwert zusammen. Welche Prüfung sollte die Lerngruppe zuerst vertiefen? Die Abstimmung priorisiert die Nachbesprechung; es gibt keine Musterlösung.",
+        "type": "SURVEY",
+        "timer": null,
+        "difficulty": "MEDIUM",
+        "order": 8,
+        "answers": [
+          {
+            "text": "Den Nenner der Prozentangabe transparent begründen",
+            "isCorrect": false
+          },
+          {
+            "text": "Die verkürzte y-Achse und die Fallzahlen transparent prüfen",
+            "isCorrect": false
+          },
+          {
+            "text": "Den Diagrammtyp aus Merkmal und Analyseziel transparent begründen",
+            "isCorrect": false
+          },
+          {
+            "text": "Den robusten Lagewert trotz des Extremwerts transparent begründen",
             "isCorrect": false
           }
         ]
+      },
+      {
+        "text": "### Wie sicher kannst du Kennzahlen kritisch auswählen?\n\nBewerte, wie sicher du bei einem neuen Datensatz Nenner, Diagrammtyp und robusten Lagewert begründet auswählen kannst.",
+        "type": "RATING",
+        "timer": null,
+        "difficulty": "MEDIUM",
+        "order": 9,
+        "answers": [],
+        "ratingMin": 1,
+        "ratingMax": 5,
+        "ratingLabelMin": "Noch nicht ohne Hilfe",
+        "ratingLabelMax": "Sicher ohne Hilfe"
       }
     ]
   }

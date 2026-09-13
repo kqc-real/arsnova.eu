@@ -1,9 +1,11 @@
 # P0-03 – Isomorphe Transfermatrix BWL/Management und WI/Informatik
 
-**Version:** 1.0.0 · **Stand:** 13.09.2026<br>
+**Kürzel vorab:** **BWL/WI** steht für Betriebswirtschaftslehre/Wirtschaftsinformatik, **MZ1–MZ7** für die Modulziele, **W01–W10** für die Kurswochen, **MC** für Multiple Choice, **LIVE/LEHRDATEN** für Kursdaten beziehungsweise synthetische Übungsdaten sowie **IR/QE** für Item-Redaktion und Qualitäts-/Evaluationsverantwortung.
+
+**Version:** 1.0.1 · **Stand:** 13.09.2026<br>
 **Status:** verbindliche Parallelaufgabenbank für den Pflichtkern
 
-**Bezugsdokumente:** [Kerncurriculum](./P0-01_Kerncurriculum_Lernzielmatrix.md) · [Hauptkonzept](./Modulkonzept_48UE_BWL_Management_WI_Informatik_v4_Repoabgleich.md) · [Formelsammlung](./P0-03_Formelsammlung_Statistik.md)
+**Bezugsdokumente:** [Kerncurriculum](./P0-01_Kerncurriculum_Lernzielmatrix.md) · [Hauptkonzept](./Modulkonzept_48UE_BWL_Management_WI_Informatik.md) · [Formelsammlung](./P0-03_Formelsammlung_Statistik.md)
 
 ## 1. Zweck und Konstruktionsregel
 
@@ -18,7 +20,7 @@ Die sieben Aufgabenpaare sichern gleichwertigen Transfer für BWL/Management sow
 
 Nur Gegenstand, Variablennamen und sachliche Einheit wechseln. Domänenwissen wird vollständig im Aufgabenstamm bereitgestellt und nicht bewertet.
 
-Die Varianten erhalten stabile Kennungen `P0-03-TR-MZ1-BWL` bis `P0-03-TR-MZ7-WI`. Sie sind **LEHRDATEN-Aufgaben**, keine LIVE- oder Produktionsbefunde. Die Aufgabenbank erweitert weder die 300 MC-Test-Items noch die 50 ARSnova-Livefragen. Soll eine Variante eine kanonische JSON-Frage ersetzen, gelten weiterhin Anzahl, Schema, Blueprint, Vertiefungsgate und vollständige Neuvalidierung.
+Die Varianten erhalten stabile Kennungen `P0-03-TR-MZ1-BWL` bis `P0-03-TR-MZ7-WI`. Sie sind **LEHRDATEN-Aufgaben**, keine LIVE- oder Produktionsbefunde. Die Aufgabenbank erweitert weder die 300 MC-Test-Items noch die 100 ARSnova-Livefragen. Soll eine Variante eine kanonische JSON-Frage ersetzen, gelten weiterhin Anzahl, Schema, Blueprint, Typabdeckung und vollständige Neuvalidierung.
 
 ## 2. Einsatzmatrix
 

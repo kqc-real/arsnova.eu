@@ -1,5 +1,7 @@
 # P0-03: JASP-Analyseleitfaden
 
+**Kürzel vorab:** **JASP** bezeichnet die frei verfügbare Analysesoftware, **CSV** das verwendete Tabellenformat, **LEHRDATEN** synthetische Kursdaten, **S1–S6** die Fallstudienstränge und **`source_ref`** die eindeutige Quellenkennung eines Datensatzes. Das Suffix **V1** bezeichnet hier die Version einer Lehrdatendatei, nicht die curriculare Vertiefung V1.
+
 ## 1. Zweck und verbindlicher Status
 
 Dieser Leitfaden beschreibt reproduzierbare Analysen für die sieben P0-03-CSV-Dateien. Sämtliche Zeilen sind **synthetische LEHRDATEN ohne Personenbezug**. Ergebnisse beschreiben nur die jeweilige konstruierte Tabelle. Herkunft, Spalten, Rundung und zulässige Aussagen stehen in `P0-03_Datenwoerterbuch_Provenienz.md`.
@@ -12,11 +14,14 @@ Für diese Fassung ist **JASP 0.98.1** als Semester-Version festgelegt. Die Vers
 
 Vor dem ersten Lehrtermin gelten folgende reproduzierbare Rahmenbedingungen:
 
-1. Auf allen Lehrgeräten wird exakt JASP 0.98.1 eingesetzt.
-2. Automatische Versionswechsel werden für die Lehrphase vermieden. Ein Versionswechsel während des Semesters erfordert einen erneuten Import- und Klickpfadtest sowie eine neue Materialversion.
-3. Die optionale JASP-KI-Funktion bleibt für diese Analysen deaktiviert; sie ist weder für Berechnung noch Interpretation Bestandteil des Analyseplans.
-4. Im Ergebnisprotokoll werden JASP-Version, Betriebssystem, CSV-Dateiname, `source_ref`, Analysepfad und Ausschlüsse festgehalten. Für die V1-Dateien lautet der Ausschluss: keine Zeile.
-5. Die Zahl der Dezimalstellen in JASP wird für Tabellen auf drei gesetzt. Die CSV-Grundwerte und die auf sechs Stellen gespeicherten abgeleiteten Felder bleiben unverändert.
+1. Es gibt keine institutionell bereitgestellte JASP-Analyseumgebung. JASP 0.98.1 wird kostenlos von der [offiziellen Downloadseite](https://jasp-stats.org/download/) auf kompatiblen privaten Laptops oder Desktop-Rechnern installiert.
+2. Auf dem Lehrgerät und allen für interaktive Analysen eingesetzten Geräten wird exakt JASP 0.98.1 verwendet.
+3. Studierende ohne kompatibles Gerät arbeiten gleichwertig in Partner-/Kleingruppen, verfolgen die Lehrdemonstration und verwenden vorbereitete HTML-/PDF-Auszüge sowie lineare Tabellenfassungen. Die individuelle Softwarebedienung wird nicht geprüft.
+4. Studierende erhalten ausschließlich LEHRDATEN oder freigegebene anonyme Aggregate; schutzbedürftige LIVE-Arbeitsdateien verbleiben im lokalen Arbeitsbereich der Lehrdurchführung.
+5. Automatische Versionswechsel werden für die Lehrphase vermieden. Ein Versionswechsel während des Semesters erfordert einen erneuten Import- und Klickpfadtest sowie eine neue Materialversion.
+6. Die optionale JASP-KI-Funktion bleibt für diese Analysen deaktiviert; sie ist weder für Berechnung noch Interpretation Bestandteil des Analyseplans.
+7. Im Ergebnisprotokoll werden JASP-Version, Betriebssystem, CSV-Dateiname, `source_ref`, Analysepfad und Ausschlüsse festgehalten. Für die V1-Dateien lautet der Ausschluss: keine Zeile.
+8. Die Zahl der Dezimalstellen in JASP wird für Tabellen auf drei gesetzt. Die CSV-Grundwerte und die auf sechs Stellen gespeicherten abgeleiteten Felder bleiben unverändert.
 
 Die Menünamen dieses Leitfadens folgen der englischen Oberfläche von JASP 0.98.1. Bei einer lokalisierten Oberfläche ist der inhaltlich gleich benannte Menüpunkt zu verwenden; die Semester-Version bleibt trotzdem unverändert.
 
@@ -215,7 +220,7 @@ Eine Rangfolge nach Zustimmung, Wilson-Untergrenze oder Kontroversität beantwor
 
 Die Ergebnisdatei wird nicht als Beleg realer arsnova.eu-Nutzung, Produktionsleistung oder Modellqualität bezeichnet. Der sichtbare Hinweis **LEHRDATEN** bleibt in Titel oder Befund erhalten.
 
-Vor dem Pilotstart wird mindestens ein Export je verpflichtender Analyseklasse
+Vor dem ersten Kurseinsatz wird mindestens ein Export je verpflichtender Analyseklasse
 gegen die [Material- und A11y-Matrix](./P0-03_Barrierefreiheit_Material_und_Probe.md)
 geprüft. Der JASP-Export allein gilt nicht als barrierefreie Alternative, wenn
 Grafik, Sternsymbol, Farbe oder räumliche Tabellenlage für die Lösung
