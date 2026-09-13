@@ -4,6 +4,8 @@
 
 Dieses Dokument setzt den P0-Befund zum Stoffumfang für das Modul **Angewandte Statistik für Wirtschaft, Management und Informatik** um. Es operationalisiert das [Hauptkonzept](./Modulkonzept_48UE_BWL_Management_WI_Informatik_v4_Repoabgleich.md), indem es den verbindlichen Pflichtkern begrenzt, sieben übergeordnete Modulziele festlegt und die bisherigen 24 Detailziele ohne inhaltliche Lücke als beobachtbare Leistungsindikatoren weiterführt.
 
+Eine motivierende, unmittelbar verteilbare Orientierung bietet die [Modulbeschreibung für Studierende](./P0-03_Modulbeschreibung_Studierende.md).
+
 Der Rahmen ist verbindlich:
 
 - **Umfang:** 48 Präsenz-UE à 45 Minuten in zehn Wochen, entsprechend 36 Präsenzstunden;

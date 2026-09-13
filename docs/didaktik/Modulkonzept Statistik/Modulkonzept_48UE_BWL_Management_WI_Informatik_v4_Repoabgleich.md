@@ -17,6 +17,7 @@ Für Freigabe, Durchführung, Datenverarbeitung und Prüfung des P0-Piloten sind
 - [P0-01: Kerncurriculum und Lernzielmatrix](./P0-01_Kerncurriculum_Lernzielmatrix.md) – Pflichtkern, MZ1–MZ7, LI01–LI24 und Vertiefungsgates;
 - [P0-02: Datenmanagement- und Exportplan](./P0-02_Datenmanagement_Exportplan.md) – Datenwege, Schutzstatus, Freigaben und verbindliche Fristen;
 - [P0-03: Materialpaket Pilotlauf](./P0-03_Materialpaket_Pilotlauf.md) – kanonischer Index und Release-Gates;
+- [Modulbeschreibung für Studierende](./P0-03_Modulbeschreibung_Studierende.md) – motivierender Einstieg, Bedeutung für Studium und Beruf sowie die Rollen von ARSnova.eu, MC-Test, JASP und ARSnova.eu-Repository aus Lernendensicht;
 - [Formelsammlung Statistik](./P0-03_Formelsammlung_Statistik.md) und [JASP-Analyseleitfaden](./P0-03_JASP_Analyseleitfaden.md) – prüfungsidentische Konventionen und reproduzierbare Analysen in JASP 0.98.1;
 - [Lehrenden-Runbook](./P0-03_Lehrenden_Runbook.md) – Wochenbetrieb, Exporte, Löschhandoff und Offline-Fallback;
 - [Mathematikdiagnostik mit Brückenpfaden](./P0-03_Mathematikdiagnostik_Brueckenpfade.md), [isomorphe BWL-/WI-Transfermatrix](./P0-03_Transfermatrix_BWL_WI.md) und [Material-/A11y-Probe](./P0-03_Barrierefreiheit_Material_und_Probe.md) – mathematischer Zugang, gleichwertiger Domänentransfer und barrierearme Alternativen;

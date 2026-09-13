@@ -1,6 +1,6 @@
 # P0-03 – QA- und Freigabeprotokoll
 
-**Version:** 2.0.0 · **Stand:** 13.09.2026<br>
+**Version:** 2.1.0 · **Stand:** 13.09.2026<br>
 **Status:** statische Paketprüfung bestanden; operative Pilotfreigabe offen
 
 **Bezugsdokumente:** [Materialpaket Pilotlauf](./P0-03_Materialpaket_Pilotlauf.md) · [Lehrenden-Runbook](./P0-03_Lehrenden_Runbook.md) · [Datenmanagement- und Exportplan](./P0-02_Datenmanagement_Exportplan.md)
@@ -17,6 +17,7 @@ Der dokumentierte Stand enthält ausschließlich Markdown, JSON und synthetische
 - 10 ARSnova-Livequiz-Dateien mit insgesamt 50 Fragen,
 - 7 synthetische CSV-Dateien mit `source_kind=LEHRDATEN`,
 - Kerncurriculum, Datenmanagementplan, Materialindex, Runbook, zwei Blueprints,
+- direkt verteilbare Modulbeschreibung für Studierende,
 - Datenwörterbuch, JASP-Leitfaden, Formelsammlung,
 - Statistikbefund-Vorlage mit Rubrik sowie Probeklausur und Musterlösung,
 - Mathematikdiagnostik mit sechs Brückenpfaden,
@@ -27,23 +28,24 @@ Die Prüfsummen in Abschnitt 5 beziehen sich ausschließlich auf die 27 maschine
 
 ## 3. Abgeschlossene statische Prüfungen
 
-| Prüfung                                   | Ergebnis                                                                                                                                                                                          | Status    |
-| ----------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------- |
-| Shared-Types-Build                        | `npm run build -w @arsnova/shared-types` endet mit Exit-Code 0.                                                                                                                                   | bestanden |
-| ARSnova-Vertrag                           | Alle 10 Dateien bestehen `QuizImportSchema`; insgesamt 50 Fragen und je Woche 4–6 Fragen.                                                                                                         | bestanden |
-| Strenger MC-Paketvertrag                  | 10 Dateien, 300 paketweit eindeutige Fragen, exakte Feldmengen, identische Zielgruppenangabe, 30 Fragen je Woche, `8/16/6`-Gewichtsprofil, zulässige kognitive Stufen und 2–4 Glossareinträge.    | bestanden |
-| Fixierter MC-Test-Validator               | Commit `b6b159555e8a228dad73dd75fd66c154a1088e28`: Exit-Code 0, keine Fehler, 10 thematische Warnungen; Bewertung siehe Abschnitt 3.1.                                                            | bestanden |
-| Lehrdaten und Sollwerte                   | 7 CSV-Dateien: Provenienzfelder, Vollständigkeit, Ableitungen und dokumentierte Kontrollwerte einschließlich t-Wert, Wilson-Untergrenze, Regression und Metriken reproduziert.                    | bestanden |
-| Lokale Dokumentverweise                   | Alle geprüften relativen Markdown-Ziele existieren.                                                                                                                                               | bestanden |
-| Prettier und Whitespace                   | Markdown/JSON entsprechen Prettier; `git diff --check` meldet keine Whitespacefehler.                                                                                                             | bestanden |
-| Personenbezug der versionierten Lehrdaten | Alle CSV-Zeilen sind als `LEHRDATEN` gekennzeichnet; die Dateien enthalten keine LIVE- oder Personendaten.                                                                                        | bestanden |
-| Verfahrensscope                           | MZ4/LI16, Formelsammlung, Wochenplan, JASP-Pfad und Probeklausur begrenzen Hypothesentests im Pflichtkern auf den gepaarten \(t\)-Test; unabhängige Anteils-/Mittelwertfragen nutzen Intervalle.  | bestanden |
-| Prüfungsalignment                         | 60 Punkte sind exakt als `12/9/9/9/9/9/3` den sieben Klausurbereichen zugeordnet; MZ7 erhält ohne Doppelzählung 3 Punkte.                                                                         | bestanden |
-| Lehrfall-Provenienz                       | Eigene `source_ref` trennen die Probeklausur-Lehrfälle von sieben CSVs sowie W09- und W10-Train/Test-Beispielen.                                                                                  | bestanden |
-| Mathematikzugang                          | 12 Diagnosepunkte decken sechs Voraussetzungen ab; jeder Block besitzt Worked Example, Übung, Wiederholungscheck und datensparsamen Förderweg. Bearbeitung erfolgt vor UE 1 im W01-Selbststudium. | bestanden |
-| Fallstudien-Timing                        | Auswahlfähige Stränge S1/S5/S6, verbindliche Wahl W03, Analyseplan W06, vollständiger Entwurf W09 und minutenbudgetierte Revision W10 sind synchron dokumentiert.                                 | bestanden |
-| Isomorpher Transfer                       | Für MZ1–MZ7 liegen sieben Aufgabenpaare mit gleichen Zahlen, Handlungen, Schwierigkeit, Punktwerten und Erwartungshorizonten vor.                                                                 | bestanden |
-| A11y-Materialvertrag                      | Alle Materialklassen besitzen definierte gleichwertige Alternativen und zehn operative Prüfschritte; deren praktische Abnahme bleibt Abschnitt 4 vorbehalten.                                     | bestanden |
+| Prüfung                                   | Ergebnis                                                                                                                                                                                                                                                       | Status    |
+| ----------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------- |
+| Shared-Types-Build                        | `npm run build -w @arsnova/shared-types` endet mit Exit-Code 0.                                                                                                                                                                                                | bestanden |
+| ARSnova-Vertrag                           | Alle 10 Dateien bestehen `QuizImportSchema`; insgesamt 50 Fragen und je Woche 4–6 Fragen.                                                                                                                                                                      | bestanden |
+| Strenger MC-Paketvertrag                  | 10 Dateien, 300 paketweit eindeutige Fragen, exakte Feldmengen, identische Zielgruppenangabe, 30 Fragen je Woche, `8/16/6`-Gewichtsprofil, zulässige kognitive Stufen und 2–4 Glossareinträge.                                                                 | bestanden |
+| Fixierter MC-Test-Validator               | Commit `b6b159555e8a228dad73dd75fd66c154a1088e28`: Exit-Code 0, keine Fehler, 10 thematische Warnungen; Bewertung siehe Abschnitt 3.1.                                                                                                                         | bestanden |
+| Lehrdaten und Sollwerte                   | 7 CSV-Dateien: Provenienzfelder, Vollständigkeit, Ableitungen und dokumentierte Kontrollwerte einschließlich t-Wert, Wilson-Untergrenze, Regression und Metriken reproduziert.                                                                                 | bestanden |
+| Lokale Dokumentverweise                   | Alle geprüften relativen Markdown-Ziele existieren.                                                                                                                                                                                                            | bestanden |
+| Prettier und Whitespace                   | Markdown/JSON entsprechen Prettier; `git diff --check` meldet keine Whitespacefehler.                                                                                                                                                                          | bestanden |
+| Personenbezug der versionierten Lehrdaten | Alle CSV-Zeilen sind als `LEHRDATEN` gekennzeichnet; die Dateien enthalten keine LIVE- oder Personendaten.                                                                                                                                                     | bestanden |
+| Verfahrensscope                           | MZ4/LI16, Formelsammlung, Wochenplan, JASP-Pfad und Probeklausur begrenzen Hypothesentests im Pflichtkern auf den gepaarten \(t\)-Test; unabhängige Anteils-/Mittelwertfragen nutzen Intervalle.                                                               | bestanden |
+| Prüfungsalignment                         | 60 Punkte sind exakt als `12/9/9/9/9/9/3` den sieben Klausurbereichen zugeordnet; MZ7 erhält ohne Doppelzählung 3 Punkte.                                                                                                                                      | bestanden |
+| Lehrfall-Provenienz                       | Eigene `source_ref` trennen die Probeklausur-Lehrfälle von sieben CSVs sowie W09- und W10-Train/Test-Beispielen.                                                                                                                                               | bestanden |
+| Mathematikzugang                          | 12 Diagnosepunkte decken sechs Voraussetzungen ab; jeder Block besitzt Worked Example, Übung, Wiederholungscheck und datensparsamen Förderweg. Bearbeitung erfolgt vor UE 1 im W01-Selbststudium.                                                              | bestanden |
+| Fallstudien-Timing                        | Auswahlfähige Stränge S1/S5/S6, verbindliche Wahl W03, Analyseplan W06, vollständiger Entwurf W09 und minutenbudgetierte Revision W10 sind synchron dokumentiert.                                                                                              | bestanden |
+| Isomorpher Transfer                       | Für MZ1–MZ7 liegen sieben Aufgabenpaare mit gleichen Zahlen, Handlungen, Schwierigkeit, Punktwerten und Erwartungshorizonten vor.                                                                                                                              | bestanden |
+| A11y-Materialvertrag                      | Alle Materialklassen besitzen definierte gleichwertige Alternativen und zehn operative Prüfschritte; deren praktische Abnahme bleibt Abschnitt 4 vorbehalten.                                                                                                  | bestanden |
+| Studierendeninformation                   | Umfang, Voraussetzungen, sieben Ziele, Lernrhythmus sowie Bedeutung und Tablet-/Laptop-Nutzung von ARSnova.eu, MC-Test, JASP und Repository stimmen einschließlich Freiwilligkeit, Datenverwendung, Prüfung und Zugangswegen mit den Bezugsdokumenten überein. | bestanden |
 
 Die statistischen Kontrollwerte wurden unabhängig aus den CSV-Grundwerten nachgerechnet. Eine tatsächliche Reproduktion in JASP ist davon getrennt und bleibt gemäß Abschnitt 4 offen.
 
