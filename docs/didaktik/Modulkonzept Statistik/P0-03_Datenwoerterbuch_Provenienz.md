@@ -10,6 +10,24 @@ Alle sieben Tabellen sind **synthetische LEHRDATEN**. Sie wurden deterministisch
 
 Die IDs sind feste technische Zeilen- oder Fallbezeichner. Sie identifizieren keine Menschen und dürfen nicht dateiübergreifend als Personenkennung interpretiert werden. `source_kind` hat deshalb in jeder Zeile den Wert `LEHRDATEN`; `source_ref` bezeichnet die stabile Konstruktionsversion der jeweiligen Tabelle.
 
+### 1.1 Abgrenzung der Probeklausur-Lehrfälle
+
+Die folgenden konstruierten `source_ref` stehen ausschließlich im Aufgabenstamm der Probeklausur und sind **keine** Zeilen oder Ableitungen der sieben CSV-Dateien:
+
+| `source_ref`                          | Gegenstand                                     |
+| ------------------------------------- | ---------------------------------------------- |
+| `P0-03-PROBEKLAUSUR-A1-OPTIONEN-V1`   | nominale 48-Antworten-Tabelle                  |
+| `P0-03-PROBEKLAUSUR-A1-SCHAETZUNG-V1` | fünf numerische Schätzwerte                    |
+| `P0-03-PROBEKLAUSUR-A2-TAFEL-V1`      | 100-Fälle-Kontingenztafel                      |
+| `P0-03-PROBEKLAUSUR-A3-WILSON-V1`     | 37/52-Anteilsfall mit Wilson-Leseintervall     |
+| `P0-03-PROBEKLAUSUR-A3-MITTELWERT-V1` | unabhängiger Mittelwert-Lehrfall               |
+| `P0-03-PROBEKLAUSUR-A4-PAARE-V1`      | zehn gepaarte Fehlerwerte als JASP-Auszug      |
+| `P0-03-PROBEKLAUSUR-A5-REGRESSION-V1` | zwölf synthetische Regressionsläufe            |
+| `P0-03-PROBEKLAUSUR-A6-MATRIX-V1`     | binäre 100-Fälle-Testmatrix                    |
+| `P0-03-PROBEKLAUSUR-A6-TRAINTEST-V1`  | eigenständiger 98-%-/87-%-Train/Test-Vergleich |
+
+Insbesondere sind A5 nicht die 16 Zeilen aus `P0-03-S5-LAST-LATENZ-V1`, A6-Matrix nicht die 80 Zeilen aus `P0-03-S6-KLASSIFIKATION-V1` und A6-Train/Test nicht das W09-Zahlenbeispiel 98 %/71 %. Gleiche oder ähnliche Kennwerte begründen keine gemeinsame Datenquelle.
+
 ## 2. Gemeinsame CSV- und Rundungskonventionen
 
 - Zeichencodierung: UTF-8.

@@ -39,15 +39,21 @@ Befund.
 
 ### Identifikation der Abgabe
 
-| Angabe                 | Eintrag |
-| ---------------------- | ------- |
-| Kurztitel des Befunds  |         |
-| Kurs und Semester      |         |
-| Gruppenkennung         |         |
-| Abgabedatum            |         |
-| Datenstand/Version     |         |
-| JASP-Version           |         |
-| Name der `.jasp`-Datei |         |
+| Angabe                       | Eintrag            |
+| ---------------------------- | ------------------ |
+| Kurztitel des Befunds        |                    |
+| Kurs und Semester            |                    |
+| Gruppenkennung               |                    |
+| gewählter Abschlussstrang    | S1 / S5 / S6       |
+| verbindliche Strangwahl seit | W03                |
+| Variablenkatalog V1 geprüft  | W01: ja / offen    |
+| Analyseplan V1 dokumentiert  | W06: Datum/Version |
+| vollständiger Befundentwurf  | W09: Datum/Version |
+| Abgabedatum                  |                    |
+| Datenstand/Version           |                    |
+| `source_ref` der Kerndaten   |                    |
+| JASP-Version                 |                    |
+| Name der `.jasp`-Datei       |                    |
 
 ### Gruppen- und Individualzuordnung
 

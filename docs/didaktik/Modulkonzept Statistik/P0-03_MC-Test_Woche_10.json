@@ -367,7 +367,7 @@
       }
     },
     {
-      "question": "19. Ein Modell erreicht 98 % Trainings-Accuracy und 87 % Test-Accuracy. Welche Interpretation ist angemessen?",
+      "question": "19. Im eigenständigen konstruierten Lehrfall P0-03-PROBEKLAUSUR-A6-TRAINTEST-V1 erreicht ein Modell 98 % Trainings-Accuracy und 87 % Test-Accuracy. Welche Interpretation ist angemessen?",
       "options": [
         "Die Testleistung ist um 11 % relativ gesunken und beweist falsche Testlabels.",
         "Der Abstand beträgt 11 Prozentpunkte und ist mit Overfitting vereinbar; Stichprobenschwankung oder Domain Shift bleiben mögliche Erklärungen.",
@@ -375,7 +375,7 @@
         "Trainings- und Testleistung müssen bei einem gültigen Modell identisch sein."
       ],
       "answer": 1,
-      "explanation": "98 % − 87 % ergeben 11 Prozentpunkte. Ein solcher Abstand kann Overfitting anzeigen, ist allein aber kein eindeutiger Beweis, weil sich auch Stichprobe oder Datenverteilung unterscheiden können.",
+      "explanation": "98 % − 87 % ergeben 11 Prozentpunkte. Ein solcher Abstand kann Overfitting anzeigen, ist allein aber kein eindeutiger Beweis, weil sich auch Stichprobe oder Datenverteilung unterscheiden können. Der Lehrfall ist von der separaten W09-Demonstration mit 98 %/71 % und der Klassifikationsmatrix der Probeklausur zu unterscheiden.",
       "weight": 2,
       "topic": "Korrelation und Regression",
       "concept": "Train/Test-Abstand mit Alternativerklärungen",

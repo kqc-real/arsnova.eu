@@ -1,5 +1,6 @@
 # Probeklausur – Angewandte Statistik
 
+- **Version:** 2.0.0 · **Stand:** 13.09.2026
 - **Bearbeitungszeit:** 90 Minuten
 - **Gesamtpunktzahl:** 60 Punkte
 - **Hilfsmittel:** offizielle Formelsammlung und nicht programmierbarer
@@ -26,6 +27,10 @@
    Wilson-Intervall gelesen. Es wird nicht mit der Wald-Formel nachgerechnet.
 8. Kritische \(z\)- und \(t\)-Werte stehen jeweils in der Aufgabe, sofern sie
    benötigt werden.
+9. Eine inhaltlich und zeitlich gleichwertige barrierearme Fassung wird nach
+   der [Material- und A11y-Matrix](./P0-03_Barrierefreiheit_Material_und_Probe.md)
+   bereitgestellt. JASP-Tabellen müssen ohne Farbcodierung und ohne eine nur
+   grafisch erkennbare Information lösbar sein.
 
 ## Verbindliche Punkte- und Minutenplanung
 
@@ -40,6 +45,27 @@
 |         | **Gesamt**                                   |                                                  | **60** | **90 Min.** |
 
 Die Richtzeiten umfassen das Lesen der jeweiligen Ausgabe.
+
+## Verbindliches Curriculum-Mapping
+
+Die 60 Punkte setzen die Richtwerte aus P0-01 exakt um. Punkte werden auch bei
+querschnittlichen Kompetenzen nur einmal gezählt:
+
+| Klausurbereich                                  | Zugeordnete Teilaufgaben          | Punkte |    Anteil |
+| ----------------------------------------------- | --------------------------------- | -----: | --------: |
+| Daten, Visualisierung und deskriptive Statistik | Aufgabe 1                         |     12 |      20 % |
+| Wahrscheinlichkeit und Verteilungen             | Aufgabe 2                         |      9 |      15 % |
+| Stichproben und Konfidenzintervalle             | Aufgabe 3                         |      9 |      15 % |
+| Hypothesentests                                 | Aufgabe 4                         |      9 |      15 % |
+| Korrelation und Regression                      | Aufgabe 5                         |      9 |      15 % |
+| Train/Test und binäre ML-Evaluation             | 6a–6c sowie Diagnoseanteil von 6d |      9 |      15 % |
+| integrierte Datenkritik und Kommunikation       | Grenzanteil von 6d sowie 6e       |      3 |       5 % |
+| **Gesamt**                                      |                                   | **60** | **100 %** |
+
+In 6d entfällt ein Punkt auf die fachliche Diagnose und ein Punkt auf deren
+konkrete Aussagegrenze. Aufgabe 6e vergibt zwei weitere MZ7-Punkte. Diese
+individuelle Klausurevidenz ist vom formativen Gruppen-Statistikbefund
+getrennt.
 
 ---
 
@@ -59,6 +85,8 @@ konnte genau eine Option wählen.
 | Anzahl |  12 |  24 |   8 |   4 |    48 |
 
 ### ARSnova-Auszug B: numerische Schätzfrage (LEHRDATEN)
+
+**source_ref:** `P0-03-PROBEKLAUSUR-A1-SCHAETZUNG-V1`
 
 Die fünf Schätzwerte in Sekunden lauten:
 
@@ -108,6 +136,8 @@ Formulieren Sie keine Aussage, die für jeden Einzelwert gelten müsste.
 **9 Punkte · 14 Minuten**
 
 ### MC-Test-Diagnoseauszug (LEHRDATEN)
+
+**source_ref:** `P0-03-PROBEKLAUSUR-A2-TAFEL-V1`
 
 Für 100 anonymisierte Einzelantworten wurde festgehalten:
 
@@ -165,6 +195,8 @@ Daten folgendes Leseintervall bereitgestellt:
 
 ### Auszug B: JASP Descriptives (LEHRDATEN)
 
+**source_ref:** `P0-03-PROBEKLAUSUR-A3-MITTELWERT-V1`
+
 Die Variable `service_time_s` enthält unabhängige Servicezeiten in Sekunden.
 
 | Variable         | Valid \(n\) |    Mean | Std. Deviation \(s\) |
@@ -211,6 +243,9 @@ Servicezeit. Interpretieren Sie es in einem Satz.
 Zehn Personen schätzten vor und nach einer Peer-Diskussion denselben
 Referenzwert in Sekunden. Für jede Person wurde der absolute Schätzfehler in
 Sekunden berechnet.
+
+**source_ref:** `P0-03-PROBEKLAUSUR-A4-PAARE-V1`
+
 Definiert ist
 
 $$
@@ -267,6 +302,8 @@ Zwölf ausdrücklich synthetische Lastläufe bilden **LEHRDATEN**. \(x\) ist die
 Zahl gleichzeitiger Nutzungen, \(y\) die Medianlatenz in Millisekunden. Der
 beobachtete Bereich von \(x\) reicht von 100 bis 500.
 
+**source_ref:** `P0-03-PROBEKLAUSUR-A5-REGRESSION-V1`
+
 ### JASP-Auszug
 
 **Pearson's Correlations**
@@ -322,6 +359,8 @@ Ein binäres Modell ordnet synthetische neue Testfälle der Zielklasse
 
 ### JASP-Auszug: Confusion Matrix, Testdaten (LEHRDATEN)
 
+**source_ref:** `P0-03-PROBEKLAUSUR-A6-MATRIX-V1`
+
 | tatsächliche Klasse | vorhergesagt: Technik | vorhergesagt: Nicht-Technik |   Summe |
 | ------------------- | --------------------: | --------------------------: | ------: |
 | Technik             |                    36 |                           4 |      40 |
@@ -330,10 +369,16 @@ Ein binäres Modell ordnet synthetische neue Testfälle der Zielklasse
 
 ### MC-Test-Transferauszug
 
+**source_ref:** `P0-03-PROBEKLAUSUR-A6-TRAINTEST-V1`
+
 | Auswertung     | Accuracy |
 | -------------- | -------: |
 | Trainingsdaten |     0,98 |
 | neue Testdaten |     0,87 |
+
+Der Train/Test-Auszug ist ein eigener konstruierter Lehrfall. Seine
+Test-Accuracy darf nicht aus der darüberstehenden 100-Fälle-Matrix hergeleitet
+oder mit dem W09-Beispiel 98 %/71 % gleichgesetzt werden.
 
 ### Teilaufgaben
 

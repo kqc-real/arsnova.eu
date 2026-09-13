@@ -208,6 +208,15 @@ Eine Rangfolge nach Zustimmung, Wilson-Untergrenze oder Kontroversität beantwor
    - Beobachtungszahl und fehlende Werte;
    - gewählte Variablen, Variablenreihenfolge und Skalenniveaus;
    - Kennwert oder Test mit Einheit und Rundung;
-   - eine zulässige Interpretation und mindestens eine Grenze.
+   - eine zulässige Interpretation und mindestens eine Grenze;
+   - für jede verwendete Grafik eine textliche Kernaussage und für jede
+     aufgabenrelevante Tabelle eine lineare, ohne Farbe verständliche
+     Textfassung der benötigten Zellen.
 
 Die Ergebnisdatei wird nicht als Beleg realer arsnova.eu-Nutzung, Produktionsleistung oder Modellqualität bezeichnet. Der sichtbare Hinweis **LEHRDATEN** bleibt in Titel oder Befund erhalten.
+
+Vor dem Pilotstart wird mindestens ein Export je verpflichtender Analyseklasse
+gegen die [Material- und A11y-Matrix](./P0-03_Barrierefreiheit_Material_und_Probe.md)
+geprüft. Der JASP-Export allein gilt nicht als barrierefreie Alternative, wenn
+Grafik, Sternsymbol, Farbe oder räumliche Tabellenlage für die Lösung
+unverzichtbar bleibt.

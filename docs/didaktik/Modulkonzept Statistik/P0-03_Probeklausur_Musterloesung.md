@@ -1,5 +1,6 @@
 # Musterlösung zur Probeklausur – Angewandte Statistik
 
+- **Version:** 2.0.0 · **Stand:** 13.09.2026
 - **Gesamt:** 60 Punkte
 - **Bezugsdokument:** `P0-03_Probeklausur_90_Minuten.md`
 
@@ -29,6 +30,18 @@
 |       5 |   2 |   2 |   3 |   2 |          – |      9 |
 |       6 |   2 |   4 |   2 |   2 |          2 |     12 |
 |         |     |     |     |     | **Gesamt** | **60** |
+
+## Curriculum-Mapping und Doppelzählungsverbot
+
+Aufgaben 1 bis 5 bilden in dieser Reihenfolge die ersten fünf Klausurbereiche
+mit `12/9/9/9/9` Punkten ab. In Aufgabe 6 zählen 6a, 6b, 6c und der
+Diagnosepunkt aus 6d mit insgesamt 9 Punkten zu Train/Test und binärer
+ML-Evaluation. Der Grenzpunkt aus 6d sowie beide Punkte aus 6e bilden exakt
+3 Punkte beziehungsweise 5 % für MZ7 Datenkritik und Kommunikation.
+
+Eine fachlich gute Formulierung kann mehrere Kompetenzen zeigen, erhält aber
+nur die im Erwartungshorizont ausgewiesenen Punkte. Der formative
+Gruppen-Statistikbefund ist keine zusätzliche summative Evidenz.
 
 ---
 
@@ -565,6 +578,11 @@ vorrangige Fehlkostenperspektive.
 
 ### d) Training gegenüber Test – 2 Punkte
 
+Der Auszug `P0-03-PROBEKLAUSUR-A6-TRAINTEST-V1` ist ein eigener konstruierter
+Lehrfall. Die zufällig ebenfalls 0,870 betragende Accuracy der separaten
+Matrix `P0-03-PROBEKLAUSUR-A6-MATRIX-V1` und das W09-Beispiel 0,98/0,71 sind
+keine Quellen dieses Vergleichs.
+
 Die Accuracy sinkt von 0,98 auf 0,87:
 
 $$
@@ -573,11 +591,11 @@ $$
 
 also um 11 Prozentpunkte. Das ist mit **Overfitting** vereinbar: Das Modell
 passt sich möglicherweise stärker an Trainingsdaten an, als es auf neue Fälle
-generalisiert. (1 Punkt)
+generalisiert. (**1 Punkt Train/Test und ML-Evaluation**)
 
 Der Unterschied beweist Overfitting jedoch nicht. Stichprobenschwankung,
 unterschiedliche Klassenanteile oder Domain Shift können ebenfalls beitragen;
-zudem ist nur eine Teststichprobe gezeigt. (1 Punkt)
+zudem ist nur eine Teststichprobe gezeigt. (**1 Punkt MZ7-Datenkritik**)
 
 ### e) Managementbefund – 2 Punkte
 
@@ -591,9 +609,9 @@ Eine mögliche Zwei-Satz-Lösung:
 > repräsentativen neuen Fällen wiederholt werden.
 
 - mindestens eine korrekte Testmetrik und daraus abgeleitete, bedingte
-  Handlung: 1 Punkt
+  Handlung: **1 Punkt MZ7-Kommunikation**
 - konkrete Daten- oder Übertragungsgrenze ohne Produktionsversprechen:
-  1 Punkt
+  **1 Punkt MZ7-Datenkritik**
 
 ---
 

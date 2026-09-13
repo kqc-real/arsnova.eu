@@ -19,8 +19,11 @@ Für Freigabe, Durchführung, Datenverarbeitung und Prüfung des P0-Piloten sind
 - [P0-03: Materialpaket Pilotlauf](./P0-03_Materialpaket_Pilotlauf.md) – kanonischer Index und Release-Gates;
 - [Formelsammlung Statistik](./P0-03_Formelsammlung_Statistik.md) und [JASP-Analyseleitfaden](./P0-03_JASP_Analyseleitfaden.md) – prüfungsidentische Konventionen und reproduzierbare Analysen in JASP 0.98.1;
 - [Lehrenden-Runbook](./P0-03_Lehrenden_Runbook.md) – Wochenbetrieb, Exporte, Löschhandoff und Offline-Fallback;
+- [Mathematikdiagnostik mit Brückenpfaden](./P0-03_Mathematikdiagnostik_Brueckenpfade.md), [isomorphe BWL-/WI-Transfermatrix](./P0-03_Transfermatrix_BWL_WI.md) und [Material-/A11y-Probe](./P0-03_Barrierefreiheit_Material_und_Probe.md) – mathematischer Zugang, gleichwertiger Domänentransfer und barrierearme Alternativen;
 - [QA- und Freigabeprotokoll](./P0-03_QA_Freigabeprotokoll.md) – bestandene statische Prüfungen und vor dem Pilot noch offene Import-, Betriebs- und Rollenfreigaben;
 - [Probeklausur](./P0-03_Probeklausur_90_Minuten.md), [Musterlösung](./P0-03_Probeklausur_Musterloesung.md) und [Statistikbefund-Vorlage mit Rubrik](./P0-03_Statistikbefund_Vorlage_Rubrik.md) – verbindliche Prüfungssimulation und formative Qualitätskriterien.
+
+Der Einstieg in das Paket ist zusätzlich in der zentralen [Dokumentationslandkarte](../../README.md) verlinkt.
 
 ---
 
@@ -54,11 +57,12 @@ Die mathematische Formalisierung wird schrittweise aufgebaut. Formeln werden nic
 Erwartet werden lediglich:
 
 - sicheres Rechnen mit Grundrechenarten, Brüchen und Prozenten,
+- elementarer Umgang mit Potenzen, Quadratwurzeln und Klammern,
 - elementares Umformen einfacher Gleichungen,
 - Lesen einfacher Tabellen und Diagramme,
-- grundlegende digitale Arbeitsfähigkeit im Browser.
+- grundlegende digitale Arbeitsfähigkeit im Browser und Bedienung eines nicht programmierbaren Taschenrechners.
 
-Nicht vorausgesetzt werden Statistik, Analysis, lineare Algebra, Python, R, Programmierung oder eine eigene Softwareinstallation. JASP 0.98.1 wird institutionell in einer vorbereiteten Arbeitsumgebung bereitgestellt und schrittweise mit vorbereiteten Dateien und Klickpfaden eingeführt.
+Diese Arbeitsvoraussetzungen sind keine Zugangshürde: Die unbenotete [Mathematikdiagnostik](./P0-03_Mathematikdiagnostik_Brueckenpfade.md) wird in den sieben Tagen vor der ersten Präsenz-UE innerhalb des W01-Selbststudiums bearbeitet und weist passende Brückenpfade zu. Nicht vorausgesetzt werden Statistik, Analysis, lineare Algebra, Python, R, Programmierung oder eine eigene Softwareinstallation. JASP 0.98.1 wird institutionell in einer vorbereiteten Arbeitsumgebung bereitgestellt und schrittweise mit vorbereiteten Dateien und Klickpfaden eingeführt.
 
 ### 2.2 Empfohlener Arbeitsaufwand
 
@@ -84,15 +88,15 @@ Die sieben gleichrangigen, übergeordneten Modulziele bilden den summativ prüfb
 
 Nach erfolgreichem Abschluss können die Studierenden:
 
-| Ziel                                                      | Übergeordnetes, prüfbares Modulziel                                                                                                                                                                                                                     | Leistungsindikatoren |
-| --------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------- |
-| **MZ1: Daten strukturieren und beurteilen**               | eine betriebliche oder digitale Untersuchungsfrage in Grundgesamtheit, Stichprobe, Beobachtungseinheit und Merkmale zerlegen, Skalenniveaus begründen, Datenqualitätsprobleme erkennen und zulässige Aussagen vom Untersuchungsdesign abgrenzen         | LI01–LI04            |
-| **MZ2: Daten beschreiben und visualisieren**              | für einen überschaubaren Datensatz geeignete Häufigkeiten, Grafiken sowie Lage- und Streuungsmaße auswählen, mit Formelsammlung oder JASP bestimmen und im Kontext einschließlich Robustheit interpretieren                                             | LI05–LI08            |
-| **MZ3: Zufall und Stichprobenunsicherheit modellieren**   | einfache Wahrscheinlichkeiten und Bedingungen bestimmen, Binomial- und Normalmodelle situationsgerecht erkennen sowie Stichprobenvariabilität und Grenzen der Generalisierung erklären                                                                  | LI09–LI12            |
-| **MZ4: Schätzen und testen**                              | für einfache Mittelwert-, Anteils- und gepaarte Vorher-Nachher-Fragen Punkt- und Intervallschätzung beziehungsweise einen Test auswählen, Ergebnisse berechnen oder aus JASP lesen und ohne kausale oder probabilistische Fehlinterpretation beurteilen | LI13–LI16            |
-| **MZ5: Zusammenhänge und Vorhersagen beurteilen**         | bivariate metrische Zusammenhänge mit Streudiagramm, Korrelation und einfacher linearer Regression untersuchen, Vorhersagen und Residuen interpretieren sowie Generalisierung und Overfitting anhand von Train/Test-Ergebnissen beurteilen              | LI17–LI20            |
-| **MZ6: Binäre Klassifikation evaluieren**                 | eine binäre Confusion Matrix auswerten, Accuracy, Precision, Recall und binären F1-Score passend zu Fehlkosten auswählen und Modellwahrscheinlichkeit, beobachtete Häufigkeit und sachliche Wahrheit unterscheiden                                      | LI21–LI22            |
-| **MZ7: Statistische Evidenz kommunizieren und begrenzen** | einen reproduzierbaren Kurzbefund mit Untersuchungsfrage, Datenquelle, passender Darstellung, Ergebnis und Grenze in höchstens fünf Sätzen adressatengerecht formulieren und Überinterpretationen zurückweisen                                          | LI23–LI24            |
+| Ziel                                                      | Übergeordnetes, prüfbares Modulziel                                                                                                                                                                                                                                            | Leistungsindikatoren |
+| --------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | -------------------- |
+| **MZ1: Daten strukturieren und beurteilen**               | eine betriebliche oder digitale Untersuchungsfrage in Grundgesamtheit, Stichprobe, Beobachtungseinheit und Merkmale zerlegen, Skalenniveaus begründen, Datenqualitätsprobleme erkennen und zulässige Aussagen vom Untersuchungsdesign abgrenzen                                | LI01–LI04            |
+| **MZ2: Daten beschreiben und visualisieren**              | für einen überschaubaren Datensatz geeignete Häufigkeiten, Grafiken sowie Lage- und Streuungsmaße auswählen, mit Formelsammlung oder JASP bestimmen und im Kontext einschließlich Robustheit interpretieren                                                                    | LI05–LI08            |
+| **MZ3: Zufall und Stichprobenunsicherheit modellieren**   | einfache Wahrscheinlichkeiten und Bedingungen bestimmen, Binomial- und Normalmodelle situationsgerecht erkennen sowie Stichprobenvariabilität und Grenzen der Generalisierung erklären                                                                                         | LI09–LI12            |
+| **MZ4: Schätzen und testen**                              | für einfache Mittelwert- und Anteilsfragen eine Punkt- und Intervallschätzung sowie für gepaarte metrische Vorher-Nachher-Fragen den gepaarten t-Test auswählen, Ergebnisse berechnen oder aus JASP lesen und ohne kausale oder probabilistische Fehlinterpretation beurteilen | LI13–LI16            |
+| **MZ5: Zusammenhänge und Vorhersagen beurteilen**         | bivariate metrische Zusammenhänge mit Streudiagramm, Korrelation und einfacher linearer Regression untersuchen, Vorhersagen und Residuen interpretieren sowie Generalisierung und Overfitting anhand von Train/Test-Ergebnissen beurteilen                                     | LI17–LI20            |
+| **MZ6: Binäre Klassifikation evaluieren**                 | eine binäre Confusion Matrix auswerten, Accuracy, Precision, Recall und binären F1-Score passend zu Fehlkosten auswählen und Modellwahrscheinlichkeit, beobachtete Häufigkeit und sachliche Wahrheit unterscheiden                                                             | LI21–LI22            |
+| **MZ7: Statistische Evidenz kommunizieren und begrenzen** | einen reproduzierbaren Kurzbefund mit Untersuchungsfrage, Datenquelle, passender Darstellung, Ergebnis und Grenze in höchstens fünf Sätzen adressatengerecht formulieren und Überinterpretationen zurückweisen                                                                 | LI23–LI24            |
 
 ### 3.2 Verbindlicher Pflichtkern
 
@@ -132,14 +136,17 @@ Das Modul beruht auf sechs Prinzipien:
 
 Eine typische UE von 45 Minuten folgt – je nach Gegenstand leicht variiert – diesem Rhythmus:
 
-| Phase                            | Richtwert | Funktion                                                     |
-| -------------------------------- | --------: | ------------------------------------------------------------ |
-| Aktivierung/Retrieval            |    5 Min. | eine alte und eine neue ARSnova-Concept-Question             |
-| Problem und Intuition            |    8 Min. | authentische Fragestellung aus der Fallstudie                |
-| Erklärung und Formel             |   10 Min. | sprachliche Herleitung, Formelsammlung, gemeinsames Beispiel |
-| Anwendung                        |   12 Min. | Einzel-, Partner-, Tablet- oder vorbereitete JASP-Aufgabe    |
-| Auswertung und Fehlvorstellungen |    7 Min. | Antwortverteilung diskutieren, Begründungen vergleichen      |
-| Exit Ticket/Blitzlicht           |    3 Min. | Verstehen, Tempo oder offene Frage erfassen                  |
+| Phase                            |  Richtwert | Funktion                                                     |
+| -------------------------------- | ---------: | ------------------------------------------------------------ |
+| Aktivierung/Retrieval            |     5 Min. | eine alte und eine neue ARSnova-Concept-Question             |
+| Problem und Intuition            |     7 Min. | authentische Fragestellung aus der Fallstudie                |
+| Erklärung und Formel             |     9 Min. | sprachliche Herleitung, Formelsammlung, gemeinsames Beispiel |
+| Anwendung                        |    11 Min. | Einzel-, Partner-, Tablet- oder vorbereitete JASP-Aufgabe    |
+| Auswertung und Fehlvorstellungen |     7 Min. | Antwortverteilung diskutieren, Begründungen vergleichen      |
+| Exit Ticket/Blitzlicht           |     3 Min. | Verstehen, Tempo oder offene Frage erfassen                  |
+| **Flexpuffer**                   | **3 Min.** | Technik, Nachfragen, alternative Teilnahme oder Übergang     |
+
+Die sechs fachlichen Phasen umfassen 42 Minuten; der ausgewiesene Flexpuffer schließt die UE auf 45 Minuten. Wird er überschritten, entfällt zuerst ein optionales zweites Beispiel oder eine Vertiefung. Kernanwendung, Exit-Evidenz und notwendige Zeit für gleichwertige Teilnahme werden nicht ersatzlos gestrichen. In der ersten UE jedes Wochenblocks bildet der achtminütige Wocheneinstieg die fünfminütige Retrievalphase und die ersten drei Minuten der Problemphase; danach verbleiben vier Minuten Problemrahmung. Damit gilt auch dort exakt \(8+4+9+11+7+3+3=45\) Minuten.
 
 Interne Quizpunkte sind keine Lernstandskennzahl: Zeit, Schwierigkeit und Streak können den Score beeinflussen. Für Analysen werden fachliche Korrektheit, Antwortzahl und bei Schätzungen Fehler zum Referenzwert verwendet. Für unbewertete Meinungsfragen dienen SURVEY oder Blitzlicht; ein ausgeblendetes Leaderboard allein schaltet interne Bewertung nicht ab (Q2, Q15).
 
@@ -174,7 +181,7 @@ Ab Woche 2 umfasst die redaktionelle Verteilung als Richtwert:
 |      5 | häufig falsch beantwortete Konzepte                                     |
 |      3 | Transfer- und klausurnahe Aufgaben                                      |
 
-In Woche 1 werden die für ältere Inhalte vorgesehenen Plätze als unbenotete Eingangsdiagnose genutzt.
+In Woche 1 werden die für ältere Inhalte vorgesehenen Plätze als unbenotete fachstatistische Eingangsdiagnose genutzt. Die davon getrennte [Mathematikdiagnostik mit Brückenpfaden](./P0-03_Mathematikdiagnostik_Brueckenpfade.md) wird vor der ersten Präsenz-UE asynchron bearbeitet und prüft Brüche, Prozentrechnung, Potenzen/Wurzeln, einfache Gleichungen, Taschenrechner- sowie Tabellen-/Diagrammroutine.
 
 Zu Beginn der Folgewoche werden nur wenige diagnostisch ergiebige Fragen live aufgegriffen. Inhalte mit einer Lösungsquote unter ungefähr zwei Dritteln werden erneut erklärt oder mit einem neuen Beispiel bearbeitet. Der Schwellenwert dient der Lehrentscheidung, nicht der Bewertung von Studierenden.
 
@@ -277,12 +284,12 @@ ARSnova verwendet für Quartile die sortierten Werte an den nullbasierten Indize
 | ------------------------------------- | ------------------------------------------------------------------------------------------ | ------------- | ----------------------------------------------------------------------------------------- |
 | S1: Servicezeit schätzen              | Verdeckten Mittelwert schätzen; Verteilung und Fehler auswerten                            | Wochen 2–3, 7 | Serviceplanung und Prognosefehler; Messsysteme und Datenqualität                          |
 | S2: Sicher und richtig?               | Antwortbezogene 2×3-Tafel lesen und bedingen                                               | Wochen 4, 10  | Schulungsdiagnostik und Befragungen; Übereinstimmung von Sicherheit und Korrektheit       |
-| S3: Welche Frage zuerst?              | Netto-Score und Zustimmung vergleichen; Wilson/Kontroversität nur als V1                   | Wochen 1, 5–6 | Bewertungsportale und Priorisierung; Rankinglogik als optionale Vertiefung                |
+| S3: Welche Frage zuerst?              | Netto-Score und Zustimmung vergleichen; Wilson/Kontroversität nur als V1                   | Woche 6       | Bewertungsportale und Priorisierung; Rankinglogik als optionale Vertiefung                |
 | S4: Wie gut ist der digitale Service? | p95/p99 mit Messdesign und Einheit lesen                                                   | Woche 3       | Service-Level und Kundenerfahrung; Last- und Performancemessung                           |
 | S5: Last und Latenz                   | Synthetische Tabelle unabhängiger Lastläufe: gleiches System, Lastniveau und Medianlatenz  | Woche 8       | Kapazitätsplanung; einfache Regression und Extrapolation                                  |
 | S6: Automatisch zuordnen oder prüfen? | binäre LEHRDATEN-Matrix und Fehlkosten im Kern; Q&A-Seed-Evaluation/Coverage nur als V4/V6 | Wochen 4, 9   | Serviceanfragen und manuelle Nachbearbeitung; Q&A-Systempfad nur als optionale Vertiefung |
 
-Der Strang S5 ist eine neue didaktische Ergänzung. Für 12–20 synthetische Läufe werden Lastniveau, Medianlatenz, Szenario und Quellenstatus dokumentiert; Hardware und Requestmix bleiben im Lehrmodell konstant. Die Streuung zwischen Läufen wird nicht aus veröffentlichten p95/p99-Werten erfunden. Ein zweiter betrieblicher Kontext (Nachfrage und Personalbedarf) prüft, ob Studierende das statistische Prinzip übertragen können.
+Der Strang S5 ist eine neue didaktische Ergänzung. Für genau 16 synthetische Läufe werden Lastniveau, Medianlatenz, Szenario und Quellenstatus dokumentiert; Hardware und Requestmix bleiben im Lehrmodell konstant. Die Streuung zwischen Läufen wird nicht aus veröffentlichten p95/p99-Werten erfunden. Der betriebliche Parallelkontext steht als zahlen- und handlungsgleiche Aufgabe in der [Transfermatrix](./P0-03_Transfermatrix_BWL_WI.md); er wird nicht als zusätzlicher Produktionsdatensatz ausgegeben.
 
 ### 5.7 Semesterprodukt der Fallstudie
 
@@ -298,17 +305,33 @@ Am Ende liegt ein kompakter, reproduzierbarer Statistikbefund vor:
 
 Das Produkt wird im P0-Piloten als unbenotete Gruppenarbeit mit formativer Rückmeldung eingesetzt.
 
+Für das Semesterprodukt sind S1, S5 und S6 die drei analysefähigen Wahlpfade. S2–S4 bleiben verbindliche gemeinsame Lehr- und Transferfälle, bilden wegen ihrer begrenzten Datenbasis oder optionalen Vertiefungslogik aber keinen eigenständigen Abschlussbefund. Dadurch wird keine Auswertung aus unzureichenden Aggregaten konstruiert.
+
+| Zeitpunkt | Verbindlicher Meilenstein des Semesterprodukts                                                                                  |
+| --------- | ------------------------------------------------------------------------------------------------------------------------------- |
+| W01       | S1, S5 und S6 kennenlernen; Datenquelle, Beobachtungseinheit und zulässige Aussage je Pfad notieren                             |
+| W02       | unverbindliche Pfadpräferenz und erste Untersuchungsfrage formulieren                                                           |
+| W03       | Pfad verbindlich wählen; Gruppenkennung, Rollen, `source_ref` und Datenprotokoll festhalten                                     |
+| W04–W05   | deskriptive Basis und Datenqualitäts-/Generalisierungsgrenze ergänzen                                                           |
+| W06       | Analyseplan Version 1 mit begründeter Verfahrenswahl erstellen; noch nicht behandelte Methode als Platzhalter markieren         |
+| W07       | S1-Kernanalyse abschließen; S5/S6 aktualisieren ihren Plan anhand des Verfahrensschemas                                         |
+| W08       | S5-Kernanalyse abschließen; S1/S6 erstellen den ersten vollständigen Befundentwurf                                              |
+| W09       | alle Pfade schließen JASP-Kernanalyse und Befundentwurf ab                                                                      |
+| W10       | ausschließlich Plausibilitätscheck, Peer Review, Überarbeitung und Management Summary; keine erstmalige Pfad- oder Methodenwahl |
+
+Die [Statistikbefund-Vorlage](./P0-03_Statistikbefund_Vorlage_Rubrik.md) wird ab W03 fortgeschrieben. Ein Gruppenwechsel nach W03 wird nur aus organisatorischem Grund dokumentiert; er erzeugt keine personenbezogene Verlaufsanalyse.
+
 ---
 
 ## 6. Inhalts- und Lerneinheitenstruktur
 
-| Block                            | Wochen | Inhaltlicher Schwerpunkt                                                                  | Fachbegriffe                                                                                                                                                                                                                                 | Methoden & Techniken                                                                                                                                                                     | Kompakter Formelbezug                                                | Beitrag der ARSnova-Fallstudie                                                                                               |
-| -------------------------------- | -----: | ----------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------- |
-| A: Daten verstehen               |    1–3 | Daten, Häufigkeiten, Visualisierung, Lage und Streuung                                    | Grundgesamtheit; Stichprobe; Beobachtungseinheit; Merkmal; Skalenniveau; absolute und relative Häufigkeit; Mittelwert; Median; Modus; Quantil; Varianz; Standardabweichung; IQR; Ausreißer                                                   | Datenprüfung; Häufigkeitstabelle; Balkendiagramm; Histogramm; Boxplot; Lage- und Streuungsmaße mit Formelsammlung und JASP; Plausibilitätsprüfung                                        | **A1–A6** im Formelschlüssel                                         | S1/S4: Schätzverteilungen und Servicezeiten; n versus n−1 prüfen; app-spezifische Quartile nur als V2 (Q2, Q3, Q8)           |
-| B: Unsicherheit verstehen        |    4–5 | Wahrscheinlichkeit, bedingte Wahrscheinlichkeit, Verteilungen und Stichprobenvariabilität | Zufallsexperiment; Ergebnis; Ereignis; Gegenereignis; Unabhängigkeit; bedingte Wahrscheinlichkeit; Zufallsvariable; Erwartungswert; Binomialverteilung; Normalverteilung; Stichprobenverteilung; Standardfehler                              | Baumdiagramm; Kontingenz- und Vierfeldertafel; Rechnen mit absoluten Häufigkeiten; Bayes-Denken; Binomialmodell prüfen; Verteilungen lesen; vorbereitete Stichproben in JASP vergleichen | **B1–B6** im Formelschlüssel                                         | S2 und LEHRDATEN: Confidence-Kreuztabelle, Nenner und Bewertungsanteile; feste Simulationsdaten (Q4, Q5)                     |
-| C: Aus Stichproben schließen     |    6–7 | Punktschätzung, Konfidenzintervalle und Hypothesentests                                   | Schätzer; Punktschätzung; Intervallschätzung; Konfidenzniveau; Standardfehler; Nullhypothese; Alternativhypothese; Signifikanzniveau; p-Wert; Fehler 1. und 2. Art; Effekt; gepaarte Daten                                                   | Konfidenzintervalle berechnen und in JASP lesen; Hypothesen formulieren; p-Werte lesen; gepaarten t-Test in JASP ausführen; statistische und praktische Relevanz trennen                 | **C1–C4** im Formelschlüssel                                         | S1: Kursanteile und Mittelwerte schätzen; vollständige LEHRDATEN-Paare testen; Wilson-Ranking nur als V1 (Q3, Q6, Q7)        |
-| D: Zusammenhänge und Modelle     |    8–9 | Korrelation, Regression, Train/Test, Overfitting und binäre ML-Evaluation                 | Streudiagramm; Korrelation; Kausalität; Regressionsgerade; Steigung; Achsenabschnitt; Vorhersage; Residuum; Bestimmtheitsmaß; Training; Test; Generalisierung; Overfitting; binäre Confusion Matrix; Accuracy; Precision; Recall; binärer F1 | Streudiagramm, Korrelation und Regression in JASP; Residuen und Extrapolation prüfen; Train/Test vergleichen; binäre Matrix auswerten; Metrik nach Fehlkosten auswählen                  | **D1–D7** im Formelschlüssel                                         | S5/S6: synthetische Last-Latenz-Regression und binäre LEHRDATEN-Klassifikation; V3–V6 nur gegatet (Q8, Q9)                   |
-| E: Integrieren und kommunizieren |     10 | vollständiger Analysezyklus, Ergebniskommunikation und Klausurtraining                    | Untersuchungsfrage; Operationalisierung; Analyseplan; statistischer Befund; Limitation; Übertragbarkeit; Management Summary                                                                                                                  | Verfahren anhand von Frage und Skalenniveau auswählen; JASP-Ausgaben auf Plausibilität prüfen; Grafiken und Kennzahlen zusammenführen; Grenzen formulieren; Peer Review; Probeklausur    | **A1–D7 kumulativ**; die Formelauswahl ist Teil der Prüfungsleistung | S1–S6: Herkunft, Aggregationsrunde, Nenner und JASP-Version offenlegen; keine Kausal- oder Produktionsversprechen (Q10, Q16) |
+| Block                            | Wochen | Inhaltlicher Schwerpunkt                                                                  | Fachbegriffe                                                                                                                                                                                                                                 | Methoden & Techniken                                                                                                                                                                                                    | Kompakter Formelbezug                                                | Beitrag der ARSnova-Fallstudie                                                                                               |
+| -------------------------------- | -----: | ----------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------- |
+| A: Daten verstehen               |    1–3 | Daten, Häufigkeiten, Visualisierung, Lage und Streuung                                    | Grundgesamtheit; Stichprobe; Beobachtungseinheit; Merkmal; Skalenniveau; absolute und relative Häufigkeit; Mittelwert; Median; Modus; Quantil; Varianz; Standardabweichung; IQR; Ausreißer                                                   | Datenprüfung; Häufigkeitstabelle; Balkendiagramm; Histogramm; Boxplot; Lage- und Streuungsmaße mit Formelsammlung und JASP; Plausibilitätsprüfung                                                                       | **A1–A6** im Formelschlüssel                                         | S1/S4: Schätzverteilungen und Servicezeiten; n versus n−1 prüfen; app-spezifische Quartile nur als V2 (Q2, Q3, Q8)           |
+| B: Unsicherheit verstehen        |    4–5 | Wahrscheinlichkeit, bedingte Wahrscheinlichkeit, Verteilungen und Stichprobenvariabilität | Zufallsexperiment; Ergebnis; Ereignis; Gegenereignis; Unabhängigkeit; bedingte Wahrscheinlichkeit; Zufallsvariable; Erwartungswert; Binomialverteilung; Normalverteilung; Stichprobenverteilung; Standardfehler                              | Baumdiagramm; Kontingenz- und Vierfeldertafel; Rechnen mit absoluten Häufigkeiten; Bayes-Denken; Binomialmodell prüfen; Verteilungen lesen; vorbereitete Stichproben in JASP vergleichen                                | **B1–B6** im Formelschlüssel                                         | S2 und LEHRDATEN: Confidence-Kreuztabelle, Nenner und Bewertungsanteile; feste Simulationsdaten (Q4, Q5)                     |
+| C: Aus Stichproben schließen     |    6–7 | Punktschätzung, Konfidenzintervalle und Hypothesentests                                   | Schätzer; Punktschätzung; Intervallschätzung; Konfidenzniveau; Standardfehler; Nullhypothese; Alternativhypothese; Signifikanzniveau; p-Wert; Fehler 1. und 2. Art; Effekt; gepaarte Daten                                                   | Konfidenzintervalle für unabhängige Anteils-/Mittelwertfragen berechnen und in JASP lesen; ausschließlich für vollständige metrische Paare den gepaarten t-Test ausführen; statistische und praktische Relevanz trennen | **C1–C4** im Formelschlüssel                                         | S1: Kursanteile und Mittelwerte schätzen; vollständige LEHRDATEN-Paare testen; Wilson-Ranking nur als V1 (Q3, Q6, Q7)        |
+| D: Zusammenhänge und Modelle     |    8–9 | Korrelation, Regression, Train/Test, Overfitting und binäre ML-Evaluation                 | Streudiagramm; Korrelation; Kausalität; Regressionsgerade; Steigung; Achsenabschnitt; Vorhersage; Residuum; Bestimmtheitsmaß; Training; Test; Generalisierung; Overfitting; binäre Confusion Matrix; Accuracy; Precision; Recall; binärer F1 | Streudiagramm, Korrelation und Regression in JASP; Residuen und Extrapolation prüfen; Train/Test vergleichen; binäre Matrix auswerten; Metrik nach Fehlkosten auswählen                                                 | **D1–D7** im Formelschlüssel                                         | S5/S6: synthetische Last-Latenz-Regression und binäre LEHRDATEN-Klassifikation; V3–V6 nur gegatet (Q8, Q9)                   |
+| E: Integrieren und kommunizieren |     10 | vollständiger Analysezyklus, Ergebniskommunikation und Klausurtraining                    | Untersuchungsfrage; Operationalisierung; Analyseplan; statistischer Befund; Limitation; Übertragbarkeit; Management Summary                                                                                                                  | Verfahren anhand von Frage und Skalenniveau auswählen; JASP-Ausgaben auf Plausibilität prüfen; Grafiken und Kennzahlen zusammenführen; Grenzen formulieren; Peer Review; Probeklausur                                   | **A1–D7 kumulativ**; die Formelauswahl ist Teil der Prüfungsleistung | S1–S6: Herkunft, Aggregationsrunde, Nenner und JASP-Version offenlegen; keine Kausal- oder Produktionsversprechen (Q10, Q16) |
 
 Die Tabelle beschreibt den Pflichtkern. Wilson-Ranking, ARSnova-spezifische Quartilimplementierung, Macro-F1, Coverage/Schwellenwahl, Kalibrierung und Q&A-NLP bleiben ausschließlich die in Abschnitt 3.3 definierten Vertiefungen V1–V6 und sind nicht summativ prüfbar.
 
@@ -492,15 +515,15 @@ JASP 0.98.1 ist in jeder Woche verbindlich. Die folgende Ausgabe wird institutio
 
 **Wochenziele:** Die Studierenden unterscheiden Grundgesamtheit und Stichprobe, identifizieren Beobachtungseinheiten und Merkmale, ordnen Skalenniveaus zu und erkennen erste Verzerrungsquellen.
 
-|  UE | Inhalt und Ablauf                                                                                                                                                                                                         | ARSnova-Bezug                                                                                                                                  | Lernprodukt/Evidenz                                                                                |
-| --: | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------- |
-|   1 | Einstieg mit einer strittigen Aussage wie „Unsere Gruppe versteht Statistik bereits gut“. Von der Behauptung zur messbaren Frage; Statistik als Prozess. Vorstellung von Modul, Formelsammlung, Prüfung und Fehlerkultur. | LIVE: anonyme Einstiegsabstimmung; n und Zeitpunkt protokollieren. SURVEY/Blitzlicht für Selbstauskunft, kein richtig/falsch (Q15).            | Studierende formulieren aus einer Behauptung eine Variable und eine überprüfbare Frage.            |
-|   2 | Beobachtungseinheit, Merkmal, Merkmalsausprägung; Grundgesamtheit, Vollerhebung, Stichprobe. Die S1-Servicezeiten werden in JASP 0.98.1 geöffnet; Zeile, Variable und Messniveau werden identifiziert.                    | Wer hat geantwortet, wer nicht? Die Live-Session wird als Gelegenheitsstichprobe analysiert; die JASP-Datei verwendet synthetische LEHRDATEN.  | Datenstruktur mit Zeile, Spalte, Einheit und Population korrekt beschriften; JASP-Importprotokoll. |
-|   3 | Skalenniveaus: nominal, ordinal, metrisch; diskret/stetig. Welche Operationen und Diagramme sind jeweils sinnvoll?                                                                                                        | SURVEY nominal, Confidence ordinal, Schätzung metrisch; Antwortzeit ist ein technischer Messwert und kein unmittelbares Kompetenzmaß (Q2, Q4). | Zuordnungstabelle „Variable – Skala – zulässige Auswertung“.                                       |
-|   4 | Datenqualität und Verzerrung: Selbstselektion, Nonresponse, unklare Fragen, Messfehler. Erste klausurnahe Aufgabe und Exit Ticket.                                                                                        | Vergleich „aktive ARSnova-Teilnehmende“ versus „gesamte Kohorte“; Grenzen der Generalisierung.                                                 | Kurzbefund: zwei Aussagen, die die Daten erlauben, und zwei, die sie nicht erlauben.               |
+|  UE | Inhalt und Ablauf                                                                                                                                                                                                                                                                        | ARSnova-Bezug                                                                                                                                      | Lernprodukt/Evidenz                                                                                                 |
+| --: | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------- |
+|   1 | Höchstens fünfminütiges Debrief der vorab selbst ausgewerteten Mathematikdiagnostik und Hinweis auf Brückenpfade; danach von der strittigen Aussage „Unsere Gruppe versteht Statistik bereits gut“ zur messbaren Frage. Vorstellung von Modul, Formelsammlung, Prüfung und Fehlerkultur. | Keine Diagnoseantwort wird in ARSnova erfasst. LIVE: anonyme Einstiegsabstimmung; SURVEY/Blitzlicht für Selbstauskunft, kein richtig/falsch (Q15). | Individueller Brückenpfad ohne Notenwirkung; aus einer Behauptung eine Variable und überprüfbare Frage formulieren. |
+|   2 | Beobachtungseinheit, Merkmal, Merkmalsausprägung; Grundgesamtheit, Vollerhebung, Stichprobe. Die S1-Servicezeiten werden in JASP 0.98.1 geöffnet; Zeile, Variable und Messniveau werden identifiziert.                                                                                   | Wer hat geantwortet, wer nicht? Die Live-Session wird als Gelegenheitsstichprobe analysiert; die JASP-Datei verwendet synthetische LEHRDATEN.      | Datenstruktur mit Zeile, Spalte, Einheit und Population korrekt beschriften; JASP-Importprotokoll.                  |
+|   3 | Skalenniveaus: nominal, ordinal, metrisch; diskret/stetig. Welche Operationen und Diagramme sind jeweils sinnvoll?                                                                                                                                                                       | SURVEY nominal, Confidence ordinal, Schätzung metrisch; Antwortzeit ist ein technischer Messwert und kein unmittelbares Kompetenzmaß (Q2, Q4).     | Zuordnungstabelle „Variable – Skala – zulässige Auswertung“.                                                        |
+|   4 | Datenqualität und Verzerrung: Selbstselektion, Nonresponse, unklare Fragen, Messfehler. Erste klausurnahe Aufgabe und Exit Ticket.                                                                                                                                                       | Vergleich „aktive ARSnova-Teilnehmende“ versus „gesamte Kohorte“; Grenzen der Generalisierung.                                                     | Kurzbefund: zwei Aussagen, die die Daten erlauben, und zwei, die sie nicht erlauben.                                |
 
-**Selbststudium:** 30 kumulative MC-Fragen im Modus `practice` ohne Timer und mit Sofortfeedback, davon Schwerpunkt Datenbegriffe und Skalenniveaus; eine fehlerhafte Datentabelle bereinigen.<br>
-**Fallstudien-Meilenstein:** Datenprotokoll und Variablenkatalog Version 1.
+**Selbststudium:** vor UE 1 die 20-minütige Mathematikdiagnostik; danach 30 kumulative MC-Fragen im Modus `practice` ohne Timer und mit Sofortfeedback, davon Schwerpunkt Datenbegriffe und Skalenniveaus; erforderlichen Brückenpfad anstelle einer optionalen Wiederholung oder Vertiefung bearbeiten; eine fehlerhafte Datentabelle bereinigen.<br>
+**Fallstudien-Meilenstein:** S1, S5 und S6 vergleichen; Datenprotokoll und Variablenkatalog Version 1.
 
 ## Woche 2 – Häufigkeiten, Diagramme und Lage
 
@@ -515,7 +538,7 @@ JASP 0.98.1 ist in jeder Woche verbindlich. Die folgende Ausgabe wird institutio
 |   9 | **JASP-Statistiklabor:** S1-Servicezeiten importieren, Skalenniveaus prüfen sowie Häufigkeiten, Histogramm, Mittelwert und Median erzeugen; zwei Werte mit der Formelsammlung kontrollieren. | ARSnova-Aggregate werden der synthetischen Einzelwert-Lehrtabelle gegenübergestellt. Aus dem Standardexport werden keine Rohwerte abgeleitet (Q3, Q10).     | Gespeicherter JASP-Auszug, nachvollziehbare Handkontrolle und kurzer Plausibilitätscheck. |
 
 **Selbststudium:** MC-Test mit Wiederholung von Woche 1; Diagrammfehler erklären; Mittelwert und Median mit Taschenrechner prüfen.<br>
-**Fallstudien-Meilenstein:** Deskriptiver Kurzbericht zu einer Live-Schätzverteilung.
+**Fallstudien-Meilenstein:** Deskriptiver Kurzbericht zu einer Live-Schätzverteilung; unverbindliche Präferenz für S1, S5 oder S6 mit erster Untersuchungsfrage.
 
 ## Woche 3 – Streuung, Quantile und Ausreißer
 
@@ -530,7 +553,7 @@ JASP 0.98.1 ist in jeder Woche verbindlich. Die folgende Ausgabe wird institutio
 |  14 | **JASP-Statistiklabor:** S1-Servicezeiten mit und ohne markierten Extremwert des vorbereiteten Lehrfalls vergleichen; Lage, Streuung und Boxplot gemeinsam beurteilen. Dokumentierte REPO-Latenzquantile werden separat gelesen. | S1/S4: LEHRDATEN und REPO bleiben getrennt. Aus p95/p99 werden keine Rohwerte oder Boxplots rekonstruiert (Q8).                         | JASP-Kennzahlenübersicht und begründeter Kurzbefund mit mindestens einer Einschränkung.           |
 
 **Selbststudium:** gemischter MC-Satz; Berechnung von Mittelwert und Standardabweichung für zwei Modelle; Interpretation des Stabilitätsunterschieds.<br>
-**Fallstudien-Meilenstein:** Einseitiger JASP-Auszug mit Histogramm/Boxplot, Lage, Streuung und zwei Interpretationssätzen.
+**Fallstudien-Meilenstein:** Verbindliche Wahl von S1, S5 oder S6; Gruppenkennung, Rollen, `source_ref`, Datenprotokoll und einseitiger JASP-Auszug festhalten.
 
 ## Woche 4 – Wahrscheinlichkeit und bedingte Wahrscheinlichkeit
 
@@ -545,7 +568,7 @@ JASP 0.98.1 ist in jeder Woche verbindlich. Die folgende Ausgabe wird institutio
 |  19 | **JASP-Transferwerkstatt:** S2-Confidence als 2×3-Kontingenztafel mit Rand-, Zeilen- und Spaltenanteilen auswerten; anschließend den Basisratenfehler an einer vollständig vorgegebenen Q&A-Filter-Tafel erklären. | S2/S6: ausschließlich LEHRDATEN und bereitgestellte Zahlen; kein Q&A-NLP-Modell und keine produktive Trefferquote erforderlich.                                                      | Dokumentierte JASP-Tafel und Erklärung, warum eine hohe Trefferquote nicht automatisch eine hohe positive Vorhersagekraft bedeutet. |
 
 **Selbststudium:** 30 Fragen mit Interleaving aus Lage, Streuung und Wahrscheinlichkeit; Kontingenztafel vervollständigen.<br>
-**Fallstudien-Meilenstein:** Sicherheits-Korrektheits-Matrix mit korrekt benannten bedingten Anteilen.
+**Fallstudien-Meilenstein:** Sicherheits-Korrektheits-Matrix mit korrekt benannten bedingten Anteilen; für den gewählten Abschlussstrang eine Datenqualitätsgrenze ergänzen.
 
 ## Woche 5 – Zufallsvariablen, Verteilungen und Stichprobenvariabilität
 
@@ -560,7 +583,7 @@ JASP 0.98.1 ist in jeder Woche verbindlich. Die folgende Ausgabe wird institutio
 |  24 | **JASP-Simulationslabor:** Vorbereitete Wiederholungsstichproben beziehungsweise die festen S6-Resamples werden nach Stichprobengröße oder Lehrmodell verglichen. | JASP erzeugt den Verteilungsvergleich; ARSnova sammelt nur Interpretationen. Die Simulation wird nicht als native ARSnova-Funktion dargestellt.           | Exportierte, annotierte JASP-Grafik mit einer korrekten Aussage zur Streuung der Schätzer und zur begrenzten Lehrpopulation. |
 
 **Selbststudium:** Simulationsergebnisse lesen; Bedingungen von Binomial- und Normalmodell unterscheiden; kumulativer MC-Test.<br>
-**Fallstudien-Meilenstein:** Visualisierung der Stichprobenvariabilität mit einer Aussage zur Generalisierung.
+**Fallstudien-Meilenstein:** Visualisierung der Stichprobenvariabilität; eine konkrete Generalisierungsgrenze des gewählten Abschlussstrangs formulieren.
 
 ## Woche 6 – Schätzen und Konfidenzintervalle
 
@@ -575,22 +598,22 @@ JASP 0.98.1 ist in jeder Woche verbindlich. Die folgende Ausgabe wird institutio
 |  29 | **JASP-Konfidenzintervall-Labor:** Gleich hohe Erfolgsanteile aus unterschiedlich großen Stichproben und ein Mittelwertintervall werden erzeugt, visualisiert und verglichen. Präzision und Repräsentativität werden getrennt. | Pflichtkern: Punkt- und Intervallschätzung. Nur bei offenem Gate folgt optional V1 mit bereitgestellten S3-Rankingfeldern; keine Klausurrelevanz (Q6, Q7).           | JASP-Vergleichstabelle mit Intervallen sowie je eine Aussage zu Präzision und Übertragbarkeit. |
 
 **Selbststudium:** Intervallaufgaben mit Taschenrechner; fehlerhafte Interpretationen korrigieren; ältere Inhalte im MC-Test.<br>
-**Fallstudien-Meilenstein:** JASP-Punktschätzer plus Konfidenzintervall für einen Kursanteil, einschließlich Limitation der Gelegenheitsstichprobe.
+**Fallstudien-Meilenstein:** Analyseplan Version 1 für den gewählten Abschlussstrang; JASP-Punktschätzer plus Intervall als Pflichtkernbeispiel und fehlende spätere Methode ausdrücklich als Platzhalter kennzeichnen.
 
 ## Woche 7 – Hypothesentests und Vorher-Nachher-Vergleiche
 
 **Wochenziele:** Die Studierenden erklären die Logik eines Hypothesentests, interpretieren p-Werte und beurteilen einen einfachen Vorher-Nachher-Vergleich inhaltlich.
 
-|  UE | Inhalt und Ablauf                                                                                                                                                                              | ARSnova-Bezug                                                                                                                                                                           | Lernprodukt/Evidenz                                                                                              |
-| --: | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------- |
-|  30 | Ausgangsfrage, Null- und Alternativhypothese; Teststatistik als Maß der Unvereinbarkeit mit $H_0$.                                                                                             | S1: vorab definierte Referenz und absolute Fehler je Runde; Untersuchung einer beobachteten Verbesserung, keine vorausgesetzte Wirkung.                                                 | Formulierung von $H_0$ und $H_1$ in Worten und Symbolen.                                                         |
-|  31 | p-Wert, Signifikanzniveau, statistische Entscheidung. Abgrenzung von „Wahrscheinlichkeit, dass $H_0$ wahr ist“.                                                                                | ARSnova-Abstimmung zu typischen p-Wert-Fehlinterpretationen; Peer-Erklärung und erneute Abstimmung.                                                                                     | Ein Ergebnis mit $p=0{,}03$ korrekt in einem Satz interpretieren.                                                |
-|  32 | Fehler 1. und 2. Art, Power-Idee, statistische versus praktische Relevanz. Effektgröße auf anschaulicher Ebene.                                                                                | S1: weniger Streuung bedeutet nicht automatisch weniger Fehler. MAE zum bekannten Referenzwert und praktisch relevante Verbesserung getrennt beurteilen (Q2, Q3).                       | Entscheidungsmatrix zu zwei Fehlerarten und Konsequenzen.                                                        |
-|  33 | Gepaarter t-Test als ausgewähltes Verfahren in JASP 0.98.1: Differenzen bilden, Voraussetzungen prüfen, Intervall und Testausgabe lesen. Keine vollständige Herleitung.                        | S1: native aggregierte Rundenansicht plus gesonderte vollständige LEHRDATEN-Paare. Differenz absoluter Fehler; `n_pairs` ausweisen. Standardexport ersetzt keine Paartabelle (Q3, Q10). | Gespeicherter JASP-Auszug und klausurnahe Aufgabe: Verfahren wählen, Ergebnis lesen, Effekt und Grenze benennen. |
-|  34 | **Testwerkstatt:** Mehrere kurze ARSnova-Fälle werden einem Untersuchungsdesign und einer angemessenen Auswertung zugeordnet. Signifikanz, Effekt und Datenqualität werden getrennt beurteilt. | Fälle zu einem Anteil, zwei unabhängigen Gruppen und gepaarten Schätzrunden; Rechnungen nur für den curricular ausgewählten gepaarten Test.                                             | Entscheidungsbaum „Fragestellung – Datentyp – Design – Verfahren – Interpretation“.                              |
+|  UE | Inhalt und Ablauf                                                                                                                                                                                                           | ARSnova-Bezug                                                                                                                                                                           | Lernprodukt/Evidenz                                                                                              |
+| --: | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------- |
+|  30 | Ausgangsfrage, Null- und Alternativhypothese; Teststatistik als Maß der Unvereinbarkeit mit $H_0$.                                                                                                                          | S1: vorab definierte Referenz und absolute Fehler je Runde; Untersuchung einer beobachteten Verbesserung, keine vorausgesetzte Wirkung.                                                 | Formulierung von $H_0$ und $H_1$ in Worten und Symbolen.                                                         |
+|  31 | p-Wert, Signifikanzniveau, statistische Entscheidung. Abgrenzung von „Wahrscheinlichkeit, dass $H_0$ wahr ist“.                                                                                                             | ARSnova-Abstimmung zu typischen p-Wert-Fehlinterpretationen; Peer-Erklärung und erneute Abstimmung.                                                                                     | Ein Ergebnis mit $p=0{,}03$ korrekt in einem Satz interpretieren.                                                |
+|  32 | Fehler 1. und 2. Art, Power-Idee, statistische versus praktische Relevanz. Effektgröße auf anschaulicher Ebene.                                                                                                             | S1: weniger Streuung bedeutet nicht automatisch weniger Fehler. MAE zum bekannten Referenzwert und praktisch relevante Verbesserung getrennt beurteilen (Q2, Q3).                       | Entscheidungsmatrix zu zwei Fehlerarten und Konsequenzen.                                                        |
+|  33 | Gepaarter t-Test als ausgewähltes Verfahren in JASP 0.98.1: Differenzen bilden, Voraussetzungen prüfen, Intervall und Testausgabe lesen. Keine vollständige Herleitung.                                                     | S1: native aggregierte Rundenansicht plus gesonderte vollständige LEHRDATEN-Paare. Differenz absoluter Fehler; `n_pairs` ausweisen. Standardexport ersetzt keine Paartabelle (Q3, Q10). | Gespeicherter JASP-Auszug und klausurnahe Aufgabe: Verfahren wählen, Ergebnis lesen, Effekt und Grenze benennen. |
+|  34 | **Testwerkstatt:** Mehrere kurze ARSnova-Fälle werden anhand der verbindlichen Verfahrensmatrix einem Design und einer angemessenen Auswertung zugeordnet. Signifikanz, Effekt und Datenqualität werden getrennt beurteilt. | Anteil und unabhängiger Mittelwert führen im Pflichtkern zur Intervallschätzung; nur vollständige metrische Paare zum gepaarten t-Test.                                                 | Entscheidungsbaum „Fragestellung – Datentyp – Design – Intervall oder gepaarter Test – Interpretation“.          |
 
 **Selbststudium:** 30-Fragen-Retrieval-Satz; Testentscheidungen und p-Wert-Aussagen klassifizieren; kurze Vorher-Nachher-Auswertung.<br>
-**Fallstudien-Meilenstein:** LEHRDATEN-Kurzbefund „Schätzfehler in Runde 1 und Runde 2“ ohne Kausalbehauptung.
+**Fallstudien-Meilenstein:** S1 schließt die Kernanalyse ab; S5/S6 aktualisieren Analyseplan und Verfahrensbegründung. Gemeinsamer LEHRDATEN-Kurzbefund ohne Kausalbehauptung.
 
 ## Woche 8 – Korrelation und lineare Regression
 
@@ -605,7 +628,7 @@ JASP 0.98.1 ist in jeder Woche verbindlich. Die folgende Ausgabe wird institutio
 |  39 | **JASP-Regressionslabor:** Basis- und Ausreißervariante werden getrennt analysiert; Wirkung auf $r$, Regressionsgerade, Residuen und Vorhersage wird untersucht. Anschließend wird eine unzulässige Extrapolation identifiziert. | S5: beide Varianten derselben synthetischen Lehrtabelle; ARSnova-Abstimmung über die belastbarste Interpretation.                                                  | JASP-Vorher-Nachher-Vergleich und kurze Sensitivitätsanalyse.                 |
 
 **Selbststudium:** gemischte Aufgaben zu Streudiagramm, $r$, Regressionsgleichung und Kausalitätsfehlern.<br>
-**Fallstudien-Meilenstein:** Synthetischer Last-Latenz-Lehrdatensatz mit Modellbefund; ausdrücklich keine Messung des Produktivsystems.
+**Fallstudien-Meilenstein:** S5 schließt die Kernanalyse ab; S1/S6 erstellen einen vollständigen Befundentwurf. Last-Latenz-Befund ausdrücklich nicht als Messung des Produktivsystems ausgeben.
 
 ## Woche 9 – Train/Test, Overfitting und binäre Klassifikationsmetriken
 
@@ -620,21 +643,21 @@ JASP 0.98.1 ist in jeder Woche verbindlich. Die folgende Ausgabe wird institutio
 |  44 | **JASP-Modellaudit:** Train/Test-Tabelle, binäre Matrix und die vier Kernmetriken dokumentieren. Nur bei gesichertem Kern dürfen V3–V6 anhand vorbereiteter Auszüge qualitativ folgen. | V3 Macro-F1, V4 Coverage/Schwelle, V5 Kalibrierung und V6 Q&A-NLP bleiben optionale, nicht summative Vertiefungen; aus REPO-Werten werden keine Einzelbeobachtungen rekonstruiert (Q8, Q9). | Einseitige Modellkarte zum Pflichtkern; optionale Vertiefungsnotiz klar getrennt und ohne Produktivversprechen. |
 
 **Selbststudium:** Aufgaben zur binären Confusion Matrix und zu den vier Kernmetriken; ältere Inferenzthemen im MC-Test; JASP-Ausgabe zu festen LEHRDATEN-Modelläufen lesen.<br>
-**Fallstudien-Meilenstein:** Modellkarte zur binären LEHRDATEN-Klassifikation mit Zielmetrik, Fehlkosten und Grenze.
+**Fallstudien-Meilenstein:** S1, S5 und S6 schließen JASP-Kernanalyse und vollständigen Befundentwurf ab; S6 ergänzt Zielmetrik, Fehlkosten und Grenze.
 
 ## Woche 10 – Integration, Kommunikation und Klausurtraining
 
 **Wochenziele:** Die Studierenden führen die Schritte einer statistischen Untersuchung zusammen, wählen Verfahren begründet aus, kommunizieren Ergebnisse und bereiten sich transparent auf die Klausur vor.
 
-|  UE | Inhalt und Ablauf                                                                                                                                      | ARSnova-Bezug                                                                                                                                              | Lernprodukt/Evidenz                                                                    |
-| --: | ------------------------------------------------------------------------------------------------------------------------------------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------- |
-|  45 | Analysewerkstatt: Von der Untersuchungsfrage zur Methode. Gruppen wählen einen Fallstudienstrang und erstellen einen Analyseplan.                      | S1–S6: Datentyp und Herkunft zuerst wählen; Analyse nur mit dafür tatsächlich ausreichenden Daten planen.                                                  | Analyseplan mit Variable, Skala, Grafik, Kennzahl/Verfahren und Grenze.                |
-|  46 | Durchführung in JASP und Befund: Ergebnisse auf Plausibilität prüfen, Grafik beschriften, Unsicherheit und Limitation formulieren.                     | Freigegebene LIVE-/REPO-/LEHRDATEN bleiben getrennt; Quellenstatus, Beobachtungseinheit, Nenner, Aggregationsrunde und JASP-Version gehören in den Befund. | Einseitiger Statistikbefund nach verlinkter Vorlage und gespeicherter JASP-Kernauszug. |
-|  47 | Kurzpräsentationen und Peer Review. Fokus: Was zeigen die Daten wirklich? Wo wird überinterpretiert?                                                   | RATING oder SURVEY als Peer-Feedback nach einer extern bereitgestellten Rubrik; keine eigenständige ARSnova-Rubrikfunktion voraussetzen.                   | Überarbeiteter Befund und fünf Sätze Management Summary.                               |
-|  48 | Probeklausur in Miniatur mit vorbereiteten JASP-Auszügen, gemeinsame Lösungsstrategie und Abschluss-Blitzlicht. Die JASP-Bedienung wird nicht geprüft. | Kumulatives Lernquiz ohne Rangliste, Timer, Teamwertung oder Boni plus anonyme Fragewand; Abschluss-Blitzlicht nur als aktuelles Aggregat.                 | Individueller Lernplan für die Prüfung; internes Modulfeedback.                        |
+|  UE | Inhalt und Ablauf                                                                                                                          | ARSnova-Bezug                                                                                                                                | Lernprodukt/Evidenz                                                               |
+| --: | ------------------------------------------------------------------------------------------------------------------------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------- |
+|  45 | Qualitätswerkstatt für den bis W09 vorliegenden Entwurf: Quelle, Beobachtungseinheit, Verfahren, JASP-Werte und Aussagegrenze gegenprüfen. | S1/S5/S6: keine erstmalige Strang- oder Methodenwahl; nur tatsächlich ausreichende LEHRDATEN und freigegebene getrennte Aggregate verwenden. | Geprüfter JASP-Kernauszug und priorisierte Korrekturliste.                        |
+|  46 | Befundredaktion und Peer Review: Grafik/Tabelle beschriften, Kernaussage, Unsicherheit, Limitation und Management Summary überarbeiten.    | RATING oder SURVEY nur als freiwilliges Peer-Feedback nach externer Rubrik; keine eigenständige ARSnova-Rubrikfunktion voraussetzen.         | Finaler einseitiger Statistikbefund nach verlinkter Vorlage.                      |
+|  47 | Probeklausur in Miniatur mit vorbereiteten JASP-Auszügen; Aufgaben den sieben Klausurbereichen und der Formelsammlung zuordnen.            | Kumulatives Lernquiz ohne Rangliste, Timer, Teamwertung oder Boni; falsche Antworten lösen gezielte Lösungsstrategie aus.                    | Individuelle Fehlerliste und prüfungsnahe Lösungsstrategie.                       |
+|  48 | Transfervergleich, gemeinsame Prüfungsvorbereitung und interne Modulevaluation; Abschluss-Blitzlicht nur als aktuelles Aggregat.           | Eine BWL- und eine WI-Parallelaufgabe vergleichen; anonyme Fragewand und SURVEY ohne individuelle Vorher-Nachher-Verknüpfung.                | Individueller Lernplan, fünf Sätze Management Summary und internes Modulfeedback. |
 
 **Selbststudium:** vollständiger kumulativer MC-Test im untimierten Modus `practice`, Probeklausur unter der vorgesehenen 90-Minuten-Bedingung und gezielte Wiederholung anhand der Konzeptdiagnostik.<br>
-**Fallstudien-Meilenstein:** finaler JASP-gestützter ARSnova-Statistikbericht.
+**Fallstudien-Meilenstein:** final überarbeiteter JASP-gestützter Statistikbefund zum seit W03 gewählten LEHRDATEN-Strang; kein neuer Analysebeginn in W10.
 
 ---
 
@@ -689,11 +712,11 @@ Angestrebt wird ungefähr **40 % Rechnen** und **60 % Auswählen, Anwenden, Inte
 
 Die Klausur prüft ausschließlich MZ1–MZ7 beziehungsweise LI01–LI24. V1–V6 – Wilson-Ranking, app-spezifische Quartilimplementierung, Macro-F1, Coverage/Schwellenwahl, Kalibrierung und Q&A-NLP – sind ausgeschlossen.
 
-Die Klausur prüft nicht das Auswendiglernen von Formeln, sondern deren angemessene Auswahl und Verwendung. Vorbereitete, vollständig beschriftete Ausschnitte aus JASP 0.98.1 dürfen als Material gelesen und interpretiert werden; weder Installation noch Menüpfad oder Softwarebedienung werden unter Prüfungszeit verlangt. Die [Probeklausur](./P0-03_Probeklausur_90_Minuten.md) und ihre [Musterlösung](./P0-03_Probeklausur_Musterloesung.md) setzen diesen Rahmen mit ausschließlich freigegebenen LEHRDATEN um.
+Die Klausur prüft nicht das Auswendiglernen von Formeln, sondern deren angemessene Auswahl und Verwendung. Vorbereitete, vollständig beschriftete Ausschnitte aus JASP 0.98.1 dürfen als Material gelesen und interpretiert werden; weder Installation noch Menüpfad oder Softwarebedienung werden unter Prüfungszeit verlangt. Die [Probeklausur](./P0-03_Probeklausur_90_Minuten.md) und ihre [Musterlösung](./P0-03_Probeklausur_Musterloesung.md) setzen diesen Rahmen mit ausschließlich freigegebenen LEHRDATEN um. Ihr verbindliches 60-Punkte-Mapping bildet die sieben Bereiche mit `12/9/9/9/9/9/3` Punkten ab; der formative Gruppenbefund bleibt von den drei individuellen MZ7-Klausurpunkten getrennt.
 
 ### 9.3 Beispiel für eine integrierte Klausuraufgabe
 
-> In einem konstruierten LEHRDATEN-Auszug (`source_ref=P0-03-EXAM-WILSON-V1`) beantworten 37 von 52 Studierenden eine Frage korrekt. Ein 95-%-Wilson-Konfidenzintervall für den zugrunde liegenden Anteil wird mit $[0{,}58;0{,}82]$ angegeben.
+> In einem konstruierten LEHRDATEN-Auszug (`source_ref=P0-03-PROBEKLAUSUR-A3-WILSON-V1`) beantworten 37 von 52 Studierenden eine Frage korrekt. Ein 95-%-Wilson-Konfidenzintervall für den zugrunde liegenden Anteil wird gerundet mit $[0{,}58;0{,}82]$ angegeben.
 >
 > 1. Berechnen Sie den beobachteten Anteil korrekter Antworten.
 > 2. Interpretieren Sie das Intervall im Kontext.
@@ -733,7 +756,7 @@ Ein kurzes Lehrendenprotokoll hält wöchentlich fest:
 
 Der kanonische Gesamtindex ist das [P0-03-Materialpaket](./P0-03_Materialpaket_Pilotlauf.md). Zum vollständigen Pilotbestand gehören:
 
-- die [Formelsammlung](./P0-03_Formelsammlung_Statistik.md), der [JASP-Analyseleitfaden](./P0-03_JASP_Analyseleitfaden.md), das [Lehrenden-Runbook](./P0-03_Lehrenden_Runbook.md) und das [Datenwörterbuch mit Provenienz](./P0-03_Datenwoerterbuch_Provenienz.md);
+- die [Formelsammlung](./P0-03_Formelsammlung_Statistik.md), der [JASP-Analyseleitfaden](./P0-03_JASP_Analyseleitfaden.md), das [Lehrenden-Runbook](./P0-03_Lehrenden_Runbook.md), das [Datenwörterbuch mit Provenienz](./P0-03_Datenwoerterbuch_Provenienz.md), die [Mathematikdiagnostik mit Brückenpfaden](./P0-03_Mathematikdiagnostik_Brueckenpfade.md), die [Transfermatrix](./P0-03_Transfermatrix_BWL_WI.md) und die [Material-/A11y-Probe](./P0-03_Barrierefreiheit_Material_und_Probe.md);
 - sieben synthetische Lehrdaten-CSV: [S1 Servicezeiten](./P0-03_Lehrdaten_S1_Servicezeiten.csv), [S1 Paare](./P0-03_Lehrdaten_S1_Paare.csv), [S2 Confidence](./P0-03_Lehrdaten_S2_Confidence.csv), [S3 Q&A-Ranking](./P0-03_Lehrdaten_S3_QA_Ranking.csv), [S5 Last/Latenz](./P0-03_Lehrdaten_S5_Last_Latenz.csv), [S6 Klassifikation](./P0-03_Lehrdaten_S6_Klassifikation.csv) und [S6 Modellläufe](./P0-03_Lehrdaten_S6_Modelllaeufe.csv);
 - die [Statistikbefund-Vorlage mit Rubrik](./P0-03_Statistikbefund_Vorlage_Rubrik.md), die [Probeklausur](./P0-03_Probeklausur_90_Minuten.md) und die [Musterlösung](./P0-03_Probeklausur_Musterloesung.md);
 - institutionell bereitgestelltes JASP 0.98.1, einen nicht programmierbaren Taschenrechner sowie ein browserfähiges Gerät oder eine gleichwertige papierbasierte Alternative.
@@ -751,7 +774,7 @@ Gültige `.jasp`-Dateien und Laufzeitexporte entstehen erst im geschützten Lehr
 ### 11.2 Technischer Ablauf vor jeder Sitzung
 
 - Paketversion, Wochen-JSON, Session und QR-Code/URL nach dem Runbook vorab testen,
-- den freigegebenen Pool von 3–6 Livefragen pro Wochenblock vorbereiten und ausschließlich Diagnose- oder Lernmodus kennzeichnen,
+- den freigegebenen Pool von 4–6 Livefragen pro Wochenblock vorbereiten und ausschließlich Diagnose- oder Lernmodus kennzeichnen,
 - Nicht-Spiel-Baseline mit deaktivierter Rangliste, deaktiviertem Timer, deaktivierter Teamwertung und deaktivierten Boni im Import prüfen,
 - die benötigte Lehrdaten-CSV in JASP 0.98.1 importieren; Zeilenzahl, Skalenniveaus und Kontrollwerte mit Datenwörterbuch und Leitfaden abgleichen,
 - MC-Test im Modus `practice` ohne Timer und mit Sofortfeedback testen; `show_top5_public=false`, genau 30 Fragen und nur empfohlene Lerndurchläufe prüfen,
@@ -763,11 +786,14 @@ Gültige `.jasp`-Dateien und Laufzeitexporte entstehen erst im geschützten Lehr
 
 ### 11.3 Barrierearmut
 
-- Fragen werden zusätzlich vorgelesen bzw. sind in gut lesbarer Form verfügbar.
-- Farben sind nie alleinige Bedeutungsträger.
+Die verbindliche [Matrix gleichwertiger Alternativen und praktische A11y-Materialprobe](./P0-03_Barrierefreiheit_Material_und_Probe.md) operationalisiert die folgenden Mindestregeln:
+
+- Fragen werden zusätzlich vorgelesen und stehen in gut lesbarer digitaler sowie papierbasierter Form zur Verfügung.
+- Farben sind nie alleinige Bedeutungsträger; Tabellen, Formeln und Grafiken bleiben bei Vergrößerung und in Graustufen verständlich.
 - Im P0-Piloten werden weder in ARSnova.eu noch im MC-Lernmodus technische Zeitlimits verwendet.
-- Alternativen zur individuellen Tablet-Eingabe sind möglich.
+- Für ARSnova, MC-Test, JASP-Ausgaben, Lehrdatentabellen, Formelsammlung und Probeklausur besteht je eine gleichwertige Alternative ohne persönliches Gerät.
 - Diagramme erhalten Titel, Achsenbeschriftungen, Einheiten und eine textliche Kernaussage.
+- Die operative Pilotfreigabe setzt den dokumentierten praktischen A11y-Probelauf voraus; eine Produktzertifizierung wird daraus nicht abgeleitet.
 
 ---
 

@@ -15,6 +15,13 @@ Zu jedem Formelblock stehen:
 - **Einheit:** Einheit des Ergebnisses,
 - **Warnung:** häufigster Anwendungs- oder Interpretationsfehler.
 
+Für die digitale und gedruckte Nutzung gelten zusätzlich die
+[Material- und A11y-Anforderungen](./P0-03_Barrierefreiheit_Material_und_Probe.md):
+mindestens 12 pt in der Druckfassung, wiederholte Tabellenköpfe sowie eine
+lineare Lesefassung jeder im konkreten Lehr- oder Prüfungsfall benötigten
+Formel. Formel, Größen, Voraussetzungen, Einheit und Warnung dürfen durch
+Seitenumbrüche nicht voneinander getrennt werden.
+
 Alle benötigten kritischen \(z\)- und \(t\)-Werte werden in der jeweiligen
 Aufgabe angegeben. Zur Orientierung:
 
@@ -387,6 +394,16 @@ $$
 Ein Standardfehler beschreibt die modellbedingte Streuung eines
 **Stichprobenschätzers**, nicht die Streuung der Einzelwerte.
 
+### 3.0 Verbindliche Verfahrensmatrix des Pflichtkerns
+
+| Untersuchungsfrage und Design                               | Verfahren im Pflichtkern                                    | Nicht verlangt                                                      |
+| ----------------------------------------------------------- | ----------------------------------------------------------- | ------------------------------------------------------------------- |
+| unbekannter Anteil aus unabhängigen Fällen                  | Punktschätzung \(\hat p\) und Anteils-Konfidenzintervall    | Anteils- oder Binomialtest                                          |
+| unbekannter Mittelwert aus unabhängigen metrischen Fällen   | Punktschätzung \(\bar x\) und \(t\)-Konfidenzintervall      | Ein-Stichproben- oder unabhängiger Mittelwerttest                   |
+| mittlere Veränderung vollständig gepaarter metrischer Werte | Konfidenzintervall der Differenzen und gepaarter \(t\)-Test | Test aus bloßen Rundenaggregaten oder unabhängiger Gruppenvergleich |
+
+Die Verfahrenswahl folgt der Untersuchungsfrage, dem Skalenniveau und dem Design. Ein Konfidenzintervall ist kein Hypothesentest. Als Hypothesentest wird im Pflichtkern ausschließlich der gepaarte \(t\)-Test berechnet und aus JASP gelesen.
+
 ### 3.1 Geschätzter Standardfehler des Mittelwerts
 
 $$
@@ -729,9 +746,10 @@ Vor dem Rechnen:
 2. Welches Skalenniveau und welche Einheit haben die Variablen?
 3. Welcher Zähler und welcher Nenner gehören zur Frage?
 4. Sind Beobachtungen unabhängig oder gepaart?
-5. Wird nur die vorliegende Wertemenge beschrieben (\(n\)) oder aus einer
+5. Verlangt die Frage eine Punktschätzung, ein Konfidenzintervall oder den im Pflichtkern ausschließlich für vollständige metrische Paare vorgesehenen gepaarten \(t\)-Test?
+6. Wird nur die vorliegende Wertemenge beschrieben (\(n\)) oder aus einer
    Stichprobe geschlossen (\(n-1\))?
-6. Sind die Voraussetzungen des gewählten Verfahrens plausibel?
+7. Sind die Voraussetzungen des gewählten Verfahrens plausibel?
 
 Nach dem Rechnen:
 

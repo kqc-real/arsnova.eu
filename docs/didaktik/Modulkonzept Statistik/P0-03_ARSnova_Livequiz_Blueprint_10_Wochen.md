@@ -1,6 +1,6 @@
 # P0-03 – ARSnova-Livequiz-Blueprint für 10 Wochen
 
-**Version:** 1.1.0 · **Stand:** 13.09.2026 · **Status:** normative Spezifikation für den synchronen Pilotbetrieb
+**Version:** 1.2.0 · **Stand:** 13.09.2026 · **Status:** normative Spezifikation für den synchronen Pilotbetrieb
 
 **Kanonischer Index:** [P0-03_Materialpaket_Pilotlauf.md](./P0-03_Materialpaket_Pilotlauf.md)
 
@@ -22,7 +22,7 @@ Der Pilot verwendet ARSnova.eu synchron zur anonymen Diagnose und zur lernorient
 |       W10 |      6 | [P0-03_ARSnova_Woche_10.json](./P0-03_ARSnova_Woche_10.json) |
 | **Summe** | **50** |                                                              |
 
-Der Bestand umfasst 47 Pflichtkernfragen und drei optionale Vertiefungsfragen. Je nach Gate-Entscheidung werden 47–50 Fragen eingesetzt; auch beim Überspringen aller Vertiefungen verbleiben in jeder Woche 4–6 und damit mindestens 3 Livefragen. Wird ein Wochenblock auf mehrere Präsenztage verteilt, werden diese Fragen auf die Termine verteilt; die Zahl wird nicht pro Termin erneut angesetzt.
+Der Bestand umfasst 47 Pflichtkernfragen und drei optionale Vertiefungsfragen. Je nach Gate-Entscheidung werden 47–50 Fragen eingesetzt; auch beim Überspringen aller Vertiefungen verbleiben in jeder Woche 4–6 Livefragen. Wird ein Wochenblock auf mehrere Präsenztage verteilt, werden diese Fragen auf die Termine verteilt; die Zahl wird nicht pro Termin erneut angesetzt.
 
 ### 1.1 Nicht-Spiel-Konfiguration
 
@@ -59,7 +59,7 @@ Zusätzlich gilt für jede Frage `timer=null`. Rangliste, Timer, Teamwertung, Be
 - SURVEY/Blitzlicht erhebt Selbstauskunft ohne richtige Lösung.
 - Confidence ist ordinal, antwortbezogen und optional; bei aktivierter Abfrage gibt es eine gleichwertige Alternative ohne Confidence.
 - LIVE-Daten werden bevorzugt aggregiert und immer mit Nenner berichtet.
-- Die Fragewand Q&A darf während der Sitzung geöffnet bleiben, zählt aber nicht zu den 3–6 Livequizfragen. Freitext wird vor jeder Lehrnutzung geprüft und nicht ungefiltert exportiert.
+- Die Fragewand Q&A darf während der Sitzung geöffnet bleiben, zählt aber nicht zu den 4–6 Livequizfragen. Freitext wird vor jeder Lehrnutzung geprüft und nicht ungefiltert exportiert.
 - Die Nutzung dient ausschließlich der Lehre und der internen Modulverbesserung.
 
 ## 2. IDs, Reihenfolge und Revision
@@ -114,7 +114,7 @@ Jede Frage hat genau eine primäre Retrieval-Rolle:
 
 ### 3.4 QA-Verteilung
 
-`QA` bedeutet in diesem Abschnitt **Qualitätssicherung**, nicht die ARSnova-Fragewand Q&A. Jede Frage durchläuft die technische Basisprüfung: importierbares JSON, richtige Reihenfolge, lösbarer Schlüssel, keine Lösung im Teilnehmer-Fragenstamm, barrierearme Darstellung und Nicht-Spiel-Einstellungen. Zusätzlich erhält jede Frage genau eine höchste Risikoprüfung:
+`QA` bedeutet in diesem Abschnitt **Qualitätssicherung**, nicht die ARSnova-Fragewand Q&A. Jede Frage durchläuft die technische Basisprüfung: importierbares JSON, richtige Reihenfolge, lösbarer Schlüssel, keine Lösung im Teilnehmer-Fragenstamm und Nicht-Spiel-Einstellungen. Die barrierearme Darstellung wird nach der [Material-/A11y-Matrix](./P0-03_Barrierefreiheit_Material_und_Probe.md) geprüft: vollständiger vorlesbarer Wortlaut, nicht nur farblich oder räumlich unterscheidbare Optionen, gleichwertige Papierantwort, ausreichende Denkzeit ohne Timer sowie verständliche Formel-/Tabellenalternative. Zusätzlich erhält jede Frage genau eine höchste Risikoprüfung:
 
 | Code | Zusätzliche Prüfung                                                             |
 | ---- | ------------------------------------------------------------------------------- |

@@ -1,6 +1,6 @@
 # P0-03 – QA- und Freigabeprotokoll
 
-**Version:** 1.0.0 · **Stand:** 13.09.2026<br>
+**Version:** 2.0.0 · **Stand:** 13.09.2026<br>
 **Status:** statische Paketprüfung bestanden; operative Pilotfreigabe offen
 
 **Bezugsdokumente:** [Materialpaket Pilotlauf](./P0-03_Materialpaket_Pilotlauf.md) · [Lehrenden-Runbook](./P0-03_Lehrenden_Runbook.md) · [Datenmanagement- und Exportplan](./P0-02_Datenmanagement_Exportplan.md)
@@ -18,22 +18,32 @@ Der dokumentierte Stand enthält ausschließlich Markdown, JSON und synthetische
 - 7 synthetische CSV-Dateien mit `source_kind=LEHRDATEN`,
 - Kerncurriculum, Datenmanagementplan, Materialindex, Runbook, zwei Blueprints,
 - Datenwörterbuch, JASP-Leitfaden, Formelsammlung,
-- Statistikbefund-Vorlage mit Rubrik sowie Probeklausur und Musterlösung.
+- Statistikbefund-Vorlage mit Rubrik sowie Probeklausur und Musterlösung,
+- Mathematikdiagnostik mit sechs Brückenpfaden,
+- sieben isomorphe BWL-/WI-Transferaufgabenpaare,
+- Matrix gleichwertiger Materialalternativen mit zehnteiliger praktischer A11y-Probe.
 
 Die Prüfsummen in Abschnitt 5 beziehen sich ausschließlich auf die 27 maschinenlesbaren JSON-/CSV-Artefakte dieses Stands.
 
 ## 3. Abgeschlossene statische Prüfungen
 
-| Prüfung                                   | Ergebnis                                                                                                                                                                       | Status    |
-| ----------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | --------- |
-| Shared-Types-Build                        | `npm run build -w @arsnova/shared-types` endet mit Exit-Code 0.                                                                                                                | bestanden |
-| ARSnova-Vertrag                           | Alle 10 Dateien bestehen `QuizImportSchema`; insgesamt 50 Fragen und je Woche 3–6 Fragen.                                                                                      | bestanden |
-| Strenger MC-Paketvertrag                  | 10 Dateien, 300 paketweit eindeutige Fragen, exakte Feldmengen, 30 Fragen je Woche, `8/16/6`-Gewichtsprofil, zulässige kognitive Stufen und 2–4 Glossareinträge.               | bestanden |
-| Fixierter MC-Test-Validator               | Commit `b6b159555e8a228dad73dd75fd66c154a1088e28`: Exit-Code 0, keine Fehler, 10 thematische Warnungen; Bewertung siehe Abschnitt 3.1.                                         | bestanden |
-| Lehrdaten und Sollwerte                   | 7 CSV-Dateien: Provenienzfelder, Vollständigkeit, Ableitungen und dokumentierte Kontrollwerte einschließlich t-Wert, Wilson-Untergrenze, Regression und Metriken reproduziert. | bestanden |
-| Lokale Dokumentverweise                   | Alle geprüften relativen Markdown-Ziele existieren.                                                                                                                            | bestanden |
-| Prettier und Whitespace                   | Markdown/JSON entsprechen Prettier; `git diff --check` meldet keine Whitespacefehler.                                                                                          | bestanden |
-| Personenbezug der versionierten Lehrdaten | Alle CSV-Zeilen sind als `LEHRDATEN` gekennzeichnet; die Dateien enthalten keine LIVE- oder Personendaten.                                                                     | bestanden |
+| Prüfung                                   | Ergebnis                                                                                                                                                                                          | Status    |
+| ----------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------- |
+| Shared-Types-Build                        | `npm run build -w @arsnova/shared-types` endet mit Exit-Code 0.                                                                                                                                   | bestanden |
+| ARSnova-Vertrag                           | Alle 10 Dateien bestehen `QuizImportSchema`; insgesamt 50 Fragen und je Woche 4–6 Fragen.                                                                                                         | bestanden |
+| Strenger MC-Paketvertrag                  | 10 Dateien, 300 paketweit eindeutige Fragen, exakte Feldmengen, identische Zielgruppenangabe, 30 Fragen je Woche, `8/16/6`-Gewichtsprofil, zulässige kognitive Stufen und 2–4 Glossareinträge.    | bestanden |
+| Fixierter MC-Test-Validator               | Commit `b6b159555e8a228dad73dd75fd66c154a1088e28`: Exit-Code 0, keine Fehler, 10 thematische Warnungen; Bewertung siehe Abschnitt 3.1.                                                            | bestanden |
+| Lehrdaten und Sollwerte                   | 7 CSV-Dateien: Provenienzfelder, Vollständigkeit, Ableitungen und dokumentierte Kontrollwerte einschließlich t-Wert, Wilson-Untergrenze, Regression und Metriken reproduziert.                    | bestanden |
+| Lokale Dokumentverweise                   | Alle geprüften relativen Markdown-Ziele existieren.                                                                                                                                               | bestanden |
+| Prettier und Whitespace                   | Markdown/JSON entsprechen Prettier; `git diff --check` meldet keine Whitespacefehler.                                                                                                             | bestanden |
+| Personenbezug der versionierten Lehrdaten | Alle CSV-Zeilen sind als `LEHRDATEN` gekennzeichnet; die Dateien enthalten keine LIVE- oder Personendaten.                                                                                        | bestanden |
+| Verfahrensscope                           | MZ4/LI16, Formelsammlung, Wochenplan, JASP-Pfad und Probeklausur begrenzen Hypothesentests im Pflichtkern auf den gepaarten \(t\)-Test; unabhängige Anteils-/Mittelwertfragen nutzen Intervalle.  | bestanden |
+| Prüfungsalignment                         | 60 Punkte sind exakt als `12/9/9/9/9/9/3` den sieben Klausurbereichen zugeordnet; MZ7 erhält ohne Doppelzählung 3 Punkte.                                                                         | bestanden |
+| Lehrfall-Provenienz                       | Eigene `source_ref` trennen die Probeklausur-Lehrfälle von sieben CSVs sowie W09- und W10-Train/Test-Beispielen.                                                                                  | bestanden |
+| Mathematikzugang                          | 12 Diagnosepunkte decken sechs Voraussetzungen ab; jeder Block besitzt Worked Example, Übung, Wiederholungscheck und datensparsamen Förderweg. Bearbeitung erfolgt vor UE 1 im W01-Selbststudium. | bestanden |
+| Fallstudien-Timing                        | Auswahlfähige Stränge S1/S5/S6, verbindliche Wahl W03, Analyseplan W06, vollständiger Entwurf W09 und minutenbudgetierte Revision W10 sind synchron dokumentiert.                                 | bestanden |
+| Isomorpher Transfer                       | Für MZ1–MZ7 liegen sieben Aufgabenpaare mit gleichen Zahlen, Handlungen, Schwierigkeit, Punktwerten und Erwartungshorizonten vor.                                                                 | bestanden |
+| A11y-Materialvertrag                      | Alle Materialklassen besitzen definierte gleichwertige Alternativen und zehn operative Prüfschritte; deren praktische Abnahme bleibt Abschnitt 4 vorbehalten.                                     | bestanden |
 
 Die statistischen Kontrollwerte wurden unabhängig aus den CSV-Grundwerten nachgerechnet. Eine tatsächliche Reproduktion in JASP ist davon getrennt und bleibt gemäß Abschnitt 4 offen.
 
@@ -51,16 +61,18 @@ Die Warnungen bezeichnen damit eine beabsichtigte Topic-Granularität, keinen Sc
 
 ## 4. Offene operative Freigabe-Gates
 
-| Gate                                                        | Zuständige Rolle | Nachweis vor Pilotstart                                                                                                                       | Status |
-| ----------------------------------------------------------- | ---------------- | --------------------------------------------------------------------------------------------------------------------------------------------- | ------ |
-| MC-Test-Import und Laufzeitprofil                           | MP, IR           | Testimport aller zehn Dateien; 30/30 Items; `practice`; Sofortfeedback; kein Timer; `show_top5_public=false`.                                 | offen  |
-| ARSnova-Import und Nicht-Spiel-Baseline                     | LD, IR           | Testimport aller zehn Dateien; Reihenfolge, Antworttypen, Lösungen und Sessionparameter ohne Rangliste, Timer, Teamwertung oder Boni geprüft. | offen  |
-| JASP 0.98.1                                                 | DJ               | Import aller sieben CSVs, Skalenniveaus, Menüpfade, Sollwerte, Exporte und echte `.jasp`-Arbeitsdateien geprüft.                              | offen  |
-| Offline-Fallback                                            | LD               | Ein vollständiger Probelauf mit lokalen Quizdateien, Papierantworten und vorab erzeugtem JASP-Referenzoutput.                                 | offen  |
-| Datenweg, Schutzorte, Löschhandoff und Auftragsverarbeitung | DS, MP           | P0-02-Prüfung einschließlich MC-Test-Datenbank, Rollen, Fristen und dokumentiertem Löschvollzug.                                              | offen  |
-| Curriculare, fachliche und prüfungsbezogene Schlussfreigabe | MV, QE           | Stichprobe aller Materialklassen, Vertiefungsgates, Klausurabgleich und Ausschluss individueller Bewertung aus LIVE-Daten.                    | offen  |
+| Gate                                                        | Zuständige Rolle | Nachweis vor Pilotstart                                                                                                                                                                                   | Status |
+| ----------------------------------------------------------- | ---------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------ |
+| MC-Test-Import und Laufzeitprofil                           | MP, IR           | Testimport aller zehn Dateien; 30/30 Items; `practice`; Sofortfeedback; kein Timer; `show_top5_public=false`.                                                                                             | offen  |
+| ARSnova-Import und Nicht-Spiel-Baseline                     | LD, IR           | Testimport aller zehn Dateien; Reihenfolge, Antworttypen, Lösungen und Sessionparameter ohne Rangliste, Timer, Teamwertung oder Boni geprüft.                                                             | offen  |
+| JASP 0.98.1                                                 | DJ               | Import aller sieben CSVs, Skalenniveaus, Menüpfade, Sollwerte, Exporte und echte `.jasp`-Arbeitsdateien geprüft.                                                                                          | offen  |
+| Offline-Fallback                                            | LD               | Ein vollständiger Probelauf mit lokalen Quizdateien, Papierantworten und vorab erzeugtem JASP-Referenzoutput.                                                                                             | offen  |
+| W10-Ablauf und Fallstudienübergabe                          | LD, MV, QE       | Probelauf des Vier-UE-Minutenplans; Strangwahl W03, Analyseplan W06, vollständiger Entwurf W09 und keine erstmalige Analyse W10 nachgewiesen.                                                             | offen  |
+| Praktische A11y-Materialprobe                               | LD, QE, DJ, MV   | Alle zehn Prüfschritte der Material-/A11y-Matrix mit realem Setup, Paketversion, Datum und ohne offene Barriere bestanden.                                                                                | offen  |
+| Datenweg, Schutzorte, Löschhandoff und Auftragsverarbeitung | DS, MP           | P0-02-Prüfung einschließlich MC-Test-Datenbank, Rollen, Fristen und dokumentiertem Löschvollzug.                                                                                                          | offen  |
+| Curriculare, fachliche und prüfungsbezogene Schlussfreigabe | MV, QE           | Stichprobe aller Materialklassen einschließlich Diagnose, Transferpaaren, Verfahrensscope, Strang-Timeline, Vertiefungsgates und Klausurabgleich sowie Ausschluss individueller Bewertung aus LIVE-Daten. | offen  |
 
-JASP 0.98.1 war im statischen Prüfkontext nicht installiert; daher wird kein ausgeführter JASP-Test behauptet. Auch die drei Laufzeit-/Importtests und der Offline-Probelauf wurden nicht durch eine Dokumentprüfung ersetzt.
+JASP 0.98.1 war im statischen Prüfkontext nicht installiert; daher wird kein ausgeführter JASP-Test behauptet. Auch Laufzeit-/Importtests, Offline- und W10-Probelauf, praktische A11y-Materialprobe sowie menschliche Rollenfreigaben wurden nicht durch eine Dokumentprüfung ersetzt.
 
 ## 5. SHA-256-Prüfsummen der maschinenlesbaren Artefakte
 
@@ -88,10 +100,10 @@ f17bad31dffc72a6dd1c1acc6e995a0196ab2bd38bbf738ec55748461ed24356  P0-03_ARSnova_
 d2788b8149432d82d9af6af5cad429e9bf1e7d7e54ef60a31fca81b84c25d823  P0-03_MC-Test_Woche_04.json
 2ef29c27b7dd4351670ad31f3a008caae65bc3a087904afe8bee19cfc5709ffa  P0-03_MC-Test_Woche_05.json
 99c3970a49a5eb4e03705faf142e39381591517e8c2bdd6c6542965d34e4e10b  P0-03_MC-Test_Woche_06.json
-7f804ead66430ec3505ae616f0501b946e6de2ce0cd09a86cd0aae68b44f767a  P0-03_MC-Test_Woche_07.json
-2332b483fb4c3af5a823ebcb9952525f2cb4698672f3ab1a21ca8b4d6d76efc0  P0-03_MC-Test_Woche_08.json
+d5ef4ef6327f2186d22efbf7711dd3fccd6208ec970ebf1a94e0c862ede09e37  P0-03_MC-Test_Woche_07.json
+0aa5728c767e85b8fd4a2ef99f7b18553b4558ad0557df79b3685c784711805c  P0-03_MC-Test_Woche_08.json
 6d9720b6e5ab6f75ced91e302b6307e1df3c02ae248d7c6a59982503dc3a740a  P0-03_MC-Test_Woche_09.json
-e59122da1d68701b1063eb87258af9e49ab08f09d6603dc4ad1e6db3f2f1a107  P0-03_MC-Test_Woche_10.json
+f011b7d65f99c78a6198a7f196ab489e84d27058dd2e302732cf5701ef1ace6b  P0-03_MC-Test_Woche_10.json
 ```
 
 Nach jeder inhaltlichen Änderung an JSON oder CSV sind die Prüfsummen neu zu erzeugen und die betroffenen statischen Prüfungen erneut auszuführen. Die endgültige Paketprovenienz wird zusätzlich durch den Git-Commit bestimmt.

@@ -1,6 +1,6 @@
 # P0-03 – MC-Test-Blueprint für 10 Wochen
 
-**Version:** 2.0.1 · **Stand:** 13.09.2026 · **Status:** normative Spezifikation für 300 asynchrone Items
+**Version:** 2.1.0 · **Stand:** 13.09.2026 · **Status:** normative Spezifikation für 300 asynchrone Items
 
 **Kanonischer Index:** [P0-03_Materialpaket_Pilotlauf.md](./P0-03_Materialpaket_Pilotlauf.md)
 
@@ -17,6 +17,7 @@
 - Nach jeder Antwort erscheinen eine fachliche Erklärung und zwei bis vier itemnahe Einträge aus `mini_glossary`.
 - Lernanalytik wird nur aggregiert für Lehre und interne Modulevaluation genutzt. Antwortzeit ist kein Kompetenzmaß.
 - Rechen- und Softwareergebnisse werden in JASP 0.98.1 nach dem [JASP-Analyseleitfaden](./P0-03_JASP_Analyseleitfaden.md) geprüft.
+- Für jede Datei steht nach der [Material-/A11y-Matrix](./P0-03_Barrierefreiheit_Material_und_Probe.md) eine vollständige, untimierte Alternativfassung mit denselben 30 Fragen, Lösungen, Erklärungen und Glossaren bereit.
 - Der Blueprint misst die 24 Lernziele des Hauptkonzepts. Er führt keine Forschungsvariablen, experimentellen Gruppen oder externen Vergleichskohorten ein.
 - ARSnova-, MC-Test- und sonstige LIVE-Daten dürfen nicht zur individuellen Leistungsbewertung verwendet werden. Eine getrennte Klausur mit ausschließlich dafür freigegebenen LEHRDATEN bleibt zulässig.
 
@@ -45,17 +46,17 @@ Das Wurzelobjekt enthält ausschließlich `meta` und `questions`. `questions` is
 
 `meta` enthält genau:
 
-| Feld                        | Verbindliche Regel                               |
-| --------------------------- | ------------------------------------------------ |
-| `title`                     | nicht leerer Titel der Wochen-Datei              |
-| `target_audience`           | nicht leere Beschreibung der Zielgruppe          |
-| `question_count`            | Ganzzahl `30`, identisch zur Arraylänge          |
-| `difficulty_profile`        | exakt `{"leicht": 8, "mittel": 16, "schwer": 6}` |
-| `time_per_weight_minutes`   | exakt `{"1": 0.5, "2": 0.75, "3": 1.0}`          |
-| `additional_buffer_minutes` | exakt `5`                                        |
-| `test_duration_minutes`     | exakt `27`; Planwert, im Lernmodus kein Timer    |
-| `language`                  | exakt `de`                                       |
-| `updated`                   | Datum der Form `JJJJ-MM-TT`                      |
+| Feld                        | Verbindliche Regel                                                                                                            |
+| --------------------------- | ----------------------------------------------------------------------------------------------------------------------------- |
+| `title`                     | nicht leerer Titel der Wochen-Datei                                                                                           |
+| `target_audience`           | exakt `Bachelorstudierende aus BWL, Management, Wirtschaftsinformatik und Informatik ohne vorausgesetzte Statistikkenntnisse` |
+| `question_count`            | Ganzzahl `30`, identisch zur Arraylänge                                                                                       |
+| `difficulty_profile`        | exakt `{"leicht": 8, "mittel": 16, "schwer": 6}`                                                                              |
+| `time_per_weight_minutes`   | exakt `{"1": 0.5, "2": 0.75, "3": 1.0}`                                                                                       |
+| `additional_buffer_minutes` | exakt `5`                                                                                                                     |
+| `test_duration_minutes`     | exakt `27`; Planwert, im Lernmodus kein Timer                                                                                 |
+| `language`                  | exakt `de`                                                                                                                    |
+| `updated`                   | Datum der Form `JJJJ-MM-TT`                                                                                                   |
 
 Jedes Fragenobjekt enthält genau:
 
@@ -121,16 +122,16 @@ Dieses `8/16/6`-Profil gilt für jede der zehn Dateien und muss mit `meta.diffic
 Die Wochenplanung unterscheidet außerhalb des JSON:
 
 - Schwerpunkt der aktuellen Woche,
-- in W01 eine unbenotete Eingangsdiagnose statistischer Voraussetzungen,
+- in W01 eine unbenotete Eingangsdiagnose fachstatistischer Voraussetzungen,
 - verteilte Wiederholung aus früheren Wochen,
 - Diagnose einer dokumentierten Fehlvorstellung,
 - Transfer oder klausurnahe integrierte Anwendung.
 
-Diese Ziele steuern Themenwahl, `concept` und Erklärungen redaktionell. Der Blueprint behauptet dafür keine maschinellen Tags oder aus dem JSON berechenbaren Rollensummen.
+Diese Ziele steuern Themenwahl, `concept` und Erklärungen redaktionell. Der Blueprint behauptet dafür keine maschinellen Tags oder aus dem JSON berechenbaren Rollensummen. Brüche, Prozentrechnung, Potenzen/Wurzeln, Gleichungen und Taschenrechnerbedienung prüft getrennt die [Mathematikdiagnostik mit Brückenpfaden](./P0-03_Mathematikdiagnostik_Brueckenpfade.md); sie verdrängt kein W01-Statistikitem.
 
 ### 3.4 Redaktionelle Fachprüfung
 
-Alle Items erhalten eine redaktionelle Standardprüfung durch IR. Fehlvorstellungen und interpretationskritische Items werden zusätzlich durch QE fachlich-didaktisch gegengelesen; Rechen-, Daten- und JASP-Items werden durch DJ unabhängig einschließlich Einheit und Rundung reproduziert. Diese Prüfnachweise stehen im Freigabeprotokoll, nicht im Fragen-JSON.
+Alle Items erhalten eine redaktionelle Standardprüfung durch IR. Fehlvorstellungen und interpretationskritische Items werden zusätzlich durch QE fachlich-didaktisch gegengelesen; Rechen-, Daten- und JASP-Items werden durch DJ unabhängig einschließlich Einheit und Rundung reproduziert. Die [isomorphe Transfermatrix](./P0-03_Transfermatrix_BWL_WI.md) wird dabei je Modulziel auf gleiche Zahlen, Kernhandlung, Schwierigkeit und Erwartungshorizont geprüft. Diese Prüfnachweise stehen im Freigabeprotokoll, nicht im Fragen-JSON.
 
 ## 4. Verbindliche Wochenverteilungen
 
@@ -145,6 +146,7 @@ Die Häufigkeiten für `topic`, `cognitive_level` und `weight` sind direkt aus d
 - **`weight`-Profil (Σ=30):** `1`/leicht=8; `2`/mittel=16; `3`/schwer=6.
 - **LI-Schwerpunkte:** LI01, LI02, LI03 und LI04.
 - **Curricularer Schwerpunkt und Retrieval:** Der Einstieg verbindet Statistikprozess, Bezugsgruppen, Beobachtungseinheiten, Merkmalsarten und Datenqualität. Als Eingangsdiagnose werden begriffliche Abgrenzungen, korrekte Nenner sowie Grenzen deskriptiver und kausaler Aussagen abgerufen.
+- **Abgrenzung:** W01 diagnostiziert fachstatistische Begriffe. Mathematische Arbeitsvoraussetzungen werden vor beziehungsweise zu Beginn von UE 1 mit dem eigenständigen Diagnosebogen geprüft.
 
 ### W02 – Häufigkeiten, Diagramme und Lage
 
@@ -285,7 +287,9 @@ Eine Wochen-Datei wird nur freigegeben, wenn:
 9. DJ alle betroffenen Rechen-, Daten- und JASP-Ergebnisse unabhängig reproduziert hat;
 10. ein Testimport im Lernmodus `practice` Sofortfeedback ohne Timer zeigt und bei `show_top5_public=false` keine öffentliche Top-5 ausgibt;
 11. die 27 Minuten ausschließlich als Planwert erscheinen und keine Versuchsbegrenzung behauptet oder technisch vorausgesetzt wird;
-12. der Löschhandoff nach dem [Lehrenden-Runbook](./P0-03_Lehrenden_Runbook.md) terminiert und einer verantwortlichen Rolle zugewiesen ist.
+12. der Löschhandoff nach dem [Lehrenden-Runbook](./P0-03_Lehrenden_Runbook.md) terminiert und einer verantwortlichen Rolle zugewiesen ist;
+13. `target_audience` in allen zehn Dateien exakt dem Vertrag entspricht;
+14. die untimierte Alternativfassung stichprobenweise auf identische Frage, Optionen, Lösung, Erklärung und Glossar geprüft wurde.
 
 Zuerst muss der [Validator des fixierten MC-Test-Commits](https://github.com/kqc-real/streamlit/blob/b6b159555e8a228dad73dd75fd66c154a1088e28/validate_sets.py) für jede Datei mit Exit-Code 0 enden; jede Warnung wird von IR geprüft und mit Entscheidung im externen Freigabeprotokoll festgehalten. Da dieser Validator die paketweit engere Allowlist nicht vollständig durchsetzt, ist zusätzlich vom Repository-Wurzelverzeichnis aus dieser reproduzierbare Gate-Check auszuführen:
 
@@ -310,6 +314,10 @@ question_keys = {
 cognitive_values = {"Reproduktion", "Verständnis", "Anwendung", "Analyse"}
 expected_profile = {"leicht": 8, "mittel": 16, "schwer": 6}
 expected_times = {"1": 0.5, "2": 0.75, "3": 1.0}
+expected_target_audience = (
+    "Bachelorstudierende aus BWL, Management, Wirtschaftsinformatik "
+    "und Informatik ohne vorausgesetzte Statistikkenntnisse"
+)
 
 assert len(files) == 10
 for path in files:
@@ -318,7 +326,7 @@ for path in files:
     meta, questions = data["meta"], data["questions"]
     assert set(meta) == meta_keys, path
     assert isinstance(meta["title"], str) and meta["title"].strip(), path
-    assert isinstance(meta["target_audience"], str) and meta["target_audience"].strip(), path
+    assert meta["target_audience"] == expected_target_audience, path
     assert meta["question_count"] == len(questions) == 30, path
     assert meta["difficulty_profile"] == expected_profile, path
     assert meta["time_per_weight_minutes"] == expected_times, path
