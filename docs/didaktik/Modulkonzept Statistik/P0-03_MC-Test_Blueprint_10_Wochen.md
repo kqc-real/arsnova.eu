@@ -162,8 +162,8 @@ Die Häufigkeiten für `topic`, `cognitive_level` und `weight` sind direkt aus d
 **Datei:** [P0-03_MC-Test_Woche_01.json](./P0-03_MC-Test_Woche_01.json)
 
 - **`topic`-Häufigkeiten (Σ=30):** `Statistikprozess`=5; `Grundgesamtheit und Stichprobe`=6; `Beobachtungseinheit und Merkmale`=5; `Skalenniveaus und Merkmalsarten`=7; `Datenqualität und Aussagegrenzen`=7.
-- **`cognitive_level`-Häufigkeiten (Σ=30):** `Reproduktion`=8; `Verständnis`=0; `Anwendung`=16; `Analyse`=6.
-- **`weight`-Profil (Σ=30):** `1`/leicht=8; `2`/mittel=16; `3`/schwer=6.
+- **`cognitive_level`-Häufigkeiten (Σ=30):** `Verständnis`=2; `Anwendung`=9; `Analyse`=19.
+- **`weight`-Profil (Σ=30):** `1`/leicht=0; `2`/mittel=12; `3`/schwer=18.
 - **LI-Schwerpunkte:** LI01, LI02, LI03 und LI04.
 - **Curricularer Schwerpunkt und Spaced Repetition:** Der Einstieg verbindet Statistikprozess, Bezugsgruppen, Beobachtungseinheiten, Merkmalsarten und Datenqualität. Als Eingangsdiagnose werden begriffliche Abgrenzungen, korrekte Nenner sowie Grenzen deskriptiver und kausaler Aussagen abgerufen.
 - **Abgrenzung:** W01 diagnostiziert fachstatistische Begriffe. Mathematische Arbeitsvoraussetzungen werden vor UE 1 mit dem eigenständigen Diagnosebogen geprüft.
@@ -173,8 +173,8 @@ Die Häufigkeiten für `topic`, `cognitive_level` und `weight` sind direkt aus d
 **Datei:** [P0-03_MC-Test_Woche_02.json](./P0-03_MC-Test_Woche_02.json)
 
 - **`topic`-Häufigkeiten (Σ=30):** `Häufigkeiten und Nenner`=6; `Diagramme und Manipulation`=5; `Lagewerte und Robustheit`=8; `Kumulative Wiederholung Woche 1`=11.
-- **`cognitive_level`-Häufigkeiten (Σ=30):** `Reproduktion`=8; `Verständnis`=0; `Anwendung`=16; `Analyse`=6.
-- **`weight`-Profil (Σ=30):** `1`/leicht=8; `2`/mittel=16; `3`/schwer=6.
+- **`cognitive_level`-Häufigkeiten (Σ=30):** `Verständnis`=1; `Anwendung`=9; `Analyse`=20.
+- **`weight`-Profil (Σ=30):** `1`/leicht=0; `2`/mittel=12; `3`/schwer=18.
 - **LI-Schwerpunkte:** LI05, LI06, LI07 und LI08; im kumulativen Abruf zusätzlich LI01, LI02 und LI03.
 - **Curricularer Schwerpunkt und Spaced Repetition:** Häufigkeiten mit transparentem Nenner, sachgerechte Diagramme sowie Lage und Robustheit bilden den neuen Kern. Der umfangreiche Abruf aus W01 greift Grundgesamtheit, Stichprobe, Beobachtungseinheit, Skalenniveau, Missingness, Nonresponse und Selbstselektion wieder auf.
 
@@ -183,8 +183,8 @@ Die Häufigkeiten für `topic`, `cognitive_level` und `weight` sind direkt aus d
 **Datei:** [P0-03_MC-Test_Woche_03.json](./P0-03_MC-Test_Woche_03.json)
 
 - **`topic`-Häufigkeiten (Σ=30):** `Spannweite und Streuung`=5; `Varianz und Standardabweichung`=8; `Quartile und IQR`=5; `Boxplot und Ausreißer`=5; `Median, p95 und p99`=4; `Kumulative Wiederholung: Datenstruktur`=1; `Kumulative Wiederholung: Häufigkeiten`=1; `Kumulative Wiederholung: Lage und Datenkritik`=1.
-- **`cognitive_level`-Häufigkeiten (Σ=30):** `Reproduktion`=5; `Verständnis`=8; `Anwendung`=9; `Analyse`=8.
-- **`weight`-Profil (Σ=30):** `1`/leicht=8; `2`/mittel=16; `3`/schwer=6.
+- **`cognitive_level`-Häufigkeiten (Σ=30):** `Verständnis`=4; `Anwendung`=8; `Analyse`=18.
+- **`weight`-Profil (Σ=30):** `1`/leicht=0; `2`/mittel=12; `3`/schwer=18.
 - **LI-Schwerpunkte:** LI06, LI07 und LI08; ergänzend LI03 und LI24.
 - **Curricularer Schwerpunkt und Spaced Repetition:** Der Schwerpunkt liegt auf Streuungsmaßen, Varianzkonventionen, Quartilen, Boxplots, Ausreißerbehandlung und hohen Quantilen. Der kumulative Abruf verknüpft dies mit Beobachtungseinheiten, relativen Häufigkeiten sowie Lage und Datenkritik.
 
@@ -193,8 +193,8 @@ Die Häufigkeiten für `topic`, `cognitive_level` und `weight` sind direkt aus d
 **Datei:** [P0-03_MC-Test_Woche_04.json](./P0-03_MC-Test_Woche_04.json)
 
 - **`topic`-Häufigkeiten (Σ=30):** `Ereignisse und Gegenereignisse`=4; `Baumdiagramm und Multiplikation`=5; `Kontingenztafel und Bedingungen`=6; `Inverse Bedingungen und Bayes-Idee`=5; `Kumulative Wiederholung: Datenstruktur`=1; `Kumulative Wiederholung: Skalenniveau`=1; `Kumulative Wiederholung: Häufigkeiten`=1; `Kumulative Wiederholung: Lage`=2; `Kumulative Wiederholung: Streuung`=3; `Kumulative Wiederholung: Quartile und Ausreißer`=1; `Kumulative Wiederholung: Transfer und Datenkritik`=1.
-- **`cognitive_level`-Häufigkeiten (Σ=30):** `Reproduktion`=3; `Verständnis`=3; `Anwendung`=17; `Analyse`=7.
-- **`weight`-Profil (Σ=30):** `1`/leicht=8; `2`/mittel=16; `3`/schwer=6.
+- **`cognitive_level`-Häufigkeiten (Σ=30):** `Verständnis`=3; `Anwendung`=8; `Analyse`=19.
+- **`weight`-Profil (Σ=30):** `1`/leicht=0; `2`/mittel=12; `3`/schwer=18.
 - **LI-Schwerpunkte:** LI09 und LI10; im Abruf insbesondere LI01, LI02, LI05, LI07, LI08 und LI24.
 - **Curricularer Schwerpunkt und Spaced Repetition:** Ereignisse, Baumdiagramme, Kontingenztafeln, inverse Bedingungen, Basisraten und Fehlkosten werden systematisch verbunden. Der kumulative Abruf aktiviert Datenstruktur, Skalenniveau, Häufigkeiten, Lage, Streuung, Quartile und kritische Transfergrenzen aus W01–W03.
 
@@ -203,8 +203,8 @@ Die Häufigkeiten für `topic`, `cognitive_level` und `weight` sind direkt aus d
 **Datei:** [P0-03_MC-Test_Woche_05.json](./P0-03_MC-Test_Woche_05.json)
 
 - **`topic`-Häufigkeiten (Σ=30):** `Zufallsvariablen und Verteilungen`=3; `Binomialverteilung`=5; `Normalverteilung und Standardisierung`=4; `Stichprobenvariabilität`=8; `Kumulative Datenkompetenz`=2; `Kumulative Deskription`=4; `Kumulative Wahrscheinlichkeit`=4.
-- **`cognitive_level`-Häufigkeiten (Σ=30):** `Reproduktion`=8; `Verständnis`=0; `Anwendung`=16; `Analyse`=6.
-- **`weight`-Profil (Σ=30):** `1`/leicht=8; `2`/mittel=16; `3`/schwer=6.
+- **`cognitive_level`-Häufigkeiten (Σ=30):** `Verständnis`=2; `Anwendung`=8; `Analyse`=20.
+- **`weight`-Profil (Σ=30):** `1`/leicht=0; `2`/mittel=12; `3`/schwer=18.
 - **LI-Schwerpunkte:** LI11 und LI12; im kumulativen Abruf LI03, LI05 bis LI10 und LI24.
 - **Curricularer Schwerpunkt und Spaced Repetition:** Zufallsvariablen, Binomial- und Normalverteilung sowie Stichprobenvariabilität und Standardfehleridee bilden den Kern. Kumulativ werden Datenkompetenz, Deskription, bedingte Wahrscheinlichkeit, Gegenereignis und Basisrate erneut abgerufen.
 
@@ -213,8 +213,8 @@ Die Häufigkeiten für `topic`, `cognitive_level` und `weight` sind direkt aus d
 **Datei:** [P0-03_MC-Test_Woche_06.json](./P0-03_MC-Test_Woche_06.json)
 
 - **`topic`-Häufigkeiten (Σ=30):** `Punkt- und Intervallschätzung`=3; `Standardfehler`=7; `Konfidenzintervalle`=1; `Präzision und Generalisierung`=3; `Anteilsintervalle`=6; `Mittelwertintervalle`=2; `Kumulative Stichprobenvariabilität`=2; `Kumulative Verteilungen`=3; `Kumulative Wahrscheinlichkeit`=2; `Kumulative Deskription`=1.
-- **`cognitive_level`-Häufigkeiten (Σ=30):** `Reproduktion`=8; `Verständnis`=0; `Anwendung`=16; `Analyse`=6.
-- **`weight`-Profil (Σ=30):** `1`/leicht=8; `2`/mittel=16; `3`/schwer=6.
+- **`cognitive_level`-Häufigkeiten (Σ=30):** `Verständnis`=2; `Anwendung`=7; `Analyse`=21.
+- **`weight`-Profil (Σ=30):** `1`/leicht=0; `2`/mittel=12; `3`/schwer=18.
 - **LI-Schwerpunkte:** LI12, LI13, LI14 und LI24; im Abruf zusätzlich LI03 und LI07 bis LI11.
 - **Curricularer Schwerpunkt und Spaced Repetition:** Punkt- und Intervallschätzung, Standardfehler, frequentistische Intervallinterpretation sowie Wald-, Wilson- und t-Intervalle werden mit Präzision und Generalisierbarkeit verknüpft. Der Abruf führt Stichprobenvariabilität, Verteilungen, Wahrscheinlichkeit und robuste Deskription fort.
 
@@ -223,8 +223,8 @@ Die Häufigkeiten für `topic`, `cognitive_level` und `weight` sind direkt aus d
 **Datei:** [P0-03_MC-Test_Woche_07.json](./P0-03_MC-Test_Woche_07.json)
 
 - **`topic`-Häufigkeiten (Σ=30):** `Testlogik`=5; `p-Wert und Signifikanz`=6; `Fehlerarten und Relevanz`=5; `Gepaarter t-Test`=7; `Datenqualität und Aussagegrenzen`=4; `Kumulative Wiederholung`=3.
-- **`cognitive_level`-Häufigkeiten (Σ=30):** `Reproduktion`=2; `Verständnis`=5; `Anwendung`=12; `Analyse`=11.
-- **`weight`-Profil (Σ=30):** `1`/leicht=8; `2`/mittel=16; `3`/schwer=6.
+- **`cognitive_level`-Häufigkeiten (Σ=30):** `Verständnis`=4; `Anwendung`=9; `Analyse`=17.
+- **`weight`-Profil (Σ=30):** `1`/leicht=0; `2`/mittel=12; `3`/schwer=18.
 - **LI-Schwerpunkte:** LI14, LI15 und LI16; ergänzend LI03, LI04 und LI24.
 - **Curricularer Schwerpunkt und Spaced Repetition:** Testlogik, p-Wert, Signifikanz, Fehlerarten, praktische Relevanz und der gepaarte t-Test werden mit Datenqualität und Aussagegrenzen verbunden. Der kumulative Abruf kontrastiert Konfidenzintervall und Test, festigt bedingte Nenner und übt die Verfahrenswahl.
 
@@ -233,8 +233,8 @@ Die Häufigkeiten für `topic`, `cognitive_level` und `weight` sind direkt aus d
 **Datei:** [P0-03_MC-Test_Woche_08.json](./P0-03_MC-Test_Woche_08.json)
 
 - **`topic`-Häufigkeiten (Σ=30):** `Streudiagramm`=5; `Pearson-Korrelation`=5; `Grenzen und Einflussfaktoren`=4; `Lineare Regression`=7; `Residuen und Modellgüte`=5; `Kumulative Wiederholung`=4.
-- **`cognitive_level`-Häufigkeiten (Σ=30):** `Reproduktion`=3; `Verständnis`=6; `Anwendung`=10; `Analyse`=11.
-- **`weight`-Profil (Σ=30):** `1`/leicht=8; `2`/mittel=16; `3`/schwer=6.
+- **`cognitive_level`-Häufigkeiten (Σ=30):** `Verständnis`=4; `Anwendung`=9; `Analyse`=17.
+- **`weight`-Profil (Σ=30):** `1`/leicht=0; `2`/mittel=12; `3`/schwer=18.
 - **LI-Schwerpunkte:** LI17, LI18 und LI19; ergänzend LI16 und LI24.
 - **Curricularer Schwerpunkt und Spaced Repetition:** Streudiagramm, Pearson-Korrelation, Einflussfaktoren, lineare Regression, Residuen und Modellgüte bilden eine zusammenhängende Modellierungssequenz. Der Abruf nimmt p-Wert, Standardfehler, die Abgrenzung zum gepaarten Vergleich und einen begrenzten Managementtransfer wieder auf.
 
@@ -242,20 +242,20 @@ Die Häufigkeiten für `topic`, `cognitive_level` und `weight` sind direkt aus d
 
 **Datei:** [P0-03_MC-Test_Woche_09.json](./P0-03_MC-Test_Woche_09.json)
 
-- **`topic`-Häufigkeiten (Σ=30):** `Train/Test und Generalisierung`=4; `Coverage und Evaluationstransfer`=2; `Overfitting und Domain Shift`=4; `Confusion Matrix`=7; `Klassifikationsmetriken`=4; `Fehlkosten und Klassenverteilung`=3; `F1 und Nullnenner`=3; `Kumulative Regression und Inferenz`=3.
-- **`cognitive_level`-Häufigkeiten (Σ=30):** `Reproduktion`=8; `Verständnis`=0; `Anwendung`=16; `Analyse`=6.
-- **`weight`-Profil (Σ=30):** `1`/leicht=8; `2`/mittel=16; `3`/schwer=6.
+- **`topic`-Häufigkeiten (Σ=30):** `Train/Test und Generalisierung`=5; `Overfitting und Domain Shift`=4; `Confusion Matrix`=7; `Klassifikationsmetriken`=6; `Fehlkosten und Klassenverteilung`=3; `F1 und Nullnenner`=3; `Kumulative Regression und Inferenz`=2.
+- **`cognitive_level`-Häufigkeiten (Σ=30):** `Verständnis`=1; `Anwendung`=11; `Analyse`=18.
+- **`weight`-Profil (Σ=30):** `1`/leicht=0; `2`/mittel=12; `3`/schwer=18.
 - **LI-Schwerpunkte:** LI20, LI21 und LI22; ergänzend LI19 und LI24.
 - **Curricularer Schwerpunkt und Spaced Repetition:** Train/Test-Trennung, Generalisierung, Overfitting, Domain Shift, Confusion Matrix, Kernmetriken, Fehlkosten, Klassenverteilung und Nullnenner stehen im Zentrum. Der kumulative Abruf verbindet Residuen und Testentscheidungen mit begrenzten Modellvergleichen.
-- **Nicht summative Vertiefung:** I05 zum festen dokumentierten REPO-Evaluationsstand gegenüber zwölf synthetischen Resamples und I27 zu Coverage, selektiver Accuracy und Macro-F1 dienen ausschließlich Vertiefung und Transfer. Ist der Pflichtkern noch nicht gesichert, werden sie vor der Freigabe durch zusätzliche Pflichtkern-Aufgaben zur binären Confusion Matrix sowie zu Accuracy, Precision, Recall und binärem F1 einschließlich ihrer Nenner ersetzt.
+- **Curricularer Status:** I05 prüft den quellenkritischen Transfer zwischen einem festen REPO-Evaluationsstand und synthetischen Resamples. I27 operationalisiert LI22 durch die Trennung von Modellausgabe, empirischer Gruppenhäufigkeit und beobachtetem Einzelfalllabel. Beide Items gehören zum ausgewiesenen Pflichtkern.
 
 ### W10 – Integration, Kommunikation und Klausurtraining
 
 **Datei:** [P0-03_MC-Test_Woche_10.json](./P0-03_MC-Test_Woche_10.json)
 
 - **`topic`-Häufigkeiten (Σ=30):** `Datenqualität und Deskription`=4; `Wahrscheinlichkeit und Sampling`=4; `Inferenz und Verfahrenswahl`=6; `Korrelation und Regression`=5; `Binäre Modellbewertung`=5; `Statistikprozess und Kommunikation`=6.
-- **`cognitive_level`-Häufigkeiten (Σ=30):** `Reproduktion`=8; `Verständnis`=0; `Anwendung`=16; `Analyse`=6.
-- **`weight`-Profil (Σ=30):** `1`/leicht=8; `2`/mittel=16; `3`/schwer=6.
+- **`cognitive_level`-Häufigkeiten (Σ=30):** `Verständnis`=2; `Anwendung`=9; `Analyse`=19.
+- **`weight`-Profil (Σ=30):** `1`/leicht=0; `2`/mittel=12; `3`/schwer=18.
 - **LI-Schwerpunkte:** LI23 und LI24; vernetzend insbesondere LI02, LI03, LI06, LI07, LI10, LI11, LI14, LI15, LI17, LI18, LI20 und LI21.
 - **Curricularer Schwerpunkt und Spaced Repetition:** Die Abschlusswoche integriert Datenqualität und Deskription, Wahrscheinlichkeit und Sampling, Inferenz, Regression, binäre Modellbewertung sowie Statistikprozess und adressatengerechte Kommunikation. Der Abruf verbindet die zentralen Nenner-, Intervall-, p-Wert-, Kausalitäts-, Extrapolations- und Aussagegrenzen der Vorwochen.
 
