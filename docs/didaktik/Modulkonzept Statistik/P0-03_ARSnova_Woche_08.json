@@ -1,0 +1,152 @@
+{
+  "exportVersion": 1,
+  "exportedAt": "2026-09-13T00:00:00.000Z",
+  "quiz": {
+    "name": "P0-03 ARSnova – Woche 08: Korrelation und Regression",
+    "description": "Live-Fragen zu Streudiagrammen, Korrelation, Regressionsparametern, Residuen und Extrapolation.",
+    "showLeaderboard": false,
+    "allowCustomNicknames": false,
+    "defaultTimer": null,
+    "timerScaleByDifficulty": false,
+    "enableTimerAccommodation": true,
+    "enableSoundEffects": false,
+    "enableRewardEffects": false,
+    "enableMotivationMessages": false,
+    "enableEmojiReactions": false,
+    "anonymousMode": true,
+    "teamMode": false,
+    "teamCount": null,
+    "teamAssignment": "AUTO",
+    "backgroundMusic": null,
+    "nicknameTheme": "HIGH_SCHOOL",
+    "bonusTokenCount": null,
+    "readingPhaseEnabled": true,
+    "questions": [
+      {
+        "text": "### Ein Streudiagramm systematisch lesen\n\nIn synthetischen Lastläufen steigen die Medianlatenzen überwiegend mit der Zahl gleichzeitiger Clients. Ein Punkt liegt weit oberhalb des übrigen Musters.\n\nWelche Beschreibung ist angemessen?",
+        "type": "SINGLE_CHOICE",
+        "timer": null,
+        "difficulty": "EASY",
+        "order": 0,
+        "answers": [
+          {
+            "text": "Es gibt einen positiven Zusammenhang und einen möglichen Ausreißer, der gesondert geprüft werden sollte.",
+            "isCorrect": true
+          },
+          {
+            "text": "Der einzelne hohe Punkt beweist einen negativen Zusammenhang.",
+            "isCorrect": false
+          },
+          {
+            "text": "Ein Streudiagramm erlaubt nur Aussagen über eine Variable.",
+            "isCorrect": false
+          },
+          {
+            "text": "Der Zusammenhang beweist bereits, dass Last die alleinige Ursache der Latenz ist.",
+            "isCorrect": false
+          }
+        ]
+      },
+      {
+        "text": "### Was sagt r = 0,82?\n\nFür die synthetischen Last-Latenz-Läufe wird eine Pearson-Korrelation von $r=0{,}82$ berechnet.\n\nWelche Aussagen sind korrekt?",
+        "type": "MULTIPLE_CHOICE",
+        "timer": null,
+        "difficulty": "MEDIUM",
+        "order": 1,
+        "answers": [
+          {
+            "text": "Die Daten zeigen einen starken positiven linearen Zusammenhang.",
+            "isCorrect": true
+          },
+          {
+            "text": "Ein einflussreicher Ausreißer kann den Wert von r deutlich verändern.",
+            "isCorrect": true
+          },
+          {
+            "text": "Im einfachen linearen Modell gilt $r^2\\approx0{,}67$.",
+            "isCorrect": true
+          },
+          {
+            "text": "Der Wert beweist einen kausalen Effekt der Last auf jede einzelne Latenz.",
+            "isCorrect": false
+          }
+        ]
+      },
+      {
+        "text": "### Steigung im Kontext\n\nFür synthetische Läufe im Bereich von 100 bis 600 gleichzeitigen Clients gilt das Lehrmodell\n\n$$\\hat y=85+0{,}42x,$$\n\nwobei $x$ die Clientzahl und $\\hat y$ die vorhergesagte Medianlatenz in Millisekunden ist.\n\nWie ist die Steigung zu lesen?",
+        "type": "SINGLE_CHOICE",
+        "timer": null,
+        "difficulty": "MEDIUM",
+        "order": 2,
+        "answers": [
+          {
+            "text": "Pro zusätzlichem Client steigt die vorhergesagte Medianlatenz im Modell um 0,42 ms.",
+            "isCorrect": true
+          },
+          {
+            "text": "Die Medianlatenz steigt pro Client um 42 %.",
+            "isCorrect": false
+          },
+          {
+            "text": "Bei null Clients beträgt jede reale Latenz zwingend 85 ms.",
+            "isCorrect": false
+          },
+          {
+            "text": "Die Steigung gibt die Korrelation direkt als Prozentwert an.",
+            "isCorrect": false
+          }
+        ]
+      },
+      {
+        "text": "### Vorhersage und Residuum\n\nFür $x=500$ sagt das Modell $\\hat y=85+0{,}42x$ voraus. Beobachtet werden 330 ms.\n\nWelche Kombination ist korrekt?",
+        "type": "SINGLE_CHOICE",
+        "timer": null,
+        "difficulty": "HARD",
+        "order": 3,
+        "answers": [
+          {
+            "text": "Vorhersage 295 ms; Residuum $330-295=35$ ms",
+            "isCorrect": true
+          },
+          {
+            "text": "Vorhersage 295 ms; Residuum $295-330=35$ ms",
+            "isCorrect": false
+          },
+          {
+            "text": "Vorhersage 505 ms; Residuum −175 ms",
+            "isCorrect": false
+          },
+          {
+            "text": "Vorhersage 210 ms; Residuum 120 ms",
+            "isCorrect": false
+          }
+        ]
+      },
+      {
+        "text": "### Extrapolation außerhalb des Messbereichs\n\nDas Modell wurde mit synthetischen Läufen zwischen 100 und 600 Clients angepasst. Eine Person setzt $x=2.000$ ein und formuliert daraus ein Produktionsversprechen.\n\nWelche Kritik ist zentral?",
+        "type": "SINGLE_CHOICE",
+        "timer": null,
+        "difficulty": "HARD",
+        "order": 4,
+        "answers": [
+          {
+            "text": "Die Vorhersage extrapoliert weit außerhalb des beobachteten Bereichs und stammt zudem aus Lehrdaten.",
+            "isCorrect": true
+          },
+          {
+            "text": "Lineare Modelle dürfen grundsätzlich nur für genau einen x-Wert verwendet werden.",
+            "isCorrect": false
+          },
+          {
+            "text": "Eine positive Steigung macht jede Extrapolation automatisch zuverlässig.",
+            "isCorrect": false
+          },
+          {
+            "text": "Synthetische Daten sind immer genauer als Produktionsmessungen.",
+            "isCorrect": false
+          }
+        ]
+      }
+    ]
+  }
+}

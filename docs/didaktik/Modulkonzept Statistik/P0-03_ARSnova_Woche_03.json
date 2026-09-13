@@ -1,0 +1,144 @@
+{
+  "exportVersion": 1,
+  "exportedAt": "2026-09-13T00:00:00.000Z",
+  "quiz": {
+    "name": "P0-03 ARSnova – Woche 03: Streuung und Quantile",
+    "description": "Konzeptdiagnostik zu Streuungsmaßen, Quartilen, Ausreißern und hohen Latenzquantilen.",
+    "showLeaderboard": false,
+    "allowCustomNicknames": false,
+    "defaultTimer": null,
+    "timerScaleByDifficulty": false,
+    "enableTimerAccommodation": true,
+    "enableSoundEffects": false,
+    "enableRewardEffects": false,
+    "enableMotivationMessages": false,
+    "enableEmojiReactions": false,
+    "anonymousMode": true,
+    "teamMode": false,
+    "teamCount": null,
+    "teamAssignment": "AUTO",
+    "backgroundMusic": null,
+    "nicknameTheme": "HIGH_SCHOOL",
+    "bonusTokenCount": null,
+    "readingPhaseEnabled": true,
+    "questions": [
+      {
+        "text": "### Servicezeit erneut schätzen\n\nDie 20 Servicezeiten in Sekunden werden diesmal ungeordnet gezeigt:\n\n125, 80, 150, 110, 60, 135, 122, 95, 180, 115, 105, 160, 128, 70, 140, 118, 90, 130, 100, 170\n\nSchätze den Mittelwert.",
+        "type": "NUMERIC_ESTIMATE",
+        "timer": null,
+        "difficulty": "MEDIUM",
+        "order": 0,
+        "answers": [],
+        "numericToleranceMode": "ABSOLUTE_INTERVAL",
+        "numericReferenceValue": 120,
+        "numericTolerancePercent": null,
+        "numericIntervalLeft": 108,
+        "numericIntervalRight": 132,
+        "numericInputType": "INTEGER",
+        "numericMin": 50,
+        "numericMax": 200,
+        "numericTwoRounds": false
+      },
+      {
+        "text": "### Gleiche Lage, andere Streuung\n\nDatensatz A: 100, 110, 120, 130, 140\n\nDatensatz B: 118, 119, 120, 121, 122\n\nWelche Aussage trifft zu?",
+        "type": "SINGLE_CHOICE",
+        "timer": null,
+        "difficulty": "EASY",
+        "order": 1,
+        "answers": [
+          {
+            "text": "Beide Mittelwerte sind 120; Datensatz A streut stärker.",
+            "isCorrect": true
+          },
+          {
+            "text": "Beide Mittelwerte sind 120; deshalb ist auch die Streuung gleich.",
+            "isCorrect": false
+          },
+          {
+            "text": "Datensatz B hat den größeren Mittelwert und die größere Spannweite.",
+            "isCorrect": false
+          },
+          {
+            "text": "Die Streuung lässt sich nur beurteilen, wenn die Mittelwerte verschieden sind.",
+            "isCorrect": false
+          }
+        ]
+      },
+      {
+        "text": "### Division durch n oder n−1?\n\nFür die Werte 100, 110, 120, 130 und 140 Sekunden beträgt die Quadratsumme der Abweichungen vom Mittelwert 1.000.\n\nWelche Aussagen sind korrekt?",
+        "type": "MULTIPLE_CHOICE",
+        "timer": null,
+        "difficulty": "HARD",
+        "order": 2,
+        "answers": [
+          {
+            "text": "Die deskriptive Varianz mit Division durch n beträgt 200 s².",
+            "isCorrect": true
+          },
+          {
+            "text": "Die Stichprobenvarianz mit Division durch n−1 beträgt 250 s².",
+            "isCorrect": true
+          },
+          {
+            "text": "Die Standardabweichung wird in Sekunden angegeben.",
+            "isCorrect": true
+          },
+          {
+            "text": "Verschiedene Ergebnisse aus n und n−1 beweisen einen Rechenfehler.",
+            "isCorrect": false
+          }
+        ]
+      },
+      {
+        "text": "### Quartile nach der festgelegten Indexregel\n\nSortierte Werte: 2, 4, 5, 7, 9, 12, 15, 20\n\nFür diese Aufgabe liegt $Q_1$ am nullbasierten Index $\\lfloor n/4\\rfloor$ und $Q_3$ am Index $\\lfloor 3n/4\\rfloor$.\n\nWelche Quartile ergeben sich?",
+        "type": "SINGLE_CHOICE",
+        "timer": null,
+        "difficulty": "MEDIUM",
+        "order": 3,
+        "answers": [
+          {
+            "text": "$Q_1=5$ und $Q_3=15$",
+            "isCorrect": true
+          },
+          {
+            "text": "$Q_1=4$ und $Q_3=12$",
+            "isCorrect": false
+          },
+          {
+            "text": "$Q_1=4{,}5$ und $Q_3=13{,}5$",
+            "isCorrect": false
+          },
+          {
+            "text": "$Q_1=7$ und $Q_3=20$",
+            "isCorrect": false
+          }
+        ]
+      },
+      {
+        "text": "### Hohe Latenzquantile lesen\n\nEin dokumentierter lokaler Lastlauf berichtet p95 = 121 ms, p99 = 1,22 s und ein Maximum von 6,6 s.\n\nWelche Schlussfolgerungen sind zulässig?",
+        "type": "MULTIPLE_CHOICE",
+        "timer": null,
+        "difficulty": "HARD",
+        "order": 4,
+        "answers": [
+          {
+            "text": "Ungefähr 95 % der gemessenen Werte liegen bei höchstens 121 ms.",
+            "isCorrect": true
+          },
+          {
+            "text": "Der große Abstand zwischen p95 und p99 weist auf einen langen oberen Rand der Verteilung hin.",
+            "isCorrect": true
+          },
+          {
+            "text": "Aus p95, p99 und Maximum lässt sich der Mittelwert nicht eindeutig rekonstruieren.",
+            "isCorrect": true
+          },
+          {
+            "text": "Die drei Kennzahlen garantieren dieselbe Leistung im Produktivbetrieb unter jeder Last.",
+            "isCorrect": false
+          }
+        ]
+      }
+    ]
+  }
+}

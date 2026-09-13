@@ -1,0 +1,152 @@
+{
+  "exportVersion": 1,
+  "exportedAt": "2026-09-13T00:00:00.000Z",
+  "quiz": {
+    "name": "P0-03 ARSnova – Woche 07: Hypothesentests",
+    "description": "Diagnosefragen zu Testlogik, p-Wert, Fehlerarten und gepaarten Vorher-Nachher-Daten.",
+    "showLeaderboard": false,
+    "allowCustomNicknames": false,
+    "defaultTimer": null,
+    "timerScaleByDifficulty": false,
+    "enableTimerAccommodation": true,
+    "enableSoundEffects": false,
+    "enableRewardEffects": false,
+    "enableMotivationMessages": false,
+    "enableEmojiReactions": false,
+    "anonymousMode": true,
+    "teamMode": false,
+    "teamCount": null,
+    "teamAssignment": "AUTO",
+    "backgroundMusic": null,
+    "nicknameTheme": "HIGH_SCHOOL",
+    "bonusTokenCount": null,
+    "readingPhaseEnabled": true,
+    "questions": [
+      {
+        "text": "### Hypothesen für die Schätzverbesserung\n\nFür jedes vollständige Paar sei $d_i$ der absolute Fehler in Runde 1 minus dem absoluten Fehler in Runde 2. Positive Werte bedeuten eine Verbesserung.\n\nWelche Hypothesen passen zur gerichteten Frage nach einer mittleren Verbesserung?",
+        "type": "SINGLE_CHOICE",
+        "timer": null,
+        "difficulty": "EASY",
+        "order": 0,
+        "answers": [
+          {
+            "text": "$H_0:\\mu_d=0$ und $H_1:\\mu_d>0$",
+            "isCorrect": true
+          },
+          {
+            "text": "$H_0:\\mu_d>0$ und $H_1:\\mu_d=0$",
+            "isCorrect": false
+          },
+          {
+            "text": "$H_0:\\bar d=0$ und $H_1:\\bar d<0$",
+            "isCorrect": false
+          },
+          {
+            "text": "$H_0:n=0$ und $H_1:n>0$",
+            "isCorrect": false
+          }
+        ]
+      },
+      {
+        "text": "### Was bedeutet p = 0,03?\n\nEin Test liefert unter den festgelegten Annahmen einen p-Wert von 0,03.\n\nWelche Aussage ist korrekt?",
+        "type": "SINGLE_CHOICE",
+        "timer": null,
+        "difficulty": "MEDIUM",
+        "order": 1,
+        "answers": [
+          {
+            "text": "Unter $H_0$ wären das beobachtete oder extremere Ergebnisse mit 3 % Wahrscheinlichkeit zu erhalten.",
+            "isCorrect": true
+          },
+          {
+            "text": "$H_0$ ist mit 3 % Wahrscheinlichkeit wahr.",
+            "isCorrect": false
+          },
+          {
+            "text": "$H_1$ ist mit 97 % Wahrscheinlichkeit wahr.",
+            "isCorrect": false
+          },
+          {
+            "text": "3 % der beobachteten Werte sind falsch.",
+            "isCorrect": false
+          }
+        ]
+      },
+      {
+        "text": "### Signifikanz ist nicht gleich Relevanz\n\nWelche Aussagen zu Testentscheidungen sind korrekt?",
+        "type": "MULTIPLE_CHOICE",
+        "timer": null,
+        "difficulty": "MEDIUM",
+        "order": 2,
+        "answers": [
+          {
+            "text": "Ein kleiner p-Wert kann bei großem n zu einem praktisch kleinen Effekt gehören.",
+            "isCorrect": true
+          },
+          {
+            "text": "Ein nicht signifikantes Ergebnis beweist nicht, dass es keinen Effekt gibt.",
+            "isCorrect": true
+          },
+          {
+            "text": "Die Stichprobengröße kann den p-Wert beeinflussen.",
+            "isCorrect": true
+          },
+          {
+            "text": "Statistische Signifikanz beweist, dass die Diskussion die Verbesserung verursacht hat.",
+            "isCorrect": false
+          }
+        ]
+      },
+      {
+        "text": "### Warum gepaart auswerten?\n\nDieselben Personen geben vor und nach einer Diskussion je eine Schätzung ab. Welcher Auswertungsansatz nutzt das Design?",
+        "type": "SINGLE_CHOICE",
+        "timer": null,
+        "difficulty": "HARD",
+        "order": 3,
+        "answers": [
+          {
+            "text": "Für jede Person eine Differenz bilden und die vollständigen Paare analysieren.",
+            "isCorrect": true
+          },
+          {
+            "text": "Beide Runden als voneinander unabhängige Gruppen behandeln.",
+            "isCorrect": false
+          },
+          {
+            "text": "Nur die beiden Gesamtmittelwerte vergleichen und alle Paarinformationen verwerfen.",
+            "isCorrect": false
+          },
+          {
+            "text": "Fehlende Zweitwerte durch den jeweiligen Erstwert ersetzen.",
+            "isCorrect": false
+          }
+        ]
+      },
+      {
+        "text": "### Unvollständige zweite Runde\n\nEinige Personen geben nur in Runde 1 eine Schätzung ab. Welche Aussagen sind methodisch korrekt?",
+        "type": "MULTIPLE_CHOICE",
+        "timer": null,
+        "difficulty": "HARD",
+        "order": 4,
+        "answers": [
+          {
+            "text": "Für einen gepaarten Vergleich zählt $n_{pairs}$ nur vollständige Paare.",
+            "isCorrect": true
+          },
+          {
+            "text": "Die Ausfälle können die Übertragbarkeit des Vorher-Nachher-Vergleichs begrenzen.",
+            "isCorrect": true
+          },
+          {
+            "text": "Mittelwert und Standardabweichung jeder Runde reichen nicht aus, um die Streuung der individuellen Differenzen zu bestimmen.",
+            "isCorrect": true
+          },
+          {
+            "text": "Fehlende Zweitantworten dürfen für die Auswertung unbemerkt mit Erstantworten aufgefüllt werden.",
+            "isCorrect": false
+          }
+        ]
+      }
+    ]
+  }
+}

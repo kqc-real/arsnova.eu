@@ -1,0 +1,594 @@
+{
+  "meta": {
+    "title": "Angewandte Statistik – MC-Test Woche 2: Häufigkeiten, Diagramme und Lage",
+    "target_audience": "Bachelorstudierende aus BWL, Management, Wirtschaftsinformatik und Informatik ohne vorausgesetzte Statistikkenntnisse",
+    "question_count": 30,
+    "difficulty_profile": {
+      "leicht": 8,
+      "mittel": 16,
+      "schwer": 6
+    },
+    "time_per_weight_minutes": {
+      "1": 0.5,
+      "2": 0.75,
+      "3": 1.0
+    },
+    "additional_buffer_minutes": 5,
+    "test_duration_minutes": 27,
+    "language": "de",
+    "updated": "2026-09-13"
+  },
+  "questions": [
+    {
+      "question": "1. In einer Stichprobe von 60 Servicetickets sind 18 verspätet abgeschlossen. Was ist die absolute Häufigkeit verspäteter Tickets?",
+      "options": ["0,18 Tickets", "18 Tickets", "30 % der Tickets", "60 Tickets"],
+      "answer": 1,
+      "explanation": "Die absolute Häufigkeit ist die gezählte Anzahl und beträgt 18 Tickets. 30 % wäre die zugehörige relative Häufigkeit mit dem Nenner 60.",
+      "weight": 1,
+      "topic": "Häufigkeiten und Nenner",
+      "concept": "Absolute Häufigkeit",
+      "cognitive_level": "Reproduktion",
+      "mini_glossary": {
+        "Absolute Häufigkeit": "Anzahl der Beobachtungen mit einer bestimmten Ausprägung.",
+        "Relative Häufigkeit": "Anteil einer Ausprägung an einer klar benannten Bezugsmenge.",
+        "Nenner": "Bezugszahl, auf die sich ein Anteil bezieht."
+      }
+    },
+    {
+      "question": "2. Von 60 Servicetickets sind 18 verspätet abgeschlossen. Wie groß ist die relative Häufigkeit der verspäteten Tickets?",
+      "options": [
+        "18 % aus 18 geteilt durch 100",
+        "30 % aus 18 geteilt durch 60",
+        "42 % aus 60 minus 18",
+        "60 % aus 60 geteilt durch 100"
+      ],
+      "answer": 1,
+      "explanation": "Die relative Häufigkeit ist 18 geteilt durch 60 gleich 0,30 beziehungsweise 30 %. Die Differenz 42 ist die absolute Zahl der nicht verspäteten Tickets und kein Anteil.",
+      "weight": 2,
+      "topic": "Häufigkeiten und Nenner",
+      "concept": "Relative Häufigkeit berechnen",
+      "cognitive_level": "Anwendung",
+      "mini_glossary": {
+        "Absolute Häufigkeit": "Anzahl der Beobachtungen mit einer bestimmten Ausprägung.",
+        "Relative Häufigkeit": "Anteil einer Ausprägung an einer klar benannten Bezugsmenge.",
+        "Nenner": "Bezugszahl, auf die sich ein Anteil bezieht."
+      }
+    },
+    {
+      "question": "3. Von 50 zurückgesendeten Fragebögen enthalten 45 eine gültige Antwort zur Weiterempfehlung; 27 davon lauten »Ja«. Welcher Anteil der gültigen Antworten lautet »Ja«?",
+      "options": [
+        "27 % mit dem Nenner 100",
+        "54 % mit dem Nenner 50",
+        "60 % mit dem Nenner 45",
+        "90 % mit dem Nenner 50"
+      ],
+      "answer": 2,
+      "explanation": "Gefragt ist der Anteil unter den 45 gültigen Antworten: 27 geteilt durch 45 gleich 0,60 beziehungsweise 60 %. Mit dem Nenner 50 ergäbe sich eine andere Bezugsgruppe, nämlich alle zurückgesendeten Fragebögen.",
+      "weight": 2,
+      "topic": "Häufigkeiten und Nenner",
+      "concept": "Gültiger Nenner bei fehlenden Angaben",
+      "cognitive_level": "Anwendung",
+      "mini_glossary": {
+        "Nenner": "Bezugszahl, auf die sich ein Anteil bezieht.",
+        "Gültige Antwort": "Für das betrachtete Merkmal verwertbare, nicht fehlende Angabe.",
+        "Fehlender Wert": "Nicht beobachtete oder nicht dokumentierte Merkmalsausprägung; nicht automatisch null."
+      }
+    },
+    {
+      "question": "4. Filiale A erfüllt das Serviceziel bei 24 von 30 Fällen, Filiale B bei 72 von 120 Fällen. Welche Aussage ist korrekt?",
+      "options": [
+        "Filiale B liegt vorn, weil 72 größer als 24 ist.",
+        "Beide Filialen erreichen 60 %, weil zusammen 96 Fälle erfüllt sind.",
+        "Filiale A erreicht 80 % und liegt 20 Prozentpunkte über Filiale B mit 60 %.",
+        "Ein Vergleich ist unmöglich, sobald die Fallzahlen verschieden sind."
+      ],
+      "answer": 2,
+      "explanation": "Filiale A erreicht 24 geteilt durch 30 gleich 80 %, Filiale B 72 geteilt durch 120 gleich 60 %. Der Unterschied beträgt 20 Prozentpunkte; absolute Erfolgszahlen allein vergleichen unterschiedlich große Filialen irreführend.",
+      "weight": 3,
+      "topic": "Häufigkeiten und Nenner",
+      "concept": "Anteilsvergleich bei verschiedenen Nennern",
+      "cognitive_level": "Analyse",
+      "mini_glossary": {
+        "Relative Häufigkeit": "Anteil einer Ausprägung an einer klar benannten Bezugsmenge.",
+        "Nenner": "Bezugszahl, auf die sich ein Anteil bezieht.",
+        "Prozentpunkt": "Einheit für die absolute Differenz zweier Prozentwerte."
+      }
+    },
+    {
+      "question": "5. Bei einer Befragung dürfen Personen mehrere Gründe für einen Vertragswechsel nennen. Die Prozentanteile der Gründe summieren sich zu 145 %. Wie ist das zu beurteilen?",
+      "options": [
+        "Das ist möglich, weil eine Person zu mehreren Gründen gezählt werden kann.",
+        "Das beweist, dass mindestens 45 % der Antworten doppelt gespeichert wurden.",
+        "Das ist unmöglich, weil Prozentwerte stets genau 100 % ergeben müssen.",
+        "Das zeigt, dass 45 % der eingeladenen Personen nicht geantwortet haben."
+      ],
+      "answer": 0,
+      "explanation": "Bei Mehrfachnennungen können einzelne Personen in mehreren Kategorien vorkommen, sodass Optionsanteile zusammen über 100 % liegen. Der Nenner pro Grund kann weiterhin die Zahl der Antwortenden sein; daraus folgt weder eine Dublette noch eine Nonresponse-Quote.",
+      "weight": 2,
+      "topic": "Häufigkeiten und Nenner",
+      "concept": "Mehrfachnennungen und Prozentsumme",
+      "cognitive_level": "Anwendung",
+      "mini_glossary": {
+        "Mehrfachnennung": "Erhebungsformat, bei dem eine Person mehrere Antwortoptionen auswählen darf.",
+        "Optionsanteil": "Anteil der Bezugsgruppe, der eine bestimmte Option genannt hat.",
+        "Nenner": "Bezugszahl, auf die sich ein Anteil bezieht."
+      }
+    },
+    {
+      "question": "6. In einer Stichprobe treten 15 von 40 Bestellungen verspätet ein. Welcher Prozentwert gehört zu diesem Anteil?",
+      "options": ["15,0 %", "25,0 %", "37,5 %", "62,5 %"],
+      "answer": 2,
+      "explanation": "15 geteilt durch 40 ergibt 0,375; multipliziert mit 100 sind das 37,5 %. 62,5 % ist der ergänzende Anteil der nicht verspäteten Bestellungen.",
+      "weight": 1,
+      "topic": "Häufigkeiten und Nenner",
+      "concept": "Anteil in Prozent umrechnen",
+      "cognitive_level": "Reproduktion",
+      "mini_glossary": {
+        "Anteil": "Quotient aus einer Teilanzahl und der zugehörigen Gesamtanzahl.",
+        "Prozent": "Darstellung eines Anteils bezogen auf hundert.",
+        "Gegenanteil": "Ergänzender Anteil, der zusammen mit dem betrachteten Anteil 100 % ergibt."
+      }
+    },
+    {
+      "question": "7. Welches Diagramm eignet sich, um die Häufigkeiten der nominalen Beschwerdekanäle »E-Mail«, »Telefon«, »Chat« und »Filiale« zu vergleichen?",
+      "options": [
+        "Ein Balkendiagramm mit getrennten Balken",
+        "Ein Histogramm mit Zeitklassen",
+        "Ein Streudiagramm mit zwei Zahlenachsen",
+        "Ein Boxplot der Kanalbezeichnungen"
+      ],
+      "answer": 0,
+      "explanation": "Beschwerdekanäle sind nominale Kategorien; getrennte Balken zeigen ihre Häufigkeiten vergleichbar. Histogramm und Boxplot setzen metrische Werte voraus, ein Streudiagramm zwei numerische Merkmale.",
+      "weight": 1,
+      "topic": "Diagramme und Manipulation",
+      "concept": "Balkendiagramm für nominale Kategorien",
+      "cognitive_level": "Reproduktion",
+      "mini_glossary": {
+        "Balkendiagramm": "Darstellung kategorialer Häufigkeiten mit getrennten Balken.",
+        "Nominalskala": "Kategorien ohne sachliche Rangordnung.",
+        "Kategorie": "Zusammenfassende Bezeichnung für gleichartige Merkmalsausprägungen."
+      }
+    },
+    {
+      "question": "8. Die Verteilung von 200 gemessenen Servicezeiten in Sekunden soll nach Zeitintervallen dargestellt werden. Welches Diagramm passt am besten?",
+      "options": [
+        "Ein Balkendiagramm der Ticketnummern",
+        "Ein Kreisdiagramm jeder einzelnen Zeit",
+        "Ein Histogramm mit Zeitklassen",
+        "Eine Rangliste der Mitarbeitenden"
+      ],
+      "answer": 2,
+      "explanation": "Servicezeit ist ein metrisches, grundsätzlich stetiges Merkmal. Ein Histogramm bündelt die Werte in Zeitklassen und zeigt Form und Konzentration der Verteilung.",
+      "weight": 2,
+      "topic": "Diagramme und Manipulation",
+      "concept": "Histogramm für Servicezeiten",
+      "cognitive_level": "Anwendung",
+      "mini_glossary": {
+        "Histogramm": "Darstellung einer metrischen Verteilung durch aneinandergrenzende Klassenbalken.",
+        "Klasse": "Festgelegtes Intervall, in dem metrische Beobachtungen zusammengefasst werden.",
+        "Servicezeit": "Zeitspanne von einem definierten Start bis zu einem definierten Ende eines Servicevorgangs."
+      }
+    },
+    {
+      "question": "9. Ein Balkendiagramm vergleicht Erfüllungsquoten von 94 % und 96 %, die vertikale Achse beginnt jedoch bei 93 %. Welche Kritik ist angemessen?",
+      "options": [
+        "Die verkürzte Achse kann den Unterschied von zwei Prozentpunkten optisch stark übertreiben.",
+        "Prozentwerte dürfen grundsätzlich nicht in Balkendiagrammen dargestellt werden.",
+        "Die beiden Quoten sind identisch, weil beide über 90 % liegen.",
+        "Die Achse beweist, dass die höhere Quote statistisch signifikant ist."
+      ],
+      "answer": 0,
+      "explanation": "Bei Balken codiert die Länge den Wert; ein Beginn nahe 93 % lässt den kleinen Unterschied von zwei Prozentpunkten sehr groß wirken. Das Diagramm liefert zudem ohne Unsicherheitsanalyse keinen Signifikanznachweis.",
+      "weight": 3,
+      "topic": "Diagramme und Manipulation",
+      "concept": "Abgeschnittene Achse",
+      "cognitive_level": "Analyse",
+      "mini_glossary": {
+        "Abgeschnittene Achse": "Achse, deren dargestellter Bereich nicht beim natürlichen Bezugspunkt beginnt und Unterschiede optisch vergrößern kann.",
+        "Prozentpunkt": "Einheit für die absolute Differenz zweier Prozentwerte.",
+        "Visuelle Übertreibung": "Grafische Gestaltung, die einen sachlich kleinen Unterschied unverhältnismäßig groß erscheinen lässt."
+      }
+    },
+    {
+      "question": "10. Ein Histogramm der Servicezeiten verwendet gleich breite Klassen; die y-Achse ist mit »Absolute Häufigkeit« beschriftet. Die Klasse von einschließlich 90 bis ausschließlich 120 Sekunden hat die Balkenhöhe 14. Was bedeutet das?",
+      "options": [
+        "Alle 14 Fälle dauerten exakt 105 Sekunden.",
+        "Der Mittelwert aller Servicezeiten beträgt 14 Sekunden.",
+        "14 Fälle liegen im angegebenen Zeitintervall.",
+        "Das Zeitintervall ist genau 14 Sekunden breit."
+      ],
+      "answer": 2,
+      "explanation": "Bei gleich breiten Klassen und einer mit »Absolute Häufigkeit« beschrifteten y-Achse gibt die Balkenhöhe hier die Zahl der Fälle im definierten Intervall an. Die Einzelwerte können an verschiedenen Stellen des Intervalls liegen; aus dem Balken folgt weder ihr gemeinsamer Wert noch der Gesamtmittelwert.",
+      "weight": 2,
+      "topic": "Diagramme und Manipulation",
+      "concept": "Klassenhäufigkeit im Histogramm",
+      "cognitive_level": "Anwendung",
+      "mini_glossary": {
+        "Histogramm": "Darstellung einer metrischen Verteilung durch aneinandergrenzende Klassenbalken.",
+        "Klassenhäufigkeit": "Anzahl oder Anteil der Beobachtungen innerhalb eines festgelegten Intervalls.",
+        "Balkenhöhe": "Grafisch codierte Häufigkeit oder Häufigkeitsdichte einer Klasse; die Achsenbeschriftung entscheidet."
+      }
+    },
+    {
+      "question": "11. Welche grafische Regel unterscheidet ein übliches Histogramm von einem üblichen Balkendiagramm?",
+      "options": [
+        "Beim Histogramm stehen Kategorien stets alphabetisch.",
+        "Beim Balkendiagramm müssen alle Balken gleich hoch sein.",
+        "Histogrammklassen grenzen aneinander, Kategorienbalken nicht.",
+        "Beim Balkendiagramm dürfen keine absoluten Häufigkeiten stehen."
+      ],
+      "answer": 2,
+      "explanation": "Im Histogramm repräsentieren angrenzende Balken zusammenhängende Zahlenintervalle. Getrennte Balken betonen dagegen, dass kategoriale Ausprägungen keine kontinuierlichen Intervalle bilden.",
+      "weight": 2,
+      "topic": "Diagramme und Manipulation",
+      "concept": "Balkenabstand und Variablentyp",
+      "cognitive_level": "Anwendung",
+      "mini_glossary": {
+        "Histogramm": "Darstellung einer metrischen Verteilung durch aneinandergrenzende Klassenbalken.",
+        "Balkendiagramm": "Darstellung kategorialer Häufigkeiten mit getrennten Balken.",
+        "Klasse": "Festgelegtes Intervall, in dem metrische Beobachtungen zusammengefasst werden."
+      }
+    },
+    {
+      "question": "12. Fünf Servicefälle dauern 60, 90, 120, 150 und 180 Sekunden. Wie groß ist das arithmetische Mittel?",
+      "options": ["90 Sekunden", "110 Sekunden", "120 Sekunden", "150 Sekunden"],
+      "answer": 2,
+      "explanation": "Die Summe beträgt 600 Sekunden; geteilt durch fünf Fälle ergibt das arithmetische Mittel 120 Sekunden. Die Einheit bleibt Sekunden.",
+      "weight": 1,
+      "topic": "Lagewerte und Robustheit",
+      "concept": "Arithmetisches Mittel berechnen",
+      "cognitive_level": "Reproduktion",
+      "mini_glossary": {
+        "Arithmetisches Mittel": "Summe aller Werte geteilt durch ihre Anzahl.",
+        "Lagewert": "Kennzahl, die die zentrale Lage einer Verteilung beschreibt.",
+        "Servicezeit": "Zeitspanne von einem definierten Start bis zu einem definierten Ende eines Servicevorgangs."
+      }
+    },
+    {
+      "question": "13. Vier Anfragen dauern im Mittel 75 Sekunden. Eine fünfte Anfrage dauert 100 Sekunden. Wie groß ist das neue arithmetische Mittel?",
+      "options": ["75 Sekunden", "80 Sekunden", "87,5 Sekunden", "100 Sekunden"],
+      "answer": 1,
+      "explanation": "Die ersten vier Anfragen haben zusammen 4 mal 75 gleich 300 Sekunden. Mit 100 Sekunden ergibt sich eine Summe von 400 Sekunden und damit 400 geteilt durch 5 gleich 80 Sekunden.",
+      "weight": 2,
+      "topic": "Lagewerte und Robustheit",
+      "concept": "Mittelwert aus alter Summe aktualisieren",
+      "cognitive_level": "Anwendung",
+      "mini_glossary": {
+        "Arithmetisches Mittel": "Summe aller Werte geteilt durch ihre Anzahl.",
+        "Summe": "Ergebnis der Addition aller betrachteten Einzelwerte.",
+        "Beobachtungszahl": "Anzahl der gültigen Einzelwerte, durch die bei der Mittelwertbildung geteilt wird."
+      }
+    },
+    {
+      "question": "14. Team A hat die vier Servicezeiten 120, 120, 120 und 120 Sekunden; Team B hat 60, 100, 140 und 180 Sekunden. Was zeigt der Vergleich?",
+      "options": [
+        "Team A hat einen Mittelwert von 120, Team B von 100 Sekunden.",
+        "Beide Mittelwerte sind 120 Sekunden, Team B streut jedoch stärker.",
+        "Team B hat wegen des Werts 180 zwingend den größeren Mittelwert.",
+        "Gleiche Mittelwerte bedeuten, dass beide Verteilungen identisch sind."
+      ],
+      "answer": 1,
+      "explanation": "Beide Summen betragen 480 Sekunden und beide Mittelwerte daher 120 Sekunden. Die Werte von Team B liegen jedoch weiter auseinander; ein Mittelwert allein beschreibt diese unterschiedliche Streuung nicht.",
+      "weight": 3,
+      "topic": "Lagewerte und Robustheit",
+      "concept": "Gleiche Lage bei unterschiedlicher Verteilung",
+      "cognitive_level": "Analyse",
+      "mini_glossary": {
+        "Arithmetisches Mittel": "Summe aller Werte geteilt durch ihre Anzahl.",
+        "Streuung": "Ausmaß, in dem Beobachtungen um ihre zentrale Lage variieren.",
+        "Verteilung": "Gesamtheit der vorkommenden Werte und ihrer Häufigkeiten."
+      }
+    },
+    {
+      "question": "15. Was bedeutet die Rechnung »Summe der fünf Servicezeiten geteilt durch fünf«?",
+      "options": [
+        "Berechnung des Modus",
+        "Berechnung des Medians",
+        "Berechnung einer relativen Häufigkeit",
+        "Berechnung des arithmetischen Mittels"
+      ],
+      "answer": 3,
+      "explanation": "Das arithmetische Mittel verteilt die Gesamtsumme rechnerisch gleichmäßig auf alle fünf Beobachtungen. Median und Modus werden dagegen aus Ordnung beziehungsweise Häufigkeit bestimmt.",
+      "weight": 2,
+      "topic": "Lagewerte und Robustheit",
+      "concept": "Bedeutung der Mittelwertformel",
+      "cognitive_level": "Anwendung",
+      "mini_glossary": {
+        "Arithmetisches Mittel": "Summe aller Werte geteilt durch ihre Anzahl.",
+        "Median": "Zentraler Lagewert geordneter Daten; bei geradem n wird nur für metrische Werte das arithmetische Mittel der beiden mittleren Werte gebildet, bei ordinalen Kategorien ist die verwendete Konvention anzugeben.",
+        "Modus": "Am häufigsten vorkommende Ausprägung."
+      }
+    },
+    {
+      "question": "16. Bei 20 aufsteigend sortierten Servicezeiten lauten der 10. Wert 118 Sekunden und der 11. Wert 122 Sekunden. Wie groß ist der Median?",
+      "options": ["118 Sekunden", "120 Sekunden", "122 Sekunden", "240 Sekunden"],
+      "answer": 1,
+      "explanation": "Bei einer geraden Zahl von 20 Beobachtungen ist der Median das Mittel der beiden mittleren Werte. Aus 118 plus 122, geteilt durch 2, folgen 120 Sekunden.",
+      "weight": 1,
+      "topic": "Lagewerte und Robustheit",
+      "concept": "Median bei gerader Beobachtungszahl",
+      "cognitive_level": "Reproduktion",
+      "mini_glossary": {
+        "Median": "Zentraler Lagewert geordneter Daten; bei geradem n wird nur für metrische Werte das arithmetische Mittel der beiden mittleren Werte gebildet, bei ordinalen Kategorien ist die verwendete Konvention anzugeben.",
+        "Sortierung": "Anordnung numerischer Werte vom kleinsten zum größten oder umgekehrt.",
+        "Lagewert": "Kennzahl, die die zentrale Lage einer Verteilung beschreibt."
+      }
+    },
+    {
+      "question": "17. Fünf Servicekontakte nutzen die Kanäle Chat, E-Mail, E-Mail, Telefon und E-Mail. Welcher Kanal ist der Modus?",
+      "options": ["Chat", "E-Mail", "Telefon", "Es gibt keinen Modus"],
+      "answer": 1,
+      "explanation": "E-Mail kommt dreimal und damit am häufigsten vor. Der Modus ist auch für nominale Merkmale sinnvoll, weil er lediglich die häufigste Ausprägung bezeichnet.",
+      "weight": 2,
+      "topic": "Lagewerte und Robustheit",
+      "concept": "Modus eines nominalen Merkmals",
+      "cognitive_level": "Anwendung",
+      "mini_glossary": {
+        "Modus": "Am häufigsten vorkommende Ausprägung.",
+        "Nominalskala": "Kategorien ohne sachliche Rangordnung.",
+        "Häufigste Ausprägung": "Merkmalswert oder Kategorie mit der größten absoluten Häufigkeit."
+      }
+    },
+    {
+      "question": "18. Die Servicezeiten 60, 70, 80, 90 und 100 Sekunden haben Mittelwert und Median 80 Sekunden. Der Wert 100 wird durch 600 ersetzt. Was gilt danach?",
+      "options": [
+        "Mittelwert und Median steigen beide auf 180 Sekunden.",
+        "Der Mittelwert bleibt 80, der Median steigt auf 180 Sekunden.",
+        "Der Mittelwert steigt auf 180, der Median bleibt 80 Sekunden.",
+        "Mittelwert und Median bleiben beide bei 80 Sekunden."
+      ],
+      "answer": 2,
+      "explanation": "Die neue Summe ist 900 Sekunden, also beträgt der Mittelwert 900 geteilt durch 5 gleich 180 Sekunden. Die sortierte Mitte bleibt 80; damit zeigt der Fall die Ausreißerempfindlichkeit des Mittels und die Robustheit des Medians.",
+      "weight": 3,
+      "topic": "Lagewerte und Robustheit",
+      "concept": "Ausreißereinfluss auf Mittelwert und Median",
+      "cognitive_level": "Analyse",
+      "mini_glossary": {
+        "Ausreißer": "Beobachtung, die deutlich von den übrigen Werten abweicht und zunächst geprüft werden muss.",
+        "Robuste Kennzahl": "Kennzahl, die durch einzelne Extremwerte nur wenig verändert wird.",
+        "Arithmetisches Mittel": "Summe aller Werte geteilt durch ihre Anzahl.",
+        "Median": "Zentraler Lagewert geordneter Daten; bei geradem n wird nur für metrische Werte das arithmetische Mittel der beiden mittleren Werte gebildet, bei ordinalen Kategorien ist die verwendete Konvention anzugeben."
+      }
+    },
+    {
+      "question": "19. Fünf Servicezeiten betragen 50, 55, 60, 65 und 300 Sekunden. Welche Kennzahl beschreibt eine typische Servicezeit hier besser?",
+      "options": [
+        "Median 60 Sekunden, denn der Extremwert verschiebt ihn kaum",
+        "Der Mittelwert von 60 Sekunden, weil er immer robust ist",
+        "Der Modus von 300 Sekunden, weil dies der größte Wert ist",
+        "Der Prozentanteil von 106 %, weil die Summe genau 530 beträgt"
+      ],
+      "answer": 0,
+      "explanation": "Der Median ist 60 Sekunden und bleibt gegenüber dem einzelnen hohen Wert robust. Der Mittelwert beträgt 530 geteilt durch 5 gleich 106 Sekunden und liegt deutlich über vier der fünf beobachteten Zeiten; er ist deshalb allein weniger typisch.",
+      "weight": 2,
+      "topic": "Lagewerte und Robustheit",
+      "concept": "Robuster Lagewert bei schiefer Verteilung",
+      "cognitive_level": "Anwendung",
+      "mini_glossary": {
+        "Median": "Zentraler Lagewert geordneter Daten; bei geradem n wird nur für metrische Werte das arithmetische Mittel der beiden mittleren Werte gebildet, bei ordinalen Kategorien ist die verwendete Konvention anzugeben.",
+        "Robuste Kennzahl": "Kennzahl, die durch einzelne Extremwerte nur wenig verändert wird.",
+        "Schiefe Verteilung": "Verteilung mit einem längeren Rand auf einer Seite, häufig durch wenige sehr hohe oder niedrige Werte."
+      }
+    },
+    {
+      "question": "20. Ein Unternehmen hat im Mai 500 Bestellungen. Für eine Prüfung werden 50 davon zufällig ausgewählt. Was ist die Grundgesamtheit der Untersuchung?",
+      "options": [
+        "Die 50 ausgewählten Bestellungen",
+        "Die 500 Bestellungen aus dem Mai",
+        "Alle Bestellungen des nächsten Jahres",
+        "Nur Bestellungen mit einer Reklamation"
+      ],
+      "answer": 1,
+      "explanation": "Die Aussage soll sich auf die 500 Mai-Bestellungen beziehen; sie bilden die Grundgesamtheit. Die 50 ausgewählten Bestellungen sind die Stichprobe.",
+      "weight": 1,
+      "topic": "Kumulative Wiederholung Woche 1",
+      "concept": "Grundgesamtheit im Bestellfall",
+      "cognitive_level": "Reproduktion",
+      "mini_glossary": {
+        "Grundgesamtheit": "Gesamtheit aller Beobachtungseinheiten, über die eine Aussage angestrebt wird.",
+        "Stichprobe": "Tatsächlich untersuchte Teilmenge der Grundgesamtheit.",
+        "Zufallsauswahl": "Auswahlverfahren, bei dem die Auswahl durch einen dokumentierten Zufallsmechanismus erfolgt."
+      }
+    },
+    {
+      "question": "21. Im Bestellfall mit 500 Mai-Bestellungen werden 50 Bestellungen geprüft. Was ist die Stichprobe?",
+      "options": [
+        "Alle 500 Bestellungen des Monats",
+        "Die 50 tatsächlich geprüften Bestellungen",
+        "Alle Kundinnen und Kunden des Unternehmens",
+        "Nur die fehlerfreien Bestellungen der Auswahl"
+      ],
+      "answer": 1,
+      "explanation": "Die Stichprobe umfasst genau die 50 ausgewählten und untersuchten Bestellungen. Fehlerfreie und fehlerhafte Fälle müssen in der Auswahl verbleiben, sofern die Prüfregel keinen dokumentierten Ausschluss vorsieht.",
+      "weight": 2,
+      "topic": "Kumulative Wiederholung Woche 1",
+      "concept": "Stichprobe im Bestellfall",
+      "cognitive_level": "Anwendung",
+      "mini_glossary": {
+        "Grundgesamtheit": "Gesamtheit aller Beobachtungseinheiten, über die eine Aussage angestrebt wird.",
+        "Stichprobe": "Tatsächlich untersuchte Teilmenge der Grundgesamtheit.",
+        "Ausschlussregel": "Vorab festgelegte und dokumentierte Bedingung, unter der Beobachtungen nicht ausgewertet werden."
+      }
+    },
+    {
+      "question": "22. Eine Kundentabelle enthält pro Zeile eine Person und als Spalte den durchschnittlichen Bestellwert dieser Person. Jemand zählt die Zeilen als einzelne Bestellungen. Welche Diagnose trifft zu?",
+      "options": [
+        "Die Zeilen stehen für Personen, nicht für Bestellungen.",
+        "Durchschnittswerte sind grundsätzlich nominale Kategorien.",
+        "Jede Person darf statistisch nur eine Bestellung tätigen.",
+        "Eine Tabelle kann keine Beobachtungseinheit festlegen."
+      ],
+      "answer": 0,
+      "explanation": "Die Daten sind auf Personenebene aggregiert; eine Zeile entspricht einer Person. Zeilen als Bestellungen zu zählen, verwechselt Beobachtungseinheit und Aggregationsebene und erzeugt einen falschen Nenner.",
+      "weight": 3,
+      "topic": "Kumulative Wiederholung Woche 1",
+      "concept": "Beobachtungseinheit und Aggregation",
+      "cognitive_level": "Analyse",
+      "mini_glossary": {
+        "Beobachtungseinheit": "Einheit, auf die sich eine Datenzeile und die gemessenen Merkmale beziehen.",
+        "Aggregation": "Zusammenfassung mehrerer Einzelbeobachtungen zu einem übergeordneten Wert.",
+        "Aggregationsebene": "Ebene, auf der Beobachtungen in einer Tabelle dargestellt und ausgewertet werden."
+      }
+    },
+    {
+      "question": "23. Für das Merkmal »Zufriedenheit von 1 bis 5« steht bei Kundin K8 der Wert 4. Welche Rolle hat die 4?",
+      "options": [
+        "Sie ist die gesamte Stichprobe.",
+        "Sie ist das Merkmal selbst.",
+        "Sie ist die Grundgesamtheit.",
+        "Sie ist eine Merkmalsausprägung."
+      ],
+      "answer": 3,
+      "explanation": "»Zufriedenheit von 1 bis 5« ist das Merkmal, der konkrete Wert 4 bei K8 ist eine Merkmalsausprägung. K8 ist die Beobachtungseinheit, sofern eine Zeile eine Kundin oder einen Kunden repräsentiert.",
+      "weight": 2,
+      "topic": "Kumulative Wiederholung Woche 1",
+      "concept": "Merkmalsausprägung",
+      "cognitive_level": "Anwendung",
+      "mini_glossary": {
+        "Merkmal": "Eigenschaft, die an einer Beobachtungseinheit erhoben wird.",
+        "Merkmalsausprägung": "Konkreter beobachteter Wert eines Merkmals bei einer Einheit.",
+        "Beobachtungseinheit": "Einheit, auf die sich eine Datenzeile und die gemessenen Merkmale beziehen."
+      }
+    },
+    {
+      "question": "24. Welches der folgenden Merkmale eines Systeminventars ist nominal skaliert?",
+      "options": [
+        "Gewähltes Betriebssystem",
+        "Servicepriorität von niedrig bis hoch",
+        "Ladezeit in Millisekunden",
+        "Anzahl fehlgeschlagener Anfragen"
+      ],
+      "answer": 0,
+      "explanation": "Betriebssysteme sind Kategorien ohne sachliche Rangordnung. Servicepriorität ist ordinal; Ladezeit und Anzahl sind metrische Merkmale.",
+      "weight": 1,
+      "topic": "Kumulative Wiederholung Woche 1",
+      "concept": "Nominales Digitalmerkmal",
+      "cognitive_level": "Reproduktion",
+      "mini_glossary": {
+        "Nominalskala": "Kategorien ohne sachliche Rangordnung.",
+        "Ordinalskala": "Geordnete Kategorien, deren Abstände nicht als gleich vorausgesetzt werden.",
+        "Metrische Skala": "Numerische Werte, bei denen Abstände sinnvoll interpretiert werden."
+      }
+    },
+    {
+      "question": "25. Eine Befragung verwendet »sehr unzufrieden«, »unzufrieden«, »neutral«, »zufrieden« und »sehr zufrieden«. Warum ist das Merkmal ordinal?",
+      "options": [
+        "Die Kategorien sind geordnet, gleiche Abstände aber nicht gesichert.",
+        "Weil ausschließlich Texteingaben nominal ausgewertet werden dürfen",
+        "Weil zwischen den Kategorien beliebig viele Messwerte liegen",
+        "Weil jede Kategorie zwingend gleich häufig vorkommen muss"
+      ],
+      "answer": 0,
+      "explanation": "Die Zufriedenheitsstufen lassen sich sinnvoll ordnen, doch die subjektiven Abstände zwischen benachbarten Stufen müssen nicht gleich sein. Deshalb folgt aus den Codes 1 bis 5 nicht automatisch eine metrische Skala.",
+      "weight": 2,
+      "topic": "Kumulative Wiederholung Woche 1",
+      "concept": "Ordinale Zufriedenheitsstufen",
+      "cognitive_level": "Anwendung",
+      "mini_glossary": {
+        "Ordinalskala": "Geordnete Kategorien, deren Abstände nicht als gleich vorausgesetzt werden.",
+        "Rangfolge": "Sachlich begründete Ordnung von Ausprägungen nach mehr, weniger, höher oder niedriger.",
+        "Metrische Skala": "Numerische Werte, bei denen Abstände sinnvoll interpretiert werden."
+      }
+    },
+    {
+      "question": "26. Ein Systemprotokoll erfasst die Anzahl fehlgeschlagener Anfragen pro Minute und die Latenz jeder Anfrage in Millisekunden. Welche Zuordnung passt?",
+      "options": [
+        "Fehleranzahl stetig, Latenz nominal",
+        "Fehleranzahl diskret, Latenz stetig",
+        "Fehleranzahl ordinal, Latenz diskret",
+        "Beide Merkmale ausschließlich nominal"
+      ],
+      "answer": 1,
+      "explanation": "Fehlgeschlagene Anfragen werden gezählt und sind diskret. Latenz ist eine Zeitdauer und wird als stetig behandelt, auch wenn das System sie mit begrenzter Auflösung speichert.",
+      "weight": 2,
+      "topic": "Kumulative Wiederholung Woche 1",
+      "concept": "Diskret und stetig im Systembetrieb",
+      "cognitive_level": "Anwendung",
+      "mini_glossary": {
+        "Diskretes Merkmal": "Merkmal mit abzählbaren möglichen Werten, häufig Zählwerte.",
+        "Stetiges Merkmal": "Merkmal, das innerhalb eines Bereichs grundsätzlich jeden Wert annehmen kann.",
+        "Latenz": "Zeitspanne zwischen einem definierten Auslöser und der zugehörigen Reaktion."
+      }
+    },
+    {
+      "question": "27. Ein Webshop fragt nur Personen nach ihrer Zufriedenheit, die den Kauf erfolgreich abgeschlossen haben. Das Management möchte auf alle Websitebesuche schließen. Was ist die wichtigste Grenze?",
+      "options": [
+        "Kaufabbrüche fehlen systematisch und können anders erlebt worden sein.",
+        "Erfolgreiche Käufe dürfen grundsätzlich nicht befragt werden.",
+        "Zufriedenheit ist wegen der Website immer ein stetiges Merkmal.",
+        "Eine größere Zahl abgeschlossener Käufe beseitigt jede Verzerrung."
+      ],
+      "answer": 0,
+      "explanation": "Personen mit Kaufabbruch können besonders relevante negative Erfahrungen gemacht haben, erhalten aber keine Auswahlchance. Selbst eine große Stichprobe abgeschlossener Käufe behebt diese systematische Auswahlverzerrung nicht.",
+      "weight": 3,
+      "topic": "Kumulative Wiederholung Woche 1",
+      "concept": "Auswahlverzerrung durch ausgeschlossene Abbrüche",
+      "cognitive_level": "Analyse",
+      "mini_glossary": {
+        "Auswahlverzerrung": "Systematische Abweichung, weil bestimmte Einheiten eine andere Auswahlchance haben.",
+        "Zielpopulation": "Festgelegte Grundgesamtheit, für die eine Schlussfolgerung gelten soll.",
+        "Auswahlchance": "Möglichkeit einer Einheit, durch das Auswahlverfahren in die Stichprobe zu gelangen."
+      }
+    },
+    {
+      "question": "28. Im Feld »Anzahl Systemausfälle« steht für einen Monat kein Wert. Was darf zunächst nicht angenommen werden?",
+      "options": [
+        "Dass die Datenquelle geprüft werden sollte",
+        "Dass die Angabe als fehlend markiert wird",
+        "Dass der fehlende Eintrag null Ausfälle bedeutet",
+        "Dass die Ursache des Fehlens dokumentiert wird"
+      ],
+      "answer": 2,
+      "explanation": "Ein fehlender Eintrag enthält keine beobachtete Ausfallzahl und darf nicht ohne Beleg in null umgedeutet werden. Zuerst sind Kennzeichnung, Quellenprüfung und Dokumentation erforderlich.",
+      "weight": 1,
+      "topic": "Kumulative Wiederholung Woche 1",
+      "concept": "Missingness im Systemprotokoll",
+      "cognitive_level": "Reproduktion",
+      "mini_glossary": {
+        "Fehlender Wert": "Nicht beobachtete oder nicht dokumentierte Merkmalsausprägung; nicht automatisch null.",
+        "Nullwert": "Beobachtete Ausprägung mit dem numerischen Wert null.",
+        "Missingness": "Muster und Ursachen fehlender Werte in einem Datensatz."
+      }
+    },
+    {
+      "question": "29. Von 200 eingeladenen Kundinnen und Kunden antworten 50; 35 davon bewerten den Service positiv. Welche Aussage ist ohne weitere Annahme zulässig?",
+      "options": [
+        "70 % aller 200 Eingeladenen bewerten den Service positiv.",
+        "70 % der 50 Antwortenden bewerten den Service positiv.",
+        "35 % der gesamten Kundschaft bewerten den Service positiv.",
+        "Nichtantwortende bewerten den Service sicher negativ."
+      ],
+      "answer": 1,
+      "explanation": "35 geteilt durch 50 sind 70 % der Antwortenden. Für die 150 Nichtantwortenden und die gesamte Kundschaft fehlen Angaben; ihre Bewertungen dürfen weder positiv noch negativ ergänzt werden.",
+      "weight": 2,
+      "topic": "Kumulative Wiederholung Woche 1",
+      "concept": "Nonresponse und Bezugsgruppe",
+      "cognitive_level": "Anwendung",
+      "mini_glossary": {
+        "Nonresponse": "Ausbleibende Antwort einer ausgewählten oder angesprochenen Einheit.",
+        "Bezugsgruppe": "Gruppe von Einheiten, auf die sich eine Zahl oder Aussage ausdrücklich bezieht.",
+        "Nenner": "Bezugszahl, auf die sich ein Anteil bezieht."
+      }
+    },
+    {
+      "question": "30. Nach Einführung eines freiwilligen Dashboard-Trainings melden Teilnehmende weniger Bedienfehler als Nichtteilnehmende. Welche Formulierung ist statistisch angemessen?",
+      "options": [
+        "Das Training verhindert jeden Bedienfehler im Unternehmen.",
+        "Der beobachtete Unterschied beweist die Wirkung des Trainings.",
+        "Teilnehmende meldeten weniger; eine Trainingswirkung ist nicht belegt.",
+        "Nichtteilnehmende verursachen wegen fehlender Motivation alle Fehler."
+      ],
+      "answer": 2,
+      "explanation": "Der Gruppenunterschied darf für die beobachteten Daten berichtet werden. Weil Teilnahme freiwillig war und andere Merkmale die Fehlermeldungen beeinflussen können, ist daraus keine eindeutige Trainingswirkung ableitbar.",
+      "weight": 2,
+      "topic": "Kumulative Wiederholung Woche 1",
+      "concept": "Aussagegrenze bei Selbstselektion",
+      "cognitive_level": "Anwendung",
+      "mini_glossary": {
+        "Selbstselektion": "Teilnahmeentscheidung durch die Einheiten selbst, wodurch systematische Gruppenunterschiede entstehen können.",
+        "Kausalität": "Ursache-Wirkungs-Beziehung, die durch einen bloßen beobachteten Zusammenhang nicht belegt ist.",
+        "Deskriptive Aussage": "Aussage, die ein beobachtetes Muster in den vorliegenden Daten beschreibt."
+      }
+    }
+  ]
+}

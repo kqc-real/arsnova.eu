@@ -1,0 +1,616 @@
+{
+  "meta": {
+    "title": "Angewandte Statistik – Woche 10: Integration, Kommunikation und Klausurtraining",
+    "updated": "2026-09-13",
+    "language": "de",
+    "target_audience": "Bachelorstudierende aus BWL, Management, Wirtschaftsinformatik und Informatik ohne vorausgesetzte Statistikkenntnisse",
+    "question_count": 30,
+    "difficulty_profile": {
+      "leicht": 8,
+      "mittel": 16,
+      "schwer": 6
+    },
+    "time_per_weight_minutes": {
+      "1": 0.5,
+      "2": 0.75,
+      "3": 1.0
+    },
+    "additional_buffer_minutes": 5,
+    "test_duration_minutes": 27
+  },
+  "questions": [
+    {
+      "question": "1. Eine Befragung erfasst die Zufriedenheit als »niedrig«, »mittel« oder »hoch«. Welches Skalenniveau liegt vor?",
+      "options": [
+        "Nominal, weil die Kategorien keine Reihenfolge haben",
+        "Metrisch, weil drei Ausprägungen vorliegen",
+        "Ordinal, weil die Kategorien geordnet sind, ihre Abstände aber nicht feststehen",
+        "Stetig, weil zwischen den Kategorien beliebige Werte möglich sind"
+      ],
+      "answer": 2,
+      "explanation": "Die Kategorien besitzen eine sinnvolle Rangfolge, aber keine definierten gleich großen Abstände. Deshalb ist das Merkmal ordinal und ein arithmetischer Mittelwert der bloßen Kategorien nicht begründet.",
+      "weight": 1,
+      "topic": "Datenqualität und Deskription",
+      "concept": "Ordinales Skalenniveau",
+      "cognitive_level": "Reproduktion",
+      "mini_glossary": {
+        "Ordinalskala": "Kategorien mit sinnvoller Reihenfolge, aber nicht festgelegten Abständen.",
+        "Ausprägung": "Konkreter beobachteter Wert oder konkrete Kategorie eines Merkmals.",
+        "Arithmetischer Mittelwert": "Summe metrischer Werte geteilt durch ihre Anzahl."
+      }
+    },
+    {
+      "question": "2. In einer Tabelle fehlen bei 6 von 80 Servicefällen die Bearbeitungszeiten. Welche Behandlung ist fachlich angemessen?",
+      "options": [
+        "Die sechs Werte als fehlend kennzeichnen, den Auswertungsnenner offenlegen und die Ursache der Ausfälle prüfen",
+        "Die sechs Werte als 0 Sekunden einsetzen, damit alle Zeilen erhalten bleiben",
+        "Die sechs Fälle ohne Dokumentation löschen und weiterhin n = 80 berichten",
+        "Den Mittelwert der vorhandenen Werte als Messwert in jede fehlende Zelle einsetzen"
+      ],
+      "answer": 0,
+      "explanation": "Fehlend bedeutet nicht null und darf den Nenner nicht unsichtbar verändern. Die Behandlung hängt außerdem vom möglichen Entstehungsmechanismus der fehlenden Werte und von dessen Folgen für die Aussage ab.",
+      "weight": 2,
+      "topic": "Datenqualität und Deskription",
+      "concept": "Fehlende Werte und transparenter Nenner",
+      "cognitive_level": "Anwendung",
+      "mini_glossary": {
+        "Fehlender Wert": "Nicht beobachteter oder nicht verfügbarer Merkmalswert.",
+        "Auswertungsnenner": "Zahl der tatsächlich in eine Auswertung eingehenden Beobachtungen.",
+        "Missingness": "Muster und möglicher Mechanismus des Fehlens von Daten."
+      }
+    },
+    {
+      "question": "3. Die fünf Lieferzeiten in Minuten lauten 10, 11, 12, 13 und 54. Welche Kennzahl beschreibt die typische Lage gegenüber dem Extremwert robuster?",
+      "options": ["Spannweite", "Varianz", "Arithmetischer Mittelwert", "Median"],
+      "answer": 3,
+      "explanation": "Der Median ist der mittlere sortierte Wert 12 und verändert sich durch den hohen Extremwert deutlich weniger als der Mittelwert. Die Spannweite und die Varianz sind Streuungsmaße, keine robusten Lagemaße.",
+      "weight": 1,
+      "topic": "Datenqualität und Deskription",
+      "concept": "Robustes Lagemaß bei Ausreißer",
+      "cognitive_level": "Reproduktion",
+      "mini_glossary": {
+        "Median": "Mittlerer Wert einer sortierten Datenreihe.",
+        "Robustheit": "Geringe Empfindlichkeit einer Kennzahl gegenüber einzelnen Extremwerten.",
+        "Ausreißer": "Auffälliger Wert, der geprüft, aber nicht automatisch gelöscht wird."
+      }
+    },
+    {
+      "question": "4. Für 120 Bestellungen wird die nominale Versandart »Standard«, »Express« oder »Abholung« erfasst. Welche Darstellung passt?",
+      "options": [
+        "Ein Histogramm mit frei erfundenen Klassenbreiten",
+        "Ein Balkendiagramm mit Anzahl oder Anteil je Versandart",
+        "Ein Streudiagramm mit Versandart auf beiden Achsen",
+        "Ein Boxplot der alphabetisch codierten Kategorien"
+      ],
+      "answer": 1,
+      "explanation": "Ein Balkendiagramm stellt Häufigkeiten nominaler Kategorien angemessen dar. Histogramm und Boxplot setzen eine geordnete metrische Struktur voraus, die eine alphabetische Codierung nicht erzeugt.",
+      "weight": 2,
+      "topic": "Datenqualität und Deskription",
+      "concept": "Diagrammwahl für nominale Kategorien",
+      "cognitive_level": "Anwendung",
+      "mini_glossary": {
+        "Balkendiagramm": "Darstellung getrennter Kategorien durch Balkenlängen.",
+        "Nominalskala": "Kategorien ohne natürliche Rangfolge.",
+        "Histogramm": "Darstellung einer metrischen Verteilung in zusammenhängenden Klassen."
+      }
+    },
+    {
+      "question": "5. Von 100 Antworten sind 24 für eine Wiederholung markiert; darunter sind 16 fachlich falsch. Wie groß ist P(falsch | markiert)?",
+      "options": ["16 / 24 ≈ 0,667", "16 / 20 = 0,800", "24 / 100 = 0,240", "16 / 100 = 0,160"],
+      "answer": 0,
+      "explanation": "Rechts vom Bedingungsstrich steht die Bezugsgruppe: die 24 markierten Antworten. Davon sind 16 falsch, also beträgt der bedingte Anteil 16 / 24 ≈ 0,667.",
+      "weight": 1,
+      "topic": "Wahrscheinlichkeit und Sampling",
+      "concept": "Nenner einer bedingten Wahrscheinlichkeit",
+      "cognitive_level": "Reproduktion",
+      "mini_glossary": {
+        "Bedingte Wahrscheinlichkeit": "Wahrscheinlichkeit innerhalb der rechts vom Strich genannten Bezugsgruppe.",
+        "Bezugsgruppe": "Fallmenge im Nenner einer Kennzahl.",
+        "Bedingungsstrich": "Das Zeichen | trennt Ereignis und gegebene Bedingung."
+      }
+    },
+    {
+      "question": "6. Von 100 Antworten sind 20 falsch; darunter sind 16 für eine Wiederholung markiert. Wie groß ist P(markiert | falsch)?",
+      "options": ["16 / 24 ≈ 0,667", "20 / 100 = 0,200", "16 / 20 = 0,800", "24 / 100 = 0,240"],
+      "answer": 2,
+      "explanation": "Die Bedingung »falsch« legt die 20 falschen Antworten als Nenner fest. Unter ihnen sind 16 markiert, daher gilt P(markiert | falsch) = 16 / 20 = 0,800; das ist nicht dieselbe Frage wie P(falsch | markiert).",
+      "weight": 2,
+      "topic": "Wahrscheinlichkeit und Sampling",
+      "concept": "Inverse Bedingungen unterscheiden",
+      "cognitive_level": "Anwendung",
+      "mini_glossary": {
+        "Inverse Bedingung": "Vertauschung von Ereignis und gegebener Bezugsgruppe.",
+        "Bedingte Wahrscheinlichkeit": "Wahrscheinlichkeit innerhalb der rechts vom Strich genannten Bezugsgruppe.",
+        "Nenner": "Zahl der Fälle in der Bezugsgruppe einer Berechnung."
+      }
+    },
+    {
+      "question": "7. Welche Situation erfüllt die Bedingungen eines Binomialmodells am besten?",
+      "options": [
+        "Zehn unterschiedlich schwierige Aufgaben werden von derselben Person bearbeitet.",
+        "Zwanzig modellhaft unabhängige Bestellungen haben jeweils dieselbe bekannte Wahrscheinlichkeit für »pünktlich« oder »nicht pünktlich«.",
+        "Die Wartezeit jeder Bestellung wird in Sekunden gemessen.",
+        "Die Zahl der Versuche wird nach jedem Erfolg neu festgelegt."
+      ],
+      "answer": 1,
+      "explanation": "Das Binomialmodell verlangt eine feste Versuchszahl, zwei Ausgänge, konstantes p und unabhängige Versuche. Genau diese Bedingungen werden für die 20 Bestellungen im Modell angegeben.",
+      "weight": 1,
+      "topic": "Wahrscheinlichkeit und Sampling",
+      "concept": "Bedingungen der Binomialverteilung",
+      "cognitive_level": "Reproduktion",
+      "mini_glossary": {
+        "Binomialmodell": "Modell für die Zahl der Erfolge in festen unabhängigen Versuchen mit konstantem p.",
+        "Konstantes p": "Gleiche Erfolgswahrscheinlichkeit in jedem Versuch.",
+        "Unabhängigkeit": "Ein Versuch verändert im Modell die Wahrscheinlichkeiten der anderen nicht."
+      }
+    },
+    {
+      "question": "8. Unter vergleichbaren Bedingungen wird die Stichprobengröße für einen Mittelwert von n = 25 auf n = 100 vervierfacht, während s gleich bleibt. Was geschieht mit SE = s / √n?",
+      "options": [
+        "Der Standardfehler vervierfacht sich und jede Verzerrung verschwindet.",
+        "Der Standardfehler bleibt gleich, weil s unverändert ist.",
+        "Der Standardfehler halbiert sich und die Stichprobe wird automatisch repräsentativ.",
+        "Der Standardfehler halbiert sich; eine mögliche Auswahlverzerrung bleibt davon unberührt."
+      ],
+      "answer": 3,
+      "explanation": "Die Quadratwurzel von n verdoppelt sich von 5 auf 10, daher halbiert sich der Standardfehler. Größeres n erhöht die modellbedingte Präzision, beseitigt aber keinen systematischen Auswahlfehler.",
+      "weight": 2,
+      "topic": "Wahrscheinlichkeit und Sampling",
+      "concept": "Stichprobengröße, Standardfehler und Bias",
+      "cognitive_level": "Anwendung",
+      "mini_glossary": {
+        "Standardfehler": "Modellbedingte Streuung eines Stichprobenschätzers.",
+        "Stichprobengröße": "Zahl der tatsächlich ausgewerteten Beobachtungen.",
+        "Auswahlverzerrung": "Systematische Abweichung durch den Auswahlprozess."
+      }
+    },
+    {
+      "question": "9. Welche Angabe ist eine Punktschätzung für einen unbekannten Populationsanteil?",
+      "options": [
+        "Die Liste aller möglichen Stichproben",
+        "Das 95-%-Konfidenzniveau",
+        "Der beobachtete Stichprobenanteil p̂ = 37 / 52 ≈ 0,712",
+        "Die Aussage, dass jede Person mit 71,2 % Wahrscheinlichkeit richtig liegt"
+      ],
+      "answer": 2,
+      "explanation": "Der beobachtete Stichprobenanteil ist ein einzelner Schätzwert für den Populationsanteil. Er beschreibt weder eine individuelle Erfolgswahrscheinlichkeit noch die Unsicherheit des Schätzverfahrens.",
+      "weight": 1,
+      "topic": "Inferenz und Verfahrenswahl",
+      "concept": "Punktschätzer eines Anteils",
+      "cognitive_level": "Reproduktion",
+      "mini_glossary": {
+        "Punktschätzung": "Ein einzelner aus Stichprobendaten berechneter Schätzwert.",
+        "Stichprobenanteil": "Erfolgszahl geteilt durch die ausgewertete Stichprobengröße.",
+        "Populationsanteil": "Unbekannter Anteil der Zielpopulation."
+      }
+    },
+    {
+      "question": "10. Für unabhängige Servicezeiten gelten x̄ = 120 s, s = 15 s, n = 12 und t = 2,201. Welches 95-%-t-Konfidenzintervall ergibt sich?",
+      "options": [
+        "[110,47 s; 129,53 s]",
+        "[105,00 s; 135,00 s]",
+        "[117,80 s; 122,20 s]",
+        "[90,00 s; 150,00 s]"
+      ],
+      "answer": 0,
+      "explanation": "SE = 15 / √12 ≈ 4,330 s und die Fehlerspanne ist 2,201 · 4,330 ≈ 9,531 s. Damit ergibt sich 120 s ± 9,531 s ≈ [110,47 s; 129,53 s].",
+      "weight": 2,
+      "topic": "Inferenz und Verfahrenswahl",
+      "concept": "t-Konfidenzintervall für einen Mittelwert",
+      "cognitive_level": "Anwendung",
+      "mini_glossary": {
+        "t-Konfidenzintervall": "Intervall für einen Populationsmittelwert mit geschätzter Standardabweichung.",
+        "Fehlerspanne": "Kritischer Wert multipliziert mit dem Standardfehler.",
+        "Stichprobenstandardabweichung": "Mit n − 1 geschätzte Streuung der Einzelwerte."
+      }
+    },
+    {
+      "question": "11. Bei einer freiwilligen Stichprobe antworten 37 von 52 Personen korrekt; dafür wird ausdrücklich das 95-%-Wilson-Konfidenzintervall [0,577; 0,817] angegeben. Welche Interpretation ist korrekt?",
+      "options": [
+        "95 % aller Einzelpersonen haben Werte zwischen 0,577 und 0,817.",
+        "Unter den Modellannahmen sind Populationsanteile von 0,577 bis 0,817 mit den Daten vereinbar; das Verfahren deckt bei vielen gleichartigen Stichproben den festen Parameter in etwa 95 % der Fälle ab.",
+        "Der feste Populationsanteil liegt nach der Rechnung mit 95 % Wahrscheinlichkeit in genau diesem Intervall.",
+        "Das Intervall beweist die Repräsentativität der Stichprobe."
+      ],
+      "answer": 1,
+      "explanation": "Das ausdrücklich bezeichnete Wilson-Intervall ergänzt den Punktschätzer 37 / 52 ≈ 0,712 um Stichprobenunsicherheit. Es betrifft einen festen Populationsanteil und die langfristige Überdeckung des Verfahrens. Es beschreibt weder 95 % der Personen noch korrigiert es die Selbstselektion der freiwilligen Stichprobe.",
+      "weight": 2,
+      "topic": "Inferenz und Verfahrenswahl",
+      "concept": "Frequentistische Intervallinterpretation",
+      "cognitive_level": "Anwendung",
+      "mini_glossary": {
+        "Konfidenzintervall": "Mit einem Verfahren aus Stichprobendaten gebildeter Bereich für einen Populationsparameter.",
+        "Überdeckungsrate": "Langfristiger Anteil gleichartig erzeugter Intervalle, die den festen Parameter enthalten.",
+        "Populationsparameter": "Feste, meist unbekannte Kennzahl der Zielpopulation."
+      }
+    },
+    {
+      "question": "12. Was beschreibt ein p-Wert korrekt?",
+      "options": [
+        "Die Wahrscheinlichkeit, dass die Nullhypothese wahr ist",
+        "Die Größe und praktische Bedeutung eines Effekts",
+        "Die Wahrscheinlichkeit, dass das Untersuchungsdesign kausal ist",
+        "Unter der Nullhypothese die Wahrscheinlichkeit für mindestens so extreme Daten wie die beobachteten"
+      ],
+      "answer": 3,
+      "explanation": "Der p-Wert wird unter Annahme der Nullhypothese aus der Verteilung der Teststatistik bestimmt. Er ist keine Wahrscheinlichkeit der Hypothese und misst weder Effektgröße noch Kausalität.",
+      "weight": 1,
+      "topic": "Inferenz und Verfahrenswahl",
+      "concept": "Bedeutung des p-Werts",
+      "cognitive_level": "Reproduktion",
+      "mini_glossary": {
+        "p-Wert": "Wahrscheinlichkeit mindestens so extremer Daten unter der Nullhypothese.",
+        "Nullhypothese": "Zu prüfende modellbezogene Ausgangsannahme, häufig ohne Effekt oder Unterschied.",
+        "Teststatistik": "Aus den Daten berechnete Größe zur Beurteilung der Vereinbarkeit mit der Nullhypothese."
+      }
+    },
+    {
+      "question": "13. Zehn Personen geben jeweils vor und nach einer Diskussion eine Schätzung ab. Warum sind die Daten gepaart?",
+      "options": [
+        "Weil jeder Vorher-Wert eindeutig zum Nachher-Wert derselben Person gehört",
+        "Weil beide Runden zufällig gleich viele Werte enthalten",
+        "Weil die beiden Runden denselben Mittelwert haben müssen",
+        "Weil fehlende Nachher-Werte als null ergänzt werden"
+      ],
+      "answer": 0,
+      "explanation": "Die Paarung entsteht durch die eindeutige Zuordnung zweier Messungen derselben Beobachtungseinheit. Nur vollständige Paare gehen als Differenzen in den gepaarten Vergleich ein.",
+      "weight": 2,
+      "topic": "Inferenz und Verfahrenswahl",
+      "concept": "Beobachtungseinheit im gepaarten Design",
+      "cognitive_level": "Anwendung",
+      "mini_glossary": {
+        "Gepaartes Design": "Design mit zusammengehörigen Messungen derselben oder passend zugeordneten Einheiten.",
+        "Vollständiges Paar": "Einheit mit gültigem Wert in beiden verglichenen Messungen.",
+        "Differenz": "Vorab festgelegte Subtraktion der zwei Werte eines Paares."
+      }
+    },
+    {
+      "question": "14. Untersucht wird, ob sich der absolute Schätzfehler derselben Personen nach einer Diskussion verändert. Welcher Analyseplan ist vollständig angemessen?",
+      "options": [
+        "Unabhängigen Gruppenvergleich wählen und alle fehlenden Nachher-Werte als null einsetzen",
+        "Nur zwei Rundenmittelwerte vergleichen und daraus eine sichere Ursache ableiten",
+        "Vollständige Paare bilden, Fehlerdifferenzen mit festgelegter Richtung untersuchen, Voraussetzungen prüfen und Kausalität begrenzen",
+        "Die Methode nachträglich nach dem kleinsten p-Wert auswählen"
+      ],
+      "answer": 2,
+      "explanation": "Die wiederholten Messungen derselben Personen verlangen einen gepaarten Vergleich der vorab definierten Differenzen. Voraussetzungen, Zahl vollständiger Paare und mögliche Alternativerklärungen müssen berichtet werden; der Test allein beweist keine Wirkung der Diskussion.",
+      "weight": 3,
+      "topic": "Inferenz und Verfahrenswahl",
+      "concept": "Verfahrenswahl für vollständige Vorher-Nachher-Paare",
+      "cognitive_level": "Analyse",
+      "mini_glossary": {
+        "Gepaarter t-Test": "Mittelwerttest für Differenzen aus vollständig zugeordneten Paaren.",
+        "Differenzrichtung": "Vorab festgelegte Reihenfolge der Subtraktion innerhalb eines Paares.",
+        "Alternativerklärung": "Weitere plausible Ursache für denselben Befund.",
+        "Kausalität": "Ursächlicher Zusammenhang, der durch die vorliegenden Daten allein nicht belegt wird."
+      }
+    },
+    {
+      "question": "15. In zwölf synthetischen Lastläufen beträgt Pearson-r = 0,840 zwischen gleichzeitiger Nutzung und Medianlatenz. Welche Aussage ist korrekt?",
+      "options": [
+        "84,0 % jeder einzelnen Latenz werden durch Nutzung verursacht.",
+        "In diesen Läufen besteht ein starker positiver linearer Zusammenhang; Kausalität folgt daraus nicht.",
+        "Die beiden Variablen sind identisch, weil r nahe 1 liegt.",
+        "Der Wert beweist dieselbe Beziehung für jeden Produktivbetrieb."
+      ],
+      "answer": 1,
+      "explanation": "r = 0,840 beschreibt in der Stichprobe einen starken positiven linearen Zusammenhang. Die synthetische Herkunft, mögliche Störgrößen und das nicht experimentelle Design verhindern einen Kausal- oder Produktionsnachweis.",
+      "weight": 1,
+      "topic": "Korrelation und Regression",
+      "concept": "Korrelation ohne Kausalitätsbehauptung",
+      "cognitive_level": "Reproduktion",
+      "mini_glossary": {
+        "Pearson-Korrelation": "Einheitenloses Maß für Richtung und Stärke eines linearen Zusammenhangs.",
+        "Positiver Zusammenhang": "Höhere Werte der einen Variable gehen tendenziell mit höheren Werten der anderen einher.",
+        "Kausalität": "Ursächlicher Zusammenhang, der durch die vorliegenden Daten allein nicht belegt wird."
+      }
+    },
+    {
+      "question": "16. Die Regressionsgerade lautet ŷ = 40 + 0,180x, mit x = gleichzeitige Nutzungen und y = Medianlatenz in ms. Wie ist die Steigung zu deuten?",
+      "options": [
+        "Bei x = 0 wurden zwingend genau 0,180 ms beobachtet.",
+        "Je 0,180 zusätzlichen Nutzungen steigt y sicher um 40 ms.",
+        "Die beobachtete Medianlatenz beträgt bei jedem x exakt 0,180 ms.",
+        "Im linearen Modell steigt die vorhergesagte Medianlatenz je zusätzlicher Nutzung um 0,180 ms."
+      ],
+      "answer": 3,
+      "explanation": "Die Steigung gibt die modellierte Änderung von y je zusätzlicher Einheit x an. Sie beschreibt eine Vorhersage im betrachteten Bereich, keinen deterministischen Effekt für jeden einzelnen Lauf.",
+      "weight": 2,
+      "topic": "Korrelation und Regression",
+      "concept": "Kontextbezogene Deutung der Regressionssteigung",
+      "cognitive_level": "Anwendung",
+      "mini_glossary": {
+        "Steigung": "Vorhergesagte Änderung von y je zusätzlicher Einheit x.",
+        "Regressionsgerade": "Lineares Modell ŷ = b₀ + b₁x.",
+        "Vorhersage": "Vom Regressionsmodell geschätzter Wert."
+      }
+    },
+    {
+      "question": "17. Für x = 300 liefert ŷ = 40 + 0,180x die Vorhersage 94 ms; beobachtet werden 100 ms. Welches Residuum ergibt sich?",
+      "options": [
+        "e = y − ŷ = 100 − 94 = +6 ms",
+        "e = ŷ − y = 94 − 100 = −6 ms",
+        "e = y + ŷ = 194 ms",
+        "e = y / ŷ ≈ 1,064 ms"
+      ],
+      "answer": 0,
+      "explanation": "Nach der festgelegten Definition gilt e = y − ŷ = 100 ms − 94 ms = +6 ms. Das positive Residuum zeigt, dass der beobachtete Wert über der Vorhersage liegt.",
+      "weight": 2,
+      "topic": "Korrelation und Regression",
+      "concept": "Residualberechnung und Vorzeichen",
+      "cognitive_level": "Anwendung",
+      "mini_glossary": {
+        "Residuum": "Beobachteter Wert minus Modellvorhersage.",
+        "Positives Residuum": "Die Beobachtung liegt über der Vorhersage.",
+        "Beobachteter Wert": "Tatsächlich gemessener Wert eines Falls."
+      }
+    },
+    {
+      "question": "18. Die Regressionsdaten decken x = 100 bis x = 500 ab und sind synthetische Lehrdaten. Eine Führungskraft setzt x = 900 ein und nennt das Ergebnis eine sichere Produktionsprognose. Welche Kritik ist vollständig?",
+      "options": [
+        "Die Rechnung ist sicher, sobald R² größer als null ist.",
+        "Nur die Einheit muss von Millisekunden in Sekunden geändert werden.",
+        "x = 900 ist eine ungesicherte Extrapolation; synthetische Lehrdaten und eine Punktschätzung tragen kein Produktionsversprechen.",
+        "Jede lineare Regression darf ausschließlich bei x = 0 verwendet werden."
+      ],
+      "answer": 2,
+      "explanation": "x = 900 liegt weit außerhalb des beobachteten Bereichs, sodass die lineare Beziehung dort nicht belegt ist. Zusätzlich stammen die Daten nicht aus dem Produktivbetrieb, und eine Regressionsvorhersage ist keine sichere Einzelwertgarantie.",
+      "weight": 3,
+      "topic": "Korrelation und Regression",
+      "concept": "Extrapolation, Datenherkunft und Vorhersagegrenze",
+      "cognitive_level": "Analyse",
+      "mini_glossary": {
+        "Extrapolation": "Vorhersage außerhalb des beobachteten Wertebereichs.",
+        "Synthetische Daten": "Konstruierte Daten, die keinen realen Feldeinsatz dokumentieren.",
+        "Punktschätzung": "Ein einzelner aus Stichprobendaten berechneter Schätzwert.",
+        "Produktionsversprechen": "Allgemeine Zusicherung für einen realen Betrieb, die Lehrdaten nicht tragen."
+      }
+    },
+    {
+      "question": "19. Ein Modell erreicht 98 % Trainings-Accuracy und 87 % Test-Accuracy. Welche Interpretation ist angemessen?",
+      "options": [
+        "Die Testleistung ist um 11 % relativ gesunken und beweist falsche Testlabels.",
+        "Der Abstand beträgt 11 Prozentpunkte und ist mit Overfitting vereinbar; Stichprobenschwankung oder Domain Shift bleiben mögliche Erklärungen.",
+        "Das Modell generalisiert sicher mit 98 %, weil der Trainingswert maßgeblich ist.",
+        "Trainings- und Testleistung müssen bei einem gültigen Modell identisch sein."
+      ],
+      "answer": 1,
+      "explanation": "98 % − 87 % ergeben 11 Prozentpunkte. Ein solcher Abstand kann Overfitting anzeigen, ist allein aber kein eindeutiger Beweis, weil sich auch Stichprobe oder Datenverteilung unterscheiden können.",
+      "weight": 2,
+      "topic": "Korrelation und Regression",
+      "concept": "Train/Test-Abstand mit Alternativerklärungen",
+      "cognitive_level": "Anwendung",
+      "mini_glossary": {
+        "Prozentpunkt": "Absolute Differenz zwischen zwei Prozentangaben.",
+        "Overfitting": "Zu starke Anpassung an Besonderheiten der Trainingsdaten.",
+        "Domain Shift": "Systematischer Unterschied zwischen Trainings- und späterer Datenverteilung."
+      }
+    },
+    {
+      "question": "20. In einer binären Confusion Matrix stehen die tatsächlichen Klassen in den Zeilen und die Vorhersagen in den Spalten; »Technik« ist positiv. Ein Technikfall wird als Nicht-Technik vorhergesagt. Welche Zelle ist das?",
+      "options": [
+        "True Positive (TP)",
+        "False Positive (FP)",
+        "True Negative (TN)",
+        "False Negative (FN)"
+      ],
+      "answer": 3,
+      "explanation": "Der tatsächlich positive Technikfall wurde negativ vorhergesagt und damit übersehen. Er ist ein False Negative und gehört zum Recall-Nenner TP + FN.",
+      "weight": 1,
+      "topic": "Binäre Modellbewertung",
+      "concept": "False Negative bei festgelegter Matrixorientierung",
+      "cognitive_level": "Reproduktion",
+      "mini_glossary": {
+        "False Negative": "Tatsächlich positiver, aber negativ vorhergesagter Fall.",
+        "Matrixorientierung": "Festlegung, welche Dimension in Zeilen und Spalten steht.",
+        "Positive Klasse": "Vorab als Zielklasse festgelegte Kategorie."
+      }
+    },
+    {
+      "question": "21. Eine Testmatrix enthält TP = 36, FN = 4, FP = 9 und TN = 51. Welche Metriken sind korrekt gerundet?",
+      "options": [
+        "Accuracy = 0,900; Precision = 0,870; Recall = 0,800; F1 = 0,835",
+        "Accuracy = 0,800; Precision = 0,900; Recall = 0,870; F1 = 0,847",
+        "Accuracy = 0,870; Precision = 0,800; Recall = 0,900; F1 ≈ 0,847",
+        "Accuracy = 0,870; Precision = 0,900; Recall = 0,800; F1 = 0,850"
+      ],
+      "answer": 2,
+      "explanation": "Accuracy = 87 / 100 = 0,870, Precision = 36 / 45 = 0,800 und Recall = 36 / 40 = 0,900. F1 = 72 / (72 + 9 + 4) = 72 / 85 ≈ 0,847.",
+      "weight": 2,
+      "topic": "Binäre Modellbewertung",
+      "concept": "Vier binäre Metriken mit unterschiedlichen Nennern",
+      "cognitive_level": "Anwendung",
+      "mini_glossary": {
+        "Accuracy": "Anteil aller korrekt klassifizierten ausgewerteten Fälle.",
+        "Precision": "Anteil richtiger positiver Fälle unter allen positiven Vorhersagen.",
+        "Recall": "Anteil erkannter Fälle unter allen tatsächlich positiven Fällen.",
+        "F1-Score": "Harmonische Zusammenfassung von Precision und Recall."
+      }
+    },
+    {
+      "question": "22. Ein Modell gibt für keinen Fall eine positive Vorhersage aus, obwohl 7 Fälle tatsächlich positiv sind. Wie wird Precision nach der verbindlichen Konvention berichtet?",
+      "options": [
+        "Nicht definiert, weil TP + FP = 0",
+        "0, weil TP = 0",
+        "1, weil FP = 0",
+        "7, weil sieben Positive vorliegen"
+      ],
+      "answer": 0,
+      "explanation": "Precision verwendet den Nenner TP + FP, also alle positiven Vorhersagen. Ohne eine einzige positive Vorhersage ist dieser Nenner null; deshalb wird Precision als nicht definiert und nicht eigenmächtig als 0 oder 1 berichtet.",
+      "weight": 2,
+      "topic": "Binäre Modellbewertung",
+      "concept": "Nullnenner der Precision",
+      "cognitive_level": "Anwendung",
+      "mini_glossary": {
+        "Precision-Nenner": "TP + FP, also alle positiven Vorhersagen.",
+        "Nullnenner": "Nenner mit Wert null, der eine Metrik undefiniert macht.",
+        "Nicht definiert": "Kein Zahlenwert wird eingesetzt, wenn der erforderliche Nenner null ist."
+      }
+    },
+    {
+      "question": "23. Das Übersehen eines tatsächlichen Technikfalls ist wesentlich teurer als eine unnötige Technikprüfung. Welche Metrik sollte vorrangig überwacht werden?",
+      "options": [
+        "Trainings-Accuracy",
+        "Precision ohne Nebenbedingung",
+        "Anteil der negativen Klasse",
+        "Recall für Technik"
+      ],
+      "answer": 3,
+      "explanation": "Recall misst, welcher Anteil der tatsächlich technischen Fälle erkannt wird, und macht False Negatives direkt sichtbar. Precision kann als Nebenbedingung für den Prüfaufwand dienen, ist unter den genannten Kosten aber nicht die vorrangige Zielmetrik.",
+      "weight": 2,
+      "topic": "Binäre Modellbewertung",
+      "concept": "Metrikwahl bei teuren False Negatives",
+      "cognitive_level": "Anwendung",
+      "mini_glossary": {
+        "Fehlkosten": "Konsequenzen einer Fehlklassifikation im Anwendungskontext.",
+        "False Negative": "Tatsächlich positiver, aber negativ vorhergesagter Fall.",
+        "Recall": "Anteil erkannter Fälle unter allen tatsächlich positiven Fällen."
+      }
+    },
+    {
+      "question": "24. Ein Modell gibt für einen Einzelfall den Wert 0,80 für »Technik« aus. Welche Aussage ist zulässig?",
+      "options": [
+        "Der Fall ist sachlich mit Sicherheit Technik.",
+        "0,80 ist ein Modellwert; ob entsprechende Fälle empirisch zu etwa 80 % Technik sind und wie dieser Einzelfall tatsächlich lautet, sind getrennte Fragen.",
+        "Genau 80 % des Textes bestehen aus technischen Begriffen.",
+        "Der Modellwert ist identisch mit der Accuracy des gesamten Testsatzes."
+      ],
+      "answer": 1,
+      "explanation": "Ein Modellwert ist eine Ausgabe des Modells, keine beobachtete Wahrheit des Einzelfalls. Eine empirische Trefferhäufigkeit vergleichbarer Fälle müsste separat mit Daten geprüft werden; eine Kalibrierungsmetrik ist dafür im Pflichtkern nicht zu berechnen.",
+      "weight": 2,
+      "topic": "Binäre Modellbewertung",
+      "concept": "Modellwert, Häufigkeit und sachliche Wahrheit trennen",
+      "cognitive_level": "Anwendung",
+      "mini_glossary": {
+        "Modellwert": "Numerische Ausgabe eines Modells für einen Fall.",
+        "Empirische Häufigkeit": "In beobachteten Daten ermittelter Anteil.",
+        "Sachliche Wahrheit": "Tatsächlich beobachtete oder fachlich festgestellte Klasse des Einzelfalls."
+      }
+    },
+    {
+      "question": "25. Welche Reihenfolge bildet den vollständigen statistischen Arbeitszyklus ab?",
+      "options": [
+        "Fragestellung → Datenerhebung → Datenprüfung → Beschreibung → Unsicherheit → Schlussfolgerung → Kommunikation",
+        "Kennzahl → Schlussfolgerung → Fragestellung → Datenerhebung → Kommunikation",
+        "Kommunikation → Methode → Datenprüfung → nachträgliche Fragestellung",
+        "Datenerhebung → stärkste Behauptung → Auswahl einer passenden Kennzahl"
+      ],
+      "answer": 0,
+      "explanation": "Eine Analyse beginnt mit einer prüfbaren Frage und kontrolliert Daten, bevor Ergebnisse berechnet und gedeutet werden. Unsicherheit und Grenzen gehören vor die abschließende adressatengerechte Kommunikation.",
+      "weight": 2,
+      "topic": "Statistikprozess und Kommunikation",
+      "concept": "Reihenfolge des statistischen Arbeitszyklus",
+      "cognitive_level": "Anwendung",
+      "mini_glossary": {
+        "Fragestellung": "Präzise formulierte Frage, die mit den vorgesehenen Daten untersucht werden kann.",
+        "Datenprüfung": "Kontrolle von Herkunft, Struktur, Missingness, Plausibilität und Ausreißern.",
+        "Schlussfolgerung": "Auswertungsergebnis, dessen Stärke an Daten und Design angepasst ist."
+      }
+    },
+    {
+      "question": "26. Welche Angabe gehört zwingend in einen reproduzierbaren Kurzbefund zu 37 richtigen unter 52 freiwilligen Antworten?",
+      "options": [
+        "Nur der gerundete Prozentwert ohne Bezugsgruppe",
+        "Eine Behauptung über alle Studierenden ohne Einschränkung",
+        "Untersuchungsfrage, Datenquelle, Beobachtungseinheit, n = 52, zentrales Ergebnis und eine passende Grenze",
+        "Die persönliche Rangfolge aller Antwortenden"
+      ],
+      "answer": 2,
+      "explanation": "Ein nachvollziehbarer Befund nennt, was mit welchen Daten und welchem Nenner untersucht wurde, und berichtet Ergebnis sowie Grenze. Namen oder Rangfolgen sind dafür weder fachlich erforderlich noch mit der aggregierten Lehranalyse vereinbar.",
+      "weight": 2,
+      "topic": "Statistikprozess und Kommunikation",
+      "concept": "Mindestbestandteile eines Statistikbefunds",
+      "cognitive_level": "Anwendung",
+      "mini_glossary": {
+        "Statistikbefund": "Kurze Verbindung von Frage, Datenbasis, Ergebnis, Bedeutung und Grenze.",
+        "Beobachtungseinheit": "Einheit, auf die sich eine Datenzeile oder Beobachtung bezieht.",
+        "Datenquelle": "Herkunft der ausgewerteten Beobachtungen.",
+        "Nenner": "Zahl der Fälle in der Bezugsgruppe einer Berechnung."
+      }
+    },
+    {
+      "question": "27. In einer freiwilligen Live-Stichprobe liegen 10 vollständige Paare vor. Definiert ist d = absoluter Schätzfehler in Runde 1 minus absoluter Schätzfehler in Runde 2; positive Werte bedeuten einen geringeren Fehler in Runde 2. Beobachtet werden d̄ = 4,00 s und bei einem zweiseitigen gepaarten t-Test p = 0,032 (α = 0,05). Welche Formulierung ist tragfähig?",
+      "options": [
+        "Die Diskussion verbessert nachweislich alle künftigen Studierenden.",
+        "Bei den 10 vollständigen Paaren war der absolute Fehler in Runde 2 im Mittel um 4,00 s kleiner als in Runde 1; H₀: μ_d = 0 wird auf dem 5-%-Niveau verworfen. Wegen freiwilliger Teilnahme und fehlender kausaler Kontrolle ist der Befund weder sicher auf alle Studierenden übertragbar noch ein Kausalnachweis.",
+        "Mit Wahrscheinlichkeit 96,8 % ist die Diskussion die Ursache.",
+        "Der p-Wert macht Angaben zu Effektgröße und Paarzahl überflüssig."
+      ],
+      "answer": 1,
+      "explanation": "Wegen der definierten Differenzrichtung bedeutet d̄ = 4,00 s, dass der absolute Fehler in Runde 2 bei den 10 vollständigen Paaren im Mittel um 4,00 s geringer war. Da p = 0,032 < 0,05 gilt, wird H₀ verworfen. Der p-Wert beweist jedoch keine Ursache; freiwillige Teilnahme und fehlende kausale Kontrolle begrenzen Übertragbarkeit und Kausalaussage.",
+      "weight": 3,
+      "topic": "Statistikprozess und Kommunikation",
+      "concept": "Kausale und externe Überinterpretation eines Inferenzbefunds",
+      "cognitive_level": "Analyse",
+      "mini_glossary": {
+        "Selbstselektion": "Teilnahmeentscheidung, die die Stichprobe systematisch von der Zielpopulation unterscheiden kann.",
+        "Testentscheidung": "Regelgeleitete Entscheidung, H₀ zu verwerfen oder nicht zu verwerfen.",
+        "Kausalitätsgrenze": "Begrenzung, weil das Design alternative Ursachen nicht ausschließt.",
+        "Vollständiges Paar": "Einheit mit gültigem Wert in beiden verglichenen Messungen."
+      }
+    },
+    {
+      "question": "28. Ein dokumentierter lokaler Messlauf berichtet p95 = 121 ms. Welche Managementaussage wahrt Datenherkunft und Aussagegrenze?",
+      "options": [
+        "121 ms ist die garantierte Antwortzeit jedes einzelnen künftigen Requests.",
+        "p95 = 121 ms beweist denselben Mittelwert und Median.",
+        "Das Messszenario ist unwichtig, weil ein Quantil immer übertragbar ist.",
+        "Im dokumentierten lokalen Szenario lagen etwa 95 % der gemessenen Werte höchstens bei 121 ms; ohne vergleichbares Messdesign folgt kein allgemeines Produktionsversprechen."
+      ],
+      "answer": 3,
+      "explanation": "Ein p95 beschreibt ein hohes Quantil innerhalb eines konkreten Messsatzes und Szenarios. Es ist weder jeder Einzelwert noch ein allgemeines Serviceversprechen und erlaubt ohne Rohdaten keine Rekonstruktion anderer Kennzahlen.",
+      "weight": 3,
+      "topic": "Statistikprozess und Kommunikation",
+      "concept": "Quantilbefund mit Quellen- und Szenariogrenze",
+      "cognitive_level": "Analyse",
+      "mini_glossary": {
+        "p95": "95-%-Quantil; etwa 95 % der geordneten Werte liegen höchstens an dieser Grenze.",
+        "Messszenario": "Festgelegte Bedingungen, unter denen Messwerte erhoben werden.",
+        "Datenherkunft": "Dokumentierter Ursprung und Erzeugungskontext der Daten.",
+        "Produktionsversprechen": "Allgemeine Zusicherung für einen realen Betrieb, die Lehrdaten nicht tragen."
+      }
+    },
+    {
+      "question": "29. Welche Kombination aus Fragestellung und Verfahren ist in allen drei Fällen angemessen?",
+      "options": [
+        "Nominale Versandart: Häufigkeitstabelle und Balkendiagramm; zwei metrische Variablen: Streudiagramm und Pearson-r bei plausibler Linearität; Vorher-Nachher-Werte derselben Personen: gepaarter Vergleich",
+        "Nominale Versandart: Mittelwert; zwei metrische Variablen: Kreisdiagramm; Vorher-Nachher-Werte: unabhängiger Vergleich",
+        "Nominale Versandart: Histogramm; zwei metrische Variablen: Modalwert als Zusammenhangsmaß; Paardaten: nur Rundenmittelwerte",
+        "Nominale Versandart: lineare Regression; zwei metrische Variablen: Balkendiagramm; Paardaten: Binomialmodell"
+      ],
+      "answer": 0,
+      "explanation": "Die Verfahrenswahl folgt Fragestellung, Skalenniveau und Design: Kategorien werden über Häufigkeiten beschrieben, metrische Paare über Streudiagramm und gegebenenfalls Korrelation, wiederholte Messungen über ihre Differenzen. Vor jeder Rechnung sind zusätzlich Datenqualität und Voraussetzungen zu prüfen.",
+      "weight": 3,
+      "topic": "Statistikprozess und Kommunikation",
+      "concept": "Integrierte Verfahrenswahl aus Skala und Design",
+      "cognitive_level": "Analyse",
+      "mini_glossary": {
+        "Verfahrenswahl": "Begründete Zuordnung von Frage, Datentyp und Untersuchungsdesign zu einer Analyse.",
+        "Skalenniveau": "Informationsniveau eines Merkmals und Grundlage zulässiger Auswertungen.",
+        "Paarung": "Eindeutige Zuordnung zusammengehöriger Messwerte.",
+        "Voraussetzung": "Bedingung, unter der eine Methode sinnvoll angewendet und interpretiert wird."
+      }
+    },
+    {
+      "question": "30. Welche Zwei-Satz-Management-Summary ist für eine synthetische Testmatrix mit TP = 36, FN = 4, FP = 9 und TN = 51 am besten?",
+      "options": [
+        "Das Modell ist sehr gut. Weitere Angaben sind nicht nötig.",
+        "Das Modell erzielt 98 % Trainings-Accuracy und ist deshalb im Betrieb sicher.",
+        "Auf 100 synthetischen Testfällen erreicht das Modell 87,0 % Accuracy und 90,0 % Recall für die positive Klasse; bei teuren False Negatives sollte Recall zusammen mit dem Prüfaufwand beobachtet werden. Die kleine synthetische Evaluation belegt keine Produktionsqualität und ist mit passenden neuen Fällen zu wiederholen.",
+        "Da F1 etwa 0,847 beträgt, sind Fehlkosten, Klassenanteile und Datenquelle bedeutungslos."
+      ],
+      "answer": 2,
+      "explanation": "Die Summary nennt Datenbasis, Nenner, korrekte Testmetriken, eine bedingte Handlung und eine konkrete Grenze. Sie trennt den beobachteten synthetischen Befund von einer unzulässigen Behauptung über den Produktivbetrieb.",
+      "weight": 3,
+      "topic": "Statistikprozess und Kommunikation",
+      "concept": "Adressatengerechter Modellbefund mit Handlung und Grenze",
+      "cognitive_level": "Analyse",
+      "mini_glossary": {
+        "Management Summary": "Höchstens fünf verständliche Sätze mit Ergebnis, Bedeutung und Grenze.",
+        "Accuracy": "Anteil aller korrekt klassifizierten ausgewerteten Fälle.",
+        "Recall": "Anteil erkannter Fälle unter allen tatsächlich positiven Fällen.",
+        "Generalisierungsgrenze": "Beschränkung der Übertragung auf andere oder künftige Fälle."
+      }
+    }
+  ]
+}

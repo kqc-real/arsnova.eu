@@ -1,0 +1,180 @@
+{
+  "exportVersion": 1,
+  "exportedAt": "2026-09-13T00:00:00.000Z",
+  "quiz": {
+    "name": "P0-03 ARSnova – Woche 10: Integrieren und kommunizieren",
+    "description": "Kumulative Live-Fragen zu Analyseplanung, Verfahrenswahl, Interpretation und belastbaren Schlussfolgerungen.",
+    "showLeaderboard": false,
+    "allowCustomNicknames": false,
+    "defaultTimer": null,
+    "timerScaleByDifficulty": false,
+    "enableTimerAccommodation": true,
+    "enableSoundEffects": false,
+    "enableRewardEffects": false,
+    "enableMotivationMessages": false,
+    "enableEmojiReactions": false,
+    "anonymousMode": true,
+    "teamMode": false,
+    "teamCount": null,
+    "teamAssignment": "AUTO",
+    "backgroundMusic": null,
+    "nicknameTheme": "HIGH_SCHOOL",
+    "bonusTokenCount": null,
+    "readingPhaseEnabled": true,
+    "questions": [
+      {
+        "text": "### Vom Auftrag zum Analyseplan\n\nUntersucht werden soll, ob sich die absoluten Fehler zur vorab festgelegten Servicezeit-Referenz nach einer Diskussion verändern.\n\nWelcher Plan passt am besten?",
+        "type": "SINGLE_CHOICE",
+        "timer": null,
+        "difficulty": "EASY",
+        "order": 0,
+        "answers": [
+          {
+            "text": "Vollständige Personenpaare bilden, Fehlerdifferenzen analysieren und Ausfälle sowie Datenquelle dokumentieren.",
+            "isCorrect": true
+          },
+          {
+            "text": "Nur die beiden Rundenmittelwerte vergleichen und fehlende Zweitwerte ignorieren.",
+            "isCorrect": false
+          },
+          {
+            "text": "Die Methode erst nach Sichtung des günstigsten Ergebnisses auswählen.",
+            "isCorrect": false
+          },
+          {
+            "text": "Aus anonymen Aggregaten individuelle Lernwirkungen ableiten.",
+            "isCorrect": false
+          }
+        ]
+      },
+      {
+        "text": "### Verfahren passend auswählen\n\nWelche Zuordnungen von Frage und Auswertung sind angemessen?",
+        "type": "MULTIPLE_CHOICE",
+        "timer": null,
+        "difficulty": "MEDIUM",
+        "order": 1,
+        "answers": [
+          {
+            "text": "Verteilung nominaler Antwortoptionen: Häufigkeitstabelle und Balkendiagramm",
+            "isCorrect": true
+          },
+          {
+            "text": "Zusammenhang zweier metrischer Variablen: Streudiagramm und gegebenenfalls Korrelation",
+            "isCorrect": true
+          },
+          {
+            "text": "Vorher-Nachher-Fehler derselben Personen: gepaarter Vergleich",
+            "isCorrect": true
+          },
+          {
+            "text": "Nominaler Session-Code: arithmetischer Mittelwert",
+            "isCorrect": false
+          }
+        ]
+      },
+      {
+        "text": "### Kalibrierungsanker: Intervall lesen\n\nEin 95%-Konfidenzintervall für einen Anteil lautet $[0{,}67;0{,}85]$.\n\nWelche Aussage ist methodisch korrekt?",
+        "type": "SINGLE_CHOICE",
+        "timer": null,
+        "difficulty": "MEDIUM",
+        "order": 2,
+        "answers": [
+          {
+            "text": "Unter den Modellannahmen sind Werte zwischen 0,67 und 0,85 mit den Daten vereinbar; das Verfahren hat langfristig 95 % Überdeckungsrate.",
+            "isCorrect": true
+          },
+          {
+            "text": "95 % aller Einzelantworten liegen zwischen 0,67 und 0,85.",
+            "isCorrect": false
+          },
+          {
+            "text": "Der feste Parameter liegt nach der Berechnung mit exakt 95 % Wahrscheinlichkeit im Intervall.",
+            "isCorrect": false
+          },
+          {
+            "text": "Das Intervall beseitigt jede mögliche Auswahlverzerrung.",
+            "isCorrect": false
+          }
+        ],
+        "confidenceEnabled": true,
+        "confidenceLabelLow": "Sehr unsicher",
+        "confidenceLabelHigh": "Sehr sicher"
+      },
+      {
+        "text": "### Quellenstatus in der Management Summary\n\nEin dokumentierter lokaler 500-VU-Lastlauf berichtet p95 = 121 ms. Welche Formulierung ist belastbar?",
+        "type": "SINGLE_CHOICE",
+        "timer": null,
+        "difficulty": "HARD",
+        "order": 3,
+        "answers": [
+          {
+            "text": "Im dokumentierten lokalen Messszenario lag p95 bei 121 ms; daraus folgt kein allgemeines Produktionsversprechen.",
+            "isCorrect": true
+          },
+          {
+            "text": "ARSnova garantiert weltweit für jede Last eine Antwortzeit unter 121 ms.",
+            "isCorrect": false
+          },
+          {
+            "text": "Der Wert 121 ms ist zugleich Mittelwert, Median und Maximum.",
+            "isCorrect": false
+          },
+          {
+            "text": "Ein p95-Wert macht Angaben zu Messszenario und Requestmix überflüssig.",
+            "isCorrect": false
+          }
+        ]
+      },
+      {
+        "text": "### Einen Befund begrenzen\n\nIn einer freiwilligen Live-Erhebung sinkt bei vollständigen Paaren der mittlere absolute Schätzfehler nach einer Diskussion; der gepaarte Test liefert $p=0{,}03$.\n\nWas gehört in einen seriösen Befund?",
+        "type": "MULTIPLE_CHOICE",
+        "timer": null,
+        "difficulty": "HARD",
+        "order": 4,
+        "answers": [
+          {
+            "text": "Die Zahl vollständiger Paare und die Größe der beobachteten Veränderung",
+            "isCorrect": true
+          },
+          {
+            "text": "Die Annahmen des Tests und mögliche Ausfälle zwischen den Runden",
+            "isCorrect": true
+          },
+          {
+            "text": "Der Hinweis, dass Übung, Diskussion und Selbstselektion eine kausale Deutung begrenzen",
+            "isCorrect": true
+          },
+          {
+            "text": "Die Behauptung, $p=0{,}03$ beweise eine Wirkung für alle künftigen Kohorten",
+            "isCorrect": false
+          }
+        ]
+      },
+      {
+        "text": "### Schwerpunkt für das Klausurtraining\n\nWelcher Prüfschritt soll anhand eines zusätzlichen Gegenbeispiels zuerst wiederholt werden?",
+        "type": "SURVEY",
+        "timer": null,
+        "difficulty": "EASY",
+        "order": 5,
+        "answers": [
+          {
+            "text": "Datenquelle, Beobachtungseinheit und Nenner klären",
+            "isCorrect": false
+          },
+          {
+            "text": "Skalenniveau und Verfahren auswählen",
+            "isCorrect": false
+          },
+          {
+            "text": "Kennzahl oder Testergebnis interpretieren",
+            "isCorrect": false
+          },
+          {
+            "text": "Grenzen und Übertragbarkeit formulieren",
+            "isCorrect": false
+          }
+        ]
+      }
+    ]
+  }
+}

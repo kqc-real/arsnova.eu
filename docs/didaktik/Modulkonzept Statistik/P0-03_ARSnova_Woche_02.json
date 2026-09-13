@@ -1,0 +1,144 @@
+{
+  "exportVersion": 1,
+  "exportedAt": "2026-09-13T00:00:00.000Z",
+  "quiz": {
+    "name": "P0-03 ARSnova – Woche 02: Häufigkeiten und Lage",
+    "description": "Live-Fragen zu Bezugsgrößen, Diagrammen sowie Mittelwert, Median und Modus.",
+    "showLeaderboard": false,
+    "allowCustomNicknames": false,
+    "defaultTimer": null,
+    "timerScaleByDifficulty": false,
+    "enableTimerAccommodation": true,
+    "enableSoundEffects": false,
+    "enableRewardEffects": false,
+    "enableMotivationMessages": false,
+    "enableEmojiReactions": false,
+    "anonymousMode": true,
+    "teamMode": false,
+    "teamCount": null,
+    "teamAssignment": "AUTO",
+    "backgroundMusic": null,
+    "nicknameTheme": "HIGH_SCHOOL",
+    "bonusTokenCount": null,
+    "readingPhaseEnabled": true,
+    "questions": [
+      {
+        "text": "### Welcher Nenner passt?\n\n48 Personen sind im Raum. 36 beantworten eine Single-Choice-Frage, 24 davon wählen Option A.\n\nWie groß ist der Anteil von Option A unter den abgegebenen Antworten?",
+        "type": "SINGLE_CHOICE",
+        "timer": null,
+        "difficulty": "EASY",
+        "order": 0,
+        "answers": [
+          {
+            "text": "50,0 %",
+            "isCorrect": false
+          },
+          {
+            "text": "66,7 %",
+            "isCorrect": true
+          },
+          {
+            "text": "75,0 %",
+            "isCorrect": false
+          },
+          {
+            "text": "88,9 %",
+            "isCorrect": false
+          }
+        ]
+      },
+      {
+        "text": "### Mehrfachnennungen richtig lesen\n\n30 Personen dürfen mehrere Optionen wählen. Option A erhält 18, Option B 15 und Option C 9 Nennungen.\n\nWelche Aussagen sind korrekt?",
+        "type": "MULTIPLE_CHOICE",
+        "timer": null,
+        "difficulty": "MEDIUM",
+        "order": 1,
+        "answers": [
+          {
+            "text": "Option A wurde von 60 % der teilnehmenden Personen gewählt.",
+            "isCorrect": true
+          },
+          {
+            "text": "Die 42 Nennungen können von 30 Personen stammen.",
+            "isCorrect": true
+          },
+          {
+            "text": "42 Personen haben an der Frage teilgenommen.",
+            "isCorrect": false
+          },
+          {
+            "text": "Die drei Optionsanteile müssen zusammen genau 100 % ergeben.",
+            "isCorrect": false
+          }
+        ]
+      },
+      {
+        "text": "### Servicezeit schätzen\n\nDie folgenden 20 Servicezeiten sind in Sekunden angegeben:\n\n60, 70, 80, 90, 100, 105, 110, 112, 115, 118, 122, 125, 128, 130, 135, 140, 150, 160, 170, 180\n\nSchätze den Mittelwert ohne vollständige Einzelrechnung.",
+        "type": "NUMERIC_ESTIMATE",
+        "timer": null,
+        "difficulty": "MEDIUM",
+        "order": 2,
+        "answers": [],
+        "numericToleranceMode": "ABSOLUTE_INTERVAL",
+        "numericReferenceValue": 120,
+        "numericTolerancePercent": null,
+        "numericIntervalLeft": 108,
+        "numericIntervalRight": 132,
+        "numericInputType": "INTEGER",
+        "numericMin": 50,
+        "numericMax": 200,
+        "numericTwoRounds": true
+      },
+      {
+        "text": "### Typischer Wert trotz Ausreißer\n\nFür fünf Bearbeitungsdauern gelten die Werte 4, 5, 5, 6 und 40 Sekunden.\n\nWelche Aussage beschreibt die Lage am angemessensten?",
+        "type": "SINGLE_CHOICE",
+        "timer": null,
+        "difficulty": "MEDIUM",
+        "order": 3,
+        "answers": [
+          {
+            "text": "Der Median von 5 Sekunden beschreibt die Mitte robuster als der Mittelwert.",
+            "isCorrect": true
+          },
+          {
+            "text": "Der Mittelwert von 12 Sekunden bleibt vom Wert 40 unbeeinflusst.",
+            "isCorrect": false
+          },
+          {
+            "text": "Der Modus beträgt 40 Sekunden, weil dies der größte Wert ist.",
+            "isCorrect": false
+          },
+          {
+            "text": "Median und Mittelwert müssen bei fünf Werten übereinstimmen.",
+            "isCorrect": false
+          }
+        ]
+      },
+      {
+        "text": "### Diagramm und Datentyp\n\nWelche Aussagen zur Darstellung von Quiz- und Servicezeitdaten sind angemessen?",
+        "type": "MULTIPLE_CHOICE",
+        "timer": null,
+        "difficulty": "HARD",
+        "order": 4,
+        "answers": [
+          {
+            "text": "Häufigkeiten nominaler Antwortoptionen lassen sich in einem Balkendiagramm vergleichen.",
+            "isCorrect": true
+          },
+          {
+            "text": "Klassierte Servicezeiten lassen sich in einem Histogramm darstellen.",
+            "isCorrect": true
+          },
+          {
+            "text": "Eine unmarkiert abgeschnittene Achse kann kleine Balkenunterschiede überbetonen.",
+            "isCorrect": true
+          },
+          {
+            "text": "Zwischen nominalen Antwortoptionen müssen Balken ohne Abstand aneinanderliegen.",
+            "isCorrect": false
+          }
+        ]
+      }
+    ]
+  }
+}

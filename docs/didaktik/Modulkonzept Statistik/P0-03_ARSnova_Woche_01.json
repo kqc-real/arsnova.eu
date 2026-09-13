@@ -1,0 +1,152 @@
+{
+  "exportVersion": 1,
+  "exportedAt": "2026-09-13T00:00:00.000Z",
+  "quiz": {
+    "name": "P0-03 ARSnova – Woche 01: Daten und Messung",
+    "description": "Diagnosefragen zu Beobachtungseinheit, Merkmalen, Skalenniveaus, Stichproben und Datenqualität.",
+    "showLeaderboard": false,
+    "allowCustomNicknames": false,
+    "defaultTimer": null,
+    "timerScaleByDifficulty": false,
+    "enableTimerAccommodation": true,
+    "enableSoundEffects": false,
+    "enableRewardEffects": false,
+    "enableMotivationMessages": false,
+    "enableEmojiReactions": false,
+    "anonymousMode": true,
+    "teamMode": false,
+    "teamCount": null,
+    "teamAssignment": "AUTO",
+    "backgroundMusic": null,
+    "nicknameTheme": "HIGH_SCHOOL",
+    "bonusTokenCount": null,
+    "readingPhaseEnabled": true,
+    "questions": [
+      {
+        "text": "### Was beschreibt eine Tabellenzeile?\n\nEine Datentabelle enthält pro Zeile genau eine abgegebene Antwort. Die Spalten heißen Frage, gewählte Option und Bearbeitungsdauer.\n\nWas ist hier die Beobachtungseinheit?",
+        "type": "SINGLE_CHOICE",
+        "timer": null,
+        "difficulty": "EASY",
+        "order": 0,
+        "answers": [
+          {
+            "text": "eine abgegebene Antwort",
+            "isCorrect": true
+          },
+          {
+            "text": "die gesamte Lehrveranstaltung",
+            "isCorrect": false
+          },
+          {
+            "text": "die Spalte Bearbeitungsdauer",
+            "isCorrect": false
+          },
+          {
+            "text": "jede mögliche Antwortoption",
+            "isCorrect": false
+          }
+        ]
+      },
+      {
+        "text": "### Wen repräsentiert die Abstimmung?\n\nVon 60 anwesenden Personen beantworten 42 eine anonyme Frage; 30 davon wählen »stimme zu«.\n\nWelche Aussagen sind durch diese Angaben gedeckt?",
+        "type": "MULTIPLE_CHOICE",
+        "timer": null,
+        "difficulty": "MEDIUM",
+        "order": 1,
+        "answers": [
+          {
+            "text": "30 der 42 antwortenden Personen wählen »stimme zu«.",
+            "isCorrect": true
+          },
+          {
+            "text": "Die Teilnahmequote unter den Anwesenden beträgt 70 %.",
+            "isCorrect": true
+          },
+          {
+            "text": "Genau die Hälfte der gesamten Kohorte stimmt zu.",
+            "isCorrect": false
+          },
+          {
+            "text": "Die 18 nicht antwortenden Personen hätten sicher nicht zugestimmt.",
+            "isCorrect": false
+          }
+        ]
+      },
+      {
+        "text": "### Skalen richtig zuordnen\n\nWelche Zuordnungen passen zur Datenerhebung in einer Quiz-Session?",
+        "type": "MULTIPLE_CHOICE",
+        "timer": null,
+        "difficulty": "MEDIUM",
+        "order": 2,
+        "answers": [
+          {
+            "text": "gewählte Antwortoption: nominal",
+            "isCorrect": true
+          },
+          {
+            "text": "Antwortsicherheit auf einer Stufe von 1 bis 5: ordinal",
+            "isCorrect": true
+          },
+          {
+            "text": "Bearbeitungsdauer in Sekunden: metrisch",
+            "isCorrect": true
+          },
+          {
+            "text": "Session-Code: metrisch, weil er Ziffern enthalten kann",
+            "isCorrect": false
+          }
+        ]
+      },
+      {
+        "text": "### Ist eine schnelle Antwort automatisch besser?\n\nEine Gruppe beantwortet dieselbe Frage schneller als eine andere. Welche Einwände müssen vor einer Kompetenzinterpretation geprüft werden?",
+        "type": "MULTIPLE_CHOICE",
+        "timer": null,
+        "difficulty": "HARD",
+        "order": 3,
+        "answers": [
+          {
+            "text": "Gerät und Netzwerk können die gemessene Dauer beeinflussen.",
+            "isCorrect": true
+          },
+          {
+            "text": "Unterschiedliche Lesewege können zu unterschiedlichen Antwortzeiten führen.",
+            "isCorrect": true
+          },
+          {
+            "text": "Nicht abgegebene Antworten fehlen in einem Vergleich der Antwortzeiten.",
+            "isCorrect": true
+          },
+          {
+            "text": "Eine kürzere Dauer beweist unabhängig von der Korrektheit höhere Kompetenz.",
+            "isCorrect": false
+          }
+        ]
+      },
+      {
+        "text": "### Schwerpunkt für das nächste Gegenbeispiel\n\nWelcher Aspekt soll in der gemeinsamen Auswertung zuerst an einem weiteren Fall geprüft werden?",
+        "type": "SURVEY",
+        "timer": null,
+        "difficulty": "EASY",
+        "order": 4,
+        "answers": [
+          {
+            "text": "Beobachtungseinheit und Merkmal unterscheiden",
+            "isCorrect": false
+          },
+          {
+            "text": "Grundgesamtheit und Stichprobe abgrenzen",
+            "isCorrect": false
+          },
+          {
+            "text": "Skalenniveaus zuordnen",
+            "isCorrect": false
+          },
+          {
+            "text": "Verzerrungsquellen erkennen",
+            "isCorrect": false
+          }
+        ]
+      }
+    ]
+  }
+}
