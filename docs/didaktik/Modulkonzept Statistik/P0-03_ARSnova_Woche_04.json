@@ -3,96 +3,75 @@
   "exportedAt": "2026-09-13T00:00:00.000Z",
   "quiz": {
     "name": "P0-03 ARSnova – Woche 04: Bedingte Wahrscheinlichkeit",
-    "description": "Diagnosefragen zu Ereignissen, Unabhängigkeit, Kontingenztafeln und Basisraten.",
-    "showLeaderboard": false,
+    "description": "10 anspruchsvolle Diagnosefragen zu Wahrscheinlichkeit, Baum- und Multiplikationsregel, bedingter und inverser Wahrscheinlichkeit, Basisraten und Bayes. Das Quiz nutzt alle zehn ARSnova-Fragetypen.",
+    "showLeaderboard": true,
     "allowCustomNicknames": false,
-    "defaultTimer": null,
-    "timerScaleByDifficulty": false,
+    "defaultTimer": 60,
+    "timerScaleByDifficulty": true,
     "enableTimerAccommodation": true,
-    "enableSoundEffects": false,
-    "enableRewardEffects": false,
-    "enableMotivationMessages": false,
-    "enableEmojiReactions": false,
-    "anonymousMode": true,
-    "teamMode": false,
-    "teamCount": null,
+    "enableSoundEffects": true,
+    "enableRewardEffects": true,
+    "enableMotivationMessages": true,
+    "enableEmojiReactions": true,
+    "anonymousMode": false,
+    "teamMode": true,
+    "teamCount": 4,
     "teamAssignment": "AUTO",
+    "teamNames": ["Apfel :apple:", "Birne :pear:", "Banane :banana:", "Apfelsine :orange:"],
     "backgroundMusic": null,
-    "nicknameTheme": "HIGH_SCHOOL",
-    "bonusTokenCount": null,
+    "nicknameTheme": "KINDERGARTEN",
+    "bonusTokenCount": 3,
     "readingPhaseEnabled": true,
     "questions": [
       {
-        "text": "### Genau einmal Kopf\n\nEine faire Münze wird zweimal geworfen. Wie groß ist die Wahrscheinlichkeit für genau einmal Kopf?",
-        "type": "SINGLE_CHOICE",
+        "text": "### Basisrate und Filtermeldung gemeinsam auswerten\n\nVon 1.000 Fällen sind 20 tatsächlich relevant. Ein Filter markiert 90 % der relevanten und 5 % der nicht relevanten Fälle.\n\nWelche Aussagen sind korrekt?",
+        "type": "MULTIPLE_CHOICE",
         "timer": null,
-        "difficulty": "EASY",
+        "difficulty": "HARD",
         "order": 0,
         "answers": [
           {
-            "text": "$\\frac{1}{4}$",
+            "text": "Unter den markierten Fällen sind genau 90,0 % tatsächlich relevant.",
             "isCorrect": false
           },
           {
-            "text": "$\\frac{1}{2}$",
+            "text": "Der Filter markiert 18 tatsächlich relevante Fälle.",
             "isCorrect": true
           },
           {
-            "text": "$\\frac{3}{4}$",
+            "text": "Der Filter markiert 50 tatsächlich nicht relevante Fälle.",
             "isCorrect": false
           },
           {
-            "text": "$1$",
-            "isCorrect": false
+            "text": "Unter den markierten Fällen sind etwa 26,9 % tatsächlich relevant.",
+            "isCorrect": true
           }
-        ]
+        ],
+        "confidenceEnabled": true,
+        "confidenceLabelLow": "Sehr unsicher",
+        "confidenceLabelHigh": "Sehr sicher"
       },
       {
-        "text": "### Zwei unabhängige Serviceschritte\n\nZwei idealisierte Serviceschritte gelingen jeweils mit Wahrscheinlichkeit 0,9. Für die Aufgabe werden die Schritte als unabhängig modelliert.\n\nWie groß ist die Wahrscheinlichkeit, dass beide gelingen?",
+        "text": "### Bedingung im Baum umkehren\n\n40 % der Kundschaft nutzen einen Premiumtarif. Von ihnen verlängern 80 %; von der übrigen Kundschaft verlängern 50 %. Eine zufällig ausgewählte Person hat verlängert. Wie wahrscheinlich nutzt sie den Premiumtarif?",
         "type": "SINGLE_CHOICE",
         "timer": null,
-        "difficulty": "MEDIUM",
+        "difficulty": "HARD",
         "order": 1,
         "answers": [
           {
-            "text": "0,18",
+            "text": "Etwa 48,4 %, weil 0,30 durch 0,32 + 0,30 geteilt wird.",
             "isCorrect": false
           },
           {
-            "text": "0,81",
+            "text": "Etwa 51,6 %, weil 0,32 durch 0,32 + 0,30 geteilt wird.",
             "isCorrect": true
           },
           {
-            "text": "0,90",
+            "text": "Etwa 62,0 %, weil 0,32 und 0,30 unmittelbar addiert werden.",
             "isCorrect": false
           },
           {
-            "text": "1,80",
-            "isCorrect": false
-          }
-        ]
-      },
-      {
-        "text": "### Bedingung bestimmt den Nenner\n\n| Ergebnis | niedrige Sicherheit | mittlere Sicherheit | hohe Sicherheit |\n| --- | ---: | ---: | ---: |\n| richtig | 6 | 8 | 18 |\n| falsch | 9 | 5 | 4 |\n\nWelche Aussagen sind korrekt?",
-        "type": "MULTIPLE_CHOICE",
-        "timer": null,
-        "difficulty": "MEDIUM",
-        "order": 2,
-        "answers": [
-          {
-            "text": "$P(\\text{richtig}\\mid\\text{hoch})=18/22$",
-            "isCorrect": true
-          },
-          {
-            "text": "$P(\\text{hoch}\\mid\\text{richtig})=18/32$",
-            "isCorrect": true
-          },
-          {
-            "text": "$P(\\text{hoch})=22/50$",
-            "isCorrect": true
-          },
-          {
-            "text": "Die beiden bedingten Wahrscheinlichkeiten sind gleich, weil ihr Zähler 18 ist.",
+            "text": "Etwa 80,0 %, weil nur die Verlängerungsrate im Premiumtarif verwendet wird.",
             "isCorrect": false
           }
         ],
@@ -101,29 +80,258 @@
         "confidenceLabelHigh": "Sehr sicher"
       },
       {
-        "text": "### Basisrate beim Q&A-Filter\n\nUnter 1.000 Fragen sind 50 tatsächlich technisch. Ein Filter markiert 40 technische und 95 nichttechnische Fragen.\n\nWelche Aussagen folgen aus diesen Zahlen?",
-        "type": "MULTIPLE_CHOICE",
+        "text": "### Inverse Wahrscheinlichkeit verständlich erklären\n\nEin Filter hat eine hohe Erkennungsrate P(markiert | relevant), aber nur einen mäßigen Anteil relevanter Fälle unter seinen Markierungen P(relevant | markiert). Erkläre den Unterschied der Bezugsgruppen und nenne die zwei zusätzlichen Größen, die für die inverse Wahrscheinlichkeit benötigt werden.",
+        "type": "FREETEXT",
+        "timer": null,
+        "difficulty": "MEDIUM",
+        "order": 2,
+        "answers": []
+      },
+      {
+        "text": "### Mehrstufige Pfadwahrscheinlichkeit berechnen\n\nEs gelten P(A) = 0,30, P(B | A) = 0,60 und P(C | A ∩ B) = 0,50. Gib P(A ∩ B ∩ C) entweder als Dezimalzahl mit zwei Nachkommastellen oder als ganzen Prozentwert an.",
+        "type": "SHORT_TEXT",
         "timer": null,
         "difficulty": "HARD",
         "order": 3,
         "answers": [
           {
-            "text": "Der Filter markiert insgesamt 135 Fragen.",
+            "text": "0,09",
             "isCorrect": true
           },
           {
-            "text": "Unter den markierten Fragen sind ungefähr 29,6 % tatsächlich technisch.",
+            "text": "9 %",
             "isCorrect": true
           },
           {
-            "text": "Der Filter findet 80 % der tatsächlich technischen Fragen.",
+            "text": "9 Prozent",
             "isCorrect": true
           },
           {
-            "text": "Weil 80 % der technischen Fragen gefunden werden, sind auch 80 % der Markierungen richtig.",
+            "text": "0.09",
+            "isCorrect": true
+          },
+          {
+            "text": "9%",
+            "isCorrect": true
+          }
+        ],
+        "shortTextEvaluationKind": "text",
+        "shortTextMaxLength": 24,
+        "shortTextCaseSensitive": false,
+        "shortTextEvaluationMode": "exact",
+        "shortTextToleranceLevel": "none",
+        "shortTextAllowPartialCredit": false,
+        "shortTextTrimWhitespace": true,
+        "shortTextNormalizeWhitespace": true,
+        "confidenceEnabled": true,
+        "confidenceLabelLow": "Sehr unsicher",
+        "confidenceLabelHigh": "Sehr sicher"
+      },
+      {
+        "text": "### Basisratenproblem darstellen\n\nDu sollst einer Lerngruppe erklären, warum eine hohe Erkennungsrate nicht automatisch einen hohen Anteil richtiger Markierungen bedeutet. Mit welcher Darstellung würdest du beginnen? Es gibt hier keine richtige oder falsche Wahl.",
+        "type": "SURVEY",
+        "timer": null,
+        "difficulty": "MEDIUM",
+        "order": 4,
+        "answers": [
+          {
+            "text": "Ein Baumdiagramm mit natürlichen Häufigkeiten skizzieren",
+            "isCorrect": false
+          },
+          {
+            "text": "Eine Kontingenztafel mit natürlichen Häufigkeiten aufbauen",
+            "isCorrect": false
+          },
+          {
+            "text": "Eine Bayes-Formel mit farbigen Termen zerlegen",
+            "isCorrect": false
+          },
+          {
+            "text": "Eine Simulation mit vielen Einzelfällen durchführen",
             "isCorrect": false
           }
         ]
+      },
+      {
+        "text": "### Bedingte Richtungen unterscheiden\n\nWie sicher kannst du in einem Anwendungstext entscheiden, ob P(A | B) oder P(B | A) gefragt ist, und den jeweils richtigen Nenner begründen?",
+        "type": "RATING",
+        "timer": null,
+        "difficulty": "MEDIUM",
+        "order": 5,
+        "answers": [],
+        "ratingMin": 1,
+        "ratingMax": 5,
+        "ratingLabelMin": "Richtung und Nenner noch unklar",
+        "ratingLabelMax": "Richtung und Nenner sicher begründbar"
+      },
+      {
+        "text": "### Bayes-Anteil aus natürlichen Häufigkeiten\n\nVon 10.000 Fällen sind 4 % relevant. Ein Filter markiert 85 % der relevanten und 8 % der nicht relevanten Fälle. Berechne den Anteil relevanter Fälle unter allen Markierungen, runde auf eine Dezimalstelle und gib nur den Zahlenwert in Prozent ein.",
+        "type": "NUMERIC_ESTIMATE",
+        "timer": null,
+        "difficulty": "HARD",
+        "order": 6,
+        "answers": [],
+        "numericToleranceMode": "ABSOLUTE_INTERVAL",
+        "numericReferenceValue": 30.7,
+        "numericIntervalLeft": 30.65,
+        "numericIntervalRight": 30.75,
+        "numericInputType": "DECIMAL",
+        "numericDecimalPlaces": 1,
+        "numericMin": 0,
+        "numericMax": 100,
+        "numericTwoRounds": false,
+        "confidenceEnabled": true,
+        "confidenceLabelLow": "Sehr unsicher",
+        "confidenceLabelHigh": "Sehr sicher"
+      },
+      {
+        "text": "### Wahrscheinlichkeiten ihren Bezugsgruppen zuordnen\n\nOrdne jedem Ausdruck die eindeutig passende Interpretation zu.",
+        "type": "MATCHING",
+        "timer": null,
+        "difficulty": "HARD",
+        "order": 7,
+        "answers": [],
+        "matchingPairs": [
+          {
+            "leftId": "w04-match-left-1",
+            "left": "P(A ∩ B)",
+            "rightId": "w04-match-right-1",
+            "right": "Anteil aller Fälle, in denen A und B gemeinsam eintreten"
+          },
+          {
+            "leftId": "w04-match-left-2",
+            "left": "P(A | B)",
+            "rightId": "w04-match-right-2",
+            "right": "Anteil der B-Fälle, in denen zusätzlich A eintritt"
+          },
+          {
+            "leftId": "w04-match-left-3",
+            "left": "P(B | A)",
+            "rightId": "w04-match-right-3",
+            "right": "Anteil der A-Fälle, in denen zusätzlich B eintritt"
+          },
+          {
+            "leftId": "w04-match-left-4",
+            "left": "P(A ∪ B)",
+            "rightId": "w04-match-right-4",
+            "right": "Anteil aller Fälle, in denen A oder B oder beide eintreten"
+          },
+          {
+            "leftId": "w04-match-left-5",
+            "left": "P(nicht A)",
+            "rightId": "w04-match-right-5",
+            "right": "Anteil aller Fälle, in denen A nicht eintritt"
+          }
+        ],
+        "matchingShuffleRight": true,
+        "confidenceEnabled": true,
+        "confidenceLabelLow": "Sehr unsicher",
+        "confidenceLabelHigh": "Sehr sicher"
+      },
+      {
+        "text": "### Inverse Wahrscheinlichkeit mit natürlichen Häufigkeiten\n\nBringe die Schritte zur Berechnung von P(relevant | markiert) in die korrekte Reihenfolge.",
+        "type": "ORDERING",
+        "timer": null,
+        "difficulty": "HARD",
+        "order": 8,
+        "answers": [],
+        "orderingItems": [
+          {
+            "id": "w04-order-1",
+            "text": "Eine geeignete Bezugsmenge, zum Beispiel 10.000 Fälle, festlegen"
+          },
+          {
+            "id": "w04-order-2",
+            "text": "Die Anzahl relevanter Fälle mit der Basisrate berechnen"
+          },
+          {
+            "id": "w04-order-3",
+            "text": "Die Anzahl nicht relevanter Fälle als Differenz zur Bezugsmenge berechnen"
+          },
+          {
+            "id": "w04-order-4",
+            "text": "Richtige und falsche Markierungen mit den beiden bedingten Raten berechnen"
+          },
+          {
+            "id": "w04-order-5",
+            "text": "Richtige und falsche Markierungen zur Gesamtzahl der Markierungen addieren"
+          },
+          {
+            "id": "w04-order-6",
+            "text": "Richtige Markierungen durch die Gesamtzahl der Markierungen teilen"
+          }
+        ],
+        "confidenceEnabled": true,
+        "confidenceLabelLow": "Sehr unsicher",
+        "confidenceLabelHigh": "Sehr sicher"
+      },
+      {
+        "text": "### Aussagearten sicher klassifizieren\n\nOrdne jede verbale Wahrscheinlichkeit der passenden Kategorie zu.",
+        "type": "CATEGORIZATION",
+        "timer": null,
+        "difficulty": "HARD",
+        "order": 9,
+        "answers": [],
+        "categories": [
+          {
+            "id": "w04-cat-margin",
+            "name": "Randwahrscheinlichkeit"
+          },
+          {
+            "id": "w04-cat-joint",
+            "name": "Gemeinsame Wahrscheinlichkeit"
+          },
+          {
+            "id": "w04-cat-conditional",
+            "name": "Bedingte Wahrscheinlichkeit"
+          }
+        ],
+        "categorizationItems": [
+          {
+            "id": "w04-item-margin-a",
+            "text": "Anteil aller Fälle, die A erfüllen",
+            "correctCategoryId": "w04-cat-margin"
+          },
+          {
+            "id": "w04-item-margin-b",
+            "text": "Anteil aller Fälle, die B erfüllen",
+            "correctCategoryId": "w04-cat-margin"
+          },
+          {
+            "id": "w04-item-joint-ab",
+            "text": "Anteil aller Fälle, die A und B erfüllen",
+            "correctCategoryId": "w04-cat-joint"
+          },
+          {
+            "id": "w04-item-joint-filter",
+            "text": "Anteil aller Fälle, die relevant und markiert sind",
+            "correctCategoryId": "w04-cat-joint"
+          },
+          {
+            "id": "w04-item-cond-ab",
+            "text": "Anteil der B-Fälle, die A erfüllen",
+            "correctCategoryId": "w04-cat-conditional"
+          },
+          {
+            "id": "w04-item-cond-ba",
+            "text": "Anteil der A-Fälle, die B erfüllen",
+            "correctCategoryId": "w04-cat-conditional"
+          },
+          {
+            "id": "w04-item-cond-positive",
+            "text": "Anteil markierter Fälle, die relevant sind",
+            "correctCategoryId": "w04-cat-conditional"
+          },
+          {
+            "id": "w04-item-cond-sensitivity",
+            "text": "Anteil relevanter Fälle, die markiert sind",
+            "correctCategoryId": "w04-cat-conditional"
+          }
+        ],
+        "categorizationShuffleItems": true,
+        "confidenceEnabled": true,
+        "confidenceLabelLow": "Sehr unsicher",
+        "confidenceLabelHigh": "Sehr sicher"
       }
     ]
   }

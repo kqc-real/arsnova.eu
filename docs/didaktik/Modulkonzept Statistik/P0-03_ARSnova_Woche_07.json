@@ -3,149 +3,341 @@
   "exportedAt": "2026-09-13T00:00:00.000Z",
   "quiz": {
     "name": "P0-03 ARSnova – Woche 07: Hypothesentests",
-    "description": "Diagnosefragen zu Testlogik, p-Wert, Fehlerarten und gepaarten Vorher-Nachher-Daten.",
-    "showLeaderboard": false,
+    "description": "10 anspruchsvolle Diagnosefragen zu Hypothesentests, p-Wert, Fehlerarten, praktischer Relevanz und gepaarten Vorher-Nachher-Daten – mit allen zehn ARSnova-Fragetypen.",
+    "showLeaderboard": true,
     "allowCustomNicknames": false,
-    "defaultTimer": null,
-    "timerScaleByDifficulty": false,
+    "defaultTimer": 60,
+    "timerScaleByDifficulty": true,
     "enableTimerAccommodation": true,
-    "enableSoundEffects": false,
-    "enableRewardEffects": false,
-    "enableMotivationMessages": false,
-    "enableEmojiReactions": false,
-    "anonymousMode": true,
-    "teamMode": false,
-    "teamCount": null,
+    "enableSoundEffects": true,
+    "enableRewardEffects": true,
+    "enableMotivationMessages": true,
+    "enableEmojiReactions": true,
+    "anonymousMode": false,
+    "teamMode": true,
+    "teamCount": 4,
     "teamAssignment": "AUTO",
+    "teamNames": ["Apfel :apple:", "Birne :pear:", "Banane :banana:", "Apfelsine :orange:"],
     "backgroundMusic": null,
-    "nicknameTheme": "HIGH_SCHOOL",
-    "bonusTokenCount": null,
+    "nicknameTheme": "KINDERGARTEN",
+    "bonusTokenCount": 3,
     "readingPhaseEnabled": true,
     "questions": [
       {
-        "text": "### Hypothesen für die Schätzverbesserung\n\nFür jedes vollständige Paar sei $d_i$ der absolute Fehler in Runde 1 minus dem absoluten Fehler in Runde 2. Positive Werte bedeuten eine Verbesserung.\n\nWelche Hypothesen passen zur gerichteten Frage nach einer mittleren Verbesserung?",
+        "text": "### Testentscheidung und praktische Schwelle\n\nFür 25 vollständige Paare sei $d=$ Bearbeitungszeit vorher minus nachher. Es gelten $\\bar d=3{,}6$ Minuten, $t(24)=3{,}00$ und beim vorab gerichteten Test $p=0{,}003$. Als praktisch relevant wurden vorab mindestens 5 Minuten festgelegt.\n\nWelche Schlussfolgerung verbindet Testentscheidung und praktische Relevanz korrekt?",
         "type": "SINGLE_CHOICE",
         "timer": null,
-        "difficulty": "EASY",
+        "difficulty": "HARD",
         "order": 0,
         "answers": [
           {
-            "text": "$H_0:\\mu_d=0$ und $H_1:\\mu_d>0$",
+            "text": "$H_0$ verwerfen; eine mittlere Verbesserung ist statistisch gestützt, die 5-Minuten-Schwelle wird durch $\\bar d$ nicht erreicht.",
             "isCorrect": true
           },
           {
-            "text": "$H_0:\\mu_d>0$ und $H_1:\\mu_d=0$",
+            "text": "$H_0$ nicht verwerfen; eine mittlere Verbesserung ist statistisch ungestützt, weil $\\bar d$ unter 5 Minuten liegt.",
             "isCorrect": false
           },
           {
-            "text": "$H_0:\\bar d=0$ und $H_1:\\bar d<0$",
+            "text": "$H_0$ verwerfen; eine Verbesserung um mindestens 5 Minuten ist statistisch gestützt, weil $p<0{,}05$ gilt.",
             "isCorrect": false
           },
           {
-            "text": "$H_0:n=0$ und $H_1:n>0$",
+            "text": "$H_0$ nicht verwerfen; eine Verbesserung um 3,6 Minuten ist praktisch gestützt, weil $t=3{,}00$ gilt.",
             "isCorrect": false
           }
-        ]
+        ],
+        "confidenceEnabled": true,
+        "confidenceLabelLow": "Sehr unsicher",
+        "confidenceLabelHigh": "Sehr sicher"
       },
       {
-        "text": "### Was bedeutet p = 0,03?\n\nEin Test liefert unter den festgelegten Annahmen einen p-Wert von 0,03.\n\nWelche Aussage ist korrekt?",
-        "type": "SINGLE_CHOICE",
+        "text": "### p-Wert, Intervall und Ausfälle gemeinsam beurteilen\n\nEin gepaarter Test zur Fehlerreduktion liefert $p=0{,}018$ und ein 95-%-Konfidenzintervall für die mittlere Reduktion von $[0{,}4;4{,}8]$ Sekunden. Vorab galten 5 Sekunden als praktisch relevant. Zweitmessungen fehlen häufiger bei Personen mit großem Erstfehler.\n\nWelche Aussagen sind fachlich begründet? _Mehrere Antworten sind richtig._",
+        "type": "MULTIPLE_CHOICE",
         "timer": null,
-        "difficulty": "MEDIUM",
+        "difficulty": "HARD",
         "order": 1,
         "answers": [
           {
-            "text": "Unter $H_0$ wären das beobachtete oder extremere Ergebnisse mit 3 % Wahrscheinlichkeit zu erhalten.",
+            "text": "Der p-Wert spricht mit 98,2 % statistischer Sicherheit dafür, dass in der Grundgesamtheit eine relevante Reduktion vorliegt.",
+            "isCorrect": false
+          },
+          {
+            "text": "Der Nullwert wird beim zweiseitigen Niveau 5 % verworfen, sofern Testplan und Modellannahmen gelten.",
             "isCorrect": true
           },
           {
-            "text": "$H_0$ ist mit 3 % Wahrscheinlichkeit wahr.",
-            "isCorrect": false
+            "text": "Das Intervall stützt nicht, dass die mittlere Reduktion die vorab gesetzte 5-Sekunden-Schwelle erreicht.",
+            "isCorrect": true
           },
           {
-            "text": "$H_1$ ist mit 97 % Wahrscheinlichkeit wahr.",
-            "isCorrect": false
-          },
-          {
-            "text": "3 % der beobachteten Werte sind falsch.",
-            "isCorrect": false
+            "text": "Das Ausfallmuster kann die Analyse der vollständigen Paare verzerren und muss als Aussagegrenze berichtet werden.",
+            "isCorrect": true
           }
-        ]
+        ],
+        "confidenceEnabled": true,
+        "confidenceLabelLow": "Sehr unsicher",
+        "confidenceLabelHigh": "Sehr sicher"
       },
       {
-        "text": "### Signifikanz ist nicht gleich Relevanz\n\nWelche Aussagen zu Testentscheidungen sind korrekt?",
-        "type": "MULTIPLE_CHOICE",
+        "text": "### Teststatistik aus gepaarten Differenzen\n\nFür $n=25$ vollständige Paare gelten $\\bar d=4{,}8$ Sekunden und $s_d=8{,}0$ Sekunden. Berechne für $H_0:\\mu_d=0$ die **einheitenlose t-Statistik** $t=\\bar d/(s_d/\\sqrt n)$.\n\nGib das Ergebnis auf zwei Dezimalstellen ein.",
+        "type": "NUMERIC_ESTIMATE",
         "timer": null,
-        "difficulty": "MEDIUM",
+        "difficulty": "HARD",
         "order": 2,
-        "answers": [
-          {
-            "text": "Ein kleiner p-Wert kann bei großem n zu einem praktisch kleinen Effekt gehören.",
-            "isCorrect": true
-          },
-          {
-            "text": "Ein nicht signifikantes Ergebnis beweist nicht, dass es keinen Effekt gibt.",
-            "isCorrect": true
-          },
-          {
-            "text": "Die Stichprobengröße kann den p-Wert beeinflussen.",
-            "isCorrect": true
-          },
-          {
-            "text": "Statistische Signifikanz beweist, dass die Diskussion die Verbesserung verursacht hat.",
-            "isCorrect": false
-          }
-        ]
+        "answers": [],
+        "numericToleranceMode": "ABSOLUTE_INTERVAL",
+        "numericReferenceValue": 3,
+        "numericIntervalLeft": 2.995,
+        "numericIntervalRight": 3.005,
+        "numericInputType": "DECIMAL",
+        "numericDecimalPlaces": 2,
+        "numericMin": -20,
+        "numericMax": 20,
+        "numericTwoRounds": true,
+        "confidenceEnabled": true,
+        "confidenceLabelLow": "Sehr unsicher",
+        "confidenceLabelHigh": "Sehr sicher"
       },
       {
-        "text": "### Warum gepaart auswerten?\n\nDieselben Personen geben vor und nach einer Diskussion je eine Schätzung ab. Welcher Auswertungsansatz nutzt das Design?",
-        "type": "SINGLE_CHOICE",
+        "text": "### Testergebnisse eindeutig zuordnen\n\nOrdne jedem Befund die passende statistische Folgerung zu. Das Signifikanzniveau beträgt jeweils $\\alpha=0{,}05$.",
+        "type": "MATCHING",
         "timer": null,
         "difficulty": "HARD",
         "order": 3,
+        "answers": [],
+        "matchingPairs": [
+          {
+            "leftId": "w07-m1-left",
+            "left": "$p=0{,}012$ im vorab zweiseitigen Test",
+            "rightId": "w07-m1-right",
+            "right": "Der angegebene p-Wert liegt unter $\\alpha$; $H_0$ nach der p-Wert-Regel verwerfen"
+          },
+          {
+            "leftId": "w07-m2-left",
+            "left": "$p=0{,}12$ im vorab zweiseitigen Test",
+            "rightId": "w07-m2-right",
+            "right": "Der angegebene p-Wert liegt über $\\alpha$; $H_0$ nach der p-Wert-Regel nicht verwerfen"
+          },
+          {
+            "leftId": "w07-m3-left",
+            "left": "Eine wahre $H_0$ wird verworfen",
+            "rightId": "w07-m3-right",
+            "right": "Fehler erster Art"
+          },
+          {
+            "leftId": "w07-m4-left",
+            "left": "Eine falsche $H_0$ wird nicht verworfen",
+            "rightId": "w07-m4-right",
+            "right": "Fehler zweiter Art"
+          },
+          {
+            "leftId": "w07-m5-left",
+            "left": "95-%-Intervall $[1{,}2;4{,}6]$ für $\\mu_d$",
+            "rightId": "w07-m5-right",
+            "right": "Der Nullwert 0 liegt nicht im angegebenen Intervall"
+          }
+        ],
+        "matchingShuffleRight": true,
+        "confidenceEnabled": true,
+        "confidenceLabelLow": "Sehr unsicher",
+        "confidenceLabelHigh": "Sehr sicher"
+      },
+      {
+        "text": "### Gepaarten Test nachvollziehbar durchführen\n\nBringe die Arbeitsschritte eines vorab geplanten gepaarten Hypothesentests in eine methodisch korrekte Reihenfolge.",
+        "type": "ORDERING",
+        "timer": null,
+        "difficulty": "HARD",
+        "order": 4,
+        "answers": [],
+        "orderingItems": [
+          {
+            "id": "w07-o1",
+            "text": "Differenzrichtung, $H_0$, $H_1$, $\\alpha$ und Relevanzschwelle vorab festlegen"
+          },
+          {
+            "id": "w07-o2",
+            "text": "Vollständige Paare bilden und Ausfälle sowie Paarzuordnung prüfen"
+          },
+          {
+            "id": "w07-o3",
+            "text": "Verteilung der Differenzen und einflussreiche Ausreißer beurteilen"
+          },
+          {
+            "id": "w07-o4",
+            "text": "Effektschätzung, Standardfehler, Teststatistik und p-Wert berechnen"
+          },
+          {
+            "id": "w07-o5",
+            "text": "p-Wert mit dem vorab festgelegten Signifikanzniveau vergleichen"
+          },
+          {
+            "id": "w07-o6",
+            "text": "Intervall, praktische Relevanz, Datenqualität und Designgrenzen berichten"
+          }
+        ],
+        "confidenceEnabled": true,
+        "confidenceLabelLow": "Sehr unsicher",
+        "confidenceLabelHigh": "Sehr sicher"
+      },
+      {
+        "text": "### Entscheidungen und Fehlerarten unterscheiden\n\nKategorisiere jeden Fall. $H_0$ lautet jeweils »keine mittlere Veränderung«.",
+        "type": "CATEGORIZATION",
+        "timer": null,
+        "difficulty": "HARD",
+        "order": 5,
+        "answers": [],
+        "categories": [
+          {
+            "id": "w07-cat-alpha",
+            "name": "Fehler erster Art"
+          },
+          {
+            "id": "w07-cat-beta",
+            "name": "Fehler zweiter Art"
+          },
+          {
+            "id": "w07-cat-correct",
+            "name": "Richtige Testentscheidung"
+          }
+        ],
+        "categorizationItems": [
+          {
+            "id": "w07-c1",
+            "text": "Kein wahrer Effekt; der Test meldet eine Verbesserung und verwirft $H_0$",
+            "correctCategoryId": "w07-cat-alpha"
+          },
+          {
+            "id": "w07-c2",
+            "text": "Kein wahrer Effekt; der Test meldet dennoch eine Verschlechterung und verwirft $H_0$",
+            "correctCategoryId": "w07-cat-alpha"
+          },
+          {
+            "id": "w07-c3",
+            "text": "Wahre Verbesserung; der Test erkennt sie nicht",
+            "correctCategoryId": "w07-cat-beta"
+          },
+          {
+            "id": "w07-c4",
+            "text": "Wahre Verschlechterung; der Test erkennt sie nicht",
+            "correctCategoryId": "w07-cat-beta"
+          },
+          {
+            "id": "w07-c5",
+            "text": "Kein wahrer Effekt; der Test verwirft $H_0$ nicht",
+            "correctCategoryId": "w07-cat-correct"
+          },
+          {
+            "id": "w07-c6",
+            "text": "Wahre Verbesserung; der Test verwirft $H_0$",
+            "correctCategoryId": "w07-cat-correct"
+          }
+        ],
+        "categorizationShuffleItems": true,
+        "confidenceEnabled": true,
+        "confidenceLabelLow": "Sehr unsicher",
+        "confidenceLabelHigh": "Sehr sicher"
+      },
+      {
+        "text": "### Fehlentscheidung im Rollout\n\nEin Prozess hat in der Grundgesamtheit keine mittlere Wirkung. Eine Stichprobe liefert dennoch $p<\\alpha$, $H_0$ wird verworfen und der Rollout beschlossen.\n\nWie heißt diese statistische Fehlentscheidung?",
+        "type": "SHORT_TEXT",
+        "timer": null,
+        "difficulty": "MEDIUM",
+        "order": 6,
         "answers": [
           {
-            "text": "Für jede Person eine Differenz bilden und die vollständigen Paare analysieren.",
+            "text": "Fehler erster Art",
             "isCorrect": true
           },
           {
-            "text": "Beide Runden als voneinander unabhängige Gruppen behandeln.",
+            "text": "Alpha-Fehler",
+            "isCorrect": true
+          },
+          {
+            "text": "α-Fehler",
+            "isCorrect": true
+          },
+          {
+            "text": "Typ-I-Fehler",
+            "isCorrect": true
+          },
+          {
+            "text": "Typ-1-Fehler",
+            "isCorrect": true
+          },
+          {
+            "text": "Fehler vom Typ I",
+            "isCorrect": true
+          },
+          {
+            "text": "Fehler 1. Art",
+            "isCorrect": true
+          },
+          {
+            "text": "Fehler vom Typ 1",
+            "isCorrect": true
+          },
+          {
+            "text": "Typ I-Fehler",
+            "isCorrect": true
+          }
+        ],
+        "shortTextEvaluationKind": "text",
+        "shortTextMaxLength": 40,
+        "shortTextCaseSensitive": false,
+        "shortTextEvaluationMode": "exact",
+        "shortTextToleranceLevel": "none",
+        "shortTextAllowPartialCredit": false,
+        "shortTextTrimWhitespace": true,
+        "shortTextNormalizeWhitespace": true,
+        "confidenceEnabled": true,
+        "confidenceLabelLow": "Sehr unsicher",
+        "confidenceLabelHigh": "Sehr sicher"
+      },
+      {
+        "text": "### Nicht signifikant heißt nicht wirkungslos\n\nBei 14 vollständigen Paaren ergibt ein zweiseitiger Test $p=0{,}07$; das 95-%-Intervall der mittleren Verbesserung reicht von −0,4 bis 6,1 Minuten. Vier besonders belastete Personen haben keinen Nachher-Wert.\n\nFormuliere in zwei bis drei Sätzen eine fachlich angemessene Schlussfolgerung zu Testentscheidung, möglichem Effekt und Ausfällen.",
+        "type": "FREETEXT",
+        "timer": null,
+        "difficulty": "HARD",
+        "order": 7,
+        "answers": []
+      },
+      {
+        "text": "### Nächste Analyse priorisieren\n\nEin signifikanter gepaarter Befund beruht auf 22 von 30 vollständigen Paaren und enthält einen auffälligen Differenzwert. Welche Zusatzprüfung würdest du im Team **zuerst** priorisieren? Die Abstimmung dient der Begründungsdiskussion; es gibt keine Musterlösung.",
+        "type": "SURVEY",
+        "timer": null,
+        "difficulty": "MEDIUM",
+        "order": 8,
+        "answers": [
+          {
+            "text": "Die Robustheit gegenüber dem auffälligen Differenzwert transparent prüfen",
             "isCorrect": false
           },
           {
-            "text": "Nur die beiden Gesamtmittelwerte vergleichen und alle Paarinformationen verwerfen.",
+            "text": "Die Systematik der acht fehlenden Nachher-Werte transparent prüfen",
             "isCorrect": false
           },
           {
-            "text": "Fehlende Zweitwerte durch den jeweiligen Erstwert ersetzen.",
+            "text": "Die Abhängigkeit der Paare innerhalb gemeinsamer Teams transparent prüfen",
+            "isCorrect": false
+          },
+          {
+            "text": "Die Zielerreichung gegenüber der praktischen Schwelle transparent prüfen",
             "isCorrect": false
           }
         ]
       },
       {
-        "text": "### Unvollständige zweite Runde\n\nEinige Personen geben nur in Runde 1 eine Schätzung ab. Welche Aussagen sind methodisch korrekt?",
-        "type": "MULTIPLE_CHOICE",
+        "text": "### Tragfähigkeit eines Ergebnisbefunds einschätzen\n\nEin Bericht lautet: »In 28 vollständigen Paaren lag die mittlere Verbesserung bei 4,2 Minuten (95-%-Intervall: 1,1 bis 7,3; $p=0{,}009$). Die vorab gesetzte Relevanzschwelle von 6 Minuten wird durch die Punktschätzung nicht erreicht; acht Ausfälle begrenzen die Übertragbarkeit.«\n\nWie tragfähig ist dieser Befund als Grundlage für eine vorsichtige weitere Prüfung?",
+        "type": "RATING",
         "timer": null,
-        "difficulty": "HARD",
-        "order": 4,
-        "answers": [
-          {
-            "text": "Für einen gepaarten Vergleich zählt $n_{pairs}$ nur vollständige Paare.",
-            "isCorrect": true
-          },
-          {
-            "text": "Die Ausfälle können die Übertragbarkeit des Vorher-Nachher-Vergleichs begrenzen.",
-            "isCorrect": true
-          },
-          {
-            "text": "Mittelwert und Standardabweichung jeder Runde reichen nicht aus, um die Streuung der individuellen Differenzen zu bestimmen.",
-            "isCorrect": true
-          },
-          {
-            "text": "Fehlende Zweitantworten dürfen für die Auswertung unbemerkt mit Erstantworten aufgefüllt werden.",
-            "isCorrect": false
-          }
-        ]
+        "difficulty": "MEDIUM",
+        "order": 9,
+        "answers": [],
+        "ratingMin": 1,
+        "ratingMax": 5,
+        "ratingLabelMin": "1 = kaum tragfähig",
+        "ratingLabelMax": "5 = gut tragfähig mit Grenzen"
       }
     ]
   }

@@ -1,15 +1,17 @@
 # Statistikbefund – ausfüllbare Vorlage und analytische Rubrik
 
-- **Einsatz im Pilot:** formatives Abschlussprodukt des 48-UE-Moduls, getrennt
+**Kürzel vorab:** **S1–S6** bezeichnet die Fallstudienstränge, **W01–W10** die Kurswochen, **UE** eine 45-minütige Unterrichtseinheit, **LIVE/REPO/LEHRDATEN** Kursdaten, versionierte Repository-Nachweise und synthetische Lehrdaten, **MC** Multiple Choice sowie **`source_ref`** die Quellenkennung eines Datensatzes. **V1** bezeichnet in den Feldern zu Variablenkatalog und Analyseplan deren erste Arbeitsversion, nicht die curriculare Vertiefung V1.
+
+- **Einsatz im Modul:** formatives Abschlussprodukt des 48-UE-Moduls, getrennt
   von der schriftlichen Einzelprüfung
 - **Bewertungsstatus:** standardmäßig formative Rückmeldung mit der
   analytischen Rubrik
-- **Analyseumgebung:** JASP
+- **Analysesoftware:** JASP
 - **Arbeitsform:** Gruppenanalyse mit individuell nachweisbarer Leistung
 
 ## Einsatz- und Datennutzungsrahmen
 
-Im Pilot werden Statistikbefund und analytische Rubrik standardmäßig
+Im Modul werden Statistikbefund und analytische Rubrik standardmäßig
 **formativ** genutzt. LIVE-Daten dürfen dabei für Lern- und Feedbackzwecke
 analysiert werden; die Rubrikpunkte strukturieren die Rückmeldung und sind
 keine Prüfungsnote. Die separate schriftliche Einzelprüfung prüft individuelle
@@ -112,7 +114,7 @@ Antworten und vollständige Paare werden nicht gleichgesetzt.
 
 **Quellenstatus:**
 
-- [ ] **LIVE** – im Kurs erhoben; ausschließlich für formative Pilotnutzung
+- [ ] **LIVE** – im Kurs erhoben; ausschließlich für formative Kursnutzung
 - [ ] **REPO** – dokumentierter Repository-Messlauf
 - [ ] **LEHRDATEN** – ausdrücklich konstruierter Datensatz
 
@@ -414,7 +416,7 @@ Begründung:**
 
 ### 5.1 Bewertungslogik
 
-- Im Pilot dienen die Punktwerte der Rubrik der formativen Diagnose und
+- Im Modul dienen die Punktwerte der Rubrik der formativen Diagnose und
   Rückmeldung; sie sind keine Prüfungsnote.
 - Bei institutionell geregelter summativer Nutzung gelten der Einsatz- und
   Datennutzungsrahmen sowie die Pflicht zur individuellen Evidenzkarte.
@@ -531,7 +533,7 @@ $$
 | 60–74,5 | Mindeststandard insgesamt erreicht             |
 |  0–59,5 | Mindeststandard insgesamt nicht erreicht       |
 
-Im formativen Pilot beschreiben die Bereiche den Lernstand und strukturieren
+Im formativen Einsatz beschreiben die Bereiche den Lernstand und strukturieren
 die Rückmeldung. Nur bei institutionell geregelter summativer Nutzung richtet
 sich eine Umrechnung in Modulnoten nach der jeweils geltenden Prüfungsordnung
 und dem oben festgelegten Datennutzungsrahmen.

@@ -18,13 +18,13 @@ Formale A11y-Abnahmedokumentation (2026-07-27):
 [`PDF/UA-1-Prüfprotokoll`](praktikum/ACCESSIBILITY-PDFUA-PRUEFPROTOKOLL.md)
 
 **Studierende – Angewandte Statistik (48 UE):**
-[Modulbeschreibung und Lernweg](didaktik/Modulkonzept%20Statistik/P0-03_Modulbeschreibung_Studierende.md)
+[Modulbeschreibung und Lernweg](didaktik/Modulkonzept%20Statistik/Modulbeschreibung_Studierende.md)
 → [Mathematikdiagnostik und Brückenpfade](didaktik/Modulkonzept%20Statistik/P0-03_Mathematikdiagnostik_Brueckenpfade.md)
 → [Formelsammlung](didaktik/Modulkonzept%20Statistik/P0-03_Formelsammlung_Statistik.md)
 → [Probeklausur](didaktik/Modulkonzept%20Statistik/P0-03_Probeklausur_90_Minuten.md)
 
 **Lehrende – Angewandte Statistik (48 UE):**
-[Hauptkonzept](didaktik/Modulkonzept%20Statistik/Modulkonzept_48UE_BWL_Management_WI_Informatik_v4_Repoabgleich.md)
+[Hauptkonzept](didaktik/Modulkonzept%20Statistik/Modulkonzept_48UE_BWL_Management_WI_Informatik.md)
 → [Kerncurriculum](didaktik/Modulkonzept%20Statistik/P0-01_Kerncurriculum_Lernzielmatrix.md)
 → [Materialpaket](didaktik/Modulkonzept%20Statistik/P0-03_Materialpaket_Pilotlauf.md)
 → [Lehrenden-Runbook](didaktik/Modulkonzept%20Statistik/P0-03_Lehrenden_Runbook.md)
@@ -61,7 +61,7 @@ Formale A11y-Abnahmedokumentation (2026-07-27):
 | [ui/](ui/)                         | Styleguide, Tokens, Guidelines (z. B. Blitzlicht)                                                                                                                                                                                                                                                                                                                                                                               |
 | [vibe-coding/](vibe-coding/)       | Szenarien und Prompt-Beispiele für KI-gestützte Arbeit                                                                                                                                                                                                                                                                                                                                                                          |
 | [examples/](examples/)             | z. B. Quiz-Import-Beispiele                                                                                                                                                                                                                                                                                                                                                                                                     |
-| [didaktik/](didaktik/)             | Cloud-Computing-Kurslandkarte und Lehrkonzept; Modulkonzept Angewandte Statistik mit 48-UE-Pilotpaket; Fahrpläne FSE/SQM/DA, Greenfield-Demo, Folienskizzen                                                                                                                                                                                                                                                                     |
+| [didaktik/](didaktik/)             | Cloud-Computing-Kurslandkarte und Lehrkonzept; Modulkonzept Angewandte Statistik mit Materialien für 48 UE; Fahrpläne FSE/SQM/DA, Greenfield-Demo, Folienskizzen                                                                                                                                                                                                                                                                |
 | [praktikum/](praktikum/)           | Einstieg Tools/Stack; Praktika Entwicklung, **SQM** und **Data Analytics**; Begriffe Freitext/Semantik                                                                                                                                                                                                                                                                                                                          |
 | [screenshots/](screenshots/)       | Kuratierte Vergleichsbilder, Wortwolken, Stopwort-Beispiele und Zielbilder für die semantische Begriffwolke                                                                                                                                                                                                                                                                                                                     |
 
@@ -86,7 +86,7 @@ Formale A11y-Abnahmedokumentation (2026-07-27):
 - **Moderationszusammenfassung (Story 8.9c, Slices 1–3, Kill-Switch default aus):** [features/qa-summary.md](features/qa-summary.md)
 - **Private Open-Weight-Runtime (Story 8.9d, geplant und nicht implementiert):** [ADR-0035](architecture/decisions/0035-self-hosted-llm-runtime-llama-cpp-over-ollama.md) · [Lehrmatrix 8.9a–d](didaktik/MODERATIONSKOMPASS-8.9A-D-MODULE-UND-PRAKTIKA.md)
 - **Session-Ergebnisbericht (PDF, Story 4.7):** [features/session-export-pdf.md](features/session-export-pdf.md)
-- **Statistik-Modul (P0-Pilot):** [Studierendenbeschreibung](didaktik/Modulkonzept%20Statistik/P0-03_Modulbeschreibung_Studierende.md) · [Materialpaket](didaktik/Modulkonzept%20Statistik/P0-03_Materialpaket_Pilotlauf.md) · [Runbook](didaktik/Modulkonzept%20Statistik/P0-03_Lehrenden_Runbook.md) · [QA-Status](didaktik/Modulkonzept%20Statistik/P0-03_QA_Freigabeprotokoll.md)
+- **Statistik-Modul:** [Studierendenbeschreibung](didaktik/Modulkonzept%20Statistik/Modulbeschreibung_Studierende.md) · [Modulkonzept](didaktik/Modulkonzept%20Statistik/Modulkonzept_48UE_BWL_Management_WI_Informatik.md) · [Materialpaket](didaktik/Modulkonzept%20Statistik/P0-03_Materialpaket_Pilotlauf.md) · [Runbook](didaktik/Modulkonzept%20Statistik/P0-03_Lehrenden_Runbook.md) · [QA-Status](didaktik/Modulkonzept%20Statistik/P0-03_QA_Freigabeprotokoll.md)
 
 **Ergänzung 2026-09-13:** Das Statistik-Modul ist mit Kerncurriculum, vollständigem Materialindex, Runbook und dokumentiertem QA-Status in die Landkarte aufgenommen.
 
