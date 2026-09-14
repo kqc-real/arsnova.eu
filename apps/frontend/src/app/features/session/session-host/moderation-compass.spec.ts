@@ -32,6 +32,12 @@ describe('truncateCompassLabel', () => {
     expect(truncateCompassLabel('Was ist ein Median?')).toBe('Was ist ein Median?');
   });
 
+  it('löst Emoji-Shortcodes in Quellen auf', () => {
+    expect(truncateCompassLabel(':cry: Gerade etwas überfordert')).toBe(
+      '😭 Gerade etwas überfordert',
+    );
+  });
+
   it('kürzt lange Quellen mit Auslassung', () => {
     const label = truncateCompassLabel('a'.repeat(120), 20);
     expect(label.endsWith('…')).toBe(true);

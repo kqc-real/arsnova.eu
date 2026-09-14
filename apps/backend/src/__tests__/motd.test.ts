@@ -562,6 +562,7 @@ describe('motd router', () => {
       const caller = motdRouter.createCaller(ctx);
       const r = await caller.getHeaderState({ locale: 'de' });
       expect(r.hasActiveOverlay).toBe(true);
+      expect(r.activeOverlay).toEqual({ motdId: M1, contentVersion: 2 });
       expect(r.hasArchiveEntries).toBe(true);
       expect(r.archiveCount).toBe(4);
       expect(r.archiveMaxCursor).toEqual({

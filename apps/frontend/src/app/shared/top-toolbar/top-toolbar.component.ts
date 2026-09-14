@@ -262,6 +262,7 @@ export class TopToolbarComponent {
   }
 
   openMotdArchive(): void {
+    this.motdHeaderState.acknowledgeUnseenCurrentMotd();
     const locale = getEffectiveLocale(localeIdToSupported(this.localeId)) as AppLocale;
     this.dialog
       .open(MotdArchiveDialogComponent, {

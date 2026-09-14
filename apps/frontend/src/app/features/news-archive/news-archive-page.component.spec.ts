@@ -41,6 +41,7 @@ describe('NewsArchivePageComponent', () => {
     listArchiveQuery.mockResolvedValue({ items: [], nextCursor: null });
     getHeaderStateQuery.mockResolvedValue({
       hasActiveOverlay: false,
+      activeOverlay: null,
       hasArchiveEntries: false,
       archiveMaxCursor: null,
       archiveMaxEndsAtIso: null,
@@ -537,6 +538,7 @@ describe('NewsArchivePageComponent', () => {
 
     getHeaderStateQuery.mockResolvedValue({
       hasActiveOverlay: false,
+      activeOverlay: null,
       hasArchiveEntries: true,
       archiveCount: 1,
       archiveMaxCursor: {
@@ -615,6 +617,7 @@ describe('NewsArchivePageComponent', () => {
     });
     getHeaderStateQuery.mockResolvedValue({
       hasActiveOverlay: false,
+      activeOverlay: null,
       hasArchiveEntries: true,
       archiveCount: 1,
       archiveMaxCursor: {

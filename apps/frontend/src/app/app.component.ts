@@ -36,6 +36,7 @@ import { PresetSnackbarFocusService } from './core/preset-snackbar-focus.service
 import { Subscription } from 'rxjs';
 import { TopToolbarComponent } from './shared/top-toolbar/top-toolbar.component';
 import { trpc } from './core/trpc.client';
+import { clearMotdSessionOverlayLocks } from './core/motd-storage';
 import type { FooterStatusDTO, ServerStatsDTO } from '@arsnova/shared-types';
 import { localizePath } from './core/locale-router';
 import { INFO_LANDING_ANCHORS, infoLandingUrl } from './core/info-landing-url';
@@ -724,6 +725,7 @@ export class AppComponent implements OnInit, OnDestroy {
      * SW-Version umhaengen. In Live-Sessions ist der vollstaendige Reload die
      * stabile Grenze gegen gemischte App-Shell-/Chunk-Versionen.
      */
+    clearMotdSessionOverlayLocks();
     this.reloadPage();
   }
 

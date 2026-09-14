@@ -1,14 +1,18 @@
-import { Injectable, PLATFORM_ID, inject, signal } from '@angular/core';
+import { Injectable, PLATFORM_ID, computed, inject, signal } from '@angular/core';
 import { isPlatformBrowser } from '@angular/common';
 import { DOCUMENT } from '@angular/common';
 import { LOCALE_ID } from '@angular/core';
 import { NavigationEnd, Router } from '@angular/router';
 import { Subject } from 'rxjs';
 import { debounceTime, filter } from 'rxjs/operators';
-import type { AppLocale } from '@arsnova/shared-types';
+import type { AppLocale, MotdArchiveReadItem } from '@arsnova/shared-types';
 import { trpc } from './trpc.client';
 import { getEffectiveLocale, localeIdToSupported } from './locale-from-path';
-import { motdGetHeaderStateClientInput } from './motd-storage';
+import {
+  getMotdCurrentOverlaySeenThisSession,
+  markMotdCurrentOverlaySeenThisSession,
+  motdGetHeaderStateClientInput,
+} from './motd-storage';
 import { MotdHeaderRefreshService } from './motd-header-refresh.service';
 
 /**
@@ -39,6 +43,41 @@ export class MotdHeaderStateService {
   /** Aktive Meldung oder Archiv-Einträge → Campaign-Icon in der Toolbar. */
   readonly motdToolbarIcon = signal(false);
 
+  /**
+   * Es gibt eine aktuelle Overlay-MOTD, die lokal noch nicht dismissed ist
+   * (`motd.getCurrent` nach `overlayDismissedUpTo`).
+   */
+  readonly hasActiveOverlay = signal(false);
+
+  /** Identität der aktuellen Overlay-MOTD aus `getHeaderState.activeOverlay`. */
+  readonly activeOverlayRef = signal<MotdArchiveReadItem | null>(null);
+
+  /**
+   * Nutzer:in hat die aktuelle MOTD in dieser Sitzung bereits gesehen
+   * (Overlay geöffnet oder Archiv über das Megafon).
+   */
+  readonly unseenCurrentMotdAcked = signal(false);
+
+  /** In dieser Sitzung bereits gezeigte Overlay-MOTD (`sessionStorage`). */
+  readonly seenOverlayRef = signal<MotdArchiveReadItem | null>(null);
+
+  /**
+   * Megafon hervorheben: aktuelle MOTD existiert, wurde aber noch nicht
+   * als Overlay oder Archiv angezeigt. Vergleich über Identität, damit Reload
+   * und eine nachrückende MOTD nicht dasselbe Boolean teilen.
+   */
+  readonly motdToolbarAttention = computed(() => {
+    if (!this.hasActiveOverlay()) {
+      return false;
+    }
+    const current = this.activeOverlayRef();
+    const seen = this.seenOverlayRef();
+    if (current && seen) {
+      return current.motdId !== seen.motdId || current.contentVersion !== seen.contentVersion;
+    }
+    return !this.unseenCurrentMotdAcked();
+  });
+
   /** Ungelesene Archiv-MOTDs relativ zum Client-Wasserzeichen und einzeln Gelesenen. */
   readonly archiveUnreadCount = signal(0);
 
@@ -47,6 +86,7 @@ export class MotdHeaderStateService {
 
   constructor() {
     if (isPlatformBrowser(this.platformId)) {
+      this.restoreSeenOverlayFromSession();
       this.scheduleInitialRefresh();
       this.motdHeaderRefresh.requests.subscribe(() => void this.refresh({ force: true }));
       this.passiveRefresh$.pipe(debounceTime(500)).subscribe(() => void this.refresh());
@@ -68,6 +108,26 @@ export class MotdHeaderStateService {
 
   setArchiveUnreadCount(count: number): void {
     this.archiveUnreadCount.set(Math.max(0, count));
+  }
+
+  /** Overlay oder Archiv hat die aktuelle MOTD in dieser Sitzung gezeigt. */
+  acknowledgeUnseenCurrentMotd(ref?: MotdArchiveReadItem): void {
+    const current = ref ?? this.activeOverlayRef();
+    this.unseenCurrentMotdAcked.set(true);
+    if (!current) {
+      return;
+    }
+    markMotdCurrentOverlaySeenThisSession(current.motdId, current.contentVersion);
+    this.seenOverlayRef.set(current);
+  }
+
+  /** Nach Reload: bereits gesehene Overlay-MOTD aus der Sitzung wiederherstellen. */
+  restoreSeenOverlayFromSession(): void {
+    const seen = getMotdCurrentOverlaySeenThisSession();
+    this.seenOverlayRef.set(seen);
+    if (seen) {
+      this.unseenCurrentMotdAcked.set(true);
+    }
   }
 
   async refresh(options?: { force?: boolean }): Promise<void> {
@@ -97,11 +157,27 @@ export class MotdHeaderStateService {
           locale,
           ...motdGetHeaderStateClientInput(),
         });
+        const activeOverlay = s.activeOverlay ?? null;
         this.motdToolbarIcon.set(s.hasActiveOverlay || s.hasArchiveEntries);
+        this.hasActiveOverlay.set(s.hasActiveOverlay);
+        this.activeOverlayRef.set(activeOverlay);
+        const seen = getMotdCurrentOverlaySeenThisSession();
+        this.seenOverlayRef.set(seen);
+        if (!s.hasActiveOverlay) {
+          this.unseenCurrentMotdAcked.set(false);
+        } else if (activeOverlay && seen) {
+          this.unseenCurrentMotdAcked.set(
+            seen.motdId === activeOverlay.motdId &&
+              seen.contentVersion === activeOverlay.contentVersion,
+          );
+        }
         this.archiveUnreadCount.set(s.archiveUnreadCount);
         this.archiveTotalCount.set(s.archiveCount);
       } catch {
         this.motdToolbarIcon.set(false);
+        this.hasActiveOverlay.set(false);
+        this.activeOverlayRef.set(null);
+        this.unseenCurrentMotdAcked.set(false);
         this.archiveUnreadCount.set(0);
         this.archiveTotalCount.set(0);
       }

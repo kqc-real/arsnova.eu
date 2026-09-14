@@ -30,6 +30,7 @@ import {
   type ModerationCompassSourceDestination,
   type ModerationSummaryScanParts,
 } from './moderation-compass';
+import { replaceEmojiShortcodes } from '../../../shared/emoji-shortcode.util';
 import { localizeQaSummaryChromeLimitation } from './qa-summary-chrome-copy';
 
 export type { ModerationCompassAnalysisMode };
@@ -149,18 +150,22 @@ export class ModerationCompassDialogComponent {
     return this.destinationLabel(moderationCompassSourceDestination(source));
   }
 
+  displaySourceLabel(label: string): string {
+    return replaceEmojiShortcodes(label);
+  }
+
   summarySourceDestinationLabel(): string {
     return this.destinationLabel('qa');
   }
 
   sourceJumpAria(source: ModerationCompassSource): string {
     const destination = this.sourceDestinationLabel(source);
-    return $localize`:@@sessionHost.moderationSourceOpenAria:Öffnet ${destination}:destination:: ${source.label}:label:`;
+    return $localize`:@@sessionHost.moderationSourceOpenAria:Öffnet ${destination}:destination:: ${this.displaySourceLabel(source.label)}:label:`;
   }
 
   summarySourceJumpAria(source: QaSummarySource): string {
     const destination = this.summarySourceDestinationLabel();
-    return $localize`:@@sessionHost.moderationSummarySourceOpenAria:Öffnet ${destination}:destination:: ${source.label}:label:`;
+    return $localize`:@@sessionHost.moderationSummarySourceOpenAria:Öffnet ${destination}:destination:: ${this.displaySourceLabel(source.label)}:label:`;
   }
 
   summarySourcesToggleLabel(count: number): string {

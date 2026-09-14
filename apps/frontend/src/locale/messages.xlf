@@ -17850,28 +17850,28 @@
         </context-group>
       </trans-unit>
       <trans-unit id="sessionHost.timerAccommodationBlockingOneForce" datatype="html">
-        <source>Eine Person nutzt noch ihre »10× Zeit«. »Trotzdem freigeben« beendet ihr persönliches Fenster.</source>
+        <source>Eine Person nutzt ihre »10× Zeit«. »Trotzdem freigeben« beendet ihr persönliches Fenster.</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.ts</context>
           <context context-type="linenumber">6069</context>
         </context-group>
       </trans-unit>
       <trans-unit id="sessionHost.timerAccommodationBlockingOne" datatype="html">
-        <source>Eine Person nutzt noch ihre »10× Zeit«. Warte auf den Raum-Countdown oder bis die »10× Zeit« endet.</source>
+        <source>Eine Person nutzt ihre »10× Zeit«. Warte auf den Raum-Countdown oder bis die »10× Zeit« endet.</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.ts</context>
           <context context-type="linenumber">6070</context>
         </context-group>
       </trans-unit>
       <trans-unit id="sessionHost.timerAccommodationBlockingManyForce" datatype="html">
-        <source><x id="count" equiv-text="formatLocaleCount(blockingCount, this.localeId)"/> Personen nutzen noch ihre »10× Zeit«. »Trotzdem freigeben« beendet ihre persönlichen Fenster.</source>
+        <source><x id="count" equiv-text="formatLocaleCount(blockingCount, this.localeId)"/> Personen nutzen ihre »10× Zeit«. »Trotzdem freigeben« beendet ihre persönlichen Fenster.</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.ts</context>
           <context context-type="linenumber">6074</context>
         </context-group>
       </trans-unit>
       <trans-unit id="sessionHost.timerAccommodationBlockingMany" datatype="html">
-        <source><x id="count" equiv-text="formatLocaleCount(blockingCount, this.localeId)"/> Personen nutzen noch ihre »10× Zeit«. Warte auf den Raum-Countdown oder bis die »10× Zeit« endet.</source>
+        <source><x id="count" equiv-text="formatLocaleCount(blockingCount, this.localeId)"/> Personen nutzen ihre »10× Zeit«. Warte auf den Raum-Countdown oder bis die »10× Zeit« endet.</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.ts</context>
           <context context-type="linenumber">6075</context>

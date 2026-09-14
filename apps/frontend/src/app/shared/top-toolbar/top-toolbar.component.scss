@@ -97,6 +97,32 @@
   overflow: visible;
 }
 
+/* Aktuelle MOTD existiert, Overlay wurde aber noch nicht gezeigt. */
+.top-toolbar__motd-btn--attention {
+  color: var(--mat-sys-primary);
+  background: color-mix(in srgb, var(--mat-sys-primary-container) 70%, transparent);
+
+  mat-icon {
+    color: var(--mat-sys-primary);
+  }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .top-toolbar__motd-btn--attention {
+    animation: top-toolbar-motd-attention 2.2s ease-in-out infinite;
+  }
+}
+
+@keyframes top-toolbar-motd-attention {
+  0%,
+  100% {
+    box-shadow: 0 0 0 0 color-mix(in srgb, var(--mat-sys-primary) 0%, transparent);
+  }
+  50% {
+    box-shadow: 0 0 0 0.35rem color-mix(in srgb, var(--mat-sys-primary) 32%, transparent);
+  }
+}
+
 @media (min-width: 600px) {
   .top-toolbar__row {
     display: grid;
@@ -364,6 +390,10 @@
 
   .top-toolbar__preset-icon-playful {
     color: var(--mat-sys-primary);
+  }
+
+  .top-toolbar__motd-btn--attention {
+    background: color-mix(in srgb, var(--mat-sys-primary-container) 82%, transparent);
   }
 
   .top-toolbar__toggles .top-toolbar__toggle--active {

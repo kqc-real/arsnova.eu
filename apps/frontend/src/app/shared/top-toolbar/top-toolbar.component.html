@@ -40,6 +40,7 @@
           type="button"
           matIconButton
           class="top-toolbar__icon-btn top-toolbar__motd-btn"
+          [class.top-toolbar__motd-btn--attention]="motdHeaderState.motdToolbarAttention()"
           (click)="openMotdArchive()"
           [matTooltip]="motdToolbarArchiveTooltip()"
           [attr.aria-label]="motdArchiveAriaLabel()"

@@ -99,14 +99,18 @@
                       <span class="moderation-compass-card__source-dest">{{
                         sourceDestinationLabel(source)
                       }}</span>
-                      <span class="moderation-compass-card__source-label">{{ source.label }}</span>
+                      <span class="moderation-compass-card__source-label">{{
+                        displaySourceLabel(source.label)
+                      }}</span>
                     </button>
                   } @else {
                     <span class="moderation-compass-card__source-static">
                       <span class="moderation-compass-card__source-dest">{{
                         sourceDestinationLabel(source)
                       }}</span>
-                      <span class="moderation-compass-card__source-label">{{ source.label }}</span>
+                      <span class="moderation-compass-card__source-label">{{
+                        displaySourceLabel(source.label)
+                      }}</span>
                     </span>
                   }
                 </li>
@@ -132,7 +136,7 @@
                           sourceDestinationLabel(source)
                         }}</span>
                         <span class="moderation-compass-card__source-label">{{
-                          source.label
+                          displaySourceLabel(source.label)
                         }}</span>
                       </button>
                     } @else {
@@ -141,7 +145,7 @@
                           sourceDestinationLabel(source)
                         }}</span>
                         <span class="moderation-compass-card__source-label">{{
-                          source.label
+                          displaySourceLabel(source.label)
                         }}</span>
                       </span>
                     }
@@ -266,7 +270,9 @@
                       <span class="moderation-compass-card__source-dest">{{
                         summarySourceDestinationLabel()
                       }}</span>
-                      <span class="moderation-compass-card__source-label">{{ source.label }}</span>
+                      <span class="moderation-compass-card__source-label">{{
+                        displaySourceLabel(source.label)
+                      }}</span>
                     </button>
                   </li>
                 }

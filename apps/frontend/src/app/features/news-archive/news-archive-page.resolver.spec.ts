@@ -93,6 +93,10 @@ describe('newsArchivePageResolver hydration', () => {
     });
     getHeaderStateQuery.mockResolvedValue({
       hasActiveOverlay: true,
+      activeOverlay: {
+        motdId: 'c0444444-c444-4c44-8c44-c04444444444',
+        contentVersion: 1,
+      },
       hasArchiveEntries: true,
       archiveMaxCursor: {
         startsAtIso: '2026-08-09T00:00:00.000Z',

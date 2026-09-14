@@ -1,4 +1,5 @@
 import { extractExportQuestionText } from '../../../core/markdown-plain-text.util';
+import { replaceEmojiShortcodes } from '../../../shared/emoji-shortcode.util';
 import {
   type QaNlpCategory,
   type QaNlpResult,
@@ -289,7 +290,7 @@ export function moderationCompassSourceDestination(
 }
 
 export function truncateCompassLabel(text: string, max = SOURCE_LABEL_MAX): string {
-  const trimmed = text.trim().replace(/\s+/g, ' ');
+  const trimmed = replaceEmojiShortcodes(text).trim().replace(/\s+/g, ' ');
   if (trimmed.length <= max) {
     return trimmed;
   }

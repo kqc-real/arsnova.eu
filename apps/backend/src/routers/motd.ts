@@ -409,6 +409,7 @@ export const motdRouter = router({
 
       return {
         hasActiveOverlay: motd !== null,
+        activeOverlay: motd ? { motdId: motd.id, contentVersion: motd.contentVersion } : null,
         hasArchiveEntries: archiveCount > 0,
         archiveCount,
         archiveMaxCursor,
