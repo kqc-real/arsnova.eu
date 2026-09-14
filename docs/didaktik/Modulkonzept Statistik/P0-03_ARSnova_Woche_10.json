@@ -1,0 +1,322 @@
+{
+  "exportVersion": 1,
+  "exportedAt": "2026-09-13T00:00:00.000Z",
+  "quiz": {
+    "name": "P0-03 ARSnova – Woche 10: Integrieren und kommunizieren",
+    "description": "10 anspruchsvolle Integrations- und Transferfragen zu Verfahrenswahl, Statistikbefund, Quellenstatus, Aussagegrenzen und klausurnaher Kommunikation – mit allen zehn ARSnova-Fragetypen.",
+    "showLeaderboard": true,
+    "allowCustomNicknames": false,
+    "defaultTimer": 60,
+    "timerScaleByDifficulty": true,
+    "enableTimerAccommodation": true,
+    "enableSoundEffects": true,
+    "enableRewardEffects": true,
+    "enableMotivationMessages": true,
+    "enableEmojiReactions": true,
+    "anonymousMode": false,
+    "teamMode": true,
+    "teamCount": 4,
+    "teamAssignment": "AUTO",
+    "teamNames": ["Apfel :apple:", "Birne :pear:", "Banane :banana:", "Apfelsine :orange:"],
+    "backgroundMusic": null,
+    "nicknameTheme": "KINDERGARTEN",
+    "bonusTokenCount": 3,
+    "readingPhaseEnabled": true,
+    "questions": [
+      {
+        "text": "### Verfahrenswahl und Aussagegrenze integrieren\n\nIn einer freiwilligen Erhebung schätzen dieselben Personen vor und nach einer Diskussion eine Servicezeit. Vier Nachher-Werte fehlen; untersucht wird die Veränderung des absoluten Fehlers zur vorab festgelegten Referenz.\n\nWelcher Analyseplan ist am besten begründet?",
+        "type": "SINGLE_CHOICE",
+        "timer": null,
+        "difficulty": "HARD",
+        "order": 0,
+        "answers": [
+          {
+            "text": "Je Runde alle verfügbaren Werte auswerten, Rundenmittel unabhängig vergleichen, Ausfälle dokumentieren und den Unterschied vorsichtig berichten.",
+            "isCorrect": false
+          },
+          {
+            "text": "Vollständige Paare mit festgelegter Differenzrichtung auswerten, Ausfallmuster prüfen sowie Effekt, Unsicherheit und Designgrenzen berichten.",
+            "isCorrect": true
+          },
+          {
+            "text": "Vollständige Paare auswerten, die Methode nach dem kleinsten p-Wert wählen, Ausfälle im Anhang nennen und den Unterschied verallgemeinern.",
+            "isCorrect": false
+          },
+          {
+            "text": "Fehlende Nachher-Werte durch den Referenzwert ersetzen, Paarmittel vergleichen, Unsicherheit berichten und den Befund auf Teilnehmende begrenzen.",
+            "isCorrect": false
+          }
+        ],
+        "confidenceEnabled": true,
+        "confidenceLabelLow": "Sehr unsicher",
+        "confidenceLabelHigh": "Sehr sicher"
+      },
+      {
+        "text": "### Einen klausurnahen Statistikbefund absichern\n\nWelche Bestandteile gehören in einen belastbaren Kurzbefund zu einem gepaarten Vergleich?\n\n_Mehrere Antworten sind richtig._",
+        "type": "MULTIPLE_CHOICE",
+        "timer": null,
+        "difficulty": "HARD",
+        "order": 1,
+        "answers": [
+          {
+            "text": "Datenquelle, Beobachtungseinheit und Zahl vollständiger Paare ausdrücklich nennen.",
+            "isCorrect": true
+          },
+          {
+            "text": "Den p-Wert als Wahrscheinlichkeit einer wahren Nullhypothese in Prozent übersetzen.",
+            "isCorrect": false
+          },
+          {
+            "text": "Effektgröße, Unsicherheitsangabe und festgelegte Differenzrichtung gemeinsam berichten.",
+            "isCorrect": true
+          },
+          {
+            "text": "Übertragbarkeit und Kausalaussage an Stichprobe und Untersuchungsdesign begrenzen.",
+            "isCorrect": true
+          }
+        ],
+        "confidenceEnabled": true,
+        "confidenceLabelLow": "Sehr unsicher",
+        "confidenceLabelHigh": "Sehr sicher"
+      },
+      {
+        "text": "### Mittlere Fehlerverbesserung berechnen\n\nDie Referenz beträgt 120 s. Fünf Personen schätzen in Runde 1: 132, 111, 135, 109, 133 s; in Runde 2: 128, 130, 111, 127, 109 s. Berechne für jede Person den absoluten Fehler und dann den Mittelwert von »Fehler Runde 1 minus Fehler Runde 2«.\n\n**Gesuchte Einheit: Sekunden (s), eine Nachkommastelle**",
+        "type": "NUMERIC_ESTIMATE",
+        "timer": null,
+        "difficulty": "HARD",
+        "order": 2,
+        "answers": [],
+        "numericToleranceMode": "ABSOLUTE_INTERVAL",
+        "numericReferenceValue": 3.0,
+        "numericIntervalLeft": 2.95,
+        "numericIntervalRight": 3.05,
+        "numericInputType": "DECIMAL",
+        "numericDecimalPlaces": 1,
+        "numericMin": -20,
+        "numericMax": 20,
+        "numericTwoRounds": false,
+        "confidenceEnabled": true,
+        "confidenceLabelLow": "Sehr unsicher",
+        "confidenceLabelHigh": "Sehr sicher"
+      },
+      {
+        "text": "### Quellenstatus und zulässige Aussage verbinden\n\nOrdne jeder Datenquelle die Aussage zu, die ihr Quellenstatus tatsächlich trägt.",
+        "type": "MATCHING",
+        "timer": null,
+        "difficulty": "HARD",
+        "order": 3,
+        "answers": [],
+        "matchingPairs": [
+          {
+            "leftId": "w10-m-live",
+            "left": "LIVE: freiwilliges Kursaggregat",
+            "rightId": "w10-r-live",
+            "right": "Beschreibt die Beteiligten dieser Erhebung; Selbstselektion begrenzt die Übertragung"
+          },
+          {
+            "leftId": "w10-m-repo",
+            "left": "REPO: versionierter lokaler Messlauf",
+            "rightId": "w10-r-repo",
+            "right": "Belegt den dokumentierten Messstand; ein Produktionsversprechen folgt daraus nicht"
+          },
+          {
+            "leftId": "w10-m-lehr",
+            "left": "LEHRDATEN: synthetische Paardaten",
+            "rightId": "w10-r-lehr",
+            "right": "Erlaubt eine reproduzierbare Übungsrechnung; reale Lernwirkung wird nicht belegt"
+          },
+          {
+            "leftId": "w10-m-matrix",
+            "left": "LEHRDATEN: synthetische Testmatrix",
+            "rightId": "w10-r-matrix",
+            "right": "Erlaubt reproduzierbare Metrikberechnungen; reale Modellgüte wird nicht belegt"
+          }
+        ],
+        "matchingShuffleRight": true,
+        "confidenceEnabled": true,
+        "confidenceLabelLow": "Sehr unsicher",
+        "confidenceLabelHigh": "Sehr sicher"
+      },
+      {
+        "text": "### Einen Statistikbefund logisch aufbauen\n\nBringe die sechs Bestandteile in eine nachvollziehbare Reihenfolge für einen klausurnahen Kurzbefund.",
+        "type": "ORDERING",
+        "timer": null,
+        "difficulty": "HARD",
+        "order": 4,
+        "answers": [],
+        "orderingItems": [
+          {
+            "id": "w10-o-1",
+            "text": "Prüfbare Untersuchungsfrage und Zielgröße formulieren"
+          },
+          {
+            "id": "w10-o-2",
+            "text": "Datenquelle, Beobachtungseinheit und Auswertungsnenner nennen"
+          },
+          {
+            "id": "w10-o-3",
+            "text": "Datenqualität, Skalenniveau und Untersuchungsdesign prüfen"
+          },
+          {
+            "id": "w10-o-4",
+            "text": "Passendes Verfahren und wesentliche Voraussetzungen begründen"
+          },
+          {
+            "id": "w10-o-5",
+            "text": "Ergebnis mit Einheit, Effektgröße und Unsicherheit berichten"
+          },
+          {
+            "id": "w10-o-6",
+            "text": "Sachliche Bedeutung, Übertragbarkeit und Kausalitätsgrenze formulieren"
+          }
+        ],
+        "confidenceEnabled": true,
+        "confidenceLabelLow": "Sehr unsicher",
+        "confidenceLabelHigh": "Sehr sicher"
+      },
+      {
+        "text": "### Aussageebenen sauber trennen\n\nOrdne jede Formulierung ihrer Aussageebene zu.",
+        "type": "CATEGORIZATION",
+        "timer": null,
+        "difficulty": "HARD",
+        "order": 5,
+        "answers": [],
+        "categories": [
+          {
+            "id": "w10-cat-result",
+            "name": "Ergebnis der vorliegenden Daten"
+          },
+          {
+            "id": "w10-cat-limit",
+            "name": "Methodische Einordnung oder Grenze"
+          },
+          {
+            "id": "w10-cat-invalid",
+            "name": "Nicht durch die Evidenz gedeckte Aussage"
+          }
+        ],
+        "categorizationItems": [
+          {
+            "id": "w10-ci-1",
+            "text": "Bei 30 vollständigen Paaren beträgt die mittlere Fehlerdifferenz 4,0 s.",
+            "correctCategoryId": "w10-cat-result"
+          },
+          {
+            "id": "w10-ci-2",
+            "text": "Im dokumentierten lokalen Lauf lag das 95-%-Quantil bei 121 ms.",
+            "correctCategoryId": "w10-cat-result"
+          },
+          {
+            "id": "w10-ci-3",
+            "text": "Freiwillige Teilnahme kann die Übertragung auf die gesamte Kohorte begrenzen.",
+            "correctCategoryId": "w10-cat-limit"
+          },
+          {
+            "id": "w10-ci-4",
+            "text": "Ein klassischer gepaarter Complete-Case-Vergleich ohne Imputation nutzt nur Einheiten mit zwei gültigen Messungen.",
+            "correctCategoryId": "w10-cat-limit"
+          },
+          {
+            "id": "w10-ci-5",
+            "text": "Ein p-Wert von 0,03 bedeutet eine 3-%-Wahrscheinlichkeit für die Nullhypothese.",
+            "correctCategoryId": "w10-cat-invalid"
+          },
+          {
+            "id": "w10-ci-6",
+            "text": "Der lokale p95-Wert von 121 ms belegt, dass der Produktions-p95 höchstens 121 ms beträgt.",
+            "correctCategoryId": "w10-cat-invalid"
+          }
+        ],
+        "categorizationShuffleItems": true,
+        "confidenceEnabled": true,
+        "confidenceLabelLow": "Sehr unsicher",
+        "confidenceLabelHigh": "Sehr sicher"
+      },
+      {
+        "text": "### Eine zentrale Aussagegrenze benennen\n\nEine Regressionsgerade wurde mit Nutzungszahlen von 100 bis 500 geschätzt. Für eine Managementfolie wird sie ohne zusätzliche Daten bei 900 Nutzungen eingesetzt.\n\nWie ist der Einsatz bei 900 Nutzungen methodisch einzuordnen?",
+        "type": "SHORT_TEXT",
+        "timer": null,
+        "difficulty": "MEDIUM",
+        "order": 6,
+        "answers": [
+          {
+            "text": "Extrapolation",
+            "isCorrect": true
+          },
+          {
+            "text": "extrapolierte Vorhersage",
+            "isCorrect": true
+          },
+          {
+            "text": "Extrapolationsprognose",
+            "isCorrect": true
+          },
+          {
+            "text": "Vorhersage außerhalb des Beobachtungsbereichs",
+            "isCorrect": true
+          },
+          {
+            "text": "Extrapolierung",
+            "isCorrect": true
+          }
+        ],
+        "shortTextEvaluationKind": "text",
+        "shortTextMaxLength": 64,
+        "shortTextCaseSensitive": false,
+        "shortTextEvaluationMode": "exact",
+        "shortTextToleranceLevel": "none",
+        "shortTextAllowPartialCredit": false,
+        "shortTextTrimWhitespace": true,
+        "shortTextNormalizeWhitespace": true,
+        "confidenceEnabled": true,
+        "confidenceLabelLow": "Sehr unsicher",
+        "confidenceLabelHigh": "Sehr sicher"
+      },
+      {
+        "text": "### Klausurnah kommunizieren\n\nIn 30 synthetischen vollständigen Paaren ist der absolute Schätzfehler in Runde 2 im Mittel 4,0 s kleiner; ein 95-%-Konfidenzintervall für die mittlere Differenz lautet [2,7 s; 5,3 s].\n\nFormuliere einen Befund in höchstens zwei Sätzen, der Quelle, Ergebnis und eine Aussagegrenze enthält.",
+        "type": "FREETEXT",
+        "timer": null,
+        "difficulty": "MEDIUM",
+        "order": 7,
+        "answers": []
+      },
+      {
+        "text": "### Korrektur eines Kurzbefunds priorisieren\n\nFür einen Lehrfall liegen 30 synthetische vollständige Paare ohne Kontrollgruppe vor; die Fehlerdifferenz wird in Sekunden gemessen. Der zu prüfende Entwurf lautet: »Die Fehlerverbesserung beträgt im Mittel 4,0 (95-%-Intervall: 2,7 bis 5,3) und belegt eine kausale Verbesserung bei allen Studierenden.« Welche Überarbeitung sollte das Team im Peer Review zuerst vertiefen? Alle vier Überarbeitungen sind erforderlich; die Abstimmung priorisiert die Begründungsdiskussion und hat keine Musterlösung.",
+        "type": "SURVEY",
+        "timer": null,
+        "difficulty": "MEDIUM",
+        "order": 8,
+        "answers": [
+          {
+            "text": "Die synthetische Datenquelle und die Zahl vollständiger Paare sichtbar machen",
+            "isCorrect": false
+          },
+          {
+            "text": "Punktschätzung und Intervall mit ihrer Einheit gemeinsam berichten",
+            "isCorrect": false
+          },
+          {
+            "text": "Die Kausalaussage an das Untersuchungsdesign ohne Kontrollgruppe anpassen",
+            "isCorrect": false
+          },
+          {
+            "text": "Die Übertragung von Lehrdaten auf die gesamte Studierendenschaft begrenzen",
+            "isCorrect": false
+          }
+        ]
+      },
+      {
+        "text": "### Eigene Befundkompetenz einschätzen\n\nWie sicher kannst du in einer Klausur Datenquelle, Verfahren, Ergebnis, Unsicherheit und Aussagegrenze zu einem konsistenten Kurzbefund verbinden?",
+        "type": "RATING",
+        "timer": null,
+        "difficulty": "MEDIUM",
+        "order": 9,
+        "answers": [],
+        "ratingMin": 1,
+        "ratingMax": 5,
+        "ratingLabelMin": "Noch nicht ohne Strukturhilfe",
+        "ratingLabelMax": "Sicher, präzise und quellenkritisch"
+      }
+    ]
+  }
+}

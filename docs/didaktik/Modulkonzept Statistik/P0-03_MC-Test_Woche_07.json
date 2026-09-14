@@ -1,0 +1,625 @@
+{
+  "meta": {
+    "title": "Angewandte Statistik – MC-Test Woche 07",
+    "target_audience": "Bachelorstudierende aus BWL, Management, Wirtschaftsinformatik und Informatik ohne vorausgesetzte Statistikkenntnisse",
+    "question_count": 30,
+    "difficulty_profile": {
+      "leicht": 0,
+      "mittel": 12,
+      "schwer": 18
+    },
+    "time_per_weight_minutes": {
+      "1": 0.5,
+      "2": 0.75,
+      "3": 1.0
+    },
+    "additional_buffer_minutes": 5,
+    "test_duration_minutes": 32,
+    "language": "de",
+    "updated": "2026-09-13"
+  },
+  "questions": [
+    {
+      "question": "1. Ein Team prüft mit d = Bearbeitungszeit vorher minus nachher, ob eine Schulung die mittlere Bearbeitungszeit verändert. Welche Nullhypothese übernimmt die korrekte Rolle im Test?",
+      "options": [
+        "H₀: μ_d = 0 dient als vorab festgelegter Referenzfall für die Populationsdifferenz.",
+        "H₀: d̄ = 0 legt das nach der Erhebung beobachtete Stichprobenergebnis als Referenzfall fest.",
+        "H₀: μ_d > 0 legt die erhoffte mittlere Verbesserung als neutrale Ausgangsannahme fest.",
+        "H₀: s_d = 0 legt fehlende Streuung der individuellen Veränderungen als Referenzfall fest."
+      ],
+      "answer": 0,
+      "explanation": "H₀ bezieht sich auf den unbekannten Populationsparameter μ_d und setzt den Referenzwert vor der Analyse fest. Eine Hypothese über den erst aus den Daten berechneten Wert d̄ verwechselt Parameter und Stichprobenstatistik; eine erhoffte Richtung gehört zur Alternativhypothese.",
+      "weight": 2,
+      "topic": "Testlogik",
+      "concept": "Rolle der Nullhypothese",
+      "cognitive_level": "Verständnis",
+      "mini_glossary": {
+        "Nullhypothese": "Vorab festgelegte Ausgangsannahme über einen Populationsparameter.",
+        "Populationsparameter": "Feste, meist unbekannte Kenngröße der betrachteten Grundgesamtheit.",
+        "Stichprobenstatistik": "Aus den beobachteten Daten berechnete Kenngröße wie d̄."
+      }
+    },
+    {
+      "question": "2. Für vollständige Paare gilt d = absoluter Fehler vor der Diskussion minus absoluter Fehler danach. Eine Veränderung in beide Richtungen wäre relevant. Welche Hypothesen passen zum geplanten Test?",
+      "options": [
+        "H₀: d̄ = 0; H₁: d̄ ≠ 0",
+        "H₀: μ_d = 0; H₁: μ_d ≠ 0",
+        "H₀: μ_d ≤ 0; H₁: μ_d > 0",
+        "H₀: s_d = 0; H₁: s_d ≠ 0"
+      ],
+      "answer": 1,
+      "explanation": "Ein zweiseitiger Test formuliert H₀ und H₁ für den Populationsmittelwert μ_d und lässt unter H₁ beide Richtungen zu. Hypothesen über den beobachteten Stichprobenmittelwert d̄ verwechseln die Stichprobenstatistik mit dem zu prüfenden Parameter.",
+      "weight": 2,
+      "topic": "Testlogik",
+      "concept": "Zweiseitige Hypothesen",
+      "cognitive_level": "Anwendung",
+      "mini_glossary": {
+        "Alternativhypothese": "Vorab formulierte Gegenannahme zur Nullhypothese.",
+        "zweiseitiger Test": "Test, dessen Alternativhypothese Abweichungen in beide Richtungen zulässt.",
+        "Differenz": "Vorab festgelegte Subtraktion der beiden Werte eines Paares."
+      }
+    },
+    {
+      "question": "3. Bei d = Fehler vor der Diskussion minus Fehler danach bedeuten positive Werte eine Verbesserung. Welche Hypothesen prüfen vorab gerichtet eine mittlere Verbesserung?",
+      "options": [
+        "H₀: μ_d ≥ 0; H₁: μ_d < 0",
+        "H₀: μ_d = 0; H₁: μ_d ≠ 0",
+        "H₀: μ_d ≤ 0; H₁: μ_d > 0",
+        "H₀: d̄ ≤ 0; H₁: d̄ > 0"
+      ],
+      "answer": 2,
+      "explanation": "Wegen der festgelegten Subtraktionsrichtung entspricht eine Verbesserung μ_d > 0; H₀ umfasst den Randwert null und fehlende Verbesserung. Eine gerichtete Hypothese über d̄ übernimmt zwar das passende Vorzeichen, prüft aber fälschlich die beobachtete Stichprobenstatistik.",
+      "weight": 2,
+      "topic": "Testlogik",
+      "concept": "Gerichtete Hypothese und Vorzeichen",
+      "cognitive_level": "Anwendung",
+      "mini_glossary": {
+        "gerichteter Test": "Test mit einer vorab festgelegten Richtung der Alternativhypothese.",
+        "Differenzrichtung": "Festgelegte Reihenfolge der Subtraktion innerhalb eines Paares.",
+        "Populationsmittelwert": "Unbekannter Mittelwert einer Größe in der Grundgesamtheit."
+      }
+    },
+    {
+      "question": "4. Ein Forschungsteam legt H₁ zunächst zweiseitig fest. Nach einem positiven d̄ wechselt es ohne Kennzeichnung zu einem einseitigen Test und berichtet nur diesen p-Wert. Welche Beurteilung trifft das Problem am genauesten?",
+      "options": [
+        "Der Wechsel verbessert die Power ohne Auswirkung auf die vorab festgelegte Fehlerkontrolle.",
+        "Der Wechsel macht die Paarzuordnung überflüssig, weil nur noch positive Differenzen betrachtet werden.",
+        "Der Wechsel ist zulässig, sobald der zweiseitige p-Wert oberhalb des Signifikanzniveaus liegt.",
+        "Der Wechsel nutzt die beobachtete Richtung doppelt und lässt die nominelle Fehlergrenze nicht unverändert gelten."
+      ],
+      "answer": 3,
+      "explanation": "Die Richtung wird anhand derselben Daten gewählt, mit denen anschließend getestet wird; dadurch gilt die geplante Fehlerkontrolle nicht mehr unverändert. Ein Power-Vorteil des gerichteten Tests setzt voraus, dass die Richtung tatsächlich vor Kenntnis der Daten festgelegt wurde.",
+      "weight": 3,
+      "topic": "Testlogik",
+      "concept": "Vorabfestlegung",
+      "cognitive_level": "Analyse",
+      "mini_glossary": {
+        "Vorabfestlegung": "Festlegung von Hypothesen und Entscheidungsregel vor Kenntnis des Ergebnisses.",
+        "Fehlerkontrolle": "Begrenzung statistischer Fehlentscheidungen durch einen festgelegten Analyseplan.",
+        "explorative Analyse": "Offene Suche nach Mustern, die neue Hypothesen anregen kann."
+      }
+    },
+    {
+      "question": "5. Ein Team testet zehn Ergebnisgrößen jeweils mit α = 0,05, wählt danach den kleinsten p-Wert von 0,04 aus und bezeichnet ihn als vorab bestätigenden Befund. Was ist die zentrale methodische Folge?",
+      "options": [
+        "Die zehn Tests verkleinern gemeinsam die Wahrscheinlichkeit mindestens eines Zufallsbefunds unter die Einzeltestgrenze.",
+        "Die unberücksichtigte Mehrfachprüfung erhöht die Wahrscheinlichkeit mindestens eines scheinbar signifikanten Zufallsbefunds.",
+        "Die Auswahl des kleinsten p-Werts wandelt die zehn Ergebnisgrößen nachträglich in unabhängige Replikationen um.",
+        "Die Auswahl des kleinsten p-Werts ordnet seine Ergebnisgröße als praktisch stärksten beobachteten Effekt ein."
+      ],
+      "answer": 1,
+      "explanation": "Mehrere ungeplante Tests vergrößern die Chance, unter wahren Nullhypothesen mindestens einen kleinen p-Wert zu finden. Der kleinste p-Wert kennzeichnet nicht automatisch den praktisch stärksten Effekt; ohne Korrektur oder klare explorative Kennzeichnung ist der Befund nicht bestätigend.",
+      "weight": 3,
+      "topic": "Testlogik",
+      "concept": "Selektive Ergebniswahl",
+      "cognitive_level": "Analyse",
+      "mini_glossary": {
+        "Mehrfachprüfung": "Gleichzeitiges oder selektives Prüfen mehrerer Hypothesen.",
+        "selektive Ergebniswahl": "Berichten nur günstiger Resultate aus mehreren geprüften Varianten.",
+        "bestätigende Analyse": "Prüfung einer vorab formulierten Frage mit vorab festgelegter Regel."
+      }
+    },
+    {
+      "question": "6. Ein gültiger Test mit α = 0,05 wird in vielen unabhängigen Studien wiederholt, in denen H₀ jeweils wahr ist. Welche Langfristaussage entspricht der Bedeutung von α?",
+      "options": [
+        "Höchstens etwa 5 % der Testdurchführungen verwerfen H₀ irrtümlich, sofern Plan und Annahmen gelten.",
+        "Für die konkrete Studie beträgt die Wahrscheinlichkeit einer wahren H₀ nach Beobachtung der Daten 5 %.",
+        "In einer Stichprobe dürfen bis zu 5 % der Messwerte vom wahren Wert abweichen.",
+        "Höchstens etwa 5 % der wahren Effekte bleiben unentdeckt, sofern die Stichprobe ausreichend groß ist."
+      ],
+      "answer": 0,
+      "explanation": "α kontrolliert die langfristige Rate falscher Verwerfungen unter wahrer H₀. Das Signifikanzniveau ist keine nach Beobachtung der Daten geltende Wahrscheinlichkeit dafür, dass H₀ in der konkreten Studie wahr ist.",
+      "weight": 2,
+      "topic": "p-Wert und Signifikanz",
+      "concept": "Signifikanzniveau",
+      "cognitive_level": "Verständnis",
+      "mini_glossary": {
+        "Signifikanzniveau": "Vorab festgelegte Obergrenze für das Risiko eines Fehlers erster Art.",
+        "Fehler erster Art": "H₀ wird verworfen, obwohl sie wahr ist.",
+        "Langfristrate": "Anteil eines Ereignisses über viele gedachte Wiederholungen."
+      }
+    },
+    {
+      "question": "7. Zwei gepaarte Studien beobachten beide d̄ = 4 Minuten. Studie A hat SE(d̄) = 1 Minute, Studie B SE(d̄) = 2 Minuten. Welche Aussage folgt für den Test gegen μ_d = 0?",
+      "options": [
+        "Studie A und B haben dieselbe Teststatistik, weil ihre Punktschätzungen übereinstimmen.",
+        "Studie B hat die größere Teststatistik, weil ein größerer Standardfehler mehr Unsicherheit abbildet.",
+        "Studie A hat die größere Teststatistik, weil dieselbe Abweichung relativ zu weniger Unsicherheit bewertet wird.",
+        "Studie B hat die kleinere Effektgröße, weil der Standardfehler unmittelbar die praktische Wirkung festlegt."
+      ],
+      "answer": 2,
+      "explanation": "Es gilt t = d̄/SE: Studie A erreicht t = 4, Studie B t = 2. Die Behauptung gleicher Teststatistiken übersieht die Standardisierung; gleiche Punktschätzungen können bei unterschiedlicher Präzision zu unterschiedlicher Evidenz führen.",
+      "weight": 2,
+      "topic": "p-Wert und Signifikanz",
+      "concept": "Teststatistik",
+      "cognitive_level": "Anwendung",
+      "mini_glossary": {
+        "Teststatistik": "Standardisierte Abweichung der Daten vom Nullwert.",
+        "Standardfehler": "Geschätzte Streuung eines Stichprobenschätzers über gedachte Wiederholungen.",
+        "Punktschätzung": "Ein einzelner Stichprobenwert als Schätzung eines Parameters."
+      }
+    },
+    {
+      "question": "8. Ein zweiseitiger Test liefert p = 0,03. Welche Interpretation bleibt unter den festgelegten Modellannahmen korrekt?",
+      "options": [
+        "Unter den beobachteten Daten beträgt die Wahrscheinlichkeit einer wahren H₀ genau 3 %.",
+        "Unter H₀ wären das beobachtete oder mindestens so extreme Ergebnisse mit 3 % Wahrscheinlichkeit zu erhalten.",
+        "Unter H₁ beträgt die Wahrscheinlichkeit eines mindestens so großen praktischen Effekts genau 97 %.",
+        "Unter wiederholter Messung wären genau 3 % der einzelnen Beobachtungen als fehlerhaft einzustufen."
+      ],
+      "answer": 1,
+      "explanation": "Der p-Wert ist eine Wahrscheinlichkeit für Daten oder extremere Ergebnisse unter H₀, nicht für die Wahrheit einer Hypothese. Die Deutung als 3-%-Wahrscheinlichkeit einer wahren H₀ vertauscht P(Daten | H₀) mit P(H₀ | Daten).",
+      "weight": 2,
+      "topic": "p-Wert und Signifikanz",
+      "concept": "p-Wert-Interpretation",
+      "cognitive_level": "Verständnis",
+      "mini_glossary": {
+        "p-Wert": "Wahrscheinlichkeit unter H₀ für das beobachtete oder ein mindestens so extremes Ergebnis.",
+        "bedingte Wahrscheinlichkeit": "Wahrscheinlichkeit eines Ereignisses unter einer festgelegten Bedingung.",
+        "Nullhypothese": "Vorab festgelegter statistischer Referenzfall."
+      }
+    },
+    {
+      "question": "9. Vorab wurden α = 0,05 und ein zweiseitiger Test festgelegt. Die Ausgabe zeigt p = 0,032 und ein Intervall, das null ausschließt. Welche formale Entscheidung und Grenze passen zusammen?",
+      "options": [
+        "H₀ wird beibehalten; das Intervall quantifiziert zugleich die praktische Größe des Effekts.",
+        "H₀ wird nicht verworfen; ein positiver p-Wert kann keine statistische Signifikanz begründen.",
+        "H₁ wird gestützt; der p-Wert quantifiziert zusätzlich die Wahrscheinlichkeit der Kausalwirkung.",
+        "H₀ wird verworfen; Effektgröße, praktische Relevanz und Kausalität sind getrennt zu beurteilen."
+      ],
+      "answer": 3,
+      "explanation": "Da p < α gilt, wird H₀ formal verworfen; daraus folgen weder praktische Bedeutung noch Kausalität. Eine Verwerfung ist weder ein Beweis der Alternativhypothese noch eine Wahrscheinlichkeit für eine Kausalwirkung.",
+      "weight": 3,
+      "topic": "p-Wert und Signifikanz",
+      "concept": "Testentscheidung",
+      "cognitive_level": "Analyse",
+      "mini_glossary": {
+        "Testentscheidung": "Regelgeleitetes Verwerfen oder Nichtverwerfen von H₀.",
+        "statistische Signifikanz": "Formale Entscheidung bei p ≤ α im festgelegten Test.",
+        "praktische Relevanz": "Sachliche Bedeutung eines Effekts im Anwendungskontext."
+      }
+    },
+    {
+      "question": "10. Bei α = 0,05 ergibt ein zweiseitiger Test p = 0,08; das 95-%-Intervall für die mittlere Verbesserung lautet [−0,3; 4,9] Minuten. Ab 3 Minuten wäre die Wirkung praktisch relevant. Welche Schlussfolgerung ist am vollständigsten?",
+      "options": [
+        "Die Daten sprechen für Wirkungslosigkeit, weil p oberhalb von α liegt und das Intervall null enthält.",
+        "Die Daten belegen praktische Relevanz, weil ein Teil des Intervalls oberhalb von 3 Minuten liegt.",
+        "H₀ wird nicht verworfen; sowohl null als auch praktisch relevante positive Effekte bleiben mit den Daten vereinbar.",
+        "H₀ wird verworfen; die obere Intervallgrenze überschreitet die praktische Schwelle von 3 Minuten."
+      ],
+      "answer": 2,
+      "explanation": "p > α führt zum Nichtverwerfen; das Intervall enthält zugleich null und Werte oberhalb der Relevanzschwelle. Praktisch relevante Werte sind damit vereinbar, aber nicht belegt; dieselben Daten lassen auch den Nullwert zu.",
+      "weight": 3,
+      "topic": "p-Wert und Signifikanz",
+      "concept": "Nicht signifikantes Ergebnis",
+      "cognitive_level": "Analyse",
+      "mini_glossary": {
+        "Nichtverwerfen": "Testentscheidung bei p > α; sie beweist H₀ nicht.",
+        "Konfidenzintervall": "Bereich von Parameterwerten, die mit Daten und Modell vereinbar sind.",
+        "Relevanzschwelle": "Vorab begründete Mindestgröße eines praktisch bedeutsamen Effekts."
+      }
+    },
+    {
+      "question": "11. Derselbe vorab geplante Test liefert p = 0,03. Ein Bericht stellt nachträglich nur die Entscheidung bei α = 0,05 heraus, obwohl im Analyseplan α = 0,01 steht. Welche Bewertung ist korrekt?",
+      "options": [
+        "Nach dem Plan wird H₀ nicht verworfen; das nachträgliche Berichten mit α = 0,05 unterläuft die festgelegte Fehlerkontrolle.",
+        "Nach dem Plan wird H₀ verworfen; ein kleineres α bewertet den beobachteten p-Wert als strengere Evidenz.",
+        "Nach beiden Grenzen wird H₀ verworfen; maßgeblich ist das verbreitete 5-%-Niveau statt der strengeren Planung.",
+        "Nach keiner Grenze ist eine Entscheidung möglich; α verändert den bereits berechneten p-Wert."
+      ],
+      "answer": 0,
+      "explanation": "0,03 liegt über dem geplanten α = 0,01, also wird H₀ nach dem Plan nicht verworfen. Die naheliegende Versuchung ist α = 0,05 nachträglich zu verwenden; gerade diese Anpassung macht aus dem Resultat aber keinen planmäßig signifikanten Befund.",
+      "weight": 3,
+      "topic": "p-Wert und Signifikanz",
+      "concept": "Abhängigkeit der Entscheidung von Alpha",
+      "cognitive_level": "Analyse",
+      "mini_glossary": {
+        "Signifikanzniveau": "Vorab festgelegte Grenze α für einen Fehler erster Art.",
+        "Analyseplan": "Vor der Datenauswertung festgelegte Regeln für Hypothesen und Verfahren.",
+        "Fehlerkontrolle": "Begrenzung statistischer Fehlentscheidungen durch diese Regeln."
+      }
+    },
+    {
+      "question": "12. Ein Qualitätsprozess erfüllt den Sollwert tatsächlich. Ein Test meldet dennoch eine Abweichung, H₀ wird verworfen und eine unnötige Nachprüfung ausgelöst. Welche Einordnung ist korrekt?",
+      "options": [
+        "Es liegt ein Fehler zweiter Art vor, weil eine unnötige Maßnahme ergriffen wird.",
+        "Es liegt ein Fehler erster Art vor, weil eine wahre Nullhypothese verworfen wird.",
+        "Es liegt eine richtige Entscheidung vor, weil der signifikante Befund eine Abweichung statistisch ausreichend stützt.",
+        "Es liegt nur ein Messfehler vor, weil Testentscheidungen keine statistischen Fehlerarten besitzen."
+      ],
+      "answer": 1,
+      "explanation": "Das Verwerfen einer wahren H₀ ist ein Fehler erster Art. Die unerwünschte Folge bestimmt nicht die Fehlerart; maßgeblich sind die Wahrheit von H₀ und die getroffene Testentscheidung.",
+      "weight": 2,
+      "topic": "Fehlerarten und Relevanz",
+      "concept": "Fehler erster Art",
+      "cognitive_level": "Anwendung",
+      "mini_glossary": {
+        "Fehler erster Art": "H₀ wird verworfen, obwohl sie wahr ist.",
+        "Fehler zweiter Art": "H₀ wird nicht verworfen, obwohl sie falsch ist.",
+        "Fehlkosten": "Sachliche Folgen einer statistischen Fehlentscheidung."
+      }
+    },
+    {
+      "question": "13. Ein Betrugserkennungstest prüft H₀: »keine erhöhte Betrugsrate«. Die Rate ist tatsächlich erhöht, der Test liefert aber p = 0,18 und H₀ wird nicht verworfen. Welche Einordnung passt?",
+      "options": [
+        "Richtige Entscheidung, weil ein p-Wert über α für eine stärkere Vereinbarkeit mit der Nullhypothese spricht",
+        "Fehler erster Art, weil eine auffällige Stichprobe nicht zur Verwerfung führt",
+        "Keine statistische Entscheidung, weil nur signifikante Ergebnisse klassifiziert werden",
+        "Fehler zweiter Art, weil eine falsche Nullhypothese nicht verworfen wird"
+      ],
+      "answer": 3,
+      "explanation": "Eine tatsächlich falsche H₀ bleibt unverworfen; das ist ein Fehler zweiter Art. Ein p-Wert über α bestätigt H₀ nicht und kann bei begrenzter Power gerade mit einer Fehlentscheidung einhergehen.",
+      "weight": 2,
+      "topic": "Fehlerarten und Relevanz",
+      "concept": "Fehler zweiter Art",
+      "cognitive_level": "Anwendung",
+      "mini_glossary": {
+        "Fehler zweiter Art": "H₀ wird nicht verworfen, obwohl sie falsch ist.",
+        "Power": "Wahrscheinlichkeit, einen tatsächlich vorhandenen Effekt zu entdecken.",
+        "Nichtverwerfen": "Formale Entscheidung, die H₀ nicht beweist."
+      }
+    },
+    {
+      "question": "14. Bei unveränderter Effektgröße, Streuung und Testart wird die Zahl unabhängiger vollständiger Paare von 25 auf 100 erhöht. Welche Folge ist für Standardfehler und Power typischerweise zu erwarten?",
+      "options": [
+        "Der Standardfehler halbiert sich, die standardisierte Signalstärke verdoppelt sich und die Power steigt.",
+        "Der Standardfehler viertelt sich, die standardisierte Signalstärke vervierfacht sich und die Power steigt.",
+        "Der Standardfehler verdoppelt sich, die standardisierte Signalstärke halbiert sich und die Power sinkt.",
+        "Der Standardfehler bleibt gleich, die standardisierte Signalstärke bleibt gleich und die Power ändert sich nicht."
+      ],
+      "answer": 0,
+      "explanation": "Da SE proportional zu 1/√n ist, halbiert die Vervierfachung von n den Standardfehler; bei gleichem Effekt verdoppelt sich die erwartete t-Signalstärke. Eine behauptete Viertelung des Standardfehlers verwechselt die Abhängigkeit von √n mit einer direkten Abhängigkeit von n.",
+      "weight": 3,
+      "topic": "Fehlerarten und Relevanz",
+      "concept": "Power und Stichprobengröße",
+      "cognitive_level": "Analyse",
+      "mini_glossary": {
+        "Power": "Wahrscheinlichkeit, einen tatsächlich vorhandenen Effekt zu entdecken.",
+        "Standardfehler": "Geschätzte Streuung eines Stichprobenschätzers.",
+        "Effektgröße": "Standardisierte oder sachlich skalierte Größe eines Unterschieds."
+      }
+    },
+    {
+      "question": "15. Bei 8.000 Vorgängen beträgt die mittlere Zeitersparnis 0,20 Sekunden, das 95-%-Intervall [0,12; 0,28] Sekunden und p < 0,001. Vorab gelten erst 2 Sekunden als wirtschaftlich relevant. Welche Entscheidung ist begründet?",
+      "options": [
+        "Die Änderung ist wirtschaftlich relevant, weil der sehr kleine p-Wert den Abstand zur Relevanzschwelle ausgleicht.",
+        "Die Änderung ist statistisch unklar, weil ein enges positives Intervall noch keine Signifikanzentscheidung erlaubt.",
+        "Die Änderung ist statistisch nachweisbar, liegt aber samt Intervall deutlich unter der wirtschaftlichen Schwelle.",
+        "Die Änderung beträgt bei typischen Vorgängen etwa 0,20 Sekunden, weil das Intervall den Mittelwert präzise eingrenzt."
+      ],
+      "answer": 2,
+      "explanation": "Intervall und p-Wert stützen einen positiven mittleren Effekt, aber selbst die obere Intervallgrenze bleibt weit unter 2 Sekunden. Ein kleiner p-Wert ersetzt keine sachlich begründete Relevanzschwelle.",
+      "weight": 3,
+      "topic": "Fehlerarten und Relevanz",
+      "concept": "Statistische und praktische Relevanz",
+      "cognitive_level": "Analyse",
+      "mini_glossary": {
+        "statistische Signifikanz": "Formale Unvereinbarkeit des Nullwerts mit der Testregel.",
+        "praktische Relevanz": "Sachliche oder wirtschaftliche Bedeutung eines Effekts.",
+        "Relevanzschwelle": "Vorab begründete Mindestgröße eines bedeutsamen Effekts."
+      }
+    },
+    {
+      "question": "16. Für 30 synthetische Paare gelten d̄ = 7,533 s, p < 0,001 und ein 95-%-Intervall [5,14; 9,93] s. Vorab wurden mindestens 10 s als praktisch relevant festgelegt. Welche Beurteilung nutzt alle Angaben korrekt?",
+      "options": [
+        "Der Effekt erreicht praktisch 10 s, weil Intervall und p-Wert den Nullwert ausschließen.",
+        "Ein Unterschied zu null ist statistisch gestützt, aber selbst die obere Intervallgrenze erreicht die Relevanzschwelle nicht.",
+        "Ein Unterschied zu null ist statistisch ungestützt, weil die Punktschätzung unter der Relevanzschwelle liegt.",
+        "Der Schwellenwert muss nachträglich auf 7,533 s gesenkt werden, weil dies die beobachtete Punktschätzung ist."
+      ],
+      "answer": 1,
+      "explanation": "Das Intervall schließt null aus, liegt aber vollständig unter 10 Sekunden; statistische Evidenz und praktische Zielerreichung fallen auseinander. Das Ausschließen des Nullwerts bedeutet nicht, dass eine andere, sachliche Schwelle erreicht wird.",
+      "weight": 3,
+      "topic": "Fehlerarten und Relevanz",
+      "concept": "Relevanzschwelle",
+      "cognitive_level": "Analyse",
+      "mini_glossary": {
+        "Punktschätzung": "Ein einzelner Stichprobenwert als Schätzung eines Parameters.",
+        "Konfidenzintervall": "Mit Daten und Modell vereinbarer Bereich für einen Parameter.",
+        "LEHRDATEN": "Für Lernzwecke konstruierte Daten, keine Produktivmessung."
+      }
+    },
+    {
+      "question": "17. Eine Filialkette misst bei denselben 24 Filialen die Servicezeit im März und nach einer Prozessänderung im April. Welche Datenstruktur nutzt ein gepaarter Vergleich?",
+      "options": [
+        "Je Filiale wird März minus April gebildet; analysiert werden die 24 zugeordneten Differenzen.",
+        "Die März- und Aprilwerte werden nach Monat als zwei unabhängige Gruppen analysiert.",
+        "Nur die beiden Monatsmittelwerte werden verglichen; einzelne Filialzuordnungen werden nicht benötigt.",
+        "Je Monat wird nur der größte Wert genutzt; analysiert werden die zwei monatlichen Maxima."
+      ],
+      "answer": 0,
+      "explanation": "Dieselben Filialen bilden natürliche Paare; die Analyse basiert auf den innerhalb jeder Filiale gebildeten Differenzen. Eine Analyse als unabhängige Monatsgruppen verwirft die informative Zuordnung und nimmt fälschlich Unabhängigkeit an.",
+      "weight": 2,
+      "topic": "Gepaarter t-Test",
+      "concept": "Gepaarte Daten",
+      "cognitive_level": "Verständnis",
+      "mini_glossary": {
+        "gepaarte Daten": "Zwei sachlich zugeordnete Werte derselben Beobachtungseinheit.",
+        "Beobachtungseinheit": "Einheit, an der die Messungen vorgenommen werden.",
+        "Differenz": "Vorab festgelegte Subtraktion der beiden Werte eines Paares."
+      }
+    },
+    {
+      "question": "18. In Runde 1 liegen 34 Werte, in Runde 2 liegen 31 Werte vor; nur 29 Personen lassen sich vollständig und eindeutig zuordnen. Welche Größen verwendet der gepaarte t-Test?",
+      "options": [
+        "n = 65 Differenzen und df = 64",
+        "n = 29 Differenzen und df = 28",
+        "n = 31 Differenzen und df = 30",
+        "n = 34 Differenzen und df = 33"
+      ],
+      "answer": 1,
+      "explanation": "Nur die 29 vollständigen Zuordnungen liefern Differenzen; deshalb gilt n = 29 und df = n − 1 = 28. Der kleinere Randumfang von 31 zählt zwei nicht zuordenbare Zweitwerte fälschlich als Paare.",
+      "weight": 2,
+      "topic": "Gepaarter t-Test",
+      "concept": "Paarweiser Nenner",
+      "cognitive_level": "Anwendung",
+      "mini_glossary": {
+        "vollständiges Paar": "Beobachtungseinheit mit gültigem Vorher- und Nachher-Wert.",
+        "Freiheitsgrade": "Beim gepaarten t-Test n minus 1.",
+        "Missingness": "Fehlen eines für die Analyse benötigten Werts."
+      }
+    },
+    {
+      "question": "19. Für eine Person beträgt der absolute Fehler vor der Diskussion 32 s und danach 12 s. Die Analyse definiert d = Fehler vorher minus Fehler danach. Welche Rechnung und Deutung stimmen überein?",
+      "options": [
+        "d = −44 s; das negative Vorzeichen zeigt eine Verringerung des Fehlers.",
+        "d = −20 s; das negative Vorzeichen zeigt eine Verringerung des Fehlers.",
+        "d = 44 s; das positive Vorzeichen zeigt eine Verringerung des Fehlers.",
+        "d = 20 s; das positive Vorzeichen zeigt eine Verringerung des Fehlers."
+      ],
+      "answer": 3,
+      "explanation": "Nach der festgelegten Reihenfolge gilt 32 − 12 = 20 s; positiv bedeutet hier Verbesserung. Die Rechnung mit −20 s vertauscht die Subtraktionsrichtung und damit das Vorzeichen.",
+      "weight": 2,
+      "topic": "Gepaarter t-Test",
+      "concept": "Paarweise Fehlerdifferenz",
+      "cognitive_level": "Anwendung",
+      "mini_glossary": {
+        "absoluter Fehler": "Betrag der Abweichung einer Schätzung vom Referenzwert.",
+        "Differenzrichtung": "Festgelegte Reihenfolge der Subtraktion.",
+        "Vorzeichen": "Kennzeichnung der Richtung einer berechneten Differenz."
+      }
+    },
+    {
+      "question": "20. Für n = 25 modellhaft unabhängige vollständige Paare beträgt die Standardabweichung der Differenzen s_d = 7,500 s. Welcher Standardfehler von d̄ und welche Begründung sind korrekt?",
+      "options": [
+        "SE = 7,500/25 = 0,300 s, weil der Stichprobenumfang direkt im Nenner eingeht.",
+        "SE = 7,500/√25 = 1,500 s, weil der Mittelwert über 25 unabhängige Paardifferenzen gebildet wird.",
+        "SE = 7,500·√25 = 37,500 s, weil die Unsicherheiten der Paare vor der Mittelung zusammengeführt werden.",
+        "SE = 7,500 s, weil Standardabweichung und Standardfehler bei gepaarten Daten übereinstimmen."
+      ],
+      "answer": 1,
+      "explanation": "Für unabhängige Paardifferenzen gilt SE(d̄) = s_d/√n = 7,500/√25 = 1,500 s. Eine Division durch n statt durch √n unterschätzt den Standardfehler.",
+      "weight": 2,
+      "topic": "Gepaarter t-Test",
+      "concept": "Standardfehler der Differenzen",
+      "cognitive_level": "Anwendung",
+      "mini_glossary": {
+        "Standardfehler": "Geschätzte Streuung des Stichprobenmittelwerts.",
+        "Stichprobenstandardabweichung": "Geschätzte Streuung der einzelnen Paardifferenzen.",
+        "vollständiges Paar": "Einheit mit beiden benötigten Messwerten."
+      }
+    },
+    {
+      "question": "21. Für n = 30 gelten d̄ = 7,533 s und s_d = 6,410 s. Welche t-Statistik für H₀: μ_d = 0 ergibt sich aus ungerundeten Zwischenwerten?",
+      "options": [
+        "t = 7,533/(6,410/√30) ≈ 6,437",
+        "t = 7,533/6,410 ≈ 1,175",
+        "t = (7,533−6,410)/√30 ≈ 0,205",
+        "t = 7,533·6,410/30 ≈ 1,610"
+      ],
+      "answer": 0,
+      "explanation": "Der Nullabstand wird durch den Standardfehler geteilt: 7,533/(6,410/√30) ≈ 6,437. Eine Division durch s_d statt durch SE(d̄) verwechselt die Streuung der Einzeldifferenzen mit der Unsicherheit des Mittelwerts.",
+      "weight": 3,
+      "topic": "Gepaarter t-Test",
+      "concept": "Berechnung der t-Statistik",
+      "cognitive_level": "Anwendung",
+      "mini_glossary": {
+        "Teststatistik": "Standardisierte Abweichung der Schätzung vom Nullwert.",
+        "Standardfehler": "Geschätzte Unsicherheit eines Stichprobenschätzers.",
+        "Rundung": "Darstellung mit begrenzten Dezimalstellen nach Rechnung mit genaueren Werten."
+      }
+    },
+    {
+      "question": "22. Zwei Programme werten dieselben 30 vollständigen Vorher-Nachher-Paare aus. Programm A behandelt 60 Einzelmessungen als zwei unabhängige Gruppen und meldet df = 58. Programm B bildet 30 Paardifferenzen und meldet df = 29. Welche Beurteilung verbindet Analyseeinheit und Referenzverteilung korrekt?",
+      "options": [
+        "Programm A ist korrekt; 60 unabhängige Einzelmessungen bilden die Analyseeinheiten und liefern eine t-Verteilung mit df = 58.",
+        "Programm B ist korrekt; die Paarbildung bestimmt die Teststatistik, die 60 Einzelmessungen bestimmen jedoch df = 58.",
+        "Programm B ist korrekt; 30 Paardifferenzen bilden die Analyseeinheiten und liefern eine t-Verteilung mit df = 29.",
+        "Programm B ist korrekt; 30 Paardifferenzen liefern wegen der zwei Messzeitpunkte eine t-Verteilung mit df = 28."
+      ],
+      "answer": 2,
+      "explanation": "Der gepaarte Test ist ein Einstichproben-t-Test auf 30 Differenzen; daher sind die Paardifferenzen die Analyseeinheiten und es gilt df = 30 − 1 = 29. Das Zählen der 60 Einzelmessungen ignoriert ihre Abhängigkeit innerhalb der Paare.",
+      "weight": 3,
+      "topic": "Gepaarter t-Test",
+      "concept": "Freiheitsgrade",
+      "cognitive_level": "Analyse",
+      "mini_glossary": {
+        "Freiheitsgrade": "Zahl frei variierender Informationen nach Parameterschätzung.",
+        "t-Verteilung": "Referenzverteilung der t-Statistik mit von df abhängiger Form.",
+        "Paardifferenz": "Innerhalb einer Beobachtungseinheit gebildete Veränderung."
+      }
+    },
+    {
+      "question": "23. Ein gepaarter Test soll die mittlere Veränderung bei 12 Teams beurteilen; je Team beeinflussen sich mehrere Personen gegenseitig, und eine Differenz ist extrem. Welche Prüfung trifft die Voraussetzungen am vollständigsten?",
+      "options": [
+        "Separate Normalität beider Messzeitpunkte ist der zentrale Prüfpunkt; Teamabhängigkeit und Differenzausreißer sind nachgeordnet.",
+        "Gleiche Randmittelwerte gelten als zentraler Nachweis; Paarzuordnung und Abhängigkeit zwischen Personen werden dadurch kontrolliert.",
+        "Eine große Gesamtzahl von Personen reduziert verbleibende Cluster- und Ausreißereffekte ausreichend für den Standardtest.",
+        "Korrekte Paarung, Verteilung der Differenzen, Einfluss des Extremwerts und Abhängigkeit innerhalb der Teams sind zu prüfen."
+      ],
+      "answer": 3,
+      "explanation": "Der Test arbeitet mit Paardifferenzen und setzt geeignete Unabhängigkeit zwischen Analyseeinheiten voraus; Teamcluster und ein dominierender Differenzwert können die Inferenz beeinträchtigen. Separate Normalitätsprüfungen beider Messzeitpunkte ersetzen weder die Prüfung der Differenzen noch der Abhängigkeitsstruktur.",
+      "weight": 3,
+      "topic": "Gepaarter t-Test",
+      "concept": "Voraussetzungen des gepaarten t-Tests",
+      "cognitive_level": "Analyse",
+      "mini_glossary": {
+        "Unabhängigkeit": "Annahme, dass Analyseeinheiten einander nicht systematisch bestimmen.",
+        "Ausreißer": "Beobachtung mit potenziell starkem Einfluss auf die Analyse.",
+        "Cluster": "Gruppe intern abhängiger oder ähnlicher Beobachtungen."
+      }
+    },
+    {
+      "question": "24. Für dieselben vollständig beobachteten Personen sind je Messzeitpunkt n, Mittelwert und Standardabweichung bekannt, nicht aber die individuelle Zuordnung. Warum lässt sich der Standardfehler der mittleren Differenz daraus nicht eindeutig bestimmen?",
+      "options": [
+        "Weil die Varianz der Differenzen zusätzlich von der Kovarianz der gepaarten Messwerte abhängt.",
+        "Weil für gepaarte Daten die beiden Randstandardabweichungen vor der Rechnung gemittelt werden müssen.",
+        "Weil der Standardfehler der Differenz als Summe der beiden getrennten Standardfehler berechnet werden muss.",
+        "Weil die Varianzen beider Messzeitpunkte ohne Kovarianzterm voneinander abgezogen werden müssen."
+      ],
+      "answer": 0,
+      "explanation": "Es gilt Var(X−Y) = Var(X)+Var(Y)−2Cov(X,Y); ohne Paarzuordnung fehlt die Kovarianz und damit die Differenzstreuung. Die naheliegende Annahme, getrennte Standardabweichungen reichten aus, unterschlägt genau diesen Paarungsanteil.",
+      "weight": 3,
+      "topic": "Datenqualität und Aussagegrenzen",
+      "concept": "Grenzen aggregierter Rundendaten",
+      "cognitive_level": "Analyse",
+      "mini_glossary": {
+        "Kovarianz": "Kennzahl für die gemeinsame lineare Variation zweier Größen.",
+        "Differenzstreuung": "Streuung der innerhalb vollständiger Paare gebildeten Differenzen.",
+        "Aggregat": "Zusammengefasste Kennzahl ohne notwendige Einzelzuordnung."
+      }
+    },
+    {
+      "question": "25. Acht von 40 Personen fehlen in der Nachher-Messung; sie hatten zuvor im Mittel deutlich höhere Fehler als die vollständigen Fälle. Welche Behandlung ist für die primäre Analyse und Berichterstattung angemessen?",
+      "options": [
+        "Fehlende Nachher-Werte durch Erstwerte ersetzen, diese Setzung dokumentieren und nur die aufgefüllte Analyse berichten.",
+        "Fehlende Nachher-Werte durch den Nachher-Mittelwert ersetzen, die neue Paarzahl berichten und auf weitere Prüfungen verzichten.",
+        "Unvollständige Fälle entfernen, ausschließlich die Zahl vollständiger Paare berichten und das Ausfallmuster unberücksichtigt lassen.",
+        "Vollständige Paare analysieren, das Ausfallmuster berichten und die Robustheit unter plausiblen Missingness-Annahmen prüfen."
+      ],
+      "answer": 3,
+      "explanation": "Ohne Nachher-Wert gibt es keine beobachtete Differenz; zugleich deutet das Ausfallmuster auf möglichen Bias, der transparent und möglichst sensitivitätsanalytisch zu prüfen ist. Das Einsetzen unveränderter Erstwerte erfindet systematisch Nullveränderungen.",
+      "weight": 3,
+      "topic": "Datenqualität und Aussagegrenzen",
+      "concept": "Unvollständige Paare",
+      "cognitive_level": "Analyse",
+      "mini_glossary": {
+        "Missingness": "Fehlen eines für die Analyse benötigten Werts.",
+        "Ausfallbias": "Verzerrung durch systematisch fehlende Fälle.",
+        "Sensitivitätsanalyse": "Vergleich unter plausiblen alternativen Annahmen."
+      }
+    },
+    {
+      "question": "26. Nach einer Peer-Diskussion sinkt der mittlere absolute Schätzfehler in vollständigen Paaren signifikant. Es gab weder randomisierte Vergleichsgruppe noch Kontrolle für Wiederholung. Welche Aussage ist gedeckt?",
+      "options": [
+        "Die Diskussion ist als Ursache gut gestützt, weil die Paarung zeitstabile Personenunterschiede kontrolliert.",
+        "Die Diskussion ist als Ursache gut gestützt, weil der kleine p-Wert verbleibende Designunsicherheit stark reduziert.",
+        "Eine mittlere Veränderung ist in den ausgewerteten Paaren gestützt; Übung, Ausfälle und Gruppenabhängigkeit bleiben Alternativerklärungen.",
+        "Eine mittlere Veränderung ist nicht interpretierbar, weil im Vorher-Nachher-Design eine Vergleichsgruppe fehlt."
+      ],
+      "answer": 2,
+      "explanation": "Der gepaarte Test stützt einen Unterschied in den vollständigen Paaren, isoliert aber ohne Vergleichsdesign keine Ursache. Die Paarung kontrolliert zeitstabile Personenunterschiede, nicht jedoch Übung, Zeittrend oder selektive Ausfälle.",
+      "weight": 3,
+      "topic": "Datenqualität und Aussagegrenzen",
+      "concept": "Kausalitätsgrenze bei Peer-Daten",
+      "cognitive_level": "Analyse",
+      "mini_glossary": {
+        "Kausalität": "Ursächliche Wirkung einer Größe auf eine andere.",
+        "Alternativerklärung": "Plausibler anderer Prozess für einen beobachteten Unterschied.",
+        "Vergleichsgruppe": "Gruppe zur Abschätzung dessen, was ohne Intervention geschehen wäre."
+      }
+    },
+    {
+      "question": "27. Welche Ergebnisformulierung dokumentiert die S1-Lehrrechnung mit d = Erstfehler minus Zweitfehler fachlich vollständig und ohne Überdehnung?",
+      "options": [
+        "ARSnova senkte den mittleren Fehler der beobachteten Paare um 7,533 s und dürfte dies bei vergleichbaren Studierenden ähnlich tun.",
+        "Die Peer-Diskussion verursacht mit mehr als 99,9 % Wahrscheinlichkeit eine Verbesserung.",
+        "Das Produktivsystem dürfte nach einer zweiten Runde im Mittel geringere Schätzfehler erreichen.",
+        "In 30 synthetischen Paaren gilt d̄ = 7,533 s und t(29) = 6,437, p < 0,001; Kausal- und Populationsaussagen folgen daraus nicht."
+      ],
+      "answer": 3,
+      "explanation": "Eine vollständige Ergebnisformulierung nennt Datenstatus, Differenzrichtung, Paarzahl, Testwert und zentrale Aussagegrenzen. Die Deutung des p-Werts als Kausalwahrscheinlichkeit verwechselt statistische Evidenz mit Ursache und Hypothesenwahrscheinlichkeit.",
+      "weight": 3,
+      "topic": "Datenqualität und Aussagegrenzen",
+      "concept": "Begrenzter Testbefund",
+      "cognitive_level": "Analyse",
+      "mini_glossary": {
+        "LEHRDATEN": "Für Lernzwecke konstruierte Daten, keine Wirksamkeitsstudie.",
+        "Statistikbefund": "Knappe Darstellung von Frage, Datenbasis, Ergebnis und Grenzen.",
+        "Kausalität": "Ursächliche Wirkung einer Größe auf eine andere."
+      }
+    },
+    {
+      "question": "28. Das 95-%-Intervall für μ_d lautet [8,7; 12,1] s; getestet wird zweiseitig H₀: μ_d = 0 bei α = 0,05. Eine praktische Verbesserung beginnt bei 10 s. Welche Kombination ist korrekt?",
+      "options": [
+        "H₀ wird verworfen; mindestens 10 s sind belegt, weil die obere Intervallgrenze über der Relevanzschwelle liegt.",
+        "H₀ wird verworfen; Werte unter und über 10 s bleiben vereinbar, daher ist das Erreichen der Relevanzschwelle offen.",
+        "H₀ wird nicht verworfen; Werte unter 10 s im Intervall bedeuten, dass auch der Nullwert mit den Daten vereinbar ist.",
+        "H₀ wird nicht verworfen; für die Testentscheidung ersetzt die Relevanzschwelle von 10 s den festgelegten Nullwert."
+      ],
+      "answer": 1,
+      "explanation": "Null liegt nicht im Intervall, daher wird H₀ im korrespondierenden Test verworfen. Das Intervall umfasst aber Werte unter und über 10 s; eine praktisch relevante Verbesserung ist damit weder ausgeschlossen noch eindeutig gestützt. Allein die Obergrenze über der Schwelle belegt kein Mindestausmaß.",
+      "weight": 3,
+      "topic": "Kumulative Wiederholung",
+      "concept": "Konfidenzintervall und Test",
+      "cognitive_level": "Analyse",
+      "mini_glossary": {
+        "Konfidenzintervall": "Mit Daten und Modell vereinbarer Parameterbereich.",
+        "Nullwert": "Unter H₀ angenommener Wert ohne mittlere Veränderung.",
+        "Relevanzschwelle": "Sachlich begründete Mindestgröße eines Effekts."
+      }
+    },
+    {
+      "question": "29. In 60 synthetischen Confidence-Antworten sind in der niedrigen Gruppe 6 von 22, in der mittleren 7 von 12 und in der hohen 21 von 26 Antworten korrekt. Welche Auswertung verbindet die drei bedingten Anteile mit der Quellenbegrenzung korrekt?",
+      "options": [
+        "Die Korrektanteile steigen von 27,3 % über 58,3 % auf 80,8 %; das beschreibt die drei Lehrdatengruppen, nicht die individuelle Kalibrierung realer Personen.",
+        "Die Korrektanteile steigen von 17,6 % über 20,6 % auf 61,8 %; dafür wird in jeder Gruppe die Gesamtzahl von 34 korrekten Antworten als Nenner verwendet.",
+        "Die Korrektanteile betragen in allen drei Gruppen 56,7 %; der Gesamtanteil 34/60 ersetzt die gruppenspezifischen Nenner ohne Informationsverlust.",
+        "Die Korrektanteile fallen von 80,8 % über 58,3 % auf 27,3 %; die Reihenfolge der Confidence-Gruppen wird für die Interpretation umgekehrt."
+      ],
+      "answer": 0,
+      "explanation": "Die gruppenspezifischen Anteile sind 6/22≈27,3 %, 7/12≈58,3 % und 21/26≈80,8 %. Die Nenner 22, 12 und 26 folgen jeweils aus der bedingenden Confidence-Gruppe; 34 als gemeinsamer Nenner würde stattdessen die Verteilung unter den korrekten Antworten beschreiben. Die konstruierten Antwortgruppen erlauben keine Aussage über die individuelle Kalibrierung realer Personen.",
+      "weight": 3,
+      "topic": "Kumulative Wiederholung",
+      "concept": "Gruppenweise bedingte Anteile und Quellenbegrenzung",
+      "cognitive_level": "Analyse",
+      "mini_glossary": {
+        "bedingter Anteil": "Anteil innerhalb der durch die Bedingung festgelegten Bezugsgruppe.",
+        "Bezugsgruppe": "Teilmenge, die den Nenner einer bedingten Aussage bildet.",
+        "Confidence": "Antwortbezogene ordinale Selbsteinschätzung der Sicherheit.",
+        "LEHRDATEN": "Für Lernzwecke konstruierte Daten ohne Nachweis für reale Personen."
+      }
+    },
+    {
+      "question": "30. Dieselben 18 Filialen werden vor und nach einer Schulung gemessen. Zusätzlich fallen nachher drei Filialen mit zuvor besonders langen Servicezeiten aus. Welche Auswertung und Grenze passen am besten?",
+      "options": [
+        "Unabhängiger Gruppenvergleich der Randverteilungen; gleiche Filialzahl vor der Erhebung gilt als ausreichende Vergleichbarkeit.",
+        "Korrelation der Vorher- und Nachher-Werte; ein hohes r beantwortet die Frage nach mittlerer Veränderung.",
+        "Gepaarte Analyse der vollständigen Filialdifferenzen; Ausfallmuster und fehlendes Vergleichsdesign begrenzen Bias- und Kausalaussagen.",
+        "Vergleich der beiden Gesamtmittelwerte; die drei Ausfälle beeinflussen eine Differenz der Mittelwerte nicht."
+      ],
+      "answer": 2,
+      "explanation": "Die vollständigen Filialen liefern gepaarte Differenzen, doch das systematische Ausfallmuster und das fehlende Vergleichsdesign bleiben zentrale Grenzen. Ein unabhängiger Gruppenvergleich ignoriert sowohl die Zuordnung als auch die selektiven Ausfälle und verliert dadurch die passende Analyseebene.",
+      "weight": 3,
+      "topic": "Kumulative Wiederholung",
+      "concept": "Verfahrenswahl im Managementtransfer",
+      "cognitive_level": "Analyse",
+      "mini_glossary": {
+        "gepaarter t-Test": "Test des Mittelwerts zugeordneter Differenzen.",
+        "Ausfallbias": "Verzerrung durch systematisch fehlende Fälle.",
+        "Kausalität": "Ursächliche Wirkung einer Maßnahme auf ein Ergebnis.",
+        "Vergleichsdesign": "Plan zur Abschätzung einer Entwicklung ohne Maßnahme."
+      }
+    }
+  ]
+}

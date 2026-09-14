@@ -1,0 +1,617 @@
+{
+  "meta": {
+    "title": "Angewandte Statistik – MC-Test Woche 2: Häufigkeiten, Diagramme und Lage",
+    "target_audience": "Bachelorstudierende aus BWL, Management, Wirtschaftsinformatik und Informatik ohne vorausgesetzte Statistikkenntnisse",
+    "question_count": 30,
+    "difficulty_profile": { "leicht": 0, "mittel": 12, "schwer": 18 },
+    "time_per_weight_minutes": { "1": 0.5, "2": 0.75, "3": 1.0 },
+    "additional_buffer_minutes": 5,
+    "test_duration_minutes": 32,
+    "language": "de",
+    "updated": "2026-09-13"
+  },
+  "questions": [
+    {
+      "question": "1. Ein Export enthält 80 Ticketzeilen. Nach Quellenprüfung werden drei echte Dubletten entfernt und fünf Zeilen ohne auswertbaren Status ausgeschlossen; unter den 72 gültigen Tickets sind 18 verspätet. Welcher Häufigkeitseintrag ist korrekt?",
+      "options": [
+        "Absolute Häufigkeit 18 verspätete Tickets bei 72 gültigen Tickets",
+        "Absolute Häufigkeit 72 verspätete Tickets bei 80 importierten Tickets",
+        "Relative Häufigkeit 18 verspätete Tickets bei 72 gültigen Tickets",
+        "Relative Häufigkeit 72 verspätete Tickets bei 18 gültigen Tickets"
+      ],
+      "answer": 0,
+      "explanation": "Die absolute Häufigkeit ist die gezählte Anzahl von 18 verspäteten Tickets; 72 benennt die gültige Bezugsmenge. Die Verwechslung von gezählter Anzahl und relativem Anteil verwendet dieselben Zahlen, bezeichnet 18 aber fälschlich als relative Häufigkeit.",
+      "weight": 2,
+      "topic": "Häufigkeiten und Nenner",
+      "concept": "Absolute Häufigkeit in bereinigten Daten",
+      "cognitive_level": "Anwendung",
+      "mini_glossary": {
+        "Absolute Häufigkeit": "Anzahl der Beobachtungen mit einer bestimmten Ausprägung.",
+        "Gültige Beobachtung": "Beobachtung, die nach den festgelegten Regeln für die konkrete Auswertung verwendbar ist.",
+        "Bezugsmenge": "Gesamtheit der Fälle, innerhalb derer eine Häufigkeit interpretiert wird."
+      }
+    },
+    {
+      "question": "2. Im bereinigten Datensatz aus 72 gültigen Tickets sind 18 verspätet. Welche relative Häufigkeit gehört zu diesem Befund?",
+      "options": [
+        "25,0 % aus 18 geteilt durch 72",
+        "22,5 % aus 18 geteilt durch 80",
+        "24,0 % aus 18 geteilt durch 75",
+        "75,0 % aus 54 geteilt durch 72"
+      ],
+      "answer": 0,
+      "explanation": "18 geteilt durch 72 ergibt 0,25 beziehungsweise 25,0 %. Die 22,5 % sind der plausibelste Distraktor, verwenden jedoch alle 80 importierten Zeilen einschließlich der zuvor begründet ausgeschlossenen Fälle als Nenner.",
+      "weight": 2,
+      "topic": "Häufigkeiten und Nenner",
+      "concept": "Relative Häufigkeit nach Datenprüfung",
+      "cognitive_level": "Anwendung",
+      "mini_glossary": {
+        "Relative Häufigkeit": "Anteil einer Ausprägung an einer klar benannten Bezugsmenge.",
+        "Nenner": "Bezugszahl, auf die sich ein Anteil bezieht.",
+        "Datenbereinigung": "Dokumentierte Korrektur oder Behandlung erkannter Datenqualitätsprobleme."
+      }
+    },
+    {
+      "question": "3. Von 50 zurückgesendeten Fragebögen enthalten 45 eine gültige Angabe zur Weiterempfehlung; 27 dieser Angaben lauten »ja«. Welcher Bericht gibt den Ja-Anteil unter den gültigen Angaben korrekt wieder?",
+      "options": [
+        "54 % Ja-Anteil mit 27 Zustimmungen und 50 Rückläufen als Nenner",
+        "90 % Ja-Anteil mit 45 Zustimmungen und 50 Rückläufen als Nenner",
+        "60 % Ja-Anteil mit 27 Zustimmungen und 45 gültigen Angaben als Nenner",
+        "40 % Ja-Anteil mit 18 Zustimmungen und 45 gültigen Angaben als Nenner"
+      ],
+      "answer": 2,
+      "explanation": "Gefragt ist die bedingte Bezugsgruppe der 45 gültigen Angaben: 27 geteilt durch 45 sind 60 %. Die 54 % verwenden zwar einen realen Nenner, beantworten aber den Anteil unter allen Rückläufen und behandeln fünf fehlende Angaben implizit wie »nein«.",
+      "weight": 2,
+      "topic": "Häufigkeiten und Nenner",
+      "concept": "Gültiger Nenner bei Item-Nonresponse",
+      "cognitive_level": "Anwendung",
+      "mini_glossary": {
+        "Item-Nonresponse": "Fehlende Angabe zu einem einzelnen Merkmal in einem ansonsten zurückgesendeten Fragebogen.",
+        "Gültige Antwort": "Für das betrachtete Merkmal verwertbare, nicht fehlende Angabe.",
+        "Bedingter Anteil": "Anteil innerhalb einer ausdrücklich eingeschränkten Bezugsgruppe."
+      }
+    },
+    {
+      "question": "4. Filiale A erfüllt das Serviceziel bei 24 von 30 Fällen, Filiale B bei 72 von 120 Fällen. Welche Zusammenfassung vergleicht die unterschiedlichen Nenner korrekt?",
+      "options": [
+        "Filiale A erreicht 80 %, Filiale B 60 %; A liegt 20 Prozentpunkte höher und hat die 1,33-fache Quote.",
+        "Filiale A erreicht 24 %, Filiale B 72 %; B liegt wegen der größeren Erfolgszahl 48 Prozentpunkte höher.",
+        "Beide Filialen erreichen 64 %, weil zusammen 96 von 150 Fällen das Ziel erfüllen.",
+        "Die gemeinsame Quote beträgt 70 %, weil die beiden Filialquoten ungewichtet gemittelt werden."
+      ],
+      "answer": 0,
+      "explanation": "24 geteilt durch 30 sind 80 %, 72 geteilt durch 120 sind 60 %; die Differenz beträgt 20 Prozentpunkte und das Quotenverhältnis 80/60 rund 1,33. Die zusammengefassten 64 % sind rechnerisch korrekt für beide Filialen gemeinsam, beantworten aber nicht den gefragten Filialvergleich.",
+      "weight": 3,
+      "topic": "Häufigkeiten und Nenner",
+      "concept": "Anteilsvergleich und Prozentpunkte",
+      "cognitive_level": "Analyse",
+      "mini_glossary": {
+        "Prozentpunkt": "Einheit für die absolute Differenz zweier Prozentwerte.",
+        "Quotenverhältnis": "Quotient zweier Anteile zur Beschreibung ihres relativen Verhältnisses.",
+        "Gewichteter Gesamtanteil": "Anteil aus zusammengefassten Zählern und Nennern unterschiedlich großer Gruppen."
+      }
+    },
+    {
+      "question": "5. Genau 100 Befragte nennen jeweils mindestens einen Wechselgrund; Mehrfachnennungen sind erlaubt und insgesamt werden 145 Nennungen gezählt. Welche Interpretation folgt aus diesen Angaben?",
+      "options": [
+        "Im Mittel entfallen 0,69 Nennungen auf eine befragte Person; eine Summe von 145 % zeigt fehlende Antworten.",
+        "45 Personen haben zwei Gründe genannt; die Summe wird als eindeutige Zahl der Doppelnennungen gelesen.",
+        "100 Personen haben geantwortet; 45 weitere Nennungen werden als ungültige Überschreitung des Nenners behandelt.",
+        "Im Mittel entfallen 1,45 Nennungen auf eine befragte Person; eine Summe von 145 % kann daher gültig sein."
+      ],
+      "answer": 3,
+      "explanation": "145 Nennungen geteilt durch 100 Personen ergeben 1,45 Nennungen pro Person; entsprechend dürfen Optionsanteile zusammen 145 % ergeben. »Genau 45 Personen mit zwei Gründen« ist plausibel, folgt aber nicht, weil einige Personen drei oder mehr Gründe genannt haben könnten.",
+      "weight": 2,
+      "topic": "Häufigkeiten und Nenner",
+      "concept": "Mehrfachnennungen und mittlere Nennungszahl",
+      "cognitive_level": "Analyse",
+      "mini_glossary": {
+        "Mehrfachnennung": "Erhebungsformat, bei dem eine Person mehrere Antwortoptionen auswählen darf.",
+        "Optionsanteil": "Anteil der Bezugsgruppe, der eine bestimmte Option genannt hat.",
+        "Mittlere Nennungszahl": "Gesamtzahl der Nennungen geteilt durch die Zahl der teilnehmenden Personen."
+      }
+    },
+    {
+      "question": "6. In Gruppe A sind 15 von 40 Bestellungen verspätet, in Gruppe B 9 von 60. Wie groß ist der gemeinsame Verspätungsanteil beider Gruppen?",
+      "options": [
+        "26,3 % als ungewichteter Mittelwert aus 37,5 % und 15,0 %",
+        "24,0 % aus 24 verspäteten von 100 Bestellungen",
+        "37,5 % aus 15 verspäteten von 40 Bestellungen",
+        "52,5 % als Summe der beiden gruppenspezifischen Prozentwerte"
+      ],
+      "answer": 1,
+      "explanation": "Zusammen sind 24 von 100 Bestellungen verspätet, also 24,0 %. Der ungewichtete Mittelwert von 26,25 % ist der typische Distraktor; er gewichtet beide Gruppen gleich, obwohl Gruppe B mehr Bestellungen enthält.",
+      "weight": 2,
+      "topic": "Häufigkeiten und Nenner",
+      "concept": "Gewichteter Gesamtanteil",
+      "cognitive_level": "Anwendung",
+      "mini_glossary": {
+        "Gesamtanteil": "Quotient aus der Summe aller Teilzähler und der Summe aller zugehörigen Nenner.",
+        "Gewichtung": "Berücksichtigung unterschiedlich großer Gruppen bei einer Zusammenfassung.",
+        "Ungewichteter Mittelwert": "Durchschnitt, bei dem jeder Gruppenwert unabhängig von der Gruppengröße gleich zählt."
+      }
+    },
+    {
+      "question": "7. Die Fallzahlen der nominalen Beschwerdekanäle »E-Mail«, »Telefon«, »Chat« und »Filiale« sollen fair verglichen werden. Welche Gestaltung passt am besten?",
+      "options": [
+        "Aneinandergrenzende Klassenbalken mit Kanalbreiten proportional zur alphabetischen Reihenfolge verwenden",
+        "Getrennte Balken mit gemeinsamer Nullbasis, klarer Achsenbeschriftung und derselben Einheit verwenden",
+        "Punkte auf zwei Zahlenachsen mit Kanalcode und Fallzahl als metrische Koordinaten verwenden",
+        "Kreisflächen mit perspektivischer Tiefe und je Kanal unterschiedlich geneigter Ansicht verwenden"
+      ],
+      "answer": 1,
+      "explanation": "Nominale Kategorien werden durch getrennte Balken vergleichbar; eine gemeinsame Nullbasis hält Längen proportional zu den Fallzahlen. Aneinandergrenzende Balken sind der naheliegende Histogrammtransfer, suggerieren aber zusammenhängende numerische Intervalle zwischen Kanälen.",
+      "weight": 2,
+      "topic": "Diagramme und Manipulation",
+      "concept": "Balkendiagramm für nominale Häufigkeiten",
+      "cognitive_level": "Anwendung",
+      "mini_glossary": {
+        "Balkendiagramm": "Darstellung kategorialer Häufigkeiten mit getrennten Balken.",
+        "Nominalskala": "Kategorien ohne sachliche Rangordnung.",
+        "Nullbasis": "Achsenbeginn bei null, sodass Balkenlängen proportional zu den dargestellten Werten sind."
+      }
+    },
+    {
+      "question": "8. Ein Histogramm enthält die Klassen 0 bis unter 10 Minuten mit 20 Fällen, 10 bis unter 30 Minuten mit 30 Fällen und 30 bis unter 60 Minuten mit 30 Fällen. Die Balkenfläche soll die Häufigkeit darstellen. Welche Höhenrelation ist korrekt?",
+      "options": [
+        "Der erste Balken ist niedriger als der zweite, und der zweite ist gleich hoch wie der dritte.",
+        "Der erste Balken ist gleich hoch wie der zweite, und der zweite ist niedriger als der dritte.",
+        "Die drei Balken sind gleich hoch, wenn absolute Klassenhäufigkeiten direkt als Höhen verwendet werden.",
+        "Der erste Balken ist höher als der zweite, und der zweite ist höher als der dritte."
+      ],
+      "answer": 3,
+      "explanation": "Die Häufigkeitsdichten sind 20/10 = 2, 30/20 = 1,5 und 30/30 = 1 Fall je Minute; daher nehmen die Höhen ab. Gleiche Höhen für die beiden Klassen mit je 30 Fällen wirken plausibel, würden wegen ihrer unterschiedlichen Breiten aber unterschiedliche Flächen und damit falsche Häufigkeiten erzeugen.",
+      "weight": 2,
+      "topic": "Diagramme und Manipulation",
+      "concept": "Histogramm bei ungleichen Klassenbreiten",
+      "cognitive_level": "Analyse",
+      "mini_glossary": {
+        "Histogramm": "Darstellung einer metrischen Verteilung, bei der Klassenintervalle durch angrenzende Balken abgebildet werden.",
+        "Häufigkeitsdichte": "Klassenhäufigkeit geteilt durch Klassenbreite; bei ungleichen Breiten bestimmt sie die Balkenhöhe.",
+        "Balkenfläche": "Produkt aus Breite und Höhe eines Histogrammbalkens, proportional zur Klassenhäufigkeit."
+      }
+    },
+    {
+      "question": "9. Ein Balkendiagramm vergleicht Erfüllungsquoten von 94 % und 96 %, beginnt auf der vertikalen Achse aber bei 93 % und zeigt keine Fallzahlen. Welche Kritik ist vollständig?",
+      "options": [
+        "Die Achse macht den Vergleich unbrauchbar; mit Fallzahlen müssten beide Quoten als gleicher Wert berichtet werden.",
+        "Die Achse belegt einen bedeutsamen Unterschied; fehlende Fallzahlen betreffen vor allem die Detailtiefe.",
+        "Die Achse ist bei Prozentwerten vorgeschrieben; Fallzahlen dürfen wegen der Vergleichbarkeit nicht gezeigt werden.",
+        "Die Achse kann zwei Prozentpunkte optisch übertreiben; ohne Fallzahlen lässt sich die Unsicherheit des Vergleichs nicht beurteilen."
+      ],
+      "answer": 3,
+      "explanation": "Der enge Achsenausschnitt vergrößert den visuellen Längenunterschied, während unbekannte Nenner jede Beurteilung der statistischen Stabilität verhindern. Nur auf die zwei Prozentpunkte zu verweisen ist unvollständig: Dieselbe Differenz kann bei 20 oder 20.000 Fällen sehr unterschiedlich unsicher sein.",
+      "weight": 3,
+      "topic": "Diagramme und Manipulation",
+      "concept": "Achsenmanipulation und fehlende Nenner",
+      "cognitive_level": "Analyse",
+      "mini_glossary": {
+        "Abgeschnittene Achse": "Achse, deren dargestellter Bereich nicht beim natürlichen Bezugspunkt beginnt und Unterschiede optisch vergrößern kann.",
+        "Fallzahl": "Anzahl der Beobachtungen, auf denen eine Kennzahl beruht.",
+        "Visuelle Übertreibung": "Gestaltung, die einen sachlich kleinen Unterschied unverhältnismäßig groß erscheinen lässt."
+      }
+    },
+    {
+      "question": "10. Ein Histogramm verwendet gleich breite Zeitklassen; die y-Achse heißt »Absolute Häufigkeit«. Der Balken für 90 bis unter 120 Sekunden hat die Höhe 14. Welche Interpretation ist gedeckt?",
+      "options": [
+        "Die 14 Fälle werden mit einer gemeinsamen Dauer von 105 Sekunden gespeichert.",
+        "Der Mittelwert aller Fälle beträgt 14 Sekunden bei einer Klassenbreite von 30 Sekunden.",
+        "Vierzehn Fälle liegen zwischen einschließlich 90 und ausschließlich 120 Sekunden.",
+        "Vierzehn Prozent der Fälle liegen im Intervall, weil die Balkenhöhe als Anteil gelesen wird."
+      ],
+      "answer": 2,
+      "explanation": "Bei gleich breiten Klassen und absoluter Häufigkeitsachse gibt die Höhe die Zahl der Fälle im Intervall an. Der Klassenmittelpunkt 105 Sekunden ist ein möglicher Näherungswert für Berechnungen, bedeutet aber nicht, dass alle 14 Einzelwerte genau dort liegen.",
+      "weight": 2,
+      "topic": "Diagramme und Manipulation",
+      "concept": "Klassenhäufigkeit im Histogramm",
+      "cognitive_level": "Anwendung",
+      "mini_glossary": {
+        "Klassenhäufigkeit": "Anzahl oder Anteil der Beobachtungen innerhalb eines festgelegten Intervalls.",
+        "Klassenmittelpunkt": "Mittelwert aus unterer und oberer Grenze eines Klassenintervalls.",
+        "Halboffenes Intervall": "Intervall, das eine Grenze einschließt und die andere ausschließt."
+      }
+    },
+    {
+      "question": "11. Ein dreidimensionales Kreisdiagramm zeigt die Kontaktkanäle, lässt die Kategorie »Sonstige« mit 12 % weg und berechnet die übrigen Sektoren neu auf 100 %. Welche Aussage benennt beide Verzerrungen korrekt?",
+      "options": [
+        "Das Weglassen verändert die visuelle Vollständigkeit, lässt die Anteile aber vergleichbar, weil die sichtbaren Sektoren 100 % ergeben.",
+        "Die Perspektive verändert die Flächenwirkung, während das Weglassen die ursprünglichen Prozentanteile der sichtbaren Kategorien bewahrt.",
+        "Perspektive und geänderter Nenner können die sichtbaren Kategorien zugleich optisch und rechnerisch größer erscheinen lassen.",
+        "Die Neuberechnung auf 100 % gleicht die Perspektive aus, sodass die Sektoren weiterhin die ursprünglichen Anteile zeigen."
+      ],
+      "answer": 2,
+      "explanation": "Durch das Entfernen von 12 % werden die verbleibenden Anteile auf einen kleineren Nenner bezogen; die 3D-Perspektive kann vordere Flächen zusätzlich vergrößern. Nur die Perspektive zu kritisieren wäre plausibel, übersieht aber die rechnerische Veränderung der Bezugsgruppe.",
+      "weight": 3,
+      "topic": "Diagramme und Manipulation",
+      "concept": "Veränderter Nenner und 3D-Verzerrung",
+      "cognitive_level": "Analyse",
+      "mini_glossary": {
+        "Kreisdiagramm": "Darstellung von Anteilen eines gemeinsamen Ganzen durch Kreissektoren.",
+        "Nennerwechsel": "Änderung der Bezugsmenge, durch die Prozentwerte eine andere Bedeutung erhalten.",
+        "3D-Verzerrung": "Perspektivische Darstellung, die gleich große Flächen unterschiedlich groß erscheinen lassen kann."
+      }
+    },
+    {
+      "question": "12. Eine Häufigkeitstabelle enthält zwei Servicefälle mit 60 Sekunden, drei Fälle mit 90 Sekunden und einen Fall mit 150 Sekunden. Wie groß ist das arithmetische Mittel?",
+      "options": [
+        "80 Sekunden aus 480 geteilt durch sechs Fälle",
+        "100 Sekunden aus 300 geteilt durch drei Zeitwerte",
+        "110 Sekunden aus 660 geteilt durch sechs Fälle",
+        "90 Sekunden aus 540 geteilt durch sechs Fälle"
+      ],
+      "answer": 3,
+      "explanation": "Die gewichtete Summe ist 2 · 60 + 3 · 90 + 1 · 150 = 540 Sekunden; geteilt durch sechs Fälle ergibt das 90 Sekunden. 100 Sekunden ist der plausible Distraktor, mittelt aber nur die drei unterschiedlichen Zeitwerte und ignoriert ihre Häufigkeiten.",
+      "weight": 2,
+      "topic": "Lagewerte und Robustheit",
+      "concept": "Gewichteter Mittelwert aus Häufigkeiten",
+      "cognitive_level": "Anwendung",
+      "mini_glossary": {
+        "Arithmetisches Mittel": "Summe aller Beobachtungswerte geteilt durch ihre Anzahl.",
+        "Gewichtete Summe": "Summe aus jedem Wert multipliziert mit seiner Häufigkeit.",
+        "Häufigkeitstabelle": "Tabelle, die Ausprägungen und ihre Anzahlen oder Anteile zusammenfasst."
+      }
+    },
+    {
+      "question": "13. Für 20 Bestellungen wurde ein mittlerer Bestellwert von 48 Euro berechnet. Ein Wert von 180 Euro war ein Eingabefehler und wird nach Quellenprüfung auf 80 Euro korrigiert. Wie lautet der korrigierte Mittelwert?",
+      "options": [
+        "39 Euro, weil 180 Euro entfernt, die korrigierten 80 Euro aber nicht wieder ergänzt werden",
+        "43 Euro, weil die ursprüngliche Summe um 100 Euro sinkt",
+        "48 Euro, weil die Beobachtungszahl unverändert bleibt",
+        "52 Euro, weil die korrigierten 80 Euro zusätzlich zur unveränderten Summe addiert werden"
+      ],
+      "answer": 1,
+      "explanation": "Die ursprüngliche Summe beträgt 20 · 48 = 960 Euro; die Korrektur senkt sie um 100 auf 860 Euro, also auf 43 Euro je Bestellung. Der unveränderte Nenner allein hält den Mittelwert nicht bei 48, weil sich der Zähler der Mittelwertrechnung ändert.",
+      "weight": 2,
+      "topic": "Lagewerte und Robustheit",
+      "concept": "Mittelwert nach Wertkorrektur",
+      "cognitive_level": "Anwendung",
+      "mini_glossary": {
+        "Arithmetisches Mittel": "Summe aller Werte geteilt durch ihre Anzahl.",
+        "Datenkorrektur": "Dokumentierte Änderung eines nachweislich falsch erfassten Werts anhand einer Quelle.",
+        "Beobachtungszahl": "Anzahl der gültigen Einzelwerte im Nenner einer Kennzahl."
+      }
+    },
+    {
+      "question": "14. Team A hat die Zeiten 120, 120, 120 und 120 Sekunden; Team B die Zeiten 60, 100, 140 und 180 Sekunden. Welche Aussage folgt aus Lage und Verteilung?",
+      "options": [
+        "Beide Mittelwerte sind 120 Sekunden, aber Team B weist die größere Streuung auf.",
+        "Beide Streuungen sind gleich, aber Team B weist wegen 180 den größeren Mittelwert auf.",
+        "Beide Verteilungen sind gleich, weil Mittelwert und Beobachtungszahl übereinstimmen.",
+        "Beide Streuungen sind null, weil sich die Abweichungen vom jeweiligen Mittelwert zu null summieren."
+      ],
+      "answer": 0,
+      "explanation": "Beide Summen betragen 480 Sekunden und beide Mittelwerte 120; Team A streut gar nicht, Team B deutlich. Der einzelne Wert 180 verleitet zur Annahme eines höheren Mittels, wird bei Team B aber durch niedrigere Werte ausgeglichen.",
+      "weight": 3,
+      "topic": "Lagewerte und Robustheit",
+      "concept": "Gleiche Lage bei unterschiedlicher Streuung",
+      "cognitive_level": "Analyse",
+      "mini_glossary": {
+        "Lagewert": "Kennzahl, die die zentrale Lage einer Verteilung beschreibt.",
+        "Streuung": "Ausmaß, in dem Beobachtungen um ihre zentrale Lage variieren.",
+        "Verteilung": "Gesamtheit der vorkommenden Werte und ihrer Häufigkeiten."
+      }
+    },
+    {
+      "question": "15. Team A und Team B haben jeweils fünf vollständig beobachtete Bearbeitungszeiten. In Team A beträgt der Median 10 Minuten, in Team B 20 Minuten; die Einzelwerte sind nicht angegeben. Welche Aussage über den Median aller zehn gemeinsam betrachteten Zeiten ist gerechtfertigt?",
+      "options": [
+        "Der gemeinsame Median beträgt 10 Minuten, weil gleich große Gruppen den niedrigeren Gruppenmedian übernehmen.",
+        "Der gemeinsame Median beträgt 15 Minuten, weil die beiden Gruppenmediane mit gleichen Gewichten eingehen.",
+        "Der gemeinsame Median ist nicht eindeutig bestimmbar, weil die mittleren Positionen der gepoolten Ordnung unbekannt sind.",
+        "Der gemeinsame Median beträgt 20 Minuten, weil der höhere Gruppenmedian die sechste Position der Gesamtgruppe belegt."
+      ],
+      "answer": 2,
+      "explanation": "Gruppenmediane bestimmen die fünfte und sechste Position der gemeinsam sortierten zehn Werte nicht. Beispielsweise ergeben A = 10, 10, 10, 10, 10 und B = 0, 0, 20, 20, 20 den gemeinsamen Median 10; bei A = 0, 0, 10, 100, 100 und B = 20, 20, 20, 20, 20 beträgt er 20. Das Mitteln der Gruppenmediane zu 15 ist daher ebenso wenig allgemein gerechtfertigt wie die Übernahme eines der beiden Gruppenmediane.",
+      "weight": 3,
+      "topic": "Lagewerte und Robustheit",
+      "concept": "Nicht-Komponierbarkeit von Gruppenmedianen",
+      "cognitive_level": "Analyse",
+      "mini_glossary": {
+        "Gruppenmedian": "Median der geordneten Werte innerhalb einer einzelnen Teilgruppe.",
+        "Gepoolter Median": "Median nach gemeinsamer Sortierung aller Einzelwerte aus den zusammengeführten Gruppen.",
+        "Rangposition": "Position eines Werts innerhalb einer aufsteigend geordneten Datenreihe."
+      }
+    },
+    {
+      "question": "16. Von zwölf Servicezeiten sind zwei fehlend. Die zehn gültigen Werte lauten sortiert 6, 7, 8, 9, 10, 12, 13, 14, 16 und 50 Minuten. Welcher Median ist zu berichten?",
+      "options": [
+        "10 Minuten als fünfter Wert aller gültigen Beobachtungen",
+        "11 Minuten als Mittel der beiden mittleren gültigen Beobachtungen",
+        "12 Minuten als sechster Wert aller zwölf Datensätze einschließlich Missingness",
+        "15 Minuten als Mittel aus kleinster und größter gültiger Beobachtung"
+      ],
+      "answer": 1,
+      "explanation": "Bei zehn gültigen metrischen Werten liegt die Mitte zwischen dem fünften Wert 10 und dem sechsten Wert 12, also bei 11 Minuten. Den sechsten Wert 12 zu wählen ist plausibel, behandelt die gerade Beobachtungszahl aber wie eine ungerade.",
+      "weight": 2,
+      "topic": "Lagewerte und Robustheit",
+      "concept": "Median bei gerader gültiger Beobachtungszahl",
+      "cognitive_level": "Anwendung",
+      "mini_glossary": {
+        "Median": "Zentraler Lagewert geordneter Daten; bei geradem n metrischer Werte das Mittel der beiden mittleren Werte.",
+        "Gültige Beobachtung": "Für die konkrete Kennzahl verwendbarer, nicht fehlender Wert.",
+        "Missingness": "Muster und Ursachen fehlender Werte in einem Datensatz."
+      }
+    },
+    {
+      "question": "17. Von 30 Servicekontakten entfallen 12 auf »E-Mail«, 12 auf »Chat« und 6 auf »Telefon«. Wie ist der Modus anzugeben?",
+      "options": [
+        "»E-Mail« ist der einzige Modus, weil die Kategorie zuerst genannt wird.",
+        "»Chat« ist als zuletzt ausgewertete Kategorie der einzige Modus.",
+        "»Telefon« ist der Modus, weil sechs die mittlere absolute Häufigkeit ist.",
+        "»E-Mail« und »Chat« sind beide Modi; ein eindeutiger Modus existiert nicht."
+      ],
+      "answer": 3,
+      "explanation": "E-Mail und Chat teilen mit jeweils zwölf die größte Häufigkeit; die Verteilung ist bimodal und besitzt keinen eindeutigen Modus. Nur die zuerst genannte Kategorie zu wählen ist ein plausibler Darstellungsfehler, hat aber keine statistische Begründung.",
+      "weight": 2,
+      "topic": "Lagewerte und Robustheit",
+      "concept": "Mehrgipfliger Modus",
+      "cognitive_level": "Verständnis",
+      "mini_glossary": {
+        "Modus": "Am häufigsten vorkommende Ausprägung.",
+        "Bimodal": "Verteilung mit genau zwei Ausprägungen gleicher maximaler Häufigkeit.",
+        "Absolute Häufigkeit": "Anzahl der Beobachtungen mit einer bestimmten Ausprägung."
+      }
+    },
+    {
+      "question": "18. Die Zeiten 60, 70, 80, 90 und 100 Sekunden haben Mittelwert und Median 80 Sekunden. Der Wert 100 wird durch 600 ersetzt. Welche Kombination ist danach korrekt?",
+      "options": [
+        "Mittelwert 80 Sekunden und Median 180 Sekunden",
+        "Mittelwert 180 Sekunden und Median 80 Sekunden",
+        "Mittelwert 180 Sekunden und Median 180 Sekunden",
+        "Mittelwert 600 Sekunden und Median 100 Sekunden"
+      ],
+      "answer": 1,
+      "explanation": "Die neue Summe beträgt 900 Sekunden, also liegt der Mittelwert bei 180; die sortierte Mitte bleibt 80. Ein Anstieg beider Kennzahlen auf 180 ist der plausible Distraktor, übersieht aber, dass der Median nur von der mittleren Position und nicht von der Größe des Extremwerts abhängt.",
+      "weight": 3,
+      "topic": "Lagewerte und Robustheit",
+      "concept": "Ausreißereinfluss auf Mittelwert und Median",
+      "cognitive_level": "Analyse",
+      "mini_glossary": {
+        "Ausreißer": "Beobachtung, die deutlich von den übrigen Werten abweicht und zunächst geprüft werden muss.",
+        "Robuste Kennzahl": "Kennzahl, die durch einzelne Extremwerte nur wenig verändert wird.",
+        "Median": "Mittlere Position einer geordneten Verteilung."
+      }
+    },
+    {
+      "question": "19. Fünf Servicezeiten betragen 50, 55, 60, 65 und 300 Sekunden. Das Management fragt sowohl nach einer typischen Kundenerfahrung als auch nach dem gesamten Personalbedarf. Welche Berichtsstrategie passt?",
+      "options": [
+        "Für die typische Erfahrung den Median 60 und für summenbezogene Planung den Mittelwert 106 samt Extremwert berichten.",
+        "Für beide Fragen den Median 60 verwenden, weil die robuste Kennzahl den Gesamtaufwand hinreichend abbildet.",
+        "Für beide Fragen den Mittelwert 106 verwenden, weil er typische Erfahrung und Gesamtaufwand gemeinsam beschreibt.",
+        "Für die typische Erfahrung den Mittelwert 106 und für summenbezogene Planung den Median 60 berichten."
+      ],
+      "answer": 0,
+      "explanation": "Der Median beschreibt hier die zentrale typische Lage robust, während der Mittelwert über fünf Fälle die Gesamtsumme von 530 Sekunden korrekt repräsentiert und für Ressourcenbezug relevant sein kann. Nur den Median zu verwenden schützt zwar vor dem Extremwert, würde aber den tatsächlichen Gesamtaufwand unterschätzen.",
+      "weight": 3,
+      "topic": "Lagewerte und Robustheit",
+      "concept": "Lagewert nach Analyseziel",
+      "cognitive_level": "Analyse",
+      "mini_glossary": {
+        "Typischer Wert": "Lagekennzahl, die eine für die Fragestellung repräsentative Mitte beschreiben soll.",
+        "Arithmetisches Mittel": "Summe aller Werte geteilt durch ihre Anzahl.",
+        "Median": "Zentraler Lagewert geordneter Daten."
+      }
+    },
+    {
+      "question": "20. Ein Unternehmen möchte Aussagen über alle 500 Mai-Bestellungen treffen. Ein Export enthält wegen eines Systemfehlers nur 460 nicht stornierte Bestellungen; unter 50 daraus zufällig gezogenen Bestellungen sind 15 verspätet. Welcher Bericht verbindet Häufigkeit und Auswahlgrenze korrekt?",
+      "options": [
+        "Der Populationsanteil beträgt 3,3 %; die 15 verspäteten Fälle werden auf den Auswahlrahmen von 460 Bestellungen bezogen.",
+        "Der Stichprobenanteil beträgt 30 %; Zielpopulation 500 und Auswahlrahmen 460 unterscheiden sich, daher bleibt die Übertragung auf alle Bestellungen begrenzt.",
+        "Der Stichprobenanteil beträgt 3,0 %; die 15 verspäteten Fälle werden auf die Zielpopulation von 500 Bestellungen bezogen.",
+        "Der Populationsanteil beträgt 30 %; die Zufallsauswahl aus 460 Bestellungen beseitigt die Unterabdeckung der stornierten Bestellungen."
+      ],
+      "answer": 1,
+      "explanation": "15 von 50 sind 30 % in der gezogenen Stichprobe. Die Zufallsauswahl gilt jedoch nur innerhalb des unvollständigen Rahmens von 460 nicht stornierten Bestellungen; die 40 unterabgedeckten Bestellungen verhindern eine ungeprüfte Übertragung auf alle 500.",
+      "weight": 3,
+      "topic": "Kumulative Wiederholung Woche 1",
+      "concept": "Stichprobenanteil bei unvollständigem Auswahlrahmen",
+      "cognitive_level": "Analyse",
+      "mini_glossary": {
+        "Zielpopulation": "Festgelegte Grundgesamtheit, für die eine Schlussfolgerung gelten soll.",
+        "Auswahlrahmen": "Praktisch verfügbare Liste oder Menge, aus der eine Stichprobe gezogen wird.",
+        "Unterabdeckung": "Fehlen von Teilen der Zielpopulation im Auswahlrahmen.",
+        "Stichprobenanteil": "Anteil eines Ereignisses innerhalb der tatsächlich untersuchten Stichprobe."
+      }
+    },
+    {
+      "question": "21. Unter 500 Bestellungen gibt es 100 Reklamationsfälle und 400 Fälle ohne Reklamation. Für eine Prüfung werden gezielt je 25 Fälle aus beiden Gruppen gezogen. Was ist bei einer Gesamtquote aus den 50 Prüffällen zu beachten?",
+      "options": [
+        "Die Gruppen sind in der Stichprobe gleich groß, deshalb bildet die ungewichtete Gesamtquote die Population besonders genau ab.",
+        "Die Reklamationsfälle sind in der Stichprobe überrepräsentiert, deshalb werden die 400 anderen Fälle für die Gesamtquote reduziert.",
+        "Die Auswahl ist eine Vollerhebung, weil aus beiden Gruppen dieselbe absolute Zahl von Fällen enthalten ist.",
+        "Die Gruppen sind in der Stichprobe gleich groß, obwohl sie in der Population 1 zu 4 verteilt sind; eine ungewichtete Gesamtquote wäre verzerrt."
+      ],
+      "answer": 3,
+      "explanation": "Reklamationsfälle machen in der Stichprobe 50 %, in der Population aber 20 % aus; für eine Populationsgesamtquote braucht es passende Gewichte oder eine andere Auswahl. Die gleiche Gruppengröße verbessert Gruppenvergleiche, ist aber gerade keine Garantie für eine unverzerrte Gesamtquote.",
+      "weight": 3,
+      "topic": "Kumulative Wiederholung Woche 1",
+      "concept": "Disproportionale Stichprobe",
+      "cognitive_level": "Analyse",
+      "mini_glossary": {
+        "Disproportionale Stichprobe": "Auswahl, bei der Gruppenanteile bewusst von ihren Anteilen in der Population abweichen.",
+        "Gewichtung": "Anpassung des Beitrags von Beobachtungen an bekannte Auswahl- oder Populationsanteile.",
+        "Gesamtquote": "Anteil eines Ereignisses über alle betrachteten Gruppen zusammen."
+      }
+    },
+    {
+      "question": "22. Eine Kundentabelle enthält für Person A einen mittleren Bestellwert von 20 Euro bei 10 Bestellungen und für Person B 80 Euro bei 2 Bestellungen. Welcher Gesamtmittelwert respektiert die Bestellebene?",
+      "options": [
+        "30 Euro, weil die Personenmittel mit 10 und 2 Bestellungen gewichtet werden; die Zielgröße liegt auf Bestellebene.",
+        "50 Euro, weil beide Personenmittel gleich gewichtet werden; die Zielgröße liegt auf Personenebene.",
+        "36 Euro, weil die rekonstruierte Summe von 360 Euro durch 10 Bestellungen geteilt wird; Person B bleibt Zusatzinformation.",
+        "80 Euro, weil das höhere Personenmittel den Gesamtwert bestimmt; unterschiedliche Bestellzahlen ändern den Nenner nicht."
+      ],
+      "answer": 0,
+      "explanation": "Die rekonstruierte Summe beträgt 10 · 20 + 2 · 80 = 360 Euro über 12 Bestellungen; daraus folgen 30 Euro je Bestellung. Der ungewichtete Mittelwert von 50 Euro beantwortet dagegen eine Frage auf Personenebene.",
+      "weight": 3,
+      "topic": "Kumulative Wiederholung Woche 1",
+      "concept": "Gewichteter Mittelwert aus Personenaggregaten",
+      "cognitive_level": "Analyse",
+      "mini_glossary": {
+        "Bestellebene": "Auswertungsebene, auf der jede einzelne Bestellung gleiches Gewicht erhält.",
+        "Personenmittel": "Arithmetisches Mittel der Bestellungen einer einzelnen Person.",
+        "Gewichteter Mittelwert": "Mittelwert, bei dem Gruppen entsprechend ihrer Beobachtungszahlen eingehen."
+      }
+    },
+    {
+      "question": "23. Für die geordneten Zufriedenheitskategorien 1 bis 5 lauten die Häufigkeiten 2, 5, 9, 3 und 1. Welche Kombination aus Darstellung und Lagewert ist ohne Gleichabstandsannahme gerechtfertigt?",
+      "options": [
+        "Ein Balkendiagramm der Kategorien und Median 3; beide nutzen Häufigkeiten beziehungsweise Rangordnung ohne gleiche Abstände.",
+        "Ein Histogramm der Codes und Mittelwert 2,8; beide behandeln benachbarte Kategorien als gleich breite Messintervalle.",
+        "Ein Balkendiagramm der Kategorien und Median 2; beide folgen aus der zweithäufigsten Kategorie ohne Positionszählung.",
+        "Ein Liniendiagramm der Codes und Verhältnis 5 zu 1; beide interpretieren die Kategoriecodes als metrische Messwerte."
+      ],
+      "answer": 0,
+      "explanation": "Bei 20 Antworten liegen die Positionen 10 und 11 in Kategorie 3, daher ist der Median 3. Getrennte Balken zeigen die Häufigkeiten geordneter Kategorien, ohne gleiche numerische Abstände zwischen den Stufen zu unterstellen.",
+      "weight": 3,
+      "topic": "Kumulative Wiederholung Woche 1",
+      "concept": "Ordinale Häufigkeiten, Balkendiagramm und Median",
+      "cognitive_level": "Analyse",
+      "mini_glossary": {
+        "Ordinalskala": "Geordnete Kategorien, deren Abstände nicht als gleich vorausgesetzt werden.",
+        "Balkendiagramm": "Darstellung kategorialer Häufigkeiten mit getrennten Balken.",
+        "Median": "Mittlere Position einer geordneten Verteilung."
+      }
+    },
+    {
+      "question": "24. In einem Systeminventar entfallen von 100 Geräten 48 auf Linux, 32 auf Windows, 16 auf macOS und 4 auf »anderes«. Linux und macOS sollen Windows und »anderes« gegenübergestellt werden, während die Einzelkategorien sichtbar bleiben. Welcher Bericht ist korrekt?",
+      "options": [
+        "Ein Histogramm zeigt die Einzelkategorien; die zusammengefassten Anteile betragen 64 % und 36 %, also 28 Prozentpunkte Differenz.",
+        "Ein Balkendiagramm zeigt die Einzelkategorien; die zusammengefassten Anteile betragen 48 % und 52 %, also 4 Prozentpunkte Differenz.",
+        "Ein Balkendiagramm zeigt die Einzelkategorien; die zusammengefassten Anteile betragen 64 % und 36 %, also 28 Prozentpunkte Differenz.",
+        "Ein Liniendiagramm zeigt die Einzelkategorien; die zusammengefassten Anteile betragen 80 % und 20 %, also 60 Prozentpunkte Differenz."
+      ],
+      "answer": 2,
+      "explanation": "Linux und macOS ergeben 48 + 16 = 64 Geräte, Windows und »anderes« 32 + 4 = 36 Geräte. Bei 100 Geräten sind das 64 % und 36 % mit 28 Prozentpunkten Differenz; getrennte Balken erhalten den Vergleich der nominalen Einzelkategorien.",
+      "weight": 3,
+      "topic": "Kumulative Wiederholung Woche 1",
+      "concept": "Nominale Häufigkeiten gruppieren und darstellen",
+      "cognitive_level": "Analyse",
+      "mini_glossary": {
+        "Nominalskala": "Kategorien ohne sachliche Rangordnung.",
+        "Balkendiagramm": "Darstellung kategorialer Häufigkeiten mit getrennten Balken.",
+        "Prozentpunkt": "Einheit für die absolute Differenz zweier Prozentwerte."
+      }
+    },
+    {
+      "question": "25. Zwei Teams haben auf einer Zufriedenheitsskala von 1 bis 5 denselben Code-Mittelwert 3,0. Team A antwortet ausschließlich mit 3, Team B je zur Hälfte mit 1 und 5. Welche Schlussfolgerung ist korrekt?",
+      "options": [
+        "Die Verteilungen sind praktisch gleich, weil ein gleicher Mittelwert auf vergleichbare Häufigkeiten schließen lässt.",
+        "Team B ist zufriedener, weil die hohen Codes die niedrigen Bewertungen im Mittel ausgleichen.",
+        "Team A ist unzufriedener, weil mittlere Kategorien eher der negativen Skalenhälfte zugerechnet werden.",
+        "Die Verteilungen unterscheiden sich deutlich; derselbe Mittelwert verdeckt bei Team B die gegensätzlichen Bewertungen."
+      ],
+      "answer": 3,
+      "explanation": "Gleiche Mittelwerte können sehr verschiedene Verteilungen zusammenfassen: Team A antwortet einheitlich in der mittleren Kategorie, Team B polarisiert. Der gleiche Mittelwert ist der naheliegende Gleichheitsindikator, enthält aber keine Information darüber, wie häufig die einzelnen Kategorien vorkommen.",
+      "weight": 3,
+      "topic": "Kumulative Wiederholung Woche 1",
+      "concept": "Gleicher Lagewert bei verschiedener Verteilung",
+      "cognitive_level": "Analyse",
+      "mini_glossary": {
+        "Verteilung": "Gesamtheit der vorkommenden Ausprägungen und ihrer Häufigkeiten.",
+        "Polarisierung": "Konzentration von Antworten an entgegengesetzten Enden einer Skala.",
+        "Lagewert": "Kennzahl, die die zentrale Lage einer Verteilung zusammenfasst."
+      }
+    },
+    {
+      "question": "26. Gerundete Latenzen werden in einem Histogramm zusammengefasst: 40 Anfragen liegen zwischen 0 und unter 100 ms, 60 zwischen 100 und unter 300 ms. Die Balkenfläche soll die Häufigkeit darstellen. Welche Aussage verbindet Merkmalsart, Auflösung und Balkenhöhe korrekt?",
+      "options": [
+        "Die zugrunde liegende Latenz ist diskret; die Höhen sind 40 und 60 Fälle, daher ist der zweite Balken höher.",
+        "Die zugrunde liegende Latenz ist stetig; die Dichten sind 0,4 und 0,3 Fälle je ms, daher ist der erste Balken höher.",
+        "Die zugrunde liegende Latenz ist stetig; die Höhen sind 40 und 60 Fälle, daher ist der zweite Balken höher.",
+        "Die zugrunde liegende Latenz ist ordinal; die Dichten sind 0,4 und 0,3 Fälle je ms, daher ist der erste Balken höher."
+      ],
+      "answer": 1,
+      "explanation": "Latenz ist als Zeitgröße stetig; die Millisekundenrundung begrenzt nur die Messauflösung. Wegen der Klassenbreiten 100 und 200 ms betragen die Häufigkeitsdichten 40/100 = 0,4 und 60/200 = 0,3 Fälle je ms.",
+      "weight": 3,
+      "topic": "Kumulative Wiederholung Woche 1",
+      "concept": "Messauflösung und Histogrammdichte",
+      "cognitive_level": "Analyse",
+      "mini_glossary": {
+        "Stetiges Merkmal": "Merkmal, das innerhalb eines Bereichs grundsätzlich jeden Wert annehmen kann.",
+        "Messauflösung": "Kleinste Abstufung, die ein Messinstrument oder Speichersystem ausgibt.",
+        "Häufigkeitsdichte": "Klassenhäufigkeit geteilt durch Klassenbreite; bei ungleichen Breiten bestimmt sie die Balkenhöhe."
+      }
+    },
+    {
+      "question": "27. Ein Webshop befragt nur Personen nach abgeschlossenem Kauf. Von 50.000 Befragten bewerten 40.000 den Besuch positiv; berichtet werden soll über alle Websitebesuchenden. Welche Formulierung verbindet Anteil, Grafikbeschriftung und Aussagegrenze korrekt?",
+      "options": [
+        "80 % aller Websitebesuchenden bewerten positiv; die Grafik darf 50.000 als Nenner nennen, weil die große Fallzahl fehlende Abbrüche ausgleicht.",
+        "80 % der Befragten mit Kaufabschluss bewerten positiv; die Grafik muss 50.000 als Nenner nennen, und für alle Besuchenden bleibt die Aussage wegen fehlender Abbrüche offen.",
+        "20 % aller Websitebesuchenden bewerten negativ; die Grafik darf 50.000 als Nenner nennen, weil nicht positive Antworten Kaufabbrüche vertreten.",
+        "80 % der Befragten mit Kaufabschluss bewerten positiv; die Grafik darf daraus auf alle Besuchenden schließen, wenn die Antwortskala vergrößert wird."
+      ],
+      "answer": 1,
+      "explanation": "40.000/50.000 sind 80 % unter den Befragten mit Kaufabschluss. Dieser Nenner muss in der Grafik sichtbar sein; Personen mit Kaufabbruch gehören zur Zielpopulation, hatten aber keine Auswahlchance, sodass die große Fallzahl die Unterabdeckung nicht beseitigt.",
+      "weight": 3,
+      "topic": "Kumulative Wiederholung Woche 1",
+      "concept": "Anteil, Grafiknenner und Auswahlverzerrung",
+      "cognitive_level": "Analyse",
+      "mini_glossary": {
+        "Auswahlverzerrung": "Systematische Abweichung, weil bestimmte Einheiten eine andere Auswahlchance haben.",
+        "Zielpopulation": "Festgelegte Grundgesamtheit, für die eine Schlussfolgerung gelten soll.",
+        "Kaufabbruch": "Besuch mit begonnenem, aber nicht abgeschlossenem Kaufprozess.",
+        "Nenner": "Bezugszahl, auf die sich ein Anteil bezieht."
+      }
+    },
+    {
+      "question": "28. Von zwölf Monatswerten zu Systemausfällen fehlen zwei. Die zehn gültigen Werte lauten sortiert 0, 0, 1, 1, 1, 2, 2, 3, 4 und 6. Welche Gegenüberstellung der gültigen Auswertung und einer ungeprüften Nullimputation ist korrekt?",
+      "options": [
+        "Gültig sind Mittelwert 2,0 und Median 1,5; mit zwei ergänzten Nullen entstehen 1,7 und 1,0, wobei unbeobachtete Werte als null behauptet werden.",
+        "Gültig sind Mittelwert 2,0 und Median 1,5; mit zwei ergänzten Nullen bleiben 2,0 und 1,5, weil die Summe unverändert bleibt.",
+        "Gültig sind Mittelwert 1,7 und Median 1,0; mit zwei ergänzten Nullen entstehen 2,0 und 1,5, weil die Fallzahl steigt.",
+        "Gültig sind Mittelwert 2,0 und Median 2,0; mit zwei ergänzten Nullen entstehen 1,7 und 1,5, weil nur Randwerte hinzukommen."
+      ],
+      "answer": 0,
+      "explanation": "Die gültige Summe 20 ergibt 20/10 = 2,0; die mittleren Werte 1 und 2 ergeben Median 1,5. Zwei ergänzte Nullen ändern die Summe nicht, aber den Nenner auf 12 und die mittleren Positionen: gerundet folgen Mittelwert 1,7 und Median 1,0.",
+      "weight": 3,
+      "topic": "Kumulative Wiederholung Woche 1",
+      "concept": "Einfluss der Nullimputation auf Lagewerte",
+      "cognitive_level": "Analyse",
+      "mini_glossary": {
+        "Nullimputation": "Ersetzen fehlender Werte durch null, nur bei fachlicher Begründung zulässig.",
+        "Arithmetisches Mittel": "Summe aller gültigen Werte geteilt durch ihre Anzahl.",
+        "Median": "Zentraler Lagewert geordneter Daten."
+      }
+    },
+    {
+      "question": "29. Von 200 eingeladenen Kundinnen und Kunden antworten 50; 35 Antwortende bewerten den Service positiv. In welchem Intervall kann der positive Anteil unter allen 200 Eingeladenen ohne Annahme über die 150 Nichtantwortenden liegen?",
+      "options": [
+        "Zwischen 17,5 % und 25,0 %, weil höchstens alle Antwortenden positiv sein können",
+        "Zwischen 25,0 % und 70,0 %, weil Antwortquote und Antwortendenanteil die Grenzen bilden",
+        "Zwischen 17,5 % und 92,5 %, weil zwischen 35 und 185 Eingeladene positiv sein können",
+        "Zwischen 70,0 % und 100,0 %, weil Nichtantwortende mindestens so positiv wie Antwortende sind"
+      ],
+      "answer": 2,
+      "explanation": "Mindestens die 35 bekannten positiven Antworten zählen: 35/200 = 17,5 %. Höchstens könnten zusätzlich alle 150 Nichtantwortenden positiv sein: 185/200 = 92,5 %. Die 70 % der Antwortenden sind kein unterer Populationswert, sondern beruhen auf dem kleineren Nenner 50.",
+      "weight": 3,
+      "topic": "Kumulative Wiederholung Woche 1",
+      "concept": "Anteilsschranken bei Nonresponse",
+      "cognitive_level": "Analyse",
+      "mini_glossary": {
+        "Anteilsschranke": "Kleinster oder größter mit den beobachteten Angaben vereinbarer Anteil.",
+        "Nonresponse": "Ausbleibende Antwort einer ausgewählten oder angesprochenen Einheit.",
+        "Worst-Case-Intervall": "Wertebereich unter extremen, aber mit den Daten vereinbaren Annahmen über fehlende Fälle."
+      }
+    },
+    {
+      "question": "30. Nach einem freiwilligen Dashboard-Training melden Teilnehmende 20 Bedienfehler bei 400 Aufgaben, Nichtteilnehmende 60 Fehler bei 600 Aufgaben. Welche Formulierung verbindet korrekten Nenner und zulässige Aussage?",
+      "options": [
+        "Teilnehmende weisen 20 % und Nichtteilnehmende 60 % Fehler pro Person auf; die Trainingswirkung beträgt 40 Prozentpunkte.",
+        "Teilnehmende weisen 50 % und Nichtteilnehmende 50 % Fehler auf; unterschiedliche Aufgabenzahlen gelten dabei als ausgleichender Faktor.",
+        "Teilnehmende weisen 5 % und Nichtteilnehmende 10 % Fehler pro Aufgabe auf; eine Trainingswirkung ist wegen Selbstselektion nicht belegt.",
+        "Teilnehmende weisen 5 % und Nichtteilnehmende 10 % Fehler pro Aufgabe auf; daraus wird eine Halbierung durch das Training abgeleitet."
+      ],
+      "answer": 2,
+      "explanation": "20/400 sind 5 %, 60/600 sind 10 %; beobachtet ist eine niedrigere aufgabenbezogene Fehlerquote bei freiwillig Teilnehmenden. Die kausale Formulierung mit denselben Quoten überschreitet jedoch das nicht randomisierte Untersuchungsdesign.",
+      "weight": 3,
+      "topic": "Kumulative Wiederholung Woche 1",
+      "concept": "Ratenvergleich und Kausalitätsgrenze",
+      "cognitive_level": "Analyse",
+      "mini_glossary": {
+        "Rate": "Ereigniszahl bezogen auf eine passende Expositions- oder Gelegenheitszahl.",
+        "Selbstselektion": "Teilnahmeentscheidung durch die Einheiten selbst, wodurch systematische Gruppenunterschiede entstehen können.",
+        "Kausalität": "Ursache-Wirkungs-Beziehung, die durch einen beobachteten Unterschied nicht belegt ist."
+      }
+    }
+  ]
+}

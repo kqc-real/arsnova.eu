@@ -1,0 +1,328 @@
+{
+  "exportVersion": 1,
+  "exportedAt": "2026-09-13T00:00:00.000Z",
+  "quiz": {
+    "name": "ARSnova – Woche 11: Evidenzbasierte Referatswerkstatt",
+    "description": "10 anspruchsvolle Werkstattfragen zu These, Primärquelle, Messgrenzen, Diagrammen, Quellenkritik, Agentenoffenlegung, Gegenalternative und individueller Verteidigung – mit allen zehn ARSnova-Fragetypen.",
+    "showLeaderboard": true,
+    "allowCustomNicknames": false,
+    "defaultTimer": 60,
+    "timerScaleByDifficulty": true,
+    "enableTimerAccommodation": true,
+    "enableSoundEffects": true,
+    "enableRewardEffects": true,
+    "enableMotivationMessages": true,
+    "enableEmojiReactions": true,
+    "anonymousMode": false,
+    "teamMode": true,
+    "teamCount": 4,
+    "teamAssignment": "AUTO",
+    "teamNames": ["Apfel :apple:", "Birne :pear:", "Banane :banana:", "Apfelsine :orange:"],
+    "backgroundMusic": null,
+    "nicknameTheme": "KINDERGARTEN",
+    "bonusTokenCount": 3,
+    "readingPhaseEnabled": true,
+    "questions": [
+      {
+        "text": "### Von der Leitfrage zur verteidigbaren Entscheidung\n\nBringe die Arbeitsschritte für ein Cloud-Architekturargument in eine Reihenfolge, die Quellen- und Messillusionen sichtbar macht.",
+        "type": "ORDERING",
+        "timer": null,
+        "difficulty": "HARD",
+        "order": 0,
+        "answers": [],
+        "orderingItems": [
+          {
+            "id": "w11-order-1",
+            "text": "Leitfrage und widerlegbare These auf eine konkrete Cloud-Fähigkeit begrenzen"
+          },
+          {
+            "id": "w11-order-2",
+            "text": "Fakten, offene Annahmen und normative Kriterien getrennt inventarisieren"
+          },
+          {
+            "id": "w11-order-3",
+            "text": "Originalquellen und reproduzierbare technische Nachweise auswählen"
+          },
+          {
+            "id": "w11-order-4",
+            "text": "Messung und stärkste plausible Gegenoption mit identischer Systemgrenze planen"
+          },
+          {
+            "id": "w11-order-5",
+            "text": "Ergebnisse, Fehlerfälle und Reichweite der Evidenz gegeneinander auswerten"
+          },
+          {
+            "id": "w11-order-6",
+            "text": "Entscheidung, Folgen, Restunsicherheit und Neubewertungskriterium verteidigen"
+          }
+        ],
+        "confidenceEnabled": true,
+        "confidenceLabelLow": "Sehr unsicher",
+        "confidenceLabelHigh": "Sehr sicher"
+      },
+      {
+        "text": "### Aussagen im Referatsdossier klassifizieren\n\nOrdne jede Aussage nach ihrem epistemischen Status. Entscheidend ist, was die jeweilige Evidenz tatsächlich trägt.",
+        "type": "CATEGORIZATION",
+        "timer": null,
+        "difficulty": "HARD",
+        "order": 1,
+        "answers": [],
+        "categories": [
+          {
+            "id": "w11-cat-fact",
+            "name": "Belegter Fakt"
+          },
+          {
+            "id": "w11-cat-assumption",
+            "name": "Offene Annahme"
+          },
+          {
+            "id": "w11-cat-decision",
+            "name": "Begründete Entscheidung"
+          }
+        ],
+        "categorizationItems": [
+          {
+            "id": "w11-item-ci",
+            "text": "Der betrachtete Workflow erzeugt eine Software Bill of Materials (SBOM) der Produktionsabhängigkeiten.",
+            "correctCategoryId": "w11-cat-fact"
+          },
+          {
+            "id": "w11-item-status",
+            "text": "Der aktuelle Produktionspfad ist im Repository als Single-Host-Compose-Stack dokumentiert.",
+            "correctCategoryId": "w11-cat-fact"
+          },
+          {
+            "id": "w11-item-load",
+            "text": "Das beobachtete Nutzungsprofil bleibt im kommenden Semester unverändert.",
+            "correctCategoryId": "w11-cat-assumption"
+          },
+          {
+            "id": "w11-item-skill",
+            "text": "Das Betriebsteam beherrscht einen neuen Managed-Dienst ohne zusätzliche Schulung.",
+            "correctCategoryId": "w11-cat-assumption"
+          },
+          {
+            "id": "w11-item-path",
+            "text": "Die Shortlist wird auf zwei Betriebsmodelle begrenzt, weil ein drittes ein hartes Exitkriterium verletzt.",
+            "correctCategoryId": "w11-cat-decision"
+          },
+          {
+            "id": "w11-item-retain",
+            "text": "Die Local-First-Sammlung bleibt erhalten, solange kein gemessener Engpass eine Änderung rechtfertigt.",
+            "correctCategoryId": "w11-cat-decision"
+          }
+        ],
+        "categorizationShuffleItems": true,
+        "confidenceEnabled": true,
+        "confidenceLabelLow": "Sehr unsicher",
+        "confidenceLabelHigh": "Sehr sicher"
+      },
+      {
+        "text": "### Prüfungsgewicht in die Probe übersetzen\n\nEine Person plant die 15-minütige Probe fast vollständig als Vortrag; für Befragung und Diskussion bleiben 90 Sekunden. Welche Kritik folgt unmittelbar aus den dokumentierten Prüfungsbestandteilen?",
+        "type": "SINGLE_CHOICE",
+        "timer": null,
+        "difficulty": "HARD",
+        "order": 2,
+        "answers": [
+          {
+            "text": "Der Plan ist angemessen, weil ausschließlich die schriftliche Einreichung eine feste Gewichtung besitzt.",
+            "isCorrect": false
+          },
+          {
+            "text": "Der Plan ist angemessen, wenn die Folien sämtliche möglichen Rückfragen bereits schriftlich beantworten.",
+            "isCorrect": false
+          },
+          {
+            "text": "Der Plan ist unausgewogen, weil die dialogische Befragung mit 40 % den größten Leistungsanteil bildet.",
+            "isCorrect": true
+          },
+          {
+            "text": "Der Plan ist unzulässig, weil Vortrag und Diskussion zwingend jeweils genau 7,5 Minuten dauern müssen.",
+            "isCorrect": false
+          }
+        ],
+        "confidenceEnabled": true,
+        "confidenceLabelLow": "Sehr unsicher",
+        "confidenceLabelHigh": "Sehr sicher"
+      },
+      {
+        "text": "### Evidenzform und Aussagegrenze verbinden\n\nOrdne jedem Artefakt die stärkste Aussage zu, die es ohne zusätzliche Belege tragen kann.",
+        "type": "MATCHING",
+        "timer": null,
+        "difficulty": "HARD",
+        "order": 3,
+        "answers": [],
+        "matchingPairs": [
+          {
+            "leftId": "w11-match-doc",
+            "left": "Versionierte Providerdokumentation",
+            "rightId": "w11-match-doc-value",
+            "right": "Dokumentierte Funktion und Verantwortungsgrenze zum angegebenen Stand"
+          },
+          {
+            "leftId": "w11-match-code",
+            "left": "Repository-Code mit zugehörigem Test",
+            "rightId": "w11-match-code-value",
+            "right": "Implementiertes Verhalten innerhalb des geprüften Pfads und Commits"
+          },
+          {
+            "leftId": "w11-match-load",
+            "left": "Reproduzierbarer Lastbericht",
+            "rightId": "w11-match-load-value",
+            "right": "Messwerte für genau dokumentierte Umgebung und Workload"
+          },
+          {
+            "leftId": "w11-match-diagram",
+            "left": "Architekturdiagramm",
+            "rightId": "w11-match-diagram-value",
+            "right": "Modellierte Komponenten, Grenzen und Beziehungen, aber kein Laufzeitnachweis"
+          },
+          {
+            "leftId": "w11-match-agent",
+            "left": "Ungeprüfte Agentenantwort",
+            "rightId": "w11-match-agent-value",
+            "right": "Recherchehypothese ohne eigenständigen Evidenzstatus"
+          }
+        ],
+        "matchingShuffleRight": true,
+        "confidenceEnabled": true,
+        "confidenceLabelLow": "Sehr unsicher",
+        "confidenceLabelHigh": "Sehr sicher"
+      },
+      {
+        "text": "### Agentenbeitrag akademisch offenlegen\n\nEin Agent hat Literatur gesucht, einen Diagrammentwurf erstellt und eine Kostenannahme vorgeschlagen. Welche Handlungen sichern individuelle Verantwortung? _Mehrere Antworten sind richtig._",
+        "type": "MULTIPLE_CHOICE",
+        "timer": null,
+        "difficulty": "HARD",
+        "order": 4,
+        "answers": [
+          {
+            "text": "Agent, Modell, wesentliche Aufträge und substanziell übernommene Beiträge im vorgegebenen Rahmen kennzeichnen.",
+            "isCorrect": true
+          },
+          {
+            "text": "Literatur-, Mess- und Kostenbehauptungen am Original oder durch reproduzierbare Evidenz selbst prüfen.",
+            "isCorrect": true
+          },
+          {
+            "text": "Die Agentenantwort als Quelle zitieren und dadurch auf die Prüfung der darin verlinkten Literatur verzichten.",
+            "isCorrect": false
+          },
+          {
+            "text": "Die technische Entscheidung dem Agenten zuordnen und in der Diskussion nur dessen Begründung wiedergeben.",
+            "isCorrect": false
+          }
+        ],
+        "confidenceEnabled": true,
+        "confidenceLabelLow": "Sehr unsicher",
+        "confidenceLabelHigh": "Sehr sicher"
+      },
+      {
+        "text": "### Probezeit realistisch budgetieren\n\nFür eine **selbst gewählte Übungsplanung** stehen insgesamt 15 Minuten zur Verfügung. 6 Minuten sind für Befragung und Diskussion, 1 Minute für Einstieg und Schluss sowie 30 Sekunden als Störungspuffer reserviert. Wie viele Minuten bleiben höchstens für den fachlichen Hauptvortrag?",
+        "type": "NUMERIC_ESTIMATE",
+        "timer": null,
+        "difficulty": "MEDIUM",
+        "order": 5,
+        "answers": [],
+        "numericToleranceMode": "ABSOLUTE_INTERVAL",
+        "numericReferenceValue": 7.5,
+        "numericIntervalLeft": 7.49,
+        "numericIntervalRight": 7.51,
+        "numericInputType": "DECIMAL",
+        "numericDecimalPlaces": 1,
+        "numericMin": 0,
+        "numericMax": 15,
+        "numericTwoRounds": true,
+        "confidenceEnabled": true,
+        "confidenceLabelLow": "Sehr unsicher",
+        "confidenceLabelHigh": "Sehr sicher"
+      },
+      {
+        "text": "### Quelle mit unmittelbarem Gegenstandsbezug benennen\n\nWie heißt eine Quelle, die eine Funktion, Messung oder Regel unmittelbar aus erster Hand dokumentiert, etwa eine offizielle Dienstspezifikation oder ein eigener reproduzierbarer Messbericht?",
+        "type": "SHORT_TEXT",
+        "timer": null,
+        "difficulty": "MEDIUM",
+        "order": 6,
+        "answers": [
+          {
+            "text": "Primärquelle",
+            "isCorrect": true
+          },
+          {
+            "text": "primaere Quelle",
+            "isCorrect": true
+          },
+          {
+            "text": "primäre Quelle",
+            "isCorrect": true
+          },
+          {
+            "text": "Originalquelle",
+            "isCorrect": true
+          },
+          {
+            "text": "Quelle erster Hand",
+            "isCorrect": true
+          }
+        ],
+        "shortTextEvaluationKind": "text",
+        "shortTextMaxLength": 48,
+        "shortTextCaseSensitive": false,
+        "shortTextEvaluationMode": "exact",
+        "shortTextToleranceLevel": "none",
+        "shortTextAllowPartialCredit": false,
+        "shortTextTrimWhitespace": true,
+        "shortTextNormalizeWhitespace": true,
+        "confidenceEnabled": true,
+        "confidenceLabelLow": "Sehr unsicher",
+        "confidenceLabelHigh": "Sehr sicher"
+      },
+      {
+        "text": "### Diagramm gegen eine Gegenalternative verteidigen\n\nEin Diagramm zeigt eine Managed-Plattform als Zielbild, enthält aber weder Datenfluss noch Verantwortungs- und Exitgrenzen. Formuliere in zwei bis drei Sätzen, welche Ergänzungen die stärkste Self-managed-Gegenoption fair vergleichbar machen und welche Behauptung das Diagramm allein weiterhin nicht belegt.",
+        "type": "FREETEXT",
+        "timer": null,
+        "difficulty": "HARD",
+        "order": 7,
+        "answers": []
+      },
+      {
+        "text": "### Kritischste Verteidigungsfrage priorisieren\n\nEine These empfiehlt einen separaten Inferenzserver. Vorhanden sind ein sauberes Diagramm und aktuelle Literatur, aber noch kein Fehlerexperiment. Welche Rückfrage sollte die Werkstatt zuerst vertiefen? Die Abstimmung eröffnet Peer-Feedback; es gibt keine Musterlösung.",
+        "type": "SURVEY",
+        "timer": null,
+        "difficulty": "MEDIUM",
+        "order": 8,
+        "answers": [
+          {
+            "text": "Wie bleiben Join, Vote und Q&A bei langsamem oder ausgefallenem Inferenzdienst nutzbar?",
+            "isCorrect": false
+          },
+          {
+            "text": "Welche Daten verlassen welchen Vertrauensbereich, und wie werden sie minimiert?",
+            "isCorrect": false
+          },
+          {
+            "text": "Welche Messung könnte die behauptete Qualitäts- oder Latenzwirkung widerlegen?",
+            "isCorrect": false
+          },
+          {
+            "text": "Welche stärkste Betriebsalternative wurde unter derselben Systemgrenze verworfen?",
+            "isCorrect": false
+          }
+        ]
+      },
+      {
+        "text": "### Individuelle Verteidigungsreife einschätzen\n\nEine Person kann eigene Entscheidungen, Agentenfehler, Messgrenzen, stärkste Gegenoption und verbleibendes Risiko ohne Agentenstellvertretung erklären. Produktnamen werden nur zusammen mit Fähigkeit und Verantwortung verwendet. Wie verteidigungsreif ist dieser Stand?",
+        "type": "RATING",
+        "timer": null,
+        "difficulty": "MEDIUM",
+        "order": 9,
+        "answers": [],
+        "ratingMin": 1,
+        "ratingMax": 5,
+        "ratingLabelMin": "1 = nur präsentationsfähig",
+        "ratingLabelMax": "5 = fachlich verteidigungsfähig"
+      }
+    ]
+  }
+}

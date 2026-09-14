@@ -1,0 +1,324 @@
+{
+  "exportVersion": 1,
+  "exportedAt": "2026-09-13T00:00:00.000Z",
+  "quiz": {
+    "name": "Cloud Computing – Woche 07: Storage, Datenbanken und Recovery",
+    "description": "Zehn anspruchsvolle Live-Fragen zu Speicherarten, PostgreSQL, Redis, Yjs, Persistenzgrenzen, Backup, Konsistenz, Recovery Point Objective (RPO), Recovery Time Objective (RTO) und Restore-Tests. Das Quiz nutzt alle zehn ARSnova-Fragetypen genau einmal.",
+    "showLeaderboard": true,
+    "allowCustomNicknames": false,
+    "defaultTimer": 60,
+    "timerScaleByDifficulty": true,
+    "enableTimerAccommodation": true,
+    "enableSoundEffects": true,
+    "enableRewardEffects": true,
+    "enableMotivationMessages": true,
+    "enableEmojiReactions": true,
+    "anonymousMode": false,
+    "teamMode": true,
+    "teamCount": 4,
+    "teamAssignment": "AUTO",
+    "teamNames": ["Apfel :apple:", "Birne :pear:", "Banane :banana:", "Apfelsine :orange:"],
+    "backgroundMusic": null,
+    "nicknameTheme": "KINDERGARTEN",
+    "bonusTokenCount": 3,
+    "readingPhaseEnabled": true,
+    "questions": [
+      {
+        "text": "### Welche Aussagen entsprechen der dokumentierten Sicherungsgrenze?\n\nFür den aktuellen Ein-Server-Betrieb von arsnova.eu wird ein vollständiger Hostverlust angenommen. Wähle alle durch das Runbook gedeckten Aussagen.",
+        "type": "MULTIPLE_CHOICE",
+        "timer": null,
+        "difficulty": "HARD",
+        "order": 0,
+        "answers": [
+          {
+            "text": "Der dauerhaft relevante PostgreSQL-Bestand wird verschlüsselt offsite gesichert.",
+            "isCorrect": true
+          },
+          {
+            "text": "Redis wird als vollständige fachliche Primärdatenbank in jedem Offsite-Lauf gesichert.",
+            "isCorrect": false
+          },
+          {
+            "text": "Die für Disaster Recovery benötigte Produktionskonfiguration gehört zum Sicherungsumfang.",
+            "isCorrect": true
+          },
+          {
+            "text": "Browserseitige Quizbibliotheken werden automatisch aus der Serverkopie rekonstruiert.",
+            "isCorrect": false
+          }
+        ],
+        "confidenceEnabled": true,
+        "confidenceLabelLow": "Sehr unsicher",
+        "confidenceLabelHigh": "Sehr sicher"
+      },
+      {
+        "text": "### Welcher Nachweis macht ein Backup belastbar?\n\nEin Dashboard meldet täglich erfolgreiche Snapshot-Erstellung. Welche zusätzliche Evidenz reduziert das Recovery-Risiko am stärksten?",
+        "type": "SINGLE_CHOICE",
+        "timer": null,
+        "difficulty": "HARD",
+        "order": 1,
+        "answers": [
+          {
+            "text": "Ein größeres Backup-Volume auf demselben Host ohne Wiederherstellungsversuch.",
+            "isCorrect": false
+          },
+          {
+            "text": "Ein Restore in eine frische isolierte Zielumgebung mit Integritäts- und Anwendungstest.",
+            "isCorrect": true
+          },
+          {
+            "text": "Eine längere Aufbewahrung ohne Prüfung des Schlüssels und der Abhängigkeiten.",
+            "isCorrect": false
+          },
+          {
+            "text": "Ein erfolgreicher Datenbank-Healthcheck auf dem weiterhin laufenden Produktionsvolume.",
+            "isCorrect": false
+          }
+        ],
+        "confidenceEnabled": true,
+        "confidenceLabelLow": "Sehr unsicher",
+        "confidenceLabelHigh": "Sehr sicher"
+      },
+      {
+        "text": "### Wie heißt dieses Recovery-Ziel?\n\nEin Betrieb legt fest, wie weit der wiederhergestellte Datenstand höchstens hinter dem Ausfallzeitpunkt liegen darf. Nenne den Fachbegriff oder seine Abkürzung.",
+        "type": "SHORT_TEXT",
+        "timer": null,
+        "difficulty": "HARD",
+        "order": 2,
+        "answers": [
+          {
+            "text": "Recovery Point Objective",
+            "isCorrect": true
+          },
+          {
+            "text": "RPO",
+            "isCorrect": true
+          },
+          {
+            "text": "Wiederherstellungspunktziel",
+            "isCorrect": true
+          },
+          {
+            "text": "Wiederherstellungszeitpunkt-Ziel",
+            "isCorrect": true
+          }
+        ],
+        "shortTextEvaluationKind": "text",
+        "shortTextMaxLength": 48,
+        "shortTextCaseSensitive": false,
+        "shortTextEvaluationMode": "exact",
+        "shortTextToleranceLevel": "none",
+        "shortTextAllowPartialCredit": false,
+        "shortTextTrimWhitespace": true,
+        "shortTextNormalizeWhitespace": true,
+        "confidenceEnabled": true,
+        "confidenceLabelLow": "Sehr unsicher",
+        "confidenceLabelHigh": "Sehr sicher"
+      },
+      {
+        "text": "### Wie lange dauert der geplante Restore?\n\nEin Restore umfasst 240 GB und erreicht im Test effektiv 80 GB pro Stunde. Für Migrationen, Integritätsprüfung und Healthchecks sind zusätzlich 45 Minuten eingeplant. Wie viele Minuten beträgt die geplante Gesamtdauer?",
+        "type": "NUMERIC_ESTIMATE",
+        "timer": null,
+        "difficulty": "HARD",
+        "order": 3,
+        "answers": [],
+        "numericToleranceMode": "ABSOLUTE_INTERVAL",
+        "numericReferenceValue": 225,
+        "numericIntervalLeft": 224.5,
+        "numericIntervalRight": 225.5,
+        "numericInputType": "INTEGER",
+        "numericDecimalPlaces": 0,
+        "numericMin": 0,
+        "numericMax": 600,
+        "numericTwoRounds": true,
+        "confidenceEnabled": true,
+        "confidenceLabelLow": "Sehr unsicher",
+        "confidenceLabelHigh": "Sehr sicher"
+      },
+      {
+        "text": "### Ordne Speicherart und typischen Einsatz zu\n\nOrdne jeder Speicherart den Einsatz zu, für den ihre Zugriffssemantik im Szenario am besten passt.",
+        "type": "MATCHING",
+        "timer": null,
+        "difficulty": "HARD",
+        "order": 4,
+        "answers": [],
+        "matchingPairs": [
+          {
+            "leftId": "w07-match-left-1",
+            "left": "Block Storage",
+            "rightId": "w07-match-right-1",
+            "right": "Dateisystem- oder Datenbankvolume einer einzelnen VM"
+          },
+          {
+            "leftId": "w07-match-left-2",
+            "left": "File Storage",
+            "rightId": "w07-match-right-2",
+            "right": "gemeinsam eingehängte hierarchische Dateien mehrerer Clients"
+          },
+          {
+            "leftId": "w07-match-left-3",
+            "left": "Object Storage",
+            "rightId": "w07-match-right-3",
+            "right": "adressierbare Backup-Artefakte mit Metadaten und Lebenszyklusregeln"
+          },
+          {
+            "leftId": "w07-match-left-4",
+            "left": "PostgreSQL",
+            "rightId": "w07-match-right-4",
+            "right": "relationale Transaktionen und referenzielle Integrität"
+          },
+          {
+            "leftId": "w07-match-left-5",
+            "left": "Redis",
+            "rightId": "w07-match-right-5",
+            "right": "schneller TTL-, Rate-Limit- und Live-Hilfszustand"
+          }
+        ],
+        "matchingShuffleRight": true,
+        "confidenceEnabled": true,
+        "confidenceLabelLow": "Sehr unsicher",
+        "confidenceLabelHigh": "Sehr sicher"
+      },
+      {
+        "text": "### Bringe die Wiederherstellung in eine sichere Reihenfolge\n\nOrdne die Schritte für einen Disaster-Recovery-Test auf einem frischen Ersatzhost.",
+        "type": "ORDERING",
+        "timer": null,
+        "difficulty": "HARD",
+        "order": 5,
+        "answers": [],
+        "orderingItems": [
+          {
+            "id": "w07-order-1",
+            "text": "Ersatzumgebung isoliert bereitstellen und Zugangsmaterial root-only einspielen"
+          },
+          {
+            "id": "w07-order-2",
+            "text": "Repository und Snapshot-Integrität prüfen, ohne Produktion zu verändern"
+          },
+          {
+            "id": "w07-order-3",
+            "text": "Konfiguration und Datenbank-Dump in ein geschütztes Ziel wiederherstellen"
+          },
+          {
+            "id": "w07-order-4",
+            "text": "PostgreSQL auf frischem Volume starten und den Dump fehlerhart importieren"
+          },
+          {
+            "id": "w07-order-5",
+            "text": "Migrationen, Digest-Deploy und Anwendungs-Healthchecks ausführen"
+          },
+          {
+            "id": "w07-order-6",
+            "text": "Erst nach erfolgreicher Verifikation Traffic umschalten und temporäre Schlüssel widerrufen"
+          }
+        ],
+        "confidenceEnabled": true,
+        "confidenceLabelLow": "Sehr unsicher",
+        "confidenceLabelHigh": "Sehr sicher"
+      },
+      {
+        "text": "### Ordne arsnova.eu-Zustand nach Recovery-Grenze zu\n\nOrdne die Bestandteile gemäß dokumentiertem Ein-Server-Betrieb der passenden Sicherungs- oder Zustandsgrenze zu.",
+        "type": "CATEGORIZATION",
+        "timer": null,
+        "difficulty": "HARD",
+        "order": 6,
+        "answers": [],
+        "categories": [
+          {
+            "id": "w07-cat-offsite",
+            "name": "Im verschlüsselten Offsite-Backup"
+          },
+          {
+            "id": "w07-cat-local",
+            "name": "Nur lokale Persistenz beziehungsweise neu aufbaubar"
+          },
+          {
+            "id": "w07-cat-browser",
+            "name": "Primär browserseitig außerhalb des Server-Backups"
+          }
+        ],
+        "categorizationItems": [
+          {
+            "id": "w07-item-1",
+            "text": "PostgreSQL-Dump mit dauerhaft relevantem Datenbestand",
+            "correctCategoryId": "w07-cat-offsite"
+          },
+          {
+            "id": "w07-item-2",
+            "text": "Für Disaster Recovery benötigte Produktionskonfiguration",
+            "correctCategoryId": "w07-cat-offsite"
+          },
+          {
+            "id": "w07-item-3",
+            "text": "Redis-TTL- und Live-Daten mit lokaler AOF-Persistenz",
+            "correctCategoryId": "w07-cat-local"
+          },
+          {
+            "id": "w07-item-4",
+            "text": "Flüchtiges IPC-Volume des PDF-Workers",
+            "correctCategoryId": "w07-cat-local"
+          },
+          {
+            "id": "w07-item-5",
+            "text": "Quizbibliothek der Lehrperson in IndexedDB und Yjs",
+            "correctCategoryId": "w07-cat-browser"
+          },
+          {
+            "id": "w07-item-6",
+            "text": "Lokale CRDT-Dokumente der Quiz-Sammlung",
+            "correctCategoryId": "w07-cat-browser"
+          }
+        ],
+        "categorizationShuffleItems": true,
+        "confidenceEnabled": true,
+        "confidenceLabelLow": "Sehr unsicher",
+        "confidenceLabelHigh": "Sehr sicher"
+      },
+      {
+        "text": "### Welche Konsistenzgrenze fehlt?\n\nDatenbank und Dateiartefakte werden zu unterschiedlichen Zeitpunkten kopiert. Formuliere einen plausiblen Inkonsistenzfall und eine technische oder organisatorische Maßnahme, mit der der Restore einen zusammengehörigen Stand erhält.",
+        "type": "FREETEXT",
+        "timer": null,
+        "difficulty": "MEDIUM",
+        "order": 7,
+        "answers": []
+      },
+      {
+        "text": "### Welchen Recovery-Test soll die Gruppe zuerst vertiefen?\n\nZeitbudget, Datenintegrität, Schlüsselverfügbarkeit und Offsite-Unabhängigkeit sind noch nicht vollständig belegt. Welche Unsicherheit soll zuerst praktisch geprüft werden? Es gibt keine Musterlösung.",
+        "type": "SURVEY",
+        "timer": null,
+        "difficulty": "MEDIUM",
+        "order": 8,
+        "answers": [
+          {
+            "text": "Die gemessene Wiederherstellungsdauer auf einem frischen Host prüfen",
+            "isCorrect": false
+          },
+          {
+            "text": "Die referenzielle und fachliche Integrität nach dem Datenbankimport prüfen",
+            "isCorrect": false
+          },
+          {
+            "text": "Die Verfügbarkeit von Passwort, temporärem Schlüssel und Host-Fingerprint prüfen",
+            "isCorrect": false
+          },
+          {
+            "text": "Die Wiederherstellung ohne Produktionshost und dessen lokalen Cache prüfen",
+            "isCorrect": false
+          }
+        ]
+      },
+      {
+        "text": "### Wie sicher kannst du einen Recovery-Plan bewerten?\n\nBewerte, wie sicher du Speichersemantik, Persistenzgrenzen, Konsistenz, RPO, RTO, Offsite-Schutz und Restore-Evidenz gemeinsam prüfen kannst.",
+        "type": "RATING",
+        "timer": null,
+        "difficulty": "MEDIUM",
+        "order": 9,
+        "answers": [],
+        "ratingMin": 1,
+        "ratingMax": 5,
+        "ratingLabelMin": "Noch nicht belastbar bewertbar",
+        "ratingLabelMax": "Sicher und belastbar bewertbar"
+      }
+    ]
+  }
+}

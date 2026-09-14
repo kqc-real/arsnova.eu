@@ -1,0 +1,342 @@
+{
+  "exportVersion": 1,
+  "exportedAt": "2026-09-13T00:00:00.000Z",
+  "quiz": {
+    "name": "P0-03 ARSnova – Woche 06: Schätzen und Konfidenzintervalle",
+    "description": "Zehn anspruchsvolle Live-Fragen zu Punkt- und Intervallschätzung, Standardfehler, Präzision und Repräsentativität sowie Wilson- und Wald-Verfahren. Das Quiz nutzt alle zehn ARSnova-Fragetypen genau einmal.",
+    "showLeaderboard": true,
+    "allowCustomNicknames": false,
+    "defaultTimer": 60,
+    "timerScaleByDifficulty": true,
+    "enableTimerAccommodation": true,
+    "enableSoundEffects": true,
+    "enableRewardEffects": true,
+    "enableMotivationMessages": true,
+    "enableEmojiReactions": true,
+    "anonymousMode": false,
+    "teamMode": true,
+    "teamCount": 4,
+    "teamAssignment": "AUTO",
+    "teamNames": ["Apfel :apple:", "Birne :pear:", "Banane :banana:", "Apfelsine :orange:"],
+    "backgroundMusic": null,
+    "nicknameTheme": "KINDERGARTEN",
+    "bonusTokenCount": 3,
+    "readingPhaseEnabled": true,
+    "questions": [
+      {
+        "text": "### Gleicher Anteil, unterschiedliche Aussagekraft\n\nErhebung A zieht 100 Personen zufällig aus der Zielpopulation; 60 antworten positiv. Erhebung B erhält in einer freiwilligen Website-Abstimmung 600 positive Antworten unter 1.000 Teilnehmenden.\n\nWelche Beurteilungen sind fachlich begründet?",
+        "type": "MULTIPLE_CHOICE",
+        "timer": null,
+        "difficulty": "HARD",
+        "order": 0,
+        "answers": [
+          {
+            "text": "Beide Erhebungen liefern denselben Punktschätzer von 0,60 für ihren jeweiligen Auswahlprozess.",
+            "isCorrect": true
+          },
+          {
+            "text": "Erhebung B belegt durch ihren größeren Stichprobenumfang die bessere Repräsentativität.",
+            "isCorrect": false
+          },
+          {
+            "text": "Erhebung B hat unter einem passenden Binomialmodell den kleineren geschätzten Standardfehler.",
+            "isCorrect": true
+          },
+          {
+            "text": "Erhebung B kann trotz schmalerem Intervall durch freiwillige Teilnahme systematisch verzerrt sein.",
+            "isCorrect": true
+          }
+        ],
+        "confidenceEnabled": true,
+        "confidenceLabelLow": "Sehr unsicher",
+        "confidenceLabelHigh": "Sehr sicher"
+      },
+      {
+        "text": "### Wilson statt Wald begründen\n\nIn einer Zufallsstichprobe treten 2 Erfolge unter 20 Beobachtungen auf. Ein 95-%-Wilson-Intervall von $[0{,}028;0{,}301]$ ist bereitgestellt.\n\nWelche Auswertung ist angemessen?",
+        "type": "SINGLE_CHOICE",
+        "timer": null,
+        "difficulty": "HARD",
+        "order": 1,
+        "answers": [
+          {
+            "text": "Der Punktschätzer beträgt 0,10; wegen insgesamt 20 Fällen ist das Wald-Intervall ohne Prüfung angemessen.",
+            "isCorrect": false
+          },
+          {
+            "text": "Der Punktschätzer beträgt 0,10; wegen nur zwei Erfolgen ist das bereitgestellte Wilson-Intervall angemessen.",
+            "isCorrect": true
+          },
+          {
+            "text": "Der Punktschätzer beträgt 0,028; die Wilson-Untergrenze ersetzt den beobachteten Stichprobenanteil.",
+            "isCorrect": false
+          },
+          {
+            "text": "Der Punktschätzer beträgt 0,301; die Wilson-Obergrenze ersetzt den beobachteten Stichprobenanteil.",
+            "isCorrect": false
+          }
+        ],
+        "confidenceEnabled": true,
+        "confidenceLabelLow": "Sehr unsicher",
+        "confidenceLabelHigh": "Sehr sicher"
+      },
+      {
+        "text": "### Fehlerspanne eines Wald-Intervalls\n\nFür $n=400$, $p̂=0{,}36$ und $z=1{,}96$ soll die Fehlerspanne $z√(p̂(1−p̂)/n)$ berechnet werden.\n\nWie groß ist sie in Prozentpunkten? Gib das Ergebnis mit drei Nachkommastellen an.",
+        "type": "NUMERIC_ESTIMATE",
+        "timer": null,
+        "difficulty": "HARD",
+        "order": 2,
+        "answers": [],
+        "numericToleranceMode": "ABSOLUTE_INTERVAL",
+        "numericReferenceValue": 4.704,
+        "numericIntervalLeft": 4.7035,
+        "numericIntervalRight": 4.7045,
+        "numericInputType": "DECIMAL",
+        "numericDecimalPlaces": 3,
+        "numericMin": 0,
+        "numericMax": 50,
+        "numericTwoRounds": true,
+        "confidenceEnabled": true,
+        "confidenceLabelLow": "Sehr unsicher",
+        "confidenceLabelHigh": "Sehr sicher"
+      },
+      {
+        "text": "### Veränderung und statistische Folge zuordnen\n\nOrdne jeder Veränderung die passende Folge zu. Alle anderen Größen bleiben jeweils unverändert.",
+        "type": "MATCHING",
+        "timer": null,
+        "difficulty": "HARD",
+        "order": 3,
+        "answers": [],
+        "matchingPairs": [
+          {
+            "leftId": "w06_match_left_1",
+            "left": "Stichprobenumfang wird vervierfacht",
+            "rightId": "w06_match_right_1",
+            "right": "Standardfehler halbiert sich"
+          },
+          {
+            "leftId": "w06_match_left_2",
+            "left": "Konfidenzniveau steigt von 95 % auf 99 %",
+            "rightId": "w06_match_right_2",
+            "right": "Kritischer Wert steigt"
+          },
+          {
+            "leftId": "w06_match_left_3",
+            "left": "Stichprobenstandardabweichung verdoppelt sich",
+            "rightId": "w06_match_right_3",
+            "right": "Fehlerspanne des Mittelwertintervalls verdoppelt sich"
+          },
+          {
+            "leftId": "w06_match_left_4",
+            "left": "Zufallsauswahl wird durch freiwillige Teilnahme ersetzt",
+            "rightId": "w06_match_right_4",
+            "right": "Repräsentativität wird stärker fraglich"
+          }
+        ],
+        "matchingShuffleRight": true,
+        "confidenceEnabled": true,
+        "confidenceLabelLow": "Sehr unsicher",
+        "confidenceLabelHigh": "Sehr sicher"
+      },
+      {
+        "text": "### Mittelwertintervall nachvollziehbar erstellen\n\nBringe die sechs Schritte in die Reihenfolge eines transparenten Analysewegs. Die inhaltliche Prüfung geht der Rechnung voraus.",
+        "type": "ORDERING",
+        "timer": null,
+        "difficulty": "HARD",
+        "order": 4,
+        "answers": [],
+        "orderingItems": [
+          {
+            "id": "w06_order_1",
+            "text": "Zielpopulation und zu schätzenden Mittelwert festlegen"
+          },
+          {
+            "id": "w06_order_2",
+            "text": "Auswahlprozess, Unabhängigkeit und Modellannahmen beurteilen"
+          },
+          {
+            "id": "w06_order_3",
+            "text": "Konfidenzniveau und t-Intervallverfahren vor der Ergebnisberechnung festlegen"
+          },
+          {
+            "id": "w06_order_4",
+            "text": "Stichprobenmittelwert, Standardfehler und passenden kritischen t-Wert berechnen"
+          },
+          {
+            "id": "w06_order_5",
+            "text": "Untere und obere Intervallgrenze berechnen"
+          },
+          {
+            "id": "w06_order_6",
+            "text": "Intervall und Grenzen der Übertragbarkeit im Kontext berichten"
+          }
+        ],
+        "confidenceEnabled": true,
+        "confidenceLabelLow": "Sehr unsicher",
+        "confidenceLabelHigh": "Sehr sicher"
+      },
+      {
+        "text": "### Maßnahmen nach ihrer Wirkung klassifizieren\n\nOrdne jede Maßnahme ihrer primären statistischen Wirkung zu. Alle nicht genannten Bedingungen bleiben unverändert.",
+        "type": "CATEGORIZATION",
+        "timer": null,
+        "difficulty": "HARD",
+        "order": 5,
+        "answers": [],
+        "categories": [
+          {
+            "id": "w06_cat_precision",
+            "name": "Erhöht rechnerische Präzision"
+          },
+          {
+            "id": "w06_cat_selection",
+            "name": "Verbessert Auswahlqualität"
+          },
+          {
+            "id": "w06_cat_neither",
+            "name": "Bewirkt keines von beidem"
+          }
+        ],
+        "categorizationItems": [
+          {
+            "id": "w06_item_1",
+            "text": "Stichprobenumfang bei unverändertem Zufallsdesign vervierfachen",
+            "correctCategoryId": "w06_cat_precision"
+          },
+          {
+            "id": "w06_item_2",
+            "text": "Weitere Antworten aus demselben selbstselektierten Panel sammeln",
+            "correctCategoryId": "w06_cat_precision"
+          },
+          {
+            "id": "w06_item_3",
+            "text": "Freiwillige Website-Abstimmung durch Zufallsstichprobe ersetzen",
+            "correctCategoryId": "w06_cat_selection"
+          },
+          {
+            "id": "w06_item_4",
+            "text": "Auswahlrahmen um bisher ausgeschlossene Zielgruppen erweitern",
+            "correctCategoryId": "w06_cat_selection"
+          },
+          {
+            "id": "w06_item_5",
+            "text": "Konfidenzniveau bei denselben Daten von 95 % auf 99 % erhöhen",
+            "correctCategoryId": "w06_cat_neither"
+          },
+          {
+            "id": "w06_item_6",
+            "text": "Punktschätzer bei denselben Daten mit mehr Dezimalstellen ausgeben",
+            "correctCategoryId": "w06_cat_neither"
+          }
+        ],
+        "categorizationShuffleItems": true,
+        "confidenceEnabled": true,
+        "confidenceLabelLow": "Sehr unsicher",
+        "confidenceLabelHigh": "Sehr sicher"
+      },
+      {
+        "text": "### Langfristige Eigenschaft benennen\n\nBei sehr vielen gleichartigen Zufallsstichproben werden nach demselben Verfahren 95-%-Intervalle berechnet. Ungefähr 95 % dieser Intervalle überdecken den festen Parameter.\n\nWie heißt diese festgelegte langfristige Eigenschaft des Verfahrens?",
+        "type": "SHORT_TEXT",
+        "timer": null,
+        "difficulty": "MEDIUM",
+        "order": 6,
+        "answers": [
+          {
+            "text": "Konfidenzniveau",
+            "isCorrect": true
+          },
+          {
+            "text": "95-Prozent-Konfidenzniveau",
+            "isCorrect": true
+          },
+          {
+            "text": "langfristige Überdeckungsrate",
+            "isCorrect": true
+          },
+          {
+            "text": "95-%-Konfidenzniveau",
+            "isCorrect": true
+          },
+          {
+            "text": "95%-Konfidenzniveau",
+            "isCorrect": true
+          },
+          {
+            "text": "Überdeckungswahrscheinlichkeit",
+            "isCorrect": true
+          },
+          {
+            "text": "95-prozentige Überdeckungsrate",
+            "isCorrect": true
+          },
+          {
+            "text": "nominales Konfidenzniveau",
+            "isCorrect": true
+          },
+          {
+            "text": "95-%-Überdeckungswahrscheinlichkeit",
+            "isCorrect": true
+          },
+          {
+            "text": "Überdeckungsrate",
+            "isCorrect": true
+          }
+        ],
+        "shortTextEvaluationKind": "text",
+        "shortTextMaxLength": 80,
+        "shortTextCaseSensitive": false,
+        "shortTextEvaluationMode": "exact",
+        "shortTextToleranceLevel": "none",
+        "shortTextAllowPartialCredit": false,
+        "shortTextTrimWhitespace": true,
+        "shortTextNormalizeWhitespace": true,
+        "confidenceEnabled": true,
+        "confidenceLabelLow": "Sehr unsicher",
+        "confidenceLabelHigh": "Sehr sicher"
+      },
+      {
+        "text": "### Präzision und Repräsentativität trennen\n\nEine freiwillige App-Befragung mit $n=5.000$ liefert ein sehr schmales Konfidenzintervall. Besonders unzufriedene Personen nehmen überproportional häufig teil.\n\nFormuliere knapp, was das schmale Intervall über Präzision aussagt und warum die Übertragung auf alle Nutzenden dennoch fraglich bleibt.",
+        "type": "FREETEXT",
+        "timer": null,
+        "difficulty": "MEDIUM",
+        "order": 7,
+        "answers": []
+      },
+      {
+        "text": "### Unsicherheit vor einer Empfehlung priorisieren\n\nEine Zufallsstichprobe mit $n=100$ und eine freiwillige Website-Abstimmung mit $n=1.000$ liefern beide einen positiven Anteil von 0,60; das rechnerische Intervall der Website-Abstimmung ist schmaler. Welche Prüfung sollte die Lerngruppe vor einer Empfehlung zuerst vertiefen? Die Abstimmung eröffnet die Begründungsdiskussion; es gibt keine Musterlösung.",
+        "type": "SURVEY",
+        "timer": null,
+        "difficulty": "MEDIUM",
+        "order": 8,
+        "answers": [
+          {
+            "text": "Die rechnerische Präzision beider Intervallschätzungen vergleichen",
+            "isCorrect": false
+          },
+          {
+            "text": "Die Auswahlqualität und mögliche Selbstselektion vergleichen",
+            "isCorrect": false
+          },
+          {
+            "text": "Die Intervallverfahren anhand von Erfolgen und Misserfolgen prüfen",
+            "isCorrect": false
+          },
+          {
+            "text": "Punktschätzung, Intervallschätzung und Zielparameter klar trennen",
+            "isCorrect": false
+          }
+        ]
+      },
+      {
+        "text": "### Eigene Erklärungssicherheit einschätzen\n\nWie sicher kannst du anhand von Erfolgs- und Misserfolgszahlen begründen, ob ein Wald-Intervall vertretbar ist oder ein bereitgestelltes Wilson-Intervall verwendet werden sollte?",
+        "type": "RATING",
+        "timer": null,
+        "difficulty": "MEDIUM",
+        "order": 9,
+        "answers": [],
+        "ratingMin": 1,
+        "ratingMax": 5,
+        "ratingLabelMin": "Noch nicht sicher begründbar",
+        "ratingLabelMax": "Sicher und nachvollziehbar begründbar"
+      }
+    ]
+  }
+}

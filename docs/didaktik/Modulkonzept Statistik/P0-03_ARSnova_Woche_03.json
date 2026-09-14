@@ -1,0 +1,346 @@
+{
+  "exportVersion": 1,
+  "exportedAt": "2026-09-13T00:00:00.000Z",
+  "quiz": {
+    "name": "P0-03 ARSnova – Woche 03: Streuung und Quantile",
+    "description": "10 anspruchsvolle Diagnosefragen zu Streuung, Varianz mit n und n − 1, Quartilen, Boxplots, Ausreißern und hohen Latenzquantilen. Das Quiz nutzt alle zehn ARSnova-Fragetypen.",
+    "showLeaderboard": true,
+    "allowCustomNicknames": false,
+    "defaultTimer": 60,
+    "timerScaleByDifficulty": true,
+    "enableTimerAccommodation": true,
+    "enableSoundEffects": true,
+    "enableRewardEffects": true,
+    "enableMotivationMessages": true,
+    "enableEmojiReactions": true,
+    "anonymousMode": false,
+    "teamMode": true,
+    "teamCount": 4,
+    "teamAssignment": "AUTO",
+    "teamNames": ["Apfel :apple:", "Birne :pear:", "Banane :banana:", "Apfelsine :orange:"],
+    "backgroundMusic": null,
+    "nicknameTheme": "KINDERGARTEN",
+    "bonusTokenCount": 3,
+    "readingPhaseEnabled": true,
+    "questions": [
+      {
+        "text": "### Gleiche Lage, unterschiedliche Streuung\n\nRelease A liefert die Latenzen 90, 100, 110, 120 und 130 ms. Release B liefert 70, 100, 110, 120 und 150 ms. Für beide Datensätze soll deskriptiv durch n geteilt werden.\n\nWelche Aussagen sind korrekt?",
+        "type": "MULTIPLE_CHOICE",
+        "timer": null,
+        "difficulty": "HARD",
+        "order": 0,
+        "answers": [
+          {
+            "text": "Beide Mittelwerte betragen 110 ms.",
+            "isCorrect": true
+          },
+          {
+            "text": "Die deskriptive Varianz von A beträgt 200 ms².",
+            "isCorrect": true
+          },
+          {
+            "text": "Die deskriptive Varianz von B beträgt 680 ms².",
+            "isCorrect": true
+          },
+          {
+            "text": "Beide Spannweiten betragen 80 ms.",
+            "isCorrect": false
+          }
+        ],
+        "confidenceEnabled": true,
+        "confidenceLabelLow": "Sehr unsicher",
+        "confidenceLabelHigh": "Sehr sicher"
+      },
+      {
+        "text": "### Varianzschätzer korrekt berichten\n\nEine Zufallsstichprobe aus fünf Antwortzeiten hat eine Quadratsumme der Abweichungen vom Mittelwert von 1.000 ms². Welche Ergebniszeile verwendet n − 1 und zieht anschließend die richtige Wurzel?",
+        "type": "SINGLE_CHOICE",
+        "timer": null,
+        "difficulty": "HARD",
+        "order": 1,
+        "answers": [
+          {
+            "text": "Die Stichprobenvarianz beträgt 200 ms² und die Stichprobenstandardabweichung etwa 14,14 ms.",
+            "isCorrect": false
+          },
+          {
+            "text": "Die Stichprobenvarianz beträgt 250 ms² und die Stichprobenstandardabweichung genau 250,00 ms.",
+            "isCorrect": false
+          },
+          {
+            "text": "Die Stichprobenvarianz beträgt 1.000 ms² und die Stichprobenstandardabweichung etwa 31,62 ms.",
+            "isCorrect": false
+          },
+          {
+            "text": "Die Stichprobenvarianz beträgt 250 ms² und die Stichprobenstandardabweichung etwa 15,81 ms.",
+            "isCorrect": true
+          }
+        ],
+        "confidenceEnabled": true,
+        "confidenceLabelLow": "Sehr unsicher",
+        "confidenceLabelHigh": "Sehr sicher"
+      },
+      {
+        "text": "### Sprung im oberen Verteilungsrand erklären\n\nBei gleicher Last bleibt p95 eines Services bei etwa 120 ms, während p99 von 250 ms auf 1,2 s steigt. Formuliere zwei plausible, anhand von Daten prüfbare Ursachen und nenne jeweils eine Auswertung der Rohdaten, mit der du sie untersuchen würdest.",
+        "type": "FREETEXT",
+        "timer": null,
+        "difficulty": "HARD",
+        "order": 2,
+        "answers": []
+      },
+      {
+        "text": "### Robuste Streuung aus Rohwerten berechnen\n\nDie ungeordneten Antwortzeiten lauten 42, 10, 24, 14, 30, 18, 12 und 20 ms. Für diese Aufgabe sind Q1 und Q3 die Mediane der unteren beziehungsweise oberen vier sortierten Werte. Gib den Interquartilsabstand entweder als ganze Millisekunden oder als Sekunden mit drei Nachkommastellen an.",
+        "type": "SHORT_TEXT",
+        "timer": null,
+        "difficulty": "HARD",
+        "order": 3,
+        "answers": [
+          {
+            "text": "14 ms",
+            "isCorrect": true
+          },
+          {
+            "text": "14 Millisekunden",
+            "isCorrect": true
+          },
+          {
+            "text": "14ms",
+            "isCorrect": true
+          },
+          {
+            "text": "0,014 s",
+            "isCorrect": true
+          },
+          {
+            "text": "0.014 s",
+            "isCorrect": true
+          },
+          {
+            "text": "0,014s",
+            "isCorrect": true
+          },
+          {
+            "text": "0.014s",
+            "isCorrect": true
+          },
+          {
+            "text": "0,014 Sekunden",
+            "isCorrect": true
+          },
+          {
+            "text": "0.014 Sekunden",
+            "isCorrect": true
+          }
+        ],
+        "shortTextEvaluationKind": "text",
+        "shortTextMaxLength": 24,
+        "shortTextCaseSensitive": false,
+        "shortTextEvaluationMode": "exact",
+        "shortTextToleranceLevel": "none",
+        "shortTextAllowPartialCredit": false,
+        "shortTextTrimWhitespace": true,
+        "shortTextNormalizeWhitespace": true,
+        "confidenceEnabled": true,
+        "confidenceLabelLow": "Sehr unsicher",
+        "confidenceLabelHigh": "Sehr sicher"
+      },
+      {
+        "text": "### Auffällige Latenz weiter untersuchen\n\nEin einzelner Request mit 6,6 s ist laut Protokoll ein echter Störfall und kein Eingabefehler. Welchen nächsten Analyseschritt würdest du zuerst wählen? Es gibt hier keine richtige oder falsche Wahl.",
+        "type": "SURVEY",
+        "timer": null,
+        "difficulty": "MEDIUM",
+        "order": 4,
+        "answers": [
+          {
+            "text": "Den betroffenen Requestpfad im Tracing prüfen",
+            "isCorrect": false
+          },
+          {
+            "text": "Die Verteilung nach Endpunkt und Lastphase aufteilen",
+            "isCorrect": false
+          },
+          {
+            "text": "Die Kennzahlen mit und ohne Störfall gegenüberstellen",
+            "isCorrect": false
+          },
+          {
+            "text": "Die Messung unter gleichen Bedingungen wiederholen",
+            "isCorrect": false
+          }
+        ]
+      },
+      {
+        "text": "### Kennzahlen begründet auswählen\n\nWie sicher kannst du für eine rechtsschiefe Latenzverteilung begründen, wann Median und IQR sowie wann Mittelwert und Standardabweichung berichtet werden sollten?",
+        "type": "RATING",
+        "timer": null,
+        "difficulty": "MEDIUM",
+        "order": 5,
+        "answers": [],
+        "ratingMin": 1,
+        "ratingMax": 5,
+        "ratingLabelMin": "Noch keine begründete Auswahl möglich",
+        "ratingLabelMax": "Auswahl auch bei Zielkonflikten begründbar"
+      },
+      {
+        "text": "### Stichprobenstandardabweichung schätzen\n\nEine Zufallsstichprobe umfasst 25 Latenzen. Die Quadratsumme der Abweichungen vom Mittelwert beträgt 576 ms². Berechne mit n − 1 die Stichprobenstandardabweichung, runde auf eine Dezimalstelle und gib nur den Zahlenwert in ms ein.",
+        "type": "NUMERIC_ESTIMATE",
+        "timer": null,
+        "difficulty": "HARD",
+        "order": 6,
+        "answers": [],
+        "numericToleranceMode": "ABSOLUTE_INTERVAL",
+        "numericReferenceValue": 4.9,
+        "numericIntervalLeft": 4.85,
+        "numericIntervalRight": 4.95,
+        "numericInputType": "DECIMAL",
+        "numericDecimalPlaces": 1,
+        "numericMin": 0,
+        "numericMax": 20,
+        "numericTwoRounds": false,
+        "confidenceEnabled": true,
+        "confidenceLabelLow": "Sehr unsicher",
+        "confidenceLabelHigh": "Sehr sicher"
+      },
+      {
+        "text": "### Veränderungen von Streuungsmaßen zuordnen\n\nOrdne jeder Datenänderung ihre eindeutig passende Folge zu.",
+        "type": "MATCHING",
+        "timer": null,
+        "difficulty": "HARD",
+        "order": 7,
+        "answers": [],
+        "matchingPairs": [
+          {
+            "leftId": "w03-match-left-1",
+            "left": "Zu jeder Latenz werden 20 ms addiert.",
+            "rightId": "w03-match-right-1",
+            "right": "Mittelwert und Quartile steigen um 20 ms; Varianz und Standardabweichung bleiben gleich."
+          },
+          {
+            "leftId": "w03-match-left-2",
+            "left": "Jede Latenz wird mit 2 multipliziert.",
+            "rightId": "w03-match-right-2",
+            "right": "Mittelwert, IQR und Standardabweichung verdoppeln sich; die Varianz vervierfacht sich."
+          },
+          {
+            "leftId": "w03-match-left-3",
+            "left": "Das Minimum bleibt 50 ms; das Maximum steigt von 200 auf 500 ms.",
+            "rightId": "w03-match-right-3",
+            "right": "Die Spannweite steigt von 150 auf 450 ms."
+          },
+          {
+            "leftId": "w03-match-left-4",
+            "left": "Eine stetige Verteilung hat p95 = 120 ms und p99 = 600 ms.",
+            "rightId": "w03-match-right-4",
+            "right": "Etwa 4 % der Werte liegen zwischen den beiden Quantilschwellen."
+          },
+          {
+            "leftId": "w03-match-left-5",
+            "left": "Q1 bleibt 30 ms und Q3 steigt von 50 auf 70 ms.",
+            "rightId": "w03-match-right-5",
+            "right": "Der IQR steigt von 20 auf 40 ms."
+          }
+        ],
+        "matchingShuffleRight": true,
+        "confidenceEnabled": true,
+        "confidenceLabelLow": "Sehr unsicher",
+        "confidenceLabelHigh": "Sehr sicher"
+      },
+      {
+        "text": "### Ausreißergrenzen nachvollziehbar bestimmen\n\nBringe die Arbeitsschritte für die 1,5·IQR-Regel in die fachlich korrekte Reihenfolge. Verwende durchgehend dieselbe vorgegebene Quartilkonvention.",
+        "type": "ORDERING",
+        "timer": null,
+        "difficulty": "HARD",
+        "order": 8,
+        "answers": [],
+        "orderingItems": [
+          {
+            "id": "w03-order-1",
+            "text": "Beobachtungen aufsteigend sortieren"
+          },
+          {
+            "id": "w03-order-2",
+            "text": "Q1 und Q3 nach der vorgegebenen Konvention bestimmen"
+          },
+          {
+            "id": "w03-order-3",
+            "text": "Den Interquartilsabstand Q3 − Q1 berechnen"
+          },
+          {
+            "id": "w03-order-4",
+            "text": "Die Grenzen Q1 − 1,5·IQR und Q3 + 1,5·IQR berechnen"
+          },
+          {
+            "id": "w03-order-5",
+            "text": "Werte strikt außerhalb der Grenzen als auffällig markieren"
+          }
+        ],
+        "confidenceEnabled": true,
+        "confidenceLabelLow": "Sehr unsicher",
+        "confidenceLabelHigh": "Sehr sicher"
+      },
+      {
+        "text": "### Verschiebung aller Messwerte analysieren\n\nZu jeder Beobachtung eines Datensatzes werden 10 ms addiert. Ordne jede Kennzahl der richtigen Veränderung zu.",
+        "type": "CATEGORIZATION",
+        "timer": null,
+        "difficulty": "HARD",
+        "order": 9,
+        "answers": [],
+        "categories": [
+          {
+            "id": "w03-cat-shift",
+            "name": "Steigt genau um 10 ms"
+          },
+          {
+            "id": "w03-cat-same",
+            "name": "Bleibt unverändert"
+          }
+        ],
+        "categorizationItems": [
+          {
+            "id": "w03-item-mean",
+            "text": "Arithmetischer Mittelwert",
+            "correctCategoryId": "w03-cat-shift"
+          },
+          {
+            "id": "w03-item-median",
+            "text": "Median",
+            "correctCategoryId": "w03-cat-shift"
+          },
+          {
+            "id": "w03-item-q1",
+            "text": "Erstes Quartil Q1",
+            "correctCategoryId": "w03-cat-shift"
+          },
+          {
+            "id": "w03-item-q3",
+            "text": "Drittes Quartil Q3",
+            "correctCategoryId": "w03-cat-shift"
+          },
+          {
+            "id": "w03-item-range",
+            "text": "Spannweite",
+            "correctCategoryId": "w03-cat-same"
+          },
+          {
+            "id": "w03-item-iqr",
+            "text": "Interquartilsabstand",
+            "correctCategoryId": "w03-cat-same"
+          },
+          {
+            "id": "w03-item-variance",
+            "text": "Varianz",
+            "correctCategoryId": "w03-cat-same"
+          },
+          {
+            "id": "w03-item-sd",
+            "text": "Standardabweichung",
+            "correctCategoryId": "w03-cat-same"
+          }
+        ],
+        "categorizationShuffleItems": true,
+        "confidenceEnabled": true,
+        "confidenceLabelLow": "Sehr unsicher",
+        "confidenceLabelHigh": "Sehr sicher"
+      }
+    ]
+  }
+}

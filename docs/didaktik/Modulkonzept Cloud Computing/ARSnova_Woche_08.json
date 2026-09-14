@@ -1,0 +1,324 @@
+{
+  "exportVersion": 1,
+  "exportedAt": "2026-09-13T00:00:00.000Z",
+  "quiz": {
+    "name": "Cloud Computing – Woche 08: Skalierung und verteilte Systeme",
+    "description": "Zehn anspruchsvolle Live-Fragen zu Elastizität, Scale-up und Scale-out, Load Balancing, Queueing, Cache, Latenzperzentilen, Zustandsgrenzen, Lastprofilen und Graceful Degradation. Das Quiz nutzt alle zehn ARSnova-Fragetypen genau einmal.",
+    "showLeaderboard": true,
+    "allowCustomNicknames": false,
+    "defaultTimer": 60,
+    "timerScaleByDifficulty": true,
+    "enableTimerAccommodation": true,
+    "enableSoundEffects": true,
+    "enableRewardEffects": true,
+    "enableMotivationMessages": true,
+    "enableEmojiReactions": true,
+    "anonymousMode": false,
+    "teamMode": true,
+    "teamCount": 4,
+    "teamAssignment": "AUTO",
+    "teamNames": ["Apfel :apple:", "Birne :pear:", "Banane :banana:", "Apfelsine :orange:"],
+    "backgroundMusic": null,
+    "nicknameTheme": "KINDERGARTEN",
+    "bonusTokenCount": 3,
+    "readingPhaseEnabled": true,
+    "questions": [
+      {
+        "text": "### Was ist vor horizontalem Scale-out zu lösen?\n\nDer bisherige Single-Host-App-Prozess soll durch mehrere Replikate ersetzt werden. Wähle alle architektonischen Voraussetzungen, die aus den dokumentierten Zustandsgrenzen folgen.",
+        "type": "MULTIPLE_CHOICE",
+        "timer": null,
+        "difficulty": "HARD",
+        "order": 0,
+        "answers": [
+          {
+            "text": "Session-Signale müssen relevante Replikate instanzübergreifend erreichen.",
+            "isCorrect": true
+          },
+          {
+            "text": "WebSocket- und Yjs-Verbindungen benötigen eine eindeutige Routing- oder Zuständigkeitsstrategie.",
+            "isCorrect": true
+          },
+          {
+            "text": "Prozesslokale Schutzlimits werden durch einen Load Balancer automatisch global.",
+            "isCorrect": false
+          },
+          {
+            "text": "Ein zweites Replikat macht Failover- und Reconnect-Tests entbehrlich.",
+            "isCorrect": false
+          }
+        ],
+        "confidenceEnabled": true,
+        "confidenceLabelLow": "Sehr unsicher",
+        "confidenceLabelHigh": "Sehr sicher"
+      },
+      {
+        "text": "### Was zeigt die verschlechterte Tail-Latenz?\n\nNach einer Optimierung sinkt das 50. Perzentil (p50) von 120 ms auf 90 ms, während das 99. Perzentil (p99) unter derselben Last von 900 ms auf 2.400 ms steigt und die Fehlerrate zunimmt. Welche Diagnose ist am belastbarsten?",
+        "type": "SINGLE_CHOICE",
+        "timer": null,
+        "difficulty": "HARD",
+        "order": 1,
+        "answers": [
+          {
+            "text": "Die Nutzererfahrung hat sich insgesamt verbessert, weil nur der Median entscheidend ist.",
+            "isCorrect": false
+          },
+          {
+            "text": "Der typische Fall wurde schneller, aber Tail-Latenz und Stabilität haben sich verschlechtert.",
+            "isCorrect": true
+          },
+          {
+            "text": "Der Durchsatz ist zwangsläufig gestiegen, weil p50 niedriger gemessen wurde.",
+            "isCorrect": false
+          },
+          {
+            "text": "Die Fehlerrate ist für die Bewertung irrelevant, solange p50 unter 100 ms liegt.",
+            "isCorrect": false
+          }
+        ],
+        "confidenceEnabled": true,
+        "confidenceLabelLow": "Sehr unsicher",
+        "confidenceLabelHigh": "Sehr sicher"
+      },
+      {
+        "text": "### Wie heißt der kontrollierte Gegendruck?\n\nEine Queue erreicht ihre sichere Grenze. Produzenten werden gedrosselt oder Anfragen früh abgewiesen, statt unbegrenzt Arbeit und Speicher anzuhäufen. Nenne den Fachbegriff.",
+        "type": "SHORT_TEXT",
+        "timer": null,
+        "difficulty": "HARD",
+        "order": 2,
+        "answers": [
+          {
+            "text": "Backpressure",
+            "isCorrect": true
+          },
+          {
+            "text": "Back Pressure",
+            "isCorrect": true
+          },
+          {
+            "text": "Rückstaukontrolle",
+            "isCorrect": true
+          },
+          {
+            "text": "Gegendruck",
+            "isCorrect": true
+          }
+        ],
+        "shortTextEvaluationKind": "text",
+        "shortTextMaxLength": 32,
+        "shortTextCaseSensitive": false,
+        "shortTextEvaluationMode": "exact",
+        "shortTextToleranceLevel": "none",
+        "shortTextAllowPartialCredit": false,
+        "shortTextTrimWhitespace": true,
+        "shortTextNormalizeWhitespace": true,
+        "confidenceEnabled": true,
+        "confidenceLabelLow": "Sehr unsicher",
+        "confidenceLabelHigh": "Sehr sicher"
+      },
+      {
+        "text": "### Welcher erfolgreiche Durchsatz bleibt?\n\nEin Test sendet in sechs Minuten 2.400 Anfragen. 2,5 % schlagen fehl. Wie viele erfolgreiche Anfragen pro Minute wurden im Mittel verarbeitet?",
+        "type": "NUMERIC_ESTIMATE",
+        "timer": null,
+        "difficulty": "HARD",
+        "order": 3,
+        "answers": [],
+        "numericToleranceMode": "ABSOLUTE_INTERVAL",
+        "numericReferenceValue": 390,
+        "numericIntervalLeft": 389.5,
+        "numericIntervalRight": 390.5,
+        "numericInputType": "INTEGER",
+        "numericDecimalPlaces": 0,
+        "numericMin": 0,
+        "numericMax": 400,
+        "numericTwoRounds": true,
+        "confidenceEnabled": true,
+        "confidenceLabelLow": "Sehr unsicher",
+        "confidenceLabelHigh": "Sehr sicher"
+      },
+      {
+        "text": "### Ordne Messgröße und Aussage zu\n\nOrdne jeder Messgröße die Aussage zu, die sie im Lastbericht tatsächlich stützt.",
+        "type": "MATCHING",
+        "timer": null,
+        "difficulty": "HARD",
+        "order": 4,
+        "answers": [],
+        "matchingPairs": [
+          {
+            "leftId": "w08-match-left-1",
+            "left": "p50-Latenz",
+            "rightId": "w08-match-right-1",
+            "right": "typische Hälfte der beobachteten Antwortzeiten"
+          },
+          {
+            "leftId": "w08-match-left-2",
+            "left": "95. Perzentil der Latenz",
+            "rightId": "w08-match-right-2",
+            "right": "Schwelle, unter der 95 Prozent der beobachteten Zeiten liegen"
+          },
+          {
+            "leftId": "w08-match-left-3",
+            "left": "p99-Latenz",
+            "rightId": "w08-match-right-3",
+            "right": "Tail-Verhalten nahe dem langsamsten Prozent"
+          },
+          {
+            "leftId": "w08-match-left-4",
+            "left": "Durchsatz",
+            "rightId": "w08-match-right-4",
+            "right": "abgeschlossene Arbeit pro Zeiteinheit"
+          },
+          {
+            "leftId": "w08-match-left-5",
+            "left": "Fehlerrate",
+            "rightId": "w08-match-right-5",
+            "right": "Anteil nicht erfolgreich verarbeiteter Operationen"
+          }
+        ],
+        "matchingShuffleRight": true,
+        "confidenceEnabled": true,
+        "confidenceLabelLow": "Sehr unsicher",
+        "confidenceLabelHigh": "Sehr sicher"
+      },
+      {
+        "text": "### Bringe einen belastbaren Lasttest in Reihenfolge\n\nOrdne die Schritte so, dass ein Messwert nicht ohne Umgebung, Fehlergrenze oder Abbruchweg interpretiert wird.",
+        "type": "ORDERING",
+        "timer": null,
+        "difficulty": "HARD",
+        "order": 5,
+        "answers": [],
+        "orderingItems": [
+          {
+            "id": "w08-order-1",
+            "text": "Hypothese, Systemgrenze, Service Level Indicator (SLI), Service Level Objective (SLO) und Lastprofil festlegen"
+          },
+          {
+            "id": "w08-order-2",
+            "text": "Version, Umgebung, Datenbasis und Ressourcen unveränderlich dokumentieren"
+          },
+          {
+            "id": "w08-order-3",
+            "text": "Warm-up, Messfenster, Telemetrie und Abbruchkriterien konfigurieren"
+          },
+          {
+            "id": "w08-order-4",
+            "text": "Test kontrolliert ausführen und Rohdaten samt Fehlern erfassen"
+          },
+          {
+            "id": "w08-order-5",
+            "text": "Latenzverteilung, Durchsatz, Fehlerrate, Sättigung und Degradation auswerten"
+          },
+          {
+            "id": "w08-order-6",
+            "text": "Messung wiederholen und Gültigkeitsgrenze sowie Entscheidung dokumentieren"
+          }
+        ],
+        "confidenceEnabled": true,
+        "confidenceLabelLow": "Sehr unsicher",
+        "confidenceLabelHigh": "Sehr sicher"
+      },
+      {
+        "text": "### Klassifiziere Skalierungs- und Resilienzmaßnahmen\n\nOrdne jede Maßnahme nach ihrem primären Wirkprinzip im beschriebenen System.",
+        "type": "CATEGORIZATION",
+        "timer": null,
+        "difficulty": "HARD",
+        "order": 6,
+        "answers": [],
+        "categories": [
+          {
+            "id": "w08-cat-vertical",
+            "name": "Vertikale Skalierung"
+          },
+          {
+            "id": "w08-cat-horizontal",
+            "name": "Horizontale Skalierung"
+          },
+          {
+            "id": "w08-cat-degrade",
+            "name": "Graceful Degradation"
+          }
+        ],
+        "categorizationItems": [
+          {
+            "id": "w08-item-1",
+            "text": "Einem bestehenden App-Knoten mehr CPU und RAM zuweisen",
+            "correctCategoryId": "w08-cat-vertical"
+          },
+          {
+            "id": "w08-item-2",
+            "text": "Die Datenbank-VM auf schnellere lokale Ressourcen verschieben",
+            "correctCategoryId": "w08-cat-vertical"
+          },
+          {
+            "id": "w08-item-3",
+            "text": "Mehrere App-Replikate hinter einem Lastverteiler betreiben",
+            "correctCategoryId": "w08-cat-horizontal"
+          },
+          {
+            "id": "w08-item-4",
+            "text": "Arbeit auf mehrere gleichartige Queue-Worker verteilen",
+            "correctCategoryId": "w08-cat-horizontal"
+          },
+          {
+            "id": "w08-item-5",
+            "text": "Bei Inferenz-Timeout sofort die lexikalische Wortwolke anzeigen",
+            "correctCategoryId": "w08-cat-degrade"
+          },
+          {
+            "id": "w08-item-6",
+            "text": "Bei Sättigung optionale Effekte abschalten und Kernpfade erhalten",
+            "correctCategoryId": "w08-cat-degrade"
+          }
+        ],
+        "categorizationShuffleItems": true,
+        "confidenceEnabled": true,
+        "confidenceLabelLow": "Sehr unsicher",
+        "confidenceLabelHigh": "Sehr sicher"
+      },
+      {
+        "text": "### Warum sind 100 × 50 und 1 × 5.000 verschieden?\n\nFormuliere zwei technische Gründe, weshalb viele kleine Sessions trotz gleicher Gesamtzahl ein anderes Last- und Fehlerprofil erzeugen als ein einzelner Fan-out-Hotspot.",
+        "type": "FREETEXT",
+        "timer": null,
+        "difficulty": "MEDIUM",
+        "order": 7,
+        "answers": []
+      },
+      {
+        "text": "### Welche Gegenhypothese soll zuerst getestet werden?\n\nUnter Last steigen Queue-Latenz, Cache-Misses, CPU-Auslastung und WebSocket-Reconnects gleichzeitig. Welche Ursache soll die Gruppe zuerst mit einem isolierenden Versuch prüfen? Es gibt keine Musterlösung.",
+        "type": "SURVEY",
+        "timer": null,
+        "difficulty": "MEDIUM",
+        "order": 8,
+        "answers": [
+          {
+            "text": "Die Queue-Kapazität und Ankunftsrate bei konstantem Modelltempo isolieren",
+            "isCorrect": false
+          },
+          {
+            "text": "Die Cache-Wirkung mit fixiertem Snapshot und Modellstand isolieren",
+            "isCorrect": false
+          },
+          {
+            "text": "Die CPU-Sättigung ohne optionale Inferenzlast isolieren",
+            "isCorrect": false
+          },
+          {
+            "text": "Das Reconnect-Verhalten bei unverändertem HTTP-Durchsatz isolieren",
+            "isCorrect": false
+          }
+        ]
+      },
+      {
+        "text": "### Wie sicher kannst du Skalierungsevidenz beurteilen?\n\nBewerte, wie sicher du Scale-up, Scale-out, Queueing, Tail-Latenz, prozesslokale Grenzen, Lastprofile und Graceful Degradation gemeinsam analysieren kannst.",
+        "type": "RATING",
+        "timer": null,
+        "difficulty": "MEDIUM",
+        "order": 9,
+        "answers": [],
+        "ratingMin": 1,
+        "ratingMax": 5,
+        "ratingLabelMin": "Noch nicht evidenzbasiert analysierbar",
+        "ratingLabelMax": "Sicher evidenzbasiert analysierbar"
+      }
+    ]
+  }
+}

@@ -1,0 +1,585 @@
+{
+  "meta": {
+    "title": "Cloud Computing – MC-Test Woche 2: Virtualisierung, Infrastructure as Code (IaC), Domain Name System (DNS) und Transport Layer Security (TLS)",
+    "target_audience": "Bachelorstudierende der Informatik und Wirtschaftsinformatik im Modul Cloud Computing",
+    "question_count": 30,
+    "difficulty_profile": { "leicht": 0, "mittel": 12, "schwer": 18 },
+    "time_per_weight_minutes": { "1": 0.5, "2": 0.75, "3": 1.0 },
+    "additional_buffer_minutes": 5,
+    "test_duration_minutes": 32,
+    "language": "de",
+    "updated": "2026-09-13"
+  },
+  "questions": [
+    {
+      "question": "1. Ein Host startet vier Gastbetriebssysteme und weist jedem eine getrennte Sicht auf Prozessorzeit, Arbeitsspeicher und Geräte zu. Welche Komponente schafft diese Grenze primär?",
+      "options": [
+        "Ein Resolver übersetzt Gastnamen in Adressen und isoliert dadurch die physischen Prozessoren.",
+        "Ein Hypervisor vermittelt physische Ressourcen und kapselt die virtuellen Maschinen gegeneinander.",
+        "Ein Image-Builder paketiert Anwendungen und erzeugt dadurch getrennte virtuelle Hardware.",
+        "Ein Load Balancer verteilt Anfragen und weist dadurch jedem Gast eigenen Arbeitsspeicher zu."
+      ],
+      "answer": 1,
+      "explanation": "Der Hypervisor abstrahiert Prozessor, Speicher und Geräte und weist sie kontrolliert getrennten virtuellen Maschinen zu. Namensauflösung, Image-Build und Anfragenverteilung schaffen diese Gastgrenze nicht.",
+      "weight": 2,
+      "topic": "Virtualisierung",
+      "concept": "Rolle des Hypervisors",
+      "cognitive_level": "Verständnis",
+      "mini_glossary": {
+        "Hypervisor": "Softwareschicht zur Bereitstellung und Isolation virtueller Maschinen.",
+        "Virtuelle Maschine": "Abstrahierte Rechnerumgebung mit eigenem Gastbetriebssystem."
+      }
+    },
+    {
+      "question": "2. Welche Aussage beschreibt die wichtigste Kernelgrenze zwischen einer typischen virtuellen Maschine (VM) und einem typischen Container?",
+      "options": [
+        "Die VM teilt zwingend den Host-Kernel, während jeder Container einen eigenen Gast-Kernel startet.",
+        "Die VM besitzt einen Gast-Kernel, während Container gewöhnlich den Kernel des Hosts teilen.",
+        "VM und Container besitzen immer denselben Kernel und unterscheiden sich nur im Dateiformat.",
+        "VM und Container verzichten beide auf Kernel und führen Anwendungen direkt auf dem Prozessor aus."
+      ],
+      "answer": 1,
+      "explanation": "Eine VM enthält üblicherweise ein eigenes Gastbetriebssystem mit eigenem Kernel; Container isolieren Prozesse bei gemeinsamem Host-Kernel. Daraus folgen unterschiedliche Isolation, Startkosten und Fehlergrenzen.",
+      "weight": 2,
+      "topic": "Virtualisierung",
+      "concept": "Gast-Kernel gegenüber gemeinsamem Host-Kernel",
+      "cognitive_level": "Verständnis",
+      "mini_glossary": {
+        "Gast-Kernel": "Kernel des Betriebssystems innerhalb einer virtuellen Maschine.",
+        "Host-Kernel": "Kernel des zugrunde liegenden Betriebssystems, den Container gemeinsam verwenden."
+      }
+    },
+    {
+      "question": "3. Ein Snapshot einer laufenden Datenbank-VM erfasst den virtuellen Datenträger, koordiniert aber weder Datenbank noch Arbeitsspeicher. Welche Aussage zur Wiederherstellung ist tragfähig?",
+      "options": [
+        "Der Snapshot ist anwendungskonsistent, weil der Hypervisor jeden offenen Datenbankvorgang fachlich abschließt.",
+        "Der Snapshot ist höchstens crash-konsistent; Datenbankkoordination und ein Restore-Test bleiben erforderlich.",
+        "Der Snapshot enthält nur Konfigurationsdateien, weil virtuelle Datenträger nicht im laufenden Betrieb erfasst werden.",
+        "Der Snapshot beseitigt Hostausfälle, wenn er auf demselben physischen Datenträger wie die VM gespeichert wird."
+      ],
+      "answer": 1,
+      "explanation": "Ohne anwendungsseitige Koordination bildet ein Datenträgersnapshot höchstens einen abrupten Ausfall ab. Ob Transaktionsprotokoll und Datenbankzustand daraus korrekt wiederherstellbar sind, muss ein Restore-Test belegen.",
+      "weight": 2,
+      "topic": "Virtualisierung",
+      "concept": "Crash-konsistenter VM-Snapshot",
+      "cognitive_level": "Verständnis",
+      "mini_glossary": {
+        "Crash-Konsistenz": "Zustand, der einem abrupten Ausfall ohne geordnetes Herunterfahren entspricht.",
+        "Anwendungskonsistenz": "Von der Anwendung koordinierter Zustand mit fachlich vollständigen Schreibvorgängen."
+      }
+    },
+    {
+      "question": "4. Warum beweist der Einsatz virtueller Maschinen allein noch kein Cloud Computing?",
+      "options": [
+        "Weil virtuelle Maschinen ausschließlich auf lokalen Laptops und nie in Rechenzentren laufen können.",
+        "Weil Cloud Computing physische Server voraussetzt und keine Abstraktionsschicht verwenden darf.",
+        "Weil Virtualisierung jede Nutzungsmetrik verhindert und deshalb Measured Service ausschließt.",
+        "Weil Self-Service, Pooling, Elastizität, Netzzugang und Messbarkeit zusätzlich belegt werden müssen."
+      ],
+      "answer": 3,
+      "explanation": "Virtualisierung ist eine mögliche technologische Voraussetzung, aber nicht die vollständige Cloud-Definition. Die Betriebsfähigkeiten müssen separat beobachtbar sein; eine VM kann ebenso in statischem Hosting eingesetzt werden.",
+      "weight": 2,
+      "topic": "Virtualisierung",
+      "concept": "Virtualisierung als Voraussetzung, nicht Definition",
+      "cognitive_level": "Verständnis",
+      "mini_glossary": {
+        "Cloud-Merkmal": "Beobachtbare Eigenschaft eines Cloud-Bereitstellungsmodells.",
+        "Abstraktion": "Vereinfachte Ressourcensicht über einer konkreten technischen Umsetzung."
+      }
+    },
+    {
+      "question": "5. Zwei VMs teilen einen physischen Host. Unter Last steigt die Input/Output-Latenz (I/O-Latenz) nur dann stark, wenn der Nachbarworkload aktiv ist. Welche nächste Prüfung ist am aussagekräftigsten?",
+      "options": [
+        "Den DNS-Namen der langsamen VM ändern und dieselbe Last ohne Messung wiederholen",
+        "Das Gastbetriebssystem neu benennen und die gemessenen Latenzen anschließend mitteln",
+        "Die VM auf derselben Hardware vergrößern und die Nachbarlast als unveränderlich annehmen",
+        "Nachbarlast kontrolliert variieren und Host-I/O, Limits sowie Gastlatenzen zeitgleich erfassen"
+      ],
+      "answer": 3,
+      "explanation": "Ein kontrollierter Vergleich mit synchronen Host- und Gastmetriken kann Ressourcenkonkurrenz als Ursache stützen oder widerlegen. Umbenennung und unkontrolliertes Vergrößern trennen den vermuteten Einfluss nicht.",
+      "weight": 2,
+      "topic": "Virtualisierung",
+      "concept": "Noisy-Neighbor-Diagnose",
+      "cognitive_level": "Anwendung",
+      "mini_glossary": {
+        "Noisy Neighbor": "Workload, der gemeinsam genutzte Ressourcen zulasten anderer Workloads beansprucht.",
+        "I/O-Latenz": "Zeit zwischen einer Ein-/Ausgabeanforderung und ihrer Bearbeitung."
+      }
+    },
+    {
+      "question": "6. Ein Produktionscontainer wird nach dem Start interaktiv gepatcht. Beim nächsten Neustart ist die Änderung verschwunden. Welche Betriebsregel hätte den Fehler verhindert?",
+      "options": [
+        "Jeder Container muss dauerhaft denselben Prozess und dieselbe Container-ID behalten.",
+        "Jeder Patch muss ausschließlich in einem unversionierten Volume abgelegt werden.",
+        "Jeder Neustart muss das bewegliche Basisimage erneut aus dem Internet laden.",
+        "Änderungen müssen in einem neuen geprüften Image gebaut und unveränderlich ausgerollt werden."
+      ],
+      "answer": 3,
+      "explanation": "Containerinstanzen sind austauschbare Laufzeiteinheiten; dauerhafte Softwareänderungen gehören in den reproduzierbaren Image-Build. Interaktive Mutation erzeugt nicht dokumentierten Drift und überlebt Ersetzung nicht zuverlässig.",
+      "weight": 2,
+      "topic": "Container und Images",
+      "concept": "Unveränderliche Image-Auslieferung",
+      "cognitive_level": "Anwendung",
+      "mini_glossary": {
+        "Image": "Versioniertes Laufzeitartefakt aus schreibgeschützten Dateisystemschichten.",
+        "Drift": "Unbeabsichtigte Abweichung einer Laufzeitumgebung vom deklarierten Zustand."
+      }
+    },
+    {
+      "question": "7. Ein Deployment referenziert `app:latest`. Derselbe Compose-Stand zieht an zwei Tagen unterschiedliche Bytes. Welche Änderung verbessert die Reproduzierbarkeit am stärksten?",
+      "options": [
+        "Den Tag `latest` häufiger abrufen, damit alle Hosts möglichst schnell wechseln",
+        "Das Image nach jedem Start im Container sichern und als lokale Kopie umbenennen",
+        "Das freigegebene Image über einen unveränderlichen Digest referenzieren",
+        "Die Container-ID in der Dokumentation festhalten und bei jedem Host wiederverwenden"
+      ],
+      "answer": 2,
+      "explanation": "Ein Digest identifiziert den konkreten Imageinhalt, während ein Tag auf andere Inhalte verschoben werden kann. Container-IDs sind Laufzeitkennungen und ersetzen keine überprüfbare Artefaktreferenz.",
+      "weight": 2,
+      "topic": "Container und Images",
+      "concept": "Digest-Pinning statt beweglichem Tag",
+      "cognitive_level": "Anwendung",
+      "mini_glossary": {
+        "Digest": "Kryptografischer Inhaltsbezeichner eines unveränderlichen Artefakts.",
+        "Tag": "Veränderlicher menschenlesbarer Verweis auf eine Imageversion."
+      }
+    },
+    {
+      "question": "8. Warum nutzt ein Dockerfile häufig getrennte Build- und Produktionsstufen?",
+      "options": [
+        "Damit das Produktionsimage zusätzlich alle Compiler, Tests und Quellarchive dauerhaft enthält",
+        "Damit beide Stufen auf verschiedenen Programmiersprachen ohne gemeinsame Artefakte beruhen",
+        "Damit Buildwerkzeuge getrennt bleiben und nur benötigte Laufzeitartefakte übernommen werden",
+        "Damit der laufende Container seine Anwendung bei jeder Anfrage erneut kompilieren kann"
+      ],
+      "answer": 2,
+      "explanation": "Ein Multi-Stage-Build hält Compiler und Entwicklungsabhängigkeiten aus dem Produktionsimage heraus und kopiert gezielt die erzeugten Artefakte. Das reduziert Größe und Angriffsfläche, ohne Laufzeitkompilierung zu verlangen.",
+      "weight": 2,
+      "topic": "Container und Images",
+      "concept": "Multi-Stage-Build",
+      "cognitive_level": "Anwendung",
+      "mini_glossary": {
+        "Build-Stufe": "Imagephase zum Kompilieren, Testen oder Erzeugen von Artefakten.",
+        "Produktionsstufe": "Minimale Laufzeitphase mit den für den Betrieb benötigten Bestandteilen."
+      }
+    },
+    {
+      "question": "9. Ein Team behandelt Containerisolation wie eine vollständige VM-Sicherheitsgrenze. Welche Korrektur ist erforderlich?",
+      "options": [
+        "Container entsprechen einer VM-Grenze, sobald Prozesse ohne Root-Rechte gestartet werden.",
+        "Container teilen typischerweise den Host-Kernel; Rechte, Seccomp, Capabilities und Hostschutz bleiben entscheidend.",
+        "Der gemeinsame Kernel beeinflusst Ressourcensteuerung, bildet aber keine zusätzliche Sicherheitsgrenze.",
+        "Eine geprüfte Imagesignatur ersetzt die Laufzeitkontrollen für Kernelzugriffe und Privilegien."
+      ],
+      "answer": 1,
+      "explanation": "Namespaces und Kontrollgruppen isolieren Prozesse, doch der gemeinsam genutzte Kernel bleibt eine zentrale Vertrauensgrenze. Zusätzliche Laufzeitkontrollen und ein gehärteter Host sind daher weiterhin notwendig.",
+      "weight": 2,
+      "topic": "Container und Images",
+      "concept": "Container als geteilte Kernelgrenze",
+      "cognitive_level": "Anwendung",
+      "mini_glossary": {
+        "Capability": "Feingranulares Linux-Kernelrecht, das Prozessen einzeln entzogen werden kann.",
+        "Seccomp": "Filtermechanismus zur Begrenzung erlaubter Systemaufrufe."
+      }
+    },
+    {
+      "question": "10. arsnova.eu verwendet für App und Worker für Portable Document Format (PDF) dieselbe freigegebene Image-Referenz, aber unterschiedliche Entrypoints und Laufzeitrechte. Welcher Vorteil folgt daraus?",
+      "options": [
+        "Beide Container besitzen automatisch denselben Netzwerkzugriff und dieselben Secrets.",
+        "Beide Container führen gleichzeitig denselben Prozess mit derselben Prozesskennung (PID) aus.",
+        "Beide Container teilen ein schreibbares Root-Dateisystem und damit alle Laufzeitänderungen.",
+        "Beide Rollen basieren auf demselben gebauten Artefakt, während ihre Ausführung getrennt gehärtet wird."
+      ],
+      "answer": 3,
+      "explanation": "Eine identische Digest-Referenz verbindet beide Rollen mit demselben geprüften Build. Entrypoint, Netzwerk, Volumes und Rechte können dennoch je Dienst enger gesetzt werden; Gleichheit des Images bedeutet keine Gleichheit der Laufzeitprivilegien.",
+      "weight": 2,
+      "topic": "Container und Images",
+      "concept": "Gemeinsames Artefakt bei getrennter Laufzeitrolle",
+      "cognitive_level": "Anwendung",
+      "mini_glossary": {
+        "Entrypoint": "Beim Containerstart festgelegtes ausführbares Programm.",
+        "Laufzeitrolle": "Konkrete Aufgabe und Berechtigung eines gestarteten Containers."
+      }
+    },
+    {
+      "question": "11. Welche Fähigkeit unterscheidet einen Cluster-Orchestrator am deutlichsten von einer einfachen Single-Host-Compose-Datei?",
+      "options": [
+        "Er kann Umgebungsvariablen als Zeichenketten an einen Prozess übergeben.",
+        "Er kann mehrere Container in einem gemeinsamen deklarativen Dokument benennen.",
+        "Er kann Images aus einer Registry laden und einen Prozess daraus starten.",
+        "Er gleicht Replikate und Platzierung fortlaufend mit einem gewünschten Clusterzustand ab."
+      ],
+      "answer": 3,
+      "explanation": "Orchestrierung umfasst die kontinuierliche Reconciliation von Replikaten, Platzierung und Ausfällen über einen Cluster. Deklaration und Image-Start sind auch auf einem Einzelhost möglich und belegen diese Steuerung nicht.",
+      "weight": 2,
+      "topic": "Orchestrierung und IaC",
+      "concept": "Reconciliation im Cluster",
+      "cognitive_level": "Anwendung",
+      "mini_glossary": {
+        "Reconciliation": "Fortlaufender Abgleich von Ist- und Sollzustand.",
+        "Replikat": "Eine von mehreren gleichartig vorgesehenen Dienstinstanzen."
+      }
+    },
+    {
+      "question": "12. Nach dem Absturz einer Instanz startet die Plattform automatisch ein Ersatzreplikat, weil drei Replikate deklariert sind. Welches Prinzip ist sichtbar?",
+      "options": [
+        "Ein Controller stellt den gewünschten Zustand durch fortlaufenden Abgleich wieder her.",
+        "Ein DNS-Server kompiliert das Containerimage bei jedem Namensaufruf neu.",
+        "Ein Blockspeicher erhöht die Replikatzahl anhand der Dateisystembelegung.",
+        "Ein TLS-Zertifikat autorisiert den Ersatzprozess als unveränderte Anwendung."
+      ],
+      "answer": 0,
+      "explanation": "Ein Controller erkennt die Abweichung zwischen zwei laufenden und drei gewünschten Replikaten und erzeugt Ersatz. Dieses Sollzustandsprinzip ist unabhängig von DNS, TLS und dem verwendeten Speichertyp.",
+      "weight": 2,
+      "topic": "Orchestrierung und IaC",
+      "concept": "Selbstheilung aus deklarativem Sollzustand",
+      "cognitive_level": "Anwendung",
+      "mini_glossary": {
+        "Sollzustand": "Deklarierte Zielkonfiguration, die ein Controller erreichen soll.",
+        "Controller": "Komponente, die Istzustand beobachtet und Korrekturaktionen auslöst."
+      }
+    },
+    {
+      "question": "13. Ein Administrator ändert eine Firewallregel manuell, ohne den IaC-Code anzupassen. Beim nächsten Lauf wird die Änderung zurückgesetzt. Welche Diagnose ist korrekt?",
+      "options": [
+        "Es entstand Konfigurationsdrift; Code und tatsächlicher Zustand müssen bewusst abgeglichen werden.",
+        "Es entstand DNS-Propagation; die Regel wird nach Ablauf der Cache-Laufzeit automatisch gültig.",
+        "Es entstand Image-Layering; die Regel muss in eine schreibbare Containerschicht kopiert werden.",
+        "Es entstand Autoscaling; die Regel wurde wegen sinkender Anfragerate planmäßig entfernt."
+      ],
+      "answer": 0,
+      "explanation": "Die manuelle Abweichung vom versionierten Sollzustand ist Drift. Ein IaC-Lauf kann sie korrigieren, doch das Team muss entscheiden, ob die Änderung unerlaubt war oder in den Code übernommen werden soll.",
+      "weight": 3,
+      "topic": "Orchestrierung und IaC",
+      "concept": "Drift zwischen Code und Laufzeit",
+      "cognitive_level": "Analyse",
+      "mini_glossary": {
+        "Infrastructure as Code": "Versionierte Beschreibung und automatisierte Bereitstellung von Infrastruktur.",
+        "Konfigurationsdrift": "Abweichung des realen Zustands von der autoritativen Deklaration."
+      }
+    },
+    {
+      "question": "14. Ein IaC-Plan zeigt wegen einer umbenannten Ressource »löschen und neu anlegen« für eine produktive Datenbank. Was ist vor der Freigabe am wichtigsten?",
+      "options": [
+        "Die Ausgabe ignorieren, weil deklarative Werkzeuge grundsätzlich keine Datenressourcen löschen können",
+        "Die Ressource sofort ersetzen, weil gleiche Konfigurationswerte automatisch einen verlustfreien Transfer garantieren",
+        "Identitätsänderung, Zustandszuordnung, Datenmigration, Backup und Abbruchweg gezielt prüfen",
+        "Die Planansicht abschalten, damit der tatsächliche Lauf die passende Operation selbst auswählen kann"
+      ],
+      "answer": 2,
+      "explanation": "Eine Ressourcenidentität kann trotz ähnlicher Attribute eine destruktive Ersetzung auslösen. Vor der Freigabe müssen State-Mapping, Datenpfad, Backup und Rollback geklärt sein; Deklarativität ist kein Löschschutz.",
+      "weight": 3,
+      "topic": "Orchestrierung und IaC",
+      "concept": "Destruktive IaC-Planänderung",
+      "cognitive_level": "Analyse",
+      "mini_glossary": {
+        "IaC-State": "Zuordnung zwischen deklarierten Ressourcen und realen Providerobjekten.",
+        "Ersetzung": "Löschen einer Ressource und Anlegen einer neuen Ressource an ihrer Stelle."
+      }
+    },
+    {
+      "question": "15. Ein Skript legt bei jedem Lauf eine weitere Firewallregel mit neuer ID an. Welche Überarbeitung verbessert die Wiederholbarkeit?",
+      "options": [
+        "Die neue ID zufälliger wählen, damit parallele Läufe seltener denselben Wert verwenden",
+        "Die vorhandenen Regeln vor jedem Lauf vollständig löschen und unbesehen neu erzeugen",
+        "Einen gewünschten Regelzustand mit stabiler Identität deklarieren und Abweichungen abgleichen",
+        "Jeden Lauf manuell protokollieren und die wachsende Zahl gleichartiger Regeln akzeptieren"
+      ],
+      "answer": 2,
+      "explanation": "Eine stabile Ressourcenidentität und Sollzustandsprüfung machen wiederholte Läufe idempotent. Zufallskennungen oder pauschales Löschen verlagern das Problem und können zusätzliche Sicherheits- oder Verfügbarkeitsfolgen erzeugen.",
+      "weight": 3,
+      "topic": "Orchestrierung und IaC",
+      "concept": "Idempotente Ressourcenverwaltung",
+      "cognitive_level": "Analyse",
+      "mini_glossary": {
+        "Idempotenz": "Eigenschaft, bei gleicher Eingabe durch Wiederholung keinen weiteren Effekt zu erzeugen.",
+        "Ressourcenidentität": "Stabile Zuordnung eines Codeobjekts zu einer realen Infrastrukturressource."
+      }
+    },
+    {
+      "question": "16. Eine Datenbank benötigt ein eingebundenes Dateisystem mit niedriger Latenz und blockweisem Zugriff. Welche Speicherart passt zunächst am besten?",
+      "options": [
+        "Block Storage, der als Datenträger an die Instanz angebunden und formatiert wird",
+        "Object Storage, der Daten über Objektschlüssel statt über einen lokalen Blockzugriff bereitstellt",
+        "File Storage, der ein gemeinsam eingehängtes Netzdateisystem für mehrere Clients bereitstellt",
+        "Lokaler Instanzspeicher, dessen Lebensdauer an die konkrete Recheninstanz gekoppelt bleibt"
+      ],
+      "answer": 0,
+      "explanation": "Block Storage stellt blockweisen Datenträgerzugriff bereit und kann ein Dateisystem für eine Datenbank tragen. Objektspeicher besitzt eine andere Zugriffssemantik und ist nicht ohne weitere Architekturänderung ein lokaler Datenbankdatenträger.",
+      "weight": 3,
+      "topic": "Speicher und Zustände",
+      "concept": "Block Storage für Datenbankdateisysteme",
+      "cognitive_level": "Analyse",
+      "mini_glossary": {
+        "Block Storage": "Speicher, der einer Instanz als blockadressierbarer Datenträger bereitsteht.",
+        "Dateisystem": "Struktur zur Organisation von Dateien auf einem blockorientierten Medium."
+      }
+    },
+    {
+      "question": "17. Große unveränderliche Exporte sollen per Schlüssel abgelegt, über das Hypertext Transfer Protocol (HTTP) abgerufen und unabhängig von einzelnen VMs bestehen bleiben. Welche Speicherart ist am geeignetsten?",
+      "options": [
+        "Geteiltes File Storage, das für jeden Export einen Dateipfad nach Portable Operating System Interface (POSIX) voraussetzt",
+        "Object Storage, weil Objekte über Schlüssel adressiert und vom VM-Lebenszyklus entkoppelt werden",
+        "Block Storage, das als exklusiv eingebundener Datenträger an eine einzelne VM gekoppelt wird",
+        "Relationale Datenbankablage, die jede Binärdatei zusammen mit allen Anwendungszeilen speichert"
+      ],
+      "answer": 1,
+      "explanation": "Object Storage eignet sich für schlüsseladressierte, VM-unabhängige Dateien und Exporte. Datei-, Block- oder Datenbankablage kann technisch funktionieren, bringt für diesen Zugriff aber zusätzliche Kopplung und Betriebsanforderungen mit.",
+      "weight": 3,
+      "topic": "Speicher und Zustände",
+      "concept": "Objektspeicher für langlebige Exporte",
+      "cognitive_level": "Analyse",
+      "mini_glossary": {
+        "Object Storage": "Speicher für über Schlüssel und Schnittstellen adressierte Objekte.",
+        "Lebenszyklusentkopplung": "Fortbestand von Daten unabhängig vom Austausch einer Recheninstanz."
+      }
+    },
+    {
+      "question": "18. Eine Anwendung schreibt Uploads ausschließlich in das schreibbare Dateisystem ihres Containers. Nach einem Rollout fehlen die Dateien. Welche Ursache ist am wahrscheinlichsten?",
+      "options": [
+        "Der Load Balancer hat die Dateien wegen eines abgelaufenen TLS-Zertifikats gelöscht",
+        "Der DNS-Resolver hat die Dateipfade auf eine neue Internet-Protocol-Adresse (IP-Adresse) umgeschrieben",
+        "Die Daten lagen im kurzlebigen Instanz-Layer statt in einem vorgesehenen persistenten Speicher",
+        "Der Hypervisor hat die Uploads in unveränderliche Image-Layer zurückkompiliert"
+      ],
+      "answer": 2,
+      "explanation": "Der schreibbare Container-Layer gehört zur austauschbaren Instanz und ist kein verlässlicher Persistenzort. Ein Rollout ersetzt den Container; Uploads benötigen ein explizites Volume oder einen externen Speicherdienst.",
+      "weight": 3,
+      "topic": "Speicher und Zustände",
+      "concept": "Flüchtiger Container-Layer",
+      "cognitive_level": "Analyse",
+      "mini_glossary": {
+        "Container-Layer": "Schreibbare Laufzeitschicht einer konkreten Containerinstanz.",
+        "Persistenter Speicher": "Speicher, dessen Daten den Lebenszyklus einer Instanz überdauern."
+      }
+    },
+    {
+      "question": "19. Ein Team kopiert ein aktives Datenbankvolume dateiweise, während Schreibvorgänge weiterlaufen. Warum ist das Backup riskant?",
+      "options": [
+        "Die kopierten Dateien können unterschiedliche Transaktionszeitpunkte abbilden und dadurch inkonsistent sein.",
+        "Ein Dateibackup verschlüsselt automatisch alle Daten und verhindert deshalb jeden späteren Restore.",
+        "Ein aktives Volume wird durch Lesen zwangsläufig gelöscht und kann nicht mehr weiterverwendet werden.",
+        "Die Dateireihenfolge bestimmt die DNS-Auflösung und kann dadurch den Datenbankhost umbenennen."
+      ],
+      "answer": 0,
+      "explanation": "Während fortlaufender Schreibvorgänge kann eine naive Dateikopie keinen konsistenten Datenbankzeitpunkt repräsentieren. Ein datenbankgerechtes Backup oder ein koordinierter Snapshot muss Transaktionssemantik und Restore berücksichtigen.",
+      "weight": 3,
+      "topic": "Speicher und Zustände",
+      "concept": "Konsistentes Datenbankbackup",
+      "cognitive_level": "Analyse",
+      "mini_glossary": {
+        "Konsistenzpunkt": "Zeitpunkt, zu dem zusammengehörige Daten einen gültigen Gesamtzustand bilden.",
+        "Snapshot": "Zeitpunktbezogene Abbildung eines Speicherzustands."
+      }
+    },
+    {
+      "question": "20. Mehrere App-Instanzen müssen dieselben erzeugten Dateien lesen und schreiben. Welche Entscheidung ist gegenüber lokalen Platten am tragfähigsten?",
+      "options": [
+        "Jede Instanz erhält eine lokale Kopie, die erst beim nächsten Deployment abgeglichen wird.",
+        "Ein geteilter Datei- oder Objektspeicher wird mit passender Konsistenz- und Zugriffssemantik gewählt.",
+        "Ein Blockvolume wird ohne geprüften Multi-Attach-Vertrag gleichzeitig schreibbar an alle Instanzen gebunden.",
+        "Die erzeugten Dateien werden bei jedem Build in ein neues unveränderliches App-Image aufgenommen."
+      ],
+      "answer": 1,
+      "explanation": "Gemeinsamer Zugriff benötigt einen externen Speichervertrag mit definierter Konsistenz, Autorisierung und Konfliktbehandlung. Lokale Kopien, ungeprüftes Multi-Attach und Image-Neubauten erfüllen den laufenden Schreibvertrag nicht zuverlässig.",
+      "weight": 3,
+      "topic": "Speicher und Zustände",
+      "concept": "Geteilter Speicher bei mehreren Instanzen",
+      "cognitive_level": "Analyse",
+      "mini_glossary": {
+        "Konsistenzsemantik": "Garantie darüber, wann Schreibungen für andere Leser sichtbar werden.",
+        "Geteilter Speicher": "Von mehreren Recheninstanzen erreichbarer gemeinsamer Datenbestand."
+      }
+    },
+    {
+      "question": "21. Nach einer DNS-Umstellung erreichen einige Clients noch die alte Internet-Protocol-Adresse (IP-Adresse). Die konfigurierte Time to Live (TTL) ist noch nicht abgelaufen. Welche Erklärung ist am plausibelsten?",
+      "options": [
+        "TLS verschiebt IP-Adressen zufällig zwischen Zertifikaten mit gleichem Hostnamen.",
+        "Resolver und Clients halten den früheren Eintrag bis zum Ablauf ihrer Cache-Laufzeit.",
+        "Der Load Balancer kompiliert für jede Anfrage eine andere Version der Anwendung.",
+        "Die Firewall erzeugt aus abgewiesenen Paketen automatisch alte DNS-Antworten."
+      ],
+      "answer": 1,
+      "explanation": "DNS-Antworten werden gemäß ihrer TTL zwischengespeichert, sodass eine Änderung während des Übergangs unterschiedlich sichtbar sein kann. TLS und Firewall erzeugen keine alten Namensauflösungen.",
+      "weight": 3,
+      "topic": "Netzwerk und DNS",
+      "concept": "DNS-Cache während einer Umstellung",
+      "cognitive_level": "Analyse",
+      "mini_glossary": {
+        "TTL": "Zeitspanne, für die ein DNS-Eintrag zwischengespeichert werden darf.",
+        "Resolver": "Dienst, der Namen durch Abfragen und Caching in Adressen auflöst."
+      }
+    },
+    {
+      "question": "22. Ein DNS-Eintrag zeigt korrekt auf den neuen Server, doch der Browser meldet einen Zertifikatsnamenfehler. Welche Diagnose trennt die Schichten richtig?",
+      "options": [
+        "Die Namensauflösung funktioniert; Zertifikat, Hostname und TLS-Terminierung müssen separat geprüft werden.",
+        "Die Namensauflösung muss korrigiert werden, weil sie zugleich den gültigen Zertifikatsnamen festlegt.",
+        "Der Zertifikatsfehler kann ignoriert werden, wenn die Zieladresse aus einem autoritativen DNS stammt.",
+        "Die HTTP-Route muss geändert werden, weil Zertifikate erst nach dem Anwendungsrouting geprüft werden."
+      ],
+      "answer": 0,
+      "explanation": "DNS bestimmt die Zieladresse, validiert aber nicht die Identität im Zertifikat. Ein korrekter Adressdatensatz kann daher mit einer fehlerhaften TLS-Konfiguration zusammenfallen.",
+      "weight": 3,
+      "topic": "Netzwerk und DNS",
+      "concept": "Trennung von Namensauflösung und TLS",
+      "cognitive_level": "Analyse",
+      "mini_glossary": {
+        "Namensauflösung": "Übersetzung eines Hostnamens in eine Netzwerkadresse.",
+        "Zertifikatsname": "Im Zertifikat ausgewiesener DNS-Name, für den die Identität bestätigt wird."
+      }
+    },
+    {
+      "question": "23. In `docker-compose.prod.yml` sind die arsnova.eu-App-Ports an `127.0.0.1` gebunden. Welche Sicherheitswirkung ist beabsichtigt?",
+      "options": [
+        "Die Ports werden aus externen Netzen direkt erreichbar, sobald die Container ihre Healthchecks bestehen.",
+        "Nur lokale Hostprozesse wie Nginx erreichen die Ports unmittelbar; externer Verkehr nimmt den Proxy-Einstieg.",
+        "Die Bindung verschlüsselt den internen Pfad und ersetzt dadurch die TLS-Terminierung am Proxy.",
+        "Die Bindung autorisiert jeden lokalen Hostprozess automatisch für alle App-Funktionen."
+      ],
+      "answer": 1,
+      "explanation": "Eine Bindung an die Host-Loopback-Adresse verhindert den direkten externen Zugriff auf diese Ports. Der vorgesehene öffentliche Pfad führt über Nginx, das TLS und Reverse-Proxy-Aufgaben übernimmt.",
+      "weight": 3,
+      "topic": "Netzwerk und DNS",
+      "concept": "Loopback-Bindung hinter Reverse Proxy",
+      "cognitive_level": "Analyse",
+      "mini_glossary": {
+        "Loopback": "Nur auf dem lokalen Host erreichbare Netzschnittstelle.",
+        "Reverse Proxy": "Vorgelagerter Dienst, der externe Anfragen an interne Ziele weiterleitet."
+      }
+    },
+    {
+      "question": "24. HTTP-Anfragen funktionieren über Nginx, aber WebSocket-Verbindungen brechen bereits beim Handshake ab. Welche Konfiguration ist zuerst zu prüfen?",
+      "options": [
+        "Ob das Datenbankvolume genügend freie Blöcke für den WebSocket-Handshake besitzt",
+        "Ob das Containerimage einen DNS-Server in jeder schreibgeschützten Schicht enthält",
+        "Ob der Hypervisor dem Browser einen eigenen virtuellen Prozessor zugewiesen hat",
+        "Ob der Proxy Upgrade-Header und die dauerhafte Verbindung zum richtigen WebSocket-Ziel weiterleitet"
+      ],
+      "answer": 3,
+      "explanation": "WebSocket beginnt als HTTP-Upgrade und benötigt eine passende Proxyweiterleitung samt Zielport und Verbindungsheadern. Erfolgreiches normales HTTP belegt diesen gesonderten Upgradepfad nicht.",
+      "weight": 3,
+      "topic": "Netzwerk und DNS",
+      "concept": "WebSocket-Upgrade am Reverse Proxy",
+      "cognitive_level": "Analyse",
+      "mini_glossary": {
+        "WebSocket-Upgrade": "HTTP-Handshake zum Wechsel auf eine dauerhafte bidirektionale Verbindung.",
+        "Upgrade-Header": "HTTP-Felder, die den gewünschten Protokollwechsel signalisieren."
+      }
+    },
+    {
+      "question": "25. Ein Provisioning-Agent darf Pakete nur aus freigegebenen Repositories beziehen. Welche Netzmaßnahme unterstützt diese Grenze am direktesten?",
+      "options": [
+        "Ausgehende Verbindungen auf notwendige Ziele und Ports beschränken und Ablehnungen protokollieren",
+        "Alle ausgehenden Verbindungen öffnen und nur eingehenden HTTP-Verkehr blockieren",
+        "Jede DNS-Antwort akzeptieren und TLS-Prüfungen für schnellere Downloads deaktivieren",
+        "Dem Agenten ein zweites Administratorkonto ohne Netzwerkprotokollierung bereitstellen"
+      ],
+      "answer": 0,
+      "explanation": "Eine Egress-Allowlist begrenzt erreichbare Ziele und macht unerwartete Verbindungsversuche sichtbar. Offener Egress oder abgeschaltete TLS-Prüfung vergrößert dagegen Supply-Chain- und Datenabflussrisiken.",
+      "weight": 3,
+      "topic": "Netzwerk und DNS",
+      "concept": "Egress-Begrenzung für Agenten",
+      "cognitive_level": "Analyse",
+      "mini_glossary": {
+        "Egress": "Ausgehender Netzwerkverkehr aus einer Umgebung.",
+        "Allowlist": "Positivliste der ausdrücklich erlaubten Ziele oder Aktionen."
+      }
+    },
+    {
+      "question": "26. Hinter einem Load Balancer terminieren zwei Knoten TLS. Nach einer Zertifikatsrotation zeigt nur jeder zweite Verbindungsaufbau das neue Zertifikat. Welche Behebung ist korrekt?",
+      "options": [
+        "Nur den DNS-Eintrag des aktualisierten Knotens ändern und beide Terminierungsknoten aktiv lassen",
+        "Den privaten Schlüssel in die App-Container kopieren und am Load Balancer das alte Zertifikat belassen",
+        "Die Zertifikatsprüfung während der Rotation für alle Clients vorübergehend deaktivieren",
+        "Das neue Zertifikat auf jedem Terminierungsknoten laden und jeden Zielpfad vor Ablauf des alten prüfen"
+      ],
+      "answer": 3,
+      "explanation": "Die wechselnde Zertifikatsansicht zeigt einen uneinheitlichen Zustand der Terminierungsknoten. Eine sichere Rotation verteilt und prüft das neue Zertifikat auf jedem aktiven Ziel, ohne die Clientprüfung abzuschalten.",
+      "weight": 3,
+      "topic": "TLS und Load Balancing",
+      "concept": "Konsistente TLS-Zertifikatsrotation",
+      "cognitive_level": "Analyse",
+      "mini_glossary": {
+        "TLS-Terminierung": "Endpunkt, der die verschlüsselte Verbindung annimmt und das Zertifikat präsentiert.",
+        "Zertifikatsrotation": "Kontrollierter Austausch eines Zertifikats vor dessen Ablauf."
+      }
+    },
+    {
+      "question": "27. TLS endet am Load Balancer; die Verbindung zur App läuft in einem privaten Netz unverschlüsselt. Welche Architekturaussage ist notwendig?",
+      "options": [
+        "Die Vertrauensgrenze verschiebt sich zum Load Balancer und der interne Pfad muss bewusst bewertet werden.",
+        "Die Verbindung ist Ende-zu-Ende verschlüsselt, weil der Browser am Einstieg ein gültiges Zertifikat sah.",
+        "Die App besitzt automatisch denselben privaten Schlüssel wie der Load Balancer und terminiert TLS erneut.",
+        "Das private Netz macht Autorisierung und Netzwerksegmentierung grundsätzlich überflüssig."
+      ],
+      "answer": 0,
+      "explanation": "Bei TLS-Terminierung am Load Balancer liegt Klartext auf dem nachgelagerten Pfad vor, sofern kein Re-Encryption erfolgt. Damit werden Load Balancer und internes Netz Teil der Vertrauensgrenze und benötigen passende Kontrollen.",
+      "weight": 3,
+      "topic": "TLS und Load Balancing",
+      "concept": "Vertrauensgrenze nach TLS-Terminierung",
+      "cognitive_level": "Analyse",
+      "mini_glossary": {
+        "Re-Encryption": "Erneute TLS-Verschlüsselung vom Proxy zum nachgelagerten Dienst.",
+        "Vertrauensgrenze": "Übergang, an dem Schutzannahmen oder kontrollierende Parteien wechseln."
+      }
+    },
+    {
+      "question": "28. Drei App-Instanzen stehen im Load-Balancer-Pool; eine liefert Fehler, gilt aber weiterhin als gesund. Etwa jede dritte Anfrage scheitert. Welche Maßnahme adressiert die Ursache?",
+      "options": [
+        "Die DNS-TTL verlängern, damit Clients die fehlerhafte Instanz länger direkt zwischenspeichern",
+        "Die TLS-Schlüssellänge reduzieren, damit alle Instanzen schneller Zertifikate aushandeln",
+        "Einen fachlich aussagekräftigen Healthcheck verwenden und fehlerhafte Ziele aus dem Pool nehmen",
+        "Alle Instanzen in denselben Container verschieben, damit der Load Balancer nur ein Ziel erkennt"
+      ],
+      "answer": 2,
+      "explanation": "Der Load Balancer routet weiterhin zu einem fachlich defekten Ziel, weil der Healthcheck den Fehler nicht erkennt. Ein passender Readiness- oder Healthcheck muss die Instanz aus der Rotation entfernen, ohne das Problem zu verstecken.",
+      "weight": 3,
+      "topic": "TLS und Load Balancing",
+      "concept": "Healthcheck-gesteuerte Zielauswahl",
+      "cognitive_level": "Analyse",
+      "mini_glossary": {
+        "Backend-Pool": "Menge der Ziele, auf die ein Load Balancer Verkehr verteilen kann.",
+        "Readiness": "Aussage, ob eine Instanz aktuell produktiven Verkehr verarbeiten kann."
+      }
+    },
+    {
+      "question": "29. Nach dem Hinzufügen eines Load Balancers werden Sessions weiterhin im Prozessspeicher gehalten. Warum ist horizontale Skalierung noch nicht belegt?",
+      "options": [
+        "Weil der Load Balancer den Prozesszustand bei jeder neuen Verbindung zwischen Instanzen repliziert",
+        "Weil Session Affinity den Zustand auch nach Ausfall der zugeordneten Instanz verfügbar hält",
+        "Weil Verbindungsrouting, geteilter Zustand, Reconnect und Ausfall einer Instanz weiterhin geklärt werden müssen",
+        "Weil derselbe Session-Code den fehlenden Prozesszustand auf jeder Instanz automatisch rekonstruiert"
+      ],
+      "answer": 2,
+      "explanation": "Ein Load Balancer verteilt Verbindungen, synchronisiert aber keinen prozesslokalen Zustand. Ohne Routing- oder Externalisierungsstrategie können Nutzer nach Reconnect oder Instanzausfall einen anderen, unvollständigen Zustand treffen.",
+      "weight": 3,
+      "topic": "TLS und Load Balancing",
+      "concept": "Load Balancer ohne geteilten Zustand",
+      "cognitive_level": "Analyse",
+      "mini_glossary": {
+        "Prozesszustand": "Nur im Arbeitsspeicher einer konkreten laufenden Instanz gehaltener Zustand.",
+        "Session Affinity": "Routingstrategie, die zusammengehörige Anfragen bevorzugt derselben Instanz zuordnet."
+      }
+    },
+    {
+      "question": "30. Vier Instanzen tragen im Test je 100 Anfragen pro Sekunde. Im Betrieb erhält eine Instanz wegen ungleicher Verteilung 55 % von insgesamt 300 Anfragen pro Sekunde. Welche Bewertung ist korrekt?",
+      "options": [
+        "Das System besitzt 400 Anfragen pro Sekunde sichere Kapazität, weil Einzelwerte unabhängig von Verteilung addiert werden.",
+        "Die Last ist sicher, weil 300 kleiner als 400 ist und deshalb keine Instanz mehr als 100 erhalten kann.",
+        "Die ungleich belastete Instanz erhält 165 Anfragen pro Sekunde; Verteilung und Engpass müssen korrigiert werden.",
+        "Die ungleich belastete Instanz erhält 75 Anfragen pro Sekunde; vier Instanzen teilen jede Last automatisch gleich."
+      ],
+      "answer": 2,
+      "explanation": "55 Prozent von 300 ergeben 165 Anfragen pro Sekunde und überschreiten den gemessenen Einzelwert. Summierte Nennkapazität gilt nur unter passenden Verteilungs-, Reserve- und Downstream-Annahmen.",
+      "weight": 3,
+      "topic": "TLS und Load Balancing",
+      "concept": "Kapazitätsfolge ungleicher Lastverteilung",
+      "cognitive_level": "Analyse",
+      "mini_glossary": {
+        "Lastverteilung": "Zuordnung eingehender Arbeit zu mehreren ausführenden Instanzen.",
+        "Engpass": "Komponente, deren begrenzte Kapazität den Gesamtdurchsatz bestimmt."
+      }
+    }
+  ]
+}

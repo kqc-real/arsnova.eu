@@ -1,0 +1,623 @@
+{
+  "meta": {
+    "title": "Cloud Computing – MC-Test Woche 12: Kumulative Cloud-Synthese und Verteidigung",
+    "target_audience": "Bachelorstudierende der Informatik und Wirtschaftsinformatik im Modul Cloud Computing",
+    "question_count": 30,
+    "difficulty_profile": {
+      "leicht": 0,
+      "mittel": 12,
+      "schwer": 18
+    },
+    "time_per_weight_minutes": {
+      "1": 0.5,
+      "2": 0.75,
+      "3": 1.0
+    },
+    "additional_buffer_minutes": 5,
+    "test_duration_minutes": 32,
+    "language": "de",
+    "updated": "2026-09-13"
+  },
+  "questions": [
+    {
+      "question": "1. Infrastructure as a Service (IaaS), Platform as a Service (PaaS) und Software as a Service (SaaS) sind unterschiedliche Service-Modelle. Ein Dienst stellt Ressourcen per API selbstbedient bereit, bündelt Kapazität mandantenfähig, skaliert rasch und misst die Nutzung. Welche Einordnung ist am stärksten gestützt?",
+      "options": [
+        "Der Dienst erfüllt zentrale Cloud-Merkmale unabhängig davon, ob er als IaaS, PaaS oder SaaS angeboten wird.",
+        "Der Dienst ist zwingend SaaS, weil jede Nutzung über ein Netzwerk erfolgt.",
+        "Der Dienst ist kein Cloud Computing, solange die Hardware in einem privaten Rechenzentrum steht.",
+        "Der Dienst ist zwingend Serverless, weil die Nutzung gemessen und automatisch skaliert wird."
+      ],
+      "answer": 0,
+      "explanation": "Selbstbedienung, breiter Netzzugang, Ressourcenpooling, schnelle Elastizität und messbare Nutzung charakterisieren Cloud Computing. Sie bestimmen weder automatisch Service- noch Deployment-Modell und verlangen keine Public Cloud oder Serverless-Ausführung.",
+      "weight": 2,
+      "topic": "Cloud-Grundlagen und Service-Modelle",
+      "concept": "Cloud-Merkmale",
+      "cognitive_level": "Verständnis",
+      "mini_glossary": {
+        "On-demand Self-service": "Selbstständige Bereitstellung von Ressourcen ohne manuelle Anbieterinteraktion.",
+        "Resource Pooling": "Gemeinsame dynamische Zuteilung eines Ressourcenpools.",
+        "Measured Service": "Messung und transparente Zuordnung der Ressourcennutzung."
+      }
+    },
+    {
+      "question": "2. Eine Organisation möchte Anwendungscode deployen, aber Betriebssystem und Laufzeitplattform nicht selbst patchen. Welches Service-Modell passt am ehesten?",
+      "options": [
+        "IaaS, weil der Kunde dort nur den Anwendungscode verantwortet",
+        "SaaS, weil der Kunde dort eigenen Anwendungscode auf die Plattform deployt",
+        "Colocation, weil der Anbieter dort Betriebssystem und Laufzeit verwaltet",
+        "PaaS, weil der Anbieter Infrastruktur und Laufzeit betreibt, der Kunde aber Anwendung und Daten verantwortet"
+      ],
+      "answer": 3,
+      "explanation": "PaaS abstrahiert typischerweise Infrastruktur, Betriebssystem und Laufzeit, lässt aber Anwendung und Daten im Kundenbereich. IaaS überlässt mehr Plattformbetrieb, SaaS bietet eine fertige Anwendung, und Colocation ist kein entsprechendes Cloud-Service-Modell.",
+      "weight": 2,
+      "topic": "Cloud-Grundlagen und Service-Modelle",
+      "concept": "PaaS-Verantwortungsgrenze",
+      "cognitive_level": "Verständnis",
+      "mini_glossary": {
+        "IaaS": "Cloudmodell mit virtualisierten Infrastrukturressourcen.",
+        "PaaS": "Cloudmodell mit verwalteter Anwendungsplattform und Laufzeit.",
+        "SaaS": "Nutzung einer vollständig bereitgestellten Anwendung."
+      }
+    },
+    {
+      "question": "3. Warum belegt der dokumentierte Single-Host-Compose-Betrieb von arsnova.eu allein noch keine Cloud-Elastizität?",
+      "options": [
+        "Weil Elastizität erst beim Betrieb in mindestens zwei geografisch getrennten Regionen vorliegt",
+        "Weil eine Containerdefinition noch keine mandantenfähige Abrechnung der Ressourcennutzung enthält",
+        "Weil zunächst die vertikale Reserve des vorhandenen Hosts vollständig ausgeschöpft werden müsste",
+        "Weil ein fester Host ohne nachgewiesene dynamische Ressourcenanpassung die schnelle Elastizität nicht zeigt"
+      ],
+      "answer": 3,
+      "explanation": "Container und Hosting können Bausteine einer Cloudlösung sein, belegen aber nicht automatisch dynamische Bereitstellung und Freigabe von Kapazität. Entscheidend ist das nachgewiesene Ressourcenverhalten, nicht ein Produktname oder die Tabellenmenge.",
+      "weight": 3,
+      "topic": "Cloud-Grundlagen und Service-Modelle",
+      "concept": "Hosting versus Elastizität",
+      "cognitive_level": "Anwendung",
+      "mini_glossary": {
+        "Elastizität": "Schnelle Anpassung bereitgestellter Ressourcen an den Bedarf.",
+        "Hosting": "Betrieb einer Anwendung auf externer oder eigener Infrastruktur.",
+        "Docker Compose": "Deklaration und gemeinsamer Betrieb mehrerer Containerdienste."
+      }
+    },
+    {
+      "question": "4. Für Financial Operations (FinOps) sollen Service Level Indicator (SLI) und Service Level Objective (SLO) mit der Nutzung verbunden werden. Welche Architekturentscheidung nutzt Measured Service fachlich statt nur zur Rechnungsstellung?",
+      "options": [
+        "Nutzung, Latenz und Fehler werden je definierter Einheit gemessen und mit SLO sowie Unit Costs verknüpft.",
+        "Jeder Dienst erhält ein fixes Monatsbudget; tatsächliche Nutzung und Leistung werden getrennt berichtet.",
+        "Instanzstunden und Auslastung werden gemessen, während fachliche Ergebnisse außerhalb der Messgrenze bleiben.",
+        "Anbietermessdaten werden monatlich importiert, ohne eigene Leistungseinheiten oder Zielwerte festzulegen."
+      ],
+      "answer": 0,
+      "explanation": "Measured Service ermöglicht Transparenz über Verbrauch und Leistung. Die Verbindung mit fachlicher Einheit, Zuverlässigkeit und Kosten macht Skalierungs- und FinOps-Entscheidungen prüfbar; reine Pauschalen oder Ressourcenbestände genügen dafür nicht.",
+      "weight": 2,
+      "topic": "Cloud-Grundlagen und Service-Modelle",
+      "concept": "Measured Service für SLO und FinOps",
+      "cognitive_level": "Anwendung",
+      "mini_glossary": {
+        "SLI": "Gemessene Diensteigenschaft aus Nutzer- oder Betriebssicht.",
+        "SLO": "Zielwert eines SLI über ein festgelegtes Fenster.",
+        "Unit Cost": "Zurechenbare Kosten je fachlich definierter Einheit."
+      }
+    },
+    {
+      "question": "5. Ein SaaS-Anbieter verschlüsselt Datenträger und patcht die Plattform. Welche Verantwortung bleibt bei der nutzenden Organisation?",
+      "options": [
+        "Die Konfiguration und Prüfung der physischen Zugangskontrolle im Rechenzentrum des Anbieters",
+        "Die Auswahl und Einspielung der Firmware für die Speichersysteme des Anbieters",
+        "Die Sicherstellung der globalen Verfügbarkeit aller vom Anbieter beworbenen Regionen",
+        "Die geeignete Konfiguration von Identitäten, Datenfreigaben, Aufbewahrung und Nutzung"
+      ],
+      "answer": 3,
+      "explanation": "Auch bei SaaS bleiben Kundenentscheidungen zu Konten, Berechtigungen, Inhalten und Lebenszyklus der eigenen Daten bestehen. Physische Infrastruktur und globale Plattformtechnik liegen typischerweise beim Anbieter.",
+      "weight": 2,
+      "topic": "Cloud-Grundlagen und Service-Modelle",
+      "concept": "Geteilte Verantwortung bei SaaS",
+      "cognitive_level": "Anwendung",
+      "mini_glossary": {
+        "Shared Responsibility": "Aufteilung von Sicherheits- und Betriebsaufgaben zwischen Anbieter und Kunde.",
+        "Datenfreigabe": "Regelung, wer auf Daten zugreifen oder sie weitergeben darf.",
+        "Aufbewahrung": "Festgelegte Dauer und Löschung gespeicherter Daten."
+      }
+    },
+    {
+      "question": "6. Welche Aussage zur Portabilität eines Containerimages ist korrekt?",
+      "options": [
+        "Ein portables Image überträgt die beschriebenen Identitäts-, Netz-, Storage- und Observability-Regeln zwischen Providern.",
+        "Ein portables Image erleichtert den Laufzeitwechsel, ersetzt aber nicht die Portierung umgebender Plattformverträge.",
+        "Ein portables Image kann Infrastructure as Code (IaC) ersetzen, wenn die Zielumgebung denselben Containervertrag unterstützt.",
+        "Ein portables Image liefert auf derselben Prozessorarchitektur und Instanzklasse eine übertragbare Performanceaussage."
+      ],
+      "answer": 1,
+      "explanation": "Das Image kapselt Anwendung und Laufzeitbestandteile, nicht alle externen Plattformdienste und Betriebsverträge. Identitäts- und Zugriffsverwaltung, Netz, Daten, Telemetrie, Architektur und Performance müssen separat beschrieben und geprüft werden.",
+      "weight": 2,
+      "topic": "Container, IaC und Serverless",
+      "concept": "Grenzen der Containerportabilität",
+      "cognitive_level": "Verständnis",
+      "mini_glossary": {
+        "Containerimage": "Unveränderliches Paket aus Anwendung und Laufzeitdateien.",
+        "Portabilität": "Fähigkeit, eine Lösung mit vertretbarem Aufwand in eine andere Umgebung zu übertragen.",
+        "Plattformvertrag": "Technische Semantik einer externen Fähigkeit wie Identitätsverwaltung, Netzwerk oder Storage."
+      }
+    },
+    {
+      "question": "7. Eine Umgebung wurde zunächst per Infrastructure as Code (IaC) erstellt, später aber mehrfach manuell verändert. Welches Vorgehen erkennt und behebt Configuration Drift am besten?",
+      "options": [
+        "Die manuellen Schritte als Betriebshandbuch sammeln und die deklarative Quelle unverändert lassen.",
+        "Die Snapshots der laufenden Umgebung als neue Quelle verwenden und den bisherigen Code archivieren.",
+        "Ist-Zustand gegen den versionierten Plan vergleichen, Abweichungen entscheiden und die deklarative Quelle kontrolliert anwenden.",
+        "Den aktuellen Ist-Zustand vollständig in die deklarative Quelle übernehmen und anschließend neu planen."
+      ],
+      "answer": 2,
+      "explanation": "Drift wird durch den Vergleich von deklarierter Quelle und realem Zustand sichtbar. Abweichungen müssen fachlich bewertet und anschließend reproduzierbar aufgelöst werden; weder Chatnotiz, Snapshot-only noch blindes Übernehmen erhält eine verlässliche Source of Truth.",
+      "weight": 3,
+      "topic": "Container, IaC und Serverless",
+      "concept": "IaC und Configuration Drift",
+      "cognitive_level": "Anwendung",
+      "mini_glossary": {
+        "Infrastructure as Code": "Versionierte deklarative Beschreibung von Infrastruktur.",
+        "Configuration Drift": "Unbeabsichtigte Abweichung zwischen Soll- und Ist-Konfiguration.",
+        "Plan": "Vorschau der durch IaC vorgesehenen Änderungen."
+      }
+    },
+    {
+      "question": "8. Welcher Workload ist der plausibelste Kandidat für Function as a Service (FaaS)?",
+      "options": [
+        "Eine dauerhaft verbundene Yjs-Relay-Instanz mit lokalem Raumzustand",
+        "Ein WebSocket-Gateway mit unbestimmter Verbindungsdauer und Prozessaffinität",
+        "Ein kurzer idempotenter Webhook-Handler mit externem Zustand und klarer Laufzeitgrenze",
+        "Ein In-Memory-Cache, der zwischen beliebigen Aufrufen konsistent erhalten bleiben muss"
+      ],
+      "answer": 2,
+      "explanation": "Kurze, ereignisgetriggerte und zustandsarme Arbeit passt gut zu FaaS. Langlebige Verbindungen, Prozessaffinität und zwingender lokaler Dauerzustand kollidieren typischerweise mit Instanzlebenszyklus und Laufzeitgrenzen.",
+      "weight": 2,
+      "topic": "Container, IaC und Serverless",
+      "concept": "FaaS-Eignung",
+      "cognitive_level": "Anwendung",
+      "mini_glossary": {
+        "FaaS": "Ausführung kurzlebiger Funktionen als verwalteter Cloudservice.",
+        "idempotent": "Bei Wiederholung mit derselben Eingabe ohne zusätzliche fachliche Wirkung.",
+        "Trigger": "Ereignis, das eine Funktion startet."
+      }
+    },
+    {
+      "question": "9. Ein Serverless-Handler zeigt nach längerer Inaktivität deutlich höhere p95-Latenz. Welche Hypothese sollte zuerst geprüft werden?",
+      "options": [
+        "Vertikale Skalierung der relationalen Datenbank bei jeder Anfrage",
+        "Cold Starts durch Initialisierung neuer oder reaktivierter Funktionsinstanzen",
+        "Automatische Umwandlung des Handlers in einen langlebigen Container",
+        "Fehlende Verschlüsselung des Object Storage im Ruhezustand"
+      ],
+      "answer": 1,
+      "explanation": "Längere Inaktivität mit anschließender Initialisierung passt zu Cold-Start-Latenz. Datenbankskalierung, Containerumwandlung oder Storage-Verschlüsselung folgen aus dem Muster nicht und benötigen eigene Evidenz.",
+      "weight": 2,
+      "topic": "Container, IaC und Serverless",
+      "concept": "Cold-Start-Diagnose",
+      "cognitive_level": "Anwendung",
+      "mini_glossary": {
+        "Cold Start": "Initialisierungszeit einer neu gestarteten Funktionsinstanz.",
+        "p95-Latenz": "Latenzwert, den 95 Prozent der Messungen nicht überschreiten.",
+        "Inaktivität": "Zeitraum ohne auslösende Requests oder Events."
+      }
+    },
+    {
+      "question": "10. Eine FaaS-Funktion muss Retries sicher verarbeiten. Wo sollte fachlicher Zustand liegen?",
+      "options": [
+        "In globalen Variablen der zuletzt verwendeten Instanz mit periodischem Speicherabbild",
+        "Im temporären Dateisystem einer warmen Instanz mit bevorzugter Wiederverwendung",
+        "Im Speicher des Clients mit Retry-ID, aber ohne serverseitige Konsistenzregel",
+        "In einem externen dauerhaften Dienst mit idempotenter Schreib- oder Deduplizierungslogik"
+      ],
+      "answer": 3,
+      "explanation": "Funktionsinstanzen sind austauschbar und können Events mehrfach erhalten. Externer Zustand mit Idempotenz oder Deduplizierung erhält Konsistenz; lokaler Speicher und Clientzustand sind für verbindliche Retry-Semantik ungeeignet.",
+      "weight": 3,
+      "topic": "Container, IaC und Serverless",
+      "concept": "Zustand und Idempotenz in FaaS",
+      "cognitive_level": "Analyse",
+      "mini_glossary": {
+        "Retry": "Wiederholung einer Verarbeitung nach Fehler oder Timeout.",
+        "Idempotenz": "Gleiche fachliche Wirkung trotz wiederholter Ausführung.",
+        "Deduplizierung": "Erkennung und Unterdrückung mehrfach verarbeiteter Ereignisse."
+      }
+    },
+    {
+      "question": "11. Welche Zuordnung entspricht der dokumentierten arsnova.eu-Architektur?",
+      "options": [
+        "PostgreSQL hält persistente Domänendaten; Redis dient flüchtigen Laufzeitdaten, Limits und TTL-Zuständen.",
+        "Redis hält Quiz- und Sessiondaten dauerhaft; PostgreSQL speichert historische Betriebslogs.",
+        "IndexedDB synchronisiert die Local-First-Quizsammlung; PostgreSQL repliziert die Browsercaches.",
+        "Yjs speichert kollaborative Quizdaten und übernimmt Admin-, Session- und Rate-Limit-Zustände."
+      ],
+      "answer": 0,
+      "explanation": "PostgreSQL und Redis haben verschiedene Zustandsrollen, während Yjs/IndexedDB die Local-First-Quizsammlung im Browser trägt. Keine dieser Technologien ersetzt pauschal alle anderen Persistenz- und Laufzeitaufgaben.",
+      "weight": 2,
+      "topic": "Daten, Storage und Recovery",
+      "concept": "Persistente und flüchtige Zustände",
+      "cognitive_level": "Verständnis",
+      "mini_glossary": {
+        "Persistenz": "Erhalt von Daten über Prozess- und Systemneustarts.",
+        "TTL": "Zeit bis zum automatischen Ablauf eines Datensatzes.",
+        "Local-First": "Primäre Datenhaltung und Arbeitsfähigkeit auf dem Endgerät."
+      }
+    },
+    {
+      "question": "12. Ein Backupjob endet täglich erfolgreich. Welche zusätzliche Evidenz ist nötig, bevor Wiederherstellbarkeit behauptet wird?",
+      "options": [
+        "Eine größere Zahl gespeicherter Snapshots ohne Löschkonzept",
+        "Ein zweites Dashboard mit derselben Backup-Erfolgsmetrik",
+        "Eine Herstellerzusage, dass das Dateiformat grundsätzlich lesbar ist",
+        "Ein Restore in eine frische Umgebung mit Prüfung von Zeit, Datenverlust und Integrität"
+      ],
+      "answer": 3,
+      "explanation": "Nur ein ausgeführter Restore zeigt, ob Artefakte vollständig, lesbar und rechtzeitig nutzbar sind. Mehr Kopien, duplizierte Metriken oder allgemeine Formatversprechen belegen den konkreten Recovery-Pfad nicht.",
+      "weight": 2,
+      "topic": "Daten, Storage und Recovery",
+      "concept": "Restore als Backup-Nachweis",
+      "cognitive_level": "Anwendung",
+      "mini_glossary": {
+        "Backup": "Gesicherte Kopie für spätere Wiederherstellung.",
+        "Restore": "Rückführung gesicherter Daten in eine nutzbare Zielumgebung.",
+        "Integrität": "Vollständigkeit und Unverfälschtheit wiederhergestellter Daten."
+      }
+    },
+    {
+      "question": "13. Ein System sichert alle 24 Stunden und benötigt im Restore-Test drei Stunden bis zur Nutzbarkeit. Welche Aussage zu Recovery Point Objective (RPO) und Recovery Time Objective (RTO) ist ohne weitere Mechanismen gedeckt?",
+      "options": [
+        "RPO: höchstens drei Stunden; RTO: höchstens drei Stunden.",
+        "RPO: null Stunden; RTO: höchstens 24 Stunden.",
+        "RPO: höchstens drei Stunden; RTO: höchstens 24 Stunden.",
+        "RPO: bis nahe 24 Stunden; gemessener RTO-Kandidat: drei Stunden."
+      ],
+      "answer": 3,
+      "explanation": "Die Wiederherstellungsdauer liefert Evidenz für einen RTO-Kandidaten, während der Sicherungsabstand den möglichen Datenverlust bestimmt. Ein erfolgreicher Tagesbackupzyklus erzeugt weder RPO null noch vertauschte Zeitziele.",
+      "weight": 3,
+      "topic": "Daten, Storage und Recovery",
+      "concept": "RPO und RTO aus einem Recovery-Szenario",
+      "cognitive_level": "Anwendung",
+      "mini_glossary": {
+        "RPO": "Maximal tolerierter Datenverlust als Zeitspanne.",
+        "RTO": "Zielzeit bis zur Wiederherstellung der Leistung.",
+        "Sicherungsintervall": "Zeitabstand zwischen zwei Backups."
+      }
+    },
+    {
+      "question": "14. Ein Cloud-Dienst für Machine Learning (ML) soll Themen aus Q&A-Beiträgen bilden. Welche Datenstrategie minimiert Privacy- und Egress-Risiko?",
+      "options": [
+        "Nur erforderliche IDs und Texte übertragen, Identitätsfelder entfernen sowie Zweck, Region, Aufbewahrung und Löschung festlegen.",
+        "Vollständige Sessionexporte übertragen, damit spätere Modellideen ohne neue Freigabe möglich bleiben.",
+        "Nicknames durch stabile globale Hashes ersetzen und sämtliche übrigen Metadaten unbegrenzt speichern.",
+        "Alle Rohdaten in mehrere Regionen replizieren, damit die Analyse unabhängig von Datenresidenz bleibt."
+      ],
+      "answer": 0,
+      "explanation": "Datenminimierung und klarer Lebenszyklus reduzieren übertragene Menge und Schadenspotenzial. Vorratsspeicherung, stabile Verknüpfbarkeit oder unnötige Replikation erweitern Zweck und Datenpfad statt sie zu begrenzen.",
+      "weight": 3,
+      "topic": "Daten, Storage und Recovery",
+      "concept": "Datenminimierter ML-Datenfluss",
+      "cognitive_level": "Analyse",
+      "mini_glossary": {
+        "Datenminimierung": "Beschränkung auf für den Zweck erforderliche Daten.",
+        "Datenresidenz": "Ort, an dem Daten gespeichert oder verarbeitet werden.",
+        "Egress": "Ausgehender Datentransfer aus einem Netz- oder Providerbereich."
+      }
+    },
+    {
+      "question": "15. Verschlüsselte Offsite-Backups liegen in Object Storage. Welche Aussage ist fachlich korrekt?",
+      "options": [
+        "Object Storage garantiert automatisch applikationskonsistente Backups jeder laufenden Datenbank.",
+        "Object Storage bietet eine entfernte Ablage; Konsistenz, Schlüsseltrennung, Retention und Restore bleiben gesondert zu gestalten.",
+        "Clientseitige Verschlüsselung macht Zugriffskontrolle und Löschregeln überflüssig.",
+        "Offsite-Speicherung erfüllt automatisch jedes RPO und RTO unabhängig vom Sicherungsprozess."
+      ],
+      "answer": 1,
+      "explanation": "Entfernte Objektspeicherung reduziert gemeinsame Fehlerdomänen, definiert aber nicht Datenbankkonsistenz, Schlüsselverwaltung oder Recovery-Ziele. Verschlüsselung ergänzt und ersetzt keine Zugriffs-, Aufbewahrungs- und Restorekontrollen.",
+      "weight": 3,
+      "topic": "Daten, Storage und Recovery",
+      "concept": "Grenzen von Object Storage für Backups",
+      "cognitive_level": "Analyse",
+      "mini_glossary": {
+        "Object Storage": "Speicher für adressierbare Objekte mit Metadaten.",
+        "Offsite-Backup": "Sicherung außerhalb der primären Fehlerdomäne.",
+        "applikationskonsistent": "Sicherung in einem fachlich und technisch widerspruchsfreien Zustand."
+      }
+    },
+    {
+      "question": "16. Ein einzelner Host ist CPU-gesättigt, während Anwendung und Datenbank unverändert bleiben sollen. Welche Maßnahme ist zunächst vertikale Skalierung?",
+      "options": [
+        "Mehrere App-Instanzen hinter einen Load Balancer stellen",
+        "Dem bestehenden Host mehr CPU- und RAM-Ressourcen zuweisen",
+        "Sessionzustand in einen geteilten Ereignispfad refaktorieren",
+        "Datenbank und Cache auf getrennte Dienste verteilen"
+      ],
+      "answer": 1,
+      "explanation": "Scale-up erhöht Ressourcen einer bestehenden Instanz. Zusätzliche Instanzen oder Diensttrennung sind horizontale beziehungsweise architektonische Änderungen und verlangen neue Zustands-, Routing- und Failoverprüfungen.",
+      "weight": 2,
+      "topic": "Skalierung und verteilte Systeme",
+      "concept": "Vertikale Skalierung",
+      "cognitive_level": "Verständnis",
+      "mini_glossary": {
+        "Scale-up": "Erhöhung der Ressourcen einer bestehenden Instanz.",
+        "Scale-out": "Erhöhung der Kapazität durch zusätzliche Instanzen.",
+        "Sättigung": "Erreichen einer leistungsbegrenzenden Ressourcengrenze."
+      }
+    },
+    {
+      "question": "17. Warum müssen die Lehrszenarien 100 parallele Sessions mit je 50 Personen und eine Session mit 5.000 Personen getrennt modelliert werden?",
+      "options": [
+        "Sie belasten Routing, Fan-out, Hotspots, Queues und Zustand unterschiedlich, obwohl die Gesamtnutzerzahl gleich ist.",
+        "Sie sind vergleichbar, sobald Requestzahl und mittlere CPU-Auslastung über beide Szenarien übereinstimmen.",
+        "Das 5.000er-Szenario bildet Netz- und Fan-out-Last ab, während 100×50 vor allem Datenbanklast erzeugt.",
+        "Das 100×50-Szenario bildet Zustandsverteilung ab, während eine große Session im selben Prozess zustandslos bleibt."
+      ],
+      "answer": 0,
+      "explanation": "Viele getrennte Räume und ein einzelner Fan-out-Hotspot erzeugen unterschiedliche Schlüsselverteilung, Broadcastmuster und Engpässe. Gleiche Gesamtnutzerzahl macht Workloads daher nicht austauschbar; beide Szenarien sind zudem ungetestete Zielbilder, keine Zusage.",
+      "weight": 3,
+      "topic": "Skalierung und verteilte Systeme",
+      "concept": "Workloadform statt Gesamtnutzerzahl",
+      "cognitive_level": "Analyse",
+      "mini_glossary": {
+        "Fan-out": "Verteilung eines Ereignisses an viele Empfänger.",
+        "Hotspot": "Stark konzentrierte Last auf einer Ressource oder einem Schlüssel.",
+        "Workloadform": "Struktur der Last über Räume, Zeit und Operationen."
+      }
+    },
+    {
+      "question": "18. Zwei App-Instanzen verwenden prozesslokale Events für Fragewechsel. Clients sind zufällig verteilt. Welcher Fehler ist plausibel?",
+      "options": [
+        "Beide Instanzen verteilen jedes Event, weil identische Images denselben logischen Ereignisraum bilden.",
+        "Clients an der anderen Instanz verpassen Events, wenn kein geteilter Ereignispfad oder geeignetes Routing existiert.",
+        "PostgreSQL verteilt jedes In-Memory-Event, sobald beide Instanzen dieselbe Datenbankverbindung nutzen.",
+        "Der Load Balancer synchronisiert lokale Events, sofern er Requests gleichmäßig auf beide Instanzen verteilt."
+      ],
+      "answer": 1,
+      "explanation": "Prozesslokale Ereignisse verlassen ihre Instanz nicht. Gleiches Image, Datenbank oder Load Balancer schaffen ohne expliziten Mechanismus keinen gemeinsamen Broadcast; Multi-Instanz-Betrieb benötigt geteilten Pfad oder nachgewiesene Affinität.",
+      "weight": 3,
+      "topic": "Skalierung und verteilte Systeme",
+      "concept": "Prozesslokaler Zustand bei Scale-out",
+      "cognitive_level": "Analyse",
+      "mini_glossary": {
+        "prozesslokal": "Nur innerhalb einer einzelnen laufenden Instanz verfügbar.",
+        "Session Affinity": "Routing zusammengehöriger Clients zu derselben Instanz.",
+        "Ereignispfad": "Transportweg, über den Zustandsänderungen verteilt werden."
+      }
+    },
+    {
+      "question": "19. Ein Lastbericht nennt nur die mittlere Latenz, obwohl wenige Requests sehr langsam sind. Welche Ergänzung macht die Nutzerwirkung besser sichtbar?",
+      "options": [
+        "Minimale Latenz und Median gemeinsam mit der optimal erreichten Plattformleistung",
+        "Zahl gestarteter Container gemeinsam mit mittlerer Auslastung je Instanz",
+        "p50, p95 und p99 gemeinsam mit Fehlerrate, Durchsatz und Workloaddefinition",
+        "Maximale CPU-Frequenz des Hosts gemeinsam mit der längsten beobachteten Antwortzeit"
+      ],
+      "answer": 2,
+      "explanation": "Quantile zeigen typische und lange Latenztails, während Fehler und Durchsatz die Vollständigkeit des Leistungsbilds sichern. Minimum, Containerzahl oder CPU-Datenblatt ersetzen keine Ende-zu-Ende-Verteilung.",
+      "weight": 3,
+      "topic": "Skalierung und verteilte Systeme",
+      "concept": "Latenzquantile und Leistungsbild",
+      "cognitive_level": "Anwendung",
+      "mini_glossary": {
+        "p50": "Median der beobachteten Latenzen.",
+        "p99": "Latenzwert, den 99 Prozent der Beobachtungen nicht überschreiten.",
+        "Latenztail": "Langsamer Rand einer Latenzverteilung."
+      }
+    },
+    {
+      "question": "20. Eine optionale Analysequeue wächst bei Last unbegrenzt. Welche Reaktion erhält den Live-Kernpfad am besten?",
+      "options": [
+        "Neue Votes bis zum vollständigen Abbau der Queue mit einem Retry-Hinweis zurückweisen.",
+        "Jobs mit exponentiellem Backoff, aber ohne Retry- oder Wartezeitgrenze erneut einreihen.",
+        "Die Annahme aufrechterhalten und den mittleren Queuewert als zentralen Überlastalarm verwenden.",
+        "Kapazität und Wartezeit begrenzen, veraltete Arbeit abbrechen und auf den Kernpfad zurückfallen."
+      ],
+      "answer": 3,
+      "explanation": "Bounded Queues und Backpressure verhindern unbeschränktes Speicher- und Latenzwachstum. Fallback schützt die Kernfunktion; Vote-Blockade, unbegrenzte Retries oder bloßes Monitoring verstärken beziehungsweise akzeptieren die Überlast.",
+      "weight": 3,
+      "topic": "Skalierung und verteilte Systeme",
+      "concept": "Backpressure und Degradation",
+      "cognitive_level": "Analyse",
+      "mini_glossary": {
+        "Backpressure": "Begrenzung des Zuflusses bei ausgelasteter Verarbeitung.",
+        "bounded Queue": "Warteschlange mit definierter Kapazitäts- oder Zeitgrenze.",
+        "Fallback": "Definierter Ersatzpfad bei nicht verfügbarer Zusatzfunktion."
+      }
+    },
+    {
+      "question": "21. Security und Site Reliability Engineering (SRE) verlangen kontrollierte Daten- und Fehlerpfade. Während eine Quizfrage aktiv ist, fordert ein Teilnehmerclient Antwortoptionen an. Welche Regel für Data Transfer Objects (DTOs) schützt die Lösung?",
+      "options": [
+        "Lösungsfelder wie isCorrect werden serverseitig aus Teilnehmer-DTOs entfernt und erst in der Ergebnisphase freigegeben.",
+        "Lösungsfelder werden verschlüsselt mitgeliefert; der Entschlüsselungsschlüssel liegt im Frontendbuild.",
+        "Lösungsfelder werden durch CSS verborgen, bleiben aber im Browserzustand verfügbar.",
+        "Lösungsfelder werden nur bei mobilen Clients entfernt, weil Desktopbrowser als vertrauenswürdig gelten."
+      ],
+      "answer": 0,
+      "explanation": "Nicht benötigte Lösungsdaten dürfen den Teilnehmerclient vor der Auflösung nicht erreichen. Clientseitiges Verbergen oder mitgelieferte Schlüssel schützen nicht vor Inspektion; die Regel gilt unabhängig vom Endgerät.",
+      "weight": 3,
+      "topic": "Security, SRE und Betrieb",
+      "concept": "Data-Stripping nach Sessionphase",
+      "cognitive_level": "Anwendung",
+      "mini_glossary": {
+        "DTO": "Für einen Empfänger begrenzte Datenübertragungsstruktur.",
+        "Data-Stripping": "Serverseitiges Entfernen nicht zulässiger Felder.",
+        "Sessionphase": "Zustand einer Live-Sitzung wie Frage offen oder Ergebnis."
+      }
+    },
+    {
+      "question": "22. Ein Betriebsagent soll nur einen Container neu starten. Welche Gestaltung des Identity and Access Management (IAM) ist am sichersten?",
+      "options": [
+        "Ein gemeinsames Root-Konto mit vollständigem Secretzugriff",
+        "Ein dauerhaftes Administratortoken in der Shell-Historie",
+        "Eine kurzlebige, ressourcen- und aktionsgebundene Berechtigung mit protokollierter Freigabe",
+        "Ein öffentlicher Wartungsendpunkt mit schwer erratbarem URL-Pfad"
+      ],
+      "answer": 2,
+      "explanation": "Zeit, Ressource und Aktion werden auf das notwendige Minimum begrenzt und menschlich freigegeben. Root, langlebige Tokens oder Security by Obscurity vergrößern den Schadensradius erheblich.",
+      "weight": 3,
+      "topic": "Security, SRE und Betrieb",
+      "concept": "Least Privilege im Betrieb",
+      "cognitive_level": "Anwendung",
+      "mini_glossary": {
+        "Least Privilege": "Vergabe nur der notwendigen Rechte.",
+        "kurzlebig": "Mit engem automatischem Ablaufzeitpunkt.",
+        "Security by Obscurity": "Scheinbarer Schutz allein durch Geheimhaltung eines Aufbaus oder Pfads."
+      }
+    },
+    {
+      "question": "23. Ein Team misst den Anteil rechtzeitiger erfolgreicher Joins und setzt dafür ein Ziel über 30 Tage. Welches Paar ordnet Messung und Ziel korrekt zu?",
+      "options": [
+        "SLI ist der gewünschte Zielwert für rechtzeitige Joins; SLO ist der einzelne gemessene Join.",
+        "SLI ist die Alarmbedingung für fehlgeschlagene Joins; SLO ist die zugehörige Runbookreaktion.",
+        "SLI ist etwa der Anteil rechtzeitiger erfolgreicher Joins; SLO ist der Zielwert dafür im Messfenster.",
+        "SLI ist die bereitgestellte Instanzkapazität; SLO ist die gemessene CPU-Schwelle im Monatsfenster."
+      ],
+      "answer": 2,
+      "explanation": "Der SLI quantifiziert eine relevante Diensteigenschaft, das SLO setzt dafür ein Ziel über Zeit. Runbook, Alarmkanal, Ressourcengröße und Preis können den Betrieb beeinflussen, bilden diese Beziehung aber nicht.",
+      "weight": 2,
+      "topic": "Security, SRE und Betrieb",
+      "concept": "SLI und SLO",
+      "cognitive_level": "Verständnis",
+      "mini_glossary": {
+        "SLI": "Gemessener Indikator für eine Diensteigenschaft.",
+        "SLO": "Ziel für einen SLI in einem definierten Zeitraum.",
+        "Messfenster": "Zeitraum, über den ein Ziel bewertet wird."
+      }
+    },
+    {
+      "question": "24. Ein optionaler Inferenzdienst fällt aus. Welche Reaktion ist kontrollierte Degradation?",
+      "options": [
+        "Die gesamte Session wird beendet, damit keine unvollständige Analyse erscheint.",
+        "Join und Vote warten auf den Neustart, während Q&A weiterhin angenommen wird.",
+        "Die Zusatzanalyse wird als nicht verfügbar markiert; Join, Vote, Q&A und deterministische Basisfunktion bleiben nutzbar.",
+        "Alle Requests werden an einen ungeprüften öffentlichen SaaS-Endpunkt umgeleitet."
+      ],
+      "answer": 2,
+      "explanation": "Graceful Degradation begrenzt die Störung auf die optionale Fähigkeit und bewahrt zentrale Nutzerpfade. Blockade, Sitzungsabbruch oder ungeprüfter Datenabfluss erweitern den Ausfall beziehungsweise schaffen neue Risiken.",
+      "weight": 3,
+      "topic": "Security, SRE und Betrieb",
+      "concept": "Graceful Degradation eines ML-Pfads",
+      "cognitive_level": "Anwendung",
+      "mini_glossary": {
+        "Graceful Degradation": "Kontrollierter Funktionsabbau bei Erhalt zentraler Leistungen.",
+        "Kernpfad": "Für den primären Nutzerzweck notwendiger Ablauf.",
+        "Fault Containment": "Begrenzung eines Fehlers auf eine definierte Komponente."
+      }
+    },
+    {
+      "question": "25. Die Continuous Integration (CI) baut ein Produktionsimage, erzeugt eine Software Bill of Materials (SBOM) und führt Trivy-Dateisystem- sowie Image-Scans aus. Welche Aussage ist korrekt?",
+      "options": [
+        "Diese Gates beweisen, dass das laufende System dauerhaft frei von Schwachstellen ist.",
+        "Die Gates reduzieren Supply-Chain-Risiko und schaffen Artefaktevidenz, ersetzen aber weder Remediation noch Laufzeit- und Konfigurationsprüfung.",
+        "Das SBOM macht beide Scanner überflüssig, weil Komponentenlisten jede Ausnutzbarkeit zeigen.",
+        "Der Image-Scan macht Digest-Pinning überflüssig, weil gescannte Tags unveränderlich werden."
+      ],
+      "answer": 1,
+      "explanation": "Inventur und Scans sind wichtige präventive und detektive Kontrollen, aber keine Garantie. Befunde müssen bewertet und behoben werden; Laufzeitkonfiguration, neue Schwachstellen und unveränderliche Provenienz bleiben eigene Aufgaben.",
+      "weight": 3,
+      "topic": "Security, SRE und Betrieb",
+      "concept": "CI-Gates und Supply-Chain-Grenzen",
+      "cognitive_level": "Analyse",
+      "mini_glossary": {
+        "SBOM": "Maschinenlesbare Stückliste eines Softwareartefakts.",
+        "Vulnerability Scan": "Automatisierte Suche nach bekannten Schwachstellen.",
+        "Digest-Pinning": "Bindung eines Artefakts an eine unveränderliche Inhaltsreferenz."
+      }
+    },
+    {
+      "question": "26. Variante A hat den niedrigsten Compute-Listenpreis, erfordert aber mehr Betrieb, Backuparbeit und Egress als Variante B. Welche Methode vergleicht die Total Cost of Ownership (TCO) angemessen?",
+      "options": [
+        "Beide Varianten auf derselben Leistungsgrenze mit TCO, Unit Costs und Best-/Base-/Worst-Case vergleichen.",
+        "Variante A wählen, weil der Compute-Listenpreis alle indirekten Kosten bereits repräsentiert.",
+        "Variante B wählen, weil Managed-Dienste grundsätzlich nachhaltiger und ausfallsicherer sind.",
+        "Beide Varianten als gleich teuer einstufen, solange ihre Instanzgrößen ähnlich heißen."
+      ],
+      "answer": 0,
+      "explanation": "Eine belastbare Wahl umfasst Infrastruktur, Personal, Observability, Recovery, Datentransfer, Migration und Exit über gemeinsame Szenarien. Einzelpreis und Servicebezeichnung erlauben weder TCO- noch Nachhaltigkeits- oder Resilienzschluss.",
+      "weight": 3,
+      "topic": "FinOps, Evidenz und Verteidigung",
+      "concept": "TCO statt Instanzpreis",
+      "cognitive_level": "Analyse",
+      "mini_glossary": {
+        "TCO": "Gesamtkosten über Beschaffung, Betrieb, Änderung und Exit.",
+        "Unit Cost": "Kosten je fachlich definierter Leistungseinheit.",
+        "Szenario": "Konsistente Kombination begründeter Annahmen."
+      }
+    },
+    {
+      "question": "27. Die Provider-Rangfolge kippt, sobald das angenommene Egressvolumen um 20 % steigt. Was bedeutet das?",
+      "options": [
+        "Die Base-Case-Rangfolge ist unabhängig vom realen Datenfluss gültig.",
+        "Egress darf aus der Rechnung entfernt werden, weil es das Ergebnis instabil macht.",
+        "Die Entscheidung ist egresssensitiv; Datenpfad, Bandbreite und Neubewertungsschwelle müssen explizit werden.",
+        "Beide Provider sind technisch identisch, weil nur ein Kostenparameter die Rangfolge ändert."
+      ],
+      "answer": 2,
+      "explanation": "Ein Rangwechsel bei kleiner Variation zeigt eine fragile Kostenentscheidung. Die unsichere Eingabe braucht bessere Messung und ein späteres Reviewkriterium; Weglassen oder technische Gleichsetzung würde die zentrale Abhängigkeit verdecken.",
+      "weight": 3,
+      "topic": "FinOps, Evidenz und Verteidigung",
+      "concept": "Sensitivität und Neubewertung",
+      "cognitive_level": "Analyse",
+      "mini_glossary": {
+        "Sensitivität": "Stärke der Ergebnisänderung bei Variation einer Eingabe.",
+        "Rangfolge": "Reihenfolge der bewerteten Alternativen.",
+        "Neubewertungsschwelle": "Messwert, ab dem eine Entscheidung erneut geprüft wird."
+      }
+    },
+    {
+      "question": "28. Ein Agent behauptet, eine Architektur trage 5.000 Live-Teilnehmende, und verweist nur auf ein Diagramm. Welche Reaktion ist fachlich korrekt?",
+      "options": [
+        "Die Zahl übernehmen, weil ein Architekturdiagramm Kapazität aus Komponentenbeziehungen ableitet.",
+        "Die Zahl halbieren und als konservative Kapazitätszusage veröffentlichen.",
+        "Die Zahl als Providerlimit behandeln und lediglich die Preisliste aktualisieren.",
+        "Die Aussage als ungetestete Hypothese markieren und gestufte Last-, Fehler- und Recoverytests mit Abbruchkriterien verlangen."
+      ],
+      "answer": 3,
+      "explanation": "Ein Diagramm modelliert Struktur, misst aber keine Kapazität. Die im Kurs verwendeten großen Lastprofile sind Ziel- und Lehrszenarien; nur reproduzierbare gestufte Tests können begrenzte Aussagen tragen, ohne eine Verfügbarkeitszusage zu erfinden.",
+      "weight": 3,
+      "topic": "FinOps, Evidenz und Verteidigung",
+      "concept": "Agentenkritik bei Kapazitätsbehauptungen",
+      "cognitive_level": "Analyse",
+      "mini_glossary": {
+        "Kapazitätshypothese": "Zu prüfende Annahme über tragbare Last.",
+        "Abbruchkriterium": "Vorab definierte Grenze zum sicheren Stoppen eines Versuchs.",
+        "Evidenzstufe": "Qualität und Reichweite eines Nachweises."
+      }
+    },
+    {
+      "question": "29. Ein Team bereitet einen Architecture Decision Record (ADR) für eine kumulative Cloud-Entscheidung vor. Welche Inhalte machen die Entscheidung mindestens nachvollziehbar?",
+      "options": [
+        "Kontext, Kriterien, Optionen, Entscheidung, Folgen, stärkste Gegenoption, Evidenzgrenze und Auslöser zur Neubewertung",
+        "Anbietername, ausgewählte Region, aktueller Listenpreis und geplantes Einführungsdatum",
+        "Vorteile der gewählten Architektur, Zielbild, Implementierungsplan und aktueller Projektstatus",
+        "Finaler Diagrammstand, zentrale Messwerte, gewählte Option und zuständige Umsetzungsrolle"
+      ],
+      "answer": 0,
+      "explanation": "Ein ADR dokumentiert Entscheidungslogik und Konsequenzen und bleibt durch Gegenoption, Evidenzgrenze und Reviewauslöser prüfbar. Einkaufsdaten oder eine einseitige Zielbeschreibung erklären weder Trade-offs noch spätere Revision.",
+      "weight": 2,
+      "topic": "FinOps, Evidenz und Verteidigung",
+      "concept": "Kumulativer Architecture Decision Record",
+      "cognitive_level": "Verständnis",
+      "mini_glossary": {
+        "ADR": "Versionierter Datensatz einer Architekturentscheidung.",
+        "Trade-off": "Abwägung konkurrierender Qualitäts- oder Wirtschaftlichkeitsziele.",
+        "Evidenzgrenze": "Bereich, den vorhandene Nachweise tatsächlich abdecken."
+      }
+    },
+    {
+      "question": "30. Welche Abschlussverteidigung zeigt die stärkste Cloud-Synthese?",
+      "options": [
+        "Eine kuratierte Produktliste, die zentrale Dienste mehrerer Hyperscaler nach Funktionsgruppen vergleicht",
+        "Eine begrenzte These, die Service-Modell, Zustand, Skalierung, SRE, Recovery, TCO, Nachhaltigkeit, Gegenoption und Agentenfehler belegt",
+        "Eine quantitative Lastzahl, die durch ein einheitliches Diagramm und die verwendete Testumgebung erläutert wird",
+        "Ein agentisch erzeugtes Architekturdiagramm, dessen Quellen und Produktbezüge vollständig dokumentiert sind"
+      ],
+      "answer": 1,
+      "explanation": "Synthese verbindet technische und wirtschaftliche Entscheidungen über gemeinsame Systemgrenzen und macht Fehler, Alternativen und Belegreichweite sichtbar. Produktmenge, isolierte Zahl oder ungeprüftes Diagramm zeigen kein integriertes Verständnis.",
+      "weight": 3,
+      "topic": "FinOps, Evidenz und Verteidigung",
+      "concept": "Integrierte individuelle Verteidigung",
+      "cognitive_level": "Analyse",
+      "mini_glossary": {
+        "Synthese": "Integration mehrerer Konzepte zu einer begründeten Gesamtentscheidung.",
+        "Gegenoption": "Ernsthaft geprüfte nicht gewählte Alternative.",
+        "Agentenfehler": "Unrichtige, unbelegte oder unpassend verallgemeinerte Modellausgabe."
+      }
+    }
+  ]
+}

@@ -1,0 +1,316 @@
+{
+  "exportVersion": 1,
+  "exportedAt": "2026-09-13T00:00:00.000Z",
+  "quiz": {
+    "name": "P0-03 ARSnova – Woche 09: Train/Test und Metriken",
+    "description": "10 anspruchsvolle Diagnose- und Transferfragen zu Train/Test, Overfitting, Domain Shift, Confusion Matrix, Accuracy, Precision, Recall, F1 und Coverage – mit allen zehn ARSnova-Fragetypen.",
+    "showLeaderboard": true,
+    "allowCustomNicknames": false,
+    "defaultTimer": 60,
+    "timerScaleByDifficulty": true,
+    "enableTimerAccommodation": true,
+    "enableSoundEffects": true,
+    "enableRewardEffects": true,
+    "enableMotivationMessages": true,
+    "enableEmojiReactions": true,
+    "anonymousMode": false,
+    "teamMode": true,
+    "teamCount": 4,
+    "teamAssignment": "AUTO",
+    "teamNames": ["Apfel :apple:", "Birne :pear:", "Banane :banana:", "Apfelsine :orange:"],
+    "backgroundMusic": null,
+    "nicknameTheme": "KINDERGARTEN",
+    "bonusTokenCount": 3,
+    "readingPhaseEnabled": true,
+    "questions": [
+      {
+        "text": "### Generalisierung unter Domain Shift beurteilen\n\nVariante A erreicht auf Training, In-Domain-Validierung und einem einsatznahen Test 0,96 / 0,88 / 0,70 Accuracy. Variante B erreicht 0,91 / 0,87 / 0,82. Beide Varianten werden auf demselben unangetasteten einsatznahen Testsatz beurteilt. Wegen symmetrischer Fehlkosten und stabiler Klassenanteile wurde Accuracy vorab als Zielmetrik festgelegt.\n\nWelche Entscheidung ist für den vorgesehenen Einsatz am besten begründet?",
+        "type": "SINGLE_CHOICE",
+        "timer": null,
+        "difficulty": "HARD",
+        "order": 0,
+        "answers": [
+          {
+            "text": "Variante A vorläufig priorisieren, weil ihre höhere Trainings-Accuracy für den vorgesehenen Einsatz entscheidend ist.",
+            "isCorrect": false
+          },
+          {
+            "text": "Variante A vorläufig priorisieren, weil ihr kleiner Vorteil in der In-Domain-Validierung den einsatznahen Test überwiegt.",
+            "isCorrect": false
+          },
+          {
+            "text": "Variante B vorläufig priorisieren, weil sie einsatznah 0,82 statt 0,70 erreicht; die Auswahl auf einem neuen Holdout bestätigen.",
+            "isCorrect": true
+          },
+          {
+            "text": "Beide Varianten vorläufig gleich bewerten, weil ähnliche In-Domain-Werte den Unterschied im einsatznahen Test aufheben.",
+            "isCorrect": false
+          }
+        ],
+        "confidenceEnabled": true,
+        "confidenceLabelLow": "Sehr unsicher",
+        "confidenceLabelHigh": "Sehr sicher"
+      },
+      {
+        "text": "### Einen belastbaren Testprozess absichern\n\nWelche Maßnahmen verringern das Risiko einer zu optimistischen abschließenden Evaluation?\n\n_Mehrere Antworten sind richtig._",
+        "type": "MULTIPLE_CHOICE",
+        "timer": null,
+        "difficulty": "HARD",
+        "order": 1,
+        "answers": [
+          {
+            "text": "Nahezu identische Fälle vor der Aufteilung gruppieren und gemeinsam nur einer Teilmenge zuweisen.",
+            "isCorrect": true
+          },
+          {
+            "text": "Hyperparameter und Entscheidungsschwelle auf Validierungsdaten wählen und danach unverändert einfrieren.",
+            "isCorrect": true
+          },
+          {
+            "text": "Imputation und Skalierung vor der Aufteilung einmal mit sämtlichen verfügbaren Fällen schätzen.",
+            "isCorrect": false
+          },
+          {
+            "text": "Leistung und Coverage zusätzlich in zielrelevanten Teilgruppen des unangetasteten Tests berichten.",
+            "isCorrect": true
+          }
+        ],
+        "confidenceEnabled": true,
+        "confidenceLabelLow": "Sehr unsicher",
+        "confidenceLabelHigh": "Sehr sicher"
+      },
+      {
+        "text": "### F1 aus einer Confusion Matrix berechnen\n\nEin Test liefert TP = 36, FP = 9, FN = 4 und TN = 51. Berechne den binären F1-Score als Prozentwert und gib ihn auf eine Nachkommastelle ein.\n\n**Gesuchte Einheit: Prozent (%)**",
+        "type": "NUMERIC_ESTIMATE",
+        "timer": null,
+        "difficulty": "HARD",
+        "order": 2,
+        "answers": [],
+        "numericToleranceMode": "ABSOLUTE_INTERVAL",
+        "numericReferenceValue": 84.7,
+        "numericIntervalLeft": 84.65,
+        "numericIntervalRight": 84.75,
+        "numericInputType": "DECIMAL",
+        "numericDecimalPlaces": 1,
+        "numericMin": 0,
+        "numericMax": 100,
+        "numericTwoRounds": false,
+        "confidenceEnabled": true,
+        "confidenceLabelLow": "Sehr unsicher",
+        "confidenceLabelHigh": "Sehr sicher"
+      },
+      {
+        "text": "### Kennzahlen ihren Bezugsgruppen zuordnen\n\nOrdne jede Kennzahl der passenden Berechnung beziehungsweise Bezugsgruppe zu.",
+        "type": "MATCHING",
+        "timer": null,
+        "difficulty": "HARD",
+        "order": 3,
+        "answers": [],
+        "matchingPairs": [
+          {
+            "leftId": "w09-m-accuracy",
+            "left": "Accuracy",
+            "rightId": "w09-r-accuracy",
+            "right": "(TP + TN) geteilt durch alle ausgewerteten Fälle"
+          },
+          {
+            "leftId": "w09-m-precision",
+            "left": "Precision",
+            "rightId": "w09-r-precision",
+            "right": "TP geteilt durch alle positiv vorhergesagten Fälle"
+          },
+          {
+            "leftId": "w09-m-recall",
+            "left": "Recall",
+            "rightId": "w09-r-recall",
+            "right": "TP geteilt durch alle tatsächlich positiven Fälle"
+          },
+          {
+            "leftId": "w09-m-f1",
+            "left": "F1-Score",
+            "rightId": "w09-r-f1",
+            "right": "2TP geteilt durch (2TP + FP + FN)"
+          },
+          {
+            "leftId": "w09-m-coverage",
+            "left": "Coverage",
+            "rightId": "w09-r-coverage",
+            "right": "Automatisch entschiedene geteilt durch alle vorgelegten Fälle"
+          }
+        ],
+        "matchingShuffleRight": true,
+        "confidenceEnabled": true,
+        "confidenceLabelLow": "Sehr unsicher",
+        "confidenceLabelHigh": "Sehr sicher"
+      },
+      {
+        "text": "### Evaluation ohne Testkontamination planen\n\nBringe die sechs Schritte in eine fachlich belastbare Reihenfolge.",
+        "type": "ORDERING",
+        "timer": null,
+        "difficulty": "HARD",
+        "order": 4,
+        "answers": [],
+        "orderingItems": [
+          {
+            "id": "w09-o-1",
+            "text": "Zielpopulation, positive Klasse, Fehlkosten und Zielmetriken festlegen"
+          },
+          {
+            "id": "w09-o-2",
+            "text": "Duplikatgruppen bilden und Daten in Training, Validierung und Test aufteilen"
+          },
+          {
+            "id": "w09-o-3",
+            "text": "Vorverarbeitung und Modell ausschließlich mit Trainingsdaten anpassen"
+          },
+          {
+            "id": "w09-o-4",
+            "text": "Hyperparameter und Entscheidungsschwelle mit Validierungsdaten auswählen"
+          },
+          {
+            "id": "w09-o-5",
+            "text": "Vorverarbeitung, Modell und Entscheidungsschwelle gemeinsam einfrieren"
+          },
+          {
+            "id": "w09-o-6",
+            "text": "Einmalig am Test evaluieren und Metriken, Coverage sowie Grenzen berichten"
+          }
+        ],
+        "confidenceEnabled": true,
+        "confidenceLabelLow": "Sehr unsicher",
+        "confidenceLabelHigh": "Sehr sicher"
+      },
+      {
+        "text": "### Evaluationsrisiken unterscheiden\n\nOrdne jedes Beobachtungsmuster dem am unmittelbarsten belegten Evaluationsrisiko zu.",
+        "type": "CATEGORIZATION",
+        "timer": null,
+        "difficulty": "HARD",
+        "order": 5,
+        "answers": [],
+        "categories": [
+          {
+            "id": "w09-cat-overfit",
+            "name": "Hinweis auf Overfitting"
+          },
+          {
+            "id": "w09-cat-shift",
+            "name": "Hinweis auf Domain Shift"
+          },
+          {
+            "id": "w09-cat-leak",
+            "name": "Hinweis auf Testkontamination"
+          }
+        ],
+        "categorizationItems": [
+          {
+            "id": "w09-ci-1",
+            "text": "Stärkere Regularisierung senkt die Trainingsleistung, erhöht aber die unangetastete In-Domain-Validierungsleistung.",
+            "correctCategoryId": "w09-cat-overfit"
+          },
+          {
+            "id": "w09-ci-2",
+            "text": "Ein sehr komplexes Modell gewinnt im Training deutlich, verliert aber auf einem gleich erhobenen Holdout.",
+            "correctCategoryId": "w09-cat-overfit"
+          },
+          {
+            "id": "w09-ci-3",
+            "text": "Im Einsatz sind Anfragen wesentlich länger und umgangssprachlicher als in Training und Validierung.",
+            "correctCategoryId": "w09-cat-shift"
+          },
+          {
+            "id": "w09-ci-4",
+            "text": "Nach einem Prozesswechsel ändern sich Klassenanteile und Textmerkmale der Zielpopulation systematisch.",
+            "correctCategoryId": "w09-cat-shift"
+          },
+          {
+            "id": "w09-ci-5",
+            "text": "Die Entscheidungsschwelle wird nach jedem Vergleich anhand desselben finalen Tests angepasst.",
+            "correctCategoryId": "w09-cat-leak"
+          },
+          {
+            "id": "w09-ci-6",
+            "text": "Paraphrasen derselben Originalanfrage gelangen nach ihrer Erzeugung in Training und Test.",
+            "correctCategoryId": "w09-cat-leak"
+          }
+        ],
+        "categorizationShuffleItems": true,
+        "confidenceEnabled": true,
+        "confidenceLabelLow": "Sehr unsicher",
+        "confidenceLabelHigh": "Sehr sicher"
+      },
+      {
+        "text": "### Drei Aussageebenen eines Klassifikators trennen\n\nEin binärer Klassifikator gibt für einen Fall als geschätzte Wahrscheinlichkeit den Modellwert 0,80 aus. Unter 200 vergleichbaren Testfällen waren 148 tatsächlich positiv; für den betrachteten Fall lautet das beobachtete Label »negativ«. Ordne 0,80, 148 von 200 und »negativ« den Begriffen »beobachtetes binäres Label«, »Modellwahrscheinlichkeit« und »empirische Gruppenhäufigkeit« zu.\n\nAntworte ausschließlich mit diesen drei Begriffen in der Reihenfolge 0,80 / 148 von 200 / »negativ«. Verwende entweder »Begriff / Begriff / Begriff« oder »Begriff/Begriff/Begriff«.",
+        "type": "SHORT_TEXT",
+        "timer": null,
+        "difficulty": "MEDIUM",
+        "order": 6,
+        "answers": [
+          {
+            "text": "Modellwahrscheinlichkeit / empirische Gruppenhäufigkeit / beobachtetes binäres Label",
+            "isCorrect": true
+          },
+          {
+            "text": "Modellwahrscheinlichkeit/empirische Gruppenhäufigkeit/beobachtetes binäres Label",
+            "isCorrect": true
+          }
+        ],
+        "shortTextEvaluationKind": "text",
+        "shortTextMaxLength": 160,
+        "shortTextCaseSensitive": false,
+        "shortTextEvaluationMode": "exact",
+        "shortTextToleranceLevel": "none",
+        "shortTextAllowPartialCredit": false,
+        "shortTextTrimWhitespace": true,
+        "shortTextNormalizeWhitespace": true,
+        "confidenceEnabled": true,
+        "confidenceLabelLow": "Sehr unsicher",
+        "confidenceLabelHigh": "Sehr sicher"
+      },
+      {
+        "text": "### Accuracy und Coverage kritisch kommentieren\n\nEin selektiver Klassifikator berichtet 90 % Accuracy auf automatisch entschiedenen Fällen bei 60 % Coverage. Die Klassenanteile und Fehler unter den zurückgestellten Fällen fehlen.\n\nFormuliere zwei Angaben oder Prüfungen, die vor einer Einsatzentscheidung zusätzlich nötig sind.",
+        "type": "FREETEXT",
+        "timer": null,
+        "difficulty": "MEDIUM",
+        "order": 7,
+        "answers": []
+      },
+      {
+        "text": "### Evaluationsrisiko vor dem Einsatz priorisieren\n\nEin Klassifikator erreicht auf automatisch entschiedenen Fällen 90 % Accuracy, verfehlt jedoch viele tatsächlich positive Fälle und stellt 40 % aller Fälle zur manuellen Prüfung zurück. In einer wichtigen Teilgruppe unterscheiden sich die Texte zudem deutlich von den Trainingsdaten. Welche Prüfung sollte das Team vor der Einsatzentscheidung zuerst vertiefen? Die Abstimmung eröffnet die Begründungsdiskussion; es gibt keine Musterlösung.",
+        "type": "SURVEY",
+        "timer": null,
+        "difficulty": "MEDIUM",
+        "order": 8,
+        "answers": [
+          {
+            "text": "Die Fehlkosten falsch-negativer und falsch-positiver Entscheidungen abwägen",
+            "isCorrect": false
+          },
+          {
+            "text": "Precision und Recall der positiven Klasse gemeinsam beurteilen",
+            "isCorrect": false
+          },
+          {
+            "text": "Coverage und Fehlerstruktur der zurückgestellten Fälle gemeinsam beurteilen",
+            "isCorrect": false
+          },
+          {
+            "text": "Den möglichen Domain Shift in der wichtigen Teilgruppe gesondert beurteilen",
+            "isCorrect": false
+          }
+        ]
+      },
+      {
+        "text": "### Eigene Auswertungssicherheit einschätzen\n\nWie sicher kannst du aus einer gegebenen Confusion Matrix Accuracy, Precision, Recall und F1 berechnen und ihre Aussagegrenzen erklären?",
+        "type": "RATING",
+        "timer": null,
+        "difficulty": "MEDIUM",
+        "order": 9,
+        "answers": [],
+        "ratingMin": 1,
+        "ratingMax": 5,
+        "ratingLabelMin": "Noch nicht ohne Anleitung",
+        "ratingLabelMax": "Sicher mit nachvollziehbarer Begründung"
+      }
+    ]
+  }
+}

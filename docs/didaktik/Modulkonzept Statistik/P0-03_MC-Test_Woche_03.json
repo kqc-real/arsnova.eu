@@ -1,0 +1,616 @@
+{
+  "meta": {
+    "title": "P0-03 MC-Test Woche 03 – Streuung, Quantile und Ausreißer",
+    "updated": "2026-09-13",
+    "language": "de",
+    "target_audience": "Bachelorstudierende aus BWL, Management, Wirtschaftsinformatik und Informatik ohne vorausgesetzte Statistikkenntnisse",
+    "question_count": 30,
+    "difficulty_profile": {
+      "leicht": 0,
+      "mittel": 12,
+      "schwer": 18
+    },
+    "time_per_weight_minutes": {
+      "1": 0.5,
+      "2": 0.75,
+      "3": 1.0
+    },
+    "additional_buffer_minutes": 5,
+    "test_duration_minutes": 32
+  },
+  "questions": [
+    {
+      "question": "1. Gruppe A enthält die vollständig beobachteten Zeiten 8, 8, 12 und 12 Minuten, Gruppe B die Zeiten 18, 18, 22 und 22 Minuten. Innerhalb jeder Gruppe beträgt die deskriptive Varianz 4. Wie groß ist die deskriptive Varianz aller acht gemeinsam betrachteten Zeiten?",
+      "options": [
+        "4, aus dem Mittel der beiden deskriptiven Teilgruppenvarianzen",
+        "25, aus den Abweichungen der beiden Teilgruppenmittelwerte vom Gesamtmittelwert 15",
+        "29, aus der Summe der acht quadrierten Abweichungen vom Gesamtmittelwert 15, geteilt durch 8",
+        "33, aus 25 für die Mittelwertunterschiede zuzüglich der beiden Teilgruppenvarianzen 4 und 4"
+      ],
+      "answer": 2,
+      "explanation": "Der Gesamtmittelwert ist 15. Die Abweichungen der acht Werte lauten −7, −7, −3, −3, 3, 3, 7 und 7; ihre Quadratsumme beträgt 4 · 49 + 4 · 9 = 232. Deskriptiv folgt 232/8 = 29. Der Wert 4 mittelt nur die beiden Teilgruppenvarianzen, 25 verwendet nur die quadrierten Abstände der Teilgruppenmittelwerte 10 und 20 von 15, und 33 addiert 25, 4 und 4 ohne gemeinsame Gewichtungsbasis.",
+      "weight": 3,
+      "topic": "Spannweite und Streuung",
+      "concept": "Gesamtvarianz aus innerer und zwischen Gruppen liegender Streuung",
+      "cognitive_level": "Analyse",
+      "mini_glossary": {
+        "Teilgruppenvarianz": "Deskriptive Varianz der Werte innerhalb einer einzelnen Teilgruppe.",
+        "Gesamtmittelwert": "Arithmetisches Mittel aller Werte nach dem Zusammenführen der Teilgruppen.",
+        "Deskriptive Gesamtvarianz": "Summe der quadrierten Abweichungen vom Gesamtmittelwert geteilt durch die Zahl aller gemeinsam betrachteten Werte."
+      }
+    },
+    {
+      "question": "2. Bearbeitungszeiten von 8, 11, 15 und 20 Minuten wurden erfasst; die 20 wurde versehentlich als 200 gespeichert. Wie verändern sich Spannweite und Mittelwert durch die Korrektur?",
+      "options": [
+        "Die Spannweite sinkt um 180 Minuten und der Mittelwert um 45 Minuten.",
+        "Die Spannweite sinkt um 188 Minuten und der Mittelwert um 45 Minuten.",
+        "Die Spannweite sinkt um 180 Minuten und der Mittelwert um 47 Minuten.",
+        "Die Spannweite sinkt um 192 Minuten und der Mittelwert um 58,5 Minuten."
+      ],
+      "answer": 0,
+      "explanation": "Vor der Korrektur betragen Spannweite 200 − 8 = 192 und Mittelwert 234/4 = 58,5. Danach sind es 20 − 8 = 12 und 54/4 = 13,5; beide sinken somit um 180 beziehungsweise 45 Minuten. Der Distraktor mit 188 verwechselt das falsche Maximum mit der Spannweitenänderung.",
+      "weight": 2,
+      "topic": "Spannweite und Streuung",
+      "concept": "Einfluss eines Eingabefehlers",
+      "cognitive_level": "Anwendung",
+      "mini_glossary": {
+        "Spannweite": "Differenz zwischen Maximum und Minimum eines Datensatzes.",
+        "Mittelwert": "Summe aller Werte geteilt durch ihre Anzahl.",
+        "Eingabefehler": "Abweichung eines gespeicherten Werts vom tatsächlich beobachteten Wert."
+      }
+    },
+    {
+      "question": "3. Datensatz A lautet 9, 10, 11; Datensatz B lautet 1, 10, 19. Beide Mittelwerte sind 10. Welche deskriptiven Varianzen ergeben sich bei Division durch n = 3?",
+      "options": [
+        "Für A ergibt sich 54 und für B ergibt sich 2/3.",
+        "Für A ergibt sich 2 und für B ergibt sich 162.",
+        "Für A ergibt sich 1 und für B ergibt sich 81.",
+        "Für A ergibt sich 2/3 und für B ergibt sich 54."
+      ],
+      "answer": 3,
+      "explanation": "Die Quadratsummen sind für A gleich 1 + 0 + 1 = 2 und für B gleich 81 + 0 + 81 = 162. Durch n = 3 entstehen 2/3 und 54. Der plausible Distraktor 1 und 81 teilt dagegen durch n − 1 und berechnet Stichprobenvarianzen.",
+      "weight": 2,
+      "topic": "Spannweite und Streuung",
+      "concept": "Varianzvergleich bei gleicher Lage",
+      "cognitive_level": "Anwendung",
+      "mini_glossary": {
+        "Quadratsumme": "Summe der quadrierten Abweichungen aller Werte vom Mittelwert.",
+        "Deskriptive Varianz": "Quadratsumme geteilt durch die Anzahl n der vollständig beschriebenen Werte."
+      }
+    },
+    {
+      "question": "4. A = 0, 2, 4, 6, 8 und B = 0, 0, 0, 8, 8 besitzen beide die Spannweite 8. Welche Aussage berücksichtigt zusätzlich die inneren Werte korrekt?",
+      "options": [
+        "A hat Varianz 8,00 und B hat Varianz 8,00; beide streuen deskriptiv gleich.",
+        "A hat Varianz 8,00 und B hat Varianz 15,36; B streut deskriptiv stärker.",
+        "A hat Varianz 15,36 und B hat Varianz 8,00; A streut deskriptiv stärker.",
+        "A hat Varianz 40,00 und B hat Varianz 76,80; beide Werte sind bereits Varianzen."
+      ],
+      "answer": 1,
+      "explanation": "Für A ist der Mittelwert 4 und die Quadratsumme 40, also die Varianz 40/5 = 8. Für B ist der Mittelwert 3,2 und die Quadratsumme 76,8, also 15,36. Die Antwort mit gleichen Varianzen überträgt fälschlich die gleiche Spannweite auf ein Maß, das alle Werte nutzt.",
+      "weight": 2,
+      "topic": "Spannweite und Streuung",
+      "concept": "Innere Verteilung trotz gleicher Spannweite",
+      "cognitive_level": "Analyse",
+      "mini_glossary": {
+        "Spannweite": "Extremabstand Maximum minus Minimum.",
+        "Varianz": "Mittlere quadrierte Abweichung vom Mittelwert.",
+        "Innere Werte": "Beobachtungen zwischen Minimum und Maximum."
+      }
+    },
+    {
+      "question": "5. Bei vier beobachteten Schichten liegen die Wartezeiten in A bei 0, 0, 10 und 10 Minuten, in B bei 0, 5, 5 und 10 Minuten. Das Serviceziel wird bei mehr als 8 Minuten verfehlt. Welcher Befund verbindet die deskriptiven Varianzen bei Division durch n = 4, die beobachtete Zielverfehlung und die Aussagegrenze korrekt?",
+      "options": [
+        "A hat Varianz 12,5 und 25 % Zielverfehlungen, B Varianz 25,0 und 50 %; damit ist A künftig sicherer.",
+        "A hat Varianz 25,0 und 50 % Zielverfehlungen, B Varianz 12,5 und 25 %; eine künftige Risikoverdoppelung folgt daraus nicht.",
+        "A hat Varianz 25,0 und B Varianz 12,5; wegen gleicher Spannweite verfehlen beide das Ziel in 50 % der Schichten.",
+        "A hat Quadratsumme 100 und 50 % Zielverfehlungen, B Quadratsumme 50 und 25 %; diese Summen sind bereits Varianzen."
+      ],
+      "answer": 1,
+      "explanation": "Beide Mittelwerte sind 5. Für A beträgt die Quadratsumme 100 und die Varianz 100/4 = 25; zwei von vier Werten liegen über 8. Für B ergeben sich Quadratsumme 50, Varianz 12,5 und eine von vier Zielverfehlungen. Die beobachteten Anteile 50 % und 25 % beschreiben nur diese je vier Schichten und belegen ohne Auswahl- oder Prozessmodell keine verdoppelte künftige Ausfallwahrscheinlichkeit.",
+      "weight": 3,
+      "topic": "Spannweite und Streuung",
+      "concept": "Varianz, Zielverfehlungsanteil und Übertragungsgrenze",
+      "cognitive_level": "Analyse",
+      "mini_glossary": {
+        "Varianz": "Mittlere quadrierte Abweichung vom Mittelwert.",
+        "Quadratsumme": "Summe der quadrierten Einzelabweichungen vor der Division.",
+        "Zielverfehlungsanteil": "Anteil beobachteter Werte, die einen festgelegten Grenzwert überschreiten."
+      }
+    },
+    {
+      "question": "6. Eine Latenzvarianz beträgt 40.000 ms². Welche Umrechnung in Sekunden ist zusammen mit der zugehörigen Standardabweichung korrekt?",
+      "options": [
+        "Die Varianz beträgt 200,00 s² und die Standardabweichung 14,14 s.",
+        "Die Varianz beträgt 40,00 s² und die Standardabweichung 6,32 s.",
+        "Die Varianz beträgt 0,20 s² und die Standardabweichung 0,04 s.",
+        "Die Varianz beträgt 0,04 s² und die Standardabweichung 0,20 s."
+      ],
+      "answer": 3,
+      "explanation": "Da 1 s = 1.000 ms gilt, werden quadrierte Einheiten durch 1.000² geteilt: 40.000 ms² = 0,04 s². Die Wurzel ist 0,20 s. Der Distraktor mit 40 s² berücksichtigt die Quadrierung des Umrechnungsfaktors nicht korrekt.",
+      "weight": 2,
+      "topic": "Varianz und Standardabweichung",
+      "concept": "Umrechnung quadrierter Einheiten",
+      "cognitive_level": "Anwendung",
+      "mini_glossary": {
+        "Varianz": "Streuungsmaß in der quadrierten Einheit der Daten.",
+        "Standardabweichung": "Positive Quadratwurzel der Varianz in der ursprünglichen Einheit.",
+        "Einheitenumrechnung": "Skalierung eines Messwerts bei unveränderter physikalischer Größe."
+      }
+    },
+    {
+      "question": "7. Acht vollständig beobachtete Transaktionszeiten haben eine Quadratsumme von 280 s². Welche beiden Varianzen entstehen deskriptiv mit n und als Stichprobenschätzer mit n − 1?",
+      "options": [
+        "Deskriptiv 35 s² und als Stichprobenschätzer 40 s²",
+        "Deskriptiv 40 s² und als Stichprobenschätzer 35 s²",
+        "Deskriptiv 35 s² und als Stichprobenschätzer 35 s²",
+        "Deskriptiv 280 s² und als Stichprobenschätzer 40 s²"
+      ],
+      "answer": 0,
+      "explanation": "Für die vollständigen acht Werte gilt 280/8 = 35 s²; für den Stichprobenschätzer gilt 280/7 = 40 s². Der vertauschte Distraktor missachtet, dass der kleinere Nenner n − 1 bei gleicher Quadratsumme den größeren Wert liefert.",
+      "weight": 2,
+      "topic": "Varianz und Standardabweichung",
+      "concept": "Vergleich der Nenner n und n−1",
+      "cognitive_level": "Anwendung",
+      "mini_glossary": {
+        "Deskriptive Varianz": "Varianz zur Beschreibung aller vorliegenden Werte mit Nenner n.",
+        "Stichprobenvarianz": "Varianzschätzer für eine Population mit Nenner n − 1.",
+        "Nenner": "Bezugsgröße, durch die eine Quadratsumme geteilt wird."
+      }
+    },
+    {
+      "question": "8. Für eine Stichprobe mit n = 6 wird eine Stichprobenstandardabweichung von 4 Einheiten berichtet. Welche Quadratsumme der Abweichungen muss zugrunde liegen?",
+      "options": [
+        "Die Quadratsumme beträgt 16, weil die Standardabweichung quadriert wird.",
+        "Die Quadratsumme beträgt 24, weil die Standardabweichung mit n multipliziert wird.",
+        "Die Quadratsumme beträgt 80, weil 4² mit n − 1 multipliziert wird.",
+        "Die Quadratsumme beträgt 96, weil 4² mit n multipliziert wird."
+      ],
+      "answer": 2,
+      "explanation": "Aus s = 4 folgt s² = 16. Da s² = Quadratsumme/(n − 1), ist die Quadratsumme 16 · 5 = 80. Der Distraktor 96 verwendet n statt n − 1 und passt daher zur angegebenen Stichprobenstandardabweichung nicht.",
+      "weight": 3,
+      "topic": "Varianz und Standardabweichung",
+      "concept": "Quadratsumme aus Stichprobenstandardabweichung",
+      "cognitive_level": "Analyse",
+      "mini_glossary": {
+        "Stichprobenstandardabweichung": "Quadratwurzel der Stichprobenvarianz mit Nenner n − 1.",
+        "Quadratsumme": "Summe der quadrierten Abweichungen vom Stichprobenmittelwert."
+      }
+    },
+    {
+      "question": "9. Eine Zeitreihe hat Mittelwert 40 s und Varianz 9 s². Zu jedem Wert werden wegen eines festen Messoffsets 25 s addiert. Welche Kennzahlen gelten danach?",
+      "options": [
+        "Der Mittelwert beträgt 65 s und die Varianz nun 34 s².",
+        "Der Mittelwert beträgt 65 s und die Varianz weiterhin 9 s².",
+        "Der Mittelwert beträgt 40 s und die Varianz weiterhin 9 s².",
+        "Der Mittelwert beträgt 65 s und die Varianz nun 225 s²."
+      ],
+      "answer": 1,
+      "explanation": "Eine konstante Verschiebung erhöht den Mittelwert um 25 s, lässt aber alle Abstände zum neuen Mittelwert und damit die Varianz unverändert. Der Distraktor 34 addiert den Offset fälschlich zur Varianz, obwohl Streuung translationsinvariant ist.",
+      "weight": 2,
+      "topic": "Varianz und Standardabweichung",
+      "concept": "Einfluss einer additiven Verschiebung",
+      "cognitive_level": "Verständnis",
+      "mini_glossary": {
+        "Messoffset": "Konstanter additiver Unterschied zwischen Messwert und Bezugswert.",
+        "Translationsinvarianz": "Unverändertheit eines Streuungsmaßes beim Addieren derselben Konstante zu allen Werten."
+      }
+    },
+    {
+      "question": "10. Ein Datensatz hat Mittelwert 20, Varianz 16 und Standardabweichung 4. Alle Werte werden mit 1,5 multipliziert. Welche Kennzahlen entstehen?",
+      "options": [
+        "Mittelwert 30, Varianz 24 und Standardabweichung 6",
+        "Mittelwert 20, Varianz 24 und Standardabweichung 4",
+        "Mittelwert 30, Varianz 36 und Standardabweichung 9",
+        "Mittelwert 30, Varianz 36 und Standardabweichung 6"
+      ],
+      "answer": 3,
+      "explanation": "Mittelwert und Standardabweichung skalieren mit 1,5, die Varianz mit 1,5² = 2,25. Daher ergeben sich 30, 36 und 6. Der Distraktor mit Varianz 24 skaliert die Varianz nur linear und übersieht die quadrierten Abweichungen.",
+      "weight": 3,
+      "topic": "Varianz und Standardabweichung",
+      "concept": "Skalierung von Lage und Streuung",
+      "cognitive_level": "Analyse",
+      "mini_glossary": {
+        "Skalierung": "Multiplikation aller Beobachtungen mit demselben Faktor.",
+        "Varianz": "Streuungsmaß, das bei Skalierung mit dem Quadrat des Faktors wächst.",
+        "Standardabweichung": "Streuungsmaß, das linear mit dem Betrag des Faktors wächst."
+      }
+    },
+    {
+      "question": "11. Ein Bericht soll genau alle 48 Transaktionen eines abgeschlossenen Geschäftstags beschreiben, ohne auf andere Tage zu verallgemeinern. Welcher Varianznenner passt zum Auswertungsziel?",
+      "options": [
+        "Der Nenner n passt, weil die 48 Werte die abgegrenzte Tagesgesamtheit bilden.",
+        "Der Nenner n − 1 passt, weil der Geschäftstag als Stichprobe künftiger Tage behandelt wird.",
+        "Der Nenner n − 1 passt, weil der Mittelwert aus denselben 48 Werten geschätzt wurde.",
+        "Der Nenner n − 2 passt, weil Lage und Streuung aus denselben Tageswerten geschätzt werden."
+      ],
+      "answer": 0,
+      "explanation": "Für die rein deskriptive Beschreibung aller Transaktionen dieses Tages wird durch n geteilt. Der plausible Hinweis, dass der Mittelwert aus den Daten geschätzt wurde, begründet n − 1 erst beim Schätzen einer Populationsvarianz, nicht beim beschriebenen Tagesziel.",
+      "weight": 2,
+      "topic": "Varianz und Standardabweichung",
+      "concept": "Auswertungsziel bestimmt den Nenner",
+      "cognitive_level": "Verständnis",
+      "mini_glossary": {
+        "Auswertungsziel": "Festlegung, welche Menge beschrieben oder welche Population geschätzt werden soll.",
+        "Population": "Gesamtheit, über die eine Untersuchung eine Aussage anstrebt.",
+        "Deskription": "Zusammenfassende Beschreibung der tatsächlich vorliegenden Daten."
+      }
+    },
+    {
+      "question": "12. Zwei Programme verwenden für dieselben n = 25 Werte dieselbe Quadratsumme. Programm A teilt durch n und meldet 10,00 s Standardabweichung; Programm B teilt durch n − 1. Welchen Wert sollte B melden?",
+      "options": [
+        "Etwa 10,00 s, weil beide Programme dieselbe Quadratsumme nutzen",
+        "Etwa 10,42 s, weil 10 mit 25/24 multipliziert wird",
+        "Etwa 10,21 s, weil 10 mit der Wurzel aus 25/24 multipliziert wird",
+        "Etwa 10,41 s, weil 10 mit der Wurzel aus 26/24 multipliziert wird"
+      ],
+      "answer": 2,
+      "explanation": "Aus A folgt eine Varianz von 100 und damit eine Quadratsumme von 2.500. B erhält 2.500/24 und die Wurzel 10·√(25/24) ≈ 10,21 s. Die Rechnung 10·25/24 ≈ 10,42 wendet den Varianzfaktor fälschlich direkt auf die Standardabweichung an.",
+      "weight": 3,
+      "topic": "Varianz und Standardabweichung",
+      "concept": "Verhältnis zweier Standardabweichungskonventionen",
+      "cognitive_level": "Analyse",
+      "mini_glossary": {
+        "Nennerkonvention": "Festgelegte Wahl zwischen n und n − 1 entsprechend dem Auswertungsziel.",
+        "Standardabweichung": "Positive Quadratwurzel der jeweiligen Varianz."
+      }
+    },
+    {
+      "question": "13. In einer Zufallsstichprobe haben sechs Lieferungen jeweils genau 12 Minuten gedauert. Welche Schlussfolgerung trennt Stichprobenergebnis und Population korrekt?",
+      "options": [
+        "Die Stichprobenvarianz ist 0; als Punktschätzung macht sie weitere Unsicherheitsangaben entbehrlich.",
+        "Die Stichprobenvarianz ist 144; die identischen Werte werden vor dem Mitteln quadriert.",
+        "Die Stichprobenvarianz ist 12; die identischen Werte werden als Abweichungen eingesetzt.",
+        "Die Stichprobenvarianz ist 0; über die Populationsvarianz bleibt dennoch Unsicherheit."
+      ],
+      "answer": 3,
+      "explanation": "Alle beobachteten Abweichungen sind null, also ist auch die mit n − 1 berechnete Stichprobenvarianz null. Die Aussage, weitere Unsicherheitsangaben seien entbehrlich, behandelt die Punktschätzung wie vollständige Gewissheit; in der nicht vollständig beobachteten Population können andere Lieferzeiten auftreten.",
+      "weight": 3,
+      "topic": "Varianz und Standardabweichung",
+      "concept": "Nullstreuung und begrenzte Übertragbarkeit",
+      "cognitive_level": "Analyse",
+      "mini_glossary": {
+        "Nullstreuung": "Situation, in der alle beobachteten Werte identisch sind.",
+        "Stichprobenunsicherheit": "Unsicherheit, weil nur ein Teil der Zielpopulation beobachtet wurde.",
+        "Population": "Gesamtheit der Einheiten, auf die verallgemeinert werden soll."
+      }
+    },
+    {
+      "question": "14. Ein System meldet Q1 = 850 Cent und Q3 = 1.370 Cent. Welcher Interquartilsabstand ist nach korrekter Einheitenumrechnung zu berichten?",
+      "options": [
+        "Der Interquartilsabstand beträgt 5,20 €.",
+        "Der Interquartilsabstand beträgt 0,52 €.",
+        "Der Interquartilsabstand beträgt 13,70 €.",
+        "Der Interquartilsabstand beträgt 22,20 €."
+      ],
+      "answer": 0,
+      "explanation": "Der IQR ist 1.370 − 850 = 520 Cent = 5,20 €. Der Distraktor 22,20 € addiert Q1 und Q3, obwohl der Interquartilsabstand als Differenz der beiden Quartile definiert ist.",
+      "weight": 2,
+      "topic": "Quartile und IQR",
+      "concept": "IQR mit Einheitenumrechnung",
+      "cognitive_level": "Anwendung",
+      "mini_glossary": {
+        "Interquartilsabstand": "Differenz Q3 − Q1 und Breite der mittleren 50 %.",
+        "Quartil": "Grenzwert geordneter Daten nach einer festgelegten Berechnungskonvention."
+      }
+    },
+    {
+      "question": "15. Sortierte Werte: 2, 4, 5, 7, 8, 10, 12, 13, 20, 40. Q1 und Q3 sind als Mediane der unteren beziehungsweise oberen fünf Werte definiert. Welche Werte folgen?",
+      "options": [
+        "Q1 = 4, Q3 = 20 und IQR = 16",
+        "Q1 = 5, Q3 = 13 und IQR = 8",
+        "Q1 = 6, Q3 = 12,5 und IQR = 6,5",
+        "Q1 = 7, Q3 = 12 und IQR = 5"
+      ],
+      "answer": 1,
+      "explanation": "Der Median von 2, 4, 5, 7, 8 ist 5; der Median von 10, 12, 13, 20, 40 ist 13. Damit ist der IQR 8. Der Distraktor 6 und 12,5 mischt diese ausdrücklich vorgegebene Regel mit einer Interpolationskonvention.",
+      "weight": 3,
+      "topic": "Quartile und IQR",
+      "concept": "Quartile nach festgelegter Teilmengenregel",
+      "cognitive_level": "Anwendung",
+      "mini_glossary": {
+        "Quartilkonvention": "Vereinbarte Regel zur Bestimmung von Q1 und Q3.",
+        "Interquartilsabstand": "Differenz Q3 − Q1 und Breite der mittleren 50 % der geordneten Werte.",
+        "Median": "Mittlerer Rangwert einer geordneten Datenmenge."
+      }
+    },
+    {
+      "question": "16. Für einen Datensatz gelten Q1 = 18 und Q3 = 30. Nach der 1,5·IQR-Regel werden −1, 0, 48 und 49 geprüft. Welche Werte liegen strikt außerhalb der Grenzen?",
+      "options": [
+        "Alle vier Werte liegen strikt außerhalb der Grenzen.",
+        "Nur 0 und 48 liegen strikt außerhalb der Grenzen.",
+        "Nur −1 und 49 liegen strikt außerhalb der Grenzen.",
+        "Nur 49 liegt strikt außerhalb der Grenzen."
+      ],
+      "answer": 2,
+      "explanation": "Der IQR ist 12; die Grenzen sind 18 − 18 = 0 und 30 + 18 = 48. Werte auf den Grenzen gelten nicht als außerhalb, also werden nur −1 und 49 markiert. Der Distraktor 0 und 48 behandelt Grenzwerte fälschlich als Ausreißer.",
+      "weight": 3,
+      "topic": "Quartile und IQR",
+      "concept": "Strikte Prüfung beider Ausreißergrenzen",
+      "cognitive_level": "Anwendung",
+      "mini_glossary": {
+        "Untere Ausreißergrenze": "Schwelle Q1 − 1,5·IQR.",
+        "Obere Ausreißergrenze": "Schwelle Q3 + 1,5·IQR.",
+        "Grenzwert": "Wert auf einer Schwelle, der bei strikter Regel nicht außerhalb liegt."
+      }
+    },
+    {
+      "question": "17. Konvention A ergibt Q1 = 5 und Q3 = 13, Konvention B Q1 = 5,5 und Q3 = 12,5. Wie wird der Wert 24 nach der jeweiligen oberen 1,5·IQR-Grenze eingestuft?",
+      "options": [
+        "Nach beiden Konventionen wird 24 als Ausreißer markiert.",
+        "Nach keiner Konvention wird 24 als Ausreißer markiert.",
+        "Nur nach Konvention A wird 24 als Ausreißer markiert.",
+        "Nur nach Konvention B wird 24 als Ausreißer markiert."
+      ],
+      "answer": 3,
+      "explanation": "Für A ist IQR = 8 und die obere Grenze 25; 24 liegt nicht darüber. Für B ist IQR = 7 und die obere Grenze 23; 24 liegt darüber. Der Distraktor »nach beiden« ignoriert, dass die dokumentierte Quartilkonvention die Markierung verändern kann.",
+      "weight": 3,
+      "topic": "Quartile und IQR",
+      "concept": "Konventionsabhängige Ausreißermarkierung",
+      "cognitive_level": "Analyse",
+      "mini_glossary": {
+        "Quartilkonvention": "Dokumentierte Regel zur Berechnung von Quartilen.",
+        "Ausreißermarkierung": "Regelbasierter Hinweis auf einen auffälligen Wert, kein automatisches Qualitätsurteil."
+      }
+    },
+    {
+      "question": "18. Zwei Prozent der Requests gehören zu dokumentierten, sehr langsamen Störfällen. Welches Kennzahlenpaket beschreibt typische Leistung und oberen Rand am transparentesten?",
+      "options": [
+        "Mittelwert und Standardabweichung, p95 und Maximum ohne gesonderte Störfallquote berichten",
+        "Median und IQR, p95 und p99 sowie den Anteil der bestätigten Störfälle berichten",
+        "Median und Spannweite, p95 und p99 nach Ausschluss der bestätigten Störfälle berichten",
+        "Mittelwert und IQR, p95 und Maximum nach Ersetzen der Störfälle durch p95 berichten"
+      ],
+      "answer": 1,
+      "explanation": "Median und IQR beschreiben robuste Lage und Streuung, p95 und p99 den oberen Rand; der ausgewiesene Störfallanteil schafft Kontext. Der Ausschluss-Distraktor verändert dagegen gerade den betriebsrelevanten oberen Rand, den der Bericht transparent abbilden soll.",
+      "weight": 2,
+      "topic": "Quartile und IQR",
+      "concept": "Mehrperspektivischer Bericht bei Extremfällen",
+      "cognitive_level": "Verständnis",
+      "mini_glossary": {
+        "Robustheit": "Geringe Empfindlichkeit einer Kennzahl gegenüber einzelnen Extremwerten.",
+        "Hohes Quantil": "Schwelle, unter der ein großer Anteil der Beobachtungen liegt.",
+        "Störfallanteil": "Relativer Anteil sachlich als Störung klassifizierter Beobachtungen."
+      }
+    },
+    {
+      "question": "19. Ein Boxplot zeigt Q1 = 12, Median = 15, Q3 = 20, Whisker bei 4 und 30 sowie einen separaten Punkt bei 45. Welche Aussage ist direkt durch die Darstellung gedeckt?",
+      "options": [
+        "Die Box reicht von 12 bis 20, ihr IQR beträgt 8, und 45 liegt oberhalb des oberen Whiskers.",
+        "Die Box reicht von 4 bis 30, ihr IQR beträgt 26, und 45 kennzeichnet das 95%-Quantil.",
+        "Die Box reicht von 12 bis 20, ihr Median beträgt 20, und 45 kennzeichnet den Mittelwert.",
+        "Die Box reicht von 15 bis 30, ihr Median beträgt 12, und 45 kennzeichnet das dritte Quartil."
+      ],
+      "answer": 0,
+      "explanation": "Die Box reicht von Q1 = 12 bis Q3 = 20 und hat Breite 8; der separate Punkt 45 liegt oberhalb des Whiskers bei 30. Die Aussage mit der Box von 4 bis 30 verwechselt die Whisker-Enden mit den Boxrändern und deutet den markierten Punkt ohne Grundlage als p95.",
+      "weight": 2,
+      "topic": "Boxplot und Ausreißer",
+      "concept": "Informationsgehalt eines Boxplots",
+      "cognitive_level": "Analyse",
+      "mini_glossary": {
+        "Boxplot": "Darstellung von Quartilen, Median, Whiskern und gegebenenfalls auffälligen Punkten.",
+        "Whisker": "Linie vom Boxrand bis zum äußersten nach der gewählten Regel einbezogenen Wert.",
+        "Medianlinie": "Linie innerhalb der Box am Median."
+      }
+    },
+    {
+      "question": "20. Ein Boxplot besitzt einen deutlich längeren oberen als unteren Whisker und mehrere separat markierte hohe Werte. Welche Diagnose ist ohne Rohdaten am besten vertretbar?",
+      "options": [
+        "Die Darstellung spricht für das Entfernen der markierten Werte vor der Kennzahlenberechnung.",
+        "Die Darstellung spricht für eine symmetrische Verteilung mit Lage im Mittelpunkt der Whisker.",
+        "Die Darstellung weist auf einen längeren oberen Bereich mit auffällig hohen Beobachtungen hin.",
+        "Die Darstellung erlaubt eine Näherung des Mittelwerts allein aus den beiden Whiskerlängen."
+      ],
+      "answer": 2,
+      "explanation": "Die asymmetrische Form stützt eine Aussage über einen längeren oberen Bereich und markierte hohe Werte. Der Symmetrie-Distraktor widerspricht der sichtbaren Whisker-Asymmetrie; Mittelwert, Messqualität und Ausschlussentscheidung folgen aus dem Boxplot allein nicht.",
+      "weight": 3,
+      "topic": "Boxplot und Ausreißer",
+      "concept": "Vorsichtige Forminterpretation",
+      "cognitive_level": "Analyse",
+      "mini_glossary": {
+        "Rechtsschiefe": "Verteilungsform mit vergleichsweise langem Bereich zu hohen Werten.",
+        "Rohdaten": "Einzelne ursprüngliche Beobachtungen vor ihrer Zusammenfassung.",
+        "Verteilungsmodell": "Mathematische Annahme über die Form einer Zufallsverteilung."
+      }
+    },
+    {
+      "question": "21. Zwischen Antwortzeiten um 100 ms steht ein Wert von 600, dessen Einheit und Herkunft noch ungeklärt sind. Welcher nächste Schritt ist methodisch angemessen?",
+      "options": [
+        "Den Wert sofort löschen und anschließend nur die verkürzte Datenreihe berichten",
+        "Quelle und Einheit prüfen und anschließend Ergebnisse mit begründeten Varianten vergleichen",
+        "Den Wert sofort durch den Median ersetzen und anschließend die Varianz berechnen",
+        "Die gesamte Erhebung verwerfen und anschließend ohne weitere Diagnose neu beginnen"
+      ],
+      "answer": 1,
+      "explanation": "Eine Ausreißermarkierung erklärt weder Ursache noch Gültigkeit. Zuerst werden Quelle und Einheit geprüft; danach kann eine Sensitivitätsanalyse begründete Varianten zeigen. Der Lösch-Distraktor kann einen echten seltenen Fall entfernen oder einen korrigierbaren Einheitenfehler verdecken.",
+      "weight": 3,
+      "topic": "Boxplot und Ausreißer",
+      "concept": "Diagnose vor Ausreißerbehandlung",
+      "cognitive_level": "Analyse",
+      "mini_glossary": {
+        "Datenherkunft": "Dokumentation, aus welcher Quelle ein Wert stammt und wie er entstand.",
+        "Sensitivitätsanalyse": "Vergleich von Ergebnissen unter begründeten Analysevarianten.",
+        "Ausreißer": "Nach einer Regel auffällig weit liegende Beobachtung."
+      }
+    },
+    {
+      "question": "22. Ein bestätigter Systemausfall erzeugt eine echte Latenz von 6,6 s. Der Bericht soll sowohl Alltagserfahrung als auch Betriebsrisiko abbilden. Welche Auswertung erfüllt dieses Ziel?",
+      "options": [
+        "Den Störfall ausschließen und Lage sowie Streuung des verbleibenden Normalbetriebs berichten",
+        "Den Störfall separat als Maximum berichten und Kennzahlen des Normalbetriebs nicht ergänzen",
+        "Den Störfall auf p99 begrenzen und nur die dadurch geänderte Latenzverteilung berichten",
+        "Den Wert behalten, als Störfall kennzeichnen und robuste sowie tailbezogene Kennzahlen berichten"
+      ],
+      "answer": 3,
+      "explanation": "Der valide Störfall gehört zur Datenrealität, sollte aber klar gekennzeichnet und durch robuste sowie hohe Quantile kontextualisiert werden. Der Lösch-Distraktor unterschätzt das Betriebsrisiko und verändert ohne passende Zieldefinition die beobachtete Verteilung.",
+      "weight": 3,
+      "topic": "Boxplot und Ausreißer",
+      "concept": "Valider Extremwert bei mehreren Berichtszielen",
+      "cognitive_level": "Analyse",
+      "mini_glossary": {
+        "Störfall": "Sachlich bestätigtes seltenes Ereignis mit abweichendem Prozessverlauf.",
+        "Tailkennzahl": "Kennzahl für den oberen oder unteren Rand einer Verteilung.",
+        "Winsorisieren": "Ersetzen extremer Werte durch festgelegte Grenzwerte."
+      }
+    },
+    {
+      "question": "23. Bei 10, 11, 12, 13, 14 wird der Wert 14 durch 100 ersetzt. Welche kombinierte Veränderung ist korrekt?",
+      "options": [
+        "Der Median bleibt 12, der Mittelwert steigt auf 29,2 und die Spannweite auf 90.",
+        "Der Median steigt auf 29,2, der Mittelwert bleibt 12 und die Spannweite steigt auf 90.",
+        "Der Median bleibt 12, der Mittelwert steigt auf 24,0 und die Spannweite auf 100.",
+        "Der Median steigt auf 13, der Mittelwert steigt auf 29,2 und die Spannweite bleibt 4."
+      ],
+      "answer": 0,
+      "explanation": "Die neue Reihe 10, 11, 12, 13, 100 hat weiterhin Median 12, aber Mittelwert 146/5 = 29,2 und Spannweite 100 − 10 = 90. Der Distraktor mit Spannweite 100 verwechselt das Maximum mit der Differenz aus Maximum und Minimum.",
+      "weight": 3,
+      "topic": "Boxplot und Ausreißer",
+      "concept": "Differenzielle Empfindlichkeit gegenüber Extremwerten",
+      "cognitive_level": "Analyse",
+      "mini_glossary": {
+        "Median": "Zentraler Rangwert einer geordneten Datenreihe.",
+        "Mittelwert": "Summe aller Werte geteilt durch ihre Anzahl.",
+        "Spannweite": "Maximum minus Minimum."
+      }
+    },
+    {
+      "question": "24. Die geordneten Latenzen lauten 60, 70, 80, 80, 80 und 90 ms. Welche Aussage interpretiert den Median 80 ms auch bei Bindungen korrekt?",
+      "options": [
+        "Genau 80 % der Werte liegen bei höchstens 80 ms und genau 20 % liegen darüber.",
+        "Genau die Hälfte der Werte liegt unter 80 ms und genau die Hälfte liegt über 80 ms.",
+        "Mindestens die Hälfte der Werte liegt bei höchstens 80 ms und mindestens die Hälfte bei mindestens 80 ms.",
+        "Genau ein Wert beträgt 80 ms und alle übrigen Werte liegen symmetrisch um diesen Wert."
+      ],
+      "answer": 2,
+      "explanation": "Die Formulierung mit »mindestens der Hälfte« bleibt bei gleichen Werten am Median korrekt. Exakte Hälften unterhalb und oberhalb scheitern an den drei Bindungen bei 80 ms; eine 80/20-Aufteilung verwechselt den Median zudem mit einem 80%-Quantil.",
+      "weight": 2,
+      "topic": "Median, p95 und p99",
+      "concept": "Medianinterpretation bei Bindungen",
+      "cognitive_level": "Verständnis",
+      "mini_glossary": {
+        "Median": "Wert, bei dem mindestens die Hälfte der Beobachtungen nicht größer und mindestens die Hälfte nicht kleiner ist.",
+        "Bindung": "Mehrfaches Auftreten desselben Messwerts."
+      }
+    },
+    {
+      "question": "25. In einem Lauf mit 2.000 Requests beträgt p95 nach der dokumentierten Quantilregel 121 ms. Welche Häufigkeitsaussage trifft die Bedeutung am besten?",
+      "options": [
+        "Rund 1.900 Requests liegen bei höchstens 121 ms, und rund 100 können darüber liegen.",
+        "Rund 1.900 Requests liegen bei mindestens 121 ms, und rund 100 können darunter liegen.",
+        "Rund 100 Requests liegen bei höchstens 121 ms, und rund 1.900 können darüber liegen.",
+        "Rund 95 % der Requests liegen bei genau 121 ms, und rund 5 % liegen bei anderen Werten."
+      ],
+      "answer": 0,
+      "explanation": "p95 ist eine Schwelle, bei oder unter der ungefähr 95 % der Beobachtungen liegen; 0,95 · 2.000 = 1.900. Die Aussage, 95 % der Requests nähmen exakt 121 ms an, verwechselt eine Quantilschwelle mit einem häufig auftretenden Einzelwert.",
+      "weight": 3,
+      "topic": "Median, p95 und p99",
+      "concept": "Quantilschwelle als Häufigkeitsaussage",
+      "cognitive_level": "Anwendung",
+      "mini_glossary": {
+        "p95": "95%-Quantil einer beobachteten Verteilung.",
+        "Quantilregel": "Dokumentiertes Verfahren zur Bestimmung einer Quantilschwelle.",
+        "Schwelle": "Grenzwert, der Beobachtungen nach ihrer Ranglage zusammenfasst."
+      }
+    },
+    {
+      "question": "26. Ein Lastlauf weist p95 = 121 ms und p99 = 1,22 s aus. Welche Umrechnung und welcher Vergleich sind korrekt?",
+      "options": [
+        "p99 liegt etwa 100,8-mal so hoch wie p95 und um 12.079 ms darüber.",
+        "p99 liegt etwa 1,1-mal so hoch wie p95 und um 99 ms darüber.",
+        "p99 liegt etwa 10,1-mal so hoch wie p95 und um 1,099 ms darüber.",
+        "p99 liegt etwa 10,1-mal so hoch wie p95 und um 1.099 ms darüber."
+      ],
+      "answer": 3,
+      "explanation": "1,22 s sind 1.220 ms. Damit ist das Verhältnis 1.220/121 ≈ 10,1 und die Differenz 1.220 − 121 = 1.099 ms. Die Angabe 1,099 ms deutet den deutschen Tausenderpunkt fälschlich als Dezimaltrennzeichen.",
+      "weight": 3,
+      "topic": "Median, p95 und p99",
+      "concept": "Vergleich hoher Quantile über Einheiten",
+      "cognitive_level": "Analyse",
+      "mini_glossary": {
+        "p99": "99%-Quantil einer Verteilung.",
+        "Einheitenumrechnung": "1 Sekunde entspricht 1.000 Millisekunden.",
+        "Verhältnis": "Quotient zweier Größen in derselben Einheit."
+      }
+    },
+    {
+      "question": "27. Release A hat p95 = 120 ms und p99 = 200 ms; Release B hat p95 = 110 ms und p99 = 1.000 ms. Welche Bewertung ist für eine Freigabeentscheidung angemessen?",
+      "options": [
+        "B verbessert p95 und p99; beide betrachteten Tailbereiche sprechen für Release B.",
+        "B verbessert p95, verschlechtert aber p99 stark; die Bewertung braucht Zielwerte und Fehlerfolgen.",
+        "A verbessert p95 und p99; beide betrachteten Tailbereiche sprechen für Release A.",
+        "B verbessert p95 um 10 ms und verschlechtert p99 um 800 ms; beide Änderungen gleichen sich aus."
+      ],
+      "answer": 1,
+      "explanation": "B ist für einen großen Anteil geringfügig schneller, hat aber einen erheblich schlechteren oberen Rand. Ohne SLA, Nutzungskontext und Kosten langsamer Requests gibt es keine eindeutige Rangfolge. Die Aussage, B verbessere auch p99, liest die p99-Änderung in die falsche Richtung und verdeckt den Zielkonflikt.",
+      "weight": 3,
+      "topic": "Median, p95 und p99",
+      "concept": "Zielabhängiger Vergleich von Latenzquantilen",
+      "cognitive_level": "Analyse",
+      "mini_glossary": {
+        "SLA": "Vereinbarter Ziel- oder Grenzwert für eine Serviceleistung.",
+        "Oberer Verteilungsrand": "Bereich der vergleichsweise größten beobachteten Werte.",
+        "Fehlerfolge": "Sachliche Auswirkung einer Zielverletzung."
+      }
+    },
+    {
+      "question": "28. Ein Log enthält pro Zeile einen Requestversuch; fehlgeschlagene Versuche werden innerhalb derselben Nutzersitzung wiederholt. Der Bericht soll die Wartezeit pro Sitzung beschreiben. Was ist vor der Kennzahlenbildung nötig?",
+      "options": [
+        "Requestversuche nach Endpunkt gruppieren und den Endpunktmittelwert als Sitzungswert verwenden",
+        "Den erfolgreichen Versuch je Sitzung verwenden und vorherige Wartezeiten unberücksichtigt lassen",
+        "Requestversuche über eine Sitzungskennung verbinden und die Sitzungswartezeit vorab definieren",
+        "Requestversuche nach Person über mehrere Sitzungen bündeln und den Personenmittelwert verwenden"
+      ],
+      "answer": 2,
+      "explanation": "Die Beobachtungseinheit des Ziels ist die Sitzung, nicht Endpunkt, einzelner Erfolgsversuch oder Person über mehrere Sitzungen. Versuche müssen daher über eine stabile Sitzungskennung verbunden und die einzubeziehende Wartezeit vor der Aggregation definiert werden.",
+      "weight": 2,
+      "topic": "Kumulative Wiederholung: Datenstruktur",
+      "concept": "Beobachtungseinheit bei wiederholten Versuchen",
+      "cognitive_level": "Analyse",
+      "mini_glossary": {
+        "Beobachtungseinheit": "Einheit, auf die sich eine Zeile oder eine Auswertung beziehen soll.",
+        "Aggregation": "Zusammenfassung mehrerer Einzelzeilen zu einer definierten Einheit.",
+        "Sitzungskennung": "Stabile Kennung zum Verbinden von Versuchen derselben Sitzung."
+      }
+    },
+    {
+      "question": "29. Von 30 eingeschriebenen Personen geben 24 eine Antwort ab; 18 dieser Antworten sind korrekt. Welcher Bericht trennt Antwortqualität und Nonresponse korrekt?",
+      "options": [
+        "75 % der abgegebenen Antworten sind korrekt; sechs Nonresponses begrenzen Aussagen über die gesamte Kohorte.",
+        "75 % der gesamten Kohorte antworten korrekt; die sechs Nonresponses ändern den Nenner nicht.",
+        "60 % der abgegebenen Antworten sind korrekt; die sechs Nonresponses zählen als falsche Antworten.",
+        "60 % der gesamten Kohorte antworten korrekt; die übrigen 40 % werden als falsche Antworten gewertet."
+      ],
+      "answer": 0,
+      "explanation": "Unter den Antworten gilt 18/24 = 75 %. Bezogen auf alle Eingeschriebenen wurden 18/30 = 60 % korrekte Antworten beobachtet, doch über die Kenntnisse der sechs Nichtantwortenden ist nichts bekannt. Die Aussage mit 75 % der gesamten Kohorte überträgt den Antwortanteil unzulässig auf alle Eingeschriebenen.",
+      "weight": 3,
+      "topic": "Kumulative Wiederholung: Häufigkeiten",
+      "concept": "Nennerwahl bei Nonresponse",
+      "cognitive_level": "Analyse",
+      "mini_glossary": {
+        "Relative Häufigkeit": "Anteil einer Kategorie an einer klar benannten Bezugsmenge.",
+        "Nonresponse": "Ausbleibende Teilnahme oder Antwort bei grundsätzlich angesprochenen Einheiten.",
+        "Kohorte": "Festgelegte Gruppe von Personen in einem gemeinsamen Kontext."
+      }
+    },
+    {
+      "question": "30. Gruppe A hat Zeiten 9, 10, 11 Minuten; Gruppe B 9, 10, 31 Minuten. Welcher Kurzbefund verbindet Rechnung und Datenkritik korrekt?",
+      "options": [
+        "A hat Mittelwert 10 und Spannweite 2; B hat Mittelwert 16,67 und Spannweite 22, daher gilt dieser Abstand auch künftig.",
+        "Beide Mediane sind 10; B hat Mittelwert 16,67 und Spannweite 22, doch drei Fälle erlauben keine allgemeine Aussage.",
+        "Beide Mediane sind 10; der Wert 31 wird vor dem Vergleich durch den Median der Gruppe B ersetzt.",
+        "Beide Mediane sind 10; die Mittelwertdifferenz 6,67 wird kausal der Gruppenzugehörigkeit zugeschrieben."
+      ],
+      "answer": 1,
+      "explanation": "A hat Mittelwert und Median 10 sowie Spannweite 2. B hat Median 10, Mittelwert 50/3 ≈ 16,67 und Spannweite 22. Die Aussage, der beobachtete Abstand gelte künftig, rechnet zwar richtig, überträgt das Ergebnis aber ohne Stichprobengrundlage auf nicht beobachtete Fälle.",
+      "weight": 3,
+      "topic": "Kumulative Wiederholung: Lage und Datenkritik",
+      "concept": "Integrierter deskriptiver Kurzbefund",
+      "cognitive_level": "Analyse",
+      "mini_glossary": {
+        "Übertragbarkeit": "Grad, in dem ein Ergebnis über die untersuchten Einheiten hinaus begründet gilt.",
+        "Median": "Zentraler Rangwert geordneter Daten.",
+        "Spannweite": "Differenz zwischen größtem und kleinstem Wert."
+      }
+    }
+  ]
+}

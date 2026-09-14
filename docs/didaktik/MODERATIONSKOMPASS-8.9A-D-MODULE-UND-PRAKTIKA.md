@@ -8,7 +8,7 @@
 
 **Produktbasis:** [Storys 8.9a–8.9d](../../Backlog.md) · [8.9a](../features/moderation-compass.md) · [8.9b](../features/qa-nlp-moderation.md) · [8.9c](../features/qa-summary.md) · [ADR-0035 / 8.9d](../architecture/decisions/0035-self-hosted-llm-runtime-llama-cpp-over-ollama.md)
 
-**Praktika:** [Data Analytics und NLP](../praktikum/PRAKTIKUM-DATA-ANALYTICS.md) · [Cloud Computing, 36 UE](./BACHELOR-VORLESUNG-CLOUD-COMPUTING-36-UE-PRAKTIKUM.md)
+**Praktika:** [Data Analytics und NLP](../praktikum/PRAKTIKUM-DATA-ANALYTICS.md) · [Cloud Computing, 36 UE](./Modulkonzept%20Cloud%20Computing/Modulkonzept_Cloud_Computing.md)
 
 ## 1. Verbindlicher Projektstand
 

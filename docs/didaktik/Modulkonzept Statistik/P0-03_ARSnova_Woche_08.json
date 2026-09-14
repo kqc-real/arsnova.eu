@@ -1,0 +1,320 @@
+{
+  "exportVersion": 1,
+  "exportedAt": "2026-09-13T00:00:00.000Z",
+  "quiz": {
+    "name": "P0-03 ARSnova – Woche 08: Korrelation und Regression",
+    "description": "10 anspruchsvolle Diagnosefragen zu Streudiagramm, Pearson-r, linearer Regression, Residuen, Modellgüte und Extrapolation – mit allen zehn ARSnova-Fragetypen.",
+    "showLeaderboard": true,
+    "allowCustomNicknames": false,
+    "defaultTimer": 60,
+    "timerScaleByDifficulty": true,
+    "enableTimerAccommodation": true,
+    "enableSoundEffects": true,
+    "enableRewardEffects": true,
+    "enableMotivationMessages": true,
+    "enableEmojiReactions": true,
+    "anonymousMode": false,
+    "teamMode": true,
+    "teamCount": 4,
+    "teamAssignment": "AUTO",
+    "teamNames": ["Apfel :apple:", "Birne :pear:", "Banane :banana:", "Apfelsine :orange:"],
+    "backgroundMusic": null,
+    "nicknameTheme": "KINDERGARTEN",
+    "bonusTokenCount": 3,
+    "readingPhaseEnabled": true,
+    "questions": [
+      {
+        "text": "### Gleicher Korrelationswert, andere Prognose\n\nFür Umsatz $x$ in Tausend Euro und Personalstunden $y$ gilt $r=0{,}80$. Nun wird $x$ in Euro statt in Tausend Euro angegeben; die Datenpaare bleiben unverändert.\n\nWelche Folge ist korrekt?",
+        "type": "SINGLE_CHOICE",
+        "timer": null,
+        "difficulty": "HARD",
+        "order": 0,
+        "answers": [
+          {
+            "text": "$r$ fällt auf ein Tausendstel, während die Regressionssteigung je Euro ihren bisherigen Zahlenwert behält.",
+            "isCorrect": false
+          },
+          {
+            "text": "$r$ bleibt gleich, während die Regressionssteigung je Euro auf das Tausendfache ihres bisherigen Zahlenwerts steigt.",
+            "isCorrect": false
+          },
+          {
+            "text": "$r$ steigt auf das Tausendfache, während die Regressionssteigung je Euro auf ein Tausendstel ihres Zahlenwerts fällt.",
+            "isCorrect": false
+          },
+          {
+            "text": "$r$ bleibt gleich, während die Regressionssteigung je Euro auf ein Tausendstel ihres bisherigen Zahlenwerts fällt.",
+            "isCorrect": true
+          }
+        ],
+        "confidenceEnabled": true,
+        "confidenceLabelLow": "Sehr unsicher",
+        "confidenceLabelHigh": "Sehr sicher"
+      },
+      {
+        "text": "### Hohes $R^2$ kritisch einordnen\n\nEin lineares Modell erreicht im Trainingsdatensatz $R^2=0{,}91$. Das Streudiagramm zeigt jedoch zwei Szenario-Cluster, und der Residuenplot weist eine deutliche Krümmung auf.\n\nWelche Aussagen sind fachlich begründet? _Mehrere Antworten sind richtig._",
+        "type": "MULTIPLE_CHOICE",
+        "timer": null,
+        "difficulty": "HARD",
+        "order": 1,
+        "answers": [
+          {
+            "text": "Das hohe $R^2$ macht die sichtbare Fehlanpassung der linearen Form für die Modellwahl unerheblich.",
+            "isCorrect": false
+          },
+          {
+            "text": "Die Szenariozugehörigkeit sollte als mögliche Erklärung der gemeinsamen Anpassung geprüft werden.",
+            "isCorrect": true
+          },
+          {
+            "text": "Vorhersagen sollten zusätzlich an neuen oder zurückgehaltenen Daten beurteilt werden.",
+            "isCorrect": true
+          },
+          {
+            "text": "Das hohe $R^2$ stützt den Prädiktor als gemeinsame Ursache der Zielgröße in beiden Szenarien.",
+            "isCorrect": false
+          }
+        ],
+        "confidenceEnabled": true,
+        "confidenceLabelLow": "Sehr unsicher",
+        "confidenceLabelHigh": "Sehr sicher"
+      },
+      {
+        "text": "### Erklärte Variation berechnen\n\nIn einer einfachen linearen Regression mit Achsenabschnitt beträgt die Pearson-Korrelation $r=0{,}82$. Berechne den Anteil der im Stichprobenmodell erklärten y-Variation **in Prozent** als $R^2=r^2$.\n\nGib das Ergebnis auf zwei Dezimalstellen ein.",
+        "type": "NUMERIC_ESTIMATE",
+        "timer": null,
+        "difficulty": "HARD",
+        "order": 2,
+        "answers": [],
+        "numericToleranceMode": "ABSOLUTE_INTERVAL",
+        "numericReferenceValue": 67.24,
+        "numericIntervalLeft": 67.235,
+        "numericIntervalRight": 67.245,
+        "numericInputType": "DECIMAL",
+        "numericDecimalPlaces": 2,
+        "numericMin": 0,
+        "numericMax": 100,
+        "numericTwoRounds": true,
+        "confidenceEnabled": true,
+        "confidenceLabelLow": "Sehr unsicher",
+        "confidenceLabelHigh": "Sehr sicher"
+      },
+      {
+        "text": "### Residuenmuster diagnostisch deuten\n\nOrdne jedem Muster im Residuenplot die naheliegende Folgerung für das lineare Modell zu.",
+        "type": "MATCHING",
+        "timer": null,
+        "difficulty": "HARD",
+        "order": 3,
+        "answers": [],
+        "matchingPairs": [
+          {
+            "leftId": "w08-m1-left",
+            "left": "Zufälliges Band um null mit ähnlicher Breite",
+            "rightId": "w08-m1-right",
+            "right": "Lineare Form und konstante Streuung erscheinen verträglich"
+          },
+          {
+            "leftId": "w08-m2-left",
+            "left": "Ausgeprägte U-Form um die Nulllinie",
+            "rightId": "w08-m2-right",
+            "right": "Eine nichtlineare Struktur bleibt im Modell übrig"
+          },
+          {
+            "leftId": "w08-m3-left",
+            "left": "Trichter mit wachsender Breite",
+            "rightId": "w08-m3-right",
+            "right": "Die Residuenstreuung ist nicht konstant"
+          },
+          {
+            "leftId": "w08-m4-left",
+            "left": "Ein Punkt mit großem Hebel und großem Residuum",
+            "rightId": "w08-m4-right",
+            "right": "Die Anpassung kann durch einen einflussreichen Fall geprägt sein"
+          },
+          {
+            "leftId": "w08-m5-left",
+            "left": "Lange Folge gleichgerichteter Residuen über die Zeit",
+            "rightId": "w08-m5-right",
+            "right": "Eine zeitliche Abhängigkeit sollte geprüft werden"
+          }
+        ],
+        "matchingShuffleRight": true,
+        "confidenceEnabled": true,
+        "confidenceLabelLow": "Sehr unsicher",
+        "confidenceLabelHigh": "Sehr sicher"
+      },
+      {
+        "text": "### Lineares Modell systematisch prüfen\n\nBringe die Analyseschritte in eine fachlich sinnvolle Reihenfolge, bevor eine Prognose kommuniziert wird.",
+        "type": "ORDERING",
+        "timer": null,
+        "difficulty": "HARD",
+        "order": 4,
+        "answers": [],
+        "orderingItems": [
+          {
+            "id": "w08-o1",
+            "text": "Fragestellung, Beobachtungseinheit sowie Prädiktor und Zielgröße festlegen"
+          },
+          {
+            "id": "w08-o2",
+            "text": "Streudiagramm auf Richtung, Form, Cluster und auffällige Punkte prüfen"
+          },
+          {
+            "id": "w08-o3",
+            "text": "Regressionsgerade im sachlich begründeten Datenbereich anpassen"
+          },
+          {
+            "id": "w08-o4",
+            "text": "Residuen auf Krümmung, Streuungsänderung und Einflussfälle untersuchen"
+          },
+          {
+            "id": "w08-o5",
+            "text": "Modellgüte und Vorhersageunsicherheit an geeigneten Daten beurteilen"
+          },
+          {
+            "id": "w08-o6",
+            "text": "Prognose mit Gültigkeitsbereich, Datenherkunft und Aussagegrenzen berichten"
+          }
+        ],
+        "confidenceEnabled": true,
+        "confidenceLabelLow": "Sehr unsicher",
+        "confidenceLabelHigh": "Sehr sicher"
+      },
+      {
+        "text": "### Modellanwendungen klassifizieren\n\nEin Modell wurde mit beobachteten Lastwerten von 100 bis 600 VU angepasst. Kategorisiere die Aussagen.",
+        "type": "CATEGORIZATION",
+        "timer": null,
+        "difficulty": "HARD",
+        "order": 5,
+        "answers": [],
+        "categories": [
+          {
+            "id": "w08-cat-inter",
+            "name": "Interpolation"
+          },
+          {
+            "id": "w08-cat-extra",
+            "name": "Extrapolation"
+          },
+          {
+            "id": "w08-cat-over",
+            "name": "Nicht durch Regression allein gedeckt"
+          }
+        ],
+        "categorizationItems": [
+          {
+            "id": "w08-c1",
+            "text": "Vorhersage der mittleren Latenz bei 250 VU",
+            "correctCategoryId": "w08-cat-inter"
+          },
+          {
+            "id": "w08-c2",
+            "text": "Vorhersage der mittleren Latenz bei 550 VU",
+            "correctCategoryId": "w08-cat-inter"
+          },
+          {
+            "id": "w08-c3",
+            "text": "Vorhersage der mittleren Latenz bei 50 VU",
+            "correctCategoryId": "w08-cat-extra"
+          },
+          {
+            "id": "w08-c4",
+            "text": "Vorhersage der mittleren Latenz bei 900 VU",
+            "correctCategoryId": "w08-cat-extra"
+          },
+          {
+            "id": "w08-c5",
+            "text": "Behauptung einer ursächlichen Lastwirkung aus hohem $R^2$",
+            "correctCategoryId": "w08-cat-over"
+          },
+          {
+            "id": "w08-c6",
+            "text": "Garantie derselben Modellgüte für künftige Produktionsdaten",
+            "correctCategoryId": "w08-cat-over"
+          }
+        ],
+        "categorizationShuffleItems": true,
+        "confidenceEnabled": true,
+        "confidenceLabelLow": "Sehr unsicher",
+        "confidenceLabelHigh": "Sehr sicher"
+      },
+      {
+        "text": "### Trichtermuster benennen\n\nIm Residuenplot nimmt die Streuung der Residuen mit wachsender Vorhersage deutlich zu; die mittlere Lage bleibt ungefähr null.\n\nWie heißt dieses Streuungsproblem des linearen Modells?",
+        "type": "SHORT_TEXT",
+        "timer": null,
+        "difficulty": "MEDIUM",
+        "order": 6,
+        "answers": [
+          {
+            "text": "Heteroskedastizität",
+            "isCorrect": true
+          },
+          {
+            "text": "Heteroskedastizitaet",
+            "isCorrect": true
+          },
+          {
+            "text": "Heteroskedastie",
+            "isCorrect": true
+          }
+        ],
+        "shortTextEvaluationKind": "text",
+        "shortTextMaxLength": 40,
+        "shortTextCaseSensitive": false,
+        "shortTextEvaluationMode": "exact",
+        "shortTextToleranceLevel": "none",
+        "shortTextAllowPartialCredit": false,
+        "shortTextTrimWhitespace": true,
+        "shortTextNormalizeWhitespace": true,
+        "confidenceEnabled": true,
+        "confidenceLabelLow": "Sehr unsicher",
+        "confidenceLabelHigh": "Sehr sicher"
+      },
+      {
+        "text": "### Produktionsprognose aus Lehrdaten kritisieren\n\nEin lineares Modell wurde an 16 synthetischen Läufen zwischen 50 und 425 VU angepasst und erreicht $R^2=0{,}992$. Das Team möchte damit die Produktionslatenz bei 1.200 VU verbindlich zusagen.\n\nFormuliere in zwei bis drei Sätzen die zwei wichtigsten methodischen Einwände und einen geeigneten nächsten Prüfschritt.",
+        "type": "FREETEXT",
+        "timer": null,
+        "difficulty": "HARD",
+        "order": 7,
+        "answers": []
+      },
+      {
+        "text": "### Diagnostik priorisieren\n\nDas Streudiagramm zeigt einen starken positiven Trend, zwei Szenario-Cluster und einen Punkt weit rechts. Welche Zusatzprüfung würdest du im Team **zuerst** priorisieren? Die Abstimmung eröffnet die Begründungsdiskussion; es gibt keine Musterlösung.",
+        "type": "SURVEY",
+        "timer": null,
+        "difficulty": "MEDIUM",
+        "order": 8,
+        "answers": [
+          {
+            "text": "Den Einfluss des weit rechts liegenden Punkts transparent vergleichen",
+            "isCorrect": false
+          },
+          {
+            "text": "Die Zusammenhänge innerhalb beider Szenario-Cluster transparent vergleichen",
+            "isCorrect": false
+          },
+          {
+            "text": "Die Residuen auf Krümmung und Streuungsänderung transparent vergleichen",
+            "isCorrect": false
+          },
+          {
+            "text": "Die Prognosegüte an zurückgehaltenen Beobachtungen transparent vergleichen",
+            "isCorrect": false
+          }
+        ]
+      },
+      {
+        "text": "### Tragfähigkeit einer Modellkommunikation einschätzen\n\nEin Bericht lautet: »Im Bereich 100 bis 600 VU beschreibt das lineare Modell die Lehrdaten gut. Residuen zeigen keine deutliche Struktur; Aussagen über Produktion, Kausalität und Werte außerhalb des Bereichs werden nicht abgeleitet.«\n\nWie tragfähig ist diese Formulierung als begrenzter statistischer Befund?",
+        "type": "RATING",
+        "timer": null,
+        "difficulty": "MEDIUM",
+        "order": 9,
+        "answers": [],
+        "ratingMin": 1,
+        "ratingMax": 5,
+        "ratingLabelMin": "1 = methodisch kaum tragfähig",
+        "ratingLabelMax": "5 = methodisch gut begrenzt"
+      }
+    ]
+  }
+}

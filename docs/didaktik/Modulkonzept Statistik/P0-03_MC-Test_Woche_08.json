@@ -1,0 +1,625 @@
+{
+  "meta": {
+    "title": "Angewandte Statistik – MC-Test Woche 08",
+    "target_audience": "Bachelorstudierende aus BWL, Management, Wirtschaftsinformatik und Informatik ohne vorausgesetzte Statistikkenntnisse",
+    "question_count": 30,
+    "difficulty_profile": {
+      "leicht": 0,
+      "mittel": 12,
+      "schwer": 18
+    },
+    "time_per_weight_minutes": {
+      "1": 0.5,
+      "2": 0.75,
+      "3": 1.0
+    },
+    "additional_buffer_minutes": 5,
+    "test_duration_minutes": 32,
+    "language": "de",
+    "updated": "2026-09-13"
+  },
+  "questions": [
+    {
+      "question": "1. Für jeden von 20 Lastläufen liegen gleichzeitige VU und Medianlatenz vor. Welche erste Darstellung ermöglicht zugleich die Prüfung von Richtung, Form, Clustern und auffälligen Läufen?",
+      "options": [
+        "Ein Liniendiagramm der mittleren Latenz je gerundeter Laststufe mit verbundenen Gruppenmitteln",
+        "Eine Folge von Boxplots der Latenz für vier vorab gebildete Lastklassen",
+        "Ein farbcodiertes Histogramm der Latenzen für niedrige und hohe Lastwerte",
+        "Ein Streudiagramm mit einem Last-Latenz-Punkt je beobachtetem Lauf"
+      ],
+      "answer": 3,
+      "explanation": "Nur das Streudiagramm erhält jedes Wertepaar und zeigt die bivariate Struktur unmittelbar. Gruppierte Linien-, Boxplot- oder Histogrammdarstellungen aggregieren beziehungsweise trennen die Werte und verlieren dadurch die vollständige Paarzuordnung.",
+      "weight": 2,
+      "topic": "Streudiagramm",
+      "concept": "Darstellung zweier metrischer Variablen",
+      "cognitive_level": "Anwendung",
+      "mini_glossary": {
+        "Streudiagramm": "Grafik gepaarter metrischer Werte mit je einer Variable pro Achse.",
+        "Wertepaar": "Zwei Messwerte derselben Beobachtungseinheit.",
+        "Lastlauf": "Kontrollierter Durchlauf mit festgelegtem Lastniveau."
+      }
+    },
+    {
+      "question": "2. Die Punkte (100 VU, 104 ms), (200 VU, 121 ms), (300 VU, 139 ms) und (400 VU, 154 ms) bilden ein annähernd steigendes Muster. Welche Aussage beschreibt zunächst nur die beobachtete Richtung?",
+      "options": [
+        "Größere Lastwerte erklären in diesen Läufen die höheren Latenzwerte als primärer Einflussfaktor.",
+        "Größere Lastwerte gehen in diesen Läufen tendenziell mit größeren Latenzwerten einher.",
+        "Größere Lastwerte gehen in diesen Läufen tendenziell mit kleineren Latenzwerten einher.",
+        "Größere Lastwerte erlauben wegen verschiedener Einheiten keine Aussage zur Richtung."
+      ],
+      "answer": 1,
+      "explanation": "Mit wachsendem x wächst y in den beobachteten Paaren, also ist die Richtung positiv. Die Deutung der Last als primärer Einflussfaktor macht aus der beobachteten Richtung ohne geeignetes Design eine Kausalaussage.",
+      "weight": 2,
+      "topic": "Streudiagramm",
+      "concept": "Richtung eines Zusammenhangs",
+      "cognitive_level": "Verständnis",
+      "mini_glossary": {
+        "positiver Zusammenhang": "Tendenz, dass größere x-Werte mit größeren y-Werten einhergehen.",
+        "Richtung": "Kennzeichnung, ob y mit wachsendem x tendenziell steigt oder fällt.",
+        "Kausalität": "Ursächliche Wirkung einer Größe auf eine andere."
+      }
+    },
+    {
+      "question": "3. Ein Streudiagramm zeigt eine symmetrische U-Form: Bei mittleren x-Werten ist y klein, an beiden Rändern groß. Pearson-r liegt nahe null. Welche Interpretation passt?",
+      "options": [
+        "Das Muster ist positiv linear; wegen großer y-Werte an beiden Rändern sollte eine steigende Gerade angepasst werden.",
+        "Das Muster ist negativ linear; wegen sinkender y-Werte im linken Abschnitt sollte eine fallende Gerade angepasst werden.",
+        "Das Muster ist nichtlinear; eine quadratische Formprüfung ist sinnvoll, und r nahe null belegt keine Unabhängigkeit.",
+        "Das Muster zeigt Unabhängigkeit; eine zusätzliche Formprüfung ist unnötig, sobald Pearson-r nahe null liegt."
+      ],
+      "answer": 2,
+      "explanation": "Pearson-r misst lineare Kovariation; in einer symmetrischen U-Form können sich fallender und steigender Abschnitt ausgleichen. Eine quadratische Formprüfung greift das sichtbare Muster auf. Ein Wert nahe null beweist weder Beziehungslosigkeit noch statistische Unabhängigkeit.",
+      "weight": 3,
+      "topic": "Streudiagramm",
+      "concept": "Lineare und nichtlineare Form",
+      "cognitive_level": "Analyse",
+      "mini_glossary": {
+        "nichtlinearer Zusammenhang": "Systematisches Muster, das eine Gerade nicht angemessen beschreibt.",
+        "Pearson-Korrelation": "Kennzahl für Richtung und Stärke linearer Kovariation.",
+        "statistische Unabhängigkeit": "Kenntnis einer Variable verändert die Verteilung der anderen nicht."
+      }
+    },
+    {
+      "question": "4. Ein Lastlauf liegt weit rechts und weit oberhalb der übrigen Punktwolke. Mit ihm gilt r = 0,91, ohne ihn r = 0,54. Welches Vorgehen ist methodisch zuerst angemessen?",
+      "options": [
+        "Den Lauf wegen seines großen Einflusses entfernen und r = 0,54 als bereinigten Zusammenhang berichten.",
+        "Herkunft und Messqualität prüfen und beide Analysen als begründete Sensitivitätsanalyse transparent berichten.",
+        "Den Lauf durch einen plausiblen Modellwert ersetzen und die geglättete Korrelation als robuste Schätzung berichten.",
+        "Den Lauf unverändert lassen und seinen Einfluss unerwähnt lassen, weil Pearson-r ausreißerrobust ist."
+      ],
+      "answer": 1,
+      "explanation": "Der Punkt ist ein Prüfsignal; Datenfehler, sachliche Sonderlage und Einfluss sind zu klären, ohne ihn automatisch zu löschen. Ein unverändertes Belassen ohne Einflussanalyse ignoriert die belegte Empfindlichkeit von r.",
+      "weight": 3,
+      "topic": "Streudiagramm",
+      "concept": "Ausreißerprüfung",
+      "cognitive_level": "Analyse",
+      "mini_glossary": {
+        "Ausreißer": "Beobachtung, die deutlich vom übrigen Datenmuster abweicht.",
+        "Einfluss": "Ausmaß, in dem eine Beobachtung ein Modellergebnis verändert.",
+        "Sensitivitätsanalyse": "Transparenter Vergleich unter begründeten alternativen Entscheidungen."
+      }
+    },
+    {
+      "question": "5. Eine Punktwolke folgt eng einer steigenden Geraden, enthält aber zwei getrennte Hardware-Cluster und einen Punkt mit großem Hebel. Welche Beschreibung trennt Beobachtung und Folgerung am besten?",
+      "options": [
+        "Das lineare Muster spricht für eine gemeinsame Lastwirkung, sodass beide Hardware-Cluster zusammen ausgewertet werden können.",
+        "Die enge Punktwolke spricht dafür, Cluster und Hebelpunkt in der weiteren Modellprüfung nachrangig zu behandeln.",
+        "Der Hebelpunkt macht die zusammenfassende Richtung und Form ohne vorherige Bereinigung nicht belastbar.",
+        "Es zeigt sich ein starker positiver linearer Gesamtzusammenhang; Cluster, Hebelpunkt und Kausalität bleiben gesondert zu prüfen."
+      ],
+      "answer": 3,
+      "explanation": "Die Gesamtwolke erlaubt eine deskriptive Aussage zu Richtung, Form und Stärke, aber keine ungeprüfte Zusammenfassung der Cluster oder Kausalbehauptung. Sichtbare Linearität allein begründet weder eine homogene gemeinsame Ursache noch das Zusammenlegen der Hardware-Cluster.",
+      "weight": 3,
+      "topic": "Streudiagramm",
+      "concept": "Systematische Diagrammbeschreibung",
+      "cognitive_level": "Analyse",
+      "mini_glossary": {
+        "Cluster": "Erkennbare Gruppe ähnlicher Punkte.",
+        "Hebelpunkt": "Beobachtung mit ungewöhnlichem Prädiktorwert und potenziell großem Einfluss.",
+        "Stärke": "Ausmaß, in dem Punkte einem beschriebenen Muster folgen."
+      }
+    },
+    {
+      "question": "6. Eine Auswertung meldet Pearson-r = 1,08 für zwei metrische Variablen. Welche Diagnose ist unabhängig von der Stichprobengröße zwingend?",
+      "options": [
+        "Der Wert ist zulässig, wenn die Regressionssteigung größer als eins ist.",
+        "Der Wert ist unzulässig; Berechnung, Paarbildung oder Datentransformation müssen geprüft werden.",
+        "Der Wert ist zulässig, wenn beide Variablen in unterschiedlichen Einheiten gemessen werden.",
+        "Der Wert ist zulässig, wenn beide Variablen vor der Berechnung z-standardisiert wurden."
+      ],
+      "answer": 1,
+      "explanation": "Pearson-r liegt immer zwischen −1 und 1; 1,08 signalisiert einen Berechnungs- oder Datenverarbeitungsfehler. Die Rechtfertigung über eine Steigung größer als eins verwechselt den begrenzten, einheitenlosen Korrelationskoeffizienten mit einer unbeschränkten Regressionssteigung.",
+      "weight": 2,
+      "topic": "Pearson-Korrelation",
+      "concept": "Wertebereich von r",
+      "cognitive_level": "Verständnis",
+      "mini_glossary": {
+        "Pearson-Korrelation": "Einheitenlose Kennzahl zwischen −1 und 1 für lineare Kovariation.",
+        "Regressionssteigung": "Änderung der vorhergesagten Zielgröße je Prädiktoreinheit.",
+        "Paarbildung": "Korrekte Zuordnung beider Werte derselben Beobachtung."
+      }
+    },
+    {
+      "question": "7. Zwischen Preis in Euro und Absatzmenge gilt r = −0,78. Der Preis wird anschließend in Cent angegeben. Welche Interpretation bleibt korrekt?",
+      "options": [
+        "Es besteht ein relativ starker negativer linearer Zusammenhang; die positive Umrechnung lässt r unverändert.",
+        "Es besteht ein relativ starker positiver linearer Zusammenhang; die Umrechnung kehrt das Vorzeichen um.",
+        "Der Absatz sinkt exakt um 78 Einheiten je zusätzlichem Euro; die Umrechnung lässt die Steigung unverändert.",
+        "Der Preis verursacht 78 % der Absatzänderungen; die Umrechnung erhöht diesen Anteil um Faktor 100."
+      ],
+      "answer": 0,
+      "explanation": "Das Vorzeichen zeigt eine gegenläufige lineare Tendenz, der Betrag deren relative Stärke; positive lineare Skalierung ändert r nicht. Die Deutung von −0,78 als Änderung um 78 Absatzeinheiten verwechselt r mit einer einheitenbehafteten Steigung.",
+      "weight": 2,
+      "topic": "Pearson-Korrelation",
+      "concept": "Vorzeichen und Betrag von r",
+      "cognitive_level": "Anwendung",
+      "mini_glossary": {
+        "negativer Zusammenhang": "Tendenz, dass größere x-Werte mit kleineren y-Werten einhergehen.",
+        "Skalierung": "Änderung der Maßeinheit durch Multiplikation mit einer positiven Konstante.",
+        "Steigung": "Modellierte Änderung von y je zusätzlicher Einheit x."
+      }
+    },
+    {
+      "question": "8. In zwölf Läufen beträgt die Last stets 200 VU, während die Latenz variiert. Welche Begründung erklärt, warum Pearson-r nicht definiert ist?",
+      "options": [
+        "Zwölf Beobachtungen unterschreiten die für eine stabile Pearson-Korrelation erforderliche Stichprobengröße.",
+        "Wiederholte Lastwerte müssen vor der Korrelation zu einem gemeinsamen x-Wert gemittelt werden.",
+        "Die Latenzwerte müssen wegen ihrer anderen Einheit vor der Korrelation in Rangplätze umgewandelt werden.",
+        "Die Nullvarianz der Last macht einen Faktor im Nenner der standardisierten Kovarianz gleich null."
+      ],
+      "answer": 3,
+      "explanation": "Ohne Variation in x ist seine Standardabweichung null; damit kann die Kovarianz nicht standardisiert werden. Eine vermeintliche Mindeststichprobengröße löst das Problem nicht, weil weitere Wiederholungen desselben Lastwerts keine x-Variation erzeugen.",
+      "weight": 2,
+      "topic": "Pearson-Korrelation",
+      "concept": "Nullvarianz",
+      "cognitive_level": "Anwendung",
+      "mini_glossary": {
+        "Nullvarianz": "Fehlende Streuung, weil alle Werte einer Variable gleich sind.",
+        "Kovarianz": "Kennzahl für gemeinsame lineare Variation zweier Variablen.",
+        "Standardisierung": "Division durch geeignete Streuungsmaße."
+      }
+    },
+    {
+      "question": "9. Für 16 synthetische Basisläufe gilt r = 0,995822. Welche Aussage verbindet r und R² im einfachen linearen Modell mit Achsenabschnitt korrekt?",
+      "options": [
+        "Es besteht ein sehr starker positiver linearer Zusammenhang; R² ≈ 0,991661 beschreibt die erklärte Stichprobenvariation.",
+        "Es besteht eine Steigung von 0,995822 ms/VU; R² ≈ 0,991661 beschreibt die kausale Produktionswirkung.",
+        "Es besteht eine Trefferwahrscheinlichkeit von 99,5822 %; R² ≈ 0,991661 beschreibt künftige Einzelprognosen.",
+        "Es besteht ein sehr starker Zusammenhang im Lehrbereich; das hohe R² stützt deshalb auch Prognosen oberhalb von 425 VU."
+      ],
+      "answer": 0,
+      "explanation": "r beschreibt den sehr starken positiven linearen Zusammenhang, und bei einfacher Regression gilt R² = r² ≈ 0,991661. Die Interpretation von r als Steigung und von R² als Kausalwirkung verwechselt drei unterschiedliche statistische Größen.",
+      "weight": 2,
+      "topic": "Pearson-Korrelation",
+      "concept": "Interpretation der S5-Korrelation",
+      "cognitive_level": "Anwendung",
+      "mini_glossary": {
+        "R²": "Anteil der beobachteten y-Variation, den das angepasste Modell erklärt.",
+        "Pearson-Korrelation": "Kennzahl für Richtung und Stärke eines linearen Zusammenhangs.",
+        "LEHRDATEN": "Für Lernzwecke konstruierte Daten."
+      }
+    },
+    {
+      "question": "10. Für x = −2, −1, 0, 1, 2 und y = 4, 1, 0, 1, 4 ist Pearson-r gleich null. Welche Schlussfolgerung ist durch Daten und Kennzahl gedeckt?",
+      "options": [
+        "Zwischen x und y besteht kein systematischer Zusammenhang, weil r exakt null ist.",
+        "Zwischen x und y besteht statistische Unabhängigkeit, weil der lineare Anteil null ist.",
+        "Zwischen x und y liegt ein Messfehler vor, weil eine gültige Kennzahl nicht null sein darf.",
+        "Zwischen x und y besteht ein quadratisches Muster, das Pearson-r als lineare Kennzahl nicht erfasst."
+      ],
+      "answer": 3,
+      "explanation": "Die Werte folgen y = x², also einem eindeutigen nichtlinearen Zusammenhang; die symmetrischen linearen Beiträge heben sich auf. Der Schluss von r = 0 auf »kein Zusammenhang« übersieht systematische nichtlineare Beziehungen.",
+      "weight": 3,
+      "topic": "Pearson-Korrelation",
+      "concept": "r gleich null bei Nichtlinearität",
+      "cognitive_level": "Analyse",
+      "mini_glossary": {
+        "quadratisches Muster": "Nichtlinearer Zusammenhang der Form y = a + bx + cx².",
+        "linearer Zusammenhang": "Muster, das näherungsweise durch eine Gerade beschrieben wird.",
+        "Pearson-r": "Maß für standardisierte lineare Kovariation."
+      }
+    },
+    {
+      "question": "11. Last und Medianlatenz korrelieren in zeitlich nacheinander ausgeführten Läufen stark positiv. Währenddessen steigt zugleich die Hintergrundlast des Servers. Welche Aussage trennt Befund und Ursache korrekt?",
+      "options": [
+        "Die Korrelation stützt eine Lastwirkung, weil die eingestellte Last zeitlich vor der gemessenen Latenz liegt.",
+        "Die Korrelation widerlegt die Lastwirkung, weil eine Hintergrundlast im Modell nicht gemessen wurde.",
+        "Die Korrelation beschreibt das gemeinsame Muster; Hintergrundlast und Zeittrend bleiben mögliche Alternativerklärungen.",
+        "Die Korrelation ist nicht berechenbar, sobald neben der Last eine weitere Einflussgröße existiert."
+      ],
+      "answer": 2,
+      "explanation": "Der Zusammenhang ist deskriptiv berechenbar, isoliert aber ohne geeignetes Design nicht den Effekt der eingestellten Last. Zeitliche Reihenfolge allein kontrolliert die gleichzeitig ansteigende Hintergrundlast nicht.",
+      "weight": 3,
+      "topic": "Grenzen und Einflussfaktoren",
+      "concept": "Korrelation und Kausalität",
+      "cognitive_level": "Analyse",
+      "mini_glossary": {
+        "Störvariable": "Nicht kontrollierte Größe, die beide untersuchten Variablen beeinflussen kann.",
+        "Zeittrend": "Systematische Veränderung im Verlauf der Messreihenfolge.",
+        "Kausalität": "Ursächliche Wirkung einer Größe auf eine andere."
+      }
+    },
+    {
+      "question": "12. Zwei Szenario-Cluster zeigen innerhalb jedes Clusters r ≈ 0,10, gemeinsam aber r = 0,82, weil sich ihre Mittelwerte stark unterscheiden. Welche Analyse schützt am besten vor einer Scheinkorrelation?",
+      "options": [
+        "Die Szenariokennung in der Hauptanalyse ignorieren und den präziseren gemeinsamen r-Wert berichten.",
+        "Die Cluster zu zwei Mittelwertpunkten verdichten und aus der Verbindungslinie Kausalität ableiten.",
+        "Den kleineren Cluster als Sensitivitätsfall behandeln und den größeren Cluster als Hauptanalyse berichten.",
+        "Gemeinsame und szenariospezifische Muster darstellen und das Szenario als mögliche Einflussgröße modellieren."
+      ],
+      "answer": 3,
+      "explanation": "Der starke Gesamtwert kann primär den Unterschied zwischen Szenarien abbilden; deshalb sind innerhalb- und zwischen-Gruppen-Muster zu trennen. Das Ignorieren der Szenariokennung beseitigt gerade die Gruppierungsinformation, die den gemeinsamen Zusammenhang erklären kann.",
+      "weight": 3,
+      "topic": "Grenzen und Einflussfaktoren",
+      "concept": "Cluster und Scheinkorrelation",
+      "cognitive_level": "Analyse",
+      "mini_glossary": {
+        "Cluster": "Erkennbare Gruppe ähnlicher Beobachtungen.",
+        "Scheinkorrelation": "Zusammenhang, der wesentlich durch Gruppierung oder Drittvariablen entsteht.",
+        "Stratifizierung": "Getrennte Betrachtung von Daten nach relevanten Gruppen."
+      }
+    },
+    {
+      "question": "13. Wird bei 350 VU eine Medianlatenz von 142 ms auf 230 ms geändert, fällt r von 0,995822 auf 0,794976 und R² von etwa 0,992 auf 0,632. Welche Folgerung ist angemessen?",
+      "options": [
+        "Ein einzelner einflussreicher y-Wert kann Korrelation und erklärte Variation deutlich verändern.",
+        "Ein einzelner geänderter y-Wert wandelt die metrische Latenzvariable in eine nominale Variable um.",
+        "Ein einzelner geänderter y-Wert spricht dafür, dass die Ausreißervariante ein anderes Lastregime abbildet.",
+        "Ein einzelner geänderter y-Wert erhöht die Robustheit von Pearson-r gegenüber weiteren Ausreißern."
+      ],
+      "answer": 0,
+      "explanation": "Der direkte Variantenvergleich zeigt die Empfindlichkeit von r und R² gegenüber einem einflussreichen Punkt. Die Deutung der künstlichen Sensitivitätsvariante als Nachweis eines anderen Lastregimes geht über die gegebenen Daten hinaus.",
+      "weight": 3,
+      "topic": "Grenzen und Einflussfaktoren",
+      "concept": "Ausreißersensitivität von r",
+      "cognitive_level": "Analyse",
+      "mini_glossary": {
+        "Einflussfall": "Beobachtung, deren Änderung das Modellergebnis stark verändert.",
+        "Sensitivitätsanalyse": "Vergleich von Ergebnissen unter begründeten Datenvarianten.",
+        "R²": "Anteil der durch das Modell erklärten y-Variation."
+      }
+    },
+    {
+      "question": "14. Ein Modell wird aus 16 ausdrücklich synthetischen LEHRDATEN-Läufen zwischen 50 und 425 VU geschätzt. Welche Nutzung respektiert Provenienz und Gültigkeitsbereich?",
+      "options": [
+        "Das Modell als Produktiv-SLO übernehmen, weil synthetische Daten frei von Messfehlern sind.",
+        "Das Modell verwerfen, weil mit konstruierten Daten keine statistische Methode geübt werden darf.",
+        "Das Modell als Kausalnachweis nutzen, weil die Lastwerte im Lehrdatensatz kontrolliert gewählt wurden.",
+        "Das Modell im Lehrbereich für Regressions- und Residuenübungen nutzen, ohne Produktions- oder Extrapolationszusage."
+      ],
+      "answer": 3,
+      "explanation": "Lehrdaten sind für reproduzierbare Methodenübungen geeignet, tragen aber keine reale Betriebszusage. Kontrolliert gewählte x-Werte in konstruierten Daten ersetzen weder ein reales Untersuchungsdesign noch externe Validierung.",
+      "weight": 3,
+      "topic": "Grenzen und Einflussfaktoren",
+      "concept": "Provenienz der Last-Latenz-Daten",
+      "cognitive_level": "Analyse",
+      "mini_glossary": {
+        "LEHRDATEN": "Für Lernzwecke konstruierte Daten, keine Produktivmessung.",
+        "Provenienz": "Dokumentierte Herkunft und Verarbeitung eines Datensatzes.",
+        "Gültigkeitsbereich": "Sachlich und empirisch gestützter Anwendungsbereich eines Modells."
+      }
+    },
+    {
+      "question": "15. Die Medianlatenz y soll aus der Last x vorhergesagt werden. Welche Gleichung stellt ein einfaches lineares Regressionsmodell mit Achsenabschnitt dar?",
+      "options": [
+        "Die Gleichung x̂ = b₀ + b₁y mit Vorhersage der Zielgröße x",
+        "Die Gleichung ŷ = b₀ + b₁x mit Vorhersage der Zielgröße y",
+        "Die Gleichung ŷ = b₀ + rx mit Verwendung der Korrelation als Steigung",
+        "Die Gleichung ŷ = b₁(x−x̄) mit Zentrierung nur des Prädiktors"
+      ],
+      "answer": 1,
+      "explanation": "Für die gewählte Zielgröße lautet die Vorhersage ŷ = b₀ + b₁x. Eine Gleichung für x̂ aus y vertauscht Prädiktor und Zielgröße und beschreibt damit ein anderes Modell.",
+      "weight": 2,
+      "topic": "Lineare Regression",
+      "concept": "Regressionsgleichung",
+      "cognitive_level": "Verständnis",
+      "mini_glossary": {
+        "Regressionsgerade": "Gerade für modellierte mittlere Vorhersagen.",
+        "Prädiktor": "Eingangsvariable x des Modells.",
+        "Zielvariable": "Zu erklärende oder vorherzusagende Variable y."
+      }
+    },
+    {
+      "question": "16. Das Modell lautet ŷ = 80,135294 ms + 0,182588 ms/VU · Last. Welche Interpretation der Steigung ist im beobachteten Bereich korrekt?",
+      "options": [
+        "Pro zusätzlichem VU steigt die modellierte Medianlatenz im Mittel um etwa 0,183 ms.",
+        "Pro zusätzlichem VU steigt die modellierte Medianlatenz im Mittel um etwa 18,3 %.",
+        "Pro zusätzlichem VU steigt die erwartete Latenz eines typischen einzelnen Requests um etwa 0,183 ms.",
+        "Pro zusätzlichem VU steigt der Korrelationskoeffizient im Mittel um etwa 0,183 Einheiten."
+      ],
+      "answer": 0,
+      "explanation": "Die Steigung hat die Einheit ms/VU und beschreibt die Änderung der Modellvorhersage, nicht jedes Einzelereignis. Eine Deutung von 0,182588 als Prozentwert missachtet die Einheit des Koeffizienten.",
+      "weight": 2,
+      "topic": "Lineare Regression",
+      "concept": "Steigung im Kontext",
+      "cognitive_level": "Anwendung",
+      "mini_glossary": {
+        "Steigung": "Geschätzte Änderung der Zielgröße je zusätzlicher Prädiktoreinheit.",
+        "VU": "Virtueller Nutzer als Lastmaß im Lehrmodell.",
+        "Medianlatenz": "Median der Latenzwerte eines Lastlaufs."
+      }
+    },
+    {
+      "question": "17. Im Modell ŷ = 80,135294 + 0,182588·Last reicht die beobachtete Last von 50 bis 425 VU. Welche Aussage zum Achsenabschnitt 80,135294 ms ist angemessen?",
+      "options": [
+        "Er schätzt die Basislatenz bei sehr niedriger Last und kann näherungsweise auf 0 VU übertragen werden.",
+        "Er ist die rechnerische Vorhersage bei 0 VU, deren sachliche Deutung außerhalb des Datenbereichs fraglich ist.",
+        "Er entspricht der mittleren beobachteten Latenz, weil die Regressionsgerade durch den Mittelwertpunkt verläuft.",
+        "Er entspricht dem mittleren Residuum, weil die Regressionsgerade Abweichungen um ihren Achsenabschnitt zentriert."
+      ],
+      "answer": 1,
+      "explanation": "b₀ ist die Modellvorhersage bei x = 0; dieser Wert liegt hier außerhalb des beobachteten Lastbereichs. Eine Deutung als belastbare Basislatenz verwechselt den algebraischen Schnittpunkt mit einer tatsächlich beobachteten Messung.",
+      "weight": 3,
+      "topic": "Lineare Regression",
+      "concept": "Achsenabschnitt und Gültigkeitsbereich",
+      "cognitive_level": "Analyse",
+      "mini_glossary": {
+        "Achsenabschnitt": "Modellvorhersage der Zielgröße bei x = 0.",
+        "Definitionsbereich": "Beobachteter oder sachlich begründeter Wertebereich.",
+        "Extrapolation": "Vorhersage außerhalb des beobachteten Prädiktorbereichs."
+      }
+    },
+    {
+      "question": "18. Welche Medianlatenz sagt ŷ = 80,135294 + 0,182588·Last für 250 VU voraus, und wie ist die Lage im Bereich 50 bis 425 VU einzuordnen?",
+      "options": [
+        "45,647 ms; Interpolation",
+        "80,318 ms; Extrapolation",
+        "125,782 ms; Interpolation",
+        "250,183 ms; Extrapolation"
+      ],
+      "answer": 2,
+      "explanation": "Einsetzen ergibt 80,135294 + 0,182588·250 = 125,782294 ms; 250 liegt innerhalb des beobachteten Bereichs. Das Addieren nur einer Steigungseinheit ignoriert den Faktor 250 und verwechselt zudem den inneren Wert mit einer Extrapolation.",
+      "weight": 2,
+      "topic": "Lineare Regression",
+      "concept": "Vorhersage durch Einsetzen",
+      "cognitive_level": "Anwendung",
+      "mini_glossary": {
+        "Vorhersage": "Vom Modell berechneter Wert ŷ für gegebenes x.",
+        "Interpolation": "Vorhersage innerhalb des beobachteten x-Bereichs.",
+        "Rundung": "Darstellung mit begrenzten Dezimalstellen nach genauer Rechnung."
+      }
+    },
+    {
+      "question": "19. Ein Team schätzt zuerst Latenz auf Last und möchte für die umgekehrte Vorhersage Last auf Latenz einfach den Kehrwert der ersten Steigung verwenden. Warum ist das im Allgemeinen falsch?",
+      "options": [
+        "Weil die Regression Abweichungen in der Zielvariable minimiert und der Rollentausch ein anderes Optimierungsproblem definiert.",
+        "Weil eine lineare Regression nur dann eine Steigung besitzt, wenn Prädiktor und Zielvariable dieselbe Einheit haben.",
+        "Weil beim Tausch der Variablen das Vorzeichen der Steigung wegen der umgekehrten Richtung gewechselt wird.",
+        "Weil eine umgekehrte Regression nur bei schwacher Korrelation sinnvoll von der ersten Geraden abweicht."
+      ],
+      "answer": 0,
+      "explanation": "Die Regression y auf x minimiert y-Residuen; die Regression x auf y löst ein anderes Optimierungsproblem. Der Kehrwert wäre nur im perfekten linearen Fall passend; die scheinbar naheliegende Symmetrie gilt bei Streuung nicht.",
+      "weight": 3,
+      "topic": "Lineare Regression",
+      "concept": "Prädiktor und Zielvariable",
+      "cognitive_level": "Analyse",
+      "mini_glossary": {
+        "Prädiktor": "Eingangsvariable eines Regressionsmodells.",
+        "Zielvariable": "Variable, deren Abweichungen das Modell minimiert.",
+        "kleinste Quadrate": "Schätzprinzip zur Minimierung quadrierter Residuen."
+      }
+    },
+    {
+      "question": "20. Das Modell ŷ = 80,135294 + 0,182588·Last sagt für 300 VU eine Latenz voraus; beobachtet werden 137 ms. Welche Kombination aus Vorhersage und Residuum e = y − ŷ ist korrekt?",
+      "options": [
+        "ŷ = 134,912 ms; e ≈ +2,088 ms",
+        "ŷ = 134,912 ms; e ≈ −2,088 ms",
+        "ŷ = 137,000 ms; e = 0,000 ms",
+        "ŷ = 54,776 ms; e ≈ +82,224 ms"
+      ],
+      "answer": 0,
+      "explanation": "Die Vorhersage beträgt 134,911694 ms; daher e = 137 − 134,911694 ≈ +2,088 ms. Ein negatives Residuum mit demselben Betrag entsteht nur durch die vertauschte Reihenfolge ŷ − y.",
+      "weight": 3,
+      "topic": "Lineare Regression",
+      "concept": "Regressionsvorhersage",
+      "cognitive_level": "Anwendung",
+      "mini_glossary": {
+        "Vorhersage": "Vom Modell berechneter Wert ŷ.",
+        "Residuum": "Differenz e = y − ŷ.",
+        "positives Residuum": "Beobachtung liegt oberhalb der Regressionsgeraden."
+      }
+    },
+    {
+      "question": "21. Im Modell mit Steigung 0,182588 ms/VU steigt die Last innerhalb des beobachteten Bereichs von 150 auf 250 VU. Welche Änderung der Vorhersage folgt, ohne den Achsenabschnitt erneut einzusetzen?",
+      "options": [
+        "Die Vorhersage steigt um etwa 0,183 ms, weil nur eine Steigungseinheit zählt.",
+        "Die Vorhersage steigt um etwa 8,014 ms, weil der Achsenabschnitt durch zehn geteilt wird.",
+        "Die Vorhersage steigt um etwa 18,259 ms, weil 0,182588·100 gerechnet wird.",
+        "Die Vorhersage steigt um etwa 80,135 ms, weil der Achsenabschnitt die Änderung bestimmt."
+      ],
+      "answer": 2,
+      "explanation": "Für Änderungen gilt Δŷ = b₁·Δx = 0,182588·100 = 18,2588 ms. Die Änderung um nur 0,183 ms berücksichtigt lediglich eine VU-Einheit statt der tatsächlichen Lastdifferenz von 100 VU.",
+      "weight": 2,
+      "topic": "Lineare Regression",
+      "concept": "Steigung über mehrere Einheiten",
+      "cognitive_level": "Anwendung",
+      "mini_glossary": {
+        "Änderungsrate": "Modellierte Änderung von y je Änderungseinheit von x.",
+        "Steigung": "Koeffizient b₁ der Regressionsgeraden.",
+        "Achsenabschnitt": "Vorhersage bei x = 0, die sich bei Differenzen herauskürzt."
+      }
+    },
+    {
+      "question": "22. Ein Lauf liegt 6 ms oberhalb seiner Modellvorhersage. Welche Definition und Vorzeichenkonvention beschreiben sein Residuum?",
+      "options": [
+        "e = ŷ − y = +6 ms",
+        "e = y − ŷ = +6 ms",
+        "e = y + ŷ = +6 ms",
+        "e = (y − ŷ)² = +6 ms"
+      ],
+      "answer": 1,
+      "explanation": "Mit e = y − ŷ ist eine Beobachtung oberhalb der Geraden positiv, hier +6 ms. Die Konvention e = ŷ − y kehrt das Vorzeichen um und ergäbe bei diesem Lauf −6 ms.",
+      "weight": 2,
+      "topic": "Residuen und Modellgüte",
+      "concept": "Definition des Residuums",
+      "cognitive_level": "Verständnis",
+      "mini_glossary": {
+        "Residuum": "Differenz zwischen beobachtetem und vorhergesagtem Wert.",
+        "Beobachtung": "Tatsächlich gemessener Wert y.",
+        "Vorhersage": "Vom Modell berechneter Wert ŷ."
+      }
+    },
+    {
+      "question": "23. Bei 200 VU werden 114 ms beobachtet; das Modell ŷ = 80,135294 + 0,182588·Last sagt 116,652894 ms voraus. Welches Residuum und welche Lage folgen?",
+      "options": [
+        "e ≈ −2,653 ms; die Beobachtung liegt unter der Geraden.",
+        "e ≈ +2,653 ms; die Beobachtung liegt über der Geraden.",
+        "e ≈ 230,653 ms; die Beobachtung liegt über der Geraden.",
+        "e ≈ 0,572 ms; die Beobachtung liegt unter der Geraden."
+      ],
+      "answer": 0,
+      "explanation": "e = 114 − 116,652894 ≈ −2,653 ms; ein negatives Residuum liegt unter der Vorhersage. Die Rechnung ŷ − y übernimmt zwar den richtigen Betrag, kehrt aber Vorzeichen und Lage um.",
+      "weight": 2,
+      "topic": "Residuen und Modellgüte",
+      "concept": "Residuum berechnen",
+      "cognitive_level": "Anwendung",
+      "mini_glossary": {
+        "Residuum": "Fallbezogener Vorhersagefehler e = y − ŷ.",
+        "negatives Residuum": "Beobachtung liegt unter der Modellvorhersage.",
+        "Modellanpassung": "Übereinstimmung von Vorhersagen und beobachteten Daten."
+      }
+    },
+    {
+      "question": "24. Für 16 Basisläufe gilt R² = 0,991661, doch ein Residuenplot zeigt eine leichte systematische Krümmung. Welche Beurteilung nutzt beide Befunde?",
+      "options": [
+        "R² stützt eine weitgehend lineare Lastwirkung, sodass die leichte Krümmung für die Gesamtanpassung vernachlässigt werden kann.",
+        "R² lässt für neue Läufe etwa 99,1661 % richtige Einzelvorhersagen erwarten, sofern die Krümmung klein bleibt.",
+        "R² zeigt hohe erklärte Stichprobenvariation; die Krümmung weist dennoch auf eine mögliche Fehlanpassung der linearen Form hin.",
+        "R² entspricht einem mittleren Fehler von 0,991661 ms; die leichte Krümmung ändert diese Fehlergröße kaum."
+      ],
+      "answer": 2,
+      "explanation": "Ein hohes R² fasst die In-Sample-Variation zusammen, kann aber strukturierte Residuen und damit Modellmissspezifikation nicht ausschließen. Modellgüte ersetzt weder Residualdiagnostik noch eine Begründung von Kausalität.",
+      "weight": 3,
+      "topic": "Residuen und Modellgüte",
+      "concept": "Bestimmtheitsmaß",
+      "cognitive_level": "Analyse",
+      "mini_glossary": {
+        "R²": "Anteil der beobachteten y-Variation, den das Modell erklärt.",
+        "Residuenplot": "Darstellung von Residuen gegen Vorhersagen oder Prädiktoren.",
+        "Modellmissspezifikation": "Unpassende mathematische Form oder fehlende Modellstruktur."
+      }
+    },
+    {
+      "question": "25. Ein lineares Last-Latenz-Modell wurde ausschließlich in Szenario A mit 50 bis 425 VU angepasst. Nun soll es für 300 VU in einem technisch anderen Szenario B und für 500 VU in Szenario A genutzt werden. Welche Einordnung trennt Wertebereich und Domänenübertragung korrekt?",
+      "options": [
+        "300 VU in B ist uneingeschränkt Interpolation; 500 VU in A ist ebenfalls Interpolation, weil die Gleichung beide Werte berechnet.",
+        "300 VU in B liegt numerisch im Trainingsbereich, erfordert aber eine Domänenprüfung; 500 VU in A ist Extrapolation.",
+        "300 VU in B ist Extrapolation wegen des Szenariowechsels; 500 VU in A ist Interpolation wegen des bekannten Szenarios.",
+        "300 VU in B und 500 VU in A sind beide nicht beurteilbar, weil Szenario und Lastbereich gleichzeitig wechseln."
+      ],
+      "answer": 1,
+      "explanation": "300 VU liegt numerisch im beobachteten x-Bereich, doch das technisch andere Szenario erfordert eine zusätzliche Domänenprüfung. 500 VU überschreitet den beobachteten Bereich und ist daher Extrapolation; rechnerische Einsetzbarkeit ersetzt keine empirische Gültigkeit.",
+      "weight": 3,
+      "topic": "Residuen und Modellgüte",
+      "concept": "Interpolation und Extrapolation",
+      "cognitive_level": "Analyse",
+      "mini_glossary": {
+        "Interpolation": "Vorhersage innerhalb des beobachteten Prädiktorbereichs.",
+        "Extrapolation": "Vorhersage außerhalb des beobachteten Prädiktorbereichs.",
+        "Domänenübertragung": "Anwendung eines Modells in einem anderen technischen oder sachlichen Kontext.",
+        "Definitionsbereich": "Beobachteter oder sachlich begründeter Wertebereich."
+      }
+    },
+    {
+      "question": "26. Ein Team verweist auf R² = 0,991661 aus synthetischen Läufen bis 425 VU und garantiert damit eine Produktivlatenz bei 800 VU. Welche Kritik ist vollständig?",
+      "options": [
+        "Die Garantie ist plausibel, weil ein R² über 0,95 die lineare Fortsetzung als hinreichend stabil ausweist.",
+        "Die Garantie ließe sich durch ein breiteres Konfidenzintervall aus derselben Lehrdatenbasis ausreichend absichern.",
+        "Die Garantie ist plausibel, wenn die berechnete 800-VU-Latenz noch im beobachteten y-Bereich liegt.",
+        "Die Garantie kombiniert Extrapolation und Domänenübertragung; R² liefert weder Produktions- noch Kausalgarantie."
+      ],
+      "answer": 3,
+      "explanation": "800 VU liegt weit außerhalb des Lehrbereichs, und synthetische Daten bilden die Produktionsdomäne nicht automatisch ab. Ein hohes In-Sample-R² begründet weder eine stabile lineare Fortsetzung noch externe Prognosevalidität.",
+      "weight": 3,
+      "topic": "Residuen und Modellgüte",
+      "concept": "Grenzen eines hohen R²",
+      "cognitive_level": "Analyse",
+      "mini_glossary": {
+        "Extrapolation": "Vorhersage außerhalb des beobachteten x-Bereichs.",
+        "Domänenübertragung": "Anwendung eines Modells auf einen anderen Nutzungskontext.",
+        "Generalisierung": "Übertragung eines Ergebnisses auf neue Fälle."
+      }
+    },
+    {
+      "question": "27. Ein vorab festgelegter Test liefert p = 0,04 bei α = 0,05; die geschätzte Änderung ist klein und die Daten stammen aus einer Beobachtungsstudie. Welche Aussage bleibt korrekt?",
+      "options": [
+        "H₀ wird verworfen; Größe, praktische Relevanz und Kausalität müssen dennoch separat beurteilt werden.",
+        "H₀ ist mit 4 % Wahrscheinlichkeit wahr; der kleine Schätzwert ist deshalb praktisch relevant.",
+        "H₁ ist mit 96 % Wahrscheinlichkeit plausibel; das Beobachtungsdesign stützt damit dieselbe Wirkrichtung.",
+        "Der Effekt erklärt ungefähr 96 % der Variation; ein zusätzliches R² würde daher ähnliche Information liefern."
+      ],
+      "answer": 0,
+      "explanation": "p < α führt zur formalen Verwerfung, beantwortet aber weder Effektgröße noch Relevanz oder Kausalität. Die Deutung von p = 0,04 als 4-%-Wahrscheinlichkeit einer wahren H₀ vertauscht P(Daten | H₀) mit P(H₀ | Daten).",
+      "weight": 3,
+      "topic": "Kumulative Wiederholung",
+      "concept": "p-Wert ohne Kausalüberdehnung",
+      "cognitive_level": "Analyse",
+      "mini_glossary": {
+        "p-Wert": "Wahrscheinlichkeit mindestens so extremer Daten unter H₀.",
+        "praktische Relevanz": "Sachliche Bedeutung eines Effekts.",
+        "Beobachtungsstudie": "Studie ohne experimentelle Zuweisung der Einflussgröße."
+      }
+    },
+    {
+      "question": "28. Zwei unverzerrt gedachte Stichproben haben dieselbe Streuung: A hat n = 25, B hat n = 100. Welche Kombination aus Standardfehler und Aussagegrenze ist korrekt?",
+      "options": [
+        "B hat den doppelten Standardfehler; das größere n beseitigt dafür Auswahlverzerrung.",
+        "B hat denselben Standardfehler; das größere n verbessert dafür vor allem die Repräsentativität.",
+        "B hat den halben Standardfehler; das größere n erhöht Präzision, beseitigt aber keine systematische Auswahlverzerrung.",
+        "B hat ein Viertel des Standardfehlers; das größere n reduziert zugleich die mögliche Auswahlverzerrung."
+      ],
+      "answer": 2,
+      "explanation": "SE = s/√n: √25 = 5 und √100 = 10, daher halbiert sich der Standardfehler. Eine behauptete Viertelung verwendet fälschlich den direkten n-Faktor; eine größere Stichprobe garantiert zudem keine Beseitigung systematischer Auswahlverzerrung.",
+      "weight": 3,
+      "topic": "Kumulative Wiederholung",
+      "concept": "Stichprobengröße und Standardfehler",
+      "cognitive_level": "Analyse",
+      "mini_glossary": {
+        "Standardfehler": "Geschätzte Streuung eines Stichprobenschätzers.",
+        "Präzision": "Grad der statistischen Unsicherheit einer Schätzung.",
+        "Auswahlverzerrung": "Systematischer Fehler durch nicht geeignete Auswahl."
+      }
+    },
+    {
+      "question": "29. Dieselben 24 Filialen werden vor und nach einer Prozessänderung gemessen. Vorher- und Nachher-Werte korrelieren mit r = 0,90, der mittlere Unterschied ist aber nahezu null. Welche Analyse beantwortet die Veränderungsfrage direkt?",
+      "options": [
+        "Die Pearson-Korrelation, weil ein hoher Wert eine große mittlere Veränderung nachweist.",
+        "Der gepaarte Test der Filialdifferenzen, weil Korrelation und mittlere Veränderung verschiedene Fragen beantworten.",
+        "Die Regression Nachher auf Vorher, weil ihr Achsenabschnitt die mittlere Differenz hinreichend zusammenfasst.",
+        "Der Vergleich der beiden Randmittelwerte, weil das hohe r die Paarinformation bereits in der Streuung berücksichtigt."
+      ],
+      "answer": 1,
+      "explanation": "Die Veränderungsfrage betrifft den Mittelwert von Nachher minus Vorher; ein hohes Pearson-r beschreibt dagegen lineare Kovariation beziehungsweise relative Stabilität. Korrelation beantwortet daher nicht die Frage nach einer mittleren Niveauänderung.",
+      "weight": 3,
+      "topic": "Kumulative Wiederholung",
+      "concept": "Korrelation versus gepaarter Vergleich",
+      "cognitive_level": "Analyse",
+      "mini_glossary": {
+        "gepaarter t-Test": "Test des Mittelwerts zugeordneter Differenzen.",
+        "Pearson-Korrelation": "Maß für lineare gemeinsame Variation.",
+        "Niveauänderung": "Mittlere Verschiebung zwischen zwei Messzeitpunkten."
+      }
+    },
+    {
+      "question": "30. Zwei Zufallsstichproben schätzen denselben Anteil mit p̂=0,60. Für A mit n=100 ergibt sich das 95-%-Wald-Intervall [0,504; 0,696], für B mit n=400 das Intervall [0,552; 0,648]. Welche Auswertung trennt Punktwert, Präzision und Aussagegrenze korrekt?",
+      "options": [
+        "Die Punktschätzer sind 0,504 und 0,552; B ist wegen der höheren Untergrenze präziser, und beide Intervalle korrigieren mögliche Auswahlverzerrung.",
+        "Beide Punktschätzer sind 0,60; A ist wegen des breiteren Intervalls präziser, und beide Stichproben sind allein durch ihr n repräsentativ.",
+        "Beide Punktschätzer sind 0,60; B ist wegen des größeren n präziser, doch kein Intervall beseitigt eine mögliche Auswahlverzerrung.",
+        "Die Punktschätzer sind 0,696 und 0,648; A ist wegen der höheren Obergrenze präziser, und beide Intervalle umfassen 95 % der Einzelwerte."
+      ],
+      "answer": 2,
+      "explanation": "Beide Stichproben liefern denselben Punktschätzer 0,60. Der Standardfehler sinkt von √(0,24/100)≈0,0490 auf √(0,24/400)≈0,0245; deshalb ist das Intervall von B ungefähr halb so breit. Intervallbreite quantifiziert modellbedingte Stichprobenunsicherheit, korrigiert aber keine systematische Auswahlverzerrung.",
+      "weight": 3,
+      "topic": "Kumulative Wiederholung",
+      "concept": "Punkt- und Intervallschätzung bei unterschiedlicher Präzision",
+      "cognitive_level": "Analyse",
+      "mini_glossary": {
+        "Punktschätzung": "Ein einzelner aus Stichprobendaten berechneter Schätzwert.",
+        "Intervallschätzung": "Ein Bereich zur Quantifizierung modellbedingter Schätzunsicherheit.",
+        "Präzision": "Geringe zufallsbedingte Streuung eines Schätzers.",
+        "Auswahlverzerrung": "Systematische Abweichung durch einen ungeeigneten Auswahlprozess."
+      }
+    }
+  ]
+}

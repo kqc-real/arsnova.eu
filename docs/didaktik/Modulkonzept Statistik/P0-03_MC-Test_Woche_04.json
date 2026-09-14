@@ -1,0 +1,618 @@
+{
+  "meta": {
+    "title": "P0-03 MC-Test Woche 04 – Wahrscheinlichkeit und bedingte Wahrscheinlichkeit",
+    "updated": "2026-09-13",
+    "language": "de",
+    "target_audience": "Bachelorstudierende aus BWL, Management, Wirtschaftsinformatik und Informatik ohne vorausgesetzte Statistikkenntnisse",
+    "question_count": 30,
+    "difficulty_profile": {
+      "leicht": 0,
+      "mittel": 12,
+      "schwer": 18
+    },
+    "time_per_weight_minutes": {
+      "1": 0.5,
+      "2": 0.75,
+      "3": 1.0
+    },
+    "additional_buffer_minutes": 5,
+    "test_duration_minutes": 32
+  },
+  "questions": [
+    {
+      "question": "1. Zwei Bauteile werden nacheinander geprüft; D steht für defekt und N für nicht defekt. Welche Darstellung modelliert geordnete Ergebnisse und das Ereignis »genau ein defektes Bauteil« korrekt?",
+      "options": [
+        "Ω = {(D,D), (D,N), (N,D), (N,N)} und A = {(D,D), (N,N)}",
+        "Ω = {(D,D), (D,N), (N,D), (N,N)} und A = {(D,N), (N,D)}",
+        "Ω = {(D,N), (N,D)} und A = {(D,D), (D,N), (N,D), (N,N)}",
+        "Ω = {D, N} und A = {(D,N)}, weil die Reihenfolge nicht relevant ist"
+      ],
+      "answer": 1,
+      "explanation": "Der Ergebnisraum enthält alle vier geordneten Paare; genau ein D tritt in (D,N) oder (N,D) auf. Die Ereignismenge {(D,D), (N,N)} beschreibt dagegen gleiche Zustände beider Bauteile und damit null oder zwei defekte Teile.",
+      "weight": 2,
+      "topic": "Ereignisse und Gegenereignisse",
+      "concept": "Ergebnisraum und zusammengesetztes Ereignis",
+      "cognitive_level": "Verständnis",
+      "mini_glossary": {
+        "Ergebnisraum": "Menge aller im Modell möglichen elementaren Ergebnisse.",
+        "Ereignis": "Teilmenge des Ergebnisraums, deren Ergebnisse eine Bedingung erfüllen.",
+        "Geordnetes Paar": "Paar, bei dem erste und zweite Position unterschieden werden."
+      }
+    },
+    {
+      "question": "2. Beim zweimaligen Würfeln bezeichnet A das Ereignis »mindestens einmal fällt eine Sechs«. Welches Gegenereignis ist exakt?",
+      "options": [
+        "Im ersten Wurf fällt keine Sechs.",
+        "In genau einem Wurf fällt eine Sechs.",
+        "In beiden Würfen fällt eine Sechs.",
+        "In beiden Würfen fällt keine Sechs."
+      ],
+      "answer": 3,
+      "explanation": "Das Gegenereignis zu »mindestens einmal« ist »kein einziges Mal«, also in beiden Würfen keine Sechs. Der Distraktor »genau einmal« lässt den Fall mit zwei Sechsen aus und deckt den Ergebnisraum daher nicht vollständig ab.",
+      "weight": 2,
+      "topic": "Ereignisse und Gegenereignisse",
+      "concept": "Gegenereignis zu mindestens einem Treffer",
+      "cognitive_level": "Verständnis",
+      "mini_glossary": {
+        "Gegenereignis": "Ereignis, dass A nicht eintritt; zusammen mit A deckt es den Ergebnisraum ab.",
+        "Mindestens einmal": "Ein oder mehrere Eintreten eines Ereignisses."
+      }
+    },
+    {
+      "question": "3. Eine Anfrage wird mit Wahrscheinlichkeit 0,72 innerhalb der Zielzeit beantwortet. Für zwei unabhängige Anfragen: Wie wahrscheinlich ist mindestens eine verspätete Antwort?",
+      "options": [
+        "0,2016, berechnet als 0,72 · 0,28",
+        "0,2800, berechnet als 1 − 0,72",
+        "0,4816, berechnet als 1 − 0,72²",
+        "0,5184, berechnet als 0,72²"
+      ],
+      "answer": 2,
+      "explanation": "Das Gegenereignis lautet »beide innerhalb der Zielzeit« und hat bei Unabhängigkeit 0,72² = 0,5184. Daher sind mindestens eine verspätet mit 1 − 0,5184 = 0,4816. Der Distraktor 0,28 betrachtet nur eine Anfrage.",
+      "weight": 2,
+      "topic": "Ereignisse und Gegenereignisse",
+      "concept": "Mindestens ein Gegenereignis bei zwei Versuchen",
+      "cognitive_level": "Anwendung",
+      "mini_glossary": {
+        "Unabhängigkeit": "Das Eintreten eines Ereignisses verändert die Wahrscheinlichkeit des anderen nicht.",
+        "Komplementregel": "P(nicht A) = 1 − P(A).",
+        "Zielzeit": "Vorgegebene maximale Dauer für eine Leistung."
+      }
+    },
+    {
+      "question": "4. 45 % der Kontakte nutzen E-Mail, 35 % nutzen Chat und 15 % nutzen im selben Fall beide Kanäle. Wie groß ist P(E-Mail oder Chat)?",
+      "options": [
+        "65 %, weil 45 % + 35 % − 15 % gerechnet wird",
+        "25 %, weil 45 % − 35 % + 15 % gerechnet wird",
+        "80 %, weil 45 % + 35 % ohne Korrektur gerechnet wird",
+        "95 %, weil 45 % + 35 % + 15 % gerechnet wird"
+      ],
+      "answer": 0,
+      "explanation": "Die Additionsregel zieht die doppelt gezählte Schnittmenge einmal ab: 45 % + 35 % − 15 % = 65 %. Der plausible Distraktor 80 % addiert beide Randanteile, ohne die 15 % gemeinsamen Fälle zu korrigieren.",
+      "weight": 2,
+      "topic": "Ereignisse und Gegenereignisse",
+      "concept": "Additionsregel bei überlappenden Ereignissen",
+      "cognitive_level": "Anwendung",
+      "mini_glossary": {
+        "Vereinigung": "Ereignis, dass A oder B oder beide eintreten.",
+        "Schnittmenge": "Ereignis, dass A und B gemeinsam eintreten.",
+        "Additionsregel": "P(A ∪ B) = P(A) + P(B) − P(A ∩ B)."
+      }
+    },
+    {
+      "question": "5. Zwei unabhängige Prüfungen werden mit Wahrscheinlichkeiten 0,8 und 0,9 bestanden. Wie wahrscheinlich wird genau eine der beiden Prüfungen bestanden?",
+      "options": [
+        "0,18, berechnet als 0,2 · 0,9",
+        "0,98, berechnet als 1 − 0,2 · 0,1",
+        "0,72, berechnet als 0,8 · 0,9",
+        "0,26, berechnet als 0,8 · 0,1 + 0,2 · 0,9"
+      ],
+      "answer": 3,
+      "explanation": "Genau ein Erfolg umfasst zwei disjunkte Pfade: erste bestanden und zweite nicht, 0,08, sowie erste nicht und zweite bestanden, 0,18. Ihre Summe ist 0,26. Der Distraktor 0,72 berechnet stattdessen beide Erfolge.",
+      "weight": 2,
+      "topic": "Baumdiagramm und Multiplikation",
+      "concept": "Zwei Pfade für genau einen Erfolg",
+      "cognitive_level": "Anwendung",
+      "mini_glossary": {
+        "Pfadwahrscheinlichkeit": "Produkt der Wahrscheinlichkeiten entlang eines Baumdiagrammpfads.",
+        "Genau ein Erfolg": "Ereignis mit einem Erfolg und einem Misserfolg in beliebiger Reihenfolge.",
+        "Disjunkte Pfade": "Pfade, die nicht gleichzeitig eintreten können."
+      }
+    },
+    {
+      "question": "6. Eine Urne enthält drei rote und zwei blaue Kugeln. Zwei Kugeln werden ohne Zurücklegen gezogen. Wie wahrscheinlich sind beide Kugeln rot?",
+      "options": [
+        "0,24, berechnet als 3/5 · 2/5",
+        "0,30, berechnet als 3/5 · 2/4",
+        "0,36, berechnet als 3/5 · 3/5",
+        "0,60, berechnet als 3/5"
+      ],
+      "answer": 1,
+      "explanation": "Nach einer roten Kugel bleiben zwei rote unter vier Kugeln, daher gilt 3/5 · 2/4 = 6/20 = 0,30. Der Distraktor 0,36 rechnet wie beim Ziehen mit Zurücklegen und ignoriert die veränderte zweite Wahrscheinlichkeit.",
+      "weight": 2,
+      "topic": "Baumdiagramm und Multiplikation",
+      "concept": "Abhängiger Pfad ohne Zurücklegen",
+      "cognitive_level": "Anwendung",
+      "mini_glossary": {
+        "Ohne Zurücklegen": "Ziehverfahren, bei dem ein gezogenes Objekt vor dem nächsten Zug entfernt bleibt.",
+        "Bedingte Wahrscheinlichkeit": "Wahrscheinlichkeit eines Ereignisses unter einer bereits eingetretenen Bedingung."
+      }
+    },
+    {
+      "question": "7. Zwei voneinander unabhängige Sicherungen funktionieren jeweils mit Wahrscheinlichkeit 0,8. Wie wahrscheinlich funktioniert mindestens eine Sicherung?",
+      "options": [
+        "0,64, weil beide Sicherungen funktionieren müssen",
+        "0,80, weil nur eine Sicherung betrachtet werden muss",
+        "0,96, weil 1 − 0,2 · 0,2 gerechnet wird",
+        "1,60, weil 0,8 + 0,8 gerechnet wird"
+      ],
+      "answer": 2,
+      "explanation": "Keine Sicherung funktioniert mit 0,2 · 0,2 = 0,04; das Gegenereignis hat daher 0,96. Der plausible Distraktor 0,64 berechnet den strengeren Fall, dass beide funktionieren, nicht mindestens eine.",
+      "weight": 2,
+      "topic": "Baumdiagramm und Multiplikation",
+      "concept": "Mindestens ein Erfolg über das Gegenereignis",
+      "cognitive_level": "Anwendung",
+      "mini_glossary": {
+        "Redundanz": "Mehrfach vorhandene Komponenten zur Erhöhung der Verfügbarkeit.",
+        "Gegenereignis": "Komplement eines Ereignisses mit Wahrscheinlichkeit 1 − P(A).",
+        "Mindestens eine": "Eine oder beide Komponenten."
+      }
+    },
+    {
+      "question": "8. Es gelten P(A) = 0,4, P(B) = 0,5 und P(A ∩ B) = 0,18. Welche Diagnose folgt aus einem rechnerischen Unabhängigkeitstest?",
+      "options": [
+        "A und B sind unabhängig, weil 0,18 kleiner als beide Randwahrscheinlichkeiten ist.",
+        "A und B sind unabhängig, weil gemeinsame Ereignisse bei Unabhängigkeit auftreten dürfen.",
+        "A und B sind abhängig, weil 0,18 von 0,4 · 0,5 = 0,20 abweicht.",
+        "A und B sind disjunkt, weil 0,4 + 0,5 kleiner als 1 ist."
+      ],
+      "answer": 2,
+      "explanation": "Unabhängigkeit würde P(A ∩ B) = P(A)P(B) = 0,20 verlangen; beobachtet sind 0,18. Die Aussage, gemeinsame Ereignisse dürften bei Unabhängigkeit auftreten, ist allgemein wahr, prüft aber die konkrete Gleichheitsbedingung nicht.",
+      "weight": 3,
+      "topic": "Baumdiagramm und Multiplikation",
+      "concept": "Unabhängigkeit anhand der Schnittmenge prüfen",
+      "cognitive_level": "Analyse",
+      "mini_glossary": {
+        "Unabhängigkeitstest": "Prüfung, ob P(A ∩ B) = P(A)P(B) gilt.",
+        "Randwahrscheinlichkeit": "Wahrscheinlichkeit eines Ereignisses ohne zusätzliche Bedingung.",
+        "Abhängigkeit": "Änderung einer Ereigniswahrscheinlichkeit unter Kenntnis eines anderen Ereignisses."
+      }
+    },
+    {
+      "question": "9. Ein Server fällt an beiden Tagen jeweils mit Randwahrscheinlichkeit 0,10 aus. Nach einem Ausfall an Tag 1 beträgt P(Ausfall an Tag 2 | Ausfall an Tag 1) = 0,40. Welche Aussage zum Doppel-Ausfall ist korrekt?",
+      "options": [
+        "Die Wahrscheinlichkeit beträgt 0,04 und ist viermal so groß wie im unabhängigen Modell.",
+        "Die Wahrscheinlichkeit beträgt 0,01 und entspricht exakt dem unabhängigen Modell.",
+        "Die Wahrscheinlichkeit beträgt 0,10 und entspricht der Randwahrscheinlichkeit von Tag 1.",
+        "Die Wahrscheinlichkeit beträgt 0,50 und entsteht durch Addition beider Angaben."
+      ],
+      "answer": 0,
+      "explanation": "Die Pfadregel liefert 0,10 · 0,40 = 0,04. Bei unabhängigen Tagesausfällen mit jeweils 0,10 wären es 0,01; der beobachtete bedingte Wert macht den gemeinsamen Ausfall viermal so wahrscheinlich. Das Ergebnis 0,01 ignoriert die angegebene Abhängigkeit.",
+      "weight": 3,
+      "topic": "Baumdiagramm und Multiplikation",
+      "concept": "Pfadwahrscheinlichkeit unter Abhängigkeit",
+      "cognitive_level": "Analyse",
+      "mini_glossary": {
+        "Pfadregel": "P(A ∩ B) = P(A) · P(B | A).",
+        "Bedingte Ausfallrate": "Ausfallwahrscheinlichkeit unter der Bedingung eines früheren Ausfalls.",
+        "Unabhängiges Modell": "Modell, in dem der erste Ausfall die zweite Wahrscheinlichkeit nicht verändert."
+      }
+    },
+    {
+      "question": "10. Eine Tafel enthält 60 Antworten: niedrig sicher 6 richtig/16 falsch, mittel sicher 7/5 und hoch sicher 21/5. Wie groß ist P(richtig und nicht niedrig sicher)?",
+      "options": [
+        "21/26 ≈ 80,8 %, weil nur hoch sichere Fälle den Nenner bilden",
+        "28/38 ≈ 73,7 %, weil alle nicht niedrigen Fälle den Nenner bilden",
+        "34/60 ≈ 56,7 %, weil 6 + 7 + 21 richtige Fälle gezählt werden",
+        "28/60 ≈ 46,7 %, weil 7 + 21 richtige Fälle gezählt werden"
+      ],
+      "answer": 3,
+      "explanation": "Richtig und nicht niedrig sicher sind 7 mittlere plus 21 hohe richtige Antworten, also 28 von allen 60. Der Distraktor 28/38 berechnet die bedingte Wahrscheinlichkeit P(richtig | nicht niedrig) statt die gefragte gemeinsame Wahrscheinlichkeit.",
+      "weight": 2,
+      "topic": "Kontingenztafel und Bedingungen",
+      "concept": "Gemeinsame Wahrscheinlichkeit aus mehreren Zellen",
+      "cognitive_level": "Anwendung",
+      "mini_glossary": {
+        "Kontingenztafel": "Tabelle gemeinsamer Häufigkeiten zweier kategorialer Merkmale.",
+        "Gemeinsame Wahrscheinlichkeit": "Anteil aller Fälle, die beide Bedingungen erfüllen.",
+        "Zellhäufigkeit": "Anzahl in einer bestimmten Kombination zweier Kategorien."
+      }
+    },
+    {
+      "question": "11. In derselben Tafel sind unter 26 hoch sicheren Antworten 21 richtig. Wie groß ist P(richtig | hohe Sicherheit)?",
+      "options": [
+        "21/60 = 35,0 %, weil alle Antworten den Nenner bilden",
+        "21/26 ≈ 80,8 %, weil alle hoch sicheren Antworten den Nenner bilden",
+        "21/34 ≈ 61,8 %, weil alle richtigen Antworten den Nenner bilden",
+        "26/60 ≈ 43,3 %, weil alle hoch sicheren Antworten gezählt werden"
+      ],
+      "answer": 1,
+      "explanation": "Die Bedingung »hohe Sicherheit« beschränkt den Nenner auf 26 Antworten; 21 davon sind richtig. Der plausible Distraktor 21/34 vertauscht die Bedingung und berechnet P(hoch | richtig).",
+      "weight": 2,
+      "topic": "Kontingenztafel und Bedingungen",
+      "concept": "Bedingter richtiger Anteil",
+      "cognitive_level": "Anwendung",
+      "mini_glossary": {
+        "Bezugsgruppe": "Durch die Bedingung festgelegte Teilmenge im Nenner.",
+        "Bedingte Wahrscheinlichkeit": "Anteil eines Ereignisses innerhalb einer festgelegten Bezugsgruppe.",
+        "Confidence": "Geordnete Selbsteinschätzung der Antwortsicherheit."
+      }
+    },
+    {
+      "question": "12. In der Tafel sind 34 Antworten richtig, davon 21 hoch sicher; insgesamt sind 26 Antworten hoch sicher, davon 21 richtig. Welches Wertepaar ordnet die inversen Bedingungen korrekt zu?",
+      "options": [
+        "P(hoch | richtig) = 21/34 und P(richtig | hoch) = 21/26",
+        "P(hoch | richtig) = 21/26 und P(richtig | hoch) = 21/34",
+        "P(hoch | richtig) = 34/60 und P(richtig | hoch) = 26/60",
+        "P(hoch | richtig) = 21/60 und P(richtig | hoch) = 21/60"
+      ],
+      "answer": 0,
+      "explanation": "Bei der Bedingung »richtig« ist 34 der Nenner; bei »hoch« ist 26 der Nenner. Das Wertepaar 21/26 und 21/34 vertauscht genau diese Bezugsgruppen, obwohl die gemeinsame Zelle 21 in beiden Zählern steht.",
+      "weight": 3,
+      "topic": "Kontingenztafel und Bedingungen",
+      "concept": "Inverse bedingte Wahrscheinlichkeiten als Wertepaar",
+      "cognitive_level": "Analyse",
+      "mini_glossary": {
+        "Inverse Bedingung": "Vertauschung von Ereignis und Bedingung zwischen P(A | B) und P(B | A).",
+        "Nenner": "Anzahl der Fälle, auf welche die bedingte Aussage bezogen wird."
+      }
+    },
+    {
+      "question": "13. Unter 22 Antworten mit niedriger Sicherheit sind 16 falsch. Wie groß ist P(falsch | niedrige Sicherheit)?",
+      "options": [
+        "6/22 ≈ 27,3 %, weil die richtigen niedrigen Antworten gezählt werden",
+        "16/60 ≈ 26,7 %, weil alle Antworten den Nenner bilden",
+        "16/26 ≈ 61,5 %, weil alle falschen Antworten den Nenner bilden",
+        "16/22 ≈ 72,7 %, weil alle niedrigen Antworten den Nenner bilden"
+      ],
+      "answer": 3,
+      "explanation": "Die Bedingung »niedrige Sicherheit« bestimmt den Nenner 22; davon sind 16 falsch. Der Distraktor 16/26 verwendet alle falschen Antworten als Nenner und beantwortet damit P(niedrig | falsch).",
+      "weight": 2,
+      "topic": "Kontingenztafel und Bedingungen",
+      "concept": "Bedingter falscher Anteil",
+      "cognitive_level": "Anwendung",
+      "mini_glossary": {
+        "Bedingung": "Information, die den betrachteten Ergebnisraum auf eine Teilgruppe einschränkt.",
+        "Bezugsgruppe": "Teilgruppe, die bei einer bedingten Wahrscheinlichkeit den Nenner bildet."
+      }
+    },
+    {
+      "question": "14. Von 200 Abonnements sind 60 Jahres- und 140 Monatsabonnements. Gekündigt werden 18 Jahres- und 28 Monatsabonnements. Welches Wertepaar unterscheidet P(Jahresabo | Kündigung) und P(Kündigung | Jahresabo) samt Aussagegrenze korrekt?",
+      "options": [
+        "P(Jahresabo | Kündigung) = 18/60 = 30,0 % und P(Kündigung | Jahresabo) = 18/46 ≈ 39,1 %; Jahresabonnements und Kündigungen bilden die jeweiligen Bezugsgruppen.",
+        "P(Jahresabo | Kündigung) = 18/200 = 9,0 % und P(Kündigung | Jahresabo) = 18/200 = 9,0 %; die Gesamtgruppe bildet für beide Anteile die Bezugsgruppe.",
+        "P(Jahresabo | Kündigung) = 18/46 ≈ 39,1 % und P(Kündigung | Jahresabo) = 18/60 = 30,0 %; ein Kündigungsgrund folgt daraus nicht.",
+        "P(Jahresabo | Kündigung) = 46/200 = 23,0 % und P(Kündigung | Jahresabo) = 60/200 = 30,0 %; die Randanteile bilden die beiden Bezugsgrößen."
+      ],
+      "answer": 2,
+      "explanation": "Insgesamt gibt es 18 + 28 = 46 Kündigungen. Daher gilt P(Jahresabo | Kündigung) = 18/46 ≈ 39,1 %, während P(Kündigung | Jahresabo) = 18/60 = 30,0 % ist. Das vertauschte Wertepaar behält zwar die gemeinsame Zelle 18 bei, ordnet aber die Nenner den falschen Bedingungen zu. Die beobachteten Anteile benennen keinen Kündigungsgrund.",
+      "weight": 3,
+      "topic": "Kontingenztafel und Bedingungen",
+      "concept": "Nennerwirkung bei inversen Bedingungen",
+      "cognitive_level": "Analyse",
+      "mini_glossary": {
+        "Gemeinsame Zelle": "Anzahl der Fälle, die Ereignis und Bedingung zugleich erfüllen.",
+        "Bezugsgruppe": "Durch eine Bedingung ausgewählte Menge der betrachteten Fälle.",
+        "Inverse Wahrscheinlichkeit": "Bedingte Wahrscheinlichkeit mit vertauschter Richtung."
+      }
+    },
+    {
+      "question": "15. Für Bestellungen gelten P(Express) = 0,40, P(verspätet | Express) = 0,15 und P(Express | verspätet) = 0,30. Welches Wertepaar für den gemeinsamen Express-und-verspätet-Anteil und den Gesamtanteil verspäteter Bestellungen ist korrekt?",
+      "options": [
+        "Gemeinsamer Anteil 6 % und Gesamtanteil 45 %; nach der Pfadmultiplikation werden die beiden bedingten Anteile addiert.",
+        "Gemeinsamer Anteil 6 % und Gesamtanteil 20 %; die beiden Bedingungen beschreiben keine Ursache der Verspätung.",
+        "Gemeinsamer Anteil 12 % und Gesamtanteil 80 %; die inverse Bedingung wird als Pfadfaktor mit dem Expressanteil multipliziert.",
+        "Gemeinsamer Anteil 15 % und Gesamtanteil 50 %; der bedingte Anteil wird als gemeinsame Wahrscheinlichkeit behandelt."
+      ],
+      "answer": 1,
+      "explanation": "Die Multiplikationsregel ergibt P(Express ∩ verspätet) = 0,40 · 0,15 = 0,06. Mit P(Express | verspätet) = 0,30 folgt anschließend P(verspätet) = 0,06/0,30 = 0,20. Wer 0,40 · 0,30 rechnet, verwendet die inverse Bedingung im falschen Pfad. Die Wahrscheinlichkeiten zeigen keine kausale Wirkung des Expressversands.",
+      "weight": 3,
+      "topic": "Kontingenztafel und Bedingungen",
+      "concept": "Gemeinsame und totale Wahrscheinlichkeit aus inversen Bedingungen",
+      "cognitive_level": "Analyse",
+      "mini_glossary": {
+        "Multiplikationsregel": "P(A ∩ B) = P(B)·P(A | B).",
+        "Inverse Bedingung": "Vertauschung von Ereignis und Bedingung zwischen P(A | B) und P(B | A).",
+        "Gesamtwahrscheinlichkeit": "Wahrscheinlichkeit eines Ereignisses ohne Einschränkung auf eine Teilgruppe."
+      }
+    },
+    {
+      "question": "16. Von 200 Tickets sind 20 technisch. Ein Filter markiert 18 technische und 36 nicht technische Tickets. Welches Paar aus positivem Vorhersagewert und Falsch-entdeckungs-Anteil ist korrekt?",
+      "options": [
+        "Vorhersagewert 27,0 % und Falsch-entdeckungs-Anteil 73,0 %",
+        "Vorhersagewert 66,7 % und Falsch-entdeckungs-Anteil 33,3 %",
+        "Vorhersagewert 90,0 % und Falsch-entdeckungs-Anteil 10,0 %",
+        "Vorhersagewert 33,3 % und Falsch-entdeckungs-Anteil 66,7 %"
+      ],
+      "answer": 3,
+      "explanation": "Unter 18 + 36 = 54 Markierungen sind 18 technisch: 18/54 = 33,3 %. Der komplementäre Anteil falscher Markierungen ist 36/54 = 66,7 %. Der Distraktor 90 % ist die Erkennungsrate 18/20 und vertauscht die Bedingung.",
+      "weight": 3,
+      "topic": "Inverse Bedingungen und Bayes-Idee",
+      "concept": "Zusammensetzung positiver Filtermeldungen",
+      "cognitive_level": "Analyse",
+      "mini_glossary": {
+        "Positiver Vorhersagewert": "Anteil tatsächlich relevanter Fälle unter allen positiven Markierungen.",
+        "Falsch-entdeckungs-Anteil": "Anteil nicht relevanter Fälle unter allen positiven Markierungen.",
+        "Erkennungsrate": "Anteil markierter Fälle unter den tatsächlich relevanten Fällen."
+      }
+    },
+    {
+      "question": "17. Ein Filter hat in zwei Kohorten 80 % Erkennungsrate und 10 % Falsch-positiv-Rate. Kohorte A hat 10 % und Kohorte B 40 % relevante Fälle. Welche Vorhersagewerte ergeben sich bei je 1.000 Fällen?",
+      "options": [
+        "Für A genau 80,0 % und für B genau 80,0 %",
+        "Für A etwa 84,2 % und für B etwa 47,1 %",
+        "Für A etwa 47,1 % und für B etwa 84,2 %",
+        "Für A genau 10,0 % und für B genau 40,0 %"
+      ],
+      "answer": 2,
+      "explanation": "A liefert 80 richtige und 90 falsche Markierungen, also 80/170 ≈ 47,1 %. B liefert 320 richtige und 60 falsche, also 320/380 ≈ 84,2 %. Der 80%-Distraktor verwechselt in beiden Kohorten Erkennungsrate und Vorhersagewert.",
+      "weight": 3,
+      "topic": "Inverse Bedingungen und Bayes-Idee",
+      "concept": "Basisrateneffekt auf den Vorhersagewert",
+      "cognitive_level": "Analyse",
+      "mini_glossary": {
+        "Basisrate": "Anteil relevanter Fälle vor Berücksichtigung des Filtersignals.",
+        "Falsch-positiv-Rate": "Anteil positiver Markierungen unter tatsächlich nicht relevanten Fällen.",
+        "Kohorte": "Abgegrenzte Gruppe von Fällen mit gemeinsamer Grundgesamtheit."
+      }
+    },
+    {
+      "question": "18. Für einen Filter ist nur P(markiert | relevant) = 0,90 bekannt. Welche zusätzlichen Größen reichen aus, um P(relevant | markiert) zu berechnen?",
+      "options": [
+        "Die Basisrate P(relevant) und die Falsch-positiv-Rate P(markiert | nicht relevant)",
+        "Die Stichprobengröße n und die Gegenwahrscheinlichkeit P(nicht markiert | relevant)",
+        "Die Zahl der Variablen und die Randwahrscheinlichkeit P(markiert) ohne weitere Angaben",
+        "Die Fehlkosten beider Klassen und die Dauer einer einzelnen Filterentscheidung"
+      ],
+      "answer": 0,
+      "explanation": "Mit Basisrate, Erkennungsrate und Falsch-positiv-Rate lassen sich richtige und falsche Markierungen und damit der inverse Anteil bestimmen. Die Gegenwahrscheinlichkeit 0,10 zur bereits bekannten Erkennungsrate liefert keine Information zu nicht relevanten Fällen.",
+      "weight": 3,
+      "topic": "Inverse Bedingungen und Bayes-Idee",
+      "concept": "Erforderliche Größen für Bayes-Inversion",
+      "cognitive_level": "Analyse",
+      "mini_glossary": {
+        "Bayes-Inversion": "Berechnung einer bedingten Wahrscheinlichkeit in umgekehrter Richtung.",
+        "Basisrate": "Ausgangsanteil des interessierenden Ereignisses.",
+        "Falsch-positiv-Rate": "P(markiert | nicht relevant)."
+      }
+    },
+    {
+      "question": "19. Unter 1.000 Vorgängen sind 100 relevant. Ein Filter erkennt 80 relevante Vorgänge und markiert zusätzlich 90 nicht relevante Vorgänge. Welcher Befund beschreibt die relevanten Vorgänge unter den nicht markierten Fällen korrekt?",
+      "options": [
+        "Es bleiben 20 relevante Vorgänge; 20/100 = 20,0 % verwenden alle relevanten Vorgänge als Bezugsgruppe.",
+        "Es bleiben 100 relevante Vorgänge; 100/830 ≈ 12,0 % behandeln alle relevanten Vorgänge als nicht markiert.",
+        "Es bleiben 20 relevante Vorgänge; 20/830 ≈ 2,4 % zeigen, dass ein nicht markierter Fall nicht sicher irrelevant ist.",
+        "Es bleiben 90 relevante Vorgänge; 90/830 ≈ 10,8 % behandeln die falschen Markierungen als nicht markierte Fälle."
+      ],
+      "answer": 2,
+      "explanation": "Von 100 relevanten Vorgängen bleiben 100 − 80 = 20 unmarkiert. Unter den 900 nicht relevanten Vorgängen bleiben 900 − 90 = 810 unmarkiert, also insgesamt 830. Damit gilt P(relevant | nicht markiert) = 20/830 ≈ 2,4 %. Der Anteil 20/100 ist stattdessen die Falsch-negativ-Rate unter den relevanten Vorgängen; ein negatives Signal beweist im Einzelfall keine Irrelevanz.",
+      "weight": 3,
+      "topic": "Inverse Bedingungen und Bayes-Idee",
+      "concept": "Inverse Wahrscheinlichkeit unter nicht markierten Fällen",
+      "cognitive_level": "Analyse",
+      "mini_glossary": {
+        "Falsch-negativ": "Nicht markierter Fall, obwohl das relevante Merkmal vorliegt.",
+        "Nicht markiert": "Teilgruppe aller Fälle ohne positives Filtersignal.",
+        "Inverse Bedingung": "Vertauschung von Ereignis und Bedingung bei einer bedingten Wahrscheinlichkeit."
+      }
+    },
+    {
+      "question": "20. Filter A erzeugt 10 falsch negative und 180 falsch positive Fälle; Filter B 25 falsch negative und 60 falsch positive. Ein falsch negativer Fall kostet 50 €, ein falsch positiver 2 €. Welche Entscheidung folgt aus dem Modell?",
+      "options": [
+        "A kostet 1.370 €, B kostet 860 €; B ist um 510 € günstiger.",
+        "A kostet 860 €, B kostet 1.370 €; A ist um 510 € günstiger.",
+        "A kostet 9.020 €, B kostet 3.050 €; B ist um 5.970 € günstiger.",
+        "A kostet 500 €, B kostet 1.250 €; A ist um 750 € günstiger."
+      ],
+      "answer": 1,
+      "explanation": "A kostet 10·50 € + 180·2 € = 860 €, B kostet 25·50 € + 60·2 € = 1.370 €. Die Rechnung mit 500 € und 1.250 € berücksichtigt nur falsch negative Fälle und unterschlägt die Kosten unnötiger Markierungen.",
+      "weight": 3,
+      "topic": "Inverse Bedingungen und Bayes-Idee",
+      "concept": "Vergleich zweier Filter anhand von Fehlkosten",
+      "cognitive_level": "Analyse",
+      "mini_glossary": {
+        "Falsch-negativ": "Nicht markierter Fall, obwohl das relevante Merkmal vorliegt.",
+        "Falsch-positiv": "Markierter Fall, obwohl das relevante Merkmal nicht vorliegt.",
+        "Fehlkosten": "Bewertete Folgen einer bestimmten Fehlentscheidung."
+      }
+    },
+    {
+      "question": "21. Eine Tabelle enthält mehrere Antwortversuche je Person. Gesucht ist der Anteil der Personen mit mindestens einer richtigen Antwort. Welche Beobachtungseinheit und Aufbereitung passen?",
+      "options": [
+        "Der einzelne Versuch; alle Zeilen werden ohne Gruppierung als unabhängige Fälle gezählt.",
+        "Die gesamte Lehrveranstaltung; alle Zeilen werden zu genau einem Erfolgsindikator verdichtet.",
+        "Die einzelne Frage; alle Personen werden je Fragetext zu einem Mittelwert verdichtet.",
+        "Die einzelne Person; Versuche werden je Personenkennung zu einem Erfolgsindikator verdichtet."
+      ],
+      "answer": 3,
+      "explanation": "Das Ziel bezieht sich auf Personen, daher ist pro Person zu prüfen, ob mindestens ein Versuch richtig war. Eine Auswertung auf Versuchsebene übergewichtet Personen mit vielen Versuchen und verändert den Nenner von Personen zu Versuchen.",
+      "weight": 2,
+      "topic": "Kumulative Wiederholung: Datenstruktur",
+      "concept": "Beobachtungseinheit bei wiederholten Antworten",
+      "cognitive_level": "Analyse",
+      "mini_glossary": {
+        "Beobachtungseinheit": "Einheit, über die eine statistische Aussage getroffen wird.",
+        "Erfolgsindikator": "Binäre Variable, die das Eintreten eines definierten Erfolgs abbildet.",
+        "Personenkennung": "Stabile Kennung zum Zusammenführen zugehöriger Versuche."
+      }
+    },
+    {
+      "question": "22. Confidence wird auf den Stufen 1 bis 5 erhoben. Welche Auswertung respektiert das ordinale Skalenniveau am besten?",
+      "options": [
+        "Anteile je Stufe und Median vergleichen, ohne gleiche Abstände zwischen Stufen vorauszusetzen",
+        "Differenzen der Mittelwerte als exakte Wahrscheinlichkeitsabstände zwischen Gruppen interpretieren",
+        "Stufe 5 als fünfmal so sicher wie Stufe 1 interpretieren und Quotienten vergleichen",
+        "Anteile je Stufe ohne Berücksichtigung ihrer Reihenfolge vergleichen und den Modus berichten"
+      ],
+      "answer": 0,
+      "explanation": "Ordinale Stufen besitzen eine Reihenfolge, aber keine gesicherten gleichen Abstände. Verteilungen und Median nutzen diese Ordnung. Der Mittelwert-Distraktor setzt metrische Abstände voraus und deutet sie zusätzlich unzulässig als Wahrscheinlichkeitsdifferenzen.",
+      "weight": 2,
+      "topic": "Kumulative Wiederholung: Skalenniveau",
+      "concept": "Ordinal angemessene Confidence-Auswertung",
+      "cognitive_level": "Verständnis",
+      "mini_glossary": {
+        "Ordinalskala": "Skala mit geordneten Kategorien ohne gesicherte gleiche Abstände.",
+        "Median": "Zentraler Rangwert einer geordneten Verteilung.",
+        "Confidence": "Subjektive Selbsteinschätzung der Antwortsicherheit."
+      }
+    },
+    {
+      "question": "23. Team A meldet 12 Fehler bei 300 einfachen Aufgaben, Team B 18 Fehler bei 200 komplexen Aufgaben. Welche Zusammenfassung verbindet beide Fehlerquoten, die Gesamtquote und die Vergleichsgrenze korrekt?",
+      "options": [
+        "A hat 4 %, B 9 % und beide zusammen 6,5 % Fehler; der ungewichtete Mittelwert berücksichtigt die Aufgabenzahlen.",
+        "A hat 4 %, B 9 % und beide zusammen 6 % Fehler; wegen verschiedener Aufgabenarten ist der Teamunterschied nicht isoliert.",
+        "A hat 4 %, B 9 % und beide zusammen 6 % Fehler; die gemeinsame Einheit belegt eine kausal höhere Fehlerneigung von B.",
+        "A hat 6 %, B 6 % und beide zusammen 6 % Fehler; für den Gruppenvergleich wird jeweils der fremde Nenner verwendet."
+      ],
+      "answer": 1,
+      "explanation": "Für A gilt 12/300 = 4 %, für B 18/200 = 9 %. Zusammen sind 30 von 500 Aufgaben fehlerhaft, also 6 %; 6,5 % wären der ungewichtete Mittelwert der Teamquoten. Da einfache und komplexe Aufgaben nicht gleich auf die Teams verteilt sind, beschreibt die Differenz von fünf Prozentpunkten keinen isolierten Teameffekt.",
+      "weight": 3,
+      "topic": "Kumulative Wiederholung: Häufigkeiten",
+      "concept": "Gruppenquoten, Gesamtquote und Konfundierung",
+      "cognitive_level": "Analyse",
+      "mini_glossary": {
+        "Fehlerquote": "Anteil fehlerhafter Aufgaben innerhalb einer benannten Bezugsgruppe.",
+        "Gesamtquote": "Anteil aus zusammengefassten Zählern und Nennern aller Gruppen.",
+        "Konfundierung": "Vermischung von Einflüssen, sodass ein beobachteter Unterschied nicht eindeutig zugerechnet werden kann."
+      }
+    },
+    {
+      "question": "24. In Periode A betragen Antwortzeiten in 10 Fällen 2 s, in 20 Fällen 4 s und in 10 Fällen 8 s. In Periode B werden fünf der 4-s-Fälle zu 8-s-Fällen; die Fallzahl bleibt 40. Welche auf eine Dezimalstelle gerundete Ergebniszeile vergleicht die gewichteten Mittelwerte korrekt?",
+      "options": [
+        "Periode A: 4,7 s; Periode B: 4,7 s; Veränderung: 0,0 s",
+        "Periode A: 5,3 s; Periode B: 6,0 s; Veränderung: +0,7 s",
+        "Periode A: 4,5 s; Periode B: 4,9 s; Veränderung: +0,4 s",
+        "Periode A: 4,5 s; Periode B: 5,0 s; Veränderung: +0,5 s"
+      ],
+      "answer": 3,
+      "explanation": "Periode A hat die gewichtete Summe 10·2 + 20·4 + 10·8 = 180 s und damit den Mittelwert 4,5 s. In Periode B steigt die Summe durch fünf Verschiebungen um jeweils 8 − 4 = 4 s auf 200 s; 200/40 = 5,0 s. Die ungewichtete Rechnung behandelt die drei Zeitwerte fälschlich als gleich häufig.",
+      "weight": 3,
+      "topic": "Kumulative Wiederholung: Lage",
+      "concept": "Vergleich gewichteter Mittelwerte nach Häufigkeitsverschiebung",
+      "cognitive_level": "Analyse",
+      "mini_glossary": {
+        "Gewichteter Mittelwert": "Mittelwert, bei dem Ausprägungen entsprechend ihrer Häufigkeit eingehen.",
+        "Absolute Häufigkeit": "Anzahl, mit der eine Ausprägung beobachtet wurde."
+      }
+    },
+    {
+      "question": "25. Für acht Antwortzeiten wurde ein Mittelwert von 20 Sekunden berichtet. Im Export stehen nur 8, 12, 15, 18, 20, 27 und 30 Sekunden. Welcher Befund rekonstruiert den fehlenden Wert sowie Median und Spannweite der vollständigen Datenreihe unter klarer Voraussetzung korrekt?",
+      "options": [
+        "Der fehlende Wert ist 20; Median 19 und Spannweite 22 gelten, wenn der berichtete Mittelwert verlässlich ist.",
+        "Der fehlende Wert ist 30; Median 18 und Spannweite 22 gelten, wenn der vierte Wert als Mitte verwendet wird.",
+        "Der fehlende Wert ist 30; Median 19 und Spannweite 22 gelten, wenn Mittelwert und sieben Exportwerte verlässlich sind.",
+        "Der fehlende Wert ist 30; Median 19 und Spannweite 30 gelten, wenn das Maximum als Spannweite verwendet wird."
+      ],
+      "answer": 2,
+      "explanation": "Die vollständige Summe muss 8 · 20 = 160 Sekunden betragen; die sieben Exportwerte summieren sich zu 130, daher fehlt 30. Sortiert liegen dann 8, 12, 15, 18, 20, 27, 30 und 30 vor: Median (18 + 20)/2 = 19 und Spannweite 30 − 8 = 22. Den Mittelwert selbst als fehlenden Wert einzusetzen ignoriert die rekonstruierte Gesamtsumme. Der Befund gilt nur, wenn der berichtete Mittelwert und die sieben Werte korrekt sind.",
+      "weight": 3,
+      "topic": "Kumulative Wiederholung: Lage",
+      "concept": "Fehlenden Wert aus Mittelwert und Teilsumme rekonstruieren",
+      "cognitive_level": "Analyse",
+      "mini_glossary": {
+        "Rekonstruktion": "Ableitung eines fehlenden Werts aus einer verlässlichen Gesamtsumme und bekannten Teilwerten.",
+        "Median": "Bei gerader Beobachtungszahl das Mittel der beiden zentralen geordneten Werte.",
+        "Aussagevoraussetzung": "Annahme, von deren Gültigkeit ein berechneter Befund abhängt."
+      }
+    },
+    {
+      "question": "26. Die vollständig erfassten Sessionwerte 0, 2, 4 und 6 wurden gespeichert; 6 war versehentlich als 18 erfasst. Deskriptiv wird durch n geteilt. Wie verändern sich Spannweite und Varianz durch die Korrektur?",
+      "options": [
+        "Die Spannweite sinkt um 18; die Varianz sinkt um 45 von 50 auf 5.",
+        "Die Spannweite sinkt um 12; die Varianz sinkt um 45 von 50 auf 5.",
+        "Die Spannweite sinkt um 12; die Varianz sinkt um 60 von 66,67 auf 6,67.",
+        "Die Spannweite sinkt um 12; die Varianz sinkt um 180 von 200 auf 20."
+      ],
+      "answer": 1,
+      "explanation": "Vor der Korrektur sind Mittelwert 6, Quadratsumme 200, Varianz 50 und Spannweite 18. Danach sind Mittelwert 3, Quadratsumme 20, Varianz 5 und Spannweite 6. Somit sinken Spannweite um 12 und Varianz um 45. Die Werte 66,67 und 6,67 verwenden dagegen n − 1.",
+      "weight": 3,
+      "topic": "Kumulative Wiederholung: Streuung",
+      "concept": "Gemeinsame Änderung von Spannweite und Varianz",
+      "cognitive_level": "Analyse",
+      "mini_glossary": {
+        "Spannweite": "Differenz zwischen Maximum und Minimum.",
+        "Deskriptive Varianz": "Quadratsumme geteilt durch die Anzahl n der vollständig beschriebenen Werte.",
+        "Datenkorrektur": "Begründete Berichtigung eines nachgewiesenen Fehlwerts."
+      }
+    },
+    {
+      "question": "27. Die vollständig vorliegenden Sessionwerte 0, 2, 4 und 6 haben deskriptiv den Mittelwert 3 und die Varianz 5. Jeder Wert wird mit y = 3x + 5 transformiert. Welche Kennzahlen entstehen?",
+      "options": [
+        "Mittelwert 14, Varianz 45 und Standardabweichung etwa 6,71",
+        "Mittelwert 14, Varianz 15 und Standardabweichung etwa 3,87",
+        "Mittelwert 14, Varianz 10 und Standardabweichung etwa 3,16",
+        "Mittelwert 14, Varianz 50 und Standardabweichung etwa 7,07"
+      ],
+      "answer": 0,
+      "explanation": "Der Mittelwert wird zu 3·3 + 5 = 14. Die additive Konstante verändert die Streuung nicht; der Faktor 3 vervielfacht die Varianz mit 3² auf 45 und die Standardabweichung mit 3 auf √45 ≈ 6,71. Eine lineare Verdreifachung der Varianz übersieht die quadrierten Abweichungen.",
+      "weight": 3,
+      "topic": "Kumulative Wiederholung: Streuung",
+      "concept": "Affine Transformation von Lage und Streuung",
+      "cognitive_level": "Analyse",
+      "mini_glossary": {
+        "Affine Transformation": "Abbildung y = ax + b mit multiplikativem Faktor a und additiver Konstante b.",
+        "Varianz": "Streuungsmaß, das bei Multiplikation aller Werte mit a um den Faktor a² skaliert.",
+        "Standardabweichung": "Positive Quadratwurzel der Varianz, die mit dem Betrag von a skaliert."
+      }
+    },
+    {
+      "question": "28. Für n = 16 Werte meldet Programm A bei Division durch n eine deskriptive Standardabweichung von 6,00 ms. Programm B soll dieselbe Quadratsumme mit n − 1 auswerten und das Ergebnis in Sekunden berichten. Welcher Wert folgt?",
+      "options": [
+        "Etwa 0,00600 s, weil nur der Einheitenfaktor 1/1.000 angewandt wird.",
+        "Etwa 0,00640 s, weil 16/15 und danach 1/1.000 angewandt werden.",
+        "Etwa 6,20 s, weil nur die Nennerkorrektur √(16/15) angewandt wird.",
+        "Etwa 0,00620 s, weil √(16/15) und danach 1/1.000 angewandt werden."
+      ],
+      "answer": 3,
+      "explanation": "Bei gleicher Quadratsumme wachsen Varianz und Standardabweichung beim Wechsel von n zu n − 1 um die Faktoren 16/15 beziehungsweise √(16/15). Daher meldet B 6·√(16/15) ≈ 6,20 ms = 0,00620 s. Der Wert 0,00640 s wendet den Varianzfaktor fälschlich direkt auf die Standardabweichung an.",
+      "weight": 3,
+      "topic": "Kumulative Wiederholung: Streuung",
+      "concept": "Nennerwechsel und Einheitenumrechnung der Standardabweichung",
+      "cognitive_level": "Analyse",
+      "mini_glossary": {
+        "Nennerkonvention": "Wahl zwischen n für eine deskriptive Varianz und n − 1 für einen Varianzschätzer.",
+        "Standardabweichung": "Positive Quadratwurzel der jeweiligen Varianz.",
+        "Einheitenumrechnung": "Umrechnung derselben Messgröße; 1 s entspricht 1.000 ms."
+      }
+    },
+    {
+      "question": "29. Für Laufzeiten gelten Q1 = 10 und Q3 = 18 Minuten. Die Werte 31 und 42 liegen oberhalb der 1,5·IQR-Grenze. Eine Quellenprüfung bestätigt 31 als echten Spitzenfall und 42 als Dezimalfehler mit richtigem Wert 4,2. Welche Behandlung ist angemessen?",
+      "options": [
+        "Beide Werte werden gelöscht, weil eine regelbasierte Markierung ihre Ungültigkeit bereits belegt.",
+        "Beide Werte bleiben unverändert, weil eine Boxplotregel Quellenfehler grundsätzlich nicht korrigieren darf.",
+        "42 wird auf 4,2 korrigiert, 31 bleibt erhalten; Quelle, Änderung und neu berechnete Kennzahlen werden dokumentiert.",
+        "Beide Werte werden auf die obere Grenze 30 begrenzt, damit die ursprüngliche Stichprobengröße erhalten bleibt."
+      ],
+      "answer": 2,
+      "explanation": "Der IQR beträgt 8 und die obere Grenze 18 + 1,5 · 8 = 30 Minuten, sodass 31 und 42 zunächst markiert werden. Die Markierung allein ist kein Löschgrund: Die Quelle bestätigt 31 als gültig, weist 42 aber als korrigierbaren Dezimalfehler nach. Pauschales Begrenzen würde beide Befunde verfälschen; nach der dokumentierten Korrektur müssen Quartile, Grenzen und weitere Kennzahlen neu berechnet werden.",
+      "weight": 3,
+      "topic": "Kumulative Wiederholung: Quartile und Ausreißer",
+      "concept": "Regelbasierte Markierung und quellenbasierte Behandlung",
+      "cognitive_level": "Analyse",
+      "mini_glossary": {
+        "Interquartilsabstand": "Differenz Q3 − Q1 und Breite der mittleren 50 % der geordneten Werte.",
+        "Ausreißermarkierung": "Regelbasierter Hinweis auf einen auffälligen Wert, noch kein Qualitätsurteil.",
+        "Quellenprüfung": "Abgleich eines auffälligen Werts mit seiner ursprünglichen Erfassung oder Dokumentation."
+      }
+    },
+    {
+      "question": "30. Filiale A meldet 8 verspätete Aufträge unter 40 Aufträgen einer Spitzenstunde, Filiale B 18 unter 120 Aufträgen einer vollständigen Woche. Welcher Kurzbefund verbindet Rechnung und Vergleichsgrenze korrekt?",
+      "options": [
+        "A weist 20 % und B 15 % Verspätungen auf; die Differenz von fünf Prozentpunkten erlaubt wegen verschiedener Zeitfenster keinen fairen Filialvergleich.",
+        "A weist 20 % und B 15 % Verspätungen auf; Prozentwerte beseitigen den Unterschied zwischen Spitzenstunde und vollständiger Woche.",
+        "A weist 6,7 % und B 15 % Verspätungen auf; für beide Filialen wird der gemeinsame Nenner 120 verwendet.",
+        "A weist 8 % und B 18 % Verspätungen auf; die absoluten Verspätungszahlen werden unmittelbar als Prozentwerte gelesen."
+      ],
+      "answer": 0,
+      "explanation": "Für A gilt 8/40 = 20 %, für B 18/120 = 15 %; der beobachtete Abstand beträgt fünf Prozentpunkte. Der gemeinsame Nenner 120 für beide Gruppen verfälscht die Quote von A. Weil eine Spitzenstunde und eine vollständige Woche unterschiedliche Belastungssituationen abbilden, kann der Prozentvergleich allein keinen Filialunterschied isolieren oder auf künftige Aufträge übertragen werden.",
+      "weight": 3,
+      "topic": "Kumulative Wiederholung: Transfer und Datenkritik",
+      "concept": "Anteilsvergleich bei nicht vergleichbaren Zeitfenstern",
+      "cognitive_level": "Analyse",
+      "mini_glossary": {
+        "Prozentpunkt": "Einheit für die absolute Differenz zweier Prozentwerte.",
+        "Vergleichbarkeit": "Grad, in dem Werte unter hinreichend ähnlichen Bedingungen erhoben wurden.",
+        "Zeitfenster": "Festgelegter Zeitraum, dessen Fälle den Nenner einer Auswertung bilden."
+      }
+    }
+  ]
+}
