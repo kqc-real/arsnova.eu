@@ -142,17 +142,24 @@ async function readJson(filename, { required = true } = {}) {
 
 async function validateFileInventory() {
   const expectedArsnova = [...arsnovaFilenames, 'ARSnova_Kurztext_Testfaelle.json'].sort();
-  const expectedMcTests = [...mcTestFilenames, 'MC-Test_Verteilungen.json'].sort();
+  const generatedDistributionFilename = distributionFile.slice(`${mcTestDirectory}/`.length);
+  const expectedMcTests = [...mcTestFilenames, generatedDistributionFilename].sort();
   const actualArsnova = (await readdir(resolve(moduleDirectory, arsnovaDirectory))).sort();
   const actualMcTests = (await readdir(resolve(moduleDirectory, mcTestDirectory))).sort();
+  const comparableMcTests = writeArtifacts
+    ? actualMcTests.filter((filename) => filename !== generatedDistributionFilename)
+    : actualMcTests;
+  const comparableExpectedMcTests = writeArtifacts
+    ? expectedMcTests.filter((filename) => filename !== generatedDistributionFilename)
+    : expectedMcTests;
   if (!sameJson(actualArsnova, expectedArsnova)) {
     fail(
       `ARSnova-Dateimenge ${JSON.stringify(actualArsnova)} statt ${JSON.stringify(expectedArsnova)}.`,
     );
   }
-  if (!sameJson(actualMcTests, expectedMcTests)) {
+  if (!sameJson(comparableMcTests, comparableExpectedMcTests)) {
     fail(
-      `MC-Test-Dateimenge ${JSON.stringify(actualMcTests)} statt ${JSON.stringify(expectedMcTests)}.`,
+      `MC-Test-Dateimenge ${JSON.stringify(comparableMcTests)} statt ${JSON.stringify(comparableExpectedMcTests)}.`,
     );
   }
 }
