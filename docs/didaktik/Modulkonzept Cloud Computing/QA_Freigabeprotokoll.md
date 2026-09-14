@@ -2,19 +2,19 @@
 
 # Prüf- und Freigabeprotokoll Cloud Computing
 
-**Kürzel und Fachkürzungen vorab:** **A11y** bezeichnet Barrierefreiheit (Accessibility), **AUTO** den Konfigurationswert für automatische Teambildung, **ID** eine eindeutige Kennung, **JSON** JavaScript Object Notation, **LE** eine 90-minütige Lerneinheit aus zwei **UE**, **LI** einen Learning Indicator, **MC** Multiple Choice, **MZ** ein operationalisiertes Modulziel, **QA** Qualitätssicherung, **QZ** ein offizielles Qualifikationsziel, **SHA-256** den Secure Hash Algorithm mit 256 Bit, **UE** eine 45-minütige Unterrichtseinheit, **WCAG** die Web Content Accessibility Guidelines und **W01–W12** die zwölf Kurswochen. **LIVE** bezeichnet im Kursbetrieb entstehende Interaktionsdaten und **REPO** versionierte Repository-Nachweise.
+**Kürzel und Fachkürzungen vorab:** **A11y** bezeichnet Barrierefreiheit (Accessibility), **AUTO** den Konfigurationswert für automatische Teambildung, **ID** eine eindeutige Kennung, **JSON** JavaScript Object Notation, **LE** eine 90-minütige Lerneinheit aus zwei **UE**, **LI** einen Learning Indicator, **MC** Multiple Choice, **MZ** ein operationalisiertes Modulziel, **QA** Qualitätssicherung, **QZ** ein offizielles Qualifikationsziel, **SHA-256** den Secure Hash Algorithm mit 256 Bit, **TB01–TB12** die zwölf stabilen Themenblöcke, **UE** eine 45-minütige Unterrichtseinheit und **WCAG** die Web Content Accessibility Guidelines. **LIVE** bezeichnet im Kursbetrieb entstehende Interaktionsdaten und **REPO** versionierte Repository-Nachweise.
 
 **Rollen vorab:** **MV** ist die Modulverantwortung, **LD** die Lehrdurchführung und der Session-Host, **IR** die Item-Redaktion, **QE** die Qualitäts- und Evaluationsverantwortung, **DK** die Datenkuratierung, **DS** die Datenschutz- und Informationssicherheitsrolle, **LB** der Lehrlaborbetrieb, **AP** der ARSnova-Plattformbetrieb und **MP** der MC-Test-Plattformbetrieb.
 
-**Version:** 1.0.0 · **Vorlagenstand:** 13.09.2026
+**Version:** 1.0.0 · **Vorlagenstand:** 14.09.2026
 
 **Aktueller Status:** **AUSZUFÜLLEN – KEINE PAKETPRÜFUNG ALS BESTANDEN DOKUMENTIERT, OPERATIVE FREIGABE OFFEN**
 
-**Bezugsdokumente:** [Materialindex](./Materialindex.md) · [Wochenlehrplan](./Wochenlehrplan_Cloud_Computing_12_Wochen.md) · [Referatsthemenkatalog](./Referatsthemen_Cloud_Computing_ARSnova.md) · [ARSnova-Blueprint](./ARSnova_Blueprint_12_Wochen.md) · [MC-Test-Blueprint](./MC-Test_Blueprint_12_Wochen.md) · [Lehrenden-Runbook](./Lehrenden_Runbook.md) · [Datenmanagement](./Datenmanagement_Datenschutz.md)
+**Bezugsdokumente:** [Materialindex](./Materialindex.md) · [Themenblockplan](./Themenblockplan_Cloud_Computing_12_Themenbloecke.md) · [Referatsthemenkatalog](./Referatsthemen_Cloud_Computing_ARSnova.md) · [ARSnova-Blueprint](./ARSnova_Blueprint_12_Themenbloecke.md) · [MC-Test-Blueprint](./MC-Test_Blueprint_12_Themenbloecke.md) · [Lehrenden-Runbook](./Lehrenden_Runbook.md) · [Datenmanagement](./Datenmanagement_Datenschutz.md)
 
 ## 1. Zweck, Aussagegrenze und Statusregeln
 
-Dieses Dokument ist zunächst eine reproduzierbare Prüfvorlage. Platzhalter werden erst nach einem realen Lauf durch Befehl, Umgebung, Exit-Code, beobachtetes Resultat, verantwortliche Person, Datum und Evidenz ersetzt. Eine erwartete Eigenschaft ist kein Prüfergebnis.
+Dieses Dokument ist zunächst eine reproduzierbare Prüfvorlage für ein ausschließlich an Bachelorstudierende der Informatik gerichtetes Modul. Platzhalter werden erst nach einem realen Lauf durch Befehl, Umgebung, Exit-Code, beobachtetes Resultat, verantwortliche Person, Datum und Evidenz ersetzt. Eine erwartete Eigenschaft ist kein Prüfergebnis.
 
 Zulässige Statuswerte:
 
@@ -66,7 +66,7 @@ python3 --version
 
 ## 3. Verbindliche Prüfreihenfolge
 
-Die Reihenfolge ist Teil des Vertrags. `--write` darf erst nach der letzten inhaltlichen Änderung an den 24 Wochen-JSONs und den Kurztextfällen laufen. Jede spätere Inhaltsänderung macht `MC-Test_Verteilungen.json`, `SHA256SUMS` und alle darauf beruhenden Ergebnisse ungültig; ab diesem Schritt ist die Serie vollständig zu wiederholen.
+Die Reihenfolge ist Teil des Vertrags. `--write` darf erst nach der letzten inhaltlichen Änderung an den 24 Themenblock-JSONs und den Kurztextfällen laufen. Jede spätere Inhaltsänderung macht `MC-Test_Verteilungen.json`, `SHA256SUMS` und alle darauf beruhenden Ergebnisse ungültig; ab diesem Schritt ist die Serie vollständig zu wiederholen.
 
 ### P01 – Shared-Types-Build
 
@@ -90,7 +90,7 @@ node "docs/didaktik/Modulkonzept Cloud Computing/validate_module.mjs" --write
 
 **Erwarteter Vertrag:** Der strenge Validator findet vor dem Schreiben keinen Fehler und erzeugt anschließend ausschließlich:
 
-- [MC-Test_Verteilungen.json](./MC-Test_Verteilungen.json) aus den zwölf aktuellen MC-Test-Dateien;
+- [MC-Test_Verteilungen.json](./MC-Test/MC-Test_Verteilungen.json) aus den zwölf aktuellen MC-Test-Dateien;
 - [SHA256SUMS](./SHA256SUMS) für zwölf ARSnova-Dateien, zwölf MC-Test-Dateien, die Kurztextfälle und die Verteilungsdatei.
 
 Ein fehlgeschlagener Lauf erzeugt keine Freigabe. Inhaltliche Warnungen sind einzeln zu prüfen und in Abschnitt 6 zu entscheiden.
@@ -123,9 +123,9 @@ import {
   QuizUploadInputSchema,
 } from './libs/shared-types/dist/index.js';
 
-const directory = 'docs/didaktik/Modulkonzept Cloud Computing';
+const directory = 'docs/didaktik/Modulkonzept Cloud Computing/ARSnova';
 const files = (await readdir(directory))
-  .filter((name) => /^ARSnova_Woche_\d{2}\.json$/.test(name))
+  .filter((name) => /^ARSnova_Themenblock_\d{2}\.json$/.test(name))
   .sort();
 let failed = false;
 
@@ -165,7 +165,7 @@ export MODULE_DIR="docs/didaktik/Modulkonzept Cloud Computing"
 
 test "$(git -C "$MC_TEST_ROOT" rev-parse HEAD)" = "$MC_TEST_COMMIT"
 test -z "$(git -C "$MC_TEST_ROOT" status --porcelain)"
-python3 "$MC_TEST_ROOT/validate_sets.py" "$MODULE_DIR"/MC-Test_Woche_*.json
+python3 "$MC_TEST_ROOT/validate_sets.py" "$MODULE_DIR"/MC-Test/MC-Test_Themenblock_*.json
 ```
 
 **Erwarteter Vertrag:** Commitprüfung und Sauberkeitsprüfung enden mit Exit-Code 0; `validate_sets.py` prüft alle zwölf Dateien und endet ohne Fehler mit Exit-Code 0. Jede Warnung wird mit Datei, Wortlaut, fachlicher Entscheidung, Rolle und Datum in Abschnitt 6 erfasst. Eine Warnung wird nicht allein deshalb akzeptiert, weil der Validator sie nicht als Fehler klassifiziert.
@@ -208,7 +208,7 @@ Der normale Lauf aus P03 führt die lokale Linkprüfung für alle Markdown-Datei
 )
 ```
 
-**Erwarteter Vertrag:** Genau 26 gelistete Dateien werden mit `OK` bestätigt: zwölf ARSnova-Wochen, zwölf MC-Test-Wochen, `ARSnova_Kurztext_Testfaelle.json` und `MC-Test_Verteilungen.json`. Es fehlt keine Soll-Datei und es gibt keinen veralteten oder zusätzlichen Hash-Eintrag.
+**Erwarteter Vertrag:** Genau 26 gelistete Dateien werden mit `OK` bestätigt: zwölf ARSnova-Themenblöcke, zwölf MC-Test-Themenblöcke, `ARSnova_Kurztext_Testfaelle.json` und `MC-Test_Verteilungen.json`. Es fehlt keine Soll-Datei und es gibt keinen veralteten oder zusätzlichen Hash-Eintrag.
 
 **Tatsächliches Resultat:** `<eintragen>`  
 **Exit-Code:** `<eintragen>`  
@@ -239,40 +239,40 @@ Die folgenden Tabellen werden aus den realen Läufen befüllt. Sollwerte stehen 
 
 | Prüffeld                | Erwarteter Vertrag                                                                                                       | Tatsächliches Resultat | Evidenz       | Status             |
 | ----------------------- | ------------------------------------------------------------------------------------------------------------------------ | ---------------------- | ------------- | ------------------ |
-| Testfalldatei           | `schemaVersion=1`, genau ein Fall je ARSnova-Woche                                                                       | `<eintragen>`          | `<eintragen>` | `NICHT AUSGEFÜHRT` |
+| Testfalldatei           | `schemaVersion=1`, genau ein Fall je ARSnova-Themenblock                                                                 | `<eintragen>`          | `<eintragen>` | `NICHT AUSGEFÜHRT` |
 | Bewertungsmodus         | alle zwölf Kurztextfragen `exact`/`none`, ohne Teilpunkte, nicht case-sensitiv, Trim und Whitespace-Normalisierung aktiv | `<eintragen>`          | `<eintragen>` | `NICHT AUSGEFÜHRT` |
 | Positivfälle            | decken alle und nur die expliziten Modellvarianten ab; jeder Fall erhält 100 von 100 Punkten                             | `<eintragen>`          | `<eintragen>` | `NICHT AUSGEFÜHRT` |
-| Negativfälle            | mindestens zwei fachlich falsche Fälle je Woche; jeder erhält 0 von 100 Punkten                                          | `<eintragen>`          | `<eintragen>` | `NICHT AUSGEFÜHRT` |
+| Negativfälle            | mindestens zwei fachlich falsche Fälle je Themenblock; jeder erhält 0 von 100 Punkten                                    | `<eintragen>`          | `<eintragen>` | `NICHT AUSGEFÜHRT` |
 | Kritische Gegenbegriffe | falsche Zahl, Einheit, Richtung, Negation oder Gegenbegriff wird nicht durch Normalisierung oder Teiltreffer akzeptiert  | `<eintragen>`          | `<eintragen>` | `NICHT AUSGEFÜHRT` |
 
 ### 4.3 MC-Test-Paket
 
-| Prüffeld                 | Erwarteter Vertrag                                                                                                          | Tatsächliches Resultat | Evidenz       | Status             |
-| ------------------------ | --------------------------------------------------------------------------------------------------------------------------- | ---------------------- | ------------- | ------------------ |
-| Dateien und Gesamtzahl   | 12 Dateien, je 30 Items, zusammen 360                                                                                       | `<eintragen>`          | `<eintragen>` | `NICHT AUSGEFÜHRT` |
-| Wurzelschema             | ausschließlich `meta` und `questions`                                                                                       | `<eintragen>`          | `<eintragen>` | `NICHT AUSGEFÜHRT` |
-| Meta-Schema              | exakt neun erlaubte Felder; feste Zielgruppe, 30, `0/12/18`, Zeitprofil, Puffer 5, Planwert 32, Sprache `de`, valides Datum | `<eintragen>`          | `<eintragen>` | `NICHT AUSGEFÜHRT` |
-| Item-Schema              | exakt `question/options/answer/explanation/weight/topic/concept/cognitive_level/mini_glossary`                              | `<eintragen>`          | `<eintragen>` | `NICHT AUSGEFÜHRT` |
-| Schwierigkeit/Gewicht    | je Datei zwölfmal `weight=2`, 18-mal `weight=3`, nie `weight=1`; tatsächlicher Anspruch menschlich geprüft                  | `<eintragen>`          | `<eintragen>` | `NICHT AUSGEFÜHRT` |
-| Kognitive Werte          | ausschließlich `Verständnis`, `Anwendung`, `Analyse`                                                                        | `<eintragen>`          | `<eintragen>` | `NICHT AUSGEFÜHRT` |
-| Optionen                 | genau vier nicht leere, eindeutige, plausible und formal parallele Optionen                                                 | `<eintragen>`          | `<eintragen>` | `NICHT AUSGEFÜHRT` |
-| Lösungspositionen        | pro Datei zwei Positionen siebenmal, zwei achtmal; keine Periode; höchstens drei gleiche Positionen in Folge                | `<eintragen>`          | `<eintragen>` | `NICHT AUSGEFÜHRT` |
-| Erklärungen              | nicht leer, mindestens 80 Zeichen, fachlich eigenständig, mit Fehlerabgrenzung und ohne Positionsbezug                      | `<eintragen>`          | `<eintragen>` | `NICHT AUSGEFÜHRT` |
-| Mini-Glossare            | Objekt mit zwei bis vier nicht leeren Begriff-Definitions-Paaren je Item                                                    | `<eintragen>`          | `<eintragen>` | `NICHT AUSGEFÜHRT` |
-| Paketweite Eindeutigkeit | 360 normalisierte, nicht leere und unterschiedliche Fragenstämme; keine nahen Wiederholungen oder Lösungshinweise           | `<eintragen>`          | `<eintragen>` | `NICHT AUSGEFÜHRT` |
-| Fixierter Validator      | Commit exakt bestätigt, Exit-Code 0, jede Warnung einzeln entschieden                                                       | `<eintragen>`          | `<eintragen>` | `NICHT AUSGEFÜHRT` |
+| Prüffeld                 | Erwarteter Vertrag                                                                                                                                                                        | Tatsächliches Resultat | Evidenz       | Status             |
+| ------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------- | ------------- | ------------------ |
+| Dateien und Gesamtzahl   | 12 Dateien, je 30 Items, zusammen 360                                                                                                                                                     | `<eintragen>`          | `<eintragen>` | `NICHT AUSGEFÜHRT` |
+| Wurzelschema             | ausschließlich `meta` und `questions`                                                                                                                                                     | `<eintragen>`          | `<eintragen>` | `NICHT AUSGEFÜHRT` |
+| Meta-Schema              | exakt neun erlaubte Felder; Zielgruppe exakt `Bachelorstudierende der Informatik im Modul Cloud Computing`, 30, `0/12/18`, Zeitprofil, Puffer 5, Planwert 32, Sprache `de`, valides Datum | `<eintragen>`          | `<eintragen>` | `NICHT AUSGEFÜHRT` |
+| Item-Schema              | exakt `question/options/answer/explanation/weight/topic/concept/cognitive_level/mini_glossary`                                                                                            | `<eintragen>`          | `<eintragen>` | `NICHT AUSGEFÜHRT` |
+| Schwierigkeit/Gewicht    | je Datei zwölfmal `weight=2`, 18-mal `weight=3`, nie `weight=1`; tatsächlicher Anspruch menschlich geprüft                                                                                | `<eintragen>`          | `<eintragen>` | `NICHT AUSGEFÜHRT` |
+| Kognitive Werte          | ausschließlich `Verständnis`, `Anwendung`, `Analyse`                                                                                                                                      | `<eintragen>`          | `<eintragen>` | `NICHT AUSGEFÜHRT` |
+| Optionen                 | genau vier nicht leere, eindeutige, plausible und formal parallele Optionen                                                                                                               | `<eintragen>`          | `<eintragen>` | `NICHT AUSGEFÜHRT` |
+| Lösungspositionen        | pro Datei zwei Positionen siebenmal, zwei achtmal; keine Periode; höchstens drei gleiche Positionen in Folge                                                                              | `<eintragen>`          | `<eintragen>` | `NICHT AUSGEFÜHRT` |
+| Erklärungen              | nicht leer, mindestens 80 Zeichen, fachlich eigenständig, mit Fehlerabgrenzung und ohne Positionsbezug                                                                                    | `<eintragen>`          | `<eintragen>` | `NICHT AUSGEFÜHRT` |
+| Mini-Glossare            | Objekt mit zwei bis vier nicht leeren Begriff-Definitions-Paaren je Item                                                                                                                  | `<eintragen>`          | `<eintragen>` | `NICHT AUSGEFÜHRT` |
+| Paketweite Eindeutigkeit | 360 normalisierte, nicht leere und unterschiedliche Fragenstämme; keine nahen Wiederholungen oder Lösungshinweise                                                                         | `<eintragen>`          | `<eintragen>` | `NICHT AUSGEFÜHRT` |
+| Fixierter Validator      | Commit exakt bestätigt, Exit-Code 0, jede Warnung einzeln entschieden                                                                                                                     | `<eintragen>`          | `<eintragen>` | `NICHT AUSGEFÜHRT` |
 
 ### 4.4 Programmgesteuerte Verteilungen
 
-Manuelle Schätzungen werden hier nicht eingetragen. Maßgeblich ist ausschließlich die nach Inhaltsfreeze generierte Datei [MC-Test_Verteilungen.json](./MC-Test_Verteilungen.json).
+Manuelle Schätzungen werden hier nicht eingetragen. Maßgeblich ist ausschließlich die nach Inhaltsfreeze generierte Datei [MC-Test_Verteilungen.json](./MC-Test/MC-Test_Verteilungen.json).
 
-| Prüffeld          | Erwarteter Vertrag                                                                                                 | Tatsächliches Resultat | Evidenz       | Status             |
-| ----------------- | ------------------------------------------------------------------------------------------------------------------ | ---------------------- | ------------- | ------------------ |
-| `generatedFrom`   | exakt die zwölf erwarteten MC-Test-Dateien                                                                         | `<eintragen>`          | `<eintragen>` | `NICHT AUSGEFÜHRT` |
-| Wochenblöcke      | genau W01–W12 mit richtigem Dateinamen und `questionCount=30`                                                      | `<eintragen>`          | `<eintragen>` | `NICHT AUSGEFÜHRT` |
-| `topic`           | Zählung wird direkt aus jeder aktuellen Wochen-Datei erzeugt und im Normalmodus inhaltlich exakt geprüft           | `<eintragen>`          | `<eintragen>` | `NICHT AUSGEFÜHRT` |
-| `cognitive_level` | Zählung wird direkt aus jeder aktuellen Wochen-Datei erzeugt und im Normalmodus inhaltlich exakt geprüft           | `<eintragen>`          | `<eintragen>` | `NICHT AUSGEFÜHRT` |
-| `weight`          | Zählung wird direkt aus jeder aktuellen Wochen-Datei erzeugt; jede Woche weist maschinell zwölf `2` und 18 `3` aus | `<eintragen>`          | `<eintragen>` | `NICHT AUSGEFÜHRT` |
+| Prüffeld          | Erwarteter Vertrag                                                                                           | Tatsächliches Resultat | Evidenz       | Status             |
+| ----------------- | ------------------------------------------------------------------------------------------------------------ | ---------------------- | ------------- | ------------------ |
+| `generatedFrom`   | exakt die zwölf erwarteten MC-Test-Dateien                                                                   | `<eintragen>`          | `<eintragen>` | `NICHT AUSGEFÜHRT` |
+| `topicBlocks`     | genau TB01–TB12 mit richtigem Dateinamen und `questionCount=30`                                              | `<eintragen>`          | `<eintragen>` | `NICHT AUSGEFÜHRT` |
+| `topic`           | Zählung wird direkt aus jeder aktuellen Themenblockdatei erzeugt und im Normalmodus inhaltlich exakt geprüft | `<eintragen>`          | `<eintragen>` | `NICHT AUSGEFÜHRT` |
+| `cognitive_level` | Zählung wird direkt aus jeder aktuellen Themenblockdatei erzeugt und im Normalmodus inhaltlich exakt geprüft | `<eintragen>`          | `<eintragen>` | `NICHT AUSGEFÜHRT` |
+| `weight`          | Zählung wird direkt aus jeder aktuellen Themenblockdatei erzeugt; jeder Block weist zwölf `2` und 18 `3` aus | `<eintragen>`          | `<eintragen>` | `NICHT AUSGEFÜHRT` |
 
 ## 5. Menschliche Inhalts- und Konsistenzprüfung
 
@@ -309,18 +309,18 @@ Jede Validatorwarnung und jeder menschliche Befund erhält eine eigene Zeile. »
 
 Alle Gates beginnen offen. Ein Häkchen, eine mündliche Aussage oder ein automatischer Validator allein schließt kein Gate.
 
-| Gate                                      | Zuständige Rollen      | Reproduzierbarer Nachweis vor Kurseinsatz                                                                                                                                                                                                                                                                                                                                                               | Ergebnisplatzhalter                                            | Status  |
-| ----------------------------------------- | ---------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------- | ------- |
-| ARSnova-Import und Fragetypen             | AP, LD, IR             | Alle zwölf Dateien real importieren; je Woche 10/10 Fragen und alle zehn Typen in Host- und Teilnehmeransicht durchlaufen; Reihenfolge, strukturierte Interaktionen, Kurztext-Positiv/Negativ, Numeric Estimate und Export prüfen.                                                                                                                                                                      | `<Datum, App-Version, Gerät, Sitzung, Befunde, Evidenz>`       | `OFFEN` |
-| ARSnova-Konfiguration und Lösungsschutz   | AP, LD, QE             | Kindergarten-Pseudonyme, gesperrte freie Nicknames, Rangliste, `AUTO`-Obstteams, drei Boni, Sound/Reward/Motivation/Emoji, 60-Sekunden-Skalierung, persönliche Zeitunterstützung, Lesephase, `timer=null`, Auflösung erst nach Schließen und Effective Vote praktisch bestätigen.                                                                                                                       | `<eintragen>`                                                  | `OFFEN` |
-| MC-Test-Import und Laufzeitkonfiguration  | MP, LD, IR             | Alle zwölf Dateien am fixierten MC-Test-Stand importieren; jeweils 30/30 Items; `practice`, Sofortfeedback, kein technischer Countdown, `show_top5_public=false`, unveränderte Erklärung/Glossare und keine technische Versuchsbegrenzung bestätigen.                                                                                                                                                   | `<Commit, Konfiguration, Laufprotokoll, Befunde>`              | `OFFEN` |
-| MC-Test-Zeit- und Wiederholungsablauf     | LD, QE                 | Drei Minuten Übergang, 32 Minuten organisatorische Bearbeitung und zehn Minuten aggregierte Besprechung proben; zweiten vollständigen Zugang nach 2–3 Tagen und Kernkonzeptabruf nach 2–4 Wochen terminieren und testen.                                                                                                                                                                                | `<eintragen>`                                                  | `OFFEN` |
-| Reale Geräte: Tablet und Laptop           | LD, QE, AP, MP         | ARSnova.eu und MC-Test auf mindestens einem realen Tablet und Laptop prüfen; tiefe Repositoryarbeit am Laptop; Zoom-/Raumzugang, Eingabe, Rotation, Zoom/Reflow, Netzwechsel und gleichwertigen Geräteersatz dokumentieren.                                                                                                                                                                             | `<Geräte, Browser, Versionen, Resultate>`                      | `OFFEN` |
-| Offline-, Netz- und Gerätefallback        | LD, AP, MP             | Vollständigen Wochenfallback mit lokal verfügbaren Fragen, zugänglicher untimierter Dokument-/Papierfassung, vorbereiteten Quellen-/Messauszügen, Partnerweg und späterem sicheren Handoff ohne Datenverlust proben.                                                                                                                                                                                    | `<Störungsszenario, Zeit, Resultat, Restlücke>`                | `OFFEN` |
-| Praktische WCAG-/A11y-Prüfung             | QE, LD, AP, MP         | Tastaturbedienung, Fokus, Screenreader-Semantik, 400-Prozent-Zoom/Reflow, Kontrast, reduzierte Bewegung, Vorlesbarkeit, Lesephase, persönliche Zeitunterstützung, untimierte Alternative sowie nicht ausschließlich visuelle/akustische Gamification am realen Setup prüfen.                                                                                                                            | `<Prüfplan, Werkzeuge, Geräte, Befunde, Korrekturen>`          | `OFFEN` |
-| Präsenz- und Zoom-Ablauf                  | LD, MV, QE             | Je einen vollständigen 90+45-Minuten-Probelauf durchführen; identische Ziele, Fragen, Nettozeiten, Feedback- und Prüfungsinformation; Raum-/Breakout-Moderation, Aggregatbesprechung, Störungs- und Wiedereintrittsweg dokumentieren.                                                                                                                                                                   | `<Termine, Teilnehmende, Zeiten, Abweichungen>`                | `OFFEN` |
-| Datenweg, Schutzorte und Löschung         | DS, DK, AP, MP, LD, LB | ARSnova-, MC-Test-, Dossier- und Laborfluss Ende-zu-Ende prüfen; keine Cross-Tool-Profile; Small-Cell-Unterdrückung; Rollen/Zugriff; institutionell bestätigte Fristen; Löschung von Arbeitskopien und Plattformdaten mit Protokoll und Negativkontrolle nachweisen.                                                                                                                                    | `<Datenflussversion, Freigabe, Lösch-ID, Kontrolle>`           | `OFFEN` |
-| Fachliche und curriculare Schlussfreigabe | MV, IR, QE             | Wochenlehrplan mit zwölf Leitfragen, 36 UE, 18/18-Bilanz, Fachwortschatz, Quellenankern und Lernprodukten sowie vollständige Lösungen, Distraktoren, Schwierigkeit, Wochenprogression, fünf QZ, neun MZ, LI01–LI24 und Referatsalignment menschlich freigeben; 8.9d nur mit aktualisiertem Kurs-Quellenblock lehren; Toolresultate von individueller Bewertung, Forschung und Publikation ausschließen. | `<Namen/Rollen, Datum, signierter Nachweis, Restabweichungen>` | `OFFEN` |
+| Gate                                      | Zuständige Rollen      | Reproduzierbarer Nachweis vor Kurseinsatz                                                                                                                                                                                                                                                                                                                                                       | Ergebnisplatzhalter                                            | Status  |
+| ----------------------------------------- | ---------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------- | ------- |
+| ARSnova-Import und Fragetypen             | AP, LD, IR             | Alle zwölf Dateien real importieren; je Themenblock TB10/10 Fragen und alle zehn Typen in Host- und Teilnehmeransicht durchlaufen; Reihenfolge, strukturierte Interaktionen, Kurztext-Positiv/Negativ, Numeric Estimate und Export prüfen.                                                                                                                                                      | `<Datum, App-Version, Gerät, Sitzung, Befunde, Evidenz>`       | `OFFEN` |
+| ARSnova-Konfiguration und Lösungsschutz   | AP, LD, QE             | Kindergarten-Pseudonyme, gesperrte freie Nicknames, Rangliste, `AUTO`-Obstteams, drei Boni, Sound/Reward/Motivation/Emoji, 60-Sekunden-Skalierung, persönliche Zeitunterstützung, Lesephase, `timer=null`, Auflösung erst nach Schließen und Effective Vote praktisch bestätigen.                                                                                                               | `<eintragen>`                                                  | `OFFEN` |
+| MC-Test-Import und Laufzeitkonfiguration  | MP, LD, IR             | Alle zwölf Dateien am fixierten MC-Test-Stand importieren; jeweils 30/30 Items; `practice`, Sofortfeedback, kein technischer Countdown, `show_top5_public=false`, unveränderte Erklärung/Glossare und keine technische Versuchsbegrenzung bestätigen.                                                                                                                                           | `<Commit, Konfiguration, Laufprotokoll, Befunde>`              | `OFFEN` |
+| MC-Test-Zeit- und Wiederholungsablauf     | LD, QE                 | Drei Minuten Übergang, 32 Minuten organisatorische Bearbeitung und zehn Minuten aggregierte Besprechung proben; vollständigen und kumulativen Wiederabruf ohne kalendarische Vorgabe testen.                                                                                                                                                                                                    | `<eintragen>`                                                  | `OFFEN` |
+| Reale Geräte: Tablet und Laptop           | LD, QE, AP, MP         | ARSnova.eu und MC-Test auf mindestens einem realen Tablet und Laptop prüfen; tiefe Repositoryarbeit am Laptop; Zugang, Eingabe, Rotation, Zoom/Reflow, Netzwechsel und gleichwertigen Geräteersatz dokumentieren.                                                                                                                                                                               | `<Geräte, Browser, Versionen, Resultate>`                      | `OFFEN` |
+| Offline-, Netz- und Gerätefallback        | LD, AP, MP             | Vollständigen Themenblockfallback mit lokal verfügbaren Fragen, zugänglicher untimierter Dokument-/Papierfassung, vorbereiteten Quellen-/Messauszügen, Partnerweg und späterem sicheren Handoff ohne Datenverlust proben.                                                                                                                                                                       | `<Störungsszenario, Zeit, Resultat, Restlücke>`                | `OFFEN` |
+| Praktische WCAG-/A11y-Prüfung             | QE, LD, AP, MP         | Tastaturbedienung, Fokus, Screenreader-Semantik, 400-Prozent-Zoom/Reflow, Kontrast, reduzierte Bewegung, Vorlesbarkeit, Lesephase, persönliche Zeitunterstützung, untimierte Alternative sowie nicht ausschließlich visuelle/akustische Gamification am realen Setup prüfen.                                                                                                                    | `<Prüfplan, Werkzeuge, Geräte, Befunde, Korrekturen>`          | `OFFEN` |
+| Modalitätsneutraler Ablauf                | LD, MV, QE             | Einen vollständigen 90+45-Minuten-Probelauf durchführen; identische Ziele, Fragen, Nettozeiten, Feedback- und Prüfungsinformation sowie einen mediumunabhängigen schriftlichen Störungs- und Ersatzweg dokumentieren.                                                                                                                                                                           | `<Durchführung, Teilnehmende, Zeiten, Abweichungen>`           | `OFFEN` |
+| Datenweg, Schutzorte und Löschung         | DS, DK, AP, MP, LD, LB | ARSnova-, MC-Test-, Dossier- und Laborfluss Ende-zu-Ende prüfen; keine Cross-Tool-Profile; Small-Cell-Unterdrückung; Rollen/Zugriff; institutionell bestätigte Fristen; Löschung von Arbeitskopien und Plattformdaten mit Protokoll und Negativkontrolle nachweisen.                                                                                                                            | `<Datenflussversion, Freigabe, Lösch-ID, Kontrolle>`           | `OFFEN` |
+| Fachliche und curriculare Schlussfreigabe | MV, IR, QE             | Themenblockplan mit zwölf Leitfragen, 36 UE, Fachwortschatz, Quellenankern und Lernprodukten sowie vollständige Lösungen, Distraktoren, Schwierigkeit, Themenblockprogression, fünf QZ, neun MZ, LI01–LI24 und Referatsalignment menschlich freigeben; 8.9d nur mit aktualisiertem Kurs-Quellenblock lehren; Toolresultate von individueller Bewertung, Forschung und Publikation ausschließen. | `<Namen/Rollen, Datum, signierter Nachweis, Restabweichungen>` | `OFFEN` |
 
 ## 8. Zusammenfassendes statisches Prüfblatt
 

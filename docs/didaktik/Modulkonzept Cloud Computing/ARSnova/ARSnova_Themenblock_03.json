@@ -1,0 +1,341 @@
+{
+  "exportVersion": 1,
+  "exportedAt": "2026-09-13T00:00:00.000Z",
+  "quiz": {
+    "name": "Cloud Computing – Themenblock TB03: Reproduzierbare Bereitstellung und Härtung",
+    "description": "10 anspruchsvolle Live-Fragen zur arsnova.eu-Single-Host-Architektur, zu Portable Document Format (PDF), Transport Layer Security (TLS), Hypertext Transfer Protocol (HTTP), Zustandsgrenzen, Wiederherstellung und Härtung.",
+    "showLeaderboard": true,
+    "allowCustomNicknames": false,
+    "defaultTimer": 60,
+    "timerScaleByDifficulty": true,
+    "enableTimerAccommodation": true,
+    "enableSoundEffects": true,
+    "enableRewardEffects": true,
+    "enableMotivationMessages": true,
+    "enableEmojiReactions": true,
+    "anonymousMode": false,
+    "teamMode": true,
+    "teamCount": 4,
+    "teamAssignment": "AUTO",
+    "teamNames": ["Apfel :apple:", "Birne :pear:", "Banane :banana:", "Apfelsine :orange:"],
+    "backgroundMusic": null,
+    "nicknameTheme": "KINDERGARTEN",
+    "bonusTokenCount": 3,
+    "readingPhaseEnabled": true,
+    "questions": [
+      {
+        "text": "### Welche Aussage folgt aus der Single-Host-Topologie?\n\nApp, PostgreSQL und Redis laufen in getrennten Containern, aber auf demselben Produktionshost. Welche Risikobewertung ist für einen Hostausfall korrekt?",
+        "type": "SINGLE_CHOICE",
+        "timer": null,
+        "difficulty": "HARD",
+        "order": 0,
+        "answers": [
+          {
+            "text": "Die Containertrennung verhindert einen gemeinsamen Ausfall, weil jeder Dienst einen eigenen Prozess besitzt.",
+            "isCorrect": false
+          },
+          {
+            "text": "Die Volumentrennung verhindert einen gemeinsamen Ausfall, weil PostgreSQL und Redis verschiedene Datenpfade nutzen.",
+            "isCorrect": false
+          },
+          {
+            "text": "Der Host bleibt eine gemeinsame Fehlergrenze, obwohl Container Prozesse und Dateisysteme voneinander abgrenzen.",
+            "isCorrect": true
+          },
+          {
+            "text": "Der Reverse Proxy verhindert einen gemeinsamen Ausfall, weil öffentliche Verbindungen nur über TLS eintreten.",
+            "isCorrect": false
+          }
+        ],
+        "confidenceEnabled": true,
+        "confidenceLabelLow": "Sehr unsicher",
+        "confidenceLabelHigh": "Sehr sicher"
+      },
+      {
+        "text": "### Welche Kontrollen begrenzen den PDF-Worker?\n\nWähle alle Kontrollen, die im Produktions-Compose die Auswirkung einer kompromittierten PDF-Verarbeitung unmittelbar begrenzen.",
+        "type": "MULTIPLE_CHOICE",
+        "timer": null,
+        "difficulty": "HARD",
+        "order": 1,
+        "answers": [
+          {
+            "text": "Der Worker besitzt keinen Netzwerkmodus und damit keinen regulären Netzwerkpfad.",
+            "isCorrect": true
+          },
+          {
+            "text": "Der Worker läuft mit schreibbarem Root-Dateisystem für spontane Browserupdates.",
+            "isCorrect": false
+          },
+          {
+            "text": "Der Worker verwirft Linux-Capabilities und verhindert neue Privilegien.",
+            "isCorrect": true
+          },
+          {
+            "text": "Der Worker erhält begrenzte Prozessor-, Speicher-, Prozesszahl- und temporäre Dateisystemressourcen.",
+            "isCorrect": true
+          }
+        ],
+        "confidenceEnabled": true,
+        "confidenceLabelLow": "Sehr unsicher",
+        "confidenceLabelHigh": "Sehr sicher"
+      },
+      {
+        "text": "### Welcher Transport verbindet App und PDF-Worker?\n\nDie Produktions-App übergibt vorbereiteten Reportinhalt lokal über `/run/pdf-worker/render.sock`; der Worker veröffentlicht dafür keinen Port des Transmission Control Protocol (TCP). Nenne den Transporttyp mit einem Fachbegriff.",
+        "type": "SHORT_TEXT",
+        "timer": null,
+        "difficulty": "HARD",
+        "order": 2,
+        "answers": [
+          {
+            "text": "Unix-Socket",
+            "isCorrect": true
+          },
+          {
+            "text": "Unix Domain Socket",
+            "isCorrect": true
+          },
+          {
+            "text": "Unix-Domain-Socket",
+            "isCorrect": true
+          },
+          {
+            "text": "Unix Domain Socket (UDS)",
+            "isCorrect": true
+          },
+          {
+            "text": "lokaler Unix-Socket",
+            "isCorrect": true
+          }
+        ],
+        "shortTextMaxLength": 40,
+        "shortTextEvaluationKind": "text",
+        "shortTextCaseSensitive": false,
+        "shortTextEvaluationMode": "exact",
+        "shortTextToleranceLevel": "none",
+        "shortTextAllowPartialCredit": false,
+        "shortTextTrimWhitespace": true,
+        "shortTextNormalizeWhitespace": true,
+        "confidenceEnabled": true,
+        "confidenceLabelLow": "Sehr unsicher",
+        "confidenceLabelHigh": "Sehr sicher"
+      },
+      {
+        "text": "### Wie viele gleichzeitige PDF-Anfragen starten einen Job?\n\nIm aktuellen Backendprozess ist genau ein PDF-Job gleichzeitig zulässig; weitere gleichzeitige Anfragen werden ohne Warteschlange mit HTTP 429 abgewiesen. Neun Anfragen treffen im selben Moment bei freiem Worker ein. Wie viele davon starten unmittelbar einen PDF-Job?",
+        "type": "NUMERIC_ESTIMATE",
+        "timer": null,
+        "difficulty": "HARD",
+        "order": 3,
+        "answers": [],
+        "numericToleranceMode": "ABSOLUTE_INTERVAL",
+        "numericReferenceValue": 1,
+        "numericIntervalLeft": 0.5,
+        "numericIntervalRight": 1.5,
+        "numericInputType": "INTEGER",
+        "numericDecimalPlaces": 0,
+        "numericMin": 0,
+        "numericMax": 9,
+        "numericTwoRounds": true,
+        "confidenceEnabled": true,
+        "confidenceLabelLow": "Sehr unsicher",
+        "confidenceLabelHigh": "Sehr sicher"
+      },
+      {
+        "text": "### Ordne Fehlerbild und erste Systemgrenze zu\n\nOrdne jedes beobachtete Fehlerbild der Grenze zu, an der die Diagnose zuerst ansetzen sollte.",
+        "type": "MATCHING",
+        "timer": null,
+        "difficulty": "HARD",
+        "order": 4,
+        "answers": [],
+        "matchingPairs": [
+          {
+            "leftId": "tb03-match-db",
+            "left": "Migration schlägt vor dem App-Start fehl",
+            "rightId": "tb03-match-db-value",
+            "right": "Prisma- und PostgreSQL-Schemastand"
+          },
+          {
+            "leftId": "tb03-match-redis",
+            "left": "Rate-Limit-Prüfung kann keinen Zähler atomar buchen",
+            "rightId": "tb03-match-redis-value",
+            "right": "Redis-Erreichbarkeit und Lua-Ausführung"
+          },
+          {
+            "leftId": "tb03-match-ws",
+            "left": "HTTP funktioniert, Echtzeitabonnement verbindet sich nicht",
+            "rightId": "tb03-match-ws-value",
+            "right": "tRPC-WebSocket-Pfad und Proxy-Upgrade"
+          },
+          {
+            "leftId": "tb03-match-yjs",
+            "left": "Quizänderungen erreichen ein zweites Browsergerät nicht",
+            "rightId": "tb03-match-yjs-value",
+            "right": "Yjs-Relay, Raumzugriff und Reconnect"
+          },
+          {
+            "leftId": "tb03-match-pdf",
+            "left": "Reportaufruf meldet einen nicht erreichbaren Renderer",
+            "rightId": "tb03-match-pdf-value",
+            "right": "Renderingdienst und lokaler Übergabepfad"
+          }
+        ],
+        "matchingShuffleRight": true,
+        "confidenceEnabled": true,
+        "confidenceLabelLow": "Sehr unsicher",
+        "confidenceLabelHigh": "Sehr sicher"
+      },
+      {
+        "text": "### Bringe die Bereitstellung in eine prüfbare Reihenfolge\n\nOrdne die Schritte so, dass ein Zielhost aus versionierten Artefakten aufgebaut und ein fehlgeschlagenes Deployment nachvollziehbar zurückgenommen werden kann.",
+        "type": "ORDERING",
+        "timer": null,
+        "difficulty": "HARD",
+        "order": 5,
+        "answers": [],
+        "orderingItems": [
+          {
+            "id": "tb03-order-1",
+            "text": "Ziel-Commit, Image-Digest und freigegebene Konfiguration festlegen"
+          },
+          {
+            "id": "tb03-order-2",
+            "text": "Ausgangszustand, Backup und Rücknahmepunkt verifizieren"
+          },
+          {
+            "id": "tb03-order-3",
+            "text": "PostgreSQL und Redis starten und ihre Healthchecks abwarten"
+          },
+          {
+            "id": "tb03-order-4",
+            "text": "Versionierte Datenbankmigrationen gegen das Ziel anwenden"
+          },
+          {
+            "id": "tb03-order-5",
+            "text": "App und Worker mit festgelegtem Image-Digest starten"
+          },
+          {
+            "id": "tb03-order-6",
+            "text": "Health-, HTTP-, WebSocket- und Wiederanlaufpfade verifizieren"
+          },
+          {
+            "id": "tb03-order-7",
+            "text": "Deploymentzustand und nutzbaren Rollback-Nachweis dokumentieren"
+          }
+        ],
+        "confidenceEnabled": true,
+        "confidenceLabelLow": "Sehr unsicher",
+        "confidenceLabelHigh": "Sehr sicher"
+      },
+      {
+        "text": "### Klassifiziere Wiederanlaufmaßnahmen nach ihrer Quelle\n\nOrdne jede Wiederanlaufmaßnahme der Quelle zu, aus der der gewünschte Zustand nach einem Ausfall wiederhergestellt wird.",
+        "type": "CATEGORIZATION",
+        "timer": null,
+        "difficulty": "HARD",
+        "order": 6,
+        "answers": [],
+        "categories": [
+          {
+            "id": "tb03-cat-image",
+            "name": "Aus freigegebenem Image ersetzen"
+          },
+          {
+            "id": "tb03-cat-backup",
+            "name": "Aus persistentem Backup restaurieren"
+          },
+          {
+            "id": "tb03-cat-declaration",
+            "name": "Aus versionierter Deklaration neu aufbauen"
+          },
+          {
+            "id": "tb03-cat-ephemeral",
+            "name": "Als flüchtigen Zustand neu erzeugen"
+          }
+        ],
+        "categorizationItems": [
+          {
+            "id": "tb03-item-app",
+            "text": "Einen verlorenen App-Container mit demselben geprüften Digest starten",
+            "correctCategoryId": "tb03-cat-image"
+          },
+          {
+            "id": "tb03-item-worker",
+            "text": "Einen beendeten PDF-Worker mit dem freigegebenen Artefakt ersetzen",
+            "correctCategoryId": "tb03-cat-image"
+          },
+          {
+            "id": "tb03-item-postgres",
+            "text": "Ein beschädigtes PostgreSQL-Datenvolume in frischer Umgebung wiederherstellen",
+            "correctCategoryId": "tb03-cat-backup"
+          },
+          {
+            "id": "tb03-item-firewall",
+            "text": "Host-Firewall und erlaubte Ports aus geprüftem Konfigurationscode herstellen",
+            "correctCategoryId": "tb03-cat-declaration"
+          },
+          {
+            "id": "tb03-item-compose",
+            "text": "Dienste, Netze und Volumes aus der versionierten Compose-Datei anlegen",
+            "correctCategoryId": "tb03-cat-declaration"
+          },
+          {
+            "id": "tb03-item-tmpfs",
+            "text": "Das leere temporäre Dateisystem beim Containerstart erneut bereitstellen",
+            "correctCategoryId": "tb03-cat-ephemeral"
+          },
+          {
+            "id": "tb03-item-cache",
+            "text": "Einen rein ableitbaren Prozesscache nach dem Neustart erneut füllen",
+            "correctCategoryId": "tb03-cat-ephemeral"
+          }
+        ],
+        "categorizationShuffleItems": true,
+        "confidenceEnabled": true,
+        "confidenceLabelLow": "Sehr unsicher",
+        "confidenceLabelHigh": "Sehr sicher"
+      },
+      {
+        "text": "### Warum genügt ein Load Balancer noch nicht?\n\nFür arsnova.eu sollen zwei App-Instanzen hinter einen Load Balancer gestellt werden. Formuliere zwei konkrete Zustands- oder Vertrauensgrenzen, die vor einer Behauptung horizontaler Skalierbarkeit getestet oder umgebaut werden müssen, und nenne je einen geeigneten Nachweis.",
+        "type": "FREETEXT",
+        "timer": null,
+        "difficulty": "MEDIUM",
+        "order": 7,
+        "answers": []
+      },
+      {
+        "text": "### Welche Restabweichung soll zuerst bewertet werden?\n\nNach dem Aufbau laufen alle Healthchecks. Offen sind ein nicht getesteter Restore, ein unnötiger öffentlicher Port, ein dauerhaftes Agenten-Credential und ein nicht gemessener PDF-Abbruchpfad. Welchen Befund soll das Team zuerst im Review vertiefen? Die Abstimmung priorisiert die Diskussion; es gibt keine Musterlösung.",
+        "type": "SURVEY",
+        "timer": null,
+        "difficulty": "MEDIUM",
+        "order": 8,
+        "answers": [
+          {
+            "text": "Den Restore in einer frischen Zielumgebung reproduzierbar ausführen",
+            "isCorrect": false
+          },
+          {
+            "text": "Den unnötigen öffentlichen Port schließen und negativ testen",
+            "isCorrect": false
+          },
+          {
+            "text": "Das dauerhafte Credential widerrufen und kurzlebig neu ausstellen",
+            "isCorrect": false
+          },
+          {
+            "text": "Den hängenden PDF-Lauf auslösen und Wiederanlauf verifizieren",
+            "isCorrect": false
+          }
+        ]
+      },
+      {
+        "text": "### Wie sicher kannst du einen Aufbau verifizieren?\n\nBewerte, wie sicher du aus Konfiguration, Laufzeitbeobachtung und Negativtests ein belegtes Ist-Diagramm mit Zustands-, Fehler- und Vertrauensgrenzen erstellen kannst.",
+        "type": "RATING",
+        "timer": null,
+        "difficulty": "MEDIUM",
+        "order": 9,
+        "answers": [],
+        "ratingMin": 1,
+        "ratingMax": 5,
+        "ratingLabelMin": "Noch nicht ohne Hilfe",
+        "ratingLabelMax": "Sicher mit Evidenz"
+      }
+    ]
+  }
+}

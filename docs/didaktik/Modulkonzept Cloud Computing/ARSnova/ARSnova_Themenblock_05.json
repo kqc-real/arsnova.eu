@@ -1,0 +1,328 @@
+{
+  "exportVersion": 1,
+  "exportedAt": "2026-09-13T00:00:00.000Z",
+  "quiz": {
+    "name": "Cloud Computing – Themenblock TB05: Google Cloud Platform (GCP), Amazon Web Services (AWS) und Microsoft Azure",
+    "description": "Zehn anspruchsvolle Live-Fragen zu Capability-Vergleich, Regionen und Zonen, Identity and Access Management (IAM), Netzwerk, Shared Responsibility, Egress, Datenresidenz sowie Lock-in und Exit. Das Quiz nutzt alle zehn ARSnova-Fragetypen genau einmal.",
+    "showLeaderboard": true,
+    "allowCustomNicknames": false,
+    "defaultTimer": 60,
+    "timerScaleByDifficulty": true,
+    "enableTimerAccommodation": true,
+    "enableSoundEffects": true,
+    "enableRewardEffects": true,
+    "enableMotivationMessages": true,
+    "enableEmojiReactions": true,
+    "anonymousMode": false,
+    "teamMode": true,
+    "teamCount": 4,
+    "teamAssignment": "AUTO",
+    "teamNames": ["Apfel :apple:", "Birne :pear:", "Banane :banana:", "Apfelsine :orange:"],
+    "backgroundMusic": null,
+    "nicknameTheme": "KINDERGARTEN",
+    "bonusTokenCount": 3,
+    "readingPhaseEnabled": true,
+    "questions": [
+      {
+        "text": "### Welche Vergleichsaussagen sind entscheidungsfähig?\n\nEin Team vergleicht GCP, AWS und Azure für denselben arsnova.eu-Zuschnitt. Wähle alle Vorgehensweisen, die einen belastbaren Capability-Vergleich unterstützen.",
+        "type": "MULTIPLE_CHOICE",
+        "timer": null,
+        "difficulty": "HARD",
+        "order": 0,
+        "answers": [
+          {
+            "text": "Dieselbe Systemgrenze und dieselben Lastprofile für alle drei Plattformen festlegen.",
+            "isCorrect": true
+          },
+          {
+            "text": "Die Zahl der Produktnamen je Plattform als Maß für die Architekturpassung verwenden.",
+            "isCorrect": false
+          },
+          {
+            "text": "Betriebsverantwortung, Datenflüsse und Exit-Artefakte je Fähigkeit gegenüberstellen.",
+            "isCorrect": true
+          },
+          {
+            "text": "Volatile Preise ohne Region, Datum, Einheit oder Steuerbasis direkt vergleichen.",
+            "isCorrect": false
+          }
+        ],
+        "confidenceEnabled": true,
+        "confidenceLabelLow": "Sehr unsicher",
+        "confidenceLabelHigh": "Sehr sicher"
+      },
+      {
+        "text": "### Wie wird ein zonaler Fehler berücksichtigt?\n\nEine für den Livebetrieb benötigte Komponente soll den Ausfall einer Availability Zone innerhalb der gewählten Region überstehen. Welche Entscheidung ist zuerst belastbar?",
+        "type": "SINGLE_CHOICE",
+        "timer": null,
+        "difficulty": "HARD",
+        "order": 1,
+        "answers": [
+          {
+            "text": "Eine zweite Region buchen, ohne Daten- und Failoverpfade des Dienstes zu prüfen.",
+            "isCorrect": false
+          },
+          {
+            "text": "Die Komponente und ihre Abhängigkeiten zonenübergreifend entwerfen und den Failover testen.",
+            "isCorrect": true
+          },
+          {
+            "text": "Den Provider wechseln, weil ein einzelner Zonenfehler nur dort ausgeschlossen werden kann.",
+            "isCorrect": false
+          },
+          {
+            "text": "Die Instanz vergrößern, weil mehr Rechenleistung den zonalen Fehler kompensiert.",
+            "isCorrect": false
+          }
+        ],
+        "confidenceEnabled": true,
+        "confidenceLabelLow": "Sehr unsicher",
+        "confidenceLabelHigh": "Sehr sicher"
+      },
+      {
+        "text": "### Welches IAM-Prinzip begrenzt den Schaden?\n\nEin Deployment-Agent erhält nur die Aktionen, Ressourcen und Gültigkeitsdauer, die für genau einen freigegebenen Rollout erforderlich sind. Nenne das zugrunde liegende Prinzip auf Deutsch oder Englisch.",
+        "type": "SHORT_TEXT",
+        "timer": null,
+        "difficulty": "HARD",
+        "order": 2,
+        "answers": [
+          {
+            "text": "Least Privilege",
+            "isCorrect": true
+          },
+          {
+            "text": "Principle of Least Privilege",
+            "isCorrect": true
+          },
+          {
+            "text": "Prinzip der geringsten Privilegien",
+            "isCorrect": true
+          },
+          {
+            "text": "Prinzip der minimalen Rechte",
+            "isCorrect": true
+          },
+          {
+            "text": "Minimalprinzip der Rechte",
+            "isCorrect": true
+          }
+        ],
+        "shortTextEvaluationKind": "text",
+        "shortTextMaxLength": 48,
+        "shortTextCaseSensitive": false,
+        "shortTextEvaluationMode": "exact",
+        "shortTextToleranceLevel": "none",
+        "shortTextAllowPartialCredit": false,
+        "shortTextTrimWhitespace": true,
+        "shortTextNormalizeWhitespace": true,
+        "confidenceEnabled": true,
+        "confidenceLabelLow": "Sehr unsicher",
+        "confidenceLabelHigh": "Sehr sicher"
+      },
+      {
+        "text": "### Wie viel ausgehender Transfer bleibt?\n\nEin Architekturmodell erwartet monatlich 2,40 TB ausgehenden Datentransfer. Caching und Kompression reduzieren dieses Volumen nach Messung um 35 %. Wie viele TB bleiben als Egress-relevantes Volumen? Gib den Wert mit zwei Nachkommastellen an.",
+        "type": "NUMERIC_ESTIMATE",
+        "timer": null,
+        "difficulty": "HARD",
+        "order": 3,
+        "answers": [],
+        "numericToleranceMode": "ABSOLUTE_INTERVAL",
+        "numericReferenceValue": 1.56,
+        "numericIntervalLeft": 1.555,
+        "numericIntervalRight": 1.565,
+        "numericInputType": "DECIMAL",
+        "numericDecimalPlaces": 2,
+        "numericMin": 0,
+        "numericMax": 2.4,
+        "numericTwoRounds": true,
+        "confidenceEnabled": true,
+        "confidenceLabelLow": "Sehr unsicher",
+        "confidenceLabelHigh": "Sehr sicher"
+      },
+      {
+        "text": "### Ordne Risiko und erforderlichen Nachweis zu\n\nOrdne jedem Entscheidungsrisiko den Nachweis zu, der es vor einer Providerwahl am direktesten prüfbar macht.",
+        "type": "MATCHING",
+        "timer": null,
+        "difficulty": "HARD",
+        "order": 4,
+        "answers": [],
+        "matchingPairs": [
+          {
+            "leftId": "tb05-match-left-1",
+            "left": "Datenresidenz",
+            "rightId": "tb05-match-right-1",
+            "right": "dienstspezifischer Datenfluss für Primärdaten, Logs, Backups und Support"
+          },
+          {
+            "leftId": "tb05-match-left-2",
+            "left": "Egress-Kosten",
+            "rightId": "tb05-match-right-2",
+            "right": "messbares Transfermodell nach Richtung, Region und Betriebszustand"
+          },
+          {
+            "leftId": "tb05-match-left-3",
+            "left": "IAM-Bindung",
+            "rightId": "tb05-match-right-3",
+            "right": "Export und Neuaufbau von Rollen, Policies und Service-Identitäten"
+          },
+          {
+            "leftId": "tb05-match-left-4",
+            "left": "Netzwerk-Bindung",
+            "rightId": "tb05-match-right-4",
+            "right": "portabler Topologieentwurf plus reproduzierbare Firewall-Regeln"
+          },
+          {
+            "leftId": "tb05-match-left-5",
+            "left": "Exit-Risiko",
+            "rightId": "tb05-match-right-5",
+            "right": "zeitlich geprüfter Daten-, Image-, IaC- und Restore-Pfad"
+          }
+        ],
+        "matchingShuffleRight": true,
+        "confidenceEnabled": true,
+        "confidenceLabelLow": "Sehr unsicher",
+        "confidenceLabelHigh": "Sehr sicher"
+      },
+      {
+        "text": "### Bringe den Providervergleich in eine belastbare Reihenfolge\n\nOrdne die Schritte so, dass Produktnamen und Listenpreise nicht vor den Anforderungen die Entscheidung bestimmen.",
+        "type": "ORDERING",
+        "timer": null,
+        "difficulty": "HARD",
+        "order": 5,
+        "answers": [],
+        "orderingItems": [
+          {
+            "id": "tb05-order-1",
+            "text": "Systemgrenze, Lastprofile und Ausschlusskriterien festlegen"
+          },
+          {
+            "id": "tb05-order-2",
+            "text": "Benötigte Fähigkeiten und Verantwortungen providerneutral beschreiben"
+          },
+          {
+            "id": "tb05-order-3",
+            "text": "Dienstoptionen von GCP, AWS und Azure auf dieselben Fähigkeiten abbilden"
+          },
+          {
+            "id": "tb05-order-4",
+            "text": "Datenflüsse, Resilienz, Total Cost of Ownership (TCO) und Exit mit aktuellen Primärquellen prüfen"
+          },
+          {
+            "id": "tb05-order-5",
+            "text": "Unsicherheiten durch kleine Architektur-, Failover- und Restore-Tests reduzieren"
+          },
+          {
+            "id": "tb05-order-6",
+            "text": "Entscheidung und stärkste verworfene Alternative in einem ADR begründen"
+          }
+        ],
+        "confidenceEnabled": true,
+        "confidenceLabelLow": "Sehr unsicher",
+        "confidenceLabelHigh": "Sehr sicher"
+      },
+      {
+        "text": "### Ordne Verantwortungen im IaaS-Szenario zu\n\nEine Linux-Anwendung läuft auf virtuellen Maschinen. Ordne jede Aufgabe der im Szenario primär zuständigen Seite oder der noch dienstspezifisch zu klärenden Grenze zu.",
+        "type": "CATEGORIZATION",
+        "timer": null,
+        "difficulty": "HARD",
+        "order": 6,
+        "answers": [],
+        "categories": [
+          {
+            "id": "tb05-cat-provider",
+            "name": "Primär beim Cloud-Provider"
+          },
+          {
+            "id": "tb05-cat-operator",
+            "name": "Primär beim Anwendungsteam"
+          },
+          {
+            "id": "tb05-cat-clarify",
+            "name": "Dienstspezifisch gemeinsam klären"
+          }
+        ],
+        "categorizationItems": [
+          {
+            "id": "tb05-item-1",
+            "text": "Physische Sicherheit des Rechenzentrums gewährleisten",
+            "correctCategoryId": "tb05-cat-provider"
+          },
+          {
+            "id": "tb05-item-2",
+            "text": "Hypervisor und physische Host-Hardware betreiben",
+            "correctCategoryId": "tb05-cat-provider"
+          },
+          {
+            "id": "tb05-item-3",
+            "text": "Gastbetriebssystem und Anwendungsabhängigkeiten patchen",
+            "correctCategoryId": "tb05-cat-operator"
+          },
+          {
+            "id": "tb05-item-4",
+            "text": "Anwendungsrollen und Datenzugriffe korrekt konfigurieren",
+            "correctCategoryId": "tb05-cat-operator"
+          },
+          {
+            "id": "tb05-item-5",
+            "text": "Zonenübergreifende Architektur tatsächlich aktivieren und testen",
+            "correctCategoryId": "tb05-cat-operator"
+          },
+          {
+            "id": "tb05-item-6",
+            "text": "Ort und Umfang von Diagnose- und Supportdaten vertraglich verifizieren",
+            "correctCategoryId": "tb05-cat-clarify"
+          }
+        ],
+        "categorizationShuffleItems": true,
+        "confidenceEnabled": true,
+        "confidenceLabelLow": "Sehr unsicher",
+        "confidenceLabelHigh": "Sehr sicher"
+      },
+      {
+        "text": "### Warum genügt die gewählte Region nicht?\n\nEin Entscheidungspapier behauptet: »Das Konto liegt in einer EU-Region, daher bleiben automatisch sämtliche Primärdaten, Logs, Backups und Supportdaten dort.« Formuliere zwei dienstspezifische Prüfungen, die vor dieser Aussage fehlen.",
+        "type": "FREETEXT",
+        "timer": null,
+        "difficulty": "MEDIUM",
+        "order": 7,
+        "answers": []
+      },
+      {
+        "text": "### Welches Ausschlusskriterium soll zuerst geprüft werden?\n\nDrei technisch passende Plattformentwürfe unterscheiden sich bei Datenflüssen, Teamkompetenz, Egress-Risiko und Exportierbarkeit. Welche Unsicherheit soll die Gruppe zuerst mit Evidenz reduzieren? Die Abstimmung priorisiert die Diskussion; es gibt keine Musterlösung.",
+        "type": "SURVEY",
+        "timer": null,
+        "difficulty": "MEDIUM",
+        "order": 8,
+        "answers": [
+          {
+            "text": "Den vollständigen Datenfluss einschließlich Logs, Backups und Support prüfen",
+            "isCorrect": false
+          },
+          {
+            "text": "Die betrieblich verfügbare Kompetenz für Diagnose und Wiederherstellung prüfen",
+            "isCorrect": false
+          },
+          {
+            "text": "Das Egress-Volumen in Normal-, Last- und Migrationsphasen messen",
+            "isCorrect": false
+          },
+          {
+            "text": "Den Export- und Neuaufbaupfad in einer zweiten Umgebung erproben",
+            "isCorrect": false
+          }
+        ]
+      },
+      {
+        "text": "### Wie sicher kannst du einen Providervergleich verteidigen?\n\nBewerte, wie sicher du eine Empfehlung für GCP, AWS oder Azure anhand gleicher Fähigkeiten, Verantwortungsgrenzen, Datenflüsse, TCO und Exit-Nachweise begründen kannst.",
+        "type": "RATING",
+        "timer": null,
+        "difficulty": "MEDIUM",
+        "order": 9,
+        "answers": [],
+        "ratingMin": 1,
+        "ratingMax": 5,
+        "ratingLabelMin": "Noch nicht evidenzbasiert begründbar",
+        "ratingLabelMax": "Sicher evidenzbasiert begründbar"
+      }
+    ]
+  }
+}

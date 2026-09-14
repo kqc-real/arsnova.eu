@@ -1,0 +1,585 @@
+{
+  "meta": {
+    "title": "Cloud Computing – MC-Test Themenblock TB03: Bereitstellung, Zustandsgrenzen und Härtung",
+    "target_audience": "Bachelorstudierende der Informatik im Modul Cloud Computing",
+    "question_count": 30,
+    "difficulty_profile": { "leicht": 0, "mittel": 12, "schwer": 18 },
+    "time_per_weight_minutes": { "1": 0.5, "2": 0.75, "3": 1.0 },
+    "additional_buffer_minutes": 5,
+    "test_duration_minutes": 32,
+    "language": "de",
+    "updated": "2026-09-14"
+  },
+  "questions": [
+    {
+      "question": "1. Welcher Bezeichner verbindet ein produktives Deployment am zuverlässigsten mit exakt demselben freigegebenen Containerartefakt?",
+      "options": [
+        "Ein beweglicher Image-Tag, der bei jedem Pull neu aufgelöst wird",
+        "Ein kryptografischer Image-Digest des geprüften Artefakts",
+        "Eine zufällige Containerkennung der zuerst gestarteten Instanz",
+        "Ein Anzeigename des Images im lokalen Verwaltungsportal"
+      ],
+      "answer": 1,
+      "explanation": "Ein Digest bezeichnet den konkreten Imageinhalt unveränderlich und lässt sich nach dem Start nachweisen. Tags und Anzeigenamen können verschoben werden; eine Containerkennung identifiziert nur eine Laufzeitinstanz.",
+      "weight": 2,
+      "topic": "Reproduzierbare Bereitstellung",
+      "concept": "Artefaktidentität durch Digest",
+      "cognitive_level": "Verständnis",
+      "mini_glossary": {
+        "Image-Digest": "Kryptografischer Inhaltsbezeichner eines Containerimages.",
+        "Artefakt": "Gebautes, versionierbares Ergebnis eines Softwareprozesses."
+      }
+    },
+    {
+      "question": "2. Welche Reihenfolge reduziert beim Start eines datenbankgestützten Dienstes das Risiko, dass Anwendungscode gegen ein unvorbereitetes Schema läuft?",
+      "options": [
+        "App starten, öffentlichen Verkehr zulassen, Datenbank anlegen, Migrationen später prüfen",
+        "Migrationen ohne Datenbankverbindung markieren, App starten, Healthchecks anschließend entfernen",
+        "Datenbank gesund starten, versionierte Migrationen anwenden, App starten und Endpunkte verifizieren",
+        "Reverse Proxy starten, das Domain Name System (DNS) umstellen, App-Image bauen und danach das gewünschte Schema schätzen"
+      ],
+      "answer": 2,
+      "explanation": "Die Datenbank muss erreichbar sein, bevor versionierte Migrationen angewendet werden; erst danach sollte Anwendungscode produktiven Verkehr erhalten. Ein früher App- oder DNS-Start erzeugt ein vermeidbares Schemafenster.",
+      "weight": 2,
+      "topic": "Reproduzierbare Bereitstellung",
+      "concept": "Health- und Migrationsreihenfolge",
+      "cognitive_level": "Verständnis",
+      "mini_glossary": {
+        "Migration": "Versionierte Änderung eines Datenbankschemas.",
+        "Healthcheck": "Automatisierte Prüfung, ob ein Dienst für seinen vorgesehenen Zweck erreichbar ist."
+      }
+    },
+    {
+      "question": "3. Derselbe Quellcommit wird auf Buildservern mit unterschiedlichen Prozessorarchitekturen gebaut. Ein natives Modul läuft nur in einem der Images. Welche Ursache ist am plausibelsten?",
+      "options": [
+        "Der Containerstart hat den unveränderten Quellcommit für die Zielarchitektur neu kompiliert.",
+        "Die Datenbankmigration hat die Prozessorarchitektur des gebauten Images nachträglich geändert.",
+        "Buildplattform und native Abhängigkeiten waren nicht auf dieselbe Zielarchitektur festgelegt.",
+        "Der Reverse Proxy hat beim Handshake von Transport Layer Security (TLS) die Image-Layer umgebaut."
+      ],
+      "answer": 2,
+      "explanation": "Native Abhängigkeiten können architekturspezifische Binärartefakte enthalten. Reproduzierbarkeit verlangt deshalb neben dem Quellstand auch eine festgelegte Zielplattform oder einen bewusst geprüften Multi-Architektur-Build.",
+      "weight": 2,
+      "topic": "Reproduzierbare Bereitstellung",
+      "concept": "Zielarchitektur als Buildinput",
+      "cognitive_level": "Verständnis",
+      "mini_glossary": {
+        "Native Abhängigkeit": "Für ein Betriebssystem und eine Prozessorarchitektur kompiliertes Programmmodul.",
+        "Zielplattform": "Festgelegte Kombination aus Betriebssystem und Prozessorarchitektur des Artefakts."
+      }
+    },
+    {
+      "question": "4. Welche Evidenz belegt am stärksten, dass ein Backup tatsächlich zur Wiederherstellung taugt?",
+      "options": [
+        "Ein Scheduler meldet täglich ohne Fehler, dass eine Backupdatei geschrieben wurde.",
+        "Die Backupdatei besitzt eine große Dateigröße und einen plausiblen Zeitstempel.",
+        "Ein Restore in frischer Umgebung besteht Integritäts- und Funktionstests.",
+        "Das Backupverzeichnis ist auf dem Produktionshost nur für Administratoren lesbar."
+      ],
+      "answer": 2,
+      "explanation": "Nur ein ausgeführter Restore prüft Lesbarkeit, Vollständigkeit, Schlüssel, Schema und Wiederanlauf gemeinsam. Erfolgreiches Schreiben, Dateigröße und Rechte sind wichtige Teilkontrollen, aber kein Wiederherstellungsnachweis.",
+      "weight": 2,
+      "topic": "Reproduzierbare Bereitstellung",
+      "concept": "Restore-Test als Backupnachweis",
+      "cognitive_level": "Verständnis",
+      "mini_glossary": {
+        "Restore": "Wiederherstellung eines Systems oder Datenbestands aus einer Sicherung.",
+        "Integritätstest": "Prüfung, ob wiederhergestellte Daten vollständig und widerspruchsfrei nutzbar sind."
+      }
+    },
+    {
+      "question": "5. Ein Provisioning-Lauf wird nach einem Netzfehler erneut gestartet. Welche Eigenschaft verhindert doppelte Benutzer, Regeln und Volumes?",
+      "options": [
+        "Jeder Lauf erzeugt zufällige Ressourcennamen und ignoriert bereits vorhandene Objekte.",
+        "Der Code erkennt den Sollzustand und führt dieselbe Eingabe idempotent zum gleichen Ergebnis.",
+        "Der Agent löscht vor jedem Lauf ungeprüft den gesamten Zielhost und alle Sicherungen.",
+        "Der zweite Lauf wird ausschließlich manuell und ohne denselben Code nachvollzogen."
+      ],
+      "answer": 1,
+      "explanation": "Idempotente Automatisierung prüft vorhandenen Zustand und erzeugt bei gleicher Eingabe keine zusätzlichen Wirkungen. Zufallsnamen oder pauschales Löschen umgehen die notwendige kontrollierte Wiederaufnahme.",
+      "weight": 2,
+      "topic": "Reproduzierbare Bereitstellung",
+      "concept": "Idempotenter Wiederanlauf",
+      "cognitive_level": "Anwendung",
+      "mini_glossary": {
+        "Idempotenz": "Wiederholung mit gleicher Eingabe erzeugt keinen zusätzlichen Effekt.",
+        "Sollzustand": "Deklarierter Zielzustand, den eine Automatisierung herstellt."
+      }
+    },
+    {
+      "question": "6. Welche Dienstgruppe bildet den obligatorischen Kern des aktuellen arsnova.eu-Produktions-Compose am genauesten ab?",
+      "options": [
+        "App, Kubernetes-Control-Plane, Object Storage und verwalteter Message Broker",
+        "Frontend-Auslieferungsnetz, externe Function, serverlose Datenbank und Provider-Identitätsdienst",
+        "App, PostgreSQL, Redis und isolierter Worker für Portable Document Format (PDF)",
+        "App, öffentlicher spaCy-Dienst, öffentlicher Encoder und externer Sprachmodell-Endpunkt"
+      ],
+      "answer": 2,
+      "explanation": "Der Produktions-Compose deklariert App, PostgreSQL, Redis und PDF-Worker als Kern. spaCy und Encoder sind optionale Profile; Kubernetes, Auslieferungsnetz und serverlose Datenbank gehören nicht zu dieser Baseline.",
+      "weight": 2,
+      "topic": "Single-Host-Architektur",
+      "concept": "Obligatorische Produktionsdienste",
+      "cognitive_level": "Anwendung",
+      "mini_glossary": {
+        "Produktions-Compose": "Deklaration der auf dem Zielhost gemeinsam betriebenen Containerdienste.",
+        "Optionales Profil": "Nur bei ausdrücklicher Aktivierung gestartete Compose-Dienstgruppe."
+      }
+    },
+    {
+      "question": "7. Warum bindet `docker-compose.prod.yml` die App-Ports an `127.0.0.1`?",
+      "options": [
+        "Nginx soll der einzige externe Einstieg sein und intern zu den Loopback-Ports weiterleiten.",
+        "PostgreSQL soll über dieselben Ports ohne Authentifizierung aus dem Internet erreichbar sein.",
+        "Jeder Browser soll die Loopback-Adresse seines eigenen Geräts als Produktionsserver verwenden.",
+        "Docker soll die Ports automatisch auf beliebige öffentliche Hostadressen replizieren."
+      ],
+      "answer": 0,
+      "explanation": "Die Loopback-Bindung begrenzt den direkten Zugriff auf lokale Hostprozesse; Nginx übernimmt den öffentlichen TLS- und Proxy-Einstieg. Sie veröffentlicht die Dienste gerade nicht auf allen Hostschnittstellen.",
+      "weight": 2,
+      "topic": "Single-Host-Architektur",
+      "concept": "Nginx als einziger öffentlicher Einstieg",
+      "cognitive_level": "Anwendung",
+      "mini_glossary": {
+        "Loopback-Bindung": "Portfreigabe ausschließlich auf der lokalen Hostschnittstelle.",
+        "Proxy-Einstieg": "Vorgelagerter Endpunkt für externe Verbindungen zu internen Diensten."
+      }
+    },
+    {
+      "question": "8. Welche Aussage beschreibt die optionalen Dienste für Natural Language Processing (NLP) im aktuellen arsnova.eu-Produktions-Compose korrekt?",
+      "options": [
+        "spaCy und Encoder sind verpflichtende Abhängigkeiten jedes App-Starts und besitzen öffentliche Netzwerkports.",
+        "spaCy und Encoder werden bei jedem Standarddeployment unabhängig von Feature-Flags automatisch gestartet.",
+        "spaCy und Encoder liegen hinter getrennten Compose-Profilen und gehören nicht zum Standardstart des Deployments.",
+        "spaCy und Encoder sind öffentliche Softwaredienste, die Browser ohne Backendprüfung direkt aufrufen."
+      ],
+      "answer": 2,
+      "explanation": "Die beiden Sidecars sind optionale, getrennt aktivierbare Compose-Profile; der normale Deploymentpfad startet sie nicht. Eigene Kill-Switches und lokale Socketpfade verhindern eine stillschweigende Pflichtabhängigkeit.",
+      "weight": 2,
+      "topic": "Single-Host-Architektur",
+      "concept": "Optionale Sidecars über Compose-Profile",
+      "cognitive_level": "Anwendung",
+      "mini_glossary": {
+        "Compose-Profil": "Nur bei ausdrücklicher Aktivierung einbezogene Gruppe von Diensten.",
+        "Sidecar": "Separater Hilfsdienst neben der Hauptanwendung mit eng begrenzter Aufgabe."
+      }
+    },
+    {
+      "question": "9. App, Datenbank und Cache laufen in getrennten Containern desselben Servers. Welche Ausfallannahme bleibt bestehen?",
+      "options": [
+        "Die Restart-Policy der Container stellt unabhängige Verfügbarkeit gegenüber einem Hostausfall her.",
+        "Getrennte Docker-Volumes bleiben nach einem Hostausfall über denselben lokalen Datenträger erreichbar.",
+        "Nginx bleibt als Hostdienst erreichbar und kann den Ausfall aller lokalen Container überbrücken.",
+        "Der Host bleibt eine gemeinsame Fehlergrenze für die darauf betriebenen Pflichtdienste."
+      ],
+      "answer": 3,
+      "explanation": "Container trennen Prozesse und Ressourcen, schaffen aber keine unabhängige Host-, Strom- oder Standortgrenze. Fällt der Einzelhost aus, sind die dort laufenden Pflichtdienste gemeinsam betroffen.",
+      "weight": 2,
+      "topic": "Single-Host-Architektur",
+      "concept": "Gemeinsame Host-Fehlergrenze",
+      "cognitive_level": "Anwendung",
+      "mini_glossary": {
+        "Single Host": "Topologie, in der mehrere Dienste auf demselben Rechner betrieben werden.",
+        "Fehlergrenze": "Bereich, den ein gemeinsamer Ausfall unmittelbar betrifft."
+      }
+    },
+    {
+      "question": "10. Nach einer vorwärtsgerichteten Datenbankmigration scheitert das neue App-Image. Welches Risiko entsteht beim bloßen Start des vorherigen Images?",
+      "options": [
+        "Das frühere Image kann mit dem bereits migrierten Schema inkompatibel sein; Rollback und Restore müssen vorab geprüft sein.",
+        "Das frühere Image setzt jedes Datenbankschema beim Start automatisch und verlustfrei auf den alten Stand zurück.",
+        "Die Redis-Persistenz rekonstruiert das relationale PostgreSQL-Schema unabhängig von den ausgeführten Migrationen.",
+        "Nginx wandelt das frühere Anwendungsschema beim Proxying transparent in die neue Datenbankversion um."
+      ],
+      "answer": 0,
+      "explanation": "Ein Image-Rollback macht eine bereits angewendete Migration nicht automatisch rückgängig. Das alte Programm kann neue Tabellen- oder Spaltenverträge verletzen; deshalb braucht der Ablauf Kompatibilitäts- und Restore-Nachweise.",
+      "weight": 2,
+      "topic": "Single-Host-Architektur",
+      "concept": "Image-Rollback nach Schemamigration",
+      "cognitive_level": "Anwendung",
+      "mini_glossary": {
+        "Schema-Kompatibilität": "Verträglichkeit einer Anwendungsversion mit einem konkreten Datenbankschema.",
+        "Rollback": "Kontrollierte Rückkehr zu einem vorherigen Software- oder Systemzustand."
+      }
+    },
+    {
+      "question": "11. Eine Live-Session benötigt relationale Constraints, versionierte Migrationen und transaktionale Abfragen. Wo liegt dieser persistente Domänenzustand in der aktuellen arsnova.eu-Architektur?",
+      "options": [
+        "In PostgreSQL als relationaler Persistenz, angebunden über Prisma",
+        "In Redis als primärer relationaler Datenbank mit Prisma-Migrationen",
+        "In der Browserdatenbank als gemeinsame transaktionale Quelle aller Live-Clients",
+        "In einem Docker-Volume ohne verwaltendes Datenbanksystem oder Schema"
+      ],
+      "answer": 0,
+      "explanation": "PostgreSQL ist die relationale Persistenz für Session-, Quizkopie-, Vote- und weitere Domänendaten; Prisma bildet den Datenzugriff ab. Browser- und Workerzustände erfüllen diese Rolle nicht.",
+      "weight": 2,
+      "topic": "Zustand und Persistenz",
+      "concept": "PostgreSQL als relationale Persistenz",
+      "cognitive_level": "Anwendung",
+      "mini_glossary": {
+        "Persistenz": "Dauerhafter Zustand über Prozess- und Neustartgrenzen hinweg.",
+        "Prisma": "Schema- und Zugriffswerkzeug für den typisierten PostgreSQL-Zugriff."
+      }
+    },
+    {
+      "question": "12. Welche Rolle haben Time to Live (TTL) und Append Only File (AOF) im Redis-Einsatz von arsnova.eu am treffendsten?",
+      "options": [
+        "Redis ersetzt das gesamte relationale Prisma-Schema als einzige dauerhafte Systemquelle.",
+        "Redis hält zeit- und lastnahe Hilfszustände; Produktion aktiviert zusätzlich AOF-Persistenz.",
+        "Redis rendert PDF-Berichte in Chromium und liefert sie über einen Unix-Socket aus.",
+        "Redis speichert die dauerhafte Quiz-Sammlung der Lehrenden ausschließlich im Browser."
+      ],
+      "answer": 1,
+      "explanation": "Redis unterstützt unter anderem Rate-Limits, TTL-Zustände und weitere Live-Hilfsdaten; im Produktions-Compose ist AOF aktiviert. Es ersetzt weder PostgreSQL noch browserseitige Yjs-Persistenz oder PDF-Rendering.",
+      "weight": 2,
+      "topic": "Zustand und Persistenz",
+      "concept": "Redis als Laufzeit- und TTL-Dienst",
+      "cognitive_level": "Anwendung",
+      "mini_glossary": {
+        "TTL": "Zeitspanne bis zum automatischen Ablauf eines Schlüssels.",
+        "AOF": "Append-only Protokoll von Redis-Schreiboperationen zur Wiederherstellung."
+      }
+    },
+    {
+      "question": "13. Eine Lehrperson bearbeitet ihre Quiz-Sammlung offline und startet später eine Live-Session. Welche Zustandsaufteilung beschreibt arsnova.eu korrekt?",
+      "options": [
+        "Die Sammlung liegt dauerhaft im PDF-Worker; die Session kopiert sie in den Nginx-Cache.",
+        "Die Sammlung liegt primär als Yjs-Dokument im Browser; für die Live-Session wird eine Serverkopie hochgeladen.",
+        "Die Sammlung liegt ausschließlich in Redis; der Browser hält nur einen öffentlichen Session-Code.",
+        "Die Sammlung liegt als DNS-Zone vor; PostgreSQL speichert lediglich die verwendete Netzwerkadresse."
+      ],
+      "answer": 1,
+      "explanation": "Die Quiz-Sammlung ist Local-First als Yjs-Dokument in der Browser-IndexedDB angelegt und kann über Relay synchronisiert werden. Beim Sessionstart gelangt eine begrenzte Kopie für den Live-Betrieb auf den Server.",
+      "weight": 3,
+      "topic": "Zustand und Persistenz",
+      "concept": "Local-First-Sammlung und Sessionkopie",
+      "cognitive_level": "Analyse",
+      "mini_glossary": {
+        "Local-First": "Primäre Datenhaltung und Arbeitsfähigkeit auf dem Endgerät.",
+        "Sessionkopie": "Für eine Live-Session hochgeladene serverseitige Kopie eines Quiz."
+      }
+    },
+    {
+      "question": "14. Live-Ereignisse werden innerhalb eines App-Prozesses über prozesslokale Signale verteilt. Was muss vor einem Zwei-Instanz-Betrieb geklärt werden?",
+      "options": [
+        "Ob beide Instanzen denselben Containeranzeigennamen im Verwaltungsportal verwenden",
+        "Wie Ereignisse instanzübergreifend verteilt oder Verbindungen zuständig geroutet werden",
+        "Ob jede Instanz dieselbe zufällige Prozesskennung für ihren Node-Prozess erhalten kann",
+        "Wie DNS die Arbeitsspeicherobjekte beider Prozesse automatisch zusammenführt"
+      ],
+      "answer": 1,
+      "explanation": "Prozesslokale Signale erreichen keine Verbindungen in einer anderen Instanz. Horizontaler Betrieb braucht daher einen geteilten Ereignispfad oder eine nachgewiesene Routingstrategie samt Reconnect- und Ausfallverhalten.",
+      "weight": 3,
+      "topic": "Zustand und Persistenz",
+      "concept": "Prozesslokale Ereignisse bei Scale-out",
+      "cognitive_level": "Analyse",
+      "mini_glossary": {
+        "Ereignispfad": "Transportweg, über den Zustandsänderungen an interessierte Empfänger gelangen.",
+        "Scale-out": "Kapazitätserhöhung durch zusätzliche Instanzen."
+      }
+    },
+    {
+      "question": "15. Redis ist vorübergehend nicht erreichbar, PostgreSQL läuft weiter. Welche Betriebsbewertung ist am belastbarsten?",
+      "options": [
+        "Die Anwendung bleibt unverändert, weil Redis nur statische Darstellungsdateien für das Frontend hält.",
+        "PostgreSQL bleibt erreichbar, daher können Redis-abhängige Schutzpfade ohne eigene Regeln dorthin wechseln.",
+        "Clients können Rate-Limits und TTL-Zustände während des Ausfalls aus ihrem lokalen Cache fortführen.",
+        "Redis-abhängige Limits und Hilfszustände können ausfallen oder bewusst schließen; Pfade müssen getrennt getestet werden."
+      ],
+      "answer": 3,
+      "explanation": "PostgreSQL und Redis besitzen unterschiedliche Zustandsrollen. Ein Redis-Ausfall löscht nicht automatisch relationale Daten, kann aber Schutz- und Livepfade beeinflussen; das konkrete Fail-open- oder Fail-closed-Verhalten ist pro Pfad nachzuweisen.",
+      "weight": 3,
+      "topic": "Zustand und Persistenz",
+      "concept": "Dienstspezifische Ausfallsemantik",
+      "cognitive_level": "Analyse",
+      "mini_glossary": {
+        "Fail-closed": "Fehlerverhalten, das eine Aktion bei fehlender Schutzprüfung ablehnt.",
+        "Hilfszustand": "Nicht primärer Domänenzustand für zeitnahe Steuerung oder Schutzfunktionen."
+      }
+    },
+    {
+      "question": "16. arsnova.eu veröffentlicht getrennte Ports für tRPC-WebSockets und Yjs-WebSockets hinter dem lokalen Proxy. Welche Folgerung ist richtig?",
+      "options": [
+        "Beide Protokolle teilen zwangsläufig denselben Autorisierungs- und Raumvertrag.",
+        "Yjs-Verbindungen werden automatisch zu tRPC-Aufrufen, sobald dieselbe Domain verwendet wird.",
+        "Ein erfolgreicher Healthcheck über das Hypertext Transfer Protocol (HTTP) verifiziert beide Upgradepfade und Reconnect-Semantiken vollständig.",
+        "Proxy-, Origin-, Limit- und Berechtigungsregeln müssen für beide Upgradepfade passend geprüft werden."
+      ],
+      "answer": 3,
+      "explanation": "Gemeinsame Auslieferungsdomain bedeutet keine identische Protokoll- oder Berechtigungssemantik. tRPC- und Yjs-Upgrades besitzen getrennte Ziele und Verträge; normale HTTP-Erreichbarkeit deckt diese Pfade nicht ab.",
+      "weight": 3,
+      "topic": "Echtzeit und Skalierung",
+      "concept": "Getrennte WebSocket-Verträge",
+      "cognitive_level": "Analyse",
+      "mini_glossary": {
+        "Upgradepfad": "HTTP-Endpunkt, an dem zu einer WebSocket-Verbindung gewechselt wird.",
+        "Origin-Prüfung": "Kontrolle, welche Webherkunft einen Verbindungsaufbau initiieren darf."
+      }
+    },
+    {
+      "question": "17. Zwei App-Instanzen werden hinter einen Load Balancer gestellt. Welche Aussage darf daraus noch nicht abgeleitet werden?",
+      "options": [
+        "Der Load Balancer kann neue Verbindungen grundsätzlich auf mehrere Ziele verteilen.",
+        "Ein Instanz-Healthcheck kann fehlerhafte Ziele aus der Rotation entfernen.",
+        "Die Topologie benötigt Tests für Reconnect und Ausfall einer einzelnen Instanz.",
+        "Prozesslokale Signale, WebSocket-Zuordnung und globale Limits sind automatisch clusterweit konsistent."
+      ],
+      "answer": 3,
+      "explanation": "Ein Load Balancer löst weder geteilten Zustand noch globale Semaphore und Ereignisverteilung. Diese Eigenschaften erfordern eigene Architekturmechanismen und Zwei-Instanz-Tests mit Reconnect, Failover und Fan-out.",
+      "weight": 3,
+      "topic": "Echtzeit und Skalierung",
+      "concept": "Grenzen eines Load Balancers",
+      "cognitive_level": "Analyse",
+      "mini_glossary": {
+        "Fan-out": "Verteilung eines Ereignisses an mehrere verbundene Empfänger.",
+        "Globales Limit": "Über alle Instanzen gemeinsam einzuhaltende Kapazitäts- oder Schutzgrenze."
+      }
+    },
+    {
+      "question": "18. Eine WebSocket-Verbindung war an Instanz A gebunden; nach deren Ausfall verbindet sich der Client mit Instanz B. Instanz B kennt den nur lokal gehaltenen Sitzungszustand nicht. Welche Maßnahme adressiert das Grundproblem?",
+      "options": [
+        "Zustand externalisieren oder Reconnect mit rekonstruierbarer, autorisierter Zustandswiederherstellung entwerfen",
+        "Die DNS-TTL erhöhen, damit der Client weiterhin ausschließlich die ausgefallene Instanz auswählt",
+        "Die TLS-Prüfung deaktivieren, damit Instanz B den Arbeitsspeicher von Instanz A lesen kann",
+        "Die Containerkennung von Instanz A an Instanz B vergeben, damit beide denselben Arbeitsspeicherinhalt erhalten"
+      ],
+      "answer": 0,
+      "explanation": "Ein Reconnect kann nur funktionieren, wenn notwendiger Zustand außerhalb der verlorenen Instanz liegt oder sicher rekonstruiert wird. Adressierung, Zertifikate und Container-IDs übertragen keinen Prozessspeicher.",
+      "weight": 3,
+      "topic": "Echtzeit und Skalierung",
+      "concept": "Zustandswiederherstellung nach Reconnect",
+      "cognitive_level": "Analyse",
+      "mini_glossary": {
+        "Externalisierung": "Verlagerung notwendigen Zustands aus einer Einzelinstanz in einen geteilten Dienst.",
+        "Reconnect": "Erneuter Verbindungsaufbau nach Trennung oder Zielwechsel."
+      }
+    },
+    {
+      "question": "19. Die PDF-Erzeugung ist aktuell pro Backendprozess auf einen aktiven Job begrenzt. Was ist vor horizontaler App-Skalierung notwendig?",
+      "options": [
+        "Jeder App-Prozess begrenzt sich selbst; der Load Balancer hält dadurch auch die Gesamtlast konstant.",
+        "Der Load Balancer serialisiert PDF-Anfragen über alle Prozesse, sobald sie denselben Pfad verwenden.",
+        "Die Ressourcenlimits des Workers ersetzen eine instanzübergreifende Annahme- und Warteschlangenregel.",
+        "Ein instanzübergreifendes Kapazitäts- oder Queue-Konzept muss Gesamtkapazität und Zeitverhalten sichern."
+      ],
+      "answer": 3,
+      "explanation": "Ein Semaphore im einzelnen Prozess vervielfacht sich mit jeder App-Instanz. Ohne geteilte Begrenzung, Queue oder Admission Control kann die Gesamtlast den isolierten Worker- oder Hostschutz überschreiten.",
+      "weight": 3,
+      "topic": "Echtzeit und Skalierung",
+      "concept": "Prozesslokales PDF-Limit bei Scale-out",
+      "cognitive_level": "Analyse",
+      "mini_glossary": {
+        "Semaphore": "Mechanismus zur Begrenzung gleichzeitig aktiver Arbeiten.",
+        "Admission Control": "Entscheidung, ob neue Arbeit angenommen, verzögert oder abgewiesen wird."
+      }
+    },
+    {
+      "question": "20. Warum müssen »100 Sessions mit je 50 Personen« und »eine Session mit 5.000 Personen« getrennt getestet werden?",
+      "options": [
+        "Weil beide Workloads bei gleicher Gesamtzahl definitionsgemäß identische Fan-out- und Hotspotkosten besitzen",
+        "Weil viele Sessions grundsätzlich keine Datenbank- oder WebSocket-Verbindungen verwenden",
+        "Weil ein einzelner Fan-out-Hotspot andere Routing-, Speicher- und Backpressuregrenzen als verteilte Last treffen kann",
+        "Weil eine große Session automatisch auf 100 physische Hosts verteilt wird, ohne dass Architektur nötig ist"
+      ],
+      "answer": 2,
+      "explanation": "Gleiche Clientsumme bedeutet nicht gleiche Lastform. Eine einzelne sehr große Session konzentriert Fan-out, Raumzustand und Hotpathzugriffe, während viele kleinere Sessions andere Schlüssel- und Verteilungsmuster erzeugen.",
+      "weight": 3,
+      "topic": "Echtzeit und Skalierung",
+      "concept": "Hotspotprofil gegenüber verteilter Last",
+      "cognitive_level": "Analyse",
+      "mini_glossary": {
+        "Hotspot": "Stark konzentrierte Last auf einer Ressource, Session oder Partition.",
+        "Backpressure": "Mechanismus zur Begrenzung neuer Arbeit bei ausgelasteten nachgelagerten Komponenten."
+      }
+    },
+    {
+      "question": "21. Welche Eigenschaft macht den arsnova.eu-PDF-Worker zu einer engeren Vertrauensgrenze als Rendering direkt im App-Prozess?",
+      "options": [
+        "Der Worker erhält sämtliche App-Secrets und öffentlichen Ports für eine schnellere Verarbeitung.",
+        "Der Worker teilt den Node-Prozess und alle Speicherobjekte unmittelbar mit der App.",
+        "Der Worker darf sein Root-Dateisystem und seine Systempakete während jedes Reports verändern.",
+        "Der Worker läuft netzlos, ohne App-Secrets und nimmt vorbereiteten Inhalt über einen lokalen Socket an."
+      ],
+      "answer": 3,
+      "explanation": "Netzlosigkeit, fehlende App-Secrets und ein eng definierter Unix-Socket reduzieren erreichbare Fähigkeiten und Daten. Separate Ressourcen- und Prozessgrenzen begrenzen zudem die Auswirkungen eines Chromium-Fehlers.",
+      "weight": 3,
+      "topic": "Vertrauensgrenzen",
+      "concept": "Isolierter PDF-Worker",
+      "cognitive_level": "Analyse",
+      "mini_glossary": {
+        "Unix-Socket": "Lokaler Interprozess-Kommunikationsendpunkt im Dateisystem.",
+        "Vertrauensgrenze": "Übergang mit veränderten Rechten, Daten oder Schutzannahmen."
+      }
+    },
+    {
+      "question": "22. Der App-Container läuft als unprivilegierter Nutzer, ohne Linux-Capabilities und mit read-only Root-Dateisystem. Welche Wirkung ist am treffendsten?",
+      "options": [
+        "Eine Kompromittierung erhält weniger Betriebssystemrechte und weniger dauerhafte Schreibmöglichkeiten.",
+        "Jede Anwendungslücke wird unmöglich, weil unprivilegierte Prozesse keine Eingaben verarbeiten können.",
+        "Die Datenbank benötigt dadurch keine Authentifizierung, weil Containerrechte alle Zugriffe ersetzen.",
+        "Der Host wird hochverfügbar, weil read-only Dateisysteme Hardwareausfälle verhindern."
+      ],
+      "answer": 0,
+      "explanation": "Die Kontrollen reduzieren Privilegien und persistente Änderungsmöglichkeiten nach einer Kompromittierung, beseitigen aber keine Anwendungslücken oder Autorisierungsanforderungen. Sie sind Schadensbegrenzung, keine Vollgarantie.",
+      "weight": 3,
+      "topic": "Vertrauensgrenzen",
+      "concept": "Least-Privilege-Containerbaseline",
+      "cognitive_level": "Analyse",
+      "mini_glossary": {
+        "Read-only Rootfs": "Nicht beschreibbares Stammdateisystem eines Containers.",
+        "Schadensbegrenzung": "Kontrolle zur Reduktion möglicher Auswirkungen eines erfolgreichen Angriffs."
+      }
+    },
+    {
+      "question": "23. Während eine Quizfrage aktiv ist, darf ein Data Transfer Object (DTO) für Teilnehmende keine Lösungsmarkierung enthalten. Welche Kontrolle setzt diese Vertrauensgrenze wirksam um?",
+      "options": [
+        "Das Frontend blendet `isCorrect` über eine Darstellungsregel aus, lässt das Feld aber im Netzwerkpayload.",
+        "Der Browser löscht `isCorrect` erst nach dem Empfang aus seinem lokalen Zustand.",
+        "Das Backend erzeugt phasengerechte DTOs und entfernt Lösungsdaten vor der Übertragung.",
+        "Nginx ersetzt den Feldwert zufällig, ohne den Sessionstatus oder das Schema zu kennen."
+      ],
+      "answer": 2,
+      "explanation": "Nur serverseitiges Data-Stripping verhindert, dass Teilnehmer die Lösung aus Netzwerkdaten oder Entwicklertools lesen. Eine reine Anzeigeentscheidung im Client schützt keine bereits ausgelieferten Informationen.",
+      "weight": 3,
+      "topic": "Vertrauensgrenzen",
+      "concept": "Serverseitiges Data-Stripping",
+      "cognitive_level": "Analyse",
+      "mini_glossary": {
+        "DTO": "Für einen konkreten Empfänger begrenzte Datenübertragungsstruktur.",
+        "Data-Stripping": "Entfernung nicht freizugebender Felder vor der Auslieferung."
+      }
+    },
+    {
+      "question": "24. Ein Uniform Resource Locator (URL) enthält den Session-Code und endet auf `/host`. Warum darf das Backend daraus keine Hostberechtigung ableiten?",
+      "options": [
+        "Weil ein clientseitiger Routenschutz den Besitz bereits abschließend prüft und das Backend keinen Token benötigt",
+        "Weil die TLS-Verbindung Browser und Hostrolle gemeinsam authentifiziert, sobald der Pfad auf `/host` endet",
+        "Weil der zufällige Session-Code hinreichend geheim ist und daher selbst als Host-Capability verwendet werden kann",
+        "Weil Pfad und Code keine Besitzberechtigung beweisen; eine validierte Host-Capability ist erforderlich"
+      ],
+      "answer": 3,
+      "explanation": "Routen und Session-Codes sind auffindbare beziehungsweise teilbare Bezeichner, keine Hostnachweise. Host-only-Operationen müssen ein gültiges Token über den zentralen Autorisierungspfad prüfen.",
+      "weight": 3,
+      "topic": "Vertrauensgrenzen",
+      "concept": "Capability statt Routenvertrauen",
+      "cognitive_level": "Analyse",
+      "mini_glossary": {
+        "Capability": "Nicht erratbarer Nachweis, der eine eng bestimmte Berechtigung vermittelt.",
+        "Autorisierung": "Prüfung, ob eine Identität oder Capability eine konkrete Aktion ausführen darf."
+      }
+    },
+    {
+      "question": "25. Nginx terminiert TLS und leitet an lokal gebundene App-Ports weiter. Welche Grenze muss der Betrieb ausdrücklich schützen?",
+      "options": [
+        "Die Browserdarstellung, sofern der Proxy keine internen Fehlermeldungen an Clients weitergibt",
+        "Die Loopback-Bindung, die lokale Prozesse unabhängig von deren Rechten als vertrauenswürdig behandelt",
+        "Das Containerimage, dessen Digest zugleich die unveränderte Proxykonfiguration nachweist",
+        "Proxykonfiguration, Hostzugriff und interne Ports, weil Nginx Teil des vertrauenswürdigen Eintrittspfads ist"
+      ],
+      "answer": 3,
+      "explanation": "Der Reverse Proxy ist Teil der öffentlichen Vertrauensgrenze: Er terminiert TLS und entscheidet über interne Ziele und Header. Loopback reduziert Exposition, ersetzt aber keine Härtung von Nginx und Host.",
+      "weight": 3,
+      "topic": "Vertrauensgrenzen",
+      "concept": "Reverse Proxy als Eintrittsgrenze",
+      "cognitive_level": "Analyse",
+      "mini_glossary": {
+        "Eintrittspfad": "Vorgesehener Weg externer Verbindungen in ein System.",
+        "TLS-Terminierung": "Annahme und Entschlüsselung einer TLS-Verbindung an einem Proxy."
+      }
+    },
+    {
+      "question": "26. Ein frisch provisionierter Zielhost hat Secure Shell (SSH), Datenbank, Redis und App-Port öffentlich freigegeben. Welche erste Härtungsmaßnahme reduziert die Angriffsfläche am direktesten?",
+      "options": [
+        "Nur notwendige öffentliche Ports erlauben und interne Dienste auf private oder lokale Pfade begrenzen",
+        "Alle Dienste öffentlich lassen und ausschließlich ihre Anzeigenamen im Compose ändern",
+        "Die Logstufe senken und Healthchecks entfernen, damit Angreifer weniger Fehlermeldungen sehen",
+        "Ein zweites Administratorkonto ohne Ablaufzeit anlegen, um Aussperrung jederzeit zu vermeiden"
+      ],
+      "answer": 0,
+      "explanation": "Nicht benötigte öffentliche Netzpfade sollten zuerst geschlossen und interne Dienste segmentiert werden. Umbenennung und weniger Beobachtbarkeit reduzieren keine Erreichbarkeit; dauerhafte Zusatzrechte erhöhen sie sogar.",
+      "weight": 3,
+      "topic": "Härtung und Betrieb",
+      "concept": "Minimale Portfreigabe",
+      "cognitive_level": "Analyse",
+      "mini_glossary": {
+        "Angriffsfläche": "Menge der erreichbaren Schnittstellen und Fähigkeiten eines Systems.",
+        "Netzsegmentierung": "Begrenzung von Kommunikationspfaden zwischen Systembereichen."
+      }
+    },
+    {
+      "question": "27. Wo sollten produktive arsnova.eu-Secrets im vorgesehenen Compose-Pfad liegen?",
+      "options": [
+        "Im Containerimage, damit jeder Pull exakt dieselben geheimen Werte enthält",
+        "In einer nicht eingecheckten Produktions-Umgebungsdatei mit kontrollierten Hostrechten",
+        "Im öffentlichen Frontendbundle, damit Browser sie für Schnittstellenaufrufe wiederverwenden",
+        "In den Fragen dieses Moduls, damit der Wiederaufbau ohne Betreiberzugriff gelingt"
+      ],
+      "answer": 1,
+      "explanation": "Der Produktionspfad lädt Secrets aus einer lokalen, nicht versionierten `.env.production` in die benötigten Container. Image, Frontendbundle und Dokumentation wären verteilte Artefakte und daher ungeeignete Secret-Speicher.",
+      "weight": 3,
+      "topic": "Härtung und Betrieb",
+      "concept": "Secret-Trennung vom Image",
+      "cognitive_level": "Analyse",
+      "mini_glossary": {
+        "Secret": "Vertraulicher Wert wie Token, Schlüssel oder Passwort.",
+        "Umgebungsdatei": "Lokale Datei zur kontrollierten Übergabe von Laufzeitkonfiguration."
+      }
+    },
+    {
+      "question": "28. Ein Rate-Limit-Log enthält vollständige Internet-Protocol-Adressen (IP-Adressen) der Clients, Session-Code und Token. Welche Überarbeitung passt zur dokumentierten arsnova.eu-Logstrategie?",
+      "options": [
+        "Auf Kategorie und notwendigen Kontext minimieren, sensible Bezeichner entfernen und Ereignisse aggregieren",
+        "Zusätzlich User-Agent, Referer und vollständige Requestbodys dauerhaft für jede Ablehnung speichern",
+        "Alle Ablehnungen ungefiltert an einen öffentlichen Logdienst senden und nie rotieren",
+        "Logging vollständig abschalten, einschließlich aggregierter Betriebs- und Recovery-Signale"
+      ],
+      "answer": 0,
+      "explanation": "Die dokumentierte Strategie minimiert strukturierte Ereignisse und aggregiert Betriebsmetriken, statt IPs, Codes oder Secrets zu protokollieren. Vollständige Abschaltung würde zugleich notwendige Diagnosefähigkeit verlieren.",
+      "weight": 3,
+      "topic": "Härtung und Betrieb",
+      "concept": "Datensparsame Betriebsprotokollierung",
+      "cognitive_level": "Analyse",
+      "mini_glossary": {
+        "Logminimierung": "Beschränkung protokollierter Daten auf den erforderlichen Diagnosezweck.",
+        "Aggregation": "Zusammenfassung vieler Ereignisse zu begrenzten Zähl- oder Statuswerten."
+      }
+    },
+    {
+      "question": "29. Ein Chromium-Renderlauf im PDF-Worker überschreitet die interne Deadline. Welches Verhalten unterstützt eine kontrollierte Wiederherstellung?",
+      "options": [
+        "Der Worker bleibt im Zustand »busy«, meldet sich weiter als bereit und wartet auf ein spätes Renderergebnis.",
+        "Der Worker markiert den Fehler fatal, beendet sich und wird durch die Restart-Policy neu aufgebaut.",
+        "Der Worker hebt Prozessor-, Arbeitsspeicher- und Prozesszahlgrenzen automatisch auf und setzt denselben Prozess fort.",
+        "Der Worker schreibt den hängenden Browserzustand dauerhaft in das read-only Root-Dateisystem."
+      ],
+      "answer": 1,
+      "explanation": "Ein hängender Chromiumprozess lässt sich innerhalb derselben Laufzeit nicht zuverlässig gesund erklären. Die Deadline führt daher zu einem fatalen Workerzustand; Prozessende und Restart-Policy schaffen eine frische Grenze.",
+      "weight": 3,
+      "topic": "Härtung und Betrieb",
+      "concept": "Fail-closed-Wiederanlauf des PDF-Workers",
+      "cognitive_level": "Analyse",
+      "mini_glossary": {
+        "Deadline": "Feste zeitliche Obergrenze für den Abschluss einer Operation.",
+        "Restart-Policy": "Regel zum automatischen Neustart eines beendeten Dienstes."
+      }
+    },
+    {
+      "question": "30. Alle Container-Healthchecks sind grün, aber ein Restore wurde nie ausgeführt und ein unnötiger Port bleibt offen. Welche Freigabeentscheidung ist angemessen?",
+      "options": [
+        "Vollständige Freigabe, weil grüne Healthchecks Backup und Firewall implizit mitprüfen",
+        "Vollständige Freigabe, weil nur Anwendungscode und keine Betriebsgrenzen bewertet werden müssen",
+        "Freigabe zurückhalten oder begrenzen, Restore und Negativtest ausführen und Restabweichungen dokumentieren",
+        "Alle Healthchecks entfernen, damit die beiden offenen Befunde nicht mehr im Betrieb sichtbar sind"
+      ],
+      "answer": 2,
+      "explanation": "Healthchecks prüfen Erreichbarkeit einzelner Dienste, nicht automatisch Wiederherstellbarkeit oder minimale Exposition. Offene risikorelevante Nachweise müssen vor einer belastbaren Betriebsfreigabe geschlossen oder bewusst begrenzt werden.",
+      "weight": 3,
+      "topic": "Härtung und Betrieb",
+      "concept": "Freigabe nur mit vollständiger Evidenz",
+      "cognitive_level": "Analyse",
+      "mini_glossary": {
+        "Restabweichung": "Bekannte Differenz zwischen Istzustand und gewünschter Kontrolle.",
+        "Betriebsfreigabe": "Verantwortete Entscheidung, ein System unter definierten Bedingungen einzusetzen."
+      }
+    }
+  ]
+}

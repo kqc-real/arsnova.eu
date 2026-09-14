@@ -1,8 +1,10 @@
 # Referatsthemen Cloud Computing am Fallbeispiel arsnova.eu
 
+**Stand:** 14.09.2026
+
 ## 1. Zweck und Geltung
 
-Dieser Katalog enthält zehn abgegrenzte Referatsthemen für das Modul Cloud Computing. arsnova.eu dient dabei als durchgängiges Fallbeispiel: Die Studierenden untersuchen eine reale, versionierte Softwarearchitektur und verbinden Repository-Nachweise mit Cloud-Modellen, technischer Evidenz, Betriebsfolgen, Kosten und einer eigenen Entscheidung.
+Dieser Katalog enthält zehn abgegrenzte Referatsthemen für das ausschließlich an Bachelorstudierende der Informatik gerichtete Modul Cloud Computing. arsnova.eu dient dabei als durchgängiges Fallbeispiel: Die Studierenden untersuchen eine reale, versionierte Softwarearchitektur und verbinden Repository-Nachweise mit Cloud-Modellen, Schnittstellen, Datenflüssen, Zustandsgrenzen, Security, Performance, Zuverlässigkeit und einer eigenen technischen Entscheidung.
 
 Der Katalog konkretisiert die [Lernziel- und Alignment-Matrix](./Lernziel_Alignment_Matrix.md). Form, Termin, Einzel- oder Gruppenprüfung, Hilfsmittel und verbindliche Themenzuordnung bestimmt ausschließlich die veröffentlichte Prüfungsaufgabe beziehungsweise myCampus. Die zehn Themen ersetzen keine institutionellen Prüfungsregeln.
 
@@ -24,8 +26,8 @@ Der Katalog konkretisiert die [Lernziel- und Alignment-Matrix](./Lernziel_Alignm
 - **Service Level Objective (SLO):** Zielwert eines SLI über ein festgelegtes Messfenster.
 - **Recovery Point Objective (RPO):** tolerierter Datenverlustzeitraum.
 - **Recovery Time Objective (RTO):** angestrebte Wiederherstellungszeit.
-- **Financial Operations (FinOps):** Verbindung technischer Nutzung mit Kostenverantwortung.
-- **Total Cost of Ownership (TCO):** Gesamtkosten über Beschaffung, Betrieb, Änderung und Exit.
+- **Financial Operations (FinOps):** messbasierte Steuerung technischer Cloud-Ressourcen und der daraus entstehenden Betriebskosten.
+- **Total Cost of Ownership (TCO):** aus einer einheitlichen technischen Systemgrenze abgeleitete Gesamtkosten von Bereitstellung, Betrieb, Änderung und Exit.
 - **Architecture Decision Record (ADR):** nachvollziehbare Dokumentation einer Architekturentscheidung.
 - **Künstliche Intelligenz (Artificial Intelligence, AI):** Oberbegriff für Verfahren, die Aufgaben mit lernenden oder wissensbasierten Methoden bearbeiten.
 - **maschinelles Lernen (Machine Learning, ML):** Teilgebiet der AI, in dem Modelle aus Daten Strukturen oder Entscheidungsregeln ableiten.
@@ -76,36 +78,38 @@ Jedes Thema wird auf eine überprüfbare These zugespitzt. Eine reine Beschreibu
 3. **technische Evidenz:** mindestens ein eigener reproduzierbarer Test, Messlauf, Restore, Negativtest oder IaC-Nachweis;
 4. **Evidenzstufe:** klare Trennung von implementiert, lokal verifiziert, produktiv beobachtet und Zielbild;
 5. **Gegenalternative:** eine ernsthaft untersuchte Alternative auf derselben Systemgrenze;
-6. **Entscheidung:** begründete Auswahl mit Nutzen, Risiken, Verantwortung, Kosten- oder Betriebsfolge und Restrisiko;
+6. **Entscheidung:** begründete technische Auswahl mit Funktions-, Security-, Performance-, Zuverlässigkeits-, Ressourcen- und Betriebsfolgen sowie Restrisiko;
 7. **Gültigkeitsgrenze:** Aussage dazu, welche Schlussfolgerung die Evidenz nicht trägt;
-8. **Quellen:** Repository-Commit sowie datierte Primärquellen für volatile Provider-, Preis- und Produktangaben.
+8. **Quellen:** Repository-Commit sowie datierte Primärquellen für volatile API-, Regions-, Limit-, Ressourcen- und Abrechnungseinheiten.
 
 Repository- und Laborarbeit verwendet ausschließlich freigegebene Repository-Nachweise und synthetische Lehrdaten in isolierten Nichtproduktionsumgebungen. Produktionszugänge, Echtdaten, Secrets und nicht genehmigte Lasttests sind ausgeschlossen. Ergebnisse von ARSnova-Livefragen und MC-Tests werden nicht als individuelle Prüfungsdaten verwendet.
 
+Alle zehn Themen sind ausdrücklich als Informatikthemen zu bearbeiten. Im Mittelpunkt stehen Software- und Cloud-Architektur, Schnittstellen, Daten- und Zustandsmodelle, Deployment, Security, Performance, Zuverlässigkeit und reproduzierbare Experimente. Kosten und Energie dürfen nur als aus technischen Messwerten abgeleitete nichtfunktionale Randbedingungen eingehen. Beschaffung, Finanzierung, Marktanalyse und organisatorische Business Cases sind nicht Gegenstand der Referate.
+
 ## 5. Abdeckung der zehn Themen
 
-| Nr. | Referatsthema                                           | Primäre Qualifikationsziele | Modulziele    | Lernindikatoren           |
-| --: | ------------------------------------------------------- | --------------------------- | ------------- | ------------------------- |
-|   1 | Cloud oder nur Hosting?                                 | QZ1                         | MZ1           | LI01–LI03                 |
-|   2 | Reproduzierbare Multi-Tier-Bereitstellung               | QZ1, QZ2                    | MZ1, MZ2      | LI02, LI04–LI06           |
-|   3 | Serverless-Eignung von ARSnova-Arbeitslasten            | QZ3                         | MZ3           | LI07–LI08                 |
-|   4 | Privater LLM-Inferenz-Tier außerhalb des Live-Hotpaths  | QZ2, QZ5                    | MZ2, MZ5, MZ7 | LI06, LI12, LI14, LI17–18 |
-|   5 | Provider- und Betriebsmodell für Daten und Inferenz     | QZ4, QZ5                    | MZ4, MZ5, MZ9 | LI09–LI14, LI22–LI23      |
-|   6 | Security, Privacy und Shared Responsibility             | QZ1, QZ2, QZ5               | MZ1, MZ5, MZ8 | LI03, LI13, LI19          |
-|   7 | Zustand, Storage, Backup und Recovery                   | QZ2                         | MZ6           | LI15–LI16                 |
-|   8 | Skalierung, Observability und kontrollierte Degradation | QZ2                         | MZ7, MZ8      | LI17–LI21                 |
-|   9 | FinOps und Nachhaltigkeit des privaten Inferenzbetriebs | QZ4, QZ5                    | MZ5, MZ9      | LI14, LI22                |
-|  10 | 6R-Migration und Exit-Strategie für arsnova.eu          | QZ1, QZ4                    | MZ1, MZ4, MZ9 | LI01–LI02, LI11, LI23–24  |
+| Nr. | Referatsthema                                                   | Primäre Qualifikationsziele | Modulziele         | Lernindikatoren                |
+| --: | --------------------------------------------------------------- | --------------------------- | ------------------ | ------------------------------ |
+|   1 | Technische Cloud-Einordnung und Verantwortungsgrenzen           | QZ1                         | MZ1                | LI01–LI03                      |
+|   2 | Reproduzierbare Multi-Tier-Bereitstellung                       | QZ1, QZ2                    | MZ1, MZ2           | LI02, LI04–LI06                |
+|   3 | Serverless-Architektur für ARSnova-Arbeitslasten                | QZ3                         | MZ3                | LI07–LI08                      |
+|   4 | Private LLM-Inferenzarchitektur außerhalb des Live-Hotpaths     | QZ2, QZ5                    | MZ2, MZ5, MZ7      | LI06, LI12, LI14, LI17–18      |
+|   5 | Technischer Plattformarchitekturvergleich für Daten und ML      | QZ4, QZ5                    | MZ4, MZ5, MZ9      | LI09–LI14, LI23                |
+|   6 | Security-, Privacy- und Verantwortungsarchitektur               | QZ1, QZ2, QZ5               | MZ1, MZ5, MZ8      | LI03, LI13, LI19               |
+|   7 | Zustandsmodelle, Storage, Backup und Recovery                   | QZ2                         | MZ6                | LI15–LI16                      |
+|   8 | Verteilte Skalierung, Observability und Degradation             | QZ2                         | MZ7, MZ8           | LI17–LI21                      |
+|   9 | Performance-, Energie- und Ressourceneffizienz der LLM-Inferenz | QZ2, QZ5                    | MZ5, MZ7, MZ9      | LI14, LI17, LI22               |
+|  10 | Technische 6R-Migration, Portabilität und Rollback              | QZ1, QZ2, QZ4               | MZ1, MZ2, MZ4, MZ9 | LI01–LI02, LI06, LI11, LI23–24 |
 
 Gemeinsam decken die Themen alle fünf offiziellen QZ, alle neun MZ und die 24 LI ab. Ein einzelnes Referat prüft nur die beim Thema ausgewiesenen Schwerpunkte.
 
 ## 6. Die zehn Referatsthemen
 
-### Thema 1 – Cloud oder nur Hosting? arsnova.eu fachlich einordnen
+### Thema 1 – Technische Cloud-Einordnung und Verantwortungsgrenzen
 
-**Leitfrage:** Welche Teile des aktuellen und des um Story 8.9d erweiterten Betriebs erfüllen belegbare Cloud-Merkmale, und wo bleibt arsnova.eu lediglich selbst verwaltetes Hosting?
+**Leitfrage:** Welche nachweisbaren Architektur-, Bereitstellungs-, Skalierungs- und Verantwortungsmerkmale erlauben eine technische Cloud-Einordnung des aktuellen und des um Story 8.9d erweiterten Betriebs?
 
-**Cloud-Kern:** Cloud-Merkmale, IaaS/PaaS/SaaS, Public/Private/Hybrid Cloud und Shared Responsibility.
+**Cloud-Kern:** Systemgrenzen, Laufzeittopologie, Cloud-Merkmale, IaaS, PaaS und SaaS, Public, Private, Community und Hybrid Cloud sowie Shared Responsibility.
 
 **Fallbezug:** Der dokumentierte App-Pfad nutzt Container, PostgreSQL, Redis und einen isolierten PDF-Worker auf einem Single Host. Die Kursstartannahme ergänzt einen zweiten privaten Inferenzhost. Weder Container noch ein zweiter Server belegen allein Elastizität oder ein Cloud-Dienstmodell.
 
@@ -117,11 +121,11 @@ Gemeinsam decken die Themen alle fünf offiziellen QZ, alle neun MZ und die 24 L
 - Shared-Responsibility-Matrix für mindestens den App- und Inferenz-Tier;
 - Gegenfall, der Cloud-Marketing von nachgewiesenen Fähigkeiten trennt.
 
-**Entscheidung:** Eine begrenzte Aussage dazu, ob und unter welcher Systemgrenze arsnova.eu als Cloud-Anwendung, Cloud-Hosting oder hybride Betriebsform bezeichnet werden darf.
+**Entscheidung:** Technisch begründete Klassifikation jedes Tiers einschließlich fehlender Cloud-Fähigkeiten und der Architekturänderungen, die für eine weitergehende Einordnung erforderlich wären.
 
 **Gegenalternative:** klassisches Self-managed Hosting ohne Cloud-Fähigkeiten oder ein vollständig verwaltetes SaaS-Modell.
 
-**Alignment:** QZ1; MZ1; LI01–LI03; Wochen W01 und W11–W12.
+**Alignment:** QZ1; MZ1; LI01–LI03; Themenblöcke TB01 und TB11–TB12.
 
 ### Thema 2 – Reproduzierbare Multi-Tier-Bereitstellung mit Containern und IaC
 
@@ -139,17 +143,17 @@ Gemeinsam decken die Themen alle fünf offiziellen QZ, alle neun MZ und die 24 L
 - private Netzregel, durch die Browser und öffentliche Clients den Modellport nicht erreichen;
 - dokumentierter Credential-, Rollback- und Cleanup-Weg.
 
-**Entscheidung:** Auswahl eines tragfähigen Bereitstellungsmodells zwischen Self-managed IaaS, verwalteter Containerplattform und PaaS.
+**Entscheidung:** Technische Zielarchitektur zwischen Self-managed IaaS, verwalteter Containerplattform und PaaS anhand von Reproduzierbarkeit, Isolation, Zustandsführung, Fehlerverhalten und Rollback.
 
 **Gegenalternative:** dieselben Komponenten auf einem größeren Single Host oder eine stärker verwaltete Plattformvariante.
 
-**Alignment:** QZ1 und QZ2; MZ1 und MZ2; LI02 und LI04–LI06; Wochen W02–W03.
+**Alignment:** QZ1 und QZ2; MZ1 und MZ2; LI02 und LI04–LI06; Themenblöcke TB02–TB03.
 
-### Thema 3 – Welche ARSnova-Arbeitslast eignet sich für Serverless?
+### Thema 3 – Serverless-Architektur für ARSnova-Arbeitslasten
 
-**Leitfrage:** Welche abgegrenzte ARSnova-Arbeitslast ist für FaaS oder BaaS geeignet, und welche Live-Arbeitslast muss wegen Zustand, Dauer oder Verbindungsmodell außerhalb von Serverless bleiben?
+**Leitfrage:** Welche abgegrenzte ARSnova-Arbeitslast lässt sich aufgrund ihres Trigger-, Zustands-, Laufzeit- und Parallelitätsmodells korrekt als FaaS oder BaaS entwerfen, und welche Live-Arbeitslast benötigt einen dauerhaften Dienst?
 
-**Cloud-Kern:** FaaS, BaaS, Ereignissteuerung, Laufzeitgrenzen, Cold Start, Zustand, Parallelität, Observability, Kosten und Anbieterbindung.
+**Cloud-Kern:** FaaS, BaaS, Ereignissteuerung, Laufzeitgrenzen, Cold Start, Zustand, Parallelität, Idempotenz, Observability, Ressourcenverbrauch und technische Portabilität.
 
 **Fallbezug:** Als Kandidaten kommen beispielsweise PDF-Erzeugung, Cleanup, ein begrenzter Analysejob oder eine Moderationszusammenfassung infrage. WebSocket-, Yjs- oder synchroner Vote-Betrieb bilden plausible Gegenbeispiele.
 
@@ -158,16 +162,16 @@ Gemeinsam decken die Themen alle fünf offiziellen QZ, alle neun MZ und die 24 L
 - Kriterienraster für einen geeigneten und einen ungeeigneten Kandidaten;
 - reproduzierbarer Funktions- oder Emulationslauf mit Cold-Start- und Laufzeitmessung;
 - Modell für Trigger, Retry, Idempotenz, Parallelität und Fehlerbehandlung;
-- Kostenvergleich bei niedriger, mittlerer und spitzenhafter Nutzung;
+- Latenz-, Durchsatz-, Parallelitäts- und Ressourcenvergleich bei niedriger, mittlerer und spitzenhafter Nutzung;
 - Nachweis, dass kein dauerhaft benötigter Zustand unkontrolliert verloren geht.
 
-**Entscheidung:** begründete Wahl zwischen Function, Container-Job, Queue-Worker und dauerhaftem Dienst.
+**Entscheidung:** Technische Wahl zwischen Function, Container-Job, Queue-Worker und dauerhaftem Dienst mit belegten Betriebs- und Fehlergrenzen.
 
 **Gegenalternative:** derselbe Auftrag als bestehender Containerdienst oder verwalteter Job.
 
-**Alignment:** QZ3; MZ3; LI07–LI08; Woche W04.
+**Alignment:** QZ3; MZ3; LI07–LI08; Themenblock TB04.
 
-### Thema 4 – Privater LLM-Inferenz-Tier ohne Abhängigkeit des Live-Hotpaths
+### Thema 4 – Private LLM-Inferenzarchitektur außerhalb des Live-Hotpaths
 
 **Leitfrage:** Wie muss die 8.9d-Architektur aufgebaut und begrenzt sein, damit Join, Vote, Q&A und WebSocket-Nutzung nie auf LLM-Inferenz warten?
 
@@ -183,17 +187,17 @@ Gemeinsam decken die Themen alle fünf offiziellen QZ, alle neun MZ und die 24 L
 - Test für Slot-Belegung, HTTP 503, Timeout und Client-Abbruch;
 - Nachweis, dass der Live-Pfad während der Fehlerfälle innerhalb seiner festgelegten Grenze weiterläuft.
 
-**Entscheidung:** Prioritäts-, Skip-, Timeout- und Fallbackregel für die zwei optionalen Aufträge.
+**Entscheidung:** Technischer Scheduling-, Prioritäts-, Timeout-, Abbruch- und Fallbackvertrag für beide optionalen Inferenzaufträge.
 
 **Gegenalternative:** getrennte Modellserver, Managed AI oder dauerhaft rein extraktive Ausgaben.
 
-**Alignment:** QZ2 und QZ5; MZ2, MZ5 und MZ7; LI06, LI12, LI14 sowie LI17–LI18; Wochen W06 und W08.
+**Alignment:** QZ2 und QZ5; MZ2, MZ5 und MZ7; LI06, LI12, LI14 sowie LI17–LI18; Themenblöcke TB06 und TB08.
 
-### Thema 5 – Provider- und Betriebsmodell für Daten und Inferenz
+### Thema 5 – Technischer Plattformarchitekturvergleich für Daten und ML
 
-**Leitfrage:** Welcher Zuschnitt aus Self-managed IaaS, Managed Data und Managed AI erfüllt dieselbe arsnova.eu-Leistung auf GCP, AWS oder Microsoft Azure am überzeugendsten?
+**Leitfrage:** Welche Plattformarchitektur aus Self-managed IaaS, Managed Data und Managed AI erfüllt die technischen Verträge von arsnova.eu für Schnittstellen, Zustand, Isolation, Beobachtbarkeit, Fehlerverhalten und Portabilität?
 
-**Cloud-Kern:** etablierte Cloud-Angebote, Capability Mapping, Regionen, Datenresidenz, Shared Responsibility, SLO, Egress, Anbieterbindung und Exit.
+**Cloud-Kern:** Capability Mapping, API- und Protokollverträge, Regionen, Datenresidenz, IAM, Shared Responsibility, SLO, Ressourcenlimits, Fehlerisolation, Egress-Datenpfade und Portabilität.
 
 **Fallbezug:** Verglichen werden der private 8.9d-Inferenzhost und eine funktional vergleichbare Plattformvariante mit App-, Datenbank-, Netzwerk-, Observability- und Inferenzfähigkeiten.
 
@@ -201,17 +205,17 @@ Gemeinsam decken die Themen alle fünf offiziellen QZ, alle neun MZ und die 24 L
 
 - ein anbieterneutrales Fähigkeitsraster vor Auswahl konkreter Produktnamen;
 - symmetrischer Vergleich von GCP, AWS und Azure auf identischer Systemgrenze;
-- datierte Primärquellen zu Region, Servicegrenze, Preisbasis und relevanten Limits;
+- datierte Primärquellen zu API-Verträgen, Region, Servicegrenze, SLO beziehungsweise SLA und relevanten Ressourcenlimits;
 - Verantwortungs- und Datenresidenzmatrix;
-- TCO-, Egress-, Lock-in- und Exitbetrachtung für mindestens zwei tragfähige Zuschnitte.
+- IaC- oder Konfigurationsprototyp sowie mindestens ein Fehler-, Austauschbarkeits- oder Portabilitätstest für zwei tragfähige Zuschnitte.
 
-**Entscheidung:** ADR für einen Betriebszuschnitt mit stärkster verworfener Alternative und Neubewertungsauslöser.
+**Entscheidung:** Technische ADR für eine Plattformarchitektur mit Schnittstellen-, Zustands-, Security-, Observability- und Exit-Vertrag sowie stärkster verworfener Alternative.
 
 **Gegenalternative:** der private Zwei-Host-Pfad oder eine andere der drei Plattformvarianten.
 
-**Alignment:** QZ4 und QZ5; MZ4, MZ5 und MZ9; LI09–LI14 sowie LI22–LI23; Wochen W05–W06 und W10–W11.
+**Alignment:** QZ4 und QZ5; MZ4, MZ5 und MZ9; LI09–LI14 sowie LI23; Themenblöcke TB05–TB06 und TB10–TB11.
 
-### Thema 6 – Security, Privacy und Shared Responsibility für Q&A-Inferenz
+### Thema 6 – Security-, Privacy- und Verantwortungsarchitektur für Q&A-Inferenz
 
 **Leitfrage:** Wie werden Q&A-Daten und der private Inferenz-Tier so geschützt, dass Datenabfluss, Prompt- oder Model-Injection, Ressourcenerschöpfung und Supply-Chain-Risiken messbar begrenzt bleiben?
 
@@ -228,13 +232,13 @@ Gemeinsam decken die Themen alle fünf offiziellen QZ, alle neun MZ und die 24 L
 - Nachweis von Image-Digest, GGUF-Prüfsumme, Modelllizenz und SBOM-Grenze;
 - Aufbewahrungs-, Logging- und Löschentscheidung ohne personenbezogene Lehrdaten.
 
-**Entscheidung:** Freigabe oder Ablehnung eines Self-hosted- oder Managed-AI-Pfads mit Restrisiko.
+**Entscheidung:** Technische Security-Architektur für einen Self-hosted- oder Managed-AI-Pfad mit priorisierten Kontrollen, Negativtests und explizitem Restrisiko.
 
 **Gegenalternative:** nicht generative, lokal begrenzte Analyse oder stärker verwalteter Dienst mit anderer Verantwortungsgrenze.
 
-**Alignment:** QZ1, QZ2 und QZ5; MZ1, MZ5 und MZ8; LI03, LI13 und LI19; Wochen W01, W06 und W09.
+**Alignment:** QZ1, QZ2 und QZ5; MZ1, MZ5 und MZ8; LI03, LI13 und LI19; Themenblöcke TB01, TB06 und TB09.
 
-### Thema 7 – Zustand, Storage, Backup und Recovery
+### Thema 7 – Zustandsmodelle, Storage, Backup und Recovery
 
 **Leitfrage:** Welche Zustände von arsnova.eu müssen wo gesichert werden, und welche Wiederherstellungsbehauptung lässt sich durch einen ausgeführten Restore tatsächlich belegen?
 
@@ -250,13 +254,13 @@ Gemeinsam decken die Themen alle fünf offiziellen QZ, alle neun MZ und die 24 L
 - Integritäts- und Vollständigkeitsprüfung sowie gemessene Wiederherstellungszeit;
 - dokumentierter Umgang mit Redis-Verlust, Browserdaten und Modellartefakten.
 
-**Entscheidung:** Auswahl zwischen Self-managed Backup, Managed Database, Object Storage und bewusst nicht gesichertem flüchtigem Zustand.
+**Entscheidung:** Technische Sicherungs- und Recovery-Architektur je Zustandsklasse mit begründetem Speicherort, Konsistenzmodell, RPO, RTO und Integritätsprüfung.
 
 **Gegenalternative:** ein Managed-PostgreSQL- und Objektspeicherpfad oder vollständiger Neuaufbau aus Repository und gepinnten Artefakten.
 
-**Alignment:** QZ2; MZ6; LI15–LI16; Wochen W03 und W07.
+**Alignment:** QZ2; MZ6; LI15–LI16; Themenblöcke TB03 und TB07.
 
-### Thema 8 – Zwei Lastprofile, Skalierung und kontrollierte Degradation
+### Thema 8 – Verteilte Skalierung, Observability und kontrollierte Degradation
 
 **Leitfrage:** Benötigen 100 parallele Lehrveranstaltungen mit je 50 Teilnehmenden und eine Veranstaltung mit 5.000 Teilnehmenden unterschiedliche Cloud-, Realtime- und Inferenzstrategien?
 
@@ -272,39 +276,39 @@ Gemeinsam decken die Themen alle fünf offiziellen QZ, alle neun MZ und die 24 L
 - SLI/SLO, Alarm und Runbook für mindestens einen kritischen Pfad;
 - Fault-Injection mit Degradation, Recovery und Abbruchkriterium.
 
-**Entscheidung:** begründete Scale-up- oder Scale-out-Architektur je Lastprofil, einschließlich noch ungelöster Zustandsgrenzen.
+**Entscheidung:** Begründete Scale-up- oder Scale-out-Architektur je Lastprofil mit Routing-, Affinitäts-, Zustands-, Telemetrie- und Degradationsvertrag.
 
 **Gegenalternative:** getrennte Architekturvarianten für viele kleine Sessions und eine große Session oder bewusste Kapazitätsbegrenzung.
 
-**Alignment:** QZ2; MZ7 und MZ8; LI17–LI21; Wochen W08–W09.
+**Alignment:** QZ2; MZ7 und MZ8; LI17–LI21; Themenblöcke TB08–TB09.
 
-### Thema 9 – FinOps und Nachhaltigkeit des privaten Inferenzbetriebs
+### Thema 9 – Performance-, Energie- und Ressourceneffizienz der privaten LLM-Inferenz
 
-**Leitfrage:** Ab welcher Nutzung ist ein privater CPU-Inferenzhost gegenüber GPU- oder Managed-AI-Varianten wirtschaftlich und hinsichtlich der Ressourcenwirkung vertretbar?
+**Leitfrage:** Welche CPU-, GPU- oder Managed-AI-Ausführungsarchitektur erfüllt vorgegebene Latenz-, Durchsatz-, Qualitäts-, Energie- und Ressourcenbudgets für die private LLM-Inferenz?
 
-**Cloud-Kern:** FinOps, TCO, Unit Costs, Auslastung, Leerlauf, Egress, Energie, Skalierungsstufen und wirtschaftliche Elastizität.
+**Cloud-Kern:** Modellquantisierung, Speicherbedarf, Parallelität, Batching, Auslastung, Sättigung, Latenz, Durchsatz, Energiebedarf, Performance pro Watt, Ressourceneffizienz und technisch induzierte Betriebskosten.
 
 **Fallbezug:** ADR-0035 setzt zunächst eine CPU-basierte private Inferenzrolle mit einem Slot voraus. Eine GPU oder Managed AI sind Gegenalternativen, keine bereits beschlossenen Produktpfade.
 
 **Verpflichtende Evidenz:**
 
 - gemessene Zeit bis zum ersten Token, Tokens pro Sekunde, Erfolgs- und Fallback-Rate;
-- Kosten je Analyse, Session und 1.000 erfolgreiche Jobs;
-- Infrastruktur, Energie, Personal, Monitoring, Security, Backup, Egress, Migration und Exit auf derselben Systemgrenze;
-- Best-, Base- und Worst-Case mit Sensitivitätsanalyse;
-- datierte Preis- und Leistungsquellen sowie klar getrennte Mess- und Schätzwerte.
+- CPU-, RAM- und gegebenenfalls GPU-Auslastung, Speicherbedarf, Sättigung und Energie je erfolgreichem Job;
+- Qualitäts- und Ressourcenvergleich mindestens zweier Quantisierungs- oder Ausführungsvarianten auf identischer Eingabe;
+- aus Messwerten abgeleitete Infrastruktur-, Energie- und Egresskosten je erfolgreichem Job als technische Betriebsgrenze;
+- Laststufen- und Sensitivitätsanalyse mit klar getrennten Mess-, Hochrechnungs- und Schätzwerten.
 
-**Entscheidung:** Break-even- und Neubewertungsschwelle für CPU, GPU oder Managed AI.
+**Entscheidung:** Technische Ausführungs- und Kapazitätsarchitektur für CPU, GPU oder Managed AI einschließlich Umschaltgrenzen für Latenz, Fehlerrate, Energie und Ressourcensättigung.
 
 **Gegenalternative:** Encoder plus extraktive Ausgabe ohne LLM oder bedarfsgesteuerter verwalteter Inferenzdienst.
 
-**Alignment:** QZ4 und QZ5; MZ5 und MZ9; LI14 und LI22; Wochen W06 und W10.
+**Alignment:** QZ2 und QZ5; MZ5, MZ7 und MZ9; LI14, LI17 und LI22; Themenblöcke TB06, TB08 und TB10.
 
-### Thema 10 – 6R-Migration und Exit-Strategie für arsnova.eu
+### Thema 10 – Technische 6R-Migration, Portabilität und Rollback
 
-**Leitfrage:** Welche 6R-Strategie überführt den Single-Host-Pfad mit privater Inferenzrolle in eine verantwortbare Cloud-Zielarchitektur, ohne unbelegte Skalierungs- oder Verfügbarkeitsversprechen?
+**Leitfrage:** Welche komponentenweise 6R-Strategie überführt den Single-Host-Pfad mit privater Inferenzrolle in eine portable Cloud-Zielarchitektur, deren Schnittstellen, Zustände, Fehlergrenzen und Rückweg technisch verifiziert sind?
 
-**Cloud-Kern:** Rehost, Replatform, Repurchase, Refactor, Retire, Retain, Cloud-Service-Modelle, Migrationsrisiko, Lock-in, Rollback und Exit.
+**Cloud-Kern:** Rehost, Replatform, Repurchase, Refactor, Retire, Retain, Abhängigkeitsanalyse, Datenmigration, Schnittstellenkompatibilität, Lock-in, Rollback, Reversibilität und technischer Exit.
 
 **Fallbezug:** Die Ausgangslage umfasst den belegten Single-Host-Stack und die zum Kursstart vorausgesetzte private 8.9d-Runtime. App, Datenbank, Redis, Realtime, Yjs, PDF und Inferenz können unterschiedliche 6R-Entscheidungen benötigen.
 
@@ -313,14 +317,14 @@ Gemeinsam decken die Themen alle fünf offiziellen QZ, alle neun MZ und die 24 L
 - komponentenweise 6R-Matrix mit Abhängigkeiten und Reihenfolge;
 - Zielarchitektur mit Daten-, Netz-, Verantwortungs- und Betriebsgrenzen;
 - technische Evidenz aus mindestens einem Migrations- oder Rückrollschritt in der Sandbox;
-- TCO-, Risiko-, Nachhaltigkeits- und Sensitivitätsbetrachtung;
+- Kompatibilitäts-, Konsistenz-, Performance-, Security- und Fehlertest vor und nach dem Migrationsschritt;
 - Exit-Plan für Daten, Modelle, Konfiguration, Identitäten und Providerartefakte.
 
-**Entscheidung:** ADR für eine schrittweise Migration mit stärkster verworfener Alternative, Abbruchkriterium und Rückweg.
+**Entscheidung:** Technische ADR für eine schrittweise Migration mit Abhängigkeitsreihenfolge, Akzeptanztests, stärkster verworfener Alternative, Abbruchkriterium und ausführbarem Rückweg.
 
 **Gegenalternative:** langfristiges Retain des heutigen Betriebs, reines Rehosting oder Ersatz durch einen SaaS-Dienst.
 
-**Alignment:** QZ1 und QZ4; MZ1, MZ4 und MZ9; LI01–LI02, LI11 sowie LI23–LI24; Wochen W01, W05 und W10–W12.
+**Alignment:** QZ1, QZ2 und QZ4; MZ1, MZ2, MZ4 und MZ9; LI01–LI02, LI06, LI11 sowie LI23–LI24; Themenblöcke TB01–TB03, TB05 und TB10–TB12.
 
 ## 7. Themenvergabe und Varianten
 
@@ -328,7 +332,7 @@ Gemeinsam decken die Themen alle fünf offiziellen QZ, alle neun MZ und die 24 L
 - Produkt- oder Providername allein bildet keine Themenvariante.
 - Bei Gruppenreferaten müssen individuelle Beiträge in Einreichung, Vortrag und Befragung klar kenntlich sein.
 - Die prüfende Person stellt für jedes Thema den verbindlichen Kurs-Commit, zulässige Zielumgebung, Datenbasis, Kostenlimit und Sicherheitsrahmen bereit.
-- Provider- und Preisangaben werden bei Themenvergabe erneut geprüft; veraltete Lehrwerte sind keine Prüfungsquelle.
+- Providerangaben zu APIs, Limits, Regionen und technisch verursachten Abrechnungseinheiten werden bei Themenvergabe erneut geprüft; veraltete Lehrwerte sind keine Prüfungsquelle.
 - Die Themen 4, 6 und 9 setzen einen tatsächlich nachgewiesenen 8.9d-Kursstand voraus. Ist das Gate nicht erfüllt, muss die Aufgabe den LLM-Pfad ausdrücklich als Zielbild oder isoliertes Testharness bezeichnen.
 
 ## 8. Verbindliche Grundlagen

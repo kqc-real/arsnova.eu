@@ -1,0 +1,128 @@
+{
+  "schemaVersion": 1,
+  "cases": [
+    {
+      "file": "ARSnova_Themenblock_01.json",
+      "positives": [
+        "Least Privilege",
+        "Principle of Least Privilege",
+        "Prinzip der geringsten Privilegien",
+        "Prinzip minimaler Rechte",
+        "Minimalprinzip der Rechtevergabe"
+      ],
+      "negatives": ["Vollzugriff", "Shared Responsibility"]
+    },
+    {
+      "file": "ARSnova_Themenblock_02.json",
+      "positives": [
+        "Idempotenz",
+        "Idempotency",
+        "idempotent",
+        "idempotentes Verhalten",
+        "idempotente Ausführung"
+      ],
+      "negatives": ["Nichtdeterminismus", "Zustandsdrift"]
+    },
+    {
+      "file": "ARSnova_Themenblock_03.json",
+      "positives": [
+        "Unix-Socket",
+        "Unix Domain Socket",
+        "Unix-Domain-Socket",
+        "Unix Domain Socket (UDS)",
+        "lokaler Unix-Socket"
+      ],
+      "negatives": ["TCP-Socket", "HTTP-Port"]
+    },
+    {
+      "file": "ARSnova_Themenblock_04.json",
+      "positives": [
+        "Cold Start",
+        "Cold-Start",
+        "Kaltstart",
+        "Kaltstartlatenz",
+        "Cold-Start-Latenz"
+      ],
+      "negatives": ["Warm Start", "Autoscaling"]
+    },
+    {
+      "file": "ARSnova_Themenblock_05.json",
+      "positives": [
+        "Least Privilege",
+        "Principle of Least Privilege",
+        "Prinzip der geringsten Privilegien",
+        "Prinzip der minimalen Rechte",
+        "Minimalprinzip der Rechte"
+      ],
+      "negatives": ["Administratorvollzugriff", "Single Sign-on"]
+    },
+    {
+      "file": "ARSnova_Themenblock_06.json",
+      "positives": [
+        "Datenminimierung",
+        "Prinzip der Datenminimierung",
+        "Data Minimization",
+        "Data Minimisation"
+      ],
+      "negatives": ["Datenmaximierung", "Datensicherung"]
+    },
+    {
+      "file": "ARSnova_Themenblock_07.json",
+      "positives": [
+        "Recovery Point Objective",
+        "RPO",
+        "Wiederherstellungspunktziel",
+        "Wiederherstellungszeitpunkt-Ziel"
+      ],
+      "negatives": ["Recovery Time Objective", "RTO"]
+    },
+    {
+      "file": "ARSnova_Themenblock_08.json",
+      "positives": ["Backpressure", "Back Pressure", "Rückstaukontrolle", "Gegendruck"],
+      "negatives": ["Unbegrenztes Puffern", "Load Balancing"]
+    },
+    {
+      "file": "ARSnova_Themenblock_09.json",
+      "positives": [
+        "Least Privilege",
+        "Principle of Least Privilege",
+        "Prinzip der geringsten Berechtigung",
+        "Prinzip der minimalen Rechte",
+        "Minimalprinzip der Rechtevergabe"
+      ],
+      "negatives": ["Root-Zugriff", "Mehrfaktorauthentifizierung"]
+    },
+    {
+      "file": "ARSnova_Themenblock_10.json",
+      "positives": [
+        "Sensitivitätsanalyse",
+        "Sensitivitaetsanalyse",
+        "Empfindlichkeitsanalyse",
+        "Sensitivity Analysis"
+      ],
+      "negatives": ["Monte-Carlo-Simulation", "Break-even-Analyse"]
+    },
+    {
+      "file": "ARSnova_Themenblock_11.json",
+      "positives": [
+        "Primärquelle",
+        "primaere Quelle",
+        "primäre Quelle",
+        "Originalquelle",
+        "Quelle erster Hand"
+      ],
+      "negatives": ["Sekundärquelle", "Meinungsbeitrag"]
+    },
+    {
+      "file": "ARSnova_Themenblock_12.json",
+      "positives": [
+        "Shared Responsibility",
+        "Shared Responsibility Model",
+        "Shared-Responsibility-Modell",
+        "Modell der geteilten Verantwortung",
+        "Geteilte Verantwortung"
+      ],
+      "negatives": ["Zero Trust", "Vollständige Anbieterverantwortung"]
+    }
+  ]
+}

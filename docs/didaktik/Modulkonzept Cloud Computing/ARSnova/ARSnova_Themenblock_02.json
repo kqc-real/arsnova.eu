@@ -1,0 +1,326 @@
+{
+  "exportVersion": 1,
+  "exportedAt": "2026-09-13T00:00:00.000Z",
+  "quiz": {
+    "name": "Cloud Computing – Themenblock TB02: Abstraktionen und Infrastructure as Code (IaC)",
+    "description": "10 anspruchsvolle Live-Fragen zu Virtualisierung, Containern, Images, Orchestrierung, Domain Name System (DNS), Transport Layer Security (TLS), Hypertext Transfer Protocol (HTTP) und Load Balancing.",
+    "showLeaderboard": true,
+    "allowCustomNicknames": false,
+    "defaultTimer": 60,
+    "timerScaleByDifficulty": true,
+    "enableTimerAccommodation": true,
+    "enableSoundEffects": true,
+    "enableRewardEffects": true,
+    "enableMotivationMessages": true,
+    "enableEmojiReactions": true,
+    "anonymousMode": false,
+    "teamMode": true,
+    "teamCount": 4,
+    "teamAssignment": "AUTO",
+    "teamNames": ["Apfel :apple:", "Birne :pear:", "Banane :banana:", "Apfelsine :orange:"],
+    "backgroundMusic": null,
+    "nicknameTheme": "KINDERGARTEN",
+    "bonusTokenCount": 3,
+    "readingPhaseEnabled": true,
+    "questions": [
+      {
+        "text": "### Welche Grenze erklärt den unterschiedlichen Ausfall?\n\nZwei Container teilen den Host-Kernel; ein Defekt in einem Modul dieses gemeinsam genutzten Kernels stoppt beide. Bei zwei virtuellen Maschinen (VMs) stoppt ein entsprechender Defekt im Gast-Kernel dagegen nur die betroffene VM. Welche Architekturentscheidung erklärt den Unterschied am besten?",
+        "type": "SINGLE_CHOICE",
+        "timer": null,
+        "difficulty": "HARD",
+        "order": 0,
+        "answers": [
+          {
+            "text": "Container virtualisieren vollständige Hardware, während VMs nur einzelne Prozesse gruppieren.",
+            "isCorrect": false
+          },
+          {
+            "text": "Container besitzen getrennte Kernel, während VMs denselben Host-Kernel unmittelbar verwenden.",
+            "isCorrect": false
+          },
+          {
+            "text": "Container teilen eine Kernel-Vertrauensgrenze, während VMs je Gast einen eigenen Kernel kapseln.",
+            "isCorrect": true
+          },
+          {
+            "text": "Container verwenden grundsätzlich unveränderliche Images, während VMs grundsätzlich veränderlich bleiben.",
+            "isCorrect": false
+          }
+        ],
+        "confidenceEnabled": true,
+        "confidenceLabelLow": "Sehr unsicher",
+        "confidenceLabelHigh": "Sehr sicher"
+      },
+      {
+        "text": "### Welche Maßnahmen stärken reproduzierbare Images?\n\nEin Team will verhindern, dass derselbe Quellstand morgen unbemerkt andere Laufzeitbestandteile erhält. Wähle alle wirksamen Maßnahmen.",
+        "type": "MULTIPLE_CHOICE",
+        "timer": null,
+        "difficulty": "HARD",
+        "order": 1,
+        "answers": [
+          {
+            "text": "Basisimages und produktive Artefakte über unveränderliche Digests referenzieren",
+            "isCorrect": true
+          },
+          {
+            "text": "Abhängigkeiten über eine versionierte Lockdatei deterministisch installieren",
+            "isCorrect": true
+          },
+          {
+            "text": "Produktionscontainer nach jedem Start interaktiv auf den neuesten Stand verändern",
+            "isCorrect": false
+          },
+          {
+            "text": "Für jeden Build ausschließlich den beweglichen Tag »latest« erneut auflösen",
+            "isCorrect": false
+          }
+        ],
+        "confidenceEnabled": true,
+        "confidenceLabelLow": "Sehr unsicher",
+        "confidenceLabelHigh": "Sehr sicher"
+      },
+      {
+        "text": "### Welche Eigenschaft verhindert Änderungen beim zweiten Lauf?\n\nEin Provisioning-Plan wird zweimal mit identischer Eingabe ausgeführt. Der zweite Lauf erzeugt keine zusätzlichen Ressourcen und keinen abweichenden Zustand. Nenne diese Eigenschaft mit einem Fachwort.",
+        "type": "SHORT_TEXT",
+        "timer": null,
+        "difficulty": "HARD",
+        "order": 2,
+        "answers": [
+          {
+            "text": "Idempotenz",
+            "isCorrect": true
+          },
+          {
+            "text": "Idempotency",
+            "isCorrect": true
+          },
+          {
+            "text": "idempotent",
+            "isCorrect": true
+          },
+          {
+            "text": "idempotentes Verhalten",
+            "isCorrect": true
+          },
+          {
+            "text": "idempotente Ausführung",
+            "isCorrect": true
+          }
+        ],
+        "shortTextMaxLength": 40,
+        "shortTextEvaluationKind": "text",
+        "shortTextCaseSensitive": false,
+        "shortTextEvaluationMode": "exact",
+        "shortTextToleranceLevel": "none",
+        "shortTextAllowPartialCredit": false,
+        "shortTextTrimWhitespace": true,
+        "shortTextNormalizeWhitespace": true,
+        "confidenceEnabled": true,
+        "confidenceLabelLow": "Sehr unsicher",
+        "confidenceLabelHigh": "Sehr sicher"
+      },
+      {
+        "text": "### Wie viele Instanzen benötigt der Zielwert?\n\nEine App-Instanz verarbeitet im Test höchstens 120 Anfragen pro Sekunde. Im Betrieb soll jede Instanz höchstens zu 65 % dieses Messwerts ausgelastet werden. Welche kleinste ganze Instanzzahl trägt 270 Anfragen pro Sekunde, wenn die Last gleichmäßig verteilt wird?",
+        "type": "NUMERIC_ESTIMATE",
+        "timer": null,
+        "difficulty": "HARD",
+        "order": 3,
+        "answers": [],
+        "numericToleranceMode": "ABSOLUTE_INTERVAL",
+        "numericReferenceValue": 4,
+        "numericIntervalLeft": 3.5,
+        "numericIntervalRight": 4.5,
+        "numericInputType": "INTEGER",
+        "numericDecimalPlaces": 0,
+        "numericMin": 1,
+        "numericMax": 20,
+        "numericTwoRounds": true,
+        "confidenceEnabled": true,
+        "confidenceLabelLow": "Sehr unsicher",
+        "confidenceLabelHigh": "Sehr sicher"
+      },
+      {
+        "text": "### Ordne Netzwerkkomponente und beobachtbaren Fehler zu\n\nOrdne jedem Fehlerbild die Komponente zu, die zuerst geprüft werden sollte.",
+        "type": "MATCHING",
+        "timer": null,
+        "difficulty": "HARD",
+        "order": 4,
+        "answers": [],
+        "matchingPairs": [
+          {
+            "leftId": "tb02-match-dns",
+            "left": "Name liefert eine veraltete Zieladresse",
+            "rightId": "tb02-match-dns-value",
+            "right": "DNS-Eintrag und Cache-Laufzeit"
+          },
+          {
+            "leftId": "tb02-match-tls",
+            "left": "Browser weist den richtigen Host wegen Zertifikatsnamen ab",
+            "rightId": "tb02-match-tls-value",
+            "right": "TLS-Zertifikat und Server Name Indication"
+          },
+          {
+            "leftId": "tb02-match-lb",
+            "left": "Nur jede dritte Anfrage erreicht eine fehlerhafte Instanz",
+            "rightId": "tb02-match-lb-value",
+            "right": "Load-Balancer-Pool und Healthcheck"
+          },
+          {
+            "leftId": "tb02-match-fw",
+            "left": "SYN-Pakete erreichen den freigegebenen Dienstport nicht",
+            "rightId": "tb02-match-fw-value",
+            "right": "Firewall-Regel und Netzpfad"
+          }
+        ],
+        "matchingShuffleRight": true,
+        "confidenceEnabled": true,
+        "confidenceLabelLow": "Sehr unsicher",
+        "confidenceLabelHigh": "Sehr sicher"
+      },
+      {
+        "text": "### Ordne den Aufbau eines abgesicherten Webzugriffs\n\nBringe die Schritte eines neuen öffentlichen Dienstes in eine Reihenfolge, die erst nach prüfbarer Konfiguration produktiven Verkehr zulässt.",
+        "type": "ORDERING",
+        "timer": null,
+        "difficulty": "HARD",
+        "order": 5,
+        "answers": [],
+        "orderingItems": [
+          {
+            "id": "tb02-order-1",
+            "text": "Zielressourcen und private Dienstendpunkte deklarativ bereitstellen"
+          },
+          {
+            "id": "tb02-order-2",
+            "text": "Healthchecks und Weiterleitung im Load Balancer konfigurieren"
+          },
+          {
+            "id": "tb02-order-3",
+            "text": "Firewall auf die erforderlichen Quell- und Zielpfade begrenzen"
+          },
+          {
+            "id": "tb02-order-4",
+            "text": "Bereits ausgestelltes Zertifikat für den vorgesehenen Hostnamen binden"
+          },
+          {
+            "id": "tb02-order-5",
+            "text": "DNS auf den geprüften öffentlichen Einstieg umstellen"
+          },
+          {
+            "id": "tb02-order-6",
+            "text": "TLS-, HTTP- und WebSocket-Pfade von außen verifizieren"
+          }
+        ],
+        "confidenceEnabled": true,
+        "confidenceLabelLow": "Sehr unsicher",
+        "confidenceLabelHigh": "Sehr sicher"
+      },
+      {
+        "text": "### Klassifiziere Automatisierungsartefakte nach ihrer Rolle\n\nOrdne jedes Artefakt der primären Rolle zu. Die Kategorien beschreiben unterschiedliche Ebenen und sind nicht austauschbar.",
+        "type": "CATEGORIZATION",
+        "timer": null,
+        "difficulty": "HARD",
+        "order": 6,
+        "answers": [],
+        "categories": [
+          {
+            "id": "tb02-cat-image",
+            "name": "Image-Build"
+          },
+          {
+            "id": "tb02-cat-compose",
+            "name": "Dienstzusammenstellung"
+          },
+          {
+            "id": "tb02-cat-orchestration",
+            "name": "Laufzeitorchestrierung"
+          },
+          {
+            "id": "tb02-cat-iac",
+            "name": "Infrastrukturprovisionierung"
+          }
+        ],
+        "categorizationItems": [
+          {
+            "id": "tb02-item-dockerfile",
+            "text": "Versioniert die Schritte vom Basisimage bis zum Laufzeitartefakt",
+            "correctCategoryId": "tb02-cat-image"
+          },
+          {
+            "id": "tb02-item-compose",
+            "text": "Deklariert App, Datenbank, Cache, Volumes und lokale Netze gemeinsam",
+            "correctCategoryId": "tb02-cat-compose"
+          },
+          {
+            "id": "tb02-item-reconcile",
+            "text": "Ersetzt ausgefallene Replikate anhand eines gewünschten Laufzeitzustands",
+            "correctCategoryId": "tb02-cat-orchestration"
+          },
+          {
+            "id": "tb02-item-vm",
+            "text": "Erzeugt virtuelle Maschine, Subnetz und Firewall beim Infrastrukturprovider",
+            "correctCategoryId": "tb02-cat-iac"
+          },
+          {
+            "id": "tb02-item-layer",
+            "text": "Installiert Laufzeitabhängigkeiten in einer reproduzierbaren Build-Stufe",
+            "correctCategoryId": "tb02-cat-image"
+          },
+          {
+            "id": "tb02-item-rollout",
+            "text": "Steuert schrittweisen Rollout und Rücknahme mehrerer Replikate",
+            "correctCategoryId": "tb02-cat-orchestration"
+          }
+        ],
+        "categorizationShuffleItems": true,
+        "confidenceEnabled": true,
+        "confidenceLabelLow": "Sehr unsicher",
+        "confidenceLabelHigh": "Sehr sicher"
+      },
+      {
+        "text": "### Welcher Speichervertrag passt zum Workload?\n\nEine Anwendung benötigt zugleich gemeinsam beschreibbare Projektdateien und ein langlebiges Archiv großer unveränderlicher Exporte. Begründe, ob Block-, Datei- oder Objektspeicher je Teilbedarf passt, und nenne eine zu prüfende Konsistenz- oder Kostenfolge.",
+        "type": "FREETEXT",
+        "timer": null,
+        "difficulty": "MEDIUM",
+        "order": 7,
+        "answers": []
+      },
+      {
+        "text": "### Welchen Nachweis soll das Team priorisieren?\n\nEin IaC-Dry-Run plant eine neue VM, einen öffentlichen Load Balancer, zwei Firewallregeln und einen DNS-Wechsel. Welcher Nachweis soll vor der Freigabe zuerst vertieft werden? Die Abstimmung priorisiert die Nachbesprechung; es gibt keine Musterlösung.",
+        "type": "SURVEY",
+        "timer": null,
+        "difficulty": "MEDIUM",
+        "order": 8,
+        "answers": [
+          {
+            "text": "Die vollständige Differenz zwischen gewünschtem und vorhandenem Infrastrukturzustand prüfen",
+            "isCorrect": false
+          },
+          {
+            "text": "Die Erreichbarkeit ausschließlich der vorgesehenen öffentlichen Dienstports prüfen",
+            "isCorrect": false
+          },
+          {
+            "text": "Die Rücknahme von DNS-, Zertifikats- und Load-Balancer-Änderungen prüfen",
+            "isCorrect": false
+          },
+          {
+            "text": "Die Quoten-, Laufzeit- und Kostenwirkung aller geplanten Ressourcen prüfen",
+            "isCorrect": false
+          }
+        ]
+      },
+      {
+        "text": "### Wie sicher kannst du einen Netzfehler eingrenzen?\n\nBewerte, wie sicher du bei einer fehlgeschlagenen Webanfrage DNS, TLS, Load Balancing, Firewall und Anwendung anhand geeigneter Beobachtungen voneinander abgrenzen kannst.",
+        "type": "RATING",
+        "timer": null,
+        "difficulty": "MEDIUM",
+        "order": 9,
+        "answers": [],
+        "ratingMin": 1,
+        "ratingMax": 5,
+        "ratingLabelMin": "Noch nicht ohne Hilfe",
+        "ratingLabelMax": "Sicher mit Prüfkette"
+      }
+    ]
+  }
+}

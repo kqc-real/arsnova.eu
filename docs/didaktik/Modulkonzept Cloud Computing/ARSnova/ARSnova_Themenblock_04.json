@@ -1,0 +1,335 @@
+{
+  "exportVersion": 1,
+  "exportedAt": "2026-09-13T00:00:00.000Z",
+  "quiz": {
+    "name": "Cloud Computing – Themenblock TB04: Serverless-Eignung, Grenzen und Kosten",
+    "description": "10 anspruchsvolle Live-Fragen zu Function as a Service (FaaS), Backend as a Service (BaaS), Portable Document Format (PDF), Triggern, Cold Starts, Laufzeitgrenzen, Zustandslosigkeit, Kosten und Lock-in.",
+    "showLeaderboard": true,
+    "allowCustomNicknames": false,
+    "defaultTimer": 60,
+    "timerScaleByDifficulty": true,
+    "enableTimerAccommodation": true,
+    "enableSoundEffects": true,
+    "enableRewardEffects": true,
+    "enableMotivationMessages": true,
+    "enableEmojiReactions": true,
+    "anonymousMode": false,
+    "teamMode": true,
+    "teamCount": 4,
+    "teamAssignment": "AUTO",
+    "teamNames": ["Apfel :apple:", "Birne :pear:", "Banane :banana:", "Apfelsine :orange:"],
+    "backgroundMusic": null,
+    "nicknameTheme": "KINDERGARTEN",
+    "bonusTokenCount": 3,
+    "readingPhaseEnabled": true,
+    "questions": [
+      {
+        "text": "### Welcher Kandidat passt am besten zu einer Funktion?\n\nVier Aufgaben sollen ohne konkrete Providerannahmen bewertet werden. Welche besitzt die günstigste Ausgangslage für eine ereignisgetriggerte, zustandslose und zeitlich begrenzte Ausführung?",
+        "type": "SINGLE_CHOICE",
+        "timer": null,
+        "difficulty": "HARD",
+        "order": 0,
+        "answers": [
+          {
+            "text": "Eine dauerhafte Yjs-Verbindung hält Raumzustand und Awareness mehrerer Browser synchron.",
+            "isCorrect": false
+          },
+          {
+            "text": "Ein Webhook validiert ein Ereignis, schreibt idempotent in einen externen Datenspeicher und endet.",
+            "isCorrect": true
+          },
+          {
+            "text": "Ein In-Memory-Broker verteilt fortlaufend Live-Ereignisse an gebundene WebSocket-Verbindungen.",
+            "isCorrect": false
+          },
+          {
+            "text": "Ein interaktiver Renderingprozess hält Chromium für aufeinanderfolgende Aufträge dauerhaft warm.",
+            "isCorrect": false
+          }
+        ],
+        "confidenceEnabled": true,
+        "confidenceLabelLow": "Sehr unsicher",
+        "confidenceLabelHigh": "Sehr sicher"
+      },
+      {
+        "text": "### Welche Fragen entscheiden über serverlose PDF-Erzeugung?\n\nEin Team erwägt, die isolierte PDF-Erzeugung in eine Function zu verschieben. Wähle alle Prüfungen, die vor einer belastbaren Empfehlung erforderlich sind.",
+        "type": "MULTIPLE_CHOICE",
+        "timer": null,
+        "difficulty": "HARD",
+        "order": 1,
+        "answers": [
+          {
+            "text": "Paket-, Speicher- und Laufzeitgrenzen gegen den Browser- und Maximalreport messen",
+            "isCorrect": true
+          },
+          {
+            "text": "Cold-Start- und Ende-zu-Ende-Latenz unter realistischer Aufrufverteilung messen",
+            "isCorrect": true
+          },
+          {
+            "text": "Nebenläufigkeit, Retry-Semantik und idempotente Ergebnisablage festlegen",
+            "isCorrect": true
+          },
+          {
+            "text": "Die Eignung allein aus der Bezeichnung »Serverless« und automatischer Skalierung ableiten",
+            "isCorrect": false
+          }
+        ],
+        "confidenceEnabled": true,
+        "confidenceLabelLow": "Sehr unsicher",
+        "confidenceLabelHigh": "Sehr sicher"
+      },
+      {
+        "text": "### Wie heißt die zusätzliche Startlatenz?\n\nNach längerer Inaktivität muss eine Plattform erst eine neue Funktionsinstanz und deren Laufzeitumgebung initialisieren. Der erste Aufruf ist dadurch deutlich langsamer als nachfolgende Aufrufe. Nenne diesen Effekt mit einem Fachbegriff.",
+        "type": "SHORT_TEXT",
+        "timer": null,
+        "difficulty": "HARD",
+        "order": 2,
+        "answers": [
+          {
+            "text": "Cold Start",
+            "isCorrect": true
+          },
+          {
+            "text": "Cold-Start",
+            "isCorrect": true
+          },
+          {
+            "text": "Kaltstart",
+            "isCorrect": true
+          },
+          {
+            "text": "Kaltstartlatenz",
+            "isCorrect": true
+          },
+          {
+            "text": "Cold-Start-Latenz",
+            "isCorrect": true
+          }
+        ],
+        "shortTextMaxLength": 40,
+        "shortTextEvaluationKind": "text",
+        "shortTextCaseSensitive": false,
+        "shortTextEvaluationMode": "exact",
+        "shortTextToleranceLevel": "none",
+        "shortTextAllowPartialCredit": false,
+        "shortTextTrimWhitespace": true,
+        "shortTextNormalizeWhitespace": true,
+        "confidenceEnabled": true,
+        "confidenceLabelLow": "Sehr unsicher",
+        "confidenceLabelHigh": "Sehr sicher"
+      },
+      {
+        "text": "### Wie viele Gigabyte-Sekunden verursacht die Nutzlast?\n\nEine Function wird in einem Monat 240.000-mal ausgeführt. Jeder Aufruf belegt 0,5 Gigabyte (GB) Arbeitsspeicher für 0,8 Sekunden. Startzuschläge und Freikontingente bleiben für diesen Vergleich unberücksichtigt. Wie viele GB-Sekunden Rechenverbrauch entstehen?",
+        "type": "NUMERIC_ESTIMATE",
+        "timer": null,
+        "difficulty": "HARD",
+        "order": 3,
+        "answers": [],
+        "numericToleranceMode": "ABSOLUTE_INTERVAL",
+        "numericReferenceValue": 96000,
+        "numericIntervalLeft": 95999.5,
+        "numericIntervalRight": 96000.5,
+        "numericInputType": "INTEGER",
+        "numericDecimalPlaces": 0,
+        "numericMin": 0,
+        "numericMax": 200000,
+        "numericTwoRounds": true,
+        "confidenceEnabled": true,
+        "confidenceLabelLow": "Sehr unsicher",
+        "confidenceLabelHigh": "Sehr sicher"
+      },
+      {
+        "text": "### Ordne Trigger und robuste Verarbeitung zu\n\nOrdne jedem Trigger die Verarbeitungseigenschaft zu, die für Fehler und Wiederholungen besonders wichtig ist.",
+        "type": "MATCHING",
+        "timer": null,
+        "difficulty": "HARD",
+        "order": 4,
+        "answers": [],
+        "matchingPairs": [
+          {
+            "leftId": "tb04-match-change",
+            "left": "Änderung aus einem Datenbank-Change-Stream",
+            "rightId": "tb04-match-change-value",
+            "right": "Checkpoint erst nach dauerhaft verarbeiteter Änderung fortschreiben"
+          },
+          {
+            "leftId": "tb04-match-queue",
+            "left": "Nachricht aus einer mindestens einmal zustellenden Queue",
+            "rightId": "tb04-match-queue-value",
+            "right": "Doppelte Zustellung ohne doppelte Fachwirkung verarbeiten"
+          },
+          {
+            "leftId": "tb04-match-time",
+            "left": "Zeitgesteuerter nächtlicher Pflegejob",
+            "rightId": "tb04-match-time-value",
+            "right": "Verpasste oder überlappende Läufe explizit behandeln"
+          },
+          {
+            "leftId": "tb04-match-object",
+            "left": "Upload-Ereignis eines Objektspeichers",
+            "rightId": "tb04-match-object-value",
+            "right": "Objektversion und endgültigen Schreibzustand verifizieren"
+          }
+        ],
+        "matchingShuffleRight": true,
+        "confidenceEnabled": true,
+        "confidenceLabelLow": "Sehr unsicher",
+        "confidenceLabelHigh": "Sehr sicher"
+      },
+      {
+        "text": "### Bringe eine Serverless-Entscheidung in Reihenfolge\n\nOrdne die Schritte so, dass die Entscheidung nicht allein auf einer Demo oder einem Listenpreis beruht.",
+        "type": "ORDERING",
+        "timer": null,
+        "difficulty": "HARD",
+        "order": 5,
+        "answers": [],
+        "orderingItems": [
+          {
+            "id": "tb04-order-1",
+            "text": "Workload, Trigger, Zustandsbedarf und Latenzziel festlegen"
+          },
+          {
+            "id": "tb04-order-2",
+            "text": "Laufzeit-, Paket-, Nebenläufigkeits- und Datenlokalitätsgrenzen prüfen"
+          },
+          {
+            "id": "tb04-order-3",
+            "text": "Retry-, Idempotenz-, Observability- und Fehlerpfade entwerfen"
+          },
+          {
+            "id": "tb04-order-4",
+            "text": "Kandidaten isoliert mit repräsentativer Last und Fehlern messen"
+          },
+          {
+            "id": "tb04-order-5",
+            "text": "Nutzungs-, Leerlauf-, Betriebs- und Egresskosten vergleichbar rechnen"
+          },
+          {
+            "id": "tb04-order-6",
+            "text": "Lock-in, Exit-Aufwand und stärkste Alternative bewerten"
+          },
+          {
+            "id": "tb04-order-7",
+            "text": "Entscheidung, Gültigkeitsgrenze und Neubewertungskriterium dokumentieren"
+          }
+        ],
+        "confidenceEnabled": true,
+        "confidenceLabelLow": "Sehr unsicher",
+        "confidenceLabelHigh": "Sehr sicher"
+      },
+      {
+        "text": "### Klassifiziere Kosten nach ihrem Treiber\n\nOrdne jede Kostenposition dem primären Treiber zu. Entscheidend ist, wodurch sich die Position im betrachteten Modell verändert.",
+        "type": "CATEGORIZATION",
+        "timer": null,
+        "difficulty": "HARD",
+        "order": 6,
+        "answers": [],
+        "categories": [
+          {
+            "id": "tb04-cat-invocation",
+            "name": "Anzahl der Aufrufe"
+          },
+          {
+            "id": "tb04-cat-compute",
+            "name": "Dauer und Ressourcengröße"
+          },
+          {
+            "id": "tb04-cat-transfer",
+            "name": "Übertragene Datenmenge"
+          },
+          {
+            "id": "tb04-cat-fixed",
+            "name": "Fixe oder operative Basis"
+          }
+        ],
+        "categorizationItems": [
+          {
+            "id": "tb04-item-calls",
+            "text": "Gebühr je ausgelöster Funktionsausführung",
+            "correctCategoryId": "tb04-cat-invocation"
+          },
+          {
+            "id": "tb04-item-events",
+            "text": "Gebühr je zusätzlich verarbeitetem Trigger-Ereignis",
+            "correctCategoryId": "tb04-cat-invocation"
+          },
+          {
+            "id": "tb04-item-gbseconds",
+            "text": "Abrechnung aus belegtem Arbeitsspeicher multipliziert mit Ausführungszeit",
+            "correctCategoryId": "tb04-cat-compute"
+          },
+          {
+            "id": "tb04-item-cpu",
+            "text": "Mehrkosten einer längeren prozessorintensiven Verarbeitung",
+            "correctCategoryId": "tb04-cat-compute"
+          },
+          {
+            "id": "tb04-item-egress",
+            "text": "Abrechnung aus dem Cloud-Netz heraus übertragener Ergebnisdaten",
+            "correctCategoryId": "tb04-cat-transfer"
+          },
+          {
+            "id": "tb04-item-region",
+            "text": "Abrechnung für Datenverkehr zwischen getrennten Regionen",
+            "correctCategoryId": "tb04-cat-transfer"
+          },
+          {
+            "id": "tb04-item-operations",
+            "text": "Personeller Aufwand für Monitoring, Incident-Prozess und Exit-Tests",
+            "correctCategoryId": "tb04-cat-fixed"
+          }
+        ],
+        "categorizationShuffleItems": true,
+        "confidenceEnabled": true,
+        "confidenceLabelLow": "Sehr unsicher",
+        "confidenceLabelHigh": "Sehr sicher"
+      },
+      {
+        "text": "### Wie prüfst du den Exit aus einer Function-Plattform?\n\nFormuliere zwei mögliche Lock-in-Quellen jenseits des Funktionscodes und skizziere je einen praktischen Nachweis, mit dem ein Wechsel zu einer alternativen Plattform bewertet werden kann.",
+        "type": "FREETEXT",
+        "timer": null,
+        "difficulty": "MEDIUM",
+        "order": 7,
+        "answers": []
+      },
+      {
+        "text": "### Welche Kostenunsicherheit soll zuerst untersucht werden?\n\nFür einen neuen Function-Workload fehlen belastbare Nutzungsdaten. Offen sind Aufrufverteilung, Laufzeitstreuung, Datenverkehr und operativer Zusatzaufwand. Welche Unsicherheit soll das Team zuerst vertiefen? Die Abstimmung priorisiert die Diskussion; es gibt keine Musterlösung.",
+        "type": "SURVEY",
+        "timer": null,
+        "difficulty": "MEDIUM",
+        "order": 8,
+        "answers": [
+          {
+            "text": "Die Aufrufe nach Tageszeit, Leerlaufphasen und Lastspitzen messen",
+            "isCorrect": false
+          },
+          {
+            "text": "Die Verteilung von Ausführungsdauer und Ressourcengröße messen",
+            "isCorrect": false
+          },
+          {
+            "text": "Den ein- und ausgehenden Datenverkehr nach Ziel und Region messen",
+            "isCorrect": false
+          },
+          {
+            "text": "Den Aufwand für Monitoring, Fehleranalyse, Migration und Exit messen",
+            "isCorrect": false
+          }
+        ]
+      },
+      {
+        "text": "### Wie sicher kannst du Serverless-Eignung begründen?\n\nBewerte, wie sicher du Function, Container, Queue-Worker und Managed Service anhand von Trigger, Zustand, Laufzeit, Latenz, Kosten und Exit gegeneinander abwägen kannst.",
+        "type": "RATING",
+        "timer": null,
+        "difficulty": "MEDIUM",
+        "order": 9,
+        "answers": [],
+        "ratingMin": 1,
+        "ratingMax": 5,
+        "ratingLabelMin": "Noch nicht ohne Hilfe",
+        "ratingLabelMax": "Sicher mit Gegenargument"
+      }
+    ]
+  }
+}

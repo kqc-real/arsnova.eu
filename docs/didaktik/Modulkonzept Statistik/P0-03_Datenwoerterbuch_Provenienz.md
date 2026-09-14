@@ -2,7 +2,7 @@
 
 **Kürzel vorab:** **CSV** bezeichnet das Tabellenformat, **LIVE** Daten aus dem laufenden Kurs, **REPO** versionierte Repository-Nachweise und **LEHRDATEN** synthetische Übungsdaten. **S1–S6** sind die Fallstudienstränge, **W01–W10** die Kurswochen, **ID** eine technische Kennung, **`source_ref`** die Quellenkennung und ein Suffix wie **V1** die Version eines Datensatzes, nicht die curriculare Vertiefung V1.
 
-- **Stand:** 13.09.2026
+- **Stand:** 14.09.2026
 - **Geltungsbereich:** die sieben CSV-Dateien dieses P0-03-Lehrdatenpakets
 - **Fachliche Grundlage:** [Modulkonzept „Angewandte Statistik“](./Modulkonzept_48UE_BWL_Management_WI_Informatik.md)
 
@@ -85,7 +85,7 @@ $$
 
 - **Beobachtungseinheit:** ein konstruierter Servicefall.
 - **Umfang und fehlende Werte:** 20 vollständige Zeilen, keine fehlenden Werte.
-- **Provenienz:** Die Werte wurden für P0-03 konstruiert und stimmen mit der Servicezeit-Aufgabe in `P0-03_ARSnova_Woche_02.json` überein. Es handelt sich nicht um gemessene arsnova.eu-Latenzen oder betriebliche Servicezeiten.
+- **Provenienz:** Die Werte wurden für P0-03 konstruiert und stimmen mit der Servicezeit-Aufgabe in `ARSnova/P0-03_ARSnova_Woche_02.json` überein. Es handelt sich nicht um gemessene arsnova.eu-Latenzen oder betriebliche Servicezeiten.
 
 | Spalte           | Typ und Skala      | Einheit  | Definition                                                           |
 | ---------------- | ------------------ | -------- | -------------------------------------------------------------------- |

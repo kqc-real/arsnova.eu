@@ -54,19 +54,19 @@ Das Modulhandbuch verteilt den Workload wie folgt:
 | Kategorie                                |   Stunden | Entsprechung im Lehrentwurf                                           |
 | ---------------------------------------- | --------: | --------------------------------------------------------------------- |
 | Selbststudium                            |     123 h | Vor-/Nachbereitung, Lektüre, Agentic-Dossier und Referatsvorbereitung |
-| Präsenzstudium/synchrone virtuelle Lehre |    13,5 h | 18 UE beziehungsweise sechs Termine à 3 UE                            |
-| Tutorium/tutorielle Betreuung            |    13,5 h | 18 UE beziehungsweise sechs Termine à 3 UE                            |
+| Präsenzstudium/synchrone virtuelle Lehre |    13,5 h | 18 UE innerhalb der zwölf stabilen Themenblöcke                       |
+| Tutorium/tutorielle Betreuung            |    13,5 h | 18 UE innerhalb der zwölf stabilen Themenblöcke                       |
 | Selbstüberprüfung                        |       0 h | kein eigener Workloadposten                                           |
 | Praxisanteil                             |       0 h | Anwendungsaufgaben sind Lehrmethode, kein ausgewiesener Praxisanteil  |
 | **Gesamt**                               | **150 h** | **36 UE betreute Zeit plus 123 h Selbststudium**                      |
 
-`36 UE × 45 Minuten = 27 Stunden`. Das entspricht exakt der Summe aus 13,5 Stunden Präsenz/synchroner Lehre und 13,5 Stunden Tutorium. Die 36 UE dürfen daher nicht vollständig als zusätzliche Vorlesungszeit neben einem Tutorium geplant werden.
+`36 UE × 45 Minuten = 27 Stunden`. Das entspricht exakt der Summe aus 13,5 Stunden Präsenzstudium/synchroner virtueller Lehre und 13,5 Stunden Tutorium/tutorieller Betreuung. Das Modulpaket führt diese betreute Zeit als zwölf stabile Themenblöcke mit je drei UE. Die organisatorische Zuordnung der insgesamt jeweils 18 UE zu den beiden Workloadkategorien erfolgt bei der Terminplanung; sie verändert weder Kennung noch Inhalt der Themenblöcke und ordnet ihnen im curricularen Vertrag keine feste Kalenderwoche oder Modalität zu.
 
-### Zwei getrennte Kursläufe: Präsenz und Zoom
+### Einheitlicher Kursvertrag
 
-Die Kategorie `Präsenzstudium/synchrone virtuelle Lehre` erlaubt im vorliegenden Modulhandbuch beide Durchführungsformen. Für einen Präsenz- und einen Zoom-Kurslauf gelten deshalb dieselben Stunden, Ziele, Inhalte und Prüfungsanforderungen. Die 18 UE werden je Kurslauf nur einmal gezählt: im Raum **oder** synchron online. Auch die 18 UE Tutorium behalten in beiden Kursläufen ihren Workload-Status; nur Sozialform, Medium und Technik unterscheiden sich.
+Für jede Durchführung gelten dieselben zwölf Themenblöcke, 36 UE, Ziele, Inhalte, Lernprodukte und Prüfungsinformationen. Die konkrete Terminierung sowie organisatorische Entscheidungen über Raum oder Kommunikationsmedium sind nicht Teil des curricularen Vertrags.
 
-Die methodischen Varianten stehen im [Durchführungskonzept Präsenz/Zoom](./CLOUD-COMPUTING-DURCHFUEHRUNG-PRAESENZ-ZOOM.md).
+Der gemeinsame Mindeststandard steht im [modalitätsneutralen Durchführungskonzept](./CLOUD-COMPUTING-DURCHFUEHRUNG-MODALITAETSNEUTRAL.md).
 
 Das ausschließlich agentische Lehr- und Labormodell ist eine didaktische Ausgestaltung, keine zusätzliche Prüfungsform und kein zusätzlicher Workloadposten. Agenten, Zielserver, Rechte, Budgets und Evidenzpflicht sind im [Agentic-Lehrlabor](./CLOUD-COMPUTING-AGENTIC-LEHRLABOR.md) festgelegt.
 
@@ -82,17 +82,17 @@ Nach dem Modulhandbuch sollen Studierende nach erfolgreichem Abschluss:
 
 Die operationalisierten Lernergebnisse und Prüfungsbezüge stehen in der [Lernziel- und Alignment-Matrix](./Modulkonzept%20Cloud%20Computing/Lernziel_Alignment_Matrix.md).
 
-Die Teilnahme von Studierenden der Wirtschaftsinformatik ändert diese modulspezifischen Ziele und die Prüfungsform nicht. TCO, FinOps, Unit Economics, Build/Buy, Risiko und Exit werden als fallbezogener Transfer ergänzt und stets an die offiziellen Cloud-Inhalte zurückgebunden.
+Der Kurs richtet sich ausschließlich an Bachelorstudierende der Informatik. TCO, FinOps, Unit Economics, Build/Buy, Risiko und Exit werden als technische Betriebs- und Architekturentscheidungen vermittelt und stets an die offiziellen Cloud-Inhalte zurückgebunden.
 
 ## 5. Verbindliche Inhaltsabdeckung
 
-| Modulhandbuch                  | Unterpunkte                                             | Abdeckung im 12-Wochen-Plan |
-| ------------------------------ | ------------------------------------------------------- | --------------------------- |
-| Einführung in Cloud Computing  | Grundlagen, Service-Modelle, Nutzen und Risiken         | Woche 1                     |
-| Technologische Voraussetzungen | Virtualisierung/Container, Speicher, Netzwerke und REST | Wochen 2, 3 und 7           |
-| Serverloses Rechnen            | Einführung, Vorteile und Einschränkungen                | Woche 4                     |
-| Etablierte Cloud-Plattformen   | Google Cloud, AWS und Microsoft Azure                   | Wochen 5 und 10             |
-| Datenwissenschaft in der Cloud | Datenwissenschafts- und ML-Dienste der drei Plattformen | Woche 6                     |
+| Modulhandbuch                  | Unterpunkte                                             | Abdeckung in Themenblöcken |
+| ------------------------------ | ------------------------------------------------------- | -------------------------- |
+| Einführung in Cloud Computing  | Grundlagen, Service-Modelle, Nutzen und Risiken         | TB01                       |
+| Technologische Voraussetzungen | Virtualisierung/Container, Speicher, Netzwerke und REST | TB02, TB03 und TB07        |
+| Serverloses Rechnen            | Einführung, Vorteile und Einschränkungen                | TB04                       |
+| Etablierte Cloud-Plattformen   | Google Cloud, AWS und Microsoft Azure                   | TB05 und TB10              |
+| Datenwissenschaft in der Cloud | Datenwissenschafts- und ML-Dienste der drei Plattformen | TB06                       |
 
 Skalierung, Observability, Sicherheit, 6R und FinOps sind fallstudienbezogene Vertiefungen. Sie dürfen die fünf offiziellen Inhaltsblöcke nicht verdrängen.
 
@@ -163,9 +163,9 @@ Für die Durchführung gilt:
 - [ ] offizieller Bewertungsbogen mit 30/30/40-Gewichtung und zulässige Hilfsmittel veröffentlicht
 - [ ] zulässige Agentennutzung, Offenlegung und individuelle Verantwortung in der Prüfung geklärt
 - [ ] PDF-Abgabe per E-Mail, gemeinsamer Termin und 15 Minuten mündliche Prüfung je Person kommuniziert
-- [ ] 18 UE Präsenz/synchron und 18 UE Tutorium im Stundenplan abgebildet
-- [ ] Präsenz- und Zoom-Lauf verwenden denselben Workload, dieselben Lernziele und dieselbe Prüfungsinformation
-- [ ] bei virtueller Referatsprüfung Identifikation, Raumscan sowie durchgehendes Bild und Ton vorbereitet
+- [ ] zwölf stabile Themenblöcke mit insgesamt 36 UE veröffentlicht
+- [ ] 18 UE Präsenzstudium/synchrone virtuelle Lehre und 18 UE Tutorium/tutorielle Betreuung in der Terminplanung abgebildet
+- [ ] keine Kalender-, Modalitäts- oder Belastungsverteilung in den Themenblockkennungen hinterlegt
 - [ ] 123 Stunden Selbststudium durch realistische Arbeitsaufträge strukturiert
 - [ ] agentische Serverinstallation/Härtung sowie Security-, Privacy-, Performance- und Wirtschaftsworkflows innerhalb des Workloads abgebildet
 - [ ] alle fünf Inhaltsblöcke und Qualifikationsziele nachweisbar abgedeckt

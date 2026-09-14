@@ -6,7 +6,7 @@
 **Anderer Kurs:** Für die Bachelor-Vorlesung **Cloud Computing** (Modul `DSCC0127`) starte bei
 [`Modulkonzept_Cloud_Computing.md`](./Modulkonzept%20Cloud%20Computing/Modulkonzept_Cloud_Computing.md),
 nutze den
-[`Wochenlehrplan_Cloud_Computing_12_Wochen.md`](./Modulkonzept%20Cloud%20Computing/Wochenlehrplan_Cloud_Computing_12_Wochen.md)
+[`Themenblockplan_Cloud_Computing_12_Themenbloecke.md`](./Modulkonzept%20Cloud%20Computing/Themenblockplan_Cloud_Computing_12_Themenbloecke.md)
 und führe den Kurs mit dem
 [`Lehrenden_Runbook.md`](./Modulkonzept%20Cloud%20Computing/Lehrenden_Runbook.md) durch. Der
 [`Materialindex.md`](./Modulkonzept%20Cloud%20Computing/Materialindex.md) enthält das vollständige

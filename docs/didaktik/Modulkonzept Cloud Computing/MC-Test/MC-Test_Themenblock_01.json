@@ -1,0 +1,585 @@
+{
+  "meta": {
+    "title": "Cloud Computing – MC-Test Themenblock TB01: Merkmale, Modelle und sicherer Agentenauftrag",
+    "target_audience": "Bachelorstudierende der Informatik im Modul Cloud Computing",
+    "question_count": 30,
+    "difficulty_profile": { "leicht": 0, "mittel": 12, "schwer": 18 },
+    "time_per_weight_minutes": { "1": 0.5, "2": 0.75, "3": 1.0 },
+    "additional_buffer_minutes": 5,
+    "test_duration_minutes": 32,
+    "language": "de",
+    "updated": "2026-09-14"
+  },
+  "questions": [
+    {
+      "question": "1. Ein externes Rechenzentrum stellt seit Jahren einen festen Server mit Jahrespauschale bereit. Welche zusätzliche Fähigkeit wäre der stärkste Beleg für Rapid Elasticity?",
+      "options": [
+        "Die Hardware wird außerhalb des Unternehmensgebäudes durch Fachpersonal gewartet.",
+        "Die Serverleistung wird einmal pro Jahr nach einer Vertragsänderung erweitert.",
+        "Die Kapazität wird automatisiert bedarfsgerecht erhöht und später wieder freigegeben.",
+        "Die bestehende Serverleistung wird in einem Portal als Cloud-Kapazität bezeichnet."
+      ],
+      "answer": 2,
+      "explanation": "Rapid Elasticity verlangt, dass Kapazität zeitnah und bedarfsgerecht bereitgestellt und wieder reduziert werden kann. Externer Standort, Marketingbegriff oder seltene manuelle Vertragsänderung belegen diese Eigenschaft nicht.",
+      "weight": 2,
+      "topic": "Cloud-Merkmale",
+      "concept": "Rapid Elasticity gegenüber festem Hosting",
+      "cognitive_level": "Verständnis",
+      "mini_glossary": {
+        "Rapid Elasticity": "Schnelle, bedarfsgerechte Zu- und Freigabe von Ressourcen.",
+        "Hosting": "Bereitstellung von informationstechnischen Ressourcen durch einen externen Betreiber ohne zwingende Cloud-Eigenschaften."
+      }
+    },
+    {
+      "question": "2. Ein Anbieter betreibt viele virtuelle Maschinen (VMs) für Kunden. Welche Beobachtung weist am klarsten auf Resource Pooling statt nur auf Virtualisierung hin?",
+      "options": [
+        "Jede VM verwendet ein eigenes Gastbetriebssystem mit eigener Prozessliste.",
+        "Jede VM lässt sich über eine grafische Konsole starten und stoppen.",
+        "Physische Ressourcen werden mandantenfähig aus einem gemeinsamen Pool dynamisch zugewiesen.",
+        "Physische Server werden in einem abgeschlossenen Rechenzentrum in Racks montiert."
+      ],
+      "answer": 2,
+      "explanation": "Resource Pooling beschreibt die gemeinsame, mandantenfähige Nutzung eines Ressourcenpools mit dynamischer Zuweisung. Eine VM oder Verwaltungskonsole allein belegt nur Abstraktion beziehungsweise Bedienbarkeit, nicht den Pooling-Mechanismus.",
+      "weight": 2,
+      "topic": "Cloud-Merkmale",
+      "concept": "Resource Pooling und Mandantenfähigkeit",
+      "cognitive_level": "Verständnis",
+      "mini_glossary": {
+        "Resource Pooling": "Gemeinsame Bündelung und dynamische Zuweisung von Rechenressourcen.",
+        "Mandantenfähigkeit": "Getrennte Nutzung gemeinsamer Infrastruktur durch mehrere Kundenkontexte."
+      }
+    },
+    {
+      "question": "3. Welche Betriebsinformation erfüllt Measured Service am unmittelbarsten?",
+      "options": [
+        "Ressourcennutzung wird automatisch erfasst, kontrolliert und für Anbieter und Nutzer transparent berichtet.",
+        "Ressourcennutzung wird ausschließlich am Vertragsende manuell aus Logdateien geschätzt.",
+        "Ressourcennutzung bleibt verborgen, solange das vereinbarte Monatsbudget nicht überschritten wird.",
+        "Ressourcennutzung wird nur als technische Maximalleistung des physischen Servers dokumentiert."
+      ],
+      "answer": 0,
+      "explanation": "Measured Service setzt eine automatische Messung, Steuerung und transparente Berichterstattung der Nutzung voraus. Eine nutzungsabhängige Rechnung kann daraus folgen, ist aber nicht durch manuelle Schätzung oder bloße Nennleistung ersetzt.",
+      "weight": 2,
+      "topic": "Cloud-Merkmale",
+      "concept": "Messbare und transparente Ressourcennutzung",
+      "cognitive_level": "Verständnis",
+      "mini_glossary": {
+        "Measured Service": "Automatisch gemessene, kontrollierte und transparent berichtete Ressourcennutzung.",
+        "Nutzungsmetrik": "Messgröße wie Laufzeit, Speicherbelegung oder übertragene Datenmenge."
+      }
+    },
+    {
+      "question": "4. Ein interner Dienst ist nur über ein Virtual Private Network (VPN) der Hochschule erreichbar, funktioniert dort aber per Hypertext Transfer Protocol Secure (HTTPS) auf Laptops und Smartphones. Welche Bewertung von Broad Network Access ist fachlich angemessen?",
+      "options": [
+        "Das Merkmal fehlt, weil ein geschützter Netzzugang nicht als standardisierter Zugriffsmechanismus gelten kann.",
+        "Das Merkmal ist erfüllt und weist das Deployment damit zugleich als Private Cloud aus.",
+        "Das Merkmal bleibt unbestimmbar, weil unterschiedliche Clientklassen nur bei öffentlichen Diensten relevant sind.",
+        "Das Merkmal kann erfüllt sein, weil standardisierte Netzzugriffe für unterschiedliche Clientklassen bereitstehen."
+      ],
+      "answer": 3,
+      "explanation": "Broad Network Access verlangt den Zugriff über Netze und Standardmechanismen für unterschiedliche Clientklassen, nicht zwingend eine öffentliche Internetfreigabe. Ein VPN kann den Zugang begrenzen, ohne das Merkmal prinzipiell auszuschließen.",
+      "weight": 2,
+      "topic": "Cloud-Merkmale",
+      "concept": "Broad Network Access ohne Public-Cloud-Zwang",
+      "cognitive_level": "Verständnis",
+      "mini_glossary": {
+        "Broad Network Access": "Netzbasierter Zugriff über Standardmechanismen für unterschiedliche Endgeräte.",
+        "VPN": "Logisch geschützter Netzzugang zu nicht öffentlich erreichbaren Ressourcen."
+      }
+    },
+    {
+      "question": "5. Ein Entwickler kann eine Test-VM im Katalog auswählen, muss danach jedoch ein Ticket eröffnen; ein Administrator legt die VM drei Arbeitstage später manuell an. Welches Cloud-Merkmal ist am deutlichsten eingeschränkt?",
+      "options": [
+        "Measured Service, weil ein Ticket keine technische Nutzungsmetrik enthält",
+        "On-demand Self-service, weil die Bereitstellung eine menschliche Vermittlung erfordert",
+        "Resource Pooling, weil Administratoren keine gemeinsam genutzte Hardware betreiben dürfen",
+        "Broad Network Access, weil ein Servicekatalog keinen Netzwerkzugang bereitstellen kann"
+      ],
+      "answer": 1,
+      "explanation": "On-demand Self-service zielt auf die eigenständige Bereitstellung ohne notwendige menschliche Interaktion mit dem Anbieter. Ein sichtbarer Katalog genügt nicht, wenn jede Anforderung weiterhin manuell vermittelt wird.",
+      "weight": 2,
+      "topic": "Cloud-Merkmale",
+      "concept": "Self-Service versus manuelles Provisioning",
+      "cognitive_level": "Anwendung",
+      "mini_glossary": {
+        "On-demand Self-service": "Eigenständige Ressourcenanforderung ohne erforderliche menschliche Anbieterinteraktion.",
+        "Provisioning": "Technische Bereitstellung und Konfiguration einer Ressource."
+      }
+    },
+    {
+      "question": "6. Ein Team erhält virtuelle Maschinen, Netz und Blockspeicher; Betriebssystem, Middleware und Anwendung betreibt es selbst. Welches der Modelle Infrastructure as a Service (IaaS), Platform as a Service (PaaS), Software as a Service (SaaS) oder Backend as a Service (BaaS) beschreibt diese Grenze?",
+      "options": [
+        "SaaS, weil die Anwendung über ein Netzwerk erreichbar gemacht wird",
+        "PaaS, weil der Anbieter die eingesetzte Middleware vollständig verwaltet",
+        "BaaS, weil Blockspeicher als Backend-Fähigkeit bereitgestellt wird",
+        "IaaS, weil der Anbieter Basisressourcen liefert und das Team den Gast-Stack betreibt"
+      ],
+      "answer": 3,
+      "explanation": "IaaS stellt typischerweise Compute-, Speicher- und Netzwerkressourcen bereit, während das nutzende Team Gastbetriebssystem und darüberliegende Schichten verantwortet. Netzwerkzugriff allein macht daraus weder SaaS noch PaaS.",
+      "weight": 2,
+      "topic": "Service-Modelle",
+      "concept": "IaaS-Verantwortungsgrenze",
+      "cognitive_level": "Anwendung",
+      "mini_glossary": {
+        "IaaS": "Bereitstellung virtualisierter Rechen-, Speicher- und Netzwerkressourcen.",
+        "Gast-Stack": "Betriebssystem und darauf installierte Laufzeit- und Anwendungsschichten einer VM."
+      }
+    },
+    {
+      "question": "7. Ein Team wechselt von selbst verwalteten VMs zu einer Plattform, die Laufzeit, Patches und Autoscaling übernimmt. Welche Folge ist am plausibelsten?",
+      "options": [
+        "Der Betriebsaufwand sinkt, während Plattformvorgaben und Anbieterabhängigkeit zunehmen können.",
+        "Der Anbieter übernimmt Laufzeitsicherheit, während das Team nur noch fachliche Datenrisiken bewertet.",
+        "Die variable Skalierung senkt die Gesamtkosten auch bei dauerhafter Grundlast gegenüber dem VM-Betrieb.",
+        "Die verwaltete Laufzeit erleichtert den Wechsel, obwohl Plattformverträge und Dienste unterschiedlich bleiben."
+      ],
+      "answer": 0,
+      "explanation": "PaaS kann Patch-, Laufzeit- und Skalierungsbetrieb abnehmen, bindet die Anwendung aber stärker an Plattformverträge und unterstützte Komponenten. Sicherheit, Kosten und Portabilität müssen weiterhin konkret geprüft werden.",
+      "weight": 2,
+      "topic": "Service-Modelle",
+      "concept": "PaaS-Trade-off zwischen Betrieb und Bindung",
+      "cognitive_level": "Anwendung",
+      "mini_glossary": {
+        "PaaS": "Verwaltete Anwendungsplattform mit bereitgestellter Laufzeitumgebung.",
+        "Plattformbindung": "Abhängigkeit von spezifischen Schnittstellen, Laufzeiten oder Betriebsmechanismen."
+      }
+    },
+    {
+      "question": "8. Eine Hochschule nutzt ein fertiges Kollaborationssystem als SaaS. Welche Aufgabe bleibt typischerweise bei der Hochschule?",
+      "options": [
+        "Die Firmware der physischen Storage-Controller des Anbieters aktualisieren",
+        "Rollen, Freigaben, Aufbewahrung und zulässige Datenverwendung konfigurieren",
+        "Den Hypervisor des Anbieterclusters installieren und regelmäßig neu starten",
+        "Die Netzstromversorgung und Zutrittskontrolle im Anbieterrechenzentrum betreiben"
+      ],
+      "answer": 1,
+      "explanation": "Auch bei SaaS bleibt der Kunde für seine Mandantenkonfiguration, Identitäten, Freigaben und regelkonforme Datennutzung verantwortlich. Physische Infrastruktur und Hypervisorbetrieb liegen dagegen typischerweise beim Anbieter.",
+      "weight": 2,
+      "topic": "Service-Modelle",
+      "concept": "Kundenverantwortung bei SaaS",
+      "cognitive_level": "Anwendung",
+      "mini_glossary": {
+        "SaaS": "Nutzungsfertige Anwendung, die als Dienst bereitgestellt wird.",
+        "Mandantenkonfiguration": "Kundenspezifische Einstellung von Rollen, Richtlinien und Funktionen."
+      }
+    },
+    {
+      "question": "9. Ein Anbieter betreibt eine verwaltete Datenbank mit automatischen Patches und Backups; das Kundenteam definiert Schema, Zugriffsrollen und Daten. Welche Einordnung ist am tragfähigsten?",
+      "options": [
+        "SaaS, weil jede Datenbank bereits eine vollständige Fachanwendung darstellt",
+        "PaaS, weil eine verwaltete Plattformfähigkeit für eigene Anwendungen bereitsteht",
+        "IaaS, weil der Kunde keine physischen Datenträger unmittelbar besitzt",
+        "Private Cloud, weil Datenbanken grundsätzlich nur einer Organisation dienen"
+      ],
+      "answer": 1,
+      "explanation": "Eine verwaltete Datenbank ist eine Plattformfähigkeit, auf der eigene Anwendungen und Datenmodelle aufbauen. Fehlender Hardwarebesitz bestimmt das Service-Modell nicht, und ein Deployment-Modell lässt sich daraus ebenfalls nicht ableiten.",
+      "weight": 2,
+      "topic": "Service-Modelle",
+      "concept": "Managed Database als Plattformdienst",
+      "cognitive_level": "Anwendung",
+      "mini_glossary": {
+        "Managed Database": "Datenbankdienst mit vom Anbieter betriebenen Infrastruktur- und Laufzeitanteilen.",
+        "Service-Modell": "Aufteilung der verwalteten technischen Schichten zwischen Anbieter und Kunde."
+      }
+    },
+    {
+      "question": "10. Zwei Angebote heißen beide »Cloud Platform«. Welche Information trennt IaaS und PaaS zuverlässig?",
+      "options": [
+        "Wer Gastbetriebssystem, Laufzeit, Patches und Anwendungsdeployment verantwortet",
+        "Welche Farbe das Verwaltungsportal und das Anbieterlogo verwenden",
+        "Ob der Dienst monatlich oder jährlich in Rechnung gestellt wird",
+        "Ob das Rechenzentrum im Inland oder im Ausland betrieben wird"
+      ],
+      "answer": 0,
+      "explanation": "IaaS und PaaS unterscheiden sich primär durch die Verantwortung für Betriebssystem und Laufzeitplattform. Abrechnungsperiode, Standort und Oberfläche können wichtig sein, definieren aber diese Servicegrenze nicht.",
+      "weight": 2,
+      "topic": "Service-Modelle",
+      "concept": "Service-Modell aus Verantwortungen ableiten",
+      "cognitive_level": "Anwendung",
+      "mini_glossary": {
+        "Verantwortungsgrenze": "Zuordnung, welche Partei eine technische Schicht betreibt und absichert.",
+        "Laufzeitplattform": "Umgebung, in der Anwendungscode ausgeführt, skaliert und überwacht wird."
+      }
+    },
+    {
+      "question": "11. Ein Unternehmen nutzt ausschließlich gemeinsam angebotene Providerressourcen, die grundsätzlich mehreren Kunden offenstehen. Welches Deployment-Modell liegt vor?",
+      "options": [
+        "Private Cloud, weil das Unternehmen eigene Mandantenkonten verwendet",
+        "Hybrid Cloud, weil Netzwerk und Anwendung unterschiedliche Schichten bilden",
+        "Multi-Cloud, weil der Provider intern mehrere Rechenzentren betreibt",
+        "Public Cloud, weil die Infrastruktur für eine breite Kundengruppe angeboten wird"
+      ],
+      "answer": 3,
+      "explanation": "Public Cloud beschreibt eine Infrastruktur, die einer breiten Kundengruppe zur Nutzung offensteht. Eigene Konten schaffen logische Trennung, aber keine exklusive Private Cloud; interne Providerstandorte bedeuten auch nicht Multi-Cloud.",
+      "weight": 2,
+      "topic": "Deployment-Modelle",
+      "concept": "Public Cloud aus Zugänglichkeit ableiten",
+      "cognitive_level": "Anwendung",
+      "mini_glossary": {
+        "Public Cloud": "Cloud-Infrastruktur, die einer breiten Kundengruppe angeboten wird.",
+        "Mandant": "Logisch getrennter Kundenkontext auf gemeinsam betriebener Infrastruktur."
+      }
+    },
+    {
+      "question": "12. Eine Cloud-Plattform wird exklusiv für eine einzelne Hochschule betrieben und von einem externen Dienstleister verwaltet. Welche Einordnung ist korrekt?",
+      "options": [
+        "Private Cloud, weil die exklusive Nutzung durch eine Organisation entscheidend und Fremdbetrieb zulässig ist",
+        "Public Cloud, weil jeder externe Betrieb automatisch öffentlich zugängliche Ressourcen voraussetzt",
+        "Hybrid Cloud, weil Betreiber und nutzende Organisationen rechtlich voneinander getrennt sind",
+        "Multi-Cloud, weil mehrere Abteilungen derselben Hochschule die Plattform gemeinsam verwenden"
+      ],
+      "answer": 0,
+      "explanation": "Eine Private Cloud kann exklusiv für eine einzelne Organisation bereitstehen und dennoch von einem externen Dienstleister betrieben werden. Betreiberstandort und interne Zahl der nutzenden Abteilungen ändern das Modell nicht.",
+      "weight": 2,
+      "topic": "Deployment-Modelle",
+      "concept": "Extern betriebene Private Cloud",
+      "cognitive_level": "Anwendung",
+      "mini_glossary": {
+        "Private Cloud": "Cloud-Infrastruktur, die exklusiv für eine einzelne Organisation bereitgestellt wird.",
+        "Fremdbetrieb": "Betrieb einer Ressource durch einen externen Dienstleister."
+      }
+    },
+    {
+      "question": "13. Eine Bank verarbeitet Kerndaten in ihrer Private Cloud und verschiebt anonymisierte Spitzenlast automatisiert in eine Public Cloud. Welche Eigenschaft begründet die Hybrid-Cloud-Einordnung?",
+      "options": [
+        "Beide Umgebungen verwenden virtuelle Maschinen mit ähnlichen Gastbetriebssystemen.",
+        "Private und öffentliche Cloud bleiben unterscheidbar, sind aber für Daten- und Lastflüsse gekoppelt.",
+        "Beide Umgebungen werden in derselben Währung und über dieselbe Kostenstelle abgerechnet.",
+        "Private und öffentliche Cloud werden vollständig zu einem einzigen physischen Cluster vereinigt."
+      ],
+      "answer": 1,
+      "explanation": "Hybrid Cloud verbindet unterschiedliche, weiterhin eigenständige Cloud-Infrastrukturen durch Portabilitäts- oder Integrationsmechanismen. Gemeinsame Technik oder Abrechnung reicht nicht; vollständige physische Verschmelzung ist ebenfalls nicht erforderlich.",
+      "weight": 3,
+      "topic": "Deployment-Modelle",
+      "concept": "Kopplung eigenständiger Clouds",
+      "cognitive_level": "Analyse",
+      "mini_glossary": {
+        "Hybrid Cloud": "Verbund aus mindestens zwei eigenständigen privaten, Community- oder öffentlichen Cloud-Infrastrukturen.",
+        "Portabilität": "Übertragbarkeit von Daten oder Workloads zwischen Umgebungen."
+      }
+    },
+    {
+      "question": "14. Ein Unternehmen nutzt Objektspeicher bei Anbieter X und eine Analyseplattform bei Anbieter Y, ohne Private-Cloud-Komponente. Welche Bezeichnung trifft die Strategie am besten?",
+      "options": [
+        "Hybrid Cloud, weil Speicher und Analyse verschiedene technische Schichten bilden",
+        "Private Cloud, weil die Datenzugriffe auf zwei getrennte Mandanten begrenzt sind",
+        "Community Cloud, weil beide Anbieter dieselbe Kundengruppe bedienen können",
+        "Multi-Cloud, weil Dienste mehrerer Cloud-Anbieter gemeinsam eingesetzt werden"
+      ],
+      "answer": 3,
+      "explanation": "Multi-Cloud bezeichnet die Nutzung von Cloud-Diensten mehrerer Anbieter. Hybrid Cloud setzt dagegen einen Verbund eigenständiger Cloud-Infrastrukturen voraus. Multi-Cloud ist eine Anbieterstrategie und kein fünftes NIST-Bereitstellungsmodell.",
+      "weight": 3,
+      "topic": "Cloud-Einordnung",
+      "concept": "Multi-Cloud als anbieterübergreifende Strategie",
+      "cognitive_level": "Analyse",
+      "mini_glossary": {
+        "Multi-Cloud": "Strategie, die Dienste mehrerer Cloud-Anbieter einsetzt.",
+        "Bereitstellungsmodell": "NIST-Klassifikation einer Cloud-Infrastruktur nach Nutzungsgruppe und Kopplung."
+      }
+    },
+    {
+      "question": "15. Mehrere kommunale Gesundheitsämter nutzen exklusiv eine gemeinsame Cloud-Infrastruktur, weil sie dieselben gesetzlichen, Sicherheits- und Compliance-Anforderungen teilen. Welche Einordnung nach NIST ist korrekt?",
+      "options": [
+        "Community Cloud, weil eine abgegrenzte Gemeinschaft mehrerer Organisationen gemeinsame Anforderungen teilt",
+        "Private Cloud, weil jede exklusiv zugängliche Infrastruktur nur einer einzelnen Organisation dienen darf",
+        "Public Cloud, weil öffentlich-rechtliche Organisationen automatisch die allgemeine Öffentlichkeit bilden",
+        "Multi-Cloud, weil mehrere Organisationen unabhängig von der Zahl der eingesetzten Anbieter beteiligt sind"
+      ],
+      "answer": 0,
+      "explanation": "NIST definiert die Community Cloud als exklusiv für eine bestimmte Gemeinschaft von Organisationen mit gemeinsamen Anliegen bereitgestellte Infrastruktur. Mehrere öffentliche Stellen machen sie weder zur Public Cloud noch zu einer Multi-Cloud-Strategie.",
+      "weight": 3,
+      "topic": "Deployment-Modelle",
+      "concept": "Community Cloud für organisationsübergreifend geteilte Anliegen",
+      "cognitive_level": "Analyse",
+      "mini_glossary": {
+        "Community Cloud": "Cloud-Infrastruktur zur exklusiven Nutzung durch eine bestimmte Gemeinschaft mehrerer Organisationen.",
+        "Gemeinsame Anliegen": "Geteilte Mission, Sicherheitsanforderungen, Richtlinien oder Compliance-Vorgaben."
+      }
+    },
+    {
+      "question": "16. In einer IaaS-VM ist eine Datenbank wegen einer zu weit geöffneten kundenseitigen Firewall öffentlich erreichbar. Welche Verantwortungsanalyse ist am treffendsten?",
+      "options": [
+        "Das Kundenteam verantwortet die konfigurierte Freigabe; der Anbieter verantwortet weiterhin seine Infrastrukturkontrollen.",
+        "Der Anbieter verantwortet allein jede Netzwerkfreigabe, weil die virtuelle Netztechnik auf seiner Hardware läuft.",
+        "Das Kundenteam verantwortet allein auch Zutrittskontrolle und Stromversorgung des Anbieterrechenzentrums.",
+        "Keine Partei trägt Verantwortung, weil Shared Responsibility Risiken zwischen beiden Seiten neutralisiert."
+      ],
+      "answer": 0,
+      "explanation": "Bei IaaS konfiguriert das Kundenteam typischerweise virtuelle Firewallregeln und Anwendungszugriffe, während der Anbieter die darunterliegende Infrastruktur schützt. Geteilte Verantwortung bedeutet Zuordnung, nicht Aufhebung von Verantwortung.",
+      "weight": 3,
+      "topic": "Shared Responsibility",
+      "concept": "Fehlkonfiguration in der Kundenschicht",
+      "cognitive_level": "Analyse",
+      "mini_glossary": {
+        "Shared Responsibility": "Aufteilung von Sicherheits- und Betriebsaufgaben zwischen Anbieter und Kunde.",
+        "Virtuelle Firewall": "Softwaredefinierte Regelmenge für erlaubte Netzverbindungen."
+      }
+    },
+    {
+      "question": "17. Ein SaaS-Anbieter patcht die Anwendung, doch eine Fakultät vergibt allen Beschäftigten globale Administrationsrechte. Wer muss die fehlerhafte Rollenvergabe primär korrigieren?",
+      "options": [
+        "Der Hardwarehersteller, weil Prozessoren die Rollenprüfung technisch ausführen",
+        "Der Netzbetreiber, weil Administrationsaktionen über dessen Leitungen übertragen werden",
+        "Der SaaS-Anbieter, weil Kundenkonfiguration niemals Teil der Kundenschicht sein kann",
+        "Die Fakultät, weil sie Identitäten und Berechtigungen in ihrem Mandanten konfiguriert"
+      ],
+      "answer": 3,
+      "explanation": "Der SaaS-Anbieter betreibt Anwendung und Infrastruktur, doch die Organisation verwaltet typischerweise Nutzerrollen in ihrem Mandanten. Eine sichere Plattform verhindert nicht automatisch fachlich überbreite kundenseitige Berechtigungen.",
+      "weight": 3,
+      "topic": "Shared Responsibility",
+      "concept": "Mandantenrollen als Kundenpflicht",
+      "cognitive_level": "Analyse",
+      "mini_glossary": {
+        "Rollenvergabe": "Zuordnung von Berechtigungsbündeln zu Identitäten.",
+        "Mandant": "Abgegrenzter Kundenkontext innerhalb eines gemeinsam angebotenen Dienstes."
+      }
+    },
+    {
+      "question": "18. Eine Managed Database verschlüsselt Datenträger automatisch. Welche zusätzliche Kundenaufgabe bleibt für vertrauliche Forschungsdaten bestehen?",
+      "options": [
+        "Daten klassifizieren, Zugriffe minimieren und Schlüssel- sowie Exportpfade passend konfigurieren",
+        "Die physischen Festplatten täglich ausbauen und mit eigener Firmware neu initialisieren",
+        "Die Verschlüsselung als vollständigen Ersatz für Rollen, Backups und Löschregeln behandeln",
+        "Alle Daten öffentlich lesbar machen, weil Datenträgerverschlüsselung unbefugte Abfragen verhindert"
+      ],
+      "answer": 0,
+      "explanation": "Datenträgerverschlüsselung schützt einen bestimmten Speicherpfad, ersetzt aber keine Datenklassifikation, Autorisierung, Schlüsselentscheidung oder kontrollierte Exporte. Schutzmaßnahmen müssen zur verbleibenden Kundenschicht passen.",
+      "weight": 3,
+      "topic": "Shared Responsibility",
+      "concept": "Verschlüsselung ohne Verantwortungsillusion",
+      "cognitive_level": "Analyse",
+      "mini_glossary": {
+        "Datenträgerverschlüsselung": "Verschlüsselung gespeicherter Blöcke auf einem Speichermedium.",
+        "Datenklassifikation": "Einordnung von Daten nach Schutzbedarf und zulässiger Verarbeitung."
+      }
+    },
+    {
+      "question": "19. Ein Cloud-Anbieter legt ein aktuelles Compliance-Zertifikat vor. Welche Schlussfolgerung wäre unzulässig?",
+      "options": [
+        "Der Prüfbereich und die ausgeschlossenen Dienste müssen mit dem eigenen Einsatz verglichen werden.",
+        "Kundenseitige Konfigurationen und Datenflüsse benötigen weiterhin eine eigene Risikoprüfung.",
+        "Das Zertifikat überträgt sämtliche Sicherheits-, Datenschutz- und Betriebsverantwortung auf den Anbieter.",
+        "Vertrags-, Regionen- und Unterauftragnehmerangaben müssen für den konkreten Workload geprüft werden."
+      ],
+      "answer": 2,
+      "explanation": "Ein Zertifikat belegt Kontrollen nur innerhalb seines definierten Prüfbereichs und ersetzt keine Bewertung des konkreten Einsatzes. Kundenkonfiguration, Datenwahl und rechtliche Pflichten bleiben außerhalb oder neben diesem Nachweis relevant.",
+      "weight": 3,
+      "topic": "Shared Responsibility",
+      "concept": "Geltungsgrenze von Compliance-Nachweisen",
+      "cognitive_level": "Analyse",
+      "mini_glossary": {
+        "Prüfbereich": "Explizit erfasste Systeme, Prozesse und Zeiträume eines Audits.",
+        "Compliance": "Einhaltung festgelegter rechtlicher, normativer oder vertraglicher Anforderungen."
+      }
+    },
+    {
+      "question": "20. Ein IaaS-Anbieter meldet eine gepatchte Hypervisorlücke. Monate später wird die Anwendung über eine ungepatchte Bibliothek im Gastbetriebssystem kompromittiert. Welche Analyse passt zur Servicegrenze?",
+      "options": [
+        "Der Anbieter hat versagt, weil ein gepatchter Hypervisor jede Bibliothekslücke im Gast beseitigen müsste.",
+        "Das Kundenteam hat seine Gast- und Anwendungsschicht nicht ausreichend gepatcht, obwohl die Providerkontrolle wirkte.",
+        "Die Bibliothek liegt außerhalb jeder Verantwortung, weil Open-Source-Komponenten keinen Betreiber besitzen.",
+        "Die Kompromittierung beweist, dass Shared Responsibility ausschließlich bei SaaS sinnvoll anwendbar ist."
+      ],
+      "answer": 1,
+      "explanation": "Das Hypervisorpatch adressiert die Infrastrukturschicht des Anbieters, nicht Bibliotheken im kundenseitig betriebenen Gast. Ein erfolgreicher Providerpatch kompensiert daher kein fehlendes Patchmanagement der Anwendungsschicht.",
+      "weight": 3,
+      "topic": "Shared Responsibility",
+      "concept": "Schichtbezogenes Patchmanagement",
+      "cognitive_level": "Analyse",
+      "mini_glossary": {
+        "Hypervisor": "Softwareschicht zur Ausführung und Isolation virtueller Maschinen.",
+        "Patchmanagement": "Geplanter Prozess zum Bewerten, Testen und Einspielen von Aktualisierungen."
+      }
+    },
+    {
+      "question": "21. Der aktuelle Produktionspfad von arsnova.eu nutzt einen selbst betriebenen Compose-Stack auf einem Root-Server. Warum ist die Einordnung als Self-managed-IaaS-Fall plausibel?",
+      "options": [
+        "Weil jeder Docker-Container automatisch als vollständig verwalteter Plattformdienst gilt",
+        "Weil die Angular-Anwendung durch einen Browser genutzt und deshalb als SaaS eingekauft wird",
+        "Weil Basisinfrastruktur gemietet wird, während das Projekt Betriebssystem-, Container- und App-Betrieb verantwortet",
+        "Weil ein Root-Server unabhängig von Bereitstellung und Messbarkeit stets alle Cloud-Merkmale erfüllt"
+      ],
+      "answer": 2,
+      "explanation": "Der Self-managed-IaaS-Bezug folgt aus gemieteter Basisinfrastruktur bei weitreichendem Eigenbetrieb des Softwarestacks. Container und Browserzugriff ändern diese Verantwortungsgrenze nicht und belegen allein auch keine vollständige Cloud-Definition.",
+      "weight": 3,
+      "topic": "Cloud-Einordnung",
+      "concept": "arsnova.eu als Self-managed-IaaS-Fall",
+      "cognitive_level": "Analyse",
+      "mini_glossary": {
+        "Self-managed": "Vom nutzenden Team selbst installierte, gepatchte und betriebene Softwareschichten.",
+        "Compose-Stack": "Deklarierte Zusammenstellung mehrerer Containerdienste auf einem Docker-Ziel."
+      }
+    },
+    {
+      "question": "22. Ein Anbieter vermietet arsnova.eu auf einer festen VM mit manueller Kapazitätsänderung und Pauschalpreis. Welche Aussage ist methodisch sauber?",
+      "options": [
+        "Die externe VM beweist alle fünf Cloud-Merkmale, weil Virtualisierung die Kriterien des National Institute of Standards and Technology (NIST) zusammenfasst.",
+        "Der Pauschalpreis widerlegt Cloud Computing vollständig, weil Measured Service zwingend eine Einzelrechnung verlangt.",
+        "Der Anwendungsname entscheidet die Einordnung, weil cloudfähige Software ihre Infrastruktur automatisch klassifiziert.",
+        "Die VM kann IaaS-nah sein, doch Self-Service, Elastizität, Pooling und Messbarkeit müssen getrennt belegt werden."
+      ],
+      "answer": 3,
+      "explanation": "Virtualisierung und externer Betrieb liefern noch keinen vollständigen Nachweis aller Cloud-Merkmale. Eine belastbare Einordnung prüft jede Fähigkeit und ihre Betriebswirkung, statt vom Produkt oder Preismodell auf das Gesamtmodell zu schließen.",
+      "weight": 3,
+      "topic": "Cloud-Einordnung",
+      "concept": "Cloud-Merkmale einzeln operationalisieren",
+      "cognitive_level": "Analyse",
+      "mini_glossary": {
+        "Operationalisierung": "Übersetzung eines Begriffs in prüfbare Beobachtungen.",
+        "IaaS-nah": "Mit IaaS vergleichbare Bereitstellung, ohne damit alle Cloud-Merkmale zu behaupten."
+      }
+    },
+    {
+      "question": "23. Ein Agent stuft einen Dienst als Cloud ein, markiert Self-Service, Elastizität und Messbarkeit jedoch nur als Annahmen aus einer Marketingseite. Wie sollte das Team weiterarbeiten?",
+      "options": [
+        "Jede Annahme in eine beobachtbare Behauptung übersetzen, unabhängig prüfen und offene Punkte kenntlich lassen.",
+        "Die Einordnung übernehmen, weil mehrere Cloud-Begriffe auf derselben Anbieterseite gemeinsam erscheinen.",
+        "Die Zahl der genannten Merkmale zählen und ab drei Nennungen auf weitere technische Prüfung verzichten.",
+        "Denselben Agenten ohne neue Quellen erneut fragen und die häufigste Formulierung als Evidenz behandeln."
+      ],
+      "answer": 0,
+      "explanation": "Annahmen werden erst durch definierte Beobachtungen, belastbare Quellen oder kontrollierte Versuche zu Evidenz. Wiederholung und Begriffszählung bestätigen lediglich denselben unbelegten Ausgangspunkt.",
+      "weight": 3,
+      "topic": "Cloud-Einordnung",
+      "concept": "Fakten- und Annahmentrennung bei der Einordnung",
+      "cognitive_level": "Analyse",
+      "mini_glossary": {
+        "Annahme": "Noch nicht hinreichend belegte Voraussetzung oder Behauptung.",
+        "Evidenz": "Nachprüfbarer Beleg mit erkennbarem Geltungsbereich."
+      }
+    },
+    {
+      "question": "24. Ein Dienstleister übernimmt Support, Deployment und Bereitschaft, nutzt aber denselben unveränderlichen Einzelserver. Warum ist Outsourcing noch kein Cloud-Nachweis?",
+      "options": [
+        "Weil ausgelagerter Betrieb ausschließlich bei eigener Hardware als Cloud gelten kann",
+        "Weil Supportleistungen keine Kosten verursachen und daher Measured Service ausschließen",
+        "Weil die Übertragung von Tätigkeiten nicht automatisch Self-Service, Pooling oder Elastizität schafft",
+        "Weil ein Einzelserver niemals Teil einer Cloud-Infrastruktur oder eines IaaS-Angebots sein kann"
+      ],
+      "answer": 2,
+      "explanation": "Outsourcing verschiebt ausführende Rollen, sagt aber nichts darüber aus, ob Ressourcen cloudtypisch bereitgestellt, gebündelt, gemessen und angepasst werden. Ein ausgelagerter fester Server kann weiterhin klassisches Hosting bleiben.",
+      "weight": 3,
+      "topic": "Cloud-Einordnung",
+      "concept": "Outsourcing versus Cloud-Fähigkeit",
+      "cognitive_level": "Analyse",
+      "mini_glossary": {
+        "Outsourcing": "Übertragung von Tätigkeiten oder Prozessen an einen externen Dienstleister.",
+        "Cloud-Fähigkeit": "Prüfbare technische oder betriebliche Eigenschaft eines Cloud-Modells."
+      }
+    },
+    {
+      "question": "25. Für arsnova.eu werden Self-managed IaaS und eine Managed Platform verglichen. Welche Vergleichsbasis mit Service Level Objectives (SLOs) verhindert eine verzerrte Entscheidung?",
+      "options": [
+        "Nur die monatlichen Listenpreise vergleichen und Personalaufwand als unveränderlich behandeln",
+        "Dieselbe Systemgrenze, Last, SLOs, Datenpflichten, Betriebsaufgaben und Exit-Anforderungen ansetzen",
+        "Für jede Alternative unterschiedliche Lastprofile verwenden, damit ihre jeweiligen Stärken sichtbar werden",
+        "Nur Funktionslisten vergleichen und Security-, Recovery- sowie Migrationsfolgen nach der Wahl ergänzen"
+      ],
+      "answer": 1,
+      "explanation": "Alternativen sind nur bei gleicher Systemgrenze und Leistungsbasis sinnvoll vergleichbar. Listenpreise ohne Personal, Risiken, Datenpfade und Exit-Aufwand begünstigen sonst systematisch die Option mit ausgelagerten, unsichtbaren Kosten.",
+      "weight": 3,
+      "topic": "Cloud-Einordnung",
+      "concept": "Vergleichbare System- und Leistungsgrenze",
+      "cognitive_level": "Analyse",
+      "mini_glossary": {
+        "Systemgrenze": "Festlegung, welche Komponenten und Aufwände in eine Bewertung einbezogen werden.",
+        "SLO": "Messbares Ziel für die Zuverlässigkeit oder Leistung eines Dienstes."
+      }
+    },
+    {
+      "question": "26. Ein Agent soll eine Cloud-Sandbox untersuchen. Welcher Auftrag schafft vor der Ausführung die beste Sicherheits- und Ergebnisgrundlage?",
+      "options": [
+        "»Optimiere alles selbstständig; nutze nötige Rechte und entscheide bei Problemen nach bestem Ermessen.«",
+        "»Starte sofort in Produktion; dokumentiere nur erfolgreiche Schritte und ignoriere kostenfreie Änderungen.«",
+        "»Erstelle zuerst einen Plan mit Ziel, Grenzen, Rechten, Budget, Abbruch, Tests und Cleanup; führe noch nichts aus.«",
+        "»Nutze das Administratorkonto dauerhaft; frage nur nach, wenn der Provider eine Zahlung ausdrücklich verlangt.«"
+      ],
+      "answer": 2,
+      "explanation": "Ein sicherer Auftrag trennt Planung und Ausführung und macht Rechte, Kosten, verbotene Bereiche, Abbruch und Nachweis vorab prüfbar. Offene Autonomie oder sofortiger Produktionszugriff verhindert eine wirksame menschliche Freigabe.",
+      "weight": 3,
+      "topic": "Sicherer Agentenauftrag",
+      "concept": "Planungs-Gate vor Agentenausführung",
+      "cognitive_level": "Analyse",
+      "mini_glossary": {
+        "Freigabe-Gate": "Expliziter menschlicher Entscheidungspunkt vor einem riskanten Schritt.",
+        "Cleanup": "Nachweisbare Entfernung nicht mehr benötigter Ressourcen und Zugänge."
+      }
+    },
+    {
+      "question": "27. Ein Agent fordert einen dauerhaften Produktions-Administratorschlüssel an, obwohl nur ein lesender Sandbox-Dry-Run beauftragt ist. Wie sollte das Team reagieren?",
+      "options": [
+        "Den Schlüssel bereitstellen, weil ein Agent mögliche spätere Schritte vorsorglich abdecken muss",
+        "Die Anforderung ablehnen und Identität, Minimalrechte, Zielumgebung sowie Laufzeit neu festlegen",
+        "Den Schlüssel im Prompt einfügen, aber den Agenten um vertrauliche Behandlung und spätere Löschung bitten",
+        "Den Dry-Run überspringen und direkt ausführen, damit die zusätzliche Berechtigung kürzer genutzt wird"
+      ],
+      "answer": 1,
+      "explanation": "Die angeforderte Berechtigung überschreitet Zweck, Umgebung und Laufzeit des Auftrags. Das Team muss den Rechteweg korrigieren; ein Secret im Prompt vergrößert dagegen Datenabfluss- und Wiederverwendungsrisiken.",
+      "weight": 3,
+      "topic": "Sicherer Agentenauftrag",
+      "concept": "Zweckgebundene Minimalrechte",
+      "cognitive_level": "Analyse",
+      "mini_glossary": {
+        "Minimalrecht": "Nur für den konkreten Zweck erforderliche Berechtigung.",
+        "Dry-Run": "Ausführungsvorschau ohne die geplanten Änderungen am Zielsystem anzuwenden."
+      }
+    },
+    {
+      "question": "28. Ein Experiment besitzt ein Budget von 80 Euro. Der Agent prognostiziert nach 20 Euro Verbrauch weitere 75 Euro und kann den Nutzen noch nicht belegen. Welche Steuerung ist angemessen?",
+      "options": [
+        "Weiterlaufen lassen, weil ein Budget erst nach vollständiger Ausführung als Grenze bewertet werden kann",
+        "Das Budget stillschweigend erhöhen, wenn der Agent eine technisch plausible Begründung formuliert",
+        "Am Kosten-Gate stoppen, neue Annahmen prüfen und eine explizite Freigabe oder günstigere Variante verlangen",
+        "Monitoring deaktivieren, damit Messkosten nicht zusätzlich auf das genehmigte Budget angerechnet werden"
+      ],
+      "answer": 2,
+      "explanation": "Die Prognose überschreitet das verbleibende Budget und der Nutzen ist unbewiesen; deshalb muss vor weiterer Ausgabe ein Gate greifen. Eine nachträgliche oder stillschweigende Budgetausweitung hebt die menschliche Kontrolle auf.",
+      "weight": 3,
+      "topic": "Sicherer Agentenauftrag",
+      "concept": "Kostenprognose als Abbruchsignal",
+      "cognitive_level": "Analyse",
+      "mini_glossary": {
+        "Kosten-Gate": "Freigabepunkt vor einer weiteren kostenwirksamen Ausführung.",
+        "Kostenprognose": "Schätzung der erwarteten Gesamtausgabe auf Basis aktueller Nutzung und Planannahmen."
+      }
+    },
+    {
+      "question": "29. Welches Akzeptanzkriterium ist für einen agentisch bereitgestellten Webdienst am besten überprüfbar?",
+      "options": [
+        "»Architektur, Sicherheit und Kosten sollen nach Einschätzung des Agenten angemessen wirken.«",
+        "»Der Dienst soll unter üblicher Nutzung nach subjektiver Prüfung hinreichend schnell antworten.«",
+        "»Der Agent soll die während der Ausführung erkannten Best Practices nachvollziehbar umsetzen.«",
+        "»Definierte Health-, Negativ- und Lasttests bestehen; Restbefunde und Cleanup sind dokumentiert.«"
+      ],
+      "answer": 3,
+      "explanation": "Ein Akzeptanzkriterium muss beobachtbare Tests, Ergebnisse und verbleibende Abweichungen benennen. Wertende Begriffe wie modern oder schnell liefern ohne Messgrenze weder eine Abnahme noch ein eindeutiges Abbruchsignal.",
+      "weight": 3,
+      "topic": "Sicherer Agentenauftrag",
+      "concept": "Prüfbare Akzeptanzkriterien",
+      "cognitive_level": "Analyse",
+      "mini_glossary": {
+        "Akzeptanzkriterium": "Vorab festgelegte, prüfbare Bedingung für die Annahme eines Ergebnisses.",
+        "Negativtest": "Prüfung, dass unerlaubte oder fehlerhafte Eingaben kontrolliert abgewiesen werden."
+      }
+    },
+    {
+      "question": "30. Ein Agent meldet »Deployment erfolgreich«. Welche menschliche Abschlussentscheidung ist am belastbarsten?",
+      "options": [
+        "Die Meldung übernehmen, weil der ausführende Agent den Zielzustand am besten kennt",
+        "Diff, Tests, Scans, Kosten, Nebenwirkungen und Cleanup anhand unabhängiger Evidenz prüfen",
+        "Nur die Startseite öffnen, weil ein sichtbares Frontend alle Betriebs- und Sicherheitswege abdeckt",
+        "Alle Logs löschen, weil ein erfolgreicher Abschluss keine weitere Diagnosegrundlage benötigt"
+      ],
+      "answer": 1,
+      "explanation": "Eine Agentenmeldung ist eine Behauptung, kein unabhängiger Nachweis. Menschen müssen Zielerreichung, Nebenwirkungen und Restzustand anhand reproduzierbarer Evidenz prüfen und die Entscheidung selbst verantworten.",
+      "weight": 3,
+      "topic": "Sicherer Agentenauftrag",
+      "concept": "Unabhängige Ergebnisverifikation",
+      "cognitive_level": "Analyse",
+      "mini_glossary": {
+        "Diff": "Nachvollziehbare Darstellung der tatsächlich vorgenommenen Änderungen.",
+        "Verifikation": "Prüfung, ob ein Ergebnis festgelegte Anforderungen und Grenzen erfüllt."
+      }
+    }
+  ]
+}

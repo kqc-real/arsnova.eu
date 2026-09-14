@@ -1,0 +1,593 @@
+{
+  "meta": {
+    "title": "MC-Test – Themenblock TB07: Storage, Datenbanken und Recovery",
+    "target_audience": "Bachelorstudierende der Informatik im Modul Cloud Computing",
+    "question_count": 30,
+    "difficulty_profile": {
+      "leicht": 0,
+      "mittel": 12,
+      "schwer": 18
+    },
+    "time_per_weight_minutes": {
+      "1": 0.5,
+      "2": 0.75,
+      "3": 1.0
+    },
+    "additional_buffer_minutes": 5,
+    "test_duration_minutes": 32,
+    "language": "de",
+    "updated": "2026-09-14"
+  },
+  "questions": [
+    {
+      "question": "1. Welche Zuordnung der drei grundlegenden Speicherarten ist korrekt?",
+      "options": [
+        "Block Storage stellt blockweisen Speicher für ein Host-Dateisystem bereit, File Storage gemeinsame Dateipfade und Object Storage schlüsseladressierte Objekte.",
+        "Block Storage liefert nur relationale Tabellen, File Storage nur Datenbankseiten und Object Storage nur Arbeitsspeicher.",
+        "Block Storage und Object Storage besitzen definitionsgemäß dieselbe POSIX-Dateisemantik.",
+        "File Storage ist immer lokal an genau eine VM gebunden, Object Storage immer als Laufwerk eingehängt."
+      ],
+      "answer": 0,
+      "explanation": "Die Speicherarten unterscheiden sich durch Zugriffsschnittstelle und Semantik. Datenbanktabellen, identische POSIX-Eigenschaften oder starre Bindung an eine VM folgen daraus nicht.",
+      "weight": 2,
+      "topic": "Speicherarten",
+      "concept": "Zugriffssemantik von Speicherarten",
+      "cognitive_level": "Verständnis",
+      "mini_glossary": {
+        "Block Storage": "Als Blöcke bereitgestellter Speicher, auf dem ein Host typischerweise ein Dateisystem oder Datenbankvolume betreibt.",
+        "Object Storage": "Über Objektschlüssel adressierter Speicher mit Metadaten statt gemeinsamem POSIX-Dateisystem."
+      }
+    },
+    {
+      "question": "2. Eine PostgreSQL-Instanz auf einer VM benötigt ein Dateisystem mit kontrollierter Latenz für ihre Datendateien. Welche Speicherart passt typischerweise?",
+      "options": [
+        "Ein Object-Storage-Bucket, der ohne Datenbankanpassung als transaktionales POSIX-Volume behandelt wird.",
+        "Ein CDN, das Datenbankseiten weltweit als unveränderliche Assets verteilt.",
+        "Ein flüchtiges Prozessverzeichnis, dessen Inhalt bei Neustart verloren gehen darf.",
+        "Ein an die VM angebundenes Block-Volume, auf dem ein geeignetes Dateisystem betrieben wird."
+      ],
+      "answer": 3,
+      "explanation": "Ein Block-Volume bietet die übliche Grundlage für das Datenbankdateisystem. Object Storage, CDN oder flüchtige Verzeichnisse besitzen nicht die erforderliche lokale Dateisystem- und Persistenzsemantik.",
+      "weight": 2,
+      "topic": "Speicherarten",
+      "concept": "Datenbankvolume auf Block Storage",
+      "cognitive_level": "Anwendung",
+      "mini_glossary": {
+        "Block Storage": "Als Blöcke bereitgestellter Speicher, auf dem ein Host typischerweise ein Dateisystem oder Datenbankvolume betreibt.",
+        "Object Storage": "Über Objektschlüssel adressierter Speicher mit Metadaten statt gemeinsamem POSIX-Dateisystem."
+      }
+    },
+    {
+      "question": "3. Mehrere App-Replikate schreiben gleichzeitig in ein gemeinsam eingehängtes Dateiverzeichnis. Welche Frage ist vor der Wahl von File Storage zentral?",
+      "options": [
+        "Ob Sperren, atomare Operationen, Konsistenz und Fehlerverhalten des konkreten Dateidienstes zur Anwendung passen.",
+        "Ob der Dateidienst denselben Produktnamen wie das Betriebssystem verwendet.",
+        "Ob jede Datei zusätzlich als Datenbankzeile bezeichnet werden kann.",
+        "Ob das Verzeichnis ohne Anwendungstest in Object Storage umbenannt werden kann."
+      ],
+      "answer": 0,
+      "explanation": "Gemeinsamer Dateizugriff braucht eine überprüfte Nebenläufigkeits- und Fehlersemantik. Namen oder Umbenennung ersetzen keine Sperr-, Konsistenz- und Anwendungstests.",
+      "weight": 2,
+      "topic": "Speicherarten",
+      "concept": "Nebenläufigkeit auf File Storage",
+      "cognitive_level": "Analyse",
+      "mini_glossary": {
+        "Block Storage": "Als Blöcke bereitgestellter Speicher, auf dem ein Host typischerweise ein Dateisystem oder Datenbankvolume betreibt.",
+        "Object Storage": "Über Objektschlüssel adressierter Speicher mit Metadaten statt gemeinsamem POSIX-Dateisystem."
+      }
+    },
+    {
+      "question": "4. Welche Aussage über Object Storage ist fachlich angemessen?",
+      "options": [
+        "Jedes Objekt ist immer eine relationale Transaktion mit Fremdschlüsseln.",
+        "Object Storage garantiert für jede Anwendung dieselben Dateisperren wie ein lokales Dateisystem.",
+        "Ein Bucket ist ausschließlich ein flüchtiger Cache ohne Aufbewahrungsregeln.",
+        "Objekte werden über Schlüssel und API-Operationen verwaltet; POSIX-Operationen wie beliebiges In-place-Schreiben sind nicht automatisch gleichwertig."
+      ],
+      "answer": 3,
+      "explanation": "Object Storage besitzt eine eigene Objektschnittstelle und dienstspezifische Konsistenz. Relationale Transaktionen, POSIX-Sperren oder Flüchtigkeit sind keine allgemeinen Eigenschaften.",
+      "weight": 2,
+      "topic": "Speicherarten",
+      "concept": "Objekt- statt Dateisemantik",
+      "cognitive_level": "Verständnis",
+      "mini_glossary": {
+        "Block Storage": "Als Blöcke bereitgestellter Speicher, auf dem ein Host typischerweise ein Dateisystem oder Datenbankvolume betreibt.",
+        "Object Storage": "Über Objektschlüssel adressierter Speicher mit Metadaten statt gemeinsamem POSIX-Dateisystem."
+      }
+    },
+    {
+      "question": "5. Große unveränderliche Backup-Artefakte sollen offsite mit Metadaten und Aufbewahrungsregeln gespeichert werden. Welche Wahl ist am plausibelsten?",
+      "options": [
+        "Ein replizierter Prozesscache mit langer TTL, aber ohne unabhängigen und getesteten Wiederherstellungspfad.",
+        "Ein persistentes File-Volume im selben Fehlerbereich wie die Produktion, aber ohne unabhängige Offsite-Kopie.",
+        "Object Storage beziehungsweise ein Backup-Repository mit unabhängigem Zugriff und getesteter Restore-Schnittstelle.",
+        "Eine zweite Tabelle in der aktiven Primärdatenbank, aber ohne getrennten Sicherungs- und Wiederherstellungspfad."
+      ],
+      "answer": 2,
+      "explanation": "Unveränderliche Artefakte passen zu objektadressierter, unabhängiger Aufbewahrung, sofern Restore und Zugriff geprüft sind. Prozesscache, IPC-Volume oder Primärdaten sind keine Offsite-Sicherung.",
+      "weight": 2,
+      "topic": "Speicherarten",
+      "concept": "Backup-Artefakte in Object Storage",
+      "cognitive_level": "Anwendung",
+      "mini_glossary": {
+        "Block Storage": "Als Blöcke bereitgestellter Speicher, auf dem ein Host typischerweise ein Dateisystem oder Datenbankvolume betreibt.",
+        "Object Storage": "Über Objektschlüssel adressierter Speicher mit Metadaten statt gemeinsamem POSIX-Dateisystem."
+      }
+    },
+    {
+      "question": "6. Ein Team behandelt PostgreSQL, Redis und Yjs-IndexedDB als austauschbare Kopien desselben Zustands. Was ist der grundlegende Fehler?",
+      "options": [
+        "Alle drei Systeme sind relationale Datenbanken mit identischer Transaktionsgrenze.",
+        "Die Systeme haben unterschiedliche Autorität, Lebensdauer und Konsistenzsemantik; Recovery muss diese Grenzen explizit modellieren.",
+        "Redis ist stets die einzige dauerhafte Wahrheit, während PostgreSQL nur ein Cache ist.",
+        "Yjs speichert ausschließlich serverseitige Backups und besitzt keinen lokalen Zustand."
+      ],
+      "answer": 1,
+      "explanation": "Die Komponenten erfüllen verschiedene Rollen; Gleichsetzung führt zu falschen Verlust- und Restoreannahmen. Weder identische Relationalität noch die behauptete Autoritätsumkehr entspricht der dokumentierten Architektur.",
+      "weight": 2,
+      "topic": "PostgreSQL, Redis und Yjs",
+      "concept": "Autoritative Zustandsgrenzen",
+      "cognitive_level": "Analyse",
+      "mini_glossary": {
+        "PostgreSQL": "Relationale Datenbank für transaktionalen, strukturierten Zustand.",
+        "Yjs": "CRDT-Bibliothek für zusammenführbare Local-First-Dokumente und Synchronisation."
+      }
+    },
+    {
+      "question": "7. Welche Aussage trennt Persistenz und Cache korrekt?",
+      "options": [
+        "Jeder schnelle Datenspeicher ist definitionsgemäß ein Cache und darf ohne Folgen gelöscht werden.",
+        "Persistente Daten benötigen keine Sicherung, solange das Speichermedium nicht flüchtig heißt.",
+        "Ein Cache darf nur dann verloren gehen, wenn sein Zustand aus einer autoritativen Quelle oder durch definierte Neuberechnung wiederherstellbar ist.",
+        "Ein Cache ist automatisch konsistent mit jeder Quelle, sobald er eine TTL besitzt."
+      ],
+      "answer": 2,
+      "explanation": "Die Cache-Eigenschaft ist eine Recovery-Aussage, keine Geschwindigkeitsbezeichnung. Persistentes Medium ersetzt kein Backup, und TTL garantiert keine inhaltliche Übereinstimmung.",
+      "weight": 2,
+      "topic": "PostgreSQL, Redis und Yjs",
+      "concept": "Cache als wiederaufbaubarer Zustand",
+      "cognitive_level": "Verständnis",
+      "mini_glossary": {
+        "PostgreSQL": "Relationale Datenbank für transaktionalen, strukturierten Zustand.",
+        "Yjs": "CRDT-Bibliothek für zusammenführbare Local-First-Dokumente und Synchronisation."
+      }
+    },
+    {
+      "question": "8. Redis fällt im dokumentierten arsnova.eu-Betrieb vollständig aus, PostgreSQL bleibt intakt. Welche Reaktion ist sachlich?",
+      "options": [
+        "PostgreSQL aus einem Redis-Stand neu erstellen und den relationalen Datenbestand anschließend auf Konsistenz prüfen.",
+        "TTL-, Rate-Limit- und Live-Hilfszustand neu aufbauen, die intakte PostgreSQL-Datenbank aber nicht als verloren behandeln.",
+        "Browserseitige Quizbibliotheken aus Redis exportieren und anschließend als PostgreSQL-Sessionkopien importieren.",
+        "Redis unverändert weiterverwenden, weil sein Ausfall weder Livefunktionen noch Schutzmechanismen beeinflussen kann."
+      ],
+      "answer": 1,
+      "explanation": "Redis enthält im dokumentierten Betrieb überwiegend flüchtigen Hilfszustand, dessen Verlust Live- und Schutzpfade beeinflusst, aber nicht automatisch den PostgreSQL-Kernbestand vernichtet. PostgreSQL- oder Browserdaten lassen sich nicht aus Redis rekonstruieren; Ignorieren wäre ebenfalls falsch.",
+      "weight": 2,
+      "topic": "PostgreSQL, Redis und Yjs",
+      "concept": "Redis-Verlustfolge",
+      "cognitive_level": "Anwendung",
+      "mini_glossary": {
+        "PostgreSQL": "Relationale Datenbank für transaktionalen, strukturierten Zustand.",
+        "Yjs": "CRDT-Bibliothek für zusammenführbare Local-First-Dokumente und Synchronisation."
+      }
+    },
+    {
+      "question": "9. Nach einem Hostverlust ist der PostgreSQL-Dump wiederhergestellt, aber eine Lehrperson erwartet ihre gesamte lokale Quizbibliothek auf dem Server. Welche Erklärung ist korrekt?",
+      "options": [
+        "Die Bibliothek muss aus dem PDF-Worker-Socket rekonstruiert werden.",
+        "Jede Quizbibliothek wird dauerhaft als vollständiges PostgreSQL-Userkonto gespeichert.",
+        "Die Quizbibliothek liegt primär in Yjs/IndexedDB des Browsers und gehört nicht zum dokumentierten Server-Offsite-Backup.",
+        "Redis enthält nach einem Hostverlust automatisch sämtliche CRDT-Dokumente aller Browser."
+      ],
+      "answer": 2,
+      "explanation": "Die lokale Bibliothek hat eine andere Autoritäts- und Sicherungsgrenze als die Sessionkopie in PostgreSQL. IPC, Userkonten oder Redis sind dafür keine vollständige Wiederherstellungsquelle.",
+      "weight": 2,
+      "topic": "PostgreSQL, Redis und Yjs",
+      "concept": "Local-First-Sicherungsgrenze",
+      "cognitive_level": "Analyse",
+      "mini_glossary": {
+        "PostgreSQL": "Relationale Datenbank für transaktionalen, strukturierten Zustand.",
+        "Yjs": "CRDT-Bibliothek für zusammenführbare Local-First-Dokumente und Synchronisation."
+      }
+    },
+    {
+      "question": "10. Warum kann ein Yjs-Dokument Änderungen mehrerer Geräte zusammenführen, ohne dass dies einem klassischen Datenbankbackup entspricht?",
+      "options": [
+        "CRDT-Updates besitzen eine definierte Merge-Semantik; ein Backup benötigt zusätzlich eine unabhängige, vollständige und wiederherstellbare Aufbewahrung.",
+        "Weil jede Synchronisationsnachricht automatisch als unbegrenztes Offsite-Archiv gilt.",
+        "Weil CRDTs niemals Daten verlieren können, selbst wenn alle Kopien gelöscht sind.",
+        "Weil Merge-Semantik Wiederherstellungsziele und Schlüsselverfügbarkeit vollständig ersetzt."
+      ],
+      "answer": 0,
+      "explanation": "CRDTs lösen Konfliktzusammenführung zwischen vorhandenen Replikaten, nicht die unabhängige Katastrophensicherung. Gelöschte Kopien, Ziele und Zugangsmaterial bleiben Recovery-Fragen.",
+      "weight": 2,
+      "topic": "PostgreSQL, Redis und Yjs",
+      "concept": "CRDT-Sync versus Backup",
+      "cognitive_level": "Verständnis",
+      "mini_glossary": {
+        "PostgreSQL": "Relationale Datenbank für transaktionalen, strukturierten Zustand.",
+        "Yjs": "CRDT-Bibliothek für zusammenführbare Local-First-Dokumente und Synchronisation."
+      }
+    },
+    {
+      "question": "11. Ein Storage-Snapshot liegt ausschließlich auf demselben Host und im selben Administrationskonto wie die Primärdaten. Welche Gefahr bleibt?",
+      "options": [
+        "Der Snapshot wird dadurch automatisch geografisch redundant.",
+        "Die gemeinsame Fehlerdomäne verbessert den Schutz vor versehentlicher Löschung.",
+        "Host- oder Kontokompromittierung kann Primärdaten und Snapshot gemeinsam zerstören; eine unabhängige Offsite-Kopie fehlt.",
+        "Ein Restore-Test ist überflüssig, weil der Snapshot lokal schnell sichtbar ist."
+      ],
+      "answer": 2,
+      "explanation": "Gemeinsame Fehler- und Vertrauensdomänen erlauben korrelierte Verluste. Nähe kann Restore beschleunigen, ersetzt aber weder Offsite-Schutz noch Verifikation.",
+      "weight": 2,
+      "topic": "Backup und Snapshots",
+      "concept": "Gemeinsame Fehlerdomäne",
+      "cognitive_level": "Anwendung",
+      "mini_glossary": {
+        "Backup": "Unabhängig aufbewahrte, wiederherstellbare Kopie mit definierter Sicherungs- und Prüfstrategie.",
+        "Snapshot": "Zeitpunktabbild eines Speicher- oder Systemzustands mit dienstspezifischer Konsistenz und Fehlerdomäne."
+      }
+    },
+    {
+      "question": "12. Ein Skript kopiert bei laufendem PostgreSQL-Prozess dessen Datendateien einzeln in einen Bucket. Warum ist das riskant?",
+      "options": [
+        "Die Dateien können aus verschiedenen Datenbankzeitpunkten stammen; ein datenbankkonsistenter Dump oder abgestimmter Snapshot ist erforderlich.",
+        "Object Storage macht jede Datei beim Upload automatisch zu einer konsistenten Transaktion der gesamten Datenbank.",
+        "Ein längerer Dateiname stellt die Schreibreihenfolge der Datenbank wieder her.",
+        "Die Kopie ist sicher, solange keine App-Logs im selben Bucket liegen."
+      ],
+      "answer": 0,
+      "explanation": "Eine dateiweise Kopie ohne Datenbankkoordination kann intern inkonsistent sein. Objektspeicher, Namen oder Logtrennung erzeugen keine zusammengehörige Datenbankabbildung.",
+      "weight": 2,
+      "topic": "Backup und Snapshots",
+      "concept": "Anwendungskonsistentes Datenbankbackup",
+      "cognitive_level": "Analyse",
+      "mini_glossary": {
+        "Backup": "Unabhängig aufbewahrte, wiederherstellbare Kopie mit definierter Sicherungs- und Prüfstrategie.",
+        "Snapshot": "Zeitpunktabbild eines Speicher- oder Systemzustands mit dienstspezifischer Konsistenz und Fehlerdomäne."
+      }
+    },
+    {
+      "question": "13. Welche Aussage grenzt Snapshot und Backup am besten ab?",
+      "options": [
+        "Ein Snapshot ist eine Zeitpunktabbildung; unabhängige Aufbewahrung, Retention, Zugriffsschutz und Restore-Tests machen ihn zum belastbaren Sicherungsbaustein.",
+        "Ein Snapshot wird durch seine Erstellung automatisch offsite, kontounabhängig und gegen logische Löschung geschützt.",
+        "Ein Backup ist eine überwachte Snapshot-Erstellung, auch wenn unabhängige Aufbewahrung und Restore-Nachweis fehlen.",
+        "Snapshots sind nur für schnelle lokale Rollbacks geeignet und können keine Rolle in einer Backupstrategie übernehmen."
+      ],
+      "answer": 0,
+      "explanation": "Snapshots können wertvolle Sicherungsbausteine sein, besitzen aber dienstspezifische Konsistenz und Fehlerdomänen. Weder automatische Unabhängigkeit noch bloße Überwachung oder ein genereller Ausschluss aus Backupstrategien ist begründet.",
+      "weight": 3,
+      "topic": "Backup und Snapshots",
+      "concept": "Snapshot als Sicherungsbaustein",
+      "cognitive_level": "Verständnis",
+      "mini_glossary": {
+        "Backup": "Unabhängig aufbewahrte, wiederherstellbare Kopie mit definierter Sicherungs- und Prüfstrategie.",
+        "Snapshot": "Zeitpunktabbild eines Speicher- oder Systemzustands mit dienstspezifischer Konsistenz und Fehlerdomäne."
+      }
+    },
+    {
+      "question": "14. Das verschlüsselte Backup und sein einziges Entschlüsselungspasswort liegen beide nur auf dem Produktionshost. Welche Änderung ist nötig?",
+      "options": [
+        "Das Passwort in jede Anwendungslogzeile schreiben, damit es nach einem Fehler auffindbar bleibt.",
+        "Die Verschlüsselung entfernen, damit kein Recovery-Schlüssel benötigt wird.",
+        "Nur den Dateinamen des Backups geheim halten und das Passwort unverändert lokal belassen.",
+        "Das Passwort zusätzlich organisationsverwaltet und getrennt offline verwahren, ohne es in Git, Logs oder Produktionskonfiguration zu kopieren."
+      ],
+      "answer": 3,
+      "explanation": "Verschlüsselte Backups sind ohne unabhängigen Schlüssel unlesbar; getrennte, geschützte Verwahrung beseitigt die gemeinsame Fehlerdomäne. Logging, Entschlüsselung oder Security by Obscurity schaffen neue Risiken.",
+      "weight": 3,
+      "topic": "Backup und Snapshots",
+      "concept": "Unabhängige Schlüsselverwahrung",
+      "cognitive_level": "Anwendung",
+      "mini_glossary": {
+        "Backup": "Unabhängig aufbewahrte, wiederherstellbare Kopie mit definierter Sicherungs- und Prüfstrategie.",
+        "Snapshot": "Zeitpunktabbild eines Speicher- oder Systemzustands mit dienstspezifischer Konsistenz und Fehlerdomäne."
+      }
+    },
+    {
+      "question": "15. Ein Backup-Lauf schlägt fehl, und Manipulation des Repositories ist möglich. Welche Reaktion entspricht einem vorsichtigen Incident-Pfad?",
+      "options": [
+        "Sofort alle alten Snapshots löschen, um Speicher für einen neuen Lauf zu schaffen.",
+        "Das Repository ohne Prüfung neu initialisieren und denselben Pfad überschreiben.",
+        "Den Fehler als Erfolg markieren, solange der Produktionsserver noch läuft.",
+        "Nicht prunen, den letzten erfolgreichen Stand erhalten, eine unabhängige Storage-Kopie sichern und erst dann Integrität sowie Ursache untersuchen."
+      ],
+      "answer": 3,
+      "explanation": "Bei möglicher Manipulation müssen Beweise und letzte gute Stände geschützt werden. Löschen, Überschreiben oder Umdeklarieren kann den einzig wiederherstellbaren Bestand vernichten.",
+      "weight": 3,
+      "topic": "Backup und Snapshots",
+      "concept": "Backup-Incident ohne vorschnelles Prune",
+      "cognitive_level": "Analyse",
+      "mini_glossary": {
+        "Backup": "Unabhängig aufbewahrte, wiederherstellbare Kopie mit definierter Sicherungs- und Prüfstrategie.",
+        "Snapshot": "Zeitpunktabbild eines Speicher- oder Systemzustands mit dienstspezifischer Konsistenz und Fehlerdomäne."
+      }
+    },
+    {
+      "question": "16. Was unterscheidet crash-konsistente von anwendungskonsistenten Sicherungen?",
+      "options": [
+        "Crash-Konsistenz garantiert abgeschlossene Geschäftsprozesse über alle gekoppelten Daten- und Anwendungssysteme hinweg.",
+        "Anwendungskonsistenz bedeutet, dass alle Dateien innerhalb desselben Zeitfensters mit identischer Größe kopiert werden.",
+        "Crash-Konsistenz bildet einen abrupten Abbruch ab; Anwendungskonsistenz koordiniert zusätzlich Schreib- und Transaktionssemantik.",
+        "Beide Konsistenzstufen unterscheiden sich ausschließlich durch Kompressionsverfahren und Aufbewahrungsdauer des Backups."
+      ],
+      "answer": 2,
+      "explanation": "Ein crash-konsistenter Zustand kann technisch startbar sein, aber offene oder systemübergreifende Vorgänge enthalten. Anwendungskonsistenz koordiniert die jeweilige Semantik, nicht Dateigröße oder Kompression.",
+      "weight": 3,
+      "topic": "Konsistenz und Integrität",
+      "concept": "Konsistenzebenen von Sicherungen",
+      "cognitive_level": "Verständnis",
+      "mini_glossary": {
+        "Konsistenz": "Einhaltung fachlicher und technischer Beziehungen in einem zusammengehörigen Datenstand.",
+        "Integritätstest": "Prüfung, ob wiederhergestellte Daten technisch lesbar und fachlich vollständig beziehungsweise widerspruchsfrei sind."
+      }
+    },
+    {
+      "question": "17. Nach einem Restore passt die wiederhergestellte Datenbank zu Version N, die Konfiguration stammt aber aus Version N+3. Welche Maßnahme reduziert das Risiko?",
+      "options": [
+        "Nur die neuere Konfiguration verwenden und Inkompatibilitäten als Laufzeitproblem akzeptieren.",
+        "Daten, erforderliche Konfiguration, Schema-/Migrationsstand und Deployversion als kompatiblen Recovery-Satz inventarisieren und gemeinsam testen.",
+        "Alle Migrationen überspringen, weil ein Backup bereits jedes künftige Schema enthält.",
+        "Die Datenbankdatei umbenennen, damit sie zur Konfigurationsversion passt."
+      ],
+      "answer": 1,
+      "explanation": "Recovery benötigt kompatible Artefakte und einen getesteten Migrationspfad. Versionsblindheit, übersprungene Migrationen oder Umbenennung ändern die tatsächliche Semantik nicht.",
+      "weight": 3,
+      "topic": "Konsistenz und Integrität",
+      "concept": "Kompatibler Recovery-Satz",
+      "cognitive_level": "Anwendung",
+      "mini_glossary": {
+        "Konsistenz": "Einhaltung fachlicher und technischer Beziehungen in einem zusammengehörigen Datenstand.",
+        "Integritätstest": "Prüfung, ob wiederhergestellte Daten technisch lesbar und fachlich vollständig beziehungsweise widerspruchsfrei sind."
+      }
+    },
+    {
+      "question": "18. Ein SHA-256-Check des Dumps stimmt, aber nach dem Restore fehlen fachlich erwartete Datensätze. Was belegt der Hash tatsächlich?",
+      "options": [
+        "Der Hash belegt die erwartete Zeilenzahl und die fachliche Vollständigkeit aller im Datenmodell vorgesehenen Tabellen.",
+        "Der Hash belegt den erfolgreichen Start der Anwendung und die korrekte Ausführung aller erforderlichen Migrationen.",
+        "Der Hash ersetzt Kerntabellen-, Referenz- und Anwendungstests, sofern er nach dem Transfer erneut berechnet wird.",
+        "Der Hash belegt die Unverändertheit des geprüften Artefakts, nicht dessen fachliche Vollständigkeit oder korrekte Auswahl."
+      ],
+      "answer": 3,
+      "explanation": "Ein Hash erkennt Artefaktänderung relativ zu einem Referenzwert. Wenn bereits die Sicherung unvollständig war, bleibt sie unverändert unvollständig; fachliche Tests sind zusätzlich nötig.",
+      "weight": 3,
+      "topic": "Konsistenz und Integrität",
+      "concept": "Kryptografische versus fachliche Integrität",
+      "cognitive_level": "Analyse",
+      "mini_glossary": {
+        "Konsistenz": "Einhaltung fachlicher und technischer Beziehungen in einem zusammengehörigen Datenstand.",
+        "Integritätstest": "Prüfung, ob wiederhergestellte Daten technisch lesbar und fachlich vollständig beziehungsweise widerspruchsfrei sind."
+      }
+    },
+    {
+      "question": "19. Ein älterer Datenbankdump wird in eine aktuelle Anwendung eingespielt. Welche Schrittfolge ist angemessen?",
+      "options": [
+        "Den Dump in eine isolierte kompatible Datenbank einspielen, Migrationen kontrolliert anwenden und Schema-, Daten- sowie Anwendungstests durchführen.",
+        "Den Dump direkt in Produktion einspielen und Migrationen erst nach den ersten beobachteten Nutzerfehlern ausführen.",
+        "Den Dump als Text durchsuchen und aus vorhandenen Tabellennamen auf vollständige Anwendungskompatibilität schließen.",
+        "Die aktuelle Anwendungsversion durch den alten Datenstand ersetzen und dadurch auf einen Kompatibilitätstest verzichten."
+      ],
+      "answer": 0,
+      "explanation": "Isolierter Restore plus Migration und Tests prüft den realen Upgradepfad. Sofortumschaltung, Textsuche oder Entfernen der Zielversion belegen keine Kompatibilität.",
+      "weight": 3,
+      "topic": "Konsistenz und Integrität",
+      "concept": "Restore mit Migrationen",
+      "cognitive_level": "Anwendung",
+      "mini_glossary": {
+        "Konsistenz": "Einhaltung fachlicher und technischer Beziehungen in einem zusammengehörigen Datenstand.",
+        "Integritätstest": "Prüfung, ob wiederhergestellte Daten technisch lesbar und fachlich vollständig beziehungsweise widerspruchsfrei sind."
+      }
+    },
+    {
+      "question": "20. Alle Backup-Jobs melden Erfolg, aber eine neu hinzugefügte Kerntabelle wird vom Dumpfilter ausgeschlossen. Welche Kontrolle entdeckt den Fehler am ehesten?",
+      "options": [
+        "Joblaufzeit und Exitcode des Backups mit früheren erfolgreichen Sicherungsläufen vergleichen und Abweichungen alarmieren.",
+        "Dumpgröße und Tabellenstatistiken überwachen, aber den gesicherten Stand nicht in einer Zielumgebung wiederherstellen.",
+        "Repository-Snapshots und Aufbewahrungsregeln prüfen, aber keine fachlichen Erwartungen an Kerntabellen ausführen.",
+        "Einen Restore-Test ausführen und den wiederhergestellten Stand gegen Kerntabellenliste sowie fachliche Assertions prüfen."
+      ],
+      "answer": 3,
+      "explanation": "Ein anwendungsnaher Restore mit expliziten Erwartungen entdeckt, ob die neue Kerntabelle tatsächlich zurückkehrt. Laufzeit, Größe und Repositoryinventar sind sinnvolle Betriebssignale, belegen ohne Wiederherstellung aber keine inhaltliche Vollständigkeit.",
+      "weight": 3,
+      "topic": "Konsistenz und Integrität",
+      "concept": "Vollständigkeitsprüfung nach Restore",
+      "cognitive_level": "Analyse",
+      "mini_glossary": {
+        "Konsistenz": "Einhaltung fachlicher und technischer Beziehungen in einem zusammengehörigen Datenstand.",
+        "Integritätstest": "Prüfung, ob wiederhergestellte Daten technisch lesbar und fachlich vollständig beziehungsweise widerspruchsfrei sind."
+      }
+    },
+    {
+      "question": "21. Ein Dienst definiert ein Recovery Point Objective (RPO) von 15 Minuten und ein Recovery Time Objective (RTO) von zwei Stunden. Welche Zuordnung ist korrekt?",
+      "options": [
+        "RPO betrifft ausschließlich CPU-Kapazität; RTO ausschließlich Speicherkosten.",
+        "RPO und RTO bezeichnen beide nur die Zahl aufbewahrter Snapshots.",
+        "RPO betrifft die Unterbrechung; RTO den Abstand des Datenstands.",
+        "RPO betrifft die 15 Minuten möglichen Datenverlusts; RTO betrifft die zwei Stunden bis zum wiederhergestellten Betrieb."
+      ],
+      "answer": 3,
+      "explanation": "RPO ist ein Datenstandsziel, RTO ein Wiederanlaufzeitziel. Ressourcen und Retention können beide beeinflussen, definieren sie aber nicht.",
+      "weight": 3,
+      "topic": "RPO und RTO",
+      "concept": "Abgrenzung RPO und RTO",
+      "cognitive_level": "Anwendung",
+      "mini_glossary": {
+        "RPO": "Maximal tolerierter Abstand zwischen Ausfallzeitpunkt und wiederhergestelltem Datenstand.",
+        "RTO": "Maximal tolerierte Zeit bis zur Wiederherstellung des vereinbarten Betriebszustands."
+      }
+    },
+    {
+      "question": "22. Das arsnova.eu-Runbook nennt täglich 02:30 Uhr plus bis zu 15 Minuten Zufallsverzögerung. Welche maximale Sicherungslücke ist als Ziel dokumentiert?",
+      "options": [
+        "Genau 15 Minuten, weil die tägliche Periode nicht zum RPO zählt.",
+        "Höchstens 24 Stunden und zusätzlich höchstens 15 Minuten.",
+        "Höchstens vier Stunden, weil RPO und RTO denselben Wert haben müssen.",
+        "Vierzehn Tage, weil die Retention den Abstand zum letzten Datenstand bestimmt."
+      ],
+      "answer": 1,
+      "explanation": "Bei täglicher Sicherung kann der letzte Stand fast einen Tag alt sein; die Startverzögerung erweitert die obere Zielgrenze. RTO und Retention beantworten andere Fragen.",
+      "weight": 3,
+      "topic": "RPO und RTO",
+      "concept": "Dokumentiertes RPO des Ein-Server-Betriebs",
+      "cognitive_level": "Analyse",
+      "mini_glossary": {
+        "RPO": "Maximal tolerierter Abstand zwischen Ausfallzeitpunkt und wiederhergestelltem Datenstand.",
+        "RTO": "Maximal tolerierte Zeit bis zur Wiederherstellung des vereinbarten Betriebszustands."
+      }
+    },
+    {
+      "question": "23. Das Runbook setzt ein RTO von vier Stunden ab bereitstehendem Ersatzhost. Welche Aussage ist daraus zulässig?",
+      "options": [
+        "Der vollständige Ausfall einschließlich beliebig langer Ersatzhostbeschaffung endet garantiert nach vier Stunden.",
+        "Der gemessene Restorepfad muss ab diesem Startpunkt innerhalb vier Stunden funktionieren; Beschaffung und Bereitstellung sind davon getrennt zu erfassen.",
+        "Jeder einzelne Restore dauert genau vier Stunden, unabhängig von Datenmenge und Umgebung.",
+        "Das RTO beweist automatisch, dass der Restore bereits erfolgreich getestet wurde."
+      ],
+      "answer": 1,
+      "explanation": "Die Startbedingung begrenzt die Aussage des RTO. Ein Ziel ist weder eine Garantie für vorgelagerte Beschaffung noch eine Messung oder bereits erbrachte Evidenz.",
+      "weight": 3,
+      "topic": "RPO und RTO",
+      "concept": "Startpunkt eines RTO",
+      "cognitive_level": "Anwendung",
+      "mini_glossary": {
+        "RPO": "Maximal tolerierter Abstand zwischen Ausfallzeitpunkt und wiederhergestelltem Datenstand.",
+        "RTO": "Maximal tolerierte Zeit bis zur Wiederherstellung des vereinbarten Betriebszustands."
+      }
+    },
+    {
+      "question": "24. Ein Fachbereich senkt sein RPO von 24 Stunden auf 10 Minuten. Welche technische Folge ist wahrscheinlich?",
+      "options": [
+        "Die Backupfrequenz kann sinken, weil ein kleineres RPO weniger Daten schützt.",
+        "Tägliche Vollbackups allein reichen nicht; häufigere inkrementelle Sicherung oder Logshipping mit getesteter Konsistenz wird nötig.",
+        "Nur das RTO muss erhöht werden; der Sicherungsmechanismus bleibt zwangsläufig gleich.",
+        "Eine längere Retention ersetzt automatisch die häufigere Erfassung neuer Änderungen."
+      ],
+      "answer": 1,
+      "explanation": "Ein engeres RPO verlangt einen aktuelleren wiederherstellbaren Datenstand. Retention bewahrt ältere Stände, erfasst aber keine neuen Änderungen; RTO ist eine andere Zielgröße.",
+      "weight": 3,
+      "topic": "RPO und RTO",
+      "concept": "Technikfolge eines engeren RPO",
+      "cognitive_level": "Analyse",
+      "mini_glossary": {
+        "RPO": "Maximal tolerierter Abstand zwischen Ausfallzeitpunkt und wiederhergestelltem Datenstand.",
+        "RTO": "Maximal tolerierte Zeit bis zur Wiederherstellung des vereinbarten Betriebszustands."
+      }
+    },
+    {
+      "question": "25. Ein Restore ab fertigem Ersatzhost dauert drei Stunden; die Ersatzhostbereitstellung benötigt im Mittel sechs Stunden. Wie sollte dies berichtet werden?",
+      "options": [
+        "Die neun Stunden als RPO berichten, obwohl RPO den Abstand des wiederhergestellten Datenstands und keine Ausfalldauer misst.",
+        "Die Bereitstellungszeit aus jedem Ausfallbericht auslassen, weil sie außerhalb des technisch definierten Restorefensters liegt.",
+        "Das Vier-Stunden-RTO für den Restorepfad als erfüllt bewerten, aber das separate Ende-zu-Ende-Wiederanlaufziel als verfehlt ausweisen.",
+        "Den Restorepfad als fehlgeschlagen bewerten, weil jede Zeit vor dem definierten RTO-Start zwingend demselben Messwert zugerechnet wird."
+      ],
+      "answer": 2,
+      "explanation": "Die dokumentierte Messgrenze ist einzuhalten und zugleich um ein ehrliches End-to-End-Ziel zu ergänzen. RPO misst keinen Zeitaufwand; Verschweigen oder Vermischen verwischt die operative Nutzerfolge.",
+      "weight": 3,
+      "topic": "RPO und RTO",
+      "concept": "Messgrenze und Ende-zu-Ende-Ausfall",
+      "cognitive_level": "Anwendung",
+      "mini_glossary": {
+        "RPO": "Maximal tolerierter Abstand zwischen Ausfallzeitpunkt und wiederhergestelltem Datenstand.",
+        "RTO": "Maximal tolerierte Zeit bis zur Wiederherstellung des vereinbarten Betriebszustands."
+      }
+    },
+    {
+      "question": "26. Welcher Test belegt am stärksten, dass ein Offsite-Backup den Verlust des Produktionshosts übersteht?",
+      "options": [
+        "Restore auf einem frischen isolierten Host ohne Produktionsvolume oder lokalen Cache, gefolgt von Daten- und Anwendungschecks.",
+        "Nur eine Dateiliste des Backups auf dem Produktionshost anzeigen.",
+        "Nur einen Datenbankquery gegen die weiterhin laufende Produktion ausführen.",
+        "Nur den Backup-Timer neu starten und auf Exitcode null warten."
+      ],
+      "answer": 0,
+      "explanation": "Ein frischer Host prüft Unabhängigkeit, Zugangsmaterial und Wiederaufbau tatsächlich. Dateiliste, Produktionsquery oder Jobexit testen den Katastrophenpfad nicht.",
+      "weight": 3,
+      "topic": "Restore und Disaster Recovery",
+      "concept": "Fresh-Host-Disaster-Recovery-Test",
+      "cognitive_level": "Analyse",
+      "mini_glossary": {
+        "Restore-Test": "Ausgeführte Wiederherstellung mit verifizierten Daten- und Anwendungsfunktionen.",
+        "Disaster Recovery": "Geplanter Wiederanlauf nach großflächigem Ausfall einschließlich Infrastruktur, Daten, Schlüssel und Umschaltung."
+      }
+    },
+    {
+      "question": "27. Das Backup ist intakt, aber weder Restic-Passwort noch vertrauenswürdiger SSH-Host-Key stehen dem Recovery-Team zur Verfügung. Welche Aussage trifft zu?",
+      "options": [
+        "Die Verschlüsselung entschlüsselt sich beim Restore automatisch anhand des Dateinamens.",
+        "Die Daten sind operativ nicht wiederherstellbar, bis das unabhängig verwahrte Zugangsmaterial verfügbar und der Zielhost verifiziert ist.",
+        "Ein beliebiger per ssh-keyscan gelieferter Fingerprint ist ohne weitere Prüfung immer vertrauenswürdig.",
+        "Der Datenbankdump kann ohne Zugriff auf das verschlüsselte Repository direkt aus Git rekonstruiert werden."
+      ],
+      "answer": 1,
+      "explanation": "Recovery umfasst Schlüssel und vertrauenswürdige Zielidentität. Dateinamen, ungeprüfte Netzwerkantworten oder Quellcode ersetzen weder Entschlüsselung noch Repositoryzugriff.",
+      "weight": 3,
+      "topic": "Restore und Disaster Recovery",
+      "concept": "Zugangsmaterial als Recovery-Abhängigkeit",
+      "cognitive_level": "Anwendung",
+      "mini_glossary": {
+        "Restore-Test": "Ausgeführte Wiederherstellung mit verifizierten Daten- und Anwendungsfunktionen.",
+        "Disaster Recovery": "Geplanter Wiederanlauf nach großflächigem Ausfall einschließlich Infrastruktur, Daten, Schlüssel und Umschaltung."
+      }
+    },
+    {
+      "question": "28. Wann sollte bei einem Disaster Recovery der Traffic auf den Ersatzhost umgeschaltet werden?",
+      "options": [
+        "Sobald der leere Ersatzhost eine IP-Adresse besitzt.",
+        "Vor dem Datenbankrestore, damit echte Nutzer den Import testen.",
+        "Unmittelbar nach dem ersten heruntergeladenen Backupfragment.",
+        "Erst nach Datenrestore, Migrationen, reproduzierbarem Deploy und erfolgreichen Health- sowie Kernfunktionstests."
+      ],
+      "answer": 3,
+      "explanation": "Die Umschaltung setzt einen verifizierten Betriebszustand voraus. Früher Traffic würde Nutzer auf eine leere, inkonsistente oder unvollständige Umgebung leiten.",
+      "weight": 3,
+      "topic": "Restore und Disaster Recovery",
+      "concept": "Go/No-Go vor Traffic-Umschaltung",
+      "cognitive_level": "Analyse",
+      "mini_glossary": {
+        "Restore-Test": "Ausgeführte Wiederherstellung mit verifizierten Daten- und Anwendungsfunktionen.",
+        "Disaster Recovery": "Geplanter Wiederanlauf nach großflächigem Ausfall einschließlich Infrastruktur, Daten, Schlüssel und Umschaltung."
+      }
+    },
+    {
+      "question": "29. Der monatliche Restore läuft in einem isolierten Container; vierteljährlich wird zusätzlich ein frischer Host verwendet. Welchen Mehrwert hat der zweite Test?",
+      "options": [
+        "Er erhöht nur die Zahl der Testnamen, ohne eine andere Fehlerklasse abzudecken.",
+        "Er ersetzt alle monatlichen Integritäts- und Kerntabellenprüfungen.",
+        "Er prüft zusätzlich Infrastrukturaufbau und Unabhängigkeit von Produktionshost, dessen lokalem Cache und impliziten Vorbedingungen.",
+        "Er beweist eine beliebige zukünftige Datenmenge ohne erneute Messung."
+      ],
+      "answer": 2,
+      "explanation": "Ein Fresh-Host-Test deckt verborgene Hostabhängigkeiten und Neuaufbau ab, während häufigere Containerchecks Datenpfade regelmäßig prüfen. Er ersetzt keine anderen Tests und ist kein unbegrenzter Kapazitätsnachweis.",
+      "weight": 3,
+      "topic": "Restore und Disaster Recovery",
+      "concept": "Mehrschichtige Restore-Tests",
+      "cognitive_level": "Anwendung",
+      "mini_glossary": {
+        "Restore-Test": "Ausgeführte Wiederherstellung mit verifizierten Daten- und Anwendungsfunktionen.",
+        "Disaster Recovery": "Geplanter Wiederanlauf nach großflächigem Ausfall einschließlich Infrastruktur, Daten, Schlüssel und Umschaltung."
+      }
+    },
+    {
+      "question": "30. Bei möglicher Manipulation des Backup-Repositories besitzt ein getrenntes Hauptkonto unverändertere Storage-Snapshots. Welche Reihenfolge begrenzt Folgeschäden?",
+      "options": [
+        "Zuerst mit dem möglicherweise kompromittierten Upload-Key alle älteren Stände löschen.",
+        "Zuerst das gleiche Repository leer initialisieren und danach nach Beweisen suchen.",
+        "Zuerst den verdächtigen Stand über den getrennten Kontrollpfad sichern, nicht prunen und anschließend forensisch prüfen sowie sauber neu aufbauen.",
+        "Zuerst die Produktionsdatenbank abschalten und jedes Backup ungeprüft als verloren erklären."
+      ],
+      "answer": 2,
+      "explanation": "Der unabhängige Kontrollpfad bewahrt mögliche letzte gute Stände und Evidenz. Löschen oder Neuinitialisieren kann den Schaden irreversibel vergrößern; pauschales Abschalten ohne Analyse ist kein Recovery-Plan.",
+      "weight": 3,
+      "topic": "Restore und Disaster Recovery",
+      "concept": "Unabhängiger Recovery-Kontrollpfad",
+      "cognitive_level": "Analyse",
+      "mini_glossary": {
+        "Restore-Test": "Ausgeführte Wiederherstellung mit verifizierten Daten- und Anwendungsfunktionen.",
+        "Disaster Recovery": "Geplanter Wiederanlauf nach großflächigem Ausfall einschließlich Infrastruktur, Daten, Schlüssel und Umschaltung."
+      }
+    }
+  ]
+}
