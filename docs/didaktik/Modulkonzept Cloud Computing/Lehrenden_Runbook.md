@@ -1,17 +1,17 @@
 # Lehrenden-Runbook Cloud Computing
 
-**Stand:** 13.09.2026 · **Status:** operative Kursfassung
+**Stand:** 14.09.2026 · **Status:** operative Kursfassung
 
-Dieses Runbook setzt den Kurs mit zwölf Wochen und 36 betreuten Unterrichtseinheiten um. Die fachliche Füllung, der verbindliche Wochenwortschatz und die Lernprodukte stehen im [Wochenlehrplan](./Wochenlehrplan_Cloud_Computing_12_Wochen.md). Das Runbook ist nur zusammen mit diesem Lehrplan und dem [Datenmanagement- und Datenschutzplan](./Datenmanagement_Datenschutz.md) freigegeben. Offene institutionelle, datenschutzrechtliche oder prüfungsorganisatorische Gates werden nicht durch Annahmen ersetzt.
+Die Zielgruppe dieses Kurses besteht ausschließlich aus Bachelorstudierenden der Informatik. Dieses Runbook setzt zwölf stabile Themenblöcke mit insgesamt 36 betreuten Unterrichtseinheiten um. Die fachliche Füllung, der verbindliche Themenblockwortschatz und die Lernprodukte stehen im [Themenblockplan](./Themenblockplan_Cloud_Computing_12_Themenbloecke.md). Das Runbook ist nur zusammen mit diesem Plan und dem [Datenmanagement- und Datenschutzplan](./Datenmanagement_Datenschutz.md) freigegeben. Offene institutionelle, datenschutzrechtliche oder prüfungsorganisatorische Gates werden nicht durch Annahmen ersetzt.
 
 ## 1. Begriffe, Evidenzstufen und Rollen
 
 ### 1.1 Begriffe und Zeitnotation
 
 - **Unterrichtseinheit (UE):** 45 Minuten.
-- **Lerneinheit (LE):** die ersten zwei UE einer Woche als zusammenhängender 90-Minuten-Block.
-- **W01–W12:** Kurswochen 1 bis 12.
-- **L01–L10:** die zehn ARSnova-Livefragen einer Woche in der Reihenfolge der Importdatei.
+- **Lerneinheit (LE):** die ersten zwei UE eines Themenblocks als zusammenhängender 90-Minuten-Block.
+- **TB01–TB12:** die zwölf stabilen Themenblöcke ohne kalendarische oder modale Zuordnung.
+- **L01–L10:** die zehn ARSnova-Livefragen eines Themenblocks in der Reihenfolge der Importdatei.
 - **Multiple Choice (MC):** Aufgaben mit vorgegebenen Antwortoptionen; **MC-Test** bezeichnet hier die formative Lernanwendung.
 - **Fragen und Antworten (Q&A):** der moderierte ARSnova-Fragenkanal.
 - **Agentic Cloud Engineering Dossier (Dossier):** formative Arbeits- und Quellenbasis mit Aufträgen, Änderungen, Prüfungen, Messungen und Entscheidungen.
@@ -31,8 +31,8 @@ Dieses Runbook setzt den Kurs mit zwölf Wochen und 36 betreuten Unterrichtseinh
 - **6R:** Rehost, Replatform, Repurchase, Refactor, Retire und Retain.
 - **LIVE:** Daten aus dem konkreten Kurslauf; **REPO:** versionierte Repository-Nachweise; **LEHRDATEN:** synthetische Übungsdaten.
 - **OFFLINE:** Herkunftszusatz für ohne Plattform erhobene Kursdaten; `LIVE/OFFLINE` bleibt LIVE und unterliegt demselben Datenschutzplan.
-- **D:** Kalendertag des Wochentermins. `D+2` und `D+14` bedeuten zwei beziehungsweise vierzehn Kalendertage danach, jeweils zur selben lokalen Uhrzeit wie der Terminbeginn.
-- **H-0:30:** dreißig Minuten vor Beginn des Wochentermins.
+- **D:** Kalendertag der konkreten Durchführung eines Themenblocks; daraus folgt keine curriculare Wochenzuordnung.
+- **H-0:30:** dreißig Minuten vor Beginn des Themenblocks.
 - **T0:** dokumentiertes Ende eines Daten- oder Bearbeitungsfensters.
 
 Evidenzstufen werden im gesamten Kurs wörtlich so verwendet:
@@ -47,24 +47,23 @@ Evidenzstufen werden im gesamten Kurs wörtlich so verwendet:
 | Kürzel | Rolle                                         | Verbindliche Verantwortung                                                      |
 | ------ | --------------------------------------------- | ------------------------------------------------------------------------------- |
 | **MV** | Modulverantwortung                            | curricularer Rahmen, institutionelle Gates, Prüfung und Abweichungsentscheidung |
-| **LD** | Lehrdurchführung und ARSnova-Session-Host     | Wochen-Preflight, Moderation, Export und Wochenprotokoll                        |
-| **TU** | Tutor:in                                      | Durchführung der Tutoriumswochen nach demselben Ablauf                          |
+| **LD** | Lehrdurchführung und ARSnova-Session-Host     | Themenblock-Preflight, Moderation, Export und Themenblockprotokoll              |
+| **TU** | weitere Lehrperson                            | Durchführung zugewiesener Themenblöcke nach demselben Ablauf                    |
 | **IR** | Item-Redaktion                                | Livefragen, MC-Items, Lösungen, Erklärungen und Quellenprüfung                  |
 | **LB** | Lehrlaborbetrieb                              | isolierte Zielserver, Agentenzugänge, Quotas, Abbruch und Cleanup               |
 | **QE** | Qualitätsverantwortung                        | Vier-Augen-Prüfung, aggregierte Lehrbefunde und Nachsteuerung                   |
 | **DS** | Datenschutz- und Informationssicherheitsrolle | Zweck, Zugriff, Löschfristen, Incidents und Abwesenheitsnachweise               |
 | **AP** | ARSnova-Plattformbetrieb                      | technische Plattformprüfung sowie angeordnete Löschung                          |
 | **MP** | MC-Test-Plattformbetrieb                      | Laufzeitkonfiguration, Fenster und technische Löschung                          |
-| **ZH** | Zoom-Co-Host                                  | Fortführung, Breakout-Rechte und Ersatzkanal bei Hostausfall                    |
 
 Eine Person darf mehrere Bedienrollen übernehmen. Inhaltliche Freigabe und Löschkontrolle bleiben als dokumentiertes Vier-Augen-Prinzip bei zwei Rollen.
 
 ## 2. Harte Betriebsregeln
 
-1. Der Kurs umfasst exakt zwölf Wochen mit je drei UE. UE 1 und UE 2 bilden eine 90-minütige LE; UE 3 umfasst ausschließlich drei Minuten Übergang, 32 Minuten MC-Test und zehn Minuten aggregierte Ergebnis- und Lösungsbesprechung.
+1. Der Kurs umfasst exakt zwölf stabile Themenblöcke mit je drei UE und insgesamt 36 UE. UE 1 und UE 2 bilden eine 90-minütige LE; UE 3 umfasst ausschließlich drei Minuten Übergang, 32 Minuten MC-Test und zehn Minuten aggregierte Ergebnis- und Lösungsbesprechung.
 2. Frühere Lernprodukte aus UE 3 werden in die 90-minütige LE und das Selbststudium integriert. Sie erzeugen keine vierte UE und keine zusätzliche Prüfungsleistung.
-3. W01, W02, W04, W05, W06 und W09 sind Präsenz beziehungsweise synchron; W03, W07, W08, W10, W11 und W12 sind Tutorien.
-4. Jede Woche nutzt genau zehn ARSnova-Fragen, jeden der zehn freigegebenen Fragetypen genau einmal und ausschließlich `MEDIUM` oder `HARD`. Die Typen sind `MULTIPLE_CHOICE`, `SINGLE_CHOICE`, `FREETEXT`, `SHORT_TEXT`, `SURVEY`, `RATING`, `NUMERIC_ESTIMATE`, `MATCHING`, `ORDERING` und `CATEGORIZATION`.
+3. Das Modulpaket weist Themenblöcken weder Kalenderwochen noch Präsenz-, virtuelle oder Tutoriumsformen zu.
+4. Jeder Themenblock nutzt genau zehn ARSnova-Fragen, jeden der zehn freigegebenen Fragetypen genau einmal und ausschließlich `MEDIUM` oder `HARD`. Die Typen sind `MULTIPLE_CHOICE`, `SINGLE_CHOICE`, `FREETEXT`, `SHORT_TEXT`, `SURVEY`, `RATING`, `NUMERIC_ESTIMATE`, `MATCHING`, `ORDERING` und `CATEGORIZATION`.
 5. Das ARSnova-Profil bleibt unverändert: automatisch vergebene Kindergarten-Pseudonyme, keine eigenen Nicknames, Rangliste, vier automatisch gebildete Teams `Apfel :apple:`, `Birne :pear:`, `Banane :banana:` und `Apfelsine :orange:`, drei Boni, Sound-, Belohnungs-, Motivations- und Emoji-Effekte, Standardtimer 60 Sekunden, Schwierigkeitsskalierung, persönliche Zeitunterstützung und Lesephase. Hintergrundmusik bleibt `null`.
 6. Rang, Punkte, Geschwindigkeit, Teamstand, Boni, Reaktionen und persönliche Zeitwahl sind ausschließlich Spiel- und Zugangselemente. Sie sind kein Kompetenzmaß.
 7. Während einer bewertbaren ARSnova-Frage werden Lösung, Referenzwert und Richtig-Markierung nicht an Teilnehmende offengelegt. Die Auflösung beginnt erst nach dem Schließen der Frage. Umfragen und Ratings werden ausdrücklich als unbewertet bezeichnet.
@@ -75,25 +74,25 @@ Eine Person darf mehrere Bedienrollen übernehmen. Inhaltliche Freigabe und Lös
 12. Repository- und Laborarbeit erfolgt nur auf einem festgelegten Commit in isolierten Nichtproduktionsumgebungen. Produktionszugänge, Echtdaten, unbudgetierte Ressourcen und Produktivlasttests sind ausgeschlossen.
 13. Eine Agentenausgabe ist kein Nachweis. Jede wesentliche Aussage benötigt Quelle oder Messartefakt, Evidenzstufe und Gültigkeitsgrenze.
 
-## 3. Semester-Preflight
+## 3. Kurs- und Themenblock-Preflight
 
-### 3.1 Vier Wochen vor W01
+### 3.1 Institutioneller Kurs-Preflight
 
 MV eröffnet den Kurs erst, wenn alle folgenden Gates dokumentiert grün sind:
 
 - Prüfungsform, zulässiger Agenteneinsatz und Offenlegungspflichten sind für den konkreten Kurslauf institutionell bestätigt.
 - Verantwortlichkeit, Plattformrollen, Rechtsgrundlage, Transparenzinformation, Speicherorte, Löschwege und gegebenenfalls erforderliche Verträge sind durch die zuständigen institutionellen Stellen geklärt. Dieses Runbook setzt keine Rechtsgrundlage.
-- Präsenz- und Zoom-Lauf verwenden dieselben Lernziele, Nettozeiten, Dateien, Quellenstände, Laborprofile, Rechte, Budgets und Prüfungsinformationen.
+- Alle Durchführungen verwenden dieselben Themenblöcke, Lernziele, Nettozeiten, Dateien, Quellenstände, Laborprofile, Rechte, Budgets und Prüfungsinformationen.
 - Der verwendete Repository-Commit sowie der festgeschriebene MC-Test-Stand `b6b159555e8a228dad73dd75fd66c154a1088e28` sind im Kursmanifest eingetragen.
 - Für jede Gruppe steht ein rücksetzbarer Zielserver oder eine gleichwertige Sandbox ohne Produktionsdaten und Produktionszugänge bereit.
 - Agentenmodell, Systemauftrag, Werkzeugprofil, erlaubte Ziele, Rechte, Laufzeit, Token-/Cloudkosten, Akzeptanz- und Abbruchkriterien sind versioniert.
 - ARSnova- und MC-Test-Plattformbetrieb haben Export, Löschung und Abwesenheitsprüfung zugesagt.
 - Ein institutionell verwalteter, verschlüsselter Arbeitsbereich mit rollenbasiertem Zugriff ist eingerichtet.
-- Raum, Projektion, Audio, Strom, Netz und Ersatzgeräte beziehungsweise Zoom, Co-Host, Breakouts, Bildschirmfreigabe und Ersatzkanal sind gebucht.
+- Die benötigte technische Lernumgebung, Anzeige, Audioausgabe, Strom- und Netzversorgung, Ersatzgeräte, Bildschirmfreigabe und Ersatzkanal sind verfügbar.
 
 Ist ein Gate rot, sammelt der Kurs keine LIVE-Daten und startet keine externen Laborressourcen. Die betroffene Aktivität wird mit REPO-Material oder LEHRDATEN offline durchgeführt.
 
-### 3.2 Zwei Wochen vor W01
+### 3.2 Material- und Systemprobelauf
 
 IR, LD, QE, LB, AP und MP führen einen vollständigen Probelauf aus:
 
@@ -110,11 +109,11 @@ IR, LD, QE, LB, AP und MP führen einen vollständigen Probelauf aus:
 5. `Standard`, `10× Zeit` und `Ohne Frist` werden in der Teilnehmeransicht praktisch geprüft. Ein Host-Override wird nicht als normaler Ablauf eingeplant.
 6. Jede MC-Datei wird mit dem festgeschriebenen Validator geprüft, danach im tatsächlichen Deployment importiert.
 7. Ein frisches, nicht administratives Browserprofil bestätigt `practice`, Sofortfeedback, fehlenden technischen Countdown und fehlende öffentliche Top-Fünf.
-8. Für jede Woche liegen eine zugängliche Offline-Fragenfassung, anonyme Antwortkarten beziehungsweise ein strukturierter Antwortbogen sowie eine getrennte Lösungsfassung vor.
+8. Für jeden Themenblock liegen eine zugängliche Offline-Fragenfassung, anonyme Antwortkarten beziehungsweise ein strukturierter Antwortbogen sowie eine getrennte Lösungsfassung vor.
 9. Das Labor wird aus dem festgelegten Ausgangszustand erstellt, geprüft, abgebrochen, zurückgesetzt und vollständig zerstört.
-10. Präsenz- und Zoom-Probelauf verwenden dieselben Eingaben und erzeugen dieselben erwarteten Lernartefakte.
+10. Der Probelauf verwendet dieselben Eingaben und erzeugt unabhängig von Ort oder Medium dieselben erwarteten Lernartefakte.
 
-### 3.3 Sieben Tage vor jeder Woche
+### 3.3 Materialübergabe vor jedem Themenblock
 
 IR übergibt LD und QE:
 
@@ -134,15 +133,15 @@ LD prüft zusätzlich:
 - 30 MC-Items, vier eindeutige Optionen, 12 Items mit Gewicht 2 und 18 mit Gewicht 3, eigenständige Erklärungen und zwei bis vier Glossareinträge;
 - Lösungen und Distraktoren durch IR und QE fachlich geprüft;
 - Offline-Dateien lokal verfügbar, ohne Online-Link oder Cloudzugriff öffnen zu müssen;
-- die anwendbaren A11y-Prüfpunkte: Tastatur, sichtbarer Fokus, 200-Prozent-Zoom, Reflow, Kontrast, Alternativtexte, verständliche Linknamen, Untertitelweg und reduzierte Bewegung;
+- die anwendbaren A11y-Prüfpunkte: Tastatur, sichtbarer Fokus, 400-Prozent-Zoom mit Reflow, Kontrast, Alternativtexte, verständliche Linknamen, Untertitelweg und reduzierte Bewegung;
 - Löschdatum und Verantwortliche für jedes erwartete Laufzeitartefakt.
 
-### 3.4 Ein Tag vor der Woche
+### 3.4 Freigabe jedes Themenblocks
 
-LD gibt die Woche nur frei, wenn jede Antwort „ja“ lautet:
+LD gibt den Themenblock nur frei, wenn jede Antwort „ja“ lautet:
 
 - Öffnen Host-, Teilnehmer- und Projektionsansicht in getrennten Browserprofilen?
-- Ist die Wochen-Datei unverändert gegenüber dem freigegebenen Prüfsummenstand?
+- Ist die Themenblockdatei unverändert gegenüber dem freigegebenen Prüfsummenstand?
 - Bleibt die Lösung in Lese- und Aktivphase geheim?
 - Funktionieren Pseudonyme, Teams, Rangliste, Boni, Effekte, Lesephase und persönliche Zeit?
 - Ist die untimierte Alternative ohne Login- oder Gerätezwang vollständig nutzbar?
@@ -150,7 +149,7 @@ LD gibt die Woche nur frei, wenn jede Antwort „ja“ lautet:
 - Sind 3 + 32 + 10 Minuten in UE 3 reserviert?
 - Sind Repository-Commit, Quellenstand, Laborziel, Rechte, Kostenlimit, Abbruch und Cleanup eindeutig?
 - Sind geschützter Exportordner, Datenregister und Löschhandoff vorbereitet?
-- Sind Offline-, Netz-, Geräte-, Projektions-, Agenten-, Zielserver- und Zoom-Fallback verfügbar?
+- Sind Offline-, Netz-, Geräte-, Anzeige-, Agenten- und Zielserver-Fallback verfügbar?
 
 Bei einem „nein“ wird die betroffene Onlinefunktion nicht eingesetzt. Abschnitt 9 bestimmt den Ersatzweg.
 
@@ -163,51 +162,49 @@ Bei einem „nein“ wird die betroffene Onlinefunktion nicht eingesetzt. Abschn
 5. LB bestätigt Zielserverstatus, Kosten-/Zeitlimit, Abbruchkanal und automatischen Cleanup.
 6. Offline-Fragen, Antwortmaterial, Repository-Ausschnitte und vorab erzeugte Referenzausgaben werden lokal geöffnet.
 7. Die Startfolie zeigt Freiwilligkeit, fehlende Notenwirkung, Pseudonymität ohne Anonymitätsversprechen, untimierte Alternative und das Verbot von Personen- oder Geheimdaten in Freitext.
-8. Im Zoom-Lauf bestätigt ZH Co-Host-Rechte, Breakouts, schriftliche Aufträge und institutionellen Ersatzkanal. Unterricht wird standardmäßig nicht aufgezeichnet.
+8. Die technische Lernumgebung stellt einen schriftlichen Beteiligungsweg und einen institutionellen Ersatzkanal bereit. Eine Aufzeichnung ist nicht Bestandteil des Kursvertrags.
 
-## 4. Zwölf-Wochen-Betriebsplan
+## 4. Betriebsplan der zwölf Themenblöcke
 
-Die folgende Tabelle ist der operative Kurzüberblick. Leitfragen, Inhalte, Fachbegriffe, Quellenanker und die genaue inhaltliche Füllung der UE stehen im [kanonischen Wochenlehrplan](./Wochenlehrplan_Cloud_Computing_12_Wochen.md).
+Die folgende Tabelle ist der operative Kurzüberblick. Leitfragen, Inhalte, Fachbegriffe, Quellenanker und die genaue inhaltliche Füllung der UE stehen im [kanonischen Themenblockplan](./Themenblockplan_Cloud_Computing_12_Themenbloecke.md).
 
-| Woche | Typ              | Thema der 90-minütigen LE                     | In LE und Selbststudium integrierter Dossierertrag                                           |
-| ----- | ---------------- | --------------------------------------------- | -------------------------------------------------------------------------------------------- |
-| W01   | Präsenz/synchron | Grundlagen, Modelle und Shared Responsibility | belegte Cloud-Einordnung mit Verantwortung, Nutzen, Risiko und offener Annahme               |
-| W02   | Präsenz/synchron | Container, IaC und Netzwerk                   | Technologiematrix und reproduzierbarer Provisioning-Entwurf                                  |
-| W03   | Tutorium         | Deployment, Härtung und Zustand               | Ist-Diagramm, Härtungsnachweis sowie persistenter, flüchtiger und lokaler Zustand            |
-| W04   | Präsenz/synchron | Serverless                                    | Eignungsmatrix für geeigneten und ungeeigneten Kandidaten mit Gegenprobe                     |
-| W05   | Präsenz/synchron | GCP, AWS und Microsoft Azure                  | normalisierter Plattformvergleich mit Region, Verantwortung, Kostenannahme und Exit          |
-| W06   | Präsenz/synchron | Daten und maschinelles Lernen                 | Datenfluss und Optionenvergleich mit Qualitäts-, Datenschutz-, Betriebs- und Kostenkriterien |
-| W07   | Tutorium         | Storage, Datenbanken und Recovery             | Zustands- und Recovery-Matrix mit RPO, RTO, Integrität und ausgeführter Wiederherstellung    |
-| W08   | Tutorium         | Skalierung, Performance und Distribution      | reproduzierbarer Last- oder Fehlerplan mit SLI, SLO, Abbruch und Evidenzgrenze               |
-| W09   | Präsenz/synchron | Security, Observability, SRE und Resilienz    | Befund, Risiko, Maßnahme, Verifikation und Restrisiko                                        |
-| W10   | Tutorium         | FinOps, Nachhaltigkeit und 6R                 | TCO-/Sensitivitätsmodell und ADR mit stärkster Alternative und Exit                          |
-| W11   | Tutorium         | ADR und Referat                               | referatsfähige These, Quellen- und Visualisierungsskizze sowie Gegenalternative              |
-| W12   | Tutorium         | Synthese und Verteidigung                     | 15-minütige Probe, persönliche Korrekturliste und begrenzte Schlussaussage                   |
+| Themenblock | Thema der 90-minütigen LE                     | In LE und Selbststudium integrierter Dossierertrag                                           |
+| ----------- | --------------------------------------------- | -------------------------------------------------------------------------------------------- |
+| TB01        | Grundlagen, Modelle und Shared Responsibility | belegte Cloud-Einordnung mit Verantwortung, Nutzen, Risiko und offener Annahme               |
+| TB02        | Container, IaC und Netzwerk                   | Technologiematrix und reproduzierbarer Provisioning-Entwurf                                  |
+| TB03        | Deployment, Härtung und Zustand               | Ist-Diagramm, Härtungsnachweis sowie persistenter, flüchtiger und lokaler Zustand            |
+| TB04        | Serverless                                    | Eignungsmatrix für geeigneten und ungeeigneten Kandidaten mit Gegenprobe                     |
+| TB05        | GCP, AWS und Microsoft Azure                  | normalisierter Plattformvergleich mit Region, Verantwortung, Kostenannahme und Exit          |
+| TB06        | Daten und maschinelles Lernen                 | Datenfluss und Optionenvergleich mit Qualitäts-, Datenschutz-, Betriebs- und Kostenkriterien |
+| TB07        | Storage, Datenbanken und Recovery             | Zustands- und Recovery-Matrix mit RPO, RTO, Integrität und ausgeführter Wiederherstellung    |
+| TB08        | Skalierung, Performance und Distribution      | reproduzierbarer Last- oder Fehlerplan mit SLI, SLO, Abbruch und Evidenzgrenze               |
+| TB09        | Security, Observability, SRE und Resilienz    | Befund, Risiko, Maßnahme, Verifikation und Restrisiko                                        |
+| TB10        | FinOps, Nachhaltigkeit und 6R                 | TCO-/Sensitivitätsmodell und ADR mit stärkster Alternative und Exit                          |
+| TB11        | ADR und Referat                               | referatsfähige These, Quellen- und Visualisierungsskizze sowie Gegenalternative              |
+| TB12        | Synthese und Verteidigung                     | 15-minütige Probe, persönliche Korrekturliste und begrenzte Schlussaussage                   |
 
-UE 3 jeder Woche bleibt vollständig dem formativen MC-Test vorbehalten.
+UE 3 jedes Themenblocks bleibt vollständig dem formativen MC-Test vorbehalten.
 
-## 5. Wiederkehrende Wochenschleife
+## 5. Wiederkehrende Themenblockschleife
 
-| Zeitpunkt              | Verantwortlich                    | Pflichtaktion                                                                                    |
-| ---------------------- | --------------------------------- | ------------------------------------------------------------------------------------------------ |
-| D−7 bis D−3            | IR, LD, QE, LB                    | Material-, Import-, Quellen-, Labor- und A11y-Prüfung abschließen                                |
-| D−1                    | LD, DS                            | Freigabe-Preflight, Datenregister und Löschtermine bestätigen                                    |
-| H-0:30                 | LD oder TU, LB, gegebenenfalls ZH | technischen Kurzcheck ausführen                                                                  |
-| D, Minute 0–90         | LD oder TU                        | LE nach Abschnitt 6 durchführen                                                                  |
-| D, Minute 90–135       | LD oder TU                        | MC-Test nach Abschnitt 7 durchführen                                                             |
-| D, binnen zwei Stunden | LD                                | erforderliche Exporte registrieren, neutral umbenennen und temporäre Downloads entfernen         |
-| D+1                    | QE, LD                            | nur freigegebene Aggregate prüfen und höchstens zwei Nachsteuerungen festlegen                   |
-| D+2                    | MP, LD                            | denselben 30er-Satz zur selben lokalen Uhrzeit für 24 Stunden zum zweiten Abruf freischalten     |
-| D+14                   | MP, LD                            | denselben 30er-Satz zur selben lokalen Uhrzeit für 24 Stunden zum verzögerten Abruf freischalten |
-| nach jedem T0          | DS, AP, MP                        | Löschung und Abwesenheitsprüfung nach dem Datenplan ausführen                                    |
+| Zeitpunkt              | Verantwortlich | Pflichtaktion                                                                            |
+| ---------------------- | -------------- | ---------------------------------------------------------------------------------------- |
+| D−7 bis D−3            | IR, LD, QE, LB | Material-, Import-, Quellen-, Labor- und A11y-Prüfung abschließen                        |
+| D−1                    | LD, DS         | Freigabe-Preflight, Datenregister und Löschtermine bestätigen                            |
+| H-0:30                 | LD oder TU, LB | technischen Kurzcheck ausführen                                                          |
+| D, Minute 0–90         | LD oder TU     | LE nach Abschnitt 6 durchführen                                                          |
+| D, Minute 90–135       | LD oder TU     | MC-Test nach Abschnitt 7 durchführen                                                     |
+| D, binnen zwei Stunden | LD             | erforderliche Exporte registrieren, neutral umbenennen und temporäre Downloads entfernen |
+| D+1                    | QE, LD         | nur freigegebene Aggregate prüfen und höchstens zwei Nachsteuerungen festlegen           |
+| nach jedem T0          | DS, AP, MP     | Löschung und Abwesenheitsprüfung nach dem Datenplan ausführen                            |
 
-Die allgemeinen Wiederholungsankündigungen werden an den gesamten Kurs gesendet. Es gibt keine personenbezogenen Erinnerungen, Abschlusslisten oder Sanktionen.
+Ein späterer freiwilliger Wiederabruf kann ohne kalendarische Vorgabe für den gesamten Kurs geöffnet werden. Es gibt keine personenbezogenen Erinnerungen, Abschlusslisten oder Sanktionen.
 
 ## 6. Minutengenauer Ablauf der 90-minütigen LE
 
 | Minute | Auftrag                                                                                         | ARSnova- und Lehrfunktion                          |
 | -----: | ----------------------------------------------------------------------------------------------- | -------------------------------------------------- |
-|    0–4 | Lernziel, Wochenfrage, Datenhinweis, Evidenzstufe und untimierten Weg sichtbar machen           | keine Datenerhebung                                |
+|    0–4 | Lernziel, Leitfrage, Datenhinweis, Evidenzstufe und untimierten Weg sichtbar machen             | keine Datenerhebung                                |
 |    4–8 | L01 individuell beantworten und knapp auflösen                                                  | Vorwissen aktivieren                               |
 |   8–12 | L02 beantworten; stärksten Distraktor kontrastieren                                             | ältere Kernidee abrufen                            |
 |  12–22 | kompaktes Begriffsmodell mit einer Primär- oder Repositoryquelle aufbauen                       | Fachinput, keine neue Livefrage                    |
@@ -243,10 +240,10 @@ Die Summe beträgt genau 90 Minuten. Lange Agenten- oder Laborläufe laufen nur 
 ### 6.2 Lösungsoffenlegung
 
 - Die Importdatei mit Lösungsschlüsseln bleibt ausschließlich bei IR, LD und QE im geschützten Materialbereich.
-- Host- und Teilnehmeransicht werden vor jeder Woche getrennt geprüft. Der implementierte Teilnehmerpfad liefert in `ACTIVE` keine `isCorrect`-Felder; diese Codeeigenschaft ersetzt den praktischen Importtest nicht.
+- Host- und Teilnehmeransicht werden vor jedem Themenblock getrennt geprüft. Der implementierte Teilnehmerpfad liefert in `ACTIVE` keine `isCorrect`-Felder; diese Codeeigenschaft ersetzt den praktischen Importtest nicht.
 - Eine versehentlich sichtbare Lösung macht das Item für diese Erhebung ungültig. LD schließt es, erklärt den Fehler und nimmt es aus jeder Quote.
 - Freitext, Umfrage und Rating erhalten keine erfundene Richtig-Falsch-Auswertung.
-- Untimed Teilnehmende erhalten die Lösung erst nach eigener Abgabe oder bewusster Beendigung. Falls die synchrone Gruppe bereits bespricht, steht dieselbe zehnminütige Besprechung als zugängliche schriftliche Fassung bereit.
+- Untimed Teilnehmende erhalten die Lösung erst nach eigener Abgabe oder bewusster Beendigung. Die zehnminütige Besprechung steht zusätzlich als zugängliche schriftliche Fassung bereit.
 
 ### 6.3 Laptop- und Tablet-Rollen
 
@@ -256,7 +253,7 @@ Die Summe beträgt genau 90 Minuten. Lange Agenten- oder Laborläufe laufen nur 
 - Lokale Rechner sind Zugangspunkte. Rechenleistung und Betriebsevidenz stammen aus derselben isolierten Laborumgebung.
 - Auf dem Laptop wird standardmäßig nur gelesen. Änderungen erfolgen ausschließlich im freigegebenen Arbeitsbereich und nie auf Produktion.
 
-## 7. UE 3: MC-Test und Spaced Repetition
+## 7. UE 3: MC-Test und Wiederabruf
 
 ### 7.1 Exakter Ablauf
 
@@ -272,7 +269,7 @@ Die 32 Minuten sind Organisationszeit, keine technische Sperre. Wer mehr Zeit be
 
 Vor jeder Freischaltung bestätigt MP:
 
-- genau die freigegebene Wochen-Datei mit 30 Items;
+- genau die freigegebene Themenblockdatei mit 30 Items;
 - Modus `practice`;
 - Sofortfeedback einschließlich Erklärung und Mini-Glossar;
 - kein Countdown, keine automatische Beendigung nach 32 Minuten;
@@ -284,25 +281,14 @@ Vor jeder Freischaltung bestätigt MP:
 ### 7.3 Wiederabruf
 
 1. **Erster Abruf:** in UE 3.
-2. **Zweiter Abruf:** D+2 zur selben lokalen Uhrzeit; 24 Stunden offen.
-3. **Verzögerter Abruf:** D+14 zur selben lokalen Uhrzeit; 24 Stunden offen.
-4. Der gesamte Kurs erhält dieselbe allgemeine Nachricht mit höchstens zwei Kernkonzepten und dem Hinweis auf Erklärungen und Glossar.
-5. Weitere freiwillige Abrufe dürfen technisch möglich sein, werden aber weder verfolgt noch als individueller Fortschritt ausgewertet.
-6. Jedes Fenster erhält ein eigenes T0 und einen eigenen Löschhandoff. Pseudonyme werden nicht über Fenster oder Werkzeuge hinweg verbunden.
+2. **Weiterer vollständiger Abruf:** kann für den gesamten Kurs ohne kalendarische Vorgabe geöffnet werden.
+3. **Kumulativer Abruf:** Kernkonzepte früherer Themenblöcke erscheinen in späteren Themenblöcken in einem neuen Kontext.
+4. Weitere freiwillige Abrufe werden weder verfolgt noch als individueller Fortschritt ausgewertet.
+5. Jedes Fenster erhält ein eigenes T0 und einen eigenen Löschhandoff. Pseudonyme werden nicht über Fenster oder Werkzeuge hinweg verbunden.
 
-## 8. Präsenz- und Zoom-Äquivalenz
+## 8. Modalitätsneutraler Durchführungsvertrag
 
-| Lehrfunktion      | Präsenzlauf                                        | Zoom-Lauf                                                   |
-| ----------------- | -------------------------------------------------- | ----------------------------------------------------------- |
-| Aktivierung       | individuelle Browser- oder Papierantwort           | Browserantwort oder private Notiz                           |
-| Peer-Austausch    | feste Zweier- oder Tischgruppe                     | Breakout mit schriftlichem Auftrag und Rückkehrzeit         |
-| Repositoryarbeit  | ein Laptop je Gruppe, relevante Ansicht projiziert | derselbe Commit und dieselbe Ansicht per Bildschirmfreigabe |
-| Agentenlauf       | Auftrag, Plan, Gate, Status und Ergebnis sichtbar  | identischer Remote-Agent mit Statuskanal                    |
-| Coaching          | LD oder TU besucht Gruppen                         | LD oder TU besucht Breakouts                                |
-| Ergebnissicherung | gemeinsames digitales Dossier                      | dasselbe digitale Dossier                                   |
-| Fallback          | lokale Dateien, Karten, Ersatzgerät                | heruntergeladene Dateien, Hauptraum, Ersatzkanal            |
-
-Beide Läufe haben identische 135 Netto-Minuten. Es handelt sich um getrennte Kursläufe, nicht um hybriden Simultanunterricht. Im normalen Zoom-Unterricht sind Kamera und Mikrofon nicht der einzige Beteiligungsweg; es gibt mindestens einen schriftlichen Weg. Aufzeichnung ist standardmäßig aus. Untertitel oder Transkription werden nur nach institutioneller Freigabe eingesetzt.
+Das Modulpaket unterscheidet nicht zwischen virtueller und präsenter Durchführung. Themenblockkennung, Lernziele, Inhalte, 135 Netto-Minuten, Fragen, Lernprodukte, Feedback, Zugangswege und Prüfungsinformationen bleiben identisch. Organisatorische Entscheidungen über Raum oder Kommunikationsmedium verändern den curricularen Vertrag nicht.
 
 ## 9. Offline-, Netz- und Gerätefallback
 
@@ -318,8 +304,7 @@ LD schaltet nach genau einem kontrollierten Neuversuch auf den festgelegten Fall
 | Projektion oder Sound fällt aus                               | zugängliche lokale Unterlagen und verbale plus schriftliche Moderation                                            | Spielwirkung entfällt; Fachinhalt bleibt gleich                                 |
 | Agent oder Modell fällt aus                                   | freigegebene Ersatzkonfiguration; sonst geprüften REPO-Referenzlauf analysieren                                   | Referenzlauf nicht als aktuelle Ausführung ausgeben                             |
 | Zielserver fällt aus                                          | vorbereitete isolierte Ersatzinstanz; sonst Read-only-Evidenzreview                                               | fehlende Messung nicht erfinden                                                 |
-| Zoom-Breakouts fallen aus                                     | feste Gruppen in getrennten Bereichen des gemeinsamen Dokuments im Hauptraum                                      | gleiche Aufgabe und Nettozeit                                                   |
-| Zoom-Host fällt aus                                           | ZH führt Plan und Zeit fort; bei Gesamtausfall institutionellen Ersatzkanal nutzen                                | keine ad-hoc geänderte Fachaufgabe                                              |
+| Gruppenkanal oder Kommunikationsmedium fällt aus              | vorbereiteten institutionellen Ersatzkanal und schriftlichen Auftrag nutzen                                       | gleiche Aufgabe und Nettozeit                                                   |
 
 ## 10. Export- und Löschhandoff
 
@@ -344,7 +329,7 @@ LD schaltet nach genau einem kontrollierten Neuversuch auf den festgelegten Fall
 
 LD übergibt DS sowie AP oder MP:
 
-- Woche, System und Ereigniskennung ohne Personenbezug;
+- Themenblock, System und Ereigniskennung ohne Personenbezug;
 - Öffnungszeit, T0 und verbindliches Löschdatum;
 - betroffene Plattforminstanz;
 - Kategorien der erzeugten Roh- und Arbeitsartefakte;
@@ -369,7 +354,7 @@ ARSnova-Code sieht eine reguläre Purge-Fälligkeit 24 Stunden nach `endedAt` mi
 
 Der Incident-Ablauf lautet immer: stoppen, eindämmen, institutionell informieren, minimal dokumentieren, kontrolliert löschen oder übergeben, Gegenmaßnahme prüfen. Ob eine rechtliche Meldung erforderlich ist, entscheidet ausschließlich die zuständige institutionelle Stelle.
 
-## 12. Wochen- und Semesterabschluss
+## 12. Themenblock- und Kursabschluss
 
 ### 12.1 Bis D+1
 
@@ -385,10 +370,10 @@ LD und QE dokumentieren ausschließlich:
 
 Personen, Pseudonyme, individuelle Verläufe, Geschwindigkeit, Rang und Teamstand erscheinen nicht.
 
-### 12.2 Nach W12
+### 12.2 Nach TB12
 
-1. W12 wird mit demselben 90 + 45-Minuten-Raster abgeschlossen.
-2. Die D+14-Fenster von W11 und W12 bleiben als freiwilliger Abruf bestehen; danach folgen deren reguläre Löschhandoffs.
+1. TB12 wird mit demselben 90 + 45-Minuten-Raster abgeschlossen.
+2. Alle freiwilligen Abruffenster erhalten ihren regulären Löschhandoff nach dem Datenplan.
 3. Alle Laborinstanzen, Volumes, Snapshots, externen Freigabelinks und kurzlebigen Credentials werden inventarisiert und entfernt beziehungsweise widerrufen.
 4. DS prüft Löschprotokoll und Abwesenheitsnachweise für ARSnova, alle MC-Fenster, geschützte Arbeitskopien und Incidents.
 5. Nur ein anonymes, kleinzellengeprüftes internes Lehrfazit darf bis zum Abschluss der nächsten Kursplanung aufbewahrt werden, sofern das institutionelle Gate dies ausdrücklich freigibt. Andernfalls wird es mit den Arbeitskopien gelöscht.
@@ -400,11 +385,11 @@ Personen, Pseudonyme, individuelle Verläufe, Geschwindigkeit, Rang und Teamstan
 
 - [Modulkonzept Cloud Computing](./Modulkonzept_Cloud_Computing.md)
 - [Lernziel- und Alignment-Matrix](./Lernziel_Alignment_Matrix.md)
-- [Wochenlehrplan](./Wochenlehrplan_Cloud_Computing_12_Wochen.md)
-- [ARSnova-Blueprint](./ARSnova_Blueprint_12_Wochen.md)
-- [MC-Test-Blueprint](./MC-Test_Blueprint_12_Wochen.md)
+- [Themenblockplan](./Themenblockplan_Cloud_Computing_12_Themenbloecke.md)
+- [ARSnova-Blueprint](./ARSnova_Blueprint_12_Themenbloecke.md)
+- [MC-Test-Blueprint](./MC-Test_Blueprint_12_Themenbloecke.md)
 - [Referatsthemenkatalog](./Referatsthemen_Cloud_Computing_ARSnova.md)
 - [Datenmanagement und Datenschutz](./Datenmanagement_Datenschutz.md)
 - [Technische Quellen zu ARSnova.eu](./Technische_Quellen_ARSnova.md)
 
-Bis zur vollständigen Migration ihrer einzigartigen Detailregeln ergänzen die [IU-Formalia](../CLOUD-COMPUTING-IU-FORMALIA.md), die [Referatsumsetzung](../CLOUD-COMPUTING-REFERAT-PRUEFUNG.md), das [Präsenz-/Zoom-Konzept](../CLOUD-COMPUTING-DURCHFUEHRUNG-PRAESENZ-ZOOM.md) und das [Agentic-Lehrlabor](../CLOUD-COMPUTING-AGENTIC-LEHRLABOR.md) das neue Paket. Bei einem Widerspruch gelten das aktuelle Modulkonzept, der veröffentlichte Prüfungsauftrag beziehungsweise myCampus und dieses Runbook; überholte UE-3-, MC-Generator- oder ausschließlich-agent-first-Regeln gelten nicht.
+Bis zur vollständigen Migration ihrer einzigartigen Detailregeln ergänzen die [IU-Formalia](../CLOUD-COMPUTING-IU-FORMALIA.md), die [Referatsumsetzung](../CLOUD-COMPUTING-REFERAT-PRUEFUNG.md), das [modalitätsneutrale Durchführungskonzept](../CLOUD-COMPUTING-DURCHFUEHRUNG-MODALITAETSNEUTRAL.md) und das [Agentic-Lehrlabor](../CLOUD-COMPUTING-AGENTIC-LEHRLABOR.md) das neue Paket. Bei einem Widerspruch gelten das aktuelle Modulkonzept, der veröffentlichte Prüfungsauftrag beziehungsweise myCampus und dieses Runbook; überholte UE-3-, MC-Generator- oder ausschließlich-agent-first-Regeln gelten nicht.

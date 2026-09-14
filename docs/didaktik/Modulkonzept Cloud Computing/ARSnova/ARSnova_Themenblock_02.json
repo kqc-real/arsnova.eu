@@ -2,7 +2,7 @@
   "exportVersion": 1,
   "exportedAt": "2026-09-13T00:00:00.000Z",
   "quiz": {
-    "name": "Cloud Computing – Woche 02: Abstraktionen und Infrastructure as Code (IaC)",
+    "name": "Cloud Computing – Themenblock TB02: Abstraktionen und Infrastructure as Code (IaC)",
     "description": "10 anspruchsvolle Live-Fragen zu Virtualisierung, Containern, Images, Orchestrierung, Domain Name System (DNS), Transport Layer Security (TLS), Hypertext Transfer Protocol (HTTP) und Load Balancing.",
     "showLeaderboard": true,
     "allowCustomNicknames": false,
@@ -148,27 +148,27 @@
         "answers": [],
         "matchingPairs": [
           {
-            "leftId": "w02-match-dns",
+            "leftId": "tb02-match-dns",
             "left": "Name liefert eine veraltete Zieladresse",
-            "rightId": "w02-match-dns-value",
+            "rightId": "tb02-match-dns-value",
             "right": "DNS-Eintrag und Cache-Laufzeit"
           },
           {
-            "leftId": "w02-match-tls",
+            "leftId": "tb02-match-tls",
             "left": "Browser weist den richtigen Host wegen Zertifikatsnamen ab",
-            "rightId": "w02-match-tls-value",
+            "rightId": "tb02-match-tls-value",
             "right": "TLS-Zertifikat und Server Name Indication"
           },
           {
-            "leftId": "w02-match-lb",
+            "leftId": "tb02-match-lb",
             "left": "Nur jede dritte Anfrage erreicht eine fehlerhafte Instanz",
-            "rightId": "w02-match-lb-value",
+            "rightId": "tb02-match-lb-value",
             "right": "Load-Balancer-Pool und Healthcheck"
           },
           {
-            "leftId": "w02-match-fw",
+            "leftId": "tb02-match-fw",
             "left": "SYN-Pakete erreichen den freigegebenen Dienstport nicht",
-            "rightId": "w02-match-fw-value",
+            "rightId": "tb02-match-fw-value",
             "right": "Firewall-Regel und Netzpfad"
           }
         ],
@@ -186,27 +186,27 @@
         "answers": [],
         "orderingItems": [
           {
-            "id": "w02-order-1",
+            "id": "tb02-order-1",
             "text": "Zielressourcen und private Dienstendpunkte deklarativ bereitstellen"
           },
           {
-            "id": "w02-order-2",
+            "id": "tb02-order-2",
             "text": "Healthchecks und Weiterleitung im Load Balancer konfigurieren"
           },
           {
-            "id": "w02-order-3",
+            "id": "tb02-order-3",
             "text": "Firewall auf die erforderlichen Quell- und Zielpfade begrenzen"
           },
           {
-            "id": "w02-order-4",
+            "id": "tb02-order-4",
             "text": "Bereits ausgestelltes Zertifikat für den vorgesehenen Hostnamen binden"
           },
           {
-            "id": "w02-order-5",
+            "id": "tb02-order-5",
             "text": "DNS auf den geprüften öffentlichen Einstieg umstellen"
           },
           {
-            "id": "w02-order-6",
+            "id": "tb02-order-6",
             "text": "TLS-, HTTP- und WebSocket-Pfade von außen verifizieren"
           }
         ],
@@ -223,52 +223,52 @@
         "answers": [],
         "categories": [
           {
-            "id": "w02-cat-image",
+            "id": "tb02-cat-image",
             "name": "Image-Build"
           },
           {
-            "id": "w02-cat-compose",
+            "id": "tb02-cat-compose",
             "name": "Dienstzusammenstellung"
           },
           {
-            "id": "w02-cat-orchestration",
+            "id": "tb02-cat-orchestration",
             "name": "Laufzeitorchestrierung"
           },
           {
-            "id": "w02-cat-iac",
+            "id": "tb02-cat-iac",
             "name": "Infrastrukturprovisionierung"
           }
         ],
         "categorizationItems": [
           {
-            "id": "w02-item-dockerfile",
+            "id": "tb02-item-dockerfile",
             "text": "Versioniert die Schritte vom Basisimage bis zum Laufzeitartefakt",
-            "correctCategoryId": "w02-cat-image"
+            "correctCategoryId": "tb02-cat-image"
           },
           {
-            "id": "w02-item-compose",
+            "id": "tb02-item-compose",
             "text": "Deklariert App, Datenbank, Cache, Volumes und lokale Netze gemeinsam",
-            "correctCategoryId": "w02-cat-compose"
+            "correctCategoryId": "tb02-cat-compose"
           },
           {
-            "id": "w02-item-reconcile",
+            "id": "tb02-item-reconcile",
             "text": "Ersetzt ausgefallene Replikate anhand eines gewünschten Laufzeitzustands",
-            "correctCategoryId": "w02-cat-orchestration"
+            "correctCategoryId": "tb02-cat-orchestration"
           },
           {
-            "id": "w02-item-vm",
+            "id": "tb02-item-vm",
             "text": "Erzeugt virtuelle Maschine, Subnetz und Firewall beim Infrastrukturprovider",
-            "correctCategoryId": "w02-cat-iac"
+            "correctCategoryId": "tb02-cat-iac"
           },
           {
-            "id": "w02-item-layer",
+            "id": "tb02-item-layer",
             "text": "Installiert Laufzeitabhängigkeiten in einer reproduzierbaren Build-Stufe",
-            "correctCategoryId": "w02-cat-image"
+            "correctCategoryId": "tb02-cat-image"
           },
           {
-            "id": "w02-item-rollout",
+            "id": "tb02-item-rollout",
             "text": "Steuert schrittweisen Rollout und Rücknahme mehrerer Replikate",
-            "correctCategoryId": "w02-cat-orchestration"
+            "correctCategoryId": "tb02-cat-orchestration"
           }
         ],
         "categorizationShuffleItems": true,

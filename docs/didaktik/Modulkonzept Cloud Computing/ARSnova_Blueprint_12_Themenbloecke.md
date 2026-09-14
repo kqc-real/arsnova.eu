@@ -1,55 +1,55 @@
 <!-- markdownlint-disable MD013 MD060 -->
 
-# ARSnova-Blueprint für 12 Wochen
+# ARSnova-Blueprint für 12 Themenblöcke
 
-**Kürzel und Fachkürzungen vorab:** **A11y** bezeichnet Barrierefreiheit (Accessibility), **ADR** einen Architecture Decision Record, **API** eine Programmierschnittstelle, **AWS** Amazon Web Services, **FinOps** Financial Operations, **GCP** Google Cloud Platform, **IAM** Identity and Access Management, **IaC** Infrastructure as Code, **IaaS/PaaS/SaaS** Infrastructure/Platform/Software as a Service, **ID** eine eindeutige Kennung, **JSON** JavaScript Object Notation, **LE** eine 90-minütige Lerneinheit aus zwei **UE**, **MC** Multiple Choice, **ML** maschinelles Lernen, **QA** Qualitätssicherung, **SRE** Site Reliability Engineering, **UE** eine 45-minütige Unterrichtseinheit, **UUID** einen technisch erzeugten Universally Unique Identifier, **W01–W12** die zwölf Kurswochen und **L01–L10** die zehn Livefragen einer Woche. **6R** bezeichnet Rehost, Replatform, Repurchase, Refactor, Retire und Retain. `AUTO` ist der Enum-Wert für automatische Teamzuweisung.
+**Kürzel und Fachkürzungen vorab:** **A11y** bezeichnet Barrierefreiheit (Accessibility), **ADR** einen Architecture Decision Record, **API** eine Programmierschnittstelle, **AWS** Amazon Web Services, **FinOps** Financial Operations, **GCP** Google Cloud Platform, **IAM** Identity and Access Management, **IaC** Infrastructure as Code, **IaaS/PaaS/SaaS** Infrastructure/Platform/Software as a Service, **ID** eine eindeutige Kennung, **JSON** JavaScript Object Notation, **LE** eine 90-minütige Lerneinheit aus zwei **UE**, **MC** Multiple Choice, **ML** maschinelles Lernen, **QA** Qualitätssicherung, **SRE** Site Reliability Engineering, **TB01–TB12** die zwölf stabilen Themenblöcke, **UE** eine 45-minütige Unterrichtseinheit, **UUID** einen technisch erzeugten Universally Unique Identifier und **L01–L10** die zehn Livefragen eines Themenblocks. **6R** bezeichnet Rehost, Replatform, Repurchase, Refactor, Retire und Retain. `AUTO` ist der Enum-Wert für automatische Teamzuweisung.
 
-**Version:** 1.0.0 · **Stand:** 13.09.2026 · **Status:** normative Spezifikation für 120 anspruchsvolle Livefragen
+**Version:** 1.0.0 · **Stand:** 14.09.2026 · **Status:** normative Spezifikation für 120 anspruchsvolle Livefragen
 
 **Kanonischer Paketindex:** [Materialindex](./Materialindex.md) · **Lernzielbezug:** [Lernziel-Alignment-Matrix](./Lernziel_Alignment_Matrix.md) · **Betrieb:** [Lehrenden-Runbook](./Lehrenden_Runbook.md)
 
 ## 1. Zweck, Umfang und Einsatz
 
-ARSnova.eu dient in diesem Modul gleichzeitig als synchrones Lernwerkzeug und als authentisches Studienobjekt. Die Livefragen aktivieren Vorwissen, machen plausible Fehlvorstellungen in Aggregaten sichtbar, eröffnen Peer-Instruction- und Architekturgespräche und geben unmittelbares formatives Feedback. Sie liefern keine individuelle Leistungsbewertung, keine Prüfungszulassung und keine Grundlage für Forschung oder Publikation.
+Die Zielgruppe dieses Moduls besteht ausschließlich aus Bachelorstudierenden der Informatik. ARSnova.eu dient gleichzeitig als Lernwerkzeug und als authentisches Studienobjekt. Die Livefragen aktivieren Vorwissen, machen plausible Fehlvorstellungen in Aggregaten sichtbar, eröffnen Peer-Instruction- und Architekturgespräche und geben unmittelbares formatives Feedback. Sie liefern keine individuelle Leistungsbewertung, keine Prüfungszulassung und keine Grundlage für Forschung oder Publikation.
 
 Das Paket umfasst genau zwölf Importdateien mit je zehn Fragen, zusammen also 120 Fragen. Jede Datei enthält jeden der zehn unterstützten Fragetypen genau einmal. Die JSON-Dateien sind die autoritative Quelle für Wortlaut, Reihenfolge, Lösung und typbezogene Struktur; dieser Blueprint ist die normative Quelle für Umfang, Qualitätsregeln und Einsatz.
 
-| Woche | Typ              | Datei                                            | Verbindlicher fachlicher Schwerpunkt                                     |
-| ----: | ---------------- | ------------------------------------------------ | ------------------------------------------------------------------------ |
-|   W01 | Präsenz/synchron | [ARSnova_Woche_01.json](./ARSnova_Woche_01.json) | Grundlagen, Cloud- und Servicemodelle, Shared Responsibility             |
-|   W02 | Präsenz/synchron | [ARSnova_Woche_02.json](./ARSnova_Woche_02.json) | Virtualisierung, Container, IaC und Netzwerk                             |
-|   W03 | Tutorium         | [ARSnova_Woche_03.json](./ARSnova_Woche_03.json) | arsnova.eu-Deployment, Härtung sowie Zustands- und Vertrauensgrenzen     |
-|   W04 | Präsenz/synchron | [ARSnova_Woche_04.json](./ARSnova_Woche_04.json) | Serverless Computing, Eignung, Grenzen und Betriebsfolgen                |
-|   W05 | Präsenz/synchron | [ARSnova_Woche_05.json](./ARSnova_Woche_05.json) | GCP, AWS und Azure im Capability-, Verantwortungs- und Risikovergleich   |
-|   W06 | Präsenz/synchron | [ARSnova_Woche_06.json](./ARSnova_Woche_06.json) | Daten, ML, Datenfluss, private Inferenz und Managed-Angebote             |
-|   W07 | Tutorium         | [ARSnova_Woche_07.json](./ARSnova_Woche_07.json) | Storage, Datenbanken, Backup, Restore und Recovery                       |
-|   W08 | Tutorium         | [ARSnova_Woche_08.json](./ARSnova_Woche_08.json) | Elastizität, Skalierung, Performance und verteilte Systeme               |
-|   W09 | Präsenz/synchron | [ARSnova_Woche_09.json](./ARSnova_Woche_09.json) | IAM, Security, Observability, SRE und Resilienz                          |
-|   W10 | Tutorium         | [ARSnova_Woche_10.json](./ARSnova_Woche_10.json) | FinOps, Nachhaltigkeit und 6R                                            |
-|   W11 | Tutorium         | [ARSnova_Woche_11.json](./ARSnova_Woche_11.json) | Evidenz, ADR, Quellenkritik und Referatsargumentation                    |
-|   W12 | Tutorium         | [ARSnova_Woche_12.json](./ARSnova_Woche_12.json) | Kumulative Synthese und Verteidigung einer begrenzten Cloud-Entscheidung |
-|       | **Summe: 6 + 6** | **12 Dateien mit 120 Fragen**                    | **36 UE; je Woche eine 90-minütige LE und eine 45-minütige MC-Test-UE**  |
+| Themenblock | Datei                                                                | Verbindlicher fachlicher Schwerpunkt                                     |
+| ----------: | -------------------------------------------------------------------- | ------------------------------------------------------------------------ |
+|        TB01 | [ARSnova_Themenblock_01.json](./ARSnova/ARSnova_Themenblock_01.json) | Grundlagen, Cloud- und Servicemodelle, Shared Responsibility             |
+|        TB02 | [ARSnova_Themenblock_02.json](./ARSnova/ARSnova_Themenblock_02.json) | Virtualisierung, Container, IaC und Netzwerk                             |
+|        TB03 | [ARSnova_Themenblock_03.json](./ARSnova/ARSnova_Themenblock_03.json) | arsnova.eu-Deployment, Härtung sowie Zustands- und Vertrauensgrenzen     |
+|        TB04 | [ARSnova_Themenblock_04.json](./ARSnova/ARSnova_Themenblock_04.json) | Serverless Computing, Eignung, Grenzen und Betriebsfolgen                |
+|        TB05 | [ARSnova_Themenblock_05.json](./ARSnova/ARSnova_Themenblock_05.json) | GCP, AWS und Azure im Capability-, Verantwortungs- und Risikovergleich   |
+|        TB06 | [ARSnova_Themenblock_06.json](./ARSnova/ARSnova_Themenblock_06.json) | Daten, ML, Datenfluss, private Inferenz und Managed-Angebote             |
+|        TB07 | [ARSnova_Themenblock_07.json](./ARSnova/ARSnova_Themenblock_07.json) | Storage, Datenbanken, Backup, Restore und Recovery                       |
+|        TB08 | [ARSnova_Themenblock_08.json](./ARSnova/ARSnova_Themenblock_08.json) | Elastizität, Skalierung, Performance und verteilte Systeme               |
+|        TB09 | [ARSnova_Themenblock_09.json](./ARSnova/ARSnova_Themenblock_09.json) | IAM, Security, Observability, SRE und Resilienz                          |
+|        TB10 | [ARSnova_Themenblock_10.json](./ARSnova/ARSnova_Themenblock_10.json) | FinOps, Nachhaltigkeit und 6R                                            |
+|        TB11 | [ARSnova_Themenblock_11.json](./ARSnova/ARSnova_Themenblock_11.json) | Evidenz, ADR, Quellenkritik und Referatsargumentation                    |
+|        TB12 | [ARSnova_Themenblock_12.json](./ARSnova/ARSnova_Themenblock_12.json) | Kumulative Synthese und Verteidigung einer begrenzten Cloud-Entscheidung |
+|             | **12 Dateien mit 120 Fragen**                                        | **12 Themenblöcke mit insgesamt 36 UE**                                  |
 
-Je Woche bilden UE 1 und UE 2 die LE. ARSnova-Fragen werden darin gezielt als Einstieg, Diagnose, Entscheidungsimpuls, Peer-Instruction-Frage oder Abschlusscheck eingesetzt. UE 3 bleibt vollständig dem separaten MC-Test vorbehalten: drei Minuten Übergang, 32 Minuten Bearbeitung und zehn Minuten aggregierte Ergebnis- und Lösungsbesprechung. Ein Livequiz erweitert dieses Zeitbudget nicht.
+In jedem Themenblock bilden UE 1 und UE 2 die LE. ARSnova-Fragen werden darin gezielt als Einstieg, Diagnose, Entscheidungsimpuls, Peer-Instruction-Frage oder Abschlusscheck eingesetzt. UE 3 bleibt vollständig dem separaten MC-Test vorbehalten: drei Minuten Übergang, 32 Minuten Bearbeitung und zehn Minuten aggregierte Ergebnis- und Lösungsbesprechung. Ein Livequiz erweitert dieses Zeitbudget nicht. Das Blueprint legt keine kalendarische oder modale Zuordnung der Themenblöcke fest.
 
 ## 2. Importformat und redaktionelle Zuordnung
 
 ### 2.1 Verbindliche Hülle
 
-Jede Wochen-Datei ist ein nativer ARSnova.eu-Export mit:
+Jede Themenblockdatei ist ein nativer ARSnova.eu-Export mit:
 
 - `exportVersion=1`,
 - einem nicht leeren `exportedAt`-Zeitstempel,
 - genau einem `quiz`-Objekt mit Konfiguration und `questions`,
 - genau zehn aktiven Fragen mit lückenloser nullbasierter Reihenfolge `order=0` bis `order=9`.
 
-Die redaktionelle Kennung wird nicht als zusätzliches JSON-Feld gespeichert. Sie wird aus Dateiname und Arrayposition abgeleitet: `ARSnova_Woche_03.json`, Position 4 beziehungsweise `order=3`, ergibt `ARS-W03-L04`. Technische UUIDs werden beim Import und beim späteren Live-Upload neu erzeugt und sind keine stabilen fachlichen Kennungen.
+Die redaktionelle Kennung wird nicht als zusätzliches JSON-Feld gespeichert. Sie wird aus Dateiname und Arrayposition abgeleitet: `ARSnova_Themenblock_03.json`, Position 4 beziehungsweise `order=3`, ergibt `ARS-TB03-L04`. Technische UUIDs werden beim Import und beim späteren Live-Upload neu erzeugt und sind keine stabilen fachlichen Kennungen.
 
 Nicht unterstützte Metadaten, Lösungskommentare, Lernzielcodes oder redaktionelle IDs werden nicht in Fragen- oder Antwortobjekte eingefügt. Lernzielzuordnung, Review und Freigabe stehen in der [Lernziel-Alignment-Matrix](./Lernziel_Alignment_Matrix.md) und im [QA-Freigabeprotokoll](./QA_Freigabeprotokoll.md).
 
 ### 2.2 Exakte Typabdeckung
 
-Jede Wochen-Datei enthält diese Typen jeweils genau einmal:
+Jede Themenblockdatei enthält diese Typen jeweils genau einmal:
 
 `MULTIPLE_CHOICE`, `SINGLE_CHOICE`, `FREETEXT`, `SHORT_TEXT`, `SURVEY`, `RATING`, `NUMERIC_ESTIMATE`, `MATCHING`, `ORDERING`, `CATEGORIZATION`.
 
@@ -98,7 +98,7 @@ Für Auswahlfragen und sinngemäß für konkurrierende strukturierte Elemente gi
 3. Jeder Distraktor bildet ein realistisches Fehlkonzept, einen plausiblen Architekturfehler, eine falsche Verantwortungsgrenze oder eine nachvollziehbare Kosten-, Sicherheits- oder Betriebsfehlannahme ab.
 4. Die richtige Lösung ist weder durch Länge, Einschränkungswörter, ungewöhnliche Präzision noch durch ein anderes Format erkennbar.
 5. Scherzantworten, offenkundiger Unsinn, doppelte Optionen und Fangfragen sind unzulässig.
-6. Kein Fragenstamm, keine Option und kein strukturiertes Element verrät die Lösung einer anderen Frage derselben oder einer späteren Woche.
+6. Kein Fragenstamm, keine Option und kein strukturiertes Element verrät die Lösung einer anderen Frage desselben oder eines späteren Themenblocks.
 7. Normalisierte Fragenstämme sind paketweit eindeutig; bloße Umformulierungen desselben Falls gelten als Dublette.
 8. Erklärungen und Musterlösungen werden nicht in den Teilnehmer-Fragenstamm geschrieben.
 
@@ -119,9 +119,9 @@ Jede `SHORT_TEXT`-Frage verwendet verbindlich:
 
 Alle fachlich zulässigen Schreibvarianten werden explizit als `answers` gepflegt und mit `isCorrect=true` markiert. Groß-/Kleinschreibung sowie führende, nachgestellte und wiederholte Leerzeichen werden wie konfiguriert normalisiert; Tippfehler, Teilstrings, falsche Zahlen, falsche Einheiten, Negationen und fachliche Gegenbegriffe werden nicht angenähert akzeptiert. Ein Treffer erhält die volle Basispunktzahl, jeder Nichttreffer null Punkte.
 
-Die separate Datei [ARSnova_Kurztext_Testfaelle.json](./ARSnova_Kurztext_Testfaelle.json) enthält `schemaVersion=1` und genau einen Eintrag je Wochen-Datei. Jeder Eintrag besitzt ausschließlich:
+Die separate Datei [ARSnova_Kurztext_Testfaelle.json](./ARSnova/ARSnova_Kurztext_Testfaelle.json) enthält `schemaVersion=1` und genau einen Eintrag je Themenblockdatei. Jeder Eintrag besitzt ausschließlich:
 
-- `file`: den exakten Wochen-Dateinamen,
+- `file`: den exakten Themenblockdateinamen,
 - `positives`: alle und nur die normalisierten expliziten Musterlösungsvarianten,
 - `negatives`: mindestens zwei fachlich falsche Gegenbeispiele, die kritische Zahl-, Einheiten-, Richtungs- oder Begriffsverwechslungen abdecken.
 
@@ -129,7 +129,7 @@ Der strenge Validator führt alle Positivfälle mit 100 von 100 Punkten und alle
 
 ## 5. Verbindliches Gamification- und Zeitprofil
 
-Jede Wochen-Datei verwendet exakt dieses Profil:
+Jede Themenblockdatei verwendet exakt dieses Profil:
 
 ```json
 {
@@ -194,7 +194,7 @@ Eine erfolgreiche JSON-Syntaxprüfung allein genügt nicht. Erst beide Shared-Ty
 
 ## 8. Redaktionelle und technische Freigabe
 
-Eine Wochen-Datei ist erst freigabefähig, wenn:
+Eine Themenblockdatei ist erst freigabefähig, wenn:
 
 1. Datei, Exporthülle und inneres Quiz beide schemafähig sind;
 2. genau zehn Fragen mit `order=0` bis `order=9` vorliegen;

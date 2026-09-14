@@ -2,7 +2,7 @@
   "exportVersion": 1,
   "exportedAt": "2026-09-13T00:00:00.000Z",
   "quiz": {
-    "name": "ARSnova – Woche 09: Security, Observability und Resilienz",
+    "name": "Cloud Computing – Themenblock TB09: Security, Observability und Resilienz",
     "description": "10 anspruchsvolle Architekturfragen zu Identity and Access Management (IAM), Datenschutz, Lieferkettensicherheit, Telemetrie, Service Level Indicator und Service Level Objective (SLI/SLO), Alarmierung, Remediation und kontrollierter Degradation – mit allen zehn ARSnova-Fragetypen.",
     "showLeaderboard": true,
     "allowCustomNicknames": false,
@@ -108,33 +108,33 @@
         "answers": [],
         "matchingPairs": [
           {
-            "leftId": "w09-match-log",
+            "leftId": "tb09-match-log",
             "left": "Strukturiertes Logereignis",
-            "rightId": "w09-match-log-value",
+            "rightId": "tb09-match-log-value",
             "right": "Kontext zu einem diskreten Ereignis mit minimierten Feldern"
           },
           {
-            "leftId": "w09-match-metric",
+            "leftId": "tb09-match-metric",
             "left": "Zeitreihenmetrik",
-            "rightId": "w09-match-metric-value",
+            "rightId": "tb09-match-metric-value",
             "right": "Aggregierte Entwicklung von Rate, Latenz oder Sättigung"
           },
           {
-            "leftId": "w09-match-trace",
+            "leftId": "tb09-match-trace",
             "left": "Verteilter Trace",
-            "rightId": "w09-match-trace-value",
+            "rightId": "tb09-match-trace-value",
             "right": "Zeitlicher Pfad einer Anfrage über mehrere Dienstgrenzen"
           },
           {
-            "leftId": "w09-match-slo",
+            "leftId": "tb09-match-slo",
             "left": "Service Level Objective",
-            "rightId": "w09-match-slo-value",
+            "rightId": "tb09-match-slo-value",
             "right": "Zielwert für ein nutzerbezogenes Zuverlässigkeitssignal"
           },
           {
-            "leftId": "w09-match-runbook",
+            "leftId": "tb09-match-runbook",
             "left": "Runbook",
-            "rightId": "w09-match-runbook-value",
+            "rightId": "tb09-match-runbook-value",
             "right": "Geprüfte Diagnose-, Eskalations- und Wiederherstellungsschritte"
           }
         ],
@@ -152,27 +152,27 @@
         "answers": [],
         "orderingItems": [
           {
-            "id": "w09-order-1",
+            "id": "tb09-order-1",
             "text": "Befund in der freigegebenen Zielumgebung reproduzieren und Evidenz sichern"
           },
           {
-            "id": "w09-order-2",
+            "id": "tb09-order-2",
             "text": "Angriffspfad, betroffene Daten und betriebliche Auswirkung bewerten"
           },
           {
-            "id": "w09-order-3",
+            "id": "tb09-order-3",
             "text": "Begrenzte Maßnahme mit Owner, Rollback und Akzeptanzkriterium freigeben"
           },
           {
-            "id": "w09-order-4",
+            "id": "tb09-order-4",
             "text": "Netz- oder Dienstkonfiguration kontrolliert ändern"
           },
           {
-            "id": "w09-order-5",
+            "id": "tb09-order-5",
             "text": "Ursprünglichen Angriffspfad und legitime Kernpfade als Negativ- und Regressionstest ausführen"
           },
           {
-            "id": "w09-order-6",
+            "id": "tb09-order-6",
             "text": "Verbleibendes Risiko, Evidenzgrenze und weitere Beobachtung dokumentieren"
           }
         ],
@@ -189,48 +189,48 @@
         "answers": [],
         "categories": [
           {
-            "id": "w09-cat-prevent",
+            "id": "tb09-cat-prevent",
             "name": "Fehler oder Angriff verhindern"
           },
           {
-            "id": "w09-cat-detect",
+            "id": "tb09-cat-detect",
             "name": "Abweichung erkennen"
           },
           {
-            "id": "w09-cat-recover",
+            "id": "tb09-cat-recover",
             "name": "Wirkung begrenzen oder wiederherstellen"
           }
         ],
         "categorizationItems": [
           {
-            "id": "w09-item-secret",
+            "id": "tb09-item-secret",
             "text": "Kurzlebige Dienst-Credentials mit enger Berechtigung",
-            "correctCategoryId": "w09-cat-prevent"
+            "correctCategoryId": "tb09-cat-prevent"
           },
           {
-            "id": "w09-item-segment",
+            "id": "tb09-item-segment",
             "text": "Privater Modellendpunkt ohne öffentlichen Netzpfad",
-            "correctCategoryId": "w09-cat-prevent"
+            "correctCategoryId": "tb09-cat-prevent"
           },
           {
-            "id": "w09-item-alert",
+            "id": "tb09-item-alert",
             "text": "Alarm auf anhaltende Fehlerrate statt auf einzelne Ereignisse",
-            "correctCategoryId": "w09-cat-detect"
+            "correctCategoryId": "tb09-cat-detect"
           },
           {
-            "id": "w09-item-saturation",
+            "id": "tb09-item-saturation",
             "text": "Metrik für Queue-Wartezeit und Ressourcensättigung",
-            "correctCategoryId": "w09-cat-detect"
+            "correctCategoryId": "tb09-cat-detect"
           },
           {
-            "id": "w09-item-fallback",
+            "id": "tb09-item-fallback",
             "text": "Deterministischer Fallback bei ausgefallener Inferenz",
-            "correctCategoryId": "w09-cat-recover"
+            "correctCategoryId": "tb09-cat-recover"
           },
           {
-            "id": "w09-item-restore",
+            "id": "tb09-item-restore",
             "text": "Geprüfter Restore in eine frische Zielumgebung",
-            "correctCategoryId": "w09-cat-recover"
+            "correctCategoryId": "tb09-cat-recover"
           }
         ],
         "categorizationShuffleItems": true,

@@ -2,7 +2,7 @@
   "exportVersion": 1,
   "exportedAt": "2026-09-13T00:00:00.000Z",
   "quiz": {
-    "name": "Cloud Computing – Woche 04: Serverless-Eignung, Grenzen und Kosten",
+    "name": "Cloud Computing – Themenblock TB04: Serverless-Eignung, Grenzen und Kosten",
     "description": "10 anspruchsvolle Live-Fragen zu Function as a Service (FaaS), Backend as a Service (BaaS), Portable Document Format (PDF), Triggern, Cold Starts, Laufzeitgrenzen, Zustandslosigkeit, Kosten und Lock-in.",
     "showLeaderboard": true,
     "allowCustomNicknames": false,
@@ -148,27 +148,27 @@
         "answers": [],
         "matchingPairs": [
           {
-            "leftId": "w04-match-change",
+            "leftId": "tb04-match-change",
             "left": "Änderung aus einem Datenbank-Change-Stream",
-            "rightId": "w04-match-change-value",
+            "rightId": "tb04-match-change-value",
             "right": "Checkpoint erst nach dauerhaft verarbeiteter Änderung fortschreiben"
           },
           {
-            "leftId": "w04-match-queue",
+            "leftId": "tb04-match-queue",
             "left": "Nachricht aus einer mindestens einmal zustellenden Queue",
-            "rightId": "w04-match-queue-value",
+            "rightId": "tb04-match-queue-value",
             "right": "Doppelte Zustellung ohne doppelte Fachwirkung verarbeiten"
           },
           {
-            "leftId": "w04-match-time",
+            "leftId": "tb04-match-time",
             "left": "Zeitgesteuerter nächtlicher Pflegejob",
-            "rightId": "w04-match-time-value",
+            "rightId": "tb04-match-time-value",
             "right": "Verpasste oder überlappende Läufe explizit behandeln"
           },
           {
-            "leftId": "w04-match-object",
+            "leftId": "tb04-match-object",
             "left": "Upload-Ereignis eines Objektspeichers",
-            "rightId": "w04-match-object-value",
+            "rightId": "tb04-match-object-value",
             "right": "Objektversion und endgültigen Schreibzustand verifizieren"
           }
         ],
@@ -186,31 +186,31 @@
         "answers": [],
         "orderingItems": [
           {
-            "id": "w04-order-1",
+            "id": "tb04-order-1",
             "text": "Workload, Trigger, Zustandsbedarf und Latenzziel festlegen"
           },
           {
-            "id": "w04-order-2",
+            "id": "tb04-order-2",
             "text": "Laufzeit-, Paket-, Nebenläufigkeits- und Datenlokalitätsgrenzen prüfen"
           },
           {
-            "id": "w04-order-3",
+            "id": "tb04-order-3",
             "text": "Retry-, Idempotenz-, Observability- und Fehlerpfade entwerfen"
           },
           {
-            "id": "w04-order-4",
+            "id": "tb04-order-4",
             "text": "Kandidaten isoliert mit repräsentativer Last und Fehlern messen"
           },
           {
-            "id": "w04-order-5",
+            "id": "tb04-order-5",
             "text": "Nutzungs-, Leerlauf-, Betriebs- und Egresskosten vergleichbar rechnen"
           },
           {
-            "id": "w04-order-6",
+            "id": "tb04-order-6",
             "text": "Lock-in, Exit-Aufwand und stärkste Alternative bewerten"
           },
           {
-            "id": "w04-order-7",
+            "id": "tb04-order-7",
             "text": "Entscheidung, Gültigkeitsgrenze und Neubewertungskriterium dokumentieren"
           }
         ],
@@ -227,57 +227,57 @@
         "answers": [],
         "categories": [
           {
-            "id": "w04-cat-invocation",
+            "id": "tb04-cat-invocation",
             "name": "Anzahl der Aufrufe"
           },
           {
-            "id": "w04-cat-compute",
+            "id": "tb04-cat-compute",
             "name": "Dauer und Ressourcengröße"
           },
           {
-            "id": "w04-cat-transfer",
+            "id": "tb04-cat-transfer",
             "name": "Übertragene Datenmenge"
           },
           {
-            "id": "w04-cat-fixed",
+            "id": "tb04-cat-fixed",
             "name": "Fixe oder operative Basis"
           }
         ],
         "categorizationItems": [
           {
-            "id": "w04-item-calls",
+            "id": "tb04-item-calls",
             "text": "Gebühr je ausgelöster Funktionsausführung",
-            "correctCategoryId": "w04-cat-invocation"
+            "correctCategoryId": "tb04-cat-invocation"
           },
           {
-            "id": "w04-item-events",
+            "id": "tb04-item-events",
             "text": "Gebühr je zusätzlich verarbeitetem Trigger-Ereignis",
-            "correctCategoryId": "w04-cat-invocation"
+            "correctCategoryId": "tb04-cat-invocation"
           },
           {
-            "id": "w04-item-gbseconds",
+            "id": "tb04-item-gbseconds",
             "text": "Abrechnung aus belegtem Arbeitsspeicher multipliziert mit Ausführungszeit",
-            "correctCategoryId": "w04-cat-compute"
+            "correctCategoryId": "tb04-cat-compute"
           },
           {
-            "id": "w04-item-cpu",
+            "id": "tb04-item-cpu",
             "text": "Mehrkosten einer längeren prozessorintensiven Verarbeitung",
-            "correctCategoryId": "w04-cat-compute"
+            "correctCategoryId": "tb04-cat-compute"
           },
           {
-            "id": "w04-item-egress",
+            "id": "tb04-item-egress",
             "text": "Abrechnung aus dem Cloud-Netz heraus übertragener Ergebnisdaten",
-            "correctCategoryId": "w04-cat-transfer"
+            "correctCategoryId": "tb04-cat-transfer"
           },
           {
-            "id": "w04-item-region",
+            "id": "tb04-item-region",
             "text": "Abrechnung für Datenverkehr zwischen getrennten Regionen",
-            "correctCategoryId": "w04-cat-transfer"
+            "correctCategoryId": "tb04-cat-transfer"
           },
           {
-            "id": "w04-item-operations",
+            "id": "tb04-item-operations",
             "text": "Personeller Aufwand für Monitoring, Incident-Prozess und Exit-Tests",
-            "correctCategoryId": "w04-cat-fixed"
+            "correctCategoryId": "tb04-cat-fixed"
           }
         ],
         "categorizationShuffleItems": true,

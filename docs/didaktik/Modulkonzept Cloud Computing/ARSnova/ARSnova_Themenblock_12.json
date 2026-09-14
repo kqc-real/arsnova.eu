@@ -2,7 +2,7 @@
   "exportVersion": 1,
   "exportedAt": "2026-09-13T00:00:00.000Z",
   "quiz": {
-    "name": "ARSnova – Woche 12: Kumulative Cloud-Synthese und Verteidigung",
+    "name": "Cloud Computing – Themenblock TB12: Kumulative Cloud-Synthese und Verteidigung",
     "description": "10 kumulative Architekturfragen zu Infrastructure, Platform und Software as a Service (IaaS/PaaS/SaaS), Infrastructure as Code (IaC), Function as a Service (FaaS), Machine Learning (ML), Site Reliability Engineering (SRE), Financial Operations (FinOps), Service Level Indicator und Service Level Objective (SLI/SLO), Total Cost of Ownership (TCO), Recovery und Evidenzgrenzen – mit allen zehn ARSnova-Fragetypen.",
     "showLeaderboard": true,
     "allowCustomNicknames": false,
@@ -32,48 +32,48 @@
         "answers": [],
         "categories": [
           {
-            "id": "w12-cat-runtime",
+            "id": "tb12-cat-runtime",
             "name": "Ausführung und Skalierung"
           },
           {
-            "id": "w12-cat-state",
+            "id": "tb12-cat-state",
             "name": "Zustand und Wiederherstellung"
           },
           {
-            "id": "w12-cat-control",
+            "id": "tb12-cat-control",
             "name": "Steuerung und Nachweis"
           }
         ],
         "categorizationItems": [
           {
-            "id": "w12-item-container",
+            "id": "tb12-item-container",
             "text": "Unveränderliches Anwendungsimage mit definiertem Laufzeitvertrag",
-            "correctCategoryId": "w12-cat-runtime"
+            "correctCategoryId": "tb12-cat-runtime"
           },
           {
-            "id": "w12-item-function",
+            "id": "tb12-item-function",
             "text": "Kurzlebige ereignisgesteuerte Funktion ohne lokalen Dauerzustand",
-            "correctCategoryId": "w12-cat-runtime"
+            "correctCategoryId": "tb12-cat-runtime"
           },
           {
-            "id": "w12-item-db",
+            "id": "tb12-item-db",
             "text": "Persistente relationale Datenbank mit Konsistenzanforderungen",
-            "correctCategoryId": "w12-cat-state"
+            "correctCategoryId": "tb12-cat-state"
           },
           {
-            "id": "w12-item-backup",
+            "id": "tb12-item-backup",
             "text": "Verschlüsseltes Offsite-Backup mit ausgeführtem Restore-Test",
-            "correctCategoryId": "w12-cat-state"
+            "correctCategoryId": "tb12-cat-state"
           },
           {
-            "id": "w12-item-iac",
+            "id": "tb12-item-iac",
             "text": "Versionierte Infrastrukturdefinition mit prüfbarem Plan",
-            "correctCategoryId": "w12-cat-control"
+            "correctCategoryId": "tb12-cat-control"
           },
           {
-            "id": "w12-item-slo",
+            "id": "tb12-item-slo",
             "text": "Nutzerbezogenes Ziel mit Messsignal und Alarmweg",
-            "correctCategoryId": "w12-cat-control"
+            "correctCategoryId": "tb12-cat-control"
           }
         ],
         "categorizationShuffleItems": true,
@@ -146,27 +146,27 @@
         "answers": [],
         "orderingItems": [
           {
-            "id": "w12-order-1",
+            "id": "tb12-order-1",
             "text": "Nutzerbedarf, Cloud-Merkmale und erforderliches Service-Modell präzisieren"
           },
           {
-            "id": "w12-order-2",
+            "id": "tb12-order-2",
             "text": "Daten-, Zustands-, Netzwerk- und Verantwortungsgrenzen modellieren"
           },
           {
-            "id": "w12-order-3",
+            "id": "tb12-order-3",
             "text": "Container-, IaC-, Serverless- und Provideroptionen auf Fähigkeiten abbilden"
           },
           {
-            "id": "w12-order-4",
+            "id": "tb12-order-4",
             "text": "Security-, Recovery-, Skalierungs- und Degradationsversuche mit Gates planen"
           },
           {
-            "id": "w12-order-5",
+            "id": "tb12-order-5",
             "text": "TCO, Unit Economics, Ressourcenwirkung und Exit in Szenarien vergleichen"
           },
           {
-            "id": "w12-order-6",
+            "id": "tb12-order-6",
             "text": "Entscheidung samt Gegenoption, Evidenzgrenze und Restrisiko individuell verteidigen"
           }
         ],
@@ -183,33 +183,33 @@
         "answers": [],
         "matchingPairs": [
           {
-            "leftId": "w12-match-iaas",
+            "leftId": "tb12-match-iaas",
             "left": "Self-managed IaaS",
-            "rightId": "w12-match-iaas-value",
+            "rightId": "tb12-match-iaas-value",
             "right": "Patchen, Wiederherstellen und Hochverfügbarkeit bleiben weitgehend Betriebsaufgabe"
           },
           {
-            "leftId": "w12-match-managed",
+            "leftId": "tb12-match-managed",
             "left": "Managed Datendienst",
-            "rightId": "w12-match-managed-value",
+            "rightId": "tb12-match-managed-value",
             "right": "Export, Datenfluss und konkrete Verantwortungsgrenze müssen nachgewiesen werden"
           },
           {
-            "leftId": "w12-match-faas",
+            "leftId": "tb12-match-faas",
             "left": "Function as a Service",
-            "rightId": "w12-match-faas-value",
+            "rightId": "tb12-match-faas-value",
             "right": "Laufzeit-, Zustands- und Cold-Start-Eignung begrenzen den Einsatz"
           },
           {
-            "leftId": "w12-match-container",
+            "leftId": "tb12-match-container",
             "left": "Portables Containerimage",
-            "rightId": "w12-match-container-value",
+            "rightId": "tb12-match-container-value",
             "right": "Image-Portabilität überträgt keine IAM-, Netzwerk- oder Datenplattformsemantik"
           },
           {
-            "leftId": "w12-match-ml",
+            "leftId": "tb12-match-ml",
             "left": "Managed ML-Plattform",
-            "rightId": "w12-match-ml-value",
+            "rightId": "tb12-match-ml-value",
             "right": "Modell-, Daten-, Kosten- und Exitpfade können proprietär gekoppelt sein"
           }
         ],

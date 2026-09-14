@@ -7,7 +7,7 @@
 >
 > **Nicht** die Bachelor-Vorlesung Cloud Computing: dafuer
 > [`Modulkonzept_Cloud_Computing.md`](./Modulkonzept%20Cloud%20Computing/Modulkonzept_Cloud_Computing.md),
-> [`Wochenlehrplan_Cloud_Computing_12_Wochen.md`](./Modulkonzept%20Cloud%20Computing/Wochenlehrplan_Cloud_Computing_12_Wochen.md)
+> [`Themenblockplan_Cloud_Computing_12_Themenbloecke.md`](./Modulkonzept%20Cloud%20Computing/Themenblockplan_Cloud_Computing_12_Themenbloecke.md)
 > und
 > [`Lehrenden_Runbook.md`](./Modulkonzept%20Cloud%20Computing/Lehrenden_Runbook.md).
 

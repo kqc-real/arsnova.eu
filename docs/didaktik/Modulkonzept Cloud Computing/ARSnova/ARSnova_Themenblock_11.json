@@ -2,7 +2,7 @@
   "exportVersion": 1,
   "exportedAt": "2026-09-13T00:00:00.000Z",
   "quiz": {
-    "name": "ARSnova – Woche 11: Evidenzbasierte Referatswerkstatt",
+    "name": "Cloud Computing – Themenblock TB11: Evidenzbasierte Referatswerkstatt",
     "description": "10 anspruchsvolle Werkstattfragen zu These, Primärquelle, Messgrenzen, Diagrammen, Quellenkritik, Agentenoffenlegung, Gegenalternative und individueller Verteidigung – mit allen zehn ARSnova-Fragetypen.",
     "showLeaderboard": true,
     "allowCustomNicknames": false,
@@ -32,27 +32,27 @@
         "answers": [],
         "orderingItems": [
           {
-            "id": "w11-order-1",
+            "id": "tb11-order-1",
             "text": "Leitfrage und widerlegbare These auf eine konkrete Cloud-Fähigkeit begrenzen"
           },
           {
-            "id": "w11-order-2",
+            "id": "tb11-order-2",
             "text": "Fakten, offene Annahmen und normative Kriterien getrennt inventarisieren"
           },
           {
-            "id": "w11-order-3",
+            "id": "tb11-order-3",
             "text": "Originalquellen und reproduzierbare technische Nachweise auswählen"
           },
           {
-            "id": "w11-order-4",
+            "id": "tb11-order-4",
             "text": "Messung und stärkste plausible Gegenoption mit identischer Systemgrenze planen"
           },
           {
-            "id": "w11-order-5",
+            "id": "tb11-order-5",
             "text": "Ergebnisse, Fehlerfälle und Reichweite der Evidenz gegeneinander auswerten"
           },
           {
-            "id": "w11-order-6",
+            "id": "tb11-order-6",
             "text": "Entscheidung, Folgen, Restunsicherheit und Neubewertungskriterium verteidigen"
           }
         ],
@@ -69,48 +69,48 @@
         "answers": [],
         "categories": [
           {
-            "id": "w11-cat-fact",
+            "id": "tb11-cat-fact",
             "name": "Belegter Fakt"
           },
           {
-            "id": "w11-cat-assumption",
+            "id": "tb11-cat-assumption",
             "name": "Offene Annahme"
           },
           {
-            "id": "w11-cat-decision",
+            "id": "tb11-cat-decision",
             "name": "Begründete Entscheidung"
           }
         ],
         "categorizationItems": [
           {
-            "id": "w11-item-ci",
+            "id": "tb11-item-ci",
             "text": "Der betrachtete Workflow erzeugt eine Software Bill of Materials (SBOM) der Produktionsabhängigkeiten.",
-            "correctCategoryId": "w11-cat-fact"
+            "correctCategoryId": "tb11-cat-fact"
           },
           {
-            "id": "w11-item-status",
+            "id": "tb11-item-status",
             "text": "Der aktuelle Produktionspfad ist im Repository als Single-Host-Compose-Stack dokumentiert.",
-            "correctCategoryId": "w11-cat-fact"
+            "correctCategoryId": "tb11-cat-fact"
           },
           {
-            "id": "w11-item-load",
+            "id": "tb11-item-load",
             "text": "Das beobachtete Nutzungsprofil bleibt im kommenden Semester unverändert.",
-            "correctCategoryId": "w11-cat-assumption"
+            "correctCategoryId": "tb11-cat-assumption"
           },
           {
-            "id": "w11-item-skill",
+            "id": "tb11-item-skill",
             "text": "Das Betriebsteam beherrscht einen neuen Managed-Dienst ohne zusätzliche Schulung.",
-            "correctCategoryId": "w11-cat-assumption"
+            "correctCategoryId": "tb11-cat-assumption"
           },
           {
-            "id": "w11-item-path",
+            "id": "tb11-item-path",
             "text": "Die Shortlist wird auf zwei Betriebsmodelle begrenzt, weil ein drittes ein hartes Exitkriterium verletzt.",
-            "correctCategoryId": "w11-cat-decision"
+            "correctCategoryId": "tb11-cat-decision"
           },
           {
-            "id": "w11-item-retain",
+            "id": "tb11-item-retain",
             "text": "Die Local-First-Sammlung bleibt erhalten, solange kein gemessener Engpass eine Änderung rechtfertigt.",
-            "correctCategoryId": "w11-cat-decision"
+            "correctCategoryId": "tb11-cat-decision"
           }
         ],
         "categorizationShuffleItems": true,
@@ -155,33 +155,33 @@
         "answers": [],
         "matchingPairs": [
           {
-            "leftId": "w11-match-doc",
+            "leftId": "tb11-match-doc",
             "left": "Versionierte Providerdokumentation",
-            "rightId": "w11-match-doc-value",
+            "rightId": "tb11-match-doc-value",
             "right": "Dokumentierte Funktion und Verantwortungsgrenze zum angegebenen Stand"
           },
           {
-            "leftId": "w11-match-code",
+            "leftId": "tb11-match-code",
             "left": "Repository-Code mit zugehörigem Test",
-            "rightId": "w11-match-code-value",
+            "rightId": "tb11-match-code-value",
             "right": "Implementiertes Verhalten innerhalb des geprüften Pfads und Commits"
           },
           {
-            "leftId": "w11-match-load",
+            "leftId": "tb11-match-load",
             "left": "Reproduzierbarer Lastbericht",
-            "rightId": "w11-match-load-value",
+            "rightId": "tb11-match-load-value",
             "right": "Messwerte für genau dokumentierte Umgebung und Workload"
           },
           {
-            "leftId": "w11-match-diagram",
+            "leftId": "tb11-match-diagram",
             "left": "Architekturdiagramm",
-            "rightId": "w11-match-diagram-value",
+            "rightId": "tb11-match-diagram-value",
             "right": "Modellierte Komponenten, Grenzen und Beziehungen, aber kein Laufzeitnachweis"
           },
           {
-            "leftId": "w11-match-agent",
+            "leftId": "tb11-match-agent",
             "left": "Ungeprüfte Agentenantwort",
-            "rightId": "w11-match-agent-value",
+            "rightId": "tb11-match-agent-value",
             "right": "Recherchehypothese ohne eigenständigen Evidenzstatus"
           }
         ],

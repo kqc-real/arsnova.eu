@@ -1,10 +1,12 @@
 <!-- markdownlint-disable MD013 MD024 MD060 -->
 
-# Wochenlehrplan Cloud Computing am Fallbeispiel arsnova.eu
+# Themenblockplan Cloud Computing am Fallbeispiel arsnova.eu
+
+**Stand:** 14.09.2026
 
 ## 1. Zweck und Stellung im Modulpaket
 
-Dieser Lehrplan konkretisiert die zwölf Kurswochen des [Modulkonzepts](./Modulkonzept_Cloud_Computing.md). Er verbindet für jede Woche:
+Dieser Lehrplan konkretisiert die zwölf Themenblöcke des [Modulkonzepts](./Modulkonzept_Cloud_Computing.md) für Bachelorstudierende der Informatik. Andere Studiengänge gehören nicht zur Zielgruppe. Der Lehrplan verbindet für jeden Themenblock:
 
 - die fachlichen Inhalte und die leitende Problemfrage;
 - die zugeordneten Qualifikationsziele (QZ), Modulziele (MZ) und Learning Indicators (LI);
@@ -14,14 +16,14 @@ Dieser Lehrplan konkretisiert die zwölf Kurswochen des [Modulkonzepts](./Modulk
 - Repository- und Quellenanker für das Fallbeispiel arsnova.eu;
 - den Dossierertrag und den anschließenden Selbststudiumsauftrag.
 
-Für Ziele und Alignment ist die [Lernziel- und Alignment-Matrix](./Lernziel_Alignment_Matrix.md) maßgeblich. Die [ARSnova-Wochen-Dateien im Format JavaScript Object Notation (JSON)](./ARSnova_Blueprint_12_Wochen.md) enthalten den autoritativen Wortlaut der Livefragen; die [MC-Test-Wochen-JSONs](./MC-Test_Blueprint_12_Wochen.md) enthalten den autoritativen Wortlaut, die Lösungen und Erklärungen der MC-Items. Das [Lehrenden-Runbook](./Lehrenden_Runbook.md) regelt Preflight, Betrieb, Datenschutz, Störungen und Nachbereitung. Dieser Lehrplan ersetzt den überholten UE-3-Ablauf des früheren Terminplans.
+Für Ziele und Alignment ist die [Lernziel- und Alignment-Matrix](./Lernziel_Alignment_Matrix.md) maßgeblich. Die [ARSnova-Themenblockdateien im Format JavaScript Object Notation (JSON)](./ARSnova_Blueprint_12_Themenbloecke.md) enthalten den autoritativen Wortlaut der Livefragen; die [MC-Test-Themenblock-JSONs](./MC-Test_Blueprint_12_Themenbloecke.md) enthalten den autoritativen Wortlaut, die Lösungen und Erklärungen der MC-Items. Das [Lehrenden-Runbook](./Lehrenden_Runbook.md) regelt Preflight, Betrieb, Datenschutz, Störungen und Nachbereitung. Dieser Lehrplan ersetzt den überholten UE-3-Ablauf des früheren Terminplans.
 
 ## 2. Begriffe, Zeitmodell und Kursstartbasis
 
 - **Unterrichtseinheit (UE):** 45 Minuten.
 - **Lerneinheit (LE):** UE 1 und UE 2 als zusammenhängender 90-Minuten-Block.
-- **W01–W12:** die zwölf Kurswochen.
-- **L01–L10:** die zehn ARSnova-Livefragen einer Woche in der Reihenfolge der jeweiligen Importdatei.
+- **TB01–TB12:** die zwölf Themenblöcke.
+- **L01–L10:** die zehn ARSnova-Livefragen eines Themenblocks in der Reihenfolge der jeweiligen Importdatei.
 - **Multiple Choice (MC):** Aufgabenformat mit vorgegebenen Antwortoptionen; **MC-Test** bezeichnet die formative Lernanwendung.
 - **Qualifikationsziel (QZ):** eines der fünf offiziellen Qualifikationsziele aus dem Modulhandbuch.
 - **Modulziel (MZ):** eines der neun operationalisierten Ziele dieses Lehrkonzepts.
@@ -55,19 +57,19 @@ Für Ziele und Alignment ist die [Lernziel- und Alignment-Matrix](./Lernziel_Ali
 - **p50, p95 und p99:** das 50., 95. und 99. Perzentil einer Messwertverteilung.
 - **6R:** Rehost, Replatform, Repurchase, Refactor, Retire und Retain als Migrationstaxonomie.
 
-Für W03, W06, W08–W10 und die Referatsvorbereitung gilt die Kursstartannahme aus dem [Referatsthemenkatalog](./Referatsthemen_Cloud_Computing_ARSnova.md#3-verbindliche-kursstartannahme-für-die-lokale-llm-runtime): Story 8.9d ist entsprechend [ADR-0035](../../architecture/decisions/0035-self-hosted-llm-runtime-llama-cpp-over-ollama.md) implementiert. Vor W01 werden Kurs-Commit, Modellartefakt, privater Inferenzhost, gemeinsamer Slot, Kill-Switch, Fallbacks und Tests praktisch bestätigt. Die Runtime allein belegt weder fertige Consumer-Funktionen noch Produktivfreigabe, Skalierbarkeit oder Modellqualität.
+Für TB03, TB06, TB08–TB10 und die Referatsvorbereitung gilt die Kursstartannahme aus dem [Referatsthemenkatalog](./Referatsthemen_Cloud_Computing_ARSnova.md#3-verbindliche-kursstartannahme-für-die-lokale-llm-runtime): Story 8.9d ist entsprechend [ADR-0035](../../architecture/decisions/0035-self-hosted-llm-runtime-llama-cpp-over-ollama.md) implementiert. Vor TB01 werden Kurs-Commit, Modellartefakt, privater Inferenzhost, gemeinsamer Slot, Kill-Switch, Fallbacks und Tests praktisch bestätigt. Die Runtime allein belegt weder fertige Consumer-Funktionen noch Produktivfreigabe, Skalierbarkeit oder Modellqualität.
 
 Vor der Kursfreigabe erhält [Technische_Quellen_ARSnova.md](./Technische_Quellen_ARSnova.md) dafür einen aktuellen Quellenblock mit Code-, Compose-, Konfigurations-, Test- und Messankern des Kurs-Commits. Solange dort nur `SRC-LLM-LLAMA-ZIELBILD` steht, belegt die Quellenkennung ausschließlich die Architekturentscheidung und keine Implementierung.
 
-Die Fachbegriffe jeder Woche sind aktiver Mindestwortschatz. Studierende sollen sie nicht nur wiedergeben, sondern am Fall klassifizieren, anwenden, messen oder zur Begründung einer Entscheidung verwenden. Die Mini-Glossare der MC-Items dürfen weitere Begriffe ergänzen, ändern aber diesen Mindestwortschatz nicht.
+Die Fachbegriffe jedes Themenblocks sind aktiver Mindestwortschatz. Studierende sollen sie nicht nur wiedergeben, sondern am Fall klassifizieren, anwenden, messen oder zur Begründung einer Entscheidung verwenden. Die Mini-Glossare der MC-Items dürfen weitere Begriffe ergänzen, ändern aber diesen Mindestwortschatz nicht.
 
-## 3. Verbindlicher Ablauf jeder Woche
+## 3. Verbindlicher Ablauf jedes Themenblocks
 
 ### 3.1 UE 1 und UE 2: 90-minütige LE
 
 | Zeit  | Funktion                                                                  | Verbindliche ARSnova-Einbindung           |
 | ----- | ------------------------------------------------------------------------- | ----------------------------------------- |
-| 0–4   | Wochenfrage, Ziele, Datenhinweis und Zugang klären                        | noch keine Datenerhebung                  |
+| 0–4   | Leitfrage, Ziele, Datenhinweis und Zugang klären                          | noch keine Datenerhebung                  |
 | 4–12  | Vorwissen und früheren Kernbegriff abrufen                                | L01 und L02                               |
 | 12–22 | Begriffsmodell mit Primär- oder Repositoryquelle                          | keine neue Livefrage                      |
 | 22–34 | Grenzfall, Peer-Erklärung und Fehlvorstellung                             | L03 und L04                               |
@@ -79,19 +81,19 @@ Die Fachbegriffe jeder Woche sind aktiver Mindestwortschatz. Studierende sollen 
 | 79–88 | Methodenrückmeldung und nächste Lernhandlung                              | L09 und L10; keine Noteninterpretation    |
 | 88–90 | Dossierertrag, offene Annahme und Selbststudium sichern                   | keine zusätzliche Livefrage               |
 
-Der konkrete Inhalt dieser Zeitfenster steht in den Wochenabschnitten. Jede Woche verwendet jeden der zehn unterstützten Fragetypen genau einmal und ausschließlich `MEDIUM` oder `HARD`. Lesephase, persönlicher Zeitzuschlag und eine gleichwertige untimierte Alternative sind getrennte Schutzmechanismen. Der 60-Sekunden-Standardtimer wird nach Schwierigkeit skaliert. Lösungen bewertbarer Livefragen bleiben bis zum Schließen verborgen. Bei einer zweiten Peer-Instruction-Runde gilt die Effective-Vote-Regel aus dem [ARSnova-Blueprint](./ARSnova_Blueprint_12_Wochen.md#6-lösungsschutz-peer-instruction-und-effective-vote): Runde 2 ersetzt für die ganze Frage Runde 1; beide Runden werden nie addiert. Punkte, Rang, Geschwindigkeit, Teamstand, Boni und Reaktionen sind ausschließlich Spielsignale.
+Der konkrete Inhalt dieser Zeitfenster steht in den Themenblockabschnitten. Jeder Themenblock verwendet jeden der zehn unterstützten Fragetypen genau einmal und ausschließlich `MEDIUM` oder `HARD`. Lesephase, persönlicher Zeitzuschlag und eine gleichwertige untimierte Alternative sind getrennte Schutzmechanismen. Der 60-Sekunden-Standardtimer wird nach Schwierigkeit skaliert. Lösungen bewertbarer Livefragen bleiben bis zum Schließen verborgen. Bei einer zweiten Peer-Instruction-Runde gilt die Effective-Vote-Regel aus dem [ARSnova-Blueprint](./ARSnova_Blueprint_12_Themenbloecke.md#6-lösungsschutz-peer-instruction-und-effective-vote): Runde 2 ersetzt für die ganze Frage Runde 1; beide Runden werden nie addiert. Punkte, Rang, Geschwindigkeit, Teamstand, Boni und Reaktionen sind ausschließlich Spielsignale.
 
 ### 3.2 UE 3: 45-minütiger formativer MC-Test
 
 | Zeit    | Handlung                                                                                        |
 | ------- | ----------------------------------------------------------------------------------------------- |
 | 90–93   | Wechsel, Link und gleichwertige untimierte Fassung öffnen; Freiwilligkeit und `practice` nennen |
-| 93–125  | genau 30 Wochen-Items bearbeiten; Sofortfeedback, Erklärungen und Mini-Glossare nutzen          |
+| 93–125  | genau 30 Themenblockitems bearbeiten; Sofortfeedback, Erklärungen und Mini-Glossare nutzen      |
 | 125–135 | aggregierte Ergebnisse und Lösungen besprechen; mindestens zwei ergiebige Items erklären        |
 
-Die 32 Minuten sind ein organisatorischer Planwert, kein technischer Countdown. `show_top5_public=false`; MC-Ergebnisse sind weder Prüfungsleistung noch Zulassungsvoraussetzung. Derselbe vollständige Satz wird nach zwei bis drei Tagen erneut bereitgestellt. Kernkonzepte werden nach zwei bis vier Wochen in neuem Kontext wieder aufgenommen.
+Die 32 Minuten sind ein organisatorischer Planwert, kein technischer Countdown. `show_top5_public=false`; MC-Ergebnisse sind weder Prüfungsleistung noch Zulassungsvoraussetzung. Derselbe vollständige Satz kann später erneut bereitgestellt werden. Kernkonzepte werden in späteren Themenblöcken in neuem Kontext wieder aufgenommen; das Modulpaket legt dafür keine kalendarischen Abstände fest.
 
-Jede Wochen-Datei enthält genau zwölf mittlere Items mit `weight=2` und 18 schwere Items mit `weight=3`; leichte Items mit `weight=1` sind ausgeschlossen.
+Jede Themenblockdatei enthält genau zwölf mittlere Items mit `weight=2` und 18 schwere Items mit `weight=3`; leichte Items mit `weight=1` sind ausgeschlossen.
 
 ### 3.3 Gleichwertiger Zugang
 
@@ -99,34 +101,34 @@ Die Teilnahme an ARSnova und MC-Test ist freiwillig und ohne Notennachteil. Tabl
 
 Automatische Pseudonyme sind keine Zusage vollständiger technischer Anonymität. Klarnamen, Secrets, Tokens, Produktionszugänge und nicht freigegebene personenbezogene Daten gehören nicht in Livefragen, MC-Test, Dossier, Agentenaufträge oder Laborartefakte. Daten und Kennungen der Werkzeuge werden nicht zu werkzeugübergreifenden Personen- oder Leistungsprofilen verbunden. LIVE-Daten dienen ausschließlich der Lehre und internen Qualitätssicherung, nicht individueller Bewertung, Forschung oder Publikation.
 
-## 4. Übersicht der zwölf Wochen
+## 4. Übersicht der zwölf Themenblöcke
 
-| Woche | Typ              | 90-minütige LE                                             | Zielbezug                         | Dossierertrag                                                       |
-| ----: | ---------------- | ---------------------------------------------------------- | --------------------------------- | ------------------------------------------------------------------- |
-|   W01 | Präsenz/synchron | Cloud-Grundlagen, Modelle und Shared Responsibility        | QZ1, MZ1, LI01–LI03               | belegte Cloud-Klassifikation und Verantwortungsmatrix               |
-|   W02 | Präsenz/synchron | Virtualisierung, Container, IaC und Netzwerk               | QZ2, MZ2, LI04–LI06               | Technologiematrix und Provisioning-Entwurf                          |
-|   W03 | Tutorium         | arsnova.eu-Deployment, Härtung und Zustandsgrenzen         | QZ2, MZ2/MZ6, LI04–LI06, LI15     | Ist-Diagramm, Härtungs- und Zustandsnachweis                        |
-|   W04 | Präsenz/synchron | Serverless Computing                                       | QZ3, MZ3, LI07–LI08               | Eignungsmatrix mit Kandidat, Gegenbeispiel und Gegenprobe           |
-|   W05 | Präsenz/synchron | GCP, AWS und Microsoft Azure                               | QZ4, MZ4, LI09–LI11               | normalisierter Plattform- und Verantwortungsvergleich               |
-|   W06 | Präsenz/synchron | Daten und maschinelles Lernen in der Cloud                 | QZ5, MZ5, LI12–LI14               | Datenfluss und vergleichbarer ML-Betriebsoptionen                   |
-|   W07 | Tutorium         | Storage, Datenbanken, Backup und Recovery                  | QZ2, MZ6, LI15–LI16               | Zustands- und Recovery-Matrix mit Restore-Evidenz                   |
-|   W08 | Tutorium         | Elastizität, Skalierung, Performance und verteilte Systeme | QZ2, MZ7, LI17–LI18               | Scale-out-Hürdenkarte und reproduzierbarer Messplan                 |
-|   W09 | Präsenz/synchron | IAM, Security, Observability, SRE und Resilienz            | QZ2, MZ8, LI19–LI21               | Befund, Risiko, Maßnahme, Verifikation, Degradation und Restrisiko  |
-|   W10 | Tutorium         | FinOps, Nachhaltigkeit und 6R                              | QZ1/QZ4/QZ5, MZ9, LI11, LI22–LI23 | TCO-Modell und ADR mit Alternative, Sensitivität und Exit           |
-|   W11 | Tutorium         | Evidenzbasierte Architekturentscheidung und Referatsarbeit | QZ1–QZ5, MZ9, LI23–LI24           | Referatsthese, Quellenregister, Visualisierung und Gegenalternative |
-|   W12 | Tutorium         | Synthese und Probeverteidigung                             | QZ1–QZ5, MZ9, LI24                | Probe, persönliche Korrekturliste und begrenzte Schlussaussage      |
+| Themenblock | 90-minütige LE                                             | Zielbezug                         | Dossierertrag                                                       |
+| ----------: | ---------------------------------------------------------- | --------------------------------- | ------------------------------------------------------------------- |
+|        TB01 | Cloud-Grundlagen, Modelle und Shared Responsibility        | QZ1, MZ1, LI01–LI03               | belegte Cloud-Klassifikation und Verantwortungsmatrix               |
+|        TB02 | Virtualisierung, Container, IaC und Netzwerk               | QZ2, MZ2, LI04–LI06               | Technologiematrix und Provisioning-Entwurf                          |
+|        TB03 | arsnova.eu-Deployment, Härtung und Zustandsgrenzen         | QZ2, MZ2/MZ6, LI04–LI06, LI15     | Ist-Diagramm, Härtungs- und Zustandsnachweis                        |
+|        TB04 | Serverless Computing                                       | QZ3, MZ3, LI07–LI08               | Eignungsmatrix mit Kandidat, Gegenbeispiel und Gegenprobe           |
+|        TB05 | GCP, AWS und Microsoft Azure                               | QZ4, MZ4, LI09–LI11               | normalisierter Plattform- und Verantwortungsvergleich               |
+|        TB06 | Daten und maschinelles Lernen in der Cloud                 | QZ5, MZ5, LI12–LI14               | Datenfluss und vergleichbarer ML-Betriebsoptionen                   |
+|        TB07 | Storage, Datenbanken, Backup und Recovery                  | QZ2, MZ6, LI15–LI16               | Zustands- und Recovery-Matrix mit Restore-Evidenz                   |
+|        TB08 | Elastizität, Skalierung, Performance und verteilte Systeme | QZ2, MZ7, LI17–LI18               | Scale-out-Hürdenkarte und reproduzierbarer Messplan                 |
+|        TB09 | IAM, Security, Observability, SRE und Resilienz            | QZ2, MZ8, LI19–LI21               | Befund, Risiko, Maßnahme, Verifikation, Degradation und Restrisiko  |
+|        TB10 | FinOps, Nachhaltigkeit und 6R                              | QZ1/QZ4/QZ5, MZ9, LI11, LI22–LI23 | TCO-Modell und ADR mit Alternative, Sensitivität und Exit           |
+|        TB11 | Evidenzbasierte Architekturentscheidung und Referatsarbeit | QZ1–QZ5, MZ9, LI23–LI24           | Referatsthese, Quellenregister, Visualisierung und Gegenalternative |
+|        TB12 | Synthese und Probeverteidigung                             | QZ1–QZ5, MZ9, LI24                | Probe, persönliche Korrekturliste und begrenzte Schlussaussage      |
 
-Die Typzuordnung ergibt genau 18 UE Präsenz beziehungsweise synchron und 18 UE Tutorium.
+Jeder Themenblock umfasst zwei UE für die LE und eine UE für den MC-Test. Die zwölf Themenblöcke ergeben zusammen 36 UE; eine kalender- oder modalitätsbezogene Verteilung ist nicht Teil dieses Plans.
 
-## 5. W01 – Cloud-Grundlagen, Modelle und Shared Responsibility
+## 5. TB01 – Cloud-Grundlagen, Modelle und Shared Responsibility
 
-**Wochenfrage:** Wann ist ein Dienst Cloud Computing, und welche Verantwortung verbleibt bei Betreiber, Anbieter und nutzender Organisation?
+**Leitfrage:** Wann ist ein Dienst Cloud Computing, und welche Verantwortung verbleibt bei Betreiber, Anbieter und nutzender Organisation?
 
 **Ziele:** QZ1 · MZ1 · LI01–LI03
 
-**Fragensätze:** [ARSnova W01](./ARSnova_Woche_01.json) · [MC-Test W01](./MC-Test_Woche_01.json)
+**Fragensätze:** [ARSnova TB01](./ARSnova/ARSnova_Themenblock_01.json) · [MC-Test TB01](./MC-Test/MC-Test_Themenblock_01.json)
 
-**Quellenanker:** [Technische Quellen](./Technische_Quellen_ARSnova.md) mit `SRC-CLOUD-IST` und `SRC-COMPOSE-PRODUKTION`; `SRC-LLM-LLAMA-ZIELBILD` und ADR-0035 dienen nur als Entscheidungskontext. Für den gelehrten 8.9d-Stand gilt ausschließlich das vor W01 geprüfte Implementierungs- und Testpaket des festgelegten Kurs-Commits. Externe Definitionsquelle: NIST-Publikation 800-145.
+**Quellenanker:** [Technische Quellen](./Technische_Quellen_ARSnova.md) mit `SRC-CLOUD-IST` und `SRC-COMPOSE-PRODUKTION`; `SRC-LLM-LLAMA-ZIELBILD` und ADR-0035 dienen nur als Entscheidungskontext. Für den gelehrten 8.9d-Stand gilt ausschließlich das vor TB01 geprüfte Implementierungs- und Testpaket des festgelegten Kurs-Commits. Externe Definitionsquelle: NIST-Publikation 800-145.
 
 ### Inhalte und erwartete Ergebnisse
 
@@ -155,11 +157,11 @@ Die Typzuordnung ergibt genau 18 UE Präsenz beziehungsweise synchron und 18 UE 
 
 | Zeit  | Inhalt und Lernhandlung                                                                                                                        |
 | ----- | ---------------------------------------------------------------------------------------------------------------------------------------------- |
-| 0–12  | Kursrahmen und Wochenfrage klären; L01/L02 zu Cloudmerkmalen und Hosting bearbeiten                                                            |
+| 0–12  | Kursrahmen und Leitfrage klären; L01/L02 zu Cloudmerkmalen und Hosting bearbeiten                                                              |
 | 12–22 | NIST-Merkmale und die zwei unabhängigen Modellachsen Dienstmodell/Bereitstellungsmodell aufbauen                                               |
 | 22–34 | L03/L04: Grenzfälle klassifizieren und stärkste Fehlannahme in Peer-Erklärung korrigieren                                                      |
 | 34–45 | `SRC-CLOUD-IST` und Produktions-Compose prüfen; implementierten Single-Host-App-Stack von Zielbildern und getrenntem 8.9d-Inferenzhost trennen |
-| 45–48 | Rollen, Agentenvertrag, Laborziel, Budget und Abbruchkriterium für den Wochenfall bestätigen                                                   |
+| 45–48 | Rollen, Agentenvertrag, Laborziel, Budget und Abbruchkriterium für den Themenblockfall bestätigen                                              |
 | 48–52 | L05 als Vorhersage zur Cloud- und Verantwortungszuordnung beantworten                                                                          |
 | 52–64 | für App- und Inferenz-Tier eine Cloud- und Verantwortungsmatrix erstellen                                                                      |
 | 64–79 | L06–L08 auswerten; Klassifikation mit Gegenfall, Nutzen, Risiko und offener Annahme verteidigen                                                |
@@ -167,19 +169,19 @@ Die Typzuordnung ergibt genau 18 UE Präsenz beziehungsweise synchron und 18 UE 
 
 ### UE 3, Lernprodukt und Selbststudium
 
-UE 3 verwendet den MC-Test W01. In der Lösungsbesprechung werden mindestens ein Hosting-Cloud-Grenzfall und ein Shared-Responsibility-Fehler vollständig erklärt.
+UE 3 verwendet den MC-Test TB01. In der Lösungsbesprechung werden mindestens ein Hosting-Cloud-Grenzfall und ein Shared-Responsibility-Fehler vollständig erklärt.
 
 **Lernprodukt:** eine Seite mit belegter Cloud-Klassifikation von arsnova.eu, Verantwortungsmatrix, Gegenfall und Aussagegrenze.
 
-**Selbststudium:** Originaldefinition prüfen, Zitate und Repositorybelege verifizieren, Einordnung überarbeiten; vollständiger Wiederabruf nach zwei bis drei Tagen und neuer Modellfall nach zwei bis vier Wochen.
+**Selbststudium:** Originaldefinition prüfen, Zitate und Repositorybelege verifizieren, Einordnung überarbeiten; vollständigen Wiederabruf und neuen Modellfall ohne kalendarische Vorgabe bearbeiten.
 
-## 6. W02 – Virtualisierung, Container, IaC und Netzwerk
+## 6. TB02 – Virtualisierung, Container, IaC und Netzwerk
 
-**Wochenfrage:** Welche Abstraktionen und Netzgrenzen machen eine Cloud-Bereitstellung reproduzierbar und überprüfbar?
+**Leitfrage:** Welche Abstraktionen und Netzgrenzen machen eine Cloud-Bereitstellung reproduzierbar und überprüfbar?
 
 **Ziele:** QZ2 · MZ2 · LI04–LI06
 
-**Fragensätze:** [ARSnova W02](./ARSnova_Woche_02.json) · [MC-Test W02](./MC-Test_Woche_02.json)
+**Fragensätze:** [ARSnova TB02](./ARSnova/ARSnova_Themenblock_02.json) · [MC-Test TB02](./MC-Test/MC-Test_Themenblock_02.json)
 
 **Quellenanker:** [Technische Quellen](./Technische_Quellen_ARSnova.md) mit `SRC-CONTAINER-IMAGE`, `SRC-COMPOSE-PRODUKTION`, `SRC-EDGE-NGINX-TLS`, `SRC-BACKEND-EINSTIEG`, `SRC-WEBSOCKET-TRPC` und `SRC-WEBSOCKET-YJS`.
 
@@ -211,7 +213,7 @@ UE 3 verwendet den MC-Test W01. In der Lösungsbesprechung werden mindestens ein
 
 | Zeit  | Inhalt und Lernhandlung                                                                             |
 | ----- | --------------------------------------------------------------------------------------------------- |
-| 0–12  | L01/L02: Abstraktionsebenen und Cloudmerkmale aus W01 abrufen                                       |
+| 0–12  | L01/L02: Abstraktionsebenen und Cloudmerkmale aus TB01 abrufen                                      |
 | 12–22 | VM, Container, Image, Compose, Orchestrierung und IaC in einem Schichtenmodell ordnen               |
 | 22–34 | L03/L04 zu Isolation, Storage- und Netzwerkentscheidungen mit Peer-Begründung bearbeiten            |
 | 34–45 | Dockerfile, Produktions-Compose und Nginx-/WebSocket-Pfade an Quellenankern nachvollziehen          |
@@ -223,19 +225,19 @@ UE 3 verwendet den MC-Test W01. In der Lösungsbesprechung werden mindestens ein
 
 ### UE 3, Lernprodukt und Selbststudium
 
-UE 3 verwendet den MC-Test W02. Besprochen werden mindestens ein Container-VM-Irrtum und ein Netzwerk- oder Vertrauensgrenzenfall.
+UE 3 verwendet den MC-Test TB02. Besprochen werden mindestens ein Container-VM-Irrtum und ein Netzwerk- oder Vertrauensgrenzenfall.
 
 **Lernprodukt:** Technologiematrix plus versionierter Provisioning-Entwurf mit Fähigkeit, Verantwortung, Risiko und Gegenalternative.
 
 **Selbststudium:** einen Browser-zu-App-zu-Daten-Pfad anhand der Repositoryquellen zeichnen, jeden Übergang belegen und den Entwurf adversarial gegenprüfen.
 
-## 7. W03 – arsnova.eu-Deployment, Härtung und Zustandsgrenzen
+## 7. TB03 – arsnova.eu-Deployment, Härtung und Zustandsgrenzen
 
-**Wochenfrage:** Welche Aussagen über Deployment, Härtung und Zustand sind im Kurs-Commit tatsächlich implementiert oder überprüft?
+**Leitfrage:** Welche Aussagen über Deployment, Härtung und Zustand sind im Kurs-Commit tatsächlich implementiert oder überprüft?
 
 **Ziele:** QZ2 · MZ2/MZ6 · LI04–LI06 und LI15
 
-**Fragensätze:** [ARSnova W03](./ARSnova_Woche_03.json) · [MC-Test W03](./MC-Test_Woche_03.json)
+**Fragensätze:** [ARSnova TB03](./ARSnova/ARSnova_Themenblock_03.json) · [MC-Test TB03](./MC-Test/MC-Test_Themenblock_03.json)
 
 **Quellenanker:** [Technische Quellen](./Technische_Quellen_ARSnova.md) mit `SRC-COMPOSE-PRODUKTION`, `SRC-SECURITY-UEBERBLICK`, `SRC-SECURITY-AUTORISIERUNG`, `SRC-DATENMODELL-PRISMA`, `SRC-REDIS-CLIENT`, `SRC-LOCALFIRST-ARCHITEKTUR`, `SRC-PDF-WORKER-COMPOSE` und der am Kursstart ergänzten 8.9d-Implementierungsevidenz.
 
@@ -267,7 +269,7 @@ UE 3 verwendet den MC-Test W02. Besprochen werden mindestens ein Container-VM-Ir
 
 | Zeit  | Inhalt und Lernhandlung                                                                            |
 | ----- | -------------------------------------------------------------------------------------------------- |
-| 0–12  | L01/L02: Containergrenze, Hostkernel und Zustandsklassen aus W02 abrufen                           |
+| 0–12  | L01/L02: Containergrenze, Hostkernel und Zustandsklassen aus TB02 abrufen                          |
 | 12–22 | Anfrage-, Zustands- und Vertrauenspfad der belegten und der 8.9d-erweiterten Topologie modellieren |
 | 22–34 | L03/L04: Härtungs- und Zustandsgrenzen an konkreten Fehlerfällen diskutieren                       |
 | 34–45 | Compose-, Security-, Prisma-, Redis- und PDF-Worker-Quellen mit Evidenzstufe prüfen                |
@@ -279,19 +281,19 @@ UE 3 verwendet den MC-Test W02. Besprochen werden mindestens ein Container-VM-Ir
 
 ### UE 3, Lernprodukt und Selbststudium
 
-UE 3 verwendet den MC-Test W03. Besprochen werden mindestens ein falscher Sicherheitsnachweis und eine Verwechslung von persistentem, flüchtigem und lokalem Zustand.
+UE 3 verwendet den MC-Test TB03. Besprochen werden mindestens ein falscher Sicherheitsnachweis und eine Verwechslung von persistentem, flüchtigem und lokalem Zustand.
 
 **Lernprodukt:** belegtes Ist-/Kursstart-Diagramm, Härtungsnachweis und Zustandsmatrix mit Evidenz- und Gültigkeitsgrenzen.
 
 **Selbststudium:** einen zweiten Prüfpfad auf Konfiguration und Zustandsorte anwenden, widersprüchliche Befunde klären und Neuaufbau oder Rollback nachvollziehbar dokumentieren.
 
-## 8. W04 – Serverless Computing
+## 8. TB04 – Serverless Computing
 
-**Wochenfrage:** Welche ARSnova-Arbeitslast eignet sich für Serverless, und welcher Gegenfall widerlegt eine zu breite Empfehlung?
+**Leitfrage:** Welche ARSnova-Arbeitslast eignet sich für Serverless, und welcher Gegenfall widerlegt eine zu breite Empfehlung?
 
 **Ziele:** QZ3 · MZ3 · LI07–LI08
 
-**Fragensätze:** [ARSnova W04](./ARSnova_Woche_04.json) · [MC-Test W04](./MC-Test_Woche_04.json)
+**Fragensätze:** [ARSnova TB04](./ARSnova/ARSnova_Themenblock_04.json) · [MC-Test TB04](./MC-Test/MC-Test_Themenblock_04.json)
 
 **Quellenanker:** [Technische Quellen](./Technische_Quellen_ARSnova.md) mit `SRC-PDF-WORKER-CODE`, `SRC-PDF-WORKER-COMPOSE`, `SRC-WEBSOCKET-TRPC`, `SRC-WEBSOCKET-YJS` und `SRC-CLOUD-6R`; zusätzlich aktuelle Funktions-, Limit- und Preisquellen des betrachteten Providers.
 
@@ -323,7 +325,7 @@ UE 3 verwendet den MC-Test W03. Besprochen werden mindestens ein falscher Sicher
 
 | Zeit  | Inhalt und Lernhandlung                                                                         |
 | ----- | ----------------------------------------------------------------------------------------------- |
-| 0–12  | L01/L02: Zustand, Worker und Cloud-Verantwortung aus W02/W03 abrufen                            |
+| 0–12  | L01/L02: Zustand, Worker und Cloud-Verantwortung aus TB02/TB03 abrufen                          |
 | 12–22 | Serverless, FaaS/BaaS sowie Function, Container, Job und Dienst begrifflich abgrenzen           |
 | 22–34 | L03/L04: Kandidat und Gegenbeispiel nach Laufzeit, Zustand und Cold Start bewerten              |
 | 34–45 | PDF-Worker- und Realtime-Quellen prüfen; Providerlimit nur mit datierter Primärquelle verwenden |
@@ -335,19 +337,19 @@ UE 3 verwendet den MC-Test W03. Besprochen werden mindestens ein falscher Sicher
 
 ### UE 3, Lernprodukt und Selbststudium
 
-UE 3 verwendet den MC-Test W04. Besprochen werden mindestens ein Cold-Start-/Zustandsfall und ein Kosten- oder Lock-in-Fall.
+UE 3 verwendet den MC-Test TB04. Besprochen werden mindestens ein Cold-Start-/Zustandsfall und ein Kosten- oder Lock-in-Fall.
 
 **Lernprodukt:** Serverless-Eignungsmatrix für einen geeigneten und einen ungeeigneten Kandidaten mit Testevidenz, Gegenargument und Exit.
 
 **Selbststudium:** zwei Kandidaten gegeneinander verteidigen lassen, Primärquellen und Kostenannahmen prüfen und die eigene Entscheidung auf eine klar benannte Systemgrenze begrenzen.
 
-## 9. W05 – GCP, AWS und Microsoft Azure
+## 9. TB05 – GCP, AWS und Microsoft Azure
 
-**Wochenfrage:** Wie lassen sich drei Cloud-Plattformen vergleichen, ohne Produktnamen, Regionen, Verantwortungen und Preise asymmetrisch zu behandeln?
+**Leitfrage:** Wie lassen sich drei Cloud-Plattformen vergleichen, ohne Produktnamen, Regionen, Verantwortungen und Preise asymmetrisch zu behandeln?
 
 **Ziele:** QZ4 · MZ4 · LI09–LI11
 
-**Fragensätze:** [ARSnova W05](./ARSnova_Woche_05.json) · [MC-Test W05](./MC-Test_Woche_05.json)
+**Fragensätze:** [ARSnova TB05](./ARSnova/ARSnova_Themenblock_05.json) · [MC-Test TB05](./MC-Test/MC-Test_Themenblock_05.json)
 
 **Quellenanker:** [Technische Quellen](./Technische_Quellen_ARSnova.md) mit `SRC-CLOUD-PROVIDER`, `SRC-CLOUD-IST`, `SRC-CLOUD-KOSTEN` und `SRC-CLOUD-OPENSTACK`; dazu datierte offizielle Service-, Regionen-, Verantwortungs- und Preisquellen von GCP, AWS und Azure.
 
@@ -379,7 +381,7 @@ UE 3 verwendet den MC-Test W04. Besprochen werden mindestens ein Cold-Start-/Zus
 
 | Zeit  | Inhalt und Lernhandlung                                                                      |
 | ----- | -------------------------------------------------------------------------------------------- |
-| 0–12  | L01/L02: Dienstmodell, Region und Shared Responsibility aus W01/W04 abrufen                  |
+| 0–12  | L01/L02: Dienstmodell, Region und Shared Responsibility aus TB01/TB04 abrufen                |
 | 12–22 | neutrales Capability-Raster vor der Nennung konkreter Providerprodukte erstellen             |
 | 22–34 | L03/L04: asymmetrische Vergleiche und fehlende Preis-/Regionsangaben diagnostizieren         |
 | 34–45 | je Plattform eine volatile Aussage an offizieller Primärquelle mit Datum und Region prüfen   |
@@ -391,19 +393,19 @@ UE 3 verwendet den MC-Test W04. Besprochen werden mindestens ein Cold-Start-/Zus
 
 ### UE 3, Lernprodukt und Selbststudium
 
-UE 3 verwendet den MC-Test W05. Besprochen werden mindestens ein Capability-Mapping-Fehler und ein Fall mit fehlender Region, Preiseinheit oder Verantwortungsangabe.
+UE 3 verwendet den MC-Test TB05. Besprochen werden mindestens ein Capability-Mapping-Fehler und ein Fall mit fehlender Region, Preiseinheit oder Verantwortungsangabe.
 
 **Lernprodukt:** normalisierter Dreiplattformvergleich mit Primärquelle, Abrufdatum, Region, Verantwortungsgrenze, Kostenannahme und Exit.
 
 **Selbststudium:** pro Plattform mindestens zwei volatile Angaben erneut prüfen und dokumentieren, warum Produktähnlichkeit noch keine funktionale oder wirtschaftliche Gleichwertigkeit beweist.
 
-## 10. W06 – Daten und maschinelles Lernen in der Cloud
+## 10. TB06 – Daten und maschinelles Lernen in der Cloud
 
-**Wochenfrage:** Welche Daten- und ML-Pipeline liefert für arsnova.eu einen reproduzierbaren Nutzen, ohne Datenschutz-, Betriebs- und Kostenfolgen auszublenden?
+**Leitfrage:** Welche Daten- und ML-Pipeline liefert für arsnova.eu einen reproduzierbaren Nutzen, ohne Datenschutz-, Betriebs- und Kostenfolgen auszublenden?
 
 **Ziele:** QZ5 · MZ5 · LI12–LI14
 
-**Fragensätze:** [ARSnova W06](./ARSnova_Woche_06.json) · [MC-Test W06](./MC-Test_Woche_06.json)
+**Fragensätze:** [ARSnova TB06](./ARSnova/ARSnova_Themenblock_06.json) · [MC-Test TB06](./MC-Test/MC-Test_Themenblock_06.json)
 
 **Quellenanker:** [Technische Quellen](./Technische_Quellen_ARSnova.md) mit `SRC-ML-LEXIKALISCHE-WORTWOLKE`, `SRC-ML-SPACY`, `SRC-ML-SEMANTISCHE-THEMEN`, `SRC-ML-QA-KASKADE`, `SRC-ML-QA-SUMMARY`, `SRC-ML-FEATURE-FLAGS` und der am Kursstart nachzuweisenden 8.9d-Implementierung.
 
@@ -435,7 +437,7 @@ UE 3 verwendet den MC-Test W05. Besprochen werden mindestens ein Capability-Mapp
 
 | Zeit  | Inhalt und Lernhandlung                                                                                                                                                         |
 | ----- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| 0–12  | L01/L02: Provider-, Daten- und Verantwortungsgrenzen aus W05 abrufen                                                                                                            |
+| 0–12  | L01/L02: Provider-, Daten- und Verantwortungsgrenzen aus TB05 abrufen                                                                                                           |
 | 12–22 | Batch/Stream, ETL/ELT, Embedding, Clustering, Inferenz und Fallback in einer Pipeline ordnen                                                                                    |
 | 22–34 | L03/L04: Datenschutz-, Qualitäts- und Betriebsgrenzen konkurrierender ML-Optionen diskutieren                                                                                   |
 | 34–45 | lexikalischen, spaCy-, Encoder-, 8.9b- und Summary-Slices-1–3-Stand sowie separat die 8.9d-Runtime an Code, Flags und Tests prüfen; generative Consumer nur mit eigener Evidenz |
@@ -447,19 +449,19 @@ UE 3 verwendet den MC-Test W05. Besprochen werden mindestens ein Capability-Mapp
 
 ### UE 3, Lernprodukt und Selbststudium
 
-UE 3 verwendet den MC-Test W06. Besprochen werden mindestens ein Pipeline-/Datenflussfehler und ein unzulässiger Schluss von lokaler Modellverfügbarkeit auf Datenschutz oder Qualität.
+UE 3 verwendet den MC-Test TB06. Besprochen werden mindestens ein Pipeline-/Datenflussfehler und ein unzulässiger Schluss von lokaler Modellverfügbarkeit auf Datenschutz oder Qualität.
 
 **Lernprodukt:** versionierter Daten- und Dienstfluss mit Dateninventar sowie Vergleich mindestens zweier ML-Betriebsoptionen auf gleicher Messbasis.
 
 **Selbststudium:** Varianten mit demselben synthetischen Seed-Set vergleichen, Modell-, Daten- und Laufzeitversionen festhalten und widersprüchliche Qualitäts-, Privacy- und FinOps-Bewertungen begründet auflösen.
 
-## 11. W07 – Storage, Datenbanken, Backup und Recovery
+## 11. TB07 – Storage, Datenbanken, Backup und Recovery
 
-**Wochenfrage:** Welche Zustände müssen gesichert werden, und welche Recovery-Aussage trägt ein tatsächlich ausgeführter Restore?
+**Leitfrage:** Welche Zustände müssen gesichert werden, und welche Recovery-Aussage trägt ein tatsächlich ausgeführter Restore?
 
 **Ziele:** QZ2 · MZ6 · LI15–LI16
 
-**Fragensätze:** [ARSnova W07](./ARSnova_Woche_07.json) · [MC-Test W07](./MC-Test_Woche_07.json)
+**Fragensätze:** [ARSnova TB07](./ARSnova/ARSnova_Themenblock_07.json) · [MC-Test TB07](./MC-Test/MC-Test_Themenblock_07.json)
 
 **Quellenanker:** [Technische Quellen](./Technische_Quellen_ARSnova.md) mit `SRC-DATENMODELL-PRISMA`, `SRC-REDIS-PERSISTENZ`, `SRC-REDIS-YJS-CAPABILITIES`, `SRC-LOCALFIRST-STORE`, `SRC-BACKUP-RUNBOOK`, `SRC-BACKUP-CODE` und `SRC-BACKUP-ABNAHME`.
 
@@ -491,7 +493,7 @@ UE 3 verwendet den MC-Test W06. Besprochen werden mindestens ein Pipeline-/Daten
 
 | Zeit  | Inhalt und Lernhandlung                                                                           |
 | ----- | ------------------------------------------------------------------------------------------------- |
-| 0–12  | L01/L02: persistenten, flüchtigen und lokalen Zustand aus W03 abrufen                             |
+| 0–12  | L01/L02: persistenten, flüchtigen und lokalen Zustand aus TB03 abrufen                            |
 | 12–22 | Storagearten, Datenbankzustand, Cache, Snapshot, Backup und Restore abgrenzen                     |
 | 22–34 | L03/L04: RPO/RTO- und Integritätsfehler an realistischen Ausfällen analysieren                    |
 | 34–45 | Prisma-, Redis-, Local-First- und Backupquellen auf Sicherungsumfang und Aussagegrenze prüfen     |
@@ -503,19 +505,19 @@ UE 3 verwendet den MC-Test W06. Besprochen werden mindestens ein Pipeline-/Daten
 
 ### UE 3, Lernprodukt und Selbststudium
 
-UE 3 verwendet den MC-Test W07. Besprochen werden mindestens ein RPO/RTO-Irrtum und ein Fall, in dem ein vorhandenes Backup keinen erfolgreichen Restore belegt.
+UE 3 verwendet den MC-Test TB07. Besprochen werden mindestens ein RPO/RTO-Irrtum und ein Fall, in dem ein vorhandenes Backup keinen erfolgreichen Restore belegt.
 
 **Lernprodukt:** Zustands- und Recovery-Matrix mit Owner, RPO, RTO, Restore-Messwert, Integritätsprüfung, Kosten und Gültigkeitsgrenze.
 
 **Selbststudium:** Recoveryablauf wiederholen oder anhand freigegebener Artefakte unabhängig prüfen, Abweichungen erklären und den automatisierten Neuaufbau korrigieren.
 
-## 12. W08 – Elastizität, Skalierung, Performance und verteilte Systeme
+## 12. TB08 – Elastizität, Skalierung, Performance und verteilte Systeme
 
-**Wochenfrage:** Welche Architektur- und Messfolgen unterscheiden viele kleine Sessions von einem einzelnen großen Fan-out-Hotspot?
+**Leitfrage:** Welche Architektur- und Messfolgen unterscheiden viele kleine Sessions von einem einzelnen großen Fan-out-Hotspot?
 
 **Ziele:** QZ2 · MZ7 · LI17–LI18
 
-**Fragensätze:** [ARSnova W08](./ARSnova_Woche_08.json) · [MC-Test W08](./MC-Test_Woche_08.json)
+**Fragensätze:** [ARSnova TB08](./ARSnova/ARSnova_Themenblock_08.json) · [MC-Test TB08](./MC-Test/MC-Test_Themenblock_08.json)
 
 **Quellenanker:** [Technische Quellen](./Technische_Quellen_ARSnova.md) mit `SRC-LAST-HARNESS`, `SRC-LAST-LOKAL-2026-07-12`, `SRC-LAST-PRODUKTION-2026-05-09`, `SRC-LAST-FORMALER-ZIELHOST`, `SRC-WEBSOCKET-TRPC`, `SRC-WEBSOCKET-YJS` und `SRC-RATELIMIT-WEBSOCKET`.
 
@@ -547,7 +549,7 @@ UE 3 verwendet den MC-Test W07. Besprochen werden mindestens ein RPO/RTO-Irrtum 
 
 | Zeit  | Inhalt und Lernhandlung                                                                |
 | ----- | -------------------------------------------------------------------------------------- |
-| 0–12  | L01/L02: Elastizität und Zustandsgrenzen aus W01/W07 abrufen                           |
+| 0–12  | L01/L02: Elastizität und Zustandsgrenzen aus TB01/TB07 abrufen                         |
 | 12–22 | Scale-up/out, Queueing, Backpressure, Affinität und Messperzentile modellieren         |
 | 22–34 | L03/L04: zwei Lastprofile und plausible, aber falsche Kapazitätsschlüsse kontrastieren |
 | 34–45 | lokale Baseline, historischen Produktions-Join und offene Zielhostabnahme vergleichen  |
@@ -559,19 +561,19 @@ UE 3 verwendet den MC-Test W07. Besprochen werden mindestens ein RPO/RTO-Irrtum 
 
 ### UE 3, Lernprodukt und Selbststudium
 
-UE 3 verwendet den MC-Test W08. Besprochen werden mindestens eine Perzentil-Fehlinterpretation und ein unzulässiger Schluss von 500 Joins auf vollständigen 5.000er-Livebetrieb.
+UE 3 verwendet den MC-Test TB08. Besprochen werden mindestens eine Perzentil-Fehlinterpretation und ein unzulässiger Schluss von 500 Joins auf vollständigen 5.000er-Livebetrieb.
 
 **Lernprodukt:** Scale-out-Hürdenkarte und reproduzierbarer Messplan mit Hypothese, Workload, Umgebung, Kennzahlen, Abbruch, Rohdatenbezug und Aussagegrenze.
 
 **Selbststudium:** eine Gegenhypothese mit demselben Messvertrag prüfen, Messrauschen und Wiederholbarkeit dokumentieren und keine Produktionskapazität aus Laborwerten ableiten.
 
-## 13. W09 – IAM, Security, Observability, SRE und Resilienz
+## 13. TB09 – IAM, Security, Observability, SRE und Resilienz
 
-**Wochenfrage:** Wie wird aus einem Sicherheits- oder Betriebsbefund eine verifizierte Maßnahme mit messbarem Restrisiko?
+**Leitfrage:** Wie wird aus einem Sicherheits- oder Betriebsbefund eine verifizierte Maßnahme mit messbarem Restrisiko?
 
 **Ziele:** QZ2 · MZ8 · LI19–LI21
 
-**Fragensätze:** [ARSnova W09](./ARSnova_Woche_09.json) · [MC-Test W09](./MC-Test_Woche_09.json)
+**Fragensätze:** [ARSnova TB09](./ARSnova/ARSnova_Themenblock_09.json) · [MC-Test TB09](./MC-Test/MC-Test_Themenblock_09.json)
 
 **Quellenanker:** [Technische Quellen](./Technische_Quellen_ARSnova.md) mit `SRC-SECURITY-UEBERBLICK`, `SRC-SECURITY-AUTORISIERUNG`, `SRC-SECURITY-CI`, `SRC-MONITORING-API`, `SRC-MONITORING-OPERATIV`, `SRC-MONITORING-POLLER`, `SRC-MONITORING-ABNAHME` sowie der 8.9d-Netz-, Credential- und Slot-Evidenz des Kurs-Commits.
 
@@ -603,7 +605,7 @@ UE 3 verwendet den MC-Test W08. Besprochen werden mindestens eine Perzentil-Fehl
 
 | Zeit  | Inhalt und Lernhandlung                                                                                                                                                                                     |
 | ----- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| 0–12  | L01/L02: Trust Boundary, Backpressure und Recovery aus W03/W08 abrufen                                                                                                                                      |
+| 0–12  | L01/L02: Trust Boundary, Backpressure und Recovery aus TB03/TB08 abrufen                                                                                                                                    |
 | 12–22 | IAM-, Netzwerk-, Supply-Chain- und Observability-Modell für App und Inferenz aufbauen                                                                                                                       |
 | 22–34 | L03/L04: Befund, Maßnahme, bloße Behauptung und belastbare Verifikation unterscheiden                                                                                                                       |
 | 34–45 | Security- und 8.9d-Quellen auf implementierten und getesteten Stand prüfen; Monitoring als implementiert/lokal verifiziert einordnen und produktive Alarmkette nur mit datiertem Betriebsnachweis behaupten |
@@ -615,19 +617,19 @@ UE 3 verwendet den MC-Test W08. Besprochen werden mindestens eine Perzentil-Fehl
 
 ### UE 3, Lernprodukt und Selbststudium
 
-UE 3 verwendet den MC-Test W09. Besprochen werden mindestens eine Verwechslung von Log und SLO sowie ein Fall, in dem eine Maßnahme ohne Negativtest fälschlich als wirksam gilt.
+UE 3 verwendet den MC-Test TB09. Besprochen werden mindestens eine Verwechslung von Log und SLO sowie ein Fall, in dem eine Maßnahme ohne Negativtest fälschlich als wirksam gilt.
 
 **Lernprodukt:** Kette `Befund → Risiko → Maßnahme → Verifikation → Graceful Degradation/Recovery → Restrisiko` samt SLI/SLO, Alarm, Runbook und Owner.
 
 **Selbststudium:** Security-, Betriebs- und Wirtschaftsperspektive auf dasselbe Restrisiko anwenden, Konflikte entscheiden und mindestens eine Kontrolle unabhängig gegenprüfen.
 
-## 14. W10 – FinOps, Nachhaltigkeit und 6R
+## 14. TB10 – FinOps, Nachhaltigkeit und 6R
 
-**Wochenfrage:** Welche technisch belegte Cloud-Option ist unter Kosten, Ressourcenwirkung, Risiko und Exit vertretbar?
+**Leitfrage:** Welche technisch belegte Cloud-Option ist unter Kosten, Ressourcenwirkung, Risiko und Exit vertretbar?
 
 **Ziele:** QZ1/QZ4/QZ5 · MZ9 · LI11 und LI22–LI23
 
-**Fragensätze:** [ARSnova W10](./ARSnova_Woche_10.json) · [MC-Test W10](./MC-Test_Woche_10.json)
+**Fragensätze:** [ARSnova TB10](./ARSnova/ARSnova_Themenblock_10.json) · [MC-Test TB10](./MC-Test/MC-Test_Themenblock_10.json)
 
 **Quellenanker:** [Technische Quellen](./Technische_Quellen_ARSnova.md) mit `SRC-CLOUD-PROVIDER`, `SRC-CLOUD-6R`, `SRC-CLOUD-KOSTEN`, `SRC-LAST-LOKAL-2026-07-12` und der am Kursstart gemessenen 8.9d-Ressourcen- und Latenzevidenz; volatile Preise sowie Energie- und Emissionsfaktoren nur aus datierten Primär- oder offiziellen Statistikquellen mit benannter Region und Messgrenze.
 
@@ -661,7 +663,7 @@ UE 3 verwendet den MC-Test W09. Besprochen werden mindestens eine Verwechslung v
 
 | Zeit  | Inhalt und Lernhandlung                                                                                        |
 | ----- | -------------------------------------------------------------------------------------------------------------- |
-| 0–12  | L01/L02: Preiseinheit, Egress und Messgrenze aus W05/W08 abrufen                                               |
+| 0–12  | L01/L02: Preiseinheit, Egress und Messgrenze aus TB05/TB08 abrufen                                             |
 | 12–22 | TCO, Unit Cost, CapEx/OpEx, Auslastung, Energiebedarf, Kohlenstoffintensität, Sensitivität und 6R ordnen       |
 | 22–34 | L03/L04: unvollständige Kosten- und Nachhaltigkeitsmodelle diagnostizieren                                     |
 | 34–45 | Kostenblatt, Providerquellen und 8.9d-Messwerte auf identische Systemgrenze prüfen                             |
@@ -673,19 +675,19 @@ UE 3 verwendet den MC-Test W09. Besprochen werden mindestens eine Verwechslung v
 
 ### UE 3, Lernprodukt und Selbststudium
 
-UE 3 verwendet den MC-Test W10. Besprochen werden mindestens eine falsche Unit-Cost-Rechnung und ein Fall, in dem die gewählte 6R-Kategorie nicht zur technischen Veränderung passt.
+UE 3 verwendet den MC-Test TB10. Besprochen werden mindestens eine falsche Unit-Cost-Rechnung und ein Fall, in dem die gewählte 6R-Kategorie nicht zur technischen Veränderung passt.
 
 **Lernprodukt:** TCO-/FinOps-/Nachhaltigkeitsmodell und ADR mit 6R-Zuordnung, Sensitivität, stärkster verworfener Alternative, Risiko und Exit.
 
 **Selbststudium:** die stärkste Gegenalternative mit aktualisierten Preisen und einer veränderten Auslastungsannahme neu rechnen und dokumentieren, wann die ursprüngliche Entscheidung kippt.
 
-## 15. W11 – Evidenzbasierte Architekturentscheidung und Referatsarbeit
+## 15. TB11 – Evidenzbasierte Architekturentscheidung und Referatsarbeit
 
-**Wochenfrage:** Wie wird aus Quellen, Messungen und offenen Annahmen eine in 15 Minuten verteidigbare Cloud-These?
+**Leitfrage:** Wie wird aus Quellen, Messungen und offenen Annahmen eine in 15 Minuten verteidigbare Cloud-These?
 
 **Ziele:** QZ1–QZ5 · MZ9 · LI23–LI24
 
-**Fragensätze:** [ARSnova W11](./ARSnova_Woche_11.json) · [MC-Test W11](./MC-Test_Woche_11.json)
+**Fragensätze:** [ARSnova TB11](./ARSnova/ARSnova_Themenblock_11.json) · [MC-Test TB11](./MC-Test/MC-Test_Themenblock_11.json)
 
 **Quellenanker:** [Referatsthemenkatalog](./Referatsthemen_Cloud_Computing_ARSnova.md), [Lernziel- und Alignment-Matrix](./Lernziel_Alignment_Matrix.md), [Technische Quellen](./Technische_Quellen_ARSnova.md) und der veröffentlichte Prüfungsauftrag.
 
@@ -715,33 +717,33 @@ UE 3 verwendet den MC-Test W10. Besprochen werden mindestens eine falsche Unit-C
 
 ### UE 1 und UE 2
 
-| Zeit  | Inhalt und Lernhandlung                                                                  |
-| ----- | ---------------------------------------------------------------------------------------- |
-| 0–12  | L01/L02: Evidenzstufen, ADR und stärkste Gegenalternative aus früheren Wochen abrufen    |
-| 12–22 | Leitfrage, These, Fakt, Evidenz, Annahme, Entscheidung und Grenze modellieren            |
-| 22–34 | L03/L04: überzogene Schlussfolgerung und schwache Quelle in Peer-Arbeit korrigieren      |
-| 34–45 | Themenkatalog und ausgewählte Repository-/Primärquellen gegen den Kurs-Commit prüfen     |
-| 45–48 | individuelle Rolle, zulässige Hilfsmittel, Thema, Zeit- und Prüfungsgrenze bestätigen    |
-| 48–52 | L05 als Vorhersage zur Tragfähigkeit der Referatsthese beantworten                       |
-| 52–64 | individuelle These, Systemgrenze, Quellenregister und Visualisierung entwerfen           |
-| 64–79 | L06–L08: Gegenalternative, technische Evidenz, KI-Beitrag und mögliche Rückfragen prüfen |
-| 79–90 | L09/L10 sowie Vortragsskizze, Zeitbudget und offene Unsicherheit sichern                 |
+| Zeit  | Inhalt und Lernhandlung                                                                      |
+| ----- | -------------------------------------------------------------------------------------------- |
+| 0–12  | L01/L02: Evidenzstufen, ADR und stärkste Gegenalternative aus früheren Themenblöcken abrufen |
+| 12–22 | Leitfrage, These, Fakt, Evidenz, Annahme, Entscheidung und Grenze modellieren                |
+| 22–34 | L03/L04: überzogene Schlussfolgerung und schwache Quelle in Peer-Arbeit korrigieren          |
+| 34–45 | Themenkatalog und ausgewählte Repository-/Primärquellen gegen den Kurs-Commit prüfen         |
+| 45–48 | individuelle Rolle, zulässige Hilfsmittel, Thema, Zeit- und Prüfungsgrenze bestätigen        |
+| 48–52 | L05 als Vorhersage zur Tragfähigkeit der Referatsthese beantworten                           |
+| 52–64 | individuelle These, Systemgrenze, Quellenregister und Visualisierung entwerfen               |
+| 64–79 | L06–L08: Gegenalternative, technische Evidenz, KI-Beitrag und mögliche Rückfragen prüfen     |
+| 79–90 | L09/L10 sowie Vortragsskizze, Zeitbudget und offene Unsicherheit sichern                     |
 
 ### UE 3, Lernprodukt und Selbststudium
 
-UE 3 verwendet den MC-Test W11. Besprochen werden mindestens ein Quellen-/Evidenzfehler und ein Fall, in dem eine attraktive Visualisierung eine fehlende Begründung verdeckt.
+UE 3 verwendet den MC-Test TB11. Besprochen werden mindestens ein Quellen-/Evidenzfehler und ein Fall, in dem eine attraktive Visualisierung eine fehlende Begründung verdeckt.
 
 **Lernprodukt:** referatsfähige These mit Systemgrenze, Quellen- und Evidenzregister, Visualisierungsskizze, stärkster Gegenalternative und individueller Argumentationslinie.
 
 **Selbststudium:** Einreichung und Vortrag entsprechend der gültigen Hilfsmittelregel ausarbeiten, Agentenbeiträge offenlegen und kritische Rückfragen ohne Agentenstellvertretung beantworten üben.
 
-## 16. W12 – Synthese und Probeverteidigung
+## 16. TB12 – Synthese und Probeverteidigung
 
-**Wochenfrage:** Hält die eigene Cloud-Entscheidung einer fachlichen Befragung über Architektur, Verantwortung, Betrieb, Kosten und Grenzen stand?
+**Leitfrage:** Hält die eigene Cloud-Entscheidung einer fachlichen Befragung über Architektur, Verantwortung, Betrieb, Kosten und Grenzen stand?
 
 **Ziele:** QZ1–QZ5 · MZ9 · LI24
 
-**Fragensätze:** [ARSnova W12](./ARSnova_Woche_12.json) · [MC-Test W12](./MC-Test_Woche_12.json)
+**Fragensätze:** [ARSnova TB12](./ARSnova/ARSnova_Themenblock_12.json) · [MC-Test TB12](./MC-Test/MC-Test_Themenblock_12.json)
 
 **Quellenanker:** vollständiges persönliches Quellenregister, [Referatsthemenkatalog](./Referatsthemen_Cloud_Computing_ARSnova.md), [Lernziel- und Alignment-Matrix](./Lernziel_Alignment_Matrix.md), [Technische Quellen](./Technische_Quellen_ARSnova.md) und der gültige Prüfungsauftrag.
 
@@ -785,7 +787,7 @@ UE 3 verwendet den MC-Test W11. Besprochen werden mindestens ein Quellen-/Eviden
 
 ### UE 3, Lernprodukt und Selbststudium
 
-UE 3 verwendet den MC-Test W12. Die Lösungsbesprechung verbindet mindestens zwei Items aus unterschiedlichen QZ und macht die Grenze einer kumulativen Schlussfolgerung sichtbar.
+UE 3 verwendet den MC-Test TB12. Die Lösungsbesprechung verbindet mindestens zwei Items aus unterschiedlichen QZ und macht die Grenze einer kumulativen Schlussfolgerung sichtbar.
 
 **Lernprodukt:** dokumentierte Probeverteidigung, persönliche Korrekturliste und begrenzte Schlussaussage. Falls nicht jede Person innerhalb der LE einen vollständigen 15-Minuten-Lauf erhält, wird dieser im vorgesehenen Selbststudium mit strukturiertem Peer-Protokoll abgeschlossen.
 
@@ -793,18 +795,18 @@ UE 3 verwendet den MC-Test W12. Die Lösungsbesprechung verbindet mindestens zwe
 
 ## 17. Semesterweite Wiederaufnahme des Fachwortschatzes
 
-| Wiederaufnahme    | Kernverbindung                                                                                          |
-| ----------------- | ------------------------------------------------------------------------------------------------------- |
-| W01 → W03/W05/W10 | Cloudmodell und Shared Responsibility werden an Deployment, Provider und Migration erneut geprüft       |
-| W02 → W03/W08/W09 | Container-, Netzwerk- und Trust-Boundary-Begriffe werden in Betrieb, Skalierung und Security angewendet |
-| W03 → W07/W09     | Zustands- und Härtungsbegriffe werden in Recovery und Resilienz erneut benötigt                         |
-| W04 → W08/W10     | Serverless-Grenzen werden mit Skalierung, Kosten und Exit verbunden                                     |
-| W05 → W06/W10     | Provider-, Regionen- und Egressbegriffe tragen den ML- und FinOps-Vergleich                             |
-| W06 → W08–W10     | Daten-/ML-Pipeline, Inferenz und Fallback werden unter Last, Ausfall und Kosten geprüft                 |
-| W07 → W09/W10     | Recoveryziele werden mit SLO, Risiko und TCO verbunden                                                  |
-| W08 → W09/W10     | Messvertrag und Sättigung werden für SRE und Unit Costs wiederverwendet                                 |
-| W09 → W10–W12     | Restrisiko, SLO und Degradation fließen in ADR und Verteidigung ein                                     |
-| W10 → W11–W12     | ADR, 6R, Sensitivität und Exit strukturieren Referat und Synthese                                       |
+| Wiederaufnahme        | Kernverbindung                                                                                          |
+| --------------------- | ------------------------------------------------------------------------------------------------------- |
+| TB01 → TB03/TB05/TB10 | Cloudmodell und Shared Responsibility werden an Deployment, Provider und Migration erneut geprüft       |
+| TB02 → TB03/TB08/TB09 | Container-, Netzwerk- und Trust-Boundary-Begriffe werden in Betrieb, Skalierung und Security angewendet |
+| TB03 → TB07/TB09      | Zustands- und Härtungsbegriffe werden in Recovery und Resilienz erneut benötigt                         |
+| TB04 → TB08/TB10      | Serverless-Grenzen werden mit Skalierung, Kosten und Exit verbunden                                     |
+| TB05 → TB06/TB10      | Provider-, Regionen- und Egressbegriffe tragen den ML- und FinOps-Vergleich                             |
+| TB06 → TB08–TB10      | Daten-/ML-Pipeline, Inferenz und Fallback werden unter Last, Ausfall und Kosten geprüft                 |
+| TB07 → TB09/TB10      | Recoveryziele werden mit SLO, Risiko und TCO verbunden                                                  |
+| TB08 → TB09/TB10      | Messvertrag und Sättigung werden für SRE und Unit Costs wiederverwendet                                 |
+| TB09 → TB10–TB12      | Restrisiko, SLO und Degradation fließen in ADR und Verteidigung ein                                     |
+| TB10 → TB11–TB12      | ADR, 6R, Sensitivität und Exit strukturieren Referat und Synthese                                       |
 
 Die Wiederaufnahme erfolgt in neuem Kontext. Wörtlich identische Aufgaben oder gegenseitige Lösungshinweise zwischen ARSnova und MC-Test sind ausgeschlossen.
 
@@ -812,10 +814,9 @@ Die Wiederaufnahme erfolgt in neuem Kontext. Wörtlich identische Aufgaben oder 
 
 Der Lehrplan ist fachlich erst freigegeben, wenn:
 
-1. alle zwölf Wochen mit den zugehörigen QZ, MZ und LI übereinstimmen;
-2. jede Woche genau eine 90-minütige LE und eine 45-minütige MC-Test-UE ausweist;
-3. die Bilanz von 18 UE Präsenz/synchron und 18 UE Tutorium erhalten bleibt;
-4. jeder Wochenabschnitt Inhalte, Fachwortschatz, Quellenanker, Lernprodukt und Selbststudium enthält;
-5. die verlinkten ARSnova- und MC-Dateien dem letzten geprüften Paketstand entsprechen;
-6. die 8.9d-Kursstartannahme durch aktualisierte Code-, Compose-, Konfigurations-, Test- und Messanker in den technischen Quellen bestätigt wurde;
-7. operative Import-, Geräte-, Offline- und Barrierefreiheitsgates aus dem [QA-Freigabeprotokoll](./QA_Freigabeprotokoll.md) geschlossen sind.
+1. alle zwölf Themenblöcke mit den zugehörigen QZ, MZ und LI übereinstimmen;
+2. jeder Themenblock genau eine 90-minütige LE und eine 45-minütige MC-Test-UE ausweist;
+3. jeder Themenblockabschnitt Inhalte, Fachwortschatz, Quellenanker, Lernprodukt und Selbststudium enthält;
+4. die verlinkten ARSnova- und MC-Dateien dem letzten geprüften Paketstand entsprechen;
+5. die 8.9d-Kursstartannahme durch aktualisierte Code-, Compose-, Konfigurations-, Test- und Messanker in den technischen Quellen bestätigt wurde;
+6. operative Import-, Geräte-, Offline- und Barrierefreiheitsgates aus dem [QA-Freigabeprotokoll](./QA_Freigabeprotokoll.md) geschlossen sind.

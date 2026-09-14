@@ -1,10 +1,10 @@
 <!-- markdownlint-disable MD013 MD060 -->
 
-# MC-Test-Blueprint für 12 Wochen
+# MC-Test-Blueprint für 12 Themenblöcke
 
-**Kürzel und Fachkürzungen vorab:** **MC** bezeichnet Multiple Choice, **A11y** Barrierefreiheit (Accessibility), **ADR** einen Architecture Decision Record, **AWS** Amazon Web Services, **FinOps** Financial Operations, **GCP** Google Cloud Platform, **IAM** Identity and Access Management, **IaC** Infrastructure as Code, **ID** eine eindeutige Kennung, **JSON** JavaScript Object Notation, **LE** eine 90-minütige Lerneinheit aus zwei **UE**, **ML** maschinelles Lernen, **QA** Qualitätssicherung, **SLI/SLO** Service Level Indicator und Service Level Objective, **SRE** Site Reliability Engineering, **TCO** Total Cost of Ownership, **UE** eine 45-minütige Unterrichtseinheit, **W01–W12** die zwölf Kurswochen und **I01–I30** die 30 Items einer Wochen-Datei. **6R** bezeichnet Rehost, Replatform, Repurchase, Refactor, Retire und Retain.
+**Kürzel und Fachkürzungen vorab:** **MC** bezeichnet Multiple Choice, **A11y** Barrierefreiheit (Accessibility), **ADR** einen Architecture Decision Record, **AWS** Amazon Web Services, **FinOps** Financial Operations, **GCP** Google Cloud Platform, **IAM** Identity and Access Management, **IaC** Infrastructure as Code, **ID** eine eindeutige Kennung, **JSON** JavaScript Object Notation, **LE** eine 90-minütige Lerneinheit aus zwei **UE**, **ML** maschinelles Lernen, **QA** Qualitätssicherung, **SLI/SLO** Service Level Indicator und Service Level Objective, **SRE** Site Reliability Engineering, **TB01–TB12** die zwölf stabilen Themenblöcke, **TCO** Total Cost of Ownership, **UE** eine 45-minütige Unterrichtseinheit und **I01–I30** die 30 Items einer Themenblockdatei. **6R** bezeichnet Rehost, Replatform, Repurchase, Refactor, Retire und Retain.
 
-**Version:** 1.0.0 · **Stand:** 13.09.2026 · **Status:** normative Spezifikation für 360 anspruchsvolle formative Items
+**Version:** 1.0.0 · **Stand:** 14.09.2026 · **Status:** normative Spezifikation für 360 anspruchsvolle formative Items
 
 **Kanonischer Paketindex:** [Materialindex](./Materialindex.md) · **Lernzielbezug:** [Lernziel-Alignment-Matrix](./Lernziel_Alignment_Matrix.md) · **Betrieb:** [Lehrenden-Runbook](./Lehrenden_Runbook.md)
 
@@ -12,37 +12,38 @@
 
 ## 1. Verbindlicher Auslieferungs- und Laufzeitvertrag
 
-- Es gibt zwölf Wochen-Dateien mit genau 30 Items je Datei, zusammen genau 360 Items.
-- Der erste Durchlauf findet vollständig in UE 3 der jeweiligen Woche statt: drei Minuten Übergang, 32 Minuten Bearbeitung und zehn Minuten aggregierte Ergebnis- und Lösungsbesprechung.
+- Die Zielgruppe besteht ausschließlich aus Bachelorstudierenden der Informatik.
+- Es gibt zwölf Themenblockdateien mit genau 30 Items je Datei, zusammen genau 360 Items.
+- Der erste Durchlauf findet vollständig in UE 3 des jeweiligen Themenblocks statt: drei Minuten Übergang, 32 Minuten Bearbeitung und zehn Minuten aggregierte Ergebnis- und Lösungsbesprechung.
 - Laufzeitmodus ist `practice` mit Sofortfeedback nach jeder Antwort und ohne technischen Countdown.
 - `meta.test_duration_minutes=32` ist ausschließlich der organisatorische Planwert für die Bearbeitungsphase. Er ist weder Deadline noch technische Versuchsbegrenzung.
 - In der Deployment-Konfiguration gilt `show_top5_public=false`; eine öffentliche Top-5-Anzeige ist ausgeschlossen.
-- Jede Wochen-Datei enthält null leichte, zwölf mittlere und 18 schwere Items. Das entspricht `weight=2` für mittel und `weight=3` für schwer; `weight=1` kommt in keinem Item vor.
-- Ein zweiter vollständiger Abruf wird zwei bis drei Tage nach dem ersten Durchlauf bereitgestellt. Mindestens ein Kernkonzept jeder behandelten Woche wird nach zwei bis vier Wochen in einem neuen Kontext erneut abgerufen.
-- Präsenz- und Zoom-Lauf erhalten denselben freigegebenen Fragensatz, dieselben Erklärungen, Glossare, Zeitbudgets und Wiederholungsfenster.
+- Jede Themenblockdatei enthält null leichte, zwölf mittlere und 18 schwere Items. Das entspricht `weight=2` für mittel und `weight=3` für schwer; `weight=1` kommt in keinem Item vor.
+- Ein weiterer vollständiger Abruf kann ohne kalendarische Vorgabe bereitgestellt werden. Kernkonzepte werden in späteren Themenblöcken in neuen Kontexten erneut abgerufen.
+- Die Durchführung verwendet unabhängig von Ort oder Medium denselben freigegebenen Fragensatz, dieselben Erklärungen, Glossare und Zeitbudgets.
 - Ergebnisse dienen ausschließlich der Lehre und internen Qualitätssicherung. Sie werden nicht individuell bewertet, nicht als Prüfungszulassung genutzt, nicht zu personenbezogenen Profilen verknüpft und nicht für Forschung oder Publikation verwendet.
 
-`practice`, Sofortfeedback, Countdown-Verhalten und `show_top5_public` sind Laufzeitkonfigurationen der Plattform und keine zusätzlichen Felder der Wochen-JSONs. Sie müssen deshalb durch einen realen Import- und Laufzeittest bestätigt werden.
+`practice`, Sofortfeedback, Countdown-Verhalten und `show_top5_public` sind Laufzeitkonfigurationen der Plattform und keine zusätzlichen Felder der Themenblock-JSONs. Sie müssen deshalb durch einen realen Import- und Laufzeittest bestätigt werden.
 
 ## 2. Dateien und curriculare Schwerpunkte
 
-| Woche | Typ              | Datei                                            | Verbindlicher fachlicher Schwerpunkt                                  |
-| ----: | ---------------- | ------------------------------------------------ | --------------------------------------------------------------------- |
-|   W01 | Präsenz/synchron | [MC-Test_Woche_01.json](./MC-Test_Woche_01.json) | Grundlagen, Cloudmodelle und Shared Responsibility                    |
-|   W02 | Präsenz/synchron | [MC-Test_Woche_02.json](./MC-Test_Woche_02.json) | Virtualisierung, Container, IaC und Netzwerk                          |
-|   W03 | Tutorium         | [MC-Test_Woche_03.json](./MC-Test_Woche_03.json) | arsnova.eu-Deployment, Härtung und Zustand                            |
-|   W04 | Präsenz/synchron | [MC-Test_Woche_04.json](./MC-Test_Woche_04.json) | Serverless Computing                                                  |
-|   W05 | Präsenz/synchron | [MC-Test_Woche_05.json](./MC-Test_Woche_05.json) | GCP, AWS und Azure                                                    |
-|   W06 | Präsenz/synchron | [MC-Test_Woche_06.json](./MC-Test_Woche_06.json) | Daten und ML in der Cloud                                             |
-|   W07 | Tutorium         | [MC-Test_Woche_07.json](./MC-Test_Woche_07.json) | Storage, Datenbanken, Backup und Recovery                             |
-|   W08 | Tutorium         | [MC-Test_Woche_08.json](./MC-Test_Woche_08.json) | Elastizität, Skalierung, Performance und verteilte Systeme            |
-|   W09 | Präsenz/synchron | [MC-Test_Woche_09.json](./MC-Test_Woche_09.json) | IAM, Security, Observability, SRE und Resilienz                       |
-|   W10 | Tutorium         | [MC-Test_Woche_10.json](./MC-Test_Woche_10.json) | FinOps, Nachhaltigkeit und 6R                                         |
-|   W11 | Tutorium         | [MC-Test_Woche_11.json](./MC-Test_Woche_11.json) | Evidenz, ADR, Quellenkritik und Referatsargumentation                 |
-|   W12 | Tutorium         | [MC-Test_Woche_12.json](./MC-Test_Woche_12.json) | Kumulative Synthese und Verteidigung                                  |
-|       | **Summe: 6 + 6** | **12 Dateien mit 360 Items**                     | **36 UE; je Woche eine LE und eine vollständig formative MC-Test-UE** |
+| Themenblock | Datei                                                                | Verbindlicher fachlicher Schwerpunkt                  |
+| ----------: | -------------------------------------------------------------------- | ----------------------------------------------------- |
+|        TB01 | [MC-Test_Themenblock_01.json](./MC-Test/MC-Test_Themenblock_01.json) | Grundlagen, Cloudmodelle und Shared Responsibility    |
+|        TB02 | [MC-Test_Themenblock_02.json](./MC-Test/MC-Test_Themenblock_02.json) | Virtualisierung, Container, IaC und Netzwerk          |
+|        TB03 | [MC-Test_Themenblock_03.json](./MC-Test/MC-Test_Themenblock_03.json) | arsnova.eu-Deployment, Härtung und Zustand            |
+|        TB04 | [MC-Test_Themenblock_04.json](./MC-Test/MC-Test_Themenblock_04.json) | Serverless Computing                                  |
+|        TB05 | [MC-Test_Themenblock_05.json](./MC-Test/MC-Test_Themenblock_05.json) | GCP, AWS und Azure                                    |
+|        TB06 | [MC-Test_Themenblock_06.json](./MC-Test/MC-Test_Themenblock_06.json) | Daten und ML in der Cloud                             |
+|        TB07 | [MC-Test_Themenblock_07.json](./MC-Test/MC-Test_Themenblock_07.json) | Storage, Datenbanken, Backup und Recovery             |
+|        TB08 | [MC-Test_Themenblock_08.json](./MC-Test/MC-Test_Themenblock_08.json) | Elastizität, Skalierung und verteilte Systeme         |
+|        TB09 | [MC-Test_Themenblock_09.json](./MC-Test/MC-Test_Themenblock_09.json) | IAM, Security, Observability, SRE und Resilienz       |
+|        TB10 | [MC-Test_Themenblock_10.json](./MC-Test/MC-Test_Themenblock_10.json) | FinOps, Nachhaltigkeit und 6R                         |
+|        TB11 | [MC-Test_Themenblock_11.json](./MC-Test/MC-Test_Themenblock_11.json) | Evidenz, ADR, Quellenkritik und Referatsargumentation |
+|        TB12 | [MC-Test_Themenblock_12.json](./MC-Test/MC-Test_Themenblock_12.json) | Kumulative Synthese und Verteidigung                  |
+|             | **12 Dateien mit 360 Items**                                         | **12 Themenblöcke mit insgesamt 36 UE**               |
 
-Die Kennung eines Items wird aus Dateiname und einsbasierter Arrayposition abgeleitet. Position 7 in `MC-Test_Woche_04.json` entspricht `MC-W04-I07`. Diese Kennung wird nicht als zusätzliches Feld gespeichert. Nach der Freigabe darf die Arrayreihenfolge nicht ohne neue Prüfung, neues `meta.updated` und neue Prüfsumme geändert werden.
+Die Kennung eines Items wird aus Dateiname und einsbasierter Arrayposition abgeleitet. Position 7 in `MC-Test_Themenblock_04.json` entspricht `MC-TB04-I07`. Diese Kennung wird nicht als zusätzliches Feld gespeichert. Nach der Freigabe darf die Arrayreihenfolge nicht ohne neue Prüfung, neues `meta.updated` und neue Prüfsumme geändert werden.
 
 ## 3. Exakter JSON-Vertrag
 
@@ -52,8 +53,8 @@ Das Wurzelobjekt enthält ausschließlich `meta` und `questions`. `questions` is
 
 ```json
 {
-  "title": "nicht leerer Wochentitel",
-  "target_audience": "Bachelorstudierende der Informatik und Wirtschaftsinformatik im Modul Cloud Computing",
+  "title": "nicht leerer Themenblocktitel",
+  "target_audience": "Bachelorstudierende der Informatik im Modul Cloud Computing",
   "question_count": 30,
   "difficulty_profile": {
     "leicht": 0,
@@ -148,7 +149,7 @@ Schwierigkeit und kognitive Stufe sind getrennte Dimensionen. Ein schweres Item 
 
 ### 5.2 Positionsvertrag
 
-Für die nullbasierten Lösungsindizes `0` bis `3` gilt je Wochen-Datei:
+Für die nullbasierten Lösungsindizes `0` bis `3` gilt je Themenblockdatei:
 
 - Jede der vier Positionen kommt sieben- oder achtmal vor; bei 30 Items sind damit zwei Positionen siebenmal und zwei Positionen achtmal richtig.
 - Es gibt höchstens drei identische Lösungspositionen in unmittelbarer Folge.
@@ -158,33 +159,33 @@ Für die nullbasierten Lösungsindizes `0` bis `3` gilt je Wochen-Datei:
 
 ## 6. Programmgesteuerte Verteilungen
 
-Die tatsächlichen Häufigkeiten von `topic`, `cognitive_level` und `weight` werden nicht von Hand in diesem Blueprint gezählt oder geschätzt. Ihre einzige paketinterne Zählquelle ist [MC-Test_Verteilungen.json](./MC-Test_Verteilungen.json). Diese Datei wird nach der letzten inhaltlichen Änderung durch `validate_module.mjs --write` direkt aus allen zwölf Wochen-JSONs erzeugt und durch den normalen Validatorlauf erneut gegen diese Dateien geprüft.
+Die tatsächlichen Häufigkeiten von `topic`, `cognitive_level` und `weight` werden nicht von Hand in diesem Blueprint gezählt oder geschätzt. Ihre einzige paketinterne Zählquelle ist [MC-Test_Verteilungen.json](./MC-Test/MC-Test_Verteilungen.json). Diese Datei wird nach der letzten inhaltlichen Änderung durch `validate_module.mjs --write` direkt aus allen zwölf Themenblock-JSONs erzeugt und durch den normalen Validatorlauf erneut gegen diese Dateien geprüft.
 
-Das feste `0/12/18`-Gewichtsprofil ist ein Sollvertrag. Ob die Dateien es tatsächlich erfüllen, wird ebenfalls programmgesteuert gezählt. Für Topic- und Kognitionsprofile gibt es keine manuell behaupteten Wochenzahlen; Item-Redaktion und Qualitätsverantwortung beurteilen stattdessen die generierte Verteilung zusammen mit der fachlichen Abdeckung.
+Das feste `0/12/18`-Gewichtsprofil ist ein Sollvertrag. Ob die Dateien es tatsächlich erfüllen, wird ebenfalls programmgesteuert gezählt. Für Topic- und Kognitionsprofile gibt es keine manuell behaupteten Blockzahlen; Item-Redaktion und Qualitätsverantwortung beurteilen stattdessen die generierte Verteilung zusammen mit der fachlichen Abdeckung.
 
-## 7. Wochenprogression und Spaced Repetition
+## 7. Themenblockprogression und Wiederabruf
 
-| Woche | Neuer Schwerpunkt                                                  | Kumulativer Abruf ohne manuell behauptete Itemzahlen                             |
-| ----: | ------------------------------------------------------------------ | -------------------------------------------------------------------------------- |
-|   W01 | Cloud-Merkmale, Service-/Deployment-Modelle, Shared Responsibility | Einordnung von Hosting, Cloud und sicherem Agentenauftrag                        |
-|   W02 | Virtualisierung, Container, Images, Orchestrierung, IaC, Netzwerk  | Verantwortungsgrenzen und Cloud-Merkmale aus W01                                 |
-|   W03 | reproduzierbares arsnova.eu-Deployment, Härtung, Zustand           | IaC-, Container- und Netzwerkentscheidungen aus W02                              |
-|   W04 | Serverless, Trigger, Zustandslosigkeit, Cold Starts, Kosten        | Zustands- und Betriebsgrenzen aus W02–W03                                        |
-|   W05 | GCP, AWS und Azure nach gleichen Fähigkeiten und Verantwortungen   | Service- und Serverless-Modelle aus W01 und W04                                  |
-|   W06 | Datenpipelines, ML-Angebote, private Inferenz, Datenschutz         | Provider- und Shared-Responsibility-Entscheidungen aus W01 und W05               |
-|   W07 | Storage, Datenbanken, Backup, Restore, Recovery                    | Zustand, Datenfluss und Verantwortungsgrenzen aus W03 und W06                    |
-|   W08 | Elastizität, Skalierung, Performance, verteilte Systeme            | Netzwerk-, Zustands- und Recoveryfolgen aus W02, W03 und W07                     |
-|   W09 | IAM, Security, Observability, SLI/SLO, SRE, Resilienz              | Härtung, Datenminimierung, Recovery und Skalierungsgrenzen aus W03 sowie W06–W08 |
-|   W10 | FinOps, Nachhaltigkeit, TCO, Sensitivität und 6R                   | Provider-, Performance-, Security- und Betriebsdaten aus W05 sowie W08–W09       |
-|   W11 | Evidenz, Quellenkritik, ADR und Referatsargumentation              | Entscheidungen aus W01–W10 mit stärkster Gegenalternative und Gültigkeitsgrenze  |
-|   W12 | Synthese und Verteidigung                                          | integrierter Abruf aller offiziellen Inhaltsblöcke und zentralen Betriebsfolgen  |
+| Themenblock | Neuer Schwerpunkt                                                  | Kumulativer Abruf ohne manuell behauptete Itemzahlen                                |
+| ----------: | ------------------------------------------------------------------ | ----------------------------------------------------------------------------------- |
+|        TB01 | Cloud-Merkmale, Service-/Deployment-Modelle, Shared Responsibility | Einordnung von Hosting, Cloud und sicherem Agentenauftrag                           |
+|        TB02 | Virtualisierung, Container, Images, Orchestrierung, IaC, Netzwerk  | Verantwortungsgrenzen und Cloud-Merkmale aus TB01                                   |
+|        TB03 | reproduzierbares arsnova.eu-Deployment, Härtung, Zustand           | IaC-, Container- und Netzwerkentscheidungen aus TB02                                |
+|        TB04 | Serverless, Trigger, Zustandslosigkeit, Cold Starts, Kosten        | Zustands- und Betriebsgrenzen aus TB02–TB03                                         |
+|        TB05 | GCP, AWS und Azure nach gleichen Fähigkeiten und Verantwortungen   | Service- und Serverless-Modelle aus TB01 und TB04                                   |
+|        TB06 | Datenpipelines, ML-Angebote, private Inferenz, Datenschutz         | Provider- und Shared-Responsibility-Entscheidungen aus TB01 und TB05                |
+|        TB07 | Storage, Datenbanken, Backup, Restore, Recovery                    | Zustand, Datenfluss und Verantwortungsgrenzen aus TB03 und TB06                     |
+|        TB08 | Elastizität, Skalierung, Performance, verteilte Systeme            | Netzwerk-, Zustands- und Recoveryfolgen aus TB02, TB03 und TB07                     |
+|        TB09 | IAM, Security, Observability, SLI/SLO, SRE, Resilienz              | Härtung, Datenminimierung, Recovery und Skalierungsgrenzen aus TB03 sowie TB06–TB08 |
+|        TB10 | FinOps, Nachhaltigkeit, TCO, Sensitivität und 6R                   | Provider-, Performance-, Security- und Betriebsdaten aus TB05 sowie TB08–TB09       |
+|        TB11 | Evidenz, Quellenkritik, ADR und Referatsargumentation              | Entscheidungen aus TB01–TB10 mit stärkster Gegenalternative und Gültigkeitsgrenze   |
+|        TB12 | Synthese und Verteidigung                                          | integrierter Abruf aller offiziellen Inhaltsblöcke und zentralen Betriebsfolgen     |
 
-Der Abruf nach zwei bis drei Tagen verwendet den vollständigen freigegebenen Wochensatz. Der Abruf nach zwei bis vier Wochen verwendet mindestens ein Kernkonzept der früheren Woche in einem neuen Fall, ohne den alten Fragenstamm bloß umzuformulieren. Die Plattform begrenzt die Zahl freiwilliger Lernversuche nicht.
+Ein späterer vollständiger Abruf verwendet den unveränderten freigegebenen Themenblocksatz. Kumulative Items verwenden Kernkonzepte früherer Themenblöcke in einem neuen Fall, ohne den alten Fragenstamm bloß umzuformulieren. Das Modulpaket legt dafür keine kalendarischen Abstände fest; die Plattform begrenzt die Zahl freiwilliger Lernversuche nicht.
 
 ## 8. Feedback, A11y und Datenverwendung
 
 - Sofortfeedback erklärt das Konzept und den wichtigsten Irrweg; es beschämt keine Person und deutet Antwortzeit nicht als Kompetenz.
-- Der Präsenzabschluss bespricht ausschließlich Aggregate, häufige Distraktoren und Lösungswege. Einzelverläufe werden weder projiziert noch exportübergreifend verknüpft.
+- Die Abschlussbesprechung betrachtet ausschließlich Aggregate, häufige Distraktoren und Lösungswege. Einzelverläufe werden weder angezeigt noch exportübergreifend verknüpft.
 - Fragen, Optionen, Erklärungen und Glossare sind vollständig textlich zugänglich. Farbe, Position, Animation oder Sound transportieren keine exklusive Fachinformation.
 - Der Modus ist technisch untimiert. Die 32 Minuten sind eine Gruppenplanung; institutionelle Zeitunterstützung und eine gleichwertige, ebenfalls untimierte Alternative bleiben möglich.
 - Tablet und Laptop eignen sich zur Bearbeitung; tiefe Repository-, Architektur- und Konfigurationsarbeit innerhalb der LE erfolgt am Laptop oder über einen gleichwertigen bereitgestellten Zugang.
@@ -192,7 +193,7 @@ Der Abruf nach zwei bis drei Tagen verwendet den vollständigen freigegebenen Wo
 
 ## 9. Validatoren und Freigabereihenfolge
 
-Eine Wochen-Datei ist erst freigabefähig, wenn:
+Eine Themenblockdatei ist erst freigabefähig, wenn:
 
 1. das Wurzelobjekt, `meta` und jedes Item exakt die zulässigen Feldmengen besitzen;
 2. `question_count` und Arraylänge jeweils 30 betragen;
@@ -206,7 +207,7 @@ Eine Wochen-Datei ist erst freigabefähig, wenn:
 10. Rechnungen, Architekturbehauptungen, Produktangaben und Quellen von einer zweiten Person geprüft wurden;
 11. der fixierte `validate_sets.py` mit Exit-Code 0 endet und jede Warnung fachlich entschieden und protokolliert ist;
 12. der strengere `validate_module.mjs` ohne Fehler endet;
-13. [MC-Test_Verteilungen.json](./MC-Test_Verteilungen.json) nach der letzten Inhaltsänderung programmgesteuert neu erzeugt und im normalen Lauf bestätigt wurde;
+13. [MC-Test_Verteilungen.json](./MC-Test/MC-Test_Verteilungen.json) nach der letzten Inhaltsänderung programmgesteuert neu erzeugt und im normalen Lauf bestätigt wurde;
 14. ein realer Plattformtest `practice`, Sofortfeedback, fehlenden technischen Countdown, `show_top5_public=false` und 30 von 30 Items bestätigt;
 15. Wiederholungsfenster, aggregierte Besprechung, A11y-Zugang, Zweckbindung und Löschhandoff operativ geklärt sind.
 

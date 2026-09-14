@@ -2,7 +2,7 @@
   "exportVersion": 1,
   "exportedAt": "2026-09-13T00:00:00.000Z",
   "quiz": {
-    "name": "Cloud Computing – Woche 01: Merkmale, Modelle und sicherer Agentenauftrag",
+    "name": "Cloud Computing – Themenblock TB01: Merkmale, Modelle und sicherer Agentenauftrag",
     "description": "10 anspruchsvolle Live-Fragen zu Cloud-Merkmalen, Service- und Deployment-Modellen, Shared Responsibility sowie zu begrenzten, prüfbaren Agentenaufträgen.",
     "showLeaderboard": true,
     "allowCustomNicknames": false,
@@ -148,27 +148,27 @@
         "answers": [],
         "matchingPairs": [
           {
-            "leftId": "w01-match-metering",
+            "leftId": "tb01-match-metering",
             "left": "Die Rechnung steigt trotz unveränderter Zahl aktiver Nutzender",
-            "rightId": "w01-match-metering-value",
+            "rightId": "tb01-match-metering-value",
             "right": "Messgrößen, Einheiten und Kostentreiber des Abrechnungszeitraums prüfen"
           },
           {
-            "leftId": "w01-match-region",
+            "leftId": "tb01-match-region",
             "left": "Ein Workload darf eine festgelegte Datenregion nicht verlassen",
-            "rightId": "w01-match-region-value",
+            "rightId": "tb01-match-region-value",
             "right": "Speicherorte, Replikationspfade und Unterauftragnehmer belegen"
           },
           {
-            "leftId": "w01-match-incident",
+            "leftId": "tb01-match-incident",
             "left": "Bei einem Vorfall ist die zuständige Partei zwischen Kunde und Anbieter unklar",
-            "rightId": "w01-match-incident-value",
+            "rightId": "tb01-match-incident-value",
             "right": "Kontrollen, Betreiber und Eskalationswege schichtweise zuordnen"
           },
           {
-            "leftId": "w01-match-exit",
+            "leftId": "tb01-match-exit",
             "left": "Ein proprietäres Exportformat erschwert den Anbieterwechsel",
-            "rightId": "w01-match-exit-value",
+            "rightId": "tb01-match-exit-value",
             "right": "Export, Konvertierung und Wiederanlauf bei einer Alternative testen"
           }
         ],
@@ -186,27 +186,27 @@
         "answers": [],
         "orderingItems": [
           {
-            "id": "w01-order-1",
+            "id": "tb01-order-1",
             "text": "Ziel, Ausgangszustand und ausgeschlossene Systeme festhalten"
           },
           {
-            "id": "w01-order-2",
+            "id": "tb01-order-2",
             "text": "Werkzeuge, Rechte, Laufzeit und Kostenobergrenze begrenzen"
           },
           {
-            "id": "w01-order-3",
+            "id": "tb01-order-3",
             "text": "Akzeptanz-, Abbruch- und Cleanup-Kriterien prüfbar formulieren"
           },
           {
-            "id": "w01-order-4",
+            "id": "tb01-order-4",
             "text": "Plan und Dry-Run ohne Produktivzugriff erzeugen lassen"
           },
           {
-            "id": "w01-order-5",
+            "id": "tb01-order-5",
             "text": "Privilegierte oder kostenwirksame Schritte menschlich freigeben"
           },
           {
-            "id": "w01-order-6",
+            "id": "tb01-order-6",
             "text": "Ausführung, Evidenz, Nebenwirkungen und Cleanup verifizieren"
           }
         ],
@@ -223,52 +223,52 @@
         "answers": [],
         "categories": [
           {
-            "id": "w01-cat-public",
+            "id": "tb01-cat-public",
             "name": "Public Cloud"
           },
           {
-            "id": "w01-cat-private",
+            "id": "tb01-cat-private",
             "name": "Private Cloud"
           },
           {
-            "id": "w01-cat-hybrid",
+            "id": "tb01-cat-hybrid",
             "name": "Hybrid Cloud"
           },
           {
-            "id": "w01-cat-community",
+            "id": "tb01-cat-community",
             "name": "Community Cloud"
           }
         ],
         "categorizationItems": [
           {
-            "id": "w01-item-public",
+            "id": "tb01-item-public",
             "text": "Ein allgemein angebotener mandantenfähiger Provider-Ressourcenpool wird von unabhängigen Kunden genutzt",
-            "correctCategoryId": "w01-cat-public"
+            "correctCategoryId": "tb01-cat-public"
           },
           {
-            "id": "w01-item-private",
+            "id": "tb01-item-private",
             "text": "Cloud-Fähigkeiten werden exklusiv für eine Organisation im eigenen Rechenzentrum betrieben",
-            "correctCategoryId": "w01-cat-private"
+            "correctCategoryId": "tb01-cat-private"
           },
           {
-            "id": "w01-item-hybrid",
+            "id": "tb01-item-hybrid",
             "text": "Private Verarbeitung und Public-Cloud-Spitzenlast sind über einen Datenfluss gekoppelt",
-            "correctCategoryId": "w01-cat-hybrid"
+            "correctCategoryId": "tb01-cat-hybrid"
           },
           {
-            "id": "w01-item-community",
+            "id": "tb01-item-community",
             "text": "Mehrere Hochschulen nutzen exklusiv eine gemeinsame Cloud für geteilte Sicherheits- und Compliance-Anforderungen",
-            "correctCategoryId": "w01-cat-community"
+            "correctCategoryId": "tb01-cat-community"
           },
           {
-            "id": "w01-item-private-managed",
+            "id": "tb01-item-private-managed",
             "text": "Dedizierte Cloud-Plattform dient nur einer Organisation und wird von einem Dienstleister betrieben",
-            "correctCategoryId": "w01-cat-private"
+            "correctCategoryId": "tb01-cat-private"
           },
           {
-            "id": "w01-item-community-managed",
+            "id": "tb01-item-community-managed",
             "text": "Ein Dienstleister betreibt eine Cloud exklusiv für Behörden mit gemeinsamer Mission und gemeinsamen Richtlinien",
-            "correctCategoryId": "w01-cat-community"
+            "correctCategoryId": "tb01-cat-community"
           }
         ],
         "categorizationShuffleItems": true,

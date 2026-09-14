@@ -2,7 +2,7 @@
   "exportVersion": 1,
   "exportedAt": "2026-09-13T00:00:00.000Z",
   "quiz": {
-    "name": "Cloud Computing – Woche 03: Reproduzierbare Bereitstellung und Härtung",
+    "name": "Cloud Computing – Themenblock TB03: Reproduzierbare Bereitstellung und Härtung",
     "description": "10 anspruchsvolle Live-Fragen zur arsnova.eu-Single-Host-Architektur, zu Portable Document Format (PDF), Transport Layer Security (TLS), Hypertext Transfer Protocol (HTTP), Zustandsgrenzen, Wiederherstellung und Härtung.",
     "showLeaderboard": true,
     "allowCustomNicknames": false,
@@ -148,33 +148,33 @@
         "answers": [],
         "matchingPairs": [
           {
-            "leftId": "w03-match-db",
+            "leftId": "tb03-match-db",
             "left": "Migration schlägt vor dem App-Start fehl",
-            "rightId": "w03-match-db-value",
+            "rightId": "tb03-match-db-value",
             "right": "Prisma- und PostgreSQL-Schemastand"
           },
           {
-            "leftId": "w03-match-redis",
+            "leftId": "tb03-match-redis",
             "left": "Rate-Limit-Prüfung kann keinen Zähler atomar buchen",
-            "rightId": "w03-match-redis-value",
+            "rightId": "tb03-match-redis-value",
             "right": "Redis-Erreichbarkeit und Lua-Ausführung"
           },
           {
-            "leftId": "w03-match-ws",
+            "leftId": "tb03-match-ws",
             "left": "HTTP funktioniert, Echtzeitabonnement verbindet sich nicht",
-            "rightId": "w03-match-ws-value",
+            "rightId": "tb03-match-ws-value",
             "right": "tRPC-WebSocket-Pfad und Proxy-Upgrade"
           },
           {
-            "leftId": "w03-match-yjs",
+            "leftId": "tb03-match-yjs",
             "left": "Quizänderungen erreichen ein zweites Browsergerät nicht",
-            "rightId": "w03-match-yjs-value",
+            "rightId": "tb03-match-yjs-value",
             "right": "Yjs-Relay, Raumzugriff und Reconnect"
           },
           {
-            "leftId": "w03-match-pdf",
+            "leftId": "tb03-match-pdf",
             "left": "Reportaufruf meldet einen nicht erreichbaren Renderer",
-            "rightId": "w03-match-pdf-value",
+            "rightId": "tb03-match-pdf-value",
             "right": "Renderingdienst und lokaler Übergabepfad"
           }
         ],
@@ -192,31 +192,31 @@
         "answers": [],
         "orderingItems": [
           {
-            "id": "w03-order-1",
+            "id": "tb03-order-1",
             "text": "Ziel-Commit, Image-Digest und freigegebene Konfiguration festlegen"
           },
           {
-            "id": "w03-order-2",
+            "id": "tb03-order-2",
             "text": "Ausgangszustand, Backup und Rücknahmepunkt verifizieren"
           },
           {
-            "id": "w03-order-3",
+            "id": "tb03-order-3",
             "text": "PostgreSQL und Redis starten und ihre Healthchecks abwarten"
           },
           {
-            "id": "w03-order-4",
+            "id": "tb03-order-4",
             "text": "Versionierte Datenbankmigrationen gegen das Ziel anwenden"
           },
           {
-            "id": "w03-order-5",
+            "id": "tb03-order-5",
             "text": "App und Worker mit festgelegtem Image-Digest starten"
           },
           {
-            "id": "w03-order-6",
+            "id": "tb03-order-6",
             "text": "Health-, HTTP-, WebSocket- und Wiederanlaufpfade verifizieren"
           },
           {
-            "id": "w03-order-7",
+            "id": "tb03-order-7",
             "text": "Deploymentzustand und nutzbaren Rollback-Nachweis dokumentieren"
           }
         ],
@@ -233,57 +233,57 @@
         "answers": [],
         "categories": [
           {
-            "id": "w03-cat-image",
+            "id": "tb03-cat-image",
             "name": "Aus freigegebenem Image ersetzen"
           },
           {
-            "id": "w03-cat-backup",
+            "id": "tb03-cat-backup",
             "name": "Aus persistentem Backup restaurieren"
           },
           {
-            "id": "w03-cat-declaration",
+            "id": "tb03-cat-declaration",
             "name": "Aus versionierter Deklaration neu aufbauen"
           },
           {
-            "id": "w03-cat-ephemeral",
+            "id": "tb03-cat-ephemeral",
             "name": "Als flüchtigen Zustand neu erzeugen"
           }
         ],
         "categorizationItems": [
           {
-            "id": "w03-item-app",
+            "id": "tb03-item-app",
             "text": "Einen verlorenen App-Container mit demselben geprüften Digest starten",
-            "correctCategoryId": "w03-cat-image"
+            "correctCategoryId": "tb03-cat-image"
           },
           {
-            "id": "w03-item-worker",
+            "id": "tb03-item-worker",
             "text": "Einen beendeten PDF-Worker mit dem freigegebenen Artefakt ersetzen",
-            "correctCategoryId": "w03-cat-image"
+            "correctCategoryId": "tb03-cat-image"
           },
           {
-            "id": "w03-item-postgres",
+            "id": "tb03-item-postgres",
             "text": "Ein beschädigtes PostgreSQL-Datenvolume in frischer Umgebung wiederherstellen",
-            "correctCategoryId": "w03-cat-backup"
+            "correctCategoryId": "tb03-cat-backup"
           },
           {
-            "id": "w03-item-firewall",
+            "id": "tb03-item-firewall",
             "text": "Host-Firewall und erlaubte Ports aus geprüftem Konfigurationscode herstellen",
-            "correctCategoryId": "w03-cat-declaration"
+            "correctCategoryId": "tb03-cat-declaration"
           },
           {
-            "id": "w03-item-compose",
+            "id": "tb03-item-compose",
             "text": "Dienste, Netze und Volumes aus der versionierten Compose-Datei anlegen",
-            "correctCategoryId": "w03-cat-declaration"
+            "correctCategoryId": "tb03-cat-declaration"
           },
           {
-            "id": "w03-item-tmpfs",
+            "id": "tb03-item-tmpfs",
             "text": "Das leere temporäre Dateisystem beim Containerstart erneut bereitstellen",
-            "correctCategoryId": "w03-cat-ephemeral"
+            "correctCategoryId": "tb03-cat-ephemeral"
           },
           {
-            "id": "w03-item-cache",
+            "id": "tb03-item-cache",
             "text": "Einen rein ableitbaren Prozesscache nach dem Neustart erneut füllen",
-            "correctCategoryId": "w03-cat-ephemeral"
+            "correctCategoryId": "tb03-cat-ephemeral"
           }
         ],
         "categorizationShuffleItems": true,

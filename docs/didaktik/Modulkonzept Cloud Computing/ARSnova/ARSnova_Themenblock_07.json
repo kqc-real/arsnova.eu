@@ -2,7 +2,7 @@
   "exportVersion": 1,
   "exportedAt": "2026-09-13T00:00:00.000Z",
   "quiz": {
-    "name": "Cloud Computing – Woche 07: Storage, Datenbanken und Recovery",
+    "name": "Cloud Computing – Themenblock TB07: Storage, Datenbanken und Recovery",
     "description": "Zehn anspruchsvolle Live-Fragen zu Speicherarten, PostgreSQL, Redis, Yjs, Persistenzgrenzen, Backup, Konsistenz, Recovery Point Objective (RPO), Recovery Time Objective (RTO) und Restore-Tests. Das Quiz nutzt alle zehn ARSnova-Fragetypen genau einmal.",
     "showLeaderboard": true,
     "allowCustomNicknames": false,
@@ -144,33 +144,33 @@
         "answers": [],
         "matchingPairs": [
           {
-            "leftId": "w07-match-left-1",
+            "leftId": "tb07-match-left-1",
             "left": "Block Storage",
-            "rightId": "w07-match-right-1",
+            "rightId": "tb07-match-right-1",
             "right": "Dateisystem- oder Datenbankvolume einer einzelnen VM"
           },
           {
-            "leftId": "w07-match-left-2",
+            "leftId": "tb07-match-left-2",
             "left": "File Storage",
-            "rightId": "w07-match-right-2",
+            "rightId": "tb07-match-right-2",
             "right": "gemeinsam eingehängte hierarchische Dateien mehrerer Clients"
           },
           {
-            "leftId": "w07-match-left-3",
+            "leftId": "tb07-match-left-3",
             "left": "Object Storage",
-            "rightId": "w07-match-right-3",
+            "rightId": "tb07-match-right-3",
             "right": "adressierbare Backup-Artefakte mit Metadaten und Lebenszyklusregeln"
           },
           {
-            "leftId": "w07-match-left-4",
+            "leftId": "tb07-match-left-4",
             "left": "PostgreSQL",
-            "rightId": "w07-match-right-4",
+            "rightId": "tb07-match-right-4",
             "right": "relationale Transaktionen und referenzielle Integrität"
           },
           {
-            "leftId": "w07-match-left-5",
+            "leftId": "tb07-match-left-5",
             "left": "Redis",
-            "rightId": "w07-match-right-5",
+            "rightId": "tb07-match-right-5",
             "right": "schneller TTL-, Rate-Limit- und Live-Hilfszustand"
           }
         ],
@@ -188,27 +188,27 @@
         "answers": [],
         "orderingItems": [
           {
-            "id": "w07-order-1",
+            "id": "tb07-order-1",
             "text": "Ersatzumgebung isoliert bereitstellen und Zugangsmaterial root-only einspielen"
           },
           {
-            "id": "w07-order-2",
+            "id": "tb07-order-2",
             "text": "Repository und Snapshot-Integrität prüfen, ohne Produktion zu verändern"
           },
           {
-            "id": "w07-order-3",
+            "id": "tb07-order-3",
             "text": "Konfiguration und Datenbank-Dump in ein geschütztes Ziel wiederherstellen"
           },
           {
-            "id": "w07-order-4",
+            "id": "tb07-order-4",
             "text": "PostgreSQL auf frischem Volume starten und den Dump fehlerhart importieren"
           },
           {
-            "id": "w07-order-5",
+            "id": "tb07-order-5",
             "text": "Migrationen, Digest-Deploy und Anwendungs-Healthchecks ausführen"
           },
           {
-            "id": "w07-order-6",
+            "id": "tb07-order-6",
             "text": "Erst nach erfolgreicher Verifikation Traffic umschalten und temporäre Schlüssel widerrufen"
           }
         ],
@@ -225,48 +225,48 @@
         "answers": [],
         "categories": [
           {
-            "id": "w07-cat-offsite",
+            "id": "tb07-cat-offsite",
             "name": "Im verschlüsselten Offsite-Backup"
           },
           {
-            "id": "w07-cat-local",
+            "id": "tb07-cat-local",
             "name": "Nur lokale Persistenz beziehungsweise neu aufbaubar"
           },
           {
-            "id": "w07-cat-browser",
+            "id": "tb07-cat-browser",
             "name": "Primär browserseitig außerhalb des Server-Backups"
           }
         ],
         "categorizationItems": [
           {
-            "id": "w07-item-1",
+            "id": "tb07-item-1",
             "text": "PostgreSQL-Dump mit dauerhaft relevantem Datenbestand",
-            "correctCategoryId": "w07-cat-offsite"
+            "correctCategoryId": "tb07-cat-offsite"
           },
           {
-            "id": "w07-item-2",
+            "id": "tb07-item-2",
             "text": "Für Disaster Recovery benötigte Produktionskonfiguration",
-            "correctCategoryId": "w07-cat-offsite"
+            "correctCategoryId": "tb07-cat-offsite"
           },
           {
-            "id": "w07-item-3",
+            "id": "tb07-item-3",
             "text": "Redis-TTL- und Live-Daten mit lokaler AOF-Persistenz",
-            "correctCategoryId": "w07-cat-local"
+            "correctCategoryId": "tb07-cat-local"
           },
           {
-            "id": "w07-item-4",
+            "id": "tb07-item-4",
             "text": "Flüchtiges IPC-Volume des PDF-Workers",
-            "correctCategoryId": "w07-cat-local"
+            "correctCategoryId": "tb07-cat-local"
           },
           {
-            "id": "w07-item-5",
+            "id": "tb07-item-5",
             "text": "Quizbibliothek der Lehrperson in IndexedDB und Yjs",
-            "correctCategoryId": "w07-cat-browser"
+            "correctCategoryId": "tb07-cat-browser"
           },
           {
-            "id": "w07-item-6",
+            "id": "tb07-item-6",
             "text": "Lokale CRDT-Dokumente der Quiz-Sammlung",
-            "correctCategoryId": "w07-cat-browser"
+            "correctCategoryId": "tb07-cat-browser"
           }
         ],
         "categorizationShuffleItems": true,

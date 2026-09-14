@@ -1,7 +1,7 @@
 {
   "meta": {
-    "title": "MC-Test – Woche 08: Elastizität, Skalierung und verteilte Systeme",
-    "target_audience": "Bachelorstudierende der Informatik und Wirtschaftsinformatik im Modul Cloud Computing",
+    "title": "MC-Test – Themenblock TB08: Elastizität, Skalierung und verteilte Systeme",
+    "target_audience": "Bachelorstudierende der Informatik im Modul Cloud Computing",
     "question_count": 30,
     "difficulty_profile": {
       "leicht": 0,
@@ -16,7 +16,7 @@
     "additional_buffer_minutes": 5,
     "test_duration_minutes": 32,
     "language": "de",
-    "updated": "2026-09-13"
+    "updated": "2026-09-14"
   },
   "questions": [
     {

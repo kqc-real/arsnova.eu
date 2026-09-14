@@ -2,7 +2,7 @@
   "exportVersion": 1,
   "exportedAt": "2026-09-13T00:00:00.000Z",
   "quiz": {
-    "name": "ARSnova – Woche 10: Providerentscheidung, Wirtschaftlichkeit und Migration",
+    "name": "Cloud Computing – Themenblock TB10: Providerentscheidung, Wirtschaftlichkeit und Migration",
     "description": "10 anspruchsvolle Entscheidungsfragen zu Financial Operations (FinOps), den sechs Strategien Rehost, Replatform, Repurchase, Refactor, Retire und Retain (6R), Total Cost of Ownership (TCO), Capital Expenditure (CapEx), Operational Expenditure (OpEx), Szenarien, Exit und Nachhaltigkeit – mit allen zehn ARSnova-Fragetypen.",
     "showLeaderboard": true,
     "allowCustomNicknames": false,
@@ -88,39 +88,39 @@
         "answers": [],
         "matchingPairs": [
           {
-            "leftId": "w10-match-rehost",
+            "leftId": "tb10-match-rehost",
             "left": "Rehost",
-            "rightId": "w10-match-rehost-value",
+            "rightId": "tb10-match-rehost-value",
             "right": "Compose-Stack weitgehend unverändert auf eine andere VM verschieben"
           },
           {
-            "leftId": "w10-match-replatform",
+            "leftId": "tb10-match-replatform",
             "left": "Replatform",
-            "rightId": "w10-match-replatform-value",
+            "rightId": "tb10-match-replatform-value",
             "right": "PostgreSQL aus dem Stack in einen Managed-Datendienst verlagern"
           },
           {
-            "leftId": "w10-match-repurchase",
+            "leftId": "tb10-match-repurchase",
             "left": "Repurchase",
-            "rightId": "w10-match-repurchase-value",
+            "rightId": "tb10-match-repurchase-value",
             "right": "Eigenes Randmonitoring durch einen externen Dienst ersetzen"
           },
           {
-            "leftId": "w10-match-refactor",
+            "leftId": "tb10-match-refactor",
             "left": "Refactor",
-            "rightId": "w10-match-refactor-value",
+            "rightId": "tb10-match-refactor-value",
             "right": "Prozesslokale Live-Signale für mehrere App-Instanzen neu entwerfen"
           },
           {
-            "leftId": "w10-match-retire",
+            "leftId": "tb10-match-retire",
             "left": "Retire",
-            "rightId": "w10-match-retire-value",
+            "rightId": "tb10-match-retire-value",
             "right": "Nachweislich ungenutzten Betriebsweg mit Rollbackplan entfernen"
           },
           {
-            "leftId": "w10-match-retain",
+            "leftId": "tb10-match-retain",
             "left": "Retain",
-            "rightId": "w10-match-retain-value",
+            "rightId": "tb10-match-retain-value",
             "right": "Local-First-Quizsammlung mangels gemessenen Engpasses bewusst beibehalten"
           }
         ],
@@ -158,48 +158,48 @@
         "answers": [],
         "categories": [
           {
-            "id": "w10-cat-capex",
+            "id": "tb10-cat-capex",
             "name": "Kapitalbindung oder Investition"
           },
           {
-            "id": "w10-cat-opex",
+            "id": "tb10-cat-opex",
             "name": "Laufender Betriebsaufwand"
           },
           {
-            "id": "w10-cat-transition",
+            "id": "tb10-cat-transition",
             "name": "Einmaliger Übergangs- oder Exitaufwand"
           }
         ],
         "categorizationItems": [
           {
-            "id": "w10-item-hardware",
+            "id": "tb10-item-hardware",
             "text": "Beschaffung eigener Serverhardware",
-            "correctCategoryId": "w10-cat-capex"
+            "correctCategoryId": "tb10-cat-capex"
           },
           {
-            "id": "w10-item-license",
+            "id": "tb10-item-license",
             "text": "Kauf zusätzlicher eigener Netzwerktechnik",
-            "correctCategoryId": "w10-cat-capex"
+            "correctCategoryId": "tb10-cat-capex"
           },
           {
-            "id": "w10-item-observe",
+            "id": "tb10-item-observe",
             "text": "Monatliches Logging- und Monitoringvolumen",
-            "correctCategoryId": "w10-cat-opex"
+            "correctCategoryId": "tb10-cat-opex"
           },
           {
-            "id": "w10-item-support",
+            "id": "tb10-item-support",
             "text": "Regelmäßige Bereitschafts- und Supportzeit",
-            "correctCategoryId": "w10-cat-opex"
+            "correctCategoryId": "tb10-cat-opex"
           },
           {
-            "id": "w10-item-export",
+            "id": "tb10-item-export",
             "text": "Einmaliger Datenexport beim Anbieterwechsel",
-            "correctCategoryId": "w10-cat-transition"
+            "correctCategoryId": "tb10-cat-transition"
           },
           {
-            "id": "w10-item-parallel",
+            "id": "tb10-item-parallel",
             "text": "Befristeter Parallelbetrieb während der Migration",
-            "correctCategoryId": "w10-cat-transition"
+            "correctCategoryId": "tb10-cat-transition"
           }
         ],
         "categorizationShuffleItems": true,
@@ -216,27 +216,27 @@
         "answers": [],
         "orderingItems": [
           {
-            "id": "w10-order-1",
+            "id": "tb10-order-1",
             "text": "Ist-Topologie, Verantwortungen und gemessene Grenzen festhalten"
           },
           {
-            "id": "w10-order-2",
+            "id": "tb10-order-2",
             "text": "Lastprofile, Qualitätsziele und harte Ausschlusskriterien definieren"
           },
           {
-            "id": "w10-order-3",
+            "id": "tb10-order-3",
             "text": "Vergleichbare Betriebsmodelle mit identischer Systemgrenze bilden"
           },
           {
-            "id": "w10-order-4",
+            "id": "tb10-order-4",
             "text": "TCO-, Ressourcen- und Energieannahmen in Szenarien modellieren"
           },
           {
-            "id": "w10-order-5",
+            "id": "tb10-order-5",
             "text": "Restore, Störung, Skalierung und Export der Shortlist reproduzierbar prüfen"
           },
           {
-            "id": "w10-order-6",
+            "id": "tb10-order-6",
             "text": "Entscheidung, stärkste Alternative, Sensitivität und Neubewertungskriterium dokumentieren"
           }
         ],

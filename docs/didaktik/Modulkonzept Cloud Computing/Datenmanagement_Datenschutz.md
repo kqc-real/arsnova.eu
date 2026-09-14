@@ -1,6 +1,6 @@
 # Datenmanagement und Datenschutz im Modul Cloud Computing
 
-**Stand:** 13.09.2026 · **Status:** operativer Kursstandard mit institutionellen Gates
+**Stand:** 14.09.2026 · **Status:** operativer Kursstandard mit institutionellen Gates
 
 **LIVE** bezeichnet Daten, die im konkreten Kurslauf durch Teilnahme, Werkzeugnutzung oder Betrieb entstehen. Dazu gehören auch pseudonyme und bereits aggregierte Kursdaten.
 
@@ -28,7 +28,7 @@ Die Herkunftsklasse ändert sich durch Bearbeitung nicht: Ein anonym freigegeben
 - **Transport Layer Security (TLS):** Schutz von Netzwerkverbindungen durch Verschlüsselung und Serverauthentisierung.
 - **Time to live (TTL):** technische Ablaufzeit eines gespeicherten Zustands.
 - **T0:** dokumentiertes Ende des jeweiligen Erhebungs-, Bearbeitungs- oder Laborfensters.
-- **W01–W12:** Kurswochen 1 bis 12.
+- **TB01–TB12:** zwölf stabile Themenblöcke ohne Kalender- oder Modalitätszuordnung.
 - **G1–G4:** die vier institutionellen Gates aus Abschnitt 3.
 - **Small-cell-Suppression:** Nichtausgabe kleiner Zellen und ergänzende Unterdrückung, damit Werte nicht zurückgerechnet werden können.
 
@@ -110,12 +110,12 @@ AP und MP bestätigen vor Kursstart für die tatsächlich eingesetzten Instanzen
 
 Repositorydokumentation oder Anwendungscode beweisen nicht, dass eine konkrete Instanz entsprechend konfiguriert oder operativ abgenommen ist.
 
-### Gate G3 – Agenten, Zoom und externe Cloud
+### Gate G3 – Agenten, Kommunikationswerkzeuge und externe Cloud
 
 MV und DS bestätigen:
 
 - institutionell zulässige Agenten, Modelle, Datenverwendung, Speicher-/Trainingsverhalten, Region und Löschung;
-- Zoom-, Board-, Untertitel-, Transkriptions- und Aufzeichnungspraxis;
+- Kommunikationsplattform-, Board-, Untertitel-, Transkriptions- und Aufzeichnungspraxis;
 - Providerkonten, Regionen, Quotas, Budgets, Abrechnung und automatischen Cleanup;
 - dass Produktion, Echtdaten und Produktionszugänge technisch und organisatorisch gesperrt bleiben.
 
@@ -181,7 +181,7 @@ Der reguläre Fluss lautet:
 freiwilliger Lernmodus
 → Einzelantwort und unmittelbares persönliches Feedback
 → nur erforderliches Plattformaggregat
-→ kleinzellengeprüfter Wochenbefund
+→ kleinzellengeprüfter Themenblockbefund
 → tabellen- und sicherungsübergreifender Kurs-Purge
 ```
 
@@ -191,7 +191,7 @@ Kursregeln:
 
 - Modus `practice`, Sofortfeedback, kein technischer Countdown und `show_top5_public=false`;
 - unreservierte Pseudonyme ohne Zuordnungsliste und ohne Wiederverwendung als Kurskennung;
-- kein Abgleich mit ARSnova, Dossier, Zoom, Kursliste oder Prüfung;
+- kein Abgleich mit ARSnova, Dossier, Kommunikationsplattform, Kursliste oder Prüfung;
 - kein vollständiger Datenbank- oder SQL-Dump im Regelbetrieb;
 - Lernendenberichte verbleiben bei den Lernenden und werden nicht zentral eingesammelt;
 - nur Itemzählwerte, Lösungs- und Auslassungsquoten sowie der dokumentierte Nenner dürfen nach Small-cell-Suppression in die interne Qualitätssicherung eingehen;
@@ -263,9 +263,9 @@ CC_JJJJ_TERM/
 │   ├── freigaben.csv
 │   └── loeschprotokoll.csv
 ├── 10_live_eingang_restricted/
-│   └── W01/ ... W12/
+│   └── TB01/ ... TB12/
 ├── 20_work_restricted/
-│   └── W01/ ... W12/
+│   └── TB01/ ... TB12/
 ├── 30_dossier_restricted/
 ├── 40_approved/
 │   ├── live_anon/
@@ -291,21 +291,21 @@ RAW, WORK und Quarantäne liegen nur auf institutionell verwaltetem, verschlüss
 
 Das Schema für Laufzeitartefakte lautet:
 
-`JJJJMMTT_WNN_SYSTEM_HERKUNFT_EREIGNIS_INHALT_STATUS_VNN.EXT`
+`JJJJMMTT_TBNN_SYSTEM_HERKUNFT_EREIGNIS_INHALT_STATUS_VNN.EXT`
 
-Dabei bezeichnet `JJJJMMTT` das Datum, `WNN` die Kurswoche, `VNN` die zweistellige Version und `EXT` die Dateiendung.
+Dabei bezeichnet `JJJJMMTT` das Datum, `TBNN` den Themenblock, `VNN` die zweistellige Version und `EXT` die Dateiendung.
 
 Zulässige Beispiele:
 
-- `20260913_W01_ARSNOVA_LIVE_E01_ITEM-AGG_RAW-RESTRICTED_V01.csv`
-- `20260913_W01_MC-TEST_LIVE_R1_ITEM-AGG_WORK-RESTRICTED_V01.csv`
-- `20260914_W01_LAB_REPO_E01_RECOVERY_PUBLIC-REPO_V01.json`
+- `20260913_TB01_ARSNOVA_LIVE_E01_ITEM-AGG_RAW-RESTRICTED_V01.csv`
+- `20260913_TB01_MC-TEST_LIVE_R1_ITEM-AGG_WORK-RESTRICTED_V01.csv`
+- `20260914_TB01_LAB_REPO_E01_RECOVERY_PUBLIC-REPO_V01.json`
 
 Personennamen, Pseudonyme, Sessioncodes, Teilnehmer-, Konto- oder Provider-IDs, IP-Adressen, Tokens und vollständige Freitexte sind in Dateinamen verboten.
 
 Das Datenregister enthält mindestens:
 
-- Artefakt-, Kurs-, Wochen- und Ereigniskennung;
+- Artefakt-, Kurs-, Themenblock- und Ereigniskennung;
 - System, Herkunftsklasse und Schutzstatus;
 - Zweck `LEHRE`, `INTERN-QS` oder `INCIDENT`;
 - Beobachtungseinheit und minimalen Variablenumfang;
@@ -342,7 +342,7 @@ Vor Kursstart werden nur folgende internen Kennzahlen zugelassen:
 - Laufzeit, Fehlerquote, Ressourcen- und Kostenwerte je synthetischem Szenario;
 - keine Verbindung technischer Labordaten mit ARSnova- oder MC-Ergebnissen.
 
-Es gibt keinen gemeinsamen Personen-, Pseudonym-, Team-, Gruppen-, Geräte- oder Zeitstempelschlüssel. Auch manuell wird keine Zuordnungsliste geführt. Präsenz- und Zoom-Läufe werden nur auf Modulebene verglichen, wenn Small-cell-Suppression und institutionelles Gate erfüllt sind.
+Es gibt keinen gemeinsamen Personen-, Pseudonym-, Team-, Gruppen-, Geräte- oder Zeitstempelschlüssel. Auch manuell wird keine Zuordnungsliste geführt. Das Modulpaket sieht keinen Vergleich von Durchführungsmodalitäten vor.
 
 Antwortzeit ist ein technisches Nutzungssignal, kein Kompetenzmaß. Eine Korrelation, ein Vorher-Nachher-Vergleich oder eine Kausalaussage aus den Toolaggregaten ist nicht zulässig.
 
@@ -355,7 +355,7 @@ Für jede präsentierte, verteilte oder intern aufbewahrte LIVE-Auswertung gilt:
 3. Kann ein unterdrückter Wert aus Gesamtsumme, Prozenten, Randwerten oder einer Vergleichstabelle berechnet werden, wird mindestens eine weitere Zelle beziehungsweise der Randwert unterdrückt.
 4. Untergruppen werden nur berichtet, wenn jede sichtbare Zelle mindestens fünf Beobachtungen enthält und die Kombination keine Person erkennbar macht.
 5. Bei weniger als fünf Antworten in der gesamten betrachteten Gruppe wird keine LIVE-Auswertung berichtet; stattdessen werden LEHRDATEN genutzt.
-6. Wochen, Modi, Items und wiederholte MC-Fenster werden nicht so nebeneinandergestellt, dass Differenzen kleine Gruppen offenlegen.
+6. Themenblöcke, Items und wiederholte MC-Fenster werden nicht so nebeneinandergestellt, dass Differenzen kleine Gruppen offenlegen.
 7. Systemseitige Unterdrückung wird nicht umgangen.
 8. Originalfreitext wird unabhängig von seiner Häufigkeit nicht als anonym freigegeben.
 9. Bei kleinen, bekannten Kohorten kann auch eine größere Zelle erkennbar sein; dann wird weiter aggregiert oder nicht berichtet.
@@ -423,7 +423,7 @@ Im Repository, Dossier, Agentenprompt, Chat, Board, Screensharing und Lehrmateri
 
 - `.env`-Inhalte, private Schlüssel, Tokens, Passwörter und Recovery-Geheimnisse;
 - ARSnova-Host-Token, Admin-Token, Access-Proof, Quiz-Sync-Capability und Sessioncode;
-- Provider-, Zoom-, Datenbank-, Redis- oder Monitoring-Credentials;
+- Provider-, Kommunikationsplattform-, Datenbank-, Redis- oder Monitoring-Credentials;
 - Produktionsdaten, Produktionsdatenbankdumps und Produktionslogs;
 - personenbezogene LIVE-Daten, Q&A-Originaltexte und Incidentinhalte;
 - private Hostinventare, wenn sie nicht als freigegebene synthetische Lehrtopologie neu erstellt wurden.
@@ -459,13 +459,13 @@ Technischer Exportausfall berechtigt nicht zur Rekonstruktion von Einzelwerten, 
 
 Eine Datei erhält nur dann ANON-APPROVED, wenn:
 
-- Zweck, Herkunft, Beobachtungseinheit, Woche, Runde und Nenner dokumentiert sind;
+- Zweck, Herkunft, Beobachtungseinheit, Themenblock, Runde und Nenner dokumentiert sind;
 - Namen, Pseudonyme, Hashes, IDs, Codes, Tokens, exakte personenbezogene Zeitstempel und private Pfade fehlen;
 - Original-Q&A, Feedback- und sonstiger Freitext fehlen;
 - keine Personen-Rohwerte oder rekonstruierten Verläufe enthalten sind;
 - jede sichtbare Zelle mindestens fünf Beobachtungen umfasst und Differenzbildung ausgeschlossen ist;
 - fehlende und unterdrückte Werte nicht als null erscheinen;
-- Präsenz/Zoom, LIVE/REPO/LEHRDATEN und unterschiedliche Messumgebungen nicht vermischt sind;
+- LIVE/REPO/LEHRDATEN und unterschiedliche Messumgebungen nicht vermischt sind;
 - keine werkzeugübergreifende Verknüpfung möglich ist;
 - Darstellung, Einheit, Quelle, Evidenzstufe und Gültigkeitsgrenze vollständig sind;
 - Löschdatum, Zielgruppe sowie Freigabe durch DK und MV dokumentiert sind.

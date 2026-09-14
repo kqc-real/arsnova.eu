@@ -2,7 +2,7 @@
   "exportVersion": 1,
   "exportedAt": "2026-09-13T00:00:00.000Z",
   "quiz": {
-    "name": "Cloud Computing – Woche 05: Google Cloud Platform (GCP), Amazon Web Services (AWS) und Microsoft Azure",
+    "name": "Cloud Computing – Themenblock TB05: Google Cloud Platform (GCP), Amazon Web Services (AWS) und Microsoft Azure",
     "description": "Zehn anspruchsvolle Live-Fragen zu Capability-Vergleich, Regionen und Zonen, Identity and Access Management (IAM), Netzwerk, Shared Responsibility, Egress, Datenresidenz sowie Lock-in und Exit. Das Quiz nutzt alle zehn ARSnova-Fragetypen genau einmal.",
     "showLeaderboard": true,
     "allowCustomNicknames": false,
@@ -148,33 +148,33 @@
         "answers": [],
         "matchingPairs": [
           {
-            "leftId": "w05-match-left-1",
+            "leftId": "tb05-match-left-1",
             "left": "Datenresidenz",
-            "rightId": "w05-match-right-1",
+            "rightId": "tb05-match-right-1",
             "right": "dienstspezifischer Datenfluss für Primärdaten, Logs, Backups und Support"
           },
           {
-            "leftId": "w05-match-left-2",
+            "leftId": "tb05-match-left-2",
             "left": "Egress-Kosten",
-            "rightId": "w05-match-right-2",
+            "rightId": "tb05-match-right-2",
             "right": "messbares Transfermodell nach Richtung, Region und Betriebszustand"
           },
           {
-            "leftId": "w05-match-left-3",
+            "leftId": "tb05-match-left-3",
             "left": "IAM-Bindung",
-            "rightId": "w05-match-right-3",
+            "rightId": "tb05-match-right-3",
             "right": "Export und Neuaufbau von Rollen, Policies und Service-Identitäten"
           },
           {
-            "leftId": "w05-match-left-4",
+            "leftId": "tb05-match-left-4",
             "left": "Netzwerk-Bindung",
-            "rightId": "w05-match-right-4",
+            "rightId": "tb05-match-right-4",
             "right": "portabler Topologieentwurf plus reproduzierbare Firewall-Regeln"
           },
           {
-            "leftId": "w05-match-left-5",
+            "leftId": "tb05-match-left-5",
             "left": "Exit-Risiko",
-            "rightId": "w05-match-right-5",
+            "rightId": "tb05-match-right-5",
             "right": "zeitlich geprüfter Daten-, Image-, IaC- und Restore-Pfad"
           }
         ],
@@ -192,27 +192,27 @@
         "answers": [],
         "orderingItems": [
           {
-            "id": "w05-order-1",
+            "id": "tb05-order-1",
             "text": "Systemgrenze, Lastprofile und Ausschlusskriterien festlegen"
           },
           {
-            "id": "w05-order-2",
+            "id": "tb05-order-2",
             "text": "Benötigte Fähigkeiten und Verantwortungen providerneutral beschreiben"
           },
           {
-            "id": "w05-order-3",
+            "id": "tb05-order-3",
             "text": "Dienstoptionen von GCP, AWS und Azure auf dieselben Fähigkeiten abbilden"
           },
           {
-            "id": "w05-order-4",
+            "id": "tb05-order-4",
             "text": "Datenflüsse, Resilienz, Total Cost of Ownership (TCO) und Exit mit aktuellen Primärquellen prüfen"
           },
           {
-            "id": "w05-order-5",
+            "id": "tb05-order-5",
             "text": "Unsicherheiten durch kleine Architektur-, Failover- und Restore-Tests reduzieren"
           },
           {
-            "id": "w05-order-6",
+            "id": "tb05-order-6",
             "text": "Entscheidung und stärkste verworfene Alternative in einem ADR begründen"
           }
         ],
@@ -229,48 +229,48 @@
         "answers": [],
         "categories": [
           {
-            "id": "w05-cat-provider",
+            "id": "tb05-cat-provider",
             "name": "Primär beim Cloud-Provider"
           },
           {
-            "id": "w05-cat-operator",
+            "id": "tb05-cat-operator",
             "name": "Primär beim Anwendungsteam"
           },
           {
-            "id": "w05-cat-clarify",
+            "id": "tb05-cat-clarify",
             "name": "Dienstspezifisch gemeinsam klären"
           }
         ],
         "categorizationItems": [
           {
-            "id": "w05-item-1",
+            "id": "tb05-item-1",
             "text": "Physische Sicherheit des Rechenzentrums gewährleisten",
-            "correctCategoryId": "w05-cat-provider"
+            "correctCategoryId": "tb05-cat-provider"
           },
           {
-            "id": "w05-item-2",
+            "id": "tb05-item-2",
             "text": "Hypervisor und physische Host-Hardware betreiben",
-            "correctCategoryId": "w05-cat-provider"
+            "correctCategoryId": "tb05-cat-provider"
           },
           {
-            "id": "w05-item-3",
+            "id": "tb05-item-3",
             "text": "Gastbetriebssystem und Anwendungsabhängigkeiten patchen",
-            "correctCategoryId": "w05-cat-operator"
+            "correctCategoryId": "tb05-cat-operator"
           },
           {
-            "id": "w05-item-4",
+            "id": "tb05-item-4",
             "text": "Anwendungsrollen und Datenzugriffe korrekt konfigurieren",
-            "correctCategoryId": "w05-cat-operator"
+            "correctCategoryId": "tb05-cat-operator"
           },
           {
-            "id": "w05-item-5",
+            "id": "tb05-item-5",
             "text": "Zonenübergreifende Architektur tatsächlich aktivieren und testen",
-            "correctCategoryId": "w05-cat-operator"
+            "correctCategoryId": "tb05-cat-operator"
           },
           {
-            "id": "w05-item-6",
+            "id": "tb05-item-6",
             "text": "Ort und Umfang von Diagnose- und Supportdaten vertraglich verifizieren",
-            "correctCategoryId": "w05-cat-clarify"
+            "correctCategoryId": "tb05-cat-clarify"
           }
         ],
         "categorizationShuffleItems": true,

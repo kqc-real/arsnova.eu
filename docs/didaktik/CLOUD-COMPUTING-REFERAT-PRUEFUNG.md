@@ -154,7 +154,7 @@ Diese Liste beschreibt Prüffelder des Bewertungsbogens. Die konkrete Feststellu
 
 ### KI-Agenten, Eigenständigkeit und Offenlegung
 
-Der Kurs arbeitet im Lernprozess ausschließlich agent-first. Das macht KI-Agenten jedoch nicht automatisch zu einem zulässigen Hilfsmittel für die formale Prüfungsabgabe. Art und Umfang der erlaubten Agentennutzung müssen im Prüfungsauftrag beziehungsweise in myCampus ausdrücklich und für Präsenz-/Zoom-Lauf identisch bestätigt werden.
+Der Kurs ermöglicht im Lernprozess agentengestützte Arbeit. Das macht KI-Agenten jedoch nicht automatisch zu einem zulässigen Hilfsmittel für die formale Prüfungsabgabe. Art und Umfang der erlaubten Agentennutzung müssen im Prüfungsauftrag beziehungsweise in myCampus ausdrücklich und für alle Prüflinge einheitlich bestätigt werden.
 
 Bei erlaubter Nutzung gilt:
 
@@ -166,9 +166,9 @@ Bei erlaubter Nutzung gilt:
 
 Lehrendenagenten dürfen Einreichungen gegen veröffentlichte Kriterien vorprüfen, Evidenzlücken markieren und Fragen vorschlagen. Auswahl der Prüfungsfragen, Würdigung des individuellen Beitrags und Benotung bleiben ausschließlich Aufgabe der prüfenden Person.
 
-## 8. Prüfungsmodus: Präsenz und Zoom
+## 8. Prüfungsmodus nach veröffentlichtem Prüfungsauftrag
 
-Die Prüfung wird grundsätzlich in derselben Modalität wie die Lehrveranstaltung durchgeführt. Damit ist für den Präsenzlauf eine Präsenzprüfung und für den Zoom-Lauf eine virtuelle Prüfung der Regelfall. Aus organisatorischen oder administrativen Gründen darf auch die Prüfung eines Präsenzkurses virtuell stattfinden, idealerweise in einem IU-Zoom-Raum.
+Die Prüfungsmodalität wird nicht aus Themenblockkennung, Kursdauer oder Lehrmedium abgeleitet. Maßgeblich sind ausschließlich der veröffentlichte Prüfungsauftrag und die institutionellen Vorgaben.
 
 Für eine virtuelle Referatsprüfung sind laut Leitfaden zwingend:
 
@@ -178,7 +178,7 @@ Für eine virtuelle Referatsprüfung sind laut Leitfaden zwingend:
 
 Sind Bild und Ton nicht durchgehend sichergestellt, kann die prüfende Person die Prüfung abbrechen und als Fehlversuch bewerten. Deshalb sind Identifikationsweg, Raumscan, Technikcheck, Wiedereintritt und Vorgehen bei Verbindungsstörungen vorab IU-konform zu kommunizieren.
 
-Diese Kamerapflicht ist eine **spezifische Prüfungsanforderung**. Sie ändert nicht die Regel des regulären Zoom-Unterrichts, nach der Beteiligung nicht allein von der Kamera abhängt. Die methodische Trennung steht im [Präsenz-/Zoom-Konzept](./CLOUD-COMPUTING-DURCHFUEHRUNG-PRAESENZ-ZOOM.md#10-prüfungsdurchführung).
+Diese Kamerapflicht ist eine **spezifische Prüfungsanforderung** und keine Eigenschaft der curricularen Themenblöcke. Der gemeinsame Kursvertrag steht im [modalitätsneutralen Durchführungskonzept](./CLOUD-COMPUTING-DURCHFUEHRUNG-MODALITAETSNEUTRAL.md).
 
 ## 9. Verspätung, Abwesenheit und Wiederholung
 
@@ -194,11 +194,11 @@ Die Referatswerkstatt und die Probeprüfung müssen exakt auf die offiziellen Be
 
 | Kursphase                            | Verbindlicher Fokus                                                                                                                                       |
 | ------------------------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| zu Semesterbeginn                    | Prüfungsmodus, Einzel-/Gruppenformat, Handout-/Posterformat und kanonischen Themenkatalog veröffentlichen                                                 |
+| vor Kursstart                        | Prüfungsmodus, Einzel-/Gruppenformat, Handout-/Posterformat und kanonischen Themenkatalog veröffentlichen                                                 |
 | spätestens vier Wochen vor Abgabe    | Thema mit Story-/Commitbasis, These, Evidenzauftrag, Gegenalternative und Entscheidungsfolge verbindlich zuordnen; gemeinsamen Abgabetermin kommunizieren |
 | ungefähr vier Wochen vor der Prüfung | genauen Prüfungstermin in myCampus veröffentlichen beziehungsweise prüfen                                                                                 |
-| Termin 11                            | Einreichung, Agentenoffenlegung und Visualisierung gegen Formalia, Quellenregeln und individuelle Kennzeichnung prüfen                                    |
-| Termin 12                            | 15-minütige Probe je Person mit Vortrag und agentenkritischer Diskussion anhand der offiziellen Gewichte durchführen                                      |
+| Themenblock TB11                     | Einreichung, Agentenoffenlegung und Visualisierung gegen Formalia, Quellenregeln und individuelle Kennzeichnung prüfen                                    |
+| Themenblock TB12                     | 15-minütige Probe je Person mit Vortrag und agentenkritischer Diskussion anhand der offiziellen Gewichte durchführen                                      |
 | vor erster Prüfung                   | PDFs aller Prüflinge zum gemeinsamen Termin per E-Mail entgegennehmen und Vollständigkeit dokumentieren                                                   |
 | Prüfungstag                          | Identität, individuelle Zeit, Diskussion und gegebenenfalls virtuelle Prüfungsbedingungen sichern                                                         |
 
@@ -216,6 +216,6 @@ Das [Agentic Cloud Engineering Dossier](./CLOUD-COMPUTING-AGENTIC-LEHRLABOR.md#8
 - [ ] aktueller Bewertungsbogen und aktueller Leitfaden zum wissenschaftlichen Arbeiten verlinkt
 - [ ] zulässige Agentennutzung, Offenlegung und individuelle Verantwortlichkeit ausdrücklich veröffentlicht
 - [ ] Lehrendenagenten auf Vorprüfung und Fragenvorschläge begrenzt; keine autonome Benotung
-- [ ] Präsenz-/Zoom-Modus und Störungsverfahren bekannt gegeben
-- [ ] bei virtueller Prüfung Identifikation, Raumscan sowie durchgehendes Bild und Ton technisch und organisatorisch vorbereitet
+- [ ] veröffentlichte Prüfungsmodalität und Störungsverfahren bekannt gegeben
+- [ ] bei institutionell angeordneter virtueller Prüfung Identifikation, Raumscan sowie durchgehendes Bild und Ton technisch und organisatorisch vorbereitet
 - [ ] Verspätungs-, Abwesenheits- und Wiederholungsregeln kommuniziert

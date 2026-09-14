@@ -2,7 +2,7 @@
   "schemaVersion": 1,
   "cases": [
     {
-      "file": "ARSnova_Woche_01.json",
+      "file": "ARSnova_Themenblock_01.json",
       "positives": [
         "Least Privilege",
         "Principle of Least Privilege",
@@ -13,7 +13,7 @@
       "negatives": ["Vollzugriff", "Shared Responsibility"]
     },
     {
-      "file": "ARSnova_Woche_02.json",
+      "file": "ARSnova_Themenblock_02.json",
       "positives": [
         "Idempotenz",
         "Idempotency",
@@ -24,7 +24,7 @@
       "negatives": ["Nichtdeterminismus", "Zustandsdrift"]
     },
     {
-      "file": "ARSnova_Woche_03.json",
+      "file": "ARSnova_Themenblock_03.json",
       "positives": [
         "Unix-Socket",
         "Unix Domain Socket",
@@ -35,7 +35,7 @@
       "negatives": ["TCP-Socket", "HTTP-Port"]
     },
     {
-      "file": "ARSnova_Woche_04.json",
+      "file": "ARSnova_Themenblock_04.json",
       "positives": [
         "Cold Start",
         "Cold-Start",
@@ -46,7 +46,7 @@
       "negatives": ["Warm Start", "Autoscaling"]
     },
     {
-      "file": "ARSnova_Woche_05.json",
+      "file": "ARSnova_Themenblock_05.json",
       "positives": [
         "Least Privilege",
         "Principle of Least Privilege",
@@ -57,7 +57,7 @@
       "negatives": ["Administratorvollzugriff", "Single Sign-on"]
     },
     {
-      "file": "ARSnova_Woche_06.json",
+      "file": "ARSnova_Themenblock_06.json",
       "positives": [
         "Datenminimierung",
         "Prinzip der Datenminimierung",
@@ -67,7 +67,7 @@
       "negatives": ["Datenmaximierung", "Datensicherung"]
     },
     {
-      "file": "ARSnova_Woche_07.json",
+      "file": "ARSnova_Themenblock_07.json",
       "positives": [
         "Recovery Point Objective",
         "RPO",
@@ -77,12 +77,12 @@
       "negatives": ["Recovery Time Objective", "RTO"]
     },
     {
-      "file": "ARSnova_Woche_08.json",
+      "file": "ARSnova_Themenblock_08.json",
       "positives": ["Backpressure", "Back Pressure", "Rückstaukontrolle", "Gegendruck"],
       "negatives": ["Unbegrenztes Puffern", "Load Balancing"]
     },
     {
-      "file": "ARSnova_Woche_09.json",
+      "file": "ARSnova_Themenblock_09.json",
       "positives": [
         "Least Privilege",
         "Principle of Least Privilege",
@@ -93,7 +93,7 @@
       "negatives": ["Root-Zugriff", "Mehrfaktorauthentifizierung"]
     },
     {
-      "file": "ARSnova_Woche_10.json",
+      "file": "ARSnova_Themenblock_10.json",
       "positives": [
         "Sensitivitätsanalyse",
         "Sensitivitaetsanalyse",
@@ -103,7 +103,7 @@
       "negatives": ["Monte-Carlo-Simulation", "Break-even-Analyse"]
     },
     {
-      "file": "ARSnova_Woche_11.json",
+      "file": "ARSnova_Themenblock_11.json",
       "positives": [
         "Primärquelle",
         "primaere Quelle",
@@ -114,7 +114,7 @@
       "negatives": ["Sekundärquelle", "Meinungsbeitrag"]
     },
     {
-      "file": "ARSnova_Woche_12.json",
+      "file": "ARSnova_Themenblock_12.json",
       "positives": [
         "Shared Responsibility",
         "Shared Responsibility Model",

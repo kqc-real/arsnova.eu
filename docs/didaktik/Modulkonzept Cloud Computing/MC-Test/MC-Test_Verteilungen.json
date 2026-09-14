@@ -1,21 +1,21 @@
 {
   "generatedFrom": [
-    "MC-Test_Woche_01.json",
-    "MC-Test_Woche_02.json",
-    "MC-Test_Woche_03.json",
-    "MC-Test_Woche_04.json",
-    "MC-Test_Woche_05.json",
-    "MC-Test_Woche_06.json",
-    "MC-Test_Woche_07.json",
-    "MC-Test_Woche_08.json",
-    "MC-Test_Woche_09.json",
-    "MC-Test_Woche_10.json",
-    "MC-Test_Woche_11.json",
-    "MC-Test_Woche_12.json"
+    "MC-Test_Themenblock_01.json",
+    "MC-Test_Themenblock_02.json",
+    "MC-Test_Themenblock_03.json",
+    "MC-Test_Themenblock_04.json",
+    "MC-Test_Themenblock_05.json",
+    "MC-Test_Themenblock_06.json",
+    "MC-Test_Themenblock_07.json",
+    "MC-Test_Themenblock_08.json",
+    "MC-Test_Themenblock_09.json",
+    "MC-Test_Themenblock_10.json",
+    "MC-Test_Themenblock_11.json",
+    "MC-Test_Themenblock_12.json"
   ],
-  "weeks": {
-    "W01": {
-      "file": "MC-Test_Woche_01.json",
+  "topicBlocks": {
+    "TB01": {
+      "file": "MC-Test_Themenblock_01.json",
       "questionCount": 30,
       "topic": {
         "Cloud-Einordnung": 6,
@@ -35,8 +35,8 @@
         "3": 18
       }
     },
-    "W02": {
-      "file": "MC-Test_Woche_02.json",
+    "TB02": {
+      "file": "MC-Test_Themenblock_02.json",
       "questionCount": 30,
       "topic": {
         "Container und Images": 5,
@@ -56,8 +56,8 @@
         "3": 18
       }
     },
-    "W03": {
-      "file": "MC-Test_Woche_03.json",
+    "TB03": {
+      "file": "MC-Test_Themenblock_03.json",
       "questionCount": 30,
       "topic": {
         "Echtzeit und Skalierung": 5,
@@ -77,8 +77,8 @@
         "3": 18
       }
     },
-    "W04": {
-      "file": "MC-Test_Woche_04.json",
+    "TB04": {
+      "file": "MC-Test_Themenblock_04.json",
       "questionCount": 30,
       "topic": {
         "Eignung von Workloads": 5,
@@ -98,8 +98,8 @@
         "3": 18
       }
     },
-    "W05": {
-      "file": "MC-Test_Woche_05.json",
+    "TB05": {
+      "file": "MC-Test_Themenblock_05.json",
       "questionCount": 30,
       "topic": {
         "Capability-Vergleich": 5,
@@ -119,8 +119,8 @@
         "3": 18
       }
     },
-    "W06": {
-      "file": "MC-Test_Woche_06.json",
+    "TB06": {
+      "file": "MC-Test_Themenblock_06.json",
       "questionCount": 30,
       "topic": {
         "Batch und Streaming": 5,
@@ -140,8 +140,8 @@
         "3": 18
       }
     },
-    "W07": {
-      "file": "MC-Test_Woche_07.json",
+    "TB07": {
+      "file": "MC-Test_Themenblock_07.json",
       "questionCount": 30,
       "topic": {
         "Backup und Snapshots": 5,
@@ -161,8 +161,8 @@
         "3": 18
       }
     },
-    "W08": {
-      "file": "MC-Test_Woche_08.json",
+    "TB08": {
+      "file": "MC-Test_Themenblock_08.json",
       "questionCount": 30,
       "topic": {
         "Caching und Graceful Degradation": 5,
@@ -182,8 +182,8 @@
         "3": 18
       }
     },
-    "W09": {
-      "file": "MC-Test_Woche_09.json",
+    "TB09": {
+      "file": "MC-Test_Themenblock_09.json",
       "questionCount": 30,
       "topic": {
         "Datenschutz und Telemetrie": 5,
@@ -203,8 +203,8 @@
         "3": 18
       }
     },
-    "W10": {
-      "file": "MC-Test_Woche_10.json",
+    "TB10": {
+      "file": "MC-Test_Themenblock_10.json",
       "questionCount": 30,
       "topic": {
         "6R und Migration": 5,
@@ -224,8 +224,8 @@
         "3": 18
       }
     },
-    "W11": {
-      "file": "MC-Test_Woche_11.json",
+    "TB11": {
+      "file": "MC-Test_Themenblock_11.json",
       "questionCount": 30,
       "topic": {
         "Agentenoffenlegung": 5,
@@ -245,8 +245,8 @@
         "3": 18
       }
     },
-    "W12": {
-      "file": "MC-Test_Woche_12.json",
+    "TB12": {
+      "file": "MC-Test_Themenblock_12.json",
       "questionCount": 30,
       "topic": {
         "Cloud-Grundlagen und Service-Modelle": 5,

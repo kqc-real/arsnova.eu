@@ -8,7 +8,7 @@
 
 **Separater Kurs:** Bachelor-**Cloud Computing** hat einen eigenen Strang und gehört **nicht** in diesen Fahrplan —
 [`Modulkonzept_Cloud_Computing.md`](./Modulkonzept%20Cloud%20Computing/Modulkonzept_Cloud_Computing.md),
-[`Wochenlehrplan_Cloud_Computing_12_Wochen.md`](./Modulkonzept%20Cloud%20Computing/Wochenlehrplan_Cloud_Computing_12_Wochen.md),
+[`Themenblockplan_Cloud_Computing_12_Themenbloecke.md`](./Modulkonzept%20Cloud%20Computing/Themenblockplan_Cloud_Computing_12_Themenbloecke.md),
 [`Materialindex.md`](./Modulkonzept%20Cloud%20Computing/Materialindex.md) und
 [`Lehrenden_Runbook.md`](./Modulkonzept%20Cloud%20Computing/Lehrenden_Runbook.md).
 

@@ -1,14 +1,14 @@
 {
   "meta": {
-    "title": "Cloud Computing – MC-Test Woche 1: Merkmale, Modelle und sicherer Agentenauftrag",
-    "target_audience": "Bachelorstudierende der Informatik und Wirtschaftsinformatik im Modul Cloud Computing",
+    "title": "Cloud Computing – MC-Test Themenblock TB01: Merkmale, Modelle und sicherer Agentenauftrag",
+    "target_audience": "Bachelorstudierende der Informatik im Modul Cloud Computing",
     "question_count": 30,
     "difficulty_profile": { "leicht": 0, "mittel": 12, "schwer": 18 },
     "time_per_weight_minutes": { "1": 0.5, "2": 0.75, "3": 1.0 },
     "additional_buffer_minutes": 5,
     "test_duration_minutes": 32,
     "language": "de",
-    "updated": "2026-09-13"
+    "updated": "2026-09-14"
   },
   "questions": [
     {

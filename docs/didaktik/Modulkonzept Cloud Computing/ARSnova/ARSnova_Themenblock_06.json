@@ -2,7 +2,7 @@
   "exportVersion": 1,
   "exportedAt": "2026-09-13T00:00:00.000Z",
   "quiz": {
-    "name": "Cloud Computing – Woche 06: Data Science und Machine Learning",
+    "name": "Cloud Computing – Themenblock TB06: Data Science und Machine Learning",
     "description": "Zehn anspruchsvolle Live-Fragen zu Batch und Streaming, Extract, Transform, Load (ETL), Extract, Load, Transform (ELT), ML-Pipelines, Embeddings und Clustering, privater Inferenz, Datenminimierung, Reproduzierbarkeit sowie Machine Learning Operations (MLOps). Das Quiz nutzt alle zehn ARSnova-Fragetypen genau einmal.",
     "showLeaderboard": true,
     "allowCustomNicknames": false,
@@ -144,33 +144,33 @@
         "answers": [],
         "matchingPairs": [
           {
-            "leftId": "w06-match-left-1",
+            "leftId": "tb06-match-left-1",
             "left": "Aufnahme",
-            "rightId": "w06-match-right-1",
+            "rightId": "tb06-match-right-1",
             "right": "unveränderlicher Snapshot mit Zweck und Erzeugungszeit"
           },
           {
-            "leftId": "w06-match-left-2",
+            "leftId": "tb06-match-left-2",
             "left": "Vorverarbeitung",
-            "rightId": "w06-match-right-2",
+            "rightId": "tb06-match-right-2",
             "right": "versionierter Transformationscode mit Datenqualitätsbericht"
           },
           {
-            "leftId": "w06-match-left-3",
+            "leftId": "tb06-match-left-3",
             "left": "Embedding",
-            "rightId": "w06-match-right-3",
+            "rightId": "tb06-match-right-3",
             "right": "Modell- und Tokenizer-Version plus Vektordimension"
           },
           {
-            "leftId": "w06-match-left-4",
+            "leftId": "tb06-match-left-4",
             "left": "Clustering",
-            "rightId": "w06-match-right-4",
+            "rightId": "tb06-match-right-4",
             "right": "Parameter, Seed und nachvollziehbare Mitgliedschaften"
           },
           {
-            "leftId": "w06-match-left-5",
+            "leftId": "tb06-match-left-5",
             "left": "Ausgabe",
-            "rightId": "w06-match-right-5",
+            "rightId": "tb06-match-right-5",
             "right": "Schema, Modellstand, Fallbackstatus und Quellmitglieder"
           }
         ],
@@ -188,27 +188,27 @@
         "answers": [],
         "orderingItems": [
           {
-            "id": "w06-order-1",
+            "id": "tb06-order-1",
             "text": "Zweck, Qualitätsmetrik und erlaubte Datenbasis festlegen"
           },
           {
-            "id": "w06-order-2",
+            "id": "tb06-order-2",
             "text": "Freigegebenen oder synthetischen Snapshot unveränderlich versionieren"
           },
           {
-            "id": "w06-order-3",
+            "id": "tb06-order-3",
             "text": "Code, Umgebung, Modell, Parameter und Zufallsseed fixieren"
           },
           {
-            "id": "w06-order-4",
+            "id": "tb06-order-4",
             "text": "Alle Varianten auf derselben Eingabe und Messgrenze ausführen"
           },
           {
-            "id": "w06-order-5",
+            "id": "tb06-order-5",
             "text": "Qualität, Latenz, Ressourcen, Fehler und Fallbacks gemeinsam auswerten"
           },
           {
-            "id": "w06-order-6",
+            "id": "tb06-order-6",
             "text": "Artefakte, Grenzen und Entscheidung revisionsfähig dokumentieren"
           }
         ],
@@ -225,48 +225,48 @@
         "answers": [],
         "categories": [
           {
-            "id": "w06-cat-batch",
+            "id": "tb06-cat-batch",
             "name": "Batch"
           },
           {
-            "id": "w06-cat-stream",
+            "id": "tb06-cat-stream",
             "name": "Streaming"
           },
           {
-            "id": "w06-cat-either",
+            "id": "tb06-cat-either",
             "name": "Je nach Latenzziel beides vertretbar"
           }
         ],
         "categorizationItems": [
           {
-            "id": "w06-item-1",
+            "id": "tb06-item-1",
             "text": "Nächtlich alle freigegebenen Snapshots mit einem fixierten Modell neu bewerten",
-            "correctCategoryId": "w06-cat-batch"
+            "correctCategoryId": "tb06-cat-batch"
           },
           {
-            "id": "w06-item-2",
+            "id": "tb06-item-2",
             "text": "Einen abgeschlossenen Kursdatensatz für den Modellvergleich transformieren",
-            "correctCategoryId": "w06-cat-batch"
+            "correctCategoryId": "tb06-cat-batch"
           },
           {
-            "id": "w06-item-3",
+            "id": "tb06-item-3",
             "text": "Jedes Telemetrieereignis fortlaufend innerhalb weniger Sekunden aggregieren",
-            "correctCategoryId": "w06-cat-stream"
+            "correctCategoryId": "tb06-cat-stream"
           },
           {
-            "id": "w06-item-4",
+            "id": "tb06-item-4",
             "text": "Neue Sensormeldungen ereignisweise mit Zustandsfenstern verarbeiten",
-            "correctCategoryId": "w06-cat-stream"
+            "correctCategoryId": "tb06-cat-stream"
           },
           {
-            "id": "w06-item-5",
+            "id": "tb06-item-5",
             "text": "Q&A-Ereignisse für ein Dashboard je nach Aktualitätsziel mikrogebündelt auswerten",
-            "correctCategoryId": "w06-cat-either"
+            "correctCategoryId": "tb06-cat-either"
           },
           {
-            "id": "w06-item-6",
+            "id": "tb06-item-6",
             "text": "Featurewerte je nach Kosten- und Aktualitätsziel periodisch oder ereignisnah berechnen",
-            "correctCategoryId": "w06-cat-either"
+            "correctCategoryId": "tb06-cat-either"
           }
         ],
         "categorizationShuffleItems": true,
