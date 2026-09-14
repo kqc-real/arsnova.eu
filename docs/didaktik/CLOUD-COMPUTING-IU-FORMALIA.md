@@ -51,15 +51,16 @@ Vor Veröffentlichung der Prüfungsaufgabe ist in myCampus zu prüfen, welche Pr
 
 Das Modulhandbuch verteilt den Workload wie folgt:
 
-| Kategorie         |   Stunden | Entsprechung im Lehrentwurf                                           |
-| ----------------- | --------: | --------------------------------------------------------------------- |
-| Selbststudium     |     123 h | Vor-/Nachbereitung, Lektüre, Agentic-Dossier und Referatsvorbereitung |
-| betreute Lehre    |      27 h | 36 UE in zwölf stabilen Themenblöcken                                 |
-| Selbstüberprüfung |       0 h | kein eigener Workloadposten                                           |
-| Praxisanteil      |       0 h | Anwendungsaufgaben sind Lehrmethode, kein ausgewiesener Praxisanteil  |
-| **Gesamt**        | **150 h** | **36 UE betreute Zeit plus 123 h Selbststudium**                      |
+| Kategorie                                |   Stunden | Entsprechung im Lehrentwurf                                           |
+| ---------------------------------------- | --------: | --------------------------------------------------------------------- |
+| Selbststudium                            |     123 h | Vor-/Nachbereitung, Lektüre, Agentic-Dossier und Referatsvorbereitung |
+| Präsenzstudium/synchrone virtuelle Lehre |    13,5 h | 18 UE innerhalb der zwölf stabilen Themenblöcke                       |
+| Tutorium/tutorielle Betreuung            |    13,5 h | 18 UE innerhalb der zwölf stabilen Themenblöcke                       |
+| Selbstüberprüfung                        |       0 h | kein eigener Workloadposten                                           |
+| Praxisanteil                             |       0 h | Anwendungsaufgaben sind Lehrmethode, kein ausgewiesener Praxisanteil  |
+| **Gesamt**                               | **150 h** | **36 UE betreute Zeit plus 123 h Selbststudium**                      |
 
-`36 UE × 45 Minuten = 27 Stunden`. Das Modulpaket führt diese betreute Zeit ausschließlich als zwölf stabile Themenblöcke mit je drei UE. Es weist die Themenblöcke weder Kalenderwochen noch unterschiedlichen Durchführungsformen oder Belastungsprofilen zu.
+`36 UE × 45 Minuten = 27 Stunden`. Das entspricht exakt der Summe aus 13,5 Stunden Präsenzstudium/synchroner virtueller Lehre und 13,5 Stunden Tutorium/tutorieller Betreuung. Das Modulpaket führt diese betreute Zeit als zwölf stabile Themenblöcke mit je drei UE. Die organisatorische Zuordnung der insgesamt jeweils 18 UE zu den beiden Workloadkategorien erfolgt bei der Terminplanung; sie verändert weder Kennung noch Inhalt der Themenblöcke und ordnet ihnen im curricularen Vertrag keine feste Kalenderwoche oder Modalität zu.
 
 ### Einheitlicher Kursvertrag
 
@@ -163,6 +164,7 @@ Für die Durchführung gilt:
 - [ ] zulässige Agentennutzung, Offenlegung und individuelle Verantwortung in der Prüfung geklärt
 - [ ] PDF-Abgabe per E-Mail, gemeinsamer Termin und 15 Minuten mündliche Prüfung je Person kommuniziert
 - [ ] zwölf stabile Themenblöcke mit insgesamt 36 UE veröffentlicht
+- [ ] 18 UE Präsenzstudium/synchrone virtuelle Lehre und 18 UE Tutorium/tutorielle Betreuung in der Terminplanung abgebildet
 - [ ] keine Kalender-, Modalitäts- oder Belastungsverteilung in den Themenblockkennungen hinterlegt
 - [ ] 123 Stunden Selbststudium durch realistische Arbeitsaufträge strukturiert
 - [ ] agentische Serverinstallation/Härtung sowie Security-, Privacy-, Performance- und Wirtschaftsworkflows innerhalb des Workloads abgebildet
