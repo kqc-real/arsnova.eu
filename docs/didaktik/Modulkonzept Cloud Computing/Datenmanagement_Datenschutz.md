@@ -195,7 +195,7 @@ Kursregeln:
 - kein vollständiger Datenbank- oder SQL-Dump im Regelbetrieb;
 - Lernendenberichte verbleiben bei den Lernenden und werden nicht zentral eingesammelt;
 - nur Itemzählwerte, Lösungs- und Auslassungsquoten sowie der dokumentierte Nenner dürfen nach Small-cell-Suppression in die interne Qualitätssicherung eingehen;
-- erster Abruf, Abruf nach zwei Tagen und Abruf nach vierzehn Tagen sind getrennte Fenster mit eigenem T0 und Löschbeleg.
+- der erste Abruf in UE 3 und jedes tatsächlich geöffnete weitere Abruffenster sind ohne kalendarische Vorgabe getrennte Fenster mit eigenem T0 und Löschbeleg.
 
 ### 5.3 Dossier
 
