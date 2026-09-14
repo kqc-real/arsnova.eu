@@ -2,7 +2,7 @@
 
 # Agentic Cloud Engineering: Lehrlabor und Arbeitsmodell
 
-**Modul:** `DSCC0127` / `DSCC012701` · **Zweck:** Ergänzende Regeln für kontrolliert agentengestützte Laborarbeit · **Lehrkonzept:** [Cloud Computing 36 UE](./Modulkonzept%20Cloud%20Computing/Modulkonzept_Cloud_Computing.md) · **Prüfung:** [Referatsumsetzung](./CLOUD-COMPUTING-REFERAT-PRUEFUNG.md) · **Stand:** 2026-08-13
+**Modul:** `DSCC0127` / `DSCC012701` · **Zweck:** Ergänzende Regeln für kontrolliert agentengestützte Laborarbeit · **Lehrkonzept:** [Cloud Computing 36 UE](./Modulkonzept%20Cloud%20Computing/Modulkonzept_Cloud_Computing.md) · **Prüfung:** [Referatsumsetzung](./CLOUD-COMPUTING-REFERAT-PRUEFUNG.md) · **Stand:** 2026-09-14
 
 ## 1. Grundentscheidung: agentengestützt mit menschlicher Verantwortung
 
@@ -135,7 +135,7 @@ Ein Economics-/FinOps-Agent verbindet die technischen Messwerte mit wirtschaftli
 - bewertet Build/Buy, 6R-Option, Lock-in, Opportunitätskosten, Risiko und Restwert des Wissens;
 - versieht volatile Preise mit Region, Währung, Steuerbasis, Abrufdatum und Primärquelle.
 
-Studierende der Informatik und Wirtschaftsinformatik arbeiten in gemischten Rollen. Technische Entscheidungen ohne Kosten-/Risikofolge und Wirtschaftlichkeitsrechnungen ohne Architektur-/Messbasis gelten gleichermaßen als unvollständig.
+Studierende der Informatik übernehmen wechselnde Rollen für Architektur, Betrieb, Security, Datenschutz, Performance und Kosten. Technische Entscheidungen ohne Kosten-/Risikofolge und Wirtschaftlichkeitsrechnungen ohne Architektur-/Messbasis gelten gleichermaßen als unvollständig.
 
 ### 5.6 Durchgängiger Fall: von der Begriffswolke zum Moderationskompass
 
@@ -164,7 +164,7 @@ Lehrende nutzen Agenten für:
 - Erzeugung absichtlich fehlerhafter, aber sicher isolierter Ausgangszustände;
 - Vergleich von Studierendenevidenz mit Akzeptanzkriterien;
 - formative Feedbackvorschläge und Erkennung fehlender Nachweise;
-- redaktionelle Vorprüfung der festgeschriebenen 30 MC-Test-Items je Woche nach [MC-Test-Blueprint](./Modulkonzept%20Cloud%20Computing/MC-Test_Blueprint_12_Wochen.md) und Wochen-JSONs; Agenten dürfen Prüfhinweise liefern, aber weder Lösungsschlüssel noch Veröffentlichung autonom bestimmen.
+- redaktionelle Vorprüfung der festgeschriebenen 30 MC-Test-Items je Themenblock nach [MC-Test-Blueprint](./Modulkonzept%20Cloud%20Computing/MC-Test_Blueprint_12_Themenbloecke.md) und Themenblock-JSONs; Agenten dürfen Prüfhinweise liefern, aber weder Lösungsschlüssel noch Veröffentlichung autonom bestimmen.
 
 Lehrendenagenten erhalten keine autonome Notenhoheit und verändern keine studentischen Abgaben. Aufgabe, Agentenkonfiguration, verwendete Prüfroutinen und wesentliche Modellgrenzen werden transparent gemacht.
 
@@ -211,34 +211,34 @@ Das formative Cloud-Readiness-Dossier wird zum **Agentic Cloud Engineering Dossi
 
 Das Dossier ist die Arbeits- und Quellenbasis des Referats, aber kein zusätzlicher benoteter Prüfungsbestandteil. Das individuelle Referat wird aus dem [kanonischen Themenkatalog](./Modulkonzept%20Cloud%20Computing/Referatsthemen_Cloud_Computing_ARSnova.md) vergeben, übernimmt den dort ausgewiesenen offiziellen Qualifikationsbezug und muss eine überprüfbare These, technische Evidenz, eine ernsthafte Gegenalternative sowie eine wirtschaftliche, betriebliche oder verantwortungsbezogene Entscheidung vertreten. Für das Referat gelten ausschließlich die offiziellen Bestandteile und Gewichte.
 
-## 9. Zuordnung zu den zwölf Terminen
+## 9. Zuordnung zu den zwölf Themenblöcken
 
-| Termin | Führender Agentenauftrag                                                                       | Zentraler Nachweis                                |
-| -----: | ---------------------------------------------------------------------------------------------- | ------------------------------------------------- |
-|      1 | Cloud-Fall klassifizieren und Agentenvertrag erstellen                                         | Auftrag, Grenzen, Risiken und Kostenbudget        |
-|      2 | Zielserver und technologische Basis als Code entwerfen                                         | Provisioning-Plan und IaC-Entwurf                 |
-|      3 | Server bereitstellen, Anwendung installieren und härten                                        | reproduzierbarer Build, Scan und Rollback         |
-|      4 | Serverless-Kandidaten analysieren und isoliert prototypisieren                                 | Eignungs- und Gegenbeleg                          |
-|      5 | GCP, AWS und Azure evidenzbasiert vergleichen                                                  | Capability-/Verantwortungs-/Kostenmatrix          |
-|      6 | Begriffs-, Themen- und Moderationskaskade mit Privacy-Gates entwerfen                          | Datenfluss, Seed-Set, Modell- und Lizenzmanifest  |
-|      7 | Backup, Restore und Fehlerfälle ausführen                                                      | agentisch geprüfter Recovery-Nachweis             |
-|      8 | Inferenzpfade und Live-Degradation messen                                                      | Qualitäts-, Last-, Ressourcen- und Ausfallreport  |
-|      9 | Inferenzserver sicher und beobachtbar härten                                                   | Befund-Maßnahme-Verifikation-Restrisiko           |
-|     10 | Inferenzarchitektur technisch/wirtschaftlich entscheiden                                       | TCO, Unit Economics, Sensitivität und ADR         |
-|     11 | Themenbezogene Evidenz in Einreichung und Vortrag überführen                                   | belegte Argumentations- und Visualisierungsskizze |
-|     12 | Messung und wirtschaftliche, betriebliche oder verantwortungsbezogene Entscheidung verteidigen | Probeprüfung mit Quellen- und Agentenoffenlegung  |
+| Themenblock | Führender Agentenauftrag                                                                       | Zentraler Nachweis                                |
+| ----------: | ---------------------------------------------------------------------------------------------- | ------------------------------------------------- |
+|        TB01 | Cloud-Fall klassifizieren und Agentenvertrag erstellen                                         | Auftrag, Grenzen, Risiken und Kostenbudget        |
+|        TB02 | Zielserver und technologische Basis als Code entwerfen                                         | Provisioning-Plan und IaC-Entwurf                 |
+|        TB03 | Server bereitstellen, Anwendung installieren und härten                                        | reproduzierbarer Build, Scan und Rollback         |
+|        TB04 | Serverless-Kandidaten analysieren und isoliert prototypisieren                                 | Eignungs- und Gegenbeleg                          |
+|        TB05 | GCP, AWS und Azure evidenzbasiert vergleichen                                                  | Capability-/Verantwortungs-/Kostenmatrix          |
+|        TB06 | Begriffs-, Themen- und Moderationskaskade mit Privacy-Gates entwerfen                          | Datenfluss, Seed-Set, Modell- und Lizenzmanifest  |
+|        TB07 | Backup, Restore und Fehlerfälle ausführen                                                      | agentisch geprüfter Recovery-Nachweis             |
+|        TB08 | Inferenzpfade und Live-Degradation messen                                                      | Qualitäts-, Last-, Ressourcen- und Ausfallreport  |
+|        TB09 | Inferenzserver sicher und beobachtbar härten                                                   | Befund-Maßnahme-Verifikation-Restrisiko           |
+|        TB10 | Inferenzarchitektur technisch/wirtschaftlich entscheiden                                       | TCO, Unit Economics, Sensitivität und ADR         |
+|        TB11 | Themenbezogene Evidenz in Einreichung und Vortrag überführen                                   | belegte Argumentations- und Visualisierungsskizze |
+|        TB12 | Messung und wirtschaftliche, betriebliche oder verantwortungsbezogene Entscheidung verteidigen | Probeprüfung mit Quellen- und Agentenoffenlegung  |
 
-## 10. Präsenz und Zoom
+## 10. Modalitätsneutraler Laborbetrieb
 
-Beide Kursläufe nutzen dieselbe remote erreichbare oder identisch reproduzierbare Laborplattform, dieselben Agentenkonfigurationen, Aufgaben, Berechtigungen, Budgets und Abnahmetests. Im Präsenzlauf arbeiten Teams am Tisch mit dem Agenten; im Zoom-Lauf steuern sie denselben Prozess in Breakouts mit geteilter Evidenzansicht. Lokale Rechner dienen nur als Zugang, nicht als unterschiedlich leistungsfähige Zielumgebungen.
+Jede Durchführung nutzt dieselbe remote erreichbare oder identisch reproduzierbare Laborplattform, dieselben Agentenkonfigurationen, Aufgaben, Berechtigungen, Budgets und Abnahmetests. Lokale Rechner dienen nur als Zugang, nicht als unterschiedlich leistungsfähige Zielumgebungen.
 
-Für die freiwillige Selbstüberprüfung wird nach jedem Termin in beiden Kursläufen derselbe redaktionell freigegebene Satz von 30 MC-Test-Items aus der jeweiligen Wochen-JSON bereitgestellt.
+Für die freiwillige Selbstüberprüfung steht je Themenblock derselbe redaktionell freigegebene Satz von 30 MC-Test-Items aus der jeweiligen Themenblock-JSON bereit. Das Modulpaket legt keine kalendarische Bereitstellung fest.
 
 Bildschirmfreigabe oder Projektion zeigt bevorzugt Auftrag, Plan, Diff, Test und Entscheidung – nicht lange unkommentierte Agentenläufe. Asynchrone Agentenausführung muss einen definierten Rückkehrpunkt, Statuskanal und Abbruchweg besitzen.
 
 ## 11. Prüfungs- und Integritätsregel
 
-Der Kurs ermöglicht agentengestützte Arbeit über alle Themenwochen hinweg und hält gleichwertige Alternativwege bereit. Ob und in welchem Umfang KI-Agenten bei der Erstellung der formalen Referatsunterlagen als Hilfsmittel zulässig sind, muss dennoch im Prüfungsauftrag beziehungsweise in myCampus ausdrücklich bestätigt werden. Bis zur formalen Bestätigung ist Agentennutzung im Lernprozess nicht automatisch eine Freigabe für die Prüfungsabgabe.
+Der Kurs ermöglicht agentengestützte Arbeit über alle Themenblöcke hinweg und hält gleichwertige Alternativwege bereit. Ob und in welchem Umfang KI-Agenten bei der Erstellung der formalen Referatsunterlagen als Hilfsmittel zulässig sind, muss dennoch im Prüfungsauftrag beziehungsweise in myCampus ausdrücklich bestätigt werden. Bis zur formalen Bestätigung ist Agentennutzung im Lernprozess nicht automatisch eine Freigabe für die Prüfungsabgabe.
 
 Bei erlaubter Agentennutzung gilt:
 
@@ -250,7 +250,7 @@ Bei erlaubter Agentennutzung gilt:
 ## 12. Freigabecheck
 
 - [ ] institutionell zulässige Agenten-, Modell- und Datenverarbeitungskonfiguration festgelegt
-- [ ] identische Agenten- und Laborzugänge für Präsenz- und Zoom-Lauf bereitgestellt
+- [ ] einheitliche Agenten- und Laborzugänge für jede Durchführung bereitgestellt
 - [ ] isolierte, rücksetzbare Zielserver ohne Produktionsdaten und Produktionszugänge verfügbar
 - [ ] Rollen, kurzlebige Credentials, Freigabegates und Notfallzugriff getestet
 - [ ] Modell-, Cloud- und Ressourcenbudgets mit automatischem Stopp/Cleanup gesetzt
@@ -258,8 +258,8 @@ Bei erlaubter Agentennutzung gilt:
 - [ ] Serverbereitstellung, Härtung, Security, Datenschutz, Performance und FinOps agentisch abgedeckt
 - [ ] Storys 1.14a–1.14c und 8.9a–8.9c auf festgeschriebenem Repo-, Seed-, Modell- und Laborstand mit getrennten Single-/Two-Server-Grenzen, Degradations- und Cleanup-Nachweis vorbereitet
 - [ ] Themen aus dem kanonischen Referatsthemenkatalog ausgewählt und mit dem ausgewiesenen offiziellen Qualifikationsbezug, individueller These, Evidenzauftrag und Gegenalternative veröffentlicht
-- [ ] gemischte Informatik-/Wirtschaftsinformatikrollen und gemeinsame Ergebnisverantwortung erklärt
+- [ ] Rollen für Architektur, Betrieb, Security, Datenschutz, Performance und Kosten sowie gemeinsame Ergebnisverantwortung erklärt
 - [ ] Lehrendenagenten für Labor, Vorprüfung und formatives Feedback getestet
-- [ ] zwölf MC-Test-Wochen-JSONs mit je 30 Items, Profil `0/12/18`, Schema- und Qualitätsvalidator sowie menschlichem Freigabegate geprüft
+- [ ] zwölf MC-Test-Themenblock-JSONs mit je 30 Items, Profil `0/12/18`, Schema- und Qualitätsvalidator sowie menschlichem Freigabegate geprüft
 - [ ] keine autonome Notengebung oder ungeprüfte Übernahme von Agentenaussagen vorgesehen
 - [ ] erlaubter KI-Einsatz in der Referatsprüfung formal geklärt und veröffentlicht

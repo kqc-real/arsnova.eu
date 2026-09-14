@@ -1,0 +1,623 @@
+{
+  "meta": {
+    "title": "Cloud Computing – MC-Test Themenblock TB10: Providerentscheidung, Wirtschaftlichkeit und Migration",
+    "target_audience": "Bachelorstudierende der Informatik im Modul Cloud Computing",
+    "question_count": 30,
+    "difficulty_profile": {
+      "leicht": 0,
+      "mittel": 12,
+      "schwer": 18
+    },
+    "time_per_weight_minutes": {
+      "1": 0.5,
+      "2": 0.75,
+      "3": 1.0
+    },
+    "additional_buffer_minutes": 5,
+    "test_duration_minutes": 32,
+    "language": "de",
+    "updated": "2026-09-14"
+  },
+  "questions": [
+    {
+      "question": "1. Die sechs Migrationsstrategien Rehost, Replatform, Repurchase, Refactor, Retire und Retain werden als 6R zusammengefasst. Ein Compose-Stack wird weitgehend unverändert auf eine andere VM verschoben; nur Provisionierung und Hostgröße ändern sich. Welche Strategie beschreibt den Eingriff?",
+      "options": [
+        "Repurchase, weil die Infrastruktur als externer Dienst bezogen wird",
+        "Replatform, weil jede Änderung der Betriebsumgebung die Plattform neu entwirft",
+        "Rehost, weil Anwendung und Dienstzuschnitt weitgehend erhalten bleiben",
+        "Refactor, weil das Deployment reproduzierbar als Code beschrieben wird"
+      ],
+      "answer": 2,
+      "explanation": "Rehost verschiebt eine Anwendung mit minimalen Architekturänderungen auf andere Infrastruktur. Externer Infrastrukturbezug allein ist kein Repurchase; reproduzierbare Provisionierung macht ohne wesentlichen Plattform- oder Codeumbau weder Replatform noch Refactor daraus.",
+      "weight": 2,
+      "topic": "6R und Migration",
+      "concept": "Rehost abgrenzen",
+      "cognitive_level": "Verständnis",
+      "mini_glossary": {
+        "Rehost": "Migration einer Anwendung weitgehend unverändert auf andere Infrastruktur.",
+        "Compose-Stack": "Gemeinsam beschriebener Satz containerisierter Dienste.",
+        "Provisionierung": "Bereitstellung und Konfiguration benötigter Infrastruktur."
+      }
+    },
+    {
+      "question": "2. App, PostgreSQL und Redis werden auf getrennte Ressourcen verschoben; die App ändert sich nur für neue Endpunkte. Welche Einordnung ist am treffendsten?",
+      "options": [
+        "Replatform, weil sich Plattform und Dienstgrenzen bei begrenzten Anwendungsänderungen ändern",
+        "Rehost, weil weiterhin dieselben drei technischen Komponenten verwendet werden",
+        "Repurchase, weil getrennte Ressourcen automatisch durch SaaS ersetzt werden",
+        "Retain, weil das fachliche Domänenmodell unverändert bleibt"
+      ],
+      "answer": 0,
+      "explanation": "Replatform verändert den Betriebszuschnitt und kann Managed- oder getrennte Dienste einführen, ohne das Produkt neu zu schreiben. Gleiche Fachkomponenten reichen nicht für Rehost; weder SaaS-Ersatz noch bloßes Beibehalten liegt vor.",
+      "weight": 2,
+      "topic": "6R und Migration",
+      "concept": "Replatform nach Diensttrennung",
+      "cognitive_level": "Anwendung",
+      "mini_glossary": {
+        "Replatform": "Wechsel der Betriebsplattform bei begrenzten Anwendungsänderungen.",
+        "Dienstgrenze": "Technische und betriebliche Trennung zwischen Komponenten.",
+        "Managed Service": "Dienst, bei dem der Anbieter definierte Betriebsaufgaben übernimmt."
+      }
+    },
+    {
+      "question": "3. Das Team ersetzt ein selbst betriebenes Uptime-Monitoring durch einen externen Dienst mit geprüftem Export und Auftragsverarbeitung. Welche Strategie liegt primär vor?",
+      "options": [
+        "Repurchase, weil eine bisher selbst erbrachte Randfähigkeit durch ein Produkt ersetzt wird",
+        "Retire, weil Monitoring nach dem Wechsel nicht mehr benötigt wird",
+        "Refactor, weil der externe Dienst über eine API integriert wird",
+        "Retain, weil die Kernanwendung unverändert weiterläuft"
+      ],
+      "answer": 0,
+      "explanation": "Repurchase ersetzt Eigenbetrieb durch ein Produkt oder einen SaaS-Dienst. Die Fähigkeit wird nicht stillgelegt, und eine API-Integration allein ist kein architektonischer Refactor; die unveränderte Kernanwendung ändert die Einordnung der Randfähigkeit nicht.",
+      "weight": 2,
+      "topic": "6R und Migration",
+      "concept": "Repurchase für Randdienste",
+      "cognitive_level": "Verständnis",
+      "mini_glossary": {
+        "Repurchase": "Ersatz einer Eigenlösung durch ein beschafftes Produkt oder SaaS.",
+        "Randfähigkeit": "Unterstützende Funktion außerhalb des fachlichen Produktkerns.",
+        "Auftragsverarbeitung": "Vertraglich geregelte Verarbeitung personenbezogener Daten im Auftrag."
+      }
+    },
+    {
+      "question": "4. Ein Polling-Fallback soll entfernt werden. Welcher Nachweis macht daraus eine verantwortbare Retire-Entscheidung statt einer versteckten Funktionskürzung?",
+      "options": [
+        "Eine Architekturnotiz, dass Push-Technik grundsätzlich moderner als Polling ist",
+        "Eine niedrigere Codezeilenzahl nach dem Entfernen des Fallbacks",
+        "Nutzungs- und Reconnect-Nachweise, Regressionstests sowie ein dokumentierter Rollback",
+        "Ein Anbieterbenchmark, der geringere Kosten für ausgehenden Traffic verspricht"
+      ],
+      "answer": 2,
+      "explanation": "Retire verlangt Evidenz, dass die Fähigkeit nicht mehr benötigt wird und Produktwirkung beherrscht bleibt. Modernitätsargument, Codeumfang oder fremde Kostenangaben belegen weder Reconnect-Stabilität noch Barrierefreiheit und Rückkehrweg.",
+      "weight": 2,
+      "topic": "6R und Migration",
+      "concept": "Retire mit Wirkungskontrolle",
+      "cognitive_level": "Anwendung",
+      "mini_glossary": {
+        "Retire": "Kontrolliertes Entfernen einer nicht mehr benötigten Komponente oder Variante.",
+        "Fallback": "Ersatzpfad bei nicht verfügbarem primären Mechanismus.",
+        "Rollback": "Geplanter Rückweg auf den vorherigen funktionsfähigen Zustand."
+      }
+    },
+    {
+      "question": "5. Die Local-First-Quizsammlung ist kein gemessener Engpass. Wie wird ein begründetes Retain formuliert?",
+      "options": [
+        "Die Komponente bleibt für immer unverändert, weil bisher kein Incident bekannt ist.",
+        "Die Komponente wird aus dem Migrationsscope gestrichen, ohne Abhängigkeiten zu dokumentieren.",
+        "Die Komponente bleibt bis zum nächsten Providerwechsel unverändert, unabhängig von Messwerten.",
+        "Die Komponente bleibt mit dokumentierter Annahme, Monitoring und Schwelle für Neubewertung erhalten."
+      ],
+      "answer": 3,
+      "explanation": "Retain ist eine bewusste Scope-Entscheidung mit überprüfbarer Annahme und Wiedervorlage. Unbegrenztes Beibehalten oder stilles Streichen macht weder Abhängigkeiten noch Auslöser für eine spätere Änderung sichtbar.",
+      "weight": 2,
+      "topic": "6R und Migration",
+      "concept": "Retain als aktive Entscheidung",
+      "cognitive_level": "Anwendung",
+      "mini_glossary": {
+        "Retain": "Bewusstes Beibehalten einer Komponente unter dokumentierten Kriterien.",
+        "Scope": "Abgegrenzter Umfang einer Untersuchung oder Migration.",
+        "Neubewertungskriterium": "Messbarer Auslöser für eine erneute Entscheidung."
+      }
+    },
+    {
+      "question": "6. Für Financial Operations (FinOps) sollen zwei Angebote mit demselben Compute-Preis über ihre Total Cost of Ownership (TCO) verglichen werden. Welche zusätzliche Position gehört zwingend in die Systemgrenze?",
+      "options": [
+        "Regionsvielfalt und geplante Reservekapazität in den Zielregionen",
+        "Einrichtungsdauer des Kontos und Zahl der verfügbaren Instanzfamilien",
+        "Betriebszeit, Support, Observability, Backup, Migration, Egress und Exit",
+        "Rabattmodell für Compute und Zahl der vorgeprüften Basisimages"
+      ],
+      "answer": 2,
+      "explanation": "TCO umfasst sämtliche relevanten Kosten über den betrachteten Lebenszyklus, nicht nur Compute. Einzelne Produkt-, Regions- oder Rabattmerkmale können Anforderungen beeinflussen, bilden aber den tatsächlichen Betriebs-, Migrations- und Exitaufwand nicht ab.",
+      "weight": 2,
+      "topic": "TCO und Kostenmodell",
+      "concept": "Vollständige TCO-Systemgrenze",
+      "cognitive_level": "Verständnis",
+      "mini_glossary": {
+        "TCO": "Total Cost of Ownership über Anschaffung, Betrieb, Änderung und Ausstieg.",
+        "Egress": "Ausgehender Datentransfer aus einem Anbieter- oder Netzbereich.",
+        "Lebenszyklus": "Zeitraum von Einführung über Betrieb bis Migration oder Stilllegung."
+      }
+    },
+    {
+      "question": "7. Eine Organisation kauft eigene Serverhardware, während ein Cloudmodell monatlich nutzungsabhängig abgerechnet wird. Welche Einordnung als Capital Expenditure (CapEx) und Operational Expenditure (OpEx) ist korrekt?",
+      "options": [
+        "Die Hardware ist überwiegend CapEx; die laufende Cloudnutzung ist überwiegend OpEx.",
+        "Die Hardware ist überwiegend OpEx; die laufende Cloudnutzung ist überwiegend CapEx.",
+        "Beide sind eher CapEx, weil in beiden Fällen langfristig Rechenleistung bereitsteht.",
+        "Beide sind eher OpEx, weil in beiden Fällen laufende Betriebsaufwände entstehen."
+      ],
+      "answer": 0,
+      "explanation": "Eigene Hardware bindet typischerweise Kapital als Investition, während laufender Verbrauch als Betriebsaufwand anfällt. Die Kategorien beschreiben Kostencharakter und Zahlungsstruktur; sie entscheiden nicht automatisch, welche Variante wirtschaftlicher ist.",
+      "weight": 2,
+      "topic": "TCO und Kostenmodell",
+      "concept": "CapEx und OpEx",
+      "cognitive_level": "Verständnis",
+      "mini_glossary": {
+        "CapEx": "Kapitalausgabe für länger genutzte Vermögenswerte.",
+        "OpEx": "Laufender Aufwand für den Betrieb.",
+        "Kapitalbindung": "Mittel, die durch eine Investition längerfristig gebunden sind."
+      }
+    },
+    {
+      "question": "8. Eine Architektur exportiert täglich große Backups aus dem Providerbereich in ein getrenntes Ziel. Welche Kostenposition wird bei einem reinen Instanzpreisvergleich leicht übersehen?",
+      "options": [
+        "Ingress für interne Healthchecks zwischen zwei Prozessen desselben Hosts",
+        "Egress für den ausgehenden Datenpfad einschließlich möglicher Zwischenkomponenten",
+        "CapEx für die bereits abgeschriebene Entwicklerhardware",
+        "Unit Cost für lokal nicht ausgeführte Analysejobs"
+      ],
+      "answer": 1,
+      "explanation": "Ausgehender Datentransfer kann separat bepreist werden und muss samt tatsächlichem Pfad modelliert werden. Interne Healthchecks, abgeschriebene Endgeräte oder nicht ausgeführte Jobs beschreiben nicht den genannten providerübergreifenden Backuptransfer.",
+      "weight": 2,
+      "topic": "TCO und Kostenmodell",
+      "concept": "Egress im Datenfluss",
+      "cognitive_level": "Anwendung",
+      "mini_glossary": {
+        "Egress": "Datenverkehr, der einen abgerechneten Bereich verlässt.",
+        "Datenpfad": "Abfolge der Netze und Dienste, die Daten durchlaufen.",
+        "Instanzpreis": "Preis einer Compute-Ressource ohne zwingend alle Nebenkosten."
+      }
+    },
+    {
+      "question": "9. Variante A rechnet nur App-Compute ein; Variante B umfasst App, Datenbank, Backup und Betriebsteam. Warum ist ihre Rangfolge nicht belastbar?",
+      "options": [
+        "Weil Währungen zunächst auf denselben Stichtag normiert werden müssen und erst danach vergleichbar sind",
+        "Weil Managed Services typischerweise mehr Betriebsaufwand als selbst betriebene Dienste verursachen",
+        "Weil Personalkosten den beschafften Vermögenswerten statt der laufenden Nutzung zugerechnet werden sollten",
+        "Weil die Systemgrenzen verschieden sind und dadurch nicht dieselbe Leistung bepreist wird"
+      ],
+      "answer": 3,
+      "explanation": "Ein Kostenvergleich ist nur bei gleicher funktionaler und betrieblicher Systemgrenze aussagekräftig. Währung lässt sich normalisieren; Managed ist nicht zwangsläufig teurer, und Personalaufwand gehört unabhängig von CapEx/OpEx zur TCO.",
+      "weight": 3,
+      "topic": "TCO und Kostenmodell",
+      "concept": "Vergleichbare Systemgrenze",
+      "cognitive_level": "Analyse",
+      "mini_glossary": {
+        "Systemgrenze": "Festlegung, welche Komponenten und Leistungen in eine Rechnung eingehen.",
+        "Kostenbasis": "Gemeinsame Währung, Zeitraum und Steuerannahme eines Vergleichs.",
+        "Leistungsbasis": "Vergleichbarer Umfang und Qualitätsstand der betrachteten Leistung."
+      }
+    },
+    {
+      "question": "10. Ein Refactor bindet das Team sechs Monate und verzögert eine andere Produktverbesserung. Welche TCO-Position bildet diesen Verzicht ab?",
+      "options": [
+        "Opportunitätskosten der nicht realisierten Alternative",
+        "Abschreibung des bereits vorhandenen Quellcodes",
+        "Egresskosten der Entwicklungsumgebung",
+        "Sunk Costs des zukünftigen Providervertrags"
+      ],
+      "answer": 0,
+      "explanation": "Opportunitätskosten erfassen den Nutzen der besten verdrängten Alternative. Bestehender Code, Datentransfer oder zukünftige Vertragskosten beschreiben den entgangenen Produktnutzen durch gebundene Teamkapazität nicht.",
+      "weight": 3,
+      "topic": "TCO und Kostenmodell",
+      "concept": "Opportunitätskosten einer Migration",
+      "cognitive_level": "Anwendung",
+      "mini_glossary": {
+        "Opportunitätskosten": "Entgangener Nutzen der besten nicht gewählten Alternative.",
+        "Sunk Costs": "Bereits entstandene, nicht rückholbare Kosten.",
+        "Refactor": "Gezielte Änderung von Code und Architektur für neue Qualitätsziele."
+      }
+    },
+    {
+      "question": "11. Ein monatlicher Kostenblock soll auf erfolgreiche Analysen bezogen werden. Welche Kennzahl bildet die Unit Economics korrekt?",
+      "options": [
+        "Gesamtkosten geteilt durch bereitgestellte, aber ungenutzte CPU-Kerne",
+        "Listenpreis der größten Instanz geteilt durch die Zahl aller Requests",
+        "Nur variable Modellkosten geteilt durch die Zahl gestarteter Sessions",
+        "Zurechenbare Gesamtkosten geteilt durch die Zahl erfolgreich definierter Analyseeinheiten"
+      ],
+      "answer": 3,
+      "explanation": "Unit Economics verlangt eine fachlich definierte, erfolgreich erbrachte Einheit und die dazugehörige Kostenbasis. Kerne, beliebige Requests oder nur variable Modellkosten können Auslastung zeigen, lassen aber relevante Fix- und Betriebsanteile aus.",
+      "weight": 2,
+      "topic": "Unit Economics und Szenarien",
+      "concept": "Kosten pro erfolgreicher Einheit",
+      "cognitive_level": "Verständnis",
+      "mini_glossary": {
+        "Unit Economics": "Kosten- und Nutzenbetrachtung je fachlich definierter Einheit.",
+        "Fixkosten": "Kosten, die kurzfristig nicht mit der Nutzungsmenge variieren.",
+        "variable Kosten": "Kosten, die sich mit der Nutzungsmenge verändern."
+      }
+    },
+    {
+      "question": "12. Warum sollten Best-, Base- und Worst-Case getrennt gerechnet werden?",
+      "options": [
+        "Sie zeigen, wie Auslastung, Fehler, Parallelbetrieb und andere unsichere Annahmen die Entscheidung verändern.",
+        "Sie ersetzen Primärquellen, weil drei Szenarien Preisänderungen vollständig abdecken.",
+        "Sie garantieren, dass der reale Wert zwischen Best und Worst liegen wird.",
+        "Sie erlauben, für jede Variante eine andere Systemgrenze zu verwenden."
+      ],
+      "answer": 0,
+      "explanation": "Szenarien machen Unsicherheit und Entscheidungsrobustheit sichtbar. Sie sind keine Garantie und ersetzen weder aktuelle Preisquellen noch eine gemeinsame Systemgrenze; schlecht gewählte Bandbreiten können die Realität weiterhin verfehlen.",
+      "weight": 2,
+      "topic": "Unit Economics und Szenarien",
+      "concept": "Szenariorechnung",
+      "cognitive_level": "Anwendung",
+      "mini_glossary": {
+        "Best Case": "Günstige, aber begründete Kombination von Annahmen.",
+        "Base Case": "Als zentral angenommene Kombination von Annahmen.",
+        "Worst Case": "Ungünstige, aber plausible Kombination von Annahmen."
+      }
+    },
+    {
+      "question": "13. In einer Sensitivitätsanalyse kippt die Rangfolge zweier Varianten bereits bei einer kleinen Änderung der monatlichen Nutzung. Was folgt daraus?",
+      "options": [
+        "Die günstigere Variante im Base Case ist unabhängig von der Prognose eindeutig überlegen.",
+        "Die Entscheidung ist gegenüber der Nutzungsannahme fragil; Messung und Neubewertungskriterium sind besonders wichtig.",
+        "Die Nutzungsannahme darf aus dem Modell entfernt werden, damit die Rangfolge stabil bleibt.",
+        "Beide Varianten sind wirtschaftlich identisch, weil jede einmal die Rangfolge anführt."
+      ],
+      "answer": 1,
+      "explanation": "Ein früher Rangwechsel zeigt hohe Empfindlichkeit gegenüber einer unsicheren Eingabe. Das verlangt bessere Evidenz, Bandbreiten und einen Auslöser zur Neubewertung; Entfernen der Annahme oder Gleichsetzen der Varianten verschleiert die Fragilität.",
+      "weight": 3,
+      "topic": "Unit Economics und Szenarien",
+      "concept": "Entscheidungsfragilität",
+      "cognitive_level": "Analyse",
+      "mini_glossary": {
+        "Sensitivitätsanalyse": "Variation einzelner Annahmen zur Prüfung ihrer Ergebniswirkung.",
+        "Rangwechsel": "Änderung der bevorzugten Alternative bei geänderten Eingaben.",
+        "robuste Entscheidung": "Entscheidung, die über plausible Annahmebereiche stabil bleibt."
+      }
+    },
+    {
+      "question": "14. Ein Inferenzhost verursacht denselben Fixkostenblock bei 20.000 und 100.000 erfolgreichen Jobs. Welche Wirkung hat die höhere Nutzung bei sonst gleichen Kosten?",
+      "options": [
+        "Der Fixkostenanteil pro Job steigt, weil mehr Jobs dieselbe Ressource beanspruchen.",
+        "Der Fixkostenanteil pro Job sinkt, weil derselbe Block auf mehr erfolgreiche Einheiten verteilt wird.",
+        "Der Fixkostenanteil pro Job bleibt gleich, weil Fixkosten nicht von der Nutzung abhängen.",
+        "Der Fixkostenanteil pro Job wird null, weil hohe Nutzung jede Kapitalbindung aufhebt."
+      ],
+      "answer": 1,
+      "explanation": "Der Gesamtfixkostenblock bleibt gleich, doch der Quotient aus Fixkosten und erfolgreichen Jobs sinkt. Fixkosten sind mengenunabhängig als Gesamtbetrag, nicht als Stückkostenanteil; hohe Nutzung macht sie außerdem nicht vollständig null.",
+      "weight": 3,
+      "topic": "Unit Economics und Szenarien",
+      "concept": "Auslastung und Fixkostendegression",
+      "cognitive_level": "Anwendung",
+      "mini_glossary": {
+        "Fixkostendegression": "Sinkender Fixkostenanteil je Einheit bei wachsender Menge.",
+        "Auslastung": "Tatsächlich genutzter Anteil bereitgestellter Kapazität.",
+        "Stückkosten": "Zurechenbare Kosten je fachlicher Einheit."
+      }
+    },
+    {
+      "question": "15. Ein Break-even zwischen Managed- und Self-hosted-Variante wird aus einer einzigen Nutzungsprognose berechnet. Welche Ergänzung macht ihn entscheidungsfähig?",
+      "options": [
+        "Den Schnittpunkt auf volle Tausend Jobs runden und als feste Vertragsgrenze verwenden",
+        "Nur den günstigeren Listenpreis am Schnittpunkt durch eine zweite Währung bestätigen",
+        "Die Personalkosten aus beiden Varianten entfernen, weil sie den Schnittpunkt verzerren",
+        "Bandbreiten für Nutzung, Leerlauf, Personal, Fehler und Exit variieren und den Rangwechsel erklären"
+      ],
+      "answer": 3,
+      "explanation": "Ein Break-even hängt von mehreren unsicheren Kosten- und Mengentreibern ab. Bandbreiten zeigen, ob der Schnittpunkt stabil ist; Runden, Währungswechsel oder Weglassen realer Kosten erzeugen nur scheinbare Präzision.",
+      "weight": 3,
+      "topic": "Unit Economics und Szenarien",
+      "concept": "Robuster Break-even",
+      "cognitive_level": "Analyse",
+      "mini_glossary": {
+        "Break-even": "Punkt, an dem zwei Varianten denselben betrachteten Kosten- oder Nutzenwert erreichen.",
+        "Leerlauf": "Bezahlte, aber nicht produktiv genutzte Ressourcenzeit.",
+        "Bandbreite": "Begründeter Wertebereich für eine unsichere Annahme."
+      }
+    },
+    {
+      "question": "16. Welche Aussage folgt aus einem Vergleich von AWS, Azure und Google Cloud ohne gewichtete Anforderungen?",
+      "options": [
+        "Der Anbieter mit den meisten Diensten ist fachlich der beste für jede Zielarchitektur.",
+        "Der Anbieter mit dem niedrigsten Compute-Listenpreis ist wirtschaftlich der beste.",
+        "Der Anbieter mit der größten Regionszahl erfüllt automatisch die Datenschutzanforderungen.",
+        "Ein sachlicher Sieger ist nicht bestimmbar; Fähigkeiten, Verantwortungen und Ausschlusskriterien müssen zuerst gewichtet werden."
+      ],
+      "answer": 3,
+      "explanation": "Providerwahl ist kontextabhängig. Produktzahl, Einzelpreis oder Regionszahl beantworten weder Architekturpassung noch Datenfluss, Betrieb, TCO und Exit; erst explizite Anforderungen und Mindestkriterien machen Bewertungen vergleichbar.",
+      "weight": 3,
+      "topic": "Provider und Build-or-Buy",
+      "concept": "Anforderungsgebundene Providerwahl",
+      "cognitive_level": "Analyse",
+      "mini_glossary": {
+        "Ausschlusskriterium": "Mindestanforderung, deren Verletzung eine Option disqualifiziert.",
+        "Capability": "Benötigte Fähigkeit unabhängig vom Produktnamen.",
+        "gewichtete Matrix": "Bewertung von Alternativen anhand gewichteter Kriterien."
+      }
+    },
+    {
+      "question": "17. Eine Managed-Datenbank kostet im Infrastrukturblock mehr, könnte aber Patch-, Backup- und Bereitschaftsarbeit senken. Welche Build-or-Buy-Bewertung ist vollständig?",
+      "options": [
+        "Self-hosted gewinnt, weil Infrastrukturpreise alle weiteren Kosten dominieren.",
+        "Managed gewinnt, weil ein Anbieter jede Betriebs- und Datenschutzverantwortung übernimmt.",
+        "Beide sind gleichwertig, solange sie dieselbe Datenbankengine anbieten.",
+        "TCO, Verantwortungsgrenzen, Restore-Evidenz, Kompetenz, Lock-in und Exit werden gemeinsam verglichen."
+      ],
+      "answer": 3,
+      "explanation": "Build-or-Buy betrifft mehr als Infrastrukturpreis oder Engine. Managed verschiebt definierte Aufgaben, beseitigt aber nicht Kundenverantwortung; belastbar sind nur gleicher Leistungsumfang, Betriebsnachweise und vollständige Wechselkosten.",
+      "weight": 3,
+      "topic": "Provider und Build-or-Buy",
+      "concept": "Managed Data als Build-or-Buy",
+      "cognitive_level": "Analyse",
+      "mini_glossary": {
+        "Build-or-Buy": "Entscheidung zwischen Eigenleistung und extern bezogener Lösung.",
+        "Verantwortungsgrenze": "Zuordnung konkreter Betriebs- und Sicherheitsaufgaben.",
+        "Restore-Evidenz": "Nachweis einer tatsächlich ausgeführten Wiederherstellung."
+      }
+    },
+    {
+      "question": "18. Ein Provider erzielt den höchsten gewichteten Score, scheitert aber am verpflichtenden Datenstandort. Wie muss die Matrix ausgewertet werden?",
+      "options": [
+        "Der höchste Score gewinnt, weil Gewichte jedes Einzelkriterium bereits ausgleichen.",
+        "Der Provider wird ausgeschlossen; hohe Werte anderer Dimensionen dürfen das Mindestkriterium nicht kompensieren.",
+        "Der Datenstandort erhält nachträglich ein geringeres Gewicht, damit alle Anbieter vergleichbar bleiben.",
+        "Der Provider bleibt in der Auswahl, wenn ein späterer Vertragsnachtrag theoretisch möglich wäre."
+      ],
+      "answer": 1,
+      "explanation": "Ein hartes Mindestkriterium wirkt als Veto und darf nicht durch Durchschnittsbildung verschwinden. Eine nachträgliche Gewichtsanpassung oder hypothetische spätere Lösung würde die vorab definierte Entscheidungsmethode unterlaufen.",
+      "weight": 3,
+      "topic": "Provider und Build-or-Buy",
+      "concept": "Veto in der Entscheidungsmatrix",
+      "cognitive_level": "Anwendung",
+      "mini_glossary": {
+        "Veto-Kriterium": "Nicht kompensierbare Mindestanforderung.",
+        "Datenstandort": "Physischer oder rechtlicher Ort der Datenverarbeitung und Speicherung.",
+        "Kompensation": "Ausgleich eines niedrigen Werts durch hohe Werte anderer Kriterien."
+      }
+    },
+    {
+      "question": "19. Wie verhindert ein Team einen asymmetrischen Vergleich von Providerangeboten mit unterschiedlichen Produktnamen?",
+      "options": [
+        "Es normalisiert Produkte auf benötigte Fähigkeiten, Leistungsgrenzen und übernommene Verantwortungen.",
+        "Es vergleicht nur Dienste mit identischen Marketingbezeichnungen und identischer Oberfläche.",
+        "Es zählt je Provider die verfügbaren Produkte und verwendet die Summe als Reifegrad.",
+        "Es ordnet jeden proprietären Dienst pauschal dem nächstähnlichen Open-Source-Projekt zu."
+      ],
+      "answer": 0,
+      "explanation": "Capabilities, Grenzen und Verantwortungen bilden die gemeinsame Vergleichsebene. Namen und Kataloggröße können ähnliche Begriffe für verschiedene Leistungen verwenden; pauschale Open-Source-Zuordnung unterschlägt ebenfalls Betriebs- und Plattformsemantik.",
+      "weight": 3,
+      "topic": "Provider und Build-or-Buy",
+      "concept": "Capability-basierter Vergleich",
+      "cognitive_level": "Anwendung",
+      "mini_glossary": {
+        "Capability": "Fachlich oder technisch benötigte Fähigkeit.",
+        "Produktkatalog": "Anbieterspezifische Menge benannter Dienste.",
+        "asymmetrischer Vergleich": "Bewertung ungleich abgegrenzter Leistungen mit scheinbar gleichen Kriterien."
+      }
+    },
+    {
+      "question": "20. Ein Managed-Kubernetes-Dienst übernimmt die Control Plane. Welche Aufgabe bleibt für die nutzende Organisation sicher bestehen?",
+      "options": [
+        "Die physische Wartung sämtlicher Server im Rechenzentrum",
+        "Die sichere Konfiguration von Workloads, Identitäten, Netzen und Anwendungsdaten",
+        "Die Entwicklung und Signierung der Firmware aller Provider-Switches",
+        "Die Festlegung globaler Providerpreise und verfügbarer Regionen"
+      ],
+      "answer": 1,
+      "explanation": "Managed Control Plane verschiebt Infrastrukturaufgaben, nicht die Verantwortung für eigene Workloads, Rechte, Daten und Netzregeln. Physische Hardware, Providerfirmware, Preise und Regionen liegen hingegen außerhalb der Kundensteuerung.",
+      "weight": 2,
+      "topic": "Provider und Build-or-Buy",
+      "concept": "Verbleibende Kundenverantwortung",
+      "cognitive_level": "Verständnis",
+      "mini_glossary": {
+        "Control Plane": "Steuerungsebene zur Verwaltung einer Plattform.",
+        "Workload": "Ausgeführte Anwendung oder Rechenaufgabe.",
+        "Identity and Access Management (IAM)": "Verwaltung technischer Identitäten und Berechtigungen."
+      }
+    },
+    {
+      "question": "21. Ein Architecture Decision Record (ADR) soll das Lock-in einer Serverless-Architektur bewerten. Welche Probe misst die Wechselhürde am direktesten?",
+      "options": [
+        "Eine Kernfunktion samt Daten, Events, Konfiguration und Telemetrie auf eine Gegenplattform portieren",
+        "Die proprietären Produktbezüge in Code und Betriebsdokumentation erfassen und gewichten",
+        "Die vertraglich zugesagten Exportformate und Portabilitätsaussagen des Anbieters vergleichen",
+        "Ein Containerimage lokal starten und die umgebenden Managed-Dienste als unverändert annehmen"
+      ],
+      "answer": 0,
+      "explanation": "Lock-in zeigt sich im realen Wechsel von Code, Daten, Ereignismodell, IAM und Telemetrie. Produktzählung, Zusage oder isolierter Containerstart messen nicht die gekoppelten Plattformabhängigkeiten.",
+      "weight": 3,
+      "topic": "Lock-in, Exit und ADR",
+      "concept": "Portabilitätsprobe",
+      "cognitive_level": "Anwendung",
+      "mini_glossary": {
+        "Lock-in": "Wechselhürde durch technische, wirtschaftliche oder organisatorische Bindung.",
+        "Portierung": "Übertragung einer Lösung auf eine andere Zielumgebung.",
+        "Gegenplattform": "Alternative Plattform für einen vergleichenden Wechseltest."
+      }
+    },
+    {
+      "question": "22. Ein Vertrag verspricht Datenexport, doch niemand hat den Ablauf getestet. Welcher Exittest liefert die stärkste Evidenz?",
+      "options": [
+        "Die Exportklausel wird im Team vorgelesen und als technische Abnahme protokolliert.",
+        "Ein leerer Beispieldatensatz wird heruntergeladen, ohne Importziel und Konfiguration zu prüfen.",
+        "Repräsentative Daten, Konfiguration und notwendige Telemetrie werden exportiert, in ein frisches Ziel importiert und verifiziert.",
+        "Der Anbieter bestätigt schriftlich, dass Standardformate grundsätzlich unterstützt werden."
+      ],
+      "answer": 2,
+      "explanation": "Ein Ende-zu-Ende-Test zeigt Format, Vollständigkeit, Dauer, Abhängigkeiten und Wiederanlauf im Ziel. Vertrag, Leerdaten oder allgemeine Bestätigung sind wichtige Quellen, belegen aber die praktische Exitfähigkeit nicht.",
+      "weight": 3,
+      "topic": "Lock-in, Exit und ADR",
+      "concept": "Ausgeführter Exittest",
+      "cognitive_level": "Analyse",
+      "mini_glossary": {
+        "Exitfähigkeit": "Praktische Möglichkeit, einen Anbieter oder Dienst kontrolliert zu verlassen.",
+        "repräsentative Daten": "Testdaten mit relevanter Struktur und Größenordnung des Anwendungsfalls.",
+        "Importverifikation": "Prüfung von Vollständigkeit und Nutzbarkeit nach dem Einlesen."
+      }
+    },
+    {
+      "question": "23. Welche Kombination gehört in einen belastbaren Architecture Decision Record?",
+      "options": [
+        "Gewählter Provider, Kostenstand, Zielarchitektur und geplanter Umsetzungstermin",
+        "Kontext, Kriterien, Optionen, Entscheidung, Folgen, Evidenzgrenzen und Neubewertungsauslöser",
+        "Kontext, Kriterien, gewählte Option, Vorteile und detaillierter Implementierungsplan",
+        "Kontext, Optionen, Entscheidung und aktueller Status ohne Folgen oder Neubewertungskriterium"
+      ],
+      "answer": 1,
+      "explanation": "Ein ADR macht Entscheidungsgrund, Alternativen und Folgen nachvollziehbar und bleibt durch Evidenzgrenze sowie Neubewertung anschlussfähig. Einkaufsdaten oder eine einseitige Vorteilsliste erklären die Architekturentscheidung nicht.",
+      "weight": 2,
+      "topic": "Lock-in, Exit und ADR",
+      "concept": "Inhalt eines ADR",
+      "cognitive_level": "Verständnis",
+      "mini_glossary": {
+        "ADR": "Versionierter Datensatz einer bedeutsamen Architekturentscheidung.",
+        "Kontext": "Ausgangslage, Kräfte und Anforderungen einer Entscheidung.",
+        "Konsequenz": "Beabsichtigte und unbeabsichtigte Folge der gewählten Option."
+      }
+    },
+    {
+      "question": "24. Ein ADR bevorzugt Variante A. Später verdoppelt sich ein sensitiver Kostentreiber, wodurch Variante B klar besser wird. Wie ist vorzugehen?",
+      "options": [
+        "Das alte ADR bleibt unverändert gültig, weil Architekturentscheidungen nicht revidiert werden dürfen.",
+        "Der Kostentreiber wird aus der Rechnung entfernt, damit historische Konsistenz erhalten bleibt.",
+        "Die Entscheidung wird anhand des dokumentierten Auslösers neu bewertet und durch ein neues oder ablösendes ADR nachvollziehbar fortgeschrieben.",
+        "Variante B wird stillschweigend umgesetzt, weil die aktuelle Rechnung die Begründung bereits enthält."
+      ],
+      "answer": 2,
+      "explanation": "ADRs konservieren Entscheidungslogik, nicht Unveränderlichkeit. Neue entscheidungsrelevante Evidenz löst eine dokumentierte Neubewertung aus; stilles Ändern oder Entfernen unbequemer Treiber zerstört Nachvollziehbarkeit.",
+      "weight": 3,
+      "topic": "Lock-in, Exit und ADR",
+      "concept": "ADR-Neubewertung",
+      "cognitive_level": "Analyse",
+      "mini_glossary": {
+        "superseded": "Status eines ADR, das durch eine neuere Entscheidung abgelöst wurde.",
+        "Entscheidungsauslöser": "Vorab definierter Anlass für erneute Bewertung.",
+        "Entscheidungshistorie": "Nachvollziehbare Folge früherer und aktueller Beschlüsse."
+      }
+    },
+    {
+      "question": "25. Warum ist für arsnova.eu eine Kombination mehrerer R-Strategien plausibler als ein einziges R für das Gesamtsystem?",
+      "options": [
+        "Weil unterschiedliche Lizenzmodelle für jede Komponente einen eigenen Zielprovider nahelegen",
+        "Weil stabile Teile beibehalten, Betriebsgrenzen verschoben und gemessene Multi-Instanz-Lücken gezielt umgebaut werden können",
+        "Weil der dominierende App-Container die Strategie für alle übrigen Komponenten verbindlich festlegt",
+        "Weil eine Kombination Kosten- und Nachhaltigkeitsvorteile verschiedener Strategien addieren kann"
+      ],
+      "answer": 1,
+      "explanation": "Komponenten besitzen unterschiedliche Engpässe und Änderungsbedarfe. Retain/Rehost kann stabile Teile schützen, Replatform Verantwortungen trennen und Refactor konkrete Live-State-Grenzen adressieren; daraus folgt keine automatische Kosten- oder Nachhaltigkeitsgarantie.",
+      "weight": 3,
+      "topic": "Lock-in, Exit und ADR",
+      "concept": "Komponentenbezogene 6R-Kombination",
+      "cognitive_level": "Analyse",
+      "mini_glossary": {
+        "Migrationsportfolio": "Kombination verschiedener Strategien für unterschiedliche Komponenten.",
+        "Multi-Instanz-Lücke": "Nicht gelöste Semantik beim Betrieb mehrerer Anwendungsinstanzen.",
+        "Engpass": "Ressource oder Grenze, die die Systemleistung maßgeblich beschränkt."
+      }
+    },
+    {
+      "question": "26. Zwei Inferenzvarianten liefern vergleichbare Qualität. Welche Messung erlaubt die stärkste Aussage zur Ressourceneffizienz?",
+      "options": [
+        "Nominelle Leistungsaufnahme der Hardware bei maximaler Auslastung",
+        "Kürzeste Warmstart-Latenz einer einzelnen erfolgreichen Analyse",
+        "Energie und Ressourcen je erfolgreicher Analyse bei gleichem Workload samt Leerlauf",
+        "Anzahl veröffentlichter Nachhaltigkeitszertifikate des jeweiligen Anbieters"
+      ],
+      "answer": 2,
+      "explanation": "Effizienz bezieht Output auf eingesetzte Ressourcen und muss Last, Erfolg und Leerlauf gemeinsam erfassen. Datenblatt, Bestwert oder Zertifikatszahl können Kontext liefern, messen aber nicht den konkreten Anwendungsbetrieb.",
+      "weight": 3,
+      "topic": "Nachhaltigkeit und Effizienz",
+      "concept": "Energie pro erfolgreicher Einheit",
+      "cognitive_level": "Anwendung",
+      "mini_glossary": {
+        "Ressourceneffizienz": "Nutzbarer Output je eingesetzter Ressource.",
+        "Workload": "Definierte Menge und Form der auszuführenden Arbeit.",
+        "Warmstart": "Ausführung mit bereits initialisierter Laufzeit oder geladenem Modell."
+      }
+    },
+    {
+      "question": "27. Eine GPU-Instanz verarbeitet Jobs schnell, steht im Base Case aber 90 % der Zeit ungenutzt bereit. Welche FinOps-Folge ist zuerst zu prüfen?",
+      "options": [
+        "Ob hohe Spitzenleistung jede Betrachtung des Leerlaufs überflüssig macht",
+        "Ob Scheduling, kleinere Ressourcen oder bedarfsgerechte Aktivierung Kosten und Energie pro Job senken",
+        "Ob die GPU als CapEx statt OpEx klassifiziert werden kann",
+        "Ob mehr Logging die physische Auslastung automatisch erhöht"
+      ],
+      "answer": 1,
+      "explanation": "Hoher Leerlauf kann Unit Costs und Energie je erfolgreichem Job dominieren. Scheduling und Right-Sizing greifen diese Ursache an; Kostenklassifikation oder mehr Logs verändern die tatsächliche Auslastung nicht.",
+      "weight": 3,
+      "topic": "Nachhaltigkeit und Effizienz",
+      "concept": "Leerlauf und Right-Sizing",
+      "cognitive_level": "Analyse",
+      "mini_glossary": {
+        "Right-Sizing": "Anpassung einer Ressource an den tatsächlichen Leistungsbedarf.",
+        "Scheduling": "Zeitliche Steuerung von Jobs und Ressourcen.",
+        "Leerlaufquote": "Anteil bereitgestellter Zeit ohne produktive Nutzung."
+      }
+    },
+    {
+      "question": "28. Ein Provider wirbt mit »grüner Cloud«, nennt aber keine methodische Grenze für den konkreten Dienst. Welche Aussage ist wissenschaftlich angemessen?",
+      "options": [
+        "Das Marketing belegt emissionsfreien Betrieb jeder einzelnen Kundenanfrage.",
+        "Die Aussage ersetzt eine eigene Energiemessung, wenn der Provider erneuerbare Energie einkauft.",
+        "Der Provider ist automatisch nachhaltiger als jede lokale Infrastruktur.",
+        "Die Behauptung benötigt Systemgrenze, Zeitraum, Allokationsmethode und dienstbezogene Primärdaten."
+      ],
+      "answer": 3,
+      "explanation": "Nachhaltigkeitsaussagen hängen von Bilanzgrenze, Zeit, Energie- und Emissionszuordnung ab. Allgemeines Marketing oder Beschaffungsangaben lassen keine direkte Aussage für eine konkrete Anfrage oder Gegenarchitektur zu.",
+      "weight": 3,
+      "topic": "Nachhaltigkeit und Effizienz",
+      "concept": "Evidenzgrenze von Nachhaltigkeitsclaims",
+      "cognitive_level": "Analyse",
+      "mini_glossary": {
+        "Systemgrenze": "Festlegung der einbezogenen Prozesse und Ressourcen.",
+        "Allokation": "Zuordnung gemeinsamer Verbräuche oder Emissionen zu Einheiten.",
+        "Primärdaten": "Direkt für den untersuchten Gegenstand erhobene oder offizielle Ursprungsdaten."
+      }
+    },
+    {
+      "question": "29. Variante A benötigt halb so viel Energie pro Job, erzeugt aber doppelt so viele Fehlversuche wie Variante B. Welche Kennzahl verhindert eine falsche Effizienzrangfolge?",
+      "options": [
+        "Energie pro gestartetem Prozess unabhängig vom Ergebnis",
+        "Mittlere CPU-Auslastung ohne Zahl der bearbeiteten Jobs",
+        "Energie pro erfolgreicher fachlicher Einheit einschließlich Retry-Aufwand",
+        "Maximale Leistungsaufnahme der jeweils größten Ressource"
+      ],
+      "answer": 2,
+      "explanation": "Fehlversuche und Retries verbrauchen Ressourcen ohne fachlichen Output. Der Nenner muss daher erfolgreiche Einheiten abbilden und der Zähler den gesamten zugehörigen Aufwand; reine Prozess- oder Auslastungswerte können Variante A künstlich begünstigen.",
+      "weight": 3,
+      "topic": "Nachhaltigkeit und Effizienz",
+      "concept": "Erfolgsbereinigte Effizienz",
+      "cognitive_level": "Analyse",
+      "mini_glossary": {
+        "Retry": "Erneuter Ausführungsversuch nach einem Fehler.",
+        "fachliche Einheit": "Für Nutzer oder Betrieb sinnvoll definierter Output.",
+        "Effizienzrangfolge": "Reihenfolge von Varianten nach Output je Ressourceneinsatz."
+      }
+    },
+    {
+      "question": "30. Eine Optimierung halbiert Ressourcen pro Analyse, senkt zugleich den Preis und verdreifacht dadurch die Nutzungsmenge. Welche Bewertung ist vollständig?",
+      "options": [
+        "Der Gesamtverbrauch muss sinken, weil jede einzelne Analyse effizienter ist.",
+        "Der Gesamtverbrauch bleibt gleich, weil Preis und Energie voneinander unabhängig sind.",
+        "Stückeffizienz und Gesamtverbrauch müssen getrennt gemessen werden; Mehrnutzung kann Einsparungen teilweise oder vollständig aufzehren.",
+        "Die Optimierung ist nicht nachhaltig, weil jede Nutzungssteigerung grundsätzlich vermieden werden muss."
+      ],
+      "answer": 2,
+      "explanation": "Geringerer Ressourcenbedarf je Einheit garantiert bei stark wachsender Menge keinen geringeren Gesamtverbrauch. Eine vollständige Bewertung trennt Unit-Effekt, Nachfrageänderung und absoluten Verbrauch, ohne Nutzung pauschal als gut oder schlecht zu bewerten.",
+      "weight": 3,
+      "topic": "Nachhaltigkeit und Effizienz",
+      "concept": "Rebound-Effekt",
+      "cognitive_level": "Analyse",
+      "mini_glossary": {
+        "Rebound-Effekt": "Teilweise Aufhebung von Effizienzgewinnen durch zusätzliche Nutzung.",
+        "Stückeffizienz": "Ressourcenbedarf je fachlicher Einheit.",
+        "Gesamtverbrauch": "Absoluter Ressourceneinsatz über alle Einheiten."
+      }
+    }
+  ]
+}

@@ -1,8 +1,8 @@
 # Technische Quellen zu ARSnova.eu
 
-**Stand der Sichtung:** 13.09.2026
+**Stand der Sichtung:** 14.09.2026
 
-**Versionierungsbasis:** Branch `docs/cloud-computing-modulkonzept`, Checkout `af819bcb6494`
+**Versionierungsbasis:** Branch `main`, Checkout `beab199d62c0`
 
 **Zweck:** kuratierte Repositorynachweise für Lehre, Dossier und technische Einordnung
 

@@ -1,0 +1,623 @@
+{
+  "meta": {
+    "title": "Cloud Computing – MC-Test Themenblock TB09: Security, Observability und Resilienz",
+    "target_audience": "Bachelorstudierende der Informatik im Modul Cloud Computing",
+    "question_count": 30,
+    "difficulty_profile": {
+      "leicht": 0,
+      "mittel": 12,
+      "schwer": 18
+    },
+    "time_per_weight_minutes": {
+      "1": 0.5,
+      "2": 0.75,
+      "3": 1.0
+    },
+    "additional_buffer_minutes": 5,
+    "test_duration_minutes": 32,
+    "language": "de",
+    "updated": "2026-09-14"
+  },
+  "questions": [
+    {
+      "question": "1. Eine neue API-Mutation darf nur vom Host ausgeführt werden. Der Entwurf prüft bisher lediglich den Session-Code aus dem Request. Welche Korrektur stellt die Autorisierungsgrenze im Identity and Access Management (IAM) her?",
+      "options": [
+        "Die Mutation erhält einen längeren Session-Code und bleibt ansonsten unverändert.",
+        "Die Mutation wird nur in der Host-Oberfläche angezeigt und bleibt serverseitig unverändert.",
+        "Die Mutation verwendet eine serverseitige Host-Prozedur mit validiertem Host-Token.",
+        "Die Mutation protokolliert jeden Aufruf und bleibt über den Session-Code erreichbar."
+      ],
+      "answer": 2,
+      "explanation": "Ein Session-Code bezeichnet einen Raum, verleiht aber kein Host-Recht. Die Autorisierung muss serverseitig ein validiertes Host-Token prüfen; eine versteckte Oberfläche, ein längerer Code oder zusätzliche Logs ersetzen diese Kontrolle nicht.",
+      "weight": 2,
+      "topic": "IAM und Netzwerk",
+      "concept": "Serverseitige Host-Autorisierung",
+      "cognitive_level": "Anwendung",
+      "mini_glossary": {
+        "Autorisierung": "Prüfung, ob eine identifizierte Capability eine konkrete Aktion erlaubt.",
+        "Host-Token": "Besitzgebundene Capability für privilegierte Session-Aktionen.",
+        "Session-Code": "Öffentliche Raumkennung für Teilnehmerpfade, kein Host-Nachweis."
+      }
+    },
+    {
+      "question": "2. Ein Deployment-Agent soll genau ein freigegebenes Image aktualisieren und den zugehörigen Dienst neu starten. Welche Rechtevergabe folgt dem Prinzip der minimalen Berechtigung?",
+      "options": [
+        "Ein dauerhaftes Administratorkonto mit vollständigem Hostzugriff und ausführlicher Protokollierung",
+        "Eine zeitlich begrenzte Rolle mit Image-Update und Neustart genau des betroffenen Dienstes",
+        "Ein gemeinsames Betriebskonto mit Lesezugriff auf alle Secrets und Schreibzugriff auf alle Dienste",
+        "Eine an die Quell-IP gebundene Rolle mit vollständigem Zugriff auf die Containerplattform"
+      ],
+      "answer": 1,
+      "explanation": "Die Rolle ist auf notwendige Aktionen, Ressource und Zeit zu begrenzen. Protokollierung oder IP-Bindung können ergänzen, rechtfertigen aber weder globale Administration noch Zugriff auf fachfremde Secrets und Dienste.",
+      "weight": 2,
+      "topic": "IAM und Netzwerk",
+      "concept": "Least Privilege für Agenten",
+      "cognitive_level": "Verständnis",
+      "mini_glossary": {
+        "Least Privilege": "Vergabe nur der für eine Aufgabe notwendigen Rechte.",
+        "Dienstidentität": "Technische Identität eines Dienstes oder Automationsprozesses.",
+        "kurzlebige Berechtigung": "Recht, das nach einem engen Zeitfenster automatisch endet."
+      }
+    },
+    {
+      "question": "3. Ein optionaler Inferenzdienst verarbeitet minimierte Q&A-Snapshots. Welcher Netzaufbau reduziert den externen Angriffsweg am wirksamsten?",
+      "options": [
+        "Ein privater Endpunkt, den nur die App-Dienstidentität über den benötigten Port erreicht",
+        "Ein öffentlicher Endpunkt mit schwer erratbarem Pfad und deaktiviertem Verzeichnislisting",
+        "Ein öffentlicher Endpunkt mit Browser-CORS-Allowlist und gemeinsamem API-Schlüssel",
+        "Ein privater Endpunkt, den jedes Subnetz und jedes Dienstkonto uneingeschränkt erreicht"
+      ],
+      "answer": 0,
+      "explanation": "Ein privater, eng freigegebener Netzpfad begrenzt Erreichbarkeit und laterale Bewegung. CORS schützt keine Server-zu-Server-Schnittstelle, ein geheimer Pfad ist keine Zugriffskontrolle, und eine breite interne Freigabe schwächt die Segmentierung.",
+      "weight": 2,
+      "topic": "IAM und Netzwerk",
+      "concept": "Netzwerksegmentierung eines Inferenzdienstes",
+      "cognitive_level": "Verständnis",
+      "mini_glossary": {
+        "Netzwerksegmentierung": "Begrenzung zulässiger Verbindungen zwischen Vertrauensbereichen.",
+        "privater Endpunkt": "Schnittstelle ohne direkten öffentlichen Netzpfad.",
+        "laterale Bewegung": "Ausbreitung eines Angriffs von einem kompromittierten Dienst zu weiteren Ressourcen."
+      }
+    },
+    {
+      "question": "4. Ein Moderator-Lesepfad liefert auch nicht veröffentlichte Q&A-Beiträge. Der Client setzt dafür das Feld moderatorView=true. Welche serverseitige Prüfung ist entscheidend?",
+      "options": [
+        "Die Prüfung, ob die aufrufende Route im Browser den Bestandteil /host enthält",
+        "Die Prüfung des Host-Kontexts gegen die zur Session gehörende serverseitige Identität",
+        "Die Prüfung, ob der Session-Code syntaktisch gültig und momentan erreichbar ist",
+        "Die Prüfung, ob das Feld moderatorView in einem signierten Frontend-Build gesetzt wurde"
+      ],
+      "answer": 1,
+      "explanation": "Eine vom Client wählbare Ansichtsflagge darf keine privilegierten Daten freischalten. Der Backendpfad muss den Host-Kontext an die serverseitig aufgelöste Session binden; Route, Codeformat oder Buildherkunft beweisen kein Leserecht.",
+      "weight": 2,
+      "topic": "IAM und Netzwerk",
+      "concept": "Sessiongebundene Leseberechtigung",
+      "cognitive_level": "Anwendung",
+      "mini_glossary": {
+        "Trust Boundary": "Grenze, an der Daten oder Identitäten neu geprüft werden müssen.",
+        "Clientzustand": "Vom Browser kontrollierte und daher nicht allein vertrauenswürdige Eingabe.",
+        "Host-Kontext": "Serverseitig validierte Zuordnung einer Host-Capability zur Session."
+      }
+    },
+    {
+      "question": "5. Durch Network Address Translation (NAT) teilen viele legitime Hörsaalgeräte eine öffentliche IP. Welches Missbrauchsschutzdesign begrenzt Vote-Spam, ohne die Veranstaltung pauschal zu sperren?",
+      "options": [
+        "Votes werden pro validierter Teilnehmeridentität begrenzt; globale Notanker ergänzen das individuelle Budget.",
+        "Votes werden pro öffentlicher IP eng begrenzt; ein höheres globales Limit kompensiert gemeinsame Netze.",
+        "Votes werden pro Browser-User-Agent begrenzt; identische Geräte teilen sich ein gemeinsames Budget.",
+        "Votes werden pro Session-Code begrenzt; nach dem Limit bleibt nur ein manueller Reset durch den Host."
+      ],
+      "answer": 0,
+      "explanation": "Ein teilnehmerbezogenes Budget trennt legitime Geräte hinter gemeinsamer NAT-Adresse. Enge IP-, User-Agent- oder reine Session-Buckets können eine ganze Veranstaltung treffen und sind zudem keine verlässlichen Identitätsgrenzen.",
+      "weight": 2,
+      "topic": "IAM und Netzwerk",
+      "concept": "Shared-NAT-taugliches Rate-Limiting",
+      "cognitive_level": "Analyse",
+      "mini_glossary": {
+        "Shared NAT": "Netzübergang, bei dem viele Clients dieselbe öffentliche IP verwenden.",
+        "Rate-Limit": "Begrenzung zulässiger Aktionen in einem Zeitfenster.",
+        "Globalbudget": "Systemweiter Notanker gegen übergreifende Überlast oder Missbrauch."
+      }
+    },
+    {
+      "question": "6. Ein Job der Continuous Integration (CI) benötigt für wenige Minuten Schreibzugriff auf eine Artefaktablage. Welche Secret-Strategie reduziert das Langzeitrisiko am stärksten?",
+      "options": [
+        "Kurzlebige, auf Job und Zielressource begrenzte Credentials werden zur Laufzeit aus einer vertrauenswürdigen Identität abgeleitet.",
+        "Ein langlebiger Schlüssel wird verschlüsselt im Repository abgelegt und bei jedem Job entschlüsselt.",
+        "Ein gemeinsamer Administratorschlüssel wird als maskierte Umgebungsvariable an alle Jobs übergeben.",
+        "Ein langlebiger Schlüssel wird in der Build-Ausgabe verborgen und halbjährlich manuell ausgetauscht."
+      ],
+      "answer": 0,
+      "explanation": "Kurzlebige, eng gebundene Credentials verkleinern Zeitraum und Wirkung eines Leaks. Verschlüsselung im Repository, Maskierung oder seltene Rotation ändern nichts daran, dass ein langlebiges, breit nutzbares Geheimnis existiert.",
+      "weight": 2,
+      "topic": "Secrets und Supply Chain",
+      "concept": "Kurzlebige CI-Credentials",
+      "cognitive_level": "Anwendung",
+      "mini_glossary": {
+        "Credential": "Nachweis, mit dem sich ein technischer Akteur authentisiert.",
+        "Secret": "Vertraulicher Wert wie Token, Schlüssel oder Passwort.",
+        "Workload Identity": "Ableitung zeitlich begrenzter Rechte aus der Identität eines konkreten Jobs."
+      }
+    },
+    {
+      "question": "7. Ein Produktions-Dockerfile verwendet node:24-alpine ohne Digest. Welches Risiko bleibt trotz unverändertem Tag bestehen?",
+      "options": [
+        "Der Tag legt den Multi-Arch-Index fest; nur plattformspezifische Manifeste können später wechseln.",
+        "Der Tag kann später auf andere Bytes zeigen; reproduzierbare Builds benötigen eine unveränderliche Referenz.",
+        "Der Tag schützt den Buildinhalt; nur ein lokaler Layer-Cache kann abweichende Bytes einspielen.",
+        "Der Tag genügt als feste Scannerreferenz; ein Digest wird erst für Registry-Signaturen benötigt."
+      ],
+      "answer": 1,
+      "explanation": "Ein veränderlicher Tag benennt nicht dauerhaft denselben Inhalt. Ein Digest bindet den Build an konkrete Bytes; er ersetzt allerdings weder kontrollierte Updates noch Scans und Laufzeittests.",
+      "weight": 2,
+      "topic": "Secrets und Supply Chain",
+      "concept": "Unveränderliche Basisimage-Referenz",
+      "cognitive_level": "Verständnis",
+      "mini_glossary": {
+        "Image-Tag": "Veränderlicher menschenlesbarer Verweis auf ein Containerimage.",
+        "Digest": "Inhaltsadressierte unveränderliche Referenz auf ein Artefakt.",
+        "reproduzierbarer Build": "Build, dessen Eingaben und Ergebnis nachvollziehbar festgelegt sind."
+      }
+    },
+    {
+      "question": "8. Die Continuous Integration erzeugt eine CycloneDX-formatierte Software Bill of Materials (SBOM) für Produktionsabhängigkeiten. Welche Aussage beschreibt deren belastbaren Nutzen?",
+      "options": [
+        "Das SBOM bewertet bekannte Schwachstellen einschließlich ihrer Ausnutzbarkeit in der Laufzeitkonfiguration.",
+        "Das SBOM bildet die Integrität des Buildpfads ab und kann deshalb den separaten Image-Scan ersetzen.",
+        "Das SBOM inventarisiert Komponenten und Versionen für Analyse, Zuordnung und Incident-Reaktion.",
+        "Das SBOM weist neben den Versionen auch die rechtliche Zulässigkeit der enthaltenen Lizenzen nach."
+      ],
+      "answer": 2,
+      "explanation": "Ein SBOM schafft nachvollziehbare Komponenten- und Versionsinventur. Es bewertet nicht automatisch Ausnutzbarkeit, Lizenzlage oder Laufzeitkonfiguration und ergänzt daher Scanner, Reviews und Tests statt sie zu ersetzen.",
+      "weight": 2,
+      "topic": "Secrets und Supply Chain",
+      "concept": "Rolle eines Software Bill of Materials",
+      "cognitive_level": "Verständnis",
+      "mini_glossary": {
+        "SBOM": "Maschinenlesbare Stückliste der in einem Softwareartefakt enthaltenen Komponenten.",
+        "CycloneDX": "Standardformat für Komponenten- und Abhängigkeitsinventare.",
+        "Provenienz": "Nachvollziehbare Herkunft und Verarbeitung eines Artefakts."
+      }
+    },
+    {
+      "question": "9. Eine transitive Abhängigkeit wird nach dem letzten Release als kompromittiert gemeldet. Welche Reaktion verbindet Eindämmung und Nachweis am vollständigsten?",
+      "options": [
+        "Den direkten Paketverweis entfernen und das bestehende Artefakt erneut deployen.",
+        "Den Alarm schließen, nachdem ein statischer Import der Bibliothek ausgeschlossen wurde.",
+        "Den Registry-Zugang rotieren und vorhandene Artefakte ohne Neubau weiter betreiben.",
+        "Betroffene Artefakte per Lockfile und SBOM bestimmen, Nutzung prüfen, Version ersetzen, neu bauen, scannen und regressionsprüfen."
+      ],
+      "answer": 3,
+      "explanation": "Transitive Komponenten können im Build oder zur Laufzeit wirksam sein. Erst Inventur, Nutzungspfad, kontrolliertes Update, Neubau und Verifikation zeigen, welche Artefakte betroffen waren und ob die Maßnahme ohne Regression greift.",
+      "weight": 3,
+      "topic": "Secrets und Supply Chain",
+      "concept": "Supply-Chain-Incident",
+      "cognitive_level": "Analyse",
+      "mini_glossary": {
+        "transitive Abhängigkeit": "Bibliothek, die indirekt über eine andere Abhängigkeit eingebunden wird.",
+        "Lockfile": "Versionierte Auflösung des konkreten Abhängigkeitsgraphen.",
+        "Remediation": "Gezielte Behebung eines bestätigten Befunds."
+      }
+    },
+    {
+      "question": "10. Ein Zugangstoken ist versehentlich in einem CI-Log erschienen. Welche erste Maßnahme begrenzt den möglichen Schaden?",
+      "options": [
+        "Das Log umbenennen und den Token beim nächsten planmäßigen Release ersetzen.",
+        "Den Token widerrufen oder rotieren und anschließend Reichweite sowie Logkopien untersuchen.",
+        "Den Token in künftigen Ausgaben maskieren und die bestehende Berechtigung unverändert lassen.",
+        "Den betroffenen Job deaktivieren und denselben Token in einen anderen Secret-Speicher verschieben."
+      ],
+      "answer": 1,
+      "explanation": "Ein offengelegtes Credential ist als potenziell kompromittiert zu behandeln und zuerst unwirksam zu machen. Maskierung oder Verschieben verhindert nur weitere Sichtbarkeit; es entzieht bereits kopierten Werten keine Rechte.",
+      "weight": 2,
+      "topic": "Secrets und Supply Chain",
+      "concept": "Reaktion auf Secret-Exposure",
+      "cognitive_level": "Anwendung",
+      "mini_glossary": {
+        "Rotation": "Ersetzen eines Credentials durch einen neuen Wert.",
+        "Widerruf": "Sofortige Ungültigmachung einer Berechtigung.",
+        "Blast Radius": "Umfang der Ressourcen und Aktionen, die ein Vorfall betreffen kann."
+      }
+    },
+    {
+      "question": "11. Welche Telemetriegestaltung unterstützt die Diagnose von Rate-Limit-Wellen bei möglichst geringer Personenbeziehbarkeit?",
+      "options": [
+        "Ablehnungen werden mit vollständiger IP, Session-Code und Request-Body bis zum Semesterende gespeichert.",
+        "Ablehnungen werden nach festen Kategorien aggregiert; Logs enthalten Pfadklasse, aber keine vollständige Client-IP.",
+        "Ablehnungen werden global gezählt; Pfadkategorien und Redis-Zustand erscheinen nur bei manueller Diagnose.",
+        "Session-Codes werden gehasht und gemeinsam mit Rohheaders für eine feste Diagnosefrist gespeichert."
+      ],
+      "answer": 1,
+      "explanation": "Kategorisierte Aggregate ermöglichen betriebliche Unterscheidung ohne unnötige Rohidentifikatoren. Vollständige IPs, Codes, Bodies oder Rohheaders erhöhen Datenschutzrisiken; ein einziger Gesamtwert verliert dagegen zu viel Diagnoseinformation.",
+      "weight": 2,
+      "topic": "Datenschutz und Telemetrie",
+      "concept": "Datenminimierte Security-Telemetrie",
+      "cognitive_level": "Anwendung",
+      "mini_glossary": {
+        "Datenminimierung": "Beschränkung auf die für den Zweck erforderlichen Daten.",
+        "Aggregat": "Zusammengefasster Messwert ohne einzelne Rohereignisse.",
+        "Pfadklasse": "Feste Kategorie für technisch ähnliche Requests."
+      }
+    },
+    {
+      "question": "12. Eine Anfrage durchläuft Gateway, App und Datenbank. Die Gesamtzeit ist hoch, einzelne Dienstmetriken sind unauffällig. Welches Signal hilft am direktesten, die verlorene Zeit zwischen den Grenzen zu lokalisieren?",
+      "options": [
+        "Ein täglicher Gesamtzähler aller erfolgreichen Requests",
+        "Ein unstrukturierter Logdump aller drei Dienste ohne gemeinsame Korrelation",
+        "Ein verteilter Trace mit korrelierten Spans und Zeitstempeln",
+        "Ein monatliches Dashboard der durchschnittlichen CPU-Auslastung"
+      ],
+      "answer": 2,
+      "explanation": "Ein korrelierter Trace zerlegt den End-to-End-Pfad in zeitlich zugeordnete Abschnitte. Unkorrelierte Logs und grobe Summen können Auffälligkeiten zeigen, lokalisieren aber nicht zuverlässig die Zeit zwischen Dienstgrenzen.",
+      "weight": 2,
+      "topic": "Datenschutz und Telemetrie",
+      "concept": "Trace zur Latenzlokalisierung",
+      "cognitive_level": "Anwendung",
+      "mini_glossary": {
+        "Trace": "Korrelierter Ablauf einer Anfrage über mehrere Komponenten.",
+        "Span": "Zeitlich begrenzter Arbeitsschritt innerhalb eines Traces.",
+        "End-to-End-Latenz": "Gesamtdauer aus Sicht des aufrufenden Clients."
+      }
+    },
+    {
+      "question": "13. Für eine optionale Q&A-Themenanalyse benötigt das Modell nur Frage-ID und Text. Welcher Snapshot setzt Datenminimierung konsequent um?",
+      "options": [
+        "Frage-ID, Text, Nickname, Participant-ID und vollständiger Sessionverlauf",
+        "Frage-ID, Text, Host-Token und öffentliche Client-IP",
+        "Frage-ID, Text, Vote-Historie und Browser-Fingerprint",
+        "Frage-ID und Text mit anonymem Quellschlüssel, ohne Nicknames, Tokens oder Teilnehmer-IDs"
+      ],
+      "answer": 3,
+      "explanation": "Für die inhaltliche Themenanalyse genügen Text und eine nicht personenbezogene Zuordnung. Nicknames, Tokens, IDs, IPs und Verhaltenshistorien erweitern Zweck und Schadenspotenzial ohne funktionale Notwendigkeit.",
+      "weight": 3,
+      "topic": "Datenschutz und Telemetrie",
+      "concept": "Minimierter Inferenzsnapshot",
+      "cognitive_level": "Analyse",
+      "mini_glossary": {
+        "Snapshot": "Zeitlich abgegrenzte Eingabemenge für eine Analyse.",
+        "Zweckbindung": "Nutzung von Daten nur für den festgelegten Zweck.",
+        "Quellschlüssel": "Technischer Verweis auf eine Quelle ohne zusätzliche Identitätsdaten."
+      }
+    },
+    {
+      "question": "14. Ein Betreiber möchte App-Logs vorsorglich unbegrenzt speichern, obwohl der Normalbetrieb nur kurzfristige Incident-Diagnose erfordert. Welche Regel ist angemessen?",
+      "options": [
+        "Die kürzeste tragfähige Frist wird festgelegt; längere Sicherung erfolgt nur konkret begründet und zugriffsbeschränkt.",
+        "Unbegrenzte Aufbewahrung ist zulässig, sobald die Logdateien auf einem internen Volume liegen.",
+        "Unbegrenzte Aufbewahrung ist zulässig, sobald IP-Adressen durch einen stabilen Hash ersetzt werden.",
+        "Die Aufbewahrung richtet sich allein nach freiem Speicher, weil Betriebslogs keine Zweckbindung benötigen."
+      ],
+      "answer": 0,
+      "explanation": "Aufbewahrung muss dem Diagnosezweck entsprechen und begrenzt werden. Interner Speicher oder Hashing beseitigt weder Verknüpfbarkeit noch Zweck- und Zugriffsrisiken; freier Speicher ist kein Datenschutzkriterium.",
+      "weight": 3,
+      "topic": "Datenschutz und Telemetrie",
+      "concept": "Log-Retention",
+      "cognitive_level": "Analyse",
+      "mini_glossary": {
+        "Retention": "Festgelegte Aufbewahrungsdauer von Daten.",
+        "Incident": "Ereignis mit möglicher Beeinträchtigung von Sicherheit oder Betrieb.",
+        "Pseudonymisierung": "Ersetzung direkter Kennungen bei fortbestehender möglicher Zuordnung."
+      }
+    },
+    {
+      "question": "15. Rollierende Security-Zähler fallen während eines Redis-Ausfalls auf null. Welche Dashboarddarstellung verhindert die gefährlichste Fehlinterpretation?",
+      "options": [
+        "Die Nullwerte werden wie reguläre Messwerte dargestellt und der Rediszustand in einem separaten Panel gezeigt.",
+        "Die Telemetrie wird als unbekannt dargestellt und gemeinsam mit Redis- und Datenbankzustand bewertet.",
+        "Der letzte valide Zählerstand wird bis zur Redis-Erholung als aktueller Wert fortgeschrieben.",
+        "Die Alarmgrenzen werden während des Ausfalls auf den zuletzt beobachteten Normalwert gesetzt."
+      ],
+      "answer": 1,
+      "explanation": "Fehlende Messwerte bei ausgefallenem Telemetriespeicher sind kein Nachweis für fehlende Ereignisse. Ein expliziter unbekannter Zustand bewahrt aktive Incidents vor falscher Recovery; fortgeschriebene oder umgedeutete Nullwerte verschleiern die Messlücke.",
+      "weight": 3,
+      "topic": "Datenschutz und Telemetrie",
+      "concept": "Unbekannter Telemetriezustand",
+      "cognitive_level": "Analyse",
+      "mini_glossary": {
+        "Messlücke": "Zeitraum ohne verlässliche Beobachtungsdaten.",
+        "Fail-safe": "Verhalten, das bei Unsicherheit keinen unberechtigten sicheren Zustand behauptet.",
+        "Recovery": "Feststellung und Kommunikation der Rückkehr in einen gesunden Zustand."
+      }
+    },
+    {
+      "question": "16. Das Team will einen Service Level Indicator (SLI) für ein späteres Service Level Objective (SLO) des Join-Pfads wählen. Welcher SLI ist aus Nutzersicht am aussagekräftigsten?",
+      "options": [
+        "Anteil der Join-Testfälle, die im aktuellen Repository erfolgreich ausgeführt werden",
+        "Anteil gültiger Join-Versuche, die innerhalb der festgelegten Latenz erfolgreich enden",
+        "Anteil der Minuten, in denen die CPU-Auslastung des Datenbankhosts unter dem Limit bleibt",
+        "Anteil der Deployments, nach denen mindestens ein App-Container ohne Neustart läuft"
+      ],
+      "answer": 1,
+      "explanation": "Ein guter SLI misst das vom Nutzer erlebte Ergebnis: Erfolg innerhalb einer relevanten Zeit. Testanzahl, CPU und Containerstarts sind Diagnose- oder Prozesssignale, aber keine unmittelbare Messung erfolgreicher Joins.",
+      "weight": 3,
+      "topic": "SLI, SLO und Alerting",
+      "concept": "Nutzerbezogener Join-SLI",
+      "cognitive_level": "Anwendung",
+      "mini_glossary": {
+        "SLI": "Gemessenes Signal für eine relevante Diensteigenschaft.",
+        "SLO": "Zielwert für einen SLI über ein definiertes Fenster.",
+        "Latenzschwelle": "Zeitgrenze, innerhalb der ein Vorgang als rechtzeitig gilt."
+      }
+    },
+    {
+      "question": "17. Ein SLO von 99,9 % wird in einem 30-Tage-Fenster definiert. Welche Aussage zum Fehlerbudget ist korrekt?",
+      "options": [
+        "Es erlaubt genau 0,1 % beliebiger Sicherheitsverletzungen, solange die Verfügbarkeit stimmt.",
+        "Es ist ein zusätzlicher Lastgrenzwert, der oberhalb von 99,9 % Auslastung aktiviert wird.",
+        "Es quantifiziert die tolerierte Abweichung vom Ziel im Fenster, ohne Sicherheitsanforderungen aufzuheben.",
+        "Es garantiert eine gleichmäßige Verteilung jeder Störung über alle Tage des Fensters."
+      ],
+      "answer": 2,
+      "explanation": "Das Fehlerbudget ist die Differenz zum Zuverlässigkeitsziel im betrachteten Fenster. Es legitimiert keine Security-Verstöße, misst keine Ressourcenauslastung und schreibt keine zeitliche Verteilung von Ausfällen vor.",
+      "weight": 2,
+      "topic": "SLI, SLO und Alerting",
+      "concept": "Bedeutung eines Fehlerbudgets",
+      "cognitive_level": "Verständnis",
+      "mini_glossary": {
+        "Fehlerbudget": "Tolerierter Anteil nicht erfüllter SLO-Ereignisse im Messfenster.",
+        "Messfenster": "Zeitraum, über den ein Ziel ausgewertet wird.",
+        "Verfügbarkeit": "Anteil der Zeit oder Vorgänge, in denen ein Dienst nutzbar ist."
+      }
+    },
+    {
+      "question": "18. Ein Alarm auf jeden einzelnen HTTP-Fehler erzeugt bei kurzen Reconnect-Wellen hunderte Meldungen. Welche Überarbeitung verbessert Handlungsrelevanz, ohne den Fehler zu verbergen?",
+      "options": [
+        "Auf eine anhaltende nutzerrelevante Fehlerrate mit Schweregrad, Deduplizierung und Recovery alarmieren.",
+        "Automatische Fehleralarme durch eine tägliche Auswertung gemeldeter Nutzerprobleme ersetzen.",
+        "Einzelne Fehler nach Statuscode deduplizieren, aber ohne Zeitfenster und Recovery weiterhin senden.",
+        "Den Tagesmittelwert mit fester Schwelle alarmieren und kürzere Spitzen im Wochenbericht auswerten."
+      ],
+      "answer": 0,
+      "explanation": "Ein zeitlich bestätigtes, nutzerbezogenes Signal reduziert Rauschen und behält akute Wirkung sichtbar; Deduplizierung und Recovery unterstützen den Incident-Lebenszyklus. Abschalten, Informationsverlust oder reine Tagesmittel können relevante Ausfälle verschleiern.",
+      "weight": 3,
+      "topic": "SLI, SLO und Alerting",
+      "concept": "Handlungsrelevantes Alerting",
+      "cognitive_level": "Analyse",
+      "mini_glossary": {
+        "Alert Fatigue": "Abstumpfung durch zu viele nicht handlungsrelevante Alarme.",
+        "Deduplizierung": "Zusammenfassung wiederholter Meldungen desselben Zustands.",
+        "Recovery-Ereignis": "Meldung, dass ein zuvor aktiver Alarmzustand beendet ist."
+      }
+    },
+    {
+      "question": "19. Der Monitoring-Poller kann den Diagnoseendpunkt nicht erreichen. Gleichzeitig war zuvor ein kritischer Metrikalarm aktiv. Wie muss der Alarmzustand behandelt werden?",
+      "options": [
+        "Der aktive Alarm wird als behoben gemeldet, weil kein neuer Grenzwert gemessen wurde.",
+        "Der aktive Alarm wird gelöscht und nach Wiederkehr der Messung vollständig neu bewertet.",
+        "Der aktive Alarm wird zu einer Warnung herabgestuft, weil die Ursache nicht mehr beobachtbar ist.",
+        "Der aktive Alarm bleibt bestehen; seine Recovery wird bis zu einer verlässlichen gesunden Messung eingefroren."
+      ],
+      "answer": 3,
+      "explanation": "Ein Probe-Ausfall macht die Telemetrie unbekannt, nicht gesund. Eine Recovery darf erst aus verlässlichen Messungen folgen; Löschen oder Herabstufen würde einen möglicherweise fortbestehenden kritischen Zustand verschleiern.",
+      "weight": 3,
+      "topic": "SLI, SLO und Alerting",
+      "concept": "Alarmzustand bei Probe-Ausfall",
+      "cognitive_level": "Analyse",
+      "mini_glossary": {
+        "Probe": "Automatisierte Abfrage eines Zustands oder Messwerts.",
+        "Alarmzustand": "Persistente Bewertung einer beobachteten Regelverletzung.",
+        "Dead Man's Switch": "Externe Kontrolle, die ausbleibende Lebenszeichen erkennt."
+      }
+    },
+    {
+      "question": "20. Ein Runbook empfiehlt bei PDF-Sättigung pauschal, das Parallelitätslimit zu verdoppeln. Frühere Tests zeigten dabei schlechtere Vote-Latenzen. Welche Korrektur ist fachlich richtig?",
+      "options": [
+        "Das Limit automatisch verdoppeln, sobald ein einzelner PDF-Job aktiv ist.",
+        "Das Limit dauerhaft entfernen, weil Backpressure allein im Browser umgesetzt werden sollte.",
+        "Ablehnungen, Fehler und Ressourcendruck diagnostizieren; eine Limitänderung erst nach reproduzierbarem Lasttest freigeben.",
+        "PDF-Requests priorisieren und Vote-Requests während jedes Exports vorübergehend deaktivieren."
+      ],
+      "answer": 2,
+      "explanation": "Ein Ressourcenlimit schützt einen wichtigeren Live-Pfad und darf nicht ohne Ursachenanalyse und Lastnachweis gelockert werden. Ein aktiver Job ist nicht automatisch eine Störung; Abschalten von Votes oder grenzenlose Parallelität verschlechtert die Nutzerwirkung.",
+      "weight": 3,
+      "topic": "SLI, SLO und Alerting",
+      "concept": "Evidenzbasiertes Runbook",
+      "cognitive_level": "Analyse",
+      "mini_glossary": {
+        "Runbook": "Geprüfte Anleitung für Diagnose, Maßnahme und Eskalation.",
+        "Sättigung": "Zustand, in dem eine Ressource ihr nutzbares Limit erreicht.",
+        "Parallelitätslimit": "Maximal gleichzeitig zugelassene ressourcenintensive Arbeiten."
+      }
+    },
+    {
+      "question": "21. Zwei App-Instanzen laufen auf demselben Host und verwenden dieselbe Stromversorgung sowie denselben Datenträger. Welche Resilienzaussage ist gerechtfertigt?",
+      "options": [
+        "Die Instanzen schützen gegen einzelne Prozessfehler, aber nicht gegen gemeinsame Host- und Infrastrukturfehler.",
+        "Die Instanzen stellen Hochverfügbarkeit her, weil mindestens ein Prozess bei jedem Fehler weiterläuft.",
+        "Die Instanzen beseitigen Datenverlust, weil beide Prozesse denselben persistenten Datenträger verwenden.",
+        "Die Instanzen beweisen horizontale Skalierung, weil sie unabhängig vom Routing parallel gestartet wurden."
+      ],
+      "answer": 0,
+      "explanation": "Redundante Prozesse können einen isolierten Prozessausfall abfangen, teilen aber Host, Strom und Storage als gemeinsame Fehlerdomäne. Hochverfügbarkeit, Datenhaltbarkeit und Scale-out erfordern zusätzliche unabhängige Pfade und Tests.",
+      "weight": 3,
+      "topic": "Resilienz und Degradation",
+      "concept": "Gemeinsame Fehlerdomäne",
+      "cognitive_level": "Analyse",
+      "mini_glossary": {
+        "Fehlerdomäne": "Ressourcenbereich, den ein einzelner Ausfall gemeinsam betreffen kann.",
+        "Redundanz": "Mehrfach vorhandene Komponente oder Fähigkeit zur Fehlerüberbrückung.",
+        "Hochverfügbarkeit": "Architektur und Betrieb mit begrenzter Unterbrechung trotz definierter Fehler."
+      }
+    },
+    {
+      "question": "22. Ein optionaler Inferenzdienst antwortet langsam. Welche Reaktion ist echte kontrollierte Degradation?",
+      "options": [
+        "Alle Q&A-Submits warten unbegrenzt, damit kein semantisches Ergebnis verloren geht.",
+        "Neue Joins werden blockiert, bis die Inferenzqueue vollständig abgearbeitet ist.",
+        "Die gesamte Live-Session endet, sobald das erste Inferenz-Timeout auftritt.",
+        "Die Analyse wird zeitlich begrenzt abgebrochen; der deterministische Kernpfad bleibt nutzbar und der Fallback wird gemessen."
+      ],
+      "answer": 3,
+      "explanation": "Kontrollierte Degradation erhält die Kernleistung und schränkt nur die optionale Fähigkeit nachvollziehbar ein. Unbegrenztes Warten, Blockieren anderer Pfade oder Sitzungsabbruch koppeln den Hotpath gerade an den Zusatzdienst.",
+      "weight": 3,
+      "topic": "Resilienz und Degradation",
+      "concept": "Graceful Degradation",
+      "cognitive_level": "Anwendung",
+      "mini_glossary": {
+        "Graceful Degradation": "Gezielter Funktionsabbau bei Erhalt zentraler Leistungen.",
+        "Fallback": "Definierter Ersatzpfad bei nicht verfügbarer Zusatzfunktion.",
+        "Timeout": "Zeitgrenze, nach der eine wartende Operation beendet wird."
+      }
+    },
+    {
+      "question": "23. Eine Inferenzqueue wächst schneller, als ein einzelner Worker sie abbaut. Welche Maßnahme begrenzt die Auswirkung am vollständigsten?",
+      "options": [
+        "Queue, Annahmerate und Wartezeit begrenzen, alte Arbeit abbrechen und einen fachlichen Fallback auslösen.",
+        "Die Queue unbegrenzt wachsen lassen und nur den Durchschnittsdurchsatz im Tagesbericht anzeigen.",
+        "Jeden fehlgeschlagenen Job sofort ohne Obergrenze erneut einreihen und die Workerzahl konstant halten.",
+        "Die Annahme neuer Kernrequests stoppen, bis sämtliche optionalen Jobs erfolgreich beendet sind."
+      ],
+      "answer": 0,
+      "explanation": "Bounded Queues, Admission Control, Abbruch und Fallback verhindern unbeschränktes Speicher- und Latenzwachstum. Unendliche Warteschlangen oder Retries verstärken die Überlast; das Stoppen von Kernpfaden kehrt die fachliche Priorität um.",
+      "weight": 3,
+      "topic": "Resilienz und Degradation",
+      "concept": "Backpressure für optionale Arbeit",
+      "cognitive_level": "Analyse",
+      "mini_glossary": {
+        "Backpressure": "Mechanismus zur Begrenzung von Zufluss bei ausgelasteter Verarbeitung.",
+        "Admission Control": "Entscheidung, welche neue Arbeit unter Last angenommen wird.",
+        "bounded Queue": "Warteschlange mit fester Kapazitäts- oder Zeitgrenze."
+      }
+    },
+    {
+      "question": "24. Ein tägliches Backup wurde ohne Fehler erzeugt, aber noch nie wiederhergestellt. Welche Aussage zu Recovery Point Objective (RPO) und Recovery Time Objective (RTO) ist belastbar?",
+      "options": [
+        "Die Daten sind wiederherstellbar, weil der Backup-Prozess erfolgreich beendet wurde.",
+        "Das RTO ist erfüllt, weil die Backup-Dauer unter dem Zielwert lag.",
+        "Die Sicherung existiert; Wiederherstellbarkeit, Integrität und tatsächliche Recovery-Zeit bleiben unbewiesen.",
+        "Das RPO beträgt null, weil jeden Tag ein vollständiges Backup erstellt wird."
+      ],
+      "answer": 2,
+      "explanation": "Ein erfolgreicher Sicherungslauf belegt nur das erzeugte Artefakt. Erst ein Restore in eine geeignete Zielumgebung prüft Lesbarkeit, Vollständigkeit, Integrität und Zeit; Backupfrequenz allein ergibt weder RPO null noch ein RTO.",
+      "weight": 3,
+      "topic": "Resilienz und Degradation",
+      "concept": "Restore als Recovery-Nachweis",
+      "cognitive_level": "Analyse",
+      "mini_glossary": {
+        "RPO": "Maximal tolerierter Datenverlust gemessen als Zeitspanne.",
+        "RTO": "Zielzeit bis zur Wiederherstellung einer Leistung.",
+        "Restore-Test": "Ausgeführte Wiederherstellung und Prüfung eines Backups."
+      }
+    },
+    {
+      "question": "25. App und optionaler Machine-Learning-(ML-)Worker teilen denselben Prozess und dasselbe unbeschränkte Speicherbudget. Welche Ausfallfolge ist am wahrscheinlichsten zu untersuchen?",
+      "options": [
+        "Eine speicherintensive Inferenz kann den Live-Prozess mit beeinträchtigen und den vorgesehenen Fallback unerreichbar machen.",
+        "Eine speicherintensive Inferenz bleibt automatisch isoliert, weil asynchrone Funktionen eigene Fehlerdomänen bilden.",
+        "Eine speicherintensive Inferenz verbessert die Vote-Latenz, weil beide Pfade denselben Cache verwenden.",
+        "Eine speicherintensive Inferenz kann nur das Modell treffen, solange beide Pfade denselben Event Loop verwenden."
+      ],
+      "answer": 0,
+      "explanation": "Gemeinsamer Prozess und unbeschränktes Budget koppeln Ressourcenerschöpfung an den Live-Pfad. Asynchronität oder gemeinsamer Cache schaffen keine Isolation; stürzt der Prozess, kann auch der logisch definierte Fallback nicht mehr ausgeführt werden.",
+      "weight": 3,
+      "topic": "Resilienz und Degradation",
+      "concept": "Ressourcenisolation",
+      "cognitive_level": "Analyse",
+      "mini_glossary": {
+        "Ressourcenisolation": "Begrenzung, damit Last eines Dienstes andere Dienste nicht unkontrolliert verdrängt.",
+        "Event Loop": "Ausführungsmodell für asynchrone Arbeit in einem Node.js-Prozess.",
+        "Kaskadenausfall": "Ausbreitung eines Fehlers auf abhängige oder gemeinsam betriebene Komponenten."
+      }
+    },
+    {
+      "question": "26. Ein Scanner meldet einen öffentlich erreichbaren Verwaltungsport. Welcher Ablauf erfüllt den Nachweis einer belastbaren Remediation?",
+      "options": [
+        "Befund schließen, Portregel ändern und bei ausbleibenden Beschwerden von Erfolg ausgehen",
+        "Befund reproduzieren, Risiko bewerten, begrenzt ändern, Angriffspfad negativ und Kernpfade regressionsprüfen",
+        "Portregel ändern, sämtliche Logs löschen und den Scan mit anderer Signatur wiederholen",
+        "Scanner deaktivieren, wenn der Port nur in einer nicht dokumentierten Umgebung erreichbar ist"
+      ],
+      "answer": 1,
+      "explanation": "Eine belastbare Behebung verbindet bestätigten Befund, Risikokontext, freigegebene Maßnahme und unabhängige Verifikation. Beschwerden, Loglöschung, Signaturwechsel oder Scannerabschaltung prüfen weder geschlossenen Angriffspfad noch Nebenwirkungen.",
+      "weight": 3,
+      "topic": "Remediation und Verifikation",
+      "concept": "Befund-zu-Verifikation-Kette",
+      "cognitive_level": "Analyse",
+      "mini_glossary": {
+        "Befund": "Beobachtete und reproduzierbare sicherheitsrelevante Abweichung.",
+        "Negativtest": "Test, dass ein verbotener Pfad tatsächlich abgewiesen wird.",
+        "Regressionstest": "Test, dass legitimes bestehendes Verhalten erhalten bleibt."
+      }
+    },
+    {
+      "question": "27. Ein Vulnerability-Scanner markiert eine Bibliothek als kritisch, doch die betroffene Funktion ist im Produktionsartefakt nicht enthalten. Wie ist fachlich vorzugehen?",
+      "options": [
+        "Der Befund wird ungeprüft ignoriert, weil Scanner grundsätzlich zu viele Fehler melden.",
+        "Die gesamte Anwendung wird sofort ersetzt, unabhängig von Erreichbarkeit und Artefaktinhalt.",
+        "Die Schwere wird allein auf niedrig gesetzt, weil kein Exploit öffentlich dokumentiert ist.",
+        "Artefakt, Version und Erreichbarkeit werden belegt; der Befund wird als False Positive oder Restrisiko nachvollziehbar entschieden."
+      ],
+      "answer": 3,
+      "explanation": "Ein Scannerhinweis ist ein Prüfauftrag, kein automatisches Urteil. Nur Evidenz zu konkretem Artefakt, Version und Nutzungspfad erlaubt die Einordnung; pauschales Ignorieren, Ersetzen oder Herabstufen ist nicht nachvollziehbar.",
+      "weight": 3,
+      "topic": "Remediation und Verifikation",
+      "concept": "False-Positive-Prüfung",
+      "cognitive_level": "Analyse",
+      "mini_glossary": {
+        "False Positive": "Gemeldeter Befund, dessen behauptete Betroffenheit im konkreten System nicht besteht.",
+        "Erreichbarkeit": "Möglichkeit, einen verwundbaren Codepfad unter realen Bedingungen auszuführen.",
+        "Restrisiko": "Nach Maßnahmen verbleibendes bewusst bewertetes Risiko."
+      }
+    },
+    {
+      "question": "28. Eine Netzwerkregel soll verhindern, dass ein nicht autorisierter Client aus dem öffentlichen Netz einen privaten Datenbankport erreicht. Welcher Test ist der aussagekräftigste Negativnachweis?",
+      "options": [
+        "Die Dokumentation der Firewallregel wird auf korrekte Syntax gelesen.",
+        "Ein erfolgreicher Datenbankzugriff aus dem erlaubten privaten App-Pfad wird ausgeführt.",
+        "Ein Verbindungsversuch aus dem verbotenen öffentlichen Pfad wird reproduzierbar abgewiesen und ohne Secret-Leak beobachtet.",
+        "Die Datenbank wird während des Tests beendet, sodass jeder Verbindungsversuch scheitert."
+      ],
+      "answer": 2,
+      "explanation": "Der Test muss genau den verbotenen Pfad bei ansonsten erreichbarem Ziel ausführen. Syntaxprüfung und erlaubter Positivpfad ergänzen die Evidenz; eine abgeschaltete Datenbank kann nicht zeigen, ob die Netzwerkregel wirkt.",
+      "weight": 3,
+      "topic": "Remediation und Verifikation",
+      "concept": "Gezielter Netzwerk-Negativtest",
+      "cognitive_level": "Anwendung",
+      "mini_glossary": {
+        "Positivtest": "Test, dass erlaubtes Verhalten funktioniert.",
+        "Negativtest": "Test, dass verbotenes Verhalten zuverlässig scheitert.",
+        "Firewallregel": "Regel, die Netzverkehr anhand definierter Merkmale zulässt oder verwirft."
+      }
+    },
+    {
+      "question": "29. Nach einer Härtung blockiert der Angriffspfad, aber legitime WebSocket-Reconnects schlagen bei hoher Last fehl. Welche Schlussfolgerung ist angemessen?",
+      "options": [
+        "Die Härtung kann freigegeben werden; die Reconnect-Probleme werden als getrennte Optimierung nachgelagert.",
+        "Die Reconnect-Fehler sind ein akzeptabler Trade-off, solange keine persistenten Daten offengelegt werden.",
+        "Die Schutzregel wird vorerst entfernt und später durch eine lastabhängige Variante ersetzt.",
+        "Die Maßnahme hat eine betriebliche Regression; Schutzwirkung und Kernfunktion müssen gemeinsam neu entworfen und getestet werden."
+      ],
+      "answer": 3,
+      "explanation": "Security und Verfügbarkeit sind gemeinsam zu erfüllen. Ein bestandener Angriffstest schließt Nebenwirkungen nicht aus; zugleich wäre ersatzloses Entfernen ohne Alternative falsch. Erforderlich ist eine begrenzte, erneut verifizierte Maßnahme.",
+      "weight": 3,
+      "topic": "Remediation und Verifikation",
+      "concept": "Security-Performance-Regression",
+      "cognitive_level": "Analyse",
+      "mini_glossary": {
+        "Regression": "Unbeabsichtigte Verschlechterung zuvor funktionierenden Verhaltens.",
+        "Reconnect": "Wiederaufbau einer unterbrochenen Echtzeitverbindung.",
+        "Trade-off": "Zielkonflikt, der transparent bewertet und getestet werden muss."
+      }
+    },
+    {
+      "question": "30. Ein privater Inferenzendpunkt, minimierte Snapshots und Image-Digests sind umgesetzt; Fault-Injection deckt Timeout und Prozessausfall ab. Welcher Restrisikobericht ist am belastbarsten?",
+      "options": [
+        "Die geprüften Kontrollen schließen die betrachteten Risiken; weitere Modell- und Lieferkettenprüfung ist nicht erforderlich.",
+        "Der private Endpunkt schließt Modell- und Lieferkettenrisiken; beobachtet werden muss vor allem die Verfügbarkeit.",
+        "Der Fallback schließt Betriebsrisiken; weiter zu prüfen sind vor allem verbleibende Datenschutzfragen.",
+        "Die geprüften Risiken sind reduziert; Modellfehler, neue Schwachstellen und ungetestete Lasten bleiben mit Owner dokumentiert."
+      ],
+      "answer": 3,
+      "explanation": "Kontrollen reduzieren konkrete Angriffspfade, beweisen aber keine Risikofreiheit. Ein belastbarer Bericht benennt verbleibende Modell-, Supply-Chain- und Gültigkeitsgrenzen sowie Verantwortung und Auslöser für erneute Prüfung.",
+      "weight": 3,
+      "topic": "Remediation und Verifikation",
+      "concept": "Dokumentiertes Restrisiko",
+      "cognitive_level": "Analyse",
+      "mini_glossary": {
+        "Restrisiko": "Nach Kontrollen verbleibendes und bewusst akzeptiertes oder weiter behandeltes Risiko.",
+        "Gültigkeitsgrenze": "Bereich, für den vorhandene Evidenz tatsächlich trägt.",
+        "Owner": "Verantwortliche Rolle für Beobachtung und nächste Maßnahme."
+      }
+    }
+  ]
+}

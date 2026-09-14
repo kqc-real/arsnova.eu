@@ -1,0 +1,324 @@
+{
+  "exportVersion": 1,
+  "exportedAt": "2026-09-13T00:00:00.000Z",
+  "quiz": {
+    "name": "Cloud Computing – Themenblock TB06: Data Science und Machine Learning",
+    "description": "Zehn anspruchsvolle Live-Fragen zu Batch und Streaming, Extract, Transform, Load (ETL), Extract, Load, Transform (ELT), ML-Pipelines, Embeddings und Clustering, privater Inferenz, Datenminimierung, Reproduzierbarkeit sowie Machine Learning Operations (MLOps). Das Quiz nutzt alle zehn ARSnova-Fragetypen genau einmal.",
+    "showLeaderboard": true,
+    "allowCustomNicknames": false,
+    "defaultTimer": 60,
+    "timerScaleByDifficulty": true,
+    "enableTimerAccommodation": true,
+    "enableSoundEffects": true,
+    "enableRewardEffects": true,
+    "enableMotivationMessages": true,
+    "enableEmojiReactions": true,
+    "anonymousMode": false,
+    "teamMode": true,
+    "teamCount": 4,
+    "teamAssignment": "AUTO",
+    "teamNames": ["Apfel :apple:", "Birne :pear:", "Banane :banana:", "Apfelsine :orange:"],
+    "backgroundMusic": null,
+    "nicknameTheme": "KINDERGARTEN",
+    "bonusTokenCount": 3,
+    "readingPhaseEnabled": true,
+    "questions": [
+      {
+        "text": "### Welche Entwurfsentscheidungen schützen den Livebetrieb?\n\nFür einen host-ausgelösten Themenmodus werden Q&A-Snapshots eingebettet und geclustert. Wähle alle Entscheidungen, die den ML-Pfad vom Live-Hotpath entkoppeln.",
+        "type": "MULTIPLE_CHOICE",
+        "timer": null,
+        "difficulty": "HARD",
+        "order": 0,
+        "answers": [
+          {
+            "text": "Die lexikalische Anzeige sofort liefern und die Analyse asynchron ergänzen.",
+            "isCorrect": true
+          },
+          {
+            "text": "Join und Vote bis zum Abschluss der Modellinferenz zurückhalten.",
+            "isCorrect": false
+          },
+          {
+            "text": "Timeout, Queue-Grenze und kontrollierten Fallback als Produktvertrag festlegen.",
+            "isCorrect": true
+          },
+          {
+            "text": "Browser der Teilnehmenden direkt mit dem privaten Modellport verbinden.",
+            "isCorrect": false
+          }
+        ],
+        "confidenceEnabled": true,
+        "confidenceLabelLow": "Sehr unsicher",
+        "confidenceLabelHigh": "Sehr sicher"
+      },
+      {
+        "text": "### Wann ist Batch statt Streaming sinnvoll?\n\nEin nächtlicher Qualitätsvergleich soll denselben freigegebenen Snapshot mit vier Modellvarianten reproduzierbar verarbeiten. Welche Ausführung passt am besten?",
+        "type": "SINGLE_CHOICE",
+        "timer": null,
+        "difficulty": "HARD",
+        "order": 1,
+        "answers": [
+          {
+            "text": "Ein unversionierter Live-Stream, der jedes Ereignis sofort mit dem neuesten Modell verarbeitet.",
+            "isCorrect": false
+          },
+          {
+            "text": "Ein versionierter Batch-Lauf mit fixiertem Snapshot, Modellstand, Parametern und Seed.",
+            "isCorrect": true
+          },
+          {
+            "text": "Ein interaktives Notebook ohne gespeicherte Umgebung, weil es Änderungen schneller erlaubt.",
+            "isCorrect": false
+          },
+          {
+            "text": "Eine dauerhafte Teilnehmerverbindung zum Inferenzserver, weil sie Queueing vermeidet.",
+            "isCorrect": false
+          }
+        ],
+        "confidenceEnabled": true,
+        "confidenceLabelLow": "Sehr unsicher",
+        "confidenceLabelHigh": "Sehr sicher"
+      },
+      {
+        "text": "### Welches Datenschutzprinzip wird umgesetzt?\n\nFür die Clusteranalyse wird nur ein zweckgebundener Snapshot sichtbarer Q&A-Texte übertragen; Nicknames, Tokens und nicht benötigte Metadaten werden entfernt. Nenne das Datenschutzprinzip.",
+        "type": "SHORT_TEXT",
+        "timer": null,
+        "difficulty": "HARD",
+        "order": 2,
+        "answers": [
+          {
+            "text": "Datenminimierung",
+            "isCorrect": true
+          },
+          {
+            "text": "Prinzip der Datenminimierung",
+            "isCorrect": true
+          },
+          {
+            "text": "Data Minimization",
+            "isCorrect": true
+          },
+          {
+            "text": "Data Minimisation",
+            "isCorrect": true
+          }
+        ],
+        "shortTextEvaluationKind": "text",
+        "shortTextMaxLength": 40,
+        "shortTextCaseSensitive": false,
+        "shortTextEvaluationMode": "exact",
+        "shortTextToleranceLevel": "none",
+        "shortTextAllowPartialCredit": false,
+        "shortTextTrimWhitespace": true,
+        "shortTextNormalizeWhitespace": true,
+        "confidenceEnabled": true,
+        "confidenceLabelLow": "Sehr unsicher",
+        "confidenceLabelHigh": "Sehr sicher"
+      },
+      {
+        "text": "### Wie viele Inferenzläufe bleiben?\n\nVon 640 identischen Snapshot-Anfragen werden 62,5 % durch einen versionsgebundenen Cache beantwortet. Wie viele Anfragen müssen noch tatsächlich inferiert werden?",
+        "type": "NUMERIC_ESTIMATE",
+        "timer": null,
+        "difficulty": "HARD",
+        "order": 3,
+        "answers": [],
+        "numericToleranceMode": "ABSOLUTE_INTERVAL",
+        "numericReferenceValue": 240,
+        "numericIntervalLeft": 239.5,
+        "numericIntervalRight": 240.5,
+        "numericInputType": "INTEGER",
+        "numericDecimalPlaces": 0,
+        "numericMin": 0,
+        "numericMax": 640,
+        "numericTwoRounds": true,
+        "confidenceEnabled": true,
+        "confidenceLabelLow": "Sehr unsicher",
+        "confidenceLabelHigh": "Sehr sicher"
+      },
+      {
+        "text": "### Ordne Pipeline-Stufe und prüfbares Artefakt zu\n\nOrdne jeder Stufe das Artefakt zu, das Reproduzierbarkeit und Fehlerdiagnose am direktesten unterstützt.",
+        "type": "MATCHING",
+        "timer": null,
+        "difficulty": "HARD",
+        "order": 4,
+        "answers": [],
+        "matchingPairs": [
+          {
+            "leftId": "tb06-match-left-1",
+            "left": "Aufnahme",
+            "rightId": "tb06-match-right-1",
+            "right": "unveränderlicher Snapshot mit Zweck und Erzeugungszeit"
+          },
+          {
+            "leftId": "tb06-match-left-2",
+            "left": "Vorverarbeitung",
+            "rightId": "tb06-match-right-2",
+            "right": "versionierter Transformationscode mit Datenqualitätsbericht"
+          },
+          {
+            "leftId": "tb06-match-left-3",
+            "left": "Embedding",
+            "rightId": "tb06-match-right-3",
+            "right": "Modell- und Tokenizer-Version plus Vektordimension"
+          },
+          {
+            "leftId": "tb06-match-left-4",
+            "left": "Clustering",
+            "rightId": "tb06-match-right-4",
+            "right": "Parameter, Seed und nachvollziehbare Mitgliedschaften"
+          },
+          {
+            "leftId": "tb06-match-left-5",
+            "left": "Ausgabe",
+            "rightId": "tb06-match-right-5",
+            "right": "Schema, Modellstand, Fallbackstatus und Quellmitglieder"
+          }
+        ],
+        "matchingShuffleRight": true,
+        "confidenceEnabled": true,
+        "confidenceLabelLow": "Sehr unsicher",
+        "confidenceLabelHigh": "Sehr sicher"
+      },
+      {
+        "text": "### Bringe einen reproduzierbaren ML-Vergleich in Reihenfolge\n\nOrdne die Schritte für einen Offlinevergleich, bei dem Ergebnisse später überprüft und erneut erzeugt werden können.",
+        "type": "ORDERING",
+        "timer": null,
+        "difficulty": "HARD",
+        "order": 5,
+        "answers": [],
+        "orderingItems": [
+          {
+            "id": "tb06-order-1",
+            "text": "Zweck, Qualitätsmetrik und erlaubte Datenbasis festlegen"
+          },
+          {
+            "id": "tb06-order-2",
+            "text": "Freigegebenen oder synthetischen Snapshot unveränderlich versionieren"
+          },
+          {
+            "id": "tb06-order-3",
+            "text": "Code, Umgebung, Modell, Parameter und Zufallsseed fixieren"
+          },
+          {
+            "id": "tb06-order-4",
+            "text": "Alle Varianten auf derselben Eingabe und Messgrenze ausführen"
+          },
+          {
+            "id": "tb06-order-5",
+            "text": "Qualität, Latenz, Ressourcen, Fehler und Fallbacks gemeinsam auswerten"
+          },
+          {
+            "id": "tb06-order-6",
+            "text": "Artefakte, Grenzen und Entscheidung revisionsfähig dokumentieren"
+          }
+        ],
+        "confidenceEnabled": true,
+        "confidenceLabelLow": "Sehr unsicher",
+        "confidenceLabelHigh": "Sehr sicher"
+      },
+      {
+        "text": "### Klassifiziere Pipeline-Aufgaben\n\nOrdne jede Aufgabe dem überwiegenden Verarbeitungsmuster zu. Maßgeblich ist die beschriebene Ausführung, nicht das verwendete Produkt.",
+        "type": "CATEGORIZATION",
+        "timer": null,
+        "difficulty": "HARD",
+        "order": 6,
+        "answers": [],
+        "categories": [
+          {
+            "id": "tb06-cat-batch",
+            "name": "Batch"
+          },
+          {
+            "id": "tb06-cat-stream",
+            "name": "Streaming"
+          },
+          {
+            "id": "tb06-cat-either",
+            "name": "Je nach Latenzziel beides vertretbar"
+          }
+        ],
+        "categorizationItems": [
+          {
+            "id": "tb06-item-1",
+            "text": "Nächtlich alle freigegebenen Snapshots mit einem fixierten Modell neu bewerten",
+            "correctCategoryId": "tb06-cat-batch"
+          },
+          {
+            "id": "tb06-item-2",
+            "text": "Einen abgeschlossenen Kursdatensatz für den Modellvergleich transformieren",
+            "correctCategoryId": "tb06-cat-batch"
+          },
+          {
+            "id": "tb06-item-3",
+            "text": "Jedes Telemetrieereignis fortlaufend innerhalb weniger Sekunden aggregieren",
+            "correctCategoryId": "tb06-cat-stream"
+          },
+          {
+            "id": "tb06-item-4",
+            "text": "Neue Sensormeldungen ereignisweise mit Zustandsfenstern verarbeiten",
+            "correctCategoryId": "tb06-cat-stream"
+          },
+          {
+            "id": "tb06-item-5",
+            "text": "Q&A-Ereignisse für ein Dashboard je nach Aktualitätsziel mikrogebündelt auswerten",
+            "correctCategoryId": "tb06-cat-either"
+          },
+          {
+            "id": "tb06-item-6",
+            "text": "Featurewerte je nach Kosten- und Aktualitätsziel periodisch oder ereignisnah berechnen",
+            "correctCategoryId": "tb06-cat-either"
+          }
+        ],
+        "categorizationShuffleItems": true,
+        "confidenceEnabled": true,
+        "confidenceLabelLow": "Sehr unsicher",
+        "confidenceLabelHigh": "Sehr sicher"
+      },
+      {
+        "text": "### Wie bleibt ein Managed-ML-Experiment exit-fähig?\n\nEin Notebook erzielt gute Werte, nutzt aber proprietäre Feature-Definitionen und nur im Dienst gespeicherte Runs. Nenne zwei exportierbare Artefakte und einen Reproduzierbarkeitstest, die vor einer Freigabe fehlen.",
+        "type": "FREETEXT",
+        "timer": null,
+        "difficulty": "MEDIUM",
+        "order": 7,
+        "answers": []
+      },
+      {
+        "text": "### Welche Unsicherheit soll zuerst geprüft werden?\n\nDer Themenmodus ist fachlich vielversprechend, doch Datenqualität, Queue-Latenz, Modellressourcen und Exportierbarkeit sind noch unklar. Welche Unsicherheit soll die Lerngruppe zuerst experimentell reduzieren? Es gibt keine Musterlösung.",
+        "type": "SURVEY",
+        "timer": null,
+        "difficulty": "MEDIUM",
+        "order": 8,
+        "answers": [
+          {
+            "text": "Die Stabilität der Cluster auf demselben versionierten Seed-Set prüfen",
+            "isCorrect": false
+          },
+          {
+            "text": "Die Ende-zu-Ende-Latenz einschließlich Queue unter Last messen",
+            "isCorrect": false
+          },
+          {
+            "text": "Die Datenfelder und Löschpfade der privaten Inferenz inventarisieren",
+            "isCorrect": false
+          },
+          {
+            "text": "Den Modell-, Daten- und Pipeline-Export in einer frischen Umgebung testen",
+            "isCorrect": false
+          }
+        ]
+      },
+      {
+        "text": "### Wie sicher kannst du eine Cloud-ML-Pipeline prüfen?\n\nBewerte, wie sicher du Datenfluss, Batch-/Streaming-Wahl, Reproduzierbarkeit, private Inferenz, Fallback und Exit gemeinsam analysieren kannst.",
+        "type": "RATING",
+        "timer": null,
+        "difficulty": "MEDIUM",
+        "order": 9,
+        "answers": [],
+        "ratingMin": 1,
+        "ratingMax": 5,
+        "ratingLabelMin": "Noch nicht systematisch prüfbar",
+        "ratingLabelMax": "Sicher und systematisch prüfbar"
+      }
+    ]
+  }
+}

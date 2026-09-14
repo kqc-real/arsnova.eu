@@ -757,11 +757,11 @@ Zum vollständigen Materialbestand gehören:
 
 **Externer MC-Test:** Maßgeblich sind der [MC-Test-Blueprint](./P0-03_MC-Test_Blueprint_10_Wochen.md), die [Live-Instanz](https://mc-test.streamlit.app) und die zehn `meta`-/`questions`-Dateien:
 
-- [W01](./P0-03_MC-Test_Woche_01.json), [W02](./P0-03_MC-Test_Woche_02.json), [W03](./P0-03_MC-Test_Woche_03.json), [W04](./P0-03_MC-Test_Woche_04.json), [W05](./P0-03_MC-Test_Woche_05.json), [W06](./P0-03_MC-Test_Woche_06.json), [W07](./P0-03_MC-Test_Woche_07.json), [W08](./P0-03_MC-Test_Woche_08.json), [W09](./P0-03_MC-Test_Woche_09.json) und [W10](./P0-03_MC-Test_Woche_10.json).
+- [W01](./MC-Test/P0-03_MC-Test_Woche_01.json), [W02](./MC-Test/P0-03_MC-Test_Woche_02.json), [W03](./MC-Test/P0-03_MC-Test_Woche_03.json), [W04](./MC-Test/P0-03_MC-Test_Woche_04.json), [W05](./MC-Test/P0-03_MC-Test_Woche_05.json), [W06](./MC-Test/P0-03_MC-Test_Woche_06.json), [W07](./MC-Test/P0-03_MC-Test_Woche_07.json), [W08](./MC-Test/P0-03_MC-Test_Woche_08.json), [W09](./MC-Test/P0-03_MC-Test_Woche_09.json) und [W10](./MC-Test/P0-03_MC-Test_Woche_10.json).
 
 **ARSnova.eu-Livequiz:** Maßgeblich sind der [Livequiz-Blueprint](./P0-03_ARSnova_Livequiz_Blueprint_10_Wochen.md) und die zehn Gamification-Dateien mit insgesamt 100 Livefragen. Jede Wochen-Datei enthält genau zehn Fragen und deckt alle zehn unterstützten Fragetypen ab:
 
-- [W01](./P0-03_ARSnova_Woche_01.json), [W02](./P0-03_ARSnova_Woche_02.json), [W03](./P0-03_ARSnova_Woche_03.json), [W04](./P0-03_ARSnova_Woche_04.json), [W05](./P0-03_ARSnova_Woche_05.json), [W06](./P0-03_ARSnova_Woche_06.json), [W07](./P0-03_ARSnova_Woche_07.json), [W08](./P0-03_ARSnova_Woche_08.json), [W09](./P0-03_ARSnova_Woche_09.json) und [W10](./P0-03_ARSnova_Woche_10.json).
+- [W01](./ARSnova/P0-03_ARSnova_Woche_01.json), [W02](./ARSnova/P0-03_ARSnova_Woche_02.json), [W03](./ARSnova/P0-03_ARSnova_Woche_03.json), [W04](./ARSnova/P0-03_ARSnova_Woche_04.json), [W05](./ARSnova/P0-03_ARSnova_Woche_05.json), [W06](./ARSnova/P0-03_ARSnova_Woche_06.json), [W07](./ARSnova/P0-03_ARSnova_Woche_07.json), [W08](./ARSnova/P0-03_ARSnova_Woche_08.json), [W09](./ARSnova/P0-03_ARSnova_Woche_09.json) und [W10](./ARSnova/P0-03_ARSnova_Woche_10.json).
 
 Gültige `.jasp`-Dateien und Laufzeitexporte entstehen erst im geschützten Lehrbetrieb. Sie werden nicht als Repository-Textartefakte vorgetäuscht und folgen vollständig dem Datenmanagement- und Exportplan.
 

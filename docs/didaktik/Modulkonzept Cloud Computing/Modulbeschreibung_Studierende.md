@@ -1,14 +1,18 @@
 # Cloud Computing verstehen, prüfen und verantworten
 
+**Stand:** 14.09.2026
+
 Cloud Computing ist mehr als eine Liste von Diensten großer Anbieter. In diesem Modul lernst du, eine Cloud-Architektur fachlich zu erklären, praktisch zu untersuchen und ihre technischen, sicherheitsbezogenen, ökologischen und wirtschaftlichen Folgen zu vertreten. `arsnova.eu` begleitet dich dabei als interaktives Lernwerkzeug und als reale, aber kritisch zu prüfende Fallstudie.
+
+Das Modul richtet sich ausschließlich an Bachelorstudierende der Informatik.
 
 ## Kurze Lesehilfe
 
 - **IU Internationale Hochschule (IU)** bezeichnet die Hochschule. `DSCC0127` ist der Modulcode und `DSCC012701` der Kurscode.
 - **Credit Point (CP)** bezeichnet einen Leistungspunkt.
 - Eine **Unterrichtseinheit (UE)** dauert 45 Minuten. Eine **Lerneinheit (LE)** besteht aus zwei aufeinanderfolgenden UE und dauert 90 Minuten.
-- **W01–W12** bezeichnet die Themenwochen 1 bis 12.
-- **Multiple Choice (MC)** bezeichnet Aufgaben mit vorgegebenen Antwortmöglichkeiten. **MC-Test** ist die formative Lernanwendung für den wöchentlichen Abruf.
+- **TB01–TB12** bezeichnet zwölf stabile Themenblöcke ohne Zuordnung zu Kalenderwochen oder einer Durchführungsform.
+- **Multiple Choice (MC)** bezeichnet Aufgaben mit vorgegebenen Antwortmöglichkeiten. **MC-Test** ist die formative Lernanwendung für den Abruf je Themenblock.
 - **Künstliche Intelligenz (KI)** bezeichnet hier auch werkzeugnutzende Agenten. **Maschinelles Lernen (ML)** bezeichnet datenbasierte Modellverfahren.
 - **Infrastructure as Code (IaC)** bedeutet, Infrastruktur reproduzierbar als Code zu beschreiben.
 - **Google Cloud Platform (GCP)**, **Amazon Web Services (AWS)** und Microsoft Azure sind die drei verbindlich verglichenen Plattformen.
@@ -21,14 +25,13 @@ Cloud Computing ist mehr als eine Liste von Diensten großer Anbieter. In diesem
 
 Das Bachelor-Modul umfasst 5 CP und insgesamt 150 Stunden:
 
-| Bestandteil                            |               Umfang |
-| -------------------------------------- | -------------------: |
-| Präsenz oder synchrone virtuelle Lehre | 18 UE = 13,5 Stunden |
-| Tutorium                               | 18 UE = 13,5 Stunden |
-| Selbststudium                          |          123 Stunden |
-| **Gesamt**                             |      **150 Stunden** |
+| Bestandteil    |             Umfang |
+| -------------- | -----------------: |
+| betreute Lehre | 36 UE = 27 Stunden |
+| Selbststudium  |        123 Stunden |
+| **Gesamt**     |    **150 Stunden** |
 
-Die betreute Zeit verteilt sich auf zwölf Wochen mit jeweils drei UE. Sechs Wochen finden als Präsenz beziehungsweise synchrone virtuelle Lehre statt, sechs als Tutorium. Zusammen sind das 36 UE oder 27 betreute Stunden. Das Tutorium kommt nicht zusätzlich zu diesen 36 UE hinzu.
+Die betreute Lehre besteht aus zwölf stabilen Themenblöcken mit jeweils drei UE. Das Modulpaket legt weder Kalenderwochen noch eine unterschiedliche Struktur für virtuelle und präsente Durchführung fest.
 
 ## Was du am Ende kannst
 
@@ -46,16 +49,16 @@ Nach erfolgreichem Abschluss kannst du:
 
 Die fünf offiziellen Qualifikationsrichtungen bleiben dabei sichtbar: Cloud-Grundlagen und Dienstmodelle, technologische Voraussetzungen, Serverless Computing, etablierte Plattformen sowie Datenwissenschaft und maschinelles Lernen in der Cloud.
 
-## Dein Wochenrhythmus
+## Aufbau jedes Themenblocks
 
-Jede Woche folgt demselben verlässlichen Aufbau:
+Jeder Themenblock folgt demselben verlässlichen Aufbau:
 
 ### UE 1 und UE 2: eine zusammenhängende Lerneinheit
 
 In den ersten 90 Minuten:
 
 - aktivierst du Vorwissen und ältere Kernideen mit kurzen arsnova.eu-Impulsen;
-- klärst du die fachliche Leitfrage der Woche;
+- klärst du die fachliche Leitfrage des Themenblocks;
 - prüfst du Quellen, Repository-Ausschnitte, Konfigurationen oder Messberichte;
 - wendest du das Konzept auf die Fallstudie an;
 - vergleichst du deine Begründung mit anderen;
@@ -63,7 +66,7 @@ In den ersten 90 Minuten:
 
 ### UE 3: formativer MC-Test
 
-Die letzte UE ist jede Woche gleich aufgebaut:
+Die letzte UE ist in jedem Themenblock gleich aufgebaut:
 
 | Phase                                              |       Zeit |
 | -------------------------------------------------- | ---------: |
@@ -73,30 +76,30 @@ Die letzte UE ist jede Woche gleich aufgebaut:
 
 Die 32 Minuten sind nur der organisatorische Rahmen in der Veranstaltung. Es gibt keinen technischen Countdown. Laborergebnisse und Lernprodukte entstehen bereits in der 90-minütigen LE und im Selbststudium; sie werden nicht als zusätzliche vierte UE gerechnet.
 
-## Die zwölf Themenwochen
+## Die zwölf Themenblöcke
 
-| Woche   | Art              | Thema                                                         |
-| ------- | ---------------- | ------------------------------------------------------------- |
-| **W01** | Präsenz/synchron | Grundlagen, Cloudmodelle und Shared Responsibility            |
-| **W02** | Präsenz/synchron | Virtualisierung, Container, IaC und Netzwerk                  |
-| **W03** | Tutorium         | arsnova.eu-Deployment, Härtung und Zustand                    |
-| **W04** | Präsenz/synchron | Serverless Computing                                          |
-| **W05** | Präsenz/synchron | GCP, AWS und Microsoft Azure                                  |
-| **W06** | Präsenz/synchron | Datenwissenschaft und maschinelles Lernen in der Cloud        |
-| **W07** | Tutorium         | Storage, Datenbanken, Backup und Recovery                     |
-| **W08** | Tutorium         | Elastizität, Skalierung, Performance und verteilte Systeme    |
-| **W09** | Präsenz/synchron | IAM, Security, Observability, SRE und Resilienz               |
-| **W10** | Tutorium         | FinOps, Nachhaltigkeit und 6R                                 |
-| **W11** | Tutorium         | evidenzbasierte Architekturentscheidung und Referatswerkstatt |
-| **W12** | Tutorium         | Synthese und Probeverteidigung                                |
+| Themenblock | Thema                                                         |
+| ----------- | ------------------------------------------------------------- |
+| **TB01**    | Grundlagen, Cloudmodelle und Shared Responsibility            |
+| **TB02**    | Virtualisierung, Container, IaC und Netzwerk                  |
+| **TB03**    | arsnova.eu-Deployment, Härtung und Zustand                    |
+| **TB04**    | Serverless Computing                                          |
+| **TB05**    | GCP, AWS und Microsoft Azure                                  |
+| **TB06**    | Datenwissenschaft und maschinelles Lernen in der Cloud        |
+| **TB07**    | Storage, Datenbanken, Backup und Recovery                     |
+| **TB08**    | Elastizität, Skalierung, Performance und verteilte Systeme    |
+| **TB09**    | IAM, Security, Observability, SRE und Resilienz               |
+| **TB10**    | FinOps, Nachhaltigkeit und 6R                                 |
+| **TB11**    | evidenzbasierte Architekturentscheidung und Referatswerkstatt |
+| **TB12**    | Synthese und Probeverteidigung                                |
 
-Im [ausführlichen Wochenlehrplan](./Wochenlehrplan_Cloud_Computing_12_Wochen.md) findest du zu jeder Woche die Leitfrage, den Ablauf der drei UE, den verbindlichen Fachwortschatz, Quellen, Lernprodukte und Selbststudiumsaufträge.
+Im [ausführlichen Themenblockplan](./Themenblockplan_Cloud_Computing_12_Themenbloecke.md) findest du zu jedem Themenblock die Leitfrage, den Ablauf der drei UE, den verbindlichen Fachwortschatz, Quellen, Lernprodukte und Selbststudiumsaufträge.
 
 ## So verteilen sich die 123 Stunden Selbststudium
 
 | Aktivität                                     |   Stunden |
 | --------------------------------------------- | --------: |
-| Vor- und Nachbereitung der zwölf Wochen       |      24 h |
+| Vor- und Nachbereitung der zwölf Themenblöcke |      24 h |
 | Pflichtlektüre und technische Vertiefung      |      30 h |
 | Agentic Cloud Engineering Dossier             |      30 h |
 | Plattform-, Privacy- und Wirtschaftsvergleich |      15 h |
@@ -134,7 +137,7 @@ Genau diese Trennung ist Teil deiner fachlichen Arbeit: Was ist belegt, in welch
 
 ## ARSnova-Livefragen: anspruchsvoll und spielerisch
 
-Pro Woche lernst du mit zehn Livefragen. Jeder der zehn unterstützten Typen kommt einmal vor:
+Pro Themenblock lernst du mit zehn Livefragen. Jeder der zehn unterstützten Typen kommt einmal vor:
 
 1. Single Choice,
 2. Multiple Choice,
@@ -157,7 +160,7 @@ Deine Teilnahme an den Liveantworten ist freiwillig und formativ. Wenn du nicht 
 
 ## MC-Test: Wissen mit Abstand wieder abrufen
 
-Der MC-Test enthält jede Woche genau 30 Items:
+Der MC-Test enthält je Themenblock genau 30 Items:
 
 - 0 leichte,
 - 12 mittlere,
@@ -165,7 +168,7 @@ Der MC-Test enthält jede Woche genau 30 Items:
 
 Du arbeitest im Modus `practice`. Nach deiner Antwort erhältst du sofort eine fachliche Erklärung. Es gibt keinen technischen Countdown und bei `show_top5_public=false` keine öffentliche Top-Fünf-Liste. Eine vollständige untimierte Dokument- oder Papierfassung mit denselben Fragen, Lösungen und Erklärungen steht als gleichwertiger Weg bereit.
 
-Der erste Abruf findet in UE 3 statt. Idealerweise bearbeitest du denselben Satz nach zwei bis drei Tagen noch einmal. Wichtige Konzepte tauchen nach zwei bis vier Wochen in neuen Zusammenhängen wieder auf. Diese zeitlich verteilte Wiederholung heißt Spaced Repetition.
+Der erste Abruf findet in UE 3 statt. Derselbe Satz kann später erneut vollständig bearbeitet werden; wichtige Konzepte erscheinen zudem in späteren Themenblöcken in neuen Zusammenhängen. Das Modulpaket legt dafür keine kalendarischen Abstände fest.
 
 Der MC-Test ist keine Prüfungsplattform. Punkte, Bearbeitungszeiten und Einzelantworten entscheiden weder über Zulassung noch Note. Vereinbarte Aggregate können der Lehrperson lediglich zeigen, welches Konzept die Gruppe erneut üben sollte.
 
@@ -209,7 +212,7 @@ Die Planungsbasis ist ein Referat mit insgesamt 15 Minuten mündlicher Prüfung 
 
 Die konkrete Prüfungsaufgabe legt fest, ob du allein oder in einer Gruppe arbeitest, ob ein Handout oder Poster verlangt wird, welches Thema gilt und welche Hilfsmittel erlaubt sind. Auch bei Gruppenarbeit bleiben Prüfungszeit, eigener Beitrag und Bewertung individuell.
 
-Der [Katalog der zehn Referatsthemen](./Referatsthemen_Cloud_Computing_ARSnova.md) zeigt die möglichen Cloud-Schwerpunkte am Fallbeispiel arsnova.eu. Welcher konkrete Auftrag für dich verbindlich ist, ergibt sich ausschließlich aus der veröffentlichten Prüfungsaufgabe.
+Der [Katalog der zehn Referatsthemen](./Referatsthemen_Cloud_Computing_ARSnova.md) enthält ausschließlich informatisch ausgerichtete Cloud-Schwerpunkte zu Architektur, Schnittstellen, Daten und Zustand, Deployment, Security, Performance und Zuverlässigkeit am Fallbeispiel arsnova.eu. Welcher konkrete Auftrag für dich verbindlich ist, ergibt sich ausschließlich aus der veröffentlichten Prüfungsaufgabe.
 
 Für eine starke Leistung brauchst du keine Produktwerbung und keinen Katalog von Cloud-Diensten. Du brauchst eine klare These, belastbare Quellen, eine nachvollziehbare technische Evidenz, eine faire Gegenalternative, sichtbare Grenzen und eine eigene begründete Entscheidung.
 

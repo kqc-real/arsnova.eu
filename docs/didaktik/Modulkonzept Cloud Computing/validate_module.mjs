@@ -14,12 +14,21 @@ import {
 
 const moduleDirectory = dirname(fileURLToPath(import.meta.url));
 const writeArtifacts = process.argv.includes('--write');
-const weekNumbers = Array.from({ length: 12 }, (_, index) => index + 1);
-const weekFile = (prefix, week) => `${prefix}_Woche_${String(week).padStart(2, '0')}.json`;
-const arsnovaFiles = weekNumbers.map((week) => weekFile('ARSnova', week));
-const mcTestFiles = weekNumbers.map((week) => weekFile('MC-Test', week));
-const shortTextCasesFile = 'ARSnova_Kurztext_Testfaelle.json';
-const distributionFile = 'MC-Test_Verteilungen.json';
+const arsnovaDirectory = 'ARSnova';
+const mcTestDirectory = 'MC-Test';
+const topicBlockNumbers = Array.from({ length: 12 }, (_, index) => index + 1);
+const topicBlockFile = (prefix, topicBlock) =>
+  `${prefix}_Themenblock_${String(topicBlock).padStart(2, '0')}.json`;
+const arsnovaFilenames = topicBlockNumbers.map((topicBlock) =>
+  topicBlockFile('ARSnova', topicBlock),
+);
+const mcTestFilenames = topicBlockNumbers.map((topicBlock) =>
+  topicBlockFile('MC-Test', topicBlock),
+);
+const arsnovaFiles = arsnovaFilenames.map((filename) => `${arsnovaDirectory}/${filename}`);
+const mcTestFiles = mcTestFilenames.map((filename) => `${mcTestDirectory}/${filename}`);
+const shortTextCasesFile = `${arsnovaDirectory}/ARSnova_Kurztext_Testfaelle.json`;
+const distributionFile = `${mcTestDirectory}/MC-Test_Verteilungen.json`;
 const checksumFile = 'SHA256SUMS';
 
 const questionTypes = [
@@ -57,8 +66,7 @@ const mcQuestionKeys = [
   'topic',
   'weight',
 ];
-const targetAudience =
-  'Bachelorstudierende der Informatik und Wirtschaftsinformatik im Modul Cloud Computing';
+const targetAudience = 'Bachelorstudierende der Informatik im Modul Cloud Computing';
 const expectedQuizConfiguration = {
   showLeaderboard: true,
   allowCustomNicknames: false,
@@ -133,21 +141,25 @@ async function readJson(filename, { required = true } = {}) {
 }
 
 async function validateFileInventory() {
-  const filenames = await readdir(moduleDirectory);
-  const actualArsnova = filenames
-    .filter((filename) => /^ARSnova_Woche_\d+\.json$/.test(filename))
-    .sort();
-  const actualMcTests = filenames
-    .filter((filename) => /^MC-Test_Woche_\d+\.json$/.test(filename))
-    .sort();
-  if (!sameJson(actualArsnova, [...arsnovaFiles].sort())) {
+  const expectedArsnova = [...arsnovaFilenames, 'ARSnova_Kurztext_Testfaelle.json'].sort();
+  const generatedDistributionFilename = distributionFile.slice(`${mcTestDirectory}/`.length);
+  const expectedMcTests = [...mcTestFilenames, generatedDistributionFilename].sort();
+  const actualArsnova = (await readdir(resolve(moduleDirectory, arsnovaDirectory))).sort();
+  const actualMcTests = (await readdir(resolve(moduleDirectory, mcTestDirectory))).sort();
+  const comparableMcTests = writeArtifacts
+    ? actualMcTests.filter((filename) => filename !== generatedDistributionFilename)
+    : actualMcTests;
+  const comparableExpectedMcTests = writeArtifacts
+    ? expectedMcTests.filter((filename) => filename !== generatedDistributionFilename)
+    : expectedMcTests;
+  if (!sameJson(actualArsnova, expectedArsnova)) {
     fail(
-      `ARSnova-Dateimenge ${JSON.stringify(actualArsnova)} statt ${JSON.stringify([...arsnovaFiles].sort())}.`,
+      `ARSnova-Dateimenge ${JSON.stringify(actualArsnova)} statt ${JSON.stringify(expectedArsnova)}.`,
     );
   }
-  if (!sameJson(actualMcTests, [...mcTestFiles].sort())) {
+  if (!sameJson(comparableMcTests, comparableExpectedMcTests)) {
     fail(
-      `MC-Test-Dateimenge ${JSON.stringify(actualMcTests)} statt ${JSON.stringify([...mcTestFiles].sort())}.`,
+      `MC-Test-Dateimenge ${JSON.stringify(comparableMcTests)} statt ${JSON.stringify(comparableExpectedMcTests)}.`,
     );
   }
 }
@@ -498,12 +510,12 @@ async function validateShortTextCases() {
   }
   const casesByFile = new Map(data.cases.map((entry) => [entry.file, entry]));
   if (casesByFile.size !== arsnovaFiles.length) {
-    fail(`${shortTextCasesFile}: genau ein Testfall je ARSnova-Woche erforderlich.`);
+    fail(`${shortTextCasesFile}: genau ein Testfall je ARSnova-Themenblock erforderlich.`);
   }
 
-  for (const filename of arsnovaFiles) {
+  for (const filename of arsnovaFilenames) {
     const testCase = casesByFile.get(filename);
-    const quiz = parsedArsnova.get(filename)?.quiz;
+    const quiz = parsedArsnova.get(`${arsnovaDirectory}/${filename}`)?.quiz;
     const question = quiz?.questions?.find((candidate) => candidate.type === 'SHORT_TEXT');
     if (!testCase || !question) {
       fail(`${shortTextCasesFile}: Testfall oder SHORT_TEXT-Frage für ${filename} fehlt.`);
@@ -573,12 +585,12 @@ async function validateShortTextCases() {
 
 function buildDistributionReport() {
   return {
-    generatedFrom: mcTestFiles,
-    weeks: Object.fromEntries(
-      mcTestFiles.map((filename, index) => {
-        const questions = parsedMcTests.get(filename)?.questions ?? [];
+    generatedFrom: mcTestFilenames,
+    topicBlocks: Object.fromEntries(
+      mcTestFilenames.map((filename, index) => {
+        const questions = parsedMcTests.get(`${mcTestDirectory}/${filename}`)?.questions ?? [];
         return [
-          `W${String(index + 1).padStart(2, '0')}`,
+          `TB${String(index + 1).padStart(2, '0')}`,
           {
             file: filename,
             questionCount: questions.length,

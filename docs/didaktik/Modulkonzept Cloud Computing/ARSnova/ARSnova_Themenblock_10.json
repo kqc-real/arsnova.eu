@@ -1,0 +1,330 @@
+{
+  "exportVersion": 1,
+  "exportedAt": "2026-09-13T00:00:00.000Z",
+  "quiz": {
+    "name": "Cloud Computing – Themenblock TB10: Providerentscheidung, Wirtschaftlichkeit und Migration",
+    "description": "10 anspruchsvolle Entscheidungsfragen zu Financial Operations (FinOps), den sechs Strategien Rehost, Replatform, Repurchase, Refactor, Retire und Retain (6R), Total Cost of Ownership (TCO), Capital Expenditure (CapEx), Operational Expenditure (OpEx), Szenarien, Exit und Nachhaltigkeit – mit allen zehn ARSnova-Fragetypen.",
+    "showLeaderboard": true,
+    "allowCustomNicknames": false,
+    "defaultTimer": 60,
+    "timerScaleByDifficulty": true,
+    "enableTimerAccommodation": true,
+    "enableSoundEffects": true,
+    "enableRewardEffects": true,
+    "enableMotivationMessages": true,
+    "enableEmojiReactions": true,
+    "anonymousMode": false,
+    "teamMode": true,
+    "teamCount": 4,
+    "teamAssignment": "AUTO",
+    "teamNames": ["Apfel :apple:", "Birne :pear:", "Banane :banana:", "Apfelsine :orange:"],
+    "backgroundMusic": null,
+    "nicknameTheme": "KINDERGARTEN",
+    "bonusTokenCount": 3,
+    "readingPhaseEnabled": true,
+    "questions": [
+      {
+        "text": "### Vergleichsgrenze für Build-or-Buy sichern\n\nEin Team vergleicht einen selbst betriebenen Inferenzdienst mit einer Managed-Alternative. Welche Bestandteile müssen für eine belastbare Entscheidung auf **beiden** Seiten derselben Systemgrenze liegen? _Mehrere Antworten sind richtig._",
+        "type": "MULTIPLE_CHOICE",
+        "timer": null,
+        "difficulty": "HARD",
+        "order": 0,
+        "answers": [
+          {
+            "text": "Betrieb, Beobachtbarkeit, Support und Störungsbehandlung über denselben Nutzungszeitraum",
+            "isCorrect": true
+          },
+          {
+            "text": "Migration, Datenexport und zeitweiliger Parallelbetrieb bis zum nachgewiesenen Exit",
+            "isCorrect": true
+          },
+          {
+            "text": "Nur der günstigste Normalmonat des Eigenbetriebs gegen den Listenpreis der Managed-Variante",
+            "isCorrect": false
+          },
+          {
+            "text": "Nur die Rechenressource beider Varianten, weil Personal- und Complianceaufwand nicht zurechenbar sind",
+            "isCorrect": false
+          }
+        ],
+        "confidenceEnabled": true,
+        "confidenceLabelLow": "Sehr unsicher",
+        "confidenceLabelHigh": "Sehr sicher"
+      },
+      {
+        "text": "### Ausschlusskriterium korrekt behandeln\n\nEine gewichtete Matrix bewertet drei Betriebsmodelle. Modell B erreicht den höchsten Gesamtscore, erfüllt aber die verbindliche Anforderung an exportierbare Daten und Konfiguration nicht. Wie ist zu entscheiden?",
+        "type": "SINGLE_CHOICE",
+        "timer": null,
+        "difficulty": "HARD",
+        "order": 1,
+        "answers": [
+          {
+            "text": "Modell B bleibt Sieger, weil der Gesamtscore alle Einzelanforderungen bereits angemessen ausgleicht.",
+            "isCorrect": false
+          },
+          {
+            "text": "Modell B wird ausgeschlossen; die verbleibenden Modelle werden unter transparenter Beibehaltung der Gewichte verglichen.",
+            "isCorrect": true
+          },
+          {
+            "text": "Modell B erhält in der Portabilitätsdimension null Punkte, darf aber durch hohe Werte anderer Dimensionen gewinnen.",
+            "isCorrect": false
+          },
+          {
+            "text": "Modell B wird nachträglich mit geringerem Portabilitätsgewicht erneut bewertet, damit die Rangfolge stabil bleibt.",
+            "isCorrect": false
+          }
+        ],
+        "confidenceEnabled": true,
+        "confidenceLabelLow": "Sehr unsicher",
+        "confidenceLabelHigh": "Sehr sicher"
+      },
+      {
+        "text": "### Migrationsstrategien auf konkrete Eingriffe abbilden\n\nOrdne jeder Strategie das am besten passende Vorhaben zu. Die verwendete Taxonomie umfasst genau die hier genannten sechs Strategien.",
+        "type": "MATCHING",
+        "timer": null,
+        "difficulty": "HARD",
+        "order": 2,
+        "answers": [],
+        "matchingPairs": [
+          {
+            "leftId": "tb10-match-rehost",
+            "left": "Rehost",
+            "rightId": "tb10-match-rehost-value",
+            "right": "Compose-Stack weitgehend unverändert auf eine andere VM verschieben"
+          },
+          {
+            "leftId": "tb10-match-replatform",
+            "left": "Replatform",
+            "rightId": "tb10-match-replatform-value",
+            "right": "PostgreSQL aus dem Stack in einen Managed-Datendienst verlagern"
+          },
+          {
+            "leftId": "tb10-match-repurchase",
+            "left": "Repurchase",
+            "rightId": "tb10-match-repurchase-value",
+            "right": "Eigenes Randmonitoring durch einen externen Dienst ersetzen"
+          },
+          {
+            "leftId": "tb10-match-refactor",
+            "left": "Refactor",
+            "rightId": "tb10-match-refactor-value",
+            "right": "Prozesslokale Live-Signale für mehrere App-Instanzen neu entwerfen"
+          },
+          {
+            "leftId": "tb10-match-retire",
+            "left": "Retire",
+            "rightId": "tb10-match-retire-value",
+            "right": "Nachweislich ungenutzten Betriebsweg mit Rollbackplan entfernen"
+          },
+          {
+            "leftId": "tb10-match-retain",
+            "left": "Retain",
+            "rightId": "tb10-match-retain-value",
+            "right": "Local-First-Quizsammlung mangels gemessenen Engpasses bewusst beibehalten"
+          }
+        ],
+        "matchingShuffleRight": true,
+        "confidenceEnabled": true,
+        "confidenceLabelLow": "Sehr unsicher",
+        "confidenceLabelHigh": "Sehr sicher"
+      },
+      {
+        "text": "### Leerlaufwirkung auf Unit Economics quantifizieren\n\nEin **modellhaftes, nicht providerbezogenes** Kostenmodell verteilt einen unveränderten monatlichen Fixkostenblock auf erfolgreiche Analysen. Im Base Case entstehen 100.000 Analysen, im Worst Case 40.000. Um welchen Faktor steigt der Fixkostenanteil pro Analyse im Worst Case?",
+        "type": "NUMERIC_ESTIMATE",
+        "timer": null,
+        "difficulty": "HARD",
+        "order": 3,
+        "answers": [],
+        "numericToleranceMode": "ABSOLUTE_INTERVAL",
+        "numericReferenceValue": 2.5,
+        "numericIntervalLeft": 2.49,
+        "numericIntervalRight": 2.51,
+        "numericInputType": "DECIMAL",
+        "numericDecimalPlaces": 2,
+        "numericMin": 0,
+        "numericMax": 100,
+        "numericTwoRounds": true,
+        "confidenceEnabled": true,
+        "confidenceLabelLow": "Sehr unsicher",
+        "confidenceLabelHigh": "Sehr sicher"
+      },
+      {
+        "text": "### Kostenfolgen nach ihrem Charakter ordnen\n\nKategorisiere die Positionen eines Migrationsvergleichs. Die Zuordnung dient der Transparenz; sie entscheidet noch nicht über die wirtschaftlich bessere Variante.",
+        "type": "CATEGORIZATION",
+        "timer": null,
+        "difficulty": "HARD",
+        "order": 4,
+        "answers": [],
+        "categories": [
+          {
+            "id": "tb10-cat-capex",
+            "name": "Kapitalbindung oder Investition"
+          },
+          {
+            "id": "tb10-cat-opex",
+            "name": "Laufender Betriebsaufwand"
+          },
+          {
+            "id": "tb10-cat-transition",
+            "name": "Einmaliger Übergangs- oder Exitaufwand"
+          }
+        ],
+        "categorizationItems": [
+          {
+            "id": "tb10-item-hardware",
+            "text": "Beschaffung eigener Serverhardware",
+            "correctCategoryId": "tb10-cat-capex"
+          },
+          {
+            "id": "tb10-item-license",
+            "text": "Kauf zusätzlicher eigener Netzwerktechnik",
+            "correctCategoryId": "tb10-cat-capex"
+          },
+          {
+            "id": "tb10-item-observe",
+            "text": "Monatliches Logging- und Monitoringvolumen",
+            "correctCategoryId": "tb10-cat-opex"
+          },
+          {
+            "id": "tb10-item-support",
+            "text": "Regelmäßige Bereitschafts- und Supportzeit",
+            "correctCategoryId": "tb10-cat-opex"
+          },
+          {
+            "id": "tb10-item-export",
+            "text": "Einmaliger Datenexport beim Anbieterwechsel",
+            "correctCategoryId": "tb10-cat-transition"
+          },
+          {
+            "id": "tb10-item-parallel",
+            "text": "Befristeter Parallelbetrieb während der Migration",
+            "correctCategoryId": "tb10-cat-transition"
+          }
+        ],
+        "categorizationShuffleItems": true,
+        "confidenceEnabled": true,
+        "confidenceLabelLow": "Sehr unsicher",
+        "confidenceLabelHigh": "Sehr sicher"
+      },
+      {
+        "text": "### Providerentscheidung evidenzbasiert vorbereiten\n\nBringe die Schritte in eine Reihenfolge, die eine vorschnelle Produktwahl vermeidet.",
+        "type": "ORDERING",
+        "timer": null,
+        "difficulty": "HARD",
+        "order": 5,
+        "answers": [],
+        "orderingItems": [
+          {
+            "id": "tb10-order-1",
+            "text": "Ist-Topologie, Verantwortungen und gemessene Grenzen festhalten"
+          },
+          {
+            "id": "tb10-order-2",
+            "text": "Lastprofile, Qualitätsziele und harte Ausschlusskriterien definieren"
+          },
+          {
+            "id": "tb10-order-3",
+            "text": "Vergleichbare Betriebsmodelle mit identischer Systemgrenze bilden"
+          },
+          {
+            "id": "tb10-order-4",
+            "text": "TCO-, Ressourcen- und Energieannahmen in Szenarien modellieren"
+          },
+          {
+            "id": "tb10-order-5",
+            "text": "Restore, Störung, Skalierung und Export der Shortlist reproduzierbar prüfen"
+          },
+          {
+            "id": "tb10-order-6",
+            "text": "Entscheidung, stärkste Alternative, Sensitivität und Neubewertungskriterium dokumentieren"
+          }
+        ],
+        "confidenceEnabled": true,
+        "confidenceLabelLow": "Sehr unsicher",
+        "confidenceLabelHigh": "Sehr sicher"
+      },
+      {
+        "text": "### Empfindlichkeit einer Entscheidung benennen\n\nEin Team variiert jeweils eine unsichere Eingabe seines Kostenmodells, hält die übrigen Eingaben konstant und beobachtet mögliche Rangwechsel. Wie heißt dieses Verfahren?",
+        "type": "SHORT_TEXT",
+        "timer": null,
+        "difficulty": "MEDIUM",
+        "order": 6,
+        "answers": [
+          {
+            "text": "Sensitivitätsanalyse",
+            "isCorrect": true
+          },
+          {
+            "text": "Sensitivitaetsanalyse",
+            "isCorrect": true
+          },
+          {
+            "text": "Empfindlichkeitsanalyse",
+            "isCorrect": true
+          },
+          {
+            "text": "Sensitivity Analysis",
+            "isCorrect": true
+          }
+        ],
+        "shortTextEvaluationKind": "text",
+        "shortTextMaxLength": 48,
+        "shortTextCaseSensitive": false,
+        "shortTextEvaluationMode": "exact",
+        "shortTextToleranceLevel": "none",
+        "shortTextAllowPartialCredit": false,
+        "shortTextTrimWhitespace": true,
+        "shortTextNormalizeWhitespace": true,
+        "confidenceEnabled": true,
+        "confidenceLabelLow": "Sehr unsicher",
+        "confidenceLabelHigh": "Sehr sicher"
+      },
+      {
+        "text": "### Nachhaltigkeit mit Architekturfolgen verbinden\n\nEine kleinere CPU-Variante benötigt pro Analyse mehr Laufzeit, vermeidet aber dauerhaft ungenutzte Spezialhardware. Eine beschleunigte Variante benötigt weniger Zeit pro Analyse, weist im Base Case jedoch viel Leerlauf auf. Formuliere in zwei bis drei Sätzen die Messgrößen und Szenarien, die eine belastbare Ressourcen- und Energieentscheidung erfordern.",
+        "type": "FREETEXT",
+        "timer": null,
+        "difficulty": "HARD",
+        "order": 7,
+        "answers": []
+      },
+      {
+        "text": "### Begrenzte FinOps-Aussage einschätzen\n\nEin Team berichtet Kosten pro erfolgreicher Analyse für Best-, Base- und Worst-Case, legt Auslastung, Systemgrenze und Quellenstand offen und zeigt, dass die Rangfolge bei höherem Datenabfluss kippt. Wie tragfähig ist diese Aussage als Entscheidungsgrundlage?",
+        "type": "RATING",
+        "timer": null,
+        "difficulty": "MEDIUM",
+        "order": 8,
+        "answers": [],
+        "ratingMin": 1,
+        "ratingMax": 5,
+        "ratingLabelMin": "1 = wirtschaftlich irreführend",
+        "ratingLabelMax": "5 = transparent und sensitiv"
+      },
+      {
+        "text": "### Unsicherste Annahme zur Gegenprobe wählen\n\nEine Shortlist unterscheidet sich vor allem bei Personalaufwand, Datenabfluss, Leerlauf und Exitdauer. Welche Annahme sollte ein Team zuerst adversarial testen? Die Abstimmung priorisiert die Werkstatt; es gibt keine Musterlösung.",
+        "type": "SURVEY",
+        "timer": null,
+        "difficulty": "MEDIUM",
+        "order": 9,
+        "answers": [
+          {
+            "text": "Den erwarteten monatlichen Betriebs- und Bereitschaftsaufwand je Modell",
+            "isCorrect": false
+          },
+          {
+            "text": "Das erwartete ausgehende Datenvolumen je Nutzungsszenario",
+            "isCorrect": false
+          },
+          {
+            "text": "Die erwartete Auslastung und den Leerlauf teurer Ressourcen",
+            "isCorrect": false
+          },
+          {
+            "text": "Die erwartete Dauer und Vollständigkeit eines realen Exittests",
+            "isCorrect": false
+          }
+        ]
+      }
+    ]
+  }
+}

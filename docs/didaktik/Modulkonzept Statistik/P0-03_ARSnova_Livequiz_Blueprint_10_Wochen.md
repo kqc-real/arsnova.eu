@@ -1,6 +1,6 @@
 # P0-03 – ARSnova-Livequiz-Blueprint für 10 Wochen
 
-**Version:** 3.0.0 · **Stand:** 13.09.2026 · **Status:** normative Spezifikation für 100 anspruchsvolle Livefragen im synchronen Gamification-Betrieb
+**Version:** 3.0.0 · **Stand:** 14.09.2026 · **Status:** normative Spezifikation für 100 anspruchsvolle Livefragen im synchronen Gamification-Betrieb
 
 **Kanonischer Index:** [P0-03_Materialpaket_Pilotlauf.md](./P0-03_Materialpaket_Pilotlauf.md)
 
@@ -10,19 +10,19 @@
 
 Das Modul verwendet ARSnova.eu synchron zur pseudonymen Diagnose, zur lernorientierten Peer Instruction und für formative Spiel-/Teamphasen. Die zehn Wochen-Dateien enthalten zusammen genau 100 Livefragen:
 
-|     Woche |  Fragen | Datei                                                        |
-| --------: | ------: | ------------------------------------------------------------ |
-|       W01 |      10 | [P0-03_ARSnova_Woche_01.json](./P0-03_ARSnova_Woche_01.json) |
-|       W02 |      10 | [P0-03_ARSnova_Woche_02.json](./P0-03_ARSnova_Woche_02.json) |
-|       W03 |      10 | [P0-03_ARSnova_Woche_03.json](./P0-03_ARSnova_Woche_03.json) |
-|       W04 |      10 | [P0-03_ARSnova_Woche_04.json](./P0-03_ARSnova_Woche_04.json) |
-|       W05 |      10 | [P0-03_ARSnova_Woche_05.json](./P0-03_ARSnova_Woche_05.json) |
-|       W06 |      10 | [P0-03_ARSnova_Woche_06.json](./P0-03_ARSnova_Woche_06.json) |
-|       W07 |      10 | [P0-03_ARSnova_Woche_07.json](./P0-03_ARSnova_Woche_07.json) |
-|       W08 |      10 | [P0-03_ARSnova_Woche_08.json](./P0-03_ARSnova_Woche_08.json) |
-|       W09 |      10 | [P0-03_ARSnova_Woche_09.json](./P0-03_ARSnova_Woche_09.json) |
-|       W10 |      10 | [P0-03_ARSnova_Woche_10.json](./P0-03_ARSnova_Woche_10.json) |
-| **Summe** | **100** |                                                              |
+|     Woche |  Fragen | Datei                                                                |
+| --------: | ------: | -------------------------------------------------------------------- |
+|       W01 |      10 | [P0-03_ARSnova_Woche_01.json](./ARSnova/P0-03_ARSnova_Woche_01.json) |
+|       W02 |      10 | [P0-03_ARSnova_Woche_02.json](./ARSnova/P0-03_ARSnova_Woche_02.json) |
+|       W03 |      10 | [P0-03_ARSnova_Woche_03.json](./ARSnova/P0-03_ARSnova_Woche_03.json) |
+|       W04 |      10 | [P0-03_ARSnova_Woche_04.json](./ARSnova/P0-03_ARSnova_Woche_04.json) |
+|       W05 |      10 | [P0-03_ARSnova_Woche_05.json](./ARSnova/P0-03_ARSnova_Woche_05.json) |
+|       W06 |      10 | [P0-03_ARSnova_Woche_06.json](./ARSnova/P0-03_ARSnova_Woche_06.json) |
+|       W07 |      10 | [P0-03_ARSnova_Woche_07.json](./ARSnova/P0-03_ARSnova_Woche_07.json) |
+|       W08 |      10 | [P0-03_ARSnova_Woche_08.json](./ARSnova/P0-03_ARSnova_Woche_08.json) |
+|       W09 |      10 | [P0-03_ARSnova_Woche_09.json](./ARSnova/P0-03_ARSnova_Woche_09.json) |
+|       W10 |      10 | [P0-03_ARSnova_Woche_10.json](./ARSnova/P0-03_ARSnova_Woche_10.json) |
+| **Summe** | **100** |                                                                      |
 
 Jede Wochen-Datei enthält jeden der zehn von arsnova.eu unterstützten Fragetypen genau einmal. Wird ein Wochenblock auf mehrere Präsenztage verteilt, werden die zehn Fragen auf diese Termine verteilt und nicht pro Termin vervielfacht. Keine Frage darf wegen ihres Typs, ihrer Schwierigkeit oder einer optionalen Vertiefung ersatzlos entfallen; eine notwendige fachliche Vereinfachung verwendet denselben Typ und dasselbe Kernlernziel.
 

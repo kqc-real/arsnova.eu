@@ -1,0 +1,593 @@
+{
+  "meta": {
+    "title": "MC-Test – Themenblock TB06: Data Science und Machine Learning in der Cloud",
+    "target_audience": "Bachelorstudierende der Informatik im Modul Cloud Computing",
+    "question_count": 30,
+    "difficulty_profile": {
+      "leicht": 0,
+      "mittel": 12,
+      "schwer": 18
+    },
+    "time_per_weight_minutes": {
+      "1": 0.5,
+      "2": 0.75,
+      "3": 1.0
+    },
+    "additional_buffer_minutes": 5,
+    "test_duration_minutes": 32,
+    "language": "de",
+    "updated": "2026-09-14"
+  },
+  "questions": [
+    {
+      "question": "1. Welche Aussage grenzt Extract, Transform, Load (ETL) und Extract, Load, Transform (ELT) korrekt voneinander ab?",
+      "options": [
+        "ETL verarbeitet ausschließlich Streamingdaten, ELT ausschließlich nächtliche Batches.",
+        "ETL ist immer lokal, ELT ist definitionsgemäß nur in Public Clouds möglich.",
+        "ETL speichert Rohdaten grundsätzlich dauerhaft, ELT verwirft sie grundsätzlich sofort.",
+        "Bei ETL erfolgt die maßgebliche Transformation vor dem Laden ins Ziel; bei ELT wird zunächst geladen und im Ziel transformiert."
+      ],
+      "answer": 3,
+      "explanation": "ETL und ELT unterscheiden primär die Reihenfolge von Transformation und Laden. Weder Ausführungsmodus noch Cloud-Ort oder Aufbewahrung folgen zwingend aus dem Akronym.",
+      "weight": 2,
+      "topic": "Datenpipeline",
+      "concept": "Reihenfolge von Transformation und Laden",
+      "cognitive_level": "Verständnis",
+      "mini_glossary": {
+        "ETL/ELT": "Muster, bei denen Daten vor beziehungsweise nach dem Laden in ein Zielsystem transformiert werden.",
+        "Datenpipeline": "Wiederholbarer Ablauf für Aufnahme, Prüfung, Transformation, Verarbeitung und Ausgabe von Daten."
+      }
+    },
+    {
+      "question": "2. Q&A-Daten sollen in ein Analyseziel geladen werden; Tokens und Nicknames werden dort nicht benötigt. Welcher Pipeline-Schritt reduziert das Risiko früh?",
+      "options": [
+        "Alle Felder unverändert laden und erst nach Ablauf der Aufbewahrung dokumentieren.",
+        "Nicht benötigte Identifikatoren bereits vor dem Laden entfernen und das verbleibende Schema validieren.",
+        "Tokens nur in der Oberfläche ausblenden, aber im Analyseziel vollständig speichern.",
+        "Das Zielsystem öffentlich erreichbar machen, damit die Schemaanalyse einfacher wird."
+      ],
+      "answer": 1,
+      "explanation": "Frühe Feldreduktion verkleinert Datenumfang und Schadenspotenzial entlang des gesamten Pfads. UI-Ausblendung, spätere Dokumentation oder öffentliche Erreichbarkeit entfernen keine sensiblen Daten.",
+      "weight": 2,
+      "topic": "Datenpipeline",
+      "concept": "Frühe Datenreduktion in Pipelines",
+      "cognitive_level": "Anwendung",
+      "mini_glossary": {
+        "ETL/ELT": "Muster, bei denen Daten vor beziehungsweise nach dem Laden in ein Zielsystem transformiert werden.",
+        "Datenpipeline": "Wiederholbarer Ablauf für Aufnahme, Prüfung, Transformation, Verarbeitung und Ausgabe von Daten."
+      }
+    },
+    {
+      "question": "3. Derselbe Snapshot liefert nach einem Monat andere Vektoren, obwohl der Modellname gleich geblieben ist. Welche fehlende Evidenz ist am wahrscheinlichsten?",
+      "options": [
+        "Der Snapshot besitzt zu wenige Zeilen, weshalb jedes Ergebnis zufällig sein muss.",
+        "Die Daten wurden im Batch statt als Stream verarbeitet.",
+        "Exakte Modell-, Tokenizer- und Vorverarbeitungsversionen einschließlich Artefakthashes wurden nicht fixiert.",
+        "Die Ausgabedatei wurde als JSON statt als CSV gespeichert."
+      ],
+      "answer": 2,
+      "explanation": "Ein Modellname allein bindet weder Gewichte noch Tokenizer oder Transformationen. Batchmodus und Dateiformat erklären keine still veränderte Rechenfunktion; die Eingabegröße macht Determinismus nicht unmöglich.",
+      "weight": 2,
+      "topic": "Datenpipeline",
+      "concept": "Versionierung der Transformationskette",
+      "cognitive_level": "Analyse",
+      "mini_glossary": {
+        "ETL/ELT": "Muster, bei denen Daten vor beziehungsweise nach dem Laden in ein Zielsystem transformiert werden.",
+        "Datenpipeline": "Wiederholbarer Ablauf für Aufnahme, Prüfung, Transformation, Verarbeitung und Ausgabe von Daten."
+      }
+    },
+    {
+      "question": "4. Was unterscheidet eine produktionsfähige Datenpipeline am stärksten von einem rein explorativen Notebook?",
+      "options": [
+        "Sie enthält mehr Diagramme und deshalb automatisch bessere Datenqualität.",
+        "Sie darf keine interaktive Analyse oder menschliche Freigabe enthalten.",
+        "Sie besitzt versionierte Schritte, definierte Ein- und Ausgaben, Wiederholungs- und Fehlerregeln sowie automatisierbare Ausführung.",
+        "Sie verwendet zwingend einen bestimmten Cloud-Provider und eine GPU."
+      ],
+      "answer": 2,
+      "explanation": "Produktionsfähigkeit entsteht durch Verträge, Versionierung und kontrollierte Wiederholung. Visualisierung, fehlende Interaktion oder ein bestimmter Anbieter sind weder notwendig noch hinreichend.",
+      "weight": 2,
+      "topic": "Datenpipeline",
+      "concept": "Exploration und Produktionspipeline",
+      "cognitive_level": "Verständnis",
+      "mini_glossary": {
+        "ETL/ELT": "Muster, bei denen Daten vor beziehungsweise nach dem Laden in ein Zielsystem transformiert werden.",
+        "Datenpipeline": "Wiederholbarer Ablauf für Aufnahme, Prüfung, Transformation, Verarbeitung und Ausgabe von Daten."
+      }
+    },
+    {
+      "question": "5. Nach einem Datenimport verschlechtert sich die Clusterqualität nur für eine Sprache. Die Sprachangabe fehlt in 18 % der neuen Datensätze. Welche Maßnahme ist zuerst sinnvoll?",
+      "options": [
+        "Die Clusterzahl erhöhen, ohne die fehlenden Eingabemerkmale zu untersuchen.",
+        "Alle Sprachen unter demselben Default erzwingen und den Qualitätsabfall ignorieren.",
+        "Nur die Visualisierung neu skalieren, weil Datenqualität keinen Einfluss auf Embeddings hat.",
+        "Eine Eingangsprüfung für Sprache und Vollständigkeit einführen und fehlerhafte Datensätze quarantänisieren oder kontrolliert behandeln."
+      ],
+      "answer": 3,
+      "explanation": "Der beobachtete Ausfall korreliert mit einem fehlenden Pipelinefeld; eine Validierungs- und Behandlungsregel adressiert die Ursache. Parameter- oder Darstellungsänderungen verdecken den Eingabefehler.",
+      "weight": 2,
+      "topic": "Datenpipeline",
+      "concept": "Data-Quality-Gate",
+      "cognitive_level": "Anwendung",
+      "mini_glossary": {
+        "ETL/ELT": "Muster, bei denen Daten vor beziehungsweise nach dem Laden in ein Zielsystem transformiert werden.",
+        "Datenpipeline": "Wiederholbarer Ablauf für Aufnahme, Prüfung, Transformation, Verarbeitung und Ausgabe von Daten."
+      }
+    },
+    {
+      "question": "6. Ein Stream erhält dauerhaft 120 Ereignisse pro Sekunde, verarbeitet aber nur 90. Was passiert ohne Lastkontrolle?",
+      "options": [
+        "Der Stream beschleunigt automatisch auf die Ankunftsrate, sobald genügend Ereignisse warten.",
+        "Die Differenz verschwindet im Mittel, weil Durchsatz und Latenz unabhängig sind.",
+        "Der Rückstand wächst, wodurch Queue-Latenz, Speicherbedarf und schließlich Fehler oder Datenverlust zunehmen.",
+        "Nur die Batchgröße sinkt; Queue und Ressourcen bleiben zwangsläufig konstant."
+      ],
+      "answer": 2,
+      "explanation": "Wenn Ankunftsrate dauerhaft über der Service-Rate liegt, wächst die Warteschlange. Ohne Backpressure, Skalierung oder Lastabwurf steigen Latenz und Ressourcenrisiko statt sich selbst zu korrigieren.",
+      "weight": 2,
+      "topic": "Batch und Streaming",
+      "concept": "Ankunfts- und Service-Rate",
+      "cognitive_level": "Analyse",
+      "mini_glossary": {
+        "Batch": "Verarbeitung einer begrenzten Datenmenge als geplanter Lauf.",
+        "Streaming": "Fortlaufende Verarbeitung eintreffender Ereignisse mit expliziter Zeit-, Zustands- und Fehlersemantik."
+      }
+    },
+    {
+      "question": "7. Warum benötigen Streamingauswertungen häufig Ereigniszeit und Wasserzeichen?",
+      "options": [
+        "Sie verschlüsseln jeden Eventpayload automatisch vor der Übertragung.",
+        "Sie erlauben, verspätete oder ungeordnet eintreffende Ereignisse definiert Zeitfenstern zuzuordnen und Fenster kontrolliert abzuschließen.",
+        "Sie garantieren unabhängig vom Quellsystem exakt einmalige Verarbeitung.",
+        "Sie ersetzen Schema-, Qualitäts- und Aufbewahrungsregeln der Pipeline."
+      ],
+      "answer": 1,
+      "explanation": "Ereigniszeit und Wasserzeichen behandeln zeitliche Unordnung und Abschluss von Fenstern. Sie lösen weder Verschlüsselung noch Exactly-once-Semantik oder Daten-Governance automatisch.",
+      "weight": 2,
+      "topic": "Batch und Streaming",
+      "concept": "Ereigniszeit und Wasserzeichen",
+      "cognitive_level": "Verständnis",
+      "mini_glossary": {
+        "Batch": "Verarbeitung einer begrenzten Datenmenge als geplanter Lauf.",
+        "Streaming": "Fortlaufende Verarbeitung eintreffender Ereignisse mit expliziter Zeit-, Zustands- und Fehlersemantik."
+      }
+    },
+    {
+      "question": "8. Vier Modellvarianten sollen jeden Morgen auf exakt demselben abgeschlossenen Seed-Set verglichen werden. Welches Muster unterstützt die Vergleichbarkeit?",
+      "options": [
+        "Vier unabhängige Live-Streams mit jeweils anderen Eingabezeitfenstern.",
+        "Ein Notebook, das bei jedem Lauf automatisch das neueste Modell und alle aktuellen Daten lädt.",
+        "Eine manuelle Auswahl besonders gut wirkender Beispiele für jede Variante.",
+        "Ein versionierter Batch-Lauf mit identischem Snapshot, fixierten Parametern und gemeinsamem Messprotokoll."
+      ],
+      "answer": 3,
+      "explanation": "Ein fixierter Batch bindet Eingabe und Messgrenze für alle Varianten. Unterschiedliche Streams, bewegliche Abhängigkeiten oder kuratierte Einzelfälle erzeugen keine faire Vergleichsbasis.",
+      "weight": 2,
+      "topic": "Batch und Streaming",
+      "concept": "Reproduzierbarer Varianten-Batch",
+      "cognitive_level": "Anwendung",
+      "mini_glossary": {
+        "Batch": "Verarbeitung einer begrenzten Datenmenge als geplanter Lauf.",
+        "Streaming": "Fortlaufende Verarbeitung eintreffender Ereignisse mit expliziter Zeit-, Zustands- und Fehlersemantik."
+      }
+    },
+    {
+      "question": "9. Ein Streaming-Consumer schreibt Ergebnisse und stürzt vor dem Bestätigen eines Events ab. Nach dem Neustart wird das Event erneut zugestellt. Wie verhindert man doppelte Wirkung?",
+      "options": [
+        "Mit stabiler Event-ID, idempotentem Write beziehungsweise Deduplication und einem zum Commit passenden Checkpoint.",
+        "Mit einer größeren VM, weil mehr CPU jede doppelte Zustellung verhindert.",
+        "Mit kürzerer Logaufbewahrung, damit das frühere Ergebnis unsichtbar wird.",
+        "Mit zufälligen Ergebnis-IDs bei jedem Versuch, damit beide Writes verschieden aussehen."
+      ],
+      "answer": 0,
+      "explanation": "At-least-once-Zustellung kann Wiederholungen erzeugen; idempotente Verarbeitung und gekoppelte Fortschrittsmarken begrenzen die Wirkung. Ressourcen, Loglöschung oder Zufalls-IDs lösen das Konsistenzproblem nicht.",
+      "weight": 2,
+      "topic": "Batch und Streaming",
+      "concept": "Idempotenz bei Wiederholungszustellung",
+      "cognitive_level": "Analyse",
+      "mini_glossary": {
+        "Batch": "Verarbeitung einer begrenzten Datenmenge als geplanter Lauf.",
+        "Streaming": "Fortlaufende Verarbeitung eintreffender Ereignisse mit expliziter Zeit-, Zustands- und Fehlersemantik."
+      }
+    },
+    {
+      "question": "10. Wann rechtfertigt Streaming gegenüber einem einfacheren Batch typischerweise seine zusätzliche Komplexität?",
+      "options": [
+        "Wenn Cloudspeicher eingesetzt wird, auch ohne messbare Anforderung an die Aktualität der Ergebnisse.",
+        "Wenn der Datensatz den Arbeitsspeicher übersteigt, unabhängig von Latenz-, Zustands- und Fehlerzielen.",
+        "Wenn ein belegtes Aktualitätsziel fortlaufende Ergebnisse verlangt und Zeit-, Fehler- sowie Zustandssemantik beherrscht werden.",
+        "Wenn die Quelle nahezu fehlerfrei ist und verspätete Ereignisse im Entwurf nicht berücksichtigt werden müssen."
+      ],
+      "answer": 2,
+      "explanation": "Streaming ist eine Latenzentscheidung mit zusätzlicher Zustands- und Fehlersicht. Cloud-Speicher und Datenmenge erzwingen es nicht; fehlerfreie Quellen sind keine realistische Voraussetzung.",
+      "weight": 2,
+      "topic": "Batch und Streaming",
+      "concept": "Latenznutzen von Streaming",
+      "cognitive_level": "Verständnis",
+      "mini_glossary": {
+        "Batch": "Verarbeitung einer begrenzten Datenmenge als geplanter Lauf.",
+        "Streaming": "Fortlaufende Verarbeitung eintreffender Ereignisse mit expliziter Zeit-, Zustands- und Fehlersemantik."
+      }
+    },
+    {
+      "question": "11. Drei semantisch ähnliche Q&A-Fragen verwenden kaum gemeinsame Wörter. Welche Verarbeitung kann ihre Nähe dennoch erfassen?",
+      "options": [
+        "Nur identische Zeichenketten zählen und unterschiedliche Formulierungen stets trennen.",
+        "Die Fragen alphabetisch sortieren und benachbarte Einträge als semantisch gleich behandeln.",
+        "Mit demselben versionierten Encoder Embeddings bilden und die Vektoren anhand einer geeigneten Ähnlichkeitsmetrik vergleichen.",
+        "Aus jeder Frage zufällig ein Wort wählen und nur dessen Länge vergleichen."
+      ],
+      "answer": 2,
+      "explanation": "Embeddings können gelernte semantische Nähe über die reine Wortgleichheit hinaus abbilden. Zeichenidentität, Alphabet oder Wortlänge erfassen Paraphrasen nicht zuverlässig.",
+      "weight": 2,
+      "topic": "Embeddings und Clustering",
+      "concept": "Semantische Repräsentation",
+      "cognitive_level": "Anwendung",
+      "mini_glossary": {
+        "Embedding": "Numerischer Vektor, der gelernte Ähnlichkeitsbeziehungen eines Eingabeobjekts repräsentiert.",
+        "Clustering": "Gruppierung von Objekten nach einer festgelegten Ähnlichkeits- und Verfahrensregel."
+      }
+    },
+    {
+      "question": "12. Ein Embedding-Cache wird nach einem Modellupdate weiterverwendet. Welche Folge ist besonders kritisch?",
+      "options": [
+        "Alle gecachten Vektoren werden automatisch in den neuen Modellraum übersetzt.",
+        "Vektoren verschiedener Modellräume können vermischt werden, sodass Ähnlichkeiten und Cluster nicht mehr konsistent interpretierbar sind.",
+        "Nur die Dateigröße ändert sich; Ähnlichkeitswerte bleiben definitionsgemäß identisch.",
+        "Der Cache verbessert zwangsläufig die Clusterqualität, weil er ältere Ergebnisse enthält."
+      ],
+      "answer": 1,
+      "explanation": "Embeddingräume sind an Modell und Vorverarbeitung gebunden; gemischte Versionen können geometrisch inkompatibel sein. Automatische Übersetzung oder identische Ähnlichkeit ist nicht gegeben.",
+      "weight": 2,
+      "topic": "Embeddings und Clustering",
+      "concept": "Versionsgebundener Embedding-Cache",
+      "cognitive_level": "Analyse",
+      "mini_glossary": {
+        "Embedding": "Numerischer Vektor, der gelernte Ähnlichkeitsbeziehungen eines Eingabeobjekts repräsentiert.",
+        "Clustering": "Gruppierung von Objekten nach einer festgelegten Ähnlichkeits- und Verfahrensregel."
+      }
+    },
+    {
+      "question": "13. Welche Aussage über ein Text-Embedding ist fachlich korrekt?",
+      "options": [
+        "Es ist eine modellabhängige numerische Repräsentation für Ähnlichkeitsaufgaben, aber kein Beweis für Wahrheit oder fachliche Richtigkeit.",
+        "Es ist eine verlustfreie Kopie des Textes, aus der jedes Originalzeichen garantiert rekonstruiert wird.",
+        "Es ist eine geprüfte Tatsachenbewertung und ersetzt fachliche Validierung.",
+        "Es ist unabhängig von Trainingsdaten, Sprache, Tokenizer und Modellversion."
+      ],
+      "answer": 0,
+      "explanation": "Embeddings unterstützen geometrische Vergleiche, tragen aber keine Wahrheitsgarantie. Sie sind weder verlustfreie Textarchive noch modellunabhängige Faktenprüfer.",
+      "weight": 3,
+      "topic": "Embeddings und Clustering",
+      "concept": "Aussagegrenze von Embeddings",
+      "cognitive_level": "Verständnis",
+      "mini_glossary": {
+        "Embedding": "Numerischer Vektor, der gelernte Ähnlichkeitsbeziehungen eines Eingabeobjekts repräsentiert.",
+        "Clustering": "Gruppierung von Objekten nach einer festgelegten Ähnlichkeits- und Verfahrensregel."
+      }
+    },
+    {
+      "question": "14. Ein Clusteringvergleich soll bei identischer Eingabe wiederholbar sein. Welche Konfiguration ist am geeignetsten?",
+      "options": [
+        "Algorithmus, Distanzmaß, Vorverarbeitung, Abbruchregel, Parameter und gegebenenfalls Zufallsseed versioniert fixieren.",
+        "Clusterzahl und Parameter bei jedem Lauf anhand der jeweils aktuellen Visualisierung erneut abstimmen.",
+        "Farbpalette, Sortierung und sichtbare Labels der Ergebnisgrafik als einzige Artefakte versionieren.",
+        "Automatisch den neuesten Modellstand laden und ausschließlich den Namen des Encoders dokumentieren."
+      ],
+      "answer": 0,
+      "explanation": "Reproduzierbarkeit erfordert die Bindung aller ergebniswirksamen Schritte. Optik, manuelle Nachsteuerung oder bewegliche Modellstände liefern keine identische Rechenvorschrift.",
+      "weight": 3,
+      "topic": "Embeddings und Clustering",
+      "concept": "Deterministische Clusterkonfiguration",
+      "cognitive_level": "Anwendung",
+      "mini_glossary": {
+        "Embedding": "Numerischer Vektor, der gelernte Ähnlichkeitsbeziehungen eines Eingabeobjekts repräsentiert.",
+        "Clustering": "Gruppierung von Objekten nach einer festgelegten Ähnlichkeits- und Verfahrensregel."
+      }
+    },
+    {
+      "question": "15. Ein optionales LLM erzeugt für ein bereits bestimmtes Cluster ein gut klingendes Label, das durch keine Mitgliedsfrage gedeckt ist. Wie sollte die Pipeline reagieren?",
+      "options": [
+        "Das Label übernehmen, weil sprachliche Qualität wichtiger als Quellenbindung ist.",
+        "Weitere nicht zugehörige Fragen ins Cluster verschieben, bis das Label plausibel wirkt.",
+        "Die Ausgabe schema- und quellengebunden verwerfen und auf ein extraktives oder lexikalisches Label zurückfallen.",
+        "Das Label ohne Mitgliedsliste anzeigen und nur den Modellnamen protokollieren."
+      ],
+      "answer": 2,
+      "explanation": "Ein Label darf die Clusterbedeutung nicht frei erfinden; Validierung und Fallback erhalten Erklärbarkeit. Daten nach dem Label umzudeuten oder Evidenz auszublenden kehrt die Begründungsrichtung um.",
+      "weight": 3,
+      "topic": "Embeddings und Clustering",
+      "concept": "Quellengebundene Labelbildung",
+      "cognitive_level": "Analyse",
+      "mini_glossary": {
+        "Embedding": "Numerischer Vektor, der gelernte Ähnlichkeitsbeziehungen eines Eingabeobjekts repräsentiert.",
+        "Clustering": "Gruppierung von Objekten nach einer festgelegten Ähnlichkeits- und Verfahrensregel."
+      }
+    },
+    {
+      "question": "16. Welche Verantwortung verbleibt bei einem Managed-ML-Angebot auf Kundenseite?",
+      "options": [
+        "Physische Stromversorgung jedes Rechenzentrums selbst betreiben.",
+        "Hypervisor-Patches des Plattformhosts eigenständig einspielen.",
+        "Hardwaredefekte in den Provider-Racks persönlich austauschen.",
+        "Zweck, Datenfreigabe, Zugriffe, Evaluationskriterien, Modellrisiken, Aufbewahrung und fachliche Freigabe bleiben zu steuern."
+      ],
+      "answer": 3,
+      "explanation": "Managed ML übernimmt definierte Plattformaufgaben, nicht die fachliche und datenschutzbezogene Verantwortung der nutzenden Organisation. Physische Infrastruktur gehört typischerweise zur Providerseite.",
+      "weight": 3,
+      "topic": "Managed ML und private Inferenz",
+      "concept": "Shared Responsibility bei Managed ML",
+      "cognitive_level": "Verständnis",
+      "mini_glossary": {
+        "Managed ML": "Plattformdienst für Teile des ML-Lebenszyklus mit geteilter Betriebsverantwortung.",
+        "Private Inferenz": "Modellausführung über einen nicht öffentlich erreichbaren, kontrollierten Dienstpfad."
+      }
+    },
+    {
+      "question": "17. Ein privater Inferenzserver soll Q&A-Snapshots analysieren. Welcher Zugriffspfad minimiert die Angriffsfläche?",
+      "options": [
+        "Jeder Teilnehmerbrowser erhält einen gemeinsam genutzten Langzeitschlüssel.",
+        "Nur die Backend-Service-Identität erreicht den privaten Modellendpunkt; Browser besitzen weder Route noch Credential dorthin.",
+        "Der Modellendpunkt ist öffentlich, aber sein Hostname wird nicht in der UI angezeigt.",
+        "Alle Systeme im Netz dürfen ohne Authentifizierung inferieren."
+      ],
+      "answer": 1,
+      "explanation": "Service-to-Service-Zugriff begrenzt Netzreichweite und Identitäten. Browserkeys, versteckte öffentliche Endpunkte oder pauschales Netzvertrauen erweitern die Angriffsfläche.",
+      "weight": 3,
+      "topic": "Managed ML und private Inferenz",
+      "concept": "Privater Inferenzpfad",
+      "cognitive_level": "Anwendung",
+      "mini_glossary": {
+        "Managed ML": "Plattformdienst für Teile des ML-Lebenszyklus mit geteilter Betriebsverantwortung.",
+        "Private Inferenz": "Modellausführung über einen nicht öffentlich erreichbaren, kontrollierten Dienstpfad."
+      }
+    },
+    {
+      "question": "18. Die Themeninferenz benötigt bei hoher Last 20 Sekunden. Join, Vote und Q&A-Submit teilen denselben synchronen Requestpfad. Welche Änderung schützt den Kernbetrieb?",
+      "options": [
+        "Inferenz asynchron entkoppeln, Zeit- und Queue-Grenzen setzen und sofort einen deterministischen Fallback liefern.",
+        "Das synchrone Timeout für alle Kernoperationen auf 60 Sekunden erhöhen.",
+        "Join-Requests priorisieren, aber Vote weiterhin auf jedes Modellresultat warten lassen.",
+        "Fehlgeschlagene Inferenz unbegrenzt sofort wiederholen."
+      ],
+      "answer": 0,
+      "explanation": "Der optionale ML-Pfad darf Kerninteraktionen nicht blockieren; asynchrone Grenzen und Fallback erhalten Verfügbarkeit. Längere Timeouts oder ungebremste Wiederholungen vergrößern die Kopplung.",
+      "weight": 3,
+      "topic": "Managed ML und private Inferenz",
+      "concept": "Entkopplung vom Live-Hotpath",
+      "cognitive_level": "Analyse",
+      "mini_glossary": {
+        "Managed ML": "Plattformdienst für Teile des ML-Lebenszyklus mit geteilter Betriebsverantwortung.",
+        "Private Inferenz": "Modellausführung über einen nicht öffentlich erreichbaren, kontrollierten Dienstpfad."
+      }
+    },
+    {
+      "question": "19. Managed ML und selbst gehostete private Inferenz sollen verglichen werden. Welche Versuchsgrenze ist fair?",
+      "options": [
+        "Gleiche Snapshots, Qualitätsmetriken, Latenzdefinitionen, Sicherheitsanforderungen und vollständige Betriebs- sowie Transferkosten verwenden.",
+        "Beim Managed Dienst nur Inferenzzeit, beim Self-hosting zusätzlich Warteschlange und Betrieb messen.",
+        "Für jede Variante ein anderes Seed-Set wählen, das ihre Stärken hervorhebt.",
+        "Nur den Listenpreis pro Recheneinheit vergleichen und Leerlauf, Egress sowie Personal ausblenden."
+      ],
+      "answer": 0,
+      "explanation": "Ein fairer Vergleich hält Workload, Qualitätsmaß und Systemgrenze konstant. Asymmetrische Metriken, Daten oder Kostenbestandteile erzeugen ein Scheinergebnis.",
+      "weight": 3,
+      "topic": "Managed ML und private Inferenz",
+      "concept": "Symmetrischer Build-or-Buy-Vergleich",
+      "cognitive_level": "Anwendung",
+      "mini_glossary": {
+        "Managed ML": "Plattformdienst für Teile des ML-Lebenszyklus mit geteilter Betriebsverantwortung.",
+        "Private Inferenz": "Modellausführung über einen nicht öffentlich erreichbaren, kontrollierten Dienstpfad."
+      }
+    },
+    {
+      "question": "20. Angenommen, der private Inferenzhost wird kompromittiert. Welche Gestaltung begrenzt den möglichen Datenabfluss am stärksten?",
+      "options": [
+        "Die vollständige Datenbank dauerhaft auf den Inferenzhost replizieren.",
+        "Nur minimale, kurzlebige Snapshots ohne Tokens übertragen, Aufbewahrung begrenzen und ausgehende Netzpfade kontrollieren.",
+        "Alle App-Secrets im Modellcontainer ablegen, damit Retries funktionieren.",
+        "Uneingeschränkten Runtime-Egress erlauben und nur die CPU begrenzen."
+      ],
+      "answer": 1,
+      "explanation": "Minimale Eingaben, kurze Lebensdauer und Egress-Kontrolle reduzieren Datenmenge und Exfiltrationsweg. Vollreplikation, Secrets oder offener Ausgang vergrößern die Schadensreichweite.",
+      "weight": 3,
+      "topic": "Managed ML und private Inferenz",
+      "concept": "Blast-Radius privater Inferenz",
+      "cognitive_level": "Analyse",
+      "mini_glossary": {
+        "Managed ML": "Plattformdienst für Teile des ML-Lebenszyklus mit geteilter Betriebsverantwortung.",
+        "Private Inferenz": "Modellausführung über einen nicht öffentlich erreichbaren, kontrollierten Dienstpfad."
+      }
+    },
+    {
+      "question": "21. Welche Eingabe entspricht für eine Themenanalyse am besten dem Prinzip der Datenminimierung?",
+      "options": [
+        "Ein vollständiger Datenbankdump einschließlich aller Session- und Administrationsdaten.",
+        "Alle Browserprofile, damit das Modell zusätzliche Kontextsignale erhält.",
+        "Nur die für den festgelegten Analysezweck sichtbaren Texte und erforderlichen Gewichte, ohne Nicknames, Tokens oder fremde Metadaten.",
+        "Sämtliche historischen Logs auf unbestimmte Zeit, unabhängig vom Zweck."
+      ],
+      "answer": 2,
+      "explanation": "Die minimale Eingabe enthält nur zwecknotwendige Felder. Vollständige Datenbanken, Profile oder unbegrenzte Logs erhöhen Risiko ohne belegte Notwendigkeit.",
+      "weight": 3,
+      "topic": "Datenschutz und Reproduzierbarkeit",
+      "concept": "Zweckgebundener Analysesnapshot",
+      "cognitive_level": "Anwendung",
+      "mini_glossary": {
+        "Datenminimierung": "Beschränkung verarbeiteter Daten auf das für den festgelegten Zweck erforderliche Maß.",
+        "Reproduzierbarkeit": "Fähigkeit, ein Ergebnis aus versionierten Eingaben, Code, Umgebung und Parametern erneut zu erzeugen."
+      }
+    },
+    {
+      "question": "22. Ein ML-Ergebnis ist im Notebook sichtbar, aber nicht reproduzierbar. Welche Artefaktkombination fehlt am wahrscheinlichsten?",
+      "options": [
+        "Nur ein Screenshot der Ergebnisgrafik und der Name der bearbeitenden Person.",
+        "Datenhash, Codecommit, gesperrte Umgebung, Modellartefakthash, Parameter, Seed und Ausführungsprotokoll.",
+        "Nur die aktuelle Uhrzeit und die Bildschirmauflösung des Notebooks.",
+        "Nur eine Beschreibung, dass derselbe Cloud-Provider verwendet wurde."
+      ],
+      "answer": 1,
+      "explanation": "Reproduzierbarkeit bindet ergebniswirksame Daten-, Software- und Modellstände. Screenshots, Anzeigeparameter oder der Providername reichen nicht zur erneuten Ausführung.",
+      "weight": 3,
+      "topic": "Datenschutz und Reproduzierbarkeit",
+      "concept": "Reproduzierbarkeitsmanifest",
+      "cognitive_level": "Analyse",
+      "mini_glossary": {
+        "Datenminimierung": "Beschränkung verarbeiteter Daten auf das für den festgelegten Zweck erforderliche Maß.",
+        "Reproduzierbarkeit": "Fähigkeit, ein Ergebnis aus versionierten Eingaben, Code, Umgebung und Parametern erneut zu erzeugen."
+      }
+    },
+    {
+      "question": "23. Für einen Offlinevergleich stehen synthetische und nicht freigegebene reale Q&A-Daten zur Wahl. Was ist der sichere Ausgangspunkt?",
+      "options": [
+        "Die realen Daten ungeprüft nutzen, weil Offlineverarbeitung kein Datenschutzrisiko erzeugt.",
+        "Ein versioniertes synthetisches Seed-Set verwenden und reale Daten erst nach ausdrücklicher Zweck- und Zugriffsfreigabe einbeziehen.",
+        "Synthetische Daten bei jedem Lauf zufällig neu erzeugen und nicht speichern.",
+        "Die Datenquelle verschweigen, damit das Ergebnis providerneutral bleibt."
+      ],
+      "answer": 1,
+      "explanation": "Synthetische, versionierte Daten ermöglichen einen kontrollierten Start; reale Daten brauchen eine legitime Freigabe. Offlinebetrieb hebt Datenschutz nicht auf, und bewegliche oder verschwiegene Daten verhindern Nachvollziehbarkeit.",
+      "weight": 3,
+      "topic": "Datenschutz und Reproduzierbarkeit",
+      "concept": "Freigegebene Seed-Daten",
+      "cognitive_level": "Anwendung",
+      "mini_glossary": {
+        "Datenminimierung": "Beschränkung verarbeiteter Daten auf das für den festgelegten Zweck erforderliche Maß.",
+        "Reproduzierbarkeit": "Fähigkeit, ein Ergebnis aus versionierten Eingaben, Code, Umgebung und Parametern erneut zu erzeugen."
+      }
+    },
+    {
+      "question": "24. Ein Konto ist in einer EU-Region angelegt, die ML-Pipeline nutzt aber Objektablage, Tracking, Training, Registry und Monitoring. Welche Residenzprüfung ist nötig?",
+      "options": [
+        "Nur den Standort des Notebooks prüfen, weil alle Unterdienste ihn automatisch erben.",
+        "Nur die Modellgewichte prüfen, weil Metadaten und Logs keine Daten sind.",
+        "Nur die Rechnungsregion prüfen, weil sie technische Verarbeitung erzwingt.",
+        "Für jeden Dienst Primärdaten, Artefakte, Logs, Backups, Replikation und Supportpfade separat erfassen und belegen."
+      ],
+      "answer": 3,
+      "explanation": "Eine ML-Pipeline durchquert mehrere Dienste mit eigenen Datenpfaden. Notebook- oder Rechnungsregion und die Beschränkung auf Gewichte decken diese Nebenpfade nicht ab.",
+      "weight": 3,
+      "topic": "Datenschutz und Reproduzierbarkeit",
+      "concept": "Residenz einer ML-Dienstkette",
+      "cognitive_level": "Analyse",
+      "mini_glossary": {
+        "Datenminimierung": "Beschränkung verarbeiteter Daten auf das für den festgelegten Zweck erforderliche Maß.",
+        "Reproduzierbarkeit": "Fähigkeit, ein Ergebnis aus versionierten Eingaben, Code, Umgebung und Parametern erneut zu erzeugen."
+      }
+    },
+    {
+      "question": "25. Ein Projekt löscht Rohdaten nach sieben Tagen, hält aber Embedding-Caches und Prompt-Logs unbegrenzt. Welche Bewertung ist korrekt?",
+      "options": [
+        "Die Regel ist vollständig, weil nur Rohdaten datenschutzrelevant sein können.",
+        "Die Caches gelten automatisch als anonym, sobald sie numerische Vektoren enthalten.",
+        "Unbegrenzte Prompt-Logs sind unkritisch, solange das Modell privat läuft.",
+        "Die Löschregel ist unvollständig; abgeleitete Artefakte und Logs benötigen ebenfalls Zweck, Frist, Zugriff und verifizierten Löschpfad."
+      ],
+      "answer": 3,
+      "explanation": "Abgeleitete Repräsentationen und Logs können weiterhin sensibel oder rückbeziehbar sein. Numerische Form und privater Betrieb ersetzen keine Aufbewahrungs- und Löschentscheidung.",
+      "weight": 3,
+      "topic": "Datenschutz und Reproduzierbarkeit",
+      "concept": "Aufbewahrung abgeleiteter Daten",
+      "cognitive_level": "Anwendung",
+      "mini_glossary": {
+        "Datenminimierung": "Beschränkung verarbeiteter Daten auf das für den festgelegten Zweck erforderliche Maß.",
+        "Reproduzierbarkeit": "Fähigkeit, ein Ergebnis aus versionierten Eingaben, Code, Umgebung und Parametern erneut zu erzeugen."
+      }
+    },
+    {
+      "question": "26. Eine neue Modellversion verbessert Offlinequalität, erhöht aber Latenz des 99. Perzentils und Fehlerrate im Schattenbetrieb. Was ist die angemessene Entscheidung im Rahmen von Machine Learning Operations (MLOps)?",
+      "options": [
+        "Freigabe stoppen, Qualitäts- und Betriebsgrenzen gemeinsam bewerten und die bisherige Version bis zur Klärung rückrollbar halten.",
+        "Sofort vollständig ausrollen, weil Offlinequalität jede Betriebsmetrik überstimmt.",
+        "Nur die Medianlatenz berichten und Tail-Latenz sowie Fehler aus dem Gate entfernen.",
+        "Die alte Version löschen, damit kein inkonsistenter Parallelbetrieb möglich ist."
+      ],
+      "answer": 0,
+      "explanation": "Ein Modellrelease muss fachliche und betriebliche Gates erfüllen. Das Ausblenden schlechter Metriken oder Entfernen des Rollbacks erhöht das Produktionsrisiko.",
+      "weight": 3,
+      "topic": "MLOps und Exit",
+      "concept": "Gemeinsames Qualitäts- und Betriebsgate",
+      "cognitive_level": "Analyse",
+      "mini_glossary": {
+        "MLOps": "Kontrollierter Lebenszyklus für Daten, Modelle, Deployment, Überwachung und Rücknahme.",
+        "Lineage": "Nachvollziehbare Herkunft und Verarbeitungskette eines Daten-, Modell- oder Ergebnisartefakts."
+      }
+    },
+    {
+      "question": "27. Welche Maßnahme verbessert den Exit aus einer Managed-ML-Plattform am direktesten?",
+      "options": [
+        "Modellgewichte und Pipelinecode exportieren, jedoch Featuredefinitionen, Evaluationsdaten und Laufmetadaten auslassen.",
+        "Modelle, Daten, Featuredefinitionen, Evaluationssätze und Laufmetadaten exportieren und extern erneut ausführen.",
+        "Modelle und Daten exportieren, den Wiederholungslauf aber ausschließlich innerhalb derselben Plattform durchführen.",
+        "Pipelinecode und Qualitätswerte sichern, jedoch Modellartefakte und reproduzierbare Eingabestände nicht übernehmen."
+      ],
+      "answer": 1,
+      "explanation": "Exit-Fähigkeit verlangt ausführbare Artefakte und einen Wiederholungslauf außerhalb der Plattform. Teilmengen ohne Features, Evaluationsdaten oder Modellstände sowie ein plattforminterner Lauf prüfen den tatsächlichen Wechsel nicht vollständig.",
+      "weight": 3,
+      "topic": "MLOps und Exit",
+      "concept": "Modell- und Datenexport",
+      "cognitive_level": "Anwendung",
+      "mini_glossary": {
+        "MLOps": "Kontrollierter Lebenszyklus für Daten, Modelle, Deployment, Überwachung und Rücknahme.",
+        "Lineage": "Nachvollziehbare Herkunft und Verarbeitungskette eines Daten-, Modell- oder Ergebnisartefakts."
+      }
+    },
+    {
+      "question": "28. Ein Monitoring soll Qualitätsdrift erkennen, aber keine unnötigen Q&A-Rohtexte speichern. Welcher Entwurf ist passend?",
+      "options": [
+        "Alle Rohtexte dauerhaft protokollieren, weil nur Vollspeicherung Drift messbar macht.",
+        "Überhaupt keine Modell- oder Datenmetrik erheben, damit kein Datenschutzrisiko besteht.",
+        "Nur CPU-Auslastung messen und daraus semantische Qualität direkt ableiten.",
+        "Zweckgebundene aggregierte Qualitäts- und Driftmetriken speichern und Rohtext-Stichproben nur freigegeben, begrenzt und löschbar behandeln."
+      ],
+      "answer": 3,
+      "explanation": "Aggregierte Metriken können Betriebssignale liefern, während sensible Stichproben gesondert begrenzt werden. Vollspeicherung ist nicht notwendig; fehlende Fachmetriken oder reine CPU-Werte erkennen Qualitätsdrift nicht.",
+      "weight": 3,
+      "topic": "MLOps und Exit",
+      "concept": "Datensparsames Driftmonitoring",
+      "cognitive_level": "Analyse",
+      "mini_glossary": {
+        "MLOps": "Kontrollierter Lebenszyklus für Daten, Modelle, Deployment, Überwachung und Rücknahme.",
+        "Lineage": "Nachvollziehbare Herkunft und Verarbeitungskette eines Daten-, Modell- oder Ergebnisartefakts."
+      }
+    },
+    {
+      "question": "29. Ein fehlerhaftes Cluster soll bis zu seiner Ursache zurückverfolgt werden. Welche Lineage-Information ist am nützlichsten?",
+      "options": [
+        "Snapshot-Hash, Transformations- und Modellversion, Clusterparameter, Lauf-ID und Ergebnisartefakt miteinander verknüpfen.",
+        "Snapshot und sichtbares Clusterlabel verknüpfen, Modell- und Transformationsstand jedoch nicht erfassen.",
+        "Providerprojekt und Abrechnungsmonat verknüpfen, Eingabe- und Modellstände jedoch nicht erfassen.",
+        "Clusterzahl und Laufzeit verknüpfen, einzelne Eingaben und Verarbeitungsparameter jedoch nicht erfassen."
+      ],
+      "answer": 0,
+      "explanation": "Lineage verbindet das Ergebnis mit konkreter Eingabe und Rechenvorschrift. Label, Abrechnung oder reine Laufkennzahlen sind nützliche Metadaten, reichen ohne Modell-, Transformations- und Parameterbezug aber nicht zur Diagnose.",
+      "weight": 3,
+      "topic": "MLOps und Exit",
+      "concept": "Ende-zu-Ende-Lineage",
+      "cognitive_level": "Anwendung",
+      "mini_glossary": {
+        "MLOps": "Kontrollierter Lebenszyklus für Daten, Modelle, Deployment, Überwachung und Rücknahme.",
+        "Lineage": "Nachvollziehbare Herkunft und Verarbeitungskette eines Daten-, Modell- oder Ergebnisartefakts."
+      }
+    },
+    {
+      "question": "30. Eine Pipeline soll nach einem Providerwechsel identische Referenzergebnisse erzeugen. Welcher Abnahmetest ist am stärksten?",
+      "options": [
+        "Nur prüfen, ob die neue Plattform dieselben Produktkategorien bewirbt.",
+        "Nur den Modellnamen übernehmen und bewegliche Abhängigkeiten neu installieren.",
+        "Die exportierten Artefakte in einer frischen Zielumgebung auf demselben Seed-Set ausführen und Qualität, Toleranzen, Logs und Fallbacks vergleichen.",
+        "Nur einen einzelnen erfolgreichen API-Aufruf ohne Ergebnisvergleich ausführen."
+      ],
+      "answer": 2,
+      "explanation": "Ein frischer Wiederholungslauf prüft Portabilität und Reproduzierbarkeit tatsächlich. Kategorien, Namen oder ein bloßer HTTP-Erfolg belegen keine semantisch gleichwertige Pipeline.",
+      "weight": 3,
+      "topic": "MLOps und Exit",
+      "concept": "Portabilitäts-Abnahmetest",
+      "cognitive_level": "Analyse",
+      "mini_glossary": {
+        "MLOps": "Kontrollierter Lebenszyklus für Daten, Modelle, Deployment, Überwachung und Rücknahme.",
+        "Lineage": "Nachvollziehbare Herkunft und Verarbeitungskette eines Daten-, Modell- oder Ergebnisartefakts."
+      }
+    }
+  ]
+}

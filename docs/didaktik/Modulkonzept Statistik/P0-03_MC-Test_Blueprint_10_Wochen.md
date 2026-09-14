@@ -1,6 +1,6 @@
 # P0-03 – MC-Test-Blueprint für 10 Wochen
 
-**Version:** 4.0.0 · **Stand:** 13.09.2026 · **Status:** normative Spezifikation für 300 anspruchsvolle Items im Präsenz- und Spaced-Repetition-Betrieb
+**Version:** 4.0.0 · **Stand:** 14.09.2026 · **Status:** normative Spezifikation für 300 anspruchsvolle Items im Präsenz- und Spaced-Repetition-Betrieb
 
 **Kanonischer Index:** [P0-03_Materialpaket_Pilotlauf.md](./P0-03_Materialpaket_Pilotlauf.md)
 
@@ -31,18 +31,18 @@
 
 ### 2.1 Dateinamen und Item-IDs
 
-| Woche | Datei                                                        | abgeleitete redaktionelle Kennungen       |
-| ----: | ------------------------------------------------------------ | ----------------------------------------- |
-|   W01 | [P0-03_MC-Test_Woche_01.json](./P0-03_MC-Test_Woche_01.json) | `P0-03-MC-W01-I01` bis `P0-03-MC-W01-I30` |
-|   W02 | [P0-03_MC-Test_Woche_02.json](./P0-03_MC-Test_Woche_02.json) | `P0-03-MC-W02-I01` bis `P0-03-MC-W02-I30` |
-|   W03 | [P0-03_MC-Test_Woche_03.json](./P0-03_MC-Test_Woche_03.json) | `P0-03-MC-W03-I01` bis `P0-03-MC-W03-I30` |
-|   W04 | [P0-03_MC-Test_Woche_04.json](./P0-03_MC-Test_Woche_04.json) | `P0-03-MC-W04-I01` bis `P0-03-MC-W04-I30` |
-|   W05 | [P0-03_MC-Test_Woche_05.json](./P0-03_MC-Test_Woche_05.json) | `P0-03-MC-W05-I01` bis `P0-03-MC-W05-I30` |
-|   W06 | [P0-03_MC-Test_Woche_06.json](./P0-03_MC-Test_Woche_06.json) | `P0-03-MC-W06-I01` bis `P0-03-MC-W06-I30` |
-|   W07 | [P0-03_MC-Test_Woche_07.json](./P0-03_MC-Test_Woche_07.json) | `P0-03-MC-W07-I01` bis `P0-03-MC-W07-I30` |
-|   W08 | [P0-03_MC-Test_Woche_08.json](./P0-03_MC-Test_Woche_08.json) | `P0-03-MC-W08-I01` bis `P0-03-MC-W08-I30` |
-|   W09 | [P0-03_MC-Test_Woche_09.json](./P0-03_MC-Test_Woche_09.json) | `P0-03-MC-W09-I01` bis `P0-03-MC-W09-I30` |
-|   W10 | [P0-03_MC-Test_Woche_10.json](./P0-03_MC-Test_Woche_10.json) | `P0-03-MC-W10-I01` bis `P0-03-MC-W10-I30` |
+| Woche | Datei                                                                | abgeleitete redaktionelle Kennungen       |
+| ----: | -------------------------------------------------------------------- | ----------------------------------------- |
+|   W01 | [P0-03_MC-Test_Woche_01.json](./MC-Test/P0-03_MC-Test_Woche_01.json) | `P0-03-MC-W01-I01` bis `P0-03-MC-W01-I30` |
+|   W02 | [P0-03_MC-Test_Woche_02.json](./MC-Test/P0-03_MC-Test_Woche_02.json) | `P0-03-MC-W02-I01` bis `P0-03-MC-W02-I30` |
+|   W03 | [P0-03_MC-Test_Woche_03.json](./MC-Test/P0-03_MC-Test_Woche_03.json) | `P0-03-MC-W03-I01` bis `P0-03-MC-W03-I30` |
+|   W04 | [P0-03_MC-Test_Woche_04.json](./MC-Test/P0-03_MC-Test_Woche_04.json) | `P0-03-MC-W04-I01` bis `P0-03-MC-W04-I30` |
+|   W05 | [P0-03_MC-Test_Woche_05.json](./MC-Test/P0-03_MC-Test_Woche_05.json) | `P0-03-MC-W05-I01` bis `P0-03-MC-W05-I30` |
+|   W06 | [P0-03_MC-Test_Woche_06.json](./MC-Test/P0-03_MC-Test_Woche_06.json) | `P0-03-MC-W06-I01` bis `P0-03-MC-W06-I30` |
+|   W07 | [P0-03_MC-Test_Woche_07.json](./MC-Test/P0-03_MC-Test_Woche_07.json) | `P0-03-MC-W07-I01` bis `P0-03-MC-W07-I30` |
+|   W08 | [P0-03_MC-Test_Woche_08.json](./MC-Test/P0-03_MC-Test_Woche_08.json) | `P0-03-MC-W08-I01` bis `P0-03-MC-W08-I30` |
+|   W09 | [P0-03_MC-Test_Woche_09.json](./MC-Test/P0-03_MC-Test_Woche_09.json) | `P0-03-MC-W09-I01` bis `P0-03-MC-W09-I30` |
+|   W10 | [P0-03_MC-Test_Woche_10.json](./MC-Test/P0-03_MC-Test_Woche_10.json) | `P0-03-MC-W10-I01` bis `P0-03-MC-W10-I30` |
 
 Die Kennung wird **nicht im JSON gespeichert**. Sie wird aus dem Dateinamen und der einsbasierten Arrayposition abgeleitet: `P0-03_MC-Test_Woche_NN.json` plus Position `p` ergibt `P0-03-MC-WNN-Ipp`. Nach einer Freigabe darf die Arrayreihenfolge deshalb nicht verändert werden. Änderungen werden über `meta.updated`, den Dateihash und das außerhalb des Fragen-JSON geführte Freigabeprotokoll nachvollzogen.
 
@@ -159,7 +159,7 @@ Die Häufigkeiten für `topic`, `cognitive_level` und `weight` sind direkt aus d
 
 ### W01 – Statistisches Denken, Daten und Messung
 
-**Datei:** [P0-03_MC-Test_Woche_01.json](./P0-03_MC-Test_Woche_01.json)
+**Datei:** [P0-03_MC-Test_Woche_01.json](./MC-Test/P0-03_MC-Test_Woche_01.json)
 
 - **`topic`-Häufigkeiten (Σ=30):** `Statistikprozess`=5; `Grundgesamtheit und Stichprobe`=6; `Beobachtungseinheit und Merkmale`=5; `Skalenniveaus und Merkmalsarten`=7; `Datenqualität und Aussagegrenzen`=7.
 - **`cognitive_level`-Häufigkeiten (Σ=30):** `Verständnis`=2; `Anwendung`=9; `Analyse`=19.
@@ -170,7 +170,7 @@ Die Häufigkeiten für `topic`, `cognitive_level` und `weight` sind direkt aus d
 
 ### W02 – Häufigkeiten, Diagramme und Lage
 
-**Datei:** [P0-03_MC-Test_Woche_02.json](./P0-03_MC-Test_Woche_02.json)
+**Datei:** [P0-03_MC-Test_Woche_02.json](./MC-Test/P0-03_MC-Test_Woche_02.json)
 
 - **`topic`-Häufigkeiten (Σ=30):** `Häufigkeiten und Nenner`=6; `Diagramme und Manipulation`=5; `Lagewerte und Robustheit`=8; `Kumulative Wiederholung Woche 1`=11.
 - **`cognitive_level`-Häufigkeiten (Σ=30):** `Verständnis`=1; `Anwendung`=9; `Analyse`=20.
@@ -180,7 +180,7 @@ Die Häufigkeiten für `topic`, `cognitive_level` und `weight` sind direkt aus d
 
 ### W03 – Streuung, Quantile und Ausreißer
 
-**Datei:** [P0-03_MC-Test_Woche_03.json](./P0-03_MC-Test_Woche_03.json)
+**Datei:** [P0-03_MC-Test_Woche_03.json](./MC-Test/P0-03_MC-Test_Woche_03.json)
 
 - **`topic`-Häufigkeiten (Σ=30):** `Spannweite und Streuung`=5; `Varianz und Standardabweichung`=8; `Quartile und IQR`=5; `Boxplot und Ausreißer`=5; `Median, p95 und p99`=4; `Kumulative Wiederholung: Datenstruktur`=1; `Kumulative Wiederholung: Häufigkeiten`=1; `Kumulative Wiederholung: Lage und Datenkritik`=1.
 - **`cognitive_level`-Häufigkeiten (Σ=30):** `Verständnis`=4; `Anwendung`=8; `Analyse`=18.
@@ -190,7 +190,7 @@ Die Häufigkeiten für `topic`, `cognitive_level` und `weight` sind direkt aus d
 
 ### W04 – Wahrscheinlichkeit und bedingte Wahrscheinlichkeit
 
-**Datei:** [P0-03_MC-Test_Woche_04.json](./P0-03_MC-Test_Woche_04.json)
+**Datei:** [P0-03_MC-Test_Woche_04.json](./MC-Test/P0-03_MC-Test_Woche_04.json)
 
 - **`topic`-Häufigkeiten (Σ=30):** `Ereignisse und Gegenereignisse`=4; `Baumdiagramm und Multiplikation`=5; `Kontingenztafel und Bedingungen`=6; `Inverse Bedingungen und Bayes-Idee`=5; `Kumulative Wiederholung: Datenstruktur`=1; `Kumulative Wiederholung: Skalenniveau`=1; `Kumulative Wiederholung: Häufigkeiten`=1; `Kumulative Wiederholung: Lage`=2; `Kumulative Wiederholung: Streuung`=3; `Kumulative Wiederholung: Quartile und Ausreißer`=1; `Kumulative Wiederholung: Transfer und Datenkritik`=1.
 - **`cognitive_level`-Häufigkeiten (Σ=30):** `Verständnis`=3; `Anwendung`=8; `Analyse`=19.
@@ -200,7 +200,7 @@ Die Häufigkeiten für `topic`, `cognitive_level` und `weight` sind direkt aus d
 
 ### W05 – Zufallsvariablen, Verteilungen und Stichprobenvariabilität
 
-**Datei:** [P0-03_MC-Test_Woche_05.json](./P0-03_MC-Test_Woche_05.json)
+**Datei:** [P0-03_MC-Test_Woche_05.json](./MC-Test/P0-03_MC-Test_Woche_05.json)
 
 - **`topic`-Häufigkeiten (Σ=30):** `Zufallsvariablen und Verteilungen`=3; `Binomialverteilung`=5; `Normalverteilung und Standardisierung`=4; `Stichprobenvariabilität`=8; `Kumulative Datenkompetenz`=2; `Kumulative Deskription`=4; `Kumulative Wahrscheinlichkeit`=4.
 - **`cognitive_level`-Häufigkeiten (Σ=30):** `Verständnis`=2; `Anwendung`=8; `Analyse`=20.
@@ -210,7 +210,7 @@ Die Häufigkeiten für `topic`, `cognitive_level` und `weight` sind direkt aus d
 
 ### W06 – Schätzen und Konfidenzintervalle
 
-**Datei:** [P0-03_MC-Test_Woche_06.json](./P0-03_MC-Test_Woche_06.json)
+**Datei:** [P0-03_MC-Test_Woche_06.json](./MC-Test/P0-03_MC-Test_Woche_06.json)
 
 - **`topic`-Häufigkeiten (Σ=30):** `Punkt- und Intervallschätzung`=3; `Standardfehler`=7; `Konfidenzintervalle`=1; `Präzision und Generalisierung`=3; `Anteilsintervalle`=6; `Mittelwertintervalle`=2; `Kumulative Stichprobenvariabilität`=2; `Kumulative Verteilungen`=3; `Kumulative Wahrscheinlichkeit`=2; `Kumulative Deskription`=1.
 - **`cognitive_level`-Häufigkeiten (Σ=30):** `Verständnis`=2; `Anwendung`=7; `Analyse`=21.
@@ -220,7 +220,7 @@ Die Häufigkeiten für `topic`, `cognitive_level` und `weight` sind direkt aus d
 
 ### W07 – Hypothesentests und Vorher-Nachher-Vergleiche
 
-**Datei:** [P0-03_MC-Test_Woche_07.json](./P0-03_MC-Test_Woche_07.json)
+**Datei:** [P0-03_MC-Test_Woche_07.json](./MC-Test/P0-03_MC-Test_Woche_07.json)
 
 - **`topic`-Häufigkeiten (Σ=30):** `Testlogik`=5; `p-Wert und Signifikanz`=6; `Fehlerarten und Relevanz`=5; `Gepaarter t-Test`=7; `Datenqualität und Aussagegrenzen`=4; `Kumulative Wiederholung`=3.
 - **`cognitive_level`-Häufigkeiten (Σ=30):** `Verständnis`=4; `Anwendung`=9; `Analyse`=17.
@@ -230,7 +230,7 @@ Die Häufigkeiten für `topic`, `cognitive_level` und `weight` sind direkt aus d
 
 ### W08 – Korrelation und lineare Regression
 
-**Datei:** [P0-03_MC-Test_Woche_08.json](./P0-03_MC-Test_Woche_08.json)
+**Datei:** [P0-03_MC-Test_Woche_08.json](./MC-Test/P0-03_MC-Test_Woche_08.json)
 
 - **`topic`-Häufigkeiten (Σ=30):** `Streudiagramm`=5; `Pearson-Korrelation`=5; `Grenzen und Einflussfaktoren`=4; `Lineare Regression`=7; `Residuen und Modellgüte`=5; `Kumulative Wiederholung`=4.
 - **`cognitive_level`-Häufigkeiten (Σ=30):** `Verständnis`=4; `Anwendung`=9; `Analyse`=17.
@@ -240,7 +240,7 @@ Die Häufigkeiten für `topic`, `cognitive_level` und `weight` sind direkt aus d
 
 ### W09 – Train/Test, Overfitting und Klassifikationsmetriken
 
-**Datei:** [P0-03_MC-Test_Woche_09.json](./P0-03_MC-Test_Woche_09.json)
+**Datei:** [P0-03_MC-Test_Woche_09.json](./MC-Test/P0-03_MC-Test_Woche_09.json)
 
 - **`topic`-Häufigkeiten (Σ=30):** `Train/Test und Generalisierung`=5; `Overfitting und Domain Shift`=4; `Confusion Matrix`=7; `Klassifikationsmetriken`=6; `Fehlkosten und Klassenverteilung`=3; `F1 und Nullnenner`=3; `Kumulative Regression und Inferenz`=2.
 - **`cognitive_level`-Häufigkeiten (Σ=30):** `Verständnis`=1; `Anwendung`=11; `Analyse`=18.
@@ -251,7 +251,7 @@ Die Häufigkeiten für `topic`, `cognitive_level` und `weight` sind direkt aus d
 
 ### W10 – Integration, Kommunikation und Klausurtraining
 
-**Datei:** [P0-03_MC-Test_Woche_10.json](./P0-03_MC-Test_Woche_10.json)
+**Datei:** [P0-03_MC-Test_Woche_10.json](./MC-Test/P0-03_MC-Test_Woche_10.json)
 
 - **`topic`-Häufigkeiten (Σ=30):** `Datenqualität und Deskription`=4; `Wahrscheinlichkeit und Sampling`=4; `Inferenz und Verfahrenswahl`=6; `Korrelation und Regression`=5; `Binäre Modellbewertung`=5; `Statistikprozess und Kommunikation`=6.
 - **`cognitive_level`-Häufigkeiten (Σ=30):** `Verständnis`=2; `Anwendung`=9; `Analyse`=19.
@@ -324,7 +324,7 @@ import json
 import re
 
 root = Path("docs/didaktik/Modulkonzept Statistik")
-files = sorted(root.glob("P0-03_MC-Test_Woche_*.json"))
+files = sorted((root / "MC-Test").glob("P0-03_MC-Test_Woche_*.json"))
 meta_keys = {
     "title", "target_audience", "question_count", "difficulty_profile",
     "time_per_weight_minutes", "additional_buffer_minutes",

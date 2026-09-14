@@ -1,0 +1,585 @@
+{
+  "meta": {
+    "title": "Cloud Computing – MC-Test Themenblock TB04: Serverless Computing und Workload-Eignung",
+    "target_audience": "Bachelorstudierende der Informatik im Modul Cloud Computing",
+    "question_count": 30,
+    "difficulty_profile": { "leicht": 0, "mittel": 12, "schwer": 18 },
+    "time_per_weight_minutes": { "1": 0.5, "2": 0.75, "3": 1.0 },
+    "additional_buffer_minutes": 5,
+    "test_duration_minutes": 32,
+    "language": "de",
+    "updated": "2026-09-14"
+  },
+  "questions": [
+    {
+      "question": "1. Ein Team lädt Funktionscode hoch; die Plattform wählt Instanzen, patcht Hosts und skaliert Ausführungen. Ein Stakeholder folgert: »Dann existieren keine Server mehr.« Welche Korrektur ist fachlich richtig?",
+      "options": [
+        "Der Code benötigt nach dem Upload keine Providerinfrastruktur mehr, weil Ereignisse ihn direkt ausführen.",
+        "Der Anbieter abstrahiert den Serverbetrieb, während der Code weiterhin auf realer Infrastruktur ausgeführt wird.",
+        "Der Plattformbetrieb hebt workloadbezogene Laufzeit- und Kostengrenzen auf, sobald Autoscaling aktiviert ist.",
+        "Der Kunde übernimmt beim Plattformbetrieb weiterhin Host-Patches und physische Netzsegmentierung des Providers."
+      ],
+      "answer": 1,
+      "explanation": "Serverless beseitigt Server nicht, sondern verlagert deren Bereitstellung und viele Betriebsaufgaben hinter einen Plattformvertrag. Grenzen, Kosten, Konfiguration und Anwendungsrisiken bleiben weiterhin relevant.",
+      "weight": 2,
+      "topic": "Serverless-Grundlagen",
+      "concept": "Betriebsabstraktion statt Serverlosigkeit",
+      "cognitive_level": "Verständnis",
+      "mini_glossary": {
+        "Serverless": "Ausführungsmodell mit weitgehend abstrahiertem Infrastruktur- und Instanzbetrieb.",
+        "Plattformvertrag": "Definierte Schnittstellen, Limits und Verantwortungen eines Dienstes."
+      }
+    },
+    {
+      "question": "2. Kandidat A führt eigenen Code nach einer Queue-Nachricht aus; Kandidat B bietet Identität und Objektspeicher als fertige Application Programming Interfaces (APIs). Wie sind Function as a Service (FaaS) und Backend as a Service (BaaS) zuzuordnen?",
+      "options": [
+        "A ist BaaS, weil Queue-Nachrichten fertige Fachanwendungen darstellen; B ist Infrastructure as a Service, weil APIs virtuelle Maschinen ersetzen.",
+        "A ist Software as a Service, weil eigener Code über ein Netz läuft; B ist FaaS, weil jeder API-Aufruf eine Function sein muss.",
+        "A und B sind beide dasselbe Modell, weil verwaltete Dienste identische Trigger- und Kostenverträge besitzen.",
+        "A ist FaaS, weil eigener Code ereignisgetriggert ausgeführt wird; B ist BaaS, weil verwaltete Backend-Fähigkeiten über APIs bereitstehen."
+      ],
+      "answer": 3,
+      "explanation": "Bei FaaS stellt das Team Funktionscode bereit, der durch Ereignisse ausgeführt wird. BaaS bietet fertige Backendfähigkeiten wie Speicher oder Identität; beide Modelle können kombiniert werden, sind aber nicht identisch.",
+      "weight": 2,
+      "topic": "Serverless-Grundlagen",
+      "concept": "FaaS gegenüber BaaS",
+      "cognitive_level": "Verständnis",
+      "mini_glossary": {
+        "FaaS": "Ausführung kleiner Codeeinheiten als ereignisgetriggerte Funktionen.",
+        "BaaS": "Verwaltete Backend-Fähigkeit, die Anwendungen über eine Schnittstelle nutzen."
+      }
+    },
+    {
+      "question": "3. Derselbe Funktionscode kann nach einem Aufruf über das Hypertext Transfer Protocol (HTTP), einer Queue-Nachricht oder einem Zeitplan starten. Welche gemeinsame Rolle haben diese drei Mechanismen?",
+      "options": [
+        "Sie sind Trigger, die eine Ausführung mit einem Ereignis oder Aufruf verbinden.",
+        "Sie sind lokale Datenträger, die den Zustand aller Funktionsinstanzen synchronisieren.",
+        "Sie sind Hypervisorpatches, die ausschließlich beim physischen Serverstart laufen.",
+        "Sie sind Preisnachlässe, die nach Überschreiten einer festen Instanzzahl gelten."
+      ],
+      "answer": 0,
+      "explanation": "Ein Trigger verbindet ein beobachtetes Ereignis wie HTTP-Aufruf, Nachricht, Zeitplan oder Objektänderung mit einer Funktionsausführung. Er definiert nicht automatisch Persistenz, Preis oder Hostwartung.",
+      "weight": 2,
+      "topic": "Serverless-Grundlagen",
+      "concept": "Ereignis als Auslöser",
+      "cognitive_level": "Verständnis",
+      "mini_glossary": {
+        "Trigger": "Auslösendes Ereignis einer Funktionsausführung.",
+        "Ereignis": "Beobachtbare Zustandsänderung oder Nachricht mit auswertbaren Daten."
+      }
+    },
+    {
+      "question": "4. Welche Konsequenz folgt aus der Annahme zustandsloser Funktionsinstanzen?",
+      "options": [
+        "Benötigter dauerhafter Zustand muss in einen externen Dienst geschrieben oder aus Eingaben rekonstruiert werden.",
+        "Ein lokaler Cache kann als dauerhafte Quelle dienen, wenn die Plattform warme Instanzen häufig wiederverwendet.",
+        "Offene Netzwerkverbindungen lassen sich über Umgebungsvariablen zwischen neuen Instanzen weiterreichen.",
+        "Dauerhafter Zustand kann im Deploymentpaket fortgeschrieben und beim nächsten Aufruf erneut geladen werden."
+      ],
+      "answer": 0,
+      "explanation": "Lokaler Instanzzustand ist nicht als dauerhafte oder gemeinsam sichtbare Quelle anzunehmen. Fachlich benötigter Zustand gehört daher in einen externen Speichervertrag oder muss sicher aus dem Ereignis rekonstruierbar sein.",
+      "weight": 2,
+      "topic": "Serverless-Grundlagen",
+      "concept": "Externalisierung dauerhaften Zustands",
+      "cognitive_level": "Verständnis",
+      "mini_glossary": {
+        "Zustandslosigkeit": "Keine notwendige dauerhafte Bindung an lokalen Zustand einer Instanz.",
+        "Externer Zustand": "Außerhalb einer Funktionsinstanz gespeicherter und wieder erreichbarer Datenbestand."
+      }
+    },
+    {
+      "question": "5. Eine Plattform patcht Laufzeit und Hosts für eine Function. Welche Verantwortung bleibt beim Anwendungsteam?",
+      "options": [
+        "Code und Abhängigkeiten, während Identitäten und Datenflüsse vollständig in die Providerschicht wechseln",
+        "Identitäten und Konfiguration, während das Patchen eingebundener Bibliotheken zur Plattformpflicht wird",
+        "Kosten und Monitoring, während fachliche Fehlerpfade durch Plattform-Retries als gelöst gelten",
+        "Code, Abhängigkeiten, Identitäten, Datenflüsse, Konfiguration und fachliche Fehlerpfade"
+      ],
+      "answer": 3,
+      "explanation": "Der Anbieter übernimmt Infrastruktur- und Laufzeitanteile, nicht die Sicherheit und Korrektheit des Kundencodes oder seiner Datenverwendung. Shared Responsibility verschiebt sich, verschwindet aber nicht.",
+      "weight": 2,
+      "topic": "Serverless-Grundlagen",
+      "concept": "Verbleibende Kundenverantwortung",
+      "cognitive_level": "Anwendung",
+      "mini_glossary": {
+        "Shared Responsibility": "Aufteilung von Sicherheits- und Betriebsaufgaben zwischen Anbieter und Kunde.",
+        "Abhängigkeit": "Externe Bibliothek oder Dienst, auf den Anwendungscode angewiesen ist."
+      }
+    },
+    {
+      "question": "6. Ein Zahlungsanbieter wiederholt denselben Webhook nach einem Timeout. Welche Funktionsgestaltung verhindert eine doppelte Buchung am zuverlässigsten?",
+      "options": [
+        "Jeden Aufruf als neues Ereignis behandeln, weil HTTP-Retries als neue Fachvorgänge modelliert werden",
+        "Die Antwort künstlich verzögern, damit der Anbieter keine weiteren Ereignisse senden kann",
+        "Den lokalen Arbeitsspeicher einer Instanz als dauerhafte Liste aller Ereignisse verwenden",
+        "Signatur und stabile Ereigniskennung (Identifier, ID) prüfen und die Fachwirkung idempotent verbuchen"
+      ],
+      "answer": 3,
+      "explanation": "Webhook-Zustellung kann wiederholt werden; eine verifizierte Ereignis-ID und atomare Idempotenzprüfung verhindern doppelte Fachwirkung. Lokaler Instanzspeicher ist bei Ersetzung oder Parallelität keine verlässliche Quelle.",
+      "weight": 2,
+      "topic": "Trigger und Zustandslosigkeit",
+      "concept": "Idempotente Webhook-Verarbeitung",
+      "cognitive_level": "Anwendung",
+      "mini_glossary": {
+        "Webhook": "HTTP-Aufruf eines Systems zur Mitteilung eines Ereignisses.",
+        "Idempotenzschlüssel": "Stabile Ereigniskennung zur Erkennung bereits verarbeiteter Arbeit."
+      }
+    },
+    {
+      "question": "7. Eine Queue garantiert mindestens einmalige Zustellung. Welche Annahme muss der Funktionscode treffen?",
+      "options": [
+        "Jede Nachricht kommt genau einmal und stets in globaler Reihenfolge an.",
+        "Eine Nachricht vor der Fachwirkung bestätigen, damit ein späterer Funktionsabbruch keine Doppelzustellung erzeugt.",
+        "Lokaler Cache einer Instanz reicht zur dauerhaften Erkennung aller Wiederholungen aus.",
+        "Nachrichten können doppelt eintreffen; Verarbeitung und Bestätigung müssen Wiederholung vertragen."
+      ],
+      "answer": 3,
+      "explanation": "Bei mindestens einmaliger Zustellung sind Duplikate ein erwartbarer Fehlerpfad, etwa nach Verarbeitung ohne erfolgreiche Bestätigung. Fachoperationen benötigen deshalb idempotente Schreib- oder Deduplizierungsregeln.",
+      "weight": 2,
+      "topic": "Trigger und Zustandslosigkeit",
+      "concept": "At-least-once und Duplikate",
+      "cognitive_level": "Anwendung",
+      "mini_glossary": {
+        "At-least-once": "Zustellgarantie mit möglicher Mehrfachzustellung derselben Nachricht.",
+        "Deduplizierung": "Erkennung und Unterdrückung mehrfach eingetroffener Arbeit."
+      }
+    },
+    {
+      "question": "8. Ein zeitgesteuerter Pflegejob läuft länger als sein Intervall. Welche Kontrolle verhindert ungewollte Überlappung am besten?",
+      "options": [
+        "Ein verteiltes Lease oder eine idempotente Zustandsmaschine begrenzt parallele Läufe.",
+        "Jeder Lauf erhält einen zufälligen Namen und ignoriert bereits aktive Ausführungen.",
+        "Die Laufzeit wird nicht gemessen, damit der Zeitplan unabhängig von Verzögerungen bleibt.",
+        "Die Function speichert einen booleschen Wert ausschließlich in ihrem lokalen Arbeitsspeicher."
+      ],
+      "answer": 0,
+      "explanation": "Überlappende Trigger benötigen eine über Instanzen sichtbare Koordination oder eine Verarbeitung, die Parallelität sicher verträgt. Ein lokaler Schalter verschwindet bei Skalierung und schützt nicht zwischen Instanzen.",
+      "weight": 2,
+      "topic": "Trigger und Zustandslosigkeit",
+      "concept": "Koordination überlappender Zeittrigger",
+      "cognitive_level": "Anwendung",
+      "mini_glossary": {
+        "Lease": "Zeitlich begrenztes, erneuerbares Recht zur exklusiven Bearbeitung.",
+        "Zustandsmaschine": "Modell erlaubter Zustände und Übergänge einer Verarbeitung."
+      }
+    },
+    {
+      "question": "9. Ein Objektspeicher kann bei Upload und Metadatenänderung mehrere Ereignisse auslösen. Welche Verarbeitung ist robust?",
+      "options": [
+        "Jedes Ereignis erzeugt ungeprüft eine neue Ausgabe mit zufälligem Zieldateinamen.",
+        "Die Function nimmt an, dass Reihenfolge und Einmaligkeit vom Netzwerk garantiert werden.",
+        "Objektschlüssel, Version und Verarbeitungsstatus werden geprüft, bevor eine Fachwirkung geschrieben wird.",
+        "Die Function liest ausschließlich ihre lokale temporäre Datei und ignoriert das auslösende Objekt."
+      ],
+      "answer": 2,
+      "explanation": "Ereignisse können wiederholt oder in unerwarteter Reihenfolge eintreffen. Objektversion und externer Verarbeitungsstatus verbinden den Trigger mit einem konkreten, nachvollziehbaren Eingabestand.",
+      "weight": 2,
+      "topic": "Trigger und Zustandslosigkeit",
+      "concept": "Versionierte Objekttrigger",
+      "cognitive_level": "Anwendung",
+      "mini_glossary": {
+        "Objektversion": "Kennung eines konkreten Inhaltsstands eines gespeicherten Objekts.",
+        "Verarbeitungsstatus": "Extern gehaltener Zustand über Beginn, Erfolg oder Fehler eines Auftrags."
+      }
+    },
+    {
+      "question": "10. Eine synchrone HTTP-Function beendet nach erfolgreichem Datenbankschreiben wegen eines Netzfehlers ohne Antwort. Der Client wiederholt. Welche Gestaltung ist erforderlich?",
+      "options": [
+        "Das erste Schreiben zurücksetzen, indem die Datenbank nach jedem Timeout vollständig geleert wird.",
+        "Dem Client jede Wiederholung verbieten, auch wenn er keinen Erfolg oder Fehler unterscheiden kann.",
+        "Eine stabile Anfrage-ID und atomare Ergebnisablage machen Wiederholungen ohne doppelte Wirkung möglich.",
+        "Den Client nach einem Timeout von jeder Wiederholung abhalten und den unbekannten Fachzustand beibehalten."
+      ],
+      "answer": 2,
+      "explanation": "Nach einem verlorenen Antwortpfad ist der Fachzustand unklar; der Retry muss deshalb mit derselben Kennung das vorhandene Ergebnis finden. Atomare Idempotenz verbindet Schreibwirkung und Wiederholung sicher.",
+      "weight": 2,
+      "topic": "Trigger und Zustandslosigkeit",
+      "concept": "Retry nach unklarem HTTP-Ergebnis",
+      "cognitive_level": "Anwendung",
+      "mini_glossary": {
+        "Anfrage-ID": "Stabile Kennung einer fachlich identischen Operation.",
+        "Atomarität": "Eigenschaft, dass zusammengehörige Zustandsänderungen ganz oder gar nicht wirksam werden."
+      }
+    },
+    {
+      "question": "11. Nach 30 Minuten ohne Aufruf benötigt eine Function 900 ms, direkt danach nur 80 ms. Welche Ursache ist am wahrscheinlichsten?",
+      "options": [
+        "Die Zone des Domain Name System (DNS) wurde zwischen beiden Aufrufen vollständig neu provisioniert.",
+        "Beim ersten Aufruf musste eine neue Laufzeitinstanz initialisiert werden.",
+        "Der zweite Aufruf umging jede Autorisierung und Datenverarbeitung automatisch.",
+        "Der Provider erhöhte dauerhaft die Prozessorfrequenz des gesamten Rechenzentrums."
+      ],
+      "answer": 1,
+      "explanation": "Die zusätzliche Initialisierung nach Inaktivität ist ein typisches Cold-Start-Muster. Die Beobachtung beweist die genaue Teilursache noch nicht, begründet aber gezielte Messung von Initialisierung und Abhängigkeiten.",
+      "weight": 2,
+      "topic": "Laufzeit und Cold Starts",
+      "concept": "Cold-Start-Latenz",
+      "cognitive_level": "Anwendung",
+      "mini_glossary": {
+        "Cold Start": "Initialisierung einer neuen Ausführungsinstanz vor der eigentlichen Arbeit.",
+        "Warm Start": "Aufruf in einer bereits initialisierten, wiederverwendeten Instanz."
+      }
+    },
+    {
+      "question": "12. Welches Testdesign bewertet Cold Starts für einen selten genutzten Webhook am realistischsten?",
+      "options": [
+        "Eine dichte Aufrufserie nach einmaligem Warm-up messen und Leerlaufphasen rechnerisch gewichten",
+        "Die dokumentierte Codelaufzeit mit einer einzelnen lokalen Initialisierungsmessung kombinieren",
+        "Median und Bestwert einer kontinuierlichen Serie berichten und den ersten Aufruf verwerfen",
+        "Aufrufe mit realistischen Leerlaufabständen wiederholen und Latenzverteilung samt Initialisierung erfassen"
+      ],
+      "answer": 3,
+      "explanation": "Seltene Workloads erleben häufiger neue Instanzen; das Testmuster muss daher reale Leerlaufphasen abbilden. Nur warme Serien oder Bestwerte unterschätzen die nutzerwirksame Ende-zu-Ende-Latenz.",
+      "weight": 2,
+      "topic": "Laufzeit und Cold Starts",
+      "concept": "Workloadgerechte Cold-Start-Messung",
+      "cognitive_level": "Anwendung",
+      "mini_glossary": {
+        "Latenzverteilung": "Verteilung vieler gemessener Antwortzeiten statt eines Einzelwerts.",
+        "Leerlaufabstand": "Zeit ohne Aufruf zwischen zwei Ausführungen."
+      }
+    },
+    {
+      "question": "13. Eine Verarbeitung für Portable Document Format (PDF) benötigt im Median 20 Sekunden, einzelne Maximalberichte aber 85 Sekunden. Die betrachtete Function beendet jeden Lauf nach 60 Sekunden. Welche Entscheidung folgt?",
+      "options": [
+        "Die Function ist geeignet, weil der Median unterhalb der Grenze liegt und Maximalberichte ignoriert werden dürfen.",
+        "Der Kandidat verfehlt den erforderlichen Maximalpfad; Aufteilung, anderer Worker oder geänderte Anforderung ist nötig.",
+        "Die Function ist geeignet, wenn abgebrochene Berichte ohne Hinweis als erfolgreich markiert werden.",
+        "Die Function ist geeignet, weil ein Retry denselben 85-Sekunden-Lauf zwangsläufig in weniger als 60 Sekunden beendet."
+      ],
+      "answer": 1,
+      "explanation": "Eine harte Laufzeitgrenze wird durch einen erfolgreichen Median nicht erfüllt, wenn zulässige Maximalberichte regelmäßig abbrechen. Architektur oder Anforderung muss geändert und mit repräsentativen Reports erneut gemessen werden.",
+      "weight": 3,
+      "topic": "Laufzeit und Cold Starts",
+      "concept": "Maximalpfad gegen Laufzeitgrenze",
+      "cognitive_level": "Analyse",
+      "mini_glossary": {
+        "Laufzeitgrenze": "Harte maximale Dauer einer einzelnen Ausführung.",
+        "Maximalbericht": "Größter innerhalb des Produktvertrags zulässiger Reportfall."
+      }
+    },
+    {
+      "question": "14. Eine Function benötigt Chromium, Fonts und native Bibliotheken; das Paket überschreitet die Plattformgrenze. Welche Reaktion ist methodisch richtig?",
+      "options": [
+        "Artefaktgröße messen und ein unterstütztes Paket-, Layer- oder Containerverfahren gegen Alternativen prüfen",
+        "Chromium in einen Plattform-Layer verschieben und nur die Größe des Funktionspakets prüfen",
+        "Native Bibliotheken bei jedem Start aus nicht gepinnten Quellen nachladen und anschließend verwerfen",
+        "Browser und Fonts auf mehrere Funktionen verteilen, ohne ihren gemeinsamen Laufzeitpfad zu testen"
+      ],
+      "answer": 0,
+      "explanation": "Paketgrenzen sind ein technischer Vertrag und müssen mit dem realen Renderingartefakt geprüft werden. Ein anderes unterstütztes Format kann helfen, ist aber gegen Startzeit, Supply Chain und Betrieb zu bewerten.",
+      "weight": 3,
+      "topic": "Laufzeit und Cold Starts",
+      "concept": "Schwere Laufzeitabhängigkeiten",
+      "cognitive_level": "Analyse",
+      "mini_glossary": {
+        "Paketgrenze": "Maximal zulässige Größe oder Struktur eines Deploymentartefakts.",
+        "Native Bibliothek": "Für Betriebssystem und Prozessorarchitektur kompiliertes Programmmodul."
+      }
+    },
+    {
+      "question": "15. Automatische Function-Skalierung startet 500 parallele Aufrufe, die dieselbe Datenbank nutzen. Die Datenbank erlaubt 80 Verbindungen. Welche Kontrolle ist zentral?",
+      "options": [
+        "Jede Function öffnet mehrere dauerhafte Verbindungen, damit das Limit schneller erreicht wird.",
+        "Die Datenbankgrenze wird ignoriert, weil serverlose Skalierung Downstream-Dienste automatisch vergrößert.",
+        "Nebenläufigkeit, Pooling und Backpressure werden so begrenzt, dass der Downstream-Vertrag eingehalten wird.",
+        "Alle Datenbankfehler werden als Erfolg gewertet, damit die Function-Plattform keine Retries auslöst."
+      ],
+      "answer": 2,
+      "explanation": "Automatische Skalierung der Compute-Schicht hebt Datenbanklimits nicht auf. Concurrency-Limits, Connection Pooling, Queueing oder Admission Control müssen den nachgelagerten Engpass schützen.",
+      "weight": 3,
+      "topic": "Laufzeit und Cold Starts",
+      "concept": "Downstream-Schutz bei Autoscaling",
+      "cognitive_level": "Analyse",
+      "mini_glossary": {
+        "Downstream": "Nachgelagerter Dienst, den eine Verarbeitung aufruft.",
+        "Concurrency-Limit": "Obergrenze gleichzeitig ausgeführter Arbeiten."
+      }
+    },
+    {
+      "question": "16. Welches Workload-Profil ist zunächst der stärkste FaaS-Kandidat?",
+      "options": [
+        "Eine kurze objektgetriggerte Bildnormalisierung mit Ein- und Ausgabe in externem Objektspeicher",
+        "Ein Yjs-Relay mit langlebigen Verbindungen und raumbezogenem In-Memory-Zustand",
+        "Ein dauerhafter WebSocket-Fan-out-Prozess für eine laufende Großsession",
+        "Ein ständig warmer Chromiumprozess mit wiederverwendetem Browserzustand"
+      ],
+      "answer": 0,
+      "explanation": "Eine kurze, objektgetriggerte Transformation mit externalisierten Ein- und Ausgaben passt zur zustandslosen Einzelausführung. Langlebige Verbindungen und bewusst warmer lokaler Prozesszustand widersprechen typischen FaaS-Verträgen stärker.",
+      "weight": 3,
+      "topic": "Eignung von Workloads",
+      "concept": "Objekttransformation als Function-Kandidat",
+      "cognitive_level": "Analyse",
+      "mini_glossary": {
+        "Eignung": "Passung eines Workloads zu Grenzen und Stärken eines Betriebsmodells.",
+        "Objekttrigger": "Ereignis, das beim Anlegen oder Ändern eines Speicherobjekts ausgelöst wird."
+      }
+    },
+    {
+      "question": "17. Selbst zulässige Maximalberichte passen in die Laufzeitgrenze einer FaaS-Migration der arsnova.eu-PDF-Erzeugung. Welche Beobachtung stellt die Migration dennoch am stärksten infrage?",
+      "options": [
+        "Kleine und große Einzelberichte erzeugen in der isolierten Sandbox jeweils eine gültige PDF.",
+        "Ein Provider bietet einen HTTP-Trigger und nutzungsbezogene Abrechnung für Funktionen an.",
+        "Parallele Skalierung überschreitet reproduzierbar die zulässige Downstream-Last ohne globale Annahmegrenze.",
+        "Ein Team kann dieselbe Funktionsversion in drei unterschiedlichen Regionen konfigurieren."
+      ],
+      "answer": 2,
+      "explanation": "Passende Einzellaufzeiten belegen noch keinen sicheren Parallelbetrieb. Wenn automatische Skalierung eine begrenzte nachgelagerte Ressource ohne globale Annahmeregel überlastet, braucht die Migration Backpressure oder ein anderes Betriebsmodell.",
+      "weight": 3,
+      "topic": "Eignung von Workloads",
+      "concept": "PDF-Eignung bei paralleler Skalierung",
+      "cognitive_level": "Analyse",
+      "mini_glossary": {
+        "Backpressure": "Begrenzung eingehender Arbeit, wenn nachgelagerte Kapazität ausgeschöpft ist.",
+        "Annahmegrenze": "Obergrenze gleichzeitig akzeptierter oder ausgeführter Arbeiten."
+      }
+    },
+    {
+      "question": "18. Warum ist das arsnova.eu-Yjs-Relay mit Conflict-free Replicated Data Types (CRDTs) kein naheliegender Function-Lift-and-shift?",
+      "options": [
+        "Weil CRDT-Synchronisation einen lokalen Dateipfad benötigt und externen Zustand nicht nutzen kann",
+        "Weil langlebige WebSockets, Raumzustand, Awareness und Reconnect nicht zu kurzlebiger Instanzannahme passen",
+        "Weil eine relationale Serverkopie die dauerhaften Verbindungen und den Raumzustand des Relays ersetzt",
+        "Weil binäre Protokollnachrichten nur in virtuellen Maschinen und nicht in Functions verarbeitet werden können"
+      ],
+      "answer": 1,
+      "explanation": "Das Relay koordiniert langlebige Verbindungen und raumbezogenen Zustand; kurzlebige austauschbare Ausführungen benötigen dafür zusätzliche Routing- und State-Architektur. Sprache oder CRDT-Prinzip verbieten Functions nicht grundsätzlich.",
+      "weight": 3,
+      "topic": "Eignung von Workloads",
+      "concept": "Yjs gegen kurzlebige Instanzen",
+      "cognitive_level": "Analyse",
+      "mini_glossary": {
+        "CRDT": "Datenstruktur, deren verteilte Änderungen konfliktarm zusammengeführt werden können.",
+        "Awareness": "Kurzlebiger Yjs-Präsenzzustand verbundener Clients."
+      }
+    },
+    {
+      "question": "19. Ein nächtlicher Cleanup scannt begrenzt alte Datensätze, arbeitet idempotent und hält einen Lauf unter der Plattformgrenze. Welche Bewertung ist plausibel?",
+      "options": [
+        "Ungeeignet, weil ein Zeitplan keinen auswertbaren Trigger mit Laufkontext bereitstellen kann",
+        "Ungeeignet, weil Datenbankzugriffe einen dauerhaft lokalen Funktionszustand voraussetzen",
+        "Geeignet ohne weitere Prüfung, weil der Zeitplan Überlappung und Wiederholung selbst verhindert",
+        "Potenziell geeignet, wenn Überlappung, Retry, Beobachtbarkeit und Datenbanklast begrenzt sind"
+      ],
+      "answer": 3,
+      "explanation": "Ein begrenzter, idempotenter Zeitjob passt grundsätzlich zu einer Function, bleibt aber von Zustell-, Überlappungs- und Downstreamverträgen abhängig. Der Trigger allein garantiert keine einmalige oder pünktliche Ausführung.",
+      "weight": 3,
+      "topic": "Eignung von Workloads",
+      "concept": "Zeitgesteuerter begrenzter Pflegejob",
+      "cognitive_level": "Analyse",
+      "mini_glossary": {
+        "Cleanup": "Kontrollierte Bereinigung abgelaufener oder nicht mehr benötigter Daten.",
+        "Überlappung": "Gleichzeitige Ausführung mehrerer Läufe desselben Jobs."
+      }
+    },
+    {
+      "question": "20. Der aktuelle PDF-Worker ist netzlos, ressourcenbegrenzt und über einen lokalen Socket angebunden. Wie sollte eine Serverless-Alternative verglichen werden?",
+      "options": [
+        "Nur anhand der Anbieterbezeichnung, weil »Function« automatisch dieselbe Isolation garantiert",
+        "Mit identischen Maximalreports, Sicherheitsgrenzen, Fehlerfällen, Latenz- und Kostenmaßen",
+        "Nur anhand des schnellsten Einzelreports, weil Restarts und Ablehnungen keine Produktwirkung haben",
+        "Mit kleineren Reports und anderer Erfolgsdefinition, damit beide Modelle ihre Stärken getrennt zeigen"
+      ],
+      "answer": 1,
+      "explanation": "Ein fairer Vergleich benötigt dieselbe Funktion, Systemgrenze und Erfolgsdefinition. Isolation, Egress, Limits, Abbruch, Latenz und Kosten dürfen nicht durch unterschiedliche Testfälle oder ausgelassene Fehlerpfade verzerrt werden.",
+      "weight": 3,
+      "topic": "Eignung von Workloads",
+      "concept": "Gleiche Vergleichsbasis für PDF-Modelle",
+      "cognitive_level": "Analyse",
+      "mini_glossary": {
+        "Vergleichsbasis": "Gemeinsame Anforderungen, Lasten und Messgrenzen mehrerer Alternativen.",
+        "Fehlerfall": "Kontrolliert ausgelöste Abweichung zur Prüfung von Reaktion und Wiederherstellung."
+      }
+    },
+    {
+      "question": "21. Ein Workload läuft dauerhaft mit gleichmäßiger Auslastung. Welche Kostenannahme zu FaaS ist unzulässig?",
+      "options": [
+        "Variable Aufruf- und Rechenkosten müssen auf die reale Dauer und Ressourcengröße bezogen werden.",
+        "Observability, Datenspeicher, Netzwerk und Support können zusätzliche Kosten verursachen.",
+        "Ein dauerhaft ausgelasteter Container kann als wirtschaftliche Gegenalternative gerechnet werden.",
+        "Pay-per-use ist unabhängig von Auslastung, Laufzeit und Preisstruktur zwangsläufig am günstigsten."
+      ],
+      "answer": 3,
+      "explanation": "Nutzungsabhängige Abrechnung ist kein allgemeiner Preisvorteil. Bei dauerhafter Grundlast können variable Einheiten teurer sein; zugleich müssen Betriebs-, Speicher-, Netzwerk- und Personalaufwände auf gleicher Grenze verglichen werden.",
+      "weight": 3,
+      "topic": "Kosten und Skalierung",
+      "concept": "Pay-per-use ohne Preisgarantie",
+      "cognitive_level": "Analyse",
+      "mini_glossary": {
+        "Pay-per-use": "Abrechnung nach gemessenen Nutzungseinheiten.",
+        "Grundlast": "Dauerhaft vorhandene Mindestmenge an Arbeit oder Kapazitätsbedarf."
+      }
+    },
+    {
+      "question": "22. Eine Function wird 100.000-mal ausgeführt, belegt jeweils 0,25 Gigabyte (GB) für durchschnittlich 0,4 Sekunden. Wie groß ist der reine Rechenverbrauch ohne Zuschläge?",
+      "options": [
+        "10.000 GB-Sekunden",
+        "25.000 GB-Sekunden",
+        "40.000 GB-Sekunden",
+        "100.000 GB-Sekunden"
+      ],
+      "answer": 0,
+      "explanation": "Der Verbrauch beträgt 100.000 × 0,25 GB × 0,4 Sekunden = 10.000 GB-Sekunden. Für reale Kosten wären zusätzlich Rundung, Aufrufe, Netzwerk, Speicher, Freikontingente und Region zu prüfen.",
+      "weight": 3,
+      "topic": "Kosten und Skalierung",
+      "concept": "Berechnung von GB-Sekunden",
+      "cognitive_level": "Analyse",
+      "mini_glossary": {
+        "GB-Sekunde": "Produkt aus belegtem Arbeitsspeicher in GB und Ausführungsdauer in Sekunden.",
+        "Nutzungseinheit": "Vom Anbieter gemessene Größe als Basis einer variablen Abrechnung."
+      }
+    },
+    {
+      "question": "23. Welche Rechnung eignet sich für einen Break-even-Vergleich zwischen Function und ständig laufendem Worker?",
+      "options": [
+        "Fixe und variable Kosten beider Modelle über dieselbe Last, Leistung und Betriebsgrenze vergleichen",
+        "Nur den Function-Aufrufpreis mit dem Kaufpreis eines physischen Servers vergleichen",
+        "Nur den Personalaufwand des Workers und keine Plattform- oder Migrationskosten berücksichtigen",
+        "Für die Function den Best Case und für den Worker den Worst Case als gemeinsame Basis verwenden"
+      ],
+      "answer": 0,
+      "explanation": "Ein Break-even entsteht dort, wo Gesamtkosten unter vergleichbaren Annahmen gleich sind. Unterschiedliche Systemgrenzen oder asymmetrische Szenarien produzieren einen rechnerischen, aber nicht entscheidungsfähigen Vorteil.",
+      "weight": 3,
+      "topic": "Kosten und Skalierung",
+      "concept": "Vergleichbarer Break-even",
+      "cognitive_level": "Analyse",
+      "mini_glossary": {
+        "Break-even": "Auslastung oder Menge, bei der zwei Alternativen gleiche Gesamtkosten besitzen.",
+        "Variable Kosten": "Kosten, die sich mit der Nutzung verändern."
+      }
+    },
+    {
+      "question": "24. Ein selten genutzter HTTP-Endpunkt hat geringe Monatskosten, aber nach Leerlauf eine hohe Latenz im 95. Perzentil (p95). Welche Bewertung gegenüber einem Service Level Objective (SLO) ist angemessen?",
+      "options": [
+        "Die Lösung ist optimal, weil geringe Kosten jedes Latenzziel automatisch ersetzen.",
+        "Die Lösung ist ungeeignet, weil jeder Cold Start unabhängig vom Produktziel unzulässig ist.",
+        "Kosten und nutzerwirksame Latenz müssen gemeinsam gegen SLO und Alternativen abgewogen werden.",
+        "Die Lösung ist geeignet, sobald der Median warm schnell ist; Leerlaufaufrufe zählen nicht zum Workload."
+      ],
+      "answer": 2,
+      "explanation": "Wirtschaftlichkeit und Leistungsziel sind getrennte Kriterien. Hohe Leerlauflatenz kann akzeptabel oder ausschließend sein, abhängig vom SLO; warme Medianwerte dürfen den realen Aufrufmix nicht verdecken.",
+      "weight": 3,
+      "topic": "Kosten und Skalierung",
+      "concept": "Kosten-Latenz-Trade-off",
+      "cognitive_level": "Analyse",
+      "mini_glossary": {
+        "p95-Latenz": "Wert, den 95 Prozent der gemessenen Latenzen nicht überschreiten.",
+        "SLO": "Messbares Ziel für eine definierte Dienstqualität."
+      }
+    },
+    {
+      "question": "25. Ein fehlerhafter Trigger erzeugt eine Ereignisschleife und damit stark steigende Function-Aufrufe. Welche Schutzkombination begrenzt Kosten und Schaden?",
+      "options": [
+        "Unbegrenzte Nebenläufigkeit, deaktiviertes Monitoring und automatische Budgeterhöhung",
+        "Quoten, Concurrency-Limit, Budgetalarm, Dead-Letter-Pfad und ein getesteter Kill-Switch",
+        "Längere Logaufbewahrung ohne Aufrufgrenze, Alarm oder Möglichkeit zur Deaktivierung",
+        "Mehr Trigger auf dasselbe Ereignis, damit die Last auf mehrere Funktionen verteilt wird"
+      ],
+      "answer": 1,
+      "explanation": "Eine Ereignisschleife braucht technische Obergrenzen, frühe Warnung, isolierte Fehlerablage und einen sicheren Abschaltweg. Monitoring allein stoppt weder Aufrufe noch Kosten; zusätzliche Trigger verstärken die Wirkung.",
+      "weight": 3,
+      "topic": "Kosten und Skalierung",
+      "concept": "Kostenkontrolle bei Ereignisschleifen",
+      "cognitive_level": "Analyse",
+      "mini_glossary": {
+        "Dead-Letter-Pfad": "Ablage dauerhaft fehlgeschlagener Ereignisse außerhalb der normalen Wiederholung.",
+        "Kill-Switch": "Kontrollierte Möglichkeit, einen fehlerhaften Verarbeitungspfad schnell zu deaktivieren."
+      }
+    },
+    {
+      "question": "26. Welche Designentscheidung reduziert Lock-in einer Function am wirksamsten, ohne ihn zu leugnen?",
+      "options": [
+        "Provider-APIs unstrukturiert im gesamten Fachcode verteilen, damit jede Funktion sie direkt nutzt",
+        "Fachlogik von Trigger-, Identitäts- und Speicheradaptern trennen und Exportpfade testen",
+        "Alle Daten in einem proprietären Format ohne dokumentiertes Schema oder Exportrecht speichern",
+        "Nur den Funktionsnamen standardisieren und Laufzeit-, Ereignis- sowie Datenverträge ignorieren"
+      ],
+      "answer": 1,
+      "explanation": "Klare Adaptergrenzen und ausgeführte Exporte begrenzen den Umbau fachlicher Logik und machen Exitfähigkeit messbar. Providerunterschiede bei Semantik, Identity and Access Management (IAM) und Betrieb verschwinden dadurch nicht, werden aber sichtbar.",
+      "weight": 3,
+      "topic": "Lock-in und Entscheidung",
+      "concept": "Adapter und getesteter Exit",
+      "cognitive_level": "Analyse",
+      "mini_glossary": {
+        "Lock-in": "Wechselaufwand durch anbieterspezifische Technik, Daten oder Betriebsprozesse.",
+        "Adapter": "Abgrenzende Übersetzung zwischen Fachlogik und externer Schnittstelle."
+      }
+    },
+    {
+      "question": "27. Ein Team ersetzt eigene Authentifizierung durch einen BaaS-Identitätsdienst. Welche Exit-Frage ist am wichtigsten?",
+      "options": [
+        "Ob das Anbieterlogo in derselben Farbe wie die Anwendung dargestellt werden kann",
+        "Ob der Dienst ohne Netzwerk und ohne gespeicherte Identitäten dieselben Logins ausführt",
+        "Ob der Anbieter jede zukünftige Produktänderung vertraglich vollständig ausschließt",
+        "Wie Identitäten, Schlüssel, Rollen und Anmeldeflüsse exportiert oder migriert werden können"
+      ],
+      "answer": 3,
+      "explanation": "Beim Identitätsdienst liegen Lock-in und Betriebsrisiko in Daten, Schlüsselmaterial, Rollenmodell und Protokollintegration. Ein Exit muss diese Elemente samt Unterbrechung und Sicherheitsfolgen praktisch adressieren.",
+      "weight": 3,
+      "topic": "Lock-in und Entscheidung",
+      "concept": "Exit aus einem Identitäts-BaaS",
+      "cognitive_level": "Analyse",
+      "mini_glossary": {
+        "Identitätsdienst": "Dienst zur Verwaltung und Prüfung digitaler Identitäten und Anmeldungen.",
+        "Exit-Test": "Praktischer Nachweis, dass Daten und Funktion kontrolliert migriert werden können."
+      }
+    },
+    {
+      "question": "28. Ein Team kapselt alle Provideraufrufe hinter einer gemeinsamen Schnittstelle. Warum ist vollständige Portabilität trotzdem nicht bewiesen?",
+      "options": [
+        "Weil Schnittstellen ausschließlich bei physischen Servern und nie bei Funktionen verwendet werden können",
+        "Weil gekapselter Code automatisch die teuerste Providerregion und Laufzeit auswählen muss",
+        "Weil Triggersemantik, IAM, Limits, Fehlerverhalten, Observability und Datenmigration weiter abweichen können",
+        "Weil ein Adapter zwangsläufig jeden Aufruf seriell macht und daher keine Function mehr starten kann"
+      ],
+      "answer": 2,
+      "explanation": "Eine Codeschnittstelle reduziert direkte API-Kopplung, vereinheitlicht aber keine Plattformsemantik. Portabilität umfasst auch Ereignisse, Rechte, Limits, Betrieb, Daten und nachgewiesene Migration.",
+      "weight": 3,
+      "topic": "Lock-in und Entscheidung",
+      "concept": "Portabilität jenseits des Codes",
+      "cognitive_level": "Analyse",
+      "mini_glossary": {
+        "Portabilität": "Fähigkeit, Workload und Daten mit vertretbarem Aufwand zu verlagern.",
+        "Triggersemantik": "Garantien zu Reihenfolge, Wiederholung und Inhalt auslösender Ereignisse."
+      }
+    },
+    {
+      "question": "29. Eine Function verarbeitet Webhooks asynchron. Welche Observability-Evidenz ermöglicht die Rekonstruktion eines verlorenen Ereignisses am besten?",
+      "options": [
+        "Korrelations-ID, Trigger-ID, Zustandsübergänge, Versuchszahl und begrenzte Fehlerkategorie",
+        "Nur die monatliche Gesamtrechnung ohne Bezug zu Aufrufen, Fehlern oder Latenzen",
+        "Nur der schnellste erfolgreiche Aufruf des Monats ohne Eingabe- oder Ereignisbezug",
+        "Vollständige Secrets und Rohpayloads in jedem öffentlichen Logeintrag"
+      ],
+      "answer": 0,
+      "explanation": "Korrelation und Zustandsübergänge verbinden Trigger, Ausführungsversuche und Fachwirkung, ohne dafür Secrets offenzulegen. Aggregierte Kosten oder Einzelbestwerte reichen zur Diagnose eines konkreten Verlustpfads nicht.",
+      "weight": 3,
+      "topic": "Lock-in und Entscheidung",
+      "concept": "Nachvollziehbare serverlose Ereigniskette",
+      "cognitive_level": "Analyse",
+      "mini_glossary": {
+        "Korrelations-ID": "Kennung zum Verbinden zusammengehöriger Ereignisse über mehrere Systeme.",
+        "Zustandsübergang": "Dokumentierter Wechsel eines Auftrags zwischen Verarbeitungszuständen."
+      }
+    },
+    {
+      "question": "30. Welches Abschlussartefakt trägt eine belastbare Entscheidung für oder gegen Serverless am besten?",
+      "options": [
+        "Eine Produktliste mit maximalen Funktionszahlen ohne Workload, Messung oder Gegenalternative",
+        "Ein erfolgreicher Einzelaufruf mit Screenshot und der Aussage, Autoscaling löse alle Restfragen",
+        "Eine Eignungsmatrix mit Tests, Kostenband, Grenzen, Restrisiko, Exit und stärkstem Gegenargument",
+        "Eine Kostenrechnung im Best Case ohne Quellenstand, Datenlokalität oder Betriebsaufwand"
+      ],
+      "answer": 2,
+      "explanation": "Eine Architekturentscheidung muss technische Eignung, Wirtschaftlichkeit, Verantwortung und Exit auf derselben Systemgrenze zusammenführen. Messung, Gegenargument und Gültigkeitsgrenze verhindern eine reine Produkt- oder Demoentscheidung.",
+      "weight": 3,
+      "topic": "Lock-in und Entscheidung",
+      "concept": "Evidenzbasierte Serverless-Entscheidung",
+      "cognitive_level": "Analyse",
+      "mini_glossary": {
+        "Eignungsmatrix": "Vergleich von Workloads und Betriebsmodellen anhand gleicher Kriterien.",
+        "Restrisiko": "Nach umgesetzten Kontrollen verbleibendes bewusst bewertetes Risiko."
+      }
+    }
+  ]
+}

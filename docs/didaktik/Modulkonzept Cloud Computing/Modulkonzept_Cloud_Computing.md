@@ -1,11 +1,13 @@
 # Modulkonzept Cloud Computing
 
+**Stand:** 14.09.2026
+
 ## 1. Lesehilfe
 
 - **IU Internationale Hochschule (IU)** bezeichnet die Hochschule; `DSCC0127` ist der Modulcode und `DSCC012701` der Kurscode.
 - **Credit Point (CP)** bezeichnet einen Leistungspunkt. Das Modul umfasst 5 CP.
 - **Unterrichtseinheit (UE)** bezeichnet 45 Minuten. Eine **Lerneinheit (LE)** umfasst genau zwei aufeinanderfolgende UE und damit 90 Minuten.
-- **W01–W12** bezeichnet die Themenwochen 1 bis 12.
+- **TB01–TB12** bezeichnet zwölf stabile Themenblöcke. Die Kennungen legen weder Kalenderwochen noch Durchführungsform oder Belastungsverteilung fest.
 - **Qualifikationsziel (QZ)** bezeichnet eines der fünf offiziellen Ziele. **Modulziel (MZ)** bezeichnet eines der neun operationalisierten Ziele. **Learning Indicator (LI)** bezeichnet einen beobachtbaren Lernindikator.
 - **Multiple Choice (MC)** bezeichnet Aufgaben mit vorgegebenen Antwortmöglichkeiten. Der Ausdruck **MC-Test** bezeichnet die formative Lernanwendung.
 - **Künstliche Intelligenz (KI)** und **maschinelles Lernen (ML)** werden nur dann abgekürzt, wenn die Langformen zuvor genannt sind.
@@ -24,16 +26,15 @@
 | -------------------------- | --------------------------------------------------------------------------- |
 | Modul und Kurs             | Cloud Computing, `DSCC0127` / `DSCC012701`                                  |
 | Niveau und Studienformat   | Bachelor, duales Studium                                                    |
+| Zielgruppe                 | ausschließlich Bachelorstudierende der Informatik                           |
 | Umfang                     | 5 CP, 150 Stunden                                                           |
 | Betreute Zeit              | 36 UE à 45 Minuten = 27 Stunden                                             |
-| Präsenz/synchrone Lehre    | 18 UE = sechs Wochen à 3 UE                                                 |
-| Tutorium                   | 18 UE = sechs Wochen à 3 UE                                                 |
 | Selbststudium              | 123 Stunden                                                                 |
-| Themenrhythmus             | 12 Wochen à 3 UE                                                            |
+| Themenblöcke               | 12 stabile Themenblöcke à 3 UE = 36 UE                                      |
 | Prüfung als Planungsbasis  | Referat mit insgesamt 15 Minuten mündlicher Prüfung je Prüfling             |
 | Online- und Live-Werkzeuge | freiwillig-formativ; keine Zulassung, keine Prüfungsleistung und keine Note |
 
-`Präsenz/synchron` ist eine Workload-Kategorie. Sie wird im Präsenzlauf im Raum und in einem synchronen Onlinekurs virtuell durchgeführt. Die Ziele, Inhalte, Zeiten, Lernprodukte und Prüfungsinformationen bleiben in beiden Durchführungsformen gleich. Die 18 UE Tutorium werden nicht zusätzlich gezählt, sondern bilden gemeinsam mit den 18 UE Präsenz/synchron die vollständigen 36 UE.
+Das Modulpaket ordnet die Themenblöcke weder Kalenderwochen noch einer Präsenz-, virtuellen oder Tutoriumsform zu. Für jede Durchführung gelten dieselben zwölf Themenblöcke, 36 UE, Inhalte, Lernprodukte und Prüfungsinformationen. Eine konkrete Terminierung ist nicht Bestandteil des curricularen Vertrags.
 
 ## 3. Offizielle Qualifikationsziele
 
@@ -92,27 +93,27 @@ Das Agentic Cloud Engineering Dossier bündelt agentengestützte Aufträge, Plä
 
 Agentenausgaben sind keine Fakten allein aufgrund ihrer Form. Eine attraktive Antwort ohne Quelle, Messung, Gegenprobe und Gültigkeitsgrenze erfüllt keinen fachlichen Nachweis.
 
-## 6. Verbindlicher Wochenrhythmus
+## 6. Verbindlicher Themenblockaufbau
 
 ### 6.1 UE 1 und UE 2 als eine 90-minütige Lerneinheit
 
-UE 1 und UE 2 bilden jede Woche genau eine LE. Das folgende Mikromuster ist ein Richtwert; die Summe bleibt 90 Minuten:
+UE 1 und UE 2 bilden in jedem Themenblock genau eine LE. Das folgende Mikromuster ist ein Richtwert; die Summe bleibt 90 Minuten:
 
 | Phase                                       |           Zeit | Funktion                                                       |
 | ------------------------------------------- | -------------: | -------------------------------------------------------------- |
 | Aktivierung und Wiederabruf mit arsnova.eu  |      8 Minuten | Vorwissen und ältere Kernideen abrufen                         |
-| Leitproblem und Begriffsaufbau              |     15 Minuten | Wochenfrage und fachliches Modell klären                       |
+| Leitproblem und Begriffsaufbau              |     15 Minuten | Leitfrage und fachliches Modell klären                         |
 | Quellen- oder Repository-Analyse            |     22 Minuten | belegten Ist-Zustand und Aussagegrenzen erarbeiten             |
 | Anwendung am Cloud-Fall                     |     25 Minuten | Entscheidung, Entwurf, Messung oder Gegenbeispiel bearbeiten   |
 | Peer-Erklärung und Fehlvorstellungsdiagnose |     15 Minuten | Begründungen vergleichen und korrigieren                       |
 | Sicherung für Dossier und Selbststudium     |      5 Minuten | Zwischenstand, offene Annahme und nächsten Nachweis festhalten |
 | **Gesamt**                                  | **90 Minuten** |                                                                |
 
-Die zehn wöchentlichen arsnova.eu-Fragetypen werden passend über diese Phasen verteilt. Sie bilden keine zusätzliche Zeit außerhalb der LE.
+Die zehn ARSnova-Fragetypen jedes Themenblocks werden passend über diese Phasen verteilt. Sie bilden keine zusätzliche Zeit außerhalb der LE.
 
 ### 6.2 UE 3 als formativer MC-Test
 
-UE 3 folgt jede Woche exakt demselben 45-Minuten-Ablauf:
+UE 3 folgt in jedem Themenblock exakt demselben 45-Minuten-Ablauf:
 
 | Phase                                              |           Zeit |
 | -------------------------------------------------- | -------------: |
@@ -123,26 +124,26 @@ UE 3 folgt jede Woche exakt demselben 45-Minuten-Ablauf:
 
 Die 32 Minuten sind ein organisatorischer Planwert. Der Lernmodus besitzt keinen technischen Countdown. Der frühere UE3-Umfang für Labor, Lernprodukt oder Präsentation wird in die 90-minütige LE und das Selbststudium integriert; er wird weder als vierte UE behandelt noch zusätzlich auf den Workload gerechnet.
 
-## 7. Wochenplan
+## 7. Themenblockplan
 
-| Woche   | Typ              | Schwerpunkt der 90-minütigen LE                                      | In LE und Selbststudium integriertes Lernprodukt                                                                | Zielbezug                   |
-| ------- | ---------------- | -------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------- | --------------------------- |
-| **W01** | Präsenz/synchron | Grundlagen, Cloud- und Bereitstellungsmodelle, Shared Responsibility | belegte Cloud-Klassifikation mit Verantwortungsgrenze, Nutzen, Risiko und offener Annahme                       | MZ1, LI01–LI03              |
-| **W02** | Präsenz/synchron | Virtualisierung, Container, IaC und Netzwerk                         | Technologiematrix und reproduzierbarer Provisioning-Entwurf mit Netzwerk- und Vertrauensgrenzen                 | MZ2, LI04–LI06              |
-| **W03** | Tutorium         | arsnova.eu-Deployment, Härtung und Zustand                           | belegtes Ist-Diagramm, Härtungsnachweis und Trennung von persistentem, flüchtigem und lokalem Zustand           | MZ2/MZ6, LI04–LI06 und LI15 |
-| **W04** | Präsenz/synchron | Serverless Computing                                                 | Eignungsmatrix für einen geeigneten und einen ungeeigneten Kandidaten mit Gegenprobe                            | MZ3, LI07–LI08              |
-| **W05** | Präsenz/synchron | GCP, AWS und Microsoft Azure                                         | normalisierter Plattformvergleich mit Primärquelle, Region, Verantwortung, Kostenannahme und Exit               | MZ4, LI09–LI11              |
-| **W06** | Präsenz/synchron | Datenwissenschaft und maschinelles Lernen in der Cloud               | Datenfluss und Optionenvergleich mit Qualitäts-, Datenschutz-, Betriebs- und Kostenkriterien                    | MZ5, LI12–LI14              |
-| **W07** | Tutorium         | Storage, Datenbanken, Backup und Recovery                            | Zustands- und Recovery-Matrix mit RPO, RTO, Integrität, ausgeführter Wiederherstellung und Grenze               | MZ6, LI15–LI16              |
-| **W08** | Tutorium         | Elastizität, Skalierung, Performance und verteilte Systeme           | reproduzierbarer Last- oder Fehlerplan mit Messgrößen, Rohdatenbezug und Abbruchkriterium                       | MZ7, LI17–LI18              |
-| **W09** | Präsenz/synchron | IAM, Security, Observability, SRE und Resilienz                      | Kette aus Befund, Risiko, Maßnahme, Verifikation und Restrisiko sowie SLI/SLO-Bezug                             | MZ8, LI19–LI21              |
-| **W10** | Tutorium         | FinOps, Nachhaltigkeit und 6R                                        | TCO- und Sensitivitätsmodell sowie ADR mit stärkster verworfener Alternative und Exit-Kriterium                 | MZ9, LI22–LI23              |
-| **W11** | Tutorium         | evidenzbasierte Architekturentscheidung und Referatswerkstatt        | referatsfähige These, Quellen- und Visualisierungsskizze, Gegenalternative und individuelle Argumentationslinie | MZ9, LI23–LI24              |
-| **W12** | Tutorium         | Synthese und Probeverteidigung                                       | 15-minütige Probe mit Vortrag und Befragung, persönlicher Korrekturliste und begrenzter Schlussaussage          | MZ9, LI24                   |
+| Themenblock | Schwerpunkt der 90-minütigen LE                                      | In LE und Selbststudium integriertes Lernprodukt                                                                | Zielbezug                   |
+| ----------- | -------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------- | --------------------------- |
+| **TB01**    | Grundlagen, Cloud- und Bereitstellungsmodelle, Shared Responsibility | belegte Cloud-Klassifikation mit Verantwortungsgrenze, Nutzen, Risiko und offener Annahme                       | MZ1, LI01–LI03              |
+| **TB02**    | Virtualisierung, Container, IaC und Netzwerk                         | Technologiematrix und reproduzierbarer Provisioning-Entwurf mit Netzwerk- und Vertrauensgrenzen                 | MZ2, LI04–LI06              |
+| **TB03**    | arsnova.eu-Deployment, Härtung und Zustand                           | belegtes Ist-Diagramm, Härtungsnachweis und Trennung von persistentem, flüchtigem und lokalem Zustand           | MZ2/MZ6, LI04–LI06 und LI15 |
+| **TB04**    | Serverless Computing                                                 | Eignungsmatrix für einen geeigneten und einen ungeeigneten Kandidaten mit Gegenprobe                            | MZ3, LI07–LI08              |
+| **TB05**    | GCP, AWS und Microsoft Azure                                         | normalisierter Plattformvergleich mit Primärquelle, Region, Verantwortung, Kostenannahme und Exit               | MZ4, LI09–LI11              |
+| **TB06**    | Datenwissenschaft und maschinelles Lernen in der Cloud               | Datenfluss und Optionenvergleich mit Qualitäts-, Datenschutz-, Betriebs- und Kostenkriterien                    | MZ5, LI12–LI14              |
+| **TB07**    | Storage, Datenbanken, Backup und Recovery                            | Zustands- und Recovery-Matrix mit RPO, RTO, Integrität, ausgeführter Wiederherstellung und Grenze               | MZ6, LI15–LI16              |
+| **TB08**    | Elastizität, Skalierung, Performance und verteilte Systeme           | reproduzierbarer Last- oder Fehlerplan mit Messgrößen, Rohdatenbezug und Abbruchkriterium                       | MZ7, LI17–LI18              |
+| **TB09**    | IAM, Security, Observability, SRE und Resilienz                      | Kette aus Befund, Risiko, Maßnahme, Verifikation und Restrisiko sowie SLI/SLO-Bezug                             | MZ8, LI19–LI21              |
+| **TB10**    | FinOps, Nachhaltigkeit und 6R                                        | TCO- und Sensitivitätsmodell sowie ADR mit stärkster verworfener Alternative und Exit-Kriterium                 | MZ9, LI22–LI23              |
+| **TB11**    | evidenzbasierte Architekturentscheidung und Referatswerkstatt        | referatsfähige These, Quellen- und Visualisierungsskizze, Gegenalternative und individuelle Argumentationslinie | MZ9, LI23–LI24              |
+| **TB12**    | Synthese und Probeverteidigung                                       | 15-minütige Probe mit Vortrag und Befragung, persönlicher Korrekturliste und begrenzter Schlussaussage          | MZ9, LI24                   |
 
 Die dritte UE jeder Zeile bleibt ausschließlich dem formativen MC-Test vorbehalten.
 
-Der [kanonische Wochenlehrplan](./Wochenlehrplan_Cloud_Computing_12_Wochen.md) konkretisiert für W01–W12 die Inhalte, die Füllung von UE 1 und UE 2, den Fachwortschatz, Quellenanker, Lernprodukte und Selbststudiumsaufträge. Das operative Minuten-, Import- und Störungsprotokoll bleibt im [Lehrenden-Runbook](./Lehrenden_Runbook.md).
+Der [kanonische Themenblockplan](./Themenblockplan_Cloud_Computing_12_Themenbloecke.md) konkretisiert für TB01–TB12 die Inhalte, die Füllung von UE 1 und UE 2, den Fachwortschatz, Quellenanker, Lernprodukte und Selbststudiumsaufträge. Das operative Minuten-, Import- und Störungsprotokoll bleibt im [Lehrenden-Runbook](./Lehrenden_Runbook.md).
 
 ## 8. Selbststudium
 
@@ -150,7 +151,7 @@ Das Planungsbudget übernimmt den vollständigen Workload aus dem Altmaterial un
 
 | Aktivität                                     |   Stunden |
 | --------------------------------------------- | --------: |
-| Vor- und Nachbereitung der zwölf Wochen       |      24 h |
+| Vor- und Nachbereitung der zwölf Themenblöcke |      24 h |
 | Pflichtlektüre und technische Vertiefung      |      30 h |
 | Agentic Cloud Engineering Dossier             |      30 h |
 | Plattform-, Privacy- und Wirtschaftsvergleich |      15 h |
@@ -164,7 +165,7 @@ Zusammen mit 27 betreuten Stunden ergibt dies den Gesamtworkload von 150 Stunden
 
 ### 9.1 arsnova.eu
 
-Jede Woche verwendet genau zehn anspruchsvolle Livefragen und jeden der zehn unterstützten Typen einmal:
+Jeder Themenblock verwendet genau zehn anspruchsvolle Livefragen und jeden der zehn unterstützten Typen einmal:
 
 1. Single Choice mit genau einer richtigen Option,
 2. Multiple Choice mit mehreren richtigen Optionen,
@@ -187,7 +188,7 @@ Quizpunkte, Rang, Teamstand, Boni, Geschwindigkeit und Emoji-Reaktionen dienen M
 
 ### 9.2 MC-Test
 
-Jede Woche umfasst genau 30 Items mit dem Schwierigkeitsprofil:
+Jeder Themenblock umfasst genau 30 Items mit dem Schwierigkeitsprofil:
 
 | leicht | mittel | schwer |
 | -----: | -----: | -----: |
@@ -200,11 +201,11 @@ Verbindlich sind:
 - kein technischer Countdown,
 - Konfiguration `show_top5_public=false`,
 - erster Durchlauf in UE 3 mit 32 Minuten Planzeit,
-- zweiter vollständiger Wiederabruf nach zwei bis drei Tagen,
-- erneuter Abruf zentraler Konzepte nach zwei bis vier Wochen,
+- weiterer vollständiger Wiederabruf ohne kalendarische Vorgabe,
+- erneuter Abruf zentraler Konzepte in späteren Themenblöcken,
 - vollständige untimierte Alternativfassung mit denselben Fragen, Lösungen und Erklärungen.
 
-Der MC-Test dient Selbstdiagnose und Spaced Repetition, also zeitlich verteilter Wiederholung. Seine Punkte, Bearbeitungszeiten und Einzelverläufe haben keine Prüfungs- oder Zulassungswirkung.
+Der MC-Test dient Selbstdiagnose und wiederholtem Abruf. Das Modulpaket legt dafür keinen kalendarischen Abstand fest. Punkte, Bearbeitungszeiten und Einzelverläufe haben keine Prüfungs- oder Zulassungswirkung.
 
 ### 9.3 Agentic Cloud Engineering Dossier
 
@@ -246,7 +247,7 @@ Einzel- oder Gruppenformat, Handout oder Poster, Thema, Termin und zulässige Hi
 
 Das Constructive Alignment verbindet dieselbe beobachtbare Handlung über Lernaktivität, formative Evidenz und Prüfung: klassifizieren, analysieren, entwerfen, messen, vergleichen, begrenzen, entscheiden und verteidigen. Die vollständige Zuordnung steht in der [Lernziel- und Alignment-Matrix](./Lernziel_Alignment_Matrix.md).
 
-Der [Referatsthemenkatalog](./Referatsthemen_Cloud_Computing_ARSnova.md) übersetzt dieses Alignment in zehn abgegrenzte Aufgaben am Fallbeispiel arsnova.eu. Gemeinsam decken sie alle fünf QZ, neun MZ und 24 LI ab; jeder einzelne Auftrag bleibt auf einen in 15 Minuten verteidigbaren Cloud-Schwerpunkt begrenzt.
+Der [Referatsthemenkatalog](./Referatsthemen_Cloud_Computing_ARSnova.md) übersetzt dieses Alignment in zehn klar informatisch ausgerichtete Aufgaben zu Architektur, Schnittstellen, Daten und Zustand, Deployment, Security, Performance und Zuverlässigkeit am Fallbeispiel arsnova.eu. Gemeinsam decken sie alle fünf QZ, neun MZ und 24 LI ab; jeder einzelne Auftrag bleibt auf einen in 15 Minuten verteidigbaren Cloud-Schwerpunkt begrenzt.
 
 ARSnova-Punkte, Ranglisten, MC-Test-Punkte, Agentenbewertungen, Dossierfortschritt und Bearbeitungszeiten sind ausdrücklich keine Prüfungsleistung, keine Zulassungsvoraussetzung und keine individuelle Note. Auswahl der Prüfungsfragen und Benotung bleiben bei der prüfenden Person. Ob und wie KI-Werkzeuge für die formale Einreichung zulässig sind, richtet sich ausschließlich nach der veröffentlichten Prüfungsaufgabe beziehungsweise myCampus.
 
