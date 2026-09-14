@@ -1,6 +1,6 @@
 # P0-03 – QA- und Freigabeprotokoll
 
-**Version:** 4.0.0 · **Stand:** 13.09.2026<br>
+**Version:** 4.0.0 · **Stand:** 14.09.2026<br>
 **Status:** statische Paketprüfung bestanden; operative Kursfreigabe offen
 
 **Bezugsdokumente:** [Materialpaket Pilotlauf](./P0-03_Materialpaket_Pilotlauf.md) · [Lehrenden-Runbook](./P0-03_Lehrenden_Runbook.md) · [Datenmanagement- und Exportplan](./P0-02_Datenmanagement_Exportplan.md)
@@ -40,7 +40,7 @@ Die Prüfsummen in Abschnitt 5 beziehen sich ausschließlich auf die 27 maschine
 | Statische Fragenbank-Vorprüfung           | Alle 100 Livefragen und 300 MC-Items wurden auf Lösung, Rechnung, Eindeutigkeit, tatsächliche Schwierigkeit, plausible parallele Distraktoren, Quellenstatus und nahe Wiederholungen geprüft; erkannte Befunde wurden korrigiert und gezielt nachgeprüft. Dies ersetzt nicht die menschliche Schlussfreigabe aus Abschnitt 4.                                       | bestanden |
 | Fixierter MC-Test-Validator               | Commit `b6b159555e8a228dad73dd75fd66c154a1088e28`: Exit-Code 0, keine Fehler, 10 thematische Warnungen; Bewertung siehe Abschnitt 3.1.                                                                                                                                                                                                                              | bestanden |
 | Lehrdaten und Sollwerte                   | 7 CSV-Dateien: Provenienzfelder, Vollständigkeit, Ableitungen und dokumentierte Kontrollwerte einschließlich t-Wert, Wilson-Untergrenze, Regression und Metriken reproduziert.                                                                                                                                                                                      | bestanden |
-| Lokale Dokumentverweise                   | Alle 400 geprüften relativen Markdown-Ziele existieren.                                                                                                                                                                                                                                                                                                             | bestanden |
+| Lokale Dokumentverweise                   | Alle 264 geprüften relativen Markdown-Ziele existieren.                                                                                                                                                                                                                                                                                                             | bestanden |
 | Prettier und Whitespace                   | Markdown/JSON entsprechen Prettier; `git diff --check` meldet keine Whitespacefehler.                                                                                                                                                                                                                                                                               | bestanden |
 | Personenbezug der versionierten Lehrdaten | Alle CSV-Zeilen sind als `LEHRDATEN` gekennzeichnet; die Dateien enthalten keine LIVE- oder Personendaten.                                                                                                                                                                                                                                                          | bestanden |
 | Verfahrensscope                           | MZ4/LI16, Formelsammlung, Wochenplan, JASP-Pfad und Probeklausur begrenzen Hypothesentests im Pflichtkern auf den gepaarten \(t\)-Test; unabhängige Anteils-/Mittelwertfragen nutzen Intervalle.                                                                                                                                                                    | bestanden |
@@ -93,26 +93,26 @@ a3c9156c2ec4283913da43bf4257b04ce1443343c55fe7ca2a229fa318cc4048  P0-03_Lehrdate
 3cbe01d63384d5a37f152c5d3a00cc33ee6cd96d04db5d5f9726ddd8f33309c0  P0-03_Lehrdaten_S5_Last_Latenz.csv
 b3a6e8b838fac15b232ad9d20acdf838b9f0e78103495aba4ffc937d469d8627  P0-03_Lehrdaten_S6_Klassifikation.csv
 a4d3733c7ba14591be239abe155c3982cfdca45b3e9d5816007560d62cf82349  P0-03_Lehrdaten_S6_Modelllaeufe.csv
-e65c96709d1a78f40cae3d1d83f668d107903e10c6f02d5c7e062e82d11852b9  P0-03_ARSnova_Woche_01.json
-adb0502c6849c573fd05b4990180d8c929b966cceafb282597849de34508b1aa  P0-03_ARSnova_Woche_02.json
-b86ce89da5e62740a15e5214321cfddb0ce055a281ea3c8816467baf004e7b26  P0-03_ARSnova_Woche_03.json
-66b804b6287555de518d7e2ae79c5a0972a2e4d57005a3227a50e9bf4cc53f6e  P0-03_ARSnova_Woche_04.json
-d5f1f599375e2a4d0f7999b3724e38d86ef6ba784027d8b7f375a0fe71b57f84  P0-03_ARSnova_Woche_05.json
-d34232f4979525cf4219f70700b81fee568a2f8c20387a24642d008fe23497a5  P0-03_ARSnova_Woche_06.json
-20b2a1f4bd2b488c9493090a0be41e5727056ed8f896646055524909c70bdc5b  P0-03_ARSnova_Woche_07.json
-358fcdd3d5f2a63dcfc1ba1205f537f9ebc84c928c5c1041930a760b60b0aee9  P0-03_ARSnova_Woche_08.json
-aa2d155d8c41b068f37baa5f127af83e65216f5b44e5b85b36f512f24f06297d  P0-03_ARSnova_Woche_09.json
-e012fb727f0a3003829085bc8699c96ec3cc14968fed4879c3e39422b761d586  P0-03_ARSnova_Woche_10.json
-502bc6de05f678886229e1ebffbad98d417c385ea238473faa09f7cd231d8fcc  P0-03_MC-Test_Woche_01.json
-760049f3d0c9075e272e4f0ffbd4933c024b93637c818818539cc4fa23147a13  P0-03_MC-Test_Woche_02.json
-551e6b7e2d4c6b48a943ecefe8da59d2c753931683cd39b4e4469159dcc1e650  P0-03_MC-Test_Woche_03.json
-3972bfb467248a31518698b061f91fee7d2ef006aa5571a7a1173abbbd5f3113  P0-03_MC-Test_Woche_04.json
-49ad0e638836b51cdca4ecb22864bea6ce6e26f8b6e90b6ebb9c9eb16cb77f61  P0-03_MC-Test_Woche_05.json
-38f36f3eb8522f9c6343f3ad907aa4a50f2f38bfe3024642ab888eef4b9f370c  P0-03_MC-Test_Woche_06.json
-ea15964408d1323e222af3d675ec9431cd2919c86b4ce083abe0a8241ed4206e  P0-03_MC-Test_Woche_07.json
-c8ff5bce3c6be4a6394d13b8a8d1b972ac239ebf81ebdc873841e0e32e16b987  P0-03_MC-Test_Woche_08.json
-fe58a81d4d223b6ce9a4661b0c4ff5c4cf0970c717499390bb7beddab273a565  P0-03_MC-Test_Woche_09.json
-512476c52704702a6c2302d4b6f9fb7d39d41a65dd89bbb2bf8643934ded776e  P0-03_MC-Test_Woche_10.json
+e65c96709d1a78f40cae3d1d83f668d107903e10c6f02d5c7e062e82d11852b9  ARSnova/P0-03_ARSnova_Woche_01.json
+adb0502c6849c573fd05b4990180d8c929b966cceafb282597849de34508b1aa  ARSnova/P0-03_ARSnova_Woche_02.json
+b86ce89da5e62740a15e5214321cfddb0ce055a281ea3c8816467baf004e7b26  ARSnova/P0-03_ARSnova_Woche_03.json
+66b804b6287555de518d7e2ae79c5a0972a2e4d57005a3227a50e9bf4cc53f6e  ARSnova/P0-03_ARSnova_Woche_04.json
+d5f1f599375e2a4d0f7999b3724e38d86ef6ba784027d8b7f375a0fe71b57f84  ARSnova/P0-03_ARSnova_Woche_05.json
+d34232f4979525cf4219f70700b81fee568a2f8c20387a24642d008fe23497a5  ARSnova/P0-03_ARSnova_Woche_06.json
+20b2a1f4bd2b488c9493090a0be41e5727056ed8f896646055524909c70bdc5b  ARSnova/P0-03_ARSnova_Woche_07.json
+358fcdd3d5f2a63dcfc1ba1205f537f9ebc84c928c5c1041930a760b60b0aee9  ARSnova/P0-03_ARSnova_Woche_08.json
+aa2d155d8c41b068f37baa5f127af83e65216f5b44e5b85b36f512f24f06297d  ARSnova/P0-03_ARSnova_Woche_09.json
+e012fb727f0a3003829085bc8699c96ec3cc14968fed4879c3e39422b761d586  ARSnova/P0-03_ARSnova_Woche_10.json
+502bc6de05f678886229e1ebffbad98d417c385ea238473faa09f7cd231d8fcc  MC-Test/P0-03_MC-Test_Woche_01.json
+760049f3d0c9075e272e4f0ffbd4933c024b93637c818818539cc4fa23147a13  MC-Test/P0-03_MC-Test_Woche_02.json
+551e6b7e2d4c6b48a943ecefe8da59d2c753931683cd39b4e4469159dcc1e650  MC-Test/P0-03_MC-Test_Woche_03.json
+3972bfb467248a31518698b061f91fee7d2ef006aa5571a7a1173abbbd5f3113  MC-Test/P0-03_MC-Test_Woche_04.json
+49ad0e638836b51cdca4ecb22864bea6ce6e26f8b6e90b6ebb9c9eb16cb77f61  MC-Test/P0-03_MC-Test_Woche_05.json
+38f36f3eb8522f9c6343f3ad907aa4a50f2f38bfe3024642ab888eef4b9f370c  MC-Test/P0-03_MC-Test_Woche_06.json
+ea15964408d1323e222af3d675ec9431cd2919c86b4ce083abe0a8241ed4206e  MC-Test/P0-03_MC-Test_Woche_07.json
+c8ff5bce3c6be4a6394d13b8a8d1b972ac239ebf81ebdc873841e0e32e16b987  MC-Test/P0-03_MC-Test_Woche_08.json
+fe58a81d4d223b6ce9a4661b0c4ff5c4cf0970c717499390bb7beddab273a565  MC-Test/P0-03_MC-Test_Woche_09.json
+512476c52704702a6c2302d4b6f9fb7d39d41a65dd89bbb2bf8643934ded776e  MC-Test/P0-03_MC-Test_Woche_10.json
 ```
 
 Nach jeder inhaltlichen Änderung an JSON oder CSV sind die Prüfsummen neu zu erzeugen und die betroffenen statischen Prüfungen erneut auszuführen. Die endgültige Paketprovenienz wird zusätzlich durch den Git-Commit bestimmt.
