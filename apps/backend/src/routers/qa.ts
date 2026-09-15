@@ -49,6 +49,9 @@ import { zAsyncIterable } from '../lib/zAsyncIterable';
 const QA_SUBSCRIPTION_POLL_MS = 1000;
 const QA_WILSON_Z = 1.96;
 const QA_WILSON_Z_SQUARED = QA_WILSON_Z * QA_WILSON_Z;
+/** Prisma/pg leitet uncastete Zahlen neben INT-Spalten als integer ab; 1,96² ist 3,8416. */
+const QA_WILSON_Z_SQL = Prisma.sql`${QA_WILSON_Z}::DOUBLE PRECISION`;
+const QA_WILSON_Z_SQUARED_SQL = Prisma.sql`${QA_WILSON_Z_SQUARED}::DOUBLE PRECISION`;
 
 type QaQuestionVoteRecord = {
   participantId?: string;
@@ -360,7 +363,10 @@ function mapQaQuestion(
       ? { isControversial: voteStats.isControversial }
       : {}),
     status: question.status,
-    createdAt: question.createdAt.toISOString(),
+    createdAt:
+      question.createdAt instanceof Date
+        ? question.createdAt.toISOString()
+        : new Date(question.createdAt).toISOString(),
     ...(question.participant?.nickname ? { authorNickname: question.participant.nickname } : {}),
     myVote: myUpvote ? (myUpvote.direction === 'DOWN' ? 'DOWN' : 'UP') : null,
     isOwn: !!participantId && question.participantId === participantId,
@@ -454,6 +460,7 @@ async function buildQaQuestionPayloadFromDb(options: {
   const moderatorView = options.moderatorView === true;
   const participantCount = options.participantCountForControversy ?? 0;
   const controversyThreshold = Math.max(1, participantCount * 0.1);
+  const controversyThresholdSql = Prisma.sql`${controversyThreshold}::DOUBLE PRECISION`;
   const visibility = moderatorView
     ? Prisma.empty
     : options.participantId
@@ -499,9 +506,9 @@ async function buildQaQuestionPayloadFromDb(options: {
       END`;
   const modeOrder =
     options.sortMode === 'BEST'
-      ? Prisma.sql`ranked.best_score DESC, ranked."positiveVoteCount" DESC,`
+      ? Prisma.sql`ranked."bestScore" DESC, ranked."positiveVoteCount" DESC,`
       : options.sortMode === 'CONTROVERSIAL'
-        ? Prisma.sql`ranked.controversy_score DESC, ranked."positiveVoteCount" DESC,`
+        ? Prisma.sql`ranked."controversyScore" DESC, ranked."positiveVoteCount" DESC,`
         : Prisma.empty;
 
   const rows = await prisma.$queryRaw<RankedQaQuestionRow[]>`
@@ -527,9 +534,9 @@ async function buildQaQuestionPayloadFromDb(options: {
               (
                 question."positiveVoteCount"::DOUBLE PRECISION
                   / (question."positiveVoteCount" + question."negativeVoteCount")
-                + ${QA_WILSON_Z_SQUARED}
+                + ${QA_WILSON_Z_SQUARED_SQL}
                   / (2 * (question."positiveVoteCount" + question."negativeVoteCount"))
-                - ${QA_WILSON_Z} * SQRT(
+                - ${QA_WILSON_Z_SQL} * SQRT(
                   (
                     (
                       question."positiveVoteCount"::DOUBLE PRECISION
@@ -539,7 +546,7 @@ async function buildQaQuestionPayloadFromDb(options: {
                         / (question."positiveVoteCount" + question."negativeVoteCount")
                     )
                   ) / (question."positiveVoteCount" + question."negativeVoteCount")
-                  + ${QA_WILSON_Z_SQUARED}
+                  + ${QA_WILSON_Z_SQUARED_SQL}
                     / (
                       4 * POWER(
                         question."positiveVoteCount" + question."negativeVoteCount",
@@ -548,12 +555,12 @@ async function buildQaQuestionPayloadFromDb(options: {
                     )
                 )
               ) / (
-                1 + ${QA_WILSON_Z_SQUARED}
+                1 + ${QA_WILSON_Z_SQUARED_SQL}
                   / (question."positiveVoteCount" + question."negativeVoteCount")
               )
             )
           )
-        END AS best_score,
+        END AS "bestScore",
         CASE
           WHEN question."positiveVoteCount" + question."negativeVoteCount" = 0 THEN 0
           ELSE LEAST(
@@ -562,10 +569,10 @@ async function buildQaQuestionPayloadFromDb(options: {
               / (
                 question."positiveVoteCount"
                 + question."negativeVoteCount"
-                + ${controversyThreshold}
+                + ${controversyThresholdSql}
               )
           )
-        END AS controversy_score
+        END AS "controversyScore"
       FROM "QaQuestion" AS question
       LEFT JOIN "Participant" AS participant
         ON participant."id" = question."participantId"
@@ -596,10 +603,15 @@ async function buildQaQuestionPayloadFromDb(options: {
   const pageRows = rows.slice(0, options.pageSize);
   const totalCount = Number(pageRows[0]?.totalCount ?? 0);
   const questions = pageRows.map((row) => {
-    const voteCount = row.positiveVoteCount + row.negativeVoteCount;
+    const positiveVoteCount = Number(row.positiveVoteCount);
+    const negativeVoteCount = Number(row.negativeVoteCount);
+    const voteCount = positiveVoteCount + negativeVoteCount;
+    const bestScore = Number(row.bestScore);
+    const controversyScore = Number(row.controversyScore);
     return mapQaQuestion(
       {
         ...row,
+        upvoteCount: Number(row.upvoteCount),
         participant:
           options.includeAuthorNickname && row.authorNickname
             ? { nickname: row.authorNickname }
@@ -611,14 +623,13 @@ async function buildQaQuestionPayloadFromDb(options: {
       },
       options.participantId,
       {
-        score: row.upvoteCount,
-        positiveVoteCount: row.positiveVoteCount,
-        negativeVoteCount: row.negativeVoteCount,
+        score: Number(row.upvoteCount),
+        positiveVoteCount,
+        negativeVoteCount,
         voteCount,
-        bestScore: row.bestScore,
-        controversyScore: row.controversyScore,
-        isControversial:
-          row.controversyScore > 0.5 && voteCount >= Math.max(1, controversyThreshold),
+        bestScore,
+        controversyScore,
+        isControversial: controversyScore > 0.5 && voteCount >= Math.max(1, controversyThreshold),
       },
       moderatorView,
       moderatorView,

@@ -64,6 +64,17 @@ describe('HostRecoveryComponent', () => {
     return fixture;
   }
 
+  it('hebt die Wiederherstellungskarte mit Titelzeile vom Seitenhintergrund ab', () => {
+    const host = render().nativeElement as HTMLElement;
+
+    expect(host.querySelector('.dialog-title-header')).not.toBeNull();
+    expect(host.querySelector('.dialog-title-header__icon mat-icon')?.textContent?.trim()).toBe(
+      'admin_panel_settings',
+    );
+    expect(host.querySelector('.host-recovery-page__card')).not.toBeNull();
+    expect(host.textContent).toContain('Host-Zugang wiederherstellen');
+  });
+
   it('speichert Prepare-Material vor der Aktivierung und überträgt Geheimnisse nur im Body', async () => {
     const current = render();
     const component = current.componentInstance;

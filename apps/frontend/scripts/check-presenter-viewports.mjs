@@ -590,6 +590,7 @@ async function main() {
         code: session.code,
         nickname: participantNickname(index),
         anonymousClientId: globalThis.crypto.randomUUID(),
+        joinIdempotencyKey: globalThis.crypto.randomUUID(),
       }),
   );
 

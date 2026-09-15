@@ -313,8 +313,29 @@
   color: var(--mat-sys-on-error-container);
 }
 
+.session-host__exit-anchor-button--lifecycle,
+.session-host__exit-anchor-button--retention {
+  margin-inline-end: auto;
+  border: 1px solid var(--mat-sys-outline-variant);
+  background: var(--mat-sys-surface-container-high);
+  color: var(--mat-sys-on-surface);
+}
+
+.session-host__exit-anchor:has(.session-host__exit-anchor-button--lifecycle)
+  .session-host__exit-anchor-button--end,
+.session-host__exit-anchor:has(.session-host__exit-anchor-button--retention)
+  .session-host__exit-anchor-button--end,
+.session-host__exit-anchor:has(.session-host__exit-anchor-button--retention)
+  .session-host__exit-anchor-button--lifecycle {
+  margin-inline-end: 0;
+}
+
 .session-host__exit-anchor:has(.session-host__exit-anchor-button--previous)
-  .session-host__exit-anchor-button--end {
+  .session-host__exit-anchor-button--end,
+.session-host__exit-anchor:has(.session-host__exit-anchor-button--previous)
+  .session-host__exit-anchor-button--lifecycle,
+.session-host__exit-anchor:has(.session-host__exit-anchor-button--previous)
+  .session-host__exit-anchor-button--retention {
   margin-inline-end: 0;
 }
 
@@ -326,7 +347,11 @@
 .session-host__exit-anchor:has(.session-host__emoji-reactions)
   .session-host__exit-anchor-button--end,
 .session-host__exit-anchor:has(.session-host__emoji-reactions)
-  .session-host__exit-anchor-button--previous {
+  .session-host__exit-anchor-button--previous,
+.session-host__exit-anchor:has(.session-host__emoji-reactions)
+  .session-host__exit-anchor-button--lifecycle,
+.session-host__exit-anchor:has(.session-host__emoji-reactions)
+  .session-host__exit-anchor-button--retention {
   margin-inline-end: 0;
 }
 
@@ -430,6 +455,13 @@
     box-shadow: none;
   }
 
+  .session-host__exit-anchor:not(.session-host__exit-anchor--with-primary)
+    > .session-host__exit-anchor-button--end {
+    --mat-button-text-horizontal-padding: 1.1rem;
+    padding-block: 0.75rem;
+    min-height: 3.25rem;
+  }
+
   /* Sekundär-Aktionen: nicht dieselbe dunkle Karte wie Antwortzeilen. */
   .session-host__exit-anchor-button--skip,
   .session-host__exit-anchor-button--previous,
@@ -501,6 +533,48 @@
     font-weight: 600;
   }
 
+  .session-host__exit-anchor--with-primary > .session-host__exit-anchor-button--lifecycle,
+  .session-host__exit-anchor--with-primary > .session-host__exit-anchor-button--retention {
+    grid-column: 2;
+    grid-row: 2;
+    order: 3;
+    justify-self: start;
+    width: auto;
+    min-width: 0;
+    max-width: 100%;
+    padding-inline: 0.85rem;
+    box-shadow: none;
+    border-color: transparent;
+    background: transparent;
+    color: var(--mat-sys-on-surface-variant);
+    font-weight: 600;
+  }
+
+  .session-host__exit-anchor--with-primary:has(.session-host__exit-anchor-button--lifecycle)
+    > .session-host__exit-anchor-button--end,
+  .session-host__exit-anchor--with-primary:has(.session-host__exit-anchor-button--retention)
+    > .session-host__exit-anchor-button--end {
+    grid-column: 1;
+    justify-self: end;
+  }
+
+  .session-host__exit-anchor:not(.session-host__exit-anchor--with-primary):has(
+      > .session-host__exit-anchor-button--lifecycle
+    ),
+  .session-host__exit-anchor:not(.session-host__exit-anchor--with-primary):has(
+      > .session-host__exit-anchor-button--retention
+    ) {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .session-host__exit-anchor:not(.session-host__exit-anchor--with-primary):has(
+      > .session-host__exit-anchor-button--lifecycle
+    ):has(> .session-host__exit-anchor-button--retention)
+    > .session-host__exit-anchor-button--retention {
+    grid-column: 1 / -1;
+  }
+
   .session-host__exit-anchor--with-primary > .session-host__exit-anchor-button--end:hover,
   .session-host__exit-anchor--with-primary > .session-host__exit-anchor-button--end:focus-visible {
     background: color-mix(in srgb, var(--mat-sys-error) 10%, transparent);
@@ -522,7 +596,11 @@
   }
 
   .session-host__exit-anchor--with-primary:has(.session-host__emoji-reactions)
-    > .session-host__exit-anchor-button--end {
+    > .session-host__exit-anchor-button--end,
+  .session-host__exit-anchor--with-primary:has(.session-host__emoji-reactions)
+    > .session-host__exit-anchor-button--lifecycle,
+  .session-host__exit-anchor--with-primary:has(.session-host__emoji-reactions)
+    > .session-host__exit-anchor-button--retention {
     grid-row: 3;
     order: 4;
   }
@@ -1426,27 +1504,6 @@
 
 .session-host__live-participants-count {
   font-weight: 700;
-}
-
-.session-host__retention-details {
-  max-width: 100%;
-  color: var(--mat-sys-on-surface-variant);
-  font: var(--mat-sys-body-small);
-
-  summary {
-    cursor: pointer;
-    color: var(--mat-sys-primary);
-    font: var(--mat-sys-label-large);
-  }
-
-  p {
-    margin: 0.45rem 0 0;
-    line-height: 1.5;
-  }
-
-  strong {
-    color: var(--mat-sys-on-surface);
-  }
 }
 
 .session-host__live-heading {

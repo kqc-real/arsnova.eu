@@ -34,7 +34,10 @@ die Frist.
 Verbundene Hostclients warnen bei 30 und erneut bei 5 verbleibenden Minuten.
 Der Dialog zeigt das absolute Sessionende samt Zeitzone. Nur der ursprüngliche
 Host darf global verlängern; gekoppelte Hosts sehen die Frist und eine
-Erklärung, erhalten aber keine bestätigbare Verlängerungsaktion.
+Erklärung, erhalten aber keine bestätigbare Verlängerungsaktion. Host-Dialoge
+zu Laufzeit, Q&A-Einrichtung, Fristbestätigung und Notfallkarte nutzen dieselbe
+abgehobene Overlay-Fläche (`session-lifecycle-dialog-panel`) mit kräftigerem
+Scrim, damit sie sich vom Live-Hintergrund lösen.
 
 Verfügbar sind:
 
@@ -139,6 +142,15 @@ exportieren. Teilnehmerreads und sämtliche fachlichen Schreibpfade bleiben
 nach dem effektiven Sessionende geschlossen. Nach
 `postProcessingEndsAt = endedAt + 14 Tage` endet auch der Inhaltszugriff des
 Hosts.
+
+Die Join-Kapsel neben dem QR-Code bleibt kompakt: Code und Teilnehmerzahl,
+ohne Sessionende und ohne Datenverfügbarkeit. Das absolute Sessionende bleibt
+in der Q&A-Fristzeile. Quiz- und Blitzlichtansicht behalten dieselbe kompakte
+Kapsel. Die 30- und 5-Minuten-Warnung gilt weiter sessionweit. Die Aktionen
+„Laufzeit festlegen“ und „Datenverfügbarkeit“ sitzen nur im Q&A-Kanal in der
+unteren Host-Action-Bar neben „Gesamte Session beenden“, nicht in der
+Kopfzeile. „Datenverfügbarkeit“ öffnet die Nachbereitungs- und Löschtermine
+in einem Dialog.
 
 Der Lifecyclevertrag projiziert und liefert:
 

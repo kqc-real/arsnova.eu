@@ -199,19 +199,6 @@
 
         @if (showHostViewControls()) {
           <div class="session-host__view-controls session-host__view-controls--inline">
-            @if (sessionLifecycle()?.configurationAllowed) {
-              <button
-                mat-stroked-button
-                type="button"
-                class="session-host__view-toggle session-host__view-toggle--labeled"
-                data-testid="configure-session-expiration"
-                [disabled]="sessionLifecyclePending()"
-                (click)="openSessionLifecycleConfiguration($event)"
-              >
-                <mat-icon aria-hidden="true">schedule</mat-icon>
-                <span i18n="@@sessionLifecycle.configureAction">Laufzeit festlegen</span>
-              </button>
-            }
             @if (showPresenterViewButton()) {
               <button
                 mat-flat-button
@@ -434,51 +421,6 @@
                   as connectedStatus
                 ) {
                   <p class="session-host__live-participants">{{ connectedStatus }}</p>
-                }
-                @if (sessionLifecycle(); as lifecycle) {
-                  <p class="session-host__live-participants" i18n="@@sessionLifecycle.liveEnd">
-                    Ende:
-                    {{ formatSessionLifecycleDateTime(lifecycle.expiresAt, lifecycle.timeZone) }}
-                  </p>
-                  @if (lifecycle.postProcessingEndsAt && lifecycle.expectedDeletionAt) {
-                    <details class="session-host__retention-details">
-                      <summary i18n="@@sessionLifecycle.retentionDetails">
-                        Datenverfügbarkeit
-                      </summary>
-                      <p>
-                        <span i18n="@@sessionLifecycle.hostPostProcessingUntil"
-                          >Host-Nachbereitung bis:</span
-                        >
-                        <strong>
-                          {{
-                            formatSessionLifecycleDateTime(
-                              lifecycle.postProcessingEndsAt,
-                              lifecycle.timeZone
-                            )
-                          }}
-                        </strong>
-                      </p>
-                      <p>
-                        <span i18n="@@sessionLifecycle.expectedDeletion"
-                          >Voraussichtliche technische Löschung:</span
-                        >
-                        <strong>
-                          {{
-                            formatSessionLifecycleDateTime(
-                              lifecycle.expectedDeletionAt,
-                              lifecycle.timeZone
-                            )
-                          }}
-                        </strong>
-                      </p>
-                      @if (lifecycle.deletionDelayedByLegalHold) {
-                        <p i18n="@@sessionLifecycle.retentionDoesNotExtendAccess">
-                          Eine begrenzte Aufbewahrung verzögert die technische Löschung, verlängert
-                          aber keinen regulären Zugriff.
-                        </p>
-                      }
-                    </details>
-                  }
                 }
                 @if (effectiveStatus() === 'QUESTION_OPEN' && readingReadyStatus(); as ready) {
                   <p class="session-host__live-participants">
@@ -4679,6 +4621,31 @@
         >
           Gesamte Session beenden
         </button>
+        @if (showQaChannelLifecycleChrome() && sessionLifecycle()?.configurationAllowed) {
+          <button
+            mat-button
+            type="button"
+            class="session-host__exit-anchor-button session-host__exit-anchor-button--lifecycle"
+            data-testid="configure-session-expiration"
+            [disabled]="sessionLifecyclePending()"
+            (click)="openSessionLifecycleConfiguration($event)"
+          >
+            <mat-icon aria-hidden="true">schedule</mat-icon>
+            <span i18n="@@sessionLifecycle.configureAction">Laufzeit festlegen</span>
+          </button>
+        }
+        @if (showQaRetentionAction()) {
+          <button
+            mat-button
+            type="button"
+            class="session-host__exit-anchor-button session-host__exit-anchor-button--retention"
+            data-testid="session-retention-details"
+            (click)="openSessionRetentionDetails($event)"
+          >
+            <mat-icon aria-hidden="true">storage</mat-icon>
+            <span i18n="@@sessionLifecycle.retentionDetails">Datenverfügbarkeit</span>
+          </button>
+        }
         @if (
           showQuizAnchorActions() &&
           (effectiveStatus() === 'RESULTS' || effectiveStatus() === 'DISCUSSION') &&

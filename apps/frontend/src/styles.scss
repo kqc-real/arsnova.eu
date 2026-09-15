@@ -695,8 +695,9 @@ html {
   max-width: min(32rem, calc(100vw - 2rem));
 }
 
-.cdk-overlay-pane.host-recovery-card-dialog-panel {
-  max-width: min(38rem, calc(100vw - 2rem));
+.cdk-overlay-pane.host-recovery-card-dialog-panel,
+.cdk-overlay-pane.session-lifecycle-dialog-panel {
+  max-width: min(42rem, calc(100vw - 2rem));
 }
 
 .cdk-overlay-pane.host-pairing-dialog-panel {
@@ -711,25 +712,57 @@ html {
 }
 
 .cdk-overlay-pane.host-pairing-dialog-panel .mat-mdc-dialog-surface,
-.cdk-overlay-pane.presentation-start-dialog-panel .mat-mdc-dialog-surface,
-.cdk-overlay-pane.host-recovery-card-dialog-panel .mat-mdc-dialog-surface {
+.cdk-overlay-pane.presentation-start-dialog-panel .mat-mdc-dialog-surface {
   width: 100%;
   border-radius: var(--mat-sys-corner-extra-large, var(--mat-sys-corner-large));
   box-shadow: var(--mat-sys-level3);
 }
 
+.cdk-overlay-pane.session-lifecycle-dialog-panel .mat-mdc-dialog-surface,
+.cdk-overlay-pane.host-recovery-card-dialog-panel .mat-mdc-dialog-surface {
+  width: 100%;
+  border-radius: var(--mat-sys-corner-extra-large, var(--mat-sys-corner-large));
+  background: var(--mat-sys-surface-container-high);
+  color: var(--mat-sys-on-surface);
+  outline: 1px solid var(--mat-sys-outline);
+  box-shadow: var(--mat-sys-level3);
+}
+
+.cdk-overlay-pane.session-lifecycle-dialog-panel .dialog-title-header__icon,
+.cdk-overlay-pane.host-recovery-card-dialog-panel .dialog-title-header__icon {
+  background: var(--mat-sys-primary-container);
+  color: var(--mat-sys-on-primary-container);
+}
+
+.cdk-overlay-pane.session-lifecycle-dialog-panel .dialog-title-header__icon--warn,
+.cdk-overlay-pane.host-recovery-card-dialog-panel .dialog-title-header__icon--warn {
+  background: var(--mat-sys-error-container);
+  color: var(--mat-sys-on-error-container);
+}
+
 .cdk-overlay-backdrop.host-pairing-dialog-backdrop,
-.cdk-overlay-backdrop.presentation-start-dialog-backdrop,
-.cdk-overlay-backdrop.host-recovery-card-dialog-backdrop {
+.cdk-overlay-backdrop.presentation-start-dialog-backdrop {
   background: color-mix(in srgb, var(--mat-sys-scrim) 24%, transparent);
 }
 
 @media (prefers-reduced-motion: no-preference) {
   .cdk-overlay-backdrop.host-pairing-dialog-backdrop,
-  .cdk-overlay-backdrop.presentation-start-dialog-backdrop,
-  .cdk-overlay-backdrop.host-recovery-card-dialog-backdrop {
+  .cdk-overlay-backdrop.presentation-start-dialog-backdrop {
     backdrop-filter: blur(2px);
     -webkit-backdrop-filter: blur(2px);
+  }
+}
+
+.cdk-overlay-backdrop.session-lifecycle-dialog-backdrop,
+.cdk-overlay-backdrop.host-recovery-card-dialog-backdrop {
+  background: color-mix(in srgb, var(--mat-sys-scrim) 42%, transparent);
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .cdk-overlay-backdrop.session-lifecycle-dialog-backdrop,
+  .cdk-overlay-backdrop.host-recovery-card-dialog-backdrop {
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
   }
 }
 

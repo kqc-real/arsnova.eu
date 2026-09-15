@@ -1021,8 +1021,9 @@ describe('qa router (Epic 8)', () => {
     expect(result[0]?.bestScore).toBeGreaterThan(result[1]?.bestScore ?? 0);
     expect(result[1]?.bestScore).toBeGreaterThan(result[2]?.bestScore ?? 0);
     expect(rawSqlText(prismaMock.$queryRaw.mock.calls[0] ?? [])).toContain(
-      'ranked.best_score DESC',
+      'ranked."bestScore" DESC',
     );
+    expect(rawSqlText(prismaMock.$queryRaw.mock.calls[0] ?? [])).toContain('?::DOUBLE PRECISION');
   });
 
   it('liefert Kontroversität im Host-BEST-Modus, damit der Kompass nicht von der Sortierung abhängt', async () => {
@@ -1061,7 +1062,7 @@ describe('qa router (Epic 8)', () => {
     });
     expect(result[0]?.controversyScore).toBeGreaterThan(0.8);
     expect(rawSqlText(prismaMock.$queryRaw.mock.calls[0] ?? [])).toContain(
-      'ranked.best_score DESC',
+      'ranked."bestScore" DESC',
     );
   });
 
@@ -1135,7 +1136,7 @@ describe('qa router (Epic 8)', () => {
     expect(result[1]?.isControversial).toBe(false);
     expect(result[2]?.controversyScore).toBe(0);
     expect(rawSqlText(prismaMock.$queryRaw.mock.calls[0] ?? [])).toContain(
-      'ranked.controversy_score DESC',
+      'ranked."controversyScore" DESC',
     );
   });
 

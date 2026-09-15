@@ -138,9 +138,16 @@ async function scanA11y(page, label) {
   }
 }
 
-function createPublicTrpc() {
+function createPublicTrpc(participantCapability) {
   return createTRPCProxyClient({
-    links: [httpBatchLink({ url: TRPC_URL })],
+    links: [
+      httpBatchLink({
+        url: TRPC_URL,
+        headers: participantCapability
+          ? () => ({ 'x-participant-capability': participantCapability })
+          : undefined,
+      }),
+    ],
   });
 }
 
@@ -619,7 +626,8 @@ async function submitWrongShadowVote(
     payload.categorizationSelections = wrongCategorizationSelections(questionMeta);
   }
 
-  await publicTrpc.vote.submit.mutate(payload);
+  const voter = createPublicTrpc(shadow.rejoinToken);
+  await voter.vote.submit.mutate(payload);
   logStep(true, `Shadow vote for ${label}`);
   return true;
 }
@@ -662,7 +670,8 @@ async function submitCorrectShadowVote(
     }));
   }
 
-  await publicTrpc.vote.submit.mutate(payload);
+  const voter = createPublicTrpc(shadow.rejoinToken);
+  await voter.vote.submit.mutate(payload);
   logStep(true, `Correct shadow vote for ${label}`);
   return true;
 }
@@ -1604,6 +1613,7 @@ async function main() {
         code,
         nickname: `${API_PARTICIPANT_PREFIX}${index + 1}`,
         anonymousClientId: globalThis.crypto.randomUUID(),
+        joinIdempotencyKey: globalThis.crypto.randomUUID(),
       }),
     );
   }

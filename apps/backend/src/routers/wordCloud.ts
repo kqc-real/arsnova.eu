@@ -265,6 +265,7 @@ export const wordCloudRouter = router({
             ? Prisma.sql`ranked.controversy_score DESC, ranked."positiveVoteCount" DESC,`
             : Prisma.empty;
       const controversyThreshold = Math.max(1, participantCount * 0.1);
+      const controversyThresholdSql = Prisma.sql`${controversyThreshold}::DOUBLE PRECISION`;
       type CorpusRow = {
         id: string;
         text: string;
@@ -328,7 +329,7 @@ export const wordCloudRouter = router({
                   / (
                     question."positiveVoteCount"
                     + question."negativeVoteCount"
-                    + ${controversyThreshold}
+                    + ${controversyThresholdSql}
                   )
               )
             END AS controversy_score,

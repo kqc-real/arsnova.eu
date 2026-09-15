@@ -91,6 +91,17 @@ describe('QaChannelConfigurationDialogComponent', () => {
     vi.resetAllMocks();
   });
 
+  it('nutzt die gemeinsame Dialog-Titelzeile', () => {
+    const { fixture } = configureTestBed();
+    const host = fixture.nativeElement as HTMLElement;
+
+    expect(host.querySelector('.dialog-title-header')).not.toBeNull();
+    expect(host.querySelector('.dialog-title-header__icon mat-icon')?.textContent?.trim()).toBe(
+      'forum',
+    );
+    expect(host.textContent).toContain('Q&A-Kanal einrichten');
+  });
+
   it('sperrt das Teilnahmeprofil nach dem ersten Beitritt sichtbar', () => {
     const { fixture } = configureTestBed(true);
 

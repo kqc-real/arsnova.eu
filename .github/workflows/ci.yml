@@ -2067,6 +2067,7 @@ jobs:
           DATABASE_URL=postgresql://arsnova_user:container-smoke-password@postgres:5432/arsnova_v3?schema=public
           REDIS_URL=redis://redis:6379
           JWT_SECRET=container-smoke-jwt-secret-0000000000000001
+          CAPABILITY_ENVELOPE_KEY_BASE64=AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=
           ADMIN_SECRET=container-smoke-admin-secret-00000000000001
           ADMIN_DIAGNOSTIC_SECRET=container-smoke-diagnostic-secret-000000001
           NODE_ENV=production

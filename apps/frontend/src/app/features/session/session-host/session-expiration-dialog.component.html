@@ -61,7 +61,7 @@
       </span>
     </p>
   } @else if (!data.lifecycle.extensionAllowed && data.mode === 'GLOBAL_WARNING') {
-    <p class="lifecycle-dialog__notice" role="status">
+    <p class="lifecycle-dialog__notice lifecycle-dialog__notice--alert" role="status">
       <mat-icon aria-hidden="true">info</mat-icon>
       <span i18n="@@sessionLifecycle.maxReached">
         Die maximale Sessiondauer ist erreicht. Eine weitere Verlängerung ist nicht möglich.

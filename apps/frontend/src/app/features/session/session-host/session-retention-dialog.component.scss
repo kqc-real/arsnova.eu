@@ -7,12 +7,11 @@
 .lifecycle-dialog__content {
   display: grid;
   gap: 1rem;
-  width: min(34rem, calc(100vw - 3rem));
+  width: min(32rem, calc(100vw - 3rem));
   box-sizing: border-box;
 }
 
-.lifecycle-dialog__summary,
-.lifecycle-dialog__group {
+.lifecycle-dialog__summary {
   @include lifecycle.lifecycle-inset;
 }
 
@@ -54,44 +53,9 @@
   @include lifecycle.lifecycle-notice;
 }
 
-.lifecycle-dialog__notice--alert {
-  @include lifecycle.lifecycle-notice-alert;
-}
-
 .lifecycle-dialog__notice mat-icon {
   @include lifecycle.lifecycle-notice-icon;
   color: currentColor;
-}
-
-.lifecycle-dialog__group legend {
-  padding-inline: 0.2rem;
-  color: var(--mat-sys-on-surface);
-  font: var(--mat-sys-title-medium);
-  font-weight: 600;
-}
-
-.lifecycle-dialog__row,
-.lifecycle-dialog__quick {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.65rem;
-  align-items: flex-start;
-}
-
-.lifecycle-dialog__row mat-form-field {
-  flex: 1 1 15rem;
-  min-width: min(100%, 15rem);
-}
-
-.lifecycle-dialog__action {
-  min-height: 2.75rem;
-}
-
-.lifecycle-dialog__error {
-  margin: 0;
-  color: var(--mat-sys-error);
-  font: var(--mat-sys-body-medium);
-  line-height: 1.4;
 }
 
 .lifecycle-dialog__actions {
@@ -103,7 +67,6 @@
     width: auto;
   }
 
-  .lifecycle-dialog__action,
   .lifecycle-dialog__actions button {
     width: 100%;
   }

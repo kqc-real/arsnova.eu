@@ -520,14 +520,19 @@ function buildVoteInput(
   return vote;
 }
 
-async function submitVotes(publicTrpc, participants, question, metadata, round) {
+async function submitVotes(trpcUrl, runtimeMetrics, participants, question, metadata, round) {
   const durations = [];
   const startedAt = performance.now();
   const results = await Promise.allSettled(
     participants.map(async (participant, index) => {
       const requestStartedAt = performance.now();
       try {
-        return await publicTrpc.vote.submit.mutate(
+        const capability = participant.rejoinToken;
+        if (!capability) {
+          throw new Error('Join lieferte kein rejoinToken.');
+        }
+        const client = createHttpClient(undefined, trpcUrl, runtimeMetrics, capability);
+        return await client.vote.submit.mutate(
           buildVoteInput(participant, question, metadata, round, index, participants.length),
         );
       } finally {
@@ -557,6 +562,8 @@ async function runQuestion({
   questionNumber,
   hostTrpc,
   publicTrpc,
+  trpcUrl,
+  runtimeMetrics,
   code,
   participants,
   meta,
@@ -569,7 +576,7 @@ async function runQuestion({
   }
 
   const voteRounds = [];
-  voteRounds.push(await submitVotes(publicTrpc, participants, question, meta, 1));
+  voteRounds.push(await submitVotes(trpcUrl, runtimeMetrics, participants, question, meta, 1));
 
   if (meta.numericTwoRounds === true) {
     await hostTrpc.session.startDiscussion.mutate({ code });
@@ -579,7 +586,9 @@ async function runQuestion({
     if (!questionRound2?.id) {
       throw new Error(`Frage ${questionNumber} Runde 2 konnte nicht geladen werden.`);
     }
-    voteRounds.push(await submitVotes(publicTrpc, participants, questionRound2, meta, 2));
+    voteRounds.push(
+      await submitVotes(trpcUrl, runtimeMetrics, participants, questionRound2, meta, 2),
+    );
   }
 
   const resultsStatus = await hostTrpc.session.revealResults.mutate({ code });
@@ -756,6 +765,8 @@ export async function runDemoQuizClassroom(options = {}) {
         questionNumber: meta.questionNumber,
         hostTrpc,
         publicTrpc,
+        trpcUrl,
+        runtimeMetrics,
         code,
         participants,
         meta,

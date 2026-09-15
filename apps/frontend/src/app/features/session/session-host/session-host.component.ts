@@ -105,6 +105,7 @@ import {
   SessionExpirationDialogComponent,
   type SessionExpirationDialogResult,
 } from './session-expiration-dialog.component';
+import { SessionRetentionDialogComponent } from './session-retention-dialog.component';
 import {
   QaChannelConfigurationDialogComponent,
   type QaChannelConfigurationDialogData,
@@ -271,6 +272,11 @@ type NumericStatsDisplayItem = {
   value: string;
   caption: string | null;
 };
+
+const SESSION_LIFECYCLE_DIALOG_OVERLAY = {
+  panelClass: 'session-lifecycle-dialog-panel',
+  backdropClass: 'session-lifecycle-dialog-backdrop',
+} as const;
 
 const HOST_AUX_POLL_MS = 3000;
 const HOST_CLOCK_POLL_MS = 15000;
@@ -1493,6 +1499,18 @@ export class SessionHostComponent implements OnInit, OnDestroy {
   readonly isQaSession = computed(
     () => this.channels().quiz === false && this.channels().qa === true,
   );
+  /** Frist und Retention sind mehrtägiges Q&A-Chrome, nicht Teil der Quiz-/Blitzlicht-Live-Kapsel. */
+  readonly showQaChannelLifecycleChrome = computed(
+    () => this.activeChannel() === 'qa' && this.channels().qa,
+  );
+  readonly showQaRetentionAction = computed(() => {
+    const lifecycle = this.sessionLifecycle();
+    return (
+      this.showQaChannelLifecycleChrome() &&
+      Boolean(lifecycle?.postProcessingEndsAt) &&
+      Boolean(lifecycle?.expectedDeletionAt)
+    );
+  });
   readonly isPlayfulPreset = computed(() => this.themePreset.preset() === 'spielerisch');
   readonly canShowFoyerEntrance = computed(() => {
     const session = this.session();
@@ -4110,8 +4128,9 @@ export class SessionHostComponent implements OnInit, OnDestroy {
         autoFocus: 'dialog',
         restoreFocus: true,
         maxWidth: 'min(38rem, calc(100vw - 2rem))',
-        panelClass: 'host-recovery-card-dialog-panel',
-        backdropClass: 'host-recovery-card-dialog-backdrop',
+        ...SESSION_LIFECYCLE_DIALOG_OVERLAY,
+        panelClass: ['session-lifecycle-dialog-panel', 'host-recovery-card-dialog-panel'],
+        backdropClass: ['session-lifecycle-dialog-backdrop', 'host-recovery-card-dialog-backdrop'],
         ariaDescribedBy: 'host-recovery-card-description',
       })
       .afterClosed()
@@ -4240,7 +4259,7 @@ export class SessionHostComponent implements OnInit, OnDestroy {
           this.postProcessingEnded.set(false);
           this.scheduleHostPostProcessingCheck();
           this.ensureQaSubscription();
-          void this.refreshQaQuestions();
+          void this.refreshQaQuestions({ silent: true });
         }
         return;
       }
@@ -4315,7 +4334,7 @@ export class SessionHostComponent implements OnInit, OnDestroy {
             }
           : current,
       );
-      void this.refreshQaQuestions();
+      void this.refreshQaQuestions({ silent: true });
       return;
     }
     this.qaDeadlineTimer = setTimeout(
@@ -4362,6 +4381,31 @@ export class SessionHostComponent implements OnInit, OnDestroy {
     );
   }
 
+  async openSessionRetentionDetails(event?: Event): Promise<void> {
+    const lifecycle = this.sessionLifecycle();
+    if (!lifecycle?.postProcessingEndsAt || !lifecycle.expectedDeletionAt) {
+      return;
+    }
+    const focusReturn =
+      event?.currentTarget instanceof HTMLElement
+        ? event.currentTarget
+        : this.document.activeElement instanceof HTMLElement
+          ? this.document.activeElement
+          : null;
+    const dialogRef = this.dialog.open(SessionRetentionDialogComponent, {
+      data: { lifecycle },
+      width: 'min(32rem, calc(100vw - 2rem))',
+      maxWidth: '100vw',
+      autoFocus: 'first-tabbable',
+      restoreFocus: false,
+      ...SESSION_LIFECYCLE_DIALOG_OVERLAY,
+    });
+    await firstValueFrom(dialogRef.afterClosed());
+    if (focusReturn?.isConnected) {
+      focusReturn.focus({ preventScroll: true });
+    }
+  }
+
   async openSessionLifecycleConfiguration(event?: Event): Promise<void> {
     const lifecycle = this.sessionLifecycle();
     if (!lifecycle?.configurationAllowed || this.sessionLifecycleDialogOpen) {
@@ -4403,6 +4447,7 @@ export class SessionHostComponent implements OnInit, OnDestroy {
             maxWidth: '100vw',
             autoFocus: 'first-tabbable',
             restoreFocus: false,
+            ...SESSION_LIFECYCLE_DIALOG_OVERLAY,
           })
           .afterClosed(),
       );
@@ -4533,6 +4578,7 @@ export class SessionHostComponent implements OnInit, OnDestroy {
       maxWidth: '100vw',
       autoFocus: 'first-tabbable',
       restoreFocus: false,
+      ...SESSION_LIFECYCLE_DIALOG_OVERLAY,
     });
     const confirmed = (await firstValueFrom(dialogRef.afterClosed())) === true;
     if (!confirmed && focusReturn?.isConnected) {
@@ -4769,7 +4815,7 @@ export class SessionHostComponent implements OnInit, OnDestroy {
       await this.refreshLiveFreetext();
     }
     if (this.shouldPollQaQuestions()) {
-      await this.refreshQaQuestions();
+      await this.refreshQaQuestions({ silent: true });
     }
     if (this.shouldPollQuickFeedback()) {
       await this.refreshQuickFeedbackResult();
@@ -8897,24 +8943,7 @@ export class SessionHostComponent implements OnInit, OnDestroy {
 
   /** Wie refreshQaQuestions, aber ohne Steering-Callout bei transienten Fehlern. */
   private async refreshQaQuestionsForChannelActivation(): Promise<void> {
-    const sessionId = this.session()?.id;
-    if (!sessionId || !this.channels().qa) {
-      this.qaQuestions.set([]);
-      return;
-    }
-    try {
-      const snapshot = await trpc.qa.list.query({
-        sessionId,
-        moderatorView: true,
-        sort: this.qaSortMode(),
-        pageSize: 100,
-        statuses: this.qaListStatuses(),
-        search: this.qaSearch() || undefined,
-      });
-      await this.applyHostQaQuestionsSnapshot(snapshot);
-    } catch {
-      // Aktivierung nicht wegen Q&A-Listenfehler abbrechen.
-    }
+    await this.refreshQaQuestions({ silent: true });
   }
 
   private async chooseQuizForSession(): Promise<string | undefined> {
@@ -9059,6 +9088,7 @@ export class SessionHostComponent implements OnInit, OnDestroy {
           maxWidth: '100vw',
           autoFocus: 'dialog',
           restoreFocus: true,
+          ...SESSION_LIFECYCLE_DIALOG_OVERLAY,
         })
         .afterClosed(),
     );
@@ -9372,7 +9402,7 @@ export class SessionHostComponent implements OnInit, OnDestroy {
         return;
       }
     }
-    void this.refreshQaQuestions();
+    void this.refreshQaQuestions({ silent: true });
   }
 
   private syncQaTitleDraftFromSession(): void {
@@ -9950,7 +9980,7 @@ export class SessionHostComponent implements OnInit, OnDestroy {
     }
   }
 
-  private async refreshQaQuestions(): Promise<void> {
+  private async refreshQaQuestions(options?: { silent?: boolean }): Promise<void> {
     const sessionId = this.session()?.id;
     const requestGeneration = ++this.qaListRequestGeneration;
     if (!sessionId || !this.channels().qa) {
@@ -9977,7 +10007,16 @@ export class SessionHostComponent implements OnInit, OnDestroy {
       }
       await this.applyHostQaQuestionsSnapshot(snapshot);
       this.dismissHostSteeringCallout();
-    } catch {
+    } catch (error) {
+      if (requestGeneration !== this.qaListRequestGeneration) {
+        return;
+      }
+      if (this.consumeHostUnauthorized(error)) {
+        return;
+      }
+      if (options?.silent) {
+        return;
+      }
       this.openHostSteeringCalloutForQaFailure(() => void this.refreshQaQuestions());
     }
   }

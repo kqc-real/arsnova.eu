@@ -38,6 +38,7 @@ describe('SessionExpirationDialogComponent', () => {
     const fixture = TestBed.createComponent(SessionExpirationDialogComponent);
     fixture.detectChanges();
 
+    expect(fixture.nativeElement.querySelector('.dialog-title-header')).not.toBeNull();
     expect(fixture.nativeElement.textContent).toContain(
       'Nur der ursprüngliche Host kann die globale Sessionfrist verlängern.',
     );

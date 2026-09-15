@@ -1,0 +1,53 @@
+/* Shared Material-3 insets for Epic #405 lifecycle dialogs. */
+
+@mixin lifecycle-inset {
+  display: grid;
+  gap: 0.75rem;
+  min-width: 0;
+  margin: 0;
+  padding: 0.95rem 1rem 1rem;
+  box-sizing: border-box;
+  border: 1px solid var(--mat-sys-outline);
+  border-radius: var(--mat-sys-corner-large);
+  background: var(--mat-sys-surface-container-lowest);
+  color: var(--mat-sys-on-surface);
+}
+
+@mixin lifecycle-notice {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.65rem;
+  margin: 0;
+  padding: 0.8rem 0.9rem;
+  border-radius: var(--mat-sys-corner-medium);
+  background: var(--mat-sys-tertiary-container);
+  color: var(--mat-sys-on-tertiary-container);
+  font: var(--mat-sys-body-medium);
+  line-height: 1.5;
+}
+
+@mixin lifecycle-notice-secondary {
+  @include lifecycle-notice;
+  background: var(--mat-sys-secondary-container);
+  color: var(--mat-sys-on-secondary-container);
+}
+
+@mixin lifecycle-notice-alert {
+  @include lifecycle-notice;
+  background: var(--mat-sys-error-container);
+  color: var(--mat-sys-on-error-container);
+}
+
+@mixin lifecycle-notice-icon {
+  flex-shrink: 0;
+  margin-top: 0.1rem;
+  width: 1.25rem;
+  height: 1.25rem;
+  font-size: 1.25rem;
+}
+
+@mixin lifecycle-dialog-actions {
+  flex-wrap: wrap;
+  row-gap: 0.5rem;
+  column-gap: 0.5rem;
+}
