@@ -20,7 +20,7 @@
   "sampling": {
     "participantPageSize": 100,
     "qaPageSize": 100,
-    "ratings": 500,
+    "ratings": 10360,
     "moderations": 100,
     "healthStats": 100,
     "sortModes": ["TOP", "BEST", "CONTROVERSIAL"]

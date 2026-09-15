@@ -14,6 +14,12 @@ import {
   resolveQaScaleRuntime,
   validateQaScaleConfig,
 } from './lib/qa-scale-epic405.mjs';
+import {
+  QA_ASSEMBLY_EXPECTED_RANKING,
+  QA_ASSEMBLY_FEATURED_QUESTIONS,
+  buildQaAssemblyQuestion,
+  buildQaAssemblyVotePlan,
+} from './lib/qa-scale-realistic-session.mjs';
 import { writeLoadReport } from './lib/reporting.mjs';
 import { createHostWsTrpc, createHttpTrpcSingle, createPublicWsTrpc } from './lib/trpc-runtime.mjs';
 import { waitForBackend } from './lib/wait-for-backend.mjs';
@@ -38,7 +44,8 @@ Verwendung:
   node scripts/load/qa-scale-epic405.mjs --soak     [--config <datei>]
 
 --validate prüft ausschließlich lokale Konfiguration und Laufzeitwerte ohne Netzwerkzugriff.
---release erzeugt 2.500 Teilnahmen und 25.000 Fragen über die API und prüft 500 WS-Clients.
+--release erzeugt 2.500 Teilnahmen, 25.000 realistische Fragen und 10.360 Ratings
+          über die API und prüft TOP/BEST/CONTROVERSIAL sowie 500 WS-Clients.
 --soak führt danach zusätzlich den verpflichtend instrumentierten 60-Minuten-Soak aus.
 `;
 }
@@ -491,9 +498,7 @@ async function seedQuestions(context, participants) {
         const input = {
           sessionId: session.sessionId,
           participantId: participant.participantId,
-          text: `Epic405 P${String(participantIndex + 1).padStart(4, '0')} Q${String(
-            questionIndex + 1,
-          ).padStart(2, '0')} – skalierbare Frage`,
+          text: buildQaAssemblyQuestion(participantIndex, questionIndex),
           idempotencyKey,
         };
         const result = await apiMetrics.measure('QA_SUBMIT', () => trpc.qa.submit.mutate(input));
@@ -647,30 +652,85 @@ async function verifyQaPages(context, participants) {
       sessionId: context.session.sessionId,
       moderatorView: true,
       sort: 'TOP',
-      search: 'Epic405 P0001 Q01',
+      search: QA_ASSEMBLY_FEATURED_QUESTIONS[0].text,
       pageSize: context.config.sampling.qaPageSize,
     }),
   );
-  if (!search.questions.some((question) => question.text.includes('Epic405 P0001 Q01'))) {
+  if (
+    !search.questions.some((question) => question.text === QA_ASSEMBLY_FEATURED_QUESTIONS[0].text)
+  ) {
     throw new Error('Q&A-Suche fand die bekannte Seed-Frage nicht.');
   }
   return pagination;
 }
 
 async function exerciseRatings(context, participants, firstQuestionIds) {
-  const indexes = Array.from({ length: context.config.sampling.ratings }, (_, index) => index);
-  await mapLimit(indexes, context.config.concurrency.queries, async (index) => {
-    const participant = participants[index % participants.length];
-    const targetIndex = (index + 1) % participants.length;
+  const votePlan = buildQaAssemblyVotePlan(participants.length);
+  if (votePlan.length !== context.config.sampling.ratings) {
+    throw new Error(
+      `Das realistische Voteprofil enthält ${votePlan.length} statt ${context.config.sampling.ratings} Ratings.`,
+    );
+  }
+  await mapLimit(votePlan, context.config.concurrency.queries, async (vote) => {
+    const participant = participants[vote.voterIndex];
     await context.apiMetrics.measure('QA_RATING', () =>
       participantHttp(context.runtime, participant).qa.vote.mutate({
-        questionId: firstQuestionIds[targetIndex],
+        questionId: firstQuestionIds[vote.featureIndex],
         participantId: participant.participantId,
-        direction: 'UP',
+        direction: vote.direction,
       }),
     );
   });
-  return indexes.length;
+  return {
+    ratings: votePlan.length,
+    featuredQuestions: QA_ASSEMBLY_FEATURED_QUESTIONS.length,
+  };
+}
+
+async function verifyRealisticRankings(context, firstQuestionIds) {
+  const results = {};
+  for (const sort of ['TOP', 'BEST', 'CONTROVERSIAL']) {
+    const page = await context.apiMetrics.measure('QA_PAGE', () =>
+      context.session.hostTrpc.qa.list.query({
+        sessionId: context.session.sessionId,
+        moderatorView: true,
+        sort,
+        statuses: ['ACTIVE'],
+        pageSize: 20,
+      }),
+    );
+    const expectedIndex = QA_ASSEMBLY_EXPECTED_RANKING[sort];
+    const expectedId = firstQuestionIds[expectedIndex];
+    const winner = page.questions[0];
+    if (winner?.id !== expectedId) {
+      throw new Error(
+        `${sort} führt mit „${winner?.text ?? 'leer'}“ statt der erwarteten realistischen Spitzenfrage.`,
+      );
+    }
+    for (const [featureIndex, profile] of QA_ASSEMBLY_FEATURED_QUESTIONS.entries()) {
+      const question = page.questions.find((entry) => entry.id === firstQuestionIds[featureIndex]);
+      if (!question) {
+        throw new Error(`${sort} enthält die hervorgehobene Frage ${featureIndex + 1} nicht.`);
+      }
+      if (
+        question.positiveVoteCount !== profile.positiveVotes ||
+        question.negativeVoteCount !== profile.negativeVotes
+      ) {
+        throw new Error(
+          `${sort} meldet für Frage ${featureIndex + 1} ${question.positiveVoteCount}/${question.negativeVoteCount} statt ${profile.positiveVotes}/${profile.negativeVotes} positiven/negativen Votes.`,
+        );
+      }
+    }
+    results[sort] = {
+      questionId: winner.id,
+      text: winner.text,
+      positiveVoteCount: winner.positiveVoteCount,
+      negativeVoteCount: winner.negativeVoteCount,
+      bestScore: winner.bestScore,
+      controversyScore: winner.controversyScore,
+    };
+  }
+  return results;
 }
 
 async function exerciseModeration(context, firstQuestionIds) {
@@ -1423,18 +1483,24 @@ async function executeRelease(config, runtime) {
     metrics.seed.qaTotalCount = metrics.seed.qaPagination[0]?.totalCount ?? null;
     metrics.seed.qaPhysicalQuestionCount =
       metrics.seed.qaPagination[0]?.sessionQuestionCount ?? null;
-    metrics.seed.wordCloudCorpus = await analyzeQaCorpus(context);
-    if (metrics.seed.wordCloudCorpus.outcome !== 'SUCCESS') {
-      throw new Error('Der kanonische 25.000er Wortwolkenkorpus konnte nicht analysiert werden.');
-    }
-    const [ratingSamples, moderationSamples, healthStatsSamples, wordCloudSideLoad] =
+    const [ratingProfile, moderationSamples, healthStatsSamples, wordCloudSideLoad] =
       await Promise.all([
         exerciseRatings(context, participants, questionSeed.firstQuestionIds),
         exerciseModeration(context, questionSeed.firstQuestionIds),
         exerciseHealthStats(context),
         analyzeQaCorpus(context, { refresh: true }),
       ]);
-    metrics.seed.ratingSamples = ratingSamples;
+    metrics.seed.ratingSamples = ratingProfile.ratings;
+    metrics.seed.realisticSession = {
+      featuredQuestions: ratingProfile.featuredQuestions,
+      rankings: await verifyRealisticRankings(context, questionSeed.firstQuestionIds),
+    };
+    metrics.seed.wordCloudCorpus = await analyzeQaCorpus(context, { refresh: true });
+    if (metrics.seed.wordCloudCorpus.outcome !== 'SUCCESS') {
+      throw new Error(
+        'Der kanonische 25.000er Wortwolkenkorpus konnte nach dem realistischen Voting nicht analysiert werden.',
+      );
+    }
     metrics.seed.moderationSamples = moderationSamples;
     metrics.seed.healthStatsSamples = healthStatsSamples;
     metrics.seed.wordCloudSideLoad = wordCloudSideLoad;

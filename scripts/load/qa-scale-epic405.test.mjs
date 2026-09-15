@@ -11,6 +11,10 @@ import {
   resolveQaScaleRuntime,
   validateQaScaleConfig,
 } from './lib/qa-scale-epic405.mjs';
+import {
+  QA_ASSEMBLY_EXPECTED_RANKING,
+  QA_ASSEMBLY_FEATURED_QUESTIONS,
+} from './lib/qa-scale-realistic-session.mjs';
 
 const CONFIG_URL = new URL('./qa-scale-epic405.config.json', import.meta.url);
 
@@ -20,21 +24,24 @@ async function canonicalConfig() {
 
 function passingMetrics(config, { soak = false } = {}) {
   const byClass = Object.fromEntries(
-    QA_SCALE_CRITICAL_API_CLASSES.map((apiClass) => [
-      apiClass,
-      {
-        samples: 100,
-        successes: 100,
-        technicalErrors: 0,
-        expectedRejections: apiClass === 'QA_SUBMIT' ? 2 : 0,
-        expectedRejectionsByKind: apiClass === 'QA_SUBMIT' ? { LIMIT: 1, DEADLINE: 1 } : {},
-        expectedRejectionsByCode: apiClass === 'QA_SUBMIT' ? { PRECONDITION_FAILED: 2 } : {},
-        p95Ms: 200,
-        p99Ms: 400,
-        expectedRejectionP95Ms: apiClass === 'QA_SUBMIT' ? 250 : null,
-        expectedRejectionP99Ms: apiClass === 'QA_SUBMIT' ? 250 : null,
-      },
-    ]),
+    QA_SCALE_CRITICAL_API_CLASSES.map((apiClass) => {
+      const successfulSamples = apiClass === 'QA_RATING' ? config.sampling.ratings : 100;
+      return [
+        apiClass,
+        {
+          samples: successfulSamples,
+          successes: successfulSamples,
+          technicalErrors: 0,
+          expectedRejections: apiClass === 'QA_SUBMIT' ? 2 : 0,
+          expectedRejectionsByKind: apiClass === 'QA_SUBMIT' ? { LIMIT: 1, DEADLINE: 1 } : {},
+          expectedRejectionsByCode: apiClass === 'QA_SUBMIT' ? { PRECONDITION_FAILED: 2 } : {},
+          p95Ms: 200,
+          p99Ms: 400,
+          expectedRejectionP95Ms: apiClass === 'QA_SUBMIT' ? 250 : null,
+          expectedRejectionP99Ms: apiClass === 'QA_SUBMIT' ? 250 : null,
+        },
+      ];
+    }),
   );
   return {
     seed: {
@@ -51,6 +58,23 @@ function passingMetrics(config, { soak = false } = {}) {
       qaTotalCount: config.seed.totalQuestions,
       qaPhysicalQuestionCount: config.seed.totalQuestions,
       finalSessionQuestionCount: config.seed.totalQuestions,
+      ratingSamples: config.sampling.ratings,
+      realisticSession: {
+        featuredQuestions: QA_ASSEMBLY_FEATURED_QUESTIONS.length,
+        rankings: Object.fromEntries(
+          Object.entries(QA_ASSEMBLY_EXPECTED_RANKING).map(([sort, featureIndex]) => {
+            const question = QA_ASSEMBLY_FEATURED_QUESTIONS[featureIndex];
+            return [
+              sort,
+              {
+                text: question.text,
+                positiveVoteCount: question.positiveVotes,
+                negativeVoteCount: question.negativeVotes,
+              },
+            ];
+          }),
+        ),
+      },
       wordCloudCorpus: {
         outcome: 'SUCCESS',
         durationMs: 500,
@@ -133,6 +157,7 @@ test('validiert das unveränderbare Epic-405-Releaseprofil', async () => {
   for (const [path, mutate] of [
     ['2.500 Teilnahmen', (copy) => (copy.seed.participants = 2_499)],
     ['25.000 Fragen', (copy) => (copy.seed.totalQuestions = 24_999)],
+    ['realistisches Voteprofil', (copy) => (copy.sampling.ratings = 10_359)],
     ['exakt 500 WS-Clients', (copy) => (copy.websocket.activeClients = 499)],
     ['p95 darf nicht gelockert werden', (copy) => (copy.budgets.apiP95ExclusiveMs = 1_001)],
     [
@@ -233,6 +258,8 @@ test('scheitert hart an Grenzwerten, fehlender Revision oder unvollständigen Pr
   metrics.api.byClass.QA_SUBMIT.successes = 199;
   metrics.seed.deadlineRejections = 0;
   metrics.seed.wordCloudCorpus.analyzedQuestionCount = 499;
+  metrics.api.byClass.QA_RATING.successes -= 1;
+  metrics.seed.realisticSession.rankings.CONTROVERSIAL.text = 'Falsche Spitzenfrage';
   metrics.websocket.reconnect.publishedAfterResubscribe = false;
   metrics.websocket.reconnect.applied = 499;
   metrics.websocket.reconnect.maxMs = config.budgets.reconnectMaxMs + 1;
@@ -251,6 +278,7 @@ test('scheitert hart an Grenzwerten, fehlender Revision oder unvollständigen Pr
     'release-bounded-participant-join-events',
     'release-deadline-rejection',
     'release-wordcloud-corpus',
+    'release-realistic-assembly-ranking',
     'database-query-envelope-p95',
     'payload-http-and-ws',
     'page-and-snapshot-size',

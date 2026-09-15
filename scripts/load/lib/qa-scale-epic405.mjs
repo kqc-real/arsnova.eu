@@ -1,5 +1,11 @@
 import { resolve } from 'node:path';
 
+import {
+  QA_ASSEMBLY_EXPECTED_RANKING,
+  QA_ASSEMBLY_FEATURED_QUESTIONS,
+  QA_ASSEMBLY_RATING_COUNT,
+} from './qa-scale-realistic-session.mjs';
+
 export const QA_SCALE_CRITICAL_API_CLASSES = Object.freeze([
   'JOIN_REJOIN',
   'PARTICIPANT_QUERY',
@@ -15,6 +21,7 @@ const RELEASE_PROFILE = Object.freeze({
   rejoinSamples: 500,
   questionsPerParticipant: 10,
   totalQuestions: 25_000,
+  ratingSamples: QA_ASSEMBLY_RATING_COUNT,
   activeWsClients: 500,
   apiP95ExclusiveMs: 1_000,
   apiP99ExclusiveMs: 2_000,
@@ -140,6 +147,7 @@ export function validateQaScaleConfig(rawConfig) {
       max: RELEASE_PROFILE.totalQuestions,
     });
   }
+  requireExact(sampling.ratings, RELEASE_PROFILE.ratingSamples, 'config.sampling.ratings');
   if (
     !Array.isArray(sampling.sortModes) ||
     sampling.sortModes.length !== 3 ||
@@ -437,6 +445,42 @@ export function evaluateQaScaleGates(config, metrics) {
         quotaTotal: seed.finalSessionQuestionCount ?? null,
       },
       'Der physische 25.000er Fragenbestand ist nicht über Submit, Liste, Bestandszähler und Kontingent bestätigt.',
+    ),
+    assertion(
+      'release-realistic-assembly-ranking',
+      seed.ratingSamples === config.sampling.ratings &&
+        api.byClass?.QA_RATING?.successes === config.sampling.ratings &&
+        api.byClass?.QA_RATING?.technicalErrors === 0 &&
+        seed.realisticSession?.featuredQuestions === QA_ASSEMBLY_FEATURED_QUESTIONS.length &&
+        Object.entries(QA_ASSEMBLY_EXPECTED_RANKING).every(([sort, featureIndex]) => {
+          const expected = QA_ASSEMBLY_FEATURED_QUESTIONS[featureIndex];
+          const actual = seed.realisticSession?.rankings?.[sort];
+          return (
+            actual?.text === expected.text &&
+            actual?.positiveVoteCount === expected.positiveVotes &&
+            actual?.negativeVoteCount === expected.negativeVotes
+          );
+        }),
+      {
+        ratings: config.sampling.ratings,
+        successfulRatings: config.sampling.ratings,
+        technicalRatingErrors: 0,
+        featuredQuestions: QA_ASSEMBLY_FEATURED_QUESTIONS.length,
+        winners: Object.fromEntries(
+          Object.entries(QA_ASSEMBLY_EXPECTED_RANKING).map(([sort, featureIndex]) => [
+            sort,
+            QA_ASSEMBLY_FEATURED_QUESTIONS[featureIndex].text,
+          ]),
+        ),
+      },
+      {
+        ratings: seed.ratingSamples ?? null,
+        successfulRatings: api.byClass?.QA_RATING?.successes ?? null,
+        technicalRatingErrors: api.byClass?.QA_RATING?.technicalErrors ?? null,
+        featuredQuestions: seed.realisticSession?.featuredQuestions ?? null,
+        rankings: seed.realisticSession?.rankings ?? null,
+      },
+      'Die realistische Vote-Verteilung bestätigt die erwarteten TOP-, BEST- und CONTROVERSIAL-Spitzen nicht.',
     ),
     assertion(
       'release-wordcloud-corpus',

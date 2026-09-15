@@ -13,6 +13,10 @@ Q&A-Releaseprofil ab:
 
 - 2.500 über die Sessionlaufzeit persistierte Teilnahmeidentitäten;
 - zehn Fragen je Teilnahme und damit 25.000 physisch gespeicherte Fragen;
+- einen deterministischen deutschen Fachkorpus für eine Mitarbeitervollversammlung
+  statt technischer Platzhaltertexte;
+- 10.360 gerichtete Bewertungen auf sechs hervorgehobenen Fragen mit robusten
+  Mehrheiten und nahezu ausgeglichenen Kontroversen;
 - exakt 500 gleichzeitig aktive, teilnahmegebundene tRPC-WebSocket-Clients;
 - API-p95 strikt unter 1.000 ms und API-p99 strikt unter 2.000 ms;
 - technische Fehlerquote je kritischer API-Klasse strikt unter 0,5 Prozent;
@@ -52,7 +56,12 @@ löschbare Referenzumgebung vorgesehen. Er erzeugt den gesamten Bestand über
 die tRPC-API; es gibt keinen direkten DB-Seed. Nach dem Seed prüft er die
 Bestände erneut über Host-Aggregat, vollständige revisionsgebundene
 Teilnehmerseiten, Q&A-Kontingente und vollständige Q&A-Pagination für `TOP`,
-`BEST` und `CONTROVERSIAL`.
+`BEST` und `CONTROVERSIAL`. Der Textgenerator kombiniert zwanzig Themen aus
+Arbeitsbedingungen, Vergütung, Beschäftigungssicherung, Digitalisierung,
+Mitbestimmung, Qualifizierung und Nachhaltigkeit mit Organisationseinheiten
+und Zeithorizonten. Sechs feste Leitfragen erhalten reproduzierbare
+Hot-Spot-Votes. Damit muss `TOP`/`BEST` eine breit unterstützte Transparenzfrage
+und `CONTROVERSIAL` die nahezu hälftig bewertete Vorstandsbonusfrage anführen.
 
 ```bash
 TRPC_URL=https://lasttest.example.invalid/trpc \
@@ -79,14 +88,17 @@ Der Ablauf prüft unter anderem:
 4. Retry eines bekannten Submit-Schlüssels mit derselben Frage,
    `replayed: true` und unverändertem Kontingent;
 5. genau eine erwartete Limit-Ablehnung für den zusätzlichen Submit;
-6. Teilnehmer-Paging/-Suche, Q&A-Paging/-Suche, Ratings, Host-Moderation und
+6. genau 10.360 capability-authentifizierte Up- und Downvotes ohne Selbst- oder
+   Doppelvote sowie die erwarteten Spitzen für `TOP`, `BEST` und
+   `CONTROVERSIAL`;
+7. Teilnehmer-Paging/-Suche, Q&A-Paging/-Suche, Host-Moderation und
    `health.stats`;
-7. den serverseitig aus dem vollständigen Bestand gerankten Wortwolkenkorpus
+8. den serverseitig aus dem vollständigen Bestand gerankten Wortwolkenkorpus
    mit exakt 500 von 25.000 berücksichtigten Fragen sowie einen weiteren
    Analysejob parallel zu Ratings, Moderation und Statusabrufen;
-8. Q&A-Fan-out und die koordinierte 500er-Reconnect-Welle;
-9. genau eine erwartete Frist-/Kanalablehnung nach dem abschließenden Schließen
-   des Q&A-Kanals.
+9. Q&A-Fan-out und die koordinierte 500er-Reconnect-Welle;
+10. genau eine erwartete Frist-/Kanalablehnung nach dem abschließenden Schließen
+    des Q&A-Kanals.
 
 Für den Reconnect zählt weder Socket-Open noch `onStarted`. Jeder Client
 abonniert nach dem Reconnect `qa.onQuestionsUpdated` mit seiner
