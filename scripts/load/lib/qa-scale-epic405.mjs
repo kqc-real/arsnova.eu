@@ -449,8 +449,8 @@ export function evaluateQaScaleGates(config, metrics) {
     assertion(
       'release-realistic-assembly-ranking',
       seed.ratingSamples === config.sampling.ratings &&
-        api.byClass?.QA_RATING?.successes === config.sampling.ratings &&
-        api.byClass?.QA_RATING?.technicalErrors === 0 &&
+        seed.realisticSession?.successfulRatings === config.sampling.ratings &&
+        seed.realisticSession?.technicalRatingErrors === 0 &&
         seed.realisticSession?.featuredQuestions === QA_ASSEMBLY_FEATURED_QUESTIONS.length &&
         Object.entries(QA_ASSEMBLY_EXPECTED_RANKING).every(([sort, featureIndex]) => {
           const expected = QA_ASSEMBLY_FEATURED_QUESTIONS[featureIndex];
@@ -475,8 +475,8 @@ export function evaluateQaScaleGates(config, metrics) {
       },
       {
         ratings: seed.ratingSamples ?? null,
-        successfulRatings: api.byClass?.QA_RATING?.successes ?? null,
-        technicalRatingErrors: api.byClass?.QA_RATING?.technicalErrors ?? null,
+        successfulRatings: seed.realisticSession?.successfulRatings ?? null,
+        technicalRatingErrors: seed.realisticSession?.technicalRatingErrors ?? null,
         featuredQuestions: seed.realisticSession?.featuredQuestions ?? null,
         rankings: seed.realisticSession?.rankings ?? null,
       },

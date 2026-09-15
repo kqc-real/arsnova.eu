@@ -29,6 +29,7 @@ const { prismaMock, hostAuthMocks, qaTelemetryMocks, rawQueryResults } = vi.hois
       delete: vi.fn(),
     },
     qaUpvote: {
+      findMany: vi.fn(),
       findUnique: vi.fn(),
       groupBy: vi.fn(),
       create: vi.fn(),
@@ -214,6 +215,7 @@ describe('qa router (Epic 8)', () => {
     });
     prismaMock.qaQuestion.count.mockResolvedValue(0);
     prismaMock.participant.count.mockResolvedValue(0);
+    prismaMock.qaUpvote.findMany.mockResolvedValue([]);
     prismaMock.qaUpvote.groupBy.mockResolvedValue([]);
   });
 
@@ -244,6 +246,9 @@ describe('qa router (Epic 8)', () => {
           bestScore: 0.5101,
         }),
       ]);
+      prismaMock.qaUpvote.findMany.mockResolvedValue([
+        { participantId: PARTICIPANT_ID, qaQuestionId: QUESTION_ID, direction: 'UP' },
+      ]);
 
       const { questions: result } = await caller.list({
         sessionId: SESSION_ID,
@@ -271,6 +276,48 @@ describe('qa router (Epic 8)', () => {
       expect(result[0]).not.toHaveProperty('compassCards');
     },
   );
+
+  it('bündelt gleichzeitige Teilnehmer-Rankings derselben Revision und lädt eigene Votes separat', async () => {
+    prismaMock.session.findUnique.mockResolvedValue({
+      ...ACTIVE_QA_SESSION,
+      type: 'Q_AND_A',
+      qaEnabled: true,
+      qaOpen: true,
+      qaModerationMode: false,
+      qaQuestionCount: 1,
+    });
+    let resolveRanking!: (rows: RankedQaTestRow[]) => void;
+    const ranking = new Promise<RankedQaTestRow[]>((resolve) => {
+      resolveRanking = resolve;
+    });
+    prismaMock.$queryRaw.mockReturnValue(ranking);
+    prismaMock.qaUpvote.findMany.mockImplementation(
+      async ({ where }: { where: { participantId: { in: string[] } } }) =>
+        where.participantId.in.includes(PARTICIPANT_ID)
+          ? [{ participantId: PARTICIPANT_ID, qaQuestionId: QUESTION_ID, direction: 'UP' as const }]
+          : [],
+    );
+
+    const first = caller.list({
+      sessionId: SESSION_ID,
+      participantId: PARTICIPANT_ID,
+      pageSize: 1,
+    });
+    const second = caller.list({
+      sessionId: SESSION_ID,
+      participantId: OTHER_PARTICIPANT_ID,
+      pageSize: 1,
+    });
+    await vi.waitFor(() => expect(prismaMock.$queryRaw).toHaveBeenCalledTimes(1));
+    resolveRanking([rankedQaRow({ id: QUESTION_ID, totalCount: 1, myVote: null })]);
+
+    const [firstPage, secondPage] = await Promise.all([first, second]);
+
+    expect(prismaMock.$queryRaw).toHaveBeenCalledTimes(1);
+    expect(prismaMock.qaUpvote.findMany).toHaveBeenCalledTimes(1);
+    expect(firstPage.questions[0]?.myVote).toBe('UP');
+    expect(secondPage.questions[0]?.myVote).toBeNull();
+  });
 
   it('weist participant-authentifizierte Q&A-Lesezugriffe ohne Participant-ID ab', async () => {
     prismaMock.session.findUnique.mockResolvedValue({
@@ -378,8 +425,7 @@ describe('qa router (Epic 8)', () => {
     expect(firstPage.totalCount).toBe(101);
     expect(firstPage.nextCursor).toEqual(expect.any(String));
     const firstQueryCall = prismaMock.$queryRaw.mock.calls[0] ?? [];
-    expect(firstQueryCall.at(-2)).toBe(101);
-    expect(firstQueryCall.at(-1)).toBe(0);
+    expect(firstQueryCall.slice(1)).toEqual(expect.arrayContaining([101, 0]));
 
     const secondPage = await caller.list({
       sessionId: SESSION_ID,
@@ -391,8 +437,7 @@ describe('qa router (Epic 8)', () => {
     expect(secondPage.questions.map((question) => question.text)).toEqual(['Frage 101']);
     expect(secondPage.nextCursor).toBeNull();
     const secondQueryCall = prismaMock.$queryRaw.mock.calls[1] ?? [];
-    expect(secondQueryCall.at(-2)).toBe(101);
-    expect(secondQueryCall.at(-1)).toBe(100);
+    expect(secondQueryCall.slice(1)).toEqual(expect.arrayContaining([101, 100]));
 
     await expect(
       caller.list({

@@ -683,6 +683,8 @@ async function exerciseRatings(context, participants, firstQuestionIds) {
   });
   return {
     ratings: votePlan.length,
+    successfulRatings: context.apiMetrics.report().byClass.QA_RATING.successes,
+    technicalRatingErrors: context.apiMetrics.report().byClass.QA_RATING.technicalErrors,
     featuredQuestions: QA_ASSEMBLY_FEATURED_QUESTIONS.length,
   };
 }
@@ -1494,6 +1496,8 @@ async function executeRelease(config, runtime) {
     metrics.seed.ratingSamples = ratingProfile.ratings;
     metrics.seed.realisticSession = {
       featuredQuestions: ratingProfile.featuredQuestions,
+      successfulRatings: ratingProfile.successfulRatings,
+      technicalRatingErrors: ratingProfile.technicalRatingErrors,
       rankings: await verifyRealisticRankings(context, questionSeed.firstQuestionIds),
     };
     metrics.seed.wordCloudCorpus = await analyzeQaCorpus(context, { refresh: true });

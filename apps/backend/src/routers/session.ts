@@ -9251,21 +9251,25 @@ const sessionCoreRouter = router({
         ? normalizeTimerAccommodation(preparedJoin.timerAccommodation)
         : 'DEFAULT';
 
-      const reconciled = await reconcileParticipantAutoTeamAssignment({
-        sessionId: session.id,
-        participantId,
-        teamId: assignedTeamId ?? null,
-        teamName: assignedTeamName,
-        fallbackProfile: onboardingProfile,
-      });
-      assignedTeamId = reconciled.teamId ?? undefined;
-      assignedTeamName = reconciled.teamName;
-      const responseProfile = reconciled.profile;
+      let responseProfile = onboardingProfile;
+      if (onboardingProfile.teamMode || !session.firstParticipantJoinedAt) {
+        const reconciled = await reconcileParticipantAutoTeamAssignment({
+          sessionId: session.id,
+          participantId,
+          teamId: assignedTeamId ?? null,
+          teamName: assignedTeamName,
+          fallbackProfile: onboardingProfile,
+        });
+        assignedTeamId = reconciled.teamId ?? undefined;
+        assignedTeamName = reconciled.teamName;
+        responseProfile = reconciled.profile;
+      }
 
-      // Nach Create zählen (nicht _count+1): bei gleichzeitigen Joins ist der Anfangssnapshot sonst zu niedrig — Rekord/Response falsch.
-      const newParticipantCount = await prisma.participant.count({
-        where: { sessionId: session.id },
-      });
+      // Die Nummer wird unter dem Session-Lock rollback-sicher inkrementiert und entspricht
+      // bei neuen Joins dem kanonischen Bestand. Rejoins verändern den Zähler nicht.
+      const newParticipantCount = preparedJoin.rejoined
+        ? await prisma.participant.count({ where: { sessionId: session.id } })
+        : preparedJoin.participantNumber;
       invalidateJoinCachesForCode(code);
       void updateMaxParticipantsSingleSession(newParticipantCount);
       void updateDailyMaxParticipants(newParticipantCount);

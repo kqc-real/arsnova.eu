@@ -284,7 +284,7 @@
     },
     "qa.list": {
       "kind": "query",
-      "fingerprint": "sha256:061edf4dca62c93f522aa931a78d518512a99eb7b1aecfec5350a3d78a8882bb",
+      "fingerprint": "sha256:afd2f7306322c51aeac7ff43f639d54044c03f272dd40be64d1e171ca13de620",
       "missing": []
     },
     "qa.moderate": {
@@ -304,7 +304,7 @@
     },
     "qa.presentProjection": {
       "kind": "query",
-      "fingerprint": "sha256:4b45a2b578f29375729fe133015946fc02afbc4e46984368c8e405155332ccb4",
+      "fingerprint": "sha256:336b90c0593c714b750964016f9b7008a997d9fec4d4a93a11a01afecedf34ff",
       "missing": []
     },
     "qa.requestSummary": {
@@ -699,7 +699,7 @@
     },
     "session.join": {
       "kind": "mutation",
-      "fingerprint": "sha256:85065260707ef48398a62814eaaaa53b61e0ae2847b884b47c33f69b2d784573",
+      "fingerprint": "sha256:2cc28fccf613aa99283491d406150028c19e6c4b6cf23dafdb5854f27332d038",
       "missing": []
     },
     "session.listPairedHosts": {
@@ -879,7 +879,7 @@
     },
     "wordCloud.analyzeQa": {
       "kind": "mutation",
-      "fingerprint": "sha256:f0759172513390f35783682d1f58a374365ee6165178640fc3a112a587f75a17",
+      "fingerprint": "sha256:9f58f9bb92b834ad85bc313ac83e04c82ba17713780e9c2ee1b1c53efc4ce994",
       "missing": []
     }
   }

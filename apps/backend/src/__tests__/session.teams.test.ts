@@ -210,15 +210,14 @@ describe('session team mode (Story 7.1)', () => {
       joinIdempotencyKey: 'join-key-abcdefghijklmnopqrstuvwxyz0123456789',
     });
 
-    expect(prismaMock.participant.count).toHaveBeenCalledWith({
-      where: { sessionId: SESSION_ID },
-    });
+    expect(prismaMock.participant.count).not.toHaveBeenCalled();
     expect(participantJoinMocks.prepareParticipantJoin).toHaveBeenCalledWith(
       expect.objectContaining({ autoTeamIds: [TEAM_A_ID, TEAM_B_ID] }),
     );
     expect(joinAdmissionMocks.awaitJoinAdmissionSlot).toHaveBeenCalledWith(SESSION_ID);
     expect(result.teamId).toBe(TEAM_A_ID);
     expect(result.teamName).toBe('Team A');
+    expect(result.participantCount).toBe(3);
   });
 
   it('übernimmt beim MANUAL-Join das gewählte Team', async () => {
@@ -263,15 +262,14 @@ describe('session team mode (Story 7.1)', () => {
       joinIdempotencyKey: 'join-key-abcdefghijklmnopqrstuvwxyz0123456789',
     });
 
-    expect(prismaMock.participant.count).toHaveBeenCalledWith({
-      where: { sessionId: SESSION_ID },
-    });
+    expect(prismaMock.participant.count).not.toHaveBeenCalled();
     expect(participantJoinMocks.prepareParticipantJoin).toHaveBeenCalledWith(
       expect.objectContaining({ assignedTeamId: TEAM_A_ID }),
     );
     expect(joinAdmissionMocks.awaitJoinAdmissionSlot).toHaveBeenCalledWith(SESSION_ID);
     expect(result.teamId).toBe(TEAM_A_ID);
     expect(result.teamName).toBe('Team A');
+    expect(result.participantCount).toBe(1);
   });
 
   trpcDodIt(

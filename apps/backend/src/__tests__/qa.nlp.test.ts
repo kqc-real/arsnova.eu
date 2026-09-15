@@ -21,6 +21,7 @@ const { prismaMock, hostAuthMocks } = vi.hoisted(() => ({
       update: vi.fn(),
     },
     qaUpvote: {
+      findMany: vi.fn(),
       groupBy: vi.fn(),
     },
   },
@@ -90,6 +91,7 @@ describe('qa NLP cascade (Story 8.9b)', () => {
       _sum: { upvoteCount: 0 },
     });
     prismaMock.qaQuestion.count.mockResolvedValue(0);
+    prismaMock.qaUpvote.findMany.mockResolvedValue([]);
     prismaMock.qaUpvote.groupBy.mockResolvedValue([]);
     prismaMock.qaQuestion.update.mockResolvedValue({});
   });

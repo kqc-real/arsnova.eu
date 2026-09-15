@@ -400,6 +400,70 @@ type RankedQaPage = {
   totalCount: number;
 };
 
+const sharedQaRankingLoads = new Map<string, Promise<RankedQaQuestionRow[]>>();
+type QaOwnVoteLoad = {
+  participantId: string;
+  questionIds: string[];
+  resolve: (votes: Map<string, 'UP' | 'DOWN'>) => void;
+  reject: (error: unknown) => void;
+};
+let pendingQaOwnVoteLoads: QaOwnVoteLoad[] = [];
+let qaOwnVoteFlushScheduled = false;
+
+async function flushQaOwnVoteLoads(): Promise<void> {
+  qaOwnVoteFlushScheduled = false;
+  const loads = pendingQaOwnVoteLoads;
+  pendingQaOwnVoteLoads = [];
+  if (loads.length === 0) return;
+
+  try {
+    const participantIds = [...new Set(loads.map((load) => load.participantId))];
+    const questionIds = [...new Set(loads.flatMap((load) => load.questionIds))];
+    const votes = await prisma.qaUpvote.findMany({
+      where: {
+        participantId: { in: participantIds },
+        qaQuestionId: { in: questionIds },
+      },
+      select: { participantId: true, qaQuestionId: true, direction: true },
+    });
+    const votesByParticipant = new Map<string, Map<string, 'UP' | 'DOWN'>>();
+    for (const vote of votes) {
+      let participantVotes = votesByParticipant.get(vote.participantId);
+      if (!participantVotes) {
+        participantVotes = new Map();
+        votesByParticipant.set(vote.participantId, participantVotes);
+      }
+      participantVotes.set(vote.qaQuestionId, vote.direction);
+    }
+    for (const load of loads) {
+      const participantVotes = votesByParticipant.get(load.participantId);
+      load.resolve(
+        new Map(
+          load.questionIds.flatMap((questionId) => {
+            const direction = participantVotes?.get(questionId);
+            return direction ? [[questionId, direction] as const] : [];
+          }),
+        ),
+      );
+    }
+  } catch (error) {
+    for (const load of loads) load.reject(error);
+  }
+}
+
+function loadQaOwnVotes(
+  participantId: string,
+  questionIds: string[],
+): Promise<Map<string, 'UP' | 'DOWN'>> {
+  return new Promise((resolve, reject) => {
+    pendingQaOwnVoteLoads.push({ participantId, questionIds, resolve, reject });
+    if (!qaOwnVoteFlushScheduled) {
+      qaOwnVoteFlushScheduled = true;
+      queueMicrotask(() => void flushQaOwnVoteLoads());
+    }
+  });
+}
+
 function encodeQaPageCursor(cursor: QaPageCursor): string {
   return Buffer.from(JSON.stringify(cursor), 'utf8').toString('base64url');
 }
@@ -440,6 +504,7 @@ async function buildQaQuestionPayloadFromDb(options: {
   search?: string;
   statuses?: Array<QaQuestionRecord['status']>;
   rankingRevision: string;
+  totalCountHint?: number;
 }): Promise<RankedQaPage> {
   const search = options.search?.trim() ?? '';
   const statusesKey = options.statuses?.slice().sort().join(',') ?? '';
@@ -461,6 +526,12 @@ async function buildQaQuestionPayloadFromDb(options: {
   const participantCount = options.participantCountForControversy ?? 0;
   const controversyThreshold = Math.max(1, participantCount * 0.1);
   const controversyThresholdSql = Prisma.sql`${controversyThreshold}::DOUBLE PRECISION`;
+  const shareRankingLoad =
+    !moderatorView &&
+    options.participantId !== undefined &&
+    options.totalCountHint !== undefined &&
+    search.length === 0 &&
+    statusesKey.length === 0;
   const visibility = moderatorView
     ? Prisma.empty
     : options.participantId
@@ -479,16 +550,18 @@ async function buildQaQuestionPayloadFromDb(options: {
   const searchFilter = search
     ? Prisma.sql`AND question."text" ILIKE ${`%${search}%`}`
     : Prisma.empty;
-  const myVoteJoin = options.participantId
-    ? Prisma.sql`
+  const myVoteJoin =
+    options.participantId && !shareRankingLoad
+      ? Prisma.sql`
         LEFT JOIN "QaUpvote" AS own_vote
           ON own_vote."qaQuestionId" = question."id"
           AND own_vote."participantId" = ${options.participantId}
       `
-    : Prisma.empty;
-  const myVoteSelect = options.participantId
-    ? Prisma.sql`own_vote."direction"`
-    : Prisma.sql`NULL::"QaVoteDirection"`;
+      : Prisma.empty;
+  const myVoteSelect =
+    options.participantId && !shareRankingLoad
+      ? Prisma.sql`own_vote."direction"`
+      : Prisma.sql`NULL::"QaVoteDirection"`;
   const statusBucket = moderatorView
     ? Prisma.sql`CASE question."status"
         WHEN 'PINNED' THEN 0
@@ -510,13 +583,26 @@ async function buildQaQuestionPayloadFromDb(options: {
       : options.sortMode === 'CONTROVERSIAL'
         ? Prisma.sql`ranked."controversyScore" DESC, ranked."positiveVoteCount" DESC,`
         : Prisma.empty;
+  const pageModeOrder =
+    options.sortMode === 'BEST'
+      ? Prisma.sql`page."bestScore" DESC, page."positiveVoteCount" DESC,`
+      : options.sortMode === 'CONTROVERSIAL'
+        ? Prisma.sql`page."controversyScore" DESC, page."positiveVoteCount" DESC,`
+        : Prisma.empty;
+  const totalCountSelect =
+    options.totalCountHint === undefined
+      ? Prisma.sql`COUNT(*) OVER() AS "totalCount"`
+      : Prisma.sql`${options.totalCountHint}::BIGINT AS "totalCount"`;
 
-  const rows = await prisma.$queryRaw<RankedQaQuestionRow[]>`
+  const loadRows = () => prisma.$queryRaw<RankedQaQuestionRow[]>`
     WITH scored AS (
       SELECT
-        question.*,
-        participant."nickname" AS "authorNickname",
-        ${myVoteSelect} AS "myVote",
+        question."id",
+        question."upvoteCount",
+        question."positiveVoteCount",
+        question."negativeVoteCount",
+        question."status",
+        question."createdAt",
         ${statusBucket} AS status_bucket,
         CASE question."status"
           WHEN 'PINNED' THEN 0
@@ -574,30 +660,86 @@ async function buildQaQuestionPayloadFromDb(options: {
           )
         END AS "controversyScore"
       FROM "QaQuestion" AS question
-      LEFT JOIN "Participant" AS participant
-        ON participant."id" = question."participantId"
-      ${myVoteJoin}
       WHERE question."sessionId" = ${options.sessionId}
       ${visibility}
       ${statusFilter}
       ${searchFilter}
     ),
     ranked AS (
-      SELECT scored.*, COUNT(*) OVER() AS "totalCount"
+      SELECT scored.*, ${totalCountSelect}
       FROM scored
+    ),
+    page AS (
+      SELECT *
+      FROM ranked
+      ORDER BY
+        ranked.status_bucket ASC,
+        ${modeOrder}
+        ranked."upvoteCount" DESC,
+        ranked.status_tie ASC,
+        ranked."createdAt" ASC,
+        ranked."id" ASC
+      LIMIT ${options.pageSize + 1}
+      OFFSET ${offset}
     )
-    SELECT *
-    FROM ranked
+    SELECT
+      question.*,
+      participant."nickname" AS "authorNickname",
+      ${myVoteSelect} AS "myVote",
+      page.status_bucket,
+      page.status_tie,
+      page."bestScore",
+      page."controversyScore",
+      page."totalCount"
+    FROM page
+    INNER JOIN "QaQuestion" AS question
+      ON question."id" = page."id"
+    LEFT JOIN "Participant" AS participant
+      ON participant."id" = question."participantId"
+    ${myVoteJoin}
     ORDER BY
-      ranked.status_bucket ASC,
-      ${modeOrder}
-      ranked."upvoteCount" DESC,
-      ranked.status_tie ASC,
-      ranked."createdAt" ASC,
-      ranked."id" ASC
-    LIMIT ${options.pageSize + 1}
-    OFFSET ${offset}
+      page.status_bucket ASC,
+      ${pageModeOrder}
+      page."upvoteCount" DESC,
+      page.status_tie ASC,
+      page."createdAt" ASC,
+      page."id" ASC
   `;
+  const sharedLoadKey = shareRankingLoad
+    ? [
+        options.sessionId,
+        options.rankingRevision,
+        options.sortMode,
+        options.pageSize,
+        offset,
+        options.includeAuthorNickname === true ? 1 : 0,
+      ].join(':')
+    : null;
+  let rowsPromise = sharedLoadKey ? sharedQaRankingLoads.get(sharedLoadKey) : undefined;
+  if (!rowsPromise) {
+    rowsPromise = loadRows();
+    if (sharedLoadKey) {
+      const pendingRows = rowsPromise;
+      const clearPendingRows = () => {
+        if (sharedQaRankingLoads.get(sharedLoadKey) === pendingRows) {
+          sharedQaRankingLoads.delete(sharedLoadKey);
+        }
+      };
+      sharedQaRankingLoads.set(sharedLoadKey, pendingRows);
+      void pendingRows.then(clearPendingRows, clearPendingRows);
+    }
+  }
+  let rows = await rowsPromise;
+  if (shareRankingLoad && options.participantId && rows.length > 0) {
+    const ownVoteByQuestionId = await loadQaOwnVotes(
+      options.participantId,
+      rows.map((row) => row.id),
+    );
+    rows = rows.map((row) => ({
+      ...row,
+      myVote: ownVoteByQuestionId.get(row.id) ?? null,
+    }));
+  }
 
   const hasNextPage = rows.length > options.pageSize;
   const pageRows = rows.slice(0, options.pageSize);
@@ -746,6 +888,12 @@ export const qaRouter = router({
           search: input.search,
           statuses: input.statuses,
           rankingRevision,
+          totalCountHint:
+            !input.search?.trim() &&
+            (!input.statuses || input.statuses.length === 0) &&
+            (input.moderatorView === true || session.qaModerationMode === false)
+              ? session.qaQuestionCount
+              : undefined,
         }),
         input.participantId
           ? prisma.qaQuestion.count({
@@ -809,6 +957,7 @@ export const qaRouter = router({
           qaClosesAt: true,
           sessionLifecycleRevision: true,
           qaRankingRevision: true,
+          qaQuestionCount: true,
           qaModerationMode: true,
           onboardingAnonymousMode: true,
         },
@@ -843,6 +992,7 @@ export const qaRouter = router({
         includeAuthorNickname: session.onboardingAnonymousMode !== true,
         pageSize: 100,
         rankingRevision,
+        totalCountHint: session.qaModerationMode === false ? session.qaQuestionCount : undefined,
       });
       return buildQaQuestionsSnapshot(session, page.questions, state, serverNow, {
         rankingRevision,

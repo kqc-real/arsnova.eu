@@ -1,36 +1,36 @@
-import { randomBytes } from 'node:crypto';
 import { getRedis } from '../redis';
 import { logger } from './logger';
 
 const JOIN_ADMISSION_WINDOW_MS = 1_000;
-const JOIN_ADMISSION_LIMIT_PER_WINDOW = 75;
+const JOIN_ADMISSION_LIMIT_PER_WINDOW = 125;
 const JOIN_ADMISSION_TTL_MS = 5_000;
 const JOIN_ADMISSION_MIN_DELAY_MS = 40;
 const JOIN_ADMISSION_MAX_DELAY_MS = 1_200;
-const JOIN_ADMISSION_KEY_PREFIX = 'join:admission:session:';
+const JOIN_ADMISSION_KEY_PREFIX = 'join:admission:v2:session:';
 
 const JOIN_ADMISSION_LUA = `
 local key = KEYS[1]
 local now = tonumber(ARGV[1])
 local windowMs = tonumber(ARGV[2])
 local limit = tonumber(ARGV[3])
-local member = ARGV[4]
-local ttlMs = tonumber(ARGV[5])
-local cutoff = now - windowMs
+local ttlMs = tonumber(ARGV[4])
+local state = redis.call('HMGET', key, 'tokens', 'refilledAt')
+local tokens = tonumber(state[1]) or limit
+local refilledAt = tonumber(state[2]) or now
+local elapsedMs = math.max(0, now - refilledAt)
 
-redis.call('ZREMRANGEBYSCORE', key, 0, cutoff)
-
-local count = redis.call('ZCARD', key)
-if count < limit then
-  redis.call('ZADD', key, now, member)
+tokens = math.min(limit, tokens + (elapsedMs * limit / windowMs))
+if tokens >= 1 then
+  tokens = tokens - 1
+  redis.call('HSET', key, 'tokens', tokens, 'refilledAt', now)
   redis.call('PEXPIRE', key, ttlMs)
-  return {1, 0, count + 1}
+  return {1, 0}
 end
 
-local oldest = redis.call('ZRANGE', key, 0, 0, 'WITHSCORES')
-local oldestScore = tonumber(oldest[2]) or now
-local retryAfterMs = math.max(0, windowMs - (now - oldestScore))
-return {0, retryAfterMs, count}
+local retryAfterMs = math.ceil((1 - tokens) * windowMs / limit)
+redis.call('HSET', key, 'tokens', tokens, 'refilledAt', now)
+redis.call('PEXPIRE', key, ttlMs)
+return {0, retryAfterMs}
 `;
 
 let warnedUnavailable = false;
@@ -65,7 +65,6 @@ async function tryAcquireJoinAdmissionSlot(
       nowMs.toString(),
       JOIN_ADMISSION_WINDOW_MS.toString(),
       JOIN_ADMISSION_LIMIT_PER_WINDOW.toString(),
-      `${nowMs}:${randomBytes(6).toString('hex')}`,
       JOIN_ADMISSION_TTL_MS.toString(),
     );
 

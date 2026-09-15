@@ -61,6 +61,8 @@ function passingMetrics(config, { soak = false } = {}) {
       ratingSamples: config.sampling.ratings,
       realisticSession: {
         featuredQuestions: QA_ASSEMBLY_FEATURED_QUESTIONS.length,
+        successfulRatings: config.sampling.ratings,
+        technicalRatingErrors: 0,
         rankings: Object.fromEntries(
           Object.entries(QA_ASSEMBLY_EXPECTED_RANKING).map(([sort, featureIndex]) => {
             const question = QA_ASSEMBLY_FEATURED_QUESTIONS[featureIndex];
@@ -258,7 +260,7 @@ test('scheitert hart an Grenzwerten, fehlender Revision oder unvollständigen Pr
   metrics.api.byClass.QA_SUBMIT.successes = 199;
   metrics.seed.deadlineRejections = 0;
   metrics.seed.wordCloudCorpus.analyzedQuestionCount = 499;
-  metrics.api.byClass.QA_RATING.successes -= 1;
+  metrics.seed.realisticSession.successfulRatings -= 1;
   metrics.seed.realisticSession.rankings.CONTROVERSIAL.text = 'Falsche Spitzenfrage';
   metrics.websocket.reconnect.publishedAfterResubscribe = false;
   metrics.websocket.reconnect.applied = 499;

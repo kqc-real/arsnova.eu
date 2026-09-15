@@ -120,6 +120,7 @@ function buildSession() {
     onboardingTeamCount: null,
     onboardingTeamAssignment: null,
     onboardingTeamNames: null,
+    firstParticipantJoinedAt: new Date('2026-03-13T11:55:00.000Z'),
     quiz: {
       name: 'Test-Quiz',
       nicknameTheme: 'HIGH_SCHOOL',
@@ -197,6 +198,7 @@ describe('session.join', () => {
     expect(result.rejoinToken).toBe(REJOIN_CAPABILITY);
     expect(result.teamId).toBe(TEAM_ID);
     expect(result.teamName).toBe('Team A');
+    expect(prismaMock.participant.count).toHaveBeenCalledTimes(1);
     expect(presenceMocks.touchParticipantPresence).toHaveBeenCalledWith(SESSION_ID, PARTICIPANT_ID);
   });
 
@@ -232,6 +234,8 @@ describe('session.join', () => {
       expect(result.rejoinToken).toBe(REJOIN_CAPABILITY);
       expect(result.productFeedbackClaimToken).toEqual(expect.any(String));
       expect(result.participantCount).toBe(4);
+      expect(prismaMock.session.findUnique).toHaveBeenCalledTimes(1);
+      expect(prismaMock.participant.count).not.toHaveBeenCalled();
       expect(statsMocks.updateMaxParticipantsSingleSession).toHaveBeenCalledWith(4);
       expect(statsMocks.updateDailyMaxParticipants).toHaveBeenCalledWith(4);
     },
@@ -244,23 +248,25 @@ describe('session.join', () => {
       id: PARTICIPANT_ID,
     });
     prismaMock.participant.count.mockResolvedValue(1);
-    prismaMock.session.findUnique.mockResolvedValueOnce(buildSession()).mockResolvedValueOnce({
-      ...buildSession(),
-      onboardingProfileConfigured: true,
-      onboardingTeamMode: true,
-      onboardingTeamCount: 2,
-      onboardingTeamAssignment: 'AUTO',
-      onboardingTeamNames: ['Team 🍎', 'Team 🍐'],
-      onboardingNicknameTheme: 'HIGH_SCHOOL',
-      quiz: {
-        ...buildSession().quiz,
-        teamMode: true,
-        teamCount: 2,
-        teamAssignment: 'AUTO',
-        teamNames: ['Team 🍎', 'Team 🍐'],
-      },
-      _count: { participants: 1 },
-    });
+    prismaMock.session.findUnique
+      .mockResolvedValueOnce({ ...buildSession(), firstParticipantJoinedAt: null })
+      .mockResolvedValueOnce({
+        ...buildSession(),
+        onboardingProfileConfigured: true,
+        onboardingTeamMode: true,
+        onboardingTeamCount: 2,
+        onboardingTeamAssignment: 'AUTO',
+        onboardingTeamNames: ['Team 🍎', 'Team 🍐'],
+        onboardingNicknameTheme: 'HIGH_SCHOOL',
+        quiz: {
+          ...buildSession().quiz,
+          teamMode: true,
+          teamCount: 2,
+          teamAssignment: 'AUTO',
+          teamNames: ['Team 🍎', 'Team 🍐'],
+        },
+        _count: { participants: 1 },
+      });
     prismaMock.team.findMany.mockResolvedValue([
       { id: TEAM_A, name: 'Team 🍎', color: '#1E88E5', _count: { participants: 0 } },
       { id: TEAM_B, name: 'Team 🍐', color: '#43A047', _count: { participants: 0 } },
