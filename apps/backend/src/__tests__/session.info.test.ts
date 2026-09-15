@@ -176,6 +176,8 @@ describe('session.getInfo (ADR-0009)', () => {
           open: true,
           title: 'Fragen zur Vorlesung',
           moderationMode: true,
+          state: 'OPEN',
+          closesAt: null,
         },
         quickFeedback: { enabled: true, open: true },
       });
@@ -256,6 +258,8 @@ describe('session.getInfo (ADR-0009)', () => {
         open: false,
         title: null,
         moderationMode: false,
+        state: 'DISABLED',
+        closesAt: null,
       },
       quickFeedback: { enabled: true, open: true },
     });
@@ -291,6 +295,8 @@ describe('session.getInfo (ADR-0009)', () => {
         open: true,
         title: 'Offene Fragerunde',
         moderationMode: true,
+        state: 'OPEN',
+        closesAt: null,
       },
       quickFeedback: { enabled: false, open: false },
     });

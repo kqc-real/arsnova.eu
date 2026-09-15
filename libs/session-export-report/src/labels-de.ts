@@ -240,6 +240,7 @@ export interface SessionResultsReportLabels {
   ratingAverageTemplate: string;
   ratingAverageWithSigmaTemplate: string;
   qaTitle: string;
+  qaCoverageTemplate: string;
   qaStatus: string;
   qaUpvotes: string;
   qaControversial: string;
@@ -630,6 +631,7 @@ export function getSessionResultsReportLabelsDe(): SessionResultsReportLabels {
     ratingAverageTemplate: 'Ø {0} von 5 ★',
     ratingAverageWithSigmaTemplate: 'Ø {0} von 5 ★ · σ {1}',
     qaTitle: 'Q&A-Fragen der Teilnehmenden',
+    qaCoverageTemplate: 'Gezeigt werden die {0} höchstplatzierten von {1} exportierbaren Fragen.',
     qaStatus: 'Status',
     qaUpvotes: 'Upvotes',
     qaControversial: 'Umstritten',

@@ -190,6 +190,7 @@ async function run() {
       code,
       nickname,
       anonymousClientId: globalThis.crypto.randomUUID(),
+      joinIdempotencyKey: globalThis.crypto.randomUUID(),
     }),
   );
   if (joinResults.length !== PARTICIPANTS) {

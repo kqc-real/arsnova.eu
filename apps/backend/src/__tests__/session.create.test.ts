@@ -6,7 +6,7 @@ const {
   prismaMock,
   checkSessionCreateRateMock,
   shouldBypassSessionCreateRateMock,
-  createHostSessionTokenMock,
+  createCredentialBoundHostTokenMock,
 } = vi.hoisted(() => ({
   prismaMock: {
     session: {
@@ -23,7 +23,7 @@ const {
   },
   checkSessionCreateRateMock: vi.fn(),
   shouldBypassSessionCreateRateMock: vi.fn(),
-  createHostSessionTokenMock: vi.fn(),
+  createCredentialBoundHostTokenMock: vi.fn(),
 }));
 
 vi.mock('../db', () => ({
@@ -36,7 +36,7 @@ vi.mock('../lib/rateLimit', () => ({
 }));
 
 vi.mock('../lib/hostAuth', () => ({
-  createHostSessionToken: createHostSessionTokenMock,
+  createCredentialBoundHostToken: createCredentialBoundHostTokenMock,
 }));
 
 import { sessionRouter } from '../routers/session';
@@ -46,13 +46,17 @@ const SESSION_ID = '6a8edced-5f8f-4cfa-9176-454fac9570ad';
 const QUIZ_ID = '11111111-1111-4111-8111-111111111111';
 const CODE = 'ABC123';
 const HOST_TOKEN = 'host-token-123';
+const HOST_TOKEN_EXPIRES_AT = '2026-03-14T12:15:00.000Z';
 
 describe('session.create (Story 2.1a)', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     checkSessionCreateRateMock.mockResolvedValue({ allowed: true });
     shouldBypassSessionCreateRateMock.mockReturnValue(false);
-    createHostSessionTokenMock.mockResolvedValue(HOST_TOKEN);
+    createCredentialBoundHostTokenMock.mockResolvedValue({
+      token: HOST_TOKEN,
+      expiresAt: HOST_TOKEN_EXPIRES_AT,
+    });
     prismaMock.session.findUnique.mockResolvedValue(null);
     prismaMock.quiz.findUnique.mockResolvedValue({
       id: QUIZ_ID,
@@ -97,6 +101,11 @@ describe('session.create (Story 2.1a)', () => {
       expect(result.status).toBe('LOBBY');
       expect(result.quizName).toBe('Mein Quiz');
       expect(result.hostToken).toBe(HOST_TOKEN);
+      expect(createCredentialBoundHostTokenMock).toHaveBeenCalledOnce();
+      expect(createCredentialBoundHostTokenMock).toHaveBeenCalledWith({
+        sessionCode: CODE,
+        credentialVersion: 1,
+      });
       expect(prismaMock.session.create).toHaveBeenCalledWith(
         expect.objectContaining({
           data: expect.objectContaining({
@@ -164,7 +173,7 @@ describe('session.create (Story 2.1a)', () => {
       status: 'LOBBY',
       quizId: QUIZ_ID,
       qaEnabled: true,
-      qaOpen: true,
+      qaOpen: false,
       qaTitle: 'Fragen',
       qaModerationMode: true,
       quickFeedbackEnabled: false,
@@ -182,7 +191,7 @@ describe('session.create (Story 2.1a)', () => {
       expect.objectContaining({
         data: expect.objectContaining({
           qaEnabled: true,
-          qaOpen: true,
+          qaOpen: false,
           qaTitle: 'Fragen',
           qaModerationMode: true,
         }),
@@ -198,7 +207,7 @@ describe('session.create (Story 2.1a)', () => {
       status: 'LOBBY',
       quizId: QUIZ_ID,
       qaEnabled: true,
-      qaOpen: true,
+      qaOpen: false,
       qaTitle: 'Fragen zum Kapitel 3',
       qaModerationMode: true,
       quickFeedbackEnabled: true,
@@ -220,7 +229,7 @@ describe('session.create (Story 2.1a)', () => {
           type: 'QUIZ',
           quizId: QUIZ_ID,
           qaEnabled: true,
-          qaOpen: true,
+          qaOpen: false,
           qaTitle: 'Fragen zum Kapitel 3',
           qaModerationMode: true,
           quickFeedbackEnabled: true,
@@ -240,7 +249,7 @@ describe('session.create (Story 2.1a)', () => {
       title: 'Offene Fragerunde',
       moderationMode: true,
       qaEnabled: true,
-      qaOpen: true,
+      qaOpen: false,
       qaTitle: 'Offene Fragerunde',
       qaModerationMode: true,
       quickFeedbackEnabled: false,
@@ -254,12 +263,14 @@ describe('session.create (Story 2.1a)', () => {
       title: '  Offene Fragerunde  ',
     });
 
-    expect(result).toEqual({
+    expect(result).toMatchObject({
       sessionId: SESSION_ID,
       code: CODE,
       status: 'LOBBY',
       quizName: null,
       hostToken: HOST_TOKEN,
+      timeZone: 'UTC',
+      sessionLifecycleRevision: 0,
     });
     expect(prismaMock.session.create).toHaveBeenCalledWith(
       expect.objectContaining({
@@ -269,7 +280,7 @@ describe('session.create (Story 2.1a)', () => {
           title: 'Offene Fragerunde',
           moderationMode: true,
           qaEnabled: true,
-          qaOpen: true,
+          qaOpen: false,
           qaTitle: 'Offene Fragerunde',
           qaModerationMode: true,
           quickFeedbackEnabled: false,
@@ -288,6 +299,48 @@ describe('session.create (Story 2.1a)', () => {
     );
   });
 
+  it.each([
+    {
+      label: 'vorgegebene Pseudonyme',
+      allowCustomNicknames: false,
+      anonymousMode: false,
+      nicknameTheme: 'PRIMARY_SCHOOL' as const,
+    },
+    {
+      label: 'eigene Nicknames',
+      allowCustomNicknames: true,
+      anonymousMode: false,
+      nicknameTheme: 'HIGH_SCHOOL' as const,
+    },
+    {
+      label: 'Anonymmodus',
+      allowCustomNicknames: false,
+      anonymousMode: true,
+      nicknameTheme: 'MIDDLE_SCHOOL' as const,
+    },
+  ])('persistiert $label beim direkten Q&A-Start ohne Quiz', async (profile) => {
+    await caller.create({
+      type: 'QUIZ',
+      qaEnabled: true,
+      allowCustomNicknames: profile.allowCustomNicknames,
+      anonymousMode: profile.anonymousMode,
+      nicknameTheme: profile.nicknameTheme,
+    });
+
+    expect(prismaMock.session.create).toHaveBeenCalledWith(
+      expect.objectContaining({
+        data: expect.objectContaining({
+          quizId: null,
+          qaEnabled: true,
+          onboardingProfileConfigured: true,
+          onboardingAllowCustomNicknames: profile.allowCustomNicknames,
+          onboardingAnonymousMode: profile.anonymousMode,
+          onboardingNicknameTheme: profile.nicknameTheme,
+        }),
+      }),
+    );
+  });
+
   it('erstellt Q&A-Session ohne quizId und mit optionalem Titel', async () => {
     prismaMock.session.create.mockResolvedValueOnce({
       id: SESSION_ID,
@@ -296,7 +349,7 @@ describe('session.create (Story 2.1a)', () => {
       status: 'LOBBY',
       quizId: null,
       title: 'Offene Fragerunde',
-      qaOpen: true,
+      qaOpen: false,
       quickFeedbackOpen: false,
       quiz: null,
     });
@@ -306,12 +359,14 @@ describe('session.create (Story 2.1a)', () => {
       title: '  Offene Fragerunde  ',
     });
 
-    expect(result).toEqual({
+    expect(result).toMatchObject({
       sessionId: SESSION_ID,
       code: CODE,
       status: 'LOBBY',
       quizName: null,
       hostToken: HOST_TOKEN,
+      timeZone: 'UTC',
+      sessionLifecycleRevision: 0,
     });
     expect(prismaMock.session.create).toHaveBeenCalledWith(
       expect.objectContaining({
@@ -321,7 +376,7 @@ describe('session.create (Story 2.1a)', () => {
           title: 'Offene Fragerunde',
           moderationMode: true,
           qaEnabled: true,
-          qaOpen: true,
+          qaOpen: false,
           qaTitle: 'Offene Fragerunde',
           qaModerationMode: true,
           quickFeedbackEnabled: false,
@@ -361,12 +416,14 @@ describe('session.create (Story 2.1a)', () => {
       quickFeedbackEnabled: true,
     });
 
-    expect(result).toEqual({
+    expect(result).toMatchObject({
       sessionId: SESSION_ID,
       code: CODE,
       status: 'LOBBY',
       quizName: null,
       hostToken: HOST_TOKEN,
+      timeZone: 'UTC',
+      sessionLifecycleRevision: 0,
     });
     expect(prismaMock.session.create).toHaveBeenCalledWith(
       expect.objectContaining({

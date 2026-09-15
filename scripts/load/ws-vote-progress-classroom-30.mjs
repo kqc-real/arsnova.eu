@@ -178,6 +178,7 @@ async function joinParticipants(publicTrpc, code) {
       code,
       nickname,
       anonymousClientId: globalThis.crypto.randomUUID(),
+      joinIdempotencyKey: globalThis.crypto.randomUUID(),
     }),
   );
 }

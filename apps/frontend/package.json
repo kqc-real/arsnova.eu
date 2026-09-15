@@ -63,6 +63,7 @@
     "@angular/ssr": "^21.2.19",
     "@arsnova/session-export-report": "*",
     "@arsnova/shared-types": "*",
+    "@js-temporal/polyfill": "^0.5.1",
     "@trpc/client": "^11.0.0",
     "@trpc/server": "^11.0.0",
     "chart.js": "^4.5.1",

@@ -16,6 +16,7 @@ import {
   type HostPairingState,
   type HostSessionRole,
 } from '@arsnova/shared-types';
+import { prisma } from '../db';
 import { getRedis } from '../redis';
 import {
   createPairedHostInvalidationHub,
@@ -189,6 +190,7 @@ async function applyEffects(
   sessionCode: string,
   effects: HostPairingEffect[],
   issuedToken?: string,
+  credentialVersion?: number,
 ): Promise<void> {
   const redis = getRedis();
   const code = normalizeSessionCode(sessionCode);
@@ -224,7 +226,11 @@ async function applyEffects(
       case 'SET_TOKEN_LOOKUP':
         await redis.set(
           tokenLookupKey(effect.tokenHash),
-          JSON.stringify({ sessionCode: code, tokenId: effect.tokenId }),
+          JSON.stringify({
+            sessionCode: code,
+            tokenId: effect.tokenId,
+            credentialVersion: credentialVersion ?? 0,
+          }),
           'EX',
           60 * 60 * 8,
         );
@@ -372,6 +378,13 @@ export async function approveHostPairing(params: {
   const tokenId = randomUUID();
   const now = new Date();
   return withSessionLock(params.sessionCode, async () => {
+    const session = await prisma.session.findUnique({
+      where: { code: normalizeSessionCode(params.sessionCode) },
+      select: { hostCredentialVersion: true },
+    });
+    if (!session) {
+      throw pairingError('REQUEST_NOT_FOUND');
+    }
     const current = await loadRecord(params.sessionCode);
     const result = applyHostPairingCommand(current, {
       type: 'APPROVE',
@@ -381,7 +394,12 @@ export async function approveHostPairing(params: {
       now,
     });
     if (!result.ok) throw pairingError(result.code);
-    await applyEffects(params.sessionCode, result.effects, pairedHostToken);
+    await applyEffects(
+      params.sessionCode,
+      result.effects,
+      pairedHostToken,
+      session.hostCredentialVersion ?? 0,
+    );
     await saveRecord(params.sessionCode, result.record);
     return {
       tokenId,
@@ -533,8 +551,19 @@ export async function findPairedHostByToken(
   const tokenHash = hashHostPairingSecret(token);
   const raw = await getRedis().get(tokenLookupKey(tokenHash));
   if (!raw) return null;
-  const lookup = JSON.parse(raw) as { sessionCode: string; tokenId: string };
+  const lookup = JSON.parse(raw) as {
+    sessionCode: string;
+    tokenId: string;
+    credentialVersion?: number;
+  };
   if (normalizeSessionCode(lookup.sessionCode) !== normalizeSessionCode(sessionCode)) {
+    return null;
+  }
+  const session = await prisma.session.findUnique({
+    where: { code: normalizeSessionCode(sessionCode) },
+    select: { hostCredentialVersion: true },
+  });
+  if (!session || (session.hostCredentialVersion ?? 0) !== (lookup.credentialVersion ?? 0)) {
     return null;
   }
   const record = await loadRecord(sessionCode);

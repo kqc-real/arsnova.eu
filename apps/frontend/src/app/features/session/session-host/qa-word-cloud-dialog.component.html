@@ -123,6 +123,17 @@
   @if (smoothingHint() && showSmoothingControls()) {
     <p class="qa-word-cloud-dialog__mode-note" aria-live="polite">{{ smoothingHint() }}</p>
   }
+  @if (eligibleQuestionCount() > 0) {
+    <p class="qa-word-cloud-dialog__coverage" role="status">
+      <span i18n="@@sessionQa.wordCloudCoverage"
+        >{{ analyzedQuestionCount() }} höchstplatzierte von
+        {{ eligibleQuestionCount() }} berücksichtigten Fragen</span
+      >
+      @if (tooltipMetricLabel(); as metric) {
+        <span aria-hidden="true"> · </span><span>{{ metric }}</span>
+      }
+    </p>
+  }
 
   <app-word-cloud
     class="qa-word-cloud-dialog__cloud"

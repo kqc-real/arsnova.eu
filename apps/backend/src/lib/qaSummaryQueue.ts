@@ -10,6 +10,7 @@ import { prisma } from '../db';
 import { logger } from './logger';
 import { runQaSummaryInference } from './qaSummaryAdapter';
 import { resolveQaSummaryConfig, type QaSummaryConfig } from './qaSummaryConfig';
+import { registerSessionPurgeInvalidator } from './sessionPurgeInvalidation';
 import {
   assertQaSummarySnapshotMinimized,
   buildQaSummaryAnalysisSnapshot,
@@ -58,23 +59,61 @@ type QueueHooks = {
 const states = new Map<string, SessionSummaryState>();
 const queue: QueueJob[] = [];
 const pendingTimers: ReturnType<typeof setImmediate>[] = [];
+const invalidatedSessions = new Map<string, number>();
 let running = 0;
+const queueMetrics = {
+  completed: 0,
+  failed: 0,
+  timeouts: 0,
+  cacheHits: 0,
+  queueRejected: 0,
+  lastLatencyMs: null as number | null,
+};
+
+function isSessionInvalidated(sessionId: string): boolean {
+  const invalidatedUntil = invalidatedSessions.get(sessionId);
+  if (invalidatedUntil === undefined) return false;
+  if (invalidatedUntil <= Date.now()) {
+    invalidatedSessions.delete(sessionId);
+    return false;
+  }
+  return true;
+}
+
+export function invalidateQaSummaryForSession(sessionId: string): void {
+  invalidatedSessions.set(sessionId, Date.now() + 60_000);
+  states.delete(sessionId);
+  for (let index = queue.length - 1; index >= 0; index -= 1) {
+    if (queue[index]?.sessionId === sessionId) {
+      queue.splice(index, 1);
+    }
+  }
+}
+
+registerSessionPurgeInvalidator((event) => invalidateQaSummaryForSession(event.sessionId));
 
 const defaultLoadSnapshot: QaSummarySnapshotLoader = async (sessionId, locale, maxSources) => {
-  const candidates = await prisma.qaQuestion.findMany({
-    where: {
-      sessionId,
-      status: { in: ['PENDING', 'ACTIVE', 'PINNED'] },
-    },
-    select: {
-      id: true,
-      text: true,
-      status: true,
-      upvoteCount: true,
-      createdAt: true,
-      nlpStatus: true,
-    },
-  });
+  const candidateLimitPerStatus = Math.max(maxSources, Math.min(200, maxSources * 5));
+  const select = {
+    id: true,
+    text: true,
+    status: true,
+    upvoteCount: true,
+    createdAt: true,
+    nlpStatus: true,
+  } as const;
+  const candidates = (
+    await Promise.all(
+      (['PINNED', 'PENDING', 'ACTIVE'] as const).map((status) =>
+        prisma.qaQuestion.findMany({
+          where: { sessionId, status },
+          orderBy: [{ upvoteCount: 'desc' }, { createdAt: 'asc' }, { id: 'asc' }],
+          take: candidateLimitPerStatus,
+          select,
+        }),
+      ),
+    )
+  ).flat();
   return buildQaSummaryAnalysisSnapshot({
     locale,
     questions: selectQaSummarySnapshotQuestions(candidates, maxSources),
@@ -178,12 +217,15 @@ async function processJob(job: QueueJob): Promise<void> {
   const config = hooks.config();
   const state = states.get(job.sessionId);
   try {
+    if (isSessionInvalidated(job.sessionId)) return;
     const snapshot = await hooks.loadSnapshot(job.sessionId, job.locale, config.maxSources);
+    if (isSessionInvalidated(job.sessionId)) return;
     assertQaSummarySnapshotMinimized(snapshot);
     const snapshotHash = hashQaSummarySnapshot(snapshot);
     const analyzedAt = new Date(hooks.now()).toISOString();
 
     if (hasTooFewSummarySources(snapshot)) {
+      if (isSessionInvalidated(job.sessionId)) return;
       const result = tooFewSourcesResult(snapshot, snapshotHash, analyzedAt);
       states.set(job.sessionId, {
         result,
@@ -196,10 +238,13 @@ async function processJob(job: QueueJob): Promise<void> {
         sourceCount: snapshot.sources.length,
         latencyMs: hooks.now() - started,
       });
+      queueMetrics.completed += 1;
+      queueMetrics.lastLatencyMs = hooks.now() - started;
       return;
     }
 
     const output = await withTimeout(hooks.processor(snapshot, snapshotHash), config.timeoutMs);
+    if (isSessionInvalidated(job.sessionId)) return;
     const result = bindQaSummaryModelOutput({
       output,
       snapshot,
@@ -217,7 +262,10 @@ async function processJob(job: QueueJob): Promise<void> {
       modelVersion: result.modelVersion,
       latencyMs: hooks.now() - started,
     });
+    queueMetrics.completed += 1;
+    queueMetrics.lastLatencyMs = hooks.now() - started;
   } catch (error) {
+    if (isSessionInvalidated(job.sessionId)) return;
     const timedOut = error instanceof Error && error.message === 'QA_SUMMARY_TIMEOUT';
     const snapshot: QaSummaryAnalysisSnapshot = state
       ? {
@@ -250,6 +298,9 @@ async function processJob(job: QueueJob): Promise<void> {
       latencyMs: hooks.now() - started,
       ...summarizeQaSummaryCatch(error),
     });
+    queueMetrics.failed += 1;
+    queueMetrics.lastLatencyMs = hooks.now() - started;
+    if (timedOut) queueMetrics.timeouts += 1;
   } finally {
     running -= 1;
     pump();
@@ -274,6 +325,14 @@ export function getQaSummaryRuntime(sessionId: string): QaSummaryRuntimeDTO {
   return toRuntime(sessionId);
 }
 
+export function getQaSummaryQueueMetrics() {
+  return {
+    queueLength: queue.length,
+    running,
+    ...queueMetrics,
+  };
+}
+
 export async function requestQaSummary(
   sessionId: string,
   locale: AppLocale,
@@ -296,6 +355,9 @@ export async function requestQaSummary(
   }
 
   const snapshot = await hooks.loadSnapshot(sessionId, locale, config.maxSources);
+  if (isSessionInvalidated(sessionId)) {
+    return toRuntime(sessionId);
+  }
   assertQaSummarySnapshotMinimized(snapshot);
   const snapshotHash = hashQaSummarySnapshot(snapshot);
 
@@ -324,10 +386,12 @@ export async function requestQaSummary(
     existing.result.snapshotHash === snapshotHash &&
     existing.result.status !== 'failed'
   ) {
+    queueMetrics.cacheHits += 1;
     return toRuntime(sessionId);
   }
 
   if (queue.length + running >= config.queueLimit) {
+    queueMetrics.queueRejected += 1;
     const result = createFailedQaSummaryResult({
       snapshot,
       snapshotHash,
@@ -364,6 +428,13 @@ export function resetQaSummaryQueueForTests(overrides?: Partial<QueueHooks>): vo
   queue.splice(0, queue.length);
   running = 0;
   states.clear();
+  invalidatedSessions.clear();
+  queueMetrics.completed = 0;
+  queueMetrics.failed = 0;
+  queueMetrics.timeouts = 0;
+  queueMetrics.cacheHits = 0;
+  queueMetrics.queueRejected = 0;
+  queueMetrics.lastLatencyMs = null;
   hooks = {
     ...createDefaultHooks(),
     ...overrides,

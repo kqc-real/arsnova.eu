@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { clearTranslations, loadTranslations } from '@angular/localize';
 import {
+  isNicknameTakenServerError,
   localizeKnownServerError,
   localizeKnownServerMessage,
 } from './localize-known-server-message';
@@ -13,6 +14,32 @@ describe('localizeKnownServerError', () => {
     expect(
       localizeKnownServerMessage('FORBIDDEN: Es sind bereits drei weitere Host-Geräte verbunden.'),
     ).toBe('Es sind bereits drei weitere Geräte verbunden.');
+  });
+
+  it('lokalisiert Nickname-Konflikte und erkennt sie unabhängig vom UI-Text', () => {
+    const error = {
+      message: 'CONFLICT: Dieser Nickname ist in dieser Session bereits vergeben.',
+    };
+    loadTranslations({
+      'join.nicknameConflict': 'This name is already taken in this session.',
+    });
+    try {
+      expect(isNicknameTakenServerError(error)).toBe(true);
+      expect(localizeKnownServerError(error, 'Join failed.')).toBe(
+        'This name is already taken in this session.',
+      );
+    } finally {
+      clearTranslations();
+    }
+  });
+
+  it('stuft andere CONFLICT-Fehler nicht als Nickname-Konflikt ein', () => {
+    const error = {
+      message:
+        'CONFLICT: Dieser Beitrittsversuch ist abgelaufen. Bitte starte den Beitritt erneut.',
+    };
+
+    expect(isNicknameTakenServerError(error)).toBe(false);
   });
 
   it('lokalisiert die bekannte Session-Create-Drosselung auch mit tRPC-Präfix', () => {

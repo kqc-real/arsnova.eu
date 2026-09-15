@@ -16,6 +16,9 @@ import {
 } from './word-cloud-normalization';
 import { WORD_CLOUD_ANALYSIS_CHANNEL_VALUES } from './word-cloud-semantic';
 
+export const QA_MAX_QUESTIONS_PER_PARTICIPANT = 10;
+export const QA_MAX_QUESTIONS_PER_SESSION = 25_000;
+
 // ---------------------------------------------------------------------------
 // Enums – müssen mit Prisma-Schema synchron bleiben
 // ---------------------------------------------------------------------------
@@ -1390,6 +1393,37 @@ export const SessionOnboardingProfileInputSchema = z.object({
   nicknameTheme: NicknameThemeEnum.optional(),
 });
 export type SessionOnboardingProfileInput = z.infer<typeof SessionOnboardingProfileInputSchema>;
+
+/** Sichtbare Identitätsregel einer Session; „ANONYMOUS“ meint keine sichtbare Verfasserangabe. */
+export const SessionParticipantIdentityModeSchema = z.enum([
+  'PRESET_PSEUDONYM',
+  'CUSTOM_NICKNAME',
+  'ANONYMOUS',
+]);
+export type SessionParticipantIdentityMode = z.infer<typeof SessionParticipantIdentityModeSchema>;
+
+/** URL-sichere, opake Capability mit mindestens 128 Bit Zufallsentropie. */
+export const OpaqueCapabilitySchema = z
+  .string()
+  .trim()
+  .min(22)
+  .max(256)
+  .regex(/^[A-Za-z0-9_-]+$/);
+export type OpaqueCapability = z.infer<typeof OpaqueCapabilitySchema>;
+
+/** Nicht geheime Referenz auf eine Session für den geprüften Supportprozess. */
+export const HostSupportIdSchema = z
+  .string()
+  .trim()
+  .toUpperCase()
+  .regex(/^ARS-[A-HJ-NP-Z2-9]{4}-[A-HJ-NP-Z2-9]{4}$/);
+export type HostSupportId = z.infer<typeof HostSupportIdSchema>;
+
+export const HostRecoveryCardDTOSchema = z.object({
+  supportId: HostSupportIdSchema,
+  recoveryCode: OpaqueCapabilitySchema,
+});
+export type HostRecoveryCardDTO = z.infer<typeof HostRecoveryCardDTOSchema>;
 
 /** Schema für eine einzelne Antwortoption beim Hinzufügen/Bearbeiten */
 export const QUIZ_UPLOAD_MAX_QUESTIONS = 200;
@@ -2829,6 +2863,45 @@ export async function createQuizHistoryAccessProof(
 // Session-Schemas (Story 2.1–2.3)
 // ---------------------------------------------------------------------------
 
+export const SESSION_DEFAULT_DURATION_HOURS = 24;
+export const SESSION_OPERATOR_DEFAULT_MAX_DURATION_DAYS = 14;
+export const SESSION_HARD_MAX_DURATION_DAYS = 30;
+export const SESSION_POST_PROCESSING_HOURS = 336;
+
+/** IANA-Zeitzone der Session; die konkrete Unterstützung prüft der Server. */
+export const SessionTimeZoneSchema = z.string().trim().min(1).max(64);
+export type SessionTimeZone = z.infer<typeof SessionTimeZoneSchema>;
+
+/** Auswahl vor dem ersten Beitritt: Kalendertage oder eindeutiger ISO-Zeitpunkt. */
+export const SessionInitialExpirationSelectionSchema = z.discriminatedUnion('kind', [
+  z.object({
+    kind: z.literal('DURATION_DAYS'),
+    days: z.number().int().min(1).max(SESSION_HARD_MAX_DURATION_DAYS),
+  }),
+  z.object({
+    kind: z.literal('ABSOLUTE'),
+    expiresAt: z.string().datetime({ offset: true }),
+  }),
+]);
+export type SessionInitialExpirationSelection = z.infer<
+  typeof SessionInitialExpirationSelectionSchema
+>;
+
+/** Globale Warnungsverlängerung; Kalendertage rechnen ab der bisherigen Frist. */
+export const SessionExpirationExtensionSelectionSchema = z.discriminatedUnion('kind', [
+  z.object({
+    kind: z.literal('QUICK'),
+    amount: z.enum(['ONE_HOUR', 'ONE_DAY', 'SEVEN_DAYS']),
+  }),
+  z.object({
+    kind: z.literal('ABSOLUTE'),
+    expiresAt: z.string().datetime({ offset: true }),
+  }),
+]);
+export type SessionExpirationExtensionSelection = z.infer<
+  typeof SessionExpirationExtensionSelectionSchema
+>;
+
 /** Input: Eine neue Live-Session starten */
 export const CreateSessionInputSchema = z
   .object({
@@ -2841,6 +2914,8 @@ export const CreateSessionInputSchema = z
     qaTitle: z.string().trim().max(200).optional(), // ADR-0009: Titel des Q&A-Tabs
     qaModerationMode: z.boolean().optional().default(true), // ADR-0009: Q&A-Vorab-Moderation (Default an)
     quickFeedbackEnabled: z.boolean().optional().default(false), // ADR-0009: Blitz-Feedback-Kanal
+    timeZone: SessionTimeZoneSchema.optional().default('UTC'),
+    expiration: SessionInitialExpirationSelectionSchema.optional(),
     ...SessionOnboardingProfileInputSchema.shape,
   })
   .superRefine((value, ctx) => {
@@ -2882,6 +2957,16 @@ export const CreateSessionOutputSchema = z.object({
   status: SessionStatusEnum,
   quizName: z.string().nullable(),
   hostToken: z.string().min(1),
+  /** Dauerhafter, genau an Session und Credential-Generation gebundener Browserzugang. */
+  hostBrowserCapability: OpaqueCapabilitySchema,
+  /** Einmalig auszugebende Notfallkarte; die Support-ID allein verleiht keine Rechte. */
+  hostRecoveryCard: HostRecoveryCardDTOSchema,
+  /** Optional nur für Rolling Deployments mit einem noch alten Backend-Image. */
+  createdAt: z.string().datetime().optional(),
+  expiresAt: z.string().datetime().optional(),
+  timeZone: SessionTimeZoneSchema.optional(),
+  sessionLifecycleRevision: z.number().int().min(0).optional(),
+  serverNow: z.string().datetime().optional(),
 });
 export type CreateSessionOutput = z.infer<typeof CreateSessionOutputSchema>;
 
@@ -2890,6 +2975,123 @@ export const GetSessionInfoInputSchema = z.object({
   code: z.string().length(6, { error: 'Session-Code muss 6 Zeichen lang sein' }),
 });
 export type GetSessionInfoInput = z.infer<typeof GetSessionInfoInputSchema>;
+
+/** Host-Konfiguration der sessionweiten sichtbaren Identitätsregel. */
+export const ConfigureSessionParticipationInputSchema = GetSessionInfoInputSchema.extend({
+  identityMode: SessionParticipantIdentityModeSchema,
+  nicknameTheme: NicknameThemeEnum.optional().default('HIGH_SCHOOL'),
+});
+export type ConfigureSessionParticipationInput = z.infer<
+  typeof ConfigureSessionParticipationInputSchema
+>;
+
+export const SessionParticipationProfileDTOSchema = z.object({
+  identityMode: SessionParticipantIdentityModeSchema,
+  nicknameTheme: NicknameThemeEnum,
+  allowCustomNicknames: z.boolean(),
+  anonymousMode: z.boolean(),
+  firstParticipantJoinedAt: z.string().datetime().nullable(),
+  configurationAllowed: z.boolean(),
+});
+export type SessionParticipationProfileDTO = z.infer<typeof SessionParticipationProfileDTOSchema>;
+
+export const HostRecoveryExchangeIdSchema = OpaqueCapabilitySchema.max(128);
+
+export const HostAccessTokenDTOSchema = z.object({
+  code: z.string().length(6),
+  hostToken: OpaqueCapabilitySchema,
+  hostTokenExpiresAt: z.string().datetime(),
+  role: z.enum(['ORIGINAL_HOST', 'PAIRED_HOST']),
+});
+export type HostAccessTokenDTO = z.infer<typeof HostAccessTokenDTOSchema>;
+
+export const IssueHostAccessTokenInputSchema = GetSessionInfoInputSchema.extend({
+  browserCapability: OpaqueCapabilitySchema,
+});
+export type IssueHostAccessTokenInput = z.infer<typeof IssueHostAccessTokenInputSchema>;
+
+export const PrepareHostCredentialBootstrapInputSchema = GetSessionInfoInputSchema.extend({
+  recoveryExchangeId: HostRecoveryExchangeIdSchema,
+});
+export type PrepareHostCredentialBootstrapInput = z.infer<
+  typeof PrepareHostCredentialBootstrapInputSchema
+>;
+
+export const HostCredentialExchangeSourceSchema = z.discriminatedUnion('kind', [
+  z.object({
+    kind: z.literal('RECOVERY'),
+    recoveryCode: OpaqueCapabilitySchema,
+  }),
+  z.object({
+    kind: z.literal('ADMIN_HANDOFF'),
+    handoffCapability: OpaqueCapabilitySchema,
+  }),
+]);
+export type HostCredentialExchangeSource = z.infer<typeof HostCredentialExchangeSourceSchema>;
+
+export const PrepareHostCredentialExchangeInputSchema = z.object({
+  supportId: HostSupportIdSchema,
+  recoveryExchangeId: HostRecoveryExchangeIdSchema,
+  source: HostCredentialExchangeSourceSchema,
+});
+export type PrepareHostCredentialExchangeInput = z.infer<
+  typeof PrepareHostCredentialExchangeInputSchema
+>;
+
+export const HostCredentialExchangeDTOSchema = z.object({
+  code: z.string().length(6),
+  browserCapability: OpaqueCapabilitySchema,
+  recoveryCard: HostRecoveryCardDTOSchema,
+  pendingExpiresAt: z.string().datetime(),
+});
+export type HostCredentialExchangeDTO = z.infer<typeof HostCredentialExchangeDTOSchema>;
+
+export const ActivateHostCredentialInputSchema = z.object({
+  supportId: HostSupportIdSchema,
+  browserCapability: OpaqueCapabilitySchema,
+});
+export type ActivateHostCredentialInput = z.infer<typeof ActivateHostCredentialInputSchema>;
+
+export const HostResetEvidenceCategorySchema = z.enum([
+  'PREEXISTING_VERIFIED_SUPPORT_CASE',
+  'INDEPENDENT_OFFICIAL_ORGANIZATION_CONFIRMATION',
+]);
+export type HostResetEvidenceCategory = z.infer<typeof HostResetEvidenceCategorySchema>;
+
+export const AdminResetSessionHostAccessInputSchema = z
+  .object({
+    code: z.string().length(6).optional(),
+    supportId: HostSupportIdSchema.optional(),
+    evidenceCategory: HostResetEvidenceCategorySchema,
+    requesterIdentityVerificationReference: z.string().trim().min(3).max(200),
+    sessionAuthorizationEvidenceReference: z.string().trim().min(3).max(200),
+    supportCaseReference: z.string().trim().min(3).max(120),
+    reason: z.string().trim().min(10).max(500),
+  })
+  .superRefine((value, ctx) => {
+    if ((value.code ? 1 : 0) + (value.supportId ? 1 : 0) !== 1) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['code'],
+        message: 'Genau Sessioncode oder Support-ID muss angegeben werden.',
+      });
+    }
+  });
+export type AdminResetSessionHostAccessInput = z.infer<
+  typeof AdminResetSessionHostAccessInputSchema
+>;
+
+export const AdminResetSessionHostAccessOutputSchema = z.object({
+  sessionId: z.uuid(),
+  code: z.string().length(6),
+  supportId: HostSupportIdSchema,
+  handoffCapability: OpaqueCapabilitySchema,
+  expiresAt: z.string().datetime(),
+  revokedCredentialVersion: z.number().int().min(0),
+});
+export type AdminResetSessionHostAccessOutput = z.infer<
+  typeof AdminResetSessionHostAccessOutputSchema
+>;
 
 /** Öffentliche Code-Abfrage mit optionaler Throttle-ID für den SW-Rollout. */
 export const PublicSessionCodeLookupInputSchema = GetSessionInfoInputSchema.extend({
@@ -2909,6 +3111,7 @@ export const TrpcWebSocketParticipantBindingSchema = z.object({
     .regex(/^[A-Za-z0-9]{6}$/)
     .transform((value) => value.toUpperCase()),
   participantId: z.uuid().optional(),
+  participantCapability: OpaqueCapabilitySchema.optional(),
 });
 export type TrpcWebSocketParticipantBinding = z.infer<typeof TrpcWebSocketParticipantBindingSchema>;
 
@@ -2967,6 +3170,100 @@ export type UpdateSessionQaTitleOutput = z.infer<typeof UpdateSessionQaTitleOutp
 
 export const SessionLiveChannelSchema = z.enum(['quiz', 'qa', 'quickFeedback']);
 export type SessionLiveChannel = z.infer<typeof SessionLiveChannelSchema>;
+
+export const SetPreferredLiveChannelInputSchema = GetSessionInfoInputSchema.extend({
+  channel: SessionLiveChannelSchema,
+  /** Optionaler CAS-Wert für konkurrierende Hostwechsel; ältere Clients dürfen ihn auslassen. */
+  expectedLifecycleRevision: z.number().int().min(0).optional(),
+});
+export type SetPreferredLiveChannelInput = z.infer<typeof SetPreferredLiveChannelInputSchema>;
+
+export const SetPreferredLiveChannelOutputSchema = z.object({
+  preferredChannel: SessionLiveChannelSchema,
+  sessionLifecycleRevision: z.number().int().min(0),
+  serverNow: z.string().datetime(),
+});
+export type SetPreferredLiveChannelOutput = z.infer<typeof SetPreferredLiveChannelOutputSchema>;
+
+export const SessionQaStateSchema = z.enum([
+  'DISABLED',
+  'UNCONFIGURED',
+  'OPEN',
+  'MANUALLY_CLOSED',
+  'DEADLINE_EXPIRED',
+]);
+export type SessionQaState = z.infer<typeof SessionQaStateSchema>;
+
+/** Q&A-Kalendertage rechnen ab dem serverbestätigten Öffnungs-/Neuplanungszeitpunkt. */
+export const SessionQaDeadlineSelectionSchema = z.discriminatedUnion('kind', [
+  z.object({ kind: z.literal('UNTIL_SESSION_END') }),
+  z.object({
+    kind: z.literal('DURATION_DAYS'),
+    days: z.number().int().min(1).max(SESSION_HARD_MAX_DURATION_DAYS),
+  }),
+  z.object({
+    kind: z.literal('ABSOLUTE'),
+    closesAt: z.string().datetime({ offset: true }),
+  }),
+]);
+export type SessionQaDeadlineSelection = z.infer<typeof SessionQaDeadlineSelectionSchema>;
+
+export const PreviewSessionQaConfigurationInputSchema = GetSessionInfoInputSchema.extend({
+  mode: z.enum(['INITIAL', 'REPLAN']),
+  selection: SessionQaDeadlineSelectionSchema,
+});
+export type PreviewSessionQaConfigurationInput = z.infer<
+  typeof PreviewSessionQaConfigurationInputSchema
+>;
+
+export const SessionQaConfigurationPreviewDTOSchema = z.object({
+  mode: z.enum(['INITIAL', 'REPLAN']),
+  expectedLifecycleRevision: z.number().int().min(0),
+  oldQaClosesAt: z.string().datetime().nullable(),
+  newQaClosesAt: z.string().datetime(),
+  oldExpiresAt: z.string().datetime(),
+  newExpiresAt: z.string().datetime(),
+  requiresSessionExtension: z.boolean(),
+  originalHost: z.boolean(),
+  timeZone: SessionTimeZoneSchema,
+  maxExpiresAt: z.string().datetime(),
+  serverNow: z.string().datetime(),
+  projectedPostProcessingEndsAt: z.string().datetime(),
+  projectedPurgeEligibleAt: z.string().datetime(),
+});
+export type SessionQaConfigurationPreviewDTO = z.infer<
+  typeof SessionQaConfigurationPreviewDTOSchema
+>;
+
+export const ConfigureSessionQaInputSchema = PreviewSessionQaConfigurationInputSchema.extend({
+  expectedLifecycleRevision: z.number().int().min(0),
+  /** Bindet relative Fristen an den serverseitigen Zeitpunkt der bestätigten Vorschau. */
+  previewServerNow: z.string().datetime({ offset: true }),
+  confirmedQaClosesAt: z.string().datetime({ offset: true }),
+  confirmedExpiresAt: z.string().datetime({ offset: true }),
+  confirmSessionExtension: z.boolean(),
+  qaTitle: z.string().trim().max(200).optional(),
+  moderationMode: z.boolean(),
+  /** Nur vor dem ersten erfolgreichen Join gemeinsam mit der Q&A-Erstkonfiguration erlaubt. */
+  participationProfile: z
+    .object({
+      identityMode: SessionParticipantIdentityModeSchema,
+      nicknameTheme: NicknameThemeEnum.optional().default('HIGH_SCHOOL'),
+    })
+    .optional(),
+});
+export type ConfigureSessionQaInput = z.infer<typeof ConfigureSessionQaInputSchema>;
+
+export const SessionQaConfigurationDTOSchema = z.object({
+  channels: z.lazy(() => SessionChannelsDTOSchema),
+  preferredChannel: SessionLiveChannelSchema,
+  expiresAt: z.string().datetime(),
+  qaClosesAt: z.string().datetime(),
+  sessionLifecycleRevision: z.number().int().min(0),
+  serverNow: z.string().datetime(),
+});
+export type SessionQaConfigurationDTO = z.infer<typeof SessionQaConfigurationDTOSchema>;
+
 export const SessionPresenterSurfaceSchema = z.enum([
   'default',
   'qaWordCloud',
@@ -2983,6 +3280,14 @@ export type SessionPausedFromStatus = z.infer<typeof SessionPausedFromStatusSche
 export const SessionStatusUpdateSchema = z.object({
   status: SessionStatusEnum,
   currentQuestion: z.number().int().min(0).nullable(),
+  /** Autoritative absolute Sessionfrist für fail-closed Client-Timer. */
+  expiresAt: z.string().datetime().optional(),
+  /** Monotone Revision jeder erfolgreichen expiresAt-/endedAt-Änderung. */
+  sessionLifecycleRevision: z.number().int().min(0).optional(),
+  /** Kanonisches Ende; im terminalen Zustand immer gesetzt. */
+  endedAt: z.string().datetime().nullable().optional(),
+  /** Autoritative Serverzeit für den monoton fortgeschriebenen Client-Fallback. */
+  serverNow: z.string().datetime().optional(),
   pausedFromStatus: SessionPausedFromStatusSchema.nullable().optional(),
   /** Server-Zeitstempel bei Wechsel zu ACTIVE (ISO-8601). Für Countdown-Synchronisation (Story 3.5). */
   activeAt: z.string().optional(),
@@ -3006,6 +3311,87 @@ export const SessionStatusUpdateSchema = z.object({
   enableTimerAccommodation: z.boolean().optional(),
 });
 export type SessionStatusUpdate = z.infer<typeof SessionStatusUpdateSchema>;
+
+/** Kanonisches Ergebnis des idempotenten globalen Sessionendes. */
+export const EndSessionOutputSchema = SessionStatusUpdateSchema.extend({
+  endedAt: z.string().datetime().nullable(),
+  expiresAt: z.string().datetime(),
+  sessionLifecycleRevision: z.number().int().min(0),
+  serverNow: z.string().datetime(),
+  postProcessingEndsAt: z.string().datetime(),
+  purgeEligibleAt: z.string().datetime(),
+});
+export type EndSessionOutput = z.infer<typeof EndSessionOutputSchema>;
+
+export const SessionLifecycleHostDTOSchema = z.object({
+  status: SessionStatusEnum,
+  createdAt: z.string().datetime(),
+  expiresAt: z.string().datetime(),
+  endedAt: z.string().datetime().nullable(),
+  qaClosesAt: z.string().datetime().nullable(),
+  firstParticipantJoinedAt: z.string().datetime().nullable(),
+  timeZone: SessionTimeZoneSchema,
+  sessionLifecycleRevision: z.number().int().min(0),
+  serverNow: z.string().datetime(),
+  maxExpiresAt: z.string().datetime(),
+  originalHost: z.boolean(),
+  extensionAllowed: z.boolean(),
+  configurationAllowed: z.boolean(),
+  postProcessingEndsAt: z.string().datetime().nullable(),
+  purgeEligibleAt: z.string().datetime().nullable(),
+  expectedDeletionAt: z.string().datetime().nullable(),
+  deletionDelayedByLegalHold: z.boolean(),
+  hostContentAccessAllowed: z.boolean(),
+});
+export type SessionLifecycleHostDTO = z.infer<typeof SessionLifecycleHostDTOSchema>;
+
+export const PreviewSessionExpirationInputSchema = z.discriminatedUnion('purpose', [
+  z.object({
+    code: z.string().length(6),
+    purpose: z.literal('INITIAL_CONFIGURATION'),
+    selection: SessionInitialExpirationSelectionSchema,
+    timeZone: SessionTimeZoneSchema,
+  }),
+  z.object({
+    code: z.string().length(6),
+    purpose: z.literal('GLOBAL_EXTENSION'),
+    selection: SessionExpirationExtensionSelectionSchema,
+  }),
+]);
+export type PreviewSessionExpirationInput = z.infer<typeof PreviewSessionExpirationInputSchema>;
+
+export const SessionExpirationPreviewDTOSchema = z.object({
+  purpose: z.enum(['INITIAL_CONFIGURATION', 'GLOBAL_EXTENSION']),
+  expectedLifecycleRevision: z.number().int().min(0),
+  oldExpiresAt: z.string().datetime(),
+  newExpiresAt: z.string().datetime(),
+  qaClosesAt: z.string().datetime().nullable(),
+  timeZone: SessionTimeZoneSchema,
+  maxExpiresAt: z.string().datetime(),
+  serverNow: z.string().datetime(),
+  projectedPostProcessingEndsAt: z.string().datetime(),
+  projectedPurgeEligibleAt: z.string().datetime(),
+});
+export type SessionExpirationPreviewDTO = z.infer<typeof SessionExpirationPreviewDTOSchema>;
+
+export const ChangeSessionExpirationInputSchema = z.discriminatedUnion('purpose', [
+  z.object({
+    code: z.string().length(6),
+    purpose: z.literal('INITIAL_CONFIGURATION'),
+    selection: SessionInitialExpirationSelectionSchema,
+    timeZone: SessionTimeZoneSchema,
+    expectedLifecycleRevision: z.number().int().min(0),
+    confirmedExpiresAt: z.string().datetime({ offset: true }),
+  }),
+  z.object({
+    code: z.string().length(6),
+    purpose: z.literal('GLOBAL_EXTENSION'),
+    selection: SessionExpirationExtensionSelectionSchema,
+    expectedLifecycleRevision: z.number().int().min(0),
+    confirmedExpiresAt: z.string().datetime({ offset: true }),
+  }),
+]);
+export type ChangeSessionExpirationInput = z.infer<typeof ChangeSessionExpirationInputSchema>;
 
 export const SkipQuestionOutputSchema = SessionStatusUpdateSchema.extend({
   skippedQuestionId: z.string().uuid(),
@@ -3337,7 +3723,7 @@ export type HostVoteProgressDTO = z.infer<typeof HostVoteProgressDTOSchema>;
 /** Input: Einer Session beitreten (Story 3.1) */
 export const JoinSessionInputSchema = z.object({
   code: z.string().length(6, { error: 'Session-Code muss 6 Zeichen lang sein' }),
-  nickname: z.string().min(1).max(30),
+  nickname: z.string().trim().min(1).max(30),
   /**
    * Browserweite, zufällige Throttle-ID; kein Authentifizierungs- oder
    * Besitznachweis. Während des Service-Worker-Rollouts optional für gecachte
@@ -3345,7 +3731,10 @@ export const JoinSessionInputSchema = z.object({
    */
   anonymousClientId: z.uuid().optional(),
   teamId: z.uuid().optional(),
-  rejoinToken: z.uuid().optional(),
+  /** Opaque, ausschließlich an diese Session gebundene Wiederbeitritts-Capability. */
+  rejoinToken: OpaqueCapabilitySchema.optional(),
+  /** Pro unabhängigem Join neuer CSPRNG-Schlüssel; nie URL- oder Telemetriedatum. */
+  joinIdempotencyKey: OpaqueCapabilitySchema.max(128),
   /** Separater Besitznachweis ausschließlich für ProductFeedback-Claims. */
   productFeedbackClaimToken: z.string().trim().min(32).max(128).optional(),
 });
@@ -3624,6 +4013,9 @@ export const SessionChannelsDTOSchema = z.object({
     open: z.boolean(),
     title: z.string().nullable(),
     moderationMode: z.boolean(),
+    /** Neue Lifecycle-Felder bleiben für alte Rolling-Deployment-Clients optional. */
+    state: SessionQaStateSchema.optional(),
+    closesAt: z.string().datetime().nullable().optional(),
   }),
   quickFeedback: z.object({
     enabled: z.boolean(),
@@ -3654,6 +4046,15 @@ export const SessionInfoDTOSchema = z.object({
   questionSkippedAt: z.string().datetime().optional(),
   /** ISO-8601-Serverzeit bei dieser Antwort (Client-Uhrenoffset für Countdown-Sync). */
   serverTime: z.string(),
+  /** Neue Lifecycle-Felder bleiben für ein Rolling Deployment zunächst optional. */
+  serverNow: z.string().datetime().optional(),
+  expiresAt: z.string().datetime().optional(),
+  timeZone: z.string().min(1).max(64).optional(),
+  sessionLifecycleRevision: z.number().int().min(0).optional(),
+  endedAt: z.string().datetime().nullable().optional(),
+  postProcessingEndsAt: z.string().datetime().nullable().optional(),
+  purgeEligibleAt: z.string().datetime().nullable().optional(),
+  qaClosesAt: z.string().datetime().nullable().optional(),
   quizName: z.string().nullable(),
   /** Optionales Motivbild (HTTPS-URL), nur Host Quiz-Kanal. */
   quizMotifImageUrl: z.union([MotifImageUrlSchema, z.null()]).optional(),
@@ -3692,7 +4093,9 @@ export type SessionInfoDTO = z.infer<typeof SessionInfoDTOSchema>;
 /** Output: Nach Join (Session-Info + eigene Participant-ID für vote.submit). */
 export const JoinSessionOutputSchema = SessionInfoDTOSchema.extend({
   participantId: z.uuid(),
-  rejoinToken: z.uuid(),
+  participantNumber: z.number().int().positive(),
+  participantNickname: z.string().min(1).max(30),
+  rejoinToken: OpaqueCapabilitySchema,
   /** Nur beim neuen Join oder bei nachgewiesenem Rejoin zurückgegeben. */
   productFeedbackClaimToken: z.string().min(32).max(128).nullable().optional(),
   teamId: z.uuid().nullable().optional(),
@@ -3811,6 +4214,8 @@ export const AnalyzeWordCloudInputSchema = z.object({
     .optional(),
   /** Host-Neuanalyse: Snapshot-Cache umgehen, Hash bleibt gleich. */
   refresh: z.boolean().optional(),
+  /** Serverseitige Q&A-Korpusrevision; trennt fachlich veraltete Cacheeinträge. */
+  corpusRevision: z.string().min(1).max(100).optional(),
 });
 export type AnalyzeWordCloudInput = z.infer<typeof AnalyzeWordCloudInputSchema>;
 
@@ -3831,6 +4236,9 @@ export const WordCloudAnalysisEntryDTOSchema = z.object({
   members: z.array(WordCloudAnalysisMemberDTOSchema).min(1),
   variants: z.array(z.string().trim().min(1)),
   confidence: z.number().min(0).max(1).nullable(),
+  /** Gesamtzahl der Quellen vor einer transportbedingten Erklärbarkeitsbegrenzung. */
+  memberCount: z.number().int().min(1).optional(),
+  membersTruncated: z.boolean().optional(),
 });
 export type WordCloudAnalysisEntryDTO = z.infer<typeof WordCloudAnalysisEntryDTOSchema>;
 
@@ -3858,6 +4266,48 @@ export type WordCloudAnalysisResultDTO = z.infer<typeof WordCloudAnalysisResultD
 /** Output: Antwort auf einen zukünftigen `wordCloud.analyze`-Pfad. */
 export const AnalyzeWordCloudOutputSchema = WordCloudAnalysisResultDTOSchema;
 export type AnalyzeWordCloudOutput = z.infer<typeof AnalyzeWordCloudOutputSchema>;
+
+export const QaWordCloudFilterEnum = z.enum(['ALL_ELIGIBLE', 'PINNED_ONLY']);
+export type QaWordCloudFilter = z.infer<typeof QaWordCloudFilterEnum>;
+export const QA_WORD_CLOUD_MAX_OUTPUT_ENTRIES = 80;
+export const QA_WORD_CLOUD_MAX_EXPLANATION_MEMBERS = 1;
+export const QA_WORD_CLOUD_MAX_EXPLANATION_TEXT_CHARS = 128;
+
+export const AnalyzeQaWordCloudInputSchema = AnalyzeWordCloudInputSchema.omit({
+  items: true,
+  channel: true,
+  corpusRevision: true,
+}).extend({
+  filter: QaWordCloudFilterEnum.default('ALL_ELIGIBLE'),
+});
+export type AnalyzeQaWordCloudInput = z.infer<typeof AnalyzeQaWordCloudInputSchema>;
+
+const QaWordCloudAnalysisMemberDTOSchema = WordCloudAnalysisMemberDTOSchema.extend({
+  text: z.string().trim().min(1).max(QA_WORD_CLOUD_MAX_EXPLANATION_TEXT_CHARS),
+});
+
+const QaWordCloudAnalysisEntryDTOSchema = WordCloudAnalysisEntryDTOSchema.extend({
+  key: z.string().trim().min(1).max(QA_WORD_CLOUD_MAX_EXPLANATION_TEXT_CHARS),
+  label: z.string().trim().min(1).max(QA_WORD_CLOUD_MAX_EXPLANATION_TEXT_CHARS),
+  basisLabel: z.string().trim().min(1).max(QA_WORD_CLOUD_MAX_EXPLANATION_TEXT_CHARS).nullable(),
+  members: z
+    .array(QaWordCloudAnalysisMemberDTOSchema)
+    .min(1)
+    .max(QA_WORD_CLOUD_MAX_EXPLANATION_MEMBERS),
+  variants: z.array(z.string().trim().min(1).max(QA_WORD_CLOUD_MAX_EXPLANATION_TEXT_CHARS)).max(1),
+  memberCount: z.number().int().min(1),
+  membersTruncated: z.boolean(),
+});
+
+export const AnalyzeQaWordCloudOutputSchema = AnalyzeWordCloudOutputSchema.extend({
+  entries: z.array(QaWordCloudAnalysisEntryDTOSchema).max(QA_WORD_CLOUD_MAX_OUTPUT_ENTRIES),
+  eligibleQuestionCount: z.number().int().min(0).max(QA_MAX_QUESTIONS_PER_SESSION),
+  analyzedQuestionCount: z.number().int().min(0).max(WORD_CLOUD_MAX_ANALYZE_ITEMS),
+  corpusRevision: z.string().min(1).max(100),
+  sortMode: QaQuestionSortModeEnum,
+  filter: QaWordCloudFilterEnum,
+});
+export type AnalyzeQaWordCloudOutput = z.infer<typeof AnalyzeQaWordCloudOutputSchema>;
 
 /** DTO: Live-Zustand authorisierter Quiz-Kopien (Story 1.10). */
 export const ActiveQuizLiveStateDTOSchema = z.object({
@@ -3890,7 +4340,7 @@ export type ParticipantDTO = z.infer<typeof ParticipantDTOSchema>;
 
 /** Payload: Teilnehmerliste einer Session (Story 2.2 – getParticipants / onParticipantJoined). */
 export const SessionParticipantsPayloadSchema = z.object({
-  participants: z.array(ParticipantDTOSchema),
+  participants: z.array(ParticipantDTOSchema).max(100),
   participantCount: z.number(),
   connectedCount: z.number().int().min(0).optional(),
   readingReady: ReadingReadyStatusDTOSchema.optional(),
@@ -3899,11 +4349,80 @@ export type SessionParticipantsPayload = z.infer<typeof SessionParticipantsPaylo
 
 /** Öffentliche Minimaldaten für Nickname-Kollisionen beim Join. */
 export const SessionParticipantNicknamesPayloadSchema = z.object({
-  nicknames: z.array(z.string()),
+  /** Rolling-Deployment-Feld; neue Clients verwenden den punktuellen Check. */
+  nicknames: z.array(z.string()).max(100),
   participantCount: z.number(),
 });
 export type SessionParticipantNicknamesPayload = z.infer<
   typeof SessionParticipantNicknamesPayloadSchema
+>;
+
+export const ParticipantArrivalDTOSchema = ParticipantDTOSchema.extend({
+  joinedAt: z.string().datetime(),
+});
+export type ParticipantArrivalDTO = z.infer<typeof ParticipantArrivalDTOSchema>;
+
+export const GetSessionParticipantSummaryInputSchema = z.object({
+  code: z.string().trim().length(6),
+});
+export type GetSessionParticipantSummaryInput = z.infer<
+  typeof GetSessionParticipantSummaryInputSchema
+>;
+
+export const SessionParticipantSummaryDTOSchema = z.object({
+  participantCount: z.number().int().min(0),
+  connectedCount: z.number().int().min(0),
+  revision: z.number().int().min(0),
+  recentArrivals: z.array(ParticipantArrivalDTOSchema).max(20),
+  readingReady: ReadingReadyStatusDTOSchema.optional(),
+});
+export type SessionParticipantSummaryDTO = z.infer<typeof SessionParticipantSummaryDTOSchema>;
+
+export const SearchSessionParticipantsInputSchema = z.object({
+  code: z.string().trim().length(6),
+  search: z.string().trim().max(100).optional().default(''),
+  pageSize: z.number().int().min(1).max(100).optional().default(50),
+  cursor: z.string().min(1).max(500).optional(),
+});
+export type SearchSessionParticipantsInput = z.infer<typeof SearchSessionParticipantsInputSchema>;
+
+export const SessionParticipantPageDTOSchema = z.object({
+  participants: z.array(ParticipantArrivalDTOSchema).max(100),
+  participantCount: z.number().int().min(0),
+  revision: z.number().int().min(0),
+  nextCursor: z.string().min(1).max(500).nullable(),
+});
+export type SessionParticipantPageDTO = z.infer<typeof SessionParticipantPageDTOSchema>;
+
+export const CheckSessionParticipantNicknameInputSchema = z.object({
+  code: z.string().trim().length(6),
+  nickname: z.string().trim().min(1).max(30),
+});
+export type CheckSessionParticipantNicknameInput = z.infer<
+  typeof CheckSessionParticipantNicknameInputSchema
+>;
+
+export const CheckSessionParticipantNicknameOutputSchema = z.object({
+  available: z.boolean(),
+});
+export type CheckSessionParticipantNicknameOutput = z.infer<
+  typeof CheckSessionParticipantNicknameOutputSchema
+>;
+
+export const HeartbeatParticipantPresenceInputSchema = z.object({
+  code: z.string().trim().length(6),
+  participantId: z.uuid(),
+});
+export type HeartbeatParticipantPresenceInput = z.infer<
+  typeof HeartbeatParticipantPresenceInputSchema
+>;
+
+export const HeartbeatParticipantPresenceOutputSchema = z.object({
+  connected: z.literal(true),
+  serverNow: z.string().datetime(),
+});
+export type HeartbeatParticipantPresenceOutput = z.infer<
+  typeof HeartbeatParticipantPresenceOutputSchema
 >;
 
 /** Öffentlicher Zugriff auf den eigenen Teilnehmerdatensatz. */
@@ -4058,6 +4577,23 @@ export const ServerStatsDTOSchema = z.object({
   serviceStatus: z.enum(['stable', 'limited', 'critical']),
   /** Lastindikator für Diagnose im Detaildialog. */
   loadStatus: z.enum(['healthy', 'busy', 'overloaded']),
+  /** Aktive, offene Q&A-Sessions mit mindestens fünf eindeutigen Presence-Identitäten. */
+  activeQaSessions: z.number().int().min(0).nullable(),
+  /** Erstmalig persistierte Q&A-Fragen im 60-Sekunden-Fenster. */
+  qaQuestionsLastMinute: z.number().int().min(0).nullable(),
+  /** Persistierte Zustandsänderungen von Q&A-Bewertungen im 60-Sekunden-Fenster. */
+  qaRatingsLastMinute: z.number().int().min(0).nullable(),
+  /** Monotone, purge-sichere Gesamtzahl seit Beginn der Erfassung. */
+  qaQuestionsTotal: z.number().int().min(0),
+  /** Höchster gleichzeitig physisch gespeicherter Fragenbestand einer Session. */
+  maxQaQuestionsSingleSession: z.number().int().min(0),
+  qaStatisticsTrackingStartedAt: z.string().datetime().nullable(),
+  qaStatisticsProjectedAt: z.string().datetime().nullable(),
+  maxQaQuestionsStatisticUpdatedAt: z.string().datetime().nullable(),
+  /** Einheitlicher serverseitiger Abschlusszeitpunkt dieses Statistik-Snapshots. */
+  statsGeneratedAt: z.string().datetime(),
+  qaMinuteMetricsStatus: z.enum(['AVAILABLE', 'WARMING_UP', 'UNAVAILABLE']),
+  qaPresenceMetricsStatus: z.enum(['AVAILABLE', 'WARMING_UP', 'UNAVAILABLE']),
 });
 
 export type ServerStatsDTO = z.infer<typeof ServerStatsDTOSchema>;
@@ -4196,6 +4732,59 @@ export const HealthSecurityStatsDTOSchema = z.object({
   yjsWebSocketAwarenessRejectedLastMinute: z.number().int().min(0),
   /** Wegen ausgeschöpfter ausgehender Bytebudgets geschlossene Verbindungen. */
   yjsWebSocketOutboundRejectedLastMinute: z.number().int().min(0),
+  /** Begrenzte, inhaltsfreie Laufzeitstichprobe je kritischer Q&A-API-Klasse. */
+  qaApi: z.record(
+    z.enum([
+      'JOIN_REJOIN',
+      'PARTICIPANT_QUERY',
+      'QA_PAGE',
+      'QA_SUBMIT',
+      'QA_RATING',
+      'QA_MODERATION',
+      'QA_ANALYSIS',
+    ]),
+    z.object({
+      samples: z.number().int().min(0),
+      successes: z.number().int().min(0),
+      expectedRejections: z.number().int().min(0),
+      technicalErrors: z.number().int().min(0),
+      p95Ms: z.number().int().min(0).nullable(),
+      p99Ms: z.number().int().min(0).nullable(),
+      expectedRejectionP95Ms: z.number().int().min(0).nullable(),
+      expectedRejectionP99Ms: z.number().int().min(0).nullable(),
+      limitRejections: z.number().int().min(0),
+      deadlineRejections: z.number().int().min(0),
+    }),
+  ),
+  qaNlp: z.object({
+    queueLength: z.number().int().min(0),
+    running: z.number().int().min(0),
+    completed: z.number().int().min(0),
+    failed: z.number().int().min(0),
+    fallback: z.number().int().min(0),
+    lastLatencyMs: z.number().int().min(0).nullable(),
+  }),
+  qaSummary: z.object({
+    queueLength: z.number().int().min(0),
+    running: z.number().int().min(0),
+    completed: z.number().int().min(0),
+    failed: z.number().int().min(0),
+    timeouts: z.number().int().min(0),
+    cacheHits: z.number().int().min(0),
+    queueRejected: z.number().int().min(0),
+    lastLatencyMs: z.number().int().min(0).nullable(),
+  }),
+  qaWordCloud: z.object({
+    inFlight: z.number().int().min(0),
+    lastLatencyMs: z.number().int().min(0).nullable(),
+    snapshotHits: z.number().int().min(0),
+    snapshotMisses: z.number().int().min(0),
+    textHits: z.number().int().min(0),
+    textMisses: z.number().int().min(0),
+    sidecarCalls: z.number().int().min(0),
+    timeouts: z.number().int().min(0),
+    fallbacks: z.number().int().min(0),
+  }),
 });
 
 export type HealthSecurityStatsDTO = z.infer<typeof HealthSecurityStatsDTOSchema>;
@@ -4669,7 +5258,12 @@ export const SessionExportDTOSchema = z.object({
   /** Fachliches Team-Lernprofil (nur Teams mit ≥5 Mitgliedern). */
   teamLearningProfiles: z.array(TeamLearningProfileEntrySchema).optional(),
   bonusTokens: z.array(BonusTokenEntryDTOSchema).optional(), // optional einbeziehen (Pseudonyme)
-  qaQuestions: z.array(QaExportEntrySchema).optional(),
+  /** Serverseitig gerankter, für den synchronen PDF-Pfad begrenzter Q&A-Ausschnitt. */
+  qaQuestions: z.array(QaExportEntrySchema).max(500).optional(),
+  /** Gesamtzahl der für diesen Q&A-Export berücksichtigten Fragen vor der Begrenzung. */
+  qaQuestionTotalCount: z.number().int().min(0).optional(),
+  /** Kennzeichnet, dass `qaQuestions` nur den höchstplatzierten Ausschnitt enthält. */
+  qaQuestionsTruncated: z.boolean().optional(),
 });
 export type SessionExportDTO = z.infer<typeof SessionExportDTOSchema>;
 
@@ -4720,7 +5314,11 @@ export const AdminGetSessionDetailInputSchema = z.object({
 });
 export type AdminGetSessionDetailInput = z.infer<typeof AdminGetSessionDetailInputSchema>;
 
-/** Recherchefenster laut Epic 9 (A/B/C). */
+/**
+ * Recherchefenster laut Epic 9 (A/B/C).
+ * `POST_SESSION_24H` bleibt als historischer Wire-Wert erhalten und bezeichnet
+ * seit Epic #405 die 14-tägige Host-Nachbereitung.
+ */
 export const AdminRetentionWindowEnum = z.enum(['RUNNING', 'POST_SESSION_24H', 'PURGED']);
 export type AdminRetentionWindow = z.infer<typeof AdminRetentionWindowEnum>;
 
@@ -4729,6 +5327,10 @@ export const AdminRetentionStateDTOSchema = z.object({
   window: AdminRetentionWindowEnum,
   legalHoldUntil: z.string().nullable().optional(),
   legalHoldReason: z.string().nullable().optional(),
+  postProcessingEndsAt: z.string().datetime().nullable().optional(),
+  purgeEligibleAt: z.string().datetime().nullable().optional(),
+  expectedDeletionAt: z.string().datetime().nullable().optional(),
+  deletionDelayedByLegalHold: z.boolean().optional(),
 });
 export type AdminRetentionStateDTO = z.infer<typeof AdminRetentionStateDTOSchema>;
 
@@ -5069,24 +5671,99 @@ export const QaQuestionDTOSchema = z.object({
 });
 export type QaQuestionDTO = z.infer<typeof QaQuestionDTOSchema>;
 
-export const QaQuestionsListDTOSchema = z.array(QaQuestionDTOSchema);
+export const QaContentStateSchema = z.enum([
+  'ACTIVE',
+  'UNCONFIGURED',
+  'CHANNEL_CLOSED',
+  'DEADLINE_EXPIRED',
+  'SESSION_ENDED',
+  'POST_PROCESSING_ENDED',
+]);
+export type QaContentState = z.infer<typeof QaContentStateSchema>;
+
+export const QaQuestionQuotaDTOSchema = z.object({
+  participantQuestionCount: z.number().int().min(0).max(QA_MAX_QUESTIONS_PER_PARTICIPANT),
+  participantRemaining: z.number().int().min(0).max(QA_MAX_QUESTIONS_PER_PARTICIPANT),
+  sessionQuestionCount: z.number().int().min(0).max(QA_MAX_QUESTIONS_PER_SESSION),
+  sessionRemaining: z.number().int().min(0).max(QA_MAX_QUESTIONS_PER_SESSION),
+});
+export type QaQuestionQuotaDTO = z.infer<typeof QaQuestionQuotaDTOSchema>;
+
+/** Autoritativer Q&A-Inhaltssnapshot mit Lifecycle-Revision gegen Reordering. */
+export const QaQuestionsListDTOSchema = z.object({
+  questions: z.array(QaQuestionDTOSchema).max(100),
+  state: QaContentStateSchema,
+  sessionLifecycleRevision: z.number().int().min(0),
+  serverNow: z.string().datetime(),
+  expiresAt: z.string().datetime(),
+  qaClosesAt: z.string().datetime().nullable(),
+  endedAt: z.string().datetime().nullable(),
+  postProcessingEndsAt: z.string().datetime().nullable(),
+  /** Begrenzte, revisionsgebundene Seite; bei terminalen Zuständen leer. */
+  rankingRevision: z.string().min(1).max(100).optional(),
+  nextCursor: z.string().min(1).max(1000).nullable().optional(),
+  totalCount: z.number().int().min(0).optional(),
+  /** Kanonischer physischer Bestand einschließlich archivierter und soft-gelöschter Fragen. */
+  sessionQuestionCount: z.number().int().min(0).max(QA_MAX_QUESTIONS_PER_SESSION).optional(),
+  sessionRemaining: z.number().int().min(0).max(QA_MAX_QUESTIONS_PER_SESSION).optional(),
+  quota: QaQuestionQuotaDTOSchema.optional(),
+});
 export type QaQuestionsListDTO = z.infer<typeof QaQuestionsListDTOSchema>;
+
+/**
+ * Inhaltlose Realtime-Invalidierung. Clients laden danach genau ihre
+ * revisionsgebundene Seite; über WebSocket wird nie ein Fragenbestand gespiegelt.
+ */
+export const QaQuestionsInvalidationDTOSchema = z.object({
+  kind: z.literal('INVALIDATED'),
+  state: QaContentStateSchema,
+  sessionLifecycleRevision: z.number().int().min(0),
+  rankingRevision: z.number().int().min(0),
+  participantRevision: z.number().int().min(0),
+  serverNow: z.string().datetime(),
+  expiresAt: z.string().datetime(),
+  qaClosesAt: z.string().datetime().nullable(),
+  endedAt: z.string().datetime().nullable(),
+  postProcessingEndsAt: z.string().datetime().nullable(),
+});
+export type QaQuestionsInvalidationDTO = z.infer<typeof QaQuestionsInvalidationDTOSchema>;
 
 export const GetQaQuestionsInputSchema = z.object({
   sessionId: z.uuid(),
   participantId: z.uuid().optional(),
   moderatorView: z.boolean().optional().default(false),
   sort: QaQuestionSortModeEnum.optional().default('TOP'),
+  search: z.string().trim().max(100).optional().default(''),
+  statuses: z.array(QaQuestionStatusEnum).max(5).optional(),
+  pageSize: z.number().int().min(1).max(100).optional().default(50),
+  cursor: z.string().min(1).max(1000).optional(),
 });
 export type GetQaQuestionsInput = z.infer<typeof GetQaQuestionsInputSchema>;
+
+/**
+ * Öffentliche, bewusst reduzierte Presenter-Projektion. Sie ist von
+ * participant-authentifizierten Lesezugriffen getrennt und enthält nie Moderationsinhalte.
+ */
+export const GetQaPresentProjectionInputSchema = z.object({
+  sessionId: z.uuid(),
+});
+export type GetQaPresentProjectionInput = z.infer<typeof GetQaPresentProjectionInputSchema>;
 
 /** Input: Q&A-Frage einreichen (Story 8.2) */
 export const SubmitQaQuestionInputSchema = z.object({
   sessionId: z.uuid(),
   participantId: z.uuid(),
   text: z.string().min(1).max(500),
+  idempotencyKey: z.uuid(),
 });
 export type SubmitQaQuestionInput = z.infer<typeof SubmitQaQuestionInputSchema>;
+
+export const SubmitQaQuestionOutputSchema = z.object({
+  question: QaQuestionDTOSchema,
+  quota: QaQuestionQuotaDTOSchema,
+  replayed: z.boolean(),
+});
+export type SubmitQaQuestionOutput = z.infer<typeof SubmitQaQuestionOutputSchema>;
 
 /** Input: Q&A-Frage upvoten (Story 8.3) – Legacy */
 export const UpvoteQaQuestionInputSchema = z.object({

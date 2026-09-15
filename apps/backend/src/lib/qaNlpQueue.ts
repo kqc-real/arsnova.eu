@@ -3,6 +3,7 @@ import { prisma } from '../db';
 import { logger } from './logger';
 import { readQaNlpCascadeFlags } from './qaNlpCascade';
 import { resolveQaNlpConfig, type QaNlpConfig } from './qaNlpConfig';
+import { registerSessionPurgeInvalidator } from './sessionPurgeInvalidation';
 import { createFailedQaNlpResult, toQaNlpPersistFields } from './qaNlpResult';
 import {
   assertQaNlpSnapshotMinimized,
@@ -12,6 +13,7 @@ import {
 import { runQaNlpClassifier } from './qaNlpWorker';
 
 export type QaNlpJob = {
+  readonly sessionId?: string;
   readonly questionId: string;
   readonly text: string;
 };
@@ -71,7 +73,31 @@ const metrics: QaNlpMetricCounters = {
 
 const queue: QaNlpJob[] = [];
 const pendingTimers: ReturnType<typeof setImmediate>[] = [];
+const invalidatedSessions = new Map<string, number>();
 let hooks: QueueHooks = createDefaultHooks();
+
+function isSessionInvalidated(sessionId: string | undefined): boolean {
+  if (!sessionId) return false;
+  const invalidatedUntil = invalidatedSessions.get(sessionId);
+  if (invalidatedUntil === undefined) return false;
+  if (invalidatedUntil <= Date.now()) {
+    invalidatedSessions.delete(sessionId);
+    return false;
+  }
+  return true;
+}
+
+export function invalidateQaNlpForSession(sessionId: string): void {
+  invalidatedSessions.set(sessionId, Date.now() + 60_000);
+  for (let index = queue.length - 1; index >= 0; index -= 1) {
+    if (queue[index]?.sessionId === sessionId) {
+      queue.splice(index, 1);
+    }
+  }
+  syncQueueLength();
+}
+
+registerSessionPurgeInvalidator((event) => invalidateQaNlpForSession(event.sessionId));
 
 function createDefaultHooks(): QueueHooks {
   return {
@@ -129,8 +155,10 @@ async function processJob(job: QaNlpJob): Promise<void> {
   const config = hooks.config();
   const snapshot = buildQaNlpAnalysisSnapshot(job.text);
   try {
+    if (isSessionInvalidated(job.sessionId)) return;
     assertQaNlpSnapshotMinimized(snapshot);
     const result = await withTimeout(hooks.processor(snapshot), config.timeoutMs);
+    if (isSessionInvalidated(job.sessionId)) return;
     await persistResult(job.questionId, result);
     metrics.completed += 1;
     const flags = readQaNlpCascadeFlags(result);
@@ -158,6 +186,7 @@ async function processJob(job: QaNlpJob): Promise<void> {
       unclassified: metrics.unclassified,
     });
   } catch (error) {
+    if (isSessionInvalidated(job.sessionId)) return;
     const timedOut = error instanceof Error && error.message === 'QA_NLP_TIMEOUT';
     await persistResult(job.questionId, createFailedQaNlpResult(timedOut ? 'timeout' : 'error'));
     metrics.failed += 1;
@@ -201,6 +230,7 @@ export function enqueueQaNlpJob(job: QaNlpJob): QaNlpEnqueueResult {
   if (queue.length + metrics.running >= config.queueLimit) {
     metrics.skipped += 1;
     hooks.schedule(() => {
+      if (isSessionInvalidated(job.sessionId)) return;
       void persistResult(job.questionId, createFailedQaNlpResult('queue-limit'));
     });
     logger.warn('qa_nlp:skipped', {
@@ -241,6 +271,7 @@ export function resetQaNlpQueueForTests(overrides?: Partial<QueueHooks>): void {
     clearImmediate(timer);
   }
   queue.splice(0, queue.length);
+  invalidatedSessions.clear();
   metrics.queueLength = 0;
   metrics.running = 0;
   metrics.enqueued = 0;

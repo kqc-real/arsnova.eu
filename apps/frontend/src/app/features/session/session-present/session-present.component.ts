@@ -45,11 +45,13 @@ import type {
   HostVoteProgressDTO,
   LeaderboardEntryDTO,
   QaQuestionDTO,
+  QaQuestionsListDTO,
   QuickFeedbackResult,
   SessionInfoDTO,
   TeamLeaderboardEntryDTO,
 } from '@arsnova/shared-types';
 import { recordServerTimeSample } from '../session-server-clock';
+import { SessionDeadlineController, type SessionDeadlineSnapshot } from '../session-deadline';
 import { readSessionCodeFromActivatedRoute } from '../session-route-code';
 import { localizePath, resolveLocalizedJoinUrl } from '../../../core/locale-router';
 import { formatLocaleCount, formatLocalePercent } from '../../../core/locale-number.util';
@@ -182,12 +184,18 @@ export class SessionPresentComponent implements OnInit, OnDestroy {
     ? LOBBY_FOYER_CHIP_DEV_LIFETIME_MS
     : LOBBY_FOYER_CHIP_LIFETIME_MS;
   private readonly code = readSessionCodeFromActivatedRoute(this.route);
+  private readonly sessionDeadline = new SessionDeadlineController();
+  private sessionDeadlineTimer: ReturnType<typeof setTimeout> | null = null;
+  private presentDeadlineClosed = false;
   private readonly onVisibilityChange = () => {
     if (typeof document === 'undefined') return;
     if (document.hidden) {
       this.stopPolling();
       this.stopBoardPageTimer();
       return;
+    }
+    if (this.sessionDeadline.isExpired()) {
+      this.closePresentAtDeadline();
     }
     this.startPolling();
     void this.refreshSessionMeta();
@@ -250,6 +258,8 @@ export class SessionPresentComponent implements OnInit, OnDestroy {
   readonly quizPausedMessage = $localize`:@@sessionPresent.quizPausedMessage:Gleich geht es mit derselben Frage weiter.`;
   readonly isPlayfulPreset = computed(() => this.themePreset.preset() === 'spielerisch');
   readonly lobbyParticipants = signal<LobbyParticipant[]>([]);
+  readonly lobbyAudienceTotal = signal(0);
+  readonly lobbyAudienceConnected = signal(0);
   readonly lobbyTeams = signal<LobbyTeam[]>([]);
   private readonly lobbyEntranceNumbers = computed(
     () =>
@@ -296,9 +306,10 @@ export class SessionPresentComponent implements OnInit, OnDestroy {
   });
   readonly lobbyParticipantCount = computed(() => {
     const listed = this.lobbyParticipants().length;
+    const fromSummary = this.lobbyAudienceTotal();
     const fromSession = this.session()?.participantCount ?? 0;
     const fromTeams = this.lobbyTeams().reduce((sum, team) => sum + team.memberCount, 0);
-    return Math.max(listed, fromSession, fromTeams);
+    return Math.max(listed, fromSummary, fromSession, fromTeams);
   });
   readonly canShowLobbyFoyer = computed(() => {
     const session = this.session();
@@ -689,6 +700,7 @@ export class SessionPresentComponent implements OnInit, OnDestroy {
       document.removeEventListener('webkitfullscreenchange', this.onFullscreenChange);
     }
     this.stopPolling();
+    this.stopSessionDeadlineTimer();
     this.stopBoardPageTimer();
     this.stopCountdown();
     this.currentQuestionSub?.unsubscribe();
@@ -759,6 +771,10 @@ export class SessionPresentComponent implements OnInit, OnDestroy {
 
   private async refreshPresenterLiveData(): Promise<void> {
     if (typeof document !== 'undefined' && document.hidden) {
+      return;
+    }
+    if (this.presentDeadlineClosed || this.sessionDeadline.isExpired()) {
+      this.closePresentAtDeadline();
       return;
     }
     if (this.showFinishProjection()) {
@@ -976,6 +992,20 @@ export class SessionPresentComponent implements OnInit, OnDestroy {
       recordServerTimeSample(session.serverTime, requestedAt);
       this.connectionDegraded.set(false);
       this.showHomeCta.set(false);
+      if (!this.applySessionDeadlineSnapshot(session)) {
+        if (
+          this.sessionDeadline.isExpired() &&
+          session.sessionLifecycleRevision === this.sessionDeadline.currentRevision()
+        ) {
+          this.session.set({
+            ...session,
+            status: 'FINISHED',
+            currentQuestion: null,
+            finishProjection: 'idle',
+          });
+        }
+        return;
+      }
       this.session.set(session);
       if (session.status === 'FINISHED') {
         if (session.finishProjection === 'idle') {
@@ -1011,6 +1041,88 @@ export class SessionPresentComponent implements OnInit, OnDestroy {
       this.finishBoardsResolved.set(true);
       this.clearLobbyAudience();
     }
+  }
+
+  private applySessionDeadlineSnapshot(snapshot: SessionDeadlineSnapshot): boolean {
+    const hasLifecycleSnapshot =
+      snapshot.serverNow !== undefined &&
+      snapshot.expiresAt !== undefined &&
+      snapshot.sessionLifecycleRevision !== undefined;
+    if (!hasLifecycleSnapshot) {
+      return true;
+    }
+    if (!this.sessionDeadline.applySnapshot(snapshot)) {
+      if (this.sessionDeadline.isExpired()) {
+        this.closePresentAtDeadline();
+      }
+      return false;
+    }
+    if (this.sessionDeadline.isExpired()) {
+      this.closePresentAtDeadline();
+      return false;
+    }
+    if (this.presentDeadlineClosed) {
+      this.presentDeadlineClosed = false;
+      this.ensurePresenterSubscriptions();
+    }
+    this.scheduleSessionDeadlineCheck();
+    return true;
+  }
+
+  private scheduleSessionDeadlineCheck(): void {
+    this.stopSessionDeadlineTimer();
+    const remaining = this.sessionDeadline.remainingMs();
+    if (remaining === null) return;
+    this.sessionDeadlineTimer = setTimeout(
+      () => {
+        this.sessionDeadlineTimer = null;
+        if (this.sessionDeadline.isExpired()) {
+          this.closePresentAtDeadline();
+          return;
+        }
+        this.scheduleSessionDeadlineCheck();
+      },
+      Math.max(1, Math.min(remaining, 60_000)),
+    );
+  }
+
+  private stopSessionDeadlineTimer(): void {
+    if (this.sessionDeadlineTimer) {
+      clearTimeout(this.sessionDeadlineTimer);
+      this.sessionDeadlineTimer = null;
+    }
+  }
+
+  private closePresentAtDeadline(): void {
+    this.presentDeadlineClosed = true;
+    this.stopSessionDeadlineTimer();
+    this.stopCountdown();
+    this.stopBoardPageTimer();
+    this.currentQuestionSub?.unsubscribe();
+    this.currentQuestionSub = null;
+    this.voteProgressSub?.unsubscribe();
+    this.voteProgressSub = null;
+    this.pinnedQaQuestion.set(null);
+    this.presenterQaQuestions.set([]);
+    this.quickFeedbackResult.set(null);
+    this.freetextResponses.set([]);
+    this.freetextQuestionId.set(null);
+    this.hostQuestion.set(null);
+    this.hostVoteProgress.set(null);
+    this.emojiReactions.set(null);
+    this.personalLeaderboard.set([]);
+    this.teamLeaderboard.set([]);
+    this.clearLobbyAudience();
+    this.session.update((current) =>
+      current
+        ? {
+            ...current,
+            status: 'FINISHED',
+            currentQuestion: null,
+            finishProjection: 'idle',
+          }
+        : current,
+    );
   }
 
   private async loadFinishLeaderboards(): Promise<void> {
@@ -1063,12 +1175,13 @@ export class SessionPresentComponent implements OnInit, OnDestroy {
   }
 
   private async refreshLiveFreetext(): Promise<void> {
-    if (!this.session()) {
+    if (!this.session() || this.presentDeadlineClosed) {
       return;
     }
 
     try {
       const data = await trpc.session.getLiveFreetext.query({ code: this.code.toUpperCase() });
+      if (this.presentDeadlineClosed) return;
       this.freetextResponses.set(data.responses);
       this.freetextQuestionId.set(data.questionId);
 
@@ -1097,15 +1210,50 @@ export class SessionPresentComponent implements OnInit, OnDestroy {
   private async refreshQaQuestions(): Promise<void> {
     const sessionId = this.session()?.id;
     const qaEnabled = this.session()?.channels?.qa.enabled ?? this.session()?.type === 'Q_AND_A';
-    if (!sessionId || !qaEnabled || this.showFinishProjection()) {
+    if (!sessionId || !qaEnabled || this.showFinishProjection() || this.presentDeadlineClosed) {
       this.pinnedQaQuestion.set(null);
       this.presenterQaQuestions.set([]);
       return;
     }
 
     try {
-      const questions = await trpc.qa.list.query({ sessionId });
-      const visibleQuestions = questions.filter(
+      const snapshot: QaQuestionsListDTO | QaQuestionDTO[] = await trpc.qa.presentProjection.query({
+        sessionId,
+      });
+      if (Array.isArray(snapshot)) {
+        if (this.presentDeadlineClosed || this.sessionDeadline.isExpired()) {
+          return;
+        }
+        const visibleQuestions = snapshot.filter(
+          (question) => question.status === 'PINNED' || question.status === 'ACTIVE',
+        );
+        this.pinnedQaQuestion.set(
+          visibleQuestions.find((question) => question.status === 'PINNED') ?? null,
+        );
+        this.presenterQaQuestions.set(
+          visibleQuestions.filter((question) => question.status === 'ACTIVE'),
+        );
+        return;
+      }
+      const terminal = snapshot.state === 'SESSION_ENDED';
+      if (
+        !this.sessionDeadline.applySnapshot({
+          ...snapshot,
+          status: terminal ? 'FINISHED' : 'ACTIVE',
+        })
+      ) {
+        return;
+      }
+      if (terminal || this.sessionDeadline.isExpired()) {
+        this.closePresentAtDeadline();
+        return;
+      }
+      if (snapshot.state !== 'ACTIVE' || this.presentDeadlineClosed) {
+        this.pinnedQaQuestion.set(null);
+        this.presenterQaQuestions.set([]);
+        return;
+      }
+      const visibleQuestions = snapshot.questions.filter(
         (question) => question.status === 'PINNED' || question.status === 'ACTIVE',
       );
       const pinned = visibleQuestions.find((question) => question.status === 'PINNED') ?? null;
@@ -1119,7 +1267,7 @@ export class SessionPresentComponent implements OnInit, OnDestroy {
 
   private async refreshQuickFeedbackResult(): Promise<void> {
     const quickFeedbackEnabled = this.session()?.channels?.quickFeedback.enabled ?? false;
-    if (!quickFeedbackEnabled || this.showFinishProjection()) {
+    if (!quickFeedbackEnabled || this.showFinishProjection() || this.presentDeadlineClosed) {
       this.quickFeedbackResult.set(null);
       return;
     }
@@ -1128,6 +1276,7 @@ export class SessionPresentComponent implements OnInit, OnDestroy {
       const result = await trpc.quickFeedback.results.query({
         sessionCode: this.code.toUpperCase(),
       });
+      if (this.presentDeadlineClosed) return;
       this.quickFeedbackResult.set(result);
     } catch (error: unknown) {
       if (this.errorCode(error) === 'NOT_FOUND') {
@@ -1139,7 +1288,7 @@ export class SessionPresentComponent implements OnInit, OnDestroy {
   }
 
   private async refreshHostQuestion(): Promise<void> {
-    if (!this.session() || this.session()?.type === 'Q_AND_A') {
+    if (!this.session() || this.session()?.type === 'Q_AND_A' || this.presentDeadlineClosed) {
       this.hostQuestion.set(null);
       this.stopCountdown();
       return;
@@ -1148,6 +1297,7 @@ export class SessionPresentComponent implements OnInit, OnDestroy {
       const question = await trpc.session.getCurrentQuestionForHost.query({
         code: this.code.toUpperCase(),
       });
+      if (this.presentDeadlineClosed) return;
       this.hostQuestion.set(question);
       if (this.session()?.status === 'ACTIVE') {
         this.startCountdown(question?.timer ?? null);
@@ -1180,13 +1330,13 @@ export class SessionPresentComponent implements OnInit, OnDestroy {
     }
 
     try {
-      this.emojiReactions.set(
-        await trpc.session.getReactions.query({
-          sessionId: session.id,
-          questionId: question.questionId,
-          round,
-        }),
-      );
+      const reactions = await trpc.session.getReactions.query({
+        sessionId: session.id,
+        questionId: question.questionId,
+        round,
+      });
+      if (this.presentDeadlineClosed) return;
+      this.emojiReactions.set(reactions);
     } catch {
       this.connectionDegraded.set(true);
     }
@@ -1198,9 +1348,11 @@ export class SessionPresentComponent implements OnInit, OnDestroy {
       return;
     }
     try {
-      this.hostVoteProgress.set(
-        await trpc.session.getHostVoteProgress.query({ code: this.code.toUpperCase() }),
-      );
+      const progress = await trpc.session.getHostVoteProgress.query({
+        code: this.code.toUpperCase(),
+      });
+      if (this.presentDeadlineClosed) return;
+      this.hostVoteProgress.set(progress);
     } catch {
       this.connectionDegraded.set(true);
     }
@@ -1211,34 +1363,50 @@ export class SessionPresentComponent implements OnInit, OnDestroy {
       return;
     }
     const code = this.code.toUpperCase();
-    this.currentQuestionSub ??= trpc.session.onCurrentQuestionForHostChanged.subscribe(
-      { code },
-      {
-        onData: (data) => this.hostQuestion.set(data),
-        onError: () => {
-          this.connectionDegraded.set(true);
-          this.currentQuestionSub?.unsubscribe();
-          this.currentQuestionSub = null;
+    if (!this.presentDeadlineClosed) {
+      this.currentQuestionSub ??= trpc.session.onCurrentQuestionForHostChanged.subscribe(
+        { code },
+        {
+          onData: (data) => {
+            if (!this.presentDeadlineClosed) {
+              this.hostQuestion.set(data);
+            }
+          },
+          onError: () => {
+            this.connectionDegraded.set(true);
+            this.currentQuestionSub?.unsubscribe();
+            this.currentQuestionSub = null;
+          },
         },
-      },
-    );
-    this.voteProgressSub ??= trpc.session.onHostVoteProgressChanged.subscribe(
-      { code },
-      {
-        onData: (data) => this.hostVoteProgress.set(data),
-        onError: () => {
-          this.connectionDegraded.set(true);
-          this.voteProgressSub?.unsubscribe();
-          this.voteProgressSub = null;
+      );
+      this.voteProgressSub ??= trpc.session.onHostVoteProgressChanged.subscribe(
+        { code },
+        {
+          onData: (data) => {
+            if (!this.presentDeadlineClosed) {
+              this.hostVoteProgress.set(data);
+            }
+          },
+          onError: () => {
+            this.connectionDegraded.set(true);
+            this.voteProgressSub?.unsubscribe();
+            this.voteProgressSub = null;
+          },
         },
-      },
-    );
+      );
+    }
     this.statusSub ??= trpc.session.onStatusChanged.subscribe(
       { code, anonymousClientId: getAnonymousClientId() },
       {
         onData: (data) => {
           if (data.serverTime) {
             recordServerTimeSample(data.serverTime, Date.now());
+          }
+          if (data.serverNow) {
+            recordServerTimeSample(data.serverNow, Date.now());
+          }
+          if (!this.applySessionDeadlineSnapshot(data)) {
+            return;
           }
           this.session.update((current) =>
             current
@@ -1391,7 +1559,7 @@ export class SessionPresentComponent implements OnInit, OnDestroy {
   }
 
   private async refreshLobbyAudience(): Promise<void> {
-    if (this.session()?.status !== 'LOBBY') {
+    if (this.session()?.status !== 'LOBBY' || this.presentDeadlineClosed) {
       this.clearLobbyAudience();
       return;
     }
@@ -1400,30 +1568,19 @@ export class SessionPresentComponent implements OnInit, OnDestroy {
     const anonymousClientId = getAnonymousClientId();
 
     try {
-      const payload = await trpc.session.getParticipants.query({ code });
+      const payload = await trpc.session.getParticipantSummary.query({ code });
+      if (this.presentDeadlineClosed) return;
+      this.lobbyAudienceTotal.set(payload.participantCount);
+      this.lobbyAudienceConnected.set(payload.connectedCount);
       this.applyLobbyParticipants(
-        payload.participants.map((participant) => ({
+        payload.recentArrivals.map((participant) => ({
           id: participant.id,
           nickname: participant.nickname,
           teamId: participant.teamId ?? null,
         })),
       );
     } catch {
-      try {
-        const payload = await trpc.session.getParticipantNicknames.query({
-          code,
-          anonymousClientId,
-        });
-        this.applyLobbyParticipants(
-          payload.nicknames.map((nickname) => ({
-            id: `nick:${nickname}`,
-            nickname,
-            teamId: null,
-          })),
-        );
-      } catch {
-        // Keep the last stable lobby snapshot if live lookups fail briefly.
-      }
+      // Keep the last stable, bounded lobby snapshot if live lookups fail briefly.
     }
 
     if (this.session()?.teamMode === true) {
@@ -1814,6 +1971,8 @@ export class SessionPresentComponent implements OnInit, OnDestroy {
     this.knownLobbyParticipantIds.clear();
     this.lobbyAudienceBaselineReady = false;
     this.lobbyParticipants.set([]);
+    this.lobbyAudienceTotal.set(0);
+    this.lobbyAudienceConnected.set(0);
     this.lobbyTeams.set([]);
   }
 

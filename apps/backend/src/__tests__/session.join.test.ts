@@ -6,6 +6,8 @@ const SESSION_ID = '6a8edced-5f8f-4cfa-9176-454fac9570ad';
 const PARTICIPANT_ID = '11111111-1111-4111-8111-111111111111';
 const TEAM_ID = '22222222-2222-4222-8222-222222222222';
 const CLIENT_ID = '33333333-3333-4333-8333-333333333333';
+const JOIN_KEY = 'join-key-abcdefghijklmnopqrstuvwxyz0123456789';
+const REJOIN_CAPABILITY = 'rejoin-capability-abcdefghijklmnopqrstuvwxyz';
 
 const {
   prismaMock,
@@ -14,6 +16,7 @@ const {
   statsMocks,
   presenceMocks,
   joinAdmissionMocks,
+  participantJoinMocks,
 } = vi.hoisted(() => ({
   prismaMock: {
     session: {
@@ -48,6 +51,9 @@ const {
   joinAdmissionMocks: {
     awaitJoinAdmissionSlot: vi.fn(),
   },
+  participantJoinMocks: {
+    prepareParticipantJoin: vi.fn(),
+  },
 }));
 
 vi.mock('../db', () => ({
@@ -79,6 +85,10 @@ vi.mock('../lib/presence', () => ({
 
 vi.mock('../lib/joinAdmission', () => ({
   awaitJoinAdmissionSlot: joinAdmissionMocks.awaitJoinAdmissionSlot,
+}));
+
+vi.mock('../lib/participantJoin', () => ({
+  prepareParticipantJoin: participantJoinMocks.prepareParticipantJoin,
 }));
 
 import { sessionRouter } from '../routers/session';
@@ -136,6 +146,17 @@ describe('session.join', () => {
       }),
     );
     joinAdmissionMocks.awaitJoinAdmissionSlot.mockResolvedValue({ delayedMs: 0, attempts: 1 });
+    participantJoinMocks.prepareParticipantJoin.mockResolvedValue({
+      participantId: PARTICIPANT_ID,
+      participantNumber: 4,
+      nickname: 'Ada 4',
+      teamId: null,
+      teamName: null,
+      timerAccommodation: 'DEFAULT',
+      rejoinCapability: REJOIN_CAPABILITY,
+      productFeedbackClaimToken: 'product-feedback-claim-token-1234567890',
+      rejoined: false,
+    });
     prismaMock.session.findUnique.mockResolvedValue(buildSession());
     prismaMock.participant.count.mockResolvedValue(3);
     prismaMock.$transaction.mockImplementation(async (fn: (tx: typeof prismaMock) => unknown) =>
@@ -144,41 +165,36 @@ describe('session.join', () => {
   });
 
   it('verwendet einen bestehenden Teilnehmer per rejoinToken erneut', async () => {
-    prismaMock.participant.findFirst.mockResolvedValue({
-      id: PARTICIPANT_ID,
+    participantJoinMocks.prepareParticipantJoin.mockResolvedValue({
+      participantId: PARTICIPANT_ID,
+      participantNumber: 2,
+      nickname: 'Ada 2',
       teamId: TEAM_ID,
-      team: { name: 'Team A' },
+      teamName: 'Team A',
       timerAccommodation: 'DEFAULT',
+      rejoinCapability: REJOIN_CAPABILITY,
+      productFeedbackClaimToken: null,
+      rejoined: true,
     });
 
     const result = await caller.join({
       code: 'abc123',
       nickname: 'Ada',
       anonymousClientId: CLIENT_ID,
-      rejoinToken: PARTICIPANT_ID,
+      rejoinToken: REJOIN_CAPABILITY,
+      joinIdempotencyKey: JOIN_KEY,
     });
 
-    expect(prismaMock.participant.findFirst).toHaveBeenCalledWith({
-      where: {
-        id: PARTICIPANT_ID,
+    expect(participantJoinMocks.prepareParticipantJoin).toHaveBeenCalledWith(
+      expect.objectContaining({
         sessionId: SESSION_ID,
-      },
-      select: {
-        id: true,
-        teamId: true,
-        timerAccommodation: true,
-        productFeedbackClaimTokenHash: true,
-        team: {
-          select: {
-            name: true,
-          },
-        },
-      },
-    });
-    expect(prismaMock.participant.create).not.toHaveBeenCalled();
-    expect(joinAdmissionMocks.awaitJoinAdmissionSlot).not.toHaveBeenCalled();
+        rejoinCapability: REJOIN_CAPABILITY,
+        joinIdempotencyKey: JOIN_KEY,
+      }),
+    );
+    expect(joinAdmissionMocks.awaitJoinAdmissionSlot).toHaveBeenCalledWith(SESSION_ID);
     expect(result.participantId).toBe(PARTICIPANT_ID);
-    expect(result.rejoinToken).toBe(PARTICIPANT_ID);
+    expect(result.rejoinToken).toBe(REJOIN_CAPABILITY);
     expect(result.teamId).toBe(TEAM_ID);
     expect(result.teamName).toBe('Team A');
     expect(presenceMocks.touchParticipantPresence).toHaveBeenCalledWith(SESSION_ID, PARTICIPANT_ID);
@@ -201,20 +217,19 @@ describe('session.join', () => {
         code: 'ABC123',
         nickname: '  Ada Lovelace  ',
         anonymousClientId: CLIENT_ID,
+        joinIdempotencyKey: JOIN_KEY,
       });
 
-      expect(prismaMock.participant.findFirst).not.toHaveBeenCalled();
-      expect(prismaMock.participant.create).toHaveBeenCalledWith({
-        data: {
+      expect(participantJoinMocks.prepareParticipantJoin).toHaveBeenCalledWith(
+        expect.objectContaining({
           sessionId: SESSION_ID,
-          nickname: 'Ada Lovelace',
-          teamId: undefined,
-          productFeedbackClaimTokenHash: expect.any(String),
-        },
-      });
+          requestedNickname: 'Ada Lovelace',
+          joinIdempotencyKey: JOIN_KEY,
+        }),
+      );
       expect(joinAdmissionMocks.awaitJoinAdmissionSlot).toHaveBeenCalledWith(SESSION_ID);
       expect(result.participantId).toBe(PARTICIPANT_ID);
-      expect(result.rejoinToken).toBe(PARTICIPANT_ID);
+      expect(result.rejoinToken).toBe(REJOIN_CAPABILITY);
       expect(result.productFeedbackClaimToken).toEqual(expect.any(String));
       expect(result.participantCount).toBe(4);
       expect(statsMocks.updateMaxParticipantsSingleSession).toHaveBeenCalledWith(4);
@@ -255,16 +270,14 @@ describe('session.join', () => {
       code: 'ABC123',
       nickname: 'Late Joiner',
       anonymousClientId: CLIENT_ID,
+      joinIdempotencyKey: JOIN_KEY,
     });
 
-    expect(prismaMock.participant.create).toHaveBeenCalledWith({
-      data: {
-        sessionId: SESSION_ID,
-        nickname: 'Late Joiner',
-        teamId: undefined,
-        productFeedbackClaimTokenHash: expect.any(String),
-      },
-    });
+    expect(participantJoinMocks.prepareParticipantJoin).toHaveBeenCalledWith(
+      expect.objectContaining({
+        requestedNickname: 'Late Joiner',
+      }),
+    );
     expect(prismaMock.participant.update).toHaveBeenCalledWith({
       where: { id: PARTICIPANT_ID },
       data: { teamId: TEAM_A },
@@ -289,11 +302,12 @@ describe('session.join', () => {
       code: 'ABC123',
       nickname: 'Ada',
       anonymousClientId: CLIENT_ID,
-      rejoinToken: PARTICIPANT_ID,
+      rejoinToken: REJOIN_CAPABILITY,
+      joinIdempotencyKey: JOIN_KEY,
     });
 
     expect(invalidSessionCodeMocks.rejectInvalidSessionCode).not.toHaveBeenCalled();
-    expect(joinAdmissionMocks.awaitJoinAdmissionSlot).not.toHaveBeenCalled();
+    expect(joinAdmissionMocks.awaitJoinAdmissionSlot).toHaveBeenCalledWith(SESSION_ID);
   });
 
   it('wendet den Client-Cap ausschließlich auf nicht existente Codes an', async () => {
@@ -310,6 +324,7 @@ describe('session.join', () => {
         code: 'ZZZ999',
         nickname: 'Ada',
         anonymousClientId: CLIENT_ID,
+        joinIdempotencyKey: JOIN_KEY,
       }),
     ).rejects.toMatchObject({ code: 'TOO_MANY_REQUESTS' });
 
@@ -327,6 +342,7 @@ describe('session.join', () => {
       caller.join({
         code: 'ZZZ999',
         nickname: 'Ada',
+        joinIdempotencyKey: JOIN_KEY,
       }),
     ).rejects.toMatchObject({ code: 'NOT_FOUND' });
 
@@ -353,6 +369,7 @@ describe('session.join', () => {
           code: 'ZZZ999',
           nickname: 'Ada',
           anonymousClientId: CLIENT_ID,
+          joinIdempotencyKey: JOIN_KEY,
         }),
       ).rejects.toMatchObject({ code: 'NOT_FOUND' });
 
@@ -374,11 +391,12 @@ describe('session.join', () => {
           code: 'ABC123',
           nickname: `TN ${index}`.slice(0, 30),
           anonymousClientId: `${String(index).padStart(8, '0')}-0000-4000-8000-000000000000`,
+          joinIdempotencyKey: `join-key-${String(index).padStart(6, '0')}-abcdefghijklmnop`,
         }),
       ),
     );
 
     expect(invalidSessionCodeMocks.rejectInvalidSessionCode).not.toHaveBeenCalled();
-    expect(prismaMock.participant.create).toHaveBeenCalledTimes(500);
+    expect(participantJoinMocks.prepareParticipantJoin).toHaveBeenCalledTimes(500);
   });
 });

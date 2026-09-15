@@ -99,12 +99,13 @@ describe('session.end', () => {
     prismaMock.$transaction.mockImplementation(async (fn: (tx: typeof prismaMock) => unknown) =>
       fn(prismaMock),
     );
-    prismaMock.session.update.mockResolvedValue({
-      id: 'sess-1',
-      status: 'FINISHED',
-      currentQuestion: null,
-      currentRound: 1,
-    });
+    prismaMock.session.update.mockImplementation(
+      async ({ data }: { data?: { endedAt?: Date } }) => ({
+        endedAt: data?.endedAt ?? new Date('2026-09-15T06:00:00.000Z'),
+        expiresAt: new Date('2026-09-16T06:00:00.000Z'),
+        sessionLifecycleRevision: 1,
+      }),
+    );
     prismaMock.productFeedbackInviteJob.upsert.mockResolvedValue({});
     prismaMock.productFeedbackInviteJob.updateMany.mockResolvedValue({ count: 1 });
   });
@@ -218,19 +219,27 @@ describe('session.end', () => {
     },
   );
 
-  it('führt nach verlorenem End-/Skip-Race keine Abschluss-Nebenwirkungen erneut aus', async () => {
+  it('liefert bei Wiederholung dasselbe kanonische Ende ohne erneute Nebenwirkungen', async () => {
+    const endedAt = new Date('2026-09-15T06:00:00.000Z');
+    const expiresAt = new Date('2026-09-16T06:00:00.000Z');
     prismaMock.session.findUnique.mockResolvedValueOnce({ id: 'sess-1' }).mockResolvedValueOnce({
       id: 'sess-1',
       status: 'FINISHED',
+      endedAt,
+      expiresAt,
+      sessionLifecycleRevision: 1,
       currentQuestion: null,
       quiz: null,
       participants: [],
       bonusTokens: [],
     });
 
-    await expect(caller.end({ code: 'ABC123' })).rejects.toMatchObject({
-      code: 'BAD_REQUEST',
-      message: 'Session ist bereits beendet.',
+    await expect(caller.end({ code: 'ABC123' })).resolves.toMatchObject({
+      status: 'FINISHED',
+      currentQuestion: null,
+      endedAt: endedAt.toISOString(),
+      expiresAt: expiresAt.toISOString(),
+      sessionLifecycleRevision: 1,
     });
 
     expect(prismaMock.$executeRaw).toHaveBeenCalledOnce();
@@ -241,6 +250,35 @@ describe('session.end', () => {
     expect(prismaMock.bonusToken.createMany).not.toHaveBeenCalled();
     expect(platformStatisticMocks.incrementCompletedSessionsTotal).not.toHaveBeenCalled();
     expect(loadSignalMocks.recordSessionTransitionActivity).not.toHaveBeenCalled();
+  });
+
+  it('liefert bei bereits fälliger Frist das trigger-kanonische endedAt = expiresAt', async () => {
+    const expiresAt = new Date('2026-09-15T05:00:00.000Z');
+    prismaMock.session.findUnique.mockResolvedValueOnce({ id: 'sess-1' }).mockResolvedValueOnce({
+      id: 'sess-1',
+      status: 'ACTIVE',
+      endedAt: null,
+      expiresAt,
+      sessionLifecycleRevision: 2,
+      currentQuestion: 0,
+      quiz: { name: 'Quiz', bonusTokenCount: 0, questions: [] },
+      participants: [],
+      bonusTokens: [],
+    });
+    prismaMock.session.update.mockResolvedValue({
+      endedAt: expiresAt,
+      expiresAt,
+      sessionLifecycleRevision: 3,
+    });
+
+    await expect(caller.end({ code: 'ABC123' })).resolves.toMatchObject({
+      status: 'FINISHED',
+      currentQuestion: null,
+      endedAt: expiresAt.toISOString(),
+      expiresAt: expiresAt.toISOString(),
+      sessionLifecycleRevision: 3,
+    });
+    expect(prismaMock.session.update).toHaveBeenCalledOnce();
   });
 });
 

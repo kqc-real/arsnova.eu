@@ -1,9 +1,171 @@
 # Last- und Performance-Tests
 
 Diese Seite ist das aktuelle Betriebs- und Testinventar. Strategische Gründe für die
-Werkzeugwahl stehen in [ADR-0013](architecture/decisions/0013-use-k6-and-artillery-for-load-and-performance-testing.md);
+Werkzeugwahl stehen in
+[ADR-0013](architecture/decisions/0013-use-k6-and-artillery-for-load-and-performance-testing.md);
 die Live-SLOs stehen in
 [ADR-0021](architecture/decisions/0021-separate-service-status-from-load-status-with-live-slo-telemetry.md).
+
+## Epic #405: gemeinsamer Release-Nachweis für #414 und #415
+
+Der Runner `scripts/load/qa-scale-epic405.mjs` bildet das verbindliche
+Q&A-Releaseprofil ab:
+
+- 2.500 über die Sessionlaufzeit persistierte Teilnahmeidentitäten;
+- zehn Fragen je Teilnahme und damit 25.000 physisch gespeicherte Fragen;
+- exakt 500 gleichzeitig aktive, teilnahmegebundene tRPC-WebSocket-Clients;
+- API-p95 strikt unter 1.000 ms und API-p99 strikt unter 2.000 ms;
+- technische Fehlerquote je kritischer API-Klasse strikt unter 0,5 Prozent;
+- höchstens 256 KiB serialisierter UTF-8-Anwendungspayload und höchstens 100
+  Listeneinträge je HTTP-Antwort, WS-Nachricht, Seite oder Snapshot;
+- Reconnect-p95 bis zur Anwendung der Zielrevision höchstens drei Sekunden,
+  Maximum höchstens zehn Sekunden und 500 von 500 erfolgreichen Clients.
+
+Das Profil ist absichtlich nicht auf kleinere Zahlen umstellbar. Concurrency
+und Stichprobengrößen stehen in
+`scripts/load/qa-scale-epic405.config.json`, die fachlichen Releasegrenzen
+werden bei der Validierung jedoch gegen feste kanonische Werte geprüft.
+
+### Netzwerkfreie Validierung und Unit-Tests
+
+```bash
+npm run load:qa-scale:test
+npm run load:qa-scale:validate
+```
+
+`--validate` liest nur die lokale JSON-Konfiguration und wertet
+Laufzeitparameter aus. Es öffnet keine HTTP-, WebSocket-, PostgreSQL- oder
+Redis-Verbindung. Ein Lauf ohne explizites `--validate`, `--release` oder
+`--soak` schlägt fehl; dadurch kann das große Profil nicht versehentlich
+gestartet werden.
+
+Eine abweichende Konfiguration kann ebenfalls rein lokal geprüft werden:
+
+```bash
+node scripts/load/qa-scale-epic405.mjs --validate --config /pfad/profil.json
+```
+
+### Release-Lauf
+
+Der Lauf ist ausschließlich für eine isolierte, migrationsaktuelle und
+löschbare Referenzumgebung vorgesehen. Er erzeugt den gesamten Bestand über
+die tRPC-API; es gibt keinen direkten DB-Seed. Nach dem Seed prüft er die
+Bestände erneut über Host-Aggregat, vollständige revisionsgebundene
+Teilnehmerseiten, Q&A-Kontingente und vollständige Q&A-Pagination für `TOP`,
+`BEST` und `CONTROVERSIAL`.
+
+```bash
+TRPC_URL=https://lasttest.example.invalid/trpc \
+WS_URL=wss://lasttest.example.invalid \
+ADMIN_DIAGNOSTIC_SECRET='separates-starkes-diagnose-secret' \
+QA_SCALE_DIAGNOSTIC_TRPC_URLS='https://backend-1.example.invalid/trpc,https://backend-2.example.invalid/trpc' \
+QA_SCALE_REPORT_FILE=artifacts/load/qa-scale-epic405.json \
+QA_SCALE_JUNIT_FILE=artifacts/load/qa-scale-epic405.xml \
+npm run load:qa-scale:release
+```
+
+`QA_SCALE_DIAGNOSTIC_TRPC_URLS` nennt bei mehreren Backendinstanzen deren
+direkte Diagnoseziele. Der Runner summiert die serverseitig gebundenen
+Verbindungen und verlangt vor und nach der Reconnect-Welle exakt 500. Wird
+die Variable weggelassen, dient `TRPC_URL` als einziges Diagnoseziel.
+
+Der Ablauf prüft unter anderem:
+
+1. 2.500 Erstbeitritte mit eigenem CSPRNG-`joinIdempotencyKey` und
+   begrenzten Host-Join-Snapshots statt vollständiger Teilnehmerlisten;
+2. 500 capability-gebundene Rejoins ohne neue Teilnahmeidentität;
+3. 25.000 capability-authentifizierte `qa.submit`-Aufrufe mit eigenem
+   CSPRNG-`idempotencyKey`;
+4. Retry eines bekannten Submit-Schlüssels mit derselben Frage,
+   `replayed: true` und unverändertem Kontingent;
+5. genau eine erwartete Limit-Ablehnung für den zusätzlichen Submit;
+6. Teilnehmer-Paging/-Suche, Q&A-Paging/-Suche, Ratings, Host-Moderation und
+   `health.stats`;
+7. den serverseitig aus dem vollständigen Bestand gerankten Wortwolkenkorpus
+   mit exakt 500 von 25.000 berücksichtigten Fragen sowie einen weiteren
+   Analysejob parallel zu Ratings, Moderation und Statusabrufen;
+8. Q&A-Fan-out und die koordinierte 500er-Reconnect-Welle;
+9. genau eine erwartete Frist-/Kanalablehnung nach dem abschließenden Schließen
+   des Q&A-Kanals.
+
+Für den Reconnect zählt weder Socket-Open noch `onStarted`. Jeder Client
+abonniert nach dem Reconnect `qa.onQuestionsUpdated` mit seiner
+`participantCapability`, verarbeitet die inhaltslose Invalidierung und lädt
+die begrenzte Q&A-Seite erneut. Erst wenn diese Seite im Harness-State
+angewendet wurde, gilt der Resubscribe als abgeschlossen. Danach löst der
+Runner gezielt eine Q&A-Mutation aus; deren neue `rankingRevision` wird über
+einen Host-Snapshot serverseitig bestätigt. Endzeitpunkt je Client ist erneut
+die Anwendung genau dieser oder einer neueren Revision nach dem begrenzten
+Resync. Die gemessene Dauer beginnt für alle Clients mit der gemeinsamen
+Freigabe der Reconnect-Welle.
+
+Die API-Klassen `JOIN_REJOIN`, `PARTICIPANT_QUERY`, `QA_PAGE`, `QA_SUBMIT`,
+`QA_RATING`, `QA_MODERATION` und `HEALTH_STATS` werden getrennt ausgewertet.
+Erwartete fachliche Ablehnungen besitzen einen eigenen Nenner und eigene
+p95-/p99-Werte; Typ und beobachteter tRPC-Statuscode werden getrennt im
+Report gezählt. Fehlende Stichproben, unbekannte Zielrevisionen, ein
+unvollständiger Bestand oder ein vorzeitig abgebrochener Lauf sind rote Gates;
+der Runner erzeugt dafür keinen grünen Ersatzwert.
+
+Für Teilnehmer- und Q&A-Queries wertet der Runner zusätzlich die geschützte,
+serverseitig gemessene Request-Hülle aus. Deren p95 muss bei höchstens 250 ms
+liegen. Da diese Messung Datenbankzeit und Server-Overhead umfasst, ist sie
+eine konservative Obergrenze für das geforderte DB-p95 und kein
+Lastgenerator-Ersatzwert.
+
+### Optionaler 60-Minuten-Soak
+
+`--soak` führt zuerst denselben vollständigen Release-Lauf aus. Danach folgen
+Warm-up, verpflichtende Baseline und exakt 60 Minuten Messlast:
+
+```bash
+TRPC_URL=https://lasttest.example.invalid/trpc \
+WS_URL=wss://lasttest.example.invalid \
+ADMIN_DIAGNOSTIC_SECRET='separates-starkes-diagnose-secret' \
+DATABASE_URL='postgresql://...' \
+REDIS_URL='rediss://...' \
+QA_SCALE_BACKEND_PROBE_URLS='https://backend-1.example.invalid/internal/runtime,https://backend-2.example.invalid/internal/runtime' \
+QA_SCALE_BACKEND_PROBE_TOKEN='separates-probe-token' \
+npm run load:qa-scale:soak
+```
+
+Jedes Backend-Probeziel muss pro Abruf ein minimales JSON-Objekt liefern:
+
+```json
+{
+  "instanceId": "backend-1",
+  "rssBytes": 734003200,
+  "eventLoopP99Ms": 18.4
+}
+```
+
+Die Probe muss direkt die jeweilige Backendinstanz messen. Ein
+Eventloop-Wert des Lastgenerators genügt nicht. Direkt nach dem Warm-up
+erfasst der Runner die RSS-Baseline je `instanceId`; das maximale Wachstum
+bis zum Laufende darf je Instanz 256 MiB nicht überschreiten und
+Backend-Eventloop-p99 muss höchstens 200 ms bleiben. PostgreSQL `SELECT 1`
+und Redis `PING` werden im selben Probenraster erfasst. Fehlende,
+fehlgeschlagene oder doppelt auf dieselbe `instanceId` zeigende
+Backendproben lassen das Gate scheitern; die DB-Probe muss zusätzlich p95
+von höchstens 250 ms halten.
+
+### Reports und Geheimnisse
+
+JSON- und optionale JUnit-Reports werden atomar geschrieben. Sie enthalten
+nur die freigegebenen Profilwerte, Ziel-Origins, Zähler, Perzentile,
+Payloadgrößen und Gateergebnisse. Host-, Teilnehmer-, Diagnose- und
+Probe-Tokens sowie `DATABASE_URL` und `REDIS_URL` werden nicht übernommen.
+Die Berichtserzeugung liest auch nicht pauschal `process.env`.
+
+Sessioncodes, Host-Credentials und Teilnehmer-Capabilities bleiben nur im
+Arbeitsspeicher des Lastgenerators. Der Lauf sollte trotzdem ausschließlich
+in einer kurzlebigen Umgebung stattfinden, weil er absichtlich 2.500
+Teilnahmen und 25.000 Fragen persistiert.
+
+Dieser Runner deckt die serverseitigen/API-/Realtime-Gates ab. Die in #414
+zusätzlich geforderten Browsernachweise für INP, Mobile, Reflow und
+`prefers-reduced-motion` bleiben separate UI-/Browser-Abnahmen und werden
+nicht als bestanden ausgegeben.
 
 ## Teststufen
 

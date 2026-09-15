@@ -1,8 +1,9 @@
-import { afterEach, describe, expect, it } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 import { QA_NLP_GATEKEEPER_MODEL_VERSION, QA_NLP_STUB_MODEL_VERSION } from './qaNlpConfig';
 import {
   enqueueQaNlpJob,
   getQaNlpMetrics,
+  invalidateQaNlpForSession,
   resetQaNlpQueueForTests,
   waitForQaNlpIdleForTests,
 } from './qaNlpQueue';
@@ -172,6 +173,41 @@ describe('qaNlpQueue', () => {
     expect(getQaNlpMetrics().earlyExit).toBe(1);
     expect(getQaNlpMetrics().fallback).toBe(0);
     expect(getQaNlpMetrics().earlyExitRate).toBe(1);
+  });
+
+  it('persistiert nach einer Session-Purge-Invalidierung kein laufendes Textartefakt mehr', async () => {
+    let release!: (value: ReturnType<typeof createStubUnclassifiedQaNlpResult>) => void;
+    let processorStarted = false;
+    const writes: string[] = [];
+    resetQaNlpQueueForTests({
+      config: () => ({
+        enabled: true,
+        timeoutMs: 1_000,
+        queueLimit: 8,
+        concurrency: 1,
+        minConfidence: 0.55,
+      }),
+      processor: () =>
+        new Promise((resolve) => {
+          release = resolve;
+          processorStarted = true;
+        }),
+      writer: async (questionId) => {
+        writes.push(questionId);
+      },
+    });
+
+    enqueueQaNlpJob({
+      sessionId: 'session-purged',
+      questionId: QUESTION_ID,
+      text: 'Dieser Text darf nicht zurückgeschrieben werden.',
+    });
+    await vi.waitFor(() => expect(processorStarted).toBe(true));
+    invalidateQaNlpForSession('session-purged');
+    release(createStubUnclassifiedQaNlpResult());
+    await waitForQaNlpIdleForTests();
+
+    expect(writes).toEqual([]);
   });
 
   it('zaehlt Fallback und Unclassified nach kurzem Text', async () => {

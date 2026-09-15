@@ -1,0 +1,135 @@
+:host {
+  display: block;
+}
+
+.lifecycle-dialog__content {
+  display: grid;
+  gap: 1rem;
+  width: min(34rem, calc(100vw - 3rem));
+  box-sizing: border-box;
+}
+
+.lifecycle-dialog__summary {
+  display: grid;
+  gap: 0.75rem;
+  margin: 0;
+  padding: 0.95rem 1rem 1rem;
+  border: 1px solid color-mix(in srgb, var(--mat-sys-outline-variant) 75%, transparent);
+  border-radius: var(--mat-sys-corner-large);
+  background: var(--mat-sys-surface-container-lowest);
+}
+
+.lifecycle-dialog__summary-title {
+  margin: 0;
+  color: var(--mat-sys-on-surface);
+  font: var(--mat-sys-title-medium);
+  font-weight: 600;
+  line-height: 1.35;
+}
+
+.lifecycle-dialog__summary dl {
+  display: grid;
+  gap: 0.75rem;
+  margin: 0;
+}
+
+.lifecycle-dialog__summary dl div {
+  display: grid;
+  gap: 0.2rem;
+  min-width: 0;
+}
+
+.lifecycle-dialog__summary dt {
+  color: var(--mat-sys-on-surface-variant);
+  font: var(--mat-sys-label-large);
+}
+
+.lifecycle-dialog__summary dd {
+  margin: 0;
+  overflow-wrap: anywhere;
+  color: var(--mat-sys-on-surface);
+  font: var(--mat-sys-title-small);
+  font-weight: 600;
+  line-height: 1.4;
+}
+
+.lifecycle-dialog__notice {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.65rem;
+  margin: 0;
+  padding: 0.8rem 0.9rem;
+  border-radius: var(--mat-sys-corner-medium);
+  background: color-mix(in srgb, var(--mat-sys-tertiary-container) 55%, transparent);
+  color: var(--mat-sys-on-tertiary-container);
+  font: var(--mat-sys-body-medium);
+  line-height: 1.5;
+}
+
+.lifecycle-dialog__notice mat-icon {
+  flex-shrink: 0;
+  margin-top: 0.1rem;
+  width: 1.25rem;
+  height: 1.25rem;
+  font-size: 1.25rem;
+  color: var(--mat-sys-tertiary);
+}
+
+.lifecycle-dialog__group {
+  display: grid;
+  gap: 0.65rem;
+  min-width: 0;
+  margin: 0;
+  padding: 0.95rem 1rem 1rem;
+  border: 1px solid color-mix(in srgb, var(--mat-sys-outline-variant) 75%, transparent);
+  border-radius: var(--mat-sys-corner-large);
+  background: var(--mat-sys-surface-container-lowest);
+}
+
+.lifecycle-dialog__group legend {
+  padding-inline: 0.2rem;
+  color: var(--mat-sys-on-surface);
+  font: var(--mat-sys-title-medium);
+  font-weight: 600;
+}
+
+.lifecycle-dialog__row,
+.lifecycle-dialog__quick {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.65rem;
+  align-items: flex-start;
+}
+
+.lifecycle-dialog__row mat-form-field {
+  flex: 1 1 15rem;
+  min-width: min(100%, 15rem);
+}
+
+.lifecycle-dialog__action {
+  min-height: 2.75rem;
+}
+
+.lifecycle-dialog__error {
+  margin: 0;
+  color: var(--mat-sys-error);
+  font: var(--mat-sys-body-medium);
+  line-height: 1.4;
+}
+
+.lifecycle-dialog__actions {
+  flex-wrap: wrap;
+  row-gap: 0.5rem;
+  column-gap: 0.5rem;
+}
+
+@media (max-width: 359px) {
+  .lifecycle-dialog__content {
+    width: auto;
+  }
+
+  .lifecycle-dialog__action,
+  .lifecycle-dialog__actions button {
+    width: 100%;
+  }
+}

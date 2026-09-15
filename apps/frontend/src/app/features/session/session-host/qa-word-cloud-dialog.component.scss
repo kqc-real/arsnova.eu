@@ -133,6 +133,13 @@
   color: color-mix(in srgb, var(--mat-sys-on-surface) 84%, white 16%);
 }
 
+.qa-word-cloud-dialog__coverage {
+  margin: 0;
+  text-align: center;
+  font: var(--mat-sys-label-medium);
+  color: var(--mat-sys-on-surface-variant);
+}
+
 .qa-word-cloud-dialog__progress {
   display: flex;
   flex-direction: column;

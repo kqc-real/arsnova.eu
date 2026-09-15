@@ -303,6 +303,15 @@ jobs:
           --health-interval 5s
           --health-timeout 5s
           --health-retries 10
+      redis:
+        image: redis:7.4-alpine
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
 
     steps:
       - name: Docs-only fast pass
@@ -349,6 +358,35 @@ jobs:
         env:
           RUN_PG_SESSION_RACE_TESTS: '1'
         run: npx vitest run src/__tests__/session.finalization-race.pg.test.ts
+
+      - name: Absolute session lifecycle and retention PostgreSQL regressions
+        if: needs.changes.outputs.docs_only != 'true'
+        working-directory: apps/backend
+        env:
+          RUN_PG_SESSION_LIFECYCLE_TESTS: '1'
+        run: >-
+          npx vitest run
+          src/__tests__/session.absolute-lifecycle.pg.test.ts
+          src/__tests__/session.retention.pg.test.ts
+
+      - name: Capability and Q&A scale PostgreSQL and Redis regressions
+        if: needs.changes.outputs.docs_only != 'true'
+        working-directory: apps/backend
+        env:
+          REDIS_URL: redis://localhost:6379
+          RUN_PG_CAPABILITY_TESTS: '1'
+          RUN_PG_QA_SCALE_TESTS: '1'
+        run: >-
+          npx vitest run
+          src/__tests__/session.capabilities.pg.test.ts
+          src/__tests__/qa.scale.pg.test.ts
+
+      - name: Q&A scale migration backfill regression
+        if: needs.changes.outputs.docs_only != 'true'
+        working-directory: apps/backend
+        env:
+          RUN_PG_QA_MIGRATION_TESTS: '1'
+        run: npx vitest run scripts/qa-scale-migration.test.ts
 
   # ─── Build & Validate ────────────────────────────────────────────────────────
   build:

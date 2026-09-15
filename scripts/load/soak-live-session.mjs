@@ -128,6 +128,7 @@ async function joinInWaves(publicTrpc, code, metrics) {
             code,
             nickname: `Soak ${String(index + 1).padStart(3, '0')}`,
             anonymousClientId: globalThis.crypto.randomUUID(),
+            joinIdempotencyKey: globalThis.crypto.randomUUID(),
           }),
         ),
       ),

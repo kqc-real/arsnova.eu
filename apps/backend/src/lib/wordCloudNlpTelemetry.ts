@@ -28,6 +28,8 @@ export interface WordCloudNlpTelemetrySnapshot {
   sidecarCalls: number;
   timeouts: number;
   fallbacks: number;
+  inFlight: number;
+  lastLatencyMs: number | null;
 }
 
 const counters: WordCloudNlpTelemetrySnapshot = {
@@ -38,6 +40,8 @@ const counters: WordCloudNlpTelemetrySnapshot = {
   sidecarCalls: 0,
   timeouts: 0,
   fallbacks: 0,
+  inFlight: 0,
+  lastLatencyMs: null,
 };
 
 export function resetWordCloudNlpTelemetryForTests(): void {
@@ -48,6 +52,8 @@ export function resetWordCloudNlpTelemetryForTests(): void {
   counters.sidecarCalls = 0;
   counters.timeouts = 0;
   counters.fallbacks = 0;
+  counters.inFlight = 0;
+  counters.lastLatencyMs = null;
 }
 
 export function snapshotWordCloudNlpTelemetry(): WordCloudNlpTelemetrySnapshot {
@@ -55,6 +61,7 @@ export function snapshotWordCloudNlpTelemetry(): WordCloudNlpTelemetrySnapshot {
 }
 
 export function recordWordCloudAnalyzeTelemetry(event: WordCloudAnalyzeTelemetryEvent): void {
+  counters.lastLatencyMs = Math.max(0, Math.round(event.durationMs));
   if (event.snapshotCache === 'hit') {
     counters.snapshotHits += 1;
   } else {
@@ -87,4 +94,14 @@ export function recordWordCloudAnalyzeTelemetry(event: WordCloudAnalyzeTelemetry
     sidecarCalled: event.sidecarCalled,
     encoderCalled: event.encoderCalled === true,
   });
+}
+
+export function beginWordCloudAnalysisTelemetry(): () => void {
+  counters.inFlight += 1;
+  let finished = false;
+  return () => {
+    if (finished) return;
+    finished = true;
+    counters.inFlight = Math.max(0, counters.inFlight - 1);
+  };
 }

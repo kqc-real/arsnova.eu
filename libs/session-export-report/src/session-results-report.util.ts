@@ -1428,7 +1428,12 @@ export function buildSessionResultsReportHtml(
   const participationHtml = renderSessionParticipationHtml(data, labels, localeId);
   const finalSummaryHtml = renderNextStepsSummaryHtml(data, labels, localeId);
   const qaHtml = data.qaQuestions?.length
-    ? renderQaSectionHtml(data.qaQuestions, labels, localeId)
+    ? renderQaSectionHtml(
+        data.qaQuestions,
+        labels,
+        localeId,
+        data.qaQuestionTotalCount ?? data.qaQuestions.length,
+      )
     : '';
   const teamLearningHtml = renderTeamLearningProfilesHtml(data, labels, localeId);
   const footerMeta = labels.exportFooterMeta

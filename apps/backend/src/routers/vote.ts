@@ -44,6 +44,7 @@ import { publicProcedure, router } from '../trpc';
 import { prisma } from '../db';
 import { Prisma } from '@prisma/client';
 import { checkVoteRate } from '../lib/rateLimit';
+import { assertParticipantCapability } from '../lib/participantAuth';
 import {
   calculateVoteScore,
   getStreakMultiplier,
@@ -58,6 +59,7 @@ import {
   getSkippedSessionQuestionIds,
   parseSessionQuestionProgress,
 } from '../lib/sessionQuestionProgress';
+import { assertSessionEffectivelyActive } from '../lib/sessionLifecycle';
 
 function normalizeNumericInputType(value: string | null | undefined): NumericInputType {
   return value === 'INTEGER' ? 'INTEGER' : 'DECIMAL';
@@ -153,8 +155,13 @@ export const voteRouter = router({
   submit: publicProcedure
     .input(SubmitVoteInputSchema)
     .output(SubmitVoteOutputSchema)
-    .mutation(async ({ input }) => {
+    .mutation(async ({ input, ctx }) => {
       const requestReceivedAtMs = Date.now();
+      await assertParticipantCapability({
+        ctx,
+        sessionId: input.sessionId,
+        participantId: input.participantId,
+      });
       const limit = await checkVoteRate(input.participantId);
       if (!limit.allowed) {
         throw new TRPCError({
@@ -175,6 +182,9 @@ export const voteRouter = router({
       }
       if (participant.session.status === 'FINISHED') {
         throw new TRPCError({ code: 'BAD_REQUEST', message: 'Diese Session ist beendet.' });
+      }
+      if (participant.session.expiresAt instanceof Date) {
+        assertSessionEffectivelyActive(participant.session, new Date(requestReceivedAtMs));
       }
       void touchParticipantPresence(input.sessionId, input.participantId);
       void recordVoteActivity();
@@ -788,8 +798,17 @@ export const voteRouter = router({
             await lockVoteSessionRowForShare(tx, input.sessionId);
             const lockedSession = await tx.session.findUnique({
               where: { id: input.sessionId },
-              select: { status: true, currentQuestion: true, currentRound: true },
+              select: {
+                status: true,
+                endedAt: true,
+                expiresAt: true,
+                currentQuestion: true,
+                currentRound: true,
+              },
             });
+            if (lockedSession) {
+              assertSessionEffectivelyActive(lockedSession, new Date());
+            }
             const lockedStatusAcceptsVote =
               lockedSession?.status === 'ACTIVE' ||
               (acceptsLateVote &&

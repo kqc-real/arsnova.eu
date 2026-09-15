@@ -23,6 +23,8 @@ import {
   type RateLimitCategory,
 } from './lib/abuseTelemetry';
 import { checkQuizUploadAttemptRate } from './lib/rateLimit';
+import { isSessionLifecycleDatabaseError } from './lib/sessionLifecycle';
+import { recordQaApiDiagnostic } from './lib/qaApiDiagnostics';
 
 export type Context = {
   req?: IncomingMessage;
@@ -117,6 +119,21 @@ const telemetryProcedure = t.procedure.use(async ({ ctx, path, type, next }) => 
   const trackLiveRequest = type !== 'subscription' && isTrackedLiveProcedure(path);
   const startedAt = Date.now();
   const result = await next();
+  const lifecycleRejection =
+    !result.ok && isSessionLifecycleDatabaseError(result.error.cause ?? result.error);
+  recordQaApiDiagnostic({
+    path,
+    durationMs: Date.now() - startedAt,
+    errorCode: result.ok ? undefined : lifecycleRejection ? 'BAD_REQUEST' : result.error.code,
+    errorMessage: result.ok ? undefined : result.error.message,
+  });
+  if (lifecycleRejection) {
+    throw new TRPCError({
+      code: 'BAD_REQUEST',
+      message: 'Die Session ist beendet. Die Aktion wurde nicht gespeichert.',
+      cause: result.error,
+    });
+  }
   const errorCode = result.ok ? undefined : result.error.code;
 
   if (result.ok && path === 'session.create') {

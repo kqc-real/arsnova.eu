@@ -28,11 +28,14 @@ import {
   MatCardTitle,
 } from '@angular/material/card';
 import { MatIcon } from '@angular/material/icon';
+import { MatDialog } from '@angular/material/dialog';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { MatTooltip } from '@angular/material/tooltip';
+import { firstValueFrom } from 'rxjs';
 import { setFeedbackHostToken } from '../../core/feedback-host-token';
 import { clearHostToken, hasHostToken } from '../../core/host-session-token';
 import { setHostToken, setPendingHostSessionCode, trpc } from '../../core/trpc.client';
+import { persistInitialHostRecovery } from '../../core/host-recovery-access';
 import { createDefaultLiveSessionOnboardingProfile } from '../../core/home-preset-storage';
 import { ThemePresetService } from '../../core/theme-preset.service';
 import { PresetSnackbarFocusService } from '../../core/preset-snackbar-focus.service';
@@ -46,6 +49,12 @@ import { navigateToHostSession } from '../../core/session-host-navigation';
 import { getAnonymousClientId } from '../../core/anonymous-client-id';
 import { DEMO_QUIZ_ID, QuizStoreService } from '../quiz/data/quiz-store.service';
 import { formatLocaleCount } from '../../core/locale-number.util';
+import { resolveBrowserSessionTimeZone } from '../session/session-time-zone';
+import {
+  SessionParticipationProfileDialogComponent,
+  type SessionParticipationProfileDialogData,
+  type SessionParticipationProfileDialogResult,
+} from '../session/session-participation-profile-dialog.component';
 import { QUICK_FEEDBACK_HOME_CHIPS } from '../feedback/feedback.config';
 import type {
   MotdInteractionKind,
@@ -115,6 +124,7 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
   readonly infoLandingWorkflowLabel = $localize`:@@homeHostCard.infoLanding:Einsatzmöglichkeiten`;
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
+  private readonly dialog = inject(MatDialog);
   private readonly snackBar = inject(MatSnackBar);
   private readonly focusService = inject(PresetSnackbarFocusService);
   @ViewChild('sessionCodeInput') private readonly sessionCodeInput?: ElementRef<HTMLInputElement>;
@@ -614,19 +624,50 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
       const onboardingProfile = createDefaultLiveSessionOnboardingProfile(
         this.themePreset.preset(),
       );
+      if (tab === 'qa') {
+        const dialogRef = this.dialog.open<
+          SessionParticipationProfileDialogComponent,
+          SessionParticipationProfileDialogData,
+          SessionParticipationProfileDialogResult
+        >(SessionParticipationProfileDialogComponent, {
+          width: '36rem',
+          maxWidth: 'calc(100vw - 1.5rem)',
+          autoFocus: 'first-tabbable',
+          restoreFocus: true,
+          data: {
+            identityMode: 'PRESET_PSEUDONYM',
+            nicknameTheme: onboardingProfile.nicknameTheme,
+          },
+        });
+        const participationProfile = await firstValueFrom(dialogRef.afterClosed());
+        if (!participationProfile) {
+          return;
+        }
+        onboardingProfile.nicknameTheme = participationProfile.nicknameTheme;
+        onboardingProfile.allowCustomNicknames =
+          participationProfile.identityMode === 'CUSTOM_NICKNAME';
+        onboardingProfile.anonymousMode = participationProfile.identityMode === 'ANONYMOUS';
+      }
       const result =
         tab === 'qa'
           ? await trpc.session.create.mutate({
               type: 'QUIZ',
               qaEnabled: true,
+              timeZone: resolveBrowserSessionTimeZone(),
               ...onboardingProfile,
             })
           : await trpc.session.create.mutate({
               type: 'QUIZ',
               quickFeedbackEnabled: true,
+              timeZone: resolveBrowserSessionTimeZone(),
               ...onboardingProfile,
             });
       setHostToken(result.code, result.hostToken);
+      persistInitialHostRecovery({
+        code: result.code,
+        browserCapability: result.hostBrowserCapability,
+        recoveryCard: result.hostRecoveryCard,
+      });
       await navigateToHostSession(this.router, result.code, tab);
     } catch (error) {
       this.joinError.set(

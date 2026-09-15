@@ -34,7 +34,10 @@ describe('QaWordCloudDialogComponent', () => {
       wordLabelSingular: () => 'Begriff',
       wordLabelPlural: () => 'Begriffe',
       weightingHint: () => null,
-      tooltipMetricLabel: () => null,
+      tooltipMetricLabel: () => 'positive Stimmen',
+      analyzedQuestionCount: () => 12,
+      eligibleQuestionCount: () => 18,
+      analysisModelVersion: () => null,
       analysisVariant: () => analysisVariant,
       setAnalysisVariant,
       themeModeAvailable: () => true,
@@ -42,6 +45,7 @@ describe('QaWordCloudDialogComponent', () => {
         analysisVariant === 'SEMANTIC'
           ? 'Themen sind noch nicht verfügbar. Es gelten Wörter und Phrasen.'
           : null,
+      themeWaitHint: () => null,
       sortMode: () => 'TOP',
       setSortMode,
       frozen: () => false,
@@ -56,6 +60,7 @@ describe('QaWordCloudDialogComponent', () => {
       setLemmaLocale: vi.fn(),
       itemLabelSingular: 'Frage',
       itemLabelPlural: 'Fragen',
+      focusedTermLabel: () => null,
       ...overrides,
     };
 
@@ -97,6 +102,14 @@ describe('QaWordCloudDialogComponent', () => {
     ) as HTMLButtonElement;
     expect(freeze.getAttribute('aria-label')).toBe('Wortwolke einfrieren');
     expect(fixture.nativeElement.querySelector('.qa-word-cloud-dialog__smooth')).not.toBeNull();
+
+    const coverage = fixture.nativeElement.querySelector(
+      '.qa-word-cloud-dialog__coverage',
+    ) as HTMLElement;
+    expect(coverage.getAttribute('role')).toBe('status');
+    expect(coverage.textContent?.replace(/\s+/g, ' ').trim()).toBe(
+      '12 höchstplatzierte von 18 berücksichtigten Fragen · positive Stimmen',
+    );
   });
 
   it('zeigt Sprache und Glaettung bei Woertern', () => {

@@ -176,6 +176,7 @@ async function joinParticipants(session, nicknamePrefix = 'LIVE') {
       code: session.code,
       nickname: `${nicknamePrefix}-${String(index + 1).padStart(4, '0')}`,
       anonymousClientId: globalThis.crypto.randomUUID(),
+      joinIdempotencyKey: globalThis.crypto.randomUUID(),
     });
     return joined.participantId;
   });

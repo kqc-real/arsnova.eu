@@ -1158,6 +1158,26 @@
   font-weight: 600;
 }
 
+.session-host__qa-deadline {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.65rem;
+  padding: 0.75rem;
+  border-radius: 0.75rem;
+  background: var(--mat-sys-secondary-container);
+  color: var(--mat-sys-on-secondary-container);
+
+  > span {
+    flex: 1 1 14rem;
+  }
+
+  &--expired {
+    background: var(--mat-sys-error-container);
+    color: var(--mat-sys-on-error-container);
+  }
+}
+
 .session-channel-card__eyebrow {
   margin: 0;
   font: var(--mat-sys-label-large);
@@ -1406,6 +1426,27 @@
 
 .session-host__live-participants-count {
   font-weight: 700;
+}
+
+.session-host__retention-details {
+  max-width: 100%;
+  color: var(--mat-sys-on-surface-variant);
+  font: var(--mat-sys-body-small);
+
+  summary {
+    cursor: pointer;
+    color: var(--mat-sys-primary);
+    font: var(--mat-sys-label-large);
+  }
+
+  p {
+    margin: 0.45rem 0 0;
+    line-height: 1.5;
+  }
+
+  strong {
+    color: var(--mat-sys-on-surface);
+  }
 }
 
 .session-host__live-heading {
@@ -1929,6 +1970,31 @@
   text-align: center;
 }
 
+.session-host__post-processing-ended {
+  display: grid;
+  justify-items: center;
+  gap: 0.75rem;
+  width: min(40rem, 100%);
+  margin-inline: auto;
+  padding: clamp(1.25rem, 4vw, 2.5rem);
+  box-sizing: border-box;
+  border: 1px solid var(--mat-sys-outline-variant);
+  border-radius: var(--mat-sys-corner-extra-large);
+  background: var(--mat-sys-surface-container);
+  color: var(--mat-sys-on-surface);
+  text-align: center;
+
+  h2,
+  p {
+    margin: 0;
+  }
+
+  p {
+    max-width: 34rem;
+    color: var(--mat-sys-on-surface-variant);
+  }
+}
+
 .session-qa-empty__icon {
   font-size: 2.5rem;
   width: 2.5rem;
@@ -1968,6 +2034,11 @@
   flex-wrap: wrap;
   min-width: 0;
   max-width: 100%;
+}
+
+.session-qa-search {
+  flex: 1 1 13rem;
+  max-width: 22rem;
 }
 
 .session-qa-summary__chip {
@@ -2187,6 +2258,14 @@
   gap: 0.75rem;
   max-height: 70vh;
   overflow-y: auto;
+}
+
+.session-qa-paging {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+  margin-block: 0.75rem;
 }
 
 .session-qa-card {
@@ -2557,6 +2636,11 @@
   .session-qa-summary__actions {
     width: 100%;
     justify-content: flex-start;
+  }
+
+  .session-qa-search {
+    max-width: none;
+    width: calc(100% - 3rem);
   }
 
   .session-qa-sort-toggle {
@@ -3136,6 +3220,72 @@
   font-weight: 600;
 }
 
+.session-participant-directory {
+  display: grid;
+  justify-items: center;
+  gap: 0.75rem;
+  width: min(100%, 52rem);
+  margin: 0.75rem auto 0;
+}
+
+.session-participant-directory__content {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 0.75rem;
+  width: 100%;
+  padding: 1rem;
+  border: 1px solid var(--mat-sys-outline-variant);
+  border-radius: var(--mat-sys-corner-large);
+  background: var(--mat-sys-surface-container-low);
+}
+
+.session-participant-directory__count,
+.session-participant-directory__error,
+.session-participant-directory__list,
+.session-participant-directory__paging {
+  grid-column: 1 / -1;
+}
+
+.session-participant-directory__count,
+.session-participant-directory__error {
+  margin: 0;
+  font: var(--mat-sys-body-medium);
+}
+
+.session-participant-directory__error {
+  color: var(--mat-sys-error);
+}
+
+.session-participant-directory__list {
+  display: grid;
+  gap: 0.35rem;
+  max-height: min(24rem, 45vh);
+  margin: 0;
+  padding: 0;
+  overflow: auto;
+  list-style: none;
+}
+
+.session-participant-directory__list li {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.55rem 0.7rem;
+  border-radius: var(--mat-sys-corner-small);
+  background: var(--mat-sys-surface);
+}
+
+.session-participant-directory__team {
+  color: var(--mat-sys-on-surface-variant);
+}
+
+.session-participant-directory__paging {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+}
+
 @media (max-width: 599px) {
   .session-lobby__hero-card {
     padding: 1.5rem 1.35rem 1.75rem;
@@ -3158,6 +3308,15 @@
   .session-lobby__list:has(.session-lobby__nick-emoji--host-lobby) {
     grid-template-columns: repeat(auto-fit, minmax(4.1rem, 1fr));
     gap: 0.45rem 0.6rem;
+  }
+
+  .session-participant-directory__content {
+    grid-template-columns: minmax(0, 1fr) auto;
+    padding: 0.75rem;
+  }
+
+  .session-participant-directory__paging {
+    justify-content: space-between;
   }
 }
 

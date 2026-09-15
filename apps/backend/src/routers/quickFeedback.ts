@@ -48,6 +48,7 @@ import {
 } from '../lib/rateLimit';
 import type { SessionCodeFailureSource } from '../lib/abuseTelemetry';
 import { rejectInvalidSessionCode } from '../lib/invalidSessionCode';
+import { isSessionEffectivelyFinished } from '../lib/sessionLifecycle';
 
 const FEEDBACK_TTL_SECONDS = 30 * 60;
 const KNOWN_FEEDBACK_GRACE_SECONDS = 5 * 60;
@@ -184,6 +185,8 @@ type SessionQuickFeedbackGate = {
   quickFeedbackEnabled: boolean;
   quickFeedbackOpen: boolean;
   status: string;
+  endedAt: Date | null;
+  expiresAt: Date;
   participantCount: number;
 };
 
@@ -247,12 +250,13 @@ async function resolveQuickFeedbackAvailability(
 
   const session = await prisma.session.findUnique({
     where: { code },
-    select: { status: true, type: true },
+    select: { status: true, type: true, endedAt: true, expiresAt: true },
   });
+  const effectivelyFinished = session !== null && isSessionEffectivelyFinished(session, new Date());
   if (raw && session) {
     return {
-      active: true as const,
-      sessionStatus: session.status,
+      active: !effectivelyFinished,
+      sessionStatus: effectivelyFinished ? ('FINISHED' as const) : session.status,
       sessionType: session.type,
     };
   }
@@ -262,7 +266,7 @@ async function resolveQuickFeedbackAvailability(
   }
   return {
     active: false as const,
-    sessionStatus: session.status,
+    sessionStatus: effectivelyFinished ? ('FINISHED' as const) : session.status,
     sessionType: session.type,
   };
 }
@@ -393,7 +397,13 @@ function tempoSnapshotsWithDefaultFollowing(
 async function assertSessionQuickFeedbackEnabled(code: string): Promise<void> {
   const session = await prisma.session.findUnique({
     where: { code },
-    select: { id: true, quickFeedbackEnabled: true },
+    select: {
+      id: true,
+      quickFeedbackEnabled: true,
+      status: true,
+      endedAt: true,
+      expiresAt: true,
+    },
   });
 
   if (!session) {
@@ -406,6 +416,12 @@ async function assertSessionQuickFeedbackEnabled(code: string): Promise<void> {
       message: 'Blitz-Feedback ist für diese Session nicht aktiviert.',
     });
   }
+  if (isSessionEffectivelyFinished(session, new Date())) {
+    throw new TRPCError({
+      code: 'FORBIDDEN',
+      message: 'Die Session ist beendet. Blitzlicht ist nicht mehr möglich.',
+    });
+  }
 }
 
 async function loadSessionQuickFeedbackGate(code: string): Promise<SessionQuickFeedbackGate> {
@@ -416,6 +432,8 @@ async function loadSessionQuickFeedbackGate(code: string): Promise<SessionQuickF
       quickFeedbackEnabled: true,
       quickFeedbackOpen: true,
       status: true,
+      endedAt: true,
+      expiresAt: true,
       _count: { select: { participants: true } },
     },
   });
@@ -429,6 +447,8 @@ async function loadSessionQuickFeedbackGate(code: string): Promise<SessionQuickF
     quickFeedbackEnabled: session.quickFeedbackEnabled === true,
     quickFeedbackOpen: session.quickFeedbackOpen !== false,
     status: session.status,
+    endedAt: session.endedAt,
+    expiresAt: session.expiresAt,
     participantCount: session._count.participants,
   };
 }
@@ -453,7 +473,7 @@ async function assertSessionAllowsQuickFeedbackVote(
     });
   }
 
-  if (session.status === 'FINISHED') {
+  if (isSessionEffectivelyFinished(session, new Date())) {
     throw new TRPCError({
       code: 'FORBIDDEN',
       message: 'Die Session ist beendet. Blitzlicht ist nicht mehr möglich.',
@@ -484,6 +504,7 @@ async function loadQuickFeedbackForVote(code: string): Promise<StoredQuickFeedba
 async function loadQuickFeedbackForHost(
   ctx: HostTokenContext,
   code: string,
+  allowEndedRead = false,
 ): Promise<StoredQuickFeedbackResult> {
   const redis = getRedis();
   const raw = await redis.get(feedbackKey(code));
@@ -498,6 +519,9 @@ async function loadQuickFeedbackForHost(
   const result = parseStoredQuickFeedbackResult(raw);
   if (result.sessionBound === true) {
     await assertHostSessionAccessFromContext(ctx, code);
+    if (!allowEndedRead) {
+      await assertSessionQuickFeedbackEnabled(code);
+    }
   } else {
     await assertFeedbackHostAccess(ctx.req, code, ctx.connectionParams);
   }
@@ -801,6 +825,10 @@ export const quickFeedbackRouter = router({
   leaveTempo: publicProcedure
     .input(QuickFeedbackVoteInputSchema.pick({ sessionCode: true, voterId: true }))
     .mutation(async ({ input }) => {
+      const result = await loadQuickFeedbackForVote(input.sessionCode.toUpperCase());
+      if (result.sessionBound === true) {
+        await assertSessionAllowsQuickFeedbackVote(input.sessionCode.toUpperCase());
+      }
       await clearTempoVote(input);
       return { ok: true };
     }),
@@ -823,6 +851,12 @@ export const quickFeedbackRouter = router({
           throw new TRPCError({
             code: 'FORBIDDEN',
             message: 'Der Blitzlicht-Kanal ist aktuell geschlossen.',
+          });
+        }
+        if (isSessionEffectivelyFinished(gate, new Date())) {
+          throw new TRPCError({
+            code: 'FORBIDDEN',
+            message: 'Die Session ist beendet. Blitzlicht ist nicht mehr verfügbar.',
           });
         }
       }
@@ -851,7 +885,7 @@ export const quickFeedbackRouter = router({
     .output(QuickFeedbackResultSchema)
     .query(async ({ input, ctx }) => {
       const code = input.sessionCode.toUpperCase();
-      const result = await loadQuickFeedbackForHost(ctx, code);
+      const result = await loadQuickFeedbackForHost(ctx, code, true);
       await enrichOpinionShift(result, code);
       await enrichTempoTrend(result, code);
       return QuickFeedbackResultSchema.parse({
@@ -872,7 +906,11 @@ export const quickFeedbackRouter = router({
       while (true) {
         const gate = await loadSessionQuickFeedbackGate(code).catch(() => null);
         if (gate) {
-          if (!gate.quickFeedbackEnabled || !gate.quickFeedbackOpen) {
+          if (
+            !gate.quickFeedbackEnabled ||
+            !gate.quickFeedbackOpen ||
+            isSessionEffectivelyFinished(gate, new Date())
+          ) {
             return;
           }
         }
@@ -906,7 +944,7 @@ export const quickFeedbackRouter = router({
       let lastJson = '';
 
       while (true) {
-        const result = await loadQuickFeedbackForHost(ctx, code).catch(() => null);
+        const result = await loadQuickFeedbackForHost(ctx, code, true).catch(() => null);
         if (!result) {
           return;
         }

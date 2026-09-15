@@ -17,6 +17,10 @@ import { shutdownPdfTelemetry } from './lib/pdfTelemetry';
 import { pickLocaleFromAcceptLanguage } from './lib/pick-locale-from-accept-language';
 import { TRPC_MAX_BODY_SIZE_BYTES } from './lib/requestLimits';
 import { startSessionCleanupScheduler, stopSessionCleanupScheduler } from './lib/sessionCleanup';
+import {
+  startSessionPurgeInvalidationSubscriber,
+  stopSessionPurgeInvalidationSubscriber,
+} from './lib/sessionPurgeInvalidation';
 import { attachTrustedClientIp, createTrustProxyFunction } from './lib/trustedProxy';
 import { resolveTrpcWebSocketConfig, TrpcWebSocketServer } from './lib/trpcWebSocketServer';
 import { resolveYjsRelayConfig, YjsRelayServer } from './lib/yjsRelay';
@@ -27,15 +31,28 @@ import {
   assertYjsShareTokenSecretConfigured,
   getYjsShareLegacyUuidCutoffAt,
 } from './lib/yjsShareToken';
+import { assertCapabilityEnvelopeKeyConfigured } from './lib/capabilityCrypto';
+import {
+  startQaPlatformProjectionScheduler,
+  stopQaPlatformProjectionScheduler,
+} from './lib/qaPlatformProjection';
 
 const PORT = Number(process.env['PORT']) || 3000;
 
 // Produktion: Yjs-Share-HMAC ohne starkes Secret hart abbrechen (W3.4).
 assertYjsShareTokenSecretConfigured();
+assertCapabilityEnvelopeKeyConfigured();
 getYjsShareLegacyUuidCutoffAt();
 
 // Redis beim Start initialisieren (Story 0.1)
 getRedis();
+startQaPlatformProjectionScheduler();
+void startSessionPurgeInvalidationSubscriber().catch((error: unknown) => {
+  logger.warn(
+    'Session-Purge-Invalidierungs-Subscriber konnte nicht starten:',
+    (error as Error).message,
+  );
+});
 
 const app = express();
 app.disable('x-powered-by');
@@ -225,6 +242,7 @@ async function shutdown(): Promise<void> {
   if (shuttingDown) return;
   shuttingDown = true;
   stopSessionCleanupScheduler();
+  stopQaPlatformProjectionScheduler();
   wsHandler.broadcastReconnectNotification();
   server.close();
   await Promise.all([
@@ -232,6 +250,7 @@ async function shutdown(): Promise<void> {
     yjsRelay.close(),
     shutdownAbuseTelemetry(),
     shutdownPdfTelemetry(),
+    stopSessionPurgeInvalidationSubscriber(),
   ]);
   await closeRedis();
   await disconnectDatabase();

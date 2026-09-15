@@ -15,6 +15,9 @@ const {
   extractAdminTokenMock,
   isAdminSessionTokenValidMock,
   fetchSecurityStatsMock,
+  invalidateHostSessionTokenMock,
+  invalidateHostPairingForSessionMock,
+  publishSessionPurgeInvalidationMock,
 } = vi.hoisted(() => ({
   prismaMock: {
     $queryRaw: vi.fn(),
@@ -37,6 +40,10 @@ const {
     },
     adminAuditLog: {
       create: vi.fn(),
+      updateMany: vi.fn(),
+    },
+    productFeedbackInviteJob: {
+      deleteMany: vi.fn(),
     },
     $transaction: vi.fn(),
   },
@@ -51,6 +58,9 @@ const {
   extractAdminTokenMock: vi.fn(),
   isAdminSessionTokenValidMock: vi.fn(),
   fetchSecurityStatsMock: vi.fn(),
+  invalidateHostSessionTokenMock: vi.fn(),
+  invalidateHostPairingForSessionMock: vi.fn(),
+  publishSessionPurgeInvalidationMock: vi.fn(),
 }));
 
 vi.mock('../db', () => ({
@@ -81,16 +91,41 @@ vi.mock('../routers/health', () => ({
   fetchSecurityStats: fetchSecurityStatsMock,
 }));
 
+vi.mock('../lib/hostAuth', () => ({
+  invalidateHostSessionToken: invalidateHostSessionTokenMock,
+}));
+
+vi.mock('../lib/hostPairing', () => ({
+  invalidateHostPairingForSession: invalidateHostPairingForSessionMock,
+}));
+
+vi.mock('../lib/sessionPurgeInvalidation', () => ({
+  publishSessionPurgeInvalidation: publishSessionPurgeInvalidationMock,
+}));
+
 import { adminRouter } from '../routers/admin';
 
 const SESSION_ID = '6a8edced-5f8f-4cfa-9176-454fac9570ad';
 const SESSION_CODE = 'ABC123';
+const EMPTY_QA_API_DIAGNOSTIC = {
+  samples: 0,
+  successes: 0,
+  expectedRejections: 0,
+  technicalErrors: 0,
+  p95Ms: null,
+  p99Ms: null,
+  expectedRejectionP95Ms: null,
+  expectedRejectionP99Ms: null,
+  limitRejections: 0,
+  deadlineRejections: 0,
+};
 
 describe('admin router (Epic 9)', () => {
   beforeEach(() => {
     vi.useFakeTimers();
     vi.setSystemTime(new Date('2026-03-14T12:00:00.000Z'));
     vi.clearAllMocks();
+    publishSessionPurgeInvalidationMock.mockResolvedValue(undefined);
     verifyAdminSecretMock.mockReturnValue(true);
     checkAdminLoginAttemptMock.mockResolvedValue({ allowed: true, delayMs: 100 });
     requireAdminLoginAttemptPermitMock.mockImplementation(
@@ -116,6 +151,10 @@ describe('admin router (Epic 9)', () => {
     });
     extractAdminTokenMock.mockReturnValue('token-xyz');
     isAdminSessionTokenValidMock.mockResolvedValue(true);
+    invalidateHostSessionTokenMock.mockResolvedValue(undefined);
+    invalidateHostPairingForSessionMock.mockResolvedValue(undefined);
+    prismaMock.adminAuditLog.updateMany.mockResolvedValue({ count: 0 });
+    prismaMock.productFeedbackInviteJob.deleteMany.mockResolvedValue({ count: 0 });
   });
 
   afterEach(() => {
@@ -226,6 +265,44 @@ describe('admin router (Epic 9)', () => {
         yjsWebSocketDocumentRejectedLastMinute: 0,
         yjsWebSocketAwarenessRejectedLastMinute: 0,
         yjsWebSocketOutboundRejectedLastMinute: 0,
+        qaApi: {
+          JOIN_REJOIN: EMPTY_QA_API_DIAGNOSTIC,
+          PARTICIPANT_QUERY: EMPTY_QA_API_DIAGNOSTIC,
+          QA_PAGE: EMPTY_QA_API_DIAGNOSTIC,
+          QA_SUBMIT: EMPTY_QA_API_DIAGNOSTIC,
+          QA_RATING: EMPTY_QA_API_DIAGNOSTIC,
+          QA_MODERATION: EMPTY_QA_API_DIAGNOSTIC,
+          QA_ANALYSIS: EMPTY_QA_API_DIAGNOSTIC,
+        },
+        qaNlp: {
+          queueLength: 0,
+          running: 0,
+          completed: 0,
+          failed: 0,
+          fallback: 0,
+          lastLatencyMs: null,
+        },
+        qaSummary: {
+          queueLength: 0,
+          running: 0,
+          completed: 0,
+          failed: 0,
+          timeouts: 0,
+          cacheHits: 0,
+          queueRejected: 0,
+          lastLatencyMs: null,
+        },
+        qaWordCloud: {
+          inFlight: 0,
+          lastLatencyMs: null,
+          snapshotHits: 0,
+          snapshotMisses: 0,
+          textHits: 0,
+          textMisses: 0,
+          sidecarCalls: 0,
+          timeouts: 0,
+          fallbacks: 0,
+        },
       };
       fetchSecurityStatsMock.mockResolvedValue(stats);
       const caller = adminRouter.createCaller({ req: {} as never });
@@ -296,7 +373,14 @@ describe('admin router (Epic 9)', () => {
         endedAt: new Date(),
         legalHoldReason: null,
       });
-      prismaMock.session.update.mockResolvedValue({});
+      prismaMock.session.update.mockImplementation(async ({ data }) => ({
+        id: SESSION_ID,
+        status: 'FINISHED',
+        endedAt: new Date('2026-03-14T11:00:00.000Z'),
+        expiresAt: new Date('2026-03-14T11:00:00.000Z'),
+        legalHoldUntil: data.legalHoldUntil,
+        legalHoldReason: data.legalHoldReason,
+      }));
 
       const result = await caller.setLegalHold({
         sessionId: SESSION_ID,
@@ -362,6 +446,11 @@ describe('admin router (Epic 9)', () => {
         sessionCode: SESSION_CODE,
       });
       expect(prismaMock.$transaction).toHaveBeenCalledTimes(1);
+      expect(publishSessionPurgeInvalidationMock).toHaveBeenCalledTimes(2);
+      expect(publishSessionPurgeInvalidationMock).toHaveBeenCalledWith({
+        sessionId: SESSION_ID,
+        sessionCode: SESSION_CODE,
+      });
     },
   );
 
@@ -712,7 +801,10 @@ describe('admin router (Epic 9)', () => {
     },
     async () => {
       const caller = adminRouter.createCaller({ req: {} as never });
-      prismaMock.session.count.mockResolvedValue(2);
+      prismaMock.session.findMany.mockResolvedValue([
+        { id: SESSION_ID, code: SESSION_CODE },
+        { id: '11111111-1111-4111-8111-111111111111', code: 'DEF456' },
+      ]);
       prismaMock.$transaction.mockImplementation(
         async (fn: (tx: typeof prismaMock) => Promise<unknown>) =>
           fn({
@@ -743,6 +835,7 @@ describe('admin router (Epic 9)', () => {
         deletedSessionCount: 2,
         deletedQuizCount: 1,
       });
+      expect(publishSessionPurgeInvalidationMock).toHaveBeenCalledTimes(4);
     },
   );
 

@@ -104,6 +104,7 @@ async function joinParticipants(publicTrpc, code) {
       code,
       nickname: `Load ${String(index + 1).padStart(3, '0')}`,
       anonymousClientId: globalThis.crypto.randomUUID(),
+      joinIdempotencyKey: globalThis.crypto.randomUUID(),
     }),
   );
 }

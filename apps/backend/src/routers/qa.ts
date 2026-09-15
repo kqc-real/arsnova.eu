@@ -1,19 +1,25 @@
 import { TRPCError } from '@trpc/server';
-import type { Prisma } from '@prisma/client';
+import { Prisma } from '@prisma/client';
+import { createHash, randomUUID } from 'node:crypto';
 import { z } from 'zod';
 import {
   GetQaNlpRuntimeInputSchema,
+  GetQaPresentProjectionInputSchema,
   GetQaQuestionsInputSchema,
   GetQaSummaryRuntimeInputSchema,
   ModerateQaQuestionInputSchema,
+  QA_MAX_QUESTIONS_PER_PARTICIPANT,
+  QA_MAX_QUESTIONS_PER_SESSION,
   QaNlpRuntimeDTOSchema,
   QaQuestionDTOSchema,
+  QaQuestionsInvalidationDTOSchema,
   QaQuestionsListDTOSchema,
   QaSummaryRuntimeDTOSchema,
   QaVoteInputSchema,
   QaVoteOutputSchema,
   RequestQaSummaryInputSchema,
   SubmitQaQuestionInputSchema,
+  SubmitQaQuestionOutputSchema,
   ToggleQaModerationInputSchema,
   ToggleQaUpvoteOutputSchema,
   UpvoteQaQuestionInputSchema,
@@ -27,18 +33,22 @@ import { enqueueQaNlpJob } from '../lib/qaNlpQueue';
 import { isQaSummaryEnabled } from '../lib/qaSummaryConfig';
 import { getQaSummaryRuntime, requestQaSummary } from '../lib/qaSummaryQueue';
 import {
+  buildSessionRetentionTimeline,
+  isSessionEffectivelyFinished,
+} from '../lib/sessionLifecycle';
+import {
   mapStoredQaNlpResult,
   type QaNlpPersistCategory,
   type QaNlpPersistStatus,
 } from '../lib/qaNlpResult';
 import { hostProcedure, publicProcedure, router } from '../trpc';
+import { assertParticipantCapability } from '../lib/participantAuth';
+import { recordQaQuestionAccepted, recordQaRatingChanged } from '../lib/qaTelemetry';
+import { zAsyncIterable } from '../lib/zAsyncIterable';
 
 const QA_SUBSCRIPTION_POLL_MS = 1000;
-const QA_PARTICIPANT_COUNT_CACHE_MS = 5000;
 const QA_WILSON_Z = 1.96;
 const QA_WILSON_Z_SQUARED = QA_WILSON_Z * QA_WILSON_Z;
-const QA_MAX_QUESTIONS_PER_PARTICIPANT = 10;
-const PARTICIPANT_VISIBLE_QA_STATUSES = ['ACTIVE', 'PINNED', 'ARCHIVED'] as const;
 
 type QaQuestionVoteRecord = {
   participantId?: string;
@@ -63,11 +73,6 @@ type QaQuestionRecord = {
   upvotes?: QaQuestionVoteRecord[];
 };
 
-type QaQuestionVoteAggregates = {
-  positiveVoteCount: number;
-  negativeVoteCount: number;
-};
-
 type QaQuestionVoteStats = {
   score: number;
   positiveVoteCount?: number;
@@ -80,17 +85,120 @@ type QaQuestionVoteStats = {
 
 type QaQuestionSortMode = z.infer<typeof GetQaQuestionsInputSchema>['sort'];
 
-type DecoratedQaQuestion = {
-  question: QaQuestionRecord;
-  voteStats: QaQuestionVoteStats;
+type QaSessionLifecycleGate = {
+  status?: string | null;
+  endedAt?: Date | null;
+  expiresAt?: Date | null;
+  sessionLifecycleRevision?: number | null;
+  qaClosesAt?: Date | null;
 };
 
-/** Schreibende Q&A-Aktionen nach Session-Ende blockieren (Missbrauchsschutz). */
-function assertQaSessionOpenForParticipants(sessionStatus: string | null | undefined): void {
-  if (sessionStatus === 'FINISHED') {
+function isQaSessionEffectivelyFinished(
+  session: QaSessionLifecycleGate | null | undefined,
+): boolean {
+  return (
+    !!session &&
+    isSessionEffectivelyFinished(
+      {
+        status: session.status ?? '',
+        endedAt: session.endedAt,
+        expiresAt: session.expiresAt,
+      },
+      new Date(),
+    )
+  );
+}
+
+function buildQaQuestionsSnapshot(
+  session: QaSessionLifecycleGate,
+  questions: z.infer<typeof QaQuestionDTOSchema>[],
+  state: z.infer<typeof QaQuestionsListDTOSchema>['state'],
+  now = new Date(),
+  page: Pick<
+    z.infer<typeof QaQuestionsListDTOSchema>,
+    | 'rankingRevision'
+    | 'nextCursor'
+    | 'totalCount'
+    | 'sessionQuestionCount'
+    | 'sessionRemaining'
+    | 'quota'
+  > = {},
+) {
+  const expiresAt =
+    session.expiresAt instanceof Date
+      ? session.expiresAt
+      : new Date(now.getTime() + 24 * 60 * 60 * 1000);
+  const retention = buildSessionRetentionTimeline({ ...session, expiresAt }, now);
+  return {
+    questions,
+    state,
+    sessionLifecycleRevision: session.sessionLifecycleRevision ?? 0,
+    serverNow: now.toISOString(),
+    expiresAt: expiresAt.toISOString(),
+    qaClosesAt: session.qaClosesAt?.toISOString() ?? null,
+    endedAt: retention.endedAt?.toISOString() ?? null,
+    postProcessingEndsAt: retention.postProcessingEndsAt?.toISOString() ?? null,
+    ...page,
+  };
+}
+
+function buildQaQuestionsInvalidation(
+  session: QaSessionLifecycleGate & {
+    qaRankingRevision?: number | null;
+    participantRevision?: number | null;
+  },
+  state: z.infer<typeof QaQuestionsListDTOSchema>['state'],
+  now = new Date(),
+) {
+  const expiresAt =
+    session.expiresAt instanceof Date
+      ? session.expiresAt
+      : new Date(now.getTime() + 24 * 60 * 60 * 1000);
+  const retention = buildSessionRetentionTimeline({ ...session, expiresAt }, now);
+  return QaQuestionsInvalidationDTOSchema.parse({
+    kind: 'INVALIDATED',
+    state,
+    sessionLifecycleRevision: session.sessionLifecycleRevision ?? 0,
+    rankingRevision: session.qaRankingRevision ?? 0,
+    participantRevision: session.participantRevision ?? 0,
+    serverNow: now.toISOString(),
+    expiresAt: expiresAt.toISOString(),
+    qaClosesAt: session.qaClosesAt?.toISOString() ?? null,
+    endedAt: retention.endedAt?.toISOString() ?? null,
+    postProcessingEndsAt: retention.postProcessingEndsAt?.toISOString() ?? null,
+  });
+}
+
+/** Schreibende Q&A-Aktionen nach effektivem Session-Ende blockieren. */
+function assertQaSessionOpenForParticipants(
+  session: QaSessionLifecycleGate | null | undefined,
+): void {
+  if (isQaSessionEffectivelyFinished(session)) {
     throw new TRPCError({
       code: 'FORBIDDEN',
       message: 'Die Session ist beendet. Fragen und Bewertungen sind nicht mehr möglich.',
+    });
+  }
+}
+
+function assertQaHostContentReadAllowed(
+  session: QaSessionLifecycleGate & { expiresAt: Date },
+  now = new Date(),
+): void {
+  if (
+    isSessionEffectivelyFinished(
+      {
+        status: session.status ?? '',
+        endedAt: session.endedAt,
+        expiresAt: session.expiresAt,
+      },
+      now,
+    ) &&
+    !buildSessionRetentionTimeline(session, now).hostPostProcessingAccessAllowed
+  ) {
+    throw new TRPCError({
+      code: 'FORBIDDEN',
+      message: 'Die Host-Nachbereitung dieser Session ist beendet.',
     });
   }
 }
@@ -99,210 +207,105 @@ function isQaEnabled(session: { type: string; qaEnabled?: boolean | null }): boo
   return session.type === 'Q_AND_A' || session.qaEnabled === true;
 }
 
-function isQaOpenForParticipants(session: {
-  type: string;
-  qaEnabled?: boolean | null;
-  qaOpen?: boolean | null;
-}): boolean {
-  return isQaEnabled(session) && session.qaOpen !== false;
+function rethrowQaContributionError(error: unknown): never {
+  if (String(error).includes('ARSNOVA_SESSION_ENDED')) {
+    throw new TRPCError({
+      code: 'FORBIDDEN',
+      message: 'Die Session ist beendet.',
+      cause: error,
+    });
+  }
+  if (String(error).includes('ARSNOVA_QA_CLOSED')) {
+    throw new TRPCError({
+      code: 'FORBIDDEN',
+      message: 'Der Q&A-Kanal ist aktuell geschlossen.',
+      cause: error,
+    });
+  }
+  if (String(error).includes('ARSNOVA_QA_PARTICIPANT_LIMIT')) {
+    throw new TRPCError({
+      code: 'FORBIDDEN',
+      message: `Du kannst pro Session maximal ${QA_MAX_QUESTIONS_PER_PARTICIPANT} Fragen einreichen.`,
+      cause: error,
+    });
+  }
+  if (String(error).includes('ARSNOVA_QA_SESSION_LIMIT')) {
+    throw new TRPCError({
+      code: 'FORBIDDEN',
+      message: `Diese Session hat das Kontingent von ${QA_MAX_QUESTIONS_PER_SESSION} Fragen erreicht.`,
+      cause: error,
+    });
+  }
+  if (String(error).includes('ARSNOVA_PARTICIPANT_NOT_FOUND')) {
+    throw new TRPCError({
+      code: 'BAD_REQUEST',
+      message: 'Teilnahme zur Session nicht gefunden.',
+      cause: error,
+    });
+  }
+  if (String(error).includes('ARSNOVA_SESSION_NOT_FOUND')) {
+    throw new TRPCError({
+      code: 'NOT_FOUND',
+      message: 'Session nicht gefunden.',
+      cause: error,
+    });
+  }
+  if (String(error).includes('ARSNOVA_QA_QUESTION_NOT_FOUND')) {
+    throw new TRPCError({ code: 'NOT_FOUND', message: 'Frage nicht gefunden.', cause: error });
+  }
+  if (String(error).includes('ARSNOVA_QA_QUESTION_NOT_VOTABLE')) {
+    throw new TRPCError({
+      code: 'BAD_REQUEST',
+      message: 'Diese Frage kann aktuell nicht bewertet werden.',
+      cause: error,
+    });
+  }
+  if (String(error).includes('ARSNOVA_QA_OWN_QUESTION')) {
+    throw new TRPCError({
+      code: 'FORBIDDEN',
+      message: 'Du kannst deine eigene Frage nicht bewerten.',
+      cause: error,
+    });
+  }
+  throw error;
+}
+
+type QaVoteMutationRow = {
+  questionId: string;
+  myVote: 'UP' | 'DOWN' | null;
+  upvoteCount: number;
+  changed: boolean;
+};
+
+async function changeQaVote(
+  questionId: string,
+  participantId: string,
+  direction: 'UP' | 'DOWN',
+): Promise<QaVoteMutationRow> {
+  try {
+    const rows = await prisma.$queryRaw<QaVoteMutationRow[]>`
+      SELECT *
+      FROM arsnova_change_qa_vote(
+        ${questionId},
+        ${participantId},
+        ${direction}::"QaVoteDirection"
+      )
+    `;
+    const result = rows[0];
+    if (!result) {
+      throw new TRPCError({
+        code: 'INTERNAL_SERVER_ERROR',
+        message: 'Die Bewertung konnte nicht bestätigt werden.',
+      });
+    }
+    return result;
+  } catch (error) {
+    rethrowQaContributionError(error);
+  }
 }
 
 function normalizeQaSortMode(moderatorView: boolean | undefined, sortMode: QaQuestionSortMode) {
   return moderatorView ? sortMode : 'TOP';
-}
-
-function computeWilsonBestScore(positiveVoteCount: number, negativeVoteCount: number): number {
-  const voteCount = positiveVoteCount + negativeVoteCount;
-  if (voteCount <= 0) {
-    return 0;
-  }
-
-  const observedPositiveRate = positiveVoteCount / voteCount;
-  const denominator = 1 + QA_WILSON_Z_SQUARED / voteCount;
-  const center = observedPositiveRate + QA_WILSON_Z_SQUARED / (2 * voteCount);
-  const margin =
-    QA_WILSON_Z *
-    Math.sqrt(
-      (observedPositiveRate * (1 - observedPositiveRate)) / voteCount +
-        QA_WILSON_Z_SQUARED / (4 * voteCount * voteCount),
-    );
-
-  return Math.max(0, Math.min(1, (center - margin) / denominator));
-}
-
-function resolveQaControversyThreshold(participantCount: number): number {
-  return Math.max(1, 0.1 * Math.max(0, participantCount));
-}
-
-function computeControversyScore(
-  positiveVoteCount: number,
-  negativeVoteCount: number,
-  participantCount: number,
-): number {
-  const voteCount = positiveVoteCount + negativeVoteCount;
-  if (voteCount <= 0) {
-    return 0;
-  }
-
-  const denominator = voteCount + resolveQaControversyThreshold(participantCount);
-  if (denominator <= 0) {
-    return 0;
-  }
-
-  return Math.max(
-    0,
-    Math.min(1, (2 * Math.min(positiveVoteCount, negativeVoteCount)) / denominator),
-  );
-}
-
-function createQaVoteStats(
-  question: QaQuestionRecord,
-  includeVoteMetrics: boolean,
-  participantCountForControversy?: number,
-  voteAggregates?: QaQuestionVoteAggregates,
-): QaQuestionVoteStats {
-  if (!includeVoteMetrics) {
-    return { score: question.upvoteCount };
-  }
-
-  const positiveVoteCount =
-    voteAggregates?.positiveVoteCount ??
-    (question.upvotes ?? []).filter((vote) => vote.direction !== 'DOWN').length;
-  const negativeVoteCount =
-    voteAggregates?.negativeVoteCount ??
-    (question.upvotes ?? []).filter((vote) => vote.direction === 'DOWN').length;
-  const voteCount = positiveVoteCount + negativeVoteCount;
-  const score = voteAggregates ? positiveVoteCount - negativeVoteCount : question.upvoteCount;
-  const bestScore = computeWilsonBestScore(positiveVoteCount, negativeVoteCount);
-  const controversyScore =
-    typeof participantCountForControversy === 'number'
-      ? computeControversyScore(
-          positiveVoteCount,
-          negativeVoteCount,
-          participantCountForControversy,
-        )
-      : undefined;
-  const controversyThreshold =
-    typeof participantCountForControversy === 'number'
-      ? resolveQaControversyThreshold(participantCountForControversy)
-      : undefined;
-
-  return {
-    score,
-    positiveVoteCount,
-    negativeVoteCount,
-    voteCount,
-    bestScore,
-    controversyScore,
-    isControversial:
-      controversyScore !== undefined &&
-      controversyThreshold !== undefined &&
-      controversyScore > 0.5 &&
-      voteCount >= controversyThreshold,
-  };
-}
-
-function sortQuestions(
-  questions: DecoratedQaQuestion[],
-  sortMode: QaQuestionSortMode,
-  includeVoteMetrics: boolean,
-): DecoratedQaQuestion[] {
-  return [...questions].sort((left, right) => {
-    const statusDiff =
-      statusSortBucket(left.question.status, includeVoteMetrics) -
-      statusSortBucket(right.question.status, includeVoteMetrics);
-    if (statusDiff !== 0) {
-      return statusDiff;
-    }
-
-    if (sortMode === 'BEST') {
-      const bestScoreDiff = (right.voteStats.bestScore ?? 0) - (left.voteStats.bestScore ?? 0);
-      if (bestScoreDiff !== 0) {
-        return bestScoreDiff;
-      }
-
-      const positiveVoteDiff =
-        (right.voteStats.positiveVoteCount ?? 0) - (left.voteStats.positiveVoteCount ?? 0);
-      if (positiveVoteDiff !== 0) {
-        return positiveVoteDiff;
-      }
-    }
-
-    if (sortMode === 'CONTROVERSIAL') {
-      const controversyScoreDiff =
-        (right.voteStats.controversyScore ?? 0) - (left.voteStats.controversyScore ?? 0);
-      if (controversyScoreDiff !== 0) {
-        return controversyScoreDiff;
-      }
-
-      const positiveVoteDiff =
-        (right.voteStats.positiveVoteCount ?? 0) - (left.voteStats.positiveVoteCount ?? 0);
-      if (positiveVoteDiff !== 0) {
-        return positiveVoteDiff;
-      }
-    }
-
-    if (right.voteStats.score !== left.voteStats.score) {
-      return right.voteStats.score - left.voteStats.score;
-    }
-
-    const statusTieDiff =
-      statusTieOrder(left.question.status) - statusTieOrder(right.question.status);
-    if (statusTieDiff !== 0) {
-      return statusTieDiff;
-    }
-
-    const createdAtDiff = left.question.createdAt.getTime() - right.question.createdAt.getTime();
-    if (createdAtDiff !== 0) {
-      return createdAtDiff;
-    }
-
-    return left.question.id.localeCompare(right.question.id);
-  });
-}
-
-function statusSortBucket(status: QaQuestionRecord['status'], includeVoteMetrics: boolean): number {
-  if (includeVoteMetrics) {
-    switch (status) {
-      case 'PINNED':
-      case 'ACTIVE':
-        return 0;
-      case 'PENDING':
-        return 1;
-      case 'ARCHIVED':
-        return 2;
-      case 'DELETED':
-        return 3;
-    }
-  }
-
-  switch (status) {
-    case 'PINNED':
-      return 0;
-    case 'ACTIVE':
-      return 1;
-    case 'PENDING':
-      return 2;
-    case 'ARCHIVED':
-      return 3;
-    case 'DELETED':
-      return 4;
-  }
-}
-
-function statusTieOrder(status: QaQuestionRecord['status']): number {
-  switch (status) {
-    case 'PINNED':
-      return 0;
-    case 'ACTIVE':
-      return 1;
-    case 'PENDING':
-      return 2;
-    case 'ARCHIVED':
-      return 3;
-    case 'DELETED':
-      return 4;
-  }
 }
 
 function shouldAttachQaNlp(includeNlp: boolean, question: QaQuestionRecord): boolean {
@@ -366,149 +369,276 @@ function mapQaQuestion(
   });
 }
 
-function buildQaQuestionListPayload(
-  questions: QaQuestionRecord[],
-  participantId: string | undefined,
-  sortMode: QaQuestionSortMode,
-  includeVoteMetrics: boolean,
-  participantCountForControversy?: number,
-  voteAggregatesByQuestionId: ReadonlyMap<string, QaQuestionVoteAggregates> = new Map(),
-) {
-  const decoratedQuestions = questions.map((question) => ({
-    question,
-    voteStats: createQaVoteStats(
-      question,
-      includeVoteMetrics,
-      participantCountForControversy,
-      voteAggregatesByQuestionId.get(question.id),
-    ),
-  }));
+type QaPageCursor = {
+  v: 1;
+  revision: string;
+  offset: number;
+  sort: QaQuestionSortMode;
+  search: string;
+  statuses: string;
+};
 
-  return sortQuestions(decoratedQuestions, sortMode, includeVoteMetrics).map(
-    ({ question, voteStats }) =>
-      mapQaQuestion(question, participantId, voteStats, includeVoteMetrics, includeVoteMetrics),
-  );
+type RankedQaQuestionRow = QaQuestionRecord & {
+  authorNickname: string | null;
+  myVote: 'UP' | 'DOWN' | null;
+  positiveVoteCount: number;
+  negativeVoteCount: number;
+  bestScore: number;
+  controversyScore: number;
+  totalCount: bigint | number;
+};
+
+type RankedQaPage = {
+  questions: z.infer<typeof QaQuestionDTOSchema>[];
+  nextCursor: string | null;
+  totalCount: number;
+};
+
+function encodeQaPageCursor(cursor: QaPageCursor): string {
+  return Buffer.from(JSON.stringify(cursor), 'utf8').toString('base64url');
 }
 
-function buildQaQuestionWhere(
-  sessionId: string,
-  moderatorView: boolean | undefined,
-  participantId: string | undefined,
-): Prisma.QaQuestionWhereInput {
-  return {
-    sessionId,
-    ...(moderatorView
-      ? {}
-      : participantId
-        ? {
-            OR: [
-              { status: { in: [...PARTICIPANT_VISIBLE_QA_STATUSES] } },
-              { status: 'PENDING' as const, participantId },
-            ],
-          }
-        : { status: { in: [...PARTICIPANT_VISIBLE_QA_STATUSES] } }),
-  };
-}
-
-async function getVoteAggregatesByQuestionId(
-  questionIds: readonly string[],
-): Promise<Map<string, QaQuestionVoteAggregates>> {
-  if (questionIds.length === 0) {
-    return new Map();
-  }
-
-  const groupedVotes = await prisma.qaUpvote.groupBy({
-    by: ['qaQuestionId', 'direction'],
-    where: { qaQuestionId: { in: [...questionIds] } },
-    _count: { _all: true },
-  });
-  const aggregates = new Map<string, QaQuestionVoteAggregates>();
-
-  for (const row of groupedVotes) {
-    const current = aggregates.get(row.qaQuestionId) ?? {
-      positiveVoteCount: 0,
-      negativeVoteCount: 0,
-    };
-    if (row.direction === 'DOWN') {
-      current.negativeVoteCount += row._count._all;
-    } else {
-      current.positiveVoteCount += row._count._all;
+function decodeQaPageCursor(value: string): QaPageCursor {
+  try {
+    const parsed = JSON.parse(Buffer.from(value, 'base64url').toString('utf8')) as QaPageCursor;
+    if (
+      parsed.v !== 1 ||
+      !Number.isInteger(parsed.offset) ||
+      parsed.offset < 0 ||
+      parsed.offset > QA_MAX_QUESTIONS_PER_SESSION ||
+      !['TOP', 'BEST', 'CONTROVERSIAL'].includes(parsed.sort) ||
+      typeof parsed.revision !== 'string' ||
+      typeof parsed.search !== 'string' ||
+      typeof parsed.statuses !== 'string'
+    ) {
+      throw new Error('invalid cursor');
     }
-    aggregates.set(row.qaQuestionId, current);
+    return parsed;
+  } catch {
+    throw new TRPCError({
+      code: 'BAD_REQUEST',
+      message: 'Der Q&A-Seitenzeiger ist ungültig.',
+    });
   }
-
-  return aggregates;
 }
 
-async function buildQaQuestionPayloadFromDb(
-  sessionId: string,
-  participantId: string | undefined,
-  moderatorView: boolean | undefined,
-  sortMode: QaQuestionSortMode,
-  participantCountForControversy?: number,
-  includeAuthorNickname = false,
-) {
-  const questions = await prisma.qaQuestion.findMany({
-    where: buildQaQuestionWhere(sessionId, moderatorView, participantId),
-    include: {
-      ...(includeAuthorNickname
-        ? {
-            participant: {
-              select: {
-                nickname: true,
-              },
-            },
-          }
-        : {}),
-      upvotes: moderatorView
-        ? false
-        : participantId
-          ? {
-              where: { participantId },
-              select: { participantId: true, direction: true },
-            }
-          : false,
-    },
-  });
-  const voteAggregatesByQuestionId =
-    moderatorView === true
-      ? await getVoteAggregatesByQuestionId(questions.map((question) => question.id))
-      : new Map<string, QaQuestionVoteAggregates>();
+async function buildQaQuestionPayloadFromDb(options: {
+  sessionId: string;
+  participantId?: string;
+  moderatorView?: boolean;
+  sortMode: QaQuestionSortMode;
+  participantCountForControversy?: number;
+  includeAuthorNickname?: boolean;
+  pageSize: number;
+  cursor?: string;
+  search?: string;
+  statuses?: Array<QaQuestionRecord['status']>;
+  rankingRevision: string;
+}): Promise<RankedQaPage> {
+  const search = options.search?.trim() ?? '';
+  const statusesKey = options.statuses?.slice().sort().join(',') ?? '';
+  const cursor = options.cursor ? decodeQaPageCursor(options.cursor) : null;
+  if (
+    cursor &&
+    (cursor.revision !== options.rankingRevision ||
+      cursor.sort !== options.sortMode ||
+      cursor.search !== search ||
+      cursor.statuses !== statusesKey)
+  ) {
+    throw new TRPCError({
+      code: 'CONFLICT',
+      message: 'Die Q&A-Rangliste hat sich geändert. Lade sie bitte neu.',
+    });
+  }
+  const offset = cursor?.offset ?? 0;
+  const moderatorView = options.moderatorView === true;
+  const participantCount = options.participantCountForControversy ?? 0;
+  const controversyThreshold = Math.max(1, participantCount * 0.1);
+  const visibility = moderatorView
+    ? Prisma.empty
+    : options.participantId
+      ? Prisma.sql`AND (
+          question."status" IN ('ACTIVE', 'PINNED', 'ARCHIVED')
+          OR (
+            question."status" = 'PENDING'
+            AND question."participantId" = ${options.participantId}
+          )
+        )`
+      : Prisma.sql`AND question."status" IN ('ACTIVE', 'PINNED', 'ARCHIVED')`;
+  const statusFilter =
+    moderatorView && options.statuses && options.statuses.length > 0
+      ? Prisma.sql`AND question."status"::TEXT IN (${Prisma.join(options.statuses)})`
+      : Prisma.empty;
+  const searchFilter = search
+    ? Prisma.sql`AND question."text" ILIKE ${`%${search}%`}`
+    : Prisma.empty;
+  const myVoteJoin = options.participantId
+    ? Prisma.sql`
+        LEFT JOIN "QaUpvote" AS own_vote
+          ON own_vote."qaQuestionId" = question."id"
+          AND own_vote."participantId" = ${options.participantId}
+      `
+    : Prisma.empty;
+  const myVoteSelect = options.participantId
+    ? Prisma.sql`own_vote."direction"`
+    : Prisma.sql`NULL::"QaVoteDirection"`;
+  const statusBucket = moderatorView
+    ? Prisma.sql`CASE question."status"
+        WHEN 'PINNED' THEN 0
+        WHEN 'ACTIVE' THEN 0
+        WHEN 'PENDING' THEN 1
+        WHEN 'ARCHIVED' THEN 2
+        ELSE 3
+      END`
+    : Prisma.sql`CASE question."status"
+        WHEN 'PINNED' THEN 0
+        WHEN 'ACTIVE' THEN 1
+        WHEN 'PENDING' THEN 2
+        WHEN 'ARCHIVED' THEN 3
+        ELSE 4
+      END`;
+  const modeOrder =
+    options.sortMode === 'BEST'
+      ? Prisma.sql`ranked.best_score DESC, ranked."positiveVoteCount" DESC,`
+      : options.sortMode === 'CONTROVERSIAL'
+        ? Prisma.sql`ranked.controversy_score DESC, ranked."positiveVoteCount" DESC,`
+        : Prisma.empty;
 
-  return buildQaQuestionListPayload(
+  const rows = await prisma.$queryRaw<RankedQaQuestionRow[]>`
+    WITH scored AS (
+      SELECT
+        question.*,
+        participant."nickname" AS "authorNickname",
+        ${myVoteSelect} AS "myVote",
+        ${statusBucket} AS status_bucket,
+        CASE question."status"
+          WHEN 'PINNED' THEN 0
+          WHEN 'ACTIVE' THEN 1
+          WHEN 'PENDING' THEN 2
+          WHEN 'ARCHIVED' THEN 3
+          ELSE 4
+        END AS status_tie,
+        CASE
+          WHEN question."positiveVoteCount" + question."negativeVoteCount" = 0 THEN 0
+          ELSE GREATEST(
+            0,
+            LEAST(
+              1,
+              (
+                question."positiveVoteCount"::DOUBLE PRECISION
+                  / (question."positiveVoteCount" + question."negativeVoteCount")
+                + ${QA_WILSON_Z_SQUARED}
+                  / (2 * (question."positiveVoteCount" + question."negativeVoteCount"))
+                - ${QA_WILSON_Z} * SQRT(
+                  (
+                    (
+                      question."positiveVoteCount"::DOUBLE PRECISION
+                        / (question."positiveVoteCount" + question."negativeVoteCount")
+                    ) * (
+                      1 - question."positiveVoteCount"::DOUBLE PRECISION
+                        / (question."positiveVoteCount" + question."negativeVoteCount")
+                    )
+                  ) / (question."positiveVoteCount" + question."negativeVoteCount")
+                  + ${QA_WILSON_Z_SQUARED}
+                    / (
+                      4 * POWER(
+                        question."positiveVoteCount" + question."negativeVoteCount",
+                        2
+                      )
+                    )
+                )
+              ) / (
+                1 + ${QA_WILSON_Z_SQUARED}
+                  / (question."positiveVoteCount" + question."negativeVoteCount")
+              )
+            )
+          )
+        END AS best_score,
+        CASE
+          WHEN question."positiveVoteCount" + question."negativeVoteCount" = 0 THEN 0
+          ELSE LEAST(
+            1,
+            2 * LEAST(question."positiveVoteCount", question."negativeVoteCount")
+              / (
+                question."positiveVoteCount"
+                + question."negativeVoteCount"
+                + ${controversyThreshold}
+              )
+          )
+        END AS controversy_score
+      FROM "QaQuestion" AS question
+      LEFT JOIN "Participant" AS participant
+        ON participant."id" = question."participantId"
+      ${myVoteJoin}
+      WHERE question."sessionId" = ${options.sessionId}
+      ${visibility}
+      ${statusFilter}
+      ${searchFilter}
+    ),
+    ranked AS (
+      SELECT scored.*, COUNT(*) OVER() AS "totalCount"
+      FROM scored
+    )
+    SELECT *
+    FROM ranked
+    ORDER BY
+      ranked.status_bucket ASC,
+      ${modeOrder}
+      ranked."upvoteCount" DESC,
+      ranked.status_tie ASC,
+      ranked."createdAt" ASC,
+      ranked."id" ASC
+    LIMIT ${options.pageSize + 1}
+    OFFSET ${offset}
+  `;
+
+  const hasNextPage = rows.length > options.pageSize;
+  const pageRows = rows.slice(0, options.pageSize);
+  const totalCount = Number(pageRows[0]?.totalCount ?? 0);
+  const questions = pageRows.map((row) => {
+    const voteCount = row.positiveVoteCount + row.negativeVoteCount;
+    return mapQaQuestion(
+      {
+        ...row,
+        participant:
+          options.includeAuthorNickname && row.authorNickname
+            ? { nickname: row.authorNickname }
+            : undefined,
+        upvotes:
+          options.participantId && row.myVote
+            ? [{ participantId: options.participantId, direction: row.myVote }]
+            : [],
+      },
+      options.participantId,
+      {
+        score: row.upvoteCount,
+        positiveVoteCount: row.positiveVoteCount,
+        negativeVoteCount: row.negativeVoteCount,
+        voteCount,
+        bestScore: row.bestScore,
+        controversyScore: row.controversyScore,
+        isControversial:
+          row.controversyScore > 0.5 && voteCount >= Math.max(1, controversyThreshold),
+      },
+      moderatorView,
+      moderatorView,
+    );
+  });
+
+  return {
     questions,
-    participantId,
-    sortMode,
-    moderatorView === true,
-    participantCountForControversy,
-    voteAggregatesByQuestionId,
-  );
-}
-
-async function getQaQuestionsRevisionKey(
-  sessionId: string,
-  moderatorView: boolean | undefined,
-  participantId: string | undefined,
-  participantCountForControversy?: number,
-): Promise<string> {
-  const revision = await prisma.qaQuestion.aggregate({
-    where: buildQaQuestionWhere(sessionId, moderatorView, participantId),
-    _count: { _all: true },
-    _max: { updatedAt: true },
-    _sum: { upvoteCount: true },
-  });
-
-  const count =
-    typeof revision._count === 'object' && revision._count !== null
-      ? (revision._count._all ?? 0)
-      : 0;
-
-  return [
-    count,
-    revision._max?.updatedAt?.getTime() ?? 0,
-    revision._sum?.upvoteCount ?? 0,
-    participantCountForControversy ?? '',
-  ].join(':');
+    totalCount,
+    nextCursor: hasNextPage
+      ? encodeQaPageCursor({
+          v: 1,
+          revision: options.rankingRevision,
+          offset: offset + options.pageSize,
+          sort: options.sortMode,
+          search,
+          statuses: statusesKey,
+        })
+      : null,
+  };
 }
 
 export const qaRouter = router({
@@ -522,24 +652,64 @@ export const qaRouter = router({
         select: {
           id: true,
           code: true,
+          status: true,
+          endedAt: true,
+          expiresAt: true,
           type: true,
           qaEnabled: true,
           qaOpen: true,
+          qaClosesAt: true,
+          sessionLifecycleRevision: true,
+          qaRankingRevision: true,
+          qaQuestionCount: true,
           qaModerationMode: true,
-          onboardingNicknameTheme: true,
           onboardingAnonymousMode: true,
         },
       });
       if (!session) {
         throw new TRPCError({ code: 'NOT_FOUND', message: 'Session nicht gefunden.' });
       }
-      if (!isQaEnabled(session)) {
-        return [];
-      }
+      const serverNow = new Date();
+      let contentState: z.infer<typeof QaQuestionsListDTOSchema>['state'] = 'ACTIVE';
       if (input.moderatorView) {
         await assertHostSessionAccessFromContext(ctx, session.code);
-      } else if (!isQaOpenForParticipants(session)) {
-        return [];
+        const retention = buildSessionRetentionTimeline(session, serverNow);
+        if (
+          isSessionEffectivelyFinished(session, serverNow) &&
+          !retention.hostPostProcessingAccessAllowed
+        ) {
+          return buildQaQuestionsSnapshot(session, [], 'POST_PROCESSING_ENDED', serverNow);
+        }
+      } else {
+        if (!input.participantId) {
+          throw new TRPCError({
+            code: 'UNAUTHORIZED',
+            message: 'Teilnahme-Capability erforderlich.',
+          });
+        }
+        await assertParticipantCapability({
+          ctx,
+          sessionId: session.id,
+          participantId: input.participantId,
+        });
+        if (isSessionEffectivelyFinished(session, serverNow)) {
+          return buildQaQuestionsSnapshot(session, [], 'SESSION_ENDED', serverNow);
+        }
+        if (session.qaClosesAt === null) {
+          return buildQaQuestionsSnapshot(session, [], 'UNCONFIGURED', serverNow);
+        }
+        contentState =
+          serverNow >= session.qaClosesAt
+            ? 'DEADLINE_EXPIRED'
+            : session.qaOpen === false
+              ? 'CHANNEL_CLOSED'
+              : 'ACTIVE';
+      }
+      if (!isQaEnabled(session)) {
+        return buildQaQuestionsSnapshot(session, [], 'CHANNEL_CLOSED', serverNow);
+      }
+      if (!input.moderatorView && contentState !== 'ACTIVE') {
+        return buildQaQuestionsSnapshot(session, [], contentState, serverNow);
       }
 
       const participantCountForControversy =
@@ -548,19 +718,126 @@ export const qaRouter = router({
               where: { sessionId: session.id },
             })
           : undefined;
-      const includeAuthorNickname =
-        session.onboardingAnonymousMode !== true &&
-        session.onboardingNicknameTheme === 'KINDERGARTEN' &&
-        (input.moderatorView === true || input.participantId !== undefined);
+      const includeAuthorNickname = session.onboardingAnonymousMode !== true;
+      const rankingRevision = `${session.qaRankingRevision}:${
+        sortMode === 'CONTROVERSIAL' ? (participantCountForControversy ?? 0) : ''
+      }`;
+      const [page, participantQuestionCount] = await Promise.all([
+        buildQaQuestionPayloadFromDb({
+          sessionId: session.id,
+          participantId: input.participantId,
+          moderatorView: input.moderatorView,
+          sortMode,
+          participantCountForControversy,
+          includeAuthorNickname,
+          pageSize: input.pageSize,
+          cursor: input.cursor,
+          search: input.search,
+          statuses: input.statuses,
+          rankingRevision,
+        }),
+        input.participantId
+          ? prisma.qaQuestion.count({
+              where: { sessionId: session.id, participantId: input.participantId },
+            })
+          : Promise.resolve(0),
+      ]);
+      const [currentRevision, currentParticipantCount] = await Promise.all([
+        prisma.session.findUnique({
+          where: { id: session.id },
+          select: { qaRankingRevision: true },
+        }),
+        sortMode === 'CONTROVERSIAL'
+          ? prisma.participant.count({ where: { sessionId: session.id } })
+          : Promise.resolve(participantCountForControversy),
+      ]);
+      if (
+        currentRevision?.qaRankingRevision !== session.qaRankingRevision ||
+        currentParticipantCount !== participantCountForControversy
+      ) {
+        throw new TRPCError({
+          code: 'CONFLICT',
+          message: 'Die Q&A-Rangliste hat sich geändert. Lade sie bitte neu.',
+        });
+      }
+      const quota = input.participantId
+        ? {
+            participantQuestionCount,
+            participantRemaining: Math.max(
+              0,
+              QA_MAX_QUESTIONS_PER_PARTICIPANT - participantQuestionCount,
+            ),
+            sessionQuestionCount: session.qaQuestionCount,
+            sessionRemaining: Math.max(0, QA_MAX_QUESTIONS_PER_SESSION - session.qaQuestionCount),
+          }
+        : undefined;
+      return buildQaQuestionsSnapshot(session, page.questions, contentState, serverNow, {
+        rankingRevision,
+        nextCursor: page.nextCursor,
+        totalCount: page.totalCount,
+        sessionQuestionCount: session.qaQuestionCount,
+        sessionRemaining: Math.max(0, QA_MAX_QUESTIONS_PER_SESSION - session.qaQuestionCount),
+        quota,
+      });
+    }),
 
-      return buildQaQuestionPayloadFromDb(
-        session.id,
-        input.participantId,
-        input.moderatorView,
-        sortMode,
-        participantCountForControversy,
-        includeAuthorNickname,
-      );
+  presentProjection: publicProcedure
+    .input(GetQaPresentProjectionInputSchema)
+    .output(QaQuestionsListDTOSchema)
+    .query(async ({ input }) => {
+      const session = await prisma.session.findUnique({
+        where: { id: input.sessionId },
+        select: {
+          id: true,
+          status: true,
+          endedAt: true,
+          expiresAt: true,
+          type: true,
+          qaEnabled: true,
+          qaOpen: true,
+          qaClosesAt: true,
+          sessionLifecycleRevision: true,
+          qaRankingRevision: true,
+          qaModerationMode: true,
+          onboardingAnonymousMode: true,
+        },
+      });
+      if (!session) {
+        throw new TRPCError({ code: 'NOT_FOUND', message: 'Session nicht gefunden.' });
+      }
+      const serverNow = new Date();
+      if (isSessionEffectivelyFinished(session, serverNow)) {
+        return buildQaQuestionsSnapshot(session, [], 'SESSION_ENDED', serverNow);
+      }
+      if (!isQaEnabled(session)) {
+        return buildQaQuestionsSnapshot(session, [], 'CHANNEL_CLOSED', serverNow);
+      }
+      if (session.qaClosesAt === null) {
+        return buildQaQuestionsSnapshot(session, [], 'UNCONFIGURED', serverNow);
+      }
+      const state =
+        serverNow >= session.qaClosesAt
+          ? 'DEADLINE_EXPIRED'
+          : session.qaOpen === false
+            ? 'CHANNEL_CLOSED'
+            : 'ACTIVE';
+      if (state !== 'ACTIVE') {
+        return buildQaQuestionsSnapshot(session, [], state, serverNow);
+      }
+      const rankingRevision = `${session.qaRankingRevision}:`;
+      const page = await buildQaQuestionPayloadFromDb({
+        sessionId: session.id,
+        moderatorView: false,
+        sortMode: 'TOP',
+        includeAuthorNickname: session.onboardingAnonymousMode !== true,
+        pageSize: 100,
+        rankingRevision,
+      });
+      return buildQaQuestionsSnapshot(session, page.questions, state, serverNow, {
+        rankingRevision,
+        nextCursor: page.nextCursor,
+        totalCount: page.totalCount,
+      });
     }),
 
   nlpRuntime: publicProcedure
@@ -569,12 +846,13 @@ export const qaRouter = router({
     .query(async ({ input, ctx }) => {
       const session = await prisma.session.findUnique({
         where: { id: input.sessionId },
-        select: { id: true, code: true },
+        select: { id: true, code: true, status: true, endedAt: true, expiresAt: true },
       });
       if (!session) {
         throw new TRPCError({ code: 'NOT_FOUND', message: 'Session nicht gefunden.' });
       }
       await assertHostSessionAccessFromContext(ctx, session.code);
+      assertQaHostContentReadAllowed(session);
       const metrics = getQaNlpMetrics();
       return {
         enabled: isQaNlpEnabled(),
@@ -600,12 +878,13 @@ export const qaRouter = router({
     .query(async ({ input, ctx }) => {
       const session = await prisma.session.findUnique({
         where: { id: input.sessionId },
-        select: { id: true, code: true },
+        select: { id: true, code: true, status: true, endedAt: true, expiresAt: true },
       });
       if (!session) {
         throw new TRPCError({ code: 'NOT_FOUND', message: 'Session nicht gefunden.' });
       }
       await assertHostSessionAccessFromContext(ctx, session.code);
+      assertQaHostContentReadAllowed(session);
       return getQaSummaryRuntime(input.sessionId);
     }),
 
@@ -615,12 +894,13 @@ export const qaRouter = router({
     .mutation(async ({ input, ctx }) => {
       const session = await prisma.session.findUnique({
         where: { id: input.sessionId },
-        select: { id: true, code: true },
+        select: { id: true, code: true, status: true, endedAt: true, expiresAt: true },
       });
       if (!session) {
         throw new TRPCError({ code: 'NOT_FOUND', message: 'Session nicht gefunden.' });
       }
       await assertHostSessionAccessFromContext(ctx, session.code);
+      assertQaSessionOpenForParticipants(session);
       if (!isQaSummaryEnabled()) {
         throw new TRPCError({
           code: 'FORBIDDEN',
@@ -640,7 +920,10 @@ export const qaRouter = router({
           id: true,
           type: true,
           qaEnabled: true,
+          qaClosesAt: true,
           status: true,
+          endedAt: true,
+          expiresAt: true,
         },
       });
       if (!session) {
@@ -652,161 +935,169 @@ export const qaRouter = router({
           message: 'Fragen sind in dieser Session nicht aktiviert.',
         });
       }
-      assertQaSessionOpenForParticipants(session.status);
+      assertQaSessionOpenForParticipants(session);
 
-      const question = await prisma.qaQuestion.findUnique({
-        where: { id: input.questionId },
-        select: {
-          id: true,
-          sessionId: true,
-          text: true,
-          upvoteCount: true,
-          status: true,
-          createdAt: true,
-        },
-      });
-      if (!question || question.sessionId !== session.id) {
-        throw new TRPCError({ code: 'NOT_FOUND', message: 'Frage nicht gefunden.' });
-      }
+      try {
+        return await prisma.$transaction(async (tx) => {
+          await tx.$executeRaw`SELECT arsnova_lock_active_session(${session.id})`;
+          const question = await tx.qaQuestion.findUnique({
+            where: { id: input.questionId },
+            select: {
+              id: true,
+              sessionId: true,
+              text: true,
+              upvoteCount: true,
+              status: true,
+              createdAt: true,
+            },
+          });
+          if (!question || question.sessionId !== session.id) {
+            throw new TRPCError({ code: 'NOT_FOUND', message: 'Frage nicht gefunden.' });
+          }
 
-      if (input.action === 'DELETE') {
-        await prisma.qaQuestion.delete({ where: { id: question.id } });
-        return QaQuestionDTOSchema.parse({
-          id: question.id,
-          text: question.text,
-          upvoteCount: question.upvoteCount,
-          status: 'DELETED',
-          createdAt: question.createdAt.toISOString(),
-          myVote: null,
-          isOwn: false,
-          hasUpvoted: false,
+          if (input.action === 'DELETE') {
+            await tx.qaQuestion.delete({ where: { id: question.id } });
+            return QaQuestionDTOSchema.parse({
+              id: question.id,
+              text: question.text,
+              upvoteCount: question.upvoteCount,
+              status: 'DELETED',
+              createdAt: question.createdAt.toISOString(),
+              myVote: null,
+              isOwn: false,
+              hasUpvoted: false,
+            });
+          }
+
+          let nextStatus = question.status;
+          switch (input.action) {
+            case 'APPROVE':
+            case 'UNPIN':
+              nextStatus = 'ACTIVE';
+              break;
+            case 'PIN':
+              nextStatus = 'PINNED';
+              break;
+            case 'ARCHIVE':
+              nextStatus = 'ARCHIVED';
+              break;
+          }
+
+          if (question.status === 'DELETED') {
+            throw new TRPCError({
+              code: 'BAD_REQUEST',
+              message: 'Gelöschte Fragen können nicht weiter moderiert werden.',
+            });
+          }
+
+          const updated = await tx.qaQuestion.update({
+            where: { id: question.id },
+            data: { status: nextStatus },
+            select: {
+              id: true,
+              text: true,
+              upvoteCount: true,
+              status: true,
+              createdAt: true,
+              participantId: true,
+            },
+          });
+          return mapQaQuestion(updated);
         });
+      } catch (error) {
+        if (String(error).includes('ARSNOVA_SESSION_ENDED')) {
+          throw new TRPCError({
+            code: 'FORBIDDEN',
+            message: 'Die Session ist beendet.',
+            cause: error,
+          });
+        }
+        throw error;
       }
-
-      let nextStatus = question.status;
-      switch (input.action) {
-        case 'APPROVE':
-        case 'UNPIN':
-          nextStatus = 'ACTIVE';
-          break;
-        case 'PIN':
-          nextStatus = 'PINNED';
-          break;
-        case 'ARCHIVE':
-          nextStatus = 'ARCHIVED';
-          break;
-      }
-
-      if (question.status === 'DELETED') {
-        throw new TRPCError({
-          code: 'BAD_REQUEST',
-          message: 'Gelöschte Fragen können nicht weiter moderiert werden.',
-        });
-      }
-
-      await prisma.qaQuestion.update({
-        where: { id: question.id },
-        data: { status: nextStatus },
-      });
-
-      const updated = await prisma.qaQuestion.findUnique({
-        where: { id: question.id },
-        select: {
-          id: true,
-          text: true,
-          upvoteCount: true,
-          status: true,
-          createdAt: true,
-          participantId: true,
-        },
-      });
-      if (!updated) {
-        throw new TRPCError({ code: 'NOT_FOUND', message: 'Frage nicht gefunden.' });
-      }
-
-      return mapQaQuestion(updated);
     }),
 
   submit: publicProcedure
     .input(SubmitQaQuestionInputSchema)
-    .output(QaQuestionDTOSchema)
-    .mutation(async ({ input }) => {
-      const participant = await prisma.participant.findUnique({
-        where: { id: input.participantId },
-        include: {
-          session: {
-            select: {
-              id: true,
-              type: true,
-              qaEnabled: true,
-              qaOpen: true,
-              qaModerationMode: true,
-              moderationMode: true,
-              status: true,
-            },
-          },
-        },
+    .output(SubmitQaQuestionOutputSchema)
+    .mutation(async ({ input, ctx }) => {
+      await assertParticipantCapability({
+        ctx,
+        sessionId: input.sessionId,
+        participantId: input.participantId,
       });
-      if (!participant || participant.sessionId !== input.sessionId) {
-        throw new TRPCError({
-          code: 'BAD_REQUEST',
-          message: 'Teilnahme zur Session nicht gefunden.',
-        });
-      }
-
-      const session = participant.session;
-      if (!isQaEnabled(session)) {
-        throw new TRPCError({
-          code: 'BAD_REQUEST',
-          message: 'Fragen sind in dieser Session nicht aktiviert.',
-        });
-      }
-      if (!isQaOpenForParticipants(session)) {
-        throw new TRPCError({
-          code: 'FORBIDDEN',
-          message: 'Der Q&A-Kanal ist aktuell geschlossen.',
-        });
-      }
-      assertQaSessionOpenForParticipants(session.status);
-
-      const existingCount = await prisma.qaQuestion.count({
-        where: {
-          sessionId: input.sessionId,
-          participantId: input.participantId,
-        },
-      });
-      if (existingCount >= QA_MAX_QUESTIONS_PER_PARTICIPANT) {
-        throw new TRPCError({
-          code: 'FORBIDDEN',
-          message: `Du kannst pro Session maximal ${QA_MAX_QUESTIONS_PER_PARTICIPANT} Fragen einreichen.`,
-        });
-      }
-
       const nlpEnabled = isQaNlpEnabled();
-      const question = await prisma.qaQuestion.create({
-        data: {
-          sessionId: input.sessionId,
-          participantId: input.participantId,
-          text: input.text.trim(),
-          status: session.qaModerationMode || session.moderationMode ? 'PENDING' : 'ACTIVE',
-          ...(nlpEnabled ? { nlpStatus: 'PENDING' as const } : {}),
-        },
-        include: {
-          upvotes: {
-            where: { participantId: input.participantId },
-            select: { participantId: true, direction: true },
-          },
-        },
-      });
+      const idempotencyHash = createHash('sha256')
+        .update(`${input.sessionId}:${input.participantId}:${input.idempotencyKey}`, 'utf8')
+        .digest('hex');
+      type CreateQaQuestionRow = {
+        id: string;
+        text: string;
+        upvoteCount: number;
+        status: 'PENDING' | 'ACTIVE' | 'PINNED' | 'ARCHIVED' | 'DELETED';
+        createdAt: Date;
+        replayed: boolean;
+        participantQuestionCount: number;
+        sessionQuestionCount: number;
+      };
+      let created: CreateQaQuestionRow;
+      try {
+        const rows = await prisma.$queryRaw<CreateQaQuestionRow[]>`
+          SELECT *
+          FROM arsnova_create_qa_question(
+            ${input.sessionId},
+            ${input.participantId},
+            ${input.text.trim()},
+            ${idempotencyHash}::CHAR(64),
+            ${nlpEnabled ? 'PENDING' : 'DISABLED'}::"QaNlpStatus"
+          )
+        `;
+        const row = rows[0];
+        if (!row) {
+          throw new TRPCError({
+            code: 'INTERNAL_SERVER_ERROR',
+            message: 'Die Frage konnte nicht bestätigt werden.',
+          });
+        }
+        created = row;
+      } catch (error) {
+        rethrowQaContributionError(error);
+      }
 
-      enqueueQaNlpJob({ questionId: question.id, text: question.text });
-      return mapQaQuestion(question, input.participantId);
+      if (nlpEnabled && !created.replayed) {
+        enqueueQaNlpJob({
+          sessionId: input.sessionId,
+          questionId: created.id,
+          text: created.text,
+        });
+      }
+      if (!created.replayed) {
+        void recordQaQuestionAccepted(created.id);
+      }
+      return {
+        question: mapQaQuestion(
+          { ...created, participantId: input.participantId },
+          input.participantId,
+        ),
+        quota: {
+          participantQuestionCount: created.participantQuestionCount,
+          participantRemaining: Math.max(
+            0,
+            QA_MAX_QUESTIONS_PER_PARTICIPANT - created.participantQuestionCount,
+          ),
+          sessionQuestionCount: created.sessionQuestionCount,
+          sessionRemaining: Math.max(
+            0,
+            QA_MAX_QUESTIONS_PER_SESSION - created.sessionQuestionCount,
+          ),
+        },
+        replayed: created.replayed,
+      };
     }),
 
   deleteOwn: publicProcedure
     .input(UpvoteQaQuestionInputSchema)
     .output(z.object({ deleted: z.boolean() }))
-    .mutation(async ({ input }) => {
+    .mutation(async ({ input, ctx }) => {
       const question = await prisma.qaQuestion.findUnique({
         where: { id: input.questionId },
         select: { id: true, participantId: true, status: true, sessionId: true },
@@ -814,296 +1105,96 @@ export const qaRouter = router({
       if (!question || question.status === 'DELETED') {
         throw new TRPCError({ code: 'NOT_FOUND', message: 'Frage nicht gefunden.' });
       }
+      await assertParticipantCapability({
+        ctx,
+        sessionId: question.sessionId,
+        participantId: input.participantId,
+      });
       if (question.participantId !== input.participantId) {
         throw new TRPCError({
           code: 'FORBIDDEN',
           message: 'Du kannst nur deine eigenen Fragen löschen.',
         });
       }
-      const delSession = await prisma.session.findUnique({
-        where: { id: question.sessionId },
-        select: { type: true, qaEnabled: true, qaOpen: true, status: true },
-      });
-      if (delSession && !isQaOpenForParticipants(delSession)) {
-        throw new TRPCError({
-          code: 'FORBIDDEN',
-          message: 'Der Q&A-Kanal ist aktuell geschlossen.',
+      try {
+        await prisma.$transaction(async (tx) => {
+          await tx.$executeRaw`SELECT arsnova_lock_active_session(${question.sessionId})`;
+          const updated = await tx.qaQuestion.updateMany({
+            where: {
+              id: input.questionId,
+              participantId: input.participantId,
+              status: { not: 'DELETED' },
+            },
+            data: { status: 'DELETED' },
+          });
+          if (updated.count !== 1) {
+            throw new TRPCError({ code: 'NOT_FOUND', message: 'Frage nicht gefunden.' });
+          }
         });
+      } catch (error) {
+        if (String(error).includes('ARSNOVA_SESSION_ENDED')) {
+          throw new TRPCError({
+            code: 'FORBIDDEN',
+            message: 'Die Session ist beendet.',
+            cause: error,
+          });
+        }
+        throw error;
       }
-      assertQaSessionOpenForParticipants(delSession?.status);
-      await prisma.qaQuestion.update({
-        where: { id: input.questionId },
-        data: { status: 'DELETED' },
-      });
       return { deleted: true };
     }),
 
   upvote: publicProcedure
     .input(UpvoteQaQuestionInputSchema)
     .output(ToggleQaUpvoteOutputSchema)
-    .mutation(async ({ input }) => {
+    .mutation(async ({ input, ctx }) => {
       const question = await prisma.qaQuestion.findUnique({
         where: { id: input.questionId },
-        include: {
-          session: {
-            select: {
-              id: true,
-              type: true,
-              qaEnabled: true,
-              qaOpen: true,
-              status: true,
-            },
-          },
-        },
+        select: { sessionId: true },
       });
-      if (!question || question.status === 'DELETED') {
+      if (!question) {
         throw new TRPCError({ code: 'NOT_FOUND', message: 'Frage nicht gefunden.' });
       }
-      if (!isQaEnabled(question.session)) {
-        throw new TRPCError({
-          code: 'BAD_REQUEST',
-          message: 'Fragen sind in dieser Session nicht aktiviert.',
-        });
-      }
-      if (!isQaOpenForParticipants(question.session)) {
-        throw new TRPCError({
-          code: 'FORBIDDEN',
-          message: 'Der Q&A-Kanal ist aktuell geschlossen.',
-        });
-      }
-      assertQaSessionOpenForParticipants(question.session.status);
-      if (!['ACTIVE', 'PINNED', 'ARCHIVED'].includes(question.status)) {
-        throw new TRPCError({
-          code: 'BAD_REQUEST',
-          message: 'Diese Frage kann aktuell nicht bewertet werden.',
-        });
-      }
-      if (question.participantId === input.participantId) {
-        throw new TRPCError({
-          code: 'FORBIDDEN',
-          message: 'Du kannst deine eigene Frage nicht bewerten.',
-        });
-      }
-
-      const participant = await prisma.participant.findUnique({
-        where: { id: input.participantId },
-        select: { id: true, sessionId: true },
+      await assertParticipantCapability({
+        ctx,
+        sessionId: question.sessionId,
+        participantId: input.participantId,
       });
-      if (!participant || participant.sessionId !== question.sessionId) {
-        throw new TRPCError({
-          code: 'BAD_REQUEST',
-          message: 'Teilnahme zur Session nicht gefunden.',
-        });
+      const result = await changeQaVote(input.questionId, input.participantId, 'UP');
+      if (result.changed) {
+        void recordQaRatingChanged(randomUUID());
       }
-
-      const existing = await prisma.qaUpvote.findUnique({
-        where: {
-          qaQuestionId_participantId: {
-            qaQuestionId: input.questionId,
-            participantId: input.participantId,
-          },
-        },
-      });
-
-      if (existing && existing.direction === 'DOWN') {
-        await prisma.$transaction([
-          prisma.qaUpvote.update({
-            where: { id: existing.id },
-            data: { direction: 'UP' },
-          }),
-          prisma.qaQuestion.update({
-            where: { id: input.questionId },
-            data: { upvoteCount: { increment: 2 } },
-          }),
-        ]);
-
-        const updated = await prisma.qaQuestion.findUnique({
-          where: { id: input.questionId },
-          select: { upvoteCount: true },
-        });
-
-        return {
-          questionId: input.questionId,
-          upvoted: true,
-          upvoteCount: updated?.upvoteCount ?? question.upvoteCount + 2,
-        };
-      }
-
-      if (existing) {
-        await prisma.$transaction([
-          prisma.qaUpvote.delete({ where: { id: existing.id } }),
-          prisma.qaQuestion.update({
-            where: { id: input.questionId },
-            data: { upvoteCount: { decrement: 1 } },
-          }),
-        ]);
-
-        const updated = await prisma.qaQuestion.findUnique({
-          where: { id: input.questionId },
-          select: { upvoteCount: true },
-        });
-
-        return {
-          questionId: input.questionId,
-          upvoted: false,
-          upvoteCount: updated?.upvoteCount ?? Math.max(0, question.upvoteCount - 1),
-        };
-      }
-
-      await prisma.$transaction([
-        prisma.qaUpvote.create({
-          data: {
-            qaQuestionId: input.questionId,
-            participantId: input.participantId,
-          },
-        }),
-        prisma.qaQuestion.update({
-          where: { id: input.questionId },
-          data: { upvoteCount: { increment: 1 } },
-        }),
-      ]);
-
-      const updated = await prisma.qaQuestion.findUnique({
-        where: { id: input.questionId },
-        select: { upvoteCount: true },
-      });
-
       return {
-        questionId: input.questionId,
-        upvoted: true,
-        upvoteCount: updated?.upvoteCount ?? question.upvoteCount + 1,
+        questionId: result.questionId,
+        upvoted: result.myVote === 'UP',
+        upvoteCount: result.upvoteCount,
       };
     }),
 
   vote: publicProcedure
     .input(QaVoteInputSchema)
     .output(QaVoteOutputSchema)
-    .mutation(async ({ input }) => {
+    .mutation(async ({ input, ctx }) => {
       const question = await prisma.qaQuestion.findUnique({
         where: { id: input.questionId },
-        include: {
-          session: {
-            select: { id: true, type: true, qaEnabled: true, qaOpen: true, status: true },
-          },
-        },
+        select: { sessionId: true },
       });
-      if (!question || question.status === 'DELETED') {
+      if (!question) {
         throw new TRPCError({ code: 'NOT_FOUND', message: 'Frage nicht gefunden.' });
       }
-      if (!isQaEnabled(question.session)) {
-        throw new TRPCError({
-          code: 'BAD_REQUEST',
-          message: 'Fragen sind in dieser Session nicht aktiviert.',
-        });
-      }
-      if (!isQaOpenForParticipants(question.session)) {
-        throw new TRPCError({
-          code: 'FORBIDDEN',
-          message: 'Der Q&A-Kanal ist aktuell geschlossen.',
-        });
-      }
-      assertQaSessionOpenForParticipants(question.session.status);
-      if (!['ACTIVE', 'PINNED', 'ARCHIVED'].includes(question.status)) {
-        throw new TRPCError({
-          code: 'BAD_REQUEST',
-          message: 'Diese Frage kann aktuell nicht bewertet werden.',
-        });
-      }
-      if (question.participantId === input.participantId) {
-        throw new TRPCError({
-          code: 'FORBIDDEN',
-          message: 'Du kannst deine eigene Frage nicht bewerten.',
-        });
-      }
-
-      const participant = await prisma.participant.findUnique({
-        where: { id: input.participantId },
-        select: { id: true, sessionId: true },
+      await assertParticipantCapability({
+        ctx,
+        sessionId: question.sessionId,
+        participantId: input.participantId,
       });
-      if (!participant || participant.sessionId !== question.sessionId) {
-        throw new TRPCError({
-          code: 'BAD_REQUEST',
-          message: 'Teilnahme zur Session nicht gefunden.',
-        });
+      const result = await changeQaVote(input.questionId, input.participantId, input.direction);
+      if (result.changed) {
+        void recordQaRatingChanged(randomUUID());
       }
-
-      const existing = await prisma.qaUpvote.findUnique({
-        where: {
-          qaQuestionId_participantId: {
-            qaQuestionId: input.questionId,
-            participantId: input.participantId,
-          },
-        },
-      });
-
-      if (existing && existing.direction === input.direction) {
-        // Same direction again → toggle off
-        const delta = existing.direction === 'UP' ? -1 : 1;
-        await prisma.$transaction([
-          prisma.qaUpvote.delete({ where: { id: existing.id } }),
-          prisma.qaQuestion.update({
-            where: { id: input.questionId },
-            data: { upvoteCount: { increment: delta } },
-          }),
-        ]);
-        const updated = await prisma.qaQuestion.findUnique({
-          where: { id: input.questionId },
-          select: { upvoteCount: true },
-        });
-        return {
-          questionId: input.questionId,
-          myVote: null,
-          upvoteCount: updated?.upvoteCount ?? question.upvoteCount + delta,
-        };
-      }
-
-      if (existing) {
-        // Switch direction: old was UP→DOWN or DOWN→UP, delta is ±2
-        const delta = input.direction === 'UP' ? 2 : -2;
-        await prisma.$transaction([
-          prisma.qaUpvote.update({
-            where: { id: existing.id },
-            data: { direction: input.direction },
-          }),
-          prisma.qaQuestion.update({
-            where: { id: input.questionId },
-            data: { upvoteCount: { increment: delta } },
-          }),
-        ]);
-        const updated = await prisma.qaQuestion.findUnique({
-          where: { id: input.questionId },
-          select: { upvoteCount: true },
-        });
-        return {
-          questionId: input.questionId,
-          myVote: input.direction,
-          upvoteCount: updated?.upvoteCount ?? question.upvoteCount + delta,
-        };
-      }
-
-      // New vote
-      const delta = input.direction === 'UP' ? 1 : -1;
-      await prisma.$transaction([
-        prisma.qaUpvote.create({
-          data: {
-            qaQuestionId: input.questionId,
-            participantId: input.participantId,
-            direction: input.direction,
-          },
-        }),
-        prisma.qaQuestion.update({
-          where: { id: input.questionId },
-          data: { upvoteCount: { increment: delta } },
-        }),
-      ]);
-      const updated = await prisma.qaQuestion.findUnique({
-        where: { id: input.questionId },
-        select: { upvoteCount: true },
-      });
       return {
-        questionId: input.questionId,
-        myVote: input.direction,
-        upvoteCount: updated?.upvoteCount ?? question.upvoteCount + delta,
+        questionId: result.questionId,
+        myVote: result.myVote,
+        upvoteCount: result.upvoteCount,
       };
     }),
 
@@ -1113,45 +1204,84 @@ export const qaRouter = router({
     .mutation(async ({ input }) => {
       const session = await prisma.session.findFirst({
         where: { code: input.sessionCode.toUpperCase() },
-        select: { id: true, status: true },
+        select: { id: true, status: true, endedAt: true, expiresAt: true },
       });
       if (!session) {
         throw new TRPCError({ code: 'NOT_FOUND', message: 'Session nicht gefunden.' });
       }
-      assertQaSessionOpenForParticipants(session.status);
-      const updated = await prisma.session.update({
-        where: { id: session.id },
-        data: { qaModerationMode: input.enabled },
-        select: { qaModerationMode: true },
-      });
+      assertQaSessionOpenForParticipants(session);
+      const updated = await prisma
+        .$transaction(async (tx) => {
+          await tx.$executeRaw`SELECT arsnova_lock_active_session(${session.id})`;
+          return tx.session.update({
+            where: { id: session.id },
+            data: { qaModerationMode: input.enabled },
+            select: { qaModerationMode: true },
+          });
+        })
+        .catch(rethrowQaContributionError);
       return { enabled: updated.qaModerationMode };
     }),
 
   onQuestionsUpdated: publicProcedure
     .input(GetQaQuestionsInputSchema)
+    .output(zAsyncIterable(QaQuestionsInvalidationDTOSchema))
     .subscription(async function* ({ input, ctx }) {
-      let lastJson = '';
       let lastRevisionKey = '';
-      let cachedParticipantCountForControversy: number | undefined;
-      let participantCountCacheExpiresAt = 0;
       const sortMode = normalizeQaSortMode(input.moderatorView, input.sort);
 
       const gateSession = await prisma.session.findUnique({
         where: { id: input.sessionId },
-        select: { id: true, code: true, type: true, qaEnabled: true, qaOpen: true },
+        select: {
+          id: true,
+          code: true,
+          status: true,
+          endedAt: true,
+          expiresAt: true,
+          type: true,
+          qaEnabled: true,
+          qaOpen: true,
+          qaClosesAt: true,
+          sessionLifecycleRevision: true,
+          qaRankingRevision: true,
+          participantRevision: true,
+        },
       });
       if (!gateSession) {
         return;
       }
-      if (!isQaEnabled(gateSession)) {
-        yield [];
-        return;
-      }
+      const gateNow = new Date();
       let hostToken: string | undefined;
       if (input.moderatorView) {
         hostToken = await assertHostSessionAccessFromContext(ctx, gateSession.code);
-      } else if (!isQaOpenForParticipants(gateSession)) {
-        yield [];
+        const retention = buildSessionRetentionTimeline(gateSession, gateNow);
+        if (
+          isSessionEffectivelyFinished(gateSession, gateNow) &&
+          !retention.hostPostProcessingAccessAllowed
+        ) {
+          yield buildQaQuestionsInvalidation(gateSession, 'POST_PROCESSING_ENDED', gateNow);
+          return;
+        }
+      }
+      if (!input.moderatorView) {
+        if (!input.participantId) {
+          throw new TRPCError({
+            code: 'UNAUTHORIZED',
+            message: 'Teilnahme-Capability erforderlich.',
+          });
+        }
+        await assertParticipantCapability({
+          ctx,
+          sessionId: gateSession.id,
+          participantId: input.participantId,
+        });
+        if (isSessionEffectivelyFinished(gateSession, gateNow)) {
+          yield buildQaQuestionsInvalidation(gateSession, 'SESSION_ENDED', gateNow);
+          return;
+        }
+      }
+      if (!isQaEnabled(gateSession)) {
+        yield buildQaQuestionsInvalidation(gateSession, 'CHANNEL_CLOSED', gateNow);
         return;
       }
 
@@ -1168,15 +1298,27 @@ export const qaRouter = router({
       };
 
       while (true) {
+        if (!input.moderatorView) {
+          await assertParticipantCapability({
+            ctx,
+            sessionId: input.sessionId,
+            participantId: input.participantId!,
+          });
+        }
         const session = await prisma.session.findUnique({
           where: { id: input.sessionId },
           select: {
             id: true,
+            status: true,
+            endedAt: true,
+            expiresAt: true,
             type: true,
             qaEnabled: true,
             qaOpen: true,
-            onboardingNicknameTheme: true,
-            onboardingAnonymousMode: true,
+            qaClosesAt: true,
+            sessionLifecycleRevision: true,
+            qaRankingRevision: true,
+            participantRevision: true,
           },
         });
         if (!session) {
@@ -1184,58 +1326,51 @@ export const qaRouter = router({
         }
 
         if (!isQaEnabled(session)) {
-          yield [];
+          yield buildQaQuestionsInvalidation(session, 'CHANNEL_CLOSED');
           return;
         }
-        if (!input.moderatorView && !isQaOpenForParticipants(session)) {
-          yield [];
-          return;
-        }
-
-        let participantCountForControversy: number | undefined;
-        if (input.moderatorView === true) {
-          const now = Date.now();
+        const snapshotNow = new Date();
+        if (input.moderatorView) {
+          const retention = buildSessionRetentionTimeline(session, snapshotNow);
           if (
-            cachedParticipantCountForControversy === undefined ||
-            now >= participantCountCacheExpiresAt
+            isSessionEffectivelyFinished(session, snapshotNow) &&
+            !retention.hostPostProcessingAccessAllowed
           ) {
-            cachedParticipantCountForControversy = await prisma.participant.count({
-              where: { sessionId: input.sessionId },
-            });
-            participantCountCacheExpiresAt = now + QA_PARTICIPANT_COUNT_CACHE_MS;
+            yield buildQaQuestionsInvalidation(session, 'POST_PROCESSING_ENDED', snapshotNow);
+            return;
           }
-          participantCountForControversy = cachedParticipantCountForControversy;
+        } else if (isSessionEffectivelyFinished(session, snapshotNow)) {
+          yield buildQaQuestionsInvalidation(session, 'SESSION_ENDED', snapshotNow);
+          return;
         }
-        const includeAuthorNickname =
-          session.onboardingAnonymousMode !== true &&
-          session.onboardingNicknameTheme === 'KINDERGARTEN' &&
-          (input.moderatorView === true || input.participantId !== undefined);
 
-        const revisionKey = await getQaQuestionsRevisionKey(
-          input.sessionId,
-          input.moderatorView,
-          input.participantId,
-          participantCountForControversy,
-        );
+        const contentState: z.infer<typeof QaQuestionsListDTOSchema>['state'] =
+          !input.moderatorView && session.qaClosesAt === null
+            ? 'UNCONFIGURED'
+            : !input.moderatorView && snapshotNow >= session.qaClosesAt!
+              ? 'DEADLINE_EXPIRED'
+              : !input.moderatorView && session.qaOpen === false
+                ? 'CHANNEL_CLOSED'
+                : 'ACTIVE';
+        if (!input.moderatorView && contentState !== 'ACTIVE') {
+          const revisionKey = `${contentState}:${session.sessionLifecycleRevision}:${session.qaRankingRevision}:${session.participantRevision}`;
+          if (revisionKey !== lastRevisionKey) {
+            lastRevisionKey = revisionKey;
+            yield buildQaQuestionsInvalidation(session, contentState, snapshotNow);
+          }
+          await waitForNextTick();
+          continue;
+        }
+
+        const revisionKey = `${contentState}:${session.sessionLifecycleRevision}:${
+          session.qaRankingRevision
+        }:${sortMode === 'CONTROVERSIAL' ? session.participantRevision : ''}`;
         if (revisionKey === lastRevisionKey) {
           await waitForNextTick();
           continue;
         }
         lastRevisionKey = revisionKey;
-
-        const payload = await buildQaQuestionPayloadFromDb(
-          input.sessionId,
-          input.participantId,
-          input.moderatorView,
-          sortMode,
-          participantCountForControversy,
-          includeAuthorNickname,
-        );
-        const json = JSON.stringify(payload);
-        if (json !== lastJson) {
-          lastJson = json;
-          yield payload;
-        }
+        yield buildQaQuestionsInvalidation(session, contentState, snapshotNow);
 
         await waitForNextTick();
       }

@@ -247,6 +247,7 @@ async function joinParticipants(publicTrpc, code, config) {
         code,
         nickname: `Wolke ${String(index + 1).padStart(3, '0')}`,
         anonymousClientId: globalThis.crypto.randomUUID(),
+        joinIdempotencyKey: globalThis.crypto.randomUUID(),
       });
       return { ok: true, index, participant, durationMs: rounded(performance.now() - startedAt) };
     } catch (error) {

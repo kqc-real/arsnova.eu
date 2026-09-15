@@ -1,0 +1,47 @@
+{
+  "schemaVersion": 1,
+  "profile": "epic-405-release",
+  "seed": {
+    "participants": 2500,
+    "rejoinSamples": 500,
+    "questionsPerParticipant": 10,
+    "totalQuestions": 25000
+  },
+  "websocket": {
+    "activeClients": 500,
+    "subscriptionPageSize": 1
+  },
+  "concurrency": {
+    "joins": 40,
+    "submits": 80,
+    "queries": 20,
+    "websockets": 500
+  },
+  "sampling": {
+    "participantPageSize": 100,
+    "qaPageSize": 100,
+    "ratings": 500,
+    "moderations": 100,
+    "healthStats": 100,
+    "sortModes": ["TOP", "BEST", "CONTROVERSIAL"]
+  },
+  "budgets": {
+    "apiP95ExclusiveMs": 1000,
+    "apiP99ExclusiveMs": 2000,
+    "technicalErrorRateExclusiveMax": 0.005,
+    "dbP95MaxMs": 250,
+    "payloadMaxBytes": 262144,
+    "pageMaxItems": 100,
+    "fanoutP95MaxMs": 3000,
+    "reconnectP95MaxMs": 3000,
+    "reconnectMaxMs": 10000,
+    "rssGrowthMaxBytes": 268435456,
+    "backendEventLoopP99MaxMs": 200
+  },
+  "soak": {
+    "durationMinutes": 60,
+    "warmupSeconds": 30,
+    "cycleIntervalMs": 1000,
+    "probeIntervalMs": 10000
+  }
+}

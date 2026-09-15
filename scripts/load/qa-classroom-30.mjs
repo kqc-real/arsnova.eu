@@ -15,15 +15,7 @@
  */
 import { waitForBackend } from './lib/wait-for-backend.mjs';
 import { writeScenarioReport } from './lib/reporting.mjs';
-
-let trpcClientModule;
-try {
-  trpcClientModule = await import('@trpc/client');
-} catch {
-  trpcClientModule = await import('../../apps/frontend/node_modules/@trpc/client/dist/index.mjs');
-}
-
-const { createTRPCProxyClient, httpLink } = trpcClientModule;
+import { createHttpTrpcSingle } from './lib/trpc-runtime.mjs';
 
 const TRPC_URL = String(process.env.TRPC_URL || 'http://127.0.0.1:3000/trpc').trim();
 const PARTICIPANTS = Math.max(1, Number(process.env.PARTICIPANTS || 30));
@@ -38,15 +30,8 @@ const WRITE_CONCURRENCY = Math.max(1, Number(process.env.WRITE_CONCURRENCY || 20
 const SUBMIT_P95_LIMIT_MS = Math.max(100, Number(process.env.SUBMIT_P95_LIMIT_MS || 1_000));
 const VOTE_PHASE_LIMIT_MS = Math.max(500, Number(process.env.VOTE_PHASE_LIMIT_MS || 5_000));
 
-function createHttpClient(hostToken) {
-  return createTRPCProxyClient({
-    links: [
-      httpLink({
-        url: TRPC_URL,
-        headers: hostToken ? () => ({ 'x-host-token': hostToken }) : undefined,
-      }),
-    ],
-  });
+function createHttpClient(hostToken, participantCapability) {
+  return createHttpTrpcSingle(TRPC_URL, hostToken, undefined, undefined, participantCapability);
 }
 
 function percentile(values, p) {
@@ -103,15 +88,48 @@ async function createQaSession(publicTrpc) {
   return { code, hostToken, sessionId };
 }
 
+async function configureQaSession(hostTrpc, code) {
+  const selection = { kind: 'UNTIL_SESSION_END' };
+  const preview = await hostTrpc.session.previewQaConfiguration.query({
+    code,
+    mode: 'INITIAL',
+    selection,
+  });
+  return hostTrpc.session.configureQaChannel.mutate({
+    code,
+    mode: preview.mode,
+    selection,
+    expectedLifecycleRevision: preview.expectedLifecycleRevision,
+    previewServerNow: preview.serverNow,
+    confirmedQaClosesAt: preview.newQaClosesAt,
+    confirmedExpiresAt: preview.newExpiresAt,
+    confirmSessionExtension: preview.requiresSessionExtension,
+    qaTitle: 'Q&A Unterricht',
+    moderationMode: false,
+    participationProfile: {
+      identityMode: 'CUSTOM_NICKNAME',
+      nicknameTheme: 'HIGH_SCHOOL',
+    },
+  });
+}
+
 async function joinParticipants(publicTrpc, code) {
   const indexes = Array.from({ length: PARTICIPANTS }, (_, index) => index);
-  return mapLimit(indexes, JOIN_CONCURRENCY, async (index) =>
-    publicTrpc.session.join.mutate({
+  return mapLimit(indexes, JOIN_CONCURRENCY, async (index) => {
+    const participant = await publicTrpc.session.join.mutate({
       code,
       nickname: `TN ${String(index + 1).padStart(2, '0')}`,
       anonymousClientId: globalThis.crypto.randomUUID(),
-    }),
-  );
+      joinIdempotencyKey: globalThis.crypto.randomUUID(),
+    });
+    if (!participant.rejoinToken) {
+      throw new Error(`Join ${index + 1} lieferte keine participant capability.`);
+    }
+    return {
+      ...participant,
+      qaTrpc: createHttpClient(undefined, participant.rejoinToken),
+    };
+  });
 }
 
 function buildQuestionText(participantIndex, questionIndex) {
@@ -130,7 +148,7 @@ function buildQuestionText(participantIndex, questionIndex) {
   return `TN ${participantIndex + 1} Frage ${questionIndex + 1}: Koennen wir ${topic} noch einmal erklaeren?`;
 }
 
-async function submitQuestions(publicTrpc, sessionId, participants) {
+async function submitQuestions(sessionId, participants) {
   const tasks = [];
   for (let participantIndex = 0; participantIndex < participants.length; participantIndex += 1) {
     const participant = participants[participantIndex];
@@ -149,15 +167,18 @@ async function submitQuestions(publicTrpc, sessionId, participants) {
   const results = await mapLimit(tasks, WRITE_CONCURRENCY, async (task) => {
     const requestStartedAt = performance.now();
     try {
-      const created = await publicTrpc.qa.submit.mutate({
+      const created = await task.participant.qaTrpc.qa.submit.mutate({
         sessionId,
         participantId: task.participant.participantId,
         text: task.text,
+        idempotencyKey: globalThis.crypto.randomUUID(),
       });
       return {
-        id: created.id,
-        text: created.text,
-        status: created.status,
+        id: created.question.id,
+        text: created.question.text,
+        status: created.question.status,
+        quota: created.quota,
+        replayed: created.replayed,
         authorParticipantId: task.participant.participantId,
         participantIndex: task.participantIndex,
       };
@@ -197,7 +218,7 @@ function pickVoteTargets(participantIndex, questions) {
   return { upTargets, downTargets };
 }
 
-async function castParticipantVotes(publicTrpc, participant, participantIndex, questions) {
+async function castParticipantVotes(participant, participantIndex, questions) {
   const { upTargets, downTargets } = pickVoteTargets(participantIndex, questions);
   const voteTasks = [
     ...upTargets.map((question) => ({
@@ -215,7 +236,7 @@ async function castParticipantVotes(publicTrpc, participant, participantIndex, q
     voteTasks.map(async (task) => {
       const requestStartedAt = performance.now();
       try {
-        return await publicTrpc.qa.vote.mutate({
+        return await participant.qaTrpc.qa.vote.mutate({
           questionId: task.questionId,
           participantId: participant.participantId,
           direction: task.direction,
@@ -235,13 +256,12 @@ async function castParticipantVotes(publicTrpc, participant, participantIndex, q
   };
 }
 
-async function castAllVotes(publicTrpc, participants, questions) {
+async function castAllVotes(participants, questions) {
   const startedAt = performance.now();
   const perParticipant = await mapLimit(
     participants.map((participant, index) => ({ participant, index })),
     WRITE_CONCURRENCY,
-    async ({ participant, index }) =>
-      castParticipantVotes(publicTrpc, participant, index, questions),
+    async ({ participant, index }) => castParticipantVotes(participant, index, questions),
   );
   return {
     totalDurationMs: Math.round(performance.now() - startedAt),
@@ -305,36 +325,80 @@ function countByStatus(questions) {
   return counts;
 }
 
+async function listAllHostQuestions(hostTrpc, sessionId) {
+  const questions = [];
+  let cursor;
+  let rankingRevision = null;
+  let totalCount = null;
+  let pages = 0;
+  do {
+    const page = await hostTrpc.qa.list.query({
+      sessionId,
+      moderatorView: true,
+      sort: 'TOP',
+      pageSize: 100,
+      ...(cursor ? { cursor } : {}),
+    });
+    if (!Array.isArray(page.questions) || page.questions.length > 100) {
+      throw new Error('qa.list lieferte keine gültige, auf 100 Einträge begrenzte Seite.');
+    }
+    if (rankingRevision !== null && page.rankingRevision !== rankingRevision) {
+      throw new Error('qa.list wechselte während der Pagination die Ranking-Revision.');
+    }
+    rankingRevision = page.rankingRevision ?? rankingRevision;
+    totalCount = page.totalCount ?? totalCount;
+    questions.push(...page.questions);
+    cursor = page.nextCursor ?? undefined;
+    pages += 1;
+  } while (cursor);
+  return { questions, pages, rankingRevision, totalCount };
+}
+
 async function run() {
   await waitForBackend(TRPC_URL);
   const publicTrpc = createHttpClient();
   const { code, hostToken, sessionId } = await createQaSession(publicTrpc);
   const hostTrpc = createHttpClient(hostToken);
+  const qaConfiguration = await configureQaSession(hostTrpc, code);
 
   const participants = await joinParticipants(publicTrpc, code);
   const qaStart = await hostTrpc.session.startQa.mutate({ code });
 
-  const submitPhase = await submitQuestions(publicTrpc, sessionId, participants);
-  const votePhase = await castAllVotes(publicTrpc, participants, submitPhase.questions);
+  const submitPhase = await submitQuestions(sessionId, participants);
+  const votePhase = await castAllVotes(participants, submitPhase.questions);
   const moderatePhase = await moderateQuestions(hostTrpc, code, submitPhase.questions);
 
-  const hostList = await hostTrpc.qa.list.query({
-    sessionId,
-    moderatorView: true,
-    sort: 'TOP',
-  });
-  const statusCounts = countByStatus(hostList);
+  const hostList = await listAllHostQuestions(hostTrpc, sessionId);
+  const visibleQuestions = hostList.questions;
+  const statusCounts = countByStatus(visibleQuestions);
 
   const expectedQuestions = PARTICIPANTS * QUESTIONS_PER_PARTICIPANT;
   const expectedVotes = PARTICIPANTS * (UPVOTES_PER_PARTICIPANT + DOWNVOTES_PER_PARTICIPANT);
   const expectedHostActions = HOST_PIN_COUNT + HOST_ARCHIVE_COUNT + HOST_DELETE_COUNT;
   const expectedVisibleAfterModeration = expectedQuestions - HOST_DELETE_COUNT;
+  const replayedSubmits = submitPhase.questions.filter((question) => question.replayed).length;
+  const participantQuotaMaxima = new Map();
+  for (const question of submitPhase.questions) {
+    const previous = participantQuotaMaxima.get(question.authorParticipantId) ?? 0;
+    participantQuotaMaxima.set(
+      question.authorParticipantId,
+      Math.max(previous, question.quota.participantQuestionCount),
+    );
+  }
+  const participantsAtExpectedQuota = [...participantQuotaMaxima.values()].filter(
+    (count) => count === QUESTIONS_PER_PARTICIPANT,
+  ).length;
+  const maxSessionQuestionCount = Math.max(
+    0,
+    ...submitPhase.questions.map((question) => question.quota.sessionQuestionCount),
+  );
 
   const summary = {
     scenario: 'qa-classroom',
     code,
     sessionId,
     participants: PARTICIPANTS,
+    qaConfiguredClosesAt: qaConfiguration.qaClosesAt,
     qaStartStatus: qaStart.status,
     questionsPerParticipant: QUESTIONS_PER_PARTICIPANT,
     expectedQuestions,
@@ -344,6 +408,9 @@ async function run() {
       p50Ms: submitPhase.p50Ms,
       p95Ms: submitPhase.p95Ms,
       maxMs: submitPhase.maxMs,
+      replayed: replayedSubmits,
+      participantsAtExpectedQuota,
+      maxSessionQuestionCount,
     },
     votesPerParticipant: {
       up: UPVOTES_PER_PARTICIPANT,
@@ -362,8 +429,10 @@ async function run() {
       ...moderatePhase,
     },
     finalStatusCounts: statusCounts,
+    hostListPages: hostList.pages,
+    hostListTotalCount: hostList.totalCount,
     expectedVisibleAfterModeration,
-    visibleAfterModeration: hostList.length,
+    visibleAfterModeration: visibleQuestions.length,
   };
 
   console.log(JSON.stringify(summary, null, 2));
@@ -377,6 +446,17 @@ async function run() {
   }
   if (submitPhase.questions.length !== expectedQuestions) {
     failures.push(`Fragen: ${submitPhase.questions.length}/${expectedQuestions}`);
+  }
+  if (replayedSubmits !== 0) {
+    failures.push(`Unerwartete Idempotency-Replays: ${replayedSubmits}.`);
+  }
+  if (participantsAtExpectedQuota !== PARTICIPANTS) {
+    failures.push(
+      `Teilnahmekontingent: ${participantsAtExpectedQuota}/${PARTICIPANTS} auf ${QUESTIONS_PER_PARTICIPANT}.`,
+    );
+  }
+  if (maxSessionQuestionCount !== expectedQuestions) {
+    failures.push(`Sessionkontingent: ${maxSessionQuestionCount}/${expectedQuestions}.`);
   }
   if (submitPhase.p95Ms > SUBMIT_P95_LIMIT_MS) {
     failures.push(`Q&A-Submit-p95 ${submitPhase.p95Ms} ms > ${SUBMIT_P95_LIMIT_MS} ms.`);
@@ -396,9 +476,14 @@ async function run() {
   if ((statusCounts.ARCHIVED ?? 0) !== HOST_ARCHIVE_COUNT) {
     failures.push(`ARCHIVED: ${statusCounts.ARCHIVED ?? 0}/${HOST_ARCHIVE_COUNT}`);
   }
-  if (hostList.length !== expectedVisibleAfterModeration) {
+  if (visibleQuestions.length !== expectedVisibleAfterModeration) {
     failures.push(
-      `Sichtbare Fragen: ${hostList.length}/${expectedVisibleAfterModeration} (nach DELETE)`,
+      `Sichtbare Fragen: ${visibleQuestions.length}/${expectedVisibleAfterModeration} (nach DELETE)`,
+    );
+  }
+  if (hostList.totalCount !== expectedVisibleAfterModeration) {
+    failures.push(
+      `qa.list totalCount: ${hostList.totalCount ?? 'fehlt'}/${expectedVisibleAfterModeration}.`,
     );
   }
 

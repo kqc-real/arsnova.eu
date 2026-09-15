@@ -38,6 +38,11 @@ import { sessionRouter } from '../routers/session';
 
 const caller = sessionRouter.createCaller({ req: {} as never });
 const SESSION_ID = '6a8edced-5f8f-4cfa-9176-454fac9570ad';
+const ACTIVE_QA_WINDOW = {
+  qaClosesAt: new Date('2099-01-01T00:00:00.000Z'),
+  expiresAt: new Date('2099-01-02T00:00:00.000Z'),
+  endedAt: null,
+};
 
 describe('session.startQa (Story 8.1)', () => {
   beforeEach(() => {
@@ -64,6 +69,7 @@ describe('session.startQa (Story 8.1)', () => {
     },
     async () => {
       prismaMock.session.findUnique.mockResolvedValue({
+        ...ACTIVE_QA_WINDOW,
         id: SESSION_ID,
         type: 'Q_AND_A',
         quizId: null,
@@ -91,6 +97,9 @@ describe('session.startQa (Story 8.1)', () => {
           quizId: true,
           qaEnabled: true,
           qaOpen: true,
+          qaClosesAt: true,
+          expiresAt: true,
+          endedAt: true,
         },
       });
       expect(prismaMock.session.update).toHaveBeenCalledWith({
@@ -102,6 +111,7 @@ describe('session.startQa (Story 8.1)', () => {
 
   it('lässt Quiz-Sessions mit Fragen-Kanal in der Lobby (Beitrittsphase fürs Quiz bleibt)', async () => {
     prismaMock.session.findUnique.mockResolvedValue({
+      ...ACTIVE_QA_WINDOW,
       id: SESSION_ID,
       type: 'QUIZ',
       quizId: '11111111-1111-4111-8111-111111111111',
@@ -120,6 +130,7 @@ describe('session.startQa (Story 8.1)', () => {
 
   it('startet eine quizlose Quiz-Session mit Q&A-Kanal in ACTIVE', async () => {
     prismaMock.session.findUnique.mockResolvedValue({
+      ...ACTIVE_QA_WINDOW,
       id: SESSION_ID,
       type: 'QUIZ',
       quizId: null,
@@ -149,6 +160,7 @@ describe('session.startQa (Story 8.1)', () => {
     },
     async () => {
       prismaMock.session.findUnique.mockResolvedValue({
+        ...ACTIVE_QA_WINDOW,
         id: SESSION_ID,
         type: 'Q_AND_A',
         quizId: null,
@@ -168,6 +180,7 @@ describe('session.startQa (Story 8.1)', () => {
 
   it('öffnet eine unter der Sperre bereits beendete Q&A-Session nicht erneut', async () => {
     prismaMock.session.findUnique.mockResolvedValueOnce({ id: SESSION_ID }).mockResolvedValueOnce({
+      ...ACTIVE_QA_WINDOW,
       id: SESSION_ID,
       type: 'Q_AND_A',
       quizId: null,

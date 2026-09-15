@@ -124,6 +124,23 @@ export interface ServerStatusHelpDialogData {
                 </article>
                 <article class="status-help-dialog__metric status-help-dialog__metric--key">
                   <div class="status-help-dialog__metric-head">
+                    <mat-icon aria-hidden="true">forum</mat-icon>
+                    <span i18n="@@app.footer.statusMetricActiveQaSessions"
+                      >Aktive Q&A-Sessions</span
+                    >
+                  </div>
+                  <strong>{{
+                    formatQaLiveValue(s.activeQaSessions, s.qaPresenceMetricsStatus)
+                  }}</strong>
+                  <p
+                    class="status-help-dialog__metric-hint"
+                    i18n="@@app.footer.statusMetricActiveQaSessionsHint"
+                  >
+                    Offen, nicht abgelaufen und mindestens 5 eindeutige Teilnahmen in 3 Minuten
+                  </p>
+                </article>
+                <article class="status-help-dialog__metric status-help-dialog__metric--key">
+                  <div class="status-help-dialog__metric-head">
                     <mat-icon aria-hidden="true">meeting_room</mat-icon>
                     <span i18n="@@app.footer.statusMetricOpenSessions">Offene Sessions</span>
                   </div>
@@ -197,6 +214,26 @@ export interface ServerStatusHelpDialogData {
                 </article>
                 <article class="status-help-dialog__metric status-help-dialog__metric--dynamic">
                   <div class="status-help-dialog__metric-head">
+                    <mat-icon aria-hidden="true">question_answer</mat-icon>
+                    <span i18n="@@app.footer.statusMetricQaQuestions"
+                      >Neue Q&A-Fragen / Minute</span
+                    >
+                  </div>
+                  <strong>{{
+                    formatQaLiveValue(s.qaQuestionsLastMinute, s.qaMinuteMetricsStatus)
+                  }}</strong>
+                </article>
+                <article class="status-help-dialog__metric status-help-dialog__metric--dynamic">
+                  <div class="status-help-dialog__metric-head">
+                    <mat-icon aria-hidden="true">thumbs_up_down</mat-icon>
+                    <span i18n="@@app.footer.statusMetricQaRatings">Q&A-Bewertungen / Minute</span>
+                  </div>
+                  <strong>{{
+                    formatQaLiveValue(s.qaRatingsLastMinute, s.qaMinuteMetricsStatus)
+                  }}</strong>
+                </article>
+                <article class="status-help-dialog__metric status-help-dialog__metric--dynamic">
+                  <div class="status-help-dialog__metric-head">
                     <mat-icon aria-hidden="true">sync_alt</mat-icon>
                     <span i18n="@@app.footer.statusMetricTransitions">Statuswechsel / Minute</span>
                   </div>
@@ -223,7 +260,76 @@ export interface ServerStatusHelpDialogData {
                 </article>
               </div>
             </section>
+            <section
+              class="status-help-dialog__metric-group"
+              aria-labelledby="server-status-platform-usage-heading"
+            >
+              <h4
+                id="server-status-platform-usage-heading"
+                class="status-help-dialog__metric-group-title"
+                i18n="@@app.footer.statusMetricGroupPlatformUsage"
+              >
+                Plattformnutzung
+              </h4>
+              <div class="status-help-dialog__metrics">
+                <article class="status-help-dialog__metric status-help-dialog__metric--wide">
+                  <div class="status-help-dialog__metric-head">
+                    <mat-icon aria-hidden="true">forum</mat-icon>
+                    <span i18n="@@app.footer.statusMetricQaQuestionsTotal">Q&A-Fragen gesamt</span>
+                  </div>
+                  <strong>{{ formatCount(s.qaQuestionsTotal) }}</strong>
+                  <p
+                    class="status-help-dialog__metric-hint"
+                    i18n="@@app.footer.statusMetricQaQuestionsTotalHint"
+                  >
+                    Erstmalig gespeicherte Fragen seit Beginn der Erfassung
+                  </p>
+                </article>
+              </div>
+            </section>
+            <section
+              class="status-help-dialog__metric-group"
+              aria-labelledby="server-status-platform-records-heading"
+            >
+              <h4
+                id="server-status-platform-records-heading"
+                class="status-help-dialog__metric-group-title"
+                i18n="@@app.footer.statusMetricGroupPlatformRecords"
+              >
+                Plattformrekorde
+              </h4>
+              <div class="status-help-dialog__metrics">
+                <article class="status-help-dialog__metric status-help-dialog__metric--wide">
+                  <div class="status-help-dialog__metric-head">
+                    <mat-icon aria-hidden="true">workspace_premium</mat-icon>
+                    <span i18n="@@app.footer.statusMetricLargestQaCollection"
+                      >Größte Q&A-Sammlung</span
+                    >
+                  </div>
+                  <strong>{{ formatCount(s.maxQaQuestionsSingleSession) }}</strong>
+                  <p
+                    class="status-help-dialog__metric-hint"
+                    i18n="@@app.footer.statusMetricLargestQaCollectionHint"
+                  >
+                    Höchster gleichzeitig gespeicherter Fragenbestand seit Beginn der Erfassung
+                  </p>
+                </article>
+              </div>
+            </section>
           </div>
+          <p class="status-help-dialog__copy status-help-dialog__copy--compact">
+            <span i18n="@@app.footer.statusStatsGeneratedAt">Snapshot:</span>
+            <time [attr.datetime]="s.statsGeneratedAt">{{
+              formatTimestamp(s.statsGeneratedAt)
+            }}</time>
+            @if (s.qaStatisticsProjectedAt) {
+              <span aria-hidden="true"> · </span>
+              <span i18n="@@app.footer.statusQaProjectedAt">Q&A-Gesamtwerte:</span>
+              <time [attr.datetime]="s.qaStatisticsProjectedAt">{{
+                formatTimestamp(s.qaStatisticsProjectedAt)
+              }}</time>
+            }
+          </p>
         </section>
 
         <section
@@ -530,5 +636,27 @@ export class ServerStatusHelpDialogComponent {
 
   protected formatCount(value: number): string {
     return formatLocaleCount(value, this.locale);
+  }
+
+  protected formatQaLiveValue(
+    value: number | null,
+    status: ServerStatsDTO['qaMinuteMetricsStatus'] | ServerStatsDTO['qaPresenceMetricsStatus'],
+  ): string {
+    if (status === 'WARMING_UP') {
+      return $localize`:@@app.footer.statusQaLiveRebuilding:Live-Werte werden neu aufgebaut`;
+    }
+    if (status === 'UNAVAILABLE' || value === null) {
+      return $localize`:@@app.footer.statusQaUnavailable:Derzeit nicht verfügbar`;
+    }
+    return formatLocaleCount(value, this.locale);
+  }
+
+  protected formatTimestamp(iso: string): string {
+    const date = new Date(iso);
+    if (Number.isNaN(date.getTime())) return '—';
+    return new Intl.DateTimeFormat(this.locale, {
+      dateStyle: 'medium',
+      timeStyle: 'short',
+    }).format(date);
   }
 }

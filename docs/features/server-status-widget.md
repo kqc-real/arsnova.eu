@@ -1,7 +1,7 @@
 # Server-Status-Widget (Story 0.4)
 
 > **Zielgruppe:** Product Owner, Entwickler  
-> **Stand:** 2026-08-31 (Warnbanner unter Header bei yellow/red; Footer-Status-Dot neben Mehr entfernt; Abgleich mit `health.ts` `stats`/`footerBundle`, `app.component.html` / `app.component.ts`)
+> **Stand:** 2026-09-15 (Q&A-Aggregate aus Epic #405; getrennter schlanker `footerBundle`-Pfad)
 
 ## Was zeigt das Widget?
 
@@ -18,21 +18,35 @@ Der Footer (und damit Status-Einstieg sowie Banner) wird **nicht** angezeigt auf
 (`isImmersiveHostView`). Auf Join- und Session-Live-Routen bleibt der Status-Einstieg
 ausgeblendet (Polling unterdrückt).
 
-| Kennzahl                 | Icon            | Bedeutung                                                                                                 |
-| ------------------------ | --------------- | --------------------------------------------------------------------------------------------------------- |
-| Offene Sessions          | ▶ play_circle   | Noch nicht beendete Sessions (Status ≠ `FINISHED`)                                                        |
-| Aktive Sessions          | ▶ play_circle   | Offene Sessions mit mindestens 5 aktiven Teilnehmenden in der Redis-Presence der letzten Minuten          |
-| Blitz-Runden             | ⚡ bolt         | Laufende Blitzlicht-/Quick-Feedback-Runden (Redis-Primärkeys `qf:<code>`, siehe Backend)                  |
-| Teilnehmende             | 👥 group        | Aktive Teilnahmen über laufende Sessions aus Redis-Presence                                               |
-| Abgeschlossene Quizzes   | ✅ check_circle | Monotoner Gesamtzähler aus `PlatformStatistic.completedSessionsTotal` bzw. Fallback auf `FINISHED`-Zeilen |
-| Stimmen/Statuswechsel    | timeline        | Diagnosewerte der letzten Minute (`votesLastMinute`, `sessionTransitionsLastMinute`)                      |
-| Countdown-Sessions       | timer           | Sessions mit aktivem Countdown im aktuellen Zeitfenster                                                   |
-| Allzeit- und Tagesrekord | emoji_events    | `PlatformStatistic.maxParticipantsSingleSession` und 30 UTC-Tage aus `DailyStatistic`                     |
+| Kennzahl                 | Icon              | Bedeutung                                                                                                 |
+| ------------------------ | ----------------- | --------------------------------------------------------------------------------------------------------- |
+| Offene Sessions          | ▶ play_circle     | Noch nicht beendete Sessions (Status ≠ `FINISHED`)                                                        |
+| Aktive Sessions          | ▶ play_circle     | Offene Sessions mit mindestens 5 aktiven Teilnehmenden in der Redis-Presence der letzten Minuten          |
+| Blitz-Runden             | ⚡ bolt           | Laufende Blitzlicht-/Quick-Feedback-Runden (Redis-Primärkeys `qf:<code>`, siehe Backend)                  |
+| Teilnehmende             | 👥 group          | Aktive Teilnahmen über laufende Sessions aus Redis-Presence                                               |
+| Abgeschlossene Quizzes   | ✅ check_circle   | Monotoner Gesamtzähler aus `PlatformStatistic.completedSessionsTotal` bzw. Fallback auf `FINISHED`-Zeilen |
+| Stimmen/Statuswechsel    | timeline          | Diagnosewerte der letzten Minute (`votesLastMinute`, `sessionTransitionsLastMinute`)                      |
+| Countdown-Sessions       | timer             | Sessions mit aktivem Countdown im aktuellen Zeitfenster                                                   |
+| Allzeit- und Tagesrekord | emoji_events      | `PlatformStatistic.maxParticipantsSingleSession` und 30 UTC-Tage aus `DailyStatistic`                     |
+| Aktive Q&A-Sessions      | forum             | Offene, nicht abgelaufene Q&A-Kanäle mit mindestens fünf eindeutigen Presence-Identitäten                 |
+| Q&A-Fragen/-Bewertungen  | question_answer   | Erfolgreiche persistierte Änderungen im rollierenden 60-Sekunden-Fenster                                  |
+| Q&A-Gesamt/-Rekord       | workspace_premium | Purge-sichere Projektion seit Beginn der Erfassung und größter gleichzeitiger Fragenbestand               |
 
 Der Footer ruft alle 5 Minuten **`health.footerBundle`** ab. Dieser Endpoint kombiniert `health.check`
 mit einem schlanken `FooterStatusDTO` (`serviceStatus`, `loadStatus`). Beim Öffnen des Dialogs lädt
 die App **`health.stats`** frisch nach; der Dialog rendert die vollständigen Kennzahlen und den
 100-Tage-Verlauf.
+
+Der Footer-Pfad berechnet nur `serviceStatus` und `loadStatus`. Er liest weder die
+Q&A-Plattformprojektion noch NLP-/Wortwolkenmetriken. Q&A-Werte werden ausschließlich
+beim Öffnen des Detaildialogs über das höchstens 30 Sekunden gecachte `health.stats`
+geladen.
+
+Für transiente Q&A-Werte sind Redis-Buckets instanzübergreifend und mit TTL begrenzt.
+Nach einer bekannten Erfassungslücke bleiben Minutenwerte 60 Sekunden und Presence-Werte
+drei Minuten `null`; der Dialog zeigt währenddessen »Live-Werte werden neu aufgebaut«.
+Bei nicht verfügbarer Quelle zeigt er »Derzeit nicht verfügbar« statt einer irreführenden
+Null.
 
 ### Status-Dot (Ampel)
 
@@ -140,6 +154,7 @@ sequenceDiagram
 | Offene Sessions              | `prisma.session.count(…)`                                             | Status ≠ `FINISHED`                                                                                |
 | Abgeschlossene Quizzes       | `PlatformStatistic.completedSessionsTotal` / Fallback `session.count` | monotoner Gesamtzähler, damit Purge den Wert nicht senkt                                           |
 | Allzeit-Rekord               | `PlatformStatistic`                                                   | `maxParticipantsSingleSession`, `updatedAt`                                                        |
+| Q&A-Gesamt/-Rekord           | `PlatformStatistic`                                                   | asynchron aus purge-sicheren `QaSessionStatisticProjection`-Zeilen; kein Fragenbestandsscan        |
 | Tagesrekord-Verlauf          | `prisma.dailyStatistic.findMany(…)`                                   | letzte 30 UTC-Tage, Lücken werden mit `count=0` aufgefüllt                                         |
 | Quiz-/Session-Inhalte        | Session/Quiz-Tabellen                                                 | nur indirekt für Counts; keine Inhalte im Footer-Status                                            |
 
@@ -154,6 +169,13 @@ sequenceDiagram
 | Blitz-Runden             | `SCAN` mit `MATCH qf:*` | es zählen nur Primärkeys `qf:<code>`, keine `qf:voters:*`, `qf:choices:*`, `qf:choices:r1:*`, `qf:host:*` oder `qf:known:*` |
 | Votes / Statuswechsel    | Load-Signale            | Werte der letzten Minute                                                                                                    |
 | SLO-Signale              | SLO-Telemetrie          | Request-Sample, Fehlerrate, p95/p99-Latenz                                                                                  |
+| Q&A-Minutenwerte         | 1-Sekunden-Buckets      | 60-Sekunden-Fenster, TTL, deduplizierte Erst-Submits und persistierte Bewertungsänderungen                                  |
+
+`qaQuestionsTotal` und `maxQaQuestionsSingleSession` gelten ausdrücklich **seit Beginn
+der Erfassung** (`qaStatisticsTrackingStartedAt`). Die beim Rollout noch physisch
+vorhandenen Fragen bilden den initialen Backfill; bereits vorher gelöschte Historie kann
+nicht rekonstruiert werden. `qaStatisticsProjectedAt` weist den Projektionsstand,
+`statsGeneratedAt` den Abschlusszeitpunkt des angezeigten Snapshots aus.
 
 ---
 

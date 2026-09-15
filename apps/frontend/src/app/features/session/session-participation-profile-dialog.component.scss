@@ -1,0 +1,75 @@
+:host {
+  display: block;
+}
+
+.participation-profile-dialog__content {
+  display: grid;
+  gap: 1rem;
+  width: min(34rem, calc(100vw - 3rem));
+
+  > p {
+    margin: 0;
+    line-height: 1.5;
+  }
+
+  fieldset {
+    display: grid;
+    gap: 0.65rem;
+    min-width: 0;
+    margin: 0;
+    padding: 0;
+    border: 0;
+  }
+
+  legend {
+    margin-bottom: 0.45rem;
+    color: var(--mat-sys-on-surface);
+    font: var(--mat-sys-title-medium);
+  }
+
+  mat-radio-group {
+    display: grid;
+    gap: 0.65rem;
+  }
+
+  mat-radio-button {
+    min-width: 0;
+  }
+
+  mat-form-field {
+    width: 100%;
+  }
+}
+
+.participation-profile-dialog__option-copy {
+  display: grid;
+  gap: 0.2rem;
+  padding-block: 0.35rem;
+  white-space: normal;
+
+  strong {
+    color: var(--mat-sys-on-surface);
+    font: var(--mat-sys-title-small);
+  }
+
+  span {
+    color: var(--mat-sys-on-surface-variant);
+    font: var(--mat-sys-body-medium);
+    line-height: 1.5;
+  }
+}
+
+.participation-profile-dialog__lock {
+  padding: 0.75rem;
+  border: 1px solid var(--mat-sys-outline-variant);
+  border-radius: var(--mat-sys-corner-medium);
+  background: var(--mat-sys-surface-container);
+  color: var(--mat-sys-on-surface-variant);
+  font: var(--mat-sys-body-small);
+}
+
+@media (max-width: 359px) {
+  .participation-profile-dialog__content {
+    width: auto;
+  }
+}

@@ -252,6 +252,21 @@ const statements = [
   `ALTER TABLE "Session" ADD COLUMN IF NOT EXISTS "legalHoldReason" TEXT`,
   `ALTER TABLE "Session" ADD COLUMN IF NOT EXISTS "legalHoldSetAt" TIMESTAMP(3)`,
 
+  // Epic #405: absoluter Sessionlebenszyklus. Trigger/Funktionen kommen aus
+  // den versionierten Migrationen; die Spalten müssen lokal auch ohne
+  // `_prisma_migrations` existieren, sonst scheitert der Cleanup-Scheduler.
+  `ALTER TABLE "Session" ADD COLUMN IF NOT EXISTS "createdAt" TIMESTAMP(3) DEFAULT CURRENT_TIMESTAMP`,
+  `ALTER TABLE "Session" ADD COLUMN IF NOT EXISTS "expiresAt" TIMESTAMP(3)`,
+  `ALTER TABLE "Session" ADD COLUMN IF NOT EXISTS "qaClosesAt" TIMESTAMP(3)`,
+  `ALTER TABLE "Session" ADD COLUMN IF NOT EXISTS "timeZone" VARCHAR(64) NOT NULL DEFAULT 'UTC'`,
+  `ALTER TABLE "Session" ADD COLUMN IF NOT EXISTS "firstParticipantJoinedAt" TIMESTAMP(3)`,
+  `ALTER TABLE "Session" ADD COLUMN IF NOT EXISTS "sessionLifecycleRevision" INTEGER NOT NULL DEFAULT 0`,
+  `ALTER TABLE "Session" ADD COLUMN IF NOT EXISTS "preferredChannel" VARCHAR(20) NOT NULL DEFAULT 'quiz'`,
+  `UPDATE "Session" SET "createdAt" = COALESCE("createdAt", "startedAt", CURRENT_TIMESTAMP), "expiresAt" = COALESCE("expiresAt", "startedAt" + INTERVAL '24 hours', CURRENT_TIMESTAMP + INTERVAL '24 hours')`,
+  `ALTER TABLE "Session" ALTER COLUMN "createdAt" SET NOT NULL`,
+  `ALTER TABLE "Session" ALTER COLUMN "expiresAt" SET NOT NULL`,
+  `ALTER TABLE "Session" ALTER COLUMN "expiresAt" SET DEFAULT (CURRENT_TIMESTAMP + INTERVAL '24 hours')`,
+
   // Story 12.1: Invite-Fingerprint und persistente Submit-/Follow-up-Idempotenz
   `ALTER TABLE "Participant" ADD COLUMN IF NOT EXISTS "productFeedbackClaimTokenHash" CHAR(64)`,
   `CREATE UNIQUE INDEX IF NOT EXISTS "Participant_productFeedbackClaimTokenHash_key"
