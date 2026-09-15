@@ -260,9 +260,9 @@ export const wordCloudRouter = router({
           : Prisma.sql`question."status" IN ('PINNED', 'ACTIVE')`;
       const modeOrder =
         input.metric === 'BEST'
-          ? Prisma.sql`ranked.best_score DESC, ranked."positiveVoteCount" DESC,`
+          ? Prisma.sql`ranked."bestScore" DESC, ranked."positiveVoteCount" DESC,`
           : input.metric === 'CONTROVERSIAL'
-            ? Prisma.sql`ranked.controversy_score DESC, ranked."positiveVoteCount" DESC,`
+            ? Prisma.sql`ranked."controversyScore" DESC, ranked."positiveVoteCount" DESC,`
             : Prisma.empty;
       const controversyThreshold = Math.max(1, participantCount * 0.1);
       const controversyThresholdSql = Prisma.sql`${controversyThreshold}::DOUBLE PRECISION`;
@@ -320,7 +320,7 @@ export const wordCloudRouter = router({
                   )
                 )
               )
-            END AS best_score,
+            END AS "bestScore",
             CASE
               WHEN question."positiveVoteCount" + question."negativeVoteCount" = 0 THEN 0
               ELSE LEAST(
@@ -332,7 +332,7 @@ export const wordCloudRouter = router({
                     + ${controversyThresholdSql}
                   )
               )
-            END AS controversy_score,
+            END AS "controversyScore",
             CASE question."status" WHEN 'PINNED' THEN 0 ELSE 1 END AS status_tie
           FROM "QaQuestion" AS question
           WHERE question."sessionId" = ${session.id}

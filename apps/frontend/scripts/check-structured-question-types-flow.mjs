@@ -48,7 +48,7 @@ const ARTIFACT_DIR =
 const HIGH_CONFIDENCE = 5;
 const EXPECTED_DEBRIEF_PRIORITY = 3;
 const END_SESSION_RE = /session beenden|end session/i;
-const CONFIRM_END_SESSION_RE = /trotzdem verlassen|leave anyway|leave session/i;
+const CONFIRM_END_SESSION_RE = /gesamte session beenden|end (?:the )?session/i;
 
 /** Sichtbarer Prompt-Ausschnitt (Markdown-Syntax erscheint nicht im gerenderten Text). */
 const ORDERING_PROMPT = 'Schritte der Genexpression';
@@ -1488,7 +1488,10 @@ async function runCategorizationFlow(
 async function finishSessionAndAssertDebriefPlan(host, hostTrpc, code, hardFailures) {
   await dismissDialogIfPresent(host);
   await clickButton(host, END_SESSION_RE);
-  const confirm = host.getByRole('button', { name: CONFIRM_END_SESSION_RE }).first();
+  const confirm = host
+    .locator('mat-dialog-container')
+    .getByRole('button', { name: CONFIRM_END_SESSION_RE })
+    .first();
   await confirm.waitFor({ state: 'visible', timeout: 10_000 });
   await confirm.click();
 

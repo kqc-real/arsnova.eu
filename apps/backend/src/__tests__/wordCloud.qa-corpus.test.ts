@@ -85,6 +85,9 @@ describe('wordCloud.analyzeQa – kanonisch begrenzter Korpus', () => {
       expect(result.sortMode).toBe('TOP');
       expect(result.filter).toBe('ALL_ELIGIBLE');
       expect(prismaMock.$queryRaw.mock.calls[0]?.slice(1)).toContain(500);
+      const corpusSql = (prismaMock.$queryRaw.mock.calls[0]?.[0] as readonly string[]).join('');
+      expect(corpusSql).toContain('END AS "bestScore"');
+      expect(corpusSql).toContain('END AS "controversyScore"');
       expect(result.entries.length).toBeLessThanOrEqual(80);
       expect(
         Math.max(0, ...result.entries.map((entry) => entry.members.length)),

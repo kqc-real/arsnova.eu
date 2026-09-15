@@ -783,6 +783,7 @@ async function analyzeQaCorpus(context, { refresh = false } = {}) {
       outcome: errorCode(error) === 'CONFLICT' ? 'EXPECTED_CONFLICT' : 'TECHNICAL_ERROR',
       durationMs: Math.round((performance.now() - startedAt) * 100) / 100,
       errorCode: errorCode(error),
+      errorMessage: errorText(error),
     };
   }
 }
