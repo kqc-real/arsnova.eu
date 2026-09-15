@@ -446,11 +446,18 @@ async function verifyViewport(browser, session, viewport) {
     );
   }
   await context.addInitScript(
-    ({ code, colorScheme, hostToken, prefix }) => {
+    ({ browserCapability, code, colorScheme, hostToken, prefix }) => {
       globalThis.sessionStorage.setItem(`${prefix}${code}`, hostToken);
+      if (browserCapability) {
+        globalThis.localStorage.setItem(
+          `arsnova-host-browser-capability-${code}`,
+          browserCapability,
+        );
+      }
       globalThis.localStorage.setItem('home-theme', colorScheme);
     },
     {
+      browserCapability: session.hostBrowserCapability,
       code: session.code,
       colorScheme: COLOR_SCHEME,
       hostToken: session.hostToken,

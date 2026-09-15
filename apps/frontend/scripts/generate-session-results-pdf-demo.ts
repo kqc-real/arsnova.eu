@@ -120,16 +120,19 @@ async function mintHostToken(sessionCode: string): Promise<string> {
 
   const backendDir = join(REPO_ROOT, 'apps/backend');
   const script = `
-    import { createHostSessionToken } from './src/lib/hostAuth.ts';
-    createHostSessionToken(${JSON.stringify(sessionCode)})
-      .then((token) => {
-        console.log(token);
-        process.exit(0);
-      })
-      .catch((error) => {
-        console.error(error);
-        process.exit(1);
-      });
+    import { prisma } from './src/db.ts';
+    import { createCredentialBoundHostToken } from './src/lib/hostAuth.ts';
+    const code = ${JSON.stringify(sessionCode)};
+    const session = await prisma.session.findUnique({
+      where: { code },
+      select: { hostCredentialVersion: true },
+    });
+    const issued = await createCredentialBoundHostToken({
+      sessionCode: code,
+      credentialVersion: session?.hostCredentialVersion ?? 1,
+    });
+    console.log(issued.token);
+    process.exit(0);
   `;
   const { stdout } = await execFileAsync('npx', ['tsx', '-e', script], {
     cwd: backendDir,
