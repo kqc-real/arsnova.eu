@@ -23,7 +23,7 @@
       </mat-slide-toggle>
     </fieldset>
 
-    <fieldset class="qa-config__group" [disabled]="pending() || data.profileLocked">
+    <fieldset class="qa-config__group" [disabled]="pending() || profileLocked()">
       <legend i18n="@@qaConfig.profileLegend">Teilnahmeprofil</legend>
       <mat-form-field appearance="outline" subscriptSizing="dynamic">
         <mat-label i18n="@@qaConfig.identityModeLabel">Sichtbarer Name</mat-label>
@@ -39,7 +39,7 @@
           </mat-option>
         </mat-select>
       </mat-form-field>
-      @if (data.profileLocked) {
+      @if (profileLocked()) {
         <p class="qa-config__notice" role="status" i18n="@@qaConfig.profileLocked">
           Das Teilnahmeprofil ist nach dem ersten Beitritt gesperrt.
         </p>
@@ -96,6 +96,11 @@
           <dd>{{ identityModeLabel(identityMode) }}</dd>
         </div>
       </dl>
+      @if (profileLocked()) {
+        <p class="qa-config__notice" role="status" i18n="@@qaConfig.profileLocked">
+          Das Teilnahmeprofil ist nach dem ersten Beitritt gesperrt.
+        </p>
+      }
       @if (preview()!.requiresSessionExtension) {
         <p class="qa-config__warning" role="status" i18n="@@qaConfig.extensionWarning">
           Die Q&A-Frist liegt nach dem bisherigen Sessionende. Beim Bestätigen wird die globale

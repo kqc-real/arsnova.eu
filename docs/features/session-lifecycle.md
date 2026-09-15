@@ -231,6 +231,11 @@ RUN_PG_SESSION_LIFECYCLE_TESTS=1 \
   npm run test -w @arsnova/backend -- \
   --run src/__tests__/session.absolute-lifecycle.pg.test.ts \
         src/__tests__/session.retention.pg.test.ts
+
+BASE_URL=http://localhost:4200/de TRPC_URL=http://localhost:3000/trpc \
+  npm run smoke:epic-405-host-qa-lifecycle -w @arsnova/frontend
+BASE_URL=http://localhost:4200/de TRPC_URL=http://localhost:3000/trpc \
+  npm run smoke:epic-405-participant-qa -w @arsnova/frontend
 ```
 
 Controlled-Clock-Tests prüfen Zeitzonen, DST, Operator-/Hard-Cap und den

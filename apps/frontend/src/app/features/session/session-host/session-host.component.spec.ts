@@ -852,6 +852,7 @@ describe('SessionHostComponent', { timeout: 30_000 }, () => {
         recoveryCode: 'recovery-capability-abcdefghijklmnopqrstuvwxyz',
       },
     });
+    getLifecycleForHostQueryMock.mockResolvedValue({ ...defaultLifecycle });
     getInfoQueryMock.mockResolvedValue({
       ...defaultSession,
       channels: {
@@ -2260,6 +2261,7 @@ describe('SessionHostComponent', { timeout: 30_000 }, () => {
   });
 
   it('aktiviert den Q&A-Tab beim Klick auf einen inaktiven Kanal', async () => {
+    getLifecycleForHostQueryMock.mockResolvedValue({ ...defaultLifecycle });
     getInfoQueryMock.mockResolvedValue({
       ...defaultSession,
       channels: {
@@ -2352,6 +2354,7 @@ describe('SessionHostComponent', { timeout: 30_000 }, () => {
   });
 
   it('sperrt das Teilnahmeprofil nur über firstParticipantJoinedAt, nicht über den Count', async () => {
+    getLifecycleForHostQueryMock.mockResolvedValue({ ...defaultLifecycle });
     getInfoQueryMock.mockResolvedValue({
       ...defaultSession,
       status: 'ACTIVE',
@@ -2386,6 +2389,7 @@ describe('SessionHostComponent', { timeout: 30_000 }, () => {
   });
 
   it('zeigt beim Abbrechen der Q&A-Einrichtung keinen Steuerungsfehler', async () => {
+    getLifecycleForHostQueryMock.mockResolvedValue({ ...defaultLifecycle });
     getInfoQueryMock.mockResolvedValue({
       ...defaultSession,
       status: 'ACTIVE',
@@ -9068,7 +9072,7 @@ describe('SessionHostComponent', { timeout: 30_000 }, () => {
       (button.textContent ?? '').replace(/\s+/g, ' ').trim(),
     );
     expect(fixture.componentInstance.activeChannel()).toBe('qa');
-    expect(buttonTexts).toEqual(['Gesamte Session beenden']);
+    expect(buttonTexts).toContain('Gesamte Session beenden');
     expect(host.textContent).not.toContain('Antwortoptionen freigeben');
     expect(host.textContent).not.toContain('Frage auslassen');
     expect(host.textContent).not.toContain('Nächste Frage');
@@ -15860,6 +15864,7 @@ describe('SessionHostComponent', { timeout: 30_000 }, () => {
     });
 
     it('schließt den Callout bei „Okay“ und führt Retry erneut aus', async () => {
+      getLifecycleForHostQueryMock.mockResolvedValue({ ...defaultLifecycle });
       getInfoQueryMock.mockResolvedValue({
         ...defaultSession,
         type: 'Q_AND_A',

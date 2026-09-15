@@ -43,7 +43,7 @@ const MOTIF_IMAGE_PATHNAME = MOTIF_IMAGE_URL
 const MOTIF_IMAGE_FILE = process.env.PRESENTER_MOTIF_IMAGE_FILE?.trim() || null;
 const MOTIF_IMAGE_BODY = MOTIF_IMAGE_FILE ? await readFile(MOTIF_IMAGE_FILE) : null;
 const EXPECTED_PACKED_ICON = ANONYMOUS_MODE
-  ? 'theater_comedy'
+  ? null
   : NICKNAME_THEME === 'MIDDLE_SCHOOL' || NICKNAME_THEME === 'HIGH_SCHOOL'
     ? 'school'
     : NICKNAME_THEME === 'NOBEL_LAUREATES'
@@ -59,6 +59,7 @@ if (
   throw new Error('PRESENTER_PARTICIPANT_COUNT muss eine ganze Zahl zwischen 1 und 500 sein.');
 }
 const PARTICIPANT_COUNT = requestedParticipantCount;
+const EXPECTED_DISPLAY_COUNT = ANONYMOUS_MODE ? 0 : Math.min(PARTICIPANT_COUNT, 20);
 const GEOMETRY_TOLERANCE_PX = 1.5;
 const NOBEL_LAUREATE_NICKNAMES = [
   'Marie Curie',
@@ -218,9 +219,9 @@ function formatFailures(viewport, failures) {
   );
 }
 
-async function inspectPresenterGeometry(page) {
+async function inspectPresenterGeometry(page, expectedDisplayCount) {
   return page.evaluate(
-    ({ expectedMotif, expectedParticipants, expectedPackedIcon, tolerance }) => {
+    ({ expectedDisplayCount, expectedMotif, expectedPackedIcon, tolerance }) => {
       const rect = (element) => {
         const value = element.getBoundingClientRect();
         return {
@@ -263,17 +264,18 @@ async function inspectPresenterGeometry(page) {
           '.session-present__lobby-nick-icon, .session-present__lobby-nick-mat-icon',
         ),
       ];
-      const missing = [
+      const requiredElements = [
         ['Presenter-Lobby', root],
         ['Lobby-Bühne', stage],
         ['Beitrittsfläche', join],
         ['Publikumsfläche', audience],
-        ['Packed-Publikum', people],
         ['Session-Code', code],
         ['QR-Code', qr],
-      ]
-        .filter(([, element]) => !element)
-        .map(([label]) => label);
+      ];
+      if (expectedDisplayCount > 0) {
+        requiredElements.push(['Packed-Publikum', people]);
+      }
+      const missing = requiredElements.filter(([, element]) => !element).map(([label]) => label);
 
       if (missing.length > 0) {
         return { failures: [`Elemente fehlen: ${missing.join(', ')}`] };
@@ -290,13 +292,13 @@ async function inspectPresenterGeometry(page) {
       const stageRect = rect(stage);
       const joinRect = rect(join);
       const audienceRect = rect(audience);
-      const peopleRect = rect(people);
+      const peopleRect = people ? rect(people) : audienceRect;
 
-      if (cards.length !== expectedParticipants) {
-        failures.push(`erwartet ${expectedParticipants} Personen-Badges, gefunden ${cards.length}`);
+      if (cards.length !== expectedDisplayCount) {
+        failures.push(`erwartet ${expectedDisplayCount} Personen-Badges, gefunden ${cards.length}`);
       }
-      if (icons.length !== expectedParticipants) {
-        failures.push(`erwartet ${expectedParticipants} Personen-Icons, gefunden ${icons.length}`);
+      if (icons.length !== expectedDisplayCount) {
+        failures.push(`erwartet ${expectedDisplayCount} Personen-Icons, gefunden ${icons.length}`);
       }
       if (expectedMotif) {
         if (!motif) {
@@ -310,20 +312,20 @@ async function inspectPresenterGeometry(page) {
         const packedNumbers = [
           ...document.querySelectorAll('.session-present__lobby-packed-number'),
         ];
-        const expectedNumbers = Array.from({ length: expectedParticipants }, (_, index) =>
-          String(expectedParticipants - index).padStart(2, '0'),
+        const expectedNumbers = Array.from({ length: expectedDisplayCount }, (_, index) =>
+          String(expectedDisplayCount - index).padStart(2, '0'),
         );
         if (
-          packedIcons.length !== expectedParticipants ||
+          packedIcons.length !== expectedDisplayCount ||
           packedIcons.some((element) => element.textContent?.trim() !== expectedPackedIcon)
         ) {
           failures.push(
-            `erwartet ${expectedParticipants} Packed-Icons "${expectedPackedIcon}", ` +
+            `erwartet ${expectedDisplayCount} Packed-Icons "${expectedPackedIcon}", ` +
               `gefunden ${packedIcons.length}`,
           );
         }
         if (
-          packedNumbers.length !== expectedParticipants ||
+          packedNumbers.length !== expectedDisplayCount ||
           packedNumbers.some(
             (element, index) => element.textContent?.trim() !== expectedNumbers[index],
           )
@@ -332,15 +334,18 @@ async function inspectPresenterGeometry(page) {
         }
       }
 
-      for (const [label, element] of [
+      const visibleElements = [
         ['Presenter-Lobby', root],
         ['Lobby-Bühne', stage],
         ['Beitrittsfläche', join],
         ['Publikumsfläche', audience],
-        ['Packed-Publikum', people],
         ['Session-Code', code],
         ['QR-Code', qr],
-      ]) {
+      ];
+      if (people) {
+        visibleElements.push(['Packed-Publikum', people]);
+      }
+      for (const [label, element] of visibleElements) {
         if (!visible(element)) {
           failures.push(`${label} ist nicht sichtbar`);
         }
@@ -349,12 +354,15 @@ async function inspectPresenterGeometry(page) {
         }
       }
 
-      for (const [label, element] of [
+      const overflowElements = [
         ['Presenter-Lobby', root],
         ['Lobby-Bühne', stage],
         ['Publikumsfläche', audience],
-        ['Packed-Publikum', people],
-      ]) {
+      ];
+      if (people) {
+        overflowElements.push(['Packed-Publikum', people]);
+      }
+      for (const [label, element] of overflowElements) {
         if (
           element.scrollWidth > element.clientWidth + tolerance ||
           element.scrollHeight > element.clientHeight + tolerance
@@ -421,7 +429,7 @@ async function inspectPresenterGeometry(page) {
     },
     {
       expectedMotif: Boolean(MOTIF_IMAGE_URL),
-      expectedParticipants: PARTICIPANT_COUNT,
+      expectedDisplayCount,
       expectedPackedIcon: EXPECTED_PACKED_ICON,
       tolerance: GEOMETRY_TOLERANCE_PX,
     },
@@ -475,8 +483,7 @@ async function verifyViewport(browser, session, viewport) {
     await page.waitForFunction(
       ({ count }) => {
         const label = document.querySelector('.session-present__lobby-audience-count');
-        const cards = document.querySelectorAll('.session-present__lobby-person-col');
-        return label?.textContent?.includes(String(count)) && cards.length === count;
+        return label?.textContent?.includes(String(count));
       },
       { count: PARTICIPANT_COUNT },
       { timeout: 20_000 },
@@ -528,7 +535,7 @@ async function verifyViewport(browser, session, viewport) {
         new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve))),
     );
 
-    const result = await inspectPresenterGeometry(page);
+    const result = await inspectPresenterGeometry(page, session.expectedDisplayCount);
     failures.push(...formatFailures(viewport, result.failures));
     if (result.failures.length === 0) {
       console.log(
@@ -600,12 +607,21 @@ async function main() {
         joinIdempotencyKey: globalThis.crypto.randomUUID(),
       }),
   );
-
   const browser = await chromium.launch({ headless: true });
   const failures = [];
   try {
     for (const viewport of VIEWPORTS) {
-      failures.push(...(await verifyViewport(browser, session, viewport)));
+      const access = await trpc.session.issueHostAccessToken.mutate({
+        code: session.code,
+        browserCapability: session.hostBrowserCapability,
+      });
+      failures.push(
+        ...(await verifyViewport(
+          browser,
+          { ...session, expectedDisplayCount: EXPECTED_DISPLAY_COUNT, hostToken: access.hostToken },
+          viewport,
+        )),
+      );
     }
   } finally {
     await browser.close();

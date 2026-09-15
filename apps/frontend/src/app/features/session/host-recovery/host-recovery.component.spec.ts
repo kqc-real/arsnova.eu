@@ -124,6 +124,46 @@ describe('HostRecoveryComponent', () => {
     );
   });
 
+  it.each([
+    ['RECOVERY', { kind: 'RECOVERY', recoveryCode: OLD_RECOVERY_CODE }],
+    ['ADMIN_HANDOFF', { kind: 'ADMIN_HANDOFF', handoffCapability: OLD_RECOVERY_CODE }],
+  ] as const)(
+    'nimmt die vorbereitete %s-Aktivierung nach verlorener Erfolgsantwort wieder auf',
+    async (sourceKind, expectedSource) => {
+      const component = render().componentInstance;
+      component.sourceKind.set(sourceKind);
+      component.supportId.set(SUPPORT_ID);
+      component.secret.set(OLD_RECOVERY_CODE);
+      const navigate = vi.spyOn(TestBed.inject(Router), 'navigate').mockResolvedValue(true);
+      activateMock
+        .mockRejectedValueOnce(new Error('Antwort nach erfolgreicher Aktivierung verloren'))
+        .mockResolvedValueOnce({
+          code: 'ABC123',
+          hostToken: 'retried-short-lived-host-token-abcdefghijklmnopqrstuvwxyz',
+          hostTokenExpiresAt: '2026-09-15T08:15:00.000Z',
+          role: 'ORIGINAL_HOST',
+        });
+
+      await component.recover();
+      await component.recover();
+
+      expect(prepareMock).toHaveBeenCalledTimes(1);
+      expect(prepareMock).toHaveBeenCalledWith(
+        expect.objectContaining({ supportId: SUPPORT_ID, source: expectedSource }),
+      );
+      expect(activateMock).toHaveBeenCalledTimes(2);
+      expect(activateMock).toHaveBeenNthCalledWith(2, {
+        supportId: SUPPORT_ID,
+        browserCapability: NEW_BROWSER_CAPABILITY,
+      });
+      expect(setHostTokenMock).toHaveBeenCalledWith(
+        'ABC123',
+        'retried-short-lived-host-token-abcdefghijklmnopqrstuvwxyz',
+      );
+      expect(navigate).toHaveBeenCalledWith(expect.arrayContaining(['session', 'ABC123', 'host']));
+    },
+  );
+
   it('zeigt bei ungültigem Material nur die generische Recovery-Antwort', async () => {
     prepareMock.mockRejectedValue(new Error('UNAUTHORIZED: intern'));
     const component = render().componentInstance;

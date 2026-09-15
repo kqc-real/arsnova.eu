@@ -3,9 +3,10 @@ import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { QaChannelConfigurationDialogComponent } from './qa-channel-configuration-dialog.component';
 
-const { previewMock, configureMock } = vi.hoisted(() => ({
+const { previewMock, configureMock, lifecycleMock } = vi.hoisted(() => ({
   previewMock: vi.fn(),
   configureMock: vi.fn(),
+  lifecycleMock: vi.fn(),
 }));
 
 vi.mock('../../../core/trpc.client', () => ({
@@ -13,6 +14,7 @@ vi.mock('../../../core/trpc.client', () => ({
     session: {
       previewQaConfiguration: { query: previewMock },
       configureQaChannel: { mutate: configureMock },
+      getLifecycleForHost: { query: lifecycleMock },
     },
   },
 }));
@@ -89,6 +91,7 @@ function configureTestBed(profileLocked = false) {
 describe('QaChannelConfigurationDialogComponent', () => {
   beforeEach(() => {
     vi.resetAllMocks();
+    lifecycleMock.mockResolvedValue({ firstParticipantJoinedAt: null });
   });
 
   it('nutzt die gemeinsame Dialog-Titelzeile', () => {
@@ -179,5 +182,82 @@ describe('QaChannelConfigurationDialogComponent', () => {
       },
     });
     expect(close).toHaveBeenCalledWith(expect.objectContaining({ preferredChannel: 'qa' }));
+  });
+
+  it('sperrt ein während des Dialogs belegtes Profil und richtet Q&A ohne Profiländerung ein', async () => {
+    previewMock.mockResolvedValue(preview);
+    lifecycleMock.mockResolvedValue({
+      firstParticipantJoinedAt: '2026-09-15T07:05:00.000Z',
+    });
+    configureMock.mockResolvedValue({
+      channels: {
+        ...session.channels,
+        qa: {
+          ...session.channels.qa,
+          enabled: true,
+          open: true,
+          closesAt: preview.newQaClosesAt,
+          state: 'OPEN',
+        },
+      },
+      preferredChannel: 'qa',
+      expiresAt: preview.newExpiresAt,
+      qaClosesAt: preview.newQaClosesAt,
+      sessionLifecycleRevision: 3,
+      serverNow: preview.serverNow,
+    });
+    const { fixture, component, close } = configureTestBed();
+
+    await component.loadPreview();
+    await component.confirm();
+    fixture.detectChanges();
+
+    expect(component.profileLocked()).toBe(true);
+    expect(fixture.nativeElement.textContent).toContain(
+      'Das Teilnahmeprofil ist nach dem ersten Beitritt gesperrt.',
+    );
+    expect(configureMock).toHaveBeenCalledWith(
+      expect.objectContaining({ participationProfile: undefined }),
+    );
+    expect(close).toHaveBeenCalledWith(expect.objectContaining({ preferredChannel: 'qa' }));
+  });
+
+  it('wiederholt die Fristkonfiguration ohne Profil, wenn der erste Beitritt mit der Mutation konkurriert', async () => {
+    previewMock.mockResolvedValue(preview);
+    lifecycleMock
+      .mockResolvedValueOnce({ firstParticipantJoinedAt: null })
+      .mockResolvedValueOnce({ firstParticipantJoinedAt: '2026-09-15T07:05:00.000Z' });
+    const configured = {
+      channels: {
+        ...session.channels,
+        qa: {
+          ...session.channels.qa,
+          enabled: true,
+          open: true,
+          closesAt: preview.newQaClosesAt,
+          state: 'OPEN',
+        },
+      },
+      preferredChannel: 'qa',
+      expiresAt: preview.newExpiresAt,
+      qaClosesAt: preview.newQaClosesAt,
+      sessionLifecycleRevision: 3,
+      serverNow: preview.serverNow,
+    };
+    configureMock
+      .mockRejectedValueOnce(new Error('Profil wurde durch ersten Beitritt gesperrt'))
+      .mockResolvedValueOnce(configured);
+    const { component, close } = configureTestBed();
+
+    await component.loadPreview();
+    await component.confirm();
+
+    expect(configureMock).toHaveBeenCalledTimes(2);
+    expect(configureMock.mock.calls[0]?.[0].participationProfile).toEqual({
+      identityMode: 'CUSTOM_NICKNAME',
+      nicknameTheme: 'HIGH_SCHOOL',
+    });
+    expect(configureMock.mock.calls[1]?.[0].participationProfile).toBeUndefined();
+    expect(close).toHaveBeenCalledWith(configured);
   });
 });

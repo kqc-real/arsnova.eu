@@ -9072,6 +9072,10 @@ export class SessionHostComponent implements OnInit, OnDestroy {
     if (!session || !this.code || this.effectiveStatus() === 'FINISHED') {
       return;
     }
+    const lifecycle = await trpc.session.getLifecycleForHost.query({
+      code: this.code.toUpperCase(),
+    });
+    this.sessionLifecycle.set(lifecycle);
     const result = await firstValueFrom(
       this.dialog
         .open<
@@ -9082,7 +9086,7 @@ export class SessionHostComponent implements OnInit, OnDestroy {
           data: {
             code: this.code.toUpperCase(),
             session,
-            profileLocked: Boolean(this.sessionLifecycle()?.firstParticipantJoinedAt),
+            profileLocked: Boolean(lifecycle.firstParticipantJoinedAt),
           },
           width: 'min(42rem, calc(100vw - 2rem))',
           maxWidth: '100vw',

@@ -63,6 +63,7 @@ export class QaChannelConfigurationDialogComponent {
   readonly pending = signal(false);
   readonly error = signal<string | null>(null);
   readonly preview = signal<SessionQaConfigurationPreviewDTO | null>(null);
+  readonly profileLocked = signal(this.data.profileLocked);
   readonly timeZone = this.data.session.timeZone ?? 'UTC';
 
   qaTitle =
@@ -106,7 +107,9 @@ export class QaChannelConfigurationDialogComponent {
     this.pending.set(true);
     this.error.set(null);
     try {
-      const configured = await trpc.session.configureQaChannel.mutate({
+      const lifecycle = await trpc.session.getLifecycleForHost.query({ code: this.data.code });
+      this.applyAuthoritativeProfileLock(Boolean(lifecycle.firstParticipantJoinedAt));
+      const request = {
         code: this.data.code,
         mode: preview.mode,
         selection,
@@ -118,7 +121,22 @@ export class QaChannelConfigurationDialogComponent {
         qaTitle: this.qaTitle.trim(),
         moderationMode: this.moderationMode,
         participationProfile: this.buildParticipationProfile(),
-      });
+      };
+      let configured: SessionQaConfigurationDTO;
+      try {
+        configured = await trpc.session.configureQaChannel.mutate(request);
+      } catch (error) {
+        const refreshed = await trpc.session.getLifecycleForHost.query({ code: this.data.code });
+        const joinedWhileDialogWasOpen = Boolean(refreshed.firstParticipantJoinedAt);
+        this.applyAuthoritativeProfileLock(joinedWhileDialogWasOpen);
+        if (!request.participationProfile || !joinedWhileDialogWasOpen) {
+          throw error;
+        }
+        configured = await trpc.session.configureQaChannel.mutate({
+          ...request,
+          participationProfile: undefined,
+        });
+      }
       this.dialogRef.close(configured);
     } catch {
       this.error.set(
@@ -203,12 +221,19 @@ export class QaChannelConfigurationDialogComponent {
         nicknameTheme: NicknameTheme;
       }
     | undefined {
-    if (this.data.profileLocked) {
+    if (this.profileLocked()) {
       return undefined;
     }
     return {
       nicknameTheme: this.data.session.nicknameTheme ?? 'HIGH_SCHOOL',
       identityMode: this.identityMode,
     };
+  }
+
+  private applyAuthoritativeProfileLock(locked: boolean): void {
+    this.profileLocked.set(locked);
+    if (locked) {
+      this.identityMode = this.resolveIdentityMode();
+    }
   }
 }

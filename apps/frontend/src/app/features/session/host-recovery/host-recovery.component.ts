@@ -8,9 +8,12 @@ import { MatIcon } from '@angular/material/icon';
 import { MatInput } from '@angular/material/input';
 import { localizeCommands } from '../../../core/locale-router';
 import {
+  clearPendingHostCredentialActivation,
   clearRecoveryExchangeId,
+  getPendingHostCredentialActivation,
   getOrCreateRecoveryExchangeId,
   persistInitialHostRecovery,
+  stagePendingHostCredentialActivation,
 } from '../../../core/host-recovery-access';
 import { setHostToken, trpc } from '../../../core/trpc.client';
 
@@ -217,21 +220,28 @@ export class HostRecoveryComponent {
         ? ({ kind: 'RECOVERY', recoveryCode: this.secret().trim() } as const)
         : ({ kind: 'ADMIN_HANDOFF', handoffCapability: this.secret().trim() } as const);
     try {
-      const prepared = await trpc.session.prepareHostCredentialExchange.mutate({
-        supportId,
-        recoveryExchangeId: getOrCreateRecoveryExchangeId(supportId),
-        source,
-      });
-      persistInitialHostRecovery({
-        code: prepared.code,
-        browserCapability: prepared.browserCapability,
-        recoveryCard: prepared.recoveryCard,
-      });
+      const pendingActivation = getPendingHostCredentialActivation(supportId);
+      const prepared =
+        pendingActivation ??
+        (await trpc.session.prepareHostCredentialExchange.mutate({
+          supportId,
+          recoveryExchangeId: getOrCreateRecoveryExchangeId(supportId),
+          source,
+        }));
+      if (!pendingActivation) {
+        persistInitialHostRecovery({
+          code: prepared.code,
+          browserCapability: prepared.browserCapability,
+          recoveryCard: prepared.recoveryCard,
+        });
+        stagePendingHostCredentialActivation(supportId, prepared.code);
+      }
       const activated = await trpc.session.activateHostCredential.mutate({
         supportId: prepared.recoveryCard.supportId,
         browserCapability: prepared.browserCapability,
       });
       setHostToken(prepared.code, activated.hostToken);
+      clearPendingHostCredentialActivation(supportId);
       clearRecoveryExchangeId(supportId);
       this.secret.set('');
       await this.router.navigate(localizeCommands(['session', prepared.code, 'host']));

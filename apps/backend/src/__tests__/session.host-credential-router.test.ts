@@ -7,6 +7,7 @@ const { hostAuthMocks, recoveryMocks } = vi.hoisted(() => ({
     extractHostToken: vi.fn(),
     extractHostTokenFromConnectionParams: vi.fn(() => null as string | null),
     isHostSessionTokenValid: vi.fn(),
+    isOriginalHostSessionToken: vi.fn(),
   },
   recoveryMocks: {
     activateHostCredential: vi.fn(),
@@ -62,6 +63,7 @@ describe('Session-Host-Credential-Routerverträge', () => {
     hostAuthMocks.extractHostToken.mockReturnValue(HOST_TOKEN);
     hostAuthMocks.extractHostTokenFromConnectionParams.mockReturnValue(null);
     hostAuthMocks.isHostSessionTokenValid.mockResolvedValue(true);
+    hostAuthMocks.isOriginalHostSessionToken.mockResolvedValue(true);
   });
 
   trpcDodIt(
@@ -84,6 +86,27 @@ describe('Session-Host-Credential-Routerverträge', () => {
         code: 'abc123',
         browserCapability: CAPABILITY,
       });
+    },
+  );
+
+  trpcDodIt(
+    {
+      procedure: 'session.prepareHostCredentialBootstrap',
+      case: 'error',
+      mode: 'direct',
+      contract: 'FORBIDDEN',
+      title: 'verwehrt einem gültigen gekoppelten Host den Legacy-Bootstrap',
+    },
+    async () => {
+      hostAuthMocks.isOriginalHostSessionToken.mockResolvedValue(false);
+
+      await expect(
+        caller.prepareHostCredentialBootstrap({
+          code: 'ABC123',
+          recoveryExchangeId: EXCHANGE_ID,
+        }),
+      ).rejects.toMatchObject({ code: 'FORBIDDEN' });
+      expect(recoveryMocks.prepareLegacyHostCredentialBootstrap).not.toHaveBeenCalled();
     },
   );
 

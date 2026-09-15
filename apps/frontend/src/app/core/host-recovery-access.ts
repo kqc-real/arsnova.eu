@@ -3,6 +3,7 @@ import type { HostRecoveryCardDTO } from '@arsnova/shared-types';
 const HOST_BROWSER_CAPABILITY_PREFIX = 'arsnova-host-browser-capability';
 const HOST_RECOVERY_CARD_PREFIX = 'arsnova-host-recovery-card';
 const HOST_RECOVERY_EXCHANGE_PREFIX = 'arsnova-host-recovery-exchange';
+const HOST_RECOVERY_PENDING_ACTIVATION_PREFIX = 'arsnova-host-recovery-pending-activation';
 
 function normalizeCode(code: string): string {
   return code.trim().toUpperCase();
@@ -35,6 +36,37 @@ export function getOrCreateRecoveryExchangeId(binding: string): string {
 export function clearRecoveryExchangeId(binding: string): void {
   if (typeof sessionStorage === 'undefined') return;
   sessionStorage.removeItem(`${HOST_RECOVERY_EXCHANGE_PREFIX}-${binding.trim().toUpperCase()}`);
+}
+
+export function stagePendingHostCredentialActivation(supportId: string, code: string): void {
+  if (typeof sessionStorage === 'undefined') return;
+  sessionStorage.setItem(
+    `${HOST_RECOVERY_PENDING_ACTIVATION_PREFIX}-${supportId.trim().toUpperCase()}`,
+    normalizeCode(code),
+  );
+}
+
+export function getPendingHostCredentialActivation(supportId: string): {
+  code: string;
+  browserCapability: string;
+  recoveryCard: HostRecoveryCardDTO;
+} | null {
+  if (typeof sessionStorage === 'undefined') return null;
+  const code = sessionStorage
+    .getItem(`${HOST_RECOVERY_PENDING_ACTIVATION_PREFIX}-${supportId.trim().toUpperCase()}`)
+    ?.trim();
+  if (!code) return null;
+  const browserCapability = getHostBrowserCapability(code);
+  const recoveryCard = getStagedHostRecoveryCard(code);
+  if (!browserCapability || !recoveryCard) return null;
+  return { code: normalizeCode(code), browserCapability, recoveryCard };
+}
+
+export function clearPendingHostCredentialActivation(supportId: string): void {
+  if (typeof sessionStorage === 'undefined') return;
+  sessionStorage.removeItem(
+    `${HOST_RECOVERY_PENDING_ACTIVATION_PREFIX}-${supportId.trim().toUpperCase()}`,
+  );
 }
 
 export function getHostBrowserCapability(code: string): string | null {

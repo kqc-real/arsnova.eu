@@ -1158,6 +1158,8 @@ jobs:
           npm run smoke:unified-session -w @arsnova/frontend
           npm run smoke:product-feedback -w @arsnova/frontend
           npm run smoke:product-feedback-in-app -w @arsnova/frontend
+          npm run smoke:epic-405-host-qa-lifecycle -w @arsnova/frontend
+          npm run smoke:epic-405-participant-qa -w @arsnova/frontend
 
       - name: Upload E2E logs
         if: always() && needs.changes.outputs.docs_only != 'true'

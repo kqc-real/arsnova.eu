@@ -288,7 +288,14 @@ function setCachedParticipantNicknames(
 export function resetParticipantNicknameCacheForTests(): void {
   participantNicknameCache.clear();
 }
-import { publicProcedure, router, mergeRouters, getClientIp, hostProcedure } from '../trpc';
+import {
+  publicProcedure,
+  router,
+  mergeRouters,
+  getClientIp,
+  hostProcedure,
+  originalHostProcedure,
+} from '../trpc';
 import { invalidateHostPairingForSession } from '../lib/hostPairing';
 import { waitWhileHostTokenValid } from '../lib/hostRealtimeGuard';
 import { sessionHostPairingRouter } from './sessionHostPairing';
@@ -5254,7 +5261,7 @@ const sessionCoreRouter = router({
     }),
 
   /** Rollout-Bridge: ein noch gültiges Legacy-Host-Token bereitet Generation 1 vor. */
-  prepareHostCredentialBootstrap: hostProcedure
+  prepareHostCredentialBootstrap: originalHostProcedure
     .input(PrepareHostCredentialBootstrapInputSchema)
     .output(HostCredentialExchangeDTOSchema)
     .mutation(({ ctx, input }) => {
