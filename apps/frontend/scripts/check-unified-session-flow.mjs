@@ -512,17 +512,18 @@ async function verifyHostQuestions(host, hardFailures) {
 }
 
 async function verifyPresenterView(host, presenter, code, hardFailures) {
+  await clickChannelTab(host, 1);
   await presenter.goto(`${BASE_URL}/session/${code}/present`, {
     waitUntil: 'domcontentloaded',
     timeout: 30_000,
   });
   await waitForPathSuffix(presenter, `/session/${code}/present`);
-  await presenter.waitForTimeout(2_000);
 
-  const pinnedQuestionVisible = await presenter
+  const pinnedQuestion = presenter
     .locator('.session-present__qa-card', { hasText: SMOKE_QUESTIONS.participantFirst })
-    .first()
-    .isVisible()
+    .first();
+  const pinnedQuestionVisible = await waitForVisible(pinnedQuestion, 20_000)
+    .then(() => true)
     .catch(() => false);
   if (pinnedQuestionVisible) {
     logStep(true, 'Presenter shows highlighted question');
@@ -531,10 +532,11 @@ async function verifyPresenterView(host, presenter, code, hardFailures) {
     logStep(false, 'Presenter shows highlighted question');
   }
 
-  const queueQuestionVisible = await presenter
+  const queueQuestion = presenter
     .locator('.session-present__qa-list-card', { hasText: SMOKE_QUESTIONS.participantSecond })
-    .first()
-    .isVisible()
+    .first();
+  const queueQuestionVisible = await waitForVisible(queueQuestion, 20_000)
+    .then(() => true)
     .catch(() => false);
   if (queueQuestionVisible) {
     logStep(true, 'Presenter shows Q&A queue');
