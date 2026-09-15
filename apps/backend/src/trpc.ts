@@ -233,14 +233,20 @@ function extractSessionCodeFromInput(input: unknown): string | null {
   }
 
   const candidate = input as Record<string, unknown>;
-  for (const key of ['code', 'sessionCode']) {
-    const raw = candidate[key];
-    if (typeof raw === 'string' && raw.trim().length > 0) {
-      return raw.trim().toUpperCase();
-    }
+  const codes = ['code', 'sessionCode']
+    .map((key) => candidate[key])
+    .filter((raw): raw is string => typeof raw === 'string' && raw.trim().length > 0)
+    .map((raw) => raw.trim().toUpperCase());
+  if (codes.length === 0) {
+    return null;
   }
-
-  return null;
+  if (new Set(codes).size > 1) {
+    throw new TRPCError({
+      code: 'BAD_REQUEST',
+      message: 'Session-Code im Request ist widersprüchlich.',
+    });
+  }
+  return codes[0] ?? null;
 }
 
 /** Host-geschützte Procedure (Token via x-host-token). */

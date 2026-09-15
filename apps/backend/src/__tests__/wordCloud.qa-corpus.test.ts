@@ -149,4 +149,33 @@ describe('wordCloud.analyzeQa – kanonisch begrenzter Korpus', () => {
       expect(prismaMock.$queryRaw).not.toHaveBeenCalled();
     },
   );
+
+  trpcDodIt(
+    {
+      procedure: 'wordCloud.analyzeQa',
+      case: 'error',
+      mode: 'direct',
+      contract: 'BAD_REQUEST',
+      title: 'lehnt widersprüchliche code- und sessionCode-Felder vor der Korpusladung ab',
+    },
+    async () => {
+      await expect(
+        caller.analyzeQa({
+          code: 'AAAAAA',
+          sessionCode: 'BBBBBB',
+          mode: 'LEXICAL',
+          locale: 'de',
+          metric: 'TOP',
+          filter: 'ALL_ELIGIBLE',
+          normalization: 'NONE',
+          maxEntries: 40,
+        } as never),
+      ).rejects.toMatchObject({
+        code: 'BAD_REQUEST',
+        message: 'Session-Code im Request ist widersprüchlich.',
+      });
+      expect(isHostSessionTokenValidMock).not.toHaveBeenCalled();
+      expect(prismaMock.session.findUnique).not.toHaveBeenCalled();
+    },
+  );
 });

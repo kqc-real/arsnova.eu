@@ -232,9 +232,16 @@ export const wordCloudRouter = router({
       }
     })
     .output(AnalyzeQaWordCloudOutputSchema)
-    .mutation(async ({ input }) => {
+    .mutation(async ({ input, ctx }) => {
+      const sessionCode = (ctx.hostSessionCode ?? input.sessionCode).toUpperCase();
+      if (sessionCode !== input.sessionCode.toUpperCase()) {
+        throw new TRPCError({
+          code: 'FORBIDDEN',
+          message: 'Host-Token und Session-Code passen nicht zusammen.',
+        });
+      }
       const session = await prisma.session.findUnique({
-        where: { code: input.sessionCode.toUpperCase() },
+        where: { code: sessionCode },
         select: { id: true, qaRankingRevision: true },
       });
       if (!session) {
