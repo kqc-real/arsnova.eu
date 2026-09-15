@@ -368,7 +368,11 @@ async function main() {
 
     await closeHostJoinOverlay(hostPage, { waitForQrReopen: false });
     await hostPage.getByRole('button', { name: /Session beenden|End session/i }).click();
-    await hostPage.getByRole('button', { name: /Trotzdem verlassen|Leave anyway/i }).click();
+    await hostPage
+      .locator('mat-dialog-container')
+      .getByRole('button', { name: /gesamte session beenden|end (?:the )?session/i })
+      .first()
+      .click();
     await hostPage.getByRole('button', { name: /Zur Startseite|Back to home/i }).waitFor({
       state: 'visible',
       timeout: 20_000,
