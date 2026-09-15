@@ -744,7 +744,7 @@
     },
     "session.prepareHostCredentialBootstrap": {
       "kind": "mutation",
-      "fingerprint": "sha256:ee8b8c983e442d00e33cabd78a67e7731d8f8a64973e5b5d859af15fd0c3a9eb",
+      "fingerprint": "sha256:a98e19bbcf09155d028ab9697526a0c3f8809b70ede28bc843d78be897c51f53",
       "missing": []
     },
     "session.prepareHostCredentialExchange": {

@@ -299,8 +299,20 @@ async function openClientResult(browser, code, questionId, participant, index) {
     updatedAt: new Date().toISOString(),
   });
   await context.addInitScript(
-    ({ code, nickname, participantId, questionId, round1Payload, round2Payload }) => {
+    ({
+      code,
+      nickname,
+      participantId,
+      participantCapability,
+      questionId,
+      round1Payload,
+      round2Payload,
+    }) => {
       globalThis.localStorage.setItem(`arsnova-participant-${code}`, participantId);
+      globalThis.localStorage.setItem(
+        `arsnova-participant-capability-${code}`,
+        participantCapability,
+      );
       globalThis.localStorage.setItem(`arsnova-nickname-${code}`, nickname);
       globalThis.localStorage.setItem(
         `arsnova-vote-response-${code}-${participantId}-${questionId}-1`,
@@ -315,6 +327,7 @@ async function openClientResult(browser, code, questionId, participant, index) {
       code,
       nickname: participant.nickname,
       participantId,
+      participantCapability: participant.joined.rejoinToken,
       questionId,
       round1Payload,
       round2Payload,

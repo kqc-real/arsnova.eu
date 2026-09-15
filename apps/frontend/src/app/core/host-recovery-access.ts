@@ -100,9 +100,9 @@ export function getHostBrowserCapability(code: string): string | null {
 export function storeHostBrowserCapability(code: string, capability: string): void {
   if (typeof localStorage === 'undefined') return;
   // Persistente Host-Browser-Capability laut #408; der Server speichert nur Hashes.
-  // codeql[js/clear-text-storage-of-sensitive-data]
   localStorage.setItem(
     `${HOST_BROWSER_CAPABILITY_PREFIX}-${normalizeCode(code)}`,
+    // codeql[js/clear-text-storage-of-sensitive-data] -- Persistenz ist der explizite Browser-Besitzfaktor aus #408.
     capability.trim(),
   );
 }

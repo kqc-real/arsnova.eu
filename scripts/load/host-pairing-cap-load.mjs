@@ -99,23 +99,27 @@ function attachHostProgress(trpc, code) {
 
 async function joinParticipants(publicTrpc, code) {
   const indexes = Array.from({ length: PARTICIPANTS }, (_, index) => index);
-  return mapLimit(indexes, JOIN_CONCURRENCY, async (index) =>
-    publicTrpc.session.join.mutate({
+  return mapLimit(indexes, JOIN_CONCURRENCY, async (index) => {
+    const participant = await publicTrpc.session.join.mutate({
       code,
       nickname: `Load ${String(index + 1).padStart(3, '0')}`,
       anonymousClientId: globalThis.crypto.randomUUID(),
       joinIdempotencyKey: globalThis.crypto.randomUUID(),
-    }),
-  );
+    });
+    return {
+      ...participant,
+      voteTrpc: createHttpTrpc(TRPC_URL, undefined, undefined, undefined, participant.rejoinToken),
+    };
+  });
 }
 
-async function voteSpike(publicTrpc, joined, questionId) {
+async function voteSpike(joined, questionId) {
   const responseTimes = [];
   const startedAt = performance.now();
   const results = await Promise.allSettled(
     joined.map(async (participant, index) => {
       const requestStartedAt = performance.now();
-      await publicTrpc.vote.submit.mutate({
+      await participant.voteTrpc.vote.submit.mutate({
         sessionId: participant.id,
         participantId: participant.participantId,
         questionId,
@@ -186,7 +190,7 @@ async function run() {
 
   const joined = question?.id ? await joinParticipants(publicTrpc, code) : [];
   const spike = question?.id
-    ? await voteSpike(publicTrpc, joined, question.id)
+    ? await voteSpike(joined, question.id)
     : { durationMs: 0, failed: PARTICIPANTS, p50Ms: 0, p95Ms: 0, maxMs: 0 };
   await sleep(2_000);
 
