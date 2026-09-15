@@ -221,20 +221,24 @@ export class HostRecoveryComponent {
         : ({ kind: 'ADMIN_HANDOFF', handoffCapability: this.secret().trim() } as const);
     try {
       const pendingActivation = getPendingHostCredentialActivation(supportId);
-      const prepared =
-        pendingActivation ??
-        (await trpc.session.prepareHostCredentialExchange.mutate({
+      let prepared = pendingActivation;
+      if (!prepared) {
+        const newlyPrepared = await trpc.session.prepareHostCredentialExchange.mutate({
           supportId,
           recoveryExchangeId: getOrCreateRecoveryExchangeId(supportId),
           source,
-        }));
-      if (!pendingActivation) {
-        persistInitialHostRecovery({
-          code: prepared.code,
-          browserCapability: prepared.browserCapability,
-          recoveryCard: prepared.recoveryCard,
         });
-        stagePendingHostCredentialActivation(supportId, prepared.code);
+        persistInitialHostRecovery({
+          code: newlyPrepared.code,
+          browserCapability: newlyPrepared.browserCapability,
+          recoveryCard: newlyPrepared.recoveryCard,
+        });
+        stagePendingHostCredentialActivation(
+          supportId,
+          newlyPrepared.code,
+          newlyPrepared.pendingExpiresAt,
+        );
+        prepared = newlyPrepared;
       }
       const activated = await trpc.session.activateHostCredential.mutate({
         supportId: prepared.recoveryCard.supportId,

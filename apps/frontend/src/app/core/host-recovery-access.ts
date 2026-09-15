@@ -38,11 +38,15 @@ export function clearRecoveryExchangeId(binding: string): void {
   sessionStorage.removeItem(`${HOST_RECOVERY_EXCHANGE_PREFIX}-${binding.trim().toUpperCase()}`);
 }
 
-export function stagePendingHostCredentialActivation(supportId: string, code: string): void {
+export function stagePendingHostCredentialActivation(
+  supportId: string,
+  code: string,
+  pendingExpiresAt: string,
+): void {
   if (typeof sessionStorage === 'undefined') return;
   sessionStorage.setItem(
     `${HOST_RECOVERY_PENDING_ACTIVATION_PREFIX}-${supportId.trim().toUpperCase()}`,
-    normalizeCode(code),
+    JSON.stringify({ code: normalizeCode(code), pendingExpiresAt }),
   );
 }
 
@@ -52,10 +56,29 @@ export function getPendingHostCredentialActivation(supportId: string): {
   recoveryCard: HostRecoveryCardDTO;
 } | null {
   if (typeof sessionStorage === 'undefined') return null;
-  const code = sessionStorage
-    .getItem(`${HOST_RECOVERY_PENDING_ACTIVATION_PREFIX}-${supportId.trim().toUpperCase()}`)
-    ?.trim();
-  if (!code) return null;
+  const key = `${HOST_RECOVERY_PENDING_ACTIVATION_PREFIX}-${supportId.trim().toUpperCase()}`;
+  const raw = sessionStorage.getItem(key);
+  if (!raw) return null;
+  let code: string;
+  try {
+    const pending = JSON.parse(raw) as { code?: unknown; pendingExpiresAt?: unknown };
+    if (
+      typeof pending.code !== 'string' ||
+      typeof pending.pendingExpiresAt !== 'string' ||
+      !Number.isFinite(Date.parse(pending.pendingExpiresAt))
+    ) {
+      sessionStorage.removeItem(key);
+      return null;
+    }
+    if (Date.parse(pending.pendingExpiresAt) <= Date.now()) {
+      sessionStorage.removeItem(key);
+      return null;
+    }
+    code = pending.code;
+  } catch {
+    sessionStorage.removeItem(key);
+    return null;
+  }
   const browserCapability = getHostBrowserCapability(code);
   const recoveryCard = getStagedHostRecoveryCard(code);
   if (!browserCapability || !recoveryCard) return null;

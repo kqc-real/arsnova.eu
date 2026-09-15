@@ -39,7 +39,7 @@ describe('HostRecoveryComponent', () => {
       code: 'ABC123',
       browserCapability: NEW_BROWSER_CAPABILITY,
       recoveryCard: { supportId: SUPPORT_ID, recoveryCode: NEW_RECOVERY_CODE },
-      pendingExpiresAt: '2026-09-15T08:15:00.000Z',
+      pendingExpiresAt: new Date(Date.now() + 60_000).toISOString(),
     });
     activateMock.mockResolvedValue({
       code: 'ABC123',

@@ -4,8 +4,10 @@ import {
   clearStagedHostRecoveryCard,
   getHostBrowserCapability,
   getOrCreateRecoveryExchangeId,
+  getPendingHostCredentialActivation,
   getStagedHostRecoveryCard,
   persistInitialHostRecovery,
+  stagePendingHostCredentialActivation,
 } from './host-recovery-access';
 
 describe('host-recovery-access', () => {
@@ -41,6 +43,38 @@ describe('host-recovery-access', () => {
     expect(first).toMatch(/^[A-Za-z0-9_-]{43}$/u);
     clearRecoveryExchangeId('ARS-ABCD-2345');
     expect(getOrCreateRecoveryExchangeId('ARS-ABCD-2345')).not.toBe(first);
+  });
+
+  it('nimmt nur eine noch gültige vorbereitete Aktivierung wieder auf', () => {
+    persistInitialHostRecovery({
+      code: 'ABC123',
+      browserCapability: 'browser-capability-abcdefghijklmnopqrstuvwxyz',
+      recoveryCard: {
+        supportId: 'ARS-ABCD-2345',
+        recoveryCode: 'recovery-capability-abcdefghijklmnopqrstuvwxyz',
+      },
+    });
+    stagePendingHostCredentialActivation(
+      'ARS-ABCD-2345',
+      'ABC123',
+      new Date(Date.now() + 60_000).toISOString(),
+    );
+
+    expect(getPendingHostCredentialActivation('ars-abcd-2345')).toEqual({
+      code: 'ABC123',
+      browserCapability: 'browser-capability-abcdefghijklmnopqrstuvwxyz',
+      recoveryCard: {
+        supportId: 'ARS-ABCD-2345',
+        recoveryCode: 'recovery-capability-abcdefghijklmnopqrstuvwxyz',
+      },
+    });
+
+    stagePendingHostCredentialActivation(
+      'ARS-ABCD-2345',
+      'ABC123',
+      new Date(Date.now() - 1).toISOString(),
+    );
+    expect(getPendingHostCredentialActivation('ARS-ABCD-2345')).toBeNull();
   });
 
   it('legt Geheimnisse weder in Location noch in URL-artigen Storage-Schlüsseln ab', () => {
