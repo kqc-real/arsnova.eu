@@ -134,20 +134,27 @@ async function injectHostToken(page, code, hostToken) {
   );
 }
 
-async function dismissMotdIfPresent(page) {
-  const motd = page.locator('.home-motd-sheet').first();
-  if (!(await motd.isVisible().catch(() => false))) {
+async function dismissMotdIfPresent(page, { waitMs = 5_000 } = {}) {
+  const layer = page.locator('.home-motd-layer').first();
+  await layer.waitFor({ state: 'visible', timeout: waitMs }).catch(() => undefined);
+  if (!(await layer.isVisible().catch(() => false))) {
     return;
   }
-  const close = page
-    .locator(
-      '.home-motd-sheet button[aria-label*="Schließen"], .home-motd-sheet button[aria-label*="Close"], .home-motd-sheet__close, button.home-motd-sheet__close-btn',
-    )
+  const close = layer
+    .getByRole('button', { name: /meldung schließen|close (the )?announcement|schließen|close/i })
     .first();
+  const ack = layer.getByRole('button', { name: /alles klar|got it|understood/i }).first();
   if (await close.isVisible().catch(() => false)) {
-    await close.click().catch(() => undefined);
-    await page.waitForTimeout(400);
+    await close.click();
+  } else if (await ack.isVisible().catch(() => false)) {
+    await ack.click();
+  } else {
+    await page
+      .locator('.home-motd-backdrop')
+      .click({ force: true })
+      .catch(() => undefined);
   }
+  await layer.waitFor({ state: 'hidden', timeout: 8_000 }).catch(() => undefined);
 }
 
 async function closeHostJoinOverlay(page, { waitForQrReopen = true } = {}) {
@@ -199,6 +206,7 @@ async function bodySnippet(page, max = 900) {
 async function completeProductFeedbackCard(page, label, { withMessage = false } = {}) {
   const card = page.locator('[data-testid="product-feedback-card"]');
   await card.waitFor({ state: 'visible', timeout: 25_000 });
+  await dismissMotdIfPresent(page, { waitMs: 4_000 });
   ensure(
     (await card.locator('#product-feedback-heading').count()) > 0,
     'ProductFeedback-Überschrift fehlt',
@@ -220,6 +228,7 @@ async function completeProductFeedbackCard(page, label, { withMessage = false } 
   ensure(layout.fitsViewport, `${label}: horizontaler Overflow bei 320 px`);
   ensure(layout.targetsLargeEnough, `${label}: Touch-Ziel kleiner als 44×44 px`);
   await page.setViewportSize(priorViewport);
+  await dismissMotdIfPresent(page, { waitMs: 2_500 });
 
   const primaryChoices = card.locator('button.product-feedback-card__choice');
   await primaryChoices.first().waitFor({ state: 'visible', timeout: 10_000 });
@@ -406,6 +415,7 @@ async function main() {
         );
       });
     }
+    await dismissMotdIfPresent(hostPage);
     logStep('Host-Sheet', 'ProductFeedback sichtbar');
     await completeProductFeedbackCard(hostPage, 'host', { withMessage: true });
 
