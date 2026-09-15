@@ -132,9 +132,12 @@ SET
   "qaStatisticsProjectedAt" = EXCLUDED."qaStatisticsProjectedAt",
   "updatedAt" = "PlatformStatistic"."updatedAt";
 
+-- Die 25.000er Obergrenze gilt nur für neue Inserts (Trigger unten).
+-- Ein validiertes CHECK <= 25000 würde migrate deploy auf Legacy-Beständen
+-- über dem Limit abbrechen; solche Bestände werden nicht verworfen.
 ALTER TABLE "Session"
   ADD CONSTRAINT "Session_qaQuestionCount_range"
-    CHECK ("qaQuestionCount" >= 0 AND "qaQuestionCount" <= 25000),
+    CHECK ("qaQuestionCount" >= 0),
   ADD CONSTRAINT "Session_qaQuestionPeakCount_valid"
     CHECK ("qaQuestionPeakCount" >= "qaQuestionCount"),
   ADD CONSTRAINT "Session_qaQuestionsAcceptedTotal_nonnegative"

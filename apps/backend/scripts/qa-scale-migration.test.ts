@@ -6,6 +6,18 @@ import { describe, expect, it } from 'vitest';
 
 const RUN_PG = process.env['RUN_PG_QA_MIGRATION_TESTS'] === '1';
 const FINAL_MIGRATION = '20260915120000_qa_scale_counters';
+
+describe('Q&A scale migration SQL', () => {
+  it('setzt keine validierte 25.000er-Obergrenze, die Legacy-Bestände blockiert', async () => {
+    const sql = await readFile(
+      resolve(process.cwd(), '../../prisma/migrations', FINAL_MIGRATION, 'migration.sql'),
+      'utf8',
+    );
+    expect(sql).not.toMatch(/"qaQuestionCount" <= 25000/);
+    expect(sql).toMatch(/solche Bestände werden nicht verworfen/);
+    expect(sql).toMatch(/ARSNOVA_QA_SESSION_LIMIT/);
+  });
+});
 const DEFAULT_DATABASE_URL =
   'postgresql://arsnova_user:secretpassword@localhost:5432/postgres?schema=public';
 

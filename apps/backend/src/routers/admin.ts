@@ -124,16 +124,22 @@ const ADMIN_SESSION_STATUS_PRIORITY: Record<
   FINISHED: 6,
 };
 
+function factualSessionStartedAt(session: { createdAt?: Date | null; startedAt: Date }): Date {
+  return session.createdAt ?? session.startedAt;
+}
+
 function compareAdminSessionsByActivity(
   left: {
     status: keyof typeof ADMIN_SESSION_STATUS_PRIORITY;
     statusChangedAt: Date;
+    createdAt?: Date | null;
     startedAt: Date;
     id: string;
   },
   right: {
     status: keyof typeof ADMIN_SESSION_STATUS_PRIORITY;
     statusChangedAt: Date;
+    createdAt?: Date | null;
     startedAt: Date;
     id: string;
   },
@@ -149,7 +155,8 @@ function compareAdminSessionsByActivity(
     return activityDelta;
   }
 
-  const startedDelta = right.startedAt.getTime() - left.startedAt.getTime();
+  const startedDelta =
+    factualSessionStartedAt(right).getTime() - factualSessionStartedAt(left).getTime();
   if (startedDelta !== 0) {
     return startedDelta;
   }
@@ -164,6 +171,7 @@ function toSessionSummary(session: {
   status: 'LOBBY' | 'QUESTION_OPEN' | 'ACTIVE' | 'PAUSED' | 'RESULTS' | 'DISCUSSION' | 'FINISHED';
   quiz: { name: string } | null;
   _count: { participants: number };
+  createdAt?: Date | null;
   startedAt: Date;
   statusChangedAt: Date;
   endedAt: Date | null;
@@ -177,7 +185,7 @@ function toSessionSummary(session: {
     status: session.status,
     quizName: session.quiz?.name ?? null,
     participantCount: session._count.participants,
-    startedAt: session.startedAt.toISOString(),
+    startedAt: factualSessionStartedAt(session).toISOString(),
     endedAt: session.endedAt?.toISOString() ?? null,
     lastActivityAt: session.statusChangedAt.toISOString(),
     retention: resolveRetentionState(session),
@@ -1052,7 +1060,7 @@ export const adminRouter = router({
           type: session.type,
           status: session.status,
           title: renderMarkdownKatexToPlainText(session.title) || null,
-          startedAt: session.startedAt.toISOString(),
+          startedAt: factualSessionStartedAt(session).toISOString(),
           endedAt: session.endedAt?.toISOString() ?? null,
           participantCount: session._count.participants,
         },

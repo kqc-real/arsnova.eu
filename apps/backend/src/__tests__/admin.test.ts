@@ -469,7 +469,8 @@ describe('admin router (Epic 9)', () => {
         type: 'QUIZ',
         status: 'FINISHED',
         title: null,
-        startedAt: new Date('2026-03-14T08:00:00.000Z'),
+        createdAt: new Date('2026-03-14T08:00:00.000Z'),
+        startedAt: new Date('2026-03-28T09:00:00.000Z'),
         endedAt: new Date('2026-03-14T09:00:00.000Z'),
         legalHoldUntil: null,
         legalHoldReason: null,
@@ -537,6 +538,7 @@ describe('admin router (Epic 9)', () => {
       expect(result.fileName.endsWith('.json')).toBe(true);
       expect(result.contentBase64.length).toBeGreaterThan(10);
       const payload = JSON.parse(Buffer.from(result.contentBase64, 'base64').toString('utf8'));
+      expect(payload.session.startedAt).toBe('2026-03-14T08:00:00.000Z');
       expect(payload.quiz.questions).toHaveLength(1);
       expect(payload.quiz.questions[0]).toMatchObject({ order: 0, text: 'Frage 1' });
       expect(payload.aggregates).toHaveLength(1);
