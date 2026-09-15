@@ -22,7 +22,7 @@ import type {
   SessionQaDeadlineSelection,
 } from '@arsnova/shared-types';
 import { trpc } from '../../../core/trpc.client';
-import { sessionLocalDateTimeToIso } from '../session-time-zone';
+import { sessionLocalDateTimeToIso } from '../session-local-datetime';
 
 export interface QaChannelConfigurationDialogData {
   code: string;

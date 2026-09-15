@@ -44,6 +44,7 @@ export function getHostBrowserCapability(code: string): string | null {
 
 export function storeHostBrowserCapability(code: string, capability: string): void {
   if (typeof localStorage === 'undefined') return;
+  // codeql[js/clear-text-storage-of-sensitive-data] Persistente Host-Browser-Capability laut #408; der Server speichert nur Hashes.
   localStorage.setItem(
     `${HOST_BROWSER_CAPABILITY_PREFIX}-${normalizeCode(code)}`,
     capability.trim(),

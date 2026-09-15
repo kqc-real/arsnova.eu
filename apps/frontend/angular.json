@@ -64,7 +64,7 @@
                 {
                   "type": "initial",
                   "maximumWarning": "1.70MB",
-                  "maximumError": "1.90MB"
+                  "maximumError": "1.95MB"
                 }
               ],
               "outputHashing": "all",

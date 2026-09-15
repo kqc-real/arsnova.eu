@@ -1,5 +1,14 @@
 import { describe, expect, it } from 'vitest';
-import { sessionLocalDateTimeToIso } from './session-time-zone';
+import { sessionLocalDateTimeToIso } from './session-local-datetime';
+import { resolveBrowserSessionTimeZone } from './session-time-zone';
+
+describe('resolveBrowserSessionTimeZone', () => {
+  it('liefert eine IANA-Zeitzone oder UTC', () => {
+    const timeZone = resolveBrowserSessionTimeZone();
+    expect(timeZone.length).toBeGreaterThan(0);
+    expect(() => new Intl.DateTimeFormat('en', { timeZone })).not.toThrow();
+  });
+});
 
 describe('sessionLocalDateTimeToIso', () => {
   it('normalisiert eine eindeutige lokale Zeit auf denselben UTC-Zeitpunkt', () => {

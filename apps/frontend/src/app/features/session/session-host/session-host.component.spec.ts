@@ -2163,6 +2163,12 @@ describe('SessionHostComponent', { timeout: 30_000 }, () => {
   });
 
   it('richtet Q&A aus einem laufenden Quiz über die Konfiguration ein statt den Legacy-Schalter', async () => {
+    getLifecycleForHostQueryMock.mockResolvedValue({
+      ...defaultLifecycle,
+      status: 'ACTIVE',
+      firstParticipantJoinedAt: '2026-03-24T12:05:00.000Z',
+      configurationAllowed: false,
+    });
     getInfoQueryMock.mockResolvedValue({
       ...defaultSession,
       status: 'ACTIVE',
@@ -2198,6 +2204,40 @@ describe('SessionHostComponent', { timeout: 30_000 }, () => {
     expect(fixture.componentInstance.hostSteeringCallout()).toBeNull();
     expect(fixture.componentInstance.activeChannel()).toBe('qa');
     expect(fixture.componentInstance.channels().qa).toBe(true);
+    fixture.destroy();
+  });
+
+  it('sperrt das Teilnahmeprofil nur über firstParticipantJoinedAt, nicht über den Count', async () => {
+    getInfoQueryMock.mockResolvedValue({
+      ...defaultSession,
+      status: 'ACTIVE',
+      participantCount: 12,
+      channels: {
+        quiz: { enabled: true },
+        qa: {
+          enabled: false,
+          open: false,
+          title: null,
+          moderationMode: false,
+          state: 'DISABLED',
+        },
+        quickFeedback: { enabled: false, open: false },
+      },
+    });
+    dialogOpenMock.mockReturnValue({ afterClosed: () => of(null) });
+
+    const fixture = setup();
+    await fixture.componentInstance.ngOnInit();
+    await fixture.componentInstance.selectChannel('qa');
+
+    expect(dialogOpenMock).toHaveBeenCalledWith(
+      QaChannelConfigurationDialogComponent,
+      expect.objectContaining({
+        data: expect.objectContaining({
+          profileLocked: false,
+        }),
+      }),
+    );
     fixture.destroy();
   });
 

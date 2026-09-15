@@ -9053,9 +9053,7 @@ export class SessionHostComponent implements OnInit, OnDestroy {
           data: {
             code: this.code.toUpperCase(),
             session,
-            profileLocked:
-              Boolean(this.sessionLifecycle()?.firstParticipantJoinedAt) ||
-              session.participantCount > 0,
+            profileLocked: Boolean(this.sessionLifecycle()?.firstParticipantJoinedAt),
           },
           width: 'min(42rem, calc(100vw - 2rem))',
           maxWidth: '100vw',

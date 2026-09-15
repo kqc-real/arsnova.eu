@@ -109,12 +109,24 @@ function randomConfidenceValue(min = 1, max = 5) {
   return min + Math.floor(random() * (max - min + 1));
 }
 
-function createHttpClient(hostToken, trpcUrl = TRPC_URL, runtimeMetrics = null) {
+function createHttpClient(
+  hostToken,
+  trpcUrl = TRPC_URL,
+  runtimeMetrics = null,
+  participantCapability,
+) {
+  const headers =
+    hostToken || participantCapability
+      ? () => ({
+          ...(hostToken ? { 'x-host-token': hostToken } : {}),
+          ...(participantCapability ? { 'x-participant-capability': participantCapability } : {}),
+        })
+      : undefined;
   return createTRPCProxyClient({
     links: [
       httpLink({
         url: trpcUrl,
-        headers: hostToken ? () => ({ 'x-host-token': hostToken }) : undefined,
+        headers,
         fetch:
           runtimeMetrics === null
             ? undefined
@@ -621,13 +633,18 @@ function buildSessionFeedbackInput(participant, participantIndex, code) {
   };
 }
 
-async function submitSessionFeedback(publicTrpc, participants, code) {
+async function submitSessionFeedback(participants, code, trpcUrl, runtimeMetrics) {
   const settled = await Promise.allSettled(
-    participants.map((participant, index) =>
-      publicTrpc.session.submitSessionFeedback.mutate(
+    participants.map((participant, index) => {
+      const capability = participant.rejoinToken;
+      if (!capability) {
+        return Promise.reject(new Error('Join lieferte kein rejoinToken.'));
+      }
+      const client = createHttpClient(undefined, trpcUrl, runtimeMetrics, capability);
+      return client.session.submitSessionFeedback.mutate(
         buildSessionFeedbackInput(participant, index, code),
-      ),
-    ),
+      );
+    }),
   );
   const accepted = settled.filter((result) => result.status === 'fulfilled').length;
   const rejected = settled.filter((result) => result.status === 'rejected').length;
@@ -750,7 +767,7 @@ export async function runDemoQuizClassroom(options = {}) {
   const finished = await hostTrpc.session.nextQuestion.mutate({ code });
   const feedback =
     finished.status === 'FINISHED'
-      ? await submitSessionFeedback(publicTrpc, participants, code)
+      ? await submitSessionFeedback(participants, code, trpcUrl, runtimeMetrics)
       : { accepted: 0, rejected: participantCount };
   const totalVotesAccepted = questions.reduce(
     (sum, question) =>

@@ -4,6 +4,7 @@ import {
   createHash,
   createHmac,
   randomBytes,
+  randomInt,
   timingSafeEqual,
 } from 'node:crypto';
 
@@ -88,10 +89,9 @@ export function decryptCapabilityEnvelope<T>(envelope: string, associatedData: s
 }
 
 export function createHostSupportId(): string {
-  const bytes = randomBytes(8);
   let payload = '';
   for (let index = 0; index < 8; index += 1) {
-    payload += SUPPORT_ALPHABET[bytes[index]! % SUPPORT_ALPHABET.length];
+    payload += SUPPORT_ALPHABET[randomInt(SUPPORT_ALPHABET.length)];
   }
   return `ARS-${payload.slice(0, 4)}-${payload.slice(4)}`;
 }

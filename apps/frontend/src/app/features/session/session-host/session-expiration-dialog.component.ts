@@ -16,7 +16,7 @@ import type {
   SessionInitialExpirationSelection,
   SessionLifecycleHostDTO,
 } from '@arsnova/shared-types';
-import { sessionLocalDateTimeToIso } from '../session-time-zone';
+import { sessionLocalDateTimeToIso } from '../session-local-datetime';
 
 export type SessionExpirationDialogData =
   | {
