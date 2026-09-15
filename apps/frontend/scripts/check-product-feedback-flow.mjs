@@ -135,6 +135,10 @@ async function injectHostToken(page, code, hostToken) {
 }
 
 async function dismissMotdIfPresent(page) {
+  const motd = page.locator('.home-motd-sheet').first();
+  if (!(await motd.isVisible().catch(() => false))) {
+    return;
+  }
   const close = page
     .locator(
       '.home-motd-sheet button[aria-label*="Schließen"], .home-motd-sheet button[aria-label*="Close"], .home-motd-sheet__close, button.home-motd-sheet__close-btn',
@@ -144,7 +148,6 @@ async function dismissMotdIfPresent(page) {
     await close.click().catch(() => undefined);
     await page.waitForTimeout(400);
   }
-  await page.keyboard.press('Escape').catch(() => undefined);
 }
 
 async function closeHostJoinOverlay(page, { waitForQrReopen = true } = {}) {
@@ -384,18 +387,25 @@ async function main() {
     logStep('UI-Sessionende', 'FINISHED + Invites');
 
     await hostPage.getByRole('button', { name: /Zur Startseite|Back to home/i }).click();
-    await hostPage.waitForURL(new RegExp(`${BASE_URL}/?$`), { timeout: 20_000 });
-    await hostPage.waitForTimeout(1500);
-    await dismissMotdIfPresent(hostPage);
-
-    const hostCard = hostPage.locator(
-      '.home-product-feedback-sheet [data-testid="product-feedback-card"], [data-testid="product-feedback-card"]',
+    await hostPage.waitForURL(
+      (url) => /^\/(?:de|en|fr|it|es)?\/?$/.test(new URL(String(url)).pathname),
+      { timeout: 20_000 },
     );
-    await hostCard.waitFor({ state: 'visible', timeout: 25_000 }).catch(async () => {
-      throw new Error(
-        `Host ProductFeedback-Sheet fehlt nach Sessionende.\n${await bodySnippet(hostPage)}`,
-      );
-    });
+    const hostCard = hostPage.locator(
+      '.home-product-feedback-sheet [data-testid="product-feedback-card"]',
+    );
+    const sheetVisible = await hostCard
+      .waitFor({ state: 'visible', timeout: 8_000 })
+      .then(() => true)
+      .catch(() => false);
+    if (!sheetVisible) {
+      await dismissMotdIfPresent(hostPage);
+      await hostCard.waitFor({ state: 'visible', timeout: 25_000 }).catch(async () => {
+        throw new Error(
+          `Host ProductFeedback-Sheet fehlt nach Sessionende.\n${await bodySnippet(hostPage)}`,
+        );
+      });
+    }
     logStep('Host-Sheet', 'ProductFeedback sichtbar');
     await completeProductFeedbackCard(hostPage, 'host', { withMessage: true });
 
