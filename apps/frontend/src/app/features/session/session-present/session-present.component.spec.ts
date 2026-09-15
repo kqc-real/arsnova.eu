@@ -11,7 +11,7 @@ const {
   getInfoQueryMock,
   getLeaderboardQueryMock,
   getTeamLeaderboardQueryMock,
-  getParticipantsQueryMock,
+  getParticipantSummaryQueryMock,
   getTeamsQueryMock,
   getParticipantNicknamesQueryMock,
   qaListQueryMock,
@@ -25,7 +25,7 @@ const {
   getInfoQueryMock: vi.fn(),
   getLeaderboardQueryMock: vi.fn(),
   getTeamLeaderboardQueryMock: vi.fn(),
-  getParticipantsQueryMock: vi.fn(),
+  getParticipantSummaryQueryMock: vi.fn(),
   getTeamsQueryMock: vi.fn(),
   getParticipantNicknamesQueryMock: vi.fn(),
   qaListQueryMock: vi.fn(),
@@ -51,8 +51,8 @@ vi.mock('../../../core/trpc.client', () => ({
       getTeamLeaderboard: {
         query: getTeamLeaderboardQueryMock,
       },
-      getParticipants: {
-        query: getParticipantsQueryMock,
+      getParticipantSummary: {
+        query: getParticipantSummaryQueryMock,
       },
       getTeams: {
         query: getTeamsQueryMock,
@@ -83,7 +83,7 @@ vi.mock('../../../core/trpc.client', () => ({
       },
     },
     qa: {
-      list: {
+      presentProjection: {
         query: qaListQueryMock,
       },
     },
@@ -125,7 +125,12 @@ describe('SessionPresentComponent', () => {
     });
     getLeaderboardQueryMock.mockResolvedValue([]);
     getTeamLeaderboardQueryMock.mockResolvedValue([]);
-    getParticipantsQueryMock.mockResolvedValue({ participants: [], participantCount: 0 });
+    getParticipantSummaryQueryMock.mockResolvedValue({
+      participantCount: 0,
+      connectedCount: 0,
+      revision: 0,
+      recentArrivals: [],
+    });
     getTeamsQueryMock.mockResolvedValue({ teams: [], teamCount: 0 });
     getParticipantNicknamesQueryMock.mockResolvedValue({ nicknames: [], participantCount: 0 });
     qaListQueryMock.mockResolvedValue([]);
@@ -161,6 +166,66 @@ describe('SessionPresentComponent', () => {
       ],
     });
     TestBed.inject(ThemePresetService).setPreset('spielerisch', { silent: true });
+  });
+
+  it('leert die unauthentifizierte Projektion ohne Terminalevent am lokalen Deadline-Fallback', () => {
+    vi.useFakeTimers();
+    const fixture = TestBed.createComponent(SessionPresentComponent);
+    const component = fixture.componentInstance;
+    component.session.set({
+      id: '6a8edced-5f8f-4cfa-9176-454fac9570ad',
+      serverTime: '2026-09-15T08:00:00.000Z',
+      code: 'ABC123',
+      type: 'QUIZ',
+      status: 'ACTIVE',
+      quizName: 'Quiz',
+      title: null,
+      participantCount: 2,
+      teamMode: false,
+    } as never);
+    component.presenterQaQuestions.set([{ id: 'qa-1', text: 'Noch sichtbar' } as never]);
+    component.pinnedQaQuestion.set({ id: 'qa-1', text: 'Noch sichtbar' } as never);
+    component.quickFeedbackResult.set({ totalVotes: 1, options: [] } as never);
+    component.freetextResponses.set(['Noch sichtbar']);
+    component.hostQuestion.set({
+      questionId: 'question-1',
+      order: 0,
+      totalQuestions: 1,
+      text: 'Noch sichtbar',
+      type: 'SINGLE_CHOICE',
+      difficulty: 'EASY',
+      showQuestionTypeIndicators: true,
+      answers: [],
+    } as never);
+
+    expect(
+      (
+        component as unknown as {
+          applySessionDeadlineSnapshot(snapshot: {
+            status: string;
+            serverNow: string;
+            expiresAt: string;
+            sessionLifecycleRevision: number;
+          }): boolean;
+        }
+      ).applySessionDeadlineSnapshot({
+        status: 'ACTIVE',
+        serverNow: '2026-09-15T08:00:00.000Z',
+        expiresAt: '2026-09-15T08:00:01.000Z',
+        sessionLifecycleRevision: 2,
+      }),
+    ).toBe(true);
+
+    vi.advanceTimersByTime(1_000);
+
+    expect(component.session()?.status).toBe('FINISHED');
+    expect(component.presenterQaQuestions()).toEqual([]);
+    expect(component.pinnedQaQuestion()).toBeNull();
+    expect(component.quickFeedbackResult()).toBeNull();
+    expect(component.freetextResponses()).toEqual([]);
+    expect(component.hostQuestion()).toBeNull();
+    fixture.destroy();
+    vi.useRealTimers();
   });
 
   it('zeigt den Vollbild-Gate und startet Vollbild per Klick', async () => {
@@ -1709,9 +1774,9 @@ describe('SessionPresentComponent', () => {
       teamMode: true,
       anonymousMode: false,
     });
-    getParticipantsQueryMock.mockResolvedValue({
+    getParticipantSummaryQueryMock.mockResolvedValue({
       participantCount: 2,
-      participants: [
+      recentArrivals: [
         {
           id: '11111111-1111-4111-8111-111111111111',
           nickname: 'Luna',
@@ -1826,9 +1891,9 @@ describe('SessionPresentComponent', () => {
       teamMode: true,
       anonymousMode: false,
     });
-    getParticipantsQueryMock.mockResolvedValue({
+    getParticipantSummaryQueryMock.mockResolvedValue({
       participantCount: 30,
-      participants,
+      recentArrivals: participants.slice(-20),
     });
     getTeamsQueryMock.mockResolvedValue({
       teamCount: 1,
@@ -1862,9 +1927,10 @@ describe('SessionPresentComponent', () => {
     expect(members?.style.gridTemplateColumns.replace(/\s+/g, ' ').trim()).toBe(
       'repeat(4, minmax(0, 1fr))',
     );
-    expect(nickTexts).toHaveLength(30);
+    expect(nickTexts).toHaveLength(20);
     expect(nickTexts.every((node) => node.classList.contains('sr-only'))).toBe(true);
-    expect(fixture.nativeElement.textContent).toContain('Person 1');
+    expect(nickTexts.map((node) => node.textContent?.trim())).not.toContain('Person 1');
+    expect(fixture.nativeElement.textContent).toContain('Person 11');
     expect(fixture.nativeElement.textContent).toContain('Person 30');
     fixture.destroy();
   });
@@ -1891,15 +1957,8 @@ describe('SessionPresentComponent', () => {
       icon: 'military_tech',
       themeClass: 'session-present__lobby-packed-identity--nobel',
     },
-    {
-      label: 'anonym',
-      nicknameTheme: 'HIGH_SCHOOL' as const,
-      anonymousMode: true,
-      icon: 'theater_comedy',
-      themeClass: 'session-present__lobby-packed-identity--anonymous',
-    },
   ])(
-    'zeigt im Packed-Modus fuer $label Theme-Icons mit stabilen Eingangsnummern',
+    'zeigt im Packed-Modus fuer $label höchstens 20 Theme-Icons mit stabilen Eingangsnummern',
     async ({ nicknameTheme, anonymousMode, icon, themeClass }) => {
       const participants = Array.from({ length: 26 }, (_, index) => ({
         id: `11111111-1111-4111-8111-${String(index + 1).padStart(12, '0')}`,
@@ -1920,9 +1979,9 @@ describe('SessionPresentComponent', () => {
         anonymousMode,
         nicknameTheme,
       });
-      getParticipantsQueryMock.mockResolvedValue({
+      getParticipantSummaryQueryMock.mockResolvedValue({
         participantCount: participants.length,
-        participants,
+        recentArrivals: participants.slice(-20),
       });
       getTeamsQueryMock.mockResolvedValue({ teamCount: 0, teams: [] });
 
@@ -1935,35 +1994,61 @@ describe('SessionPresentComponent', () => {
       const identities = [
         ...fixture.nativeElement.querySelectorAll('.session-present__lobby-packed-identity'),
       ] as HTMLElement[];
-      expect(identities).toHaveLength(participants.length);
+      expect(identities).toHaveLength(20);
       expect(identities.every((element) => element.classList.contains(themeClass))).toBe(true);
       expect(
         identities.map((element) =>
           (element.querySelector('.session-present__lobby-packed-icon')?.textContent ?? '').trim(),
         ),
-      ).toEqual(Array.from({ length: participants.length }, () => icon));
+      ).toEqual(Array.from({ length: 20 }, () => icon));
       expect(
         identities.map((element) =>
           (
             element.querySelector('.session-present__lobby-packed-number')?.textContent ?? ''
           ).trim(),
         ),
-      ).toEqual(
-        Array.from({ length: participants.length }, (_, index) =>
-          String(26 - index).padStart(2, '0'),
-        ),
-      );
+      ).toEqual(Array.from({ length: 20 }, (_, index) => String(20 - index).padStart(2, '0')));
 
-      if (anonymousMode) {
-        expect(identities[0]?.getAttribute('aria-label')).toBe('Anonyme Person 26');
-        expect(identities.at(-1)?.getAttribute('aria-label')).toBe('Anonyme Person 01');
-      } else {
-        expect(identities[0]?.getAttribute('aria-label')).toBe('Person 26');
-        expect(identities.at(-1)?.getAttribute('aria-label')).toBe('Person 1');
-      }
+      expect(identities[0]?.getAttribute('aria-label')).toBe('Person 26');
+      expect(identities.at(-1)?.getAttribute('aria-label')).toBe('Person 7');
       fixture.destroy();
     },
   );
+
+  it('zeigt im Anonymmodus nur das Aggregat und keine öffentliche individuelle Liste', async () => {
+    getInfoQueryMock.mockResolvedValue({
+      id: '6a8edced-5f8f-4cfa-9176-454fac9570ad',
+      serverTime: MOCK_SERVER_TIME,
+      code: 'ABC123',
+      type: 'QUIZ',
+      status: 'LOBBY',
+      quizName: 'Quiz',
+      title: null,
+      participantCount: 26,
+      teamMode: false,
+      anonymousMode: true,
+      nicknameTheme: 'HIGH_SCHOOL',
+    });
+    getParticipantSummaryQueryMock.mockResolvedValue({
+      participantCount: 26,
+      connectedCount: 26,
+      revision: 26,
+      recentArrivals: [],
+    });
+
+    const fixture = TestBed.createComponent(SessionPresentComponent);
+    fixture.detectChanges();
+    await fixture.whenStable();
+    await new Promise((resolve) => setTimeout(resolve, 50));
+    fixture.detectChanges();
+
+    expect(fixture.nativeElement.textContent).toContain('26 Teilnehmende');
+    expect(
+      fixture.nativeElement.querySelector('.session-present__lobby-packed-identity'),
+    ).toBeNull();
+    expect(fixture.nativeElement.querySelector('.session-present__lobby-nick-text')).toBeNull();
+    fixture.destroy();
+  });
 
   it('zeigt Kindergarten-Teilnehmende in der Lobby mit Tier-Icon', async () => {
     getInfoQueryMock.mockResolvedValue({
@@ -1979,9 +2064,9 @@ describe('SessionPresentComponent', () => {
       anonymousMode: false,
       nicknameTheme: 'KINDERGARTEN',
     });
-    getParticipantsQueryMock.mockResolvedValue({
+    getParticipantSummaryQueryMock.mockResolvedValue({
       participantCount: 2,
-      participants: [
+      recentArrivals: [
         {
           id: '11111111-1111-4111-8111-111111111111',
           nickname: 'Roter Drache',
@@ -2042,9 +2127,9 @@ describe('SessionPresentComponent', () => {
       teamMode: false,
       anonymousMode: false,
     });
-    getParticipantsQueryMock.mockResolvedValue({
+    getParticipantSummaryQueryMock.mockResolvedValue({
       participantCount: 0,
-      participants: [],
+      recentArrivals: [],
     });
 
     const fixture = TestBed.createComponent(SessionPresentComponent);
@@ -2087,9 +2172,9 @@ describe('SessionPresentComponent', () => {
       teamMode: false,
       anonymousMode: false,
     });
-    getParticipantsQueryMock.mockResolvedValue({
+    getParticipantSummaryQueryMock.mockResolvedValue({
       participantCount: 2,
-      participants: [
+      recentArrivals: [
         {
           id: '11111111-1111-4111-8111-111111111111',
           nickname: 'Luna',
@@ -2146,9 +2231,9 @@ describe('SessionPresentComponent', () => {
       teamMode: false,
       anonymousMode: false,
     });
-    getParticipantsQueryMock.mockResolvedValue({
+    getParticipantSummaryQueryMock.mockResolvedValue({
       participantCount: 1,
-      participants: [
+      recentArrivals: [
         {
           id: '11111111-1111-4111-8111-111111111111',
           nickname: 'Luna',
@@ -2167,9 +2252,9 @@ describe('SessionPresentComponent', () => {
     expect(fixture.nativeElement.textContent).toContain('Luna');
     expect(fixture.nativeElement.querySelector('app-foyer-entrance-layer')).toBeNull();
 
-    getParticipantsQueryMock.mockResolvedValue({
+    getParticipantSummaryQueryMock.mockResolvedValue({
       participantCount: 2,
-      participants: [
+      recentArrivals: [
         {
           id: '11111111-1111-4111-8111-111111111111',
           nickname: 'Luna',
@@ -2229,9 +2314,9 @@ describe('SessionPresentComponent', () => {
       teamMode: true,
       anonymousMode: false,
     });
-    getParticipantsQueryMock.mockResolvedValue({
+    getParticipantSummaryQueryMock.mockResolvedValue({
       participantCount: 1,
-      participants: [
+      recentArrivals: [
         {
           id: '11111111-1111-4111-8111-111111111111',
           nickname: 'Luna',
@@ -2261,9 +2346,9 @@ describe('SessionPresentComponent', () => {
     expect(fixture.nativeElement.textContent).toContain('Luna');
     expect(fixture.nativeElement.querySelector('app-foyer-entrance-layer')).toBeNull();
 
-    getParticipantsQueryMock.mockResolvedValue({
+    getParticipantSummaryQueryMock.mockResolvedValue({
       participantCount: 2,
-      participants: [
+      recentArrivals: [
         {
           id: '11111111-1111-4111-8111-111111111111',
           nickname: 'Luna',

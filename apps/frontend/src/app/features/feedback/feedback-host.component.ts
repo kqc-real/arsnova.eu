@@ -23,7 +23,6 @@ import { MatSnackBar } from '@angular/material/snack-bar';
 import { MatSlideToggle } from '@angular/material/slide-toggle';
 import { clearFeedbackHostToken, setFeedbackHostToken } from '../../core/feedback-host-token';
 import { formatLocaleCount, formatLocalePercent } from '../../core/locale-number.util';
-import { clearHostToken } from '../../core/host-session-token';
 import { trpc } from '../../core/trpc.client';
 import {
   localizeCommands,
@@ -170,8 +169,6 @@ export class FeedbackHostComponent implements OnInit, OnDestroy {
   readonly tempoHelpCloseAria = $localize`:@@feedback.tempoHelpCloseAria:Hilfe schließen`;
   readonly tempoHelpCloseLabel = $localize`:@@feedback.tempoHelpClose:Verstanden`;
   readonly tempoHelpOpen = signal(false);
-
-  private readonly endSessionRetryMessage = $localize`:@@feedback.endSessionRetryHint:Beenden oder Presenter-Umschaltung haben gerade nicht geklappt. Bitte in ein paar Sekunden erneut versuchen.`;
 
   sessionCodeDisplayAria(code: string): string {
     return i18nSessionCodeAria(code);
@@ -756,47 +753,21 @@ export class FeedbackHostComponent implements OnInit, OnDestroy {
 
   endSession(): void {
     const code = this.code();
-    if (!code) {
+    if (!code || this.embeddedInSession()) {
       return;
     }
 
     const ref = this.snackBar.open(
-      this.embeddedInSession()
-        ? $localize`:@@feedback.endSessionWarning:Eine zweite Vergleichsrunde ist dann nicht mehr möglich. Es werden alle Ergebnisse gelöscht.`
-        : $localize`:@@feedback.endStandaloneWarning:Das Blitzlicht wird beendet. Es werden alle Ergebnisse gelöscht.`,
+      $localize`:@@feedback.endStandaloneWarning:Das Blitzlicht wird beendet. Es werden alle Ergebnisse gelöscht.`,
       $localize`:@@feedback.endSessionConfirm:Trotzdem beenden`,
       { duration: 7000 },
     );
 
     ref.onAction().subscribe(() => {
       this.ngZone.run(() => {
-        if (this.embeddedInSession()) {
-          void this.confirmEndSession(code);
-          return;
-        }
         void this.confirmEndStandaloneFeedback(code);
       });
     });
-  }
-
-  private async confirmEndSession(code: string): Promise<void> {
-    try {
-      try {
-        await trpc.session.end.mutate({ code });
-      } catch (error) {
-        if (!(error instanceof Error) || !error.message.includes('Session ist bereits beendet.')) {
-          throw error;
-        }
-      }
-      await trpc.session.dismissFinishProjection.mutate({ code });
-      clearHostToken(code);
-      clearFeedbackHostToken(code);
-      await this.ngZone.run(async () => {
-        await this.router.navigateByUrl(localizePath('/'), { replaceUrl: true });
-      });
-    } catch {
-      this.snackBar.open(this.endSessionRetryMessage, '', { duration: 7000 });
-    }
   }
 
   private async confirmEndStandaloneFeedback(code: string): Promise<void> {

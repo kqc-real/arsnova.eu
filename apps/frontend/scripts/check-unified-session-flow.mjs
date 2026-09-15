@@ -99,11 +99,12 @@ async function capturePresenterScreenshot(page, name) {
   console.log(`Screenshot ${path}`);
 }
 
-function createBrowserTrpcClient() {
+function createBrowserTrpcClient(hostToken) {
   return createTRPCProxyClient({
     links: [
       httpBatchLink({
         url: TRPC_URL,
+        headers: hostToken ? () => ({ 'x-host-token': hostToken }) : undefined,
       }),
     ],
   });
@@ -352,12 +353,32 @@ async function waitForParticipantFeedbackOptions(participantPage, timeout = 10_0
 
 async function createUnifiedSession(trpc) {
   const { quizId } = await trpc.quiz.upload.mutate(QUIZ_PAYLOAD);
-  return trpc.session.create.mutate({
+  const created = await trpc.session.create.mutate({
     quizId,
     type: 'QUIZ',
     qaEnabled: true,
     quickFeedbackEnabled: true,
   });
+  const hostTrpc = createBrowserTrpcClient(created.hostToken);
+  const selection = { kind: 'UNTIL_SESSION_END' };
+  const preview = await hostTrpc.session.previewQaConfiguration.query({
+    code: created.code,
+    mode: 'INITIAL',
+    selection,
+  });
+  await hostTrpc.session.configureQaChannel.mutate({
+    code: created.code,
+    mode: preview.mode,
+    selection,
+    expectedLifecycleRevision: preview.expectedLifecycleRevision,
+    previewServerNow: preview.serverNow,
+    confirmedQaClosesAt: preview.newQaClosesAt,
+    confirmedExpiresAt: preview.newExpiresAt,
+    confirmSessionExtension: preview.requiresSessionExtension,
+    qaTitle: 'Unified Session Smoke',
+    moderationMode: false,
+  });
+  return created;
 }
 
 async function openHostSession(host, code, hardFailures) {
@@ -386,13 +407,13 @@ async function verifyHostQaTab(host, hardFailures) {
   const hostQaArea = host
     .locator('.session-qa-list, .session-qa-empty, .session-qa-summary')
     .first();
-  if (await hostQaArea.isVisible().catch(() => false)) {
+  try {
+    await waitForVisible(hostQaArea);
     logStep(true, 'Host can open Q&A tab');
-    return;
+  } catch {
+    hardFailures.push('Host Q&A tab does not show the moderation area.');
+    logStep(false, 'Host can open Q&A tab');
   }
-
-  hardFailures.push('Host Q&A tab does not show the moderation area.');
-  logStep(false, 'Host can open Q&A tab');
 }
 
 async function joinParticipantSession(participant, code, warnings, hardFailures) {
@@ -491,17 +512,18 @@ async function verifyHostQuestions(host, hardFailures) {
 }
 
 async function verifyPresenterView(host, presenter, code, hardFailures) {
+  await clickChannelTab(host, 1);
   await presenter.goto(`${BASE_URL}/session/${code}/present`, {
     waitUntil: 'domcontentloaded',
     timeout: 30_000,
   });
   await waitForPathSuffix(presenter, `/session/${code}/present`);
-  await presenter.waitForTimeout(2_000);
 
-  const pinnedQuestionVisible = await presenter
+  const pinnedQuestion = presenter
     .locator('.session-present__qa-card', { hasText: SMOKE_QUESTIONS.participantFirst })
-    .first()
-    .isVisible()
+    .first();
+  const pinnedQuestionVisible = await waitForVisible(pinnedQuestion, 20_000)
+    .then(() => true)
     .catch(() => false);
   if (pinnedQuestionVisible) {
     logStep(true, 'Presenter shows highlighted question');
@@ -510,10 +532,11 @@ async function verifyPresenterView(host, presenter, code, hardFailures) {
     logStep(false, 'Presenter shows highlighted question');
   }
 
-  const queueQuestionVisible = await presenter
+  const queueQuestion = presenter
     .locator('.session-present__qa-list-card', { hasText: SMOKE_QUESTIONS.participantSecond })
-    .first()
-    .isVisible()
+    .first();
+  const queueQuestionVisible = await waitForVisible(queueQuestion, 20_000)
+    .then(() => true)
     .catch(() => false);
   if (queueQuestionVisible) {
     logStep(true, 'Presenter shows Q&A queue');
@@ -733,8 +756,8 @@ async function endSessionAndScan(host, participant, hardFailures) {
 
   await endButton.click();
   const confirmation = host
-    .locator('.cdk-overlay-container')
-    .getByRole('button', { name: /trotzdem|anyway/i })
+    .locator('mat-dialog-container')
+    .getByRole('button', { name: /gesamte session beenden|end (?:the )?session/i })
     .first();
   await confirmation.waitFor({ state: 'visible', timeout: 30_000 });
   await host.waitForTimeout(500);

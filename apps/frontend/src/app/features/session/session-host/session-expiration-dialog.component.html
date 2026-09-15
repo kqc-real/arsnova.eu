@@ -1,0 +1,170 @@
+<h2 mat-dialog-title class="dialog-title-header">
+  <span
+    class="dialog-title-header__icon"
+    [class.dialog-title-header__icon--warn]="data.mode === 'GLOBAL_WARNING'"
+    aria-hidden="true"
+  >
+    <mat-icon>{{ data.mode === 'GLOBAL_WARNING' ? 'warning' : 'schedule' }}</mat-icon>
+  </span>
+  <span class="dialog-title-header__copy">
+    @if (data.mode === 'INITIAL_CONFIGURATION') {
+      <span class="dialog-title-header__heading" i18n="@@sessionLifecycle.configureTitle">
+        Sessionlaufzeit festlegen
+      </span>
+      <span class="dialog-title-header__sub" i18n="@@sessionLifecycle.configureSubtitle">
+        Lege fest, wie lange diese Session höchstens läuft. Q&A kann eine eigene, frühere Frist
+        haben.
+      </span>
+    } @else {
+      <span class="dialog-title-header__heading" i18n="@@sessionLifecycle.warningTitle">
+        Session endet in {{ data.warningMinutes }} Minuten
+      </span>
+      <span class="dialog-title-header__sub" i18n="@@sessionLifecycle.warningSubtitle">
+        Eine Verlängerung ändert nur das globale Sessionende, nicht automatisch die Q&A-Frist.
+      </span>
+    }
+  </span>
+</h2>
+
+<mat-dialog-content class="lifecycle-dialog__content">
+  <section class="lifecycle-dialog__summary" aria-labelledby="lifecycle-dialog-summary-title">
+    <h3
+      id="lifecycle-dialog-summary-title"
+      class="lifecycle-dialog__summary-title"
+      i18n="@@sessionLifecycle.summaryTitle"
+    >
+      Aktueller Stand
+    </h3>
+    <dl>
+      <div>
+        <dt i18n="@@sessionLifecycle.currentEnd">Aktuelles Sessionende:</dt>
+        <dd>{{ formatDateTime(data.lifecycle.expiresAt) }}</dd>
+      </div>
+      <div>
+        <dt i18n="@@sessionLifecycle.timeZone">Zeitzone:</dt>
+        <dd>{{ data.lifecycle.timeZone }}</dd>
+      </div>
+      @if (data.mode === 'GLOBAL_WARNING' && data.lifecycle.qaClosesAt) {
+        <div>
+          <dt i18n="@@sessionLifecycle.qaUnchanged">Q&A schließt unabhängig davon weiterhin:</dt>
+          <dd>{{ formatDateTime(data.lifecycle.qaClosesAt) }}</dd>
+        </div>
+      }
+    </dl>
+  </section>
+
+  @if (data.mode === 'GLOBAL_WARNING' && !data.lifecycle.originalHost) {
+    <p class="lifecycle-dialog__notice" role="status">
+      <mat-icon aria-hidden="true">info</mat-icon>
+      <span i18n="@@sessionLifecycle.pairedHostNotice">
+        Nur der ursprüngliche Host kann die globale Sessionfrist verlängern.
+      </span>
+    </p>
+  } @else if (!data.lifecycle.extensionAllowed && data.mode === 'GLOBAL_WARNING') {
+    <p class="lifecycle-dialog__notice lifecycle-dialog__notice--alert" role="status">
+      <mat-icon aria-hidden="true">info</mat-icon>
+      <span i18n="@@sessionLifecycle.maxReached">
+        Die maximale Sessiondauer ist erreicht. Eine weitere Verlängerung ist nicht möglich.
+      </span>
+    </p>
+  } @else {
+    @if (data.mode === 'INITIAL_CONFIGURATION') {
+      <fieldset class="lifecycle-dialog__group">
+        <legend i18n="@@sessionLifecycle.daysLegend">Laufzeit in Kalendertagen</legend>
+        <div class="lifecycle-dialog__row">
+          <mat-form-field appearance="outline" subscriptSizing="dynamic">
+            <mat-label i18n="@@sessionLifecycle.daysLabel">Für Kalendertage</mat-label>
+            <input
+              matInput
+              type="number"
+              min="1"
+              max="30"
+              [ngModel]="days()"
+              (ngModelChange)="days.set($event)"
+            />
+          </mat-form-field>
+          <button
+            matButton="tonal"
+            type="button"
+            class="lifecycle-dialog__action"
+            (click)="chooseDays()"
+            i18n="@@sessionLifecycle.checkDeadline"
+          >
+            Frist prüfen
+          </button>
+        </div>
+      </fieldset>
+    } @else {
+      <fieldset class="lifecycle-dialog__group">
+        <legend i18n="@@sessionLifecycle.extendLegend">Schnell verlängern</legend>
+        <div
+          class="lifecycle-dialog__quick"
+          role="group"
+          aria-label="Schnellauswahl für Verlängerung"
+          i18n-aria-label="@@sessionLifecycle.quickChoices"
+        >
+          <button
+            matButton="outlined"
+            type="button"
+            class="lifecycle-dialog__action"
+            (click)="chooseQuick('ONE_HOUR')"
+            i18n="@@sessionLifecycle.extendOneHour"
+          >
+            Um 1 Stunde
+          </button>
+          <button
+            matButton="outlined"
+            type="button"
+            class="lifecycle-dialog__action"
+            (click)="chooseQuick('ONE_DAY')"
+            i18n="@@sessionLifecycle.extendOneDay"
+          >
+            Um 1 Tag
+          </button>
+          <button
+            matButton="outlined"
+            type="button"
+            class="lifecycle-dialog__action"
+            (click)="chooseQuick('SEVEN_DAYS')"
+            i18n="@@sessionLifecycle.extendSevenDays"
+          >
+            Um 7 Tage
+          </button>
+        </div>
+      </fieldset>
+    }
+
+    <fieldset class="lifecycle-dialog__group">
+      <legend i18n="@@sessionLifecycle.absoluteLegend">Oder genaues Datum</legend>
+      <div class="lifecycle-dialog__row">
+        <mat-form-field appearance="outline" subscriptSizing="dynamic">
+          <mat-label i18n="@@sessionLifecycle.absoluteLabel">Bis Datum und Uhrzeit</mat-label>
+          <input
+            matInput
+            type="datetime-local"
+            [ngModel]="absoluteLocal()"
+            (ngModelChange)="absoluteLocal.set($event)"
+          />
+        </mat-form-field>
+        <button
+          matButton="tonal"
+          type="button"
+          class="lifecycle-dialog__action"
+          [disabled]="!absoluteLocal()"
+          (click)="chooseAbsolute()"
+          i18n="@@sessionLifecycle.checkDeadline"
+        >
+          Frist prüfen
+        </button>
+      </div>
+    </fieldset>
+
+    @if (inputError()) {
+      <p class="lifecycle-dialog__error" role="alert">{{ inputError() }}</p>
+    }
+  }
+</mat-dialog-content>
+
+<mat-dialog-actions align="end" class="lifecycle-dialog__actions">
+  <button matButton="text" type="button" (click)="close()" i18n="@@common.cancel">Abbrechen</button>
+</mat-dialog-actions>

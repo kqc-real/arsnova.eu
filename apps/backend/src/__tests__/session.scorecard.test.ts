@@ -17,6 +17,10 @@ vi.mock('../db', () => ({
   prisma: prismaMock,
 }));
 
+vi.mock('../lib/participantAuth', () => ({
+  assertParticipantCapability: vi.fn(),
+}));
+
 import { sessionRouter } from '../routers/session';
 
 const caller = sessionRouter.createCaller({ req: undefined });

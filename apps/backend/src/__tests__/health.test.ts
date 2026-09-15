@@ -15,6 +15,7 @@ vi.mock('../redis', () => ({
 
 vi.mock('../db', () => ({
   prisma: {
+    $queryRaw: vi.fn(),
     $queryRawUnsafe: vi.fn(),
     session: { count: vi.fn(), findMany: vi.fn() },
     dailyStatistic: { findMany: vi.fn() },
@@ -69,6 +70,10 @@ vi.mock('../lib/sloTelemetry', () => ({
   recordLiveRequestTelemetry: vi.fn(),
 }));
 
+vi.mock('../lib/qaTelemetry', () => ({
+  readQaTelemetry: vi.fn(),
+}));
+
 vi.mock('../lib/adminAuth', () => ({
   extractAdminToken: vi.fn(() => null),
   isAdminSessionTokenValid: vi.fn(async () => false),
@@ -95,6 +100,7 @@ import { readCspReportSignals } from '../lib/cspReportIngest';
 import { readSessionCodeGlobalSoftCapUtilization } from '../lib/sessionCodeProtection';
 import { getWebSocketTelemetrySnapshot } from '../lib/websocketTelemetry';
 import { readSloSignals } from '../lib/sloTelemetry';
+import { readQaTelemetry } from '../lib/qaTelemetry';
 import { healthRouter, heartbeatGenerator, resetHealthStatsCacheForTests } from '../routers/health';
 
 const caller = healthRouter.createCaller({ req: undefined });
@@ -106,7 +112,14 @@ const invalidAdminCaller = healthRouter.createCaller({
 });
 
 beforeEach(() => {
+  vi.mocked(prisma.$queryRaw).mockRejectedValue(new Error('raw query unavailable in unit mock'));
   vi.mocked(prisma.$queryRawUnsafe).mockResolvedValue([{ '?column?': 1 }]);
+  vi.mocked(readQaTelemetry).mockResolvedValue({
+    questionsLastMinute: null,
+    ratingsLastMinute: null,
+    minuteStatus: 'UNAVAILABLE',
+    presenceStatus: 'UNAVAILABLE',
+  });
   vi.mocked(readPdfSignals).mockResolvedValue({
     completedLastMinute: 0,
     failedLastMinute: 0,
@@ -309,20 +322,37 @@ describe('health.footerBundle', () => {
     },
   );
 
-  it('nutzt fuer wiederholte Footer-Abfragen den Serverstats-Cache', async () => {
+  it('cached den schlanken Footer-Status ohne Serverstats- oder Q&A-Projektion', async () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(Date.now() + 31_000);
     vi.mocked(pingRedis).mockResolvedValue(true);
-    vi.mocked(prisma.session.count).mockResolvedValue(0);
-    vi.mocked(prisma.platformStatistic.findUnique).mockResolvedValue({
-      id: 'default',
-      updatedAt: new Date(),
-      maxParticipantsSingleSession: 42,
-      completedSessionsTotal: 0,
-    } as never);
+    vi.mocked(prisma.session.findMany).mockResolvedValue([{ id: 'session-1' }] as never);
+    vi.mocked(getActiveParticipantCountsForSessions).mockResolvedValue(new Map([['session-1', 3]]));
 
-    await caller.footerBundle(undefined);
-    await caller.footerBundle(undefined);
+    try {
+      const first = await caller.footerBundle(undefined);
+      const second = await caller.footerBundle(undefined);
 
-    expect(prisma.session.count).toHaveBeenCalledTimes(2);
+      expect(first.stats).toEqual({
+        serviceStatus: 'stable',
+        loadStatus: 'healthy',
+      });
+      expect(second.stats).toEqual(first.stats);
+      expect(prisma.session.findMany).toHaveBeenCalledOnce();
+      expect(prisma.session.findMany).toHaveBeenCalledWith({
+        where: { status: { not: 'FINISHED' } },
+        select: { id: true },
+      });
+      expect(getActiveParticipantCountsForSessions).toHaveBeenCalledOnce();
+      expect(getActiveParticipantCountsForSessions).toHaveBeenCalledWith(['session-1'], Date.now());
+      expect(prisma.session.count).not.toHaveBeenCalled();
+      expect(prisma.$queryRaw).not.toHaveBeenCalled();
+      expect(prisma.platformStatistic.findUnique).not.toHaveBeenCalled();
+      expect(prisma.dailyStatistic.findMany).not.toHaveBeenCalled();
+      expect(readQaTelemetry).not.toHaveBeenCalled();
+    } finally {
+      vi.useRealTimers();
+    }
   });
 });
 

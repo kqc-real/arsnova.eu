@@ -19,8 +19,10 @@ const { buildSessionResultsPdfMock, hostAuthMocks, prismaMock } = vi.hoisted(() 
       findUnique: vi.fn(),
     },
     qaQuestion: {
+      count: vi.fn(),
       findMany: vi.fn(),
     },
+    $transaction: vi.fn(),
   },
 }));
 
@@ -120,6 +122,9 @@ describe('session.getLastSessionExportForQuiz', () => {
     hostAuthMocks.extractHostTokenFromConnectionParamsMock.mockReturnValue(null);
     hostAuthMocks.isHostSessionTokenValidMock.mockResolvedValue(true);
     buildSessionResultsPdfMock.mockResolvedValue(Buffer.from('%PDF-1.4\n% test'));
+    prismaMock.$transaction.mockImplementation(
+      async (fn: (tx: typeof prismaMock) => Promise<unknown>) => fn(prismaMock),
+    );
     prismaMock.quiz.findUnique.mockResolvedValue({
       id: QUIZ_ID,
       ...QUIZ_INPUT,
@@ -150,6 +155,7 @@ describe('session.getLastSessionExportForQuiz', () => {
         })),
       },
     ]);
+    prismaMock.qaQuestion.count.mockResolvedValue(0);
     prismaMock.qaQuestion.findMany.mockResolvedValue([]);
   });
 

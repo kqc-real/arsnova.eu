@@ -11,6 +11,7 @@ const { prismaMock, hostAuthMocks, presenceMocks, readingReadyMocks } = vi.hoist
     },
     participant: {
       findFirst: vi.fn(),
+      findMany: vi.fn(),
     },
     vote: {
       count: vi.fn(),
@@ -58,6 +59,10 @@ vi.mock('../lib/hostAuth', async () => {
     isHostSessionTokenValid: hostAuthMocks.isHostSessionTokenValidMock,
   });
 });
+
+vi.mock('../lib/participantAuth', () => ({
+  assertParticipantCapability: vi.fn(),
+}));
 
 import {
   invalidateCurrentQuestionCachesForCode,
@@ -107,6 +112,8 @@ describe('session reading-ready flow', () => {
         participants: [{ id: PARTICIPANT_ID, nickname: 'Ada', teamId: null, team: null }],
         quiz: { questions: [{ id: QUESTION_ID }] },
       });
+      prismaMock.participant.findFirst.mockResolvedValue({ id: PARTICIPANT_ID });
+      prismaMock.participant.findMany.mockResolvedValue([{ id: PARTICIPANT_ID }]);
       presenceMocks.getActiveParticipantIdsForSession.mockResolvedValue(new Set([PARTICIPANT_ID]));
       readingReadyMocks.getReadingReadyParticipantIds.mockResolvedValue(new Set([PARTICIPANT_ID]));
 
@@ -144,7 +151,12 @@ describe('session reading-ready flow', () => {
         { id: PARTICIPANT_ID_2, nickname: 'Linus', teamId: null, team: null },
       ],
       quiz: { questions: [{ id: QUESTION_ID }] },
+      _count: { participants: 2 },
     });
+    prismaMock.participant.findMany.mockResolvedValue([
+      { id: PARTICIPANT_ID },
+      { id: PARTICIPANT_ID_2 },
+    ]);
     presenceMocks.getActiveParticipantIdsForSession.mockResolvedValue(
       new Set([PARTICIPANT_ID, PARTICIPANT_ID_2, '99999999-9999-4999-8999-999999999999']),
     );
@@ -746,6 +758,7 @@ trpcDodIt(
       participants: [],
       quiz: { questions: [{ id: QUESTION_ID }] },
     });
+    prismaMock.participant.findFirst.mockResolvedValue(null);
 
     await expect(
       caller.confirmReadingReady({

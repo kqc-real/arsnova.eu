@@ -1,0 +1,112 @@
+<h2 mat-dialog-title class="dialog-title-header">
+  <span class="dialog-title-header__icon" aria-hidden="true">
+    <mat-icon>admin_panel_settings</mat-icon>
+  </span>
+  <span class="dialog-title-header__copy">
+    <span class="dialog-title-header__heading" i18n="@@hostRecovery.cardTitle">
+      Host-Notfallkarte sichern
+    </span>
+    <span class="dialog-title-header__sub" i18n="@@hostRecovery.cardSubtitle">
+      Bewahre Support-ID und Recovery-Code getrennt vom Browser auf. Du kannst das auch später
+      nachholen.
+    </span>
+  </span>
+</h2>
+
+<mat-dialog-content class="recovery-card__content" id="host-recovery-card-description">
+  <p class="recovery-card__intro" i18n="@@hostRecovery.cardIntro">
+    Diese Karte stellt den Host-Zugang wieder her, wenn die Browserdaten verloren gehen. Bewahre sie
+    getrennt und sicher auf.
+  </p>
+
+  <dl class="recovery-card__secrets">
+    <div class="recovery-card__secret">
+      <div class="recovery-card__secret-text">
+        <dt i18n="@@hostRecovery.supportIdLabel">Support-ID</dt>
+        <dd>{{ data.supportId }}</dd>
+      </div>
+      <button
+        matIconButton
+        type="button"
+        (click)="copy('supportId')"
+        i18n-aria-label="@@hostRecovery.copySupportIdAria"
+        aria-label="Support-ID kopieren"
+      >
+        <mat-icon aria-hidden="true">{{
+          copiedField() === 'supportId' ? 'check' : 'content_copy'
+        }}</mat-icon>
+      </button>
+    </div>
+    <div class="recovery-card__secret">
+      <div class="recovery-card__secret-text">
+        <dt i18n="@@hostRecovery.recoveryCodeLabel">Recovery-Code</dt>
+        <dd>{{ data.recoveryCode }}</dd>
+      </div>
+      <button
+        matIconButton
+        type="button"
+        (click)="copy('recoveryCode')"
+        i18n-aria-label="@@hostRecovery.copyRecoveryCodeAria"
+        aria-label="Recovery-Code kopieren"
+      >
+        <mat-icon aria-hidden="true">{{
+          copiedField() === 'recoveryCode' ? 'check' : 'content_copy'
+        }}</mat-icon>
+      </button>
+    </div>
+  </dl>
+
+  <p class="recovery-card__status" role="status" aria-live="polite">
+    @if (copyFailed()) {
+      <span i18n="@@hostRecovery.copyFailed">
+        Kopieren hat nicht geklappt. Markiere den Wert und kopiere ihn selbst.
+      </span>
+    } @else if (copiedField() === 'supportId') {
+      <span i18n="@@hostRecovery.supportIdCopied">Support-ID wurde kopiert.</span>
+    } @else if (copiedField() === 'recoveryCode') {
+      <span i18n="@@hostRecovery.recoveryCodeCopied">Recovery-Code wurde kopiert.</span>
+    }
+  </p>
+
+  <p class="recovery-card__notice" role="note">
+    <mat-icon aria-hidden="true">info</mat-icon>
+    <span i18n="@@hostRecovery.cardWarning">
+      Der Sessioncode und die Support-ID allein verleihen keine Hostrechte. Wenn sowohl diese Karte
+      als auch die Browserdaten fehlen, ist nur ein verifizierter Supportprozess möglich.
+    </span>
+  </p>
+
+  <button matButton="tonal" type="button" class="recovery-card__download" (click)="download()">
+    <mat-icon aria-hidden="true">download</mat-icon>
+    <span i18n="@@hostRecovery.downloadCard">Notfallkarte herunterladen</span>
+  </button>
+
+  <mat-checkbox [checked]="saved()" (change)="saved.set($event.checked)">
+    <span i18n="@@hostRecovery.cardSavedConfirmation">
+      Ich habe die Notfallkarte sicher gespeichert.
+    </span>
+  </mat-checkbox>
+</mat-dialog-content>
+
+<mat-dialog-actions align="end" class="recovery-card__actions">
+  <button
+    matButton="text"
+    type="button"
+    data-testid="host-recovery-card-cancel"
+    [mat-dialog-close]="false"
+    i18n="@@common.cancel"
+  >
+    Abbrechen
+  </button>
+  <button
+    matButton="filled"
+    type="button"
+    class="recovery-card__done"
+    data-testid="host-recovery-card-done"
+    [disabled]="!saved()"
+    [mat-dialog-close]="true"
+    i18n="@@hostRecovery.cardDone"
+  >
+    Fertig
+  </button>
+</mat-dialog-actions>

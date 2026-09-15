@@ -21,6 +21,10 @@ vi.mock('../lib/rateLimit', () => ({
   checkSessionCreateRate: vi.fn(),
 }));
 
+vi.mock('../lib/participantAuth', () => ({
+  assertParticipantCapability: vi.fn(),
+}));
+
 import { sessionRouter } from '../routers/session';
 
 const caller = sessionRouter.createCaller({ req: undefined });

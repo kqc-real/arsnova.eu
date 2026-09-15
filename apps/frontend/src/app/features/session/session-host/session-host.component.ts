@@ -51,7 +51,12 @@ import { MatTooltip } from '@angular/material/tooltip';
 import { firstValueFrom } from 'rxjs';
 import type { Unsubscribable } from '@trpc/server/observable';
 import { clearFeedbackHostToken } from '../../../core/feedback-host-token';
-import { clearHostToken, getHostSessionRole, hasHostToken } from '../../../core/host-session-token';
+import {
+  clearHostToken,
+  getHostSessionRole,
+  hasHostToken,
+  setHostToken,
+} from '../../../core/host-session-token';
 import {
   isHostAccessRevokedError,
   isOriginalHostForbiddenError,
@@ -62,7 +67,13 @@ import {
   localeIdToSupported,
   type SupportedLocale,
 } from '../../../core/locale-from-path';
-import { trpc } from '../../../core/trpc.client';
+import { refreshTrpcWsBinding, trpc } from '../../../core/trpc.client';
+import {
+  clearStagedHostRecoveryCard,
+  getHostBrowserCapability,
+  getStagedHostRecoveryCard,
+} from '../../../core/host-recovery-access';
+import { HostRecoveryCardDialogComponent } from '../host-recovery/host-recovery-card-dialog.component';
 import { rememberPendingHostInvite } from '../../product-feedback/product-feedback-storage';
 import { ContextualFeedbackOfferService } from '../../product-feedback/contextual-feedback-offer.service';
 import { getAnonymousClientId } from '../../../core/anonymous-client-id';
@@ -90,6 +101,15 @@ import {
   ConfirmLeaveDialogComponent,
   type ConfirmLeaveDialogData,
 } from '../../../shared/confirm-leave-dialog/confirm-leave-dialog.component';
+import {
+  SessionExpirationDialogComponent,
+  type SessionExpirationDialogResult,
+} from './session-expiration-dialog.component';
+import { SessionRetentionDialogComponent } from './session-retention-dialog.component';
+import {
+  QaChannelConfigurationDialogComponent,
+  type QaChannelConfigurationDialogData,
+} from './qa-channel-configuration-dialog.component';
 import { PresentationStartDialogComponent } from '../host-pairing/presentation-start-dialog.component';
 import {
   createQuizHistoryAccessProof,
@@ -98,6 +118,7 @@ import {
   selectConfidencePriorityQuestions,
   CONFIDENCE_SCALE_MAX,
   CONFIDENCE_SCALE_MIN,
+  QA_MAX_QUESTIONS_PER_SESSION,
   WORD_CLOUD_DEFAULT_MAX_NGRAM_LENGTH,
   WORD_CLOUD_PHRASE_MAX_NGRAM_LENGTH,
   isWordCloudLemmaLocale,
@@ -121,6 +142,8 @@ import {
   NumericStatsDTO,
   QaNlpCategory,
   QaQuestionDTO,
+  QaQuestionsInvalidationDTO,
+  QaQuestionsListDTO,
   QaQuestionSortMode,
   QaSummaryRuntimeDTO,
   QaSummarySource,
@@ -129,8 +152,14 @@ import {
   SessionFeedbackSummary,
   SessionConfidenceSummaryDTO,
   SessionInfoDTO,
+  SessionLifecycleHostDTO,
+  SessionExpirationPreviewDTO,
+  SessionQaConfigurationDTO,
   SessionPresenterSurface,
   SessionParticipantsPayload,
+  ParticipantArrivalDTO,
+  SessionParticipantPageDTO,
+  SessionParticipantSummaryDTO,
   TeamAssignment,
   SessionResultsPdfProfile,
   SessionStatus,
@@ -189,7 +218,12 @@ import { CountdownFingersComponent } from '../../../shared/countdown-fingers/cou
 import { MarkdownImageLightboxDirective } from '../../../shared/markdown-image-lightbox/markdown-image-lightbox.directive';
 import { questionTypeLabel } from '../../../shared/question-type-label';
 import { remainingCountdownSeconds } from '../session-countdown.util';
-import { recordServerTimeIso, recordServerTimeSample } from '../session-server-clock';
+import {
+  getSkewAdjustedNow,
+  recordServerTimeIso,
+  recordServerTimeSample,
+} from '../session-server-clock';
+import { SessionDeadlineController } from '../session-deadline';
 import { MusicEqualizerIconComponent } from '../../../shared/music-equalizer-icon/music-equalizer-icon.component';
 import { ModerationCompassIconComponent } from './moderation-compass-icon.component';
 import { PresenterIconComponent } from '../presenter-icon.component';
@@ -205,6 +239,7 @@ import {
   buildSessionResultsCsvFilename,
 } from '../../../core/export-filename.util';
 import { stripMarkdownToPlainText } from '../../../core/markdown-plain-text.util';
+import { localizeKnownServerError } from '../../../core/localize-known-server-message';
 import { SessionResultsExportService } from '../../../core/session-results-export.service';
 import {
   replaceEmojiShortcodes,
@@ -237,6 +272,11 @@ type NumericStatsDisplayItem = {
   value: string;
   caption: string | null;
 };
+
+const SESSION_LIFECYCLE_DIALOG_OVERLAY = {
+  panelClass: 'session-lifecycle-dialog-panel',
+  backdropClass: 'session-lifecycle-dialog-backdrop',
+} as const;
 
 const HOST_AUX_POLL_MS = 3000;
 const HOST_CLOCK_POLL_MS = 15000;
@@ -629,12 +669,36 @@ export class SessionHostComponent implements OnInit, OnDestroy {
   private keepHostTokenOnDeactivate = false;
   /** Lobby: Live-Teilnehmerliste (Story 2.2). */
   readonly participantsPayload = signal<SessionParticipantsPayload | null>(null);
+  readonly participantDirectoryOpen = signal(false);
+  readonly participantDirectoryEntries = signal<ParticipantArrivalDTO[]>([]);
+  readonly participantDirectoryTotal = signal(0);
+  readonly participantDirectoryPageIndex = signal(0);
+  readonly participantDirectoryNextCursor = signal<string | null>(null);
+  readonly participantDirectoryLoading = signal(false);
+  readonly participantDirectoryError = signal<string | null>(null);
+  readonly participantDirectorySearchDraft = signal('');
+  readonly participantDirectorySearch = signal('');
+  private participantDirectoryCurrentCursor: string | null = null;
+  private participantDirectoryCursorHistory: Array<string | null> = [];
+  private participantDirectorySearchTimer: ReturnType<typeof setTimeout> | null = null;
+  private participantDirectoryRequestId = 0;
   readonly foyerArrivalChips = signal<FoyerEntranceChip[]>([]);
   readonly hiddenFoyerParticipantIds = signal<Set<string>>(new Set());
   readonly foyerTeamDirections = signal<Record<string, 'left' | 'right'>>({});
   /** Live-Status für Steuerung (Story 2.3). */
   readonly statusUpdate = signal<SessionStatusUpdate | null>(null);
   readonly controlPending = signal(false);
+  readonly sessionEndPending = signal(false);
+  readonly sessionLifecycle = signal<SessionLifecycleHostDTO | null>(null);
+  readonly sessionLifecyclePending = signal(false);
+  private readonly sessionDeadline = new SessionDeadlineController();
+  private readonly postProcessingDeadline = new SessionDeadlineController();
+  private latestQaLifecycleRevision = -1;
+  readonly postProcessingEnded = signal(false);
+  private sessionLifecycleTimer: ReturnType<typeof setTimeout> | null = null;
+  private qaDeadlineTimer: ReturnType<typeof setTimeout> | null = null;
+  readonly qaDeadlineNow = signal(getSkewAdjustedNow());
+  private sessionLifecycleDialogOpen = false;
   readonly quizStartQuestionPending = signal(false);
   readonly steppedBackToPreviousResult = signal(false);
   readonly skipCurrentResultQuestionOnNext = signal(false);
@@ -642,6 +706,17 @@ export class SessionHostComponent implements OnInit, OnDestroy {
   readonly hostSteeringCallout = signal<HostSteeringCalloutState | null>(null);
   readonly activeChannel = signal<SessionChannelTab>('quiz');
   readonly qaQuestions = signal<QaQuestionDTO[]>([]);
+  readonly qaListTotalCount = signal(0);
+  readonly qaSessionQuestionCount = signal(0);
+  readonly qaSessionRemaining = signal(QA_MAX_QUESTIONS_PER_SESSION);
+  readonly qaSessionQuestionLimit = QA_MAX_QUESTIONS_PER_SESSION;
+  readonly qaListNextCursor = signal<string | null>(null);
+  readonly qaListRankingRevision = signal<string | null>(null);
+  readonly qaListPageIndex = signal(0);
+  readonly qaListPageLoading = signal(false);
+  private qaListCurrentCursor: string | null = null;
+  private qaListCursorHistory: Array<string | null> = [];
+  private qaListRequestGeneration = 0;
   readonly qaNlpEnabled = signal(false);
   readonly qaSummaryRuntime = signal<QaSummaryRuntimeDTO | null>(null);
   readonly qaSummaryEnabled = computed(() => this.qaSummaryRuntime()?.enabled === true);
@@ -655,6 +730,8 @@ export class SessionHostComponent implements OnInit, OnDestroy {
   readonly qaScrolledDown = signal(false);
   @ViewChild('hostQuestionCard') hostQuestionCardRef?: ElementRef<HTMLElement>;
   @ViewChild('sessionFinishedHeading') sessionFinishedHeadingRef?: ElementRef<HTMLElement>;
+  @ViewChild('postProcessingEndedHeading')
+  postProcessingEndedHeadingRef?: ElementRef<HTMLElement>;
   @ViewChild('hostResultsSection') hostResultsSectionRef?: ElementRef<HTMLElement>;
   @ViewChild('hostAnswersList') hostAnswersListRef?: ElementRef<HTMLElement>;
   @ViewChild('qaListContainer') qaListContainerRef?: ElementRef<HTMLElement>;
@@ -676,6 +753,7 @@ export class SessionHostComponent implements OnInit, OnDestroy {
   private voteProgressSub: Unsubscribable | null = null;
   private qaSub: Unsubscribable | null = null;
   private qaSubscriptionKey: string | null = null;
+  private qaSearchTimer: ReturnType<typeof setTimeout> | null = null;
   private hostRealtimeFallbackActive = false;
   private hostRealtimeFallbackRefreshInFlight = false;
   private hostRealtimeSubscriptionRetryTimer: ReturnType<typeof setTimeout> | null = null;
@@ -728,6 +806,8 @@ export class SessionHostComponent implements OnInit, OnDestroy {
   private readonly requestedInitialTab = this.route.snapshot?.queryParamMap?.get('tab') ?? null;
   /** Nach einmaligem Anwenden von `?tab=` nicht erneut erzwingen (sonst kein Kanalwechsel möglich). */
   private initialUrlTabApplied = false;
+  /** Serverautoritativen Einstiegskanal nur beim ersten Session-Snapshot wiederherstellen. */
+  private initialPreferredChannelApplied = false;
   readonly freetextResponses = signal<string[]>([]);
   readonly wordCloudExpanded = signal(false);
   readonly wordCloudInfo = signal($localize`Warte auf Live-Freitextdaten …`);
@@ -898,6 +978,10 @@ export class SessionHostComponent implements OnInit, OnDestroy {
   readonly qaWordCloudThemeAnalysisPending = signal(false);
   readonly qaWordCloudThemeFallbackActive = signal(false);
   readonly qaWordCloudThemeAnalysisResult = signal<AnalyzeWordCloudOutput | null>(null);
+  readonly qaWordCloudCoverage = signal<{
+    analyzedQuestionCount: number;
+    eligibleQuestionCount: number;
+  } | null>(null);
   readonly qaWordCloudSemanticStale = signal(false);
   readonly qaWordCloudLemmaPending = signal(false);
   readonly qaWordCloudLemmaResult = signal<AnalyzeWordCloudOutput | null>(null);
@@ -945,16 +1029,21 @@ export class SessionHostComponent implements OnInit, OnDestroy {
       this.stopHostPolling();
       return;
     }
+    void this.refreshDurableHostAccess();
     this.ensureParticipantSubscription();
     this.ensureStatusSubscription();
     this.ensureCurrentQuestionSubscription();
     this.ensureVoteProgressSubscription();
     this.startHostPolling();
     this.runAuxiliaryPollCycle();
+    void this.refreshSessionLifecycle();
     if (this.hostRealtimeFallbackActive) {
       this.runRealtimeFallbackCycle();
     }
   };
+  private hostAccessRefreshTimer: ReturnType<typeof setInterval> | null = null;
+  private hostAccessRefreshInFlight: Promise<void> | null = null;
+  private recoveryCardDialogOpened = false;
   readonly feedbackSummary = signal<SessionFeedbackSummary | null>(null);
   readonly finishedConfidenceSummary = signal<SessionConfidenceSummaryDTO | null>(null);
   /** Aktuelle Frage für Host (Text + Antwortoptionen), null wenn keine Frage aktiv. */
@@ -1375,6 +1464,10 @@ export class SessionHostComponent implements OnInit, OnDestroy {
       quickFeedback: false,
     };
   });
+  readonly qaDeadlineExpired = computed(() => {
+    const closesAt = this.session()?.channels?.qa.closesAt ?? this.session()?.qaClosesAt;
+    return !!closesAt && this.qaDeadlineNow() >= Date.parse(closesAt);
+  });
   readonly visibleChannels = computed<SessionChannelTab[]>(() => {
     const result: SessionChannelTab[] = [];
     const channels = this.channels();
@@ -1406,6 +1499,18 @@ export class SessionHostComponent implements OnInit, OnDestroy {
   readonly isQaSession = computed(
     () => this.channels().quiz === false && this.channels().qa === true,
   );
+  /** Frist und Retention sind mehrtägiges Q&A-Chrome, nicht Teil der Quiz-/Blitzlicht-Live-Kapsel. */
+  readonly showQaChannelLifecycleChrome = computed(
+    () => this.activeChannel() === 'qa' && this.channels().qa,
+  );
+  readonly showQaRetentionAction = computed(() => {
+    const lifecycle = this.sessionLifecycle();
+    return (
+      this.showQaChannelLifecycleChrome() &&
+      Boolean(lifecycle?.postProcessingEndsAt) &&
+      Boolean(lifecycle?.expectedDeletionAt)
+    );
+  });
   readonly isPlayfulPreset = computed(() => this.themePreset.preset() === 'spielerisch');
   readonly canShowFoyerEntrance = computed(() => {
     const session = this.session();
@@ -1620,10 +1725,14 @@ export class SessionHostComponent implements OnInit, OnDestroy {
   });
   readonly qaSortMode = signal<QaQuestionSortMode>('BEST');
   readonly qaShowPinnedOnly = signal(false);
+  readonly qaSearchDraft = signal('');
+  readonly qaSearch = signal('');
   readonly qaForumQuestions = computed(() =>
     this.qaQuestions().filter((question) => question.status !== 'DELETED'),
   );
-  readonly qaForumQuestionCount = computed(() => this.qaForumQuestions().length);
+  readonly qaForumQuestionCount = computed(() =>
+    Math.max(this.qaListTotalCount(), this.qaForumQuestions().length),
+  );
   readonly qaFilteredQuestions = computed(() => {
     const all = this.qaForumQuestions();
     return this.qaShowPinnedOnly() ? all.filter((q) => q.status === 'PINNED') : all;
@@ -1808,10 +1917,7 @@ export class SessionHostComponent implements OnInit, OnDestroy {
       return null;
     }
 
-    if (
-      isWordCloudPhraseAnalysisVariant(this.qaWordCloudEffectiveAnalysisVariant()) &&
-      (this.qaWordCloudThemeAnalysisResult()?.entries.length ?? 0) > 0
-    ) {
+    if ((this.qaWordCloudThemeAnalysisResult()?.entries.length ?? 0) > 0) {
       return null;
     }
 
@@ -1847,7 +1953,7 @@ export class SessionHostComponent implements OnInit, OnDestroy {
     }
 
     if (!isWordCloudPhraseAnalysisVariant(this.qaWordCloudEffectiveAnalysisVariant())) {
-      return null;
+      return this.qaWordCloudThemeAnalysisResult()?.entries ?? null;
     }
 
     const themeEntries = this.qaWordCloudPhraseFallbackEntries();
@@ -2079,9 +2185,11 @@ export class SessionHostComponent implements OnInit, OnDestroy {
       this.syncWordCloudOverlayTop();
       const dialogRef = this.dialog.open(QaWordCloudDialogComponent, {
         data: {
-          responses: () => this.qaWordCloudResponses(),
-          weightedResponses: () => this.qaWordCloudWeightedResponses(),
-          terms: () => this.qaWordCloudVisibleTerms(),
+          // Der sichtbare Client-Ausschnitt ist nie der kanonische Korpus.
+          // Inhalte erscheinen erst aus der serverseitig gerankten Auswahl.
+          responses: () => [],
+          weightedResponses: () => [],
+          terms: () => null,
           analysisEntries: () => this.qaWordCloudAnalysisEntries(),
           title: () => this.qaWordCloudTitle(),
           eyebrow: this.qaWordCloudEyebrow,
@@ -2090,6 +2198,8 @@ export class SessionHostComponent implements OnInit, OnDestroy {
           wordLabelPlural: () => this.qaWordCloudWordLabelPlural(),
           weightingHint: () => this.qaWordCloudWeightingHint(),
           tooltipMetricLabel: () => this.qaWordCloudMetricLabel(),
+          analyzedQuestionCount: () => this.qaWordCloudCoverage()?.analyzedQuestionCount ?? 0,
+          eligibleQuestionCount: () => this.qaWordCloudCoverage()?.eligibleQuestionCount ?? 0,
           analysisModelVersion: () => this.qaWordCloudThemeAnalysisResult()?.modelVersion ?? null,
           analysisVariant: () => this.qaWordCloudEffectiveAnalysisVariant(),
           setAnalysisVariant: (variant: WordCloudAnalysisVariant) =>
@@ -2323,7 +2433,7 @@ export class SessionHostComponent implements OnInit, OnDestroy {
     const previousChannel = this.activeChannel();
     const focusHint = this.resolveCompassFocusHint(source, cardKind);
     if (target.channel === 'qa') {
-      this.qaShowPinnedOnly.set(false);
+      await this.setQaPinnedFilter(false);
       this.clearQaAuthorSelection();
     }
     await this.selectChannel(target.channel);
@@ -3083,6 +3193,7 @@ export class SessionHostComponent implements OnInit, OnDestroy {
   }
 
   private previousStatus: string | null = null;
+  private terminalStatusObserved = false;
   private previousReadingReadyQuestionId: string | null = null;
   private previousAllConnectedParticipantsReady = false;
   private priorLobbyForAutoJoinMenu = false;
@@ -3976,6 +4087,61 @@ export class SessionHostComponent implements OnInit, OnDestroy {
   /** QR-Code als Data-URL für joinUrl (Beamer-tauglich, Story 2.1b). */
   readonly qrDataUrl = signal<string>('');
 
+  private refreshDurableHostAccess(): Promise<void> {
+    if (this.hostAccessRefreshInFlight) return this.hostAccessRefreshInFlight;
+    if (this.isPairedHostClient()) return Promise.resolve();
+    const browserCapability = getHostBrowserCapability(this.code);
+    if (!browserCapability) return Promise.resolve();
+    this.hostAccessRefreshInFlight = trpc.session.issueHostAccessToken
+      .mutate({ code: this.code, browserCapability })
+      .then((issued) => {
+        setHostToken(this.code, issued.hostToken);
+        refreshTrpcWsBinding();
+      })
+      .catch(() => {
+        // Der bestehende Token bleibt bis zu seinem eigenen Ablauf nutzbar; Reconnects bleiben fail-closed.
+      })
+      .finally(() => {
+        this.hostAccessRefreshInFlight = null;
+      });
+    return this.hostAccessRefreshInFlight;
+  }
+
+  private startHostAccessRefresh(): void {
+    if (this.hostAccessRefreshTimer || this.isPairedHostClient()) return;
+    void this.refreshDurableHostAccess();
+    this.hostAccessRefreshTimer = setInterval(
+      () => void this.refreshDurableHostAccess(),
+      10 * 60 * 1000,
+    );
+  }
+
+  private showStagedRecoveryCard(): void {
+    if (this.recoveryCardDialogOpened || !this.channels().qa) return;
+    const recoveryCard = getStagedHostRecoveryCard(this.code);
+    if (!recoveryCard) return;
+    this.recoveryCardDialogOpened = true;
+    this.dialog
+      .open(HostRecoveryCardDialogComponent, {
+        data: recoveryCard,
+        disableClose: true,
+        autoFocus: 'dialog',
+        restoreFocus: true,
+        maxWidth: 'min(38rem, calc(100vw - 2rem))',
+        ...SESSION_LIFECYCLE_DIALOG_OVERLAY,
+        panelClass: ['session-lifecycle-dialog-panel', 'host-recovery-card-dialog-panel'],
+        backdropClass: ['session-lifecycle-dialog-backdrop', 'host-recovery-card-dialog-backdrop'],
+        ariaDescribedBy: 'host-recovery-card-description',
+      })
+      .afterClosed()
+      .subscribe((confirmed) => {
+        this.recoveryCardDialogOpened = false;
+        if (confirmed === true) {
+          clearStagedHostRecoveryCard(this.code);
+        }
+      });
+  }
+
   async ngOnInit(): Promise<void> {
     if (this.code.length !== 6) return;
     if (this.isPairedHostClient()) {
@@ -3984,6 +4150,7 @@ export class SessionHostComponent implements OnInit, OnDestroy {
     if (typeof document !== 'undefined') {
       document.addEventListener('visibilitychange', this.onVisibilityChange);
     }
+    this.startHostAccessRefresh();
     // Preset "Seriös/Business" startet standardmäßig ohne Musik.
     this.musicMuted.set(this.themePreset.preset() === 'serious');
     try {
@@ -3992,6 +4159,8 @@ export class SessionHostComponent implements OnInit, OnDestroy {
       this.session.set(null);
       return;
     }
+    await this.refreshSessionLifecycle();
+    this.showStagedRecoveryCard();
     void this.refreshPairedHostStatus();
     try {
       await this.refreshParticipantsPayload();
@@ -4034,7 +4203,400 @@ export class SessionHostComponent implements OnInit, OnDestroy {
     this.keepHostTokenOnDeactivate = false;
     this.session.set(session);
     this.syncQaTitleDraftFromSession();
+    this.scheduleQaDeadlineCheck();
     return session;
+  }
+
+  private async refreshSessionLifecycle(): Promise<void> {
+    if (!this.code || this.sessionLifecyclePending() || this.hostAccessRevoked()) {
+      return;
+    }
+    this.sessionLifecyclePending.set(true);
+    try {
+      const lifecycle = await trpc.session.getLifecycleForHost.query({
+        code: this.code.toUpperCase(),
+      });
+      this.sessionLifecycle.set(lifecycle);
+      this.sessionDeadline.applySnapshot(lifecycle);
+      this.session.update((current) =>
+        current
+          ? {
+              ...current,
+              expiresAt: lifecycle.expiresAt,
+              qaClosesAt: lifecycle.qaClosesAt,
+              serverNow: lifecycle.serverNow,
+              sessionLifecycleRevision: lifecycle.sessionLifecycleRevision,
+            }
+          : current,
+      );
+      this.scheduleQaDeadlineCheck();
+      if (lifecycle.status === 'FINISHED' || this.sessionDeadline.isExpired()) {
+        this.statusUpdate.set({
+          status: 'FINISHED',
+          currentQuestion: null,
+          currentRound: 1,
+          expiresAt: lifecycle.expiresAt,
+          serverNow: lifecycle.serverNow,
+          sessionLifecycleRevision: lifecycle.sessionLifecycleRevision,
+          endedAt: lifecycle.endedAt,
+        });
+        if (lifecycle.postProcessingEndsAt) {
+          this.postProcessingDeadline.applySnapshot({
+            status: lifecycle.hostContentAccessAllowed ? 'ACTIVE' : 'FINISHED',
+            serverNow: lifecycle.serverNow,
+            expiresAt: lifecycle.postProcessingEndsAt,
+            sessionLifecycleRevision: lifecycle.sessionLifecycleRevision,
+          });
+        }
+        if (
+          !lifecycle.hostContentAccessAllowed ||
+          !lifecycle.postProcessingEndsAt ||
+          this.postProcessingDeadline.isExpired()
+        ) {
+          this.stopSessionLifecycleTimer();
+          this.closeHostPostProcessing();
+        } else {
+          this.postProcessingEnded.set(false);
+          this.scheduleHostPostProcessingCheck();
+          this.ensureQaSubscription();
+          void this.refreshQaQuestions({ silent: true });
+        }
+        return;
+      }
+      this.scheduleSessionLifecycleCheck();
+    } catch {
+      // Die Status-Subscription bleibt maßgeblich; Warnungen werden beim nächsten Snapshot erneut geplant.
+    } finally {
+      this.sessionLifecyclePending.set(false);
+    }
+  }
+
+  private scheduleSessionLifecycleCheck(): void {
+    this.stopSessionLifecycleTimer();
+    const remaining = this.sessionDeadline.remainingMs();
+    if (remaining === null || remaining <= 0) {
+      if (this.sessionDeadline.isExpired()) {
+        this.statusUpdate.set({
+          status: 'FINISHED',
+          currentQuestion: null,
+          currentRound: 1,
+        });
+      }
+      return;
+    }
+    this.maybeOpenSessionExpirationWarning(remaining);
+    const nextBoundary =
+      remaining > 30 * 60_000
+        ? remaining - 30 * 60_000
+        : remaining > 5 * 60_000
+          ? remaining - 5 * 60_000
+          : remaining;
+    this.sessionLifecycleTimer = setTimeout(
+      () => {
+        this.sessionLifecycleTimer = null;
+        this.scheduleSessionLifecycleCheck();
+      },
+      Math.max(1, Math.min(nextBoundary, 60_000)),
+    );
+  }
+
+  private stopSessionLifecycleTimer(): void {
+    if (this.sessionLifecycleTimer) {
+      clearTimeout(this.sessionLifecycleTimer);
+      this.sessionLifecycleTimer = null;
+    }
+  }
+
+  private scheduleQaDeadlineCheck(): void {
+    if (this.qaDeadlineTimer) {
+      clearTimeout(this.qaDeadlineTimer);
+      this.qaDeadlineTimer = null;
+    }
+    this.qaDeadlineNow.set(getSkewAdjustedNow());
+    const closesAt = this.session()?.channels?.qa.closesAt ?? this.session()?.qaClosesAt;
+    if (!closesAt || this.effectiveStatus() === 'FINISHED') {
+      return;
+    }
+    const remainingMs = Date.parse(closesAt) - this.qaDeadlineNow();
+    if (remainingMs <= 0) {
+      this.session.update((current) =>
+        current?.channels
+          ? {
+              ...current,
+              channels: {
+                ...current.channels,
+                qa: {
+                  ...current.channels.qa,
+                  open: false,
+                  state: 'DEADLINE_EXPIRED',
+                },
+              },
+            }
+          : current,
+      );
+      void this.refreshQaQuestions({ silent: true });
+      return;
+    }
+    this.qaDeadlineTimer = setTimeout(
+      () => {
+        this.qaDeadlineTimer = null;
+        this.scheduleQaDeadlineCheck();
+      },
+      Math.max(1, Math.min(remainingMs, 60_000)),
+    );
+  }
+
+  private scheduleHostPostProcessingCheck(): void {
+    this.stopSessionLifecycleTimer();
+    const remaining = this.postProcessingDeadline.remainingMs();
+    if (remaining === null || remaining <= 0 || this.postProcessingDeadline.isExpired()) {
+      this.closeHostPostProcessing();
+      return;
+    }
+    this.sessionLifecycleTimer = setTimeout(
+      () => {
+        this.sessionLifecycleTimer = null;
+        this.scheduleHostPostProcessingCheck();
+      },
+      Math.max(1, Math.min(remaining, 60_000)),
+    );
+  }
+
+  private maybeOpenSessionExpirationWarning(remainingMs: number): void {
+    const lifecycle = this.sessionLifecycle();
+    if (!lifecycle || this.sessionLifecycleDialogOpen || remainingMs > 30 * 60_000) {
+      return;
+    }
+    const warningMinutes: 30 | 5 = remainingMs <= 5 * 60_000 ? 5 : 30;
+    const storageKey = `session-expiration-warning:${this.code}:${lifecycle.sessionLifecycleRevision}:${warningMinutes}`;
+    try {
+      if (sessionStorage.getItem(storageKey) === '1') return;
+      sessionStorage.setItem(storageKey, '1');
+    } catch {
+      // SessionStorage ist optional; ohne Speicher kann die Warnung nach Reload erneut erscheinen.
+    }
+    void this.openSessionExpirationDialog(
+      { mode: 'GLOBAL_WARNING', warningMinutes, lifecycle },
+      this.document.activeElement instanceof HTMLElement ? this.document.activeElement : null,
+    );
+  }
+
+  async openSessionRetentionDetails(event?: Event): Promise<void> {
+    const lifecycle = this.sessionLifecycle();
+    if (!lifecycle?.postProcessingEndsAt || !lifecycle.expectedDeletionAt) {
+      return;
+    }
+    const focusReturn =
+      event?.currentTarget instanceof HTMLElement
+        ? event.currentTarget
+        : this.document.activeElement instanceof HTMLElement
+          ? this.document.activeElement
+          : null;
+    const dialogRef = this.dialog.open(SessionRetentionDialogComponent, {
+      data: { lifecycle },
+      width: 'min(32rem, calc(100vw - 2rem))',
+      maxWidth: '100vw',
+      autoFocus: 'first-tabbable',
+      restoreFocus: false,
+      ...SESSION_LIFECYCLE_DIALOG_OVERLAY,
+    });
+    await firstValueFrom(dialogRef.afterClosed());
+    if (focusReturn?.isConnected) {
+      focusReturn.focus({ preventScroll: true });
+    }
+  }
+
+  async openSessionLifecycleConfiguration(event?: Event): Promise<void> {
+    const lifecycle = this.sessionLifecycle();
+    if (!lifecycle?.configurationAllowed || this.sessionLifecycleDialogOpen) {
+      return;
+    }
+    const focusReturn =
+      event?.currentTarget instanceof HTMLElement
+        ? event.currentTarget
+        : this.document.activeElement instanceof HTMLElement
+          ? this.document.activeElement
+          : null;
+    await this.openSessionExpirationDialog(
+      { mode: 'INITIAL_CONFIGURATION', lifecycle },
+      focusReturn,
+    );
+  }
+
+  private async openSessionExpirationDialog(
+    data:
+      | {
+          mode: 'INITIAL_CONFIGURATION';
+          lifecycle: SessionLifecycleHostDTO;
+        }
+      | {
+          mode: 'GLOBAL_WARNING';
+          warningMinutes: 30 | 5;
+          lifecycle: SessionLifecycleHostDTO;
+        },
+    focusReturn: HTMLElement | null,
+  ): Promise<void> {
+    if (this.sessionLifecycleDialogOpen) return;
+    this.sessionLifecycleDialogOpen = true;
+    try {
+      const result = await firstValueFrom(
+        this.dialog
+          .open(SessionExpirationDialogComponent, {
+            data,
+            width: 'min(36rem, calc(100vw - 2rem))',
+            maxWidth: '100vw',
+            autoFocus: 'first-tabbable',
+            restoreFocus: false,
+            ...SESSION_LIFECYCLE_DIALOG_OVERLAY,
+          })
+          .afterClosed(),
+      );
+      if (result) {
+        await this.confirmAndChangeSessionExpiration(result, focusReturn);
+      }
+    } finally {
+      this.sessionLifecycleDialogOpen = false;
+      if (focusReturn?.isConnected) {
+        focusReturn.focus({ preventScroll: true });
+      }
+      this.scheduleSessionLifecycleCheck();
+    }
+  }
+
+  private async confirmAndChangeSessionExpiration(
+    selection: SessionExpirationDialogResult,
+    focusReturn: HTMLElement | null,
+  ): Promise<void> {
+    try {
+      const preview =
+        selection.purpose === 'INITIAL_CONFIGURATION'
+          ? await trpc.session.previewExpiration.query({
+              code: this.code.toUpperCase(),
+              purpose: selection.purpose,
+              selection: selection.selection,
+              timeZone: selection.timeZone,
+            })
+          : await trpc.session.previewExpiration.query({
+              code: this.code.toUpperCase(),
+              purpose: selection.purpose,
+              selection: selection.selection,
+            });
+      const confirmed = await this.confirmSessionExpirationPreview(preview, focusReturn);
+      if (!confirmed) return;
+
+      const updated =
+        selection.purpose === 'INITIAL_CONFIGURATION'
+          ? await trpc.session.changeExpiration.mutate({
+              code: this.code.toUpperCase(),
+              purpose: selection.purpose,
+              selection: selection.selection,
+              timeZone: selection.timeZone,
+              expectedLifecycleRevision: preview.expectedLifecycleRevision,
+              confirmedExpiresAt: preview.newExpiresAt,
+            })
+          : await trpc.session.changeExpiration.mutate({
+              code: this.code.toUpperCase(),
+              purpose: selection.purpose,
+              selection: selection.selection,
+              expectedLifecycleRevision: preview.expectedLifecycleRevision,
+              confirmedExpiresAt: preview.newExpiresAt,
+            });
+      this.sessionLifecycle.set(updated);
+      this.sessionDeadline.applySnapshot(updated);
+      this.session.update((current) =>
+        current
+          ? {
+              ...current,
+              expiresAt: updated.expiresAt,
+              serverNow: updated.serverNow,
+              sessionLifecycleRevision: updated.sessionLifecycleRevision,
+            }
+          : current,
+      );
+      this.snackBar.open(
+        $localize`:@@sessionLifecycle.changedSuccess:Die Sessionfrist wurde gespeichert.`,
+        $localize`:@@common.close:Schließen`,
+        { duration: 5000 },
+      );
+    } catch (error) {
+      this.snackBar.open(
+        localizeKnownServerError(
+          error,
+          $localize`:@@sessionLifecycle.changeError:Die Sessionfrist konnte nicht geändert werden.`,
+        ),
+        $localize`:@@common.close:Schließen`,
+        { duration: 7000 },
+      );
+      await this.refreshSessionLifecycle();
+    }
+  }
+
+  private async confirmSessionExpirationPreview(
+    preview: SessionExpirationPreviewDTO,
+    focusReturn: HTMLElement | null,
+  ): Promise<boolean> {
+    const consequences = [
+      $localize`:@@sessionLifecycle.previewOld:Bislang: ${this.formatSessionLifecycleDateTime(
+        preview.oldExpiresAt,
+        preview.timeZone,
+      )}`,
+      $localize`:@@sessionLifecycle.previewNew:Neu: ${this.formatSessionLifecycleDateTime(
+        preview.newExpiresAt,
+        preview.timeZone,
+      )}`,
+    ];
+    if (preview.purpose === 'GLOBAL_EXTENSION' && preview.qaClosesAt) {
+      consequences.push(
+        $localize`:@@sessionLifecycle.previewQaUnchanged:Q&A bleibt unverändert bei: ${this.formatSessionLifecycleDateTime(
+          preview.qaClosesAt,
+          preview.timeZone,
+        )}`,
+      );
+    }
+    consequences.push(
+      $localize`:@@sessionLifecycle.previewPostProcessing:Host-Nachbereitung bis: ${this.formatSessionLifecycleDateTime(
+        preview.projectedPostProcessingEndsAt,
+        preview.timeZone,
+      )}`,
+      $localize`:@@sessionLifecycle.previewPurgeEligible:Sessiondaten frühestens löschbar: ${this.formatSessionLifecycleDateTime(
+        preview.projectedPurgeEligibleAt,
+        preview.timeZone,
+      )}`,
+    );
+    const dialogRef = this.dialog.open(ConfirmLeaveDialogComponent, {
+      data: {
+        title: $localize`:@@sessionLifecycle.previewTitle:Neue Sessionfrist bestätigen`,
+        message:
+          preview.purpose === 'GLOBAL_EXTENSION'
+            ? $localize`:@@sessionLifecycle.previewExtensionMessage:Nur das globale Sessionende wird verlängert.`
+            : $localize`:@@sessionLifecycle.previewInitialMessage:Die Anfangsfrist und der anfängliche Q&A-Schluss werden gemeinsam gespeichert.`,
+        consequences,
+        confirmLabel: $localize`:@@sessionLifecycle.previewConfirm:Frist verbindlich speichern`,
+        cancelLabel: $localize`:@@sessionLifecycle.previewCancel:Abbrechen`,
+      } satisfies ConfirmLeaveDialogData,
+      width: 'min(32rem, calc(100vw - 2rem))',
+      maxWidth: '100vw',
+      autoFocus: 'first-tabbable',
+      restoreFocus: false,
+      ...SESSION_LIFECYCLE_DIALOG_OVERLAY,
+    });
+    const confirmed = (await firstValueFrom(dialogRef.afterClosed())) === true;
+    if (!confirmed && focusReturn?.isConnected) {
+      focusReturn.focus({ preventScroll: true });
+    }
+    return confirmed;
+  }
+
+  formatSessionLifecycleDateTime(value: string, timeZone?: string): string {
+    return new Intl.DateTimeFormat(this.localeId, {
+      year: 'numeric',
+      month: 'short',
+      day: '2-digit',
+      hour: '2-digit',
+      minute: '2-digit',
+      timeZone: timeZone ?? this.sessionLifecycle()?.timeZone ?? 'UTC',
+      timeZoneName: 'short',
+    }).format(new Date(value));
   }
 
   private ensureParticipantSubscription(): void {
@@ -4045,7 +4607,7 @@ export class SessionHostComponent implements OnInit, OnDestroy {
       { code: this.code.toUpperCase() },
       {
         onData: (data) => {
-          this.updateParticipantsPayload(data);
+          this.updateParticipantsPayload(this.participantSummaryToPayload(data));
         },
         onError: (error) => {
           this.participantSub?.unsubscribe();
@@ -4071,9 +4633,16 @@ export class SessionHostComponent implements OnInit, OnDestroy {
           if (data.serverTime) {
             recordServerTimeIso(data.serverTime);
           }
+          if (data.serverNow) {
+            recordServerTimeIso(data.serverNow);
+          }
           const update = {
             status: data.status as SessionStatusUpdate['status'],
             currentQuestion: data.currentQuestion,
+            expiresAt: data.expiresAt,
+            serverNow: data.serverNow,
+            sessionLifecycleRevision: data.sessionLifecycleRevision,
+            endedAt: data.endedAt,
             activeAt: data.activeAt ?? undefined,
             timer: data.timer,
             currentRound: data.currentRound,
@@ -4095,6 +4664,45 @@ export class SessionHostComponent implements OnInit, OnDestroy {
           }
           this.clearFoyerArrivalStateWhenLeavingLobby(update.status);
           this.statusUpdate.set(update);
+          if (data.channels || data.preferredChannel) {
+            this.session.update((current) =>
+              current
+                ? {
+                    ...current,
+                    ...(data.channels ? { channels: data.channels } : {}),
+                    ...(data.preferredChannel ? { preferredChannel: data.preferredChannel } : {}),
+                  }
+                : current,
+            );
+            this.ensureActiveChannel();
+            this.scheduleQaDeadlineCheck();
+          }
+          if (
+            data.serverNow &&
+            data.expiresAt &&
+            data.sessionLifecycleRevision !== undefined &&
+            this.sessionDeadline.applySnapshot(data)
+          ) {
+            this.session.update((current) =>
+              current
+                ? {
+                    ...current,
+                    expiresAt: data.expiresAt,
+                    serverNow: data.serverNow,
+                    sessionLifecycleRevision: data.sessionLifecycleRevision,
+                  }
+                : current,
+            );
+            const lifecycle = this.sessionLifecycle();
+            if (
+              update.status === 'FINISHED' ||
+              (lifecycle && lifecycle.sessionLifecycleRevision !== data.sessionLifecycleRevision)
+            ) {
+              void this.refreshSessionLifecycle();
+            } else {
+              this.scheduleSessionLifecycleCheck();
+            }
+          }
           this.syncCountdownFromStatusUpdate(update);
         },
         onError: (error) => {
@@ -4207,7 +4815,7 @@ export class SessionHostComponent implements OnInit, OnDestroy {
       await this.refreshLiveFreetext();
     }
     if (this.shouldPollQaQuestions()) {
-      await this.refreshQaQuestions();
+      await this.refreshQaQuestions({ silent: true });
     }
     if (this.shouldPollQuickFeedback()) {
       await this.refreshQuickFeedbackResult();
@@ -4327,6 +4935,10 @@ export class SessionHostComponent implements OnInit, OnDestroy {
     if (typeof document !== 'undefined') {
       document.removeEventListener('visibilitychange', this.onVisibilityChange);
     }
+    if (this.hostAccessRefreshTimer) {
+      clearInterval(this.hostAccessRefreshTimer);
+      this.hostAccessRefreshTimer = null;
+    }
     this.suppressJoinMenuAutopen = true;
     this.hostDisplayMode.setHostSessionActive(false);
     this.participantSub?.unsubscribe();
@@ -4340,6 +4952,14 @@ export class SessionHostComponent implements OnInit, OnDestroy {
     this.qaSub?.unsubscribe();
     this.qaSub = null;
     this.qaSubscriptionKey = null;
+    if (this.qaSearchTimer) {
+      clearTimeout(this.qaSearchTimer);
+      this.qaSearchTimer = null;
+    }
+    if (this.participantDirectorySearchTimer) {
+      clearTimeout(this.participantDirectorySearchTimer);
+      this.participantDirectorySearchTimer = null;
+    }
     this.clearQaWordCloudThemeAnalysisTimer();
     this.clearFreetextWordCloudSemanticAnalysisTimer();
     this.clearQaWordCloudSemanticWaitHint();
@@ -4351,6 +4971,11 @@ export class SessionHostComponent implements OnInit, OnDestroy {
     this.clearQuizAttachSessionInfoRetry();
     this.clearHostRealtimeSubscriptionRetry();
     this.stopHostPolling();
+    this.stopSessionLifecycleTimer();
+    if (this.qaDeadlineTimer) {
+      clearTimeout(this.qaDeadlineTimer);
+      this.qaDeadlineTimer = null;
+    }
     this.clearFoyerArrivalState();
     this.stopCountdown();
     this.stopQaSummaryPolling();
@@ -4918,17 +5543,20 @@ export class SessionHostComponent implements OnInit, OnDestroy {
    * CanDeactivate-Guard-Hook: zeigt einen Bestätigungsdialog,
    * wenn die Session noch läuft.
    */
-  async onSessionEndAnchorClick(): Promise<void> {
-    if (!this.isSessionActive()) {
+  async onSessionEndAnchorClick(event?: Event): Promise<void> {
+    if (!this.isSessionActive() || this.sessionEndPending()) {
       return;
     }
-    const hasExportableResults = await this.hasExportableResultsAfterSessionEnd();
-    const shouldShowFinishedView = this.activeChannel() !== 'quickFeedback' && hasExportableResults;
-    const confirmed = await this.confirmSessionEnd(undefined, hasExportableResults);
-    if (!confirmed || !this.code) {
-      return;
-    }
+    const focusReturn = event?.currentTarget instanceof HTMLElement ? event.currentTarget : null;
+    this.sessionEndPending.set(true);
+    let shouldShowFinishedView = false;
     try {
+      const hasExportableResults = await this.hasExportableResultsAfterSessionEnd();
+      shouldShowFinishedView = this.activeChannel() !== 'quickFeedback' && hasExportableResults;
+      const confirmed = await this.confirmSessionEnd(undefined, hasExportableResults, focusReturn);
+      if (!confirmed || !this.code) {
+        return;
+      }
       if (shouldShowFinishedView) {
         await this.endSession();
       } else {
@@ -4939,6 +5567,8 @@ export class SessionHostComponent implements OnInit, OnDestroy {
         ? () => void this.endSession()
         : () => void this.retryEndSessionAndNavigateHome();
       this.openHostSteeringCalloutForSteeringFailure(retry);
+    } finally {
+      this.sessionEndPending.set(false);
     }
   }
 
@@ -5031,12 +5661,15 @@ export class SessionHostComponent implements OnInit, OnDestroy {
   private async confirmSessionEnd(
     onCancelUserGesture?: () => void,
     hasExportableResults = false,
+    focusReturn: HTMLElement | null = this.document.activeElement instanceof HTMLElement
+      ? this.document.activeElement
+      : null,
   ): Promise<boolean> {
     const participants = this.participantsPayload()?.participantCount ?? 0;
     const shouldWarnAboutBonusCodes = await this.shouldWarnAboutBonusCodesOnLeave();
 
     const consequences: string[] = [
-      $localize`:@@sessionHost.leaveConsequenceParticipantsHome:Teilnehmende und die Präsentationsansicht werden zur Startseite weitergeleitet.`,
+      $localize`:@@sessionHost.leaveConsequenceParticipantAccessEnds:Teilnehmende können danach nicht mehr beitreten oder Q&A-Inhalte aufrufen.`,
       $localize`:@@sessionHost.leaveConsequenceSessionEnds:Die Session endet für alle; ein Fortsetzen mit demselben Code ist nicht möglich.`,
     ];
     if (participants > 0) {
@@ -5061,19 +5694,24 @@ export class SessionHostComponent implements OnInit, OnDestroy {
 
     const dialogRef = this.dialog.open(ConfirmLeaveDialogComponent, {
       data: {
-        title: $localize`Session verlassen?`,
-        message: $localize`Deine Session ist noch aktiv.`,
+        title: $localize`:@@sessionHost.endGlobalSessionTitle:Gesamte Session beenden?`,
+        message: $localize`:@@sessionHost.endGlobalSessionMessage:Damit beendest du Quiz, Q&A und Blitzlicht für alle.`,
         consequences,
-        confirmLabel: $localize`Trotzdem verlassen`,
-        cancelLabel: $localize`Zurück zur Session`,
+        confirmLabel: $localize`:@@sessionHost.endGlobalSessionConfirm:Gesamte Session beenden`,
+        cancelLabel: $localize`:@@sessionHost.endGlobalSessionCancel:Abbrechen`,
         onCancelUserGesture,
       } satisfies ConfirmLeaveDialogData,
       width: 'min(26rem, calc(100vw - 1.5rem))',
       maxWidth: '100vw',
       autoFocus: 'dialog',
+      restoreFocus: false,
     });
 
-    return (await firstValueFrom(dialogRef.afterClosed())) === true;
+    const confirmed = (await firstValueFrom(dialogRef.afterClosed())) === true;
+    if (!confirmed && focusReturn?.isConnected) {
+      focusReturn.focus({ preventScroll: true });
+    }
+    return confirmed;
   }
 
   private async shouldWarnAboutBonusCodesOnLeave(): Promise<boolean> {
@@ -5408,6 +6046,12 @@ export class SessionHostComponent implements OnInit, OnDestroy {
   effectiveStatus(): SessionInfoDTO['status'] | null {
     const su = this.statusUpdate();
     const s = this.session();
+    if (su?.status === 'FINISHED' || s?.status === 'FINISHED') {
+      this.terminalStatusObserved = true;
+    }
+    if (this.terminalStatusObserved) {
+      return 'FINISHED';
+    }
     return su?.status ?? s?.status ?? null;
   }
 
@@ -5448,11 +6092,11 @@ export class SessionHostComponent implements OnInit, OnDestroy {
 
   /** i18n: Singular label for participant count. */
   participantLabelSingular(): string {
-    return $localize`:@@sessionHost.participantCountOne:teilnehmende Person`;
+    return $localize`:@@sessionHost.participantCountOne:Person insgesamt beigetreten`;
   }
   /** i18n: Plural label for participant count. */
   participantLabelPlural(): string {
-    return $localize`:@@sessionHost.participantCountMany:Teilnehmende`;
+    return $localize`:@@sessionHost.participantCountMany:insgesamt beigetreten`;
   }
 
   connectedParticipantStatusLabel(
@@ -5462,16 +6106,15 @@ export class SessionHostComponent implements OnInit, OnDestroy {
     if (
       typeof connectedCount !== 'number' ||
       typeof totalParticipantCount !== 'number' ||
-      connectedCount <= 0 ||
-      totalParticipantCount <= 0 ||
-      connectedCount >= totalParticipantCount
+      connectedCount < 0 ||
+      totalParticipantCount < 0
     ) {
       return null;
     }
     if (connectedCount === 1) {
-      return $localize`:@@sessionHost.connectedParticipantCountOne:1 live verbunden`;
+      return $localize`:@@sessionHost.connectedParticipantCountOne:1 jetzt verbunden`;
     }
-    return $localize`:@@sessionHost.connectedParticipantCountMany:${formatLocaleCount(connectedCount, this.localeId)}:connectedCount: live verbunden`;
+    return $localize`:@@sessionHost.connectedParticipantCountMany:${formatLocaleCount(connectedCount, this.localeId)}:connectedCount: jetzt verbunden`;
   }
 
   teamMemberLabel(count: number): string {
@@ -6473,11 +7116,158 @@ export class SessionHostComponent implements OnInit, OnDestroy {
       return;
     }
     try {
-      const payload = await trpc.session.getParticipants.query({ code: this.code.toUpperCase() });
-      this.updateParticipantsPayload(payload, this.participantBaselineReady);
+      const summary = await trpc.session.getParticipantSummary.query({
+        code: this.code.toUpperCase(),
+      });
+      this.updateParticipantsPayload(
+        this.participantSummaryToPayload(summary),
+        this.participantBaselineReady,
+      );
     } catch {
       // Subscription updates remain the primary live path; keep the last payload on transient failures.
     }
+  }
+
+  async toggleParticipantDirectory(): Promise<void> {
+    const open = !this.participantDirectoryOpen();
+    this.participantDirectoryOpen.set(open);
+    if (open && this.participantDirectoryEntries().length === 0) {
+      await this.resetParticipantDirectory();
+    }
+  }
+
+  onParticipantDirectorySearchInput(value: string): void {
+    this.participantDirectorySearchDraft.set(value);
+    if (this.participantDirectorySearchTimer) {
+      clearTimeout(this.participantDirectorySearchTimer);
+    }
+    this.participantDirectorySearchTimer = setTimeout(() => {
+      this.participantDirectorySearchTimer = null;
+      const search = this.participantDirectorySearchDraft().trim();
+      if (search === this.participantDirectorySearch()) return;
+      this.participantDirectorySearch.set(search);
+      void this.resetParticipantDirectory();
+    }, 300);
+  }
+
+  clearParticipantDirectorySearch(): void {
+    if (this.participantDirectorySearchTimer) {
+      clearTimeout(this.participantDirectorySearchTimer);
+      this.participantDirectorySearchTimer = null;
+    }
+    this.participantDirectorySearchDraft.set('');
+    if (this.participantDirectorySearch() === '') return;
+    this.participantDirectorySearch.set('');
+    void this.resetParticipantDirectory();
+  }
+
+  async loadNextParticipantDirectoryPage(): Promise<void> {
+    const cursor = this.participantDirectoryNextCursor();
+    if (!cursor || this.participantDirectoryLoading()) return;
+    const previousCursor = this.participantDirectoryCurrentCursor;
+    const loaded = await this.loadParticipantDirectoryPage(cursor);
+    if (loaded) {
+      this.participantDirectoryCursorHistory.push(previousCursor);
+      this.participantDirectoryCurrentCursor = cursor;
+      this.participantDirectoryPageIndex.update((index) => index + 1);
+    }
+  }
+
+  async loadPreviousParticipantDirectoryPage(): Promise<void> {
+    if (this.participantDirectoryCursorHistory.length === 0 || this.participantDirectoryLoading()) {
+      return;
+    }
+    const target =
+      this.participantDirectoryCursorHistory[this.participantDirectoryCursorHistory.length - 1] ??
+      null;
+    const loaded = await this.loadParticipantDirectoryPage(target);
+    if (loaded) {
+      this.participantDirectoryCursorHistory.pop();
+      this.participantDirectoryCurrentCursor = target;
+      this.participantDirectoryPageIndex.update((index) => Math.max(0, index - 1));
+    }
+  }
+
+  private async resetParticipantDirectory(): Promise<void> {
+    this.participantDirectoryCursorHistory = [];
+    this.participantDirectoryCurrentCursor = null;
+    this.participantDirectoryPageIndex.set(0);
+    await this.loadParticipantDirectoryPage(null);
+  }
+
+  private async loadParticipantDirectoryPage(cursor: string | null): Promise<boolean> {
+    if (!this.code) return false;
+    const requestId = ++this.participantDirectoryRequestId;
+    this.participantDirectoryLoading.set(true);
+    this.participantDirectoryError.set(null);
+    const search = this.participantDirectorySearch();
+    try {
+      const page: SessionParticipantPageDTO = await trpc.session.searchParticipants.query({
+        code: this.code.toUpperCase(),
+        search,
+        pageSize: 80,
+        ...(cursor ? { cursor } : {}),
+      });
+      if (
+        requestId !== this.participantDirectoryRequestId ||
+        search !== this.participantDirectorySearch()
+      ) {
+        return false;
+      }
+      this.participantDirectoryEntries.set(page.participants);
+      this.participantDirectoryTotal.set(page.participantCount);
+      this.participantDirectoryNextCursor.set(page.nextCursor);
+      return true;
+    } catch (error) {
+      const errorCode =
+        error && typeof error === 'object'
+          ? 'data' in error && error.data && typeof error.data === 'object' && 'code' in error.data
+            ? error.data.code
+            : 'code' in error
+              ? error.code
+              : null
+          : null;
+      if (cursor && errorCode === 'CONFLICT' && requestId === this.participantDirectoryRequestId) {
+        this.participantDirectoryCursorHistory = [];
+        this.participantDirectoryCurrentCursor = null;
+        this.participantDirectoryPageIndex.set(0);
+        await this.loadParticipantDirectoryPage(null);
+        return false;
+      }
+      if (requestId === this.participantDirectoryRequestId) {
+        this.participantDirectoryError.set(
+          $localize`:@@sessionHost.participantDirectoryError:Teilnahmen konnten gerade nicht geladen werden.`,
+        );
+      }
+      return false;
+    } finally {
+      if (requestId === this.participantDirectoryRequestId) {
+        this.participantDirectoryLoading.set(false);
+      }
+    }
+  }
+
+  private participantSummaryToPayload(
+    summary: SessionParticipantSummaryDTO | SessionParticipantsPayload,
+  ): SessionParticipantsPayload {
+    // Während eines Rolling Deployments können bereits verbundene alte
+    // Backend-Instanzen noch den früheren, vollständigen Payload senden. Die
+    // neue UI verarbeitet davon bewusst nur die letzten 20 Einträge.
+    const participants =
+      'recentArrivals' in summary
+        ? summary.recentArrivals
+        : summary.participants.slice(Math.max(0, summary.participants.length - 20));
+    return {
+      participants: participants.map((participant) => ({
+        id: participant.id,
+        nickname: participant.nickname,
+        teamId: participant.teamId ?? null,
+        teamName: participant.teamName ?? null,
+      })),
+      participantCount: summary.participantCount,
+      ...('connectedCount' in summary ? { connectedCount: summary.connectedCount } : {}),
+      ...(summary.readingReady ? { readingReady: summary.readingReady } : {}),
+    };
   }
 
   /** Lesbare Phasen-Beschreibung für Dozenten-Info und Publikum. */
@@ -7480,8 +8270,52 @@ export class SessionHostComponent implements OnInit, OnDestroy {
     return this.channels()[channel];
   }
 
+  private qaChannelNeedsConfiguration(): boolean {
+    const session = this.session();
+    if (!session) {
+      return true;
+    }
+    const qa = session.channels?.qa;
+    if (qa?.state === 'DISABLED' || qa?.state === 'UNCONFIGURED') {
+      return true;
+    }
+    if (qa?.enabled) {
+      return false;
+    }
+    return session.type !== 'Q_AND_A' || !session.qaClosesAt;
+  }
+
   isChannelOpen(channel: SessionChannelTab): boolean {
     return this.channelOpenState()[channel];
+  }
+
+  qaDeadlineLabel(): string | null {
+    const closesAt = this.session()?.channels?.qa.closesAt ?? this.session()?.qaClosesAt;
+    if (!closesAt) {
+      return null;
+    }
+    const deadline = Date.parse(closesAt);
+    const formatted = new Intl.DateTimeFormat(this.localeId, {
+      year: 'numeric',
+      month: 'short',
+      day: '2-digit',
+      hour: '2-digit',
+      minute: '2-digit',
+      timeZone: this.session()?.timeZone ?? 'UTC',
+      timeZoneName: 'short',
+    }).format(new Date(deadline));
+    const remainingMs = deadline - this.qaDeadlineNow();
+    if (remainingMs <= 0) {
+      return $localize`:@@sessionQa.deadlineExpired:Q&A-Frist abgelaufen · ${formatted}:deadline:`;
+    }
+    const relativeFormatter = new Intl.RelativeTimeFormat(this.localeId, { numeric: 'always' });
+    const relative =
+      remainingMs >= 48 * 60 * 60_000
+        ? relativeFormatter.format(Math.ceil(remainingMs / (24 * 60 * 60_000)), 'day')
+        : remainingMs >= 90 * 60_000
+          ? relativeFormatter.format(Math.ceil(remainingMs / (60 * 60_000)), 'hour')
+          : relativeFormatter.format(Math.max(1, Math.ceil(remainingMs / 60_000)), 'minute');
+    return $localize`:@@sessionQa.deadlineOpen:Q&A offen bis ${formatted}:deadline: · ${relative}:remaining:`;
   }
 
   isChannelBadgeAlert(channel: SessionChannelTab): boolean {
@@ -7695,6 +8529,9 @@ export class SessionHostComponent implements OnInit, OnDestroy {
     question: QaQuestionDTO,
     action: 'APPROVE' | 'PIN' | 'UNPIN' | 'ARCHIVE' | 'DELETE',
   ): boolean {
+    if (this.effectiveStatus() === 'FINISHED') {
+      return false;
+    }
     if (this.qaPendingQuestionIds().has(question.id)) {
       return false;
     }
@@ -7922,6 +8759,13 @@ export class SessionHostComponent implements OnInit, OnDestroy {
 
   async selectChannel(channel: string): Promise<void> {
     if (channel === 'quiz' || channel === 'qa' || channel === 'quickFeedback') {
+      // Eine bewusste Auswahl darf nicht von einem noch ausstehenden Initial-Snapshot überschrieben werden.
+      this.initialPreferredChannelApplied = true;
+      this.initialUrlTabApplied = true;
+      if (channel === 'qa' && this.qaChannelNeedsConfiguration()) {
+        await this.enableChannel('qa');
+        return;
+      }
       if (!this.isChannelEnabled(channel)) {
         if (channel === 'quiz') {
           await this.activateQuizChannel();
@@ -8099,22 +8943,7 @@ export class SessionHostComponent implements OnInit, OnDestroy {
 
   /** Wie refreshQaQuestions, aber ohne Steering-Callout bei transienten Fehlern. */
   private async refreshQaQuestionsForChannelActivation(): Promise<void> {
-    const sessionId = this.session()?.id;
-    if (!sessionId || !this.channels().qa) {
-      this.qaQuestions.set([]);
-      return;
-    }
-    try {
-      const questions = await trpc.qa.list.query({
-        sessionId,
-        moderatorView: true,
-        sort: this.qaSortMode(),
-      });
-      this.qaQuestions.set(questions);
-      await this.reconcilePresentedChannel();
-    } catch {
-      // Aktivierung nicht wegen Q&A-Listenfehler abbrechen.
-    }
+    await this.refreshQaQuestions({ silent: true });
   }
 
   private async chooseQuizForSession(): Promise<string | undefined> {
@@ -8200,6 +9029,17 @@ export class SessionHostComponent implements OnInit, OnDestroy {
     if (this.channelActivationPending() || !this.code) {
       return;
     }
+    if (channel === 'qa' && this.qaChannelNeedsConfiguration()) {
+      this.channelActivationPending.set('qa');
+      try {
+        await this.openQaConfigurationDialog();
+      } catch {
+        this.openHostSteeringCalloutForSteeringFailure(() => void this.enableChannel(channel));
+      } finally {
+        this.channelActivationPending.set(null);
+      }
+      return;
+    }
 
     this.channelActivationPending.set(channel);
     try {
@@ -8217,11 +9057,67 @@ export class SessionHostComponent implements OnInit, OnDestroy {
       this.activeChannel.set(channel);
       this.ensureActiveChannel();
       await this.reconcilePresentedChannel();
+      if (channel === 'qa') {
+        this.showStagedRecoveryCard();
+      }
     } catch {
       this.openHostSteeringCalloutForSteeringFailure(() => void this.enableChannel(channel));
     } finally {
       this.channelActivationPending.set(null);
     }
+  }
+
+  async openQaConfigurationDialog(): Promise<void> {
+    const session = this.session();
+    if (!session || !this.code || this.effectiveStatus() === 'FINISHED') {
+      return;
+    }
+    const lifecycle = await trpc.session.getLifecycleForHost.query({
+      code: this.code.toUpperCase(),
+    });
+    this.sessionLifecycle.set(lifecycle);
+    const result = await firstValueFrom(
+      this.dialog
+        .open<
+          QaChannelConfigurationDialogComponent,
+          QaChannelConfigurationDialogData,
+          SessionQaConfigurationDTO | null
+        >(QaChannelConfigurationDialogComponent, {
+          data: {
+            code: this.code.toUpperCase(),
+            session,
+            profileLocked: Boolean(lifecycle.firstParticipantJoinedAt),
+          },
+          width: 'min(42rem, calc(100vw - 2rem))',
+          maxWidth: '100vw',
+          autoFocus: 'dialog',
+          restoreFocus: true,
+          ...SESSION_LIFECYCLE_DIALOG_OVERLAY,
+        })
+        .afterClosed(),
+    );
+    if (!result) {
+      return;
+    }
+    this.session.update((current) =>
+      current
+        ? {
+            ...current,
+            channels: result.channels,
+            preferredChannel: result.preferredChannel,
+            qaClosesAt: result.qaClosesAt,
+            expiresAt: result.expiresAt,
+            sessionLifecycleRevision: result.sessionLifecycleRevision,
+            serverNow: result.serverNow,
+          }
+        : current,
+    );
+    this.syncQaTitleDraftFromSession();
+    this.activeChannel.set('qa');
+    this.ensureActiveChannel();
+    this.scheduleQaDeadlineCheck();
+    await this.refreshQaQuestions();
+    this.showStagedRecoveryCard();
   }
 
   private syncPreferredLiveChannel(channel: SessionChannelTab): Promise<void> {
@@ -8236,22 +9132,40 @@ export class SessionHostComponent implements OnInit, OnDestroy {
     ) {
       return;
     }
-    try {
-      const result = await trpc.session.setPreferredLiveChannel.mutate({
-        code: this.code.toUpperCase(),
-        channel,
-      });
-      this.session.update((session) =>
-        session
-          ? {
-              ...session,
-              preferredChannel: result.preferredChannel,
-              presenterSurface: 'default',
+    for (let attempt = 0; attempt < 2; attempt += 1) {
+      try {
+        const expectedLifecycleRevision = this.session()?.sessionLifecycleRevision;
+        const result = await trpc.session.setPreferredLiveChannel.mutate({
+          code: this.code.toUpperCase(),
+          channel,
+          ...(expectedLifecycleRevision !== undefined ? { expectedLifecycleRevision } : {}),
+        });
+        this.session.update((session) =>
+          session
+            ? {
+                ...session,
+                preferredChannel: result.preferredChannel,
+                presenterSurface: 'default',
+                sessionLifecycleRevision: result.sessionLifecycleRevision,
+                serverNow: result.serverNow,
+              }
+            : session,
+        );
+        return;
+      } catch {
+        if (attempt === 0) {
+          try {
+            await this.reloadSessionInfo();
+            if (!this.isPresenterChannelSelectable(channel)) {
+              return;
             }
-          : session,
-      );
-    } catch {
-      // Der Host bleibt lokal bedienbar; bei nächstem gültigen Kanalwechsel erneut versuchen.
+            continue;
+          } catch {
+            // Fällt in den lokalen Bedienpfad zurück.
+          }
+        }
+      }
+      return;
     }
   }
 
@@ -8318,6 +9232,7 @@ export class SessionHostComponent implements OnInit, OnDestroy {
 
   private patchSessionChannels(channels: SessionChannelsDTO): void {
     this.session.update((session) => (session ? { ...session, channels } : session));
+    this.scheduleQaDeadlineCheck();
   }
 
   activeChannelVisibilityActionLabel(): string | null {
@@ -8338,9 +9253,14 @@ export class SessionHostComponent implements OnInit, OnDestroy {
     if (!this.isChannelEnabled(active)) {
       return null;
     }
+    if (active === 'qa') {
+      return this.isChannelOpen(active)
+        ? $localize`:@@sessionTabs.closeQaChannelAction:Q&A schließen`
+        : $localize`:@@sessionTabs.reopenQaChannelAction:Q&A wieder öffnen`;
+    }
     return this.isChannelOpen(active)
-      ? $localize`:@@sessionTabs.closeChannelAction:Kanal schließen`
-      : $localize`:@@sessionTabs.reopenChannelAction:Kanal wieder öffnen`;
+      ? $localize`:@@sessionTabs.closeQuickFeedbackChannelAction:Blitzlicht beenden`
+      : $localize`:@@sessionTabs.reopenQuickFeedbackChannelAction:Blitzlicht wieder öffnen`;
   }
 
   activeChannelVisibilityIcon(): string {
@@ -8426,7 +9346,11 @@ export class SessionHostComponent implements OnInit, OnDestroy {
     const sessionId = this.session()?.id ?? null;
     const qaEnabled = this.channels().qa;
     const sortMode = this.qaSortMode();
-    const subscriptionKey = sessionId ? `${sessionId}:${sortMode}` : null;
+    const statuses = this.qaListStatuses();
+    const search = this.qaSearch();
+    const subscriptionKey = sessionId
+      ? `${sessionId}:${sortMode}:${statuses.join(',')}:${search}`
+      : null;
     if (!sessionId || !qaEnabled) {
       this.qaSub?.unsubscribe();
       this.qaSub = null;
@@ -8440,12 +9364,17 @@ export class SessionHostComponent implements OnInit, OnDestroy {
 
     this.qaSub?.unsubscribe();
     this.qaSub = trpc.qa.onQuestionsUpdated.subscribe(
-      { sessionId, moderatorView: true, sort: sortMode },
+      {
+        sessionId,
+        moderatorView: true,
+        sort: sortMode,
+        pageSize: 100,
+        statuses,
+        search: search || undefined,
+      },
       {
         onData: (data) => {
-          this.qaQuestions.set(data);
-          void this.reconcilePresentedChannel();
-          this.dismissHostSteeringCallout();
+          this.handleQaQuestionsInvalidation(data);
         },
         onError: (error) => {
           if (this.consumeHostUnauthorized(error)) return;
@@ -8456,11 +9385,36 @@ export class SessionHostComponent implements OnInit, OnDestroy {
     this.qaSubscriptionKey = subscriptionKey;
   }
 
+  private handleQaQuestionsInvalidation(data: QaQuestionsInvalidationDTO): void {
+    if (data.sessionLifecycleRevision < this.latestQaLifecycleRevision) {
+      return;
+    }
+    this.latestQaLifecycleRevision = data.sessionLifecycleRevision;
+    if (data.state === 'POST_PROCESSING_ENDED') {
+      this.closeHostPostProcessing();
+      return;
+    }
+    if (data.postProcessingEndsAt) {
+      const accepted = this.postProcessingDeadline.applySnapshot({
+        status: 'ACTIVE',
+        serverNow: data.serverNow,
+        expiresAt: data.postProcessingEndsAt,
+        sessionLifecycleRevision: data.sessionLifecycleRevision,
+      });
+      if (!accepted && this.postProcessingDeadline.isExpired()) {
+        this.closeHostPostProcessing();
+        return;
+      }
+    }
+    void this.refreshQaQuestions({ silent: true });
+  }
+
   private syncQaTitleDraftFromSession(): void {
     this.qaTitleDraft.set(this.session()?.channels?.qa?.title ?? '');
   }
 
   startQaTitleEdit(): void {
+    if (this.session()?.status === 'FINISHED' || this.effectiveStatus() === 'FINISHED') return;
     this.syncQaTitleDraftFromSession();
     this.qaTitleEditing.set(true);
     afterNextRender(
@@ -8764,28 +9718,43 @@ export class SessionHostComponent implements OnInit, OnDestroy {
       return;
     }
 
-    const active = this.activeChannel();
+    let active = this.activeChannel();
     const visible = this.visibleChannels();
     if (!this.isChannelEnabled(active) && visible.length > 0) {
-      this.activeChannel.set(visible[0]!);
-      return;
+      active = visible[0]!;
+      this.activeChannel.set(active);
     }
 
     if (!available.includes(active)) {
-      this.activeChannel.set(available[0]!);
-      return;
+      active = available[0]!;
+      this.activeChannel.set(active);
     }
 
     const urlTab = this.requestedInitialTab;
     if (
       !this.initialUrlTabApplied &&
-      (urlTab === 'qa' || urlTab === 'quickFeedback') &&
+      (urlTab === 'quiz' || urlTab === 'qa' || urlTab === 'quickFeedback') &&
       this.visibleChannels().includes(urlTab)
     ) {
       if (active !== urlTab) {
         this.activeChannel.set(urlTab);
       }
       this.initialUrlTabApplied = true;
+      this.initialPreferredChannelApplied = true;
+      return;
+    }
+    if (!this.initialUrlTabApplied) {
+      this.initialUrlTabApplied = true;
+    }
+
+    const preferred = this.session()?.preferredChannel;
+    if (!this.initialPreferredChannelApplied && preferred && visible.includes(preferred)) {
+      this.initialPreferredChannelApplied = true;
+      if (active !== preferred) {
+        this.activeChannel.set(preferred);
+      }
+    } else if (!this.initialPreferredChannelApplied && this.session()) {
+      this.initialPreferredChannelApplied = true;
     }
   }
 
@@ -8801,23 +9770,257 @@ export class SessionHostComponent implements OnInit, OnDestroy {
     return true;
   }
 
-  private async refreshQaQuestions(): Promise<void> {
+  private resetQaListPageNavigation(): void {
+    this.qaListCurrentCursor = null;
+    this.qaListCursorHistory = [];
+    this.qaListPageIndex.set(0);
+  }
+
+  private async applyHostQaQuestionsSnapshot(
+    snapshot: QaQuestionsListDTO | QaQuestionDTO[],
+    options: { append?: boolean } = {},
+  ): Promise<boolean> {
+    if (Array.isArray(snapshot)) {
+      if (this.postProcessingEnded()) {
+        return false;
+      }
+      this.qaQuestions.set(snapshot);
+      this.qaListTotalCount.set(
+        snapshot.filter((question) => question.status !== 'DELETED').length,
+      );
+      this.qaSessionQuestionCount.set(snapshot.length);
+      this.qaSessionRemaining.set(Math.max(0, QA_MAX_QUESTIONS_PER_SESSION - snapshot.length));
+      this.qaListNextCursor.set(null);
+      this.qaListRankingRevision.set(null);
+      this.resetQaListPageNavigation();
+      await this.reconcilePresentedChannel();
+      this.dismissHostSteeringCallout();
+      return true;
+    }
+    if (snapshot.sessionLifecycleRevision < this.latestQaLifecycleRevision) {
+      return false;
+    }
+    this.latestQaLifecycleRevision = snapshot.sessionLifecycleRevision;
+    if (
+      options.append &&
+      this.qaListRankingRevision() !== null &&
+      (snapshot.rankingRevision ?? null) !== this.qaListRankingRevision()
+    ) {
+      return false;
+    }
+
+    if (snapshot.postProcessingEndsAt) {
+      const accepted = this.postProcessingDeadline.applySnapshot({
+        status: snapshot.state === 'POST_PROCESSING_ENDED' ? 'FINISHED' : 'ACTIVE',
+        serverNow: snapshot.serverNow,
+        expiresAt: snapshot.postProcessingEndsAt,
+        sessionLifecycleRevision: snapshot.sessionLifecycleRevision,
+      });
+      if (
+        snapshot.state === 'POST_PROCESSING_ENDED' ||
+        (!accepted && this.postProcessingDeadline.isExpired()) ||
+        this.postProcessingDeadline.isExpired()
+      ) {
+        this.closeHostPostProcessing();
+        return false;
+      }
+    }
+
+    if (snapshot.state !== 'ACTIVE') {
+      this.qaQuestions.set([]);
+      this.qaListTotalCount.set(0);
+      this.qaSessionQuestionCount.set(snapshot.sessionQuestionCount ?? 0);
+      this.qaSessionRemaining.set(snapshot.sessionRemaining ?? QA_MAX_QUESTIONS_PER_SESSION);
+      this.qaListNextCursor.set(null);
+      this.qaListRankingRevision.set(snapshot.rankingRevision ?? null);
+      this.resetQaListPageNavigation();
+      return false;
+    }
+    this.postProcessingEnded.set(false);
+    this.qaQuestions.set(snapshot.questions);
+    if (!options.append) {
+      this.resetQaListPageNavigation();
+    }
+    this.qaListTotalCount.set(snapshot.totalCount ?? snapshot.questions.length);
+    this.qaSessionQuestionCount.set(
+      snapshot.sessionQuestionCount ?? snapshot.totalCount ?? snapshot.questions.length,
+    );
+    this.qaSessionRemaining.set(
+      snapshot.sessionRemaining ??
+        Math.max(
+          0,
+          QA_MAX_QUESTIONS_PER_SESSION -
+            (snapshot.sessionQuestionCount ?? snapshot.totalCount ?? snapshot.questions.length),
+        ),
+    );
+    this.qaListNextCursor.set(snapshot.nextCursor ?? null);
+    this.qaListRankingRevision.set(snapshot.rankingRevision ?? null);
+    await this.reconcilePresentedChannel();
+    this.dismissHostSteeringCallout();
+    return true;
+  }
+
+  private closeHostPostProcessing(): void {
+    const wasAlreadyEnded = this.postProcessingEnded();
+    this.postProcessingEnded.set(true);
+    this.qaQuestions.set([]);
+    this.qaListTotalCount.set(0);
+    this.qaSessionQuestionCount.set(0);
+    this.qaSessionRemaining.set(QA_MAX_QUESTIONS_PER_SESSION);
+    this.qaListNextCursor.set(null);
+    this.qaListRankingRevision.set(null);
+    this.resetQaListPageNavigation();
+    this.qaSummaryRuntime.set(null);
+    this.qaNlpEnabled.set(false);
+    this.frozenQaWordCloudQuestions.set(null);
+    this.qaWordCloudThemeAnalysisResult.set(null);
+    this.qaSub?.unsubscribe();
+    this.qaSub = null;
+    this.qaSubscriptionKey = null;
+    if (!wasAlreadyEnded) {
+      afterNextRender(
+        () =>
+          (
+            this.postProcessingEndedHeadingRef?.nativeElement ??
+            this.sessionFinishedHeadingRef?.nativeElement
+          )?.focus({ preventScroll: true }),
+        { injector: this.injector },
+      );
+    }
+  }
+
+  private qaListStatuses(): Array<QaQuestionDTO['status']> {
+    return this.qaShowPinnedOnly() ? ['PINNED'] : ['PENDING', 'ACTIVE', 'PINNED', 'ARCHIVED'];
+  }
+
+  async setQaPinnedFilter(pinnedOnly: boolean): Promise<void> {
+    if (this.qaShowPinnedOnly() === pinnedOnly) return;
+    this.qaShowPinnedOnly.set(pinnedOnly);
+    this.clearQaAuthorSelection();
+    this.ensureQaSubscription();
+    await this.refreshQaQuestions();
+    this.scrollQaListToTop();
+  }
+
+  onQaSearchInput(value: string): void {
+    this.qaSearchDraft.set(value);
+    if (this.qaSearchTimer) clearTimeout(this.qaSearchTimer);
+    this.qaSearchTimer = setTimeout(() => {
+      this.qaSearchTimer = null;
+      const search = this.qaSearchDraft().trim();
+      if (search === this.qaSearch()) return;
+      this.qaSearch.set(search);
+      this.clearQaAuthorSelection();
+      this.ensureQaSubscription();
+      void this.refreshQaQuestions().then(() => this.scrollQaListToTop());
+    }, 300);
+  }
+
+  clearQaSearch(): void {
+    if (this.qaSearchTimer) {
+      clearTimeout(this.qaSearchTimer);
+      this.qaSearchTimer = null;
+    }
+    this.qaSearchDraft.set('');
+    if (this.qaSearch() === '') return;
+    this.qaSearch.set('');
+    this.ensureQaSubscription();
+    void this.refreshQaQuestions().then(() => this.scrollQaListToTop());
+  }
+
+  async loadMoreQaQuestions(): Promise<void> {
+    const cursor = this.qaListNextCursor();
+    if (!cursor || this.qaListPageLoading()) return;
+    const previousCursor = this.qaListCurrentCursor;
+    const loaded = await this.loadQaQuestionsPage(cursor);
+    if (loaded) {
+      this.qaListCursorHistory.push(previousCursor);
+      this.qaListCurrentCursor = cursor;
+      this.qaListPageIndex.update((index) => index + 1);
+      this.scrollQaListToTop();
+    }
+  }
+
+  async loadPreviousQaQuestions(): Promise<void> {
+    if (this.qaListCursorHistory.length === 0 || this.qaListPageLoading()) return;
+    const target = this.qaListCursorHistory[this.qaListCursorHistory.length - 1] ?? null;
+    const loaded = await this.loadQaQuestionsPage(target);
+    if (loaded) {
+      this.qaListCursorHistory.pop();
+      this.qaListCurrentCursor = target;
+      this.qaListPageIndex.update((index) => Math.max(0, index - 1));
+      this.scrollQaListToTop();
+    }
+  }
+
+  private async loadQaQuestionsPage(cursor: string | null): Promise<boolean> {
     const sessionId = this.session()?.id;
+    if (!sessionId) return false;
+    const requestGeneration = ++this.qaListRequestGeneration;
+    this.qaListPageLoading.set(true);
+    try {
+      const snapshot = await trpc.qa.list.query({
+        sessionId,
+        moderatorView: true,
+        sort: this.qaSortMode(),
+        pageSize: 100,
+        statuses: this.qaListStatuses(),
+        search: this.qaSearch() || undefined,
+        ...(cursor ? { cursor } : {}),
+      });
+      if (requestGeneration !== this.qaListRequestGeneration) {
+        return false;
+      }
+      const accepted = await this.applyHostQaQuestionsSnapshot(snapshot, { append: true });
+      if (!accepted) {
+        await this.refreshQaQuestions();
+      }
+      return accepted;
+    } catch {
+      await this.refreshQaQuestions();
+      return false;
+    } finally {
+      this.qaListPageLoading.set(false);
+    }
+  }
+
+  private async refreshQaQuestions(options?: { silent?: boolean }): Promise<void> {
+    const sessionId = this.session()?.id;
+    const requestGeneration = ++this.qaListRequestGeneration;
     if (!sessionId || !this.channels().qa) {
       this.qaQuestions.set([]);
+      this.qaListTotalCount.set(0);
+      this.qaSessionQuestionCount.set(0);
+      this.qaSessionRemaining.set(QA_MAX_QUESTIONS_PER_SESSION);
+      this.qaListNextCursor.set(null);
+      this.resetQaListPageNavigation();
       return;
     }
 
     try {
-      const questions = await trpc.qa.list.query({
+      const snapshot = await trpc.qa.list.query({
         sessionId,
         moderatorView: true,
         sort: this.qaSortMode(),
+        pageSize: 100,
+        statuses: this.qaListStatuses(),
+        search: this.qaSearch() || undefined,
       });
-      this.qaQuestions.set(questions);
-      await this.reconcilePresentedChannel();
+      if (requestGeneration !== this.qaListRequestGeneration) {
+        return;
+      }
+      await this.applyHostQaQuestionsSnapshot(snapshot);
       this.dismissHostSteeringCallout();
-    } catch {
+    } catch (error) {
+      if (requestGeneration !== this.qaListRequestGeneration) {
+        return;
+      }
+      if (this.consumeHostUnauthorized(error)) {
+        return;
+      }
+      if (options?.silent) {
+        return;
+      }
       this.openHostSteeringCalloutForQaFailure(() => void this.refreshQaQuestions());
     }
   }
@@ -8910,7 +10113,7 @@ export class SessionHostComponent implements OnInit, OnDestroy {
     variant: WordCloudAnalysisVariant = this.qaWordCloudEffectiveAnalysisVariant(),
     options: { readonly refresh?: boolean } = {},
   ): AnalyzeWordCloudInput | null {
-    if (!isWordCloudPhraseAnalysisVariant(variant) || !this.qaWordCloudDialogOpen()) {
+    if (!this.qaWordCloudDialogOpen()) {
       return null;
     }
 
@@ -8924,10 +10127,6 @@ export class SessionHostComponent implements OnInit, OnDestroy {
       text: question.text,
       weight: this.qaWordCloudQuestionWeight(question),
     }));
-    if (items.length === 0) {
-      return null;
-    }
-
     return {
       sessionCode: this.code.toUpperCase(),
       mode: variant,
@@ -9077,7 +10276,7 @@ export class SessionHostComponent implements OnInit, OnDestroy {
     }
 
     try {
-      const result = await trpc.wordCloud.analyze.mutate(request);
+      const result = await this.analyzeCanonicalQaWordCloud(request);
       if (runId !== this.qaWordCloudThemeAnalysisRunId) {
         return;
       }
@@ -9090,6 +10289,10 @@ export class SessionHostComponent implements OnInit, OnDestroy {
       }
 
       this.qaWordCloudThemeAnalysisResult.set(result);
+      this.qaWordCloudCoverage.set({
+        analyzedQuestionCount: result.analyzedQuestionCount,
+        eligibleQuestionCount: result.eligibleQuestionCount,
+      });
       this.qaWordCloudThemeFallbackActive.set(result.fallbackUsed);
       if (request.mode === 'SEMANTIC') {
         this.lastQaWordCloudSemanticAnalyzedKey = wordCloudAnalysisRequestKey(request);
@@ -9137,10 +10340,6 @@ export class SessionHostComponent implements OnInit, OnDestroy {
     }
 
     const items = this.buildFreetextWordCloudLemmaItems();
-    if (items.length === 0) {
-      return null;
-    }
-
     return {
       sessionCode: this.code.toUpperCase(),
       mode: 'SEMANTIC',
@@ -9268,13 +10467,17 @@ export class SessionHostComponent implements OnInit, OnDestroy {
     this.qaWordCloudLemmaPending.set(true);
 
     try {
-      const result = await trpc.wordCloud.analyze.mutate(request);
+      const result = await this.analyzeCanonicalQaWordCloud(request);
       if (runId !== this.qaWordCloudLemmaAnalysisRunId) {
         return;
       }
 
       if (result.normalizationApplied === 'LEMMA') {
         this.qaWordCloudLemmaResult.set(result);
+        this.qaWordCloudCoverage.set({
+          analyzedQuestionCount: result.analyzedQuestionCount,
+          eligibleQuestionCount: result.eligibleQuestionCount,
+        });
         this.qaWordCloudLemmaSnapshotKey.set(fingerprint);
         this.qaWordCloudLemmaFallbackReason.set(null);
         return;
@@ -9298,6 +10501,19 @@ export class SessionHostComponent implements OnInit, OnDestroy {
         this.qaWordCloudLemmaPending.set(false);
       }
     }
+  }
+
+  private analyzeCanonicalQaWordCloud(request: AnalyzeWordCloudInput) {
+    const {
+      items: _clientPage,
+      channel: _channel,
+      corpusRevision: _revision,
+      ...canonical
+    } = request;
+    return trpc.wordCloud.analyzeQa.mutate({
+      ...canonical,
+      filter: this.qaShowPinnedOnly() ? 'PINNED_ONLY' : 'ALL_ELIGIBLE',
+    });
   }
 
   private buildFreetextWordCloudLemmaItems(): Array<{
@@ -9408,6 +10624,7 @@ export class SessionHostComponent implements OnInit, OnDestroy {
   }
 
   async toggleQaModeration(): Promise<void> {
+    if (this.session()?.status === 'FINISHED' || this.effectiveStatus() === 'FINISHED') return;
     const current = this.session()?.channels?.qa?.moderationMode ?? false;
     try {
       const result = await trpc.qa.toggleModeration.mutate({
@@ -9436,7 +10653,12 @@ export class SessionHostComponent implements OnInit, OnDestroy {
     questionId: string,
     action: 'APPROVE' | 'PIN' | 'ARCHIVE' | 'DELETE',
   ): Promise<void> {
-    if (!this.code) {
+    if (
+      !this.code ||
+      this.session()?.status === 'FINISHED' ||
+      this.effectiveStatus() === 'FINISHED' ||
+      this.postProcessingEnded()
+    ) {
       return;
     }
 

@@ -109,12 +109,24 @@ function randomConfidenceValue(min = 1, max = 5) {
   return min + Math.floor(random() * (max - min + 1));
 }
 
-function createHttpClient(hostToken, trpcUrl = TRPC_URL, runtimeMetrics = null) {
+function createHttpClient(
+  hostToken,
+  trpcUrl = TRPC_URL,
+  runtimeMetrics = null,
+  participantCapability,
+) {
+  const headers =
+    hostToken || participantCapability
+      ? () => ({
+          ...(hostToken ? { 'x-host-token': hostToken } : {}),
+          ...(participantCapability ? { 'x-participant-capability': participantCapability } : {}),
+        })
+      : undefined;
   return createTRPCProxyClient({
     links: [
       httpLink({
         url: trpcUrl,
-        headers: hostToken ? () => ({ 'x-host-token': hostToken }) : undefined,
+        headers,
         fetch:
           runtimeMetrics === null
             ? undefined
@@ -508,14 +520,19 @@ function buildVoteInput(
   return vote;
 }
 
-async function submitVotes(publicTrpc, participants, question, metadata, round) {
+async function submitVotes(trpcUrl, runtimeMetrics, participants, question, metadata, round) {
   const durations = [];
   const startedAt = performance.now();
   const results = await Promise.allSettled(
     participants.map(async (participant, index) => {
       const requestStartedAt = performance.now();
       try {
-        return await publicTrpc.vote.submit.mutate(
+        const capability = participant.rejoinToken;
+        if (!capability) {
+          throw new Error('Join lieferte kein rejoinToken.');
+        }
+        const client = createHttpClient(undefined, trpcUrl, runtimeMetrics, capability);
+        return await client.vote.submit.mutate(
           buildVoteInput(participant, question, metadata, round, index, participants.length),
         );
       } finally {
@@ -545,6 +562,8 @@ async function runQuestion({
   questionNumber,
   hostTrpc,
   publicTrpc,
+  trpcUrl,
+  runtimeMetrics,
   code,
   participants,
   meta,
@@ -557,7 +576,7 @@ async function runQuestion({
   }
 
   const voteRounds = [];
-  voteRounds.push(await submitVotes(publicTrpc, participants, question, meta, 1));
+  voteRounds.push(await submitVotes(trpcUrl, runtimeMetrics, participants, question, meta, 1));
 
   if (meta.numericTwoRounds === true) {
     await hostTrpc.session.startDiscussion.mutate({ code });
@@ -567,7 +586,9 @@ async function runQuestion({
     if (!questionRound2?.id) {
       throw new Error(`Frage ${questionNumber} Runde 2 konnte nicht geladen werden.`);
     }
-    voteRounds.push(await submitVotes(publicTrpc, participants, questionRound2, meta, 2));
+    voteRounds.push(
+      await submitVotes(trpcUrl, runtimeMetrics, participants, questionRound2, meta, 2),
+    );
   }
 
   const resultsStatus = await hostTrpc.session.revealResults.mutate({ code });
@@ -621,13 +642,18 @@ function buildSessionFeedbackInput(participant, participantIndex, code) {
   };
 }
 
-async function submitSessionFeedback(publicTrpc, participants, code) {
+async function submitSessionFeedback(participants, code, trpcUrl, runtimeMetrics) {
   const settled = await Promise.allSettled(
-    participants.map((participant, index) =>
-      publicTrpc.session.submitSessionFeedback.mutate(
+    participants.map((participant, index) => {
+      const capability = participant.rejoinToken;
+      if (!capability) {
+        return Promise.reject(new Error('Join lieferte kein rejoinToken.'));
+      }
+      const client = createHttpClient(undefined, trpcUrl, runtimeMetrics, capability);
+      return client.session.submitSessionFeedback.mutate(
         buildSessionFeedbackInput(participant, index, code),
-      ),
-    ),
+      );
+    }),
   );
   const accepted = settled.filter((result) => result.status === 'fulfilled').length;
   const rejected = settled.filter((result) => result.status === 'rejected').length;
@@ -649,16 +675,19 @@ async function mintHostToken(sessionCode) {
   const execFileAsync = promisify(execFile);
   const backendDir = join(__dirname, '../../apps/backend');
   const script = `
-    import { createHostSessionToken } from './src/lib/hostAuth.ts';
-    createHostSessionToken(${JSON.stringify(sessionCode)})
-      .then((token) => {
-        console.log(token);
-        process.exit(0);
-      })
-      .catch((error) => {
-        console.error(error);
-        process.exit(1);
-      });
+    import { prisma } from './src/db.ts';
+    import { createCredentialBoundHostToken } from './src/lib/hostAuth.ts';
+    const code = ${JSON.stringify(sessionCode)};
+    const session = await prisma.session.findUnique({
+      where: { code },
+      select: { hostCredentialVersion: true },
+    });
+    const issued = await createCredentialBoundHostToken({
+      sessionCode: code,
+      credentialVersion: session?.hostCredentialVersion ?? 1,
+    });
+    console.log(issued.token);
+    process.exit(0);
   `;
   const { stdout } = await execFileAsync('npx', ['tsx', '-e', script], {
     cwd: backendDir,
@@ -728,6 +757,7 @@ export async function runDemoQuizClassroom(options = {}) {
       code,
       nickname: kindergartenNickname(index, QUIZ_CONTENT_LOCALE),
       anonymousClientId: globalThis.crypto.randomUUID(),
+      joinIdempotencyKey: globalThis.crypto.randomUUID(),
     }),
   );
 
@@ -738,6 +768,8 @@ export async function runDemoQuizClassroom(options = {}) {
         questionNumber: meta.questionNumber,
         hostTrpc,
         publicTrpc,
+        trpcUrl,
+        runtimeMetrics,
         code,
         participants,
         meta,
@@ -749,7 +781,7 @@ export async function runDemoQuizClassroom(options = {}) {
   const finished = await hostTrpc.session.nextQuestion.mutate({ code });
   const feedback =
     finished.status === 'FINISHED'
-      ? await submitSessionFeedback(publicTrpc, participants, code)
+      ? await submitSessionFeedback(participants, code, trpcUrl, runtimeMetrics)
       : { accepted: 0, rejected: participantCount };
   const totalVotesAccepted = questions.reduce(
     (sum, question) =>

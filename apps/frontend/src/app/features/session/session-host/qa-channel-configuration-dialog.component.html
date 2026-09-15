@@ -1,0 +1,138 @@
+<h2 mat-dialog-title class="dialog-title-header">
+  <span class="dialog-title-header__icon" aria-hidden="true">
+    <mat-icon>forum</mat-icon>
+  </span>
+  <span class="dialog-title-header__copy">
+    <span class="dialog-title-header__heading" i18n="@@qaConfig.title">Q&A-Kanal einrichten</span>
+    <span class="dialog-title-header__sub" i18n="@@qaConfig.intro">
+      Lege Titel, Moderation, Teilnahmeprofil und die eigene Q&A-Frist gemeinsam fest.
+    </span>
+  </span>
+</h2>
+
+<mat-dialog-content class="qa-config__content">
+  @if (!preview()) {
+    <fieldset class="qa-config__group" [disabled]="pending()">
+      <legend i18n="@@qaConfig.contentLegend">Inhalt</legend>
+      <mat-form-field appearance="outline" subscriptSizing="dynamic">
+        <mat-label i18n="@@qaConfig.qaTitleLabel">Titel der Fragenwand</mat-label>
+        <input matInput maxlength="120" [(ngModel)]="qaTitle" />
+      </mat-form-field>
+      <mat-slide-toggle [(ngModel)]="moderationMode" i18n="@@qaConfig.moderationLabel">
+        Neue Fragen vor Veröffentlichung prüfen
+      </mat-slide-toggle>
+    </fieldset>
+
+    <fieldset class="qa-config__group" [disabled]="pending() || profileLocked()">
+      <legend i18n="@@qaConfig.profileLegend">Teilnahmeprofil</legend>
+      <mat-form-field appearance="outline" subscriptSizing="dynamic">
+        <mat-label i18n="@@qaConfig.identityModeLabel">Sichtbarer Name</mat-label>
+        <mat-select [(ngModel)]="identityMode">
+          <mat-option value="PRESET_PSEUDONYM" i18n="@@qaConfig.identityPreset">
+            Automatisches Pseudonym
+          </mat-option>
+          <mat-option value="CUSTOM_NICKNAME" i18n="@@qaConfig.identityCustom">
+            Eigener Nickname
+          </mat-option>
+          <mat-option value="ANONYMOUS" i18n="@@qaConfig.identityAnonymous">
+            Anonym ohne Verfassername
+          </mat-option>
+        </mat-select>
+      </mat-form-field>
+      @if (profileLocked()) {
+        <p class="qa-config__notice" role="status" i18n="@@qaConfig.profileLocked">
+          Das Teilnahmeprofil ist nach dem ersten Beitritt gesperrt.
+        </p>
+      }
+    </fieldset>
+
+    <fieldset class="qa-config__group" [disabled]="pending()">
+      <legend i18n="@@qaConfig.deadlineLegend">Q&A-Frist</legend>
+      <mat-form-field appearance="outline" subscriptSizing="dynamic">
+        <mat-label i18n="@@qaConfig.deadlineKindLabel">Fristtyp</mat-label>
+        <mat-select [(ngModel)]="deadlineKind">
+          <mat-option value="UNTIL_SESSION_END" i18n="@@qaConfig.untilSessionEnd">
+            Bis zum Sessionende
+          </mat-option>
+          <mat-option value="DURATION_DAYS" i18n="@@qaConfig.durationDays">
+            Für Kalendertage
+          </mat-option>
+          <mat-option value="ABSOLUTE" i18n="@@qaConfig.absolute">
+            Bis Datum und Uhrzeit
+          </mat-option>
+        </mat-select>
+      </mat-form-field>
+
+      @if (deadlineKind === 'DURATION_DAYS') {
+        <mat-form-field appearance="outline" subscriptSizing="dynamic">
+          <mat-label i18n="@@qaConfig.daysLabel">Kalendertage</mat-label>
+          <input matInput type="number" min="1" max="30" [(ngModel)]="days" />
+        </mat-form-field>
+      } @else if (deadlineKind === 'ABSOLUTE') {
+        <mat-form-field appearance="outline" subscriptSizing="dynamic">
+          <mat-label i18n="@@qaConfig.absoluteLabel">Datum und Uhrzeit</mat-label>
+          <input matInput type="datetime-local" [(ngModel)]="absoluteLocal" />
+        </mat-form-field>
+      }
+      <p class="qa-config__zone">
+        <span i18n="@@qaConfig.timeZone">Zeitzone:</span>
+        {{ timeZone }}
+      </p>
+    </fieldset>
+  } @else {
+    <section class="qa-config__preview" aria-labelledby="qa-config-preview-title">
+      <h3 id="qa-config-preview-title" i18n="@@qaConfig.previewTitle">Verbindliche Vorschau</h3>
+      <dl>
+        <div>
+          <dt i18n="@@qaConfig.previewQaCloses">Q&A schließt</dt>
+          <dd>{{ formatDateTime(preview()!.newQaClosesAt) }}</dd>
+        </div>
+        <div>
+          <dt i18n="@@qaConfig.previewSessionEnds">Session endet</dt>
+          <dd>{{ formatDateTime(preview()!.newExpiresAt) }}</dd>
+        </div>
+        <div>
+          <dt i18n="@@qaConfig.previewProfile">Teilnahmeprofil</dt>
+          <dd>{{ identityModeLabel(identityMode) }}</dd>
+        </div>
+      </dl>
+      @if (profileLocked()) {
+        <p class="qa-config__notice" role="status" i18n="@@qaConfig.profileLocked">
+          Das Teilnahmeprofil ist nach dem ersten Beitritt gesperrt.
+        </p>
+      }
+      @if (preview()!.requiresSessionExtension) {
+        <p class="qa-config__warning" role="status" i18n="@@qaConfig.extensionWarning">
+          Die Q&A-Frist liegt nach dem bisherigen Sessionende. Beim Bestätigen wird die globale
+          Sessionfrist mit verlängert; nur der ursprüngliche Host darf das ausführen.
+        </p>
+      } @else {
+        <p class="qa-config__notice" role="status" i18n="@@qaConfig.noExtension">
+          Die globale Sessionfrist bleibt unverändert.
+        </p>
+      }
+    </section>
+  }
+
+  @if (error()) {
+    <p class="qa-config__error" role="alert">{{ error() }}</p>
+  }
+</mat-dialog-content>
+
+<mat-dialog-actions align="end" class="qa-config__actions">
+  @if (preview()) {
+    <button matButton="text" type="button" [disabled]="pending()" (click)="edit()" i18n>
+      Zurück
+    </button>
+    <button matButton="filled" type="button" [disabled]="pending()" (click)="confirm()" i18n>
+      Q&A verbindlich einrichten
+    </button>
+  } @else {
+    <button matButton="text" type="button" [disabled]="pending()" (click)="close()" i18n>
+      Abbrechen
+    </button>
+    <button matButton="filled" type="button" [disabled]="pending()" (click)="loadPreview()" i18n>
+      Vorschau prüfen
+    </button>
+  }
+</mat-dialog-actions>

@@ -7,14 +7,40 @@ const { hasFeedbackHostTokenMock, normalizeFeedbackCodeMock } = vi.hoisted(() =>
   normalizeFeedbackCodeMock: vi.fn((code: string) => code.trim().toUpperCase()),
 }));
 
-const { hasHostTokenMock, normalizeHostSessionCodeMock } = vi.hoisted(() => ({
-  hasHostTokenMock: vi.fn(),
-  normalizeHostSessionCodeMock: vi.fn((code: string) => code.trim().toUpperCase()),
+const { clearHostTokenMock, hasHostTokenMock, normalizeHostSessionCodeMock, setHostTokenMock } =
+  vi.hoisted(() => ({
+    clearHostTokenMock: vi.fn(),
+    hasHostTokenMock: vi.fn(),
+    normalizeHostSessionCodeMock: vi.fn((code: string) => code.trim().toUpperCase()),
+    setHostTokenMock: vi.fn(),
+  }));
+
+const {
+  clearHostBrowserCapabilityMock,
+  clearRecoveryExchangeIdMock,
+  getHostBrowserCapabilityMock,
+  getOrCreateRecoveryExchangeIdMock,
+  getStagedHostRecoveryCardMock,
+  persistInitialHostRecoveryMock,
+} = vi.hoisted(() => ({
+  clearHostBrowserCapabilityMock: vi.fn(),
+  clearRecoveryExchangeIdMock: vi.fn(),
+  getHostBrowserCapabilityMock: vi.fn(),
+  getOrCreateRecoveryExchangeIdMock: vi.fn(),
+  getStagedHostRecoveryCardMock: vi.fn(),
+  persistInitialHostRecoveryMock: vi.fn(),
 }));
 
-const { clearHostTokenMock, getParticipantsQueryMock } = vi.hoisted(() => ({
-  clearHostTokenMock: vi.fn(),
-  getParticipantsQueryMock: vi.fn(),
+const {
+  activateHostCredentialMock,
+  getParticipantSummaryQueryMock,
+  issueHostAccessTokenMock,
+  prepareHostCredentialBootstrapMock,
+} = vi.hoisted(() => ({
+  activateHostCredentialMock: vi.fn(),
+  getParticipantSummaryQueryMock: vi.fn(),
+  issueHostAccessTokenMock: vi.fn(),
+  prepareHostCredentialBootstrapMock: vi.fn(),
 }));
 
 const { getLocaleFromPathMock, getLocaleFromBaseHrefMock, getPreferredJoinLocaleMock } = vi.hoisted(
@@ -35,12 +61,25 @@ vi.mock('./core/host-session-token', () => ({
   getSessionEntryCommands: vi.fn((code: string) => ['join', code.trim().toUpperCase()]),
   hasHostToken: hasHostTokenMock,
   normalizeHostSessionCode: normalizeHostSessionCodeMock,
+  setHostToken: setHostTokenMock,
+}));
+
+vi.mock('./core/host-recovery-access', () => ({
+  clearHostBrowserCapability: clearHostBrowserCapabilityMock,
+  clearRecoveryExchangeId: clearRecoveryExchangeIdMock,
+  getHostBrowserCapability: getHostBrowserCapabilityMock,
+  getOrCreateRecoveryExchangeId: getOrCreateRecoveryExchangeIdMock,
+  getStagedHostRecoveryCard: getStagedHostRecoveryCardMock,
+  persistInitialHostRecovery: persistInitialHostRecoveryMock,
 }));
 
 vi.mock('./core/trpc.client', () => ({
   trpc: {
     session: {
-      getParticipants: { query: getParticipantsQueryMock },
+      activateHostCredential: { mutate: activateHostCredentialMock },
+      getParticipantSummary: { query: getParticipantSummaryQueryMock },
+      issueHostAccessToken: { mutate: issueHostAccessTokenMock },
+      prepareHostCredentialBootstrap: { mutate: prepareHostCredentialBootstrapMock },
     },
   },
 }));
@@ -118,7 +157,14 @@ describe('app routes', () => {
     getLocaleFromPathMock.mockReturnValue(null);
     getLocaleFromBaseHrefMock.mockReturnValue(null);
     getPreferredJoinLocaleMock.mockReturnValue('de');
-    getParticipantsQueryMock.mockResolvedValue({ participantCount: 0, participants: [] });
+    getHostBrowserCapabilityMock.mockReturnValue(null);
+    getOrCreateRecoveryExchangeIdMock.mockReturnValue('recovery-exchange-id');
+    getStagedHostRecoveryCardMock.mockReturnValue(null);
+    getParticipantSummaryQueryMock.mockResolvedValue({
+      participantCount: 0,
+      activeParticipantCount: 0,
+    });
+    prepareHostCredentialBootstrapMock.mockRejectedValue(new Error('Legacy migration unavailable'));
     TestBed.configureTestingModule({
       providers: [provideRouter([])],
     });
@@ -160,26 +206,29 @@ describe('app routes', () => {
     );
 
     expect(normalizeHostSessionCodeMock).toHaveBeenCalledWith('abc123');
-    expect(getParticipantsQueryMock).toHaveBeenCalledWith({ code: 'ABC123' });
+    expect(getParticipantSummaryQueryMock).toHaveBeenCalledWith({ code: 'ABC123' });
     expect(result).toBe(true);
   });
 
-  it('leitet die Session-Host-Route ohne Host-Token auf Join um', () => {
+  it('leitet die Session-Host-Route ohne Host-Token zur Wiederherstellung um', async () => {
     hasHostTokenMock.mockReturnValue(false);
     const guard = findChildRoute('session/:code', 'host').canActivate?.[0] as CanActivateFn;
     const router = TestBed.inject(Router);
 
-    const result = TestBed.runInInjectionContext(() =>
+    const result = await TestBed.runInInjectionContext(() =>
       guard(createChildRouteSnapshot('abc123'), {} as never),
     );
 
     expect(normalizeHostSessionCodeMock).toHaveBeenCalledWith('abc123');
-    expect(router.serializeUrl(result as ReturnType<Router['createUrlTree']>)).toBe('/join/ABC123');
+    expect(getParticipantSummaryQueryMock).not.toHaveBeenCalled();
+    expect(router.serializeUrl(result as ReturnType<Router['createUrlTree']>)).toBe(
+      '/host-recovery',
+    );
   });
 
-  it('räumt einen ungültigen gespeicherten Host-Token weg und leitet auf Join um', async () => {
+  it('räumt einen ungültigen gespeicherten Host-Token weg und leitet zur Wiederherstellung um', async () => {
     hasHostTokenMock.mockReturnValue(true);
-    getParticipantsQueryMock.mockRejectedValue(
+    getParticipantSummaryQueryMock.mockRejectedValue(
       new Error('UNAUTHORIZED: Host-Authentifizierung erforderlich.'),
     );
     const guard = findChildRoute('session/:code', 'host').canActivate?.[0] as CanActivateFn;
@@ -190,7 +239,9 @@ describe('app routes', () => {
     );
 
     expect(clearHostTokenMock).toHaveBeenCalledWith('ABC123');
-    expect(router.serializeUrl(result as ReturnType<Router['createUrlTree']>)).toBe('/join/ABC123');
+    expect(router.serializeUrl(result as ReturnType<Router['createUrlTree']>)).toBe(
+      '/host-recovery',
+    );
   });
 
   it('lässt die Pairing-Anfrage ohne Host-Token zu', () => {

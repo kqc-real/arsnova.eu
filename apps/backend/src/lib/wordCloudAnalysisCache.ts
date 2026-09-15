@@ -51,6 +51,7 @@ export function buildWordCloudSnapshotCacheKey(input: AnalyzeWordCloudInput): st
     input.metric,
     input.normalization,
     WORD_CLOUD_NORMALIZATION_ANALYSIS_VERSION,
+    input.corpusRevision ?? 'client',
     String(input.maxEntries ?? 'default'),
     String(input.maxNgramLength ?? 1),
     snapshotHash,

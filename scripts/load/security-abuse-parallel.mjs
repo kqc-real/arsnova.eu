@@ -182,6 +182,7 @@ async function run() {
           code: session.code,
           nickname: `Abnahme-${index + 1}`,
           anonymousClientId: randomUUID(),
+          joinIdempotencyKey: randomUUID(),
         });
         return 'accepted';
       } catch (error) {
@@ -199,6 +200,7 @@ async function run() {
           code: invalidCode(index),
           nickname: 'Enumeration',
           anonymousClientId: attackerClientId,
+          joinIdempotencyKey: randomUUID(),
         });
         results.push('unexpectedAccepted');
       } catch (error) {

@@ -12,6 +12,9 @@ import {
   ConfirmReadingReadyOutputSchema,
   CreateSessionInputSchema,
   CreateSessionOutputSchema,
+  ChangeSessionExpirationInputSchema,
+  ConfigureSessionParticipationInputSchema,
+  EndSessionOutputSchema,
   GetCurrentQuestionForStudentInputSchema,
   GetSessionInfoInputSchema,
   PublicSessionCodeLookupInputSchema,
@@ -33,12 +36,36 @@ import {
   SessionExportPdfOutputSchema,
   SessionParticipantsPayloadSchema,
   SessionParticipantNicknamesPayloadSchema,
+  GetSessionParticipantSummaryInputSchema,
+  SessionParticipantSummaryDTOSchema,
+  SearchSessionParticipantsInputSchema,
+  SessionParticipantPageDTOSchema,
+  CheckSessionParticipantNicknameInputSchema,
+  CheckSessionParticipantNicknameOutputSchema,
+  HeartbeatParticipantPresenceInputSchema,
+  HeartbeatParticipantPresenceOutputSchema,
   SessionChannelsDTOSchema,
   SessionLiveChannelSchema,
+  SetPreferredLiveChannelInputSchema,
+  SetPreferredLiveChannelOutputSchema,
+  PreviewSessionQaConfigurationInputSchema,
+  SessionQaConfigurationPreviewDTOSchema,
+  ConfigureSessionQaInputSchema,
+  SessionQaConfigurationDTOSchema,
   SessionPresenterSurfaceSchema,
   SessionFinishProjectionSchema,
   SessionTeamsPayloadSchema,
   SessionStatusUpdateSchema,
+  SessionLifecycleHostDTOSchema,
+  SessionParticipationProfileDTOSchema,
+  HostAccessTokenDTOSchema,
+  HostCredentialExchangeDTOSchema,
+  IssueHostAccessTokenInputSchema,
+  PrepareHostCredentialBootstrapInputSchema,
+  PrepareHostCredentialExchangeInputSchema,
+  ActivateHostCredentialInputSchema,
+  SessionExpirationPreviewDTOSchema,
+  PreviewSessionExpirationInputSchema,
   HostCurrentQuestionDTOSchema,
   HostVoteProgressDTOSchema,
   QuestionStudentDTOSchema,
@@ -155,18 +182,21 @@ import {
   updateMaxParticipantsSingleSession,
 } from '../lib/platformStatistic';
 import {
-  getActiveParticipantCountForSession,
   getActiveParticipantIdsForSession,
+  getActiveParticipantCountForSession,
   removeParticipantPresence,
   touchParticipantPresence,
 } from '../lib/presence';
 import { markCountdownSessionActive, recordSessionTransitionActivity } from '../lib/loadSignal';
 import { logger } from '../lib/logger';
+import { zAsyncIterable } from '../lib/zAsyncIterable';
 import {
   allowLegacyQuizHistoryProofAfterBind,
   getQuizHistoryLegacyProofCutoffAt,
 } from '../lib/quizHistoryLegacyProofPolicy';
 import { awaitJoinAdmissionSlot } from '../lib/joinAdmission';
+import { prepareParticipantJoin } from '../lib/participantJoin';
+import { assertParticipantCapability } from '../lib/participantAuth';
 import type { SessionCodeFailureSource } from '../lib/abuseTelemetry';
 import { rejectInvalidSessionCode } from '../lib/invalidSessionCode';
 import {
@@ -258,7 +288,14 @@ function setCachedParticipantNicknames(
 export function resetParticipantNicknameCacheForTests(): void {
   participantNicknameCache.clear();
 }
-import { publicProcedure, router, mergeRouters, getClientIp, hostProcedure } from '../trpc';
+import {
+  publicProcedure,
+  router,
+  mergeRouters,
+  getClientIp,
+  hostProcedure,
+  originalHostProcedure,
+} from '../trpc';
 import { invalidateHostPairingForSession } from '../lib/hostPairing';
 import { waitWhileHostTokenValid } from '../lib/hostRealtimeGuard';
 import { sessionHostPairingRouter } from './sessionHostPairing';
@@ -270,22 +307,40 @@ import {
 import { pdfConcurrencyLimiter } from '../lib/pdfConcurrencyLimiter';
 import { prisma } from '../db';
 import { getRedis } from '../redis';
-import { createHostSessionToken } from '../lib/hostAuth';
+import { createCredentialBoundHostToken, isOriginalHostSessionToken } from '../lib/hostAuth';
+import {
+  activateHostCredential,
+  createInitialHostCredentialMaterial,
+  issueHostTokenFromBrowserCapability,
+  prepareHostCredentialExchange,
+  prepareLegacyHostCredentialBootstrap,
+} from '../lib/hostCredentialRecovery';
 import {
   enqueueProductFeedbackInviteJob,
   issueProductFeedbackInvitesAfterFinishAwait,
 } from '../lib/productFeedbackInvite';
-import { hashToken as hashProductFeedbackToken } from '../lib/productFeedbackTokens';
 import { checkSessionCreateRate, shouldBypassSessionCreateRate } from '../lib/rateLimit';
 import {
   buildAnswerDisplayOrderForQuiz,
   orderAnswersByDisplayMap,
 } from '../lib/answerDisplayOrder';
+import {
+  assertSessionEffectivelyActive,
+  buildSessionRetentionTimeline,
+  computeExtendedSessionExpiration,
+  computeInitialSessionExpiration,
+  computeSessionQaClosesAt,
+  getSessionMaxExpiresAt,
+  getPostProcessingEndsAt,
+  isSessionEffectivelyFinished,
+} from '../lib/sessionLifecycle';
+import { registerSessionPurgeInvalidator } from '../lib/sessionPurgeInvalidation';
 
 const QUESTION_TEXT_SHORT_MAX = 100;
 const SESSION_INFO_CACHE_TTL_MS = 1_000;
 const STATUS_SNAPSHOT_CACHE_TTL_MS = 400;
 const PARTICIPANTS_SNAPSHOT_CACHE_TTL_MS = 400;
+const QA_EXPORT_MAX_QUESTIONS = 500;
 const CURRENT_QUESTION_CACHE_TTL_MS = 500;
 const PARTICIPANT_MEMBERSHIP_CACHE_TTL_MS = 30_000;
 const VOTE_COUNT_CACHE_TTL_MS = 15 * 60_000;
@@ -294,8 +349,11 @@ const CURRENT_QUESTION_EVENT_WAIT_MS = 10_000;
 const VOTE_PROGRESS_SIGNAL_DEBOUNCE_MS = 150;
 const STATUS_EVENT_WAIT_ACTIVE_MS = 10_000;
 const STATUS_EVENT_WAIT_IDLE_MS = 30_000;
-const PARTICIPANT_EVENT_WAIT_ACTIVE_MS = 10_000;
-const PARTICIPANT_EVENT_WAIT_IDLE_MS = 30_000;
+// Prozesslokale Signale reagieren sofort; der kurze DB-Revisionsfallback hält
+// den Fan-out auch bei Join und Subscription auf unterschiedlichen Instanzen
+// innerhalb des Drei-Sekunden-Budgets.
+const PARTICIPANT_EVENT_WAIT_ACTIVE_MS = 1_000;
+const PARTICIPANT_EVENT_WAIT_IDLE_MS = 1_000;
 const FAST_STATUS_POLL_SET = new Set(['ACTIVE', 'QUESTION_OPEN', 'DISCUSSION']);
 const TEAM_COLORS = [
   '#1E88E5',
@@ -316,6 +374,10 @@ type CacheEntry<T> = {
 type StatusSnapshotPayload = {
   status: string;
   currentQuestion: number | null;
+  expiresAt?: string;
+  sessionLifecycleRevision?: number;
+  serverNow?: string;
+  endedAt?: string | null;
   pausedFromStatus?: 'QUESTION_OPEN' | 'ACTIVE' | null;
   activeAt?: string;
   timer?: number | null;
@@ -346,13 +408,12 @@ const sessionInfoCache = new Map<
 const statusSnapshotCache = new Map<string, CacheEntry<StatusSnapshotPayload>>();
 const participantsSnapshotCache = new Map<
   string,
-  CacheEntry<z.infer<typeof SessionParticipantsPayloadSchema>>
+  CacheEntry<z.infer<typeof SessionParticipantSummaryDTOSchema>>
 >();
 const currentQuestionCache = new Map<string, CacheEntry<unknown>>();
 const participantMembershipCache = new Map<string, CacheEntry<boolean>>();
 const voteCountCache = new Map<string, CacheEntry<number>>();
 const voteSummaryCache = new Map<string, CacheEntry<VoteSummary>>();
-const preferredLiveChannelByCode = new Map<string, z.infer<typeof SessionLiveChannelSchema>>();
 const presenterSurfaceByCode = new Map<string, z.infer<typeof SessionPresenterSurfaceSchema>>();
 const finishProjectionByCode = new Map<string, z.infer<typeof SessionFinishProjectionSchema>>();
 const sessionInfoInFlight = new Map<
@@ -362,7 +423,7 @@ const sessionInfoInFlight = new Map<
 const statusSnapshotInFlight = new Map<string, Promise<StatusSnapshotPayload>>();
 const participantsSnapshotInFlight = new Map<
   string,
-  Promise<z.infer<typeof SessionParticipantsPayloadSchema>>
+  Promise<z.infer<typeof SessionParticipantSummaryDTOSchema>>
 >();
 const currentQuestionInFlight = new Map<string, Promise<unknown>>();
 const participantMembershipInFlight = new Map<string, Promise<boolean>>();
@@ -480,7 +541,6 @@ function clearSessionReadCaches(code?: string): void {
 
 export function resetSessionReadCachesForTests(): void {
   clearSessionReadCaches();
-  preferredLiveChannelByCode.clear();
   presenterSurfaceByCode.clear();
   finishProjectionByCode.clear();
   sessionStatusVersions.clear();
@@ -778,13 +838,18 @@ async function fetchStatusSnapshot(code: string): Promise<StatusSnapshotPayload>
           quizId: true,
           qaEnabled: true,
           qaOpen: true,
+          qaClosesAt: true,
           qaTitle: true,
           qaModerationMode: true,
           title: true,
           moderationMode: true,
           quickFeedbackEnabled: true,
           quickFeedbackOpen: true,
+          preferredChannel: true,
           status: true,
+          endedAt: true,
+          expiresAt: true,
+          sessionLifecycleRevision: true,
           currentQuestion: true,
           currentRound: true,
           pausedFromStatus: true,
@@ -808,8 +873,22 @@ async function fetchStatusSnapshot(code: string): Promise<StatusSnapshotPayload>
       if (!session) {
         throw new TRPCError({ code: 'NOT_FOUND', message: 'Session nicht gefunden.' });
       }
-      const isActive = session.status === 'ACTIVE';
-      const visibleCurrentQuestion = session.status === 'LOBBY' ? null : session.currentQuestion;
+      const serverNow = new Date();
+      const expiresAt =
+        session.expiresAt instanceof Date
+          ? session.expiresAt
+          : new Date(serverNow.getTime() + 24 * 60 * 60 * 1000);
+      const effectiveStatus = isSessionEffectivelyFinished(
+        { status: session.status, endedAt: session.endedAt, expiresAt },
+        serverNow,
+      )
+        ? ('FINISHED' as const)
+        : session.status;
+      const isActive = effectiveStatus === 'ACTIVE';
+      const visibleCurrentQuestion =
+        effectiveStatus === 'LOBBY' || effectiveStatus === 'FINISHED'
+          ? null
+          : session.currentQuestion;
       const currentTimer =
         isActive && session.currentQuestion !== null && session.currentRound !== 2
           ? resolveEffectiveQuestionTimer(
@@ -819,12 +898,17 @@ async function fetchStatusSnapshot(code: string): Promise<StatusSnapshotPayload>
               session.quiz?.timerScaleByDifficulty ?? true,
             )
           : null;
-      const channels = buildSessionChannels(session);
-      const preferredChannel = resolvePreferredLiveChannel(code, channels);
+      const channels = buildSessionChannels(session, serverNow);
+      const preferredChannel = resolvePreferredLiveChannel(session.preferredChannel, channels);
       return {
-        status: session.status,
+        status: effectiveStatus,
         currentQuestion: visibleCurrentQuestion,
         currentRound: session.currentRound,
+        expiresAt: expiresAt.toISOString(),
+        sessionLifecycleRevision: session.sessionLifecycleRevision ?? 0,
+        serverNow: serverNow.toISOString(),
+        endedAt:
+          effectiveStatus === 'FINISHED' ? (session.endedAt ?? expiresAt).toISOString() : null,
         pausedFromStatus:
           session.pausedFromStatus === 'QUESTION_OPEN' || session.pausedFromStatus === 'ACTIVE'
             ? session.pausedFromStatus
@@ -832,8 +916,8 @@ async function fetchStatusSnapshot(code: string): Promise<StatusSnapshotPayload>
         channels,
         preferredChannel,
         presenterSurface: resolvePresenterSurface(code, preferredChannel),
-        ...(session.status === 'FINISHED' && {
-          finishProjection: await resolveFinishProjection(code, session.status),
+        ...(effectiveStatus === 'FINISHED' && {
+          finishProjection: await resolveFinishProjection(code, effectiveStatus),
         }),
         ...(session.lastSkippedQuestionId &&
           session.lastQuestionSkippedAt && {
@@ -852,7 +936,7 @@ async function fetchStatusSnapshot(code: string): Promise<StatusSnapshotPayload>
 
 async function fetchParticipantsSnapshot(
   code: string,
-): Promise<z.infer<typeof SessionParticipantsPayloadSchema>> {
+): Promise<z.infer<typeof SessionParticipantSummaryDTOSchema>> {
   return getOrComputeCached(
     participantsSnapshotCache,
     participantsSnapshotInFlight,
@@ -866,7 +950,7 @@ async function fetchParticipantsSnapshot(
       if (!session) {
         throw new TRPCError({ code: 'NOT_FOUND', message: 'Session nicht gefunden.' });
       }
-      return buildSessionParticipantsPayload(session);
+      return buildSessionParticipantSummary(session);
     },
   );
 }
@@ -874,6 +958,32 @@ async function fetchParticipantsSnapshot(
 export function invalidateSessionCachesForCode(code: string): void {
   clearSessionReadCaches(code.toUpperCase());
 }
+
+export async function purgeSessionRuntimeArtifacts(params: {
+  sessionId: string;
+  sessionCode: string;
+}): Promise<void> {
+  const code = params.sessionCode.toUpperCase();
+  clearSessionReadCaches(code);
+  presenterSurfaceByCode.delete(code);
+  finishProjectionByCode.delete(code);
+  for (const key of emojiStore.keys()) {
+    if (key.startsWith(`${params.sessionId}:`)) {
+      emojiStore.delete(key);
+    }
+  }
+  emitSessionStatusSignal(code);
+  emitSessionParticipantSignal(code);
+  emitSessionCurrentQuestionSignal(code);
+  emitSessionVoteProgressSignal(code, { immediate: true });
+  sessionStatusVersions.delete(code);
+  sessionParticipantVersions.delete(code);
+  sessionCurrentQuestionVersions.delete(code);
+  sessionVoteProgressVersions.delete(code);
+  await getRedis().del(finishProjectionRedisKey(code));
+}
+
+registerSessionPurgeInvalidator((event) => purgeSessionRuntimeArtifacts(event));
 
 export function invalidateSessionMetadataCachesForCode(code: string): void {
   const normalizedCode = code.toUpperCase();
@@ -1522,12 +1632,17 @@ const sessionParticipantsQuerySelect = Prisma.validator<Prisma.SessionSelect>()(
   id: true,
   status: true,
   currentQuestion: true,
+  participantRevision: true,
+  onboardingAnonymousMode: true,
+  _count: { select: { participants: true } },
   participants: {
-    orderBy: [{ joinedAt: 'asc' }, { id: 'asc' }],
+    orderBy: [{ joinedAt: 'desc' }, { id: 'desc' }],
+    take: 20,
     select: {
       id: true,
       nickname: true,
       teamId: true,
+      joinedAt: true,
       team: { select: { name: true } },
     },
   },
@@ -1545,7 +1660,12 @@ type SessionParticipantsQueryResult = Prisma.SessionGetPayload<{
   select: typeof sessionParticipantsQuerySelect;
 }>;
 
-function getCurrentQuestionIdForReading(session: SessionParticipantsQueryResult): string | null {
+type SessionReadingState = Pick<
+  SessionParticipantsQueryResult,
+  'id' | 'status' | 'currentQuestion' | 'quiz'
+>;
+
+function getCurrentQuestionIdForReading(session: SessionReadingState): string | null {
   if (session.status !== 'QUESTION_OPEN') return null;
   const idx = session.currentQuestion;
   if (idx === null || idx === undefined) return null;
@@ -1553,7 +1673,7 @@ function getCurrentQuestionIdForReading(session: SessionParticipantsQueryResult)
 }
 
 async function buildReadingReadyStatus(
-  session: SessionParticipantsQueryResult,
+  session: SessionReadingState,
   questionId: string | null,
   participantId?: string,
   activeParticipantIds?: Set<string>,
@@ -1562,7 +1682,14 @@ async function buildReadingReadyStatus(
 
   const activeIds = activeParticipantIds ?? (await getActiveParticipantIdsForSession(session.id));
   const readyParticipantIds = await getReadingReadyParticipantIds(session.id, questionId);
-  const sessionParticipantIds = new Set(session.participants.map((participant) => participant.id));
+  const sessionParticipantIds = new Set(
+    (
+      await prisma.participant.findMany({
+        where: { sessionId: session.id, id: { in: [...activeIds] } },
+        select: { id: true },
+      })
+    ).map((participant) => participant.id),
+  );
 
   const connectedParticipantIds = [...activeIds].filter((id) => sessionParticipantIds.has(id));
   const readyConnectedCount = connectedParticipantIds.filter((id) =>
@@ -1596,21 +1723,105 @@ async function buildSessionParticipantsPayload(
       activeParticipantIds,
     );
     connectedCount = readingReady?.connectedCount ?? 0;
-  } else if (session.participants.length > 0) {
+  } else if (session._count.participants > 0) {
     connectedCount = await getActiveParticipantCountForSession(session.id);
   }
 
   return SessionParticipantsPayloadSchema.parse({
-    participants: session.participants.map((p) => ({
-      id: p.id,
-      nickname: p.nickname,
-      teamId: p.teamId ?? null,
-      teamName: p.team?.name ?? null,
-    })),
-    participantCount: session.participants.length,
+    participants:
+      session.onboardingAnonymousMode === true
+        ? []
+        : session.participants.map((p) => ({
+            id: p.id,
+            nickname: p.nickname,
+            teamId: p.teamId ?? null,
+            teamName: p.team?.name ?? null,
+          })),
+    participantCount: session._count.participants,
     connectedCount,
     ...(readingReady ? { readingReady } : {}),
   });
+}
+
+async function buildSessionParticipantSummary(
+  session: SessionParticipantsQueryResult,
+): Promise<z.infer<typeof SessionParticipantSummaryDTOSchema>> {
+  const readingQuestionId = getCurrentQuestionIdForReading(session);
+  let connectedCount: number;
+  let readingReady: z.infer<typeof ReadingReadyStatusDTOSchema> | undefined;
+  if (readingQuestionId) {
+    const activeParticipantIds = await getActiveParticipantIdsForSession(session.id);
+    const validActiveParticipantIds = new Set(
+      (
+        await prisma.participant.findMany({
+          where: { sessionId: session.id, id: { in: [...activeParticipantIds] } },
+          select: { id: true },
+        })
+      ).map((participant) => participant.id),
+    );
+    connectedCount = validActiveParticipantIds.size;
+    readingReady = await buildReadingReadyStatus(
+      session,
+      readingQuestionId,
+      undefined,
+      validActiveParticipantIds,
+    );
+  } else {
+    connectedCount = await getActiveParticipantCountForSession(session.id);
+  }
+
+  return SessionParticipantSummaryDTOSchema.parse({
+    participantCount: session._count.participants,
+    connectedCount,
+    revision: session.participantRevision,
+    recentArrivals:
+      session.onboardingAnonymousMode === true
+        ? []
+        : session.participants.slice(0, 20).map((participant) => ({
+            id: participant.id,
+            nickname: participant.nickname,
+            teamId: participant.teamId ?? null,
+            teamName: participant.team?.name ?? null,
+            joinedAt: participant.joinedAt.toISOString(),
+          })),
+    ...(readingReady ? { readingReady } : {}),
+  });
+}
+
+type ParticipantPageCursor = {
+  v: 1;
+  revision: number;
+  joinedAt: string;
+  id: string;
+  search: string;
+};
+
+function encodeParticipantPageCursor(cursor: ParticipantPageCursor): string {
+  return Buffer.from(JSON.stringify(cursor), 'utf8').toString('base64url');
+}
+
+function decodeParticipantPageCursor(value: string): ParticipantPageCursor {
+  try {
+    const parsed = JSON.parse(
+      Buffer.from(value, 'base64url').toString('utf8'),
+    ) as ParticipantPageCursor;
+    if (
+      parsed.v !== 1 ||
+      !Number.isInteger(parsed.revision) ||
+      parsed.revision < 0 ||
+      typeof parsed.id !== 'string' ||
+      !z.string().datetime().safeParse(parsed.joinedAt).success ||
+      typeof parsed.search !== 'string'
+    ) {
+      throw new Error('invalid cursor');
+    }
+    return parsed;
+  } catch {
+    throw new TRPCError({
+      code: 'BAD_REQUEST',
+      message: 'Der Teilnehmer-Seitenzeiger ist ungültig.',
+    });
+  }
 }
 
 /** Aggregiert SessionFeedback-Zeilen (getSessionFeedbackSummary / Quiz-Sammlung). */
@@ -2270,18 +2481,27 @@ async function loadFinishedQuizSessionExportData(code: string): Promise<SessionE
     teamLearningProfiles = profiles.length > 0 ? profiles : undefined;
   }
 
-  const qaRows = await prisma.qaQuestion.findMany({
-    where: {
-      sessionId: session.id,
-      status: { in: ['ACTIVE', 'PINNED', 'ARCHIVED'] },
-    },
-    orderBy: [{ upvoteCount: 'desc' }, { createdAt: 'asc' }],
-    select: {
-      text: true,
-      status: true,
-      upvoteCount: true,
-    },
-  });
+  const qaWhere: Prisma.QaQuestionWhereInput = {
+    sessionId: session.id,
+    status: { in: ['ACTIVE', 'PINNED', 'ARCHIVED'] },
+  };
+  const [qaQuestionTotalCount, qaRows] = await prisma.$transaction(
+    async (tx) =>
+      Promise.all([
+        tx.qaQuestion.count({ where: qaWhere }),
+        tx.qaQuestion.findMany({
+          where: qaWhere,
+          orderBy: [{ upvoteCount: 'desc' }, { createdAt: 'asc' }, { id: 'asc' }],
+          take: QA_EXPORT_MAX_QUESTIONS,
+          select: {
+            text: true,
+            status: true,
+            upvoteCount: true,
+          },
+        }),
+      ]),
+    { isolationLevel: Prisma.TransactionIsolationLevel.RepeatableRead },
+  );
   const qaQuestions =
     qaRows.length > 0
       ? qaRows.map((row, index) => ({
@@ -2311,6 +2531,8 @@ async function loadFinishedQuizSessionExportData(code: string): Promise<SessionE
     teamLearningProfiles,
     bonusTokens,
     qaQuestions,
+    qaQuestionTotalCount,
+    qaQuestionsTruncated: qaQuestionTotalCount > qaRows.length,
   };
 
   return result;
@@ -2849,6 +3071,27 @@ function buildSessionOnboardingUpdate(profile: SessionOnboardingProfile) {
   };
 }
 
+function getSessionParticipantIdentityMode(
+  profile: SessionOnboardingProfile,
+): 'PRESET_PSEUDONYM' | 'CUSTOM_NICKNAME' | 'ANONYMOUS' {
+  if (profile.anonymousMode) return 'ANONYMOUS';
+  return profile.allowCustomNicknames ? 'CUSTOM_NICKNAME' : 'PRESET_PSEUDONYM';
+}
+
+function buildSessionParticipationProfileDTO(
+  profile: SessionOnboardingProfile,
+  firstParticipantJoinedAt: Date | null,
+) {
+  return {
+    identityMode: getSessionParticipantIdentityMode(profile),
+    nicknameTheme: profile.nicknameTheme,
+    allowCustomNicknames: profile.allowCustomNicknames,
+    anonymousMode: profile.anonymousMode,
+    firstParticipantJoinedAt: firstParticipantJoinedAt?.toISOString() ?? null,
+    configurationAllowed: firstParticipantJoinedAt === null,
+  };
+}
+
 function buildEffectiveTeamNames(profile: SessionOnboardingProfile): string[] {
   if (!profile.teamMode) {
     return [];
@@ -3154,21 +3397,34 @@ async function reconcileParticipantAutoTeamAssignment(input: {
   };
 }
 
-function buildSessionChannels(session: {
-  type: 'QUIZ' | 'Q_AND_A';
-  quizId?: string | null;
-  quiz?: object | null;
-  qaEnabled?: boolean | null;
-  qaOpen?: boolean | null;
-  qaTitle?: string | null;
-  qaModerationMode?: boolean | null;
-  title?: string | null;
-  moderationMode?: boolean | null;
-  quickFeedbackEnabled?: boolean | null;
-  quickFeedbackOpen?: boolean | null;
-}) {
+function buildSessionChannels(
+  session: {
+    type: 'QUIZ' | 'Q_AND_A';
+    quizId?: string | null;
+    quiz?: object | null;
+    qaEnabled?: boolean | null;
+    qaOpen?: boolean | null;
+    qaClosesAt?: Date | null;
+    qaTitle?: string | null;
+    qaModerationMode?: boolean | null;
+    title?: string | null;
+    moderationMode?: boolean | null;
+    quickFeedbackEnabled?: boolean | null;
+    quickFeedbackOpen?: boolean | null;
+  },
+  now: Date = new Date(),
+) {
   const qaEnabled = session.type === 'Q_AND_A' || session.qaEnabled === true;
-  const qaOpen = qaEnabled && session.qaOpen !== false;
+  const qaState = !qaEnabled
+    ? ('DISABLED' as const)
+    : session.qaClosesAt === null
+      ? ('UNCONFIGURED' as const)
+      : session.qaClosesAt instanceof Date && now >= session.qaClosesAt
+        ? ('DEADLINE_EXPIRED' as const)
+        : session.qaOpen === false
+          ? ('MANUALLY_CLOSED' as const)
+          : ('OPEN' as const);
+  const qaOpen = qaState === 'OPEN';
   const quickFeedbackEnabled = session.quickFeedbackEnabled === true;
   const quickFeedbackOpen = quickFeedbackEnabled && session.quickFeedbackOpen !== false;
 
@@ -3184,12 +3440,23 @@ function buildSessionChannels(session: {
       moderationMode: qaEnabled
         ? (session.qaModerationMode ?? session.moderationMode ?? true)
         : false,
+      state: qaState,
+      closesAt: session.qaClosesAt?.toISOString() ?? null,
     },
     quickFeedback: {
       enabled: quickFeedbackEnabled,
       open: quickFeedbackOpen,
     },
   };
+}
+
+function assertSessionAllowsLiveMutation(status: string | null | undefined): void {
+  if (status === 'FINISHED') {
+    throw new TRPCError({
+      code: 'BAD_REQUEST',
+      message: 'Beendete Sessions können nicht mehr verändert werden.',
+    });
+  }
 }
 
 function defaultPreferredLiveChannel(
@@ -3202,14 +3469,41 @@ function defaultPreferredLiveChannel(
 }
 
 function resolvePreferredLiveChannel(
-  code: string,
+  stored: string | null | undefined,
   channels: z.infer<typeof SessionChannelsDTOSchema>,
 ): z.infer<typeof SessionLiveChannelSchema> {
-  const stored = preferredLiveChannelByCode.get(code.toUpperCase());
   if (stored === 'quiz' && channels.quiz.enabled) return stored;
   if (stored === 'qa' && channels.qa.enabled) return stored;
   if (stored === 'quickFeedback' && channels.quickFeedback.enabled) return stored;
   return defaultPreferredLiveChannel(channels);
+}
+
+function computeQaConfigurationWindow(
+  session: {
+    createdAt: Date;
+    expiresAt: Date;
+    timeZone: string;
+  },
+  selection: z.infer<typeof PreviewSessionQaConfigurationInputSchema>['selection'],
+  serverNow: Date,
+): {
+  qaClosesAt: Date;
+  expiresAt: Date;
+  requiresSessionExtension: boolean;
+} {
+  const qaClosesAt = computeSessionQaClosesAt({
+    createdAt: session.createdAt,
+    currentExpiresAt: session.expiresAt,
+    openedAt: serverNow,
+    timeZone: session.timeZone,
+    selection,
+  });
+  const requiresSessionExtension = qaClosesAt > session.expiresAt;
+  return {
+    qaClosesAt,
+    expiresAt: requiresSessionExtension ? qaClosesAt : session.expiresAt,
+    requiresSessionExtension,
+  };
 }
 
 function resolvePresenterSurface(
@@ -4285,6 +4579,8 @@ async function fetchHostCurrentQuestionEnvelope(
       id: true,
       code: true,
       status: true,
+      endedAt: true,
+      expiresAt: true,
       currentQuestion: true,
       currentRound: true,
       answerDisplayOrder: true,
@@ -4351,6 +4647,9 @@ async function fetchHostCurrentQuestionEnvelope(
       },
     },
   });
+  if (session && isSessionEffectivelyFinished(session, new Date())) {
+    return { status: 'FINISHED', payload: null };
+  }
   return {
     status: session?.status ?? null,
     payload: await buildHostCurrentQuestionDto(session),
@@ -4666,6 +4965,21 @@ async function resolvePublicSessionInfo(
       if (!session) {
         throw new TRPCError({ code: 'NOT_FOUND', message: 'Session nicht gefunden.' });
       }
+      const readAt = new Date();
+      const expiresAt =
+        session.expiresAt instanceof Date
+          ? session.expiresAt
+          : new Date(readAt.getTime() + 24 * 60 * 60 * 1000);
+      const effectivelyFinished = isSessionEffectivelyFinished(
+        {
+          status: session.status,
+          endedAt: session.endedAt,
+          expiresAt,
+        },
+        readAt,
+      );
+      const retention = buildSessionRetentionTimeline(session, readAt);
+      const effectiveStatus = effectivelyFinished ? ('FINISHED' as const) : session.status;
       const q =
         session.quizId !== null
           ? await prisma.quiz.findUnique({
@@ -4697,16 +5011,26 @@ async function resolvePublicSessionInfo(
             })
           : null;
       const onboardingProfile = resolveSessionOnboardingProfile(session, q);
-      const channels = buildSessionChannels(session);
-      const preferredChannel = resolvePreferredLiveChannel(session.code, channels);
-      const visibleCurrentQuestion = session.status === 'LOBBY' ? null : session.currentQuestion;
+      const channels = buildSessionChannels(session, readAt);
+      const preferredChannel = resolvePreferredLiveChannel(session.preferredChannel, channels);
+      const visibleCurrentQuestion =
+        effectiveStatus === 'LOBBY' || effectiveStatus === 'FINISHED'
+          ? null
+          : session.currentQuestion;
       return {
         id: session.id,
         code: session.code,
         type: session.type,
-        status: session.status,
+        status: effectiveStatus,
         currentQuestion: visibleCurrentQuestion,
         currentRound: session.currentRound,
+        expiresAt: expiresAt.toISOString(),
+        timeZone: session.timeZone,
+        sessionLifecycleRevision: session.sessionLifecycleRevision ?? 0,
+        endedAt: retention.endedAt?.toISOString() ?? null,
+        postProcessingEndsAt: retention.postProcessingEndsAt?.toISOString() ?? null,
+        purgeEligibleAt: retention.purgeEligibleAt?.toISOString() ?? null,
+        qaClosesAt: session.qaClosesAt?.toISOString() ?? null,
         ...((session.pausedFromStatus === 'QUESTION_OPEN' ||
           session.pausedFromStatus === 'ACTIVE') && {
           pausedFromStatus: session.pausedFromStatus,
@@ -4723,8 +5047,8 @@ async function resolvePublicSessionInfo(
         channels,
         preferredChannel,
         presenterSurface: resolvePresenterSurface(session.code, preferredChannel),
-        ...(session.status === 'FINISHED' && {
-          finishProjection: await resolveFinishProjection(session.code, session.status),
+        ...(effectiveStatus === 'FINISHED' && {
+          finishProjection: await resolveFinishProjection(session.code, effectiveStatus),
         }),
         participantCount: session._count.participants,
         nicknameTheme: onboardingProfile.nicknameTheme,
@@ -4760,6 +5084,7 @@ async function resolvePublicSessionInfo(
   return {
     ...payload,
     serverTime: new Date().toISOString(),
+    serverNow: new Date().toISOString(),
   };
 }
 
@@ -4821,19 +5146,41 @@ const sessionCoreRouter = router({
       const qaEnabled = legacyQaOnlySession || input.qaEnabled === true;
       const standaloneQaSession =
         (input.type === 'QUIZ' && !input.quizId && qaEnabled) || legacyQaOnlySession;
-      const qaOpen = qaEnabled;
+      // Q&A wird erst durch die explizite Erstkonfiguration aus #417 geöffnet.
+      const qaOpen = false;
       const qaTitle = qaEnabled ? input.qaTitle?.trim() || input.title?.trim() || null : null;
       const qaModerationMode = qaEnabled
         ? (input.qaModerationMode ?? input.moderationMode ?? true)
         : false;
       const quickFeedbackEnabled = input.quickFeedbackEnabled ?? false;
       const quickFeedbackOpen = quickFeedbackEnabled;
+      const preferredChannel = standaloneQaSession
+        ? 'qa'
+        : input.quizId
+          ? 'quiz'
+          : quickFeedbackEnabled
+            ? 'quickFeedback'
+            : qaEnabled
+              ? 'qa'
+              : 'quiz';
+      const createdAt = new Date();
+      const timeZone = input.timeZone ?? 'UTC';
+      const expiresAt = computeInitialSessionExpiration({
+        createdAt,
+        now: createdAt,
+        timeZone,
+        selection: input.expiration,
+      });
+      const rollbackSafeStartedAt = new Date(
+        Math.max(createdAt.getTime(), expiresAt.getTime() - 24 * 60 * 60 * 1000),
+      );
       const onboardingProfile = quiz
         ? buildSessionOnboardingProfileFromQuiz(quiz)
         : normalizeSessionOnboardingProfile({
             ...LEGACY_SESSION_ONBOARDING_PROFILE,
             ...input,
           });
+      const hostCredentialMaterial = createInitialHostCredentialMaterial(createdAt);
       const session = await prisma.session.create({
         data: {
           code,
@@ -4845,14 +5192,21 @@ const sessionCoreRouter = router({
           qaOpen,
           qaTitle,
           qaModerationMode,
+          qaClosesAt: null,
           quickFeedbackEnabled,
           quickFeedbackOpen,
+          preferredChannel,
+          createdAt,
+          expiresAt,
+          timeZone,
+          startedAt: rollbackSafeStartedAt,
           ...buildSessionOnboardingUpdate(onboardingProfile),
           status: 'LOBBY',
           currentQuestion: initialCurrentQuestion,
           quizStarted: false,
           questionProgress: {},
           questionProgressComplete: true,
+          ...hostCredentialMaterial.credentialData,
         },
       });
       if (onboardingProfile.teamMode) {
@@ -4862,14 +5216,721 @@ const sessionCoreRouter = router({
           onboardingProfile.teamNames,
         );
       }
-      const hostToken = await createHostSessionToken(session.code);
+      const issuedHostToken = await createCredentialBoundHostToken({
+        sessionCode: session.code,
+        credentialVersion: 1,
+      });
       return {
         sessionId: session.id,
         code: session.code,
         status: session.status,
         quizName: quiz?.name ?? null,
-        hostToken,
+        hostToken: issuedHostToken.token,
+        hostBrowserCapability: hostCredentialMaterial.browserCapability,
+        hostRecoveryCard: hostCredentialMaterial.recoveryCard,
+        createdAt: createdAt.toISOString(),
+        expiresAt: expiresAt.toISOString(),
+        timeZone,
+        sessionLifecycleRevision: 0,
+        serverNow: new Date().toISOString(),
       };
+    }),
+
+  /** Stellt aus einer persistenten Browser-Capability ausschließlich ein kurzlebiges Host-Token aus. */
+  issueHostAccessToken: publicProcedure
+    .input(IssueHostAccessTokenInputSchema)
+    .output(HostAccessTokenDTOSchema)
+    .mutation(({ input }) => issueHostTokenFromBrowserCapability(input)),
+
+  /** Sicher wiederholbarer Self-Service-/Admin-Austausch; öffentliche Fehler bleiben absichtlich gleich. */
+  prepareHostCredentialExchange: publicProcedure
+    .input(PrepareHostCredentialExchangeInputSchema)
+    .output(HostCredentialExchangeDTOSchema)
+    .mutation(({ input }) => prepareHostCredentialExchange(input)),
+
+  /** Aktiviert die vorbereitete Generation; Wiederholung nach verlorener Antwort bleibt gültig. */
+  activateHostCredential: publicProcedure
+    .input(ActivateHostCredentialInputSchema)
+    .output(HostAccessTokenDTOSchema)
+    .mutation(async ({ input }) => {
+      const activated = await activateHostCredential(input);
+      return issueHostTokenFromBrowserCapability({
+        code: activated.code,
+        browserCapability: input.browserCapability,
+      });
+    }),
+
+  /** Rollout-Bridge: ein noch gültiges Legacy-Host-Token bereitet Generation 1 vor. */
+  prepareHostCredentialBootstrap: originalHostProcedure
+    .input(PrepareHostCredentialBootstrapInputSchema)
+    .output(HostCredentialExchangeDTOSchema)
+    .mutation(({ ctx, input }) => {
+      if (!ctx.hostToken) {
+        throw new TRPCError({
+          code: 'UNAUTHORIZED',
+          message: 'Host-Authentifizierung erforderlich.',
+        });
+      }
+      return prepareLegacyHostCredentialBootstrap({
+        code: input.code,
+        recoveryExchangeId: input.recoveryExchangeId,
+        hostToken: ctx.hostToken,
+      });
+    }),
+
+  /** Autoritativer Lifecycle-Snapshot für Warnungen und Vorabkonfiguration. */
+  getLifecycleForHost: hostProcedure
+    .input(GetSessionInfoInputSchema)
+    .output(SessionLifecycleHostDTOSchema)
+    .query(async ({ ctx, input }) => {
+      const code = input.code.toUpperCase();
+      const session = await prisma.session.findUnique({
+        where: { code },
+        select: {
+          status: true,
+          createdAt: true,
+          expiresAt: true,
+          endedAt: true,
+          qaClosesAt: true,
+          firstParticipantJoinedAt: true,
+          timeZone: true,
+          sessionLifecycleRevision: true,
+          legalHoldUntil: true,
+        },
+      });
+      if (!session) {
+        throw new TRPCError({ code: 'NOT_FOUND', message: 'Session nicht gefunden.' });
+      }
+      const serverNow = new Date();
+      const maxExpiresAt = getSessionMaxExpiresAt(session.createdAt);
+      const originalHost =
+        !!ctx.hostToken && (await isOriginalHostSessionToken(code, ctx.hostToken));
+      const effectivelyFinished = isSessionEffectivelyFinished(session, serverNow);
+      const retention = buildSessionRetentionTimeline(session, serverNow);
+      return {
+        status: effectivelyFinished ? 'FINISHED' : session.status,
+        createdAt: session.createdAt.toISOString(),
+        expiresAt: session.expiresAt.toISOString(),
+        endedAt: retention.endedAt?.toISOString() ?? null,
+        qaClosesAt: session.qaClosesAt?.toISOString() ?? null,
+        firstParticipantJoinedAt: session.firstParticipantJoinedAt?.toISOString() ?? null,
+        timeZone: session.timeZone,
+        sessionLifecycleRevision: session.sessionLifecycleRevision,
+        serverNow: serverNow.toISOString(),
+        maxExpiresAt: maxExpiresAt.toISOString(),
+        originalHost,
+        extensionAllowed:
+          originalHost &&
+          !effectivelyFinished &&
+          session.expiresAt.getTime() < maxExpiresAt.getTime(),
+        configurationAllowed: !effectivelyFinished && session.firstParticipantJoinedAt === null,
+        postProcessingEndsAt: retention.postProcessingEndsAt?.toISOString() ?? null,
+        purgeEligibleAt: retention.purgeEligibleAt?.toISOString() ?? null,
+        expectedDeletionAt: retention.expectedDeletionAt?.toISOString() ?? null,
+        deletionDelayedByLegalHold: retention.deletionDelayedByLegalHold,
+        hostContentAccessAllowed: !effectivelyFinished || retention.hostPostProcessingAccessAllowed,
+      };
+    }),
+
+  /** Sessionweite Namens-/Sichtbarkeitsregel; Änderungen enden mit dem ersten Join. */
+  getParticipationProfileForHost: hostProcedure
+    .input(GetSessionInfoInputSchema)
+    .output(SessionParticipationProfileDTOSchema)
+    .query(async ({ input }) => {
+      const session = await prisma.session.findUnique({
+        where: { code: input.code.toUpperCase() },
+        select: {
+          ...SESSION_ONBOARDING_RECONCILE_SELECT,
+          firstParticipantJoinedAt: true,
+        },
+      });
+      if (!session) {
+        throw new TRPCError({ code: 'NOT_FOUND', message: 'Session nicht gefunden.' });
+      }
+      return buildSessionParticipationProfileDTO(
+        resolveSessionOnboardingProfile(session, session.quiz),
+        session.firstParticipantJoinedAt,
+      );
+    }),
+
+  configureParticipationProfile: hostProcedure
+    .input(ConfigureSessionParticipationInputSchema)
+    .output(SessionParticipationProfileDTOSchema)
+    .mutation(async ({ input }) => {
+      const code = input.code.toUpperCase();
+      const identity = await prisma.session.findUnique({
+        where: { code },
+        select: { id: true },
+      });
+      if (!identity) {
+        throw new TRPCError({ code: 'NOT_FOUND', message: 'Session nicht gefunden.' });
+      }
+
+      try {
+        const updated = await prisma.$transaction(async (tx) => {
+          await lockSessionRow(tx, identity.id);
+          const session = await tx.session.findUnique({
+            where: { id: identity.id },
+            select: {
+              status: true,
+              endedAt: true,
+              expiresAt: true,
+              qaEnabled: true,
+              firstParticipantJoinedAt: true,
+              onboardingNicknameTheme: true,
+              onboardingAllowCustomNicknames: true,
+              onboardingAnonymousMode: true,
+              onboardingTeamMode: true,
+              onboardingTeamCount: true,
+              onboardingTeamAssignment: true,
+              onboardingTeamNames: true,
+            },
+          });
+          if (!session) {
+            throw new TRPCError({ code: 'NOT_FOUND', message: 'Session nicht gefunden.' });
+          }
+          assertSessionEffectivelyActive(session, new Date());
+          if (!session.qaEnabled) {
+            throw new TRPCError({
+              code: 'BAD_REQUEST',
+              message: 'Das Teilnahmeprofil kann hier erst beim Öffnen von Q&A festgelegt werden.',
+            });
+          }
+          if (session.firstParticipantJoinedAt !== null) {
+            throw new TRPCError({
+              code: 'CONFLICT',
+              message:
+                'Nach dem ersten Beitritt kann das Teilnahmeprofil nicht mehr geändert werden.',
+            });
+          }
+
+          const anonymousMode = input.identityMode === 'ANONYMOUS';
+          const allowCustomNicknames = input.identityMode === 'CUSTOM_NICKNAME';
+          return tx.session.update({
+            where: { id: identity.id },
+            data: {
+              onboardingProfileConfigured: true,
+              onboardingNicknameTheme: input.nicknameTheme,
+              onboardingAllowCustomNicknames: allowCustomNicknames,
+              onboardingAnonymousMode: anonymousMode,
+            },
+            select: {
+              onboardingProfileConfigured: true,
+              onboardingNicknameTheme: true,
+              onboardingAllowCustomNicknames: true,
+              onboardingAnonymousMode: true,
+              onboardingTeamMode: true,
+              onboardingTeamCount: true,
+              onboardingTeamAssignment: true,
+              onboardingTeamNames: true,
+              firstParticipantJoinedAt: true,
+            },
+          });
+        });
+        invalidateSessionStatusCachesForCode(code);
+        return buildSessionParticipationProfileDTO(
+          resolveSessionOnboardingProfile(updated),
+          updated.firstParticipantJoinedAt,
+        );
+      } catch (error) {
+        if (error instanceof TRPCError) throw error;
+        if (String(error).includes('ARSNOVA_SESSION_ONBOARDING_IMMUTABLE')) {
+          throw new TRPCError({
+            code: 'CONFLICT',
+            message:
+              'Nach dem ersten Beitritt kann das Teilnahmeprofil nicht mehr geändert werden.',
+            cause: error,
+          });
+        }
+        throw error;
+      }
+    }),
+
+  /** Serverbestätigte UTC-Vorschau; die Mutation akzeptiert nur exakt diese Frist. */
+  previewExpiration: hostProcedure
+    .input(PreviewSessionExpirationInputSchema)
+    .output(SessionExpirationPreviewDTOSchema)
+    .query(async ({ ctx, input }) => {
+      const code = input.code.toUpperCase();
+      if (
+        input.purpose === 'GLOBAL_EXTENSION' &&
+        (!ctx.hostToken || !(await isOriginalHostSessionToken(code, ctx.hostToken)))
+      ) {
+        throw new TRPCError({
+          code: 'FORBIDDEN',
+          message: 'Nur der ursprüngliche Host kann die Session verlängern.',
+        });
+      }
+      const session = await prisma.session.findUnique({
+        where: { code },
+        select: {
+          status: true,
+          createdAt: true,
+          expiresAt: true,
+          endedAt: true,
+          qaClosesAt: true,
+          firstParticipantJoinedAt: true,
+          timeZone: true,
+          sessionLifecycleRevision: true,
+        },
+      });
+      if (!session) {
+        throw new TRPCError({ code: 'NOT_FOUND', message: 'Session nicht gefunden.' });
+      }
+      const serverNow = new Date();
+      assertSessionEffectivelyActive(session, serverNow);
+      if (input.purpose === 'INITIAL_CONFIGURATION' && session.firstParticipantJoinedAt !== null) {
+        throw new TRPCError({
+          code: 'CONFLICT',
+          message: 'Nach dem ersten Beitritt kann die Anfangsfrist nicht mehr geändert werden.',
+        });
+      }
+      const newExpiresAt =
+        input.purpose === 'INITIAL_CONFIGURATION'
+          ? computeInitialSessionExpiration({
+              createdAt: session.createdAt,
+              now: serverNow,
+              timeZone: input.timeZone,
+              selection: input.selection,
+            })
+          : computeExtendedSessionExpiration({
+              createdAt: session.createdAt,
+              currentExpiresAt: session.expiresAt,
+              now: serverNow,
+              timeZone: session.timeZone,
+              selection: input.selection,
+            });
+      if (
+        input.purpose === 'INITIAL_CONFIGURATION' &&
+        session.qaClosesAt &&
+        session.qaClosesAt > newExpiresAt
+      ) {
+        throw new TRPCError({
+          code: 'BAD_REQUEST',
+          message: 'Die Sessionfrist kann nicht vor die bestehende Q&A-Frist gesetzt werden.',
+        });
+      }
+      return {
+        purpose: input.purpose,
+        expectedLifecycleRevision: session.sessionLifecycleRevision,
+        oldExpiresAt: session.expiresAt.toISOString(),
+        newExpiresAt: newExpiresAt.toISOString(),
+        qaClosesAt: session.qaClosesAt?.toISOString() ?? null,
+        timeZone: input.purpose === 'INITIAL_CONFIGURATION' ? input.timeZone : session.timeZone,
+        maxExpiresAt: getSessionMaxExpiresAt(session.createdAt).toISOString(),
+        serverNow: serverNow.toISOString(),
+        projectedPostProcessingEndsAt: getPostProcessingEndsAt(newExpiresAt).toISOString(),
+        projectedPurgeEligibleAt: getPostProcessingEndsAt(newExpiresAt).toISOString(),
+      };
+    }),
+
+  /** Linearisiert bestätigte Anfangskonfiguration beziehungsweise globale Verlängerung. */
+  changeExpiration: hostProcedure
+    .input(ChangeSessionExpirationInputSchema)
+    .output(SessionLifecycleHostDTOSchema)
+    .mutation(async ({ ctx, input }) => {
+      const code = input.code.toUpperCase();
+      const originalHost =
+        !!ctx.hostToken && (await isOriginalHostSessionToken(code, ctx.hostToken));
+      if (input.purpose === 'GLOBAL_EXTENSION' && !originalHost) {
+        throw new TRPCError({
+          code: 'FORBIDDEN',
+          message: 'Nur der ursprüngliche Host kann die Session verlängern.',
+        });
+      }
+      const identity = await prisma.session.findUnique({
+        where: { code },
+        select: { id: true },
+      });
+      if (!identity) {
+        throw new TRPCError({ code: 'NOT_FOUND', message: 'Session nicht gefunden.' });
+      }
+
+      try {
+        const updated = await prisma.$transaction(async (tx) => {
+          await lockSessionRow(tx, identity.id);
+          const session = await tx.session.findUnique({
+            where: { id: identity.id },
+            select: {
+              id: true,
+              status: true,
+              createdAt: true,
+              expiresAt: true,
+              endedAt: true,
+              qaEnabled: true,
+              qaClosesAt: true,
+              firstParticipantJoinedAt: true,
+              timeZone: true,
+              sessionLifecycleRevision: true,
+            },
+          });
+          if (!session) {
+            throw new TRPCError({ code: 'NOT_FOUND', message: 'Session nicht gefunden.' });
+          }
+          const serverNow = new Date();
+          assertSessionEffectivelyActive(session, serverNow);
+          if (session.sessionLifecycleRevision !== input.expectedLifecycleRevision) {
+            throw new TRPCError({
+              code: 'CONFLICT',
+              message: 'Die Sessionfrist wurde zwischenzeitlich geändert.',
+            });
+          }
+          if (
+            input.purpose === 'INITIAL_CONFIGURATION' &&
+            session.firstParticipantJoinedAt !== null
+          ) {
+            throw new TRPCError({
+              code: 'CONFLICT',
+              message: 'Nach dem ersten Beitritt kann die Anfangsfrist nicht mehr geändert werden.',
+            });
+          }
+
+          const newExpiresAt =
+            input.purpose === 'INITIAL_CONFIGURATION'
+              ? computeInitialSessionExpiration({
+                  createdAt: session.createdAt,
+                  now: serverNow,
+                  timeZone: input.timeZone,
+                  selection: input.selection,
+                })
+              : computeExtendedSessionExpiration({
+                  createdAt: session.createdAt,
+                  currentExpiresAt: session.expiresAt,
+                  now: serverNow,
+                  timeZone: session.timeZone,
+                  selection: input.selection,
+                });
+          if (
+            input.purpose === 'INITIAL_CONFIGURATION' &&
+            session.qaClosesAt &&
+            session.qaClosesAt > newExpiresAt
+          ) {
+            throw new TRPCError({
+              code: 'BAD_REQUEST',
+              message: 'Die Sessionfrist kann nicht vor die bestehende Q&A-Frist gesetzt werden.',
+            });
+          }
+          if (new Date(input.confirmedExpiresAt).getTime() !== newExpiresAt.getTime()) {
+            throw new TRPCError({
+              code: 'CONFLICT',
+              message: 'Die bestätigte Frist stimmt nicht mehr mit der Servervorschau überein.',
+            });
+          }
+
+          return tx.session.update({
+            where: { id: session.id },
+            data: {
+              expiresAt: newExpiresAt,
+              sessionLifecycleRevision: { increment: 1 },
+              ...(input.purpose === 'INITIAL_CONFIGURATION'
+                ? {
+                    timeZone: input.timeZone,
+                  }
+                : {}),
+            },
+            select: {
+              status: true,
+              createdAt: true,
+              expiresAt: true,
+              endedAt: true,
+              qaClosesAt: true,
+              firstParticipantJoinedAt: true,
+              timeZone: true,
+              sessionLifecycleRevision: true,
+            },
+          });
+        });
+
+        invalidateSessionStatusCachesForCode(code);
+        const serverNow = new Date();
+        const maxExpiresAt = getSessionMaxExpiresAt(updated.createdAt);
+        return {
+          status: updated.status,
+          createdAt: updated.createdAt.toISOString(),
+          expiresAt: updated.expiresAt.toISOString(),
+          endedAt: updated.endedAt?.toISOString() ?? null,
+          qaClosesAt: updated.qaClosesAt?.toISOString() ?? null,
+          firstParticipantJoinedAt: updated.firstParticipantJoinedAt?.toISOString() ?? null,
+          timeZone: updated.timeZone,
+          sessionLifecycleRevision: updated.sessionLifecycleRevision,
+          serverNow: serverNow.toISOString(),
+          maxExpiresAt: maxExpiresAt.toISOString(),
+          originalHost,
+          extensionAllowed: originalHost && updated.expiresAt.getTime() < maxExpiresAt.getTime(),
+          configurationAllowed: updated.firstParticipantJoinedAt === null,
+          postProcessingEndsAt: null,
+          purgeEligibleAt: null,
+          expectedDeletionAt: null,
+          deletionDelayedByLegalHold: false,
+          hostContentAccessAllowed: true,
+        };
+      } catch (error) {
+        if (error instanceof TRPCError || !String(error).includes('ARSNOVA_SESSION_')) {
+          throw error;
+        }
+        throw new TRPCError({
+          code: 'CONFLICT',
+          message: 'Die Session ist abgelaufen oder wurde zwischenzeitlich beendet.',
+          cause: error,
+        });
+      }
+    }),
+
+  /** Serverbestätigte Q&A-Frist ab dem tatsächlichen Öffnungs-/Neuplanungszeitpunkt. */
+  previewQaConfiguration: hostProcedure
+    .input(PreviewSessionQaConfigurationInputSchema)
+    .output(SessionQaConfigurationPreviewDTOSchema)
+    .query(async ({ ctx, input }) => {
+      const code = input.code.toUpperCase();
+      const session = await prisma.session.findUnique({
+        where: { code },
+        select: {
+          status: true,
+          endedAt: true,
+          createdAt: true,
+          expiresAt: true,
+          timeZone: true,
+          qaEnabled: true,
+          qaClosesAt: true,
+          sessionLifecycleRevision: true,
+        },
+      });
+      if (!session) {
+        throw new TRPCError({ code: 'NOT_FOUND', message: 'Session nicht gefunden.' });
+      }
+      const serverNow = new Date();
+      assertSessionEffectivelyActive(session, serverNow);
+      if (input.mode === 'INITIAL' && session.qaClosesAt !== null) {
+        throw new TRPCError({
+          code: 'CONFLICT',
+          message: 'Q&A wurde bereits eingerichtet.',
+        });
+      }
+      if (input.mode === 'REPLAN' && session.qaClosesAt === null) {
+        throw new TRPCError({
+          code: 'CONFLICT',
+          message: 'Q&A muss zuerst eingerichtet werden.',
+        });
+      }
+      const window = computeQaConfigurationWindow(session, input.selection, serverNow);
+      const originalHost =
+        !!ctx.hostToken && (await isOriginalHostSessionToken(code, ctx.hostToken));
+      return {
+        mode: input.mode,
+        expectedLifecycleRevision: session.sessionLifecycleRevision,
+        oldQaClosesAt: session.qaClosesAt?.toISOString() ?? null,
+        newQaClosesAt: window.qaClosesAt.toISOString(),
+        oldExpiresAt: session.expiresAt.toISOString(),
+        newExpiresAt: window.expiresAt.toISOString(),
+        requiresSessionExtension: window.requiresSessionExtension,
+        originalHost,
+        timeZone: session.timeZone,
+        maxExpiresAt: getSessionMaxExpiresAt(session.createdAt).toISOString(),
+        serverNow: serverNow.toISOString(),
+        projectedPostProcessingEndsAt: getPostProcessingEndsAt(window.expiresAt).toISOString(),
+        projectedPurgeEligibleAt: getPostProcessingEndsAt(window.expiresAt).toISOString(),
+      };
+    }),
+
+  /** Linearisiert Q&A-Erstöffnung/Neuplanung, optionale Sessionverlängerung und Einstiegskanal. */
+  configureQaChannel: hostProcedure
+    .input(ConfigureSessionQaInputSchema)
+    .output(SessionQaConfigurationDTOSchema)
+    .mutation(async ({ ctx, input }) => {
+      const code = input.code.toUpperCase();
+      const originalHost =
+        !!ctx.hostToken && (await isOriginalHostSessionToken(code, ctx.hostToken));
+      const identity = await prisma.session.findUnique({
+        where: { code },
+        select: { id: true },
+      });
+      if (!identity) {
+        throw new TRPCError({ code: 'NOT_FOUND', message: 'Session nicht gefunden.' });
+      }
+
+      try {
+        const configured = await prisma.$transaction(async (tx) => {
+          await lockSessionRow(tx, identity.id);
+          const session = await tx.session.findUnique({
+            where: { id: identity.id },
+            select: {
+              id: true,
+              status: true,
+              endedAt: true,
+              createdAt: true,
+              expiresAt: true,
+              timeZone: true,
+              firstParticipantJoinedAt: true,
+              onboardingNicknameTheme: true,
+              onboardingAllowCustomNicknames: true,
+              onboardingAnonymousMode: true,
+              sessionLifecycleRevision: true,
+              preferredChannel: true,
+              type: true,
+              quizId: true,
+              qaEnabled: true,
+              qaOpen: true,
+              qaClosesAt: true,
+              qaTitle: true,
+              qaModerationMode: true,
+              title: true,
+              moderationMode: true,
+              quickFeedbackEnabled: true,
+              quickFeedbackOpen: true,
+            },
+          });
+          if (!session) {
+            throw new TRPCError({ code: 'NOT_FOUND', message: 'Session nicht gefunden.' });
+          }
+          const serverNow = new Date();
+          assertSessionEffectivelyActive(session, serverNow);
+          const previewServerNow = new Date(input.previewServerNow);
+          const confirmedQaClosesAt = new Date(input.confirmedQaClosesAt);
+          const confirmedExpiresAt = new Date(input.confirmedExpiresAt);
+          const title = input.qaTitle?.trim() || session.qaTitle || session.title || null;
+          const participationProfileMatches =
+            !input.participationProfile ||
+            (session.onboardingNicknameTheme === input.participationProfile.nicknameTheme &&
+              session.onboardingAllowCustomNicknames ===
+                (input.participationProfile.identityMode === 'CUSTOM_NICKNAME') &&
+              session.onboardingAnonymousMode ===
+                (input.participationProfile.identityMode === 'ANONYMOUS'));
+          const alreadyApplied =
+            session.qaEnabled &&
+            session.qaOpen &&
+            session.qaClosesAt?.getTime() === confirmedQaClosesAt.getTime() &&
+            session.expiresAt.getTime() === confirmedExpiresAt.getTime() &&
+            session.preferredChannel === 'qa' &&
+            (session.qaTitle ?? session.title ?? null) === title &&
+            (session.qaModerationMode ?? session.moderationMode) === input.moderationMode &&
+            participationProfileMatches;
+          if (alreadyApplied) {
+            return { session, serverNow };
+          }
+          const previewAgeMs = serverNow.getTime() - previewServerNow.getTime();
+          if (previewAgeMs < -5_000 || previewAgeMs > 15 * 60_000) {
+            throw new TRPCError({
+              code: 'CONFLICT',
+              message: 'Die Q&A-Vorschau ist abgelaufen. Bitte prüfe die Fristen erneut.',
+            });
+          }
+          const window = computeQaConfigurationWindow(session, input.selection, previewServerNow);
+          if (
+            confirmedQaClosesAt.getTime() !== window.qaClosesAt.getTime() ||
+            confirmedExpiresAt.getTime() !== window.expiresAt.getTime()
+          ) {
+            throw new TRPCError({
+              code: 'CONFLICT',
+              message: 'Die bestätigten Fristen stimmen nicht mehr mit der Servervorschau überein.',
+            });
+          }
+          if (session.sessionLifecycleRevision !== input.expectedLifecycleRevision) {
+            throw new TRPCError({
+              code: 'CONFLICT',
+              message: 'Q&A oder die Sessionfrist wurde zwischenzeitlich geändert.',
+            });
+          }
+          if (input.mode === 'INITIAL' && session.qaClosesAt !== null) {
+            throw new TRPCError({ code: 'CONFLICT', message: 'Q&A wurde bereits eingerichtet.' });
+          }
+          if (input.mode === 'REPLAN' && session.qaClosesAt === null) {
+            throw new TRPCError({
+              code: 'CONFLICT',
+              message: 'Q&A muss zuerst eingerichtet werden.',
+            });
+          }
+          const oldDeadlineExpired =
+            session.qaClosesAt instanceof Date && serverNow >= session.qaClosesAt;
+          if ((window.requiresSessionExtension || oldDeadlineExpired) && !originalHost) {
+            throw new TRPCError({
+              code: 'FORBIDDEN',
+              message:
+                'Nur der ursprüngliche Host kann die Session oder eine abgelaufene Q&A-Frist verlängern.',
+            });
+          }
+          if (window.requiresSessionExtension !== input.confirmSessionExtension) {
+            throw new TRPCError({
+              code: 'CONFLICT',
+              message: 'Die erforderliche Sessionverlängerung wurde nicht eindeutig bestätigt.',
+            });
+          }
+          if (input.participationProfile && session.firstParticipantJoinedAt !== null) {
+            throw new TRPCError({
+              code: 'CONFLICT',
+              message: 'Nach dem ersten Beitritt bleibt das Teilnahmeprofil unverändert.',
+            });
+          }
+          const participation = input.participationProfile
+            ? {
+                onboardingProfileConfigured: true,
+                onboardingNicknameTheme: input.participationProfile.nicknameTheme,
+                onboardingAllowCustomNicknames:
+                  input.participationProfile.identityMode === 'CUSTOM_NICKNAME',
+                onboardingAnonymousMode: input.participationProfile.identityMode === 'ANONYMOUS',
+              }
+            : {};
+          const updated = await tx.session.update({
+            where: { id: session.id },
+            data: {
+              qaEnabled: true,
+              qaOpen: true,
+              qaClosesAt: window.qaClosesAt,
+              qaTitle: title,
+              qaModerationMode: input.moderationMode,
+              ...(session.type === 'Q_AND_A' ||
+              (session.quizId === null && !session.quickFeedbackEnabled)
+                ? { title, moderationMode: input.moderationMode }
+                : {}),
+              preferredChannel: 'qa',
+              ...(window.requiresSessionExtension ? { expiresAt: window.expiresAt } : {}),
+              sessionLifecycleRevision: { increment: 1 },
+              ...participation,
+            },
+            select: {
+              status: true,
+              endedAt: true,
+              expiresAt: true,
+              sessionLifecycleRevision: true,
+              preferredChannel: true,
+              type: true,
+              quizId: true,
+              qaEnabled: true,
+              qaOpen: true,
+              qaClosesAt: true,
+              qaTitle: true,
+              qaModerationMode: true,
+              title: true,
+              moderationMode: true,
+              quickFeedbackEnabled: true,
+              quickFeedbackOpen: true,
+            },
+          });
+          return { session: updated, serverNow };
+        });
+        invalidateSessionMetadataCachesForCode(code);
+        emitSessionStatusSignal(code);
+        const channels = buildSessionChannels(configured.session, configured.serverNow);
+        return {
+          channels,
+          preferredChannel: resolvePreferredLiveChannel(
+            configured.session.preferredChannel,
+            channels,
+          ),
+          expiresAt: configured.session.expiresAt.toISOString(),
+          qaClosesAt: configured.session.qaClosesAt!.toISOString(),
+          sessionLifecycleRevision: configured.session.sessionLifecycleRevision,
+          serverNow: configured.serverNow.toISOString(),
+        };
+      } catch (error) {
+        if (error instanceof TRPCError || !String(error).includes('ARSNOVA_SESSION_')) {
+          throw error;
+        }
+        throw new TRPCError({
+          code: 'CONFLICT',
+          message: 'Die Session ist abgelaufen oder wurde zwischenzeitlich beendet.',
+          cause: error,
+        });
+      }
     }),
 
   /** Q&A-Session aus der Lobby starten (Story 8.1).
@@ -4899,6 +5960,9 @@ const sessionCoreRouter = router({
             quizId: true,
             qaEnabled: true,
             qaOpen: true,
+            qaClosesAt: true,
+            expiresAt: true,
+            endedAt: true,
           },
         });
         if (!session) {
@@ -4908,6 +5972,17 @@ const sessionCoreRouter = router({
           throw new TRPCError({
             code: 'BAD_REQUEST',
             message: 'Q&A-Start ist nur für Sessions mit aktiviertem Fragen-Kanal verfügbar.',
+          });
+        }
+        const serverNow = new Date();
+        if (
+          !session.qaOpen ||
+          !(session.qaClosesAt instanceof Date) ||
+          serverNow >= session.qaClosesAt
+        ) {
+          throw new TRPCError({
+            code: 'PRECONDITION_FAILED',
+            message: 'Q&A muss zuerst mit einer gültigen Öffnungsfrist geöffnet werden.',
           });
         }
         if (session.status !== 'LOBBY') {
@@ -4930,7 +6005,7 @@ const sessionCoreRouter = router({
           };
         }
 
-        const now = new Date();
+        const now = serverNow;
         await tx.session.update({
           where: { id: session.id },
           data: { status: 'ACTIVE', statusChangedAt: now },
@@ -4962,45 +6037,34 @@ const sessionCoreRouter = router({
         where: { code },
         select: {
           id: true,
+          status: true,
           type: true,
           quizId: true,
           qaEnabled: true,
           qaOpen: true,
+          qaClosesAt: true,
           qaTitle: true,
           qaModerationMode: true,
           title: true,
           moderationMode: true,
           quickFeedbackEnabled: true,
           quickFeedbackOpen: true,
+          preferredChannel: true,
         },
       });
       if (!session) {
         throw new TRPCError({ code: 'NOT_FOUND', message: 'Session nicht gefunden.' });
       }
+      assertSessionAllowsLiveMutation(session.status);
 
-      if (session.type !== 'Q_AND_A' && session.qaEnabled !== true) {
-        const updated = await prisma.session.update({
-          where: { id: session.id },
-          data: {
-            qaEnabled: true,
-            qaOpen: true,
-            qaModerationMode: session.qaModerationMode ?? true,
-          },
-          select: {
-            type: true,
-            quizId: true,
-            qaEnabled: true,
-            qaOpen: true,
-            qaTitle: true,
-            qaModerationMode: true,
-            title: true,
-            moderationMode: true,
-            quickFeedbackEnabled: true,
-            quickFeedbackOpen: true,
-          },
+      if (
+        (session.type !== 'Q_AND_A' && session.qaEnabled !== true) ||
+        session.qaClosesAt === null
+      ) {
+        throw new TRPCError({
+          code: 'PRECONDITION_FAILED',
+          message: 'Q&A muss zuerst mit einer Öffnungsfrist eingerichtet werden.',
         });
-        invalidateSessionStatusCachesForCode(code);
-        return buildSessionChannels(updated);
       }
 
       return buildSessionChannels(session);
@@ -5015,6 +6079,7 @@ const sessionCoreRouter = router({
         where: { code },
         select: {
           id: true,
+          status: true,
           type: true,
           quizId: true,
           qaEnabled: true,
@@ -5030,6 +6095,7 @@ const sessionCoreRouter = router({
       if (!session) {
         throw new TRPCError({ code: 'NOT_FOUND', message: 'Session nicht gefunden.' });
       }
+      assertSessionAllowsLiveMutation(session.status);
 
       if (session.quickFeedbackEnabled !== true) {
         const updated = await prisma.session.update({
@@ -5064,8 +6130,8 @@ const sessionCoreRouter = router({
         where: { code },
         select: {
           id: true,
-          type: true,
           status: true,
+          type: true,
           currentQuestion: true,
           quizId: true,
           qaEnabled: true,
@@ -5084,6 +6150,7 @@ const sessionCoreRouter = router({
           onboardingTeamAssignment: true,
           onboardingTeamNames: true,
           onboardingNicknameTheme: true,
+          firstParticipantJoinedAt: true,
           _count: { select: { participants: true } },
         },
       });
@@ -5140,13 +6207,15 @@ const sessionCoreRouter = router({
 
       const sessionOnboardingProfile = resolveSessionOnboardingProfile(session, null);
       const quizOnboardingProfile = buildSessionOnboardingProfileFromQuiz(quiz);
-      const bootstrapDemoTeams = canBootstrapDemoQuizTeamsOntoTeamlessSession(
-        sessionOnboardingProfile,
-        quizOnboardingProfile,
-        quiz,
-      );
+      const bootstrapDemoTeams =
+        session.firstParticipantJoinedAt === null &&
+        canBootstrapDemoQuizTeamsOntoTeamlessSession(
+          sessionOnboardingProfile,
+          quizOnboardingProfile,
+          quiz,
+        );
       if (
-        session._count.participants > 0 &&
+        session.firstParticipantJoinedAt !== null &&
         !areSessionOnboardingProfilesCompatible(sessionOnboardingProfile, quizOnboardingProfile) &&
         !bootstrapDemoTeams
       ) {
@@ -5182,7 +6251,9 @@ const sessionCoreRouter = router({
           }
         : hasStoredSessionOnboardingProfile(session)
           ? sessionOnboardingProfile
-          : quizOnboardingProfile;
+          : session.firstParticipantJoinedAt !== null
+            ? sessionOnboardingProfile
+            : quizOnboardingProfile;
 
       const updated = await prisma.session.update({
         where: { id: session.id },
@@ -5232,53 +6303,72 @@ const sessionCoreRouter = router({
     .output(UpdateSessionChannelsOutputSchema)
     .mutation(async ({ input }) => {
       const code = input.code.toUpperCase();
-      const session = await prisma.session.findUnique({
+      const identity = await prisma.session.findUnique({
         where: { code },
-        select: {
-          id: true,
-          type: true,
-          quizId: true,
-          qaEnabled: true,
-          qaOpen: true,
-          qaTitle: true,
-          qaModerationMode: true,
-          title: true,
-          moderationMode: true,
-          quickFeedbackEnabled: true,
-          quickFeedbackOpen: true,
-        },
+        select: { id: true },
       });
-      if (!session) {
+      if (!identity) {
         throw new TRPCError({ code: 'NOT_FOUND', message: 'Session nicht gefunden.' });
       }
-
-      const qaEnabled = session.type === 'Q_AND_A' || session.qaEnabled === true;
-      if (!qaEnabled) {
-        throw new TRPCError({ code: 'BAD_REQUEST', message: 'Q&A-Kanal ist nicht aktiviert.' });
-      }
-
-      if (session.qaOpen === false) {
-        return buildSessionChannels(session);
-      }
-
-      const updated = await prisma.session.update({
-        where: { id: session.id },
-        data: { qaOpen: false },
-        select: {
-          type: true,
-          quizId: true,
-          qaEnabled: true,
-          qaOpen: true,
-          qaTitle: true,
-          qaModerationMode: true,
-          title: true,
-          moderationMode: true,
-          quickFeedbackEnabled: true,
-          quickFeedbackOpen: true,
-        },
+      const result = await prisma.$transaction(async (tx) => {
+        await lockSessionRow(tx, identity.id);
+        const session = await tx.session.findUnique({
+          where: { id: identity.id },
+          select: {
+            id: true,
+            status: true,
+            endedAt: true,
+            expiresAt: true,
+            type: true,
+            quizId: true,
+            qaEnabled: true,
+            qaOpen: true,
+            qaClosesAt: true,
+            qaTitle: true,
+            qaModerationMode: true,
+            title: true,
+            moderationMode: true,
+            quickFeedbackEnabled: true,
+            quickFeedbackOpen: true,
+          },
+        });
+        if (!session) {
+          throw new TRPCError({ code: 'NOT_FOUND', message: 'Session nicht gefunden.' });
+        }
+        const serverNow = new Date();
+        assertSessionEffectivelyActive(session, serverNow);
+        const qaEnabled = session.type === 'Q_AND_A' || session.qaEnabled === true;
+        if (!qaEnabled) {
+          throw new TRPCError({ code: 'BAD_REQUEST', message: 'Q&A-Kanal ist nicht aktiviert.' });
+        }
+        if (session.qaOpen === false) return { session, serverNow, changed: false };
+        const updated = await tx.session.update({
+          where: { id: session.id },
+          data: {
+            qaOpen: false,
+            sessionLifecycleRevision: { increment: 1 },
+          },
+          select: {
+            type: true,
+            quizId: true,
+            qaEnabled: true,
+            qaOpen: true,
+            qaClosesAt: true,
+            qaTitle: true,
+            qaModerationMode: true,
+            title: true,
+            moderationMode: true,
+            quickFeedbackEnabled: true,
+            quickFeedbackOpen: true,
+          },
+        });
+        return { session: updated, serverNow, changed: true };
       });
-      invalidateSessionStatusCachesForCode(code);
-      return buildSessionChannels(updated);
+      if (result.changed) {
+        invalidateSessionStatusCachesForCode(code);
+        emitSessionStatusSignal(code);
+      }
+      return buildSessionChannels(result.session, result.serverNow);
     }),
 
   reopenQaChannel: hostProcedure
@@ -5286,53 +6376,84 @@ const sessionCoreRouter = router({
     .output(UpdateSessionChannelsOutputSchema)
     .mutation(async ({ input }) => {
       const code = input.code.toUpperCase();
-      const session = await prisma.session.findUnique({
+      const identity = await prisma.session.findUnique({
         where: { code },
-        select: {
-          id: true,
-          type: true,
-          quizId: true,
-          qaEnabled: true,
-          qaOpen: true,
-          qaTitle: true,
-          qaModerationMode: true,
-          title: true,
-          moderationMode: true,
-          quickFeedbackEnabled: true,
-          quickFeedbackOpen: true,
-        },
+        select: { id: true },
       });
-      if (!session) {
+      if (!identity) {
         throw new TRPCError({ code: 'NOT_FOUND', message: 'Session nicht gefunden.' });
       }
-
-      const qaEnabled = session.type === 'Q_AND_A' || session.qaEnabled === true;
-      if (!qaEnabled) {
-        throw new TRPCError({ code: 'BAD_REQUEST', message: 'Q&A-Kanal ist nicht aktiviert.' });
-      }
-
-      if (session.qaOpen !== false) {
-        return buildSessionChannels(session);
-      }
-
-      const updated = await prisma.session.update({
-        where: { id: session.id },
-        data: { qaOpen: true },
-        select: {
-          type: true,
-          quizId: true,
-          qaEnabled: true,
-          qaOpen: true,
-          qaTitle: true,
-          qaModerationMode: true,
-          title: true,
-          moderationMode: true,
-          quickFeedbackEnabled: true,
-          quickFeedbackOpen: true,
-        },
+      const result = await prisma.$transaction(async (tx) => {
+        await lockSessionRow(tx, identity.id);
+        const session = await tx.session.findUnique({
+          where: { id: identity.id },
+          select: {
+            id: true,
+            status: true,
+            endedAt: true,
+            expiresAt: true,
+            type: true,
+            quizId: true,
+            qaEnabled: true,
+            qaOpen: true,
+            qaClosesAt: true,
+            qaTitle: true,
+            qaModerationMode: true,
+            title: true,
+            moderationMode: true,
+            quickFeedbackEnabled: true,
+            quickFeedbackOpen: true,
+          },
+        });
+        if (!session) {
+          throw new TRPCError({ code: 'NOT_FOUND', message: 'Session nicht gefunden.' });
+        }
+        const serverNow = new Date();
+        assertSessionEffectivelyActive(session, serverNow);
+        const qaEnabled = session.type === 'Q_AND_A' || session.qaEnabled === true;
+        if (!qaEnabled) {
+          throw new TRPCError({ code: 'BAD_REQUEST', message: 'Q&A-Kanal ist nicht aktiviert.' });
+        }
+        if (session.qaClosesAt === null) {
+          throw new TRPCError({
+            code: 'PRECONDITION_FAILED',
+            message: 'Q&A muss zuerst mit einer Öffnungsfrist eingerichtet werden.',
+          });
+        }
+        if (serverNow >= session.qaClosesAt) {
+          throw new TRPCError({
+            code: 'PRECONDITION_FAILED',
+            message: 'Die Q&A-Frist ist abgelaufen und muss bewusst neu geplant werden.',
+          });
+        }
+        if (session.qaOpen !== false) return { session, serverNow, changed: false };
+        const updated = await tx.session.update({
+          where: { id: session.id },
+          data: {
+            qaOpen: true,
+            sessionLifecycleRevision: { increment: 1 },
+          },
+          select: {
+            type: true,
+            quizId: true,
+            qaEnabled: true,
+            qaOpen: true,
+            qaClosesAt: true,
+            qaTitle: true,
+            qaModerationMode: true,
+            title: true,
+            moderationMode: true,
+            quickFeedbackEnabled: true,
+            quickFeedbackOpen: true,
+          },
+        });
+        return { session: updated, serverNow, changed: true };
       });
-      invalidateSessionStatusCachesForCode(code);
-      return buildSessionChannels(updated);
+      if (result.changed) {
+        invalidateSessionStatusCachesForCode(code);
+        emitSessionStatusSignal(code);
+      }
+      return buildSessionChannels(result.session, result.serverNow);
     }),
 
   closeQuickFeedbackChannel: hostProcedure
@@ -5344,6 +6465,7 @@ const sessionCoreRouter = router({
         where: { code },
         select: {
           id: true,
+          status: true,
           type: true,
           quizId: true,
           qaEnabled: true,
@@ -5359,6 +6481,7 @@ const sessionCoreRouter = router({
       if (!session) {
         throw new TRPCError({ code: 'NOT_FOUND', message: 'Session nicht gefunden.' });
       }
+      assertSessionAllowsLiveMutation(session.status);
 
       if (session.quickFeedbackEnabled !== true) {
         throw new TRPCError({
@@ -5400,6 +6523,7 @@ const sessionCoreRouter = router({
         where: { code },
         select: {
           id: true,
+          status: true,
           type: true,
           quizId: true,
           qaEnabled: true,
@@ -5415,6 +6539,7 @@ const sessionCoreRouter = router({
       if (!session) {
         throw new TRPCError({ code: 'NOT_FOUND', message: 'Session nicht gefunden.' });
       }
+      assertSessionAllowsLiveMutation(session.status);
 
       if (session.quickFeedbackEnabled !== true) {
         throw new TRPCError({
@@ -5459,6 +6584,188 @@ const sessionCoreRouter = router({
     .output(SessionInfoDTOSchema)
     .query(({ input }) => resolvePublicSessionInfo(input, 'pollReconnect')),
 
+  /** Aggregierte Host-Lobby mit höchstens 20 jüngsten Ankünften. */
+  getParticipantSummary: hostProcedure
+    .input(GetSessionParticipantSummaryInputSchema)
+    .output(SessionParticipantSummaryDTOSchema)
+    .query(async ({ input }) => {
+      const session = await prisma.session.findUnique({
+        where: { code: input.code.toUpperCase() },
+        select: sessionParticipantsQuerySelect,
+      });
+      if (!session) {
+        throw new TRPCError({ code: 'NOT_FOUND', message: 'Session nicht gefunden.' });
+      }
+      return buildSessionParticipantSummary(session);
+    }),
+
+  /** Bedarfsgeladene, revisionsgebundene Teilnehmerseite für Hosts. */
+  searchParticipants: hostProcedure
+    .input(SearchSessionParticipantsInputSchema)
+    .output(SessionParticipantPageDTOSchema)
+    .query(async ({ input }) => {
+      const code = input.code.toUpperCase();
+      const search = input.search.trim();
+      const session = await prisma.session.findUnique({
+        where: { code },
+        select: {
+          id: true,
+          participantRevision: true,
+          onboardingAnonymousMode: true,
+        },
+      });
+      if (!session) {
+        throw new TRPCError({ code: 'NOT_FOUND', message: 'Session nicht gefunden.' });
+      }
+      const cursor = input.cursor ? decodeParticipantPageCursor(input.cursor) : null;
+      if (cursor && (cursor.revision !== session.participantRevision || cursor.search !== search)) {
+        throw new TRPCError({
+          code: 'CONFLICT',
+          message: 'Die Teilnehmerliste hat sich geändert. Lade sie bitte neu.',
+        });
+      }
+      if (session.onboardingAnonymousMode) {
+        const participantCount = await prisma.participant.count({
+          where: { sessionId: session.id },
+        });
+        const current = await prisma.session.findUnique({
+          where: { id: session.id },
+          select: { participantRevision: true },
+        });
+        if (current?.participantRevision !== session.participantRevision) {
+          throw new TRPCError({
+            code: 'CONFLICT',
+            message: 'Die Teilnehmerliste hat sich geändert. Lade sie bitte neu.',
+          });
+        }
+        return {
+          participants: [],
+          participantCount,
+          revision: session.participantRevision,
+          nextCursor: null,
+        };
+      }
+      const searchWhere = search
+        ? { nickname: { contains: search, mode: Prisma.QueryMode.insensitive } }
+        : {};
+      const cursorWhere = cursor
+        ? {
+            OR: [
+              { joinedAt: { lt: new Date(cursor.joinedAt) } },
+              { joinedAt: new Date(cursor.joinedAt), id: { lt: cursor.id } },
+            ],
+          }
+        : {};
+      const where: Prisma.ParticipantWhereInput = {
+        sessionId: session.id,
+        ...searchWhere,
+        ...cursorWhere,
+      };
+      const [rows, participantCount] = await Promise.all([
+        prisma.participant.findMany({
+          where,
+          orderBy: [{ joinedAt: 'desc' }, { id: 'desc' }],
+          take: input.pageSize + 1,
+          select: {
+            id: true,
+            nickname: true,
+            teamId: true,
+            joinedAt: true,
+            team: { select: { name: true } },
+          },
+        }),
+        prisma.participant.count({
+          where: { sessionId: session.id, ...searchWhere },
+        }),
+      ]);
+      const current = await prisma.session.findUnique({
+        where: { id: session.id },
+        select: { participantRevision: true },
+      });
+      if (current?.participantRevision !== session.participantRevision) {
+        throw new TRPCError({
+          code: 'CONFLICT',
+          message: 'Die Teilnehmerliste hat sich geändert. Lade sie bitte neu.',
+        });
+      }
+      const pageRows = rows.slice(0, input.pageSize);
+      const last = pageRows.at(-1);
+      return {
+        participants: pageRows.map((participant) => ({
+          id: participant.id,
+          nickname: participant.nickname,
+          teamId: participant.teamId ?? null,
+          teamName: participant.team?.name ?? null,
+          joinedAt: participant.joinedAt.toISOString(),
+        })),
+        participantCount,
+        revision: session.participantRevision,
+        nextCursor:
+          rows.length > input.pageSize && last
+            ? encodeParticipantPageCursor({
+                v: 1,
+                revision: session.participantRevision,
+                joinedAt: last.joinedAt.toISOString(),
+                id: last.id,
+                search,
+              })
+            : null,
+      };
+    }),
+
+  /** Punktuelle Nickname-Prüfung ohne öffentliche Bestandsliste. */
+  checkParticipantNickname: publicProcedure
+    .input(CheckSessionParticipantNicknameInputSchema)
+    .output(CheckSessionParticipantNicknameOutputSchema)
+    .query(async ({ input }) => {
+      const session = await prisma.session.findUnique({
+        where: { code: input.code.toUpperCase() },
+        select: {
+          id: true,
+          onboardingAnonymousMode: true,
+          onboardingAllowCustomNicknames: true,
+        },
+      });
+      if (!session) {
+        throw new TRPCError({ code: 'NOT_FOUND', message: 'Session nicht gefunden.' });
+      }
+      if (
+        session.onboardingAnonymousMode === true ||
+        session.onboardingAllowCustomNicknames !== true
+      ) {
+        return { available: true };
+      }
+      const collision = await prisma.participant.findFirst({
+        where: {
+          sessionId: session.id,
+          nickname: { equals: input.nickname, mode: Prisma.QueryMode.insensitive },
+        },
+        select: { id: true },
+      });
+      return { available: collision === null };
+    }),
+
+  /** Capability-gebundener Heartbeat für das definierte Drei-Minuten-Fenster. */
+  heartbeatParticipantPresence: publicProcedure
+    .input(HeartbeatParticipantPresenceInputSchema)
+    .output(HeartbeatParticipantPresenceOutputSchema)
+    .mutation(async ({ input, ctx }) => {
+      const session = await prisma.session.findUnique({
+        where: { code: input.code.toUpperCase() },
+        select: { id: true },
+      });
+      if (!session) {
+        throw new TRPCError({ code: 'NOT_FOUND', message: 'Session nicht gefunden.' });
+      }
+      await assertParticipantCapability({
+        ctx,
+        sessionId: session.id,
+        participantId: input.participantId,
+      });
+      await touchParticipantPresence(session.id, input.participantId);
+      return { connected: true as const, serverNow: new Date().toISOString() };
+    }),
+
   /** Teilnehmerliste einer Session (Story 2.2 Lobby). */
   getParticipants: hostProcedure
     .input(GetSessionInfoInputSchema)
@@ -5486,9 +6793,12 @@ const sessionCoreRouter = router({
       }
       const session = await prisma.session.findUnique({
         where: { code },
-        include: {
+        select: {
+          onboardingAnonymousMode: true,
+          _count: { select: { participants: true } },
           participants: {
-            orderBy: [{ joinedAt: 'asc' }, { id: 'asc' }],
+            orderBy: [{ joinedAt: 'desc' }, { id: 'desc' }],
+            take: 100,
             select: { nickname: true },
           },
         },
@@ -5497,8 +6807,11 @@ const sessionCoreRouter = router({
         return rejectInvalidSessionCode(input.anonymousClientId, code, 'lookup');
       }
       const payload = {
-        nicknames: session.participants.map((participant) => participant.nickname),
-        participantCount: session.participants.length,
+        nicknames:
+          session.onboardingAnonymousMode === true
+            ? []
+            : session.participants.map((participant) => participant.nickname),
+        participantCount: session._count.participants,
       };
       setCachedParticipantNicknames(code, payload);
       return payload;
@@ -5508,7 +6821,7 @@ const sessionCoreRouter = router({
   getParticipantSelf: publicProcedure
     .input(GetSessionParticipantInputSchema)
     .output(ParticipantSelfDTOSchema.nullable())
-    .query(async ({ input }) => {
+    .query(async ({ input, ctx }) => {
       const code = input.code.toUpperCase();
       const session = await prisma.session.findUnique({
         where: { code },
@@ -5520,6 +6833,11 @@ const sessionCoreRouter = router({
       if (!session) {
         return rejectInvalidSessionCode(undefined, code, 'pollReconnect');
       }
+      await assertParticipantCapability({
+        ctx,
+        sessionId: session.id,
+        participantId: input.participantId,
+      });
 
       const participant = await prisma.participant.findFirst({
         where: {
@@ -5558,9 +6876,21 @@ const sessionCoreRouter = router({
   setTimerAccommodation: publicProcedure
     .input(SetTimerAccommodationInputSchema)
     .output(SetTimerAccommodationOutputSchema)
-    .mutation(async ({ input }) => {
+    .mutation(async ({ input, ctx }) => {
       const code = input.code.toUpperCase();
       const accommodation = normalizeTimerAccommodation(input.accommodation);
+      const accessSession = await prisma.session.findUnique({
+        where: { code },
+        select: { id: true },
+      });
+      if (!accessSession) {
+        throw new TRPCError({ code: 'NOT_FOUND', message: 'Session nicht gefunden.' });
+      }
+      await assertParticipantCapability({
+        ctx,
+        sessionId: accessSession.id,
+        participantId: input.participantId,
+      });
       const participant = await prisma.participant.findFirst({
         where: {
           id: input.participantId,
@@ -5603,8 +6933,19 @@ const sessionCoreRouter = router({
   markParticipantOffline: publicProcedure
     .input(GetSessionParticipantInputSchema)
     .output(z.object({ ok: z.boolean() }))
-    .mutation(async ({ input }) => {
+    .mutation(async ({ input, ctx }) => {
       const code = input.code.toUpperCase();
+      const accessSession = await prisma.session.findUnique({
+        where: { code },
+        select: { id: true },
+      });
+      if (accessSession) {
+        await assertParticipantCapability({
+          ctx,
+          sessionId: accessSession.id,
+          participantId: input.participantId,
+        });
+      }
       const participant = await prisma.participant.findFirst({
         where: {
           id: input.participantId,
@@ -5625,7 +6966,7 @@ const sessionCoreRouter = router({
   confirmReadingReady: publicProcedure
     .input(ConfirmReadingReadyInputSchema)
     .output(ConfirmReadingReadyOutputSchema)
-    .mutation(async ({ input }) => {
+    .mutation(async ({ input, ctx }) => {
       const code = input.code.toUpperCase();
       const session = await prisma.session.findUnique({
         where: { code },
@@ -5633,15 +6974,6 @@ const sessionCoreRouter = router({
           id: true,
           status: true,
           currentQuestion: true,
-          participants: {
-            orderBy: { joinedAt: 'asc' },
-            select: {
-              id: true,
-              nickname: true,
-              teamId: true,
-              team: { select: { name: true } },
-            },
-          },
           quiz: {
             select: {
               questions: {
@@ -5655,6 +6987,11 @@ const sessionCoreRouter = router({
       if (!session) {
         return rejectInvalidSessionCode(undefined, code, 'other');
       }
+      await assertParticipantCapability({
+        ctx,
+        sessionId: session.id,
+        participantId: input.participantId,
+      });
       if (session.status !== 'QUESTION_OPEN') {
         throw new TRPCError({
           code: 'BAD_REQUEST',
@@ -5674,9 +7011,10 @@ const sessionCoreRouter = router({
         });
       }
 
-      const participantExists = session.participants.some(
-        (participant) => participant.id === input.participantId,
-      );
+      const participantExists = await prisma.participant.findFirst({
+        where: { id: input.participantId, sessionId: session.id },
+        select: { id: true },
+      });
       if (!participantExists) {
         throw new TRPCError({
           code: 'NOT_FOUND',
@@ -5752,9 +7090,10 @@ const sessionCoreRouter = router({
       };
     }),
 
-  /** Subscription: Lobby-Teilnehmerliste (Story 2.2). Wartet primär auf Signalereignisse und nutzt nur einen seltenen Timeout-Fallback. */
+  /** Subscription: begrenzte Teilnahmezusammenfassung mit instanzsicherem Revisionsfallback. */
   onParticipantJoined: hostProcedure
     .input(GetSessionInfoInputSchema)
+    .output(zAsyncIterable(SessionParticipantSummaryDTOSchema))
     .subscription(async function* ({ input, ctx }) {
       const code = input.code.toUpperCase();
       const token = ctx.hostToken;
@@ -5784,11 +7123,19 @@ const sessionCoreRouter = router({
       const code = input.code.toUpperCase();
       const session = await prisma.session.findUnique({
         where: { code },
-        select: { id: true, type: true, quizId: true, qaEnabled: true, qaOpen: true },
+        select: {
+          id: true,
+          status: true,
+          type: true,
+          quizId: true,
+          qaEnabled: true,
+          qaOpen: true,
+        },
       });
       if (!session) {
         throw new TRPCError({ code: 'NOT_FOUND', message: 'Session nicht gefunden.' });
       }
+      assertSessionAllowsLiveMutation(session.status);
       const qaActive = session.type === 'Q_AND_A' || session.qaEnabled === true;
       if (!qaActive) {
         throw new TRPCError({ code: 'BAD_REQUEST', message: 'Q&A-Kanal ist nicht aktiv.' });
@@ -5812,52 +7159,92 @@ const sessionCoreRouter = router({
     }),
 
   setPreferredLiveChannel: hostProcedure
-    .input(
-      z.object({
-        code: z.string().length(6),
-        channel: SessionLiveChannelSchema,
-      }),
-    )
-    .output(z.object({ preferredChannel: SessionLiveChannelSchema }))
+    .input(SetPreferredLiveChannelInputSchema)
+    .output(SetPreferredLiveChannelOutputSchema)
     .mutation(async ({ input }) => {
       const code = input.code.toUpperCase();
-      const session = await prisma.session.findUnique({
+      const identity = await prisma.session.findUnique({
         where: { code },
-        select: {
-          type: true,
-          quizId: true,
-          qaEnabled: true,
-          qaOpen: true,
-          qaTitle: true,
-          qaModerationMode: true,
-          title: true,
-          moderationMode: true,
-          quickFeedbackEnabled: true,
-          quickFeedbackOpen: true,
-        },
+        select: { id: true },
       });
-      if (!session) {
+      if (!identity) {
         throw new TRPCError({ code: 'NOT_FOUND', message: 'Session nicht gefunden.' });
       }
-
-      const channels = buildSessionChannels(session);
-      if (input.channel === 'quiz' && !channels.quiz.enabled) {
-        throw new TRPCError({ code: 'BAD_REQUEST', message: 'Quiz-Kanal ist nicht aktiv.' });
-      }
-      if (input.channel === 'qa' && !channels.qa.enabled) {
-        throw new TRPCError({ code: 'BAD_REQUEST', message: 'Q&A-Kanal ist nicht aktiv.' });
-      }
-      if (input.channel === 'quickFeedback' && !channels.quickFeedback.enabled) {
-        throw new TRPCError({
-          code: 'BAD_REQUEST',
-          message: 'Blitzlicht-Kanal ist nicht aktiv.',
+      const changed = await prisma.$transaction(async (tx) => {
+        await lockSessionRow(tx, identity.id);
+        const session = await tx.session.findUnique({
+          where: { id: identity.id },
+          select: {
+            id: true,
+            status: true,
+            endedAt: true,
+            expiresAt: true,
+            sessionLifecycleRevision: true,
+            preferredChannel: true,
+            type: true,
+            quizId: true,
+            qaEnabled: true,
+            qaOpen: true,
+            qaClosesAt: true,
+            qaTitle: true,
+            qaModerationMode: true,
+            title: true,
+            moderationMode: true,
+            quickFeedbackEnabled: true,
+            quickFeedbackOpen: true,
+          },
         });
-      }
-
-      preferredLiveChannelByCode.set(code, input.channel);
+        if (!session) {
+          throw new TRPCError({ code: 'NOT_FOUND', message: 'Session nicht gefunden.' });
+        }
+        const serverNow = new Date();
+        assertSessionEffectivelyActive(session, serverNow);
+        const channels = buildSessionChannels(session, serverNow);
+        if (input.channel === 'quiz' && !channels.quiz.enabled) {
+          throw new TRPCError({ code: 'BAD_REQUEST', message: 'Quiz-Kanal ist nicht aktiv.' });
+        }
+        if (input.channel === 'qa' && !channels.qa.enabled) {
+          throw new TRPCError({ code: 'BAD_REQUEST', message: 'Q&A-Kanal ist nicht aktiv.' });
+        }
+        if (input.channel === 'quickFeedback' && !channels.quickFeedback.enabled) {
+          throw new TRPCError({
+            code: 'BAD_REQUEST',
+            message: 'Blitzlicht-Kanal ist nicht aktiv.',
+          });
+        }
+        if (session.preferredChannel === input.channel) {
+          return {
+            preferredChannel: input.channel,
+            sessionLifecycleRevision: session.sessionLifecycleRevision,
+            serverNow: serverNow.toISOString(),
+          };
+        }
+        if (
+          input.expectedLifecycleRevision !== undefined &&
+          session.sessionLifecycleRevision !== input.expectedLifecycleRevision
+        ) {
+          throw new TRPCError({
+            code: 'CONFLICT',
+            message: 'Der Einstiegskanal wurde zwischenzeitlich geändert.',
+          });
+        }
+        const updated = await tx.session.update({
+          where: { id: session.id },
+          data: {
+            preferredChannel: input.channel,
+            sessionLifecycleRevision: { increment: 1 },
+          },
+          select: { preferredChannel: true, sessionLifecycleRevision: true },
+        });
+        return {
+          preferredChannel: SessionLiveChannelSchema.parse(updated.preferredChannel),
+          sessionLifecycleRevision: updated.sessionLifecycleRevision,
+          serverNow: serverNow.toISOString(),
+        };
+      });
       presenterSurfaceByCode.set(code, 'default');
       invalidateSessionStatusCachesForCode(code);
-      return { preferredChannel: input.channel };
+      return changed;
     }),
 
   setPresenterSurface: hostProcedure
@@ -5873,6 +7260,7 @@ const sessionCoreRouter = router({
       const session = await prisma.session.findUnique({
         where: { code },
         select: {
+          status: true,
           type: true,
           quizId: true,
           qaEnabled: true,
@@ -5883,14 +7271,16 @@ const sessionCoreRouter = router({
           moderationMode: true,
           quickFeedbackEnabled: true,
           quickFeedbackOpen: true,
+          preferredChannel: true,
         },
       });
       if (!session) {
         throw new TRPCError({ code: 'NOT_FOUND', message: 'Session nicht gefunden.' });
       }
+      assertSessionAllowsLiveMutation(session.status);
 
       const channels = buildSessionChannels(session);
-      const preferredChannel = resolvePreferredLiveChannel(code, channels);
+      const preferredChannel = resolvePreferredLiveChannel(session.preferredChannel, channels);
       if (
         input.surface === 'qaWordCloud' &&
         (preferredChannel !== 'qa' || !channels.qa.enabled || !channels.qa.open)
@@ -7094,7 +8484,7 @@ const sessionCoreRouter = router({
    */
   getCurrentQuestionForStudent: publicProcedure
     .input(GetCurrentQuestionForStudentInputSchema)
-    .query(async ({ input }) => {
+    .query(async ({ input, ctx }) => {
       const code = input.code.toUpperCase();
       const session = await prisma.session.findUnique({
         where: { code },
@@ -7118,6 +8508,9 @@ const sessionCoreRouter = router({
       if (!session) {
         return rejectInvalidSessionCode(undefined, code, 'pollReconnect');
       }
+      if (session.expiresAt instanceof Date && isSessionEffectivelyFinished(session, new Date())) {
+        return null;
+      }
       if (!session.quiz) return null;
       if (session.status === 'LOBBY') return null;
       const quiz = session.quiz;
@@ -7129,6 +8522,11 @@ const sessionCoreRouter = router({
       const participantId = input.participantId;
       let participantBelongsToSession = false;
       if (participantId) {
+        await assertParticipantCapability({
+          ctx,
+          sessionId: session.id,
+          participantId,
+        });
         participantBelongsToSession = await getParticipantBelongsToSessionCached(
           code,
           session.id,
@@ -7793,51 +9191,14 @@ const sessionCoreRouter = router({
       if (session.status === 'FINISHED') {
         throw new TRPCError({ code: 'BAD_REQUEST', message: 'Diese Session ist bereits beendet.' });
       }
+      if (session.expiresAt instanceof Date) {
+        assertSessionEffectivelyActive(session, new Date());
+      }
       const onboardingProfile = resolveSessionOnboardingProfile(session, session.quiz);
       const trimmedNickname = input.nickname.trim().slice(0, 30);
-      let assignedTeamId: string | undefined;
-      let assignedTeamName: string | null = null;
-      let participantId: string | null = null;
-      let productFeedbackClaimToken: string | null = null;
-
-      let rejoinedTimerAccommodation: ReturnType<typeof normalizeTimerAccommodation> = 'DEFAULT';
-      if (input.rejoinToken) {
-        const existingParticipant = await prisma.participant.findFirst({
-          where: {
-            id: input.rejoinToken,
-            sessionId: session.id,
-          },
-          select: {
-            id: true,
-            teamId: true,
-            timerAccommodation: true,
-            productFeedbackClaimTokenHash: true,
-            team: {
-              select: {
-                name: true,
-              },
-            },
-          },
-        });
-        if (existingParticipant) {
-          participantId = existingParticipant.id;
-          assignedTeamId = existingParticipant.teamId ?? undefined;
-          assignedTeamName = existingParticipant.team?.name ?? null;
-          rejoinedTimerAccommodation = isTimerAccommodationEnabled(
-            session.quiz?.enableTimerAccommodation,
-          )
-            ? normalizeTimerAccommodation(existingParticipant.timerAccommodation)
-            : 'DEFAULT';
-          if (
-            input.productFeedbackClaimToken &&
-            existingParticipant.productFeedbackClaimTokenHash ===
-              hashProductFeedbackToken(input.productFeedbackClaimToken)
-          ) {
-            productFeedbackClaimToken = input.productFeedbackClaimToken;
-          }
-        }
-      }
-
+      let selectedTeamId: string | undefined;
+      let autoTeamIds: string[] | undefined;
+      let requireAssignedTeamForNew = false;
       if (onboardingProfile.teamMode) {
         const teams = await ensureSessionTeams(
           session.id,
@@ -7852,84 +9213,81 @@ const sessionCoreRouter = router({
         }
 
         if (onboardingProfile.teamAssignment === 'MANUAL') {
-          if (!participantId && !input.teamId) {
-            throw new TRPCError({ code: 'BAD_REQUEST', message: 'Bitte wähle ein Team aus.' });
-          }
-          if (!participantId) {
+          requireAssignedTeamForNew = true;
+          if (input.teamId) {
             const selectedTeam = teams.find((team) => team.id === input.teamId);
             if (!selectedTeam) {
               throw new TRPCError({ code: 'BAD_REQUEST', message: 'Ungültiges Team.' });
             }
-            assignedTeamId = selectedTeam.id;
-            assignedTeamName = selectedTeam.name;
+            selectedTeamId = selectedTeam.id;
           }
-        } else if (!participantId) {
-          const participantIndex = session._count.participants;
-          const teamIndex = participantIndex % teams.length;
-          const autoTeam = teams[teamIndex]!;
-          assignedTeamId = autoTeam.id;
-          assignedTeamName = autoTeam.name;
+        } else {
+          autoTeamIds = teams.map((team) => team.id);
         }
       }
 
-      if (!participantId) {
-        await awaitJoinAdmissionSlot(session.id);
-        productFeedbackClaimToken = randomBytes(32).toString('base64url');
-        try {
-          const participant = await prisma.participant.create({
-            data: {
-              sessionId: session.id,
-              nickname: trimmedNickname,
-              teamId: assignedTeamId,
-              productFeedbackClaimTokenHash: hashProductFeedbackToken(productFeedbackClaimToken),
-            },
-          });
-          participantId = participant.id;
-        } catch (error) {
-          if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2002') {
-            throw new TRPCError({
-              code: 'CONFLICT',
-              message: 'Dieser Nickname ist in dieser Session bereits vergeben.',
-            });
-          }
-          throw error;
-        }
-      }
-      if (!participantId) {
-        throw new TRPCError({
-          code: 'INTERNAL_SERVER_ERROR',
-          message: 'Teilnehmende konnten nicht vorbereitet werden.',
+      await awaitJoinAdmissionSlot(session.id);
+      const preparedJoin = await prisma.$transaction((tx) =>
+        prepareParticipantJoin({
+          tx,
+          sessionId: session.id,
+          requestedNickname: trimmedNickname,
+          assignedTeamId: selectedTeamId,
+          autoTeamIds,
+          requireAssignedTeamForNew,
+          profile: onboardingProfile,
+          rejoinCapability: input.rejoinToken,
+          joinIdempotencyKey: input.joinIdempotencyKey,
+          productFeedbackClaimToken: input.productFeedbackClaimToken,
+        }),
+      );
+      const participantId = preparedJoin.participantId;
+      let assignedTeamId = preparedJoin.teamId ?? undefined;
+      let assignedTeamName = preparedJoin.teamName;
+      const productFeedbackClaimToken = preparedJoin.productFeedbackClaimToken;
+      const rejoinedTimerAccommodation = isTimerAccommodationEnabled(
+        session.quiz?.enableTimerAccommodation,
+      )
+        ? normalizeTimerAccommodation(preparedJoin.timerAccommodation)
+        : 'DEFAULT';
+
+      let responseProfile = onboardingProfile;
+      if (onboardingProfile.teamMode || !session.firstParticipantJoinedAt) {
+        const reconciled = await reconcileParticipantAutoTeamAssignment({
+          sessionId: session.id,
+          participantId,
+          teamId: assignedTeamId ?? null,
+          teamName: assignedTeamName,
+          fallbackProfile: onboardingProfile,
         });
+        assignedTeamId = reconciled.teamId ?? undefined;
+        assignedTeamName = reconciled.teamName;
+        responseProfile = reconciled.profile;
       }
 
-      const reconciled = await reconcileParticipantAutoTeamAssignment({
-        sessionId: session.id,
-        participantId,
-        teamId: assignedTeamId ?? null,
-        teamName: assignedTeamName,
-        fallbackProfile: onboardingProfile,
-      });
-      assignedTeamId = reconciled.teamId ?? undefined;
-      assignedTeamName = reconciled.teamName;
-      const responseProfile = reconciled.profile;
-
-      // Nach Create zählen (nicht _count+1): bei gleichzeitigen Joins ist der Anfangssnapshot sonst zu niedrig — Rekord/Response falsch.
-      const newParticipantCount = await prisma.participant.count({
-        where: { sessionId: session.id },
-      });
+      // Die Nummer wird unter dem Session-Lock rollback-sicher inkrementiert und entspricht
+      // bei neuen Joins dem kanonischen Bestand. Rejoins verändern den Zähler nicht.
+      const newParticipantCount = preparedJoin.rejoined
+        ? await prisma.participant.count({ where: { sessionId: session.id } })
+        : preparedJoin.participantNumber;
       invalidateJoinCachesForCode(code);
       void updateMaxParticipantsSingleSession(newParticipantCount);
       void updateDailyMaxParticipants(newParticipantCount);
       void touchParticipantPresence(session.id, participantId);
       const serverTime = new Date().toISOString();
-      const channels = buildSessionChannels(session);
-      const preferredChannel = resolvePreferredLiveChannel(session.code, channels);
+      const channels = buildSessionChannels(session, new Date(serverTime));
+      const preferredChannel = resolvePreferredLiveChannel(session.preferredChannel, channels);
       return {
         id: session.id,
         code: session.code,
         type: session.type,
         status: session.status,
         serverTime,
+        serverNow: serverTime,
+        ...(session.expiresAt instanceof Date && {
+          expiresAt: session.expiresAt.toISOString(),
+          sessionLifecycleRevision: session.sessionLifecycleRevision ?? 0,
+        }),
         quizName: session.quiz?.name ?? null,
         quizMotifImageUrl: session.quiz?.motifImageUrl ?? null,
         quizMotifImageCredit: session.quiz?.motifImageCredit ?? null,
@@ -7946,7 +9304,9 @@ const sessionCoreRouter = router({
         teamAssignment: responseProfile.teamMode ? responseProfile.teamAssignment : null,
         teamNames: responseProfile.teamMode ? buildEffectiveTeamNames(responseProfile) : [],
         participantId,
-        rejoinToken: participantId,
+        participantNumber: preparedJoin.participantNumber,
+        participantNickname: preparedJoin.nickname,
+        rejoinToken: preparedJoin.rejoinCapability,
         productFeedbackClaimToken,
         teamId: assignedTeamId ?? null,
         teamName: assignedTeamName,
@@ -8138,10 +9498,10 @@ const sessionCoreRouter = router({
       );
     }),
 
-  /** Session manuell beenden (Story 4.2, 4.6). Setzt FINISHED, endedAt, generiert Bonus-Codes. */
+  /** Session manuell und idempotent beenden. Setzt FINISHED/endedAt und generiert Bonus-Codes. */
   end: hostProcedure
     .input(GetSessionInfoInputSchema)
-    .output(SessionStatusUpdateSchema)
+    .output(EndSessionOutputSchema)
     .mutation(async ({ input }) => {
       const code = input.code.toUpperCase();
       const identity = await prisma.session.findUnique({
@@ -8152,7 +9512,7 @@ const sessionCoreRouter = router({
         throw new TRPCError({ code: 'NOT_FOUND', message: 'Session nicht gefunden.' });
       }
 
-      await prisma.$transaction(async (tx) => {
+      const outcome = await prisma.$transaction(async (tx) => {
         await lockSessionRow(tx, identity.id);
         const session = await tx.session.findUnique({
           where: { id: identity.id },
@@ -8171,12 +9531,17 @@ const sessionCoreRouter = router({
         if (!session) {
           throw new TRPCError({ code: 'NOT_FOUND', message: 'Session nicht gefunden.' });
         }
-        if (session.status === 'FINISHED') {
-          throw new TRPCError({ code: 'BAD_REQUEST', message: 'Session ist bereits beendet.' });
+        if (session.status === 'FINISHED' || session.endedAt instanceof Date) {
+          return {
+            transitioned: false as const,
+            endedAt: session.endedAt ?? null,
+            expiresAt: session.expiresAt,
+            sessionLifecycleRevision: session.sessionLifecycleRevision,
+          };
         }
 
         const now = new Date();
-        await tx.session.update({
+        const lifecycle = await tx.session.update({
           where: { id: session.id },
           data: {
             status: 'FINISHED',
@@ -8189,27 +9554,48 @@ const sessionCoreRouter = router({
             lastSkippedQuestionId: null,
             lastQuestionSkippedAt: null,
           },
+          select: {
+            endedAt: true,
+            expiresAt: true,
+            sessionLifecycleRevision: true,
+          },
         });
         await generateBonusTokens(session, tx);
         await enqueueProductFeedbackInviteJob(session.id, tx);
+        return {
+          transitioned: true as const,
+          endedAt: lifecycle.endedAt,
+          expiresAt: lifecycle.expiresAt,
+          sessionLifecycleRevision: lifecycle.sessionLifecycleRevision,
+        };
       });
 
-      markFinishProjectionLeaderboard(code);
-      await incrementCompletedSessionsTotal();
-      invalidateSessionStatusCachesForCode(code);
-      void recordSessionTransitionActivity();
-      try {
-        await invalidateHostPairingForSession(code);
-      } catch {
-        /* Pairing-Registry ist Hilfszustand; Session-Ende bleibt maßgeblich. */
+      if (outcome.transitioned) {
+        markFinishProjectionLeaderboard(code);
+        await incrementCompletedSessionsTotal();
+        invalidateSessionStatusCachesForCode(code);
+        void recordSessionTransitionActivity();
+        try {
+          await invalidateHostPairingForSession(code);
+        } catch {
+          /* Pairing-Registry ist Hilfszustand; Session-Ende bleibt maßgeblich. */
+        }
+        await issueProductFeedbackInvitesAfterFinishAwait(identity.id);
       }
-      await issueProductFeedbackInvitesAfterFinishAwait(identity.id);
 
+      const canonicalEndedAt = outcome.endedAt ?? outcome.expiresAt;
+      const postProcessingEndsAt = getPostProcessingEndsAt(canonicalEndedAt);
       return {
         status: 'FINISHED' as const,
         currentQuestion: null,
         currentRound: 1,
         finishProjection: 'leaderboard' as const,
+        endedAt: canonicalEndedAt.toISOString(),
+        expiresAt: outcome.expiresAt.toISOString(),
+        sessionLifecycleRevision: outcome.sessionLifecycleRevision,
+        serverNow: new Date().toISOString(),
+        postProcessingEndsAt: postProcessingEndsAt.toISOString(),
+        purgeEligibleAt: postProcessingEndsAt.toISOString(),
       };
     }),
 
@@ -8380,7 +9766,7 @@ const sessionCoreRouter = router({
         },
       });
 
-      if (!token) {
+      if (!token?.session) {
         return { valid: false as const };
       }
 
@@ -8512,7 +9898,7 @@ const sessionCoreRouter = router({
       }),
     )
     .output(PersonalScorecardDTOSchema)
-    .query(async ({ input }) => {
+    .query(async ({ input, ctx }) => {
       const session = await prisma.session.findUnique({
         where: { code: input.code.toUpperCase() },
         include: {
@@ -8530,6 +9916,11 @@ const sessionCoreRouter = router({
       if (!session) {
         return rejectInvalidSessionCode(undefined, input.code.toUpperCase(), 'pollReconnect');
       }
+      await assertParticipantCapability({
+        ctx,
+        sessionId: session.id,
+        participantId: input.participantId,
+      });
       if (!session.quiz) {
         throw new TRPCError({ code: 'NOT_FOUND', message: 'Session oder Quiz nicht gefunden.' });
       }
@@ -8764,7 +10155,7 @@ const sessionCoreRouter = router({
         bonusToken: z.string().nullable(),
       }),
     )
-    .query(async ({ input }) => {
+    .query(async ({ input, ctx }) => {
       const session = await prisma.session.findUnique({
         where: { code: input.code.toUpperCase() },
         select: {
@@ -8783,6 +10174,11 @@ const sessionCoreRouter = router({
       if (!session) {
         return rejectInvalidSessionCode(undefined, input.code.toUpperCase(), 'pollReconnect');
       }
+      await assertParticipantCapability({
+        ctx,
+        sessionId: session.id,
+        participantId: input.participantId,
+      });
       if (session.status !== 'FINISHED') {
         throw new TRPCError({
           code: 'BAD_REQUEST',
@@ -8883,7 +10279,7 @@ const sessionCoreRouter = router({
   submitSessionFeedback: publicProcedure
     .input(SubmitSessionFeedbackInputSchema)
     .output(z.object({ success: z.boolean() }))
-    .mutation(async ({ input }) => {
+    .mutation(async ({ input, ctx }) => {
       const session = await prisma.session.findUnique({
         where: { code: input.code.toUpperCase() },
         select: { id: true, status: true, quizStarted: true },
@@ -8891,6 +10287,11 @@ const sessionCoreRouter = router({
       if (!session) {
         return rejectInvalidSessionCode(undefined, input.code.toUpperCase(), 'other');
       }
+      await assertParticipantCapability({
+        ctx,
+        sessionId: session.id,
+        participantId: input.participantId,
+      });
       if (session.status !== 'FINISHED') {
         throw new TRPCError({
           code: 'BAD_REQUEST',
@@ -8934,7 +10335,7 @@ const sessionCoreRouter = router({
       }),
     )
     .output(z.object({ submitted: z.boolean() }))
-    .query(async ({ input }) => {
+    .query(async ({ input, ctx }) => {
       const session = await prisma.session.findUnique({
         where: { code: input.code.toUpperCase() },
         select: { id: true },
@@ -8942,6 +10343,11 @@ const sessionCoreRouter = router({
       if (!session) {
         return rejectInvalidSessionCode(undefined, input.code.toUpperCase(), 'pollReconnect');
       }
+      await assertParticipantCapability({
+        ctx,
+        sessionId: session.id,
+        participantId: input.participantId,
+      });
       const existing = await prisma.sessionFeedback.findUnique({
         where: {
           sessionId_participantId: { sessionId: session.id, participantId: input.participantId },
@@ -8998,20 +10404,26 @@ const sessionCoreRouter = router({
   react: publicProcedure
     .input(SendEmojiReactionInputSchema)
     .output(z.object({ ok: z.boolean() }))
-    .mutation(async ({ input }) => {
+    .mutation(async ({ input, ctx }) => {
       const session = await prisma.session.findUnique({
         where: { id: input.sessionId },
-        select: { id: true, status: true, quizId: true },
+        select: { id: true, status: true, endedAt: true, expiresAt: true, quizId: true },
       });
       if (!session) {
         throw new TRPCError({ code: 'NOT_FOUND', message: 'Session nicht gefunden.' });
       }
+      await assertParticipantCapability({
+        ctx,
+        sessionId: session.id,
+        participantId: input.participantId,
+      });
       if (session.status !== 'ACTIVE' && session.status !== 'RESULTS') {
         throw new TRPCError({
           code: 'BAD_REQUEST',
           message: 'Emoji-Reaktionen nur während Abstimmung oder Ergebnis-Phase.',
         });
       }
+      assertSessionEffectivelyActive(session, new Date());
 
       const quiz = session.quizId
         ? await prisma.quiz.findUnique({
@@ -9051,9 +10463,20 @@ const sessionCoreRouter = router({
         total: z.number(),
       }),
     )
-    .query(({ input }) => {
+    .query(async ({ input }) => {
+      const session = await prisma.session.findUnique({
+        where: { id: input.sessionId },
+        select: { status: true, endedAt: true, expiresAt: true },
+      });
       const round = input.round ?? 1;
       const key = getEmojiKey(input.sessionId, input.questionId, round);
+      if (!session || isSessionEffectivelyFinished(session, new Date())) {
+        emojiStore.delete(key);
+        return {
+          reactions: Object.fromEntries(EMOJI_REACTIONS.map((emoji) => [emoji, 0])),
+          total: 0,
+        };
+      }
       const map = emojiStore.get(key);
       if (!map || map.size === 0) {
         const empty: Record<string, number> = {};

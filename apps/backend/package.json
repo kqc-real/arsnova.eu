@@ -6,6 +6,7 @@
     "dev": "tsx watch src/index.ts",
     "build": "tsc",
     "start": "node dist/index.js",
+    "cleanup:retention": "node dist/runRetentionCleanup.js",
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
     "test:coverage": "vitest run --coverage",
@@ -20,6 +21,7 @@
   "dependencies": {
     "@arsnova/session-export-report": "*",
     "@arsnova/shared-types": "*",
+    "@js-temporal/polyfill": "^0.5.1",
     "@prisma/adapter-pg": "^7.9.0",
     "@prisma/client": "^7.4.2",
     "@trpc/server": "^11.0.0",

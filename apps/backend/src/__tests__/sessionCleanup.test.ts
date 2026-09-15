@@ -1,36 +1,50 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
-const { prismaMock, platformStatisticMocks, loggerMocks } = vi.hoisted(() => ({
-  prismaMock: {
-    $transaction: vi.fn(),
-    $queryRaw: vi.fn(),
-    session: {
-      updateMany: vi.fn(),
-      findMany: vi.fn(),
-      deleteMany: vi.fn(),
+const { prismaMock, platformStatisticMocks, loggerMocks, credentialMocks, purgeInvalidationMocks } =
+  vi.hoisted(() => ({
+    prismaMock: {
+      $transaction: vi.fn(),
+      $queryRaw: vi.fn(),
+      session: {
+        updateMany: vi.fn(),
+        updateManyAndReturn: vi.fn(),
+        findMany: vi.fn(),
+        deleteMany: vi.fn(),
+      },
+      quiz: {
+        findMany: vi.fn(),
+        deleteMany: vi.fn(),
+      },
+      bonusToken: {
+        deleteMany: vi.fn(),
+      },
+      sessionFeedback: {
+        deleteMany: vi.fn(),
+      },
+      adminAuditLog: {
+        deleteMany: vi.fn(),
+        updateMany: vi.fn(),
+      },
+      productFeedbackInviteJob: {
+        createMany: vi.fn(),
+        deleteMany: vi.fn(),
+      },
     },
-    quiz: {
-      findMany: vi.fn(),
-      deleteMany: vi.fn(),
+    platformStatisticMocks: {
+      incrementCompletedSessionsTotal: vi.fn(),
     },
-    bonusToken: {
-      deleteMany: vi.fn(),
+    loggerMocks: {
+      info: vi.fn(),
+      warn: vi.fn(),
     },
-    sessionFeedback: {
-      deleteMany: vi.fn(),
+    credentialMocks: {
+      invalidateHostSessionToken: vi.fn(),
+      invalidateHostPairingForSession: vi.fn(),
     },
-    productFeedbackInviteJob: {
-      createMany: vi.fn(),
+    purgeInvalidationMocks: {
+      publishSessionPurgeInvalidation: vi.fn(),
     },
-  },
-  platformStatisticMocks: {
-    incrementCompletedSessionsTotal: vi.fn(),
-  },
-  loggerMocks: {
-    info: vi.fn(),
-    warn: vi.fn(),
-  },
-}));
+  }));
 
 vi.mock('../db', () => ({
   prisma: prismaMock,
@@ -44,6 +58,18 @@ vi.mock('../lib/logger', () => ({
   logger: loggerMocks,
 }));
 
+vi.mock('../lib/hostAuth', () => ({
+  invalidateHostSessionToken: credentialMocks.invalidateHostSessionToken,
+}));
+
+vi.mock('../lib/hostPairing', () => ({
+  invalidateHostPairingForSession: credentialMocks.invalidateHostPairingForSession,
+}));
+
+vi.mock('../lib/sessionPurgeInvalidation', () => ({
+  publishSessionPurgeInvalidation: purgeInvalidationMocks.publishSessionPurgeInvalidation,
+}));
+
 vi.mock('../lib/productFeedbackInvite', () => ({
   issueProductFeedbackInvitesAfterFinish: vi.fn(),
 }));
@@ -55,6 +81,7 @@ vi.mock('../lib/productFeedbackCleanup', () => ({
 }));
 
 import {
+  cleanupExpiredAdminAuditLogs,
   cleanupExpiredFinishedSessions,
   cleanupExpiredSessionFeedback,
   cleanupOrphanQuizUploads,
@@ -70,25 +97,34 @@ describe('sessionCleanup', () => {
     prismaMock.$transaction.mockImplementation(
       async (callback: (tx: typeof prismaMock) => Promise<unknown>) => callback(prismaMock),
     );
+    credentialMocks.invalidateHostSessionToken.mockResolvedValue(undefined);
+    credentialMocks.invalidateHostPairingForSession.mockResolvedValue(undefined);
+    purgeInvalidationMocks.publishSessionPurgeInvalidation.mockResolvedValue(undefined);
+    prismaMock.adminAuditLog.updateMany.mockResolvedValue({ count: 0 });
+    prismaMock.productFeedbackInviteJob.deleteMany.mockResolvedValue({ count: 0 });
   });
 
   it('inkrementiert den completedSessionsCounter fuer automatisch beendete verwaiste Sessions', async () => {
-    prismaMock.session.findMany.mockResolvedValue([{ id: 's1' }, { id: 's2' }, { id: 's3' }]);
-    prismaMock.session.updateMany.mockResolvedValue({ count: 3 });
+    prismaMock.$queryRaw.mockResolvedValue([{ id: 's1' }, { id: 's2' }, { id: 's3' }]);
 
     const result = await cleanupStaleSessions();
 
     expect(result).toBe(3);
     expect(platformStatisticMocks.incrementCompletedSessionsTotal).toHaveBeenCalledWith(3);
+    const query = prismaMock.$queryRaw.mock.calls[0]?.[0] as { strings?: string[] };
+    const sql = query.strings?.join('?') ?? '';
+    expect(sql).toContain(`candidate."expiresAt" <= timezone('UTC', clock_timestamp())`);
+    expect(sql).toContain('FOR UPDATE OF candidate SKIP LOCKED');
+    expect(sql).toContain('"endedAt" = target."expiresAt"');
   });
 
   it('inkrementiert den completedSessionsCounter nicht, wenn keine Session beendet wurde', async () => {
-    prismaMock.session.findMany.mockResolvedValue([]);
+    prismaMock.$queryRaw.mockResolvedValue([]);
 
     const result = await cleanupStaleSessions();
 
     expect(result).toBe(0);
-    expect(prismaMock.session.updateMany).not.toHaveBeenCalled();
+    expect(prismaMock.productFeedbackInviteJob.createMany).not.toHaveBeenCalled();
     expect(platformStatisticMocks.incrementCompletedSessionsTotal).not.toHaveBeenCalled();
   });
 
@@ -99,64 +135,100 @@ describe('sessionCleanup', () => {
 
     expect(result).toBe(4);
     expect(prismaMock.sessionFeedback.deleteMany).toHaveBeenCalledWith({
-      where: {
-        createdAt: { lt: expect.any(Date) },
-        session: { status: 'FINISHED' },
-      },
+      where: { createdAt: { lt: expect.any(Date) } },
     });
     expect(loggerMocks.info).toHaveBeenCalledWith(
       expect.stringContaining('SessionFeedback-Cleanup: 4 Bewertung(en)'),
     );
   });
 
-  it('purged nur beendete Sessions ohne aktiven Bonus- oder Feedback-Verlauf', async () => {
-    prismaMock.session.findMany.mockResolvedValue([
-      { id: 'session-1', quizId: 'quiz-1' },
-      { id: 'session-2', quizId: null },
-    ]);
-    prismaMock.session.deleteMany.mockResolvedValue({ count: 2 });
-    prismaMock.quiz.findMany.mockResolvedValue([{ id: 'quiz-1' }]);
+  it('löscht minimierte Admin-Audits nach ihrer eigenen Jahresfrist', async () => {
+    prismaMock.adminAuditLog.deleteMany.mockResolvedValue({ count: 2 });
+
+    await expect(cleanupExpiredAdminAuditLogs()).resolves.toBe(2);
+
+    expect(prismaMock.adminAuditLog.deleteMany).toHaveBeenCalledWith({
+      where: { createdAt: { lt: expect.any(Date) } },
+    });
+  });
+
+  it('purged beendete Sessions erst nach 336 Stunden und trennt Retention-Nebenbestände', async () => {
+    prismaMock.$queryRaw
+      .mockResolvedValueOnce([
+        { id: 'session-1', code: 'ABC123', quizId: 'quiz-1' },
+        { id: 'session-2', code: 'DEF456', quizId: null },
+      ])
+      .mockResolvedValueOnce([
+        { id: 'session-1', code: 'ABC123', quizId: 'quiz-1' },
+        { id: 'session-2', code: 'DEF456', quizId: null },
+      ])
+      .mockResolvedValueOnce([
+        { id: 'session-1', code: 'ABC123', quizId: 'quiz-1' },
+        { id: 'session-2', code: 'DEF456', quizId: null },
+      ]);
     prismaMock.quiz.deleteMany.mockResolvedValue({ count: 1 });
 
     const result = await cleanupExpiredFinishedSessions();
 
     expect(result).toBe(2);
-    expect(prismaMock.session.findMany).toHaveBeenCalledWith({
+    expect(credentialMocks.invalidateHostSessionToken).toHaveBeenCalledWith('ABC123');
+    expect(credentialMocks.invalidateHostSessionToken).toHaveBeenCalledWith('DEF456');
+    expect(credentialMocks.invalidateHostPairingForSession).toHaveBeenCalledWith('ABC123');
+    expect(credentialMocks.invalidateHostPairingForSession).toHaveBeenCalledWith('DEF456');
+    expect(purgeInvalidationMocks.publishSessionPurgeInvalidation).toHaveBeenCalledTimes(4);
+    const selectionSql = (
+      prismaMock.$queryRaw.mock.calls[0]?.[0] as { strings?: string[] }
+    ).strings?.join('?');
+    const lockSql = (
+      prismaMock.$queryRaw.mock.calls[1]?.[0] as { strings?: string[] }
+    ).strings?.join('?');
+    const deleteSql = (
+      prismaMock.$queryRaw.mock.calls[2]?.[0] as { strings?: string[] }
+    ).strings?.join('?');
+    expect(selectionSql).toContain("INTERVAL '1 hour'");
+    expect(selectionSql).toContain("timezone('UTC', clock_timestamp())");
+    expect(selectionSql).toContain('LIMIT');
+    expect(lockSql).toContain("INTERVAL '1 hour'");
+    expect(lockSql).toContain('FOR UPDATE OF candidate SKIP LOCKED');
+    expect(deleteSql).toContain('DELETE FROM "Session" AS target');
+    expect(prismaMock.productFeedbackInviteJob.deleteMany).toHaveBeenCalledWith({
+      where: { sessionId: { in: ['session-1', 'session-2'] } },
+    });
+    expect(prismaMock.adminAuditLog.updateMany).toHaveBeenCalledTimes(2);
+    expect(prismaMock.adminAuditLog.updateMany).toHaveBeenCalledWith({
       where: {
-        status: 'FINISHED',
-        endedAt: { not: null, lt: expect.any(Date) },
-        OR: [{ legalHoldUntil: null }, { legalHoldUntil: { lte: expect.any(Date) } }],
-        bonusTokens: {
-          none: {
-            generatedAt: { gte: expect.any(Date) },
-          },
-        },
-        sessionFeedbacks: {
-          none: {
-            createdAt: { gte: expect.any(Date) },
-          },
-        },
+        OR: [{ sessionId: 'session-1' }, { sessionCode: 'ABC123' }],
       },
-      select: {
-        id: true,
-        quizId: true,
+      data: {
+        sessionId: null,
+        sessionCode: null,
+        sessionReferenceHash: expect.stringMatching(/^[a-f0-9]{64}$/),
       },
     });
-    expect(prismaMock.session.deleteMany).toHaveBeenCalledWith({
-      where: { id: { in: ['session-1', 'session-2'] } },
-    });
-    expect(prismaMock.quiz.findMany).toHaveBeenCalledWith({
+    expect(prismaMock.quiz.deleteMany).toHaveBeenCalledWith({
       where: {
         id: { in: ['quiz-1'] },
         sessions: { none: {} },
       },
-      select: { id: true },
     });
-    expect(prismaMock.quiz.deleteMany).toHaveBeenCalledWith({
-      where: { id: { in: ['quiz-1'] } },
+    expect(prismaMock.$transaction).toHaveBeenCalledWith(expect.any(Function), {
+      isolationLevel: 'Serializable',
     });
     expect(loggerMocks.info).toHaveBeenCalledWith(
       expect.stringContaining('Session-Purge: 2 beendete Session(s)'),
+    );
+  });
+
+  it('behält den Sessionkern bei einem fehlgeschlagenen Credential-Cleanup für den Retry', async () => {
+    prismaMock.$queryRaw.mockResolvedValue([{ id: 'session-1', code: 'ABC123', quizId: null }]);
+    credentialMocks.invalidateHostSessionToken.mockRejectedValueOnce(new Error('Redis down'));
+
+    await expect(cleanupExpiredFinishedSessions()).resolves.toBe(0);
+
+    expect(prismaMock.$transaction).not.toHaveBeenCalled();
+    expect(loggerMocks.warn).toHaveBeenCalledWith(
+      expect.stringContaining('Credential-/Runtime-Cleanup fehlgeschlagen'),
+      'Redis down',
     );
   });
 

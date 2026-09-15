@@ -14,6 +14,7 @@
  */
 import http from 'k6/http';
 import { check, sleep } from 'k6';
+import { randomBytes } from 'k6/crypto';
 
 const code = __ENV.SESSION_CODE;
 if (!code || String(code).trim().length !== 6) {
@@ -32,6 +33,12 @@ const batchInput = encodeURIComponent(
     1: { code: C },
   }),
 );
+
+function csprngIdempotencyKey() {
+  return Array.from(new Uint8Array(randomBytes(32)), (byte) =>
+    byte.toString(16).padStart(2, '0'),
+  ).join('');
+}
 
 /** Pro VU genau eine Iteration: ein Join, dann ~25 s Lobby-Polling (wie das Node-Skript). */
 export const options = {
@@ -59,7 +66,12 @@ export default function () {
   const anonymousClientId = `00000000-0000-4000-8000-${String(__VU).padStart(6, '0')}${String(__ITER).padStart(6, '0')}`;
   const joinRes = http.post(
     joinUrl,
-    JSON.stringify({ code: C, nickname: nick, anonymousClientId }),
+    JSON.stringify({
+      code: C,
+      nickname: nick,
+      anonymousClientId,
+      joinIdempotencyKey: csprngIdempotencyKey(),
+    }),
     {
       headers: { 'Content-Type': 'application/json' },
     },

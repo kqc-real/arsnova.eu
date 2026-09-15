@@ -28,6 +28,10 @@ import {
   TrpcWebSocketParticipantBindingSchema,
   AnalyzeWordCloudInputSchema,
   WordCloudAnalysisResultDTOSchema,
+  CreateSessionInputSchema,
+  PreviewSessionExpirationInputSchema,
+  ChangeSessionExpirationInputSchema,
+  SessionLifecycleHostDTOSchema,
 } from './schemas.js';
 
 const sessionId = '10000000-0000-4000-8000-000000000001';
@@ -49,6 +53,83 @@ describe('öffentliche Contract-Schemas', () => {
     teamMode: false,
     nicknameTheme: 'NOBEL_LAUREATES' as const,
   };
+
+  it('validiert den schema-first Vertrag für absolute Sessionfristen', () => {
+    expect(
+      CreateSessionInputSchema.parse({
+        type: 'Q_AND_A',
+        qaTitle: 'Fragestunde',
+      }),
+    ).toMatchObject({
+      type: 'Q_AND_A',
+      timeZone: 'UTC',
+      qaModerationMode: true,
+    });
+    expect(
+      CreateSessionInputSchema.safeParse({
+        type: 'Q_AND_A',
+        timeZone: 'Europe/Berlin',
+        expiration: { kind: 'DURATION_DAYS', days: 30 },
+      }).success,
+    ).toBe(true);
+    expect(
+      CreateSessionInputSchema.safeParse({
+        type: 'Q_AND_A',
+        expiration: { kind: 'DURATION_DAYS', days: 31 },
+      }).success,
+    ).toBe(false);
+    expect(
+      PreviewSessionExpirationInputSchema.safeParse({
+        code: 'ABC123',
+        purpose: 'GLOBAL_EXTENSION',
+        selection: { kind: 'QUICK', amount: 'ONE_DAY' },
+        timeZone: 'Europe/Berlin',
+      }).success,
+    ).toBe(true);
+    expect(
+      ChangeSessionExpirationInputSchema.safeParse({
+        code: 'ABC123',
+        purpose: 'GLOBAL_EXTENSION',
+        selection: { kind: 'QUICK', amount: 'ONE_HOUR' },
+        expectedLifecycleRevision: 2,
+        confirmedExpiresAt: '2026-09-16T12:00:00Z',
+      }).success,
+    ).toBe(true);
+    expect(
+      ChangeSessionExpirationInputSchema.safeParse({
+        code: 'ABC123',
+        purpose: 'INITIAL_CONFIGURATION',
+        selection: { kind: 'ABSOLUTE', expiresAt: '2026-09-16T12:00:00Z' },
+        expectedLifecycleRevision: -1,
+        confirmedExpiresAt: '2026-09-16T12:00:00Z',
+      }).success,
+    ).toBe(false);
+  });
+
+  it('verlangt im Host-Lifecycle getrennte absolute Fristen und monotone Revisionen', () => {
+    expect(
+      SessionLifecycleHostDTOSchema.safeParse({
+        status: 'ACTIVE',
+        createdAt: '2026-09-15T08:00:00.000Z',
+        expiresAt: '2026-09-16T08:00:00.000Z',
+        endedAt: null,
+        qaClosesAt: '2026-09-16T07:00:00.000Z',
+        firstParticipantJoinedAt: null,
+        timeZone: 'Europe/Berlin',
+        sessionLifecycleRevision: 2,
+        serverNow: '2026-09-15T09:00:00.000Z',
+        maxExpiresAt: '2026-09-29T08:00:00.000Z',
+        originalHost: true,
+        extensionAllowed: true,
+        configurationAllowed: true,
+        postProcessingEndsAt: null,
+        purgeEligibleAt: null,
+        expectedDeletionAt: null,
+        deletionDelayedByLegalHold: false,
+        hostContentAccessAllowed: true,
+      }).success,
+    ).toBe(true);
+  });
 
   it('akzeptiert ein normales Classroom-Quiz deutlich unter den Upload-Caps', () => {
     const questions = Array.from({ length: 100 }, (_, order) => ({
@@ -319,29 +400,38 @@ describe('öffentliche Contract-Schemas', () => {
 
   it('erzwingt Session-Code und begrenzte Anzeigenamen', () => {
     expect(
-      JoinSessionInputSchema.safeParse({ code: 'ABC123', nickname: 'Ada', anonymousClientId })
-        .success,
+      JoinSessionInputSchema.safeParse({
+        code: 'ABC123',
+        nickname: 'Ada',
+        anonymousClientId,
+        joinIdempotencyKey: anonymousClientId,
+      }).success,
     ).toBe(true);
-    // Übergangskompatibilität für noch aktive Service-Worker-Clients der Vorgängerversion.
     expect(JoinSessionInputSchema.safeParse({ code: 'ABC123', nickname: 'Ada' }).success).toBe(
-      true,
+      false,
     );
     expect(
       JoinSessionInputSchema.safeParse({
         code: 'ABC123',
         nickname: 'Ada',
         anonymousClientId: 'keine-uuid',
+        joinIdempotencyKey: anonymousClientId,
       }).success,
     ).toBe(false);
     expect(
-      JoinSessionInputSchema.safeParse({ code: 'ABC12', nickname: 'Ada', anonymousClientId })
-        .success,
+      JoinSessionInputSchema.safeParse({
+        code: 'ABC12',
+        nickname: 'Ada',
+        anonymousClientId,
+        joinIdempotencyKey: anonymousClientId,
+      }).success,
     ).toBe(false);
     expect(
       JoinSessionInputSchema.safeParse({
         code: 'ABC123',
         nickname: 'x'.repeat(31),
         anonymousClientId,
+        joinIdempotencyKey: anonymousClientId,
       }).success,
     ).toBe(false);
   });

@@ -19,31 +19,44 @@ if (!globalThis.WebSocket && WebSocketPonyfill) {
   globalThis.WebSocket = WebSocketPonyfill;
 }
 
-function authHeaders(hostToken, adminToken, diagnosticSecret) {
+function authHeaders(hostToken, adminToken, diagnosticSecret, participantCapability) {
   return {
     ...(hostToken ? { 'x-host-token': hostToken } : {}),
     ...(adminToken ? { 'x-admin-token': adminToken } : {}),
     ...(diagnosticSecret ? { 'x-admin-diagnostic-secret': diagnosticSecret } : {}),
+    ...(participantCapability ? { 'x-participant-capability': participantCapability } : {}),
   };
 }
 
-export function createHttpTrpc(trpcUrl, hostToken, adminToken, diagnosticSecret) {
+export function createHttpTrpc(
+  trpcUrl,
+  hostToken,
+  adminToken,
+  diagnosticSecret,
+  participantCapability,
+) {
   const link = httpBatchLink({
     url: trpcUrl,
     headers:
-      hostToken || adminToken || diagnosticSecret
-        ? () => authHeaders(hostToken, adminToken, diagnosticSecret)
+      hostToken || adminToken || diagnosticSecret || participantCapability
+        ? () => authHeaders(hostToken, adminToken, diagnosticSecret, participantCapability)
         : undefined,
   });
   return createTRPCProxyClient({ links: [link] });
 }
 
-export function createHttpTrpcSingle(trpcUrl, hostToken, adminToken, diagnosticSecret) {
+export function createHttpTrpcSingle(
+  trpcUrl,
+  hostToken,
+  adminToken,
+  diagnosticSecret,
+  participantCapability,
+) {
   const link = httpLink({
     url: trpcUrl,
     headers:
-      hostToken || adminToken || diagnosticSecret
-        ? () => authHeaders(hostToken, adminToken, diagnosticSecret)
+      hostToken || adminToken || diagnosticSecret || participantCapability
+        ? () => authHeaders(hostToken, adminToken, diagnosticSecret, participantCapability)
         : undefined,
   });
   return createTRPCProxyClient({ links: [link] });
@@ -54,10 +67,16 @@ export function productionRetryDelayMs(attempt, random = Math.random) {
   return base + Math.floor(random() * 350);
 }
 
-function participantConnectionParams(sessionCode, participantId, extra = {}) {
+function participantConnectionParams(
+  sessionCode,
+  participantId,
+  participantCapability,
+  extra = {},
+) {
   return {
     ...(sessionCode ? { sessionCode: String(sessionCode).trim().toUpperCase() } : {}),
     ...(participantId ? { participantId } : {}),
+    ...(participantCapability ? { participantCapability } : {}),
     ...extra,
   };
 }
@@ -66,7 +85,7 @@ export function createHostWsTrpc(wsUrl, hostToken, sessionCode) {
   const wsClient = createWSClient({
     url: wsUrl,
     connectionParams: () =>
-      participantConnectionParams(sessionCode, null, { 'x-host-token': hostToken }),
+      participantConnectionParams(sessionCode, null, null, { 'x-host-token': hostToken }),
     lazy: { enabled: false, closeMs: 0 },
     retryDelayMs: productionRetryDelayMs,
   });
@@ -80,8 +99,13 @@ export function createPublicWsTrpc(wsUrl, binding = {}) {
   const wsClient = createWSClient({
     url: wsUrl,
     connectionParams:
-      binding.sessionCode || binding.participantId
-        ? () => participantConnectionParams(binding.sessionCode, binding.participantId)
+      binding.sessionCode || binding.participantId || binding.participantCapability
+        ? () =>
+            participantConnectionParams(
+              binding.sessionCode,
+              binding.participantId,
+              binding.participantCapability,
+            )
         : undefined,
     lazy: { enabled: false, closeMs: 0 },
     retryDelayMs: productionRetryDelayMs,

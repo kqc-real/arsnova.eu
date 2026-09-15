@@ -34,6 +34,10 @@ vi.mock('../lib/rateLimit', () => ({
   checkVoteRate: checkVoteRateMock,
 }));
 
+vi.mock('../lib/participantAuth', () => ({
+  assertParticipantCapability: vi.fn(),
+}));
+
 import { checkVoteRate } from '../lib/rateLimit';
 import {
   resetVoteSubmitCachesForTests,
@@ -74,6 +78,54 @@ describe('vote.submit', () => {
     prismaMock.vote.findUnique.mockResolvedValue(null);
     prismaMock.vote.findFirst.mockResolvedValue(null);
     prismaMock.vote.create.mockResolvedValue({ id: '11111111-1111-4111-8111-111111111119' });
+  });
+
+  it('lehnt Stimmen nach globalem Sessionende ab', async () => {
+    prismaMock.participant.findFirst.mockResolvedValue({
+      id: 'participant-1',
+      sessionId: 'session-1',
+      session: { status: 'FINISHED', quizId: 'quiz-1', questionProgress: null },
+    });
+
+    await expect(
+      caller.submit({
+        sessionId: '6a8edced-5f8f-4cfa-9176-454fac9570ad',
+        participantId: '7290465d-5982-4b3d-ab47-a2088830d4b0',
+        questionId: '7ed3cc25-3179-4a91-9dc3-acc00971fb46',
+        freeText: 'zu spaet',
+      }),
+    ).rejects.toMatchObject({
+      code: 'BAD_REQUEST',
+      message: 'Diese Session ist beendet.',
+    });
+    expect(prismaMock.vote.create).not.toHaveBeenCalled();
+  });
+
+  it('lehnt Stimmen ab, sobald expiresAt erreicht ist, auch ohne materialisiertes endedAt', async () => {
+    prismaMock.participant.findFirst.mockResolvedValue({
+      id: 'participant-1',
+      sessionId: 'session-1',
+      session: {
+        status: 'ACTIVE',
+        quizId: 'quiz-1',
+        questionProgress: null,
+        endedAt: null,
+        expiresAt: new Date('2020-01-01T00:00:00.000Z'),
+      },
+    });
+
+    await expect(
+      caller.submit({
+        sessionId: '6a8edced-5f8f-4cfa-9176-454fac9570ad',
+        participantId: '7290465d-5982-4b3d-ab47-a2088830d4b0',
+        questionId: '7ed3cc25-3179-4a91-9dc3-acc00971fb46',
+        freeText: 'zu spaet',
+      }),
+    ).rejects.toMatchObject({
+      code: 'BAD_REQUEST',
+      message: 'Die Session ist bereits beendet.',
+    });
+    expect(prismaMock.vote.create).not.toHaveBeenCalled();
   });
 
   it('wartet auf einen Pool-Slot statt Vote-Transaktionen nach 2s abzubrechen', async () => {

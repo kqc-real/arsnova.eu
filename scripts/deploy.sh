@@ -215,6 +215,20 @@ echo ">>> Schritt 5: Prisma-Migrationen anwenden"
 compose run --rm --no-deps --entrypoint "" app /app/node_modules/.bin/prisma migrate deploy --schema /app/prisma/schema.prisma
 
 echo ""
+echo ">>> Schritt 5b: Überfällige Retention vor Traffic-Freigabe bereinigen"
+if [[ "$DEPLOY_MODE" == "normal" ]]; then
+  compose run --rm --no-deps --entrypoint "" app npm run cleanup:retention -w @arsnova/backend
+else
+  compose run --rm --no-deps --entrypoint "" app sh -eu -c '
+    if [ -f /app/apps/backend/dist/runRetentionCleanup.js ]; then
+      npm run cleanup:retention -w @arsnova/backend
+    else
+      echo "Hinweis: Ziel-Image besitzt noch kein Retention-Gate; DB-Rollback-Bridge bleibt aktiv."
+    fi
+  '
+fi
+
+echo ""
 echo ">>> Schritt 6: App und PDF-Worker starten"
 compose up -d pdf-worker app
 

@@ -7,6 +7,9 @@ const { hostAuthMocks, invalidSessionCodeMock, prismaMock } = vi.hoisted(() => (
     session: {
       findUnique: vi.fn(),
     },
+    participant: {
+      findFirst: vi.fn(),
+    },
     quiz: {
       findUnique: vi.fn(),
     },
@@ -46,16 +49,33 @@ vi.mock('../lib/invalidSessionCode', () => ({
 }));
 
 import { sessionRouter } from '../routers/session';
+import { hashCapability } from '../lib/capabilityCrypto';
 
-const caller = sessionRouter.createCaller({ req: {} as never });
 const SESSION_ID = '6a8edced-5f8f-4cfa-9176-454fac9570ad';
 const QUESTION_ID = '7b9fdced-5f8f-4cfa-9176-454fac9570ae';
 const PARTICIPANT_ID = '8c0edced-5f8f-4cfa-9176-454fac9570af';
 const OTHER_PARTICIPANT_ID = '9d1edced-5f8f-4cfa-9176-454fac9570a0';
+const PARTICIPANT_CAPABILITY = 'participant-capability-abcdefghijklmnopqrstuvwxyz';
+const caller = sessionRouter.createCaller({ req: undefined });
+const participantCaller = sessionRouter.createCaller({
+  req: { headers: { 'x-participant-capability': PARTICIPANT_CAPABILITY } } as never,
+});
+
+function expectParticipantCapabilityLookup(sessionId = SESSION_ID): void {
+  expect(prismaMock.participant.findFirst).toHaveBeenCalledWith({
+    where: {
+      id: PARTICIPANT_ID,
+      sessionId,
+      rejoinCapabilityHash: hashCapability(PARTICIPANT_CAPABILITY),
+    },
+    select: { id: true },
+  });
+}
 
 describe('session remaining DoD procedure evidence', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    prismaMock.participant.findFirst.mockReset();
     hostAuthMocks.extractHostTokenMock.mockReturnValue('host-token-123');
     hostAuthMocks.extractHostTokenFromConnectionParamsMock.mockReturnValue(null);
     hostAuthMocks.isHostSessionTokenValidMock.mockResolvedValue(true);
@@ -136,6 +156,7 @@ describe('session remaining DoD procedure evidence', () => {
       title: 'berechnet Punktestand, Rang und Bonus-Code aus effektiven Votes',
     },
     async () => {
+      prismaMock.participant.findFirst.mockResolvedValue({ id: PARTICIPANT_ID });
       prismaMock.session.findUnique.mockResolvedValue({
         id: SESSION_ID,
         status: 'FINISHED',
@@ -162,11 +183,12 @@ describe('session remaining DoD procedure evidence', () => {
       ]);
       prismaMock.bonusToken.findFirst.mockResolvedValue({ token: 'BNS-TEST-1234' });
 
-      const result = await caller.getPersonalResult({
+      const result = await participantCaller.getPersonalResult({
         code: 'ABC123',
         participantId: PARTICIPANT_ID,
       });
 
+      expectParticipantCapabilityLookup();
       expect(prismaMock.vote.findMany).toHaveBeenCalledWith(
         expect.objectContaining({
           where: expect.objectContaining({
@@ -188,6 +210,7 @@ describe('session remaining DoD procedure evidence', () => {
       title: 'lehnt persönliche Ergebnisse vor Session-Ende ab',
     },
     async () => {
+      prismaMock.participant.findFirst.mockResolvedValue({ id: PARTICIPANT_ID });
       prismaMock.session.findUnique.mockResolvedValue({
         id: SESSION_ID,
         status: 'ACTIVE',
@@ -195,8 +218,9 @@ describe('session remaining DoD procedure evidence', () => {
       });
 
       await expect(
-        caller.getPersonalResult({ code: 'ABC123', participantId: PARTICIPANT_ID }),
+        participantCaller.getPersonalResult({ code: 'ABC123', participantId: PARTICIPANT_ID }),
       ).rejects.toMatchObject({ code: 'BAD_REQUEST' });
+      expectParticipantCapabilityLookup();
       expect(prismaMock.vote.findMany).not.toHaveBeenCalled();
     },
   );
@@ -209,14 +233,16 @@ describe('session remaining DoD procedure evidence', () => {
       title: 'meldet eine vorhandene Session-Bewertung für den angegebenen Teilnehmer',
     },
     async () => {
+      prismaMock.participant.findFirst.mockResolvedValue({ id: PARTICIPANT_ID });
       prismaMock.session.findUnique.mockResolvedValue({ id: SESSION_ID });
       prismaMock.sessionFeedback.findUnique.mockResolvedValue({ id: 'feedback-1' });
 
-      const result = await caller.getHasSubmittedFeedback({
+      const result = await participantCaller.getHasSubmittedFeedback({
         code: 'ABC123',
         participantId: PARTICIPANT_ID,
       });
 
+      expectParticipantCapabilityLookup();
       expect(prismaMock.sessionFeedback.findUnique).toHaveBeenCalledWith({
         where: {
           sessionId_participantId: { sessionId: SESSION_ID, participantId: PARTICIPANT_ID },
@@ -241,6 +267,7 @@ describe('session remaining DoD procedure evidence', () => {
         caller.getHasSubmittedFeedback({ code: 'ABC123', participantId: PARTICIPANT_ID }),
       ).rejects.toMatchObject({ code: 'NOT_FOUND' });
       expect(invalidSessionCodeMock).toHaveBeenCalledWith(undefined, 'ABC123', 'pollReconnect');
+      expect(prismaMock.participant.findFirst).not.toHaveBeenCalled();
     },
   );
 
@@ -252,6 +279,7 @@ describe('session remaining DoD procedure evidence', () => {
       title: 'speichert eine Emoji-Reaktion pro Teilnehmer und Frage',
     },
     async () => {
+      prismaMock.participant.findFirst.mockResolvedValue({ id: PARTICIPANT_ID });
       prismaMock.session.findUnique.mockResolvedValue({
         id: SESSION_ID,
         status: 'ACTIVE',
@@ -260,13 +288,14 @@ describe('session remaining DoD procedure evidence', () => {
       prismaMock.quiz.findUnique.mockResolvedValue({ enableEmojiReactions: true });
 
       await expect(
-        caller.react({
+        participantCaller.react({
           sessionId: SESSION_ID,
           questionId: QUESTION_ID,
           participantId: PARTICIPANT_ID,
           emoji: '👏',
         }),
       ).resolves.toEqual({ ok: true });
+      expectParticipantCapabilityLookup();
     },
   );
 
@@ -279,6 +308,7 @@ describe('session remaining DoD procedure evidence', () => {
       title: 'lehnt Emoji-Reaktionen außerhalb einer laufenden Frage ab',
     },
     async () => {
+      prismaMock.participant.findFirst.mockResolvedValue({ id: PARTICIPANT_ID });
       prismaMock.session.findUnique.mockResolvedValue({
         id: SESSION_ID,
         status: 'LOBBY',
@@ -286,13 +316,14 @@ describe('session remaining DoD procedure evidence', () => {
       });
 
       await expect(
-        caller.react({
+        participantCaller.react({
           sessionId: SESSION_ID,
           questionId: QUESTION_ID,
           participantId: PARTICIPANT_ID,
           emoji: '👏',
         }),
       ).rejects.toMatchObject({ code: 'BAD_REQUEST' });
+      expectParticipantCapabilityLookup();
       expect(prismaMock.quiz.findUnique).not.toHaveBeenCalled();
     },
   );
@@ -307,13 +338,14 @@ describe('session remaining DoD procedure evidence', () => {
     async () => {
       const reactionSessionId = '1f3edced-5f8f-4cfa-9176-454fac9570ac';
       const reactionQuestionId = '2a4edced-5f8f-4cfa-9176-454fac9570ad';
+      prismaMock.participant.findFirst.mockResolvedValue({ id: PARTICIPANT_ID });
       prismaMock.session.findUnique.mockResolvedValue({
         id: reactionSessionId,
         status: 'RESULTS',
         quizId: '3b5edced-5f8f-4cfa-9176-454fac9570ae',
       });
       prismaMock.quiz.findUnique.mockResolvedValue({ enableEmojiReactions: true });
-      await caller.react({
+      await participantCaller.react({
         sessionId: reactionSessionId,
         questionId: reactionQuestionId,
         participantId: PARTICIPANT_ID,
@@ -321,6 +353,7 @@ describe('session remaining DoD procedure evidence', () => {
         round: 2,
       });
 
+      expectParticipantCapabilityLookup(reactionSessionId);
       const result = await caller.getReactions({
         sessionId: reactionSessionId,
         questionId: reactionQuestionId,

@@ -33,7 +33,7 @@ const START_QUESTION_RE = /erste frage starten|start first question/i;
 const RELEASE_ANSWERS_RE = /antwortoptionen freigeben|release answer options/i;
 const REVEAL_RESULTS_RE = /ergebnis(?: trotzdem)? zeigen|show results/i;
 const END_SESSION_RE = /session beenden|end session/i;
-const CONFIRM_END_RE = /trotzdem verlassen|leave anyway/i;
+const CONFIRM_END_RE = /gesamte session beenden|end (?:the )?session/i;
 const JOIN_RE = /jetzt beitreten|join now|mitmachen/i;
 const SKIPPED_ANNOUNCEMENT = 'Die Frage wurde ausgelassen. Die nächste Frage startet.';
 const QUESTIONS = {
@@ -398,8 +398,8 @@ async function main() {
     logStep('Live-Ergebnis enthält nur die durchgeführte Frage 3');
 
     await clickButton(host, END_SESSION_RE);
-    const endDialog = host.locator('.cdk-overlay-container').first();
-    await endDialog.getByRole('button', { name: CONFIRM_END_RE }).click();
+    const endDialog = host.locator('mat-dialog-container');
+    await endDialog.getByRole('button', { name: CONFIRM_END_RE }).first().click();
     await host.locator('#session-finished-heading').first().waitFor({
       state: 'visible',
       timeout: 25_000,

@@ -34,6 +34,9 @@ export async function waitWhileHostTokenValid(
 
   if (access.role !== 'PAIRED_HOST') {
     await waiter();
+    if (!(await isHostSessionTokenValid(sessionCode, token))) {
+      throw hostConnectionEndedError();
+    }
     return;
   }
 

@@ -11,6 +11,7 @@ import { consumeParticipantJoinArrival } from '../../core/participant-join-arriv
 import { peekConfirmedParticipantTeam } from '../../core/participant-team-confirmation';
 import { NICKNAME_LISTS } from './nickname-themes';
 import { resetAnonymousClientIdForTests } from '../../core/anonymous-client-id';
+import { storeParticipantCapability } from '../../core/participant-session-access';
 
 const ANONYMOUS_CLIENT_ID = '33333333-3333-4333-8333-333333333333';
 
@@ -68,6 +69,9 @@ vi.mock('../../core/trpc.client', () => ({
       getParticipantNicknames: {
         query: vi.fn().mockResolvedValue({ nicknames: [], participantCount: 0 }),
       },
+      checkParticipantNickname: {
+        query: vi.fn().mockResolvedValue({ available: true }),
+      },
       join: {
         mutate: vi.fn().mockResolvedValue({
           id: 'sess-1',
@@ -88,6 +92,7 @@ vi.mock('../../core/trpc.client', () => ({
 
 describe('JoinComponent', () => {
   beforeEach(() => {
+    vi.clearAllMocks();
     localStorage.clear();
     localStorage.setItem('arsnova-anonymous-client-id', ANONYMOUS_CLIENT_ID);
     resetAnonymousClientIdForTests();
@@ -97,6 +102,9 @@ describe('JoinComponent', () => {
     vi.mocked(trpc.session.getParticipantNicknames.query).mockResolvedValue({
       nicknames: [],
       participantCount: 0,
+    });
+    vi.mocked(trpc.session.checkParticipantNickname.query).mockResolvedValue({
+      available: true,
     });
     vi.mocked(trpc.session.join.mutate).mockResolvedValue({
       ...mockSession,
@@ -132,6 +140,12 @@ describe('JoinComponent', () => {
     return { fixture, comp };
   }
 
+  function setTakenNicknames(comp: JoinComponent, nicknames: readonly string[]): void {
+    comp.takenNicknames.set(
+      new Set(nicknames.map((nickname) => nickname.trim().slice(0, 30).toLowerCase())),
+    );
+  }
+
   it('lädt Session bei gültigem 6-stelligen Code', async () => {
     const { fixture, comp } = createWithCode('ABC123');
     fixture.detectChanges();
@@ -144,6 +158,28 @@ describe('JoinComponent', () => {
     expect(comp.loading()).toBe(false);
     expect(comp.anonymousNickname(6)).toBe('Teilnehmende 6');
     expect((fixture.nativeElement as HTMLElement).textContent).toContain('Dein Name');
+    expect(trpc.session.getParticipantNicknames.query).not.toHaveBeenCalled();
+  });
+
+  it('zeigt vor dem Beitritt Sessionende und früheste Löschbarkeit mit Ausnahmehinweis', async () => {
+    vi.mocked(trpc.session.getInfo.query).mockResolvedValue({
+      ...mockSession,
+      expiresAt: '2026-09-15T10:00:00.000Z',
+      timeZone: 'Europe/Berlin',
+      postProcessingEndsAt: '2026-09-29T10:00:00.000Z',
+      purgeEligibleAt: '2026-09-29T10:00:00.000Z',
+    });
+    const { fixture } = createWithCode('ABC123');
+    fixture.detectChanges();
+    await fixture.whenStable();
+    await new Promise((resolve) => setTimeout(resolve, 50));
+    fixture.detectChanges();
+
+    const retention = (fixture.nativeElement as HTMLElement).querySelector('.join-card__retention');
+    expect(retention?.getAttribute('role')).toBe('note');
+    expect(retention?.textContent).toContain('Geplantes Sessionende');
+    expect(retention?.textContent).toContain('Sessiondaten frühestens löschbar');
+    expect(retention?.textContent).toContain('kein zusätzlicher Teilnehmerzugriff');
   });
 
   it('fixiert den Beitrittsbutton im unteren Aktionsbereich des Join-Clients', async () => {
@@ -236,12 +272,8 @@ describe('JoinComponent', () => {
       ...mockSession,
       allowCustomNicknames: false,
     });
-    vi.mocked(trpc.session.getParticipantNicknames.query).mockResolvedValue({
-      nicknames: [...NICKNAME_LISTS.NOBEL_LAUREATES],
-      participantCount: NICKNAME_LISTS.NOBEL_LAUREATES.length,
-    });
-
     const { fixture, comp } = createWithCode('ABC123');
+    setTakenNicknames(comp, NICKNAME_LISTS.NOBEL_LAUREATES);
     fixture.detectChanges();
     await fixture.whenStable();
     await new Promise((r) => setTimeout(r, 80));
@@ -259,12 +291,8 @@ describe('JoinComponent', () => {
       ...mockSession,
       allowCustomNicknames: false,
     });
-    vi.mocked(trpc.session.getParticipantNicknames.query).mockResolvedValue({
-      nicknames: [...NICKNAME_LISTS.NOBEL_LAUREATES, 'Marie Curie 2'],
-      participantCount: NICKNAME_LISTS.NOBEL_LAUREATES.length + 1,
-    });
-
     const { fixture, comp } = createWithCode('ABC123');
+    setTakenNicknames(comp, [...NICKNAME_LISTS.NOBEL_LAUREATES, 'Marie Curie 2']);
     fixture.detectChanges();
     await fixture.whenStable();
     await new Promise((r) => setTimeout(r, 80));
@@ -275,11 +303,8 @@ describe('JoinComponent', () => {
   });
 
   it('markiert vergebene Nicknames (isTaken)', async () => {
-    vi.mocked(trpc.session.getParticipantNicknames.query).mockResolvedValue({
-      nicknames: ['Marie Curie'],
-      participantCount: 1,
-    });
     const { fixture, comp } = createWithCode('ABC123');
+    setTakenNicknames(comp, ['Marie Curie']);
     fixture.detectChanges();
     await fixture.whenStable();
     await new Promise((r) => setTimeout(r, 80));
@@ -295,12 +320,8 @@ describe('JoinComponent', () => {
       nicknameTheme: 'PRIMARY_SCHOOL',
       allowCustomNicknames: false,
     });
-    vi.mocked(trpc.session.getParticipantNicknames.query).mockResolvedValue({
-      nicknames: [longNickname.slice(0, 30)],
-      participantCount: 1,
-    });
-
     const { fixture, comp } = createWithCode('ABC123');
+    setTakenNicknames(comp, [longNickname]);
     fixture.detectChanges();
     await fixture.whenStable();
     await new Promise((r) => setTimeout(r, 80));
@@ -366,6 +387,40 @@ describe('JoinComponent', () => {
     expect(comp.nicknameOptions().length).toBeGreaterThan(0);
   });
 
+  it('tritt einer quizlosen Q&A-Session im Anonymmodus ohne Namensformular direkt bei', async () => {
+    vi.mocked(trpc.session.getInfo.query).mockResolvedValue({
+      ...mockSession,
+      quizName: null,
+      anonymousMode: true,
+      allowCustomNicknames: false,
+      channels: {
+        quiz: { enabled: false },
+        qa: { enabled: true, open: true, title: 'Offene Fragen', moderationMode: true },
+        quickFeedback: { enabled: false, open: false },
+      },
+    });
+    const { fixture } = createWithCode('ABC123');
+    const router = fixture.debugElement.injector.get(Router);
+    const navSpy = vi.spyOn(router, 'navigate').mockResolvedValue(true);
+
+    fixture.detectChanges();
+    await fixture.whenStable();
+    await new Promise((resolve) => setTimeout(resolve, 80));
+
+    expect(trpc.session.join.mutate).toHaveBeenCalledWith({
+      code: 'ABC123',
+      nickname: 'Teilnehmende 6',
+      anonymousClientId: ANONYMOUS_CLIENT_ID,
+      rejoinToken: undefined,
+      joinIdempotencyKey: expect.any(String),
+      productFeedbackClaimToken: undefined,
+      teamId: undefined,
+    });
+    expect(navSpy).toHaveBeenCalledWith(['session', 'ABC123', 'vote'], {
+      queryParams: { tab: 'quiz' },
+    });
+  });
+
   it('liefert im Kita-Modus Emoji und Namen fuer den Select-Trigger', async () => {
     vi.mocked(trpc.session.getInfo.query).mockResolvedValue({
       ...mockSession,
@@ -392,12 +447,8 @@ describe('JoinComponent', () => {
       nicknameTheme: 'KINDERGARTEN',
       allowCustomNicknames: false,
     });
-    vi.mocked(trpc.session.getParticipantNicknames.query).mockResolvedValue({
-      nicknames: [...NICKNAME_LISTS.KINDERGARTEN],
-      participantCount: NICKNAME_LISTS.KINDERGARTEN.length,
-    });
-
     const { fixture, comp } = createWithCode('ABC123');
+    setTakenNicknames(comp, NICKNAME_LISTS.KINDERGARTEN);
     fixture.detectChanges();
     await fixture.whenStable();
     await new Promise((r) => setTimeout(r, 80));
@@ -429,10 +480,14 @@ describe('JoinComponent', () => {
       nickname: 'Ada Yonath',
       anonymousClientId: ANONYMOUS_CLIENT_ID,
       rejoinToken: undefined,
+      joinIdempotencyKey: expect.any(String),
       productFeedbackClaimToken: undefined,
+      teamId: undefined,
     });
     expect(consumeParticipantJoinArrival('ABC123')).toBe(true);
-    expect(navSpy).toHaveBeenCalledWith(['session', 'ABC123', 'vote']);
+    expect(navSpy).toHaveBeenCalledWith(['session', 'ABC123', 'vote'], {
+      queryParams: { tab: 'quiz' },
+    });
   });
 
   it('behaelt die Lobby bei Nickname-Konflikt und zeigt den Fehler inline', async () => {
@@ -444,9 +499,8 @@ describe('JoinComponent', () => {
       message: 'Dieser Nickname ist in dieser Session bereits vergeben.',
       data: { code: 'CONFLICT' },
     });
-    vi.mocked(trpc.session.getParticipantNicknames.query).mockResolvedValue({
-      nicknames: ['Ada Yonath'],
-      participantCount: 1,
+    vi.mocked(trpc.session.checkParticipantNickname.query).mockResolvedValue({
+      available: false,
     });
 
     const { fixture, comp } = createWithCode('ABC123');
@@ -466,6 +520,10 @@ describe('JoinComponent', () => {
     expect(comp.joinError()).toContain('bereits vergeben');
     expect(comp.isTaken('Ada Yonath')).toBe(true);
     expect(comp.selectedNickname()).toBe('');
+    expect(trpc.session.checkParticipantNickname.query).toHaveBeenCalledWith({
+      code: 'ABC123',
+      nickname: 'Ada Yonath',
+    });
   });
 
   it('laesst lange Pseudonyme aus der Liste beitreten und sendet den Backend-kompatiblen Namen', async () => {
@@ -493,13 +551,17 @@ describe('JoinComponent', () => {
       nickname: longNickname.slice(0, 30),
       anonymousClientId: ANONYMOUS_CLIENT_ID,
       rejoinToken: undefined,
+      joinIdempotencyKey: expect.any(String),
       productFeedbackClaimToken: undefined,
+      teamId: undefined,
     });
-    expect(navSpy).toHaveBeenCalledWith(['session', 'ABC123', 'vote']);
+    expect(navSpy).toHaveBeenCalledWith(['session', 'ABC123', 'vote'], {
+      queryParams: { tab: 'quiz' },
+    });
   });
 
   it('sendet vorhandenen Teilnehmer-Schlüssel als rejoinToken mit', async () => {
-    localStorage.setItem('arsnova-participant-ABC123', participantIds.existing);
+    storeParticipantCapability('ABC123', participantIds.existing);
 
     const { fixture, comp } = createWithCode('ABC123');
     fixture.detectChanges();
@@ -515,7 +577,9 @@ describe('JoinComponent', () => {
       nickname: 'Ada Yonath',
       anonymousClientId: ANONYMOUS_CLIENT_ID,
       rejoinToken: participantIds.existing,
+      joinIdempotencyKey: expect.any(String),
       productFeedbackClaimToken: undefined,
+      teamId: undefined,
     });
   });
 
@@ -574,9 +638,12 @@ describe('JoinComponent', () => {
       anonymousClientId: ANONYMOUS_CLIENT_ID,
       teamId: 'team-b',
       rejoinToken: undefined,
+      joinIdempotencyKey: expect.any(String),
       productFeedbackClaimToken: undefined,
     });
-    expect(navSpy).toHaveBeenCalledWith(['session', 'ABC123', 'vote']);
+    expect(navSpy).toHaveBeenCalledWith(['session', 'ABC123', 'vote'], {
+      queryParams: { tab: 'quiz' },
+    });
   });
 
   it('zeigt im manuellen Teammodus nach Pseudonymauswahl die fehlende Teamwahl im Submitbereich', async () => {

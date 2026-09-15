@@ -4,8 +4,13 @@
  * abgelaufene Bonus-Tokens (Story 4.6).
  */
 import { Prisma } from '@prisma/client';
+import { createHash } from 'node:crypto';
+import { SESSION_POST_PROCESSING_HOURS } from '@arsnova/shared-types';
 import { prisma } from '../db';
 import { logger } from './logger';
+import { invalidateHostSessionToken } from './hostAuth';
+import { invalidateHostPairingForSession } from './hostPairing';
+import { publishSessionPurgeInvalidation } from './sessionPurgeInvalidation';
 import { incrementCompletedSessionsTotal } from './platformStatistic';
 import {
   issueProductFeedbackInvitesAfterFinish,
@@ -22,12 +27,14 @@ import {
   ORPHAN_QUIZ_MAX_SESSIONLESS_PER_HISTORY_SCOPE,
   ORPHAN_QUIZ_UPLOAD_GRACE_HOURS,
 } from './publicCreateCapacity';
+import { cleanupExpiredHostCredentialMaterial } from './hostCredentialRecovery';
+import { expireParticipantJoinReplayEnvelopes } from './participantJoin';
 
-const STALE_SESSION_HOURS = 24;
-const FINISHED_SESSION_RETENTION_HOURS = 24;
 const BONUS_TOKEN_RETENTION_DAYS = 90;
 const SESSION_FEEDBACK_RETENTION_DAYS = 90;
-const CLEANUP_INTERVAL_MS = 60 * 60 * 1000; // 1h
+const ADMIN_AUDIT_RETENTION_DAYS = 365;
+const SESSION_PURGE_BATCH_SIZE = 100;
+const CLEANUP_INTERVAL_MS = 60 * 1000;
 
 export {
   ORPHAN_QUIZ_CLEANUP_BATCH_SIZE,
@@ -36,64 +43,53 @@ export {
   ORPHAN_QUIZ_UPLOAD_GRACE_HOURS,
 } from './publicCreateCapacity';
 
-const ACTIVE_SESSION_STATUSES = [
-  'LOBBY',
-  'QUESTION_OPEN',
-  'ACTIVE',
-  'PAUSED',
-  'RESULTS',
-  'DISCUSSION',
-] as const;
-
 let cleanupTimer: ReturnType<typeof setInterval> | null = null;
 
 export async function cleanupStaleSessions(): Promise<number> {
-  const cutoff = new Date(Date.now() - STALE_SESSION_HOURS * 60 * 60 * 1000);
-  const now = new Date();
-
-  const stale = await prisma.session.findMany({
-    where: {
-      status: { in: [...ACTIVE_SESSION_STATUSES] },
-      startedAt: { lt: cutoff },
-    },
-    select: { id: true },
-    take: 200,
-  });
-  if (stale.length === 0) return 0;
-
-  const ids = stale.map((s) => s.id);
   const result = await prisma.$transaction(async (tx) => {
-    const updated = await tx.session.updateMany({
-      where: {
-        id: { in: ids },
-        status: { in: [...ACTIVE_SESSION_STATUSES] },
-      },
-      data: {
-        status: 'FINISHED',
-        endedAt: now,
-        statusChangedAt: now,
-        currentQuestion: null,
-        currentRound: 1,
-      },
-    });
-    await tx.productFeedbackInviteJob.createMany({
-      data: ids.map((sessionId) => ({ sessionId })),
-      skipDuplicates: true,
-    });
+    const updated = await tx.$queryRaw<Array<{ id: string }>>(Prisma.sql`
+      WITH candidates AS (
+        SELECT candidate."id"
+        FROM "Session" AS candidate
+        WHERE candidate."endedAt" IS NULL
+          AND candidate."status" <> 'FINISHED'
+          AND candidate."expiresAt" <= timezone('UTC', clock_timestamp())
+        ORDER BY candidate."expiresAt" ASC, candidate."id" ASC
+        LIMIT 200
+        FOR UPDATE OF candidate SKIP LOCKED
+      )
+      UPDATE "Session" AS target
+      SET
+        "status" = 'FINISHED',
+        "endedAt" = target."expiresAt",
+        "statusChangedAt" = target."expiresAt",
+        "currentQuestion" = NULL,
+        "currentRound" = 1
+      FROM candidates
+      WHERE target."id" = candidates."id"
+        AND target."endedAt" IS NULL
+        AND target."status" <> 'FINISHED'
+        AND target."expiresAt" <= timezone('UTC', clock_timestamp())
+      RETURNING target."id"
+    `);
+    if (updated.length > 0) {
+      await tx.productFeedbackInviteJob.createMany({
+        data: updated.map(({ id: sessionId }) => ({ sessionId })),
+        skipDuplicates: true,
+      });
+    }
     return updated;
   });
 
-  if (result.count > 0) {
-    await incrementCompletedSessionsTotal(result.count);
-    logger.info(
-      `Session-Cleanup: ${result.count} verwaiste Session(s) nach ${STALE_SESSION_HOURS}h beendet.`,
-    );
-    for (const id of ids) {
+  if (result.length > 0) {
+    await incrementCompletedSessionsTotal(result.length);
+    logger.info(`Session-Cleanup: ${result.length} Session(s) an ihrer absoluten Frist beendet.`);
+    for (const { id } of result) {
       void issueProductFeedbackInvitesAfterFinish(id);
     }
   }
 
-  return result.count;
+  return result.length;
 }
 
 export async function cleanupExpiredBonusTokens(): Promise<number> {
@@ -116,10 +112,7 @@ export async function cleanupExpiredSessionFeedback(): Promise<number> {
   const cutoff = new Date(Date.now() - SESSION_FEEDBACK_RETENTION_DAYS * 24 * 60 * 60 * 1000);
 
   const result = await prisma.sessionFeedback.deleteMany({
-    where: {
-      createdAt: { lt: cutoff },
-      session: { status: 'FINISHED' },
-    },
+    where: { createdAt: { lt: cutoff } },
   });
 
   if (result.count > 0) {
@@ -129,6 +122,20 @@ export async function cleanupExpiredSessionFeedback(): Promise<number> {
     );
   }
 
+  return result.count;
+}
+
+export async function cleanupExpiredAdminAuditLogs(): Promise<number> {
+  const cutoff = new Date(Date.now() - ADMIN_AUDIT_RETENTION_DAYS * 24 * 60 * 60 * 1000);
+  const result = await prisma.adminAuditLog.deleteMany({
+    where: { createdAt: { lt: cutoff } },
+  });
+  if (result.count > 0) {
+    logger.info(
+      `AdminAudit-Cleanup: ${result.count} Nachweis(e) älter als ` +
+        `${ADMIN_AUDIT_RETENTION_DAYS} Tage gelöscht.`,
+    );
+  }
   return result.count;
 }
 
@@ -263,81 +270,165 @@ export async function cleanupOrphanQuizUploads(): Promise<number> {
 }
 
 export async function cleanupExpiredFinishedSessions(): Promise<number> {
-  const now = new Date();
-  const finishedCutoff = new Date(Date.now() - FINISHED_SESSION_RETENTION_HOURS * 60 * 60 * 1000);
-  const bonusRetentionCutoff = new Date(
-    Date.now() - BONUS_TOKEN_RETENTION_DAYS * 24 * 60 * 60 * 1000,
-  );
-  const feedbackRetentionCutoff = new Date(
-    Date.now() - SESSION_FEEDBACK_RETENTION_DAYS * 24 * 60 * 60 * 1000,
-  );
-
-  const sessionsToPurge = await prisma.session.findMany({
-    where: {
-      status: 'FINISHED',
-      endedAt: { not: null, lt: finishedCutoff },
-      OR: [{ legalHoldUntil: null }, { legalHoldUntil: { lte: now } }],
-      bonusTokens: {
-        none: {
-          generatedAt: { gte: bonusRetentionCutoff },
-        },
-      },
-      sessionFeedbacks: {
-        none: {
-          createdAt: { gte: feedbackRetentionCutoff },
-        },
-      },
-    },
-    select: {
-      id: true,
-      quizId: true,
-    },
-  });
-
+  const sessionsToPurge = await prisma.$queryRaw<
+    Array<{ id: string; code: string; quizId: string | null }>
+  >(Prisma.sql`
+    SELECT candidate."id", candidate."code", candidate."quizId"
+    FROM "Session" AS candidate
+    WHERE candidate."status" = 'FINISHED'
+      AND candidate."endedAt" IS NOT NULL
+      AND candidate."endedAt" + (${SESSION_POST_PROCESSING_HOURS} * INTERVAL '1 hour')
+        <= timezone('UTC', clock_timestamp())
+      AND (
+        candidate."legalHoldUntil" IS NULL
+        OR candidate."legalHoldUntil" <= timezone('UTC', clock_timestamp())
+      )
+    ORDER BY candidate."endedAt" ASC, candidate."id" ASC
+    LIMIT ${SESSION_PURGE_BATCH_SIZE}
+  `);
   if (sessionsToPurge.length === 0) {
     return 0;
   }
 
-  const sessionIds = sessionsToPurge.map((entry) => entry.id);
-  const quizIds = [
-    ...new Set(
-      sessionsToPurge
-        .map((entry) => entry.quizId)
-        .filter((id): id is string => typeof id === 'string'),
-    ),
-  ];
-
-  const deletedSessions = await prisma.session.deleteMany({
-    where: { id: { in: sessionIds } },
-  });
-
-  if (quizIds.length > 0) {
-    const orphanQuizIds = await prisma.quiz.findMany({
-      where: {
-        id: { in: quizIds },
-        sessions: { none: {} },
-      },
-      select: { id: true },
-    });
-
-    if (orphanQuizIds.length > 0) {
-      await prisma.quiz.deleteMany({
-        where: { id: { in: orphanQuizIds.map((entry) => entry.id) } },
-      });
-    }
+  // Ab postProcessingEndsAt gewähren weder Legal Hold noch getrennte
+  // Bonus-/Feedback-Retention regulären Hostzugriff. Redis-Credentials werden
+  // deshalb vor dem Core-Purge entwertet; ein Fehler lässt die Session für
+  // einen späteren, sichtbaren Retry bestehen.
+  const invalidated = await Promise.all(
+    sessionsToPurge.map(async (session) => {
+      try {
+        await invalidateHostSessionToken(session.code);
+        await invalidateHostPairingForSession(session.code);
+        await publishSessionPurgeInvalidation({
+          sessionId: session.id,
+          sessionCode: session.code,
+        });
+        return session;
+      } catch (error) {
+        logger.warn(
+          `Session-Purge für ${session.id} verzögert: Credential-/Runtime-Cleanup fehlgeschlagen:`,
+          (error as Error).message,
+        );
+        return null;
+      }
+    }),
+  );
+  const ready = invalidated.filter(
+    (session): session is (typeof sessionsToPurge)[number] => session !== null,
+  );
+  if (ready.length === 0) {
+    return 0;
   }
 
-  if (deletedSessions.count > 0) {
+  const deletedSessions = await prisma.$transaction(
+    async (tx) => {
+      const readyIds = ready.map((session) => session.id);
+      const locked = await tx.$queryRaw<
+        Array<{ id: string; code: string; quizId: string | null }>
+      >(Prisma.sql`
+        SELECT candidate."id", candidate."code", candidate."quizId"
+        FROM "Session" AS candidate
+        WHERE candidate."id" IN (${Prisma.join(readyIds)})
+          AND candidate."status" = 'FINISHED'
+          AND candidate."endedAt" IS NOT NULL
+          AND candidate."endedAt" + (${SESSION_POST_PROCESSING_HOURS} * INTERVAL '1 hour')
+            <= timezone('UTC', clock_timestamp())
+          AND (
+            candidate."legalHoldUntil" IS NULL
+            OR candidate."legalHoldUntil" <= timezone('UTC', clock_timestamp())
+          )
+        ORDER BY candidate."endedAt" ASC, candidate."id" ASC
+        FOR UPDATE OF candidate SKIP LOCKED
+      `);
+      if (locked.length === 0) {
+        return [];
+      }
+
+      for (const session of locked) {
+        await tx.adminAuditLog.updateMany({
+          where: {
+            OR: [{ sessionId: session.id }, { sessionCode: session.code }],
+          },
+          data: {
+            sessionId: null,
+            sessionCode: null,
+            sessionReferenceHash: createHash('sha256')
+              .update(`arsnova-session-audit:${session.id}`)
+              .digest('hex'),
+          },
+        });
+      }
+      await tx.productFeedbackInviteJob.deleteMany({
+        where: { sessionId: { in: locked.map((session) => session.id) } },
+      });
+
+      const deleted = await tx.$queryRaw<
+        Array<{ id: string; code: string; quizId: string | null }>
+      >(Prisma.sql`
+        DELETE FROM "Session" AS target
+        WHERE target."id" IN (${Prisma.join(locked.map((session) => session.id))})
+          AND target."status" = 'FINISHED'
+          AND target."endedAt" IS NOT NULL
+          AND target."endedAt" + (${SESSION_POST_PROCESSING_HOURS} * INTERVAL '1 hour')
+            <= timezone('UTC', clock_timestamp())
+          AND (
+            target."legalHoldUntil" IS NULL
+            OR target."legalHoldUntil" <= timezone('UTC', clock_timestamp())
+          )
+        RETURNING target."id", target."code", target."quizId"
+      `);
+
+      const quizIds = [
+        ...new Set(
+          deleted
+            .map((session) => session.quizId)
+            .filter((quizId): quizId is string => quizId !== null),
+        ),
+      ];
+      if (quizIds.length > 0) {
+        await tx.quiz.deleteMany({
+          where: {
+            id: { in: quizIds },
+            sessions: { none: {} },
+          },
+        });
+      }
+      return deleted;
+    },
+    { isolationLevel: 'Serializable' },
+  );
+
+  if (deletedSessions.length > 0) {
+    await Promise.all(
+      deletedSessions.map((session) =>
+        publishSessionPurgeInvalidation({
+          sessionId: session.id,
+          sessionCode: session.code,
+        }).catch((error: unknown) => {
+          logger.warn(
+            `Session-Purge-Nachinvalidierung für ${session.id} fehlgeschlagen:`,
+            (error as Error).message,
+          );
+        }),
+      ),
+    );
     logger.info(
-      `Session-Purge: ${deletedSessions.count} beendete Session(s) älter als ` +
-        `${FINISHED_SESSION_RETENTION_HOURS}h gelöscht (ohne aktiven Legal Hold).`,
+      `Session-Purge: ${deletedSessions.length} beendete Session(s) nach ` +
+        `${SESSION_POST_PROCESSING_HOURS}h Nachbereitung gelöscht (ohne aktiven Legal Hold).`,
     );
   }
-
-  return deletedSessions.count;
+  return deletedSessions.length;
 }
 
-async function runAllCleanups(): Promise<void> {
+export async function runAllCleanups(): Promise<void> {
+  await cleanupExpiredHostCredentialMaterial().catch((err) => {
+    logger.warn('Host-Credential-Cleanup fehlgeschlagen:', (err as Error).message);
+  });
+  await prisma
+    .$transaction((tx) => expireParticipantJoinReplayEnvelopes(tx))
+    .catch((err) => {
+      logger.warn('Participant-Join-Replay-Cleanup fehlgeschlagen:', (err as Error).message);
+    });
   await cleanupStaleSessions().catch((err) => {
     logger.warn('Session-Cleanup fehlgeschlagen:', (err as Error).message);
   });
@@ -346,6 +437,9 @@ async function runAllCleanups(): Promise<void> {
   });
   await cleanupExpiredSessionFeedback().catch((err) => {
     logger.warn('SessionFeedback-Cleanup fehlgeschlagen:', (err as Error).message);
+  });
+  await cleanupExpiredAdminAuditLogs().catch((err) => {
+    logger.warn('AdminAudit-Cleanup fehlgeschlagen:', (err as Error).message);
   });
   await retryPendingProductFeedbackInviteJobs().catch((err) => {
     logger.warn('ProductFeedback-Invite-Job-Retry fehlgeschlagen:', (err as Error).message);

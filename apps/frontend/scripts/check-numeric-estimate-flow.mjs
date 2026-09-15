@@ -49,12 +49,16 @@ const participants = Array.from({ length: 20 }, (_, index) => {
 
 const clientSampleIndexes = participants.map((_, index) => index);
 
-function createTrpcClient(hostToken) {
+function createTrpcClient(hostToken, participantCapability) {
+  const headers = {
+    ...(hostToken ? { 'x-host-token': hostToken } : {}),
+    ...(participantCapability ? { 'x-participant-capability': participantCapability } : {}),
+  };
   return createTRPCProxyClient({
     links: [
       httpBatchLink({
         url: TRPC_URL,
-        headers: hostToken ? () => ({ 'x-host-token': hostToken }) : undefined,
+        headers: Object.keys(headers).length > 0 ? () => headers : undefined,
       }),
     ],
   });
@@ -203,11 +207,13 @@ async function joinAndVote(publicTrpc, code, questionId, round) {
             code,
             nickname: participant.nickname,
             anonymousClientId: globalThis.crypto.randomUUID(),
+            joinIdempotencyKey: globalThis.crypto.randomUUID(),
           })
         : participant.joined;
     participant.joined = sessionParticipant;
     joined.push(sessionParticipant);
-    await publicTrpc.vote.submit.mutate({
+    const voter = createTrpcClient(undefined, sessionParticipant.rejoinToken);
+    await voter.vote.submit.mutate({
       sessionId: sessionParticipant.id,
       participantId: sessionParticipant.participantId,
       questionId,
@@ -293,8 +299,20 @@ async function openClientResult(browser, code, questionId, participant, index) {
     updatedAt: new Date().toISOString(),
   });
   await context.addInitScript(
-    ({ code, nickname, participantId, questionId, round1Payload, round2Payload }) => {
+    ({
+      code,
+      nickname,
+      participantId,
+      participantCapability,
+      questionId,
+      round1Payload,
+      round2Payload,
+    }) => {
       globalThis.localStorage.setItem(`arsnova-participant-${code}`, participantId);
+      globalThis.localStorage.setItem(
+        `arsnova-participant-capability-${code}`,
+        participantCapability,
+      );
       globalThis.localStorage.setItem(`arsnova-nickname-${code}`, nickname);
       globalThis.localStorage.setItem(
         `arsnova-vote-response-${code}-${participantId}-${questionId}-1`,
@@ -309,6 +327,7 @@ async function openClientResult(browser, code, questionId, participant, index) {
       code,
       nickname: participant.nickname,
       participantId,
+      participantCapability: participant.joined.rejoinToken,
       questionId,
       round1Payload,
       round2Payload,

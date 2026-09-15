@@ -176,6 +176,7 @@ export async function joinSession(userContext, events) {
       code: ctx.code,
       nickname,
       anonymousClientId: globalThis.crypto.randomUUID(),
+      joinIdempotencyKey: globalThis.crypto.randomUUID(),
     });
     userContext.vars.sessionId = joined.id;
     userContext.vars.participantId = joined.participantId;

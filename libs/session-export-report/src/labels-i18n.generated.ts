@@ -285,6 +285,8 @@ export const FR_LABEL_OVERRIDES: Partial<SessionResultsReportLabels> = {
   privacyNotice:
     'Confidentialité : ce rapport contient uniquement des résultats agrégés. Les noms réels, adresses IP et votes individuels ne sont pas exportés. Les pseudonymes apparaissent uniquement avec les codes bonus.',
   qaControversial: 'Controversé',
+  qaCoverageTemplate:
+    'Les {0} questions les mieux classées sur {1} questions exportables sont affichées.',
   qaFollowUpControversial: 'Discuté de manière controversée',
   qaFollowUpCountsTemplate:
     '{0} questions soumises · {1} répondues ou archivées · {2} toujours ouvertes',
@@ -665,6 +667,8 @@ export const ES_LABEL_OVERRIDES: Partial<SessionResultsReportLabels> = {
   privacyNotice:
     'Privacidad: este informe contiene únicamente resultados agregados. No se exportan nombres reales, direcciones IP ni votos individuales. Los apodos seudónimos solo aparecen con códigos bonus.',
   qaControversial: 'Controvertida',
+  qaCoverageTemplate:
+    'Se muestran las {0} preguntas mejor clasificadas de {1} preguntas exportables.',
   qaFollowUpControversial: 'Discutido polémicamente',
   qaFollowUpCountsTemplate:
     '{0} preguntas enviadas · {1} respondidas o archivadas · {2} aún abiertas',
@@ -1046,6 +1050,8 @@ export const IT_LABEL_OVERRIDES: Partial<SessionResultsReportLabels> = {
   privacyNotice:
     'Privacy: questo rapporto contiene esclusivamente risultati aggregati. Nomi reali, indirizzi IP e voti individuali non vengono esportati. I nickname pseudonimi compaiono solo con i codici bonus.',
   qaControversial: 'Controversa',
+  qaCoverageTemplate:
+    'Vengono mostrate le {0} domande con il punteggio più alto su {1} domande esportabili.',
   qaFollowUpControversial: 'Discusso in modo controverso',
   qaFollowUpCountsTemplate: '{0} domande inviate · {1} risposte o archiviate · {2} ancora aperte',
   qaFollowUpTitle: 'Seguito di domande e risposte',

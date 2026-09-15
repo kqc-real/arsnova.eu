@@ -198,6 +198,11 @@ Stand 2026-05-31:
 - Rejoins mit gueltigem Rejoin-Token bleiben ausgenommen, damit Recovery nicht kuenstlich gebremst wird.
 - Der Join-Pfad aktualisiert Plattform- und Tagesrekorde weiterhin fire-and-forget, ohne die eigentliche Aufnahme zu blockieren.
 
+Stand 2026-09-15:
+
+- Das harte gleitende Ein-Sekunden-Fenster wurde durch einen kontinuierlich nachfuellenden Token-Bucket ersetzt. Nach Entlastung des Join-Schreibpfads begrenzt er neue Joins pro Session auf 125 pro Sekunde.
+- Damit werden zulaessige Join-Wellen gleichmaessig aufgenommen, statt nach einem Burst an einer Ein-Sekunden-Kante gemeinsam erneut anzulaufen.
+
 ---
 
 **Referenzen:** [ADR-0013: k6 und Artillery fuer Last- und Performance-Tests](./0013-use-k6-and-artillery-for-load-and-performance-testing.md), [ADR-0025: Zukuenftige Erweiterungen standardmaessig als performance-kritisch behandeln](./0025-treat-future-extensions-as-performance-critical-until-proven-otherwise.md), [ADR-0026: Performance-Hotpaths priorisieren und Telemetrie-Nebenlast konsequent entkoppeln](./0026-prioritize-performance-hotpaths-and-de-escalate-telemetry-side-load.md), [session.ts](../../../apps/backend/src/routers/session.ts), [join.component.ts](../../../apps/frontend/src/app/features/join/join.component.ts).

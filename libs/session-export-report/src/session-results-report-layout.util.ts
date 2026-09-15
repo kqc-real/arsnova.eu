@@ -100,7 +100,9 @@ export function renderCoverNavigationHtml(
     items.push(navItem('#report-feedback', labels.tocFeedback));
   }
   if (data.qaQuestions?.length) {
-    items.push(navItem('#report-qa', labels.tocQa, data.qaQuestions.length));
+    items.push(
+      navItem('#report-qa', labels.tocQa, data.qaQuestionTotalCount ?? data.qaQuestions.length),
+    );
   }
   if (data.teamMode && data.teamLeaderboard?.length) {
     items.push(navItem('#report-teams', labels.tocTeams));
@@ -128,8 +130,17 @@ export function renderQaSectionHtml(
   questions: QaExportEntry[],
   labels: SessionResultsReportLabels,
   localeId: string,
+  totalCount = questions.length,
 ): string {
   if (!questions.length) return '';
+  const truncated = totalCount > questions.length;
+  const coverageHtml = truncated
+    ? `<p class="report-note">${escapeHtml(
+        labels.qaCoverageTemplate
+          .replace('{0}', formatLocaleCountSafe(questions.length, localeId))
+          .replace('{1}', formatLocaleCountSafe(totalCount, localeId)),
+      )}</p>`
+    : '';
   const rows = questions
     .map(
       (question, index) => `<tr>
@@ -143,7 +154,8 @@ export function renderQaSectionHtml(
     .join('');
   return `<section class="report-section" id="report-qa">
     <h2>${escapeHtml(labels.qaTitle)}</h2>
-    ${renderQaFollowUpHtml(questions, labels, localeId)}
+    ${coverageHtml}
+    ${truncated ? '' : renderQaFollowUpHtml(questions, labels, localeId)}
     <table class="report-table">
       <thead><tr>
         <th scope="col">#</th>
