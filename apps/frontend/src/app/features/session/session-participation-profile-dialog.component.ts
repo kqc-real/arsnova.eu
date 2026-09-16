@@ -17,6 +17,8 @@ import type { NicknameTheme, SessionParticipantIdentityMode } from '@arsnova/sha
 export interface SessionParticipationProfileDialogData {
   identityMode: SessionParticipantIdentityMode;
   nicknameTheme: NicknameTheme;
+  setupStep?: number;
+  setupStepCount?: number;
 }
 
 export interface SessionParticipationProfileDialogResult {
@@ -48,6 +50,11 @@ export interface SessionParticipationProfileDialogResult {
         <mat-icon>badge</mat-icon>
       </span>
       <span class="dialog-title-header__copy">
+        @if (data.setupStep && data.setupStepCount) {
+          <span class="dialog-title-header__step" i18n="@@sessionQaSetup.step">
+            Schritt {{ data.setupStep }} von {{ data.setupStepCount }}
+          </span>
+        }
         <span class="dialog-title-header__heading" i18n="@@sessionParticipation.title">
           Teilnahme für Q&A
         </span>
@@ -154,7 +161,7 @@ export interface SessionParticipationProfileDialogResult {
   ],
 })
 export class SessionParticipationProfileDialogComponent {
-  private readonly data = inject<SessionParticipationProfileDialogData>(MAT_DIALOG_DATA);
+  readonly data = inject<SessionParticipationProfileDialogData>(MAT_DIALOG_DATA);
 
   readonly identityMode = signal<SessionParticipantIdentityMode>(this.data.identityMode);
   readonly nicknameTheme = signal<NicknameTheme>(this.data.nicknameTheme);

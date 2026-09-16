@@ -69,6 +69,7 @@ import {
 } from '../../../core/locale-from-path';
 import { refreshTrpcWsBinding, trpc } from '../../../core/trpc.client';
 import {
+  clearHostBrowserCapability,
   clearStagedHostRecoveryCard,
   getHostBrowserCapability,
   getStagedHostRecoveryCard,
@@ -804,6 +805,9 @@ export class SessionHostComponent implements OnInit, OnDestroy {
   private clockPollTimer: ReturnType<typeof setInterval> | null = null;
   readonly code = this.route.parent?.snapshot.paramMap.get('code') ?? '';
   private readonly requestedInitialTab = this.route.snapshot?.queryParamMap?.get('tab') ?? null;
+  private readonly requestedQaCreateSetup =
+    this.route.snapshot?.queryParamMap?.get('qaSetup') === '1';
+  private qaCreateAbortInFlight = false;
   /** Nach einmaligem Anwenden von `?tab=` nicht erneut erzwingen (sonst kein Kanalwechsel möglich). */
   private initialUrlTabApplied = false;
   /** Serverautoritativen Einstiegskanal nur beim ersten Session-Snapshot wiederherstellen. */
@@ -4116,14 +4120,15 @@ export class SessionHostComponent implements OnInit, OnDestroy {
     );
   }
 
-  private showStagedRecoveryCard(): void {
+  private showStagedRecoveryCard(setup?: { setupStep: number; setupStepCount: number }): void {
     if (this.recoveryCardDialogOpened || !this.channels().qa) return;
+    if (this.qaChannelNeedsConfiguration()) return;
     const recoveryCard = getStagedHostRecoveryCard(this.code);
     if (!recoveryCard) return;
     this.recoveryCardDialogOpened = true;
     this.dialog
       .open(HostRecoveryCardDialogComponent, {
-        data: recoveryCard,
+        data: setup ? { ...recoveryCard, ...setup } : recoveryCard,
         disableClose: true,
         autoFocus: 'dialog',
         restoreFocus: true,
@@ -4160,7 +4165,14 @@ export class SessionHostComponent implements OnInit, OnDestroy {
       return;
     }
     await this.refreshSessionLifecycle();
-    this.showStagedRecoveryCard();
+    if (this.requestedQaCreateSetup && this.qaChannelNeedsConfiguration()) {
+      await this.openQaConfigurationDialog({
+        numberSetupSequence: true,
+        abortUnconfiguredSessionOnCancel: true,
+      });
+    } else {
+      this.showStagedRecoveryCard();
+    }
     void this.refreshPairedHostStatus();
     try {
       await this.refreshParticipantsPayload();
@@ -4569,7 +4581,7 @@ export class SessionHostComponent implements OnInit, OnDestroy {
         message:
           preview.purpose === 'GLOBAL_EXTENSION'
             ? $localize`:@@sessionLifecycle.previewExtensionMessage:Nur das globale Sessionende wird verlängert.`
-            : $localize`:@@sessionLifecycle.previewInitialMessage:Die Anfangsfrist und der anfängliche Q&A-Schluss werden gemeinsam gespeichert.`,
+            : $localize`:@@sessionLifecycle.previewInitialMessage:Das maximale Q&A-Ende und der anfängliche Teilnahmeschluss werden gemeinsam gespeichert.`,
         consequences,
         confirmLabel: $localize`:@@sessionLifecycle.previewConfirm:Frist verbindlich speichern`,
         cancelLabel: $localize`:@@sessionLifecycle.previewCancel:Abbrechen`,
@@ -5623,7 +5635,7 @@ export class SessionHostComponent implements OnInit, OnDestroy {
   }
 
   async canDeactivate(): Promise<boolean> {
-    if (this.hostAccessRevoked()) {
+    if (this.qaCreateAbortInFlight || this.hostAccessRevoked()) {
       return true;
     }
     if (!this.isSessionActive()) {
@@ -5738,6 +5750,25 @@ export class SessionHostComponent implements OnInit, OnDestroy {
 
   private hasPotentialBonusRecipients(entries: Array<{ totalScore: number }>): boolean {
     return entries.some((entry) => entry.totalScore > 0);
+  }
+
+  private async abortUnconfiguredQaCreateAndReturnHome(): Promise<void> {
+    if (!this.code) {
+      return;
+    }
+    this.qaCreateAbortInFlight = true;
+    this.dialog.closeAll();
+    clearStagedHostRecoveryCard(this.code);
+    clearHostBrowserCapability(this.code);
+    this.markSessionUnavailable();
+    const ended = trpc.session.end.mutate({ code: this.code.toUpperCase() }).catch(() => {
+      // Session trotzdem lokal verwerfen, damit »Q&A erstellen« sie nicht wieder öffnet.
+    });
+    await this.exitFullscreenBeforeHomeNavigation();
+    await this.ngZone.run(async () => {
+      await this.router.navigateByUrl(this.localizedPath('/'), { replaceUrl: true });
+    });
+    await ended;
   }
 
   private async endSessionAndNavigateHome(): Promise<void> {
@@ -8306,7 +8337,7 @@ export class SessionHostComponent implements OnInit, OnDestroy {
     }).format(new Date(deadline));
     const remainingMs = deadline - this.qaDeadlineNow();
     if (remainingMs <= 0) {
-      return $localize`:@@sessionQa.deadlineExpired:Q&A-Frist abgelaufen · ${formatted}:deadline:`;
+      return $localize`:@@sessionQa.deadlineExpired:Teilnahmefrist abgelaufen · ${formatted}:deadline:`;
     }
     const relativeFormatter = new Intl.RelativeTimeFormat(this.localeId, { numeric: 'always' });
     const relative =
@@ -9032,7 +9063,7 @@ export class SessionHostComponent implements OnInit, OnDestroy {
     if (channel === 'qa' && this.qaChannelNeedsConfiguration()) {
       this.channelActivationPending.set('qa');
       try {
-        await this.openQaConfigurationDialog();
+        await this.openQaConfigurationDialog({ numberSetupSequence: true });
       } catch {
         this.openHostSteeringCalloutForSteeringFailure(() => void this.enableChannel(channel));
       } finally {
@@ -9067,15 +9098,28 @@ export class SessionHostComponent implements OnInit, OnDestroy {
     }
   }
 
-  async openQaConfigurationDialog(): Promise<void> {
+  async openQaConfigurationDialog(options?: {
+    numberSetupSequence?: boolean;
+    abortUnconfiguredSessionOnCancel?: boolean;
+  }): Promise<void> {
     const session = this.session();
     if (!session || !this.code || this.effectiveStatus() === 'FINISHED') {
+      return;
+    }
+    if (getStagedHostRecoveryCard(this.code) && !this.qaChannelNeedsConfiguration()) {
+      this.showStagedRecoveryCard(
+        this.requestedQaCreateSetup ? { setupStep: 3, setupStepCount: 3 } : undefined,
+      );
       return;
     }
     const lifecycle = await trpc.session.getLifecycleForHost.query({
       code: this.code.toUpperCase(),
     });
     this.sessionLifecycle.set(lifecycle);
+    const numberSetupSequence =
+      options?.numberSetupSequence === true && Boolean(getStagedHostRecoveryCard(this.code));
+    const setupStepCount = this.requestedQaCreateSetup ? 3 : 2;
+    const setupStep = this.requestedQaCreateSetup ? 2 : 1;
     const result = await firstValueFrom(
       this.dialog
         .open<
@@ -9087,6 +9131,7 @@ export class SessionHostComponent implements OnInit, OnDestroy {
             code: this.code.toUpperCase(),
             session,
             profileLocked: Boolean(lifecycle.firstParticipantJoinedAt),
+            ...(numberSetupSequence ? { setupStep, setupStepCount } : {}),
           },
           width: 'min(42rem, calc(100vw - 2rem))',
           maxWidth: '100vw',
@@ -9097,6 +9142,9 @@ export class SessionHostComponent implements OnInit, OnDestroy {
         .afterClosed(),
     );
     if (!result) {
+      if (options?.abortUnconfiguredSessionOnCancel && this.qaChannelNeedsConfiguration()) {
+        await this.abortUnconfiguredQaCreateAndReturnHome();
+      }
       return;
     }
     this.session.update((current) =>
@@ -9117,7 +9165,11 @@ export class SessionHostComponent implements OnInit, OnDestroy {
     this.ensureActiveChannel();
     this.scheduleQaDeadlineCheck();
     await this.refreshQaQuestions();
-    this.showStagedRecoveryCard();
+    this.showStagedRecoveryCard(
+      numberSetupSequence
+        ? { setupStep: this.requestedQaCreateSetup ? 3 : 2, setupStepCount }
+        : undefined,
+    );
   }
 
   private syncPreferredLiveChannel(channel: SessionChannelTab): Promise<void> {

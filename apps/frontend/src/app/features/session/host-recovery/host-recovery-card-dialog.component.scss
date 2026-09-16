@@ -18,6 +18,19 @@
   line-height: 1.5;
 }
 
+.recovery-card__recovery-url {
+  display: grid;
+  gap: 0.2rem;
+  margin: 0;
+}
+
+.recovery-card__recovery-url a {
+  overflow-wrap: anywhere;
+  color: var(--mat-sys-primary);
+  font: var(--mat-sys-body-medium);
+  line-height: 1.4;
+}
+
 .recovery-card__secrets {
   display: grid;
   gap: 0.65rem;
@@ -32,6 +45,12 @@
   padding: 0.85rem 0.75rem 0.85rem 0.95rem;
 }
 
+.recovery-card__secret--secret {
+  border-color: var(--mat-sys-error);
+  background: var(--mat-sys-error-container);
+  color: var(--mat-sys-on-error-container);
+}
+
 .recovery-card__secret-text {
   display: grid;
   gap: 0.25rem;
@@ -41,6 +60,19 @@
 .recovery-card__secret dt {
   color: var(--mat-sys-on-surface-variant);
   font: var(--mat-sys-label-large);
+}
+
+.recovery-card__secret--secret dt,
+.recovery-card__secret--secret .recovery-card__hint,
+.recovery-card__secret--secret button {
+  color: var(--mat-sys-on-error-container);
+}
+
+.recovery-card__hint {
+  margin: 0.15rem 0 0;
+  color: var(--mat-sys-on-surface-variant);
+  font: var(--mat-sys-body-medium);
+  line-height: 1.4;
 }
 
 .recovery-card__secret dd {

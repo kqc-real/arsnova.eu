@@ -5901,7 +5901,7 @@
         </context-group>
       </trans-unit>
       <trans-unit id="hostRecovery.supportIdLabel" datatype="html">
-        <source>Support-ID</source>
+        <source>Session-Kennung</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/admin/admin.component.html</context>
           <context context-type="linenumber">415</context>
@@ -8126,7 +8126,7 @@
         </context-group>
       </trans-unit>
       <trans-unit id="home.heroChip.openQa" datatype="html">
-        <source> Q&amp;A öffnen </source>
+        <source> Q&amp;A erstellen </source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/home/home.component.html</context>
           <context context-type="linenumber">104,106</context>
@@ -15311,10 +15311,25 @@
         </context-group>
       </trans-unit>
       <trans-unit id="hostRecovery.cardSubtitle" datatype="html">
-        <source> Bewahre Support-ID und Recovery-Code getrennt vom Browser auf. Du kannst das auch später nachholen. </source>
+        <source> Lade die Karte herunter oder kopiere die Werte. Bewahre sie getrennt vom Browser auf. </source>
+      </trans-unit>
+      <trans-unit id="hostRecovery.sessionCodeLabel" datatype="html">
+        <source>Sessioncode</source>
+      </trans-unit>
+      <trans-unit id="hostRecovery.sessionCodeHint" datatype="html">
+        <source>Öffentlicher Code der Sitzung. Reicht allein nicht für Hostrechte.</source>
+      </trans-unit>
+      <trans-unit id="hostRecovery.copySessionCodeAria" datatype="html">
+        <source>Sessioncode kopieren</source>
+      </trans-unit>
+      <trans-unit id="hostRecovery.supportIdHint" datatype="html">
+        <source>Kein Helpdesk-Kontakt. Das ist die Kennung genau dieser Session — damit findest du sie bei der Wiederherstellung wieder.</source>
+      </trans-unit>
+      <trans-unit id="hostRecovery.recoveryCodeHint" datatype="html">
+        <source>Geheim. Nur dieser Code stellt den Host-Zugang wieder her.</source>
       </trans-unit>
       <trans-unit id="hostRecovery.copySupportIdAria" datatype="html">
-        <source>Support-ID kopieren</source>
+        <source>Session-Kennung kopieren</source>
       </trans-unit>
       <trans-unit id="hostRecovery.copyRecoveryCodeAria" datatype="html">
         <source>Recovery-Code kopieren</source>
@@ -15322,14 +15337,20 @@
       <trans-unit id="hostRecovery.copyFailed" datatype="html">
         <source> Kopieren hat nicht geklappt. Markiere den Wert und kopiere ihn selbst. </source>
       </trans-unit>
+      <trans-unit id="hostRecovery.sessionCodeCopied" datatype="html">
+        <source>Sessioncode wurde kopiert.</source>
+      </trans-unit>
       <trans-unit id="hostRecovery.supportIdCopied" datatype="html">
-        <source>Support-ID wurde kopiert.</source>
+        <source>Session-Kennung wurde kopiert.</source>
       </trans-unit>
       <trans-unit id="hostRecovery.recoveryCodeCopied" datatype="html">
         <source>Recovery-Code wurde kopiert.</source>
       </trans-unit>
+      <trans-unit id="hostRecovery.cardWhy" datatype="html">
+        <source>Es gibt kein Konto. Deine Session als Host hängt deshalb an genau diesem Browser auf diesem Gerät. Teilnehmende können von jedem beliebigen Browser mitmachen. Du als Host bleibst an diesen Browser gebunden.</source>
+      </trans-unit>
       <trans-unit id="hostRecovery.cardIntro" datatype="html">
-        <source> Diese Karte stellt den Host-Zugang wieder her, wenn die Browserdaten verloren gehen. Bewahre sie getrennt und sicher auf. </source>
+        <source>Wenn du später nicht mehr auf diesen Browser zugreifen kannst (anderes Gerät, Browserdaten wurden gelöscht), stellst du den Host-Zugang nur mit dieser Karte wieder her. Öffne später die Wiederherstellungsseite und gib Session-Kennung plus Recovery-Code ein.</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/host-recovery/host-recovery-card-dialog.component.ts</context>
           <context context-type="linenumber">16,19</context>
@@ -15347,7 +15368,7 @@
         </context-group>
       </trans-unit>
       <trans-unit id="hostRecovery.cardWarning" datatype="html">
-        <source> Der Sessioncode und die Support-ID allein verleihen keine Hostrechte. Wenn sowohl diese Karte als auch die Browserdaten fehlen, ist nur ein verifizierter Supportprozess möglich. </source>
+        <source>Wenn die Notfallkarte verloren geht, kann nur noch der Support helfen. Den Kontakt findest du im »Impressum«.</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/host-recovery/host-recovery-card-dialog.component.ts</context>
           <context context-type="linenumber">30,33</context>
@@ -15375,11 +15396,20 @@
         </context-group>
       </trans-unit>
       <trans-unit id="hostRecovery.downloadHeading" datatype="html">
-        <source>arsnova.eu Host-Notfallkarte</source>
+        <source>Host-Notfallkarte</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/host-recovery/host-recovery-card-dialog.component.ts</context>
           <context context-type="linenumber">108</context>
         </context-group>
+      </trans-unit>
+      <trans-unit id="hostRecovery.recoveryPageLabel" datatype="html">
+        <source>Wiederherstellungsseite</source>
+      </trans-unit>
+      <trans-unit id="hostRecovery.downloadHowTo" datatype="html">
+        <source>So stellst du den Host-Zugang wieder her</source>
+      </trans-unit>
+      <trans-unit id="hostRecovery.downloadUsage" datatype="html">
+        <source>Öffne <x id="recoveryUrl" equiv-text="recoveryUrl"/> und gib Session-Kennung plus Recovery-Code ein.</source>
       </trans-unit>
       <trans-unit id="hostRecovery.downloadWarning" datatype="html">
         <source>Geheim halten. Sessioncode oder Support-ID allein verleihen keine Hostrechte.</source>
@@ -15396,7 +15426,7 @@
         </context-group>
       </trans-unit>
       <trans-unit id="hostRecovery.intro" datatype="html">
-        <source> Verwende die Support-ID und den geheimen Code deiner Host-Notfallkarte. Sessioncode oder Support-ID allein reichen nicht aus. </source>
+        <source>Gib die Session-Kennung und den Recovery-Code deiner Notfallkarte ein.</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/host-recovery/host-recovery.component.ts</context>
           <context context-type="linenumber">46,49</context>
@@ -15431,7 +15461,7 @@
         </context-group>
       </trans-unit>
       <trans-unit id="hostRecovery.secretHint" datatype="html">
-        <source> Der Code wird nur im Request übertragen, nie in der URL. </source>
+        <source>Wird nur an den Server gesendet, nie in der Adresszeile.</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/host-recovery/host-recovery.component.ts</context>
           <context context-type="linenumber">88,90</context>
@@ -15456,11 +15486,20 @@
         </context-group>
       </trans-unit>
       <trans-unit id="hostRecovery.boundary" datatype="html">
-        <source> Die Wiederherstellung verlängert weder die Session noch die Nachbereitungsfrist. Wenn Browserdaten und Notfallkarte verloren sind, kann der Support nur nach unabhängiger Prüfung des konkreten Sessionbezugs helfen. </source>
+        <source>Damit verlängerst du die Session nicht. Fehlt die Notfallkarte, kann nur noch der Support helfen. Den Kontakt findest du im »Impressum«.</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/host-recovery/host-recovery.component.ts</context>
           <context context-type="linenumber">110,114</context>
         </context-group>
+      </trans-unit>
+      <trans-unit id="hostRecovery.handoffCodeLabel" datatype="html">
+        <source>Übergabecode vom Support</source>
+      </trans-unit>
+      <trans-unit id="hostRecovery.useHandoff" datatype="html">
+        <source>Ich habe einen Code vom Support</source>
+      </trans-unit>
+      <trans-unit id="hostRecovery.useRecoveryCard" datatype="html">
+        <source>Ich habe eine Notfallkarte</source>
       </trans-unit>
       <trans-unit id="hostRecovery.genericError" datatype="html">
         <source>Wiederherstellung nicht möglich oder abgelaufen.</source>
@@ -15794,6 +15833,9 @@
           <context context-type="linenumber">312</context>
         </context-group>
       </trans-unit>
+      <trans-unit id="sessionQaSetup.step" datatype="html">
+        <source>Schritt <x id="INTERPOLATION" equiv-text="{{ data.setupStep }}"/> von <x id="INTERPOLATION_1" equiv-text="{{ data.setupStepCount }}"/></source>
+      </trans-unit>
       <trans-unit id="qaConfig.title" datatype="html">
         <source>Q&amp;A-Kanal einrichten</source>
         <context-group purpose="location">
@@ -15802,7 +15844,7 @@
         </context-group>
       </trans-unit>
       <trans-unit id="qaConfig.intro" datatype="html">
-        <source> Lege Titel, Moderation, Teilnahmeprofil und die eigene Q&amp;A-Frist gemeinsam fest. </source>
+        <source> Lege Titel, Moderation, Teilnahmeprofil und die eigene Teilnahmefrist gemeinsam fest. </source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-host/qa-channel-configuration-dialog.component.ts</context>
           <context context-type="linenumber">58,60</context>
@@ -15884,14 +15926,14 @@
         </context-group>
       </trans-unit>
       <trans-unit id="qaConfig.deadlineLegend" datatype="html">
-        <source>Q&amp;A-Frist</source>
+        <source>Teilnahmefrist</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-host/qa-channel-configuration-dialog.component.ts</context>
           <context context-type="linenumber">100</context>
         </context-group>
       </trans-unit>
       <trans-unit id="qaConfig.deadlineKindLabel" datatype="html">
-        <source>Fristtyp</source>
+        <source>Art der Teilnahmefrist</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-host/qa-channel-configuration-dialog.component.ts</context>
           <context context-type="linenumber">102</context>
@@ -15968,7 +16010,7 @@
         </context-group>
       </trans-unit>
       <trans-unit id="qaConfig.extensionWarning" datatype="html">
-        <source> Die Q&amp;A-Frist liegt nach dem bisherigen Sessionende. Beim Bestätigen wird die globale Sessionfrist mit verlängert; nur der ursprüngliche Host darf das ausführen. </source>
+        <source> Die Teilnahmefrist liegt nach dem bisherigen Sessionende. Beim Bestätigen wird die globale Sessionfrist mit verlängert; nur der ursprüngliche Host darf das ausführen. </source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-host/qa-channel-configuration-dialog.component.ts</context>
           <context context-type="linenumber">152,155</context>
@@ -16022,6 +16064,12 @@
           <context context-type="sourcefile">src/app/features/session/session-host/qa-channel-configuration-dialog.component.ts</context>
           <context context-type="linenumber">285</context>
         </context-group>
+      </trans-unit>
+      <trans-unit id="qaConfig.confirm" datatype="html">
+        <source>Q&amp;A einrichten</source>
+      </trans-unit>
+      <trans-unit id="qaConfig.invalidTitle" datatype="html">
+        <source>Bitte gib einen Titel für die Fragenwand ein.</source>
       </trans-unit>
       <trans-unit id="qaConfig.confirmError" datatype="html">
         <source>Q&amp;A konnte nicht eingerichtet werden. Lade die Session neu und prüfe die Fristen erneut.</source>
@@ -16321,10 +16369,17 @@
         </context-group>
       </trans-unit>
       <trans-unit id="sessionLifecycle.configureTitle" datatype="html">
-        <source>Sessionlaufzeit festlegen</source>
+        <source>Maximales Q&amp;A-Ende</source>
         <context-group purpose="location">
-          <context context-type="sourcefile">src/app/features/session/session-host/session-expiration-dialog.component.ts</context>
-          <context context-type="linenumber">61</context>
+          <context context-type="sourcefile">src/app/features/session/session-host/session-expiration-dialog.component.html</context>
+          <context context-type="linenumber">12</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="sessionLifecycle.configureSubtitle" datatype="html">
+        <source>Nur für den Q&amp;A-Kanal: bis dahin darf die Fragenwand höchstens offen bleiben. Die Teilnahmefrist in den Q&amp;A-Einstellungen kann früher enden.</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/session-host/session-expiration-dialog.component.html</context>
+          <context context-type="linenumber">14</context>
         </context-group>
       </trans-unit>
       <trans-unit id="sessionLifecycle.warningTitle" datatype="html">
@@ -16332,6 +16387,13 @@
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-host/session-expiration-dialog.component.ts</context>
           <context context-type="linenumber">64</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="sessionLifecycle.currentQaEnd" datatype="html">
+        <source>Aktuelles maximales Q&amp;A-Ende:</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/session-host/session-expiration-dialog.component.html</context>
+          <context context-type="linenumber">40</context>
         </context-group>
       </trans-unit>
       <trans-unit id="sessionLifecycle.currentEnd" datatype="html">
@@ -16367,6 +16429,13 @@
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-host/session-expiration-dialog.component.ts</context>
           <context context-type="linenumber">93,95</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="sessionLifecycle.daysLegend" datatype="html">
+        <source>Maximale Q&amp;A-Öffnung in Kalendertagen</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/session-host/session-expiration-dialog.component.html</context>
+          <context context-type="linenumber">73</context>
         </context-group>
       </trans-unit>
       <trans-unit id="sessionLifecycle.daysLabel" datatype="html">
@@ -16490,7 +16559,7 @@
         </context-group>
       </trans-unit>
       <trans-unit id="sessionLifecycle.configureAction" datatype="html">
-        <source>Laufzeit festlegen</source>
+        <source>Maximales Q&amp;A-Ende</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.html</context>
           <context context-type="linenumber">212</context>
@@ -16572,7 +16641,7 @@
         </context-group>
       </trans-unit>
       <trans-unit id="sessionLifecycle.retentionDetails" datatype="html">
-        <source> Datenverfügbarkeit </source>
+        <source>Löschtermin anzeigen</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.html</context>
           <context context-type="linenumber">446,448</context>
@@ -17821,7 +17890,7 @@
         </context-group>
       </trans-unit>
       <trans-unit id="sessionQa.changeDeadline" datatype="html">
-        <source> Frist und Einstellungen ändern </source>
+        <source>Q&amp;A-Einstellungen</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.html</context>
           <context context-type="linenumber">4186,4188</context>
@@ -18089,7 +18158,7 @@
         </context-group>
       </trans-unit>
       <trans-unit id="sessionHost.endGlobalSessionAnchor" datatype="html">
-        <source> Gesamte Session beenden </source>
+        <source> Session beenden </source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.html</context>
           <context context-type="linenumber">4669,4671</context>
@@ -19322,7 +19391,7 @@
         </context-group>
       </trans-unit>
       <trans-unit id="sessionLifecycle.previewInitialMessage" datatype="html">
-        <source>Die Anfangsfrist und der anfängliche Q&amp;A-Schluss werden gemeinsam gespeichert.</source>
+        <source>Das maximale Q&amp;A-Ende und der anfängliche Teilnahmeschluss werden gemeinsam gespeichert.</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.ts</context>
           <context context-type="linenumber">4523</context>
@@ -20378,7 +20447,7 @@
         </context-group>
       </trans-unit>
       <trans-unit id="sessionQa.deadlineExpired" datatype="html">
-        <source>Q&amp;A-Frist abgelaufen · <x id="deadline" equiv-text="formatted"/></source>
+        <source>Teilnahmefrist abgelaufen · <x id="deadline" equiv-text="formatted"/></source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.ts</context>
           <context context-type="linenumber">8260</context>
@@ -23408,7 +23477,7 @@
         </context-group>
       </trans-unit>
       <trans-unit id="sessionQa.deadlineExpiredParticipant" datatype="html">
-        <source> Die Q&amp;A-Frist ist abgelaufen. Neue Fragen und Bewertungen sind nicht mehr möglich. </source>
+        <source> Die Teilnahmefrist ist abgelaufen. Neue Fragen und Bewertungen sind nicht mehr möglich. </source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-vote/session-vote.component.html</context>
           <context context-type="linenumber">2587,2589</context>

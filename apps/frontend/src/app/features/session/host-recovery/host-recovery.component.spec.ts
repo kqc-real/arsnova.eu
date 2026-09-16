@@ -73,6 +73,18 @@ describe('HostRecoveryComponent', () => {
     );
     expect(host.querySelector('.host-recovery-page__card')).not.toBeNull();
     expect(host.textContent).toContain('Host-Zugang wiederherstellen');
+    expect(host.textContent).toContain('Gib die Session-Kennung und den Recovery-Code');
+    expect(host.textContent).toContain('Fehlt die Notfallkarte');
+    expect(host.textContent).toContain('»Impressum«');
+    expect(host.textContent).not.toContain('ADMIN@ADMIN');
+    expect(host.textContent).not.toContain('unabhängiger Prüfung');
+    expect(host.querySelector('mat-button-toggle-group')).toBeNull();
+    expect(
+      host.querySelector('input[name="arsnova-host-support-id"]')?.getAttribute('placeholder'),
+    ).toBeNull();
+    expect(
+      host.querySelector('input[name="arsnova-host-recovery-secret"]')?.getAttribute('type'),
+    ).toBe('text');
   });
 
   it('speichert Prepare-Material vor der Aktivierung und überträgt Geheimnisse nur im Body', async () => {
@@ -105,6 +117,19 @@ describe('HostRecoveryComponent', () => {
     expect(navigate).toHaveBeenCalledWith(expect.arrayContaining(['session', 'ABC123', 'host']));
     expect(location.href).not.toContain(OLD_RECOVERY_CODE);
     expect(location.href).not.toContain(NEW_BROWSER_CAPABILITY);
+  });
+
+  it('zeigt die Support-Übergabe erst hinter einem stillen Wechsel, nicht als zweiten Tab', () => {
+    const current = render();
+    const host = current.nativeElement as HTMLElement;
+    const component = current.componentInstance;
+
+    expect(host.textContent).toContain('Ich habe einen Code vom Support');
+    expect(host.textContent).not.toContain('Support-Übergabe');
+    component.sourceKind.set('ADMIN_HANDOFF');
+    current.detectChanges();
+    expect(host.textContent).toContain('Übergabecode vom Support');
+    expect(host.textContent).toContain('Ich habe eine Notfallkarte');
   });
 
   it('verwendet für eine Admin-Übergabe denselben begrenzten Austauschpfad', async () => {

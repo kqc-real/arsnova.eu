@@ -11,13 +11,11 @@
   box-sizing: border-box;
 }
 
-.qa-config__group,
-.qa-config__preview {
+.qa-config__group {
   @include lifecycle.lifecycle-inset;
 }
 
-.qa-config__group legend,
-.qa-config__preview h3 {
+.qa-config__group legend {
   padding-inline: 0.2rem;
   margin: 0;
   color: var(--mat-sys-on-surface);
@@ -37,29 +35,17 @@ mat-form-field {
   line-height: 1.5;
 }
 
-.qa-config__preview dl,
-.qa-config__preview dl div {
-  display: grid;
-  gap: 0.25rem;
-}
-
-.qa-config__preview dl {
-  gap: 0.75rem;
-  margin: 0;
-}
-
-.qa-config__preview dt {
-  color: var(--mat-sys-on-surface-variant);
-  font: var(--mat-sys-label-large);
-}
-
-.qa-config__preview dd {
+.qa-config__resolved {
   margin: 0;
   overflow-wrap: anywhere;
   color: var(--mat-sys-on-surface);
-  font: var(--mat-sys-title-small);
-  font-weight: 600;
-  line-height: 1.4;
+  font: var(--mat-sys-body-medium);
+  line-height: 1.5;
+}
+
+.qa-config__resolved-end {
+  display: block;
+  margin-block-start: 0.25rem;
 }
 
 .qa-config__notice {

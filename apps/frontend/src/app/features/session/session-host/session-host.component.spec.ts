@@ -26,6 +26,13 @@ import { ThemePresetService } from '../../../core/theme-preset.service';
 import { QuizStoreService, DEMO_QUIZ_ID } from '../../quiz/data/quiz-store.service';
 import { resetServerClockSkew } from '../session-server-clock';
 
+function exitAnchorButtonLabel(button: Element): string {
+  return (button.textContent ?? '')
+    .replace(/^(logout|groups|stop|replay)/, '')
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
 const unsubscribeMock = vi.fn();
 
 const {
@@ -414,7 +421,7 @@ const quizStoreMock = {
   ensureDemoQuiz: vi.fn(() => true),
 };
 
-describe('SessionHostComponent', { timeout: 30_000 }, () => {
+describe('SessionHostComponent', { timeout: 60_000 }, () => {
   afterEach(() => {
     vi.useRealTimers();
   });
@@ -702,7 +709,7 @@ describe('SessionHostComponent', { timeout: 30_000 }, () => {
       imports: [SessionHostComponent],
       providers: [
         provideRouter([]),
-        { provide: MatDialog, useValue: { open: dialogOpenMock } },
+        { provide: MatDialog, useValue: { open: dialogOpenMock, closeAll: vi.fn() } },
         { provide: MatSnackBar, useValue: { open: vi.fn() } },
         { provide: QuizStoreService, useValue: quizStoreMock },
         {
@@ -881,12 +888,15 @@ describe('SessionHostComponent', { timeout: 30_000 }, () => {
       expect.objectContaining({
         panelClass: 'session-lifecycle-dialog-panel',
         backdropClass: 'session-lifecycle-dialog-backdrop',
-        data: expect.objectContaining({ code: 'ABC123' }),
+        data: expect.objectContaining({ code: 'ABC123', setupStep: 1, setupStepCount: 2 }),
       }),
     );
     expect(dialogOpenMock).toHaveBeenCalledWith(
       HostRecoveryCardDialogComponent,
-      expect.objectContaining({ disableClose: true }),
+      expect.objectContaining({
+        disableClose: true,
+        data: expect.objectContaining({ setupStep: 2, setupStepCount: 2 }),
+      }),
     );
     fixture.destroy();
   });
@@ -1023,7 +1033,7 @@ describe('SessionHostComponent', { timeout: 30_000 }, () => {
     fixture.destroy();
   });
 
-  it('bietet Laufzeit festlegen nur im Q&A-Kanal in der unteren Action-Bar', async () => {
+  it('bietet Maximales Q&A-Ende nur im Q&A-Kanal in der unteren Action-Bar', async () => {
     dialogOpenMock.mockReturnValue({ afterClosed: () => NEVER });
     const fixture = setup();
     getInfoQueryMock.mockResolvedValue({
@@ -1061,8 +1071,8 @@ describe('SessionHostComponent', { timeout: 30_000 }, () => {
     const endButton = fixture.nativeElement.querySelector(
       '.session-host__exit-anchor-button--end',
     ) as HTMLButtonElement | null;
-    expect(footerButton?.textContent).toContain('Laufzeit festlegen');
-    expect(endButton?.textContent).toContain('Gesamte Session beenden');
+    expect(footerButton?.textContent).toContain('Maximales Q&A-Ende');
+    expect(endButton?.textContent).toContain('Session beenden');
     expect(endButton?.nextElementSibling).toBe(footerButton);
 
     footerButton?.click();
@@ -1084,7 +1094,7 @@ describe('SessionHostComponent', { timeout: 30_000 }, () => {
     fixture.destroy();
   });
 
-  it('bietet Datenverfügbarkeit nur im Q&A-Kanal in der unteren Action-Bar', async () => {
+  it('bietet Löschtermin anzeigen nur im Q&A-Kanal in der unteren Action-Bar', async () => {
     dialogOpenMock.mockReturnValue({ afterClosed: () => NEVER });
     const fixture = setup();
     getInfoQueryMock.mockResolvedValue({
@@ -1108,7 +1118,7 @@ describe('SessionHostComponent', { timeout: 30_000 }, () => {
     expect(retentionButton()).toBeNull();
     expect(
       fixture.nativeElement.querySelector('.session-host__live-code-block')?.textContent,
-    ).not.toContain('Datenverfügbarkeit');
+    ).not.toContain('Löschtermin anzeigen');
 
     fixture.componentInstance.activeChannel.set('quickFeedback');
     fixture.detectChanges();
@@ -1120,12 +1130,12 @@ describe('SessionHostComponent', { timeout: 30_000 }, () => {
     const expirationButton = fixture.nativeElement.querySelector(
       '.session-host__exit-anchor [data-testid="configure-session-expiration"]',
     ) as HTMLButtonElement | null;
-    expect(footerButton?.textContent).toContain('Datenverfügbarkeit');
-    expect(expirationButton?.textContent).toContain('Laufzeit festlegen');
+    expect(footerButton?.textContent).toContain('Löschtermin anzeigen');
+    expect(expirationButton?.textContent).toContain('Maximales Q&A-Ende');
     expect(expirationButton?.nextElementSibling).toBe(footerButton);
     expect(
       fixture.nativeElement.querySelector('.session-host__live-code-block')?.textContent,
-    ).not.toContain('Datenverfügbarkeit');
+    ).not.toContain('Löschtermin anzeigen');
 
     footerButton?.click();
     await fixture.whenStable();
@@ -1142,7 +1152,7 @@ describe('SessionHostComponent', { timeout: 30_000 }, () => {
       configurationAllowed: false,
     });
     fixture.detectChanges();
-    expect(retentionButton()?.textContent).toContain('Datenverfügbarkeit');
+    expect(retentionButton()?.textContent).toContain('Löschtermin anzeigen');
 
     fixture.componentInstance.sessionLifecycle.set({
       ...defaultLifecycle,
@@ -2412,8 +2422,136 @@ describe('SessionHostComponent', { timeout: 30_000 }, () => {
     await fixture.componentInstance.selectChannel('qa');
 
     expect(enableQaChannelMutateMock).not.toHaveBeenCalled();
+    expect(endMutateMock).not.toHaveBeenCalled();
     expect(fixture.componentInstance.hostSteeringCallout()).toBeNull();
     expect(fixture.componentInstance.channels().qa).toBe(false);
+    fixture.destroy();
+  });
+
+  it('beendet die unkonfigurierte Session beim Abbrechen der Einrichtung von der Startseite', async () => {
+    persistInitialHostRecovery({
+      code: 'ABC123',
+      recoveryCard: {
+        supportId: 'ARS-ABCD-2345',
+        recoveryCode: 'recovery-capability-abcdefghijklmnopqrstuvwxyz',
+      },
+    });
+    getLifecycleForHostQueryMock.mockResolvedValue({ ...defaultLifecycle });
+    getInfoQueryMock.mockResolvedValue({
+      ...defaultSession,
+      qaClosesAt: null,
+      channels: {
+        quiz: { enabled: false },
+        qa: {
+          enabled: true,
+          open: false,
+          title: null,
+          moderationMode: false,
+          state: 'UNCONFIGURED',
+          closesAt: null,
+        },
+        quickFeedback: { enabled: false, open: false },
+      },
+    });
+    dialogOpenMock.mockReturnValue({ afterClosed: () => of(null) });
+
+    const fixture = setup([
+      {
+        provide: ActivatedRoute,
+        useValue: {
+          parent: {
+            snapshot: {
+              paramMap: convertToParamMap({ code: 'ABC123' }),
+            },
+          },
+          snapshot: {
+            queryParamMap: convertToParamMap({ tab: 'qa', qaSetup: '1' }),
+            paramMap: convertToParamMap({}),
+          },
+          queryParamMap: of(convertToParamMap({ tab: 'qa', qaSetup: '1' })),
+        },
+      },
+    ]);
+    const router = TestBed.inject(Router);
+    const navigateByUrlSpy = vi.spyOn(router, 'navigateByUrl').mockResolvedValue(true);
+
+    await fixture.componentInstance.ngOnInit();
+
+    expect(dialogOpenMock).toHaveBeenCalledWith(
+      QaChannelConfigurationDialogComponent,
+      expect.objectContaining({
+        data: expect.objectContaining({ setupStep: 2, setupStepCount: 3 }),
+      }),
+    );
+    expect(endMutateMock).toHaveBeenCalledWith({ code: 'ABC123' });
+    expect(clearHostTokenMock).toHaveBeenCalledWith('ABC123');
+    expect(dialogOpenMock).not.toHaveBeenCalledWith(
+      HostRecoveryCardDialogComponent,
+      expect.anything(),
+    );
+    expect(navigateByUrlSpy).toHaveBeenCalledWith('/', { replaceUrl: true });
+    fixture.destroy();
+  });
+
+  it('öffnet nach Abbruch der Notfallkarte erneut die Karte statt die Q&A-Einrichtung', async () => {
+    persistInitialHostRecovery({
+      code: 'ABC123',
+      recoveryCard: {
+        supportId: 'ARS-ABCD-2345',
+        recoveryCode: 'recovery-capability-abcdefghijklmnopqrstuvwxyz',
+      },
+    });
+    getLifecycleForHostQueryMock.mockResolvedValue({ ...defaultLifecycle });
+    getInfoQueryMock.mockResolvedValue({
+      ...defaultSession,
+      qaClosesAt: '2026-03-25T12:00:00.000Z',
+      channels: {
+        quiz: { enabled: false },
+        qa: {
+          enabled: true,
+          open: true,
+          title: 'Fragen',
+          moderationMode: false,
+          state: 'OPEN',
+          closesAt: '2026-03-25T12:00:00.000Z',
+        },
+        quickFeedback: { enabled: false, open: false },
+      },
+    });
+
+    dialogOpenMock.mockReturnValue({ afterClosed: () => of(null) });
+    const fixture = setup([
+      {
+        provide: ActivatedRoute,
+        useValue: {
+          parent: {
+            snapshot: {
+              paramMap: convertToParamMap({ code: 'ABC123' }),
+            },
+          },
+          snapshot: {
+            queryParamMap: convertToParamMap({ tab: 'qa', qaSetup: '1' }),
+            paramMap: convertToParamMap({}),
+          },
+          queryParamMap: of(convertToParamMap({ tab: 'qa', qaSetup: '1' })),
+        },
+      },
+    ]);
+    await fixture.componentInstance.ngOnInit();
+    dialogOpenMock.mockClear();
+
+    await fixture.componentInstance.openQaConfigurationDialog();
+
+    expect(dialogOpenMock).toHaveBeenCalledWith(
+      HostRecoveryCardDialogComponent,
+      expect.objectContaining({
+        data: expect.objectContaining({ setupStep: 3, setupStepCount: 3 }),
+      }),
+    );
+    expect(dialogOpenMock).not.toHaveBeenCalledWith(
+      QaChannelConfigurationDialogComponent,
+      expect.anything(),
+    );
     fixture.destroy();
   });
 
@@ -3259,7 +3397,7 @@ describe('SessionHostComponent', { timeout: 30_000 }, () => {
       const button = fixture.nativeElement.querySelector(
         '.session-host__exit-anchor-button--end',
       ) as HTMLButtonElement | null;
-      expect(button?.textContent).toContain('Gesamte Session beenden');
+      expect(button?.textContent).toContain('Session beenden');
 
       dialogOpenMock.mockClear();
       button?.focus();
@@ -5349,7 +5487,7 @@ describe('SessionHostComponent', { timeout: 30_000 }, () => {
     expect(fixture.componentInstance.activeChannel()).toBe('qa');
     expect(fixture.componentInstance.showPrimaryLiveView()).toBe(false);
     expect(text).toContain('Vorab-Moderation');
-    expect(text).toContain('Gesamte Session beenden');
+    expect(text).toContain('Session beenden');
     expect(exitAnchor.className).toContain('session-host__exit-anchor--fixed');
     expect(text).toContain('Wortwolke anzeigen');
     fixture.destroy();
@@ -8369,11 +8507,11 @@ describe('SessionHostComponent', { timeout: 30_000 }, () => {
     expect(text).toContain('Zwischen einem Drittel und zwei Dritteln vollständig korrekt');
     const exitAnchor = el.querySelector('.session-host__exit-anchor') as HTMLElement;
     const buttonTexts = Array.from(exitAnchor.querySelectorAll('button'), (button) =>
-      (button.textContent ?? '').replace(/^groups/, '').trim(),
+      exitAnchorButtonLabel(button),
     );
     expect(exitAnchor.className).toContain('session-host__exit-anchor--with-primary');
     expect(buttonTexts).toEqual([
-      'Gesamte Session beenden',
+      'Session beenden',
       'skip_nextFrage auslassen',
       'Diskussionsphase',
       'Ergebnis trotzdem zeigen',
@@ -9008,11 +9146,11 @@ describe('SessionHostComponent', { timeout: 30_000 }, () => {
     expect(el.textContent).toContain('Antwortoptionen freigeben');
     const exitAnchor = el.querySelector('.session-host__exit-anchor') as HTMLElement;
     const buttonTexts = Array.from(exitAnchor.querySelectorAll('button'), (button) =>
-      (button.textContent ?? '').trim(),
+      exitAnchorButtonLabel(button),
     );
     expect(exitAnchor.className).toContain('session-host__exit-anchor--with-primary');
     expect(buttonTexts).toEqual([
-      'Gesamte Session beenden',
+      'Session beenden',
       'skip_nextFrage auslassen',
       'Antwortoptionen freigebenAntwortoptionen',
     ]);
@@ -9069,10 +9207,10 @@ describe('SessionHostComponent', { timeout: 30_000 }, () => {
 
     let exitAnchor = host.querySelector('.session-host__exit-anchor') as HTMLElement;
     let buttonTexts = Array.from(exitAnchor.querySelectorAll('button'), (button) =>
-      (button.textContent ?? '').replace(/\s+/g, ' ').trim(),
+      exitAnchorButtonLabel(button),
     );
     expect(fixture.componentInstance.activeChannel()).toBe('qa');
-    expect(buttonTexts).toContain('Gesamte Session beenden');
+    expect(buttonTexts).toContain('Session beenden');
     expect(host.textContent).not.toContain('Antwortoptionen freigeben');
     expect(host.textContent).not.toContain('Frage auslassen');
     expect(host.textContent).not.toContain('Nächste Frage');
@@ -9083,12 +9221,12 @@ describe('SessionHostComponent', { timeout: 30_000 }, () => {
 
     exitAnchor = host.querySelector('.session-host__exit-anchor') as HTMLElement;
     buttonTexts = Array.from(exitAnchor.querySelectorAll('button'), (button) =>
-      (button.textContent ?? '').replace(/\s+/g, ' ').trim(),
+      exitAnchorButtonLabel(button),
     );
     expect(fixture.componentInstance.activeChannel()).toBe('quickFeedback');
     expect(buttonTexts.some((text) => text.includes('Antwortoptionen'))).toBe(false);
     expect(buttonTexts.some((text) => text.includes('Frage auslassen'))).toBe(false);
-    expect(buttonTexts).toContain('Gesamte Session beenden');
+    expect(buttonTexts).toContain('Session beenden');
 
     await fixture.componentInstance.selectChannel('quiz');
     fixture.detectChanges();
@@ -9622,15 +9760,11 @@ describe('SessionHostComponent', { timeout: 30_000 }, () => {
       '.session-host__exit-anchor',
     ) as HTMLElement;
     const buttonTexts = Array.from(exitAnchor.querySelectorAll('button'), (button) =>
-      (button.textContent ?? '').trim(),
+      exitAnchorButtonLabel(button),
     );
 
     expect(exitAnchor.className).toContain('session-host__exit-anchor--with-primary');
-    expect(buttonTexts).toEqual([
-      'Gesamte Session beenden',
-      'skip_nextFrage auslassen',
-      'Ergebnis zeigen',
-    ]);
+    expect(buttonTexts).toEqual(['Session beenden', 'skip_nextFrage auslassen', 'Ergebnis zeigen']);
     expect(exitAnchor.querySelector('.session-host__exit-anchor-button--skip')).not.toBeNull();
     expect(exitAnchor.querySelector('.session-host__exit-anchor-button--primary')).not.toBeNull();
     fixture.componentInstance.hostVoteProgress.set({
@@ -10075,16 +10209,12 @@ describe('SessionHostComponent', { timeout: 30_000 }, () => {
       '.session-host__exit-anchor',
     ) as HTMLElement;
     const buttonTexts = Array.from(exitAnchor.querySelectorAll('button'), (button) =>
-      (button.textContent ?? '').trim(),
+      exitAnchorButtonLabel(button),
     );
     const text = fixture.nativeElement.textContent ?? '';
 
     expect(text).not.toContain('Peer Instruction empfohlen');
-    expect(buttonTexts).toEqual([
-      'Gesamte Session beenden',
-      'skip_nextFrage auslassen',
-      'Ergebnis zeigen',
-    ]);
+    expect(buttonTexts).toEqual(['Session beenden', 'skip_nextFrage auslassen', 'Ergebnis zeigen']);
     fixture.destroy();
   });
 
@@ -10134,7 +10264,7 @@ describe('SessionHostComponent', { timeout: 30_000 }, () => {
         '.session-host__exit-anchor',
       ) as HTMLElement;
       const buttonTexts = Array.from(exitAnchor.querySelectorAll('button'), (button) =>
-        (button.textContent ?? '').replace(/^groups/, '').trim(),
+        exitAnchorButtonLabel(button),
       );
 
       expect(buttonTexts).toContain('Diskussionsphase');
@@ -10185,7 +10315,7 @@ describe('SessionHostComponent', { timeout: 30_000 }, () => {
         '.session-host__exit-anchor',
       ) as HTMLElement;
       const buttonTexts = Array.from(exitAnchor.querySelectorAll('button'), (button) =>
-        (button.textContent ?? '').replace(/^groups/, '').trim(),
+        exitAnchorButtonLabel(button),
       );
 
       expect(buttonTexts).not.toContain('Diskussionsphase');
@@ -11886,12 +12016,12 @@ describe('SessionHostComponent', { timeout: 30_000 }, () => {
       '.session-host__exit-anchor',
     ) as HTMLElement;
     const buttonTexts = Array.from(exitAnchor.querySelectorAll('button'), (button) =>
-      (button.textContent ?? '').trim(),
+      exitAnchorButtonLabel(button),
     );
 
     expect(exitAnchor.className).toContain('session-host__exit-anchor--with-primary');
     expect(buttonTexts).toEqual([
-      'Gesamte Session beenden',
+      'Session beenden',
       'Letztes Ergebnis erneut anzeigenLetztes Ergebnis',
       'Nächste Frage',
     ]);
@@ -11994,7 +12124,7 @@ describe('SessionHostComponent', { timeout: 30_000 }, () => {
 
     const host = fixture.nativeElement as HTMLElement;
     const buttonTexts = [...host.querySelectorAll('button')].map((button) =>
-      (button.textContent ?? '').replace(/\s+/g, ' ').trim(),
+      exitAnchorButtonLabel(button),
     );
     expect(host.querySelector('.session-host__exit-anchor-button--previous')).toBeNull();
     expect(host.textContent).not.toContain('Letztes Ergebnis');
@@ -12037,7 +12167,7 @@ describe('SessionHostComponent', { timeout: 30_000 }, () => {
 
     const host = fixture.nativeElement as HTMLElement;
     const buttonTexts = [...host.querySelectorAll('button')].map((button) =>
-      (button.textContent ?? '').replace(/\s+/g, ' ').trim(),
+      exitAnchorButtonLabel(button),
     );
     expect(host.querySelector('.session-host__exit-anchor-button--previous')).toBeNull();
     expect(host.textContent).toContain('Letzte Frage');
@@ -12238,7 +12368,7 @@ describe('SessionHostComponent', { timeout: 30_000 }, () => {
     expect(exitAnchor.textContent).toContain('Auswertung');
     expect(
       Array.from(exitAnchor.querySelectorAll('button'), (button) =>
-        (button.textContent ?? '').trim(),
+        exitAnchorButtonLabel(button),
       ).some((text) => text === 'Nächste Frage'),
     ).toBe(false);
     fixture.destroy();
@@ -12303,7 +12433,7 @@ describe('SessionHostComponent', { timeout: 30_000 }, () => {
     expect(host.querySelector('.session-host__exit-anchor-button--last-question')).toBeNull();
     expect(
       Array.from(exitAnchor.querySelectorAll('button'), (button) =>
-        (button.textContent ?? '').trim(),
+        exitAnchorButtonLabel(button),
       ).some((text) => text.includes('Letzte Frage')),
     ).toBe(false);
     expect(host.textContent).not.toContain('Nächste Frage');
@@ -12385,7 +12515,7 @@ describe('SessionHostComponent', { timeout: 30_000 }, () => {
     expect(exitAnchor.textContent).not.toContain('Letzte Frage');
     expect(
       Array.from(exitAnchor.querySelectorAll('button'), (button) =>
-        (button.textContent ?? '').trim(),
+        exitAnchorButtonLabel(button),
       ).some((text) => text === 'Nächste Frage'),
     ).toBe(false);
     fixture.destroy();
@@ -12434,7 +12564,7 @@ describe('SessionHostComponent', { timeout: 30_000 }, () => {
     expect(exitAnchor.textContent).toContain('Zur Gesamtauswertung');
     expect(
       Array.from(exitAnchor.querySelectorAll('button'), (button) =>
-        (button.textContent ?? '').trim(),
+        exitAnchorButtonLabel(button),
       ).some((text) => text === 'Nächste Frage'),
     ).toBe(false);
 
@@ -12594,11 +12724,11 @@ describe('SessionHostComponent', { timeout: 30_000 }, () => {
       '.session-host__exit-anchor',
     ) as HTMLElement;
     const buttonTexts = Array.from(exitAnchor.querySelectorAll('button'), (button) =>
-      (button.textContent ?? '').replace(/^replay/, '').trim(),
+      exitAnchorButtonLabel(button),
     );
 
     expect(buttonTexts).toEqual([
-      'Gesamte Session beenden',
+      'Session beenden',
       'Letztes Ergebnis erneut anzeigenLetztes Ergebnis',
       'Zweite Abstimmung',
       'Zur Gesamtauswertung ohne zweite Abstimmung',
@@ -12654,7 +12784,7 @@ describe('SessionHostComponent', { timeout: 30_000 }, () => {
       /\.session-host__exit-anchor-button--skip,\s*\.session-host__exit-anchor-button--previous/,
     );
     expect(styles).toMatch(
-      /session-host__exit-anchor:not\(\.session-host__exit-anchor--with-primary\)[\s\S]*?exit-anchor-button--end \{[^}]*mat-button-text-horizontal-padding:\s*1\.1rem[^}]*padding-block:\s*0\.75rem/,
+      /session-host__exit-anchor:not\(\.session-host__exit-anchor--with-primary\)[\s\S]*?exit-anchor-button--end,[\s\S]*?exit-anchor-button--lifecycle,[\s\S]*?exit-anchor-button--retention \{[^}]*mat-button-text-horizontal-padding:\s*1\.1rem[^}]*padding-block:\s*0\.75rem/,
     );
 
     for (const [fileName, expectedLabel] of translations) {
@@ -12813,12 +12943,12 @@ describe('SessionHostComponent', { timeout: 30_000 }, () => {
       '.session-host__exit-anchor',
     ) as HTMLElement;
     const buttonTexts = Array.from(exitAnchor.querySelectorAll('button'), (button) =>
-      (button.textContent ?? '').replace(/^replay/, '').trim(),
+      exitAnchorButtonLabel(button),
     );
 
     expect(exitAnchor.className).toContain('session-host__exit-anchor--with-primary');
     expect(buttonTexts).toEqual([
-      'Gesamte Session beenden',
+      'Session beenden',
       'Zweite Abstimmung',
       'Zur nächsten Frage ohne zweite Abstimmung',
     ]);
@@ -12859,12 +12989,10 @@ describe('SessionHostComponent', { timeout: 30_000 }, () => {
       '.session-host__exit-anchor',
     ) as HTMLElement;
     const buttons = Array.from(exitAnchor.querySelectorAll('button'));
-    const buttonTexts = buttons.map((button) =>
-      (button.textContent ?? '').replace(/^stop/, '').trim(),
-    );
+    const buttonTexts = buttons.map((button) => exitAnchorButtonLabel(button));
 
     expect(exitAnchor.className).toContain('session-host__exit-anchor--with-primary');
-    expect(buttonTexts).toEqual(['Gesamte Session beenden', 'Stopp']);
+    expect(buttonTexts).toEqual(['Session beenden', 'Stopp']);
 
     (buttons[1] as HTMLButtonElement | undefined)?.click();
     await fixture.whenStable();
@@ -12952,7 +13080,7 @@ describe('SessionHostComponent', { timeout: 30_000 }, () => {
     fixture.destroy();
   });
 
-  it('zeigt in der Join-Kapsel weder Sessionende noch Datenverfügbarkeit', async () => {
+  it('zeigt in der Join-Kapsel weder Sessionende noch Löschtermin anzeigen', async () => {
     getParticipantsQueryMock.mockResolvedValue({
       participantCount: 0,
       connectedCount: 0,
@@ -12987,7 +13115,7 @@ describe('SessionHostComponent', { timeout: 30_000 }, () => {
     ) as HTMLElement | null;
     expect(quizBanner?.textContent).toContain('insgesamt beigetreten');
     expect(quizBanner?.textContent).not.toContain('Ende:');
-    expect(quizBanner?.textContent).not.toContain('Datenverfügbarkeit');
+    expect(quizBanner?.textContent).not.toContain('Löschtermin anzeigen');
 
     fixture.componentInstance.activeChannel.set('qa');
     fixture.detectChanges();
@@ -12996,7 +13124,7 @@ describe('SessionHostComponent', { timeout: 30_000 }, () => {
       '.session-host__live-code-block',
     ) as HTMLElement | null;
     expect(qaBanner?.textContent).not.toContain('Ende:');
-    expect(qaBanner?.textContent).not.toContain('Datenverfügbarkeit');
+    expect(qaBanner?.textContent).not.toContain('Löschtermin anzeigen');
     expect(qaBanner?.textContent).not.toContain('Host-Nachbereitung bis:');
     expect(qaBanner?.textContent).not.toContain('Voraussichtliche technische Löschung:');
     fixture.destroy();

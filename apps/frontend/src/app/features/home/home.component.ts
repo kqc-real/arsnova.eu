@@ -637,6 +637,8 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
           data: {
             identityMode: 'PRESET_PSEUDONYM',
             nicknameTheme: onboardingProfile.nicknameTheme,
+            setupStep: 1,
+            setupStepCount: 3,
           },
         });
         const participationProfile = await firstValueFrom(dialogRef.afterClosed());
@@ -668,7 +670,13 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
         browserCapability: result.hostBrowserCapability,
         recoveryCard: result.hostRecoveryCard,
       });
-      await navigateToHostSession(this.router, result.code, tab);
+      await navigateToHostSession(
+        this.router,
+        result.code,
+        tab,
+        undefined,
+        tab === 'qa' ? { qaSetup: '1' } : {},
+      );
     } catch (error) {
       this.joinError.set(
         localizeKnownServerError(

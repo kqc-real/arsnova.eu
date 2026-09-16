@@ -17,6 +17,17 @@ describe('navigateToHostSession', () => {
     expect(navigateByUrlMock).toHaveBeenCalledWith('/en/session/ABC123/host?tab=qa');
   });
 
+  it('hängt zusätzliche Query-Parameter an die Host-Route', async () => {
+    const navigateByUrlMock = vi.fn().mockResolvedValue(true);
+    const router = {
+      navigateByUrl: navigateByUrlMock,
+    } as never;
+
+    await navigateToHostSession(router, 'ABC123', 'qa', null, { qaSetup: '1' });
+
+    expect(navigateByUrlMock).toHaveBeenCalledWith('/en/session/ABC123/host?tab=qa&qaSetup=1');
+  });
+
   it('fällt auf einen echten Seitenwechsel zurück, wenn Angular false zurückgibt', async () => {
     const navigateByUrlMock = vi.fn().mockResolvedValue(false);
     const assignMock = vi.fn();

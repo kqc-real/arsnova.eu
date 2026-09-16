@@ -37,7 +37,18 @@ Host darf global verlängern; gekoppelte Hosts sehen die Frist und eine
 Erklärung, erhalten aber keine bestätigbare Verlängerungsaktion. Host-Dialoge
 zu Laufzeit, Q&A-Einrichtung, Fristbestätigung und Notfallkarte nutzen dieselbe
 abgehobene Overlay-Fläche (`session-lifecycle-dialog-panel`) mit kräftigerem
-Scrim, damit sie sich vom Live-Hintergrund lösen.
+Scrim, damit sie sich vom Live-Hintergrund lösen. Beim Anlegen von der Startseite (`Q&A erstellen`) erscheinen Teilnahme,
+Einrichtung und Notfallkarte als Schritt 1 bis 3 von 3. Abbrechen in der
+Teilnahme legt keine Session an. Abbrechen in der Einrichtung beendet die
+noch unkonfigurierte Session und kehrt zur Startseite zurück, damit der nächste
+Klick auf `Q&A erstellen` keine halbfertige Session wieder öffnet. Abbrechen
+in der Notfallkarte lässt Q&A eingerichtet; die Karte bleibt vorgemerkt. Ein
+erneuter Einstieg über `Q&A-Einstellungen` öffnet wieder die Karte (Schritt 3
+von 3), statt die Einrichtung als Ersteinrichtung zu prüfen. Wird Q&A
+später in einer bestehenden Session aktiviert, bleiben Einrichtung und
+Notfallkarte Schritt 1 und 2 von 2; Abbrechen dort lässt die Session bestehen.
+Spätere Q&A-Einstellungen und eine Notfallkarte nach Reload bleiben ohne
+Schrittzahl, sobald die Karte bestätigt oder nicht mehr vorgemerkt ist.
 
 Verfügbar sind:
 
@@ -126,8 +137,11 @@ nicht verändert.
 Ein bereits laufender Quiz- oder Blitzlichtkanal schaltet Q&A nicht über
 `enableQaChannel` frei. Dieser Legacy-Schalter liefert nur noch einen bereits
 fristgebunden eingerichteten Kanal. Die erste Einrichtung und jede Neuplanung
-laufen über Vorschau plus `configureQaChannel`, einschließlich Frist und
-optionalem Teilnahmeprofil vor dem ersten Beitritt.
+laufen über `configureQaChannel` inklusive serverseitiger Fristprüfung beim
+Bestätigen, nicht über einen zweiten Vorschaudialog. Die Host-UI zeigt die
+ausgerechnete Teilnahmefrist und eine eventuelle Sessionverlängerung direkt im
+Einrichtungsformular. Frist und optionales Teilnahmeprofil gelten vor dem
+ersten Beitritt.
 
 Im Anonymmodus liefert der Teilnehmervertrag keine sichtbare
 `authorNickname`-Angabe. Technische Session-, Teilnehmer- und
@@ -144,13 +158,14 @@ nach dem effektiven Sessionende geschlossen. Nach
 Hosts.
 
 Die Join-Kapsel neben dem QR-Code bleibt kompakt: Code und Teilnehmerzahl,
-ohne Sessionende und ohne Datenverfügbarkeit. Das absolute Sessionende bleibt
+ohne Sessionende und ohne Löschtermin. Das absolute Sessionende bleibt
 in der Q&A-Fristzeile. Quiz- und Blitzlichtansicht behalten dieselbe kompakte
 Kapsel. Die 30- und 5-Minuten-Warnung gilt weiter sessionweit. Die Aktionen
-„Laufzeit festlegen“ und „Datenverfügbarkeit“ sitzen nur im Q&A-Kanal in der
-unteren Host-Action-Bar neben „Gesamte Session beenden“, nicht in der
-Kopfzeile. „Datenverfügbarkeit“ öffnet die Nachbereitungs- und Löschtermine
-in einem Dialog.
+„Maximales Q&A-Ende“ und „Löschtermin anzeigen“ sitzen nur im Q&A-Kanal in der
+unteren Host-Action-Bar neben „Session beenden“, nicht in der
+Kopfzeile. „Maximales Q&A-Ende“ bezeichnet die Obergrenze des Q&A-Kanals,
+nicht das Quiz- oder Blitzlichtende. „Löschtermin anzeigen“ öffnet die
+Nachbereitungs- und Löschtermine in einem Dialog.
 
 Der Lifecyclevertrag projiziert und liefert:
 

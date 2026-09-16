@@ -1,7 +1,6 @@
 import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/core';
 import { Router, RouterLink } from '@angular/router';
 import { MatButton } from '@angular/material/button';
-import { MatButtonToggle, MatButtonToggleGroup } from '@angular/material/button-toggle';
 import { MatCard, MatCardContent } from '@angular/material/card';
 import { MatFormField, MatHint, MatLabel } from '@angular/material/form-field';
 import { MatIcon } from '@angular/material/icon';
@@ -24,8 +23,6 @@ type RecoverySourceKind = 'RECOVERY' | 'ADMIN_HANDOFF';
   standalone: true,
   imports: [
     MatButton,
-    MatButtonToggle,
-    MatButtonToggleGroup,
     MatCard,
     MatCardContent,
     MatFormField,
@@ -49,75 +46,85 @@ type RecoverySourceKind = 'RECOVERY' | 'ADMIN_HANDOFF';
               Host-Zugang wiederherstellen
             </h1>
             <span class="dialog-title-header__sub" i18n="@@hostRecovery.intro">
-              Verwende die Support-ID und den geheimen Code deiner Host-Notfallkarte. Sessioncode
-              oder Support-ID allein reichen nicht aus.
+              Gib die Session-Kennung und den Recovery-Code deiner Notfallkarte ein.
             </span>
           </span>
         </div>
         <mat-card-content class="host-recovery-page__content">
-          <mat-button-toggle-group
-            [value]="sourceKind()"
-            (change)="sourceKind.set($event.value)"
-            aria-label="Art des Wiederherstellungscodes"
-            i18n-aria-label="@@hostRecovery.sourceKindLabel"
-          >
-            <mat-button-toggle value="RECOVERY" i18n="@@hostRecovery.recoveryCardOption">
-              Notfallkarte
-            </mat-button-toggle>
-            <mat-button-toggle value="ADMIN_HANDOFF" i18n="@@hostRecovery.adminHandoffOption">
-              Support-Übergabe
-            </mat-button-toggle>
-          </mat-button-toggle-group>
+          <form class="host-recovery-page__form" autocomplete="off" (submit)="onSubmit($event)">
+            <mat-form-field appearance="outline" subscriptSizing="dynamic">
+              <mat-label i18n="@@hostRecovery.supportIdLabel">Session-Kennung</mat-label>
+              <input
+                matInput
+                name="arsnova-host-support-id"
+                autocomplete="off"
+                autocapitalize="characters"
+                spellcheck="false"
+                [value]="supportId()"
+                (input)="supportId.set(asInputValue($event).toUpperCase())"
+              />
+            </mat-form-field>
 
-          <mat-form-field appearance="outline" subscriptSizing="dynamic">
-            <mat-label i18n="@@hostRecovery.supportIdLabel">Support-ID</mat-label>
-            <input
-              matInput
-              autocomplete="off"
-              spellcheck="false"
-              [value]="supportId()"
-              (input)="supportId.set(asInputValue($event).toUpperCase())"
-              placeholder="ARS-XXXX-XXXX"
-            />
-          </mat-form-field>
+            <mat-form-field appearance="outline" subscriptSizing="dynamic">
+              @if (sourceKind() === 'RECOVERY') {
+                <mat-label i18n="@@hostRecovery.recoveryCodeLabel">Recovery-Code</mat-label>
+              } @else {
+                <mat-label i18n="@@hostRecovery.handoffCodeLabel"
+                  >Übergabecode vom Support</mat-label
+                >
+              }
+              <input
+                matInput
+                type="text"
+                name="arsnova-host-recovery-secret"
+                autocomplete="off"
+                spellcheck="false"
+                [value]="secret()"
+                (input)="secret.set(asInputValue($event))"
+              />
+              <mat-hint i18n="@@hostRecovery.secretHint">
+                Wird nur an den Server gesendet, nie in der Adresszeile.
+              </mat-hint>
+            </mat-form-field>
 
-          <mat-form-field appearance="outline" subscriptSizing="dynamic">
-            <mat-label i18n="@@hostRecovery.secretLabel">Geheimer Code</mat-label>
-            <input
-              matInput
-              type="password"
-              autocomplete="off"
-              spellcheck="false"
-              [value]="secret()"
-              (input)="secret.set(asInputValue($event))"
-              (keydown.enter)="recover()"
-            />
-            <mat-hint i18n="@@hostRecovery.secretHint">
-              Der Code wird nur im Request übertragen, nie in der URL.
-            </mat-hint>
-          </mat-form-field>
+            @if (error()) {
+              <p class="host-recovery-page__error" role="alert">{{ error() }}</p>
+            }
 
-          @if (error()) {
-            <p class="host-recovery-page__error" role="alert">{{ error() }}</p>
+            <div class="host-recovery-page__actions">
+              <a matButton="text" [routerLink]="homeCommands()" i18n="@@common.cancel">Abbrechen</a>
+              <button matButton="filled" type="submit" [disabled]="pending() || !canSubmit()">
+                <mat-icon aria-hidden="true">login</mat-icon>
+                <span i18n="@@hostRecovery.submit">Zugang wiederherstellen</span>
+              </button>
+            </div>
+          </form>
+
+          @if (sourceKind() === 'RECOVERY') {
+            <button
+              matButton="text"
+              type="button"
+              class="host-recovery-page__switch"
+              (click)="sourceKind.set('ADMIN_HANDOFF')"
+              i18n="@@hostRecovery.useHandoff"
+            >
+              Ich habe einen Code vom Support
+            </button>
+          } @else {
+            <button
+              matButton="text"
+              type="button"
+              class="host-recovery-page__switch"
+              (click)="sourceKind.set('RECOVERY')"
+              i18n="@@hostRecovery.useRecoveryCard"
+            >
+              Ich habe eine Notfallkarte
+            </button>
           }
 
-          <div class="host-recovery-page__actions">
-            <a matButton="text" [routerLink]="homeCommands()" i18n="@@common.cancel">Abbrechen</a>
-            <button
-              matButton="filled"
-              type="button"
-              [disabled]="pending() || !canSubmit()"
-              (click)="recover()"
-            >
-              <mat-icon aria-hidden="true">login</mat-icon>
-              <span i18n="@@hostRecovery.submit">Zugang wiederherstellen</span>
-            </button>
-          </div>
-
           <p class="host-recovery-page__boundary" i18n="@@hostRecovery.boundary">
-            Die Wiederherstellung verlängert weder die Session noch die Nachbereitungsfrist. Wenn
-            Browserdaten und Notfallkarte verloren sind, kann der Support nur nach unabhängiger
-            Prüfung des konkreten Sessionbezugs helfen.
+            Damit verlängerst du die Session nicht. Fehlt die Notfallkarte, kann nur noch der
+            Support helfen. Den Kontakt findest du im »Impressum«.
           </p>
         </mat-card-content>
       </mat-card>
@@ -146,16 +153,16 @@ type RecoverySourceKind = 'RECOVERY' | 'ADMIN_HANDOFF';
         box-shadow: var(--mat-sys-level3);
         border-radius: var(--mat-sys-corner-extra-large);
       }
-      .host-recovery-page__content {
+      .host-recovery-page__content,
+      .host-recovery-page__form {
         display: grid;
         gap: 1rem;
       }
-      mat-button-toggle-group,
       mat-form-field {
         width: 100%;
       }
-      mat-button-toggle {
-        flex: 1;
+      .host-recovery-page__switch {
+        justify-self: start;
       }
       .host-recovery-page__actions {
         display: flex;
@@ -197,6 +204,11 @@ export class HostRecoveryComponent {
 
   homeCommands() {
     return localizeCommands(['']);
+  }
+
+  onSubmit(event: Event): void {
+    event.preventDefault();
+    void this.recover();
   }
 
   canSubmit(): boolean {

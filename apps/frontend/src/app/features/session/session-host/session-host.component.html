@@ -4125,7 +4125,7 @@
                         (click)="openQaConfigurationDialog()"
                         i18n="@@sessionQa.changeDeadline"
                       >
-                        Frist und Einstellungen ändern
+                        Q&A-Einstellungen
                       </button>
                     }
                   </div>
@@ -4617,9 +4617,9 @@
           [disabled]="sessionEndPending()"
           [attr.aria-busy]="sessionEndPending()"
           (click)="onSessionEndAnchorClick($event)"
-          i18n="@@sessionHost.endGlobalSessionAnchor"
         >
-          Gesamte Session beenden
+          <mat-icon aria-hidden="true">logout</mat-icon>
+          <span i18n="@@sessionHost.endGlobalSessionAnchor">Session beenden</span>
         </button>
         @if (showQaChannelLifecycleChrome() && sessionLifecycle()?.configurationAllowed) {
           <button
@@ -4631,7 +4631,7 @@
             (click)="openSessionLifecycleConfiguration($event)"
           >
             <mat-icon aria-hidden="true">schedule</mat-icon>
-            <span i18n="@@sessionLifecycle.configureAction">Laufzeit festlegen</span>
+            <span i18n="@@sessionLifecycle.configureAction">Maximales Q&A-Ende</span>
           </button>
         }
         @if (showQaRetentionAction()) {
@@ -4643,7 +4643,7 @@
             (click)="openSessionRetentionDetails($event)"
           >
             <mat-icon aria-hidden="true">storage</mat-icon>
-            <span i18n="@@sessionLifecycle.retentionDetails">Datenverfügbarkeit</span>
+            <span i18n="@@sessionLifecycle.retentionDetails">Löschtermin anzeigen</span>
           </button>
         }
         @if (

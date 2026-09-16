@@ -4,7 +4,7 @@
  *
  * Prüft:
  * - Q&A-Start zeigt die Host-Notfallkarte
- * - Laufzeit und Datenverfügbarkeit sitzen in der Q&A-Action-Bar
+ * - Maximales Q&A-Ende und Löschtermin sitzen in der Q&A-Action-Bar
  * - Self-Service-Wiederherstellung mit Support-ID und Recovery-Code
  *
  * Run:
@@ -192,9 +192,9 @@ async function main() {
     const footerOk =
       (await expiration.isVisible().catch(() => false)) &&
       (await retention.isVisible().catch(() => false));
-    logStep(footerOk, 'Q&A-Footer zeigt Laufzeit und Datenverfügbarkeit');
+    logStep(footerOk, 'Q&A-Footer zeigt maximales Sessionende und Löschtermin');
     if (!footerOk) {
-      failures.push('Action-Bar ohne Laufzeit festlegen oder Datenverfügbarkeit.');
+      failures.push('Action-Bar ohne Maximales Q&A-Ende oder Löschtermin anzeigen.');
     }
 
     const joinOverlay = host.locator('.session-host__join-viewport-overlay').first();
@@ -208,17 +208,17 @@ async function main() {
 
     if (footerOk) {
       try {
-        await openAndCloseDialog(host, 'configure-session-expiration', 'Sessionlaufzeit festlegen');
+        await openAndCloseDialog(host, 'configure-session-expiration', 'Maximales Q&A-Ende');
         logStep(true, 'Host öffnet die Laufzeit');
       } catch (error) {
         failures.push(`Laufzeit-Dialog: ${error instanceof Error ? error.message : String(error)}`);
       }
       try {
-        await openAndCloseDialog(host, 'session-retention-details', 'Datenverfügbarkeit');
-        logStep(true, 'Host öffnet die Datenverfügbarkeit');
+        await openAndCloseDialog(host, 'session-retention-details', 'Löschtermin anzeigen');
+        logStep(true, 'Host öffnet den Löschtermin');
       } catch (error) {
         failures.push(
-          `Datenverfügbarkeit-Dialog: ${error instanceof Error ? error.message : String(error)}`,
+          `Löschtermin-Dialog: ${error instanceof Error ? error.message : String(error)}`,
         );
       }
     }

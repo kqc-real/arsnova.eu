@@ -1,9 +1,10 @@
-import { Component, LOCALE_ID, inject, signal } from '@angular/core';
+import { Component, LOCALE_ID, OnInit, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { MatButton } from '@angular/material/button';
 import {
   MAT_DIALOG_DATA,
   MatDialogActions,
+  MatDialogClose,
   MatDialogContent,
   MatDialogRef,
   MatDialogTitle,
@@ -28,6 +29,8 @@ export interface QaChannelConfigurationDialogData {
   code: string;
   session: SessionInfoDTO;
   profileLocked: boolean;
+  setupStep?: number;
+  setupStepCount?: number;
 }
 
 @Component({
@@ -37,6 +40,7 @@ export interface QaChannelConfigurationDialogData {
     FormsModule,
     MatButton,
     MatDialogActions,
+    MatDialogClose,
     MatDialogContent,
     MatDialogTitle,
     MatFormField,
@@ -53,12 +57,13 @@ export interface QaChannelConfigurationDialogData {
     './qa-channel-configuration-dialog.component.scss',
   ],
 })
-export class QaChannelConfigurationDialogComponent {
+export class QaChannelConfigurationDialogComponent implements OnInit {
   readonly data = inject<QaChannelConfigurationDialogData>(MAT_DIALOG_DATA);
   private readonly localeId = inject(LOCALE_ID);
   private readonly dialogRef = inject(
     MatDialogRef<QaChannelConfigurationDialogComponent, SessionQaConfigurationDTO | null>,
   );
+  private previewRequest = 0;
 
   readonly pending = signal(false);
   readonly error = signal<string | null>(null);
@@ -74,39 +79,38 @@ export class QaChannelConfigurationDialogComponent {
   days = 1;
   absoluteLocal = '';
 
-  async loadPreview(): Promise<void> {
-    const selection = this.buildSelection();
-    if (!selection || !this.qaTitle.trim()) {
-      return;
-    }
-    this.pending.set(true);
-    this.error.set(null);
-    try {
-      this.preview.set(
-        await trpc.session.previewQaConfiguration.query({
-          code: this.data.code,
-          mode: this.configurationMode(),
-          selection,
-        }),
-      );
-    } catch {
-      this.error.set(
-        $localize`:@@qaConfig.previewError:Die Q&A-Konfiguration konnte nicht geprüft werden. Bitte kontrolliere die Angaben und versuche es erneut.`,
-      );
-    } finally {
-      this.pending.set(false);
-    }
+  ngOnInit(): void {
+    void this.refreshPreview();
+  }
+
+  onDeadlineChange(): Promise<void> {
+    return this.refreshPreview();
   }
 
   async confirm(): Promise<void> {
     const selection = this.buildSelection();
-    if (!selection || !this.preview()) {
+    if (!selection) {
       return;
     }
-    const preview = this.preview()!;
+    if (!this.qaTitle.trim()) {
+      this.error.set(
+        $localize`:@@qaConfig.invalidTitle:Bitte gib einen Titel für die Fragenwand ein.`,
+      );
+      return;
+    }
     this.pending.set(true);
     this.error.set(null);
     try {
+      let preview: SessionQaConfigurationPreviewDTO;
+      try {
+        preview = await this.fetchPreview(selection);
+      } catch {
+        this.error.set(
+          $localize`:@@qaConfig.previewError:Die Q&A-Konfiguration konnte nicht geprüft werden. Bitte kontrolliere die Angaben und versuche es erneut.`,
+        );
+        return;
+      }
+      this.preview.set(preview);
       const lifecycle = await trpc.session.getLifecycleForHost.query({ code: this.data.code });
       this.applyAuthoritativeProfileLock(Boolean(lifecycle.firstParticipantJoinedAt));
       const request = {
@@ -147,11 +151,6 @@ export class QaChannelConfigurationDialogComponent {
     }
   }
 
-  edit(): void {
-    this.preview.set(null);
-    this.error.set(null);
-  }
-
   close(): void {
     this.dialogRef.close(null);
   }
@@ -168,25 +167,57 @@ export class QaChannelConfigurationDialogComponent {
     }).format(new Date(value));
   }
 
-  identityModeLabel(mode: SessionParticipantIdentityMode): string {
-    switch (mode) {
-      case 'PRESET_PSEUDONYM':
-        return $localize`:@@qaConfig.identityPreset:Automatisches Pseudonym`;
-      case 'CUSTOM_NICKNAME':
-        return $localize`:@@qaConfig.identityCustom:Eigener Nickname`;
-      case 'ANONYMOUS':
-        return $localize`:@@qaConfig.identityAnonymous:Anonym ohne Verfassername`;
+  private async refreshPreview(): Promise<void> {
+    const selection = this.buildSelection(true);
+    if (!selection || !this.qaTitle.trim()) {
+      this.preview.set(null);
+      return;
+    }
+    const requestId = ++this.previewRequest;
+    try {
+      const next = await this.fetchPreview(selection);
+      if (requestId === this.previewRequest) {
+        this.preview.set(next);
+      }
+    } catch {
+      if (requestId === this.previewRequest) {
+        this.preview.set(null);
+      }
     }
   }
 
-  private buildSelection(): SessionQaDeadlineSelection | null {
+  private async fetchPreview(
+    selection: SessionQaDeadlineSelection,
+  ): Promise<SessionQaConfigurationPreviewDTO> {
+    const mode = this.configurationMode();
+    try {
+      return await trpc.session.previewQaConfiguration.query({
+        code: this.data.code,
+        mode,
+        selection,
+      });
+    } catch (error) {
+      if (mode === 'INITIAL' && this.isQaAlreadyConfiguredError(error)) {
+        return trpc.session.previewQaConfiguration.query({
+          code: this.data.code,
+          mode: 'REPLAN',
+          selection,
+        });
+      }
+      throw error;
+    }
+  }
+
+  private buildSelection(silent = false): SessionQaDeadlineSelection | null {
     if (this.deadlineKind === 'UNTIL_SESSION_END') {
       return { kind: 'UNTIL_SESSION_END' };
     }
     if (this.deadlineKind === 'DURATION_DAYS') {
       const days = Number(this.days);
       if (!Number.isInteger(days) || days < 1 || days > 30) {
-        this.error.set($localize`:@@qaConfig.invalidDays:Bitte gib 1 bis 30 Kalendertage ein.`);
+        if (!silent) {
+          this.error.set($localize`:@@qaConfig.invalidDays:Bitte gib 1 bis 30 Kalendertage ein.`);
+        }
         return null;
       }
       return { kind: 'DURATION_DAYS', days };
@@ -197,9 +228,11 @@ export class QaChannelConfigurationDialogComponent {
         closesAt: sessionLocalDateTimeToIso(this.absoluteLocal, this.timeZone),
       };
     } catch {
-      this.error.set(
-        $localize`:@@qaConfig.invalidLocalDate:Diese lokale Uhrzeit ist in der Sessionzeitzone nicht eindeutig oder ungültig.`,
-      );
+      if (!silent) {
+        this.error.set(
+          $localize`:@@qaConfig.invalidLocalDate:Diese lokale Uhrzeit ist in der Sessionzeitzone nicht eindeutig oder ungültig.`,
+        );
+      }
       return null;
     }
   }
@@ -212,7 +245,24 @@ export class QaChannelConfigurationDialogComponent {
   }
 
   private configurationMode(): 'INITIAL' | 'REPLAN' {
-    return this.data.session.qaClosesAt ? 'REPLAN' : 'INITIAL';
+    const closesAt = this.data.session.qaClosesAt ?? this.data.session.channels?.qa?.closesAt;
+    const state = this.data.session.channels?.qa?.state;
+    if (
+      closesAt ||
+      state === 'OPEN' ||
+      state === 'MANUALLY_CLOSED' ||
+      state === 'DEADLINE_EXPIRED'
+    ) {
+      return 'REPLAN';
+    }
+    return 'INITIAL';
+  }
+
+  private isQaAlreadyConfiguredError(error: unknown): boolean {
+    if (!error || typeof error !== 'object' || !('message' in error)) {
+      return false;
+    }
+    return String(error.message).includes('Q&A wurde bereits eingerichtet.');
   }
 
   private buildParticipationProfile():

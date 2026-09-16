@@ -194,7 +194,7 @@
       ]
     },
     {
-      "name": "Q&A öffnen",
+      "name": "Q&A erstellen",
       "short_name": "Q&A",
       "description": "Fragen aus dem Publikum sammeln",
       "url": "/?homescreen=1&host=qa",

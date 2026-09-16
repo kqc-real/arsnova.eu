@@ -6,13 +6,15 @@ sind öffentliche Referenzen und **niemals** ein Berechtigungsnachweis.
 
 ## Regulärer Self-Service
 
-Bei der Sessionerstellung speichert der Browser eine sessiongebundene,
+arsnova.eu bindet Hosts nicht an ein Konto. Der Host-Zugang hängt am Browser,
+in dem die Session erstellt wurde. Teilnehmende können von jedem Browser
+beitreten. Bei der Sessionerstellung speichert der Browser eine sessiongebundene,
 versionierte Browser-Capability. Den blockierenden Dialog zum Sichern der
 Notfallkarte zeigt die Host-Ansicht erst, wenn Q&A aktiv ist — also beim
 direkten Q&A-Start oder sobald der Host den Q&A-Kanal später einschaltet, nicht
 beim reinen Quiz- oder Blitzlicht-Einstieg. Die Karte enthält:
 
-- eine nicht geheime Support-ID zum Auffinden der Session und
+- eine nicht geheime Session-Kennung (Support-ID) zum Auffinden der Session und
 - einen getrennten geheimen Recovery-Code.
 
 Der Browser stellt aus seiner Capability kurzlebige Host-Tokens aus. Tab- und
@@ -20,8 +22,8 @@ Browserneustart sowie Redis-Neustart oder Redis-Datenverlust zerstören deshalb
 nicht den PostgreSQL-basierten Wiederzugang. Ist Redis nicht erreichbar, bleibt
 der Zugriff fail-closed, bis Redis wieder verfügbar ist.
 
-Bei verlorenen Browserdaten öffnet der Host »Host-Zugang wiederherstellen«,
-gibt Support-ID und Recovery-Code ein und sichert die neu ausgegebene
+Bei verlorenen Browserdaten öffnet der Host die Wiederherstellungsseite,
+gibt die Session-Kennung (Support-ID) und den Recovery-Code ein und sichert die neu ausgegebene
 Notfallkarte. Geheimnisse und die CSPRNG-Exchange-ID werden ausschließlich im
 tRPC-Request-Body übertragen.
 
@@ -49,8 +51,8 @@ Shared-Zod-geschützte `admin.resetSessionHostAccess`-tRPC-Prozedur zulässig.
 Der Operator erhält ausschließlich eine höchstens 15 Minuten gültige,
 einmalige Übergabe-Capability, keine dauerhafte Host-Capability. Support-ID und
 Übergabecode werden getrennt an den bereits verifizierten Host übermittelt.
-Dieser schließt den normalen Prepare-/Activate-Austausch über die Option
-»Support-Übergabe« ab.
+Dieser schließt den normalen Prepare-/Activate-Austausch auf der
+Wiederherstellungsseite über »Ich habe einen Code vom Support« ab.
 
 Vor dem Reset müssen **beide** Aussagen unabhängig belegt sein:
 

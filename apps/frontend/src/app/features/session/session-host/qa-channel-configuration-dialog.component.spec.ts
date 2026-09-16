@@ -71,14 +71,24 @@ const preview = {
   projectedPurgeEligibleAt: '2026-09-23T07:00:00.000Z',
 };
 
-function configureTestBed(profileLocked = false) {
+const matchingSessionPreview = {
+  ...preview,
+  newQaClosesAt: session.expiresAt,
+  newExpiresAt: session.expiresAt,
+  requiresSessionExtension: false,
+};
+
+function configureTestBed(
+  profileLocked = false,
+  setup?: { setupStep: number; setupStepCount: number },
+) {
   const close = vi.fn();
   TestBed.configureTestingModule({
     imports: [QaChannelConfigurationDialogComponent],
     providers: [
       {
         provide: MAT_DIALOG_DATA,
-        useValue: { code: 'ABC123', session, profileLocked },
+        useValue: { code: 'ABC123', session, profileLocked, ...setup },
       },
       { provide: MatDialogRef, useValue: { close } },
     ],
@@ -91,11 +101,14 @@ function configureTestBed(profileLocked = false) {
 describe('QaChannelConfigurationDialogComponent', () => {
   beforeEach(() => {
     vi.resetAllMocks();
+    previewMock.mockResolvedValue(matchingSessionPreview);
     lifecycleMock.mockResolvedValue({ firstParticipantJoinedAt: null });
   });
 
-  it('nutzt die gemeinsame Dialog-Titelzeile', () => {
-    const { fixture } = configureTestBed();
+  it('nutzt die gemeinsame Dialog-Titelzeile und bleibt auf einem Schritt', async () => {
+    const { fixture, component } = configureTestBed();
+    await component.onDeadlineChange();
+    fixture.detectChanges();
     const host = fixture.nativeElement as HTMLElement;
 
     expect(host.querySelector('.dialog-title-header')).not.toBeNull();
@@ -103,6 +116,19 @@ describe('QaChannelConfigurationDialogComponent', () => {
       'forum',
     );
     expect(host.textContent).toContain('Q&A-Kanal einrichten');
+    expect(host.textContent).toContain('Q&A einrichten');
+    expect(host.textContent).toContain('Q&A schließt');
+    expect(host.textContent).not.toContain('Schritt 1 von 2');
+    expect(host.textContent).not.toContain('Verbindliche Vorschau');
+    expect(host.textContent).not.toContain('Vorschau prüfen');
+  });
+
+  it('zeigt die Sequenznummer nur beim ersten Q&A-Start', async () => {
+    const { fixture } = configureTestBed(false, { setupStep: 2, setupStepCount: 3 });
+    await fixture.whenStable();
+    fixture.detectChanges();
+
+    expect(fixture.nativeElement.textContent).toContain('Schritt 2 von 3');
   });
 
   it('sperrt das Teilnahmeprofil nach dem ersten Beitritt sichtbar', () => {
@@ -117,13 +143,13 @@ describe('QaChannelConfigurationDialogComponent', () => {
     expect(profileFieldset.disabled).toBe(true);
   });
 
-  it('zeigt vor der Bestätigung die serverseitigen Fristen und die globale Verlängerung', async () => {
+  it('zeigt die ausgerechnete Frist und die globale Verlängerung direkt im Formular', async () => {
     previewMock.mockResolvedValue(preview);
     const { fixture, component } = configureTestBed();
     component.deadlineKind = 'DURATION_DAYS';
     component.days = 1;
 
-    await component.loadPreview();
+    await component.onDeadlineChange();
     fixture.detectChanges();
 
     expect(previewMock).toHaveBeenCalledWith({
@@ -131,10 +157,12 @@ describe('QaChannelConfigurationDialogComponent', () => {
       mode: 'INITIAL',
       selection: { kind: 'DURATION_DAYS', days: 1 },
     });
-    expect(fixture.nativeElement.textContent).toContain('Verbindliche Vorschau');
+    expect(fixture.nativeElement.textContent).toContain('Q&A schließt');
+    expect(fixture.nativeElement.textContent).toContain('Session endet');
     expect(fixture.nativeElement.textContent).toContain(
       'Beim Bestätigen wird die globale Sessionfrist mit verlängert',
     );
+    expect(fixture.nativeElement.textContent).toContain('Titel der Fragenwand');
   });
 
   it('bindet die Mutation an Revision, Vorschauzeit und bestätigte Fristen', async () => {
@@ -162,7 +190,6 @@ describe('QaChannelConfigurationDialogComponent', () => {
     component.identityMode = 'PRESET_PSEUDONYM';
     component.qaTitle = 'Prüfungsfragen';
 
-    await component.loadPreview();
     await component.confirm();
 
     expect(configureMock).toHaveBeenCalledWith({
@@ -182,6 +209,37 @@ describe('QaChannelConfigurationDialogComponent', () => {
       },
     });
     expect(close).toHaveBeenCalledWith(expect.objectContaining({ preferredChannel: 'qa' }));
+  });
+
+  it('holt die Vorschau als Neuplanung nach wenn Q&A schon eingerichtet ist', async () => {
+    previewMock.mockImplementation(async (input: { mode: 'INITIAL' | 'REPLAN' }) => {
+      if (input.mode === 'INITIAL') {
+        throw { message: 'Q&A wurde bereits eingerichtet.' };
+      }
+      return { ...preview, mode: 'REPLAN' as const };
+    });
+    configureMock.mockResolvedValue({
+      channels: session.channels,
+      preferredChannel: 'qa',
+      expiresAt: preview.newExpiresAt,
+      qaClosesAt: preview.newQaClosesAt,
+      sessionLifecycleRevision: 3,
+      serverNow: preview.serverNow,
+    });
+    const { component } = configureTestBed();
+    await component.confirm();
+
+    expect(previewMock).toHaveBeenCalledWith({
+      code: 'ABC123',
+      mode: 'INITIAL',
+      selection: { kind: 'UNTIL_SESSION_END' },
+    });
+    expect(previewMock).toHaveBeenCalledWith({
+      code: 'ABC123',
+      mode: 'REPLAN',
+      selection: { kind: 'UNTIL_SESSION_END' },
+    });
+    expect(component.error()).toBeNull();
   });
 
   it('sperrt ein während des Dialogs belegtes Profil und richtet Q&A ohne Profiländerung ein', async () => {
@@ -208,7 +266,6 @@ describe('QaChannelConfigurationDialogComponent', () => {
     });
     const { fixture, component, close } = configureTestBed();
 
-    await component.loadPreview();
     await component.confirm();
     fixture.detectChanges();
 
@@ -249,7 +306,6 @@ describe('QaChannelConfigurationDialogComponent', () => {
       .mockResolvedValueOnce(configured);
     const { component, close } = configureTestBed();
 
-    await component.loadPreview();
     await component.confirm();
 
     expect(configureMock).toHaveBeenCalledTimes(2);

@@ -33,6 +33,20 @@ describe('HostRecoveryCardDialogComponent', () => {
       'admin_panel_settings',
     );
     expect(host.textContent).toContain('Host-Notfallkarte sichern');
+    expect(host.textContent).not.toContain('Schritt 3 von 3');
+    expect(host.textContent).toContain('Es gibt kein Konto');
+    expect(host.textContent).toContain('Wiederherstellungsseite');
+    expect(host.textContent).toContain('Session-Kennung');
+    expect(host.textContent).toContain('Kein Helpdesk-Kontakt');
+    expect(host.textContent).toContain('nur noch der Support helfen');
+    expect(host.textContent).toContain('»Impressum«');
+    expect(host.textContent).not.toContain('ABC123');
+    expect(host.textContent).not.toContain('Sessioncode');
+    const recoveryLink = host.querySelector(
+      '.recovery-card__recovery-url a',
+    ) as HTMLAnchorElement | null;
+    expect(recoveryLink?.getAttribute('href') ?? '').toContain('host-recovery');
+    expect(recoveryLink?.textContent ?? '').toContain('host-recovery');
     expect(host.querySelector('[data-testid="host-recovery-card-cancel"]')?.textContent).toContain(
       'Abbrechen',
     );
@@ -40,6 +54,21 @@ describe('HostRecoveryCardDialogComponent', () => {
       '[data-testid="host-recovery-card-done"]',
     ) as HTMLButtonElement | null;
     expect(done?.disabled).toBe(true);
+  });
+
+  it('zeigt die Sequenznummer beim ersten Q&A-Start', () => {
+    TestBed.resetTestingModule();
+    TestBed.configureTestingModule({
+      imports: [HostRecoveryCardDialogComponent],
+      providers: [
+        { provide: MAT_DIALOG_DATA, useValue: { ...CARD, setupStep: 3, setupStepCount: 3 } },
+        { provide: MatDialogRef, useValue: { close } },
+      ],
+    });
+    const fixture = TestBed.createComponent(HostRecoveryCardDialogComponent);
+    fixture.detectChanges();
+
+    expect(fixture.nativeElement.textContent).toContain('Schritt 3 von 3');
   });
 
   it('gibt Fertig nach dem Bestätigen der Sicherung frei', () => {
@@ -64,6 +93,27 @@ describe('HostRecoveryCardDialogComponent', () => {
     fixture.detectChanges();
 
     expect(writeText).toHaveBeenCalledWith(CARD.supportId);
-    expect(fixture.nativeElement.textContent).toContain('Support-ID wurde kopiert.');
+    expect(fixture.nativeElement.textContent).toContain('Session-Kennung wurde kopiert.');
+  });
+
+  it('nimmt Support-ID und Recovery-Code in die HTML-Karte auf', () => {
+    const fixture = TestBed.createComponent(HostRecoveryCardDialogComponent);
+    fixture.detectChanges();
+    const html = fixture.componentInstance.buildDownloadHtml();
+
+    expect(html).not.toContain('ABC123');
+    expect(html).not.toContain('Sessioncode');
+    expect(html).toContain(CARD.supportId);
+    expect(html).toContain(CARD.recoveryCode);
+    expect(html).not.toContain('Schritt 3 von 3');
+    expect(html).toContain('<h1>Host-Notfallkarte</h1>');
+    expect(html).not.toContain('arsnova.eu Host-Notfallkarte');
+    expect(html).toContain('Es gibt kein Konto');
+    expect(html).toContain('Wiederherstellungsseite');
+    expect(html).toContain('nur noch der Support helfen');
+    expect(html).toContain('»Impressum«');
+    expect(html).toContain('host-recovery');
+    expect(html).toMatch(/<a class="usage-link" href="[^"]*host-recovery[^"]*">/);
+    expect(html).not.toContain('<script');
   });
 });

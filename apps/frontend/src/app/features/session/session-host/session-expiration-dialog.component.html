@@ -9,18 +9,18 @@
   <span class="dialog-title-header__copy">
     @if (data.mode === 'INITIAL_CONFIGURATION') {
       <span class="dialog-title-header__heading" i18n="@@sessionLifecycle.configureTitle">
-        Sessionlaufzeit festlegen
+        Maximales Q&A-Ende
       </span>
       <span class="dialog-title-header__sub" i18n="@@sessionLifecycle.configureSubtitle">
-        Lege fest, wie lange diese Session höchstens läuft. Q&A kann eine eigene, frühere Frist
-        haben.
+        Nur für den Q&A-Kanal: bis dahin darf die Fragenwand höchstens offen bleiben. Die
+        Teilnahmefrist in den Q&A-Einstellungen kann früher enden.
       </span>
     } @else {
       <span class="dialog-title-header__heading" i18n="@@sessionLifecycle.warningTitle">
         Session endet in {{ data.warningMinutes }} Minuten
       </span>
       <span class="dialog-title-header__sub" i18n="@@sessionLifecycle.warningSubtitle">
-        Eine Verlängerung ändert nur das globale Sessionende, nicht automatisch die Q&A-Frist.
+        Eine Verlängerung ändert nur das globale Sessionende, nicht automatisch die Teilnahmefrist.
       </span>
     }
   </span>
@@ -37,7 +37,11 @@
     </h3>
     <dl>
       <div>
-        <dt i18n="@@sessionLifecycle.currentEnd">Aktuelles Sessionende:</dt>
+        @if (data.mode === 'INITIAL_CONFIGURATION') {
+          <dt i18n="@@sessionLifecycle.currentQaEnd">Aktuelles maximales Q&A-Ende:</dt>
+        } @else {
+          <dt i18n="@@sessionLifecycle.currentEnd">Aktuelles Sessionende:</dt>
+        }
         <dd>{{ formatDateTime(data.lifecycle.expiresAt) }}</dd>
       </div>
       <div>
@@ -70,7 +74,7 @@
   } @else {
     @if (data.mode === 'INITIAL_CONFIGURATION') {
       <fieldset class="lifecycle-dialog__group">
-        <legend i18n="@@sessionLifecycle.daysLegend">Laufzeit in Kalendertagen</legend>
+        <legend i18n="@@sessionLifecycle.daysLegend">Maximale Q&A-Öffnung in Kalendertagen</legend>
         <div class="lifecycle-dialog__row">
           <mat-form-field appearance="outline" subscriptSizing="dynamic">
             <mat-label i18n="@@sessionLifecycle.daysLabel">Für Kalendertage</mat-label>

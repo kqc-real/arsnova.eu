@@ -45,6 +45,30 @@ describe('SessionExpirationDialogComponent', () => {
     expect(fixture.nativeElement.textContent).not.toContain('Um 1 Stunde');
   });
 
+  it('benennt die Anfangskonfiguration ausdrücklich als Q&A-Obergrenze', () => {
+    TestBed.configureTestingModule({
+      imports: [SessionExpirationDialogComponent],
+      providers: [
+        {
+          provide: MAT_DIALOG_DATA,
+          useValue: {
+            mode: 'INITIAL_CONFIGURATION',
+            lifecycle: { ...lifecycle, firstParticipantJoinedAt: null, configurationAllowed: true },
+          },
+        },
+        { provide: MatDialogRef, useValue: { close: vi.fn() } },
+      ],
+    });
+    const fixture = TestBed.createComponent(SessionExpirationDialogComponent);
+    fixture.detectChanges();
+
+    const text = fixture.nativeElement.textContent as string;
+    expect(text).toContain('Maximales Q&A-Ende');
+    expect(text).toContain('Nur für den Q&A-Kanal');
+    expect(text).toContain('Aktuelles maximales Q&A-Ende');
+    expect(text).not.toContain('Aktuelles Sessionende');
+  });
+
   it('liefert Kalendertage für die serverseitige Vorschau', () => {
     const close = vi.fn();
     TestBed.configureTestingModule({

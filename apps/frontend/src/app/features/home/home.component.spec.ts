@@ -996,7 +996,7 @@ describe('HomeComponent', () => {
       await comp.openHeroHostTab('qa');
 
       expect(trpc.session.create.mutate).toHaveBeenCalled();
-      expect(navigateSpy).toHaveBeenCalledWith('/session/QA0001/host?tab=qa');
+      expect(navigateSpy).toHaveBeenCalledWith('/session/QA0001/host?tab=qa&qaSetup=1');
     });
 
     it('startet ohne vorhandenen Code eine neue Q&A-Host-Session', async () => {
@@ -1013,6 +1013,12 @@ describe('HomeComponent', () => {
 
       await comp.openHeroHostTab('qa');
 
+      expect(matDialogMock.open).toHaveBeenCalledWith(
+        expect.anything(),
+        expect.objectContaining({
+          data: expect.objectContaining({ setupStep: 1, setupStepCount: 3 }),
+        }),
+      );
       expect(trpc.session.create.mutate).toHaveBeenCalledWith({
         type: 'QUIZ',
         qaEnabled: true,
@@ -1025,7 +1031,7 @@ describe('HomeComponent', () => {
         teamNames: [],
         timeZone: expect.any(String),
       });
-      expect(navigateSpy).toHaveBeenCalledWith('/session/QA1234/host?tab=qa');
+      expect(navigateSpy).toHaveBeenCalledWith('/session/QA1234/host?tab=qa&qaSetup=1');
       expect(comp.joinError()).toBeNull();
     });
 
@@ -1073,7 +1079,7 @@ describe('HomeComponent', () => {
         teamNames: [],
         timeZone: expect.any(String),
       });
-      expect(navigateSpy).toHaveBeenCalledWith('/session/QA5678/host?tab=qa');
+      expect(navigateSpy).toHaveBeenCalledWith('/session/QA5678/host?tab=qa&qaSetup=1');
       expect(comp.joinError()).toBeNull();
     });
 
@@ -1237,7 +1243,7 @@ describe('HomeComponent', () => {
       expect(trpc.session.create.mutate).toHaveBeenCalledWith(
         expect.objectContaining({ qaEnabled: true }),
       );
-      expect(navigateSpy).toHaveBeenCalledWith('/session/QA9999/host?tab=qa');
+      expect(navigateSpy).toHaveBeenCalledWith('/session/QA9999/host?tab=qa&qaSetup=1');
     });
 
     it('erstellt bei PWA-Shortcut eine neue Session trotz bekanntem Teilnehmer-Code ohne Host-Token', async () => {
@@ -1267,7 +1273,7 @@ describe('HomeComponent', () => {
       expect(trpc.session.create.mutate).toHaveBeenCalledWith(
         expect.objectContaining({ qaEnabled: true }),
       );
-      expect(navigateSpy).toHaveBeenCalledWith('/session/QA8888/host?tab=qa');
+      expect(navigateSpy).toHaveBeenCalledWith('/session/QA8888/host?tab=qa&qaSetup=1');
       expect(navigateSpy).not.toHaveBeenCalledWith(expect.stringContaining('PART01'));
     });
 

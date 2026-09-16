@@ -456,10 +456,21 @@
   }
 
   .session-host__exit-anchor:not(.session-host__exit-anchor--with-primary)
-    > .session-host__exit-anchor-button--end {
+    > .session-host__exit-anchor-button--end,
+  .session-host__exit-anchor:not(.session-host__exit-anchor--with-primary)
+    > .session-host__exit-anchor-button--lifecycle,
+  .session-host__exit-anchor:not(.session-host__exit-anchor--with-primary)
+    > .session-host__exit-anchor-button--retention {
     --mat-button-text-horizontal-padding: 1.1rem;
     padding-block: 0.75rem;
     min-height: 3.25rem;
+  }
+
+  .session-host__exit-anchor-button--lifecycle .mdc-button__label,
+  .session-host__exit-anchor-button--retention .mdc-button__label {
+    overflow-wrap: anywhere;
+    hyphens: auto;
+    line-height: 1.25;
   }
 
   /* Sekundär-Aktionen: nicht dieselbe dunkle Karte wie Antwortzeilen. */
