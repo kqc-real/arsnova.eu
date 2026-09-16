@@ -3,7 +3,7 @@
 # Diagramme: arsnova.eu
 
 Alle Diagramme sind in Mermaid geschrieben und werden von GitHub nativ gerendert.
-**Stand:** 2026-09-10 · **Epics 0–6 inkl. 5.4a, 7.1, 8.1–8.4, 8.6–8.8, 8.9a/8.9b, 9, 10 (MOTD), 12 (Produktfeedback 12.1–12.4 implementiert und am 2026-09-10 manuell abgenommen) umgesetzt;** **1.14 / 1.14a / 1.14b** (Wortwolke inkl. optionaler spaCy-Glättung) fertig, **1.14c Stufe 1** (Encoder-Sidecar, Kill-Switch default aus) im Repo, **1.14c Stufe 2** und **8.9c Slice 4** offen; **8.9c** Slices 1–3 im Repo (Kill-Switch default aus). **6.5 Barrierefreiheit** ist technisch validiert und formal mit AT/Zoom/OS/PDF-Readern nach WCAG 2.2 AA abgenommen; **6.6 Thinking Aloud** ist fertig. Plattformstatistik Rekordteilnehmer und Tagesrekorde laufen über `health.footerBundle` / `health.stats` (`PlatformStatistic`, `DailyStatistic`). Kurzantwort (`SHORT_TEXT`) inkl. numerischer Bewertung, numerische Schätzfragen (`NUMERIC_ESTIMATE`) inkl. Zwei-Runden-Flow/Statistik und die Effective-Vote-Regel für Peer Instruction sind umgesetzt. Der Host-Live-Fortschritt während `ACTIVE` ist über `HostVoteProgressDTO` vom vollständigen Host-Fragen-DTO getrennt. Markdown-Erweiterungen **1.7a** und **1.7b** umgesetzt ([ADR-0015](../architecture/decisions/0015-markdown-images-url-only-and-lightbox.md), [ADR-0016](../architecture/decisions/0016-markdown-katex-editor-split-view-and-md3-toolbar.md)). `Blitzlicht` ist als Startseiten-Shortcut und Session-Kanal konsolidiert. `FINISHED` beendet die Session fuer Vote-Clients kanaluebergreifend und raeumt Live-Kanal-Subscriptions ab. Rollen/Routen/Autorisierung siehe [ADR-0006](../architecture/decisions/0006-roles-routes-authorization-host-admin.md), [ADR-0009](../architecture/decisions/0009-unified-live-session-channels.md), [ADR-0010](../architecture/decisions/0010-blitzlicht-as-core-live-mode.md), [ADR-0018](../architecture/decisions/0018-message-of-the-day-platform-communication.md), [ROUTES_AND_STORIES.md](../ROUTES_AND_STORIES.md). Wortwolke/Kompass: [moderation-compass.md](../features/moderation-compass.md), [word-cloud-spacy.md](../features/word-cloud-spacy.md), [word-cloud-semantic.md](../features/word-cloud-semantic.md), [qa-nlp-moderation.md](../features/qa-nlp-moderation.md), [qa-summary.md](../features/qa-summary.md).
+**Stand:** 2026-09-16 · **GitHub-Epic #405** (mehrtägige Q&A, Host-Wiederzugang, Skalierung) im Repo über PR [#418](https://github.com/kqc-real/arsnova.eu/pull/418) abgeschlossen, Lastgate #414/#415 separat · **Epics 0–6 inkl. 5.4a, 7.1, 8.1–8.4, 8.6–8.8, 8.9a/8.9b, 9, 10 (MOTD), 12 (Produktfeedback 12.1–12.4 implementiert und am 2026-09-10 manuell abgenommen) umgesetzt;** **1.14 / 1.14a / 1.14b** (Wortwolke inkl. optionaler spaCy-Glättung) fertig, **1.14c Stufe 1** (Encoder-Sidecar, Kill-Switch default aus) im Repo, **1.14c Stufe 2** und **8.9c Slice 4** offen; **8.9c** Slices 1–3 im Repo (Kill-Switch default aus). **6.5 Barrierefreiheit** ist technisch validiert und formal mit AT/Zoom/OS/PDF-Readern nach WCAG 2.2 AA abgenommen; **6.6 Thinking Aloud** ist fertig. Plattformstatistik Rekordteilnehmer und Tagesrekorde laufen über `health.footerBundle` / `health.stats` (`PlatformStatistic`, `DailyStatistic`). Kurzantwort (`SHORT_TEXT`) inkl. numerischer Bewertung, numerische Schätzfragen (`NUMERIC_ESTIMATE`) inkl. Zwei-Runden-Flow/Statistik und die Effective-Vote-Regel für Peer Instruction sind umgesetzt. Der Host-Live-Fortschritt während `ACTIVE` ist über `HostVoteProgressDTO` vom vollständigen Host-Fragen-DTO getrennt. Markdown-Erweiterungen **1.7a** und **1.7b** umgesetzt ([ADR-0015](../architecture/decisions/0015-markdown-images-url-only-and-lightbox.md), [ADR-0016](../architecture/decisions/0016-markdown-katex-editor-split-view-and-md3-toolbar.md)). `Blitzlicht` ist als Startseiten-Shortcut und Session-Kanal konsolidiert. `FINISHED` beendet die Session fuer Vote-Clients kanaluebergreifend und raeumt Live-Kanal-Subscriptions ab. Rollen/Routen/Autorisierung siehe [ADR-0006](../architecture/decisions/0006-roles-routes-authorization-host-admin.md), [ADR-0009](../architecture/decisions/0009-unified-live-session-channels.md), [ADR-0010](../architecture/decisions/0010-blitzlicht-as-core-live-mode.md), [ADR-0018](../architecture/decisions/0018-message-of-the-day-platform-communication.md), [ROUTES_AND_STORIES.md](../ROUTES_AND_STORIES.md). Wortwolke/Kompass: [moderation-compass.md](../features/moderation-compass.md), [word-cloud-spacy.md](../features/word-cloud-spacy.md), [word-cloud-semantic.md](../features/word-cloud-semantic.md), [qa-nlp-moderation.md](../features/qa-nlp-moderation.md), [qa-summary.md](../features/qa-summary.md).
 
 > **VS Code:** Mermaid wird in der Standard-Markdown-Vorschau nicht gerendert. Bitte die Erweiterung **„Markdown Preview Mermaid Support“** (`bierner.markdown-mermaid`) installieren. Siehe [README.md](./README.md) in diesem Ordner.
 
@@ -413,7 +413,12 @@ erDiagram
         string code UK
         enum type
         enum status
-        datetime statusChangedAt
+        datetime createdAt
+        datetime expiresAt
+        datetime qaClosesAt
+        datetime endedAt
+        datetime firstParticipantJoinedAt
+        int sessionLifecycleRevision
         boolean qaEnabled
         boolean qaOpen
         boolean quickFeedbackEnabled
@@ -425,6 +430,7 @@ erDiagram
     Participant {
         string id PK
         string nickname
+        int participantNumber
         string teamId FK
     }
     Vote {
@@ -521,6 +527,9 @@ erDiagram
         boolean qaOpen
         string qaTitle
         boolean qaModerationMode
+        datetime qaClosesAt
+        datetime expiresAt
+        datetime endedAt
         boolean quickFeedbackEnabled
         boolean quickFeedbackOpen
     }
@@ -806,6 +815,52 @@ sequenceDiagram
     end
 ```
 
+### 4.4 Mehrtägige Q&A und Host-Wiederzugang (Epic #405)
+
+Produktumfang gemergt in PR [#418](https://github.com/kqc-real/arsnova.eu/pull/418). Fachdoku: [session-lifecycle.md](../features/session-lifecycle.md), [HOST-RECOVERY-RUNBOOK.md](../operations/HOST-RECOVERY-RUNBOOK.md).
+
+```mermaid
+sequenceDiagram
+    participant H as Host
+    participant FE as Browser
+    participant BE as Backend tRPC
+    participant PG as PostgreSQL
+    participant Rec as Route host-recovery
+
+    Note over H,PG: Startseite Q&A erstellen, Schritte 1 bis 3
+    H->>FE: Teilnahmeprofil waehlen
+    FE->>BE: session.create (qaEnabled)
+    BE->>PG: Session, expiresAt, Host-Capability, Recovery
+    BE-->>FE: code, Recovery-Karte
+    FE->>BE: configureQaChannel (qaClosesAt)
+    BE->>PG: Kanal plus sessionLifecycleRevision
+    H->>FE: Notfallkarte sichern, Fertig
+
+    Note over H,Rec: anderer Browser oder verlorene Capability
+    H->>Rec: Session-Kennung und Recovery-Code
+    Rec->>BE: Host-Recovery
+    BE->>PG: Hash pruefen, neue Capability
+    BE-->>Rec: Host-Zugang, kein Sessioncode als Beweis
+```
+
+```mermaid
+sequenceDiagram
+    participant S as Teilnehmer
+    participant FE as Browser
+    participant BE as Backend tRPC
+    participant PG as PostgreSQL
+
+    S->>FE: Join-Code
+    FE->>BE: session.join (Idempotency plus Capability)
+    BE->>PG: Nummer, gehashte Rejoin-Capability
+    BE-->>FE: opaque Capability, kein oeffentlicher Wiederbeitritts-ID
+    alt qaClosesAt erreicht, Session aktiv
+        FE->>S: Q&A nur lesen, kein Submit
+    else expiresAt oder endedAt
+        FE->>S: terminaler inhaltsfreier Zustand
+    end
+```
+
 ---
 
 ## 5. Kommunikation Student-Client ↔ Backend
@@ -825,10 +880,10 @@ sequenceDiagram
     BE->>PG: Session finden
     BE-->>FE: SessionInfoDTO
     S->>FE: Nickname wählen (z. B. Marie Curie)
-    FE->>BE: session.join (JoinSessionInputSchema)
-    BE->>PG: Participant INSERT
+    FE->>BE: session.join (JoinSessionInputSchema, Idempotency)
+    BE->>PG: Participant INSERT, Nummer, Capability-Hash
     BE->>BE: Subscription-Event participantJoined vorbereiten
-    BE-->>FE: participantId, token
+    BE-->>FE: opaque Rejoin-Capability, sichtbare Nummer
     FE->>BE: Subscribe onQuestionRevealed, onResultsRevealed, onAnswersRevealed, onPersonalResult, onStatusChanged
     opt Unified Live Session
         FE->>S: Tabs für Quiz, Q&A und Blitzlicht sichtbar

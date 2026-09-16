@@ -1,8 +1,10 @@
 # Host-Recovery und Admin-Reset
 
 Dieses Runbook beschreibt den produktiven Wiederzugang für mehrtägige
-Q&A-Sessions aus Epic #405. Sessioncode, Join-Link, Host-Route und Support-ID
-sind öffentliche Referenzen und **niemals** ein Berechtigungsnachweis.
+Q&A-Sessions. Der Produktumfang von Epic #405 ist mit PR
+[#418](https://github.com/kqc-real/arsnova.eu/pull/418) auf `main`. Sessioncode,
+Join-Link, Host-Route und Support-ID sind öffentliche Referenzen und
+**niemals** ein Berechtigungsnachweis.
 
 ## Regulärer Self-Service
 

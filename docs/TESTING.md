@@ -444,29 +444,29 @@ Auf dem Server übernimmt `scripts/deploy.sh` die Reihenfolge **Digest-Image pul
 
 ## Browser- und A11y-Checks
 
-| Befehl (Frontend-Workspace)        | Zweck                                                                                      |
-| ---------------------------------- | ------------------------------------------------------------------------------------------ |
-| `a11y:axe:static`                  | axe für statische Kernrouten/-zustände                                                     |
-| `a11y:layout`                      | Reflow, Fokus, 24px-Ziele, Skip-Link, Join-Fokus und mobiles Disclosure                    |
-| `check:viewport`                   | Alias/älterer 320px-Reflow-Smoke                                                           |
-| `smoke:host-present-auth`          | Host/Present-Auth-Smoke                                                                    |
-| `smoke:host-pairing-security`      | Story 2.10: Host / Smartphone / Presenter, Missbrauch + Lifecycle + Widerruf               |
-| `smoke:presenter-viewports`        | Gefüllte Presenter-Lobby in vier Tablet-/Beamer-Viewports                                  |
-| `smoke:host-music`                 | Host-Musik-/Sound-Smoke                                                                    |
-| `smoke:short-text`                 | Kurzantwort-Flow inklusive axe                                                             |
-| `smoke:numeric-estimate`           | Numerische-Schätzfrage-Flow-Smoke                                                          |
-| `smoke:session-question-progress`  | Zwei-Client-Smoke für späteren Start, Vote, Skip und Nachbesprechung                       |
-| `e2e:confidence-summary-demo`      | Demo-Quiz: 30 TN + Confidence-Abschluss                                                    |
-| `e2e:motd-focus`                   | Desktop-MOTD: Tastatur-/Pointer-Rücksprung und fortgesetzte Tab-Reihe                      |
-| `smoke:webkit-participant-vote`    | WebKit/Safari-Engine: Smartphone-Teilnahme Join, Kanäle, Countdown, Vote                   |
-| `smoke:quiz-sync`                  | Quiz-Sync-Flow-Skript                                                                      |
-| `smoke:unified-session`            | Unified-Session-Flow inklusive axe                                                         |
-| `smoke:product-feedback`           | ProductFeedback 12.1: Host-Sheet + Vote-Sessionende                                        |
-| `smoke:product-feedback-in-app`    | ProductFeedback 12.2: Footer/Hilfe/Host/Vote/Join/Blitzlicht + Presenter-Negativ           |
-| `smoke:epic-405-host-qa-lifecycle` | Epic #405: Host-Notfallkarte, Q&A-Footer, Self-Service-Wiederherstellung                   |
-| `smoke:epic-405-participant-qa`    | Epic #405: Q&A-Join, Frage senden, Sortierung, Favoriten, Wortwolke, Schreibpfad nach Ende |
-| `lighthouse:a11y`                  | Score und A11y-Einzelaudits (lokal)                                                        |
-| `benchmark:word-cloud`             | Wortwolken-Benchmark / Regressionen                                                        |
+| Befehl (Frontend-Workspace)        | Zweck                                                                                    |
+| ---------------------------------- | ---------------------------------------------------------------------------------------- |
+| `a11y:axe:static`                  | axe für statische Kernrouten/-zustände                                                   |
+| `a11y:layout`                      | Reflow, Fokus, 24px-Ziele, Skip-Link, Join-Fokus und mobiles Disclosure                  |
+| `check:viewport`                   | Alias/älterer 320px-Reflow-Smoke                                                         |
+| `smoke:host-present-auth`          | Host/Present-Auth-Smoke                                                                  |
+| `smoke:host-pairing-security`      | Story 2.10: Host / Smartphone / Presenter, Missbrauch + Lifecycle + Widerruf             |
+| `smoke:presenter-viewports`        | Gefüllte Presenter-Lobby in vier Tablet-/Beamer-Viewports                                |
+| `smoke:host-music`                 | Host-Musik-/Sound-Smoke                                                                  |
+| `smoke:short-text`                 | Kurzantwort-Flow inklusive axe                                                           |
+| `smoke:numeric-estimate`           | Numerische-Schätzfrage-Flow-Smoke                                                        |
+| `smoke:session-question-progress`  | Zwei-Client-Smoke für späteren Start, Vote, Skip und Nachbesprechung                     |
+| `e2e:confidence-summary-demo`      | Demo-Quiz: 30 TN + Confidence-Abschluss                                                  |
+| `e2e:motd-focus`                   | Desktop-MOTD: Tastatur-/Pointer-Rücksprung und fortgesetzte Tab-Reihe                    |
+| `smoke:webkit-participant-vote`    | WebKit/Safari-Engine: Smartphone-Teilnahme Join, Kanäle, Countdown, Vote                 |
+| `smoke:quiz-sync`                  | Quiz-Sync-Flow-Skript                                                                    |
+| `smoke:unified-session`            | Unified-Session-Flow inklusive axe                                                       |
+| `smoke:product-feedback`           | ProductFeedback 12.1: Host-Sheet + Vote-Sessionende                                      |
+| `smoke:product-feedback-in-app`    | ProductFeedback 12.2: Footer/Hilfe/Host/Vote/Join/Blitzlicht + Presenter-Negativ         |
+| `smoke:epic-405-host-qa-lifecycle` | Epic #405 (PR #418): Host-Notfallkarte, Q&A-Footer, Self-Service-Wiederherstellung       |
+| `smoke:epic-405-participant-qa`    | Epic #405 (PR #418): Q&A-Join, Frage, Sortierung, Favoriten, Wortwolke, Schreibpfad Ende |
+| `lighthouse:a11y`                  | Score und A11y-Einzelaudits (lokal)                                                      |
+| `benchmark:word-cloud`             | Wortwolken-Benchmark / Regressionen                                                      |
 
 Das PDF/UA-Gate liegt im Root-Workspace:
 
