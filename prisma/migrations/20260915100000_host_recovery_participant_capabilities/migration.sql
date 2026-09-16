@@ -1,19 +1,26 @@
--- CreateEnum
-CREATE TYPE "HostCredentialStatus" AS ENUM ('ACTIVE', 'PENDING', 'REVOKED');
+-- CreateEnum (idempotent: Produktion kann nach P3018 bereits Teil-DDL haben)
+DO $$ BEGIN
+    CREATE TYPE "HostCredentialStatus" AS ENUM ('ACTIVE', 'PENDING', 'REVOKED');
+EXCEPTION
+    WHEN duplicate_object THEN NULL;
+END $$;
 
--- CreateEnum
-CREATE TYPE "HostCredentialExchangeSource" AS ENUM ('RECOVERY', 'ADMIN_HANDOFF', 'LEGACY_HOST_TOKEN');
+DO $$ BEGIN
+    CREATE TYPE "HostCredentialExchangeSource" AS ENUM ('RECOVERY', 'ADMIN_HANDOFF', 'LEGACY_HOST_TOKEN');
+EXCEPTION
+    WHEN duplicate_object THEN NULL;
+END $$;
 
-ALTER TYPE "AdminAuditAction" ADD VALUE 'HOST_ACCESS_RESET';
+ALTER TYPE "AdminAuditAction" ADD VALUE IF NOT EXISTS 'HOST_ACCESS_RESET';
 
 -- AlterTable
-ALTER TABLE "Participant" ADD COLUMN     "participantNumber" INTEGER,
-ADD COLUMN     "rejoinCapabilityHash" CHAR(64);
+ALTER TABLE "Participant" ADD COLUMN IF NOT EXISTS "participantNumber" INTEGER;
+ALTER TABLE "Participant" ADD COLUMN IF NOT EXISTS "rejoinCapabilityHash" CHAR(64);
 
 -- AlterTable
-ALTER TABLE "Session" ADD COLUMN     "hostCredentialVersion" INTEGER NOT NULL DEFAULT 0,
-ADD COLUMN     "hostSupportId" VARCHAR(13),
-ADD COLUMN     "nextParticipantNumber" INTEGER NOT NULL DEFAULT 0;
+ALTER TABLE "Session" ADD COLUMN IF NOT EXISTS "hostCredentialVersion" INTEGER NOT NULL DEFAULT 0;
+ALTER TABLE "Session" ADD COLUMN IF NOT EXISTS "hostSupportId" VARCHAR(13);
+ALTER TABLE "Session" ADD COLUMN IF NOT EXISTS "nextParticipantNumber" INTEGER NOT NULL DEFAULT 0;
 
 -- Credential-/Support-Metadaten dürfen während der read-only Nachbereitung
 -- rotieren, ohne den unveränderlichen fachlichen Sessionkern zu öffnen.
@@ -124,28 +131,39 @@ $$;
 
 -- Bestehende Kennungen deterministisch nach Beitrittszeit und UUID nummerieren.
 -- Neue Joins schreiben Nummer und Sessionzähler atomar in derselben Transaktion.
-WITH ranked AS (
-    SELECT
-        "id",
-        ROW_NUMBER() OVER (
-            PARTITION BY "sessionId"
-            ORDER BY "joinedAt" ASC, "id" ASC
-        )::INTEGER AS participant_number
-    FROM "Participant"
-)
-UPDATE "Participant" AS participant
-SET "participantNumber" = ranked.participant_number
-FROM ranked
-WHERE participant."id" = ranked."id";
+-- Der Active-Session-Guard blockiert sonst beendete/abgelaufene Sessions
+-- (Produktion: P3018 / ARSNOVA_SESSION_ENDED). Ein DO-Block ist eine Anweisung:
+-- bricht der Backfill ab, rollt DISABLE mit zurück.
+DO $$
+BEGIN
+    ALTER TABLE "Participant" DISABLE TRIGGER "Participant_guard_active_session";
+    WITH ranked AS (
+        SELECT
+            "id",
+            ROW_NUMBER() OVER (
+                PARTITION BY "sessionId"
+                ORDER BY "joinedAt" ASC, "id" ASC
+            )::INTEGER AS participant_number
+        FROM "Participant"
+    )
+    UPDATE "Participant" AS participant
+    SET "participantNumber" = ranked.participant_number
+    FROM ranked
+    WHERE participant."id" = ranked."id";
+    ALTER TABLE "Participant" ENABLE TRIGGER "Participant_guard_active_session";
+END $$;
 
-ALTER TABLE "Session" DISABLE TRIGGER "Session_enforce_lifecycle";
-UPDATE "Session" AS session
-SET "nextParticipantNumber" = COALESCE((
-    SELECT MAX(participant."participantNumber")
-    FROM "Participant" AS participant
-    WHERE participant."sessionId" = session."id"
-), 0);
-ALTER TABLE "Session" ENABLE TRIGGER "Session_enforce_lifecycle";
+DO $$
+BEGIN
+    ALTER TABLE "Session" DISABLE TRIGGER "Session_enforce_lifecycle";
+    UPDATE "Session" AS session
+    SET "nextParticipantNumber" = COALESCE((
+        SELECT MAX(participant."participantNumber")
+        FROM "Participant" AS participant
+        WHERE participant."sessionId" = session."id"
+    ), 0);
+    ALTER TABLE "Session" ENABLE TRIGGER "Session_enforce_lifecycle";
+END $$;
 
 -- Rolling-/Rollback-Bridge: ältere App-Images überlassen die Nummernvergabe
 -- diesem Trigger. Neue Images schreiben bereits eine Nummer und werden nicht

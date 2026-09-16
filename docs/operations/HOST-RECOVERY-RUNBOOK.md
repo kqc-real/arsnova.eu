@@ -113,3 +113,35 @@ Redis-Lookup gespiegelt. Ein Rollback setzt die Migration nicht zurück:
 PostgreSQL-Credentials bleiben erhalten; ältere Images können das neue
 Recovery-Formular jedoch nicht anbieten. Nach erneutem Roll-forward ist der
 persistente Recovery-Pfad wieder verfügbar.
+
+### Fehlgeschlagener Nummern-Backfill (P3018)
+
+`20260915100000_host_recovery_participant_capabilities` nummeriert bestehende
+Teilnahmen. Der Write-Guard aus der Lifecycle-Migration lehnt das auf
+beendeten Sessions ab. Die Datei setzt den Trigger
+`Participant_guard_active_session` für diesen Backfill aus und ist für eine
+teilweise angewandte DDL idempotent.
+
+Wenn `_prisma_migrations` die Datei als fehlgeschlagen zeigt (`finished_at`
+leer, Spalten schon da, `HostCredential` fehlt): nicht
+`migrate resolve --applied`. Nicht `prod-compose.sh run … app prisma migrate
+resolve`: `deploy.sh` schreibt `.env.arsnova-image` erst nach erfolgreichem
+Healthcheck, und `prod-compose.sh` überschreibt `ARSNOVA_IMAGE` mit diesem
+alten Digest. Prisma im alten Image kennt die Migration nicht (P3017).
+
+Failed-Zeile über Postgres löschen, ohne App-Image:
+
+```bash
+./scripts/prod-compose.sh exec postgres \
+  psql -U arsnova_user -d arsnova_v3
+```
+
+```sql
+DELETE FROM _prisma_migrations
+WHERE migration_name = '20260915100000_host_recovery_participant_capabilities'
+  AND finished_at IS NULL;
+```
+
+Erwartet: `DELETE 1`. Danach diesen Stand mergen und den Deploy-Job auf `main`
+laufen lassen oder erneut anstoßen. `deploy.sh` allein bleibt bei P3018 stehen,
+solange die Failed-Zeile existiert.
