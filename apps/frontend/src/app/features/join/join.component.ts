@@ -13,6 +13,7 @@ import type { NicknameTheme } from '@arsnova/shared-types';
 import { getEffectiveLocale, localeIdToSupported } from '../../core/locale-from-path';
 import { formatLocaleCount } from '../../core/locale-number.util';
 import {
+  isNicknameTakenServerError,
   localizeKnownServerError,
   sessionNotFoundUiMessage,
 } from '../../core/localize-known-server-message';
@@ -41,12 +42,17 @@ import {
   getProductFeedbackParticipantClaimToken,
   storeProductFeedbackParticipantClaimToken,
 } from '../product-feedback/product-feedback-storage';
+import {
+  clearJoinIdempotencyKey,
+  getOrCreateJoinIdempotencyKey,
+  getParticipantCapability,
+  storeParticipantCapability,
+} from '../../core/participant-session-access';
 
 const PARTICIPANT_STORAGE_KEY = 'arsnova-participant';
 const NICKNAME_STORAGE_KEY = 'arsnova-nickname';
 const SESSION_POLL_MS = 3000;
 const SESSION_POLL_JITTER_MS = 600;
-const PARTICIPANT_NICKNAME_REFRESH_MS = 12000;
 const PARTICIPANT_NICKNAME_MAX_LENGTH = 30;
 
 function toParticipantNickname(value: string): string {
@@ -106,14 +112,13 @@ export class JoinComponent implements OnInit, OnDestroy {
 
   private pollTimer: ReturnType<typeof setInterval> | null = null;
   private pollStartTimeout: ReturnType<typeof setTimeout> | null = null;
-  private lastParticipantsRefreshAt = 0;
   private readonly onVisibilityChange = () => {
     if (typeof document === 'undefined') return;
     if (document.hidden) {
       this.stopSessionPoll();
       return;
     }
-    void this.refreshSession({ forceParticipantRefresh: true });
+    void this.refreshSession();
     this.startSessionPoll(true);
   };
 
@@ -258,6 +263,17 @@ export class JoinComponent implements OnInit, OnDestroy {
   participantSingular = () => $localize`:@@join.participantCountOne:Teilnehmende`;
   /** i18n: participant count label (plural). */
   participantPlural = () => $localize`:@@join.participantCountMany:Teilnehmende`;
+  formatLifecycleDateTime(value: string, timeZone?: string): string {
+    return new Intl.DateTimeFormat(this.localeId, {
+      year: 'numeric',
+      month: 'short',
+      day: '2-digit',
+      hour: '2-digit',
+      minute: '2-digit',
+      timeZone: timeZone ?? 'UTC',
+      timeZoneName: 'short',
+    }).format(new Date(value));
+  }
   /** i18n: joining in progress. */
   joiningLabel = () => $localize`Wird beigetreten…`;
   /** i18n: join now button. */
@@ -356,7 +372,6 @@ export class JoinComponent implements OnInit, OnDestroy {
         await this.joinAnonymous(session);
         return;
       }
-      await this.loadParticipants();
       this.startSessionPoll();
     } catch (err: unknown) {
       this.errorSessionFinished.set(false);
@@ -394,7 +409,7 @@ export class JoinComponent implements OnInit, OnDestroy {
     }
   }
 
-  private async refreshSession(options?: { forceParticipantRefresh?: boolean }): Promise<void> {
+  private async refreshSession(): Promise<void> {
     if (this.joining() || this.loading()) return;
     if (typeof document !== 'undefined' && document.hidden) return;
     try {
@@ -424,12 +439,6 @@ export class JoinComponent implements OnInit, OnDestroy {
       if (this.selectedTeamId().trim() && !teamIds.has(this.selectedTeamId().trim())) {
         this.selectedTeamId.set('');
       }
-      if (
-        !session.anonymousMode &&
-        this.shouldRefreshParticipants(options?.forceParticipantRefresh)
-      ) {
-        await this.loadParticipants();
-      }
     } catch {
       this.stopSessionPoll();
     }
@@ -453,25 +462,26 @@ export class JoinComponent implements OnInit, OnDestroy {
     }
   }
 
-  private async loadParticipants(): Promise<void> {
+  private async checkParticipantNickname(nickname: string): Promise<boolean> {
     try {
-      const payload = await trpc.session.getParticipantNicknames.query({
+      const result = await trpc.session.checkParticipantNickname.query({
         code: this.code,
-        anonymousClientId: getAnonymousClientId(),
+        nickname,
       });
-      const set = new Set(payload.nicknames.map((nickname) => toParticipantNicknameKey(nickname)));
-      this.takenNicknames.set(set);
-      this.lastParticipantsRefreshAt = Date.now();
+      const key = toParticipantNicknameKey(nickname);
+      this.takenNicknames.update((current) => {
+        const next = new Set(current);
+        if (result.available) {
+          next.delete(key);
+        } else {
+          next.add(key);
+        }
+        return next;
+      });
+      return result.available;
     } catch {
-      this.takenNicknames.set(new Set());
-    }
-  }
-
-  private shouldRefreshParticipants(force = false): boolean {
-    if (force || this.lastParticipantsRefreshAt === 0) {
       return true;
     }
-    return Date.now() - this.lastParticipantsRefreshAt >= PARTICIPANT_NICKNAME_REFRESH_MS;
   }
 
   isTaken(nickname: string): boolean {
@@ -494,10 +504,18 @@ export class JoinComponent implements OnInit, OnDestroy {
   }
 
   private getStoredRejoinToken(): string | undefined {
-    if (typeof localStorage === 'undefined') {
-      return undefined;
+    return getParticipantCapability(this.code) ?? undefined;
+  }
+
+  private clearExpiredJoinAttempt(error: unknown): void {
+    const message =
+      error && typeof error === 'object' && 'message' in error ? String(error.message) : '';
+    if (
+      message.includes('Beitrittsversuch') &&
+      (message.includes('abgelaufen') || message.includes('nicht erneut'))
+    ) {
+      clearJoinIdempotencyKey(this.code);
     }
-    return localStorage.getItem(`${PARTICIPANT_STORAGE_KEY}-${this.code}`) ?? undefined;
   }
 
   private persistConfirmedTeam(teamId: string | null | undefined): void {
@@ -524,19 +542,25 @@ export class JoinComponent implements OnInit, OnDestroy {
         anonymousClientId: getAnonymousClientId(),
         teamId: this.selectedTeamId().trim() || undefined,
         rejoinToken: this.getStoredRejoinToken(),
+        joinIdempotencyKey: getOrCreateJoinIdempotencyKey(this.code),
         productFeedbackClaimToken: getProductFeedbackParticipantClaimToken(this.code),
       });
       recordServerTimeIso(result.serverTime);
       if (typeof localStorage !== 'undefined') {
         localStorage.setItem(`${PARTICIPANT_STORAGE_KEY}-${this.code}`, result.participantId);
-        localStorage.setItem(`${NICKNAME_STORAGE_KEY}-${this.code}`, nickname);
+        localStorage.setItem(`${NICKNAME_STORAGE_KEY}-${this.code}`, result.participantNickname);
+        storeParticipantCapability(this.code, result.rejoinToken);
+        clearJoinIdempotencyKey(this.code);
         storeProductFeedbackParticipantClaimToken(this.code, result.productFeedbackClaimToken);
         refreshTrpcWsBinding();
       }
       this.persistConfirmedTeam(result.teamId);
       setParticipantJoinArrival(this.code);
-      await this.router.navigate(localizeCommands(['session', this.code, 'vote']));
+      await this.router.navigate(localizeCommands(['session', this.code, 'vote']), {
+        queryParams: { tab: result.preferredChannel ?? 'quiz' },
+      });
     } catch (err: unknown) {
+      this.clearExpiredJoinAttempt(err);
       this.errorSessionFinished.set(false);
       this.joinError.set(localizeKnownServerError(err, $localize`Beitritt fehlgeschlagen.`));
     } finally {
@@ -559,24 +583,30 @@ export class JoinComponent implements OnInit, OnDestroy {
         anonymousClientId: getAnonymousClientId(),
         teamId: this.selectedTeamId().trim() || undefined,
         rejoinToken: this.getStoredRejoinToken(),
+        joinIdempotencyKey: getOrCreateJoinIdempotencyKey(this.code),
         productFeedbackClaimToken: getProductFeedbackParticipantClaimToken(this.code),
       });
       recordServerTimeIso(result.serverTime);
       if (typeof localStorage !== 'undefined') {
         localStorage.setItem(`${PARTICIPANT_STORAGE_KEY}-${this.code}`, result.participantId);
-        localStorage.setItem(`${NICKNAME_STORAGE_KEY}-${this.code}`, nickname);
+        localStorage.setItem(`${NICKNAME_STORAGE_KEY}-${this.code}`, result.participantNickname);
+        storeParticipantCapability(this.code, result.rejoinToken);
+        clearJoinIdempotencyKey(this.code);
         storeProductFeedbackParticipantClaimToken(this.code, result.productFeedbackClaimToken);
         refreshTrpcWsBinding();
       }
       this.persistConfirmedTeam(result.teamId);
       setParticipantJoinArrival(this.code);
-      await this.router.navigate(localizeCommands(['session', this.code, 'vote']));
+      await this.router.navigate(localizeCommands(['session', this.code, 'vote']), {
+        queryParams: { tab: result.preferredChannel ?? 'quiz' },
+      });
     } catch (err: unknown) {
+      this.clearExpiredJoinAttempt(err);
       this.errorSessionFinished.set(false);
       const message = localizeKnownServerError(err, $localize`Beitritt fehlgeschlagen.`);
       this.joinError.set(message);
-      if (message.includes('bereits vergeben')) {
-        await this.loadParticipants();
+      if (isNicknameTakenServerError(err)) {
+        await this.checkParticipantNickname(nickname);
         if (this.showNicknameList() && this.isTaken(nickname)) {
           this.selectedNickname.set('');
         }

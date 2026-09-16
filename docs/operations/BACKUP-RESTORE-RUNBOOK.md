@@ -32,6 +32,17 @@ Nicht Bestandteil des Offsite-Backups:
 | Automatischer Restore  | erster Sonntag im Monat ab 05:15 Uhr, maximal 30 Minuten verzögert |
 | Disaster-Recovery-Test | mindestens vierteljährlich zusätzlich auf einem frischen Testhost  |
 
+Ein regulär aus PostgreSQL gelöschter Sessionbestand kann in einem bereits
+erstellten, clientseitig verschlüsselten Restic-Snapshot noch bis zum Ablauf
+der 14-tägigen Offsite-Retention enthalten sein. Backups sind kein
+Host-/Teilnehmerarchiv und werden nicht über die Anwendung zugänglich gemacht.
+Jeder Deploy und Restore führt nach den Migrationen und vor dem Start des
+Traffic-fähigen App-Containers das Backend-Skript `cleanup:retention` aus. Das
+Gate löscht wiederhergestellte, bereits fällige
+Bestände und bricht die Freigabe ab, solange ein überfälliger Sessionkern
+verbleibt. Bereits von Hosts heruntergeladene Exporte liegen außerhalb der
+technischen Rückholbarkeit des Dienstes.
+
 Der monatliche Container-Test prüft Dump-Integrität, SHA-256, Wiederherstellung
 und Kerntabellen ohne Verbindung zum Produktions-PostgreSQL und ohne dessen
 Volume. Der vierteljährliche Test auf einem frischen Host belegt zusätzlich,
@@ -238,8 +249,10 @@ als root aus.
    ```
 
 7. Migrationen und reguläres Digest-Deploy ausführen (`DEPLOY_IMAGE` +
-   `DEPLOY_SHA` → `./scripts/deploy.sh`; schreibt `.env.arsnova-image`),
-   Healthchecks prüfen und erst danach DNS beziehungsweise Traffic umschalten.
+   `DEPLOY_SHA` → `./scripts/deploy.sh`; schreibt `.env.arsnova-image`). Das
+   Deploy-Skript muss das Retention-Gate vor dem App-Start erfolgreich
+   abschließen. Healthchecks prüfen und erst danach DNS beziehungsweise Traffic
+   umschalten.
 8. Temporäre Restore-Dateien sicher löschen und den zeitlich begrenzten
    Recovery-Key widerrufen.
 

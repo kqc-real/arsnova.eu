@@ -17,10 +17,18 @@ export async function navigateToHostSession(
   sessionCode: string,
   initialTab: SessionStartTab,
   locationRef: LocationLike | null = resolveWindowLocation(),
+  extraQuery: Record<string, string> = {},
 ): Promise<void> {
   const basePath = localizePath(`/session/${sessionCode}/host`);
-  const targetUrl =
-    initialTab === 'quiz' ? basePath : `${basePath}?tab=${encodeURIComponent(initialTab)}`;
+  const params = new URLSearchParams();
+  if (initialTab !== 'quiz') {
+    params.set('tab', initialTab);
+  }
+  for (const [key, value] of Object.entries(extraQuery)) {
+    params.set(key, value);
+  }
+  const query = params.toString();
+  const targetUrl = query ? `${basePath}?${query}` : basePath;
 
   const navigated = await router.navigateByUrl(targetUrl);
   if (navigated) {

@@ -102,7 +102,7 @@ describe('PWA-Manifest-Shortcuts', () => {
     expect(shortcuts.map((item) => item.name)).toEqual([
       'Code eingeben',
       'Quiz erstellen',
-      'Q&A öffnen',
+      'Q&A erstellen',
       'Blitzlicht starten',
     ]);
     expect(shortcuts.map((item) => item.url)).toEqual([
@@ -144,7 +144,7 @@ describe('PWA-Manifest-Shortcuts', () => {
     expect(shortcuts.map((item) => item.name)).toEqual([
       'Enter the code',
       'Create quiz',
-      'Open Q&A',
+      'Create Q&A',
       'Start pulse check',
     ]);
     expect(shortcuts.map((item) => item.url)).toEqual([

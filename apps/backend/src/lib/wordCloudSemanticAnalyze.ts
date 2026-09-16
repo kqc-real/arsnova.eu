@@ -17,6 +17,7 @@ import {
 } from '@arsnova/shared-types';
 import { buildLexicalWordCloudEntries, buildThemeWordCloudAnalysis } from './wordCloudAnalysis';
 import type { WordCloudNormalizationMeta } from './wordCloudNormalization';
+import { registerSessionPurgeInvalidator } from './sessionPurgeInvalidation';
 import {
   embedWithWordCloudEncoder,
   WordCloudEncoderError,
@@ -69,6 +70,12 @@ function createDefaultHooks(): SemanticHooks {
 let hooks: SemanticHooks = createDefaultHooks();
 const circuit: CircuitState = { failures: 0, openedAt: null };
 const jobs = new Map<string, SessionJob>();
+
+export function invalidateWordCloudSemanticSession(sessionCode: string): void {
+  jobs.delete(sessionCode.trim().toUpperCase());
+}
+
+registerSessionPurgeInvalidator((event) => invalidateWordCloudSemanticSession(event.sessionCode));
 
 export function resetWordCloudSemanticAnalyzeForTests(overrides?: Partial<SemanticHooks>): void {
   hooks = {

@@ -23,6 +23,8 @@ import {
   type RateLimitCategory,
 } from './lib/abuseTelemetry';
 import { checkQuizUploadAttemptRate } from './lib/rateLimit';
+import { isSessionLifecycleDatabaseError } from './lib/sessionLifecycle';
+import { recordQaApiDiagnostic } from './lib/qaApiDiagnostics';
 
 export type Context = {
   req?: IncomingMessage;
@@ -117,6 +119,21 @@ const telemetryProcedure = t.procedure.use(async ({ ctx, path, type, next }) => 
   const trackLiveRequest = type !== 'subscription' && isTrackedLiveProcedure(path);
   const startedAt = Date.now();
   const result = await next();
+  const lifecycleRejection =
+    !result.ok && isSessionLifecycleDatabaseError(result.error.cause ?? result.error);
+  recordQaApiDiagnostic({
+    path,
+    durationMs: Date.now() - startedAt,
+    errorCode: result.ok ? undefined : lifecycleRejection ? 'BAD_REQUEST' : result.error.code,
+    errorMessage: result.ok ? undefined : result.error.message,
+  });
+  if (lifecycleRejection) {
+    throw new TRPCError({
+      code: 'BAD_REQUEST',
+      message: 'Die Session ist beendet. Die Aktion wurde nicht gespeichert.',
+      cause: result.error,
+    });
+  }
   const errorCode = result.ok ? undefined : result.error.code;
 
   if (result.ok && path === 'session.create') {
@@ -216,14 +233,20 @@ function extractSessionCodeFromInput(input: unknown): string | null {
   }
 
   const candidate = input as Record<string, unknown>;
-  for (const key of ['code', 'sessionCode']) {
-    const raw = candidate[key];
-    if (typeof raw === 'string' && raw.trim().length > 0) {
-      return raw.trim().toUpperCase();
-    }
+  const codes = ['code', 'sessionCode']
+    .map((key) => candidate[key])
+    .filter((raw): raw is string => typeof raw === 'string' && raw.trim().length > 0)
+    .map((raw) => raw.trim().toUpperCase());
+  if (codes.length === 0) {
+    return null;
   }
-
-  return null;
+  if (new Set(codes).size > 1) {
+    throw new TRPCError({
+      code: 'BAD_REQUEST',
+      message: 'Session-Code im Request ist widersprüchlich.',
+    });
+  }
+  return codes[0] ?? null;
 }
 
 /** Host-geschützte Procedure (Token via x-host-token). */

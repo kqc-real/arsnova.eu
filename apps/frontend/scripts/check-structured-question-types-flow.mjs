@@ -48,7 +48,7 @@ const ARTIFACT_DIR =
 const HIGH_CONFIDENCE = 5;
 const EXPECTED_DEBRIEF_PRIORITY = 3;
 const END_SESSION_RE = /session beenden|end session/i;
-const CONFIRM_END_SESSION_RE = /trotzdem verlassen|leave anyway|leave session/i;
+const CONFIRM_END_SESSION_RE = /gesamte session beenden|end (?:the )?session/i;
 
 /** Sichtbarer Prompt-Ausschnitt (Markdown-Syntax erscheint nicht im gerenderten Text). */
 const ORDERING_PROMPT = 'Schritte der Genexpression';
@@ -138,9 +138,16 @@ async function scanA11y(page, label) {
   }
 }
 
-function createPublicTrpc() {
+function createPublicTrpc(participantCapability) {
   return createTRPCProxyClient({
-    links: [httpBatchLink({ url: TRPC_URL })],
+    links: [
+      httpBatchLink({
+        url: TRPC_URL,
+        headers: participantCapability
+          ? () => ({ 'x-participant-capability': participantCapability })
+          : undefined,
+      }),
+    ],
   });
 }
 
@@ -619,7 +626,8 @@ async function submitWrongShadowVote(
     payload.categorizationSelections = wrongCategorizationSelections(questionMeta);
   }
 
-  await publicTrpc.vote.submit.mutate(payload);
+  const voter = createPublicTrpc(shadow.rejoinToken);
+  await voter.vote.submit.mutate(payload);
   logStep(true, `Shadow vote for ${label}`);
   return true;
 }
@@ -662,7 +670,8 @@ async function submitCorrectShadowVote(
     }));
   }
 
-  await publicTrpc.vote.submit.mutate(payload);
+  const voter = createPublicTrpc(shadow.rejoinToken);
+  await voter.vote.submit.mutate(payload);
   logStep(true, `Correct shadow vote for ${label}`);
   return true;
 }
@@ -1479,7 +1488,10 @@ async function runCategorizationFlow(
 async function finishSessionAndAssertDebriefPlan(host, hostTrpc, code, hardFailures) {
   await dismissDialogIfPresent(host);
   await clickButton(host, END_SESSION_RE);
-  const confirm = host.getByRole('button', { name: CONFIRM_END_SESSION_RE }).first();
+  const confirm = host
+    .locator('mat-dialog-container')
+    .getByRole('button', { name: CONFIRM_END_SESSION_RE })
+    .first();
   await confirm.waitFor({ state: 'visible', timeout: 10_000 });
   await confirm.click();
 
@@ -1604,6 +1616,7 @@ async function main() {
         code,
         nickname: `${API_PARTICIPANT_PREFIX}${index + 1}`,
         anonymousClientId: globalThis.crypto.randomUUID(),
+        joinIdempotencyKey: globalThis.crypto.randomUUID(),
       }),
     );
   }

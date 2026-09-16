@@ -49,6 +49,53 @@ Workspace-spezifisch:
 
 `npm run typecheck -w @arsnova/backend` setzt ein gebautes `@arsnova/shared-types` (`libs/shared-types/dist`) voraus; das Root-Skript `npm run typecheck` baut die Library zuerst.
 
+### Absoluter Session-Lebenszyklus und Retention (PostgreSQL)
+
+Der Migration-Job führt die opt-in Tests für #407 und #409 gegen die
+vollständig migrierte PostgreSQL-Datenbank aus:
+
+```bash
+RUN_PG_SESSION_LIFECYCLE_TESTS=1 \
+  npm run test -w @arsnova/backend -- \
+  --run src/__tests__/session.absolute-lifecycle.pg.test.ts \
+        src/__tests__/session.retention.pg.test.ts
+```
+
+Der Test benötigt echtes PostgreSQL; ein Prisma-Mock ist kein Ersatz. Er prüft
+24-Stunden-Defaults, unveränderliche Lifecycle-Marker, fail-closed
+Child-Writes, `endedAt = expiresAt` bei verspäteter Materialisierung sowie
+Verlängerung-/Ende-Races über mehrere Verbindungen. Vor dem Test müssen die
+versionierten Migrationen mit `npx prisma migrate deploy` angewendet sein. Die
+zugehörigen Controlled-Clock-Unit- und Frontendtests laufen im normalen
+Backend-/Frontend-Testjob. Der Retention-Test prüft zusätzlich die
+14-Tage-/Legal-Hold-Bridge für alte Cleanup-Images, Cascade und Set-Null,
+Audit-Minimierung, Invite-Job-Löschung sowie die getrennten 90-/365-Tage-TTLs.
+
+### Capabilities und Q&A-Skalierungsinvarianten (PostgreSQL + Redis)
+
+Der Migration-Job prüft #412 bis #415 zusätzlich gegen echte, vollständig
+migrierte Dienste:
+
+```bash
+RUN_PG_CAPABILITY_TESTS=1 RUN_PG_QA_SCALE_TESTS=1 \
+  REDIS_URL=redis://localhost:6379 \
+  npm run test -w @arsnova/backend -- \
+  --run src/__tests__/session.capabilities.pg.test.ts \
+        src/__tests__/qa.scale.pg.test.ts
+
+RUN_PG_QA_MIGRATION_TESTS=1 \
+  npm run test -w @arsnova/backend -- \
+  --run scripts/qa-scale-migration.test.ts
+```
+
+Die Capability-Suite prüft atomare Teilnahme-Kennungen, Join-Replay,
+sessiongebundenen Wiederbeitritt, Host-Credential-Rotation, Wiederherstellung
+nach Redis-Verlust und auditierten Widerruf. Die Q&A-Suite prüft die parallelen
+10./11.- und 25.000./25.001.-Grenzen, idempotenten Retry, physisches Delete,
+persistente Plattformprojektion und konkurrierende Richtungsstimmen. Der
+Migrations-Backfill läuft in einer kurzlebigen Datenbank und entfernt sie
+anschließend wieder.
+
 ### tRPC-DoD-Non-Regression-Gate
 
 Für jede neue Query/Mutation und jede Query/Mutation mit geändertem
@@ -391,33 +438,35 @@ verändert.
 
 `npm run verify:production-serving` erwartet einen laufenden Production-Serve und prüft standardmäßig `http://localhost:3000`. Für abweichende Ports oder Domains den Ziel-URL als Argument übergeben, z. B. `npm run verify:production-serving -- http://localhost:3010` oder `npm run verify:production-serving -- https://arsnova.eu`.
 
-Auf dem Server übernimmt `scripts/deploy.sh` die Reihenfolge **Digest-Image pullen → Architektur-Preflight (Host und Image müssen `arm64` sein) → Postgres/Redis starten und auf Health warten → Prisma migrate deploy (`compose run --no-deps`) → App/PDF-Worker starten → Healthcheck → Digest-Nachweis → Deploy-State schreiben**. Aktuelle Produktions-Zielplattform ist **linux/arm64**; ein amd64-only GHCR-Image wird vor Migration/Container-Änderung abgebrochen ([#229](https://github.com/kqc-real/arsnova.eu/issues/229)). `DEPLOY_IMAGE` muss die kanonische Form `ghcr.io/kqc-real/arsnova.eu@sha256:<64-hex>` haben; `ARSNOVA_IMAGE` steuert Compose für `app` und `pdf-worker` und wird in `.env.arsnova-image` persistiert (`./scripts/prod-compose.sh`). Der Deploy ist erst erfolgreich, wenn der Container healthy ist, `http://127.0.0.1:3000/trpc/health.check` antwortet, die Frontend-Shell unter `/de/` ausgeliefert wird und Registry-Digest, lokale Image-ID sowie laufende Container-Image-IDs übereinstimmen. **Image-Rollback** (`./scripts/deploy.sh --rollback`) stellt `previous.state` wieder her; **Recover** (`--recover`) stellt bei unvollständigem Deploy `current.state` wieder her. Beides setzt **keine** Datenbankmigrationen zurück. Der manuelle HTTP-Smoke über `npm run verify:production-serving -- https://<domain>` ergänzt diesen Check aus Nutzerperspektive.
+Auf dem Server übernimmt `scripts/deploy.sh` die Reihenfolge **Digest-Image pullen → Architektur-Preflight (Host und Image müssen `arm64` sein) → Postgres/Redis starten und auf Health warten → Prisma migrate deploy (`compose run --no-deps`) → überfällige Retention vollständig bereinigen → App/PDF-Worker starten → Healthcheck → Digest-Nachweis → Deploy-State schreiben**. Aktuelle Produktions-Zielplattform ist **linux/arm64**; ein amd64-only GHCR-Image wird vor Migration/Container-Änderung abgebrochen ([#229](https://github.com/kqc-real/arsnova.eu/issues/229)). `DEPLOY_IMAGE` muss die kanonische Form `ghcr.io/kqc-real/arsnova.eu@sha256:<64-hex>` haben; `ARSNOVA_IMAGE` steuert Compose für `app` und `pdf-worker` und wird in `.env.arsnova-image` persistiert (`./scripts/prod-compose.sh`). Der Deploy ist erst erfolgreich, wenn das Retention-Gate keine überfälligen Sessionkerne meldet, der Container healthy ist, `http://127.0.0.1:3000/trpc/health.check` antwortet, die Frontend-Shell unter `/de/` ausgeliefert wird und Registry-Digest, lokale Image-ID sowie laufende Container-Image-IDs übereinstimmen. **Image-Rollback** (`./scripts/deploy.sh --rollback`) stellt `previous.state` wieder her; **Recover** (`--recover`) stellt bei unvollständigem Deploy `current.state` wieder her. Beides setzt **keine** Datenbankmigrationen zurück. Der manuelle HTTP-Smoke über `npm run verify:production-serving -- https://<domain>` ergänzt diesen Check aus Nutzerperspektive.
 
 ---
 
 ## Browser- und A11y-Checks
 
-| Befehl (Frontend-Workspace)       | Zweck                                                                            |
-| --------------------------------- | -------------------------------------------------------------------------------- |
-| `a11y:axe:static`                 | axe für statische Kernrouten/-zustände                                           |
-| `a11y:layout`                     | Reflow, Fokus, 24px-Ziele, Skip-Link, Join-Fokus und mobiles Disclosure          |
-| `check:viewport`                  | Alias/älterer 320px-Reflow-Smoke                                                 |
-| `smoke:host-present-auth`         | Host/Present-Auth-Smoke                                                          |
-| `smoke:host-pairing-security`     | Story 2.10: Host / Smartphone / Presenter, Missbrauch + Lifecycle + Widerruf     |
-| `smoke:presenter-viewports`       | Gefüllte Presenter-Lobby in vier Tablet-/Beamer-Viewports                        |
-| `smoke:host-music`                | Host-Musik-/Sound-Smoke                                                          |
-| `smoke:short-text`                | Kurzantwort-Flow inklusive axe                                                   |
-| `smoke:numeric-estimate`          | Numerische-Schätzfrage-Flow-Smoke                                                |
-| `smoke:session-question-progress` | Zwei-Client-Smoke für späteren Start, Vote, Skip und Nachbesprechung             |
-| `e2e:confidence-summary-demo`     | Demo-Quiz: 30 TN + Confidence-Abschluss                                          |
-| `e2e:motd-focus`                  | Desktop-MOTD: Tastatur-/Pointer-Rücksprung und fortgesetzte Tab-Reihe            |
-| `smoke:webkit-participant-vote`   | WebKit/Safari-Engine: Smartphone-Teilnahme Join, Kanäle, Countdown, Vote         |
-| `smoke:quiz-sync`                 | Quiz-Sync-Flow-Skript                                                            |
-| `smoke:unified-session`           | Unified-Session-Flow inklusive axe                                               |
-| `smoke:product-feedback`          | ProductFeedback 12.1: Host-Sheet + Vote-Sessionende                              |
-| `smoke:product-feedback-in-app`   | ProductFeedback 12.2: Footer/Hilfe/Host/Vote/Join/Blitzlicht + Presenter-Negativ |
-| `lighthouse:a11y`                 | Score und A11y-Einzelaudits (lokal)                                              |
-| `benchmark:word-cloud`            | Wortwolken-Benchmark / Regressionen                                              |
+| Befehl (Frontend-Workspace)        | Zweck                                                                                      |
+| ---------------------------------- | ------------------------------------------------------------------------------------------ |
+| `a11y:axe:static`                  | axe für statische Kernrouten/-zustände                                                     |
+| `a11y:layout`                      | Reflow, Fokus, 24px-Ziele, Skip-Link, Join-Fokus und mobiles Disclosure                    |
+| `check:viewport`                   | Alias/älterer 320px-Reflow-Smoke                                                           |
+| `smoke:host-present-auth`          | Host/Present-Auth-Smoke                                                                    |
+| `smoke:host-pairing-security`      | Story 2.10: Host / Smartphone / Presenter, Missbrauch + Lifecycle + Widerruf               |
+| `smoke:presenter-viewports`        | Gefüllte Presenter-Lobby in vier Tablet-/Beamer-Viewports                                  |
+| `smoke:host-music`                 | Host-Musik-/Sound-Smoke                                                                    |
+| `smoke:short-text`                 | Kurzantwort-Flow inklusive axe                                                             |
+| `smoke:numeric-estimate`           | Numerische-Schätzfrage-Flow-Smoke                                                          |
+| `smoke:session-question-progress`  | Zwei-Client-Smoke für späteren Start, Vote, Skip und Nachbesprechung                       |
+| `e2e:confidence-summary-demo`      | Demo-Quiz: 30 TN + Confidence-Abschluss                                                    |
+| `e2e:motd-focus`                   | Desktop-MOTD: Tastatur-/Pointer-Rücksprung und fortgesetzte Tab-Reihe                      |
+| `smoke:webkit-participant-vote`    | WebKit/Safari-Engine: Smartphone-Teilnahme Join, Kanäle, Countdown, Vote                   |
+| `smoke:quiz-sync`                  | Quiz-Sync-Flow-Skript                                                                      |
+| `smoke:unified-session`            | Unified-Session-Flow inklusive axe                                                         |
+| `smoke:product-feedback`           | ProductFeedback 12.1: Host-Sheet + Vote-Sessionende                                        |
+| `smoke:product-feedback-in-app`    | ProductFeedback 12.2: Footer/Hilfe/Host/Vote/Join/Blitzlicht + Presenter-Negativ           |
+| `smoke:epic-405-host-qa-lifecycle` | Epic #405: Host-Notfallkarte, Q&A-Footer, Self-Service-Wiederherstellung                   |
+| `smoke:epic-405-participant-qa`    | Epic #405: Q&A-Join, Frage senden, Sortierung, Favoriten, Wortwolke, Schreibpfad nach Ende |
+| `lighthouse:a11y`                  | Score und A11y-Einzelaudits (lokal)                                                        |
+| `benchmark:word-cloud`             | Wortwolken-Benchmark / Regressionen                                                        |
 
 Das PDF/UA-Gate liegt im Root-Workspace:
 
@@ -430,8 +479,9 @@ gegen das Profil `ua1`. Das manuelle Prüfprotokoll steht unter
 [`praktikum/ACCESSIBILITY-PDFUA-PRUEFPROTOKOLL.md`](praktikum/ACCESSIBILITY-PDFUA-PRUEFPROTOKOLL.md).
 
 `a11y:axe:static`, `a11y:layout`, `smoke:presenter-viewports`,
-`smoke:short-text`, `smoke:session-question-progress` und
-`smoke:unified-session` sind Bestandteile des Chromium-Jobs `e2e-chromium`.
+`smoke:short-text`, `smoke:session-question-progress`,
+`smoke:unified-session`, `smoke:epic-405-host-qa-lifecycle` und
+`smoke:epic-405-participant-qa` sind Bestandteile des Chromium-Jobs `e2e-chromium`.
 Der Presenter-Smoke legt vorab 50 Personen in einer Lobby an und blockiert bei
 Scroll, Clipping oder Überlappung in 712×1138, 1138×712, 820×1180 und
 1280×720 CSS-Pixeln; Fehlerscreenshots landen im E2E-Artefakt. Der Job

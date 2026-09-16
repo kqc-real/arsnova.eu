@@ -1,5 +1,6 @@
 import { getRedis } from '../redis';
 import { logger } from './logger';
+import { markQaPresenceGap, markQaPresenceObservation } from './qaTelemetry';
 
 const PRESENCE_TTL_SECONDS = 180;
 const PRESENCE_TTL_MS = PRESENCE_TTL_SECONDS * 1000;
@@ -29,7 +30,9 @@ export async function touchParticipantPresence(
       .zremrangebyscore(presenceKey(sessionId), 0, cutoff)
       .expire(presenceKey(sessionId), PRESENCE_KEY_TTL_SECONDS)
       .exec();
+    await markQaPresenceObservation(nowMs);
   } catch (err) {
+    markQaPresenceGap();
     if (!touchWarned) {
       touchWarned = true;
       logger.warn(
@@ -50,6 +53,7 @@ export async function removeParticipantPresence(
   try {
     await getRedis().zrem(presenceKey(sessionId), participantId);
   } catch (err) {
+    markQaPresenceGap();
     if (!touchWarned) {
       touchWarned = true;
       logger.warn(
@@ -101,6 +105,7 @@ export async function getActiveParticipantIdsForSession(
     const ids = await redis.zrangebyscore(key, cutoff, '+inf');
     return new Set(ids.filter((id) => typeof id === 'string' && id.length > 0));
   } catch (err) {
+    markQaPresenceGap();
     if (!countWarned) {
       countWarned = true;
       logger.warn(
@@ -146,6 +151,7 @@ export async function getActiveParticipantCountsForSessions(
     }
     return counts;
   } catch (err) {
+    markQaPresenceGap();
     if (!countWarned) {
       countWarned = true;
       logger.warn(

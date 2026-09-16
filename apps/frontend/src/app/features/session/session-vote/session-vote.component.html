@@ -135,6 +135,7 @@
         <h1
           id="vote-session-end-anchor"
           class="dialog-title-header__heading"
+          tabindex="-1"
           i18n="@@sessionVote.sessionEndGateTitle"
         >
           Session beendet
@@ -160,8 +161,8 @@
       </section>
     } @else if (sessionFeedbackAvailable() && !feedbackSubmitted()) {
       <p class="vote-session-end-gate__lead" i18n="@@sessionVote.sessionEndFeedbackLead">
-        Die Session ist beendet. Wenn du magst, bewerte sie kurz – danach kannst du zur Startseite
-        wechseln.
+        Die Session ist beendet. Wenn du magst, bewerte sie kurz, bevor du zur Startseite
+        zurückkehrst.
       </p>
     }
 
@@ -305,6 +306,7 @@
         [sessionCode]="code"
         [participantId]="participantId()"
         fallbackFocusSelector="#session-end-home-button"
+        [focusOnBootstrap]="false"
         variant="inline"
       />
     }
@@ -2577,10 +2579,21 @@
         </div>
 
         @if (!isQaChannelOpen()) {
-          <p class="session-channel-card__text" i18n="@@sessionTabs.qaClosedNotice">
-            Der Q&A-Kanal wurde von der Lehrperson geschlossen. Fragen und Bewertungen sind gerade
-            nicht möglich.
-          </p>
+          @if (isQaDeadlineExpired()) {
+            <p
+              class="session-channel-card__text"
+              role="status"
+              i18n="@@sessionQa.deadlineExpiredParticipant"
+            >
+              Die Teilnahmefrist ist abgelaufen. Neue Fragen und Bewertungen sind nicht mehr
+              möglich.
+            </p>
+          } @else {
+            <p class="session-channel-card__text" i18n="@@sessionTabs.qaClosedNotice">
+              Der Q&A-Kanal wurde von der Lehrperson geschlossen. Fragen und Bewertungen sind gerade
+              nicht möglich.
+            </p>
+          }
         } @else if (sessionSettings().channels?.qa?.moderationMode) {
           <div class="session-qa-moderation-notice" role="status">
             <mat-icon aria-hidden="true">visibility</mat-icon>
@@ -2603,6 +2616,15 @@
               [placeholder]="vpc.voteQaPlaceholder(isPlayfulPreset())"
             ></textarea>
             <div class="session-qa-form__meta">
+              @if (qaQuota(); as quota) {
+                <span class="session-qa-form__quota" i18n="@@sessionQa.questionQuota">
+                  Noch {{ quota.participantRemaining }} von 10 Fragen möglich.
+                </span>
+                <span class="session-qa-form__quota" i18n="@@sessionQa.sessionQuota">
+                  Sessionweit noch {{ formatCount(quota.sessionRemaining) }} von
+                  {{ formatCount(qaSessionQuestionLimit) }} Plätzen frei.
+                </span>
+              }
               <span
                 class="session-qa-form__counter"
                 [class.session-qa-form__counter--warn]="qaDraft().trim().length >= 450"
@@ -2746,6 +2768,33 @@
                 </article>
               }
             </div>
+            @if (qaListPageIndex() > 0 || qaListNextCursor()) {
+              <nav
+                class="session-qa-paging"
+                i18n-aria-label="@@sessionQa.pagingAria"
+                aria-label="Fragenseiten"
+              >
+                <button
+                  mat-stroked-button
+                  type="button"
+                  [disabled]="qaListPageLoading() || qaListPageIndex() === 0"
+                  (click)="loadPreviousQaQuestions()"
+                  i18n="@@sessionQa.loadPrevious"
+                >
+                  Zurück
+                </button>
+                <span i18n="@@sessionQa.page">Seite {{ qaListPageIndex() + 1 }}</span>
+                <button
+                  mat-stroked-button
+                  type="button"
+                  [disabled]="qaListPageLoading() || !qaListNextCursor()"
+                  (click)="loadMoreQaQuestions()"
+                  i18n="@@sessionQa.loadNext"
+                >
+                  Weiter
+                </button>
+              </nav>
+            }
           }
         } @else {
           <p class="session-channel-card__info" role="status" i18n="@@sessionTabs.qaClosedHint">

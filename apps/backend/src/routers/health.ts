@@ -35,6 +35,11 @@ import {
 import { getWebSocketTelemetrySnapshot } from '../lib/websocketTelemetry';
 import { readCspReportSignals } from '../lib/cspReportIngest';
 import { RATE_LIMIT_ENV } from '../lib/rateLimit';
+import { readQaTelemetry } from '../lib/qaTelemetry';
+import { snapshotQaApiDiagnostics } from '../lib/qaApiDiagnostics';
+import { getQaNlpMetrics } from '../lib/qaNlpQueue';
+import { getQaSummaryQueueMetrics } from '../lib/qaSummaryQueue';
+import { snapshotWordCloudNlpTelemetry } from '../lib/wordCloudNlpTelemetry';
 import type {
   FooterStatusDTO,
   HealthSecurityStatsDTO,
@@ -65,6 +70,7 @@ type LoadStatusInputs = {
 
 let cachedServerStats: { value: ServerStatsDTO; expiresAt: number } | null = null;
 let serverStatsInFlight: Promise<ServerStatsDTO> | null = null;
+let cachedFooterStatus: { value: FooterStatusDTO; expiresAt: number } | null = null;
 
 function addUtcDays(base: Date, days: number): Date {
   const next = new Date(base);
@@ -254,6 +260,7 @@ async function fetchHealthCheck() {
 
 /** Server-Statistik für Startseite (Story 0.4). Bei nicht erreichbarer DB: Fallback (0 Werte), keine Prisma-Fehler. */
 async function computeServerStats(): Promise<ServerStatsDTO> {
+  const statsGeneratedAt = new Date();
   const activeSessionWhere = {
     status: { not: 'FINISHED' as const },
   };
@@ -277,9 +284,22 @@ async function computeServerStats(): Promise<ServerStatsDTO> {
             maxParticipantsSingleSession: number | null;
             completedSessionsTotal: number | null;
             updatedAt: Date | null;
+            qaQuestionsTotal: bigint | number | null;
+            maxQaQuestionsSingleSession: number | null;
+            maxQaQuestionsStatisticUpdatedAt: Date | null;
+            qaStatisticsTrackingStartedAt: Date | null;
+            qaStatisticsProjectedAt: Date | null;
           }>
         >`
-          SELECT "maxParticipantsSingleSession", "completedSessionsTotal", "updatedAt"
+          SELECT
+            "maxParticipantsSingleSession",
+            "completedSessionsTotal",
+            "updatedAt",
+            "qaQuestionsTotal",
+            "maxQaQuestionsSingleSession",
+            "maxQaQuestionsStatisticUpdatedAt",
+            "qaStatisticsTrackingStartedAt",
+            "qaStatisticsProjectedAt"
           FROM "PlatformStatistic"
           WHERE "id" = 'default'
           LIMIT 1
@@ -289,6 +309,12 @@ async function computeServerStats(): Promise<ServerStatsDTO> {
           maxParticipantsSingleSession: row?.maxParticipantsSingleSession ?? 0,
           completedSessionsTotal: row?.completedSessionsTotal ?? null,
           updatedAtIso: row?.updatedAt?.toISOString() ?? null,
+          qaQuestionsTotal: Number(row?.qaQuestionsTotal ?? 0),
+          maxQaQuestionsSingleSession: row?.maxQaQuestionsSingleSession ?? 0,
+          maxQaQuestionsStatisticUpdatedAt:
+            row?.maxQaQuestionsStatisticUpdatedAt?.toISOString() ?? null,
+          qaStatisticsTrackingStartedAt: row?.qaStatisticsTrackingStartedAt?.toISOString() ?? null,
+          qaStatisticsProjectedAt: row?.qaStatisticsProjectedAt?.toISOString() ?? null,
         };
       } catch {
         try {
@@ -309,6 +335,11 @@ async function computeServerStats(): Promise<ServerStatsDTO> {
             maxParticipantsSingleSession: row?.maxParticipantsSingleSession ?? 0,
             completedSessionsTotal: null,
             updatedAtIso: row?.updatedAt?.toISOString() ?? null,
+            qaQuestionsTotal: 0,
+            maxQaQuestionsSingleSession: 0,
+            maxQaQuestionsStatisticUpdatedAt: null,
+            qaStatisticsTrackingStartedAt: null,
+            qaStatisticsProjectedAt: null,
           };
         } catch {
           // Test-/Mock-Fallback ohne Raw-SQL.
@@ -318,12 +349,24 @@ async function computeServerStats(): Promise<ServerStatsDTO> {
               maxParticipantsSingleSession: true,
               completedSessionsTotal: true,
               updatedAt: true,
+              qaQuestionsTotal: true,
+              maxQaQuestionsSingleSession: true,
+              maxQaQuestionsStatisticUpdatedAt: true,
+              qaStatisticsTrackingStartedAt: true,
+              qaStatisticsProjectedAt: true,
             },
           });
           return {
             maxParticipantsSingleSession: row?.maxParticipantsSingleSession ?? 0,
             completedSessionsTotal: row?.completedSessionsTotal ?? null,
             updatedAtIso: row?.updatedAt?.toISOString() ?? null,
+            qaQuestionsTotal: Number(row?.qaQuestionsTotal ?? 0),
+            maxQaQuestionsSingleSession: row?.maxQaQuestionsSingleSession ?? 0,
+            maxQaQuestionsStatisticUpdatedAt:
+              row?.maxQaQuestionsStatisticUpdatedAt?.toISOString() ?? null,
+            qaStatisticsTrackingStartedAt:
+              row?.qaStatisticsTrackingStartedAt?.toISOString() ?? null,
+            qaStatisticsProjectedAt: row?.qaStatisticsProjectedAt?.toISOString() ?? null,
           };
         }
       }
@@ -353,6 +396,8 @@ async function computeServerStats(): Promise<ServerStatsDTO> {
       dailyHighscoreRows,
       loadSignals,
       sloSignals,
+      activeQaSessionRows,
+      qaTelemetry,
     ] = await Promise.all([
       prisma.session.count({ where: activeSessionWhere }),
       prisma.session.findMany({
@@ -365,6 +410,18 @@ async function computeServerStats(): Promise<ServerStatsDTO> {
       dailyHighscoreRowsPromise,
       readLoadSignals(),
       readSloSignals(),
+      prisma.session.findMany({
+        where: {
+          status: { not: 'FINISHED' },
+          endedAt: null,
+          expiresAt: { gt: statsGeneratedAt },
+          qaOpen: true,
+          qaClosesAt: { gt: statsGeneratedAt },
+          OR: [{ type: 'Q_AND_A' }, { qaEnabled: true }],
+        },
+        select: { id: true },
+      }),
+      readQaTelemetry(statsGeneratedAt.getTime()),
     ]);
     const openSessionIds = activeSessionIds.map((session) => session.id);
     const [participantCounts, totalParticipants] = await Promise.all([
@@ -374,6 +431,13 @@ async function computeServerStats(): Promise<ServerStatsDTO> {
     const activeSessions = [...participantCounts.values()].filter(
       (count) => count >= ACTIVE_SESSION_MIN_PARTICIPANTS,
     ).length;
+    const activeQaSessions =
+      qaTelemetry.presenceStatus === 'AVAILABLE'
+        ? activeQaSessionRows.filter(
+            (session) =>
+              (participantCounts.get(session.id) ?? 0) >= ACTIVE_SESSION_MIN_PARTICIPANTS,
+          ).length
+        : null;
     const persistedCompletedSessionsTotal = platformRow.completedSessionsTotal;
     const completedSessionsTotal =
       typeof persistedCompletedSessionsTotal === 'number'
@@ -417,6 +481,17 @@ async function computeServerStats(): Promise<ServerStatsDTO> {
       maxParticipantsStatisticUpdatedAt: platformRow.updatedAtIso,
       serviceStatus: getServiceStatus(loadStatus, sloSignals),
       loadStatus,
+      activeQaSessions,
+      qaQuestionsLastMinute: qaTelemetry.questionsLastMinute,
+      qaRatingsLastMinute: qaTelemetry.ratingsLastMinute,
+      qaQuestionsTotal: platformRow.qaQuestionsTotal,
+      maxQaQuestionsSingleSession: platformRow.maxQaQuestionsSingleSession,
+      qaStatisticsTrackingStartedAt: platformRow.qaStatisticsTrackingStartedAt,
+      qaStatisticsProjectedAt: platformRow.qaStatisticsProjectedAt,
+      maxQaQuestionsStatisticUpdatedAt: platformRow.maxQaQuestionsStatisticUpdatedAt,
+      statsGeneratedAt: statsGeneratedAt.toISOString(),
+      qaMinuteMetricsStatus: qaTelemetry.minuteStatus,
+      qaPresenceMetricsStatus: qaTelemetry.presenceStatus,
     };
   } catch {
     const emptyHighscores = buildDailyHighscores([]);
@@ -435,6 +510,17 @@ async function computeServerStats(): Promise<ServerStatsDTO> {
       maxParticipantsStatisticUpdatedAt: null,
       serviceStatus: 'stable' as const,
       loadStatus: 'healthy' as const,
+      activeQaSessions: null,
+      qaQuestionsLastMinute: null,
+      qaRatingsLastMinute: null,
+      qaQuestionsTotal: 0,
+      maxQaQuestionsSingleSession: 0,
+      qaStatisticsTrackingStartedAt: null,
+      qaStatisticsProjectedAt: null,
+      maxQaQuestionsStatisticUpdatedAt: null,
+      statsGeneratedAt: statsGeneratedAt.toISOString(),
+      qaMinuteMetricsStatus: 'UNAVAILABLE' as const,
+      qaPresenceMetricsStatus: 'UNAVAILABLE' as const,
     };
   }
 }
@@ -458,6 +544,9 @@ export async function fetchSecurityStats(): Promise<HealthSecurityStatsDTO> {
   ]);
   const pdfSnapshot = pdfConcurrencyLimiter.snapshot();
   const webSocketSnapshot = getWebSocketTelemetrySnapshot();
+  const qaNlp = getQaNlpMetrics();
+  const qaSummary = getQaSummaryQueueMetrics();
+  const qaWordCloud = snapshotWordCloudNlpTelemetry();
   return {
     databaseStatus,
     sessionCreatePerHour: RATE_LIMIT_ENV.sessionCreatePerHour,
@@ -516,6 +605,17 @@ export async function fetchSecurityStats(): Promise<HealthSecurityStatsDTO> {
     yjsWebSocketDocumentRejectedLastMinute: webSocketSnapshot.yjsDocumentRejectedLastMinute,
     yjsWebSocketAwarenessRejectedLastMinute: webSocketSnapshot.yjsAwarenessRejectedLastMinute,
     yjsWebSocketOutboundRejectedLastMinute: webSocketSnapshot.yjsOutboundRejectedLastMinute,
+    qaApi: snapshotQaApiDiagnostics(),
+    qaNlp: {
+      queueLength: qaNlp.queueLength,
+      running: qaNlp.running,
+      completed: qaNlp.completed,
+      failed: qaNlp.failed,
+      fallback: qaNlp.fallback,
+      lastLatencyMs: qaNlp.lastLatencyMs,
+    },
+    qaSummary,
+    qaWordCloud,
   };
 }
 
@@ -550,11 +650,48 @@ async function fetchServerStats(options?: { forceFresh?: boolean }): Promise<Ser
 }
 
 async function fetchFooterStatus(): Promise<FooterStatusDTO> {
-  const stats = await fetchServerStats();
-  return {
-    serviceStatus: stats.serviceStatus,
-    loadStatus: stats.loadStatus,
-  };
+  const now = Date.now();
+  if (cachedFooterStatus && cachedFooterStatus.expiresAt > now) {
+    return cachedFooterStatus.value;
+  }
+  try {
+    const [sessions, loadSignals, sloSignals, activeBlitzRounds] = await Promise.all([
+      prisma.session.findMany({
+        where: { status: { not: 'FINISHED' } },
+        select: { id: true },
+      }),
+      readLoadSignals(now),
+      readSloSignals(now),
+      countActiveBlitzRounds().catch(() => 0),
+    ]);
+    const participantCounts = await getActiveParticipantCountsForSessions(
+      sessions.map((session) => session.id),
+      now,
+    );
+    const totalParticipants = [...participantCounts.values()].reduce(
+      (sum, count) => sum + Math.max(0, count),
+      0,
+    );
+    const activeSessions = [...participantCounts.values()].filter(
+      (count) => count >= ACTIVE_SESSION_MIN_PARTICIPANTS,
+    ).length;
+    const loadStatus = getLoadStatus({
+      activeSessions,
+      totalParticipants,
+      activeBlitzRounds,
+      votesLastMinute: loadSignals.votesLastMinute,
+      sessionTransitionsLastMinute: loadSignals.sessionTransitionsLastMinute,
+      activeCountdownSessions: loadSignals.activeCountdownSessions,
+    });
+    const value = {
+      serviceStatus: getServiceStatus(loadStatus, sloSignals),
+      loadStatus,
+    };
+    cachedFooterStatus = { value, expiresAt: now + SERVER_STATS_CACHE_TTL_MS };
+    return value;
+  } catch {
+    return { serviceStatus: 'stable', loadStatus: 'healthy' };
+  }
 }
 
 export function resetHealthStatsCacheForTests(): void {

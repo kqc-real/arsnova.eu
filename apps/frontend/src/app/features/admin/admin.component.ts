@@ -35,6 +35,7 @@ import { AdminProductFeedbackPanelComponent } from './admin-product-feedback-pan
 import { getAdminToken, setAdminToken } from '../../core/trpc.client';
 import type {
   AdminSessionDetailDTO,
+  AdminResetSessionHostAccessOutput,
   AdminSessionSummaryDTO,
   SessionStatus,
   SessionType,
@@ -128,6 +129,16 @@ export class AdminComponent implements OnInit {
   readonly exportLoading = signal(false);
   readonly exportError = signal<string | null>(null);
   readonly exportInfo = signal<string | null>(null);
+  readonly hostResetLoading = signal(false);
+  readonly hostResetError = signal<string | null>(null);
+  readonly hostResetResult = signal<AdminResetSessionHostAccessOutput | null>(null);
+  readonly hostResetEvidenceCategory = signal<
+    'PREEXISTING_VERIFIED_SUPPORT_CASE' | 'INDEPENDENT_OFFICIAL_ORGANIZATION_CONFIRMATION'
+  >('PREEXISTING_VERIFIED_SUPPORT_CASE');
+  readonly hostResetRequesterReference = signal('');
+  readonly hostResetAuthorizationReference = signal('');
+  readonly hostResetSupportCaseReference = signal('');
+  readonly hostResetReason = signal('');
 
   readonly hasSessions = computed(() => this.sessions().length > 0);
   readonly hasAnySessions = computed(() => this.sessionTotal() > 0);
@@ -186,6 +197,54 @@ export class AdminComponent implements OnInit {
     this.resetRecordConfirmText.set(value.slice(0, 200));
   }
 
+  updateHostResetField(
+    field: 'requester' | 'authorization' | 'supportCase' | 'reason',
+    value: string,
+  ): void {
+    const normalized = value.slice(0, field === 'reason' ? 500 : 200);
+    if (field === 'requester') this.hostResetRequesterReference.set(normalized);
+    if (field === 'authorization') this.hostResetAuthorizationReference.set(normalized);
+    if (field === 'supportCase') this.hostResetSupportCaseReference.set(normalized.slice(0, 120));
+    if (field === 'reason') this.hostResetReason.set(normalized);
+  }
+
+  canResetHostAccess(): boolean {
+    return (
+      this.hostResetRequesterReference().trim().length >= 3 &&
+      this.hostResetAuthorizationReference().trim().length >= 3 &&
+      this.hostResetSupportCaseReference().trim().length >= 3 &&
+      this.hostResetReason().trim().length >= 10
+    );
+  }
+
+  async resetHostAccess(): Promise<void> {
+    const detail = this.selectedDetail();
+    if (!detail || this.hostResetLoading() || !this.canResetHostAccess()) return;
+    this.hostResetLoading.set(true);
+    this.hostResetError.set(null);
+    this.hostResetResult.set(null);
+    try {
+      const result = await trpc.admin.resetSessionHostAccess.mutate({
+        code: detail.session.sessionCode,
+        evidenceCategory: this.hostResetEvidenceCategory(),
+        requesterIdentityVerificationReference: this.hostResetRequesterReference().trim(),
+        sessionAuthorizationEvidenceReference: this.hostResetAuthorizationReference().trim(),
+        supportCaseReference: this.hostResetSupportCaseReference().trim(),
+        reason: this.hostResetReason().trim(),
+      });
+      this.hostResetResult.set(result);
+    } catch (error) {
+      this.hostResetError.set(
+        localizeKnownServerError(
+          error,
+          $localize`:@@admin.hostResetError:Host-Zugang konnte nicht zurückgesetzt werden.`,
+        ),
+      );
+    } finally {
+      this.hostResetLoading.set(false);
+    }
+  }
+
   async login(): Promise<void> {
     if (!this.adminSecret().trim() || this.loginLoading()) {
       return;
@@ -236,6 +295,16 @@ export class AdminComponent implements OnInit {
     this.lookupError.set(null);
     this.holdError.set(null);
     this.holdInfo.set(null);
+    this.clearHostResetForm();
+  }
+
+  private clearHostResetForm(): void {
+    this.hostResetError.set(null);
+    this.hostResetResult.set(null);
+    this.hostResetRequesterReference.set('');
+    this.hostResetAuthorizationReference.set('');
+    this.hostResetSupportCaseReference.set('');
+    this.hostResetReason.set('');
   }
 
   async lookupByCode(): Promise<void> {
@@ -247,6 +316,7 @@ export class AdminComponent implements OnInit {
     this.detailError.set(null);
     try {
       const detail = await trpc.admin.getSessionByCode.query({ code: this.lookupCode() });
+      this.clearHostResetForm();
       this.upsertVisibleSession(detail.session);
       this.selectedSessionId.set(detail.session.sessionId);
       this.selectedDetail.set(detail);
@@ -267,6 +337,7 @@ export class AdminComponent implements OnInit {
     if (this.detailLoading()) {
       return;
     }
+    this.clearHostResetForm();
     if (
       this.selectedSessionId() === sessionId &&
       this.selectedDetail()?.session.sessionId === sessionId

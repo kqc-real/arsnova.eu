@@ -78,6 +78,7 @@ async function virtualUser(id) {
         code: SESSION_CODE,
         nickname,
         anonymousClientId: globalThis.crypto.randomUUID(),
+        joinIdempotencyKey: globalThis.crypto.randomUUID(),
       }),
     });
     const dt = performance.now() - tJoin;

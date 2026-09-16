@@ -19,7 +19,8 @@ module.exports = {
         'cumulative-layout-shift': ['error', { maxNumericValue: 0.1 }],
         // Median statt Einzellauf: GitHub-Runner schwanken stärker als lokaler Prod-Serve
         // (QA-Nachlauf 2026-07-11: TBT 138–199 ms lokal; CI-Median oft 700–850 ms).
-        'total-blocking-time': ['error', { maxNumericValue: 850, aggregationMethod: 'median' }],
+        // 2026-09-15: identische Static-Builds lagen in CI bei Median 775–925 ms.
+        'total-blocking-time': ['error', { maxNumericValue: 1000, aggregationMethod: 'median' }],
       },
     },
     upload: {

@@ -112,6 +112,38 @@
     color: var(--mat-sys-on-surface);
   }
 
+  &__retention {
+    display: grid;
+    gap: 0.45rem;
+    margin-top: 0.75rem;
+    padding: 0.75rem;
+    border: 1px solid var(--mat-sys-outline-variant);
+    border-radius: var(--mat-sys-corner-medium);
+    background: var(--mat-sys-surface-container-low);
+    color: var(--mat-sys-on-surface-variant);
+    font: var(--mat-sys-body-small);
+
+    p {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 0.35rem;
+      margin: 0;
+      line-height: 1.5;
+    }
+
+    mat-icon {
+      flex: 0 0 auto;
+      width: 1.15rem;
+      height: 1.15rem;
+      font-size: 1.15rem;
+    }
+
+    strong {
+      color: var(--mat-sys-on-surface);
+    }
+  }
+
   &__nickname-group {
     margin-bottom: 1rem;
   }

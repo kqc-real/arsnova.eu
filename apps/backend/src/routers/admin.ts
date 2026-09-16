@@ -4,6 +4,8 @@ import {
   AdminDeleteAllSessionsOutputSchema,
   AdminResetMaxParticipantsRecordInputSchema,
   AdminResetMaxParticipantsRecordOutputSchema,
+  AdminResetSessionHostAccessInputSchema,
+  AdminResetSessionHostAccessOutputSchema,
   AdminDeleteSessionInputSchema,
   AdminDeleteSessionOutputSchema,
   AdminExportInputSchema,
@@ -23,6 +25,7 @@ import {
   HealthSecurityStatsDTOSchema,
   QUIZ_EXPORT_VERSION,
   QuizExportSchema,
+  SESSION_POST_PROCESSING_HOURS,
   resolveShortTextMaxLength,
 } from '@arsnova/shared-types';
 import { adminProcedure, publicProcedure, router } from '../trpc';
@@ -49,11 +52,16 @@ import {
   getIncludedSessionQuestionIds,
   parseSessionQuestionProgress,
 } from '../lib/sessionQuestionProgress';
+import { buildSessionRetentionTimeline } from '../lib/sessionLifecycle';
+import { invalidateHostSessionToken } from '../lib/hostAuth';
+import { invalidateHostPairingForSession } from '../lib/hostPairing';
+import { logger } from '../lib/logger';
+import { publishSessionPurgeInvalidation } from '../lib/sessionPurgeInvalidation';
+import { resetSessionHostAccess } from '../lib/hostCredentialRecovery';
 
 const DEFAULT_LEGAL_HOLD_DAYS = 30;
 const MIN_LEGAL_HOLD_DAYS = 1;
 const MAX_LEGAL_HOLD_DAYS = 365;
-const SESSION_RETENTION_HOURS = 24;
 const ADMIN_EXPORT_SCHEMA_VERSION = 1;
 const ADMIN_BULK_DELETE_CONFIRMATION = 'ALLE SESSIONS LOESCHEN';
 const ADMIN_RESET_RECORD_CONFIRMATION = 'REKORD RESETZEN';
@@ -69,32 +77,37 @@ function resolveDefaultLegalHoldDays(): number {
 function resolveRetentionState(session: {
   status: 'LOBBY' | 'QUESTION_OPEN' | 'ACTIVE' | 'PAUSED' | 'RESULTS' | 'DISCUSSION' | 'FINISHED';
   endedAt: Date | null;
+  expiresAt?: Date | null;
   legalHoldUntil: Date | null;
   legalHoldReason: string | null;
 }): AdminRetentionStateDTO {
-  const now = Date.now();
-  if (session.status !== 'FINISHED') {
+  const now = new Date();
+  const timeline = buildSessionRetentionTimeline(session, now);
+  if (!timeline.endedAt) {
     return {
       window: 'RUNNING',
       legalHoldUntil: session.legalHoldUntil?.toISOString() ?? null,
       legalHoldReason: session.legalHoldReason ?? null,
+      postProcessingEndsAt: timeline.postProcessingEndsAt?.toISOString() ?? null,
+      purgeEligibleAt: timeline.purgeEligibleAt?.toISOString() ?? null,
+      expectedDeletionAt: timeline.expectedDeletionAt?.toISOString() ?? null,
+      deletionDelayedByLegalHold: timeline.deletionDelayedByLegalHold,
     };
   }
-
-  if (session.legalHoldUntil && session.legalHoldUntil.getTime() > now) {
-    return {
-      window: 'POST_SESSION_24H',
-      legalHoldUntil: session.legalHoldUntil.toISOString(),
-      legalHoldReason: session.legalHoldReason ?? null,
-    };
-  }
-
-  const retentionCutoff = now - SESSION_RETENTION_HOURS * 60 * 60 * 1000;
-  const isWithinRetention = !session.endedAt || session.endedAt.getTime() >= retentionCutoff;
+  const purgeOverdue =
+    timeline.postProcessingEndsAt !== null &&
+    now.getTime() >= timeline.postProcessingEndsAt.getTime() &&
+    !timeline.deletionDelayedByLegalHold;
   return {
-    window: isWithinRetention ? 'POST_SESSION_24H' : 'PURGED',
-    legalHoldUntil: null,
+    // Historischer Wire-Wert; siehe Shared-Contract. PURGED ist fail-closed,
+    // solange ein überfälliger Datensatz noch auf den Cleanup wartet.
+    window: purgeOverdue ? 'PURGED' : 'POST_SESSION_24H',
+    legalHoldUntil: session.legalHoldUntil?.toISOString() ?? null,
     legalHoldReason: session.legalHoldReason ?? null,
+    postProcessingEndsAt: timeline.postProcessingEndsAt?.toISOString() ?? null,
+    purgeEligibleAt: timeline.purgeEligibleAt?.toISOString() ?? null,
+    expectedDeletionAt: timeline.expectedDeletionAt?.toISOString() ?? null,
+    deletionDelayedByLegalHold: timeline.deletionDelayedByLegalHold,
   };
 }
 
@@ -111,16 +124,22 @@ const ADMIN_SESSION_STATUS_PRIORITY: Record<
   FINISHED: 6,
 };
 
+function factualSessionStartedAt(session: { createdAt?: Date | null; startedAt: Date }): Date {
+  return session.createdAt ?? session.startedAt;
+}
+
 function compareAdminSessionsByActivity(
   left: {
     status: keyof typeof ADMIN_SESSION_STATUS_PRIORITY;
     statusChangedAt: Date;
+    createdAt?: Date | null;
     startedAt: Date;
     id: string;
   },
   right: {
     status: keyof typeof ADMIN_SESSION_STATUS_PRIORITY;
     statusChangedAt: Date;
+    createdAt?: Date | null;
     startedAt: Date;
     id: string;
   },
@@ -136,7 +155,8 @@ function compareAdminSessionsByActivity(
     return activityDelta;
   }
 
-  const startedDelta = right.startedAt.getTime() - left.startedAt.getTime();
+  const startedDelta =
+    factualSessionStartedAt(right).getTime() - factualSessionStartedAt(left).getTime();
   if (startedDelta !== 0) {
     return startedDelta;
   }
@@ -151,6 +171,7 @@ function toSessionSummary(session: {
   status: 'LOBBY' | 'QUESTION_OPEN' | 'ACTIVE' | 'PAUSED' | 'RESULTS' | 'DISCUSSION' | 'FINISHED';
   quiz: { name: string } | null;
   _count: { participants: number };
+  createdAt?: Date | null;
   startedAt: Date;
   statusChangedAt: Date;
   endedAt: Date | null;
@@ -164,7 +185,7 @@ function toSessionSummary(session: {
     status: session.status,
     quizName: session.quiz?.name ?? null,
     participantCount: session._count.participants,
-    startedAt: session.startedAt.toISOString(),
+    startedAt: factualSessionStartedAt(session).toISOString(),
     endedAt: session.endedAt?.toISOString() ?? null,
     lastActivityAt: session.statusChangedAt.toISOString(),
     retention: resolveRetentionState(session),
@@ -327,6 +348,10 @@ function toBufferFromPdf(doc: InstanceType<typeof PDFDocument>): Promise<Buffer>
 
 function hashSha256(input: Buffer | string): string {
   return createHash('sha256').update(input).digest('hex');
+}
+
+function pseudonymousAdminIdentifier(adminToken: string | undefined): string {
+  return adminToken ? `admin-session:${hashSha256(adminToken).slice(0, 24)}` : 'admin';
 }
 
 function buildAuthorityPdf(payload: AuthorityExportPayload, payloadHash: string): Promise<Buffer> {
@@ -515,7 +540,9 @@ export const adminRouter = router({
     .output(AdminSessionListDTOSchema)
     .query(async ({ input }) => {
       const now = new Date();
-      const retentionCutoff = new Date(now.getTime() - SESSION_RETENTION_HOURS * 60 * 60 * 1000);
+      const retentionCutoff = new Date(
+        now.getTime() - SESSION_POST_PROCESSING_HOURS * 60 * 60 * 1000,
+      );
       const page = input.page;
       const pageSize = input.pageSize;
       const skip = (page - 1) * pageSize;
@@ -673,7 +700,7 @@ export const adminRouter = router({
     .mutation(async ({ input }) => {
       const session = await prisma.session.findUnique({
         where: { id: input.sessionId },
-        select: { id: true, status: true, legalHoldUntil: true },
+        select: { id: true },
       });
       if (!session) {
         throw new TRPCError({ code: 'NOT_FOUND', message: 'Session nicht gefunden.' });
@@ -684,7 +711,7 @@ export const adminRouter = router({
         const legalHoldUntil = new Date(Date.now() + holdDays * 24 * 60 * 60 * 1000);
         const reason = input.reason?.trim() || null;
 
-        await prisma.session.update({
+        const updated = await prisma.session.update({
           where: { id: session.id },
           data: {
             legalHoldUntil,
@@ -692,15 +719,10 @@ export const adminRouter = router({
             legalHoldSetAt: new Date(),
           },
         });
-
-        return {
-          window: session.status === 'FINISHED' ? 'POST_SESSION_24H' : 'RUNNING',
-          legalHoldUntil: legalHoldUntil.toISOString(),
-          legalHoldReason: reason,
-        };
+        return resolveRetentionState(updated);
       }
 
-      await prisma.session.update({
+      const updated = await prisma.session.update({
         where: { id: session.id },
         data: {
           legalHoldUntil: null,
@@ -708,12 +730,24 @@ export const adminRouter = router({
           legalHoldSetAt: null,
         },
       });
+      return resolveRetentionState(updated);
+    }),
 
-      return {
-        window: session.status === 'FINISHED' ? 'POST_SESSION_24H' : 'RUNNING',
-        legalHoldUntil: null,
-        legalHoldReason: null,
-      };
+  /** Auditierter Operatorpfad für vollständig verlorene Host-Credentials. */
+  resetSessionHostAccess: adminProcedure
+    .input(AdminResetSessionHostAccessInputSchema)
+    .output(AdminResetSessionHostAccessOutputSchema)
+    .mutation(async ({ ctx, input }) => {
+      const adminIdentifier = pseudonymousAdminIdentifier(ctx.adminToken);
+      const result = await resetSessionHostAccess({
+        input,
+        adminIdentifier,
+      });
+      await Promise.allSettled([
+        invalidateHostSessionToken(result.code),
+        invalidateHostPairingForSession(result.code),
+      ]);
+      return result;
     }),
 
   /** Session endgültig löschen (Story 9.2) inkl. Audit-Log. */
@@ -746,9 +780,26 @@ export const adminRouter = router({
       }
 
       const reason = input.reason?.trim() || null;
-      const adminIdentifier = ctx.adminToken ? `token:${ctx.adminToken.slice(0, 12)}` : 'admin';
+      const adminIdentifier = pseudonymousAdminIdentifier(ctx.adminToken);
+      try {
+        await invalidateHostSessionToken(existing.code);
+        await invalidateHostPairingForSession(existing.code);
+        await publishSessionPurgeInvalidation({
+          sessionId: existing.id,
+          sessionCode: existing.code,
+        });
+      } catch {
+        throw new TRPCError({
+          code: 'INTERNAL_SERVER_ERROR',
+          message:
+            'Session-Credentials konnten nicht sicher entwertet werden. Die Löschung wurde nicht ausgeführt.',
+        });
+      }
 
       await prisma.$transaction(async (tx) => {
+        await tx.productFeedbackInviteJob.deleteMany({
+          where: { sessionId: existing.id },
+        });
         await tx.session.delete({
           where: { id: existing.id },
         });
@@ -771,12 +822,20 @@ export const adminRouter = router({
         await tx.adminAuditLog.create({
           data: {
             action: 'SESSION_DELETE',
-            sessionId: existing.id,
-            sessionCode: existing.code,
+            sessionReferenceHash: hashSha256(`arsnova-session-audit:${existing.id}`),
             adminIdentifier,
             reason,
           },
         });
+      });
+      await publishSessionPurgeInvalidation({
+        sessionId: existing.id,
+        sessionCode: existing.code,
+      }).catch((error: unknown) => {
+        logger.warn(
+          `Admin-Session-Nachinvalidierung für ${existing.id} fehlgeschlagen:`,
+          (error as Error).message,
+        );
       });
 
       return {
@@ -799,8 +858,11 @@ export const adminRouter = router({
         });
       }
 
-      const existingSessionCount = await prisma.session.count();
-      if (existingSessionCount !== input.expectedSessionCount) {
+      const sessionsToDelete = await prisma.session.findMany({
+        select: { id: true, code: true },
+        orderBy: { id: 'asc' },
+      });
+      if (sessionsToDelete.length !== input.expectedSessionCount) {
         throw new TRPCError({
           code: 'PRECONDITION_FAILED',
           message:
@@ -809,10 +871,44 @@ export const adminRouter = router({
       }
 
       const reason = input.reason?.trim() || null;
-      const adminIdentifier = ctx.adminToken ? `token:${ctx.adminToken.slice(0, 12)}` : 'admin';
+      const adminIdentifier = pseudonymousAdminIdentifier(ctx.adminToken);
+      try {
+        for (const session of sessionsToDelete) {
+          await invalidateHostSessionToken(session.code);
+          await invalidateHostPairingForSession(session.code);
+          await publishSessionPurgeInvalidation({
+            sessionId: session.id,
+            sessionCode: session.code,
+          });
+        }
+      } catch {
+        throw new TRPCError({
+          code: 'INTERNAL_SERVER_ERROR',
+          message:
+            'Nicht alle Session-Credentials konnten sicher entwertet werden. Die Massenlöschung wurde nicht ausgeführt.',
+        });
+      }
 
       const result = await prisma.$transaction(async (tx) => {
-        const deletedSessions = await tx.session.deleteMany({});
+        for (const session of sessionsToDelete) {
+          await tx.adminAuditLog.updateMany({
+            where: {
+              OR: [{ sessionId: session.id }, { sessionCode: session.code }],
+            },
+            data: {
+              sessionId: null,
+              sessionCode: null,
+              sessionReferenceHash: hashSha256(`arsnova-session-audit:${session.id}`),
+            },
+          });
+        }
+        const sessionIds = sessionsToDelete.map((session) => session.id);
+        await tx.productFeedbackInviteJob.deleteMany({
+          where: { sessionId: { in: sessionIds } },
+        });
+        const deletedSessions = await tx.session.deleteMany({
+          where: { id: { in: sessionIds } },
+        });
         const deletedQuizzes = await tx.quiz.deleteMany({
           where: { sessions: { none: {} } },
         });
@@ -820,8 +916,6 @@ export const adminRouter = router({
         await tx.adminAuditLog.create({
           data: {
             action: 'SESSION_DELETE',
-            sessionId: 'ALL',
-            sessionCode: 'ALL',
             adminIdentifier,
             reason: reason ? `BULK_DELETE_ALL_SESSIONS: ${reason}` : 'BULK_DELETE_ALL_SESSIONS',
           },
@@ -832,6 +926,19 @@ export const adminRouter = router({
           deletedQuizCount: deletedQuizzes.count,
         };
       });
+      await Promise.all(
+        sessionsToDelete.map((session) =>
+          publishSessionPurgeInvalidation({
+            sessionId: session.id,
+            sessionCode: session.code,
+          }).catch((error: unknown) => {
+            logger.warn(
+              `Admin-Session-Nachinvalidierung für ${session.id} fehlgeschlagen:`,
+              (error as Error).message,
+            );
+          }),
+        ),
+      );
 
       return {
         deleted: true as const,
@@ -953,7 +1060,7 @@ export const adminRouter = router({
           type: session.type,
           status: session.status,
           title: renderMarkdownKatexToPlainText(session.title) || null,
-          startedAt: session.startedAt.toISOString(),
+          startedAt: factualSessionStartedAt(session).toISOString(),
           endedAt: session.endedAt?.toISOString() ?? null,
           participantCount: session._count.participants,
         },
@@ -981,7 +1088,7 @@ export const adminRouter = router({
       const payloadJson = JSON.stringify(payload, null, 2);
       const payloadHash = hashSha256(payloadJson);
       const reason = input.reason?.trim() || null;
-      const adminIdentifier = ctx.adminToken ? `token:${ctx.adminToken.slice(0, 12)}` : 'admin';
+      const adminIdentifier = pseudonymousAdminIdentifier(ctx.adminToken);
 
       let fileName = `authority-export-${session.code}-${generatedAt.slice(0, 10)}`;
       let mimeType: string;
@@ -1214,7 +1321,7 @@ export const adminRouter = router({
       const fileBuffer = Buffer.from(payloadJson, 'utf8');
       const exportId = randomUUID();
       const fileName = `quiz-import-${session.code}-${generatedAt.slice(0, 10)}.json`;
-      const adminIdentifier = ctx.adminToken ? `token:${ctx.adminToken.slice(0, 12)}` : 'admin';
+      const adminIdentifier = pseudonymousAdminIdentifier(ctx.adminToken);
 
       await prisma.adminAuditLog.create({
         data: {

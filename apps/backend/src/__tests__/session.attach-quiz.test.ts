@@ -105,6 +105,7 @@ describe('session.attachQuizToSession', () => {
         onboardingTeamAssignment: 'AUTO',
         onboardingTeamNames: [],
         onboardingNicknameTheme: 'HIGH_SCHOOL',
+        firstParticipantJoinedAt: new Date('2026-09-15T08:00:00.000Z'),
         _count: { participants: 3 },
       });
       prismaMock.quiz.findUnique.mockResolvedValue({
@@ -184,6 +185,7 @@ describe('session.attachQuizToSession', () => {
       onboardingTeamAssignment: 'AUTO',
       onboardingTeamNames: ['Rot', 'Blau'],
       onboardingNicknameTheme: 'HIGH_SCHOOL',
+      firstParticipantJoinedAt: new Date('2026-09-15T08:00:00.000Z'),
       _count: { participants: 3 },
     });
     prismaMock.quiz.findUnique.mockResolvedValue({
@@ -262,6 +264,7 @@ describe('session.attachQuizToSession', () => {
         onboardingTeamAssignment: null,
         onboardingTeamNames: [],
         onboardingNicknameTheme: null,
+        firstParticipantJoinedAt: new Date('2026-09-15T08:00:00.000Z'),
         _count: { participants: 2 },
       });
       prismaMock.quiz.findUnique.mockResolvedValue({
@@ -309,6 +312,7 @@ describe('session.attachQuizToSession', () => {
       onboardingTeamAssignment: null,
       onboardingTeamNames: [],
       onboardingNicknameTheme: null,
+      firstParticipantJoinedAt: null,
       _count: { participants: 0 },
     });
     prismaMock.quiz.findUnique.mockResolvedValue({
@@ -370,6 +374,7 @@ describe('session.attachQuizToSession', () => {
       onboardingTeamAssignment: 'AUTO',
       onboardingTeamNames: [],
       onboardingNicknameTheme: 'HIGH_SCHOOL',
+      firstParticipantJoinedAt: null,
       _count: { participants: 0 },
     });
 
@@ -383,7 +388,7 @@ describe('session.attachQuizToSession', () => {
     expect(prismaMock.session.update).not.toHaveBeenCalled();
   });
 
-  it('hängt das Showcase-Demo-Quiz an eine teamlose Session an und verteilt Teilnehmende auf Apfel/Birne', async () => {
+  it('hängt das Showcase-Demo-Quiz nur vor dem ersten Join an eine teamlose Session an', async () => {
     const { DEMO_QUIZ_HISTORY_SCOPE_ID } = await import('@arsnova/shared-types');
     prismaMock.session.findUnique.mockResolvedValue({
       id: SESSION_ID,
@@ -407,7 +412,8 @@ describe('session.attachQuizToSession', () => {
       onboardingTeamAssignment: 'AUTO',
       onboardingTeamNames: [],
       onboardingNicknameTheme: 'HIGH_SCHOOL',
-      _count: { participants: 3 },
+      firstParticipantJoinedAt: null,
+      _count: { participants: 0 },
     });
     prismaMock.quiz.findUnique.mockResolvedValue({
       id: QUIZ_ID,
@@ -424,11 +430,7 @@ describe('session.attachQuizToSession', () => {
       { id: TEAM_A, name: 'Team 🍎', color: '#1E88E5', _count: { participants: 0 } },
       { id: TEAM_B, name: 'Team 🍐', color: '#43A047', _count: { participants: 0 } },
     ]);
-    prismaMock.participant.findMany.mockResolvedValue([
-      { id: 'p-1', teamId: null },
-      { id: 'p-2', teamId: null },
-      { id: 'p-3', teamId: null },
-    ]);
+    prismaMock.participant.findMany.mockResolvedValue([]);
     prismaMock.session.update.mockResolvedValue({
       id: SESSION_ID,
       type: 'QUIZ',
@@ -456,21 +458,10 @@ describe('session.attachQuizToSession', () => {
         }),
       }),
     );
-    expect(prismaMock.participant.update).toHaveBeenNthCalledWith(1, {
-      where: { id: 'p-1' },
-      data: { teamId: TEAM_A },
-    });
-    expect(prismaMock.participant.update).toHaveBeenNthCalledWith(2, {
-      where: { id: 'p-2' },
-      data: { teamId: TEAM_B },
-    });
-    expect(prismaMock.participant.update).toHaveBeenNthCalledWith(3, {
-      where: { id: 'p-3' },
-      data: { teamId: TEAM_A },
-    });
+    expect(prismaMock.participant.update).not.toHaveBeenCalled();
   });
 
-  it('weist trotz konkurrierender Team-Anlage (Unique-Konflikt) weiter Teilnehmende zu', async () => {
+  it('verträgt vor dem ersten Join eine konkurrierende Team-Anlage', async () => {
     const { DEMO_QUIZ_HISTORY_SCOPE_ID } = await import('@arsnova/shared-types');
     const { Prisma } = await import('@prisma/client');
     prismaMock.session.findUnique.mockResolvedValue({
@@ -495,7 +486,8 @@ describe('session.attachQuizToSession', () => {
       onboardingTeamAssignment: 'AUTO',
       onboardingTeamNames: [],
       onboardingNicknameTheme: 'HIGH_SCHOOL',
-      _count: { participants: 2 },
+      firstParticipantJoinedAt: null,
+      _count: { participants: 0 },
     });
     prismaMock.quiz.findUnique.mockResolvedValue({
       id: QUIZ_ID,
@@ -518,10 +510,7 @@ describe('session.attachQuizToSession', () => {
         clientVersion: 'test',
       }),
     );
-    prismaMock.participant.findMany.mockResolvedValue([
-      { id: 'p-1', teamId: null },
-      { id: 'p-2', teamId: null },
-    ]);
+    prismaMock.participant.findMany.mockResolvedValue([]);
     prismaMock.session.update.mockResolvedValue({
       id: SESSION_ID,
       type: 'QUIZ',
@@ -541,14 +530,7 @@ describe('session.attachQuizToSession', () => {
     expect(prismaMock.team.createMany).toHaveBeenCalledWith(
       expect.objectContaining({ skipDuplicates: true }),
     );
-    expect(prismaMock.participant.update).toHaveBeenNthCalledWith(1, {
-      where: { id: 'p-1' },
-      data: { teamId: TEAM_A },
-    });
-    expect(prismaMock.participant.update).toHaveBeenNthCalledWith(2, {
-      where: { id: 'p-2' },
-      data: { teamId: TEAM_B },
-    });
+    expect(prismaMock.participant.update).not.toHaveBeenCalled();
   });
 
   it('lehnt ein gewöhnliches Team-Quiz an teamlosen Sessions mit Teilnehmenden weiter ab', async () => {
@@ -574,6 +556,7 @@ describe('session.attachQuizToSession', () => {
       onboardingTeamAssignment: 'AUTO',
       onboardingTeamNames: [],
       onboardingNicknameTheme: 'HIGH_SCHOOL',
+      firstParticipantJoinedAt: new Date('2026-09-15T08:00:00.000Z'),
       _count: { participants: 2 },
     });
     prismaMock.quiz.findUnique.mockResolvedValue({

@@ -115,88 +115,201 @@ model AnswerOption {
 
 // Eine gestartete Quiz-Sitzung mit 6-stelligem Code
 model Session {
-  id                             String            @id @default(uuid())
-  code                           String            @unique // 6-stelliger Beitrittscode
-  type                           SessionType       @default(QUIZ) // Story 8.1: Quiz oder Q&A
-  status                         SessionStatus     @default(LOBBY)
-  statusChangedAt                DateTime          @default(now()) // Zeitpunkt des letzten Statuswechsels (Story 3.5 Countdown-Sync)
+  id                             String                   @id @default(uuid())
+  code                           String                   @unique // 6-stelliger Beitrittscode
+  type                           SessionType              @default(QUIZ) // Story 8.1: Quiz oder Q&A
+  status                         SessionStatus            @default(LOBBY)
+  statusChangedAt                DateTime                 @default(now()) // Zeitpunkt des letzten Statuswechsels (Story 3.5 Countdown-Sync)
   activeQuestionStartedAt        DateTime? // Serverzeit, zu der die aktuell abstimmbare Frage/Runde gestartet wurde
   pausedFromStatus               SessionStatus? // Ausgangsphase einer Host-Pause (nur QUESTION_OPEN oder ACTIVE)
   title                          String? // Story 8.1: Titel für Q&A-Runden
-  moderationMode                 Boolean           @default(false) // Story 8.4: Q&A-Fragen vorab moderieren
-  qaEnabled                      Boolean           @default(false) // ADR-0009: Q&A-Kanal innerhalb einer Live-Session
-  qaOpen                         Boolean           @default(false) // ADR-0009: Q&A-Kanal aktuell für Teilnehmende geöffnet
+  moderationMode                 Boolean                  @default(false) // Story 8.4: Q&A-Fragen vorab moderieren
+  qaEnabled                      Boolean                  @default(false) // ADR-0009: Q&A-Kanal innerhalb einer Live-Session
+  qaOpen                         Boolean                  @default(false) // ADR-0009: Q&A-Kanal aktuell für Teilnehmende geöffnet
   qaTitle                        String? // ADR-0009: Titel des Q&A-Kanals
-  qaModerationMode               Boolean           @default(true) // ADR-0009: Vorab-Moderation für Q&A-Kanal (Default: an)
-  quickFeedbackEnabled           Boolean           @default(false) // ADR-0009: Blitz-Feedback-Kanal innerhalb einer Session
-  quickFeedbackOpen              Boolean           @default(false) // ADR-0009: Blitz-Feedback-Kanal aktuell für Teilnehmende geöffnet
-  onboardingProfileConfigured    Boolean           @default(false) // Session-weites Onboarding-Profil aktiv
+  qaModerationMode               Boolean                  @default(true) // ADR-0009: Vorab-Moderation für Q&A-Kanal (Default: an)
+  qaClosesAt                     DateTime? // Absoluter Q&A-Schluss; niemals nach expiresAt
+  quickFeedbackEnabled           Boolean                  @default(false) // ADR-0009: Blitz-Feedback-Kanal innerhalb einer Session
+  quickFeedbackOpen              Boolean                  @default(false) // ADR-0009: Blitz-Feedback-Kanal aktuell für Teilnehmende geöffnet
+  preferredChannel               String                   @default("quiz") @db.VarChar(20) // Persistierter serverautoritärer Einstiegskanal
+  onboardingProfileConfigured    Boolean                  @default(false) // Session-weites Onboarding-Profil aktiv
   onboardingAllowCustomNicknames Boolean?
   onboardingAnonymousMode        Boolean?
   onboardingTeamMode             Boolean?
   onboardingTeamCount            Int?
   onboardingTeamAssignment       TeamAssignment?
-  onboardingTeamNames            String[]          @default([])
+  onboardingTeamNames            String[]                 @default([])
   onboardingNicknameTheme        NicknameTheme?
   currentQuestion                Int? // Index der aktuell aktiven Frage (0-basiert)
-  currentRound                   Int               @default(1) // Story 2.7: Peer Instruction – aktuelle Abstimmungsrunde (1 oder 2)
-  quizStarted                    Boolean           @default(false) // Wurde mindestens eine Quizfrage gestartet?
+  currentRound                   Int                      @default(1) // Story 2.7: Peer Instruction – aktuelle Abstimmungsrunde (1 oder 2)
+  quizStarted                    Boolean                  @default(false) // Wurde mindestens eine Quizfrage gestartet?
   /// Stabile Frage-ID -> OPENED/COMPLETED/SKIPPED inkl. Zeitstempeln; null kennzeichnet Legacy-Sessions ohne autoritativen Verlauf.
   questionProgress               Json?
-  questionProgressComplete       Boolean           @default(false) // true nur für Sessions, deren Verlauf seit Erstellung vollständig erfasst wird
+  questionProgressComplete       Boolean                  @default(false) // true nur für Sessions, deren Verlauf seit Erstellung vollständig erfasst wird
   lastSkippedQuestionId          String? // Nur für den aktuell letzten Skip-Übergang (Client-Ankündigung)
   lastQuestionSkippedAt          DateTime?
   quizId                         String? // null bei Q&A-Sessions
-  quiz                           Quiz?             @relation(fields: [quizId], references: [id], onDelete: Cascade)
+  quiz                           Quiz?                    @relation(fields: [quizId], references: [id], onDelete: Cascade)
   participants                   Participant[]
   teams                          Team[]
   votes                          Vote[]
   bonusTokens                    BonusToken[] // Story 4.6: Bonus-Tokens für Top-Platzierungen
   sessionFeedbacks               SessionFeedback[] // Story 4.8: Session-Bewertungen
   qaQuestions                    QaQuestion[] // Story 8: Q&A-Fragen
-  startedAt                      DateTime          @default(now())
+  createdAt                      DateTime                 @default(now()) // Unveränderlicher fachlicher Erstellungszeitpunkt
+  expiresAt                      DateTime                 @default(dbgenerated("(CURRENT_TIMESTAMP + '24:00:00'::interval)")) // Absolute, aktivitätsunabhängige Frist
+  timeZone                       String                   @default("UTC") @db.VarChar(64) // IANA-Zeitzone für Kalendertage und Anzeige
+  firstParticipantJoinedAt       DateTime? // Einmaliger, auch nach Teilnehmerlöschung stabiler Marker
+  sessionLifecycleRevision       Int                      @default(0) // Monoton bei Lifecycle-, Q&A- und Einstiegskanal-Änderungen
+  qaRankingRevision              Int                      @default(0) // Monoton bei Frage-, Vote- und Moderationsänderungen
+  qaQuestionCount                Int                      @default(0) // Aktuell physisch gespeicherte Q&A-Fragen
+  qaQuestionPeakCount            Int                      @default(0) // Höchster physischer Q&A-Bestand
+  qaQuestionPeakReachedAt        DateTime? // Kanonischer DB-Zeitpunkt der letzten strikten Peakerhöhung
+  qaQuestionsAcceptedTotal       BigInt                   @default(0) // Monotone Erst-Submits seit Erfassungsbeginn
+  nextParticipantNumber          Int                      @default(0) // Rollback-sicherer, transaktionaler Kennungszähler
+  participantRevision            Int                      @default(0) // Monoton bei physischem Join/Delete
+  hostCredentialVersion          Int                      @default(0) // Aktive bzw. durch Admin-Reset reservierte Generation
+  hostSupportId                  String?                  @unique @db.VarChar(13) // Nicht geheime Referenz für verifizierten Support
+  startedAt                      DateTime                 @default(now()) // Legacy-Cleanup-Anker für rollbackfeste längere Fristen
   endedAt                        DateTime?
   legalHoldUntil                 DateTime? // Epic 9: schützt vor Purge bis Zeitpunkt
   legalHoldReason                String? // Epic 9: Begründung für Legal Hold
   legalHoldSetAt                 DateTime? // Epic 9: Zeitpunkt des letzten Hold-Setzens
   /// Pro Session gemischte Anzeige-Reihenfolge der Antwortoptionen: { [questionId]: answerOptionId[] } (einmal bei erster Frage)
   answerDisplayOrder             Json?
+  hostCredentials                HostCredential[]
+  hostCredentialExchanges        HostCredentialExchange[]
+  hostAdminHandoffs              HostAdminHandoff[]
+  participantJoinReplays         ParticipantJoinReplay[]
 
   @@index([status, startedAt, id])
   @@index([status, endedAt])
+  @@index([expiresAt, id])
   @@index([legalHoldUntil])
   @@index([quizId])
 }
 
 // Ein Teilnehmer in einer Live-Session (Story 3.1, 3.2)
 model Participant {
-  id                            String            @id @default(uuid())
+  id                            String                  @id @default(uuid())
   nickname                      String
   sessionId                     String
-  session                       Session           @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  session                       Session                 @relation(fields: [sessionId], references: [id], onDelete: Cascade)
   /// Gehashter, teilnehmerspezifischer Besitznachweis für ProductFeedback-Claims.
-  productFeedbackClaimTokenHash String?           @unique @db.Char(64)
+  productFeedbackClaimTokenHash String?                 @unique @db.Char(64)
+  /// Opaque Wiederbeitritts-Capability; Klartext existiert nur im Browser bzw. kurz im Replay-Envelope.
+  rejoinCapabilityHash          String?                 @unique @db.Char(64)
+  /// Monotone, sessionweit vergebene sichtbare Kennung; null nur für Legacy-Bestände.
+  participantNumber             Int?
   teamId                        String? // Story 7.1: Team-Zugehörigkeit (optional)
-  team                          Team?             @relation(fields: [teamId], references: [id], onDelete: SetNull)
+  team                          Team?                   @relation(fields: [teamId], references: [id], onDelete: SetNull)
   /// Persönliche Timer-Anpassung (WCAG 2.2.1): DEFAULT | EXTENDED | OFF
-  timerAccommodation            String            @default("DEFAULT")
+  timerAccommodation            String                  @default("DEFAULT")
   votes                         Vote[]
   bonusTokens                   BonusToken[] // Story 4.6: Ausgestellte Bonus-Tokens
   sessionFeedbacks              SessionFeedback[] // Story 4.8: Bewertungen
   qaQuestions                   QaQuestion[] // Story 8.2: Eingereichte Q&A-Fragen
   qaUpvotes                     QaUpvote[] // Story 8.3: Q&A-Upvotes
-  joinedAt                      DateTime          @default(now())
+  joinedAt                      DateTime                @default(now())
+  joinReplays                   ParticipantJoinReplay[]
 
   @@unique([sessionId, nickname]) // Kein doppelter Nickname pro Session
+  @@unique([sessionId, participantNumber])
   @@index([sessionId, timerAccommodation]) // Host-Fortschritt für persönliche Zeitfenster
+  @@index([sessionId, joinedAt, id]) // Revisionsgebundene Host-Pagination ohne Vollbestand
+}
+
+model HostCredential {
+  id                    String                   @id @default(uuid())
+  sessionId             String
+  session               Session                  @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  generation            Int
+  status                HostCredentialStatus
+  browserCapabilityHash String                   @unique @db.Char(64)
+  recoveryCodeHash      String                   @unique @db.Char(64)
+  createdAt             DateTime                 @default(now())
+  activatedAt           DateTime?
+  revokedAt             DateTime?
+  sourceExchanges       HostCredentialExchange[] @relation("HostCredentialExchangeSource")
+  targetExchange        HostCredentialExchange?  @relation("HostCredentialExchangeTarget")
+
+  @@unique([sessionId, generation])
+  @@index([sessionId, status])
+}
+
+model HostCredentialExchange {
+  id                 String                       @id @default(uuid())
+  sessionId          String                       @unique
+  session            Session                      @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  sourceType         HostCredentialExchangeSource
+  sourceCredentialId String?
+  sourceCredential   HostCredential?              @relation("HostCredentialExchangeSource", fields: [sourceCredentialId], references: [id], onDelete: Cascade)
+  adminHandoffId     String?                      @unique
+  adminHandoff       HostAdminHandoff?            @relation(fields: [adminHandoffId], references: [id], onDelete: Cascade)
+  sourceSecretHash   String                       @db.Char(64)
+  exchangeIdHash     String                       @db.Char(64)
+  targetCredentialId String                       @unique
+  targetCredential   HostCredential               @relation("HostCredentialExchangeTarget", fields: [targetCredentialId], references: [id], onDelete: Cascade)
+  encryptedEnvelope  String                       @db.Text
+  createdAt          DateTime                     @default(now())
+  expiresAt          DateTime
+
+  @@unique([sessionId, sourceSecretHash, exchangeIdHash])
+  @@index([expiresAt])
+}
+
+model HostAdminHandoff {
+  id               String                  @id @default(uuid())
+  sessionId        String
+  session          Session                 @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  capabilityHash   String                  @unique @db.Char(64)
+  targetGeneration Int
+  createdAt        DateTime                @default(now())
+  expiresAt        DateTime
+  consumedAt       DateTime?
+  exchange         HostCredentialExchange?
+
+  @@index([sessionId, expiresAt])
+}
+
+model ParticipantJoinReplay {
+  id                 String       @id @default(uuid())
+  sessionId          String
+  session            Session      @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  participantId      String?
+  participant        Participant? @relation(fields: [participantId], references: [id], onDelete: SetNull)
+  idempotencyKeyHash String       @db.Char(64)
+  encryptedEnvelope  String?      @db.Text
+  createdAt          DateTime     @default(now())
+  expiresAt          DateTime
+
+  @@unique([sessionId, idempotencyKeyHash])
+  @@index([expiresAt])
 }
 
 // Singleton-Zeile: plattformweite Kennzahlen (höchste Teilnehmerzahl je Session)
 model PlatformStatistic {
-  id                           String   @id // fest: "default"
-  maxParticipantsSingleSession Int      @default(0)
-  completedSessionsTotal       Int      @default(0) // Monotone Gesamtzahl beendeter Sessions (für health.stats)
-  updatedAt                    DateTime @updatedAt
+  id                               String    @id // fest: "default"
+  maxParticipantsSingleSession     Int       @default(0)
+  completedSessionsTotal           Int       @default(0) // Monotone Gesamtzahl beendeter Sessions (für health.stats)
+  qaQuestionsTotal                 BigInt    @default(0)
+  maxQaQuestionsSingleSession      Int       @default(0)
+  maxQaQuestionsStatisticUpdatedAt DateTime?
+  qaStatisticsTrackingStartedAt    DateTime?
+  qaStatisticsProjectedAt          DateTime?
+  updatedAt                        DateTime  @updatedAt
+}
+
+/// Purge-sichere, idempotente Quelle der asynchronen Q&A-Plattformprojektion.
+/// Absichtlich ohne FK zur Session, damit Retention die bereits erfassten Werte nicht senkt.
+model QaSessionStatisticProjection {
+  sessionId              String    @id
+  questionsAcceptedTotal BigInt
+  questionPeakCount      Int
+  questionPeakReachedAt  DateTime?
+  projectedAt            DateTime  @default(now())
+
+  @@index([questionPeakCount, questionPeakReachedAt], map: "QaSessionStatisticProjection_peak_idx")
 }
 
 // Pro UTC-Tag genau ein Rekord für die größte einzelne Session (Story 0.4a)
@@ -309,36 +422,48 @@ enum SessionType {
   Q_AND_A // Q&A-Modus (Story 8.1)
 }
 
+enum HostCredentialStatus {
+  ACTIVE
+  PENDING
+  REVOKED
+}
+
+enum HostCredentialExchangeSource {
+  RECOVERY
+  ADMIN_HANDOFF
+  LEGACY_HOST_TOKEN
+}
+
 // ─── Bonus-Token (Story 4.6) ────────────────────────────────────────────────
 
 // Individuelles Token für Top-Platzierungen, einlösbar per E-Mail beim Dozenten
 model BonusToken {
-  id            String      @id @default(uuid())
-  token         String      @unique // Kryptografisch sicher, z.B. "BNS-A3F7-K2M9"
-  sessionId     String
-  session       Session     @relation(fields: [sessionId], references: [id], onDelete: Cascade)
-  participantId String
-  participant   Participant @relation(fields: [participantId], references: [id], onDelete: Cascade)
+  id            String       @id @default(uuid())
+  token         String       @unique // Kryptografisch sicher, z.B. "BNS-A3F7-K2M9"
+  sessionId     String?
+  session       Session?     @relation(fields: [sessionId], references: [id], onDelete: SetNull)
+  participantId String?
+  participant   Participant? @relation(fields: [participantId], references: [id], onDelete: SetNull)
   nickname      String // Snapshot des Pseudonyms zum Zeitpunkt der Generierung
   quizName      String // Snapshot des Quiz-Namens
   totalScore    Int // Erreichte Gesamtpunktzahl
   rank          Int // Platzierung im Leaderboard (1-basiert)
-  generatedAt   DateTime    @default(now())
+  generatedAt   DateTime     @default(now())
 
   @@index([generatedAt])
 }
 
 // Story 4.8: Session-Bewertung durch Teilnehmende
 model SessionFeedback {
-  id                    String      @id @default(uuid())
-  sessionId             String
-  session               Session     @relation(fields: [sessionId], references: [id], onDelete: Cascade)
-  participantId         String
-  participant           Participant @relation(fields: [participantId], references: [id], onDelete: Cascade)
+  id                    String       @id @default(uuid())
+  sessionId             String?
+  session               Session?     @relation(fields: [sessionId], references: [id], onDelete: SetNull)
+  participantId         String?
+  participant           Participant? @relation(fields: [participantId], references: [id], onDelete: SetNull)
   overallRating         Int // 1–5 Sterne
   questionQualityRating Int? // 1–5 (optional)
   wouldRepeat           Boolean? // "Sollen wir regelmäßig solche Quizze machen?"
-  createdAt             DateTime    @default(now())
+  createdAt             DateTime     @default(now())
 
   @@unique([sessionId, participantId]) // Nur eine Bewertung pro Person pro Session
 }
@@ -509,24 +634,29 @@ model ProductFeedbackPurgeLog {
 
 // Eine eingereichte Frage in einer Q&A-Session (Story 8.2–8.4)
 model QaQuestion {
-  id              String           @id @default(uuid())
-  text            String // Fragetext (max. 500 Zeichen, Markdown erlaubt)
-  upvoteCount     Int              @default(0)
-  status          QaQuestionStatus @default(ACTIVE)
-  sessionId       String
-  session         Session          @relation(fields: [sessionId], references: [id], onDelete: Cascade)
-  participantId   String // Story 8.2: Autor (für 3-Fragen-Limit pro Student)
-  participant     Participant      @relation(fields: [participantId], references: [id], onDelete: Cascade)
-  upvotes         QaUpvote[] // Story 8.3: Einzelne Upvotes
-  nlpStatus       QaNlpStatus      @default(DISABLED) // Story 8.9b: Host-only Hilfssignal
-  nlpCategory     QaNlpCategory?
-  nlpConfidence   Float?
-  nlpModelVersion String?
-  nlpAnalyzedAt   DateTime?
-  createdAt       DateTime         @default(now())
-  updatedAt       DateTime         @default(now()) @updatedAt
+  id                       String           @id @default(uuid())
+  text                     String // Fragetext (max. 500 Zeichen, Markdown erlaubt)
+  upvoteCount              Int              @default(0)
+  positiveVoteCount        Int              @default(0)
+  negativeVoteCount        Int              @default(0)
+  status                   QaQuestionStatus @default(ACTIVE)
+  sessionId                String
+  session                  Session          @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  participantId            String // Story 8.2: Autor (für 3-Fragen-Limit pro Student)
+  participant              Participant      @relation(fields: [participantId], references: [id], onDelete: Cascade)
+  submitIdempotencyKeyHash String?          @db.Char(64)
+  upvotes                  QaUpvote[] // Story 8.3: Einzelne Upvotes
+  nlpStatus                QaNlpStatus      @default(DISABLED) // Story 8.9b: Host-only Hilfssignal
+  nlpCategory              QaNlpCategory?
+  nlpConfidence            Float?
+  nlpModelVersion          String?
+  nlpAnalyzedAt            DateTime?
+  createdAt                DateTime         @default(now())
+  updatedAt                DateTime         @default(now()) @updatedAt
 
+  @@unique([sessionId, participantId, submitIdempotencyKeyHash])
   @@index([sessionId, status, createdAt])
+  @@index([sessionId, status, upvoteCount, createdAt, id])
   @@index([sessionId, updatedAt])
   @@index([sessionId, participantId])
   @@index([sessionId, nlpStatus])
@@ -540,6 +670,8 @@ model QaUpvote {
   participantId String
   participant   Participant     @relation(fields: [participantId], references: [id], onDelete: Cascade)
   direction     QaVoteDirection @default(UP)
+  createdAt     DateTime        @default(now())
+  updatedAt     DateTime        @default(now()) @updatedAt
 
   @@unique([qaQuestionId, participantId])
   @@index([qaQuestionId, direction])
@@ -578,21 +710,24 @@ enum QaNlpCategory {
 // Protokollierung von Admin-Aktionen (Löschen, Export); keine FK zu Session,
 // damit Einträge nach Session-Löschung erhalten bleiben (Snapshot von code/id).
 model AdminAuditLog {
-  id              String           @id @default(uuid())
-  action          AdminAuditAction
-  sessionId       String // Snapshot (Session kann danach gelöscht sein)
-  sessionCode     String // 6-stelliger Code (Snapshot)
-  adminIdentifier String? // z. B. Token-ID oder "system" (aktuell: ein gemeinsamer Schlüssel)
-  reason          String? // Optionaler Löschgrund (Story 9.2)
-  createdAt       DateTime         @default(now())
+  id                   String           @id @default(uuid())
+  action               AdminAuditAction
+  sessionId            String? // Nur bis zum Session-Purge; danach entfernt
+  sessionCode          String? // Nur bis zum Session-Purge; danach entfernt
+  sessionReferenceHash String?          @db.Char(64) // Pseudonymer Auditbezug ohne Sessioncode
+  adminIdentifier      String? // z. B. Token-ID oder "system" (aktuell: ein gemeinsamer Schlüssel)
+  reason               String? // Optionaler Löschgrund (Story 9.2)
+  createdAt            DateTime         @default(now())
 
   @@index([createdAt])
   @@index([sessionCode, createdAt])
+  @@index([sessionReferenceHash, createdAt])
 }
 
 enum AdminAuditAction {
   SESSION_DELETE // Story 9.2: Session inkl. Quiz-Daten gelöscht
   EXPORT_FOR_AUTHORITIES // Story 9.3: Auszug für Behörden exportiert
+  HOST_ACCESS_RESET // #408: auditierter Credential-Widerruf ohne Geheimnisse/Inhalte
 }
 
 // ─── MOTD / Plattform-Kommunikation (Epic 10) ─────────────────────────────────

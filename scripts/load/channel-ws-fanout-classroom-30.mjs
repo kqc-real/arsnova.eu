@@ -148,6 +148,48 @@ function subscribe(state, procedure, input, isFinal) {
   });
 }
 
+function subscribeQa(state, procedure, input, loadQuestions, isFinal) {
+  let generation = 0;
+  state.subscription = procedure.subscribe(input, {
+    onStarted() {
+      state.started = true;
+    },
+    onData() {
+      state.messages += 1;
+      const currentGeneration = ++generation;
+      void loadQaSnapshotWithRetry(loadQuestions)
+        .then((snapshot) => {
+          if (currentGeneration !== generation) return;
+          state.latest = snapshot.questions;
+          if (state.finalAt === null && isFinal(state.latest)) {
+            state.finalAt = performance.now();
+          }
+        })
+        .catch((error) => {
+          if (currentGeneration === generation) {
+            state.errors.push(errorMessage(error));
+          }
+        });
+    },
+    onError(error) {
+      state.errors.push(errorMessage(error));
+    },
+  });
+}
+
+async function loadQaSnapshotWithRetry(loadQuestions) {
+  let lastError;
+  for (let attempt = 0; attempt < 10; attempt += 1) {
+    try {
+      return await loadQuestions();
+    } catch (error) {
+      lastError = error;
+      await sleep(50);
+    }
+  }
+  throw lastError;
+}
+
 function unsubscribe(state) {
   state.subscription?.unsubscribe();
   state.subscription = null;
@@ -172,26 +214,62 @@ async function createSession(publicTrpc) {
   });
 }
 
+async function configureQaSession(hostTrpc, code) {
+  const selection = { kind: 'UNTIL_SESSION_END' };
+  const preview = await hostTrpc.session.previewQaConfiguration.query({
+    code,
+    mode: 'INITIAL',
+    selection,
+  });
+  return hostTrpc.session.configureQaChannel.mutate({
+    code,
+    mode: preview.mode,
+    selection,
+    expectedLifecycleRevision: preview.expectedLifecycleRevision,
+    previewServerNow: preview.serverNow,
+    confirmedQaClosesAt: preview.newQaClosesAt,
+    confirmedExpiresAt: preview.newExpiresAt,
+    confirmSessionExtension: preview.requiresSessionExtension,
+    qaTitle: 'Kanal-WS-Fan-out',
+    moderationMode: false,
+    participationProfile: {
+      identityMode: 'CUSTOM_NICKNAME',
+      nicknameTheme: 'HIGH_SCHOOL',
+    },
+  });
+}
+
 async function run() {
   await waitForBackend(TRPC_URL);
 
   const publicTrpc = createHttpTrpc(TRPC_URL);
   const session = await createSession(publicTrpc);
   const hostTrpc = createHttpTrpc(TRPC_URL, session.hostToken);
+  await configureQaSession(hostTrpc, session.code);
   const participants = await mapLimit(
     Array.from({ length: PARTICIPANTS }, (_, index) => index),
     Math.min(PARTICIPANTS, 15),
-    (index) =>
-      publicTrpc.session.join.mutate({
+    async (index) => {
+      const participant = await publicTrpc.session.join.mutate({
         code: session.code,
         nickname: `Fanout TN ${String(index + 1).padStart(2, '0')}`,
         anonymousClientId: globalThis.crypto.randomUUID(),
-      }),
+        joinIdempotencyKey: globalThis.crypto.randomUUID(),
+      });
+      return {
+        ...participant,
+        qaTrpc: createHttpTrpc(TRPC_URL, undefined, undefined, undefined, participant.rejoinToken),
+      };
+    },
   );
   const qaStart = await hostTrpc.session.startQa.mutate({ code: session.code });
 
   const participantSockets = participants.map((participant, index) => {
-    const socket = createPublicWsTrpc(WS_URL);
+    const socket = createPublicWsTrpc(WS_URL, {
+      sessionCode: session.code,
+      participantId: participant.participantId,
+      participantCapability: participant.rejoinToken,
+    });
     return { ...socket, participant, index };
   });
   const hostSocket = createHostWsTrpc(WS_URL, session.hostToken);
@@ -206,20 +284,33 @@ async function run() {
     const qaHostState = createState('Host');
     for (let index = 0; index < participantSockets.length; index += 1) {
       const socket = participantSockets[index];
-      subscribe(
+      subscribeQa(
         qaStates[index],
         socket.trpc.qa.onQuestionsUpdated,
         {
           sessionId: session.sessionId,
           participantId: socket.participant.participantId,
         },
+        () =>
+          socket.participant.qaTrpc.qa.list.query({
+            sessionId: session.sessionId,
+            participantId: socket.participant.participantId,
+            pageSize: 100,
+          }),
         (payload) => Array.isArray(payload) && payload.length === PARTICIPANTS,
       );
     }
-    subscribe(
+    subscribeQa(
       qaHostState,
       hostSocket.trpc.qa.onQuestionsUpdated,
       { sessionId: session.sessionId, moderatorView: true, sort: 'TOP' },
+      () =>
+        hostTrpc.qa.list.query({
+          sessionId: session.sessionId,
+          moderatorView: true,
+          sort: 'TOP',
+          pageSize: 100,
+        }),
       (payload) => Array.isArray(payload) && payload.length === PARTICIPANTS,
     );
 
@@ -232,17 +323,18 @@ async function run() {
     const qaWriteStartedAt = performance.now();
     const qaWriteResults = await Promise.allSettled(
       participants.map((participant, index) =>
-        publicTrpc.qa.submit.mutate({
+        participant.qaTrpc.qa.submit.mutate({
           sessionId: session.sessionId,
           participantId: participant.participantId,
           text: `Fan-out-Frage ${index + 1}: Wie funktioniert der Live-Kanal?`,
+          idempotencyKey: globalThis.crypto.randomUUID(),
         }),
       ),
     );
     const qaWritesCompletedAt = performance.now();
     const submittedQuestions = qaWriteResults
       .filter((result) => result.status === 'fulfilled')
-      .map((result) => result.value);
+      .map((result) => result.value.question);
     const expectedQuestionIds = new Set(submittedQuestions.map((question) => question.id));
 
     await waitFor(

@@ -102,7 +102,7 @@
           (click)="openHeroHostTab('qa')"
           i18n="@@home.heroChip.openQa"
         >
-          Q&amp;A öffnen
+          Q&amp;A erstellen
         </button>
         <button
           matButton="tonal"
@@ -227,6 +227,10 @@
             <span i18n>Los geht's</span>
           </button>
         }
+        <a mat-button class="home-error-link" [routerLink]="localizedCommands(['host-recovery'])">
+          <mat-icon aria-hidden="true">admin_panel_settings</mat-icon>
+          <span i18n="@@hostRecovery.homeLink">Host-Zugang wiederherstellen</span>
+        </a>
         @if (joinError()) {
           <p class="home-error" role="alert">
             <mat-icon class="home-error__icon" aria-hidden="true">warning</mat-icon>

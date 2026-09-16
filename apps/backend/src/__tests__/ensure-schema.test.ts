@@ -44,6 +44,7 @@ describe('ensure-schema MOTD runtime seeding', () => {
       'prisma/migrations/20260813120000_motd_shared_insight_vision/migration.sql',
       'prisma/migrations/20260906143000_motd_product_feedback/migration.sql',
       'prisma/migrations/20260911140000_motd_personal_time/migration.sql',
+      'prisma/migrations/20260916103000_motd_qa_live_channel/migration.sql',
     ]);
   });
 
@@ -152,6 +153,42 @@ describe('ensure-schema MOTD runtime seeding', () => {
     expect(localeBlocks[3]).toContain('«Tempo personalizzato»');
     expect(localeBlocks[4]).toContain('«Tiempo personalizado»');
     expect(sql).toContain("'c0777777-c777-4c77-8c77-c07777777777'");
+  });
+
+  it('liefert die Live-Q&A-MOTD strukturgleich in allen fünf Sprachen aus', () => {
+    const sql = readFileSync(
+      resolve(
+        process.cwd(),
+        '../../prisma/migrations/20260916103000_motd_qa_live_channel/migration.sql',
+      ),
+      'utf8',
+    );
+    const localeBlocks = [...sql.matchAll(/\$(md(?:de|en|fr|it|es))\$([\s\S]*?)\$\1\$/g)].map(
+      ([, , markdown]) => markdown ?? '',
+    );
+
+    expect(localeBlocks).toHaveLength(5);
+    for (const markdown of localeBlocks) {
+      const paragraphs = markdown.split('\n\n');
+      expect(paragraphs).toHaveLength(3);
+      expect(paragraphs[0]).toMatch(/^### 🧩 /);
+      expect(paragraphs[2]).toMatch(/^\*\*.+\*\*$/);
+      expect(paragraphs.every((paragraph) => !paragraph.includes('\n'))).toBe(true);
+      expect(markdown).not.toMatch(/Epic|#405|GitHub|Backlog/i);
+    }
+    expect(localeBlocks).toEqual([
+      '### 🧩 Fragen vorher einholen – vorbereitet starten.\n\nMit »Q&A erstellen« legst du schon vor der Veranstaltung eine Fragenwand an und teilst den Code. Teilnehmende schreiben in Ruhe; du siehst, was unklar ist, sortierst und wertest aus – und gehst vorbereitet in die Sitzung.\n\n**Hol dir jetzt die Fragen für deine nächste Stunde oder deinen nächsten Termin.**',
+      '### 🧩 Gather questions beforehand – then walk in prepared.\n\nUse “Create Q&A” to open a question wall and share the code before the event. People can send questions in their own time; you see what’s unclear, sort and review – and you arrive ready.\n\n**Collect the questions for your next class or event now.**',
+      '### 🧩 Recueille les questions avant – arrive préparé.\n\nAvec « Créer un Q&A », tu ouvres un mur de questions et tu partages le code avant l’événement. Chacun écrit à son rythme ; tu vois ce qui bloque, tu tries et tu fais le point – et tu prépares ta séance sur cette base.\n\n**Récupère dès maintenant les questions de ton prochain cours ou rendez-vous.**',
+      '### 🧩 Raccogli le domande prima – e arriva preparato.\n\nCon «Crea un Q&A» apri un muro delle domande e condividi il codice già prima dell’incontro. Chi partecipa scrive con calma; tu vedi i dubbi, li ordini e li usi per prepararti.\n\n**Raccogli adesso le domande per la tua prossima lezione o il tuo prossimo appuntamento.**',
+      '### 🧩 Recoge las preguntas antes – y llega con la sesión pensada.\n\nCon «Crear un Q&A» abres un muro de preguntas y compartes el código antes del encuentro. Quien participa escribe con calma; tú ves qué no está claro, ordenas y evalúas – y llegas preparado.\n\n**Recoge ya las preguntas de tu próxima clase o de tu próximo evento.**',
+    ]);
+    expect(localeBlocks[0]).toContain('»Q&A erstellen«');
+    expect(localeBlocks[1]).toContain('“Create Q&A”');
+    expect(localeBlocks[2]).toContain('« Créer un Q&A »');
+    expect(localeBlocks[3]).toContain('«Crea un Q&A»');
+    expect(localeBlocks[4]).toContain('«Crear un Q&A»');
+    expect(sql).toContain("'c0888888-c888-4c88-8c88-c08888888888'");
   });
 
   it('seedet die Welcome-MOTD vor der Making-of-Kette', () => {

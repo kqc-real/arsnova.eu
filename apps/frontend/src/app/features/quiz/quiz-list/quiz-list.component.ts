@@ -54,6 +54,8 @@ import {
   trpc,
 } from '../../../core/trpc.client';
 import { navigateToHostSession } from '../../../core/session-host-navigation';
+import { persistInitialHostRecovery } from '../../../core/host-recovery-access';
+import { resolveBrowserSessionTimeZone } from '../../session/session-time-zone';
 import {
   buildKiQuizSystemPrompt,
   buildKiQuizValidationPrompt,
@@ -1238,9 +1240,15 @@ export class QuizListComponent implements OnInit {
       const result: CreateSessionOutput = await trpc.session.create.mutate({
         quizId: uploadedQuizId,
         type: 'QUIZ',
+        timeZone: resolveBrowserSessionTimeZone(),
       });
 
       setHostToken(result.code, result.hostToken);
+      persistInitialHostRecovery({
+        code: result.code,
+        browserCapability: result.hostBrowserCapability,
+        recoveryCard: result.hostRecoveryCard,
+      });
       setPendingHostSessionCode(result.code);
       try {
         await navigateToHostSession(this.router, result.code, 'quiz');

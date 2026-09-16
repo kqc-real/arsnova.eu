@@ -1,5 +1,6 @@
 import { beforeEach, describe, expect, it } from 'vitest';
 import {
+  beginWordCloudAnalysisTelemetry,
   recordWordCloudAnalyzeTelemetry,
   resetWordCloudNlpTelemetryForTests,
   snapshotWordCloudNlpTelemetry,
@@ -48,6 +49,21 @@ describe('wordCloudNlpTelemetry', () => {
       sidecarCalls: 1,
       timeouts: 1,
       fallbacks: 1,
+      inFlight: 0,
+      lastLatencyMs: 5000,
     });
+  });
+
+  it('begrenzt Inflight auf laufende Analysen und beendet idempotent', () => {
+    const finishFirst = beginWordCloudAnalysisTelemetry();
+    const finishSecond = beginWordCloudAnalysisTelemetry();
+    expect(snapshotWordCloudNlpTelemetry().inFlight).toBe(2);
+
+    finishFirst();
+    finishFirst();
+    expect(snapshotWordCloudNlpTelemetry().inFlight).toBe(1);
+
+    finishSecond();
+    expect(snapshotWordCloudNlpTelemetry().inFlight).toBe(0);
   });
 });

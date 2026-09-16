@@ -284,6 +284,143 @@
                                   @if (exportInfo(); as exportInfoText) {
                                     <p class="admin-info" role="status">{{ exportInfoText }}</p>
                                   }
+                                  <section class="admin-delete admin-host-reset">
+                                    <h3 class="admin-delete__title" i18n="@@admin.hostResetTitle">
+                                      Verlorenen Host-Zugang zurücksetzen
+                                    </h3>
+                                    <p class="admin-help" i18n="@@admin.hostResetHelp">
+                                      Nur nach unabhängiger Prüfung von Identität und Berechtigung
+                                      für genau diese Session. Sessioncode, Support-ID oder
+                                      Organisationszugehörigkeit allein genügen nicht.
+                                    </p>
+                                    <label class="admin-field">
+                                      <span i18n="@@admin.hostResetEvidenceCategory"
+                                        >Zulässiger Nachweisweg</span
+                                      >
+                                      <select
+                                        [value]="hostResetEvidenceCategory()"
+                                        [disabled]="hostResetLoading()"
+                                        (change)="
+                                          hostResetEvidenceCategory.set($any($event.target).value)
+                                        "
+                                      >
+                                        <option
+                                          value="PREEXISTING_VERIFIED_SUPPORT_CASE"
+                                          i18n="@@admin.hostResetEvidencePreexisting"
+                                        >
+                                          Vor Verlust eröffneter, verifizierter Supportvorgang
+                                        </option>
+                                        <option
+                                          value="INDEPENDENT_OFFICIAL_ORGANIZATION_CONFIRMATION"
+                                          i18n="@@admin.hostResetEvidenceIndependent"
+                                        >
+                                          Unabhängige Bestätigung über offiziellen Kontaktweg
+                                        </option>
+                                      </select>
+                                    </label>
+                                    <mat-form-field appearance="outline" class="admin-field">
+                                      <mat-label i18n="@@admin.hostResetRequesterReference"
+                                        >Referenz der Identitätsprüfung</mat-label
+                                      >
+                                      <input
+                                        matInput
+                                        [value]="hostResetRequesterReference()"
+                                        [disabled]="hostResetLoading()"
+                                        maxlength="200"
+                                        (input)="
+                                          updateHostResetField(
+                                            'requester',
+                                            $any($event.target).value
+                                          )
+                                        "
+                                      />
+                                    </mat-form-field>
+                                    <mat-form-field appearance="outline" class="admin-field">
+                                      <mat-label i18n="@@admin.hostResetAuthorizationReference"
+                                        >Referenz des konkreten Sessionnachweises</mat-label
+                                      >
+                                      <input
+                                        matInput
+                                        [value]="hostResetAuthorizationReference()"
+                                        [disabled]="hostResetLoading()"
+                                        maxlength="200"
+                                        (input)="
+                                          updateHostResetField(
+                                            'authorization',
+                                            $any($event.target).value
+                                          )
+                                        "
+                                      />
+                                    </mat-form-field>
+                                    <mat-form-field appearance="outline" class="admin-field">
+                                      <mat-label i18n="@@admin.hostResetSupportCaseReference"
+                                        >Supportvorgang</mat-label
+                                      >
+                                      <input
+                                        matInput
+                                        [value]="hostResetSupportCaseReference()"
+                                        [disabled]="hostResetLoading()"
+                                        maxlength="120"
+                                        (input)="
+                                          updateHostResetField(
+                                            'supportCase',
+                                            $any($event.target).value
+                                          )
+                                        "
+                                      />
+                                    </mat-form-field>
+                                    <mat-form-field appearance="outline" class="admin-field">
+                                      <mat-label i18n="@@admin.hostResetReason"
+                                        >Begründung</mat-label
+                                      >
+                                      <textarea
+                                        matInput
+                                        rows="3"
+                                        [value]="hostResetReason()"
+                                        [disabled]="hostResetLoading()"
+                                        maxlength="500"
+                                        (input)="
+                                          updateHostResetField('reason', $any($event.target).value)
+                                        "
+                                      ></textarea>
+                                    </mat-form-field>
+                                    <button
+                                      matButton="tonal"
+                                      type="button"
+                                      class="admin-action-btn admin-action-btn--with-spinner"
+                                      [disabled]="hostResetLoading() || !canResetHostAccess()"
+                                      (click)="resetHostAccess()"
+                                    >
+                                      @if (hostResetLoading()) {
+                                        <mat-progress-spinner diameter="16" mode="indeterminate" />
+                                      }
+                                      <span i18n="@@admin.hostResetSubmit"
+                                        >Alte Zugänge widerrufen</span
+                                      >
+                                    </button>
+                                    @if (hostResetError(); as resetError) {
+                                      <p class="admin-error" role="alert">{{ resetError }}</p>
+                                    }
+                                    @if (hostResetResult(); as reset) {
+                                      <div class="admin-host-reset__result" role="status">
+                                        <p i18n="@@admin.hostResetResultIntro">
+                                          Übergib Support-ID und Übergabecode getrennt an den
+                                          verifizierten Host. Der Code ist nur bis
+                                          {{ formatDateTime(reset.expiresAt) }} gültig.
+                                        </p>
+                                        <dl>
+                                          <dt i18n="@@hostRecovery.supportIdLabel">
+                                            Session-Kennung
+                                          </dt>
+                                          <dd>{{ reset.supportId }}</dd>
+                                          <dt i18n="@@admin.hostResetHandoffCapability">
+                                            Übergabecode
+                                          </dt>
+                                          <dd>{{ reset.handoffCapability }}</dd>
+                                        </dl>
+                                      </div>
+                                    }
+                                  </section>
                                   <section class="admin-delete admin-delete--single">
                                     <h3
                                       class="admin-delete__title"

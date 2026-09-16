@@ -54,6 +54,8 @@ const {
   getSessionFeedbackSummaryQueryMock,
   submitSessionFeedbackMutateMock,
   getParticipantNicknamesQueryMock,
+  checkParticipantNicknameQueryMock,
+  heartbeatParticipantPresenceMutateMock,
   markParticipantOfflineMutateMock,
   joinMutateMock,
   qaListQueryMock,
@@ -61,6 +63,7 @@ const {
   qaUpvoteMutateMock,
   qaQuestionsUpdatedSubscribeMock,
   snackBarOpenMock,
+  productFeedbackClaimInviteMutateMock,
 } = vi.hoisted(() => ({
   getInfoQueryMock: vi.fn(),
   getInfoForReconnectQueryMock: vi.fn(),
@@ -83,6 +86,8 @@ const {
   getSessionFeedbackSummaryQueryMock: vi.fn(),
   submitSessionFeedbackMutateMock: vi.fn(),
   getParticipantNicknamesQueryMock: vi.fn(),
+  checkParticipantNicknameQueryMock: vi.fn(),
+  heartbeatParticipantPresenceMutateMock: vi.fn(),
   markParticipantOfflineMutateMock: vi.fn(),
   joinMutateMock: vi.fn(),
   qaListQueryMock: vi.fn(),
@@ -90,6 +95,7 @@ const {
   qaUpvoteMutateMock: vi.fn(),
   qaQuestionsUpdatedSubscribeMock: vi.fn(),
   snackBarOpenMock: vi.fn(),
+  productFeedbackClaimInviteMutateMock: vi.fn(),
 }));
 
 vi.mock('../../../core/trpc.client', () => ({
@@ -115,6 +121,8 @@ vi.mock('../../../core/trpc.client', () => ({
       getSessionFeedbackSummary: { query: getSessionFeedbackSummaryQueryMock },
       submitSessionFeedback: { mutate: submitSessionFeedbackMutateMock },
       getParticipantNicknames: { query: getParticipantNicknamesQueryMock },
+      checkParticipantNickname: { query: checkParticipantNicknameQueryMock },
+      heartbeatParticipantPresence: { mutate: heartbeatParticipantPresenceMutateMock },
       markParticipantOffline: { mutate: markParticipantOfflineMutateMock },
       join: { mutate: joinMutateMock },
     },
@@ -129,6 +137,9 @@ vi.mock('../../../core/trpc.client', () => ({
       submit: { mutate: qaSubmitMutateMock },
       upvote: { mutate: qaUpvoteMutateMock },
       onQuestionsUpdated: { subscribe: qaQuestionsUpdatedSubscribeMock },
+    },
+    productFeedback: {
+      claimInvite: { mutate: productFeedbackClaimInviteMutateMock },
     },
   },
 }));
@@ -301,6 +312,11 @@ describe('SessionVoteComponent', { timeout: 30_000 }, () => {
     });
     submitSessionFeedbackMutateMock.mockResolvedValue({ success: true });
     getParticipantNicknamesQueryMock.mockResolvedValue({ nicknames: [], participantCount: 0 });
+    checkParticipantNicknameQueryMock.mockResolvedValue({ available: true });
+    heartbeatParticipantPresenceMutateMock.mockResolvedValue({
+      connected: true,
+      serverNow: MOCK_SERVER_TIME,
+    });
     markParticipantOfflineMutateMock.mockResolvedValue({ ok: true });
     joinMutateMock.mockResolvedValue({
       id: '6a8edced-5f8f-4cfa-9176-454fac9570ad',
@@ -315,6 +331,10 @@ describe('SessionVoteComponent', { timeout: 30_000 }, () => {
     qaSubmitMutateMock.mockResolvedValue({});
     qaUpvoteMutateMock.mockResolvedValue({});
     qaQuestionsUpdatedSubscribeMock.mockReturnValue({ unsubscribe: vi.fn() });
+    productFeedbackClaimInviteMutateMock.mockResolvedValue({
+      inviteToken: null,
+      survey: null,
+    });
 
     TestBed.configureTestingModule({
       imports: [SessionVoteComponent],
@@ -342,6 +362,246 @@ describe('SessionVoteComponent', { timeout: 30_000 }, () => {
       ],
     });
     TestBed.inject(ThemePresetService).setPreset('spielerisch', { silent: true });
+  });
+
+  it('entfernt ohne Terminalevent am serverkalibrierten Ablauf Quiz-, Q&A- und Blitzlichtdaten', async () => {
+    vi.useFakeTimers();
+    const fixture = TestBed.createComponent(SessionVoteComponent);
+    const component = fixture.componentInstance;
+    component.status.set('ACTIVE');
+    component.currentQuestion.set({
+      id: 'question-1',
+      text: 'Noch sichtbar',
+      type: 'SINGLE_CHOICE',
+      difficulty: 'EASY',
+      order: 0,
+      totalQuestions: 1,
+      answers: [],
+      timer: null,
+      currentRound: 1,
+    } as never);
+    component.qaQuestions.set([{ id: 'qa-1', text: 'Noch sichtbar' } as never]);
+    component.quickFeedbackResult.set({ totalVotes: 1, options: [] } as never);
+
+    expect(
+      (
+        component as unknown as {
+          applySessionDeadlineSnapshot(snapshot: {
+            status: string;
+            serverNow: string;
+            expiresAt: string;
+            sessionLifecycleRevision: number;
+          }): boolean;
+        }
+      ).applySessionDeadlineSnapshot({
+        status: 'ACTIVE',
+        serverNow: '2026-09-15T08:00:00.000Z',
+        expiresAt: '2026-09-15T08:00:01.000Z',
+        sessionLifecycleRevision: 2,
+      }),
+    ).toBe(true);
+
+    vi.advanceTimersByTime(1_000);
+
+    expect(component.status()).toBe('FINISHED');
+    expect(component.currentQuestion()).toBeNull();
+    expect(component.qaQuestions()).toEqual([]);
+    expect(component.quickFeedbackResult()).toBeNull();
+    expect(component.showSessionEndGate()).toBe(true);
+    vi.useRealTimers();
+    fixture.detectChanges();
+    await fixture.whenStable();
+    const endHeading = (fixture.nativeElement as HTMLElement).querySelector<HTMLElement>(
+      '#vote-session-end-anchor',
+    );
+    expect(endHeading?.textContent).toContain('Session beendet');
+    await vi.waitUntil(() => document.activeElement === endHeading, {
+      timeout: 1000,
+      interval: 10,
+    });
+    fixture.destroy();
+  });
+
+  it('wechselt bei terminaler Q&A-Invalidierung sofort in den fokussierten Endzustand', async () => {
+    const fixture = TestBed.createComponent(SessionVoteComponent);
+    const component = fixture.componentInstance;
+    component.status.set('ACTIVE');
+    component.currentQuestion.set({
+      id: 'question-1',
+      text: 'Noch sichtbar',
+      type: 'SINGLE_CHOICE',
+      difficulty: 'EASY',
+      order: 0,
+      totalQuestions: 1,
+      answers: [],
+      timer: null,
+      currentRound: 1,
+    } as never);
+    component.qaQuestions.set([{ id: 'qa-1', text: 'Noch sichtbar' } as never]);
+    component.quickFeedbackResult.set({ totalVotes: 1, options: [] } as never);
+
+    (
+      component as unknown as {
+        handleQaQuestionsInvalidation(data: {
+          kind: 'INVALIDATED';
+          state: 'SESSION_ENDED';
+          sessionLifecycleRevision: number;
+          rankingRevision: number;
+          participantRevision: number;
+          serverNow: string;
+          expiresAt: string;
+          qaClosesAt: string | null;
+          endedAt: string;
+          postProcessingEndsAt: string;
+        }): void;
+      }
+    ).handleQaQuestionsInvalidation({
+      kind: 'INVALIDATED',
+      state: 'SESSION_ENDED',
+      sessionLifecycleRevision: 3,
+      rankingRevision: 4,
+      participantRevision: 5,
+      serverNow: '2026-09-15T08:00:00.000Z',
+      expiresAt: '2026-09-15T08:00:00.000Z',
+      qaClosesAt: '2026-09-15T08:00:00.000Z',
+      endedAt: '2026-09-15T08:00:00.000Z',
+      postProcessingEndsAt: '2026-09-29T08:00:00.000Z',
+    });
+
+    expect(component.status()).toBe('FINISHED');
+    expect(component.currentQuestion()).toBeNull();
+    expect(component.qaQuestions()).toEqual([]);
+    expect(component.quickFeedbackResult()).toBeNull();
+    expect(component.showSessionEndGate()).toBe(true);
+    fixture.detectChanges();
+    await fixture.whenStable();
+    const host = fixture.nativeElement as HTMLElement;
+    const endHeading = host.querySelector<HTMLElement>('#vote-session-end-anchor');
+    expect(host.querySelector('#qa-draft')).toBeNull();
+    expect(endHeading?.textContent).toContain('Session beendet');
+    await vi.waitUntil(() => document.activeElement === endHeading, {
+      timeout: 1000,
+      interval: 10,
+    });
+    fixture.destroy();
+  });
+
+  it('beendet zwei verbundene Teilnehmerclients gleichzeitig inhaltsfrei', async () => {
+    const payload = {
+      kind: 'INVALIDATED' as const,
+      state: 'SESSION_ENDED' as const,
+      sessionLifecycleRevision: 3,
+      rankingRevision: 4,
+      participantRevision: 5,
+      serverNow: '2026-09-15T08:00:00.000Z',
+      expiresAt: '2026-09-15T08:00:00.000Z',
+      qaClosesAt: '2026-09-15T08:00:00.000Z',
+      endedAt: '2026-09-15T08:00:00.000Z',
+      postProcessingEndsAt: '2026-09-29T08:00:00.000Z',
+    };
+    const seed = () => {
+      const fixture = TestBed.createComponent(SessionVoteComponent);
+      const component = fixture.componentInstance;
+      component.status.set('ACTIVE');
+      component.qaQuestions.set([{ id: 'qa-1', text: 'Noch sichtbar' } as never]);
+      component.quickFeedbackResult.set({ totalVotes: 1, options: [] } as never);
+      return { fixture, component };
+    };
+    const first = seed();
+    const second = seed();
+
+    (
+      first.component as unknown as {
+        handleQaQuestionsInvalidation(data: typeof payload): void;
+      }
+    ).handleQaQuestionsInvalidation(payload);
+    (
+      second.component as unknown as {
+        handleQaQuestionsInvalidation(data: typeof payload): void;
+      }
+    ).handleQaQuestionsInvalidation(payload);
+
+    for (const { fixture, component } of [first, second]) {
+      expect(component.status()).toBe('FINISHED');
+      expect(component.qaQuestions()).toEqual([]);
+      expect(component.quickFeedbackResult()).toBeNull();
+      expect(component.showSessionEndGate()).toBe(true);
+      fixture.detectChanges();
+      await fixture.whenStable();
+      const host = fixture.nativeElement as HTMLElement;
+      expect(host.querySelector('#qa-draft')).toBeNull();
+      expect(host.querySelector('#vote-session-end-anchor')?.textContent).toContain(
+        'Session beendet',
+      );
+      fixture.destroy();
+    }
+  });
+
+  it('verwirft verspätete Q&A-Listen älterer Revision nach dem Terminalzustand', async () => {
+    const fixture = TestBed.createComponent(SessionVoteComponent);
+    const component = fixture.componentInstance;
+    component.status.set('ACTIVE');
+    component.qaQuestions.set([{ id: 'qa-1', text: 'Noch sichtbar' } as never]);
+
+    (
+      component as unknown as {
+        handleQaQuestionsInvalidation(data: {
+          kind: 'INVALIDATED';
+          state: 'SESSION_ENDED';
+          sessionLifecycleRevision: number;
+          rankingRevision: number;
+          participantRevision: number;
+          serverNow: string;
+          expiresAt: string;
+          qaClosesAt: string | null;
+          endedAt: string;
+          postProcessingEndsAt: string;
+        }): void;
+      }
+    ).handleQaQuestionsInvalidation({
+      kind: 'INVALIDATED',
+      state: 'SESSION_ENDED',
+      sessionLifecycleRevision: 4,
+      rankingRevision: 8,
+      participantRevision: 2,
+      serverNow: '2026-09-15T08:00:00.000Z',
+      expiresAt: '2026-09-15T08:00:00.000Z',
+      qaClosesAt: '2026-09-15T08:00:00.000Z',
+      endedAt: '2026-09-15T08:00:00.000Z',
+      postProcessingEndsAt: '2026-09-29T08:00:00.000Z',
+    });
+
+    expect(component.showSessionEndGate()).toBe(true);
+    expect(component.qaQuestions()).toEqual([]);
+
+    const accepted = (
+      component as unknown as {
+        applyQaQuestionsSnapshot(snapshot: {
+          questions: Array<{ id: string; text: string }>;
+          state: 'ACTIVE';
+          sessionLifecycleRevision: number;
+          serverNow: string;
+          expiresAt: string;
+          qaClosesAt: string;
+          endedAt: null;
+          postProcessingEndsAt: null;
+        }): boolean;
+      }
+    ).applyQaQuestionsSnapshot({
+      questions: [{ id: 'qa-stale', text: 'Verspäteter Snapshot' }],
+      state: 'ACTIVE',
+      sessionLifecycleRevision: 3,
+      serverNow: '2026-09-15T07:59:59.000Z',
+      expiresAt: '2026-09-15T09:00:00.000Z',
+      qaClosesAt: '2026-09-15T09:00:00.000Z',
+      endedAt: null,
+      postProcessingEndsAt: null,
+    });
+
+    expect(accepted).toBe(false);
+    expect(component.qaQuestions()).toEqual([]);
+    expect(component.showSessionEndGate()).toBe(true);
+    fixture.destroy();
   });
 
   it('markiert den Teilnehmer beim Verlassen der Session-Ansicht offline', () => {
@@ -3798,7 +4058,7 @@ describe('SessionVoteComponent', { timeout: 30_000 }, () => {
     fixture.destroy();
   });
 
-  it('leitet nach Session-Ende (FINISHED) zur Startseite um', async () => {
+  it('zeigt nach Session-Ende ohne Bonus oder offenes Feedback den fokussierten Endzustand', async () => {
     getInfoQueryMock.mockResolvedValue({
       id: '6a8edced-5f8f-4cfa-9176-454fac9570ad',
       serverTime: MOCK_SERVER_TIME,
@@ -3828,9 +4088,17 @@ describe('SessionVoteComponent', { timeout: 30_000 }, () => {
     fixture.detectChanges();
     await flushComponentAfterStable(fixture, 50);
 
-    expect(navSpy).toHaveBeenCalled();
-    const opts = navSpy.mock.calls[0]?.[1] as { replaceUrl?: boolean };
-    expect(opts?.replaceUrl).toBe(true);
+    expect(fixture.componentInstance.showSessionEndGate()).toBe(true);
+    expect(productFeedbackClaimInviteMutateMock).toHaveBeenCalled();
+    const host = fixture.nativeElement as HTMLElement;
+    expect(host.querySelector('.product-feedback-card__actions button')).toBeNull();
+    const endHeading = host.querySelector<HTMLElement>('#vote-session-end-anchor');
+    expect(endHeading?.textContent).toContain('Session beendet');
+    await vi.waitUntil(() => document.activeElement === endHeading, {
+      timeout: 1000,
+      interval: 10,
+    });
+    expect(navSpy).not.toHaveBeenCalled();
     fixture.destroy();
   });
 
@@ -3866,6 +4134,14 @@ describe('SessionVoteComponent', { timeout: 30_000 }, () => {
 
     const inst = fixture.componentInstance;
     expect(inst.showSessionEndGate()).toBe(true);
+    const endHeading = (fixture.nativeElement as HTMLElement).querySelector<HTMLElement>(
+      '#vote-session-end-anchor',
+    );
+    expect(endHeading?.getAttribute('tabindex')).toBe('-1');
+    await vi.waitUntil(() => document.activeElement === endHeading, {
+      timeout: 1000,
+      interval: 10,
+    });
     const text = fixture.nativeElement.textContent as string;
     expect(text).toContain('Die Session ist beendet.');
     expect(text).toContain('bewerte sie kurz');
@@ -4219,7 +4495,7 @@ describe('SessionVoteComponent', { timeout: 30_000 }, () => {
     fixture.destroy();
   });
 
-  it('nutzt fuer den Q&A-Autojoin fortlaufende Kita-Reserve-Namen statt Zufallszahlen', async () => {
+  it('nutzt fuer den Q&A-Autojoin den Zaehlerhinweis ohne Nickname-Vollbestand', async () => {
     localStorage.removeItem('arsnova-participant-ABC123');
     localStorage.removeItem('arsnova-nickname-ABC123');
     getInfoQueryMock.mockResolvedValue({
@@ -4244,6 +4520,8 @@ describe('SessionVoteComponent', { timeout: 30_000 }, () => {
     joinMutateMock.mockResolvedValue({
       id: '6a8edced-5f8f-4cfa-9176-454fac9570ad',
       participantId: '33333333-3333-4333-8333-333333333333',
+      participantNickname: 'Grüner Frosch 2',
+      rejoinToken: 'participant-capability-abcdefghijklmnopqrstuvwxyz',
     });
 
     const fixture = TestBed.createComponent(SessionVoteComponent);
@@ -4259,18 +4537,21 @@ describe('SessionVoteComponent', { timeout: 30_000 }, () => {
 
     expect(joinMutateMock).toHaveBeenCalledWith({
       code: 'ABC123',
-      nickname: 'Grüner Frosch 2',
+      nickname: 'Grüner Frosch',
       anonymousClientId: expect.stringMatching(
         /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i,
       ),
       rejoinToken: undefined,
+      joinIdempotencyKey: expect.any(String),
       productFeedbackClaimToken: undefined,
     });
+    expect(getParticipantNicknamesQueryMock).not.toHaveBeenCalled();
     expect(localStorage.getItem('arsnova-nickname-ABC123')).toBe('Grüner Frosch 2');
     expect(qaSubmitMutateMock).toHaveBeenCalledWith({
       sessionId: '6a8edced-5f8f-4cfa-9176-454fac9570ad',
       participantId: '33333333-3333-4333-8333-333333333333',
       text: 'Kommt Aufgabe 3 in der Klausur vor?',
+      idempotencyKey: expect.any(String),
     });
     fixture.destroy();
   });
@@ -6080,6 +6361,7 @@ describe('SessionVoteComponent', { timeout: 30_000 }, () => {
     const qaUnsubscribe = vi.fn();
     const quickFeedbackUnsubscribe = vi.fn();
     let statusListener: ((data: unknown) => void) | null = null;
+    let qaListener: ((data: never[]) => void) | null = null;
 
     statusChangedSubscribeMock.mockImplementation(
       (_input: unknown, opts: { onData: (d: unknown) => void }) => {
@@ -6087,7 +6369,12 @@ describe('SessionVoteComponent', { timeout: 30_000 }, () => {
         return { unsubscribe: statusUnsubscribe };
       },
     );
-    qaQuestionsUpdatedSubscribeMock.mockReturnValue({ unsubscribe: qaUnsubscribe });
+    qaQuestionsUpdatedSubscribeMock.mockImplementation(
+      (_input: unknown, opts: { onData: (data: never[]) => void }) => {
+        qaListener = opts.onData;
+        return { unsubscribe: qaUnsubscribe };
+      },
+    );
     quickFeedbackOnResultsSubscribeMock.mockReturnValue({ unsubscribe: quickFeedbackUnsubscribe });
     getInfoQueryMock.mockResolvedValue({
       id: '6a8edced-5f8f-4cfa-9176-454fac9570ad',
@@ -6122,6 +6409,24 @@ describe('SessionVoteComponent', { timeout: 30_000 }, () => {
     expect(qaQuestionsUpdatedSubscribeMock).toHaveBeenCalled();
     expect(quickFeedbackOnResultsSubscribeMock).toHaveBeenCalled();
 
+    fixture.componentInstance.qaQuestions.set([
+      {
+        id: 'stale-question',
+        text: 'Darf nicht sichtbar bleiben',
+        upvoteCount: 0,
+        status: 'ACTIVE',
+        createdAt: MOCK_SERVER_TIME,
+        myVote: null,
+        isOwn: true,
+        hasUpvoted: false,
+      },
+    ]);
+    fixture.componentInstance.qaDraft.set('Nicht senden');
+    fixture.componentInstance.qaSelectedAuthorNickname.set('Ada');
+    fixture.componentInstance.qaPendingQuestionIds.set(new Set(['stale-question']));
+    fixture.componentInstance.qaError.set('Alt');
+    fixture.componentInstance.qaInfo.set('Alt');
+
     statusListener?.({
       status: 'FINISHED',
       currentQuestion: null,
@@ -6133,6 +6438,20 @@ describe('SessionVoteComponent', { timeout: 30_000 }, () => {
     expect(statusUnsubscribe).toHaveBeenCalled();
     expect(qaUnsubscribe).toHaveBeenCalled();
     expect(quickFeedbackUnsubscribe).toHaveBeenCalled();
+    expect(fixture.componentInstance.qaQuestions()).toEqual([]);
+    expect(fixture.componentInstance.qaDraft()).toBe('');
+    expect(fixture.componentInstance.qaSelectedAuthorNickname()).toBeNull();
+    expect(fixture.componentInstance.qaPendingQuestionIds().size).toBe(0);
+    expect(fixture.componentInstance.qaError()).toBeNull();
+    expect(fixture.componentInstance.qaInfo()).toBeNull();
+
+    qaListener?.([
+      {
+        id: 'late-question',
+        text: 'Verspätete Subscription',
+      } as never,
+    ]);
+    expect(fixture.componentInstance.qaQuestions()).toEqual([]);
     fixture.destroy();
   });
 
@@ -6303,6 +6622,25 @@ describe('SessionVoteComponent', { timeout: 30_000 }, () => {
         hasUpvoted: false,
       },
     ]);
+    qaSubmitMutateMock.mockResolvedValueOnce({
+      question: {
+        id: 'question-2',
+        text: 'Kommt Aufgabe 3 in der Klausur vor?',
+        upvoteCount: 0,
+        status: 'ACTIVE',
+        createdAt: '2026-03-13T12:01:00.000Z',
+        myVote: null,
+        isOwn: true,
+        hasUpvoted: false,
+      },
+      quota: {
+        participantQuestionCount: 1,
+        participantRemaining: 9,
+        sessionQuestionCount: 25_000,
+        sessionRemaining: 0,
+      },
+      replayed: false,
+    });
 
     const fixture = TestBed.createComponent(SessionVoteComponent);
     fixture.detectChanges();
@@ -6318,7 +6656,113 @@ describe('SessionVoteComponent', { timeout: 30_000 }, () => {
       sessionId: '6a8edced-5f8f-4cfa-9176-454fac9570ad',
       participantId: '11111111-1111-4111-8111-111111111111',
       text: 'Kommt Aufgabe 3 in der Klausur vor?',
+      idempotencyKey: expect.any(String),
     });
+    fixture.detectChanges();
+    expect(fixture.nativeElement.textContent ?? '').toContain('Sessionweit noch 0 von 25.000');
+    expect(component.qaCanSubmit()).toBe(false);
+    fixture.destroy();
+  });
+
+  it('ersetzt Q&A-Seiten statt mehr als 100 Fragen gleichzeitig zu rendern', async () => {
+    getInfoQueryMock.mockResolvedValue({
+      id: '6a8edced-5f8f-4cfa-9176-454fac9570ad',
+      serverTime: new Date().toISOString(),
+      expiresAt: '2099-09-15T12:00:00.000Z',
+      qaClosesAt: '2099-09-15T11:00:00.000Z',
+      code: 'ABC123',
+      type: 'Q_AND_A',
+      status: 'LOBBY',
+      quizName: null,
+      title: 'Offene Fragen',
+      participantCount: 101,
+      channels: {
+        quiz: { enabled: false },
+        qa: {
+          enabled: true,
+          open: true,
+          title: 'Offene Fragen',
+          moderationMode: false,
+          closesAt: '2099-09-15T11:00:00.000Z',
+        },
+        quickFeedback: { enabled: false, open: false },
+      },
+    });
+    const firstPage = Array.from({ length: 100 }, (_, index) => ({
+      id: `question-page-one-${index}`,
+      text: `Frage ${index + 1}`,
+      upvoteCount: 0,
+      status: 'ACTIVE' as const,
+      createdAt: '2026-09-15T08:00:00.000Z',
+      myVote: null,
+      isOwn: false,
+      hasUpvoted: false,
+    }));
+    const firstSnapshot = {
+      questions: firstPage,
+      state: 'ACTIVE' as const,
+      sessionLifecycleRevision: 1,
+      serverNow: new Date().toISOString(),
+      expiresAt: '2099-09-15T12:00:00.000Z',
+      qaClosesAt: '2099-09-15T11:00:00.000Z',
+      endedAt: null,
+      postProcessingEndsAt: null,
+      rankingRevision: '1:',
+      nextCursor: 'page-two',
+      totalCount: 101,
+    };
+    const secondSnapshot = {
+      questions: [
+        {
+          id: 'question-page-two',
+          text: 'Letzte Frage',
+          upvoteCount: 0,
+          status: 'ACTIVE' as const,
+          createdAt: '2026-09-15T07:00:00.000Z',
+          myVote: null,
+          isOwn: false,
+          hasUpvoted: false,
+        },
+      ],
+      state: 'ACTIVE' as const,
+      sessionLifecycleRevision: 1,
+      serverNow: new Date().toISOString(),
+      expiresAt: '2099-09-15T12:00:00.000Z',
+      qaClosesAt: '2099-09-15T11:00:00.000Z',
+      endedAt: null,
+      postProcessingEndsAt: null,
+      rankingRevision: '1:',
+      nextCursor: null,
+      totalCount: 101,
+    };
+    qaListQueryMock.mockResolvedValue([]);
+
+    const fixture = TestBed.createComponent(SessionVoteComponent);
+    fixture.detectChanges();
+    await flushComponentAfterStable(fixture, 50);
+    const component = fixture.componentInstance;
+    const accepted = (
+      component as unknown as {
+        applyQaQuestionsSnapshot(snapshot: typeof firstSnapshot): boolean;
+      }
+    ).applyQaQuestionsSnapshot(firstSnapshot);
+    component.activeChannel.set('qa');
+    fixture.detectChanges();
+    expect(accepted).toBe(true);
+    expect(component.qaQuestions()).toHaveLength(100);
+
+    qaListQueryMock.mockResolvedValueOnce(secondSnapshot);
+    await component.loadMoreQaQuestions();
+    fixture.detectChanges();
+    expect(qaListQueryMock).toHaveBeenLastCalledWith({
+      sessionId: '6a8edced-5f8f-4cfa-9176-454fac9570ad',
+      participantId: '11111111-1111-4111-8111-111111111111',
+      pageSize: 100,
+      cursor: 'page-two',
+    });
+    expect(component.qaQuestions()).toHaveLength(1);
+    expect(component.visibleQaQuestions()).toHaveLength(1);
+    expect(component.qaListPageIndex()).toBe(1);
     fixture.destroy();
   });
 

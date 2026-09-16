@@ -1,7 +1,8 @@
-import { afterEach, describe, expect, it } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 import { qaSummaryQuestionSourceId, type QaSummaryModelOutput } from '@arsnova/shared-types';
 import {
   getQaSummaryRuntime,
+  invalidateQaSummaryForSession,
   requestQaSummary,
   resetQaSummaryQueueForTests,
   waitForQaSummaryIdleForTests,
@@ -96,6 +97,34 @@ describe('qaSummaryQueue', () => {
       status: 'ready',
       statements: [{ text: 'Es gibt eine Klausurfrage.', sourceIds: [SOURCE_ID] }],
     });
+  });
+
+  it('verwirft laufende Zusammenfassungsartefakte nach einer Session-Purge-Invalidierung', async () => {
+    let release!: (value: QaSummaryModelOutput) => void;
+    let processorStarted = false;
+    resetQaSummaryQueueForTests({
+      config: () => testConfig({ timeoutMs: 1_000 }),
+      loadSnapshot: async () => snapshot,
+      processor: () =>
+        new Promise((resolve) => {
+          release = resolve;
+          processorStarted = true;
+        }),
+    });
+
+    await requestQaSummary(SESSION_ID, 'de');
+    await vi.waitFor(() => expect(processorStarted).toBe(true));
+    invalidateQaSummaryForSession(SESSION_ID);
+    release({
+      status: 'ready',
+      statements: [{ text: 'Darf nicht im Cache bleiben.', sourceIds: [SOURCE_ID] }],
+      suggestedNextSteps: [],
+      limitations: [],
+      modelVersion: 'stub',
+    });
+    await waitForQaSummaryIdleForTests();
+
+    expect(getQaSummaryRuntime(SESSION_ID).result).toBeNull();
   });
 
   it('hält denselben Snapshot in der Cooldown-Zeit und startet keinen zweiten Job', async () => {

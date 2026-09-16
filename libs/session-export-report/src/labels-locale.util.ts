@@ -266,6 +266,7 @@ const EN_LABELS: SessionResultsReportLabels = {
   ratingAverageTemplate: 'Avg. {0} out of 5 ★',
   ratingAverageWithSigmaTemplate: 'Avg. {0} out of 5 ★ · σ {1}',
   qaTitle: 'Participant Q&A questions',
+  qaCoverageTemplate: 'Showing the {0} highest-ranked of {1} exportable questions.',
   qaStatus: 'Status',
   qaUpvotes: 'Upvotes',
   qaControversial: 'Controversial',

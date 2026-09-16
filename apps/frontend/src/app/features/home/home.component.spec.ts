@@ -5,6 +5,8 @@ import { describe, it, expect, beforeEach, vi, afterEach } from 'vitest';
 import { TestBed } from '@angular/core/testing';
 import { ActivatedRoute, convertToParamMap, provideRouter, Router } from '@angular/router';
 import { provideHttpClient } from '@angular/common/http';
+import { MatDialog } from '@angular/material/dialog';
+import { of } from 'rxjs';
 import { HomeComponent } from './home.component';
 import { QuizStoreService } from '../quiz/data/quiz-store.service';
 import { clearHostToken, setHostToken } from '../../core/host-session-token';
@@ -89,6 +91,21 @@ vi.mock('../../core/trpc.client', () => ({
 }));
 
 const activeFixtures: Array<ReturnType<typeof TestBed.createComponent<HomeComponent>>> = [];
+const matDialogMock = {
+  open: vi.fn(
+    (
+      _component: unknown,
+      config?: {
+        data?: {
+          identityMode: 'PRESET_PSEUDONYM';
+          nicknameTheme: 'KINDERGARTEN' | 'HIGH_SCHOOL';
+        };
+      },
+    ) => ({
+      afterClosed: () => of(config?.data),
+    }),
+  ),
+};
 
 function createHomeFixture() {
   const fixture = TestBed.createComponent(HomeComponent);
@@ -133,6 +150,7 @@ describe('HomeComponent', () => {
       providers: [
         provideRouter([]),
         provideHttpClient(),
+        { provide: MatDialog, useValue: matDialogMock },
         {
           provide: ActivatedRoute,
           useValue: {
@@ -144,6 +162,10 @@ describe('HomeComponent', () => {
         },
       ],
     });
+    matDialogMock.open.mockClear();
+    matDialogMock.open.mockImplementation((_component, config) => ({
+      afterClosed: () => of(config?.data),
+    }));
   });
 
   afterEach(() => {
@@ -974,7 +996,7 @@ describe('HomeComponent', () => {
       await comp.openHeroHostTab('qa');
 
       expect(trpc.session.create.mutate).toHaveBeenCalled();
-      expect(navigateSpy).toHaveBeenCalledWith('/session/QA0001/host?tab=qa');
+      expect(navigateSpy).toHaveBeenCalledWith('/session/QA0001/host?tab=qa&qaSetup=1');
     });
 
     it('startet ohne vorhandenen Code eine neue Q&A-Host-Session', async () => {
@@ -991,6 +1013,12 @@ describe('HomeComponent', () => {
 
       await comp.openHeroHostTab('qa');
 
+      expect(matDialogMock.open).toHaveBeenCalledWith(
+        expect.anything(),
+        expect.objectContaining({
+          data: expect.objectContaining({ setupStep: 1, setupStepCount: 3 }),
+        }),
+      );
       expect(trpc.session.create.mutate).toHaveBeenCalledWith({
         type: 'QUIZ',
         qaEnabled: true,
@@ -1001,8 +1029,9 @@ describe('HomeComponent', () => {
         teamCount: null,
         teamAssignment: 'AUTO',
         teamNames: [],
+        timeZone: expect.any(String),
       });
-      expect(navigateSpy).toHaveBeenCalledWith('/session/QA1234/host?tab=qa');
+      expect(navigateSpy).toHaveBeenCalledWith('/session/QA1234/host?tab=qa&qaSetup=1');
       expect(comp.joinError()).toBeNull();
     });
 
@@ -1048,8 +1077,83 @@ describe('HomeComponent', () => {
         teamCount: null,
         teamAssignment: 'AUTO',
         teamNames: [],
+        timeZone: expect.any(String),
       });
-      expect(navigateSpy).toHaveBeenCalledWith('/session/QA5678/host?tab=qa');
+      expect(navigateSpy).toHaveBeenCalledWith('/session/QA5678/host?tab=qa&qaSetup=1');
+      expect(comp.joinError()).toBeNull();
+    });
+
+    it('übernimmt den gewählten Anonymmodus in den direkten Q&A-Start', async () => {
+      const { trpc } = await import('../../core/trpc.client');
+      vi.mocked(trpc.session.create.mutate).mockResolvedValueOnce({
+        id: 'sess-anonymous',
+        code: 'QAANON',
+        hostToken: 'qa-anonymous-token',
+      });
+      matDialogMock.open.mockReturnValueOnce({
+        afterClosed: () =>
+          of({
+            identityMode: 'ANONYMOUS',
+            nicknameTheme: 'MIDDLE_SCHOOL',
+          }),
+      } as ReturnType<(typeof matDialogMock)['open']>);
+      const comp = createHomeComponent();
+      vi.spyOn(TestBed.inject(Router), 'navigateByUrl').mockResolvedValue(true);
+
+      await comp.openHeroHostTab('qa');
+
+      expect(trpc.session.create.mutate).toHaveBeenCalledWith(
+        expect.objectContaining({
+          qaEnabled: true,
+          nicknameTheme: 'MIDDLE_SCHOOL',
+          allowCustomNicknames: false,
+          anonymousMode: true,
+        }),
+      );
+    });
+
+    it('übernimmt selbst gewählte Nicknames in den direkten Q&A-Start', async () => {
+      const { trpc } = await import('../../core/trpc.client');
+      vi.mocked(trpc.session.create.mutate).mockResolvedValueOnce({
+        id: 'sess-custom',
+        code: 'QACSTM',
+        hostToken: 'qa-custom-token',
+      });
+      matDialogMock.open.mockReturnValueOnce({
+        afterClosed: () =>
+          of({
+            identityMode: 'CUSTOM_NICKNAME',
+            nicknameTheme: 'HIGH_SCHOOL',
+          }),
+      } as ReturnType<(typeof matDialogMock)['open']>);
+      const comp = createHomeComponent();
+      vi.spyOn(TestBed.inject(Router), 'navigateByUrl').mockResolvedValue(true);
+
+      await comp.openHeroHostTab('qa');
+
+      expect(trpc.session.create.mutate).toHaveBeenCalledWith(
+        expect.objectContaining({
+          qaEnabled: true,
+          nicknameTheme: 'HIGH_SCHOOL',
+          allowCustomNicknames: true,
+          anonymousMode: false,
+        }),
+      );
+    });
+
+    it('legt nach Abbruch der Teilnahmeauswahl keine Q&A-Session an', async () => {
+      const { trpc } = await import('../../core/trpc.client');
+      vi.mocked(trpc.session.create.mutate).mockClear();
+      matDialogMock.open.mockReturnValueOnce({
+        afterClosed: () => of(undefined),
+      } as ReturnType<(typeof matDialogMock)['open']>);
+      const comp = createHomeComponent();
+      const navigateSpy = vi.spyOn(TestBed.inject(Router), 'navigateByUrl').mockResolvedValue(true);
+
+      await comp.openHeroHostTab('qa');
+
+      expect(trpc.session.create.mutate).not.toHaveBeenCalled();
+      expect(navigateSpy).not.toHaveBeenCalled();
       expect(comp.joinError()).toBeNull();
     });
 
@@ -1077,6 +1181,7 @@ describe('HomeComponent', () => {
         teamCount: null,
         teamAssignment: 'AUTO',
         teamNames: [],
+        timeZone: expect.any(String),
       });
       expect(navigateSpy).toHaveBeenCalledWith('/session/QF1234/host?tab=quickFeedback');
       expect(comp.joinError()).toBeNull();
@@ -1107,6 +1212,7 @@ describe('HomeComponent', () => {
         teamCount: null,
         teamAssignment: 'AUTO',
         teamNames: [],
+        timeZone: expect.any(String),
       });
       expect(navigateSpy).toHaveBeenCalledWith('/session/QF5678/host?tab=quickFeedback');
       expect(comp.joinError()).toBeNull();
@@ -1137,7 +1243,7 @@ describe('HomeComponent', () => {
       expect(trpc.session.create.mutate).toHaveBeenCalledWith(
         expect.objectContaining({ qaEnabled: true }),
       );
-      expect(navigateSpy).toHaveBeenCalledWith('/session/QA9999/host?tab=qa');
+      expect(navigateSpy).toHaveBeenCalledWith('/session/QA9999/host?tab=qa&qaSetup=1');
     });
 
     it('erstellt bei PWA-Shortcut eine neue Session trotz bekanntem Teilnehmer-Code ohne Host-Token', async () => {
@@ -1167,7 +1273,7 @@ describe('HomeComponent', () => {
       expect(trpc.session.create.mutate).toHaveBeenCalledWith(
         expect.objectContaining({ qaEnabled: true }),
       );
-      expect(navigateSpy).toHaveBeenCalledWith('/session/QA8888/host?tab=qa');
+      expect(navigateSpy).toHaveBeenCalledWith('/session/QA8888/host?tab=qa&qaSetup=1');
       expect(navigateSpy).not.toHaveBeenCalledWith(expect.stringContaining('PART01'));
     });
 

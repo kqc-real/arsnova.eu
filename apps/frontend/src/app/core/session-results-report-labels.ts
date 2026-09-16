@@ -235,6 +235,7 @@ export function getSessionResultsReportLabels(): SessionResultsReportLabels {
     ratingAverageTemplate: $localize`:@@sessionReport.ratingAverageTemplate:Ø {0} von 5 ★`,
     ratingAverageWithSigmaTemplate: $localize`:@@sessionReport.ratingAverageWithSigmaTemplate:Ø {0} von 5 ★ · σ {1}`,
     qaTitle: $localize`:@@sessionReport.qaTitle:Q&A-Fragen der Teilnehmenden`,
+    qaCoverageTemplate: $localize`:@@sessionReport.qaCoverageTemplate:Gezeigt werden die {0} höchstplatzierten von {1} exportierbaren Fragen.`,
     qaStatus: $localize`:@@sessionReport.qaStatus:Status`,
     qaUpvotes: $localize`:@@sessionReport.qaUpvotes:Upvotes`,
     qaControversial: $localize`:@@sessionReport.qaControversial:Umstritten`,

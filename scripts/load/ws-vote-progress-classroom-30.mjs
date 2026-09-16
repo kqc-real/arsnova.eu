@@ -48,12 +48,16 @@ const STATUS_AFTER_REVEAL_LIMIT_MS = Math.max(
 );
 const WS_READY_MS = Math.max(100, Number(process.env.WS_READY_MS || 750));
 
-function createHttpClient(hostToken) {
+function createHttpClient(hostToken, participantCapability) {
+  const headers = {
+    ...(hostToken ? { 'x-host-token': hostToken } : {}),
+    ...(participantCapability ? { 'x-participant-capability': participantCapability } : {}),
+  };
   return createTRPCProxyClient({
     links: [
       httpBatchLink({
         url: TRPC_URL,
-        headers: hostToken ? () => ({ 'x-host-token': hostToken }) : undefined,
+        headers: Object.keys(headers).length > 0 ? () => headers : undefined,
       }),
     ],
   });
@@ -178,6 +182,7 @@ async function joinParticipants(publicTrpc, code) {
       code,
       nickname,
       anonymousClientId: globalThis.crypto.randomUUID(),
+      joinIdempotencyKey: globalThis.crypto.randomUUID(),
     }),
   );
 }
@@ -188,7 +193,8 @@ async function voteSpike(publicTrpc, joined, questionId, answerId) {
   const results = await Promise.allSettled(
     joined.map(async (participant, index) => {
       const requestStartedAt = performance.now();
-      await publicTrpc.vote.submit.mutate({
+      const voter = createHttpClient(undefined, participant.rejoinToken);
+      await voter.vote.submit.mutate({
         sessionId: participant.id,
         participantId: participant.participantId,
         questionId,

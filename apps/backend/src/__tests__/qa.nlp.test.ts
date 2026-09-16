@@ -4,6 +4,7 @@ import { trpcDodIt } from './test-utils/trpc-dod-evidence';
 
 const { prismaMock, hostAuthMocks } = vi.hoisted(() => ({
   prismaMock: {
+    $queryRaw: vi.fn(),
     session: {
       findUnique: vi.fn(),
     },
@@ -20,6 +21,7 @@ const { prismaMock, hostAuthMocks } = vi.hoisted(() => ({
       update: vi.fn(),
     },
     qaUpvote: {
+      findMany: vi.fn(),
       groupBy: vi.fn(),
     },
   },
@@ -42,6 +44,10 @@ vi.mock('../lib/hostAuth', async () => {
     isHostSessionTokenValid: hostAuthMocks.isHostSessionTokenValidMock,
   });
 });
+
+vi.mock('../lib/participantAuth', () => ({
+  assertParticipantCapability: vi.fn(),
+}));
 
 import { qaRouter } from '../routers/qa';
 import {
@@ -84,6 +90,8 @@ describe('qa NLP cascade (Story 8.9b)', () => {
       _max: { updatedAt: null },
       _sum: { upvoteCount: 0 },
     });
+    prismaMock.qaQuestion.count.mockResolvedValue(0);
+    prismaMock.qaUpvote.findMany.mockResolvedValue([]);
     prismaMock.qaUpvote.groupBy.mockResolvedValue([]);
     prismaMock.qaQuestion.update.mockResolvedValue({});
   });
@@ -155,13 +163,19 @@ describe('qa NLP cascade (Story 8.9b)', () => {
       qaEnabled: true,
       qaOpen: true,
       qaModerationMode: false,
+      qaRankingRevision: 0,
+      qaQuestionCount: 1,
+      sessionLifecycleRevision: 0,
     });
-    prismaMock.qaQuestion.findMany.mockResolvedValue([
+    prismaMock.$queryRaw.mockResolvedValue([
       {
         id: QUESTION_ID,
+        sessionId: SESSION_ID,
         participantId: 'other-participant',
         text: 'Was ist klausurrelevant?',
         upvoteCount: 4,
+        positiveVoteCount: 4,
+        negativeVoteCount: 0,
         status: 'ACTIVE',
         nlpStatus: 'CLASSIFIED',
         nlpCategory: 'CONTENT',
@@ -169,11 +183,18 @@ describe('qa NLP cascade (Story 8.9b)', () => {
         nlpModelVersion: 'stub',
         nlpAnalyzedAt: new Date('2026-08-19T12:00:00.000Z'),
         createdAt: new Date('2026-03-13T12:00:00.000Z'),
-        upvotes: [{ participantId: PARTICIPANT_ID, direction: 'UP' }],
+        authorNickname: null,
+        myVote: 'UP',
+        bestScore: 0.6,
+        controversyScore: 0,
+        totalCount: 1,
       },
     ]);
 
-    const result = await caller.list({ sessionId: SESSION_ID, participantId: PARTICIPANT_ID });
+    const { questions: result } = await caller.list({
+      sessionId: SESSION_ID,
+      participantId: PARTICIPANT_ID,
+    });
 
     expect(result).toHaveLength(1);
     expect(result[0]).not.toHaveProperty('nlp');
@@ -190,21 +211,34 @@ describe('qa NLP cascade (Story 8.9b)', () => {
       qaEnabled: true,
       qaOpen: true,
       qaModerationMode: true,
+      qaRankingRevision: 0,
+      qaQuestionCount: 1,
+      sessionLifecycleRevision: 0,
     });
-    prismaMock.qaQuestion.findMany.mockResolvedValue([
+    prismaMock.$queryRaw.mockResolvedValue([
       {
         id: QUESTION_ID,
+        sessionId: SESSION_ID,
         participantId: PARTICIPANT_ID,
         text: 'Noch nicht freigegeben',
         upvoteCount: 0,
+        positiveVoteCount: 0,
+        negativeVoteCount: 0,
         status: 'PENDING',
         nlpStatus: 'PENDING',
         createdAt: new Date('2026-03-13T12:00:00.000Z'),
-        upvotes: [],
+        authorNickname: null,
+        myVote: null,
+        bestScore: 0,
+        controversyScore: 0,
+        totalCount: 1,
       },
     ]);
 
-    const result = await hostCaller.list({ sessionId: SESSION_ID, moderatorView: true });
+    const { questions: result } = await hostCaller.list({
+      sessionId: SESSION_ID,
+      moderatorView: true,
+    });
     expect(result[0]?.nlp).toEqual({ status: 'pending' });
   });
 
@@ -241,32 +275,30 @@ describe('qa NLP cascade (Story 8.9b)', () => {
         status: 'ACTIVE',
       },
     });
-    prismaMock.qaQuestion.count.mockResolvedValue(0);
-    prismaMock.qaQuestion.create.mockResolvedValue({
-      id: QUESTION_ID,
-      participantId: PARTICIPANT_ID,
-      text: 'Wie viele Punkte gibt es?',
-      upvoteCount: 0,
-      status: 'ACTIVE',
-      nlpStatus: 'PENDING',
-      createdAt: new Date('2026-03-13T12:00:00.000Z'),
-      upvotes: [],
-    });
+    prismaMock.$queryRaw.mockResolvedValue([
+      {
+        id: QUESTION_ID,
+        text: 'Wie viele Punkte gibt es?',
+        upvoteCount: 0,
+        status: 'ACTIVE',
+        createdAt: new Date('2026-03-13T12:00:00.000Z'),
+        replayed: false,
+        participantQuestionCount: 1,
+        sessionQuestionCount: 1,
+      },
+    ]);
 
     const started = Date.now();
     const result = await caller.submit({
       sessionId: SESSION_ID,
       participantId: PARTICIPANT_ID,
       text: 'Wie viele Punkte gibt es?',
+      idempotencyKey: '55555555-5555-4555-8555-555555555555',
     });
     expect(Date.now() - started).toBeLessThan(40);
     expect(processed).toBe(false);
     expect(result).not.toHaveProperty('nlp');
-    expect(prismaMock.qaQuestion.create).toHaveBeenCalledWith(
-      expect.objectContaining({
-        data: expect.objectContaining({ nlpStatus: 'PENDING' }),
-      }),
-    );
+    expect(prismaMock.$queryRaw).toHaveBeenCalledTimes(1);
 
     await waitForQaNlpIdleForTests();
     expect(processed).toBe(true);

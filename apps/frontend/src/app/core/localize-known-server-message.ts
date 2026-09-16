@@ -7,6 +7,7 @@ const SESSION_CREATE_RATE_LIMIT_DE =
   'Zu viele Session-Erstellungen. Bitte später erneut versuchen.';
 const SESSION_CODE_TOO_MANY_FAILURES_DE_PREFIX = 'Ungültiger Code.';
 const SESSION_CODE_TOO_MANY_FAILURES_DE_CONTAINS = 'Zu viele Fehlversuche';
+const SESSION_NICKNAME_CONFLICT_DE = 'Dieser Nickname ist in dieser Session bereits vergeben.';
 const ADMIN_LOGIN_RATE_LIMIT_MESSAGES_DE = new Set([
   'Zu viele Admin-Login-Versuche. Bitte später erneut versuchen.',
   'Zu viele gleichzeitige Admin-Login-Versuche.',
@@ -37,6 +38,7 @@ const TRPC_CODE_PREFIXES = [
   'TOO_MANY_REQUESTS',
   'NOT_FOUND',
   'BAD_REQUEST',
+  'CONFLICT',
   'UNAUTHORIZED',
   'FORBIDDEN',
   'INTERNAL_SERVER_ERROR',
@@ -109,6 +111,9 @@ export function localizeKnownServerMessage(message: string): string {
   if (ADMIN_LOGIN_RATE_LIMIT_MESSAGES_DE.has(normalized)) {
     return adminLoginRateLimitUiMessage();
   }
+  if (normalized === SESSION_NICKNAME_CONFLICT_DE) {
+    return $localize`:@@join.nicknameConflict:Dieser Name ist in dieser Session bereits vergeben.`;
+  }
   const pairingMessage = HOST_PAIRING_MESSAGES_DE[normalized];
   if (pairingMessage) {
     return pairingMessage();
@@ -123,6 +128,10 @@ function extractErrorMessage(error: unknown, fallbackMessage: string): string {
     return message;
   }
   return fallbackMessage;
+}
+
+export function isNicknameTakenServerError(error: unknown): boolean {
+  return stripTrpcCodePrefix(extractErrorMessage(error, '')) === SESSION_NICKNAME_CONFLICT_DE;
 }
 
 /**

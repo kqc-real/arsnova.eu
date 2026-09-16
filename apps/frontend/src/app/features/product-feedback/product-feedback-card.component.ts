@@ -61,6 +61,8 @@ export class ProductFeedbackCardComponent implements OnInit, OnDestroy {
   readonly sessionCode = input.required<string>();
   readonly participantId = input<string | undefined>(undefined);
   readonly fallbackFocusSelector = input<string | undefined>(undefined);
+  /** Eingebettete Abschlussseiten besitzen bereits ein autoritatives Fokusziel. */
+  readonly focusOnBootstrap = input(true);
   /** Compact inline on session-end vs sheet on home */
   readonly variant = input<'inline' | 'sheet'>('inline');
 
@@ -142,7 +144,9 @@ export class ProductFeedbackCardComponent implements OnInit, OnDestroy {
       this.inviteToken.set(claimed.inviteToken);
       this.survey.set(claimed.survey);
       this.step.set('primary');
-      this.moveFocusForStep();
+      if (this.focusOnBootstrap()) {
+        this.moveFocusForStep();
+      }
     } catch (error) {
       if (!this.destroyed) {
         const retryUseful = this.isActionRetryUseful(error);
@@ -150,7 +154,9 @@ export class ProductFeedbackCardComponent implements OnInit, OnDestroy {
         this.retryAvailable.set(retryUseful);
         this.step.set('error');
         this.statusMessage.set(this.errorStatus(error, 'claim'));
-        this.moveFocusForStep();
+        if (this.focusOnBootstrap()) {
+          this.moveFocusForStep();
+        }
       }
     } finally {
       if (!this.destroyed) this.busy.set(false);

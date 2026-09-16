@@ -411,17 +411,11 @@ describe('FeedbackHostComponent', () => {
     fixture.destroy();
   });
 
-  it('beendet die eingebettete Session und navigiert zur Startseite', async () => {
+  it('überlässt das globale Ende im eingebetteten Modus dem gemeinsamen Session-Host', async () => {
     const { trpc } = await import('../../core/trpc.client');
     const router = TestBed.inject(Router);
     const navigateByUrlSpy = vi.spyOn(router, 'navigateByUrl').mockResolvedValue(true);
-    const onActionSubscribe = vi.fn((callback: () => void) => {
-      callback();
-      return { unsubscribe: vi.fn() };
-    });
-    const snackBarSpy = vi.spyOn(TestBed.inject(MatSnackBar), 'open').mockReturnValue({
-      onAction: () => ({ subscribe: onActionSubscribe }),
-    } as never);
+    const snackBarSpy = vi.spyOn(TestBed.inject(MatSnackBar), 'open');
 
     const fixture = TestBed.createComponent(FeedbackHostComponent);
     fixture.componentRef.setInput('embeddedInSession', true);
@@ -429,59 +423,13 @@ describe('FeedbackHostComponent', () => {
     const comp = fixture.componentInstance;
 
     comp.endSession();
-    await Promise.resolve();
-    await vi.waitFor(() => {
-      expect(clearHostTokenMock).toHaveBeenCalledWith('ABC123');
-    });
 
-    expect(snackBarSpy).toHaveBeenCalledWith(
-      'Eine zweite Vergleichsrunde ist dann nicht mehr möglich. Es werden alle Ergebnisse gelöscht.',
-      'Trotzdem beenden',
-      { duration: 7000 },
-    );
-    expect(trpc.session.end.mutate).toHaveBeenCalledWith({ code: 'ABC123' });
-    expect(trpc.session.dismissFinishProjection.mutate).toHaveBeenCalledWith({ code: 'ABC123' });
-    expect(clearFeedbackHostTokenMock).toHaveBeenCalledWith('ABC123');
-    expect(navigateByUrlSpy).toHaveBeenCalledWith('/', { replaceUrl: true });
-    expect(onActionSubscribe).toHaveBeenCalled();
-    fixture.destroy();
-  });
-
-  it('bleibt im eingebetteten Host stehen, wenn der Presenter-Dismiss fehlschlägt', async () => {
-    const { trpc } = await import('../../core/trpc.client');
-    const router = TestBed.inject(Router);
-    const navigateByUrlSpy = vi.spyOn(router, 'navigateByUrl').mockResolvedValue(true);
-    const snackBar = TestBed.inject(MatSnackBar);
-    const openSpy = vi.spyOn(snackBar, 'open');
-    const onActionSubscribe = vi.fn((callback: () => void) => {
-      callback();
-      return { unsubscribe: vi.fn() };
-    });
-    vi.spyOn(snackBar, 'open').mockReturnValueOnce({
-      onAction: () => ({ subscribe: onActionSubscribe }),
-    } as never);
-    vi.mocked(trpc.session.dismissFinishProjection.mutate).mockRejectedValueOnce(
-      new Error('network'),
-    );
-
-    const fixture = TestBed.createComponent(FeedbackHostComponent);
-    fixture.componentRef.setInput('embeddedInSession', true);
-    fixture.detectChanges();
-
-    fixture.componentInstance.endSession();
-    await Promise.resolve();
-    await Promise.resolve();
-
-    expect(trpc.session.end.mutate).toHaveBeenCalledWith({ code: 'ABC123' });
-    expect(trpc.session.dismissFinishProjection.mutate).toHaveBeenCalledWith({ code: 'ABC123' });
+    expect(snackBarSpy).not.toHaveBeenCalled();
+    expect(trpc.session.end.mutate).not.toHaveBeenCalled();
+    expect(trpc.session.dismissFinishProjection.mutate).not.toHaveBeenCalled();
     expect(clearHostTokenMock).not.toHaveBeenCalled();
     expect(clearFeedbackHostTokenMock).not.toHaveBeenCalled();
     expect(navigateByUrlSpy).not.toHaveBeenCalled();
-    expect(openSpy).toHaveBeenLastCalledWith(
-      'Beenden oder Presenter-Umschaltung haben gerade nicht geklappt. Bitte in ein paar Sekunden erneut versuchen.',
-      '',
-      { duration: 7000 },
-    );
     fixture.destroy();
   });
 

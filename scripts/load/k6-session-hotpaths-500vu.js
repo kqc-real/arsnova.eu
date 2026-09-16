@@ -24,6 +24,7 @@
  */
 import http from 'k6/http';
 import { check, sleep } from 'k6';
+import { randomBytes } from 'k6/crypto';
 
 const base = (__ENV.BASE_URL || 'http://127.0.0.1:3000').replace(/\/$/, '');
 const mode = (__ENV.MODE || 'join-wave').trim();
@@ -84,6 +85,12 @@ function participantIdForVu() {
   return participantIds[(__VU - 1) % participantIds.length] || '';
 }
 
+function csprngIdempotencyKey() {
+  return Array.from(new Uint8Array(randomBytes(32)), (byte) =>
+    byte.toString(16).padStart(2, '0'),
+  ).join('');
+}
+
 function joinWave() {
   const joinUrl = `${base}/trpc/session.join`;
   const pollInput = encodeURIComponent(
@@ -98,7 +105,12 @@ function joinWave() {
   const anonymousClientId = `00000000-0000-4000-8000-${String(__VU).padStart(6, '0')}${String(__ITER).padStart(6, '0')}`;
   const joinRes = http.post(
     joinUrl,
-    JSON.stringify({ code: sessionCode, nickname: nick, anonymousClientId }),
+    JSON.stringify({
+      code: sessionCode,
+      nickname: nick,
+      anonymousClientId,
+      joinIdempotencyKey: csprngIdempotencyKey(),
+    }),
     {
       headers: { 'Content-Type': 'application/json' },
     },

@@ -14,8 +14,10 @@ const { prismaMock, hostAuthMocks } = vi.hoisted(() => ({
       findFirst: vi.fn(),
     },
     qaQuestion: {
+      count: vi.fn(),
       findMany: vi.fn(),
     },
+    $transaction: vi.fn(),
   },
   hostAuthMocks: {
     extractHostTokenMock: vi.fn(),
@@ -123,6 +125,10 @@ describe('Confidence-Auswertung (Story 1.2i)', () => {
     hostAuthMocks.isHostSessionTokenValidMock.mockResolvedValue(true);
     prismaMock.vote.count.mockResolvedValue(0);
     prismaMock.participant.findFirst.mockResolvedValue(null);
+    prismaMock.$transaction.mockImplementation(
+      async (fn: (tx: typeof prismaMock) => Promise<unknown>) => fn(prismaMock),
+    );
+    prismaMock.qaQuestion.count.mockResolvedValue(0);
     prismaMock.qaQuestion.findMany.mockResolvedValue([]);
   });
 

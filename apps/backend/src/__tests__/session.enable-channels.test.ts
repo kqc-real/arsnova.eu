@@ -7,6 +7,8 @@ const { prismaMock, hostAuthMocks } = vi.hoisted(() => ({
       findUnique: vi.fn(),
       update: vi.fn(),
     },
+    $executeRaw: vi.fn(),
+    $transaction: vi.fn(),
   },
   hostAuthMocks: {
     extractHostTokenMock: vi.fn(),
@@ -36,13 +38,26 @@ import { sessionRouter } from '../routers/session';
 
 const caller = sessionRouter.createCaller({ req: {} as never });
 const SESSION_ID = '6a8edced-5f8f-4cfa-9176-454fac9570ad';
+const ACTIVE_SESSION = {
+  id: SESSION_ID,
+  status: 'ACTIVE',
+  endedAt: null,
+  expiresAt: new Date('2099-01-02T00:00:00.000Z'),
+  qaClosesAt: new Date('2099-01-01T00:00:00.000Z'),
+  sessionLifecycleRevision: 1,
+  preferredChannel: 'quiz',
+};
 
 describe('session.enable channel mutations', () => {
   beforeEach(() => {
-    vi.clearAllMocks();
+    vi.resetAllMocks();
     hostAuthMocks.extractHostTokenMock.mockReturnValue('host-token-123');
     hostAuthMocks.extractHostTokenFromConnectionParamsMock.mockReturnValue(null);
     hostAuthMocks.isHostSessionTokenValidMock.mockResolvedValue(true);
+    prismaMock.$executeRaw.mockResolvedValue(1);
+    prismaMock.$transaction.mockImplementation(async (fn: (tx: typeof prismaMock) => unknown) =>
+      fn(prismaMock),
+    );
   });
 
   trpcDodIt(
@@ -50,15 +65,16 @@ describe('session.enable channel mutations', () => {
       procedure: 'session.enableQaChannel',
       case: 'happy',
       mode: 'direct',
-      title: 'aktiviert den Q&A-Kanal für eine Quiz-Session',
+      title: 'liefert einen bereits fristgebunden eingerichteten Q&A-Kanal',
     },
     async () => {
       prismaMock.session.findUnique.mockResolvedValue({
+        ...ACTIVE_SESSION,
         id: SESSION_ID,
         type: 'QUIZ',
         quizId: '11111111-1111-4111-8111-111111111111',
-        qaEnabled: false,
-        qaOpen: false,
+        qaEnabled: true,
+        qaOpen: true,
         qaTitle: null,
         qaModerationMode: false,
         title: null,
@@ -66,31 +82,36 @@ describe('session.enable channel mutations', () => {
         quickFeedbackEnabled: false,
         quickFeedbackOpen: false,
       });
-      prismaMock.session.update.mockResolvedValue({
-        type: 'QUIZ',
-        quizId: '11111111-1111-4111-8111-111111111111',
-        qaEnabled: true,
-        qaOpen: true,
-        qaTitle: null,
-        qaModerationMode: true,
-        title: null,
-        moderationMode: false,
-        quickFeedbackEnabled: false,
-        quickFeedbackOpen: false,
-      });
-
       const result = await caller.enableQaChannel({ code: 'abc123' });
 
-      expect(prismaMock.session.update).toHaveBeenCalledWith({
-        where: { id: SESSION_ID },
-        data: { qaEnabled: true, qaOpen: true, qaModerationMode: false },
-        select: expect.any(Object),
-      });
+      expect(prismaMock.session.update).not.toHaveBeenCalled();
       expect(result.qa.enabled).toBe(true);
       expect(result.qa.open).toBe(true);
       expect(result.quickFeedback.enabled).toBe(false);
     },
   );
+
+  it('öffnet Q&A ohne bestätigte Q&A-Frist nicht über den Legacy-Schalter', async () => {
+    prismaMock.session.findUnique.mockResolvedValue({
+      ...ACTIVE_SESSION,
+      type: 'QUIZ',
+      quizId: '11111111-1111-4111-8111-111111111111',
+      qaEnabled: false,
+      qaOpen: false,
+      qaClosesAt: null,
+      qaTitle: null,
+      qaModerationMode: false,
+      title: null,
+      moderationMode: false,
+      quickFeedbackEnabled: false,
+      quickFeedbackOpen: false,
+    });
+
+    await expect(caller.enableQaChannel({ code: 'ABC123' })).rejects.toMatchObject({
+      code: 'PRECONDITION_FAILED',
+    });
+    expect(prismaMock.session.update).not.toHaveBeenCalled();
+  });
 
   trpcDodIt(
     {
@@ -101,6 +122,7 @@ describe('session.enable channel mutations', () => {
     },
     async () => {
       prismaMock.session.findUnique.mockResolvedValue({
+        ...ACTIVE_SESSION,
         id: SESSION_ID,
         type: 'QUIZ',
         quizId: '11111111-1111-4111-8111-111111111111',
@@ -141,6 +163,7 @@ describe('session.enable channel mutations', () => {
 
   it('ist idempotent, wenn der Kanal bereits aktiv ist', async () => {
     prismaMock.session.findUnique.mockResolvedValue({
+      ...ACTIVE_SESSION,
       id: SESSION_ID,
       type: 'QUIZ',
       quizId: '11111111-1111-4111-8111-111111111111',
@@ -172,7 +195,9 @@ describe('session.enable channel mutations', () => {
     },
     async () => {
       prismaMock.session.findUnique
+        .mockResolvedValueOnce({ id: SESSION_ID })
         .mockResolvedValueOnce({
+          ...ACTIVE_SESSION,
           id: SESSION_ID,
           type: 'QUIZ',
           quizId: '11111111-1111-4111-8111-111111111111',
@@ -185,7 +210,9 @@ describe('session.enable channel mutations', () => {
           quickFeedbackEnabled: false,
           quickFeedbackOpen: false,
         })
+        .mockResolvedValueOnce({ id: SESSION_ID })
         .mockResolvedValueOnce({
+          ...ACTIVE_SESSION,
           id: SESSION_ID,
           type: 'QUIZ',
           quizId: '11111111-1111-4111-8111-111111111111',
@@ -200,6 +227,7 @@ describe('session.enable channel mutations', () => {
         });
       prismaMock.session.update
         .mockResolvedValueOnce({
+          ...ACTIVE_SESSION,
           type: 'QUIZ',
           quizId: '11111111-1111-4111-8111-111111111111',
           qaEnabled: true,
@@ -212,6 +240,7 @@ describe('session.enable channel mutations', () => {
           quickFeedbackOpen: false,
         })
         .mockResolvedValueOnce({
+          ...ACTIVE_SESSION,
           type: 'QUIZ',
           quizId: '11111111-1111-4111-8111-111111111111',
           qaEnabled: true,
@@ -231,14 +260,14 @@ describe('session.enable channel mutations', () => {
         1,
         expect.objectContaining({
           where: { id: SESSION_ID },
-          data: { qaOpen: false },
+          data: expect.objectContaining({ qaOpen: false }),
         }),
       );
       expect(prismaMock.session.update).toHaveBeenNthCalledWith(
         2,
         expect.objectContaining({
           where: { id: SESSION_ID },
-          data: { qaOpen: true },
+          data: expect.objectContaining({ qaOpen: true }),
         }),
       );
       expect(closed.qa).toMatchObject({ enabled: true, open: false });
@@ -338,6 +367,7 @@ describe('session.enable channel mutations', () => {
     },
     async () => {
       prismaMock.session.findUnique.mockResolvedValue({
+        ...ACTIVE_SESSION,
         id: SESSION_ID,
         type: 'QUIZ',
         quizId: '11111111-1111-4111-8111-111111111111',
@@ -368,7 +398,7 @@ describe('session.enable channel mutations', () => {
       expect(prismaMock.session.update).toHaveBeenCalledWith(
         expect.objectContaining({
           where: { id: SESSION_ID },
-          data: { qaOpen: true },
+          data: expect.objectContaining({ qaOpen: true }),
         }),
       );
       expect(result.qa).toMatchObject({ enabled: true, open: true });
@@ -384,6 +414,7 @@ describe('session.enable channel mutations', () => {
     },
     async () => {
       prismaMock.session.findUnique.mockResolvedValue({
+        ...ACTIVE_SESSION,
         id: SESSION_ID,
         type: 'QUIZ',
         quizId: '11111111-1111-4111-8111-111111111111',
@@ -430,6 +461,7 @@ describe('session.enable channel mutations', () => {
     },
     async () => {
       prismaMock.session.findUnique.mockResolvedValue({
+        ...ACTIVE_SESSION,
         type: 'QUIZ',
         quizId: '11111111-1111-4111-8111-111111111111',
         qaEnabled: true,
@@ -441,11 +473,20 @@ describe('session.enable channel mutations', () => {
         quickFeedbackEnabled: true,
         quickFeedbackOpen: true,
       });
+      prismaMock.session.update.mockResolvedValue({
+        preferredChannel: 'qa',
+        sessionLifecycleRevision: 2,
+      });
 
       const result = await caller.setPreferredLiveChannel({ code: 'ABC123', channel: 'qa' });
 
-      expect(result).toEqual({ preferredChannel: 'qa' });
-      expect(prismaMock.session.update).not.toHaveBeenCalled();
+      expect(result).toMatchObject({ preferredChannel: 'qa', sessionLifecycleRevision: 2 });
+      expect(result.serverNow).toMatch(/Z$/);
+      expect(prismaMock.session.update).toHaveBeenCalledWith(
+        expect.objectContaining({
+          data: expect.objectContaining({ preferredChannel: 'qa' }),
+        }),
+      );
     },
   );
 
@@ -457,7 +498,12 @@ describe('session.enable channel mutations', () => {
       title: 'schaltet die Q&A-Wortwolke exklusiv auf die Presenter-Fläche',
     },
     async () => {
-      prismaMock.session.findUnique.mockResolvedValue({
+      let preferredChannel = 'quiz';
+      let revision = 1;
+      prismaMock.session.findUnique.mockImplementation(async () => ({
+        ...ACTIVE_SESSION,
+        preferredChannel,
+        sessionLifecycleRevision: revision,
         type: 'QUIZ',
         quizId: '11111111-1111-4111-8111-111111111111',
         qaEnabled: true,
@@ -468,7 +514,16 @@ describe('session.enable channel mutations', () => {
         moderationMode: false,
         quickFeedbackEnabled: true,
         quickFeedbackOpen: true,
-      });
+      }));
+      prismaMock.session.update.mockImplementation(
+        async (args: { data: { preferredChannel?: string } }) => {
+          if (args.data.preferredChannel) {
+            preferredChannel = args.data.preferredChannel;
+            revision += 1;
+          }
+          return { preferredChannel, sessionLifecycleRevision: revision };
+        },
+      );
 
       await caller.setPreferredLiveChannel({ code: 'ABC123', channel: 'qa' });
       await expect(
@@ -495,6 +550,7 @@ describe('session.enable channel mutations', () => {
     },
     async () => {
       prismaMock.session.findUnique.mockResolvedValue({
+        ...ACTIVE_SESSION,
         type: 'QUIZ',
         quizId: '11111111-1111-4111-8111-111111111111',
         qaEnabled: true,
@@ -519,6 +575,7 @@ describe('session.enable channel mutations', () => {
 
   it('behält geschlossene, aktivierte Nebenkanäle als Presenter-Ziel bei', async () => {
     prismaMock.session.findUnique.mockResolvedValue({
+      ...ACTIVE_SESSION,
       type: 'QUIZ',
       quizId: '11111111-1111-4111-8111-111111111111',
       qaEnabled: true,
@@ -530,21 +587,25 @@ describe('session.enable channel mutations', () => {
       quickFeedbackEnabled: true,
       quickFeedbackOpen: false,
     });
+    prismaMock.session.update
+      .mockResolvedValueOnce({ preferredChannel: 'qa', sessionLifecycleRevision: 2 })
+      .mockResolvedValueOnce({ preferredChannel: 'quickFeedback', sessionLifecycleRevision: 2 });
 
     await expect(
       caller.setPreferredLiveChannel({ code: 'ABC123', channel: 'qa' }),
-    ).resolves.toEqual({
+    ).resolves.toMatchObject({
       preferredChannel: 'qa',
     });
     await expect(
       caller.setPreferredLiveChannel({ code: 'ABC123', channel: 'quickFeedback' }),
-    ).resolves.toEqual({
+    ).resolves.toMatchObject({
       preferredChannel: 'quickFeedback',
     });
   });
 
   it('weist einen nicht aktivierten Nebenkanal als Presenter-Ziel zurück', async () => {
     prismaMock.session.findUnique.mockResolvedValue({
+      ...ACTIVE_SESSION,
       type: 'QUIZ',
       quizId: '11111111-1111-4111-8111-111111111111',
       qaEnabled: false,
@@ -569,6 +630,36 @@ describe('session.enable channel mutations', () => {
       code: 'BAD_REQUEST',
       message: 'Blitzlicht-Kanal ist nicht aktiv.',
     });
+  });
+
+  it('weist Kanaländerungen nach dem globalen Sessionende zurück', async () => {
+    prismaMock.session.findUnique.mockResolvedValue({
+      ...ACTIVE_SESSION,
+      id: SESSION_ID,
+      status: 'FINISHED',
+      type: 'QUIZ',
+      quizId: '11111111-1111-4111-8111-111111111111',
+      qaEnabled: true,
+      qaOpen: true,
+      qaTitle: 'Fragen',
+      qaModerationMode: true,
+      title: null,
+      moderationMode: false,
+      quickFeedbackEnabled: true,
+      quickFeedbackOpen: true,
+    });
+
+    for (const mutate of [
+      () => caller.closeQaChannel({ code: 'ABC123' }),
+      () => caller.reopenQaChannel({ code: 'ABC123' }),
+      () => caller.closeQuickFeedbackChannel({ code: 'ABC123' }),
+      () => caller.reopenQuickFeedbackChannel({ code: 'ABC123' }),
+    ]) {
+      await expect(mutate()).rejects.toMatchObject({
+        code: 'BAD_REQUEST',
+      });
+    }
+    expect(prismaMock.session.update).not.toHaveBeenCalled();
   });
 });
 

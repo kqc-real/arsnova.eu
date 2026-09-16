@@ -1,0 +1,102 @@
+@use '../session-lifecycle-md3' as lifecycle;
+
+:host {
+  display: block;
+}
+
+.qa-config__content {
+  display: grid;
+  gap: 1rem;
+  width: min(38rem, calc(100vw - 3rem));
+  box-sizing: border-box;
+}
+
+.qa-config__group {
+  @include lifecycle.lifecycle-inset;
+}
+
+.qa-config__group legend {
+  padding-inline: 0.2rem;
+  margin: 0;
+  color: var(--mat-sys-on-surface);
+  font: var(--mat-sys-title-medium);
+  font-weight: 600;
+  line-height: 1.35;
+}
+
+mat-form-field {
+  inline-size: 100%;
+}
+
+.qa-config__zone {
+  margin: 0;
+  color: var(--mat-sys-on-surface-variant);
+  font: var(--mat-sys-body-medium);
+  line-height: 1.5;
+}
+
+.qa-config__resolved {
+  margin: 0;
+  overflow-wrap: anywhere;
+  color: var(--mat-sys-on-surface);
+  font: var(--mat-sys-body-medium);
+  line-height: 1.5;
+}
+
+.qa-config__resolved-end {
+  display: block;
+  margin-block-start: 0.25rem;
+}
+
+.qa-config__compare {
+  display: grid;
+  gap: 0.5rem;
+  margin: 0.75rem 0 0;
+}
+
+.qa-config__compare > div {
+  display: grid;
+  gap: 0.15rem;
+}
+
+.qa-config__compare dt {
+  margin: 0;
+  color: var(--mat-sys-on-surface-variant);
+  font: var(--mat-sys-label-medium);
+}
+
+.qa-config__compare dd {
+  margin: 0;
+  overflow-wrap: anywhere;
+  color: var(--mat-sys-on-surface);
+  font: var(--mat-sys-body-medium);
+}
+
+.qa-config__notice {
+  @include lifecycle.lifecycle-notice-secondary;
+}
+
+.qa-config__warning {
+  @include lifecycle.lifecycle-notice;
+}
+
+.qa-config__error {
+  margin: 0;
+  color: var(--mat-sys-error);
+  font: var(--mat-sys-body-medium);
+  line-height: 1.4;
+}
+
+.qa-config__actions {
+  @include lifecycle.lifecycle-dialog-actions;
+}
+
+@media (max-width: 359px) {
+  .qa-config__content {
+    width: auto;
+  }
+
+  .qa-config__actions button {
+    width: 100%;
+  }
+}

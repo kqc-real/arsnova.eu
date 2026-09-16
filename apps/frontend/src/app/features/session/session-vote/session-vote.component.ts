@@ -1,6 +1,7 @@
 import {
   ChangeDetectorRef,
   Component,
+  DestroyRef,
   OnInit,
   OnDestroy,
   ElementRef,
@@ -30,6 +31,7 @@ import {
   resolveConfidenceLabelLow,
 } from '../../../shared/confidence-default-labels';
 import {
+  isNicknameTakenServerError,
   localizeKnownServerError,
   localizeKnownServerMessage,
 } from '../../../core/localize-known-server-message';
@@ -51,6 +53,7 @@ import {
   evaluateShortAnswer,
   CONFIDENCE_SCALE_MAX,
   CONFIDENCE_SCALE_MIN,
+  QA_MAX_QUESTIONS_PER_SESSION,
   isNumericToleranceMode,
   questionSupportsConfidence,
   normalizeShortTextValue,
@@ -69,6 +72,9 @@ import {
   type ParticipantDTO,
   type PersonalScorecardDTO,
   type QaQuestionDTO,
+  type QaQuestionQuotaDTO,
+  type QaQuestionsInvalidationDTO,
+  type QaQuestionsListDTO,
   type QuickFeedbackResult,
   type QuestionPreviewDTO,
   type QuestionRevealedDTO,
@@ -91,6 +97,7 @@ import {
   recordServerTimeIso,
   recordServerTimeSample,
 } from '../session-server-clock';
+import { SessionDeadlineController, type SessionDeadlineSnapshot } from '../session-deadline';
 import {
   consumeParticipantJoinArrival,
   hasParticipantJoinArrival,
@@ -125,6 +132,12 @@ import {
   storeProductFeedbackParticipantClaimToken,
 } from '../../product-feedback/product-feedback-storage';
 import { ItemSelectionRowComponent } from '../../../shared/item-selection-row/item-selection-row.component';
+import {
+  clearJoinIdempotencyKey,
+  getOrCreateJoinIdempotencyKey,
+  getParticipantCapability,
+  storeParticipantCapability,
+} from '../../../core/participant-session-access';
 
 const PARTICIPANT_STORAGE_KEY = 'arsnova-participant';
 const NICKNAME_STORAGE_KEY = 'arsnova-nickname';
@@ -150,7 +163,6 @@ const VOTE_ANCHOR_RESULT_SCORE = 'vote-result-score';
 const VOTE_ANCHOR_RESULT_MESSAGE = 'vote-result-message';
 const VOTE_ANCHOR_ERROR = 'vote-error';
 const AUTO_JOIN_NICKNAME_CANDIDATE_LIMIT = 80;
-const SESSION_NICKNAME_CONFLICT_DE = 'Dieser Nickname ist in dieser Session bereits vergeben.';
 const QUESTION_MEDIA_MARKDOWN_PATTERN = /!\[[^\]]*]\([^)]+\)|<img\b/i;
 
 export type VoteAutoScrollPhase = 'read' | 'vote' | 'result';
@@ -425,6 +437,7 @@ export function getNumericEstimateMotivation(input: {
   styleUrls: ['../../../shared/styles/dialog-title-header.scss', './session-vote.component.scss'],
 })
 export class SessionVoteComponent implements OnInit, OnDestroy {
+  readonly qaSessionQuestionLimit = QA_MAX_QUESTIONS_PER_SESSION;
   /** Preset-abhängige Teilnehmer-Texte (Template: vpc.*) */
   readonly vpc = vpc;
   readonly localizedPath = localizePath;
@@ -435,6 +448,7 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
   private readonly cdr = inject(ChangeDetectorRef);
   private readonly el = inject(ElementRef);
   private readonly injector = inject(Injector);
+  private readonly destroyRef = inject(DestroyRef);
   private readonly snackBar = inject(MatSnackBar);
   readonly contextualFeedbackOffer = inject(ContextualFeedbackOfferService);
   private statusSub: Unsubscribable | null = null;
@@ -442,11 +456,13 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
   private quickFeedbackSub: Unsubscribable | null = null;
   private pollTimer: ReturnType<typeof setInterval> | null = null;
   private pollStartTimeout: ReturnType<typeof setTimeout> | null = null;
+  private presenceHeartbeatTimer: ReturnType<typeof setInterval> | null = null;
   private sessionFallbackActive = false;
   private lastSessionInfoRetryAt = 0;
   private lastAnswerToggleAt = 0;
   private lastVoteSubmitAt = 0;
   private lastQaSubmitAt = 0;
+  private qaSubmitAttempt: { text: string; idempotencyKey: string } | null = null;
   private reorderLockUntil = 0;
   private qaInfoTimeout: ReturnType<typeof setTimeout> | null = null;
   private qaErrorTimeout: ReturnType<typeof setTimeout> | null = null;
@@ -471,9 +487,18 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
   readonly lobbyArrivalActive = signal(false);
   readonly activeChannel = signal<SessionChannelTab>('quiz');
   readonly qaQuestions = signal<QaQuestionDTO[]>([]);
+  readonly qaListTotalCount = signal(0);
+  readonly qaListNextCursor = signal<string | null>(null);
+  readonly qaListRankingRevision = signal<string | null>(null);
+  readonly qaListPageIndex = signal(0);
+  readonly qaListPageLoading = signal(false);
+  private qaListCurrentCursor: string | null = null;
+  private qaListCursorHistory: Array<string | null> = [];
+  private qaListRequestGeneration = 0;
   readonly qaSelectedAuthorNickname = signal<string | null>(null);
   readonly quickFeedbackResult = signal<QuickFeedbackResult | null>(null);
   readonly qaDraft = signal('');
+  readonly qaQuota = signal<QaQuestionQuotaDTO | null>(null);
   readonly qaSubmitting = signal(false);
   readonly qaError = signal<string | null>(null);
   readonly qaInfo = signal<string | null>(null);
@@ -557,10 +582,19 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
   private structuredRoundRefreshRetryTimer: ReturnType<typeof setTimeout> | null = null;
   private structuredRoundRefreshRetryAttempt = 0;
   private pendingJoinArrival = false;
+  private readonly sessionDeadline = new SessionDeadlineController();
+  private sessionDeadlineTimer: ReturnType<typeof setTimeout> | null = null;
+  private localDeadlineClosed = false;
   private readonly onVisibilityChange = () => {
     if (typeof document === 'undefined') return;
     if (document.hidden) {
       this.stopFallbackPolling();
+      return;
+    }
+    if (this.sessionDeadline.isExpired()) {
+      this.handleLocalSessionExpiration();
+      this.lastSessionInfoRetryAt = 0;
+      void this.refreshSessionInfoFallback();
       return;
     }
     this.ensureStatusSubscription();
@@ -773,7 +807,8 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
     }
 
     if (!areOriginalNicknamesExhausted(theme, locale, takenNicknames)) {
-      return originalCandidates
+      const startIndex = participantCountHint % originalCandidates.length;
+      return [...originalCandidates.slice(startIndex), ...originalCandidates.slice(0, startIndex)]
         .filter((nickname) => !takenNicknames.has(this.normalizeNicknameKey(nickname)))
         .slice(0, AUTO_JOIN_NICKNAME_CANDIDATE_LIMIT);
     }
@@ -792,14 +827,7 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
   }
 
   private isSessionNicknameConflictError(error: unknown): boolean {
-    const message =
-      typeof error === 'object' &&
-      error !== null &&
-      'message' in error &&
-      typeof error.message === 'string'
-        ? error.message
-        : '';
-    return localizeKnownServerMessage(message) === SESSION_NICKNAME_CONFLICT_DE;
+    return isNicknameTakenServerError(error);
   }
 
   private async autoJoinParticipant(): Promise<{
@@ -807,37 +835,34 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
     sessionId: string;
     nickname: string;
   }> {
-    let participantCountHint = Math.max(0, this.sessionSettings().participantCount ?? 0);
+    const participantCountHint = Math.max(0, this.sessionSettings().participantCount ?? 0);
     const takenNicknames = new Set<string>();
-
-    try {
-      const payload = await trpc.session.getParticipantNicknames.query({
-        code: this.code,
-        anonymousClientId: getAnonymousClientId(),
-      });
-      participantCountHint = Math.max(0, payload.participantCount);
-      for (const nickname of payload.nicknames) {
-        takenNicknames.add(this.normalizeNicknameKey(nickname));
-      }
-    } catch {
-      /* best effort */
-    }
 
     const candidates = this.buildAutoJoinNicknameCandidates(takenNicknames, participantCountHint);
     let lastError: unknown = null;
 
-    const rejoinToken =
-      typeof localStorage !== 'undefined'
-        ? (localStorage.getItem(`${PARTICIPANT_STORAGE_KEY}-${this.code}`) ?? undefined)
-        : undefined;
+    const rejoinToken = getParticipantCapability(this.code) ?? undefined;
 
     for (const nickname of candidates) {
       try {
+        if (
+          this.sessionSettings().allowCustomNicknames === true &&
+          !(
+            await trpc.session.checkParticipantNickname.query({
+              code: this.code,
+              nickname,
+            })
+          ).available
+        ) {
+          takenNicknames.add(this.normalizeNicknameKey(nickname));
+          continue;
+        }
         const join = await trpc.session.join.mutate({
           code: this.code,
           nickname,
           anonymousClientId: getAnonymousClientId(),
           rejoinToken,
+          joinIdempotencyKey: getOrCreateJoinIdempotencyKey(this.code),
           productFeedbackClaimToken: getProductFeedbackParticipantClaimToken(this.code),
         });
         if (join.enableTimerAccommodation === false) {
@@ -845,11 +870,13 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
         } else if (join.timerAccommodation) {
           this.applyTimerAccommodation(join.timerAccommodation, { restartCountdown: false });
         }
+        storeParticipantCapability(this.code, join.rejoinToken);
+        clearJoinIdempotencyKey(this.code);
         storeProductFeedbackParticipantClaimToken(this.code, join.productFeedbackClaimToken);
         return {
           participantId: join.participantId,
           sessionId: join.id,
-          nickname,
+          nickname: join.participantNickname,
         };
       } catch (error) {
         lastError = error;
@@ -1133,6 +1160,9 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
       $localize`:@@sessionTabs.qaTitleDefault:Fragen zur Veranstaltung...`,
   );
   readonly isQaChannelOpen = computed(() => this.channelOpenState().qa);
+  readonly isQaDeadlineExpired = computed(
+    () => this.sessionSettings().channels?.qa.state === 'DEADLINE_EXPIRED',
+  );
   readonly isQuickFeedbackChannelOpen = computed(() => this.channelOpenState().quickFeedback);
   /**
    * Tempo-Shortcut zur Frageansicht nur wenn:
@@ -1151,6 +1181,8 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
     () =>
       this.qaDraft().trim().length > 0 &&
       this.qaDraft().trim().length <= 500 &&
+      (this.qaQuota()?.participantRemaining ?? 1) > 0 &&
+      (this.qaQuota()?.sessionRemaining ?? 1) > 0 &&
       !this.qaSubmitting(),
   );
   readonly visibleQaQuestions = computed(() => {
@@ -2603,6 +2635,9 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
   }
 
   updateQaDraft(value: string): void {
+    if (this.qaSubmitAttempt?.text !== value.trim()) {
+      this.qaSubmitAttempt = null;
+    }
     this.qaDraft.set(value);
   }
 
@@ -3054,6 +3089,10 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
   }
 
   private handleSessionFinished(): void {
+    this.localDeadlineClosed = false;
+    this.status.set('FINISHED');
+    this.currentQuestion.set(null);
+    this.stopSessionDeadlineTimer();
     this.stopCountdown();
     this.stopFallbackPolling();
     this.clearStructuredRoundRefreshRetry();
@@ -3063,8 +3102,137 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
     this.qaSub = null;
     this.quickFeedbackSub?.unsubscribe();
     this.quickFeedbackSub = null;
+    this.clearParticipantQaState();
     this.applyQuickFeedbackResult(null);
+    this.showSessionEndGate.set(true);
+    this.focusSessionEndGate();
     this.redirectToHomeIfSessionFinished();
+  }
+
+  private applySessionDeadlineSnapshot(snapshot: SessionDeadlineSnapshot): boolean {
+    const hasLifecycleSnapshot =
+      snapshot.serverNow !== undefined &&
+      snapshot.expiresAt !== undefined &&
+      snapshot.sessionLifecycleRevision !== undefined;
+    if (!hasLifecycleSnapshot) {
+      return true;
+    }
+    if (!this.sessionDeadline.applySnapshot(snapshot)) {
+      if (this.sessionDeadline.isExpired()) {
+        this.handleLocalSessionExpiration();
+      }
+      return false;
+    }
+    this.sessionSettings.update((settings) => ({
+      ...settings,
+      expiresAt: snapshot.expiresAt,
+      serverNow: snapshot.serverNow,
+      sessionLifecycleRevision: snapshot.sessionLifecycleRevision,
+    }));
+    if (this.sessionDeadline.isExpired()) {
+      this.status.set('FINISHED');
+      if (snapshot.status === 'FINISHED') {
+        this.handleSessionFinished();
+      } else {
+        this.handleLocalSessionExpiration();
+      }
+      return false;
+    }
+    if (this.localDeadlineClosed) {
+      this.localDeadlineClosed = false;
+      this.deactivateSessionFallback();
+    }
+    this.scheduleSessionDeadlineCheck();
+    return true;
+  }
+
+  private scheduleSessionDeadlineCheck(): void {
+    this.stopSessionDeadlineTimer();
+    const remaining = this.sessionDeadline.remainingMs();
+    if (remaining === null) return;
+    this.sessionDeadlineTimer = setTimeout(
+      () => {
+        this.sessionDeadlineTimer = null;
+        if (this.sessionDeadline.isExpired()) {
+          this.handleLocalSessionExpiration();
+          return;
+        }
+        this.scheduleSessionDeadlineCheck();
+      },
+      Math.max(1, Math.min(remaining, 60_000)),
+    );
+  }
+
+  private stopSessionDeadlineTimer(): void {
+    if (this.sessionDeadlineTimer) {
+      clearTimeout(this.sessionDeadlineTimer);
+      this.sessionDeadlineTimer = null;
+    }
+  }
+
+  private handleLocalSessionExpiration(): void {
+    if (this.localDeadlineClosed) return;
+    this.localDeadlineClosed = true;
+    this.status.set('FINISHED');
+    this.currentQuestion.set(null);
+    this.stopCountdown();
+    this.clearStructuredRoundRefreshRetry();
+    this.qaSub?.unsubscribe();
+    this.qaSub = null;
+    this.quickFeedbackSub?.unsubscribe();
+    this.quickFeedbackSub = null;
+    this.clearParticipantQaState();
+    this.applyQuickFeedbackResult(null);
+    this.showSessionEndGate.set(true);
+    this.focusSessionEndGate();
+    this.sessionFallbackActive = true;
+    this.lastSessionInfoRetryAt = 0;
+    this.startFallbackPolling(true);
+  }
+
+  private clearParticipantQaState(): void {
+    if (this.qaInfoTimeout) clearTimeout(this.qaInfoTimeout);
+    if (this.qaErrorTimeout) clearTimeout(this.qaErrorTimeout);
+    this.qaInfoTimeout = null;
+    this.qaErrorTimeout = null;
+    this.reorderLockUntil = 0;
+    this.qaQuestions.set([]);
+    this.qaListTotalCount.set(0);
+    this.qaListNextCursor.set(null);
+    this.qaListRankingRevision.set(null);
+    this.resetQaListPageNavigation();
+    this.qaSelectedAuthorNickname.set(null);
+    this.qaDraft.set('');
+    this.qaQuota.set(null);
+    this.qaSubmitAttempt = null;
+    this.qaSubmitting.set(false);
+    this.qaError.set(null);
+    this.qaInfo.set(null);
+    this.qaPendingQuestionIds.set(new Set());
+  }
+
+  private focusSessionEndGate(): void {
+    if (this.destroyRef.destroyed) {
+      return;
+    }
+    afterNextRender(
+      () => {
+        const apply = (): void => {
+          if (this.destroyRef.destroyed) {
+            return;
+          }
+          const target = (this.el.nativeElement as HTMLElement).querySelector<HTMLElement>(
+            '#vote-session-end-anchor',
+          );
+          if (target?.isConnected) {
+            target.focus({ preventScroll: true });
+          }
+        };
+        apply();
+        queueMicrotask(apply);
+      },
+      { injector: this.injector },
+    );
   }
 
   private async runSessionEndRedirect(): Promise<void> {
@@ -3080,16 +3248,11 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
         }
       }
       await Promise.all([this.loadPersonalLeaderboard(), this.loadTeamRewardState()]);
-      const bonus = this.bonusToken();
-      const hasBonus = typeof bonus === 'string' && bonus.length > 0;
-      const needsFeedback =
-        this.sessionFeedbackAvailable() && Boolean(pid) && !this.feedbackSubmitted();
-      if (hasBonus || needsFeedback) {
-        this.showSessionEndGate.set(true);
+      if (this.destroyRef.destroyed) {
         return;
       }
-      this.markParticipantOffline();
-      await this.router.navigateByUrl(this.localizedPath('/'), { replaceUrl: true });
+      this.showSessionEndGate.set(true);
+      this.focusSessionEndGate();
     } finally {
       if (!this.showSessionEndGate()) {
         this.sessionEndRedirectInFlight = false;
@@ -3167,6 +3330,7 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
 
     this.ensureQaSubscription();
 
+    this.startPresenceHeartbeat();
     this.startFallbackPolling();
   }
   private async loadSessionInfo(): Promise<boolean> {
@@ -3178,8 +3342,12 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
       });
       recordServerTimeSample(session.serverTime, requestedAt);
       this.sessionId.set(session.id);
-      this.status.set(session.status as SessionStatus);
       this.sessionSettings.set(session);
+      if (!this.applySessionDeadlineSnapshot(session)) {
+        this.applyPendingLobbyArrivalIfNeeded();
+        return true;
+      }
+      this.status.set(session.status as SessionStatus);
       if (!this.applyRouteRequestedChannel()) {
         this.applyPreferredChannelIfChanged(session.preferredChannel);
       }
@@ -3237,12 +3405,14 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
     }
 
     this.qaSub = trpc.qa.onQuestionsUpdated.subscribe(
-      { sessionId: this.sessionId(), participantId: this.participantId() || undefined },
+      {
+        sessionId: this.sessionId(),
+        participantId: this.participantId() || undefined,
+        pageSize: 100,
+      },
       {
         onData: (data) => {
-          if (Date.now() < this.reorderLockUntil) return;
-          this.setQaQuestionsAnimated(data);
-          this.qaError.set(null);
+          this.handleQaQuestionsInvalidation(data);
         },
         onError: () => {
           this.lastSessionInfoRetryAt = 0;
@@ -3251,6 +3421,57 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
         },
       },
     );
+  }
+
+  private handleQaQuestionsInvalidation(data: QaQuestionsInvalidationDTO): void {
+    const terminal = data.state === 'SESSION_ENDED';
+    if (
+      !this.sessionDeadline.applySnapshot({
+        ...data,
+        status: terminal ? 'FINISHED' : 'ACTIVE',
+      })
+    ) {
+      return;
+    }
+    if (terminal) {
+      this.handleSessionFinished();
+      return;
+    }
+    if (this.sessionDeadline.isExpired()) {
+      this.handleLocalSessionExpiration();
+      return;
+    }
+    this.sessionSettings.update((settings) =>
+      settings.channels
+        ? {
+            ...settings,
+            qaClosesAt: data.qaClosesAt,
+            channels: {
+              ...settings.channels,
+              qa: {
+                ...settings.channels.qa,
+                closesAt: data.qaClosesAt,
+                open: data.state === 'ACTIVE',
+                state:
+                  data.state === 'ACTIVE'
+                    ? 'OPEN'
+                    : data.state === 'DEADLINE_EXPIRED'
+                      ? 'DEADLINE_EXPIRED'
+                      : data.state === 'UNCONFIGURED'
+                        ? 'UNCONFIGURED'
+                        : 'MANUALLY_CLOSED',
+              },
+            },
+          }
+        : settings,
+    );
+    if (data.state !== 'ACTIVE') {
+      this.qaQuestions.set([]);
+      this.qaListTotalCount.set(0);
+      this.qaListNextCursor.set(null);
+      this.resetQaListPageNavigation();
+    }
+    void this.refreshQaQuestions();
   }
 
   private ensureQuickFeedbackSubscription(): void {
@@ -3274,6 +3495,10 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
       { sessionCode: this.code },
       {
         onData: (data) => {
+          if (this.isFinished() || this.sessionDeadline.isExpired()) {
+            this.applyQuickFeedbackResult(null);
+            return;
+          }
           this.applyQuickFeedbackResult(data);
           this.ensureActiveChannel();
         },
@@ -3315,18 +3540,34 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
           channels?: SessionChannelsDTO;
           preferredChannel?: SessionLiveChannel;
           serverTime?: string;
+          serverNow?: string;
+          expiresAt?: string;
+          sessionLifecycleRevision?: number;
+          endedAt?: string | null;
           skippedQuestionId?: string;
           questionSkippedAt?: string;
           enableTimerAccommodation?: boolean;
         }) => {
-          this.deactivateSessionFallback();
           if (data.serverTime) {
             recordServerTimeIso(data.serverTime);
           }
+          if (data.serverNow) {
+            recordServerTimeIso(data.serverNow);
+          }
+          if (!this.applySessionDeadlineSnapshot(data)) {
+            return;
+          }
+          this.deactivateSessionFallback();
           const prevRound = this.currentRound();
           const prevStatus = this.status();
           const newRound = data.currentRound ?? 1;
           this.status.set(data.status as SessionStatus);
+          if (data.endedAt !== undefined) {
+            this.sessionSettings.update((settings) => ({
+              ...settings,
+              endedAt: data.endedAt,
+            }));
+          }
           if (data.enableTimerAccommodation !== undefined) {
             const wasEnabled = this.timerAccommodationEnabled();
             this.sessionSettings.update((settings) => ({
@@ -3482,6 +3723,10 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
         anonymousClientId: getAnonymousClientId(),
       });
       recordServerTimeSample(session.serverTime, requestedAt);
+      if (!this.applySessionDeadlineSnapshot(session)) {
+        return;
+      }
+      this.deactivateSessionFallback();
       const nextStatus = session.status as SessionStatus;
       const prevStatus = this.status();
       const previousTeamMode = this.sessionSettings().teamMode === true;
@@ -3552,6 +3797,8 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
     this.quickFeedbackSub?.unsubscribe();
     this.quickFeedbackSub = null;
     this.stopFallbackPolling();
+    this.stopPresenceHeartbeat();
+    this.stopSessionDeadlineTimer();
     this.clearStructuredRoundRefreshRetry();
     if (this.lobbyArrivalTimeout) {
       clearTimeout(this.lobbyArrivalTimeout);
@@ -3577,6 +3824,27 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
       .catch(() => {
         // Best effort: stale Presence expires via Redis TTL if the leave signal is lost.
       });
+  }
+
+  private startPresenceHeartbeat(): void {
+    if (this.presenceHeartbeatTimer) return;
+    const heartbeat = () => {
+      const participantId = this.participantId();
+      if (!this.code || !participantId || this.isFinished()) return;
+      void trpc.session.heartbeatParticipantPresence
+        .mutate({ code: this.code, participantId })
+        .catch(() => {
+          // Der nächste Heartbeat oder eine andere Aktion erneuert die Presence.
+        });
+    };
+    heartbeat();
+    this.presenceHeartbeatTimer = setInterval(heartbeat, 60_000);
+  }
+
+  private stopPresenceHeartbeat(): void {
+    if (!this.presenceHeartbeatTimer) return;
+    clearInterval(this.presenceHeartbeatTimer);
+    this.presenceHeartbeatTimer = null;
   }
 
   private startFallbackPolling(immediate = false): void {
@@ -3971,34 +4239,210 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
     }
   }
 
-  private async refreshQaQuestions(): Promise<void> {
-    if (!this.channels().qa || !this.isQaChannelOpen() || !this.sessionId()) {
+  private resetQaListPageNavigation(): void {
+    this.qaListCurrentCursor = null;
+    this.qaListCursorHistory = [];
+    this.qaListPageIndex.set(0);
+  }
+
+  private applyQaQuestionsSnapshot(
+    snapshot: QaQuestionsListDTO | QaQuestionDTO[],
+    options: { append?: boolean } = {},
+  ): boolean {
+    if (Array.isArray(snapshot)) {
+      if (
+        this.isFinished() ||
+        this.sessionDeadline.isExpired() ||
+        Date.now() < this.reorderLockUntil
+      ) {
+        return false;
+      }
+      this.setQaQuestionsAnimated(snapshot);
+      this.qaListTotalCount.set(snapshot.length);
+      this.qaListNextCursor.set(null);
+      this.qaListRankingRevision.set(null);
+      this.resetQaListPageNavigation();
+      this.qaError.set(null);
+      return true;
+    }
+    if (
+      options.append &&
+      this.qaListRankingRevision() !== null &&
+      (snapshot.rankingRevision ?? null) !== this.qaListRankingRevision()
+    ) {
+      return false;
+    }
+    const terminal = snapshot.state === 'SESSION_ENDED';
+    if (
+      !this.sessionDeadline.applySnapshot({
+        ...snapshot,
+        status: terminal ? 'FINISHED' : 'ACTIVE',
+      })
+    ) {
+      return false;
+    }
+    if (terminal) {
+      this.sessionSettings.update((settings) => ({
+        ...settings,
+        endedAt: snapshot.endedAt,
+        postProcessingEndsAt: snapshot.postProcessingEndsAt,
+      }));
+      this.handleSessionFinished();
+      return false;
+    }
+    if (this.sessionDeadline.isExpired()) {
+      this.sessionSettings.update((settings) => ({
+        ...settings,
+        endedAt: snapshot.endedAt,
+        postProcessingEndsAt: snapshot.postProcessingEndsAt,
+      }));
+      this.handleLocalSessionExpiration();
+      return false;
+    }
+    this.sessionSettings.update((settings) =>
+      settings.channels
+        ? {
+            ...settings,
+            qaClosesAt: snapshot.qaClosesAt,
+            channels: {
+              ...settings.channels,
+              qa: {
+                ...settings.channels.qa,
+                closesAt: snapshot.qaClosesAt,
+                open: snapshot.state === 'ACTIVE',
+                state:
+                  snapshot.state === 'ACTIVE'
+                    ? 'OPEN'
+                    : snapshot.state === 'DEADLINE_EXPIRED'
+                      ? 'DEADLINE_EXPIRED'
+                      : snapshot.state === 'UNCONFIGURED'
+                        ? 'UNCONFIGURED'
+                        : 'MANUALLY_CLOSED',
+              },
+            },
+          }
+        : settings,
+    );
+    if (snapshot.state !== 'ACTIVE') {
       this.qaQuestions.set([]);
+      this.qaListTotalCount.set(0);
+      this.qaListNextCursor.set(null);
+      this.qaListRankingRevision.set(snapshot.rankingRevision ?? null);
+      this.resetQaListPageNavigation();
+      this.qaError.set(null);
+      return true;
+    }
+    if (this.isFinished() || Date.now() < this.reorderLockUntil) {
+      return false;
+    }
+    this.setQaQuestionsAnimated(snapshot.questions);
+    if (!options.append) {
+      this.resetQaListPageNavigation();
+    }
+    this.qaListTotalCount.set(snapshot.totalCount ?? snapshot.questions.length);
+    this.qaListNextCursor.set(snapshot.nextCursor ?? null);
+    this.qaListRankingRevision.set(snapshot.rankingRevision ?? null);
+    this.qaError.set(null);
+    return true;
+  }
+
+  async loadMoreQaQuestions(): Promise<void> {
+    const cursor = this.qaListNextCursor();
+    if (!cursor || this.qaListPageLoading() || this.isFinished()) return;
+    const previousCursor = this.qaListCurrentCursor;
+    const loaded = await this.loadQaQuestionsPage(cursor);
+    if (loaded) {
+      this.qaListCursorHistory.push(previousCursor);
+      this.qaListCurrentCursor = cursor;
+      this.qaListPageIndex.update((index) => index + 1);
+    }
+  }
+
+  async loadPreviousQaQuestions(): Promise<void> {
+    if (this.qaListCursorHistory.length === 0 || this.qaListPageLoading() || this.isFinished()) {
+      return;
+    }
+    const target = this.qaListCursorHistory[this.qaListCursorHistory.length - 1] ?? null;
+    const loaded = await this.loadQaQuestionsPage(target);
+    if (loaded) {
+      this.qaListCursorHistory.pop();
+      this.qaListCurrentCursor = target;
+      this.qaListPageIndex.update((index) => Math.max(0, index - 1));
+    }
+  }
+
+  private async loadQaQuestionsPage(cursor: string | null): Promise<boolean> {
+    const sessionId = this.sessionId();
+    if (!sessionId) return false;
+    const requestGeneration = ++this.qaListRequestGeneration;
+    this.qaListPageLoading.set(true);
+    try {
+      const snapshot = await trpc.qa.list.query({
+        sessionId,
+        participantId: this.participantId() || undefined,
+        pageSize: 100,
+        ...(cursor ? { cursor } : {}),
+      });
+      if (requestGeneration !== this.qaListRequestGeneration) {
+        return false;
+      }
+      if (!this.applyQaQuestionsSnapshot(snapshot, { append: true })) {
+        await this.refreshQaQuestions();
+        return false;
+      }
+      return true;
+    } catch {
+      await this.refreshQaQuestions();
+      return false;
+    } finally {
+      this.qaListPageLoading.set(false);
+    }
+  }
+
+  private async refreshQaQuestions(): Promise<void> {
+    const requestGeneration = ++this.qaListRequestGeneration;
+    if (this.isFinished() || !this.channels().qa || !this.isQaChannelOpen() || !this.sessionId()) {
+      this.qaQuestions.set([]);
+      this.qaListTotalCount.set(0);
+      this.qaListNextCursor.set(null);
+      this.resetQaListPageNavigation();
       return;
     }
     if (Date.now() < this.reorderLockUntil) return;
 
     try {
-      const questions = await trpc.qa.list.query({
+      const snapshot = await trpc.qa.list.query({
         sessionId: this.sessionId(),
         participantId: this.participantId() || undefined,
+        pageSize: 100,
       });
-      if (Date.now() < this.reorderLockUntil) return;
-      this.setQaQuestionsAnimated(questions);
-      this.qaError.set(null);
+      if (requestGeneration !== this.qaListRequestGeneration) {
+        return;
+      }
+      this.applyQaQuestionsSnapshot(snapshot);
     } catch {
+      if (this.isFinished()) return;
       this.showQaError($localize`:@@sessionQa.voteLoadError:Fragen konnten nicht geladen werden.`);
     }
   }
 
   private async refreshQuickFeedbackResult(): Promise<void> {
-    if (!this.channels().quickFeedback || !this.isQuickFeedbackChannelOpen() || !this.code) {
+    if (
+      this.isFinished() ||
+      !this.channels().quickFeedback ||
+      !this.isQuickFeedbackChannelOpen() ||
+      !this.code
+    ) {
       this.applyQuickFeedbackResult(null);
       return;
     }
 
     try {
       const result = await trpc.quickFeedback.results.query({ sessionCode: this.code });
+      if (this.isFinished() || this.sessionDeadline.isExpired()) {
+        this.applyQuickFeedbackResult(null);
+        return;
+      }
       this.applyQuickFeedbackResult(result);
     } catch {
       this.applyQuickFeedbackResult(null);
@@ -4023,11 +4467,20 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
       if (!context) {
         return;
       }
-      await trpc.qa.submit.mutate({
+      const text = this.qaDraft().trim();
+      const attempt =
+        this.qaSubmitAttempt?.text === text
+          ? this.qaSubmitAttempt
+          : { text, idempotencyKey: globalThis.crypto.randomUUID() };
+      this.qaSubmitAttempt = attempt;
+      const result = await trpc.qa.submit.mutate({
         sessionId: context.sessionId,
         participantId: context.participantId,
-        text: this.qaDraft().trim(),
+        text,
+        idempotencyKey: attempt.idempotencyKey,
       });
+      this.qaQuota.set(result.quota);
+      this.qaSubmitAttempt = null;
       this.qaDraft.set('');
       this.collapseTextarea();
       this.showQaInfo($localize`:@@sessionQa.submitSuccess:Frage gesendet.`);
@@ -4134,9 +4587,9 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
       });
       const wait = Math.max(0, this.reorderLockUntil - Date.now());
       await new Promise((r) => setTimeout(r, wait));
-      this.setQaQuestionsAnimated(serverData);
-      this.qaError.set(null);
+      this.applyQaQuestionsSnapshot(serverData);
     } catch {
+      if (this.isFinished()) return;
       this.qaQuestions.set(snapshot);
       this.showQaError($localize`:@@sessionQa.upvoteError:Stimme konnte nicht gespeichert werden.`);
     } finally {
@@ -4237,11 +4690,20 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
   }
 
   private setQaQuestionsAnimated(next: QaQuestionDTO[]): void {
+    if (this.isFinished()) {
+      this.qaQuestions.set([]);
+      this.qaListTotalCount.set(0);
+      this.qaListNextCursor.set(null);
+      this.qaListRankingRevision.set(null);
+      this.resetQaListPageNavigation();
+      return;
+    }
     const prev = this.qaQuestions();
     this.notifyQaModeratorRemovals(prev, next);
 
     const prefersReducedMotion =
       typeof window !== 'undefined' &&
+      typeof window.matchMedia === 'function' &&
       window.matchMedia('(prefers-reduced-motion: reduce)').matches;
     const container: HTMLElement | null = this.el.nativeElement.querySelector('.session-qa-list');
 
@@ -4291,6 +4753,10 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
   }
 
   private async refreshQuestion(): Promise<void> {
+    if (this.isFinished()) {
+      this.currentQuestion.set(null);
+      return;
+    }
     if (this.isPaused()) {
       return;
     }
@@ -4299,6 +4765,10 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
         code: this.code,
         participantId: this.participantId() || undefined,
       });
+      if (this.isFinished() || this.sessionDeadline.isExpired()) {
+        this.currentQuestion.set(null);
+        return;
+      }
       const prev = this.currentQuestion();
       const prevId = prev && 'id' in prev ? prev.id : null;
       const newId = q && 'id' in q ? q.id : null;

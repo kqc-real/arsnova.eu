@@ -428,6 +428,53 @@
   background: color-mix(in srgb, var(--mat-sys-error-container) 62%, transparent);
 }
 
+.admin-host-reset {
+  background: var(--mat-sys-surface-container-low);
+  outline-color: var(--mat-sys-outline-variant);
+  border-inline-start-color: var(--mat-sys-tertiary);
+
+  > label > span {
+    display: block;
+    margin-bottom: 0.35rem;
+    font: var(--mat-sys-label-large);
+  }
+
+  select {
+    width: 100%;
+    min-height: 3rem;
+    border: 1px solid var(--mat-sys-outline);
+    border-radius: var(--mat-sys-corner-small);
+    background: var(--mat-sys-surface);
+    color: var(--mat-sys-on-surface);
+    padding-inline: 0.75rem;
+    font: var(--mat-sys-body-large);
+  }
+
+  .admin-delete__title {
+    color: var(--mat-sys-tertiary);
+  }
+}
+
+.admin-host-reset__result {
+  border-radius: var(--mat-sys-corner-small);
+  background: var(--mat-sys-tertiary-container);
+  color: var(--mat-sys-on-tertiary-container);
+  padding: 0.75rem;
+
+  dl {
+    display: grid;
+    gap: 0.25rem;
+    margin: 0;
+  }
+
+  dd {
+    overflow-wrap: anywhere;
+    margin: 0 0 0.5rem;
+    font-family: ui-monospace, 'SF Mono', Consolas, monospace;
+    user-select: all;
+  }
+}
+
 .admin-delete__title {
   margin: 0;
   font: var(--mat-sys-title-small);

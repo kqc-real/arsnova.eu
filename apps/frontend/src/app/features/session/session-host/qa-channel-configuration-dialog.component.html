@@ -1,0 +1,171 @@
+<h2 mat-dialog-title class="dialog-title-header">
+  <span class="dialog-title-header__icon" aria-hidden="true">
+    <mat-icon>forum</mat-icon>
+  </span>
+  <span class="dialog-title-header__copy">
+    @if (data.setupStep && data.setupStepCount) {
+      <span class="dialog-title-header__step" i18n="@@sessionQaSetup.step">
+        Schritt {{ data.setupStep }} von {{ data.setupStepCount }}
+      </span>
+    }
+    <span class="dialog-title-header__heading">{{ dialogTitle() }}</span>
+    <span class="dialog-title-header__sub" i18n="@@qaConfig.intro">
+      Lege fest, wie Fragen eingereicht und veröffentlicht werden und wie lange die Fragerunde
+      geöffnet bleibt.
+    </span>
+  </span>
+</h2>
+
+<mat-dialog-content class="qa-config__content">
+  <fieldset class="qa-config__group" [disabled]="pending()">
+    <legend i18n="@@qaConfig.contentLegend">Inhalt</legend>
+    <mat-form-field appearance="outline" subscriptSizing="dynamic">
+      <mat-label i18n="@@qaConfig.qaTitleLabel">Titel der Fragenwand</mat-label>
+      <input matInput maxlength="120" [(ngModel)]="qaTitle" />
+    </mat-form-field>
+    <mat-slide-toggle [(ngModel)]="moderationMode" i18n="@@qaConfig.moderationLabel">
+      Neue Fragen vor Veröffentlichung prüfen
+    </mat-slide-toggle>
+  </fieldset>
+
+  <fieldset class="qa-config__group" [disabled]="pending() || profileLocked()">
+    <legend i18n="@@qaConfig.profileLegend">Teilnahmeprofil</legend>
+    <mat-form-field appearance="outline" subscriptSizing="dynamic">
+      <mat-label i18n="@@qaConfig.identityModeLabel">Sichtbarer Name</mat-label>
+      <mat-select [(ngModel)]="identityMode">
+        <mat-option value="PRESET_PSEUDONYM" i18n="@@qaConfig.identityPreset">
+          Automatisches Pseudonym
+        </mat-option>
+        <mat-option value="CUSTOM_NICKNAME" i18n="@@qaConfig.identityCustom">
+          Eigener Nickname
+        </mat-option>
+        <mat-option value="ANONYMOUS" i18n="@@qaConfig.identityAnonymous">
+          Anonym ohne Verfassername
+        </mat-option>
+      </mat-select>
+    </mat-form-field>
+    @if (profileLocked()) {
+      <p class="qa-config__notice" role="status" i18n="@@qaConfig.profileLocked">
+        Diese Einstellungen können nach dem ersten Beitritt nicht mehr geändert werden.
+      </p>
+    }
+  </fieldset>
+
+  <fieldset class="qa-config__group" [disabled]="pending()">
+    <legend i18n="@@qaConfig.deadlineLegend">Teilnahmefrist</legend>
+    <mat-form-field appearance="outline" subscriptSizing="dynamic">
+      <mat-label i18n="@@qaConfig.deadlineKindLabel">Art der Teilnahmefrist</mat-label>
+      <mat-select [(ngModel)]="deadlineKind" (ngModelChange)="onDeadlineChange()">
+        <mat-option value="UNTIL_SESSION_END" i18n="@@qaConfig.untilSessionEnd">
+          Bis zum Sessionende
+        </mat-option>
+        <mat-option value="DURATION_DAYS" i18n="@@qaConfig.durationDays">
+          Für eine Anzahl von Tagen
+        </mat-option>
+        <mat-option value="ABSOLUTE" i18n="@@qaConfig.absolute"> Bis Datum und Uhrzeit </mat-option>
+      </mat-select>
+    </mat-form-field>
+
+    @if (deadlineKind === 'DURATION_DAYS' && maxSelectableDays() >= 1) {
+      <mat-form-field appearance="outline" subscriptSizing="dynamic">
+        <mat-label i18n="@@qaConfig.daysLabel">Anzahl der Tage</mat-label>
+        <input
+          matInput
+          type="number"
+          min="1"
+          [max]="maxSelectableDays()"
+          [(ngModel)]="days"
+          (ngModelChange)="onDeadlineChange()"
+        />
+      </mat-form-field>
+    } @else if (deadlineKind === 'DURATION_DAYS') {
+      <p class="qa-config__notice" role="status" i18n="@@qaConfig.noFullDayLeft">
+        Kein voller Kalendertag ist mehr zulässig. Wähle ein Datum und eine Uhrzeit.
+      </p>
+    } @else if (deadlineKind === 'ABSOLUTE') {
+      <mat-form-field appearance="outline" subscriptSizing="dynamic">
+        <mat-label i18n="@@qaConfig.absoluteLabel">Datum und Uhrzeit</mat-label>
+        <input
+          matInput
+          type="datetime-local"
+          [(ngModel)]="absoluteLocal"
+          (ngModelChange)="onDeadlineChange()"
+        />
+      </mat-form-field>
+    }
+    <p class="qa-config__zone">
+      <span i18n="@@qaConfig.timeZone">Zeitzone:</span>
+      {{ timeZone }}
+    </p>
+    @if (preview(); as resolved) {
+      <p class="qa-config__resolved" role="status">
+        <span i18n="@@qaConfig.previewQaCloses">Offen für Fragen und Bewertungen bis</span>
+        {{ formatDateTime(resolved.newQaClosesAt) }}
+        @if (resolved.requiresSessionExtension) {
+          <span class="qa-config__resolved-end">
+            <span i18n="@@qaConfig.previewSessionEnds">Session endet</span>
+            {{ formatDateTime(resolved.newExpiresAt) }}
+          </span>
+        }
+      </p>
+      @if (resolved.requiresSessionExtension) {
+        <dl class="qa-config__compare">
+          @if (resolved.oldQaClosesAt) {
+            <div>
+              <dt i18n="@@qaConfig.extensionOldQaLabel">Bisheriger Frageschluss</dt>
+              <dd>{{ formatDateTime(resolved.oldQaClosesAt) }}</dd>
+            </div>
+          }
+          <div>
+            <dt i18n="@@qaConfig.extensionNewQaLabel">Neuer Frageschluss</dt>
+            <dd>{{ formatDateTime(resolved.newQaClosesAt) }}</dd>
+          </div>
+          <div>
+            <dt i18n="@@qaConfig.extensionOldExpiresLabel">Bisheriges Sessionende</dt>
+            <dd>{{ formatDateTime(resolved.oldExpiresAt) }}</dd>
+          </div>
+          <div>
+            <dt i18n="@@qaConfig.extensionNewExpiresLabel">Neues Sessionende</dt>
+            <dd>{{ formatDateTime(resolved.newExpiresAt) }}</dd>
+          </div>
+          <div>
+            <dt i18n="@@qaConfig.extensionPostProcessingLabel">Host-Lesezugriff bis</dt>
+            <dd>{{ formatDateTime(resolved.projectedPostProcessingEndsAt) }}</dd>
+          </div>
+        </dl>
+        <p class="qa-config__warning" role="status" i18n="@@qaConfig.extensionWarning">
+          Die Teilnahmefrist liegt nach dem bisherigen Sessionende. Beim Bestätigen wird die globale
+          Sessionfrist mit verlängert; nur der ursprüngliche Host darf das ausführen.
+        </p>
+      }
+    }
+    @if (canReopen) {
+      <mat-slide-toggle
+        [(ngModel)]="reopenQa"
+        (ngModelChange)="onDeadlineChange()"
+        i18n="@@qaConfig.reopenLabel"
+      >
+        Geschlossene Fragerunde wieder öffnen
+      </mat-slide-toggle>
+    }
+  </fieldset>
+
+  @if (error()) {
+    <p class="qa-config__error" role="alert">{{ error() }}</p>
+  }
+</mat-dialog-content>
+
+<mat-dialog-actions align="end" class="qa-config__actions">
+  <button
+    matButton="text"
+    type="button"
+    [disabled]="pending()"
+    [mat-dialog-close]="null"
+    i18n="@@common.cancel"
+  >
+    Abbrechen
+  </button>
+  <button matButton="filled" type="button" [disabled]="pending()" (click)="confirm()">
+    {{ confirmLabel() }}
+  </button>
+</mat-dialog-actions>

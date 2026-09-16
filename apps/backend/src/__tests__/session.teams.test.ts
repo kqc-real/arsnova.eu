@@ -2,42 +2,50 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { TRPCError } from '@trpc/server';
 import { trpcDodIt } from './test-utils/trpc-dod-evidence';
 
-const { prismaMock, hostAuthMocks, joinAdmissionMocks, invalidSessionCodeMock } = vi.hoisted(
-  () => ({
-    prismaMock: {
-      session: {
-        findUnique: vi.fn(),
-      },
-      team: {
-        findMany: vi.fn(),
-        createMany: vi.fn(),
-      },
-      participant: {
-        create: vi.fn(),
-        count: vi.fn(),
-        findMany: vi.fn(),
-        update: vi.fn(),
-      },
-      vote: {
-        findMany: vi.fn(),
-      },
-      qaQuestion: {
-        findMany: vi.fn(),
-      },
-      $transaction: vi.fn(),
-      $executeRaw: vi.fn().mockResolvedValue(1),
+const {
+  prismaMock,
+  hostAuthMocks,
+  joinAdmissionMocks,
+  participantJoinMocks,
+  invalidSessionCodeMock,
+} = vi.hoisted(() => ({
+  prismaMock: {
+    session: {
+      findUnique: vi.fn(),
     },
-    hostAuthMocks: {
-      extractHostTokenMock: vi.fn(),
-      extractHostTokenFromConnectionParamsMock: vi.fn(() => null as string | null),
-      isHostSessionTokenValidMock: vi.fn(),
+    team: {
+      findMany: vi.fn(),
+      createMany: vi.fn(),
     },
-    joinAdmissionMocks: {
-      awaitJoinAdmissionSlot: vi.fn(),
+    participant: {
+      create: vi.fn(),
+      count: vi.fn(),
+      findMany: vi.fn(),
+      update: vi.fn(),
     },
-    invalidSessionCodeMock: vi.fn(),
-  }),
-);
+    vote: {
+      findMany: vi.fn(),
+    },
+    qaQuestion: {
+      count: vi.fn(),
+      findMany: vi.fn(),
+    },
+    $transaction: vi.fn(),
+    $executeRaw: vi.fn().mockResolvedValue(1),
+  },
+  hostAuthMocks: {
+    extractHostTokenMock: vi.fn(),
+    extractHostTokenFromConnectionParamsMock: vi.fn(() => null as string | null),
+    isHostSessionTokenValidMock: vi.fn(),
+  },
+  joinAdmissionMocks: {
+    awaitJoinAdmissionSlot: vi.fn(),
+  },
+  participantJoinMocks: {
+    prepareParticipantJoin: vi.fn(),
+  },
+  invalidSessionCodeMock: vi.fn(),
+}));
 
 vi.mock('../db', () => ({
   prisma: prismaMock,
@@ -60,6 +68,10 @@ vi.mock('../lib/joinAdmission', () => ({
   awaitJoinAdmissionSlot: joinAdmissionMocks.awaitJoinAdmissionSlot,
 }));
 
+vi.mock('../lib/participantJoin', () => ({
+  prepareParticipantJoin: participantJoinMocks.prepareParticipantJoin,
+}));
+
 vi.mock('../lib/invalidSessionCode', () => ({
   rejectInvalidSessionCode: invalidSessionCodeMock,
 }));
@@ -77,6 +89,17 @@ describe('session team mode (Story 7.1)', () => {
   beforeEach(() => {
     vi.resetAllMocks();
     joinAdmissionMocks.awaitJoinAdmissionSlot.mockResolvedValue({ delayedMs: 0, attempts: 1 });
+    participantJoinMocks.prepareParticipantJoin.mockResolvedValue({
+      participantId: PARTICIPANT_ID,
+      participantNumber: 3,
+      nickname: 'Ada 3',
+      teamId: null,
+      teamName: null,
+      timerAccommodation: 'DEFAULT',
+      rejoinCapability: 'rejoin-capability-abcdefghijklmnopqrstuvwxyz',
+      productFeedbackClaimToken: 'product-feedback-claim-token-1234567890',
+      rejoined: false,
+    });
     hostAuthMocks.extractHostTokenMock.mockReturnValue('host-token-123');
     hostAuthMocks.extractHostTokenFromConnectionParamsMock.mockReturnValue(null);
     hostAuthMocks.isHostSessionTokenValidMock.mockResolvedValue(true);
@@ -85,6 +108,7 @@ describe('session team mode (Story 7.1)', () => {
     prismaMock.$transaction.mockImplementation(async (fn: (tx: typeof prismaMock) => unknown) =>
       fn(prismaMock),
     );
+    prismaMock.qaQuestion.count.mockResolvedValue(0);
     prismaMock.qaQuestion.findMany.mockResolvedValue([]);
   });
 
@@ -145,6 +169,17 @@ describe('session team mode (Story 7.1)', () => {
   });
 
   it('weist beim AUTO-Join Round-Robin zu (1.→A, 2.→B, 3.→A, …)', async () => {
+    participantJoinMocks.prepareParticipantJoin.mockResolvedValue({
+      participantId: PARTICIPANT_ID,
+      participantNumber: 3,
+      nickname: 'Ada 3',
+      teamId: TEAM_A_ID,
+      teamName: 'Team A',
+      timerAccommodation: 'DEFAULT',
+      rejoinCapability: 'rejoin-capability-abcdefghijklmnopqrstuvwxyz',
+      productFeedbackClaimToken: 'product-feedback-claim-token-1234567890',
+      rejoined: false,
+    });
     prismaMock.session.findUnique.mockResolvedValue({
       id: SESSION_ID,
       code: 'ABC123',
@@ -172,25 +207,31 @@ describe('session team mode (Story 7.1)', () => {
       nickname: 'Ada',
       anonymousClientId: '33333333-3333-4333-8333-333333333333',
       teamId: undefined,
+      joinIdempotencyKey: 'join-key-abcdefghijklmnopqrstuvwxyz0123456789',
     });
 
-    expect(prismaMock.participant.count).toHaveBeenCalledWith({
-      where: { sessionId: SESSION_ID },
-    });
-    expect(prismaMock.participant.create).toHaveBeenCalledWith({
-      data: {
-        sessionId: SESSION_ID,
-        nickname: 'Ada',
-        teamId: TEAM_A_ID,
-        productFeedbackClaimTokenHash: expect.any(String),
-      },
-    });
+    expect(prismaMock.participant.count).not.toHaveBeenCalled();
+    expect(participantJoinMocks.prepareParticipantJoin).toHaveBeenCalledWith(
+      expect.objectContaining({ autoTeamIds: [TEAM_A_ID, TEAM_B_ID] }),
+    );
     expect(joinAdmissionMocks.awaitJoinAdmissionSlot).toHaveBeenCalledWith(SESSION_ID);
     expect(result.teamId).toBe(TEAM_A_ID);
     expect(result.teamName).toBe('Team A');
+    expect(result.participantCount).toBe(3);
   });
 
   it('übernimmt beim MANUAL-Join das gewählte Team', async () => {
+    participantJoinMocks.prepareParticipantJoin.mockResolvedValue({
+      participantId: PARTICIPANT_ID,
+      participantNumber: 1,
+      nickname: 'Ada 1',
+      teamId: TEAM_A_ID,
+      teamName: 'Team A',
+      timerAccommodation: 'DEFAULT',
+      rejoinCapability: 'rejoin-capability-abcdefghijklmnopqrstuvwxyz',
+      productFeedbackClaimToken: 'product-feedback-claim-token-1234567890',
+      rejoined: false,
+    });
     prismaMock.session.findUnique.mockResolvedValue({
       id: SESSION_ID,
       code: 'ABC123',
@@ -218,22 +259,17 @@ describe('session team mode (Story 7.1)', () => {
       nickname: 'Ada',
       anonymousClientId: '33333333-3333-4333-8333-333333333333',
       teamId: TEAM_A_ID,
+      joinIdempotencyKey: 'join-key-abcdefghijklmnopqrstuvwxyz0123456789',
     });
 
-    expect(prismaMock.participant.count).toHaveBeenCalledWith({
-      where: { sessionId: SESSION_ID },
-    });
-    expect(prismaMock.participant.create).toHaveBeenCalledWith({
-      data: {
-        sessionId: SESSION_ID,
-        nickname: 'Ada',
-        teamId: TEAM_A_ID,
-        productFeedbackClaimTokenHash: expect.any(String),
-      },
-    });
+    expect(prismaMock.participant.count).not.toHaveBeenCalled();
+    expect(participantJoinMocks.prepareParticipantJoin).toHaveBeenCalledWith(
+      expect.objectContaining({ assignedTeamId: TEAM_A_ID }),
+    );
     expect(joinAdmissionMocks.awaitJoinAdmissionSlot).toHaveBeenCalledWith(SESSION_ID);
     expect(result.teamId).toBe(TEAM_A_ID);
     expect(result.teamName).toBe('Team A');
+    expect(result.participantCount).toBe(1);
   });
 
   trpcDodIt(

@@ -15,6 +15,7 @@ import {
   normalizeHostSessionCode,
   setHostToken as storeHostToken,
 } from './host-session-token';
+import { getParticipantCapability } from './participant-session-access';
 import { getTrpcWsUrl } from './ws-urls';
 
 const isBrowser = globalThis.window !== undefined;
@@ -108,6 +109,11 @@ function createTrpcHeaders(): Record<string, string> {
   if (hostToken) {
     headers['x-host-token'] = hostToken;
   }
+  const participantCode = resolveRouteHostSessionCode() ? null : resolveRouteSessionCode();
+  const participantCapability = participantCode ? getParticipantCapability(participantCode) : null;
+  if (participantCapability) {
+    headers['x-participant-capability'] = participantCapability;
+  }
 
   const feedbackCode = resolveRouteFeedbackCode();
   if (feedbackCode) {
@@ -127,12 +133,15 @@ function resolveWsParticipantBinding(): TrpcWebSocketParticipantBinding | null {
     sessionCode && !hostSessionCode
       ? globalThis.window.localStorage.getItem(`arsnova-participant-${sessionCode}`)
       : null;
+  const participantCapability =
+    sessionCode && !hostSessionCode ? getParticipantCapability(sessionCode) : null;
   return sessionCode
     ? {
         sessionCode,
         ...(storedParticipantId && UUID_PATTERN.test(storedParticipantId)
           ? { participantId: storedParticipantId }
           : {}),
+        ...(participantCapability ? { participantCapability } : {}),
       }
     : null;
 }
@@ -140,7 +149,9 @@ function resolveWsParticipantBinding(): TrpcWebSocketParticipantBinding | null {
 export function createWsBindingFingerprint(
   binding: TrpcWebSocketParticipantBinding | null,
 ): string | null {
-  return binding ? `${binding.sessionCode}:${binding.participantId ?? ''}` : null;
+  return binding
+    ? `${binding.sessionCode}:${binding.participantId ?? ''}:${binding.participantCapability ?? ''}`
+    : null;
 }
 
 function createWsConnectionParams(): Record<string, string> | null {

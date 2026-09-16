@@ -1,7 +1,8 @@
-import { inject } from '@angular/core';
+import { EnvironmentInjector, inject, runInInjectionContext } from '@angular/core';
 import {
   type CanActivateFn,
   type CanDeactivateFn,
+  type ResolveFn,
   Router,
   type UrlSegment,
   Routes,
@@ -15,11 +16,10 @@ import { hasFeedbackHostToken, normalizeFeedbackCode } from './core/feedback-hos
 import { getSessionEntryCommands } from './core/host-session-token';
 import { localizeCommands } from './core/locale-router';
 import type { SessionHostComponent } from './features/session/session-host/session-host.component';
-import { requireHostToken } from './features/session/session-host.guard';
 import type { QuizEditComponent } from './features/quiz/quiz-edit/quiz-edit.component';
 import type { QuizNewComponent } from './features/quiz/quiz-new/quiz-new.component';
 import type { QuizPreviewComponent } from './features/quiz/quiz-preview/quiz-preview.component';
-import { newsArchivePageResolver } from './features/news-archive/news-archive-page.resolver';
+import type { NewsArchiveInitialModel } from './features/news-archive/news-archive-initial';
 
 const canDeactivateHost: CanDeactivateFn<SessionHostComponent> = (component) =>
   component.canDeactivate();
@@ -82,6 +82,23 @@ const redirectSessionEntry: CanActivateFn = (route) => {
   return inject(Router).createUrlTree(localizeCommands(getSessionEntryCommands(codeParam)));
 };
 
+const requireHostTokenLazy: CanActivateFn = (route) => {
+  const router = inject(Router);
+  return import('./features/session/session-host.guard').then(({ resolveHostRouteAccess }) =>
+    resolveHostRouteAccess(route, router),
+  );
+};
+
+const newsArchivePageResolverLazy: ResolveFn<NewsArchiveInitialModel> = (route, state) => {
+  const environmentInjector = inject(EnvironmentInjector);
+  return import('./features/news-archive/news-archive-page.resolver').then(
+    ({ newsArchivePageResolver }) =>
+      runInInjectionContext(environmentInjector, () =>
+        newsArchivePageResolver(route, state),
+      ) as Promise<NewsArchiveInitialModel>,
+  );
+};
+
 const redirectJoinToPreferredLocale: CanActivateFn = (route) => {
   const router = inject(Router);
   const codeParam = getCodeParamFromRoute(route);
@@ -134,6 +151,13 @@ const mainRoutes: Routes = [
     path: 'join',
     data: { focusSessionCode: true },
     loadComponent: () => import('./features/home/home.component').then((m) => m.HomeComponent),
+  },
+  {
+    path: 'host-recovery',
+    loadComponent: () =>
+      import('./features/session/host-recovery/host-recovery.component').then(
+        (m) => m.HostRecoveryComponent,
+      ),
   },
   {
     path: 'quiz',
@@ -192,7 +216,7 @@ const mainRoutes: Routes = [
           import('./features/session/session-host/session-host.component').then(
             (m) => m.SessionHostComponent,
           ),
-        canActivate: [requireHostToken],
+        canActivate: [requireHostTokenLazy],
         canDeactivate: [canDeactivateHost],
       },
       {
@@ -246,7 +270,7 @@ const mainRoutes: Routes = [
       import('./features/news-archive/news-archive-page.component').then(
         (m) => m.NewsArchivePageComponent,
       ),
-    resolve: { newsArchive: newsArchivePageResolver },
+    resolve: { newsArchive: newsArchivePageResolverLazy },
   },
   {
     path: 'legal',
