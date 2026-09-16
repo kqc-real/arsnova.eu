@@ -132,31 +132,38 @@ $$;
 -- Bestehende Kennungen deterministisch nach Beitrittszeit und UUID nummerieren.
 -- Neue Joins schreiben Nummer und Sessionzähler atomar in derselben Transaktion.
 -- Der Active-Session-Guard blockiert sonst beendete/abgelaufene Sessions
--- (Produktion: P3018 / ARSNOVA_SESSION_ENDED).
-ALTER TABLE "Participant" DISABLE TRIGGER "Participant_guard_active_session";
-WITH ranked AS (
-    SELECT
-        "id",
-        ROW_NUMBER() OVER (
-            PARTITION BY "sessionId"
-            ORDER BY "joinedAt" ASC, "id" ASC
-        )::INTEGER AS participant_number
-    FROM "Participant"
-)
-UPDATE "Participant" AS participant
-SET "participantNumber" = ranked.participant_number
-FROM ranked
-WHERE participant."id" = ranked."id";
-ALTER TABLE "Participant" ENABLE TRIGGER "Participant_guard_active_session";
+-- (Produktion: P3018 / ARSNOVA_SESSION_ENDED). Ein DO-Block ist eine Anweisung:
+-- bricht der Backfill ab, rollt DISABLE mit zurück.
+DO $$
+BEGIN
+    ALTER TABLE "Participant" DISABLE TRIGGER "Participant_guard_active_session";
+    WITH ranked AS (
+        SELECT
+            "id",
+            ROW_NUMBER() OVER (
+                PARTITION BY "sessionId"
+                ORDER BY "joinedAt" ASC, "id" ASC
+            )::INTEGER AS participant_number
+        FROM "Participant"
+    )
+    UPDATE "Participant" AS participant
+    SET "participantNumber" = ranked.participant_number
+    FROM ranked
+    WHERE participant."id" = ranked."id";
+    ALTER TABLE "Participant" ENABLE TRIGGER "Participant_guard_active_session";
+END $$;
 
-ALTER TABLE "Session" DISABLE TRIGGER "Session_enforce_lifecycle";
-UPDATE "Session" AS session
-SET "nextParticipantNumber" = COALESCE((
-    SELECT MAX(participant."participantNumber")
-    FROM "Participant" AS participant
-    WHERE participant."sessionId" = session."id"
-), 0);
-ALTER TABLE "Session" ENABLE TRIGGER "Session_enforce_lifecycle";
+DO $$
+BEGIN
+    ALTER TABLE "Session" DISABLE TRIGGER "Session_enforce_lifecycle";
+    UPDATE "Session" AS session
+    SET "nextParticipantNumber" = COALESCE((
+        SELECT MAX(participant."participantNumber")
+        FROM "Participant" AS participant
+        WHERE participant."sessionId" = session."id"
+    ), 0);
+    ALTER TABLE "Session" ENABLE TRIGGER "Session_enforce_lifecycle";
+END $$;
 
 -- Rolling-/Rollback-Bridge: ältere App-Images überlassen die Nummernvergabe
 -- diesem Trigger. Neue Images schreiben bereits eine Nummer und werden nicht
