@@ -130,9 +130,11 @@ mit diesem alten Digest. Prisma im alten Image kennt die Migration nicht
 (P3017).
 
 Dieselbe Guard-Klasse: `20260915100000` (Participant) und
-`20260915120000` (QaQuestion-Backfill). `20260915110000` setzt den
-Session-Trigger bereits aus; MOTD `20260916103000` und die
-Revisionsfunktion `20260916140000` schreiben keine beendeten Live-Zeilen.
+`20260915120000` (QaQuestion-Backfill). Beide Dateien sind für bereits
+angewandte Teil-DDL idempotent (`ADD COLUMN IF NOT EXISTS` usw.).
+`20260915110000` setzt den Session-Trigger bereits aus; MOTD
+`20260916103000` und die Revisionsfunktion `20260916140000` schreiben keine
+beendeten Live-Zeilen. Nicht zuerst Objekte per Hand droppen.
 
 Failed-Zeile über Postgres löschen, ohne App-Image:
 
