@@ -114,7 +114,7 @@ PostgreSQL-Credentials bleiben erhalten; ältere Images können das neue
 Recovery-Formular jedoch nicht anbieten. Nach erneutem Roll-forward ist der
 persistente Recovery-Pfad wieder verfügbar.
 
-### Fehlgeschlagener Nummern-Backfill (P3018)
+### Fehlgeschlagene 405-Backfills (P3018 / P3009)
 
 `20260915100000_host_recovery_participant_capabilities` nummeriert bestehende
 Teilnahmen. Der Write-Guard aus der Lifecycle-Migration lehnt das auf
@@ -122,12 +122,19 @@ beendeten Sessions ab. Die Datei setzt den Trigger
 `Participant_guard_active_session` für diesen Backfill aus und ist für eine
 teilweise angewandte DDL idempotent.
 
-Wenn `_prisma_migrations` die Datei als fehlgeschlagen zeigt (`finished_at`
-leer, Spalten schon da, `HostCredential` fehlt): nicht
-`migrate resolve --applied`. Nicht `prod-compose.sh run … app prisma migrate
-resolve`: `deploy.sh` schreibt `.env.arsnova-image` erst nach erfolgreichem
-Healthcheck, und `prod-compose.sh` überschreibt `ARSNOVA_IMAGE` mit diesem
-alten Digest. Prisma im alten Image kennt die Migration nicht (P3017).
+Wenn `_prisma_migrations` eine 405-Datei als fehlgeschlagen zeigt (`finished_at`
+leer): nicht `migrate resolve --applied`. Nicht `prod-compose.sh run … app
+prisma migrate resolve`: `deploy.sh` schreibt `.env.arsnova-image` erst nach
+erfolgreichem Healthcheck, und `prod-compose.sh` überschreibt `ARSNOVA_IMAGE`
+mit diesem alten Digest. Prisma im alten Image kennt die Migration nicht
+(P3017).
+
+Dieselbe Guard-Klasse: `20260915100000` (Participant) und
+`20260915120000` (QaQuestion-Backfill). Beide Dateien sind für bereits
+angewandte Teil-DDL idempotent (`ADD COLUMN IF NOT EXISTS` usw.).
+`20260915110000` setzt den Session-Trigger bereits aus; MOTD
+`20260916103000` und die Revisionsfunktion `20260916140000` schreiben keine
+beendeten Live-Zeilen. Nicht zuerst Objekte per Hand droppen.
 
 Failed-Zeile über Postgres löschen, ohne App-Image:
 
@@ -138,10 +145,14 @@ Failed-Zeile über Postgres löschen, ohne App-Image:
 
 ```sql
 DELETE FROM _prisma_migrations
-WHERE migration_name = '20260915100000_host_recovery_participant_capabilities'
-  AND finished_at IS NULL;
+WHERE finished_at IS NULL
+  AND migration_name IN (
+    '20260915100000_host_recovery_participant_capabilities',
+    '20260915120000_qa_scale_counters'
+  );
 ```
 
-Erwartet: `DELETE 1`. Danach diesen Stand mergen und den Deploy-Job auf `main`
-laufen lassen oder erneut anstoßen. `deploy.sh` allein bleibt bei P3018 stehen,
-solange die Failed-Zeile existiert.
+Erwartet: `DELETE 1` (oder `DELETE 2`, falls beide Failed-Zeilen noch stehen).
+Danach diesen Stand mergen und den Deploy-Job auf `main` laufen lassen oder
+erneut anstoßen. `deploy.sh` bleibt bei P3009/P3018 stehen, solange eine
+Failed-Zeile existiert.

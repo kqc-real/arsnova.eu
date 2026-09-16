@@ -1,31 +1,28 @@
 -- Epic #405 / #414 / #415: atomare Q&A-Kontingente, Rankingrevision und
 -- purge-sichere Plattformprojektion.
 
-ALTER TABLE "Session"
-  ADD COLUMN "qaRankingRevision" INTEGER NOT NULL DEFAULT 0,
-  ADD COLUMN "qaQuestionCount" INTEGER NOT NULL DEFAULT 0,
-  ADD COLUMN "qaQuestionPeakCount" INTEGER NOT NULL DEFAULT 0,
-  ADD COLUMN "qaQuestionPeakReachedAt" TIMESTAMP(3),
-  ADD COLUMN "qaQuestionsAcceptedTotal" BIGINT NOT NULL DEFAULT 0,
-  ADD COLUMN "participantRevision" INTEGER NOT NULL DEFAULT 0;
+-- Idempotent: Produktion kann nach P3018 bereits Spalten/Tabelle/Indizes haben.
+ALTER TABLE "Session" ADD COLUMN IF NOT EXISTS "qaRankingRevision" INTEGER NOT NULL DEFAULT 0;
+ALTER TABLE "Session" ADD COLUMN IF NOT EXISTS "qaQuestionCount" INTEGER NOT NULL DEFAULT 0;
+ALTER TABLE "Session" ADD COLUMN IF NOT EXISTS "qaQuestionPeakCount" INTEGER NOT NULL DEFAULT 0;
+ALTER TABLE "Session" ADD COLUMN IF NOT EXISTS "qaQuestionPeakReachedAt" TIMESTAMP(3);
+ALTER TABLE "Session" ADD COLUMN IF NOT EXISTS "qaQuestionsAcceptedTotal" BIGINT NOT NULL DEFAULT 0;
+ALTER TABLE "Session" ADD COLUMN IF NOT EXISTS "participantRevision" INTEGER NOT NULL DEFAULT 0;
 
-ALTER TABLE "QaQuestion"
-  ADD COLUMN "positiveVoteCount" INTEGER NOT NULL DEFAULT 0,
-  ADD COLUMN "negativeVoteCount" INTEGER NOT NULL DEFAULT 0,
-  ADD COLUMN "submitIdempotencyKeyHash" CHAR(64);
+ALTER TABLE "QaQuestion" ADD COLUMN IF NOT EXISTS "positiveVoteCount" INTEGER NOT NULL DEFAULT 0;
+ALTER TABLE "QaQuestion" ADD COLUMN IF NOT EXISTS "negativeVoteCount" INTEGER NOT NULL DEFAULT 0;
+ALTER TABLE "QaQuestion" ADD COLUMN IF NOT EXISTS "submitIdempotencyKeyHash" CHAR(64);
 
-ALTER TABLE "QaUpvote"
-  ADD COLUMN "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  ADD COLUMN "updatedAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP;
+ALTER TABLE "QaUpvote" ADD COLUMN IF NOT EXISTS "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP;
+ALTER TABLE "QaUpvote" ADD COLUMN IF NOT EXISTS "updatedAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP;
 
-ALTER TABLE "PlatformStatistic"
-  ADD COLUMN "qaQuestionsTotal" BIGINT NOT NULL DEFAULT 0,
-  ADD COLUMN "maxQaQuestionsSingleSession" INTEGER NOT NULL DEFAULT 0,
-  ADD COLUMN "maxQaQuestionsStatisticUpdatedAt" TIMESTAMP(3),
-  ADD COLUMN "qaStatisticsTrackingStartedAt" TIMESTAMP(3),
-  ADD COLUMN "qaStatisticsProjectedAt" TIMESTAMP(3);
+ALTER TABLE "PlatformStatistic" ADD COLUMN IF NOT EXISTS "qaQuestionsTotal" BIGINT NOT NULL DEFAULT 0;
+ALTER TABLE "PlatformStatistic" ADD COLUMN IF NOT EXISTS "maxQaQuestionsSingleSession" INTEGER NOT NULL DEFAULT 0;
+ALTER TABLE "PlatformStatistic" ADD COLUMN IF NOT EXISTS "maxQaQuestionsStatisticUpdatedAt" TIMESTAMP(3);
+ALTER TABLE "PlatformStatistic" ADD COLUMN IF NOT EXISTS "qaStatisticsTrackingStartedAt" TIMESTAMP(3);
+ALTER TABLE "PlatformStatistic" ADD COLUMN IF NOT EXISTS "qaStatisticsProjectedAt" TIMESTAMP(3);
 
-CREATE TABLE "QaSessionStatisticProjection" (
+CREATE TABLE IF NOT EXISTS "QaSessionStatisticProjection" (
   "sessionId" TEXT NOT NULL,
   "questionsAcceptedTotal" BIGINT NOT NULL,
   "questionPeakCount" INTEGER NOT NULL,
@@ -34,61 +31,70 @@ CREATE TABLE "QaSessionStatisticProjection" (
   CONSTRAINT "QaSessionStatisticProjection_pkey" PRIMARY KEY ("sessionId")
 );
 
-CREATE INDEX "QaSessionStatisticProjection_peak_idx"
+CREATE INDEX IF NOT EXISTS "QaSessionStatisticProjection_peak_idx"
   ON "QaSessionStatisticProjection" ("questionPeakCount", "questionPeakReachedAt");
-CREATE INDEX "Participant_sessionId_joinedAt_id_idx"
+CREATE INDEX IF NOT EXISTS "Participant_sessionId_joinedAt_id_idx"
   ON "Participant" ("sessionId", "joinedAt", "id");
-CREATE UNIQUE INDEX "QaQuestion_sessionId_participantId_submitIdempotencyKeyHash_key"
+CREATE UNIQUE INDEX IF NOT EXISTS "QaQuestion_sessionId_participantId_submitIdempotencyKeyHash_key"
   ON "QaQuestion" ("sessionId", "participantId", "submitIdempotencyKeyHash");
-CREATE INDEX "QaQuestion_sessionId_status_upvoteCount_createdAt_id_idx"
+CREATE INDEX IF NOT EXISTS "QaQuestion_sessionId_status_upvoteCount_createdAt_id_idx"
   ON "QaQuestion" ("sessionId", "status", "upvoteCount", "createdAt", "id");
 
 -- Vorhandene Vote-Zähler und Fragenbestände bilden den gemeinsamen,
--- wahrheitsgemäßen Erfassungsstichtag. Der Lifecycle-Trigger wird nur für
--- diesen atomaren Backfill deaktiviert, da auch beendete Sessions enthalten sind.
-UPDATE "QaQuestion"
-SET
-  "positiveVoteCount" = 0,
-  "negativeVoteCount" = 0,
-  "upvoteCount" = 0;
+-- wahrheitsgemäßen Erfassungsstichtag. Fragen- und Session-Guards werden nur
+-- für diesen atomaren Backfill ausgesetzt (auch beendete Sessions). Ein
+-- DO-Block rollt DISABLE bei Abbruch mit zurück.
+DO $$
+BEGIN
+    ALTER TABLE "QaQuestion" DISABLE TRIGGER "QaQuestion_guard_active_session";
+    UPDATE "QaQuestion"
+    SET
+      "positiveVoteCount" = 0,
+      "negativeVoteCount" = 0,
+      "upvoteCount" = 0;
 
-WITH vote_counts AS (
-  SELECT
-    "qaQuestionId",
-    COUNT(*) FILTER (WHERE "direction" = 'UP')::INTEGER AS positive_count,
-    COUNT(*) FILTER (WHERE "direction" = 'DOWN')::INTEGER AS negative_count
-  FROM "QaUpvote"
-  GROUP BY "qaQuestionId"
-)
-UPDATE "QaQuestion" AS question
-SET
-  "positiveVoteCount" = COALESCE(vote_counts.positive_count, 0),
-  "negativeVoteCount" = COALESCE(vote_counts.negative_count, 0),
-  "upvoteCount" = COALESCE(vote_counts.positive_count, 0)
-    - COALESCE(vote_counts.negative_count, 0)
-FROM vote_counts
-WHERE vote_counts."qaQuestionId" = question."id";
+    WITH vote_counts AS (
+      SELECT
+        "qaQuestionId",
+        COUNT(*) FILTER (WHERE "direction" = 'UP')::INTEGER AS positive_count,
+        COUNT(*) FILTER (WHERE "direction" = 'DOWN')::INTEGER AS negative_count
+      FROM "QaUpvote"
+      GROUP BY "qaQuestionId"
+    )
+    UPDATE "QaQuestion" AS question
+    SET
+      "positiveVoteCount" = COALESCE(vote_counts.positive_count, 0),
+      "negativeVoteCount" = COALESCE(vote_counts.negative_count, 0),
+      "upvoteCount" = COALESCE(vote_counts.positive_count, 0)
+        - COALESCE(vote_counts.negative_count, 0)
+    FROM vote_counts
+    WHERE vote_counts."qaQuestionId" = question."id";
+    ALTER TABLE "QaQuestion" ENABLE TRIGGER "QaQuestion_guard_active_session";
+END $$;
 
-ALTER TABLE "Session" DISABLE TRIGGER "Session_enforce_lifecycle";
-UPDATE "Session" AS session
-SET
-  "qaQuestionCount" = (
-    SELECT COUNT(*)::INTEGER
-    FROM "QaQuestion"
-    WHERE "sessionId" = session."id"
-  ),
-  "qaQuestionPeakCount" = (
-    SELECT COUNT(*)::INTEGER
-    FROM "QaQuestion"
-    WHERE "sessionId" = session."id"
-  ),
-  "qaQuestionsAcceptedTotal" = (
-    SELECT COUNT(*)::INTEGER
-    FROM "QaQuestion"
-    WHERE "sessionId" = session."id"
-  ),
-  "qaQuestionPeakReachedAt" = CURRENT_TIMESTAMP;
-ALTER TABLE "Session" ENABLE TRIGGER "Session_enforce_lifecycle";
+DO $$
+BEGIN
+    ALTER TABLE "Session" DISABLE TRIGGER "Session_enforce_lifecycle";
+    UPDATE "Session" AS session
+    SET
+      "qaQuestionCount" = (
+        SELECT COUNT(*)::INTEGER
+        FROM "QaQuestion"
+        WHERE "sessionId" = session."id"
+      ),
+      "qaQuestionPeakCount" = (
+        SELECT COUNT(*)::INTEGER
+        FROM "QaQuestion"
+        WHERE "sessionId" = session."id"
+      ),
+      "qaQuestionsAcceptedTotal" = (
+        SELECT COUNT(*)::INTEGER
+        FROM "QaQuestion"
+        WHERE "sessionId" = session."id"
+      ),
+      "qaQuestionPeakReachedAt" = CURRENT_TIMESTAMP;
+    ALTER TABLE "Session" ENABLE TRIGGER "Session_enforce_lifecycle";
+END $$;
 
 INSERT INTO "QaSessionStatisticProjection" (
   "sessionId",
@@ -103,7 +109,13 @@ SELECT
   "qaQuestionPeakCount",
   "qaQuestionPeakReachedAt",
   CURRENT_TIMESTAMP
-FROM "Session";
+FROM "Session"
+ON CONFLICT ("sessionId") DO UPDATE
+SET
+  "questionsAcceptedTotal" = EXCLUDED."questionsAcceptedTotal",
+  "questionPeakCount" = EXCLUDED."questionPeakCount",
+  "questionPeakReachedAt" = EXCLUDED."questionPeakReachedAt",
+  "projectedAt" = EXCLUDED."projectedAt";
 
 INSERT INTO "PlatformStatistic" (
   "id",
