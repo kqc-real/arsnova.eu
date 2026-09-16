@@ -5,7 +5,7 @@
  * Prüft:
  * - Q&A-Start zeigt die Host-Notfallkarte
  * - Maximales Q&A-Ende und Löschtermin sitzen in der Q&A-Action-Bar
- * - Self-Service-Wiederherstellung mit Support-ID und Recovery-Code
+ * - Self-Service-Wiederherstellung mit Session-Kennung und Recovery-Code
  *
  * Run:
  *   BASE_URL=http://localhost:4200/de TRPC_URL=http://localhost:3000/trpc \
@@ -184,7 +184,7 @@ async function main() {
     });
     logStep(cardOk, 'Host sichert die Notfallkarte nach Q&A-Start');
     if (!cardOk && failures.length === 0) {
-      failures.push('Notfallkarte zeigte keine Support-ID.');
+      failures.push('Notfallkarte zeigte keine Session-Kennung.');
     }
 
     const expiration = host.locator('[data-testid="configure-session-expiration"]');
@@ -231,8 +231,8 @@ async function main() {
       waitUntil: 'domcontentloaded',
       timeout: 30_000,
     });
-    await recovery.getByLabel(/Support-ID/i).fill(session.hostRecoveryCard.supportId);
-    await recovery.getByLabel(/Geheimer Code/i).fill(session.hostRecoveryCard.recoveryCode);
+    await recovery.getByLabel(/Session-Kennung/i).fill(session.hostRecoveryCard.supportId);
+    await recovery.getByLabel(/Recovery-Code/i).fill(session.hostRecoveryCard.recoveryCode);
     await recovery.getByRole('button', { name: /Zugang wiederherstellen/i }).click();
     const recovered = await waitForPathSuffix(recovery, `/session/${session.code}/host`, 20_000)
       .then(() => true)
