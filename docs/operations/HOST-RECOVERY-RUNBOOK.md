@@ -113,3 +113,25 @@ Redis-Lookup gespiegelt. Ein Rollback setzt die Migration nicht zurück:
 PostgreSQL-Credentials bleiben erhalten; ältere Images können das neue
 Recovery-Formular jedoch nicht anbieten. Nach erneutem Roll-forward ist der
 persistente Recovery-Pfad wieder verfügbar.
+
+### Fehlgeschlagener Nummern-Backfill (P3018)
+
+`20260915100000_host_recovery_participant_capabilities` nummeriert bestehende
+Teilnahmen. Der Write-Guard aus der Lifecycle-Migration lehnt das auf
+beendeten Sessions ab. Die Datei setzt den Trigger
+`Participant_guard_active_session` für diesen Backfill aus und ist für eine
+teilweise angewandte DDL idempotent.
+
+Wenn `_prisma_migrations` die Datei als fehlgeschlagen zeigt (`finished_at`
+leer, Spalten schon da, `HostCredential` fehlt): nicht
+`migrate resolve --applied`. Nach Ausrollen dieses Stands zuerst
+
+```bash
+./scripts/prod-compose.sh run --rm --no-deps --entrypoint "" app \
+  /app/node_modules/.bin/prisma migrate resolve \
+  --rolled-back 20260915100000_host_recovery_participant_capabilities \
+  --schema /app/prisma/schema.prisma
+```
+
+mit dem **neuen** Image, danach `./scripts/deploy.sh`. `deploy.sh` allein bleibt
+bei P3018 stehen, solange die Failed-Zeile existiert.
