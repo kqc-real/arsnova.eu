@@ -216,12 +216,13 @@ compose run --rm --no-deps --entrypoint "" app /app/node_modules/.bin/prisma mig
 
 echo ""
 echo ">>> Schritt 5b: Überfällige Retention vor Traffic-Freigabe bereinigen"
+# Wie migrate: gehärtetes Image hat kein npm in PATH (Dockerfile entfernt es).
 if [[ "$DEPLOY_MODE" == "normal" ]]; then
-  compose run --rm --no-deps --entrypoint "" app npm run cleanup:retention -w @arsnova/backend
+  compose run --rm --no-deps --entrypoint "" app node /app/apps/backend/dist/runRetentionCleanup.js
 else
   compose run --rm --no-deps --entrypoint "" app sh -eu -c '
     if [ -f /app/apps/backend/dist/runRetentionCleanup.js ]; then
-      npm run cleanup:retention -w @arsnova/backend
+      node /app/apps/backend/dist/runRetentionCleanup.js
     else
       echo "Hinweis: Ziel-Image besitzt noch kein Retention-Gate; DB-Rollback-Bridge bleibt aktiv."
     fi
