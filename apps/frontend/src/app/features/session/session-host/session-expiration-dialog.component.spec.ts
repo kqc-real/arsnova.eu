@@ -71,6 +71,31 @@ describe('SessionExpirationDialogComponent', () => {
     expect(text).not.toContain('Aktuelles Sessionende');
   });
 
+  it('bietet kurz nach Erstellung weiter 14 Kalendertage ab createdAt', () => {
+    TestBed.configureTestingModule({
+      imports: [SessionExpirationDialogComponent],
+      providers: [
+        {
+          provide: MAT_DIALOG_DATA,
+          useValue: {
+            mode: 'INITIAL_CONFIGURATION',
+            lifecycle: {
+              ...lifecycle,
+              createdAt: '2026-03-24T12:00:00.000Z',
+              firstParticipantJoinedAt: null,
+              configurationAllowed: true,
+              serverNow: '2026-03-24T12:30:00.000Z',
+              maxExpiresAt: '2026-04-07T12:00:00.000Z',
+            },
+          },
+        },
+        { provide: MatDialogRef, useValue: { close: vi.fn() } },
+      ],
+    });
+    const fixture = TestBed.createComponent(SessionExpirationDialogComponent);
+    expect(fixture.componentInstance.maxSelectableDays()).toBe(14);
+  });
+
   it('weist eine Tageszahl über der Betreiberobergrenze zurück', () => {
     const close = vi.fn();
     TestBed.configureTestingModule({

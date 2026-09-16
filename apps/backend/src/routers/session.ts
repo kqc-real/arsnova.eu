@@ -5795,9 +5795,17 @@ const sessionCoreRouter = router({
                 (input.participationProfile.identityMode === 'CUSTOM_NICKNAME') &&
               session.onboardingAnonymousMode ===
                 (input.participationProfile.identityMode === 'ANONYMOUS'));
+          const deadlineExpired =
+            session.qaClosesAt instanceof Date && serverNow >= session.qaClosesAt;
+          const nextQaOpen =
+            input.mode === 'INITIAL'
+              ? true
+              : input.reopenQa
+                ? true
+                : session.qaOpen === true && !deadlineExpired;
           const alreadyApplied =
             session.qaEnabled &&
-            session.qaOpen &&
+            session.qaOpen === nextQaOpen &&
             session.qaClosesAt?.getTime() === confirmedQaClosesAt.getTime() &&
             session.expiresAt.getTime() === confirmedExpiresAt.getTime() &&
             session.preferredChannel === 'qa' &&
@@ -5839,9 +5847,7 @@ const sessionCoreRouter = router({
               message: 'Q&A muss zuerst eingerichtet werden.',
             });
           }
-          const oldDeadlineExpired =
-            session.qaClosesAt instanceof Date && serverNow >= session.qaClosesAt;
-          if ((window.requiresSessionExtension || oldDeadlineExpired) && !originalHost) {
+          if ((window.requiresSessionExtension || deadlineExpired) && !originalHost) {
             throw new TRPCError({
               code: 'FORBIDDEN',
               message:
@@ -5873,7 +5879,7 @@ const sessionCoreRouter = router({
             where: { id: session.id },
             data: {
               qaEnabled: true,
-              qaOpen: true,
+              qaOpen: nextQaOpen,
               qaClosesAt: window.qaClosesAt,
               qaTitle: title,
               qaModerationMode: input.moderationMode,

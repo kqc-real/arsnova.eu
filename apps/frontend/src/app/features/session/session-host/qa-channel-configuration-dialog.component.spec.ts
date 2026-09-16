@@ -83,6 +83,7 @@ function configureTestBed(
   profileLocked = false,
   setup?: { setupStep: number; setupStepCount: number },
   extensionConfirmed = true,
+  sessionOverride = session,
 ) {
   const close = vi.fn();
   const dialogOpen = vi.fn().mockReturnValue({
@@ -93,7 +94,7 @@ function configureTestBed(
     providers: [
       {
         provide: MAT_DIALOG_DATA,
-        useValue: { code: 'ABC123', session, profileLocked, ...setup },
+        useValue: { code: 'ABC123', session: sessionOverride, profileLocked, ...setup },
       },
       { provide: MatDialogRef, useValue: { close } },
       { provide: MatDialog, useValue: { open: dialogOpen } },
@@ -199,6 +200,7 @@ describe('QaChannelConfigurationDialogComponent', () => {
     component.identityMode = 'PRESET_PSEUDONYM';
     component.qaTitle = 'Prüfungsfragen';
 
+    await component.onDeadlineChange();
     await component.confirm();
 
     expect(dialogOpen).toHaveBeenCalled();
@@ -211,6 +213,7 @@ describe('QaChannelConfigurationDialogComponent', () => {
       confirmedQaClosesAt: preview.newQaClosesAt,
       confirmedExpiresAt: preview.newExpiresAt,
       confirmSessionExtension: true,
+      reopenQa: false,
       qaTitle: 'Prüfungsfragen',
       moderationMode: true,
       participationProfile: {
@@ -356,5 +359,104 @@ describe('QaChannelConfigurationDialogComponent', () => {
     });
     expect(configureMock.mock.calls[1]?.[0].participationProfile).toBeUndefined();
     expect(close).toHaveBeenCalledWith(configured);
+  });
+
+  it('übernimmt gespeicherte Q&A-Werte und ändert bei reinem Titel keine Frist, Moderation oder Öffnung', async () => {
+    const closedSession = {
+      ...session,
+      qaClosesAt: '2026-09-16T04:00:00.000Z',
+      expiresAt: '2026-09-16T06:00:00.000Z',
+      channels: {
+        ...session.channels,
+        qa: {
+          enabled: true,
+          open: false,
+          closesAt: '2026-09-16T04:00:00.000Z',
+          state: 'MANUALLY_CLOSED' as const,
+          title: 'Alte Fragenwand',
+          moderationMode: false,
+        },
+      },
+    };
+    previewMock.mockResolvedValue({
+      ...matchingSessionPreview,
+      mode: 'REPLAN' as const,
+      oldQaClosesAt: '2026-09-16T04:00:00.000Z',
+      newQaClosesAt: '2026-09-16T04:00:00.000Z',
+      newExpiresAt: closedSession.expiresAt,
+    });
+    configureMock.mockResolvedValue({
+      channels: closedSession.channels,
+      preferredChannel: 'qa',
+      expiresAt: closedSession.expiresAt,
+      qaClosesAt: '2026-09-16T04:00:00.000Z',
+      sessionLifecycleRevision: 3,
+      serverNow: preview.serverNow,
+    });
+    const { fixture, component } = configureTestBed(false, undefined, true, closedSession);
+    fixture.detectChanges();
+
+    expect(component.qaTitle).toBe('Alte Fragenwand');
+    expect(component.moderationMode).toBe(false);
+    expect(component.deadlineKind).toBe('ABSOLUTE');
+    expect(component.canReopen).toBe(true);
+    expect(component.reopenQa).toBe(false);
+    expect(fixture.nativeElement.textContent).toContain('Fragerunde bearbeiten');
+    expect(fixture.nativeElement.textContent).toContain('Änderungen speichern');
+
+    component.qaTitle = 'Nur Titel';
+    await component.confirm();
+
+    expect(configureMock).toHaveBeenCalledWith(
+      expect.objectContaining({
+        mode: 'REPLAN',
+        selection: {
+          kind: 'ABSOLUTE',
+          closesAt: '2026-09-16T04:00:00Z',
+        },
+        reopenQa: false,
+        moderationMode: false,
+        qaTitle: 'Nur Titel',
+      }),
+    );
+  });
+
+  it('sendet ein ausdrückliches Wiederöffnen nur nach Bestätigung der Aktion', async () => {
+    const closedSession = {
+      ...session,
+      qaClosesAt: '2026-09-16T04:00:00.000Z',
+      channels: {
+        ...session.channels,
+        qa: {
+          enabled: true,
+          open: false,
+          closesAt: '2026-09-16T04:00:00.000Z',
+          state: 'MANUALLY_CLOSED' as const,
+          title: 'Alte Fragenwand',
+          moderationMode: false,
+        },
+      },
+    };
+    previewMock.mockResolvedValue({
+      ...matchingSessionPreview,
+      mode: 'REPLAN' as const,
+      oldQaClosesAt: '2026-09-16T04:00:00.000Z',
+      newQaClosesAt: '2026-09-16T04:00:00.000Z',
+    });
+    configureMock.mockResolvedValue({
+      channels: { ...closedSession.channels, qa: { ...closedSession.channels.qa, open: true } },
+      preferredChannel: 'qa',
+      expiresAt: closedSession.expiresAt,
+      qaClosesAt: '2026-09-16T04:00:00.000Z',
+      sessionLifecycleRevision: 3,
+      serverNow: preview.serverNow,
+    });
+    const { component } = configureTestBed(false, undefined, true, closedSession);
+    component.reopenQa = true;
+
+    expect(component.confirmLabel()).toContain('wieder öffnen');
+    await component.confirm();
+
+    expect(configureMock).toHaveBeenCalledWith(expect.objectContaining({ reopenQa: true }));
   });
 });

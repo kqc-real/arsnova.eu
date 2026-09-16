@@ -18156,12 +18156,12 @@
         <target>Les questions-réponses dépasseraient la fin actuelle de la session. En confirmant, tu prolonges aussi l’échéance globale et les données restent plus longtemps. Seul l’hôte d’origine peut le faire.</target>
       </trans-unit>
       <trans-unit id="qaConfig.extensionOldQa" datatype="html">
-        <source>Bisher offen bis: <x id="date" equiv-text="this.formatDateTime(preview.oldQaClosesAt)"/></source>
-        <target>Ouvert jusqu’au (précédemment) : <x id="date" equiv-text="this.formatDateTime(preview.oldQaClosesAt)"/></target>
+        <source>Bisheriger Frageschluss: <x id="date" equiv-text="this.formatDateTime(preview.oldQaClosesAt)"/></source>
+        <target>Ancienne clôture des questions-réponses : <x id="date" equiv-text="this.formatDateTime(preview.oldQaClosesAt)"/></target>
       </trans-unit>
       <trans-unit id="qaConfig.extensionNewQa" datatype="html">
-        <source>Neu offen bis: <x id="date" equiv-text="this.formatDateTime(preview.newQaClosesAt)"/></source>
-        <target>Ouvert jusqu’au (nouveau) : <x id="date" equiv-text="this.formatDateTime(preview.newQaClosesAt)"/></target>
+        <source>Neuer Frageschluss: <x id="date" equiv-text="this.formatDateTime(preview.newQaClosesAt)"/></source>
+        <target>Nouvelle clôture des questions-réponses : <x id="date" equiv-text="this.formatDateTime(preview.newQaClosesAt)"/></target>
       </trans-unit>
       <trans-unit id="qaConfig.extensionOldExpires" datatype="html">
         <source>Bisheriges Sessionende: <x id="date" equiv-text="this.formatDateTime(preview.oldExpiresAt)"/></source>
@@ -18176,12 +18176,12 @@
         <target>Accès hôte en lecture seule jusqu’au : <x id="date" equiv-text="this.formatDateTime(preview.projectedPostProcessingEndsAt)"/></target>
       </trans-unit>
       <trans-unit id="qaConfig.extensionOldQaLabel" datatype="html">
-        <source>Bisher offen bis</source>
-        <target>Ouvert jusqu’au (précédemment)</target>
+        <source>Bisheriger Frageschluss</source>
+        <target>Ancienne clôture des questions-réponses</target>
       </trans-unit>
       <trans-unit id="qaConfig.extensionNewQaLabel" datatype="html">
-        <source>Neu offen bis</source>
-        <target>Ouvert jusqu’au (nouveau)</target>
+        <source>Neuer Frageschluss</source>
+        <target>Nouvelle clôture des questions-réponses</target>
       </trans-unit>
       <trans-unit id="qaConfig.extensionOldExpiresLabel" datatype="html">
         <source>Bisheriges Sessionende</source>
@@ -18198,6 +18198,26 @@
       <trans-unit id="qaConfig.save" datatype="html">
         <source>Änderungen speichern</source>
         <target>Enregistrer les modifications</target>
+      </trans-unit>
+      <trans-unit id="qaConfig.reopen" datatype="html">
+        <source>Fragerunde wieder öffnen</source>
+        <target>Rouvrir les questions-réponses</target>
+      </trans-unit>
+      <trans-unit id="qaConfig.reopenWithExtension" datatype="html">
+        <source>Session verlängern und Fragerunde wieder öffnen</source>
+        <target>Prolonger la session et rouvrir les questions-réponses</target>
+      </trans-unit>
+      <trans-unit id="qaConfig.reopenLabel" datatype="html">
+        <source>Geschlossene Fragerunde wieder öffnen</source>
+        <target>Rouvrir les questions-réponses fermées</target>
+      </trans-unit>
+      <trans-unit id="qaConfig.noFullDayLeft" datatype="html">
+        <source>Kein voller Kalendertag ist mehr zulässig. Wähle ein Datum und eine Uhrzeit.</source>
+        <target>Aucun jour calendaire complet n’est plus possible. Choisis une date et une heure.</target>
+      </trans-unit>
+      <trans-unit id="sessionLifecycle.noFullDayLeft" datatype="html">
+        <source>Kein voller Kalendertag ist mehr zulässig. Wähle ein Datum und eine Uhrzeit.</source>
+        <target>Aucun jour calendaire complet n’est plus possible. Choisis une date et une heure.</target>
       </trans-unit>
       <trans-unit id="qaConfig.editTitle" datatype="html">
         <source>Fragerunde bearbeiten</source>

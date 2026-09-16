@@ -492,4 +492,83 @@ describe('session absolute lifecycle', () => {
     ).rejects.toMatchObject({ code: 'CONFLICT' });
     expect(prismaMock.session.update).not.toHaveBeenCalled();
   });
+
+  it('bewahrt bei REPLAN ohne Wiederöffnen den geschlossenen Kanal', async () => {
+    const closed = qaConfigurationRow({
+      qaEnabled: true,
+      qaOpen: false,
+      qaClosesAt: new Date('2026-09-16T04:00:00.000Z'),
+      qaTitle: 'Alte Fragenwand',
+      qaModerationMode: false,
+      preferredChannel: 'qa',
+    });
+    prismaMock.session.findUnique.mockResolvedValue(closed);
+    prismaMock.session.update.mockResolvedValue({
+      ...closed,
+      qaTitle: 'Nur Titel',
+      sessionLifecycleRevision: 3,
+    });
+
+    await caller.configureQaChannel({
+      code: 'ABC123',
+      mode: 'REPLAN',
+      selection: { kind: 'ABSOLUTE', closesAt: '2026-09-16T04:00:00.000Z' },
+      expectedLifecycleRevision: 2,
+      previewServerNow: '2026-09-15T07:00:00.000Z',
+      confirmedQaClosesAt: '2026-09-16T04:00:00.000Z',
+      confirmedExpiresAt: '2026-09-16T06:00:00.000Z',
+      confirmSessionExtension: false,
+      reopenQa: false,
+      qaTitle: 'Nur Titel',
+      moderationMode: false,
+    });
+
+    expect(prismaMock.session.update).toHaveBeenCalledWith(
+      expect.objectContaining({
+        data: expect.objectContaining({
+          qaOpen: false,
+          qaModerationMode: false,
+          qaClosesAt: new Date('2026-09-16T04:00:00.000Z'),
+          qaTitle: 'Nur Titel',
+        }),
+      }),
+    );
+  });
+
+  it('öffnet einen geschlossenen Kanal nur nach ausdrücklichem Wiederöffnen', async () => {
+    const closed = qaConfigurationRow({
+      qaEnabled: true,
+      qaOpen: false,
+      qaClosesAt: new Date('2026-09-16T04:00:00.000Z'),
+      qaTitle: 'Alte Fragenwand',
+      qaModerationMode: false,
+      preferredChannel: 'qa',
+    });
+    prismaMock.session.findUnique.mockResolvedValue(closed);
+    prismaMock.session.update.mockResolvedValue({
+      ...closed,
+      qaOpen: true,
+      sessionLifecycleRevision: 3,
+    });
+
+    await caller.configureQaChannel({
+      code: 'ABC123',
+      mode: 'REPLAN',
+      selection: { kind: 'ABSOLUTE', closesAt: '2026-09-16T04:00:00.000Z' },
+      expectedLifecycleRevision: 2,
+      previewServerNow: '2026-09-15T07:00:00.000Z',
+      confirmedQaClosesAt: '2026-09-16T04:00:00.000Z',
+      confirmedExpiresAt: '2026-09-16T06:00:00.000Z',
+      confirmSessionExtension: false,
+      reopenQa: true,
+      qaTitle: 'Alte Fragenwand',
+      moderationMode: false,
+    });
+
+    expect(prismaMock.session.update).toHaveBeenCalledWith(
+      expect.objectContaining({
+        data: expect.objectContaining({ qaOpen: true }),
+      }),
+    );
+  });
 });

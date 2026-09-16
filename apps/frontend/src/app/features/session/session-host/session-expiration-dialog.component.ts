@@ -16,7 +16,7 @@ import type {
   SessionInitialExpirationSelection,
   SessionLifecycleHostDTO,
 } from '@arsnova/shared-types';
-import { sessionLocalDateTimeToIso } from '../session-local-datetime';
+import { maxSelectableCalendarDays, sessionLocalDateTimeToIso } from '../session-local-datetime';
 
 export type SessionExpirationDialogData =
   | {
@@ -66,10 +66,16 @@ export class SessionExpirationDialogComponent {
   private readonly dialogRef = inject(
     MatDialogRef<SessionExpirationDialogComponent, SessionExpirationDialogResult | null>,
   );
-  readonly days = signal(7);
+  readonly maxSelectableDays = signal(
+    maxSelectableCalendarDays(
+      this.data.lifecycle.createdAt,
+      this.data.lifecycle.maxExpiresAt,
+      this.data.lifecycle.timeZone,
+    ),
+  );
+  readonly days = signal(this.maxSelectableDays() >= 1 ? Math.min(7, this.maxSelectableDays()) : 0);
   readonly absoluteLocal = signal('');
   readonly inputError = signal<string | null>(null);
-  readonly maxSelectableDays = signal(this.computeMaxSelectableDays());
 
   formatDateTime(value: string): string {
     return new Intl.DateTimeFormat(this.localeId, {
@@ -83,21 +89,14 @@ export class SessionExpirationDialogComponent {
     }).format(new Date(value));
   }
 
-  private computeMaxSelectableDays(): number {
-    const start = Date.parse(this.data.lifecycle.serverNow);
-    const end = Date.parse(this.data.lifecycle.maxExpiresAt);
-    if (!Number.isFinite(start) || !Number.isFinite(end) || end <= start) {
-      return 30;
-    }
-    return Math.max(1, Math.min(30, Math.floor((end - start) / 86_400_000)));
-  }
-
   chooseDays(): void {
     const days = Number(this.days());
     const maxDays = this.maxSelectableDays();
-    if (!Number.isInteger(days) || days < 1 || days > maxDays) {
+    if (maxDays < 1 || !Number.isInteger(days) || days < 1 || days > maxDays) {
       this.inputError.set(
-        $localize`:@@sessionLifecycle.invalidDays:Bitte gib 1 bis ${maxDays}:maxDays: Tage ein.`,
+        maxDays < 1
+          ? $localize`:@@sessionLifecycle.noFullDayLeft:Kein voller Kalendertag ist mehr zulässig. Wähle ein Datum und eine Uhrzeit.`
+          : $localize`:@@sessionLifecycle.invalidDays:Bitte gib 1 bis ${maxDays}:maxDays: Tage ein.`,
       );
       return;
     }

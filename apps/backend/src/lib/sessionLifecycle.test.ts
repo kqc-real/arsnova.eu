@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 import {
   computeExtendedSessionExpiration,
   computeInitialSessionExpiration,
+  computeSessionQaClosesAt,
   getMaxSessionDurationMs,
   SESSION_HARD_MAX_DURATION_MS,
   SESSION_OPERATOR_DEFAULT_MAX_DURATION_MS,
@@ -31,6 +32,18 @@ describe('sessionLifecycle controlled clock', () => {
         selection: { kind: 'DURATION_DAYS', days: 1 },
       }).toISOString(),
     ).toBe('2026-03-29T10:00:00.000Z'); // 12:00 CEST
+  });
+
+  it('rechnet Q&A-Kalendertage ab dem Öffnungszeitpunkt über die Sommerzeit', () => {
+    expect(
+      computeSessionQaClosesAt({
+        createdAt: new Date('2026-03-20T10:00:00.000Z'),
+        currentExpiresAt: new Date('2026-04-03T10:00:00.000Z'),
+        openedAt: new Date('2026-03-28T11:00:00.000Z'),
+        timeZone: 'Europe/Berlin',
+        selection: { kind: 'DURATION_DAYS', days: 1 },
+      }).toISOString(),
+    ).toBe('2026-03-29T10:00:00.000Z');
   });
 
   it('rechnet Kalendertage über das Ende der Sommerzeit ab bisherigem expiresAt', () => {

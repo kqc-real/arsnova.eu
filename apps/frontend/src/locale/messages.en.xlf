@@ -18212,12 +18212,12 @@
         <target>Q&amp;A would run past the current session end. Confirming also extends the global session deadline and stores the data longer. Only the original host can do this.</target>
       </trans-unit>
       <trans-unit id="qaConfig.extensionOldQa" datatype="html">
-        <source>Bisher offen bis: <x id="date" equiv-text="this.formatDateTime(preview.oldQaClosesAt)"/></source>
-        <target>Previously open until: <x id="date" equiv-text="this.formatDateTime(preview.oldQaClosesAt)"/></target>
+        <source>Bisheriger Frageschluss: <x id="date" equiv-text="this.formatDateTime(preview.oldQaClosesAt)"/></source>
+        <target>Previous Q&amp;A closing time: <x id="date" equiv-text="this.formatDateTime(preview.oldQaClosesAt)"/></target>
       </trans-unit>
       <trans-unit id="qaConfig.extensionNewQa" datatype="html">
-        <source>Neu offen bis: <x id="date" equiv-text="this.formatDateTime(preview.newQaClosesAt)"/></source>
-        <target>Newly open until: <x id="date" equiv-text="this.formatDateTime(preview.newQaClosesAt)"/></target>
+        <source>Neuer Frageschluss: <x id="date" equiv-text="this.formatDateTime(preview.newQaClosesAt)"/></source>
+        <target>New Q&amp;A closing time: <x id="date" equiv-text="this.formatDateTime(preview.newQaClosesAt)"/></target>
       </trans-unit>
       <trans-unit id="qaConfig.extensionOldExpires" datatype="html">
         <source>Bisheriges Sessionende: <x id="date" equiv-text="this.formatDateTime(preview.oldExpiresAt)"/></source>
@@ -18232,12 +18232,12 @@
         <target>Read-only host access until: <x id="date" equiv-text="this.formatDateTime(preview.projectedPostProcessingEndsAt)"/></target>
       </trans-unit>
       <trans-unit id="qaConfig.extensionOldQaLabel" datatype="html">
-        <source>Bisher offen bis</source>
-        <target>Previously open until</target>
+        <source>Bisheriger Frageschluss</source>
+        <target>Previous Q&amp;A closing time</target>
       </trans-unit>
       <trans-unit id="qaConfig.extensionNewQaLabel" datatype="html">
-        <source>Neu offen bis</source>
-        <target>Newly open until</target>
+        <source>Neuer Frageschluss</source>
+        <target>New Q&amp;A closing time</target>
       </trans-unit>
       <trans-unit id="qaConfig.extensionOldExpiresLabel" datatype="html">
         <source>Bisheriges Sessionende</source>
@@ -18254,6 +18254,26 @@
       <trans-unit id="qaConfig.save" datatype="html">
         <source>Änderungen speichern</source>
         <target>Save changes</target>
+      </trans-unit>
+      <trans-unit id="qaConfig.reopen" datatype="html">
+        <source>Fragerunde wieder öffnen</source>
+        <target>Reopen Q&amp;A</target>
+      </trans-unit>
+      <trans-unit id="qaConfig.reopenWithExtension" datatype="html">
+        <source>Session verlängern und Fragerunde wieder öffnen</source>
+        <target>Extend session and reopen Q&amp;A</target>
+      </trans-unit>
+      <trans-unit id="qaConfig.reopenLabel" datatype="html">
+        <source>Geschlossene Fragerunde wieder öffnen</source>
+        <target>Reopen the closed Q&amp;A</target>
+      </trans-unit>
+      <trans-unit id="qaConfig.noFullDayLeft" datatype="html">
+        <source>Kein voller Kalendertag ist mehr zulässig. Wähle ein Datum und eine Uhrzeit.</source>
+        <target>No full calendar day remains available. Choose a date and time.</target>
+      </trans-unit>
+      <trans-unit id="sessionLifecycle.noFullDayLeft" datatype="html">
+        <source>Kein voller Kalendertag ist mehr zulässig. Wähle ein Datum und eine Uhrzeit.</source>
+        <target>No full calendar day remains available. Choose a date and time.</target>
       </trans-unit>
       <trans-unit id="qaConfig.editTitle" datatype="html">
         <source>Fragerunde bearbeiten</source>

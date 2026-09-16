@@ -29,7 +29,11 @@ import {
   ConfirmLeaveDialogComponent,
   type ConfirmLeaveDialogData,
 } from '../../../shared/confirm-leave-dialog/confirm-leave-dialog.component';
-import { sessionLocalDateTimeToIso } from '../session-local-datetime';
+import {
+  isoToSessionLocalDateTime,
+  maxSelectableCalendarDays,
+  sessionLocalDateTimeToIso,
+} from '../session-local-datetime';
 
 const QA_EXTENSION_DIALOG_OVERLAY = {
   panelClass: 'session-lifecycle-dialog-panel',
@@ -81,16 +85,17 @@ export class QaChannelConfigurationDialogComponent implements OnInit {
   readonly error = signal<string | null>(null);
   readonly preview = signal<SessionQaConfigurationPreviewDTO | null>(null);
   readonly profileLocked = signal(this.data.profileLocked);
-  readonly maxSelectableDays = signal(30);
+  readonly maxSelectableDays = signal(0);
   readonly timeZone = this.data.session.timeZone ?? 'UTC';
+  readonly canReopen = this.isClosedOrExpired();
 
-  qaTitle =
-    this.data.session.title?.trim() || $localize`:@@qaConfig.defaultTitle:Fragen & Antworten`;
-  moderationMode = true;
+  qaTitle = this.resolveInitialTitle();
+  moderationMode = this.resolveInitialModeration();
   identityMode: SessionParticipantIdentityMode = this.resolveIdentityMode();
-  deadlineKind: SessionQaDeadlineSelection['kind'] = 'UNTIL_SESSION_END';
+  deadlineKind: SessionQaDeadlineSelection['kind'] = this.resolveInitialDeadlineKind();
   days = 1;
-  absoluteLocal = '';
+  absoluteLocal = this.resolveInitialAbsoluteLocal();
+  reopenQa = false;
 
   ngOnInit(): void {
     void this.refreshPreview();
@@ -108,6 +113,11 @@ export class QaChannelConfigurationDialogComponent implements OnInit {
 
   confirmLabel(): string {
     if (this.configurationMode() === 'REPLAN') {
+      if (this.canReopen && this.reopenQa) {
+        return this.preview()?.requiresSessionExtension
+          ? $localize`:@@qaConfig.reopenWithExtension:Session verlängern und Fragerunde wieder öffnen`
+          : $localize`:@@qaConfig.reopen:Fragerunde wieder öffnen`;
+      }
       return $localize`:@@qaConfig.save:Änderungen speichern`;
     }
     if (this.preview()?.requiresSessionExtension) {
@@ -157,6 +167,7 @@ export class QaChannelConfigurationDialogComponent implements OnInit {
         confirmedQaClosesAt: preview.newQaClosesAt,
         confirmedExpiresAt: preview.newExpiresAt,
         confirmSessionExtension: preview.requiresSessionExtension,
+        reopenQa: this.configurationMode() === 'REPLAN' && this.canReopen && this.reopenQa,
         qaTitle: this.qaTitle.trim(),
         moderationMode: this.moderationMode,
         participationProfile: this.buildParticipationProfile(),
@@ -196,11 +207,11 @@ export class QaChannelConfigurationDialogComponent implements OnInit {
     const consequences: string[] = [];
     if (preview.oldQaClosesAt) {
       consequences.push(
-        $localize`:@@qaConfig.extensionOldQa:Bisher offen bis: ${this.formatDateTime(preview.oldQaClosesAt)}:date:`,
+        $localize`:@@qaConfig.extensionOldQa:Bisheriger Frageschluss: ${this.formatDateTime(preview.oldQaClosesAt)}:date:`,
       );
     }
     consequences.push(
-      $localize`:@@qaConfig.extensionNewQa:Neu offen bis: ${this.formatDateTime(preview.newQaClosesAt)}:date:`,
+      $localize`:@@qaConfig.extensionNewQa:Neuer Frageschluss: ${this.formatDateTime(preview.newQaClosesAt)}:date:`,
       $localize`:@@qaConfig.extensionOldExpires:Bisheriges Sessionende: ${this.formatDateTime(preview.oldExpiresAt)}:date:`,
       $localize`:@@qaConfig.extensionNewExpires:Neues Sessionende: ${this.formatDateTime(preview.newExpiresAt)}:date:`,
       $localize`:@@qaConfig.extensionPostProcessing:Host-Lesezugriff bis: ${this.formatDateTime(preview.projectedPostProcessingEndsAt)}:date:`,
@@ -245,7 +256,7 @@ export class QaChannelConfigurationDialogComponent implements OnInit {
       const next = await this.fetchPreview(selection);
       if (requestId === this.previewRequest) {
         this.preview.set(next);
-        this.applyMaxSelectableDays(next.maxExpiresAt);
+        this.applyMaxSelectableDays(next.maxExpiresAt, next.serverNow);
       }
     } catch {
       if (requestId === this.previewRequest) {
@@ -282,11 +293,14 @@ export class QaChannelConfigurationDialogComponent implements OnInit {
     }
     if (this.deadlineKind === 'DURATION_DAYS') {
       const days = Number(this.days);
-      if (!Number.isInteger(days) || days < 1 || days > this.maxSelectableDays()) {
+      const maxDays = this.maxSelectableDays();
+      const upperBound = maxDays >= 1 ? maxDays : 30;
+      if (!Number.isInteger(days) || days < 1 || days > upperBound || (!silent && maxDays < 1)) {
         if (!silent) {
-          const maxDays = this.maxSelectableDays();
           this.error.set(
-            $localize`:@@qaConfig.invalidDays:Bitte gib 1 bis ${maxDays}:maxDays: Tage ein.`,
+            maxDays < 1
+              ? $localize`:@@qaConfig.noFullDayLeft:Kein voller Kalendertag ist mehr zulässig. Wähle ein Datum und eine Uhrzeit.`
+              : $localize`:@@qaConfig.invalidDays:Bitte gib 1 bis ${maxDays}:maxDays: Tage ein.`,
           );
         }
         return null;
@@ -306,6 +320,56 @@ export class QaChannelConfigurationDialogComponent implements OnInit {
       }
       return null;
     }
+  }
+
+  private resolveInitialTitle(): string {
+    const saved = this.data.session.channels?.qa?.title?.trim();
+    if (saved) {
+      return saved;
+    }
+    return (
+      this.data.session.title?.trim() || $localize`:@@qaConfig.defaultTitle:Fragen & Antworten`
+    );
+  }
+
+  private resolveInitialModeration(): boolean {
+    if (this.configurationMode() === 'REPLAN') {
+      return this.data.session.channels?.qa?.moderationMode ?? true;
+    }
+    return true;
+  }
+
+  private resolveInitialDeadlineKind(): SessionQaDeadlineSelection['kind'] {
+    if (this.configurationMode() !== 'REPLAN') {
+      return 'UNTIL_SESSION_END';
+    }
+    const closesAt = this.savedQaClosesAt();
+    const expiresAt = this.data.session.expiresAt;
+    if (closesAt && expiresAt && closesAt === expiresAt) {
+      return 'UNTIL_SESSION_END';
+    }
+    return closesAt ? 'ABSOLUTE' : 'UNTIL_SESSION_END';
+  }
+
+  private resolveInitialAbsoluteLocal(): string {
+    const closesAt = this.savedQaClosesAt();
+    if (!closesAt) {
+      return '';
+    }
+    try {
+      return isoToSessionLocalDateTime(closesAt, this.timeZone);
+    } catch {
+      return '';
+    }
+  }
+
+  private savedQaClosesAt(): string | null {
+    return this.data.session.qaClosesAt ?? this.data.session.channels?.qa?.closesAt ?? null;
+  }
+
+  private isClosedOrExpired(): boolean {
+    const state = this.data.session.channels?.qa?.state;
+    return state === 'MANUALLY_CLOSED' || state === 'DEADLINE_EXPIRED';
   }
 
   private resolveIdentityMode(): SessionParticipantIdentityMode {
@@ -351,13 +415,10 @@ export class QaChannelConfigurationDialogComponent implements OnInit {
     };
   }
 
-  private applyMaxSelectableDays(maxExpiresAt: string | undefined): void {
-    const start = Date.parse(this.data.session.serverNow ?? this.data.session.serverTime);
-    const end = Date.parse(maxExpiresAt ?? '');
-    if (!Number.isFinite(start) || !Number.isFinite(end) || end <= start) {
-      return;
-    }
-    this.maxSelectableDays.set(Math.max(1, Math.min(30, Math.floor((end - start) / 86_400_000))));
+  private applyMaxSelectableDays(maxExpiresAt: string | undefined, openedAt: string): void {
+    this.maxSelectableDays.set(
+      maxSelectableCalendarDays(openedAt, maxExpiresAt ?? '', this.timeZone),
+    );
   }
 
   private applyAuthoritativeProfileLock(locked: boolean): void {

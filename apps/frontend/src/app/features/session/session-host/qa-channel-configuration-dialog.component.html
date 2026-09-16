@@ -66,7 +66,7 @@
       </mat-select>
     </mat-form-field>
 
-    @if (deadlineKind === 'DURATION_DAYS') {
+    @if (deadlineKind === 'DURATION_DAYS' && maxSelectableDays() >= 1) {
       <mat-form-field appearance="outline" subscriptSizing="dynamic">
         <mat-label i18n="@@qaConfig.daysLabel">Anzahl der Tage</mat-label>
         <input
@@ -78,6 +78,10 @@
           (ngModelChange)="onDeadlineChange()"
         />
       </mat-form-field>
+    } @else if (deadlineKind === 'DURATION_DAYS') {
+      <p class="qa-config__notice" role="status" i18n="@@qaConfig.noFullDayLeft">
+        Kein voller Kalendertag ist mehr zulässig. Wähle ein Datum und eine Uhrzeit.
+      </p>
     } @else if (deadlineKind === 'ABSOLUTE') {
       <mat-form-field appearance="outline" subscriptSizing="dynamic">
         <mat-label i18n="@@qaConfig.absoluteLabel">Datum und Uhrzeit</mat-label>
@@ -108,12 +112,12 @@
         <dl class="qa-config__compare">
           @if (resolved.oldQaClosesAt) {
             <div>
-              <dt i18n="@@qaConfig.extensionOldQaLabel">Bisher offen bis</dt>
+              <dt i18n="@@qaConfig.extensionOldQaLabel">Bisheriger Frageschluss</dt>
               <dd>{{ formatDateTime(resolved.oldQaClosesAt) }}</dd>
             </div>
           }
           <div>
-            <dt i18n="@@qaConfig.extensionNewQaLabel">Neu offen bis</dt>
+            <dt i18n="@@qaConfig.extensionNewQaLabel">Neuer Frageschluss</dt>
             <dd>{{ formatDateTime(resolved.newQaClosesAt) }}</dd>
           </div>
           <div>
@@ -134,6 +138,11 @@
           Sessionfrist mit verlängert; nur der ursprüngliche Host darf das ausführen.
         </p>
       }
+    }
+    @if (canReopen) {
+      <mat-slide-toggle [(ngModel)]="reopenQa" i18n="@@qaConfig.reopenLabel">
+        Geschlossene Fragerunde wieder öffnen
+      </mat-slide-toggle>
     }
   </fieldset>
 

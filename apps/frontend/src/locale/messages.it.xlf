@@ -18156,12 +18156,12 @@
         <target>Le domande e risposte supererebbero la fine attuale della sessione. Confermando prolunghi anche la scadenza globale e i dati restano più a lungo. Solo l’host originale può farlo.</target>
       </trans-unit>
       <trans-unit id="qaConfig.extensionOldQa" datatype="html">
-        <source>Bisher offen bis: <x id="date" equiv-text="this.formatDateTime(preview.oldQaClosesAt)"/></source>
-        <target>Aperto finora: <x id="date" equiv-text="this.formatDateTime(preview.oldQaClosesAt)"/></target>
+        <source>Bisheriger Frageschluss: <x id="date" equiv-text="this.formatDateTime(preview.oldQaClosesAt)"/></source>
+        <target>Chiusura precedente delle domande e risposte: <x id="date" equiv-text="this.formatDateTime(preview.oldQaClosesAt)"/></target>
       </trans-unit>
       <trans-unit id="qaConfig.extensionNewQa" datatype="html">
-        <source>Neu offen bis: <x id="date" equiv-text="this.formatDateTime(preview.newQaClosesAt)"/></source>
-        <target>Aperto da ora: <x id="date" equiv-text="this.formatDateTime(preview.newQaClosesAt)"/></target>
+        <source>Neuer Frageschluss: <x id="date" equiv-text="this.formatDateTime(preview.newQaClosesAt)"/></source>
+        <target>Nuova chiusura delle domande e risposte: <x id="date" equiv-text="this.formatDateTime(preview.newQaClosesAt)"/></target>
       </trans-unit>
       <trans-unit id="qaConfig.extensionOldExpires" datatype="html">
         <source>Bisheriges Sessionende: <x id="date" equiv-text="this.formatDateTime(preview.oldExpiresAt)"/></source>
@@ -18176,12 +18176,12 @@
         <target>Accesso dell’host in sola lettura fino al: <x id="date" equiv-text="this.formatDateTime(preview.projectedPostProcessingEndsAt)"/></target>
       </trans-unit>
       <trans-unit id="qaConfig.extensionOldQaLabel" datatype="html">
-        <source>Bisher offen bis</source>
-        <target>Aperto finora</target>
+        <source>Bisheriger Frageschluss</source>
+        <target>Chiusura precedente delle domande e risposte</target>
       </trans-unit>
       <trans-unit id="qaConfig.extensionNewQaLabel" datatype="html">
-        <source>Neu offen bis</source>
-        <target>Aperto da ora</target>
+        <source>Neuer Frageschluss</source>
+        <target>Nuova chiusura delle domande e risposte</target>
       </trans-unit>
       <trans-unit id="qaConfig.extensionOldExpiresLabel" datatype="html">
         <source>Bisheriges Sessionende</source>
@@ -18198,6 +18198,26 @@
       <trans-unit id="qaConfig.save" datatype="html">
         <source>Änderungen speichern</source>
         <target>Salva le modifiche</target>
+      </trans-unit>
+      <trans-unit id="qaConfig.reopen" datatype="html">
+        <source>Fragerunde wieder öffnen</source>
+        <target>Riapri domande e risposte</target>
+      </trans-unit>
+      <trans-unit id="qaConfig.reopenWithExtension" datatype="html">
+        <source>Session verlängern und Fragerunde wieder öffnen</source>
+        <target>Prolunga la sessione e riapri domande e risposte</target>
+      </trans-unit>
+      <trans-unit id="qaConfig.reopenLabel" datatype="html">
+        <source>Geschlossene Fragerunde wieder öffnen</source>
+        <target>Riapri la sezione domande e risposte chiusa</target>
+      </trans-unit>
+      <trans-unit id="qaConfig.noFullDayLeft" datatype="html">
+        <source>Kein voller Kalendertag ist mehr zulässig. Wähle ein Datum und eine Uhrzeit.</source>
+        <target>Non resta un giorno intero. Scegli data e ora.</target>
+      </trans-unit>
+      <trans-unit id="sessionLifecycle.noFullDayLeft" datatype="html">
+        <source>Kein voller Kalendertag ist mehr zulässig. Wähle ein Datum und eine Uhrzeit.</source>
+        <target>Non resta un giorno intero. Scegli data e ora.</target>
       </trans-unit>
       <trans-unit id="qaConfig.editTitle" datatype="html">
         <source>Fragerunde bearbeiten</source>

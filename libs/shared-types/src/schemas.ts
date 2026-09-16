@@ -3242,6 +3242,11 @@ export const ConfigureSessionQaInputSchema = PreviewSessionQaConfigurationInputS
   confirmedQaClosesAt: z.string().datetime({ offset: true }),
   confirmedExpiresAt: z.string().datetime({ offset: true }),
   confirmSessionExtension: z.boolean(),
+  /**
+   * Nur REPLAN: geschlossenen oder abgelaufenen Kanal bewusst wieder öffnen.
+   * Fehlt oder false, bleibt der bisherige Öffnungszustand erhalten.
+   */
+  reopenQa: z.boolean().optional().default(false),
   qaTitle: z.string().trim().max(200).optional(),
   moderationMode: z.boolean(),
   /** Nur vor dem ersten erfolgreichen Join gemeinsam mit der Q&A-Erstkonfiguration erlaubt. */

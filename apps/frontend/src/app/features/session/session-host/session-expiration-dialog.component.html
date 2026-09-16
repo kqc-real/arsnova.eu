@@ -76,28 +76,34 @@
     @if (data.mode === 'INITIAL_CONFIGURATION') {
       <fieldset class="lifecycle-dialog__group">
         <legend i18n="@@sessionLifecycle.daysLegend">Maximale Q&A-Öffnung in Kalendertagen</legend>
-        <div class="lifecycle-dialog__row">
-          <mat-form-field appearance="outline" subscriptSizing="dynamic">
-            <mat-label i18n="@@sessionLifecycle.daysLabel">Anzahl der Tage</mat-label>
-            <input
-              matInput
-              type="number"
-              min="1"
-              [max]="maxSelectableDays()"
-              [ngModel]="days()"
-              (ngModelChange)="days.set($event)"
-            />
-          </mat-form-field>
-          <button
-            matButton="tonal"
-            type="button"
-            class="lifecycle-dialog__action"
-            (click)="chooseDays()"
-            i18n="@@sessionLifecycle.checkDeadline"
-          >
-            Termin prüfen
-          </button>
-        </div>
+        @if (maxSelectableDays() >= 1) {
+          <div class="lifecycle-dialog__row">
+            <mat-form-field appearance="outline" subscriptSizing="dynamic">
+              <mat-label i18n="@@sessionLifecycle.daysLabel">Anzahl der Tage</mat-label>
+              <input
+                matInput
+                type="number"
+                min="1"
+                [max]="maxSelectableDays()"
+                [ngModel]="days()"
+                (ngModelChange)="days.set($event)"
+              />
+            </mat-form-field>
+            <button
+              matButton="tonal"
+              type="button"
+              class="lifecycle-dialog__action"
+              (click)="chooseDays()"
+              i18n="@@sessionLifecycle.checkDeadline"
+            >
+              Termin prüfen
+            </button>
+          </div>
+        } @else {
+          <p class="lifecycle-dialog__error" role="status" i18n="@@sessionLifecycle.noFullDayLeft">
+            Kein voller Kalendertag ist mehr zulässig. Wähle ein Datum und eine Uhrzeit.
+          </p>
+        }
       </fieldset>
     } @else {
       <fieldset class="lifecycle-dialog__group">
