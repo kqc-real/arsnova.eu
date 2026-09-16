@@ -105,6 +105,30 @@
         }
       </p>
       @if (resolved.requiresSessionExtension) {
+        <dl class="qa-config__compare">
+          @if (resolved.oldQaClosesAt) {
+            <div>
+              <dt i18n="@@qaConfig.extensionOldQaLabel">Bisher offen bis</dt>
+              <dd>{{ formatDateTime(resolved.oldQaClosesAt) }}</dd>
+            </div>
+          }
+          <div>
+            <dt i18n="@@qaConfig.extensionNewQaLabel">Neu offen bis</dt>
+            <dd>{{ formatDateTime(resolved.newQaClosesAt) }}</dd>
+          </div>
+          <div>
+            <dt i18n="@@qaConfig.extensionOldExpiresLabel">Bisheriges Sessionende</dt>
+            <dd>{{ formatDateTime(resolved.oldExpiresAt) }}</dd>
+          </div>
+          <div>
+            <dt i18n="@@qaConfig.extensionNewExpiresLabel">Neues Sessionende</dt>
+            <dd>{{ formatDateTime(resolved.newExpiresAt) }}</dd>
+          </div>
+          <div>
+            <dt i18n="@@qaConfig.extensionPostProcessingLabel">Host-Lesezugriff bis</dt>
+            <dd>{{ formatDateTime(resolved.projectedPostProcessingEndsAt) }}</dd>
+          </div>
+        </dl>
         <p class="qa-config__warning" role="status" i18n="@@qaConfig.extensionWarning">
           Die Teilnahmefrist liegt nach dem bisherigen Sessionende. Beim Bestätigen wird die globale
           Sessionfrist mit verlängert; nur der ursprüngliche Host darf das ausführen.

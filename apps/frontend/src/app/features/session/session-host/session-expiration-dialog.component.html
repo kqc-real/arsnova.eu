@@ -78,12 +78,12 @@
         <legend i18n="@@sessionLifecycle.daysLegend">Maximale Q&A-Öffnung in Kalendertagen</legend>
         <div class="lifecycle-dialog__row">
           <mat-form-field appearance="outline" subscriptSizing="dynamic">
-            <mat-label i18n="@@sessionLifecycle.daysLabel">Für Kalendertage</mat-label>
+            <mat-label i18n="@@sessionLifecycle.daysLabel">Anzahl der Tage</mat-label>
             <input
               matInput
               type="number"
               min="1"
-              max="30"
+              [max]="maxSelectableDays()"
               [ngModel]="days()"
               (ngModelChange)="days.set($event)"
             />

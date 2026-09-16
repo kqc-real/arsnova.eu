@@ -15311,7 +15311,7 @@
         </context-group>
       </trans-unit>
       <trans-unit id="hostRecovery.cardSubtitle" datatype="html">
-        <source> Lade die Karte herunter oder kopiere die Werte. Bewahre sie getrennt vom Browser auf. </source>
+        <source> Lade die Notfallkarte herunter oder kopiere die Werte. Bewahre sie getrennt vom Browser auf. </source>
       </trans-unit>
       <trans-unit id="hostRecovery.sessionCodeLabel" datatype="html">
         <source>Sessioncode</source>
@@ -15409,10 +15409,10 @@
         <source>So stellst du den Host-Zugang wieder her</source>
       </trans-unit>
       <trans-unit id="hostRecovery.downloadUsage" datatype="html">
-        <source>Öffne <x id="PH" equiv-text="recoveryUrl"/> und gib Session-Kennung plus Wiederherstellungscode ein.</source>
+        <source>Öffne <x id="recoveryUrl" equiv-text="recoveryUrl"/> und gib Session-Kennung plus Wiederherstellungscode ein.</source>
       </trans-unit>
       <trans-unit id="hostRecovery.downloadWarning" datatype="html">
-        <source>Geheim halten. Sessioncode oder Support-ID allein verleihen keine Hostrechte.</source>
+        <source>Geheim halten. Sessioncode oder Session-Kennung allein verleihen keinen Host-Zugang.</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/host-recovery/host-recovery-card-dialog.component.ts</context>
           <context context-type="linenumber">113</context>
@@ -16104,6 +16104,42 @@
       <trans-unit id="qaConfig.confirmWithExtension" datatype="html">
         <source>Session verlängern und Fragerunde öffnen</source>
       </trans-unit>
+      <trans-unit id="qaConfig.extensionConfirmTitle" datatype="html">
+        <source>Sessionverlängerung bestätigen</source>
+      </trans-unit>
+      <trans-unit id="qaConfig.extensionConfirmMessage" datatype="html">
+        <source>Die Fragerunde läuft über das bisherige Sessionende hinaus. Beim Bestätigen wird die globale Sessionfrist mitverlängert; die Daten werden länger gespeichert. Nur der ursprüngliche Host darf das ausführen.</source>
+      </trans-unit>
+      <trans-unit id="qaConfig.extensionOldQa" datatype="html">
+        <source>Bisher offen bis: <x id="date" equiv-text="this.formatDateTime(preview.oldQaClosesAt)"/></source>
+      </trans-unit>
+      <trans-unit id="qaConfig.extensionNewQa" datatype="html">
+        <source>Neu offen bis: <x id="date" equiv-text="this.formatDateTime(preview.newQaClosesAt)"/></source>
+      </trans-unit>
+      <trans-unit id="qaConfig.extensionOldExpires" datatype="html">
+        <source>Bisheriges Sessionende: <x id="date" equiv-text="this.formatDateTime(preview.oldExpiresAt)"/></source>
+      </trans-unit>
+      <trans-unit id="qaConfig.extensionNewExpires" datatype="html">
+        <source>Neues Sessionende: <x id="date" equiv-text="this.formatDateTime(preview.newExpiresAt)"/></source>
+      </trans-unit>
+      <trans-unit id="qaConfig.extensionPostProcessing" datatype="html">
+        <source>Host-Lesezugriff bis: <x id="date" equiv-text="this.formatDateTime(preview.projectedPostProcessingEndsAt)"/></source>
+      </trans-unit>
+      <trans-unit id="qaConfig.extensionOldQaLabel" datatype="html">
+        <source>Bisher offen bis</source>
+      </trans-unit>
+      <trans-unit id="qaConfig.extensionNewQaLabel" datatype="html">
+        <source>Neu offen bis</source>
+      </trans-unit>
+      <trans-unit id="qaConfig.extensionOldExpiresLabel" datatype="html">
+        <source>Bisheriges Sessionende</source>
+      </trans-unit>
+      <trans-unit id="qaConfig.extensionNewExpiresLabel" datatype="html">
+        <source>Neues Sessionende</source>
+      </trans-unit>
+      <trans-unit id="qaConfig.extensionPostProcessingLabel" datatype="html">
+        <source>Host-Lesezugriff bis</source>
+      </trans-unit>
       <trans-unit id="qaConfig.save" datatype="html">
         <source>Änderungen speichern</source>
       </trans-unit>
@@ -16121,7 +16157,7 @@
         </context-group>
       </trans-unit>
       <trans-unit id="qaConfig.invalidDays" datatype="html">
-        <source>Bitte gib 1 bis <x id="PH" equiv-text="maxDays"/> Tage ein.</source>
+        <source>Bitte gib 1 bis <x id="maxDays" equiv-text="maxDays"/> Tage ein.</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-host/qa-channel-configuration-dialog.component.ts</context>
           <context context-type="linenumber">363</context>
@@ -16481,7 +16517,7 @@
         </context-group>
       </trans-unit>
       <trans-unit id="sessionLifecycle.daysLabel" datatype="html">
-        <source>Für Kalendertage</source>
+        <source>Anzahl der Tage</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-host/session-expiration-dialog.component.ts</context>
           <context context-type="linenumber">100</context>
@@ -16534,7 +16570,7 @@
         </context-group>
       </trans-unit>
       <trans-unit id="sessionLifecycle.invalidDays" datatype="html">
-        <source>Bitte gib 1 bis 30 Kalendertage ein.</source>
+        <source>Bitte gib 1 bis <x id="maxDays" equiv-text="maxDays"/> Tage ein.</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-host/session-expiration-dialog.component.ts</context>
           <context context-type="linenumber">233</context>
@@ -19433,7 +19469,7 @@
         </context-group>
       </trans-unit>
       <trans-unit id="sessionLifecycle.previewInitialMessage" datatype="html">
-        <source>Das maximale Q&amp;A-Ende und der anfängliche Teilnahmeschluss werden gemeinsam gespeichert.</source>
+        <source>Gespeichert wird nur das Sessionende. Es begrenzt, wie lange die Fragerunde höchstens offen bleiben kann; der konkrete Teilnahmeschluss wird damit nicht gesetzt.</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.ts</context>
           <context context-type="linenumber">4523</context>

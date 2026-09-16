@@ -3,6 +3,7 @@ import { FormsModule } from '@angular/forms';
 import { MatButton } from '@angular/material/button';
 import {
   MAT_DIALOG_DATA,
+  MatDialog,
   MatDialogActions,
   MatDialogClose,
   MatDialogContent,
@@ -22,8 +23,18 @@ import type {
   SessionQaConfigurationPreviewDTO,
   SessionQaDeadlineSelection,
 } from '@arsnova/shared-types';
+import { firstValueFrom } from 'rxjs';
 import { trpc } from '../../../core/trpc.client';
+import {
+  ConfirmLeaveDialogComponent,
+  type ConfirmLeaveDialogData,
+} from '../../../shared/confirm-leave-dialog/confirm-leave-dialog.component';
 import { sessionLocalDateTimeToIso } from '../session-local-datetime';
+
+const QA_EXTENSION_DIALOG_OVERLAY = {
+  panelClass: 'session-lifecycle-dialog-panel',
+  backdropClass: 'session-lifecycle-dialog-backdrop',
+} as const;
 
 export interface QaChannelConfigurationDialogData {
   code: string;
@@ -60,6 +71,7 @@ export interface QaChannelConfigurationDialogData {
 export class QaChannelConfigurationDialogComponent implements OnInit {
   readonly data = inject<QaChannelConfigurationDialogData>(MAT_DIALOG_DATA);
   private readonly localeId = inject(LOCALE_ID);
+  private readonly dialog = inject(MatDialog);
   private readonly dialogRef = inject(
     MatDialogRef<QaChannelConfigurationDialogComponent, SessionQaConfigurationDTO | null>,
   );
@@ -128,6 +140,12 @@ export class QaChannelConfigurationDialogComponent implements OnInit {
         return;
       }
       this.preview.set(preview);
+      if (preview.requiresSessionExtension) {
+        const confirmedExtension = await this.confirmRequiredSessionExtension(preview);
+        if (!confirmedExtension) {
+          return;
+        }
+      }
       const lifecycle = await trpc.session.getLifecycleForHost.query({ code: this.data.code });
       this.applyAuthoritativeProfileLock(Boolean(lifecycle.firstParticipantJoinedAt));
       const request = {
@@ -170,6 +188,38 @@ export class QaChannelConfigurationDialogComponent implements OnInit {
 
   close(): void {
     this.dialogRef.close(null);
+  }
+
+  private async confirmRequiredSessionExtension(
+    preview: SessionQaConfigurationPreviewDTO,
+  ): Promise<boolean> {
+    const consequences: string[] = [];
+    if (preview.oldQaClosesAt) {
+      consequences.push(
+        $localize`:@@qaConfig.extensionOldQa:Bisher offen bis: ${this.formatDateTime(preview.oldQaClosesAt)}:date:`,
+      );
+    }
+    consequences.push(
+      $localize`:@@qaConfig.extensionNewQa:Neu offen bis: ${this.formatDateTime(preview.newQaClosesAt)}:date:`,
+      $localize`:@@qaConfig.extensionOldExpires:Bisheriges Sessionende: ${this.formatDateTime(preview.oldExpiresAt)}:date:`,
+      $localize`:@@qaConfig.extensionNewExpires:Neues Sessionende: ${this.formatDateTime(preview.newExpiresAt)}:date:`,
+      $localize`:@@qaConfig.extensionPostProcessing:Host-Lesezugriff bis: ${this.formatDateTime(preview.projectedPostProcessingEndsAt)}:date:`,
+    );
+    const dialogRef = this.dialog.open(ConfirmLeaveDialogComponent, {
+      data: {
+        title: $localize`:@@qaConfig.extensionConfirmTitle:Sessionverlängerung bestätigen`,
+        message: $localize`:@@qaConfig.extensionConfirmMessage:Die Fragerunde läuft über das bisherige Sessionende hinaus. Beim Bestätigen wird die globale Sessionfrist mitverlängert; die Daten werden länger gespeichert. Nur der ursprüngliche Host darf das ausführen.`,
+        consequences,
+        confirmLabel: $localize`:@@qaConfig.confirmWithExtension:Session verlängern und Fragerunde öffnen`,
+        cancelLabel: $localize`:@@common.cancel:Abbrechen`,
+      } satisfies ConfirmLeaveDialogData,
+      width: 'min(32rem, calc(100vw - 2rem))',
+      maxWidth: '100vw',
+      autoFocus: 'first-tabbable',
+      restoreFocus: false,
+      ...QA_EXTENSION_DIALOG_OVERLAY,
+    });
+    return (await firstValueFrom(dialogRef.afterClosed())) === true;
   }
 
   formatDateTime(value: string): string {

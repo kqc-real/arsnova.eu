@@ -17228,8 +17228,8 @@
         </context-group>
       </trans-unit>
       <trans-unit id="hostRecovery.cardSubtitle" datatype="html">
-        <source> Lade die Karte herunter oder kopiere die Werte. Bewahre sie getrennt vom Browser auf. </source>
-        <target>Scarica la scheda o copia i valori. Conservali separati dal browser.</target>
+        <source> Lade die Notfallkarte herunter oder kopiere die Werte. Bewahre sie getrennt vom Browser auf. </source>
+        <target>Scarica la scheda di recupero o copia i valori. Conservali separatamente dal browser.</target>
       </trans-unit>
       <trans-unit id="hostRecovery.sessionCodeLabel" datatype="html">
         <source>Sessioncode</source>
@@ -17309,15 +17309,15 @@
       </trans-unit>
       <trans-unit id="hostRecovery.downloadCard" datatype="html">
         <source>Notfallkarte herunterladen</source>
-        <target>Scarica la tessera di emergenza</target>
+        <target>Scarica la scheda di recupero</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/host-recovery/host-recovery-card-dialog.component.ts</context>
           <context context-type="linenumber">36</context>
         </context-group>
       </trans-unit>
       <trans-unit id="hostRecovery.cardSavedConfirmation" datatype="html">
-        <source> Ich habe die Notfallkarte sicher gespeichert.</source>
-        <target>Ho conservato la carta di emergenza in modo sicuro.</target>
+        <source> Ich habe die Notfallkarte sicher gespeichert. </source>
+        <target>Ho salvato la scheda di recupero in un luogo sicuro.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/host-recovery/host-recovery-card-dialog.component.ts</context>
           <context context-type="linenumber">39,41</context>
@@ -17333,7 +17333,7 @@
       </trans-unit>
       <trans-unit id="hostRecovery.downloadHeading" datatype="html">
         <source>Host-Notfallkarte</source>
-        <target>Carta di emergenza host</target>
+        <target>Scheda di recupero dell’host</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/host-recovery/host-recovery-card-dialog.component.ts</context>
           <context context-type="linenumber">108</context>
@@ -17348,12 +17348,12 @@
         <target>Come ripristinare l&apos;accesso host</target>
       </trans-unit>
       <trans-unit id="hostRecovery.downloadUsage" datatype="html">
-        <source>Öffne <x id="PH" equiv-text="recoveryUrl"/> und gib Session-Kennung plus Wiederherstellungscode ein.</source>
-        <target>Apri <x id="PH" equiv-text="recoveryUrl"/> e inserisci l’identificativo della sessione e il codice di ripristino.</target>
+        <source>Öffne <x id="recoveryUrl" equiv-text="recoveryUrl"/> und gib Session-Kennung plus Wiederherstellungscode ein.</source>
+        <target>Apri <x id="recoveryUrl" equiv-text="recoveryUrl"/> e inserisci l’identificativo della sessione e il codice di ripristino.</target>
       </trans-unit>
       <trans-unit id="hostRecovery.downloadWarning" datatype="html">
-        <source>Geheim halten. Sessioncode oder Support-ID allein verleihen keine Hostrechte.</source>
-        <target>Mantieni il segreto. Il codice sessione o l&apos;ID supporto da soli non conferiscono diritti di hosting.</target>
+        <source>Geheim halten. Sessioncode oder Session-Kennung allein verleihen keinen Host-Zugang.</source>
+        <target>Tienilo segreto. Il codice sessione o l’identificativo della sessione da soli non danno l’accesso host.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/host-recovery/host-recovery-card-dialog.component.ts</context>
           <context context-type="linenumber">113</context>
@@ -17384,8 +17384,8 @@
         </context-group>
       </trans-unit>
       <trans-unit id="hostRecovery.recoveryCardOption" datatype="html">
-        <source> Notfallkarte</source>
-        <target>Carta di emergenza</target>
+        <source> Notfallkarte </source>
+        <target>Scheda di recupero</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/host-recovery/host-recovery.component.ts</context>
           <context context-type="linenumber">57,59</context>
@@ -17453,7 +17453,7 @@
       </trans-unit>
       <trans-unit id="hostRecovery.useRecoveryCard" datatype="html">
         <source>Ich habe eine Notfallkarte</source>
-        <target>Ho una scheda di emergenza</target>
+        <target>Ho una scheda di recupero</target>
       </trans-unit>
       <trans-unit id="hostRecovery.genericError" datatype="html">
         <source>Der Zugang konnte nicht wiederhergestellt werden. Prüfe deine Angaben und versuche es erneut.</source>
@@ -18089,7 +18089,7 @@
       </trans-unit>
       <trans-unit id="qaConfig.previewError" datatype="html">
         <source>Die Q&amp;A-Konfiguration konnte nicht geprüft werden. Bitte kontrolliere die Angaben und versuche es erneut.</source>
-        <target>Impossibile controllare la configurazione di domande e risposte. Controlla le informazioni e riprova.</target>
+        <target>Non è stato possibile controllare le impostazioni di domande e risposte. Controlla i dati e riprova.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-host/qa-channel-configuration-dialog.component.ts</context>
           <context context-type="linenumber">285</context>
@@ -18147,6 +18147,54 @@
         <source>Session verlängern und Fragerunde öffnen</source>
         <target>Prolunga la sessione e apri domande e risposte</target>
       </trans-unit>
+      <trans-unit id="qaConfig.extensionConfirmTitle" datatype="html">
+        <source>Sessionverlängerung bestätigen</source>
+        <target>Conferma il prolungamento della sessione</target>
+      </trans-unit>
+      <trans-unit id="qaConfig.extensionConfirmMessage" datatype="html">
+        <source>Die Fragerunde läuft über das bisherige Sessionende hinaus. Beim Bestätigen wird die globale Sessionfrist mitverlängert; die Daten werden länger gespeichert. Nur der ursprüngliche Host darf das ausführen.</source>
+        <target>Le domande e risposte supererebbero la fine attuale della sessione. Confermando prolunghi anche la scadenza globale e i dati restano più a lungo. Solo l’host originale può farlo.</target>
+      </trans-unit>
+      <trans-unit id="qaConfig.extensionOldQa" datatype="html">
+        <source>Bisher offen bis: <x id="date" equiv-text="this.formatDateTime(preview.oldQaClosesAt)"/></source>
+        <target>Aperto finora: <x id="date" equiv-text="this.formatDateTime(preview.oldQaClosesAt)"/></target>
+      </trans-unit>
+      <trans-unit id="qaConfig.extensionNewQa" datatype="html">
+        <source>Neu offen bis: <x id="date" equiv-text="this.formatDateTime(preview.newQaClosesAt)"/></source>
+        <target>Aperto da ora: <x id="date" equiv-text="this.formatDateTime(preview.newQaClosesAt)"/></target>
+      </trans-unit>
+      <trans-unit id="qaConfig.extensionOldExpires" datatype="html">
+        <source>Bisheriges Sessionende: <x id="date" equiv-text="this.formatDateTime(preview.oldExpiresAt)"/></source>
+        <target>Fine sessione precedente: <x id="date" equiv-text="this.formatDateTime(preview.oldExpiresAt)"/></target>
+      </trans-unit>
+      <trans-unit id="qaConfig.extensionNewExpires" datatype="html">
+        <source>Neues Sessionende: <x id="date" equiv-text="this.formatDateTime(preview.newExpiresAt)"/></source>
+        <target>Nuova fine della sessione: <x id="date" equiv-text="this.formatDateTime(preview.newExpiresAt)"/></target>
+      </trans-unit>
+      <trans-unit id="qaConfig.extensionPostProcessing" datatype="html">
+        <source>Host-Lesezugriff bis: <x id="date" equiv-text="this.formatDateTime(preview.projectedPostProcessingEndsAt)"/></source>
+        <target>Accesso dell’host in sola lettura fino al: <x id="date" equiv-text="this.formatDateTime(preview.projectedPostProcessingEndsAt)"/></target>
+      </trans-unit>
+      <trans-unit id="qaConfig.extensionOldQaLabel" datatype="html">
+        <source>Bisher offen bis</source>
+        <target>Aperto finora</target>
+      </trans-unit>
+      <trans-unit id="qaConfig.extensionNewQaLabel" datatype="html">
+        <source>Neu offen bis</source>
+        <target>Aperto da ora</target>
+      </trans-unit>
+      <trans-unit id="qaConfig.extensionOldExpiresLabel" datatype="html">
+        <source>Bisheriges Sessionende</source>
+        <target>Fine sessione precedente</target>
+      </trans-unit>
+      <trans-unit id="qaConfig.extensionNewExpiresLabel" datatype="html">
+        <source>Neues Sessionende</source>
+        <target>Nuova fine della sessione</target>
+      </trans-unit>
+      <trans-unit id="qaConfig.extensionPostProcessingLabel" datatype="html">
+        <source>Host-Lesezugriff bis</source>
+        <target>Accesso dell’host in sola lettura fino al</target>
+      </trans-unit>
       <trans-unit id="qaConfig.save" datatype="html">
         <source>Änderungen speichern</source>
         <target>Salva le modifiche</target>
@@ -18161,15 +18209,15 @@
       </trans-unit>
       <trans-unit id="qaConfig.confirmError" datatype="html">
         <source>Q&amp;A konnte nicht eingerichtet werden. Lade die Session neu und prüfe die Fristen erneut.</source>
-        <target>Impossibile impostare domande e risposte. Ricaricare la sessione e controllare nuovamente le scadenze.</target>
+        <target>Impossibile impostare domande e risposte. Ricarica la sessione e controlla di nuovo le scadenze.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-host/qa-channel-configuration-dialog.component.ts</context>
           <context context-type="linenumber">317</context>
         </context-group>
       </trans-unit>
       <trans-unit id="qaConfig.invalidDays" datatype="html">
-        <source>Bitte gib 1 bis <x id="PH" equiv-text="maxDays"/> Tage ein.</source>
-        <target>Inserisci da 1 a <x id="PH" equiv-text="maxDays"/> giorni.</target>
+        <source>Bitte gib 1 bis <x id="maxDays" equiv-text="maxDays"/> Tage ein.</source>
+        <target>Inserisci da 1 a <x id="maxDays" equiv-text="maxDays"/> giorni.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-host/qa-channel-configuration-dialog.component.ts</context>
           <context context-type="linenumber">363</context>
@@ -18564,8 +18612,8 @@
         <target>Apertura massima Q&amp;A in giorni di calendario</target>
       </trans-unit>
       <trans-unit id="sessionLifecycle.daysLabel" datatype="html">
-        <source>Für Kalendertage</source>
-        <target>Per i giorni di calendario</target>
+        <source>Anzahl der Tage</source>
+        <target>Numero di giorni</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-host/session-expiration-dialog.component.ts</context>
           <context context-type="linenumber">100</context>
@@ -18624,8 +18672,8 @@
         </context-group>
       </trans-unit>
       <trans-unit id="sessionLifecycle.invalidDays" datatype="html">
-        <source>Bitte gib 1 bis 30 Kalendertage ein.</source>
-        <target>Inserisci da 1 a 30 giorni di calendario.</target>
+        <source>Bitte gib 1 bis <x id="maxDays" equiv-text="maxDays"/> Tage ein.</source>
+        <target>Inserisci da 1 a <x id="maxDays" equiv-text="maxDays"/> giorni.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-host/session-expiration-dialog.component.ts</context>
           <context context-type="linenumber">233</context>
@@ -21906,8 +21954,8 @@
         </context-group>
       </trans-unit>
       <trans-unit id="sessionLifecycle.previewInitialMessage" datatype="html">
-        <source>Das maximale Q&amp;A-Ende und der anfängliche Teilnahmeschluss werden gemeinsam gespeichert.</source>
-        <target>La fine massima della Q&amp;A e la chiusura iniziale della partecipazione vengono salvate insieme.</target>
+        <source>Gespeichert wird nur das Sessionende. Es begrenzt, wie lange die Fragerunde höchstens offen bleiben kann; der konkrete Teilnahmeschluss wird damit nicht gesetzt.</source>
+        <target>Viene salvata solo la fine della sessione. Limita fino a quando può restare aperta la sezione domande e risposte; non imposta il termine concreto di partecipazione.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.ts</context>
           <context context-type="linenumber">4523</context>

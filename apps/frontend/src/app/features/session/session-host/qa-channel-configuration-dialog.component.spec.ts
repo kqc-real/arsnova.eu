@@ -1,5 +1,6 @@
 import { TestBed } from '@angular/core/testing';
-import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
+import { MAT_DIALOG_DATA, MatDialog, MatDialogRef } from '@angular/material/dialog';
+import { of } from 'rxjs';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { QaChannelConfigurationDialogComponent } from './qa-channel-configuration-dialog.component';
 
@@ -81,8 +82,12 @@ const matchingSessionPreview = {
 function configureTestBed(
   profileLocked = false,
   setup?: { setupStep: number; setupStepCount: number },
+  extensionConfirmed = true,
 ) {
   const close = vi.fn();
+  const dialogOpen = vi.fn().mockReturnValue({
+    afterClosed: () => of(extensionConfirmed),
+  });
   TestBed.configureTestingModule({
     imports: [QaChannelConfigurationDialogComponent],
     providers: [
@@ -91,11 +96,12 @@ function configureTestBed(
         useValue: { code: 'ABC123', session, profileLocked, ...setup },
       },
       { provide: MatDialogRef, useValue: { close } },
+      { provide: MatDialog, useValue: { open: dialogOpen } },
     ],
   });
   const fixture = TestBed.createComponent(QaChannelConfigurationDialogComponent);
   fixture.detectChanges();
-  return { fixture, component: fixture.componentInstance, close };
+  return { fixture, component: fixture.componentInstance, close, dialogOpen };
 }
 
 describe('QaChannelConfigurationDialogComponent', () => {
@@ -162,6 +168,9 @@ describe('QaChannelConfigurationDialogComponent', () => {
     expect(fixture.nativeElement.textContent).toContain(
       'Beim Bestätigen wird die globale Sessionfrist mit verlängert',
     );
+    expect(fixture.nativeElement.textContent).toContain('Bisheriges Sessionende');
+    expect(fixture.nativeElement.textContent).toContain('Neues Sessionende');
+    expect(fixture.nativeElement.textContent).toContain('Host-Lesezugriff bis');
     expect(fixture.nativeElement.textContent).toContain('Titel der Fragenwand');
   });
 
@@ -184,7 +193,7 @@ describe('QaChannelConfigurationDialogComponent', () => {
       sessionLifecycleRevision: 3,
       serverNow: preview.serverNow,
     });
-    const { component, close } = configureTestBed();
+    const { component, close, dialogOpen } = configureTestBed();
     component.deadlineKind = 'DURATION_DAYS';
     component.days = 1;
     component.identityMode = 'PRESET_PSEUDONYM';
@@ -192,6 +201,7 @@ describe('QaChannelConfigurationDialogComponent', () => {
 
     await component.confirm();
 
+    expect(dialogOpen).toHaveBeenCalled();
     expect(configureMock).toHaveBeenCalledWith({
       code: 'ABC123',
       mode: 'INITIAL',
@@ -209,6 +219,37 @@ describe('QaChannelConfigurationDialogComponent', () => {
       },
     });
     expect(close).toHaveBeenCalledWith(expect.objectContaining({ preferredChannel: 'qa' }));
+  });
+
+  it('mutiert ohne Bestätigungsdialog, wenn keine Sessionverlängerung nötig ist', async () => {
+    previewMock.mockResolvedValue(matchingSessionPreview);
+    configureMock.mockResolvedValue({
+      channels: session.channels,
+      preferredChannel: 'qa',
+      expiresAt: matchingSessionPreview.newExpiresAt,
+      qaClosesAt: matchingSessionPreview.newQaClosesAt,
+      sessionLifecycleRevision: 3,
+      serverNow: matchingSessionPreview.serverNow,
+    });
+    const { component, dialogOpen } = configureTestBed();
+
+    await component.confirm();
+
+    expect(dialogOpen).not.toHaveBeenCalled();
+    expect(configureMock).toHaveBeenCalledWith(
+      expect.objectContaining({ confirmSessionExtension: false }),
+    );
+  });
+
+  it('nutzt die neu geladene Vorschau nicht still als Zustimmung zur Verlängerung', async () => {
+    previewMock.mockResolvedValue(preview);
+    const { component, close, dialogOpen } = configureTestBed(false, undefined, false);
+
+    await component.confirm();
+
+    expect(dialogOpen).toHaveBeenCalled();
+    expect(configureMock).not.toHaveBeenCalled();
+    expect(close).not.toHaveBeenCalled();
   });
 
   it('holt die Vorschau als Neuplanung nach wenn Q&A schon eingerichtet ist', async () => {

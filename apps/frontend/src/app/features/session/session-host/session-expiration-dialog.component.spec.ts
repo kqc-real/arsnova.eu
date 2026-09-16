@@ -66,7 +66,40 @@ describe('SessionExpirationDialogComponent', () => {
     expect(text).toContain('Maximales Q&A-Ende');
     expect(text).toContain('Damit setzt du das Sessionende');
     expect(text).toContain('Aktuelles maximales Q&A-Ende');
+    expect(text).toContain('Anzahl der Tage');
+    expect(text).not.toContain('Für Kalendertage');
     expect(text).not.toContain('Aktuelles Sessionende');
+  });
+
+  it('weist eine Tageszahl über der Betreiberobergrenze zurück', () => {
+    const close = vi.fn();
+    TestBed.configureTestingModule({
+      imports: [SessionExpirationDialogComponent],
+      providers: [
+        {
+          provide: MAT_DIALOG_DATA,
+          useValue: {
+            mode: 'INITIAL_CONFIGURATION',
+            lifecycle: {
+              ...lifecycle,
+              firstParticipantJoinedAt: null,
+              configurationAllowed: true,
+              serverNow: '2026-03-24T12:00:00.000Z',
+              maxExpiresAt: '2026-03-27T12:00:00.000Z',
+            },
+          },
+        },
+        { provide: MatDialogRef, useValue: { close } },
+      ],
+    });
+    const fixture = TestBed.createComponent(SessionExpirationDialogComponent);
+    const component = fixture.componentInstance;
+    component.days.set(30);
+
+    component.chooseDays();
+
+    expect(close).not.toHaveBeenCalled();
+    expect(component.inputError()).toContain('1 bis 3');
   });
 
   it('liefert Kalendertage für die serverseitige Vorschau', () => {

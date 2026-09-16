@@ -4581,7 +4581,7 @@ export class SessionHostComponent implements OnInit, OnDestroy {
         message:
           preview.purpose === 'GLOBAL_EXTENSION'
             ? $localize`:@@sessionLifecycle.previewExtensionMessage:Nur das globale Sessionende wird verlängert.`
-            : $localize`:@@sessionLifecycle.previewInitialMessage:Das maximale Q&A-Ende und der anfängliche Teilnahmeschluss werden gemeinsam gespeichert.`,
+            : $localize`:@@sessionLifecycle.previewInitialMessage:Gespeichert wird nur das Sessionende. Es begrenzt, wie lange die Fragerunde höchstens offen bleiben kann; der konkrete Teilnahmeschluss wird damit nicht gesetzt.`,
         consequences,
         confirmLabel: $localize`:@@sessionLifecycle.previewConfirm:Frist verbindlich speichern`,
         cancelLabel: $localize`:@@sessionLifecycle.previewCancel:Abbrechen`,

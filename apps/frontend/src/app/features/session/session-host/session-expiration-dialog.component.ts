@@ -69,6 +69,7 @@ export class SessionExpirationDialogComponent {
   readonly days = signal(7);
   readonly absoluteLocal = signal('');
   readonly inputError = signal<string | null>(null);
+  readonly maxSelectableDays = signal(this.computeMaxSelectableDays());
 
   formatDateTime(value: string): string {
     return new Intl.DateTimeFormat(this.localeId, {
@@ -82,11 +83,21 @@ export class SessionExpirationDialogComponent {
     }).format(new Date(value));
   }
 
+  private computeMaxSelectableDays(): number {
+    const start = Date.parse(this.data.lifecycle.serverNow);
+    const end = Date.parse(this.data.lifecycle.maxExpiresAt);
+    if (!Number.isFinite(start) || !Number.isFinite(end) || end <= start) {
+      return 30;
+    }
+    return Math.max(1, Math.min(30, Math.floor((end - start) / 86_400_000)));
+  }
+
   chooseDays(): void {
     const days = Number(this.days());
-    if (!Number.isInteger(days) || days < 1 || days > 30) {
+    const maxDays = this.maxSelectableDays();
+    if (!Number.isInteger(days) || days < 1 || days > maxDays) {
       this.inputError.set(
-        $localize`:@@sessionLifecycle.invalidDays:Bitte gib 1 bis 30 Kalendertage ein.`,
+        $localize`:@@sessionLifecycle.invalidDays:Bitte gib 1 bis ${maxDays}:maxDays: Tage ein.`,
       );
       return;
     }
