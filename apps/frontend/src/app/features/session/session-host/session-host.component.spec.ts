@@ -2555,6 +2555,142 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
     fixture.destroy();
   });
 
+  it('öffnet die Q&A-Einrichtung in der Startsequenz nur einmal', async () => {
+    persistInitialHostRecovery({
+      code: 'ABC123',
+      recoveryCard: {
+        supportId: 'ARS-ABCD-2345',
+        recoveryCode: 'recovery-capability-abcdefghijklmnopqrstuvwxyz',
+      },
+    });
+    getLifecycleForHostQueryMock.mockResolvedValue({ ...defaultLifecycle });
+    getInfoQueryMock.mockResolvedValue({
+      ...defaultSession,
+      qaClosesAt: null,
+      channels: {
+        quiz: { enabled: false },
+        qa: {
+          enabled: true,
+          open: false,
+          title: null,
+          moderationMode: false,
+          state: 'UNCONFIGURED',
+          closesAt: null,
+        },
+        quickFeedback: { enabled: false, open: false },
+      },
+    });
+    const fixture = setup();
+    await fixture.componentInstance.ngOnInit();
+    dialogOpenMock.mockClear();
+    dialogOpenMock.mockReturnValue({ afterClosed: () => NEVER });
+
+    void fixture.componentInstance.openQaConfigurationDialog({
+      numberSetupSequence: true,
+    });
+    void fixture.componentInstance.openQaConfigurationDialog({
+      numberSetupSequence: true,
+    });
+    void fixture.componentInstance.selectChannel('qa');
+    await vi.waitFor(() => {
+      expect(
+        dialogOpenMock.mock.calls.filter(
+          ([component]) => component === QaChannelConfigurationDialogComponent,
+        ).length,
+      ).toBe(1);
+    });
+    fixture.destroy();
+  });
+
+  it('beendet nach der Notfallkarte die Startsequenz und öffnet Schritt 2 nicht erneut', async () => {
+    persistInitialHostRecovery({
+      code: 'ABC123',
+      recoveryCard: {
+        supportId: 'ARS-ABCD-2345',
+        recoveryCode: 'recovery-capability-abcdefghijklmnopqrstuvwxyz',
+      },
+    });
+    getLifecycleForHostQueryMock.mockResolvedValue({ ...defaultLifecycle });
+    getInfoQueryMock.mockResolvedValue({
+      ...defaultSession,
+      qaClosesAt: null,
+      channels: {
+        quiz: { enabled: false },
+        qa: {
+          enabled: true,
+          open: false,
+          title: null,
+          moderationMode: false,
+          state: 'UNCONFIGURED',
+          closesAt: null,
+        },
+        quickFeedback: { enabled: false, open: false },
+      },
+    });
+    dialogOpenMock.mockImplementation((component) => ({
+      afterClosed: () =>
+        of(component === QaChannelConfigurationDialogComponent ? configuredQaChannelResult : true),
+    }));
+    const fixture = setup([
+      {
+        provide: ActivatedRoute,
+        useValue: {
+          parent: {
+            snapshot: {
+              paramMap: convertToParamMap({ code: 'ABC123' }),
+            },
+          },
+          snapshot: {
+            queryParamMap: convertToParamMap({ tab: 'qa', qaSetup: '1' }),
+            paramMap: convertToParamMap({}),
+          },
+          queryParamMap: of(convertToParamMap({ tab: 'qa', qaSetup: '1' })),
+        },
+      },
+    ]);
+    const router = TestBed.inject(Router);
+    const navigateSpy = vi.spyOn(router, 'navigate').mockResolvedValue(true);
+
+    await fixture.componentInstance.ngOnInit();
+
+    expect(dialogOpenMock).toHaveBeenCalledWith(
+      QaChannelConfigurationDialogComponent,
+      expect.objectContaining({
+        data: expect.objectContaining({ setupStep: 2, setupStepCount: 3 }),
+      }),
+    );
+    expect(dialogOpenMock).toHaveBeenCalledWith(
+      HostRecoveryCardDialogComponent,
+      expect.objectContaining({
+        data: expect.objectContaining({ setupStep: 3, setupStepCount: 3 }),
+        restoreFocus: false,
+      }),
+    );
+    expect(navigateSpy).toHaveBeenCalledWith(
+      [],
+      expect.objectContaining({
+        queryParams: { qaSetup: null },
+        queryParamsHandling: 'merge',
+        replaceUrl: true,
+      }),
+    );
+
+    dialogOpenMock.mockClear();
+    await fixture.componentInstance.openQaConfigurationDialog();
+
+    expect(dialogOpenMock).toHaveBeenCalledWith(
+      QaChannelConfigurationDialogComponent,
+      expect.objectContaining({
+        data: expect.not.objectContaining({ setupStep: 2, setupStepCount: 3 }),
+      }),
+    );
+    expect(dialogOpenMock).not.toHaveBeenCalledWith(
+      HostRecoveryCardDialogComponent,
+      expect.anything(),
+    );
+    fixture.destroy();
+  });
+
   it('projiziert einen geöffneten Q&A-Kanal auch ohne sichtbare Fragen', async () => {
     getInfoQueryMock.mockResolvedValue({
       ...defaultSession,

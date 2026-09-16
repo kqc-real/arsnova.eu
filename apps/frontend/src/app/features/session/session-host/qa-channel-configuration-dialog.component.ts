@@ -112,15 +112,18 @@ export class QaChannelConfigurationDialogComponent implements OnInit {
   }
 
   confirmLabel(): string {
+    const needsExtension = this.preview()?.requiresSessionExtension === true;
     if (this.configurationMode() === 'REPLAN') {
-      if (this.canReopen && this.reopenQa) {
-        return this.preview()?.requiresSessionExtension
+      if (this.willReopenQa()) {
+        return needsExtension
           ? $localize`:@@qaConfig.reopenWithExtension:Session verlängern und Fragerunde wieder öffnen`
           : $localize`:@@qaConfig.reopen:Fragerunde wieder öffnen`;
       }
-      return $localize`:@@qaConfig.save:Änderungen speichern`;
+      return needsExtension
+        ? $localize`:@@qaConfig.saveWithExtension:Session verlängern und Änderungen speichern`
+        : $localize`:@@qaConfig.save:Änderungen speichern`;
     }
-    if (this.preview()?.requiresSessionExtension) {
+    if (needsExtension) {
       return $localize`:@@qaConfig.confirmWithExtension:Session verlängern und Fragerunde öffnen`;
     }
     return $localize`:@@qaConfig.confirm:Fragerunde öffnen`;
@@ -167,7 +170,7 @@ export class QaChannelConfigurationDialogComponent implements OnInit {
         confirmedQaClosesAt: preview.newQaClosesAt,
         confirmedExpiresAt: preview.newExpiresAt,
         confirmSessionExtension: preview.requiresSessionExtension,
-        reopenQa: this.configurationMode() === 'REPLAN' && this.canReopen && this.reopenQa,
+        reopenQa: this.willReopenQa(),
         qaTitle: this.qaTitle.trim(),
         moderationMode: this.moderationMode,
         participationProfile: this.buildParticipationProfile(),
@@ -219,9 +222,9 @@ export class QaChannelConfigurationDialogComponent implements OnInit {
     const dialogRef = this.dialog.open(ConfirmLeaveDialogComponent, {
       data: {
         title: $localize`:@@qaConfig.extensionConfirmTitle:Sessionverlängerung bestätigen`,
-        message: $localize`:@@qaConfig.extensionConfirmMessage:Die Fragerunde läuft über das bisherige Sessionende hinaus. Beim Bestätigen wird die globale Sessionfrist mitverlängert; die Daten werden länger gespeichert. Nur der ursprüngliche Host darf das ausführen.`,
+        message: this.extensionConfirmMessage(),
         consequences,
-        confirmLabel: $localize`:@@qaConfig.confirmWithExtension:Session verlängern und Fragerunde öffnen`,
+        confirmLabel: this.confirmLabel(),
         cancelLabel: $localize`:@@common.cancel:Abbrechen`,
       } satisfies ConfirmLeaveDialogData,
       width: 'min(32rem, calc(100vw - 2rem))',
@@ -307,6 +310,10 @@ export class QaChannelConfigurationDialogComponent implements OnInit {
       }
       return { kind: 'DURATION_DAYS', days };
     }
+    const unchangedClosesAt = this.unchangedSavedAbsoluteClosesAt();
+    if (unchangedClosesAt) {
+      return { kind: 'ABSOLUTE', closesAt: unchangedClosesAt };
+    }
     try {
       return {
         kind: 'ABSOLUTE',
@@ -319,6 +326,29 @@ export class QaChannelConfigurationDialogComponent implements OnInit {
         );
       }
       return null;
+    }
+  }
+
+  private willReopenQa(): boolean {
+    return this.configurationMode() === 'REPLAN' && this.canReopen && this.reopenQa;
+  }
+
+  private extensionConfirmMessage(): string {
+    if (this.configurationMode() === 'REPLAN' && !this.willReopenQa()) {
+      return $localize`:@@qaConfig.extensionConfirmMessageKeepClosed:Die neue Teilnahmefrist liegt nach dem bisherigen Sessionende. Beim Bestätigen wird die globale Sessionfrist mitverlängert; die Daten werden länger gespeichert. Nur der ursprüngliche Host darf das ausführen.`;
+    }
+    return $localize`:@@qaConfig.extensionConfirmMessage:Die Fragerunde läuft über das bisherige Sessionende hinaus. Beim Bestätigen wird die globale Sessionfrist mitverlängert; die Daten werden länger gespeichert. Nur der ursprüngliche Host darf das ausführen.`;
+  }
+
+  private unchangedSavedAbsoluteClosesAt(): string | null {
+    const saved = this.savedQaClosesAt();
+    if (!saved || this.deadlineKind !== 'ABSOLUTE') {
+      return null;
+    }
+    try {
+      return this.absoluteLocal === isoToSessionLocalDateTime(saved, this.timeZone) ? saved : null;
+    } catch {
+      return saved;
     }
   }
 

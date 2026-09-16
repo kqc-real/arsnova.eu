@@ -412,7 +412,7 @@ describe('QaChannelConfigurationDialogComponent', () => {
         mode: 'REPLAN',
         selection: {
           kind: 'ABSOLUTE',
-          closesAt: '2026-09-16T04:00:00Z',
+          closesAt: '2026-09-16T04:00:00.000Z',
         },
         reopenQa: false,
         moderationMode: false,
@@ -458,5 +458,182 @@ describe('QaChannelConfigurationDialogComponent', () => {
     await component.confirm();
 
     expect(configureMock).toHaveBeenCalledWith(expect.objectContaining({ reopenQa: true }));
+  });
+
+  it('bewahrt Sekunden und Millisekunden einer unveränderten Frist', async () => {
+    const preciseClosesAt = '2026-09-16T04:00:12.345Z';
+    const closedSession = {
+      ...session,
+      qaClosesAt: preciseClosesAt,
+      expiresAt: '2026-09-16T06:00:00.000Z',
+      channels: {
+        ...session.channels,
+        qa: {
+          enabled: true,
+          open: false,
+          closesAt: preciseClosesAt,
+          state: 'MANUALLY_CLOSED' as const,
+          title: 'Alte Fragenwand',
+          moderationMode: false,
+        },
+      },
+    };
+    previewMock.mockResolvedValue({
+      ...matchingSessionPreview,
+      mode: 'REPLAN' as const,
+      oldQaClosesAt: preciseClosesAt,
+      newQaClosesAt: preciseClosesAt,
+      newExpiresAt: closedSession.expiresAt,
+    });
+    configureMock.mockResolvedValue({
+      channels: closedSession.channels,
+      preferredChannel: 'qa',
+      expiresAt: closedSession.expiresAt,
+      qaClosesAt: preciseClosesAt,
+      sessionLifecycleRevision: 3,
+      serverNow: preview.serverNow,
+    });
+    const { component } = configureTestBed(false, undefined, true, closedSession);
+    component.qaTitle = 'Nur Titel';
+    await component.confirm();
+
+    expect(configureMock).toHaveBeenCalledWith(
+      expect.objectContaining({
+        selection: { kind: 'ABSOLUTE', closesAt: preciseClosesAt },
+        reopenQa: false,
+      }),
+    );
+  });
+
+  it('speichert eine unveränderte Frist in der doppelten Stunde ohne Datumsfehler', async () => {
+    const foldClosesAt = '2026-10-25T00:30:00.000Z';
+    const foldSession = {
+      ...session,
+      timeZone: 'Europe/Berlin',
+      qaClosesAt: foldClosesAt,
+      expiresAt: '2026-10-26T10:00:00.000Z',
+      channels: {
+        ...session.channels,
+        qa: {
+          enabled: true,
+          open: true,
+          closesAt: foldClosesAt,
+          state: 'OPEN' as const,
+          title: 'Herbst',
+          moderationMode: true,
+        },
+      },
+    };
+    previewMock.mockResolvedValue({
+      ...matchingSessionPreview,
+      mode: 'REPLAN' as const,
+      oldQaClosesAt: foldClosesAt,
+      newQaClosesAt: foldClosesAt,
+      oldExpiresAt: foldSession.expiresAt,
+      newExpiresAt: foldSession.expiresAt,
+      requiresSessionExtension: false,
+    });
+    configureMock.mockResolvedValue({
+      channels: foldSession.channels,
+      preferredChannel: 'qa',
+      expiresAt: foldSession.expiresAt,
+      qaClosesAt: foldClosesAt,
+      sessionLifecycleRevision: 3,
+      serverNow: preview.serverNow,
+    });
+    const { component } = configureTestBed(false, undefined, true, foldSession);
+    component.qaTitle = 'Neuer Titel';
+    await component.confirm();
+
+    expect(component.error()).toBeNull();
+    expect(configureMock).toHaveBeenCalledWith(
+      expect.objectContaining({
+        selection: { kind: 'ABSOLUTE', closesAt: foldClosesAt },
+      }),
+    );
+  });
+
+  it('lehnt eine geänderte mehrdeutige Ortszeit weiter ab', async () => {
+    const foldSession = {
+      ...session,
+      timeZone: 'Europe/Berlin',
+      qaClosesAt: '2026-10-25T00:30:00.000Z',
+      expiresAt: '2026-10-26T10:00:00.000Z',
+      channels: {
+        ...session.channels,
+        qa: {
+          enabled: true,
+          open: true,
+          closesAt: '2026-10-25T00:30:00.000Z',
+          state: 'OPEN' as const,
+          title: 'Herbst',
+          moderationMode: true,
+        },
+      },
+    };
+    const { component } = configureTestBed(false, undefined, true, foldSession);
+    component.deadlineKind = 'ABSOLUTE';
+    component.absoluteLocal = '2026-10-25T02:45';
+    await component.confirm();
+
+    expect(configureMock).not.toHaveBeenCalled();
+    expect(component.error()).toContain('nicht eindeutig');
+  });
+
+  it('beschreibt eine Verlängerung ohne Wiederöffnen als Speichern', async () => {
+    const closedSession = {
+      ...session,
+      qaClosesAt: '2026-09-16T04:00:00.000Z',
+      expiresAt: '2026-09-16T06:00:00.000Z',
+      channels: {
+        ...session.channels,
+        qa: {
+          enabled: true,
+          open: false,
+          closesAt: '2026-09-16T04:00:00.000Z',
+          state: 'MANUALLY_CLOSED' as const,
+          title: 'Alte Fragenwand',
+          moderationMode: false,
+        },
+      },
+    };
+    const extensionPreview = {
+      ...preview,
+      mode: 'REPLAN' as const,
+      oldQaClosesAt: '2026-09-16T04:00:00.000Z',
+      newQaClosesAt: '2026-09-16T08:00:00.000Z',
+      oldExpiresAt: closedSession.expiresAt,
+      newExpiresAt: '2026-09-16T08:00:00.000Z',
+      requiresSessionExtension: true,
+    };
+    previewMock.mockResolvedValue(extensionPreview);
+    configureMock.mockResolvedValue({
+      channels: closedSession.channels,
+      preferredChannel: 'qa',
+      expiresAt: extensionPreview.newExpiresAt,
+      qaClosesAt: extensionPreview.newQaClosesAt,
+      sessionLifecycleRevision: 3,
+      serverNow: extensionPreview.serverNow,
+    });
+    const { component, dialogOpen } = configureTestBed(false, undefined, true, closedSession);
+    component.deadlineKind = 'ABSOLUTE';
+    component.absoluteLocal = '2026-09-16T10:00';
+    component.reopenQa = false;
+    await component.onDeadlineChange();
+
+    expect(component.confirmLabel()).toBe('Session verlängern und Änderungen speichern');
+    await component.confirm();
+
+    expect(dialogOpen).toHaveBeenCalledWith(
+      expect.anything(),
+      expect.objectContaining({
+        data: expect.objectContaining({
+          confirmLabel: 'Session verlängern und Änderungen speichern',
+          message: expect.stringContaining('neue Teilnahmefrist'),
+        }),
+      }),
+    );
+    expect(dialogOpen.mock.calls[0]?.[1].data.message).not.toContain('Die Fragerunde läuft');
+    expect(configureMock).toHaveBeenCalledWith(expect.objectContaining({ reopenQa: false }));
   });
 });

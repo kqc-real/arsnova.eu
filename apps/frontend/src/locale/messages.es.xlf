@@ -18207,6 +18207,14 @@
         <source>Session verlängern und Fragerunde wieder öffnen</source>
         <target>Ampliar la sesión y volver a abrir preguntas y respuestas</target>
       </trans-unit>
+      <trans-unit id="qaConfig.saveWithExtension" datatype="html">
+        <source>Session verlängern und Änderungen speichern</source>
+        <target>Ampliar la sesión y guardar los cambios</target>
+      </trans-unit>
+      <trans-unit id="qaConfig.extensionConfirmMessageKeepClosed" datatype="html">
+        <source>Die neue Teilnahmefrist liegt nach dem bisherigen Sessionende. Beim Bestätigen wird die globale Sessionfrist mitverlängert; die Daten werden länger gespeichert. Nur der ursprüngliche Host darf das ausführen.</source>
+        <target>El nuevo plazo de las preguntas queda después del final actual de la sesión. Al confirmar también amplías el plazo global y los datos se guardan más tiempo. Solo el anfitrión original puede hacerlo.</target>
+      </trans-unit>
       <trans-unit id="qaConfig.reopenLabel" datatype="html">
         <source>Geschlossene Fragerunde wieder öffnen</source>
         <target>Volver a abrir la sección de preguntas y respuestas cerrada</target>

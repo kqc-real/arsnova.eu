@@ -49,6 +49,10 @@ describe('session-local-datetime', () => {
     ).toBe(0);
   });
 
+  it('lehnt eine mehrdeutige lokale Uhrzeit in der doppelten Stunde ab', () => {
+    expect(() => sessionLocalDateTimeToIso('2026-10-25T02:30', 'Europe/Berlin')).toThrow();
+  });
+
   it('rundet datetime-local in der Sessionzeitzone um', () => {
     const local = isoToSessionLocalDateTime('2026-09-16T04:00:00.000Z', 'Europe/Berlin');
     expect(local).toBe('2026-09-16T06:00');

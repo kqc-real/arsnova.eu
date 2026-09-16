@@ -34,6 +34,33 @@ describe('sessionLifecycle controlled clock', () => {
     ).toBe('2026-03-29T10:00:00.000Z'); // 12:00 CEST
   });
 
+  it('bewahrt eine unveränderte abgelaufene Q&A-Frist', () => {
+    const stored = new Date('2026-03-20T09:00:00.123Z');
+    expect(
+      computeSessionQaClosesAt({
+        createdAt: new Date('2026-03-19T10:00:00.000Z'),
+        currentExpiresAt: new Date('2026-03-21T10:00:00.000Z'),
+        openedAt: now,
+        timeZone: 'Europe/Berlin',
+        selection: { kind: 'ABSOLUTE', closesAt: stored.toISOString() },
+        allowUnchangedPastClosesAt: stored,
+      }).toISOString(),
+    ).toBe('2026-03-20T09:00:00.123Z');
+  });
+
+  it('lehnt eine neue abgelaufene Q&A-Frist weiter ab', () => {
+    expect(() =>
+      computeSessionQaClosesAt({
+        createdAt: new Date('2026-03-19T10:00:00.000Z'),
+        currentExpiresAt: new Date('2026-03-21T10:00:00.000Z'),
+        openedAt: now,
+        timeZone: 'Europe/Berlin',
+        selection: { kind: 'ABSOLUTE', closesAt: '2026-03-20T09:00:00.000Z' },
+        allowUnchangedPastClosesAt: new Date('2026-03-20T08:00:00.000Z'),
+      }),
+    ).toThrow(/Zukunft/);
+  });
+
   it('rechnet Q&A-Kalendertage ab dem Öffnungszeitpunkt über die Sommerzeit', () => {
     expect(
       computeSessionQaClosesAt({

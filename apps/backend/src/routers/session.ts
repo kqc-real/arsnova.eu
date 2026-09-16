@@ -3483,9 +3483,11 @@ function computeQaConfigurationWindow(
     createdAt: Date;
     expiresAt: Date;
     timeZone: string;
+    qaClosesAt?: Date | null;
   },
   selection: z.infer<typeof PreviewSessionQaConfigurationInputSchema>['selection'],
   serverNow: Date,
+  mode: 'INITIAL' | 'REPLAN',
 ): {
   qaClosesAt: Date;
   expiresAt: Date;
@@ -3497,6 +3499,7 @@ function computeQaConfigurationWindow(
     openedAt: serverNow,
     timeZone: session.timeZone,
     selection,
+    allowUnchangedPastClosesAt: mode === 'REPLAN' ? session.qaClosesAt : null,
   });
   const requiresSessionExtension = qaClosesAt > session.expiresAt;
   return {
@@ -5712,7 +5715,7 @@ const sessionCoreRouter = router({
           message: 'Q&A muss zuerst eingerichtet werden.',
         });
       }
-      const window = computeQaConfigurationWindow(session, input.selection, serverNow);
+      const window = computeQaConfigurationWindow(session, input.selection, serverNow, input.mode);
       const originalHost =
         !!ctx.hostToken && (await isOriginalHostSessionToken(code, ctx.hostToken));
       return {
@@ -5822,7 +5825,12 @@ const sessionCoreRouter = router({
               message: 'Die Q&A-Vorschau ist abgelaufen. Bitte prüfe die Fristen erneut.',
             });
           }
-          const window = computeQaConfigurationWindow(session, input.selection, previewServerNow);
+          const window = computeQaConfigurationWindow(
+            session,
+            input.selection,
+            previewServerNow,
+            input.mode,
+          );
           if (
             confirmedQaClosesAt.getTime() !== window.qaClosesAt.getTime() ||
             confirmedExpiresAt.getTime() !== window.expiresAt.getTime()
@@ -5847,7 +5855,13 @@ const sessionCoreRouter = router({
               message: 'Q&A muss zuerst eingerichtet werden.',
             });
           }
-          if ((window.requiresSessionExtension || deadlineExpired) && !originalHost) {
+          const qaDeadlineChanged =
+            !(session.qaClosesAt instanceof Date) ||
+            session.qaClosesAt.getTime() !== window.qaClosesAt.getTime();
+          const requiresOriginalHost =
+            window.requiresSessionExtension ||
+            (deadlineExpired && (qaDeadlineChanged || input.reopenQa === true));
+          if (requiresOriginalHost && !originalHost) {
             throw new TRPCError({
               code: 'FORBIDDEN',
               message:

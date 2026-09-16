@@ -10,7 +10,11 @@ die PostgreSQL-Felder:
 - `createdAt`: unveränderlicher Erstellungszeitpunkt;
 - `expiresAt`: globales Sessionende, standardmäßig exakt 24 Stunden nach
   `createdAt`;
-- `qaClosesAt`: getrennte Q&A-Frist, immer kleiner oder gleich `expiresAt`;
+- `qaClosesAt`: getrennte Q&A-Frist, immer kleiner oder gleich `expiresAt`.
+  Eine bereits abgelaufene Q&A-Frist darf beim Bearbeiten ohne Wiederöffnen
+  unverändert bleiben (Titel oder Moderation); neue Fristen und ein
+  Wiederöffnen bleiben vollständig validiert, und die globale Session muss
+  aktiv sein;
 - `firstParticipantJoinedAt`: einmaliger Marker des ersten erfolgreich
   persistierten Beitritts;
 - `endedAt`: kanonischer manueller oder automatischer Endzeitpunkt;
@@ -44,7 +48,9 @@ noch unkonfigurierte Session und kehrt zur Startseite zurück, damit der nächst
 Klick auf `Q&A erstellen` keine halbfertige Session wieder öffnet. Abbrechen
 in der Notfallkarte lässt Q&A eingerichtet; die Karte bleibt vorgemerkt. Ein
 erneuter Einstieg über `Q&A-Einstellungen` öffnet wieder die Karte (Schritt 3
-von 3), statt die Einrichtung als Ersteinrichtung zu prüfen. Wird Q&A
+von 3), statt die Einrichtung als Ersteinrichtung zu prüfen. **Fertig** in der
+Notfallkarte beendet die Sequenz: `qaSetup` entfällt, und die Einrichtung
+öffnet sich nicht erneut als Schritt 2. Wird Q&A
 später in einer bestehenden Session aktiviert, bleiben Einrichtung und
 Notfallkarte Schritt 1 und 2 von 2; Abbrechen dort lässt die Session bestehen.
 Spätere Q&A-Einstellungen und eine Notfallkarte nach Reload bleiben ohne

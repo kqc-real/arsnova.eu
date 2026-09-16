@@ -18263,6 +18263,14 @@
         <source>Session verlängern und Fragerunde wieder öffnen</source>
         <target>Extend session and reopen Q&amp;A</target>
       </trans-unit>
+      <trans-unit id="qaConfig.saveWithExtension" datatype="html">
+        <source>Session verlängern und Änderungen speichern</source>
+        <target>Extend session and save changes</target>
+      </trans-unit>
+      <trans-unit id="qaConfig.extensionConfirmMessageKeepClosed" datatype="html">
+        <source>Die neue Teilnahmefrist liegt nach dem bisherigen Sessionende. Beim Bestätigen wird die globale Sessionfrist mitverlängert; die Daten werden länger gespeichert. Nur der ursprüngliche Host darf das ausführen.</source>
+        <target>The new question deadline is after the current session end. Confirming also extends the global session deadline and stores the data longer. Only the original host can do this.</target>
+      </trans-unit>
       <trans-unit id="qaConfig.reopenLabel" datatype="html">
         <source>Geschlossene Fragerunde wieder öffnen</source>
         <target>Reopen the closed Q&amp;A</target>

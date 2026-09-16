@@ -16149,6 +16149,12 @@
       <trans-unit id="qaConfig.reopenWithExtension" datatype="html">
         <source>Session verlängern und Fragerunde wieder öffnen</source>
       </trans-unit>
+      <trans-unit id="qaConfig.saveWithExtension" datatype="html">
+        <source>Session verlängern und Änderungen speichern</source>
+      </trans-unit>
+      <trans-unit id="qaConfig.extensionConfirmMessageKeepClosed" datatype="html">
+        <source>Die neue Teilnahmefrist liegt nach dem bisherigen Sessionende. Beim Bestätigen wird die globale Sessionfrist mitverlängert; die Daten werden länger gespeichert. Nur der ursprüngliche Host darf das ausführen.</source>
+      </trans-unit>
       <trans-unit id="qaConfig.reopenLabel" datatype="html">
         <source>Geschlossene Fragerunde wieder öffnen</source>
       </trans-unit>

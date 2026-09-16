@@ -808,6 +808,8 @@ export class SessionHostComponent implements OnInit, OnDestroy {
   private readonly requestedQaCreateSetup =
     this.route.snapshot?.queryParamMap?.get('qaSetup') === '1';
   private qaCreateAbortInFlight = false;
+  private qaCreateSetupCompleted = false;
+  private qaConfigurationDialogInFlight: Promise<void> | null = null;
   /** Nach einmaligem Anwenden von `?tab=` nicht erneut erzwingen (sonst kein Kanalwechsel möglich). */
   private initialUrlTabApplied = false;
   /** Serverautoritativen Einstiegskanal nur beim ersten Session-Snapshot wiederherstellen. */
@@ -4120,31 +4122,59 @@ export class SessionHostComponent implements OnInit, OnDestroy {
     );
   }
 
-  private showStagedRecoveryCard(setup?: { setupStep: number; setupStepCount: number }): void {
-    if (this.recoveryCardDialogOpened || !this.channels().qa) return;
-    if (this.qaChannelNeedsConfiguration()) return;
+  private showStagedRecoveryCard(setup?: {
+    setupStep: number;
+    setupStepCount: number;
+  }): Promise<boolean | undefined> {
+    if (this.recoveryCardDialogOpened || !this.channels().qa) {
+      return Promise.resolve(undefined);
+    }
+    if (this.qaChannelNeedsConfiguration()) {
+      return Promise.resolve(undefined);
+    }
     const recoveryCard = getStagedHostRecoveryCard(this.code);
-    if (!recoveryCard) return;
+    if (!recoveryCard) {
+      return Promise.resolve(undefined);
+    }
     this.recoveryCardDialogOpened = true;
-    this.dialog
-      .open(HostRecoveryCardDialogComponent, {
-        data: setup ? { ...recoveryCard, ...setup } : recoveryCard,
-        disableClose: true,
-        autoFocus: 'dialog',
-        restoreFocus: true,
-        maxWidth: 'min(38rem, calc(100vw - 2rem))',
-        ...SESSION_LIFECYCLE_DIALOG_OVERLAY,
-        panelClass: ['session-lifecycle-dialog-panel', 'host-recovery-card-dialog-panel'],
-        backdropClass: ['session-lifecycle-dialog-backdrop', 'host-recovery-card-dialog-backdrop'],
-        ariaDescribedBy: 'host-recovery-card-description',
-      })
-      .afterClosed()
-      .subscribe((confirmed) => {
-        this.recoveryCardDialogOpened = false;
-        if (confirmed === true) {
-          clearStagedHostRecoveryCard(this.code);
-        }
-      });
+    return firstValueFrom(
+      this.dialog
+        .open(HostRecoveryCardDialogComponent, {
+          data: setup ? { ...recoveryCard, ...setup } : recoveryCard,
+          disableClose: true,
+          autoFocus: 'dialog',
+          restoreFocus: !setup,
+          maxWidth: 'min(38rem, calc(100vw - 2rem))',
+          ...SESSION_LIFECYCLE_DIALOG_OVERLAY,
+          panelClass: ['session-lifecycle-dialog-panel', 'host-recovery-card-dialog-panel'],
+          backdropClass: [
+            'session-lifecycle-dialog-backdrop',
+            'host-recovery-card-dialog-backdrop',
+          ],
+          ariaDescribedBy: 'host-recovery-card-description',
+        })
+        .afterClosed(),
+    ).then((confirmed) => {
+      this.recoveryCardDialogOpened = false;
+      if (confirmed === true) {
+        clearStagedHostRecoveryCard(this.code);
+        this.completeQaCreateSetup();
+      }
+      return confirmed;
+    });
+  }
+
+  private completeQaCreateSetup(): void {
+    this.qaCreateSetupCompleted = true;
+    if (this.route.snapshot?.queryParamMap?.get('qaSetup') !== '1') {
+      return;
+    }
+    void this.router.navigate([], {
+      relativeTo: this.route,
+      queryParams: { qaSetup: null },
+      queryParamsHandling: 'merge',
+      replaceUrl: true,
+    });
   }
 
   async ngOnInit(): Promise<void> {
@@ -9102,13 +9132,29 @@ export class SessionHostComponent implements OnInit, OnDestroy {
     numberSetupSequence?: boolean;
     abortUnconfiguredSessionOnCancel?: boolean;
   }): Promise<void> {
+    if (this.qaConfigurationDialogInFlight) {
+      return this.qaConfigurationDialogInFlight;
+    }
+    const run = this.openQaConfigurationDialogNow(options);
+    this.qaConfigurationDialogInFlight = run.finally(() => {
+      this.qaConfigurationDialogInFlight = null;
+    });
+    return this.qaConfigurationDialogInFlight;
+  }
+
+  private async openQaConfigurationDialogNow(options?: {
+    numberSetupSequence?: boolean;
+    abortUnconfiguredSessionOnCancel?: boolean;
+  }): Promise<void> {
     const session = this.session();
     if (!session || !this.code || this.effectiveStatus() === 'FINISHED') {
       return;
     }
     if (getStagedHostRecoveryCard(this.code) && !this.qaChannelNeedsConfiguration()) {
-      this.showStagedRecoveryCard(
-        this.requestedQaCreateSetup ? { setupStep: 3, setupStepCount: 3 } : undefined,
+      await this.showStagedRecoveryCard(
+        this.requestedQaCreateSetup && !this.qaCreateSetupCompleted
+          ? { setupStep: 3, setupStepCount: 3 }
+          : undefined,
       );
       return;
     }
@@ -9117,7 +9163,9 @@ export class SessionHostComponent implements OnInit, OnDestroy {
     });
     this.sessionLifecycle.set(lifecycle);
     const numberSetupSequence =
-      options?.numberSetupSequence === true && Boolean(getStagedHostRecoveryCard(this.code));
+      options?.numberSetupSequence === true &&
+      !this.qaCreateSetupCompleted &&
+      Boolean(getStagedHostRecoveryCard(this.code));
     const setupStepCount = this.requestedQaCreateSetup ? 3 : 2;
     const setupStep = this.requestedQaCreateSetup ? 2 : 1;
     const result = await firstValueFrom(
@@ -9165,7 +9213,7 @@ export class SessionHostComponent implements OnInit, OnDestroy {
     this.ensureActiveChannel();
     this.scheduleQaDeadlineCheck();
     await this.refreshQaQuestions();
-    this.showStagedRecoveryCard(
+    await this.showStagedRecoveryCard(
       numberSetupSequence
         ? { setupStep: this.requestedQaCreateSetup ? 3 : 2, setupStepCount }
         : undefined,

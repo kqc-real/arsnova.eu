@@ -178,6 +178,8 @@ export function computeSessionQaClosesAt(input: {
   timeZone: string;
   selection: SessionQaDeadlineSelection;
   maxDurationMs?: number;
+  /** Unveränderte gespeicherte Q&A-Frist darf bei REPLAN ohne Wiederöffnen in der Vergangenheit liegen. */
+  allowUnchangedPastClosesAt?: Date | null;
 }): Date {
   assertSupportedSessionTimeZone(input.timeZone);
   const closesAt =
@@ -186,12 +188,17 @@ export function computeSessionQaClosesAt(input: {
       : input.selection.kind === 'DURATION_DAYS'
         ? addCalendarDays(input.openedAt, input.selection.days, input.timeZone)
         : parseAbsoluteExpiration(input.selection.closesAt);
-  assertExpirationAllowed({
-    createdAt: input.createdAt,
-    expiresAt: closesAt,
-    now: input.openedAt,
-    maxDurationMs: input.maxDurationMs,
-  });
+  const unchangedPastDeadline =
+    input.allowUnchangedPastClosesAt instanceof Date &&
+    closesAt.getTime() === input.allowUnchangedPastClosesAt.getTime();
+  if (!unchangedPastDeadline) {
+    assertExpirationAllowed({
+      createdAt: input.createdAt,
+      expiresAt: closesAt,
+      now: input.openedAt,
+      maxDurationMs: input.maxDurationMs,
+    });
+  }
   return closesAt;
 }
 

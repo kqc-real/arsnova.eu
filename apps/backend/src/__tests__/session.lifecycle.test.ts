@@ -535,6 +535,62 @@ describe('session absolute lifecycle', () => {
     );
   });
 
+  it('lässt eine abgelaufene Q&A-Frist bei reiner Titeländerung unverändert', async () => {
+    const expired = qaConfigurationRow({
+      qaEnabled: true,
+      qaOpen: false,
+      qaClosesAt: new Date('2026-09-15T06:30:00.123Z'),
+      expiresAt: new Date('2026-09-16T06:00:00.000Z'),
+      qaTitle: 'Alte Fragenwand',
+      qaModerationMode: false,
+      preferredChannel: 'qa',
+    });
+    prismaMock.session.findUnique.mockResolvedValue(expired);
+    prismaMock.session.update.mockResolvedValue({
+      ...expired,
+      qaTitle: 'Nur Titel',
+      sessionLifecycleRevision: 3,
+    });
+
+    await expect(
+      caller.previewQaConfiguration({
+        code: 'ABC123',
+        mode: 'REPLAN',
+        selection: { kind: 'ABSOLUTE', closesAt: '2026-09-15T06:30:00.123Z' },
+      }),
+    ).resolves.toMatchObject({
+      newQaClosesAt: '2026-09-15T06:30:00.123Z',
+      newExpiresAt: '2026-09-16T06:00:00.000Z',
+      requiresSessionExtension: false,
+    });
+
+    await caller.configureQaChannel({
+      code: 'ABC123',
+      mode: 'REPLAN',
+      selection: { kind: 'ABSOLUTE', closesAt: '2026-09-15T06:30:00.123Z' },
+      expectedLifecycleRevision: 2,
+      previewServerNow: '2026-09-15T07:00:00.000Z',
+      confirmedQaClosesAt: '2026-09-15T06:30:00.123Z',
+      confirmedExpiresAt: '2026-09-16T06:00:00.000Z',
+      confirmSessionExtension: false,
+      reopenQa: false,
+      qaTitle: 'Nur Titel',
+      moderationMode: true,
+    });
+
+    expect(prismaMock.session.update).toHaveBeenCalledWith(
+      expect.objectContaining({
+        data: expect.objectContaining({
+          qaOpen: false,
+          qaClosesAt: new Date('2026-09-15T06:30:00.123Z'),
+          qaTitle: 'Nur Titel',
+          qaModerationMode: true,
+        }),
+      }),
+    );
+    expect(prismaMock.session.update.mock.calls[0]?.[0].data.expiresAt).toBeUndefined();
+  });
+
   it('öffnet einen geschlossenen Kanal nur nach ausdrücklichem Wiederöffnen', async () => {
     const closed = qaConfigurationRow({
       qaEnabled: true,

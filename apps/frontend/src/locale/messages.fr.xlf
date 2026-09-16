@@ -18203,6 +18203,14 @@
         <source>Fragerunde wieder öffnen</source>
         <target>Rouvrir les questions-réponses</target>
       </trans-unit>
+      <trans-unit id="qaConfig.saveWithExtension" datatype="html">
+        <source>Session verlängern und Änderungen speichern</source>
+        <target>Prolonger la session et enregistrer les modifications</target>
+      </trans-unit>
+      <trans-unit id="qaConfig.extensionConfirmMessageKeepClosed" datatype="html">
+        <source>Die neue Teilnahmefrist liegt nach dem bisherigen Sessionende. Beim Bestätigen wird die globale Sessionfrist mitverlängert; die Daten werden länger gespeichert. Nur der ursprüngliche Host darf das ausführen.</source>
+        <target>La nouvelle échéance des questions dépasse la fin actuelle de la session. En confirmant, tu prolonges aussi l’échéance globale ; les données restent plus longtemps. Seul l’hôte d’origine peut le faire.</target>
+      </trans-unit>
       <trans-unit id="qaConfig.reopenWithExtension" datatype="html">
         <source>Session verlängern und Fragerunde wieder öffnen</source>
         <target>Prolonger la session et rouvrir les questions-réponses</target>
