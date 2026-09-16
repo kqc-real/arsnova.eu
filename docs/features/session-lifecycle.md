@@ -19,7 +19,8 @@ die PostgreSQL-Felder:
   persistierten Beitritts;
 - `endedAt`: kanonischer manueller oder automatischer Endzeitpunkt;
 - `sessionLifecycleRevision`: monotone Revision jeder erfolgreichen Änderung
-  von `expiresAt` oder `endedAt`;
+  von `expiresAt`, `endedAt` oder der Q&A-/Kanal-Konfiguration (`preferredChannel`,
+  `qaEnabled`, `qaOpen`, `qaClosesAt`, `qaTitle`, `qaModerationMode`);
 - `timeZone`: IANA-Zeitzone für Auswahl und Anzeige von Kalendertagen.
 
 Aktiv ist eine Session nur, solange `endedAt IS NULL` und die Datenbankzeit vor
@@ -222,6 +223,9 @@ rückwirkend.
 
 `20260915090000_session_retention` stellt die Set-Null-Beziehungen und
 minimierten Auditfelder her.
+`20260916140000_qa_title_moderation_lifecycle_revision` erlaubt eine
+Revision bei Titel- oder Moderationsänderung des Q&A-Kanals; eine erhöhte
+Revision ohne eines dieser Felder bleibt verboten.
 `20260915091000_session_retention_rolling_bridge` hält den früheren, auf
 `startedAt + 24h` basierenden Cleanup bis zum Ende der 14-tägigen
 Nachbereitung beziehungsweise eines Legal Holds zurück. Ein DB-Trigger
@@ -242,8 +246,8 @@ opt-in PostgreSQL-Test
 Sie decken Defaults,
 Unveränderlichkeit, die `startedAt`-Rollback-Brücke, Child-Write-Sperren,
 automatische Endmaterialisierung sowie Verlängerung-/Ende-Races über mehrere
-DB-Verbindungen sowie Cascade/SetNull, Legal-Hold-Bridge, Audit-Minimierung und
-die getrennten TTLs ab.
+DB-Verbindungen, Q&A-Titel-/Moderationsrevisionen sowie Cascade/SetNull,
+Legal-Hold-Bridge, Audit-Minimierung und die getrennten TTLs ab.
 
 Lokal:
 

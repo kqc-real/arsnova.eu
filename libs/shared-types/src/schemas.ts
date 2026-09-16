@@ -3211,6 +3211,8 @@ export type SessionQaDeadlineSelection = z.infer<typeof SessionQaDeadlineSelecti
 export const PreviewSessionQaConfigurationInputSchema = GetSessionInfoInputSchema.extend({
   mode: z.enum(['INITIAL', 'REPLAN']),
   selection: SessionQaDeadlineSelectionSchema,
+  /** Nur REPLAN: Vorschau muss eine zukünftige Frist verlangen, wenn wieder geöffnet wird. */
+  reopenQa: z.boolean().optional().default(false),
 });
 export type PreviewSessionQaConfigurationInput = z.infer<
   typeof PreviewSessionQaConfigurationInputSchema

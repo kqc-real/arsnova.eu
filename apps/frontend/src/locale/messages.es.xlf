@@ -18219,6 +18219,10 @@
         <source>Geschlossene Fragerunde wieder öffnen</source>
         <target>Volver a abrir la sección de preguntas y respuestas cerrada</target>
       </trans-unit>
+      <trans-unit id="qaConfig.reopenNeedsFutureDeadline" datatype="html">
+        <source>Zum Wiederöffnen brauchst du eine Teilnahmefrist in der Zukunft. Wähle ein neues Datum und eine Uhrzeit.</source>
+        <target>Para volver a abrir las preguntas y respuestas necesitas un plazo en el futuro. Elige una fecha y una hora nuevas.</target>
+      </trans-unit>
       <trans-unit id="qaConfig.noFullDayLeft" datatype="html">
         <source>Kein voller Kalendertag ist mehr zulässig. Wähle ein Datum und eine Uhrzeit.</source>
         <target>Ya no cabe un día completo. Elige una fecha y una hora.</target>

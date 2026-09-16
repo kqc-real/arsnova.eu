@@ -3488,6 +3488,7 @@ function computeQaConfigurationWindow(
   selection: z.infer<typeof PreviewSessionQaConfigurationInputSchema>['selection'],
   serverNow: Date,
   mode: 'INITIAL' | 'REPLAN',
+  reopenQa = false,
 ): {
   qaClosesAt: Date;
   expiresAt: Date;
@@ -3499,7 +3500,7 @@ function computeQaConfigurationWindow(
     openedAt: serverNow,
     timeZone: session.timeZone,
     selection,
-    allowUnchangedPastClosesAt: mode === 'REPLAN' ? session.qaClosesAt : null,
+    allowUnchangedPastClosesAt: mode === 'REPLAN' && !reopenQa ? session.qaClosesAt : null,
   });
   const requiresSessionExtension = qaClosesAt > session.expiresAt;
   return {
@@ -5715,7 +5716,13 @@ const sessionCoreRouter = router({
           message: 'Q&A muss zuerst eingerichtet werden.',
         });
       }
-      const window = computeQaConfigurationWindow(session, input.selection, serverNow, input.mode);
+      const window = computeQaConfigurationWindow(
+        session,
+        input.selection,
+        serverNow,
+        input.mode,
+        input.reopenQa === true,
+      );
       const originalHost =
         !!ctx.hostToken && (await isOriginalHostSessionToken(code, ctx.hostToken));
       return {
@@ -5806,6 +5813,12 @@ const sessionCoreRouter = router({
               : input.reopenQa
                 ? true
                 : session.qaOpen === true && !deadlineExpired;
+          if (input.reopenQa === true && confirmedQaClosesAt.getTime() <= serverNow.getTime()) {
+            throw new TRPCError({
+              code: 'BAD_REQUEST',
+              message: 'Zum Wiederöffnen brauchst du eine Q&A-Frist in der Zukunft.',
+            });
+          }
           const alreadyApplied =
             session.qaEnabled &&
             session.qaOpen === nextQaOpen &&
@@ -5830,6 +5843,7 @@ const sessionCoreRouter = router({
             input.selection,
             previewServerNow,
             input.mode,
+            input.reopenQa === true,
           );
           if (
             confirmedQaClosesAt.getTime() !== window.qaClosesAt.getTime() ||

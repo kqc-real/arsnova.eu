@@ -140,6 +140,12 @@ export class QaChannelConfigurationDialogComponent implements OnInit {
       );
       return;
     }
+    if (this.willReopenQa() && this.deadlineIsNotInTheFuture(selection)) {
+      this.error.set(
+        $localize`:@@qaConfig.reopenNeedsFutureDeadline:Zum Wiederöffnen brauchst du eine Teilnahmefrist in der Zukunft. Wähle ein neues Datum und eine Uhrzeit.`,
+      );
+      return;
+    }
     this.pending.set(true);
     this.error.set(null);
     try {
@@ -277,6 +283,7 @@ export class QaChannelConfigurationDialogComponent implements OnInit {
         code: this.data.code,
         mode,
         selection,
+        reopenQa: this.willReopenQa(),
       });
     } catch (error) {
       if (mode === 'INITIAL' && this.isQaAlreadyConfiguredError(error)) {
@@ -284,6 +291,7 @@ export class QaChannelConfigurationDialogComponent implements OnInit {
           code: this.data.code,
           mode: 'REPLAN',
           selection,
+          reopenQa: this.willReopenQa(),
         });
       }
       throw error;
@@ -331,6 +339,16 @@ export class QaChannelConfigurationDialogComponent implements OnInit {
 
   private willReopenQa(): boolean {
     return this.configurationMode() === 'REPLAN' && this.canReopen && this.reopenQa;
+  }
+
+  private deadlineIsNotInTheFuture(selection: SessionQaDeadlineSelection): boolean {
+    if (selection.kind !== 'ABSOLUTE') {
+      return false;
+    }
+    const closesAt = Date.parse(selection.closesAt);
+    const nowIso = this.preview()?.serverNow ?? this.data.session.serverNow;
+    const now = nowIso ? Date.parse(nowIso) : Number.NaN;
+    return Number.isFinite(closesAt) && Number.isFinite(now) && closesAt <= now;
   }
 
   private extensionConfirmMessage(): string {

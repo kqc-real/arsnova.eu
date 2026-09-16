@@ -163,6 +163,7 @@ describe('QaChannelConfigurationDialogComponent', () => {
       code: 'ABC123',
       mode: 'INITIAL',
       selection: { kind: 'DURATION_DAYS', days: 1 },
+      reopenQa: false,
     });
     expect(fixture.nativeElement.textContent).toContain('Offen für Fragen und Bewertungen bis');
     expect(fixture.nativeElement.textContent).toContain('Session endet');
@@ -277,11 +278,13 @@ describe('QaChannelConfigurationDialogComponent', () => {
       code: 'ABC123',
       mode: 'INITIAL',
       selection: { kind: 'UNTIL_SESSION_END' },
+      reopenQa: false,
     });
     expect(previewMock).toHaveBeenCalledWith({
       code: 'ABC123',
       mode: 'REPLAN',
       selection: { kind: 'UNTIL_SESSION_END' },
+      reopenQa: false,
     });
     expect(component.error()).toBeNull();
   });
@@ -458,6 +461,32 @@ describe('QaChannelConfigurationDialogComponent', () => {
     await component.confirm();
 
     expect(configureMock).toHaveBeenCalledWith(expect.objectContaining({ reopenQa: true }));
+  });
+
+  it('fordert zum Wiederöffnen einer abgelaufenen Frist eine neue Frist', async () => {
+    const expiredSession = {
+      ...session,
+      serverNow: '2026-09-15T07:00:00.000Z',
+      qaClosesAt: '2026-09-15T06:30:00.123Z',
+      expiresAt: '2026-09-16T06:00:00.000Z',
+      channels: {
+        ...session.channels,
+        qa: {
+          enabled: true,
+          open: false,
+          closesAt: '2026-09-15T06:30:00.123Z',
+          state: 'DEADLINE_EXPIRED' as const,
+          title: 'Alte Fragenwand',
+          moderationMode: false,
+        },
+      },
+    };
+    const { component } = configureTestBed(false, undefined, true, expiredSession);
+    component.reopenQa = true;
+    await component.confirm();
+
+    expect(configureMock).not.toHaveBeenCalled();
+    expect(component.error()).toContain('Teilnahmefrist in der Zukunft');
   });
 
   it('bewahrt Sekunden und Millisekunden einer unveränderten Frist', async () => {

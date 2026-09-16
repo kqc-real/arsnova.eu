@@ -591,6 +591,141 @@ describe('session absolute lifecycle', () => {
     expect(prismaMock.session.update.mock.calls[0]?.[0].data.expiresAt).toBeUndefined();
   });
 
+  it('lehnt eine veraltete Q&A-Konfigurationsrevision ab', async () => {
+    const expired = qaConfigurationRow({
+      qaEnabled: true,
+      qaOpen: false,
+      qaClosesAt: new Date('2026-09-15T06:30:00.123Z'),
+      expiresAt: new Date('2026-09-16T06:00:00.000Z'),
+      qaTitle: 'Alte Fragenwand',
+      preferredChannel: 'qa',
+      sessionLifecycleRevision: 3,
+    });
+    prismaMock.session.findUnique.mockResolvedValue(expired);
+
+    await expect(
+      caller.configureQaChannel({
+        code: 'ABC123',
+        mode: 'REPLAN',
+        selection: { kind: 'ABSOLUTE', closesAt: '2026-09-15T06:30:00.123Z' },
+        expectedLifecycleRevision: 2,
+        previewServerNow: '2026-09-15T07:00:00.000Z',
+        confirmedQaClosesAt: '2026-09-15T06:30:00.123Z',
+        confirmedExpiresAt: '2026-09-16T06:00:00.000Z',
+        confirmSessionExtension: false,
+        reopenQa: false,
+        qaTitle: 'Nur Titel',
+        moderationMode: false,
+      }),
+    ).rejects.toMatchObject({ code: 'CONFLICT' });
+    expect(prismaMock.session.update).not.toHaveBeenCalled();
+  });
+
+  it('lehnt Wiederöffnen mit unveränderter abgelaufener Frist ab', async () => {
+    const expired = qaConfigurationRow({
+      qaEnabled: true,
+      qaOpen: false,
+      qaClosesAt: new Date('2026-09-15T06:30:00.123Z'),
+      expiresAt: new Date('2026-09-16T06:00:00.000Z'),
+      qaTitle: 'Alte Fragenwand',
+      preferredChannel: 'qa',
+    });
+    prismaMock.session.findUnique.mockResolvedValue(expired);
+
+    await expect(
+      caller.previewQaConfiguration({
+        code: 'ABC123',
+        mode: 'REPLAN',
+        reopenQa: true,
+        selection: { kind: 'ABSOLUTE', closesAt: '2026-09-15T06:30:00.123Z' },
+      }),
+    ).rejects.toMatchObject({ code: 'BAD_REQUEST' });
+
+    await expect(
+      caller.configureQaChannel({
+        code: 'ABC123',
+        mode: 'REPLAN',
+        selection: { kind: 'ABSOLUTE', closesAt: '2026-09-15T06:30:00.123Z' },
+        expectedLifecycleRevision: 2,
+        previewServerNow: '2026-09-15T07:00:00.000Z',
+        confirmedQaClosesAt: '2026-09-15T06:30:00.123Z',
+        confirmedExpiresAt: '2026-09-16T06:00:00.000Z',
+        confirmSessionExtension: false,
+        reopenQa: true,
+        qaTitle: 'Alte Fragenwand',
+        moderationMode: false,
+      }),
+    ).rejects.toMatchObject({ code: 'BAD_REQUEST' });
+    expect(prismaMock.session.update).not.toHaveBeenCalled();
+  });
+
+  it('öffnet mit gültiger zukünftiger Frist und liefert OPEN', async () => {
+    const expired = qaConfigurationRow({
+      qaEnabled: true,
+      qaOpen: false,
+      qaClosesAt: new Date('2026-09-15T06:30:00.123Z'),
+      expiresAt: new Date('2026-09-16T06:00:00.000Z'),
+      qaTitle: 'Alte Fragenwand',
+      preferredChannel: 'qa',
+    });
+    const reopenedAt = new Date('2026-09-16T04:00:00.000Z');
+    prismaMock.session.findUnique.mockResolvedValue(expired);
+    prismaMock.session.update.mockResolvedValue({
+      ...expired,
+      qaOpen: true,
+      qaClosesAt: reopenedAt,
+      sessionLifecycleRevision: 3,
+    });
+
+    await expect(
+      caller.configureQaChannel({
+        code: 'ABC123',
+        mode: 'REPLAN',
+        selection: { kind: 'ABSOLUTE', closesAt: '2026-09-16T04:00:00.000Z' },
+        expectedLifecycleRevision: 2,
+        previewServerNow: '2026-09-15T07:00:00.000Z',
+        confirmedQaClosesAt: '2026-09-16T04:00:00.000Z',
+        confirmedExpiresAt: '2026-09-16T06:00:00.000Z',
+        confirmSessionExtension: false,
+        reopenQa: true,
+        qaTitle: 'Alte Fragenwand',
+        moderationMode: false,
+      }),
+    ).resolves.toMatchObject({
+      qaClosesAt: '2026-09-16T04:00:00.000Z',
+      channels: expect.objectContaining({
+        qa: expect.objectContaining({ open: true, state: 'OPEN' }),
+      }),
+    });
+  });
+
+  it('lehnt Wiederöffnen ab, wenn die Frist zwischen Vorschau und Bestätigung abläuft', async () => {
+    const closingSoon = qaConfigurationRow({
+      qaEnabled: true,
+      qaOpen: false,
+      qaClosesAt: new Date('2026-09-15T07:00:00.000Z'),
+      expiresAt: new Date('2026-09-16T06:00:00.000Z'),
+      preferredChannel: 'qa',
+    });
+    prismaMock.session.findUnique.mockResolvedValue(closingSoon);
+
+    await expect(
+      caller.configureQaChannel({
+        code: 'ABC123',
+        mode: 'REPLAN',
+        selection: { kind: 'ABSOLUTE', closesAt: '2026-09-15T07:00:00.000Z' },
+        expectedLifecycleRevision: 2,
+        previewServerNow: '2026-09-15T06:59:00.000Z',
+        confirmedQaClosesAt: '2026-09-15T07:00:00.000Z',
+        confirmedExpiresAt: '2026-09-16T06:00:00.000Z',
+        confirmSessionExtension: false,
+        reopenQa: true,
+        moderationMode: false,
+      }),
+    ).rejects.toMatchObject({ code: 'BAD_REQUEST' });
+    expect(prismaMock.session.update).not.toHaveBeenCalled();
+  });
+
   it('öffnet einen geschlossenen Kanal nur nach ausdrücklichem Wiederöffnen', async () => {
     const closed = qaConfigurationRow({
       qaEnabled: true,

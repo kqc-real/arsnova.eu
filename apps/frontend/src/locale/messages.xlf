@@ -16158,6 +16158,9 @@
       <trans-unit id="qaConfig.reopenLabel" datatype="html">
         <source>Geschlossene Fragerunde wieder öffnen</source>
       </trans-unit>
+      <trans-unit id="qaConfig.reopenNeedsFutureDeadline" datatype="html">
+        <source>Zum Wiederöffnen brauchst du eine Teilnahmefrist in der Zukunft. Wähle ein neues Datum und eine Uhrzeit.</source>
+      </trans-unit>
       <trans-unit id="qaConfig.noFullDayLeft" datatype="html">
         <source>Kein voller Kalendertag ist mehr zulässig. Wähle ein Datum und eine Uhrzeit.</source>
       </trans-unit>

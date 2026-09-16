@@ -140,7 +140,11 @@
       }
     }
     @if (canReopen) {
-      <mat-slide-toggle [(ngModel)]="reopenQa" i18n="@@qaConfig.reopenLabel">
+      <mat-slide-toggle
+        [(ngModel)]="reopenQa"
+        (ngModelChange)="onDeadlineChange()"
+        i18n="@@qaConfig.reopenLabel"
+      >
         Geschlossene Fragerunde wieder öffnen
       </mat-slide-toggle>
     }

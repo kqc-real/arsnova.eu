@@ -382,4 +382,79 @@ describe.skipIf(!RUN_PG)('absolute session lifecycle (PostgreSQL)', () => {
     expect(epochMs(ended.rows[0]!.ended_ms)).toBeGreaterThan(0);
     expect(ended.rows[0]!.revision).toBe(1);
   });
+
+  it('erhöht die Revision bei Q&A-Titeländerung und lehnt veraltete Revisionswechsel ab', async () => {
+    const sessionId = randomUUID();
+    sessionIds.push(sessionId);
+    const inserted = await primary.query<{ revision: number }>(
+      `
+        INSERT INTO "Session" (
+          id, code, status, "createdAt", "expiresAt", "startedAt",
+          "qaEnabled", "qaOpen", "qaClosesAt", "qaTitle", "qaModerationMode",
+          "preferredChannel"
+        )
+        VALUES (
+          $1, $2, 'ACTIVE',
+          clock_timestamp() - INTERVAL '2 hours',
+          clock_timestamp() + INTERVAL '12 hours',
+          clock_timestamp() - INTERVAL '2 hours',
+          TRUE, FALSE, clock_timestamp() - INTERVAL '30 minutes',
+          'Alte Fragenwand', FALSE, 'qa'
+        )
+        RETURNING "sessionLifecycleRevision" AS revision
+      `,
+      [sessionId, uniqueSessionCode()],
+    );
+    expect(inserted.rows[0]!.revision).toBe(0);
+
+    const titled = await primary.query<{ title: string; revision: number }>(
+      `
+        UPDATE "Session"
+        SET "qaTitle" = 'Nur Titel', "sessionLifecycleRevision" = "sessionLifecycleRevision" + 1
+        WHERE id = $1
+        RETURNING "qaTitle" AS title, "sessionLifecycleRevision" AS revision
+      `,
+      [sessionId],
+    );
+    expect(titled.rows[0]).toMatchObject({ title: 'Nur Titel', revision: 1 });
+
+    const moderated = await primary.query<{ revision: number; moderation: boolean }>(
+      `
+        UPDATE "Session"
+        SET "qaModerationMode" = TRUE, "sessionLifecycleRevision" = "sessionLifecycleRevision" + 1
+        WHERE id = $1
+        RETURNING "sessionLifecycleRevision" AS revision, "qaModerationMode" AS moderation
+      `,
+      [sessionId],
+    );
+    expect(moderated.rows[0]).toMatchObject({ revision: 2, moderation: true });
+
+    await expect(
+      primary.query(
+        `
+          UPDATE "Session"
+          SET "qaTitle" = 'Zu spät', "sessionLifecycleRevision" = 4
+          WHERE id = $1
+        `,
+        [sessionId],
+      ),
+    ).rejects.toThrow(/ARSNOVA_SESSION_CHANNEL_REVISION_REQUIRED/);
+
+    await expect(
+      primary.query(
+        `
+          UPDATE "Session"
+          SET "sessionLifecycleRevision" = "sessionLifecycleRevision" + 1
+          WHERE id = $1
+        `,
+        [sessionId],
+      ),
+    ).rejects.toThrow(/ARSNOVA_SESSION_LIFECYCLE_IMMUTABLE/);
+
+    const persisted = await primary.query<{ title: string; revision: number }>(
+      `SELECT "qaTitle" AS title, "sessionLifecycleRevision" AS revision FROM "Session" WHERE id = $1`,
+      [sessionId],
+    );
+    expect(persisted.rows[0]).toMatchObject({ title: 'Nur Titel', revision: 2 });
+  });
 });
