@@ -2156,6 +2156,15 @@ jobs:
           docker compose -f docker-compose.prod.yml --env-file .env.production \
             exec -T app node /app/scripts/container-runtime-smoke.mjs
 
+          # deploy.sh Schritt 5b: Image ohne npm, Gate nur über node.
+          if docker compose -f docker-compose.prod.yml --env-file .env.production \
+            exec -T app sh -c 'command -v npm'; then
+            echo "Produktionsimage darf kein npm enthalten."
+            exit 1
+          fi
+          docker compose -f docker-compose.prod.yml --env-file .env.production \
+            run --rm --no-deps --entrypoint "" app node /app/apps/backend/dist/runRetentionCleanup.js
+
           # Produktionsimage/Compose: Yjs-Protokoll, Offline-Update und Reconnect
           # gegen den gehärteten Relay auf dem tatsächlich veröffentlichten Port.
           docker compose -f docker-compose.prod.yml --env-file .env.production \

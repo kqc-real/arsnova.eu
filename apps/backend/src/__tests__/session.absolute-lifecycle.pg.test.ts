@@ -244,12 +244,12 @@ describe.skipIf(!RUN_PG)('absolute session lifecycle (PostgreSQL)', () => {
         `UPDATE "Session" SET "expiresAt" = "expiresAt" + INTERVAL '1 hour' WHERE id = $1`,
         [sessionId],
       );
+      const rejected = expect(extension).rejects.toThrow(/ARSNOVA_SESSION_EXPIRED/);
       await waitForBlockedUpdate(monitor);
       await waitUntilAfter(epochMs(inserted.rows[0]!.expires_ms));
       await blocker.query('COMMIT');
       blockerOpen = false;
-
-      await expect(extension).rejects.toThrow(/ARSNOVA_SESSION_EXPIRED/);
+      await rejected;
     } finally {
       if (blockerOpen) {
         await blocker.query('ROLLBACK').catch(() => undefined);
@@ -355,11 +355,11 @@ describe.skipIf(!RUN_PG)('absolute session lifecycle (PostgreSQL)', () => {
         `UPDATE "Session" SET "expiresAt" = "expiresAt" + INTERVAL '1 hour' WHERE id = $1`,
         [sessionId],
       );
+      const rejected = expect(extension).rejects.toThrow(/ARSNOVA_SESSION_ENDED/);
       await waitForBlockedUpdate(monitor);
       await blocker.query('COMMIT');
       blockerOpen = false;
-
-      await expect(extension).rejects.toThrow(/ARSNOVA_SESSION_ENDED/);
+      await rejected;
     } finally {
       if (blockerOpen) {
         await blocker.query('ROLLBACK').catch(() => undefined);

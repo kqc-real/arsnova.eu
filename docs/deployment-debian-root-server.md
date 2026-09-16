@@ -924,6 +924,7 @@ spontan anheben oder durch enge IP-Limits ersetzen; zuerst
 | App stoppen             | `./scripts/prod-compose.sh stop app`                                                                                                     |
 | Logs anzeigen           | `./scripts/prod-compose.sh logs -f app`                                                                                                  |
 | Migrationen             | `./scripts/prod-compose.sh run --rm --entrypoint "" app /app/node_modules/.bin/prisma migrate deploy --schema /app/prisma/schema.prisma` |
+| Retention-Gate          | `./scripts/prod-compose.sh run --rm --no-deps --entrypoint "" app node /app/apps/backend/dist/runRetentionCleanup.js`                    |
 | Recover (unvollständig) | `./scripts/deploy.sh --recover`                                                                                                          |
 | Rollback                | `./scripts/deploy.sh --rollback`                                                                                                         |
 | Nginx neu laden         | `sudo systemctl reload nginx`                                                                                                            |

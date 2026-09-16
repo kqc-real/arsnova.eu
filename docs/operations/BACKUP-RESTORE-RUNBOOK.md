@@ -37,7 +37,8 @@ erstellten, clientseitig verschlüsselten Restic-Snapshot noch bis zum Ablauf
 der 14-tägigen Offsite-Retention enthalten sein. Backups sind kein
 Host-/Teilnehmerarchiv und werden nicht über die Anwendung zugänglich gemacht.
 Jeder Deploy und Restore führt nach den Migrationen und vor dem Start des
-Traffic-fähigen App-Containers das Backend-Skript `cleanup:retention` aus. Das
+Traffic-fähigen App-Containers `node /app/apps/backend/dist/runRetentionCleanup.js`
+im gehärteten App-Image aus (kein `npm`, das Image entfernt es). Das
 Gate löscht wiederhergestellte, bereits fällige
 Bestände und bricht die Freigabe ab, solange ein überfälliger Sessionkern
 verbleibt. Bereits von Hosts heruntergeladene Exporte liegen außerhalb der

@@ -232,11 +232,16 @@ test('prisma migrate uses --no-deps so pdf-worker is not started as dependency',
 test('retention cleanup gates app startup after migrations', () => {
   const text = readFileSync(deployScript, 'utf8');
   const migrateIdx = text.indexOf('prisma migrate deploy');
-  const retentionIdx = text.indexOf('npm run cleanup:retention -w @arsnova/backend');
+  const retentionIdx = text.indexOf('node /app/apps/backend/dist/runRetentionCleanup.js');
   const appStartIdx = text.indexOf('compose up -d pdf-worker app');
 
   assert.ok(retentionIdx > migrateIdx, 'retention gate must run after migrations');
   assert.ok(appStartIdx > retentionIdx, 'traffic-capable app must start after retention gate');
+  assert.doesNotMatch(
+    text,
+    /npm run cleanup:retention/,
+    'hardened production image has no npm; deploy must invoke node directly',
+  );
 });
 
 test('real deploy.sh aborts amd64 image before compose up/run and state writes', () => {
