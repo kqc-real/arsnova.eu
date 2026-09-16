@@ -44,51 +44,60 @@ CREATE INDEX "QaQuestion_sessionId_status_upvoteCount_createdAt_id_idx"
   ON "QaQuestion" ("sessionId", "status", "upvoteCount", "createdAt", "id");
 
 -- Vorhandene Vote-Zähler und Fragenbestände bilden den gemeinsamen,
--- wahrheitsgemäßen Erfassungsstichtag. Der Lifecycle-Trigger wird nur für
--- diesen atomaren Backfill deaktiviert, da auch beendete Sessions enthalten sind.
-UPDATE "QaQuestion"
-SET
-  "positiveVoteCount" = 0,
-  "negativeVoteCount" = 0,
-  "upvoteCount" = 0;
+-- wahrheitsgemäßen Erfassungsstichtag. Fragen- und Session-Guards werden nur
+-- für diesen atomaren Backfill ausgesetzt (auch beendete Sessions). Ein
+-- DO-Block rollt DISABLE bei Abbruch mit zurück.
+DO $$
+BEGIN
+    ALTER TABLE "QaQuestion" DISABLE TRIGGER "QaQuestion_guard_active_session";
+    UPDATE "QaQuestion"
+    SET
+      "positiveVoteCount" = 0,
+      "negativeVoteCount" = 0,
+      "upvoteCount" = 0;
 
-WITH vote_counts AS (
-  SELECT
-    "qaQuestionId",
-    COUNT(*) FILTER (WHERE "direction" = 'UP')::INTEGER AS positive_count,
-    COUNT(*) FILTER (WHERE "direction" = 'DOWN')::INTEGER AS negative_count
-  FROM "QaUpvote"
-  GROUP BY "qaQuestionId"
-)
-UPDATE "QaQuestion" AS question
-SET
-  "positiveVoteCount" = COALESCE(vote_counts.positive_count, 0),
-  "negativeVoteCount" = COALESCE(vote_counts.negative_count, 0),
-  "upvoteCount" = COALESCE(vote_counts.positive_count, 0)
-    - COALESCE(vote_counts.negative_count, 0)
-FROM vote_counts
-WHERE vote_counts."qaQuestionId" = question."id";
+    WITH vote_counts AS (
+      SELECT
+        "qaQuestionId",
+        COUNT(*) FILTER (WHERE "direction" = 'UP')::INTEGER AS positive_count,
+        COUNT(*) FILTER (WHERE "direction" = 'DOWN')::INTEGER AS negative_count
+      FROM "QaUpvote"
+      GROUP BY "qaQuestionId"
+    )
+    UPDATE "QaQuestion" AS question
+    SET
+      "positiveVoteCount" = COALESCE(vote_counts.positive_count, 0),
+      "negativeVoteCount" = COALESCE(vote_counts.negative_count, 0),
+      "upvoteCount" = COALESCE(vote_counts.positive_count, 0)
+        - COALESCE(vote_counts.negative_count, 0)
+    FROM vote_counts
+    WHERE vote_counts."qaQuestionId" = question."id";
+    ALTER TABLE "QaQuestion" ENABLE TRIGGER "QaQuestion_guard_active_session";
+END $$;
 
-ALTER TABLE "Session" DISABLE TRIGGER "Session_enforce_lifecycle";
-UPDATE "Session" AS session
-SET
-  "qaQuestionCount" = (
-    SELECT COUNT(*)::INTEGER
-    FROM "QaQuestion"
-    WHERE "sessionId" = session."id"
-  ),
-  "qaQuestionPeakCount" = (
-    SELECT COUNT(*)::INTEGER
-    FROM "QaQuestion"
-    WHERE "sessionId" = session."id"
-  ),
-  "qaQuestionsAcceptedTotal" = (
-    SELECT COUNT(*)::INTEGER
-    FROM "QaQuestion"
-    WHERE "sessionId" = session."id"
-  ),
-  "qaQuestionPeakReachedAt" = CURRENT_TIMESTAMP;
-ALTER TABLE "Session" ENABLE TRIGGER "Session_enforce_lifecycle";
+DO $$
+BEGIN
+    ALTER TABLE "Session" DISABLE TRIGGER "Session_enforce_lifecycle";
+    UPDATE "Session" AS session
+    SET
+      "qaQuestionCount" = (
+        SELECT COUNT(*)::INTEGER
+        FROM "QaQuestion"
+        WHERE "sessionId" = session."id"
+      ),
+      "qaQuestionPeakCount" = (
+        SELECT COUNT(*)::INTEGER
+        FROM "QaQuestion"
+        WHERE "sessionId" = session."id"
+      ),
+      "qaQuestionsAcceptedTotal" = (
+        SELECT COUNT(*)::INTEGER
+        FROM "QaQuestion"
+        WHERE "sessionId" = session."id"
+      ),
+      "qaQuestionPeakReachedAt" = CURRENT_TIMESTAMP;
+    ALTER TABLE "Session" ENABLE TRIGGER "Session_enforce_lifecycle";
+END $$;
 
 INSERT INTO "QaSessionStatisticProjection" (
   "sessionId",
