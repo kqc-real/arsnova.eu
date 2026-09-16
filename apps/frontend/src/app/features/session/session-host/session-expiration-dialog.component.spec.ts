@@ -64,7 +64,7 @@ describe('SessionExpirationDialogComponent', () => {
 
     const text = fixture.nativeElement.textContent as string;
     expect(text).toContain('Maximales Q&A-Ende');
-    expect(text).toContain('Nur für den Q&A-Kanal');
+    expect(text).toContain('Damit setzt du das Sessionende');
     expect(text).toContain('Aktuelles maximales Q&A-Ende');
     expect(text).not.toContain('Aktuelles Sessionende');
   });
@@ -139,8 +139,9 @@ describe('SessionExpirationDialogComponent', () => {
 
     const text = fixture.nativeElement.textContent as string;
     expect(text).toContain('Q&A schließt unabhängig davon weiterhin');
-    expect(text).toContain('Um 1 Stunde');
-    expect(text).toContain('Um 1 Tag');
-    expect(text).toContain('Um 7 Tage');
+    expect(text).toContain('1 Stunde');
+    expect(text).toContain('1 Tag');
+    expect(text).toContain('7 Tage');
+    expect(text).toContain('Verlängern um');
   });
 });

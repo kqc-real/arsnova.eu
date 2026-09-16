@@ -115,9 +115,9 @@ describe('QaChannelConfigurationDialogComponent', () => {
     expect(host.querySelector('.dialog-title-header__icon mat-icon')?.textContent?.trim()).toBe(
       'forum',
     );
-    expect(host.textContent).toContain('Q&A-Kanal einrichten');
-    expect(host.textContent).toContain('Q&A einrichten');
-    expect(host.textContent).toContain('Q&A schließt');
+    expect(host.textContent).toContain('Fragerunde einrichten');
+    expect(host.textContent).toContain('Fragerunde öffnen');
+    expect(host.textContent).toContain('Offen für Fragen und Bewertungen bis');
     expect(host.textContent).not.toContain('Schritt 1 von 2');
     expect(host.textContent).not.toContain('Verbindliche Vorschau');
     expect(host.textContent).not.toContain('Vorschau prüfen');
@@ -135,7 +135,7 @@ describe('QaChannelConfigurationDialogComponent', () => {
     const { fixture } = configureTestBed(true);
 
     expect(fixture.nativeElement.textContent).toContain(
-      'Das Teilnahmeprofil ist nach dem ersten Beitritt gesperrt.',
+      'Diese Einstellungen können nach dem ersten Beitritt nicht mehr geändert werden.',
     );
     const profileFieldset = fixture.nativeElement.querySelector(
       'fieldset:nth-of-type(2)',
@@ -157,7 +157,7 @@ describe('QaChannelConfigurationDialogComponent', () => {
       mode: 'INITIAL',
       selection: { kind: 'DURATION_DAYS', days: 1 },
     });
-    expect(fixture.nativeElement.textContent).toContain('Q&A schließt');
+    expect(fixture.nativeElement.textContent).toContain('Offen für Fragen und Bewertungen bis');
     expect(fixture.nativeElement.textContent).toContain('Session endet');
     expect(fixture.nativeElement.textContent).toContain(
       'Beim Bestätigen wird die globale Sessionfrist mit verlängert',
@@ -271,7 +271,7 @@ describe('QaChannelConfigurationDialogComponent', () => {
 
     expect(component.profileLocked()).toBe(true);
     expect(fixture.nativeElement.textContent).toContain(
-      'Das Teilnahmeprofil ist nach dem ersten Beitritt gesperrt.',
+      'Diese Einstellungen können nach dem ersten Beitritt nicht mehr geändert werden.',
     );
     expect(configureMock).toHaveBeenCalledWith(
       expect.objectContaining({ participationProfile: undefined }),

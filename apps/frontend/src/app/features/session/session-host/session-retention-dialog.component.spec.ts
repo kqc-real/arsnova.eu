@@ -38,7 +38,7 @@ describe('SessionRetentionDialogComponent', () => {
 
     expect(fixture.nativeElement.querySelector('.dialog-title-header')).not.toBeNull();
     expect(fixture.nativeElement.textContent).toContain('Löschtermin anzeigen');
-    expect(fixture.nativeElement.textContent).toContain('Host-Nachbereitung bis:');
+    expect(fixture.nativeElement.textContent).toContain('Host-Lesezugriff bis:');
     expect(fixture.nativeElement.textContent).toContain('Voraussichtliche technische Löschung:');
     expect(fixture.nativeElement.textContent).not.toContain(
       'Eine begrenzte Aufbewahrung verzögert die technische Löschung',

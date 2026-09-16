@@ -19,14 +19,12 @@
 
 <mat-dialog-content class="recovery-card__content" id="host-recovery-card-description">
   <p class="recovery-card__intro" i18n="@@hostRecovery.cardWhy">
-    Es gibt kein Konto. Deine Session als Host hängt deshalb an genau diesem Browser auf diesem
-    Gerät. Teilnehmende können von jedem beliebigen Browser mitmachen. Du als Host bleibst an diesen
-    Browser gebunden.
+    Dein Host-Zugang ist in diesem Browser gespeichert. Mit der Notfallkarte kannst du ihn auf einem
+    anderen Gerät wiederherstellen.
   </p>
   <p class="recovery-card__intro" i18n="@@hostRecovery.cardIntro">
-    Wenn du später nicht mehr auf diesen Browser zugreifen kannst (anderes Gerät, Browserdaten
-    wurden gelöscht), stellst du den Host-Zugang nur mit dieser Karte wieder her. Öffne später die
-    Wiederherstellungsseite und gib Session-Kennung plus Recovery-Code ein.
+    Öffne dazu die Wiederherstellungsseite und gib die Session-Kennung und den
+    Wiederherstellungscode ein.
   </p>
   <p class="recovery-card__recovery-url">
     <span class="recovery-card__hint" i18n="@@hostRecovery.recoveryPageLabel"
@@ -41,8 +39,8 @@
         <dt i18n="@@hostRecovery.supportIdLabel">Session-Kennung</dt>
         <dd>{{ data.supportId }}</dd>
         <p class="recovery-card__hint" i18n="@@hostRecovery.supportIdHint">
-          Kein Helpdesk-Kontakt. Das ist die Kennung genau dieser Session — damit findest du sie bei
-          der Wiederherstellung wieder.
+          Diese Kennung identifiziert die Session bei der Wiederherstellung. Sie ist nicht der
+          öffentliche Beitrittscode.
         </p>
       </div>
       <button
@@ -59,10 +57,10 @@
     </div>
     <div class="recovery-card__secret recovery-card__secret--secret">
       <div class="recovery-card__secret-text">
-        <dt i18n="@@hostRecovery.recoveryCodeLabel">Recovery-Code</dt>
+        <dt i18n="@@hostRecovery.recoveryCodeLabel">Wiederherstellungscode</dt>
         <dd>{{ data.recoveryCode }}</dd>
         <p class="recovery-card__hint" i18n="@@hostRecovery.recoveryCodeHint">
-          Geheim. Nur dieser Code stellt den Host-Zugang wieder her.
+          Halte diesen Code geheim. Zusammen mit der Session-Kennung ermöglicht er den Host-Zugang.
         </p>
       </div>
       <button
@@ -70,7 +68,7 @@
         type="button"
         (click)="copy('recoveryCode')"
         i18n-aria-label="@@hostRecovery.copyRecoveryCodeAria"
-        aria-label="Recovery-Code kopieren"
+        aria-label="Wiederherstellungscode kopieren"
       >
         <mat-icon aria-hidden="true">{{
           copiedField() === 'recoveryCode' ? 'check' : 'content_copy'
@@ -87,15 +85,15 @@
     } @else if (copiedField() === 'supportId') {
       <span i18n="@@hostRecovery.supportIdCopied">Session-Kennung wurde kopiert.</span>
     } @else if (copiedField() === 'recoveryCode') {
-      <span i18n="@@hostRecovery.recoveryCodeCopied">Recovery-Code wurde kopiert.</span>
+      <span i18n="@@hostRecovery.recoveryCodeCopied">Wiederherstellungscode wurde kopiert.</span>
     }
   </p>
 
   <p class="recovery-card__notice" role="note">
     <mat-icon aria-hidden="true">info</mat-icon>
     <span i18n="@@hostRecovery.cardWarning">
-      Wenn die Notfallkarte verloren geht, kann nur noch der Support helfen. Den Kontakt findest du
-      im »Impressum«.
+      Wenn Browserzugang und Notfallkarte verloren sind, wende dich an den Support. Er muss deine
+      Berechtigung für diese Session prüfen. Die Kontaktdaten findest du im »Impressum«.
     </span>
   </p>
 

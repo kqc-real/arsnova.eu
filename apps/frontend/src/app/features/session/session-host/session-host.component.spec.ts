@@ -13125,7 +13125,7 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
     ) as HTMLElement | null;
     expect(qaBanner?.textContent).not.toContain('Ende:');
     expect(qaBanner?.textContent).not.toContain('Löschtermin anzeigen');
-    expect(qaBanner?.textContent).not.toContain('Host-Nachbereitung bis:');
+    expect(qaBanner?.textContent).not.toContain('Host-Lesezugriff bis:');
     expect(qaBanner?.textContent).not.toContain('Voraussichtliche technische Löschung:');
     fixture.destroy();
   });

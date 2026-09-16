@@ -83,18 +83,18 @@ export class HostRecoveryCardDialogComponent {
   buildDownloadHtml(): string {
     const lang = this.document.documentElement.lang || 'de';
     const heading = $localize`:@@hostRecovery.downloadHeading:Host-Notfallkarte`;
-    const why = $localize`:@@hostRecovery.cardWhy:Es gibt kein Konto. Deine Session als Host hängt deshalb an genau diesem Browser auf diesem Gerät. Teilnehmende können von jedem beliebigen Browser mitmachen. Du als Host bleibst an diesen Browser gebunden.`;
-    const intro = $localize`:@@hostRecovery.cardIntro:Wenn du später nicht mehr auf diesen Browser zugreifen kannst (anderes Gerät, Browserdaten wurden gelöscht), stellst du den Host-Zugang nur mit dieser Karte wieder her. Öffne später die Wiederherstellungsseite und gib Session-Kennung plus Recovery-Code ein.`;
+    const why = $localize`:@@hostRecovery.cardWhy:Dein Host-Zugang ist in diesem Browser gespeichert. Mit der Notfallkarte kannst du ihn auf einem anderen Gerät wiederherstellen.`;
+    const intro = $localize`:@@hostRecovery.cardIntro:Öffne dazu die Wiederherstellungsseite und gib die Session-Kennung und den Wiederherstellungscode ein.`;
     const supportLabel = $localize`:@@hostRecovery.supportIdLabel:Session-Kennung`;
-    const recoveryLabel = $localize`:@@hostRecovery.recoveryCodeLabel:Recovery-Code`;
-    const supportHint = $localize`:@@hostRecovery.supportIdHint:Kein Helpdesk-Kontakt. Das ist die Kennung genau dieser Session — damit findest du sie bei der Wiederherstellung wieder.`;
-    const recoveryHint = $localize`:@@hostRecovery.recoveryCodeHint:Geheim. Nur dieser Code stellt den Host-Zugang wieder her.`;
+    const recoveryLabel = $localize`:@@hostRecovery.recoveryCodeLabel:Wiederherstellungscode`;
+    const supportHint = $localize`:@@hostRecovery.supportIdHint:Diese Kennung identifiziert die Session bei der Wiederherstellung. Sie ist nicht der öffentliche Beitrittscode.`;
+    const recoveryHint = $localize`:@@hostRecovery.recoveryCodeHint:Halte diesen Code geheim. Zusammen mit der Session-Kennung ermöglicht er den Host-Zugang.`;
     const howTo = $localize`:@@hostRecovery.downloadHowTo:So stellst du den Host-Zugang wieder her`;
     const recoveryUrl = this.recoveryUrl;
-    const usage = $localize`:@@hostRecovery.downloadUsage:Öffne ${recoveryUrl}:recoveryUrl: und gib Session-Kennung plus Recovery-Code ein.`;
+    const usage = $localize`:@@hostRecovery.downloadUsage:Öffne ${recoveryUrl}:recoveryUrl: und gib Session-Kennung plus Wiederherstellungscode ein.`;
     const recoveryLink = `<a class="usage-link" href="${escapeHtml(recoveryUrl)}">${escapeHtml(recoveryUrl)}</a>`;
     const usageHtml = escapeHtml(usage).replaceAll(escapeHtml(recoveryUrl), recoveryLink);
-    const warning = $localize`:@@hostRecovery.cardWarning:Wenn die Notfallkarte verloren geht, kann nur noch der Support helfen. Den Kontakt findest du im »Impressum«.`;
+    const warning = $localize`:@@hostRecovery.cardWarning:Wenn Browserzugang und Notfallkarte verloren sind, wende dich an den Support. Er muss deine Berechtigung für diese Session prüfen. Die Kontaktdaten findest du im »Impressum«.`;
     return `<!DOCTYPE html>
 <html lang="${escapeHtml(lang)}">
 <head>

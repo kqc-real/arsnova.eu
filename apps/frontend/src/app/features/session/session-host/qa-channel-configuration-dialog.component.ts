@@ -69,6 +69,7 @@ export class QaChannelConfigurationDialogComponent implements OnInit {
   readonly error = signal<string | null>(null);
   readonly preview = signal<SessionQaConfigurationPreviewDTO | null>(null);
   readonly profileLocked = signal(this.data.profileLocked);
+  readonly maxSelectableDays = signal(30);
   readonly timeZone = this.data.session.timeZone ?? 'UTC';
 
   qaTitle =
@@ -85,6 +86,22 @@ export class QaChannelConfigurationDialogComponent implements OnInit {
 
   onDeadlineChange(): Promise<void> {
     return this.refreshPreview();
+  }
+
+  dialogTitle(): string {
+    return this.configurationMode() === 'REPLAN'
+      ? $localize`:@@qaConfig.editTitle:Fragerunde bearbeiten`
+      : $localize`:@@qaConfig.title:Fragerunde einrichten`;
+  }
+
+  confirmLabel(): string {
+    if (this.configurationMode() === 'REPLAN') {
+      return $localize`:@@qaConfig.save:Änderungen speichern`;
+    }
+    if (this.preview()?.requiresSessionExtension) {
+      return $localize`:@@qaConfig.confirmWithExtension:Session verlängern und Fragerunde öffnen`;
+    }
+    return $localize`:@@qaConfig.confirm:Fragerunde öffnen`;
   }
 
   async confirm(): Promise<void> {
@@ -178,6 +195,7 @@ export class QaChannelConfigurationDialogComponent implements OnInit {
       const next = await this.fetchPreview(selection);
       if (requestId === this.previewRequest) {
         this.preview.set(next);
+        this.applyMaxSelectableDays(next.maxExpiresAt);
       }
     } catch {
       if (requestId === this.previewRequest) {
@@ -214,9 +232,12 @@ export class QaChannelConfigurationDialogComponent implements OnInit {
     }
     if (this.deadlineKind === 'DURATION_DAYS') {
       const days = Number(this.days);
-      if (!Number.isInteger(days) || days < 1 || days > 30) {
+      if (!Number.isInteger(days) || days < 1 || days > this.maxSelectableDays()) {
         if (!silent) {
-          this.error.set($localize`:@@qaConfig.invalidDays:Bitte gib 1 bis 30 Kalendertage ein.`);
+          const maxDays = this.maxSelectableDays();
+          this.error.set(
+            $localize`:@@qaConfig.invalidDays:Bitte gib 1 bis ${maxDays}:maxDays: Tage ein.`,
+          );
         }
         return null;
       }
@@ -278,6 +299,15 @@ export class QaChannelConfigurationDialogComponent implements OnInit {
       nicknameTheme: this.data.session.nicknameTheme ?? 'HIGH_SCHOOL',
       identityMode: this.identityMode,
     };
+  }
+
+  private applyMaxSelectableDays(maxExpiresAt: string | undefined): void {
+    const start = Date.parse(this.data.session.serverNow ?? this.data.session.serverTime);
+    const end = Date.parse(maxExpiresAt ?? '');
+    if (!Number.isFinite(start) || !Number.isFinite(end) || end <= start) {
+      return;
+    }
+    this.maxSelectableDays.set(Math.max(1, Math.min(30, Math.floor((end - start) / 86_400_000))));
   }
 
   private applyAuthoritativeProfileLock(locked: boolean): void {

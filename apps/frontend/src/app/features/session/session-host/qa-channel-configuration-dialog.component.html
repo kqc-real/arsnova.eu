@@ -8,9 +8,10 @@
         Schritt {{ data.setupStep }} von {{ data.setupStepCount }}
       </span>
     }
-    <span class="dialog-title-header__heading" i18n="@@qaConfig.title">Q&A-Kanal einrichten</span>
+    <span class="dialog-title-header__heading">{{ dialogTitle() }}</span>
     <span class="dialog-title-header__sub" i18n="@@qaConfig.intro">
-      Lege Titel, Moderation, Teilnahmeprofil und die eigene Teilnahmefrist gemeinsam fest.
+      Lege fest, wie Fragen eingereicht und veröffentlicht werden und wie lange die Fragerunde
+      geöffnet bleibt.
     </span>
   </span>
 </h2>
@@ -45,7 +46,7 @@
     </mat-form-field>
     @if (profileLocked()) {
       <p class="qa-config__notice" role="status" i18n="@@qaConfig.profileLocked">
-        Das Teilnahmeprofil ist nach dem ersten Beitritt gesperrt.
+        Diese Einstellungen können nach dem ersten Beitritt nicht mehr geändert werden.
       </p>
     }
   </fieldset>
@@ -59,7 +60,7 @@
           Bis zum Sessionende
         </mat-option>
         <mat-option value="DURATION_DAYS" i18n="@@qaConfig.durationDays">
-          Für Kalendertage
+          Für eine Anzahl von Tagen
         </mat-option>
         <mat-option value="ABSOLUTE" i18n="@@qaConfig.absolute"> Bis Datum und Uhrzeit </mat-option>
       </mat-select>
@@ -67,12 +68,12 @@
 
     @if (deadlineKind === 'DURATION_DAYS') {
       <mat-form-field appearance="outline" subscriptSizing="dynamic">
-        <mat-label i18n="@@qaConfig.daysLabel">Kalendertage</mat-label>
+        <mat-label i18n="@@qaConfig.daysLabel">Anzahl der Tage</mat-label>
         <input
           matInput
           type="number"
           min="1"
-          max="30"
+          [max]="maxSelectableDays()"
           [(ngModel)]="days"
           (ngModelChange)="onDeadlineChange()"
         />
@@ -94,7 +95,7 @@
     </p>
     @if (preview(); as resolved) {
       <p class="qa-config__resolved" role="status">
-        <span i18n="@@qaConfig.previewQaCloses">Q&A schließt</span>
+        <span i18n="@@qaConfig.previewQaCloses">Offen für Fragen und Bewertungen bis</span>
         {{ formatDateTime(resolved.newQaClosesAt) }}
         @if (resolved.requiresSessionExtension) {
           <span class="qa-config__resolved-end">
@@ -127,13 +128,7 @@
   >
     Abbrechen
   </button>
-  <button
-    matButton="filled"
-    type="button"
-    [disabled]="pending()"
-    (click)="confirm()"
-    i18n="@@qaConfig.confirm"
-  >
-    Q&A einrichten
+  <button matButton="filled" type="button" [disabled]="pending()" (click)="confirm()">
+    {{ confirmLabel() }}
   </button>
 </mat-dialog-actions>

@@ -12,15 +12,16 @@
         Maximales Q&A-Ende
       </span>
       <span class="dialog-title-header__sub" i18n="@@sessionLifecycle.configureSubtitle">
-        Nur für den Q&A-Kanal: bis dahin darf die Fragenwand höchstens offen bleiben. Die
-        Teilnahmefrist in den Q&A-Einstellungen kann früher enden.
+        Damit setzt du das Sessionende. Die Fragerunde kann höchstens so lange offen bleiben; in den
+        Einstellungen kannst du früher schließen.
       </span>
     } @else {
       <span class="dialog-title-header__heading" i18n="@@sessionLifecycle.warningTitle">
         Session endet in {{ data.warningMinutes }} Minuten
       </span>
       <span class="dialog-title-header__sub" i18n="@@sessionLifecycle.warningSubtitle">
-        Eine Verlängerung ändert nur das globale Sessionende, nicht automatisch die Teilnahmefrist.
+        Eine Verlängerung verschiebt das Sessionende. Die Frist für Fragen und Bewertungen bleibt
+        unverändert.
       </span>
     }
   </span>
@@ -94,13 +95,13 @@
             (click)="chooseDays()"
             i18n="@@sessionLifecycle.checkDeadline"
           >
-            Frist prüfen
+            Termin prüfen
           </button>
         </div>
       </fieldset>
     } @else {
       <fieldset class="lifecycle-dialog__group">
-        <legend i18n="@@sessionLifecycle.extendLegend">Schnell verlängern</legend>
+        <legend i18n="@@sessionLifecycle.extendLegend">Verlängern um</legend>
         <div
           class="lifecycle-dialog__quick"
           role="group"
@@ -113,8 +114,10 @@
             class="lifecycle-dialog__action"
             (click)="chooseQuick('ONE_HOUR')"
             i18n="@@sessionLifecycle.extendOneHour"
+            i18n-aria-label="@@sessionLifecycle.extendOneHourAria"
+            aria-label="Um 1 Stunde verlängern"
           >
-            Um 1 Stunde
+            1 Stunde
           </button>
           <button
             matButton="outlined"
@@ -122,8 +125,10 @@
             class="lifecycle-dialog__action"
             (click)="chooseQuick('ONE_DAY')"
             i18n="@@sessionLifecycle.extendOneDay"
+            i18n-aria-label="@@sessionLifecycle.extendOneDayAria"
+            aria-label="Um 1 Tag verlängern"
           >
-            Um 1 Tag
+            1 Tag
           </button>
           <button
             matButton="outlined"
@@ -131,15 +136,17 @@
             class="lifecycle-dialog__action"
             (click)="chooseQuick('SEVEN_DAYS')"
             i18n="@@sessionLifecycle.extendSevenDays"
+            i18n-aria-label="@@sessionLifecycle.extendSevenDaysAria"
+            aria-label="Um 7 Tage verlängern"
           >
-            Um 7 Tage
+            7 Tage
           </button>
         </div>
       </fieldset>
     }
 
     <fieldset class="lifecycle-dialog__group">
-      <legend i18n="@@sessionLifecycle.absoluteLegend">Oder genaues Datum</legend>
+      <legend i18n="@@sessionLifecycle.absoluteLegend">Oder Datum und Uhrzeit wählen</legend>
       <div class="lifecycle-dialog__row">
         <mat-form-field appearance="outline" subscriptSizing="dynamic">
           <mat-label i18n="@@sessionLifecycle.absoluteLabel">Bis Datum und Uhrzeit</mat-label>
@@ -158,7 +165,7 @@
           (click)="chooseAbsolute()"
           i18n="@@sessionLifecycle.checkDeadline"
         >
-          Frist prüfen
+          Termin prüfen
         </button>
       </div>
     </fieldset>

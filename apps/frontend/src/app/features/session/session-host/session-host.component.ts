@@ -4566,7 +4566,7 @@ export class SessionHostComponent implements OnInit, OnDestroy {
       );
     }
     consequences.push(
-      $localize`:@@sessionLifecycle.previewPostProcessing:Host-Nachbereitung bis: ${this.formatSessionLifecycleDateTime(
+      $localize`:@@sessionLifecycle.previewPostProcessing:Host-Lesezugriff bis: ${this.formatSessionLifecycleDateTime(
         preview.projectedPostProcessingEndsAt,
         preview.timeZone,
       )}`,
@@ -4577,7 +4577,7 @@ export class SessionHostComponent implements OnInit, OnDestroy {
     );
     const dialogRef = this.dialog.open(ConfirmLeaveDialogComponent, {
       data: {
-        title: $localize`:@@sessionLifecycle.previewTitle:Neue Sessionfrist bestätigen`,
+        title: $localize`:@@sessionLifecycle.previewTitle:Neues Sessionende bestätigen`,
         message:
           preview.purpose === 'GLOBAL_EXTENSION'
             ? $localize`:@@sessionLifecycle.previewExtensionMessage:Nur das globale Sessionende wird verlängert.`

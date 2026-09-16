@@ -232,7 +232,9 @@ async function main() {
       timeout: 30_000,
     });
     await recovery.getByLabel(/Session-Kennung/i).fill(session.hostRecoveryCard.supportId);
-    await recovery.getByLabel(/Recovery-Code/i).fill(session.hostRecoveryCard.recoveryCode);
+    await recovery
+      .getByLabel(/Wiederherstellungscode/i)
+      .fill(session.hostRecoveryCard.recoveryCode);
     await recovery.getByRole('button', { name: /Zugang wiederherstellen/i }).click();
     const recovered = await waitForPathSuffix(recovery, `/session/${session.code}/host`, 20_000)
       .then(() => true)

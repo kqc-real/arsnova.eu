@@ -46,7 +46,7 @@ type RecoverySourceKind = 'RECOVERY' | 'ADMIN_HANDOFF';
               Host-Zugang wiederherstellen
             </h1>
             <span class="dialog-title-header__sub" i18n="@@hostRecovery.intro">
-              Gib die Session-Kennung und den Recovery-Code deiner Notfallkarte ein.
+              Gib die Session-Kennung und den Wiederherstellungscode deiner Notfallkarte ein.
             </span>
           </span>
         </div>
@@ -67,7 +67,9 @@ type RecoverySourceKind = 'RECOVERY' | 'ADMIN_HANDOFF';
 
             <mat-form-field appearance="outline" subscriptSizing="dynamic">
               @if (sourceKind() === 'RECOVERY') {
-                <mat-label i18n="@@hostRecovery.recoveryCodeLabel">Recovery-Code</mat-label>
+                <mat-label i18n="@@hostRecovery.recoveryCodeLabel"
+                  >Wiederherstellungscode</mat-label
+                >
               } @else {
                 <mat-label i18n="@@hostRecovery.handoffCodeLabel"
                   >Übergabecode vom Support</mat-label
@@ -123,8 +125,9 @@ type RecoverySourceKind = 'RECOVERY' | 'ADMIN_HANDOFF';
           }
 
           <p class="host-recovery-page__boundary" i18n="@@hostRecovery.boundary">
-            Damit verlängerst du die Session nicht. Fehlt die Notfallkarte, kann nur noch der
-            Support helfen. Den Kontakt findest du im »Impressum«.
+            Damit verlängerst du weder die Session- noch die Nachbereitungsfrist. Wenn Browserzugang
+            und Notfallkarte verloren sind, wende dich an den Support. Er muss deine Berechtigung
+            für diese Session prüfen. Die Kontaktdaten findest du im »Impressum«.
           </p>
         </mat-card-content>
       </mat-card>
@@ -263,7 +266,7 @@ export class HostRecoveryComponent {
       await this.router.navigate(localizeCommands(['session', prepared.code, 'host']));
     } catch {
       this.error.set(
-        $localize`:@@hostRecovery.genericError:Wiederherstellung nicht möglich oder abgelaufen.`,
+        $localize`:@@hostRecovery.genericError:Der Zugang konnte nicht wiederhergestellt werden. Prüfe deine Angaben und versuche es erneut.`,
       );
     } finally {
       this.pending.set(false);

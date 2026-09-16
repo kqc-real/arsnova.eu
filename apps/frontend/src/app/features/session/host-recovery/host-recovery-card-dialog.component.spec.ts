@@ -34,11 +34,11 @@ describe('HostRecoveryCardDialogComponent', () => {
     );
     expect(host.textContent).toContain('Host-Notfallkarte sichern');
     expect(host.textContent).not.toContain('Schritt 3 von 3');
-    expect(host.textContent).toContain('Es gibt kein Konto');
+    expect(host.textContent).toContain('in diesem Browser gespeichert');
     expect(host.textContent).toContain('Wiederherstellungsseite');
     expect(host.textContent).toContain('Session-Kennung');
-    expect(host.textContent).toContain('Kein Helpdesk-Kontakt');
-    expect(host.textContent).toContain('nur noch der Support helfen');
+    expect(host.textContent).toContain('nicht der öffentliche Beitrittscode');
+    expect(host.textContent).toContain('Berechtigung für diese Session prüfen');
     expect(host.textContent).toContain('»Impressum«');
     expect(host.textContent).not.toContain('ABC123');
     expect(host.textContent).not.toContain('Sessioncode');
@@ -108,9 +108,9 @@ describe('HostRecoveryCardDialogComponent', () => {
     expect(html).not.toContain('Schritt 3 von 3');
     expect(html).toContain('<h1>Host-Notfallkarte</h1>');
     expect(html).not.toContain('arsnova.eu Host-Notfallkarte');
-    expect(html).toContain('Es gibt kein Konto');
+    expect(html).toContain('in diesem Browser gespeichert');
     expect(html).toContain('Wiederherstellungsseite');
-    expect(html).toContain('nur noch der Support helfen');
+    expect(html).toContain('Berechtigung für diese Session prüfen');
     expect(html).toContain('»Impressum«');
     expect(html).toContain('host-recovery');
     expect(html).toMatch(/<a class="usage-link" href="[^"]*host-recovery[^"]*">/);

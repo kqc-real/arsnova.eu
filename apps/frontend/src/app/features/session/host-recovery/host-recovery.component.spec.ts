@@ -73,8 +73,8 @@ describe('HostRecoveryComponent', () => {
     );
     expect(host.querySelector('.host-recovery-page__card')).not.toBeNull();
     expect(host.textContent).toContain('Host-Zugang wiederherstellen');
-    expect(host.textContent).toContain('Gib die Session-Kennung und den Recovery-Code');
-    expect(host.textContent).toContain('Fehlt die Notfallkarte');
+    expect(host.textContent).toContain('Gib die Session-Kennung und den Wiederherstellungscode');
+    expect(host.textContent).toContain('weder die Session- noch die Nachbereitungsfrist');
     expect(host.textContent).toContain('»Impressum«');
     expect(host.textContent).not.toContain('ADMIN@ADMIN');
     expect(host.textContent).not.toContain('unabhängiger Prüfung');
@@ -197,7 +197,9 @@ describe('HostRecoveryComponent', () => {
 
     await component.recover();
 
-    expect(component.error()).toBe('Wiederherstellung nicht möglich oder abgelaufen.');
+    expect(component.error()).toBe(
+      'Der Zugang konnte nicht wiederhergestellt werden. Prüfe deine Angaben und versuche es erneut.',
+    );
     expect(component.error()).not.toContain('intern');
     expect(activateMock).not.toHaveBeenCalled();
   });

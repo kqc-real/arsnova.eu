@@ -7847,7 +7847,7 @@
       </trans-unit>
       <trans-unit id="sessionVote.sessionEndGateContinue" datatype="html">
         <source>Zur Startseite</source>
-        <target>Alla home page</target>
+        <target>Torna alla pagina iniziale</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/feedback/feedback-vote.component.html</context>
           <context context-type="linenumber">93</context>
@@ -17221,7 +17221,7 @@
       </trans-unit>
       <trans-unit id="hostRecovery.cardTitle" datatype="html">
         <source>Host-Notfallkarte sichern</source>
-        <target>Salva la scheda di emergenza dell’host</target>
+        <target>Salva la scheda di recupero dell’host</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/host-recovery/host-recovery-card-dialog.component.ts</context>
           <context context-type="linenumber">14</context>
@@ -17244,19 +17244,19 @@
         <target>Copia il codice sessione</target>
       </trans-unit>
       <trans-unit id="hostRecovery.supportIdHint" datatype="html">
-        <source>Kein Helpdesk-Kontakt. Das ist die Kennung genau dieser Session — damit findest du sie bei der Wiederherstellung wieder.</source>
-        <target>Non è il contatto dell&apos;assistenza. È l&apos;identificativo di questa sessione, per ritrovarla nel ripristino.</target>
+        <source>Diese Kennung identifiziert die Session bei der Wiederherstellung. Sie ist nicht der öffentliche Beitrittscode.</source>
+        <target>Questo identificativo indica la sessione in fase di ripristino. Non è il codice pubblico di ingresso.</target>
       </trans-unit>
       <trans-unit id="hostRecovery.recoveryCodeHint" datatype="html">
-        <source>Geheim. Nur dieser Code stellt den Host-Zugang wieder her.</source>
-        <target>Segreto. Solo questo codice ripristina l&apos;accesso host.</target>
+        <source>Halte diesen Code geheim. Zusammen mit der Session-Kennung ermöglicht er den Host-Zugang.</source>
+        <target>Tieni segreto questo codice. Insieme all’identificativo della sessione consente l’accesso come host.</target>
       </trans-unit>
       <trans-unit id="hostRecovery.copySupportIdAria" datatype="html">
         <source>Session-Kennung kopieren</source>
         <target>Copia l’identificativo di sessione</target>
       </trans-unit>
       <trans-unit id="hostRecovery.copyRecoveryCodeAria" datatype="html">
-        <source>Recovery-Code kopieren</source>
+        <source>Wiederherstellungscode kopieren</source>
         <target>Copia il codice di ripristino</target>
       </trans-unit>
       <trans-unit id="hostRecovery.copyFailed" datatype="html">
@@ -17272,23 +17272,23 @@
         <target>Identificativo di sessione copiato.</target>
       </trans-unit>
       <trans-unit id="hostRecovery.recoveryCodeCopied" datatype="html">
-        <source>Recovery-Code wurde kopiert.</source>
+        <source>Wiederherstellungscode wurde kopiert.</source>
         <target>Codice di ripristino copiato.</target>
       </trans-unit>
       <trans-unit id="hostRecovery.cardWhy" datatype="html">
-        <source>Es gibt kein Konto. Deine Session als Host hängt deshalb an genau diesem Browser auf diesem Gerät. Teilnehmende können von jedem beliebigen Browser mitmachen. Du als Host bleibst an diesen Browser gebunden.</source>
-        <target>Non c&apos;è un account. Per questo la tua sessione come host è legata a questo browser su questo dispositivo. Chi partecipa può entrare da qualsiasi browser. Tu, come host, resti legato a questo browser.</target>
+        <source>Dein Host-Zugang ist in diesem Browser gespeichert. Mit der Notfallkarte kannst du ihn auf einem anderen Gerät wiederherstellen.</source>
+        <target>Il tuo accesso come host è salvato in questo browser. La scheda di recupero ti permette di ripristinarlo su un altro dispositivo.</target>
       </trans-unit>
       <trans-unit id="hostRecovery.cardIntro" datatype="html">
-        <source>Wenn du später nicht mehr auf diesen Browser zugreifen kannst (anderes Gerät, Browserdaten wurden gelöscht), stellst du den Host-Zugang nur mit dieser Karte wieder her. Öffne später die Wiederherstellungsseite und gib Session-Kennung plus Recovery-Code ein.</source>
-        <target>Se in seguito non puoi più accedere a questo browser (altro dispositivo o dati del browser cancellati), ripristini l&apos;accesso host solo con questa scheda. Apri poi la pagina di ripristino e inserisci identificativo di sessione e codice di ripristino.</target>
+        <source>Öffne dazu die Wiederherstellungsseite und gib die Session-Kennung und den Wiederherstellungscode ein.</source>
+        <target>Apri la pagina di ripristino e inserisci l’identificativo della sessione e il codice di ripristino.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/host-recovery/host-recovery-card-dialog.component.ts</context>
           <context context-type="linenumber">16,19</context>
         </context-group>
       </trans-unit>
       <trans-unit id="hostRecovery.recoveryCodeLabel" datatype="html">
-        <source>Recovery-Code</source>
+        <source>Wiederherstellungscode</source>
         <target>Codice di ripristino</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/host-recovery/host-recovery-card-dialog.component.ts</context>
@@ -17300,8 +17300,8 @@
         </context-group>
       </trans-unit>
       <trans-unit id="hostRecovery.cardWarning" datatype="html">
-        <source>Wenn die Notfallkarte verloren geht, kann nur noch der Support helfen. Den Kontakt findest du im »Impressum«.</source>
-        <target>Se perdi questa scheda di emergenza, può aiutarti solo il supporto. Il contatto è nelle «Note legali».</target>
+        <source>Wenn Browserzugang und Notfallkarte verloren sind, wende dich an den Support. Er muss deine Berechtigung für diese Session prüfen. Die Kontaktdaten findest du im »Impressum«.</source>
+        <target>Se perdi sia l’accesso dal browser sia la scheda di recupero, contatta l’assistenza. Deve verificare che tu sia autorizzato ad accedere a questa sessione come host. Trovi i contatti nelle «Note legali».</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/host-recovery/host-recovery-card-dialog.component.ts</context>
           <context context-type="linenumber">30,33</context>
@@ -17348,8 +17348,8 @@
         <target>Come ripristinare l&apos;accesso host</target>
       </trans-unit>
       <trans-unit id="hostRecovery.downloadUsage" datatype="html">
-        <source>Öffne <x id="recoveryUrl" equiv-text="recoveryUrl"/> und gib Session-Kennung plus Recovery-Code ein.</source>
-        <target>Apri <x id="recoveryUrl" equiv-text="recoveryUrl"/> e inserisci identificativo di sessione e codice di ripristino.</target>
+        <source>Öffne <x id="PH" equiv-text="recoveryUrl"/> und gib Session-Kennung plus Wiederherstellungscode ein.</source>
+        <target>Apri <x id="PH" equiv-text="recoveryUrl"/> e inserisci l’identificativo della sessione e il codice di ripristino.</target>
       </trans-unit>
       <trans-unit id="hostRecovery.downloadWarning" datatype="html">
         <source>Geheim halten. Sessioncode oder Support-ID allein verleihen keine Hostrechte.</source>
@@ -17368,8 +17368,8 @@
         </context-group>
       </trans-unit>
       <trans-unit id="hostRecovery.intro" datatype="html">
-        <source>Gib die Session-Kennung und den Recovery-Code deiner Notfallkarte ein.</source>
-        <target>Inserisci l&apos;identificativo di sessione e il codice di ripristino della tua scheda di emergenza.</target>
+        <source>Gib die Session-Kennung und den Wiederherstellungscode deiner Notfallkarte ein.</source>
+        <target>Inserisci l’identificativo della sessione e il codice di ripristino della tua scheda di recupero.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/host-recovery/host-recovery.component.ts</context>
           <context context-type="linenumber">46,49</context>
@@ -17436,8 +17436,8 @@
         </context-group>
       </trans-unit>
       <trans-unit id="hostRecovery.boundary" datatype="html">
-        <source>Damit verlängerst du die Session nicht. Fehlt die Notfallkarte, kann nur noch der Support helfen. Den Kontakt findest du im »Impressum«.</source>
-        <target>Questo non prolunga la sessione. Se manca la scheda di emergenza, può aiutarti solo il supporto. Il contatto è nelle «Note legali».</target>
+        <source>Damit verlängerst du weder die Session- noch die Nachbereitungsfrist. Wenn Browserzugang und Notfallkarte verloren sind, wende dich an den Support. Er muss deine Berechtigung für diese Session prüfen. Die Kontaktdaten findest du im »Impressum«.</source>
+        <target>Così non prolunghi né la sessione né il periodo di lettura successivo. Se perdi sia l’accesso dal browser sia la scheda di recupero, contatta l’assistenza. Deve verificare che tu sia autorizzato ad accedere a questa sessione come host. Trovi i contatti nelle «Note legali».</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/host-recovery/host-recovery.component.ts</context>
           <context context-type="linenumber">110,114</context>
@@ -17456,8 +17456,8 @@
         <target>Ho una scheda di emergenza</target>
       </trans-unit>
       <trans-unit id="hostRecovery.genericError" datatype="html">
-        <source>Wiederherstellung nicht möglich oder abgelaufen.</source>
-        <target>Ripristino non possibile o scaduto.</target>
+        <source>Der Zugang konnte nicht wiederhergestellt werden. Prüfe deine Angaben und versuche es erneut.</source>
+        <target>Impossibile ripristinare l’accesso. Controlla i dati inseriti e riprova.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/host-recovery/host-recovery.component.ts</context>
           <context context-type="linenumber">209</context>
@@ -17836,16 +17836,16 @@
         <target>Passo <x id="INTERPOLATION" equiv-text="{{ data.setupStep }}"/> di <x id="INTERPOLATION_1" equiv-text="{{ data.setupStepCount }}"/></target>
       </trans-unit>
       <trans-unit id="qaConfig.title" datatype="html">
-        <source>Q&amp;A-Kanal einrichten</source>
-        <target>Configura un canale di domande e risposte</target>
+        <source>Fragerunde einrichten</source>
+        <target>Configura domande e risposte</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-host/qa-channel-configuration-dialog.component.ts</context>
           <context context-type="linenumber">53</context>
         </context-group>
       </trans-unit>
       <trans-unit id="qaConfig.intro" datatype="html">
-        <source> Lege Titel, Moderation, Teilnahmeprofil und die eigene Teilnahmefrist gemeinsam fest.</source>
-        <target>Imposta titolo, moderazione, profilo di partecipazione e termine di partecipazione.</target>
+        <source>Lege fest, wie Fragen eingereicht und veröffentlicht werden und wie lange die Fragerunde geöffnet bleibt.</source>
+        <target>Decidi come vengono inviate e pubblicate le domande e fino a quando resta aperta la sezione domande e risposte.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-host/qa-channel-configuration-dialog.component.ts</context>
           <context context-type="linenumber">58,60</context>
@@ -17868,8 +17868,8 @@
         </context-group>
       </trans-unit>
       <trans-unit id="qaConfig.moderationLabel" datatype="html">
-        <source> Neue Fragen vor Veröffentlichung prüfen</source>
-        <target>Controlla le nuove domande prima di pubblicarle</target>
+        <source>Neue Fragen vor Veröffentlichung prüfen</source>
+        <target>Esamina le nuove domande prima di pubblicarle</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-host/qa-channel-configuration-dialog.component.ts</context>
           <context context-type="linenumber">68,70</context>
@@ -17928,8 +17928,8 @@
         </context-group>
       </trans-unit>
       <trans-unit id="qaConfig.profileLocked" datatype="html">
-        <source> Das Teilnahmeprofil ist nach dem ersten Beitritt gesperrt.</source>
-        <target>Il profilo di partecipazione viene bloccato dopo la prima iscrizione.</target>
+        <source>Diese Einstellungen können nach dem ersten Beitritt nicht mehr geändert werden.</source>
+        <target>Queste impostazioni non si possono più modificare dopo l’ingresso della prima persona.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-host/qa-channel-configuration-dialog.component.ts</context>
           <context context-type="linenumber">93,95</context>
@@ -17960,8 +17960,8 @@
         </context-group>
       </trans-unit>
       <trans-unit id="qaConfig.durationDays" datatype="html">
-        <source> Für Kalendertage</source>
-        <target>Per i giorni di calendario</target>
+        <source>Für eine Anzahl von Tagen</source>
+        <target>Per un numero di giorni</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-host/qa-channel-configuration-dialog.component.ts</context>
           <context context-type="linenumber">107,109</context>
@@ -17976,8 +17976,8 @@
         </context-group>
       </trans-unit>
       <trans-unit id="qaConfig.daysLabel" datatype="html">
-        <source>Kalendertage</source>
-        <target>giorni di calendario</target>
+        <source>Anzahl der Tage</source>
+        <target>Numero di giorni</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-host/qa-channel-configuration-dialog.component.ts</context>
           <context context-type="linenumber">118</context>
@@ -18008,8 +18008,8 @@
         </context-group>
       </trans-unit>
       <trans-unit id="qaConfig.previewQaCloses" datatype="html">
-        <source>Q&amp;A schließt</source>
-        <target>Le domande e risposte si chiudono</target>
+        <source>Offen für Fragen und Bewertungen bis</source>
+        <target>Domande e voti accettati fino al</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-host/qa-channel-configuration-dialog.component.ts</context>
           <context context-type="linenumber">139</context>
@@ -18096,8 +18096,64 @@
         </context-group>
       </trans-unit>
       <trans-unit id="qaConfig.confirm" datatype="html">
-        <source>Q&amp;A einrichten</source>
-        <target>Configura Q&amp;A</target>
+        <source>Fragerunde öffnen</source>
+        <target>Apri domande e risposte</target>
+      </trans-unit>
+      <trans-unit id="sessionLifecycle.absoluteLegend" datatype="html">
+        <source>Oder Datum und Uhrzeit wählen</source>
+        <target>Oppure scegli data e ora</target>
+      </trans-unit>
+      <trans-unit id="sessionLifecycle.extendSevenDaysAria" datatype="html">
+        <source>Um 7 Tage verlängern</source>
+        <target>Prolunga di 7 giorni</target>
+      </trans-unit>
+      <trans-unit id="sessionLifecycle.extendOneDayAria" datatype="html">
+        <source>Um 1 Tag verlängern</source>
+        <target>Prolunga di 1 giorno</target>
+      </trans-unit>
+      <trans-unit id="sessionLifecycle.extendOneHourAria" datatype="html">
+        <source>Um 1 Stunde verlängern</source>
+        <target>Prolunga di 1 ora</target>
+      </trans-unit>
+      <trans-unit id="sessionLifecycle.extendSevenDays" datatype="html">
+        <source>7 Tage</source>
+        <target>7 giorni</target>
+      </trans-unit>
+      <trans-unit id="sessionLifecycle.extendOneDay" datatype="html">
+        <source>1 Tag</source>
+        <target>1 giorno</target>
+      </trans-unit>
+      <trans-unit id="sessionLifecycle.extendOneHour" datatype="html">
+        <source>1 Stunde</source>
+        <target>1 ora</target>
+      </trans-unit>
+      <trans-unit id="sessionLifecycle.extendLegend" datatype="html">
+        <source>Verlängern um</source>
+        <target>Prolunga di</target>
+      </trans-unit>
+      <trans-unit id="sessionLifecycle.checkDeadline" datatype="html">
+        <source>Termin prüfen</source>
+        <target>Verifica data e ora</target>
+      </trans-unit>
+      <trans-unit id="sessionLifecycle.summaryTitle" datatype="html">
+        <source>Aktueller Stand</source>
+        <target>Impostazioni attuali</target>
+      </trans-unit>
+      <trans-unit id="sessionLifecycle.warningSubtitle" datatype="html">
+        <source>Eine Verlängerung verschiebt das Sessionende. Die Frist für Fragen und Bewertungen bleibt unverändert.</source>
+        <target>Prolungare la sessione ne cambia l’orario di fine. Il termine per inviare domande e votare resta invariato.</target>
+      </trans-unit>
+      <trans-unit id="qaConfig.confirmWithExtension" datatype="html">
+        <source>Session verlängern und Fragerunde öffnen</source>
+        <target>Prolunga la sessione e apri domande e risposte</target>
+      </trans-unit>
+      <trans-unit id="qaConfig.save" datatype="html">
+        <source>Änderungen speichern</source>
+        <target>Salva le modifiche</target>
+      </trans-unit>
+      <trans-unit id="qaConfig.editTitle" datatype="html">
+        <source>Fragerunde bearbeiten</source>
+        <target>Modifica le impostazioni di domande e risposte</target>
       </trans-unit>
       <trans-unit id="qaConfig.invalidTitle" datatype="html">
         <source>Bitte gib einen Titel für die Fragenwand ein.</source>
@@ -18112,8 +18168,8 @@
         </context-group>
       </trans-unit>
       <trans-unit id="qaConfig.invalidDays" datatype="html">
-        <source>Bitte gib 1 bis 30 Kalendertage ein.</source>
-        <target>Inserisci da 1 a 30 giorni di calendario.</target>
+        <source>Bitte gib 1 bis <x id="PH" equiv-text="maxDays"/> Tage ein.</source>
+        <target>Inserisci da 1 a <x id="PH" equiv-text="maxDays"/> giorni.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-host/qa-channel-configuration-dialog.component.ts</context>
           <context context-type="linenumber">363</context>
@@ -18448,8 +18504,8 @@
         </context-group>
       </trans-unit>
       <trans-unit id="sessionLifecycle.configureSubtitle" datatype="html">
-        <source>Nur für den Q&amp;A-Kanal: bis dahin darf die Fragenwand höchstens offen bleiben. Die Teilnahmefrist in den Q&amp;A-Einstellungen kann früher enden.</source>
-        <target>Solo per il canale Q&amp;A: la bacheca delle domande può restare aperta al massimo fino a quel momento. Il termine di partecipazione nelle impostazioni Q&amp;A può scadere prima.</target>
+        <source>Damit setzt du das Sessionende. Die Fragerunde kann höchstens so lange offen bleiben; in den Einstellungen kannst du früher schließen.</source>
+        <target>Così imposti la fine della sessione. Domande e risposte possono restare aperte al massimo fino a quel momento; nelle impostazioni puoi chiuderle prima.</target>
       </trans-unit>
       <trans-unit id="sessionLifecycle.warningTitle" datatype="html">
         <source>Session endet in <x id="INTERPOLATION" equiv-text="{{ data.warningMinutes }}"/> Minuten</source>
@@ -18744,8 +18800,8 @@
         </context-group>
       </trans-unit>
       <trans-unit id="sessionLifecycle.hostPostProcessingUntil" datatype="html">
-        <source>Host-Nachbereitung bis:</source>
-        <target>Follow-up dell&apos;ospite fino al:</target>
+        <source>Host-Lesezugriff bis:</source>
+        <target>Accesso dell’host in sola lettura fino al:</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.html</context>
           <context context-type="linenumber">451</context>
@@ -21806,11 +21862,11 @@
         </context-group>
       </trans-unit>
       <trans-unit id="sessionLifecycle.previewPostProcessing" datatype="html">
-        <source>Host-Nachbereitung bis: <x id="PH" equiv-text="this.formatSessionLifecycleDateTime(
+        <source>Host-Lesezugriff bis: <x id="PH" equiv-text="this.formatSessionLifecycleDateTime(
         preview.projectedPostProcessingEndsAt,
         preview.timeZone,
       )"/></source>
-        <target>Follow-up dell&apos;ospite fino al: <x id="PH" equiv-text="this.formatSessionLifecycleDateTime(
+        <target>Accesso dell’host in sola lettura fino al: <x id="PH" equiv-text="this.formatSessionLifecycleDateTime(
         preview.projectedPostProcessingEndsAt,
         preview.timeZone,
       )"/></target>
@@ -21834,8 +21890,8 @@
         </context-group>
       </trans-unit>
       <trans-unit id="sessionLifecycle.previewTitle" datatype="html">
-        <source>Neue Sessionfrist bestätigen</source>
-        <target>Conferma la scadenza della nuova sessione</target>
+        <source>Neues Sessionende bestätigen</source>
+        <target>Conferma il nuovo orario di fine della sessione</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.ts</context>
           <context context-type="linenumber">4519</context>
@@ -26278,8 +26334,8 @@
         </context-group>
       </trans-unit>
       <trans-unit id="sessionVote.sessionEndFeedbackLead" datatype="html">
-        <source> Die Session ist beendet. Wenn du magst, bewerte sie kurz – danach kannst du zur Startseite wechseln.</source>
-        <target>La sessione è finita. Se vuoi, valutalo brevemente, poi puoi andare alla home page.</target>
+        <source>Die Session ist beendet. Wenn du magst, bewerte sie kurz, bevor du zur Startseite zurückkehrst.</source>
+        <target>La sessione è terminata. Se vuoi, valutala prima di tornare alla pagina iniziale.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-vote/session-vote.component.html</context>
           <context context-type="linenumber">163,166</context>
