@@ -2578,6 +2578,19 @@
           </div>
         </div>
 
+        @if (qaDeadlineLabel(); as deadlineLabel) {
+          <div
+            class="session-vote__qa-deadline"
+            [class.session-vote__qa-deadline--expired]="qaDeadlineExpired()"
+            role="status"
+          >
+            <mat-icon aria-hidden="true">{{
+              qaDeadlineExpired() ? 'event_busy' : 'schedule'
+            }}</mat-icon>
+            <span>{{ deadlineLabel }}</span>
+          </div>
+        }
+
         @if (!isQaChannelOpen()) {
           @if (isQaDeadlineExpired()) {
             <p
@@ -2641,7 +2654,65 @@
             <p class="session-channel-card__info" role="status">{{ info }}</p>
           }
 
-          @if (visibleQaQuestions().length === 0) {
+          <div class="session-qa-search-row">
+            <mat-form-field
+              class="session-qa-search"
+              appearance="outline"
+              subscriptSizing="dynamic"
+            >
+              <mat-label i18n="@@sessionQa.searchLabel">Fragen durchsuchen</mat-label>
+              <input
+                matInput
+                type="search"
+                maxlength="100"
+                [value]="qaSearchDraft()"
+                (input)="onQaSearchInput($any($event.target).value)"
+                i18n-aria-label="@@sessionQa.searchAria"
+                aria-label="Q&A-Fragen durchsuchen"
+              />
+            </mat-form-field>
+            @if (qaSearchDraft()) {
+              <button
+                mat-icon-button
+                type="button"
+                (click)="clearQaSearch()"
+                i18n-aria-label="@@sessionQa.searchClearAria"
+                aria-label="Q&A-Suche leeren"
+              >
+                <mat-icon>close</mat-icon>
+              </button>
+            }
+          </div>
+
+          <mat-button-toggle-group
+            class="session-qa-sort-toggle"
+            [value]="qaSortMode()"
+            (valueChange)="setQaSortMode($any($event))"
+            hideSingleSelectionIndicator
+            aria-label="Q&A-Sortierung"
+            i18n-aria-label="@@sessionQa.sortAria"
+          >
+            <mat-button-toggle value="TOP" i18n="@@sessionQa.sortTop"
+              >Meist unterstützt</mat-button-toggle
+            >
+            <mat-button-toggle value="BEST" i18n="@@sessionQa.sortBest"
+              >Beste Fragen</mat-button-toggle
+            >
+            <mat-button-toggle value="CONTROVERSIAL" i18n="@@sessionQa.sortControversial"
+              >Umstritten</mat-button-toggle
+            >
+            <mat-button-toggle value="TIME" i18n="@@sessionQa.sortTime">Zeit</mat-button-toggle>
+          </mat-button-toggle-group>
+          <p class="session-qa-sort-hint">{{ qaSortHint() }}</p>
+
+          @if (visibleQaQuestions().length === 0 && qaSearch()) {
+            <div class="session-qa-empty">
+              <mat-icon class="session-qa-empty__icon" aria-hidden="true">search_off</mat-icon>
+              <p class="session-qa-empty__text" i18n="@@sessionQa.searchEmpty">
+                Keine passenden Fragen gefunden.
+              </p>
+            </div>
+          } @else if (visibleQaQuestions().length === 0) {
             <div class="session-qa-empty">
               <mat-icon class="session-qa-empty__icon" aria-hidden="true"
                 >chat_bubble_outline</mat-icon

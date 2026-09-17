@@ -37,7 +37,7 @@ Nur der Host löst die Analyse aus. Es gibt keinen Participant-Toggle und keine 
 | Freitext | dieselbe `app-word-cloud`-Instanz, In-Place-Maximize | `Wörter` / `Wörter & Phrasen` / `Themen` (`SEMANTIC`, Encoder-Clustering nicht in Stufe 1 → 2.x) | sichtbar bei `WORDS` und `PHRASES`; `SEMANTIC` blendet sie aus                                                                                              |
 | Q&A      | eigener `MatDialog`                                  | `Wörter` (`LEXICAL`) / `Wörter & Phrasen` (`THEME`) / `Themen` (`SEMANTIC`, Stufe 1 Encoder)     | sichtbar bei `LEXICAL` und `THEME`; `SEMANTIC` blendet sie aus. `THEME + LEMMA` bleibt `MODE_UNSUPPORTED` (Lemma nur für Unigramme, Phrasen weiter `THEME`) |
 
-Presenter zeigt die Wolke ohne Glättungssteuerung, ohne Wolkensprache und ohne den Modus `Themen`.
+Presenter zeigt die Wolke ohne Glättungssteuerung und ohne Wolkensprache. Die vom Host gewählte Option, Sortierung und Glättung erscheinen als Pills neben Begriffe und Fragen.
 
 Die **Wolkensprache** steht klein neben **Wortformen glätten** und nur in der Ansicht, in der Glättung wirkt (Q&A: **Wörter** und **Wörter & Phrasen**; Freitext: **Wörter** und **Wörter & Phrasen**). Sie ist unabhängig von Quiz und Participant-Browser. Default ist die Host-UI-Sprache, sofern ein Lemma-Modell existiert (`de`/`en`/`fr`/`es`). Unter `/it/` bleibt die Glättung aus, bis der Host eine dieser Sprachen wählt. Ein Wechsel bei aktiver Glättung analysiert denselben Snapshot mit dem neuen Modell neu. Die Wahl gilt für die Session (Freitext und Q&A) und bleibt im `sessionStorage` des Tabs.
 
@@ -49,7 +49,7 @@ In der Q&A-Wolke steht die **Größe** (Stimmen / Beste Fragen / Kontroverse) al
 - **Neue eingehende Daten:** Snapshot wird **veraltet** markiert; keine automatische Neuberechnung.
 - **Freitext-Ansicht wechseln** bei aktiver Glättung: dieselbe Antwortmenge mit der anderen N-Gramm-Länge neu analysieren.
 - **Wolkensprache wechseln** bei aktiver Glättung: dieselbe Datenmenge mit dem anderen Modell neu analysieren.
-- **Q&A-Sortierung** `Größe: Stimmen` / `Beste Fragen` / `Kontroverse` (Forumsliste weiter `Meist unterstützt` / `Beste Fragen` / `Umstritten`) bei aktiver Glättung: dieselbe Fragenmenge mit der neuen Metrik neu glätten.
+- **Q&A-Sortierung** `Größe: Stimmen` / `Beste Fragen` / `Kontroverse` / `Zeit` (Forumsliste weiter `Meist unterstützt` / `Beste Fragen` / `Umstritten` / `Zeit`) bei aktiver Glättung: dieselbe Fragenmenge mit der neuen Metrik neu glätten. `Zeit` ändert die Listenreihenfolge in der Datenbank, nicht die Wortgewichtung.
 - **Q&A `Wörter & Phrasen`:** Sortwechsel startet die bestehende Themenanalyse mit `normalization: NONE` und, wenn Glättung aktiv ist, parallel den Lemma-Pfad nur für Unigramme (`mode: LEXICAL`). Phrasen bleiben `THEME`. `THEME + LEMMA` ist `MODE_UNSUPPORTED`.
 - **Q&A `Themen`:** Story 1.14c Stufe 1. Encoder + Clustering nur hinter `WORD_CLOUD_SEMANTIC_ENABLED`; ohne Kill-Switch `status: disabled` plus 2.x. `SEMANTIC + LEMMA` ist `MODE_UNSUPPORTED`. Die Glättung bleibt wie im Freitext ausgeblendet und wechselt nicht still auf `LEXICAL`. Kanonisch: [word-cloud-semantic.md](word-cloud-semantic.md).
 - **Freitext `Themen`:** derselbe Host-Toggle; Encoder-Clustering gilt in 1.14c nicht (kontrollierter 2.x-Fallback). **Story 1.14d** hebt das für Host-Freitext auf. Der Q&A-Presenter übernimmt die aktuelle Host-Projektion; Freitext-Presenter bleibt ohne den dritten Modus. `maxNgramLength` 1 bzw. 3 gilt weiter für `Wörter` / `Wörter & Phrasen`.

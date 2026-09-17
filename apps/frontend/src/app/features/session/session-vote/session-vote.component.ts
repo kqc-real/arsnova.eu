@@ -9,6 +9,7 @@ import {
   ViewChild,
   inject,
   Injector,
+  LOCALE_ID,
   signal,
   computed,
   effect,
@@ -18,7 +19,8 @@ import {
 import { DecimalPipe, NgTemplateOutlet, formatNumber } from '@angular/common';
 import { ActivatedRoute, Router } from '@angular/router';
 import { DomSanitizer, type SafeHtml } from '@angular/platform-browser';
-import { MatButton } from '@angular/material/button';
+import { MatButton, MatIconButton } from '@angular/material/button';
+import { MatInput } from '@angular/material/input';
 import { MatButtonToggle, MatButtonToggleGroup } from '@angular/material/button-toggle';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatIcon } from '@angular/material/icon';
@@ -73,6 +75,7 @@ import {
   type PersonalScorecardDTO,
   type QaQuestionDTO,
   type QaQuestionQuotaDTO,
+  type QaQuestionSortMode,
   type QaQuestionsInvalidationDTO,
   type QaQuestionsListDTO,
   type QuickFeedbackResult,
@@ -98,6 +101,7 @@ import {
   recordServerTimeSample,
 } from '../session-server-clock';
 import { SessionDeadlineController, type SessionDeadlineSnapshot } from '../session-deadline';
+import { resolveQaDeadlineClockParts } from '../session-qa-deadline-label.util';
 import {
   consumeParticipantJoinArrival,
   hasParticipantJoinArrival,
@@ -418,6 +422,8 @@ export function getNumericEstimateMotivation(input: {
   standalone: true,
   imports: [
     MatButton,
+    MatIconButton,
+    MatInput,
     MatButtonToggle,
     MatButtonToggleGroup,
     MatFormFieldModule,
@@ -450,6 +456,7 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
   private readonly injector = inject(Injector);
   private readonly destroyRef = inject(DestroyRef);
   private readonly snackBar = inject(MatSnackBar);
+  private readonly localeId = inject(LOCALE_ID);
   readonly contextualFeedbackOffer = inject(ContextualFeedbackOfferService);
   private statusSub: Unsubscribable | null = null;
   private qaSub: Unsubscribable | null = null;
@@ -484,9 +491,27 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
   readonly participantId = signal('');
   readonly status = signal<SessionStatus>('LOBBY');
   readonly sessionSettings = signal<Partial<SessionInfoDTO>>({});
+  readonly qaDeadlineNow = signal(getSkewAdjustedNow());
+  private qaDeadlineTimer: ReturnType<typeof setTimeout> | null = null;
   readonly lobbyArrivalActive = signal(false);
   readonly activeChannel = signal<SessionChannelTab>('quiz');
   readonly qaQuestions = signal<QaQuestionDTO[]>([]);
+  readonly qaSearchDraft = signal('');
+  readonly qaSearch = signal('');
+  private qaSearchTimer: ReturnType<typeof setTimeout> | null = null;
+  readonly qaSortMode = signal<QaQuestionSortMode>('TOP');
+  readonly qaSortHint = computed(() => {
+    switch (this.qaSortMode()) {
+      case 'BEST':
+        return $localize`:@@sessionQa.sortHintBest:Zeigt Fragen mit viel Zustimmung und genug Stimmen zuerst. Hervorgehobene Fragen sind markiert, aber nicht vorgezogen.`;
+      case 'CONTROVERSIAL':
+        return $localize`:@@sessionQa.sortHintControversial:Zeigt Fragen mit gemischter Reaktion zuerst. Hervorgehobene Fragen sind markiert, aber nicht vorgezogen.`;
+      case 'TIME':
+        return $localize`:@@sessionQa.sortHintTime:Zeigt die neuesten Fragen zuerst. Hervorgehobene Fragen sind markiert, aber nicht vorgezogen.`;
+      default:
+        return $localize`:@@sessionQa.sortHintTopVote:Hervorgehobene Fragen stehen zuerst. Danach kommen die mit den meisten Stimmen.`;
+    }
+  });
   readonly qaListTotalCount = signal(0);
   readonly qaListNextCursor = signal<string | null>(null);
   readonly qaListRankingRevision = signal<string | null>(null);
@@ -1163,6 +1188,11 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
   readonly isQaDeadlineExpired = computed(
     () => this.sessionSettings().channels?.qa.state === 'DEADLINE_EXPIRED',
   );
+  readonly qaDeadlineExpired = computed(() => {
+    const closesAt =
+      this.sessionSettings().channels?.qa.closesAt ?? this.sessionSettings().qaClosesAt;
+    return !!closesAt && this.qaDeadlineNow() >= Date.parse(closesAt);
+  });
   readonly isQuickFeedbackChannelOpen = computed(() => this.channelOpenState().quickFeedback);
   /**
    * Tempo-Shortcut zur Frageansicht nur wenn:
@@ -1196,8 +1226,25 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
     );
   });
 
+  qaDeadlineLabel(): string | null {
+    const parts = resolveQaDeadlineClockParts({
+      closesAt: this.sessionSettings().channels?.qa.closesAt ?? this.sessionSettings().qaClosesAt,
+      nowMs: this.qaDeadlineNow(),
+      localeId: this.localeId,
+      timeZone: this.sessionSettings().timeZone,
+    });
+    if (!parts) {
+      return null;
+    }
+    if (parts.remainingMs <= 0) {
+      return $localize`:@@sessionQa.deadlineExpired:Teilnahmefrist abgelaufen · ${parts.formatted}:deadline:`;
+    }
+    return $localize`:@@sessionQa.deadlineOpen:Q&A offen bis ${parts.formatted}:deadline: · ${parts.relative}:remaining:`;
+  }
+
   private patchSessionChannels(channels: SessionChannelsDTO): void {
     this.sessionSettings.update((current) => ({ ...current, channels }));
+    this.scheduleQaDeadlineCheck();
   }
 
   private patchPreferredChannel(preferredChannel: SessionLiveChannel): void {
@@ -3343,6 +3390,7 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
       recordServerTimeSample(session.serverTime, requestedAt);
       this.sessionId.set(session.id);
       this.sessionSettings.set(session);
+      this.scheduleQaDeadlineCheck();
       if (!this.applySessionDeadlineSnapshot(session)) {
         this.applyPendingLobbyArrivalIfNeeded();
         return true;
@@ -3465,6 +3513,7 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
           }
         : settings,
     );
+    this.scheduleQaDeadlineCheck();
     if (data.state !== 'ACTIVE') {
       this.qaQuestions.set([]);
       this.qaListTotalCount.set(0);
@@ -3732,6 +3781,7 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
       const previousTeamMode = this.sessionSettings().teamMode === true;
       this.sessionId.set(session.id);
       this.sessionSettings.set(session);
+      this.scheduleQaDeadlineCheck();
       this.applyPreferredChannelIfChanged(session.preferredChannel);
       this.status.set(nextStatus);
       this.handleQuestionSkippedTransition(session);
@@ -3799,6 +3849,7 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
     this.stopFallbackPolling();
     this.stopPresenceHeartbeat();
     this.stopSessionDeadlineTimer();
+    this.stopQaDeadlineTimer();
     this.clearStructuredRoundRefreshRetry();
     if (this.lobbyArrivalTimeout) {
       clearTimeout(this.lobbyArrivalTimeout);
@@ -3807,6 +3858,10 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
     this.stopCountdown();
     this.stopScorePreviewTicker();
     this.clearLateSubmitCloseTimeout();
+    if (this.qaSearchTimer) {
+      clearTimeout(this.qaSearchTimer);
+      this.qaSearchTimer = null;
+    }
   }
 
   private markParticipantOffline(): void {
@@ -4245,9 +4300,81 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
     this.qaListPageIndex.set(0);
   }
 
+  private qaListQueryInput(cursor?: string | null) {
+    const search = this.qaSearch();
+    return {
+      sessionId: this.sessionId(),
+      participantId: this.participantId() || undefined,
+      pageSize: 100 as const,
+      sort: this.qaSortMode(),
+      ...(search ? { search } : {}),
+      ...(cursor ? { cursor } : {}),
+    };
+  }
+
+  onQaSearchInput(value: string): void {
+    this.qaSearchDraft.set(value);
+    if (this.qaSearchTimer) {
+      clearTimeout(this.qaSearchTimer);
+    }
+    this.qaSearchTimer = setTimeout(() => {
+      this.qaSearchTimer = null;
+      const search = this.qaSearchDraft().trim();
+      if (search === this.qaSearch()) {
+        return;
+      }
+      this.qaSearch.set(search);
+      this.resetQaListPageNavigation();
+      void this.refreshQaQuestions({
+        notify: false,
+        requireDeadline: false,
+        animate: false,
+      });
+    }, 300);
+  }
+
+  clearQaSearch(): void {
+    if (this.qaSearchTimer) {
+      clearTimeout(this.qaSearchTimer);
+      this.qaSearchTimer = null;
+    }
+    this.qaSearchDraft.set('');
+    if (this.qaSearch() === '') {
+      return;
+    }
+    this.qaSearch.set('');
+    this.resetQaListPageNavigation();
+    void this.refreshQaQuestions({
+      notify: false,
+      requireDeadline: false,
+      animate: false,
+    });
+  }
+
+  async setQaSortMode(mode: QaQuestionSortMode): Promise<void> {
+    if (mode !== 'TOP' && mode !== 'BEST' && mode !== 'CONTROVERSIAL' && mode !== 'TIME') {
+      return;
+    }
+    if (this.qaSortMode() === mode) {
+      return;
+    }
+    this.qaSortMode.set(mode);
+    this.resetQaListPageNavigation();
+    await this.refreshQaQuestions({
+      notify: false,
+      requireDeadline: false,
+      animate: false,
+    });
+  }
+
   private applyQaQuestionsSnapshot(
     snapshot: QaQuestionsListDTO | QaQuestionDTO[],
-    options: { append?: boolean } = {},
+    options: {
+      append?: boolean;
+      notify?: boolean;
+      requireDeadline?: boolean;
+      animate?: boolean;
+    } = {},
   ): boolean {
     if (Array.isArray(snapshot)) {
       if (
@@ -4277,7 +4404,8 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
       !this.sessionDeadline.applySnapshot({
         ...snapshot,
         status: terminal ? 'FINISHED' : 'ACTIVE',
-      })
+      }) &&
+      options.requireDeadline !== false
     ) {
       return false;
     }
@@ -4323,6 +4451,7 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
           }
         : settings,
     );
+    this.scheduleQaDeadlineCheck();
     if (snapshot.state !== 'ACTIVE') {
       this.qaQuestions.set([]);
       this.qaListTotalCount.set(0);
@@ -4335,7 +4464,11 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
     if (this.isFinished() || Date.now() < this.reorderLockUntil) {
       return false;
     }
-    this.setQaQuestionsAnimated(snapshot.questions, { notify: !options.append });
+    this.setQaQuestionsAnimated(snapshot.questions, {
+      notify: options.notify ?? !options.append,
+      totalCount: snapshot.totalCount ?? snapshot.questions.length,
+      animate: options.animate,
+    });
     if (!options.append) {
       this.resetQaListPageNavigation();
     }
@@ -4377,12 +4510,7 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
     const requestGeneration = ++this.qaListRequestGeneration;
     this.qaListPageLoading.set(true);
     try {
-      const snapshot = await trpc.qa.list.query({
-        sessionId,
-        participantId: this.participantId() || undefined,
-        pageSize: 100,
-        ...(cursor ? { cursor } : {}),
-      });
+      const snapshot = await trpc.qa.list.query(this.qaListQueryInput(cursor));
       if (requestGeneration !== this.qaListRequestGeneration) {
         return false;
       }
@@ -4399,7 +4527,37 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
     }
   }
 
-  private async refreshQaQuestions(): Promise<void> {
+  private stopQaDeadlineTimer(): void {
+    if (this.qaDeadlineTimer) {
+      clearTimeout(this.qaDeadlineTimer);
+      this.qaDeadlineTimer = null;
+    }
+  }
+
+  private scheduleQaDeadlineCheck(): void {
+    this.stopQaDeadlineTimer();
+    this.qaDeadlineNow.set(getSkewAdjustedNow());
+    const closesAt =
+      this.sessionSettings().channels?.qa.closesAt ?? this.sessionSettings().qaClosesAt;
+    if (!closesAt || this.isFinished()) {
+      return;
+    }
+    const remainingMs = Date.parse(closesAt) - this.qaDeadlineNow();
+    if (remainingMs <= 0) {
+      return;
+    }
+    this.qaDeadlineTimer = setTimeout(
+      () => {
+        this.qaDeadlineTimer = null;
+        this.scheduleQaDeadlineCheck();
+      },
+      Math.max(1, Math.min(remainingMs, 60_000)),
+    );
+  }
+
+  private async refreshQaQuestions(
+    options: { notify?: boolean; requireDeadline?: boolean; animate?: boolean } = {},
+  ): Promise<void> {
     const requestGeneration = ++this.qaListRequestGeneration;
     if (this.isFinished() || !this.channels().qa || !this.isQaChannelOpen() || !this.sessionId()) {
       this.qaQuestions.set([]);
@@ -4411,15 +4569,15 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
     if (Date.now() < this.reorderLockUntil) return;
 
     try {
-      const snapshot = await trpc.qa.list.query({
-        sessionId: this.sessionId(),
-        participantId: this.participantId() || undefined,
-        pageSize: 100,
-      });
+      const snapshot = await trpc.qa.list.query(this.qaListQueryInput());
       if (requestGeneration !== this.qaListRequestGeneration) {
         return;
       }
-      this.applyQaQuestionsSnapshot(snapshot);
+      this.applyQaQuestionsSnapshot(snapshot, {
+        notify: options.notify,
+        requireDeadline: options.requireDeadline,
+        animate: options.animate,
+      });
     } catch {
       if (this.isFinished()) return;
       this.showQaError($localize`:@@sessionQa.voteLoadError:Fragen konnten nicht geladen werden.`);
@@ -4511,6 +4669,7 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
         sessionId = session.id;
         this.sessionId.set(session.id);
         this.sessionSettings.set(session);
+        this.scheduleQaDeadlineCheck();
       } catch {
         this.showQaError($localize`:@@sessionQa.submitError:Frage konnte nicht gesendet werden.`);
         return null;
@@ -4581,10 +4740,7 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
         participantId: this.participantId(),
         direction,
       });
-      const serverData = await trpc.qa.list.query({
-        sessionId: this.sessionId(),
-        participantId: this.participantId() || undefined,
-      });
+      const serverData = await trpc.qa.list.query(this.qaListQueryInput());
       const wait = Math.max(0, this.reorderLockUntil - Date.now());
       await new Promise((r) => setTimeout(r, wait));
       this.applyQaQuestionsSnapshot(serverData);
@@ -4658,11 +4814,17 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
   }
 
   /** Statuswechsel und Entfernen eigener/fremder Fragen per Snackbar. */
-  private notifyQaQuestionUpdates(prev: QaQuestionDTO[], next: QaQuestionDTO[]): void {
+  private notifyQaQuestionUpdates(
+    prev: QaQuestionDTO[],
+    next: QaQuestionDTO[],
+    nextTotalCount = this.qaListTotalCount(),
+  ): void {
     if (prev.length === 0) {
       return;
     }
 
+    const totalDropped = Math.max(0, this.qaListTotalCount() - nextTotalCount);
+    const isWindowChurn = (removed: number) => next.length > 0 && removed > totalDropped;
     const nextById = new Map(next.map((question) => [question.id, question]));
     const ownAccepted: QaQuestionDTO[] = [];
     const ownPinned: QaQuestionDTO[] = [];
@@ -4692,7 +4854,7 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
     }
 
     let msg: string | null = null;
-    if (ownRemoved.length > 0) {
+    if (ownRemoved.length > 0 && !isWindowChurn(ownRemoved.length)) {
       msg =
         ownRemoved.length > 1
           ? $localize`:@@sessionQa.snackModeratorRemovedOwnMany:Die Moderation hat deine Fragen entfernt.`
@@ -4707,7 +4869,7 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
         ownAccepted.length > 1
           ? $localize`:@@sessionQa.snackOwnAcceptedMany:Deine Fragen wurden freigegeben.`
           : $localize`:@@sessionQa.snackOwnAccepted:Deine Frage wurde freigegeben.`;
-    } else if (otherRemoved.length > 0) {
+    } else if (otherRemoved.length > 0 && !isWindowChurn(otherRemoved.length)) {
       msg =
         otherRemoved.length > 1
           ? $localize`:@@sessionQa.snackModeratorRemovedOthersMany:Mehrere Fragen wurden von der Moderation entfernt.`
@@ -4719,7 +4881,10 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
     }
   }
 
-  private setQaQuestionsAnimated(next: QaQuestionDTO[], options: { notify?: boolean } = {}): void {
+  private setQaQuestionsAnimated(
+    next: QaQuestionDTO[],
+    options: { notify?: boolean; totalCount?: number; animate?: boolean } = {},
+  ): void {
     if (this.isFinished()) {
       this.qaQuestions.set([]);
       this.qaListTotalCount.set(0);
@@ -4730,7 +4895,7 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
     }
     const prev = this.qaQuestions();
     if (options.notify !== false) {
-      this.notifyQaQuestionUpdates(prev, next);
+      this.notifyQaQuestionUpdates(prev, next, options.totalCount);
     }
 
     const prefersReducedMotion =
@@ -4739,7 +4904,7 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
       window.matchMedia('(prefers-reduced-motion: reduce)').matches;
     const container: HTMLElement | null = this.el.nativeElement.querySelector('.session-qa-list');
 
-    if (!container || prefersReducedMotion) {
+    if (!container || prefersReducedMotion || options.animate === false) {
       this.qaQuestions.set(next);
       return;
     }
@@ -4758,7 +4923,7 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
       const newCards = container.querySelectorAll<HTMLElement>('[data-qa-id]');
       newCards.forEach((card) => {
         const id = card.getAttribute('data-qa-id');
-        if (!id) return;
+        if (!id || typeof card.animate !== 'function') return;
         const prev = prevRects.get(id);
         if (!prev) {
           card.animate(

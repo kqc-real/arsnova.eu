@@ -225,6 +225,7 @@ import {
   recordServerTimeSample,
 } from '../session-server-clock';
 import { SessionDeadlineController } from '../session-deadline';
+import { resolveQaDeadlineClockParts } from '../session-qa-deadline-label.util';
 import { MusicEqualizerIconComponent } from '../../../shared/music-equalizer-icon/music-equalizer-icon.component';
 import { ModerationCompassIconComponent } from './moderation-compass-icon.component';
 import { PresenterIconComponent } from '../presenter-icon.component';
@@ -678,6 +679,13 @@ export class SessionHostComponent implements OnInit, OnDestroy {
   readonly participantDirectoryError = signal<string | null>(null);
   readonly participantDirectorySearchDraft = signal('');
   readonly participantDirectorySearch = signal('');
+  readonly showParticipantDirectory = computed(() => {
+    const session = this.session();
+    if (!session || session.anonymousMode) {
+      return false;
+    }
+    return (this.participantsPayload()?.participantCount ?? session.participantCount) > 0;
+  });
   private participantDirectoryCurrentCursor: string | null = null;
   private participantDirectoryCursorHistory: Array<string | null> = [];
   private participantDirectorySearchTimer: ReturnType<typeof setTimeout> | null = null;
@@ -721,6 +729,7 @@ export class SessionHostComponent implements OnInit, OnDestroy {
     countQaSummaryVisibleQuestions(this.qaQuestions()),
   );
   readonly qaSelectedAuthorNickname = signal<string | null>(null);
+  private readonly qaUnfilteredChromeQuestions = signal<QaQuestionDTO[] | null>(null);
   readonly qaInfo = signal<string | null>(null);
   readonly qaPendingQuestionIds = signal<Set<string>>(new Set());
   readonly qaSeenQuestionIds = signal<Set<string>>(new Set());
@@ -1734,6 +1743,10 @@ export class SessionHostComponent implements OnInit, OnDestroy {
   readonly qaForumQuestions = computed(() =>
     this.qaQuestions().filter((question) => question.status !== 'DELETED'),
   );
+  readonly qaChromeForumQuestions = computed(() => {
+    const source = this.qaUnfilteredChromeQuestions() ?? this.qaQuestions();
+    return source.filter((question) => question.status !== 'DELETED');
+  });
   readonly qaForumQuestionCount = computed(() =>
     Math.max(this.qaListTotalCount(), this.qaForumQuestions().length),
   );
@@ -1742,12 +1755,7 @@ export class SessionHostComponent implements OnInit, OnDestroy {
     return this.qaShowPinnedOnly() ? all.filter((q) => q.status === 'PINNED') : all;
   });
   readonly qaVisibleQuestions = computed(() => {
-    const selectedNickname = this.qaSelectedAuthorNickname();
-    const questions = selectedNickname
-      ? this.qaFilteredQuestions().filter(
-          (question) => this.qaQuestionAuthorNickname(question) === selectedNickname,
-        )
-      : this.qaFilteredQuestions();
+    const questions = this.qaFilteredQuestions();
     const focused = this.qaCompassFocusQuestionIds();
     if (focused.size === 0) {
       return questions;
@@ -1766,7 +1774,7 @@ export class SessionHostComponent implements OnInit, OnDestroy {
     return [...focusedQuestions, ...rest];
   });
   readonly liveQaWordCloudQuestions = computed(() => {
-    const visibleQuestions = this.qaQuestions().filter(
+    const visibleQuestions = (this.qaUnfilteredChromeQuestions() ?? this.qaQuestions()).filter(
       (question) => question.status === 'PINNED' || question.status === 'ACTIVE',
     );
     return this.qaShowPinnedOnly()
@@ -1806,6 +1814,8 @@ export class SessionHostComponent implements OnInit, OnDestroy {
         return $localize`:@@sessionQa.wordCloudMetricBest:beste Fragen`;
       case 'CONTROVERSIAL':
         return $localize`:@@sessionQa.wordCloudMetricControversial:Kontroverse`;
+      case 'TIME':
+        return $localize`:@@sessionQa.wordCloudMetricTime:Zeit`;
       default:
         return $localize`:@@sessionQa.wordCloudMetricTop:positive Stimmen`;
     }
@@ -1851,6 +1861,8 @@ export class SessionHostComponent implements OnInit, OnDestroy {
         return $localize`:@@sessionQa.wordCloudHintBest:Große Wörter und Phrasen kommen aus Fragen mit viel Zustimmung und ausreichend Stimmen.`;
       case 'CONTROVERSIAL':
         return $localize`:@@sessionQa.wordCloudHintControversial:Große Wörter und Phrasen kommen aus Fragen mit gegensätzlichen Reaktionen. Darüberfahren zeigt die zugehörigen Fragen.`;
+      case 'TIME':
+        return $localize`:@@sessionQa.wordCloudHintTime:Die Fragenliste folgt der Zeit. Die Wortgröße bleibt bei den Stimmen.`;
       default:
         return $localize`:@@sessionQa.wordCloudHintTop:Große Wörter und Phrasen kommen aus Fragen mit vielen positiven Stimmen.`;
     }
@@ -2135,6 +2147,8 @@ export class SessionHostComponent implements OnInit, OnDestroy {
         return $localize`:@@sessionQa.sortHintBest:Zeigt Fragen mit viel Zustimmung und genug Stimmen zuerst. Hervorgehobene Fragen sind markiert, aber nicht vorgezogen.`;
       case 'CONTROVERSIAL':
         return $localize`:@@sessionQa.sortHintControversial:Zeigt Fragen mit gemischter Reaktion zuerst. Hervorgehobene Fragen sind markiert, aber nicht vorgezogen.`;
+      case 'TIME':
+        return $localize`:@@sessionQa.sortHintTime:Zeigt die neuesten Fragen zuerst. Hervorgehobene Fragen sind markiert, aber nicht vorgezogen.`;
       default:
         return $localize`:@@sessionQa.sortHintTop:Zeigt Fragen mit den meisten positiven Stimmen zuerst. Hervorgehobene Fragen sind markiert, aber nicht vorgezogen.`;
     }
@@ -2267,7 +2281,7 @@ export class SessionHostComponent implements OnInit, OnDestroy {
   };
   readonly moderationCompassCards = computed(() =>
     buildModerationCompassCards({
-      qaQuestions: this.qaForumQuestions().map((question) => ({
+      qaQuestions: this.qaChromeForumQuestions().map((question) => ({
         id: question.id,
         text: this.moderationCompassQaSourceText(question),
         status: question.status,
@@ -2288,7 +2302,7 @@ export class SessionHostComponent implements OnInit, OnDestroy {
       ],
       extraTopicSources: [...this.moderationCompassPinnedSources()],
       nlpTopicSources: collectQaNlpCategorySources(
-        this.qaForumQuestions().map((question) => ({
+        this.qaChromeForumQuestions().map((question) => ({
           id: question.id,
           text: this.moderationCompassQaSourceText(question),
           status: question.status,
@@ -2437,8 +2451,8 @@ export class SessionHostComponent implements OnInit, OnDestroy {
     const previousChannel = this.activeChannel();
     const focusHint = this.resolveCompassFocusHint(source, cardKind);
     if (target.channel === 'qa') {
+      await this.clearQaAuthorFilter();
       await this.setQaPinnedFilter(false);
-      this.clearQaAuthorSelection();
     }
     await this.selectChannel(target.channel);
     if (target.surface === 'word-cloud') {
@@ -3342,18 +3356,6 @@ export class SessionHostComponent implements OnInit, OnDestroy {
       }
     });
     effect(() => {
-      const selectedNickname = this.qaSelectedAuthorNickname();
-      if (!selectedNickname) {
-        return;
-      }
-      const hasMatchingQuestion = this.qaQuestions().some(
-        (question) => this.qaQuestionAuthorNickname(question) === selectedNickname,
-      );
-      if (!hasMatchingQuestion) {
-        untracked(() => this.clearQaAuthorSelection());
-      }
-    });
-    effect(() => {
       const result = this.quickFeedbackResult();
       if (!result) {
         this.quickFeedbackSeenVoteCount.set(0);
@@ -4076,15 +4078,25 @@ export class SessionHostComponent implements OnInit, OnDestroy {
     if (ev.key !== 'Escape') {
       return;
     }
+    if ((this.dialog.openDialogs?.length ?? 0) > 0) {
+      return;
+    }
     if (this.freetextWordCloudMaximized()) {
       this.closeFreetextWordCloudMaximize();
       ev.preventDefault();
       return;
     }
+    if (this.participantDirectoryOpen()) {
+      this.participantDirectoryOpen.set(false);
+      ev.preventDefault();
+      return;
+    }
     if (this.joinInfoPopoverOpen()) {
       this.closeJoinInfoPopover();
+      ev.preventDefault();
+      return;
     }
-    this.clearQaAuthorSelection();
+    void this.clearQaAuthorFilter();
   }
 
   /** Host der Beitritts-URL ohne Schema und ohne Pfad (Hostname, ggf. Port), für das Join-Menü. */
@@ -7223,7 +7235,7 @@ export class SessionHostComponent implements OnInit, OnDestroy {
   async toggleParticipantDirectory(): Promise<void> {
     const open = !this.participantDirectoryOpen();
     this.participantDirectoryOpen.set(open);
-    if (open && this.participantDirectoryEntries().length === 0) {
+    if (open) {
       await this.resetParticipantDirectory();
     }
   }
@@ -8382,32 +8394,19 @@ export class SessionHostComponent implements OnInit, OnDestroy {
   }
 
   qaDeadlineLabel(): string | null {
-    const closesAt = this.session()?.channels?.qa.closesAt ?? this.session()?.qaClosesAt;
-    if (!closesAt) {
+    const parts = resolveQaDeadlineClockParts({
+      closesAt: this.session()?.channels?.qa.closesAt ?? this.session()?.qaClosesAt,
+      nowMs: this.qaDeadlineNow(),
+      localeId: this.localeId,
+      timeZone: this.session()?.timeZone,
+    });
+    if (!parts) {
       return null;
     }
-    const deadline = Date.parse(closesAt);
-    const formatted = new Intl.DateTimeFormat(this.localeId, {
-      year: 'numeric',
-      month: 'short',
-      day: '2-digit',
-      hour: '2-digit',
-      minute: '2-digit',
-      timeZone: this.session()?.timeZone ?? 'UTC',
-      timeZoneName: 'short',
-    }).format(new Date(deadline));
-    const remainingMs = deadline - this.qaDeadlineNow();
-    if (remainingMs <= 0) {
-      return $localize`:@@sessionQa.deadlineExpired:Teilnahmefrist abgelaufen · ${formatted}:deadline:`;
+    if (parts.remainingMs <= 0) {
+      return $localize`:@@sessionQa.deadlineExpired:Teilnahmefrist abgelaufen · ${parts.formatted}:deadline:`;
     }
-    const relativeFormatter = new Intl.RelativeTimeFormat(this.localeId, { numeric: 'always' });
-    const relative =
-      remainingMs >= 48 * 60 * 60_000
-        ? relativeFormatter.format(Math.ceil(remainingMs / (24 * 60 * 60_000)), 'day')
-        : remainingMs >= 90 * 60_000
-          ? relativeFormatter.format(Math.ceil(remainingMs / (60 * 60_000)), 'hour')
-          : relativeFormatter.format(Math.max(1, Math.ceil(remainingMs / 60_000)), 'minute');
-    return $localize`:@@sessionQa.deadlineOpen:Q&A offen bis ${formatted}:deadline: · ${relative}:remaining:`;
+    return $localize`:@@sessionQa.deadlineOpen:Q&A offen bis ${parts.formatted}:deadline: · ${parts.relative}:remaining:`;
   }
 
   isChannelBadgeAlert(channel: SessionChannelTab): boolean {
@@ -8451,19 +8450,84 @@ export class SessionHostComponent implements OnInit, OnDestroy {
       : $localize`Alle Fragen von ${nickname} hervorheben`;
   }
 
-  toggleQaAuthorSelection(nickname: string | null | undefined): void {
+  async toggleQaAuthorSelection(nickname: string | null | undefined): Promise<void> {
     const trimmedNickname = nickname?.trim();
     if (!trimmedNickname) {
       return;
     }
-    this.qaSelectedAuthorNickname.update((current) =>
-      current === trimmedNickname ? null : trimmedNickname,
-    );
+    if (this.qaSelectedAuthorNickname() === trimmedNickname) {
+      await this.clearQaAuthorFilter();
+      return;
+    }
+    await this.applyQaAuthorFilter(trimmedNickname);
+  }
+
+  async selectQaAuthorFromDirectory(nickname: string): Promise<void> {
+    const trimmedNickname = nickname.trim();
+    if (!trimmedNickname) {
+      return;
+    }
+    if (this.qaSelectedAuthorNickname() === trimmedNickname) {
+      this.participantDirectoryOpen.set(false);
+      await this.clearQaAuthorFilter();
+      return;
+    }
+    await this.applyQaAuthorFilter(trimmedNickname);
+  }
+
+  qaDirectoryAuthorAriaLabel(nickname: string): string {
+    return this.qaSelectedAuthorNickname() === nickname
+      ? $localize`:@@sessionHost.participantDirectoryClearAuthorAria:Auswahl für ${nickname} aufheben`
+      : $localize`:@@sessionHost.participantDirectorySelectAuthorAria:Fragen von ${nickname} anzeigen`;
+  }
+
+  isQaAuthorNicknameSelected(nickname: string): boolean {
+    return this.qaSelectedAuthorNickname() === nickname;
   }
 
   clearQaAuthorSelection(): void {
     if (this.qaSelectedAuthorNickname() !== null) {
       this.qaSelectedAuthorNickname.set(null);
+    }
+  }
+
+  async clearQaAuthorFilter(): Promise<void> {
+    if (this.qaSelectedAuthorNickname() === null) {
+      return;
+    }
+    this.clearQaAuthorSelection();
+    this.releaseQaChromeIfUnfiltered();
+    this.ensureQaSubscription();
+    await this.refreshQaQuestions({ replaceStale: true });
+    this.scrollQaListToTop();
+  }
+
+  private async applyQaAuthorFilter(nickname: string): Promise<void> {
+    this.captureUnfilteredQaChrome();
+    this.qaSelectedAuthorNickname.set(nickname);
+    this.participantDirectoryOpen.set(false);
+    if (this.activeChannel() !== 'qa') {
+      await this.selectChannel('qa');
+    }
+    this.ensureQaSubscription();
+    await this.refreshQaQuestions({ replaceStale: true });
+    this.scrollQaListToTop();
+  }
+
+  private captureUnfilteredQaChrome(): void {
+    if (
+      this.qaUnfilteredChromeQuestions() !== null ||
+      this.qaSelectedAuthorNickname() ||
+      this.qaSearch()
+    ) {
+      return;
+    }
+    this.qaUnfilteredChromeQuestions.set(this.qaQuestions());
+  }
+
+  private releaseQaChromeIfUnfiltered(): void {
+    if (!this.qaSelectedAuthorNickname() && !this.qaSearch()) {
+      this.qaUnfilteredChromeQuestions.set(null);
     }
   }
 
@@ -8680,6 +8744,13 @@ export class SessionHostComponent implements OnInit, OnDestroy {
 
   private compareQaForumSort(left: QaQuestionDTO, right: QaQuestionDTO): number {
     const mode = this.qaSortMode();
+    if (mode === 'TIME') {
+      const createdDiff = Date.parse(right.createdAt) - Date.parse(left.createdAt);
+      if (Number.isFinite(createdDiff) && createdDiff !== 0) {
+        return createdDiff;
+      }
+      return left.id.localeCompare(right.id);
+    }
     if (mode === 'BEST') {
       const bestDiff = (right.bestScore ?? 0) - (left.bestScore ?? 0);
       if (bestDiff !== 0) {
@@ -9338,6 +9409,7 @@ export class SessionHostComponent implements OnInit, OnDestroy {
       analyzedQuestionCount: coverage?.analyzedQuestionCount ?? questionCount,
       eligibleQuestionCount: coverage?.eligibleQuestionCount ?? questionCount,
       modelVersion: modelVersion && modelVersion.length > 0 ? modelVersion : null,
+      smoothingActive: this.qaWordCloudLemmaSnapshotVisible(),
     };
   }
 
@@ -10089,12 +10161,27 @@ export class SessionHostComponent implements OnInit, OnDestroy {
     return this.qaShowPinnedOnly() ? ['PINNED'] : ['PENDING', 'ACTIVE', 'PINNED', 'ARCHIVED'];
   }
 
+  private hostQaListQueryInput(cursor?: string | null) {
+    const sessionId = this.session()?.id;
+    const search = this.qaSearch();
+    const authorNickname = this.qaSelectedAuthorNickname();
+    return {
+      sessionId: sessionId!,
+      moderatorView: true as const,
+      sort: this.qaSortMode(),
+      pageSize: 100,
+      statuses: this.qaListStatuses(),
+      ...(search ? { search } : {}),
+      ...(authorNickname ? { authorNickname } : {}),
+      ...(cursor ? { cursor } : {}),
+    };
+  }
+
   async setQaPinnedFilter(pinnedOnly: boolean): Promise<void> {
     if (this.qaShowPinnedOnly() === pinnedOnly) return;
     this.qaShowPinnedOnly.set(pinnedOnly);
-    this.clearQaAuthorSelection();
     this.ensureQaSubscription();
-    await this.refreshQaQuestions();
+    await this.refreshQaQuestions({ replaceStale: true });
     this.scrollQaListToTop();
   }
 
@@ -10105,10 +10192,15 @@ export class SessionHostComponent implements OnInit, OnDestroy {
       this.qaSearchTimer = null;
       const search = this.qaSearchDraft().trim();
       if (search === this.qaSearch()) return;
+      if (search && !this.qaSearch()) {
+        this.captureUnfilteredQaChrome();
+      }
       this.qaSearch.set(search);
-      this.clearQaAuthorSelection();
+      if (!search) {
+        this.releaseQaChromeIfUnfiltered();
+      }
       this.ensureQaSubscription();
-      void this.refreshQaQuestions().then(() => this.scrollQaListToTop());
+      void this.refreshQaQuestions({ replaceStale: true }).then(() => this.scrollQaListToTop());
     }, 300);
   }
 
@@ -10120,8 +10212,9 @@ export class SessionHostComponent implements OnInit, OnDestroy {
     this.qaSearchDraft.set('');
     if (this.qaSearch() === '') return;
     this.qaSearch.set('');
+    this.releaseQaChromeIfUnfiltered();
     this.ensureQaSubscription();
-    void this.refreshQaQuestions().then(() => this.scrollQaListToTop());
+    void this.refreshQaQuestions({ replaceStale: true }).then(() => this.scrollQaListToTop());
   }
 
   async loadMoreQaQuestions(): Promise<void> {
@@ -10155,15 +10248,7 @@ export class SessionHostComponent implements OnInit, OnDestroy {
     const requestGeneration = ++this.qaListRequestGeneration;
     this.qaListPageLoading.set(true);
     try {
-      const snapshot = await trpc.qa.list.query({
-        sessionId,
-        moderatorView: true,
-        sort: this.qaSortMode(),
-        pageSize: 100,
-        statuses: this.qaListStatuses(),
-        search: this.qaSearch() || undefined,
-        ...(cursor ? { cursor } : {}),
-      });
+      const snapshot = await trpc.qa.list.query(this.hostQaListQueryInput(cursor));
       if (requestGeneration !== this.qaListRequestGeneration) {
         return false;
       }
@@ -10180,7 +10265,10 @@ export class SessionHostComponent implements OnInit, OnDestroy {
     }
   }
 
-  private async refreshQaQuestions(options?: { silent?: boolean }): Promise<void> {
+  private async refreshQaQuestions(options?: {
+    silent?: boolean;
+    replaceStale?: boolean;
+  }): Promise<void> {
     const sessionId = this.session()?.id;
     const requestGeneration = ++this.qaListRequestGeneration;
     if (!sessionId || !this.channels().qa) {
@@ -10188,18 +10276,22 @@ export class SessionHostComponent implements OnInit, OnDestroy {
       this.qaListTotalCount.set(0);
       this.qaListNextCursor.set(null);
       this.resetQaListPageNavigation();
+      this.qaListPageLoading.set(false);
       return;
     }
 
+    if (options?.replaceStale) {
+      this.qaQuestions.set([]);
+      this.qaListTotalCount.set(0);
+      this.qaListNextCursor.set(null);
+      this.resetQaListPageNavigation();
+    }
+    if (!options?.silent) {
+      this.qaListPageLoading.set(true);
+    }
+
     try {
-      const snapshot = await trpc.qa.list.query({
-        sessionId,
-        moderatorView: true,
-        sort: this.qaSortMode(),
-        pageSize: 100,
-        statuses: this.qaListStatuses(),
-        search: this.qaSearch() || undefined,
-      });
+      const snapshot = await trpc.qa.list.query(this.hostQaListQueryInput());
       if (requestGeneration !== this.qaListRequestGeneration) {
         return;
       }
@@ -10216,6 +10308,10 @@ export class SessionHostComponent implements OnInit, OnDestroy {
         return;
       }
       this.openHostSteeringCalloutForQaFailure(() => void this.refreshQaQuestions());
+    } finally {
+      if (requestGeneration === this.qaListRequestGeneration) {
+        this.qaListPageLoading.set(false);
+      }
     }
   }
 

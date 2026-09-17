@@ -664,105 +664,6 @@
           </button>
         </div>
       </div>
-      @if (!s.anonymousMode && liveParticipantCount > 0) {
-        <section class="session-participant-directory">
-          <button
-            mat-stroked-button
-            type="button"
-            aria-controls="session-participant-directory-content"
-            [attr.aria-expanded]="participantDirectoryOpen()"
-            (click)="toggleParticipantDirectory()"
-          >
-            <mat-icon aria-hidden="true">manage_search</mat-icon>
-            <span i18n="@@sessionHost.participantDirectoryToggle">Teilnahmen durchsuchen</span>
-          </button>
-
-          @if (participantDirectoryOpen()) {
-            <div
-              id="session-participant-directory-content"
-              class="session-participant-directory__content"
-            >
-              <mat-form-field appearance="outline" subscriptSizing="dynamic">
-                <mat-label i18n="@@sessionHost.participantDirectorySearch"
-                  >Nickname suchen</mat-label
-                >
-                <input
-                  matInput
-                  type="search"
-                  maxlength="100"
-                  [value]="participantDirectorySearchDraft()"
-                  (input)="onParticipantDirectorySearchInput($any($event.target).value)"
-                />
-              </mat-form-field>
-              @if (participantDirectorySearchDraft()) {
-                <button
-                  mat-icon-button
-                  type="button"
-                  (click)="clearParticipantDirectorySearch()"
-                  i18n-aria-label="@@sessionHost.participantDirectoryClear"
-                  aria-label="Teilnahmesuche leeren"
-                >
-                  <mat-icon>close</mat-icon>
-                </button>
-              }
-
-              <p class="session-participant-directory__count" role="status">
-                <span i18n="@@sessionHost.participantDirectoryCount">Treffer:</span>
-                {{ formatCount(participantDirectoryTotal()) }}
-              </p>
-              @if (participantDirectoryError(); as directoryError) {
-                <p role="alert" class="session-participant-directory__error">
-                  {{ directoryError }}
-                </p>
-              } @else {
-                <ul
-                  class="session-participant-directory__list"
-                  role="list"
-                  i18n-aria-label="@@sessionHost.participantDirectoryAria"
-                  aria-label="Geladene Teilnahmen"
-                >
-                  @for (participant of participantDirectoryEntries(); track participant.id) {
-                    <li>
-                      <span>{{ participant.nickname }}</span>
-                      @if (participant.teamName) {
-                        <span class="session-participant-directory__team">
-                          {{ participant.teamName }}
-                        </span>
-                      }
-                    </li>
-                  }
-                </ul>
-              }
-
-              <div class="session-participant-directory__paging">
-                <button
-                  mat-stroked-button
-                  type="button"
-                  [disabled]="
-                    participantDirectoryLoading() || participantDirectoryPageIndex() === 0
-                  "
-                  (click)="loadPreviousParticipantDirectoryPage()"
-                  i18n="@@sessionHost.participantDirectoryPrevious"
-                >
-                  Zurück
-                </button>
-                <span i18n="@@sessionHost.participantDirectoryPage"
-                  >Seite {{ participantDirectoryPageIndex() + 1 }}</span
-                >
-                <button
-                  mat-stroked-button
-                  type="button"
-                  [disabled]="participantDirectoryLoading() || !participantDirectoryNextCursor()"
-                  (click)="loadNextParticipantDirectoryPage()"
-                  i18n="@@sessionHost.participantDirectoryNext"
-                >
-                  Weiter
-                </button>
-              </div>
-            </div>
-          }
-        </section>
-      }
     }
 
     <div class="session-host__channel-stage">
@@ -4167,15 +4068,8 @@
                   }
                 </div>
 
-                @if (qaForumQuestionCount() === 0 && !qaSearch()) {
-                  <div class="session-qa-empty">
-                    <mat-icon class="session-qa-empty__icon" aria-hidden="true">forum</mat-icon>
-                    <p class="session-qa-empty__text" i18n="@@sessionTabs.qaHostPlaceholder">
-                      Noch keine Fragen.
-                    </p>
-                  </div>
-                } @else {
-                  <div class="session-qa-summary">
+                <div class="session-qa-summary">
+                  @if ((qaForumQuestionCount() > 0 || qaSearch()) && !qaSelectedAuthorNickname()) {
                     <div class="session-qa-summary__chips">
                       <span class="session-qa-summary__chip">
                         <mat-icon class="session-qa-summary__icon" aria-hidden="true"
@@ -4220,78 +4114,245 @@
                         </span>
                       }
                     </div>
-                    <div class="session-qa-summary__actions">
-                      <mat-form-field
-                        class="session-qa-search"
-                        appearance="outline"
-                        subscriptSizing="dynamic"
+                  }
+                  <div class="session-qa-summary__actions">
+                    @if (showParticipantDirectory()) {
+                      <section
+                        class="session-participant-directory session-participant-directory--toolbar"
                       >
-                        <mat-label i18n="@@sessionQa.searchLabel">Fragen durchsuchen</mat-label>
+                        <button
+                          mat-stroked-button
+                          type="button"
+                          aria-controls="session-participant-directory-content"
+                          [attr.aria-expanded]="participantDirectoryOpen()"
+                          (click)="toggleParticipantDirectory()"
+                        >
+                          <mat-icon aria-hidden="true">manage_search</mat-icon>
+                          <span i18n="@@sessionHost.participantDirectoryToggle"
+                            >Teilnahmen durchsuchen</span
+                          >
+                        </button>
+                      </section>
+                    }
+                    <mat-form-field
+                      class="session-qa-search"
+                      appearance="outline"
+                      subscriptSizing="dynamic"
+                    >
+                      <mat-label i18n="@@sessionQa.searchLabel">Fragen durchsuchen</mat-label>
+                      <input
+                        matInput
+                        type="search"
+                        maxlength="100"
+                        [value]="qaSearchDraft()"
+                        (input)="onQaSearchInput($any($event.target).value)"
+                        i18n-aria-label="@@sessionQa.searchAria"
+                        aria-label="Q&A-Fragen durchsuchen"
+                      />
+                    </mat-form-field>
+                    @if (qaSearchDraft()) {
+                      <button
+                        mat-icon-button
+                        type="button"
+                        (click)="clearQaSearch()"
+                        i18n-aria-label="@@sessionQa.searchClearAria"
+                        aria-label="Q&A-Suche leeren"
+                      >
+                        <mat-icon>close</mat-icon>
+                      </button>
+                    }
+                    @if (qaSelectedAuthorNickname(); as authorNickname) {
+                      <button
+                        type="button"
+                        class="session-qa-filter-btn session-qa-filter-btn--active"
+                        (click)="clearQaAuthorFilter()"
+                        i18n-aria-label="@@sessionQa.authorFilterClearAria"
+                        aria-label="Teilnahme-Filter aufheben"
+                      >
+                        <mat-icon aria-hidden="true">person_search</mat-icon>
+                        <span i18n="@@sessionQa.authorFilterLabel"
+                          >Fragen von {{ authorNickname }}</span
+                        >
+                      </button>
+                    }
+                    <mat-button-toggle-group
+                      class="session-qa-sort-toggle"
+                      [value]="qaSortMode()"
+                      (valueChange)="setQaSortMode($any($event))"
+                      aria-label="Q&A-Sortierung"
+                      i18n-aria-label="@@sessionQa.sortAria"
+                    >
+                      <mat-button-toggle value="TOP" i18n="@@sessionQa.sortTop"
+                        >Meist unterstützt</mat-button-toggle
+                      >
+                      <mat-button-toggle value="BEST" i18n="@@sessionQa.sortBest"
+                        >Beste Fragen</mat-button-toggle
+                      >
+                      <mat-button-toggle value="CONTROVERSIAL" i18n="@@sessionQa.sortControversial"
+                        >Umstritten</mat-button-toggle
+                      >
+                      <mat-button-toggle value="TIME" i18n="@@sessionQa.sortTime"
+                        >Zeit</mat-button-toggle
+                      >
+                    </mat-button-toggle-group>
+                    @if (qaShowPinnedOnly()) {
+                      <button
+                        type="button"
+                        class="session-qa-filter-btn session-qa-filter-btn--active"
+                        (click)="setQaPinnedFilter(false)"
+                        i18n-aria-label="@@sessionQa.filterShowAllAria"
+                        aria-label="Alle Fragen anzeigen"
+                      >
+                        <mat-icon aria-hidden="true">visibility</mat-icon>
+                        <span i18n="@@sessionQa.filterShowAllLabel">Alle anzeigen</span>
+                      </button>
+                    } @else {
+                      <button
+                        type="button"
+                        class="session-qa-filter-btn"
+                        (click)="setQaPinnedFilter(true)"
+                        i18n-aria-label="@@sessionQa.filterPinnedAria"
+                        aria-label="Nur hervorgehobene Fragen anzeigen"
+                      >
+                        <mat-icon aria-hidden="true">shield</mat-icon>
+                        <span i18n="@@sessionQa.filterPinnedLabel">Nur hervorgehobene</span>
+                      </button>
+                    }
+                  </div>
+                  @if (showParticipantDirectory() && participantDirectoryOpen()) {
+                    <div
+                      id="session-participant-directory-content"
+                      class="session-participant-directory__content session-qa-summary__directory-panel"
+                      [attr.aria-busy]="participantDirectoryLoading()"
+                    >
+                      <mat-form-field appearance="outline" subscriptSizing="dynamic">
+                        <mat-label i18n="@@sessionHost.participantDirectorySearch"
+                          >Nickname suchen</mat-label
+                        >
                         <input
                           matInput
                           type="search"
                           maxlength="100"
-                          [value]="qaSearchDraft()"
-                          (input)="onQaSearchInput($any($event.target).value)"
-                          i18n-aria-label="@@sessionQa.searchAria"
-                          aria-label="Q&A-Fragen durchsuchen"
+                          [value]="participantDirectorySearchDraft()"
+                          (input)="onParticipantDirectorySearchInput($any($event.target).value)"
                         />
                       </mat-form-field>
-                      @if (qaSearchDraft()) {
+                      @if (participantDirectorySearchDraft()) {
                         <button
                           mat-icon-button
                           type="button"
-                          (click)="clearQaSearch()"
-                          i18n-aria-label="@@sessionQa.searchClearAria"
-                          aria-label="Q&A-Suche leeren"
+                          (click)="clearParticipantDirectorySearch()"
+                          i18n-aria-label="@@sessionHost.participantDirectoryClear"
+                          aria-label="Teilnahmesuche leeren"
                         >
                           <mat-icon>close</mat-icon>
                         </button>
                       }
-                      <mat-button-toggle-group
-                        class="session-qa-sort-toggle"
-                        [value]="qaSortMode()"
-                        (valueChange)="setQaSortMode($any($event))"
-                        aria-label="Q&A-Sortierung"
-                        i18n-aria-label="@@sessionQa.sortAria"
-                      >
-                        <mat-button-toggle value="TOP" i18n="@@sessionQa.sortTop"
-                          >Meist unterstützt</mat-button-toggle
-                        >
-                        <mat-button-toggle value="BEST" i18n="@@sessionQa.sortBest"
-                          >Beste Fragen</mat-button-toggle
-                        >
-                        <mat-button-toggle
-                          value="CONTROVERSIAL"
-                          i18n="@@sessionQa.sortControversial"
-                          >Umstritten</mat-button-toggle
-                        >
-                      </mat-button-toggle-group>
-                      @if (qaShowPinnedOnly()) {
-                        <button
-                          type="button"
-                          class="session-qa-filter-btn session-qa-filter-btn--active"
-                          (click)="setQaPinnedFilter(false)"
-                          i18n-aria-label="@@sessionQa.filterShowAllAria"
-                          aria-label="Alle Fragen anzeigen"
-                        >
-                          <mat-icon aria-hidden="true">visibility</mat-icon>
-                          <span i18n="@@sessionQa.filterShowAllLabel">Alle anzeigen</span>
-                        </button>
+
+                      <p class="session-participant-directory__count" role="status">
+                        <span i18n="@@sessionHost.participantDirectoryCount">Treffer:</span>
+                        {{ formatCount(participantDirectoryTotal()) }}
+                      </p>
+                      @if (participantDirectoryError(); as directoryError) {
+                        <p role="alert" class="session-participant-directory__error">
+                          {{ directoryError }}
+                        </p>
+                      } @else if (
+                        participantDirectoryLoading() && participantDirectoryEntries().length === 0
+                      ) {
+                        <p class="session-participant-directory__count" role="status">
+                          <span i18n="@@sessionHost.participantDirectoryLoading"
+                            >Teilnahmen werden geladen.</span
+                          >
+                        </p>
+                      } @else if (participantDirectoryEntries().length === 0) {
+                        <p class="session-participant-directory__count" role="status">
+                          <span i18n="@@sessionHost.participantDirectoryEmpty"
+                            >Keine Teilnahme gefunden.</span
+                          >
+                        </p>
                       } @else {
-                        <button
-                          type="button"
-                          class="session-qa-filter-btn"
-                          (click)="setQaPinnedFilter(true)"
-                          i18n-aria-label="@@sessionQa.filterPinnedAria"
-                          aria-label="Nur hervorgehobene Fragen anzeigen"
+                        <ul
+                          class="session-participant-directory__list"
+                          role="list"
+                          i18n-aria-label="@@sessionHost.participantDirectoryAria"
+                          aria-label="Geladene Teilnahmen"
                         >
-                          <mat-icon aria-hidden="true">shield</mat-icon>
-                          <span i18n="@@sessionQa.filterPinnedLabel">Nur hervorgehobene</span>
-                        </button>
+                          @for (
+                            participant of participantDirectoryEntries();
+                            track participant.id
+                          ) {
+                            <li>
+                              <button
+                                type="button"
+                                class="session-participant-directory__identity"
+                                [class.session-participant-directory__identity--selected]="
+                                  isQaAuthorNicknameSelected(participant.nickname)
+                                "
+                                [attr.aria-pressed]="
+                                  isQaAuthorNicknameSelected(participant.nickname)
+                                "
+                                [attr.aria-label]="qaDirectoryAuthorAriaLabel(participant.nickname)"
+                                (click)="selectQaAuthorFromDirectory(participant.nickname)"
+                              >
+                                <span>{{ participant.nickname }}</span>
+                                @if (participant.teamName) {
+                                  <span class="session-participant-directory__team">
+                                    {{ participant.teamName }}
+                                  </span>
+                                }
+                              </button>
+                            </li>
+                          }
+                        </ul>
                       }
+
+                      <div class="session-participant-directory__paging">
+                        <button
+                          mat-stroked-button
+                          type="button"
+                          [disabled]="
+                            participantDirectoryLoading() || participantDirectoryPageIndex() === 0
+                          "
+                          (click)="loadPreviousParticipantDirectoryPage()"
+                          i18n="@@sessionHost.participantDirectoryPrevious"
+                        >
+                          Zurück
+                        </button>
+                        <span i18n="@@sessionHost.participantDirectoryPage"
+                          >Seite {{ participantDirectoryPageIndex() + 1 }}</span
+                        >
+                        <button
+                          mat-stroked-button
+                          type="button"
+                          [disabled]="
+                            participantDirectoryLoading() || !participantDirectoryNextCursor()
+                          "
+                          (click)="loadNextParticipantDirectoryPage()"
+                          i18n="@@sessionHost.participantDirectoryNext"
+                        >
+                          Weiter
+                        </button>
+                      </div>
                     </div>
+                  }
+                </div>
+                @if (qaListPageLoading() && qaVisibleQuestions().length === 0) {
+                  <div class="session-qa-empty" role="status" aria-live="polite">
+                    <p class="session-qa-empty__text" i18n="@@sessionQa.questionsLoading">
+                      Fragen werden geladen.
+                    </p>
                   </div>
+                } @else if (
+                  qaForumQuestionCount() === 0 && !qaSearch() && !qaSelectedAuthorNickname()
+                ) {
+                  <div class="session-qa-empty">
+                    <mat-icon class="session-qa-empty__icon" aria-hidden="true">forum</mat-icon>
+                    <p class="session-qa-empty__text" i18n="@@sessionTabs.qaHostPlaceholder">
+                      Noch keine Fragen.
+                    </p>
+                  </div>
+                } @else {
                   <p class="session-qa-sort-hint">{{ qaSortHint() }}</p>
                   @if (hasQaListFocus()) {
                     <div class="session-qa-focus-bar">
@@ -4378,6 +4439,7 @@
                     class="session-qa-list"
                     role="list"
                     #qaListContainer
+                    [attr.aria-busy]="qaListPageLoading()"
                     (scroll)="onQaListScroll($event)"
                   >
                     @for (question of qaVisibleQuestions(); track question.id) {
@@ -4575,6 +4637,15 @@
                       <mat-icon class="session-qa-empty__icon" aria-hidden="true">shield</mat-icon>
                       <p class="session-qa-empty__text" i18n="@@sessionQa.filterEmptyHint">
                         Nur hervorgehobene aktiv – noch keine hervorgehobenen Fragen.
+                      </p>
+                    </div>
+                  } @else if (qaFilteredQuestions().length === 0 && qaSelectedAuthorNickname()) {
+                    <div class="session-qa-empty session-qa-empty--filtered">
+                      <mat-icon class="session-qa-empty__icon" aria-hidden="true"
+                        >person_off</mat-icon
+                      >
+                      <p class="session-qa-empty__text" i18n="@@sessionQa.authorEmpty">
+                        Keine Fragen von dieser Teilnahme.
                       </p>
                     </div>
                   }

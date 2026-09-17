@@ -1450,8 +1450,13 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
   it('lädt die Teilnehmerübersicht bedarfsgesteuert in ersetzten Seiten mit höchstens 80 Einträgen', async () => {
     getInfoQueryMock.mockResolvedValue({
       ...defaultSession,
-      status: 'LOBBY',
+      status: 'ACTIVE',
       participantCount: 81,
+      channels: {
+        quiz: { enabled: true },
+        qa: { enabled: true, open: true, title: 'Fragen aus dem Publikum', moderationMode: true },
+        quickFeedback: { enabled: false, open: false },
+      },
     });
     getParticipantsQueryMock.mockResolvedValue({
       participantCount: 81,
@@ -1489,8 +1494,20 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
     const fixture = setup();
     fixture.detectChanges();
     await fixture.whenStable();
+    fixture.componentInstance.activeChannel.set('qa');
+    fixture.detectChanges();
     await fixture.componentInstance.toggleParticipantDirectory();
     fixture.detectChanges();
+
+    const directory = fixture.nativeElement.querySelector(
+      '.session-participant-directory--toolbar',
+    ) as HTMLElement | null;
+    const search = fixture.nativeElement.querySelector('.session-qa-search') as HTMLElement | null;
+    expect(directory).not.toBeNull();
+    expect(search).not.toBeNull();
+    expect(
+      directory!.compareDocumentPosition(search!) & Node.DOCUMENT_POSITION_FOLLOWING,
+    ).toBeTruthy();
 
     expect(searchParticipantsQueryMock).toHaveBeenLastCalledWith({
       code: 'ABC123',
@@ -1513,6 +1530,163 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
       fixture.nativeElement.querySelectorAll('.session-participant-directory__list li'),
     ).toHaveLength(1);
     expect(fixture.nativeElement.textContent ?? '').toContain('Letzte Teilnahme');
+    fixture.destroy();
+  });
+
+  it('lädt nach Auswahl einer Teilnahme im Verzeichnis deren Q&A-Fragen', async () => {
+    const dragonQuestion = {
+      id: 'question-dragon',
+      text: 'Kannst du das Beispiel noch einmal erklären?',
+      upvoteCount: 5,
+      status: 'ACTIVE' as const,
+      createdAt: '2026-03-13T12:00:00.000Z',
+      authorNickname: 'Roter Drache 2',
+      myVote: null,
+      isOwn: false,
+      hasUpvoted: false,
+    };
+    getInfoQueryMock.mockResolvedValue({
+      ...defaultSession,
+      status: 'ACTIVE',
+      participantCount: 2,
+      channels: {
+        quiz: { enabled: true },
+        qa: { enabled: true, open: true, title: 'Fragen aus dem Publikum', moderationMode: true },
+        quickFeedback: { enabled: false, open: false },
+      },
+    });
+    getParticipantsQueryMock.mockResolvedValue({
+      participantCount: 2,
+      participants: [{ id: 'p1', nickname: 'Roter Drache 2' }],
+    });
+    searchParticipantsQueryMock.mockResolvedValue({
+      participants: [
+        {
+          id: 'p1',
+          nickname: 'Roter Drache 2',
+          teamId: null,
+          teamName: null,
+          joinedAt: '2026-09-15T08:00:00.000Z',
+        },
+        {
+          id: 'p2',
+          nickname: 'Grüner Frosch',
+          teamId: null,
+          teamName: 'Team 🍎',
+          joinedAt: '2026-09-15T07:00:00.000Z',
+        },
+      ],
+      participantCount: 2,
+      revision: 2,
+      nextCursor: null,
+    });
+    qaListQueryMock.mockImplementation(async (input?: { authorNickname?: string }) =>
+      input?.authorNickname === 'Roter Drache 2' ? [dragonQuestion] : [],
+    );
+
+    const fixture = setup();
+    fixture.detectChanges();
+    await fixture.whenStable();
+    fixture.componentInstance.activeChannel.set('qa');
+    fixture.detectChanges();
+    await fixture.componentInstance.toggleParticipantDirectory();
+    fixture.detectChanges();
+
+    const identityButtons = fixture.nativeElement.querySelectorAll(
+      '.session-participant-directory__identity',
+    );
+    expect(identityButtons).toHaveLength(2);
+
+    (identityButtons[0] as HTMLButtonElement).click();
+    await fixture.whenStable();
+    fixture.detectChanges();
+
+    expect(fixture.componentInstance.qaSelectedAuthorNickname()).toBe('Roter Drache 2');
+    expect(fixture.componentInstance.activeChannel()).toBe('qa');
+    expect(qaListQueryMock).toHaveBeenCalledWith(
+      expect.objectContaining({
+        authorNickname: 'Roter Drache 2',
+        moderatorView: true,
+      }),
+    );
+    expect(fixture.nativeElement.textContent ?? '').toContain(
+      'Kannst du das Beispiel noch einmal erklären?',
+    );
+    expect(
+      fixture.nativeElement.querySelector('.session-qa-filter-btn--active')?.textContent ?? '',
+    ).toContain('Fragen von Roter Drache 2');
+    expect(fixture.componentInstance.participantDirectoryOpen()).toBe(false);
+    expect(fixture.nativeElement.querySelector('.session-participant-directory__list')).toBeNull();
+
+    const callsAfterSelect = searchParticipantsQueryMock.mock.calls.length;
+    await fixture.componentInstance.toggleParticipantDirectory();
+    fixture.detectChanges();
+    expect(searchParticipantsQueryMock.mock.calls.length).toBe(callsAfterSelect + 1);
+    fixture.destroy();
+  });
+
+  it('schließt das Teilnehmerverzeichnis mit Escape bevor der Autorenfilter fällt', async () => {
+    getInfoQueryMock.mockResolvedValue({
+      ...defaultSession,
+      status: 'ACTIVE',
+      participantCount: 1,
+      channels: {
+        quiz: { enabled: true },
+        qa: { enabled: true, open: true, title: 'Fragen', moderationMode: true },
+        quickFeedback: { enabled: false, open: false },
+      },
+    });
+    getParticipantsQueryMock.mockResolvedValue({
+      participantCount: 1,
+      participants: [{ id: 'p1', nickname: 'Roter Drache 2' }],
+    });
+    searchParticipantsQueryMock.mockResolvedValue({
+      participants: [
+        {
+          id: 'p1',
+          nickname: 'Roter Drache 2',
+          teamId: null,
+          teamName: null,
+          joinedAt: '2026-09-15T08:00:00.000Z',
+        },
+      ],
+      participantCount: 1,
+      revision: 1,
+      nextCursor: null,
+    });
+    qaListQueryMock.mockResolvedValue([
+      {
+        id: 'question-dragon',
+        text: 'Kannst du das Beispiel noch einmal erklären?',
+        upvoteCount: 5,
+        status: 'ACTIVE',
+        createdAt: '2026-03-13T12:00:00.000Z',
+        authorNickname: 'Roter Drache 2',
+        myVote: null,
+        isOwn: false,
+        hasUpvoted: false,
+      },
+    ]);
+
+    const fixture = setup();
+    fixture.detectChanges();
+    await fixture.whenStable();
+    fixture.componentInstance.activeChannel.set('qa');
+    fixture.componentInstance.qaSelectedAuthorNickname.set('Roter Drache 2');
+    fixture.detectChanges();
+    await fixture.componentInstance.toggleParticipantDirectory();
+    fixture.detectChanges();
+
+    expect(fixture.componentInstance.participantDirectoryOpen()).toBe(true);
+    expect(
+      fixture.nativeElement.querySelector('.session-participant-directory__list'),
+    ).not.toBeNull();
+
+    document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape' }));
+    fixture.detectChanges();
+
+    expect(fixture.componentInstance.participantDirectoryOpen()).toBe(false);
+    expect(fixture.componentInstance.qaSelectedAuthorNickname()).toBe('Roter Drache 2');
     fixture.destroy();
   });
 
@@ -5596,7 +5770,18 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
     fixture.destroy();
   });
 
-  it('selektiert Host-Q&A-Fragen per Tier-Badge und hebt die Auswahl mit Escape wieder auf', () => {
+  it('selektiert Host-Q&A-Fragen per Tier-Badge und hebt die Auswahl mit Escape wieder auf', async () => {
+    getInfoQueryMock.mockResolvedValue({
+      ...defaultSession,
+      status: 'ACTIVE',
+      nicknameTheme: 'KINDERGARTEN',
+      anonymousMode: false,
+      channels: {
+        quiz: { enabled: true },
+        qa: { enabled: true, open: true, title: 'Fragen aus dem Publikum', moderationMode: true },
+        quickFeedback: { enabled: false, open: false },
+      },
+    });
     const fixture = setup();
     const component = fixture.componentInstance;
     component.session.set({
@@ -5635,20 +5820,32 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
         hasUpvoted: false,
       },
     ]);
+    const dragonQuestion = component.qaQuestions()[0];
+    const frogQuestion = component.qaQuestions()[1];
+    qaListQueryMock.mockImplementation(async (input?: { authorNickname?: string }) =>
+      input?.authorNickname === 'Roter Drache 2'
+        ? [dragonQuestion]
+        : [dragonQuestion, frogQuestion],
+    );
     fixture.detectChanges();
 
     const host = fixture.nativeElement as HTMLElement;
     const badges = host.querySelectorAll('.session-qa-card__author-icon');
     (badges[0] as HTMLButtonElement).click();
+    await fixture.whenStable();
     fixture.detectChanges();
 
     let cards = host.querySelectorAll('.session-qa-card');
 
     expect(component.qaSelectedAuthorNickname()).toBe('Roter Drache 2');
+    expect(qaListQueryMock).toHaveBeenCalledWith(
+      expect.objectContaining({ authorNickname: 'Roter Drache 2' }),
+    );
     expect(cards).toHaveLength(1);
     expect(cards[0]?.className).toContain('session-qa-card--author-selected');
 
     document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape' }));
+    await fixture.whenStable();
     fixture.detectChanges();
     cards = host.querySelectorAll('.session-qa-card');
 
@@ -5925,6 +6122,7 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
     expect(component.qaWordCloudTitle()).toBe('Q&A-Wortwolke');
     expect(component.qaWordCloudInfo()).toBe('1 sichtbare Frage');
     expect(text).toContain('Umstritten');
+    expect(text).toContain('Zeit');
     expect(text).toContain('8 positiv · 8 negativ');
     expect(text).toContain('Geteilte Reaktionen 80 %');
     fixture.destroy();
@@ -5948,6 +6146,15 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
     expect(styles).toMatch(/\.session-qa-sort-toggle \{[^}]*max-width:\s*100%/);
     expect(styles).toMatch(
       /\.session-qa-sort-hint \{[^}]*max-width:\s*100%[^}]*overflow-wrap:\s*anywhere/,
+    );
+    expect(styles).toMatch(/\.session-qa-summary__directory-panel \{[^}]*flex:\s*none/);
+    expect(styles).toMatch(/\.session-qa-summary__directory-panel \{[^}]*width:\s*100%/);
+    expect(styles).not.toMatch(/\.session-qa-summary__directory-panel \{[^}]*flex:\s*1 1 100%/);
+    expect(styles).toMatch(
+      /@media \(max-width: 599px\)[\s\S]*?\.session-qa-summary \{[^}]*align-items:\s*stretch/,
+    );
+    expect(styles).toMatch(
+      /@media \(max-width: 599px\)[\s\S]*?\.session-participant-directory--toolbar \{\s*flex:\s*1 1 100%/,
     );
     expect(styles).toMatch(/\.session-host__moderation-stack \{[^}]*align-self:\s*start/);
     expect(styles).toMatch(/\.session-host__moderation-stack \{[^}]*justify-self:\s*end/);
@@ -6308,6 +6515,7 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
         projection: expect.objectContaining({
           mode: 'THEME',
           metric: 'BEST',
+          smoothingActive: expect.any(Boolean),
           analysisEntries: expect.arrayContaining([
             expect.objectContaining({
               label: 'Kapitel 4',

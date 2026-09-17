@@ -32,7 +32,7 @@ export type ModerationCompassSourceKind =
 
 export type ModerationCompassLiveChannel = 'quiz' | 'qa' | 'quickFeedback';
 
-export type ModerationCompassSortMode = 'TOP' | 'BEST' | 'CONTROVERSIAL';
+export type ModerationCompassSortMode = 'TOP' | 'BEST' | 'CONTROVERSIAL' | 'TIME';
 export type ModerationCompassAnalysisVariant = 'LEXICAL' | 'THEME';
 
 export type ModerationCompassSourceTarget = {

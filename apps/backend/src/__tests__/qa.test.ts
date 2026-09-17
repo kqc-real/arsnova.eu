@@ -73,6 +73,7 @@ vi.mock('../lib/qaTelemetry', () => ({
   recordQaRatingChanged: qaTelemetryMocks.recordQaRatingChanged,
 }));
 
+import { emitQaQuestionsSignal, resetQaQuestionsSignalsForTests } from '../lib/qaQuestionsSignal';
 import { qaRouter } from '../routers/qa';
 
 function hostCtx(token: string | null) {
@@ -175,6 +176,7 @@ function rankedQaRow(overrides: Partial<RankedQaTestRow> = {}): RankedQaTestRow 
 
 describe('qa router (Epic 8)', () => {
   beforeEach(() => {
+    resetQaQuestionsSignalsForTests();
     vi.resetAllMocks();
     rawQueryResults.createQuestion.length = 0;
     rawQueryResults.changeVote.length = 0;
@@ -274,8 +276,163 @@ describe('qa router (Epic 8)', () => {
       expect(result[0]).not.toHaveProperty('negativeVoteCount');
       expect(result[0]).not.toHaveProperty('moderationCompass');
       expect(result[0]).not.toHaveProperty('compassCards');
+      const sql = rawSqlText(prismaMock.$queryRaw.mock.calls[0] ?? []);
+      expect(sql).toContain(`WHEN 'ACTIVE' THEN 1`);
+      expect(sql).not.toContain('GREATEST(');
+      expect(sql).not.toContain('POWER(');
     },
   );
+
+  it('sortiert die Teilnehmer-Q&A-Liste nach BEST ohne Host-Metriken auszugeben', async () => {
+    prismaMock.session.findUnique.mockResolvedValue({
+      ...ACTIVE_QA_SESSION,
+      id: SESSION_ID,
+      code: 'CODE12',
+      type: 'QUIZ',
+      qaEnabled: true,
+      qaOpen: true,
+      qaModerationMode: false,
+    });
+    rawQueryResults.rankedQuestions.push([
+      rankedQaRow({
+        id: '22222222-2222-4222-8222-222222222222',
+        participantId: PARTICIPANT_ID,
+        text: 'Stabile Mehrheit',
+        upvoteCount: 5,
+        createdAt: new Date('2026-03-13T12:01:00.000Z'),
+        positiveVoteCount: 5,
+        bestScore: 0.5655,
+        totalCount: 2,
+      }),
+      rankedQaRow({
+        id: '11111111-1111-4111-8111-111111111111',
+        participantId: PARTICIPANT_ID,
+        text: 'Nur eine Zustimmung',
+        upvoteCount: 1,
+        createdAt: new Date('2026-03-13T12:00:00.000Z'),
+        positiveVoteCount: 1,
+        bestScore: 0.2065,
+        totalCount: 2,
+      }),
+    ]);
+
+    const { questions: result } = await caller.list({
+      sessionId: SESSION_ID,
+      participantId: PARTICIPANT_ID,
+      sort: 'BEST',
+    });
+
+    expect(result.map((question) => question.id)).toEqual([
+      '22222222-2222-4222-8222-222222222222',
+      '11111111-1111-4111-8111-111111111111',
+    ]);
+    expect(result[0]).not.toHaveProperty('bestScore');
+    expect(result[0]).not.toHaveProperty('controversyScore');
+    expect(result[0]).not.toHaveProperty('isControversial');
+    expect(rawSqlText(prismaMock.$queryRaw.mock.calls[0] ?? [])).toContain(
+      'ranked."bestScore" DESC',
+    );
+    expect(rawSqlText(prismaMock.$queryRaw.mock.calls[0] ?? [])).toContain(`WHEN 'ACTIVE' THEN 0`);
+    expect(rawSqlText(prismaMock.$queryRaw.mock.calls[0] ?? [])).toContain('GREATEST(');
+  });
+
+  it('sortiert die Teilnehmer-Q&A-Liste nach CONTROVERSIAL', async () => {
+    prismaMock.session.findUnique.mockResolvedValue({
+      ...ACTIVE_QA_SESSION,
+      id: SESSION_ID,
+      code: 'CODE12',
+      type: 'QUIZ',
+      qaEnabled: true,
+      qaOpen: true,
+      qaModerationMode: false,
+    });
+    prismaMock.participant.count.mockResolvedValue(20);
+    rawQueryResults.rankedQuestions.push([
+      rankedQaRow({
+        id: '11111111-1111-4111-8111-111111111111',
+        participantId: PARTICIPANT_ID,
+        text: 'Polarisiert stark',
+        upvoteCount: 0,
+        positiveVoteCount: 5,
+        negativeVoteCount: 5,
+        controversyScore: 5 / 6,
+        totalCount: 2,
+      }),
+      rankedQaRow({
+        id: '22222222-2222-4222-8222-222222222222',
+        participantId: PARTICIPANT_ID,
+        text: 'Nur Zustimmung',
+        upvoteCount: 10,
+        positiveVoteCount: 10,
+        controversyScore: 0,
+        totalCount: 2,
+      }),
+    ]);
+
+    const { questions: result } = await caller.list({
+      sessionId: SESSION_ID,
+      participantId: PARTICIPANT_ID,
+      sort: 'CONTROVERSIAL',
+    });
+
+    expect(result.map((question) => question.id)).toEqual([
+      '11111111-1111-4111-8111-111111111111',
+      '22222222-2222-4222-8222-222222222222',
+    ]);
+    expect(result[0]).not.toHaveProperty('controversyScore');
+    expect(prismaMock.participant.count).toHaveBeenCalled();
+    expect(rawSqlText(prismaMock.$queryRaw.mock.calls[0] ?? [])).toContain(
+      'ranked."controversyScore" DESC',
+    );
+    expect(rawSqlText(prismaMock.$queryRaw.mock.calls[0] ?? [])).toContain(`WHEN 'ACTIVE' THEN 0`);
+  });
+
+  it('sortiert die Teilnehmer-Q&A-Liste nach TIME in der Datenbank', async () => {
+    prismaMock.session.findUnique.mockResolvedValue({
+      ...ACTIVE_QA_SESSION,
+      id: SESSION_ID,
+      code: 'CODE12',
+      type: 'QUIZ',
+      qaEnabled: true,
+      qaOpen: true,
+      qaModerationMode: false,
+    });
+    rawQueryResults.rankedQuestions.push([
+      rankedQaRow({
+        id: '22222222-2222-4222-8222-222222222222',
+        participantId: PARTICIPANT_ID,
+        text: 'Neuere Frage',
+        upvoteCount: 1,
+        createdAt: new Date('2026-03-13T12:10:00.000Z'),
+        totalCount: 2,
+      }),
+      rankedQaRow({
+        id: '11111111-1111-4111-8111-111111111111',
+        participantId: PARTICIPANT_ID,
+        text: 'Ältere Frage',
+        upvoteCount: 20,
+        createdAt: new Date('2026-03-13T12:00:00.000Z'),
+        totalCount: 2,
+      }),
+    ]);
+
+    const { questions: result } = await caller.list({
+      sessionId: SESSION_ID,
+      participantId: PARTICIPANT_ID,
+      sort: 'TIME',
+    });
+
+    expect(result.map((question) => question.id)).toEqual([
+      '22222222-2222-4222-8222-222222222222',
+      '11111111-1111-4111-8111-111111111111',
+    ]);
+    const sql = rawSqlText(prismaMock.$queryRaw.mock.calls[0] ?? []);
+    expect(sql).toContain('ranked."createdAt" DESC');
+    expect(sql).toContain(`WHEN 'ACTIVE' THEN 0`);
+    expect(sql).not.toContain('ranked."bestScore" DESC');
+    expect(sql).not.toContain('GREATEST(');
+    expect(sql).not.toContain('POWER(');
+  });
 
   it('bündelt gleichzeitige Teilnehmer-Rankings derselben Revision und lädt eigene Votes separat', async () => {
     prismaMock.session.findUnique.mockResolvedValue({
@@ -1020,6 +1177,73 @@ describe('qa router (Epic 8)', () => {
     });
   });
 
+  it('filtert Host-Q&A nach Autor-Nickname in der Datenbank', async () => {
+    prismaMock.session.findUnique.mockResolvedValue({
+      ...ACTIVE_QA_SESSION,
+      id: SESSION_ID,
+      code: 'ABC123',
+      type: 'Q_AND_A',
+      qaEnabled: true,
+      qaOpen: true,
+      qaModerationMode: true,
+      qaQuestionCount: 12,
+    });
+    rawQueryResults.rankedQuestions.push([
+      rankedQaRow({
+        id: QUESTION_ID,
+        participantId: PARTICIPANT_ID,
+        text: 'Nur Fragen dieser Teilnahme',
+        upvoteCount: 2,
+        authorNickname: 'Gelber Löwe',
+        positiveVoteCount: 2,
+        bestScore: 0.3424,
+      }),
+    ]);
+
+    const { questions: result } = await hostCaller.list({
+      sessionId: SESSION_ID,
+      moderatorView: true,
+      authorNickname: 'Gelber Löwe',
+    });
+
+    const sql = rawSqlText(prismaMock.$queryRaw.mock.calls[0] ?? []);
+    expect(sql).toContain('EXISTS');
+    expect(sql).toContain('author."nickname"');
+    expect(result[0]).toMatchObject({
+      id: QUESTION_ID,
+      authorNickname: 'Gelber Löwe',
+    });
+  });
+
+  it('ignoriert authorNickname in der Teilnehmer-Q&A-Liste', async () => {
+    prismaMock.session.findUnique.mockResolvedValue({
+      ...ACTIVE_QA_SESSION,
+      type: 'Q_AND_A',
+      qaEnabled: true,
+      qaOpen: true,
+      qaModerationMode: false,
+      qaQuestionCount: 1,
+    });
+    rawQueryResults.rankedQuestions.push([
+      rankedQaRow({
+        id: QUESTION_ID,
+        participantId: PARTICIPANT_ID,
+        text: 'Offene Frage',
+        upvoteCount: 1,
+        authorNickname: 'Gelber Löwe',
+      }),
+    ]);
+
+    await caller.list({
+      sessionId: SESSION_ID,
+      participantId: PARTICIPANT_ID,
+      authorNickname: 'Gelber Löwe',
+    });
+
+    const sql = rawSqlText(prismaMock.$queryRaw.mock.calls[0] ?? []);
+    expect(sql).not.toContain('author."nickname"');
+  });
+
   it('sortiert Host-Q&A im BEST-Modus nach Wilson-Score', async () => {
     prismaMock.session.findUnique.mockResolvedValue({
       ...ACTIVE_QA_SESSION,
@@ -1340,6 +1564,42 @@ describe('qa router (Epic 8)', () => {
     await iterator.return?.(undefined);
   });
 
+  it('weckt qa.onQuestionsUpdated bei Ranking-Signal statt im Sekundentakt', async () => {
+    prismaMock.session.findUnique.mockResolvedValue({
+      ...ACTIVE_QA_SESSION,
+      code: 'ABC123',
+      type: 'QUIZ',
+      qaEnabled: true,
+      qaOpen: true,
+    });
+
+    const stream = await caller.onQuestionsUpdated({
+      sessionId: SESSION_ID,
+      participantId: PARTICIPANT_ID,
+    });
+    const iterator = stream[Symbol.asyncIterator]();
+    await expect(iterator.next()).resolves.toMatchObject({
+      value: { kind: 'INVALIDATED', state: 'ACTIVE', rankingRevision: 7 },
+      done: false,
+    });
+
+    prismaMock.session.findUnique.mockResolvedValue({
+      ...ACTIVE_QA_SESSION,
+      code: 'ABC123',
+      type: 'QUIZ',
+      qaEnabled: true,
+      qaOpen: true,
+      qaRankingRevision: 8,
+    });
+    emitQaQuestionsSignal(SESSION_ID, { immediate: true });
+    await expect(iterator.next()).resolves.toMatchObject({
+      value: { kind: 'INVALIDATED', state: 'ACTIVE', rankingRevision: 8 },
+      done: false,
+    });
+
+    await iterator.return?.(undefined);
+  });
+
   it('beendet qa.onQuestionsUpdated nach Widerruf des Host-Tokens', async () => {
     prismaMock.session.findUnique.mockResolvedValue({
       ...ACTIVE_QA_SESSION,
@@ -1360,6 +1620,7 @@ describe('qa router (Epic 8)', () => {
     await iterator.next();
 
     hostAuthMocks.isHostSessionTokenValidMock.mockResolvedValue(false);
+    emitQaQuestionsSignal(SESSION_ID, { immediate: true });
     await expect(iterator.next()).rejects.toMatchObject({
       code: 'UNAUTHORIZED',
       message: 'Die Host-Verbindung wurde beendet.',

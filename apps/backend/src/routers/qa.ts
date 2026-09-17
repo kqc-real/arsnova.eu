@@ -44,9 +44,16 @@ import {
 import { hostProcedure, publicProcedure, router } from '../trpc';
 import { assertParticipantCapability } from '../lib/participantAuth';
 import { recordQaQuestionAccepted, recordQaRatingChanged } from '../lib/qaTelemetry';
+import {
+  emitQaQuestionsSignal,
+  getQaQuestionsSignalVersion,
+  QA_QUESTIONS_HOST_SIGNAL_WAIT_MS,
+  QA_QUESTIONS_SIGNAL_WAIT_MS,
+  qaSubscriptionWaitMs,
+  waitForQaQuestionsSignal,
+} from '../lib/qaQuestionsSignal';
 import { zAsyncIterable } from '../lib/zAsyncIterable';
 
-const QA_SUBSCRIPTION_POLL_MS = 1000;
 const QA_WILSON_Z = 1.96;
 const QA_WILSON_Z_SQUARED = QA_WILSON_Z * QA_WILSON_Z;
 /** Prisma/pg leitet uncastete Zahlen neben INT-Spalten als integer ab; 1,96² ist 3,8416. */
@@ -307,10 +314,6 @@ async function changeQaVote(
   }
 }
 
-function normalizeQaSortMode(moderatorView: boolean | undefined, sortMode: QaQuestionSortMode) {
-  return moderatorView ? sortMode : 'TOP';
-}
-
 function shouldAttachQaNlp(includeNlp: boolean, question: QaQuestionRecord): boolean {
   if (!includeNlp) {
     return false;
@@ -381,6 +384,7 @@ type QaPageCursor = {
   offset: number;
   sort: QaQuestionSortMode;
   search: string;
+  author: string;
   statuses: string;
 };
 
@@ -476,14 +480,17 @@ function decodeQaPageCursor(value: string): QaPageCursor {
       !Number.isInteger(parsed.offset) ||
       parsed.offset < 0 ||
       parsed.offset > QA_MAX_QUESTIONS_PER_SESSION ||
-      !['TOP', 'BEST', 'CONTROVERSIAL'].includes(parsed.sort) ||
+      !['TOP', 'BEST', 'CONTROVERSIAL', 'TIME'].includes(parsed.sort) ||
       typeof parsed.revision !== 'string' ||
       typeof parsed.search !== 'string' ||
       typeof parsed.statuses !== 'string'
     ) {
       throw new Error('invalid cursor');
     }
-    return parsed;
+    return {
+      ...parsed,
+      author: typeof parsed.author === 'string' ? parsed.author : '',
+    };
   } catch {
     throw new TRPCError({
       code: 'BAD_REQUEST',
@@ -502,11 +509,13 @@ async function buildQaQuestionPayloadFromDb(options: {
   pageSize: number;
   cursor?: string;
   search?: string;
+  authorNickname?: string;
   statuses?: Array<QaQuestionRecord['status']>;
   rankingRevision: string;
   totalCountHint?: number;
 }): Promise<RankedQaPage> {
   const search = options.search?.trim() ?? '';
+  const authorNickname = options.authorNickname?.trim() ?? '';
   const statusesKey = options.statuses?.slice().sort().join(',') ?? '';
   const cursor = options.cursor ? decodeQaPageCursor(options.cursor) : null;
   if (
@@ -514,6 +523,7 @@ async function buildQaQuestionPayloadFromDb(options: {
     (cursor.revision !== options.rankingRevision ||
       cursor.sort !== options.sortMode ||
       cursor.search !== search ||
+      cursor.author !== authorNickname ||
       cursor.statuses !== statusesKey)
   ) {
     throw new TRPCError({
@@ -531,6 +541,7 @@ async function buildQaQuestionPayloadFromDb(options: {
     options.participantId !== undefined &&
     options.totalCountHint !== undefined &&
     search.length === 0 &&
+    authorNickname.length === 0 &&
     statusesKey.length === 0;
   const visibility = moderatorView
     ? Prisma.empty
@@ -550,6 +561,15 @@ async function buildQaQuestionPayloadFromDb(options: {
   const searchFilter = search
     ? Prisma.sql`AND question."text" ILIKE ${`%${search}%`}`
     : Prisma.empty;
+  const authorFilter = authorNickname
+    ? Prisma.sql`AND EXISTS (
+        SELECT 1
+        FROM "Participant" AS author
+        WHERE author."id" = question."participantId"
+          AND author."sessionId" = question."sessionId"
+          AND author."nickname" = ${authorNickname}
+      )`
+    : Prisma.empty;
   const myVoteJoin =
     options.participantId && !shareRankingLoad
       ? Prisma.sql`
@@ -562,7 +582,12 @@ async function buildQaQuestionPayloadFromDb(options: {
     options.participantId && !shareRankingLoad
       ? Prisma.sql`own_vote."direction"`
       : Prisma.sql`NULL::"QaVoteDirection"`;
-  const statusBucket = moderatorView
+  const metricFirstRanking =
+    moderatorView ||
+    options.sortMode === 'BEST' ||
+    options.sortMode === 'CONTROVERSIAL' ||
+    options.sortMode === 'TIME';
+  const statusBucket = metricFirstRanking
     ? Prisma.sql`CASE question."status"
         WHEN 'PINNED' THEN 0
         WHEN 'ACTIVE' THEN 0
@@ -579,38 +604,31 @@ async function buildQaQuestionPayloadFromDb(options: {
       END`;
   const modeOrder =
     options.sortMode === 'BEST'
-      ? Prisma.sql`ranked."bestScore" DESC, ranked."positiveVoteCount" DESC,`
+      ? Prisma.sql`ranked."bestScore" DESC, ranked."positiveVoteCount" DESC, ranked."upvoteCount" DESC,`
       : options.sortMode === 'CONTROVERSIAL'
-        ? Prisma.sql`ranked."controversyScore" DESC, ranked."positiveVoteCount" DESC,`
-        : Prisma.empty;
+        ? Prisma.sql`ranked."controversyScore" DESC, ranked."positiveVoteCount" DESC, ranked."upvoteCount" DESC,`
+        : options.sortMode === 'TIME'
+          ? Prisma.sql`ranked."createdAt" DESC,`
+          : Prisma.sql`ranked."upvoteCount" DESC,`;
   const pageModeOrder =
     options.sortMode === 'BEST'
-      ? Prisma.sql`page."bestScore" DESC, page."positiveVoteCount" DESC,`
+      ? Prisma.sql`page."bestScore" DESC, page."positiveVoteCount" DESC, page."upvoteCount" DESC,`
       : options.sortMode === 'CONTROVERSIAL'
-        ? Prisma.sql`page."controversyScore" DESC, page."positiveVoteCount" DESC,`
-        : Prisma.empty;
+        ? Prisma.sql`page."controversyScore" DESC, page."positiveVoteCount" DESC, page."upvoteCount" DESC,`
+        : options.sortMode === 'TIME'
+          ? Prisma.sql`page."createdAt" DESC,`
+          : Prisma.sql`page."upvoteCount" DESC,`;
+  const createdAtTie =
+    options.sortMode === 'TIME' ? Prisma.empty : Prisma.sql`ranked."createdAt" ASC,`;
+  const pageCreatedAtTie =
+    options.sortMode === 'TIME' ? Prisma.empty : Prisma.sql`page."createdAt" ASC,`;
   const totalCountSelect =
     options.totalCountHint === undefined
       ? Prisma.sql`COUNT(*) OVER() AS "totalCount"`
       : Prisma.sql`${options.totalCountHint}::BIGINT AS "totalCount"`;
-
-  const loadRows = () => prisma.$queryRaw<RankedQaQuestionRow[]>`
-    WITH scored AS (
-      SELECT
-        question."id",
-        question."upvoteCount",
-        question."positiveVoteCount",
-        question."negativeVoteCount",
-        question."status",
-        question."createdAt",
-        ${statusBucket} AS status_bucket,
-        CASE question."status"
-          WHEN 'PINNED' THEN 0
-          WHEN 'ACTIVE' THEN 1
-          WHEN 'PENDING' THEN 2
-          WHEN 'ARCHIVED' THEN 3
-          ELSE 4
-        END AS status_tie,
+  const needsScoreMetrics = options.sortMode === 'BEST' || options.sortMode === 'CONTROVERSIAL';
+  const scoreSelect = needsScoreMetrics
+    ? Prisma.sql`
         CASE
           WHEN question."positiveVoteCount" + question."negativeVoteCount" = 0 THEN 0
           ELSE GREATEST(
@@ -659,11 +677,36 @@ async function buildQaQuestionPayloadFromDb(options: {
               )
           )
         END AS "controversyScore"
+      `
+    : Prisma.sql`
+        0::DOUBLE PRECISION AS "bestScore",
+        0::DOUBLE PRECISION AS "controversyScore"
+      `;
+
+  const loadRows = () => prisma.$queryRaw<RankedQaQuestionRow[]>`
+    WITH scored AS (
+      SELECT
+        question."id",
+        question."upvoteCount",
+        question."positiveVoteCount",
+        question."negativeVoteCount",
+        question."status",
+        question."createdAt",
+        ${statusBucket} AS status_bucket,
+        CASE question."status"
+          WHEN 'PINNED' THEN 0
+          WHEN 'ACTIVE' THEN 1
+          WHEN 'PENDING' THEN 2
+          WHEN 'ARCHIVED' THEN 3
+          ELSE 4
+        END AS status_tie,
+        ${scoreSelect}
       FROM "QaQuestion" AS question
       WHERE question."sessionId" = ${options.sessionId}
       ${visibility}
       ${statusFilter}
       ${searchFilter}
+      ${authorFilter}
     ),
     ranked AS (
       SELECT scored.*, ${totalCountSelect}
@@ -675,9 +718,8 @@ async function buildQaQuestionPayloadFromDb(options: {
       ORDER BY
         ranked.status_bucket ASC,
         ${modeOrder}
-        ranked."upvoteCount" DESC,
         ranked.status_tie ASC,
-        ranked."createdAt" ASC,
+        ${createdAtTie}
         ranked."id" ASC
       LIMIT ${options.pageSize + 1}
       OFFSET ${offset}
@@ -700,9 +742,8 @@ async function buildQaQuestionPayloadFromDb(options: {
     ORDER BY
       page.status_bucket ASC,
       ${pageModeOrder}
-      page."upvoteCount" DESC,
       page.status_tie ASC,
-      page."createdAt" ASC,
+      ${pageCreatedAtTie}
       page."id" ASC
   `;
   const sharedLoadKey = shareRankingLoad
@@ -788,6 +829,7 @@ async function buildQaQuestionPayloadFromDb(options: {
           offset: offset + options.pageSize,
           sort: options.sortMode,
           search,
+          author: authorNickname,
           statuses: statusesKey,
         })
       : null,
@@ -799,7 +841,7 @@ export const qaRouter = router({
     .input(GetQaQuestionsInputSchema)
     .output(QaQuestionsListDTOSchema)
     .query(async ({ input, ctx }) => {
-      const sortMode = normalizeQaSortMode(input.moderatorView, input.sort);
+      const sortMode = input.sort;
       const session = await prisma.session.findUnique({
         where: { id: input.sessionId },
         select: {
@@ -866,13 +908,16 @@ export const qaRouter = router({
       }
 
       const participantCountForControversy =
-        input.moderatorView === true
+        input.moderatorView === true || sortMode === 'CONTROVERSIAL'
           ? await prisma.participant.count({
               where: { sessionId: session.id },
             })
           : undefined;
       const includeAuthorNickname = session.onboardingAnonymousMode !== true;
-      const rankingRevision = `${session.qaRankingRevision}:${
+      const authorNickname = input.moderatorView
+        ? input.authorNickname?.trim() || undefined
+        : undefined;
+      const rankingRevision = `${session.qaRankingRevision}:${sortMode}:${
         sortMode === 'CONTROVERSIAL' ? (participantCountForControversy ?? 0) : ''
       }`;
       const [page, participantQuestionCount] = await Promise.all([
@@ -886,10 +931,12 @@ export const qaRouter = router({
           pageSize: input.pageSize,
           cursor: input.cursor,
           search: input.search,
+          authorNickname,
           statuses: input.statuses,
           rankingRevision,
           totalCountHint:
             !input.search?.trim() &&
+            !authorNickname &&
             (!input.statuses || input.statuses.length === 0) &&
             (input.moderatorView === true || session.qaModerationMode === false)
               ? session.qaQuestionCount
@@ -1096,7 +1143,7 @@ export const qaRouter = router({
       assertQaSessionOpenForParticipants(session);
 
       try {
-        return await prisma.$transaction(async (tx) => {
+        const moderated = await prisma.$transaction(async (tx) => {
           await tx.$executeRaw`SELECT arsnova_lock_active_session(${session.id})`;
           const question = await tx.qaQuestion.findUnique({
             where: { id: input.questionId },
@@ -1162,6 +1209,8 @@ export const qaRouter = router({
           });
           return mapQaQuestion(updated);
         });
+        emitQaQuestionsSignal(session.id, { immediate: true });
+        return moderated;
       } catch (error) {
         if (String(error).includes('ARSNOVA_SESSION_ENDED')) {
           throw new TRPCError({
@@ -1230,6 +1279,7 @@ export const qaRouter = router({
       }
       if (!created.replayed) {
         void recordQaQuestionAccepted(created.id);
+        emitQaQuestionsSignal(input.sessionId);
       }
       return {
         question: mapQaQuestion(
@@ -1299,6 +1349,7 @@ export const qaRouter = router({
         }
         throw error;
       }
+      emitQaQuestionsSignal(question.sessionId, { immediate: true });
       return { deleted: true };
     }),
 
@@ -1321,6 +1372,7 @@ export const qaRouter = router({
       const result = await changeQaVote(input.questionId, input.participantId, 'UP');
       if (result.changed) {
         void recordQaRatingChanged(randomUUID());
+        emitQaQuestionsSignal(question.sessionId);
       }
       return {
         questionId: result.questionId,
@@ -1348,6 +1400,7 @@ export const qaRouter = router({
       const result = await changeQaVote(input.questionId, input.participantId, input.direction);
       if (result.changed) {
         void recordQaRatingChanged(randomUUID());
+        emitQaQuestionsSignal(question.sessionId);
       }
       return {
         questionId: result.questionId,
@@ -1378,6 +1431,7 @@ export const qaRouter = router({
           });
         })
         .catch(rethrowQaContributionError);
+      emitQaQuestionsSignal(session.id, { immediate: true });
       return { enabled: updated.qaModerationMode };
     }),
 
@@ -1386,7 +1440,7 @@ export const qaRouter = router({
     .output(zAsyncIterable(QaQuestionsInvalidationDTOSchema))
     .subscription(async function* ({ input, ctx }) {
       let lastRevisionKey = '';
-      const sortMode = normalizeQaSortMode(input.moderatorView, input.sort);
+      const sortMode = input.sort;
 
       const gateSession = await prisma.session.findUnique({
         where: { id: input.sessionId },
@@ -1443,11 +1497,18 @@ export const qaRouter = router({
         return;
       }
 
-      const waitForNextTick = async () => {
-        const sleeper = () =>
-          new Promise<void>((resolve) => {
-            setTimeout(resolve, QA_SUBSCRIPTION_POLL_MS);
-          });
+      const waitForNextTick = async (
+        session: {
+          id: string;
+          qaClosesAt?: Date | null;
+        },
+        currentVersion: number,
+      ) => {
+        const waitMs = qaSubscriptionWaitMs(
+          session.qaClosesAt,
+          input.moderatorView ? QA_QUESTIONS_HOST_SIGNAL_WAIT_MS : QA_QUESTIONS_SIGNAL_WAIT_MS,
+        );
+        const sleeper = () => waitForQaQuestionsSignal(session.id, currentVersion, waitMs);
         if (input.moderatorView) {
           await waitWhileHostTokenValid(gateSession.code, hostToken, sleeper);
           return;
@@ -1510,13 +1571,14 @@ export const qaRouter = router({
               : !input.moderatorView && session.qaOpen === false
                 ? 'CHANNEL_CLOSED'
                 : 'ACTIVE';
+        const signalVersion = getQaQuestionsSignalVersion(session.id);
         if (!input.moderatorView && contentState !== 'ACTIVE') {
           const revisionKey = `${contentState}:${session.sessionLifecycleRevision}:${session.qaRankingRevision}:${session.participantRevision}`;
           if (revisionKey !== lastRevisionKey) {
             lastRevisionKey = revisionKey;
             yield buildQaQuestionsInvalidation(session, contentState, snapshotNow);
           }
-          await waitForNextTick();
+          await waitForNextTick(session, signalVersion);
           continue;
         }
 
@@ -1524,13 +1586,13 @@ export const qaRouter = router({
           session.qaRankingRevision
         }:${sortMode === 'CONTROVERSIAL' ? session.participantRevision : ''}`;
         if (revisionKey === lastRevisionKey) {
-          await waitForNextTick();
+          await waitForNextTick(session, signalVersion);
           continue;
         }
         lastRevisionKey = revisionKey;
         yield buildQaQuestionsInvalidation(session, contentState, snapshotNow);
 
-        await waitForNextTick();
+        await waitForNextTick(session, signalVersion);
       }
     }),
 });

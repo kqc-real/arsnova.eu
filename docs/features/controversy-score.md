@@ -15,19 +15,19 @@ Die aktuelle Q&A-Implementierung in arsnova.eu hat bereits **bidirektionales Vot
 
 1. **8.6 und 8.7 sind im heutigen Produkt optionale Sortiermodi für den Host.** Vertrauenswürdige Tutor:innen oder Moderator:innen erhalten sie künftig über die vollständige Host-Ansicht eines Paired Hosts aus Story 2.10. Sie sind keine neuen globalen Standardsortierungen für alle Clients.
 2. **Teilnehmende behalten die heutige, leicht verständliche Standardsortierung**; die neuen Modi sind ein Werkzeug für Moderation, nicht das neue Default-Ranking der Teilnehmendenansicht.
-3. **Host-Ranking bleibt metrisch ehrlich.** In den Host-Sortiermodi werden `ACTIVE`- und `PINNED`-Fragen gemeinsam nach der gewählten Metrik sortiert; angeheftete Fragen bleiben sichtbar markiert, aber überstimmen das Ranking nicht. `PENDING`, `ARCHIVED` und `DELETED` folgen danach als eigene Statusgruppen. Die Teilnehmendenansicht behält `PINNED` weiter oben, weil dort die gerade beantwortete Frage Vorrang hat.
+3. **Host-Ranking bleibt metrisch ehrlich.** In den Host-Sortiermodi werden `ACTIVE`- und `PINNED`-Fragen gemeinsam nach der gewählten Metrik sortiert; angeheftete Fragen bleiben sichtbar markiert, aber überstimmen das Ranking nicht. `PENDING`, `ARCHIVED` und `DELETED` folgen danach als eigene Statusgruppen. Die Teilnehmendenansicht behält `PINNED` nur bei `Meist unterstützt` oben, damit die gerade hervorgehobene Frage Vorrang hat. `Beste Fragen`, `Umstritten` und `Zeit` ziehen Hervorgehobene nicht vor.
 4. **`QaQuestion.upvoteCount` ist im Ist-Stand ein Netto-Score, nicht die Zahl der Upvotes.** Für 8.6 und 8.7 müssen `U` und `D` aus den Einzelstimmen (`QaUpvote.direction`) aggregiert werden; der Netto-Score allein reicht fachlich nicht.
-5. **Die Q&A-UI braucht einen expliziten Sortiermodus**, z. B. `Meist unterstützt`, `Umstritten`, `Beste Fragen`. Ohne sichtbaren Moduswechsel wären 8.6/8.7 für Hosts nicht nachvollziehbar.
+5. **Die Q&A-UI braucht einen expliziten Sortiermodus**, z. B. `Meist unterstützt`, `Umstritten`, `Beste Fragen`, `Zeit`. Ohne sichtbaren Moduswechsel wären 8.6/8.7 nicht nachvollziehbar.
 
 ## Implementierungsstand (Stand 2026-05-15)
 
 Der heutige Produktstand deckt die Storys 8.6 und 8.7 in der Host-Ansicht bereits ab:
 
-- Die Host-Q&A-Liste bietet die Sortiermodi `Meist unterstützt`, `Beste Fragen` und `Umstritten`.
+- Host- und Teilnehmer-Q&A-Liste bieten die Sortiermodi `Meist unterstützt`, `Beste Fragen`, `Umstritten` und `Zeit`. `Zeit` sortiert serverseitig nach `createdAt` (neueste zuerst); die Seite bleibt eine DB-Seite, ohne Client-Neusortierung der vollen Liste. Die Teilnehmer-DTOs bleiben ohne Wilson-, Kontroversie- und Moderationsfelder; nur die Reihenfolge ändert sich.
 - Die Router-/DTO-Schicht liefert neben dem bisherigen Nettofeld auch getrennte `UP`-/`DOWN`-Aggregate sowie `score`, `voteCount`, `bestScore`, `controversyScore` und `isControversial`.
 - Die Host-Liste aggregiert `QaUpvote.direction` serverseitig per DB-Gruppierung statt alle Einzelvotes in den Host-Poll zu laden; `QaQuestion.updatedAt` und ein Revisionsschluessel vermeiden volle Rebuilds, wenn sich seit dem letzten Poll nichts geaendert hat.
 - Im Host-Ranking werden `ACTIVE` und `PINNED` gemeinsam nach der gewaehlten Metrik sortiert; `PINNED` bleibt ein sichtbarer Status, aber kein globaler Sortier-Override.
-- Die Teilnehmendenansicht bleibt auf der einfachen Standardsortierung.
+- Die Teilnehmendenansicht startet bei `Meist unterstützt` und kann dieselben vier Sortiermodi anfordern. Nur der Default belässt hervorgehobene Fragen oben; `Beste Fragen`, `Umstritten` und `Zeit` sortieren wie der Host nach der Metrik bzw. der Erstellungszeit. Die Fragen-Suche läuft wie beim Host entprellt (300 ms) über `qa.list` und durchsucht nicht die geladene Seite lokal. Der Host filtert in »Teilnahmen durchsuchen« eine Identität über `qa.list` (`authorNickname`) in PostgreSQL, nicht über die geladene Seite.
 - Die Q&A-Wortwolke im Host folgt demselben Sortiermodus, kann im Dialog eingefroren werden und zeigt im Tooltip neben dem Groessenwert auch die Zahl der zugehoerigen Fragen.
 - In der maximierten Host-Vollansicht bleibt der Sortierumschalter oberhalb der Wolke sichtbar.
 
@@ -108,12 +108,13 @@ Die Sortierauswahl sitzt in der Host-Ansicht in unmittelbarer Nähe zur Q&A-List
 - `Meist unterstützt` — heutige Standardsortierung nach positiven Stimmen
 - `Umstritten` — Story 8.6
 - `Beste Fragen` — Story 8.7
+- `Zeit` — neueste zuerst; die Datenbank sortiert nach `createdAt DESC` (Index `sessionId, status, createdAt`)
 
 Die Kartenzeile wiederholt den Sortiernamen nicht: bei `Beste Fragen` steht `Zustimmung … %` (Wilson-Score), bei `Umstritten` `Geteilte Reaktionen … %`. Der Toggle und die Wortwolke bleiben bei `Beste Fragen`.
 
 Der aktive Modus bleibt während einer Session stabil, bis ein autorisierter Host ihn bewusst ändert.
 
-Die Host-Q&A-Wortwolke nutzt denselben Modus: `Meist unterstützt` gewichtet nach Netto-Score, `Beste Fragen` nach Wilson-Score und `Umstritten` nach Kontroversität. Die Visualisierung bekommt bereits gewichtete Terme und analysiert keine Rohtexte selbst. In der maximierten Vollansicht sitzt die Sortierauswahl oberhalb der Wolke, damit der Kontext beim Wechsel sichtbar bleibt; ein Freeze-Schalter haelt die aktuell dargestellte Wolke fuer die Auditoriumssituation fest.
+Die Host-Q&A-Wortwolke nutzt denselben Modus: `Meist unterstützt` gewichtet nach Netto-Score, `Beste Fragen` nach Wilson-Score und `Umstritten` nach Kontroversität. `Zeit` sortiert nur die Fragenliste; die Wortgröße bleibt bei den Stimmen. Die Visualisierung bekommt bereits gewichtete Terme und analysiert keine Rohtexte selbst. In der maximierten Vollansicht sitzt die Sortierauswahl oberhalb der Wolke, damit der Kontext beim Wechsel sichtbar bleibt; ein Freeze-Schalter haelt die aktuell dargestellte Wolke fuer die Auditoriumssituation fest.
 
 ## Akzeptanzkriterien
 

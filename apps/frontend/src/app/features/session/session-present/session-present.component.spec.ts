@@ -1598,6 +1598,7 @@ describe('SessionPresentComponent', () => {
         analyzedQuestionCount: 1,
         eligibleQuestionCount: 1,
         modelVersion: 'topic-v1',
+        smoothingActive: false,
       },
     });
 
@@ -1615,6 +1616,75 @@ describe('SessionPresentComponent', () => {
     expect(text).toContain('Themen in den Fragen');
     expect(text).toContain('Kapitel 4');
     expect(text).toContain('Ähnliche Fragen sind gruppiert.');
+    expect(fixture.componentInstance.qaWordCloudContextPills()).toEqual([
+      'Themen',
+      'Beste Fragen',
+      'ohne Glättung',
+    ]);
+    expect(text).toContain('Beste Fragen');
+    expect(text).toContain('ohne Glättung');
+    fixture.destroy();
+  });
+
+  it('zeigt Option, Sortierung und Glättung als Pills neben Begriffe und Fragen', async () => {
+    getInfoQueryMock.mockResolvedValue({
+      id: '6a8edced-5f8f-4cfa-9176-454fac9570ad',
+      serverTime: MOCK_SERVER_TIME,
+      code: 'ABC123',
+      type: 'QUIZ',
+      status: 'ACTIVE',
+      quizName: 'Team-Quiz',
+      title: null,
+      participantCount: 3,
+      teamMode: false,
+      preferredChannel: 'qa',
+      presenterSurface: 'qaWordCloud',
+      channels: {
+        quiz: { enabled: true },
+        qa: { enabled: true, title: 'Fragen', moderationMode: false },
+        quickFeedback: { enabled: false },
+      },
+    });
+    qaListQueryMock.mockResolvedValue([
+      {
+        id: '11111111-1111-4111-8111-111111111111',
+        text: 'Kommt Kapitel 4 in der Klausur vor?',
+        upvoteCount: 9,
+        status: 'ACTIVE',
+        createdAt: '2026-03-13T12:00:00.000Z',
+        myVote: null,
+        isOwn: false,
+        hasUpvoted: false,
+      },
+    ]);
+    getQaWordCloudProjectionQueryMock.mockResolvedValue({
+      projection: {
+        mode: 'LEXICAL',
+        metric: 'CONTROVERSIAL',
+        locale: 'de',
+        analysisEntries: [],
+        analyzedQuestionCount: 1,
+        eligibleQuestionCount: 1,
+        modelVersion: null,
+        smoothingActive: true,
+      },
+    });
+
+    const fixture = TestBed.createComponent(SessionPresentComponent);
+    fixture.detectChanges();
+    await fixture.whenStable();
+    await new Promise((r) => setTimeout(r, 50));
+    fixture.detectChanges();
+
+    const pills = [
+      ...fixture.nativeElement.querySelectorAll('.word-cloud__meta-pill--context'),
+    ].map((el) => (el.textContent ?? '').trim());
+    expect(fixture.componentInstance.qaWordCloudContextPills()).toEqual([
+      'Wörter',
+      'Kontroverse',
+      'Glättung an',
+    ]);
+    expect(pills).toEqual(['Wörter', 'Kontroverse', 'Glättung an']);
     fixture.destroy();
   });
 

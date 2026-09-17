@@ -130,7 +130,7 @@ export type TeamNames = z.infer<typeof TeamNamesSchema>;
 export const QaQuestionStatusEnum = z.enum(['PENDING', 'ACTIVE', 'PINNED', 'ARCHIVED', 'DELETED']);
 export type QaQuestionStatus = z.infer<typeof QaQuestionStatusEnum>;
 
-export const QaQuestionSortModeEnum = z.enum(['TOP', 'BEST', 'CONTROVERSIAL']);
+export const QaQuestionSortModeEnum = z.enum(['TOP', 'BEST', 'CONTROVERSIAL', 'TIME']);
 export type QaQuestionSortMode = z.infer<typeof QaQuestionSortModeEnum>;
 
 /** Host-only Q&A-NLP-Ergebnisstatus (Story 8.9b / ADR-0032). */
@@ -4317,7 +4317,7 @@ export const AnalyzeQaWordCloudOutputSchema = AnalyzeWordCloudOutputSchema.exten
 });
 export type AnalyzeQaWordCloudOutput = z.infer<typeof AnalyzeQaWordCloudOutputSchema>;
 
-/** Host-Q&A-Wortwolke, die der Presenter 1:1 projiziert (Variante, Metrik, Analyse). */
+/** Host-Q&A-Wortwolke, die der Presenter 1:1 projiziert (Variante, Metrik, Glättung, Analyse). */
 export const QaWordCloudPresenterProjectionDTOSchema = z.object({
   mode: WordCloudAnalysisVariantEnum,
   metric: WordCloudWeightMetricEnum,
@@ -4326,6 +4326,8 @@ export const QaWordCloudPresenterProjectionDTOSchema = z.object({
   analyzedQuestionCount: z.number().int().min(0),
   eligibleQuestionCount: z.number().int().min(0),
   modelVersion: z.string().min(1).max(128).nullable(),
+  /** Tatsächlich sichtbare Wortformen-Glättung, nicht nur der Host-Wunsch. */
+  smoothingActive: z.boolean().default(false),
 });
 export type QaWordCloudPresenterProjectionDTO = z.infer<
   typeof QaWordCloudPresenterProjectionDTOSchema
@@ -5766,6 +5768,7 @@ export const GetQaQuestionsInputSchema = z.object({
   moderatorView: z.boolean().optional().default(false),
   sort: QaQuestionSortModeEnum.optional().default('TOP'),
   search: z.string().trim().max(100).optional().default(''),
+  authorNickname: z.string().trim().min(1).max(30).optional(),
   statuses: z.array(QaQuestionStatusEnum).max(5).optional(),
   pageSize: z.number().int().min(1).max(100).optional().default(50),
   cursor: z.string().min(1).max(1000).optional(),

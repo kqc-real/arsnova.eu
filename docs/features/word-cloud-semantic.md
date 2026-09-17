@@ -13,7 +13,7 @@
 
 ## Zweck
 
-Der Host sieht in der Q&A-Wortwolke orthogonal zur Gewichtung (`Meist unterstützt` / `Beste Fragen` / `Umstritten`) den dritten Analysemodus **Themen**. Sinngleiche Fragen und Paraphrasen werden ein erklärbares Thema mit Mitgliedsliste, Konfidenz und Modellversion.
+Der Host sieht in der Q&A-Wortwolke orthogonal zur Gewichtung (`Meist unterstützt` / `Beste Fragen` / `Umstritten` / `Zeit`) den dritten Analysemodus **Themen**. Sinngleiche Fragen und Paraphrasen werden ein erklärbares Thema mit Mitgliedsliste, Konfidenz und Modellversion.
 
 Mitgliedschaft entsteht durch Embeddings plus deterministisches Clustering. Stufe 1 verbalisiert Cluster **ohne LLM** (zentrale Mitgliedsfrage). Eine Variante ohne Encoder bleibt Fallback und Ausfallbaseline: die lexikalische Wolke 2.x.
 
@@ -32,7 +32,7 @@ Das Host-Label ist **Themen**. Intern heißt die Variante `SEMANTIC`. Nicht in d
 | Nicht belastbar | **Themen sind gerade nicht belastbar. Es gelten Wörter und Phrasen.**                                          |
 | Nicht verfügbar | **Themen sind noch nicht verfügbar. Es gelten Wörter und Phrasen.**                                            |
 
-`THEME` bleibt **Wörter & Phrasen** (lexikalisch 2.x) und wird nicht auf `SEMANTIC` umgebogen. Der Q&A-Presenter analysiert nicht selbst, sondern projiziert den aktuellen Host-Snapshot (`session.setQaWordCloudProjection` / `session.getQaWordCloudProjection`). Freitext hat denselben Stufe-0-Toggle; Encoder-Clustering gilt dort in 1.14c nicht (kontrollierter 2.x-Fallback, `status: fallback`). **Story 1.14d** hebt diesen Fallback für Host-Freitext auf, ohne neuen Sidecar oder Kill-Switch.
+`THEME` bleibt **Wörter & Phrasen** (lexikalisch 2.x) und wird nicht auf `SEMANTIC` umgebogen. Der Q&A-Presenter analysiert nicht selbst, sondern projiziert den aktuellen Host-Snapshot (`session.setQaWordCloudProjection` / `session.getQaWordCloudProjection`) und zeigt Variante, Metrik und Glättung als Pills. Freitext hat denselben Stufe-0-Toggle; Encoder-Clustering gilt dort in 1.14c nicht (kontrollierter 2.x-Fallback, `status: fallback`). **Story 1.14d** hebt diesen Fallback für Host-Freitext auf, ohne neuen Sidecar oder Kill-Switch.
 
 Texte sind in `de`, `en`, `fr`, `es` und `it` gepflegt.
 

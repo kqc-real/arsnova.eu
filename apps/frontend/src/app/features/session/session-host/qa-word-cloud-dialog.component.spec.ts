@@ -112,6 +112,32 @@ describe('QaWordCloudDialogComponent', () => {
     );
   });
 
+  it('zeigt unter der Analysekappe nur die ausgewertete Fragenzahl', () => {
+    const { fixture } = setup('THEME', {
+      analyzedQuestionCount: () => 240,
+      eligibleQuestionCount: () => 240,
+    });
+    const coverage = fixture.nativeElement.querySelector(
+      '.qa-word-cloud-dialog__coverage',
+    ) as HTMLElement;
+    expect(coverage.textContent?.replace(/\s+/g, ' ').trim()).toBe(
+      '240 ausgewertete Fragen · positive Stimmen',
+    );
+  });
+
+  it('zeigt eine einzelne ausgewertete Frage im Singular', () => {
+    const { fixture } = setup('THEME', {
+      analyzedQuestionCount: () => 1,
+      eligibleQuestionCount: () => 1,
+    });
+    const coverage = fixture.nativeElement.querySelector(
+      '.qa-word-cloud-dialog__coverage',
+    ) as HTMLElement;
+    expect(coverage.textContent?.replace(/\s+/g, ' ').trim()).toBe(
+      '1 ausgewertete Frage · positive Stimmen',
+    );
+  });
+
   it('zeigt Sprache und Glaettung bei Woertern', () => {
     const { fixture } = setup('LEXICAL');
     const text = fixture.nativeElement.textContent as string;
