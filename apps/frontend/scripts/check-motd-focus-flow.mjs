@@ -81,16 +81,21 @@ async function primaryFocusState(page) {
 }
 
 async function assertNextTabContinuesHeroFlow(page) {
-  const nextAction = page.locator('.home-hero-host-row > a').first();
+  const nextAction = page.locator('.home-live-grid a.home-choice-button').first();
   await page.keyboard.press('Tab');
   if (await nextAction.evaluate((element) => element === document.activeElement)) return;
+
+  const codeInputActive = await page
+    .locator('.home-code-segments__input')
+    .evaluate((element) => element === document.activeElement);
+  if (codeInputActive) {
+    await page.keyboard.press('Tab');
+    if (await nextAction.evaluate((element) => element === document.activeElement)) return;
+  }
 
   // Safari überspringt bei deaktivierter vollständiger Tab-Navigation Links
   // mit Tab. ⌥ Tab schaltet für diesen Tastendruck auf alle Bedienelemente.
   // Andere Playwright-WebKit-Ports verwenden bereits Tab und kehren oben zurück.
-  const codeInputActive = await page
-    .locator('.home-code-segments__input')
-    .evaluate((element) => element === document.activeElement);
   assert(
     BROWSER_NAME === 'webkit' && codeInputActive,
     'Tab nach dem MOTD-Rücksprung folgt weder der vollständigen noch der Safari-reduzierten Tab-Reihe.',
@@ -99,7 +104,7 @@ async function assertNextTabContinuesHeroFlow(page) {
   await page.keyboard.press('Alt+Tab');
   assert(
     await nextAction.evaluate((element) => element === document.activeElement),
-    '⌥ Tab nach dem MOTD-Rücksprung setzt den Safari-Hero-Flow nicht bei „Quiz erstellen“ fort.',
+    '⌥ Tab nach dem MOTD-Rücksprung setzt den Safari-Hero-Flow nicht bei „Quiz“ fort.',
   );
 }
 
