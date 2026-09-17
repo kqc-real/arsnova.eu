@@ -8,6 +8,12 @@ die Live-SLOs stehen in
 
 ## Epic #405: gemeinsamer Release-Nachweis für #414 und #415
 
+Der Produktcode von Epic #405 liegt seit PR
+[#418](https://github.com/kqc-real/arsnova.eu/pull/418) auf `main`. Dieser
+Abschnitt bleibt der **Lastnachweis**, nicht die Featurebeschreibung. Der
+isolierte 500er Release-Lauf ist der formale Gate für #414/#415; er ist kein
+automatischer CI-Job.
+
 Der Runner `scripts/load/qa-scale-epic405.mjs` bildet das verbindliche
 Q&A-Releaseprofil ab:
 

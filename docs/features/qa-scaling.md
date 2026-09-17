@@ -1,6 +1,6 @@
 # Q&A-Skalierung, Kontingente und Teilnahmeaggregate
 
-> Stand: 2026-09-15 · Epic #405, Issues #414 und #415
+> Stand: 2026-09-16 · Epic #405 abgeschlossen in PR [#418](https://github.com/kqc-real/arsnova.eu/pull/418) · Issues #414 und #415 im Produktcode; der isolierte 500er Release-Lauf bleibt der formale Lastnachweis.
 
 ## Kapazitätsgrenzen
 
@@ -15,6 +15,16 @@
 
 Die Grenzen werden nicht über IP-Adressen durchgesetzt und bleiben deshalb für
 Hörsäle hinter Shared NAT nutzbar.
+
+```mermaid
+flowchart LR
+    Join[Join plus Presence] --> Ident[max 2500 Identitaeten]
+    Ident --> Fragen[max 10 Fragen je Teilnahme]
+    Fragen --> Bestand[max 25000 physische Fragen]
+    Bestand --> Seite[API-Seite max 100]
+    Bestand --> Wolke[Wortwolkenkorpus max 500]
+    Join --> Live[Releaseziel 500 gleichzeitige Clients]
+```
 
 ## Teilnahme
 

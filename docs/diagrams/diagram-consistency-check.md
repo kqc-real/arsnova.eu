@@ -1,6 +1,6 @@
 # Konsistenzprüfung: Diagramme · Handbuch · Backlog · Code
 
-**Datum:** 2026-09-10
+**Datum:** 2026-09-16
 
 **Geprüft:** diagrams.md, architecture-overview.md, handbook.md, Backlog.md, ADR-0006, ADR-0012, ADR-0015/0016, ADR-0021, ADR-0028/0029, ADR-0032, ROUTES_AND_STORIES.md, GLOSSAR.md, onboarding.md, prisma/schema.prisma, libs/shared-types, apps/backend, apps/frontend, [server-status-widget.md](../features/server-status-widget.md), [numeric-estimate.md](../features/numeric-estimate.md), [moderation-compass.md](../features/moderation-compass.md), [word-cloud-spacy.md](../features/word-cloud-spacy.md), [qa-nlp-moderation.md](../features/qa-nlp-moderation.md), [qa-summary.md](../features/qa-summary.md), [product-feedback.md](../features/product-feedback.md).
 
@@ -19,14 +19,14 @@
 
 ### 1.2 Frontend-Komponenten
 
-- **Routen:** Home (/), Quiz (/quiz), Quiz-Sync (/quiz/sync/:docId), Session (/session/:code/host|present|vote|pair), Join (/join/:code), Standalone-Blitzlicht (/feedback/:code|vote), **Admin (/admin)**, Help (/help), News-Archiv (/news-archive), Legal (/legal/imprint|privacy) – konsistent mit Backlog, ADR-0006 und ROUTES_AND_STORIES.md.
+- **Routen:** Home (/), Quiz (/quiz), Quiz-Sync (/quiz/sync/:docId), Session (/session/:code/host|present|vote|pair), Join (/join/:code), **Host-Recovery (/host-recovery, Epic #405)**, Standalone-Blitzlicht (/feedback/:code|vote), **Admin (/admin)**, Help (/help), News-Archiv (/news-archive), Legal (/legal/imprint|privacy) – konsistent mit Backlog, ADR-0006 und ROUTES_AND_STORIES.md.
 - **Komponenten:** Alle geplanten Komponenten (inkl. QaModeratorComponent, QaStudentComponent, RatingScaleComponent, FreetextInputComponent, MotivationMessageComponent, EmojiBarComponent, BonusTokenDisplay, BonusTokenListComponent, EmojiOverlayComponent, QrCodeComponent, WordcloudComponent, ModerationCompassDialog, RatingHistogramComponent, ImportExportComponent, ConfirmDialogComponent) sind abgebildet. ✓
 
 ### 1.3 Datenbank-Schema (erDiagram)
 
 - **Entitäten:** Quiz, Question, AnswerOption, Session, Participant, PlatformStatistic, DailyStatistic, Team, Vote, VoteAnswer, BonusToken, SessionFeedback, ProductFeedback, ProductFeedbackAuditLog, ProductFeedbackInviteLedger, ProductFeedbackInviteJob, ProductFeedbackExportLog, ProductFeedbackPurgeLog, QaQuestion, QaUpvote, AdminAuditLog, MotdTemplate, Motd, MotdLocale, MotdInteractionCounter, MotdAuditLog – stimmen mit Prisma-Schema überein. ✓
 - **Relationen & Kardinalitäten:** Alle zentralen 1:n-, n:m- und Snapshot-Beziehungen korrekt; optionale Beziehungen (`Session.quizId`, `Participant.teamId`, `Motd.templateId`, `ProductFeedback.duplicateOfId`) sind im ER-Diagramm als optional bzw. kompakt dargestellt. `ProductFeedbackAuditLog` ist ohne Prisma-FK (wie `MotdAuditLog`) gepunktet; Invite-Job, Ledger, Export- und Purge-Log sind eigenständig.
-- **Felder im erDiagram:** Bewusst fachlich gekürzte Auswahl. Neuere schema-relevante Felder sind sichtbar: SHORT_TEXT-/Numeric-Konfigurationen, `NUMERIC_ESTIMATE`-Felder (`numericReferenceValue`, Toleranzintervall, Eingabetyp, `numericTwoRounds`, `Vote.numericValue`), Session-Kanäle, Onboarding-/Legal-Hold-Hinweise, SessionFeedback, ProductFeedback (Epic 12, ohne Session-/Personen-FKs), Platform/DailyStatistic, MOTD und Host-only Q&A-NLP (`QaQuestion.nlpStatus`, `nlpCategory`; weitere NLP-Felder nur in Prisma).
+- **Felder im erDiagram:** Bewusst fachlich gekürzte Auswahl. Neuere schema-relevante Felder sind sichtbar: SHORT_TEXT-/Numeric-Konfigurationen, `NUMERIC_ESTIMATE`-Felder (`numericReferenceValue`, Toleranzintervall, Eingabetyp, `numericTwoRounds`, `Vote.numericValue`), Session-Kanäle, **Epic #405** (`createdAt`, `expiresAt`, `qaClosesAt`, `endedAt`, `firstParticipantJoinedAt`, `sessionLifecycleRevision`, `Participant.participantNumber`), Onboarding-/Legal-Hold-Hinweise, SessionFeedback, ProductFeedback (Epic 12, ohne Session-/Personen-FKs), Platform/DailyStatistic, MOTD und Host-only Q&A-NLP (`QaQuestion.nlpStatus`, `nlpCategory`; Capability-Hashes und Recovery-Secrets bleiben absichtlich außerhalb der Diagramme).
 
 ### 1.4 Sequenzdiagramme (Dozent & Student)
 
@@ -116,6 +116,14 @@ Da beide Dateien als Living Documentation dienen, sollte architecture-overview.m
 - Lobby (2.2) – LobbyComponent + onParticipantJoined ✓
 - Data-Stripping (2.4) – QuestionStudentDTO/QuestionRevealedDTO in allen relevanten Diagrammen ✓
 - Beamer-Ansicht (2.5) – BeamerViewComponent mit Chart, Leaderboard, Wordcloud, etc. ✓
+
+### GitHub-Epic #405: Mehrtägige Q&A
+
+- Absoluter Lebenszyklus und Host-Einstieg 1–3 in [session-lifecycle.md](../features/session-lifecycle.md) ✓
+- Dozent-/Teilnehmer-Sequenzen in diagrams.md §4.4; Join mit Capability in §5.1 ✓
+- Route `/host-recovery` in architecture-overview, ROUTES_AND_STORIES und diagrams-Konsistenz ✓
+- Skalierungsgrenzen in [qa-scaling.md](../features/qa-scaling.md) ✓
+- Formaler 500er Release-Lauf bleibt Lastnachweis, kein Diagramm-Claim ⚠️ bewusst
 
 ### Epic 3: Student-Teilnahme
 
@@ -221,15 +229,15 @@ Da beide Dateien als Living Documentation dienen, sollte architecture-overview.m
 
 ## 6. Konsistenz Diagramme ↔ Code (Implementierungsstand 2026-05-31)
 
-| Aspekt              | Im Diagramm                                                                      | Im Code                                                                      | Status |
-| ------------------- | -------------------------------------------------------------------------------- | ---------------------------------------------------------------------------- | ------ |
-| Backend appRouter   | health, quiz, session, vote, qa, quickFeedback, wordCloud, admin, motd           | `apps/backend/src/routers/index.ts` – gleiche Sub-Router                     | ✓      |
-| Persistenz / Prisma | PostgreSQL, Session-Modelle, Feedback, Q&A, BonusToken, Statistiken, MOTD, Audit | `prisma/schema.prisma`                                                       | ✓      |
-| Redis / Rate-Limit  | Sliding Window, Token-TTLs, Presence-/Live-Hilfsdaten, Blitzlicht-Zustand        | `rateLimit`, `hostAuth`, `adminAuth`, Presence/Load-Signale, `quickFeedback` | ✓      |
-| WebSocket tRPC      | Port 3001, Subscriptions                                                         | Backend ws-Server + Frontend `wsLink`                                        | ✓      |
-| Yjs Relay           | y-websocket :3002                                                                | Backend Relay + Frontend CRDT-Pfad                                           | ✓      |
-| Frontend            | Routen Home, Quiz, Session, Join, Feedback, Admin, Help, News-Archiv, Legal      | `app.routes.ts` + Feature-Module                                             | ✓      |
-| Shared-Types        | Zod-Schemas / DTOs in Diagramm-Validation-Box                                    | `libs/shared-types`, von tRPC genutzt                                        | ✓      |
+| Aspekt              | Im Diagramm                                                                                | Im Code                                                                      | Status |
+| ------------------- | ------------------------------------------------------------------------------------------ | ---------------------------------------------------------------------------- | ------ |
+| Backend appRouter   | health, quiz, session, vote, qa, quickFeedback, wordCloud, admin, motd                     | `apps/backend/src/routers/index.ts` – gleiche Sub-Router                     | ✓      |
+| Persistenz / Prisma | PostgreSQL, Session-Modelle, Feedback, Q&A, BonusToken, Statistiken, MOTD, Audit           | `prisma/schema.prisma`                                                       | ✓      |
+| Redis / Rate-Limit  | Sliding Window, Token-TTLs, Presence-/Live-Hilfsdaten, Blitzlicht-Zustand                  | `rateLimit`, `hostAuth`, `adminAuth`, Presence/Load-Signale, `quickFeedback` | ✓      |
+| WebSocket tRPC      | Port 3001, Subscriptions                                                                   | Backend ws-Server + Frontend `wsLink`                                        | ✓      |
+| Yjs Relay           | y-websocket :3002                                                                          | Backend Relay + Frontend CRDT-Pfad                                           | ✓      |
+| Frontend            | Routen Home, Quiz, Session, Join, host-recovery, Feedback, Admin, Help, News-Archiv, Legal | `app.routes.ts` + Feature-Module                                             | ✓      |
+| Shared-Types        | Zod-Schemas / DTOs in Diagramm-Validation-Box                                              | `libs/shared-types`, von tRPC genutzt                                        | ✓      |
 
 **Bewertung:** Die zentralen Architekturdiagramme entsprechen dem aktuell umgesetzten Produktstand. Bewusste Vereinfachungen: keine vollständige Auflistung aller Procedures, Utility-Dateien (z. B. Vollbild-Helfer) und feingranulare UI-Komponenten.
 
@@ -276,7 +284,7 @@ Der repo-weite Mermaid-Render-Audit vom 2026-05-30 bleibt die letzte vollständi
 | `docs/praktikum/HANDOUT-TAGESREKORD-KI-AGENT.md`   | Tagesrekord-Sequenzen auf `footerBundle`/`stats`-Trennung und dynamisches Chart-Lazy-Loading aktualisiert                          |
 | `docs/architecture/quiz-library-sync.md`           | Geprüft; keine fachliche Änderung nötig                                                                                            |
 
-Technische Plausibilitätschecks: Mermaid-Fences balanciert; alle 26 Prisma-Modelle erscheinen in den zentralen ER-Diagrammen; alle `appRouter`-Keys (`health`, `quiz`, `session`, `vote`, `qa`, `quickFeedback`, `wordCloud`, `admin`, `motd`, `productFeedback`) sind in Diagramm-/Onboarding-Doku abgebildet. Der letzte vollständige Render-Audit vom 2026-05-30 hat alle 68 Mermaid-Blöcke aus 11 getrackten Markdown-Dateien mit `mmdc 11.15.0` erfolgreich geprüft. Am 2026-08-20 kam ein fachlicher Abgleich für 1.14/8.9 hinzu; am 2026-09-10 ProductFeedback (Epic 12) in Router-Kanten, ER und Admin-/Session-Ende-Abläufen, aber kein neuer repo-weiter `mmdc`-Lauf.
+Technische Plausibilitätschecks: Mermaid-Fences balanciert; alle 26 Prisma-Modelle erscheinen in den zentralen ER-Diagrammen; alle `appRouter`-Keys (`health`, `quiz`, `session`, `vote`, `qa`, `quickFeedback`, `wordCloud`, `admin`, `motd`, `productFeedback`) sind in Diagramm-/Onboarding-Doku abgebildet. Der letzte vollständige Render-Audit vom 2026-05-30 hat alle 68 Mermaid-Blöcke aus 11 getrackten Markdown-Dateien mit `mmdc 11.15.0` erfolgreich geprüft. Am 2026-08-20 kam ein fachlicher Abgleich für 1.14/8.9 hinzu; am 2026-09-10 ProductFeedback (Epic 12) in Router-Kanten, ER und Admin-/Session-Ende-Abläufen; am 2026-09-16 Epic #405 (Lebenszyklus, Recovery, Join-Capability) in diagrams.md §4.4 und den Feature-Mermaid-Blöcken, aber kein neuer repo-weiter `mmdc`-Lauf.
 
 | Aspekt                                     | Bewertung                                                                                                                                                |
 | ------------------------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -287,4 +295,4 @@ Technische Plausibilitätschecks: Mermaid-Fences balanciert; alle 26 Prisma-Mode
 | **Zod-Schemas ↔ Prisma**                   | ✓ Alle Enums synchron, Input-Schemas spiegeln Modelle korrekt                                                                                            |
 | **Diagramme ↔ Code**                       | ✓ Kernpfad (Router, DB, WS, Yjs, Frontend-Routen) plus optionale spaCy-/NLP-/Summary-Pfade                                                               |
 
-**Gesamtbewertung:** Die Diagramme sind intern konsistent und decken Handbook sowie Backlog umfassend ab. Die architecture-overview.md ist als vereinfachte Übersicht gekennzeichnet. Der `PAUSED`-Status ist dort als zustandserhaltende Host-Unterbrechung berücksichtigt. **Server-Status (0.4):** Ablauf in [server-status-widget.md](../features/server-status-widget.md). **Numerische Schätzfrage (1.2d):** Fachdetails in [numeric-estimate.md](../features/numeric-estimate.md). **Wortwolke / Kompass (1.14 / 8.9):** [moderation-compass.md](../features/moderation-compass.md), [word-cloud-spacy.md](../features/word-cloud-spacy.md), [qa-nlp-moderation.md](../features/qa-nlp-moderation.md), [qa-summary.md](../features/qa-summary.md). **Produktfeedback (Epic 12):** [product-feedback.md](../features/product-feedback.md). Team-Ranking: siehe [team-mode.md](../features/team-mode.md) statt eigener Diagramm-Komponente.
+**Gesamtbewertung:** Die Diagramme sind intern konsistent und decken Handbook sowie Backlog umfassend ab. Die architecture-overview.md ist als vereinfachte Übersicht gekennzeichnet. Der `PAUSED`-Status ist dort als zustandserhaltende Host-Unterbrechung berücksichtigt. **Server-Status (0.4):** Ablauf in [server-status-widget.md](../features/server-status-widget.md). **Numerische Schätzfrage (1.2d):** Fachdetails in [numeric-estimate.md](../features/numeric-estimate.md). **Wortwolke / Kompass (1.14 / 8.9):** [moderation-compass.md](../features/moderation-compass.md), [word-cloud-spacy.md](../features/word-cloud-spacy.md), [qa-nlp-moderation.md](../features/qa-nlp-moderation.md), [qa-summary.md](../features/qa-summary.md). **Produktfeedback (Epic 12):** [product-feedback.md](../features/product-feedback.md). **Epic #405:** [session-lifecycle.md](../features/session-lifecycle.md), [qa-scaling.md](../features/qa-scaling.md), [HOST-RECOVERY-RUNBOOK.md](../operations/HOST-RECOVERY-RUNBOOK.md). Team-Ranking: siehe [team-mode.md](../features/team-mode.md) statt eigener Diagramm-Komponente.

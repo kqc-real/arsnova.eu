@@ -1,5 +1,7 @@
 # Session-Capabilities und atomare Teilnehmerkennungen
 
+**Stand:** 2026-09-16 · Epic #405 abgeschlossen in PR [#418](https://github.com/kqc-real/arsnova.eu/pull/418).
+
 Epic #405 ersetzt öffentlich sichtbare Participant-IDs als
 Wiederbeitrittsnachweis durch opake, sessiongebundene Browser-Capabilities.
 

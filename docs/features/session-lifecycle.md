@@ -1,6 +1,6 @@
 # Absoluter Session-Lebenszyklus
 
-**Stand:** 2026-09-15 · Epic #405, Slices #407, #409 und #412
+**Stand:** 2026-09-16 · Epic #405 abgeschlossen in PR [#418](https://github.com/kqc-real/arsnova.eu/pull/418) (`28ab7724`) · Slices #406–#409, #412–#415, #417
 
 ## Fachlicher Vertrag
 
@@ -68,8 +68,8 @@ Relative Verlängerungen rechnen ab dem bisherigen `expiresAt`. Die
 warnungsbasierte Aktion ändert ausschließlich `expiresAt`. Insbesondere bleiben
 `qaClosesAt`, der Q&A-Öffnungszustand und andere Kanalzustände unverändert. Die
 Bestätigung stellt altes und neues Sessionende sowie den unveränderten
-Q&A-Schluss gegenüber. Q&A-bedingte Erstöffnung und Neuplanung werden getrennt
-in Slice #417 umgesetzt.
+Q&A-Schluss gegenüber. Q&A-bedingte Erstöffnung und Neuplanung laufen über
+`configureQaChannel` (Slice #417, Teil von #418).
 
 ## Obergrenzen und Berechtigungen
 
@@ -237,6 +237,46 @@ Bewertungen und Admin-Audits.
 Alle drei Migrationen bleiben bei einem App-Rollback vorwärts angewandt. Ein
 Schema-Downgrade ist nicht vorgesehen; das Rückrollen erfolgt ausschließlich
 über das App-Image.
+
+## Lebenszyklus und Host-Einstieg
+
+```mermaid
+stateDiagram-v2
+    [*] --> Aktiv: create, expiresAt gesetzt
+    Aktiv --> Aktiv: Verlaengerung nur originalHost
+    Aktiv --> Beendet: session.end oder expiresAt
+    Beendet --> Nachbereitung: Host liest und exportiert 14 Tage
+    Nachbereitung --> Loeschreif: postProcessingEndsAt
+    Loeschreif --> [*]: Purge, Capabilities ungültig
+    Aktiv --> QaOffen: configureQaChannel
+    QaOffen --> QaGeschlossen: qaClosesAt ohne Sessionende
+    QaGeschlossen --> QaOffen: reopenQa mit Zukunftsfrist
+    QaOffen --> Beendet: globales Sessionende
+    QaGeschlossen --> Beendet: globales Sessionende
+```
+
+```mermaid
+sequenceDiagram
+    participant H as Host
+    participant Home as Startseite
+    participant HostUI as Host-Ansicht
+    participant BE as tRPC
+    participant Rec as host-recovery
+
+    H->>Home: Q&A erstellen
+    Home->>H: 1/3 Teilnahmeprofil
+    H->>BE: session.create QUIZ plus qaEnabled
+    BE-->>Home: code, Host-Capability, Recovery-Karte
+    Home->>HostUI: host?tab=qa&qaSetup=1
+    HostUI->>H: 2/3 Maximales Q&A-Ende
+    H->>BE: configureQaChannel
+    HostUI->>H: 3/3 Notfallkarte sichern
+    H->>HostUI: Fertig, qaSetup entfällt
+    Note over Rec: später ohne denselben Browser
+    H->>Rec: Session-Kennung plus Recovery-Code
+    Rec->>BE: host recovery exchange
+    BE-->>Rec: neue Host-Capability
+```
 
 ## Verifikation
 

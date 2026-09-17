@@ -1,7 +1,7 @@
 # Server-Status-Widget (Story 0.4)
 
 > **Zielgruppe:** Product Owner, Entwickler  
-> **Stand:** 2026-09-15 (Q&A-Aggregate aus Epic #405; getrennter schlanker `footerBundle`-Pfad)
+> **Stand:** 2026-09-16 (Q&A-Aggregate aus Epic #405 / PR #418; getrennter schlanker `footerBundle`-Pfad)
 
 ## Was zeigt das Widget?
 
