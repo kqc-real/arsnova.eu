@@ -2620,10 +2620,6 @@
                 <span class="session-qa-form__quota" i18n="@@sessionQa.questionQuota">
                   Noch {{ quota.participantRemaining }} von 10 Fragen möglich.
                 </span>
-                <span class="session-qa-form__quota" i18n="@@sessionQa.sessionQuota">
-                  Sessionweit noch {{ formatCount(quota.sessionRemaining) }} von
-                  {{ formatCount(qaSessionQuestionLimit) }} Plätzen frei.
-                </span>
               }
               <span
                 class="session-qa-form__counter"
@@ -2720,15 +2716,14 @@
                           <span aria-hidden="true">{{ authorBadge }}</span>
                         </button>
                       }
-                      @if (question.status !== 'ACTIVE') {
-                        <span
-                          class="session-qa-card__status"
-                          [class.session-qa-card__status--pinned]="question.status === 'PINNED'"
-                          [class.session-qa-card__status--pending]="question.status === 'PENDING'"
-                        >
-                          {{ qaStatusLabel(question.status) }}
-                        </span>
-                      }
+                      <span
+                        class="session-qa-card__status"
+                        [class.session-qa-card__status--active]="question.status === 'ACTIVE'"
+                        [class.session-qa-card__status--pinned]="question.status === 'PINNED'"
+                        [class.session-qa-card__status--pending]="question.status === 'PENDING'"
+                      >
+                        {{ qaStatusLabel(question.status) }}
+                      </span>
                       @if (question.isOwn) {
                         <span class="session-qa-card__own-badge">{{
                           vpc.voteQaOwnBadge(isPlayfulPreset())

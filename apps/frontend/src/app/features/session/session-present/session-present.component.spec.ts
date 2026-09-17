@@ -19,6 +19,7 @@ const {
   getCurrentQuestionForHostQueryMock,
   getHostVoteProgressQueryMock,
   getReactionsQueryMock,
+  getQaWordCloudProjectionQueryMock,
   subscribeMock,
 } = vi.hoisted(() => ({
   liveQueryMock: vi.fn(),
@@ -33,6 +34,7 @@ const {
   getCurrentQuestionForHostQueryMock: vi.fn(),
   getHostVoteProgressQueryMock: vi.fn(),
   getReactionsQueryMock: vi.fn(),
+  getQaWordCloudProjectionQueryMock: vi.fn(),
   subscribeMock: vi.fn(() => ({ unsubscribe: vi.fn() })),
 }));
 
@@ -71,6 +73,9 @@ vi.mock('../../../core/trpc.client', () => ({
       },
       getReactions: {
         query: getReactionsQueryMock,
+      },
+      getQaWordCloudProjection: {
+        query: getQaWordCloudProjectionQueryMock,
       },
       onCurrentQuestionForHostChanged: {
         subscribe: subscribeMock,
@@ -147,6 +152,7 @@ describe('SessionPresentComponent', () => {
     getCurrentQuestionForHostQueryMock.mockResolvedValue(null);
     getHostVoteProgressQueryMock.mockResolvedValue(null);
     getReactionsQueryMock.mockResolvedValue({ reactions: {}, total: 0 });
+    getQaWordCloudProjectionQueryMock.mockResolvedValue({ projection: null });
     subscribeMock.mockReturnValue({ unsubscribe: vi.fn() });
 
     TestBed.configureTestingModule({
@@ -1419,6 +1425,9 @@ describe('SessionPresentComponent', () => {
     fixture.detectChanges();
 
     const text = fixture.nativeElement.textContent as string;
+    const root = fixture.nativeElement.querySelector('.session-present') as HTMLElement | null;
+    expect(root?.classList.contains('session-present--qa')).toBe(true);
+    expect(root?.classList.contains('session-present--word-cloud')).toBe(true);
     expect(text).toContain('Q&A-Wortwolke');
     expect(text).toContain('2 Fragen');
     expect(fixture.componentInstance.presenterQaWordCloudQuestions()).toHaveLength(2);
@@ -1430,6 +1439,282 @@ describe('SessionPresentComponent', () => {
     expect(text).not.toContain('Als Nächstes im Raum');
     expect(fixture.nativeElement.querySelector('.session-present__qa-list-card')).toBeNull();
     expectNoHostControls(fixture.nativeElement as HTMLElement);
+    fixture.destroy();
+  });
+
+  it('zeigt die Q&A-Wortwolke auch wenn der Beitragskanal geschlossen ist', async () => {
+    getInfoQueryMock.mockResolvedValue({
+      id: '6a8edced-5f8f-4cfa-9176-454fac9570ad',
+      serverTime: MOCK_SERVER_TIME,
+      code: 'ABC123',
+      type: 'QUIZ',
+      status: 'ACTIVE',
+      quizName: 'Team-Quiz',
+      title: null,
+      participantCount: 3,
+      teamMode: false,
+      preferredChannel: 'qa',
+      presenterSurface: 'qaWordCloud',
+      channels: {
+        quiz: { enabled: true },
+        qa: { enabled: true, open: false, title: 'Fragen', moderationMode: false },
+        quickFeedback: { enabled: false },
+      },
+    });
+    qaListQueryMock.mockResolvedValue([
+      {
+        id: '11111111-1111-4111-8111-111111111111',
+        text: 'Kommt Kapitel 4 in der Klausur vor?',
+        upvoteCount: 9,
+        status: 'ACTIVE',
+        createdAt: '2026-03-13T12:00:00.000Z',
+        myVote: null,
+        isOwn: false,
+        hasUpvoted: false,
+      },
+    ]);
+
+    const fixture = TestBed.createComponent(SessionPresentComponent);
+    fixture.detectChanges();
+    await fixture.whenStable();
+    await new Promise((r) => setTimeout(r, 50));
+    fixture.detectChanges();
+
+    expect(fixture.componentInstance.showQaWordCloud()).toBe(true);
+    expect(fixture.nativeElement.textContent as string).toContain('Q&A-Wortwolke');
+    fixture.destroy();
+  });
+
+  it('zeigt die Q&A-Wortwolke statt der leeren Freitext-Wolke', async () => {
+    liveQueryMock.mockResolvedValue({
+      sessionId: '6a8edced-5f8f-4cfa-9176-454fac9570ad',
+      questionId: '7ed3cc25-3179-4a91-9dc3-acc00971fb46',
+      questionOrder: 1,
+      questionType: 'FREETEXT',
+      questionText: 'Was war hilfreich?',
+      responses: [],
+      updatedAt: '2026-03-08T12:00:00.000Z',
+    });
+    getInfoQueryMock.mockResolvedValue({
+      id: '6a8edced-5f8f-4cfa-9176-454fac9570ad',
+      serverTime: MOCK_SERVER_TIME,
+      code: 'ABC123',
+      type: 'QUIZ',
+      status: 'RESULTS',
+      quizName: 'Team-Quiz',
+      title: null,
+      participantCount: 3,
+      teamMode: false,
+      preferredChannel: 'qa',
+      presenterSurface: 'qaWordCloud',
+      channels: {
+        quiz: { enabled: true },
+        qa: { enabled: true, open: true, title: 'Fragen', moderationMode: false },
+        quickFeedback: { enabled: false },
+      },
+    });
+    qaListQueryMock.mockResolvedValue([
+      {
+        id: '11111111-1111-4111-8111-111111111111',
+        text: 'Kommt Kapitel 4 in der Klausur vor?',
+        upvoteCount: 9,
+        status: 'ACTIVE',
+        createdAt: '2026-03-13T12:00:00.000Z',
+        myVote: null,
+        isOwn: false,
+        hasUpvoted: false,
+      },
+    ]);
+
+    const fixture = TestBed.createComponent(SessionPresentComponent);
+    fixture.detectChanges();
+    await fixture.whenStable();
+    await new Promise((r) => setTimeout(r, 50));
+    fixture.detectChanges();
+
+    const text = fixture.nativeElement.textContent as string;
+    expect(fixture.componentInstance.showQaWordCloud()).toBe(true);
+    expect(fixture.componentInstance.showPresenterFreetextResultsStage()).toBe(false);
+    expect(text).toContain('Q&A-Wortwolke');
+    expect(text).not.toContain('Noch keine Freitext-Antworten vorhanden.');
+    expect(text).not.toContain('Live-Freitext');
+    fixture.destroy();
+  });
+
+  it('übernimmt die Host-Wortwolken-Einstellungen auf dem Presenter', async () => {
+    getInfoQueryMock.mockResolvedValue({
+      id: '6a8edced-5f8f-4cfa-9176-454fac9570ad',
+      serverTime: MOCK_SERVER_TIME,
+      code: 'ABC123',
+      type: 'QUIZ',
+      status: 'ACTIVE',
+      quizName: 'Team-Quiz',
+      title: null,
+      participantCount: 3,
+      teamMode: false,
+      preferredChannel: 'qa',
+      presenterSurface: 'qaWordCloud',
+      channels: {
+        quiz: { enabled: true },
+        qa: { enabled: true, title: 'Fragen', moderationMode: false },
+        quickFeedback: { enabled: false },
+      },
+    });
+    qaListQueryMock.mockResolvedValue([
+      {
+        id: '11111111-1111-4111-8111-111111111111',
+        text: 'Kommt Kapitel 4 in der Klausur vor?',
+        upvoteCount: 9,
+        status: 'ACTIVE',
+        createdAt: '2026-03-13T12:00:00.000Z',
+        myVote: null,
+        isOwn: false,
+        hasUpvoted: false,
+      },
+    ]);
+    getQaWordCloudProjectionQueryMock.mockResolvedValue({
+      projection: {
+        mode: 'SEMANTIC',
+        metric: 'BEST',
+        locale: 'de',
+        analysisEntries: [
+          {
+            key: 'kapitel-4',
+            label: 'Kapitel 4',
+            count: 7,
+            basisLabel: 'Kapitel',
+            members: [
+              {
+                sourceId: '11111111-1111-4111-8111-111111111111',
+                text: 'Kommt Kapitel 4 in der Klausur vor?',
+                weight: 4,
+              },
+            ],
+            variants: ['Kapitel 4'],
+            confidence: 0.88,
+          },
+        ],
+        analyzedQuestionCount: 1,
+        eligibleQuestionCount: 1,
+        modelVersion: 'topic-v1',
+      },
+    });
+
+    const fixture = TestBed.createComponent(SessionPresentComponent);
+    fixture.detectChanges();
+    await fixture.whenStable();
+    await new Promise((r) => setTimeout(r, 50));
+    fixture.detectChanges();
+
+    const text = fixture.nativeElement.textContent as string;
+    expect(fixture.componentInstance.presenterQaWordCloudTerms()).toBeNull();
+    expect(fixture.componentInstance.presenterQaWordCloudAnalysisEntries()).toMatchObject([
+      { label: 'Kapitel 4' },
+    ]);
+    expect(text).toContain('Themen in den Fragen');
+    expect(text).toContain('Kapitel 4');
+    expect(text).toContain('Ähnliche Fragen sind gruppiert.');
+    fixture.destroy();
+  });
+
+  it('zeigt bei fehlender Wortwolken-Projektion kein Verbindungsbanner', async () => {
+    getInfoQueryMock.mockResolvedValue({
+      id: '6a8edced-5f8f-4cfa-9176-454fac9570ad',
+      serverTime: MOCK_SERVER_TIME,
+      code: 'ABC123',
+      type: 'QUIZ',
+      status: 'ACTIVE',
+      quizName: 'Team-Quiz',
+      title: null,
+      participantCount: 3,
+      teamMode: false,
+      preferredChannel: 'qa',
+      presenterSurface: 'qaWordCloud',
+      channels: {
+        quiz: { enabled: true },
+        qa: { enabled: true, title: 'Fragen', moderationMode: false },
+        quickFeedback: { enabled: false },
+      },
+    });
+    qaListQueryMock.mockResolvedValue([
+      {
+        id: '11111111-1111-4111-8111-111111111111',
+        text: 'Kommt Kapitel 4 in der Klausur vor?',
+        upvoteCount: 9,
+        status: 'ACTIVE',
+        createdAt: '2026-03-13T12:00:00.000Z',
+        myVote: null,
+        isOwn: false,
+        hasUpvoted: false,
+      },
+    ]);
+    getQaWordCloudProjectionQueryMock.mockRejectedValue(new Error('Failed to fetch'));
+
+    const fixture = TestBed.createComponent(SessionPresentComponent);
+    fixture.detectChanges();
+    await fixture.whenStable();
+    await new Promise((r) => setTimeout(r, 50));
+    fixture.detectChanges();
+
+    expect(fixture.componentInstance.connectionDegraded()).toBe(false);
+    expect(
+      fixture.nativeElement.querySelector('[data-testid="presenter-reconnect-status"]'),
+    ).toBeNull();
+    expect(fixture.nativeElement.textContent as string).toContain('Q&A-Wortwolke');
+    fixture.destroy();
+  });
+
+  it('holt auf der Q&A-Wortwolke keine Freitext- oder Quiz-Live-Daten', async () => {
+    getInfoQueryMock.mockResolvedValue({
+      id: '6a8edced-5f8f-4cfa-9176-454fac9570ad',
+      serverTime: MOCK_SERVER_TIME,
+      code: 'ABC123',
+      type: 'QUIZ',
+      status: 'ACTIVE',
+      quizName: 'Team-Quiz',
+      title: null,
+      participantCount: 3,
+      teamMode: false,
+      preferredChannel: 'qa',
+      presenterSurface: 'qaWordCloud',
+      channels: {
+        quiz: { enabled: true },
+        qa: { enabled: true, title: 'Fragen', moderationMode: false },
+        quickFeedback: { enabled: false },
+      },
+    });
+    qaListQueryMock.mockResolvedValue([
+      {
+        id: '11111111-1111-4111-8111-111111111111',
+        text: 'Kommt Kapitel 4 in der Klausur vor?',
+        upvoteCount: 9,
+        status: 'ACTIVE',
+        createdAt: '2026-03-13T12:00:00.000Z',
+        myVote: null,
+        isOwn: false,
+        hasUpvoted: false,
+      },
+    ]);
+    liveQueryMock.mockClear();
+    getCurrentQuestionForHostQueryMock.mockClear();
+    getHostVoteProgressQueryMock.mockClear();
+    liveQueryMock.mockRejectedValue(new Error('Failed to fetch'));
+    getCurrentQuestionForHostQueryMock.mockRejectedValue(new Error('Failed to fetch'));
+    getHostVoteProgressQueryMock.mockRejectedValue(new Error('Failed to fetch'));
+
+    const fixture = TestBed.createComponent(SessionPresentComponent);
+    fixture.detectChanges();
+    await fixture.whenStable();
+    await new Promise((r) => setTimeout(r, 50));
+    fixture.detectChanges();
+
+    expect(liveQueryMock).not.toHaveBeenCalled();
+    expect(getCurrentQuestionForHostQueryMock).not.toHaveBeenCalled();
+    expect(getHostVoteProgressQueryMock).not.toHaveBeenCalled();
+    expect(fixture.componentInstance.connectionDegraded()).toBe(false);
+    expect(
+      fixture.nativeElement.querySelector('[data-testid="presenter-reconnect-status"]'),
+    ).toBeNull();
     fixture.destroy();
   });
 

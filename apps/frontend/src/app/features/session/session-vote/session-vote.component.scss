@@ -1079,6 +1079,11 @@
     color: var(--mat-sys-tertiary);
   }
 
+  &--active {
+    background: color-mix(in srgb, var(--mat-sys-primary) 12%, transparent);
+    color: var(--mat-sys-primary);
+  }
+
   &--pending {
     background: color-mix(in srgb, var(--mat-sys-outline) 12%, transparent);
     color: var(--mat-sys-on-surface-variant);

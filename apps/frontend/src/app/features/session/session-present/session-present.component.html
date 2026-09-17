@@ -6,7 +6,8 @@
   [class.session-present--lobby]="showLobbyProjection()"
   [class.session-present--quiz]="showQuizProjection()"
   [class.session-present--freetext]="showPresenterFreetextResultsStage()"
-  [class.session-present--qa]="showQaProjection()"
+  [class.session-present--qa]="showQaProjection() || showQaWordCloud()"
+  [class.session-present--word-cloud]="showQaWordCloud() || showPresenterFreetextResultsStage()"
   [class.session-present--feedback]="showQuickFeedbackCard()"
   [class.session-present--standby]="presenterStandbyChannel() !== null || showQuizPauseProjection()"
 >
@@ -705,7 +706,7 @@
       />
     }
 
-    @if (showQaProjection()) {
+    @if (showQaProjection() || showQaWordCloud()) {
       <section class="session-present__qa-stage">
         @if (showPinnedQaQuestion() && pinnedQaQuestion(); as pinnedQuestion) {
           <mat-card appearance="outlined" class="session-present__qa-card">
@@ -777,13 +778,18 @@
               [responses]="presenterQaWordCloudResponses()"
               [weightedResponses]="presenterQaWordCloudWeightedResponses()"
               [terms]="presenterQaWordCloudTerms()"
+              [analysisEntries]="presenterQaWordCloudAnalysisEntries()"
               [analysisMode]="'qa'"
+              [analysisModelVersion]="qaWordCloudProjection()?.modelVersion ?? null"
               [eyebrow]="qaWordCloudEyebrow"
-              [description]="qaWordCloudDescription"
-              [title]="qaWordCloudTitle"
+              [description]="qaWordCloudDescription()"
+              [title]="qaWordCloudTitle()"
               [itemLabelSingular]="qaWordCloudItemSingular"
               [itemLabelPlural]="qaWordCloudItemPlural"
-              [weightingHint]="qaWordCloudWeightingHint"
+              [wordLabelSingular]="qaWordCloudWordLabelSingular()"
+              [wordLabelPlural]="qaWordCloudWordLabelPlural()"
+              [weightingHint]="qaWordCloudWeightingHint()"
+              [emptyMessage]="qaWordCloudEmptyMessage"
               [presentationMode]="true"
               [outputOnly]="true"
             />
@@ -923,6 +929,7 @@
       !showQuizPauseProjection() &&
       !showLobbyProjection() &&
       !showQaProjection() &&
+      !showQaWordCloud() &&
       !showQuickFeedbackCard() &&
       presenterStandbyChannel() === null
     ) {

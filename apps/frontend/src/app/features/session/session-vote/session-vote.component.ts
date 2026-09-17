@@ -2624,7 +2624,7 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
       case 'PINNED':
         return $localize`:@@sessionQa.statusPinned:Wird beantwortet`;
       case 'ACTIVE':
-        return $localize`:@@sessionQa.statusActive:Offen`;
+        return $localize`:@@sessionQa.statusActive:Freigegeben`;
       case 'PENDING':
         return $localize`:@@sessionQa.statusPending:Wartet auf Freigabe`;
       case 'ARCHIVED':
@@ -4335,7 +4335,7 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
     if (this.isFinished() || Date.now() < this.reorderLockUntil) {
       return false;
     }
-    this.setQaQuestionsAnimated(snapshot.questions);
+    this.setQaQuestionsAnimated(snapshot.questions, { notify: !options.append });
     if (!options.append) {
       this.resetQaListPageNavigation();
     }
@@ -4657,19 +4657,39 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
     );
   }
 
-  /** Wenn Fragen aus der Liste verschwinden (Moderation), Teilnehmende per Snackbar informieren. */
-  private notifyQaModeratorRemovals(prev: QaQuestionDTO[], next: QaQuestionDTO[]): void {
+  /** Statuswechsel und Entfernen eigener/fremder Fragen per Snackbar. */
+  private notifyQaQuestionUpdates(prev: QaQuestionDTO[], next: QaQuestionDTO[]): void {
     if (prev.length === 0) {
       return;
     }
-    const nextIds = new Set(next.map((q) => q.id));
-    const removed = prev.filter((q) => !nextIds.has(q.id));
-    if (removed.length === 0) {
-      return;
-    }
 
-    const ownRemoved = removed.filter((q) => q.isOwn);
-    const otherRemoved = removed.filter((q) => !q.isOwn);
+    const nextById = new Map(next.map((question) => [question.id, question]));
+    const ownAccepted: QaQuestionDTO[] = [];
+    const ownPinned: QaQuestionDTO[] = [];
+    const ownRemoved: QaQuestionDTO[] = [];
+    const otherRemoved: QaQuestionDTO[] = [];
+
+    for (const question of prev) {
+      const updated = nextById.get(question.id);
+      if (!updated || updated.status === 'DELETED') {
+        if (question.isOwn || updated?.isOwn) {
+          ownRemoved.push(question);
+        } else {
+          otherRemoved.push(question);
+        }
+        continue;
+      }
+
+      const isOwn = question.isOwn || updated.isOwn;
+      if (!isOwn || updated.status === question.status) {
+        continue;
+      }
+      if (updated.status === 'PINNED') {
+        ownPinned.push(question);
+      } else if (updated.status === 'ACTIVE' && question.status === 'PENDING') {
+        ownAccepted.push(question);
+      }
+    }
 
     let msg: string | null = null;
     if (ownRemoved.length > 0) {
@@ -4677,6 +4697,16 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
         ownRemoved.length > 1
           ? $localize`:@@sessionQa.snackModeratorRemovedOwnMany:Die Moderation hat deine Fragen entfernt.`
           : $localize`:@@sessionQa.snackModeratorRemovedOwn:Die Moderation hat deine Frage entfernt.`;
+    } else if (ownPinned.length > 0) {
+      msg =
+        ownPinned.length > 1
+          ? $localize`:@@sessionQa.snackOwnPinnedMany:Deine Fragen wurden hervorgehoben.`
+          : $localize`:@@sessionQa.snackOwnPinned:Deine Frage wurde hervorgehoben.`;
+    } else if (ownAccepted.length > 0) {
+      msg =
+        ownAccepted.length > 1
+          ? $localize`:@@sessionQa.snackOwnAcceptedMany:Deine Fragen wurden freigegeben.`
+          : $localize`:@@sessionQa.snackOwnAccepted:Deine Frage wurde freigegeben.`;
     } else if (otherRemoved.length > 0) {
       msg =
         otherRemoved.length > 1
@@ -4689,7 +4719,7 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
     }
   }
 
-  private setQaQuestionsAnimated(next: QaQuestionDTO[]): void {
+  private setQaQuestionsAnimated(next: QaQuestionDTO[], options: { notify?: boolean } = {}): void {
     if (this.isFinished()) {
       this.qaQuestions.set([]);
       this.qaListTotalCount.set(0);
@@ -4699,7 +4729,9 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
       return;
     }
     const prev = this.qaQuestions();
-    this.notifyQaModeratorRemovals(prev, next);
+    if (options.notify !== false) {
+      this.notifyQaQuestionUpdates(prev, next);
+    }
 
     const prefersReducedMotion =
       typeof window !== 'undefined' &&

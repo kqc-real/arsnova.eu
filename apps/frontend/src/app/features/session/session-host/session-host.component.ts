@@ -119,9 +119,10 @@ import {
   selectConfidencePriorityQuestions,
   CONFIDENCE_SCALE_MAX,
   CONFIDENCE_SCALE_MIN,
-  QA_MAX_QUESTIONS_PER_SESSION,
   WORD_CLOUD_DEFAULT_MAX_NGRAM_LENGTH,
   WORD_CLOUD_PHRASE_MAX_NGRAM_LENGTH,
+  QA_WORD_CLOUD_MAX_OUTPUT_ENTRIES,
+  WordCloudAnalysisEntryDTOSchema,
   isWordCloudLemmaLocale,
   isWordCloudPhraseAnalysisVariant,
   parseQaSummaryQuestionSourceId,
@@ -167,6 +168,8 @@ import {
   SessionStatusUpdate,
   TeamDTO,
   TeamLeaderboardEntryDTO,
+  QaWordCloudPresenterProjectionDTO,
+  WordCloudAnalysisEntryDTO,
   WordCloudAnalysisLocale,
   WordCloudAnalysisVariant,
   WordCloudNormalizationFallbackReason,
@@ -708,9 +711,6 @@ export class SessionHostComponent implements OnInit, OnDestroy {
   readonly activeChannel = signal<SessionChannelTab>('quiz');
   readonly qaQuestions = signal<QaQuestionDTO[]>([]);
   readonly qaListTotalCount = signal(0);
-  readonly qaSessionQuestionCount = signal(0);
-  readonly qaSessionRemaining = signal(QA_MAX_QUESTIONS_PER_SESSION);
-  readonly qaSessionQuestionLimit = QA_MAX_QUESTIONS_PER_SESSION;
   readonly qaListNextCursor = signal<string | null>(null);
   readonly qaListRankingRevision = signal<string | null>(null);
   readonly qaListPageIndex = signal(0);
@@ -1011,6 +1011,7 @@ export class SessionHostComponent implements OnInit, OnDestroy {
   private freetextWordCloudLemmaAnalysisRunId = 0;
   private freetextWordCloudSemanticAnalysisRunId = 0;
   private presenterProjectionSyncQueue: Promise<void> = Promise.resolve();
+  private lastQaWordCloudProjectionKey: string | null = null;
   private channelToggleSyncing = false;
   private lastQaWordCloudAnalysisRequestKey: string | null = null;
   private lastQaWordCloudSemanticAnalyzedKey: string | null = null;
@@ -3246,6 +3247,17 @@ export class SessionHostComponent implements OnInit, OnDestroy {
         }
         this.queueQaWordCloudThemeAnalysis(request);
       });
+    });
+    effect(() => {
+      const dialogOpen = this.qaWordCloudDialogOpen();
+      const surface = this.session()?.presenterSurface;
+      const projection = this.buildQaWordCloudPresenterProjection();
+      if (!dialogOpen && surface !== 'qaWordCloud') {
+        this.lastQaWordCloudProjectionKey = null;
+        return;
+      }
+
+      untracked(() => this.publishQaWordCloudProjection(projection));
     });
     effect(() => {
       const request = this.freetextWordCloudSemanticAnalysisRequest();
@@ -8469,7 +8481,7 @@ export class SessionHostComponent implements OnInit, OnDestroy {
       case 'PINNED':
         return $localize`:@@sessionQa.statusPinned:Wird beantwortet`;
       case 'ACTIVE':
-        return $localize`:@@sessionQa.statusActive:Offen`;
+        return $localize`:@@sessionQa.statusActive:Freigegeben`;
       case 'PENDING':
         return $localize`:@@sessionQa.statusPending:Wartet auf Freigabe`;
       case 'ARCHIVED':
@@ -9251,12 +9263,14 @@ export class SessionHostComponent implements OnInit, OnDestroy {
     return this.enqueuePresenterProjectionSync(() => this.syncPreferredLiveChannelNow(channel));
   }
 
-  private async syncPreferredLiveChannelNow(channel: SessionChannelTab): Promise<void> {
-    if (
-      !this.code ||
-      !this.isPresenterChannelSelectable(channel) ||
-      this.session()?.preferredChannel === channel
-    ) {
+  private async syncPreferredLiveChannelNow(
+    channel: SessionChannelTab,
+    options?: { forceServer?: boolean },
+  ): Promise<void> {
+    if (!this.code || !this.isPresenterChannelSelectable(channel)) {
+      return;
+    }
+    if (!options?.forceServer && this.session()?.preferredChannel === channel) {
       return;
     }
     for (let attempt = 0; attempt < 2; attempt += 1) {
@@ -9272,7 +9286,10 @@ export class SessionHostComponent implements OnInit, OnDestroy {
             ? {
                 ...session,
                 preferredChannel: result.preferredChannel,
-                presenterSurface: 'default',
+                presenterSurface:
+                  session.preferredChannel === result.preferredChannel
+                    ? session.presenterSurface
+                    : 'default',
                 sessionLifecycleRevision: result.sessionLifecycleRevision,
                 serverNow: result.serverNow,
               }
@@ -9322,8 +9339,68 @@ export class SessionHostComponent implements OnInit, OnDestroy {
     channel: SessionChannelTab,
   ): Promise<void> {
     await this.enqueuePresenterProjectionSync(async () => {
-      await this.syncPreferredLiveChannelNow(channel);
+      await this.syncPreferredLiveChannelNow(channel, { forceServer: true });
       await this.syncPresenterSurfaceNow(surface);
+    });
+  }
+
+  private buildQaWordCloudPresenterProjection(): QaWordCloudPresenterProjectionDTO {
+    const coverage = this.qaWordCloudCoverage();
+    const questionCount = this.qaWordCloudQuestions().length;
+    const modelVersion =
+      this.qaWordCloudThemeAnalysisResult()?.modelVersion ??
+      this.qaWordCloudLemmaResult()?.modelVersion ??
+      null;
+    return {
+      mode: this.qaWordCloudEffectiveAnalysisVariant(),
+      metric: this.qaSortMode(),
+      locale: this.qaWordCloudAnalysisLocale(),
+      analysisEntries: this.collectQaWordCloudPresenterEntries(),
+      analyzedQuestionCount: coverage?.analyzedQuestionCount ?? questionCount,
+      eligibleQuestionCount: coverage?.eligibleQuestionCount ?? questionCount,
+      modelVersion: modelVersion && modelVersion.length > 0 ? modelVersion : null,
+    };
+  }
+
+  private collectQaWordCloudPresenterEntries(): WordCloudAnalysisEntryDTO[] {
+    const entries = this.qaWordCloudAnalysisEntries();
+    if (!entries || entries.length === 0) {
+      return [];
+    }
+
+    const sanitized: WordCloudAnalysisEntryDTO[] = [];
+    for (const entry of entries) {
+      const parsed = WordCloudAnalysisEntryDTOSchema.safeParse(entry);
+      if (!parsed.success) {
+        continue;
+      }
+      sanitized.push(parsed.data);
+      if (sanitized.length >= QA_WORD_CLOUD_MAX_OUTPUT_ENTRIES) {
+        break;
+      }
+    }
+    return sanitized;
+  }
+
+  private publishQaWordCloudProjection(projection: QaWordCloudPresenterProjectionDTO): void {
+    if (!this.code) {
+      return;
+    }
+
+    const key = JSON.stringify(projection);
+    if (key === this.lastQaWordCloudProjectionKey) {
+      return;
+    }
+    this.lastQaWordCloudProjectionKey = key;
+    void this.enqueuePresenterProjectionSync(async () => {
+      try {
+        await trpc.session.setQaWordCloudProjection.mutate({
+          code: this.code.toUpperCase(),
+          projection,
+        });
+      } catch {
+        this.lastQaWordCloudProjectionKey = null;
+      }
     });
   }
 
@@ -9915,8 +9992,6 @@ export class SessionHostComponent implements OnInit, OnDestroy {
       this.qaListTotalCount.set(
         snapshot.filter((question) => question.status !== 'DELETED').length,
       );
-      this.qaSessionQuestionCount.set(snapshot.length);
-      this.qaSessionRemaining.set(Math.max(0, QA_MAX_QUESTIONS_PER_SESSION - snapshot.length));
       this.qaListNextCursor.set(null);
       this.qaListRankingRevision.set(null);
       this.resetQaListPageNavigation();
@@ -9956,8 +10031,6 @@ export class SessionHostComponent implements OnInit, OnDestroy {
     if (snapshot.state !== 'ACTIVE') {
       this.qaQuestions.set([]);
       this.qaListTotalCount.set(0);
-      this.qaSessionQuestionCount.set(snapshot.sessionQuestionCount ?? 0);
-      this.qaSessionRemaining.set(snapshot.sessionRemaining ?? QA_MAX_QUESTIONS_PER_SESSION);
       this.qaListNextCursor.set(null);
       this.qaListRankingRevision.set(snapshot.rankingRevision ?? null);
       this.resetQaListPageNavigation();
@@ -9969,17 +10042,6 @@ export class SessionHostComponent implements OnInit, OnDestroy {
       this.resetQaListPageNavigation();
     }
     this.qaListTotalCount.set(snapshot.totalCount ?? snapshot.questions.length);
-    this.qaSessionQuestionCount.set(
-      snapshot.sessionQuestionCount ?? snapshot.totalCount ?? snapshot.questions.length,
-    );
-    this.qaSessionRemaining.set(
-      snapshot.sessionRemaining ??
-        Math.max(
-          0,
-          QA_MAX_QUESTIONS_PER_SESSION -
-            (snapshot.sessionQuestionCount ?? snapshot.totalCount ?? snapshot.questions.length),
-        ),
-    );
     this.qaListNextCursor.set(snapshot.nextCursor ?? null);
     this.qaListRankingRevision.set(snapshot.rankingRevision ?? null);
     await this.reconcilePresentedChannel();
@@ -9992,8 +10054,6 @@ export class SessionHostComponent implements OnInit, OnDestroy {
     this.postProcessingEnded.set(true);
     this.qaQuestions.set([]);
     this.qaListTotalCount.set(0);
-    this.qaSessionQuestionCount.set(0);
-    this.qaSessionRemaining.set(QA_MAX_QUESTIONS_PER_SESSION);
     this.qaListNextCursor.set(null);
     this.qaListRankingRevision.set(null);
     this.resetQaListPageNavigation();
@@ -10117,8 +10177,6 @@ export class SessionHostComponent implements OnInit, OnDestroy {
     if (!sessionId || !this.channels().qa) {
       this.qaQuestions.set([]);
       this.qaListTotalCount.set(0);
-      this.qaSessionQuestionCount.set(0);
-      this.qaSessionRemaining.set(QA_MAX_QUESTIONS_PER_SESSION);
       this.qaListNextCursor.set(null);
       this.resetQaListPageNavigation();
       return;

@@ -16,8 +16,9 @@
 }
 
 :host-context(app-session-present).word-cloud-host--presentation {
-  overflow: auto;
-  max-height: none;
+  height: 100%;
+  max-height: 100%;
+  overflow: hidden;
 }
 
 :host.word-cloud-host--presentation .word-cloud-card {
@@ -254,8 +255,9 @@
 }
 
 .word-cloud--presentation .word-cloud__visual--wrapped-presentation {
-  width: min(100%, clamp(36rem, 78vw, 72rem));
-  margin-inline: auto;
+  width: 100%;
+  max-width: none;
+  margin-inline: 0;
   justify-content: center;
   align-content: center;
   gap: clamp(0.65rem, 1.4vw, 0.95rem);

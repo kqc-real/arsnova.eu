@@ -543,6 +543,91 @@ describe('session.enable channel mutations', () => {
   trpcDodIt(
     {
       procedure: 'session.setPresenterSurface',
+      case: 'happy',
+      mode: 'direct',
+      title: 'projiziert die Q&A-Wortwolke auch bei geschlossenem Beitragskanal',
+    },
+    async () => {
+      prismaMock.session.findUnique.mockResolvedValue({
+        ...ACTIVE_SESSION,
+        preferredChannel: 'qa',
+        sessionLifecycleRevision: 3,
+        type: 'QUIZ',
+        quizId: '11111111-1111-4111-8111-111111111111',
+        qaEnabled: true,
+        qaOpen: false,
+        qaClosesAt: new Date('2099-01-01T00:00:00.000Z'),
+        qaTitle: 'Fragen',
+        qaModerationMode: true,
+        title: null,
+        moderationMode: false,
+        quickFeedbackEnabled: false,
+        quickFeedbackOpen: false,
+      });
+
+      await expect(
+        caller.setPresenterSurface({ code: 'ABC123', surface: 'qaWordCloud' }),
+      ).resolves.toEqual({ presenterSurface: 'qaWordCloud' });
+    },
+  );
+
+  it('lässt die Wortwolken-Fläche bei unverändertem Preferred-Channel bestehen', async () => {
+    const { resetSessionReadCachesForTests } = await import('../routers/session');
+    resetSessionReadCachesForTests();
+
+    let preferredChannel = 'qa';
+    let revision = 4;
+    const baseSession = {
+      id: SESSION_ID,
+      code: 'ABC123',
+      type: 'Q_AND_A' as const,
+      status: 'ACTIVE',
+      endedAt: null,
+      expiresAt: new Date('2099-01-02T00:00:00.000Z'),
+      qaClosesAt: new Date('2099-01-01T00:00:00.000Z'),
+      title: 'Fragen',
+      quizId: null,
+      preferredChannel,
+      sessionLifecycleRevision: revision,
+      moderationMode: true,
+      qaEnabled: true,
+      qaOpen: true,
+      qaTitle: 'Fragen',
+      qaModerationMode: true,
+      quickFeedbackEnabled: false,
+      quickFeedbackOpen: false,
+      _count: { participants: 2 },
+    };
+    prismaMock.session.findUnique.mockImplementation(async () => ({
+      ...baseSession,
+      preferredChannel,
+      sessionLifecycleRevision: revision,
+    }));
+    prismaMock.session.update.mockImplementation(
+      async (args: { data: { preferredChannel?: string } }) => {
+        if (args.data.preferredChannel) {
+          preferredChannel = args.data.preferredChannel;
+          revision += 1;
+        }
+        return { preferredChannel, sessionLifecycleRevision: revision };
+      },
+    );
+
+    await expect(
+      caller.setPresenterSurface({ code: 'ABC123', surface: 'qaWordCloud' }),
+    ).resolves.toEqual({ presenterSurface: 'qaWordCloud' });
+
+    await expect(
+      caller.setPreferredLiveChannel({ code: 'ABC123', channel: 'qa' }),
+    ).resolves.toMatchObject({ preferredChannel: 'qa' });
+
+    const info = await caller.getInfoForReconnect({ code: 'ABC123' });
+    expect(info.presenterSurface).toBe('qaWordCloud');
+  });
+
+  trpcDodIt(
+    {
+      procedure: 'session.setPresenterSurface',
       case: 'error',
       mode: 'direct',
       contract: 'BAD_REQUEST',
@@ -660,6 +745,69 @@ describe('session.enable channel mutations', () => {
       });
     }
     expect(prismaMock.session.update).not.toHaveBeenCalled();
+  });
+
+  it('gibt die Host-Wortwolken-Einstellungen an den Presenter weiter', async () => {
+    const { resetSessionReadCachesForTests } = await import('../routers/session');
+    resetSessionReadCachesForTests();
+
+    prismaMock.session.findUnique.mockResolvedValue({
+      ...ACTIVE_SESSION,
+      preferredChannel: 'qa',
+      type: 'Q_AND_A',
+      quizId: null,
+      qaEnabled: true,
+      qaOpen: true,
+      qaTitle: 'Fragen',
+      qaModerationMode: true,
+      title: 'Fragen',
+      moderationMode: false,
+      quickFeedbackEnabled: false,
+      quickFeedbackOpen: false,
+    });
+
+    const projection = {
+      mode: 'SEMANTIC' as const,
+      metric: 'BEST' as const,
+      locale: 'de' as const,
+      analysisEntries: [
+        {
+          key: 'kapitel-4',
+          label: 'Kapitel 4',
+          count: 7,
+          basisLabel: 'Kapitel',
+          members: [
+            {
+              sourceId: '11111111-1111-4111-8111-111111111111',
+              text: 'Kommt Kapitel 4 in der Klausur vor?',
+              weight: 4,
+            },
+          ],
+          variants: ['Kapitel 4'],
+          confidence: 0.88,
+        },
+      ],
+      analyzedQuestionCount: 1,
+      eligibleQuestionCount: 1,
+      modelVersion: 'topic-v1',
+    };
+
+    await expect(
+      caller.setPresenterSurface({ code: 'ABC123', surface: 'qaWordCloud' }),
+    ).resolves.toEqual({ presenterSurface: 'qaWordCloud' });
+    await expect(caller.setQaWordCloudProjection({ code: 'ABC123', projection })).resolves.toEqual({
+      projection,
+    });
+    await expect(caller.getQaWordCloudProjection({ code: 'ABC123' })).resolves.toEqual({
+      projection,
+    });
+
+    await expect(
+      caller.setPresenterSurface({ code: 'ABC123', surface: 'default' }),
+    ).resolves.toEqual({ presenterSurface: 'default' });
+    await expect(caller.getQaWordCloudProjection({ code: 'ABC123' })).resolves.toEqual({
+      projection: null,
+    });
   });
 });
 

@@ -53,6 +53,8 @@ import {
   ConfigureSessionQaInputSchema,
   SessionQaConfigurationDTOSchema,
   SessionPresenterSurfaceSchema,
+  SetQaWordCloudProjectionInputSchema,
+  GetQaWordCloudProjectionOutputSchema,
   SessionFinishProjectionSchema,
   SessionTeamsPayloadSchema,
   SessionStatusUpdateSchema,
@@ -415,6 +417,10 @@ const participantMembershipCache = new Map<string, CacheEntry<boolean>>();
 const voteCountCache = new Map<string, CacheEntry<number>>();
 const voteSummaryCache = new Map<string, CacheEntry<VoteSummary>>();
 const presenterSurfaceByCode = new Map<string, z.infer<typeof SessionPresenterSurfaceSchema>>();
+const qaWordCloudProjectionByCode = new Map<
+  string,
+  z.infer<typeof SetQaWordCloudProjectionInputSchema>['projection']
+>();
 const finishProjectionByCode = new Map<string, z.infer<typeof SessionFinishProjectionSchema>>();
 const sessionInfoInFlight = new Map<
   string,
@@ -542,6 +548,7 @@ function clearSessionReadCaches(code?: string): void {
 export function resetSessionReadCachesForTests(): void {
   clearSessionReadCaches();
   presenterSurfaceByCode.clear();
+  qaWordCloudProjectionByCode.clear();
   finishProjectionByCode.clear();
   sessionStatusVersions.clear();
   sessionParticipantVersions.clear();
@@ -966,6 +973,7 @@ export async function purgeSessionRuntimeArtifacts(params: {
   const code = params.sessionCode.toUpperCase();
   clearSessionReadCaches(code);
   presenterSurfaceByCode.delete(code);
+  qaWordCloudProjectionByCode.delete(code);
   finishProjectionByCode.delete(code);
   for (const key of emojiStore.keys()) {
     if (key.startsWith(`${params.sessionId}:`)) {
@@ -7251,6 +7259,7 @@ const sessionCoreRouter = router({
             preferredChannel: input.channel,
             sessionLifecycleRevision: session.sessionLifecycleRevision,
             serverNow: serverNow.toISOString(),
+            channelChanged: false as const,
           };
         }
         if (
@@ -7274,11 +7283,18 @@ const sessionCoreRouter = router({
           preferredChannel: SessionLiveChannelSchema.parse(updated.preferredChannel),
           sessionLifecycleRevision: updated.sessionLifecycleRevision,
           serverNow: serverNow.toISOString(),
+          channelChanged: true as const,
         };
       });
-      presenterSurfaceByCode.set(code, 'default');
+      // Nur bei echtem Kanalwechsel die Presenter-Fläche zurücksetzen – sonst würde
+      // ein No-op die offene Wortwolken-Projektion still beenden.
+      if (changed.channelChanged) {
+        presenterSurfaceByCode.set(code, 'default');
+        qaWordCloudProjectionByCode.delete(code);
+      }
       invalidateSessionStatusCachesForCode(code);
-      return changed;
+      const { channelChanged: _channelChanged, ...result } = changed;
+      return result;
     }),
 
   setPresenterSurface: hostProcedure
@@ -7315,10 +7331,8 @@ const sessionCoreRouter = router({
 
       const channels = buildSessionChannels(session);
       const preferredChannel = resolvePreferredLiveChannel(session.preferredChannel, channels);
-      if (
-        input.surface === 'qaWordCloud' &&
-        (preferredChannel !== 'qa' || !channels.qa.enabled || !channels.qa.open)
-      ) {
+      // Beitragsschluss (qa.open=false) darf die Projektion bestehender Fragen nicht blockieren.
+      if (input.surface === 'qaWordCloud' && (preferredChannel !== 'qa' || !channels.qa.enabled)) {
         throw new TRPCError({
           code: 'BAD_REQUEST',
           message: 'Die Q&A-Wortwolke ist nicht präsentationsbereit.',
@@ -7335,8 +7349,84 @@ const sessionCoreRouter = router({
       }
 
       presenterSurfaceByCode.set(code, input.surface);
+      if (input.surface !== 'qaWordCloud') {
+        qaWordCloudProjectionByCode.delete(code);
+      }
       invalidateSessionStatusCachesForCode(code);
       return { presenterSurface: input.surface };
+    }),
+
+  setQaWordCloudProjection: hostProcedure
+    .input(SetQaWordCloudProjectionInputSchema)
+    .output(GetQaWordCloudProjectionOutputSchema)
+    .mutation(async ({ input }) => {
+      const code = input.code.toUpperCase();
+      const session = await prisma.session.findUnique({
+        where: { code },
+        select: {
+          status: true,
+          type: true,
+          quizId: true,
+          qaEnabled: true,
+          qaOpen: true,
+          qaTitle: true,
+          qaModerationMode: true,
+          title: true,
+          moderationMode: true,
+          quickFeedbackEnabled: true,
+          quickFeedbackOpen: true,
+          preferredChannel: true,
+        },
+      });
+      if (!session) {
+        throw new TRPCError({ code: 'NOT_FOUND', message: 'Session nicht gefunden.' });
+      }
+      assertSessionAllowsLiveMutation(session.status);
+
+      const channels = buildSessionChannels(session);
+      const preferredChannel = resolvePreferredLiveChannel(session.preferredChannel, channels);
+      if (preferredChannel !== 'qa' || !channels.qa.enabled) {
+        throw new TRPCError({
+          code: 'BAD_REQUEST',
+          message: 'Die Q&A-Wortwolke ist nicht präsentationsbereit.',
+        });
+      }
+
+      qaWordCloudProjectionByCode.set(code, input.projection);
+      return { projection: input.projection };
+    }),
+
+  getQaWordCloudProjection: publicProcedure
+    .input(GetSessionInfoInputSchema)
+    .output(GetQaWordCloudProjectionOutputSchema)
+    .query(async ({ input }) => {
+      const code = input.code.toUpperCase();
+      const session = await prisma.session.findUnique({
+        where: { code },
+        select: {
+          type: true,
+          quizId: true,
+          qaEnabled: true,
+          qaOpen: true,
+          qaTitle: true,
+          qaModerationMode: true,
+          title: true,
+          moderationMode: true,
+          quickFeedbackEnabled: true,
+          quickFeedbackOpen: true,
+          preferredChannel: true,
+        },
+      });
+      if (!session) {
+        throw new TRPCError({ code: 'NOT_FOUND', message: 'Session nicht gefunden.' });
+      }
+
+      const channels = buildSessionChannels(session);
+      const preferredChannel = resolvePreferredLiveChannel(session.preferredChannel, channels);
+      if (resolvePresenterSurface(code, preferredChannel) !== 'qaWordCloud') {
+        return { projection: null };
+      }
+      return { projection: qaWordCloudProjectionByCode.get(code) ?? null };
     }),
 
   /** Presenter-Exit: Leaderboard ausblenden, Branding „Session ist beendet.“ zeigen. */

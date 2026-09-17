@@ -175,12 +175,27 @@ app-session-projection-quiz,
 
 .session-present--qa,
 .session-present--feedback,
-.session-present--standby {
+.session-present--standby,
+.session-present--word-cloud {
   align-items: stretch;
   width: 100%;
   max-width: none;
   overflow: hidden;
   padding: clamp(0.8rem, 2vh, 1.4rem) clamp(0.9rem, 2vw, 1.8rem);
+}
+
+.session-present--word-cloud {
+  justify-content: stretch;
+  gap: 0;
+}
+
+.session-present--word-cloud .session-present__qa-stage,
+.session-present--word-cloud .session-present__word-cloud-card,
+.session-present--word-cloud .session-present__word-cloud-stage {
+  width: 100%;
+  max-width: none;
+  height: 100%;
+  min-height: 0;
 }
 
 .session-present__standby-stage {

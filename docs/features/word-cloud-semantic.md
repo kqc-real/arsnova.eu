@@ -32,7 +32,7 @@ Das Host-Label ist **Themen**. Intern heißt die Variante `SEMANTIC`. Nicht in d
 | Nicht belastbar | **Themen sind gerade nicht belastbar. Es gelten Wörter und Phrasen.**                                          |
 | Nicht verfügbar | **Themen sind noch nicht verfügbar. Es gelten Wörter und Phrasen.**                                            |
 
-`THEME` bleibt **Wörter & Phrasen** (lexikalisch 2.x) und wird nicht auf `SEMANTIC` umgebogen. Presenter hat keinen Themenmodus. Freitext hat denselben Stufe-0-Toggle; Encoder-Clustering gilt dort in 1.14c nicht (kontrollierter 2.x-Fallback, `status: fallback`). **Story 1.14d** hebt diesen Fallback für Host-Freitext auf, ohne neuen Sidecar oder Kill-Switch.
+`THEME` bleibt **Wörter & Phrasen** (lexikalisch 2.x) und wird nicht auf `SEMANTIC` umgebogen. Der Q&A-Presenter analysiert nicht selbst, sondern projiziert den aktuellen Host-Snapshot (`session.setQaWordCloudProjection` / `session.getQaWordCloudProjection`). Freitext hat denselben Stufe-0-Toggle; Encoder-Clustering gilt dort in 1.14c nicht (kontrollierter 2.x-Fallback, `status: fallback`). **Story 1.14d** hebt diesen Fallback für Host-Freitext auf, ohne neuen Sidecar oder Kill-Switch.
 
 Texte sind in `de`, `en`, `fr`, `es` und `it` gepflegt.
 
@@ -40,11 +40,11 @@ Texte sind in `de`, `en`, `fr`, `es` und `it` gepflegt.
 
 Nur der Host löst `wordCloud.analyze` aus (`hostProcedure`). Es gibt keine automatische Runde bei jeder neuen Frage, Abstimmung oder Tastendruck.
 
-| Kanal     | Encoder-Clustering                                                                                            | Ohne Kill-Switch / tot / Timeout |
-| --------- | ------------------------------------------------------------------------------------------------------------- | -------------------------------- |
-| Q&A       | `PINNED`/`ACTIVE`, Locale `de`/`en`, Kanal `QA`                                                               | 2.x-Phrasen, keine leere Karte   |
-| Freitext  | nicht in 1.14c Stufe 1; Request mit `channel: 'FREETEXT'` → `status: fallback` (Story **1.14d** hebt das auf) | 2.x wie Stufe 0                  |
-| Presenter | kein Themenmodus                                                                                              | lexikalisch 2.x                  |
+| Kanal     | Encoder-Clustering                                                                                            | Ohne Kill-Switch / tot / Timeout            |
+| --------- | ------------------------------------------------------------------------------------------------------------- | ------------------------------------------- |
+| Q&A       | `PINNED`/`ACTIVE`, Locale `de`/`en`, Kanal `QA`                                                               | 2.x-Phrasen, keine leere Karte              |
+| Freitext  | nicht in 1.14c Stufe 1; Request mit `channel: 'FREETEXT'` → `status: fallback` (Story **1.14d** hebt das auf) | 2.x wie Stufe 0                             |
+| Presenter | keine eigene Analyse; übernimmt den Host-Q&A-Snapshot                                                         | Host-Projektion oder lexikalischer Fallback |
 
 - **Neue Fragen:** vorhandenes Ergebnis bleibt sichtbar, Status **veraltet**, Button **Neu analysieren**. Keine Dauerschleife. Schlägt die Neuanalyse fehl, bleiben veraltete Cluster und der Retry-Hinweis stehen. Nach einem `ready`-Lauf bleibt **Neu analysieren** bedienbar und umgeht den Snapshot-Cache (`refresh`), damit derselbe Locale-Snapshot ohne Sprachwechsel neu gerechnet wird.
 - **Sort- oder Locale-Wechsel** im Themenmodus ist eine Host-Aktion und startet eine neue Analyse desselben Kanal-Snapshots. Locale steckt im Snapshot-Hash: `de` und `en` sind getrennte Caches. Deutsche Q&A bleibt auf **DE**; EN startet keine bessere Analyse, nur einen zweiten Lauf.
@@ -159,7 +159,7 @@ Offen. Derselbe Encoder und Kill-Switch, anderer Snapshot: sichtbare Freitextant
 
 ## Nicht-Ziele (bewusst außerhalb von Stufe 1)
 
-LLM-Labels (Stufe 2), 8.9c Slice 4, 8.9b-Transformer, Presenter-Themenmodus, Encoder-Clustering für Freitext (**Story 1.14d**), SaaS-Fallback, Angular-Initial-Bundle-`maximumError` anheben, Produktivaktivierung.
+LLM-Labels (Stufe 2), 8.9c Slice 4, 8.9b-Transformer, Encoder-Clustering für Freitext (**Story 1.14d**), SaaS-Fallback, Angular-Initial-Bundle-`maximumError` anheben, Produktivaktivierung.
 
 Stufe 2 bleibt offen hinter Story 8.9d / [ADR-0035](../architecture/decisions/0035-self-hosted-llm-runtime-llama-cpp-over-ollama.md): das LLM darf nur das Label ersetzen. Clustering bleibt Stufe 1; LLM-Ausfall fällt auf das extraktive Label, nicht auf lexikalisch 2.x. `OPEN_WEIGHT_LLM_ENABLED` aus lässt `WORD_CLOUD_SEMANTIC_ENABLED` unberührt.
 

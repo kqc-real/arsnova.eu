@@ -363,6 +363,24 @@ describe('qa router (Epic 8)', () => {
     },
   );
 
+  it('liefert der Presenter-Projektion freigegebene Fragen auch bei geschlossenem Beitragskanal', async () => {
+    prismaMock.session.findUnique.mockResolvedValue({
+      ...ACTIVE_QA_SESSION,
+      type: 'QUIZ',
+      qaEnabled: true,
+      qaOpen: false,
+      qaModerationMode: false,
+    });
+    rawQueryResults.rankedQuestions.push([
+      rankedQaRow({ text: 'Weiterhin sichtbar', status: 'ACTIVE' }),
+    ]);
+
+    const result = await caller.presentProjection({ sessionId: SESSION_ID });
+
+    expect(result.state).toBe('CHANNEL_CLOSED');
+    expect(result.questions.map((question) => question.text)).toEqual(['Weiterhin sichtbar']);
+  });
+
   trpcDodIt(
     {
       procedure: 'qa.presentProjection',
