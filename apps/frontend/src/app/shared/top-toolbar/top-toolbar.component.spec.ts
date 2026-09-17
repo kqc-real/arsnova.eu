@@ -139,7 +139,7 @@ describe('TopToolbarComponent', () => {
     fixture.destroy();
   });
 
-  it('zeigt im mobilen Menü nur Theme und Sprache, keine Presets', async () => {
+  it('bietet Preset, Theme und Sprache im mobilen Menü an', async () => {
     const fixture = createToolbar();
     const trigger = fixture.nativeElement.querySelector(
       '.top-toolbar__menu-btn',
@@ -151,13 +151,42 @@ describe('TopToolbarComponent', () => {
 
     const mobile = fixture.nativeElement.querySelector('#top-toolbar-mobile') as HTMLElement;
     expect(mobile.classList.contains('l-stack')).toBe(false);
-    expect(mobile.querySelector('.top-toolbar__toggles--preset')).toBeNull();
+    const presetGroup = mobile.querySelector('.top-toolbar__toggles--preset-mobile') as HTMLElement;
+    const presetButtons = Array.from(
+      presetGroup.querySelectorAll('button.top-toolbar__toggle'),
+    ) as HTMLButtonElement[];
+    expect(presetButtons).toHaveLength(2);
+    expect(
+      presetButtons.map((button) =>
+        button.querySelector('.top-toolbar__preset-option > span:last-child')?.textContent?.trim(),
+      ),
+    ).toEqual(['Spielerisch', 'Seriös']);
     expect(mobile.querySelector('[aria-label="Theme"]')).toBeTruthy();
     expect(mobile.querySelector('.top-toolbar__lang-btn')?.getAttribute('aria-label')).toBe(
       'Sprache',
     );
-    expect(mobile.textContent).not.toContain('Spielerisch');
-    expect(mobile.textContent).not.toContain('Seriös');
+    fixture.destroy();
+  });
+
+  it('schließt das mobile Menü nach Preset-Wechsel und gibt Fokus zurück', async () => {
+    const fixture = createToolbar();
+    const toolbar = fixture.componentInstance;
+    const trigger = fixture.nativeElement.querySelector(
+      '.top-toolbar__menu-btn',
+    ) as HTMLButtonElement;
+    const triggerFocusSpy = vi.spyOn(trigger, 'focus');
+
+    trigger.click();
+    fixture.detectChanges();
+    await new Promise((resolve) => setTimeout(resolve, 0));
+
+    toolbar.onPresetChange('serious');
+    fixture.detectChanges();
+    await new Promise((resolve) => setTimeout(resolve, 0));
+
+    expect(toolbar.themePreset.preset()).toBe('serious');
+    expect(toolbar.controlsMenuOpen()).toBe(false);
+    expect(triggerFocusSpy).toHaveBeenCalledWith({ preventScroll: true });
     fixture.destroy();
   });
 
@@ -380,8 +409,15 @@ describe('TopToolbarComponent', () => {
     expect(scss).toMatch(/&:focus-visible\s*\{/);
     expect(scss).not.toContain('mat-button-toggle-button:focus-visible');
     expect(scss).not.toContain('mat-button-toggle:focus-within');
-    expect(scss).toMatch(/\.top-toolbar__mobile\s*\{[^}]*flex-direction:\s*row/);
-    expect(scss).toMatch(/\.top-toolbar__mobile\s*\{[^}]*justify-content:\s*space-evenly/);
+    expect(scss).toMatch(
+      /\.top-toolbar__mobile\s*\{[^}]*display:\s*grid[^}]*grid-template-columns:\s*minmax\(0,\s*1fr\) auto/,
+    );
+    expect(scss).toMatch(
+      /\.top-toolbar__mobile \.top-toolbar__toggles--preset-mobile\s*\{[^}]*grid-column:\s*1 \/ -1/,
+    );
+    expect(scss).toMatch(
+      /\.top-toolbar__mobile \.top-toolbar__toggle\s*\{[^}]*min-height:\s*2\.75rem/,
+    );
   });
 
   it('stapelt die Toolbar über dem scrollenden Main-Inhalt, damit das mobile Menü nicht überdeckt wird', async () => {

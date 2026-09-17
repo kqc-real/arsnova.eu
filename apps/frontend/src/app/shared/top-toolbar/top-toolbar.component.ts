@@ -206,7 +206,9 @@ export class TopToolbarComponent {
 
   /** Native aria-pressed-Buttons: Tab, Enter/Leertaste und Maus setzen denselben Zustand. */
   onPresetChange(value: 'serious' | 'spielerisch'): void {
+    const mobileMenuWasOpen = this.controlsMenuOpen();
     this.themePreset.setPreset(value);
+    this.closeControlsMenu(mobileMenuWasOpen);
   }
 
   toggleControlsMenu(event?: Event): void {

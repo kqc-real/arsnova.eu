@@ -8271,7 +8271,7 @@
       </trans-unit>
       <trans-unit id="27651620808105777" datatype="html">
         <source>Stimmungsbild</source>
-        <target>Sondage d&apos;humeur</target>
+        <target>Humeur</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/feedback/feedback.config.ts</context>
           <context context-type="linenumber">127</context>
@@ -9025,7 +9025,7 @@
       </trans-unit>
       <trans-unit id="homeHero.channelBlitzlicht" datatype="html">
         <source>Blitzlicht</source>
-        <target>feedback express</target>
+        <target>Feedback express</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/home/home.component.html</context>
           <context context-type="linenumber">19</context>
@@ -9049,7 +9049,7 @@
       </trans-unit>
       <trans-unit id="homeHero.uspAudienceMobile" datatype="html">
         <source> Für Gruppen bis zu 500 Personen.</source>
-        <target>Pour des groupes jusqu'à 500 personnes.</target>
+        <target>Pour des groupes jusqu’à 500 personnes.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/home/home.component.html</context>
           <context context-type="linenumber">24,26</context>
@@ -9057,7 +9057,7 @@
       </trans-unit>
       <trans-unit id="homeHero.uspAudience" datatype="html">
         <source> Für Schulen, Unis &amp; Events – bis zu 500 Personen.</source>
-        <target>Pour les écoles, universités et événements – jusqu'à 500 personnes.</target>
+        <target>Pour les écoles, les universités et les événements – jusqu’à 500 personnes.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/home/home.component.html</context>
           <context context-type="linenumber">27,29</context>
@@ -9065,7 +9065,7 @@
       </trans-unit>
       <trans-unit id="homeHero.uspTrust" datatype="html">
         <source> Kostenlos. Open Source. Ohne Anmeldung.</source>
-        <target>Gratuit. Open Source. Sans inscription.</target>
+        <target>Gratuit. Open source. Sans inscription.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/home/home.component.html</context>
           <context context-type="linenumber">30,32</context>
@@ -9073,26 +9073,10 @@
       </trans-unit>
       <trans-unit id="homeHero.sloganFeatures" datatype="html">
         <source> Kostenlos. Open Source. Ohne Anmeldung. Made in Europe.</source>
-        <target>Gratuit. Open Source. Sans inscription. Made in Europe.</target>
+        <target>Gratuit. Open source. Sans inscription. Made in Europe.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/home/home.component.html</context>
           <context context-type="linenumber">36,38</context>
-        </context-group>
-      </trans-unit>
-      <trans-unit id="home.presetBandAria" datatype="html">
-        <source>Stil wählen</source>
-        <target>Choisissez le style</target>
-        <context-group purpose="location">
-          <context context-type="sourcefile">src/app/features/home/home.component.html</context>
-          <context context-type="linenumber">43</context>
-        </context-group>
-      </trans-unit>
-      <trans-unit id="home.presetToggleAria" datatype="html">
-        <source>Stil auswählen</source>
-        <target>Sélectionnez le style</target>
-        <context-group purpose="location">
-          <context context-type="sourcefile">src/app/features/home/home.component.html</context>
-          <context context-type="linenumber">48</context>
         </context-group>
       </trans-unit>
       <trans-unit id="6088916262905537020" datatype="html">
@@ -9133,7 +9117,7 @@
       </trans-unit>
       <trans-unit id="8330667382540185922" datatype="html">
         <source>Seriös</source>
-        <target>Professionnel</target>
+        <target>Sérieux</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/home/home.component.html</context>
           <context context-type="linenumber">73</context>
@@ -9169,42 +9153,18 @@
       </trans-unit>
       <trans-unit id="home.step1" datatype="html">
         <source>Code eingeben</source>
-        <target>Entrez le code</target>
+        <target>Saisir le code</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/home/home.component.html</context>
           <context context-type="linenumber">88</context>
         </context-group>
       </trans-unit>
-      <trans-unit id="home.heroChip.quizStart" datatype="html">
-        <source>Quiz erstellen</source>
-        <target>Créer un quiz</target>
-        <context-group purpose="location">
-          <context context-type="sourcefile">src/app/features/home/home.component.html</context>
-          <context context-type="linenumber">96</context>
-        </context-group>
-      </trans-unit>
-      <trans-unit id="home.heroChip.openQa" datatype="html">
-        <source> Q&amp;A erstellen</source>
-        <target>Créer un Q&amp;A</target>
-        <context-group purpose="location">
-          <context context-type="sourcefile">src/app/features/home/home.component.html</context>
-          <context context-type="linenumber">104,106</context>
-        </context-group>
-      </trans-unit>
-      <trans-unit id="home.heroChip.startQuickFeedback" datatype="html">
-        <source> Blitzlicht starten</source>
-        <target>Lancer le feedback express</target>
-        <context-group purpose="location">
-          <context context-type="sourcefile">src/app/features/home/home.component.html</context>
-          <context context-type="linenumber">113,115</context>
-        </context-group>
-      </trans-unit>
       <trans-unit id="homeJoinCard.title" datatype="html">
-        <source>Mitmachen</source>
-        <target>Participer</target>
+        <source> An einer Session teilnehmen</source>
+        <target>Rejoindre une session</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/home/home.component.html</context>
-          <context context-type="linenumber">130</context>
+          <context context-type="linenumber">93,95</context>
         </context-group>
       </trans-unit>
       <trans-unit id="6442998532427943414" datatype="html">
@@ -9215,36 +9175,172 @@
           <context context-type="linenumber">137</context>
         </context-group>
       </trans-unit>
+      <trans-unit id="homeJoinCard.eyebrow" datatype="html">
+        <source>Für Teilnehmende</source>
+        <target>Pour les participants</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/home/home.component.html</context>
+          <context context-type="linenumber">92</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="homeJoinCard.joinCta" datatype="html">
+        <source>Los geht’s</source>
+        <target>C’est parti</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/home/home.component.html</context>
+          <context context-type="linenumber">158</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="homeHostIntro.eyebrow" datatype="html">
+        <source> Für Lehrende und Vortragende</source>
+        <target>Pour les enseignants et les intervenants</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/home/home.component.html</context>
+          <context context-type="linenumber">237,239</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="homeHostIntro.title" datatype="html">
+        <source> Was möchtest du tun?</source>
+        <target>Que veux-tu faire ?</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/home/home.component.html</context>
+          <context context-type="linenumber">240,242</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="homeHostIntro.description" datatype="html">
+        <source> Starte eine Live-Session, hole direkt Feedback ein oder bereite ein Quiz vor.</source>
+        <target>Lance une session en direct, recueille des avis instantanément ou prépare un quiz.</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/home/home.component.html</context>
+          <context context-type="linenumber">243,245</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="homeLiveCard.eyebrow" datatype="html">
+        <source>Live</source>
+        <target>En direct</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/home/home.component.html</context>
+          <context context-type="linenumber">256</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="homeLiveCard.title" datatype="html">
+        <source> Session starten</source>
+        <target>Lancer une session</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/home/home.component.html</context>
+          <context context-type="linenumber">257,259</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="homeLiveCard.description" datatype="html">
+        <source> Wähle Quiz, Q&amp;A oder Blitzlicht. </source>
+        <target>Choisis Quiz, Q&amp;A ou Feedback express.</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/home/home.component.html</context>
+          <context context-type="linenumber">260,262</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="homeLiveCard.quizDescription" datatype="html">
+        <source>Wissen abfragen</source>
+        <target>Tester les connaissances</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/home/home.component.html</context>
+          <context context-type="linenumber">278</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="homeLiveCard.qaDescription" datatype="html">
+        <source>Fragen &amp; Wortwolke</source>
+        <target>Questions &amp; nuage de mots</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/home/home.component.html</context>
+          <context context-type="linenumber">295</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="homeLiveCard.quickFeedbackLabel" datatype="html">
+        <source>Blitzlicht</source>
+        <target>Feedback express</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/home/home.component.html</context>
+          <context context-type="linenumber">263</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="homeLiveCard.quickFeedbackDescription" datatype="html">
+        <source>Sofort-Feedback</source>
+        <target>Retour immédiat</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/home/home.component.html</context>
+          <context context-type="linenumber">319</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="homeFeedbackCard.eyebrow" datatype="html">
+        <source> Direktes Feedback</source>
+        <target>Avis instantané</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/home/home.component.html</context>
+          <context context-type="linenumber">345,347</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="homeFeedbackCard.description" datatype="html">
+        <source> Wähle eine Abstimmung für direktes Feedback.</source>
+        <target>Choisis un sondage pour un avis instantané.</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/home/home.component.html</context>
+          <context context-type="linenumber">351,353</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="homeFeedbackCard.yesNoMaybeCompact" datatype="html">
+        <source>Ja · Nein · ?</source>
+        <target>Oui · Non · ?</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/home/home.component.html</context>
+          <context context-type="linenumber">348,349</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="homeHostCard.eyebrow" datatype="html">
+        <source>Vorbereiten</source>
+        <target>Préparer</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/home/home.component.html</context>
+          <context context-type="linenumber">419</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="homeHostCard.description" datatype="html">
+        <source> Erstelle ein neues Quiz oder öffne deine Sammlung.</source>
+        <target>Crée un nouveau quiz ou ouvre ta collection.</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/home/home.component.html</context>
+          <context context-type="linenumber">423,425</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="homeHostCard.primaryCtaDescription" datatype="html">
+        <source>Direkt live gehen</source>
+        <target>Lancer immédiatement</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/home/home.component.html</context>
+          <context context-type="linenumber">461</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="homeHostCard.createQuizCtaDescription" datatype="html">
+        <source>Fragen vorbereiten</source>
+        <target>Préparer des questions</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/home/home.component.html</context>
+          <context context-type="linenumber">481</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="homeHostCard.libraryCtaDescription" datatype="html">
+        <source>Quizzes verwalten</source>
+        <target>Gérer les quiz</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/home/home.component.html</context>
+          <context context-type="linenumber">500</context>
+        </context-group>
+      </trans-unit>
       <trans-unit id="home.sessionCodeAria" datatype="html">
         <source>Session-Code, 6 Zeichen</source>
         <target>Code de session, 6 caractères</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/home/home.component.html</context>
           <context context-type="linenumber">201</context>
-        </context-group>
-      </trans-unit>
-      <trans-unit id="homeCode.sessionCodeLabel" datatype="html">
-        <source>Session-Code</source>
-        <target>Code de séance</target>
-        <context-group purpose="location">
-          <context context-type="sourcefile">src/app/features/home/home.component.html</context>
-          <context context-type="linenumber">206</context>
-        </context-group>
-      </trans-unit>
-      <trans-unit id="5443127833205996206" datatype="html">
-        <source>Los geht&apos;s</source>
-        <target>Allons-y</target>
-        <context-group purpose="location">
-          <context context-type="sourcefile">src/app/features/home/home.component.html</context>
-          <context context-type="linenumber">227</context>
-        </context-group>
-      </trans-unit>
-      <trans-unit id="hostRecovery.homeLink" datatype="html">
-        <source>Host-Zugang wiederherstellen</source>
-        <target>Restaurer l&apos;accès à l&apos;hôte</target>
-        <context-group purpose="location">
-          <context context-type="sourcefile">src/app/features/home/home.component.html</context>
-          <context context-type="linenumber">236</context>
         </context-group>
       </trans-unit>
       <trans-unit id="sessionEntry.showHostLink" datatype="html">
@@ -9260,19 +9356,19 @@
         </context-group>
       </trans-unit>
       <trans-unit id="homeFeedbackCard.title" datatype="html">
-        <source> Nur ein Klick</source>
-        <target>Un seul clic</target>
+        <source> Mit einem Klick</source>
+        <target>En un clic</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/home/home.component.html</context>
-          <context context-type="linenumber">267,269</context>
+          <context context-type="linenumber">348,350</context>
         </context-group>
       </trans-unit>
       <trans-unit id="homeHostCard.title" datatype="html">
-        <source>Vorbereiten</source>
-        <target>Préparer</target>
+        <source> Quiz erstellen</source>
+        <target>Créer un quiz</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/home/home.component.html</context>
-          <context context-type="linenumber">336</context>
+          <context context-type="linenumber">420,422</context>
         </context-group>
       </trans-unit>
       <trans-unit id="homeHostCard.syncPanelCta" datatype="html">
@@ -17220,7 +17316,7 @@
         </context-group>
       </trans-unit>
       <trans-unit id="hostRecovery.cardTitle" datatype="html">
-        <source>Host-Notfallkarte sichern</source>
+        <source>Host-Zugangskarte sichern</source>
         <target>Enregistrer la fiche de récupération de l’hôte</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/host-recovery/host-recovery-card-dialog.component.ts</context>
@@ -17228,7 +17324,7 @@
         </context-group>
       </trans-unit>
       <trans-unit id="hostRecovery.cardSubtitle" datatype="html">
-        <source> Lade die Notfallkarte herunter oder kopiere die Werte. Bewahre sie getrennt vom Browser auf. </source>
+        <source> Lade sie herunter oder kopiere die Werte. Bewahre sie getrennt vom Browser auf. </source>
         <target>Télécharge la fiche de récupération ou copie les valeurs. Conserve-les séparément du navigateur.</target>
       </trans-unit>
       <trans-unit id="hostRecovery.sessionCodeLabel" datatype="html">
@@ -17276,7 +17372,7 @@
         <target>Code de récupération copié.</target>
       </trans-unit>
       <trans-unit id="hostRecovery.cardWhy" datatype="html">
-        <source>Dein Host-Zugang ist in diesem Browser gespeichert. Mit der Notfallkarte kannst du ihn auf einem anderen Gerät wiederherstellen.</source>
+        <source>Dein Host-Zugang ist in diesem Browser gespeichert. Mit der Host-Zugangskarte kannst du ihn auf einem anderen Gerät wiederherstellen.</source>
         <target>Ton accès hôte est enregistré dans ce navigateur. La fiche de récupération te permet de le rétablir sur un autre appareil.</target>
       </trans-unit>
       <trans-unit id="hostRecovery.cardIntro" datatype="html">
@@ -17300,7 +17396,7 @@
         </context-group>
       </trans-unit>
       <trans-unit id="hostRecovery.cardWarning" datatype="html">
-        <source>Wenn Browserzugang und Notfallkarte verloren sind, wende dich an den Support. Er muss deine Berechtigung für diese Session prüfen. Die Kontaktdaten findest du im »Impressum«.</source>
+        <source>Wenn Browserzugang und Zugangskarte verloren sind, wende dich an den Support. Er muss deine Berechtigung für diese Session prüfen. Die Kontaktdaten findest du im »Impressum«.</source>
         <target>Si tu perds à la fois l’accès dans ce navigateur et la fiche de récupération, contacte l’assistance. Elle doit vérifier que tu es autorisé à accéder à cette session en tant qu’hôte. Ses coordonnées figurent dans les « Mentions légales ».</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/host-recovery/host-recovery-card-dialog.component.ts</context>
@@ -17308,7 +17404,7 @@
         </context-group>
       </trans-unit>
       <trans-unit id="hostRecovery.downloadCard" datatype="html">
-        <source>Notfallkarte herunterladen</source>
+        <source>Zugangskarte herunterladen</source>
         <target>Télécharger la fiche de récupération</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/host-recovery/host-recovery-card-dialog.component.ts</context>
@@ -17316,7 +17412,7 @@
         </context-group>
       </trans-unit>
       <trans-unit id="hostRecovery.cardSavedConfirmation" datatype="html">
-        <source> Ich habe die Notfallkarte sicher gespeichert. </source>
+        <source> Ich habe die Zugangskarte sicher gespeichert. </source>
         <target>J’ai enregistré la fiche de récupération en lieu sûr.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/host-recovery/host-recovery-card-dialog.component.ts</context>
@@ -17332,7 +17428,7 @@
         </context-group>
       </trans-unit>
       <trans-unit id="hostRecovery.downloadHeading" datatype="html">
-        <source>Host-Notfallkarte</source>
+        <source>Host-Zugangskarte</source>
         <target>Fiche de récupération de l’hôte</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/host-recovery/host-recovery-card-dialog.component.ts</context>
@@ -17368,7 +17464,7 @@
         </context-group>
       </trans-unit>
       <trans-unit id="hostRecovery.intro" datatype="html">
-        <source>Gib die Session-Kennung und den Wiederherstellungscode deiner Notfallkarte ein.</source>
+        <source>Gib die Session-Kennung und den Wiederherstellungscode deiner Host-Zugangskarte ein.</source>
         <target>Saisis l’identifiant de session et le code de récupération de ta fiche de récupération.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/host-recovery/host-recovery.component.ts</context>
@@ -17384,7 +17480,7 @@
         </context-group>
       </trans-unit>
       <trans-unit id="hostRecovery.recoveryCardOption" datatype="html">
-        <source> Notfallkarte </source>
+        <source> Zugangskarte </source>
         <target>Fiche de récupération</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/host-recovery/host-recovery.component.ts</context>
@@ -17436,7 +17532,7 @@
         </context-group>
       </trans-unit>
       <trans-unit id="hostRecovery.boundary" datatype="html">
-        <source>Damit verlängerst du weder die Session- noch die Nachbereitungsfrist. Wenn Browserzugang und Notfallkarte verloren sind, wende dich an den Support. Er muss deine Berechtigung für diese Session prüfen. Die Kontaktdaten findest du im »Impressum«.</source>
+        <source>Damit verlängerst du weder die Session- noch die Nachbereitungsfrist. Wenn Browserzugang und Zugangskarte verloren sind, wende dich an den Support. Er muss deine Berechtigung für diese Session prüfen. Die Kontaktdaten findest du im »Impressum«.</source>
         <target>Cela ne prolonge ni la session ni la période de lecture après la session. Si tu perds à la fois l’accès dans ce navigateur et la fiche de récupération, contacte l’assistance. Elle doit vérifier que tu es autorisé à accéder à cette session en tant qu’hôte. Ses coordonnées figurent dans les « Mentions légales ».</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/host-recovery/host-recovery.component.ts</context>
@@ -17452,7 +17548,7 @@
         <target>J&apos;ai un code du support</target>
       </trans-unit>
       <trans-unit id="hostRecovery.useRecoveryCard" datatype="html">
-        <source>Ich habe eine Notfallkarte</source>
+        <source>Ich habe eine Zugangskarte</source>
         <target>J’ai une fiche de récupération</target>
       </trans-unit>
       <trans-unit id="hostRecovery.genericError" datatype="html">

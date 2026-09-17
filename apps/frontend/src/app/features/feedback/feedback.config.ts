@@ -167,7 +167,9 @@ export const QUICK_FEEDBACK_PRESET_CHIPS: readonly FeedbackPresetChip[] = [
 
 export const QUICK_FEEDBACK_HOME_CHIPS: readonly FeedbackPresetChip[] = [
   QUICK_FEEDBACK_TEMPO_CHIP,
-  ...QUICK_FEEDBACK_PRESET_CHIPS,
+  ...QUICK_FEEDBACK_PRESET_CHIPS.filter(
+    ({ type }) => type === 'MOOD' || type === 'YESNO' || type === 'STARS',
+  ),
 ];
 
 export function feedbackOptions(type: QuickFeedbackType): readonly FeedbackOption[] {
