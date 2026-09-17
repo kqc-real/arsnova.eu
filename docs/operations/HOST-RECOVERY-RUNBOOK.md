@@ -10,7 +10,7 @@ arsnova.eu bindet Hosts nicht an ein Konto. Der Host-Zugang hängt am Browser,
 in dem die Session erstellt wurde. Teilnehmende können von jedem Browser
 beitreten. Bei der Sessionerstellung speichert der Browser eine sessiongebundene,
 versionierte Browser-Capability. Den blockierenden Dialog zum Sichern der
-Notfallkarte zeigt die Host-Ansicht erst, wenn Q&A aktiv ist — also beim
+Zugangskarte zeigt die Host-Ansicht erst, wenn Q&A aktiv ist — also beim
 direkten Q&A-Start oder sobald der Host den Q&A-Kanal später einschaltet, nicht
 beim reinen Quiz- oder Blitzlicht-Einstieg. Die Karte enthält:
 
@@ -24,7 +24,7 @@ der Zugriff fail-closed, bis Redis wieder verfügbar ist.
 
 Bei verlorenen Browserdaten öffnet der Host die Wiederherstellungsseite,
 gibt die Session-Kennung (Support-ID) und den Recovery-Code ein und sichert die neu ausgegebene
-Notfallkarte. Geheimnisse und die CSPRNG-Exchange-ID werden ausschließlich im
+Zugangskarte. Geheimnisse und die CSPRNG-Exchange-ID werden ausschließlich im
 tRPC-Request-Body übertragen.
 
 Prepare ist für höchstens 15 Minuten idempotent. Derselbe Recovery-Code und

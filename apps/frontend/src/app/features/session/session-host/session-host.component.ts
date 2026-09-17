@@ -737,6 +737,7 @@ export class SessionHostComponent implements OnInit, OnDestroy {
   @ViewChild('hostAnswersList') hostAnswersListRef?: ElementRef<HTMLElement>;
   @ViewChild('qaListContainer') qaListContainerRef?: ElementRef<HTMLElement>;
   @ViewChild('qaTitleInput') qaTitleInputRef?: ElementRef<HTMLInputElement>;
+  @ViewChild('qaChannelHeading') qaChannelHeadingRef?: ElementRef<HTMLElement>;
   @ViewChild('moderationCompassButton') moderationCompassButtonRef?: ElementRef<HTMLButtonElement>;
   @ViewChild('freetextWordCloud') freetextWordCloud?: WordCloudComponent;
   @ViewChildren('lobbyTeamCard') lobbyTeamCardRefs?: QueryList<ElementRef<HTMLElement>>;
@@ -4154,11 +4155,12 @@ export class SessionHostComponent implements OnInit, OnDestroy {
           ariaDescribedBy: 'host-recovery-card-description',
         })
         .afterClosed(),
-    ).then((confirmed) => {
+    ).then(async (confirmed) => {
       this.recoveryCardDialogOpened = false;
       if (confirmed === true) {
         clearStagedHostRecoveryCard(this.code);
         this.completeQaCreateSetup();
+        await this.startQaAfterCreateSetup();
       }
       return confirmed;
     });
@@ -4175,6 +4177,25 @@ export class SessionHostComponent implements OnInit, OnDestroy {
       queryParamsHandling: 'merge',
       replaceUrl: true,
     });
+  }
+
+  /** Nach 1/3–3/3 nicht in der leeren Lobby hängen bleiben; Button bleibt für Reload in LOBBY. */
+  private async startQaAfterCreateSetup(): Promise<void> {
+    if (!this.requestedQaCreateSetup || !this.channels().qa) {
+      return;
+    }
+    if (this.effectiveStatus() !== 'LOBBY') {
+      return;
+    }
+    await this.startQa();
+    afterNextRender(() => this.focusQaWallAfterCreateSetup(), { injector: this.injector });
+  }
+
+  private focusQaWallAfterCreateSetup(): void {
+    if (this.effectiveStatus() !== 'ACTIVE') {
+      return;
+    }
+    this.qaChannelHeadingRef?.nativeElement.focus({ preventScroll: true });
   }
 
   async ngOnInit(): Promise<void> {
@@ -9179,7 +9200,13 @@ export class SessionHostComponent implements OnInit, OnDestroy {
             code: this.code.toUpperCase(),
             session,
             profileLocked: Boolean(lifecycle.firstParticipantJoinedAt),
-            ...(numberSetupSequence ? { setupStep, setupStepCount } : {}),
+            ...(numberSetupSequence
+              ? {
+                  setupStep,
+                  setupStepCount,
+                  ...(this.requestedQaCreateSetup ? { omitParticipationProfile: true } : {}),
+                }
+              : {}),
           },
           width: 'min(42rem, calc(100vw - 2rem))',
           maxWidth: '100vw',

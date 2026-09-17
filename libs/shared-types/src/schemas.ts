@@ -2959,7 +2959,7 @@ export const CreateSessionOutputSchema = z.object({
   hostToken: z.string().min(1),
   /** Dauerhafter, genau an Session und Credential-Generation gebundener Browserzugang. */
   hostBrowserCapability: OpaqueCapabilitySchema,
-  /** Einmalig auszugebende Notfallkarte; die Support-ID allein verleiht keine Rechte. */
+  /** Einmalig auszugebende Host-Zugangskarte; die Support-ID allein verleiht keine Rechte. */
   hostRecoveryCard: HostRecoveryCardDTOSchema,
   /** Optional nur für Rolling Deployments mit einem noch alten Backend-Image. */
   createdAt: z.string().datetime().optional(),

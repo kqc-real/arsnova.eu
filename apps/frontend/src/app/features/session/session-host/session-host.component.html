@@ -812,6 +812,7 @@
                   <button
                     [matButton]="showPresenterViewButton() ? 'tonal' : 'filled'"
                     type="button"
+                    data-testid="lobby-start-session"
                     [disabled]="controlPending() || quizStartQuestionPending()"
                     (click)="onLobbyStartSessionClick()"
                   >
@@ -4040,7 +4041,12 @@
                     <p class="session-channel-card__eyebrow">{{ channelLabel('qa') }}</p>
                     @if (!qaTitleEditing() || effectiveStatus() === 'FINISHED') {
                       <div class="session-host__qa-title-view">
-                        <h2 class="session-channel-card__title session-host__qa-title-heading">
+                        <h2
+                          #qaChannelHeading
+                          class="session-channel-card__title session-host__qa-title-heading"
+                          tabindex="-1"
+                          data-testid="qa-channel-heading"
+                        >
                           {{ qaHeading() }}
                         </h2>
                         @if (effectiveStatus() !== 'FINISHED') {
@@ -4123,9 +4129,9 @@
                         mat-stroked-button
                         type="button"
                         (click)="openQaConfigurationDialog()"
-                        i18n="@@sessionQa.changeDeadline"
                       >
-                        Q&A-Einstellungen
+                        <mat-icon aria-hidden="true">tune</mat-icon>
+                        <span i18n="@@sessionQa.changeDeadline">Q&A-Einstellungen</span>
                       </button>
                     }
                   </div>

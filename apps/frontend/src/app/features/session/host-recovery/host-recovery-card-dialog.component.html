@@ -9,18 +9,18 @@
       </span>
     }
     <span class="dialog-title-header__heading" i18n="@@hostRecovery.cardTitle">
-      Host-Notfallkarte sichern
+      Host-Zugangskarte sichern
     </span>
     <span class="dialog-title-header__sub" i18n="@@hostRecovery.cardSubtitle">
-      Lade die Notfallkarte herunter oder kopiere die Werte. Bewahre sie getrennt vom Browser auf.
+      Lade sie herunter oder kopiere die Werte. Bewahre sie getrennt vom Browser auf.
     </span>
   </span>
 </h2>
 
 <mat-dialog-content class="recovery-card__content" id="host-recovery-card-description">
   <p class="recovery-card__intro" i18n="@@hostRecovery.cardWhy">
-    Dein Host-Zugang ist in diesem Browser gespeichert. Mit der Notfallkarte kannst du ihn auf einem
-    anderen Gerät wiederherstellen.
+    Dein Host-Zugang ist in diesem Browser gespeichert. Mit der Host-Zugangskarte kannst du ihn auf
+    einem anderen Gerät wiederherstellen.
   </p>
   <p class="recovery-card__intro" i18n="@@hostRecovery.cardIntro">
     Öffne dazu die Wiederherstellungsseite und gib die Session-Kennung und den
@@ -92,19 +92,19 @@
   <p class="recovery-card__notice" role="note">
     <mat-icon aria-hidden="true">info</mat-icon>
     <span i18n="@@hostRecovery.cardWarning">
-      Wenn Browserzugang und Notfallkarte verloren sind, wende dich an den Support. Er muss deine
+      Wenn Browserzugang und Zugangskarte verloren sind, wende dich an den Support. Er muss deine
       Berechtigung für diese Session prüfen. Die Kontaktdaten findest du im »Impressum«.
     </span>
   </p>
 
   <button matButton="tonal" type="button" class="recovery-card__download" (click)="download()">
     <mat-icon aria-hidden="true">download</mat-icon>
-    <span i18n="@@hostRecovery.downloadCard">Notfallkarte herunterladen</span>
+    <span i18n="@@hostRecovery.downloadCard">Zugangskarte herunterladen</span>
   </button>
 
   <mat-checkbox [checked]="saved()" (change)="saved.set($event.checked)">
     <span i18n="@@hostRecovery.cardSavedConfirmation">
-      Ich habe die Notfallkarte sicher gespeichert.
+      Ich habe die Zugangskarte sicher gespeichert.
     </span>
   </mat-checkbox>
 </mat-dialog-content>

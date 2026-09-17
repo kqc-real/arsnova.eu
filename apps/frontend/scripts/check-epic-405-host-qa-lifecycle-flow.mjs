@@ -3,7 +3,7 @@
  * Epic #405 — Host-Nutzerszenario (mehrtägige Q&A-Session).
  *
  * Prüft:
- * - Q&A-Start zeigt die Host-Notfallkarte
+ * - Q&A-Start zeigt die Host-Zugangskarte
  * - Maximales Q&A-Ende und Löschtermin sitzen in der Q&A-Action-Bar
  * - Self-Service-Wiederherstellung mit Session-Kennung und Recovery-Code
  *
@@ -81,7 +81,7 @@ async function createConfiguredQaSession() {
     teamMode: false,
   });
   if (!created.hostBrowserCapability || !created.hostRecoveryCard?.supportId) {
-    throw new Error('session.create lieferte keine Host-Notfallkarte.');
+    throw new Error('session.create lieferte keine Host-Zugangskarte.');
   }
   const hostTrpc = createTrpcClient(created.hostToken);
   const selection = { kind: 'UNTIL_SESSION_END' };
@@ -131,7 +131,7 @@ async function seedHostBrowser(context, session) {
 }
 
 async function dismissRecoveryCard(page) {
-  const heading = page.getByText('Host-Notfallkarte sichern', { exact: true }).first();
+  const heading = page.getByText('Host-Zugangskarte sichern', { exact: true }).first();
   const done = page.locator('[data-testid="host-recovery-card-done"]');
   await heading.waitFor({ state: 'visible', timeout: 20_000 });
   const supportVisible = await page.getByText(sessionSupportIdPattern()).first().isVisible();
@@ -179,12 +179,12 @@ async function main() {
     await waitForPathSuffix(host, `/session/${session.code}/host`);
 
     const cardOk = await dismissRecoveryCard(host).catch((error) => {
-      failures.push(`Host-Notfallkarte: ${error instanceof Error ? error.message : String(error)}`);
+      failures.push(`Host-Zugangskarte: ${error instanceof Error ? error.message : String(error)}`);
       return false;
     });
-    logStep(cardOk, 'Host sichert die Notfallkarte nach Q&A-Start');
+    logStep(cardOk, 'Host sichert die Zugangskarte nach Q&A-Start');
     if (!cardOk && failures.length === 0) {
-      failures.push('Notfallkarte zeigte keine Session-Kennung.');
+      failures.push('Zugangskarte zeigte keine Session-Kennung.');
     }
 
     const expiration = host.locator('[data-testid="configure-session-expiration"]');
@@ -246,7 +246,7 @@ async function main() {
           () => false,
         )
       : false;
-    logStep(liveReady, 'Host stellt den Zugang über die Notfallkarte wieder her');
+    logStep(liveReady, 'Host stellt den Zugang über die Zugangskarte wieder her');
     if (!liveReady) {
       const bodyText = (
         (await recovery

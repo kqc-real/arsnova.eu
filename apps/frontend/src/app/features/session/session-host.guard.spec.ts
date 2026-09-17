@@ -86,7 +86,7 @@ describe('requireHostToken', () => {
     expect(participantsMock).not.toHaveBeenCalled();
   });
 
-  it('migriert einen gültigen Legacy-Host idempotent auf Browser-Capability und Notfallkarte', async () => {
+  it('migriert einen gültigen Legacy-Host idempotent auf Browser-Capability und Zugangskarte', async () => {
     setHostToken(CODE, 'legacy-host-token-abcdefghijklmnopqrstuvwxyz');
     bootstrapMock.mockResolvedValue({
       code: CODE,

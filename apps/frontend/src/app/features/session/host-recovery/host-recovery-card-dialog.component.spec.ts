@@ -32,7 +32,7 @@ describe('HostRecoveryCardDialogComponent', () => {
     expect(host.querySelector('.dialog-title-header__icon mat-icon')?.textContent?.trim()).toBe(
       'admin_panel_settings',
     );
-    expect(host.textContent).toContain('Host-Notfallkarte sichern');
+    expect(host.textContent).toContain('Host-Zugangskarte sichern');
     expect(host.textContent).not.toContain('Schritt 3 von 3');
     expect(host.textContent).toContain('in diesem Browser gespeichert');
     expect(host.textContent).toContain('Wiederherstellungsseite');
@@ -106,8 +106,8 @@ describe('HostRecoveryCardDialogComponent', () => {
     expect(html).toContain(CARD.supportId);
     expect(html).toContain(CARD.recoveryCode);
     expect(html).not.toContain('Schritt 3 von 3');
-    expect(html).toContain('<h1>Host-Notfallkarte</h1>');
-    expect(html).not.toContain('arsnova.eu Host-Notfallkarte');
+    expect(html).toContain('<h1>Host-Zugangskarte</h1>');
+    expect(html).not.toContain('arsnova.eu Host-Zugangskarte');
     expect(html).toContain('in diesem Browser gespeichert');
     expect(html).toContain('Wiederherstellungsseite');
     expect(html).toContain('Berechtigung für diese Session prüfen');

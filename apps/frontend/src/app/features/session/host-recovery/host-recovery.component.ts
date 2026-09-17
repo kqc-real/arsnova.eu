@@ -46,7 +46,7 @@ type RecoverySourceKind = 'RECOVERY' | 'ADMIN_HANDOFF';
               Host-Zugang wiederherstellen
             </h1>
             <span class="dialog-title-header__sub" i18n="@@hostRecovery.intro">
-              Gib die Session-Kennung und den Wiederherstellungscode deiner Notfallkarte ein.
+              Gib die Session-Kennung und den Wiederherstellungscode deiner Host-Zugangskarte ein.
             </span>
           </span>
         </div>
@@ -120,13 +120,13 @@ type RecoverySourceKind = 'RECOVERY' | 'ADMIN_HANDOFF';
               (click)="sourceKind.set('RECOVERY')"
               i18n="@@hostRecovery.useRecoveryCard"
             >
-              Ich habe eine Notfallkarte
+              Ich habe eine Zugangskarte
             </button>
           }
 
           <p class="host-recovery-page__boundary" i18n="@@hostRecovery.boundary">
             Damit verlängerst du weder die Session- noch die Nachbereitungsfrist. Wenn Browserzugang
-            und Notfallkarte verloren sind, wende dich an den Support. Er muss deine Berechtigung
+            und Zugangskarte verloren sind, wende dich an den Support. Er muss deine Berechtigung
             für diese Session prüfen. Die Kontaktdaten findest du im »Impressum«.
           </p>
         </mat-card-content>

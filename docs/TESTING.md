@@ -463,7 +463,7 @@ Auf dem Server übernimmt `scripts/deploy.sh` die Reihenfolge **Digest-Image pul
 | `smoke:unified-session`            | Unified-Session-Flow inklusive axe                                                         |
 | `smoke:product-feedback`           | ProductFeedback 12.1: Host-Sheet + Vote-Sessionende                                        |
 | `smoke:product-feedback-in-app`    | ProductFeedback 12.2: Footer/Hilfe/Host/Vote/Join/Blitzlicht + Presenter-Negativ           |
-| `smoke:epic-405-host-qa-lifecycle` | Epic #405: Host-Notfallkarte, Q&A-Footer, Self-Service-Wiederherstellung                   |
+| `smoke:epic-405-host-qa-lifecycle` | Epic #405: Host-Zugangskarte, Q&A-Footer, Self-Service-Wiederherstellung                   |
 | `smoke:epic-405-participant-qa`    | Epic #405: Q&A-Join, Frage senden, Sortierung, Favoriten, Wortwolke, Schreibpfad nach Ende |
 | `lighthouse:a11y`                  | Score und A11y-Einzelaudits (lokal)                                                        |
 | `benchmark:word-cloud`             | Wortwolken-Benchmark / Regressionen                                                        |

@@ -40,21 +40,29 @@ Verbundene Hostclients warnen bei 30 und erneut bei 5 verbleibenden Minuten.
 Der Dialog zeigt das absolute Sessionende samt Zeitzone. Nur der ursprüngliche
 Host darf global verlängern; gekoppelte Hosts sehen die Frist und eine
 Erklärung, erhalten aber keine bestätigbare Verlängerungsaktion. Host-Dialoge
-zu Laufzeit, Q&A-Einrichtung, Fristbestätigung und Notfallkarte nutzen dieselbe
+zu Laufzeit, Q&A-Einrichtung, Fristbestätigung und Host-Zugangskarte nutzen dieselbe
 abgehobene Overlay-Fläche (`session-lifecycle-dialog-panel`) mit kräftigerem
 Scrim, damit sie sich vom Live-Hintergrund lösen. Beim Anlegen von der Startseite (`Q&A erstellen`) erscheinen Teilnahme,
-Einrichtung und Notfallkarte als Schritt 1 bis 3 von 3. Abbrechen in der
+Einrichtung und Zugangskarte als Schritt 1 bis 3 von 3. Das Teilnahmeprofil
+wird nur in Schritt 1 festgelegt; die Einrichtung (Schritt 2) fragt es nicht
+erneut. Abbrechen in der
 Teilnahme legt keine Session an. Abbrechen in der Einrichtung beendet die
 noch unkonfigurierte Session und kehrt zur Startseite zurück, damit der nächste
 Klick auf `Q&A erstellen` keine halbfertige Session wieder öffnet. Abbrechen
-in der Notfallkarte lässt Q&A eingerichtet; die Karte bleibt vorgemerkt. Ein
+in der Zugangskarte lässt Q&A eingerichtet; die Karte bleibt vorgemerkt. Ein
 erneuter Einstieg über `Q&A-Einstellungen` öffnet wieder die Karte (Schritt 3
 von 3), statt die Einrichtung als Ersteinrichtung zu prüfen. **Fertig** in der
-Notfallkarte beendet die Sequenz: `qaSetup` entfällt, und die Einrichtung
-öffnet sich nicht erneut als Schritt 2. Wird Q&A
+Zugangskarte beendet die Sequenz: `qaSetup` entfällt, die Einrichtung
+öffnet sich nicht erneut als Schritt 2, und eine reine Q&A-Session wechselt
+aus der Lobby nach `ACTIVE` (Fragenwand), ohne denselben Start noch einmal
+als vierten Schritt zu verlangen. Der Tastaturfokus liegt danach auf der
+Fragenwand-Überschrift. Schlägt `startQa` fehl, bleibt die Session in `LOBBY`
+und der bestehende Steuerungs-Callout fokussiert »Nochmal probieren«.
+»Fragerunde starten« bleibt sichtbar, wenn die Session nach Reload noch in
+`LOBBY` ist. Wird Q&A
 später in einer bestehenden Session aktiviert, bleiben Einrichtung und
-Notfallkarte Schritt 1 und 2 von 2; Abbrechen dort lässt die Session bestehen.
-Spätere Q&A-Einstellungen und eine Notfallkarte nach Reload bleiben ohne
+Zugangskarte Schritt 1 und 2 von 2; Abbrechen dort lässt die Session bestehen.
+Spätere Q&A-Einstellungen und eine Zugangskarte nach Reload bleiben ohne
 Schrittzahl, sobald die Karte bestätigt oder nicht mehr vorgemerkt ist.
 
 Verfügbar sind:
@@ -147,7 +155,9 @@ fristgebunden eingerichteten Kanal. Die erste Einrichtung und jede Neuplanung
 laufen über `configureQaChannel` inklusive serverseitiger Fristprüfung beim
 Bestätigen, nicht über einen zweiten Vorschaudialog. Die Host-UI zeigt die
 ausgerechnete Teilnahmefrist und eine eventuelle Sessionverlängerung direkt im
-Einrichtungsformular. Frist und optionales Teilnahmeprofil gelten vor dem
+Einrichtungsformular. Beim späteren Aktivieren in einer bestehenden Session
+gehört das Teilnahmeprofil zur Einrichtung; beim Anlegen von der Startseite
+bleibt es in Schritt 1. Frist und optionales Teilnahmeprofil gelten vor dem
 ersten Beitritt.
 
 Im Anonymmodus liefert der Teilnehmervertrag keine sichtbare

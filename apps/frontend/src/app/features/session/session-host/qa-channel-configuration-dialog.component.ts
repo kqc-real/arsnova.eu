@@ -46,6 +46,7 @@ export interface QaChannelConfigurationDialogData {
   profileLocked: boolean;
   setupStep?: number;
   setupStepCount?: number;
+  omitParticipationProfile?: boolean;
 }
 
 @Component({
@@ -454,7 +455,7 @@ export class QaChannelConfigurationDialogComponent implements OnInit {
         nicknameTheme: NicknameTheme;
       }
     | undefined {
-    if (this.profileLocked()) {
+    if (this.data.omitParticipationProfile || this.profileLocked()) {
       return undefined;
     }
     return {
