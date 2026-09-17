@@ -265,11 +265,10 @@
 }
 
 .top-toolbar__mobile {
-  display: flex;
-  flex-direction: row;
-  flex-wrap: nowrap;
-  align-items: center;
-  justify-content: space-evenly;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: stretch;
+  gap: 0.5rem 0.75rem;
   width: 100%;
   margin-top: 1rem;
   border-top: 1px solid var(--mat-sys-outline-variant);
@@ -277,25 +276,32 @@
 }
 
 .top-toolbar__mobile .top-toolbar__toggles {
-  flex: 3 1 0;
   min-width: 0;
   justify-content: space-evenly;
 }
 
 .top-toolbar__mobile .top-toolbar__toggle {
   flex: 1 1 0;
+  min-width: 0;
+  min-height: 2.75rem;
+}
+
+.top-toolbar__mobile .top-toolbar__toggles--preset-mobile {
+  grid-column: 1 / -1;
+  width: 100%;
 }
 
 .top-toolbar__mobile-lang {
   display: flex;
-  flex: 1 1 0;
   align-items: center;
   justify-content: center;
   min-width: 0;
 }
 
 .top-toolbar__mobile .top-toolbar__lang-btn {
-  width: 100%;
+  width: 2.75rem;
+  min-width: 2.75rem;
+  min-height: 2.75rem;
 }
 
 .top-toolbar__locale-hint {

@@ -28,7 +28,7 @@ This document generalises the copy-editing rules applied to the English XLF targ
 | **Pulse Check** (feature; tabs, errors, help)              | _Blitzlicht_ — standard US term for a quick mood/status poll; avoid leaving _Blitzlicht_ in English targets                                       |
 | **poll** (verb/noun in UX)                                 | _pulse_ as a verb (_to pulse_ the room) — use **poll** / **live polls** instead                                                                   |
 
-**Note:** German source strings still say **Blitzlicht** / **Seriös** / **Spielerisch**; English **`messages.en.xlf` targets** use **Pulse Check**, **Business**, and **Gamification** as above.
+**Note:** German source strings still say **Blitzlicht** / **Seriös** / **Spielerisch**. The home hero uses **live polls** (`@@homeHero.channelBlitzlicht`), while the named feature uses **Pulse Check** (`@@homeLiveCard.quickFeedbackLabel`). English preset targets remain **Business** and **Gamification**.
 
 Preset and theme wording should not imply that a host forces a participant’s UI style during a live session. In session routes, Business/Gamification and light/dark/system remain local browser choices; quiz presets only describe quiz-default configuration at setup/live start.
 

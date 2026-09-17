@@ -151,10 +151,10 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
   syncLinkError = signal<string | null>(null);
   quickFeedbackError = signal<string | null>(null);
   quickFeedbackStarting = signal<QuickFeedbackType | null>(null);
+  hostSessionError = signal<string | null>(null);
+  hostSessionStarting = signal<'qa' | 'quickFeedback' | null>(null);
 
   readonly themePreset = inject(ThemePresetService);
-  /** Nur Preset Spielerisch: Bühne-Intro und Layout-Hinweise im Template. */
-  readonly isPlayfulPreset = computed(() => this.themePreset.preset() === 'spielerisch');
   private readonly quizStore = inject(QuizStoreService);
   readonly librarySharingMode = this.quizStore.librarySharingMode;
   readonly syncOriginDeviceLabel = this.quizStore.originDeviceLabel;
@@ -593,29 +593,37 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   async openHeroHostTab(tab: 'qa' | 'quickFeedback'): Promise<void> {
+    if (this.hostSessionStarting()) return;
+
     this.joinError.set(null);
     this.joinErrorSessionFinished.set(false);
     this.quickFeedbackError.set(null);
-
-    const code = this.resolveHeroHostCode();
-    if (!code) {
-      await this.startHeroHostSession(tab);
-      return;
-    }
+    this.hostSessionError.set(null);
+    this.hostSessionStarting.set(tab);
 
     try {
-      const session = await trpc.session.getInfoForReconnect.query({
-        code,
-        anonymousClientId: getAnonymousClientId(),
-      });
-      const queryParams = this.isHeroTabAvailableForSession(session, tab) ? { tab } : undefined;
-      await this.router.navigate(this.localizedCommands(['session', code, 'host']), {
-        queryParams,
-      });
-    } catch {
-      await this.router.navigate(this.localizedCommands(['session', code, 'host']), {
-        queryParams: { tab },
-      });
+      const code = this.resolveHeroHostCode();
+      if (!code) {
+        await this.startHeroHostSession(tab);
+        return;
+      }
+
+      try {
+        const session = await trpc.session.getInfoForReconnect.query({
+          code,
+          anonymousClientId: getAnonymousClientId(),
+        });
+        const queryParams = this.isHeroTabAvailableForSession(session, tab) ? { tab } : undefined;
+        await this.router.navigate(this.localizedCommands(['session', code, 'host']), {
+          queryParams,
+        });
+      } catch {
+        await this.router.navigate(this.localizedCommands(['session', code, 'host']), {
+          queryParams: { tab },
+        });
+      }
+    } finally {
+      this.hostSessionStarting.set(null);
     }
   }
 
@@ -678,7 +686,7 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
         tab === 'qa' ? { qaSetup: '1' } : {},
       );
     } catch (error) {
-      this.joinError.set(
+      this.hostSessionError.set(
         localizeKnownServerError(
           error,
           $localize`:@@home.heroChipStartError:Der Kanal konnte nicht gestartet werden. Bitte versuche es erneut.`,
@@ -823,6 +831,7 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
       this.markJoinIntentForMotd();
     }
     this.joinError.set(null);
+    this.hostSessionError.set(null);
     this.quickFeedbackError.set(null);
     if (normalized.length === 6 && prev.length < 6) {
       this.triggerCtaPulse();
