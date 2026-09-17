@@ -81,7 +81,7 @@ const matchingSessionPreview = {
 
 function configureTestBed(
   profileLocked = false,
-  setup?: { setupStep: number; setupStepCount: number },
+  setup?: { setupStep: number; setupStepCount: number; omitParticipationProfile?: boolean },
   extensionConfirmed = true,
   sessionOverride = session,
 ) {
@@ -136,6 +136,42 @@ describe('QaChannelConfigurationDialogComponent', () => {
     fixture.detectChanges();
 
     expect(fixture.nativeElement.textContent).toContain('Schritt 2 von 3');
+    expect(fixture.nativeElement.textContent).toContain('Teilnahmeprofil');
+  });
+
+  it('blendet das Teilnahmeprofil in Schritt 2 der Anlage aus und sendet es nicht erneut', async () => {
+    configureMock.mockResolvedValue({
+      channels: session.channels,
+      preferredChannel: 'qa',
+      expiresAt: matchingSessionPreview.newExpiresAt,
+      qaClosesAt: matchingSessionPreview.newQaClosesAt,
+      sessionLifecycleRevision: 3,
+      serverNow: matchingSessionPreview.serverNow,
+    });
+    const { fixture, component } = configureTestBed(false, {
+      setupStep: 2,
+      setupStepCount: 3,
+      omitParticipationProfile: true,
+    });
+    fixture.detectChanges();
+
+    expect(fixture.nativeElement.textContent).toContain('Schritt 2 von 3');
+    expect(fixture.nativeElement.textContent).not.toContain('Teilnahmeprofil');
+    expect(fixture.nativeElement.textContent).not.toContain('Sichtbarer Name');
+
+    await component.confirm();
+
+    expect(configureMock).toHaveBeenCalledWith(
+      expect.objectContaining({ participationProfile: undefined }),
+    );
+  });
+
+  it('fragt das Teilnahmeprofil beim späteren Aktivieren weiterhin ab', async () => {
+    const { fixture } = configureTestBed(false, { setupStep: 1, setupStepCount: 2 });
+    fixture.detectChanges();
+
+    expect(fixture.nativeElement.textContent).toContain('Schritt 1 von 2');
+    expect(fixture.nativeElement.textContent).toContain('Teilnahmeprofil');
   });
 
   it('sperrt das Teilnahmeprofil nach dem ersten Beitritt sichtbar', () => {

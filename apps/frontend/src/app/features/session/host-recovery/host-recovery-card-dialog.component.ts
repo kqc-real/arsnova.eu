@@ -82,8 +82,8 @@ export class HostRecoveryCardDialogComponent {
 
   buildDownloadHtml(): string {
     const lang = this.document.documentElement.lang || 'de';
-    const heading = $localize`:@@hostRecovery.downloadHeading:Host-Notfallkarte`;
-    const why = $localize`:@@hostRecovery.cardWhy:Dein Host-Zugang ist in diesem Browser gespeichert. Mit der Notfallkarte kannst du ihn auf einem anderen Gerät wiederherstellen.`;
+    const heading = $localize`:@@hostRecovery.downloadHeading:Host-Zugangskarte`;
+    const why = $localize`:@@hostRecovery.cardWhy:Dein Host-Zugang ist in diesem Browser gespeichert. Mit der Host-Zugangskarte kannst du ihn auf einem anderen Gerät wiederherstellen.`;
     const intro = $localize`:@@hostRecovery.cardIntro:Öffne dazu die Wiederherstellungsseite und gib die Session-Kennung und den Wiederherstellungscode ein.`;
     const supportLabel = $localize`:@@hostRecovery.supportIdLabel:Session-Kennung`;
     const recoveryLabel = $localize`:@@hostRecovery.recoveryCodeLabel:Wiederherstellungscode`;
@@ -94,7 +94,7 @@ export class HostRecoveryCardDialogComponent {
     const usage = $localize`:@@hostRecovery.downloadUsage:Öffne ${recoveryUrl}:recoveryUrl: und gib Session-Kennung plus Wiederherstellungscode ein.`;
     const recoveryLink = `<a class="usage-link" href="${escapeHtml(recoveryUrl)}">${escapeHtml(recoveryUrl)}</a>`;
     const usageHtml = escapeHtml(usage).replaceAll(escapeHtml(recoveryUrl), recoveryLink);
-    const warning = $localize`:@@hostRecovery.cardWarning:Wenn Browserzugang und Notfallkarte verloren sind, wende dich an den Support. Er muss deine Berechtigung für diese Session prüfen. Die Kontaktdaten findest du im »Impressum«.`;
+    const warning = $localize`:@@hostRecovery.cardWarning:Wenn Browserzugang und Zugangskarte verloren sind, wende dich an den Support. Er muss deine Berechtigung für diese Session prüfen. Die Kontaktdaten findest du im »Impressum«.`;
     return `<!DOCTYPE html>
 <html lang="${escapeHtml(lang)}">
 <head>

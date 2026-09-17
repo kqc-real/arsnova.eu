@@ -129,7 +129,7 @@ describe('HostRecoveryComponent', () => {
     component.sourceKind.set('ADMIN_HANDOFF');
     current.detectChanges();
     expect(host.textContent).toContain('Übergabecode vom Support');
-    expect(host.textContent).toContain('Ich habe eine Notfallkarte');
+    expect(host.textContent).toContain('Ich habe eine Zugangskarte');
   });
 
   it('verwendet für eine Admin-Übergabe denselben begrenzten Austauschpfad', async () => {

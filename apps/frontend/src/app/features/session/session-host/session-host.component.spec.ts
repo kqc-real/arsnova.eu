@@ -766,7 +766,7 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
     fixture.destroy();
   });
 
-  it('zeigt die Host-Notfallkarte nicht beim direkten Quizkanal', async () => {
+  it('zeigt die Host-Zugangskarte nicht beim direkten Quizkanal', async () => {
     persistInitialHostRecovery({
       code: 'ABC123',
       recoveryCard: {
@@ -791,7 +791,7 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
     fixture.destroy();
   });
 
-  it('zeigt die Host-Notfallkarte nicht beim direkten Blitzlichtkanal', async () => {
+  it('zeigt die Host-Zugangskarte nicht beim direkten Blitzlichtkanal', async () => {
     persistInitialHostRecovery({
       code: 'ABC123',
       recoveryCard: {
@@ -816,7 +816,7 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
     fixture.destroy();
   });
 
-  it('bietet die Host-Notfallkarte an, sobald Q&A aktiv ist', async () => {
+  it('bietet die Host-Zugangskarte an, sobald Q&A aktiv ist', async () => {
     persistInitialHostRecovery({
       code: 'ABC123',
       recoveryCard: {
@@ -851,7 +851,7 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
     fixture.destroy();
   });
 
-  it('bietet die Host-Notfallkarte erst nach dem nachträglichen Aktivieren von Q&A an', async () => {
+  it('bietet die Host-Zugangskarte erst nach dem nachträglichen Aktivieren von Q&A an', async () => {
     persistInitialHostRecovery({
       code: 'ABC123',
       recoveryCard: {
@@ -888,7 +888,17 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
       expect.objectContaining({
         panelClass: 'session-lifecycle-dialog-panel',
         backdropClass: 'session-lifecycle-dialog-backdrop',
-        data: expect.objectContaining({ code: 'ABC123', setupStep: 1, setupStepCount: 2 }),
+        data: expect.objectContaining({
+          code: 'ABC123',
+          setupStep: 1,
+          setupStepCount: 2,
+        }),
+      }),
+    );
+    expect(dialogOpenMock).toHaveBeenCalledWith(
+      QaChannelConfigurationDialogComponent,
+      expect.objectContaining({
+        data: expect.not.objectContaining({ omitParticipationProfile: true }),
       }),
     );
     expect(dialogOpenMock).toHaveBeenCalledWith(
@@ -898,6 +908,7 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
         data: expect.objectContaining({ setupStep: 2, setupStepCount: 2 }),
       }),
     );
+    expect(startQaMutateMock).not.toHaveBeenCalled();
     fixture.destroy();
   });
 
@@ -2480,7 +2491,11 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
     expect(dialogOpenMock).toHaveBeenCalledWith(
       QaChannelConfigurationDialogComponent,
       expect.objectContaining({
-        data: expect.objectContaining({ setupStep: 2, setupStepCount: 3 }),
+        data: expect.objectContaining({
+          setupStep: 2,
+          setupStepCount: 3,
+          omitParticipationProfile: true,
+        }),
       }),
     );
     expect(endMutateMock).toHaveBeenCalledWith({ code: 'ABC123' });
@@ -2493,7 +2508,7 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
     fixture.destroy();
   });
 
-  it('öffnet nach Abbruch der Notfallkarte erneut die Karte statt die Q&A-Einrichtung', async () => {
+  it('öffnet nach Abbruch der Zugangskarte erneut die Karte statt die Q&A-Einrichtung', async () => {
     persistInitialHostRecovery({
       code: 'ABC123',
       recoveryCard: {
@@ -2602,7 +2617,7 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
     fixture.destroy();
   });
 
-  it('beendet nach der Notfallkarte die Startsequenz und öffnet Schritt 2 nicht erneut', async () => {
+  it('beendet nach der Zugangskarte die Startsequenz, startet die Fragerunde und öffnet Schritt 2 nicht erneut', async () => {
     persistInitialHostRecovery({
       code: 'ABC123',
       recoveryCard: {
@@ -2656,7 +2671,11 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
     expect(dialogOpenMock).toHaveBeenCalledWith(
       QaChannelConfigurationDialogComponent,
       expect.objectContaining({
-        data: expect.objectContaining({ setupStep: 2, setupStepCount: 3 }),
+        data: expect.objectContaining({
+          setupStep: 2,
+          setupStepCount: 3,
+          omitParticipationProfile: true,
+        }),
       }),
     );
     expect(dialogOpenMock).toHaveBeenCalledWith(
@@ -2674,6 +2693,8 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
         replaceUrl: true,
       }),
     );
+    expect(startQaMutateMock).toHaveBeenCalledWith({ code: 'ABC123' });
+    expect(fixture.componentInstance.effectiveStatus()).toBe('ACTIVE');
 
     dialogOpenMock.mockClear();
     await fixture.componentInstance.openQaConfigurationDialog();
@@ -2681,7 +2702,11 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
     expect(dialogOpenMock).toHaveBeenCalledWith(
       QaChannelConfigurationDialogComponent,
       expect.objectContaining({
-        data: expect.not.objectContaining({ setupStep: 2, setupStepCount: 3 }),
+        data: expect.not.objectContaining({
+          setupStep: 2,
+          setupStepCount: 3,
+          omitParticipationProfile: true,
+        }),
       }),
     );
     expect(dialogOpenMock).not.toHaveBeenCalledWith(
@@ -3654,6 +3679,43 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
       ),
     ).toBeTruthy();
     expect(text).toContain('Warum die Fragenwand mehr als ein Chat ist');
+    fixture.destroy();
+  });
+
+  it('zeigt Q&A-Einstellungen mit Konfigurations-Icon', async () => {
+    getInfoQueryMock.mockResolvedValue({
+      ...defaultSession,
+      status: 'ACTIVE',
+      serverNow: '2026-03-24T12:00:00.000Z',
+      expiresAt: '2026-03-25T12:00:00.000Z',
+      qaClosesAt: '2026-03-25T12:00:00.000Z',
+      channels: {
+        quiz: { enabled: false },
+        qa: {
+          enabled: true,
+          open: true,
+          title: 'Fragen',
+          moderationMode: false,
+          state: 'OPEN',
+          closesAt: '2026-03-25T12:00:00.000Z',
+        },
+        quickFeedback: { enabled: false, open: false },
+      },
+    });
+    const fixture = setup();
+    await fixture.componentInstance.ngOnInit();
+    fixture.componentInstance.sessionLifecycle.set({
+      ...defaultLifecycle,
+      status: 'ACTIVE',
+    });
+    fixture.componentInstance.activeChannel.set('qa');
+    fixture.detectChanges();
+
+    const button = fixture.nativeElement.querySelector(
+      '.session-host__qa-deadline button',
+    ) as HTMLButtonElement | null;
+    expect(button?.textContent).toContain('Q&A-Einstellungen');
+    expect(button?.querySelector('mat-icon')?.textContent?.trim()).toBe('tune');
     fixture.destroy();
   });
 

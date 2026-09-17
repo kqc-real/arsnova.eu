@@ -408,6 +408,8 @@ describe('HomeComponent', () => {
       expect(joinCard?.textContent).not.toContain('Dabei sein');
       expect(joinCard?.textContent).toContain('Session-Code');
       expect(joinCard?.textContent).toContain("Los geht's");
+      expect(joinCard?.textContent).not.toContain('Host-Zugang wiederherstellen');
+      expect(joinCard?.querySelector('a[href*="host-recovery"]')).toBeNull();
 
       fixture.componentInstance.themePreset.setPreset('serious');
       fixture.detectChanges();

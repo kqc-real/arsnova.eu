@@ -9239,14 +9239,6 @@
           <context context-type="linenumber">227</context>
         </context-group>
       </trans-unit>
-      <trans-unit id="hostRecovery.homeLink" datatype="html">
-        <source>Host-Zugang wiederherstellen</source>
-        <target>Restaurer l&apos;accès à l&apos;hôte</target>
-        <context-group purpose="location">
-          <context context-type="sourcefile">src/app/features/home/home.component.html</context>
-          <context context-type="linenumber">236</context>
-        </context-group>
-      </trans-unit>
       <trans-unit id="sessionEntry.showHostLink" datatype="html">
         <source>Als Host anzeigen</source>
         <target>Passer en vue animateur</target>
@@ -17220,7 +17212,7 @@
         </context-group>
       </trans-unit>
       <trans-unit id="hostRecovery.cardTitle" datatype="html">
-        <source>Host-Notfallkarte sichern</source>
+        <source>Host-Zugangskarte sichern</source>
         <target>Enregistrer la fiche de récupération de l’hôte</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/host-recovery/host-recovery-card-dialog.component.ts</context>
@@ -17228,7 +17220,7 @@
         </context-group>
       </trans-unit>
       <trans-unit id="hostRecovery.cardSubtitle" datatype="html">
-        <source> Lade die Notfallkarte herunter oder kopiere die Werte. Bewahre sie getrennt vom Browser auf. </source>
+        <source> Lade sie herunter oder kopiere die Werte. Bewahre sie getrennt vom Browser auf. </source>
         <target>Télécharge la fiche de récupération ou copie les valeurs. Conserve-les séparément du navigateur.</target>
       </trans-unit>
       <trans-unit id="hostRecovery.sessionCodeLabel" datatype="html">
@@ -17276,7 +17268,7 @@
         <target>Code de récupération copié.</target>
       </trans-unit>
       <trans-unit id="hostRecovery.cardWhy" datatype="html">
-        <source>Dein Host-Zugang ist in diesem Browser gespeichert. Mit der Notfallkarte kannst du ihn auf einem anderen Gerät wiederherstellen.</source>
+        <source>Dein Host-Zugang ist in diesem Browser gespeichert. Mit der Host-Zugangskarte kannst du ihn auf einem anderen Gerät wiederherstellen.</source>
         <target>Ton accès hôte est enregistré dans ce navigateur. La fiche de récupération te permet de le rétablir sur un autre appareil.</target>
       </trans-unit>
       <trans-unit id="hostRecovery.cardIntro" datatype="html">
@@ -17300,7 +17292,7 @@
         </context-group>
       </trans-unit>
       <trans-unit id="hostRecovery.cardWarning" datatype="html">
-        <source>Wenn Browserzugang und Notfallkarte verloren sind, wende dich an den Support. Er muss deine Berechtigung für diese Session prüfen. Die Kontaktdaten findest du im »Impressum«.</source>
+        <source>Wenn Browserzugang und Zugangskarte verloren sind, wende dich an den Support. Er muss deine Berechtigung für diese Session prüfen. Die Kontaktdaten findest du im »Impressum«.</source>
         <target>Si tu perds à la fois l’accès dans ce navigateur et la fiche de récupération, contacte l’assistance. Elle doit vérifier que tu es autorisé à accéder à cette session en tant qu’hôte. Ses coordonnées figurent dans les « Mentions légales ».</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/host-recovery/host-recovery-card-dialog.component.ts</context>
@@ -17308,7 +17300,7 @@
         </context-group>
       </trans-unit>
       <trans-unit id="hostRecovery.downloadCard" datatype="html">
-        <source>Notfallkarte herunterladen</source>
+        <source>Zugangskarte herunterladen</source>
         <target>Télécharger la fiche de récupération</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/host-recovery/host-recovery-card-dialog.component.ts</context>
@@ -17316,7 +17308,7 @@
         </context-group>
       </trans-unit>
       <trans-unit id="hostRecovery.cardSavedConfirmation" datatype="html">
-        <source> Ich habe die Notfallkarte sicher gespeichert. </source>
+        <source> Ich habe die Zugangskarte sicher gespeichert. </source>
         <target>J’ai enregistré la fiche de récupération en lieu sûr.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/host-recovery/host-recovery-card-dialog.component.ts</context>
@@ -17332,7 +17324,7 @@
         </context-group>
       </trans-unit>
       <trans-unit id="hostRecovery.downloadHeading" datatype="html">
-        <source>Host-Notfallkarte</source>
+        <source>Host-Zugangskarte</source>
         <target>Fiche de récupération de l’hôte</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/host-recovery/host-recovery-card-dialog.component.ts</context>
@@ -17368,7 +17360,7 @@
         </context-group>
       </trans-unit>
       <trans-unit id="hostRecovery.intro" datatype="html">
-        <source>Gib die Session-Kennung und den Wiederherstellungscode deiner Notfallkarte ein.</source>
+        <source>Gib die Session-Kennung und den Wiederherstellungscode deiner Host-Zugangskarte ein.</source>
         <target>Saisis l’identifiant de session et le code de récupération de ta fiche de récupération.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/host-recovery/host-recovery.component.ts</context>
@@ -17384,7 +17376,7 @@
         </context-group>
       </trans-unit>
       <trans-unit id="hostRecovery.recoveryCardOption" datatype="html">
-        <source> Notfallkarte </source>
+        <source> Zugangskarte </source>
         <target>Fiche de récupération</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/host-recovery/host-recovery.component.ts</context>
@@ -17436,7 +17428,7 @@
         </context-group>
       </trans-unit>
       <trans-unit id="hostRecovery.boundary" datatype="html">
-        <source>Damit verlängerst du weder die Session- noch die Nachbereitungsfrist. Wenn Browserzugang und Notfallkarte verloren sind, wende dich an den Support. Er muss deine Berechtigung für diese Session prüfen. Die Kontaktdaten findest du im »Impressum«.</source>
+        <source>Damit verlängerst du weder die Session- noch die Nachbereitungsfrist. Wenn Browserzugang und Zugangskarte verloren sind, wende dich an den Support. Er muss deine Berechtigung für diese Session prüfen. Die Kontaktdaten findest du im »Impressum«.</source>
         <target>Cela ne prolonge ni la session ni la période de lecture après la session. Si tu perds à la fois l’accès dans ce navigateur et la fiche de récupération, contacte l’assistance. Elle doit vérifier que tu es autorisé à accéder à cette session en tant qu’hôte. Ses coordonnées figurent dans les « Mentions légales ».</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/host-recovery/host-recovery.component.ts</context>
@@ -17452,7 +17444,7 @@
         <target>J&apos;ai un code du support</target>
       </trans-unit>
       <trans-unit id="hostRecovery.useRecoveryCard" datatype="html">
-        <source>Ich habe eine Notfallkarte</source>
+        <source>Ich habe eine Zugangskarte</source>
         <target>J’ai une fiche de récupération</target>
       </trans-unit>
       <trans-unit id="hostRecovery.genericError" datatype="html">
