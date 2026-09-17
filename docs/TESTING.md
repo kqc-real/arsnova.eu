@@ -520,7 +520,7 @@ Fokus oder Tab-Reihenfolge daher zusätzlich Safari auf macOS manuell prüfen:
    Einstellung mit `Tab` beziehungsweise `⌥ Tab` durch die Seite navigieren.
 2. MOTD per Tastatur über **Schließen** und **Alles klar** beenden: Danach muss
    **Code eingeben** den sichtbaren Tastatur-Fokusrahmen erhalten; der nächste
-   Navigationstastendruck führt zu **Quiz erstellen**, nicht zum Skip-Link.
+   Host-Link in der Tab-Reihe ist **Quiz** im Live-Raster, nicht der Skip-Link.
 3. MOTD jeweils per Maus über **Schließen** und **Alles klar** beenden, während
    der Fokus noch auf dem Schließen-Button liegt: Beide Klicks müssen reagieren;
    **Code eingeben** ist danach das Fokusziel, aber ohne Tastatur-Fokusrahmen.

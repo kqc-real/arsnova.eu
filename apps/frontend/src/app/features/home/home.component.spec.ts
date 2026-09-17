@@ -314,37 +314,30 @@ describe('HomeComponent', () => {
       const button = fixture.nativeElement.querySelector('.home-cta') as HTMLButtonElement;
 
       expect(button.hasAttribute('aria-label')).toBe(false);
-      expect(button.textContent).toContain("Los geht's");
+      expect(button.textContent).toContain('Los geht’s');
     });
 
-    it('stellt Hero und Kartentitel als programmatische Überschriften bereit', () => {
+    it('stellt Rollen und Aufgaben als hierarchische Überschriften bereit', () => {
       const fixture = createHomeFixture();
       fixture.detectChanges();
 
       const hero = fixture.nativeElement.querySelector('h1.home-hero') as HTMLHeadingElement;
-      const cardTitles = Array.from(
-        fixture.nativeElement.querySelectorAll<HTMLHeadingElement>('h2.home-card__title'),
+      const levelTwoTitles = Array.from(
+        fixture.nativeElement.querySelectorAll<HTMLHeadingElement>('h2'),
+      ).map((heading) => heading.textContent?.replace(/\s+/g, ' ').trim());
+      const taskTitles = Array.from(
+        fixture.nativeElement.querySelectorAll<HTMLHeadingElement>('h3.home-card__title'),
       ).map((heading) => heading.textContent?.replace(/\s+/g, ' ').trim());
 
       expect(hero).not.toBeNull();
       expect(hero.textContent).toMatch(/Quiz/);
       expect(hero.querySelector('.home-hero-divider')).not.toBeNull();
-      expect(cardTitles).toEqual(
-        expect.arrayContaining(['Mitmachen', 'Nur ein Klick', 'Vorbereiten']),
+      expect(levelTwoTitles).toEqual(
+        expect.arrayContaining(['An einer Session teilnehmen', 'Was möchtest du tun?']),
       );
-      const headings = Array.from(
-        fixture.nativeElement.querySelectorAll('.home-card__heading'),
-      ) as HTMLElement[];
-      expect(headings).toHaveLength(3);
-      for (const heading of headings) {
-        const icon = heading.querySelector('.home-card__icon-wrap');
-        const title = heading.querySelector('.home-card__title');
-        expect(icon).not.toBeNull();
-        expect(title).not.toBeNull();
-        expect(
-          icon && title && icon.compareDocumentPosition(title) & Node.DOCUMENT_POSITION_FOLLOWING,
-        ).toBeTruthy();
-      }
+      expect(taskTitles).toEqual(['Session starten', 'Mit einem Klick', 'Quiz erstellen']);
+      expect(fixture.nativeElement.querySelectorAll('.home-card__eyebrow')).toHaveLength(4);
+      expect(fixture.nativeElement.querySelector('.home-card__icon-wrap')).toBeNull();
       expect(fixture.nativeElement.querySelector('.home-card mat-card-subtitle')).toBeNull();
     });
 
@@ -357,23 +350,12 @@ describe('HomeComponent', () => {
 
       expect(scss).toMatch(/\.home-hero-divider\s*\{[^}]*display:\s*none/);
       expect(scss).toMatch(
-        /@media \(min-width:\s*600px\)\s*\{[^}]*\.home-hero-divider\s*\{[^}]*display:\s*inline/,
+        /@media \(min-width:\s*600px\)\s*\{[\s\S]*?\.home-hero-divider,[\s\S]*?display:\s*inline/,
       );
     });
   });
 
-  describe('isPlayfulPreset', () => {
-    it('ist true im Standard-Preset Spielerisch', () => {
-      const comp = createHomeComponent();
-      expect(comp.isPlayfulPreset()).toBe(true);
-    });
-
-    it('ist false nach Umschalten auf Seriös', () => {
-      const comp = createHomeComponent();
-      comp.themePreset.setPreset('serious');
-      expect(comp.isPlayfulPreset()).toBe(false);
-    });
-
+  describe('Layout und Presets', () => {
     it('zeigt keine dekorative Schritt-Pills oder Bühnen-Rotation unter dem Hero', () => {
       const fixture = createHomeFixture();
       fixture.detectChanges();
@@ -395,7 +377,7 @@ describe('HomeComponent', () => {
       expect(fixture.nativeElement.querySelector('.home-hero-serious-tagline')).toBeNull();
     });
 
-    it('zeigt die Mitmachen-Karte mit einem Titel ohne Logo-Wiederholung', () => {
+    it('zeigt den Teilnahme-Einstieg mit Rollenlabel und ohne Logo-Wiederholung', () => {
       const fixture = createHomeFixture();
       fixture.detectChanges();
 
@@ -404,10 +386,19 @@ describe('HomeComponent', () => {
       ) as HTMLElement | null;
       expect(joinCard).not.toBeNull();
       expect(joinCard?.querySelector('.home-card__brand-repeat')).toBeNull();
-      expect(joinCard?.querySelector('.home-card__title')?.textContent?.trim()).toBe('Mitmachen');
+      expect(joinCard?.querySelector('.home-card__eyebrow')?.textContent?.trim()).toBe(
+        'Für Teilnehmende',
+      );
+      expect(joinCard?.querySelector('.home-card__title')?.textContent?.trim()).toBe(
+        'An einer Session teilnehmen',
+      );
       expect(joinCard?.textContent).not.toContain('Dabei sein');
-      expect(joinCard?.textContent).toContain('Session-Code');
-      expect(joinCard?.textContent).toContain("Los geht's");
+      expect(joinCard?.textContent).not.toContain('Session-Code');
+      expect(joinCard?.querySelector('.home-code-under-label')).toBeNull();
+      expect(
+        joinCard?.querySelector('.home-code-segments__input')?.getAttribute('aria-label'),
+      ).toBe('Session-Code, 6 Zeichen');
+      expect(joinCard?.textContent).toContain('Los geht’s');
       expect(joinCard?.textContent).not.toContain('Host-Zugang wiederherstellen');
       expect(joinCard?.querySelector('a[href*="host-recovery"]')).toBeNull();
 
@@ -421,210 +412,279 @@ describe('HomeComponent', () => {
         fixture.nativeElement
           .querySelector('#participant-entry .home-card__title')
           ?.textContent?.trim(),
-      ).toBe('Mitmachen');
+      ).toBe('An einer Session teilnehmen');
     });
 
-    it('wendet Hero-Preset-Wechsel per Tastatur-aktivierbarem Button an', () => {
+    it('überlässt den Preset-Wechsel der globalen Toolbar', () => {
       const fixture = createHomeFixture();
       fixture.detectChanges();
-      const themePreset = fixture.componentInstance.themePreset;
-      themePreset.setPreset('spielerisch', { silent: true });
-      fixture.detectChanges();
 
-      const groupEl = fixture.nativeElement.querySelector(
-        '.home-hero-preset-toggle',
-      ) as HTMLElement;
-      expect(groupEl).toBeTruthy();
-      const buttons = Array.from(
-        groupEl.querySelectorAll('button.home-hero-preset-toggle__btn'),
-      ) as HTMLButtonElement[];
-      expect(buttons).toHaveLength(2);
-      for (const button of buttons) {
-        expect(button.tabIndex).toBeGreaterThanOrEqual(0);
-        expect(button.getAttribute('tabindex')).not.toBe('-1');
-      }
-
-      buttons[1].focus();
-      buttons[1].click();
-      fixture.detectChanges();
-
-      expect(themePreset.preset()).toBe('serious');
-      expect(document.documentElement.classList.contains('preset-playful')).toBe(false);
-      expect(buttons[1].getAttribute('aria-pressed')).toBe('true');
+      expect(fixture.nativeElement.querySelector('.home-hero-preset-mobile')).toBeNull();
+      expect(fixture.nativeElement.querySelector('.home-hero-preset-toggle')).toBeNull();
     });
 
-    it('stilisiert Hero-Preset-Fokus direkt am Button', async () => {
+    it('hält den mobilen Hero kompakt und die Titeltypografie lesbar', async () => {
       const { readFileSync } = await import('node:fs');
       const { fileURLToPath } = await import('node:url');
       const { dirname, join } = await import('node:path');
       const scssPath = join(dirname(fileURLToPath(import.meta.url)), 'home.component.scss');
       const scss = readFileSync(scssPath, 'utf8');
-      expect(scss).toContain('.home-hero-preset-toggle__btn');
-      expect(scss).toMatch(/home-hero-preset-toggle__btn[\s\S]*?&:focus-visible\s*\{/);
-      expect(scss).not.toContain('mat-button-toggle-button:focus-visible');
-      expect(scss).not.toContain('mat-button-toggle:focus-within');
-    });
-
-    it('lässt die Preset-Buttons abhängig von ihrer Inhaltsbreite umbrechen', async () => {
-      const { readFileSync } = await import('node:fs');
-      const { fileURLToPath } = await import('node:url');
-      const { dirname, join } = await import('node:path');
-      const scssPath = join(dirname(fileURLToPath(import.meta.url)), 'home.component.scss');
-      const scss = readFileSync(scssPath, 'utf8');
-
-      expect(scss).toMatch(/home-preset-option\s*\{[\s\S]*?white-space:\s*nowrap/);
-      expect(scss).toMatch(/\.home-hero-preset-toggle\s*\{[^}]*flex-wrap:\s*wrap/);
-      expect(scss).toMatch(/\.home-hero-preset-toggle__btn\s*\{[^}]*flex:\s*1 0 max-content/);
-      expect(scss).not.toContain('@media (max-width: 359px)');
-    });
-
-    it('ordnet Spielerisch ab 960px im selben 3-Spalten-Raster wie Seriös', async () => {
-      const { readFileSync } = await import('node:fs');
-      const { fileURLToPath } = await import('node:url');
-      const { dirname, join } = await import('node:path');
-      const scssPath = join(dirname(fileURLToPath(import.meta.url)), 'home.component.scss');
-      const scss = readFileSync(scssPath, 'utf8');
-      const playful = scss.slice(scss.indexOf(':host-context(html.preset-playful)'));
-      const shared = scss.slice(0, scss.indexOf(':host-context(html.preset-playful)'));
 
       expect(scss).toMatch(
-        /:host\.route-home \.l-page:first-child[\s\S]*@media \(min-width:\s*840px\)\s*\{[^}]*margin-top:\s*2\.5rem/,
+        /@media \(max-width:\s*599px\)\s*\{[\s\S]*?\.home-hero\s*\{[^}]*font:\s*var\(--mat-sys-title-large\)/,
+      );
+      expect(scss).not.toContain('.home-hero-preset-toggle');
+    });
+
+    it('hält den Teilnahme-CTA auf Desktop und im Smartphone-Landscape kompakt', async () => {
+      const { readFileSync } = await import('node:fs');
+      const { fileURLToPath } = await import('node:url');
+      const { dirname, join } = await import('node:path');
+      const scssPath = join(dirname(fileURLToPath(import.meta.url)), 'home.component.scss');
+      const scss = readFileSync(scssPath, 'utf8');
+      const responsiveJoin = scss.slice(
+        scss.indexOf('@media (min-width: 600px) {\n  .home-join-row'),
+        scss.indexOf('.home-recent-panel'),
+      );
+
+      expect(responsiveJoin).toMatch(
+        /\.home-join-row\s*\{[^}]*grid-template-columns:\s*minmax\(0,\s*1fr\) auto/,
+      );
+      expect(responsiveJoin).toMatch(
+        /\.home-cta--join\s*\{[^}]*width:\s*auto[^}]*min-width:\s*8rem[^}]*min-height:\s*2\.75rem/,
+      );
+      expect(responsiveJoin).not.toContain('min-height: 100%');
+    });
+
+    it('trennt Teilnahme und Veranstalten mit einer zurückhaltenden, luftig gesetzten Linie', async () => {
+      const fixture = createHomeFixture();
+      fixture.detectChanges();
+
+      expect(fixture.nativeElement.querySelector('.home-role-divider')).not.toBeNull();
+
+      const { readFileSync } = await import('node:fs');
+      const { fileURLToPath } = await import('node:url');
+      const { dirname, join } = await import('node:path');
+      const scssPath = join(dirname(fileURLToPath(import.meta.url)), 'home.component.scss');
+      const scss = readFileSync(scssPath, 'utf8');
+      const dividerRule = scss.slice(
+        scss.indexOf('.home-role-divider {'),
+        scss.indexOf('.home-host-intro {'),
+      );
+
+      expect(dividerRule).toMatch(/margin:\s*0\.5rem auto/);
+      expect(dividerRule).toMatch(/width:\s*min\(72%,\s*26rem\)/);
+      expect(dividerRule).toMatch(
+        /border-block-start:\s*1px solid[\s\S]*?color-mix\(in srgb,\s*var\(--mat-sys-outline\) 70%,\s*var\(--mat-sys-primary\)\)/,
+      );
+    });
+
+    it('behält auf Mobile und Tablet die Lesespalte und nutzt breite Desktops dreispaltig', async () => {
+      const { readFileSync } = await import('node:fs');
+      const { fileURLToPath } = await import('node:url');
+      const { dirname, join } = await import('node:path');
+      const scssPath = join(dirname(fileURLToPath(import.meta.url)), 'home.component.scss');
+      const scss = readFileSync(scssPath, 'utf8');
+      const layout = scss.slice(0, scss.indexOf(':host-context(html.preset-playful)'));
+      const desktopLayoutStart = layout.indexOf('@media (min-width: 1200px)');
+      const compactLayout = layout.slice(0, desktopLayoutStart);
+      const desktopLayout = layout.slice(desktopLayoutStart);
+
+      expect(desktopLayoutStart).toBeGreaterThan(-1);
+      expect(compactLayout).toMatch(
+        /:host\.route-home \.l-page:first-child\s*\{[^}]*max-width:\s*40rem/,
+      );
+      expect(layout).toMatch(/\.home-main\s*\{[^}]*flex-direction:\s*column/);
+      expect(compactLayout).toMatch(
+        /\.home-host-stack\s*\{[^}]*grid-template-columns:\s*minmax\(0,\s*1fr\)/,
+      );
+      expect(desktopLayout).toMatch(
+        /:host\.route-home \.l-page:first-child\s*\{[^}]*max-width:\s*var\(--app-toolbar-max-width\)[^}]*padding-inline:\s*0/,
+      );
+      expect(desktopLayout).toMatch(
+        /\.home-host-stack\s*\{[^}]*grid-template-columns:\s*repeat\(3,\s*minmax\(0,\s*1fr\)\)[^}]*align-items:\s*stretch/,
+      );
+      expect(desktopLayout).toMatch(
+        /\.home-card#participant-entry\s*\{[^}]*max-width:\s*36rem[^}]*margin-inline:\s*auto/,
+      );
+      expect(desktopLayout).toMatch(
+        /\.home-card__description,\s*\.home-host-intro__description\s*\{[^}]*font:\s*var\(--mat-sys-body-medium\)[^}]*line-height:\s*1\.5/,
+      );
+      expect(layout).not.toMatch(
+        /\.home-main\s*\{[^}]*grid-template-columns:\s*repeat|\.home-main\s*\{[^}]*grid-template-columns:\s*minmax/,
+      );
+    });
+
+    it('ordnet Kartenaktionen passend zur verfügbaren Kartenbreite an', async () => {
+      const { readFileSync } = await import('node:fs');
+      const { fileURLToPath } = await import('node:url');
+      const { dirname, join } = await import('node:path');
+      const scssPath = join(dirname(fileURLToPath(import.meta.url)), 'home.component.scss');
+      const scss = readFileSync(scssPath, 'utf8');
+      const desktopLayout = scss.slice(
+        scss.indexOf('@media (min-width: 1200px)'),
+        scss.indexOf('.home-cta--ready'),
+      );
+
+      expect(scss).toMatch(/\.home-live-grid\s*\{[^}]*grid-template-columns:\s*minmax\(0,\s*1fr\)/);
+      expect(scss).toMatch(
+        /@media \(min-width:\s*600px\)\s*\{[\s\S]*?\.home-live-grid\s*\{[^}]*grid-template-columns:\s*repeat\(3,\s*minmax\(0,\s*1fr\)\)/,
       );
       expect(scss).toMatch(
-        /:host\.route-home \.l-page:first-child[\s\S]*@media \(min-width:\s*960px\)\s*\{[^}]*max-width:\s*78rem/,
-      );
-      expect(playful).toMatch(
-        /@media \(min-width:\s*600px\) and \(max-width:\s*959\.98px\)\s*\{[\s\S]*?\.home-card#participant-entry\.home-card--stage-main\s*\{[^}]*grid-column:\s*1\s*\/\s*-1/,
-      );
-      /* Desktop-Raster einmal shared – kein zweites, auseinanderlaufendes playful-Duplikat. */
-      expect(shared).toMatch(
-        /@media \(min-width:\s*960px\)\s*\{[\s\S]*?\.home-main\s*\{[^}]*grid-template-columns:\s*minmax\(0,\s*1fr\)\s*minmax\(0,\s*1\.4fr\)\s*minmax\(0,\s*1fr\)/,
-      );
-      expect(shared).toMatch(
-        /@media \(min-width:\s*960px\)\s*\{[\s\S]*?\.home-card#participant-entry[\s\S]*?grid-column:\s*auto/,
-      );
-      expect(playful).not.toMatch(
-        /@media \(min-width:\s*960px\)\s*\{[\s\S]*?\.home-main\s*\{[^}]*grid-template-columns:/,
-      );
-      expect(playful).not.toMatch(
-        /\.home-main\s*\{[^}]*grid-template-columns:\s*repeat\(2,\s*minmax\(0,\s*1fr\)\)/,
-      );
-    });
-
-    it('hebt Mitmachen nicht mit einem linken Akzentstreifen hervor', async () => {
-      const { readFileSync } = await import('node:fs');
-      const { fileURLToPath } = await import('node:url');
-      const { dirname, join } = await import('node:path');
-      const scssPath = join(dirname(fileURLToPath(import.meta.url)), 'home.component.scss');
-      const scss = readFileSync(scssPath, 'utf8');
-      const playful = scss.slice(scss.indexOf(':host-context(html.preset-playful)'));
-      const stageMain = playful.slice(
-        playful.indexOf('.home-card--stage-main#participant-entry {'),
-      );
-      const stageMainRule = stageMain.slice(0, stageMain.indexOf('  .home-card--stage-main'));
-
-      expect(playful).not.toMatch(/inset\s+5px\s+0\s+0/);
-      expect(playful).not.toMatch(/--app-shadow-cta-glow/);
-      expect(playful).toMatch(
-        /\.home-card#participant-entry mat-card-actions > \.home-cta:first-child:hover\s*\{[^}]*box-shadow:\s*none/,
-      );
-      expect(stageMainRule).not.toMatch(/inset\s+\d+px\s+0\s+0/);
-      expect(stageMainRule).toMatch(/inset 0 0 0 1px color-mix\(in srgb, var\(--mat-sys-primary\)/);
-    });
-
-    it('gibt Mitmachen im spielerischen Preset einen Hover-Schatten trotz ID-Ruhezustand', async () => {
-      const { readFileSync } = await import('node:fs');
-      const { fileURLToPath } = await import('node:url');
-      const { dirname, join } = await import('node:path');
-      const scssPath = join(dirname(fileURLToPath(import.meta.url)), 'home.component.scss');
-      const scss = readFileSync(scssPath, 'utf8');
-      const playful = scss.slice(scss.indexOf(':host-context(html.preset-playful)'));
-
-      expect(playful).toMatch(
-        /\.home-card--stage-main#participant-entry\.home-card:hover\s*\{[^}]*box-shadow:\s*[\s\S]*?0 14px 40px -8px/,
-      );
-      /* Keine tote generische Hover-Schicht neben den stage-*-Regeln. */
-      expect(playful).not.toMatch(/(?<![\w-])\.home-card:hover\s*\{/);
-      expect(playful).not.toMatch(/\.home-card--create\.home-card:hover\s*\{/);
-    });
-
-    it('hält spielerische Bühnenkarten in Titel, Header-Padding und Icon-Ring konsistent', async () => {
-      const { readFileSync } = await import('node:fs');
-      const { fileURLToPath } = await import('node:url');
-      const { dirname, join } = await import('node:path');
-      const scssPath = join(dirname(fileURLToPath(import.meta.url)), 'home.component.scss');
-      const scss = readFileSync(scssPath, 'utf8');
-      const playful = scss.slice(scss.indexOf(':host-context(html.preset-playful)'));
-      const shared = scss.slice(0, scss.indexOf(':host-context(html.preset-playful)'));
-
-      /* Titel-Font nur shared (headline-medium ab 960px), nicht per ID auf small gepinnt. */
-      expect(playful).not.toMatch(
-        /\.home-card--stage-main#participant-entry \.home-card__title[\s\S]*?font:\s*var\(--mat-sys-headline-small\)/,
-      );
-      expect(shared).toMatch(
-        /@media \(min-width:\s*960px\)\s*\{[\s\S]*?\.home-card__title\s*\{[^}]*font:\s*var\(--mat-sys-headline-medium\)/,
-      );
-      expect(playful).toMatch(
-        /\.home-card--stage-main#participant-entry \.mat-mdc-card-header\s*\{[^}]*padding-bottom:\s*0\.5rem/,
-      );
-      expect(playful).toMatch(
-        /\.home-card\.home-card--stage-side \.mat-mdc-card-header\s*\{[^}]*padding-bottom:\s*0\.5rem/,
-      );
-      expect(playful).toMatch(
-        /\.home-card--stage-main#participant-entry \.home-card__icon-wrap[\s\S]*?box-shadow:\s*0 0 0 1px/,
-      );
-      /* Mobiler Top-Streifen nur seriös – sonst überschreibt playful border: die Absicht. */
-      expect(shared).toMatch(
-        /:host-context\(html:not\(\.preset-playful\)\) \.home-card#participant-entry\s*\{[^}]*border-top:\s*3px solid var\(--mat-sys-primary\)/,
-      );
-      expect(scss).not.toContain('.home-header');
-      expect(scss).not.toContain('.home-brand');
-      expect(scss).not.toContain('.home-icon-toggles');
-      expect(scss).not.toContain('.home-controls-mobile');
-    });
-
-    it('hält die drei Karten ab 960px auf gleicher Höhe, Host-CTAs mittig und Blitzlicht kompakt', async () => {
-      const { readFileSync } = await import('node:fs');
-      const { fileURLToPath } = await import('node:url');
-      const { dirname, join } = await import('node:path');
-      const scssPath = join(dirname(fileURLToPath(import.meta.url)), 'home.component.scss');
-      const scss = readFileSync(scssPath, 'utf8');
-      const desktop = scss.slice(scss.indexOf('@media (min-width: 960px)'));
-
-      expect(desktop).toMatch(
-        /\.home-card#participant-entry,\s*\.home-card\.home-card--create,\s*\.home-card\.home-card--feedback\s*\{[^}]*min-height:\s*25rem/,
-      );
-      expect(desktop).toMatch(
-        /\.home-card#participant-entry mat-card-content\s*\{[^}]*flex:\s*1 1 auto/,
-      );
-      expect(desktop).toMatch(
-        /\.home-card#participant-entry \.home-code-entry\s*\{[^}]*margin-block:\s*auto/,
-      );
-      expect(desktop).toMatch(
-        /\.home-card#participant-entry mat-card-actions\s*\{[^}]*padding-bottom:\s*1\.5rem/,
-      );
-      expect(desktop).toMatch(
-        /\.home-card#participant-entry \.home-cta\s*\{[^}]*min-height:\s*3\.75rem/,
-      );
-      expect(scss).toMatch(/\.home-card--create \.home-card__cta-stack\s*\{[^}]*gap:\s*1rem/);
-      expect(desktop).toMatch(
-        /\.home-card--create \.home-card__cta-stack\s*\{[^}]*justify-content:\s*center/,
-      );
-      expect(desktop).toMatch(
-        /\.home-card--create mat-card-actions\s*\{[^}]*padding-bottom:\s*1\.5rem/,
-      );
-      expect(desktop).toMatch(
-        /\.home-card--create \.home-card__tertiary\s*\{[^}]*min-height:\s*3\.75rem/,
-      );
-      expect(desktop).toMatch(
         /\.home-feedback-chip-grid\s*\{[^}]*grid-template-columns:\s*repeat\(2,\s*minmax\(0,\s*1fr\)\)/,
       );
-      expect(desktop).toMatch(/\.home-feedback-chip\s*\{[^}]*overflow:\s*hidden/);
-      expect(desktop).toMatch(/\.home-feedback-chip\s*\{[^}]*min-height:\s*3\.75rem/);
-      expect(desktop).not.toMatch(/\.home-feedback-chip__body\s*\{[^}]*flex-direction:\s*row/);
-      expect(desktop).toMatch(/\.home-feedback-chip__icons\s*\{[^}]*flex-wrap:\s*nowrap/);
-      expect(desktop).toMatch(/\.home-feedback-chip__icons--rating\s*\{[^}]*flex-wrap:\s*nowrap/);
-      expect(desktop).not.toMatch(/\.home-card\.home-card--feedback\s*\{[^}]*height:\s*18rem/);
+      expect(scss).toMatch(
+        /@media \(min-width:\s*480px\)\s*\{[^}]*\.home-prepare-secondary-grid\s*\{[^}]*grid-template-columns:\s*repeat\(2,\s*minmax\(0,\s*1fr\)\)/,
+      );
+      expect(desktopLayout).toMatch(
+        /\.home-live-grid,\s*\.home-prepare-secondary-grid\s*\{[^}]*grid-template-columns:\s*minmax\(0,\s*1fr\)/,
+      );
+      expect(desktopLayout).toMatch(
+        /\.home-sync-entry__form\s*\{[^}]*flex-direction:\s*column[^}]*align-items:\s*stretch/,
+      );
+      expect(desktopLayout).toMatch(
+        /\.home-join-row\s*\{[^}]*grid-template-columns:\s*minmax\(0,\s*25rem\) auto[^}]*justify-content:\s*start/,
+      );
+      expect(desktopLayout).toMatch(
+        /\.home-card--feedback \.home-card__content\s*\{[^}]*flex:\s*1 1 auto[^}]*justify-content:\s*center[^}]*padding-block:\s*0\.75rem 1\.25rem/,
+      );
+      expect(desktopLayout).toMatch(
+        /\.home-card \.home-card__content,\s*\.home-card \.home-card__actions\s*\{[^}]*padding-bottom:\s*1\.25rem/,
+      );
+      expect(desktopLayout).toMatch(/\.home-feedback-chip-grid\s*\{[^}]*gap:\s*0\.75rem/);
+      expect(desktopLayout).toMatch(
+        /\.home-feedback-chip\s*\{[^}]*min-height:\s*4\.25rem[^}]*padding:\s*0\.65rem 0\.5rem/,
+      );
+      expect(scss).toMatch(/\.home-feedback-chip__label--wide-compact\s*\{[^}]*display:\s*none/);
+      expect(desktopLayout).toMatch(
+        /\.home-feedback-chip__label--wide-full\s*\{[^}]*display:\s*none/,
+      );
+      expect(desktopLayout).toMatch(
+        /\.home-feedback-chip__label--wide-compact\s*\{[^}]*display:\s*block/,
+      );
+    });
+
+    it('rendert die reduzierte Blitzlicht-Auswahl und zweizeilige Host-Aktionen', () => {
+      const fixture = createHomeFixture();
+      fixture.detectChanges();
+
+      const liveButtons = Array.from(
+        fixture.nativeElement.querySelectorAll<HTMLElement>('.home-live-grid .home-choice-button'),
+      );
+      expect(liveButtons).toHaveLength(3);
+      expect(
+        liveButtons.map((button) =>
+          button.querySelector('.home-choice-button__label')?.textContent?.trim(),
+        ),
+      ).toEqual(['Quiz', 'Q&A', 'Blitzlicht']);
+      expect(
+        liveButtons.map((button) =>
+          button.querySelector('.home-choice-button__description')?.textContent?.trim(),
+        ),
+      ).toEqual(['Wissen abfragen', 'Fragen & Wortwolke', 'Sofort-Feedback']);
+      for (const button of liveButtons) {
+        expect(button.querySelector('.home-choice-button__label')).not.toBeNull();
+        expect(button.querySelector('.home-choice-button__description')).not.toBeNull();
+      }
+      expect(
+        fixture.nativeElement
+          .querySelector('.home-card--live .home-card__description')
+          ?.textContent?.replace(/\s+/g, ' ')
+          .trim(),
+      ).toBe('Wähle Quiz, Q&A oder Blitzlicht.');
+
+      const quickFeedbackButtons = Array.from(
+        fixture.nativeElement.querySelectorAll<HTMLElement>(
+          '.home-feedback-chip-grid .home-feedback-chip',
+        ),
+      );
+      expect(
+        fixture.nativeElement
+          .querySelector('.home-card--feedback .home-card__description')
+          ?.textContent?.replace(/\s+/g, ' ')
+          .trim(),
+      ).toBe('Wähle eine Abstimmung für direktes Feedback.');
+      expect(quickFeedbackButtons.map((button) => button.getAttribute('aria-label'))).toEqual([
+        'Tempo',
+        'Stimmungsbild',
+        'Ja · Nein · Vielleicht',
+        'Sterne',
+      ]);
+      const compactMaybeLabel = fixture.nativeElement.querySelector<HTMLElement>(
+        '.home-feedback-chip__label--wide-compact',
+      );
+      expect(compactMaybeLabel?.textContent?.trim()).toBe('Ja · Nein · ?');
+      expect(compactMaybeLabel?.getAttribute('aria-hidden')).toBe('true');
+
+      const prepareButtons = Array.from(
+        fixture.nativeElement.querySelectorAll<HTMLElement>(
+          '.home-card--create .home-choice-button',
+        ),
+      );
+      expect(prepareButtons).toHaveLength(2);
+      for (const button of prepareButtons) {
+        expect(button.querySelector('.home-choice-button__label')).not.toBeNull();
+        expect(button.querySelector('.home-choice-button__description')).not.toBeNull();
+      }
+    });
+
+    it('trennt den englischen Hero-Begriff vom Namen des Blitzlicht-Features', async () => {
+      const { readFileSync } = await import('node:fs');
+      const { fileURLToPath } = await import('node:url');
+      const { dirname, join } = await import('node:path');
+      const templatePath = join(dirname(fileURLToPath(import.meta.url)), 'home.component.html');
+      const template = readFileSync(templatePath, 'utf8');
+
+      expect(template.match(/@@homeHero\.channelBlitzlicht/g)).toHaveLength(1);
+      expect(template.match(/@@homeLiveCard\.quickFeedbackLabel/g)).toHaveLength(1);
+    });
+
+    it('hält Buttontexte bei mindestens M3 Body-Small und reduziert ihren Kontrast nicht', async () => {
+      const { readFileSync } = await import('node:fs');
+      const { fileURLToPath } = await import('node:url');
+      const { dirname, join } = await import('node:path');
+      const scssPath = join(dirname(fileURLToPath(import.meta.url)), 'home.component.scss');
+      const scss = readFileSync(scssPath, 'utf8');
+      const descriptionRule = scss
+        .slice(scss.indexOf('.home-choice-button__description {'))
+        .split('}')[0];
+      const playfulLibraryRule = scss
+        .slice(scss.indexOf('.home-library-button.mat-mdc-outlined-button {'))
+        .split('}')[0];
+
+      expect(scss).toMatch(
+        /\.home-choice-button__label\s*\{[^}]*font:\s*var\(--mat-sys-label-large\)/,
+      );
+      expect(descriptionRule).toMatch(/font:\s*var\(--mat-sys-body-small\)/);
+      expect(descriptionRule).toMatch(/color:\s*inherit/);
+      expect(descriptionRule).not.toMatch(/opacity|color-mix/);
+      expect(scss).toMatch(/\.home-choice-button\s*\{[^}]*min-height:\s*3\.75rem/);
+      expect(scss).toMatch(/\.home-feedback-chip\s*\{[^}]*min-height:\s*4rem/);
+      expect(scss).not.toContain('var(--mat-sys-label-small)');
+      expect(playfulLibraryRule).toMatch(/color:\s*var\(--mat-sys-on-surface\)/);
+      expect(playfulLibraryRule).toMatch(/border-color:\s*var\(--mat-sys-on-surface-variant\)/);
+    });
+
+    it('behält für Spielerisch die vorhandenen tokenbasierten Magenta-/Violett-Flächen', async () => {
+      const { readFileSync } = await import('node:fs');
+      const { fileURLToPath } = await import('node:url');
+      const { dirname, join } = await import('node:path');
+      const scssPath = join(dirname(fileURLToPath(import.meta.url)), 'home.component.scss');
+      const scss = readFileSync(scssPath, 'utf8');
+      const playful = scss.slice(scss.indexOf(':host-context(html.preset-playful)'));
+
+      expect(playful).toMatch(
+        /\.home-card--stage-main#participant-entry\s*\{[\s\S]*?var\(--mat-sys-primary-container\)[\s\S]*?var\(--mat-sys-tertiary\)/,
+      );
+      expect(playful).toMatch(
+        /\.home-card\.home-card--stage-side\s*\{[\s\S]*?var\(--mat-sys-primary-container\)[\s\S]*?var\(--mat-sys-tertiary\)/,
+      );
+      expect(playful).toMatch(
+        /\.home-card\.home-card--create\.home-card--stage-side\s*\{[\s\S]*?var\(--mat-sys-tertiary-container\)/,
+      );
+      expect(scss).toMatch(
+        /:host-context\(html:not\(\.preset-playful\)\) \.home-card#participant-entry\s*\{[^}]*border-top:\s*3px solid var\(--mat-sys-primary\)/,
+      );
     });
 
     it('hält Session-Code-Zellen in beiden Presets quadratisch und volle Breite', async () => {
@@ -636,45 +696,18 @@ describe('HomeComponent', () => {
       const playful = scss.slice(scss.indexOf(':host-context(html.preset-playful)'));
       const shared = scss.slice(0, scss.indexOf(':host-context(html.preset-playful)'));
       const sharedSegment = shared.slice(shared.indexOf('.home-code-segment {'));
+      const sharedSegmentRule = sharedSegment.slice(0, sharedSegment.indexOf('}'));
 
-      expect(sharedSegment).toMatch(/flex:\s*1 1 0/);
-      expect(sharedSegment).toMatch(/aspect-ratio:\s*1/);
-      expect(sharedSegment).toMatch(/border-radius:\s*var\(--mat-sys-corner-medium\)/);
+      expect(sharedSegmentRule).toMatch(/flex:\s*1 1 0/);
+      expect(sharedSegmentRule).toMatch(/aspect-ratio:\s*1/);
+      expect(sharedSegmentRule).toMatch(/border-radius:\s*var\(--mat-sys-corner-medium\)/);
       expect(shared).toMatch(/\.home-code-entry\s*\{[^}]*max-width:\s*20\.5rem/);
-      expect(sharedSegment).not.toMatch(/height:\s*3(\.5)?rem/);
+      expect(sharedSegmentRule).not.toMatch(/height:\s*3(\.5)?rem/);
       expect(playful).not.toMatch(/\.home-code-segment\s*\{[^}]*max-width:\s*2\.5rem/);
       expect(playful).not.toMatch(/\.home-code-segment\s*\{[^}]*width:\s*3rem/);
       expect(scss).not.toContain('home-spotlight-panel');
-      expect(sharedSegment).toMatch(/border:\s*2px solid var\(--mat-sys-outline\)/);
+      expect(sharedSegmentRule).toMatch(/border:\s*2px solid var\(--mat-sys-outline\)/);
       expect(playful).not.toMatch(/\.home-code-segment\s*\{[^}]*border-color:\s*color-mix/);
-    });
-
-    it('hält Mitmachen-CTA bei Fehleingabe volle Breite und Button-Padding', async () => {
-      const { readFileSync } = await import('node:fs');
-      const { fileURLToPath } = await import('node:url');
-      const { dirname, join } = await import('node:path');
-      const scssPath = join(dirname(fileURLToPath(import.meta.url)), 'home.component.scss');
-      const scss = readFileSync(scssPath, 'utf8');
-
-      expect(scss).toMatch(/\.home-cta\s*\{[^}]*padding-block:\s*0\.625rem/);
-      expect(scss).toMatch(/\.home-cta\s*\{[^}]*white-space:\s*nowrap/);
-      expect(scss).toMatch(/\.home-card--create \.home-cta\s*\{[^}]*white-space:\s*normal/);
-      expect(scss).toMatch(
-        /\.home-card#participant-entry mat-card-actions\.l-stack\s*\{[^}]*flex-direction:\s*column/,
-      );
-      expect(scss).toMatch(/\.home-error\s*\{[^}]*justify-content:\s*center/);
-      expect(scss).toMatch(/\.home-card__heading\s*\{[^}]*align-items:\s*center/);
-      expect(scss).toMatch(/\.home-card \.mat-mdc-card-header\s*\{[^}]*padding-inline:\s*1rem/);
-      expect(scss).toMatch(
-        /\.home-card \.mat-mdc-card-content,\s*\.home-card \.mat-mdc-card-actions\s*\{[^}]*padding-inline:\s*1rem/,
-      );
-      expect(scss).toMatch(/\.home-card__header-with-action\s*\{[^}]*gap:\s*0/);
-      expect(scss).not.toMatch(
-        /#participant-entry \.mat-mdc-card-header\s*\{[^}]*padding-inline:\s*0\.65rem/,
-      );
-      expect(scss).not.toMatch(
-        /#participant-entry \.home-card__icon-wrap\s*\{[^}]*width:\s*2\.75rem/,
-      );
     });
   });
 
@@ -1037,6 +1070,31 @@ describe('HomeComponent', () => {
       expect(comp.joinError()).toBeNull();
     });
 
+    it('sperrt die Live-Aktionen während eine Host-Session angelegt wird', async () => {
+      const { trpc } = await import('../../core/trpc.client');
+      let resolveCreate!: (value: { id: string; code: string; hostToken: string }) => void;
+      vi.mocked(trpc.session.create.mutate).mockImplementationOnce(
+        () =>
+          new Promise((resolve) => {
+            resolveCreate = resolve;
+          }),
+      );
+      vi.spyOn(TestBed.inject(Router), 'navigateByUrl').mockResolvedValue(true);
+      const comp = createHomeComponent();
+
+      const firstStart = comp.openHeroHostTab('qa');
+      await vi.waitUntil(() => vi.mocked(trpc.session.create.mutate).mock.calls.length === 1);
+
+      expect(comp.hostSessionStarting()).toBe('qa');
+      await comp.openHeroHostTab('quickFeedback');
+      expect(trpc.session.create.mutate).toHaveBeenCalledTimes(1);
+
+      resolveCreate({ id: 'sess-pending', code: 'QAWAIT', hostToken: 'pending-token' });
+      await firstStart;
+
+      expect(comp.hostSessionStarting()).toBeNull();
+    });
+
     it('zeigt beim gedrosselten Q&A-Schnellstart die konkrete Wartezeit', async () => {
       const { trpc } = await import('../../core/trpc.client');
       vi.mocked(trpc.session.create.mutate).mockRejectedValueOnce({
@@ -1048,10 +1106,11 @@ describe('HomeComponent', () => {
 
       await comp.openHeroHostTab('qa');
 
-      expect(comp.joinError()).toBe(
+      expect(comp.hostSessionError()).toBe(
         'Zu viele Session-Erstellungen. Bitte später erneut versuchen.\n' +
           'Bitte in 23 Sekunden erneut versuchen.',
       );
+      expect(comp.joinError()).toBeNull();
     });
 
     it('startet im seriösen Preset eine neue Q&A-Host-Session mit Oberstufen-Pseudonymen', async () => {
@@ -2466,24 +2525,28 @@ describe('HomeComponent', () => {
       expect(comp.hasHostedQuiz()).toBe(true);
     });
 
-    it('zeigt ohne eigenes Quiz den Erstellen-CTA und die Sammlung getrennt auf der Veranstalten-Karte', () => {
+    it('zeigt ohne eigenes Quiz Erstellen tonal und die Sammlung outlined', () => {
       const fixture = createHomeFixture();
       fixture.detectChanges();
+      const card = fixture.nativeElement.querySelector('.home-card--create') as HTMLElement;
 
-      const filled = fixture.nativeElement.querySelectorAll(
-        '.home-card--create .mat-mdc-unelevated-button',
-      );
-      expect(filled).toHaveLength(1);
-      expect(filled[0]?.textContent).toContain('Neues Quiz erstellen');
+      expect(card.querySelectorAll('.mat-mdc-unelevated-button')).toHaveLength(0);
       expect(fixture.nativeElement.textContent).not.toContain('Letztes Quiz starten');
 
-      const secondary = fixture.nativeElement.querySelector(
-        '.home-card--create .home-cta--secondary',
-      ) as HTMLAnchorElement | null;
-      expect(secondary?.textContent).toContain('Quiz-Sammlung öffnen');
+      const create = Array.from(card.querySelectorAll('.home-cta')).find((el) =>
+        el.textContent?.includes('Neues Quiz erstellen'),
+      ) as HTMLAnchorElement;
+      const library = Array.from(card.querySelectorAll('.home-cta')).find((el) =>
+        el.textContent?.includes('Quiz-Sammlung öffnen'),
+      ) as HTMLAnchorElement;
+
+      expect(create.classList.contains('mat-tonal-button')).toBe(true);
+      expect(library.classList.contains('home-library-button')).toBe(true);
+      expect(library.classList.contains('mat-mdc-outlined-button')).toBe(true);
+      expect(library.classList.contains('mat-tonal-button')).toBe(false);
     });
 
-    it('zeigt mit eigenem Quiz beide Buttons, aber nur Starten als gefuellten CTA', () => {
+    it('zeigt mit eigenem Quiz nur Starten gefuellt, Erstellen tonal und Sammlung outlined', () => {
       const quizStore = TestBed.inject(QuizStoreService);
       quizStore.createQuiz({ name: 'Live-Quiz', description: '' });
 
@@ -2499,13 +2562,15 @@ describe('HomeComponent', () => {
       const create = Array.from(card.querySelectorAll('.home-cta')).find((el) =>
         el.textContent?.includes('Neues Quiz erstellen'),
       ) as HTMLAnchorElement | undefined;
+      const library = Array.from(card.querySelectorAll('.home-cta')).find((el) =>
+        el.textContent?.includes('Quiz-Sammlung öffnen'),
+      ) as HTMLAnchorElement | undefined;
       expect(create?.classList.contains('home-cta--secondary')).toBe(true);
       expect(create?.classList.contains('mat-mdc-unelevated-button')).toBe(false);
-      expect(
-        Array.from(card.querySelectorAll('.home-cta--secondary')).some((el) =>
-          el.textContent?.includes('Quiz-Sammlung öffnen'),
-        ),
-      ).toBe(true);
+      expect(create?.classList.contains('mat-tonal-button')).toBe(true);
+      expect(library?.classList.contains('home-library-button')).toBe(true);
+      expect(library?.classList.contains('mat-mdc-outlined-button')).toBe(true);
+      expect(library?.classList.contains('mat-tonal-button')).toBe(false);
     });
   });
 });

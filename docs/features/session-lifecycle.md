@@ -55,8 +55,11 @@ von 3), statt die Einrichtung als Ersteinrichtung zu prüfen. **Fertig** in der
 Zugangskarte beendet die Sequenz: `qaSetup` entfällt, die Einrichtung
 öffnet sich nicht erneut als Schritt 2, und eine reine Q&A-Session wechselt
 aus der Lobby nach `ACTIVE` (Fragenwand), ohne denselben Start noch einmal
-als vierten Schritt zu verlangen. »Fragerunde starten« bleibt sichtbar, wenn
-die Session nach Reload noch in `LOBBY` ist. Wird Q&A
+als vierten Schritt zu verlangen. Der Tastaturfokus liegt danach auf der
+Fragenwand-Überschrift. Schlägt `startQa` fehl, bleibt die Session in `LOBBY`
+und der bestehende Steuerungs-Callout fokussiert »Nochmal probieren«.
+»Fragerunde starten« bleibt sichtbar, wenn die Session nach Reload noch in
+`LOBBY` ist. Wird Q&A
 später in einer bestehenden Session aktiviert, bleiben Einrichtung und
 Zugangskarte Schritt 1 und 2 von 2; Abbrechen dort lässt die Session bestehen.
 Spätere Q&A-Einstellungen und eine Zugangskarte nach Reload bleiben ohne

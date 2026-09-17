@@ -8027,20 +8027,6 @@
           <context context-type="linenumber">36,38</context>
         </context-group>
       </trans-unit>
-      <trans-unit id="home.presetBandAria" datatype="html">
-        <source>Stil wählen</source>
-        <context-group purpose="location">
-          <context context-type="sourcefile">src/app/features/home/home.component.html</context>
-          <context context-type="linenumber">43</context>
-        </context-group>
-      </trans-unit>
-      <trans-unit id="home.presetToggleAria" datatype="html">
-        <source>Stil auswählen</source>
-        <context-group purpose="location">
-          <context context-type="sourcefile">src/app/features/home/home.component.html</context>
-          <context context-type="linenumber">48</context>
-        </context-group>
-      </trans-unit>
       <trans-unit id="6088916262905537020" datatype="html">
         <source>Spielerisch</source>
         <context-group purpose="location">
@@ -8118,32 +8104,11 @@
           <context context-type="linenumber">88</context>
         </context-group>
       </trans-unit>
-      <trans-unit id="home.heroChip.quizStart" datatype="html">
-        <source>Quiz erstellen</source>
-        <context-group purpose="location">
-          <context context-type="sourcefile">src/app/features/home/home.component.html</context>
-          <context context-type="linenumber">96</context>
-        </context-group>
-      </trans-unit>
-      <trans-unit id="home.heroChip.openQa" datatype="html">
-        <source> Q&amp;A erstellen </source>
-        <context-group purpose="location">
-          <context context-type="sourcefile">src/app/features/home/home.component.html</context>
-          <context context-type="linenumber">104,106</context>
-        </context-group>
-      </trans-unit>
-      <trans-unit id="home.heroChip.startQuickFeedback" datatype="html">
-        <source> Blitzlicht starten </source>
-        <context-group purpose="location">
-          <context context-type="sourcefile">src/app/features/home/home.component.html</context>
-          <context context-type="linenumber">113,115</context>
-        </context-group>
-      </trans-unit>
       <trans-unit id="homeJoinCard.title" datatype="html">
-        <source>Mitmachen</source>
+        <source> An einer Session teilnehmen </source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/home/home.component.html</context>
-          <context context-type="linenumber">130</context>
+          <context context-type="linenumber">54,56</context>
         </context-group>
       </trans-unit>
       <trans-unit id="6442998532427943414" datatype="html">
@@ -8153,25 +8118,151 @@
           <context context-type="linenumber">137</context>
         </context-group>
       </trans-unit>
+      <trans-unit id="homeJoinCard.eyebrow" datatype="html">
+        <source>Für Teilnehmende</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/home/home.component.html</context>
+          <context context-type="linenumber">53</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="homeJoinCard.joinCta" datatype="html">
+        <source>Los geht’s</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/home/home.component.html</context>
+          <context context-type="linenumber">158</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="homeHostIntro.eyebrow" datatype="html">
+        <source> Für Lehrende und Vortragende </source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/home/home.component.html</context>
+          <context context-type="linenumber">190,192</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="homeHostIntro.title" datatype="html">
+        <source> Was möchtest du tun? </source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/home/home.component.html</context>
+          <context context-type="linenumber">193,195</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="homeHostIntro.description" datatype="html">
+        <source> Starte eine Live-Session, hole direkt Feedback ein oder bereite ein Quiz vor. </source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/home/home.component.html</context>
+          <context context-type="linenumber">196,198</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="homeLiveCard.eyebrow" datatype="html">
+        <source>Live</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/home/home.component.html</context>
+          <context context-type="linenumber">209</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="homeLiveCard.title" datatype="html">
+        <source> Session starten </source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/home/home.component.html</context>
+          <context context-type="linenumber">210,212</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="homeLiveCard.description" datatype="html">
+        <source> Wähle Quiz, Q&amp;A oder Blitzlicht. </source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/home/home.component.html</context>
+          <context context-type="linenumber">213,215</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="homeLiveCard.quizDescription" datatype="html">
+        <source>Wissen abfragen</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/home/home.component.html</context>
+          <context context-type="linenumber">229</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="homeLiveCard.qaDescription" datatype="html">
+        <source>Fragen &amp; Wortwolke</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/home/home.component.html</context>
+          <context context-type="linenumber">244</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="homeLiveCard.quickFeedbackLabel" datatype="html">
+        <source>Blitzlicht</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/home/home.component.html</context>
+          <context context-type="linenumber">263</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="homeLiveCard.quickFeedbackDescription" datatype="html">
+        <source>Sofort-Feedback</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/home/home.component.html</context>
+          <context context-type="linenumber">268</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="homeFeedbackCard.eyebrow" datatype="html">
+        <source>Direktes Feedback</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/home/home.component.html</context>
+          <context context-type="linenumber">294</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="homeFeedbackCard.description" datatype="html">
+        <source> Wähle eine Abstimmung für direktes Feedback. </source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/home/home.component.html</context>
+          <context context-type="linenumber">298,300</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="homeFeedbackCard.yesNoMaybeCompact" datatype="html">
+        <source>Ja · Nein · ?</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/home/home.component.html</context>
+          <context context-type="linenumber">348,349</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="homeHostCard.eyebrow" datatype="html">
+        <source>Vorbereiten</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/home/home.component.html</context>
+          <context context-type="linenumber">366</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="homeHostCard.description" datatype="html">
+        <source> Erstelle ein neues Quiz oder öffne deine Sammlung. </source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/home/home.component.html</context>
+          <context context-type="linenumber">370,372</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="homeHostCard.primaryCtaDescription" datatype="html">
+        <source>Direkt live gehen</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/home/home.component.html</context>
+          <context context-type="linenumber">408</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="homeHostCard.createQuizCtaDescription" datatype="html">
+        <source>Fragen vorbereiten</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/home/home.component.html</context>
+          <context context-type="linenumber">427</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="homeHostCard.libraryCtaDescription" datatype="html">
+        <source>Quizzes verwalten</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/home/home.component.html</context>
+          <context context-type="linenumber">446</context>
+        </context-group>
+      </trans-unit>
       <trans-unit id="home.sessionCodeAria" datatype="html">
         <source>Session-Code, 6 Zeichen</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/home/home.component.html</context>
           <context context-type="linenumber">201</context>
-        </context-group>
-      </trans-unit>
-      <trans-unit id="homeCode.sessionCodeLabel" datatype="html">
-        <source>Session-Code</source>
-        <context-group purpose="location">
-          <context context-type="sourcefile">src/app/features/home/home.component.html</context>
-          <context context-type="linenumber">206</context>
-        </context-group>
-      </trans-unit>
-      <trans-unit id="5443127833205996206" datatype="html">
-        <source>Los geht&apos;s</source>
-        <context-group purpose="location">
-          <context context-type="sourcefile">src/app/features/home/home.component.html</context>
-          <context context-type="linenumber">227</context>
         </context-group>
       </trans-unit>
       <trans-unit id="sessionEntry.showHostLink" datatype="html">
@@ -8186,17 +8277,17 @@
         </context-group>
       </trans-unit>
       <trans-unit id="homeFeedbackCard.title" datatype="html">
-        <source> Nur ein Klick </source>
+        <source> Mit einem Klick </source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/home/home.component.html</context>
-          <context context-type="linenumber">267,269</context>
+          <context context-type="linenumber">295,297</context>
         </context-group>
       </trans-unit>
       <trans-unit id="homeHostCard.title" datatype="html">
-        <source>Vorbereiten</source>
+        <source> Quiz erstellen </source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/home/home.component.html</context>
-          <context context-type="linenumber">336</context>
+          <context context-type="linenumber">367,369</context>
         </context-group>
       </trans-unit>
       <trans-unit id="homeHostCard.syncPanelCta" datatype="html">

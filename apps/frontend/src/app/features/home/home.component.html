@@ -9,8 +9,12 @@
         (click)="closeSyncLinkEntry()"
       ></button>
     }
-    <div class="home-hero-band" [attr.inert]="syncLinkVisible() ? '' : null">
-      <h1 class="home-hero">
+    <section
+      class="home-hero-band"
+      aria-labelledby="home-hero-title"
+      [attr.inert]="syncLinkVisible() ? '' : null"
+    >
+      <h1 id="home-hero-title" class="home-hero">
         <span class="home-hero-channels">
           <span i18n="@@homeHero.channelQuiz">Quiz</span>
           <span class="home-hero-host-sep" aria-hidden="true">·</span>
@@ -36,85 +40,7 @@
       >
         Kostenlos. Open Source. Ohne Anmeldung. Made in Europe.
       </p>
-
-      <div
-        class="home-hero-preset-mobile"
-        i18n-aria-label="@@home.presetBandAria"
-        aria-label="Stil wählen"
-      >
-        <div
-          role="group"
-          i18n-aria-label="@@home.presetToggleAria"
-          aria-label="Stil auswählen"
-          class="home-hero-preset-toggle"
-        >
-          <!-- Spielerisch zuerst: Default; vermeidet kurzen „Seriös“-Flash bei Hydration/Mobile. -->
-          <button
-            type="button"
-            class="home-hero-preset-toggle__btn"
-            [class.home-hero-preset-toggle__btn--active]="themePreset.preset() === 'spielerisch'"
-            [attr.aria-pressed]="themePreset.preset() === 'spielerisch'"
-            (click)="themePreset.setPreset('spielerisch')"
-          >
-            <span class="home-preset-option">
-              <mat-icon class="home-preset-icon--playful" aria-hidden="true">celebration</mat-icon>
-              <span i18n>Spielerisch</span>
-            </span>
-          </button>
-          <button
-            type="button"
-            class="home-hero-preset-toggle__btn"
-            [class.home-hero-preset-toggle__btn--active]="themePreset.preset() === 'serious'"
-            [attr.aria-pressed]="themePreset.preset() === 'serious'"
-            (click)="themePreset.setPreset('serious')"
-          >
-            <span class="home-preset-option">
-              <mat-icon aria-hidden="true">work</mat-icon>
-              <span i18n>Seriös</span>
-            </span>
-          </button>
-        </div>
-      </div>
-
-      <div class="home-hero-host-row">
-        <button
-          #codeEnterBtn
-          matButton="filled"
-          type="button"
-          class="home-hero-host-link home-hero-code-enter"
-          (click)="focusCodeInput()"
-        >
-          <mat-icon aria-hidden="true">login</mat-icon>
-          <span i18n="@@home.step1">Code eingeben</span>
-        </button>
-        <a
-          matButton="tonal"
-          [routerLink]="localizedPath('/quiz/new')"
-          class="home-hero-host-link"
-          (mouseenter)="preloadQuiz()"
-          i18n="@@home.heroChip.quizStart"
-          >Quiz erstellen</a
-        >
-        <button
-          matButton="tonal"
-          type="button"
-          class="home-hero-host-link"
-          (click)="openHeroHostTab('qa')"
-          i18n="@@home.heroChip.openQa"
-        >
-          Q&amp;A erstellen
-        </button>
-        <button
-          matButton="tonal"
-          type="button"
-          class="home-hero-host-link"
-          (click)="openHeroHostTab('quickFeedback')"
-          i18n="@@home.heroChip.startQuickFeedback"
-        >
-          Blitzlicht starten
-        </button>
-      </div>
-    </div>
+    </section>
 
     <mat-card
       appearance="raised"
@@ -122,16 +48,16 @@
       class="home-card home-card--stage-main"
       [attr.inert]="syncLinkVisible() ? '' : null"
     >
-      <mat-card-header>
-        <div class="home-card__heading">
-          <span class="home-card__icon-wrap">
-            <mat-icon class="home-card__icon">group_add</mat-icon>
-          </span>
-          <h2 mat-card-title class="home-card__title" i18n="@@homeJoinCard.title">Mitmachen</h2>
+      <mat-card-header class="home-card__header">
+        <div class="home-card__header-copy">
+          <p class="home-card__eyebrow" i18n="@@homeJoinCard.eyebrow">Für Teilnehmende</p>
+          <h2 mat-card-title class="home-card__title" i18n="@@homeJoinCard.title">
+            An einer Session teilnehmen
+          </h2>
         </div>
       </mat-card-header>
 
-      <mat-card-content class="l-stack l-stack--sm">
+      <mat-card-content class="home-card__content">
         @if (recentSessionCodes().length > 0) {
           <div class="home-recent-panel">
             <p class="home-recent-label" i18n>Letzte Sessions</p>
@@ -163,70 +89,78 @@
           </div>
         }
 
-        <div class="home-code-entry">
-          <div
-            class="home-code-segments"
-            role="presentation"
-            [class.home-code-segments--focused]="codeInputFocused()"
-            [class.home-code-segments--shake]="codeShaking()"
-            [class.home-code-segments--joining]="isJoining()"
-            (click)="focusCodeInput()"
-          >
-            @for (slot of codeSlots; track slot) {
-              <span
-                class="home-code-segment"
-                [class.home-code-segment--active]="
-                  codeInputFocused() && sessionCode().length === slot
-                "
-                [class.home-code-segment--filled]="sessionCode().length > slot"
-              >
-                {{ sessionCode()[slot] }}
-              </span>
-            }
-            <input
-              #sessionCodeInput
-              id="home-session-code-input"
-              class="home-code-segments__input"
-              type="text"
-              maxlength="6"
-              [value]="sessionCode()"
-              (input)="onSessionCodeInput($event)"
-              (keydown.enter)="joinSession()"
-              (focus)="codeInputFocused.set(true)"
-              (blur)="codeInputFocused.set(false)"
-              autocapitalize="characters"
-              autocomplete="off"
-              spellcheck="false"
-              i18n-aria-label="@@home.sessionCodeAria"
-              aria-label="Session-Code, 6 Zeichen"
-            />
-          </div>
-          <div class="home-code-meta">
-            <span class="home-code-under-label" i18n="@@homeCode.sessionCodeLabel"
-              >Session-Code</span
+        <button
+          #codeEnterBtn
+          matButton
+          type="button"
+          class="home-code-prompt home-hero-code-enter"
+          (click)="focusCodeInput()"
+        >
+          <span i18n="@@home.step1">Code eingeben</span>
+        </button>
+
+        <div class="home-join-row">
+          <div class="home-code-entry">
+            <div
+              class="home-code-segments"
+              role="presentation"
+              [class.home-code-segments--focused]="codeInputFocused()"
+              [class.home-code-segments--shake]="codeShaking()"
+              [class.home-code-segments--joining]="isJoining()"
+              (click)="focusCodeInput()"
             >
+              @for (slot of codeSlots; track slot) {
+                <span
+                  class="home-code-segment"
+                  [class.home-code-segment--active]="
+                    codeInputFocused() && sessionCode().length === slot
+                  "
+                  [class.home-code-segment--filled]="sessionCode().length > slot"
+                >
+                  {{ sessionCode()[slot] }}
+                </span>
+              }
+              <input
+                #sessionCodeInput
+                id="home-session-code-input"
+                class="home-code-segments__input"
+                type="text"
+                maxlength="6"
+                [value]="sessionCode()"
+                (input)="onSessionCodeInput($event)"
+                (keydown.enter)="joinSession()"
+                (focus)="codeInputFocused.set(true)"
+                (blur)="codeInputFocused.set(false)"
+                autocapitalize="characters"
+                autocomplete="off"
+                spellcheck="false"
+                i18n-aria-label="@@home.sessionCodeAria"
+                aria-label="Session-Code, 6 Zeichen"
+              />
+            </div>
+          </div>
+
+          <div class="home-join-submit">
+            @if (isJoining()) {
+              <button matButton="filled" class="home-cta home-cta--join" disabled aria-busy="true">
+                <mat-icon class="home-cta__icon home-spin" aria-hidden="true">sync</mat-icon>
+                <span i18n>Verbinde…</span>
+              </button>
+            } @else {
+              <button
+                matButton="filled"
+                class="home-cta home-cta--join"
+                [class.home-cta--ready]="ctaReady()"
+                (click)="joinSession()"
+                [disabled]="!isValidSessionCode()"
+              >
+                <mat-icon class="home-cta__icon" aria-hidden="true">login</mat-icon>
+                <span i18n="@@homeJoinCard.joinCta">Los geht’s</span>
+              </button>
+            }
           </div>
         </div>
-      </mat-card-content>
 
-      <mat-card-actions class="l-stack l-stack--sm">
-        @if (isJoining()) {
-          <button matButton="filled" class="home-cta" disabled>
-            <mat-icon class="home-cta__icon home-spin">sync</mat-icon>
-            <span i18n>Verbinde…</span>
-          </button>
-        } @else {
-          <button
-            matButton="filled"
-            class="home-cta"
-            [class.home-cta--ready]="ctaReady()"
-            (click)="joinSession()"
-            [disabled]="!isValidSessionCode()"
-          >
-            <mat-icon class="home-cta__icon">login</mat-icon>
-            <span i18n>Los geht's</span>
-          </button>
-        }
         @if (joinError()) {
           <p class="home-error" role="alert">
             <mat-icon class="home-error__icon" aria-hidden="true">warning</mat-icon>
@@ -238,228 +172,378 @@
               mat-button
               class="home-error-link"
             >
-              <mat-icon>admin_panel_settings</mat-icon>
+              <mat-icon aria-hidden="true">admin_panel_settings</mat-icon>
               <span i18n="@@sessionEntry.showHostLink">Als Host anzeigen</span>
             </a>
           }
         }
-      </mat-card-actions>
-    </mat-card>
-    <mat-card
-      appearance="raised"
-      id="host-quick-feedback"
-      class="home-card home-card--feedback home-card--stage-side"
-      [attr.inert]="syncLinkVisible() ? '' : null"
-    >
-      <mat-card-header>
-        <div class="home-card__heading">
-          <span class="home-card__icon-wrap">
-            <mat-icon class="home-card__icon">bolt</mat-icon>
-          </span>
-          <h2 mat-card-title class="home-card__title" i18n="@@homeFeedbackCard.title">
-            Nur ein Klick
-          </h2>
-        </div>
-      </mat-card-header>
-
-      <mat-card-content class="l-stack l-stack--sm">
-        <div class="home-feedback-chip-grid">
-          @for (chip of quickFeedbackPresetChips; track chip.type) {
-            <button
-              matButton="tonal"
-              type="button"
-              class="home-feedback-chip"
-              (click)="startQuickFeedback(chip.type)"
-              [disabled]="!!quickFeedbackStarting()"
-              [attr.aria-busy]="quickFeedbackStarting() === chip.type"
-              [attr.aria-label]="chip.label"
-            >
-              <span class="home-feedback-chip__body">
-                <span
-                  class="home-feedback-chip__icons"
-                  [class.home-feedback-chip__icons--rating]="chip.type === 'STARS'"
-                  aria-hidden="true"
-                >
-                  @for (icon of chip.icons; track icon) {
-                    @if (icon.kind === 'mat') {
-                      <mat-icon
-                        class="home-feedback-chip__icon"
-                        [class.home-feedback-chip__icon--positive]="icon.tone === 'positive'"
-                        [class.home-feedback-chip__icon--negative]="icon.tone === 'negative'"
-                        [class.home-feedback-chip__icon--neutral]="icon.tone === 'neutral'"
-                        [class.home-feedback-chip__icon--rating]="icon.tone === 'rating'"
-                      >
-                        {{ icon.value }}
-                      </mat-icon>
-                    } @else {
-                      <span class="home-feedback-chip__icon">{{ icon.value }}</span>
-                    }
-                  }
-                </span>
-                @if (chip.showLabel !== false) {
-                  <span class="home-feedback-chip__label">{{ chip.label }}</span>
-                }
-              </span>
-              @if (quickFeedbackStarting() === chip.type) {
-                <mat-icon class="home-feedback-chip__busy home-spin">sync</mat-icon>
-              }
-            </button>
-          }
-        </div>
-        @if (quickFeedbackError()) {
-          <p class="home-error" role="alert">
-            <mat-icon class="home-error__icon" aria-hidden="true">warning</mat-icon>
-            <span class="home-error__text">{{ quickFeedbackError() }}</span>
-          </p>
-        }
       </mat-card-content>
     </mat-card>
 
-    <mat-card
-      appearance="raised"
-      class="home-card home-card--create home-card--stage-side"
-      [class.home-card--sync-open]="syncLinkVisible()"
-    >
-      <mat-card-header class="home-card__header-with-action">
-        <div class="home-card__heading">
-          <span class="home-card__icon-wrap">
-            <mat-icon class="home-card__icon">event</mat-icon>
-          </span>
-          <h2 mat-card-title class="home-card__title" i18n="@@homeHostCard.title">Vorbereiten</h2>
-        </div>
-        <button
-          #syncToggleBtn
-          type="button"
-          matIconButton
-          class="home-card__sync-btn"
-          (click)="toggleSyncLinkEntry()"
-          [attr.aria-expanded]="syncLinkVisible()"
-          [attr.aria-controls]="syncLinkVisible() ? 'home-sync-entry' : null"
-          i18n-aria-label="@@homeHostCard.syncPanelCta"
-          aria-label="Geteilte Sammlung nutzen"
-          i18n-matTooltip="@@homeHostCard.syncPanelCta"
-          matTooltip="Geteilte Sammlung nutzen"
-        >
-          <mat-icon aria-hidden="true">devices</mat-icon>
-        </button>
-      </mat-card-header>
+    <hr class="home-role-divider" />
 
-      <mat-card-actions class="l-stack l-stack--sm">
-        <div class="home-card__cta-stack" [attr.inert]="syncLinkVisible() ? '' : null">
-          @if (hasHostedQuiz()) {
-            <a
-              matButton="filled"
-              [routerLink]="localizedPath('/quiz')"
-              [queryParams]="{ startLiveQuiz: latestHostedQuizId() }"
-              class="home-cta"
-              (mouseenter)="preloadQuiz()"
-            >
-              <mat-icon class="home-cta__icon">play_circle</mat-icon>
-              <span i18n="@@homeHostCard.primaryCta">Letztes Quiz starten</span>
-            </a>
-          }
+    <section
+      class="home-host-intro"
+      aria-labelledby="home-host-title"
+      [attr.inert]="syncLinkVisible() ? '' : null"
+    >
+      <p class="home-section-eyebrow" i18n="@@homeHostIntro.eyebrow">
+        Für Lehrende und Vortragende
+      </p>
+      <h2 id="home-host-title" class="home-host-intro__title" i18n="@@homeHostIntro.title">
+        Was möchtest du tun?
+      </h2>
+      <p class="home-host-intro__description" i18n="@@homeHostIntro.description">
+        Starte eine Live-Session, hole direkt Feedback ein oder bereite ein Quiz vor.
+      </p>
+    </section>
+
+    <div class="home-host-stack">
+      <mat-card
+        appearance="raised"
+        class="home-card home-card--live home-card--stage-side"
+        [attr.inert]="syncLinkVisible() ? '' : null"
+      >
+        <mat-card-header class="home-card__header">
+          <div class="home-card__header-copy">
+            <p class="home-card__eyebrow" i18n="@@homeLiveCard.eyebrow">Live</p>
+            <h3 mat-card-title class="home-card__title" i18n="@@homeLiveCard.title">
+              Session starten
+            </h3>
+            <p class="home-card__description" i18n="@@homeLiveCard.description">
+              Wähle Quiz, Q&amp;A oder Blitzlicht.
+            </p>
+          </div>
+        </mat-card-header>
+
+        <mat-card-actions class="home-card__actions home-live-grid">
           <a
-            [matButton]="hasHostedQuiz() ? 'tonal' : 'filled'"
-            [routerLink]="localizedPath('/quiz/new')"
-            class="home-cta"
-            [class.home-cta--secondary]="hasHostedQuiz()"
+            matButton="tonal"
+            [routerLink]="localizedPath('/quiz')"
+            class="home-choice-button"
             (mouseenter)="preloadQuiz()"
           >
-            <mat-icon class="home-cta__icon">add_circle</mat-icon>
-            <span i18n="@@homeHostCard.createQuizCta">Neues Quiz erstellen</span>
+            <span class="home-choice-button__copy">
+              <span class="home-choice-button__label" i18n="@@homeHero.channelQuiz">Quiz</span>
+              <span class="home-choice-button__description" i18n="@@homeLiveCard.quizDescription"
+                >Wissen abfragen</span
+              >
+            </span>
           </a>
-          <div class="home-cta-row">
-            <a
-              matButton="tonal"
-              [routerLink]="localizedPath('/quiz')"
-              class="home-cta home-cta--secondary"
-              (mouseenter)="preloadQuiz()"
-              [matBadge]="quizCountBadgeText()"
-              [matBadgeHidden]="quizCount() === 0"
-            >
-              <mat-icon class="home-cta__icon">library_books</mat-icon>
-              <span i18n="@@homeHostCard.libraryCta">Quiz-Sammlung öffnen</span>
-            </a>
-          </div>
-        </div>
-        <div class="home-card__tertiary" [attr.inert]="syncLinkVisible() ? '' : null">
-          <app-info-landing-link
-            class="home-card__info-landing"
-            [anchor]="infoLandingWorkflowAnchor"
-            [label]="infoLandingWorkflowLabel"
-            [dense]="true"
-          />
-        </div>
-        @if (syncLinkVisible()) {
-          <div id="home-sync-entry" class="home-sync-entry" cdkTrapFocus>
-            <p class="home-sync-entry__action-hint" i18n="@@homeHostCard.syncOpenHint">
-              Füge den Link ein, den du von einem anderen Gerät bekommen hast.
+          <button
+            matButton="tonal"
+            type="button"
+            class="home-choice-button"
+            (click)="openHeroHostTab('qa')"
+            [disabled]="!!hostSessionStarting()"
+            [attr.aria-busy]="hostSessionStarting() === 'qa' ? 'true' : null"
+          >
+            <span class="home-choice-button__copy">
+              <span class="home-choice-button__label" i18n="@@homeHero.channelQa">Q&amp;A</span>
+              <span class="home-choice-button__description" i18n="@@homeLiveCard.qaDescription"
+                >Fragen &amp; Wortwolke</span
+              >
+            </span>
+            @if (hostSessionStarting() === 'qa') {
+              <mat-icon class="home-choice-button__busy home-spin" aria-hidden="true"
+                >sync</mat-icon
+              >
+            }
+          </button>
+          <button
+            matButton="tonal"
+            type="button"
+            class="home-choice-button"
+            (click)="openHeroHostTab('quickFeedback')"
+            [disabled]="!!hostSessionStarting()"
+            [attr.aria-busy]="hostSessionStarting() === 'quickFeedback' ? 'true' : null"
+          >
+            <span class="home-choice-button__copy">
+              <span class="home-choice-button__label" i18n="@@homeLiveCard.quickFeedbackLabel"
+                >Blitzlicht</span
+              >
+              <span
+                class="home-choice-button__description"
+                i18n="@@homeLiveCard.quickFeedbackDescription"
+                >Sofort-Feedback</span
+              >
+            </span>
+            @if (hostSessionStarting() === 'quickFeedback') {
+              <mat-icon class="home-choice-button__busy home-spin" aria-hidden="true"
+                >sync</mat-icon
+              >
+            }
+          </button>
+        </mat-card-actions>
+        @if (hostSessionError()) {
+          <p class="home-error home-card__inline-error" role="alert">
+            <mat-icon class="home-error__icon" aria-hidden="true">warning</mat-icon>
+            <span class="home-error__text">{{ hostSessionError() }}</span>
+          </p>
+        }
+      </mat-card>
+
+      <mat-card
+        appearance="raised"
+        id="host-quick-feedback"
+        class="home-card home-card--feedback home-card--stage-side"
+        [attr.inert]="syncLinkVisible() ? '' : null"
+      >
+        <mat-card-header class="home-card__header">
+          <div class="home-card__header-copy">
+            <p class="home-card__eyebrow" i18n="@@homeFeedbackCard.eyebrow">Direktes Feedback</p>
+            <h3 mat-card-title class="home-card__title" i18n="@@homeFeedbackCard.title">
+              Mit einem Klick
+            </h3>
+            <p class="home-card__description" i18n="@@homeFeedbackCard.description">
+              Wähle eine Abstimmung für direktes Feedback.
             </p>
-            <label
-              class="home-sync-entry__label"
-              for="home-sync-link"
-              i18n="@@homeHostCard.syncLinkLabel"
-              >Sync-Link</label
-            >
-            <div class="home-sync-entry__form">
-              <input
-                #syncLinkInput
-                id="home-sync-link"
-                class="home-sync-entry__input"
-                type="url"
-                [value]="syncLinkValue()"
-                (input)="onSyncLinkInput($event)"
-                (keydown.enter)="openSyncLink()"
-                placeholder="sync-room-12345678"
-                i18n-placeholder="@@homeHostCard.syncLinkPlaceholder"
-                autocapitalize="off"
-                autocomplete="off"
-                spellcheck="false"
-                i18n-aria-label="@@homeHostCard.syncLinkInputAria"
-                aria-label="Link einer geteilten Sammlung einfügen"
-              />
+          </div>
+        </mat-card-header>
+
+        <mat-card-content class="home-card__content">
+          <div class="home-feedback-chip-grid">
+            @for (chip of quickFeedbackPresetChips; track chip.type) {
               <button
                 matButton="tonal"
                 type="button"
-                class="home-sync-entry__submit"
-                (click)="openSyncLink()"
-                i18n="@@homeHostCard.syncLinkSubmit"
+                class="home-feedback-chip"
+                (click)="startQuickFeedback(chip.type)"
+                [disabled]="!!quickFeedbackStarting()"
+                [attr.aria-busy]="quickFeedbackStarting() === chip.type"
+                [attr.aria-label]="chip.label"
               >
-                Sammlung nutzen
+                <span class="home-feedback-chip__body">
+                  <span
+                    class="home-feedback-chip__icons"
+                    [class.home-feedback-chip__icons--rating]="chip.type === 'STARS'"
+                    aria-hidden="true"
+                  >
+                    @for (icon of chip.icons; track icon) {
+                      @if (icon.kind === 'mat') {
+                        <mat-icon
+                          class="home-feedback-chip__icon"
+                          [class.home-feedback-chip__icon--positive]="icon.tone === 'positive'"
+                          [class.home-feedback-chip__icon--negative]="icon.tone === 'negative'"
+                          [class.home-feedback-chip__icon--neutral]="icon.tone === 'neutral'"
+                          [class.home-feedback-chip__icon--rating]="icon.tone === 'rating'"
+                        >
+                          {{ icon.value }}
+                        </mat-icon>
+                      } @else {
+                        <span class="home-feedback-chip__icon">{{ icon.value }}</span>
+                      }
+                    }
+                  </span>
+                  @if (chip.showLabel !== false) {
+                    <span
+                      class="home-feedback-chip__label"
+                      [class.home-feedback-chip__label--wide-full]="chip.type === 'YESNO'"
+                      >{{ chip.label }}</span
+                    >
+                    @if (chip.type === 'YESNO') {
+                      <span
+                        class="home-feedback-chip__label home-feedback-chip__label--wide-compact"
+                        aria-hidden="true"
+                        i18n="@@homeFeedbackCard.yesNoMaybeCompact"
+                        >Ja · Nein · ?</span
+                      >
+                    }
+                  }
+                </span>
+                @if (quickFeedbackStarting() === chip.type) {
+                  <mat-icon class="home-feedback-chip__busy home-spin" aria-hidden="true"
+                    >sync</mat-icon
+                  >
+                }
               </button>
-            </div>
-            @if (syncLinkError()) {
-              <p class="home-error" role="alert">{{ syncLinkError() }}</p>
             }
           </div>
-        }
-        @if (showHostSharingHint()) {
-          <output class="home-host-sharing-hint" aria-live="polite">
-            <mat-icon class="home-host-sharing-hint__icon" aria-hidden="true">link</mat-icon>
-            <span class="home-host-sharing-hint__content">
-              <span class="home-host-sharing-hint__text">
-                @if (hostSharingOriginSummary(); as originSummary) {
-                  <span i18n="@@homeHostCard.syncLinkedHintWithOrigin">
-                    Du nutzt die Sammlung von {{ originSummary }}.
-                  </span>
-                }
-              </span>
-              <button
-                matButton="outlined"
-                type="button"
-                class="home-host-sharing-hint__action"
-                (click)="unlinkSharedLibrary()"
+          @if (quickFeedbackError()) {
+            <p class="home-error" role="alert">
+              <mat-icon class="home-error__icon" aria-hidden="true">warning</mat-icon>
+              <span class="home-error__text">{{ quickFeedbackError() }}</span>
+            </p>
+          }
+        </mat-card-content>
+      </mat-card>
+
+      <mat-card
+        appearance="raised"
+        class="home-card home-card--create home-card--stage-side"
+        [class.home-card--sync-open]="syncLinkVisible()"
+      >
+        <mat-card-header class="home-card__header home-card__header-with-action">
+          <div class="home-card__header-copy">
+            <p class="home-card__eyebrow" i18n="@@homeHostCard.eyebrow">Vorbereiten</p>
+            <h3 mat-card-title class="home-card__title" i18n="@@homeHostCard.title">
+              Quiz erstellen
+            </h3>
+            <p class="home-card__description" i18n="@@homeHostCard.description">
+              Erstelle ein neues Quiz oder öffne deine Sammlung.
+            </p>
+          </div>
+          <button
+            #syncToggleBtn
+            type="button"
+            matIconButton
+            class="home-card__sync-btn"
+            (click)="toggleSyncLinkEntry()"
+            [attr.aria-expanded]="syncLinkVisible()"
+            [attr.aria-controls]="syncLinkVisible() ? 'home-sync-entry' : null"
+            i18n-aria-label="@@homeHostCard.syncPanelCta"
+            aria-label="Geteilte Sammlung nutzen"
+            i18n-matTooltip="@@homeHostCard.syncPanelCta"
+            matTooltip="Geteilte Sammlung nutzen"
+          >
+            <mat-icon aria-hidden="true">devices</mat-icon>
+          </button>
+        </mat-card-header>
+
+        <mat-card-actions class="home-card__actions home-card__actions--stack">
+          <div class="home-card__cta-stack" [attr.inert]="syncLinkVisible() ? '' : null">
+            @if (hasHostedQuiz()) {
+              <a
+                matButton="filled"
+                [routerLink]="localizedPath('/quiz')"
+                [queryParams]="{ startLiveQuiz: latestHostedQuizId() }"
+                class="home-cta home-choice-button home-prepare-primary"
+                (mouseenter)="preloadQuiz()"
               >
-                <mat-icon class="home-host-sharing-hint__action-icon" aria-hidden="true"
-                  >link_off</mat-icon
+                <span class="home-choice-button__copy">
+                  <span class="home-choice-button__label" i18n="@@homeHostCard.primaryCta"
+                    >Letztes Quiz starten</span
+                  >
+                  <span
+                    class="home-choice-button__description"
+                    i18n="@@homeHostCard.primaryCtaDescription"
+                    >Direkt live gehen</span
+                  >
+                </span>
+              </a>
+            }
+            <div class="home-prepare-secondary-grid">
+              <a
+                matButton="tonal"
+                [routerLink]="localizedPath('/quiz/new')"
+                class="home-cta home-cta--secondary home-choice-button"
+                (mouseenter)="preloadQuiz()"
+              >
+                <span class="home-choice-button__copy">
+                  <span class="home-choice-button__label" i18n="@@homeHostCard.createQuizCta"
+                    >Neues Quiz erstellen</span
+                  >
+                  <span
+                    class="home-choice-button__description"
+                    i18n="@@homeHostCard.createQuizCtaDescription"
+                    >Fragen vorbereiten</span
+                  >
+                </span>
+              </a>
+              <a
+                matButton="outlined"
+                [routerLink]="localizedPath('/quiz')"
+                class="home-cta home-cta--secondary home-choice-button home-library-button"
+                (mouseenter)="preloadQuiz()"
+                [matBadge]="quizCountBadgeText()"
+                [matBadgeHidden]="quizCount() === 0"
+              >
+                <span class="home-choice-button__copy">
+                  <span class="home-choice-button__label" i18n="@@homeHostCard.libraryCta"
+                    >Quiz-Sammlung öffnen</span
+                  >
+                  <span
+                    class="home-choice-button__description"
+                    i18n="@@homeHostCard.libraryCtaDescription"
+                    >Quizzes verwalten</span
+                  >
+                </span>
+              </a>
+            </div>
+          </div>
+          <div class="home-card__tertiary" [attr.inert]="syncLinkVisible() ? '' : null">
+            <app-info-landing-link
+              class="home-card__info-landing"
+              [anchor]="infoLandingWorkflowAnchor"
+              [label]="infoLandingWorkflowLabel"
+              [dense]="true"
+            />
+          </div>
+          @if (syncLinkVisible()) {
+            <div id="home-sync-entry" class="home-sync-entry" cdkTrapFocus>
+              <p class="home-sync-entry__action-hint" i18n="@@homeHostCard.syncOpenHint">
+                Füge den Link ein, den du von einem anderen Gerät bekommen hast.
+              </p>
+              <label
+                class="home-sync-entry__label"
+                for="home-sync-link"
+                i18n="@@homeHostCard.syncLinkLabel"
+                >Sync-Link</label
+              >
+              <div class="home-sync-entry__form">
+                <input
+                  #syncLinkInput
+                  id="home-sync-link"
+                  class="home-sync-entry__input"
+                  type="url"
+                  [value]="syncLinkValue()"
+                  (input)="onSyncLinkInput($event)"
+                  (keydown.enter)="openSyncLink()"
+                  placeholder="sync-room-12345678"
+                  i18n-placeholder="@@homeHostCard.syncLinkPlaceholder"
+                  autocapitalize="off"
+                  autocomplete="off"
+                  spellcheck="false"
+                  i18n-aria-label="@@homeHostCard.syncLinkInputAria"
+                  aria-label="Link einer geteilten Sammlung einfügen"
+                />
+                <button
+                  matButton="tonal"
+                  type="button"
+                  class="home-sync-entry__submit"
+                  (click)="openSyncLink()"
+                  i18n="@@homeHostCard.syncLinkSubmit"
                 >
-                <span i18n="@@homeHostCard.syncUnlinkCta">Verknüpfung lösen</span>
-              </button>
-            </span>
-          </output>
-        }
-      </mat-card-actions>
-    </mat-card>
+                  Sammlung nutzen
+                </button>
+              </div>
+              @if (syncLinkError()) {
+                <p class="home-error" role="alert">{{ syncLinkError() }}</p>
+              }
+            </div>
+          }
+          @if (showHostSharingHint()) {
+            <output
+              class="home-host-sharing-hint"
+              aria-live="polite"
+              [attr.inert]="syncLinkVisible() ? '' : null"
+            >
+              <mat-icon class="home-host-sharing-hint__icon" aria-hidden="true">link</mat-icon>
+              <span class="home-host-sharing-hint__content">
+                <span class="home-host-sharing-hint__text">
+                  @if (hostSharingOriginSummary(); as originSummary) {
+                    <span i18n="@@homeHostCard.syncLinkedHintWithOrigin">
+                      Du nutzt die Sammlung von {{ originSummary }}.
+                    </span>
+                  }
+                </span>
+                <button
+                  matButton="outlined"
+                  type="button"
+                  class="home-host-sharing-hint__action"
+                  (click)="unlinkSharedLibrary()"
+                >
+                  <mat-icon class="home-host-sharing-hint__action-icon" aria-hidden="true"
+                    >link_off</mat-icon
+                  >
+                  <span i18n="@@homeHostCard.syncUnlinkCta">Verknüpfung lösen</span>
+                </button>
+              </span>
+            </output>
+          }
+        </mat-card-actions>
+      </mat-card>
+    </div>
   </div>
 
   @if (motd()) {

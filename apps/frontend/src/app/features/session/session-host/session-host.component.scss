@@ -1204,6 +1204,16 @@
 .session-host__qa-title-heading {
   flex: 1 1 auto;
   min-width: 0;
+  border-radius: var(--mat-sys-corner-extra-small);
+  outline-offset: 0.15rem;
+
+  &:focus {
+    outline: none;
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--mat-sys-primary);
+  }
 }
 
 .session-host__qa-title-edit-btn {

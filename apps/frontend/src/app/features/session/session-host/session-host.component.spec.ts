@@ -2696,6 +2696,15 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
     expect(startQaMutateMock).toHaveBeenCalledWith({ code: 'ABC123' });
     expect(fixture.componentInstance.effectiveStatus()).toBe('ACTIVE');
 
+    fixture.detectChanges();
+    await fixture.whenStable();
+    fixture.detectChanges();
+    const heading = fixture.nativeElement.querySelector(
+      '[data-testid="qa-channel-heading"]',
+    ) as HTMLElement | null;
+    expect(heading).not.toBeNull();
+    expect(document.activeElement).toBe(heading);
+
     dialogOpenMock.mockClear();
     await fixture.componentInstance.openQaConfigurationDialog();
 

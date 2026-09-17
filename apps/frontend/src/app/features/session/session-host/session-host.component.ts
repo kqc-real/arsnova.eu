@@ -737,6 +737,7 @@ export class SessionHostComponent implements OnInit, OnDestroy {
   @ViewChild('hostAnswersList') hostAnswersListRef?: ElementRef<HTMLElement>;
   @ViewChild('qaListContainer') qaListContainerRef?: ElementRef<HTMLElement>;
   @ViewChild('qaTitleInput') qaTitleInputRef?: ElementRef<HTMLInputElement>;
+  @ViewChild('qaChannelHeading') qaChannelHeadingRef?: ElementRef<HTMLElement>;
   @ViewChild('moderationCompassButton') moderationCompassButtonRef?: ElementRef<HTMLButtonElement>;
   @ViewChild('freetextWordCloud') freetextWordCloud?: WordCloudComponent;
   @ViewChildren('lobbyTeamCard') lobbyTeamCardRefs?: QueryList<ElementRef<HTMLElement>>;
@@ -4187,6 +4188,14 @@ export class SessionHostComponent implements OnInit, OnDestroy {
       return;
     }
     await this.startQa();
+    afterNextRender(() => this.focusQaWallAfterCreateSetup(), { injector: this.injector });
+  }
+
+  private focusQaWallAfterCreateSetup(): void {
+    if (this.effectiveStatus() !== 'ACTIVE') {
+      return;
+    }
+    this.qaChannelHeadingRef?.nativeElement.focus({ preventScroll: true });
   }
 
   async ngOnInit(): Promise<void> {
