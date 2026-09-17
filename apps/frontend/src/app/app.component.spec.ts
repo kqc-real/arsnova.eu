@@ -129,6 +129,24 @@ describe('AppComponent', () => {
     );
   });
 
+  it('setzt den Offline-Status nur nach einem echten Verbindungsfehler', async () => {
+    configureAppTestBed();
+    const fixture = TestBed.createComponent(AppComponent);
+    const originalOnline = navigator.onLine;
+    Object.defineProperty(window.navigator, 'onLine', { value: false, configurable: true });
+
+    try {
+      await fixture.componentInstance.checkApiConnection();
+      expect(fixture.componentInstance.isOnline()).toBe(true);
+    } finally {
+      Object.defineProperty(window.navigator, 'onLine', {
+        value: originalOnline,
+        configurable: true,
+      });
+      fixture.destroy();
+    }
+  });
+
   it('macht das Main-Landmark zum verlässlichen Skip-Link-Ziel', () => {
     configureAppTestBed();
     const fixture = TestBed.createComponent(AppComponent);
