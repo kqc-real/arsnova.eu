@@ -1064,6 +1064,7 @@ describe('qa router (Epic 8)', () => {
         myVote: null,
       },
     ]);
+    expect(rawSqlText(prismaMock.$queryRaw.mock.calls[0] ?? [])).toContain('GREATEST(');
   });
 
   it('liefert einem autorisierten Host beendete Q&A-Inhalte innerhalb der 336h nur lesend', async () => {
@@ -1351,6 +1352,52 @@ describe('qa router (Epic 8)', () => {
     expect(rawSqlText(prismaMock.$queryRaw.mock.calls[0] ?? [])).toContain(
       'ranked."bestScore" DESC',
     );
+  });
+
+  it('liefert Kontroversität im Host-TOP- und TIME-Modus, damit der Kompass nicht von der Sortierung abhängt', async () => {
+    prismaMock.session.findUnique.mockResolvedValue({
+      ...ACTIVE_QA_SESSION,
+      id: SESSION_ID,
+      code: 'ABC123',
+      type: 'QUIZ',
+      qaEnabled: true,
+      qaOpen: true,
+      qaModerationMode: true,
+    });
+    prismaMock.participant.count.mockResolvedValue(20);
+    const polarRow = rankedQaRow({
+      id: '11111111-1111-4111-8111-111111111111',
+      participantId: PARTICIPANT_ID,
+      text: 'Polarisiert stark',
+      positiveVoteCount: 5,
+      negativeVoteCount: 5,
+      bestScore: 0.2366,
+      controversyScore: 5 / 6,
+    });
+
+    for (const sort of ['TOP', 'TIME'] as const) {
+      rawQueryResults.rankedQuestions.push([polarRow]);
+      prismaMock.$queryRaw.mockClear();
+      const { questions: result } = await hostCaller.list({
+        sessionId: SESSION_ID,
+        moderatorView: true,
+        sort,
+      });
+      expect(result[0]).toMatchObject({
+        isControversial: true,
+        positiveVoteCount: 5,
+        negativeVoteCount: 5,
+      });
+      expect(result[0]?.controversyScore).toBeGreaterThan(0.8);
+      const sql = rawSqlText(prismaMock.$queryRaw.mock.calls[0] ?? []);
+      expect(sql).toContain('GREATEST(');
+      expect(sql).toContain('POWER(');
+      if (sort === 'TIME') {
+        expect(sql).toContain('ranked."createdAt" DESC');
+      } else {
+        expect(sql).toContain('ranked."upvoteCount" DESC');
+      }
+    }
   });
 
   it('sortiert Host-Q&A im CONTROVERSIAL-Modus nach Kontroversität und kennzeichnet starke Polarität', async () => {

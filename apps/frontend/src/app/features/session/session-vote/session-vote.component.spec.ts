@@ -4307,6 +4307,12 @@ describe('SessionVoteComponent', { timeout: 30_000 }, () => {
         quickFeedback: { enabled: false, open: false },
       },
     });
+    const qaUnsubscribes: Array<ReturnType<typeof vi.fn>> = [];
+    qaQuestionsUpdatedSubscribeMock.mockImplementation(() => {
+      const unsubscribe = vi.fn();
+      qaUnsubscribes.push(unsubscribe);
+      return { unsubscribe };
+    });
     qaListQueryMock.mockResolvedValue({
       questions: [
         {
@@ -4342,6 +4348,15 @@ describe('SessionVoteComponent', { timeout: 30_000 }, () => {
     expect(text).toContain('Fragen durchsuchen');
     expect(text).toContain('Hervorgehobene Fragen stehen zuerst.');
     expect(fixture.componentInstance.qaSortMode()).toBe('TOP');
+    expect(qaQuestionsUpdatedSubscribeMock).toHaveBeenCalledWith(
+      expect.objectContaining({
+        sessionId: '6a8edced-5f8f-4cfa-9176-454fac9570ad',
+        participantId: '11111111-1111-4111-8111-111111111111',
+        pageSize: 100,
+        sort: 'TOP',
+      }),
+      expect.any(Object),
+    );
 
     qaListQueryMock.mockClear();
     snackBarOpenMock.mockClear();
@@ -4395,8 +4410,55 @@ describe('SessionVoteComponent', { timeout: 30_000 }, () => {
         pageSize: 100,
         sort: 'BEST',
       });
+      expect(qaUnsubscribes[0]).toHaveBeenCalled();
+      expect(qaQuestionsUpdatedSubscribeMock).toHaveBeenCalledWith(
+        expect.objectContaining({
+          sessionId: '6a8edced-5f8f-4cfa-9176-454fac9570ad',
+          participantId: '11111111-1111-4111-8111-111111111111',
+          pageSize: 100,
+          sort: 'BEST',
+        }),
+        expect.any(Object),
+      );
       expect(snackBarOpenMock).not.toHaveBeenCalled();
       expect(scrollIntoView).not.toHaveBeenCalled();
+
+      qaListQueryMock.mockClear();
+      qaListQueryMock.mockResolvedValue({
+        questions: [
+          {
+            id: 'question-3',
+            text: 'Umstrittene Frage',
+            upvoteCount: 1,
+            status: 'ACTIVE',
+            createdAt: '2026-03-13T12:03:00.000Z',
+            myVote: null,
+            isOwn: false,
+            hasUpvoted: false,
+          },
+        ],
+        state: 'ACTIVE',
+        sessionLifecycleRevision: 1,
+        serverNow: MOCK_SERVER_TIME,
+        expiresAt: '2099-01-01T00:00:00.000Z',
+        qaClosesAt: '2099-01-01T00:00:00.000Z',
+        endedAt: null,
+        postProcessingEndsAt: null,
+        totalCount: 1,
+        rankingRevision: '1:CONTROVERSIAL:6',
+      });
+      await fixture.componentInstance.setQaSortMode('CONTROVERSIAL');
+      expect(fixture.componentInstance.qaSortMode()).toBe('CONTROVERSIAL');
+      expect(qaUnsubscribes[1]).toHaveBeenCalled();
+      expect(qaQuestionsUpdatedSubscribeMock).toHaveBeenCalledWith(
+        expect.objectContaining({
+          sessionId: '6a8edced-5f8f-4cfa-9176-454fac9570ad',
+          participantId: '11111111-1111-4111-8111-111111111111',
+          pageSize: 100,
+          sort: 'CONTROVERSIAL',
+        }),
+        expect.any(Object),
+      );
 
       qaListQueryMock.mockClear();
       qaListQueryMock.mockResolvedValue({
@@ -4420,7 +4482,7 @@ describe('SessionVoteComponent', { timeout: 30_000 }, () => {
         sessionId: '6a8edced-5f8f-4cfa-9176-454fac9570ad',
         participantId: '11111111-1111-4111-8111-111111111111',
         pageSize: 100,
-        sort: 'BEST',
+        sort: 'CONTROVERSIAL',
         search: 'klausur',
       });
       fixture.detectChanges();

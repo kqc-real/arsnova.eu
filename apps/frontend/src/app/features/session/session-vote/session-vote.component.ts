@@ -460,6 +460,7 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
   readonly contextualFeedbackOffer = inject(ContextualFeedbackOfferService);
   private statusSub: Unsubscribable | null = null;
   private qaSub: Unsubscribable | null = null;
+  private qaSubscriptionKey: string | null = null;
   private quickFeedbackSub: Unsubscribable | null = null;
   private pollTimer: ReturnType<typeof setInterval> | null = null;
   private pollStartTimeout: ReturnType<typeof setTimeout> | null = null;
@@ -3147,6 +3148,7 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
     this.statusSub = null;
     this.qaSub?.unsubscribe();
     this.qaSub = null;
+    this.qaSubscriptionKey = null;
     this.quickFeedbackSub?.unsubscribe();
     this.quickFeedbackSub = null;
     this.clearParticipantQaState();
@@ -3226,6 +3228,7 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
     this.clearStructuredRoundRefreshRetry();
     this.qaSub?.unsubscribe();
     this.qaSub = null;
+    this.qaSubscriptionKey = null;
     this.quickFeedbackSub?.unsubscribe();
     this.quickFeedbackSub = null;
     this.clearParticipantQaState();
@@ -3445,18 +3448,22 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
     if (this.isFinished() || !this.channels().qa || !this.isQaChannelOpen() || !this.sessionId()) {
       this.qaSub?.unsubscribe();
       this.qaSub = null;
+      this.qaSubscriptionKey = null;
       return;
     }
 
-    if (this.qaSub) {
+    const subscriptionKey = `${this.sessionId()}:${this.qaSortMode()}`;
+    if (this.qaSub && this.qaSubscriptionKey === subscriptionKey) {
       return;
     }
 
+    this.qaSub?.unsubscribe();
     this.qaSub = trpc.qa.onQuestionsUpdated.subscribe(
       {
         sessionId: this.sessionId(),
         participantId: this.participantId() || undefined,
         pageSize: 100,
+        sort: this.qaSortMode(),
       },
       {
         onData: (data) => {
@@ -3469,6 +3476,7 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
         },
       },
     );
+    this.qaSubscriptionKey = subscriptionKey;
   }
 
   private handleQaQuestionsInvalidation(data: QaQuestionsInvalidationDTO): void {
@@ -3844,6 +3852,7 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
     this.statusSub = null;
     this.qaSub?.unsubscribe();
     this.qaSub = null;
+    this.qaSubscriptionKey = null;
     this.quickFeedbackSub?.unsubscribe();
     this.quickFeedbackSub = null;
     this.stopFallbackPolling();
@@ -4360,6 +4369,7 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
     }
     this.qaSortMode.set(mode);
     this.resetQaListPageNavigation();
+    this.ensureQaSubscription();
     await this.refreshQaQuestions({
       notify: false,
       requireDeadline: false,

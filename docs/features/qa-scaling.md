@@ -48,8 +48,10 @@ frei.
 negative und gewichtete Zähler atomar. `qa.list` rankt den berechtigten Bestand in PostgreSQL nach `TOP`, `BEST`,
 `CONTROVERSIAL` oder `TIME` und liefert anschließend eine revisionsgebundene
 Seite. `BEST` und `CONTROVERSIAL` berechnen Wilson- bzw. Kontroversitäts-Scores
-in SQL; `TOP` und `TIME` sortieren nur über gespeicherte Zähler und
-`createdAt`. Host-Seiten können zusätzlich `search` (Text, `ILIKE`) und
+in SQL, weil die Sortierung darauf beruht. Teilnehmer-`TOP` und `-TIME`
+sortieren nur über gespeicherte Zähler und `createdAt`. Host-Listen behalten
+dieselben Score-Spalten in jeder Sortierung, damit Kompass und Export nicht
+von `BEST` oder `CONTROVERSIAL` abhängen. Host-Seiten können zusätzlich `search` (Text, `ILIKE`) und
 `authorNickname` (exakter Session-Nickname) in derselben Abfrage
 einschränken; `authorNickname` gilt nur mit `moderatorView`. Änderungen an
 Frage, Status, Vote oder der für Kontroversität maßgeblichen Teilnahmezahl

@@ -626,7 +626,8 @@ async function buildQaQuestionPayloadFromDb(options: {
     options.totalCountHint === undefined
       ? Prisma.sql`COUNT(*) OVER() AS "totalCount"`
       : Prisma.sql`${options.totalCountHint}::BIGINT AS "totalCount"`;
-  const needsScoreMetrics = options.sortMode === 'BEST' || options.sortMode === 'CONTROVERSIAL';
+  const needsScoreMetrics =
+    moderatorView || options.sortMode === 'BEST' || options.sortMode === 'CONTROVERSIAL';
   const scoreSelect = needsScoreMetrics
     ? Prisma.sql`
         CASE
