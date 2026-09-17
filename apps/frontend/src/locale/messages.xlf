@@ -15388,14 +15388,14 @@
         </context-group>
       </trans-unit>
       <trans-unit id="hostRecovery.cardTitle" datatype="html">
-        <source>Host-Zugangskarte sichern</source>
+        <source>Host-Notfallkarte sichern</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/host-recovery/host-recovery-card-dialog.component.ts</context>
           <context context-type="linenumber">14</context>
         </context-group>
       </trans-unit>
       <trans-unit id="hostRecovery.cardSubtitle" datatype="html">
-        <source> Lade sie herunter oder kopiere die Werte. Bewahre sie getrennt vom Browser auf. </source>
+        <source> Lade die Notfallkarte herunter oder kopiere die Werte. Bewahre sie getrennt vom Browser auf. </source>
       </trans-unit>
       <trans-unit id="hostRecovery.sessionCodeLabel" datatype="html">
         <source>Sessioncode</source>
@@ -15431,7 +15431,7 @@
         <source>Wiederherstellungscode wurde kopiert.</source>
       </trans-unit>
       <trans-unit id="hostRecovery.cardWhy" datatype="html">
-        <source>Dein Host-Zugang ist in diesem Browser gespeichert. Mit der Host-Zugangskarte kannst du ihn auf einem anderen Gerät wiederherstellen.</source>
+        <source>Dein Host-Zugang ist in diesem Browser gespeichert. Mit der Notfallkarte kannst du ihn auf einem anderen Gerät wiederherstellen.</source>
       </trans-unit>
       <trans-unit id="hostRecovery.cardIntro" datatype="html">
         <source>Öffne dazu die Wiederherstellungsseite und gib die Session-Kennung und den Wiederherstellungscode ein.</source>
@@ -15452,21 +15452,21 @@
         </context-group>
       </trans-unit>
       <trans-unit id="hostRecovery.cardWarning" datatype="html">
-        <source>Wenn Browserzugang und Zugangskarte verloren sind, wende dich an den Support. Er muss deine Berechtigung für diese Session prüfen. Die Kontaktdaten findest du im »Impressum«.</source>
+        <source>Wenn Browserzugang und Notfallkarte verloren sind, wende dich an den Support. Er muss deine Berechtigung für diese Session prüfen. Die Kontaktdaten findest du im »Impressum«.</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/host-recovery/host-recovery-card-dialog.component.ts</context>
           <context context-type="linenumber">30,33</context>
         </context-group>
       </trans-unit>
       <trans-unit id="hostRecovery.downloadCard" datatype="html">
-        <source>Zugangskarte herunterladen</source>
+        <source>Notfallkarte herunterladen</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/host-recovery/host-recovery-card-dialog.component.ts</context>
           <context context-type="linenumber">36</context>
         </context-group>
       </trans-unit>
       <trans-unit id="hostRecovery.cardSavedConfirmation" datatype="html">
-        <source> Ich habe die Zugangskarte sicher gespeichert. </source>
+        <source> Ich habe die Notfallkarte sicher gespeichert. </source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/host-recovery/host-recovery-card-dialog.component.ts</context>
           <context context-type="linenumber">39,41</context>
@@ -15480,7 +15480,7 @@
         </context-group>
       </trans-unit>
       <trans-unit id="hostRecovery.downloadHeading" datatype="html">
-        <source>Host-Zugangskarte</source>
+        <source>Host-Notfallkarte</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/host-recovery/host-recovery-card-dialog.component.ts</context>
           <context context-type="linenumber">108</context>
@@ -15510,7 +15510,7 @@
         </context-group>
       </trans-unit>
       <trans-unit id="hostRecovery.intro" datatype="html">
-        <source>Gib die Session-Kennung und den Wiederherstellungscode deiner Host-Zugangskarte ein.</source>
+        <source>Gib die Session-Kennung und den Wiederherstellungscode deiner Notfallkarte ein.</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/host-recovery/host-recovery.component.ts</context>
           <context context-type="linenumber">46,49</context>
@@ -15524,7 +15524,7 @@
         </context-group>
       </trans-unit>
       <trans-unit id="hostRecovery.recoveryCardOption" datatype="html">
-        <source> Zugangskarte </source>
+        <source> Notfallkarte </source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/host-recovery/host-recovery.component.ts</context>
           <context context-type="linenumber">57,59</context>
@@ -15570,7 +15570,7 @@
         </context-group>
       </trans-unit>
       <trans-unit id="hostRecovery.boundary" datatype="html">
-        <source>Damit verlängerst du weder die Session- noch die Nachbereitungsfrist. Wenn Browserzugang und Zugangskarte verloren sind, wende dich an den Support. Er muss deine Berechtigung für diese Session prüfen. Die Kontaktdaten findest du im »Impressum«.</source>
+        <source>Damit verlängerst du weder die Session- noch die Nachbereitungsfrist. Wenn Browserzugang und Notfallkarte verloren sind, wende dich an den Support. Er muss deine Berechtigung für diese Session prüfen. Die Kontaktdaten findest du im »Impressum«.</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/host-recovery/host-recovery.component.ts</context>
           <context context-type="linenumber">110,114</context>
@@ -15583,7 +15583,7 @@
         <source>Ich habe einen Code vom Support</source>
       </trans-unit>
       <trans-unit id="hostRecovery.useRecoveryCard" datatype="html">
-        <source>Ich habe eine Zugangskarte</source>
+        <source>Ich habe eine Notfallkarte</source>
       </trans-unit>
       <trans-unit id="hostRecovery.genericError" datatype="html">
         <source>Der Zugang konnte nicht wiederhergestellt werden. Prüfe deine Angaben und versuche es erneut.</source>
