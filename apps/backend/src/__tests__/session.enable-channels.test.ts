@@ -47,6 +47,31 @@ const ACTIVE_SESSION = {
   sessionLifecycleRevision: 1,
   preferredChannel: 'quiz',
 };
+const QA_WORD_CLOUD_PROJECTION = {
+  mode: 'SEMANTIC' as const,
+  metric: 'BEST' as const,
+  locale: 'de' as const,
+  analysisEntries: [
+    {
+      key: 'kapitel-4',
+      label: 'Kapitel 4',
+      count: 7,
+      basisLabel: 'Kapitel',
+      members: [
+        {
+          sourceId: '11111111-1111-4111-8111-111111111111',
+          text: 'Kommt Kapitel 4 in der Klausur vor?',
+          weight: 4,
+        },
+      ],
+      variants: ['Kapitel 4'],
+      confidence: 0.88,
+    },
+  ],
+  analyzedQuestionCount: 1,
+  eligibleQuestionCount: 1,
+  modelVersion: 'topic-v1',
+};
 
 describe('session.enable channel mutations', () => {
   beforeEach(() => {
@@ -747,68 +772,92 @@ describe('session.enable channel mutations', () => {
     expect(prismaMock.session.update).not.toHaveBeenCalled();
   });
 
-  it('gibt die Host-Wortwolken-Einstellungen an den Presenter weiter', async () => {
-    const { resetSessionReadCachesForTests } = await import('../routers/session');
-    resetSessionReadCachesForTests();
+  trpcDodIt(
+    {
+      procedure: 'session.setQaWordCloudProjection',
+      case: 'happy',
+      mode: 'direct',
+      title: 'speichert die Host-Wortwolke für die Presenter-Projektion',
+    },
+    async () => {
+      const { resetSessionReadCachesForTests } = await import('../routers/session');
+      resetSessionReadCachesForTests();
 
-    prismaMock.session.findUnique.mockResolvedValue({
-      ...ACTIVE_SESSION,
-      preferredChannel: 'qa',
-      type: 'Q_AND_A',
-      quizId: null,
-      qaEnabled: true,
-      qaOpen: true,
-      qaTitle: 'Fragen',
-      qaModerationMode: true,
-      title: 'Fragen',
-      moderationMode: false,
-      quickFeedbackEnabled: false,
-      quickFeedbackOpen: false,
-    });
+      prismaMock.session.findUnique.mockResolvedValue({
+        ...ACTIVE_SESSION,
+        preferredChannel: 'qa',
+        type: 'Q_AND_A',
+        quizId: null,
+        qaEnabled: true,
+        qaOpen: true,
+        qaTitle: 'Fragen',
+        qaModerationMode: true,
+        title: 'Fragen',
+        moderationMode: false,
+        quickFeedbackEnabled: false,
+        quickFeedbackOpen: false,
+      });
 
-    const projection = {
-      mode: 'SEMANTIC' as const,
-      metric: 'BEST' as const,
-      locale: 'de' as const,
-      analysisEntries: [
-        {
-          key: 'kapitel-4',
-          label: 'Kapitel 4',
-          count: 7,
-          basisLabel: 'Kapitel',
-          members: [
-            {
-              sourceId: '11111111-1111-4111-8111-111111111111',
-              text: 'Kommt Kapitel 4 in der Klausur vor?',
-              weight: 4,
-            },
-          ],
-          variants: ['Kapitel 4'],
-          confidence: 0.88,
-        },
-      ],
-      analyzedQuestionCount: 1,
-      eligibleQuestionCount: 1,
-      modelVersion: 'topic-v1',
-    };
+      await expect(
+        caller.setQaWordCloudProjection({
+          code: 'ABC123',
+          projection: QA_WORD_CLOUD_PROJECTION,
+        }),
+      ).resolves.toEqual({
+        projection: QA_WORD_CLOUD_PROJECTION,
+      });
+    },
+  );
 
-    await expect(
-      caller.setPresenterSurface({ code: 'ABC123', surface: 'qaWordCloud' }),
-    ).resolves.toEqual({ presenterSurface: 'qaWordCloud' });
-    await expect(caller.setQaWordCloudProjection({ code: 'ABC123', projection })).resolves.toEqual({
-      projection,
-    });
-    await expect(caller.getQaWordCloudProjection({ code: 'ABC123' })).resolves.toEqual({
-      projection,
-    });
+  trpcDodIt(
+    {
+      procedure: 'session.getQaWordCloudProjection',
+      case: 'happy',
+      mode: 'direct',
+      title: 'gibt die Host-Wortwolken-Einstellungen an den Presenter weiter',
+    },
+    async () => {
+      const { resetSessionReadCachesForTests } = await import('../routers/session');
+      resetSessionReadCachesForTests();
 
-    await expect(
-      caller.setPresenterSurface({ code: 'ABC123', surface: 'default' }),
-    ).resolves.toEqual({ presenterSurface: 'default' });
-    await expect(caller.getQaWordCloudProjection({ code: 'ABC123' })).resolves.toEqual({
-      projection: null,
-    });
-  });
+      prismaMock.session.findUnique.mockResolvedValue({
+        ...ACTIVE_SESSION,
+        preferredChannel: 'qa',
+        type: 'Q_AND_A',
+        quizId: null,
+        qaEnabled: true,
+        qaOpen: true,
+        qaTitle: 'Fragen',
+        qaModerationMode: true,
+        title: 'Fragen',
+        moderationMode: false,
+        quickFeedbackEnabled: false,
+        quickFeedbackOpen: false,
+      });
+
+      await expect(
+        caller.setPresenterSurface({ code: 'ABC123', surface: 'qaWordCloud' }),
+      ).resolves.toEqual({ presenterSurface: 'qaWordCloud' });
+      await expect(
+        caller.setQaWordCloudProjection({
+          code: 'ABC123',
+          projection: QA_WORD_CLOUD_PROJECTION,
+        }),
+      ).resolves.toEqual({
+        projection: QA_WORD_CLOUD_PROJECTION,
+      });
+      await expect(caller.getQaWordCloudProjection({ code: 'ABC123' })).resolves.toEqual({
+        projection: QA_WORD_CLOUD_PROJECTION,
+      });
+
+      await expect(
+        caller.setPresenterSurface({ code: 'ABC123', surface: 'default' }),
+      ).resolves.toEqual({ presenterSurface: 'default' });
+      await expect(caller.getQaWordCloudProjection({ code: 'ABC123' })).resolves.toEqual({
+        projection: null,
+      });
+    },
+  );
 });
 
 trpcDodIt(
@@ -921,6 +970,43 @@ trpcDodIt(
       caller.setPreferredLiveChannel({ code: 'ABC123', channel: 'qa' }),
     ).rejects.toMatchObject({
       code: 'UNAUTHORIZED',
+    });
+  },
+);
+
+trpcDodIt(
+  {
+    procedure: 'session.setQaWordCloudProjection',
+    case: 'error',
+    mode: 'direct',
+    contract: 'UNAUTHORIZED',
+    title: 'session.setQaWordCloudProjection weist ungültige Host-Token ab',
+  },
+  async () => {
+    hostAuthMocks.isHostSessionTokenValidMock.mockResolvedValue(false);
+    await expect(
+      caller.setQaWordCloudProjection({
+        code: 'ABC123',
+        projection: QA_WORD_CLOUD_PROJECTION,
+      }),
+    ).rejects.toMatchObject({
+      code: 'UNAUTHORIZED',
+    });
+  },
+);
+
+trpcDodIt(
+  {
+    procedure: 'session.getQaWordCloudProjection',
+    case: 'error',
+    mode: 'direct',
+    contract: 'NOT_FOUND',
+    title: 'session.getQaWordCloudProjection weist unbekannte Sessions zurück',
+  },
+  async () => {
+    prismaMock.session.findUnique.mockResolvedValue(null);
+    await expect(caller.getQaWordCloudProjection({ code: 'ZZZ999' })).rejects.toMatchObject({
+      code: 'NOT_FOUND',
     });
   },
 );

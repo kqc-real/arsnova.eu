@@ -87,7 +87,7 @@ import {
   lobbyAudienceIsPacked,
   lobbyFitColumnCount,
 } from './lobby-audience-density.util';
-import { getWordCloudWeightFromUpvotes } from './word-cloud.util';
+import { getQaWordCloudQuestionWeight } from './word-cloud.util';
 import {
   WordCloudTermExtractorService,
   type WordCloudTerm,
@@ -447,7 +447,7 @@ export class SessionPresentComponent implements OnInit, OnDestroy {
     this.presenterQaWordCloudQuestions().map((question) => ({
       id: question.id,
       title: question.text,
-      weight: getWordCloudWeightFromUpvotes(question.upvoteCount),
+      weight: getQaWordCloudQuestionWeight(question, this.qaWordCloudProjection()?.metric),
     })),
   );
   readonly presenterQaWordCloudAnalysisEntries = computed<WordCloudAnalysisEntryDTO[] | null>(
@@ -523,7 +523,7 @@ export class SessionPresentComponent implements OnInit, OnDestroy {
   readonly presenterQaWordCloudWeightedResponses = computed(() =>
     this.presenterQaWordCloudQuestions().map((question) => ({
       text: question.text,
-      weight: getWordCloudWeightFromUpvotes(question.upvoteCount),
+      weight: getQaWordCloudQuestionWeight(question, this.qaWordCloudProjection()?.metric),
     })),
   );
   readonly showQuickFeedbackCard = computed(

@@ -497,6 +497,38 @@ export function getWordCloudWeightFromNormalizedMetric(metric: number | null | u
   return 1 + Math.max(0, Math.round(normalized * normalized * NORMALIZED_METRIC_WEIGHT_SCALE));
 }
 
+export const QA_WORD_CLOUD_NORMALIZED_WEIGHT_CAP = 28;
+
+export function getQaWordCloudQuestionWeight(
+  question: {
+    readonly upvoteCount: number;
+    readonly score?: number;
+    readonly bestScore?: number;
+    readonly controversyScore?: number;
+  },
+  metric: 'TOP' | 'BEST' | 'CONTROVERSIAL' | null | undefined,
+): number {
+  const fallback = getWordCloudWeightFromUpvotes(question.score ?? question.upvoteCount);
+  switch (metric) {
+    case 'BEST':
+      return question.bestScore !== undefined
+        ? Math.min(
+            QA_WORD_CLOUD_NORMALIZED_WEIGHT_CAP,
+            Math.max(1, getWordCloudWeightFromNormalizedMetric(question.bestScore)),
+          )
+        : fallback;
+    case 'CONTROVERSIAL':
+      return question.controversyScore !== undefined
+        ? Math.min(
+            QA_WORD_CLOUD_NORMALIZED_WEIGHT_CAP,
+            Math.max(1, getWordCloudWeightFromNormalizedMetric(question.controversyScore)),
+          )
+        : fallback;
+    default:
+      return fallback;
+  }
+}
+
 export function normalizeFreeTextResponseForDisplay(value: string): string {
   const collapsed = collapseNumericSeparatorSpacing(value);
   if (isNumericToken(collapsed)) {

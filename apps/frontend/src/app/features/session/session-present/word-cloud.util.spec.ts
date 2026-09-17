@@ -4,6 +4,7 @@ import {
   aggregateWords,
   createWordCloudStopwordContext,
   extractResponseGroupKeys,
+  getQaWordCloudQuestionWeight,
   getWordCloudWeightFromNormalizedMetric,
   getWordCloudWeightFromUpvotes,
   getStopwordsForLocale,
@@ -569,5 +570,18 @@ describe('aggregateWords', () => {
     expect(getWordCloudWeightFromNormalizedMetric(0.5)).toBe(11);
     expect(getWordCloudWeightFromNormalizedMetric(0.75)).toBe(24);
     expect(getWordCloudWeightFromNormalizedMetric(1.2)).toBe(41);
+  });
+
+  it('nutzt fuer BEST und CONTROVERSIAL die Metrik statt der Upvotes', () => {
+    const question = {
+      upvoteCount: 25,
+      bestScore: 0.25,
+      controversyScore: 0.75,
+    };
+
+    expect(getQaWordCloudQuestionWeight(question, 'TOP')).toBe(6);
+    expect(getQaWordCloudQuestionWeight(question, 'BEST')).toBe(4);
+    expect(getQaWordCloudQuestionWeight(question, 'CONTROVERSIAL')).toBe(24);
+    expect(getQaWordCloudQuestionWeight({ upvoteCount: 25 }, 'BEST')).toBe(6);
   });
 });

@@ -6319,6 +6319,41 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
     fixture.destroy();
   });
 
+  it('publiziert nach Host-Reload keine Default-Wortwolke auf die bestehende Presenter-Fläche', async () => {
+    getInfoQueryMock.mockResolvedValue({
+      ...defaultSession,
+      status: 'ACTIVE',
+      presenterSurface: 'qaWordCloud',
+      preferredChannel: 'qa',
+      channels: {
+        quiz: { enabled: true },
+        qa: { enabled: true, open: true, title: 'Fragen aus dem Publikum', moderationMode: true },
+        quickFeedback: { enabled: false, open: false },
+      },
+    });
+    qaListQueryMock.mockResolvedValue([
+      {
+        id: '11111111-1111-4111-8111-111111111111',
+        text: 'Kommt Kapitel 4 in der Klausur vor?',
+        upvoteCount: 9,
+        status: 'ACTIVE',
+        createdAt: '2026-03-13T12:00:00.000Z',
+        myVote: null,
+        isOwn: false,
+        hasUpvoted: false,
+      },
+    ]);
+
+    const fixture = setup();
+    fixture.detectChanges();
+    await fixture.whenStable();
+    await new Promise((resolve) => setTimeout(resolve, 80));
+
+    expect(fixture.componentInstance.qaWordCloudDialogOpen()).toBe(false);
+    expect(setQaWordCloudProjectionMutateMock).not.toHaveBeenCalled();
+    fixture.destroy();
+  });
+
   it('zeigt ohne gewählte Analysesprache keinen lokalen Q&A-Seitenausschnitt', async () => {
     getInfoQueryMock.mockResolvedValue({
       ...defaultSession,

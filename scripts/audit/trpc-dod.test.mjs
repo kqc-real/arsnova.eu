@@ -699,7 +699,7 @@ test('real mode accepts the Slice-2D full-coverage flag on a complete baseline',
     cwd: repoRoot,
   });
   assert.equal(run.status, 0, run.stderr || run.stdout);
-  assert.match(run.stdout, /Complete: 168/);
+  assert.match(run.stdout, /Complete: 170/);
   assert.match(run.stdout, /Incomplete: 0/);
   assert.match(run.stdout, /Untested: 0/);
 });
@@ -745,15 +745,17 @@ export const appRouter = router({
 test('real router tree inventory follows mounted and nested routers exactly', async () => {
   const { inventariseRouterTree } = await loadAudit();
   const procedures = inventariseRouterTree(join(repoRoot, 'apps/backend/src/routers/index.ts'));
-  assert.equal(procedures.length, 176);
-  assert.equal(procedures.filter((procedure) => procedure.kind === 'query').length, 68);
-  assert.equal(procedures.filter((procedure) => procedure.kind === 'mutation').length, 100);
+  assert.equal(procedures.length, 178);
+  assert.equal(procedures.filter((procedure) => procedure.kind === 'query').length, 69);
+  assert.equal(procedures.filter((procedure) => procedure.kind === 'mutation').length, 101);
   assert.equal(procedures.filter((procedure) => procedure.kind === 'subscription').length, 8);
   assert.ok(procedures.some((procedure) => procedure.id === 'admin.motd.motdCreate'));
   assert.ok(procedures.some((procedure) => procedure.id === 'qa.summaryRuntime'));
   assert.ok(procedures.some((procedure) => procedure.id === 'qa.requestSummary'));
   assert.ok(procedures.some((procedure) => procedure.id === 'session.dismissFinishProjection'));
   assert.ok(procedures.some((procedure) => procedure.id === 'session.setPresenterSurface'));
+  assert.ok(procedures.some((procedure) => procedure.id === 'session.setQaWordCloudProjection'));
+  assert.ok(procedures.some((procedure) => procedure.id === 'session.getQaWordCloudProjection'));
   assert.ok(procedures.some((procedure) => procedure.id === 'session.pauseQuiz'));
   assert.ok(procedures.some((procedure) => procedure.id === 'session.resumeQuiz'));
   assert.ok(procedures.some((procedure) => procedure.id === 'session.createHostPairingInvite'));
@@ -1435,8 +1437,8 @@ test('real gate report is deterministic and complete coverage has no legacy debt
     }
     assert.equal(readFileSync(outputs[0], 'utf8'), readFileSync(outputs[1], 'utf8'));
     const report = JSON.parse(readFileSync(outputs[0], 'utf8'));
-    assert.equal(report.summary.queriesMutations, 168);
-    assert.equal(report.summary.complete, 168);
+    assert.equal(report.summary.queriesMutations, 170);
+    assert.equal(report.summary.complete, 170);
     assert.equal(report.summary.untested, 0);
     assert.equal(report.summary.legacyProcedures, 0);
     assert.equal(report.summary.legacyMissingDimensions, 0);
@@ -1448,7 +1450,7 @@ test('real gate report is deterministic and complete coverage has no legacy debt
     const queriesMutations = report.procedures.filter(
       (procedure) => procedure.kind !== 'subscription',
     );
-    assert.equal(queriesMutations.length, 168);
+    assert.equal(queriesMutations.length, 170);
     assert.ok(
       queriesMutations.every(
         (procedure) =>

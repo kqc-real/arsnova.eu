@@ -188,10 +188,7 @@ import {
   WORD_CLOUD_SEMANTIC_WAIT_HINT_AFTER_MS,
 } from './word-cloud-semantic-pending';
 import { WordCloudComponent } from '../session-present/word-cloud.component';
-import {
-  getWordCloudWeightFromNormalizedMetric,
-  getWordCloudWeightFromUpvotes,
-} from '../session-present/word-cloud.util';
+import { getQaWordCloudQuestionWeight } from '../session-present/word-cloud.util';
 import {
   WordCloudTermExtractorService,
   type WordCloudTerm,
@@ -294,7 +291,6 @@ const FOYER_LANE_COUNT = 3;
 const FOYER_TEAM_DELAY_STEP_MS = 720;
 const FOYER_TEAM_PRESENTATION_BUFFER_MS = 440;
 const FOYER_NON_TEAM_DELAY_STEP_MS = 920;
-const QA_WORD_CLOUD_NORMALIZED_WEIGHT_CAP = 28;
 const HOST_QUESTION_DETAILS_RETRY_MS = 250;
 const HOST_QUESTION_DETAILS_RETRY_LIMIT = 8;
 const QUIZ_ATTACH_SESSION_INFO_RETRY_MS = 300;
@@ -3251,12 +3247,14 @@ export class SessionHostComponent implements OnInit, OnDestroy {
     effect(() => {
       const dialogOpen = this.qaWordCloudDialogOpen();
       const surface = this.session()?.presenterSurface;
-      const projection = this.buildQaWordCloudPresenterProjection();
-      if (!dialogOpen && surface !== 'qaWordCloud') {
-        this.lastQaWordCloudProjectionKey = null;
+      if (!dialogOpen) {
+        if (surface !== 'qaWordCloud') {
+          this.lastQaWordCloudProjectionKey = null;
+        }
         return;
       }
 
+      const projection = this.buildQaWordCloudPresenterProjection();
       untracked(() => this.publishQaWordCloudProjection(projection));
     });
     effect(() => {
@@ -8715,26 +8713,7 @@ export class SessionHostComponent implements OnInit, OnDestroy {
   }
 
   qaWordCloudQuestionWeight(question: QaQuestionDTO): number {
-    switch (this.qaSortMode()) {
-      case 'BEST':
-        return question.bestScore !== undefined
-          ? this.capQaWordCloudNormalizedWeight(
-              getWordCloudWeightFromNormalizedMetric(question.bestScore),
-            )
-          : getWordCloudWeightFromUpvotes(this.qaQuestionScore(question));
-      case 'CONTROVERSIAL':
-        return question.controversyScore !== undefined
-          ? this.capQaWordCloudNormalizedWeight(
-              getWordCloudWeightFromNormalizedMetric(question.controversyScore),
-            )
-          : getWordCloudWeightFromUpvotes(this.qaQuestionScore(question));
-      default:
-        return getWordCloudWeightFromUpvotes(this.qaQuestionScore(question));
-    }
-  }
-
-  private capQaWordCloudNormalizedWeight(weight: number): number {
-    return Math.min(QA_WORD_CLOUD_NORMALIZED_WEIGHT_CAP, Math.max(1, weight));
+    return getQaWordCloudQuestionWeight(question, this.qaSortMode());
   }
 
   toggleQaWordCloudFreeze(): void {
@@ -9364,10 +9343,40 @@ export class SessionHostComponent implements OnInit, OnDestroy {
 
   private collectQaWordCloudPresenterEntries(): WordCloudAnalysisEntryDTO[] {
     const entries = this.qaWordCloudAnalysisEntries();
-    if (!entries || entries.length === 0) {
-      return [];
+    if (entries && entries.length > 0) {
+      return this.sanitizeQaWordCloudPresenterEntries(entries);
     }
 
+    return this.sanitizeQaWordCloudPresenterEntries(
+      this.qaWordCloudTerms().flatMap((term) => {
+        const member = term.members[0];
+        if (!member) {
+          return [];
+        }
+        return [
+          {
+            key: term.key,
+            label: term.label,
+            count: Math.max(1, term.documentFrequency),
+            basisLabel: term.basisLabel,
+            members: [
+              {
+                sourceId: member.sourceId,
+                text: member.text,
+                weight: member.weight,
+              },
+            ],
+            variants: term.variants.length > 0 ? term.variants : [term.label],
+            confidence: term.confidence,
+          },
+        ];
+      }),
+    );
+  }
+
+  private sanitizeQaWordCloudPresenterEntries(
+    entries: readonly WordCloudAnalysisEntryDTO[],
+  ): WordCloudAnalysisEntryDTO[] {
     const sanitized: WordCloudAnalysisEntryDTO[] = [];
     for (const entry of entries) {
       const parsed = WordCloudAnalysisEntryDTOSchema.safeParse(entry);

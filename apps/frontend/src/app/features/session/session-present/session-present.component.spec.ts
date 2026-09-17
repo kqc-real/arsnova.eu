@@ -5,6 +5,7 @@ import { resolve } from 'node:path';
 import { describe, expect, it, beforeEach, vi } from 'vitest';
 import { SessionPresentComponent } from './session-present.component';
 import { ThemePresetService } from '../../../core/theme-preset.service';
+import { getQaWordCloudQuestionWeight } from './word-cloud.util';
 
 const {
   liveQueryMock,
@@ -1614,6 +1615,81 @@ describe('SessionPresentComponent', () => {
     expect(text).toContain('Themen in den Fragen');
     expect(text).toContain('Kapitel 4');
     expect(text).toContain('Ähnliche Fragen sind gruppiert.');
+    fixture.destroy();
+  });
+
+  it('gewichtet die Fallback-Wortwolke nach der projizierten Metrik', async () => {
+    getInfoQueryMock.mockResolvedValue({
+      id: '6a8edced-5f8f-4cfa-9176-454fac9570ad',
+      serverTime: MOCK_SERVER_TIME,
+      code: 'ABC123',
+      type: 'QUIZ',
+      status: 'ACTIVE',
+      quizName: 'Team-Quiz',
+      title: null,
+      participantCount: 3,
+      teamMode: false,
+      preferredChannel: 'qa',
+      presenterSurface: 'qaWordCloud',
+      channels: {
+        quiz: { enabled: true },
+        qa: { enabled: true, title: 'Fragen', moderationMode: false },
+        quickFeedback: { enabled: false },
+      },
+    });
+    qaListQueryMock.mockResolvedValue([
+      {
+        id: '11111111-1111-4111-8111-111111111111',
+        text: 'Kommt Kapitel 4 in der Klausur vor?',
+        upvoteCount: 25,
+        bestScore: 0.25,
+        status: 'ACTIVE',
+        createdAt: '2026-03-13T12:00:00.000Z',
+        myVote: null,
+        isOwn: false,
+        hasUpvoted: false,
+      },
+      {
+        id: '22222222-2222-4222-8222-222222222222',
+        text: 'Brauchen wir Kapitel 4 fuer die Pruefung?',
+        upvoteCount: 1,
+        bestScore: 0.9,
+        status: 'ACTIVE',
+        createdAt: '2026-03-13T12:01:00.000Z',
+        myVote: null,
+        isOwn: false,
+        hasUpvoted: false,
+      },
+    ]);
+    getQaWordCloudProjectionQueryMock.mockResolvedValue({
+      projection: {
+        mode: 'LEXICAL',
+        metric: 'BEST',
+        locale: 'de',
+        analysisEntries: [],
+        analyzedQuestionCount: 2,
+        eligibleQuestionCount: 2,
+        modelVersion: null,
+      },
+    });
+
+    const fixture = TestBed.createComponent(SessionPresentComponent);
+    fixture.detectChanges();
+    await fixture.whenStable();
+    await new Promise((r) => setTimeout(r, 50));
+    fixture.detectChanges();
+
+    expect(fixture.componentInstance.presenterQaWordCloudAnalysisEntries()).toBeNull();
+    expect(fixture.componentInstance.presenterQaWordCloudTermDocuments()).toEqual([
+      expect.objectContaining({
+        id: '11111111-1111-4111-8111-111111111111',
+        weight: getQaWordCloudQuestionWeight({ upvoteCount: 25, bestScore: 0.25 }, 'BEST'),
+      }),
+      expect.objectContaining({
+        id: '22222222-2222-4222-8222-222222222222',
+        weight: getQaWordCloudQuestionWeight({ upvoteCount: 1, bestScore: 0.9 }, 'BEST'),
+      }),
+    ]);
     fixture.destroy();
   });
 
