@@ -379,7 +379,7 @@ async function seedRankedQaBoardAndAssertHostViews(page, hostTrpc, created, fail
   const sizeSelect = page.getByLabel(/Größe nach Stimmen/i);
   await sizeSelect.waitFor({ state: 'visible', timeout: 10_000 });
   await page
-    .getByText(/Glättung fehlgeschlagen|berücksichtigten Fragen/i)
+    .getByText(/Glättung fehlgeschlagen|berücksichtigten Fragen|ausgewertete Frage/i)
     .first()
     .waitFor({ state: 'visible', timeout: 20_000 })
     .catch(() => undefined);
@@ -420,7 +420,7 @@ async function seedRankedQaBoardAndAssertHostViews(page, hostTrpc, created, fail
 
   const coverageVisible = await page
     .locator('.qa-word-cloud-dialog__coverage')
-    .filter({ hasText: /berücksichtigten Fragen/i })
+    .filter({ hasText: /berücksichtigten Fragen|ausgewertete Frage/i })
     .first()
     .waitFor({ state: 'visible', timeout: 10_000 })
     .then(
