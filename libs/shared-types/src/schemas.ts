@@ -3277,6 +3277,7 @@ export const SessionPresenterSurfaceSchema = z.enum([
   'freetextWordCloud',
 ]);
 export type SessionPresenterSurface = z.infer<typeof SessionPresenterSurfaceSchema>;
+
 /** Beamer-Abschluss: Leaderboard nach FINISHED, Idle nach Host-Dismiss (Startseite). */
 export const SessionFinishProjectionSchema = z.enum(['leaderboard', 'idle']);
 export type SessionFinishProjection = z.infer<typeof SessionFinishProjectionSchema>;
@@ -4315,6 +4316,30 @@ export const AnalyzeQaWordCloudOutputSchema = AnalyzeWordCloudOutputSchema.exten
   filter: QaWordCloudFilterEnum,
 });
 export type AnalyzeQaWordCloudOutput = z.infer<typeof AnalyzeQaWordCloudOutputSchema>;
+
+/** Host-Q&A-Wortwolke, die der Presenter 1:1 projiziert (Variante, Metrik, Analyse). */
+export const QaWordCloudPresenterProjectionDTOSchema = z.object({
+  mode: WordCloudAnalysisVariantEnum,
+  metric: WordCloudWeightMetricEnum,
+  locale: WordCloudAnalysisLocaleEnum.nullable(),
+  analysisEntries: z.array(WordCloudAnalysisEntryDTOSchema).max(QA_WORD_CLOUD_MAX_OUTPUT_ENTRIES),
+  analyzedQuestionCount: z.number().int().min(0),
+  eligibleQuestionCount: z.number().int().min(0),
+  modelVersion: z.string().min(1).max(128).nullable(),
+});
+export type QaWordCloudPresenterProjectionDTO = z.infer<
+  typeof QaWordCloudPresenterProjectionDTOSchema
+>;
+
+export const SetQaWordCloudProjectionInputSchema = GetSessionInfoInputSchema.extend({
+  projection: QaWordCloudPresenterProjectionDTOSchema,
+});
+export type SetQaWordCloudProjectionInput = z.infer<typeof SetQaWordCloudProjectionInputSchema>;
+
+export const GetQaWordCloudProjectionOutputSchema = z.object({
+  projection: QaWordCloudPresenterProjectionDTOSchema.nullable(),
+});
+export type GetQaWordCloudProjectionOutput = z.infer<typeof GetQaWordCloudProjectionOutputSchema>;
 
 /** DTO: Live-Zustand authorisierter Quiz-Kopien (Story 1.10). */
 export const ActiveQuizLiveStateDTOSchema = z.object({

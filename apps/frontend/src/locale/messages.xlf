@@ -18117,13 +18117,6 @@
           <context context-type="linenumber">4238,4239</context>
         </context-group>
       </trans-unit>
-      <trans-unit id="sessionQa.sessionCapacity" datatype="html">
-        <source>Sessionkapazität: <x id="INTERPOLATION" equiv-text="{{ formatCount(qaSessionQuestionCount()) }}"/> von <x id="INTERPOLATION_1" equiv-text="{{ formatCount(qaSessionQuestionLimit) }}"/> gespeichert, <x id="INTERPOLATION_2" equiv-text="{{ formatCount(qaSessionRemaining()) }}"/> Plätze frei.</source>
-        <context-group purpose="location">
-          <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.html</context>
-          <context context-type="linenumber">4249,4251</context>
-        </context-group>
-      </trans-unit>
       <trans-unit id="sessionQa.summaryPending" datatype="html">
         <source>Warten auf Freigabe: <x id="INTERPOLATION" equiv-text="{{ formatCount(qaPendingCount()) }}"/></source>
         <context-group purpose="location">
@@ -19021,6 +19014,13 @@
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.ts</context>
           <context context-type="linenumber">1793</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="sessionQa.wordCloudEmpty" datatype="html">
+        <source>Noch keine sichtbaren Q&amp;A-Fragen.</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/session-present/session-present.component.ts</context>
+          <context context-type="linenumber">257</context>
         </context-group>
       </trans-unit>
       <trans-unit id="sessionQa.wordCloudTitle" datatype="html">
@@ -20702,7 +20702,7 @@
         </context-group>
       </trans-unit>
       <trans-unit id="sessionQa.statusActive" datatype="html">
-        <source>Offen</source>
+        <source>Freigegeben</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.ts</context>
           <context context-type="linenumber">8341</context>
@@ -23683,13 +23683,6 @@
           <context context-type="linenumber">2619,2621</context>
         </context-group>
       </trans-unit>
-      <trans-unit id="sessionQa.sessionQuota" datatype="html">
-        <source> Sessionweit noch <x id="INTERPOLATION" equiv-text="{{ formatCount(quota.sessionRemaining) }}"/> von <x id="INTERPOLATION_1" equiv-text="{{ formatCount(qaSessionQuestionLimit) }}"/> Plätzen frei. </source>
-        <context-group purpose="location">
-          <context context-type="sourcefile">src/app/features/session/session-vote/session-vote.component.html</context>
-          <context context-type="linenumber">2622,2625</context>
-        </context-group>
-      </trans-unit>
       <trans-unit id="sessionQa.deleteOwnAria" datatype="html">
         <source>Frage löschen</source>
         <context-group purpose="location">
@@ -24841,6 +24834,18 @@
           <context context-type="sourcefile">src/app/features/session/session-vote/session-vote.component.ts</context>
           <context context-type="linenumber">4682</context>
         </context-group>
+      </trans-unit>
+      <trans-unit id="sessionQa.snackOwnAccepted" datatype="html">
+        <source>Deine Frage wurde freigegeben.</source>
+      </trans-unit>
+      <trans-unit id="sessionQa.snackOwnAcceptedMany" datatype="html">
+        <source>Deine Fragen wurden freigegeben.</source>
+      </trans-unit>
+      <trans-unit id="sessionQa.snackOwnPinned" datatype="html">
+        <source>Deine Frage wurde hervorgehoben.</source>
+      </trans-unit>
+      <trans-unit id="sessionQa.snackOwnPinnedMany" datatype="html">
+        <source>Deine Fragen wurden hervorgehoben.</source>
       </trans-unit>
       <trans-unit id="sessionVote.readingReadyError" datatype="html">
         <source>Bereitschaft konnte nicht bestätigt werden.</source>

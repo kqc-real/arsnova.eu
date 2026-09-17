@@ -4185,19 +4185,6 @@
                           >Gesamt: {{ formatCount(qaForumQuestionCount()) }}</span
                         >
                       </span>
-                      <span
-                        class="session-qa-summary__chip"
-                        [class.session-qa-summary__chip--limit]="qaSessionRemaining() === 0"
-                      >
-                        <mat-icon class="session-qa-summary__icon" aria-hidden="true"
-                          >inventory_2</mat-icon
-                        >
-                        <span i18n="@@sessionQa.sessionCapacity"
-                          >Sessionkapazität: {{ formatCount(qaSessionQuestionCount()) }} von
-                          {{ formatCount(qaSessionQuestionLimit) }} gespeichert,
-                          {{ formatCount(qaSessionRemaining()) }} Plätze frei.</span
-                        >
-                      </span>
                       @if (qaPendingCount() > 0) {
                         <span class="session-qa-summary__chip session-qa-summary__chip--pending">
                           <mat-icon class="session-qa-summary__icon" aria-hidden="true"

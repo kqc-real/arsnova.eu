@@ -71,6 +71,7 @@ const {
   enableQuickFeedbackChannelMutateMock,
   setPreferredLiveChannelMutateMock,
   setPresenterSurfaceMutateMock,
+  setQaWordCloudProjectionMutateMock,
   pauseQuizMutateMock,
   resumeQuizMutateMock,
   closeQaChannelMutateMock,
@@ -128,6 +129,7 @@ const {
   enableQuickFeedbackChannelMutateMock: vi.fn(),
   setPreferredLiveChannelMutateMock: vi.fn(),
   setPresenterSurfaceMutateMock: vi.fn(),
+  setQaWordCloudProjectionMutateMock: vi.fn(),
   pauseQuizMutateMock: vi.fn(),
   resumeQuizMutateMock: vi.fn(),
   closeQaChannelMutateMock: vi.fn(),
@@ -185,6 +187,7 @@ vi.mock('../../../core/trpc.client', () => ({
       enableQuickFeedbackChannel: { mutate: enableQuickFeedbackChannelMutateMock },
       setPreferredLiveChannel: { mutate: setPreferredLiveChannelMutateMock },
       setPresenterSurface: { mutate: setPresenterSurfaceMutateMock },
+      setQaWordCloudProjection: { mutate: setQaWordCloudProjectionMutateMock },
       pauseQuiz: { mutate: pauseQuizMutateMock },
       resumeQuiz: { mutate: resumeQuizMutateMock },
       closeQaChannel: { mutate: closeQaChannelMutateMock },
@@ -557,6 +560,9 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
       async ({ surface }: { surface: 'default' | 'qaWordCloud' | 'freetextWordCloud' }) => ({
         presenterSurface: surface,
       }),
+    );
+    setQaWordCloudProjectionMutateMock.mockImplementation(
+      async ({ projection }: { projection: unknown }) => ({ projection }),
     );
     pauseQuizMutateMock.mockResolvedValue({
       status: 'PAUSED',
@@ -5782,6 +5788,8 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
     const text = fixture.nativeElement.textContent ?? '';
     expect(text).toContain('Gesamt: 1');
     expect(text).not.toContain('Gesamt: 2');
+    expect(text).not.toContain('25.000');
+    expect(text).not.toContain('Fragen gespeichert');
     expect(text).toContain('Sichtbare Frage');
     expect(text).not.toContain('Bereits entfernte Frage');
     expect(fixture.nativeElement.querySelectorAll('.session-qa-card')).toHaveLength(1);
@@ -6284,6 +6292,65 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
         label: 'Kapitel 4',
       },
     ]);
+    await vi.waitUntil(
+      () =>
+        setQaWordCloudProjectionMutateMock.mock.calls.some((call) =>
+          JSON.stringify(call[0]).includes('Kapitel 4'),
+        ),
+      {
+        timeout: 5000,
+        interval: 25,
+      },
+    );
+    expect(setQaWordCloudProjectionMutateMock).toHaveBeenCalledWith(
+      expect.objectContaining({
+        code: 'ABC123',
+        projection: expect.objectContaining({
+          mode: 'THEME',
+          metric: 'BEST',
+          analysisEntries: expect.arrayContaining([
+            expect.objectContaining({
+              label: 'Kapitel 4',
+            }),
+          ]),
+        }),
+      }),
+    );
+    fixture.destroy();
+  });
+
+  it('publiziert nach Host-Reload keine Default-Wortwolke auf die bestehende Presenter-Fläche', async () => {
+    getInfoQueryMock.mockResolvedValue({
+      ...defaultSession,
+      status: 'ACTIVE',
+      presenterSurface: 'qaWordCloud',
+      preferredChannel: 'qa',
+      channels: {
+        quiz: { enabled: true },
+        qa: { enabled: true, open: true, title: 'Fragen aus dem Publikum', moderationMode: true },
+        quickFeedback: { enabled: false, open: false },
+      },
+    });
+    qaListQueryMock.mockResolvedValue([
+      {
+        id: '11111111-1111-4111-8111-111111111111',
+        text: 'Kommt Kapitel 4 in der Klausur vor?',
+        upvoteCount: 9,
+        status: 'ACTIVE',
+        createdAt: '2026-03-13T12:00:00.000Z',
+        myVote: null,
+        isOwn: false,
+        hasUpvoted: false,
+      },
+    ]);
+
+    const fixture = setup();
+    fixture.detectChanges();
+    await fixture.whenStable();
+    await new Promise((resolve) => setTimeout(resolve, 80));
+
+    expect(fixture.componentInstance.qaWordCloudDialogOpen()).toBe(false);
+    expect(setQaWordCloudProjectionMutateMock).not.toHaveBeenCalled();
     fixture.destroy();
   });
 

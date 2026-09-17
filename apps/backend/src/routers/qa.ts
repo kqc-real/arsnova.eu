@@ -981,9 +981,6 @@ export const qaRouter = router({
           : session.qaOpen === false
             ? 'CHANNEL_CLOSED'
             : 'ACTIVE';
-      if (state !== 'ACTIVE') {
-        return buildQaQuestionsSnapshot(session, [], state, serverNow);
-      }
       const rankingRevision = `${session.qaRankingRevision}:`;
       const page = await buildQaQuestionPayloadFromDb({
         sessionId: session.id,

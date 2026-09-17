@@ -6659,8 +6659,66 @@ describe('SessionVoteComponent', { timeout: 30_000 }, () => {
       idempotencyKey: expect.any(String),
     });
     fixture.detectChanges();
-    expect(fixture.nativeElement.textContent ?? '').toContain('Sessionweit noch 0 von 25.000');
+    expect(fixture.nativeElement.textContent ?? '').toContain('Noch 9 von 10 Fragen möglich');
+    expect(fixture.nativeElement.textContent ?? '').not.toContain('Sessionweit noch');
     expect(component.qaCanSubmit()).toBe(false);
+    fixture.destroy();
+  });
+
+  it('zeigt Freigabe- und Hervorhebungsstatus in der Teilnehmer-Q&A-Liste', async () => {
+    getInfoQueryMock.mockResolvedValue({
+      id: '6a8edced-5f8f-4cfa-9176-454fac9570ad',
+      serverTime: MOCK_SERVER_TIME,
+      code: 'ABC123',
+      type: 'QUIZ',
+      status: 'LOBBY',
+      quizName: 'Team-Quiz',
+      title: null,
+      participantCount: 6,
+      channels: {
+        quiz: { enabled: true },
+        qa: { enabled: true, open: true, title: 'Fragen aus dem Publikum', moderationMode: true },
+        quickFeedback: { enabled: false, open: false },
+      },
+    });
+
+    const fixture = TestBed.createComponent(SessionVoteComponent);
+    fixture.detectChanges();
+    await flushComponentAfterStable(fixture, 50);
+    const component = fixture.componentInstance;
+    (
+      component as unknown as {
+        applyQaQuestionsSnapshot(snapshot: unknown[]): boolean;
+      }
+    ).applyQaQuestionsSnapshot([
+      {
+        id: '11111111-1111-4111-8111-111111111111',
+        text: 'Freigegebene Frage',
+        upvoteCount: 1,
+        status: 'ACTIVE',
+        createdAt: '2026-03-13T12:00:00.000Z',
+        myVote: null,
+        isOwn: false,
+        hasUpvoted: false,
+      },
+      {
+        id: '22222222-2222-4222-8222-222222222222',
+        text: 'Hervorgehobene Frage',
+        upvoteCount: 3,
+        status: 'PINNED',
+        createdAt: '2026-03-13T12:01:00.000Z',
+        myVote: null,
+        isOwn: false,
+        hasUpvoted: false,
+      },
+    ]);
+    component.activeChannel.set('qa');
+    fixture.detectChanges();
+
+    const text = fixture.nativeElement.textContent ?? '';
+    expect(text).toContain('Freigegeben');
+    expect(text).toContain('Wird beantwortet');
+    expect(text).not.toContain('Sessionweit noch');
     fixture.destroy();
   });
 
@@ -6806,9 +6864,9 @@ describe('SessionVoteComponent', { timeout: 30_000 }, () => {
     c.qaQuestions.set(prev);
     (
       c as unknown as {
-        notifyQaModeratorRemovals: (p: QaQuestionDTO[], n: QaQuestionDTO[]) => void;
+        notifyQaQuestionUpdates: (p: QaQuestionDTO[], n: QaQuestionDTO[]) => void;
       }
-    ).notifyQaModeratorRemovals(prev, []);
+    ).notifyQaQuestionUpdates(prev, []);
 
     expect(snackBarOpenMock).toHaveBeenCalledTimes(1);
     const [message, , opts] = snackBarOpenMock.mock.calls[0]!;
@@ -6857,13 +6915,111 @@ describe('SessionVoteComponent', { timeout: 30_000 }, () => {
     c.qaQuestions.set(prev);
     (
       c as unknown as {
-        notifyQaModeratorRemovals: (p: QaQuestionDTO[], n: QaQuestionDTO[]) => void;
+        notifyQaQuestionUpdates: (p: QaQuestionDTO[], n: QaQuestionDTO[]) => void;
       }
-    ).notifyQaModeratorRemovals(prev, []);
+    ).notifyQaQuestionUpdates(prev, []);
 
     expect(snackBarOpenMock).toHaveBeenCalledTimes(1);
     const [message] = snackBarOpenMock.mock.calls[0]!;
     expect(message).toMatch(/Frage|question|pregunta|domanda/i);
+    fixture.destroy();
+  });
+
+  it('informiert per Snackbar, wenn die eigene Frage freigegeben wird', async () => {
+    snackBarOpenMock.mockClear();
+    getInfoQueryMock.mockResolvedValue({
+      id: '6a8edced-5f8f-4cfa-9176-454fac9570ad',
+      serverTime: MOCK_SERVER_TIME,
+      code: 'ABC123',
+      type: 'QUIZ',
+      status: 'LOBBY',
+      quizName: 'Team-Quiz',
+      title: null,
+      participantCount: 6,
+      channels: {
+        quiz: { enabled: true },
+        qa: { enabled: true, open: true, title: 'Fragen', moderationMode: true },
+        quickFeedback: { enabled: false, open: false },
+      },
+    });
+    currentQuestionQueryMock.mockResolvedValue(null);
+    qaListQueryMock.mockResolvedValue([]);
+
+    const fixture = TestBed.createComponent(SessionVoteComponent);
+    fixture.detectChanges();
+    await flushComponentAfterStable(fixture, 50);
+
+    const c = fixture.componentInstance;
+    const pending: QaQuestionDTO = {
+      id: 'q-own',
+      text: 'Meine Frage',
+      upvoteCount: 0,
+      status: 'PENDING',
+      createdAt: '2026-03-13T12:00:00.000Z',
+      myVote: null,
+      isOwn: true,
+      hasUpvoted: false,
+    };
+    c.qaQuestions.set([pending]);
+    (
+      c as unknown as {
+        notifyQaQuestionUpdates: (p: QaQuestionDTO[], n: QaQuestionDTO[]) => void;
+      }
+    ).notifyQaQuestionUpdates([pending], [{ ...pending, status: 'ACTIVE' }]);
+
+    expect(snackBarOpenMock).toHaveBeenCalledTimes(1);
+    expect(snackBarOpenMock.mock.calls[0]![0]).toMatch(
+      /freigegeben|approved|validée|aprobada|approvata/i,
+    );
+    fixture.destroy();
+  });
+
+  it('informiert per Snackbar, wenn die eigene Frage hervorgehoben wird', async () => {
+    snackBarOpenMock.mockClear();
+    getInfoQueryMock.mockResolvedValue({
+      id: '6a8edced-5f8f-4cfa-9176-454fac9570ad',
+      serverTime: MOCK_SERVER_TIME,
+      code: 'ABC123',
+      type: 'QUIZ',
+      status: 'LOBBY',
+      quizName: 'Team-Quiz',
+      title: null,
+      participantCount: 6,
+      channels: {
+        quiz: { enabled: true },
+        qa: { enabled: true, open: true, title: 'Fragen', moderationMode: false },
+        quickFeedback: { enabled: false, open: false },
+      },
+    });
+    currentQuestionQueryMock.mockResolvedValue(null);
+    qaListQueryMock.mockResolvedValue([]);
+
+    const fixture = TestBed.createComponent(SessionVoteComponent);
+    fixture.detectChanges();
+    await flushComponentAfterStable(fixture, 50);
+
+    const c = fixture.componentInstance;
+    const active: QaQuestionDTO = {
+      id: 'q-own',
+      text: 'Meine Frage',
+      upvoteCount: 2,
+      status: 'ACTIVE',
+      createdAt: '2026-03-13T12:00:00.000Z',
+      myVote: null,
+      isOwn: true,
+      hasUpvoted: false,
+    };
+    c.qaQuestions.set([active]);
+    (
+      c as unknown as {
+        notifyQaQuestionUpdates: (p: QaQuestionDTO[], n: QaQuestionDTO[]) => void;
+      }
+    ).notifyQaQuestionUpdates([active], [{ ...active, status: 'PINNED' }]);
+
+    expect(snackBarOpenMock).toHaveBeenCalledTimes(1);
+    expect(snackBarOpenMock.mock.calls[0]![0]).toMatch(
+      /hervorgehoben|highlighted|avant|destacada|evidenziata/i,
+    );
     fixture.destroy();
   });
 
