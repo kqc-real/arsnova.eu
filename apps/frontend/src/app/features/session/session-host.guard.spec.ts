@@ -6,6 +6,7 @@ import {
   getHostBrowserCapability,
   getStagedHostRecoveryCard,
   persistInitialHostRecovery,
+  persistPreparedHostRecovery,
 } from '../../core/host-recovery-access';
 import { requireHostToken } from './session-host.guard';
 
@@ -110,5 +111,54 @@ describe('requireHostToken', () => {
       recoveryCode: RECOVERY_CODE,
     });
     expect(getHostToken(CODE)).toBe('activated-host-token-abcdefghijklmnopqrstuvwxyz');
+  });
+
+  it('aktiviert einen nur vorbereiteten Kandidaten nicht automatisch', async () => {
+    persistPreparedHostRecovery({
+      supportId: 'ARS-ABCD-2345',
+      sourceKind: 'RECOVERY',
+      exchangeId: 'exchange-id-abcdefghijklmnopqrstuvwxyz0123456789ab',
+      prepared: {
+        code: CODE,
+        browserCapability: BROWSER_CAPABILITY,
+        recoveryCard: { supportId: 'ARS-ABCD-2345', recoveryCode: RECOVERY_CODE },
+        pendingExpiresAt: new Date(Date.now() + 60_000).toISOString(),
+      },
+    });
+    issueMock.mockRejectedValue(new Error('UNAUTHORIZED: intern'));
+
+    const result = await TestBed.runInInjectionContext(() =>
+      Promise.resolve(requireHostToken(route(), {} as never)),
+    );
+    const router = TestBed.inject(Router);
+
+    expect(result).not.toBe(true);
+    expect(router.serializeUrl(result as never)).toContain('/host-recovery');
+    expect(activateMock).not.toHaveBeenCalled();
+  });
+
+  it('stellt nach Tabverlust aus der gespeicherten Capability einen Token aus', async () => {
+    persistPreparedHostRecovery({
+      supportId: 'ARS-ABCD-2345',
+      sourceKind: 'RECOVERY',
+      exchangeId: 'exchange-id-abcdefghijklmnopqrstuvwxyz0123456789ab',
+      prepared: {
+        code: CODE,
+        browserCapability: BROWSER_CAPABILITY,
+        recoveryCard: { supportId: 'ARS-ABCD-2345', recoveryCode: RECOVERY_CODE },
+        pendingExpiresAt: new Date(Date.now() + 60_000).toISOString(),
+      },
+    });
+    sessionStorage.clear();
+
+    const result = await TestBed.runInInjectionContext(() =>
+      Promise.resolve(requireHostToken(route(), {} as never)),
+    );
+
+    expect(result).toBe(true);
+    expect(issueMock).toHaveBeenCalledWith({ code: CODE, browserCapability: BROWSER_CAPABILITY });
+    expect(activateMock).not.toHaveBeenCalled();
+    expect(getHostBrowserCapability(CODE)).toBe(BROWSER_CAPABILITY);
+    expect(getHostToken(CODE)).toBe('short-lived-host-token-abcdefghijklmnopqrstuvwxyz');
   });
 });

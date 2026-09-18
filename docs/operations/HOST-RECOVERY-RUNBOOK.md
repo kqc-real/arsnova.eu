@@ -22,16 +22,36 @@ Browserneustart sowie Redis-Neustart oder Redis-Datenverlust zerstören deshalb
 nicht den PostgreSQL-basierten Wiederzugang. Ist Redis nicht erreichbar, bleibt
 der Zugriff fail-closed, bis Redis wieder verfügbar ist.
 
-Bei verlorenen Browserdaten öffnet der Host die Wiederherstellungsseite,
-gibt die Session-Kennung (Support-ID) und den Recovery-Code ein und sichert die neu ausgegebene
-Zugangskarte. Geheimnisse und die CSPRNG-Exchange-ID werden ausschließlich im
-tRPC-Request-Body übertragen.
+Bei verlorenen Browserdaten öffnet der Host die Wiederherstellungsseite über
+den Textlink im Hostbereich der Startseite oder direkt `/<locale>/host-recovery`.
+Der Ablauf hat drei Schritte: Angaben prüfen (Prepare), neue Zugangsdaten
+sichern und erst danach ausdrücklich aktivieren, anschließend bestätigter
+Erfolg. Ein Download ist optional; eine Klartextnotiz mit Session-Kennung,
+Wiederherstellungscode und Wiederherstellungslink reicht. Geheimnisse und die
+CSPRNG-Exchange-ID werden ausschließlich im tRPC-Request-Body übertragen.
 
 Prepare ist für höchstens 15 Minuten idempotent. Derselbe Recovery-Code und
 dieselbe Exchange-ID liefern in diesem Fenster dasselbe verschlüsselt
 vorgehaltene Response-Material. Die alte Credential-Generation bleibt bis zur
 Aktivierung gültig. Erst Activate widerruft sie atomar. Nach Aktivierung oder
 Ablauf wird das verschlüsselte Envelope gelöscht.
+
+Geht die Aktivierungsantwort verloren, darf das Formular den alten Code nicht
+erneut gegen Prepare senden. Der Browser speichert den Wiederaufnahmestatus
+(Support-ID, Sessioncode, Phase, Exchange-Frist) in `localStorage`. Pending-
+Kartenmaterial und die Exchange-ID werden mit der 15-Minuten-Frist bereinigt.
+Eine bereits aktivierte Browser-Capability bleibt davon unberührt und kann
+nach Tabwechsel oder nach Ablauf des Pending-Fensters erneut einen Host-Token
+beziehen. Eine nie aktivierte Vorbereitung bleibt nach Fristablauf ungültig;
+die vorherige Generation gilt weiter. Der Guard aktiviert einen nur
+vorbereiteten Kandidaten nicht automatisch.
+
+Kurzfristiger Support: Besitzt der Browser die bereits aktivierte Capability,
+kann `/<locale>/session/<code>/host` über den Guard einen Token ausstellen.
+Das ist ein bedingter Workaround und keine Autorisierung durch die URL. Für
+ungeklärte Fälle Support-ID, Credential-Generation, offenen Exchange und
+Fehlerphase prüfen; keine Rohgeheimnisse protokollieren. Ein Admin-Reset folgt
+nicht automatisch, sondern dem verifizierten Prozess unten.
 
 ## Berechtigungsgrenzen
 

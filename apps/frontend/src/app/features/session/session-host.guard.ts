@@ -7,12 +7,16 @@ import {
   setHostToken,
 } from '../../core/host-session-token';
 import {
+  canActivatePendingCandidate,
   clearHostBrowserCapability,
+  clearHostRecoveryCandidate,
   clearRecoveryExchangeId,
+  findHostRecoveryResumeByCode,
   getHostBrowserCapability,
+  getHostRecoveryCandidate,
   getOrCreateRecoveryExchangeId,
-  getStagedHostRecoveryCard,
   persistInitialHostRecovery,
+  promoteHostRecoveryCandidate,
 } from '../../core/host-recovery-access';
 import { localizeCommands } from '../../core/locale-router';
 import { trpc } from '../../core/trpc.client';
@@ -29,21 +33,16 @@ export async function resolveHostRouteAccess(route: ActivatedRouteSnapshot, rout
   }
 
   const code = normalizeHostSessionCode(codeParam);
-  const browserCapability = getHostBrowserCapability(code);
-  if (!hasHostToken(code) && browserCapability) {
+  const activeCapability = getHostBrowserCapability(code);
+  const candidateCapability = getHostRecoveryCandidate(code);
+
+  if (!hasHostToken(code) && activeCapability) {
     try {
-      const stagedCard = getStagedHostRecoveryCard(code);
-      const issued = stagedCard
-        ? await trpc.session.activateHostCredential.mutate({
-            supportId: stagedCard.supportId,
-            browserCapability,
-          })
-        : await trpc.session.issueHostAccessToken.mutate({
-            code,
-            browserCapability,
-          });
+      const issued = await trpc.session.issueHostAccessToken.mutate({
+        code,
+        browserCapability: activeCapability,
+      });
       setHostToken(code, issued.hostToken);
-      if (stagedCard) clearRecoveryExchangeId(stagedCard.supportId);
     } catch (error: unknown) {
       const message =
         error && typeof error === 'object' && 'message' in error ? String(error.message) : '';
@@ -52,13 +51,43 @@ export async function resolveHostRouteAccess(route: ActivatedRouteSnapshot, rout
       }
     }
   }
+
+  if (!hasHostToken(code) && candidateCapability) {
+    try {
+      const issued = await trpc.session.issueHostAccessToken.mutate({
+        code,
+        browserCapability: candidateCapability,
+      });
+      promoteHostRecoveryCandidate(code, candidateCapability);
+      setHostToken(code, issued.hostToken);
+    } catch (error: unknown) {
+      const message =
+        error && typeof error === 'object' && 'message' in error ? String(error.message) : '';
+      const resume = findHostRecoveryResumeByCode(code);
+      if (canActivatePendingCandidate(code) && resume) {
+        try {
+          const activated = await trpc.session.activateHostCredential.mutate({
+            supportId: resume.supportId,
+            browserCapability: candidateCapability,
+          });
+          promoteHostRecoveryCandidate(code, candidateCapability);
+          setHostToken(code, activated.hostToken);
+        } catch {
+          // Bereits gestartete Aktivierung bleibt auf der Recovery-Seite wiederaufnehmbar.
+        }
+      } else if (message.includes('UNAUTHORIZED') && resume?.phase !== 'prepared') {
+        clearHostRecoveryCandidate(code);
+      }
+    }
+  }
+
   if (!hasHostToken(code)) {
     return router.createUrlTree(localizeCommands(['host-recovery']));
   }
 
   try {
     await trpc.session.getParticipantSummary.query({ code });
-    if (!browserCapability) {
+    if (!getHostBrowserCapability(code)) {
       try {
         const prepared = await trpc.session.prepareHostCredentialBootstrap.mutate({
           code,
@@ -85,12 +114,12 @@ export async function resolveHostRouteAccess(route: ActivatedRouteSnapshot, rout
       error && typeof error === 'object' && 'message' in error ? String(error.message) : '';
     if (
       (message.startsWith('UNAUTHORIZED:') || message.startsWith('NOT_FOUND:')) &&
-      browserCapability
+      getHostBrowserCapability(code)
     ) {
       try {
         const issued = await trpc.session.issueHostAccessToken.mutate({
           code,
-          browserCapability,
+          browserCapability: getHostBrowserCapability(code) as string,
         });
         setHostToken(code, issued.hostToken);
         await trpc.session.getParticipantSummary.query({ code });

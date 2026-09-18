@@ -48,7 +48,7 @@ describe('Epic-405 Dialogflächen', () => {
       'utf8',
     );
     const recoveryPage = readFileSync(
-      frontendSrc('app/features/session/host-recovery/host-recovery.component.ts'),
+      frontendSrc('app/features/session/host-recovery/host-recovery.component.html'),
       'utf8',
     );
 

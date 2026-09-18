@@ -5,6 +5,7 @@ import { prisma } from '../db';
 import { hashCapability, createOpaqueCapability } from '../lib/capabilityCrypto';
 import {
   activateHostCredential,
+  cleanupExpiredHostCredentialMaterial,
   createInitialHostCredentialMaterial,
   issueHostTokenFromBrowserCapability,
   prepareHostCredentialExchange,
@@ -393,5 +394,52 @@ describe.skipIf(!RUN_PG)('host and participant capabilities (PostgreSQL + Redis)
         browserCapability: expiredMaterial.browserCapability,
       }),
     ).rejects.toMatchObject({ code: 'UNAUTHORIZED' });
+  });
+
+  it('hält nach Activate-Commit dieselbe Generation und lehnt den alten Recovery-Code ab', async () => {
+    const material = createInitialHostCredentialMaterial();
+    const session = await prisma.session.create({
+      data: {
+        id: randomUUID(),
+        code: sessionCode('L'),
+        type: 'Q_AND_A',
+        status: 'ACTIVE',
+        qaEnabled: true,
+        qaOpen: true,
+        hostCredentialVersion: material.credentialData.hostCredentialVersion,
+        hostSupportId: material.credentialData.hostSupportId,
+        hostCredentials: material.credentialData.hostCredentials,
+      },
+    });
+    sessionIds.push(session.id);
+    const exchangeId = createOpaqueCapability();
+    const prepared = await prepareHostCredentialExchange({
+      supportId: material.recoveryCard.supportId,
+      recoveryExchangeId: exchangeId,
+      source: { kind: 'RECOVERY', recoveryCode: material.recoveryCard.recoveryCode },
+    });
+    const first = await activateHostCredential({
+      supportId: prepared.recoveryCard.supportId,
+      browserCapability: prepared.browserCapability,
+    });
+    const replay = await activateHostCredential({
+      supportId: prepared.recoveryCard.supportId,
+      browserCapability: prepared.browserCapability,
+    });
+    expect(replay.generation).toBe(first.generation);
+    await expect(
+      prepareHostCredentialExchange({
+        supportId: material.recoveryCard.supportId,
+        recoveryExchangeId: createOpaqueCapability(),
+        source: { kind: 'RECOVERY', recoveryCode: material.recoveryCard.recoveryCode },
+      }),
+    ).rejects.toMatchObject({ code: 'UNAUTHORIZED' });
+    await cleanupExpiredHostCredentialMaterial(new Date(Date.now() + 16 * 60 * 1000));
+    expect(
+      await issueHostTokenFromBrowserCapability({
+        code: session.code,
+        browserCapability: prepared.browserCapability,
+      }),
+    ).toBeDefined();
   });
 });

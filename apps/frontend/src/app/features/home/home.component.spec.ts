@@ -401,6 +401,11 @@ describe('HomeComponent', () => {
       expect(joinCard?.textContent).toContain('Los geht’s');
       expect(joinCard?.textContent).not.toContain('Host-Zugang wiederherstellen');
       expect(joinCard?.querySelector('a[href*="host-recovery"]')).toBeNull();
+      const hostIntro = fixture.nativeElement.querySelector(
+        '.home-host-intro',
+      ) as HTMLElement | null;
+      expect(hostIntro?.textContent).toContain('Host-Zugang wiederherstellen');
+      expect(hostIntro?.querySelector('.home-host-recovery-link')).not.toBeNull();
 
       fixture.componentInstance.themePreset.setPreset('serious');
       fixture.detectChanges();

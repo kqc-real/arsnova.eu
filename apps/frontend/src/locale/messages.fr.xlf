@@ -17293,7 +17293,7 @@
       </trans-unit>
       <trans-unit id="hostRecovery.cardTitle" datatype="html">
         <source>Host-Zugangskarte sichern</source>
-        <target>Enregistrer la fiche de récupération de l’hôte</target>
+        <target>Conserver tes informations d’accès</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/host-recovery/host-recovery-card-dialog.component.ts</context>
           <context context-type="linenumber">14</context>
@@ -17301,31 +17301,22 @@
       </trans-unit>
       <trans-unit id="hostRecovery.cardSubtitle" datatype="html">
         <source> Lade sie herunter oder kopiere die Werte. Bewahre sie getrennt vom Browser auf. </source>
-        <target>Télécharge la fiche de récupération ou copie les valeurs. Conserve-les séparément du navigateur.</target>
+        <target>Télécharge la fiche de récupération ou copie les informations dans une note conservée en lieu sûr.</target>
       </trans-unit>
-      <trans-unit id="hostRecovery.sessionCodeLabel" datatype="html">
-        <source>Sessioncode</source>
-        <target>Code de session</target>
-      </trans-unit>
-      <trans-unit id="hostRecovery.sessionCodeHint" datatype="html">
-        <source>Öffentlicher Code der Sitzung. Reicht allein nicht für Hostrechte.</source>
-        <target>Code public de la session. À lui seul, il ne donne aucun droit d&apos;hôte.</target>
-      </trans-unit>
-      <trans-unit id="hostRecovery.copySessionCodeAria" datatype="html">
-        <source>Sessioncode kopieren</source>
-        <target>Copier le code de session</target>
-      </trans-unit>
+      
+      
+      
       <trans-unit id="hostRecovery.supportIdHint" datatype="html">
         <source>Diese Kennung identifiziert die Session bei der Wiederherstellung. Sie ist nicht der öffentliche Beitrittscode.</source>
-        <target>Cet identifiant désigne la session lors de la récupération. Ce n’est pas le code public de participation.</target>
+        <target>Commence par ARS-. Le code de participation à six caractères n’est pas nécessaire ici.</target>
       </trans-unit>
       <trans-unit id="hostRecovery.recoveryCodeHint" datatype="html">
         <source>Halte diesen Code geheim. Zusammen mit der Session-Kennung ermöglicht er den Host-Zugang.</source>
-        <target>Garde ce code secret. Avec l’identifiant de session, il permet l’accès hôte.</target>
+        <target>Garde ce code secret.</target>
       </trans-unit>
       <trans-unit id="hostRecovery.copySupportIdAria" datatype="html">
         <source>Session-Kennung kopieren</source>
-        <target>Copier l&apos;identifiant de session</target>
+        <target>Copier l’identifiant de session</target>
       </trans-unit>
       <trans-unit id="hostRecovery.copyRecoveryCodeAria" datatype="html">
         <source>Wiederherstellungscode kopieren</source>
@@ -17333,12 +17324,9 @@
       </trans-unit>
       <trans-unit id="hostRecovery.copyFailed" datatype="html">
         <source> Kopieren hat nicht geklappt. Markiere den Wert und kopiere ihn selbst. </source>
-        <target>La copie n’a pas fonctionné. Sélectionne la valeur et copie-la toi-même.</target>
+        <target>La copie a échoué. Sélectionne les informations et copie-les manuellement.</target>
       </trans-unit>
-      <trans-unit id="hostRecovery.sessionCodeCopied" datatype="html">
-        <source>Sessioncode wurde kopiert.</source>
-        <target>Code de session copié.</target>
-      </trans-unit>
+      
       <trans-unit id="hostRecovery.supportIdCopied" datatype="html">
         <source>Session-Kennung wurde kopiert.</source>
         <target>Identifiant de session copié.</target>
@@ -17349,16 +17337,9 @@
       </trans-unit>
       <trans-unit id="hostRecovery.cardWhy" datatype="html">
         <source>Dein Host-Zugang ist in diesem Browser gespeichert. Mit der Host-Zugangskarte kannst du ihn auf einem anderen Gerät wiederherstellen.</source>
-        <target>Ton accès hôte est enregistré dans ce navigateur. La fiche de récupération te permet de le rétablir sur un autre appareil.</target>
+        <target>Ton accès hôte est enregistré dans ce navigateur. Tu auras besoin de ces deux informations pour le rétablir sur un autre appareil ou dans un autre navigateur.</target>
       </trans-unit>
-      <trans-unit id="hostRecovery.cardIntro" datatype="html">
-        <source>Öffne dazu die Wiederherstellungsseite und gib die Session-Kennung und den Wiederherstellungscode ein.</source>
-        <target>Ouvre la page de récupération et saisis l’identifiant de session et le code de récupération.</target>
-        <context-group purpose="location">
-          <context context-type="sourcefile">src/app/features/session/host-recovery/host-recovery-card-dialog.component.ts</context>
-          <context context-type="linenumber">16,19</context>
-        </context-group>
-      </trans-unit>
+      
       <trans-unit id="hostRecovery.recoveryCodeLabel" datatype="html">
         <source>Wiederherstellungscode</source>
         <target>Code de récupération</target>
@@ -17373,7 +17354,7 @@
       </trans-unit>
       <trans-unit id="hostRecovery.cardWarning" datatype="html">
         <source>Wenn Browserzugang und Zugangskarte verloren sind, wende dich an den Support. Er muss deine Berechtigung für diese Session prüfen. Die Kontaktdaten findest du im »Impressum«.</source>
-        <target>Si tu perds à la fois l’accès dans ce navigateur et la fiche de récupération, contacte l’assistance. Elle doit vérifier que tu es autorisé à accéder à cette session en tant qu’hôte. Ses coordonnées figurent dans les « Mentions légales ».</target>
+        <target>Si tu n’as plus accès à la session dans ton navigateur et que tu n’as plus tes informations d’accès, contacte l’assistance. Elle devra vérifier ton droit d’accès à cette session en tant qu’hôte.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/host-recovery/host-recovery-card-dialog.component.ts</context>
           <context context-type="linenumber">30,33</context>
@@ -17381,7 +17362,7 @@
       </trans-unit>
       <trans-unit id="hostRecovery.downloadCard" datatype="html">
         <source>Zugangskarte herunterladen</source>
-        <target>Télécharger la fiche de récupération</target>
+        <target>Télécharger la fiche</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/host-recovery/host-recovery-card-dialog.component.ts</context>
           <context context-type="linenumber">36</context>
@@ -17389,7 +17370,7 @@
       </trans-unit>
       <trans-unit id="hostRecovery.cardSavedConfirmation" datatype="html">
         <source> Ich habe die Zugangskarte sicher gespeichert. </source>
-        <target>J’ai enregistré la fiche de récupération en lieu sûr.</target>
+        <target>J’ai conservé mes informations d’accès en lieu sûr.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/host-recovery/host-recovery-card-dialog.component.ts</context>
           <context context-type="linenumber">39,41</context>
@@ -17405,7 +17386,7 @@
       </trans-unit>
       <trans-unit id="hostRecovery.downloadHeading" datatype="html">
         <source>Host-Zugangskarte</source>
-        <target>Fiche de récupération de l’hôte</target>
+        <target>Informations d’accès hôte</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/host-recovery/host-recovery-card-dialog.component.ts</context>
           <context context-type="linenumber">108</context>
@@ -17417,23 +17398,16 @@
       </trans-unit>
       <trans-unit id="hostRecovery.downloadHowTo" datatype="html">
         <source>So stellst du den Host-Zugang wieder her</source>
-        <target>Comment rétablir l&apos;accès hôte</target>
+        <target>Comment rétablir ton accès hôte</target>
       </trans-unit>
       <trans-unit id="hostRecovery.downloadUsage" datatype="html">
         <source>Öffne <x id="recoveryUrl" equiv-text="recoveryUrl"/> und gib Session-Kennung plus Wiederherstellungscode ein.</source>
-        <target>Ouvre <x id="recoveryUrl" equiv-text="recoveryUrl"/> et saisis l’identifiant de session et le code de récupération.</target>
+        <target>Ouvre <x id="recoveryUrl" equiv-text="recoveryUrl"/> dans le navigateur avec lequel tu souhaites animer la session. Saisis l’identifiant de session et le code de récupération.</target>
       </trans-unit>
-      <trans-unit id="hostRecovery.downloadWarning" datatype="html">
-        <source>Geheim halten. Sessioncode oder Session-Kennung allein verleihen keinen Host-Zugang.</source>
-        <target>Garde-le secret. Le code de session ou l’identifiant de session seuls ne donnent pas l’accès hôte.</target>
-        <context-group purpose="location">
-          <context context-type="sourcefile">src/app/features/session/host-recovery/host-recovery-card-dialog.component.ts</context>
-          <context context-type="linenumber">113</context>
-        </context-group>
-      </trans-unit>
+      
       <trans-unit id="hostRecovery.title" datatype="html">
         <source>Host-Zugang wiederherstellen</source>
-        <target>Restaurer l&apos;accès à l&apos;hôte</target>
+        <target>Rétablir l’accès hôte</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/host-recovery/host-recovery.component.ts</context>
           <context context-type="linenumber">43</context>
@@ -17441,52 +17415,17 @@
       </trans-unit>
       <trans-unit id="hostRecovery.intro" datatype="html">
         <source>Gib die Session-Kennung und den Wiederherstellungscode deiner Host-Zugangskarte ein.</source>
-        <target>Saisis l’identifiant de session et le code de récupération de ta fiche de récupération.</target>
+        <target>Saisis l’identifiant de session et le code de récupération qui figurent sur ta fiche de récupération ou dans ta note.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/host-recovery/host-recovery.component.ts</context>
           <context context-type="linenumber">46,49</context>
         </context-group>
       </trans-unit>
-      <trans-unit id="hostRecovery.sourceKindLabel" datatype="html">
-        <source>Art des Wiederherstellungscodes</source>
-        <target>Type de code de récupération</target>
-        <context-group purpose="location">
-          <context context-type="sourcefile">src/app/features/session/host-recovery/host-recovery.component.ts</context>
-          <context context-type="linenumber">54</context>
-        </context-group>
-      </trans-unit>
-      <trans-unit id="hostRecovery.recoveryCardOption" datatype="html">
-        <source> Zugangskarte </source>
-        <target>Fiche de récupération</target>
-        <context-group purpose="location">
-          <context context-type="sourcefile">src/app/features/session/host-recovery/host-recovery.component.ts</context>
-          <context context-type="linenumber">57,59</context>
-        </context-group>
-      </trans-unit>
-      <trans-unit id="hostRecovery.adminHandoffOption" datatype="html">
-        <source> Support-Übergabe</source>
-        <target>Transfert de support</target>
-        <context-group purpose="location">
-          <context context-type="sourcefile">src/app/features/session/host-recovery/host-recovery.component.ts</context>
-          <context context-type="linenumber">60,62</context>
-        </context-group>
-      </trans-unit>
-      <trans-unit id="hostRecovery.secretLabel" datatype="html">
-        <source>Geheimer Code</source>
-        <target>Code secret</target>
-        <context-group purpose="location">
-          <context context-type="sourcefile">src/app/features/session/host-recovery/host-recovery.component.ts</context>
-          <context context-type="linenumber">78</context>
-        </context-group>
-      </trans-unit>
-      <trans-unit id="hostRecovery.secretHint" datatype="html">
-        <source>Wird nur an den Server gesendet, nie in der Adresszeile.</source>
-        <target>Envoyé uniquement au serveur, jamais dans la barre d&apos;adresse.</target>
-        <context-group purpose="location">
-          <context context-type="sourcefile">src/app/features/session/host-recovery/host-recovery.component.ts</context>
-          <context context-type="linenumber">88,90</context>
-        </context-group>
-      </trans-unit>
+      
+      
+      
+      
+      
       <trans-unit id="common.cancel" datatype="html">
         <source>Abbrechen</source>
         <target>Annuler</target>
@@ -17499,17 +17438,10 @@
           <context context-type="linenumber">142</context>
         </context-group>
       </trans-unit>
-      <trans-unit id="hostRecovery.submit" datatype="html">
-        <source>Zugang wiederherstellen</source>
-        <target>Restaurer l&apos;accès</target>
-        <context-group purpose="location">
-          <context context-type="sourcefile">src/app/features/session/host-recovery/host-recovery.component.ts</context>
-          <context context-type="linenumber">106</context>
-        </context-group>
-      </trans-unit>
+      
       <trans-unit id="hostRecovery.boundary" datatype="html">
         <source>Damit verlängerst du weder die Session- noch die Nachbereitungsfrist. Wenn Browserzugang und Zugangskarte verloren sind, wende dich an den Support. Er muss deine Berechtigung für diese Session prüfen. Die Kontaktdaten findest du im »Impressum«.</source>
-        <target>Cela ne prolonge ni la session ni la période de lecture après la session. Si tu perds à la fois l’accès dans ce navigateur et la fiche de récupération, contacte l’assistance. Elle doit vérifier que tu es autorisé à accéder à cette session en tant qu’hôte. Ses coordonnées figurent dans les « Mentions légales ».</target>
+        <target>La récupération de l’accès ne prolonge ni la session ni la période de consultation après la session.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/host-recovery/host-recovery.component.ts</context>
           <context context-type="linenumber">110,114</context>
@@ -17517,19 +17449,19 @@
       </trans-unit>
       <trans-unit id="hostRecovery.handoffCodeLabel" datatype="html">
         <source>Übergabecode vom Support</source>
-        <target>Code de remise du support</target>
+        <target>Code de l’assistance</target>
       </trans-unit>
       <trans-unit id="hostRecovery.useHandoff" datatype="html">
         <source>Ich habe einen Code vom Support</source>
-        <target>J&apos;ai un code du support</target>
+        <target>J’ai un code de l’assistance</target>
       </trans-unit>
       <trans-unit id="hostRecovery.useRecoveryCard" datatype="html">
         <source>Ich habe eine Zugangskarte</source>
-        <target>J’ai une fiche de récupération</target>
+        <target>J’ai conservé mes informations d’accès</target>
       </trans-unit>
       <trans-unit id="hostRecovery.genericError" datatype="html">
         <source>Der Zugang konnte nicht wiederhergestellt werden. Prüfe deine Angaben und versuche es erneut.</source>
-        <target>Impossible de rétablir l’accès. Vérifie les informations saisies et réessaie.</target>
+        <target>L’accès n’a pas pu être rétabli. Vérifie les informations saisies ou contacte l’assistance.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/host-recovery/host-recovery.component.ts</context>
           <context context-type="linenumber">209</context>
@@ -18071,14 +18003,7 @@
           <context context-type="linenumber">128</context>
         </context-group>
       </trans-unit>
-      <trans-unit id="qaConfig.previewTitle" datatype="html">
-        <source> Verbindliche Vorschau</source>
-        <target>Aperçu de la liaison</target>
-        <context-group purpose="location">
-          <context context-type="sourcefile">src/app/features/session/session-host/qa-channel-configuration-dialog.component.ts</context>
-          <context context-type="linenumber">134,136</context>
-        </context-group>
-      </trans-unit>
+      
       <trans-unit id="qaConfig.previewQaCloses" datatype="html">
         <source>Offen für Fragen und Bewertungen bis</source>
         <target>Questions et votes acceptés jusqu’au</target>
@@ -18095,14 +18020,7 @@
           <context context-type="linenumber">143</context>
         </context-group>
       </trans-unit>
-      <trans-unit id="qaConfig.previewProfile" datatype="html">
-        <source>Teilnahmeprofil</source>
-        <target>Profil de participation</target>
-        <context-group purpose="location">
-          <context context-type="sourcefile">src/app/features/session/session-host/qa-channel-configuration-dialog.component.ts</context>
-          <context context-type="linenumber">147</context>
-        </context-group>
-      </trans-unit>
+      
       <trans-unit id="qaConfig.extensionWarning" datatype="html">
         <source> Die Teilnahmefrist liegt nach dem bisherigen Sessionende. Beim Bestätigen wird die globale Sessionfrist mit verlängert; nur der ursprüngliche Host darf das ausführen.</source>
         <target>Le délai de participation est postérieur à la fin de session actuelle. En confirmant, tu prolonges aussi la durée globale de la session ; seul l&apos;hôte d&apos;origine peut le faire.</target>
@@ -18111,46 +18029,11 @@
           <context context-type="linenumber">152,155</context>
         </context-group>
       </trans-unit>
-      <trans-unit id="qaConfig.noExtension" datatype="html">
-        <source> Die globale Sessionfrist bleibt unverändert.</source>
-        <target>La date limite globale de la session reste inchangée.</target>
-        <context-group purpose="location">
-          <context context-type="sourcefile">src/app/features/session/session-host/qa-channel-configuration-dialog.component.ts</context>
-          <context context-type="linenumber">157,159</context>
-        </context-group>
-      </trans-unit>
-      <trans-unit id="6031063121455734122" datatype="html">
-        <source> Zurück</source>
-        <target>Retour</target>
-        <context-group purpose="location">
-          <context context-type="sourcefile">src/app/features/session/session-host/qa-channel-configuration-dialog.component.ts</context>
-          <context context-type="linenumber">171,173</context>
-        </context-group>
-      </trans-unit>
-      <trans-unit id="5348604286978611957" datatype="html">
-        <source> Q&amp;A verbindlich einrichten</source>
-        <target>Rendre les questions et réponses obligatoires</target>
-        <context-group purpose="location">
-          <context context-type="sourcefile">src/app/features/session/session-host/qa-channel-configuration-dialog.component.ts</context>
-          <context context-type="linenumber">174,176</context>
-        </context-group>
-      </trans-unit>
-      <trans-unit id="2462567022892335115" datatype="html">
-        <source> Abbrechen</source>
-        <target>Annuler</target>
-        <context-group purpose="location">
-          <context context-type="sourcefile">src/app/features/session/session-host/qa-channel-configuration-dialog.component.ts</context>
-          <context context-type="linenumber">178,180</context>
-        </context-group>
-      </trans-unit>
-      <trans-unit id="2658273635823421728" datatype="html">
-        <source> Vorschau prüfen</source>
-        <target>Vérifier l&apos;aperçu</target>
-        <context-group purpose="location">
-          <context context-type="sourcefile">src/app/features/session/session-host/qa-channel-configuration-dialog.component.ts</context>
-          <context context-type="linenumber">181,183</context>
-        </context-group>
-      </trans-unit>
+      
+      
+      
+      
+      
       <trans-unit id="qaConfig.defaultTitle" datatype="html">
         <source>Fragen &amp; Antworten</source>
         <target>Questions et réponses</target>
@@ -18739,18 +18622,7 @@
           <context context-type="linenumber">100</context>
         </context-group>
       </trans-unit>
-      <trans-unit id="6651430649114168728" datatype="html">
-        <source> Frist prüfen</source>
-        <target>Vérifier la date limite</target>
-        <context-group purpose="location">
-          <context context-type="sourcefile">src/app/features/session/session-host/session-expiration-dialog.component.ts</context>
-          <context context-type="linenumber">110,112</context>
-        </context-group>
-        <context-group purpose="location">
-          <context context-type="sourcefile">src/app/features/session/session-host/session-expiration-dialog.component.ts</context>
-          <context context-type="linenumber">149,151</context>
-        </context-group>
-      </trans-unit>
+      
       <trans-unit id="sessionLifecycle.quickChoices" datatype="html">
         <source>Schnellauswahl für Verlängerung</source>
         <target>Sélection rapide pour l&apos;extension</target>
@@ -18759,30 +18631,9 @@
           <context context-type="linenumber">118</context>
         </context-group>
       </trans-unit>
-      <trans-unit id="7221365147463971972" datatype="html">
-        <source> Um 1 Stunde</source>
-        <target>A 1 heure</target>
-        <context-group purpose="location">
-          <context context-type="sourcefile">src/app/features/session/session-host/session-expiration-dialog.component.ts</context>
-          <context context-type="linenumber">121,123</context>
-        </context-group>
-      </trans-unit>
-      <trans-unit id="6794329199290006446" datatype="html">
-        <source> Um 1 Tag</source>
-        <target>D&apos;ici 1 jour</target>
-        <context-group purpose="location">
-          <context context-type="sourcefile">src/app/features/session/session-host/session-expiration-dialog.component.ts</context>
-          <context context-type="linenumber">124,126</context>
-        </context-group>
-      </trans-unit>
-      <trans-unit id="3628253686504246215" datatype="html">
-        <source> Um 7 Tage</source>
-        <target>Environ 7 jours</target>
-        <context-group purpose="location">
-          <context context-type="sourcefile">src/app/features/session/session-host/session-expiration-dialog.component.ts</context>
-          <context context-type="linenumber">127,129</context>
-        </context-group>
-      </trans-unit>
+      
+      
+      
       <trans-unit id="sessionLifecycle.absoluteLabel" datatype="html">
         <source>Bis Datum und Uhrzeit</source>
         <target>Jusqu&apos;à la date et l&apos;heure</target>
@@ -18947,18 +18798,7 @@
           <context context-type="linenumber">340</context>
         </context-group>
       </trans-unit>
-      <trans-unit id="sessionLifecycle.liveEnd" datatype="html">
-        <source> Ende: <x id="INTERPOLATION" equiv-text="{{
-                      formatSessionLifecycleDateTime(lifecycle.expiresAt, lifecycle.timeZone)
-                    }}"/></source>
-        <target>Fin : <x id="INTERPOLATION" equiv-text="{{
-                      formatSessionLifecycleDateTime(lifecycle.expiresAt, lifecycle.timeZone)
-                    }}"/></target>
-        <context-group purpose="location">
-          <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.html</context>
-          <context context-type="linenumber">439,443</context>
-        </context-group>
-      </trans-unit>
+      
       <trans-unit id="sessionLifecycle.retentionDetails" datatype="html">
         <source>Löschtermin anzeigen</source>
         <target>Afficher la date de suppression</target>
@@ -24413,14 +24253,7 @@
           <context context-type="linenumber">191</context>
         </context-group>
       </trans-unit>
-      <trans-unit id="sessionWordCloud.qaDescription" datatype="html">
-        <source>Zeigt, welche Wörter und Phrasen in den sichtbaren Q&amp;A-Fragen dominieren.</source>
-        <target>Indique quels mots et expressions dominent dans les questions Q&amp;A visibles.</target>
-        <context-group purpose="location">
-          <context context-type="sourcefile">src/app/features/session/session-present/session-present.component.ts</context>
-          <context context-type="linenumber">255</context>
-        </context-group>
-      </trans-unit>
+      
       <trans-unit id="sessionWordCloud.qaHint" datatype="html">
         <source>Große Wörter und Phrasen kommen aus häufiger genannten oder stärker unterstützten Fragen. Ähnliche Schreibweisen können zusammengefasst sein.</source>
         <target>Les grands mots et expressions viennent de questions plus fréquentes ou plus soutenues. Les graphies similaires peuvent être regroupées.</target>
@@ -30051,6 +29884,366 @@
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/shared/top-toolbar/top-toolbar.component.ts</context>
           <context context-type="linenumber">170</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="hostRecovery.downloadStarted" datatype="html">
+        <source> Download gestartet. Prüfe, ob die Datei gespeichert wurde. </source>
+        <target>Téléchargement lancé. Vérifie que le fichier a bien été enregistré.</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/host-recovery/host-recovery-card-dialog.component.html</context>
+          <context context-type="linenumber">81,83</context>
+        </context-group>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/host-recovery/host-recovery.component.html</context>
+          <context context-type="linenumber">193,195</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="hostRecovery.allCopied" datatype="html">
+        <source>Zugangsdaten und Link kopiert.</source>
+        <target>Informations d’accès et lien copiés.</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/host-recovery/host-recovery-card-dialog.component.html</context>
+          <context context-type="linenumber">85</context>
+        </context-group>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/host-recovery/host-recovery.component.html</context>
+          <context context-type="linenumber">197</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="hostRecovery.supportContactLink" datatype="html">
+        <source> Kontaktdaten im Impressum </source>
+        <target>Coordonnées dans les mentions légales</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/host-recovery/host-recovery-card-dialog.component.html</context>
+          <context context-type="linenumber">100,102</context>
+        </context-group>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/host-recovery/host-recovery-card-dialog.component.ts</context>
+          <context context-type="linenumber">101</context>
+        </context-group>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/host-recovery/host-recovery.component.html</context>
+          <context context-type="linenumber">123,125</context>
+        </context-group>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/host-recovery/host-recovery.component.html</context>
+          <context context-type="linenumber">315,317</context>
+        </context-group>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/host-recovery/host-recovery.component.ts</context>
+          <context context-type="linenumber">578</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="hostRecovery.copyAll" datatype="html">
+        <source>Zugangsdaten kopieren</source>
+        <target>Copier les informations d’accès</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/host-recovery/host-recovery-card-dialog.component.html</context>
+          <context context-type="linenumber">109</context>
+        </context-group>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/host-recovery/host-recovery.component.html</context>
+          <context context-type="linenumber">225</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="hostRecovery.downloadIntro" datatype="html">
+        <source>Mit diesen Angaben kannst du deinen Host-Zugang auf einem anderen Gerät oder in einem anderen Browser wiederherstellen.</source>
+        <target>Ces informations te permettent de rétablir ton accès hôte sur un autre appareil ou dans un autre navigateur.</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/host-recovery/host-recovery-card-dialog.component.ts</context>
+          <context context-type="linenumber">91</context>
+        </context-group>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/host-recovery/host-recovery.component.ts</context>
+          <context context-type="linenumber">565</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="hostRecovery.downloadRotationNotice" datatype="html">
+        <source>Nach einer Wiederherstellung gilt der neu ausgegebene Wiederherstellungscode. Ersetze dann deine bisher gespeicherten Zugangsdaten.</source>
+        <target>Après avoir rétabli l’accès, le nouveau code de récupération remplace l’ancien. Mets alors à jour les informations d’accès que tu as conservées.</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/host-recovery/host-recovery-card-dialog.component.ts</context>
+          <context context-type="linenumber">99</context>
+        </context-group>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/host-recovery/host-recovery.component.ts</context>
+          <context context-type="linenumber">573</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="hostRecovery.continue" datatype="html">
+        <source>Weiter</source>
+        <target>Continuer</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/host-recovery/host-recovery.component.html</context>
+          <context context-type="linenumber">88</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="hostRecovery.resumeAction" datatype="html">
+        <source>Fortsetzen</source>
+        <target>Reprendre</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/host-recovery/host-recovery.component.html</context>
+          <context context-type="linenumber">138</context>
+        </context-group>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/host-recovery/host-recovery.component.html</context>
+          <context context-type="linenumber">294</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="hostRecovery.activationWarning" datatype="html">
+        <source> Die bisherigen Host-Zugänge werden ungültig. Bereits verbundene Geräte musst du anschließend neu verbinden. Deine Session und ihre Inhalte bleiben erhalten. </source>
+        <target>Les anciens accès hôte ne seront plus valides. Tu devras à nouveau associer les appareils déjà connectés. Ta session et son contenu seront conservés.</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/host-recovery/host-recovery.component.html</context>
+          <context context-type="linenumber">208,211</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="hostRecovery.handoffActivationHint" datatype="html">
+        <source> Der Support hat die bisherigen Host-Zugänge bereits gesperrt. Deine Session und ihre Inhalte bleiben erhalten. </source>
+        <target>L’assistance a déjà désactivé les anciens accès hôte. Ta session et son contenu seront conservés.</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/host-recovery/host-recovery.component.html</context>
+          <context context-type="linenumber">215,218</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="hostRecovery.newCardSavedConfirmation" datatype="html">
+        <source> Ich habe die neuen Zugangsdaten sicher gespeichert. </source>
+        <target>J’ai conservé mes nouvelles informations d’accès en lieu sûr.</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/host-recovery/host-recovery.component.html</context>
+          <context context-type="linenumber">234,236</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="hostRecovery.activate" datatype="html">
+        <source>Zugang aktivieren</source>
+        <target>Activer l’accès</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/host-recovery/host-recovery.component.html</context>
+          <context context-type="linenumber">252</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="hostRecovery.successNewCodeHint" datatype="html">
+        <source> Verwende künftig den neuen Wiederherstellungscode. </source>
+        <target>Utilise désormais le nouveau code de récupération.</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/host-recovery/host-recovery.component.html</context>
+          <context context-type="linenumber">259,261</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="hostRecovery.goToSession" datatype="html">
+        <source>Zur Session</source>
+        <target>Ouvrir la session</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/host-recovery/host-recovery.component.html</context>
+          <context context-type="linenumber">274</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="hostRecovery.activationUnconfirmed" datatype="html">
+        <source> Die Aktivierung konnte nicht bestätigt werden. Dein Zugang könnte bereits aktiv sein. Setze die Wiederherstellung fort. </source>
+        <target>L’activation n’a pas pu être confirmée. Ton accès est peut-être déjà actif. Reprends la récupération de l’accès.</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/host-recovery/host-recovery.component.html</context>
+          <context context-type="linenumber">280,283</context>
+        </context-group>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/host-recovery/host-recovery.component.ts</context>
+          <context context-type="linenumber">555</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="hostRecovery.laterAction" datatype="html">
+        <source> Später fortsetzen </source>
+        <target>Reprendre plus tard</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/host-recovery/host-recovery.component.html</context>
+          <context context-type="linenumber">285,287</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="hostRecovery.pendingExpired" datatype="html">
+        <source> Die Frist zum Aktivieren ist abgelaufen. Starte die Wiederherstellung erneut. </source>
+        <target>Le délai d’activation a expiré. Relance la récupération.</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/host-recovery/host-recovery.component.html</context>
+          <context context-type="linenumber">300,302</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="hostRecovery.restartAction" datatype="html">
+        <source>Neu beginnen</source>
+        <target>Recommencer</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/host-recovery/host-recovery.component.html</context>
+          <context context-type="linenumber">305</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="hostRecovery.handoffExpired" datatype="html">
+        <source> Der Code vom Support ist nicht mehr nutzbar. Bitte den Support um einen neuen Code. </source>
+        <target>Le code de l’assistance ne peut plus être utilisé. Demande-lui un nouveau code.</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/host-recovery/host-recovery.component.html</context>
+          <context context-type="linenumber">312,314</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="hostRecovery.stepIndicator" datatype="html">
+        <source>Schritt <x id="step" equiv-text="step"/> von <x id="total" equiv-text="total"/></source>
+        <target>Étape <x id="step" equiv-text="step"/> sur <x id="total" equiv-text="total"/></target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/host-recovery/host-recovery.component.ts</context>
+          <context context-type="linenumber">167</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="hostRecovery.newCardTitle" datatype="html">
+        <source>Neue Zugangsdaten sichern</source>
+        <target>Conserver tes nouvelles informations d’accès</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/host-recovery/host-recovery.component.ts</context>
+          <context context-type="linenumber">173</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="hostRecovery.successTitle" datatype="html">
+        <source>Host-Zugang wiederhergestellt</source>
+        <target>Accès hôte rétabli</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/host-recovery/host-recovery.component.ts</context>
+          <context context-type="linenumber">175</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="hostRecovery.resumeTitle" datatype="html">
+        <source>Wiederherstellung fortsetzen</source>
+        <target>Reprendre la récupération de l’accès</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/host-recovery/host-recovery.component.ts</context>
+          <context context-type="linenumber">178</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="hostRecovery.handoffNewCardIntro" datatype="html">
+        <source>Sichere den neuen Wiederherstellungscode. Mit ihm kannst du deinen Host-Zugang später erneut wiederherstellen.</source>
+        <target>Conserve ton nouveau code de récupération. Il te permettra de rétablir ton accès hôte plus tard.</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/host-recovery/host-recovery.component.ts</context>
+          <context context-type="linenumber">188</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="hostRecovery.newCardIntro" datatype="html">
+        <source>Sichere den neuen Wiederherstellungscode. Sobald du den Zugang aktivierst, ersetzt er deinen bisherigen Code.</source>
+        <target>Conserve ton nouveau code de récupération. Il remplacera l’ancien dès que tu activeras l’accès.</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/host-recovery/host-recovery.component.ts</context>
+          <context context-type="linenumber">189</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="hostRecovery.successIntro" datatype="html">
+        <source>Dein Host-Zugang ist jetzt in diesem Browser gespeichert.</source>
+        <target>Ton accès hôte est maintenant enregistré dans ce navigateur.</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/host-recovery/host-recovery.component.ts</context>
+          <context context-type="linenumber">191</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="hostRecovery.resumeIntro" datatype="html">
+        <source>In diesem Browser wurde bereits eine Wiederherstellung begonnen. Setze sie fort, um den aktuellen Stand zu prüfen.</source>
+        <target>Une récupération de l’accès a déjà été lancée dans ce navigateur. Reprends-la pour vérifier son état.</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/host-recovery/host-recovery.component.ts</context>
+          <context context-type="linenumber">193</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="hostRecovery.handoffIntro" datatype="html">
+        <source>Gib die Session-Kennung und den Code ein, die du vom Support erhalten hast.</source>
+        <target>Saisis l’identifiant de session et le code que l’assistance t’a communiqués.</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/host-recovery/host-recovery.component.ts</context>
+          <context context-type="linenumber">196</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="hostRecovery.checking" datatype="html">
+        <source>Zugangsdaten werden geprüft…</source>
+        <target>Vérification des informations d’accès…</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/host-recovery/host-recovery.component.ts</context>
+          <context context-type="linenumber">206</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="hostRecovery.activating" datatype="html">
+        <source>Zugang wird aktiviert…</source>
+        <target>Activation de l’accès…</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/host-recovery/host-recovery.component.ts</context>
+          <context context-type="linenumber">208</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="hostRecovery.checkingState" datatype="html">
+        <source>Stand der Wiederherstellung wird geprüft…</source>
+        <target>Vérification de l’état de la récupération…</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/host-recovery/host-recovery.component.ts</context>
+          <context context-type="linenumber">210</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="hostRecovery.activationDeadline" datatype="html">
+        <source>Aktivieren bis: <x id="deadline" equiv-text="deadline"/></source>
+        <target>À activer avant : <x id="deadline" equiv-text="deadline"/></target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/host-recovery/host-recovery.component.ts</context>
+          <context context-type="linenumber">220</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="hostRecovery.supportIdFormatError" datatype="html">
+        <source>Gib die Session-Kennung im Format ARS-XXXX-XXXX ein.</source>
+        <target>Saisis l’identifiant de session au format ARS-XXXX-XXXX.</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/host-recovery/host-recovery.component.ts</context>
+          <context context-type="linenumber">255</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="hostRecovery.secretFormatError" datatype="html">
+        <source>Kopiere den Code vollständig. Er darf nur Buchstaben (A–Z, a–z), Ziffern, Bindestriche und Unterstriche enthalten.</source>
+        <target>Copie le code en entier. Il ne peut contenir que des lettres (A–Z, a–z), des chiffres, des tirets et des tirets bas.</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/host-recovery/host-recovery.component.ts</context>
+          <context context-type="linenumber">260</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="hostRecovery.navigationError" datatype="html">
+        <source>Der Zugang ist wiederhergestellt. Die Session konnte noch nicht geöffnet werden. Versuche es erneut.</source>
+        <target>L’accès a été rétabli, mais la session n’a pas pu être ouverte. Réessaie.</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/host-recovery/host-recovery.component.ts</context>
+          <context context-type="linenumber">457</context>
+        </context-group>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/host-recovery/host-recovery.component.ts</context>
+          <context context-type="linenumber">462</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="hostRecovery.networkError" datatype="html">
+        <source>Verbindung unterbrochen. Bitte versuche es erneut.</source>
+        <target>Connexion interrompue. Réessaie.</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/host-recovery/host-recovery.component.ts</context>
+          <context context-type="linenumber">549</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="hostRecovery.serverError" datatype="html">
+        <source>Die Wiederherstellung ist vorübergehend nicht verfügbar. Versuche es später erneut.</source>
+        <target>La récupération de l’accès est temporairement indisponible. Réessaie plus tard.</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/host-recovery/host-recovery.component.ts</context>
+          <context context-type="linenumber">551</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="hostRecovery.storageError" datatype="html">
+        <source>Dein Browser konnte den Zugang nicht speichern. Prüfe die Einstellungen für Website-Daten und versuche es erneut.</source>
+        <target>Ton navigateur n’a pas pu enregistrer ton accès. Vérifie ses paramètres de stockage des données des sites, puis réessaie.</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/host-recovery/host-recovery.component.ts</context>
+          <context context-type="linenumber">553</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="hostRecovery.downloadStatePending" datatype="html">
+        <source>Diese Zugangsdaten werden gültig, sobald du den neuen Host-Zugang aktivierst.</source>
+        <target>Ces informations d’accès seront valides dès que tu activeras le nouvel accès hôte.</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/host-recovery/host-recovery.component.ts</context>
+          <context context-type="linenumber">575</context>
         </context-group>
       </trans-unit>
     </body>
