@@ -421,6 +421,7 @@ export class QuizListComponent implements OnInit {
   }
 
   async ngOnInit(): Promise<void> {
+    this.quizStore.ensureHostLibraryReady?.();
     try {
       const activeQuizStates = await trpc.session.getActiveQuizIds.query(
         await this.collectActiveQuizLookupEntries(),

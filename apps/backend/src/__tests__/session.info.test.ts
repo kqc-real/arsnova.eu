@@ -28,7 +28,11 @@ vi.mock('../lib/invalidSessionCode', () => ({
   rejectInvalidSessionCode: invalidSessionCodeMock,
 }));
 
-import { sessionRouter, resetSessionReadCachesForTests } from '../routers/session';
+import {
+  invalidateSessionStatusCachesForCode,
+  resetSessionReadCachesForTests,
+  sessionRouter,
+} from '../routers/session';
 
 const caller = sessionRouter.createCaller({ req: undefined });
 
@@ -402,6 +406,73 @@ describe('session.getInfo (ADR-0009)', () => {
     expect(second.code).toBe('ABC123');
     expect(prismaMock.session.findUnique).toHaveBeenCalledTimes(1);
     expect(prismaMock.quiz.findUnique).toHaveBeenCalledTimes(1);
+  });
+
+  it('schreibt nach Cache-Invalidierung keinen veralteten getInfo-Kanalstand zurück', async () => {
+    const quizSession = {
+      id: '6a8edced-5f8f-4cfa-9176-454fac9570ad',
+      code: 'ABC123',
+      type: 'QUIZ' as const,
+      status: 'RESULTS' as const,
+      title: null,
+      quizId: QUIZ_ID,
+      preferredChannel: 'quiz' as const,
+      qaEnabled: true,
+      qaOpen: true,
+      qaTitle: 'Fragen',
+      qaModerationMode: false,
+      quickFeedbackEnabled: false,
+      quickFeedbackOpen: false,
+      _count: { participants: 3 },
+    };
+    const quizDetails = {
+      name: 'Demo Quiz',
+      nicknameTheme: 'NOBEL_LAUREATES',
+      allowCustomNicknames: true,
+      anonymousMode: false,
+      showLeaderboard: true,
+      enableSoundEffects: true,
+      enableRewardEffects: true,
+      enableMotivationMessages: true,
+      enableEmojiReactions: true,
+      readingPhaseEnabled: true,
+      defaultTimer: 30,
+      backgroundMusic: null,
+      teamMode: false,
+      teamCount: null,
+      teamAssignment: null,
+      bonusTokenCount: null,
+      preset: 'PLAYFUL',
+      motifImageUrl: null,
+      motifImageCredit: null,
+      teamNames: [],
+    };
+    let releaseStale: ((session: typeof quizSession) => void) | undefined;
+    let sessionReads = 0;
+    prismaMock.session.findUnique.mockImplementation(() => {
+      sessionReads += 1;
+      if (sessionReads === 1) {
+        return new Promise((resolve) => {
+          releaseStale = resolve;
+        });
+      }
+      return Promise.resolve({ ...quizSession, preferredChannel: 'qa' });
+    });
+    prismaMock.quiz.findUnique.mockResolvedValue(quizDetails);
+
+    const staleRead = caller.getInfo({ code: 'ABC123' });
+    await vi.waitUntil(() => releaseStale !== undefined);
+    invalidateSessionStatusCachesForCode('ABC123');
+    const freshRead = caller.getInfo({ code: 'ABC123' });
+    releaseStale?.(quizSession);
+
+    const [staleResult, freshResult] = await Promise.all([staleRead, freshRead]);
+    expect(staleResult.preferredChannel).toBe('quiz');
+    expect(freshResult.preferredChannel).toBe('qa');
+
+    const cachedAfterInvalidation = await caller.getInfo({ code: 'ABC123' });
+    expect(cachedAfterInvalidation.preferredChannel).toBe('qa');
+    expect(prismaMock.session.findUnique).toHaveBeenCalledTimes(2);
   });
 });
 

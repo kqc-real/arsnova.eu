@@ -68,6 +68,7 @@ export class QuizSyncComponent {
   );
 
   constructor() {
+    this.quizStore.ensureHostLibraryReady?.();
     try {
       const fragmentToken = new URLSearchParams(this.route.snapshot.fragment ?? '').get('s');
       const shareToken = fragmentToken ?? this.route.snapshot.queryParamMap.get('s');

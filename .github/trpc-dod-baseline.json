@@ -299,7 +299,7 @@
     },
     "qa.onQuestionsUpdated": {
       "kind": "subscription",
-      "fingerprint": "sha256:58b3ef874ec340ddc16d63070d8e344809987eb519e84b62ddd3b61e089c0b29",
+      "fingerprint": "sha256:c62c1514f77d1940c612a8c02054c66da96c9dcb761bf898272c53b95b5af5be",
       "missing": []
     },
     "qa.presentProjection": {
@@ -379,7 +379,7 @@
     },
     "quickFeedback.onResults": {
       "kind": "subscription",
-      "fingerprint": "sha256:fe293970b070aa1da7f03132509b705e94f8a00b9d4bbb7d167e36bde89010c2",
+      "fingerprint": "sha256:e25e4629b95393c29c5c2f238f0a3ea87309c7ad4701fd41d83a29df4bc829d7",
       "missing": []
     },
     "quickFeedback.reset": {
@@ -604,7 +604,7 @@
     },
     "session.getLeaderboard": {
       "kind": "query",
-      "fingerprint": "sha256:7eec8597daf3f3930710831c6037c1c1e76eb370333fe2a39b742ac08806b0e7",
+      "fingerprint": "sha256:753491de106173217f9278830e05c1e297589a269d2aef88039f66f8ff082d40",
       "missing": []
     },
     "session.getLifecycleForHost": {
@@ -644,12 +644,12 @@
     },
     "session.getPersonalResult": {
       "kind": "query",
-      "fingerprint": "sha256:935dbd3ac0892b8888980f51369565e3e08ff37c4afcc282a5b31a85aa90d0a4",
+      "fingerprint": "sha256:8076604746b366151e0c1ed704f1141b05369d73e8850c1cd5d27de56349d52c",
       "missing": []
     },
     "session.getPersonalScorecard": {
       "kind": "query",
-      "fingerprint": "sha256:0107d3be4ce553ab812e5ce85ff183effb694d66e2ffbea065ce250c851084bb",
+      "fingerprint": "sha256:7b0fca84537dc26713ee151c52955dc4c00bc6c255e4401f3a60053a21adffa1",
       "missing": []
     },
     "session.getQaWordCloudProjection": {
@@ -879,7 +879,7 @@
     },
     "vote.submit": {
       "kind": "mutation",
-      "fingerprint": "sha256:3527b28c0a99206010c2801113281d97f5d408dc525ffd14ab4cd2a6021b809a",
+      "fingerprint": "sha256:158225d286085201dbce5cecce33c3a583b58af440a09b0120f2b7e30b9a7a7c",
       "missing": []
     },
     "wordCloud.analyze": {

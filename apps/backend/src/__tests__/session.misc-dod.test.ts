@@ -48,6 +48,7 @@ vi.mock('../lib/invalidSessionCode', () => ({
   rejectInvalidSessionCode: invalidSessionCodeMock,
 }));
 
+import { resetSessionRankingCacheForTests } from '../lib/sessionRankingCache';
 import { sessionRouter } from '../routers/session';
 import { hashCapability } from '../lib/capabilityCrypto';
 
@@ -74,6 +75,7 @@ function expectParticipantCapabilityLookup(sessionId = SESSION_ID): void {
 
 describe('session remaining DoD procedure evidence', () => {
   beforeEach(() => {
+    resetSessionRankingCacheForTests();
     vi.clearAllMocks();
     prismaMock.participant.findFirst.mockReset();
     hostAuthMocks.extractHostTokenMock.mockReturnValue('host-token-123');

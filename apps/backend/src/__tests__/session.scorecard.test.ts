@@ -21,6 +21,7 @@ vi.mock('../lib/participantAuth', () => ({
   assertParticipantCapability: vi.fn(),
 }));
 
+import { resetSessionRankingCacheForTests } from '../lib/sessionRankingCache';
 import { sessionRouter } from '../routers/session';
 
 const caller = sessionRouter.createCaller({ req: undefined });
@@ -28,6 +29,7 @@ const caller = sessionRouter.createCaller({ req: undefined });
 describe('session.getPersonalScorecard', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    resetSessionRankingCacheForTests();
   });
 
   trpcDodIt(
@@ -266,49 +268,38 @@ describe('session.getPersonalScorecard', () => {
       streakBonus: 1,
       selectedAnswers: [{ answerOptionId: '77777777-7777-4777-8777-777777777777' }],
     });
-    prismaMock.vote.findMany
-      .mockResolvedValueOnce([
-        { participantId, questionId: questionOneId, round: 1, score: 1000, responseTimeMs: 5000 },
-        {
-          participantId: otherParticipantId,
-          questionId: questionOneId,
-          round: 1,
-          score: 1000,
-          responseTimeMs: 6000,
-        },
-        { participantId, questionId: questionTwoId, round: 1, score: 0, responseTimeMs: 100 },
-        {
-          participantId: otherParticipantId,
-          questionId: questionTwoId,
-          round: 1,
-          score: 1900,
-          responseTimeMs: 100,
-        },
-        {
-          participantId,
-          questionId: questionTwoId,
-          round: 2,
-          score: 2000,
-          responseTimeMs: 120_000,
-        },
-        {
-          participantId: otherParticipantId,
-          questionId: questionTwoId,
-          round: 2,
-          score: 2000,
-          responseTimeMs: 500,
-        },
-      ])
-      .mockResolvedValueOnce([
-        { participantId, questionId: questionOneId, round: 1, score: 1000, responseTimeMs: 5000 },
-        {
-          participantId: otherParticipantId,
-          questionId: questionOneId,
-          round: 1,
-          score: 1000,
-          responseTimeMs: 6000,
-        },
-      ]);
+    prismaMock.vote.findMany.mockResolvedValue([
+      { participantId, questionId: questionOneId, round: 1, score: 1000, responseTimeMs: 5000 },
+      {
+        participantId: otherParticipantId,
+        questionId: questionOneId,
+        round: 1,
+        score: 1000,
+        responseTimeMs: 6000,
+      },
+      { participantId, questionId: questionTwoId, round: 1, score: 0, responseTimeMs: 100 },
+      {
+        participantId: otherParticipantId,
+        questionId: questionTwoId,
+        round: 1,
+        score: 1900,
+        responseTimeMs: 100,
+      },
+      {
+        participantId,
+        questionId: questionTwoId,
+        round: 2,
+        score: 2000,
+        responseTimeMs: 120_000,
+      },
+      {
+        participantId: otherParticipantId,
+        questionId: questionTwoId,
+        round: 2,
+        score: 2000,
+        responseTimeMs: 500,
+      },
+    ]);
 
     const result = await caller.getPersonalScorecard({
       code: 'ABC123',
@@ -327,6 +318,53 @@ describe('session.getPersonalScorecard', () => {
         rankChange: 0,
       }),
     );
+    expect(prismaMock.vote.findMany).toHaveBeenCalledTimes(1);
+  });
+
+  it('teilt die Scorecard-Rangliste zwischen gleichzeitigen Teilnahmen desselben Stands', async () => {
+    const participantId = '11111111-1111-4111-8111-111111111111';
+    const otherParticipantId = '22222222-2222-4222-8222-222222222222';
+    const questionId = '33333333-3333-4333-8333-333333333333';
+    prismaMock.session.findUnique.mockResolvedValue({
+      id: 'sess-shared',
+      status: 'RESULTS',
+      participantRevision: 2,
+      quiz: {
+        questions: [
+          {
+            id: questionId,
+            type: 'SINGLE_CHOICE',
+            answers: [{ id: '44444444-4444-4444-8444-444444444444', isCorrect: true }],
+          },
+        ],
+      },
+      participants: [{ id: participantId }, { id: otherParticipantId }],
+    });
+    prismaMock.vote.findUnique.mockResolvedValue({
+      score: 1000,
+      streakCount: 1,
+      streakBonus: 1,
+      selectedAnswers: [{ answerOptionId: '44444444-4444-4444-8444-444444444444' }],
+    });
+    prismaMock.vote.findMany.mockResolvedValue([
+      { participantId, questionId, round: 1, score: 1000, responseTimeMs: 800 },
+      { participantId: otherParticipantId, questionId, round: 1, score: 900, responseTimeMs: 900 },
+    ]);
+
+    const [first, second] = await Promise.all([
+      caller.getPersonalScorecard({ code: 'ABC123', participantId, questionIndex: 0 }),
+      caller.getPersonalScorecard({
+        code: 'ABC123',
+        participantId: otherParticipantId,
+        questionIndex: 0,
+      }),
+    ]);
+
+    expect(first.currentRank).toBe(1);
+    expect(second.currentRank).toBe(2);
+    expect(prismaMock.vote.findMany).toHaveBeenCalledTimes(1);
+    await caller.getPersonalScorecard({ code: 'ABC123', participantId, questionIndex: 0 });
+    expect(prismaMock.vote.findMany).toHaveBeenCalledTimes(1);
   });
 
   it.each(['QUESTION_OPEN', 'ACTIVE'] as const)(

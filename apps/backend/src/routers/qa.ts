@@ -404,7 +404,32 @@ type RankedQaPage = {
   totalCount: number;
 };
 
-const sharedQaRankingLoads = new Map<string, Promise<RankedQaQuestionRow[]>>();
+const QA_PAGE_CACHE_TTL_MS = 2_000;
+const QA_PAGE_CACHE_MAX_ENTRIES = 256;
+type SharedQaRankingCacheEntry = {
+  expiresAt: number;
+  promise: Promise<RankedQaQuestionRow[]>;
+};
+const sharedQaRankingLoads = new Map<string, SharedQaRankingCacheEntry>();
+
+function pruneSharedQaRankingCache(nowMs: number): void {
+  for (const [key, entry] of sharedQaRankingLoads) {
+    if (entry.expiresAt <= nowMs) {
+      sharedQaRankingLoads.delete(key);
+    }
+  }
+  while (sharedQaRankingLoads.size >= QA_PAGE_CACHE_MAX_ENTRIES) {
+    const oldestKey = sharedQaRankingLoads.keys().next().value as string | undefined;
+    if (!oldestKey) {
+      break;
+    }
+    sharedQaRankingLoads.delete(oldestKey);
+  }
+}
+
+export function resetSharedQaRankingCacheForTests(): void {
+  sharedQaRankingLoads.clear();
+}
 type QaOwnVoteLoad = {
   participantId: string;
   questionIds: string[];
@@ -536,16 +561,27 @@ async function buildQaQuestionPayloadFromDb(options: {
   const participantCount = options.participantCountForControversy ?? 0;
   const controversyThreshold = Math.max(1, participantCount * 0.1);
   const controversyThresholdSql = Prisma.sql`${controversyThreshold}::DOUBLE PRECISION`;
-  const shareRankingLoad =
+  const canSharePublicRanking =
     !moderatorView &&
     options.participantId !== undefined &&
     options.totalCountHint !== undefined &&
     search.length === 0 &&
     authorNickname.length === 0 &&
     statusesKey.length === 0;
+  const ownPendingCount =
+    canSharePublicRanking && options.participantId
+      ? await prisma.qaQuestion.count({
+          where: {
+            sessionId: options.sessionId,
+            participantId: options.participantId,
+            status: 'PENDING',
+          },
+        })
+      : 0;
+  const shareRankingLoad = canSharePublicRanking && ownPendingCount === 0;
   const visibility = moderatorView
     ? Prisma.empty
-    : options.participantId
+    : options.participantId && !shareRankingLoad
       ? Prisma.sql`AND (
           question."status" IN ('ACTIVE', 'PINNED', 'ARCHIVED')
           OR (
@@ -757,18 +793,35 @@ async function buildQaQuestionPayloadFromDb(options: {
         options.includeAuthorNickname === true ? 1 : 0,
       ].join(':')
     : null;
-  let rowsPromise = sharedLoadKey ? sharedQaRankingLoads.get(sharedLoadKey) : undefined;
+  const nowMs = Date.now();
+  const cached = sharedLoadKey ? sharedQaRankingLoads.get(sharedLoadKey) : undefined;
+  let rowsPromise = cached && cached.expiresAt > nowMs ? cached.promise : undefined;
   if (!rowsPromise) {
-    rowsPromise = loadRows();
+    const loadPromise = loadRows();
     if (sharedLoadKey) {
-      const pendingRows = rowsPromise;
-      const clearPendingRows = () => {
-        if (sharedQaRankingLoads.get(sharedLoadKey) === pendingRows) {
-          sharedQaRankingLoads.delete(sharedLoadKey);
-        }
+      pruneSharedQaRankingCache(nowMs);
+      const entry: SharedQaRankingCacheEntry = {
+        expiresAt: Number.POSITIVE_INFINITY,
+        promise: loadPromise,
       };
-      sharedQaRankingLoads.set(sharedLoadKey, pendingRows);
-      void pendingRows.then(clearPendingRows, clearPendingRows);
+      entry.promise = loadPromise.then(
+        (rows) => {
+          if (sharedQaRankingLoads.get(sharedLoadKey) === entry) {
+            entry.expiresAt = Date.now() + QA_PAGE_CACHE_TTL_MS;
+          }
+          return rows;
+        },
+        (error: unknown) => {
+          if (sharedQaRankingLoads.get(sharedLoadKey) === entry) {
+            sharedQaRankingLoads.delete(sharedLoadKey);
+          }
+          throw error;
+        },
+      );
+      sharedQaRankingLoads.set(sharedLoadKey, entry);
+      rowsPromise = entry.promise;
+    } else {
+      rowsPromise = loadPromise;
     }
   }
   let rows = await rowsPromise;
@@ -1506,7 +1559,7 @@ export const qaRouter = router({
         currentVersion: number,
       ) => {
         const waitMs = qaSubscriptionWaitMs(
-          session.qaClosesAt,
+          input.moderatorView ? null : session.qaClosesAt,
           input.moderatorView ? QA_QUESTIONS_HOST_SIGNAL_WAIT_MS : QA_QUESTIONS_SIGNAL_WAIT_MS,
         );
         const sleeper = () => waitForQaQuestionsSignal(session.id, currentVersion, waitMs);

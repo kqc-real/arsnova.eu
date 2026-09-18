@@ -76,6 +76,7 @@ vi.mock('../lib/invalidSessionCode', () => ({
   rejectInvalidSessionCode: invalidSessionCodeMock,
 }));
 
+import { resetSessionRankingCacheForTests } from '../lib/sessionRankingCache';
 import { sessionRouter } from '../routers/session';
 
 const caller = sessionRouter.createCaller({ req: undefined });
@@ -87,6 +88,7 @@ const PARTICIPANT_ID = '33333333-3333-4333-8333-333333333333';
 
 describe('session team mode (Story 7.1)', () => {
   beforeEach(() => {
+    resetSessionRankingCacheForTests();
     vi.resetAllMocks();
     joinAdmissionMocks.awaitJoinAdmissionSlot.mockResolvedValue({ delayedMs: 0, attempts: 1 });
     participantJoinMocks.prepareParticipantJoin.mockResolvedValue({

@@ -22,6 +22,7 @@ vi.mock('../lib/invalidSessionCode', () => ({
   rejectInvalidSessionCode: invalidSessionCodeMock,
 }));
 
+import { resetSessionRankingCacheForTests } from '../lib/sessionRankingCache';
 import { sessionRouter } from '../routers/session';
 
 const caller = sessionRouter.createCaller({ req: undefined });
@@ -29,6 +30,7 @@ const caller = sessionRouter.createCaller({ req: undefined });
 describe('session.getLeaderboard', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    resetSessionRankingCacheForTests();
     invalidSessionCodeMock.mockRejectedValue(new TRPCError({ code: 'NOT_FOUND' }));
   });
 

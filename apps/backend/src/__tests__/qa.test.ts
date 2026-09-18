@@ -1,55 +1,59 @@
 import type { IncomingMessage } from 'node:http';
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { trpcDodIt } from './test-utils/trpc-dod-evidence';
 
-const { prismaMock, hostAuthMocks, qaTelemetryMocks, rawQueryResults } = vi.hoisted(() => ({
-  rawQueryResults: {
-    createQuestion: [] as Array<unknown[] | Error>,
-    changeVote: [] as Array<unknown[] | Error>,
-    rankedQuestions: [] as Array<unknown[] | Error>,
-  },
-  prismaMock: {
-    session: {
-      findUnique: vi.fn(),
-      findFirst: vi.fn(),
-      update: vi.fn(),
+const { prismaMock, hostAuthMocks, participantAuthMocks, qaTelemetryMocks, rawQueryResults } =
+  vi.hoisted(() => ({
+    rawQueryResults: {
+      createQuestion: [] as Array<unknown[] | Error>,
+      changeVote: [] as Array<unknown[] | Error>,
+      rankedQuestions: [] as Array<unknown[] | Error>,
     },
-    participant: {
-      findUnique: vi.fn(),
-      count: vi.fn(),
+    prismaMock: {
+      session: {
+        findUnique: vi.fn(),
+        findFirst: vi.fn(),
+        update: vi.fn(),
+      },
+      participant: {
+        findUnique: vi.fn(),
+        count: vi.fn(),
+      },
+      qaQuestion: {
+        findMany: vi.fn(),
+        aggregate: vi.fn(),
+        create: vi.fn(),
+        count: vi.fn(),
+        findUnique: vi.fn(),
+        update: vi.fn(),
+        updateMany: vi.fn(),
+        delete: vi.fn(),
+      },
+      qaUpvote: {
+        findMany: vi.fn(),
+        findUnique: vi.fn(),
+        groupBy: vi.fn(),
+        create: vi.fn(),
+        update: vi.fn(),
+        delete: vi.fn(),
+      },
+      $queryRaw: vi.fn(),
+      $executeRaw: vi.fn(),
+      $transaction: vi.fn(),
     },
-    qaQuestion: {
-      findMany: vi.fn(),
-      aggregate: vi.fn(),
-      create: vi.fn(),
-      count: vi.fn(),
-      findUnique: vi.fn(),
-      update: vi.fn(),
-      updateMany: vi.fn(),
-      delete: vi.fn(),
+    hostAuthMocks: {
+      extractHostTokenMock: vi.fn(),
+      extractHostTokenFromConnectionParamsMock: vi.fn(() => null as string | null),
+      isHostSessionTokenValidMock: vi.fn(),
     },
-    qaUpvote: {
-      findMany: vi.fn(),
-      findUnique: vi.fn(),
-      groupBy: vi.fn(),
-      create: vi.fn(),
-      update: vi.fn(),
-      delete: vi.fn(),
+    participantAuthMocks: {
+      assertParticipantCapabilityMock: vi.fn(),
     },
-    $queryRaw: vi.fn(),
-    $executeRaw: vi.fn(),
-    $transaction: vi.fn(),
-  },
-  hostAuthMocks: {
-    extractHostTokenMock: vi.fn(),
-    extractHostTokenFromConnectionParamsMock: vi.fn(() => null as string | null),
-    isHostSessionTokenValidMock: vi.fn(),
-  },
-  qaTelemetryMocks: {
-    recordQaQuestionAccepted: vi.fn(),
-    recordQaRatingChanged: vi.fn(),
-  },
-}));
+    qaTelemetryMocks: {
+      recordQaQuestionAccepted: vi.fn(),
+      recordQaRatingChanged: vi.fn(),
+    },
+  }));
 
 vi.mock('../db', () => ({
   prisma: prismaMock,
@@ -65,7 +69,7 @@ vi.mock('../lib/hostAuth', async () => {
 });
 
 vi.mock('../lib/participantAuth', () => ({
-  assertParticipantCapability: vi.fn(),
+  assertParticipantCapability: participantAuthMocks.assertParticipantCapabilityMock,
 }));
 
 vi.mock('../lib/qaTelemetry', () => ({
@@ -74,7 +78,7 @@ vi.mock('../lib/qaTelemetry', () => ({
 }));
 
 import { emitQaQuestionsSignal, resetQaQuestionsSignalsForTests } from '../lib/qaQuestionsSignal';
-import { qaRouter } from '../routers/qa';
+import { qaRouter, resetSharedQaRankingCacheForTests } from '../routers/qa';
 
 function hostCtx(token: string | null) {
   return {
@@ -175,8 +179,13 @@ function rankedQaRow(overrides: Partial<RankedQaTestRow> = {}): RankedQaTestRow 
 }
 
 describe('qa router (Epic 8)', () => {
+  afterEach(() => {
+    vi.useRealTimers();
+  });
+
   beforeEach(() => {
     resetQaQuestionsSignalsForTests();
+    resetSharedQaRankingCacheForTests();
     vi.resetAllMocks();
     rawQueryResults.createQuestion.length = 0;
     rawQueryResults.changeVote.length = 0;
@@ -282,6 +291,173 @@ describe('qa router (Epic 8)', () => {
       expect(sql).not.toContain('POWER(');
     },
   );
+
+  it('teilt dieselbe öffentliche Q&A-Seite nach Revision zwischen Teilnahmen', async () => {
+    prismaMock.session.findUnique.mockResolvedValue({
+      ...ACTIVE_QA_SESSION,
+      id: SESSION_ID,
+      code: 'CODE12',
+      type: 'QUIZ',
+      qaEnabled: true,
+      qaOpen: true,
+      qaModerationMode: false,
+      qaQuestionCount: 1,
+    });
+    rawQueryResults.rankedQuestions.push([
+      rankedQaRow({
+        text: 'Geteilte Seite',
+        upvoteCount: 2,
+        totalCount: 1,
+      }),
+    ]);
+    prismaMock.qaUpvote.findMany.mockResolvedValue([]);
+    prismaMock.qaQuestion.count.mockResolvedValue(0);
+
+    const [first, second] = await Promise.all([
+      caller.list({ sessionId: SESSION_ID, participantId: PARTICIPANT_ID }),
+      caller.list({ sessionId: SESSION_ID, participantId: OTHER_PARTICIPANT_ID }),
+    ]);
+    const third = await caller.list({ sessionId: SESSION_ID, participantId: PARTICIPANT_ID });
+
+    expect(first.questions[0]?.text).toBe('Geteilte Seite');
+    expect(second.questions[0]?.text).toBe('Geteilte Seite');
+    expect(third.questions[0]?.text).toBe('Geteilte Seite');
+    expect(prismaMock.$queryRaw).toHaveBeenCalledTimes(1);
+    const sql = rawSqlText(prismaMock.$queryRaw.mock.calls[0] ?? []);
+    expect(sql).toContain(`question."status" IN ('ACTIVE', 'PINNED', 'ARCHIVED')`);
+    expect(sql).not.toContain(`question."status" = 'PENDING'`);
+  });
+
+  it('gibt fremde PENDING-Fragen nicht über den gemeinsamen Seiten-Cache preis', async () => {
+    prismaMock.session.findUnique.mockResolvedValue({
+      ...ACTIVE_QA_SESSION,
+      id: SESSION_ID,
+      code: 'CODE12',
+      type: 'QUIZ',
+      qaEnabled: true,
+      qaOpen: true,
+      qaModerationMode: false,
+      qaQuestionCount: 2,
+    });
+    prismaMock.qaQuestion.count.mockImplementation(
+      async (args?: { where?: { participantId?: string; status?: string } }) => {
+        if (args?.where?.status === 'PENDING' && args.where.participantId === PARTICIPANT_ID) {
+          return 1;
+        }
+        return 0;
+      },
+    );
+    rawQueryResults.rankedQuestions.push(
+      [
+        rankedQaRow({
+          id: '77777777-7777-4777-8777-777777777777',
+          participantId: PARTICIPANT_ID,
+          text: 'Noch ungeprüfte Frage von A',
+          status: 'PENDING',
+          totalCount: 2,
+        }),
+        rankedQaRow({
+          text: 'Öffentlich freigegeben',
+          totalCount: 2,
+        }),
+      ],
+      [
+        rankedQaRow({
+          text: 'Öffentlich freigegeben',
+          totalCount: 1,
+        }),
+      ],
+    );
+
+    const authorPage = await caller.list({
+      sessionId: SESSION_ID,
+      participantId: PARTICIPANT_ID,
+    });
+    const otherPage = await caller.list({
+      sessionId: SESSION_ID,
+      participantId: OTHER_PARTICIPANT_ID,
+    });
+
+    expect(authorPage.questions.map((question) => question.text)).toEqual([
+      'Noch ungeprüfte Frage von A',
+      'Öffentlich freigegeben',
+    ]);
+    expect(otherPage.questions.map((question) => question.text)).toEqual([
+      'Öffentlich freigegeben',
+    ]);
+    expect(prismaMock.$queryRaw).toHaveBeenCalledTimes(2);
+    const authorSql = rawSqlText(prismaMock.$queryRaw.mock.calls[0] ?? []);
+    const otherSql = rawSqlText(prismaMock.$queryRaw.mock.calls[1] ?? []);
+    expect(authorSql).toContain(`question."status" = 'PENDING'`);
+    expect(otherSql).not.toContain(`question."status" = 'PENDING'`);
+
+    resetSharedQaRankingCacheForTests();
+    prismaMock.$queryRaw.mockImplementation(async (...call: unknown[]) => {
+      const sql = rawSqlText(call);
+      if (sql.includes('WITH scored AS')) {
+        if (sql.includes(`question."status" = 'PENDING'`)) {
+          return [
+            rankedQaRow({
+              id: '77777777-7777-4777-8777-777777777777',
+              participantId: PARTICIPANT_ID,
+              text: 'Noch ungeprüfte Frage von A',
+              status: 'PENDING',
+              totalCount: 2,
+            }),
+            rankedQaRow({
+              text: 'Öffentlich freigegeben',
+              totalCount: 2,
+            }),
+          ];
+        }
+        return [rankedQaRow({ text: 'Öffentlich freigegeben', totalCount: 1 })];
+      }
+      throw new Error(`Unerwartete Raw-SQL-Abfrage: ${sql}`);
+    });
+    const [authorAgain, otherAgain] = await Promise.all([
+      caller.list({ sessionId: SESSION_ID, participantId: PARTICIPANT_ID }),
+      caller.list({ sessionId: SESSION_ID, participantId: OTHER_PARTICIPANT_ID }),
+    ]);
+    expect(authorAgain.questions.map((question) => question.text)).toContain(
+      'Noch ungeprüfte Frage von A',
+    );
+    expect(otherAgain.questions.map((question) => question.text)).not.toContain(
+      'Noch ungeprüfte Frage von A',
+    );
+  });
+
+  it('behandelt einen fehlgeschlagenen geteilten Q&A-Abruf ohne unbehandelte Rejection', async () => {
+    prismaMock.session.findUnique.mockResolvedValue({
+      ...ACTIVE_QA_SESSION,
+      id: SESSION_ID,
+      code: 'CODE12',
+      type: 'QUIZ',
+      qaEnabled: true,
+      qaOpen: true,
+      qaModerationMode: false,
+      qaQuestionCount: 1,
+    });
+    const unhandled: unknown[] = [];
+    const onUnhandled = (reason: unknown) => {
+      unhandled.push(reason);
+    };
+    process.on('unhandledRejection', onUnhandled);
+    rawQueryResults.rankedQuestions.push(new Error('db timeout'));
+
+    try {
+      await expect(
+        caller.list({ sessionId: SESSION_ID, participantId: PARTICIPANT_ID }),
+      ).rejects.toThrow('db timeout');
+      await new Promise<void>((resolve) => setImmediate(resolve));
+      expect(unhandled).toEqual([]);
+
+      rawQueryResults.rankedQuestions.push([rankedQaRow({ text: 'Nach Retry sichtbar' })]);
+      const retry = await caller.list({ sessionId: SESSION_ID, participantId: PARTICIPANT_ID });
+      expect(retry.questions[0]?.text).toBe('Nach Retry sichtbar');
+    } finally {
+      process.off('unhandledRejection', onUnhandled);
+    }
+  });
 
   it('sortiert die Teilnehmer-Q&A-Liste nach BEST ohne Host-Metriken auszugeben', async () => {
     prismaMock.session.findUnique.mockResolvedValue({
@@ -1644,6 +1820,174 @@ describe('qa router (Epic 8)', () => {
       done: false,
     });
 
+    await iterator.return?.(undefined);
+  });
+
+  it('wendet den Fristablauf einmal an und fällt danach auf das normale Teilnehmerintervall zurück', async () => {
+    vi.useFakeTimers();
+    const deadline = new Date('2026-09-18T08:00:01.000Z');
+    vi.setSystemTime(new Date('2026-09-18T08:00:00.000Z'));
+    let session = {
+      ...ACTIVE_QA_SESSION,
+      code: 'ABC123',
+      type: 'QUIZ',
+      qaEnabled: true,
+      qaOpen: true,
+      qaClosesAt: deadline,
+      participantRevision: 0,
+      status: ACTIVE_QA_SESSION.status as string,
+      endedAt: ACTIVE_QA_SESSION.endedAt as Date | null,
+    };
+    prismaMock.session.findUnique.mockImplementation(async () => session);
+
+    const stream = await caller.onQuestionsUpdated({
+      sessionId: SESSION_ID,
+      participantId: PARTICIPANT_ID,
+    });
+    const iterator = stream[Symbol.asyncIterator]();
+    await expect(iterator.next()).resolves.toMatchObject({
+      value: { kind: 'INVALIDATED', state: 'ACTIVE' },
+      done: false,
+    });
+
+    const deadlineUpdate = iterator.next();
+    await vi.advanceTimersByTimeAsync(1_000);
+    await expect(deadlineUpdate).resolves.toMatchObject({
+      value: { kind: 'INVALIDATED', state: 'DEADLINE_EXPIRED' },
+      done: false,
+    });
+
+    const readsAtDeadline = prismaMock.session.findUnique.mock.calls.length;
+    const authChecksAtDeadline =
+      participantAuthMocks.assertParticipantCapabilityMock.mock.calls.length;
+    const pendingUpdate = iterator.next();
+    await vi.advanceTimersByTimeAsync(60_000);
+
+    const snapshotReads = prismaMock.session.findUnique.mock.calls.length - readsAtDeadline;
+    const authorizationChecks =
+      participantAuthMocks.assertParticipantCapabilityMock.mock.calls.length - authChecksAtDeadline;
+    expect(snapshotReads).toBeGreaterThanOrEqual(4);
+    expect(snapshotReads).toBeLessThanOrEqual(Math.ceil(60_000 / 15_000) + 2);
+    expect(authorizationChecks).toBe(snapshotReads);
+
+    session = { ...session, status: 'FINISHED', endedAt: new Date() };
+    emitQaQuestionsSignal(SESSION_ID, { immediate: true });
+    await expect(pendingUpdate).resolves.toMatchObject({
+      value: { kind: 'INVALIDATED', state: 'SESSION_ENDED' },
+      done: false,
+    });
+    await iterator.return?.(undefined);
+  });
+
+  it('macht eine Fristverlängerung nach dem Ablauf wieder sofort sichtbar', async () => {
+    vi.useFakeTimers();
+    const firstDeadline = new Date('2026-09-18T08:00:01.000Z');
+    vi.setSystemTime(new Date('2026-09-18T08:00:00.000Z'));
+    let session = {
+      ...ACTIVE_QA_SESSION,
+      code: 'ABC123',
+      type: 'QUIZ',
+      qaEnabled: true,
+      qaOpen: true,
+      qaClosesAt: firstDeadline,
+      participantRevision: 0,
+    };
+    prismaMock.session.findUnique.mockImplementation(async () => session);
+
+    const stream = await caller.onQuestionsUpdated({
+      sessionId: SESSION_ID,
+      participantId: PARTICIPANT_ID,
+    });
+    const iterator = stream[Symbol.asyncIterator]();
+    await expect(iterator.next()).resolves.toMatchObject({
+      value: { kind: 'INVALIDATED', state: 'ACTIVE' },
+    });
+
+    const expired = iterator.next();
+    await vi.advanceTimersByTimeAsync(1_000);
+    await expect(expired).resolves.toMatchObject({
+      value: { kind: 'INVALIDATED', state: 'DEADLINE_EXPIRED' },
+    });
+
+    session = {
+      ...session,
+      qaOpen: true,
+      qaClosesAt: new Date('2026-09-18T08:20:00.000Z'),
+      qaRankingRevision: 8,
+    };
+    emitQaQuestionsSignal(SESSION_ID, { immediate: true });
+    await expect(iterator.next()).resolves.toMatchObject({
+      value: { kind: 'INVALIDATED', state: 'ACTIVE', rankingRevision: 8 },
+    });
+    await iterator.return?.(undefined);
+  });
+
+  it('räumt Listener und Timer beim Unsubscribe der Q&A-Subscription auf', async () => {
+    vi.useFakeTimers();
+    prismaMock.session.findUnique.mockResolvedValue({
+      ...ACTIVE_QA_SESSION,
+      code: 'ABC123',
+      type: 'QUIZ',
+      qaEnabled: true,
+      qaOpen: true,
+    });
+
+    const stream = await caller.onQuestionsUpdated({
+      sessionId: SESSION_ID,
+      participantId: PARTICIPANT_ID,
+    });
+    const iterator = stream[Symbol.asyncIterator]();
+    await iterator.next();
+    const readsAfterSubscribe = prismaMock.session.findUnique.mock.calls.length;
+    const closed = iterator.return?.(undefined);
+    emitQaQuestionsSignal(SESSION_ID, { immediate: true });
+    await expect(closed).resolves.toMatchObject({ done: true });
+
+    await vi.advanceTimersByTimeAsync(15_000);
+    expect(prismaMock.session.findUnique.mock.calls.length).toBe(readsAfterSubscribe);
+  });
+
+  it('ignoriert die Teilnehmerfrist für den Host-Wartetakt', async () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date('2026-09-18T08:01:00.000Z'));
+    prismaMock.session.findUnique.mockResolvedValue({
+      ...ACTIVE_QA_SESSION,
+      code: 'ABC123',
+      type: 'QUIZ',
+      qaEnabled: true,
+      qaOpen: true,
+      qaClosesAt: new Date('2026-09-18T08:00:00.000Z'),
+      participantRevision: 0,
+    });
+
+    const stream = await hostCaller.onQuestionsUpdated({
+      sessionId: SESSION_ID,
+      moderatorView: true,
+    });
+    const iterator = stream[Symbol.asyncIterator]();
+    await expect(iterator.next()).resolves.toMatchObject({
+      value: { kind: 'INVALIDATED', state: 'ACTIVE' },
+      done: false,
+    });
+
+    const readsAtStart = prismaMock.session.findUnique.mock.calls.length;
+    const authChecksAtStart = hostAuthMocks.isHostSessionTokenValidMock.mock.calls.length;
+    const pendingUpdate = iterator.next();
+    await vi.advanceTimersByTimeAsync(60_000);
+
+    const snapshotReads = prismaMock.session.findUnique.mock.calls.length - readsAtStart;
+    const authorizationChecks =
+      hostAuthMocks.isHostSessionTokenValidMock.mock.calls.length - authChecksAtStart;
+    expect(snapshotReads).toBeGreaterThanOrEqual(30);
+    expect(snapshotReads).toBeLessThanOrEqual(Math.ceil(60_000 / 2_000) + 2);
+    expect(authorizationChecks).toBeGreaterThan(snapshotReads);
+
+    hostAuthMocks.isHostSessionTokenValidMock.mockResolvedValue(false);
+    emitQaQuestionsSignal(SESSION_ID, { immediate: true });
+    await expect(pendingUpdate).rejects.toMatchObject({
+      code: 'UNAUTHORIZED',
+      message: 'Die Host-Verbindung wurde beendet.',
+    });
     await iterator.return?.(undefined);
   });
 

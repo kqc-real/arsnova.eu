@@ -191,6 +191,7 @@ export class QuizNewComponent implements OnInit, OnDestroy {
   }
 
   ngOnInit(): void {
+    this.quizStore.ensureHostLibraryReady?.();
     /** Vollständige Preset-Defaults zum Home-Thema (nicht nur Timer/Nickname), damit die Maske initial stimmt. */
     this.applyPreset(this.currentQuizPreset());
     this.syncTeamNamesValidation();

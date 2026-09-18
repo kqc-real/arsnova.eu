@@ -29,7 +29,7 @@ describe('qaQuestionsSignal', () => {
     vi.useRealTimers();
   });
 
-  it('begrenzt die Wartezeit auf die Q&A-Frist', () => {
+  it('weckt einmal an der Q&A-Frist und verwendet danach wieder den Fallback', () => {
     expect(
       qaSubscriptionWaitMs(
         '2026-09-17T14:30:00.000Z',
@@ -41,8 +41,15 @@ describe('qaQuestionsSignal', () => {
       qaSubscriptionWaitMs(
         '2026-09-17T14:30:00.000Z',
         15_000,
+        Date.parse('2026-09-17T14:30:00.000Z'),
+      ),
+    ).toBe(15_000);
+    expect(
+      qaSubscriptionWaitMs(
+        '2026-09-17T14:30:00.000Z',
+        15_000,
         Date.parse('2026-09-17T14:31:00.000Z'),
       ),
-    ).toBe(1);
+    ).toBe(15_000);
   });
 });

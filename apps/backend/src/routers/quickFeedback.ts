@@ -529,6 +529,85 @@ async function loadQuickFeedbackForHost(
   return result;
 }
 
+const QUICK_FEEDBACK_AUDIENCE_CACHE_MS = 250;
+const QUICK_FEEDBACK_AUDIENCE_CACHE_MAX_ENTRIES = 512;
+type QuickFeedbackAudienceCacheEntry = {
+  expiresAt: number;
+  promise: Promise<QuickFeedbackResult | null>;
+};
+const quickFeedbackAudienceCache = new Map<string, QuickFeedbackAudienceCacheEntry>();
+
+function pruneQuickFeedbackAudienceCache(nowMs: number): void {
+  for (const [code, entry] of quickFeedbackAudienceCache) {
+    if (entry.expiresAt <= nowMs) {
+      quickFeedbackAudienceCache.delete(code);
+    }
+  }
+  while (quickFeedbackAudienceCache.size >= QUICK_FEEDBACK_AUDIENCE_CACHE_MAX_ENTRIES) {
+    const oldestCode = quickFeedbackAudienceCache.keys().next().value as string | undefined;
+    if (!oldestCode) {
+      break;
+    }
+    quickFeedbackAudienceCache.delete(oldestCode);
+  }
+}
+
+async function buildQuickFeedbackAudienceSnapshot(
+  code: string,
+): Promise<QuickFeedbackResult | null> {
+  const gate = await loadSessionQuickFeedbackGate(code).catch(() => null);
+  if (
+    gate &&
+    (!gate.quickFeedbackEnabled ||
+      !gate.quickFeedbackOpen ||
+      isSessionEffectivelyFinished(gate, new Date()))
+  ) {
+    return null;
+  }
+
+  const raw = await getRedis().get(feedbackKey(code));
+  if (!raw) {
+    await protectMissingQuickFeedbackCode(code, 'pollReconnect');
+    return null;
+  }
+
+  const result = parseStoredQuickFeedbackResult(raw);
+  await enrichOpinionShift(result, code);
+  await enrichTempoTrend(result, code, gate ?? undefined);
+  return QuickFeedbackResultSchema.parse(audienceQuickFeedbackResult(result));
+}
+
+function loadQuickFeedbackAudienceSnapshot(code: string): Promise<QuickFeedbackResult | null> {
+  const nowMs = Date.now();
+  const cached = quickFeedbackAudienceCache.get(code);
+  if (cached && cached.expiresAt > nowMs) {
+    return cached.promise;
+  }
+
+  pruneQuickFeedbackAudienceCache(nowMs);
+  const entry: QuickFeedbackAudienceCacheEntry = {
+    expiresAt: Number.POSITIVE_INFINITY,
+    promise: Promise.resolve(null),
+  };
+  entry.promise = buildQuickFeedbackAudienceSnapshot(code)
+    .then((result) => {
+      entry.expiresAt = Date.now() + QUICK_FEEDBACK_AUDIENCE_CACHE_MS;
+      return result;
+    })
+    .catch((error: unknown) => {
+      if (quickFeedbackAudienceCache.get(code) === entry) {
+        quickFeedbackAudienceCache.delete(code);
+      }
+      throw error;
+    });
+  quickFeedbackAudienceCache.set(code, entry);
+  return entry.promise;
+}
+
+export function resetQuickFeedbackAudienceCacheForTests(): void {
+  quickFeedbackAudienceCache.clear();
+}
+
 export const quickFeedbackRouter = router({
   create: publicProcedure
     .input(CreateQuickFeedbackInputSchema)
@@ -898,32 +977,14 @@ export const quickFeedbackRouter = router({
   onResults: publicProcedure
     .input(QuickFeedbackVoteInputSchema.pick({ sessionCode: true }))
     .subscription(async function* ({ input }) {
-      const redis = getRedis();
       const code = input.sessionCode.toUpperCase();
-      const key = feedbackKey(code);
       let lastJson = '';
 
       while (true) {
-        const gate = await loadSessionQuickFeedbackGate(code).catch(() => null);
-        if (gate) {
-          if (
-            !gate.quickFeedbackEnabled ||
-            !gate.quickFeedbackOpen ||
-            isSessionEffectivelyFinished(gate, new Date())
-          ) {
-            return;
-          }
-        }
-        const raw = await redis.get(key);
-        if (!raw) {
-          await protectMissingQuickFeedbackCode(code, 'pollReconnect');
+        const payload = await loadQuickFeedbackAudienceSnapshot(code);
+        if (!payload) {
           return;
         }
-
-        const result = JSON.parse(raw) as StoredQuickFeedbackResult;
-        await enrichOpinionShift(result, code);
-        await enrichTempoTrend(result, code, gate ?? undefined);
-        const payload = QuickFeedbackResultSchema.parse(audienceQuickFeedbackResult(result));
         const json = JSON.stringify(payload);
         if (json !== lastJson) {
           lastJson = json;
@@ -1153,10 +1214,12 @@ async function enrichTempoTrend(
   const redis = getRedis();
   const [activeParticipants, rawBuckets] = await Promise.all([
     resolveTempoActiveParticipants(result, code, knownSession),
-    redis.hgetall(tempoBucketsKey(code)).catch(() => ({}) as Record<string, string>),
+    result.sessionBound === true
+      ? Promise.resolve({} as Record<string, string>)
+      : redis.hgetall(tempoBucketsKey(code)).catch(() => ({}) as Record<string, string>),
   ]);
   const participantBasis = applyTempoDefaultFollowing(result, activeParticipants);
-  const rawSnapshots = result.sessionBound === true ? [] : parseTempoBucketPayloads(rawBuckets);
+  const rawSnapshots = parseTempoBucketPayloads(rawBuckets);
   const snapshots = tempoSnapshotsWithDefaultFollowing(rawSnapshots, participantBasis);
 
   result.tempoTrend = calculateTempoTrend({

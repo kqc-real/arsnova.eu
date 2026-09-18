@@ -351,9 +351,23 @@ async function main() {
       failures.push(`Nach Ergebnis zeigen war der Status ${revealed.status}.`);
     }
 
-    await hostApi.session.setPreferredLiveChannel.mutate({ code, channel: 'qa' });
-    await presenter.waitForTimeout(1_000);
-    const infoQa = await trpc.session.getInfo.query({ code });
+    const switched = await hostApi.session.setPreferredLiveChannel.mutate({
+      code,
+      channel: 'qa',
+    });
+    logStep(
+      switched.preferredChannel === 'qa',
+      'API-Kanalwechsel auf Q&A',
+      switched.preferredChannel,
+    );
+    if (switched.preferredChannel !== 'qa') {
+      failures.push(`setPreferredLiveChannel lieferte ${switched.preferredChannel}.`);
+    }
+    let infoQa = await trpc.session.getInfo.query({ code });
+    for (let attempt = 0; attempt < 8 && infoQa.preferredChannel !== 'qa'; attempt += 1) {
+      await presenter.waitForTimeout(400);
+      infoQa = await trpc.session.getInfo.query({ code });
+    }
     const presenterQa = (await presenter.locator('.session-present--qa').count()) > 0;
     logStep(infoQa.preferredChannel === 'qa', 'Kanalwechsel auf Q&A', infoQa.preferredChannel);
     if (infoQa.preferredChannel !== 'qa' && !presenterQa) {

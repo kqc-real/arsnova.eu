@@ -9,7 +9,7 @@
   },
   "websocket": {
     "activeClients": 500,
-    "subscriptionPageSize": 1
+    "subscriptionPageSize": 100
   },
   "concurrency": {
     "joins": 40,
@@ -23,7 +23,7 @@
     "ratings": 10360,
     "moderations": 100,
     "healthStats": 100,
-    "sortModes": ["TOP", "BEST", "CONTROVERSIAL"]
+    "sortModes": ["TOP", "BEST", "CONTROVERSIAL", "TIME"]
   },
   "budgets": {
     "apiP95ExclusiveMs": 1000,

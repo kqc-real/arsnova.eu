@@ -23,5 +23,14 @@ describe('CSP-Rollout im Service Worker', () => {
       config.assetGroups?.find((group) => group.name === 'app-shell')?.resources?.files instanceof
         Array,
     ).toBe(true);
+    const appShellFiles = config.assetGroups?.find((group) => group.name === 'app-shell')?.resources
+      ?.files;
+    const lazyChunkFiles = config.assetGroups?.find((group) => group.name === 'lazy-chunks')
+      ?.resources?.files;
+    expect(appShellFiles).toEqual(
+      expect.arrayContaining(['/main*.js', '/polyfills*.js', '/runtime*.js']),
+    );
+    expect(appShellFiles).not.toContain('/*.js');
+    expect(lazyChunkFiles).toContain('/*.js');
   });
 });

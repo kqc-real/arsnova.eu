@@ -90,7 +90,7 @@ export function qaSubscriptionWaitMs(
   }
   const remainingMs = deadlineMs - nowMs;
   if (remainingMs <= 0) {
-    return 1;
+    return Math.max(1, fallbackMs);
   }
   return Math.max(1, Math.min(fallbackMs, remainingMs));
 }
