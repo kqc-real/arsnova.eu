@@ -1313,7 +1313,8 @@ export class SessionPresentComponent implements OnInit, OnDestroy {
     if (
       !this.session() ||
       this.presentDeadlineClosed ||
-      this.session()?.presenterSurface === 'qaWordCloud'
+      this.session()?.presenterSurface === 'qaWordCloud' ||
+      this.showFinishProjection()
     ) {
       return;
     }
@@ -1451,7 +1452,12 @@ export class SessionPresentComponent implements OnInit, OnDestroy {
   }
 
   private async refreshHostQuestion(): Promise<void> {
-    if (!this.session() || this.session()?.type === 'Q_AND_A' || this.presentDeadlineClosed) {
+    if (
+      !this.session() ||
+      this.session()?.type === 'Q_AND_A' ||
+      this.presentDeadlineClosed ||
+      this.session()?.presenterSurface === 'qaWordCloud'
+    ) {
       this.hostQuestion.set(null);
       this.stopCountdown();
       return;
@@ -1506,7 +1512,11 @@ export class SessionPresentComponent implements OnInit, OnDestroy {
   }
 
   private async refreshHostVoteProgress(): Promise<void> {
-    if (!this.hostQuestion() || this.session()?.status !== 'ACTIVE') {
+    if (
+      !this.hostQuestion() ||
+      this.session()?.status !== 'ACTIVE' ||
+      this.session()?.presenterSurface === 'qaWordCloud'
+    ) {
       this.hostVoteProgress.set(null);
       return;
     }

@@ -117,6 +117,12 @@ function expectNoHostControls(root: HTMLElement): void {
 }
 
 describe('SessionPresentComponent', () => {
+  afterEach(() => {
+    liveQueryMock.mockClear();
+    getCurrentQuestionForHostQueryMock.mockClear();
+    getHostVoteProgressQueryMock.mockClear();
+  });
+
   beforeEach(() => {
     getInfoQueryMock.mockResolvedValue({
       id: '6a8edced-5f8f-4cfa-9176-454fac9570ad',
@@ -1852,7 +1858,9 @@ describe('SessionPresentComponent', () => {
     const fixture = TestBed.createComponent(SessionPresentComponent);
     fixture.detectChanges();
     await fixture.whenStable();
-    await new Promise((r) => setTimeout(r, 50));
+    await vi.waitFor(() => {
+      expect(fixture.componentInstance.showQaWordCloud()).toBe(true);
+    });
     fixture.detectChanges();
 
     expect(liveQueryMock).not.toHaveBeenCalled();
@@ -2079,6 +2087,7 @@ describe('SessionPresentComponent', () => {
       result ? { ...result, totalVotes: 5 } : result,
     );
     expect(fixture.componentInstance.quickFeedbackShowsPercentages()).toBe(true);
+    fixture.destroy();
   });
 
   it('zeigt ausschließlich Blitzlicht, wenn Q&A-Daten weiterhin vorhanden sind', async () => {
