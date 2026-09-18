@@ -456,11 +456,14 @@ export async function activateHostCredential(params: {
   return activated;
 }
 
+function adminHandoffEnvelopeAad(sessionId: string, operationId: string): string {
+  return `admin-handoff:${sessionId}:${operationId}`;
+}
+
 export async function resetSessionHostAccess(params: {
   input: AdminResetSessionHostAccessInput;
   adminIdentifier: string;
 }): Promise<AdminResetSessionHostAccessOutput> {
-  const handoffCapability = createOpaqueCapability();
   const result = await prisma.$transaction(async (tx) => {
     const locked = await tx.$queryRaw<Array<{ id: string }>>(Prisma.sql`
       SELECT "id"
@@ -499,6 +502,59 @@ export async function resetSessionHostAccess(params: {
         message: 'Der Host-Zugang kann nach Ende der Nachbereitung nicht zurückgesetzt werden.',
       });
     }
+
+    const existingByOperation = await tx.hostAdminHandoff.findUnique({
+      where: { operationId: params.input.operationId },
+      select: {
+        sessionId: true,
+        encryptedEnvelope: true,
+      },
+    });
+    if (existingByOperation) {
+      if (existingByOperation.sessionId !== session.id) {
+        throw new TRPCError({
+          code: 'BAD_REQUEST',
+          message: 'Die Operations-ID gehört zu einer anderen Session.',
+        });
+      }
+      if (existingByOperation.encryptedEnvelope) {
+        try {
+          return decryptCapabilityEnvelope<AdminResetSessionHostAccessOutput>(
+            existingByOperation.encryptedEnvelope,
+            adminHandoffEnvelopeAad(session.id, params.input.operationId),
+          );
+        } catch {
+          throw new TRPCError({
+            code: 'PRECONDITION_FAILED',
+            message:
+              'Der gespeicherte Übergabecode kann nicht gelesen werden. Bestätige einen neuen Reset, um ihn zu ersetzen.',
+          });
+        }
+      }
+      throw new TRPCError({
+        code: 'PRECONDITION_FAILED',
+        message:
+          'Der vorherige Übergabecode ist nicht mehr abrufbar. Bestätige einen neuen Reset, um ihn zu ersetzen.',
+      });
+    }
+
+    const otherOpen = await tx.hostAdminHandoff.findFirst({
+      where: {
+        sessionId: session.id,
+        operationId: { not: params.input.operationId },
+        expiresAt: { gt: now },
+      },
+      select: { id: true },
+    });
+    if (otherOpen && params.input.confirmNewReset !== true) {
+      throw new TRPCError({
+        code: 'PRECONDITION_FAILED',
+        message:
+          'Ein Übergabecode für diese Session existiert bereits. Bestätige einen neuen Reset, um ihn zu ersetzen.',
+      });
+    }
+
+    const handoffCapability = createOpaqueCapability();
     const revokedCredentialVersion = session.hostCredentialVersion;
     const targetGeneration = revokedCredentialVersion + 1;
     const supportId = session.hostSupportId ?? createHostSupportId();
@@ -526,10 +582,23 @@ export async function resetSessionHostAccess(params: {
       },
     });
     const expiresAt = new Date(now.getTime() + HOST_CREDENTIAL_EXCHANGE_MS);
+    const output: AdminResetSessionHostAccessOutput = {
+      sessionId: session.id,
+      code: session.code,
+      supportId,
+      handoffCapability,
+      expiresAt: expiresAt.toISOString(),
+      revokedCredentialVersion,
+    };
     await tx.hostAdminHandoff.create({
       data: {
         sessionId: session.id,
+        operationId: params.input.operationId,
         capabilityHash: hashCapability(handoffCapability),
+        encryptedEnvelope: encryptCapabilityEnvelope(
+          output,
+          adminHandoffEnvelopeAad(session.id, params.input.operationId),
+        ),
         targetGeneration,
         createdAt: now,
         expiresAt,
@@ -548,18 +617,12 @@ export async function resetSessionHostAccess(params: {
             params.input.requesterIdentityVerificationReference,
           sessionAuthorizationEvidenceReference: params.input.sessionAuthorizationEvidenceReference,
           supportCaseReference: params.input.supportCaseReference,
+          operationId: params.input.operationId,
           revokedCredentialVersion,
         }),
       },
     });
-    return {
-      sessionId: session.id,
-      code: session.code,
-      supportId,
-      handoffCapability,
-      expiresAt: expiresAt.toISOString(),
-      revokedCredentialVersion,
-    };
+    return output;
   });
   return result;
 }

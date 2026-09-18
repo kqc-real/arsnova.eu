@@ -73,12 +73,33 @@ nicht automatisch, sondern dem verifizierten Prozess unten.
 
 ## Admin-Reset bei vollständigem Verlust
 
+Zuerst den Self-Service prüfen. Eine fehlende heruntergeladene Zugangskarte
+bedeutet nicht automatisch, dass separat notierte Zugangsdaten unbrauchbar
+sind.
+
 Der Admin-Reset ist nur über die authentifizierte Admin-Oberfläche und die
 Shared-Zod-geschützte `admin.resetSessionHostAccess`-tRPC-Prozedur zulässig.
-Der Operator erhält ausschließlich eine höchstens 15 Minuten gültige,
-einmalige Übergabe-Capability, keine dauerhafte Host-Capability. Support-ID und
-Übergabecode werden getrennt an den bereits verifizierten Host übermittelt.
-Dieser schließt den normalen Prepare-/Activate-Austausch auf der
+Die Admin-Suche findet die Session über den sechsstelligen Sessioncode **oder**
+die vollständige Session-Kennung `ARS-XXXX-XXXX`. Eine Session-Kennung darf
+nicht still auf sechs Zeichen gekürzt werden.
+
+Der Operator erhält ausschließlich eine Übergabe-Capability, keine dauerhafte
+Host-Capability. Die 15 Minuten gelten für die **erste Einlösung** dieses
+Übergabecodes. Nach erfolgreichem Prepare beginnt ein separates
+Aktivierungsfenster von 15 Minuten. »Einmalig« bezeichnet einen
+Wiederherstellungsvorgang; technisch zulässige Wiederholungen derselben
+Operation bleiben möglich. Der gesamte Ablauf muss nicht binnen 15 Minuten
+nach dem Admin-Klick abgeschlossen sein.
+
+Dieselbe Operations-ID liefert dasselbe verschlüsselt vorgehaltene Ergebnis
+und widerruft nicht erneut. Ein bewusst neuer Reset ist eine eigene,
+bestätigungspflichtige Aktion und macht den vorherigen Übergabecode ungültig.
+Rohgeheimnisse gehören weder ins Audit-Log noch in URLs.
+
+Support-ID und Übergabecode werden getrennt an den bereits verifizierten Host
+übermittelt. Die getrennte Übermittlung ersetzt nicht die Prüfung des
+Empfängers; die Session-Kennung ist kein zweiter geheimer Faktor. Der Host
+schließt den normalen Prepare-/Activate-Austausch auf der
 Wiederherstellungsseite über »Ich habe einen Code vom Support« ab.
 
 Vor dem Reset müssen **beide** Aussagen unabhängig belegt sein:

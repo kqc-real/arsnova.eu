@@ -3062,6 +3062,8 @@ export const AdminResetSessionHostAccessInputSchema = z
   .object({
     code: z.string().length(6).optional(),
     supportId: HostSupportIdSchema.optional(),
+    operationId: z.uuid(),
+    confirmNewReset: z.boolean().optional(),
     evidenceCategory: HostResetEvidenceCategorySchema,
     requesterIdentityVerificationReference: z.string().trim().min(3).max(200),
     sessionAuthorizationEvidenceReference: z.string().trim().min(3).max(200),
@@ -5326,11 +5328,44 @@ export const AdminLoginOutputSchema = z.object({
 });
 export type AdminLoginOutput = z.infer<typeof AdminLoginOutputSchema>;
 
-/** Input: Session-Lookup im Admin-Bereich über 6-stelligen Code. */
-export const AdminSessionLookupInputSchema = z.object({
-  code: z.string().trim().length(6),
-});
+/** Input: Session-Lookup im Admin-Bereich über Sessioncode oder Session-Kennung. */
+export const AdminSessionLookupInputSchema = z
+  .object({
+    code: z
+      .string()
+      .trim()
+      .toUpperCase()
+      .regex(/^[A-Z0-9]{6}$/)
+      .optional(),
+    supportId: HostSupportIdSchema.optional(),
+  })
+  .superRefine((value, ctx) => {
+    if ((value.code ? 1 : 0) + (value.supportId ? 1 : 0) !== 1) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['code'],
+        message: 'Genau Sessioncode oder Session-Kennung muss angegeben werden.',
+      });
+    }
+  });
 export type AdminSessionLookupInput = z.infer<typeof AdminSessionLookupInputSchema>;
+
+export function parseAdminSessionLookup(
+  raw: string,
+):
+  | { success: true; data: AdminSessionLookupInput }
+  | { success: false; error: 'empty' | 'invalid' } {
+  const value = raw.trim().toUpperCase();
+  if (!value) return { success: false, error: 'empty' };
+  const supportId = HostSupportIdSchema.safeParse(value);
+  if (supportId.success) {
+    return { success: true, data: { supportId: supportId.data } };
+  }
+  if (/^[A-Z0-9]{6}$/.test(value)) {
+    return { success: true, data: { code: value } };
+  }
+  return { success: false, error: 'invalid' };
+}
 
 /** Input: Admin-Sessionliste mit optionalen Filtern und Pagination. */
 export const AdminListSessionsInputSchema = z.object({
@@ -5395,6 +5430,7 @@ export type AdminSessionListDTO = z.infer<typeof AdminSessionListDTOSchema>;
 /** Vollständige Admin-Detailansicht einer Session (read-only). */
 export const AdminSessionDetailDTOSchema = z.object({
   session: AdminSessionSummaryDTOSchema,
+  supportId: HostSupportIdSchema.nullable().optional(),
   title: z.string().nullable().optional(),
   questions: z
     .array(

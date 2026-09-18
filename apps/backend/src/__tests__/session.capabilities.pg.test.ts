@@ -309,6 +309,7 @@ describe.skipIf(!RUN_PG)('host and participant capabilities (PostgreSQL + Redis)
       adminIdentifier: 'admin:test',
       input: {
         supportId: material.recoveryCard.supportId,
+        operationId: randomUUID(),
         evidenceCategory: 'PREEXISTING_VERIFIED_SUPPORT_CASE',
         requesterIdentityVerificationReference: 'verified-contact-4711',
         sessionAuthorizationEvidenceReference: 'support-case-before-loss-4711',
@@ -380,6 +381,7 @@ describe.skipIf(!RUN_PG)('host and participant capabilities (PostgreSQL + Redis)
         adminIdentifier: 'admin:test',
         input: {
           supportId: expiredMaterial.recoveryCard.supportId,
+          operationId: randomUUID(),
           evidenceCategory: 'INDEPENDENT_OFFICIAL_ORGANIZATION_CONFIRMATION',
           requesterIdentityVerificationReference: 'verified-contact-9911',
           sessionAuthorizationEvidenceReference: 'official-confirmation-9911',
@@ -394,6 +396,66 @@ describe.skipIf(!RUN_PG)('host and participant capabilities (PostgreSQL + Redis)
         browserCapability: expiredMaterial.browserCapability,
       }),
     ).rejects.toMatchObject({ code: 'UNAUTHORIZED' });
+  });
+
+  it('liefert denselben Admin-Reset bei gleicher Operations-ID und verlangt Bestätigung für einen neuen Widerruf', async () => {
+    const material = createInitialHostCredentialMaterial();
+    const session = await prisma.session.create({
+      data: {
+        id: randomUUID(),
+        code: sessionCode('I'),
+        type: 'Q_AND_A',
+        status: 'ACTIVE',
+        qaEnabled: true,
+        qaOpen: true,
+        hostCredentialVersion: 1,
+        hostSupportId: material.recoveryCard.supportId,
+        hostCredentials: material.credentialData.hostCredentials,
+      },
+    });
+    sessionIds.push(session.id);
+    const operationId = randomUUID();
+    const evidence = {
+      supportId: material.recoveryCard.supportId,
+      evidenceCategory: 'PREEXISTING_VERIFIED_SUPPORT_CASE' as const,
+      requesterIdentityVerificationReference: 'verified-contact-4711',
+      sessionAuthorizationEvidenceReference: 'support-case-before-loss-4711',
+      supportCaseReference: 'support-case-before-loss-4711',
+      reason: 'Beide Host-Zugangsebenen wurden nachweislich verloren.',
+    };
+    const first = await resetSessionHostAccess({
+      adminIdentifier: 'admin:test',
+      input: { ...evidence, operationId },
+    });
+    const replay = await resetSessionHostAccess({
+      adminIdentifier: 'admin:test',
+      input: { ...evidence, operationId },
+    });
+    expect(replay).toEqual(first);
+    await expect(
+      resetSessionHostAccess({
+        adminIdentifier: 'admin:test',
+        input: { ...evidence, operationId: randomUUID() },
+      }),
+    ).rejects.toMatchObject({ code: 'PRECONDITION_FAILED' });
+    const replacement = await resetSessionHostAccess({
+      adminIdentifier: 'admin:test',
+      input: { ...evidence, operationId: randomUUID(), confirmNewReset: true },
+    });
+    expect(replacement.handoffCapability).not.toBe(first.handoffCapability);
+    expect(replacement.revokedCredentialVersion).toBe(first.revokedCredentialVersion + 1);
+    const audits = await prisma.adminAuditLog.count({
+      where: { sessionId: session.id, action: 'HOST_ACCESS_RESET' },
+    });
+    expect(audits).toBe(2);
+    expect(
+      JSON.stringify(
+        await prisma.adminAuditLog.findMany({
+          where: { sessionId: session.id, action: 'HOST_ACCESS_RESET' },
+          select: { reason: true },
+        }),
+      ),
+    ).not.toContain(first.handoffCapability);
   });
 
   it('hält nach Activate-Commit dieselbe Generation und lehnt den alten Recovery-Code ab', async () => {

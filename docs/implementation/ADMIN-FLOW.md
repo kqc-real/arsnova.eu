@@ -172,8 +172,19 @@ Die folgenden Prozedurnamen und Aufgaben sind **kanonisch**. Für Rohaufrufe per
 - Input: `page`, `pageSize`, optional Filter `status`, `type`, `code`
 - Output: paginierte Session-Liste innerhalb des Recherchefensters
 - Procedure: `admin.getSessionByCode`
-- Input: `code`
-- Output: Session-Detailansicht oder Fehler, wenn nicht gefunden
+- Input: genau eines von `code` (6-stellig) oder `supportId` (`ARS-XXXX-XXXX`)
+- Output: Session-Detailansicht inkl. Session-Kennung oder Fehler, wenn nicht
+  gefunden beziehungsweise die Eingabe ungültig ist
+
+## 5.3a Host-Zugang zurücksetzen
+
+- Procedure: `admin.resetSessionHostAccess`
+- Input: genau Sessioncode oder Session-Kennung, `operationId`, Nachweise,
+  optional `confirmNewReset`
+- Dieselbe `operationId` liefert das verschlüsselte Ergebnis erneut und
+  widerruft nicht noch einmal
+- Ein neuer Reset bei offenem Übergabecode erfordert `confirmNewReset`
+- Output: Sessioncode, Session-Kennung, Übergabecode und Einlösefrist
 
 ## 5.4 Sessiondetail und Legal Hold
 

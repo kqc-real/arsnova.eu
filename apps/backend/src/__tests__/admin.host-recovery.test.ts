@@ -39,6 +39,7 @@ import { adminRouter } from '../routers/admin';
 const caller = adminRouter.createCaller({ req: {} as never });
 const resetInput = {
   code: 'ABC123',
+  operationId: '6a8edced-5f8f-4cfa-9176-454fac9570ad',
   evidenceCategory: 'PREEXISTING_VERIFIED_SUPPORT_CASE' as const,
   requesterIdentityVerificationReference: 'Support-ID geprüft',
   sessionAuthorizationEvidenceReference: 'Sessionbezug extern bestätigt',

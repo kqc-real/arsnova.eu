@@ -16,13 +16,16 @@ import {
   AdminLoginOutputSchema,
   AdminRetentionStateDTO,
   AdminRetentionStateDTOSchema,
+  AdminSessionDetailDTO,
   AdminSessionDetailDTOSchema,
   AdminSessionListDTOSchema,
+  AdminSessionLookupInput,
   AdminSessionLookupInputSchema,
   AdminSessionSummaryDTO,
   AdminSetLegalHoldInputSchema,
   AdminWhoAmIOutputSchema,
   HealthSecurityStatsDTOSchema,
+  QuestionType,
   QUIZ_EXPORT_VERSION,
   QuizExportSchema,
   SESSION_POST_PROCESSING_HOURS,
@@ -189,6 +192,58 @@ function toSessionSummary(session: {
     endedAt: session.endedAt?.toISOString() ?? null,
     lastActivityAt: session.statusChangedAt.toISOString(),
     retention: resolveRetentionState(session),
+  };
+}
+
+function adminSessionLookupWhere(input: AdminSessionLookupInput):
+  | {
+      code: string;
+    }
+  | {
+      hostSupportId: string;
+    } {
+  if (input.supportId) {
+    return { hostSupportId: input.supportId };
+  }
+  return { code: (input.code ?? '').toUpperCase() };
+}
+
+function toSessionDetail(session: {
+  id: string;
+  code: string;
+  type: 'QUIZ' | 'Q_AND_A';
+  status: 'LOBBY' | 'QUESTION_OPEN' | 'ACTIVE' | 'PAUSED' | 'RESULTS' | 'DISCUSSION' | 'FINISHED';
+  title?: string | null;
+  hostSupportId?: string | null;
+  quiz: {
+    name: string;
+    questions: Array<{
+      id: string;
+      order: number;
+      text: string;
+      type: QuestionType;
+      answers: Array<{ id: string; text: string; isCorrect: boolean }>;
+    }>;
+  } | null;
+  _count: { participants: number };
+  createdAt?: Date | null;
+  startedAt: Date;
+  statusChangedAt: Date;
+  endedAt: Date | null;
+  legalHoldUntil: Date | null;
+  legalHoldReason: string | null;
+}): AdminSessionDetailDTO {
+  return {
+    session: toSessionSummary(session),
+    supportId: session.hostSupportId ?? null,
+    title: session.title ?? null,
+    questions: session.quiz?.questions.map((question) => ({
+      id: question.id,
+      order: question.order,
+      text: question.text,
+      type: question.type,
+      answers: question.answers,
+    })),
   };
 }
 
@@ -584,14 +639,13 @@ export const adminRouter = router({
       };
     }),
 
-  /** Session-Lookup per 6-stelligem Code (nur Recherchefenster A/B). */
+  /** Session-Lookup per 6-stelligem Code oder Session-Kennung (nur Recherchefenster A/B). */
   getSessionByCode: adminProcedure
     .input(AdminSessionLookupInputSchema)
     .output(AdminSessionDetailDTOSchema)
     .query(async ({ input }) => {
-      const code = input.code.toUpperCase();
       const session = await prisma.session.findUnique({
-        where: { code },
+        where: adminSessionLookupWhere(input),
         include: {
           quiz: {
             select: {
@@ -626,17 +680,7 @@ export const adminRouter = router({
         });
       }
 
-      return {
-        session: toSessionSummary(session),
-        title: session.title ?? null,
-        questions: session.quiz?.questions.map((question) => ({
-          id: question.id,
-          order: question.order,
-          text: question.text,
-          type: question.type,
-          answers: question.answers,
-        })),
-      };
+      return toSessionDetail(session);
     }),
 
   /** Session-Detail per Session-ID (nur Recherchefenster A/B). */
@@ -680,17 +724,7 @@ export const adminRouter = router({
         });
       }
 
-      return {
-        session: toSessionSummary(session),
-        title: session.title ?? null,
-        questions: session.quiz?.questions.map((question) => ({
-          id: question.id,
-          order: question.order,
-          text: question.text,
-          type: question.type,
-          answers: question.answers,
-        })),
-      };
+      return toSessionDetail(session);
     }),
 
   /** Legal Hold setzen/lösen (Default 30 Tage). */

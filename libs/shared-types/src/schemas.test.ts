@@ -32,6 +32,9 @@ import {
   PreviewSessionExpirationInputSchema,
   ChangeSessionExpirationInputSchema,
   SessionLifecycleHostDTOSchema,
+  AdminResetSessionHostAccessInputSchema,
+  AdminSessionLookupInputSchema,
+  parseAdminSessionLookup,
 } from './schemas.js';
 
 const sessionId = '10000000-0000-4000-8000-000000000001';
@@ -1047,5 +1050,59 @@ describe('Word-Cloud-Normalisierungsvertrag (Story 1.14b)', () => {
         status: 'classified',
       }),
     ).toThrow();
+  });
+});
+
+describe('Admin-Session-Lookup und Host-Reset-Vertrag', () => {
+  it('unterscheidet Sessioncode und vollständige Session-Kennung ohne stille Verkürzung', () => {
+    expect(parseAdminSessionLookup('ABC123')).toEqual({
+      success: true,
+      data: { code: 'ABC123' },
+    });
+    expect(parseAdminSessionLookup('ars-abcd-2345')).toEqual({
+      success: true,
+      data: { supportId: 'ARS-ABCD-2345' },
+    });
+    expect(parseAdminSessionLookup('ARSABC')).toEqual({
+      success: true,
+      data: { code: 'ARSABC' },
+    });
+    expect(parseAdminSessionLookup('ARS-ABCD-2345 extra')).toEqual({
+      success: false,
+      error: 'invalid',
+    });
+    expect(AdminSessionLookupInputSchema.safeParse({}).success).toBe(false);
+    expect(AdminSessionLookupInputSchema.safeParse({ code: 'ABC123' }).success).toBe(true);
+    expect(AdminSessionLookupInputSchema.safeParse({ supportId: 'ARS-ABCD-2345' }).success).toBe(
+      true,
+    );
+  });
+
+  it('verlangt eine Operations-ID und genau eine Sessionkennung für den Admin-Reset', () => {
+    const base = {
+      operationId: sessionId,
+      evidenceCategory: 'PREEXISTING_VERIFIED_SUPPORT_CASE',
+      requesterIdentityVerificationReference: 'Ticket 12',
+      sessionAuthorizationEvidenceReference: 'Sessionbezug 12',
+      supportCaseReference: 'CASE-12',
+      reason: 'Beide Zugangsmittel wurden nachgewiesen verloren.',
+    };
+    expect(
+      AdminResetSessionHostAccessInputSchema.safeParse({ ...base, code: 'ABC123' }).success,
+    ).toBe(true);
+    expect(
+      AdminResetSessionHostAccessInputSchema.safeParse({
+        ...base,
+        supportId: 'ARS-ABCD-2345',
+      }).success,
+    ).toBe(true);
+    expect(AdminResetSessionHostAccessInputSchema.safeParse(base).success).toBe(false);
+    expect(
+      AdminResetSessionHostAccessInputSchema.safeParse({
+        ...base,
+        code: 'ABC123',
+        supportId: 'ARS-ABCD-2345',
+      }).success,
+    ).toBe(false);
   });
 });

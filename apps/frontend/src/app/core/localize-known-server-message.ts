@@ -42,6 +42,7 @@ const TRPC_CODE_PREFIXES = [
   'UNAUTHORIZED',
   'FORBIDDEN',
   'INTERNAL_SERVER_ERROR',
+  'PRECONDITION_FAILED',
 ] as const;
 
 type UnknownRecord = Record<string, unknown>;

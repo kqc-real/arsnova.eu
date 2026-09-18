@@ -6397,16 +6397,16 @@
         </context-group>
       </trans-unit>
       <trans-unit id="admin.listCardSubtitle" datatype="html">
-        <source> Per Code suchen oder Eintrag in der Liste antippen.</source>
-        <target>Cerca per codice o tocca una voce nell&apos;elenco.</target>
+        <source> Per Sessioncode oder Session-Kennung suchen oder einen Eintrag in der Liste antippen.</source>
+        <target>Cerca per codice sessione o identificativo sessione, oppure tocca una voce nell&apos;elenco.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/admin/admin.component.html</context>
           <context context-type="linenumber">64,66</context>
         </context-group>
       </trans-unit>
       <trans-unit id="admin.areaHelp" datatype="html">
-        <source> Liste aller für dich sichtbaren Sessions. Mit dem sechsstelligen Code springst du direkt zu den Details.</source>
-        <target>Elenco di tutte le sessioni visibili per te. Con il codice a sei caratteri vai direttamente ai dettagli.</target>
+        <source> Liste aller für dich sichtbaren Sessions. Mit dem sechsstelligen Sessioncode oder der Session-Kennung im Format ARS-XXXX-XXXX springst du direkt zu den Details.</source>
+        <target>Elenco di tutte le sessioni visibili per te. Con il codice sessione a sei caratteri o l’identificativo sessione nel formato ARS-XXXX-XXXX vai direttamente ai dettagli.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/admin/admin.component.html</context>
           <context context-type="linenumber">69,72</context>
@@ -6421,16 +6421,16 @@
         </context-group>
       </trans-unit>
       <trans-unit id="admin.lookupCodeLabel" datatype="html">
-        <source>Session-Code (6-stellig)</source>
-        <target>Codice sessione (6 caratteri)</target>
+        <source>Sessioncode oder Session-Kennung</source>
+        <target>Codice sessione o identificativo sessione</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/admin/admin.component.html</context>
           <context context-type="linenumber">79</context>
         </context-group>
       </trans-unit>
       <trans-unit id="admin.codeFieldLabel" datatype="html">
-        <source>Code</source>
-        <target>Codice</target>
+        <source>Kennung</source>
+        <target>Identificativo</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/admin/admin.component.html</context>
           <context context-type="linenumber">83</context>
@@ -6493,8 +6493,8 @@
         </context-group>
       </trans-unit>
       <trans-unit id="admin.metaCodeLabel" datatype="html">
-        <source>Code:</source>
-        <target>Codice:</target>
+        <source>Sessioncode:</source>
+        <target>Codice sessione:</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/admin/admin.component.html</context>
           <context context-type="linenumber">173</context>
@@ -6605,16 +6605,16 @@
         </context-group>
       </trans-unit>
       <trans-unit id="admin.hostResetHelp" datatype="html">
-        <source> Nur nach unabhängiger Prüfung von Identität und Berechtigung für genau diese Session. Sessioncode, Support-ID oder Organisationszugehörigkeit allein genügen nicht.</source>
-        <target>Solo dopo la verifica indipendente dell&apos;identità e dell&apos;autorizzazione per questa esatta sessione. Il codice di sessione, l&apos;ID di supporto o l&apos;affiliazione organizzativa da soli non sono sufficienti.</target>
+        <source> Nur nach unabhängiger Prüfung von Identität und Berechtigung für genau diese Session. Sessioncode, Session-Kennung oder Organisationszugehörigkeit allein genügen nicht.</source>
+        <target>Solo dopo la verifica indipendente dell&apos;identità e dell&apos;autorizzazione per questa esatta sessione. Il codice sessione, l’identificativo sessione o l’affiliazione organizzativa da soli non sono sufficienti.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/admin/admin.component.html</context>
           <context context-type="linenumber">294,298</context>
         </context-group>
       </trans-unit>
       <trans-unit id="admin.hostResetEvidenceCategory" datatype="html">
-        <source>Zulässiger Nachweisweg</source>
-        <target>Metodo di prova consentito</target>
+        <source>Welchen Nachweisweg hast du tatsächlich genutzt?</source>
+        <target>Quale percorso di prova hai effettivamente usato?</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/admin/admin.component.html</context>
           <context context-type="linenumber">301</context>
@@ -6637,24 +6637,24 @@
         </context-group>
       </trans-unit>
       <trans-unit id="admin.hostResetRequesterReference" datatype="html">
-        <source>Referenz der Identitätsprüfung</source>
-        <target>Riferimento per la verifica dell&apos;identità</target>
+        <source>Nachweis zur Identität</source>
+        <target>Prova dell’identità</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/admin/admin.component.html</context>
           <context context-type="linenumber">326</context>
         </context-group>
       </trans-unit>
       <trans-unit id="admin.hostResetAuthorizationReference" datatype="html">
-        <source>Referenz des konkreten Sessionnachweises</source>
-        <target>Riferimento dell&apos;evidenza della sessione specifica</target>
+        <source>Nachweis zur Berechtigung für diese Session</source>
+        <target>Prova dell’autorizzazione per questa sessione</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/admin/admin.component.html</context>
           <context context-type="linenumber">343</context>
         </context-group>
       </trans-unit>
       <trans-unit id="admin.hostResetSupportCaseReference" datatype="html">
-        <source>Supportvorgang</source>
-        <target>Processo di supporto</target>
+        <source>Ticket- oder Vorgangsnummer</source>
+        <target>Numero di ticket o pratica</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/admin/admin.component.html</context>
           <context context-type="linenumber">360</context>
@@ -6669,8 +6669,8 @@
         </context-group>
       </trans-unit>
       <trans-unit id="admin.hostResetSubmit" datatype="html">
-        <source>Alte Zugänge widerrufen</source>
-        <target>Revoca il vecchio accesso</target>
+        <source>Zugänge widerrufen und Übergabecode erstellen</source>
+        <target>Revoca gli accessi e crea un codice di consegna</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/admin/admin.component.html</context>
           <context context-type="linenumber">401</context>
@@ -6906,6 +6906,126 @@
           <context context-type="sourcefile">src/app/features/admin/admin.component.ts</context>
           <context context-type="linenumber">240</context>
         </context-group>
+      </trans-unit>
+      <trans-unit id="admin.lookupEmpty" datatype="html">
+        <source>Gib einen sechsstelligen Sessioncode oder eine Session-Kennung im Format ARS-XXXX-XXXX ein.</source>
+        <target>Inserisci un codice sessione di sei caratteri o un identificativo sessione nel formato ARS-XXXX-XXXX.</target>
+      </trans-unit>
+      <trans-unit id="admin.lookupInvalid" datatype="html">
+        <source>Die Eingabe ist kein gültiger Sessioncode und keine gültige Session-Kennung.</source>
+        <target>L’inserimento non è un codice sessione valido né un identificativo sessione valido.</target>
+      </trans-unit>
+      <trans-unit id="admin.metaSupportIdMissing" datatype="html">
+        <source>noch nicht vergeben</source>
+        <target>non ancora assegnato</target>
+      </trans-unit>
+      <trans-unit id="admin.hostResetSessionCodeLabel" datatype="html">
+        <source>Sessioncode</source>
+        <target>Codice sessione</target>
+      </trans-unit>
+      <trans-unit id="admin.hostResetExamplesSummary" datatype="html">
+        <source>Beispiele für zulässige Nachweise</source>
+        <target>Esempi di prove ammesse</target>
+      </trans-unit>
+      <trans-unit id="admin.hostResetExamplesBody" datatype="html">
+        <source>Zulässig ist ein bereits vor dem Verlust eröffneter Supportvorgang eines verifizierten organisatorischen Kontakts, der diese Session genau diesem Host zuordnet. Alternativ eine Bestätigung über einen unabhängig ermittelten offiziellen Kontaktweg der Organisation durch eine für diesen Fall autorisierte Person. Übernimm keine Geheimnisse und keine Q&amp;A-Inhalte in die Nachweisfelder.</source>
+        <target>È ammissibile un caso di supporto aperto prima della perdita da un contatto organizzativo verificato che già assegna questa sessione a questo host. In alternativa, una conferma tramite un canale di contatto ufficiale individuato in modo indipendente da una persona autorizzata per questo caso. Non copiare segreti né contenuti di domande e risposte nei campi di prova.</target>
+      </trans-unit>
+      <trans-unit id="admin.hostResetEvidencePlaceholder" datatype="html">
+        <source>Bitte auswählen</source>
+        <target>Seleziona</target>
+      </trans-unit>
+      <trans-unit id="admin.hostResetEvidenceHelp" datatype="html">
+        <source>Wähle nur den Weg, den du wirklich geprüft hast.</source>
+        <target>Scegli solo il percorso che hai davvero verificato.</target>
+      </trans-unit>
+      <trans-unit id="admin.hostResetRequesterHelp" datatype="html">
+        <source>Verweis auf das Ticket oder die Gesprächsnotiz, in der deine unabhängige Prüfung dokumentiert ist. 3–200 Zeichen.</source>
+        <target>Fai riferimento al ticket o alla nota del colloquio in cui è documentata la tua verifica indipendente. 3–200 caratteri.</target>
+      </trans-unit>
+      <trans-unit id="admin.hostResetAuthorizationHelp" datatype="html">
+        <source>Die Fundstelle muss diese Person genau dieser Session zuordnen. Die Session-Kennung allein genügt nicht. 3–200 Zeichen.</source>
+        <target>La fonte deve collegare questa persona esattamente a questa sessione. L’identificativo sessione da solo non basta. 3–200 caratteri.</target>
+      </trans-unit>
+      <trans-unit id="admin.hostResetSupportCaseHelp" datatype="html">
+        <source>Nummer dieses Reset-Falls. Die unabhängigen Nachweise müssen dort nachvollziehbar dokumentiert sein. 3–120 Zeichen.</source>
+        <target>Numero di questo caso di reset. Le prove indipendenti devono essere rintracciabili lì. 3–120 caratteri.</target>
+      </trans-unit>
+      <trans-unit id="admin.hostResetReasonHelp" datatype="html">
+        <source>Warum ist der Reset erforderlich? Dokumentiere den Anlass kurz in deinen eigenen Worten. 10–500 Zeichen.</source>
+        <target>Perché il reset è necessario? Documenta il motivo brevemente con parole tue. 10–500 caratteri.</target>
+      </trans-unit>
+      <trans-unit id="admin.hostResetEvidenceRequired" datatype="html">
+        <source>Bitte wähle den tatsächlich genutzten Nachweisweg.</source>
+        <target>Seleziona il percorso di prova che hai effettivamente usato.</target>
+      </trans-unit>
+      <trans-unit id="admin.hostResetFieldTooShort" datatype="html">
+        <source>Diese Angabe ist zu kurz.</source>
+        <target>Questa indicazione è troppo breve.</target>
+      </trans-unit>
+      <trans-unit id="admin.hostResetConfirmTitle" datatype="html">
+        <source>Host-Zugänge für diese Session zurücksetzen?</source>
+        <target>Reimpostare gli accessi host per questa sessione?</target>
+      </trans-unit>
+      <trans-unit id="admin.hostResetConfirmBody" datatype="html">
+        <source>Alle bisherigen Host-Zugänge werden sofort ungültig. Verbundene Host-Geräte müssen anschließend neu verbunden werden. Die Session und ihre Inhalte bleiben erhalten.</source>
+        <target>Tutti gli accessi host precedenti diventano subito non validi. I dispositivi host collegati dovranno poi essere ricollegati. La sessione e i suoi contenuti restano invariati.</target>
+      </trans-unit>
+      <trans-unit id="admin.hostResetConfirmDeadline" datatype="html">
+        <source>Der neue Übergabecode muss innerhalb von 15 Minuten erstmals eingelöst werden.</source>
+        <target>Il nuovo codice di consegna deve essere usato per la prima volta entro 15 minuti.</target>
+      </trans-unit>
+      <trans-unit id="admin.hostResetConfirmReplace" datatype="html">
+        <source>Ein bewusst erneut ausgestellter Code macht den vorherigen Übergabecode und die bisherigen Zugänge ungültig.</source>
+        <target>Un codice riasciato deliberatamente rende non validi il codice di consegna precedente e gli accessi precedenti.</target>
+      </trans-unit>
+      <trans-unit id="admin.hostResetConfirmCancel" datatype="html">
+        <source>Abbrechen</source>
+        <target>Annulla</target>
+      </trans-unit>
+      <trans-unit id="admin.hostResetUnconfirmed" datatype="html">
+        <source>Die Serverantwort ist ausgeblieben. Die bisherigen Zugänge könnten bereits widerrufen sein.</source>
+        <target>La risposta del server non è arrivata. Gli accessi precedenti potrebbero essere già stati revocati.</target>
+      </trans-unit>
+      <trans-unit id="admin.hostResetUnconfirmedNext" datatype="html">
+        <source>Fordere die Serverantwort mit derselben Operation erneut an. Dadurch wird kein weiterer Widerruf ausgelöst.</source>
+        <target>Richiedi di nuovo la risposta del server con la stessa operazione. Questo non provoca un’altra revoca.</target>
+      </trans-unit>
+      <trans-unit id="admin.hostResetExistingHandoff" datatype="html">
+        <source>Ein Übergabecode für diese Session existiert bereits. Bestätige einen neuen Reset, um ihn zu ersetzen.</source>
+        <target>Esiste già un codice di consegna per questa sessione. Conferma un nuovo reset per sostituirlo.</target>
+      </trans-unit>
+      <trans-unit id="admin.hostResetRetry" datatype="html">
+        <source>Antwort erneut anfordern</source>
+        <target>Richiedi di nuovo la risposta</target>
+      </trans-unit>
+      <trans-unit id="admin.hostResetSuccess" datatype="html">
+        <source>Die bisherigen Host-Zugänge wurden widerrufen.</source>
+        <target>Gli accessi host precedenti sono stati revocati.</target>
+      </trans-unit>
+      <trans-unit id="admin.hostResetRedeemUntil" datatype="html">
+        <source>Bis <x id="INTERPOLATION" equiv-text="{{ formatDateTime(reset.expiresAt) }}"/> erstmals einlösen.</source>
+        <target>Usare per la prima volta entro <x id="INTERPOLATION" equiv-text="{{ formatDateTime(reset.expiresAt) }}"/>.</target>
+      </trans-unit>
+      <trans-unit id="admin.hostResetRecoveryLink" datatype="html">
+        <source>Wiederherstellungsseite öffnen</source>
+        <target>Apri la pagina di ripristino</target>
+      </trans-unit>
+      <trans-unit id="admin.hostResetNextStep" datatype="html">
+        <source>Der Host wählt dort »Ich habe einen Code vom Support«.</source>
+        <target>Lì l’host sceglie «Ho un codice dell’assistenza».</target>
+      </trans-unit>
+      <trans-unit id="admin.hostResetCopyHandoff" datatype="html">
+        <source>Übergabecode kopieren</source>
+        <target>Copia il codice di consegna</target>
+      </trans-unit>
+      <trans-unit id="admin.hostResetHandoffCopied" datatype="html">
+        <source>Übergabecode kopiert.</source>
+        <target>Codice di consegna copiato.</target>
+      </trans-unit>
+      <trans-unit id="admin.hostResetNewReset" datatype="html">
+        <source>Neuen Übergabecode ausstellen</source>
+        <target>Emetti un nuovo codice di consegna</target>
       </trans-unit>
       <trans-unit id="admin.errorLogin" datatype="html">
         <source>Login fehlgeschlagen.</source>
@@ -9313,7 +9433,7 @@
       </trans-unit>
       <trans-unit id="home.sessionCodeAria" datatype="html">
         <source>Session-Code, 6 Zeichen</source>
-        <target>Codice sessione (6 caratteri)</target>
+        <target>Codice sessione o identificativo sessione</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/home/home.component.html</context>
           <context context-type="linenumber">201</context>
