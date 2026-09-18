@@ -131,7 +131,7 @@ async function seedHostBrowser(context, session) {
 }
 
 async function dismissRecoveryCard(page) {
-  const heading = page.getByText('Host-Zugangskarte sichern', { exact: true }).first();
+  const heading = page.getByText('Host-Zugang sichern', { exact: true }).first();
   const done = page.locator('[data-testid="host-recovery-card-done"]');
   await heading.waitFor({ state: 'visible', timeout: 20_000 });
   const supportVisible = await page.getByText(sessionSupportIdPattern()).first().isVisible();
@@ -235,7 +235,18 @@ async function main() {
     await recovery
       .getByLabel(/Wiederherstellungscode/i)
       .fill(session.hostRecoveryCard.recoveryCode);
-    await recovery.getByRole('button', { name: /Zugang wiederherstellen/i }).click();
+    await recovery.locator('[data-testid="host-recovery-continue"]').click();
+    await recovery.locator('[data-testid="host-recovery-activate"]').waitFor({
+      state: 'visible',
+      timeout: 20_000,
+    });
+    await recovery.getByRole('checkbox').check();
+    await recovery.locator('[data-testid="host-recovery-activate"]').click();
+    await recovery.locator('[data-testid="host-recovery-open-session"]').waitFor({
+      state: 'visible',
+      timeout: 20_000,
+    });
+    await recovery.locator('[data-testid="host-recovery-open-session"]').click();
     const recovered = await waitForPathSuffix(recovery, `/session/${session.code}/host`, 20_000)
       .then(() => true)
       .catch(() => false);
