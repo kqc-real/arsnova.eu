@@ -179,6 +179,12 @@ import {
   questionAffectsStreak,
 } from '../lib/quizScoring';
 import {
+  buildScoreRanking,
+  invalidateSessionRankingCache,
+  loadSharedCompetitionVotes,
+  rankOfParticipant,
+} from '../lib/sessionRankingCache';
+import {
   updateDailyMaxParticipants,
   incrementCompletedSessionsTotal,
   updateMaxParticipantsSingleSession,
@@ -507,6 +513,7 @@ function clearSessionReadCaches(code?: string): void {
     participantMembershipCache.clear();
     voteCountCache.clear();
     voteSummaryCache.clear();
+    invalidateSessionRankingCache();
     sessionInfoInFlight.clear();
     statusSnapshotInFlight.clear();
     participantsSnapshotInFlight.clear();
@@ -1455,6 +1462,7 @@ export function recordVoteCachesForCode(
   },
 ): void {
   const normalizedCode = code.toUpperCase();
+  invalidateSessionRankingCache();
   const key = voteCacheKey(normalizedCode, questionId, round);
   const cachedCount = getCachedValue(voteCountCache, key);
   if (cachedCount !== null) {
@@ -3186,6 +3194,7 @@ async function buildSessionTeamLeaderboard(
     prisma.session.findUnique({
       where: { id: sessionId },
       select: {
+        participantRevision: true,
         questionProgress: true,
         questionProgressComplete: true,
         quiz: {
@@ -3203,19 +3212,16 @@ async function buildSessionTeamLeaderboard(
         progressSession.questionProgressComplete,
       )
     : null;
+  const rankingQuestionIds = includedQuestionIds
+    ? [...includedQuestionIds]
+    : (progressSession?.quiz?.questions.map((question) => question.id) ?? []);
   const votes = selectEffectiveCompetitionVotes(
-    (
-      await prisma.vote.findMany({
-        where: { sessionId, round: { in: [1, 2] } },
-        select: {
-          participantId: true,
-          questionId: true,
-          round: true,
-          score: true,
-          responseTimeMs: true,
-        },
-      })
-    ).filter((vote) => !includedQuestionIds || includedQuestionIds.has(vote.questionId)),
+    await loadSharedCompetitionVotes({
+      sessionId,
+      questionIds: rankingQuestionIds,
+      participantRevision: progressSession?.participantRevision ?? 0,
+      includeCorrectness: false,
+    }),
   );
 
   const teamStats = new Map<
@@ -3721,6 +3727,7 @@ async function generateBonusTokens(
   const progressSession = await db.session.findUnique({
     where: { id: session.id },
     select: {
+      participantRevision: true,
       questionProgress: true,
       questionProgressComplete: true,
       quiz: {
@@ -3738,19 +3745,16 @@ async function generateBonusTokens(
       )
     : null;
 
+  const rankingQuestionIds = includedQuestionIds
+    ? [...includedQuestionIds]
+    : (progressSession?.quiz?.questions.map((question) => question.id) ?? []);
   const votes = selectEffectiveCompetitionVotes(
-    (
-      await db.vote.findMany({
-        where: { sessionId: session.id, round: { in: [1, 2] } },
-        select: {
-          participantId: true,
-          questionId: true,
-          round: true,
-          score: true,
-          responseTimeMs: true,
-        },
-      })
-    ).filter((vote) => !includedQuestionIds || includedQuestionIds.has(vote.questionId)),
+    await loadSharedCompetitionVotes({
+      sessionId: session.id,
+      questionIds: rankingQuestionIds,
+      participantRevision: progressSession?.participantRevision ?? 0,
+      includeCorrectness: false,
+    }),
   );
 
   const stats = new Map<string, { totalScore: number; totalResponseTimeMs: number }>();
@@ -9492,27 +9496,11 @@ const sessionCoreRouter = router({
       ).length;
 
       const votes = selectEffectiveCompetitionVotes(
-        await prisma.vote.findMany({
-          where: {
-            sessionId: session.id,
-            round: { in: [1, 2] },
-            questionId: { in: [...includedQuestionIds] },
-          },
-          select: {
-            participantId: true,
-            questionId: true,
-            round: true,
-            score: true,
-            isCorrect: true,
-            responseTimeMs: true,
-            question: {
-              select: {
-                type: true,
-                answers: { select: { id: true, isCorrect: true } },
-              },
-            },
-            selectedAnswers: { select: { answerOptionId: true } },
-          },
+        await loadSharedCompetitionVotes({
+          sessionId: session.id,
+          questionIds: [...includedQuestionIds],
+          participantRevision: session.participantRevision ?? 0,
+          includeCorrectness: true,
         }),
       );
 
@@ -9530,8 +9518,8 @@ const sessionCoreRouter = router({
         s.totalScore += Number(v.score) || 0;
         s.totalResponseTimeMs += getCompetitionResponseTimeMs(v);
 
-        if (questionCountsTowardsTotalQuestions(v.question.type as QuestionType)) {
-          const voteQuestionType = v.question.type as QuestionType;
+        if (questionCountsTowardsTotalQuestions(v.question?.type as QuestionType)) {
+          const voteQuestionType = v.question?.type as QuestionType;
           if (
             voteQuestionType === 'SHORT_TEXT' ||
             voteQuestionType === 'NUMERIC_ESTIMATE' ||
@@ -9544,10 +9532,12 @@ const sessionCoreRouter = router({
             }
             continue;
           }
-          const correctAnswerIds = v.question.answers
+          const correctAnswerIds = (v.question?.answers ?? [])
             .filter((answer) => answer.isCorrect)
             .map((answer) => answer.id);
-          const selectedAnswerIds = v.selectedAnswers.map((selected) => selected.answerOptionId);
+          const selectedAnswerIds = (v.selectedAnswers ?? []).map(
+            (selected) => selected.answerOptionId,
+          );
           if (
             correctAnswerIds.length > 0 &&
             isExactCorrectSelection(selectedAnswerIds, correctAnswerIds)
@@ -10140,94 +10130,26 @@ const sessionCoreRouter = router({
         .slice(0, input.questionIndex + 1)
         .filter((q) => includedQuestionIds.has(q.id))
         .map((q) => q.id);
-      const allVotes = selectEffectiveCompetitionVotes(
-        await prisma.vote.findMany({
-          where: {
-            sessionId: session.id,
-            round: { in: [1, 2] },
-            questionId: { in: questionsUpToNow },
-          },
-          select: {
-            participantId: true,
-            questionId: true,
-            round: true,
-            score: true,
-            responseTimeMs: true,
-          },
-        }),
-      );
-
-      const totals = new Map<string, { totalScore: number; totalResponseTimeMs: number }>();
-      for (const p of session.participants) {
-        totals.set(p.id, { totalScore: 0, totalResponseTimeMs: 0 });
-      }
-      for (const v of allVotes) {
-        const t = totals.get(v.participantId);
-        if (!t) continue;
-        t.totalScore += Number(v.score) || 0;
-        t.totalResponseTimeMs += getCompetitionResponseTimeMs(v);
-      }
-
-      const ranked = [...totals.entries()]
-        .map(([pid, s]) => ({
-          pid,
-          totalScore: Number(s.totalScore) || 0,
-          totalResponseTimeMs: s.totalResponseTimeMs,
-        }))
-        .filter((e) => e.totalScore > 0)
-        .sort(
-          (a, b) => b.totalScore - a.totalScore || a.totalResponseTimeMs - b.totalResponseTimeMs,
-        );
+      const allVotes = await loadSharedCompetitionVotes({
+        sessionId: session.id,
+        questionIds: questionsUpToNow,
+        participantRevision: session.participantRevision ?? 0,
+        includeCorrectness: false,
+      });
+      const participantIds = session.participants.map((participant) => participant.id);
+      const { totals, ranked } = buildScoreRanking(participantIds, allVotes, questionsUpToNow);
       const totalScore = totals.get(input.participantId)?.totalScore ?? 0;
-      const myIdx = ranked.findIndex((e) => e.pid === input.participantId);
-      const currentRank = totalScore > 0 && myIdx >= 0 ? myIdx + 1 : 0;
+      const currentRank = rankOfParticipant(ranked, totals, input.participantId);
 
-      // Vorheriger Rang (nach vorheriger Frage)
+      // Vorheriger Rang aus demselben konsistenten Stimmenbestand.
       let previousRank: number | null = null;
       if (input.questionIndex > 0) {
         const prevQuestionIds = session.quiz.questions
           .slice(0, input.questionIndex)
           .filter((q) => includedQuestionIds.has(q.id))
           .map((q) => q.id);
-        const prevVotes = selectEffectiveCompetitionVotes(
-          await prisma.vote.findMany({
-            where: {
-              sessionId: session.id,
-              round: { in: [1, 2] },
-              questionId: { in: prevQuestionIds },
-            },
-            select: {
-              participantId: true,
-              questionId: true,
-              round: true,
-              score: true,
-              responseTimeMs: true,
-            },
-          }),
-        );
-        const prevTotals = new Map<string, { totalScore: number; totalResponseTimeMs: number }>();
-        for (const p of session.participants) {
-          prevTotals.set(p.id, { totalScore: 0, totalResponseTimeMs: 0 });
-        }
-        for (const v of prevVotes) {
-          const t = prevTotals.get(v.participantId);
-          if (!t) continue;
-          t.totalScore += Number(v.score) || 0;
-          t.totalResponseTimeMs += getCompetitionResponseTimeMs(v);
-        }
-        const prevRanked = [...prevTotals.entries()]
-          .map(([pid, s]) => ({
-            pid,
-            totalScore: Number(s.totalScore) || 0,
-            totalResponseTimeMs: s.totalResponseTimeMs,
-          }))
-          .filter((e) => e.totalScore > 0)
-          .sort(
-            (a, b) => b.totalScore - a.totalScore || a.totalResponseTimeMs - b.totalResponseTimeMs,
-          );
-        const prevScore = prevTotals.get(input.participantId)?.totalScore ?? 0;
-        const prevIdx = prevRanked.findIndex((e) => e.pid === input.participantId);
-        previousRank = prevScore > 0 && prevIdx >= 0 ? prevIdx + 1 : 0;
+        const previous = buildScoreRanking(participantIds, allVotes, prevQuestionIds);
+        previousRank = rankOfParticipant(previous.ranked, previous.totals, input.participantId);
       }
 
       const rankChange =
@@ -10289,6 +10211,7 @@ const sessionCoreRouter = router({
         select: {
           id: true,
           status: true,
+          participantRevision: true,
           questionProgress: true,
           questionProgressComplete: true,
           quiz: {
@@ -10323,19 +10246,11 @@ const sessionCoreRouter = router({
         : new Set<string>();
 
       const votes = selectEffectiveCompetitionVotes(
-        await prisma.vote.findMany({
-          where: {
-            sessionId: session.id,
-            round: { in: [1, 2] },
-            questionId: { in: [...includedQuestionIds] },
-          },
-          select: {
-            participantId: true,
-            questionId: true,
-            round: true,
-            score: true,
-            responseTimeMs: true,
-          },
+        await loadSharedCompetitionVotes({
+          sessionId: session.id,
+          questionIds: [...includedQuestionIds],
+          participantRevision: session.participantRevision ?? 0,
+          includeCorrectness: false,
         }),
       );
 

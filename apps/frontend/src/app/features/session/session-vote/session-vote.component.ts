@@ -521,6 +521,13 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
   private qaListCurrentCursor: string | null = null;
   private qaListCursorHistory: Array<string | null> = [];
   private qaListRequestGeneration = 0;
+  private qaRefreshInFlight: Promise<void> | null = null;
+  private qaRefreshPending:
+    | {
+        generation: number;
+        options: { notify?: boolean; requireDeadline?: boolean; animate?: boolean };
+      }
+    | undefined;
   readonly qaSelectedAuthorNickname = signal<string | null>(null);
   readonly quickFeedbackResult = signal<QuickFeedbackResult | null>(null);
   readonly qaDraft = signal('');
@@ -4570,6 +4577,7 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
   ): Promise<void> {
     const requestGeneration = ++this.qaListRequestGeneration;
     if (this.isFinished() || !this.channels().qa || !this.isQaChannelOpen() || !this.sessionId()) {
+      this.qaRefreshPending = undefined;
       this.qaQuestions.set([]);
       this.qaListTotalCount.set(0);
       this.qaListNextCursor.set(null);
@@ -4578,6 +4586,38 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
     }
     if (Date.now() < this.reorderLockUntil) return;
 
+    const request = { generation: requestGeneration, options };
+    if (this.qaRefreshInFlight) {
+      this.qaRefreshPending = request;
+      return this.qaRefreshInFlight;
+    }
+
+    const drain = async () => {
+      let next:
+        | {
+            generation: number;
+            options: { notify?: boolean; requireDeadline?: boolean; animate?: boolean };
+          }
+        | undefined = request;
+      while (next) {
+        this.qaRefreshPending = undefined;
+        await this.performQaQuestionsRefresh(next.generation, next.options);
+        next = this.qaRefreshPending;
+      }
+    };
+    const inFlight = drain().finally(() => {
+      if (this.qaRefreshInFlight === inFlight) {
+        this.qaRefreshInFlight = null;
+      }
+    });
+    this.qaRefreshInFlight = inFlight;
+    return inFlight;
+  }
+
+  private async performQaQuestionsRefresh(
+    requestGeneration: number,
+    options: { notify?: boolean; requireDeadline?: boolean; animate?: boolean },
+  ): Promise<void> {
     try {
       const snapshot = await trpc.qa.list.query(this.qaListQueryInput());
       if (requestGeneration !== this.qaListRequestGeneration) {

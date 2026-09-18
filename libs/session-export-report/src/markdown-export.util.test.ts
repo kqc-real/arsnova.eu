@@ -14,7 +14,7 @@ void draw() {}
 ![Die Zahl Pi](https://example.org/pi.gif)`;
 
     const html = renderExportQuestionHtml(raw);
-    expect(html).toContain('hljs-keyword');
+    expect(html).toContain('hljs-type');
     expect(html).toContain('example.org/pi.gif');
     expect(html).toContain('report-inline-image--gif');
     expect(html).toContain('report-blockquote-label');

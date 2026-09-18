@@ -1127,6 +1127,7 @@ export class QuizStoreService implements OnDestroy {
   } | null = null;
   private yjsInitGeneration = 0;
   private yjsProviderAttachGeneration = 0;
+  private hostLibraryStarted = false;
   /** Absichern als Origin nur nach explizitem secureAsOrigin (nie aus fehlendem Share-Token). */
   private pendingSecureAsOrigin = false;
   private isApplyingYjsSnapshot = false;
@@ -1189,18 +1190,75 @@ export class QuizStoreService implements OnDestroy {
     if (this.librarySharingMode() === 'shared') {
       this.syncShareStatus.set(this.syncShareToken() ? 'ready' : 'legacy');
     }
-    this.loadFromStorage(roomId, !this.hasStoredSyncRoomId);
+    if (this.shouldRestoreHostLibraryImmediately()) {
+      this.ensureHostLibraryReady();
+    }
+  }
+
+  /**
+   * Startet Demo, lokale Persistenz und Yjs erst bei Hostabsicht oder vorhandener Bibliothek.
+   * Der reine Teilnahmeweg auf der Startseite bleibt davon unberührt.
+   */
+  ensureHostLibraryReady(): void {
+    if (this.hostLibraryStarted) {
+      return;
+    }
+    this.hostLibraryStarted = true;
+    let roomId = this.syncRoomId().trim();
+    if (!roomId) {
+      roomId = this.resolveInitialSyncRoomId();
+      this.syncRoomId.set(roomId);
+      this.loadSyncMetadata(roomId);
+      this.loadShareSecrets(roomId);
+    }
+    const allowLegacyFallback = !this.hasStoredSyncRoomId;
+    if (isPlatformBrowser(this.platformId) && !this.hasStoredSyncRoomId) {
+      this.storeSyncRoomId(roomId);
+      this.hasStoredSyncRoomId = true;
+    }
+    this.loadFromStorage(roomId, allowLegacyFallback);
     this.ensureDemoQuiz();
     void this.initYjsPersistence(roomId);
-    if (isPlatformBrowser(this.platformId)) {
-      globalThis.addEventListener(PRESET_UPDATED_EVENT, this.onPresetUpdated);
-      globalThis.addEventListener('storage', this.onStorageChanged);
-      // Demo-Quiz-Sprache an URL-Segment koppeln (/de/quiz → /en/quiz ohne Reload).
-      this.routerEventsSub = this.router.events
-        .pipe(filter((event): event is NavigationEnd => event instanceof NavigationEnd))
-        .subscribe(() => {
-          this.ensureDemoQuiz();
-        });
+    this.attachHostLibraryBrowserListeners();
+  }
+
+  private attachHostLibraryBrowserListeners(): void {
+    if (!isPlatformBrowser(this.platformId) || this.routerEventsSub) {
+      return;
+    }
+    globalThis.addEventListener(PRESET_UPDATED_EVENT, this.onPresetUpdated);
+    globalThis.addEventListener('storage', this.onStorageChanged);
+    this.routerEventsSub = this.router.events
+      .pipe(filter((event): event is NavigationEnd => event instanceof NavigationEnd))
+      .subscribe(() => {
+        this.ensureDemoQuiz();
+      });
+  }
+
+  private shouldRestoreHostLibraryImmediately(): boolean {
+    if (!isPlatformBrowser(this.platformId)) {
+      return false;
+    }
+    if (this.hasStoredSyncRoomId || this.librarySharingMode() === 'shared') {
+      return true;
+    }
+    try {
+      const storedLibrary = localStorage.getItem(QUIZ_STORAGE_KEY);
+      if (storedLibrary && storedLibrary !== '[]') {
+        return true;
+      }
+    } catch {
+      return false;
+    }
+    return this.hasExplicitSyncLink();
+  }
+
+  private hasExplicitSyncLink(): boolean {
+    try {
+      const params = new URLSearchParams(globalThis.location?.search ?? '');
+      return params.has('sync') || params.has('room') || params.has('share');
+    } catch {
+      return false;
     }
   }
 
@@ -1230,6 +1288,7 @@ export class QuizStoreService implements OnDestroy {
   }
 
   createQuiz(input: CreateQuizDocumentInput): QuizDocument {
+    this.ensureHostLibraryReady();
     const parsed = QuizMetadataSchema.safeParse({
       name: input.name.trim(),
       description: normalizeDescription(input.description),
@@ -2103,6 +2162,7 @@ export class QuizStoreService implements OnDestroy {
   }
 
   getQuizById(id: string): QuizDocument | null {
+    this.ensureHostLibraryReady();
     return this.quizDocuments().find((quiz) => quiz.id === id) ?? null;
   }
 
@@ -2253,6 +2313,8 @@ export class QuizStoreService implements OnDestroy {
     roomId: string,
     options?: { markShared?: boolean; secureAsOrigin?: boolean; shareToken?: string | null },
   ): void {
+    this.hostLibraryStarted = true;
+    this.attachHostLibraryBrowserListeners();
     const normalizedRoomId = normalizeSyncRoomId(roomId);
     if (!normalizedRoomId) {
       throw new Error($localize`Ungültige Sync-ID.`);
@@ -3016,10 +3078,7 @@ export class QuizStoreService implements OnDestroy {
       return normalizedStored;
     }
 
-    const generated = generateUuid();
-    this.storeSyncRoomId(generated);
-    this.hasStoredSyncRoomId = false;
-    return generated;
+    return generateUuid();
   }
 
   private resolveInitialLibrarySharingMode(): LibrarySharingMode {

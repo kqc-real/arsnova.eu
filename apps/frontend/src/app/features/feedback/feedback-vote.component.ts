@@ -4,6 +4,7 @@ import {
   OnDestroy,
   OnInit,
   computed,
+  effect,
   inject,
   input,
   output,
@@ -122,6 +123,8 @@ export class FeedbackVoteComponent implements OnInit, OnDestroy {
   readonly participantTeamName = input<string | null>(null);
   readonly sessionTitle = input<string | null>(null);
   readonly embeddedInSession = input(false);
+  /** Eingebettete Session nutzt ausschließlich den Ergebnisstrom der Elternkomponente. */
+  readonly sharedResult = input<QuickFeedbackResult | null>(null);
   readonly showSessionCode = input(true);
   /** Nur Session-Tempo: Shortcut zur Q&A-Fragenansicht (Kanal offen + Fragerunde gestartet). */
   readonly showAskQuestionButton = input(false);
@@ -147,6 +150,21 @@ export class FeedbackVoteComponent implements OnInit, OnDestroy {
   readonly hoveredStar = signal(0);
   readonly submitting = signal(false);
   readonly selectedTempoValue = signal<string | null>(null);
+
+  constructor() {
+    effect(() => {
+      if (!this.embeddedInSession()) {
+        return;
+      }
+      const result = this.sharedResult();
+      if (result) {
+        this.applyResult(result);
+        this.loading.set(false);
+        return;
+      }
+      this.clearEmbeddedState();
+    });
+  }
 
   readonly headingText = computed(() => {
     const type = this.feedbackType();
@@ -264,10 +282,7 @@ export class FeedbackVoteComponent implements OnInit, OnDestroy {
 
   ngOnDestroy(): void {
     this.clearStandaloneTempoRegistration();
-    if (this.pollTimer) {
-      clearInterval(this.pollTimer);
-      this.pollTimer = null;
-    }
+    this.stopFallbackPolling();
     this.subscription?.unsubscribe();
     this.subscription = null;
   }
@@ -280,7 +295,11 @@ export class FeedbackVoteComponent implements OnInit, OnDestroy {
     }
 
     this.voted.set(hasAlreadyVoted(code));
-    if (!this.embeddedInSession() && (await this.redirectStandaloneQuizSession(code))) {
+    if (this.embeddedInSession()) {
+      this.loading.set(this.sharedResult() === null);
+      return;
+    }
+    if (await this.redirectStandaloneQuizSession(code)) {
       return;
     }
 
@@ -291,7 +310,6 @@ export class FeedbackVoteComponent implements OnInit, OnDestroy {
     }
     this.subscribeToResults();
     this.loading.set(false);
-    this.pollTimer = setInterval(() => void this.pollStyle(), 3000);
   }
 
   private async redirectStandaloneQuizSession(code: string): Promise<boolean> {
@@ -358,20 +376,38 @@ export class FeedbackVoteComponent implements OnInit, OnDestroy {
       { sessionCode: code },
       {
         onData: (result) => {
+          this.stopFallbackPolling();
           this.applyResult(result);
           this.loading.set(false);
         },
         onError: () => {
           this.subscription?.unsubscribe();
           this.subscription = null;
-          if (!this.embeddedInSession()) {
-            this.error.set(
-              $localize`:@@sessionTabs.quickFeedbackClosedNotice:Der Blitzlicht-Kanal wurde von der Lehrperson geschlossen. Neue Abstimmungen sind gerade nicht möglich.`,
-            );
-          }
+          this.startFallbackPolling();
         },
       },
     );
+  }
+
+  private startFallbackPolling(): void {
+    if (this.embeddedInSession() || this.resultUpdatesStopped || this.pollTimer) {
+      return;
+    }
+    const retry = async () => {
+      if (await this.pollStyle()) {
+        this.subscribeToResults();
+      }
+    };
+    this.pollTimer = setInterval(() => void retry(), 3000);
+    void retry();
+  }
+
+  private stopFallbackPolling(): void {
+    if (!this.pollTimer) {
+      return;
+    }
+    clearInterval(this.pollTimer);
+    this.pollTimer = null;
   }
 
   private localizeFeedbackLoadError(error: unknown): string {
@@ -392,10 +428,7 @@ export class FeedbackVoteComponent implements OnInit, OnDestroy {
 
   private stopResultUpdates(): void {
     this.resultUpdatesStopped = true;
-    if (this.pollTimer) {
-      clearInterval(this.pollTimer);
-      this.pollTimer = null;
-    }
+    this.stopFallbackPolling();
     this.subscription?.unsubscribe();
     this.subscription = null;
   }

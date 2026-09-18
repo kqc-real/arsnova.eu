@@ -60,8 +60,18 @@ verhindern das Mischen verschiedener Ranglistenstände.
 `qa.onQuestionsUpdated` ist eine inhaltslose Invalidierung. Schreibende
 Q&A-Mutationen und Kanalwechsel wecken Subscriber über ein
 prozesslokales Signal (Votes gebündelt); ein Fallback von höchstens 15 s
-sowie die Q&A-Frist sichern Replica-Lücken und Fristablauf. Host-Tokens
-werden weiterhin eng geprüft, ohne den früheren 1-Sekunden-Datenpoll.
+sowie die Q&A-Frist sichern Replica-Lücken und Fristablauf. Nach einem
+verarbeiteten Fristablauf gilt wieder der normale Fallback; es gibt keine
+1-ms-Schleife. Eine Fristverlängerung oder Wiederöffnung bleibt über das
+Signal sofort sichtbar. Host-Tokens werden weiterhin eng geprüft, ohne den
+früheren 1-Sekunden-Datenpoll.
+
+Öffentliche Q&A-Seiten derselben Revision, Sortierung und Cursorlage werden
+kurz im Prozess gecacht. Eigene Votes und eigene `PENDING`-Fragen bleiben
+getrennte Restabfragen. `arsnova_change_qa_vote` schreibt Richtungszähler und
+`upvoteCount` in einem Update; der Kompatibilitätstrigger rechnet nur noch
+aus OLD/NEW-Differenzen, nicht die gesamte Vote-Menge neu. Der
+Sessionzeilen-Lock für Frist und Kanal bleibt bestehen.
 
 ## Wortwolke und Nebenlast
 
@@ -104,10 +114,16 @@ nicht senken.
 ## Deployment und Rollback
 
 1. Zuerst die Migration anwenden; sie backfillt Zähler und installiert
-   Kompatibilitätstrigger für alte Images.
+   Kompatibilitätstrigger für alte Images. `20260918120000_qa_vote_atomic_counters`
+   ersetzt die Vollzählung durch Differenzen und bleibt mit alten Images
+   kompatibel, weil diese den Skip-GUC nicht setzen.
 2. Danach Backend- und Frontend-Images ausrollen.
 3. Während eines Rolling Deployments halten Trigger auch Inserts, Votes und
    Deletes alter Backendimages konsistent.
+
+Die Live-Signale bleiben prozesslokal. Die aktuelle Eininstanzgrenze und der
+Plan für einen späteren Mehrinstanzbetrieb stehen in
+[MULTI-INSTANCE-PLAN.md](../operations/MULTI-INSTANCE-PLAN.md).
 
 Ein Code-Rollback ist mit installierter Migration möglich. Ein Schema-Rollback
 ist destruktiv: Er würde neue Zähler, Idempotency-Schlüssel und

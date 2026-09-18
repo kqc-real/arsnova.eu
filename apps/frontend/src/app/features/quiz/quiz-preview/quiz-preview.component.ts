@@ -329,6 +329,7 @@ export class QuizPreviewComponent implements OnDestroy {
   });
 
   constructor() {
+    this.quizStore.ensureHostLibraryReady?.();
     if (this.id === DEMO_QUIZ_ID) {
       this.quizStore.ensureDemoQuiz();
     }
