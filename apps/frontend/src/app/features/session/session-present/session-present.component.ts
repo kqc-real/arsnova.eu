@@ -917,7 +917,10 @@ export class SessionPresentComponent implements OnInit, OnDestroy {
       return;
     }
     this.stopBoardPageTimer();
-    if (this.showQaWordCloud()) {
+    if (!this.session()) {
+      return;
+    }
+    if (this.session()?.presenterSurface === 'qaWordCloud') {
       await this.refreshQaQuestions();
       await this.refreshQaWordCloudProjection();
       return;
@@ -1307,7 +1310,11 @@ export class SessionPresentComponent implements OnInit, OnDestroy {
   }
 
   private async refreshLiveFreetext(): Promise<void> {
-    if (!this.session() || this.presentDeadlineClosed) {
+    if (
+      !this.session() ||
+      this.presentDeadlineClosed ||
+      this.session()?.presenterSurface === 'qaWordCloud'
+    ) {
       return;
     }
 

@@ -1375,6 +1375,7 @@ describe('SessionPresentComponent', () => {
     expect(fixture.componentInstance.visibleQaQueueQuestions()).toHaveLength(4);
     expect(fixture.componentInstance.visibleQaQueueQuestions()[3]?.text).toBe('Publikumsfrage 4');
     expect(fixture.componentInstance.qaQueueIsDense()).toBe(true);
+    fixture.destroy();
   });
 
   it('zeigt in der Presenter-Ansicht eine upvote-gewichtete Q&A-Word-Cloud', async () => {
