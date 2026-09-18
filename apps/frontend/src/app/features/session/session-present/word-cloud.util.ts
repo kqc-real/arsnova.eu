@@ -506,7 +506,7 @@ export function getQaWordCloudQuestionWeight(
     readonly bestScore?: number;
     readonly controversyScore?: number;
   },
-  metric: 'TOP' | 'BEST' | 'CONTROVERSIAL' | null | undefined,
+  metric: 'TOP' | 'BEST' | 'CONTROVERSIAL' | 'TIME' | null | undefined,
 ): number {
   const fallback = getWordCloudWeightFromUpvotes(question.score ?? question.upvoteCount);
   switch (metric) {

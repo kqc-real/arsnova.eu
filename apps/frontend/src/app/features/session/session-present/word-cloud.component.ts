@@ -219,6 +219,7 @@ export class WordCloudComponent implements AfterViewInit, OnDestroy {
   readonly weightingHint = input<string | null>(
     $localize`:@@wordCloud.weightingHint:Je größer ein Wort, desto öfter wurde es genannt.`,
   );
+  readonly contextPills = input<readonly string[]>([]);
   readonly showReleaseNote = input(false);
   readonly selectedGroupKey = signal<string | null>(null);
   readonly confidenceFilter = signal<ConfidenceFilter>('high');

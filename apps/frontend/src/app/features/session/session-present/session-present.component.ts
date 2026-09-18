@@ -56,6 +56,8 @@ import type {
   SessionInfoDTO,
   TeamLeaderboardEntryDTO,
   WordCloudAnalysisEntryDTO,
+  WordCloudAnalysisVariant,
+  WordCloudWeightMetric,
 } from '@arsnova/shared-types';
 import { recordServerTimeSample } from '../session-server-clock';
 import { SessionDeadlineController, type SessionDeadlineSnapshot } from '../session-deadline';
@@ -514,12 +516,53 @@ export class SessionPresentComponent implements OnInit, OnDestroy {
         return $localize`:@@sessionQa.wordCloudHintBest:Große Wörter und Phrasen kommen aus Fragen mit viel Zustimmung und ausreichend Stimmen.`;
       case 'CONTROVERSIAL':
         return $localize`:@@sessionQa.wordCloudHintControversial:Große Wörter und Phrasen kommen aus Fragen mit gegensätzlichen Reaktionen. Darüberfahren zeigt die zugehörigen Fragen.`;
+      case 'TIME':
+        return $localize`:@@sessionQa.wordCloudHintTime:Die Fragenliste folgt der Zeit. Die Wortgröße bleibt bei den Stimmen.`;
       case 'TOP':
         return $localize`:@@sessionQa.wordCloudHintTop:Große Wörter und Phrasen kommen aus Fragen mit vielen positiven Stimmen.`;
       default:
         return $localize`:@@sessionWordCloud.qaHint:Große Wörter und Phrasen kommen aus häufiger genannten oder stärker unterstützten Fragen. Ähnliche Schreibweisen können zusammengefasst sein.`;
     }
   });
+  readonly qaWordCloudContextPills = computed(() => {
+    const projection = this.qaWordCloudProjection();
+    if (!projection) {
+      return [];
+    }
+
+    return [
+      this.qaWordCloudModePill(projection.mode),
+      this.qaWordCloudMetricPill(projection.metric),
+      projection.smoothingActive
+        ? $localize`:@@sessionPresent.wordCloudSmoothingOn:Glättung an`
+        : $localize`:@@sessionPresent.wordCloudSmoothingOff:ohne Glättung`,
+    ];
+  });
+
+  private qaWordCloudModePill(mode: WordCloudAnalysisVariant): string {
+    switch (mode) {
+      case 'SEMANTIC':
+        return $localize`:@@sessionQa.wordCloudAnalysisSemantic:Themen`;
+      case 'LEXICAL':
+        return $localize`:@@sessionQa.wordCloudAnalysisLexical:Wörter`;
+      default:
+        return $localize`:@@sessionQa.wordCloudAnalysisTheme:Wörter & Phrasen`;
+    }
+  }
+
+  private qaWordCloudMetricPill(metric: WordCloudWeightMetric): string {
+    switch (metric) {
+      case 'BEST':
+        return $localize`:@@sessionQa.sortBest:Beste Fragen`;
+      case 'CONTROVERSIAL':
+        return $localize`:@@sessionPresent.wordCloudMetricControversial:Kontroverse`;
+      case 'TIME':
+        return $localize`:@@sessionQa.sortTime:Zeit`;
+      default:
+        return $localize`:@@sessionQa.wordCloudSizeTop:Stimmen`;
+    }
+  }
+
   readonly presenterQaWordCloudWeightedResponses = computed(() =>
     this.presenterQaWordCloudQuestions().map((question) => ({
       text: question.text,
@@ -874,7 +917,10 @@ export class SessionPresentComponent implements OnInit, OnDestroy {
       return;
     }
     this.stopBoardPageTimer();
-    if (this.showQaWordCloud()) {
+    if (!this.session()) {
+      return;
+    }
+    if (this.session()?.presenterSurface === 'qaWordCloud') {
       await this.refreshQaQuestions();
       await this.refreshQaWordCloudProjection();
       return;
@@ -1264,7 +1310,12 @@ export class SessionPresentComponent implements OnInit, OnDestroy {
   }
 
   private async refreshLiveFreetext(): Promise<void> {
-    if (!this.session() || this.presentDeadlineClosed) {
+    if (
+      !this.session() ||
+      this.presentDeadlineClosed ||
+      this.session()?.presenterSurface === 'qaWordCloud' ||
+      this.showFinishProjection()
+    ) {
       return;
     }
 
@@ -1401,7 +1452,12 @@ export class SessionPresentComponent implements OnInit, OnDestroy {
   }
 
   private async refreshHostQuestion(): Promise<void> {
-    if (!this.session() || this.session()?.type === 'Q_AND_A' || this.presentDeadlineClosed) {
+    if (
+      !this.session() ||
+      this.session()?.type === 'Q_AND_A' ||
+      this.presentDeadlineClosed ||
+      this.session()?.presenterSurface === 'qaWordCloud'
+    ) {
       this.hostQuestion.set(null);
       this.stopCountdown();
       return;
@@ -1456,7 +1512,11 @@ export class SessionPresentComponent implements OnInit, OnDestroy {
   }
 
   private async refreshHostVoteProgress(): Promise<void> {
-    if (!this.hostQuestion() || this.session()?.status !== 'ACTIVE') {
+    if (
+      !this.hostQuestion() ||
+      this.session()?.status !== 'ACTIVE' ||
+      this.session()?.presenterSurface === 'qaWordCloud'
+    ) {
       this.hostVoteProgress.set(null);
       return;
     }

@@ -29,6 +29,9 @@
         <span class="word-cloud__meta-pill"
           >{{ formatCount(responseSummary().total) }} {{ itemLabel(responseSummary().total) }}</span
         >
+        @for (pill of contextPills(); track pill) {
+          <span class="word-cloud__meta-pill word-cloud__meta-pill--context">{{ pill }}</span>
+        }
       </p>
       @if (weightingHint()) {
         <div class="word-cloud__reading-hint" role="note">

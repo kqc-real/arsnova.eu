@@ -4287,6 +4287,260 @@ describe('SessionVoteComponent', { timeout: 30_000 }, () => {
     fixture.destroy();
   });
 
+  it('sortiert die Teilnehmer-Q&A-Liste wie der Host', async () => {
+    getInfoQueryMock.mockResolvedValue({
+      id: '6a8edced-5f8f-4cfa-9176-454fac9570ad',
+      serverTime: MOCK_SERVER_TIME,
+      serverNow: MOCK_SERVER_TIME,
+      sessionLifecycleRevision: 1,
+      expiresAt: '2099-01-01T00:00:00.000Z',
+      qaClosesAt: '2099-01-01T00:00:00.000Z',
+      code: 'ABC123',
+      type: 'Q_AND_A',
+      status: 'ACTIVE',
+      quizName: null,
+      title: 'Offene Fragen',
+      participantCount: 6,
+      channels: {
+        quiz: { enabled: false },
+        qa: { enabled: true, open: true, title: 'Fragen aus dem Publikum', moderationMode: false },
+        quickFeedback: { enabled: false, open: false },
+      },
+    });
+    const qaUnsubscribes: Array<ReturnType<typeof vi.fn>> = [];
+    qaQuestionsUpdatedSubscribeMock.mockImplementation(() => {
+      const unsubscribe = vi.fn();
+      qaUnsubscribes.push(unsubscribe);
+      return { unsubscribe };
+    });
+    qaListQueryMock.mockResolvedValue({
+      questions: [
+        {
+          id: 'question-1',
+          text: 'Was ist klausurrelevant?',
+          upvoteCount: 2,
+          status: 'ACTIVE',
+          createdAt: '2026-03-13T12:00:00.000Z',
+          myVote: null,
+          isOwn: false,
+          hasUpvoted: false,
+        },
+      ],
+      state: 'ACTIVE',
+      sessionLifecycleRevision: 1,
+      serverNow: MOCK_SERVER_TIME,
+      expiresAt: '2099-01-01T00:00:00.000Z',
+      qaClosesAt: '2099-01-01T00:00:00.000Z',
+      endedAt: null,
+      postProcessingEndsAt: null,
+    });
+
+    const fixture = TestBed.createComponent(SessionVoteComponent);
+    fixture.detectChanges();
+    await flushComponentAfterStable(fixture, 50);
+    fixture.detectChanges();
+
+    const text = fixture.nativeElement.textContent as string;
+    expect(text).toContain('Meist unterstützt');
+    expect(text).toContain('Beste Fragen');
+    expect(text).toContain('Umstritten');
+    expect(text).toContain('Zeit');
+    expect(text).toContain('Fragen durchsuchen');
+    expect(text).toContain('Hervorgehobene Fragen stehen zuerst.');
+    expect(fixture.componentInstance.qaSortMode()).toBe('TOP');
+    expect(qaQuestionsUpdatedSubscribeMock).toHaveBeenCalledWith(
+      expect.objectContaining({
+        sessionId: '6a8edced-5f8f-4cfa-9176-454fac9570ad',
+        participantId: '11111111-1111-4111-8111-111111111111',
+        pageSize: 100,
+        sort: 'TOP',
+      }),
+      expect.any(Object),
+    );
+
+    qaListQueryMock.mockClear();
+    snackBarOpenMock.mockClear();
+    const scrollIntoView = vi.fn();
+    const previousScrollIntoView = Element.prototype.scrollIntoView;
+    Object.defineProperty(Element.prototype, 'scrollIntoView', {
+      configurable: true,
+      writable: true,
+      value: scrollIntoView,
+    });
+    try {
+      await fixture.componentInstance.setQaSortMode('TOP');
+      await fixture.componentInstance.setQaSortMode(null as unknown as 'BEST');
+      expect(fixture.componentInstance.qaSortMode()).toBe('TOP');
+      expect(qaListQueryMock).not.toHaveBeenCalled();
+      qaListQueryMock.mockResolvedValue({
+        questions: [
+          {
+            id: 'question-2',
+            text: 'Andere Reihenfolge',
+            upvoteCount: 9,
+            status: 'ACTIVE',
+            createdAt: '2026-03-13T12:02:00.000Z',
+            myVote: null,
+            isOwn: false,
+            hasUpvoted: false,
+          },
+        ],
+        state: 'ACTIVE',
+        sessionLifecycleRevision: 1,
+        serverNow: MOCK_SERVER_TIME,
+        expiresAt: '2099-01-01T00:00:00.000Z',
+        qaClosesAt: '2099-01-01T00:00:00.000Z',
+        endedAt: null,
+        postProcessingEndsAt: null,
+        totalCount: 2,
+        rankingRevision: '1:BEST:',
+      });
+      await fixture.componentInstance.setQaSortMode('BEST');
+      fixture.detectChanges();
+      expect(fixture.componentInstance.qaSortMode()).toBe('BEST');
+      expect(fixture.nativeElement.textContent as string).toContain(
+        'viel Zustimmung und genug Stimmen',
+      );
+      expect(fixture.componentInstance.qaQuestions().map((question) => question.id)).toEqual([
+        'question-2',
+      ]);
+      expect(qaListQueryMock).toHaveBeenCalledWith({
+        sessionId: '6a8edced-5f8f-4cfa-9176-454fac9570ad',
+        participantId: '11111111-1111-4111-8111-111111111111',
+        pageSize: 100,
+        sort: 'BEST',
+      });
+      expect(qaUnsubscribes[0]).toHaveBeenCalled();
+      expect(qaQuestionsUpdatedSubscribeMock).toHaveBeenCalledWith(
+        expect.objectContaining({
+          sessionId: '6a8edced-5f8f-4cfa-9176-454fac9570ad',
+          participantId: '11111111-1111-4111-8111-111111111111',
+          pageSize: 100,
+          sort: 'BEST',
+        }),
+        expect.any(Object),
+      );
+      expect(snackBarOpenMock).not.toHaveBeenCalled();
+      expect(scrollIntoView).not.toHaveBeenCalled();
+
+      qaListQueryMock.mockClear();
+      qaListQueryMock.mockResolvedValue({
+        questions: [
+          {
+            id: 'question-3',
+            text: 'Umstrittene Frage',
+            upvoteCount: 1,
+            status: 'ACTIVE',
+            createdAt: '2026-03-13T12:03:00.000Z',
+            myVote: null,
+            isOwn: false,
+            hasUpvoted: false,
+          },
+        ],
+        state: 'ACTIVE',
+        sessionLifecycleRevision: 1,
+        serverNow: MOCK_SERVER_TIME,
+        expiresAt: '2099-01-01T00:00:00.000Z',
+        qaClosesAt: '2099-01-01T00:00:00.000Z',
+        endedAt: null,
+        postProcessingEndsAt: null,
+        totalCount: 1,
+        rankingRevision: '1:CONTROVERSIAL:6',
+      });
+      await fixture.componentInstance.setQaSortMode('CONTROVERSIAL');
+      expect(fixture.componentInstance.qaSortMode()).toBe('CONTROVERSIAL');
+      expect(qaUnsubscribes[1]).toHaveBeenCalled();
+      expect(qaQuestionsUpdatedSubscribeMock).toHaveBeenCalledWith(
+        expect.objectContaining({
+          sessionId: '6a8edced-5f8f-4cfa-9176-454fac9570ad',
+          participantId: '11111111-1111-4111-8111-111111111111',
+          pageSize: 100,
+          sort: 'CONTROVERSIAL',
+        }),
+        expect.any(Object),
+      );
+
+      qaListQueryMock.mockClear();
+      qaListQueryMock.mockResolvedValue({
+        questions: [],
+        state: 'ACTIVE',
+        sessionLifecycleRevision: 1,
+        serverNow: MOCK_SERVER_TIME,
+        expiresAt: '2099-01-01T00:00:00.000Z',
+        qaClosesAt: '2099-01-01T00:00:00.000Z',
+        endedAt: null,
+        postProcessingEndsAt: null,
+        totalCount: 0,
+        rankingRevision: '1:BEST:',
+      });
+      fixture.componentInstance.onQaSearchInput('  klausur  ');
+      expect(fixture.componentInstance.qaSearchDraft()).toBe('  klausur  ');
+      expect(qaListQueryMock).not.toHaveBeenCalled();
+      await flushMacroTask(310);
+      expect(fixture.componentInstance.qaSearch()).toBe('klausur');
+      expect(qaListQueryMock).toHaveBeenCalledWith({
+        sessionId: '6a8edced-5f8f-4cfa-9176-454fac9570ad',
+        participantId: '11111111-1111-4111-8111-111111111111',
+        pageSize: 100,
+        sort: 'CONTROVERSIAL',
+        search: 'klausur',
+      });
+      fixture.detectChanges();
+      expect(fixture.nativeElement.textContent as string).toContain(
+        'Keine passenden Fragen gefunden.',
+      );
+    } finally {
+      Object.defineProperty(Element.prototype, 'scrollIntoView', {
+        configurable: true,
+        writable: true,
+        value: previousScrollIntoView,
+      });
+      fixture.destroy();
+    }
+  });
+
+  it('wertet Seitenwechsel nicht als entfernte Moderationsfragen', () => {
+    const fixture = TestBed.createComponent(SessionVoteComponent);
+    const component = fixture.componentInstance;
+    component.qaListTotalCount.set(240);
+    const prev: QaQuestionDTO[] = [
+      {
+        id: 'q-a',
+        text: 'Erste Seite',
+        upvoteCount: 4,
+        status: 'ACTIVE',
+        createdAt: '2026-03-13T12:00:00.000Z',
+        myVote: null,
+        isOwn: false,
+        hasUpvoted: false,
+      },
+    ];
+    const next: QaQuestionDTO[] = [
+      {
+        id: 'q-b',
+        text: 'Neue Sortierung',
+        upvoteCount: 1,
+        status: 'ACTIVE',
+        createdAt: '2026-03-13T12:01:00.000Z',
+        myVote: null,
+        isOwn: false,
+        hasUpvoted: false,
+      },
+    ];
+    snackBarOpenMock.mockClear();
+    (
+      component as unknown as {
+        notifyQaQuestionUpdates: (
+          previous: QaQuestionDTO[],
+          current: QaQuestionDTO[],
+          total?: number,
+        ) => void;
+      }
+    ).notifyQaQuestionUpdates(prev, next, 240);
+    expect(snackBarOpenMock).not.toHaveBeenCalled();
+    fixture.destroy();
+  });
+
   it('leitet fuer Kindergarten-Q&A-Fragen eindeutige Tier-Badges ab', () => {
     const fixture = TestBed.createComponent(SessionVoteComponent);
     fixture.componentInstance.sessionSettings.set({
@@ -4762,6 +5016,9 @@ describe('SessionVoteComponent', { timeout: 30_000 }, () => {
 
     expect(voteStyles).not.toContain('999px');
     expect(voteStyles).not.toContain('::ng-deep');
+    expect(voteStyles).toMatch(
+      /\.session-qa-sort-hint \{[^}]*max-width:\s*100%[^}]*overflow-wrap:\s*anywhere/,
+    );
     expect(voteStyles).not.toContain('font-weight: 800');
     expect(voteStyles).not.toContain('rgba(0, 0, 0');
     expect(voteStyles).toMatch(/border-radius:\s*var\(--mat-sys-corner-full\)/);
@@ -4988,6 +5245,116 @@ describe('SessionVoteComponent', { timeout: 30_000 }, () => {
       'Der Q&A-Kanal wurde von der Lehrperson geschlossen. Fragen und Bewertungen sind gerade nicht möglich.',
     );
     expect(host.querySelector('#qa-draft')).toBeNull();
+    fixture.destroy();
+  });
+
+  it('zeigt im Q&A-Tab die offene Frist mit Restzeit wie auf dem Host', async () => {
+    const closesAt = new Date(Date.parse(MOCK_SERVER_TIME) + 23 * 60 * 60_000).toISOString();
+    getInfoQueryMock.mockResolvedValue({
+      id: '6a8edced-5f8f-4cfa-9176-454fac9570ad',
+      serverTime: MOCK_SERVER_TIME,
+      serverNow: MOCK_SERVER_TIME,
+      sessionLifecycleRevision: 1,
+      expiresAt: '2099-01-01T00:00:00.000Z',
+      qaClosesAt: closesAt,
+      timeZone: 'Europe/Berlin',
+      code: 'ABC123',
+      type: 'QUIZ',
+      status: 'ACTIVE',
+      quizName: 'Team-Quiz',
+      title: null,
+      participantCount: 6,
+      channels: {
+        quiz: { enabled: true },
+        qa: {
+          enabled: true,
+          open: true,
+          title: 'Fragen',
+          moderationMode: false,
+          state: 'OPEN',
+          closesAt,
+        },
+        quickFeedback: { enabled: false, open: false },
+      },
+    });
+    qaListQueryMock.mockResolvedValue({
+      questions: [],
+      state: 'ACTIVE',
+      sessionLifecycleRevision: 1,
+      serverNow: MOCK_SERVER_TIME,
+      expiresAt: '2099-01-01T00:00:00.000Z',
+      qaClosesAt: closesAt,
+      endedAt: null,
+      postProcessingEndsAt: null,
+    });
+    currentQuestionQueryMock.mockResolvedValue(null);
+
+    const fixture = TestBed.createComponent(SessionVoteComponent);
+    fixture.detectChanges();
+    await flushComponentAfterStable(fixture, 50);
+
+    const component = fixture.componentInstance;
+    component.activeChannel.set('qa');
+    fixture.detectChanges();
+
+    const host = fixture.nativeElement as HTMLElement;
+    const deadline = host.querySelector('.session-vote__qa-deadline');
+    expect(deadline).not.toBeNull();
+    expect(deadline?.classList.contains('session-vote__qa-deadline--expired')).toBe(false);
+    expect(deadline?.textContent).toContain('Q&A offen bis');
+    expect(deadline?.textContent).toMatch(/in 23 (Stunden|hours)/i);
+    expect(host.querySelector('.session-vote__qa-deadline button')).toBeNull();
+    expect(host.textContent).not.toContain('Q&A-Einstellungen');
+    fixture.destroy();
+  });
+
+  it('zeigt im Q&A-Tab die abgelaufene Frist ohne Host-Einstellungen', async () => {
+    const closesAt = new Date(Date.parse(MOCK_SERVER_TIME) - 60 * 60_000).toISOString();
+    getInfoQueryMock.mockResolvedValue({
+      id: '6a8edced-5f8f-4cfa-9176-454fac9570ad',
+      serverTime: MOCK_SERVER_TIME,
+      serverNow: MOCK_SERVER_TIME,
+      sessionLifecycleRevision: 1,
+      expiresAt: '2099-01-01T00:00:00.000Z',
+      qaClosesAt: closesAt,
+      timeZone: 'Europe/Berlin',
+      code: 'ABC123',
+      type: 'QUIZ',
+      status: 'ACTIVE',
+      quizName: 'Team-Quiz',
+      title: null,
+      participantCount: 6,
+      channels: {
+        quiz: { enabled: true },
+        qa: {
+          enabled: true,
+          open: false,
+          title: 'Fragen',
+          moderationMode: false,
+          state: 'DEADLINE_EXPIRED',
+          closesAt,
+        },
+        quickFeedback: { enabled: false, open: false },
+      },
+    });
+    currentQuestionQueryMock.mockResolvedValue(null);
+
+    const fixture = TestBed.createComponent(SessionVoteComponent);
+    fixture.detectChanges();
+    await flushComponentAfterStable(fixture, 50);
+
+    const component = fixture.componentInstance;
+    component.activeChannel.set('qa');
+    fixture.detectChanges();
+
+    const host = fixture.nativeElement as HTMLElement;
+    const deadline = host.querySelector('.session-vote__qa-deadline--expired');
+    expect(deadline).not.toBeNull();
+    expect(deadline?.textContent).toContain('Teilnahmefrist abgelaufen');
+    expect(host.textContent).toContain(
+      'Die Teilnahmefrist ist abgelaufen. Neue Fragen und Bewertungen sind nicht mehr möglich.',
+    );
+    expect(host.querySelector('.session-vote__qa-deadline button')).toBeNull();
     fixture.destroy();
   });
 
@@ -6816,6 +7183,7 @@ describe('SessionVoteComponent', { timeout: 30_000 }, () => {
       sessionId: '6a8edced-5f8f-4cfa-9176-454fac9570ad',
       participantId: '11111111-1111-4111-8111-111111111111',
       pageSize: 100,
+      sort: 'TOP',
       cursor: 'page-two',
     });
     expect(component.qaQuestions()).toHaveLength(1);

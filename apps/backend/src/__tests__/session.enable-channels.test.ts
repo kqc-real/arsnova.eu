@@ -71,6 +71,7 @@ const QA_WORD_CLOUD_PROJECTION = {
   analyzedQuestionCount: 1,
   eligibleQuestionCount: 1,
   modelVersion: 'topic-v1',
+  smoothingActive: false,
 };
 
 describe('session.enable channel mutations', () => {

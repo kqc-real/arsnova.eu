@@ -176,8 +176,9 @@ Hosts.
 
 Die Join-Kapsel neben dem QR-Code bleibt kompakt: Code und Teilnehmerzahl,
 ohne Sessionende und ohne Löschtermin. Das absolute Sessionende bleibt
-in der Q&A-Fristzeile. Quiz- und Blitzlichtansicht behalten dieselbe kompakte
-Kapsel. Die 30- und 5-Minuten-Warnung gilt weiter sessionweit. Die Aktionen
+in der Q&A-Fristzeile. Host und Vote zeigen dieselbe offene-bis-Zeile mit
+relativer Restzeit; Q&A-Einstellungen bleiben host-only. Quiz- und
+Blitzlichtansicht behalten dieselbe kompakte Kapsel. Die 30- und 5-Minuten-Warnung gilt weiter sessionweit. Die Aktionen
 „Maximales Q&A-Ende“ und „Löschtermin anzeigen“ sitzen nur im Q&A-Kanal in der
 unteren Host-Action-Bar neben „Session beenden“, nicht in der
 Kopfzeile. „Maximales Q&A-Ende“ bezeichnet die Obergrenze des Q&A-Kanals,

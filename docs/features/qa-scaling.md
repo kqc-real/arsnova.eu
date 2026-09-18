@@ -45,11 +45,23 @@ gespeichert; nur ein erfolgreiches physisches Delete gibt einen Sessionplatz
 frei.
 
 `arsnova_change_qa_vote` serialisiert Änderungen je Frage und pflegt positive,
-negative und gewichtete Zähler atomar. `qa.list` rankt den vollständigen
-berechtigten Bestand in PostgreSQL nach `TOP`, `BEST` oder `CONTROVERSIAL` und
-liefert anschließend eine revisionsgebundene Seite. Änderungen an Frage,
-Status, Vote oder der für Kontroversität maßgeblichen Teilnahmezahl verhindern
-das Mischen verschiedener Ranglistenstände.
+negative und gewichtete Zähler atomar. `qa.list` rankt den berechtigten Bestand in PostgreSQL nach `TOP`, `BEST`,
+`CONTROVERSIAL` oder `TIME` und liefert anschließend eine revisionsgebundene
+Seite. `BEST` und `CONTROVERSIAL` berechnen Wilson- bzw. Kontroversitäts-Scores
+in SQL, weil die Sortierung darauf beruht. Teilnehmer-`TOP` und `-TIME`
+sortieren nur über gespeicherte Zähler und `createdAt`. Host-Listen behalten
+dieselben Score-Spalten in jeder Sortierung, damit Kompass und Export nicht
+von `BEST` oder `CONTROVERSIAL` abhängen. Host-Seiten können zusätzlich `search` (Text, `ILIKE`) und
+`authorNickname` (exakter Session-Nickname) in derselben Abfrage
+einschränken; `authorNickname` gilt nur mit `moderatorView`. Änderungen an
+Frage, Status, Vote oder der für Kontroversität maßgeblichen Teilnahmezahl
+verhindern das Mischen verschiedener Ranglistenstände.
+
+`qa.onQuestionsUpdated` ist eine inhaltslose Invalidierung. Schreibende
+Q&A-Mutationen und Kanalwechsel wecken Subscriber über ein
+prozesslokales Signal (Votes gebündelt); ein Fallback von höchstens 15 s
+sowie die Q&A-Frist sichern Replica-Lücken und Fristablauf. Host-Tokens
+werden weiterhin eng geprüft, ohne den früheren 1-Sekunden-Datenpoll.
 
 ## Wortwolke und Nebenlast
 
@@ -57,7 +69,9 @@ das Mischen verschiedener Ranglistenstände.
 Nur `ACTIVE` und `PINNED` sind berechtigt; »nur hervorgehoben« schränkt auf
 `PINNED` ein. Erst nach dem vollständigen serverseitigen Ranking werden exakt
 `min(500, eligibleQuestionCount)` Quellen an Lexik-, Lemma-, Phrasen- oder
-Themenanalyse übergeben.
+Themenanalyse übergeben. Die Host-UI zeigt die gekürzte Form
+»500 höchstplatzierte von N berücksichtigten Fragen« nur über dieser Kappe;
+darunter steht allein die ausgewertete Fragenzahl.
 
 Die Analyseantwort bleibt davon unabhängig transportbegrenzt: höchstens 80
 Einträge und pro Eintrag ein gekennzeichnetes Erklärbeispiel mit maximal 128

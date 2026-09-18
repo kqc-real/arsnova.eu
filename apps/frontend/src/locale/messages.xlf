@@ -16483,7 +16483,7 @@
         </context-group>
       </trans-unit>
       <trans-unit id="sessionQa.wordCloudSizeAria" datatype="html">
-        <source>Größe nach Stimmen, besten Fragen oder Kontroverse</source>
+        <source>Größe nach Stimmen, besten Fragen, Kontroverse oder Zeit</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-host/qa-word-cloud-dialog.component.html</context>
           <context context-type="linenumber">44</context>
@@ -16522,7 +16522,21 @@
         <source><x id="INTERPOLATION" equiv-text="{{ analyzedQuestionCount() }}"/> höchstplatzierte von <x id="INTERPOLATION_1" equiv-text="{{ eligibleQuestionCount() }}"/> berücksichtigten Fragen</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-host/qa-word-cloud-dialog.component.html</context>
-          <context context-type="linenumber">129,130</context>
+          <context context-type="linenumber">130,131</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="sessionQa.wordCloudCoverageExactSingular" datatype="html">
+        <source>1 ausgewertete Frage</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/session-host/qa-word-cloud-dialog.component.html</context>
+          <context context-type="linenumber">134</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="sessionQa.wordCloudCoverageExact" datatype="html">
+        <source><x id="INTERPOLATION" equiv-text="{{ analyzedQuestionCount() }}"/> ausgewertete Fragen</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/session-host/qa-word-cloud-dialog.component.html</context>
+          <context context-type="linenumber">137</context>
         </context-group>
       </trans-unit>
       <trans-unit id="sessionQa.wordCloudSemanticPendingLabel" datatype="html">
@@ -16958,6 +16972,21 @@
           <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.html</context>
           <context context-type="linenumber">817,819</context>
         </context-group>
+      </trans-unit>
+      <trans-unit id="sessionHost.participantDirectorySelectAuthorAria" datatype="html">
+        <source>Fragen von <x id="PH" equiv-text="nickname"/> anzeigen</source>
+      </trans-unit>
+      <trans-unit id="sessionHost.participantDirectoryClearAuthorAria" datatype="html">
+        <source>Auswahl für <x id="PH" equiv-text="nickname"/> aufheben</source>
+      </trans-unit>
+      <trans-unit id="sessionHost.participantDirectoryLoading" datatype="html">
+        <source>Teilnahmen werden geladen.</source>
+      </trans-unit>
+      <trans-unit id="sessionHost.participantDirectoryEmpty" datatype="html">
+        <source>Keine Teilnahme gefunden.</source>
+      </trans-unit>
+      <trans-unit id="sessionQa.questionsLoading" datatype="html">
+        <source> Fragen werden geladen. </source>
       </trans-unit>
       <trans-unit id="sessionHost.quizMotifImageAlt" datatype="html">
         <source>Motivbild zum Quiz</source>
@@ -18130,6 +18159,10 @@
           <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.html</context>
           <context context-type="linenumber">4295</context>
         </context-group>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/session-vote/session-vote.component.html</context>
+          <context context-type="linenumber">2651</context>
+        </context-group>
       </trans-unit>
       <trans-unit id="sessionQa.searchAria" datatype="html">
         <source>Q&amp;A-Fragen durchsuchen</source>
@@ -18137,12 +18170,20 @@
           <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.html</context>
           <context context-type="linenumber">4303</context>
         </context-group>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/session-vote/session-vote.component.html</context>
+          <context context-type="linenumber">2658</context>
+        </context-group>
       </trans-unit>
       <trans-unit id="sessionQa.searchClearAria" datatype="html">
         <source>Q&amp;A-Suche leeren</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.html</context>
           <context context-type="linenumber">4312</context>
+        </context-group>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/session-vote/session-vote.component.html</context>
+          <context context-type="linenumber">2667</context>
         </context-group>
       </trans-unit>
       <trans-unit id="sessionQa.sortAria" datatype="html">
@@ -18164,6 +18205,21 @@
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.html</context>
           <context context-type="linenumber">4331</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="sessionQa.sortTime" datatype="html">
+        <source>Zeit</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.html</context>
+          <context context-type="linenumber">4270</context>
+        </context-group>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/session-vote/session-vote.component.html</context>
+          <context context-type="linenumber">2661</context>
+        </context-group>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/session-host/qa-word-cloud-dialog.component.html</context>
+          <context context-type="linenumber">51</context>
         </context-group>
       </trans-unit>
       <trans-unit id="sessionQa.filterShowAllAria" datatype="html">
@@ -18328,6 +18384,10 @@
           <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.html</context>
           <context context-type="linenumber">4624,4626</context>
         </context-group>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/session-vote/session-vote.component.html</context>
+          <context context-type="linenumber">2698</context>
+        </context-group>
       </trans-unit>
       <trans-unit id="sessionQa.filterEmptyHint" datatype="html">
         <source> Nur hervorgehobene aktiv – noch keine hervorgehobenen Fragen. </source>
@@ -18335,6 +18395,15 @@
           <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.html</context>
           <context context-type="linenumber">4631,4633</context>
         </context-group>
+      </trans-unit>
+      <trans-unit id="sessionQa.authorEmpty" datatype="html">
+        <source> Keine Fragen von dieser Teilnahme. </source>
+      </trans-unit>
+      <trans-unit id="sessionQa.authorFilterLabel" datatype="html">
+        <source>Fragen von <x id="INTERPOLATION" equiv-text="{{ authorNickname }}"/></source>
+      </trans-unit>
+      <trans-unit id="sessionQa.authorFilterClearAria" datatype="html">
+        <source>Teilnahme-Filter aufheben</source>
       </trans-unit>
       <trans-unit id="sessionHost.endGlobalSessionAnchor" datatype="html">
         <source> Session beenden </source>
@@ -19009,6 +19078,13 @@
           <context context-type="linenumber">1788</context>
         </context-group>
       </trans-unit>
+      <trans-unit id="sessionQa.wordCloudMetricTime" datatype="html">
+        <source>Zeit</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.ts</context>
+          <context context-type="linenumber">1810</context>
+        </context-group>
+      </trans-unit>
       <trans-unit id="sessionQa.wordCloudTitleSemantic" datatype="html">
         <source>Themen in den Fragen</source>
         <context-group purpose="location">
@@ -19069,6 +19145,13 @@
           <context context-type="linenumber">1833</context>
         </context-group>
       </trans-unit>
+      <trans-unit id="sessionQa.wordCloudHintTime" datatype="html">
+        <source>Die Fragenliste folgt der Zeit. Die Wortgröße bleibt bei den Stimmen.</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.ts</context>
+          <context context-type="linenumber">1856</context>
+        </context-group>
+      </trans-unit>
       <trans-unit id="sessionQa.wordCloudSemanticStaleHint" datatype="html">
         <source>Neue Fragen seit der letzten Themenanalyse</source>
         <context-group purpose="location">
@@ -19121,6 +19204,10 @@
           <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.ts</context>
           <context context-type="linenumber">2113</context>
         </context-group>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/session-vote/session-vote.component.ts</context>
+          <context context-type="linenumber">495</context>
+        </context-group>
       </trans-unit>
       <trans-unit id="sessionQa.sortHintControversial" datatype="html">
         <source>Zeigt Fragen mit gemischter Reaktion zuerst. Hervorgehobene Fragen sind markiert, aber nicht vorgezogen.</source>
@@ -19128,12 +19215,34 @@
           <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.ts</context>
           <context context-type="linenumber">2115</context>
         </context-group>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/session-vote/session-vote.component.ts</context>
+          <context context-type="linenumber">497</context>
+        </context-group>
       </trans-unit>
       <trans-unit id="sessionQa.sortHintTop" datatype="html">
         <source>Zeigt Fragen mit den meisten positiven Stimmen zuerst. Hervorgehobene Fragen sind markiert, aber nicht vorgezogen.</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.ts</context>
           <context context-type="linenumber">2117</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="sessionQa.sortHintTime" datatype="html">
+        <source>Zeigt die neuesten Fragen zuerst. Hervorgehobene Fragen sind markiert, aber nicht vorgezogen.</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.ts</context>
+          <context context-type="linenumber">2140</context>
+        </context-group>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/session-vote/session-vote.component.ts</context>
+          <context context-type="linenumber">499</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="sessionQa.sortHintTopVote" datatype="html">
+        <source>Hervorgehobene Fragen stehen zuerst. Danach kommen die mit den meisten Stimmen.</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/session-vote/session-vote.component.ts</context>
+          <context context-type="linenumber">499</context>
         </context-group>
       </trans-unit>
       <trans-unit id="sessionQa.wordCloudShow" datatype="html">
@@ -20638,12 +20747,20 @@
           <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.ts</context>
           <context context-type="linenumber">8260</context>
         </context-group>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/session-vote/session-vote.component.ts</context>
+          <context context-type="linenumber">1235</context>
+        </context-group>
       </trans-unit>
       <trans-unit id="sessionQa.deadlineOpen" datatype="html">
         <source>Q&amp;A offen bis <x id="deadline" equiv-text="formatted"/> · <x id="remaining" equiv-text="relative"/></source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.ts</context>
           <context context-type="linenumber">8269</context>
+        </context-group>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/session-vote/session-vote.component.ts</context>
+          <context context-type="linenumber">1238</context>
         </context-group>
       </trans-unit>
       <trans-unit id="7367446920402175749" datatype="html">
@@ -21432,6 +21549,27 @@
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-present/session-present.component.html</context>
           <context context-type="linenumber">743,745</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="sessionPresent.wordCloudSmoothingOn" datatype="html">
+        <source>Glättung an</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/session-present/session-present.component.ts</context>
+          <context context-type="linenumber">535</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="sessionPresent.wordCloudSmoothingOff" datatype="html">
+        <source>ohne Glättung</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/session-present/session-present.component.ts</context>
+          <context context-type="linenumber">536</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="sessionPresent.wordCloudMetricControversial" datatype="html">
+        <source>Kontroverse</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/session-present/session-present.component.ts</context>
+          <context context-type="linenumber">556</context>
         </context-group>
       </trans-unit>
       <trans-unit id="sessionPresent.quickFeedbackVotes" datatype="html">

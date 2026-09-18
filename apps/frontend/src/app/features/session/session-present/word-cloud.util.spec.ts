@@ -582,6 +582,7 @@ describe('aggregateWords', () => {
     expect(getQaWordCloudQuestionWeight(question, 'TOP')).toBe(6);
     expect(getQaWordCloudQuestionWeight(question, 'BEST')).toBe(4);
     expect(getQaWordCloudQuestionWeight(question, 'CONTROVERSIAL')).toBe(24);
+    expect(getQaWordCloudQuestionWeight(question, 'TIME')).toBe(6);
     expect(getQaWordCloudQuestionWeight({ upvoteCount: 25 }, 'BEST')).toBe(6);
   });
 });

@@ -163,6 +163,10 @@
   font: var(--mat-sys-label-medium);
 }
 
+.word-cloud__meta-pill--context {
+  background: color-mix(in srgb, var(--mat-sys-secondary-container) 42%, var(--mat-sys-surface));
+}
+
 .word-cloud__reading-hint {
   display: inline-flex;
   width: fit-content;

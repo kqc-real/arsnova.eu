@@ -88,6 +88,9 @@ export class QaWordCloudDialogComponent {
   readonly tooltipMetricLabel = computed(() => this.data.tooltipMetricLabel());
   readonly analyzedQuestionCount = computed(() => this.data.analyzedQuestionCount());
   readonly eligibleQuestionCount = computed(() => this.data.eligibleQuestionCount());
+  readonly coverageTruncated = computed(
+    () => this.analyzedQuestionCount() < this.eligibleQuestionCount(),
+  );
   readonly analysisModelVersion = computed(() => this.data.analysisModelVersion?.() ?? null);
   readonly analysisVariant = computed(() => this.data.analysisVariant());
   readonly themeModeAvailable = computed(() => this.data.themeModeAvailable());
@@ -143,7 +146,7 @@ export class QaWordCloudDialogComponent {
 
   onSizeChange(event: Event): void {
     const value = (event.target as HTMLSelectElement | null)?.value;
-    if (value === 'TOP' || value === 'BEST' || value === 'CONTROVERSIAL') {
+    if (value === 'TOP' || value === 'BEST' || value === 'CONTROVERSIAL' || value === 'TIME') {
       this.setSortMode(value);
     }
   }

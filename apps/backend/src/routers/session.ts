@@ -336,6 +336,7 @@ import {
   getPostProcessingEndsAt,
   isSessionEffectivelyFinished,
 } from '../lib/sessionLifecycle';
+import { emitQaQuestionsSignal } from '../lib/qaQuestionsSignal';
 import { registerSessionPurgeInvalidator } from '../lib/sessionPurgeInvalidation';
 
 const QUESTION_TEXT_SHORT_MAX = 100;
@@ -5951,6 +5952,7 @@ const sessionCoreRouter = router({
         });
         invalidateSessionMetadataCachesForCode(code);
         emitSessionStatusSignal(code);
+        emitQaQuestionsSignal(identity.id, { immediate: true });
         const channels = buildSessionChannels(configured.session, configured.serverNow);
         return {
           channels,
@@ -6409,6 +6411,7 @@ const sessionCoreRouter = router({
       if (result.changed) {
         invalidateSessionStatusCachesForCode(code);
         emitSessionStatusSignal(code);
+        emitQaQuestionsSignal(identity.id, { immediate: true });
       }
       return buildSessionChannels(result.session, result.serverNow);
     }),
@@ -6494,6 +6497,7 @@ const sessionCoreRouter = router({
       if (result.changed) {
         invalidateSessionStatusCachesForCode(code);
         emitSessionStatusSignal(code);
+        emitQaQuestionsSignal(identity.id, { immediate: true });
       }
       return buildSessionChannels(result.session, result.serverNow);
     }),

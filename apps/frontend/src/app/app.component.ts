@@ -337,7 +337,7 @@ export class AppComponent implements OnInit, OnDestroy {
     if (isPlatformBrowser(this.platformId)) {
       void this.resetDevServiceWorkerState();
       this.updateRouteFlags();
-      this.isOnline.set(navigator.onLine);
+      this.isOnline.set(true);
       document.addEventListener(
         'visibilitychange',
         this.onDocumentVisibilityForFooterStatusPolling,
@@ -747,7 +747,8 @@ export class AppComponent implements OnInit, OnDestroy {
     this.apiStatus.set(null);
     this.footerStatus.set(null);
     this.footerStats.set(null);
-    this.footerHealthCheckDone.set(true);
+    this.footerHealthCheckDone.set(false);
+    void this.checkApiConnection();
     this.stopFooterStatusPolling();
   }
 
@@ -756,9 +757,10 @@ export class AppComponent implements OnInit, OnDestroy {
     if (navigator.onLine) {
       this.isOnline.set(true);
       this.refreshFooterStatusPollingState({ immediate: true });
-    } else {
-      window.location.reload();
+      return;
     }
+    this.isOnline.set(false);
+    void this.checkApiConnection();
   }
 
   async openProductFeedback(event: Event): Promise<void> {
@@ -781,9 +783,11 @@ export class AppComponent implements OnInit, OnDestroy {
       const bundle = await trpc.health.footerBundle.query();
       this.apiStatus.set(bundle.check.status);
       this.footerStatus.set(bundle.stats);
+      this.isOnline.set(true);
     } catch {
       this.apiStatus.set(null);
       this.footerStatus.set(null);
+      this.isOnline.set(false);
     } finally {
       this.footerHealthCheckDone.set(true);
     }
@@ -807,7 +811,6 @@ export class AppComponent implements OnInit, OnDestroy {
   private canPollFooterStatus(): boolean {
     if (!isPlatformBrowser(this.platformId)) return false;
     if (!this.serverStatusWidgetVisible()) return false;
-    if (!navigator.onLine) return false;
     return document.visibilityState === 'visible';
   }
 
