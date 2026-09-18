@@ -2955,6 +2955,79 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
     fixture.destroy();
   });
 
+  it('setzt den Presenter-Kanal bei Q&A-Listenaktualisierung nicht auf den lokalen Tab zurück', async () => {
+    getInfoQueryMock.mockResolvedValue({
+      ...defaultSession,
+      preferredChannel: 'qa',
+      channels: {
+        quiz: { enabled: true },
+        qa: { enabled: true, open: true, title: 'Fragen', moderationMode: false },
+        quickFeedback: { enabled: false, open: false },
+      },
+    });
+    qaListQueryMock.mockResolvedValue([]);
+
+    const fixture = setup();
+    fixture.detectChanges();
+    await fixture.whenStable();
+    const component = fixture.componentInstance;
+    component.activeChannel.set('quiz');
+    component.session.update((current) =>
+      current ? { ...current, preferredChannel: 'qa' } : current,
+    );
+    setPreferredLiveChannelMutateMock.mockClear();
+
+    await (
+      component as unknown as {
+        refreshQaQuestions(): Promise<void>;
+      }
+    ).refreshQaQuestions();
+
+    expect(setPreferredLiveChannelMutateMock).not.toHaveBeenCalled();
+    expect(component.session()?.preferredChannel).toBe('qa');
+    expect(component.activeChannel()).toBe('quiz');
+    fixture.destroy();
+  });
+
+  it('setzt den Presenter-Kanal bei Blitzlicht-Aktualisierung nicht auf den lokalen Tab zurück', async () => {
+    getInfoQueryMock.mockResolvedValue({
+      ...defaultSession,
+      preferredChannel: 'qa',
+      channels: {
+        quiz: { enabled: true },
+        qa: { enabled: true, open: true, title: 'Fragen', moderationMode: false },
+        quickFeedback: { enabled: true, open: true },
+      },
+    });
+    quickFeedbackHostResultsQueryMock.mockResolvedValue({
+      type: 'TEMPO',
+      locked: false,
+      totalVotes: 0,
+      distribution: {},
+    });
+
+    const fixture = setup();
+    fixture.detectChanges();
+    await fixture.whenStable();
+    const component = fixture.componentInstance;
+    component.activeChannel.set('quiz');
+    component.session.update((current) =>
+      current ? { ...current, preferredChannel: 'qa' } : current,
+    );
+    setPreferredLiveChannelMutateMock.mockClear();
+
+    await (
+      component as unknown as {
+        refreshQuickFeedbackResult(): Promise<void>;
+      }
+    ).refreshQuickFeedbackResult();
+
+    expect(setPreferredLiveChannelMutateMock).not.toHaveBeenCalled();
+    expect(component.session()?.preferredChannel).toBe('qa');
+    expect(component.activeChannel()).toBe('quiz');
+    fixture.destroy();
+  });
+
   it('projiziert Q&A beim Kanalwechsel, sobald eine sichtbare Frage vorhanden ist', async () => {
     const visibleQuestion = {
       id: '11111111-1111-4111-8111-111111111111',
