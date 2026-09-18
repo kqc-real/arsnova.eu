@@ -87,7 +87,6 @@ function toParticipantNicknameKey(value: string): string {
   styleUrls: ['../../shared/styles/dialog-title-header.scss', './join.component.scss'],
 })
 export class JoinComponent implements OnInit, OnDestroy {
-  readonly localizedCommands = localizeCommands;
   readonly localizedPath = localizePath;
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);

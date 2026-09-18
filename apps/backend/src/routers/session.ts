@@ -1817,9 +1817,9 @@ async function buildSessionParticipantSummary(
 }
 
 type ParticipantPageCursor = {
-  v: 1;
+  v: 2;
   revision: number;
-  joinedAt: string;
+  nickname: string;
   id: string;
   search: string;
 };
@@ -1834,11 +1834,13 @@ function decodeParticipantPageCursor(value: string): ParticipantPageCursor {
       Buffer.from(value, 'base64url').toString('utf8'),
     ) as ParticipantPageCursor;
     if (
-      parsed.v !== 1 ||
+      parsed.v !== 2 ||
       !Number.isInteger(parsed.revision) ||
       parsed.revision < 0 ||
       typeof parsed.id !== 'string' ||
-      !z.string().datetime().safeParse(parsed.joinedAt).success ||
+      typeof parsed.nickname !== 'string' ||
+      parsed.nickname.length < 1 ||
+      parsed.nickname.length > 30 ||
       typeof parsed.search !== 'string'
     ) {
       throw new Error('invalid cursor');
@@ -5174,9 +5176,15 @@ const sessionCoreRouter = router({
       const qaEnabled = legacyQaOnlySession || input.qaEnabled === true;
       const standaloneQaSession =
         (input.type === 'QUIZ' && !input.quizId && qaEnabled) || legacyQaOnlySession;
-      // Q&A wird erst durch die explizite Erstkonfiguration aus #417 geöffnet.
-      const qaOpen = false;
-      const qaTitle = qaEnabled ? input.qaTitle?.trim() || input.title?.trim() || null : null;
+      // Standalone-Q&A übernimmt die INITIAL-Defaults sofort (offen bis Sessionende).
+      // Quiz plus Q&A-Kanal bleibt UNCONFIGURED, bis der Host den Kanal einrichtet.
+      const qaConfiguredAtCreate = standaloneQaSession;
+      const qaOpen = qaConfiguredAtCreate;
+      const qaTitle = qaEnabled
+        ? input.qaTitle?.trim() ||
+          input.title?.trim() ||
+          (standaloneQaSession ? 'Fragen & Antworten' : null)
+        : null;
       const qaModerationMode = qaEnabled
         ? (input.qaModerationMode ?? input.moderationMode ?? true)
         : false;
@@ -5220,7 +5228,7 @@ const sessionCoreRouter = router({
           qaOpen,
           qaTitle,
           qaModerationMode,
-          qaClosesAt: null,
+          qaClosesAt: qaConfiguredAtCreate ? expiresAt : null,
           quickFeedbackEnabled,
           quickFeedbackOpen,
           preferredChannel,
@@ -6712,8 +6720,8 @@ const sessionCoreRouter = router({
       const cursorWhere = cursor
         ? {
             OR: [
-              { joinedAt: { lt: new Date(cursor.joinedAt) } },
-              { joinedAt: new Date(cursor.joinedAt), id: { lt: cursor.id } },
+              { nickname: { gt: cursor.nickname } },
+              { nickname: cursor.nickname, id: { gt: cursor.id } },
             ],
           }
         : {};
@@ -6725,7 +6733,7 @@ const sessionCoreRouter = router({
       const [rows, participantCount] = await Promise.all([
         prisma.participant.findMany({
           where,
-          orderBy: [{ joinedAt: 'desc' }, { id: 'desc' }],
+          orderBy: [{ nickname: 'asc' }, { id: 'asc' }],
           take: input.pageSize + 1,
           select: {
             id: true,
@@ -6764,9 +6772,9 @@ const sessionCoreRouter = router({
         nextCursor:
           rows.length > input.pageSize && last
             ? encodeParticipantPageCursor({
-                v: 1,
+                v: 2,
                 revision: session.participantRevision,
-                joinedAt: last.joinedAt.toISOString(),
+                nickname: last.nickname,
                 id: last.id,
                 search,
               })

@@ -131,15 +131,15 @@ describe('QaChannelConfigurationDialogComponent', () => {
   });
 
   it('zeigt die Sequenznummer nur beim ersten Q&A-Start', async () => {
-    const { fixture } = configureTestBed(false, { setupStep: 2, setupStepCount: 3 });
+    const { fixture } = configureTestBed(false, { setupStep: 1, setupStepCount: 2 });
     await fixture.whenStable();
     fixture.detectChanges();
 
-    expect(fixture.nativeElement.textContent).toContain('Schritt 2 von 3');
+    expect(fixture.nativeElement.textContent).toContain('Schritt 1 von 2');
     expect(fixture.nativeElement.textContent).toContain('Teilnahmeprofil');
   });
 
-  it('blendet das Teilnahmeprofil in Schritt 2 der Anlage aus und sendet es nicht erneut', async () => {
+  it('blendet das Teilnahmeprofil aus, wenn es bereits auf der Startseite erfasst wurde', async () => {
     configureMock.mockResolvedValue({
       channels: session.channels,
       preferredChannel: 'qa',
@@ -149,13 +149,11 @@ describe('QaChannelConfigurationDialogComponent', () => {
       serverNow: matchingSessionPreview.serverNow,
     });
     const { fixture, component } = configureTestBed(false, {
-      setupStep: 2,
-      setupStepCount: 3,
       omitParticipationProfile: true,
     });
     fixture.detectChanges();
 
-    expect(fixture.nativeElement.textContent).toContain('Schritt 2 von 3');
+    expect(fixture.nativeElement.textContent).not.toContain('Schritt 1 von 2');
     expect(fixture.nativeElement.textContent).not.toContain('Teilnahmeprofil');
     expect(fixture.nativeElement.textContent).not.toContain('Sichtbarer Name');
 

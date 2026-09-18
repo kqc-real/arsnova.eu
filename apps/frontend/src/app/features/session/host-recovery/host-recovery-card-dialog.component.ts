@@ -12,7 +12,7 @@ import {
 import { MatIcon } from '@angular/material/icon';
 import { RouterLink } from '@angular/router';
 import type { HostRecoveryCardDTO } from '@arsnova/shared-types';
-import { localizeCommands, resolveLocalizedAppUrl } from '../../../core/locale-router';
+import { localizePath, resolveLocalizedAppUrl } from '../../../core/locale-router';
 import {
   buildHostRecoveryCardHtml,
   buildHostRecoveryCardPlainText,
@@ -51,7 +51,7 @@ export class HostRecoveryCardDialogComponent {
   private readonly document = inject(DOCUMENT);
   readonly data = inject<HostRecoveryCardDialogData>(MAT_DIALOG_DATA);
   readonly recoveryUrl = resolveLocalizedAppUrl('/host-recovery');
-  readonly imprintCommands = localizeCommands(['legal', 'imprint']);
+  readonly imprintPath = localizePath('/legal/imprint');
   readonly saved = signal(false);
   readonly copiedField = signal<RecoveryCardField | null>(null);
   readonly copyFailed = signal(false);

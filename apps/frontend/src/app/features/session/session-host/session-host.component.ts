@@ -4201,7 +4201,7 @@ export class SessionHostComponent implements OnInit, OnDestroy {
     });
   }
 
-  /** Nach 1/3–3/3 nicht in der leeren Lobby hängen bleiben; Button bleibt für Reload in LOBBY. */
+  /** Nach 1/2–2/2 nicht in der leeren Lobby hängen bleiben; Button bleibt für Reload in LOBBY. */
   private async startQaAfterCreateSetup(): Promise<void> {
     if (!this.requestedQaCreateSetup || !this.channels().qa) {
       return;
@@ -4240,11 +4240,14 @@ export class SessionHostComponent implements OnInit, OnDestroy {
     await this.refreshSessionLifecycle();
     if (this.requestedQaCreateSetup && this.qaChannelNeedsConfiguration()) {
       await this.openQaConfigurationDialog({
-        numberSetupSequence: true,
         abortUnconfiguredSessionOnCancel: true,
       });
     } else {
-      this.showStagedRecoveryCard();
+      await this.showStagedRecoveryCard(
+        this.requestedQaCreateSetup && !this.qaCreateSetupCompleted
+          ? { setupStep: 2, setupStepCount: 2 }
+          : undefined,
+      );
     }
     void this.refreshPairedHostStatus();
     try {
@@ -8553,6 +8556,33 @@ export class SessionHostComponent implements OnInit, OnDestroy {
     }
   }
 
+  qaStatusTooltip(status: QaQuestionDTO['status']): string {
+    switch (status) {
+      case 'PINNED':
+        return $localize`:@@sessionQa.statusPinnedTooltip:Angepinnt: Diese Frage hebst du hervor. Sie gilt als »Wird beantwortet«.`;
+      case 'ARCHIVED':
+        return $localize`:@@sessionQa.statusArchivedTooltip:Archiviert: Diese Frage ist als beantwortet markiert und bleibt nachlesbar.`;
+      default:
+        return '';
+    }
+  }
+
+  qaPinnedSummaryTooltip(): string {
+    return $localize`:@@sessionQa.summaryPinnedTooltip:Angepinnt: Diese Fragen hebst du hervor. Sie gelten als »Wird beantwortet«.`;
+  }
+
+  qaArchivedSummaryTooltip(): string {
+    return $localize`:@@sessionQa.summaryArchivedTooltip:Archiviert: Diese Fragen sind als beantwortet markiert und bleiben nachlesbar.`;
+  }
+
+  qaPinnedSummaryAria(): string {
+    return $localize`:@@sessionQa.summaryPinnedAria:${this.formatCount(this.qaPinnedCount())}:count: angepinnte Fragen`;
+  }
+
+  qaArchivedSummaryAria(): string {
+    return $localize`:@@sessionQa.summaryArchivedAria:${this.formatCount(this.qaArchivedCount())}:count: archivierte Fragen`;
+  }
+
   qaStatusIcon(status: QaQuestionDTO['status']): string {
     switch (status) {
       case 'PINNED':
@@ -9236,7 +9266,7 @@ export class SessionHostComponent implements OnInit, OnDestroy {
     if (getStagedHostRecoveryCard(this.code) && !this.qaChannelNeedsConfiguration()) {
       await this.showStagedRecoveryCard(
         this.requestedQaCreateSetup && !this.qaCreateSetupCompleted
-          ? { setupStep: 3, setupStepCount: 3 }
+          ? { setupStep: 2, setupStepCount: 2 }
           : undefined,
       );
       return;
@@ -9249,8 +9279,8 @@ export class SessionHostComponent implements OnInit, OnDestroy {
       options?.numberSetupSequence === true &&
       !this.qaCreateSetupCompleted &&
       Boolean(getStagedHostRecoveryCard(this.code));
-    const setupStepCount = this.requestedQaCreateSetup ? 3 : 2;
-    const setupStep = this.requestedQaCreateSetup ? 2 : 1;
+    const setupStepCount = 2;
+    const setupStep = 1;
     const result = await firstValueFrom(
       this.dialog
         .open<
@@ -9262,11 +9292,13 @@ export class SessionHostComponent implements OnInit, OnDestroy {
             code: this.code.toUpperCase(),
             session,
             profileLocked: Boolean(lifecycle.firstParticipantJoinedAt),
+            ...(this.requestedQaCreateSetup && !this.qaCreateSetupCompleted
+              ? { omitParticipationProfile: true }
+              : {}),
             ...(numberSetupSequence
               ? {
                   setupStep,
                   setupStepCount,
-                  ...(this.requestedQaCreateSetup ? { omitParticipationProfile: true } : {}),
                 }
               : {}),
           },
@@ -9303,8 +9335,8 @@ export class SessionHostComponent implements OnInit, OnDestroy {
     this.scheduleQaDeadlineCheck();
     await this.refreshQaQuestions();
     await this.showStagedRecoveryCard(
-      numberSetupSequence
-        ? { setupStep: this.requestedQaCreateSetup ? 3 : 2, setupStepCount }
+      (this.requestedQaCreateSetup && !this.qaCreateSetupCompleted) || numberSetupSequence
+        ? { setupStep: 2, setupStepCount: 2 }
         : undefined,
     );
   }
@@ -11402,17 +11434,18 @@ export class SessionHostComponent implements OnInit, OnDestroy {
       return;
     }
 
-    const questions = this.qaQuestions();
-    if (questions.length === 0) {
-      return;
-    }
-
     this.exportStatus.set(null);
     this.exportExporting.set(true);
 
     try {
+      const questions = await this.loadAllQaQuestionsForExport();
+      if (questions.length === 0) {
+        this.exportStatus.set($localize`:@@sessionQa.exportEmpty:Keine Fragen zum Exportieren.`);
+        return;
+      }
+
       const rows: string[] = [
-        $localize`:@@sessionQa.exportHeader:Nr.;Frage-ID;Status;Frage;Score;Positive Stimmen;Negative Stimmen;Stimmen gesamt;Wilson-Score;Kontroverse-Score;Umstritten;Erstellt am`,
+        $localize`:@@sessionQa.exportHeader:Nr.;Frage-ID;Status;Statusbezeichnung;Autor;Frage;Score;Positive Stimmen;Negative Stimmen;Stimmen gesamt;Wilson-Score;Kontroverse-Score;Umstritten;Hervorgehoben;Erstellt am`,
       ];
 
       for (const [index, question] of questions.entries()) {
@@ -11421,6 +11454,8 @@ export class SessionHostComponent implements OnInit, OnDestroy {
             index + 1,
             question.id,
             question.status,
+            escapeCsv(this.qaStatusLabel(question.status)),
+            escapeCsv(question.authorNickname ?? ''),
             escapeCsv(stripMarkdownToPlainText(question.text)),
             this.qaQuestionScore(question),
             question.positiveVoteCount ?? '',
@@ -11429,6 +11464,7 @@ export class SessionHostComponent implements OnInit, OnDestroy {
             this.formatQaExportMetric(question.bestScore),
             this.formatQaExportMetric(question.controversyScore),
             question.isControversial === undefined ? '' : String(question.isControversial),
+            String(this.isQaQuestionHighlighted(question.id)),
             question.createdAt,
           ].join(';'),
         );
@@ -11442,6 +11478,43 @@ export class SessionHostComponent implements OnInit, OnDestroy {
     } finally {
       this.exportExporting.set(false);
     }
+  }
+
+  private async loadAllQaQuestionsForExport(): Promise<QaQuestionDTO[]> {
+    const sessionId = this.session()?.id;
+    if (!sessionId) {
+      return [];
+    }
+
+    const questions: QaQuestionDTO[] = [];
+    let cursor: string | undefined;
+    const statuses: Array<QaQuestionDTO['status']> = [
+      'PENDING',
+      'ACTIVE',
+      'PINNED',
+      'ARCHIVED',
+      'DELETED',
+    ];
+
+    for (let page = 0; page < 250; page += 1) {
+      const snapshot = await trpc.qa.list.query({
+        sessionId,
+        moderatorView: true,
+        sort: 'TIME',
+        pageSize: 100,
+        statuses,
+        ...(cursor ? { cursor } : {}),
+      });
+      const pageQuestions = Array.isArray(snapshot) ? snapshot : snapshot.questions;
+      questions.push(...pageQuestions);
+      const nextCursor = Array.isArray(snapshot) ? null : (snapshot.nextCursor ?? null);
+      if (!nextCursor) {
+        break;
+      }
+      cursor = nextCursor;
+    }
+
+    return questions;
   }
 
   private formatQaExportMetric(value: number | undefined): string {

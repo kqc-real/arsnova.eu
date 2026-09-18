@@ -9352,6 +9352,14 @@
           <context context-type="linenumber">256</context>
         </context-group>
       </trans-unit>
+      <trans-unit id="homeLiveCard.recoveryLabel" datatype="html">
+        <source>Offene Session</source>
+        <target>Open session</target>
+      </trans-unit>
+      <trans-unit id="homeLiveCard.recoveryDescription" datatype="html">
+        <source>Zugang als Host</source>
+        <target>Host access</target>
+      </trans-unit>
       <trans-unit id="homeLiveCard.title" datatype="html">
         <source> Session starten</source>
         <target>Start a session</target>
@@ -20456,6 +20464,22 @@
           <context context-type="linenumber">4238,4239</context>
         </context-group>
       </trans-unit>
+      <trans-unit id="sessionQa.summaryPinnedTooltip" datatype="html">
+        <source>Angepinnt: Diese Fragen hebst du hervor. Sie gelten als »Wird beantwortet«.</source>
+        <target>Pinned: You highlight these questions. They count as “Being answered”.</target>
+      </trans-unit>
+      <trans-unit id="sessionQa.summaryArchivedTooltip" datatype="html">
+        <source>Archiviert: Diese Fragen sind als beantwortet markiert und bleiben nachlesbar.</source>
+        <target>Archived: These questions are marked as answered and remain readable.</target>
+      </trans-unit>
+      <trans-unit id="sessionQa.summaryPinnedAria" datatype="html">
+        <source><x id="PH" equiv-text="this.formatCount(this.qaPinnedCount())"/> angepinnte Fragen</source>
+        <target><x id="PH" equiv-text="this.formatCount(this.qaPinnedCount())"/> pinned questions</target>
+      </trans-unit>
+      <trans-unit id="sessionQa.summaryArchivedAria" datatype="html">
+        <source><x id="PH" equiv-text="this.formatCount(this.qaArchivedCount())"/> archivierte Fragen</source>
+        <target><x id="PH" equiv-text="this.formatCount(this.qaArchivedCount())"/> archived questions</target>
+      </trans-unit>
       <trans-unit id="sessionQa.summaryPending" datatype="html">
         <source>Warten auf Freigabe: <x id="INTERPOLATION" equiv-text="{{ formatCount(qaPendingCount()) }}"/></source>
         <target>Waiting for approval: <x id="INTERPOLATION" equiv-text="qaPendingCount()"/></target>
@@ -23543,6 +23567,14 @@
           <context context-type="linenumber">2630</context>
         </context-group>
       </trans-unit>
+      <trans-unit id="sessionQa.statusPinnedTooltip" datatype="html">
+        <source>Angepinnt: Diese Frage hebst du hervor. Sie gilt als »Wird beantwortet«.</source>
+        <target>Pinned: You highlight this question. It counts as “Being answered”.</target>
+      </trans-unit>
+      <trans-unit id="sessionQa.statusArchivedTooltip" datatype="html">
+        <source>Archiviert: Diese Frage ist als beantwortet markiert und bleibt nachlesbar.</source>
+        <target>Archived: This question is marked as answered and remains readable.</target>
+      </trans-unit>
       <trans-unit id="sessionQa.statusArchived" datatype="html">
         <source>Beantwortet</source>
         <target>Answered</target>
@@ -24028,8 +24060,8 @@
         </context-group>
       </trans-unit>
       <trans-unit id="sessionQa.exportHeader" datatype="html">
-        <source>Nr.;Frage-ID;Status;Frage;Score;Positive Stimmen;Negative Stimmen;Stimmen gesamt;Wilson-Score;Kontroverse-Score;Umstritten;Erstellt am</source>
-        <target>No.;Question ID;Status;Question;Score;Positive votes;Negative votes;Total votes;Wilson score;Controversy score;Controversial;Created at</target>
+        <source>Nr.;Frage-ID;Status;Statusbezeichnung;Autor;Frage;Score;Positive Stimmen;Negative Stimmen;Stimmen gesamt;Wilson-Score;Kontroverse-Score;Umstritten;Hervorgehoben;Erstellt am</source>
+        <target>No.;Question ID;Status;Status label;Author;Question;Score;Positive votes;Negative votes;Total votes;Wilson score;Controversy score;Controversial;Highlighted;Created at</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.ts</context>
           <context context-type="linenumber">11071</context>
@@ -24042,6 +24074,10 @@
           <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.ts</context>
           <context context-type="linenumber">11094</context>
         </context-group>
+      </trans-unit>
+      <trans-unit id="sessionQa.exportEmpty" datatype="html">
+        <source>Keine Fragen zum Exportieren.</source>
+        <target>No questions to export.</target>
       </trans-unit>
       <trans-unit id="7304749878499794874" datatype="html">
         <source>Frage <x id="questionNumber" equiv-text="data.questionOrder + 1"/>: <x id="questionText" equiv-text="data.questionText ?? &apos;&apos;"/></source>

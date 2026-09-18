@@ -226,6 +226,24 @@
   --session-host-channel-tabs-offset: var(--session-host-channel-tabs-offset-immersive);
 }
 
+/* Nach Session-Ende ist die App-Toolbar wieder sichtbar, der Live-Banner fehlt.
+   Ohne Extra-Luft schiebt sich die erste Karte unter die fixe Leiste. */
+.session-host--finished {
+  padding-top: 2.5rem;
+}
+
+@media (min-width: 600px) {
+  .session-host--finished {
+    padding-top: 2.75rem;
+  }
+}
+
+@media (min-width: 840px) {
+  .session-host--finished {
+    padding-top: 3rem;
+  }
+}
+
 .session-host--with-channel-tabs .session-host__live-shell-row,
 .session-host--with-channel-tabs .session-host__live-banner {
   position: static;
@@ -2153,6 +2171,7 @@
   border-color: color-mix(in srgb, var(--mat-sys-tertiary) 22%, transparent);
   color: var(--mat-sys-tertiary);
   font-weight: 600;
+  cursor: help;
 }
 
 .session-qa-summary__chip--archived {
@@ -2160,6 +2179,7 @@
   border-color: color-mix(in srgb, var(--mat-sys-on-surface-variant) 14%, transparent);
   color: var(--mat-sys-on-surface-variant);
   opacity: 0.7;
+  cursor: help;
 }
 
 .session-qa-summary__chip--deleted {
@@ -2505,6 +2525,7 @@
   &--pinned {
     background: color-mix(in srgb, var(--mat-sys-tertiary) 14%, transparent);
     color: var(--mat-sys-tertiary);
+    cursor: help;
   }
 
   &--pending {
@@ -2516,6 +2537,7 @@
     background: color-mix(in srgb, var(--mat-sys-outline) 12%, transparent);
     color: var(--mat-sys-on-surface-variant);
     opacity: 0.75;
+    cursor: help;
   }
 
   &--deleted {

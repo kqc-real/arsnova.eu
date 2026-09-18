@@ -35,7 +35,7 @@ describe('HostRecoveryCardDialogComponent', () => {
       'admin_panel_settings',
     );
     expect(host.textContent).toContain('Host-Zugang sichern');
-    expect(host.textContent).not.toContain('Schritt 3 von 3');
+    expect(host.textContent).not.toContain('Schritt 2 von 2');
     expect(host.textContent).toContain('in diesem Browser gespeichert');
     expect(host.textContent).toContain('anderen Browser');
     expect(host.textContent).toContain('Wiederherstellungsseite');
@@ -43,6 +43,9 @@ describe('HostRecoveryCardDialogComponent', () => {
     expect(host.textContent).toContain('sechsstelligen Teilnahme-Code');
     expect(host.textContent).toContain('Berechtigung für diese Session prüfen');
     expect(host.textContent).toContain('Kontaktdaten im Impressum');
+    const imprintLink = host.querySelector('a[href*="/legal/imprint"]') as HTMLAnchorElement | null;
+    expect(imprintLink?.textContent?.trim()).toBe('Kontaktdaten im Impressum');
+    expect(imprintLink?.getAttribute('href') ?? '').not.toContain('host-recovery');
     expect(host.textContent).not.toContain('ABC123');
     expect(host.textContent).not.toContain('Sessioncode');
     const recoveryLink = host.querySelector(
@@ -65,14 +68,14 @@ describe('HostRecoveryCardDialogComponent', () => {
       imports: [HostRecoveryCardDialogComponent],
       providers: [
         provideRouter([]),
-        { provide: MAT_DIALOG_DATA, useValue: { ...CARD, setupStep: 3, setupStepCount: 3 } },
+        { provide: MAT_DIALOG_DATA, useValue: { ...CARD, setupStep: 2, setupStepCount: 2 } },
         { provide: MatDialogRef, useValue: { close } },
       ],
     });
     const fixture = TestBed.createComponent(HostRecoveryCardDialogComponent);
     fixture.detectChanges();
 
-    expect(fixture.nativeElement.textContent).toContain('Schritt 3 von 3');
+    expect(fixture.nativeElement.textContent).toContain('Schritt 2 von 2');
   });
 
   it('gibt Fertig nach dem Bestätigen der Sicherung frei', () => {
@@ -123,7 +126,7 @@ describe('HostRecoveryCardDialogComponent', () => {
     expect(html).not.toContain('Sessioncode');
     expect(html).toContain(CARD.supportId);
     expect(html).toContain(CARD.recoveryCode);
-    expect(html).not.toContain('Schritt 3 von 3');
+    expect(html).not.toContain('Schritt 2 von 2');
     expect(html).toContain('<h1>Host-Zugangsdaten</h1>');
     expect(html).toContain('auf einem anderen Gerät oder in einem anderen Browser');
     expect(html).not.toContain('Dein Host-Zugang ist in diesem Browser gespeichert');
@@ -132,6 +135,7 @@ describe('HostRecoveryCardDialogComponent', () => {
     expect(html).toContain('Kontaktdaten im Impressum');
     expect(html).toContain('host-recovery');
     expect(html).toMatch(/<a class="usage-link" href="[^"]*host-recovery[^"]*">/);
+    expect(html).toMatch(/<a class="usage-link" href="[^"]*\/legal\/imprint[^"]*">/);
     expect(html).not.toContain('<script');
   });
 });

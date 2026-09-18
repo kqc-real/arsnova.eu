@@ -101,6 +101,9 @@ describe('HostRecoveryComponent', () => {
     expect(host.textContent).toContain('Gib die Session-Kennung und den Wiederherstellungscode');
     expect(host.textContent).toContain('weder die Session noch die Nachbereitungsfrist');
     expect(host.textContent).toContain('Kontaktdaten im Impressum');
+    const imprintLink = host.querySelector('a[href*="/legal/imprint"]') as HTMLAnchorElement | null;
+    expect(imprintLink?.textContent?.trim()).toBe('Kontaktdaten im Impressum');
+    expect(imprintLink?.getAttribute('href') ?? '').not.toContain('host-recovery');
     expect(host.textContent).toContain('Schritt 1 von 3');
     expect(host.querySelector('mat-button-toggle-group')).toBeNull();
     expect(

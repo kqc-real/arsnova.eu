@@ -384,6 +384,49 @@ export function getStoredHostCapabilities(code: string): {
   };
 }
 
+export function hasStoredHostCapabilities(): boolean {
+  if (!canUseLocalStorage()) return false;
+  const capabilityPrefix = `${HOST_BROWSER_CAPABILITY_PREFIX}-`;
+  const candidatePrefix = `${HOST_RECOVERY_CANDIDATE_PREFIX}-`;
+  for (let index = 0; index < localStorage.length; index += 1) {
+    const key = localStorage.key(index);
+    if (!key) continue;
+    if (key.startsWith(capabilityPrefix) && localStorage.getItem(key)?.trim()) {
+      return true;
+    }
+    if (key.startsWith(candidatePrefix)) {
+      const code = key.slice(candidatePrefix.length);
+      if (getHostRecoveryCandidate(code)?.trim()) return true;
+    }
+  }
+  return false;
+}
+
+export function listStoredHostBrowserCapabilityCodes(): string[] {
+  if (!canUseLocalStorage()) return [];
+  const prefix = `${HOST_BROWSER_CAPABILITY_PREFIX}-`;
+  const codes: string[] = [];
+  for (let index = 0; index < localStorage.length; index += 1) {
+    const key = localStorage.key(index);
+    if (!key?.startsWith(prefix) || !localStorage.getItem(key)?.trim()) continue;
+    codes.push(key.slice(prefix.length));
+  }
+  return codes;
+}
+
+export function findPreferredHostBrowserCapabilityCode(
+  preferredCodes: readonly string[] = [],
+): string | null {
+  const stored = listStoredHostBrowserCapabilityCodes();
+  if (stored.length === 0) return null;
+  const storedSet = new Set(stored);
+  for (const code of preferredCodes) {
+    const normalized = normalizeCode(code);
+    if (storedSet.has(normalized)) return normalized;
+  }
+  return stored[0] ?? null;
+}
+
 export function getUsableHostCapability(code: string): string | null {
   const { active, candidate } = getStoredHostCapabilities(code);
   return candidate ?? active;

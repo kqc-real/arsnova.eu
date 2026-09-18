@@ -16,6 +16,9 @@ import {
   persistPreparedHostRecovery,
   stagePendingHostCredentialActivation,
   storeHostBrowserCapability,
+  storeHostRecoveryCandidate,
+  hasStoredHostCapabilities,
+  findPreferredHostBrowserCapabilityCode,
 } from './host-recovery-access';
 
 const SUPPORT_ID = 'ARS-ABCD-2345';
@@ -208,6 +211,26 @@ describe('host-recovery-access', () => {
     expect(getHostBrowserCapability('ABC123')).toBe(
       'active-browser-capability-abcdefghijklmnopqrstuvwxyz',
     );
+  });
+
+  it('erkennt gespeicherte Host-Capabilities unabhängig vom Sessioncode', () => {
+    expect(hasStoredHostCapabilities()).toBe(false);
+    storeHostBrowserCapability('abc123', 'browser-capability-abcdefghijklmnopqrstuvwxyz');
+    expect(hasStoredHostCapabilities()).toBe(true);
+    localStorage.clear();
+    expect(hasStoredHostCapabilities()).toBe(false);
+    storeHostRecoveryCandidate('XYZ789', 'candidate-capability-abcdefghijklmnopqrstuvwxyz');
+    expect(hasStoredHostCapabilities()).toBe(true);
+  });
+
+  it('liefert direkten Host-Zugang nur für aktivierte Browser-Capabilities', () => {
+    expect(findPreferredHostBrowserCapabilityCode()).toBeNull();
+    storeHostRecoveryCandidate('XYZ789', 'candidate-capability-abcdefghijklmnopqrstuvwxyz');
+    expect(findPreferredHostBrowserCapabilityCode()).toBeNull();
+    storeHostBrowserCapability('abc123', 'browser-capability-abcdefghijklmnopqrstuvwxyz');
+    storeHostBrowserCapability('DEF456', 'other-browser-capability-abcdefghijklmnopqrstuvwxyz');
+    expect(findPreferredHostBrowserCapabilityCode(['def456'])).toBe('DEF456');
+    expect(findPreferredHostBrowserCapabilityCode()).toMatch(/^(ABC123|DEF456)$/);
   });
 
   it('legt Geheimnisse weder in Location noch in URL-artigen Storage-Schlüsseln ab', () => {

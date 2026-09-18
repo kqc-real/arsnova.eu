@@ -2362,11 +2362,21 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
     fixture.detectChanges();
 
     const host = fixture.nativeElement as HTMLElement;
+    expect(host.querySelector('.session-host--finished')).not.toBeNull();
+    expect(host.querySelector('.session-host--with-live-banner')).toBeNull();
+    const { readFileSync } = await import('node:fs');
+    const { fileURLToPath } = await import('node:url');
+    const { dirname, join } = await import('node:path');
+    const styles = readFileSync(
+      join(dirname(fileURLToPath(import.meta.url)), 'session-host.component.scss'),
+      'utf8',
+    );
+    expect(styles).toMatch(/\.session-host--finished\s*\{[^}]*padding-top:\s*2\.5rem/);
     expect(host.textContent).toContain('ausschließlich lesen und exportieren');
     expect(host.querySelector('.session-host__qa-title-edit-btn')).toBeNull();
-    expect(
-      host.querySelector<HTMLButtonElement>('.session-qa-moderation-toggle button')?.disabled,
-    ).toBe(true);
+    expect(host.querySelector('.session-qa-moderation-toggle')).toBeNull();
+    expect(host.textContent).not.toContain('Vorab-Moderation');
+    expect(host.textContent).not.toContain('Neue Fragen warten erst auf deine Freigabe.');
 
     fixture.componentInstance.startQaTitleEdit();
     await fixture.componentInstance.toggleQaModeration();
@@ -2377,6 +2387,70 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
     expect(fixture.componentInstance.qaTitleEditing()).toBe(false);
     expect(qaToggleModerationMutateMock).not.toHaveBeenCalled();
     expect(qaModerateMutateMock).not.toHaveBeenCalled();
+    fixture.destroy();
+  });
+
+  it('erklärt angepinnte und archivierte Q&A-Pills per Tooltip', async () => {
+    getInfoQueryMock.mockResolvedValue({
+      ...defaultSession,
+      type: 'Q_AND_A',
+      quizName: null,
+      title: 'Fragen',
+      status: 'ACTIVE',
+      channels: {
+        quiz: { enabled: false },
+        qa: { enabled: true, open: true, title: 'Fragen', moderationMode: false },
+        quickFeedback: { enabled: false, open: false },
+      },
+    });
+    qaListQueryMock.mockResolvedValue([
+      {
+        id: '11111111-1111-4111-8111-111111111111',
+        text: 'Angepinnte Exportfrage',
+        upvoteCount: 4,
+        status: 'PINNED',
+        createdAt: '2026-03-24T12:00:00.000Z',
+        myVote: null,
+        isOwn: false,
+        hasUpvoted: false,
+      },
+      {
+        id: '22222222-2222-4222-8222-222222222222',
+        text: 'Archivierte Exportfrage',
+        upvoteCount: 1,
+        status: 'ARCHIVED',
+        createdAt: '2026-03-24T12:01:00.000Z',
+        myVote: null,
+        isOwn: false,
+        hasUpvoted: false,
+      },
+    ]);
+
+    const fixture = setup();
+    fixture.detectChanges();
+    await flushComponentAfterStable(fixture, 50);
+    fixture.componentInstance.activeChannel.set('qa');
+    fixture.detectChanges();
+    await flushComponentAfterStable(fixture, 50);
+    fixture.detectChanges();
+
+    const host = fixture.nativeElement as HTMLElement;
+    expect(fixture.componentInstance.qaPinnedSummaryTooltip()).toContain('Angepinnt');
+    expect(fixture.componentInstance.qaArchivedSummaryTooltip()).toContain('Archiviert');
+    expect(fixture.componentInstance.qaStatusTooltip('PINNED')).toContain('Wird beantwortet');
+    expect(fixture.componentInstance.qaStatusTooltip('ARCHIVED')).toContain('beantwortet');
+    const pinnedChip = host.querySelector(
+      '.session-qa-summary__chip--pinned',
+    ) as HTMLElement | null;
+    const archivedChip = host.querySelector(
+      '.session-qa-summary__chip--archived',
+    ) as HTMLElement | null;
+    expect(pinnedChip).not.toBeNull();
+    expect(archivedChip).not.toBeNull();
+    expect(pinnedChip?.getAttribute('aria-label')).toContain('angepinnte Fragen');
+    expect(archivedChip?.getAttribute('aria-label')).toContain('archivierte Fragen');
+    expect(pinnedChip?.tabIndex).toBe(0);
+    expect(archivedChip?.tabIndex).toBe(0);
     fixture.destroy();
   });
 
@@ -2672,9 +2746,16 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
       QaChannelConfigurationDialogComponent,
       expect.objectContaining({
         data: expect.objectContaining({
-          setupStep: 2,
-          setupStepCount: 3,
           omitParticipationProfile: true,
+        }),
+      }),
+    );
+    expect(dialogOpenMock).toHaveBeenCalledWith(
+      QaChannelConfigurationDialogComponent,
+      expect.objectContaining({
+        data: expect.not.objectContaining({
+          setupStep: expect.anything(),
+          setupStepCount: expect.anything(),
         }),
       }),
     );
@@ -2740,7 +2821,7 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
     expect(dialogOpenMock).toHaveBeenCalledWith(
       HostRecoveryCardDialogComponent,
       expect.objectContaining({
-        data: expect.objectContaining({ setupStep: 3, setupStepCount: 3 }),
+        data: expect.objectContaining({ setupStep: 2, setupStepCount: 2 }),
       }),
     );
     expect(dialogOpenMock).not.toHaveBeenCalledWith(
@@ -2797,7 +2878,7 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
     fixture.destroy();
   });
 
-  it('beendet nach der Zugangskarte die Startsequenz, startet die Fragerunde und öffnet Schritt 2 nicht erneut', async () => {
+  it('beendet nach der Zugangskarte die Startsequenz, startet die Fragerunde und öffnet die Einrichtung nicht erneut als Startschritt', async () => {
     persistInitialHostRecovery({
       code: 'ABC123',
       recoveryCard: {
@@ -2808,16 +2889,16 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
     getLifecycleForHostQueryMock.mockResolvedValue({ ...defaultLifecycle });
     getInfoQueryMock.mockResolvedValue({
       ...defaultSession,
-      qaClosesAt: null,
+      qaClosesAt: '2026-03-25T12:00:00.000Z',
       channels: {
         quiz: { enabled: false },
         qa: {
           enabled: true,
-          open: false,
-          title: null,
-          moderationMode: false,
-          state: 'UNCONFIGURED',
-          closesAt: null,
+          open: true,
+          title: 'Fragen & Antworten',
+          moderationMode: true,
+          state: 'OPEN',
+          closesAt: '2026-03-25T12:00:00.000Z',
         },
         quickFeedback: { enabled: false, open: false },
       },
@@ -2848,20 +2929,14 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
 
     await fixture.componentInstance.ngOnInit();
 
-    expect(dialogOpenMock).toHaveBeenCalledWith(
+    expect(dialogOpenMock).not.toHaveBeenCalledWith(
       QaChannelConfigurationDialogComponent,
-      expect.objectContaining({
-        data: expect.objectContaining({
-          setupStep: 2,
-          setupStepCount: 3,
-          omitParticipationProfile: true,
-        }),
-      }),
+      expect.anything(),
     );
     expect(dialogOpenMock).toHaveBeenCalledWith(
       HostRecoveryCardDialogComponent,
       expect.objectContaining({
-        data: expect.objectContaining({ setupStep: 3, setupStepCount: 3 }),
+        data: expect.objectContaining({ setupStep: 2, setupStepCount: 2 }),
         restoreFocus: false,
       }),
     );
@@ -2893,7 +2968,7 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
       expect.objectContaining({
         data: expect.not.objectContaining({
           setupStep: 2,
-          setupStepCount: 3,
+          setupStepCount: 2,
           omitParticipationProfile: true,
         }),
       }),
@@ -15936,7 +16011,7 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
       fixture.destroy();
     });
 
-    it('exportiert geladene Q&A-Fragen als CSV ohne Zusatzabfrage', async () => {
+    it('exportiert alle Q&A-Fragen als CSV mit den in der Host-UI sichtbaren Attributen', async () => {
       let exportedCsv = '';
       const createObjectURLMock = vi.fn(() => 'blob:test-export');
       const revokeObjectURLMock = vi.fn();
@@ -15982,6 +16057,7 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
         {
           id: '11111111-1111-4111-8111-111111111111',
           text: 'Wann startet der Test?',
+          authorNickname: 'Luna',
           upvoteCount: 4,
           score: 4,
           positiveVoteCount: 6,
@@ -16024,25 +16100,37 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
       });
 
       fixture.componentInstance.activeChannel.set('qa');
+      fixture.componentInstance.qaHighlightedQuestionIds.set(
+        new Set(['11111111-1111-4111-8111-111111111111']),
+      );
       fixture.detectChanges();
       await fixture.whenStable();
-      const qaQueryCallCount = qaListQueryMock.mock.calls.length;
 
       await fixture.componentInstance.exportQaQuestionsCsv();
       fixture.detectChanges();
 
-      expect(qaListQueryMock).toHaveBeenCalledTimes(qaQueryCallCount);
+      expect(qaListQueryMock).toHaveBeenCalledWith(
+        expect.objectContaining({
+          moderatorView: true,
+          sort: 'TIME',
+          pageSize: 100,
+          statuses: ['PENDING', 'ACTIVE', 'PINNED', 'ARCHIVED', 'DELETED'],
+        }),
+      );
       expect(getExportDataQueryMock).not.toHaveBeenCalled();
       expect(exportedCsv).toContain(
-        'Nr.;Frage-ID;Status;Frage;Score;Positive Stimmen;Negative Stimmen;Stimmen gesamt;Wilson-Score;Kontroverse-Score;Umstritten;Erstellt am',
+        'Nr.;Frage-ID;Status;Statusbezeichnung;Autor;Frage;Score;Positive Stimmen;Negative Stimmen;Stimmen gesamt;Wilson-Score;Kontroverse-Score;Umstritten;Hervorgehoben;Erstellt am',
       );
       expect(exportedCsv).toContain(
-        '1;11111111-1111-4111-8111-111111111111;ACTIVE;"Wann startet der Test?";4;6;2;8;0.625;0.375;false;2026-03-13T12:00:00.000Z',
+        '1;11111111-1111-4111-8111-111111111111;ACTIVE;"Freigegeben";"Luna";"Wann startet der Test?";4;6;2;8;0.625;0.375;false;true;2026-03-13T12:00:00.000Z',
       );
       expect(exportedCsv).toContain(
-        '2;22222222-2222-4222-8222-222222222222;DELETED;"Ist die Abgabe schon geschlossen?";-1;1;2;3;0.12;0.52;true;2026-03-13T12:01:00.000Z',
+        '2;22222222-2222-4222-8222-222222222222;DELETED;"Entfernt";"";"Ist die Abgabe schon geschlossen?";-1;1;2;3;0.12;0.52;true;false;2026-03-13T12:01:00.000Z',
       );
       expect(fixture.componentInstance.exportStatus()).toBe('Q&A-CSV exportiert.');
+      expect(
+        fixture.nativeElement.querySelector('[data-testid="qa-questions-export"]'),
+      ).not.toBeNull();
 
       fixture.destroy();
       anchorClickSpy.mockRestore();
@@ -16061,6 +16149,41 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
         writable: true,
         value: originalBlob,
       });
+    });
+
+    it('zeigt den Q&A-CSV-Export auch ohne geladene Fragen und meldet eine leere Liste', async () => {
+      getInfoQueryMock.mockResolvedValue({
+        ...defaultSession,
+        status: 'FINISHED',
+        channels: {
+          quiz: { enabled: true },
+          qa: {
+            enabled: true,
+            open: false,
+            title: 'Fragen aus dem Publikum',
+            moderationMode: true,
+          },
+          quickFeedback: { enabled: false, open: false },
+        },
+      });
+      qaListQueryMock.mockResolvedValue([]);
+
+      const fixture = setup();
+      fixture.detectChanges();
+      await fixture.whenStable();
+      fixture.componentInstance.activeChannel.set('qa');
+      fixture.componentInstance.postProcessingEnded.set(false);
+      fixture.detectChanges();
+
+      expect(
+        fixture.nativeElement.querySelector('[data-testid="qa-questions-export"]'),
+      ).not.toBeNull();
+
+      await fixture.componentInstance.exportQaQuestionsCsv();
+      fixture.detectChanges();
+
+      expect(fixture.componentInstance.exportStatus()).toBe('Keine Fragen zum Exportieren.');
+      fixture.destroy();
     });
 
     it('exportiert die Team-Wertung im Ergebnis-CSV', async () => {

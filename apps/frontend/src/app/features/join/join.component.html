@@ -20,16 +20,6 @@
             <mat-icon>home</mat-icon>
             <span i18n="@@sessionVote.sessionEndGateContinue">Zur Startseite</span>
           </a>
-          @if (errorSessionFinished()) {
-            <a
-              [routerLink]="localizedCommands(['session', code, 'host'])"
-              matButton="tonal"
-              class="join-card__host-link"
-            >
-              <mat-icon>admin_panel_settings</mat-icon>
-              <span i18n="@@sessionEntry.showHostLink">Als Host anzeigen</span>
-            </a>
-          }
         </div>
         @if (!errorSessionFinished()) {
           <p class="join-card__hint" i18n>

@@ -36,7 +36,7 @@ describe('SessionParticipationProfileDialogComponent', () => {
     expect(host.textContent).toContain('Anonymmodus');
     expect(host.textContent).toContain('keine vollständige Anonymisierung');
     expect(host.textContent).toContain('Nach dem ersten erfolgreichen Beitritt');
-    expect(host.textContent).not.toContain('Schritt 1 von 3');
+    expect(host.textContent).not.toContain('Schritt 1 von 2');
   });
 
   it('zeigt die Sequenznummer beim Anlegen von der Startseite', () => {
@@ -50,7 +50,7 @@ describe('SessionParticipationProfileDialogComponent', () => {
             identityMode: 'PRESET_PSEUDONYM',
             nicknameTheme: 'KINDERGARTEN',
             setupStep: 1,
-            setupStepCount: 3,
+            setupStepCount: 2,
           },
         },
         { provide: MatDialogRef, useValue: { close: () => undefined } },
@@ -59,7 +59,7 @@ describe('SessionParticipationProfileDialogComponent', () => {
     const fixture = TestBed.createComponent(SessionParticipationProfileDialogComponent);
     fixture.detectChanges();
 
-    expect(fixture.nativeElement.textContent).toContain('Schritt 1 von 3');
+    expect(fixture.nativeElement.textContent).toContain('Schritt 1 von 2');
   });
 
   it('liefert Modus und Pseudonymgruppe gemeinsam zurück', () => {

@@ -209,7 +209,7 @@ Der Kurs setzt für arsnova.eu ein internes Exportziel von zwei Stunden. Die tec
 
 ### 8.2 Q&A und Freitext
 
-- Der separate Host-Q&A-CSV ist für Vollmetriken verbindlich. Der allgemeine Sessionexport enthält nur einen reduzierten Q&A-Ausschnitt und lässt insbesondere die vollständige Metrikdarstellung des Host-CSV vermissen.
+- Der separate Host-Q&A-CSV ist für Vollmetriken verbindlich. Er enthält alle Fragen unabhängig vom aktuellen Listenfilter sowie die in der Host-UI sichtbaren Attribute (Statusbezeichnung, Autor, Score, Stimmen, Wilson, Kontroverse, Umstritten, Hervorgehoben). Der allgemeine Sessionexport enthält nur einen reduzierten Q&A-Ausschnitt und lässt insbesondere die vollständige Metrikdarstellung des Host-CSV vermissen.
 - Q&A-Rohtext wird nie unverändert an Studierende verteilt und nie in das Repository übernommen.
 - Innerhalb von 24 Stunden ersetzt die Datenkuratierung zulässige Fragen durch Kategorien oder neutrale Paraphrasen. Namen, Kontaktdaten, Organisationseinheiten, konkrete persönliche Situationen, Links mit Kennungen und seltene Kombinationen werden entfernt.
 - Für Lehranalysen werden nur Kategorien mit Zählwerten und dokumentiertem Nenner verwendet. Einzelne wörtliche Zitate sind ausgeschlossen.
