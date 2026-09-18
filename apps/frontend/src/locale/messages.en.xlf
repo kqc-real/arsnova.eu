@@ -20473,12 +20473,12 @@
         <target>Archived: These questions are marked as answered and remain readable.</target>
       </trans-unit>
       <trans-unit id="sessionQa.summaryPinnedAria" datatype="html">
-        <source><x id="PH" equiv-text="this.formatCount(this.qaPinnedCount())"/> angepinnte Fragen</source>
-        <target><x id="PH" equiv-text="this.formatCount(this.qaPinnedCount())"/> pinned questions</target>
+        <source><x id="count" equiv-text="this.formatCount(this.qaPinnedCount())"/> angepinnte Fragen</source>
+        <target><x id="count" equiv-text="this.formatCount(this.qaPinnedCount())"/> pinned questions</target>
       </trans-unit>
       <trans-unit id="sessionQa.summaryArchivedAria" datatype="html">
-        <source><x id="PH" equiv-text="this.formatCount(this.qaArchivedCount())"/> archivierte Fragen</source>
-        <target><x id="PH" equiv-text="this.formatCount(this.qaArchivedCount())"/> archived questions</target>
+        <source><x id="count" equiv-text="this.formatCount(this.qaArchivedCount())"/> archivierte Fragen</source>
+        <target><x id="count" equiv-text="this.formatCount(this.qaArchivedCount())"/> archived questions</target>
       </trans-unit>
       <trans-unit id="sessionQa.summaryPending" datatype="html">
         <source>Warten auf Freigabe: <x id="INTERPOLATION" equiv-text="{{ formatCount(qaPendingCount()) }}"/></source>
