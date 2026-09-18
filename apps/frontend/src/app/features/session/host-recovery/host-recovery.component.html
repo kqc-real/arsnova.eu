@@ -135,6 +135,7 @@
             matButton="text"
             type="button"
             data-testid="host-recovery-other-session"
+            [disabled]="busy()"
             (click)="startOtherSession()"
             i18n="@@hostRecovery.otherSessionAction"
           >
@@ -284,6 +285,7 @@
             matButton="text"
             type="button"
             data-testid="host-recovery-other-session"
+            [disabled]="busy()"
             (click)="startOtherSession()"
             i18n="@@hostRecovery.otherSessionAction"
           >
@@ -318,6 +320,7 @@
             matButton="text"
             type="button"
             data-testid="host-recovery-other-session"
+            [disabled]="busy()"
             (click)="startOtherSession()"
             i18n="@@hostRecovery.otherSessionAction"
           >
@@ -326,6 +329,7 @@
           <button
             matButton="text"
             type="button"
+            [disabled]="busy()"
             (click)="continueLater()"
             i18n="@@hostRecovery.laterAction"
           >

@@ -20,6 +20,7 @@ import { MatIcon } from '@angular/material/icon';
 import { MatInput } from '@angular/material/input';
 import { HostSupportIdSchema, OpaqueCapabilitySchema } from '@arsnova/shared-types';
 import {
+  abandonRejectedHostRecovery,
   clearHostRecoveryResume,
   clearPreparedHostRecoverySecrets,
   discardExpiredPreparedRecovery,
@@ -298,7 +299,10 @@ export class HostRecoveryComponent implements AfterViewChecked, OnDestroy {
     const resume = getHostRecoveryResume(supportId);
     if (resume && (resume.phase === 'activation_unconfirmed' || resume.phase === 'activated')) {
       await this.resumeRecovery(supportId);
-      return;
+      const view = this.view();
+      if (view !== 'pendingExpired' && view !== 'handoffExpired') {
+        return;
+      }
     }
 
     const seq = this.beginBusy('checking');
@@ -374,9 +378,9 @@ export class HostRecoveryComponent implements AfterViewChecked, OnDestroy {
       });
       markHostRecoveryActivated(prepared.recoveryCard.supportId, prepared.browserCapability);
       setHostToken(prepared.code, activated.hostToken);
+      if (this.destroyed || seq !== this.requestSeq) return;
       this.sessionCode.set(prepared.code);
       this.showNewCodeHint.set(true);
-      if (this.destroyed || seq !== this.requestSeq) return;
       this.view.set('success');
       this.requestFocus();
     } catch (error) {
@@ -406,6 +410,7 @@ export class HostRecoveryComponent implements AfterViewChecked, OnDestroy {
       const capabilities = code
         ? getStoredHostCapabilities(code)
         : { active: null, candidate: null };
+      let recoveryRejected = false;
       if (code && capabilities.candidate) {
         const candidateIssue = await this.issueHostAccess(code, capabilities.candidate);
         if (candidateIssue.status === 'issued') {
@@ -452,14 +457,17 @@ export class HostRecoveryComponent implements AfterViewChecked, OnDestroy {
               this.showTechnicalResumeError(kind, resume.phase);
               return;
             }
-            this.view.set('activationUnconfirmed');
-            this.requestFocus();
-            return;
+            if (kind !== 'genericError') {
+              this.view.set('activationUnconfirmed');
+              this.requestFocus();
+              return;
+            }
+            recoveryRejected = true;
           }
         }
       }
 
-      if (pending) {
+      if (pending && !recoveryRejected) {
         this.prepared.set(pending);
         this.sessionCode.set(pending.code);
         if (this.destroyed || seq !== this.requestSeq) return;
@@ -488,14 +496,20 @@ export class HostRecoveryComponent implements AfterViewChecked, OnDestroy {
       }
 
       if (this.destroyed || seq !== this.requestSeq) return;
-      if (resume?.phase === 'activation_unconfirmed') {
+      if (
+        resume?.phase === 'activation_unconfirmed' &&
+        !recoveryRejected &&
+        (pending || capabilities.candidate)
+      ) {
         this.view.set('activationUnconfirmed');
         this.requestFocus();
         return;
       }
       if (resume?.sourceKind === 'ADMIN_HANDOFF') {
+        abandonRejectedHostRecovery(supportId);
         this.view.set('handoffExpired');
       } else {
+        abandonRejectedHostRecovery(supportId);
         discardExpiredPreparedRecovery(supportId);
         this.view.set('pendingExpired');
       }
@@ -528,10 +542,12 @@ export class HostRecoveryComponent implements AfterViewChecked, OnDestroy {
   }
 
   restartRecovery(): void {
+    this.invalidateInFlightUi();
     const supportId = this.supportId().trim().toUpperCase();
     if (supportId) {
       const resume = getHostRecoveryResume(supportId);
-      if (resume?.phase !== 'activation_unconfirmed' && resume?.phase !== 'activated') {
+      if (resume?.phase !== 'activated') {
+        abandonRejectedHostRecovery(supportId);
         discardExpiredPreparedRecovery(supportId);
         clearPreparedHostRecoverySecrets(supportId);
         clearHostRecoveryResume(supportId);
@@ -543,6 +559,7 @@ export class HostRecoveryComponent implements AfterViewChecked, OnDestroy {
   }
 
   startOtherSession(): void {
+    this.invalidateInFlightUi();
     this.resetCredentialForm({ keepSupportId: false });
     this.view.set('credentials');
     this.requestFocus();
@@ -636,9 +653,9 @@ export class HostRecoveryComponent implements AfterViewChecked, OnDestroy {
   }): void {
     markHostRecoveryActivated(params.supportId, params.capability);
     setHostToken(params.code, params.hostToken);
+    if (this.destroyed || params.seq !== this.requestSeq) return;
     this.sessionCode.set(params.code);
     this.showNewCodeHint.set(params.showNewCodeHint);
-    if (this.destroyed || params.seq !== this.requestSeq) return;
     this.view.set('success');
     this.requestFocus();
   }
@@ -667,6 +684,12 @@ export class HostRecoveryComponent implements AfterViewChecked, OnDestroy {
     this.sessionCode.set(null);
     this.bannerError.set(null);
     this.showNewCodeHint.set(false);
+  }
+
+  private invalidateInFlightUi(): void {
+    this.requestSeq += 1;
+    this.busy.set(false);
+    this.busyKind.set(null);
   }
 
   private beginBusy(kind: 'checking' | 'activating' | 'checkingState'): number {

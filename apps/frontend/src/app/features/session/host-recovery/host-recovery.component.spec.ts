@@ -627,7 +627,7 @@ describe('HostRecoveryComponent', () => {
     await prepareFlow(component);
     component.newCardSaved.set(true);
     const originalSetItem = Storage.prototype.setItem;
-    vi.spyOn(Storage.prototype, 'setItem').mockImplementation(function (
+    const setItemSpy = vi.spyOn(Storage.prototype, 'setItem').mockImplementation(function (
       this: Storage,
       key: string,
       value: string,
@@ -638,12 +638,135 @@ describe('HostRecoveryComponent', () => {
       return originalSetItem.call(this, key, value);
     });
 
-    await component.activateAccess();
+    try {
+      await component.activateAccess();
+      current.detectChanges();
+
+      expect(activateMock).not.toHaveBeenCalled();
+      expect(component.busy()).toBe(false);
+      expect(component.view()).toBe('newCard');
+      expect(component.bannerError()).toContain('Zugang nicht speichern');
+    } finally {
+      setItemSpy.mockRestore();
+    }
+  });
+
+  it('gibt nach nie ausgeführtem Activate und Ablauf einen Neubeginn mit dem alten Code frei', async () => {
+    persistPreparedState({
+      oldCapability: 'old-browser-capability-abcdefghijklmnopqrstuvwxyz',
+      unconfirmed: true,
+      pendingExpiresAt: new Date(Date.now() - 16 * 60_000).toISOString(),
+    });
+    sessionStorage.clear();
+    issueMock.mockRejectedValue(trpcError('UNAUTHORIZED'));
+    activateMock.mockRejectedValue(trpcError('UNAUTHORIZED'));
+
+    const current = render();
+    const component = current.componentInstance;
+    await component.resumeRecovery();
+    current.detectChanges();
+
+    expect(component.view()).toBe('pendingExpired');
+    expect(getHostRecoveryCandidate('ABC123')).toBeNull();
+    expect(getHostRecoveryResume(SUPPORT_ID)).toBeNull();
+    expect(getHostBrowserCapability('ABC123')).toBe(
+      'old-browser-capability-abcdefghijklmnopqrstuvwxyz',
+    );
+
+    component.startOtherSession();
+    current.detectChanges();
+    component.supportId.set(SUPPORT_ID);
+    component.secret.set(OLD_RECOVERY_CODE);
+    await component.continueRecovery();
+    current.detectChanges();
+
+    expect(prepareMock).toHaveBeenCalledTimes(1);
+    expect(component.view()).toBe('newCard');
+    expect(getHostBrowserCapability('ABC123')).toBe(
+      'old-browser-capability-abcdefghijklmnopqrstuvwxyz',
+    );
+  });
+
+  it('bereitet nach abgelaufenem unbestätigtem Resume in demselben Submit neu vor', async () => {
+    persistPreparedState({
+      unconfirmed: true,
+      pendingExpiresAt: new Date(Date.now() - 16 * 60_000).toISOString(),
+    });
+    sessionStorage.clear();
+    issueMock.mockRejectedValue(trpcError('UNAUTHORIZED'));
+    activateMock.mockRejectedValue(trpcError('UNAUTHORIZED'));
+
+    const component = render().componentInstance;
+    component.supportId.set(SUPPORT_ID);
+    component.secret.set(OLD_RECOVERY_CODE);
+    await component.continueRecovery();
+
+    expect(prepareMock).toHaveBeenCalledTimes(1);
+    expect(component.view()).toBe('newCard');
+  });
+
+  it('nimmt eine nach Commit verlorene Aktivierung auch nach Fristablauf wieder auf', async () => {
+    persistPreparedState({
+      unconfirmed: true,
+      pendingExpiresAt: new Date(Date.now() - 16 * 60_000).toISOString(),
+    });
+    sessionStorage.clear();
+    issueMock.mockResolvedValue({
+      code: 'ABC123',
+      hostToken: 'committed-host-token-abcdefghijklmnopqrstuvwxyz',
+      hostTokenExpiresAt: '2026-09-15T08:15:00.000Z',
+      role: 'ORIGINAL_HOST',
+    });
+
+    const current = render();
+    await current.componentInstance.resumeRecovery();
     current.detectChanges();
 
     expect(activateMock).not.toHaveBeenCalled();
+    expect(current.componentInstance.view()).toBe('success');
+    expect(getHostBrowserCapability('ABC123')).toBe(NEW_BROWSER_CAPABILITY);
+  });
+
+  it('überschreibt den Wechsel zu einer anderen Session nicht durch eine verspätete Antwort', async () => {
+    persistPreparedState();
+    const deferred = Promise.withResolvers<{
+      code: string;
+      hostToken: string;
+      hostTokenExpiresAt: string;
+      role: string;
+    }>();
+    issueMock.mockImplementation(() => deferred.promise);
+
+    const current = render();
+    const component = current.componentInstance;
+    const resumePromise = component.resumeRecovery();
+    current.detectChanges();
+    expect(
+      (
+        current.nativeElement.querySelector(
+          '[data-testid="host-recovery-other-session"]',
+        ) as HTMLButtonElement
+      ).disabled,
+    ).toBe(true);
+
+    component.startOtherSession();
+    current.detectChanges();
+    component.supportId.set('ARS-WXYZ-6789');
+    component.supportIdControl.setValue('ARS-WXYZ-6789');
+    expect(component.view()).toBe('credentials');
+
+    deferred.resolve({
+      code: 'ABC123',
+      hostToken: 'late-host-token-abcdefghijklmnopqrstuvwxyz',
+      hostTokenExpiresAt: '2026-09-15T08:15:00.000Z',
+      role: 'ORIGINAL_HOST',
+    });
+    await resumePromise;
+    current.detectChanges();
+
+    expect(component.view()).toBe('credentials');
+    expect(component.supportId()).toBe('ARS-WXYZ-6789');
+    expect(component.sessionCode()).toBeNull();
     expect(component.busy()).toBe(false);
-    expect(component.view()).toBe('newCard');
-    expect(component.bannerError()).toContain('Zugang nicht speichern');
   });
 });

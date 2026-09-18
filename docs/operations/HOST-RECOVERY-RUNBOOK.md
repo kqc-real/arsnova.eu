@@ -46,9 +46,12 @@ beziehen. Alter Browserzugang und neuer Kandidat werden getrennt geprüft; ein
 gültiger Altzugang bestätigt nicht die Aktivierung des Kandidaten. Ein
 vorübergehender Netzwerk- oder Serverfehler gilt nicht als Ablauf und löscht
 keinen gültigen Kandidaten. Eine nie aktivierte Vorbereitung bleibt nach
-Fristablauf ungültig; die vorherige Generation gilt weiter. Abgeschlossene
-Wiederherstellungen öffnen das Formular nicht erneut automatisch. Der Guard
-aktiviert einen nur vorbereiteten Kandidaten nicht automatisch.
+Fristablauf ungültig; die vorherige Generation gilt weiter. Wurde Activate
+nie serverseitig ausgeführt und der Kandidat danach autoritativ abgelehnt,
+ist ein Neubeginn mit dem noch gültigen bisherigen Recovery-Code möglich.
+Abgeschlossene Wiederherstellungen öffnen das Formular nicht erneut
+automatisch. Der Guard aktiviert einen nur vorbereiteten Kandidaten nicht
+automatisch.
 
 Kurzfristiger Support: Besitzt der Browser die bereits aktivierte Capability,
 kann `/<locale>/session/<code>/host` über den Guard einen Token ausstellen.

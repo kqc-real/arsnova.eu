@@ -9,7 +9,9 @@ import {
   getOrCreateRecoveryExchangeId,
   getPendingHostCredentialActivation,
   getStagedHostRecoveryCard,
+  abandonRejectedHostRecovery,
   markHostRecoveryActivated,
+  markHostRecoveryActivationUnconfirmed,
   persistInitialHostRecovery,
   persistPreparedHostRecovery,
   stagePendingHostCredentialActivation,
@@ -184,6 +186,28 @@ describe('host-recovery-access', () => {
       'active-browser-capability-abcdefghijklmnopqrstuvwxyz',
     );
     expect(findUnambiguousHostRecoveryResume()?.phase).toBe('prepared');
+  });
+
+  it('gibt einen fachlich abgelehnten unbestätigten Vorgang frei, ohne den Altzugang zu löschen', () => {
+    storeHostBrowserCapability('ABC123', 'active-browser-capability-abcdefghijklmnopqrstuvwxyz');
+    persistPreparedHostRecovery({
+      supportId: SUPPORT_ID,
+      sourceKind: 'RECOVERY',
+      exchangeId: 'exchange-id-abcdefghijklmnopqrstuvwxyz0123456789ab',
+      prepared: {
+        code: 'ABC123',
+        browserCapability: 'pending-browser-capability-abcdefghijklmnopqrstuvwxyz',
+        recoveryCard: CARD,
+        pendingExpiresAt: new Date(Date.now() - 1).toISOString(),
+      },
+    });
+    markHostRecoveryActivationUnconfirmed(SUPPORT_ID);
+    abandonRejectedHostRecovery(SUPPORT_ID);
+    expect(getHostRecoveryCandidate('ABC123')).toBeNull();
+    expect(findUnambiguousHostRecoveryResume()).toBeNull();
+    expect(getHostBrowserCapability('ABC123')).toBe(
+      'active-browser-capability-abcdefghijklmnopqrstuvwxyz',
+    );
   });
 
   it('legt Geheimnisse weder in Location noch in URL-artigen Storage-Schlüsseln ab', () => {

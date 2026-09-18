@@ -483,6 +483,13 @@ export function discardExpiredPreparedRecovery(supportId: string): void {
   clearHostRecoveryResume(supportId);
 }
 
+export function abandonRejectedHostRecovery(supportId: string): void {
+  const resume = getHostRecoveryResume(supportId);
+  if (!resume || resume.phase === 'activated') return;
+  clearPreparedHostRecoverySecrets(supportId);
+  clearHostRecoveryResume(supportId);
+}
+
 export function findHostRecoveryResumeByCode(code: string): HostRecoveryResumeRecord | null {
   return listHostRecoveryResumes().find((record) => record.code === normalizeCode(code)) ?? null;
 }
