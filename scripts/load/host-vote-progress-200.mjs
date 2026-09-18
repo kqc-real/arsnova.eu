@@ -44,12 +44,20 @@ const CURRENT_QUESTION_MESSAGE_LIMIT = Math.max(
   Number(process.env.CURRENT_QUESTION_MESSAGE_LIMIT || 2),
 );
 
-function createHttpClient(hostToken) {
+function createHttpClient(hostToken, participantCapability) {
   return createTRPCProxyClient({
     links: [
       httpBatchLink({
         url: TRPC_URL,
-        headers: hostToken ? () => ({ 'x-host-token': hostToken }) : undefined,
+        headers:
+          hostToken || participantCapability
+            ? () => ({
+                ...(hostToken ? { 'x-host-token': hostToken } : {}),
+                ...(participantCapability
+                  ? { 'x-participant-capability': participantCapability }
+                  : {}),
+              })
+            : undefined,
       }),
     ],
   });
@@ -155,7 +163,12 @@ async function voteSpike(publicTrpc, joined, questionId) {
   const results = await Promise.allSettled(
     joined.map(async (participant, index) => {
       const requestStartedAt = performance.now();
-      await publicTrpc.vote.submit.mutate({
+      const capability = participant.rejoinToken;
+      if (typeof capability !== 'string' || !capability.trim()) {
+        throw new Error('Join lieferte kein rejoinToken.');
+      }
+      const voter = createHttpClient(undefined, capability.trim());
+      await voter.vote.submit.mutate({
         sessionId: participant.id,
         participantId: participant.participantId,
         questionId,

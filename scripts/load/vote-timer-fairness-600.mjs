@@ -71,12 +71,20 @@ const httpAgent = new Agent({
 
 const healthCheckUrl = buildHealthCheckUrl(TRPC_URL);
 
-function createHttpClient(hostToken) {
+function createHttpClient(hostToken, participantCapability) {
   return createTRPCProxyClient({
     links: [
       httpLink({
         url: TRPC_URL,
-        headers: hostToken ? () => ({ 'x-host-token': hostToken }) : undefined,
+        headers:
+          hostToken || participantCapability
+            ? () => ({
+                ...(hostToken ? { 'x-host-token': hostToken } : {}),
+                ...(participantCapability
+                  ? { 'x-participant-capability': participantCapability }
+                  : {}),
+              })
+            : undefined,
         fetch(url, init) {
           return undiciFetch(url, { ...init, dispatcher: httpAgent });
         },
@@ -233,7 +241,12 @@ async function submitVotes(publicTrpc, participants, questionId) {
     participants.map(async (participant, index) => {
       const requestStartedAt = performance.now();
       try {
-        return await publicTrpc.vote.submit.mutate({
+        const capability = participant.rejoinToken;
+        if (typeof capability !== 'string' || !capability.trim()) {
+          throw new Error('Join lieferte kein rejoinToken.');
+        }
+        const voter = createHttpClient(undefined, capability.trim());
+        return await voter.vote.submit.mutate({
           sessionId: participant.id,
           participantId: participant.participantId,
           questionId,

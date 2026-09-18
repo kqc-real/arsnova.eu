@@ -9236,14 +9236,6 @@
           <context context-type="linenumber">257,259</context>
         </context-group>
       </trans-unit>
-      <trans-unit id="homeLiveCard.description" datatype="html">
-        <source> Wähle Quiz, Q&amp;A oder Blitzlicht. </source>
-        <target>Choose Quiz, Q&amp;A, or Pulse Check.</target>
-        <context-group purpose="location">
-          <context context-type="sourcefile">src/app/features/home/home.component.html</context>
-          <context context-type="linenumber">260,262</context>
-        </context-group>
-      </trans-unit>
       <trans-unit id="homeLiveCard.quizDescription" datatype="html">
         <source>Wissen abfragen</source>
         <target>Check understanding</target>
@@ -9284,14 +9276,6 @@
           <context context-type="linenumber">345,347</context>
         </context-group>
       </trans-unit>
-      <trans-unit id="homeFeedbackCard.description" datatype="html">
-        <source> Wähle eine Abstimmung für direktes Feedback.</source>
-        <target>Choose a poll for instant feedback.</target>
-        <context-group purpose="location">
-          <context context-type="sourcefile">src/app/features/home/home.component.html</context>
-          <context context-type="linenumber">351,353</context>
-        </context-group>
-      </trans-unit>
       <trans-unit id="homeFeedbackCard.yesNoMaybeCompact" datatype="html">
         <source>Ja · Nein · ?</source>
         <target>Yes · No · ?</target>
@@ -9306,14 +9290,6 @@
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/home/home.component.html</context>
           <context context-type="linenumber">419</context>
-        </context-group>
-      </trans-unit>
-      <trans-unit id="homeHostCard.description" datatype="html">
-        <source> Erstelle ein neues Quiz oder öffne deine Sammlung.</source>
-        <target>Create a new quiz or open your library.</target>
-        <context-group purpose="location">
-          <context context-type="sourcefile">src/app/features/home/home.component.html</context>
-          <context context-type="linenumber">423,425</context>
         </context-group>
       </trans-unit>
       <trans-unit id="homeHostCard.primaryCtaDescription" datatype="html">

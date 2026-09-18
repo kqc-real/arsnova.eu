@@ -222,15 +222,6 @@
   hyphens: none;
 }
 
-.home-card__description {
-  margin: 0;
-  max-width: 34rem;
-  font: var(--mat-sys-body-small);
-  line-height: 1.5;
-  color: var(--mat-sys-on-surface-variant);
-  overflow-wrap: break-word;
-}
-
 .home-card__content {
   display: flex;
   flex-direction: column;
@@ -251,6 +242,7 @@
   display: flex;
   flex-direction: column;
   align-items: stretch;
+  justify-content: center;
   gap: 0.65rem;
 }
 
@@ -595,13 +587,15 @@
 .home-live-grid {
   display: grid;
   grid-template-columns: minmax(0, 1fr);
-  gap: 0.5rem;
+  column-gap: 0.75rem;
+  row-gap: 1rem;
   align-items: stretch;
 }
 
 @media (min-width: 600px) {
   .home-live-grid {
     grid-template-columns: repeat(3, minmax(0, 1fr));
+    row-gap: 0.75rem;
   }
 }
 
@@ -612,7 +606,7 @@
 .home-feedback-chip-grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 0.5rem;
+  gap: 0.75rem;
   min-width: 0;
 }
 
@@ -728,7 +722,7 @@
 .home-card__cta-stack {
   display: flex;
   flex-direction: column;
-  gap: 0.6rem;
+  gap: 1rem;
   width: 100%;
   min-width: 0;
 }
@@ -740,7 +734,8 @@
 .home-prepare-secondary-grid {
   display: grid;
   grid-template-columns: minmax(0, 1fr);
-  gap: 0.5rem;
+  column-gap: 0.75rem;
+  row-gap: 1rem;
   width: 100%;
   min-width: 0;
 }
@@ -748,6 +743,7 @@
 @media (min-width: 480px) {
   .home-prepare-secondary-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
+    row-gap: 0.75rem;
   }
 }
 
@@ -949,7 +945,6 @@
     margin-inline: auto;
   }
 
-  .home-card__description,
   .home-host-intro__description {
     font: var(--mat-sys-body-medium);
     line-height: 1.5;
@@ -972,11 +967,15 @@
   .home-live-grid,
   .home-prepare-secondary-grid {
     grid-template-columns: minmax(0, 1fr);
+    row-gap: 1rem;
   }
 
-  .home-card--feedback {
+  .home-card--live,
+  .home-card--feedback,
+  .home-card--create {
     display: flex;
     flex-direction: column;
+    height: 100%;
   }
 
   .home-card--feedback .home-card__content {
@@ -985,8 +984,15 @@
     padding-block: 0.75rem 1.25rem;
   }
 
+  .home-card--live .home-card__actions,
+  .home-card--create .home-card__actions {
+    flex: 1 1 auto;
+    justify-content: center;
+    align-content: center;
+  }
+
   .home-feedback-chip-grid {
-    gap: 0.75rem;
+    gap: 1rem;
   }
 
   .home-feedback-chip {

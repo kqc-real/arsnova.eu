@@ -5,6 +5,7 @@ import {
   createHttpTrpcSingle,
   createPublicWsTrpc,
   productionRetryDelayMs,
+  requireRejoinToken,
 } from '../lib/trpc-runtime.mjs';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
@@ -161,6 +162,16 @@ function tempoValueForIndex(index) {
   return values[index % values.length];
 }
 
+function participantTrpc(ctx, userContext) {
+  return createHttpTrpcSingle(
+    ctx.trpcUrl,
+    undefined,
+    undefined,
+    undefined,
+    requireRejoinToken({ rejoinToken: userContext.vars.rejoinToken }, 'Artillery-Join'),
+  );
+}
+
 export async function joinSession(userContext, events) {
   const startedAt = performance.now();
   try {
@@ -180,6 +191,7 @@ export async function joinSession(userContext, events) {
     });
     userContext.vars.sessionId = joined.id;
     userContext.vars.participantId = joined.participantId;
+    userContext.vars.rejoinToken = requireRejoinToken(joined, nickname);
     userContext.vars.participantIndex = index;
     userContext.vars.nickname = nickname;
     bumpRuntimeState('joins');
@@ -201,6 +213,7 @@ export async function connectParticipantStatusWs(userContext, events) {
     const { trpc, wsClient } = createPublicWsTrpc(ctx.wsUrl, {
       sessionCode: ctx.code,
       participantId: userContext.vars.participantId,
+      participantCapability: userContext.vars.rejoinToken,
     });
     let connectionSettled = false;
     let resolveStarted;
@@ -284,7 +297,7 @@ export async function pollSessionInfo(_userContext, events) {
 export async function fetchCurrentQuestion(userContext, events) {
   try {
     const ctx = loadSessionContext();
-    const trpc = createHttpTrpcSingle(ctx.trpcUrl);
+    const trpc = participantTrpc(ctx, userContext);
     const question = await trpc.session.getCurrentQuestionForStudent.query({
       code: ctx.code,
       participantId: userContext.vars.participantId,
@@ -309,7 +322,7 @@ export async function submitVote(userContext, events) {
   }
   try {
     const ctx = loadSessionContext();
-    const trpc = createHttpTrpcSingle(ctx.trpcUrl);
+    const trpc = participantTrpc(ctx, userContext);
     await trpc.vote.submit.mutate({
       sessionId: userContext.vars.sessionId,
       participantId: userContext.vars.participantId,
@@ -344,11 +357,12 @@ export async function maybeSubmitQa(userContext, events) {
   }
   try {
     const ctx = loadSessionContext();
-    const trpc = createHttpTrpcSingle(ctx.trpcUrl);
+    const trpc = participantTrpc(ctx, userContext);
     await trpc.qa.submit.mutate({
       sessionId: ctx.sessionId,
       participantId: userContext.vars.participantId,
       text: `Artillery Q&A Frage von ${userContext.vars.nickname}`,
+      idempotencyKey: globalThis.crypto.randomUUID(),
     });
     bumpRuntimeState('qaSubmits');
     events.emit('counter', 'custom.qa_submits_ok', 1);
@@ -433,7 +447,7 @@ export async function waitForReconnectResultsPhase(userContext, events) {
 export async function fetchResultsQuestion(userContext, events) {
   try {
     const ctx = loadSessionContext();
-    const trpc = createHttpTrpcSingle(ctx.trpcUrl);
+    const trpc = participantTrpc(ctx, userContext);
     const question = await trpc.session.getCurrentQuestionForStudent.query({
       code: ctx.code,
       participantId: userContext.vars.participantId,

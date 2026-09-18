@@ -111,6 +111,31 @@ export const ARTILLERY_QUIZ_PAYLOAD = {
   ],
 };
 
+async function openArtilleryQaChannel(hostTrpc, code) {
+  const selection = { kind: 'UNTIL_SESSION_END' };
+  const preview = await hostTrpc.session.previewQaConfiguration.query({
+    code,
+    mode: 'INITIAL',
+    selection,
+  });
+  return hostTrpc.session.configureQaChannel.mutate({
+    code,
+    mode: preview.mode,
+    selection,
+    expectedLifecycleRevision: preview.expectedLifecycleRevision,
+    previewServerNow: preview.serverNow,
+    confirmedQaClosesAt: preview.newQaClosesAt,
+    confirmedExpiresAt: preview.newExpiresAt,
+    confirmSessionExtension: preview.requiresSessionExtension,
+    qaTitle: 'Artillery Q&A',
+    moderationMode: false,
+    participationProfile: {
+      identityMode: 'CUSTOM_NICKNAME',
+      nicknameTheme: 'HIGH_SCHOOL',
+    },
+  });
+}
+
 /**
  * Unified Live-Session: Quiz + Q&A + Blitzlicht, Frage aktiv.
  */
@@ -130,6 +155,7 @@ export async function createArtillery500Session(trpcUrl) {
   });
 
   const hostTrpc = createHttpTrpc(trpcUrl, created.hostToken);
+  await openArtilleryQaChannel(hostTrpc, created.code);
   const opened = await hostTrpc.session.nextQuestion.mutate({ code: created.code });
   if (opened.status === 'QUESTION_OPEN') {
     await hostTrpc.session.revealAnswers.mutate({ code: created.code });

@@ -12,7 +12,7 @@ import { performance } from 'node:perf_hooks';
 import { arch, cpus, platform, release, totalmem } from 'node:os';
 import { writeFile } from 'node:fs/promises';
 import { createArtillery500Session } from './artillery/setup-session.mjs';
-import { createHttpTrpcSingle } from './lib/trpc-runtime.mjs';
+import { createHttpTrpcSingle, requireRejoinToken } from './lib/trpc-runtime.mjs';
 import { waitForBackend } from './lib/wait-for-backend.mjs';
 import { writeScenarioReport } from './lib/reporting.mjs';
 
@@ -178,21 +178,27 @@ async function joinParticipants(session, nicknamePrefix = 'LIVE') {
       anonymousClientId: globalThis.crypto.randomUUID(),
       joinIdempotencyKey: globalThis.crypto.randomUUID(),
     });
-    return joined.participantId;
+    return joined;
   });
 }
 
-async function submitVotes(session, participantIds) {
+async function submitVotes(session, participants) {
   const results = await mapConcurrent(
-    participantIds,
+    participants,
     VOTE_CONCURRENCY,
-    async (participantId, index) => {
-      const trpc = createHttpTrpcSingle(trpcUrlForIndex(index));
+    async (participant, index) => {
+      const trpc = createHttpTrpcSingle(
+        trpcUrlForIndex(index),
+        undefined,
+        undefined,
+        undefined,
+        requireRejoinToken(participant, `Join ${index + 1}`),
+      );
       const startedAt = performance.now();
       try {
         await trpc.vote.submit.mutate({
           sessionId: session.sessionId,
-          participantId,
+          participantId: participant.participantId,
           questionId: session.questionId,
           answerIds: [session.answerId],
           responseTimeMs: 500,
@@ -377,7 +383,9 @@ async function main() {
       baselineJoined: baselineParticipantIds.length,
       joined: participantIds.length,
       sourceIp: '127.0.0.1',
-      distinctParticipantIds: new Set(participantIds).size,
+      distinctParticipantIds: new Set(
+        participantIds.map((participant) => participant.participantId),
+      ).size,
     },
     system: {
       targetEnvironment: process.env.TARGET_ENVIRONMENT || 'local',

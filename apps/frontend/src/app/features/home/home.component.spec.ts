@@ -508,7 +508,7 @@ describe('HomeComponent', () => {
         /\.home-card#participant-entry\s*\{[^}]*max-width:\s*36rem[^}]*margin-inline:\s*auto/,
       );
       expect(desktopLayout).toMatch(
-        /\.home-card__description,\s*\.home-host-intro__description\s*\{[^}]*font:\s*var\(--mat-sys-body-medium\)[^}]*line-height:\s*1\.5/,
+        /\.home-host-intro__description\s*\{[^}]*font:\s*var\(--mat-sys-body-medium\)[^}]*line-height:\s*1\.5/,
       );
       expect(layout).not.toMatch(
         /\.home-main\s*\{[^}]*grid-template-columns:\s*repeat|\.home-main\s*\{[^}]*grid-template-columns:\s*minmax/,
@@ -526,9 +526,20 @@ describe('HomeComponent', () => {
         scss.indexOf('.home-cta--ready'),
       );
 
-      expect(scss).toMatch(/\.home-live-grid\s*\{[^}]*grid-template-columns:\s*minmax\(0,\s*1fr\)/);
       expect(scss).toMatch(
-        /@media \(min-width:\s*600px\)\s*\{[\s\S]*?\.home-live-grid\s*\{[^}]*grid-template-columns:\s*repeat\(3,\s*minmax\(0,\s*1fr\)\)/,
+        /\.home-card__actions--stack\s*\{[^}]*flex-direction:\s*column[^}]*justify-content:\s*center/,
+      );
+      expect(scss).toMatch(
+        /\.home-live-grid\s*\{[^}]*grid-template-columns:\s*minmax\(0,\s*1fr\)[^}]*column-gap:\s*0\.75rem[^}]*row-gap:\s*1rem/,
+      );
+      expect(scss).toMatch(
+        /@media \(min-width:\s*600px\)\s*\{[\s\S]*?\.home-live-grid\s*\{[^}]*grid-template-columns:\s*repeat\(3,\s*minmax\(0,\s*1fr\)\)[^}]*row-gap:\s*0\.75rem/,
+      );
+      expect(scss).toMatch(
+        /\.home-card__cta-stack\s*\{[^}]*flex-direction:\s*column[^}]*gap:\s*1rem/,
+      );
+      expect(scss).toMatch(
+        /\.home-prepare-secondary-grid\s*\{[^}]*grid-template-columns:\s*minmax\(0,\s*1fr\)[^}]*column-gap:\s*0\.75rem[^}]*row-gap:\s*1rem/,
       );
       expect(scss).toMatch(
         /\.home-feedback-chip-grid\s*\{[^}]*grid-template-columns:\s*repeat\(2,\s*minmax\(0,\s*1fr\)\)/,
@@ -537,7 +548,7 @@ describe('HomeComponent', () => {
         /@media \(min-width:\s*480px\)\s*\{[^}]*\.home-prepare-secondary-grid\s*\{[^}]*grid-template-columns:\s*repeat\(2,\s*minmax\(0,\s*1fr\)\)/,
       );
       expect(desktopLayout).toMatch(
-        /\.home-live-grid,\s*\.home-prepare-secondary-grid\s*\{[^}]*grid-template-columns:\s*minmax\(0,\s*1fr\)/,
+        /\.home-live-grid,\s*\.home-prepare-secondary-grid\s*\{[^}]*grid-template-columns:\s*minmax\(0,\s*1fr\)[^}]*row-gap:\s*1rem/,
       );
       expect(desktopLayout).toMatch(
         /\.home-sync-entry__form\s*\{[^}]*flex-direction:\s*column[^}]*align-items:\s*stretch/,
@@ -549,9 +560,15 @@ describe('HomeComponent', () => {
         /\.home-card--feedback \.home-card__content\s*\{[^}]*flex:\s*1 1 auto[^}]*justify-content:\s*center[^}]*padding-block:\s*0\.75rem 1\.25rem/,
       );
       expect(desktopLayout).toMatch(
+        /\.home-card--live,\s*\.home-card--feedback,\s*\.home-card--create\s*\{[^}]*flex-direction:\s*column[^}]*height:\s*100%/,
+      );
+      expect(desktopLayout).toMatch(
+        /\.home-card--live \.home-card__actions,\s*\.home-card--create \.home-card__actions\s*\{[^}]*flex:\s*1 1 auto[^}]*justify-content:\s*center[^}]*align-content:\s*center/,
+      );
+      expect(desktopLayout).toMatch(
         /\.home-card \.home-card__content,\s*\.home-card \.home-card__actions\s*\{[^}]*padding-bottom:\s*1\.25rem/,
       );
-      expect(desktopLayout).toMatch(/\.home-feedback-chip-grid\s*\{[^}]*gap:\s*0\.75rem/);
+      expect(desktopLayout).toMatch(/\.home-feedback-chip-grid\s*\{[^}]*gap:\s*1rem/);
       expect(desktopLayout).toMatch(
         /\.home-feedback-chip\s*\{[^}]*min-height:\s*4\.25rem[^}]*padding:\s*0\.65rem 0\.5rem/,
       );
@@ -586,24 +603,13 @@ describe('HomeComponent', () => {
         expect(button.querySelector('.home-choice-button__label')).not.toBeNull();
         expect(button.querySelector('.home-choice-button__description')).not.toBeNull();
       }
-      expect(
-        fixture.nativeElement
-          .querySelector('.home-card--live .home-card__description')
-          ?.textContent?.replace(/\s+/g, ' ')
-          .trim(),
-      ).toBe('Wähle Quiz, Q&A oder Blitzlicht.');
+      expect(fixture.nativeElement.querySelector('.home-card__description')).toBeNull();
 
       const quickFeedbackButtons = Array.from(
         fixture.nativeElement.querySelectorAll<HTMLElement>(
           '.home-feedback-chip-grid .home-feedback-chip',
         ),
       );
-      expect(
-        fixture.nativeElement
-          .querySelector('.home-card--feedback .home-card__description')
-          ?.textContent?.replace(/\s+/g, ' ')
-          .trim(),
-      ).toBe('Wähle eine Abstimmung für direktes Feedback.');
       expect(quickFeedbackButtons.map((button) => button.getAttribute('aria-label'))).toEqual([
         'Tempo',
         'Stimmungsbild',
