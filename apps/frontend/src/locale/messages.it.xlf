@@ -29990,6 +29990,26 @@
           <context context-type="linenumber">294</context>
         </context-group>
       </trans-unit>
+      <trans-unit id="hostRecovery.retryAction" datatype="html">
+        <source>Erneut versuchen</source>
+        <target>Riprova</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/host-recovery/host-recovery.component.html</context>
+          <context context-type="linenumber">151</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="hostRecovery.otherSessionAction" datatype="html">
+        <source>Andere Session wiederherstellen</source>
+        <target>Ripristina un’altra sessione</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/host-recovery/host-recovery.component.html</context>
+          <context context-type="linenumber">138</context>
+        </context-group>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/host-recovery/host-recovery.component.html</context>
+          <context context-type="linenumber">294</context>
+        </context-group>
+      </trans-unit>
       <trans-unit id="hostRecovery.activationWarning" datatype="html">
         <source> Die bisherigen Host-Zugänge werden ungültig. Bereits verbundene Geräte musst du anschließend neu verbinden. Deine Session und ihre Inhalte bleiben erhalten. </source>
         <target>Gli accessi precedenti come host non saranno più validi. Dovrai associare di nuovo i dispositivi già collegati. La sessione e i suoi contenuti resteranno intatti.</target>

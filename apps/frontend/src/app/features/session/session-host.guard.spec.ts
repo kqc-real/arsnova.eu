@@ -4,9 +4,11 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { clearHostToken, getHostToken, setHostToken } from '../../core/host-session-token';
 import {
   getHostBrowserCapability,
+  getHostRecoveryCandidate,
   getStagedHostRecoveryCard,
   persistInitialHostRecovery,
   persistPreparedHostRecovery,
+  storeHostBrowserCapability,
 } from '../../core/host-recovery-access';
 import { requireHostToken } from './session-host.guard';
 
@@ -160,5 +162,79 @@ describe('requireHostToken', () => {
     expect(activateMock).not.toHaveBeenCalled();
     expect(getHostBrowserCapability(CODE)).toBe(BROWSER_CAPABILITY);
     expect(getHostToken(CODE)).toBe('short-lived-host-token-abcdefghijklmnopqrstuvwxyz');
+  });
+
+  it('stellt bei widerrufenem Altzugang den neuen Kandidaten aus', async () => {
+    storeHostBrowserCapability(CODE, 'old-browser-capability-abcdefghijklmnopqrstuvwxyz');
+    persistPreparedHostRecovery({
+      supportId: 'ARS-ABCD-2345',
+      sourceKind: 'RECOVERY',
+      exchangeId: 'exchange-id-abcdefghijklmnopqrstuvwxyz0123456789ab',
+      prepared: {
+        code: CODE,
+        browserCapability: BROWSER_CAPABILITY,
+        recoveryCard: { supportId: 'ARS-ABCD-2345', recoveryCode: RECOVERY_CODE },
+        pendingExpiresAt: new Date(Date.now() + 60_000).toISOString(),
+      },
+    });
+    issueMock.mockImplementation(async ({ browserCapability }: { browserCapability: string }) => {
+      if (browserCapability === BROWSER_CAPABILITY) {
+        return {
+          code: CODE,
+          hostToken: 'candidate-host-token-abcdefghijklmnopqrstuvwxyz',
+          hostTokenExpiresAt: '2026-09-15T08:15:00.000Z',
+          role: 'ORIGINAL_HOST',
+        };
+      }
+      throw Object.assign(new Error('UNAUTHORIZED: intern'), { data: { code: 'UNAUTHORIZED' } });
+    });
+
+    const result = await TestBed.runInInjectionContext(() =>
+      Promise.resolve(requireHostToken(route(), {} as never)),
+    );
+
+    expect(result).toBe(true);
+    expect(issueMock).toHaveBeenCalledWith({ code: CODE, browserCapability: BROWSER_CAPABILITY });
+    expect(getHostBrowserCapability(CODE)).toBe(BROWSER_CAPABILITY);
+    expect(getHostRecoveryCandidate(CODE)).toBeNull();
+    expect(getHostToken(CODE)).toBe('candidate-host-token-abcdefghijklmnopqrstuvwxyz');
+  });
+
+  it('behält den nur vorbereiteten Kandidaten, wenn der Altzugang noch gültig ist', async () => {
+    storeHostBrowserCapability(CODE, 'old-browser-capability-abcdefghijklmnopqrstuvwxyz');
+    persistPreparedHostRecovery({
+      supportId: 'ARS-ABCD-2345',
+      sourceKind: 'RECOVERY',
+      exchangeId: 'exchange-id-abcdefghijklmnopqrstuvwxyz0123456789ab',
+      prepared: {
+        code: CODE,
+        browserCapability: BROWSER_CAPABILITY,
+        recoveryCard: { supportId: 'ARS-ABCD-2345', recoveryCode: RECOVERY_CODE },
+        pendingExpiresAt: new Date(Date.now() + 60_000).toISOString(),
+      },
+    });
+    issueMock.mockImplementation(async ({ browserCapability }: { browserCapability: string }) => {
+      if (browserCapability === 'old-browser-capability-abcdefghijklmnopqrstuvwxyz') {
+        return {
+          code: CODE,
+          hostToken: 'old-host-token-abcdefghijklmnopqrstuvwxyz',
+          hostTokenExpiresAt: '2026-09-15T08:15:00.000Z',
+          role: 'ORIGINAL_HOST',
+        };
+      }
+      throw Object.assign(new Error('UNAUTHORIZED: intern'), { data: { code: 'UNAUTHORIZED' } });
+    });
+
+    const result = await TestBed.runInInjectionContext(() =>
+      Promise.resolve(requireHostToken(route(), {} as never)),
+    );
+
+    expect(result).toBe(true);
+    expect(activateMock).not.toHaveBeenCalled();
+    expect(getHostBrowserCapability(CODE)).toBe(
+      'old-browser-capability-abcdefghijklmnopqrstuvwxyz',
+    );
+    expect(getHostRecoveryCandidate(CODE)).toBe(BROWSER_CAPABILITY);
+    expect(getHostToken(CODE)).toBe('old-host-token-abcdefghijklmnopqrstuvwxyz');
   });
 });

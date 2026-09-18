@@ -367,15 +367,26 @@ export function listHostRecoveryResumes(): HostRecoveryResumeRecord[] {
 
 export function findUnambiguousHostRecoveryResume(): HostRecoveryResumeRecord | null {
   const records = listHostRecoveryResumes().filter((record) => {
-    if (record.phase === 'activated') return true;
+    if (record.phase === 'activated') return false;
     if (record.phase === 'activation_unconfirmed') return true;
-    return isFutureTimestamp(record.pendingExpiresAt) || !!getUsableHostCapability(record.code);
+    return isFutureTimestamp(record.pendingExpiresAt) || !!getHostRecoveryCandidate(record.code);
   });
   return records.length === 1 ? records[0] : null;
 }
 
+export function getStoredHostCapabilities(code: string): {
+  active: string | null;
+  candidate: string | null;
+} {
+  return {
+    active: getHostBrowserCapability(code),
+    candidate: getHostRecoveryCandidate(code),
+  };
+}
+
 export function getUsableHostCapability(code: string): string | null {
-  return getHostBrowserCapability(code) ?? getHostRecoveryCandidate(code);
+  const { active, candidate } = getStoredHostCapabilities(code);
+  return candidate ?? active;
 }
 
 export function persistHostRecoveryResume(record: HostRecoveryResumeRecord): void {
@@ -440,6 +451,10 @@ export function promoteHostRecoveryCandidate(code: string, capability?: string):
 export function markHostRecoveryActivated(supportId: string, capability?: string): void {
   const resume = getHostRecoveryResume(supportId);
   if (resume) {
+    const candidate = getHostRecoveryCandidate(resume.code);
+    if (capability && candidate && capability !== candidate) {
+      return;
+    }
     promoteHostRecoveryCandidate(resume.code, capability);
     persistHostRecoveryResume({ ...resume, phase: 'activated' });
   }

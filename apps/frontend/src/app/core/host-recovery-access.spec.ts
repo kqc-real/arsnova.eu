@@ -9,9 +9,11 @@ import {
   getOrCreateRecoveryExchangeId,
   getPendingHostCredentialActivation,
   getStagedHostRecoveryCard,
+  markHostRecoveryActivated,
   persistInitialHostRecovery,
   persistPreparedHostRecovery,
   stagePendingHostCredentialActivation,
+  storeHostBrowserCapability,
 } from './host-recovery-access';
 
 const SUPPORT_ID = 'ARS-ABCD-2345';
@@ -143,6 +145,45 @@ describe('host-recovery-access', () => {
     discardExpiredPreparedRecovery(SUPPORT_ID);
     expect(getHostRecoveryCandidate('ABC123')).toBeNull();
     expect(findUnambiguousHostRecoveryResume()).toBeNull();
+  });
+
+  it('nimmt abgeschlossene Wiederherstellungen nicht automatisch wieder auf', () => {
+    persistPreparedHostRecovery({
+      supportId: SUPPORT_ID,
+      sourceKind: 'RECOVERY',
+      exchangeId: 'exchange-id-abcdefghijklmnopqrstuvwxyz0123456789ab',
+      prepared: {
+        code: 'ABC123',
+        browserCapability: 'pending-browser-capability-abcdefghijklmnopqrstuvwxyz',
+        recoveryCard: CARD,
+        pendingExpiresAt: new Date(Date.now() + 60_000).toISOString(),
+      },
+    });
+    markHostRecoveryActivated(SUPPORT_ID, 'pending-browser-capability-abcdefghijklmnopqrstuvwxyz');
+    expect(findUnambiguousHostRecoveryResume()).toBeNull();
+  });
+
+  it('bestätigt den Kandidaten nicht über einen anderen aktiven Browserzugang', () => {
+    storeHostBrowserCapability('ABC123', 'active-browser-capability-abcdefghijklmnopqrstuvwxyz');
+    persistPreparedHostRecovery({
+      supportId: SUPPORT_ID,
+      sourceKind: 'RECOVERY',
+      exchangeId: getOrCreateRecoveryExchangeId(SUPPORT_ID),
+      prepared: {
+        code: 'ABC123',
+        browserCapability: 'pending-browser-capability-abcdefghijklmnopqrstuvwxyz',
+        recoveryCard: CARD,
+        pendingExpiresAt: new Date(Date.now() + 60_000).toISOString(),
+      },
+    });
+    markHostRecoveryActivated(SUPPORT_ID, 'active-browser-capability-abcdefghijklmnopqrstuvwxyz');
+    expect(getHostRecoveryCandidate('ABC123')).toBe(
+      'pending-browser-capability-abcdefghijklmnopqrstuvwxyz',
+    );
+    expect(getHostBrowserCapability('ABC123')).toBe(
+      'active-browser-capability-abcdefghijklmnopqrstuvwxyz',
+    );
+    expect(findUnambiguousHostRecoveryResume()?.phase).toBe('prepared');
   });
 
   it('legt Geheimnisse weder in Location noch in URL-artigen Storage-Schlüsseln ab', () => {

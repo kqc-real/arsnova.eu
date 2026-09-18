@@ -38,7 +38,7 @@
               autocomplete="off"
               autocapitalize="characters"
               spellcheck="false"
-              [value]="supportId()"
+              [formControl]="supportIdControl"
               [attr.aria-invalid]="supportIdError() ? 'true' : null"
               (input)="onSupportIdInput($event)"
             />
@@ -63,7 +63,7 @@
               name="arsnova-host-recovery-secret"
               autocomplete="off"
               spellcheck="false"
-              [value]="secret()"
+              [formControl]="secretControl"
               [attr.aria-invalid]="secretError() ? 'true' : null"
               (input)="onSecretInput($event)"
             />
@@ -127,7 +127,19 @@
       }
 
       @if (view() === 'resume') {
+        @if (bannerError()) {
+          <p class="host-recovery-page__error" role="alert">{{ bannerError() }}</p>
+        }
         <div class="host-recovery-page__actions">
+          <button
+            matButton="text"
+            type="button"
+            data-testid="host-recovery-other-session"
+            (click)="startOtherSession()"
+            i18n="@@hostRecovery.otherSessionAction"
+          >
+            Andere Session wiederherstellen
+          </button>
           <button
             matButton="filled"
             type="button"
@@ -135,7 +147,11 @@
             [disabled]="busy()"
             (click)="resumeRecovery()"
           >
-            <span i18n="@@hostRecovery.resumeAction">Fortsetzen</span>
+            @if (bannerError()) {
+              <span i18n="@@hostRecovery.retryAction">Erneut versuchen</span>
+            } @else {
+              <span i18n="@@hostRecovery.resumeAction">Fortsetzen</span>
+            }
           </button>
         </div>
       }
@@ -265,6 +281,15 @@
         }
         <div class="host-recovery-page__actions">
           <button
+            matButton="text"
+            type="button"
+            data-testid="host-recovery-other-session"
+            (click)="startOtherSession()"
+            i18n="@@hostRecovery.otherSessionAction"
+          >
+            Andere Session wiederherstellen
+          </button>
+          <button
             matButton="filled"
             type="button"
             data-testid="host-recovery-open-session"
@@ -285,7 +310,19 @@
           Die Aktivierung konnte nicht bestätigt werden. Dein Zugang könnte bereits aktiv sein.
           Setze die Wiederherstellung fort.
         </p>
+        @if (bannerError()) {
+          <p class="host-recovery-page__error" role="alert">{{ bannerError() }}</p>
+        }
         <div class="host-recovery-page__actions">
+          <button
+            matButton="text"
+            type="button"
+            data-testid="host-recovery-other-session"
+            (click)="startOtherSession()"
+            i18n="@@hostRecovery.otherSessionAction"
+          >
+            Andere Session wiederherstellen
+          </button>
           <button
             matButton="text"
             type="button"
@@ -294,8 +331,18 @@
           >
             Später fortsetzen
           </button>
-          <button matButton="filled" type="button" [disabled]="busy()" (click)="resumeRecovery()">
-            <span i18n="@@hostRecovery.resumeAction">Fortsetzen</span>
+          <button
+            matButton="filled"
+            type="button"
+            data-testid="host-recovery-resume"
+            [disabled]="busy()"
+            (click)="resumeRecovery()"
+          >
+            @if (bannerError()) {
+              <span i18n="@@hostRecovery.retryAction">Erneut versuchen</span>
+            } @else {
+              <span i18n="@@hostRecovery.resumeAction">Fortsetzen</span>
+            }
           </button>
         </div>
       }

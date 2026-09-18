@@ -4,8 +4,11 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import {
   getHostBrowserCapability,
   getHostRecoveryCandidate,
+  getHostRecoveryResume,
   getPendingHostCredentialActivation,
+  markHostRecoveryActivationUnconfirmed,
   persistPreparedHostRecovery,
+  storeHostBrowserCapability,
 } from '../../../core/host-recovery-access';
 import { HostRecoveryComponent } from './host-recovery.component';
 
@@ -37,6 +40,11 @@ describe('HostRecoveryComponent', () => {
 
   beforeEach(async () => {
     vi.clearAllMocks();
+    vi.unstubAllGlobals();
+    prepareMock.mockReset();
+    activateMock.mockReset();
+    issueMock.mockReset();
+    setHostTokenMock.mockReset();
     localStorage.clear();
     sessionStorage.clear();
     prepareMock.mockResolvedValue({
@@ -66,6 +74,7 @@ describe('HostRecoveryComponent', () => {
   afterEach(() => {
     fixture?.destroy();
     TestBed.resetTestingModule();
+    vi.unstubAllGlobals();
   });
 
   function render(): ComponentFixture<HostRecoveryComponent> {
@@ -327,10 +336,13 @@ describe('HostRecoveryComponent', () => {
 
   it('setzt die Sicherungscheckbox nicht durch Copy oder Download', async () => {
     const writeText = vi.fn().mockResolvedValue(undefined);
-    vi.stubGlobal('navigator', { clipboard: { writeText } });
     const current = render();
     const component = current.componentInstance;
     await prepareFlow(component);
+    vi.stubGlobal('navigator', {
+      userAgent: 'Mozilla/5.0',
+      clipboard: { writeText },
+    });
     await component.copyAll();
     component.download();
     expect(component.newCardSaved()).toBe(false);
@@ -340,5 +352,298 @@ describe('HostRecoveryComponent', () => {
     expect(getPendingHostCredentialActivation(SUPPORT_ID)?.recoveryCard.recoveryCode).toBe(
       NEW_RECOVERY_CODE,
     );
+  });
+
+  function persistPreparedState(options?: {
+    pendingExpiresAt?: string;
+    unconfirmed?: boolean;
+    oldCapability?: string;
+  }): void {
+    if (options?.oldCapability) {
+      storeHostBrowserCapability('ABC123', options.oldCapability);
+    }
+    persistPreparedHostRecovery({
+      supportId: SUPPORT_ID,
+      sourceKind: 'RECOVERY',
+      exchangeId: 'exchange-id-abcdefghijklmnopqrstuvwxyz0123456789ab',
+      prepared: {
+        code: 'ABC123',
+        browserCapability: NEW_BROWSER_CAPABILITY,
+        recoveryCard: { supportId: SUPPORT_ID, recoveryCode: NEW_RECOVERY_CODE },
+        pendingExpiresAt: options?.pendingExpiresAt ?? new Date(Date.now() + 60_000).toISOString(),
+      },
+    });
+    if (options?.unconfirmed) {
+      markHostRecoveryActivationUnconfirmed(SUPPORT_ID);
+    }
+  }
+
+  function trpcError(code: string, message = `${code}: intern`): Error {
+    return Object.assign(new Error(message), { data: { code } });
+  }
+
+  it.each([
+    ['ohne Tabverlust', false],
+    ['nach Tab- und TTL-Verlust', true],
+  ])(
+    'nimmt den neuen Kandidaten auf, wenn der Altzugang widerrufen ist (%s)',
+    async (_label, lostTabAndTtl) => {
+      persistPreparedState({
+        oldCapability: 'old-browser-capability-abcdefghijklmnopqrstuvwxyz',
+        unconfirmed: true,
+        pendingExpiresAt: lostTabAndTtl
+          ? new Date(Date.now() - 16 * 60_000).toISOString()
+          : new Date(Date.now() + 60_000).toISOString(),
+      });
+      if (lostTabAndTtl) sessionStorage.clear();
+      issueMock.mockImplementation(async ({ browserCapability }: { browserCapability: string }) => {
+        if (browserCapability === NEW_BROWSER_CAPABILITY) {
+          return {
+            code: 'ABC123',
+            hostToken: 'candidate-host-token-abcdefghijklmnopqrstuvwxyz',
+            hostTokenExpiresAt: '2026-09-15T08:15:00.000Z',
+            role: 'ORIGINAL_HOST',
+          };
+        }
+        throw trpcError('UNAUTHORIZED');
+      });
+
+      const current = render();
+      await current.componentInstance.resumeRecovery();
+      current.detectChanges();
+
+      expect(issueMock).toHaveBeenCalledWith({
+        code: 'ABC123',
+        browserCapability: NEW_BROWSER_CAPABILITY,
+      });
+      expect(current.componentInstance.view()).toBe('success');
+      expect(getHostBrowserCapability('ABC123')).toBe(NEW_BROWSER_CAPABILITY);
+      expect(getHostRecoveryCandidate('ABC123')).toBeNull();
+    },
+  );
+
+  it.each([
+    ['ohne Tabverlust', false],
+    ['nach Tab- und TTL-Verlust', true],
+  ])(
+    'bestätigt den Kandidaten nicht über einen noch gültigen Altzugang (%s)',
+    async (_label, lostTabAndTtl) => {
+      persistPreparedState({
+        oldCapability: 'old-browser-capability-abcdefghijklmnopqrstuvwxyz',
+        pendingExpiresAt: lostTabAndTtl
+          ? new Date(Date.now() - 16 * 60_000).toISOString()
+          : new Date(Date.now() + 60_000).toISOString(),
+      });
+      if (lostTabAndTtl) sessionStorage.clear();
+      issueMock.mockImplementation(async ({ browserCapability }: { browserCapability: string }) => {
+        if (browserCapability === 'old-browser-capability-abcdefghijklmnopqrstuvwxyz') {
+          return {
+            code: 'ABC123',
+            hostToken: 'old-host-token-abcdefghijklmnopqrstuvwxyz',
+            hostTokenExpiresAt: '2026-09-15T08:15:00.000Z',
+            role: 'ORIGINAL_HOST',
+          };
+        }
+        throw trpcError('UNAUTHORIZED');
+      });
+
+      const current = render();
+      await current.componentInstance.resumeRecovery();
+      current.detectChanges();
+
+      expect(activateMock).not.toHaveBeenCalled();
+      expect(getHostBrowserCapability('ABC123')).toBe(
+        'old-browser-capability-abcdefghijklmnopqrstuvwxyz',
+      );
+      expect(getHostRecoveryResume(SUPPORT_ID)?.phase).not.toBe('activated');
+      expect(current.componentInstance.view()).not.toBe('success');
+      if (lostTabAndTtl) {
+        expect(current.componentInstance.view()).toBe('pendingExpired');
+      } else {
+        expect(getHostRecoveryCandidate('ABC123')).toBe(NEW_BROWSER_CAPABILITY);
+        expect(current.componentInstance.view()).toBe('newCard');
+      }
+    },
+  );
+
+  it('behandelt einen Serverfehler beim Fortsetzen nicht als Ablauf und behält den Kandidaten', async () => {
+    persistPreparedState({
+      unconfirmed: true,
+      pendingExpiresAt: new Date(Date.now() - 16 * 60_000).toISOString(),
+    });
+    sessionStorage.clear();
+    issueMock
+      .mockRejectedValueOnce(trpcError('INTERNAL_SERVER_ERROR', 'INTERNAL_SERVER_ERROR: redis'))
+      .mockResolvedValueOnce({
+        code: 'ABC123',
+        hostToken: 'retried-host-token-abcdefghijklmnopqrstuvwxyz',
+        hostTokenExpiresAt: '2026-09-15T08:15:00.000Z',
+        role: 'ORIGINAL_HOST',
+      });
+
+    const current = render();
+    const component = current.componentInstance;
+    await component.resumeRecovery();
+    current.detectChanges();
+
+    expect(component.view()).toBe('activationUnconfirmed');
+    expect(component.bannerError()).toBe(
+      'Die Wiederherstellung ist vorübergehend nicht verfügbar. Versuche es später erneut.',
+    );
+    expect(current.nativeElement.textContent).toContain('vorübergehend nicht verfügbar');
+    expect(current.nativeElement.textContent).toContain('Erneut versuchen');
+    expect(getHostRecoveryCandidate('ABC123')).toBe(NEW_BROWSER_CAPABILITY);
+    expect(getHostRecoveryResume(SUPPORT_ID)?.phase).toBe('activation_unconfirmed');
+
+    component.startOtherSession();
+    current.detectChanges();
+    expect(component.view()).toBe('credentials');
+    expect(current.nativeElement.querySelector('form')).toBeTruthy();
+    expect(getHostRecoveryCandidate('ABC123')).toBe(NEW_BROWSER_CAPABILITY);
+
+    component.supportId.set(SUPPORT_ID);
+    component.secret.set(OLD_RECOVERY_CODE);
+    await component.continueRecovery();
+    current.detectChanges();
+    expect(component.view()).toBe('success');
+    expect(getHostBrowserCapability('ABC123')).toBe(NEW_BROWSER_CAPABILITY);
+  });
+
+  it('lässt nach erfolgreicher Wiederherstellung eine andere Session ohne Storage-Löschen zu', async () => {
+    const current = render();
+    const component = current.componentInstance;
+    await prepareFlow(component);
+    component.newCardSaved.set(true);
+    await component.activateAccess();
+    current.detectChanges();
+    expect(component.view()).toBe('success');
+    expect(getHostBrowserCapability('ABC123')).toBe(NEW_BROWSER_CAPABILITY);
+
+    current.destroy();
+    TestBed.resetTestingModule();
+    await TestBed.configureTestingModule({
+      imports: [HostRecoveryComponent],
+      providers: [provideRouter([])],
+    }).compileComponents();
+    const reopened = render();
+    expect(reopened.componentInstance.view()).toBe('credentials');
+    expect(
+      reopened.nativeElement.querySelector('input[name="arsnova-host-support-id"]'),
+    ).toBeTruthy();
+
+    const otherSupportId = 'ARS-WXYZ-6789';
+    prepareMock.mockResolvedValueOnce({
+      code: 'DEF456',
+      browserCapability: 'other-browser-capability-abcdefghijklmnopqrstuvwxyz',
+      recoveryCard: { supportId: otherSupportId, recoveryCode: NEW_RECOVERY_CODE },
+      pendingExpiresAt: new Date(Date.now() + 60_000).toISOString(),
+    });
+    reopened.componentInstance.supportId.set(otherSupportId);
+    reopened.componentInstance.secret.set(OLD_RECOVERY_CODE);
+    await reopened.componentInstance.continueRecovery();
+    expect(prepareMock).toHaveBeenLastCalledWith(
+      expect.objectContaining({ supportId: otherSupportId }),
+    );
+    expect(reopened.componentInstance.view()).toBe('newCard');
+    expect(getHostBrowserCapability('ABC123')).toBe(NEW_BROWSER_CAPABILITY);
+  });
+
+  it('zeigt Formatfehler nach Submit im DOM und fokussiert das erste fehlerhafte Feld', async () => {
+    const current = render();
+    const host = current.nativeElement as HTMLElement;
+    const supportIdInput = host.querySelector(
+      'input[name="arsnova-host-support-id"]',
+    ) as HTMLInputElement;
+    const secretInput = host.querySelector(
+      'input[name="arsnova-host-recovery-secret"]',
+    ) as HTMLInputElement;
+    supportIdInput.value = 'UNGÜLTIG';
+    supportIdInput.dispatchEvent(new Event('input'));
+    secretInput.value = 'abc\\_not-valid-secret-value-here';
+    secretInput.dispatchEvent(new Event('input'));
+    host.querySelector('form')?.dispatchEvent(new Event('submit'));
+    await current.whenStable();
+    current.detectChanges();
+
+    const errors = [...host.querySelectorAll('mat-error')].map((node) => node.textContent ?? '');
+    expect(prepareMock).not.toHaveBeenCalled();
+    expect(errors.some((text) => text.includes('ARS-XXXX-XXXX'))).toBe(true);
+    expect(errors.some((text) => text.includes('Bindestriche und Unterstriche'))).toBe(true);
+    expect(supportIdInput.getAttribute('aria-invalid')).toBe('true');
+    expect(document.activeElement).toBe(supportIdInput);
+
+    supportIdInput.value = SUPPORT_ID;
+    supportIdInput.dispatchEvent(new Event('input'));
+    secretInput.value = OLD_RECOVERY_CODE;
+    secretInput.dispatchEvent(new Event('input'));
+    current.detectChanges();
+    expect(host.querySelector('mat-error')).toBeNull();
+    expect(supportIdInput.getAttribute('aria-invalid')).not.toBe('true');
+  });
+
+  it('zeigt Netzwerkfehler beim Fortsetzen und behält den Wiederaufnahmestand', async () => {
+    persistPreparedState();
+    issueMock.mockImplementation(async () => {
+      throw new Error('Failed to fetch');
+    });
+    const current = render();
+    current.detectChanges();
+    expect(current.componentInstance.view()).toBe('resume');
+    await current.componentInstance.resumeRecovery();
+    current.detectChanges();
+
+    expect(current.componentInstance.view()).toBe('resume');
+    expect(current.nativeElement.textContent).toContain('Verbindung unterbrochen');
+    expect(current.nativeElement.querySelector('[role="alert"]')?.textContent).toContain(
+      'Verbindung unterbrochen',
+    );
+    expect(current.nativeElement.textContent).toContain('Erneut versuchen');
+    expect(getHostRecoveryCandidate('ABC123')).toBe(NEW_BROWSER_CAPABILITY);
+  });
+
+  it('zeigt Netzwerk- und Serverfehler auch bei unbestätigter Aktivierung', async () => {
+    persistPreparedState({ unconfirmed: true });
+    issueMock.mockRejectedValueOnce(new Error('Failed to fetch'));
+    const current = render();
+    const component = current.componentInstance;
+    expect(component.view()).toBe('activationUnconfirmed');
+    await component.resumeRecovery();
+    current.detectChanges();
+    expect(component.view()).toBe('activationUnconfirmed');
+    expect(current.nativeElement.textContent).toContain('Verbindung unterbrochen');
+    expect(current.nativeElement.textContent).toContain('Erneut versuchen');
+
+    issueMock.mockRejectedValueOnce(trpcError('INTERNAL_SERVER_ERROR'));
+    await component.resumeRecovery();
+    current.detectChanges();
+    expect(component.view()).toBe('activationUnconfirmed');
+    expect(current.nativeElement.textContent).toContain('vorübergehend nicht verfügbar');
+    expect(getHostRecoveryCandidate('ABC123')).toBe(NEW_BROWSER_CAPABILITY);
+  });
+
+  it('löst Speicherfehler beim Phasenwechsel und sendet keine Aktivierung', async () => {
+    const current = render();
+    const component = current.componentInstance;
+    await prepareFlow(component);
+    component.newCardSaved.set(true);
+    const originalSetItem = Storage.prototype.setItem;
+    vi.spyOn(Storage.prototype, 'setItem').mockImplementation(function (
+      this: Storage,
+      key: string,
+      value: string,
+    ) {
+      if (typeof value === 'string' && value.includes('activation_unconfirmed')) {
+        throw new DOMException('quota', 'QuotaExceededError');
+      }
+      return originalSetItem.call(this, key, value);
+    });
+
+    await component.activateAccess();
+    current.detectChanges();
+
+    expect(activateMock).not.toHaveBeenCalled();
+    expect(component.busy()).toBe(false);
+    expect(component.view()).toBe('newCard');
+    expect(component.bannerError()).toContain('Zugang nicht speichern');
   });
 });

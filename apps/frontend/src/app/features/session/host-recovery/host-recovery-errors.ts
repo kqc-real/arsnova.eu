@@ -61,10 +61,10 @@ export function classifyRecoveryRequestError(
   kind: RecoveryRequestKind,
 ): RecoveryPublicError {
   if (isRecoveryUnauthorizedError(error)) return 'genericError';
+  if (isRecoveryNetworkError(error)) return 'networkError';
+  if (isRecoveryServerError(error)) return 'serverError';
   if (kind === 'activate') {
     return 'activationUnconfirmed';
   }
-  if (isRecoveryNetworkError(error)) return 'networkError';
-  if (isRecoveryServerError(error)) return 'serverError';
   return 'serverError';
 }

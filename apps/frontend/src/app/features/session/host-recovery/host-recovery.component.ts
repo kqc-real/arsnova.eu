@@ -10,6 +10,7 @@ import {
   signal,
   viewChild,
 } from '@angular/core';
+import { FormControl, ReactiveFormsModule } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { MatButton, MatIconButton } from '@angular/material/button';
 import { MatCard, MatCardContent } from '@angular/material/card';
@@ -19,6 +20,7 @@ import { MatIcon } from '@angular/material/icon';
 import { MatInput } from '@angular/material/input';
 import { HostSupportIdSchema, OpaqueCapabilitySchema } from '@arsnova/shared-types';
 import {
+  clearHostRecoveryResume,
   clearPreparedHostRecoverySecrets,
   discardExpiredPreparedRecovery,
   findUnambiguousHostRecoveryResume,
@@ -26,7 +28,7 @@ import {
   getOrCreateRecoveryExchangeId,
   getPendingHostCredentialActivation,
   getPendingHostRecoveryCard,
-  getUsableHostCapability,
+  getStoredHostCapabilities,
   markHostRecoveryActivated,
   markHostRecoveryActivationUnconfirmed,
   markHostRecoveryNewCardSaved,
@@ -68,6 +70,7 @@ type RecoveryCardField = 'supportId' | 'recoveryCode' | 'all';
     MatIconButton,
     MatInput,
     MatLabel,
+    ReactiveFormsModule,
     RouterLink,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -108,11 +111,14 @@ export class HostRecoveryComponent implements AfterViewChecked, OnDestroy {
   readonly copiedField = signal<RecoveryCardField | null>(null);
   readonly copyFailed = signal(false);
   readonly downloadStarted = signal(false);
+  readonly supportIdControl = new FormControl('', { nonNullable: true });
+  readonly secretControl = new FormControl('', { nonNullable: true });
 
   constructor() {
     const resume = findUnambiguousHostRecoveryResume();
     if (!resume) return;
     this.supportId.set(resume.supportId);
+    this.supportIdControl.setValue(resume.supportId);
     this.sourceKind.set(resume.sourceKind);
     this.sessionCode.set(resume.code);
     const pending = getPendingHostCredentialActivation(resume.supportId);
@@ -221,20 +227,29 @@ export class HostRecoveryComponent implements AfterViewChecked, OnDestroy {
   }
 
   onSupportIdInput(event: Event): void {
-    this.supportId.set((event.target as HTMLInputElement).value.toUpperCase());
+    const value = (event.target as HTMLInputElement).value.toUpperCase();
+    this.supportId.set(value);
+    this.supportIdControl.setValue(value, { emitEvent: false });
+    this.supportIdControl.setErrors(null);
     this.supportIdError.set(null);
   }
 
   onSecretInput(event: Event): void {
-    this.secret.set((event.target as HTMLInputElement).value);
+    const value = (event.target as HTMLInputElement).value;
+    this.secret.set(value);
+    this.secretControl.setValue(value, { emitEvent: false });
+    this.secretControl.setErrors(null);
     this.secretError.set(null);
   }
 
   switchSource(kind: HostRecoverySourceKind): void {
     this.sourceKind.set(kind);
     this.secret.set('');
+    this.secretControl.setValue('');
+    this.secretControl.setErrors(null);
     this.secretError.set(null);
     this.supportIdError.set(null);
+    this.supportIdControl.setErrors(null);
     this.bannerError.set(null);
     this.requestFocus();
   }
@@ -249,12 +264,16 @@ export class HostRecoveryComponent implements AfterViewChecked, OnDestroy {
     this.bannerError.set(null);
     const supportIdResult = HostSupportIdSchema.safeParse(this.supportId());
     const secretResult = OpaqueCapabilitySchema.safeParse(this.secret());
-    this.supportIdError.set(
+    this.applyFieldError(
+      this.supportIdControl,
+      this.supportIdError,
       supportIdResult.success
         ? null
         : $localize`:@@hostRecovery.supportIdFormatError:Gib die Session-Kennung im Format ARS-XXXX-XXXX ein.`,
     );
-    this.secretError.set(
+    this.applyFieldError(
+      this.secretControl,
+      this.secretError,
       secretResult.success
         ? null
         : $localize`:@@hostRecovery.secretFormatError:Kopiere den Code vollständig. Er darf nur Buchstaben (A–Z, a–z), Ziffern, Bindestriche und Unterstriche enthalten.`,
@@ -267,6 +286,7 @@ export class HostRecoveryComponent implements AfterViewChecked, OnDestroy {
 
     const supportId = supportIdResult.data;
     this.supportId.set(supportId);
+    this.supportIdControl.setValue(supportId, { emitEvent: false });
     const existing = getPendingHostCredentialActivation(supportId);
     if (existing) {
       this.prepared.set(existing);
@@ -339,8 +359,15 @@ export class HostRecoveryComponent implements AfterViewChecked, OnDestroy {
     }
 
     const seq = this.beginBusy('activating');
-    markHostRecoveryActivationUnconfirmed(prepared.recoveryCard.supportId);
     try {
+      try {
+        markHostRecoveryActivationUnconfirmed(prepared.recoveryCard.supportId);
+      } catch {
+        if (this.destroyed || seq !== this.requestSeq) return;
+        this.bannerError.set(this.publicErrorMessage('storageError'));
+        this.requestFocus();
+        return;
+      }
       const activated = await trpc.session.activateHostCredential.mutate({
         supportId: prepared.recoveryCard.supportId,
         browserCapability: prepared.browserCapability,
@@ -353,7 +380,11 @@ export class HostRecoveryComponent implements AfterViewChecked, OnDestroy {
       this.view.set('success');
       this.requestFocus();
     } catch (error) {
-      markHostRecoveryActivationUnconfirmed(prepared.recoveryCard.supportId);
+      try {
+        markHostRecoveryActivationUnconfirmed(prepared.recoveryCard.supportId);
+      } catch {
+        // Der Activate-Request kann bereits gegangen sein; der unbestätigte Zustand bleibt fachlich gültig.
+      }
       if (this.destroyed || seq !== this.requestSeq) return;
       this.view.set('activationUnconfirmed');
       this.bannerError.set(null);
@@ -372,56 +403,59 @@ export class HostRecoveryComponent implements AfterViewChecked, OnDestroy {
     const code = resume?.code ?? pending?.code ?? this.sessionCode();
     const seq = this.beginBusy('checkingState');
     try {
-      if (code) {
-        const capability = getUsableHostCapability(code);
-        if (capability) {
-          try {
-            const issued = await trpc.session.issueHostAccessToken.mutate({
-              code,
-              browserCapability: capability,
-            });
-            markHostRecoveryActivated(supportId, capability);
-            setHostToken(code, issued.hostToken);
-            this.sessionCode.set(code);
-            this.showNewCodeHint.set(
+      const capabilities = code
+        ? getStoredHostCapabilities(code)
+        : { active: null, candidate: null };
+      if (code && capabilities.candidate) {
+        const candidateIssue = await this.issueHostAccess(code, capabilities.candidate);
+        if (candidateIssue.status === 'issued') {
+          this.finishActivatedAccess({
+            supportId,
+            code,
+            capability: capabilities.candidate,
+            hostToken: candidateIssue.hostToken,
+            showNewCodeHint:
               !!resume?.newCardSavedConfirmed &&
-                !!(getPendingHostRecoveryCard(code) ?? pending?.recoveryCard),
-            );
-            if (this.destroyed || seq !== this.requestSeq) return;
-            this.view.set('success');
-            this.requestFocus();
-            return;
-          } catch (error) {
-            if (classifyRecoveryRequestError(error, 'issue') === 'networkError') {
-              if (this.destroyed || seq !== this.requestSeq) return;
-              this.bannerError.set(this.publicErrorMessage('networkError'));
-              this.requestFocus();
-              return;
-            }
-          }
+              !!(getPendingHostRecoveryCard(code) ?? pending?.recoveryCard),
+            seq,
+          });
+          return;
+        }
+        if (candidateIssue.status === 'technical') {
+          if (this.destroyed || seq !== this.requestSeq) return;
+          this.showTechnicalResumeError(candidateIssue.kind, resume?.phase);
+          return;
         }
       }
 
-      if (resume?.phase === 'activation_unconfirmed' && pending) {
-        try {
-          const activated = await trpc.session.activateHostCredential.mutate({
-            supportId: pending.recoveryCard.supportId,
-            browserCapability: pending.browserCapability,
-          });
-          markHostRecoveryActivated(supportId, pending.browserCapability);
-          setHostToken(pending.code, activated.hostToken);
-          this.sessionCode.set(pending.code);
-          this.showNewCodeHint.set(resume.newCardSavedConfirmed);
-          if (this.destroyed || seq !== this.requestSeq) return;
-          this.view.set('success');
-          this.requestFocus();
-          return;
-        } catch (error) {
-          if (this.destroyed || seq !== this.requestSeq) return;
-          this.view.set('activationUnconfirmed');
-          void error;
-          this.requestFocus();
-          return;
+      if (resume?.phase === 'activation_unconfirmed' && (pending || capabilities.candidate)) {
+        const capability = pending?.browserCapability ?? capabilities.candidate;
+        if (capability) {
+          try {
+            const activated = await trpc.session.activateHostCredential.mutate({
+              supportId: pending?.recoveryCard.supportId ?? supportId,
+              browserCapability: capability,
+            });
+            this.finishActivatedAccess({
+              supportId,
+              code: pending?.code ?? code ?? resume.code,
+              capability,
+              hostToken: activated.hostToken,
+              showNewCodeHint: resume.newCardSavedConfirmed,
+              seq,
+            });
+            return;
+          } catch (error) {
+            if (this.destroyed || seq !== this.requestSeq) return;
+            const kind = classifyRecoveryRequestError(error, 'activate');
+            if (kind === 'networkError' || kind === 'serverError') {
+              this.showTechnicalResumeError(kind, resume.phase);
+              return;
+            }
+            this.view.set('activationUnconfirmed');
+            this.requestFocus();
+            return;
+          }
         }
       }
 
@@ -433,7 +467,32 @@ export class HostRecoveryComponent implements AfterViewChecked, OnDestroy {
         return;
       }
 
+      if (code && capabilities.active && capabilities.active !== capabilities.candidate) {
+        const activeIssue = await this.issueHostAccess(code, capabilities.active);
+        if (activeIssue.status === 'technical') {
+          if (this.destroyed || seq !== this.requestSeq) return;
+          this.showTechnicalResumeError(activeIssue.kind, resume?.phase);
+          return;
+        }
+        if (activeIssue.status === 'issued' && resume?.phase === 'activated') {
+          this.finishActivatedAccess({
+            supportId,
+            code,
+            capability: capabilities.active,
+            hostToken: activeIssue.hostToken,
+            showNewCodeHint: false,
+            seq,
+          });
+          return;
+        }
+      }
+
       if (this.destroyed || seq !== this.requestSeq) return;
+      if (resume?.phase === 'activation_unconfirmed') {
+        this.view.set('activationUnconfirmed');
+        this.requestFocus();
+        return;
+      }
       if (resume?.sourceKind === 'ADMIN_HANDOFF') {
         this.view.set('handoffExpired');
       } else {
@@ -471,11 +530,20 @@ export class HostRecoveryComponent implements AfterViewChecked, OnDestroy {
   restartRecovery(): void {
     const supportId = this.supportId().trim().toUpperCase();
     if (supportId) {
-      discardExpiredPreparedRecovery(supportId);
-      clearPreparedHostRecoverySecrets(supportId);
+      const resume = getHostRecoveryResume(supportId);
+      if (resume?.phase !== 'activation_unconfirmed' && resume?.phase !== 'activated') {
+        discardExpiredPreparedRecovery(supportId);
+        clearPreparedHostRecoverySecrets(supportId);
+        clearHostRecoveryResume(supportId);
+      }
     }
-    this.prepared.set(null);
-    this.secret.set('');
+    this.resetCredentialForm({ keepSupportId: true });
+    this.view.set('credentials');
+    this.requestFocus();
+  }
+
+  startOtherSession(): void {
+    this.resetCredentialForm({ keepSupportId: false });
     this.view.set('credentials');
     this.requestFocus();
   }
@@ -518,6 +586,87 @@ export class HostRecoveryComponent implements AfterViewChecked, OnDestroy {
     this.downloadStarted.set(false);
     this.view.set('newCard');
     this.requestFocus();
+  }
+
+  private applyFieldError(
+    control: FormControl<string>,
+    errorSignal: ReturnType<typeof signal<string | null>>,
+    message: string | null,
+  ): void {
+    errorSignal.set(message);
+    if (message) {
+      control.setErrors({ format: true });
+      control.markAsTouched();
+      control.markAsDirty();
+    } else {
+      control.setErrors(null);
+    }
+  }
+
+  private async issueHostAccess(
+    code: string,
+    capability: string,
+  ): Promise<
+    | { status: 'issued'; hostToken: string }
+    | { status: 'rejected' }
+    | { status: 'technical'; kind: 'networkError' | 'serverError' }
+  > {
+    try {
+      const issued = await trpc.session.issueHostAccessToken.mutate({
+        code,
+        browserCapability: capability,
+      });
+      return { status: 'issued', hostToken: issued.hostToken };
+    } catch (error) {
+      const kind = classifyRecoveryRequestError(error, 'issue');
+      if (kind === 'networkError' || kind === 'serverError') {
+        return { status: 'technical', kind };
+      }
+      return { status: 'rejected' };
+    }
+  }
+
+  private finishActivatedAccess(params: {
+    supportId: string;
+    code: string;
+    capability: string;
+    hostToken: string;
+    showNewCodeHint: boolean;
+    seq: number;
+  }): void {
+    markHostRecoveryActivated(params.supportId, params.capability);
+    setHostToken(params.code, params.hostToken);
+    this.sessionCode.set(params.code);
+    this.showNewCodeHint.set(params.showNewCodeHint);
+    if (this.destroyed || params.seq !== this.requestSeq) return;
+    this.view.set('success');
+    this.requestFocus();
+  }
+
+  private showTechnicalResumeError(
+    kind: 'networkError' | 'serverError',
+    phase?: 'prepared' | 'activation_unconfirmed' | 'activated',
+  ): void {
+    this.bannerError.set(this.publicErrorMessage(kind));
+    this.view.set(phase === 'activation_unconfirmed' ? 'activationUnconfirmed' : 'resume');
+    this.requestFocus();
+  }
+
+  private resetCredentialForm(options: { keepSupportId: boolean }): void {
+    if (!options.keepSupportId) {
+      this.supportId.set('');
+      this.supportIdControl.setValue('');
+    }
+    this.supportIdControl.setErrors(null);
+    this.supportIdError.set(null);
+    this.secret.set('');
+    this.secretControl.setValue('');
+    this.secretControl.setErrors(null);
+    this.secretError.set(null);
+    this.prepared.set(null);
+    this.sessionCode.set(null);
+    this.bannerError.set(null);
+    this.showNewCodeHint.set(false);
   }
 
   private beginBusy(kind: 'checking' | 'activating' | 'checkingState'): number {
