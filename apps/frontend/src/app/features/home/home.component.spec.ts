@@ -412,11 +412,15 @@ describe('HomeComponent', () => {
       const hostIntro = fixture.nativeElement.querySelector(
         '.home-host-intro',
       ) as HTMLElement | null;
-      const recoveryLink = hostIntro?.querySelector(
+      const liveCard = fixture.nativeElement.querySelector(
+        '.home-card--live',
+      ) as HTMLElement | null;
+      const recoveryLink = liveCard?.querySelector(
         '[data-testid="home-host-recovery-link"]',
       ) as HTMLAnchorElement | null;
       expect(recoveryLink?.textContent?.trim()).toBe('Host-Zugang wiederherstellen');
       expect(recoveryLink?.getAttribute('href') ?? '').toContain('host-recovery');
+      expect(hostIntro?.querySelector('[data-testid="home-host-recovery-link"]')).toBeNull();
       expect(hostIntro?.textContent).not.toContain('Zugang als Host');
       expect(fixture.nativeElement.querySelector('[data-testid="home-host-recovery"]')).toBeNull();
 

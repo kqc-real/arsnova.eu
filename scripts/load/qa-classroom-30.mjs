@@ -16,6 +16,7 @@
 import { waitForBackend } from './lib/wait-for-backend.mjs';
 import { writeScenarioReport } from './lib/reporting.mjs';
 import { createHttpTrpcSingle } from './lib/trpc-runtime.mjs';
+import { configureQaSessionIfNeeded } from './lib/configure-qa-if-needed.mjs';
 
 const TRPC_URL = String(process.env.TRPC_URL || 'http://127.0.0.1:3000/trpc').trim();
 const PARTICIPANTS = Math.max(1, Number(process.env.PARTICIPANTS || 30));
@@ -88,29 +89,8 @@ async function createQaSession(publicTrpc) {
   return { code, hostToken, sessionId };
 }
 
-async function configureQaSession(hostTrpc, code) {
-  const selection = { kind: 'UNTIL_SESSION_END' };
-  const preview = await hostTrpc.session.previewQaConfiguration.query({
-    code,
-    mode: 'INITIAL',
-    selection,
-  });
-  return hostTrpc.session.configureQaChannel.mutate({
-    code,
-    mode: preview.mode,
-    selection,
-    expectedLifecycleRevision: preview.expectedLifecycleRevision,
-    previewServerNow: preview.serverNow,
-    confirmedQaClosesAt: preview.newQaClosesAt,
-    confirmedExpiresAt: preview.newExpiresAt,
-    confirmSessionExtension: preview.requiresSessionExtension,
-    qaTitle: 'Q&A Unterricht',
-    moderationMode: false,
-    participationProfile: {
-      identityMode: 'CUSTOM_NICKNAME',
-      nicknameTheme: 'HIGH_SCHOOL',
-    },
-  });
+function configureQaSession(hostTrpc, code) {
+  return configureQaSessionIfNeeded(hostTrpc, code, { qaTitle: 'Q&A Unterricht' });
 }
 
 async function joinParticipants(publicTrpc, code) {

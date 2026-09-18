@@ -273,7 +273,12 @@
 }
 
 .home-host-recovery-link {
-  margin-top: 0.35rem;
+  display: inline-flex;
+  align-items: center;
+  box-sizing: border-box;
+  min-height: 2.75rem;
+  margin: 0.25rem 1rem 0.75rem;
+  padding-block: 0.5rem;
   font: var(--mat-sys-label-large);
   color: var(--mat-sys-primary);
   text-decoration: underline;

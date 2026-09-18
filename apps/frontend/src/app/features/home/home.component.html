@@ -186,14 +186,6 @@
       <p class="home-host-intro__description" i18n="@@homeHostIntro.description">
         Starte eine Live-Session, hole direkt Feedback ein oder bereite ein Quiz vor.
       </p>
-      <a
-        class="home-host-recovery-link"
-        [routerLink]="localizedPath('/host-recovery')"
-        data-testid="home-host-recovery-link"
-        i18n="@@hostRecovery.title"
-      >
-        Host-Zugang wiederherstellen
-      </a>
     </section>
 
     <div class="home-host-stack">
@@ -298,6 +290,14 @@
             <span class="home-error__text">{{ hostSessionError() }}</span>
           </p>
         }
+        <a
+          class="home-host-recovery-link"
+          [routerLink]="localizedPath('/host-recovery')"
+          data-testid="home-host-recovery-link"
+          i18n="@@hostRecovery.title"
+        >
+          Host-Zugang wiederherstellen
+        </a>
       </mat-card>
 
       <mat-card

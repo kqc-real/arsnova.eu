@@ -14,6 +14,7 @@ import { resolve } from 'node:path';
 import { waitForBackend } from './lib/wait-for-backend.mjs';
 import { createHostWsTrpc, createHttpTrpc, createPublicWsTrpc } from './lib/trpc-runtime.mjs';
 import { writeScenarioReport } from './lib/reporting.mjs';
+import { configureQaSessionIfNeeded } from './lib/configure-qa-if-needed.mjs';
 
 function positiveInteger(name, fallback) {
   const raw = process.env[name];
@@ -214,29 +215,8 @@ async function createSession(publicTrpc) {
   });
 }
 
-async function configureQaSession(hostTrpc, code) {
-  const selection = { kind: 'UNTIL_SESSION_END' };
-  const preview = await hostTrpc.session.previewQaConfiguration.query({
-    code,
-    mode: 'INITIAL',
-    selection,
-  });
-  return hostTrpc.session.configureQaChannel.mutate({
-    code,
-    mode: preview.mode,
-    selection,
-    expectedLifecycleRevision: preview.expectedLifecycleRevision,
-    previewServerNow: preview.serverNow,
-    confirmedQaClosesAt: preview.newQaClosesAt,
-    confirmedExpiresAt: preview.newExpiresAt,
-    confirmSessionExtension: preview.requiresSessionExtension,
-    qaTitle: 'Kanal-WS-Fan-out',
-    moderationMode: false,
-    participationProfile: {
-      identityMode: 'CUSTOM_NICKNAME',
-      nicknameTheme: 'HIGH_SCHOOL',
-    },
-  });
+function configureQaSession(hostTrpc, code) {
+  return configureQaSessionIfNeeded(hostTrpc, code, { qaTitle: 'Kanal-WS-Fan-out' });
 }
 
 async function run() {
