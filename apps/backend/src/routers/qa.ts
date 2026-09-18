@@ -561,16 +561,27 @@ async function buildQaQuestionPayloadFromDb(options: {
   const participantCount = options.participantCountForControversy ?? 0;
   const controversyThreshold = Math.max(1, participantCount * 0.1);
   const controversyThresholdSql = Prisma.sql`${controversyThreshold}::DOUBLE PRECISION`;
-  const shareRankingLoad =
+  const canSharePublicRanking =
     !moderatorView &&
     options.participantId !== undefined &&
     options.totalCountHint !== undefined &&
     search.length === 0 &&
     authorNickname.length === 0 &&
     statusesKey.length === 0;
+  const ownPendingCount =
+    canSharePublicRanking && options.participantId
+      ? await prisma.qaQuestion.count({
+          where: {
+            sessionId: options.sessionId,
+            participantId: options.participantId,
+            status: 'PENDING',
+          },
+        })
+      : 0;
+  const shareRankingLoad = canSharePublicRanking && ownPendingCount === 0;
   const visibility = moderatorView
     ? Prisma.empty
-    : options.participantId
+    : options.participantId && !shareRankingLoad
       ? Prisma.sql`AND (
           question."status" IN ('ACTIVE', 'PINNED', 'ARCHIVED')
           OR (
@@ -786,14 +797,14 @@ async function buildQaQuestionPayloadFromDb(options: {
   const cached = sharedLoadKey ? sharedQaRankingLoads.get(sharedLoadKey) : undefined;
   let rowsPromise = cached && cached.expiresAt > nowMs ? cached.promise : undefined;
   if (!rowsPromise) {
-    rowsPromise = loadRows();
+    const loadPromise = loadRows();
     if (sharedLoadKey) {
       pruneSharedQaRankingCache(nowMs);
       const entry: SharedQaRankingCacheEntry = {
         expiresAt: Number.POSITIVE_INFINITY,
-        promise: rowsPromise,
+        promise: loadPromise,
       };
-      entry.promise = rowsPromise.then(
+      entry.promise = loadPromise.then(
         (rows) => {
           if (sharedQaRankingLoads.get(sharedLoadKey) === entry) {
             entry.expiresAt = Date.now() + QA_PAGE_CACHE_TTL_MS;
@@ -808,6 +819,9 @@ async function buildQaQuestionPayloadFromDb(options: {
         },
       );
       sharedQaRankingLoads.set(sharedLoadKey, entry);
+      rowsPromise = entry.promise;
+    } else {
+      rowsPromise = loadPromise;
     }
   }
   let rows = await rowsPromise;

@@ -870,6 +870,83 @@ describe('FeedbackVoteComponent', () => {
     fixture.destroy();
   });
 
+  it('setzt eine bestätigte eingebettete Stimme nicht durch den älteren Null-Snapshot zurück', async () => {
+    const fixture = TestBed.createComponent(FeedbackVoteComponent);
+    fixture.componentRef.setInput('sessionCode', 'ABC123');
+    fixture.componentRef.setInput('participantId', 'participant-1');
+    fixture.componentRef.setInput('embeddedInSession', true);
+    fixture.componentRef.setInput('sharedResult', {
+      type: 'YESNO',
+      locked: false,
+      discussion: false,
+      totalVotes: 0,
+      distribution: { YES: 0, NO: 0, MAYBE: 0 },
+      currentRound: 1,
+    });
+    fixture.detectChanges();
+    await fixture.whenStable();
+    await new Promise((resolve) => setTimeout(resolve, 50));
+
+    await fixture.componentInstance.vote('YES');
+    expect(fixture.componentInstance.voted()).toBe(true);
+    expect(localStorage.getItem('qf-voted:ABC123')).toBe('1');
+
+    fixture.detectChanges();
+    await fixture.whenStable();
+
+    expect(fixture.componentInstance.voted()).toBe(true);
+    expect(localStorage.getItem('qf-voted:ABC123')).toBe('1');
+    expect(fixture.nativeElement.textContent ?? '').toContain('Danke für dein Feedback!');
+    fixture.destroy();
+  });
+
+  it('zeigt nach regulärem Subscription-Ende den Endzustand ohne Dauerpolling', async () => {
+    let handlers: {
+      onData?: (result: unknown) => void;
+      onError?: () => void;
+      onComplete?: () => void;
+    } = {};
+    quickFeedbackOnResultsSubscribeMock.mockImplementation(
+      (
+        _input: unknown,
+        nextHandlers: {
+          onData?: (result: unknown) => void;
+          onError?: () => void;
+          onComplete?: () => void;
+        },
+      ) => {
+        handlers = nextHandlers;
+        return { unsubscribe: vi.fn() };
+      },
+    );
+
+    const fixture = TestBed.createComponent(FeedbackVoteComponent);
+    fixture.componentRef.setInput('sessionCode', 'ABC123');
+    fixture.detectChanges();
+    await fixture.whenStable();
+    await new Promise((resolve) => setTimeout(resolve, 50));
+    fixture.detectChanges();
+
+    expect(quickFeedbackOnResultsSubscribeMock).toHaveBeenCalledTimes(1);
+    quickFeedbackResultsQueryMock.mockRejectedValueOnce(
+      new Error('NOT_FOUND: Feedback-Runde nicht gefunden oder abgelaufen.'),
+    );
+
+    handlers.onComplete?.();
+    await fixture.whenStable();
+    await new Promise((resolve) => setTimeout(resolve, 50));
+    fixture.detectChanges();
+
+    const text = fixture.nativeElement.textContent ?? '';
+    expect(text).toContain('Feedback-Runde nicht gefunden oder abgelaufen.');
+    expect(quickFeedbackOnResultsSubscribeMock).toHaveBeenCalledTimes(1);
+    expect(
+      (fixture.componentInstance as unknown as { pollTimer: ReturnType<typeof setInterval> | null })
+        .pollTimer,
+    ).toBeNull();
+    fixture.destroy();
+  });
+
   it('aktiviert HTTP-Fallback nur nach einem Subscription-Fehler und beendet ihn nach Erfolg', async () => {
     let handlers: { onData?: (result: unknown) => void; onError?: () => void } = {};
     quickFeedbackOnResultsSubscribeMock.mockImplementation(

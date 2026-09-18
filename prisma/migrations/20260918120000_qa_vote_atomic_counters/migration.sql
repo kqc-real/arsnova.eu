@@ -78,6 +78,7 @@ DECLARE
   question_session_id TEXT;
   question_row "QaQuestion"%ROWTYPE;
   vote_row "QaUpvote"%ROWTYPE;
+  vote_found BOOLEAN;
   vote_delta INTEGER;
   positive_delta INTEGER;
   negative_delta INTEGER;
@@ -119,16 +120,17 @@ BEGIN
   WHERE vote."qaQuestionId" = p_question_id
     AND vote."participantId" = p_participant_id
   FOR UPDATE;
+  vote_found := FOUND;
 
   PERFORM set_config('arsnova.skip_qa_vote_reconcile', '1', true);
 
-  IF FOUND AND vote_row."direction" = p_direction THEN
+  IF vote_found AND vote_row."direction" = p_direction THEN
     vote_delta := CASE WHEN p_direction = 'UP' THEN -1 ELSE 1 END;
     positive_delta := CASE WHEN p_direction = 'UP' THEN -1 ELSE 0 END;
     negative_delta := CASE WHEN p_direction = 'DOWN' THEN -1 ELSE 0 END;
     DELETE FROM "QaUpvote" WHERE "id" = vote_row."id";
     "myVote" := NULL;
-  ELSIF FOUND THEN
+  ELSIF vote_found THEN
     vote_delta := CASE WHEN p_direction = 'UP' THEN 2 ELSE -2 END;
     positive_delta := CASE WHEN p_direction = 'UP' THEN 1 ELSE -1 END;
     negative_delta := CASE WHEN p_direction = 'UP' THEN -1 ELSE 1 END;

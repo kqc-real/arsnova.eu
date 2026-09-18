@@ -9,6 +9,7 @@ import {
   input,
   output,
   signal,
+  untracked,
 } from '@angular/core';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { MatButton, MatFabButton } from '@angular/material/button';
@@ -96,6 +97,7 @@ export class FeedbackVoteComponent implements OnInit, OnDestroy {
   private readonly productFeedbackLauncher = inject(ProductFeedbackLauncherService);
   private pollTimer: ReturnType<typeof setInterval> | null = null;
   private subscription: Unsubscribable | null = null;
+  private subscriptionClosedByClient = false;
   private resultUpdatesStopped = false;
   private standaloneVoterId: string | null = null;
   private readonly tempoDefaultRegisteredKeys = new Set<string>();
@@ -158,11 +160,13 @@ export class FeedbackVoteComponent implements OnInit, OnDestroy {
       }
       const result = this.sharedResult();
       if (result) {
-        this.applyResult(result);
-        this.loading.set(false);
+        untracked(() => {
+          this.applyResult(result);
+          this.loading.set(false);
+        });
         return;
       }
-      this.clearEmbeddedState();
+      untracked(() => this.clearEmbeddedState());
     });
   }
 
@@ -283,8 +287,7 @@ export class FeedbackVoteComponent implements OnInit, OnDestroy {
   ngOnDestroy(): void {
     this.clearStandaloneTempoRegistration();
     this.stopFallbackPolling();
-    this.subscription?.unsubscribe();
-    this.subscription = null;
+    this.releaseSubscription();
   }
 
   private async init(): Promise<void> {
@@ -381,12 +384,39 @@ export class FeedbackVoteComponent implements OnInit, OnDestroy {
           this.loading.set(false);
         },
         onError: () => {
-          this.subscription?.unsubscribe();
-          this.subscription = null;
+          this.releaseSubscription();
           this.startFallbackPolling();
+        },
+        onComplete: () => {
+          const closedByClient = this.subscriptionClosedByClient;
+          this.subscriptionClosedByClient = false;
+          this.subscription = null;
+          if (closedByClient || this.resultUpdatesStopped || this.embeddedInSession()) {
+            return;
+          }
+          void this.handleResultsStreamClosed();
         },
       },
     );
+  }
+
+  private releaseSubscription(): void {
+    const subscription = this.subscription;
+    this.subscription = null;
+    if (!subscription) {
+      return;
+    }
+    this.subscriptionClosedByClient = true;
+    subscription.unsubscribe();
+  }
+
+  private async handleResultsStreamClosed(): Promise<void> {
+    const stillActive = await this.pollStyle();
+    if (stillActive) {
+      this.subscribeToResults();
+      return;
+    }
+    this.loading.set(false);
   }
 
   private startFallbackPolling(): void {
@@ -429,8 +459,7 @@ export class FeedbackVoteComponent implements OnInit, OnDestroy {
   private stopResultUpdates(): void {
     this.resultUpdatesStopped = true;
     this.stopFallbackPolling();
-    this.subscription?.unsubscribe();
-    this.subscription = null;
+    this.releaseSubscription();
   }
 
   private applyResult(result: QuickFeedbackResult): void {

@@ -323,6 +323,140 @@ describe('qa router (Epic 8)', () => {
     expect(second.questions[0]?.text).toBe('Geteilte Seite');
     expect(third.questions[0]?.text).toBe('Geteilte Seite');
     expect(prismaMock.$queryRaw).toHaveBeenCalledTimes(1);
+    const sql = rawSqlText(prismaMock.$queryRaw.mock.calls[0] ?? []);
+    expect(sql).toContain(`question."status" IN ('ACTIVE', 'PINNED', 'ARCHIVED')`);
+    expect(sql).not.toContain(`question."status" = 'PENDING'`);
+  });
+
+  it('gibt fremde PENDING-Fragen nicht über den gemeinsamen Seiten-Cache preis', async () => {
+    prismaMock.session.findUnique.mockResolvedValue({
+      ...ACTIVE_QA_SESSION,
+      id: SESSION_ID,
+      code: 'CODE12',
+      type: 'QUIZ',
+      qaEnabled: true,
+      qaOpen: true,
+      qaModerationMode: false,
+      qaQuestionCount: 2,
+    });
+    prismaMock.qaQuestion.count.mockImplementation(
+      async (args?: { where?: { participantId?: string; status?: string } }) => {
+        if (args?.where?.status === 'PENDING' && args.where.participantId === PARTICIPANT_ID) {
+          return 1;
+        }
+        return 0;
+      },
+    );
+    rawQueryResults.rankedQuestions.push(
+      [
+        rankedQaRow({
+          id: '77777777-7777-4777-8777-777777777777',
+          participantId: PARTICIPANT_ID,
+          text: 'Noch ungeprüfte Frage von A',
+          status: 'PENDING',
+          totalCount: 2,
+        }),
+        rankedQaRow({
+          text: 'Öffentlich freigegeben',
+          totalCount: 2,
+        }),
+      ],
+      [
+        rankedQaRow({
+          text: 'Öffentlich freigegeben',
+          totalCount: 1,
+        }),
+      ],
+    );
+
+    const authorPage = await caller.list({
+      sessionId: SESSION_ID,
+      participantId: PARTICIPANT_ID,
+    });
+    const otherPage = await caller.list({
+      sessionId: SESSION_ID,
+      participantId: OTHER_PARTICIPANT_ID,
+    });
+
+    expect(authorPage.questions.map((question) => question.text)).toEqual([
+      'Noch ungeprüfte Frage von A',
+      'Öffentlich freigegeben',
+    ]);
+    expect(otherPage.questions.map((question) => question.text)).toEqual([
+      'Öffentlich freigegeben',
+    ]);
+    expect(prismaMock.$queryRaw).toHaveBeenCalledTimes(2);
+    const authorSql = rawSqlText(prismaMock.$queryRaw.mock.calls[0] ?? []);
+    const otherSql = rawSqlText(prismaMock.$queryRaw.mock.calls[1] ?? []);
+    expect(authorSql).toContain(`question."status" = 'PENDING'`);
+    expect(otherSql).not.toContain(`question."status" = 'PENDING'`);
+
+    resetSharedQaRankingCacheForTests();
+    prismaMock.$queryRaw.mockImplementation(async (...call: unknown[]) => {
+      const sql = rawSqlText(call);
+      if (sql.includes('WITH scored AS')) {
+        if (sql.includes(`question."status" = 'PENDING'`)) {
+          return [
+            rankedQaRow({
+              id: '77777777-7777-4777-8777-777777777777',
+              participantId: PARTICIPANT_ID,
+              text: 'Noch ungeprüfte Frage von A',
+              status: 'PENDING',
+              totalCount: 2,
+            }),
+            rankedQaRow({
+              text: 'Öffentlich freigegeben',
+              totalCount: 2,
+            }),
+          ];
+        }
+        return [rankedQaRow({ text: 'Öffentlich freigegeben', totalCount: 1 })];
+      }
+      throw new Error(`Unerwartete Raw-SQL-Abfrage: ${sql}`);
+    });
+    const [authorAgain, otherAgain] = await Promise.all([
+      caller.list({ sessionId: SESSION_ID, participantId: PARTICIPANT_ID }),
+      caller.list({ sessionId: SESSION_ID, participantId: OTHER_PARTICIPANT_ID }),
+    ]);
+    expect(authorAgain.questions.map((question) => question.text)).toContain(
+      'Noch ungeprüfte Frage von A',
+    );
+    expect(otherAgain.questions.map((question) => question.text)).not.toContain(
+      'Noch ungeprüfte Frage von A',
+    );
+  });
+
+  it('behandelt einen fehlgeschlagenen geteilten Q&A-Abruf ohne unbehandelte Rejection', async () => {
+    prismaMock.session.findUnique.mockResolvedValue({
+      ...ACTIVE_QA_SESSION,
+      id: SESSION_ID,
+      code: 'CODE12',
+      type: 'QUIZ',
+      qaEnabled: true,
+      qaOpen: true,
+      qaModerationMode: false,
+      qaQuestionCount: 1,
+    });
+    const unhandled: unknown[] = [];
+    const onUnhandled = (reason: unknown) => {
+      unhandled.push(reason);
+    };
+    process.on('unhandledRejection', onUnhandled);
+    rawQueryResults.rankedQuestions.push(new Error('db timeout'));
+
+    try {
+      await expect(
+        caller.list({ sessionId: SESSION_ID, participantId: PARTICIPANT_ID }),
+      ).rejects.toThrow('db timeout');
+      await new Promise<void>((resolve) => setImmediate(resolve));
+      expect(unhandled).toEqual([]);
+
+      rawQueryResults.rankedQuestions.push([rankedQaRow({ text: 'Nach Retry sichtbar' })]);
+      const retry = await caller.list({ sessionId: SESSION_ID, participantId: PARTICIPANT_ID });
+      expect(retry.questions[0]?.text).toBe('Nach Retry sichtbar');
+    } finally {
+      process.off('unhandledRejection', onUnhandled);
+    }
   });
 
   it('sortiert die Teilnehmer-Q&A-Liste nach BEST ohne Host-Metriken auszugeben', async () => {

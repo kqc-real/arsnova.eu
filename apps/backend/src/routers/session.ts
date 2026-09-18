@@ -179,9 +179,9 @@ import {
   questionAffectsStreak,
 } from '../lib/quizScoring';
 import {
-  buildScoreRanking,
   invalidateSessionRankingCache,
   loadSharedCompetitionVotes,
+  loadSharedScoreRankingPair,
   rankOfParticipant,
 } from '../lib/sessionRankingCache';
 import {
@@ -1460,9 +1460,12 @@ export function recordVoteCachesForCode(
     isCorrect?: boolean;
     numericValue?: number | null;
   },
+  sessionId?: string,
 ): void {
   const normalizedCode = code.toUpperCase();
-  invalidateSessionRankingCache();
+  if (sessionId) {
+    invalidateSessionRankingCache(sessionId);
+  }
   const key = voteCacheKey(normalizedCode, questionId, round);
   const cachedCount = getCachedValue(voteCountCache, key);
   if (cachedCount !== null) {
@@ -10130,27 +10133,32 @@ const sessionCoreRouter = router({
         .slice(0, input.questionIndex + 1)
         .filter((q) => includedQuestionIds.has(q.id))
         .map((q) => q.id);
-      const allVotes = await loadSharedCompetitionVotes({
-        sessionId: session.id,
-        questionIds: questionsUpToNow,
-        participantRevision: session.participantRevision ?? 0,
-        includeCorrectness: false,
-      });
+      const prevQuestionIds =
+        input.questionIndex > 0
+          ? session.quiz.questions
+              .slice(0, input.questionIndex)
+              .filter((q) => includedQuestionIds.has(q.id))
+              .map((q) => q.id)
+          : [];
       const participantIds = session.participants.map((participant) => participant.id);
-      const { totals, ranked } = buildScoreRanking(participantIds, allVotes, questionsUpToNow);
+      const rankingPair = await loadSharedScoreRankingPair({
+        sessionId: session.id,
+        currentQuestionIds: questionsUpToNow,
+        previousQuestionIds: prevQuestionIds,
+        participantRevision: session.participantRevision ?? 0,
+        participantIds,
+      });
+      const { totals, ranked } = rankingPair.current;
       const totalScore = totals.get(input.participantId)?.totalScore ?? 0;
       const currentRank = rankOfParticipant(ranked, totals, input.participantId);
 
-      // Vorheriger Rang aus demselben konsistenten Stimmenbestand.
-      let previousRank: number | null = null;
-      if (input.questionIndex > 0) {
-        const prevQuestionIds = session.quiz.questions
-          .slice(0, input.questionIndex)
-          .filter((q) => includedQuestionIds.has(q.id))
-          .map((q) => q.id);
-        const previous = buildScoreRanking(participantIds, allVotes, prevQuestionIds);
-        previousRank = rankOfParticipant(previous.ranked, previous.totals, input.participantId);
-      }
+      const previousRank = rankingPair.previous
+        ? rankOfParticipant(
+            rankingPair.previous.ranked,
+            rankingPair.previous.totals,
+            input.participantId,
+          )
+        : null;
 
       const rankChange =
         previousRank !== null && currentRank > 0 && previousRank > 0

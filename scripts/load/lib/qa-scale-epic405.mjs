@@ -117,6 +117,11 @@ export function validateQaScaleConfig(rawConfig) {
     min: 1,
     max: RELEASE_PROFILE.pageMaxItems,
   });
+  requireExact(
+    websocket.subscriptionPageSize,
+    RELEASE_PROFILE.pageMaxItems,
+    'config.websocket.subscriptionPageSize',
+  );
 
   const concurrency = requireObject(config.concurrency, 'config.concurrency');
   for (const key of ['joins', 'submits', 'queries', 'websockets']) {
@@ -150,12 +155,12 @@ export function validateQaScaleConfig(rawConfig) {
   requireExact(sampling.ratings, RELEASE_PROFILE.ratingSamples, 'config.sampling.ratings');
   if (
     !Array.isArray(sampling.sortModes) ||
-    sampling.sortModes.length !== 3 ||
-    new Set(sampling.sortModes).size !== 3 ||
-    !['TOP', 'BEST', 'CONTROVERSIAL'].every((mode) => sampling.sortModes.includes(mode))
+    sampling.sortModes.length !== 4 ||
+    new Set(sampling.sortModes).size !== 4 ||
+    !['TOP', 'BEST', 'CONTROVERSIAL', 'TIME'].every((mode) => sampling.sortModes.includes(mode))
   ) {
     throw new Error(
-      'config.sampling.sortModes muss TOP, BEST und CONTROVERSIAL jeweils genau einmal enthalten.',
+      'config.sampling.sortModes muss TOP, BEST, CONTROVERSIAL und TIME jeweils genau einmal enthalten.',
     );
   }
 

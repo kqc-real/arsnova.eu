@@ -27,21 +27,42 @@ type RankingCacheEntry = {
   promise: Promise<CompetitionVoteRow[]>;
 };
 
-const rankingCache = new Map<string, RankingCacheEntry>();
+export type ScoreRankingSnapshot = ReturnType<typeof buildScoreRanking>;
 
-function pruneRankingCache(nowMs: number): void {
-  for (const [key, entry] of rankingCache) {
+type RankingSnapshotPair = {
+  current: ScoreRankingSnapshot;
+  previous: ScoreRankingSnapshot | null;
+};
+
+type RankingSnapshotCacheEntry = {
+  expiresAt: number;
+  promise: Promise<RankingSnapshotPair>;
+};
+
+const rankingCache = new Map<string, RankingCacheEntry>();
+const rankingSnapshotCache = new Map<string, RankingSnapshotCacheEntry>();
+
+function pruneCacheMap<T extends { expiresAt: number }>(
+  cache: Map<string, T>,
+  nowMs: number,
+): void {
+  for (const [key, entry] of cache) {
     if (entry.expiresAt <= nowMs) {
-      rankingCache.delete(key);
+      cache.delete(key);
     }
   }
-  while (rankingCache.size >= SESSION_RANKING_CACHE_MAX_ENTRIES) {
-    const oldestKey = rankingCache.keys().next().value as string | undefined;
+  while (cache.size >= SESSION_RANKING_CACHE_MAX_ENTRIES) {
+    const oldestKey = cache.keys().next().value as string | undefined;
     if (!oldestKey) {
       break;
     }
-    rankingCache.delete(oldestKey);
+    cache.delete(oldestKey);
   }
+}
+
+function pruneRankingCache(nowMs: number): void {
+  pruneCacheMap(rankingCache, nowMs);
+  pruneCacheMap(rankingSnapshotCache, nowMs);
 }
 
 export function selectEffectiveCompetitionVotes<T extends CompetitionVoteRow>(
@@ -186,18 +207,80 @@ export async function loadSharedCompetitionVotes(options: {
   return entry.promise;
 }
 
-export function invalidateSessionRankingCache(sessionId?: string): void {
-  if (!sessionId) {
-    rankingCache.clear();
-    return;
+export async function loadSharedScoreRankingPair(options: {
+  sessionId: string;
+  currentQuestionIds: readonly string[];
+  previousQuestionIds: readonly string[];
+  participantRevision: number;
+  participantIds: readonly string[];
+}): Promise<RankingSnapshotPair> {
+  const snapshotKey = [
+    options.sessionId,
+    options.participantRevision,
+    options.currentQuestionIds.join(','),
+    options.previousQuestionIds.join(','),
+  ].join(':snap:');
+  const nowMs = Date.now();
+  const cached = rankingSnapshotCache.get(snapshotKey);
+  if (cached && cached.expiresAt > nowMs) {
+    return cached.promise;
   }
-  for (const key of rankingCache.keys()) {
-    if (key.startsWith(`${sessionId}:`)) {
-      rankingCache.delete(key);
+
+  pruneRankingCache(nowMs);
+  const entry: RankingSnapshotCacheEntry = {
+    expiresAt: Number.POSITIVE_INFINITY,
+    promise: Promise.resolve({
+      current: { totals: new Map(), ranked: [] },
+      previous: null,
+    }),
+  };
+  entry.promise = loadSharedCompetitionVotes({
+    sessionId: options.sessionId,
+    questionIds: options.currentQuestionIds,
+    participantRevision: options.participantRevision,
+    includeCorrectness: false,
+  })
+    .then((votes) => {
+      const current = buildScoreRanking(options.participantIds, votes, options.currentQuestionIds);
+      const previous =
+        options.previousQuestionIds.length > 0
+          ? buildScoreRanking(options.participantIds, votes, options.previousQuestionIds)
+          : null;
+      const snapshot = { current, previous };
+      if (rankingSnapshotCache.get(snapshotKey) === entry) {
+        entry.expiresAt = Date.now() + SESSION_RANKING_CACHE_TTL_MS;
+      }
+      return snapshot;
+    })
+    .catch((error: unknown) => {
+      if (rankingSnapshotCache.get(snapshotKey) === entry) {
+        rankingSnapshotCache.delete(snapshotKey);
+      }
+      throw error;
+    });
+  rankingSnapshotCache.set(snapshotKey, entry);
+  return entry.promise;
+}
+
+function deleteCacheKeysForSession(cache: Map<string, unknown>, sessionId: string): void {
+  for (const key of cache.keys()) {
+    if (key === sessionId || key.startsWith(`${sessionId}:`)) {
+      cache.delete(key);
     }
   }
 }
 
+export function invalidateSessionRankingCache(sessionId?: string): void {
+  if (!sessionId) {
+    rankingCache.clear();
+    rankingSnapshotCache.clear();
+    return;
+  }
+  deleteCacheKeysForSession(rankingCache, sessionId);
+  deleteCacheKeysForSession(rankingSnapshotCache, sessionId);
+}
+
 export function resetSessionRankingCacheForTests(): void {
   rankingCache.clear();
+  rankingSnapshotCache.clear();
 }
