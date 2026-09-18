@@ -6997,6 +6997,10 @@
         <source>Ein Übergabecode für diese Session existiert bereits. Bestätige einen neuen Reset, um ihn zu ersetzen.</source>
         <target>A handover code for this session already exists. Confirm a new reset to replace it.</target>
       </trans-unit>
+      <trans-unit id="admin.hostResetOperationClosed" datatype="html">
+        <source>Diese Operation ist abgeschlossen. Das Ergebnis ist nicht mehr abrufbar.</source>
+        <target>This operation is complete. The result is no longer available.</target>
+      </trans-unit>
       <trans-unit id="admin.hostResetRetry" datatype="html">
         <source>Antwort erneut anfordern</source>
         <target>Request the response again</target>
@@ -17479,9 +17483,9 @@
         <source> Lade sie herunter oder kopiere die Werte. Bewahre sie getrennt vom Browser auf. </source>
         <target>Download the recovery card or copy the details into a secure note.</target>
       </trans-unit>
-      
-      
-      
+
+
+
       <trans-unit id="hostRecovery.supportIdHint" datatype="html">
         <source>Diese Kennung identifiziert die Session bei der Wiederherstellung. Sie ist nicht der öffentliche Beitrittscode.</source>
         <target>Starts with ARS-. You don’t need the six-character join code here.</target>
@@ -17502,7 +17506,7 @@
         <source> Kopieren hat nicht geklappt. Markiere den Wert und kopiere ihn selbst. </source>
         <target>Couldn’t copy the details. Select and copy them manually.</target>
       </trans-unit>
-      
+
       <trans-unit id="hostRecovery.supportIdCopied" datatype="html">
         <source>Session-Kennung wurde kopiert.</source>
         <target>Session ID copied.</target>
@@ -17515,7 +17519,7 @@
         <source>Dein Host-Zugang ist in diesem Browser gespeichert. Mit der Host-Zugangskarte kannst du ihn auf einem anderen Gerät wiederherstellen.</source>
         <target>Your host access is saved in this browser. You’ll need these details to restore it on another device or in another browser.</target>
       </trans-unit>
-      
+
       <trans-unit id="hostRecovery.recoveryCodeLabel" datatype="html">
         <source>Wiederherstellungscode</source>
         <target>Recovery code</target>
@@ -17580,7 +17584,7 @@
           <context context-type="linenumber">108</context>
         </context-group>
       </trans-unit>
-      
+
       <trans-unit id="hostRecovery.title" datatype="html">
         <source>Host-Zugang wiederherstellen</source>
         <target>Restore host access</target>
@@ -17597,11 +17601,11 @@
           <context context-type="linenumber">46,49</context>
         </context-group>
       </trans-unit>
-      
-      
-      
-      
-      
+
+
+
+
+
       <trans-unit id="common.cancel" datatype="html">
         <source>Abbrechen</source>
         <target>Cancel</target>
@@ -17614,7 +17618,7 @@
           <context context-type="linenumber">142</context>
         </context-group>
       </trans-unit>
-      
+
       <trans-unit id="hostRecovery.boundary" datatype="html">
         <source>Damit verlängerst du weder die Session- noch die Nachbereitungsfrist. Wenn Browserzugang und Zugangskarte verloren sind, wende dich an den Support. Er muss deine Berechtigung für diese Session prüfen. Die Kontaktdaten findest du im »Impressum«.</source>
         <target>Restoring access does not extend the session or the post-session access period.</target>
@@ -18179,7 +18183,7 @@
           <context context-type="linenumber">128</context>
         </context-group>
       </trans-unit>
-      
+
       <trans-unit id="qaConfig.previewQaCloses" datatype="html">
         <source>Offen für Fragen und Bewertungen bis</source>
         <target>Questions and votes accepted until</target>
@@ -18196,7 +18200,7 @@
           <context context-type="linenumber">143</context>
         </context-group>
       </trans-unit>
-      
+
       <trans-unit id="qaConfig.extensionWarning" datatype="html">
         <source> Die Teilnahmefrist liegt nach dem bisherigen Sessionende. Beim Bestätigen wird die globale Sessionfrist mit verlängert; nur der ursprüngliche Host darf das ausführen.</source>
         <target>The participation deadline is after the previous session end. When you confirm, the global session deadline is extended; only the original host is allowed to do this.</target>
@@ -18205,11 +18209,11 @@
           <context context-type="linenumber">152,155</context>
         </context-group>
       </trans-unit>
-      
-      
-      
-      
-      
+
+
+
+
+
       <trans-unit id="qaConfig.defaultTitle" datatype="html">
         <source>Fragen &amp; Antworten</source>
         <target>Questions &amp; Answers</target>
@@ -18798,7 +18802,7 @@
           <context context-type="linenumber">100</context>
         </context-group>
       </trans-unit>
-      
+
       <trans-unit id="sessionLifecycle.quickChoices" datatype="html">
         <source>Schnellauswahl für Verlängerung</source>
         <target>Quick selection for extension</target>
@@ -18807,9 +18811,9 @@
           <context context-type="linenumber">118</context>
         </context-group>
       </trans-unit>
-      
-      
-      
+
+
+
       <trans-unit id="sessionLifecycle.absoluteLabel" datatype="html">
         <source>Bis Datum und Uhrzeit</source>
         <target>Until date and time</target>
@@ -18974,7 +18978,7 @@
           <context context-type="linenumber">340</context>
         </context-group>
       </trans-unit>
-      
+
       <trans-unit id="sessionLifecycle.retentionDetails" datatype="html">
         <source>Löschtermin anzeigen</source>
         <target>Show deletion date</target>
@@ -24433,7 +24437,7 @@
           <context context-type="linenumber">191</context>
         </context-group>
       </trans-unit>
-      
+
       <trans-unit id="sessionWordCloud.qaHint" datatype="html">
         <source>Große Wörter und Phrasen kommen aus häufiger genannten oder stärker unterstützten Fragen. Ähnliche Schreibweisen können zusammengefasst sein.</source>
         <target>Large words and phrases come from more frequent or more strongly supported questions. Similar spellings may be grouped together.</target>

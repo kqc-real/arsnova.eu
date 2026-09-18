@@ -6171,6 +6171,9 @@
       <trans-unit id="admin.hostResetExistingHandoff" datatype="html">
         <source>Ein Übergabecode für diese Session existiert bereits. Bestätige einen neuen Reset, um ihn zu ersetzen.</source>
       </trans-unit>
+      <trans-unit id="admin.hostResetOperationClosed" datatype="html">
+        <source>Diese Operation ist abgeschlossen. Das Ergebnis ist nicht mehr abrufbar.</source>
+      </trans-unit>
       <trans-unit id="admin.hostResetRetry" datatype="html">
         <source>Antwort erneut anfordern</source>
       </trans-unit>

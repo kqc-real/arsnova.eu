@@ -248,4 +248,39 @@ describe('AdminComponent', () => {
     expect(component.hostResetDraftFor(sessionA).confirmNewReset).toBe(true);
     expect(component.canResetHostAccess(sessionA)).toBe(false);
   });
+
+  it('zeigt für einen gültigen Nachweisweg keinen Längenfehler', () => {
+    const component = createComponent();
+    const detail = detailFor(sessionA, 'AAAAAA');
+    component.selectedSessionId.set(sessionA);
+    component.selectedDetail.set(detail);
+    component.requestHostResetConfirmation(sessionA);
+    expect(component.hostResetFieldError(sessionA, 'evidence')).toContain('Nachweisweg');
+    component.updateHostResetEvidenceCategory('PREEXISTING_VERIFIED_SUPPORT_CASE');
+    expect(component.hostResetFieldError(sessionA, 'evidence')).toBeNull();
+    fillValidReset(component, detail);
+    component.requestHostResetConfirmation(sessionA);
+    expect(component.hostResetFieldError(sessionA, 'evidence')).toBeNull();
+    expect(component.hostResetDraftFor(sessionA).phase).toBe('confirm');
+  });
+
+  it('vergibt für ein unlesbares Ergebnis eine neue Operations-ID vor der Ersatzbestätigung', async () => {
+    const component = createComponent();
+    fillValidReset(component, detailFor(sessionA, 'AAAAAA'));
+    const previousOperationId = component.hostResetDraftFor(sessionA).operationId;
+    vi.mocked(trpc.admin.resetSessionHostAccess.mutate).mockRejectedValue({
+      message: 'CONFLICT: Diese Operation ist abgeschlossen. Das Ergebnis ist nicht mehr abrufbar.',
+      data: { code: 'CONFLICT' },
+    });
+
+    await component.resetHostAccess();
+
+    const draft = component.hostResetDraftFor(sessionA);
+    expect(draft.phase).toBe('confirm');
+    expect(draft.confirmNewReset).toBe(true);
+    expect(draft.operationId).not.toBe(previousOperationId);
+    expect(draft.operationId).toMatch(
+      /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i,
+    );
+  });
 });

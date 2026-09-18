@@ -22,7 +22,8 @@ export type AdminHostResetDraft = {
   result: AdminResetSessionHostAccessOutput | null;
 };
 
-export type AdminHostResetErrorKind = 'unconfirmed' | 'precondition' | 'rejected';
+export type AdminHostResetErrorKind =
+  'unconfirmed' | 'precondition' | 'operationClosed' | 'rejected';
 
 export const EMPTY_ADMIN_HOST_RESET_DRAFT: AdminHostResetDraft = {
   evidenceCategory: '',
@@ -62,6 +63,7 @@ export function createAdminHostResetDraft(
 export function classifyAdminHostResetError(error: unknown): AdminHostResetErrorKind {
   const code = readRecoveryErrorCode(error);
   if (code === 'PRECONDITION_FAILED') return 'precondition';
+  if (code === 'CONFLICT') return 'operationClosed';
   if (
     code === 'BAD_REQUEST' ||
     code === 'NOT_FOUND' ||

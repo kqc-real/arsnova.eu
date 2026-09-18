@@ -43,6 +43,7 @@ const TRPC_CODE_PREFIXES = [
   'FORBIDDEN',
   'INTERNAL_SERVER_ERROR',
   'PRECONDITION_FAILED',
+  'CONFLICT',
 ] as const;
 
 type UnknownRecord = Record<string, unknown>;
@@ -114,6 +115,9 @@ export function localizeKnownServerMessage(message: string): string {
   }
   if (normalized === SESSION_NICKNAME_CONFLICT_DE) {
     return $localize`:@@join.nicknameConflict:Dieser Name ist in dieser Session bereits vergeben.`;
+  }
+  if (normalized === 'Diese Operation ist abgeschlossen. Das Ergebnis ist nicht mehr abrufbar.') {
+    return $localize`:@@admin.hostResetOperationClosed:Diese Operation ist abgeschlossen. Das Ergebnis ist nicht mehr abrufbar.`;
   }
   const pairingMessage = HOST_PAIRING_MESSAGES_DE[normalized];
   if (pairingMessage) {

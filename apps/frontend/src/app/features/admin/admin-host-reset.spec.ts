@@ -29,6 +29,13 @@ describe('admin-host-reset', () => {
         data: { code: 'BAD_REQUEST' },
       }),
     ).toBe('rejected');
+    expect(
+      classifyAdminHostResetError({
+        message:
+          'CONFLICT: Diese Operation ist abgeschlossen. Das Ergebnis ist nicht mehr abrufbar.',
+        data: { code: 'CONFLICT' },
+      }),
+    ).toBe('operationClosed');
   });
 
   it('akzeptiert nur die zulässigen Nachweiswege', () => {

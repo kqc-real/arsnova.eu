@@ -268,6 +268,22 @@ export class AdminComponent implements OnInit {
     }));
   }
 
+  private beginReplacementConfirmation(sessionId: string, error: string): void {
+    const existing = this.ensureHostResetDraft(sessionId);
+    this.hostResetBySession.update((current) => ({
+      ...current,
+      [sessionId]: {
+        ...existing,
+        operationId: crypto.randomUUID(),
+        confirmNewReset: true,
+        phase: 'confirm',
+        unconfirmed: false,
+        error,
+        result: null,
+      },
+    }));
+  }
+
   async resetHostAccess(): Promise<void> {
     const detail = this.selectedDetail();
     const sessionId = detail?.session.sessionId;
@@ -311,16 +327,16 @@ export class AdminComponent implements OnInit {
         });
         return;
       }
-      if (kind === 'precondition') {
-        this.patchHostResetDraft(sessionId, {
-          confirmNewReset: true,
-          phase: 'confirm',
-          unconfirmed: false,
-          error: localizeKnownServerError(
+      if (kind === 'precondition' || kind === 'operationClosed') {
+        this.beginReplacementConfirmation(
+          sessionId,
+          localizeKnownServerError(
             error,
-            $localize`:@@admin.hostResetExistingHandoff:Ein Übergabecode für diese Session existiert bereits. Bestätige einen neuen Reset, um ihn zu ersetzen.`,
+            kind === 'operationClosed'
+              ? $localize`:@@admin.hostResetOperationClosed:Diese Operation ist abgeschlossen. Das Ergebnis ist nicht mehr abrufbar.`
+              : $localize`:@@admin.hostResetExistingHandoff:Ein Übergabecode für diese Session existiert bereits. Bestätige einen neuen Reset, um ihn zu ersetzen.`,
           ),
-        });
+        );
         return;
       }
       this.patchHostResetDraft(sessionId, {
@@ -747,8 +763,10 @@ export class AdminComponent implements OnInit {
   ): string | null {
     const draft = this.hostResetBySession()[sessionId];
     if (!draft?.touched) return null;
-    if (field === 'evidence' && !isHostResetEvidenceCategory(draft.evidenceCategory)) {
-      return $localize`:@@admin.hostResetEvidenceRequired:Bitte wähle den tatsächlich genutzten Nachweisweg.`;
+    if (field === 'evidence') {
+      return isHostResetEvidenceCategory(draft.evidenceCategory)
+        ? null
+        : $localize`:@@admin.hostResetEvidenceRequired:Bitte wähle den tatsächlich genutzten Nachweisweg.`;
     }
     const value =
       field === 'requester'

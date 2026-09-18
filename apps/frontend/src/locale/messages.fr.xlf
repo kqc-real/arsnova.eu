@@ -6995,6 +6995,10 @@
         <source>Ein Übergabecode für diese Session existiert bereits. Bestätige einen neuen Reset, um ihn zu ersetzen.</source>
         <target>Un code de transfert existe déjà pour cette session. Confirme une nouvelle réinitialisation pour le remplacer.</target>
       </trans-unit>
+      <trans-unit id="admin.hostResetOperationClosed" datatype="html">
+        <source>Diese Operation ist abgeschlossen. Das Ergebnis ist nicht mehr abrufbar.</source>
+        <target>Cette opération est terminée. Le résultat n’est plus disponible.</target>
+      </trans-unit>
       <trans-unit id="admin.hostResetRetry" datatype="html">
         <source>Antwort erneut anfordern</source>
         <target>Redemander la réponse</target>
@@ -17423,9 +17427,9 @@
         <source> Lade sie herunter oder kopiere die Werte. Bewahre sie getrennt vom Browser auf. </source>
         <target>Télécharge la fiche de récupération ou copie les informations dans une note conservée en lieu sûr.</target>
       </trans-unit>
-      
-      
-      
+
+
+
       <trans-unit id="hostRecovery.supportIdHint" datatype="html">
         <source>Diese Kennung identifiziert die Session bei der Wiederherstellung. Sie ist nicht der öffentliche Beitrittscode.</source>
         <target>Commence par ARS-. Le code de participation à six caractères n’est pas nécessaire ici.</target>
@@ -17446,7 +17450,7 @@
         <source> Kopieren hat nicht geklappt. Markiere den Wert und kopiere ihn selbst. </source>
         <target>La copie a échoué. Sélectionne les informations et copie-les manuellement.</target>
       </trans-unit>
-      
+
       <trans-unit id="hostRecovery.supportIdCopied" datatype="html">
         <source>Session-Kennung wurde kopiert.</source>
         <target>Identifiant de session copié.</target>
@@ -17459,7 +17463,7 @@
         <source>Dein Host-Zugang ist in diesem Browser gespeichert. Mit der Host-Zugangskarte kannst du ihn auf einem anderen Gerät wiederherstellen.</source>
         <target>Ton accès hôte est enregistré dans ce navigateur. Tu auras besoin de ces deux informations pour le rétablir sur un autre appareil ou dans un autre navigateur.</target>
       </trans-unit>
-      
+
       <trans-unit id="hostRecovery.recoveryCodeLabel" datatype="html">
         <source>Wiederherstellungscode</source>
         <target>Code de récupération</target>
@@ -17524,7 +17528,7 @@
         <source>Öffne <x id="recoveryUrl" equiv-text="recoveryUrl"/> und gib Session-Kennung plus Wiederherstellungscode ein.</source>
         <target>Ouvre <x id="recoveryUrl" equiv-text="recoveryUrl"/> dans le navigateur avec lequel tu souhaites animer la session. Saisis l’identifiant de session et le code de récupération.</target>
       </trans-unit>
-      
+
       <trans-unit id="hostRecovery.title" datatype="html">
         <source>Host-Zugang wiederherstellen</source>
         <target>Rétablir l’accès hôte</target>
@@ -17541,11 +17545,11 @@
           <context context-type="linenumber">46,49</context>
         </context-group>
       </trans-unit>
-      
-      
-      
-      
-      
+
+
+
+
+
       <trans-unit id="common.cancel" datatype="html">
         <source>Abbrechen</source>
         <target>Annuler</target>
@@ -17558,7 +17562,7 @@
           <context context-type="linenumber">142</context>
         </context-group>
       </trans-unit>
-      
+
       <trans-unit id="hostRecovery.boundary" datatype="html">
         <source>Damit verlängerst du weder die Session- noch die Nachbereitungsfrist. Wenn Browserzugang und Zugangskarte verloren sind, wende dich an den Support. Er muss deine Berechtigung für diese Session prüfen. Die Kontaktdaten findest du im »Impressum«.</source>
         <target>La récupération de l’accès ne prolonge ni la session ni la période de consultation après la session.</target>
@@ -18123,7 +18127,7 @@
           <context context-type="linenumber">128</context>
         </context-group>
       </trans-unit>
-      
+
       <trans-unit id="qaConfig.previewQaCloses" datatype="html">
         <source>Offen für Fragen und Bewertungen bis</source>
         <target>Questions et votes acceptés jusqu’au</target>
@@ -18140,7 +18144,7 @@
           <context context-type="linenumber">143</context>
         </context-group>
       </trans-unit>
-      
+
       <trans-unit id="qaConfig.extensionWarning" datatype="html">
         <source> Die Teilnahmefrist liegt nach dem bisherigen Sessionende. Beim Bestätigen wird die globale Sessionfrist mit verlängert; nur der ursprüngliche Host darf das ausführen.</source>
         <target>Le délai de participation est postérieur à la fin de session actuelle. En confirmant, tu prolonges aussi la durée globale de la session ; seul l&apos;hôte d&apos;origine peut le faire.</target>
@@ -18149,11 +18153,11 @@
           <context context-type="linenumber">152,155</context>
         </context-group>
       </trans-unit>
-      
-      
-      
-      
-      
+
+
+
+
+
       <trans-unit id="qaConfig.defaultTitle" datatype="html">
         <source>Fragen &amp; Antworten</source>
         <target>Questions et réponses</target>
@@ -18742,7 +18746,7 @@
           <context context-type="linenumber">100</context>
         </context-group>
       </trans-unit>
-      
+
       <trans-unit id="sessionLifecycle.quickChoices" datatype="html">
         <source>Schnellauswahl für Verlängerung</source>
         <target>Sélection rapide pour l&apos;extension</target>
@@ -18751,9 +18755,9 @@
           <context context-type="linenumber">118</context>
         </context-group>
       </trans-unit>
-      
-      
-      
+
+
+
       <trans-unit id="sessionLifecycle.absoluteLabel" datatype="html">
         <source>Bis Datum und Uhrzeit</source>
         <target>Jusqu&apos;à la date et l&apos;heure</target>
@@ -18918,7 +18922,7 @@
           <context context-type="linenumber">340</context>
         </context-group>
       </trans-unit>
-      
+
       <trans-unit id="sessionLifecycle.retentionDetails" datatype="html">
         <source>Löschtermin anzeigen</source>
         <target>Afficher la date de suppression</target>
@@ -24373,7 +24377,7 @@
           <context context-type="linenumber">191</context>
         </context-group>
       </trans-unit>
-      
+
       <trans-unit id="sessionWordCloud.qaHint" datatype="html">
         <source>Große Wörter und Phrasen kommen aus häufiger genannten oder stärker unterstützten Fragen. Ähnliche Schreibweisen können zusammengefasst sein.</source>
         <target>Les grands mots et expressions viennent de questions plus fréquentes ou plus soutenues. Les graphies similaires peuvent être regroupées.</target>

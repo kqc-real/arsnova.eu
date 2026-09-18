@@ -91,9 +91,11 @@ Wiederherstellungsvorgang; technisch zulässige Wiederholungen derselben
 Operation bleiben möglich. Der gesamte Ablauf muss nicht binnen 15 Minuten
 nach dem Admin-Klick abgeschlossen sein.
 
-Dieselbe Operations-ID liefert dasselbe verschlüsselt vorgehaltene Ergebnis
-und widerruft nicht erneut. Ein bewusst neuer Reset ist eine eigene,
-bestätigungspflichtige Aktion und macht den vorherigen Übergabecode ungültig.
+Dieselbe noch offene Operations-ID liefert dasselbe verschlüsselt vorgehaltene
+Ergebnis und widerruft nicht erneut. Wurde die Operation ersetzt, eingelöst
+oder abgelaufen, bleibt die Operationsreferenz ohne Rohgeheimnis erhalten;
+eine Wiederholung führt dann keinen neuen Widerruf aus. Ein bewusst neuer
+Reset braucht eine neue Operations-ID und eine ausdrückliche Bestätigung.
 Rohgeheimnisse gehören weder ins Audit-Log noch in URLs.
 
 Support-ID und Übergabecode werden getrennt an den bereits verifizierten Host

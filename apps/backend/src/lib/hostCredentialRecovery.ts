@@ -144,12 +144,14 @@ export async function cleanupExpiredHostCredentialMaterial(now: Date = new Date(
         },
       });
     }
-    await tx.hostAdminHandoff.deleteMany({
-      where: {
+    await closeHostAdminHandoffs(
+      tx,
+      {
         expiresAt: { lte: now },
         exchange: null,
       },
-    });
+      now,
+    );
   });
 }
 
@@ -442,7 +444,7 @@ export async function activateHostCredential(params: {
     });
     await tx.hostCredentialExchange.delete({ where: { id: exchange.id } });
     if (exchange.adminHandoffId) {
-      await tx.hostAdminHandoff.delete({ where: { id: exchange.adminHandoffId } });
+      await closeHostAdminHandoffs(tx, { id: exchange.adminHandoffId }, now);
     }
     return { code: credential.session.code, generation: credential.generation };
   });
@@ -458,6 +460,33 @@ export async function activateHostCredential(params: {
 
 function adminHandoffEnvelopeAad(sessionId: string, operationId: string): string {
   return `admin-handoff:${sessionId}:${operationId}`;
+}
+
+export const ADMIN_RESET_OPERATION_CLOSED =
+  'Diese Operation ist abgeschlossen. Das Ergebnis ist nicht mehr abrufbar.';
+
+async function closeHostAdminHandoffs(
+  tx: Prisma.TransactionClient,
+  where: Prisma.HostAdminHandoffWhereInput,
+  now: Date,
+): Promise<void> {
+  await tx.hostAdminHandoff.updateMany({
+    where: {
+      ...where,
+      consumedAt: null,
+    },
+    data: {
+      encryptedEnvelope: null,
+      consumedAt: now,
+    },
+  });
+}
+
+function throwClosedAdminResetOperation(): never {
+  throw new TRPCError({
+    code: 'CONFLICT',
+    message: ADMIN_RESET_OPERATION_CLOSED,
+  });
 }
 
 export async function resetSessionHostAccess(params: {
@@ -524,24 +553,16 @@ export async function resetSessionHostAccess(params: {
             adminHandoffEnvelopeAad(session.id, params.input.operationId),
           );
         } catch {
-          throw new TRPCError({
-            code: 'PRECONDITION_FAILED',
-            message:
-              'Der gespeicherte Übergabecode kann nicht gelesen werden. Bestätige einen neuen Reset, um ihn zu ersetzen.',
-          });
+          throwClosedAdminResetOperation();
         }
       }
-      throw new TRPCError({
-        code: 'PRECONDITION_FAILED',
-        message:
-          'Der vorherige Übergabecode ist nicht mehr abrufbar. Bestätige einen neuen Reset, um ihn zu ersetzen.',
-      });
+      throwClosedAdminResetOperation();
     }
 
     const otherOpen = await tx.hostAdminHandoff.findFirst({
       where: {
         sessionId: session.id,
-        operationId: { not: params.input.operationId },
+        consumedAt: null,
         expiresAt: { gt: now },
       },
       select: { id: true },
@@ -569,7 +590,7 @@ export async function resetSessionHostAccess(params: {
         where: { id: existingExchange.targetCredentialId, status: 'PENDING' },
       });
     }
-    await tx.hostAdminHandoff.deleteMany({ where: { sessionId: session.id } });
+    await closeHostAdminHandoffs(tx, { sessionId: session.id }, now);
     await tx.hostCredential.updateMany({
       where: { sessionId: session.id, status: { in: ['ACTIVE', 'PENDING'] } },
       data: { status: 'REVOKED', revokedAt: now },

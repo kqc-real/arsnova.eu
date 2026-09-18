@@ -181,9 +181,12 @@ Die folgenden Prozedurnamen und Aufgaben sind **kanonisch**. Für Rohaufrufe per
 - Procedure: `admin.resetSessionHostAccess`
 - Input: genau Sessioncode oder Session-Kennung, `operationId`, Nachweise,
   optional `confirmNewReset`
-- Dieselbe `operationId` liefert das verschlüsselte Ergebnis erneut und
-  widerruft nicht noch einmal
-- Ein neuer Reset bei offenem Übergabecode erfordert `confirmNewReset`
+- Dieselbe noch offene `operationId` liefert das verschlüsselte Ergebnis erneut
+  und widerruft nicht noch einmal
+- Eine ersetzte, eingelöste oder abgelaufene `operationId` bleibt ohne Geheimnis
+  erhalten und löst keinen neuen Widerruf aus
+- Ein neuer Reset bei offenem Übergabecode erfordert eine neue `operationId`
+  und `confirmNewReset`
 - Output: Sessioncode, Session-Kennung, Übergabecode und Einlösefrist
 
 ## 5.4 Sessiondetail und Legal Hold
