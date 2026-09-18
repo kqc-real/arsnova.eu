@@ -77,6 +77,9 @@ npm run load:qa-scale:release
 direkte Diagnoseziele. Der Runner summiert die serverseitig gebundenen
 Verbindungen und verlangt vor und nach der Reconnect-Welle exakt 500. Wird
 die Variable weggelassen, dient `TRPC_URL` als einziges Diagnoseziel.
+Mehrere Diagnoseziele sind kein Produktions-Mehrinstanzbetrieb; die aktuelle
+Eininstanzgrenze und der Plan stehen in
+[operations/MULTI-INSTANCE-PLAN.md](operations/MULTI-INSTANCE-PLAN.md).
 
 Der Ablauf prüft unter anderem:
 

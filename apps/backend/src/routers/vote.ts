@@ -889,13 +889,19 @@ export const voteRouter = router({
           questionType === 'CATEGORIZATION'
             ? voteIsCorrect === true
             : undefined;
-        recordVoteCachesForCode(participant.session.code, input.questionId, round, {
-          answerIds: shortTextMatchedAnswer ? [shortTextMatchedAnswer.id] : answerIds,
-          freeText,
-          questionType,
-          isCorrect: progressIsCorrect,
-          numericValue: input.numericValue ?? null,
-        });
+        recordVoteCachesForCode(
+          participant.session.code,
+          input.questionId,
+          round,
+          {
+            answerIds: shortTextMatchedAnswer ? [shortTextMatchedAnswer.id] : answerIds,
+            freeText,
+            questionType,
+            isCorrect: progressIsCorrect,
+            numericValue: input.numericValue ?? null,
+          },
+          participant.session.id,
+        );
         invalidateHostVoteProgressForCode(participant.session.code);
       }
       return { voteId: vote.id };

@@ -161,6 +161,8 @@ test('validiert das unveränderbare Epic-405-Releaseprofil', async () => {
     ['25.000 Fragen', (copy) => (copy.seed.totalQuestions = 24_999)],
     ['realistisches Voteprofil', (copy) => (copy.sampling.ratings = 10_359)],
     ['exakt 500 WS-Clients', (copy) => (copy.websocket.activeClients = 499)],
+    ['WS-Seitengröße des Produkts', (copy) => (copy.websocket.subscriptionPageSize = 1)],
+    ['TIME-Sortierung', (copy) => (copy.sampling.sortModes = ['TOP', 'BEST', 'CONTROVERSIAL'])],
     ['p95 darf nicht gelockert werden', (copy) => (copy.budgets.apiP95ExclusiveMs = 1_001)],
     [
       'Reconnect-Maximum darf nicht gelockert werden',

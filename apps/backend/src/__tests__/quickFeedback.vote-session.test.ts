@@ -96,7 +96,10 @@ vi.mock('../lib/invalidSessionCode', () => ({
   rejectInvalidSessionCode: rejectInvalidSessionCodeMock,
 }));
 
-import { quickFeedbackRouter } from '../routers/quickFeedback';
+import {
+  quickFeedbackRouter,
+  resetQuickFeedbackAudienceCacheForTests,
+} from '../routers/quickFeedback';
 
 const caller = quickFeedbackRouter.createCaller({ req: undefined });
 const hostCaller = quickFeedbackRouter.createCaller({
@@ -113,6 +116,7 @@ let lastTempoChoiceAction: {
 
 describe('quickFeedback.vote und Session-Status', () => {
   beforeEach(() => {
+    resetQuickFeedbackAudienceCacheForTests();
     vi.clearAllMocks();
     extractHostTokenMock.mockReturnValue('host-token-123');
     isHostSessionTokenValidMock.mockResolvedValue(true);
@@ -431,6 +435,35 @@ describe('quickFeedback.vote und Session-Status', () => {
       distribution: { YES: 0, NO: 0, MAYBE: 0 },
     });
     await iterator.return?.();
+  });
+
+  it('teilt die erste Ergebnisaggregation zwischen 500 gleichzeitigen Subscriptions', async () => {
+    redisMock.get.mockResolvedValue(
+      JSON.stringify({
+        type: 'YESNO',
+        locked: false,
+        showLiveResults: true,
+        totalVotes: 3,
+        distribution: { YES: 2, NO: 1, MAYBE: 0 },
+        sessionBound: false,
+      }),
+    );
+    prismaMock.session.findUnique.mockResolvedValue(null);
+
+    const iterators = await Promise.all(
+      Array.from({ length: 500 }, async () => {
+        const stream = await caller.onResults({ sessionCode: 'ABC123' });
+        return stream[Symbol.asyncIterator]();
+      }),
+    );
+    const firstResults = await Promise.all(iterators.map((iterator) => iterator.next()));
+
+    expect(firstResults).toHaveLength(500);
+    expect(firstResults.every((result) => result.value?.totalVotes === 3)).toBe(true);
+    expect(prismaMock.session.findUnique).toHaveBeenCalledTimes(1);
+    expect(redisMock.get).toHaveBeenCalledTimes(1);
+
+    await Promise.all(iterators.map((iterator) => iterator.return?.()));
   });
 
   it('gibt verdeckte Ergebnisse nach dem Sperren der Runde frei', async () => {

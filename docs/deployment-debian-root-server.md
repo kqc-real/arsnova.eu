@@ -536,6 +536,10 @@ sudo chmod +x /etc/letsencrypt/renewal-hooks/deploy/reload-nginx.sh
 
 Das Repository enthält die aktuelle Produktionsvorlage in [`docker-compose.prod.yml`](../docker-compose.prod.yml). Diese Datei ist die Quelle der Wahrheit; die wichtigsten Eigenschaften:
 
+- Genau **eine** App-Instanz bedient HTTP, tRPC-WebSockets und Yjs. Live-Signale
+  und Teile des Presenter-/Cache-Zustands sind prozesslokal; ein Mehrinstanzbetrieb
+  ist nicht freigegeben. Plan und Gate:
+  [operations/MULTI-INSTANCE-PLAN.md](operations/MULTI-INSTANCE-PLAN.md).
 - `postgres`, `redis` und `app` laufen in einem internen Docker-Netzwerk.
   Der separate `pdf-worker` besitzt mit `network_mode: none` überhaupt keinen
   Netzwerk-Stack außerhalb von Loopback.

@@ -10076,7 +10076,6 @@ export class SessionHostComponent implements OnInit, OnDestroy {
       this.qaListNextCursor.set(null);
       this.qaListRankingRevision.set(null);
       this.resetQaListPageNavigation();
-      await this.reconcilePresentedChannel();
       this.dismissHostSteeringCallout();
       return true;
     }
@@ -10125,7 +10124,6 @@ export class SessionHostComponent implements OnInit, OnDestroy {
     this.qaListTotalCount.set(snapshot.totalCount ?? snapshot.questions.length);
     this.qaListNextCursor.set(snapshot.nextCursor ?? null);
     this.qaListRankingRevision.set(snapshot.rankingRevision ?? null);
-    await this.reconcilePresentedChannel();
     this.dismissHostSteeringCallout();
     return true;
   }
@@ -10907,7 +10905,6 @@ export class SessionHostComponent implements OnInit, OnDestroy {
         sessionCode: this.code.toUpperCase(),
       });
       this.quickFeedbackResult.set(result);
-      await this.reconcilePresentedChannel();
     } catch {
       // Keep the last snapshot visible during transient polling failures.
     }

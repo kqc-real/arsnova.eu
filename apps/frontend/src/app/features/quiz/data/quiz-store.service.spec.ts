@@ -60,6 +60,13 @@ describe('QuizStoreService', () => {
     localStorage.clear();
   });
 
+  it('startet auf dem reinen Teilnahmeweg keine Demo- oder Sync-Persistenz', () => {
+    const service = TestBed.inject(QuizStoreService);
+
+    expect(service.quizzes()).toEqual([]);
+    expect(localStorage.getItem('quiz-sync-room-id')).toBeNull();
+  });
+
   it('erstellt ein Quiz und speichert es in localStorage', () => {
     const service = TestBed.inject(QuizStoreService);
 
