@@ -1,11 +1,12 @@
 import { TestBed } from '@angular/core/testing';
 import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
+import { provideRouter } from '@angular/router';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { HostRecoveryCardDialogComponent } from './host-recovery-card-dialog.component';
 
 const CARD = {
   supportId: 'ARS-ABCD-2345',
-  recoveryCode: 'recovery-capability-abcdefghijklmnopqrstuvwxyz',
+  recoveryCode: 'New-recovery_capability-abcdefghijklmnopqrstuvwxyz',
 };
 
 describe('HostRecoveryCardDialogComponent', () => {
@@ -17,6 +18,7 @@ describe('HostRecoveryCardDialogComponent', () => {
     TestBed.configureTestingModule({
       imports: [HostRecoveryCardDialogComponent],
       providers: [
+        provideRouter([]),
         { provide: MAT_DIALOG_DATA, useValue: CARD },
         { provide: MatDialogRef, useValue: { close } },
       ],
@@ -32,14 +34,15 @@ describe('HostRecoveryCardDialogComponent', () => {
     expect(host.querySelector('.dialog-title-header__icon mat-icon')?.textContent?.trim()).toBe(
       'admin_panel_settings',
     );
-    expect(host.textContent).toContain('Host-Zugangskarte sichern');
+    expect(host.textContent).toContain('Host-Zugang sichern');
     expect(host.textContent).not.toContain('Schritt 3 von 3');
     expect(host.textContent).toContain('in diesem Browser gespeichert');
+    expect(host.textContent).toContain('anderen Browser');
     expect(host.textContent).toContain('Wiederherstellungsseite');
     expect(host.textContent).toContain('Session-Kennung');
-    expect(host.textContent).toContain('nicht der öffentliche Beitrittscode');
+    expect(host.textContent).toContain('sechsstelligen Teilnahme-Code');
     expect(host.textContent).toContain('Berechtigung für diese Session prüfen');
-    expect(host.textContent).toContain('»Impressum«');
+    expect(host.textContent).toContain('Kontaktdaten im Impressum');
     expect(host.textContent).not.toContain('ABC123');
     expect(host.textContent).not.toContain('Sessioncode');
     const recoveryLink = host.querySelector(
@@ -61,6 +64,7 @@ describe('HostRecoveryCardDialogComponent', () => {
     TestBed.configureTestingModule({
       imports: [HostRecoveryCardDialogComponent],
       providers: [
+        provideRouter([]),
         { provide: MAT_DIALOG_DATA, useValue: { ...CARD, setupStep: 3, setupStepCount: 3 } },
         { provide: MatDialogRef, useValue: { close } },
       ],
@@ -93,10 +97,24 @@ describe('HostRecoveryCardDialogComponent', () => {
     fixture.detectChanges();
 
     expect(writeText).toHaveBeenCalledWith(CARD.supportId);
-    expect(fixture.nativeElement.textContent).toContain('Session-Kennung wurde kopiert.');
+    expect(fixture.nativeElement.textContent).toContain('Session-Kennung kopiert.');
   });
 
-  it('nimmt Support-ID und Recovery-Code in die HTML-Karte auf', () => {
+  it('bestätigt die Checkbox nicht durch Download oder Copy-all', async () => {
+    const writeText = vi.fn().mockResolvedValue(undefined);
+    vi.stubGlobal('navigator', { clipboard: { writeText } });
+    const fixture = TestBed.createComponent(HostRecoveryCardDialogComponent);
+    fixture.detectChanges();
+    await fixture.componentInstance.copyAll();
+    fixture.componentInstance.download();
+    fixture.detectChanges();
+    expect(fixture.componentInstance.saved()).toBe(false);
+    expect(writeText.mock.calls[0]?.[0]).toContain(CARD.recoveryCode);
+    expect(writeText.mock.calls[0]?.[0]).not.toMatch(/\*\*|`|\[/);
+    expect(fixture.nativeElement.textContent).toContain('Download gestartet');
+  });
+
+  it('nimmt Support-ID und Recovery-Code in die HTML-Karte auf, ohne cardWhy', () => {
     const fixture = TestBed.createComponent(HostRecoveryCardDialogComponent);
     fixture.detectChanges();
     const html = fixture.componentInstance.buildDownloadHtml();
@@ -106,12 +124,12 @@ describe('HostRecoveryCardDialogComponent', () => {
     expect(html).toContain(CARD.supportId);
     expect(html).toContain(CARD.recoveryCode);
     expect(html).not.toContain('Schritt 3 von 3');
-    expect(html).toContain('<h1>Host-Zugangskarte</h1>');
-    expect(html).not.toContain('arsnova.eu Host-Zugangskarte');
-    expect(html).toContain('in diesem Browser gespeichert');
+    expect(html).toContain('<h1>Host-Zugangsdaten</h1>');
+    expect(html).toContain('auf einem anderen Gerät oder in einem anderen Browser');
+    expect(html).not.toContain('Dein Host-Zugang ist in diesem Browser gespeichert');
     expect(html).toContain('Wiederherstellungsseite');
     expect(html).toContain('Berechtigung für diese Session prüfen');
-    expect(html).toContain('»Impressum«');
+    expect(html).toContain('Kontaktdaten im Impressum');
     expect(html).toContain('host-recovery');
     expect(html).toMatch(/<a class="usage-link" href="[^"]*host-recovery[^"]*">/);
     expect(html).not.toContain('<script');

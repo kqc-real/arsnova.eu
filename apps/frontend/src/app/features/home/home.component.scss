@@ -281,6 +281,25 @@
   text-wrap: balance;
 }
 
+.home-host-recovery-link {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 2.5rem;
+  margin: 0.15rem 0 0;
+  padding: 0.25rem 0;
+  color: var(--mat-sys-primary);
+  font: var(--mat-sys-body-medium);
+  line-height: 1.4;
+  text-underline-offset: 0.15em;
+  border-radius: var(--mat-sys-corner-extra-small);
+}
+
+.home-host-recovery-link:focus-visible {
+  outline: 2px solid var(--mat-sys-primary);
+  outline-offset: 0.25rem;
+}
+
 .home-host-stack {
   display: grid;
   grid-template-columns: minmax(0, 1fr);

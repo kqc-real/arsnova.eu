@@ -948,6 +948,42 @@ describe('admin router DoD authentication boundary', () => {
 
   trpcDodIt(
     {
+      procedure: 'admin.getSessionByCode',
+      case: 'happy',
+      mode: 'direct',
+      title: 'admin.getSessionByCode findet eine Session über die Session-Kennung',
+    },
+    async () => {
+      prismaMock.session.findUnique.mockResolvedValue({
+        id: SESSION_ID,
+        code: SESSION_CODE,
+        type: 'QUIZ',
+        status: 'FINISHED',
+        title: 'Audit',
+        hostSupportId: 'ARS-ABCD-2345',
+        startedAt: new Date(),
+        statusChangedAt: new Date(),
+        endedAt: new Date(),
+        legalHoldUntil: null,
+        legalHoldReason: null,
+        quiz: { name: 'Audit-Quiz', questions: [] },
+        _count: { participants: 2 },
+      });
+      const result = await adminRouter
+        .createCaller({ req: {} as never })
+        .getSessionByCode({ supportId: 'ARS-ABCD-2345' });
+      expect(result).toMatchObject({
+        supportId: 'ARS-ABCD-2345',
+        session: { sessionCode: SESSION_CODE },
+      });
+      expect(prismaMock.session.findUnique).toHaveBeenCalledWith(
+        expect.objectContaining({ where: { hostSupportId: 'ARS-ABCD-2345' } }),
+      );
+    },
+  );
+
+  trpcDodIt(
+    {
       procedure: 'admin.getSessionDetail',
       case: 'happy',
       mode: 'direct',

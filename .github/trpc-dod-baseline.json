@@ -24,12 +24,12 @@
     },
     "admin.getSessionByCode": {
       "kind": "query",
-      "fingerprint": "sha256:c4fd5218302fba0ea57433274d42d89ca2a4fb2542a2ad0ccf0c72e5bad81a5d",
+      "fingerprint": "sha256:3cc33d6c8d6c434d0318885e051c94de932d54ecb84516c369e1927a21b2868d",
       "missing": []
     },
     "admin.getSessionDetail": {
       "kind": "query",
-      "fingerprint": "sha256:f8d910622db5c71faf62907ad2b7da113765b21932da40dacee7b93bfdc0fcbe",
+      "fingerprint": "sha256:dbbc2338e37c41f625a10d11389859cda00f824523fc6d5f0164b2e307b5f396",
       "missing": []
     },
     "admin.listSessions": {

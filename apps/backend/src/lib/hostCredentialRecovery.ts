@@ -144,12 +144,14 @@ export async function cleanupExpiredHostCredentialMaterial(now: Date = new Date(
         },
       });
     }
-    await tx.hostAdminHandoff.deleteMany({
-      where: {
+    await closeHostAdminHandoffs(
+      tx,
+      {
         expiresAt: { lte: now },
         exchange: null,
       },
-    });
+      now,
+    );
   });
 }
 
@@ -442,7 +444,7 @@ export async function activateHostCredential(params: {
     });
     await tx.hostCredentialExchange.delete({ where: { id: exchange.id } });
     if (exchange.adminHandoffId) {
-      await tx.hostAdminHandoff.delete({ where: { id: exchange.adminHandoffId } });
+      await closeHostAdminHandoffs(tx, { id: exchange.adminHandoffId }, now);
     }
     return { code: credential.session.code, generation: credential.generation };
   });
@@ -456,11 +458,51 @@ export async function activateHostCredential(params: {
   return activated;
 }
 
+function adminHandoffEnvelopeAad(sessionId: string, operationId: string): string {
+  return `admin-handoff:${sessionId}:${operationId}`;
+}
+
+export const ADMIN_RESET_OPERATION_CLOSED =
+  'Diese Operation ist abgeschlossen. Das Ergebnis ist nicht mehr abrufbar.';
+
+async function closeHostAdminHandoffs(
+  tx: Prisma.TransactionClient,
+  where: Prisma.HostAdminHandoffWhereInput,
+  now: Date,
+): Promise<void> {
+  await tx.hostAdminHandoff.updateMany({
+    where: {
+      ...where,
+      consumedAt: null,
+    },
+    data: {
+      encryptedEnvelope: null,
+      consumedAt: now,
+    },
+  });
+  await tx.hostAdminHandoff.updateMany({
+    where: {
+      ...where,
+      consumedAt: { not: null },
+      encryptedEnvelope: { not: null },
+    },
+    data: {
+      encryptedEnvelope: null,
+    },
+  });
+}
+
+function throwClosedAdminResetOperation(): never {
+  throw new TRPCError({
+    code: 'CONFLICT',
+    message: ADMIN_RESET_OPERATION_CLOSED,
+  });
+}
+
 export async function resetSessionHostAccess(params: {
   input: AdminResetSessionHostAccessInput;
   adminIdentifier: string;
 }): Promise<AdminResetSessionHostAccessOutput> {
-  const handoffCapability = createOpaqueCapability();
   const result = await prisma.$transaction(async (tx) => {
     const locked = await tx.$queryRaw<Array<{ id: string }>>(Prisma.sql`
       SELECT "id"
@@ -499,6 +541,59 @@ export async function resetSessionHostAccess(params: {
         message: 'Der Host-Zugang kann nach Ende der Nachbereitung nicht zurückgesetzt werden.',
       });
     }
+
+    const existingByOperation = await tx.hostAdminHandoff.findUnique({
+      where: { operationId: params.input.operationId },
+      select: {
+        sessionId: true,
+        encryptedEnvelope: true,
+        consumedAt: true,
+        expiresAt: true,
+        targetGeneration: true,
+      },
+    });
+    if (existingByOperation) {
+      if (existingByOperation.sessionId !== session.id) {
+        throw new TRPCError({
+          code: 'BAD_REQUEST',
+          message: 'Die Operations-ID gehört zu einer anderen Session.',
+        });
+      }
+      if (
+        existingByOperation.encryptedEnvelope &&
+        existingByOperation.consumedAt === null &&
+        existingByOperation.expiresAt > now &&
+        existingByOperation.targetGeneration === session.hostCredentialVersion
+      ) {
+        try {
+          return decryptCapabilityEnvelope<AdminResetSessionHostAccessOutput>(
+            existingByOperation.encryptedEnvelope,
+            adminHandoffEnvelopeAad(session.id, params.input.operationId),
+          );
+        } catch {
+          throwClosedAdminResetOperation();
+        }
+      }
+      throwClosedAdminResetOperation();
+    }
+
+    const otherOpen = await tx.hostAdminHandoff.findFirst({
+      where: {
+        sessionId: session.id,
+        consumedAt: null,
+        expiresAt: { gt: now },
+      },
+      select: { id: true },
+    });
+    if (otherOpen && params.input.confirmNewReset !== true) {
+      throw new TRPCError({
+        code: 'PRECONDITION_FAILED',
+        message:
+          'Ein Übergabecode für diese Session existiert bereits. Bestätige einen neuen Reset, um ihn zu ersetzen.',
+      });
+    }
+
+    const handoffCapability = createOpaqueCapability();
     const revokedCredentialVersion = session.hostCredentialVersion;
     const targetGeneration = revokedCredentialVersion + 1;
     const supportId = session.hostSupportId ?? createHostSupportId();
@@ -513,7 +608,7 @@ export async function resetSessionHostAccess(params: {
         where: { id: existingExchange.targetCredentialId, status: 'PENDING' },
       });
     }
-    await tx.hostAdminHandoff.deleteMany({ where: { sessionId: session.id } });
+    await closeHostAdminHandoffs(tx, { sessionId: session.id }, now);
     await tx.hostCredential.updateMany({
       where: { sessionId: session.id, status: { in: ['ACTIVE', 'PENDING'] } },
       data: { status: 'REVOKED', revokedAt: now },
@@ -526,10 +621,23 @@ export async function resetSessionHostAccess(params: {
       },
     });
     const expiresAt = new Date(now.getTime() + HOST_CREDENTIAL_EXCHANGE_MS);
+    const output: AdminResetSessionHostAccessOutput = {
+      sessionId: session.id,
+      code: session.code,
+      supportId,
+      handoffCapability,
+      expiresAt: expiresAt.toISOString(),
+      revokedCredentialVersion,
+    };
     await tx.hostAdminHandoff.create({
       data: {
         sessionId: session.id,
+        operationId: params.input.operationId,
         capabilityHash: hashCapability(handoffCapability),
+        encryptedEnvelope: encryptCapabilityEnvelope(
+          output,
+          adminHandoffEnvelopeAad(session.id, params.input.operationId),
+        ),
         targetGeneration,
         createdAt: now,
         expiresAt,
@@ -548,18 +656,12 @@ export async function resetSessionHostAccess(params: {
             params.input.requesterIdentityVerificationReference,
           sessionAuthorizationEvidenceReference: params.input.sessionAuthorizationEvidenceReference,
           supportCaseReference: params.input.supportCaseReference,
+          operationId: params.input.operationId,
           revokedCredentialVersion,
         }),
       },
     });
-    return {
-      sessionId: session.id,
-      code: session.code,
-      supportId,
-      handoffCapability,
-      expiresAt: expiresAt.toISOString(),
-      revokedCredentialVersion,
-    };
+    return output;
   });
   return result;
 }

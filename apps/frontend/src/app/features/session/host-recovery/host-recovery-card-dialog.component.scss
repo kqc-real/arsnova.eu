@@ -103,6 +103,13 @@
   color: currentColor;
 }
 
+.recovery-card__secondary-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.65rem;
+}
+
+.recovery-card__secondary-actions button,
 .recovery-card__download {
   display: inline-flex;
   align-items: center;
@@ -125,6 +132,7 @@
     width: auto;
   }
 
+  .recovery-card__secondary-actions button,
   .recovery-card__download,
   .recovery-card__done,
   .recovery-card__actions button {

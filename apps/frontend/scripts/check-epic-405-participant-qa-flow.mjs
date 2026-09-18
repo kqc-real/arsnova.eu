@@ -149,7 +149,7 @@ async function seedHostBrowser(context, session) {
 }
 
 async function dismissRecoveryCardIfPresent(page) {
-  const heading = page.getByText('Host-Zugangskarte sichern', { exact: true }).first();
+  const heading = page.getByText('Host-Zugang sichern', { exact: true }).first();
   const visible = await heading.waitFor({ state: 'visible', timeout: 8_000 }).then(
     () => true,
     () => false,

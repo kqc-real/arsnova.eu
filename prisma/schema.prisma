@@ -259,15 +259,17 @@ model HostCredentialExchange {
 }
 
 model HostAdminHandoff {
-  id               String                  @id @default(uuid())
-  sessionId        String
-  session          Session                 @relation(fields: [sessionId], references: [id], onDelete: Cascade)
-  capabilityHash   String                  @unique @db.Char(64)
-  targetGeneration Int
-  createdAt        DateTime                @default(now())
-  expiresAt        DateTime
-  consumedAt       DateTime?
-  exchange         HostCredentialExchange?
+  id                String                  @id @default(uuid())
+  sessionId         String
+  session           Session                 @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  operationId       String                  @unique
+  capabilityHash    String                  @unique @db.Char(64)
+  encryptedEnvelope String?                 @db.Text
+  targetGeneration  Int
+  createdAt         DateTime                @default(now())
+  expiresAt         DateTime
+  consumedAt        DateTime?
+  exchange          HostCredentialExchange?
 
   @@index([sessionId, expiresAt])
 }

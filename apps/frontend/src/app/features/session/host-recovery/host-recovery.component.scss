@@ -1,0 +1,103 @@
+:host {
+  display: block;
+}
+
+.host-recovery-page {
+  display: grid;
+  min-height: calc(100dvh - 4rem);
+  place-items: center;
+  padding: 1.5rem 1rem;
+}
+
+.host-recovery-page__card {
+  --mdc-elevated-card-container-color: var(--mat-sys-surface-container-high);
+  --mat-card-elevated-container-color: var(--mat-sys-surface-container-high);
+  width: min(100%, 38rem);
+  padding: 1.25rem 1.25rem 1.5rem;
+  box-sizing: border-box;
+  background: var(--mat-sys-surface-container-high);
+  color: var(--mat-sys-on-surface);
+  outline: 1px solid var(--mat-sys-outline);
+  box-shadow: var(--mat-sys-level3);
+  border-radius: var(--mat-sys-corner-extra-large);
+}
+
+.host-recovery-page__content,
+.host-recovery-page__form {
+  display: grid;
+  gap: 1rem;
+}
+
+mat-form-field {
+  width: 100%;
+}
+
+.host-recovery-page__switch {
+  justify-self: start;
+}
+
+.host-recovery-page__actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 0.65rem;
+}
+
+.host-recovery-page__error,
+.host-recovery-page__progress,
+.host-recovery-page__hint,
+.host-recovery-page__deadline {
+  margin: 0;
+  font: var(--mat-sys-body-medium);
+  line-height: 1.4;
+}
+
+.host-recovery-page__error {
+  color: var(--mat-sys-error);
+}
+
+.host-recovery-page__progress,
+.host-recovery-page__hint,
+.host-recovery-page__deadline {
+  color: var(--mat-sys-on-surface-variant);
+}
+
+.host-recovery-page__warning {
+  margin: 0;
+  padding: 0.8rem 0.9rem;
+  border-radius: var(--mat-sys-corner-medium);
+  background: var(--mat-sys-error-container);
+  color: var(--mat-sys-on-error-container);
+  font: var(--mat-sys-body-medium);
+  line-height: 1.5;
+}
+
+.host-recovery-page__boundary {
+  margin: 0;
+  padding: 0.8rem 0.9rem;
+  border-radius: var(--mat-sys-corner-medium);
+  background: var(--mat-sys-tertiary-container);
+  color: var(--mat-sys-on-tertiary-container);
+  font: var(--mat-sys-body-medium);
+  line-height: 1.5;
+  display: grid;
+  gap: 0.4rem;
+}
+
+.host-recovery-page__boundary a,
+.host-recovery-page__error a {
+  color: inherit;
+  text-underline-offset: 0.15em;
+}
+
+.dialog-title-header__heading:focus {
+  outline: none;
+}
+
+@media (max-width: 359px) {
+  .host-recovery-page__actions a,
+  .host-recovery-page__actions button,
+  .recovery-card__secondary-actions button {
+    width: 100%;
+  }
+}

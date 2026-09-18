@@ -19,6 +19,7 @@ const {
   clearHostBrowserCapabilityMock,
   clearRecoveryExchangeIdMock,
   getHostBrowserCapabilityMock,
+  getHostRecoveryCandidateMock,
   getOrCreateRecoveryExchangeIdMock,
   getStagedHostRecoveryCardMock,
   persistInitialHostRecoveryMock,
@@ -26,6 +27,7 @@ const {
   clearHostBrowserCapabilityMock: vi.fn(),
   clearRecoveryExchangeIdMock: vi.fn(),
   getHostBrowserCapabilityMock: vi.fn(),
+  getHostRecoveryCandidateMock: vi.fn(),
   getOrCreateRecoveryExchangeIdMock: vi.fn(),
   getStagedHostRecoveryCardMock: vi.fn(),
   persistInitialHostRecoveryMock: vi.fn(),
@@ -68,6 +70,7 @@ vi.mock('./core/host-recovery-access', () => ({
   clearHostBrowserCapability: clearHostBrowserCapabilityMock,
   clearRecoveryExchangeId: clearRecoveryExchangeIdMock,
   getHostBrowserCapability: getHostBrowserCapabilityMock,
+  getHostRecoveryCandidate: getHostRecoveryCandidateMock,
   getOrCreateRecoveryExchangeId: getOrCreateRecoveryExchangeIdMock,
   getStagedHostRecoveryCard: getStagedHostRecoveryCardMock,
   persistInitialHostRecovery: persistInitialHostRecoveryMock,
@@ -158,6 +161,7 @@ describe('app routes', () => {
     getLocaleFromBaseHrefMock.mockReturnValue(null);
     getPreferredJoinLocaleMock.mockReturnValue('de');
     getHostBrowserCapabilityMock.mockReturnValue(null);
+    getHostRecoveryCandidateMock.mockReturnValue(null);
     getOrCreateRecoveryExchangeIdMock.mockReturnValue('recovery-exchange-id');
     getStagedHostRecoveryCardMock.mockReturnValue(null);
     getParticipantSummaryQueryMock.mockResolvedValue({

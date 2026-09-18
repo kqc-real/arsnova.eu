@@ -157,7 +157,7 @@
 
 .admin-input--code {
   text-transform: uppercase;
-  letter-spacing: 0.12em;
+  letter-spacing: 0.04em;
   font-family: ui-monospace, 'SF Mono', Consolas, monospace;
 }
 
@@ -455,6 +455,42 @@
   }
 }
 
+.admin-host-reset__session-ref {
+  margin: 0;
+  font: var(--mat-sys-label-large);
+  overflow-wrap: anywhere;
+}
+
+.admin-host-reset__examples {
+  font: var(--mat-sys-body-medium);
+
+  summary {
+    cursor: pointer;
+    font: var(--mat-sys-label-large);
+  }
+
+  .admin-help {
+    margin-top: 0.5rem;
+  }
+}
+
+.admin-host-reset__confirm {
+  display: grid;
+  gap: 0.65rem;
+  padding: 0.85rem;
+  border-radius: var(--mat-sys-corner-small);
+  background: color-mix(in srgb, var(--mat-sys-error-container) 45%, transparent);
+
+  h4 {
+    margin: 0;
+    font: var(--mat-sys-title-small);
+  }
+
+  .admin-actions {
+    justify-content: flex-start;
+  }
+}
+
 .admin-host-reset__result {
   border-radius: var(--mat-sys-corner-small);
   background: var(--mat-sys-tertiary-container);
@@ -472,6 +508,11 @@
     margin: 0 0 0.5rem;
     font-family: ui-monospace, 'SF Mono', Consolas, monospace;
     user-select: all;
+  }
+
+  a {
+    color: inherit;
+    text-decoration-thickness: 0.08em;
   }
 }
 

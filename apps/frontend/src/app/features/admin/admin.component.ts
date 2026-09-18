@@ -17,12 +17,22 @@ import {
 } from '@angular/material/card';
 import { MatButton } from '@angular/material/button';
 import { MatProgressSpinner } from '@angular/material/progress-spinner';
-import { MatFormField, MatLabel } from '@angular/material/form-field';
+import { MatFormField, MatHint, MatLabel } from '@angular/material/form-field';
 import { MatInput } from '@angular/material/input';
 import { MatTab, MatTabContent, MatTabGroup } from '@angular/material/tabs';
+import { RouterLink } from '@angular/router';
+import { parseAdminSessionLookup } from '@arsnova/shared-types';
 import { formatLocaleCount } from '../../core/locale-number.util';
+import { localizeCommands, resolveLocalizedAppUrl } from '../../core/locale-router';
 import { localizeKnownServerError } from '../../core/localize-known-server-message';
 import { trpc } from '../../core/trpc.client';
+import {
+  classifyAdminHostResetError,
+  createAdminHostResetDraft,
+  EMPTY_ADMIN_HOST_RESET_DRAFT,
+  isHostResetEvidenceCategory,
+  type AdminHostResetDraft,
+} from './admin-host-reset';
 import { resolveMotdAssetOrigin } from '../../core/motd-asset-origin';
 import {
   absolutizeMarkdownHtmlRootAssetImgSrc,
@@ -72,8 +82,10 @@ const ADMIN_SESSION_GROUP_ORDER: readonly SessionStatus[] = [
     MatButton,
     MatProgressSpinner,
     MatFormField,
+    MatHint,
     MatLabel,
     MatInput,
+    RouterLink,
     MatTabGroup,
     MatTab,
     MatTabContent,
@@ -129,16 +141,13 @@ export class AdminComponent implements OnInit {
   readonly exportLoading = signal(false);
   readonly exportError = signal<string | null>(null);
   readonly exportInfo = signal<string | null>(null);
-  readonly hostResetLoading = signal(false);
-  readonly hostResetError = signal<string | null>(null);
-  readonly hostResetResult = signal<AdminResetSessionHostAccessOutput | null>(null);
-  readonly hostResetEvidenceCategory = signal<
-    'PREEXISTING_VERIFIED_SUPPORT_CASE' | 'INDEPENDENT_OFFICIAL_ORGANIZATION_CONFIRMATION'
-  >('PREEXISTING_VERIFIED_SUPPORT_CASE');
-  readonly hostResetRequesterReference = signal('');
-  readonly hostResetAuthorizationReference = signal('');
-  readonly hostResetSupportCaseReference = signal('');
-  readonly hostResetReason = signal('');
+  readonly hostResetBySession = signal<Record<string, AdminHostResetDraft>>({});
+  readonly hostResetLoadingSessionId = signal<string | null>(null);
+  readonly hostResetBusy = computed(() => this.hostResetLoadingSessionId() !== null);
+  readonly hostResetCopied = signal(false);
+  readonly hostRecoveryUrl = resolveLocalizedAppUrl('/host-recovery');
+  readonly hostRecoveryCommands = localizeCommands(['host-recovery']);
+  private adminUiEpoch = 0;
 
   readonly hasSessions = computed(() => this.sessions().length > 0);
   readonly hasAnySessions = computed(() => this.sessionTotal() > 0);
@@ -166,11 +175,11 @@ export class AdminComponent implements OnInit {
   }
 
   updateLookupCode(value: string): void {
-    const normalized = value
-      .toUpperCase()
-      .replace(/[^A-Z0-9]/g, '')
-      .slice(0, 6);
-    this.lookupCode.set(normalized);
+    this.lookupCode.set(value.toUpperCase().slice(0, 40));
+  }
+
+  canLookupSession(): boolean {
+    return parseAdminSessionLookup(this.lookupCode()).success;
   }
 
   updateDeleteReason(value: string): void {
@@ -197,51 +206,161 @@ export class AdminComponent implements OnInit {
     this.resetRecordConfirmText.set(value.slice(0, 200));
   }
 
+  hostResetDraftFor(sessionId: string): AdminHostResetDraft {
+    return this.hostResetBySession()[sessionId] ?? EMPTY_ADMIN_HOST_RESET_DRAFT;
+  }
+
+  hostResetResultFor(sessionId: string): AdminResetSessionHostAccessOutput | null {
+    return this.hostResetBySession()[sessionId]?.result ?? null;
+  }
+
+  updateHostResetEvidenceCategory(value: string): void {
+    const sessionId = this.selectedSessionId();
+    if (!sessionId) return;
+    this.patchHostResetDraft(sessionId, {
+      evidenceCategory: isHostResetEvidenceCategory(value) ? value : '',
+    });
+  }
+
   updateHostResetField(
     field: 'requester' | 'authorization' | 'supportCase' | 'reason',
     value: string,
   ): void {
-    const normalized = value.slice(0, field === 'reason' ? 500 : 200);
-    if (field === 'requester') this.hostResetRequesterReference.set(normalized);
-    if (field === 'authorization') this.hostResetAuthorizationReference.set(normalized);
-    if (field === 'supportCase') this.hostResetSupportCaseReference.set(normalized.slice(0, 120));
-    if (field === 'reason') this.hostResetReason.set(normalized);
+    const sessionId = this.selectedSessionId();
+    if (!sessionId) return;
+    const max = field === 'reason' ? 500 : field === 'supportCase' ? 120 : 200;
+    this.patchHostResetDraft(sessionId, {
+      [field]: value.slice(0, max),
+    });
   }
 
-  canResetHostAccess(): boolean {
+  canResetHostAccess(sessionId = this.selectedSessionId()): boolean {
+    if (!sessionId) return false;
+    const draft = this.hostResetBySession()[sessionId];
+    if (!draft || draft.result) return false;
     return (
-      this.hostResetRequesterReference().trim().length >= 3 &&
-      this.hostResetAuthorizationReference().trim().length >= 3 &&
-      this.hostResetSupportCaseReference().trim().length >= 3 &&
-      this.hostResetReason().trim().length >= 10
+      isHostResetEvidenceCategory(draft.evidenceCategory) &&
+      draft.requester.trim().length >= 3 &&
+      draft.authorization.trim().length >= 3 &&
+      draft.supportCase.trim().length >= 3 &&
+      draft.reason.trim().length >= 10
     );
+  }
+
+  requestHostResetConfirmation(sessionId = this.selectedSessionId()): void {
+    if (!sessionId || this.hostResetBusy()) return;
+    this.ensureHostResetDraft(sessionId);
+    this.patchHostResetDraft(sessionId, { touched: true });
+    if (!this.canResetHostAccess(sessionId)) return;
+    this.patchHostResetDraft(sessionId, { phase: 'confirm' });
+  }
+
+  cancelHostResetConfirmation(sessionId = this.selectedSessionId()): void {
+    if (!sessionId || this.hostResetBusy()) return;
+    this.patchHostResetDraft(sessionId, { phase: 'form' });
+  }
+
+  startReplacementHostReset(sessionId = this.selectedSessionId()): void {
+    if (!sessionId || this.hostResetBusy()) return;
+    this.hostResetBySession.update((current) => ({
+      ...current,
+      [sessionId]: createAdminHostResetDraft({ confirmNewReset: true }),
+    }));
+  }
+
+  private beginReplacementConfirmation(sessionId: string, error: string): void {
+    const existing = this.ensureHostResetDraft(sessionId);
+    this.hostResetBySession.update((current) => ({
+      ...current,
+      [sessionId]: {
+        ...existing,
+        operationId: crypto.randomUUID(),
+        confirmNewReset: true,
+        phase: 'confirm',
+        unconfirmed: false,
+        error,
+        result: null,
+      },
+    }));
   }
 
   async resetHostAccess(): Promise<void> {
     const detail = this.selectedDetail();
-    if (!detail || this.hostResetLoading() || !this.canResetHostAccess()) return;
-    this.hostResetLoading.set(true);
-    this.hostResetError.set(null);
-    this.hostResetResult.set(null);
+    const sessionId = detail?.session.sessionId;
+    if (!detail || !sessionId || this.hostResetBusy()) return;
+    const draft = this.ensureHostResetDraft(sessionId);
+    if (draft.result) return;
+    this.patchHostResetDraft(sessionId, { touched: true });
+    if (!this.canResetHostAccess(sessionId)) return;
+    const latest = this.ensureHostResetDraft(sessionId);
+    if (!isHostResetEvidenceCategory(latest.evidenceCategory)) return;
+
+    const epoch = this.adminUiEpoch;
+    this.hostResetLoadingSessionId.set(sessionId);
+    this.patchHostResetDraft(sessionId, { error: null, unconfirmed: false });
     try {
       const result = await trpc.admin.resetSessionHostAccess.mutate({
         code: detail.session.sessionCode,
-        evidenceCategory: this.hostResetEvidenceCategory(),
-        requesterIdentityVerificationReference: this.hostResetRequesterReference().trim(),
-        sessionAuthorizationEvidenceReference: this.hostResetAuthorizationReference().trim(),
-        supportCaseReference: this.hostResetSupportCaseReference().trim(),
-        reason: this.hostResetReason().trim(),
+        operationId: latest.operationId,
+        confirmNewReset: latest.confirmNewReset || undefined,
+        evidenceCategory: latest.evidenceCategory,
+        requesterIdentityVerificationReference: latest.requester.trim(),
+        sessionAuthorizationEvidenceReference: latest.authorization.trim(),
+        supportCaseReference: latest.supportCase.trim(),
+        reason: latest.reason.trim(),
       });
-      this.hostResetResult.set(result);
+      if (this.adminUiEpoch !== epoch) return;
+      this.patchHostResetDraft(sessionId, {
+        result,
+        phase: 'result',
+        error: null,
+        unconfirmed: false,
+      });
     } catch (error) {
-      this.hostResetError.set(
-        localizeKnownServerError(
+      if (this.adminUiEpoch !== epoch) return;
+      const kind = classifyAdminHostResetError(error);
+      if (kind === 'unconfirmed') {
+        this.patchHostResetDraft(sessionId, {
+          unconfirmed: true,
+          error: $localize`:@@admin.hostResetUnconfirmed:Die Serverantwort ist ausgeblieben. Die bisherigen Zugänge könnten bereits widerrufen sein.`,
+          phase: 'form',
+        });
+        return;
+      }
+      if (kind === 'precondition' || kind === 'operationClosed') {
+        this.beginReplacementConfirmation(
+          sessionId,
+          localizeKnownServerError(
+            error,
+            kind === 'operationClosed'
+              ? $localize`:@@admin.hostResetOperationClosed:Diese Operation ist abgeschlossen. Das Ergebnis ist nicht mehr abrufbar.`
+              : $localize`:@@admin.hostResetExistingHandoff:Ein Übergabecode für diese Session existiert bereits. Bestätige einen neuen Reset, um ihn zu ersetzen.`,
+          ),
+        );
+        return;
+      }
+      this.patchHostResetDraft(sessionId, {
+        unconfirmed: false,
+        phase: 'form',
+        error: localizeKnownServerError(
           error,
           $localize`:@@admin.hostResetError:Host-Zugang konnte nicht zurückgesetzt werden.`,
         ),
-      );
+      });
     } finally {
-      this.hostResetLoading.set(false);
+      if (this.hostResetLoadingSessionId() === sessionId) {
+        this.hostResetLoadingSessionId.set(null);
+      }
+    }
+  }
+
+  async copyHostResetHandoff(value: string): Promise<void> {
+    try {
+      if (!navigator.clipboard) throw new Error('clipboard unavailable');
+      await navigator.clipboard.writeText(value);
+      this.hostResetCopied.set(true);
+    } catch {
+      this.hostResetCopied.set(false);
     }
   }
 
@@ -295,28 +414,48 @@ export class AdminComponent implements OnInit {
     this.lookupError.set(null);
     this.holdError.set(null);
     this.holdInfo.set(null);
-    this.clearHostResetForm();
+    this.adminUiEpoch += 1;
+    this.hostResetBySession.set({});
+    this.hostResetLoadingSessionId.set(null);
+    this.hostResetCopied.set(false);
   }
 
-  private clearHostResetForm(): void {
-    this.hostResetError.set(null);
-    this.hostResetResult.set(null);
-    this.hostResetRequesterReference.set('');
-    this.hostResetAuthorizationReference.set('');
-    this.hostResetSupportCaseReference.set('');
-    this.hostResetReason.set('');
+  private ensureHostResetDraft(sessionId: string): AdminHostResetDraft {
+    const existing = this.hostResetBySession()[sessionId];
+    if (existing) return existing;
+    const created = createAdminHostResetDraft();
+    this.hostResetBySession.update((current) =>
+      current[sessionId] ? current : { ...current, [sessionId]: created },
+    );
+    return this.hostResetBySession()[sessionId] ?? created;
+  }
+
+  private patchHostResetDraft(sessionId: string, patch: Partial<AdminHostResetDraft>): void {
+    this.hostResetBySession.update((current) => {
+      const existing = current[sessionId] ?? createAdminHostResetDraft();
+      return { ...current, [sessionId]: { ...existing, ...patch } };
+    });
   }
 
   async lookupByCode(): Promise<void> {
-    if (this.lookupCode().length !== 6 || this.lookupLoading()) {
+    const parsed = parseAdminSessionLookup(this.lookupCode());
+    if (this.lookupLoading() || this.hostResetBusy()) {
+      return;
+    }
+    if (!parsed.success) {
+      this.lookupError.set(
+        parsed.error === 'empty'
+          ? $localize`:@@admin.lookupEmpty:Gib einen sechsstelligen Sessioncode oder eine Session-Kennung im Format ARS-XXXX-XXXX ein.`
+          : $localize`:@@admin.lookupInvalid:Die Eingabe ist kein gültiger Sessioncode und keine gültige Session-Kennung.`,
+      );
       return;
     }
     this.lookupLoading.set(true);
     this.lookupError.set(null);
     this.detailError.set(null);
     try {
-      const detail = await trpc.admin.getSessionByCode.query({ code: this.lookupCode() });
-      this.clearHostResetForm();
+      const detail = await trpc.admin.getSessionByCode.query(parsed.data);
+      this.ensureHostResetDraft(detail.session.sessionId);
       this.upsertVisibleSession(detail.session);
       this.selectedSessionId.set(detail.session.sessionId);
       this.selectedDetail.set(detail);
@@ -334,10 +473,10 @@ export class AdminComponent implements OnInit {
   }
 
   async openSessionDetail(sessionId: string): Promise<void> {
-    if (this.detailLoading()) {
+    if (this.detailLoading() || this.hostResetBusy()) {
       return;
     }
-    this.clearHostResetForm();
+    this.ensureHostResetDraft(sessionId);
     if (
       this.selectedSessionId() === sessionId &&
       this.selectedDetail()?.session.sessionId === sessionId
@@ -616,6 +755,34 @@ export class AdminComponent implements OnInit {
 
   isSessionSelected(sessionId: string): boolean {
     return this.selectedSessionId() === sessionId;
+  }
+
+  hostResetFieldError(
+    sessionId: string,
+    field: 'evidence' | 'requester' | 'authorization' | 'supportCase' | 'reason',
+  ): string | null {
+    const draft = this.hostResetBySession()[sessionId];
+    if (!draft?.touched) return null;
+    if (field === 'evidence') {
+      return isHostResetEvidenceCategory(draft.evidenceCategory)
+        ? null
+        : $localize`:@@admin.hostResetEvidenceRequired:Bitte wähle den tatsächlich genutzten Nachweisweg.`;
+    }
+    const value =
+      field === 'requester'
+        ? draft.requester
+        : field === 'authorization'
+          ? draft.authorization
+          : field === 'supportCase'
+            ? draft.supportCase
+            : field === 'reason'
+              ? draft.reason
+              : '';
+    const min = field === 'reason' ? 10 : 3;
+    if (value.trim().length < min) {
+      return $localize`:@@admin.hostResetFieldTooShort:Diese Angabe ist zu kurz.`;
+    }
+    return null;
   }
 
   selectedDetailForSession(sessionId: string): AdminSessionDetailDTO | null {

@@ -80,30 +80,47 @@ async function primaryFocusState(page) {
   });
 }
 
+async function isActiveLocator(locator) {
+  return locator.evaluate((element) => element === document.activeElement);
+}
+
+async function advancePastHostRecoveryLink(page, quizAction, key) {
+  const recoveryLink = page.locator('a.home-host-recovery-link');
+  if ((await recoveryLink.count()) === 0) return false;
+  if (!(await isActiveLocator(recoveryLink))) return false;
+  await page.keyboard.press(key);
+  return isActiveLocator(quizAction);
+}
+
 async function assertNextTabContinuesHeroFlow(page) {
   const nextAction = page.locator('.home-live-grid a.home-choice-button').first();
   await page.keyboard.press('Tab');
-  if (await nextAction.evaluate((element) => element === document.activeElement)) return;
+  if (await isActiveLocator(nextAction)) return;
+  if (await advancePastHostRecoveryLink(page, nextAction, 'Tab')) return;
 
   const codeInputActive = await page
     .locator('.home-code-segments__input')
     .evaluate((element) => element === document.activeElement);
   if (codeInputActive) {
     await page.keyboard.press('Tab');
-    if (await nextAction.evaluate((element) => element === document.activeElement)) return;
+    if (await isActiveLocator(nextAction)) return;
+    if (await advancePastHostRecoveryLink(page, nextAction, 'Tab')) return;
   }
 
   // Safari überspringt bei deaktivierter vollständiger Tab-Navigation Links
   // mit Tab. ⌥ Tab schaltet für diesen Tastendruck auf alle Bedienelemente.
   // Andere Playwright-WebKit-Ports verwenden bereits Tab und kehren oben zurück.
+  // Der Host-Recovery-Textlink sitzt vor den Live-Karten und ist ein Extra-Stop.
   assert(
     BROWSER_NAME === 'webkit' && codeInputActive,
     'Tab nach dem MOTD-Rücksprung folgt weder der vollständigen noch der Safari-reduzierten Tab-Reihe.',
   );
   await page.locator('.home-hero-code-enter').focus();
   await page.keyboard.press('Alt+Tab');
+  if (await isActiveLocator(nextAction)) return;
+  if (await advancePastHostRecoveryLink(page, nextAction, 'Alt+Tab')) return;
   assert(
-    await nextAction.evaluate((element) => element === document.activeElement),
+    await isActiveLocator(nextAction),
     '⌥ Tab nach dem MOTD-Rücksprung setzt den Safari-Hero-Flow nicht bei „Quiz“ fort.',
   );
 }

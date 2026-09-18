@@ -5,6 +5,7 @@ import { prisma } from '../db';
 import { hashCapability, createOpaqueCapability } from '../lib/capabilityCrypto';
 import {
   activateHostCredential,
+  cleanupExpiredHostCredentialMaterial,
   createInitialHostCredentialMaterial,
   issueHostTokenFromBrowserCapability,
   prepareHostCredentialExchange,
@@ -308,6 +309,7 @@ describe.skipIf(!RUN_PG)('host and participant capabilities (PostgreSQL + Redis)
       adminIdentifier: 'admin:test',
       input: {
         supportId: material.recoveryCard.supportId,
+        operationId: randomUUID(),
         evidenceCategory: 'PREEXISTING_VERIFIED_SUPPORT_CASE',
         requesterIdentityVerificationReference: 'verified-contact-4711',
         sessionAuthorizationEvidenceReference: 'support-case-before-loss-4711',
@@ -379,6 +381,7 @@ describe.skipIf(!RUN_PG)('host and participant capabilities (PostgreSQL + Redis)
         adminIdentifier: 'admin:test',
         input: {
           supportId: expiredMaterial.recoveryCard.supportId,
+          operationId: randomUUID(),
           evidenceCategory: 'INDEPENDENT_OFFICIAL_ORGANIZATION_CONFIRMATION',
           requesterIdentityVerificationReference: 'verified-contact-9911',
           sessionAuthorizationEvidenceReference: 'official-confirmation-9911',
@@ -393,5 +396,318 @@ describe.skipIf(!RUN_PG)('host and participant capabilities (PostgreSQL + Redis)
         browserCapability: expiredMaterial.browserCapability,
       }),
     ).rejects.toMatchObject({ code: 'UNAUTHORIZED' });
+  });
+
+  it('liefert denselben Admin-Reset bei gleicher Operations-ID und verlangt Bestätigung für einen neuen Widerruf', async () => {
+    const material = createInitialHostCredentialMaterial();
+    const session = await prisma.session.create({
+      data: {
+        id: randomUUID(),
+        code: sessionCode('I'),
+        type: 'Q_AND_A',
+        status: 'ACTIVE',
+        qaEnabled: true,
+        qaOpen: true,
+        hostCredentialVersion: 1,
+        hostSupportId: material.recoveryCard.supportId,
+        hostCredentials: material.credentialData.hostCredentials,
+      },
+    });
+    sessionIds.push(session.id);
+    const operationId = randomUUID();
+    const evidence = {
+      supportId: material.recoveryCard.supportId,
+      evidenceCategory: 'PREEXISTING_VERIFIED_SUPPORT_CASE' as const,
+      requesterIdentityVerificationReference: 'verified-contact-4711',
+      sessionAuthorizationEvidenceReference: 'support-case-before-loss-4711',
+      supportCaseReference: 'support-case-before-loss-4711',
+      reason: 'Beide Host-Zugangsebenen wurden nachweislich verloren.',
+    };
+    const first = await resetSessionHostAccess({
+      adminIdentifier: 'admin:test',
+      input: { ...evidence, operationId },
+    });
+    const replay = await resetSessionHostAccess({
+      adminIdentifier: 'admin:test',
+      input: { ...evidence, operationId },
+    });
+    expect(replay).toEqual(first);
+    await expect(
+      resetSessionHostAccess({
+        adminIdentifier: 'admin:test',
+        input: { ...evidence, operationId: randomUUID() },
+      }),
+    ).rejects.toMatchObject({ code: 'PRECONDITION_FAILED' });
+    const replacement = await resetSessionHostAccess({
+      adminIdentifier: 'admin:test',
+      input: { ...evidence, operationId: randomUUID(), confirmNewReset: true },
+    });
+    expect(replacement.handoffCapability).not.toBe(first.handoffCapability);
+    expect(replacement.revokedCredentialVersion).toBe(first.revokedCredentialVersion + 1);
+    const audits = await prisma.adminAuditLog.count({
+      where: { sessionId: session.id, action: 'HOST_ACCESS_RESET' },
+    });
+    expect(audits).toBe(2);
+    expect(
+      JSON.stringify(
+        await prisma.adminAuditLog.findMany({
+          where: { sessionId: session.id, action: 'HOST_ACCESS_RESET' },
+          select: { reason: true },
+        }),
+      ),
+    ).not.toContain(first.handoffCapability);
+  });
+
+  it('führt eine abgeschlossene Admin-Reset-Operation nach Ersatz, Activate oder Ablauf nicht erneut aus', async () => {
+    const material = createInitialHostCredentialMaterial();
+    const session = await prisma.session.create({
+      data: {
+        id: randomUUID(),
+        code: sessionCode('C'),
+        type: 'Q_AND_A',
+        status: 'ACTIVE',
+        qaEnabled: true,
+        qaOpen: true,
+        hostCredentialVersion: 1,
+        hostSupportId: material.recoveryCard.supportId,
+        hostCredentials: material.credentialData.hostCredentials,
+      },
+    });
+    sessionIds.push(session.id);
+    const evidence = {
+      supportId: material.recoveryCard.supportId,
+      evidenceCategory: 'PREEXISTING_VERIFIED_SUPPORT_CASE' as const,
+      requesterIdentityVerificationReference: 'verified-contact-4711',
+      sessionAuthorizationEvidenceReference: 'support-case-before-loss-4711',
+      supportCaseReference: 'support-case-before-loss-4711',
+      reason: 'Beide Host-Zugangsebenen wurden nachweislich verloren.',
+    };
+    const operationR1 = randomUUID();
+    const operationR2 = randomUUID();
+    await resetSessionHostAccess({
+      adminIdentifier: 'admin:test',
+      input: { ...evidence, operationId: operationR1 },
+    });
+    const replacement = await resetSessionHostAccess({
+      adminIdentifier: 'admin:test',
+      input: { ...evidence, operationId: operationR2, confirmNewReset: true },
+    });
+    const recoveryExchangeId = createOpaqueCapability();
+    const prepared = await prepareHostCredentialExchange({
+      supportId: replacement.supportId,
+      recoveryExchangeId,
+      source: { kind: 'ADMIN_HANDOFF', handoffCapability: replacement.handoffCapability },
+    });
+    await expect(
+      prepareHostCredentialExchange({
+        supportId: replacement.supportId,
+        recoveryExchangeId,
+        source: { kind: 'ADMIN_HANDOFF', handoffCapability: replacement.handoffCapability },
+      }),
+    ).resolves.toEqual(prepared);
+    await expect(
+      resetSessionHostAccess({
+        adminIdentifier: 'admin:test',
+        input: { ...evidence, operationId: operationR2 },
+      }),
+    ).rejects.toMatchObject({ code: 'CONFLICT' });
+    await activateHostCredential({
+      supportId: replacement.supportId,
+      browserCapability: prepared.browserCapability,
+    });
+    const afterActivate = await prisma.session.findUniqueOrThrow({
+      where: { id: session.id },
+      select: { hostCredentialVersion: true },
+    });
+    const auditsAfterActivate = await prisma.adminAuditLog.count({
+      where: { sessionId: session.id, action: 'HOST_ACCESS_RESET' },
+    });
+    await expect(
+      resetSessionHostAccess({
+        adminIdentifier: 'admin:test',
+        input: { ...evidence, operationId: operationR1 },
+      }),
+    ).rejects.toMatchObject({ code: 'CONFLICT' });
+    await expect(
+      resetSessionHostAccess({
+        adminIdentifier: 'admin:test',
+        input: { ...evidence, operationId: operationR2 },
+      }),
+    ).rejects.toMatchObject({ code: 'CONFLICT' });
+    const closedHandoffs = await prisma.hostAdminHandoff.findMany({
+      where: { sessionId: session.id, operationId: { in: [operationR1, operationR2] } },
+      select: { encryptedEnvelope: true },
+    });
+    expect(closedHandoffs).toHaveLength(2);
+    expect(closedHandoffs.every((entry) => entry.encryptedEnvelope === null)).toBe(true);
+    await expect(
+      issueHostTokenFromBrowserCapability({
+        code: session.code,
+        browserCapability: prepared.browserCapability,
+      }),
+    ).resolves.toBeDefined();
+    expect(
+      (
+        await prisma.session.findUniqueOrThrow({
+          where: { id: session.id },
+          select: { hostCredentialVersion: true },
+        })
+      ).hostCredentialVersion,
+    ).toBe(afterActivate.hostCredentialVersion);
+    expect(
+      await prisma.adminAuditLog.count({
+        where: { sessionId: session.id, action: 'HOST_ACCESS_RESET' },
+      }),
+    ).toBe(auditsAfterActivate);
+
+    const expiredMaterial = createInitialHostCredentialMaterial();
+    const expiredSession = await prisma.session.create({
+      data: {
+        id: randomUUID(),
+        code: sessionCode('X'),
+        type: 'Q_AND_A',
+        status: 'ACTIVE',
+        qaEnabled: true,
+        qaOpen: true,
+        hostCredentialVersion: 1,
+        hostSupportId: expiredMaterial.recoveryCard.supportId,
+        hostCredentials: expiredMaterial.credentialData.hostCredentials,
+      },
+    });
+    sessionIds.push(expiredSession.id);
+    const expiredOperationId = randomUUID();
+    await resetSessionHostAccess({
+      adminIdentifier: 'admin:test',
+      input: {
+        ...evidence,
+        supportId: expiredMaterial.recoveryCard.supportId,
+        operationId: expiredOperationId,
+      },
+    });
+    await cleanupExpiredHostCredentialMaterial(new Date(Date.now() + 16 * 60 * 1000));
+    const afterCleanup = await prisma.session.findUniqueOrThrow({
+      where: { id: expiredSession.id },
+      select: { hostCredentialVersion: true },
+    });
+    await expect(
+      resetSessionHostAccess({
+        adminIdentifier: 'admin:test',
+        input: {
+          ...evidence,
+          supportId: expiredMaterial.recoveryCard.supportId,
+          operationId: expiredOperationId,
+        },
+      }),
+    ).rejects.toMatchObject({ code: 'CONFLICT' });
+    expect(
+      (
+        await prisma.hostAdminHandoff.findUniqueOrThrow({
+          where: { operationId: expiredOperationId },
+          select: { encryptedEnvelope: true },
+        })
+      ).encryptedEnvelope,
+    ).toBeNull();
+    expect(
+      (
+        await prisma.session.findUniqueOrThrow({
+          where: { id: expiredSession.id },
+          select: { hostCredentialVersion: true },
+        })
+      ).hostCredentialVersion,
+    ).toBe(afterCleanup.hostCredentialVersion);
+  });
+
+  it('ersetzt ein unlesbares Admin-Reset-Ergebnis nur mit neuer Operations-ID', async () => {
+    const material = createInitialHostCredentialMaterial();
+    const session = await prisma.session.create({
+      data: {
+        id: randomUUID(),
+        code: sessionCode('U'),
+        type: 'Q_AND_A',
+        status: 'ACTIVE',
+        qaEnabled: true,
+        qaOpen: true,
+        hostCredentialVersion: 1,
+        hostSupportId: material.recoveryCard.supportId,
+        hostCredentials: material.credentialData.hostCredentials,
+      },
+    });
+    sessionIds.push(session.id);
+    const evidence = {
+      supportId: material.recoveryCard.supportId,
+      evidenceCategory: 'PREEXISTING_VERIFIED_SUPPORT_CASE' as const,
+      requesterIdentityVerificationReference: 'verified-contact-4711',
+      sessionAuthorizationEvidenceReference: 'support-case-before-loss-4711',
+      supportCaseReference: 'support-case-before-loss-4711',
+      reason: 'Beide Host-Zugangsebenen wurden nachweislich verloren.',
+    };
+    const operationId = randomUUID();
+    const first = await resetSessionHostAccess({
+      adminIdentifier: 'admin:test',
+      input: { ...evidence, operationId },
+    });
+    await prisma.hostAdminHandoff.update({
+      where: { operationId },
+      data: { encryptedEnvelope: 'v1.invalid.invalid.invalid' },
+    });
+    await expect(
+      resetSessionHostAccess({
+        adminIdentifier: 'admin:test',
+        input: { ...evidence, operationId, confirmNewReset: true },
+      }),
+    ).rejects.toMatchObject({ code: 'CONFLICT' });
+    const replacement = await resetSessionHostAccess({
+      adminIdentifier: 'admin:test',
+      input: { ...evidence, operationId: randomUUID(), confirmNewReset: true },
+    });
+    expect(replacement.handoffCapability).not.toBe(first.handoffCapability);
+    expect(replacement.revokedCredentialVersion).toBe(first.revokedCredentialVersion + 1);
+  });
+
+  it('hält nach Activate-Commit dieselbe Generation und lehnt den alten Recovery-Code ab', async () => {
+    const material = createInitialHostCredentialMaterial();
+    const session = await prisma.session.create({
+      data: {
+        id: randomUUID(),
+        code: sessionCode('L'),
+        type: 'Q_AND_A',
+        status: 'ACTIVE',
+        qaEnabled: true,
+        qaOpen: true,
+        hostCredentialVersion: material.credentialData.hostCredentialVersion,
+        hostSupportId: material.credentialData.hostSupportId,
+        hostCredentials: material.credentialData.hostCredentials,
+      },
+    });
+    sessionIds.push(session.id);
+    const exchangeId = createOpaqueCapability();
+    const prepared = await prepareHostCredentialExchange({
+      supportId: material.recoveryCard.supportId,
+      recoveryExchangeId: exchangeId,
+      source: { kind: 'RECOVERY', recoveryCode: material.recoveryCard.recoveryCode },
+    });
+    const first = await activateHostCredential({
+      supportId: prepared.recoveryCard.supportId,
+      browserCapability: prepared.browserCapability,
+    });
+    const replay = await activateHostCredential({
+      supportId: prepared.recoveryCard.supportId,
+      browserCapability: prepared.browserCapability,
+    });
+    expect(replay.generation).toBe(first.generation);
+    await expect(
+      prepareHostCredentialExchange({
+        supportId: material.recoveryCard.supportId,
+        recoveryExchangeId: createOpaqueCapability(),
+        source: { kind: 'RECOVERY', recoveryCode: material.recoveryCard.recoveryCode },
+      }),
+    ).rejects.toMatchObject({ code: 'UNAUTHORIZED' });
+    await cleanupExpiredHostCredentialMaterial(new Date(Date.now() + 16 * 60 * 1000));
+    expect(
+      await issueHostTokenFromBrowserCapability({
+        code: session.code,
+        browserCapability: prepared.browserCapability,
+      }),
+    ).toBeDefined();
   });
 });
