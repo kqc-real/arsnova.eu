@@ -23,14 +23,12 @@ nicht den PostgreSQL-basierten Wiederzugang. Ist Redis nicht erreichbar, bleibt
 der Zugriff fail-closed, bis Redis wieder verfügbar ist.
 
 Besitzt der Browser eine eindeutige, zuletzt genutzte Host-Capability, öffnet
-der erste Button der Live-Karte diese Host-Session direkt. Der Guard stellt den
-kurzlebigen Host-Token aus der Capability aus. Der Textlink
-»Host-Zugang wiederherstellen« auf der Startseite bleibt immer sichtbar, damit
-verlorene Browserdaten, ein nur vorbereiteter Kandidat oder eine weitere
-Session über `/<locale>/host-recovery` erreichbar bleiben. Der Live-Karten-CTA
-erscheint nur bei genau einer bevorzugten aktivierten Capability; mehrere
-ungeordnete Einträge oder nur ein Kandidat führen nicht auf eine zufällige
-ältere Session.
+der erste Button der Live-Karte diese Host-Session direkt im Q&A-Kanal. Der Guard stellt den
+kurzlebigen Host-Token aus der Capability aus. Die Wiederherstellungsseite
+bleibt unter `/<locale>/host-recovery` erreichbar, erscheint auf der Live-Karte
+aber nicht als Textlink. Der Live-Karten-CTA erscheint nur bei genau einer
+bevorzugten aktivierten Capability; mehrere ungeordnete Einträge oder nur ein
+Kandidat führen nicht auf eine zufällige ältere Session.
 Der Ablauf hat drei Schritte: Angaben prüfen (Prepare), neue Zugangsdaten
 sichern und erst danach ausdrücklich aktivieren, anschließend bestätigter
 Erfolg. Ein Download ist optional; eine Klartextnotiz mit Session-Kennung,
@@ -93,7 +91,11 @@ nicht still auf sechs Zeichen gekürzt werden.
 Der Operator erhält ausschließlich eine Übergabe-Capability, keine dauerhafte
 Host-Capability. Die 15 Minuten gelten für die **erste Einlösung** dieses
 Übergabecodes. Nach erfolgreichem Prepare beginnt ein separates
-Aktivierungsfenster von 15 Minuten. »Einmalig« bezeichnet einen
+Aktivierungsfenster von 15 Minuten. Die Oberfläche nennt dabei jeweils
+Datum und lokale Uhrzeit (`{deadline}` / `{expiryTime}`). Die Aktivierungsfrist
+gilt nur für das Speichern und Aktivieren, nicht für die spätere Nutzung.
+Läuft die Aktivierung ohne Freigabe ab, gilt wieder der bisherige
+Wiederherstellungscode. »Einmalig« bezeichnet einen
 Wiederherstellungsvorgang; technisch zulässige Wiederholungen derselben
 Operation bleiben möglich. Der gesamte Ablauf muss nicht binnen 15 Minuten
 nach dem Admin-Klick abgeschlossen sein.

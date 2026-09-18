@@ -183,3 +183,7 @@ Stand 2026-06-06:
 
 - `FINISHED` ist im Vote-Client ein globaler Session-Endzustand und hat Vorrang vor `preferredChannel`, lokaler Kanalwahl und Q&A-/Blitzlicht-Views.
 - Beim Session-Ende stoppt der Vote-Client Countdown, Fallback-Polling sowie Q&A- und Blitzlicht-Subscriptions; danach erscheint Abschluss-Gate oder Home-Redirect gemaess ADR-0020.
+
+Stand 2026-09-18:
+
+- Ist Q&A eingerichtet, öffnet der Host nach `FINISHED` (inkl. Live-Karten-CTA `?tab=qa`) den Q&A-Kanal statt der Quiz-Abschlussansicht. Die Kanalwahl entfällt im Endzustand.

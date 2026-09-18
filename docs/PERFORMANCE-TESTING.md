@@ -231,7 +231,7 @@ gegen ein lokales Backend:
 
 ```bash
 npm run docker:up:dev
-npm run prisma:push
+npm run prisma:migrate
 npm run dev:backend
 # In einem zweiten Terminal:
 BASE_URL=http://127.0.0.1:3000 VUS=50 DURATION=30s npm run load:k6:health
@@ -337,7 +337,7 @@ hart auf `localhost`/Loopback begrenzt.
 Voraussetzungen:
 
 1. Node gemäß `.nvmrc`, PostgreSQL und Redis:
-   `npm run docker:up:dev && npm run prisma:push`.
+   `npm run docker:up:dev && npm run prisma:migrate`.
 2. Backend mit demselben mindestens 32 Zeichen langen
    `ADMIN_DIAGNOSTIC_SECRET` starten, das dem Lasttest nur als
    Umgebungsvariable übergeben wird. Das Secret weder als CLI-Argument noch in

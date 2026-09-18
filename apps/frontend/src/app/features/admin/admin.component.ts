@@ -938,6 +938,17 @@ export class AdminComponent implements OnInit {
     }
   }
 
+  handoffRedeemUntilLabel(iso: string | null | undefined): string {
+    if (!iso) {
+      return '';
+    }
+    const expiryTime = this.formatDateTime(iso);
+    if (expiryTime === '—') {
+      return '';
+    }
+    return $localize`:@@hostRecovery.handoffRedeemUntil:Code bis ${expiryTime}:expiryTime: einlösen.`;
+  }
+
   private compareByLastActivityDesc(
     left: Pick<AdminSessionSummaryDTO, 'lastActivityAt' | 'startedAt' | 'sessionId'>,
     right: Pick<AdminSessionSummaryDTO, 'lastActivityAt' | 'startedAt' | 'sessionId'>,

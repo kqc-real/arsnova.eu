@@ -412,15 +412,10 @@ describe('HomeComponent', () => {
       const hostIntro = fixture.nativeElement.querySelector(
         '.home-host-intro',
       ) as HTMLElement | null;
-      const liveCard = fixture.nativeElement.querySelector(
-        '.home-card--live',
-      ) as HTMLElement | null;
-      const recoveryLink = liveCard?.querySelector(
-        '[data-testid="home-host-recovery-link"]',
-      ) as HTMLAnchorElement | null;
-      expect(recoveryLink?.textContent?.trim()).toBe('Host-Zugang wiederherstellen');
-      expect(recoveryLink?.getAttribute('href') ?? '').toContain('host-recovery');
-      expect(hostIntro?.querySelector('[data-testid="home-host-recovery-link"]')).toBeNull();
+      expect(
+        fixture.nativeElement.querySelector('[data-testid="home-host-recovery-link"]'),
+      ).toBeNull();
+      expect(fixture.nativeElement.querySelector('a[href*="host-recovery"]')).toBeNull();
       expect(hostIntro?.textContent).not.toContain('Zugang als Host');
       expect(fixture.nativeElement.querySelector('[data-testid="home-host-recovery"]')).toBeNull();
 
@@ -446,13 +441,14 @@ describe('HomeComponent', () => {
         '.home-live-grid [data-testid="home-host-recovery"]',
       ) as HTMLElement | null;
       expect(recoveryAction?.getAttribute('href') ?? '').toContain('session/ABC123/host');
+      expect(recoveryAction?.getAttribute('href') ?? '').toContain('tab=qa');
       expect(recoveryAction?.getAttribute('href') ?? '').not.toContain('host-recovery');
       expect(recoveryAction?.querySelector('.home-choice-button__label')?.textContent?.trim()).toBe(
         'Host-Session',
       );
       expect(
         fixture.nativeElement.querySelector('[data-testid="home-host-recovery-link"]'),
-      ).not.toBeNull();
+      ).toBeNull();
       expect(
         recoveryAction?.querySelector('.home-choice-button__description')?.textContent?.trim(),
       ).toBe('Zugang als Host');
@@ -472,17 +468,16 @@ describe('HomeComponent', () => {
       ).toBe(true);
     });
 
-    it('führt nur mit Wiederherstellungskandidat zur Recovery-Seite', () => {
+    it('zeigt mit Wiederherstellungskandidat keinen Host-CTA auf der Live-Karte', () => {
       storeHostRecoveryCandidate('XYZ789', 'candidate-capability-abcdefghijklmnopqrstuvwxyz');
       const fixture = createHomeFixture();
       fixture.detectChanges();
 
       expect(fixture.nativeElement.querySelector('[data-testid="home-host-recovery"]')).toBeNull();
-      const recoveryLink = fixture.nativeElement.querySelector(
-        '[data-testid="home-host-recovery-link"]',
-      ) as HTMLAnchorElement | null;
-      expect(recoveryLink?.getAttribute('href') ?? '').toContain('host-recovery');
-      expect(recoveryLink?.getAttribute('href') ?? '').not.toContain('/session/');
+      expect(
+        fixture.nativeElement.querySelector('[data-testid="home-host-recovery-link"]'),
+      ).toBeNull();
+      expect(fixture.nativeElement.querySelector('a[href*="host-recovery"]')).toBeNull();
     });
 
     it('öffnet bei mehreren gespeicherten Host-Sessions die zuletzt gehostete', () => {
@@ -495,12 +490,13 @@ describe('HomeComponent', () => {
         '.home-live-grid [data-testid="home-host-recovery"]',
       ) as HTMLElement | null;
       expect(recoveryAction?.getAttribute('href') ?? '').toContain('session/BBB222/host');
+      expect(recoveryAction?.getAttribute('href') ?? '').toContain('tab=qa');
       expect(
         fixture.nativeElement.querySelector('[data-testid="home-host-recovery-link"]'),
-      ).not.toBeNull();
+      ).toBeNull();
     });
 
-    it('blendet den direkten Host-CTA ohne eindeutige Session aus und behält den Wiederherstellungslink', () => {
+    it('blendet den direkten Host-CTA ohne eindeutige Session aus', () => {
       storeHostBrowserCapability('AAA111', 'older-browser-capability-abcdefghijklmnopqrstuvwxyz');
       storeHostBrowserCapability('BBB222', 'newer-browser-capability-abcdefghijklmnopqrstuvwxyz');
       localStorage.removeItem('arsnova-last-hosted-session');
@@ -510,7 +506,7 @@ describe('HomeComponent', () => {
       expect(fixture.nativeElement.querySelector('[data-testid="home-host-recovery"]')).toBeNull();
       expect(
         fixture.nativeElement.querySelector('[data-testid="home-host-recovery-link"]'),
-      ).not.toBeNull();
+      ).toBeNull();
     });
 
     it('überlässt den Preset-Wechsel der globalen Toolbar', () => {

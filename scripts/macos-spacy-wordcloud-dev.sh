@@ -80,7 +80,7 @@ Ablauf:
   1. Aufräumen: free-dev-ports, npm run clean:generated, spaCy-Container,
      lokale arsnova-/spaCy-Images, baumelnde Docker-Images (Postgres/Redis
      und ihre Volumes bleiben).
-  2. docker:up:dev (Postgres/Redis), prisma:push, Host-Sidecar auf /tmp/arsnova-nlp.sock
+  2. docker:up:dev (Postgres/Redis), prisma:migrate, Host-Sidecar auf /tmp/arsnova-nlp.sock
   3. npm run build:prod (shared-types, Backend, Frontend de/en/fr/es/it)
   4. NLP_ENABLED in .env, npm run start:prod
   5. serve:localize:api auf Port 4200 (lokalisierter Dist + API-Proxy)
@@ -259,8 +259,8 @@ wait_for_postgres() {
 
 ensure_schema() {
   [[ -f "$ROOT/.env" ]] || fail "Lokale .env fehlt. Bitte .env.example nach .env kopieren."
-  info "Synchronisiere Datenbankschema (prisma:push) …"
-  npm run prisma:push
+  info "Synchronisiere Datenbankschema (prisma:migrate) …"
+  npm run prisma:migrate
   npm run prisma:generate
 }
 

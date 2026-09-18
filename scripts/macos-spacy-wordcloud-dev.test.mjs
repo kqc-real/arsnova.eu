@@ -67,11 +67,11 @@ test('run_seeds übergibt Q&A-Flags literal, ohne $qa_flag', () => {
 
 test('wendet das Prisma-Schema an, bevor Host-Session und Seeds laufen', () => {
   const source = readFileSync(script, 'utf8');
-  assert.match(source, /npm run prisma:push/);
+  assert.match(source, /npm run prisma:migrate/);
   assert.match(source, /npm run prisma:generate/);
   assert.match(source, /wait_for_postgres/);
   const help = run(['--help']);
-  assert.match(help.stdout, /prisma:push/);
+  assert.match(help.stdout, /prisma:migrate/);
 });
 
 test('lehnt einen ungültigen Session-Code ab, bevor Clean oder Build startet', () => {

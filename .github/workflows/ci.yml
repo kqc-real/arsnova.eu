@@ -607,6 +607,10 @@ jobs:
         if: needs.changes.outputs.docs_only != 'true'
         run: npm run lint:scripts:test
 
+      - name: Test local migrate-deploy bootstrap
+        if: needs.changes.outputs.docs_only != 'true'
+        run: npm run prisma:migrate:test
+
       - name: Validate required-check manifest and documentation
         run: npm run validate:required-checks:test && npm run validate:required-checks
 

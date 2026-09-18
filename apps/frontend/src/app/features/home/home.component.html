@@ -211,6 +211,7 @@
             <a
               matButton="filled"
               [routerLink]="hostRecoveryCtaLink()"
+              [queryParams]="{ tab: 'qa' }"
               class="home-cta home-choice-button"
               data-testid="home-host-recovery"
             >
@@ -290,14 +291,6 @@
             <span class="home-error__text">{{ hostSessionError() }}</span>
           </p>
         }
-        <a
-          class="home-host-recovery-link"
-          [routerLink]="localizedPath('/host-recovery')"
-          data-testid="home-host-recovery-link"
-          i18n="@@hostRecovery.title"
-        >
-          Host-Zugang wiederherstellen
-        </a>
       </mat-card>
 
       <mat-card

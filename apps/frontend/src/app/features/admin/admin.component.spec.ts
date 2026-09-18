@@ -283,4 +283,13 @@ describe('AdminComponent', () => {
       /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i,
     );
   });
+
+  it('zeigt die Einlösefrist mit lokalem Datum und Uhrzeit', () => {
+    const component = createComponent();
+    const label = component.handoffRedeemUntilLabel('2026-09-18T10:20:00.000Z');
+    expect(label.startsWith('Code bis ')).toBe(true);
+    expect(label.endsWith(' einlösen.')).toBe(true);
+    expect(label).toMatch(/\d{1,2}:\d{2}/);
+    expect(component.handoffRedeemUntilLabel(null)).toBe('');
+  });
 });

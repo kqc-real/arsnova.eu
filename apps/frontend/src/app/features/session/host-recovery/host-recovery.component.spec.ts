@@ -132,6 +132,13 @@ describe('HostRecoveryComponent', () => {
     expect(current.nativeElement.textContent).toContain(
       'Die bisherigen Host-Zugänge werden ungültig',
     );
+    expect(current.nativeElement.textContent).toContain(
+      'Speichere die neuen Zugangsdaten und aktiviere deinen Zugang bis',
+    );
+    expect(current.nativeElement.textContent).toContain(
+      'Diese Frist gilt nur für die Aktivierung, nicht für die spätere Nutzung deines Zugangs',
+    );
+    expect(component.deadlineLabel()).toMatch(/\d{1,2}:\d{2}/);
     expect(
       current.nativeElement.querySelector('[data-testid="host-recovery-activate"]'),
     ).toBeTruthy();
@@ -170,7 +177,9 @@ describe('HostRecoveryComponent', () => {
     );
 
     await component.goToSession();
-    expect(navigate).toHaveBeenCalledWith(expect.arrayContaining(['session', 'ABC123', 'host']));
+    expect(navigate).toHaveBeenCalledWith(expect.arrayContaining(['session', 'ABC123', 'host']), {
+      queryParams: { tab: 'qa' },
+    });
   });
 
   it('zeigt die Support-Übergabe erst hinter einem stillen Wechsel, nicht als zweiten Tab', () => {
@@ -183,6 +192,9 @@ describe('HostRecoveryComponent', () => {
     component.switchSource('ADMIN_HANDOFF');
     current.detectChanges();
     expect(host.textContent).toContain('Code vom Support');
+    expect(host.textContent).toContain(
+      'Der Code vom Support ist ab seiner Ausstellung 15 Minuten gültig',
+    );
     expect(host.textContent).toContain('Ich habe gespeicherte Zugangsdaten');
     expect(component.secret()).toBe('');
   });
@@ -670,6 +682,10 @@ describe('HostRecoveryComponent', () => {
     current.detectChanges();
 
     expect(component.view()).toBe('pendingExpired');
+    expect(current.nativeElement.textContent).toContain(
+      'Die neuen Zugangsdaten wurden nicht aktiviert und sind abgelaufen',
+    );
+    expect(current.nativeElement.textContent).toContain('bisherigen Wiederherstellungscode');
     expect(getHostRecoveryCandidate('ABC123')).toBeNull();
     expect(getHostRecoveryResume(SUPPORT_ID)).toBeNull();
     expect(getHostBrowserCapability('ABC123')).toBe(

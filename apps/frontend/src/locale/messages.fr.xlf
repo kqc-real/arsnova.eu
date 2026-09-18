@@ -6972,8 +6972,8 @@
         <target>Tous les accès hôte précédents deviennent immédiatement invalides. Les appareils hôte connectés devront ensuite être reconnectés. La session et son contenu restent inchangés.</target>
       </trans-unit>
       <trans-unit id="admin.hostResetConfirmDeadline" datatype="html">
-        <source>Der neue Übergabecode muss innerhalb von 15 Minuten erstmals eingelöst werden.</source>
-        <target>Le nouveau code de transfert doit être utilisé pour la première fois dans les 15 minutes.</target>
+        <source>Der Code vom Support ist ab seiner Ausstellung 15 Minuten gültig. Ist er abgelaufen, bitte den Support um einen neuen Code.</source>
+        <target>Le code fourni par l’assistance est valable pendant 15 minutes à partir de sa création. S’il a expiré, demande un nouveau code à l’assistance.</target>
       </trans-unit>
       <trans-unit id="admin.hostResetConfirmReplace" datatype="html">
         <source>Ein bewusst erneut ausgestellter Code macht den vorherigen Übergabecode und die bisherigen Zugänge ungültig.</source>
@@ -7008,8 +7008,8 @@
         <target>Les accès hôte précédents ont été révoqués.</target>
       </trans-unit>
       <trans-unit id="admin.hostResetRedeemUntil" datatype="html">
-        <source>Bis <x id="INTERPOLATION" equiv-text="{{ formatDateTime(reset.expiresAt) }}"/> erstmals einlösen.</source>
-        <target>À utiliser pour la première fois avant le <x id="INTERPOLATION" equiv-text="{{ formatDateTime(reset.expiresAt) }}"/>.</target>
+        <source>Code bis <x id="expiryTime" equiv-text="expiryTime"/> einlösen.</source>
+        <target>Utilise ce code avant le <x id="expiryTime" equiv-text="expiryTime"/>.</target>
       </trans-unit>
       <trans-unit id="admin.hostResetRecoveryLink" datatype="html">
         <source>Wiederherstellungsseite öffnen</source>
@@ -30251,8 +30251,8 @@
         </context-group>
       </trans-unit>
       <trans-unit id="hostRecovery.pendingExpired" datatype="html">
-        <source> Die Frist zum Aktivieren ist abgelaufen. Starte die Wiederherstellung erneut. </source>
-        <target>Le délai d’activation a expiré. Relance la récupération.</target>
+        <source> Die neuen Zugangsdaten wurden nicht aktiviert und sind abgelaufen. Beginne erneut mit deinem bisherigen Wiederherstellungscode. </source>
+        <target>Tes nouveaux identifiants d’accès n’ont pas été activés et ont expiré. Recommence avec ton ancien code de récupération.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/host-recovery/host-recovery.component.html</context>
           <context context-type="linenumber">300,302</context>
@@ -30371,12 +30371,20 @@
         </context-group>
       </trans-unit>
       <trans-unit id="hostRecovery.activationDeadline" datatype="html">
-        <source>Aktivieren bis: <x id="deadline" equiv-text="deadline"/></source>
-        <target>À activer avant : <x id="deadline" equiv-text="deadline"/></target>
+        <source>Speichere die neuen Zugangsdaten und aktiviere deinen Zugang bis <x id="deadline" equiv-text="deadline"/>. Dafür hast du ab Ausgabe 15 Minuten. Diese Frist gilt nur für die Aktivierung, nicht für die spätere Nutzung deines Zugangs.</source>
+        <target>Enregistre tes nouveaux identifiants d’accès et active ton accès avant le <x id="deadline" equiv-text="deadline"/>. Tu disposes de 15 minutes à partir de leur création. Ce délai concerne uniquement l’activation, pas l’utilisation de ton accès par la suite.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/host-recovery/host-recovery.component.ts</context>
           <context context-type="linenumber">220</context>
         </context-group>
+      </trans-unit>
+      <trans-unit id="hostRecovery.handoffValidity" datatype="html">
+        <source>Der Code vom Support ist ab seiner Ausstellung 15 Minuten gültig. Ist er abgelaufen, bitte den Support um einen neuen Code.</source>
+        <target>Le code fourni par l’assistance est valable pendant 15 minutes à partir de sa création. S’il a expiré, demande un nouveau code à l’assistance.</target>
+      </trans-unit>
+      <trans-unit id="hostRecovery.handoffRedeemUntil" datatype="html">
+        <source>Code bis <x id="expiryTime" equiv-text="expiryTime"/> einlösen.</source>
+        <target>Utilise ce code avant le <x id="expiryTime" equiv-text="expiryTime"/>.</target>
       </trans-unit>
       <trans-unit id="hostRecovery.supportIdFormatError" datatype="html">
         <source>Gib die Session-Kennung im Format ARS-XXXX-XXXX ein.</source>
