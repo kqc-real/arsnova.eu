@@ -483,19 +483,34 @@ describe.skipIf(!RUN_PG)('host and participant capabilities (PostgreSQL + Redis)
       reason: 'Beide Host-Zugangsebenen wurden nachweislich verloren.',
     };
     const operationR1 = randomUUID();
+    const operationR2 = randomUUID();
     await resetSessionHostAccess({
       adminIdentifier: 'admin:test',
       input: { ...evidence, operationId: operationR1 },
     });
     const replacement = await resetSessionHostAccess({
       adminIdentifier: 'admin:test',
-      input: { ...evidence, operationId: randomUUID(), confirmNewReset: true },
+      input: { ...evidence, operationId: operationR2, confirmNewReset: true },
     });
+    const recoveryExchangeId = createOpaqueCapability();
     const prepared = await prepareHostCredentialExchange({
       supportId: replacement.supportId,
-      recoveryExchangeId: createOpaqueCapability(),
+      recoveryExchangeId,
       source: { kind: 'ADMIN_HANDOFF', handoffCapability: replacement.handoffCapability },
     });
+    await expect(
+      prepareHostCredentialExchange({
+        supportId: replacement.supportId,
+        recoveryExchangeId,
+        source: { kind: 'ADMIN_HANDOFF', handoffCapability: replacement.handoffCapability },
+      }),
+    ).resolves.toEqual(prepared);
+    await expect(
+      resetSessionHostAccess({
+        adminIdentifier: 'admin:test',
+        input: { ...evidence, operationId: operationR2 },
+      }),
+    ).rejects.toMatchObject({ code: 'CONFLICT' });
     await activateHostCredential({
       supportId: replacement.supportId,
       browserCapability: prepared.browserCapability,
@@ -513,6 +528,18 @@ describe.skipIf(!RUN_PG)('host and participant capabilities (PostgreSQL + Redis)
         input: { ...evidence, operationId: operationR1 },
       }),
     ).rejects.toMatchObject({ code: 'CONFLICT' });
+    await expect(
+      resetSessionHostAccess({
+        adminIdentifier: 'admin:test',
+        input: { ...evidence, operationId: operationR2 },
+      }),
+    ).rejects.toMatchObject({ code: 'CONFLICT' });
+    const closedHandoffs = await prisma.hostAdminHandoff.findMany({
+      where: { sessionId: session.id, operationId: { in: [operationR1, operationR2] } },
+      select: { encryptedEnvelope: true },
+    });
+    expect(closedHandoffs).toHaveLength(2);
+    expect(closedHandoffs.every((entry) => entry.encryptedEnvelope === null)).toBe(true);
     await expect(
       issueHostTokenFromBrowserCapability({
         code: session.code,
@@ -572,6 +599,14 @@ describe.skipIf(!RUN_PG)('host and participant capabilities (PostgreSQL + Redis)
         },
       }),
     ).rejects.toMatchObject({ code: 'CONFLICT' });
+    expect(
+      (
+        await prisma.hostAdminHandoff.findUniqueOrThrow({
+          where: { operationId: expiredOperationId },
+          select: { encryptedEnvelope: true },
+        })
+      ).encryptedEnvelope,
+    ).toBeNull();
     expect(
       (
         await prisma.session.findUniqueOrThrow({

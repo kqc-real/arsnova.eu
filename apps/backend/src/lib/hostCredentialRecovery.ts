@@ -480,6 +480,16 @@ async function closeHostAdminHandoffs(
       consumedAt: now,
     },
   });
+  await tx.hostAdminHandoff.updateMany({
+    where: {
+      ...where,
+      consumedAt: { not: null },
+      encryptedEnvelope: { not: null },
+    },
+    data: {
+      encryptedEnvelope: null,
+    },
+  });
 }
 
 function throwClosedAdminResetOperation(): never {
@@ -537,6 +547,9 @@ export async function resetSessionHostAccess(params: {
       select: {
         sessionId: true,
         encryptedEnvelope: true,
+        consumedAt: true,
+        expiresAt: true,
+        targetGeneration: true,
       },
     });
     if (existingByOperation) {
@@ -546,7 +559,12 @@ export async function resetSessionHostAccess(params: {
           message: 'Die Operations-ID gehört zu einer anderen Session.',
         });
       }
-      if (existingByOperation.encryptedEnvelope) {
+      if (
+        existingByOperation.encryptedEnvelope &&
+        existingByOperation.consumedAt === null &&
+        existingByOperation.expiresAt > now &&
+        existingByOperation.targetGeneration === session.hostCredentialVersion
+      ) {
         try {
           return decryptCapabilityEnvelope<AdminResetSessionHostAccessOutput>(
             existingByOperation.encryptedEnvelope,
