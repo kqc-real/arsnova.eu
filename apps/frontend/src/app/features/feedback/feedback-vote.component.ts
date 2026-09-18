@@ -97,7 +97,9 @@ export class FeedbackVoteComponent implements OnInit, OnDestroy {
   private readonly productFeedbackLauncher = inject(ProductFeedbackLauncherService);
   private pollTimer: ReturnType<typeof setInterval> | null = null;
   private subscription: Unsubscribable | null = null;
-  private subscriptionClosedByClient = false;
+  private subscriptionEpoch = 0;
+  private releasedEpoch: number | null = null;
+  private destroyed = false;
   private resultUpdatesStopped = false;
   private standaloneVoterId: string | null = null;
   private readonly tempoDefaultRegisteredKeys = new Set<string>();
@@ -285,6 +287,7 @@ export class FeedbackVoteComponent implements OnInit, OnDestroy {
   }
 
   ngOnDestroy(): void {
+    this.destroyed = true;
     this.clearStandaloneTempoRegistration();
     this.stopFallbackPolling();
     this.releaseSubscription();
@@ -305,9 +308,12 @@ export class FeedbackVoteComponent implements OnInit, OnDestroy {
     if (await this.redirectStandaloneQuizSession(code)) {
       return;
     }
+    if (this.destroyed) {
+      return;
+    }
 
     await this.pollStyle();
-    if (this.resultUpdatesStopped) {
+    if (this.destroyed || this.resultUpdatesStopped) {
       this.loading.set(false);
       return;
     }
@@ -347,15 +353,21 @@ export class FeedbackVoteComponent implements OnInit, OnDestroy {
 
   private async pollStyle(): Promise<boolean> {
     const code = this.code();
-    if (!code) {
+    if (!code || this.destroyed) {
       return false;
     }
 
     try {
       const result = await trpc.quickFeedback.results.query({ sessionCode: code });
+      if (this.destroyed) {
+        return false;
+      }
       this.applyResult(result);
       return true;
     } catch (error) {
+      if (this.destroyed) {
+        return false;
+      }
       if (this.embeddedInSession()) {
         this.clearEmbeddedState();
         this.error.set(null);
@@ -371,27 +383,41 @@ export class FeedbackVoteComponent implements OnInit, OnDestroy {
 
   private subscribeToResults(): void {
     const code = this.code();
-    if (!code || this.subscription) {
+    if (!code || this.subscription || this.destroyed || this.resultUpdatesStopped) {
       return;
     }
 
+    const epoch = ++this.subscriptionEpoch;
     this.subscription = trpc.quickFeedback.onResults.subscribe(
       { sessionCode: code },
       {
         onData: (result) => {
+          if (this.subscriptionEpoch !== epoch || this.destroyed) {
+            return;
+          }
           this.stopFallbackPolling();
           this.applyResult(result);
           this.loading.set(false);
         },
         onError: () => {
+          if (this.subscriptionEpoch !== epoch || this.destroyed) {
+            return;
+          }
           this.releaseSubscription();
           this.startFallbackPolling();
         },
         onComplete: () => {
-          const closedByClient = this.subscriptionClosedByClient;
-          this.subscriptionClosedByClient = false;
+          if (this.subscriptionEpoch !== epoch) {
+            return;
+          }
+          const closedByClient = this.releasedEpoch === epoch;
           this.subscription = null;
-          if (closedByClient || this.resultUpdatesStopped || this.embeddedInSession()) {
+          if (
+            closedByClient ||
+            this.destroyed ||
+            this.resultUpdatesStopped ||
+            this.embeddedInSession()
+          ) {
             return;
           }
           void this.handleResultsStreamClosed();
@@ -406,12 +432,15 @@ export class FeedbackVoteComponent implements OnInit, OnDestroy {
     if (!subscription) {
       return;
     }
-    this.subscriptionClosedByClient = true;
+    this.releasedEpoch = this.subscriptionEpoch;
     subscription.unsubscribe();
   }
 
   private async handleResultsStreamClosed(): Promise<void> {
     const stillActive = await this.pollStyle();
+    if (this.destroyed || this.resultUpdatesStopped) {
+      return;
+    }
     if (stillActive) {
       this.subscribeToResults();
       return;
@@ -420,11 +449,17 @@ export class FeedbackVoteComponent implements OnInit, OnDestroy {
   }
 
   private startFallbackPolling(): void {
-    if (this.embeddedInSession() || this.resultUpdatesStopped || this.pollTimer) {
+    if (this.embeddedInSession() || this.resultUpdatesStopped || this.pollTimer || this.destroyed) {
       return;
     }
     const retry = async () => {
+      if (this.destroyed || this.resultUpdatesStopped) {
+        return;
+      }
       if (await this.pollStyle()) {
+        if (this.destroyed || this.resultUpdatesStopped) {
+          return;
+        }
         this.subscribeToResults();
       }
     };

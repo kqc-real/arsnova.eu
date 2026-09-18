@@ -947,6 +947,174 @@ describe('FeedbackVoteComponent', () => {
     fixture.destroy();
   });
 
+  it('prüft das Rundenende nach Fehler, HTTP-Fallback und neuem Abo', async () => {
+    const subscriptions: Array<{
+      onData?: (result: unknown) => void;
+      onError?: () => void;
+      onComplete?: () => void;
+    }> = [];
+    quickFeedbackOnResultsSubscribeMock.mockImplementation(
+      (
+        _input: unknown,
+        nextHandlers: {
+          onData?: (result: unknown) => void;
+          onError?: () => void;
+          onComplete?: () => void;
+        },
+      ) => {
+        subscriptions.push(nextHandlers);
+        return { unsubscribe: vi.fn() };
+      },
+    );
+
+    const fixture = TestBed.createComponent(FeedbackVoteComponent);
+    fixture.componentRef.setInput('sessionCode', 'ABC123');
+    fixture.detectChanges();
+    await fixture.whenStable();
+    await new Promise((resolve) => setTimeout(resolve, 50));
+
+    expect(quickFeedbackOnResultsSubscribeMock).toHaveBeenCalledTimes(1);
+    subscriptions[0]?.onError?.();
+    await fixture.whenStable();
+    await new Promise((resolve) => setTimeout(resolve, 50));
+
+    expect(quickFeedbackOnResultsSubscribeMock).toHaveBeenCalledTimes(2);
+    subscriptions[1]?.onData?.({
+      type: 'YESNO',
+      locked: false,
+      discussion: false,
+      totalVotes: 1,
+      distribution: { YES: 1, NO: 0, MAYBE: 0 },
+      currentRound: 1,
+    });
+    expect(
+      (fixture.componentInstance as unknown as { pollTimer: ReturnType<typeof setInterval> | null })
+        .pollTimer,
+    ).toBeNull();
+
+    const queriesBeforeComplete = quickFeedbackResultsQueryMock.mock.calls.length;
+    quickFeedbackResultsQueryMock.mockRejectedValueOnce(
+      new Error('NOT_FOUND: Feedback-Runde nicht gefunden oder abgelaufen.'),
+    );
+    subscriptions[1]?.onComplete?.();
+    await fixture.whenStable();
+    await new Promise((resolve) => setTimeout(resolve, 50));
+    fixture.detectChanges();
+
+    expect(quickFeedbackResultsQueryMock.mock.calls.length).toBe(queriesBeforeComplete + 1);
+    expect(fixture.nativeElement.textContent ?? '').toContain(
+      'Feedback-Runde nicht gefunden oder abgelaufen.',
+    );
+    expect(quickFeedbackOnResultsSubscribeMock).toHaveBeenCalledTimes(2);
+    expect(
+      (fixture.componentInstance as unknown as { pollTimer: ReturnType<typeof setInterval> | null })
+        .pollTimer,
+    ).toBeNull();
+    fixture.destroy();
+  });
+
+  it('eröffnet nach Destroy kein neues Abo aus verzögertem HTTP-Fallback', async () => {
+    let handlers: { onData?: (result: unknown) => void; onError?: () => void } = {};
+    let releaseFallback: ((result: unknown) => void) | undefined;
+    quickFeedbackOnResultsSubscribeMock.mockImplementation(
+      (
+        _input: unknown,
+        nextHandlers: { onData?: (result: unknown) => void; onError?: () => void },
+      ) => {
+        handlers = nextHandlers;
+        return { unsubscribe: vi.fn() };
+      },
+    );
+
+    const fixture = TestBed.createComponent(FeedbackVoteComponent);
+    fixture.componentRef.setInput('sessionCode', 'ABC123');
+    fixture.detectChanges();
+    await fixture.whenStable();
+    await new Promise((resolve) => setTimeout(resolve, 50));
+    expect(quickFeedbackOnResultsSubscribeMock).toHaveBeenCalledTimes(1);
+
+    quickFeedbackResultsQueryMock.mockImplementationOnce(
+      () =>
+        new Promise((resolve) => {
+          releaseFallback = resolve;
+        }),
+    );
+    handlers.onError?.();
+    expect(
+      (fixture.componentInstance as unknown as { pollTimer: ReturnType<typeof setInterval> | null })
+        .pollTimer,
+    ).not.toBeNull();
+
+    fixture.destroy();
+    releaseFallback?.({
+      type: 'YESNO',
+      locked: false,
+      discussion: false,
+      totalVotes: 1,
+      distribution: { YES: 1, NO: 0, MAYBE: 0 },
+      currentRound: 1,
+    });
+    await fixture.whenStable();
+    await new Promise((resolve) => setTimeout(resolve, 50));
+
+    expect(quickFeedbackOnResultsSubscribeMock).toHaveBeenCalledTimes(1);
+    expect(
+      (fixture.componentInstance as unknown as { pollTimer: ReturnType<typeof setInterval> | null })
+        .pollTimer,
+    ).toBeNull();
+    expect(
+      (fixture.componentInstance as unknown as { subscription: { unsubscribe: () => void } | null })
+        .subscription,
+    ).toBeNull();
+  });
+
+  it('eröffnet nach Destroy kein neues Abo aus der Abschlussprüfung', async () => {
+    let handlers: { onComplete?: () => void } = {};
+    let releaseCompleteCheck: ((result: unknown) => void) | undefined;
+    quickFeedbackOnResultsSubscribeMock.mockImplementation(
+      (_input: unknown, nextHandlers: { onComplete?: () => void }) => {
+        handlers = nextHandlers;
+        return { unsubscribe: vi.fn() };
+      },
+    );
+
+    const fixture = TestBed.createComponent(FeedbackVoteComponent);
+    fixture.componentRef.setInput('sessionCode', 'ABC123');
+    fixture.detectChanges();
+    await fixture.whenStable();
+    await new Promise((resolve) => setTimeout(resolve, 50));
+    expect(quickFeedbackOnResultsSubscribeMock).toHaveBeenCalledTimes(1);
+
+    quickFeedbackResultsQueryMock.mockImplementationOnce(
+      () =>
+        new Promise((resolve) => {
+          releaseCompleteCheck = resolve;
+        }),
+    );
+    handlers.onComplete?.();
+    fixture.destroy();
+    releaseCompleteCheck?.({
+      type: 'YESNO',
+      locked: false,
+      discussion: false,
+      totalVotes: 1,
+      distribution: { YES: 1, NO: 0, MAYBE: 0 },
+      currentRound: 1,
+    });
+    await fixture.whenStable();
+    await new Promise((resolve) => setTimeout(resolve, 50));
+
+    expect(quickFeedbackOnResultsSubscribeMock).toHaveBeenCalledTimes(1);
+    expect(
+      (fixture.componentInstance as unknown as { pollTimer: ReturnType<typeof setInterval> | null })
+        .pollTimer,
+    ).toBeNull();
+    expect(
+      (fixture.componentInstance as unknown as { subscription: { unsubscribe: () => void } | null })
+        .subscription,
+    ).toBeNull();
+  });
+
   it('aktiviert HTTP-Fallback nur nach einem Subscription-Fehler und beendet ihn nach Erfolg', async () => {
     let handlers: { onData?: (result: unknown) => void; onError?: () => void } = {};
     quickFeedbackOnResultsSubscribeMock.mockImplementation(

@@ -494,13 +494,21 @@ async function getOrComputeCached<T>(
   if (existingPromise) {
     return existingPromise;
   }
-  const promise = compute()
-    .then((value) => setCachedValue(cache, key, value, ttlMs))
+  const inFlightEntry: { promise?: Promise<T> } = {};
+  inFlightEntry.promise = compute()
+    .then((value) => {
+      if (inFlight.get(key) !== inFlightEntry.promise) {
+        return value;
+      }
+      return setCachedValue(cache, key, value, ttlMs);
+    })
     .finally(() => {
-      inFlight.delete(key);
+      if (inFlight.get(key) === inFlightEntry.promise) {
+        inFlight.delete(key);
+      }
     });
-  inFlight.set(key, promise);
-  return promise;
+  inFlight.set(key, inFlightEntry.promise);
+  return inFlightEntry.promise;
 }
 
 function clearSessionReadCaches(code?: string): void {
