@@ -272,6 +272,14 @@
   text-wrap: balance;
 }
 
+.home-host-recovery-link {
+  margin-top: 0.35rem;
+  font: var(--mat-sys-label-large);
+  color: var(--mat-sys-primary);
+  text-decoration: underline;
+  text-underline-offset: 0.15em;
+}
+
 .home-host-intro__description {
   max-width: 32rem;
   margin: 0;

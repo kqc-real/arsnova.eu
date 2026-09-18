@@ -5548,6 +5548,16 @@ export class SessionHostComponent implements OnInit, OnDestroy {
     });
   }
 
+  private openHostSteeringCalloutForExportConflict(retry: () => void): void {
+    this.hostSteeringCallout.set({
+      title: $localize`:@@sessionHost.steeringCalloutExportConflictTitle:Fragenwand hat sich geändert`,
+      body: $localize`:@@sessionHost.steeringCalloutExportConflictBody:Während des Exports sind neue Stimmen oder Statusänderungen eingegangen. Der unvollständige Abruf wurde verworfen. Tippe auf »Nochmal probieren«, um einen neuen vollständigen Export zu starten.`,
+      retry,
+      errorRequestId: 'host.export:conflict',
+      suggestedArea: 'PDF_OR_EXPORT',
+    });
+  }
+
   private async retryEndSessionAndNavigateHome(): Promise<void> {
     if (!this.code) return;
     try {
@@ -11473,8 +11483,15 @@ export class SessionHostComponent implements OnInit, OnDestroy {
       this.downloadCsvExport(rows, buildQaQuestionsCsvFilename(this.code.toUpperCase()));
       this.exportStatus.set($localize`:@@sessionQa.exportDone:Q&A-CSV exportiert.`);
       this.dismissHostSteeringCallout();
-    } catch {
-      this.openHostSteeringCalloutForExportFailure(() => void this.exportQaQuestionsCsv());
+    } catch (error) {
+      if (this.isTrpcConflictError(error)) {
+        this.exportStatus.set(
+          $localize`:@@sessionQa.exportConflict:Der Export wurde abgebrochen, weil sich die Fragenwand während des Abrufs geändert hat. Bitte erneut versuchen.`,
+        );
+        this.openHostSteeringCalloutForExportConflict(() => void this.exportQaQuestionsCsv());
+      } else {
+        this.openHostSteeringCalloutForExportFailure(() => void this.exportQaQuestionsCsv());
+      }
     } finally {
       this.exportExporting.set(false);
     }
@@ -11486,6 +11503,21 @@ export class SessionHostComponent implements OnInit, OnDestroy {
       return [];
     }
 
+    let lastError: unknown;
+    for (let attempt = 0; attempt < 3; attempt += 1) {
+      try {
+        return await this.loadAllQaQuestionsForExportSnapshot(sessionId);
+      } catch (error) {
+        lastError = error;
+        if (!this.isTrpcConflictError(error)) {
+          throw error;
+        }
+      }
+    }
+    throw lastError;
+  }
+
+  private async loadAllQaQuestionsForExportSnapshot(sessionId: string): Promise<QaQuestionDTO[]> {
     const questions: QaQuestionDTO[] = [];
     let cursor: string | undefined;
     const statuses: Array<QaQuestionDTO['status']> = [
@@ -11515,6 +11547,16 @@ export class SessionHostComponent implements OnInit, OnDestroy {
     }
 
     return questions;
+  }
+
+  private isTrpcConflictError(error: unknown): boolean {
+    if (!error || typeof error !== 'object') {
+      return false;
+    }
+    if ('data' in error && error.data && typeof error.data === 'object' && 'code' in error.data) {
+      return error.data.code === 'CONFLICT';
+    }
+    return 'code' in error && error.code === 'CONFLICT';
   }
 
   private formatQaExportMetric(value: number | undefined): string {

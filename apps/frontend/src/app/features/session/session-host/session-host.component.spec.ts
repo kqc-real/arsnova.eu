@@ -16186,6 +16186,117 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
       fixture.destroy();
     });
 
+    it('startet den Q&A-CSV-Export nach einem Zwischen-Konflikt vollständig neu', async () => {
+      vi.spyOn(HTMLAnchorElement.prototype, 'click').mockImplementation(() => undefined);
+      Object.defineProperty(URL, 'createObjectURL', {
+        configurable: true,
+        writable: true,
+        value: () => 'blob:qa-export',
+      });
+      Object.defineProperty(URL, 'revokeObjectURL', {
+        configurable: true,
+        writable: true,
+        value: () => undefined,
+      });
+      const first = {
+        id: '11111111-1111-4111-8111-111111111111',
+        text: 'Erste Seite',
+        upvoteCount: 0,
+        status: 'ACTIVE' as const,
+        createdAt: '2026-03-13T12:00:00.000Z',
+        myVote: null,
+        isOwn: false,
+        hasUpvoted: false,
+      };
+      const second = {
+        id: '22222222-2222-4222-8222-222222222222',
+        text: 'Zweite Seite',
+        upvoteCount: 0,
+        status: 'ACTIVE' as const,
+        createdAt: '2026-03-13T12:01:00.000Z',
+        myVote: null,
+        isOwn: false,
+        hasUpvoted: false,
+      };
+      getInfoQueryMock.mockResolvedValue({
+        ...defaultSession,
+        channels: {
+          quiz: { enabled: false },
+          qa: {
+            enabled: true,
+            open: true,
+            title: 'Fragen',
+            moderationMode: true,
+          },
+          quickFeedback: { enabled: false, open: false },
+        },
+      });
+      const fixture = setup();
+      await fixture.componentInstance.ngOnInit();
+      qaListQueryMock.mockReset();
+      qaListQueryMock
+        .mockResolvedValueOnce({ questions: [first], nextCursor: 'cursor-1' })
+        .mockRejectedValueOnce({ data: { code: 'CONFLICT' } })
+        .mockResolvedValueOnce({ questions: [first], nextCursor: 'cursor-1' })
+        .mockResolvedValueOnce({ questions: [second], nextCursor: null });
+
+      await fixture.componentInstance.exportQaQuestionsCsv();
+
+      expect(qaListQueryMock).toHaveBeenCalledTimes(4);
+      expect(fixture.componentInstance.exportStatus()).toBe('Q&A-CSV exportiert.');
+      fixture.destroy();
+    });
+
+    it('bricht den Q&A-CSV-Export nach anhaltendem Konflikt verständlich ab', async () => {
+      getInfoQueryMock.mockResolvedValue({
+        ...defaultSession,
+        channels: {
+          quiz: { enabled: false },
+          qa: {
+            enabled: true,
+            open: true,
+            title: 'Fragen',
+            moderationMode: true,
+          },
+          quickFeedback: { enabled: false, open: false },
+        },
+      });
+      const fixture = setup();
+      await fixture.componentInstance.ngOnInit();
+      qaListQueryMock.mockReset();
+      qaListQueryMock.mockImplementation(async (input: { cursor?: string }) => {
+        if (input.cursor) {
+          throw { data: { code: 'CONFLICT' } };
+        }
+        return {
+          questions: [
+            {
+              id: '11111111-1111-4111-8111-111111111111',
+              text: 'Nur erste Seite',
+              upvoteCount: 0,
+              status: 'ACTIVE',
+              createdAt: '2026-03-13T12:00:00.000Z',
+              myVote: null,
+              isOwn: false,
+              hasUpvoted: false,
+            },
+          ],
+          nextCursor: 'cursor-1',
+        };
+      });
+
+      await fixture.componentInstance.exportQaQuestionsCsv();
+
+      expect(qaListQueryMock).toHaveBeenCalledTimes(6);
+      expect(fixture.componentInstance.exportStatus()).toBe(
+        'Der Export wurde abgebrochen, weil sich die Fragenwand während des Abrufs geändert hat. Bitte erneut versuchen.',
+      );
+      expect(fixture.componentInstance.hostSteeringCallout()?.errorRequestId).toBe(
+        'host.export:conflict',
+      );
+      fixture.destroy();
+    });
+
     it('exportiert die Team-Wertung im Ergebnis-CSV', async () => {
       let exportedBlob: Blob | null = null;
       let exportedCsv = '';

@@ -37,7 +37,6 @@ import { clearHostToken, hasHostToken } from '../../core/host-session-token';
 import { setHostToken, setPendingHostSessionCode, trpc } from '../../core/trpc.client';
 import {
   findPreferredHostBrowserCapabilityCode,
-  hasStoredHostCapabilities,
   persistInitialHostRecovery,
 } from '../../core/host-recovery-access';
 import { createDefaultLiveSessionOnboardingProfile } from '../../core/home-preset-storage';
@@ -199,11 +198,12 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
     }, null);
   });
   readonly hasHostedQuiz = computed(() => this.latestHostedQuizId() !== null);
-  readonly showHostRecoveryCta = signal(false);
+  readonly hostRecoveryPreferredCode = computed(() =>
+    findPreferredHostBrowserCapabilityCode(this.recentSessionCodes().map((entry) => entry.code)),
+  );
+  readonly showHostRecoveryCta = computed(() => this.hostRecoveryPreferredCode() !== null);
   readonly hostRecoveryCtaLink = computed(() => {
-    const code = findPreferredHostBrowserCapabilityCode(
-      this.recentSessionCodes().map((entry) => entry.code),
-    );
+    const code = this.hostRecoveryPreferredCode();
     return code ? localizePath(`/session/${code}/host`) : localizePath('/host-recovery');
   });
   private readonly platformId = inject(PLATFORM_ID);
@@ -351,7 +351,6 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
         this.markJoinIntentForMotd();
       }
       this.loadRecentSessionCodes();
-      this.showHostRecoveryCta.set(hasStoredHostCapabilities());
       const pendingHost = consumePendingHostInvite();
       if (pendingHost?.sessionCode && hasHostToken(pendingHost.sessionCode)) {
         // Damit claimInvite das x-host-token mitschickt (Home-Route hat keinen Session-Pfad).

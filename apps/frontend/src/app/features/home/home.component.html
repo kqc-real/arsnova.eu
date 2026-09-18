@@ -186,6 +186,14 @@
       <p class="home-host-intro__description" i18n="@@homeHostIntro.description">
         Starte eine Live-Session, hole direkt Feedback ein oder bereite ein Quiz vor.
       </p>
+      <a
+        class="home-host-recovery-link"
+        [routerLink]="localizedPath('/host-recovery')"
+        data-testid="home-host-recovery-link"
+        i18n="@@hostRecovery.title"
+      >
+        Host-Zugang wiederherstellen
+      </a>
     </section>
 
     <div class="home-host-stack">
@@ -216,7 +224,7 @@
             >
               <span class="home-choice-button__copy">
                 <span class="home-choice-button__label" i18n="@@homeLiveCard.recoveryLabel"
-                  >Offene Session</span
+                  >Host-Session</span
                 >
                 <span
                   class="home-choice-button__description"

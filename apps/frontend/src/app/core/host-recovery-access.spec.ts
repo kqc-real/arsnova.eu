@@ -19,6 +19,7 @@ import {
   storeHostRecoveryCandidate,
   hasStoredHostCapabilities,
   findPreferredHostBrowserCapabilityCode,
+  getLastHostedSessionCode,
 } from './host-recovery-access';
 
 const SUPPORT_ID = 'ARS-ABCD-2345';
@@ -229,8 +230,11 @@ describe('host-recovery-access', () => {
     expect(findPreferredHostBrowserCapabilityCode()).toBeNull();
     storeHostBrowserCapability('abc123', 'browser-capability-abcdefghijklmnopqrstuvwxyz');
     storeHostBrowserCapability('DEF456', 'other-browser-capability-abcdefghijklmnopqrstuvwxyz');
+    expect(getLastHostedSessionCode()).toBe('DEF456');
+    expect(findPreferredHostBrowserCapabilityCode(['abc123'])).toBe('DEF456');
+    localStorage.removeItem('arsnova-last-hosted-session');
+    expect(findPreferredHostBrowserCapabilityCode()).toBeNull();
     expect(findPreferredHostBrowserCapabilityCode(['def456'])).toBe('DEF456');
-    expect(findPreferredHostBrowserCapabilityCode()).toMatch(/^(ABC123|DEF456)$/);
   });
 
   it('legt Geheimnisse weder in Location noch in URL-artigen Storage-Schlüsseln ab', () => {

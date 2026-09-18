@@ -22,13 +22,15 @@ Browserneustart sowie Redis-Neustart oder Redis-Datenverlust zerstören deshalb
 nicht den PostgreSQL-basierten Wiederzugang. Ist Redis nicht erreichbar, bleibt
 der Zugriff fail-closed, bis Redis wieder verfügbar ist.
 
-Besitzt der Browser bereits eine aktivierte Host-Capability, öffnet der erste
-Button der Live-Karte die passende Host-Session direkt. Der Guard stellt den
-kurzlebigen Host-Token aus der Capability aus. Die Wiederherstellungsseite
-`/<locale>/host-recovery` bleibt für verlorene Browserdaten, einen nur
-vorbereiteten Kandidaten und eine weitere Session. Der Live-Karten-Button ist
-nur sichtbar, wenn dieser Browser eine Host-Capability oder einen
-Wiederherstellungskandidaten gespeichert hat.
+Besitzt der Browser eine eindeutige, zuletzt genutzte Host-Capability, öffnet
+der erste Button der Live-Karte diese Host-Session direkt. Der Guard stellt den
+kurzlebigen Host-Token aus der Capability aus. Der Textlink
+»Host-Zugang wiederherstellen« auf der Startseite bleibt immer sichtbar, damit
+verlorene Browserdaten, ein nur vorbereiteter Kandidat oder eine weitere
+Session über `/<locale>/host-recovery` erreichbar bleiben. Der Live-Karten-CTA
+erscheint nur bei genau einer bevorzugten aktivierten Capability; mehrere
+ungeordnete Einträge oder nur ein Kandidat führen nicht auf eine zufällige
+ältere Session.
 Der Ablauf hat drei Schritte: Angaben prüfen (Prepare), neue Zugangsdaten
 sichern und erst danach ausdrücklich aktivieren, anschließend bestätigter
 Erfolg. Ein Download ist optional; eine Klartextnotiz mit Session-Kennung,

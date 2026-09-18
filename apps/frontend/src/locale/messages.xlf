@@ -8232,7 +8232,7 @@
         </context-group>
       </trans-unit>
       <trans-unit id="homeLiveCard.recoveryLabel" datatype="html">
-        <source>Offene Session</source>
+        <source>Host-Session</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/home/home.component.html</context>
           <context context-type="linenumber">224</context>
@@ -22015,6 +22015,15 @@
       </trans-unit>
       <trans-unit id="sessionQa.exportEmpty" datatype="html">
         <source>Keine Fragen zum Exportieren.</source>
+      </trans-unit>
+      <trans-unit id="sessionQa.exportConflict" datatype="html">
+        <source>Der Export wurde abgebrochen, weil sich die Fragenwand während des Abrufs geändert hat. Bitte erneut versuchen.</source>
+      </trans-unit>
+      <trans-unit id="sessionHost.steeringCalloutExportConflictTitle" datatype="html">
+        <source>Fragenwand hat sich geändert</source>
+      </trans-unit>
+      <trans-unit id="sessionHost.steeringCalloutExportConflictBody" datatype="html">
+        <source>Während des Exports sind neue Stimmen oder Statusänderungen eingegangen. Der unvollständige Abruf wurde verworfen. Tippe auf »Nochmal probieren«, um einen neuen vollständigen Export zu starten.</source>
       </trans-unit>
       <trans-unit id="7304749878499794874" datatype="html">
         <source>Frage <x id="questionNumber" equiv-text="data.questionOrder + 1"/>: <x id="questionText" equiv-text="data.questionText ?? &apos;&apos;"/></source>

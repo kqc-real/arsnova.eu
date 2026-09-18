@@ -412,7 +412,11 @@ describe('HomeComponent', () => {
       const hostIntro = fixture.nativeElement.querySelector(
         '.home-host-intro',
       ) as HTMLElement | null;
-      expect(hostIntro?.querySelector('a[href*="host-recovery"]')).toBeNull();
+      const recoveryLink = hostIntro?.querySelector(
+        '[data-testid="home-host-recovery-link"]',
+      ) as HTMLAnchorElement | null;
+      expect(recoveryLink?.textContent?.trim()).toBe('Host-Zugang wiederherstellen');
+      expect(recoveryLink?.getAttribute('href') ?? '').toContain('host-recovery');
       expect(hostIntro?.textContent).not.toContain('Zugang als Host');
       expect(fixture.nativeElement.querySelector('[data-testid="home-host-recovery"]')).toBeNull();
 
@@ -440,8 +444,11 @@ describe('HomeComponent', () => {
       expect(recoveryAction?.getAttribute('href') ?? '').toContain('session/ABC123/host');
       expect(recoveryAction?.getAttribute('href') ?? '').not.toContain('host-recovery');
       expect(recoveryAction?.querySelector('.home-choice-button__label')?.textContent?.trim()).toBe(
-        'Offene Session',
+        'Host-Session',
       );
+      expect(
+        fixture.nativeElement.querySelector('[data-testid="home-host-recovery-link"]'),
+      ).not.toBeNull();
       expect(
         recoveryAction?.querySelector('.home-choice-button__description')?.textContent?.trim(),
       ).toBe('Zugang als Host');
@@ -466,12 +473,40 @@ describe('HomeComponent', () => {
       const fixture = createHomeFixture();
       fixture.detectChanges();
 
+      expect(fixture.nativeElement.querySelector('[data-testid="home-host-recovery"]')).toBeNull();
+      const recoveryLink = fixture.nativeElement.querySelector(
+        '[data-testid="home-host-recovery-link"]',
+      ) as HTMLAnchorElement | null;
+      expect(recoveryLink?.getAttribute('href') ?? '').toContain('host-recovery');
+      expect(recoveryLink?.getAttribute('href') ?? '').not.toContain('/session/');
+    });
+
+    it('öffnet bei mehreren gespeicherten Host-Sessions die zuletzt gehostete', () => {
+      storeHostBrowserCapability('AAA111', 'older-browser-capability-abcdefghijklmnopqrstuvwxyz');
+      storeHostBrowserCapability('BBB222', 'newer-browser-capability-abcdefghijklmnopqrstuvwxyz');
+      const fixture = createHomeFixture();
+      fixture.detectChanges();
+
       const recoveryAction = fixture.nativeElement.querySelector(
         '.home-live-grid [data-testid="home-host-recovery"]',
       ) as HTMLElement | null;
-      expect(recoveryAction).not.toBeNull();
-      expect(recoveryAction?.getAttribute('href') ?? '').toContain('host-recovery');
-      expect(recoveryAction?.getAttribute('href') ?? '').not.toContain('/session/');
+      expect(recoveryAction?.getAttribute('href') ?? '').toContain('session/BBB222/host');
+      expect(
+        fixture.nativeElement.querySelector('[data-testid="home-host-recovery-link"]'),
+      ).not.toBeNull();
+    });
+
+    it('blendet den direkten Host-CTA ohne eindeutige Session aus und behält den Wiederherstellungslink', () => {
+      storeHostBrowserCapability('AAA111', 'older-browser-capability-abcdefghijklmnopqrstuvwxyz');
+      storeHostBrowserCapability('BBB222', 'newer-browser-capability-abcdefghijklmnopqrstuvwxyz');
+      localStorage.removeItem('arsnova-last-hosted-session');
+      const fixture = createHomeFixture();
+      fixture.detectChanges();
+
+      expect(fixture.nativeElement.querySelector('[data-testid="home-host-recovery"]')).toBeNull();
+      expect(
+        fixture.nativeElement.querySelector('[data-testid="home-host-recovery-link"]'),
+      ).not.toBeNull();
     });
 
     it('überlässt den Preset-Wechsel der globalen Toolbar', () => {
