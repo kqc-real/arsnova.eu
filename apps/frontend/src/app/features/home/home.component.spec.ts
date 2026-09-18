@@ -1,6 +1,8 @@
 /**
  * Unit-Tests für HomeComponent (Session-Code, Navigation, Controls, Preset-Integration).
  */
+import { readFileSync } from 'node:fs';
+import { resolve } from 'node:path';
 import { describe, it, expect, beforeEach, vi, afterEach } from 'vitest';
 import { TestBed } from '@angular/core/testing';
 import { ActivatedRoute, convertToParamMap, provideRouter, Router } from '@angular/router';
@@ -418,6 +420,15 @@ describe('HomeComponent', () => {
           .querySelector('#participant-entry .home-card__title')
           ?.textContent?.trim(),
       ).toBe('An einer Session teilnehmen');
+    });
+
+    it('hält den Host-Recovery-Link auf mindestens 24 px Zielhöhe', () => {
+      const scss = readFileSync(
+        resolve(process.cwd(), 'src/app/features/home/home.component.scss'),
+        'utf8',
+      );
+      const block = scss.match(/\.home-host-recovery-link\s*\{[^}]+\}/)?.[0] ?? '';
+      expect(block).toMatch(/min-height:\s*2\.5rem/);
     });
 
     it('überlässt den Preset-Wechsel der globalen Toolbar', () => {
