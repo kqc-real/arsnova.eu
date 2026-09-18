@@ -72,6 +72,12 @@
               <mat-error>{{ secretError() }}</mat-error>
             }
           </mat-form-field>
+          @if (sourceKind() === 'ADMIN_HANDOFF') {
+            <p class="host-recovery-page__hint" i18n="@@hostRecovery.handoffValidity">
+              Der Code vom Support ist ab seiner Ausstellung 15 Minuten gültig. Ist er abgelaufen,
+              bitte den Support um einen neuen Code.
+            </p>
+          }
 
           @if (bannerError()) {
             <p class="host-recovery-page__error" role="alert">{{ bannerError() }}</p>
@@ -353,7 +359,8 @@
 
       @if (view() === 'pendingExpired') {
         <p class="host-recovery-page__error" role="alert" i18n="@@hostRecovery.pendingExpired">
-          Die Frist zum Aktivieren ist abgelaufen. Starte die Wiederherstellung erneut.
+          Die neuen Zugangsdaten wurden nicht aktiviert und sind abgelaufen. Beginne erneut mit
+          deinem bisherigen Wiederherstellungscode.
         </p>
         <div class="host-recovery-page__actions">
           <button matButton="filled" type="button" (click)="restartRecovery()">

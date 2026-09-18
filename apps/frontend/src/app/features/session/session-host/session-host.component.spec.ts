@@ -2346,6 +2346,41 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
     fixture.destroy();
   });
 
+  it('öffnet nach Session-Ende mit Q&A direkt den Q&A-Kanal, nicht die Quiz-Abschlussansicht', async () => {
+    const finishedSession = {
+      ...defaultSession,
+      status: 'FINISHED' as const,
+      preferredChannel: 'quiz' as const,
+      channels: {
+        quiz: { enabled: true },
+        qa: {
+          enabled: true,
+          open: false,
+          title: 'Fragen',
+          moderationMode: true,
+          state: 'CLOSED' as const,
+        },
+        quickFeedback: { enabled: false, open: false },
+      },
+    };
+    getInfoQueryMock.mockResolvedValue(finishedSession);
+    const fixture = setup();
+    await fixture.componentInstance.ngOnInit();
+    fixture.componentInstance.postProcessingEnded.set(false);
+    fixture.detectChanges();
+
+    expect(fixture.componentInstance.activeChannel()).toBe('qa');
+    expect(fixture.componentInstance.showChannelTabs()).toBe(false);
+    expect(fixture.nativeElement.querySelector('.session-channel-tabs')).toBeNull();
+    expect(
+      fixture.nativeElement.querySelector('[data-testid="qa-channel-heading"]'),
+    ).not.toBeNull();
+    expect(fixture.nativeElement.querySelector('.session-host__results')).toBeNull();
+    expect(fixture.nativeElement.textContent).toContain('ausschließlich lesen und exportieren');
+    expect(enableQaChannelMutateMock).not.toHaveBeenCalled();
+    fixture.destroy();
+  });
+
   it('zeigt Q&A nach Session-Ende nur lesbar und blockiert direkte Änderungsaufrufe', async () => {
     const fixture = setup();
     fixture.componentInstance.session.set({

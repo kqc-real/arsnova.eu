@@ -272,19 +272,6 @@
   text-wrap: balance;
 }
 
-.home-host-recovery-link {
-  display: inline-flex;
-  align-items: center;
-  box-sizing: border-box;
-  min-height: 2.75rem;
-  margin: 0.25rem 1rem 0.75rem;
-  padding-block: 0.5rem;
-  font: var(--mat-sys-label-large);
-  color: var(--mat-sys-primary);
-  text-decoration: underline;
-  text-underline-offset: 0.15em;
-}
-
 .home-host-intro__description {
   max-width: 32rem;
   margin: 0;

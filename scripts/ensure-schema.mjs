@@ -1,7 +1,8 @@
 /**
- * ensure-schema.mjs – Stellt sicher, dass alle DB-Spalten/Enums existieren.
- * Wird im Docker-Entrypoint vor dem App-Start ausgeführt.
- * Nutzt `pg` direkt, damit das Script unabhängig vom Prisma-Client-Setup läuft.
+ * ensure-schema.mjs – Legacy-ALTER-Liste und Dev-MOTD-Re-Seeding.
+ * Die lokale Dev-DB (`npm run dev`, `setup:dev`) läuft über
+ * `scripts/migrate-dev-database.mjs` / `prisma migrate deploy`.
+ * Dieses Skript bleibt für MOTD-Seeds und Notfall-Patches.
  */
 import { execSync } from 'node:child_process';
 import fs from 'node:fs';
@@ -267,6 +268,20 @@ const statements = [
   `ALTER TABLE "Session" ALTER COLUMN "createdAt" SET NOT NULL`,
   `ALTER TABLE "Session" ALTER COLUMN "expiresAt" SET NOT NULL`,
   `ALTER TABLE "Session" ALTER COLUMN "expiresAt" SET DEFAULT (CURRENT_TIMESTAMP + INTERVAL '24 hours')`,
+
+  // Host-Admin-Übergabe: Operations-ID und verschlüsseltes Envelope
+  // (Migration 20260918150000; lokal oft ohne prisma migrate deploy).
+  `DO $$ BEGIN
+     IF to_regclass('public."HostAdminHandoff"') IS NULL THEN
+       RETURN;
+     END IF;
+     ALTER TABLE "HostAdminHandoff" ADD COLUMN IF NOT EXISTS "operationId" TEXT;
+     ALTER TABLE "HostAdminHandoff" ADD COLUMN IF NOT EXISTS "encryptedEnvelope" TEXT;
+     UPDATE "HostAdminHandoff" SET "operationId" = gen_random_uuid()::text WHERE "operationId" IS NULL;
+     ALTER TABLE "HostAdminHandoff" ALTER COLUMN "operationId" SET NOT NULL;
+     CREATE UNIQUE INDEX IF NOT EXISTS "HostAdminHandoff_operationId_key"
+       ON "HostAdminHandoff"("operationId");
+   END $$`,
 
   // Story 12.1: Invite-Fingerprint und persistente Submit-/Follow-up-Idempotenz
   `ALTER TABLE "Participant" ADD COLUMN IF NOT EXISTS "productFeedbackClaimTokenHash" CHAR(64)`,

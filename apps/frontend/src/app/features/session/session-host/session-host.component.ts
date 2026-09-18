@@ -8946,6 +8946,9 @@ export class SessionHostComponent implements OnInit, OnDestroy {
       // Eine bewusste Auswahl darf nicht von einem noch ausstehenden Initial-Snapshot überschrieben werden.
       this.initialPreferredChannelApplied = true;
       this.initialUrlTabApplied = true;
+      if (this.effectiveStatus() === 'FINISHED' && !this.isChannelEnabled(channel)) {
+        return;
+      }
       if (channel === 'qa' && this.qaChannelNeedsConfiguration()) {
         await this.enableChannel('qa');
         return;
@@ -8971,7 +8974,9 @@ export class SessionHostComponent implements OnInit, OnDestroy {
         this.syncQaTitleDraftFromSession();
       }
       this.ensureActiveChannel();
-      await this.reconcilePresentedChannel();
+      if (this.effectiveStatus() !== 'FINISHED') {
+        await this.reconcilePresentedChannel();
+      }
     }
   }
 
@@ -9563,6 +9568,9 @@ export class SessionHostComponent implements OnInit, OnDestroy {
   }
 
   activeChannelVisibilityActionLabel(): string | null {
+    if (this.effectiveStatus() === 'FINISHED') {
+      return null;
+    }
     const active = this.activeChannel();
     if (active === 'quiz') {
       const status = this.effectiveStatus();
@@ -9602,6 +9610,9 @@ export class SessionHostComponent implements OnInit, OnDestroy {
   }
 
   async toggleActiveChannelOpen(): Promise<void> {
+    if (this.effectiveStatus() === 'FINISHED') {
+      return;
+    }
     const active = this.activeChannel();
     if (active === 'quiz') {
       await this.toggleQuizPause();
@@ -10060,18 +10071,34 @@ export class SessionHostComponent implements OnInit, OnDestroy {
     const urlTab = this.requestedInitialTab;
     if (
       !this.initialUrlTabApplied &&
-      (urlTab === 'quiz' || urlTab === 'qa' || urlTab === 'quickFeedback') &&
-      this.visibleChannels().includes(urlTab)
+      (urlTab === 'quiz' || urlTab === 'qa' || urlTab === 'quickFeedback')
     ) {
-      if (active !== urlTab) {
-        this.activeChannel.set(urlTab);
+      if (visible.includes(urlTab)) {
+        if (active !== urlTab) {
+          this.activeChannel.set(urlTab);
+        }
+        this.initialUrlTabApplied = true;
+        this.initialPreferredChannelApplied = true;
+        return;
+      }
+      if (!this.session()?.channels) {
+        return;
       }
       this.initialUrlTabApplied = true;
-      this.initialPreferredChannelApplied = true;
-      return;
-    }
-    if (!this.initialUrlTabApplied) {
+    } else if (!this.initialUrlTabApplied) {
       this.initialUrlTabApplied = true;
+    }
+
+    if (
+      !this.initialPreferredChannelApplied &&
+      visible.includes('qa') &&
+      this.effectiveStatus() === 'FINISHED'
+    ) {
+      this.initialPreferredChannelApplied = true;
+      if (active !== 'qa') {
+        this.activeChannel.set('qa');
+      }
+      return;
     }
 
     const preferred = this.session()?.preferredChannel;

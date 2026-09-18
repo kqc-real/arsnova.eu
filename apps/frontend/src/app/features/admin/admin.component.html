@@ -541,9 +541,10 @@
                                           Verbundene Host-Geräte müssen anschließend neu verbunden
                                           werden. Die Session und ihre Inhalte bleiben erhalten.
                                         </p>
-                                        <p i18n="@@admin.hostResetConfirmDeadline">
-                                          Der neue Übergabecode muss innerhalb von 15 Minuten
-                                          erstmals eingelöst werden.
+                                        <p i18n="@@hostRecovery.handoffValidity">
+                                          Der Code vom Support ist ab seiner Ausstellung 15 Minuten
+                                          gültig. Ist er abgelaufen, bitte den Support um einen
+                                          neuen Code.
                                         </p>
                                         @if (resetDraft.confirmNewReset) {
                                           <p
@@ -654,10 +655,7 @@
                                             Übergabecode kopiert.
                                           </p>
                                         }
-                                        <p i18n="@@admin.hostResetRedeemUntil">
-                                          Bis {{ formatDateTime(reset.expiresAt) }} erstmals
-                                          einlösen.
-                                        </p>
+                                        <p>{{ handoffRedeemUntilLabel(reset.expiresAt) }}</p>
                                         <p>
                                           <a
                                             [routerLink]="hostRecoveryCommands"

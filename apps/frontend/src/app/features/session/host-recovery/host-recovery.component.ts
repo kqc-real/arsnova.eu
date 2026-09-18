@@ -1,4 +1,4 @@
-import { DOCUMENT, formatDate } from '@angular/common';
+import { DOCUMENT } from '@angular/common';
 import {
   AfterViewChecked,
   ChangeDetectionStrategy,
@@ -224,11 +224,20 @@ export class HostRecoveryComponent implements AfterViewChecked, OnDestroy {
     }
   }
 
+  formatLocalDateTime(iso: string): string {
+    const date = new Date(iso);
+    if (Number.isNaN(date.getTime())) return iso;
+    return new Intl.DateTimeFormat(this.locale, {
+      dateStyle: 'medium',
+      timeStyle: 'short',
+    }).format(date);
+  }
+
   deadlineLabel(): string {
     const pending = this.prepared();
     if (!pending) return '';
-    const deadline = formatDate(pending.pendingExpiresAt, 'medium', this.locale);
-    return $localize`:@@hostRecovery.activationDeadline:Aktivieren bis: ${deadline}:deadline:`;
+    const deadline = this.formatLocalDateTime(pending.pendingExpiresAt);
+    return $localize`:@@hostRecovery.activationDeadline:Speichere die neuen Zugangsdaten und aktiviere deinen Zugang bis ${deadline}:deadline:. Dafür hast du ab Ausgabe 15 Minuten. Diese Frist gilt nur für die Aktivierung, nicht für die spätere Nutzung deines Zugangs.`;
   }
 
   onSupportIdInput(event: Event): void {
@@ -528,7 +537,9 @@ export class HostRecoveryComponent implements AfterViewChecked, OnDestroy {
     if (!code || this.busy()) return;
     this.bannerError.set(null);
     try {
-      const ok = await this.router.navigate(localizeCommands(['session', code, 'host']));
+      const ok = await this.router.navigate(localizeCommands(['session', code, 'host']), {
+        queryParams: { tab: 'qa' },
+      });
       if (!ok) {
         this.bannerError.set(
           $localize`:@@hostRecovery.navigationError:Der Zugang ist wiederhergestellt. Die Session konnte noch nicht geöffnet werden. Versuche es erneut.`,

@@ -155,14 +155,14 @@ docker compose up -d postgres redis
 npm ci
 
 # 5. Datenbank-Schema anwenden und Prisma-Client generieren
-npm run prisma:push
+npm run prisma:migrate
 npm run prisma:generate
 
 # 6. Geteilte Typen bauen (Pflicht vor erstem Dev-Start)
 npm run build -w @arsnova/shared-types
 ```
 
-**Kurz:** Einmalig **`npm run setup:dev`** (startet Postgres + Redis, `prisma:push`, `prisma:generate`, **shared-types-Build**) — deckt die Schritte 3–6 ab, danach **`npm run dev`**. Auf macOS für eine volle Hörsaal-Session stattdessen **`npm run spacy:macos-dev`** ([hohe Befüllung](#volle-lokale-session-mit-hoher-befüllung)).
+**Kurz:** Einmalig **`npm run setup:dev`** (startet Postgres + Redis, `prisma migrate deploy`, `prisma:generate`, **shared-types-Build**) — deckt die Schritte 3–6 ab, danach **`npm run dev`**. Auf macOS für eine volle Hörsaal-Session stattdessen **`npm run spacy:macos-dev`** ([hohe Befüllung](#volle-lokale-session-mit-hoher-befüllung)).
 
 **Vor dem ersten Commit / bei Pre-Commit-Hook:** Ist nach `npm ci` noch kein Prisma-Client da, **`npm run prisma:generate`** ausführen (sonst schlägt `tsc` fehl).
 
@@ -207,7 +207,7 @@ belegt die Korrekturen der damals roten Gates.
 | Fehler zu Prisma oder fehlenden Typen   | `setup:dev`, `prisma:generate` oder `shared-types`-Build fehlt                   | `npm run setup:dev` erneut ausführen                                                |
 | Port 3000 oder 4200 ist schon belegt    | Voriger Dev-Server läuft noch                                                    | `npm run free-dev-ports` und dann erneut `npm run dev`                              |
 | Wortwolke bleibt leer / Seed bricht ab  | Keine Freitextfrage in der Session, oder `npm run dev` parallel zum macOS-Helfer | Demo-Quiz anzeigen; auf macOS nur `spacy:macos-dev`, nicht zusätzlich `npm run dev` |
-| `The table public.Quiz does not exist`  | Postgres läuft, Prisma-Schema wurde nie angewendet                               | `npm run prisma:push` (der macOS-Helfer macht das jetzt selbst)                     |
+| `The table public.Quiz does not exist`  | Postgres läuft, Prisma-Schema wurde nie angewendet                               | `npm run prisma:migrate` (der macOS-Helfer macht das jetzt selbst)                  |
 | „Wähle die Sprache der Antworten“ in it | Host-UI `it` hat kein Lemma-Modell; Default folgt der UI                         | Am Glätten-Button DE/EN/FR/ES wählen                                                |
 | `/admin` funktioniert lokal nicht       | `ADMIN_SECRET` wurde nicht gesetzt                                               | `.env` ergänzen und Backend neu starten                                             |
 
