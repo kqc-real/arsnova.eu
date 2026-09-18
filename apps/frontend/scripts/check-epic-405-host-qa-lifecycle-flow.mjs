@@ -127,6 +127,17 @@ function sessionSupportIdPattern() {
   return /ARS-[A-HJ-NP-Z2-9]{4}-[A-HJ-NP-Z2-9]{4}/;
 }
 
+async function dismissJoinOverlay(page) {
+  const overlay = page.locator('.session-host__join-viewport-overlay').first();
+  const appeared = await overlay
+    .waitFor({ state: 'visible', timeout: 8_000 })
+    .then(() => true)
+    .catch(() => false);
+  if (!appeared) return;
+  await page.locator('.session-host__join-viewport-overlay__close').click();
+  await overlay.waitFor({ state: 'hidden', timeout: 5_000 });
+}
+
 async function openAndCloseDialog(page, triggerTestId, heading) {
   await page.locator(`[data-testid="${triggerTestId}"]`).click();
   const panel = page.locator('mat-dialog-container').last();
@@ -169,6 +180,10 @@ async function main() {
       failures.push('Zugangskarte zeigte keine Session-Kennung.');
     }
 
+    await dismissJoinOverlay(host).catch((error) => {
+      failures.push(`Beitritts-Overlay: ${error instanceof Error ? error.message : String(error)}`);
+    });
+
     const expiration = host.locator('[data-testid="configure-session-expiration"]');
     const retention = host.locator('[data-testid="session-retention-details"]');
     const footerOk =
@@ -177,15 +192,6 @@ async function main() {
     logStep(footerOk, 'Q&A-Footer zeigt maximales Sessionende und Löschtermin');
     if (!footerOk) {
       failures.push('Action-Bar ohne Maximales Q&A-Ende oder Löschtermin anzeigen.');
-    }
-
-    const joinOverlay = host.locator('.session-host__join-viewport-overlay').first();
-    if (await joinOverlay.isVisible().catch(() => false)) {
-      await host.keyboard.press('Escape');
-      await joinOverlay.waitFor({ state: 'hidden', timeout: 5_000 }).catch(async () => {
-        await host.locator('.session-host__join-viewport-overlay__close').click();
-        await joinOverlay.waitFor({ state: 'hidden', timeout: 5_000 });
-      });
     }
 
     if (footerOk) {
