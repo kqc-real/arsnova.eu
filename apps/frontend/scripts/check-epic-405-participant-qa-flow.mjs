@@ -17,6 +17,7 @@
  */
 import { createTRPCProxyClient, httpBatchLink } from '@trpc/client';
 import { chromium, webkit } from 'playwright';
+import { configureQaSessionIfNeeded } from '../../../scripts/load/lib/configure-qa-if-needed.mjs';
 
 const BASE_URL = (process.env.BASE_URL || 'http://localhost:4200/de').replace(/\/+$/, '');
 const TRPC_URL = (process.env.TRPC_URL || 'http://localhost:3000/trpc').replace(/\/+$/, '');
@@ -98,27 +99,8 @@ async function createConfiguredQaSession() {
     teamMode: false,
   });
   const hostTrpc = createTrpcClient(created.hostToken);
-  const selection = { kind: 'UNTIL_SESSION_END' };
-  const preview = await hostTrpc.session.previewQaConfiguration.query({
-    code: created.code,
-    mode: 'INITIAL',
-    selection,
-  });
-  await hostTrpc.session.configureQaChannel.mutate({
-    code: created.code,
-    mode: preview.mode,
-    selection,
-    expectedLifecycleRevision: preview.expectedLifecycleRevision,
-    previewServerNow: preview.serverNow,
-    confirmedQaClosesAt: preview.newQaClosesAt,
-    confirmedExpiresAt: preview.newExpiresAt,
-    confirmSessionExtension: preview.requiresSessionExtension,
+  await configureQaSessionIfNeeded(hostTrpc, created.code, {
     qaTitle: 'Epic 405 Teilnehmer-Smoke',
-    moderationMode: false,
-    participationProfile: {
-      identityMode: 'CUSTOM_NICKNAME',
-      nicknameTheme: 'HIGH_SCHOOL',
-    },
   });
   return { created, hostTrpc };
 }

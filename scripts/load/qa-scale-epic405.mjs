@@ -296,7 +296,7 @@ async function createConfiguredSession(publicTrpc, runtime, apiMetrics) {
   });
   apiMetrics.observePayload(created);
   const hostTrpc = createHttpTrpcSingle(runtime.trpcUrl, created.hostToken);
-  const configured = await configureQaSessionIfNeeded(hostTrpc, created.code, {
+  await configureQaSessionIfNeeded(hostTrpc, created.code, {
     qaTitle: 'Epic 405 Release',
     observePreview: (preview) => apiMetrics.observePayload(preview),
     observeConfigured: (result) => apiMetrics.observePayload(result),
