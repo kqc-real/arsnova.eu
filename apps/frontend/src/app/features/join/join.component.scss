@@ -176,15 +176,10 @@
     margin-bottom: 0.65rem;
   }
 
-  &__home-link,
-  &__host-link {
+  &__home-link {
     display: inline-flex;
     align-items: center;
     gap: 0.35rem;
-  }
-
-  &__host-link {
-    margin-top: 0;
   }
 
   &--error .join-card__text {

@@ -166,16 +166,6 @@
             <mat-icon class="home-error__icon" aria-hidden="true">warning</mat-icon>
             <span class="home-error__text">{{ joinError() }}</span>
           </p>
-          @if (joinErrorSessionFinished() && sessionCode().length === 6) {
-            <a
-              [routerLink]="localizedCommands(['session', sessionCode().toUpperCase(), 'host'])"
-              mat-button
-              class="home-error-link"
-            >
-              <mat-icon aria-hidden="true">admin_panel_settings</mat-icon>
-              <span i18n="@@sessionEntry.showHostLink">Als Host anzeigen</span>
-            </a>
-          }
         }
       </mat-card-content>
     </mat-card>
@@ -196,13 +186,6 @@
       <p class="home-host-intro__description" i18n="@@homeHostIntro.description">
         Starte eine Live-Session, hole direkt Feedback ein oder bereite ein Quiz vor.
       </p>
-      <a
-        class="home-host-recovery-link"
-        [routerLink]="localizedCommands(['host-recovery'])"
-        i18n="@@hostRecovery.title"
-      >
-        Host-Zugang wiederherstellen
-      </a>
     </section>
 
     <div class="home-host-stack">
@@ -220,11 +203,33 @@
           </div>
         </mat-card-header>
 
-        <mat-card-actions class="home-card__actions home-live-grid">
+        <mat-card-actions
+          class="home-card__actions home-live-grid"
+          [class.home-live-grid--with-recovery]="showHostRecoveryCta()"
+        >
+          @if (showHostRecoveryCta()) {
+            <a
+              matButton="filled"
+              [routerLink]="hostRecoveryCtaLink()"
+              class="home-cta home-choice-button"
+              data-testid="home-host-recovery"
+            >
+              <span class="home-choice-button__copy">
+                <span class="home-choice-button__label" i18n="@@homeLiveCard.recoveryLabel"
+                  >Host-Session</span
+                >
+                <span
+                  class="home-choice-button__description"
+                  i18n="@@homeLiveCard.recoveryDescription"
+                  >Zugang als Host</span
+                >
+              </span>
+            </a>
+          }
           <a
             matButton="tonal"
             [routerLink]="localizedPath('/quiz')"
-            class="home-choice-button"
+            class="home-cta home-cta--secondary home-choice-button"
             (mouseenter)="preloadQuiz()"
           >
             <span class="home-choice-button__copy">
@@ -237,7 +242,7 @@
           <button
             matButton="tonal"
             type="button"
-            class="home-choice-button"
+            class="home-cta home-cta--secondary home-choice-button"
             (click)="openHeroHostTab('qa')"
             [disabled]="!!hostSessionStarting()"
             [attr.aria-busy]="hostSessionStarting() === 'qa' ? 'true' : null"
@@ -257,7 +262,7 @@
           <button
             matButton="tonal"
             type="button"
-            class="home-choice-button"
+            class="home-cta home-cta--secondary home-choice-button"
             (click)="openHeroHostTab('quickFeedback')"
             [disabled]="!!hostSessionStarting()"
             [attr.aria-busy]="hostSessionStarting() === 'quickFeedback' ? 'true' : null"
@@ -285,6 +290,14 @@
             <span class="home-error__text">{{ hostSessionError() }}</span>
           </p>
         }
+        <a
+          class="home-host-recovery-link"
+          [routerLink]="localizedPath('/host-recovery')"
+          data-testid="home-host-recovery-link"
+          i18n="@@hostRecovery.title"
+        >
+          Host-Zugang wiederherstellen
+        </a>
       </mat-card>
 
       <mat-card

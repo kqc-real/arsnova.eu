@@ -5,6 +5,7 @@
   [class.session-host--team-mode]="session()?.teamMode === true"
   [class.session-host--with-channel-tabs]="showChannelTabs()"
   [class.session-host--with-live-banner]="effectiveStatus() !== 'FINISHED'"
+  [class.session-host--finished]="effectiveStatus() === 'FINISHED'"
   [class.session-host--immersive]="isImmersiveMode()"
   [class.session-host--word-cloud-overlay]="freetextWordCloudMaximized() || qaWordCloudDialogOpen()"
   [class.session-host--revoked]="hostAccessRevoked()"
@@ -1547,6 +1548,16 @@
                         <span i18n="@@sessionHost.exportCsvExcelMenuItem"
                           >Rohdaten als CSV exportieren</span
                         >
+                      </button>
+                      <button
+                        mat-menu-item
+                        type="button"
+                        (click)="exportQaQuestionsCsv()"
+                        [disabled]="exportExporting()"
+                        [attr.aria-busy]="exportExporting()"
+                      >
+                        <mat-icon aria-hidden="true">download</mat-icon>
+                        <span i18n="@@sessionQa.exportLabel">Fragen exportieren</span>
                       </button>
                     </mat-menu>
                     @if (exportExporting()) {
@@ -4052,21 +4063,22 @@
                   </p>
                 }
 
-                <div class="session-qa-moderation-toggle">
-                  <mat-slide-toggle
-                    [checked]="!!session()?.channels?.qa?.moderationMode"
-                    [disabled]="effectiveStatus() === 'FINISHED'"
-                    (change)="toggleQaModeration()"
-                    i18n="@@sessionQa.moderationToggleLabel"
-                  >
-                    Vorab-Moderation
-                  </mat-slide-toggle>
-                  @if (session()?.channels?.qa?.moderationMode) {
-                    <p class="session-qa-moderation-hint" i18n="@@sessionQa.moderationModeHint">
-                      Neue Fragen warten erst auf deine Freigabe.
-                    </p>
-                  }
-                </div>
+                @if (effectiveStatus() !== 'FINISHED') {
+                  <div class="session-qa-moderation-toggle">
+                    <mat-slide-toggle
+                      [checked]="!!session()?.channels?.qa?.moderationMode"
+                      (change)="toggleQaModeration()"
+                      i18n="@@sessionQa.moderationToggleLabel"
+                    >
+                      Vorab-Moderation
+                    </mat-slide-toggle>
+                    @if (session()?.channels?.qa?.moderationMode) {
+                      <p class="session-qa-moderation-hint" i18n="@@sessionQa.moderationModeHint">
+                        Neue Fragen warten erst auf deine Freigabe.
+                      </p>
+                    }
+                  </div>
+                }
 
                 <div class="session-qa-summary">
                   @if ((qaForumQuestionCount() > 0 || qaSearch()) && !qaSelectedAuthorNickname()) {
@@ -4090,7 +4102,13 @@
                         </span>
                       }
                       @if (qaPinnedCount() > 0) {
-                        <span class="session-qa-summary__chip session-qa-summary__chip--pinned">
+                        <span
+                          class="session-qa-summary__chip session-qa-summary__chip--pinned"
+                          tabindex="0"
+                          [matTooltip]="qaPinnedSummaryTooltip()"
+                          matTooltipPosition="above"
+                          [attr.aria-label]="qaPinnedSummaryAria()"
+                        >
                           <mat-icon class="session-qa-summary__icon" aria-hidden="true"
                             >push_pin</mat-icon
                           >
@@ -4098,7 +4116,13 @@
                         </span>
                       }
                       @if (qaArchivedCount() > 0) {
-                        <span class="session-qa-summary__chip session-qa-summary__chip--archived">
+                        <span
+                          class="session-qa-summary__chip session-qa-summary__chip--archived"
+                          tabindex="0"
+                          [matTooltip]="qaArchivedSummaryTooltip()"
+                          matTooltipPosition="above"
+                          [attr.aria-label]="qaArchivedSummaryAria()"
+                        >
                           <mat-icon class="session-qa-summary__icon" aria-hidden="true"
                             >archive</mat-icon
                           >
@@ -4218,7 +4242,32 @@
                         <span i18n="@@sessionQa.filterPinnedLabel">Nur hervorgehobene</span>
                       </button>
                     }
+                    <button
+                      type="button"
+                      class="session-qa-filter-btn"
+                      data-testid="qa-questions-export"
+                      (click)="exportQaQuestionsCsv()"
+                      [disabled]="exportExporting()"
+                      [attr.aria-busy]="exportExporting()"
+                      i18n-aria-label="@@sessionQa.exportAria"
+                      aria-label="Fragen als CSV exportieren"
+                    >
+                      <mat-icon aria-hidden="true">download</mat-icon>
+                      <span i18n="@@sessionQa.exportLabel">Fragen exportieren</span>
+                    </button>
                   </div>
+                  @if (exportExporting()) {
+                    <p
+                      class="session-host__export-status"
+                      role="status"
+                      i18n="@@sessionQa.exportLoading"
+                    >
+                      Wird exportiert…
+                    </p>
+                  }
+                  @if (exportStatus(); as status) {
+                    <p class="session-host__export-status" role="status">{{ status }}</p>
+                  }
                   @if (showParticipantDirectory() && participantDirectoryOpen()) {
                     <div
                       id="session-participant-directory-content"
@@ -4386,53 +4435,21 @@
                       >
                     </button>
                   }
-                  @if (qaWordCloudQuestions().length > 0 || qaQuestions().length > 0) {
+                  @if (qaWordCloudQuestions().length > 0) {
                     <div class="session-host__extra">
-                      @if (qaWordCloudQuestions().length > 0) {
-                        <button
-                          type="button"
-                          class="session-host__extra-summary session-host__extra-summary--button"
-                          (click)="openQaWordCloudDialog()"
-                        >
-                          <span class="session-host__extra-summary-main">
-                            <mat-icon aria-hidden="true">bubble_chart</mat-icon>
-                            <span>{{ qaWordCloudOpenLabel() }}</span>
-                          </span>
-                          <span class="session-host__extra-summary-meta">{{
-                            qaWordCloudInfo()
-                          }}</span>
-                        </button>
-                      }
-                      @if (qaQuestions().length > 0) {
-                        <div
-                          class="session-host__extra-actions session-host__extra-actions--separated"
-                        >
-                          <button
-                            type="button"
-                            class="session-qa-filter-btn session-host__extra-action"
-                            (click)="exportQaQuestionsCsv()"
-                            [disabled]="exportExporting()"
-                            [attr.aria-busy]="exportExporting()"
-                            i18n-aria-label="@@sessionQa.exportAria"
-                            aria-label="Fragen als CSV exportieren"
-                          >
-                            <mat-icon aria-hidden="true">download</mat-icon>
-                            <span i18n="@@sessionQa.exportLabel">Fragen exportieren</span>
-                          </button>
-                        </div>
-                        @if (exportExporting()) {
-                          <p
-                            class="session-host__export-status"
-                            role="status"
-                            i18n="@@sessionQa.exportLoading"
-                          >
-                            Wird exportiert…
-                          </p>
-                        }
-                        @if (exportStatus(); as status) {
-                          <p class="session-host__export-status" role="status">{{ status }}</p>
-                        }
-                      }
+                      <button
+                        type="button"
+                        class="session-host__extra-summary session-host__extra-summary--button"
+                        (click)="openQaWordCloudDialog()"
+                      >
+                        <span class="session-host__extra-summary-main">
+                          <mat-icon aria-hidden="true">bubble_chart</mat-icon>
+                          <span>{{ qaWordCloudOpenLabel() }}</span>
+                        </span>
+                        <span class="session-host__extra-summary-meta">{{
+                          qaWordCloudInfo()
+                        }}</span>
+                      </button>
                     </div>
                   }
                   <div
@@ -4488,6 +4505,10 @@
                                 [class.session-qa-card__status--deleted]="
                                   question.status === 'DELETED'
                                 "
+                                [matTooltip]="qaStatusTooltip(question.status)"
+                                [matTooltipDisabled]="!qaStatusTooltip(question.status)"
+                                matTooltipPosition="above"
+                                [attr.tabindex]="qaStatusTooltip(question.status) ? 0 : null"
                               >
                                 <mat-icon class="session-qa-card__status-icon" aria-hidden="true">{{
                                   qaStatusIcon(question.status)

@@ -13,6 +13,7 @@
  */
 import { createTRPCProxyClient, httpBatchLink } from '@trpc/client';
 import { chromium, webkit } from 'playwright';
+import { configureQaSessionIfNeeded } from '../../../scripts/load/lib/configure-qa-if-needed.mjs';
 
 const BASE_URL = (process.env.BASE_URL || 'http://localhost:4200/de').replace(/\/+$/, '');
 const TRPC_URL = (process.env.TRPC_URL || 'http://localhost:3000/trpc').replace(/\/+$/, '');
@@ -84,27 +85,8 @@ async function createConfiguredQaSession() {
     throw new Error('session.create lieferte keine Host-Zugangskarte.');
   }
   const hostTrpc = createTrpcClient(created.hostToken);
-  const selection = { kind: 'UNTIL_SESSION_END' };
-  const preview = await hostTrpc.session.previewQaConfiguration.query({
-    code: created.code,
-    mode: 'INITIAL',
-    selection,
-  });
-  await hostTrpc.session.configureQaChannel.mutate({
-    code: created.code,
-    mode: preview.mode,
-    selection,
-    expectedLifecycleRevision: preview.expectedLifecycleRevision,
-    previewServerNow: preview.serverNow,
-    confirmedQaClosesAt: preview.newQaClosesAt,
-    confirmedExpiresAt: preview.newExpiresAt,
-    confirmSessionExtension: preview.requiresSessionExtension,
+  await configureQaSessionIfNeeded(hostTrpc, created.code, {
     qaTitle: 'Epic 405 Host-Smoke',
-    moderationMode: false,
-    participationProfile: {
-      identityMode: 'CUSTOM_NICKNAME',
-      nicknameTheme: 'HIGH_SCHOOL',
-    },
   });
   return created;
 }
@@ -143,6 +125,17 @@ async function dismissRecoveryCard(page) {
 
 function sessionSupportIdPattern() {
   return /ARS-[A-HJ-NP-Z2-9]{4}-[A-HJ-NP-Z2-9]{4}/;
+}
+
+async function dismissJoinOverlay(page) {
+  const overlay = page.locator('.session-host__join-viewport-overlay').first();
+  const appeared = await overlay
+    .waitFor({ state: 'visible', timeout: 8_000 })
+    .then(() => true)
+    .catch(() => false);
+  if (!appeared) return;
+  await page.locator('.session-host__join-viewport-overlay__close').click();
+  await overlay.waitFor({ state: 'hidden', timeout: 5_000 });
 }
 
 async function openAndCloseDialog(page, triggerTestId, heading) {
@@ -187,6 +180,10 @@ async function main() {
       failures.push('Zugangskarte zeigte keine Session-Kennung.');
     }
 
+    await dismissJoinOverlay(host).catch((error) => {
+      failures.push(`Beitritts-Overlay: ${error instanceof Error ? error.message : String(error)}`);
+    });
+
     const expiration = host.locator('[data-testid="configure-session-expiration"]');
     const retention = host.locator('[data-testid="session-retention-details"]');
     const footerOk =
@@ -195,15 +192,6 @@ async function main() {
     logStep(footerOk, 'Q&A-Footer zeigt maximales Sessionende und Löschtermin');
     if (!footerOk) {
       failures.push('Action-Bar ohne Maximales Q&A-Ende oder Löschtermin anzeigen.');
-    }
-
-    const joinOverlay = host.locator('.session-host__join-viewport-overlay').first();
-    if (await joinOverlay.isVisible().catch(() => false)) {
-      await host.keyboard.press('Escape');
-      await joinOverlay.waitFor({ state: 'hidden', timeout: 5_000 }).catch(async () => {
-        await host.locator('.session-host__join-viewport-overlay__close').click();
-        await joinOverlay.waitFor({ state: 'hidden', timeout: 5_000 });
-      });
     }
 
     if (footerOk) {

@@ -272,6 +272,19 @@
   text-wrap: balance;
 }
 
+.home-host-recovery-link {
+  display: inline-flex;
+  align-items: center;
+  box-sizing: border-box;
+  min-height: 2.75rem;
+  margin: 0.25rem 1rem 0.75rem;
+  padding-block: 0.5rem;
+  font: var(--mat-sys-label-large);
+  color: var(--mat-sys-primary);
+  text-decoration: underline;
+  text-underline-offset: 0.15em;
+}
+
 .home-host-intro__description {
   max-width: 32rem;
   margin: 0;
@@ -279,25 +292,6 @@
   line-height: 1.5;
   color: var(--mat-sys-on-surface-variant);
   text-wrap: balance;
-}
-
-.home-host-recovery-link {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  min-height: 2.5rem;
-  margin: 0.15rem 0 0;
-  padding: 0.25rem 0;
-  color: var(--mat-sys-primary);
-  font: var(--mat-sys-body-medium);
-  line-height: 1.4;
-  text-underline-offset: 0.15em;
-  border-radius: var(--mat-sys-corner-extra-small);
-}
-
-.home-host-recovery-link:focus-visible {
-  outline: 2px solid var(--mat-sys-primary);
-  outline-offset: 0.25rem;
 }
 
 .home-host-stack {
@@ -615,6 +609,10 @@
   .home-live-grid {
     grid-template-columns: repeat(3, minmax(0, 1fr));
     row-gap: 0.75rem;
+  }
+
+  .home-live-grid--with-recovery {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
 
@@ -938,14 +936,6 @@
   white-space: pre-line;
 }
 
-.home-error-link {
-  display: inline-flex;
-  align-self: center;
-  align-items: center;
-  gap: 0.35rem;
-  min-height: 2.75rem;
-}
-
 /* Erst auf breiten Desktops: gemeinsame App-Bar-Achse und drei natürliche Kartenhöhen. */
 @media (min-width: 1200px) {
   :host.route-home .l-page:first-child {
@@ -984,6 +974,7 @@
   }
 
   .home-live-grid,
+  .home-live-grid--with-recovery,
   .home-prepare-secondary-grid {
     grid-template-columns: minmax(0, 1fr);
     row-gap: 1rem;

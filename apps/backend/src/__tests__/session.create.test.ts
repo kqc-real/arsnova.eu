@@ -249,7 +249,7 @@ describe('session.create (Story 2.1a)', () => {
       title: 'Offene Fragerunde',
       moderationMode: true,
       qaEnabled: true,
-      qaOpen: false,
+      qaOpen: true,
       qaTitle: 'Offene Fragerunde',
       qaModerationMode: true,
       quickFeedbackEnabled: false,
@@ -280,7 +280,7 @@ describe('session.create (Story 2.1a)', () => {
           title: 'Offene Fragerunde',
           moderationMode: true,
           qaEnabled: true,
-          qaOpen: false,
+          qaOpen: true,
           qaTitle: 'Offene Fragerunde',
           qaModerationMode: true,
           quickFeedbackEnabled: false,
@@ -297,6 +297,11 @@ describe('session.create (Story 2.1a)', () => {
         }),
       }),
     );
+    const createData = prismaMock.session.create.mock.calls.at(-1)?.[0]?.data as {
+      qaClosesAt: Date;
+      expiresAt: Date;
+    };
+    expect(createData.qaClosesAt).toEqual(createData.expiresAt);
   });
 
   it.each([
@@ -336,9 +341,16 @@ describe('session.create (Story 2.1a)', () => {
           onboardingAllowCustomNicknames: profile.allowCustomNicknames,
           onboardingAnonymousMode: profile.anonymousMode,
           onboardingNicknameTheme: profile.nicknameTheme,
+          qaOpen: true,
+          qaTitle: 'Fragen & Antworten',
         }),
       }),
     );
+    const createData = prismaMock.session.create.mock.calls.at(-1)?.[0]?.data as {
+      qaClosesAt: Date;
+      expiresAt: Date;
+    };
+    expect(createData.qaClosesAt).toEqual(createData.expiresAt);
   });
 
   it('erstellt Q&A-Session ohne quizId und mit optionalem Titel', async () => {
@@ -349,7 +361,7 @@ describe('session.create (Story 2.1a)', () => {
       status: 'LOBBY',
       quizId: null,
       title: 'Offene Fragerunde',
-      qaOpen: false,
+      qaOpen: true,
       quickFeedbackOpen: false,
       quiz: null,
     });
@@ -376,7 +388,7 @@ describe('session.create (Story 2.1a)', () => {
           title: 'Offene Fragerunde',
           moderationMode: true,
           qaEnabled: true,
-          qaOpen: false,
+          qaOpen: true,
           qaTitle: 'Offene Fragerunde',
           qaModerationMode: true,
           quickFeedbackEnabled: false,
@@ -393,6 +405,11 @@ describe('session.create (Story 2.1a)', () => {
         }),
       }),
     );
+    const createData = prismaMock.session.create.mock.calls.at(-1)?.[0]?.data as {
+      qaClosesAt: Date;
+      expiresAt: Date;
+    };
+    expect(createData.qaClosesAt).toEqual(createData.expiresAt);
   });
 
   it('erlaubt Blitzlicht-only ohne quizId', async () => {

@@ -389,7 +389,7 @@ describe('session participant access (Story 2.2)', () => {
           sessionId: SESSION_ID,
           nickname: { contains: 'Person', mode: 'insensitive' },
         },
-        orderBy: [{ joinedAt: 'desc' }, { id: 'desc' }],
+        orderBy: [{ nickname: 'asc' }, { id: 'asc' }],
         take: 101,
         select: {
           id: true,
@@ -400,14 +400,88 @@ describe('session participant access (Story 2.2)', () => {
         },
       });
       expect(JSON.parse(Buffer.from(result.nextCursor!, 'base64url').toString('utf8'))).toEqual({
-        v: 1,
+        v: 2,
         revision: 23,
-        joinedAt: rows[99].joinedAt.toISOString(),
+        nickname: rows[99].nickname,
         id: rows[99].id,
         search: 'Person',
       });
     },
   );
+
+  it('weist einen veralteten Beitrittszeit-Cursor als ungültig ab', async () => {
+    const staleCursor = Buffer.from(
+      JSON.stringify({
+        v: 1,
+        revision: 23,
+        joinedAt: '2026-09-15T10:00:00.000Z',
+        id: '00000000-0000-4000-8000-000000000001',
+        search: '',
+      }),
+      'utf8',
+    ).toString('base64url');
+
+    prismaMock.session.findUnique.mockResolvedValueOnce({
+      id: SESSION_ID,
+      participantRevision: 23,
+    });
+
+    await expect(
+      hostCaller.searchParticipants({
+        code: 'ABC123',
+        pageSize: 50,
+        cursor: staleCursor,
+      }),
+    ).rejects.toMatchObject({
+      code: 'BAD_REQUEST',
+      message: 'Der Teilnehmer-Seitenzeiger ist ungültig.',
+    });
+    expect(prismaMock.participant.findMany).not.toHaveBeenCalled();
+  });
+
+  it('blättert die Host-Teilnahmesuche alphabetisch nach Nickname weiter', async () => {
+    const rows = [buildParticipantRow(1), buildParticipantRow(2)];
+    prismaMock.session.findUnique
+      .mockResolvedValueOnce({ id: SESSION_ID, participantRevision: 4 })
+      .mockResolvedValueOnce({ participantRevision: 4 });
+    prismaMock.participant.findMany.mockResolvedValue(rows);
+    prismaMock.participant.count.mockResolvedValue(3);
+
+    const result = await hostCaller.searchParticipants({
+      code: 'ABC123',
+      pageSize: 50,
+      cursor: Buffer.from(
+        JSON.stringify({
+          v: 2,
+          revision: 4,
+          nickname: 'Person 1',
+          id: '00000000-0000-4000-8000-000000000001',
+          search: '',
+        }),
+        'utf8',
+      ).toString('base64url'),
+    });
+
+    expect(result.participants.map((participant) => participant.nickname)).toEqual([
+      'Person 2',
+      'Person 3',
+    ]);
+    expect(prismaMock.participant.findMany).toHaveBeenCalledWith(
+      expect.objectContaining({
+        where: {
+          sessionId: SESSION_ID,
+          OR: [
+            { nickname: { gt: 'Person 1' } },
+            {
+              nickname: 'Person 1',
+              id: { gt: '00000000-0000-4000-8000-000000000001' },
+            },
+          ],
+        },
+        orderBy: [{ nickname: 'asc' }, { id: 'asc' }],
+      }),
+    );
+  });
 
   it('weist Suchseiten über dem Shared-Zod-Limit von 100 vor dem Datenbankzugriff ab', async () => {
     await expect(

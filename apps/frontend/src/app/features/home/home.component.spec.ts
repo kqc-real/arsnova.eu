@@ -1,8 +1,6 @@
 /**
  * Unit-Tests für HomeComponent (Session-Code, Navigation, Controls, Preset-Integration).
  */
-import { readFileSync } from 'node:fs';
-import { resolve } from 'node:path';
 import { describe, it, expect, beforeEach, vi, afterEach } from 'vitest';
 import { TestBed } from '@angular/core/testing';
 import { ActivatedRoute, convertToParamMap, provideRouter, Router } from '@angular/router';
@@ -13,6 +11,10 @@ import { HomeComponent } from './home.component';
 import { QuizStoreService } from '../quiz/data/quiz-store.service';
 import { clearHostToken, setHostToken } from '../../core/host-session-token';
 import { MotdHeaderStateService } from '../../core/motd-header-state.service';
+import {
+  storeHostBrowserCapability,
+  storeHostRecoveryCandidate,
+} from '../../core/host-recovery-access';
 
 const { setFeedbackHostTokenMock } = vi.hoisted(() => ({
   setFeedbackHostTokenMock: vi.fn(),
@@ -113,6 +115,10 @@ function createHomeFixture() {
   const fixture = TestBed.createComponent(HomeComponent);
   activeFixtures.push(fixture);
   return fixture;
+}
+
+function seedHostCapability(): void {
+  storeHostBrowserCapability('ABC123', 'browser-capability-abcdefghijklmnopqrstuvwxyz');
 }
 
 function createHomeComponent(): HomeComponent {
@@ -406,8 +412,17 @@ describe('HomeComponent', () => {
       const hostIntro = fixture.nativeElement.querySelector(
         '.home-host-intro',
       ) as HTMLElement | null;
-      expect(hostIntro?.textContent).toContain('Host-Zugang wiederherstellen');
-      expect(hostIntro?.querySelector('.home-host-recovery-link')).not.toBeNull();
+      const liveCard = fixture.nativeElement.querySelector(
+        '.home-card--live',
+      ) as HTMLElement | null;
+      const recoveryLink = liveCard?.querySelector(
+        '[data-testid="home-host-recovery-link"]',
+      ) as HTMLAnchorElement | null;
+      expect(recoveryLink?.textContent?.trim()).toBe('Host-Zugang wiederherstellen');
+      expect(recoveryLink?.getAttribute('href') ?? '').toContain('host-recovery');
+      expect(hostIntro?.querySelector('[data-testid="home-host-recovery-link"]')).toBeNull();
+      expect(hostIntro?.textContent).not.toContain('Zugang als Host');
+      expect(fixture.nativeElement.querySelector('[data-testid="home-host-recovery"]')).toBeNull();
 
       fixture.componentInstance.themePreset.setPreset('serious');
       fixture.detectChanges();
@@ -422,13 +437,80 @@ describe('HomeComponent', () => {
       ).toBe('An einer Session teilnehmen');
     });
 
-    it('hält den Host-Recovery-Link auf mindestens 24 px Zielhöhe', () => {
-      const scss = readFileSync(
-        resolve(process.cwd(), 'src/app/features/home/home.component.scss'),
-        'utf8',
+    it('hält den Host-Recovery-Einstieg als ersten Live-Button', () => {
+      seedHostCapability();
+      const fixture = createHomeFixture();
+      fixture.detectChanges();
+
+      const recoveryAction = fixture.nativeElement.querySelector(
+        '.home-live-grid [data-testid="home-host-recovery"]',
+      ) as HTMLElement | null;
+      expect(recoveryAction?.getAttribute('href') ?? '').toContain('session/ABC123/host');
+      expect(recoveryAction?.getAttribute('href') ?? '').not.toContain('host-recovery');
+      expect(recoveryAction?.querySelector('.home-choice-button__label')?.textContent?.trim()).toBe(
+        'Host-Session',
       );
-      const block = scss.match(/\.home-host-recovery-link\s*\{[^}]+\}/)?.[0] ?? '';
-      expect(block).toMatch(/min-height:\s*2\.5rem/);
+      expect(
+        fixture.nativeElement.querySelector('[data-testid="home-host-recovery-link"]'),
+      ).not.toBeNull();
+      expect(
+        recoveryAction?.querySelector('.home-choice-button__description')?.textContent?.trim(),
+      ).toBe('Zugang als Host');
+
+      const liveGrid = fixture.nativeElement.querySelector('.home-live-grid') as HTMLElement | null;
+      expect(liveGrid?.classList.contains('home-live-grid--with-recovery')).toBe(true);
+
+      const liveButtons = Array.from(
+        fixture.nativeElement.querySelectorAll<HTMLElement>('.home-live-grid .home-choice-button'),
+      );
+      expect(liveButtons[0]?.getAttribute('data-testid')).toBe('home-host-recovery');
+      expect(liveButtons[0]?.classList.contains('home-choice-button')).toBe(true);
+      expect(liveButtons[0]?.classList.contains('mat-mdc-unelevated-button')).toBe(true);
+      expect(liveButtons.every((button) => button.classList.contains('home-cta'))).toBe(true);
+      expect(
+        liveButtons.slice(1).every((button) => button.classList.contains('home-cta--secondary')),
+      ).toBe(true);
+    });
+
+    it('führt nur mit Wiederherstellungskandidat zur Recovery-Seite', () => {
+      storeHostRecoveryCandidate('XYZ789', 'candidate-capability-abcdefghijklmnopqrstuvwxyz');
+      const fixture = createHomeFixture();
+      fixture.detectChanges();
+
+      expect(fixture.nativeElement.querySelector('[data-testid="home-host-recovery"]')).toBeNull();
+      const recoveryLink = fixture.nativeElement.querySelector(
+        '[data-testid="home-host-recovery-link"]',
+      ) as HTMLAnchorElement | null;
+      expect(recoveryLink?.getAttribute('href') ?? '').toContain('host-recovery');
+      expect(recoveryLink?.getAttribute('href') ?? '').not.toContain('/session/');
+    });
+
+    it('öffnet bei mehreren gespeicherten Host-Sessions die zuletzt gehostete', () => {
+      storeHostBrowserCapability('AAA111', 'older-browser-capability-abcdefghijklmnopqrstuvwxyz');
+      storeHostBrowserCapability('BBB222', 'newer-browser-capability-abcdefghijklmnopqrstuvwxyz');
+      const fixture = createHomeFixture();
+      fixture.detectChanges();
+
+      const recoveryAction = fixture.nativeElement.querySelector(
+        '.home-live-grid [data-testid="home-host-recovery"]',
+      ) as HTMLElement | null;
+      expect(recoveryAction?.getAttribute('href') ?? '').toContain('session/BBB222/host');
+      expect(
+        fixture.nativeElement.querySelector('[data-testid="home-host-recovery-link"]'),
+      ).not.toBeNull();
+    });
+
+    it('blendet den direkten Host-CTA ohne eindeutige Session aus und behält den Wiederherstellungslink', () => {
+      storeHostBrowserCapability('AAA111', 'older-browser-capability-abcdefghijklmnopqrstuvwxyz');
+      storeHostBrowserCapability('BBB222', 'newer-browser-capability-abcdefghijklmnopqrstuvwxyz');
+      localStorage.removeItem('arsnova-last-hosted-session');
+      const fixture = createHomeFixture();
+      fixture.detectChanges();
+
+      expect(fixture.nativeElement.querySelector('[data-testid="home-host-recovery"]')).toBeNull();
+      expect(
+        fixture.nativeElement.querySelector('[data-testid="home-host-recovery-link"]'),
+      ).not.toBeNull();
     });
 
     it('überlässt den Preset-Wechsel der globalen Toolbar', () => {
@@ -552,6 +634,9 @@ describe('HomeComponent', () => {
         /@media \(min-width:\s*600px\)\s*\{[\s\S]*?\.home-live-grid\s*\{[^}]*grid-template-columns:\s*repeat\(3,\s*minmax\(0,\s*1fr\)\)[^}]*row-gap:\s*0\.75rem/,
       );
       expect(scss).toMatch(
+        /@media \(min-width:\s*600px\)\s*\{[\s\S]*?\.home-live-grid--with-recovery\s*\{[^}]*grid-template-columns:\s*repeat\(2,\s*minmax\(0,\s*1fr\)\)/,
+      );
+      expect(scss).toMatch(
         /\.home-card__cta-stack\s*\{[^}]*flex-direction:\s*column[^}]*gap:\s*1rem/,
       );
       expect(scss).toMatch(
@@ -564,7 +649,7 @@ describe('HomeComponent', () => {
         /@media \(min-width:\s*480px\)\s*\{[^}]*\.home-prepare-secondary-grid\s*\{[^}]*grid-template-columns:\s*repeat\(2,\s*minmax\(0,\s*1fr\)\)/,
       );
       expect(desktopLayout).toMatch(
-        /\.home-live-grid,\s*\.home-prepare-secondary-grid\s*\{[^}]*grid-template-columns:\s*minmax\(0,\s*1fr\)[^}]*row-gap:\s*1rem/,
+        /\.home-live-grid,\s*\.home-live-grid--with-recovery,\s*\.home-prepare-secondary-grid\s*\{[^}]*grid-template-columns:\s*minmax\(0,\s*1fr\)[^}]*row-gap:\s*1rem/,
       );
       expect(desktopLayout).toMatch(
         /\.home-sync-entry__form\s*\{[^}]*flex-direction:\s*column[^}]*align-items:\s*stretch/,
@@ -601,10 +686,14 @@ describe('HomeComponent', () => {
       const fixture = createHomeFixture();
       fixture.detectChanges();
 
+      const liveGrid = fixture.nativeElement.querySelector('.home-live-grid') as HTMLElement | null;
+      expect(liveGrid?.classList.contains('home-live-grid--with-recovery')).toBe(false);
+
       const liveButtons = Array.from(
         fixture.nativeElement.querySelectorAll<HTMLElement>('.home-live-grid .home-choice-button'),
       );
       expect(liveButtons).toHaveLength(3);
+      expect(liveButtons.every((button) => button.classList.contains('home-cta'))).toBe(true);
       expect(
         liveButtons.map((button) =>
           button.querySelector('.home-choice-button__label')?.textContent?.trim(),
@@ -1073,12 +1162,13 @@ describe('HomeComponent', () => {
       expect(matDialogMock.open).toHaveBeenCalledWith(
         expect.anything(),
         expect.objectContaining({
-          data: expect.objectContaining({ setupStep: 1, setupStepCount: 3 }),
+          data: expect.objectContaining({ setupStep: 1, setupStepCount: 2 }),
         }),
       );
       expect(trpc.session.create.mutate).toHaveBeenCalledWith({
         type: 'QUIZ',
         qaEnabled: true,
+        qaTitle: 'Fragen & Antworten',
         nicknameTheme: 'KINDERGARTEN',
         allowCustomNicknames: false,
         anonymousMode: false,
@@ -1153,6 +1243,7 @@ describe('HomeComponent', () => {
       expect(trpc.session.create.mutate).toHaveBeenCalledWith({
         type: 'QUIZ',
         qaEnabled: true,
+        qaTitle: 'Fragen & Antworten',
         nicknameTheme: 'HIGH_SCHOOL',
         allowCustomNicknames: false,
         anonymousMode: false,
@@ -1502,6 +1593,8 @@ describe('HomeComponent', () => {
       expect(fixture.componentInstance.joinErrorSessionFinished()).toBe(true);
       expect(fixture.componentInstance.joinError()).toBe('Diese Session ist bereits beendet.');
       expect(fixture.componentInstance.sessionCode()).toBe('ABC123');
+      expect(fixture.nativeElement.textContent ?? '').not.toContain('Als Host anzeigen');
+      expect(fixture.nativeElement.querySelector('.home-error-link')).toBeNull();
       expect(vi.mocked(trpc.motd.getCurrent.query)).not.toHaveBeenCalled();
     });
 

@@ -23,6 +23,7 @@ import {
 import { writeLoadReport } from './lib/reporting.mjs';
 import { createHostWsTrpc, createHttpTrpcSingle, createPublicWsTrpc } from './lib/trpc-runtime.mjs';
 import { waitForBackend } from './lib/wait-for-backend.mjs';
+import { configureQaSessionIfNeeded } from './lib/configure-qa-if-needed.mjs';
 
 const DEFAULT_CONFIG_PATH = fileURLToPath(
   new URL('./qa-scale-epic405.config.json', import.meta.url),
@@ -295,30 +296,11 @@ async function createConfiguredSession(publicTrpc, runtime, apiMetrics) {
   });
   apiMetrics.observePayload(created);
   const hostTrpc = createHttpTrpcSingle(runtime.trpcUrl, created.hostToken);
-  const selection = { kind: 'UNTIL_SESSION_END' };
-  const preview = await hostTrpc.session.previewQaConfiguration.query({
-    code: created.code,
-    mode: 'INITIAL',
-    selection,
-  });
-  apiMetrics.observePayload(preview);
-  const configured = await hostTrpc.session.configureQaChannel.mutate({
-    code: created.code,
-    mode: preview.mode,
-    selection,
-    expectedLifecycleRevision: preview.expectedLifecycleRevision,
-    previewServerNow: preview.serverNow,
-    confirmedQaClosesAt: preview.newQaClosesAt,
-    confirmedExpiresAt: preview.newExpiresAt,
-    confirmSessionExtension: preview.requiresSessionExtension,
+  await configureQaSessionIfNeeded(hostTrpc, created.code, {
     qaTitle: 'Epic 405 Release',
-    moderationMode: false,
-    participationProfile: {
-      identityMode: 'CUSTOM_NICKNAME',
-      nicknameTheme: 'HIGH_SCHOOL',
-    },
+    observePreview: (preview) => apiMetrics.observePayload(preview),
+    observeConfigured: (result) => apiMetrics.observePayload(result),
   });
-  apiMetrics.observePayload(configured);
   return {
     code: created.code,
     sessionId: created.sessionId,

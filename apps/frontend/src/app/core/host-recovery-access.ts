@@ -7,6 +7,7 @@ const HOST_RECOVERY_PENDING_CARD_PREFIX = 'arsnova-host-recovery-pending-card';
 const HOST_RECOVERY_EXCHANGE_PREFIX = 'arsnova-host-recovery-exchange';
 const HOST_RECOVERY_PENDING_ACTIVATION_PREFIX = 'arsnova-host-recovery-pending-activation';
 const HOST_RECOVERY_RESUME_PREFIX = 'arsnova-host-recovery-resume';
+const LAST_HOSTED_SESSION_KEY = 'arsnova-last-hosted-session';
 
 export type HostRecoverySourceKind = 'RECOVERY' | 'ADMIN_HANDOFF';
 export type HostRecoveryResumePhase = 'prepared' | 'activation_unconfirmed' | 'activated';
@@ -211,6 +212,21 @@ export function storeHostBrowserCapability(code: string, capability: string): vo
     // codeql[js/clear-text-storage-of-sensitive-data] -- Persistenz ist der explizite Browser-Besitzfaktor aus #408.
     capability.trim(),
   );
+  rememberHostedSession(code);
+}
+
+export function rememberHostedSession(code: string): void {
+  if (!canUseLocalStorage()) return;
+  localStorage.setItem(
+    LAST_HOSTED_SESSION_KEY,
+    JSON.stringify({ code: normalizeCode(code), usedAt: Date.now() }),
+  );
+}
+
+export function getLastHostedSessionCode(): string | null {
+  if (!canUseLocalStorage()) return null;
+  const stored = readJson<{ code?: unknown }>(localStorage, LAST_HOSTED_SESSION_KEY);
+  return typeof stored?.code === 'string' && stored.code.trim() ? normalizeCode(stored.code) : null;
 }
 
 export function clearHostBrowserCapability(code: string): void {
@@ -382,6 +398,53 @@ export function getStoredHostCapabilities(code: string): {
     active: getHostBrowserCapability(code),
     candidate: getHostRecoveryCandidate(code),
   };
+}
+
+export function hasStoredHostCapabilities(): boolean {
+  if (!canUseLocalStorage()) return false;
+  const capabilityPrefix = `${HOST_BROWSER_CAPABILITY_PREFIX}-`;
+  const candidatePrefix = `${HOST_RECOVERY_CANDIDATE_PREFIX}-`;
+  for (let index = 0; index < localStorage.length; index += 1) {
+    const key = localStorage.key(index);
+    if (!key) continue;
+    if (key.startsWith(capabilityPrefix) && localStorage.getItem(key)?.trim()) {
+      return true;
+    }
+    if (key.startsWith(candidatePrefix)) {
+      const code = key.slice(candidatePrefix.length);
+      if (getHostRecoveryCandidate(code)?.trim()) return true;
+    }
+  }
+  return false;
+}
+
+export function listStoredHostBrowserCapabilityCodes(): string[] {
+  if (!canUseLocalStorage()) return [];
+  const prefix = `${HOST_BROWSER_CAPABILITY_PREFIX}-`;
+  const codes: string[] = [];
+  for (let index = 0; index < localStorage.length; index += 1) {
+    const key = localStorage.key(index);
+    if (!key?.startsWith(prefix) || !localStorage.getItem(key)?.trim()) continue;
+    codes.push(key.slice(prefix.length));
+  }
+  return codes;
+}
+
+export function findPreferredHostBrowserCapabilityCode(
+  preferredCodes: readonly string[] = [],
+): string | null {
+  const stored = listStoredHostBrowserCapabilityCodes();
+  if (stored.length === 0) return null;
+  const storedSet = new Set(stored);
+  const lastHosted = getLastHostedSessionCode();
+  if (lastHosted && storedSet.has(lastHosted)) {
+    return lastHosted;
+  }
+  for (const code of preferredCodes) {
+    const normalized = normalizeCode(code);
+    if (storedSet.has(normalized)) return normalized;
+  }
+  return stored.length === 1 ? (stored[0] ?? null) : null;
 }
 
 export function getUsableHostCapability(code: string): string | null {

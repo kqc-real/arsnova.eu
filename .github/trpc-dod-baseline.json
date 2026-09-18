@@ -494,7 +494,7 @@
     },
     "session.create": {
       "kind": "mutation",
-      "fingerprint": "sha256:e8ac2a8cccf9281e617c3f3066e81d39785fac541b3a40f455601173413f6c0a",
+      "fingerprint": "sha256:8018e4a5009234e7731ce8f5103bf3298eff7f0295d77da08318468f25e48404",
       "missing": []
     },
     "session.createHostPairingInvite": {
@@ -819,7 +819,7 @@
     },
     "session.searchParticipants": {
       "kind": "query",
-      "fingerprint": "sha256:6cfef79fa409fe889d539b82b63acb08f68080d645a3e153fc7eadb35eda1ad8",
+      "fingerprint": "sha256:653ec75cd4856c7b241464bbfebfae24ba3730fd5fb07b84210bd3988d77d4c2",
       "missing": []
     },
     "session.setPreferredLiveChannel": {

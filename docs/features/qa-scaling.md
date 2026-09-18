@@ -21,8 +21,8 @@ Hörsäle hinter Shared NAT nutzbar.
 `session.getParticipantSummary` liefert Gesamtzahl, eindeutige Presence-Zahl,
 `participantRevision` und höchstens 20 jüngste Ankünfte. Die Host-Subscription
 sendet denselben begrenzten Snapshot. `session.searchParticipants` stellt bei
-Bedarf revisionsgebundene Keyset-Seiten bereit; ein paralleler Join verwirft
-einen alten Cursor mit `CONFLICT`.
+Bedarf revisionsgebundene Keyset-Seiten alphabetisch nach Nickname bereit; ein
+paralleler Join verwirft einen alten Cursor mit `CONFLICT`.
 
 Nickname-Kollisionen werden punktuell mit
 `session.checkParticipantNickname` geprüft. Der Join-Client lädt keine

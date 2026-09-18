@@ -37,7 +37,11 @@ import {
   type HostRecoverySourceKind,
   type PreparedHostRecovery,
 } from '../../../core/host-recovery-access';
-import { localizeCommands, resolveLocalizedAppUrl } from '../../../core/locale-router';
+import {
+  localizeCommands,
+  localizePath,
+  resolveLocalizedAppUrl,
+} from '../../../core/locale-router';
 import { setHostToken, trpc } from '../../../core/trpc.client';
 import {
   buildHostRecoveryCardHtml,
@@ -160,8 +164,8 @@ export class HostRecoveryComponent implements AfterViewChecked, OnDestroy {
     return localizeCommands(['']);
   }
 
-  imprintCommands() {
-    return localizeCommands(['legal', 'imprint']);
+  imprintPath() {
+    return localizePath('/legal/imprint');
   }
 
   showStepIndicator(): boolean {

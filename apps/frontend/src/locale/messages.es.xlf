@@ -9347,6 +9347,14 @@
           <context context-type="linenumber">256</context>
         </context-group>
       </trans-unit>
+      <trans-unit id="homeLiveCard.recoveryLabel" datatype="html">
+        <source>Host-Session</source>
+        <target>Sesión de host</target>
+      </trans-unit>
+      <trans-unit id="homeLiveCard.recoveryDescription" datatype="html">
+        <source>Zugang als Host</source>
+        <target>Acceso de anfitrión</target>
+      </trans-unit>
       <trans-unit id="homeLiveCard.title" datatype="html">
         <source> Session starten</source>
         <target>Iniciar una sesión</target>
@@ -20399,6 +20407,22 @@
           <context context-type="linenumber">4238,4239</context>
         </context-group>
       </trans-unit>
+      <trans-unit id="sessionQa.summaryPinnedTooltip" datatype="html">
+        <source>Angepinnt: Diese Fragen hebst du hervor. Sie gelten als »Wird beantwortet«.</source>
+        <target>Fijadas: Destacas estas preguntas. Cuentan como «Se está respondiendo».</target>
+      </trans-unit>
+      <trans-unit id="sessionQa.summaryArchivedTooltip" datatype="html">
+        <source>Archiviert: Diese Fragen sind als beantwortet markiert und bleiben nachlesbar.</source>
+        <target>Archivadas: Estas preguntas están marcadas como respondidas y siguen siendo consultables.</target>
+      </trans-unit>
+      <trans-unit id="sessionQa.summaryPinnedAria" datatype="html">
+        <source><x id="count" equiv-text="this.formatCount(this.qaPinnedCount())"/> angepinnte Fragen</source>
+        <target><x id="count" equiv-text="this.formatCount(this.qaPinnedCount())"/> preguntas fijadas</target>
+      </trans-unit>
+      <trans-unit id="sessionQa.summaryArchivedAria" datatype="html">
+        <source><x id="count" equiv-text="this.formatCount(this.qaArchivedCount())"/> archivierte Fragen</source>
+        <target><x id="count" equiv-text="this.formatCount(this.qaArchivedCount())"/> preguntas archivadas</target>
+      </trans-unit>
       <trans-unit id="sessionQa.summaryPending" datatype="html">
         <source>Warten auf Freigabe: <x id="INTERPOLATION" equiv-text="{{ formatCount(qaPendingCount()) }}"/></source>
         <target>Esperando aprobación: <x id="INTERPOLATION" equiv-text="qaPendingCount()"/></target>
@@ -23483,6 +23507,14 @@
           <context context-type="linenumber">2630</context>
         </context-group>
       </trans-unit>
+      <trans-unit id="sessionQa.statusPinnedTooltip" datatype="html">
+        <source>Angepinnt: Diese Frage hebst du hervor. Sie gilt als »Wird beantwortet«.</source>
+        <target>Fijada: Destacas esta pregunta. Cuenta como «Se está respondiendo».</target>
+      </trans-unit>
+      <trans-unit id="sessionQa.statusArchivedTooltip" datatype="html">
+        <source>Archiviert: Diese Frage ist als beantwortet markiert und bleibt nachlesbar.</source>
+        <target>Archivada: Esta pregunta está marcada como respondida y sigue siendo consultable.</target>
+      </trans-unit>
       <trans-unit id="sessionQa.statusArchived" datatype="html">
         <source>Beantwortet</source>
         <target>Respondida</target>
@@ -23968,8 +24000,8 @@
         </context-group>
       </trans-unit>
       <trans-unit id="sessionQa.exportHeader" datatype="html">
-        <source>Nr.;Frage-ID;Status;Frage;Score;Positive Stimmen;Negative Stimmen;Stimmen gesamt;Wilson-Score;Kontroverse-Score;Umstritten;Erstellt am</source>
-        <target>N.º;ID de pregunta;Estado;Pregunta;Puntuación;Votos positivos;Votos negativos;Votos totales;Puntuación de Wilson;Puntuación de controversia;Polémica;Creada el</target>
+        <source>Nr.;Frage-ID;Status;Statusbezeichnung;Autor;Frage;Score;Positive Stimmen;Negative Stimmen;Stimmen gesamt;Wilson-Score;Kontroverse-Score;Umstritten;Hervorgehoben;Erstellt am</source>
+        <target>N.º;ID de pregunta;Estado;Etiqueta de estado;Autor;Pregunta;Puntuación;Votos positivos;Votos negativos;Votos totales;Puntuación de Wilson;Puntuación de controversia;Polémica;Destacada;Creada el</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.ts</context>
           <context context-type="linenumber">11071</context>
@@ -23982,6 +24014,22 @@
           <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.ts</context>
           <context context-type="linenumber">11094</context>
         </context-group>
+      </trans-unit>
+      <trans-unit id="sessionQa.exportEmpty" datatype="html">
+        <source>Keine Fragen zum Exportieren.</source>
+        <target>No hay preguntas para exportar.</target>
+      </trans-unit>
+      <trans-unit id="sessionQa.exportConflict" datatype="html">
+        <source>Der Export wurde abgebrochen, weil sich die Fragenwand während des Abrufs geändert hat. Bitte erneut versuchen.</source>
+        <target>La exportación se canceló porque el mural de preguntas cambió durante la descarga. Inténtalo de nuevo.</target>
+      </trans-unit>
+      <trans-unit id="sessionHost.steeringCalloutExportConflictTitle" datatype="html">
+        <source>Fragenwand hat sich geändert</source>
+        <target>El mural de preguntas ha cambiado</target>
+      </trans-unit>
+      <trans-unit id="sessionHost.steeringCalloutExportConflictBody" datatype="html">
+        <source>Während des Exports sind neue Stimmen oder Statusänderungen eingegangen. Der unvollständige Abruf wurde verworfen. Tippe auf »Nochmal probieren«, um einen neuen vollständigen Export zu starten.</source>
+        <target>Durante la exportación llegaron votos o cambios de estado. Se descartó la descarga incompleta. Pulsa «Reintentar» para iniciar una exportación completa.</target>
       </trans-unit>
       <trans-unit id="7304749878499794874" datatype="html">
         <source>Frage <x id="questionNumber" equiv-text="data.questionOrder + 1"/>: <x id="questionText" equiv-text="data.questionText ?? &apos;&apos;"/></source>

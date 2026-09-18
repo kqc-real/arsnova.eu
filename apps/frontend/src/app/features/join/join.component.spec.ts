@@ -238,7 +238,8 @@ describe('JoinComponent', () => {
     expect(comp.error()).toBe('Diese Session ist bereits beendet.');
     expect(comp.session()).toBeNull();
     expect(fixture.nativeElement.textContent ?? '').toContain('Zur Startseite');
-    expect(fixture.nativeElement.textContent ?? '').toContain('Als Host anzeigen');
+    expect(fixture.nativeElement.textContent ?? '').not.toContain('Als Host anzeigen');
+    expect(fixture.nativeElement.querySelector('.join-card__host-link')).toBeNull();
   });
 
   it('stellt Nickname-Liste bereit bei QUIZ mit nicknameTheme (Story 3.2)', async () => {

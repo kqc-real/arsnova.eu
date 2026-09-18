@@ -35,7 +35,10 @@ import { firstValueFrom } from 'rxjs';
 import { setFeedbackHostToken } from '../../core/feedback-host-token';
 import { clearHostToken, hasHostToken } from '../../core/host-session-token';
 import { setHostToken, setPendingHostSessionCode, trpc } from '../../core/trpc.client';
-import { persistInitialHostRecovery } from '../../core/host-recovery-access';
+import {
+  findPreferredHostBrowserCapabilityCode,
+  persistInitialHostRecovery,
+} from '../../core/host-recovery-access';
 import { createDefaultLiveSessionOnboardingProfile } from '../../core/home-preset-storage';
 import { ThemePresetService } from '../../core/theme-preset.service';
 import { PresetSnackbarFocusService } from '../../core/preset-snackbar-focus.service';
@@ -195,6 +198,14 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
     }, null);
   });
   readonly hasHostedQuiz = computed(() => this.latestHostedQuizId() !== null);
+  readonly hostRecoveryPreferredCode = computed(() =>
+    findPreferredHostBrowserCapabilityCode(this.recentSessionCodes().map((entry) => entry.code)),
+  );
+  readonly showHostRecoveryCta = computed(() => this.hostRecoveryPreferredCode() !== null);
+  readonly hostRecoveryCtaLink = computed(() => {
+    const code = this.hostRecoveryPreferredCode();
+    return code ? localizePath(`/session/${code}/host`) : localizePath('/host-recovery');
+  });
   private readonly platformId = inject(PLATFORM_ID);
   private readonly sanitizer = inject(DomSanitizer);
   private readonly motdCurrent = inject(MotdCurrentService);
@@ -646,7 +657,7 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
             identityMode: 'PRESET_PSEUDONYM',
             nicknameTheme: onboardingProfile.nicknameTheme,
             setupStep: 1,
-            setupStepCount: 3,
+            setupStepCount: 2,
           },
         });
         const participationProfile = await firstValueFrom(dialogRef.afterClosed());
@@ -663,6 +674,7 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
           ? await trpc.session.create.mutate({
               type: 'QUIZ',
               qaEnabled: true,
+              qaTitle: $localize`:@@qaConfig.defaultTitle:Fragen & Antworten`,
               timeZone: resolveBrowserSessionTimeZone(),
               ...onboardingProfile,
             })
