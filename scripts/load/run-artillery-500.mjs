@@ -323,6 +323,14 @@ async function main() {
   if (!skipVoteAndFanoutGates && effectiveVotes < PARTICIPANTS * MIN_VOTE_RATIO) {
     failures.push(`Votes: ${effectiveVotes}/${PARTICIPANTS}`);
   }
+  const expectedQaSubmits = Math.floor(PARTICIPANTS / 5);
+  if (
+    !skipVoteAndFanoutGates &&
+    expectedQaSubmits > 0 &&
+    (runtime.qaSubmits ?? 0) < expectedQaSubmits * MIN_VOTE_RATIO
+  ) {
+    failures.push(`Q&A-Submits: ${runtime.qaSubmits ?? 0}/${expectedQaSubmits}`);
+  }
   if ((runtime.wsConnections ?? 0) < PARTICIPANTS * MIN_WS_RATIO) {
     failures.push(`WS-Verbindungen: ${runtime.wsConnections ?? 0}/${PARTICIPANTS}`);
   }

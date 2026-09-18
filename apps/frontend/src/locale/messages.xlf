@@ -8167,13 +8167,6 @@
           <context context-type="linenumber">210,212</context>
         </context-group>
       </trans-unit>
-      <trans-unit id="homeLiveCard.description" datatype="html">
-        <source> Wähle Quiz, Q&amp;A oder Blitzlicht. </source>
-        <context-group purpose="location">
-          <context context-type="sourcefile">src/app/features/home/home.component.html</context>
-          <context context-type="linenumber">213,215</context>
-        </context-group>
-      </trans-unit>
       <trans-unit id="homeLiveCard.quizDescription" datatype="html">
         <source>Wissen abfragen</source>
         <context-group purpose="location">
@@ -8209,13 +8202,6 @@
           <context context-type="linenumber">294</context>
         </context-group>
       </trans-unit>
-      <trans-unit id="homeFeedbackCard.description" datatype="html">
-        <source> Wähle eine Abstimmung für direktes Feedback. </source>
-        <context-group purpose="location">
-          <context context-type="sourcefile">src/app/features/home/home.component.html</context>
-          <context context-type="linenumber">298,300</context>
-        </context-group>
-      </trans-unit>
       <trans-unit id="homeFeedbackCard.yesNoMaybeCompact" datatype="html">
         <source>Ja · Nein · ?</source>
         <context-group purpose="location">
@@ -8228,13 +8214,6 @@
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/home/home.component.html</context>
           <context context-type="linenumber">366</context>
-        </context-group>
-      </trans-unit>
-      <trans-unit id="homeHostCard.description" datatype="html">
-        <source> Erstelle ein neues Quiz oder öffne deine Sammlung. </source>
-        <context-group purpose="location">
-          <context context-type="sourcefile">src/app/features/home/home.component.html</context>
-          <context context-type="linenumber">370,372</context>
         </context-group>
       </trans-unit>
       <trans-unit id="homeHostCard.primaryCtaDescription" datatype="html">

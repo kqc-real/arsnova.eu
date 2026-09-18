@@ -30,7 +30,7 @@
 import { performance } from 'node:perf_hooks';
 import { resolve } from 'node:path';
 import { waitForBackend } from './lib/wait-for-backend.mjs';
-import { createHttpTrpcSingle } from './lib/trpc-runtime.mjs';
+import { createHttpTrpcSingle, requireRejoinToken } from './lib/trpc-runtime.mjs';
 import { writeLoadReport } from './lib/reporting.mjs';
 
 const EXIT_OK = 0;
@@ -266,7 +266,14 @@ async function submitVoteWave(publicTrpc, participants, questionId, config) {
   const results = await mapLimit(participants, config.voteConcurrency, async (entry) => {
     const startedAt = performance.now();
     try {
-      await publicTrpc.vote.submit.mutate({
+      const voter = createHttpTrpcSingle(
+        config.trpcUrl,
+        undefined,
+        undefined,
+        undefined,
+        requireRejoinToken(entry.participant, `Join ${entry.index + 1}`),
+      );
+      await voter.vote.submit.mutate({
         sessionId: entry.participant.id,
         participantId: entry.participant.participantId,
         questionId,

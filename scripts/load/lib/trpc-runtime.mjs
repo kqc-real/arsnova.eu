@@ -19,6 +19,14 @@ if (!globalThis.WebSocket && WebSocketPonyfill) {
   globalThis.WebSocket = WebSocketPonyfill;
 }
 
+export function requireRejoinToken(joined, label = 'Join') {
+  const token = typeof joined?.rejoinToken === 'string' ? joined.rejoinToken.trim() : '';
+  if (!token) {
+    throw new Error(`${label} lieferte kein rejoinToken.`);
+  }
+  return token;
+}
+
 function authHeaders(hostToken, adminToken, diagnosticSecret, participantCapability) {
   return {
     ...(hostToken ? { 'x-host-token': hostToken } : {}),
