@@ -203,6 +203,7 @@ describe('HomeComponent', () => {
     localStorage.clear();
     sessionStorage.clear();
     vi.useFakeTimers();
+    vi.setSystemTime(new Date('2026-09-19T12:00:00.000Z'));
     TestBed.configureTestingModule({
       imports: [HomeComponent],
       providers: [
@@ -634,16 +635,67 @@ describe('HomeComponent', () => {
           ?.classList.contains('mat-mdc-outlined-button'),
       ).toBe(true);
 
+      restoreDefaultSessionGetInfo(vi.mocked(trpc.session.getInfo.query));
+    });
+
+    it('hält den CTA offen, wenn die Geräteuhr voraus ist, die Serverzeit aber noch vor den Fristen liegt', async () => {
+      const { trpc } = await import('../../core/trpc.client');
+      seedHostCapability();
+      vi.setSystemTime(new Date('2026-10-05T00:00:00.000Z'));
+      vi.mocked(trpc.session.getInfo.query).mockResolvedValue(
+        hostSessionGetInfo('ABC123', true, {
+          qaClosesAt: '2026-09-20T06:07:00.000Z',
+          postProcessingEndsAt: '2026-10-04T06:07:00.000Z',
+        }),
+      );
+      const fixture = createHomeFixture();
+      fixture.detectChanges();
+      await fixture.whenStable();
+      fixture.detectChanges();
+      await vi.waitUntil(
+        () =>
+          fixture.nativeElement.querySelector(
+            '.home-host-session-cta-row [data-session-code="ABC123"].mat-mdc-unelevated-button',
+          ) !== null,
+        { timeout: 1000, interval: 10 },
+      );
+
+      expect(
+        fixture.nativeElement.querySelectorAll(
+          '.home-host-session-cta-row [data-testid="home-host-recovery"]',
+        ),
+      ).toHaveLength(1);
+
+      restoreDefaultSessionGetInfo(vi.mocked(trpc.session.getInfo.query));
+    });
+
+    it('entfernt den CTA, wenn die Serverzeit die Zugangsfrist überschritten hat', async () => {
+      const { trpc } = await import('../../core/trpc.client');
+      seedHostCapability();
       vi.mocked(trpc.session.getInfo.query).mockResolvedValue({
-        id: 'sess-1',
-        code: 'TEST01',
-        type: 'QUIZ',
-        status: 'LOBBY',
-        serverTime: new Date().toISOString(),
-        quizName: 'Test',
-        title: null,
-        participantCount: 0,
+        ...hostSessionGetInfo('ABC123', true, {
+          postProcessingEndsAt: '2026-10-04T06:07:00.000Z',
+        }),
+        serverTime: '2026-10-05T00:00:00.000Z',
       });
+      const fixture = createHomeFixture();
+      fixture.detectChanges();
+      await fixture.whenStable();
+      fixture.detectChanges();
+      await vi.waitUntil(
+        () =>
+          fixture.nativeElement.querySelector('.home-host-session-cta-row') === null &&
+          vi.mocked(trpc.session.getInfo.query).mock.calls.length > 0,
+        { timeout: 1000, interval: 10 },
+      );
+
+      expect(
+        fixture.nativeElement.querySelector(
+          '.home-host-session-cta-row [data-testid="home-host-recovery"]',
+        ),
+      ).toBeNull();
+
+      restoreDefaultSessionGetInfo(vi.mocked(trpc.session.getInfo.query));
     });
 
     it('füllt die zuletzt gehostete Session nur bei offenem Forum, sonst die nächste offene', async () => {

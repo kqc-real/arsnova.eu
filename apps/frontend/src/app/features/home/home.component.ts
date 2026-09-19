@@ -113,6 +113,19 @@ type HostSessionCta = {
 const HOST_SESSION_CTA_LIMIT = 8;
 const HOST_SESSION_INFO_FETCH_LIMIT = 32;
 
+function resolveSessionServerNow(
+  session: Pick<SessionInfoDTO, 'serverTime' | 'serverNow'>,
+): number {
+  const iso = session.serverTime ?? session.serverNow;
+  if (iso) {
+    const ms = Date.parse(iso);
+    if (Number.isFinite(ms)) {
+      return ms;
+    }
+  }
+  return Date.now();
+}
+
 function withPrimaryHostSessionCta(items: HostSessionCta[]): HostSessionCta[] {
   const primaryIndex = items.findIndex((item) => item.qaOpen === true);
   return items.map((item, index) => ({ ...item, primary: index === primaryIndex }));
@@ -605,12 +618,12 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
     }
 
     const anonymousClientId = getAnonymousClientId();
-    const now = Date.now();
     const lastHosted = getLastHostedSessionCode();
     const resolved = await Promise.all(
       fetchCodes.map(async (code): Promise<HostSessionCta | null> => {
         try {
           const session = await trpc.session.getInfo.query({ code, anonymousClientId });
+          const now = resolveSessionServerNow(session);
           const iso = session.postProcessingEndsAt ?? session.expiresAt ?? null;
           const accessUntilMs = iso ? Date.parse(iso) : Number.NaN;
           if (Number.isFinite(accessUntilMs) && accessUntilMs <= now) {
@@ -624,7 +637,7 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
             openUntilLabel: openIso
               ? this.formatHostAccessDeadline(openIso, session.timeZone)
               : null,
-            qaOpen: isQaOpenForParticipants(session),
+            qaOpen: isQaOpenForParticipants(session, new Date(now)),
             openUntilMs: Number.isFinite(openUntilMs) ? openUntilMs : null,
             accessUntilMs: Number.isFinite(accessUntilMs) ? accessUntilMs : null,
             primary: false,
