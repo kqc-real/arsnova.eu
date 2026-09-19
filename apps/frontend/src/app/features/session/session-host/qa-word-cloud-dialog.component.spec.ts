@@ -204,7 +204,7 @@ describe('QaWordCloudDialogComponent', () => {
     expect(toggleSmoothing).toHaveBeenCalledTimes(1);
   });
 
-  it('fuellt die Dialog-Restflaeche statt mit der Wolke zu scrollen', async () => {
+  it('fuellt die Dialog-Restflaeche und erlaubt vertikalen Zoom-Scroll', async () => {
     const { readFileSync } = await import('node:fs');
     const { fileURLToPath } = await import('node:url');
     const { dirname, join } = await import('node:path');
@@ -222,7 +222,7 @@ describe('QaWordCloudDialogComponent', () => {
       /\.cdk-overlay-pane\.word-cloud-dialog-panel \.mat-mdc-dialog-surface > \* \{[^}]*height:\s*100%/,
     );
     expect(panelStyles).toMatch(
-      /\.cdk-overlay-pane\.word-cloud-dialog-panel \.mat-mdc-dialog-surface \{[^}]*overflow:\s*hidden/,
+      /\.cdk-overlay-pane\.word-cloud-dialog-panel \.mat-mdc-dialog-surface \{[^}]*overflow-y:\s*auto/,
     );
   });
 });

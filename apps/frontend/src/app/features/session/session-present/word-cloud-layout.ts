@@ -52,6 +52,55 @@ export function getWordCloudRangeScale(
   return clamp(0, (stageWidth - lowerBound) / (upperBound - lowerBound), 1);
 }
 
+export function capWordCloudFontToStage(
+  word: string,
+  size: number,
+  stageWidth: number,
+  stageHeight: number,
+  rotate: 0 | 90 = 0,
+): number {
+  if (size <= 1 || stageWidth <= 0 || stageHeight <= 0) {
+    return Math.max(1, size);
+  }
+
+  const insetX = Math.max(
+    stageWidth * WORD_CLOUD_STAGE_FIT_INSET,
+    WORD_CLOUD_STAGE_FIT_MIN_INSET_X,
+  );
+  const insetY = Math.max(
+    stageHeight * WORD_CLOUD_STAGE_FIT_INSET,
+    WORD_CLOUD_STAGE_FIT_MIN_INSET_Y,
+  );
+  const usableWidth = Math.max(1, stageWidth - 2 * insetX);
+  const usableHeight = Math.max(1, stageHeight - 2 * insetY);
+  const charCount = Math.max(1, [...word.trim()].length);
+  const maxTextWidth = rotate === 90 ? usableHeight : usableWidth;
+  const maxTextHeight = rotate === 90 ? usableWidth : usableHeight;
+
+  const estimateWidth = (fontSize: number): number => {
+    const pad = getWordCloudChipPadding(fontSize, stageWidth);
+    return Math.max(fontSize, fontSize * WORD_CLOUD_FILL_CHAR_WIDTH * charCount) + pad * 2;
+  };
+  const estimateHeight = (fontSize: number): number => {
+    const pad = getWordCloudChipPadding(fontSize, stageWidth);
+    return fontSize + pad * 2;
+  };
+
+  let capped = size;
+  for (let pass = 0; pass < 2; pass += 1) {
+    const width = estimateWidth(capped);
+    if (width > maxTextWidth) {
+      capped *= maxTextWidth / width;
+    }
+    const height = estimateHeight(capped);
+    if (height > maxTextHeight) {
+      capped *= maxTextHeight / height;
+    }
+  }
+
+  return Math.max(1, Math.round(capped));
+}
+
 export function estimateWordCloudFontFillScale(
   words: readonly { readonly word: string; readonly size: number }[],
   stageWidth: number,

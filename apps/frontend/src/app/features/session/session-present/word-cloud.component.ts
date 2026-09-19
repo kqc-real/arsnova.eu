@@ -30,6 +30,7 @@ import { getEffectiveLocale, localeIdToSupported } from '../../../core/locale-fr
 import { formatLocaleCount } from '../../../core/locale-number.util';
 import { tryRequestDocumentFullscreen } from '../../../core/document-fullscreen.util';
 import {
+  capWordCloudFontToStage,
   estimateWordCloudFontFillScale,
   fitWordCloudPositionsToStage,
   getWordCloudChipPadding,
@@ -1584,13 +1585,18 @@ export class WordCloudComponent implements AfterViewInit, OnDestroy {
 
   private createLayoutWords(entries: CloudWord[]): LayoutWord[] {
     const stageWidth = this.stageWidth();
-    return entries.map((entry) => ({
-      text: entry.word,
-      size: entry.size,
-      rotate: getWordCloudRotation(entry.word, entry.rank, stageWidth),
-      padding: getWordCloudChipPadding(entry.size, stageWidth),
-      entry,
-    }));
+    const stageHeight = this.cloudStageHeightPx();
+    return entries.map((entry) => {
+      const rotate = getWordCloudRotation(entry.word, entry.rank, stageWidth);
+      const size = capWordCloudFontToStage(entry.word, entry.size, stageWidth, stageHeight, rotate);
+      return {
+        text: entry.word,
+        size,
+        rotate,
+        padding: getWordCloudChipPadding(size, stageWidth),
+        entry: { ...entry, size },
+      };
+    });
   }
 
   private scaleLayoutWordsToFillStage(
@@ -1612,11 +1618,19 @@ export class WordCloudComponent implements AfterViewInit, OnDestroy {
     }
 
     return words.map((word) => {
-      const size = Math.max(1, Math.round(word.size * fillScale));
+      const grown = Math.max(1, Math.round(word.size * fillScale));
+      const size = capWordCloudFontToStage(
+        word.text,
+        grown,
+        stageWidth,
+        stageHeight,
+        word.rotate === 90 ? 90 : 0,
+      );
       return {
         ...word,
         size,
         padding: getWordCloudChipPadding(size, stageWidth),
+        entry: { ...word.entry, size },
       };
     });
   }

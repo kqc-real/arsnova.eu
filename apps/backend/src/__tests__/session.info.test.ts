@@ -195,7 +195,7 @@ describe('session.getInfo (ADR-0009)', () => {
     },
   );
 
-  it('zählt nicht gelöschte Q&A-Fragen live, auch wenn der Session-Zähler driftet', async () => {
+  it('zählt öffentlich nur teilnehmendensichtbare Q&A-Fragen live, auch wenn der Session-Zähler driftet', async () => {
     prismaMock.session.findUnique.mockResolvedValue({
       id: '6a8edced-5f8f-4cfa-9176-454fac9570ad',
       code: 'GUNGB5',
@@ -216,6 +216,18 @@ describe('session.getInfo (ADR-0009)', () => {
     const result = await caller.getInfo({ code: 'gungb5' });
 
     expect(result.qaQuestionCount).toBe(40);
+    expect(prismaMock.session.findUnique).toHaveBeenCalledWith(
+      expect.objectContaining({
+        include: expect.objectContaining({
+          _count: {
+            select: {
+              participants: true,
+              qaQuestions: { where: { status: { in: ['ACTIVE', 'PINNED', 'ARCHIVED'] } } },
+            },
+          },
+        }),
+      }),
+    );
   });
 
   it('liefert nicknameTheme KINDERGARTEN aus dem Quiz (Join-Liste Kita)', async () => {

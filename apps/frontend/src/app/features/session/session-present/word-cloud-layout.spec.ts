@@ -4,6 +4,7 @@ import {
   DESKTOP_WORD_CLOUD_LIMIT,
   MIN_WORD_CLOUD_LAYOUT_WIDTH,
   MOBILE_WORD_CLOUD_LIMIT,
+  capWordCloudFontToStage,
   estimateWordCloudFontFillScale,
   fitWordCloudPositionsToStage,
   getWordCloudChipPadding,
@@ -96,6 +97,16 @@ describe('word-cloud layout helpers', () => {
     expect(fittedSpanX).toBeGreaterThan(sourceSpanX);
     expect(fittedSpanX).toBeLessThan(1200 * 0.95);
     expect(fittedSpanY).toBeLessThan(600 * 0.95);
+  });
+
+  it('deckt lange Labels so, dass ihr Chip auf die Buehne passt', () => {
+    const label = 'Standardabweichung';
+    const size = capWordCloudFontToStage(label, 168, 900, 1280);
+    const pad = getWordCloudChipPadding(size, 900);
+    const width = Math.max(size, size * 0.62 * [...label].length) + pad * 2;
+
+    expect(size).toBeLessThan(168);
+    expect(width).toBeLessThanOrEqual(900 - 32);
   });
 
   it('vergroessert die D3-Schrift wenn wenige Begriffe eine grosse Buehne nicht fuellen', () => {

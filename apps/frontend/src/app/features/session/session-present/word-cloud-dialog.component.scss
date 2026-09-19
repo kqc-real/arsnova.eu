@@ -14,7 +14,8 @@
   height: 100%;
   padding: clamp(0.9rem, 2vw, 1.55rem);
   box-sizing: border-box;
-  overflow: hidden;
+  overflow-x: hidden;
+  overflow-y: auto;
   overscroll-behavior: contain;
   -webkit-overflow-scrolling: touch;
   background: transparent;
@@ -51,7 +52,8 @@
   .word-cloud-dialog {
     padding: max(0.5rem, env(safe-area-inset-top, 0px)) 0.5rem
       max(0.5rem, env(safe-area-inset-bottom, 0px));
-    overflow: hidden;
+    overflow-x: hidden;
+    overflow-y: auto;
   }
 
   .word-cloud-dialog__cloud {

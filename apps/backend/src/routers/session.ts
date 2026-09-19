@@ -5044,7 +5044,7 @@ async function resolvePublicSessionInfo(
           _count: {
             select: {
               participants: true,
-              qaQuestions: { where: { status: { not: 'DELETED' } } },
+              qaQuestions: { where: { status: { in: ['ACTIVE', 'PINNED', 'ARCHIVED'] } } },
             },
           },
         },
