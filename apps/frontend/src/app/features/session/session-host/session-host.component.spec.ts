@@ -6298,6 +6298,10 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
     expect(data.title()).toBe('Q&A-Wortwolke');
     expect(data.weightingHint()).toContain('viel Zustimmung');
     expect(data.terms()).toBeNull();
+    await vi.waitUntil(() => wordCloudAnalyzeQueryMock.mock.calls.length >= 1, {
+      timeout: 5000,
+      interval: 25,
+    });
     expect(wordCloudAnalyzeQueryMock.mock.calls[0]?.[0]).not.toHaveProperty('items');
     fixture.destroy();
   });
@@ -8719,6 +8723,120 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
         normalization: 'LEMMA',
       }),
     ]);
+
+    await fixture.componentInstance.setQaSortMode('TIME');
+    await vi.waitUntil(
+      () =>
+        lemmaAnalyzeCalls().filter((call) => (call[0] as { metric?: string }).metric === 'TIME')
+          .length === 1,
+      { timeout: 5000, interval: 25 },
+    );
+    expect(lemmaAnalyzeCalls()).toHaveLength(4);
+    expect(lemmaAnalyzeCalls()[3]).toEqual([
+      expect.objectContaining({
+        mode: 'LEXICAL',
+        metric: 'TIME',
+        normalization: 'LEMMA',
+      }),
+    ]);
+    expect(fixture.componentInstance.qaWordCloudSmoothingStatus()).toBe('active');
+    fixture.destroy();
+  });
+
+  it('haelt die Glättung bei Wörter und Häufigkeit, auch wenn Theme und Lemma sich die Session-Sperre teilen', async () => {
+    getInfoQueryMock.mockResolvedValue({
+      ...defaultSession,
+      status: 'ACTIVE',
+      channels: {
+        quiz: { enabled: true },
+        qa: { enabled: true, open: true, title: 'Fragen aus dem Publikum', moderationMode: true },
+        quickFeedback: { enabled: false, open: false },
+      },
+    });
+    qaListQueryMock.mockResolvedValue([
+      {
+        id: '11111111-1111-4111-8111-111111111111',
+        text: 'Kommt Kapitel 4 in der Klausur vor?',
+        upvoteCount: 9,
+        status: 'ACTIVE',
+        createdAt: '2026-03-13T12:00:00.000Z',
+        myVote: null,
+        isOwn: false,
+        hasUpvoted: false,
+      },
+    ]);
+    let inFlight = 0;
+    wordCloudAnalyzeQueryMock.mockImplementation(
+      async (input: { metric?: string; mode?: string; normalization?: string }) => {
+        inFlight += 1;
+        if (inFlight > 1) {
+          inFlight -= 1;
+          throw {
+            data: { code: 'CONFLICT' },
+            message: 'Für diese Session läuft bereits eine Q&A-Analyse.',
+          };
+        }
+        await new Promise((resolve) => {
+          setTimeout(resolve, 40);
+        });
+        inFlight -= 1;
+        if (input.normalization === 'LEMMA') {
+          return wordCloudAnalyzeResult({
+            mode: 'LEXICAL',
+            metric: input.metric ?? 'BEST',
+            normalization: 'LEMMA',
+            normalizationApplied: 'LEMMA',
+            modelId: 'de_core_news_sm@3.8.0',
+            entries: [
+              {
+                key: 'klausur',
+                label: 'Klausur',
+                count: 4,
+                basisLabel: 'Klausur',
+                members: [
+                  {
+                    sourceId: '11111111-1111-4111-8111-111111111111',
+                    text: 'Kommt Kapitel 4 in der Klausur vor?',
+                    weight: 1,
+                  },
+                ],
+                variants: ['Klausur'],
+                confidence: 0.9,
+              },
+            ],
+          });
+        }
+        return wordCloudAnalyzeResult({
+          mode: input.mode ?? 'LEXICAL',
+          metric: input.metric ?? 'BEST',
+          entries: [],
+        });
+      },
+    );
+
+    const fixture = setup();
+    fixture.detectChanges();
+    await fixture.whenStable();
+    await vi.waitUntil(() => fixture.componentInstance.qaWordCloudQuestions().length === 1, {
+      timeout: 5000,
+      interval: 25,
+    });
+    dialogOpenMock.mockReturnValueOnce({ afterClosed: () => NEVER });
+    await fixture.componentInstance.openQaWordCloudDialog();
+    fixture.componentInstance.setQaWordCloudAnalysisVariant('LEXICAL');
+    await fixture.componentInstance.setQaSortMode('TIME');
+    await vi.waitUntil(
+      () =>
+        fixture.componentInstance.qaWordCloudSmoothingStatus() === 'active' &&
+        fixture.componentInstance.qaSortMode() === 'TIME',
+      { timeout: 5000, interval: 25 },
+    );
+
+    expect(fixture.componentInstance.qaWordCloudSmoothingHint()).toBeNull();
+    expect(fixture.componentInstance.qaWordCloudLemmaSnapshotVisible()).toBe(true);
+    expect(
+      lemmaAnalyzeCalls().some((call) => (call[0] as { metric?: string }).metric === 'TIME'),
+    ).toBe(true);
     fixture.destroy();
   });
 

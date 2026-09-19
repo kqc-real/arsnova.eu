@@ -284,6 +284,8 @@ const HOST_AUX_POLL_MS = 3000;
 const HOST_CLOCK_POLL_MS = 15000;
 const HOST_REALTIME_RESUBSCRIBE_MS = 5000;
 const QA_WORD_CLOUD_ANALYSIS_DEBOUNCE_MS = 180;
+const QA_WORD_CLOUD_ANALYZE_CONFLICT_RETRIES = 3;
+const QA_WORD_CLOUD_ANALYZE_CONFLICT_RETRY_MS = 80;
 const WORD_CLOUD_LEMMA_MAX_ENTRIES = 80;
 const FOYER_MAX_ACTIVE_CHIPS = 6;
 const FOYER_CHIP_LIFETIME_MS = 1100;
@@ -1025,6 +1027,7 @@ export class SessionHostComponent implements OnInit, OnDestroy {
   readonly freetextWordCloudMaximized = signal(false);
   readonly freetextWordCloudSemanticAnalysisPending = signal(false);
   readonly freetextWordCloudSemanticAnalysisResult = signal<AnalyzeWordCloudOutput | null>(null);
+  private qaWordCloudAnalyzeTail: Promise<unknown> = Promise.resolve();
   private qaWordCloudThemeAnalysisRunId = 0;
   private qaWordCloudLemmaAnalysisRunId = 0;
   private freetextWordCloudLemmaAnalysisRunId = 0;
@@ -10993,7 +10996,18 @@ export class SessionHostComponent implements OnInit, OnDestroy {
     this.qaWordCloudLemmaPending.set(true);
 
     try {
-      const result = await this.analyzeCanonicalQaWordCloud(request);
+      await this.waitForQaWordCloudThemeAnalysisIdle();
+      if (runId !== this.qaWordCloudLemmaAnalysisRunId) {
+        return;
+      }
+
+      const latestRequest = this.buildQaWordCloudLemmaAnalysisRequest();
+      const latestFingerprint = this.qaWordCloudLemmaFingerprint();
+      if (!latestRequest || !latestFingerprint) {
+        return;
+      }
+
+      const result = await this.analyzeCanonicalQaWordCloud(latestRequest);
       if (runId !== this.qaWordCloudLemmaAnalysisRunId) {
         return;
       }
@@ -11004,7 +11018,7 @@ export class SessionHostComponent implements OnInit, OnDestroy {
           analyzedQuestionCount: result.analyzedQuestionCount,
           eligibleQuestionCount: result.eligibleQuestionCount,
         });
-        this.qaWordCloudLemmaSnapshotKey.set(fingerprint);
+        this.qaWordCloudLemmaSnapshotKey.set(latestFingerprint);
         this.qaWordCloudLemmaFallbackReason.set(null);
         return;
       }
@@ -11029,6 +11043,18 @@ export class SessionHostComponent implements OnInit, OnDestroy {
     }
   }
 
+  private async waitForQaWordCloudThemeAnalysisIdle(): Promise<void> {
+    if (this.qaWordCloudEffectiveAnalysisVariant() === 'SEMANTIC') {
+      return;
+    }
+
+    while (this.qaWordCloudThemeAnalysisTimer || this.qaWordCloudThemeAnalysisPending()) {
+      await new Promise((resolve) => {
+        setTimeout(resolve, 25);
+      });
+    }
+  }
+
   private analyzeCanonicalQaWordCloud(request: AnalyzeWordCloudInput) {
     const {
       items: _clientPage,
@@ -11036,10 +11062,40 @@ export class SessionHostComponent implements OnInit, OnDestroy {
       corpusRevision: _revision,
       ...canonical
     } = request;
-    return trpc.wordCloud.analyzeQa.mutate({
+    const work = () => this.mutateQaWordCloudAnalysis(canonical);
+    const run = this.qaWordCloudAnalyzeTail.then(work, work);
+    this.qaWordCloudAnalyzeTail = run.then(
+      () => undefined,
+      () => undefined,
+    );
+    return run;
+  }
+
+  private async mutateQaWordCloudAnalysis(
+    canonical: Omit<AnalyzeWordCloudInput, 'items' | 'channel' | 'corpusRevision'>,
+  ) {
+    const input = {
       ...canonical,
-      filter: this.qaShowPinnedOnly() ? 'PINNED_ONLY' : 'ALL_ELIGIBLE',
-    });
+      filter: this.qaShowPinnedOnly() ? ('PINNED_ONLY' as const) : ('ALL_ELIGIBLE' as const),
+    };
+    let lastError: unknown;
+    for (let attempt = 0; attempt <= QA_WORD_CLOUD_ANALYZE_CONFLICT_RETRIES; attempt += 1) {
+      try {
+        return await trpc.wordCloud.analyzeQa.mutate(input);
+      } catch (error) {
+        lastError = error;
+        if (
+          !this.isTrpcConflictError(error) ||
+          attempt === QA_WORD_CLOUD_ANALYZE_CONFLICT_RETRIES
+        ) {
+          throw error;
+        }
+        await new Promise((resolve) => {
+          setTimeout(resolve, QA_WORD_CLOUD_ANALYZE_CONFLICT_RETRY_MS * (attempt + 1));
+        });
+      }
+    }
+    throw lastError;
   }
 
   private buildFreetextWordCloudLemmaItems(): Array<{
