@@ -72,7 +72,9 @@ Forenbeiträge bis `qaClosesAt` möglich und landen im Forum. Ein noch offenes B
 geschlossen, damit der Teilnehmer-Join wieder ins Q&A fällt. Liegt die Session
 noch in `LOBBY`, startet das Verlassen zuerst die Fragerunde. Der Exit-Anker
 heißt dann **Zur Startseite**. **Session beenden** bleibt nur, wenn Q&A nicht
-offen ist. Ältere, noch unkonfigurierte Standalone-Sessions
+offen ist. Welche Startseiten- und Deep-Link-Wege Host und Vote danach
+wieder in dieselbe oder eine andere Session führen, steht in
+[session-entry-host-vote.md](session-entry-host-vote.md). Ältere, noch unkonfigurierte Standalone-Sessions
 (`qaClosesAt IS NULL`) öffnen weiterhin die Einrichtung; Abbrechen dort
 beendet die Session und kehrt zur Startseite zurück. Wird Q&A
 später in einer bestehenden Session aktiviert, bleiben Einrichtung und

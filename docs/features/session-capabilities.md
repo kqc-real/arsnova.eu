@@ -54,7 +54,9 @@ Eine gültige Capability:
 Nach gelöschten Browserdaten, Privatmodus-Verlust oder Gerätewechsel entsteht
 eine neue Teilnahme. Es gibt im MVP weder Transfercode noch
 geräteübergreifende Kontowiederherstellung. Die Kennung identifiziert keine
-natürliche Person.
+natürliche Person. Host-Token, Browser-Capability und Teilnehmer-Capability
+können parallel liegen; die Eintrittsmatrix steht in
+[session-entry-host-vote.md](session-entry-host-vote.md).
 
 Globales Sessionende oder `expiresAt` beendet Join und Rejoin. Q&A liefert dann
 auch mit Capability nur den inhaltsfreien terminalen Zustand; Q&A-Lese- und

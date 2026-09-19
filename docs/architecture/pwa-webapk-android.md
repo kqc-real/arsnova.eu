@@ -72,7 +72,7 @@ Erzeugen: Frontend und API müssen laufen, dann `npm run screenshots -w @arsnova
 
 1. **Code eingeben** → `/join` (Fokus auf die Code-Eingabe)
 2. **Quiz erstellen** → `/quiz/new`
-3. **Q&A erstellen** → `/?host=qa` (gleicher Host-Flow wie der Hero-Chip: Session anlegen oder letzte Session öffnen)
+3. **Q&A erstellen** → `/?host=qa` (gleicher Host-Flow wie **Neue Q&A-Session**: Query entfernen und immer eine neue Session anlegen; vorhandene Host-Sessions bleiben als CTA stehen)
 4. **Blitzlicht starten** → `/?host=quickFeedback` (vierter Eintrag, auf Android oft nicht sichtbar)
 
 Namen und URLs werden beim lokalisierten Build wie die Screenshot-Labels in `patch-pwa-manifest-per-locale.mjs` übersetzt bzw. mit `/{locale}/` präfixiert. Shortcut-Icons sind 192×192-PNG (Chrome akzeptiert kein SVG) und liegen unter `assets/icons/shortcut-*.png`. Neu erzeugen mit `npm run icons -w @arsnova/frontend`.

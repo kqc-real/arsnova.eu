@@ -121,6 +121,56 @@ function seedHostCapability(): void {
   storeHostBrowserCapability('ABC123', 'browser-capability-abcdefghijklmnopqrstuvwxyz');
 }
 
+function hostSessionGetInfo(
+  code: string,
+  qaOpen: boolean,
+  options?: { qaClosesAt?: string; postProcessingEndsAt?: string },
+) {
+  const closesAt =
+    options?.qaClosesAt ?? (qaOpen ? '2026-09-20T06:07:00.000Z' : '2026-09-18T12:22:30.000Z');
+  return {
+    id: `sess-${code}`,
+    code,
+    type: 'QUIZ' as const,
+    status: qaOpen ? ('LOBBY' as const) : ('FINISHED' as const),
+    serverTime: '2026-09-19T12:00:00.000Z',
+    quizName: 'Live',
+    title: null,
+    participantCount: 1,
+    expiresAt: closesAt,
+    qaClosesAt: closesAt,
+    qaEnabled: true,
+    qaOpen,
+    postProcessingEndsAt: options?.postProcessingEndsAt ?? '2026-10-04T06:07:00.000Z',
+    timeZone: 'Europe/Berlin',
+    channels: qaOpen
+      ? {
+          qa: {
+            enabled: true,
+            open: true,
+            state: 'OPEN' as const,
+            closesAt,
+          },
+        }
+      : undefined,
+  };
+}
+
+function restoreDefaultSessionGetInfo(query: {
+  mockResolvedValue: (value: unknown) => unknown;
+}): void {
+  query.mockResolvedValue({
+    id: 'sess-1',
+    code: 'TEST01',
+    type: 'QUIZ',
+    status: 'LOBBY',
+    serverTime: new Date().toISOString(),
+    quizName: 'Test',
+    title: null,
+    participantCount: 0,
+  });
+}
+
 function createHomeComponent(): HomeComponent {
   const fixture = createHomeFixture();
   return fixture.componentInstance;
@@ -153,6 +203,7 @@ describe('HomeComponent', () => {
     localStorage.clear();
     sessionStorage.clear();
     vi.useFakeTimers();
+    vi.setSystemTime(new Date('2026-09-19T12:00:00.000Z'));
     TestBed.configureTestingModule({
       imports: [HomeComponent],
       providers: [
@@ -432,14 +483,19 @@ describe('HomeComponent', () => {
       ).toBe('An einer Session teilnehmen');
     });
 
-    it('hält den Host-Recovery-Einstieg als ersten Live-Button', () => {
+    it('hält den Host-Recovery-Einstieg als erste CTA-Reihe über den Live-Buttons', () => {
       seedHostCapability();
       const fixture = createHomeFixture();
       fixture.detectChanges();
 
       const recoveryAction = fixture.nativeElement.querySelector(
-        '.home-live-grid [data-testid="home-host-recovery"]',
+        '.home-host-session-cta-row [data-testid="home-host-recovery"]',
       ) as HTMLElement | null;
+      expect(recoveryAction?.tagName).toBe('A');
+      expect(recoveryAction?.getAttribute('role')).not.toBe('listitem');
+      expect(
+        recoveryAction?.closest('ul.home-host-session-cta-row')?.getAttribute('aria-label'),
+      ).toBe('Deine Q&A-Sessions');
       expect(recoveryAction?.getAttribute('href') ?? '').toContain('session/ABC123/host');
       expect(recoveryAction?.getAttribute('href') ?? '').toContain('tab=qa');
       expect(recoveryAction?.getAttribute('href') ?? '').not.toContain('host-recovery');
@@ -454,24 +510,29 @@ describe('HomeComponent', () => {
       ).toBe('Zugang als Host');
 
       const liveGrid = fixture.nativeElement.querySelector('.home-live-grid') as HTMLElement | null;
-      expect(liveGrid?.classList.contains('home-live-grid--with-recovery')).toBe(true);
+      expect(liveGrid?.classList.contains('home-live-grid--with-recovery')).toBe(false);
+      expect(liveGrid?.querySelector('[data-testid="home-host-recovery"]')).toBeNull();
+
+      const hostCtas = Array.from(
+        fixture.nativeElement.querySelectorAll<HTMLElement>(
+          '.home-host-session-cta-row .home-choice-button',
+        ),
+      );
+      expect(hostCtas).toHaveLength(1);
 
       const liveButtons = Array.from(
         fixture.nativeElement.querySelectorAll<HTMLElement>('.home-live-grid .home-choice-button'),
       );
-      expect(liveButtons[0]?.getAttribute('data-testid')).toBe('home-host-recovery');
-      expect(liveButtons[0]?.classList.contains('home-choice-button')).toBe(true);
-      expect(liveButtons[0]?.classList.contains('mat-mdc-unelevated-button')).toBe(true);
-      expect(liveButtons.every((button) => button.classList.contains('home-cta'))).toBe(true);
-      expect(
-        liveButtons.slice(1).every((button) => button.classList.contains('home-cta--secondary')),
-      ).toBe(true);
+      expect(liveButtons).toHaveLength(3);
+      expect(liveButtons.every((button) => button.classList.contains('home-cta--secondary'))).toBe(
+        true,
+      );
     });
 
-    it('zeigt die Zugangsfrist in der zweiten CTA-Zeile', async () => {
+    it('zeigt die Zugangsfrist in der zweiten CTA-Zeile und die Offen-Frist in der dritten', async () => {
       const { trpc } = await import('../../core/trpc.client');
       seedHostCapability();
-      vi.mocked(trpc.session.getInfo.query).mockResolvedValueOnce({
+      vi.mocked(trpc.session.getInfo.query).mockResolvedValue({
         id: 'sess-abc',
         code: 'ABC123',
         type: 'QUIZ',
@@ -480,25 +541,323 @@ describe('HomeComponent', () => {
         quizName: 'Live',
         title: null,
         participantCount: 2,
-        expiresAt: '2026-09-19T10:00:00.000Z',
-        postProcessingEndsAt: '2026-09-20T18:30:00.000Z',
+        expiresAt: '2026-09-20T06:07:00.000Z',
+        qaClosesAt: '2026-09-20T06:07:00.000Z',
+        qaEnabled: true,
+        qaOpen: true,
+        postProcessingEndsAt: '2026-10-04T06:07:00.000Z',
+        timeZone: 'Europe/Berlin',
+        channels: {
+          qa: {
+            enabled: true,
+            open: true,
+            state: 'OPEN',
+            closesAt: '2026-09-20T06:07:00.000Z',
+          },
+        },
+      });
+      const fixture = createHomeFixture();
+      fixture.detectChanges();
+      await fixture.whenStable();
+      fixture.detectChanges();
+      await vi.waitUntil(
+        () =>
+          Array.from(
+            fixture.nativeElement.querySelectorAll<HTMLElement>(
+              '.home-host-session-cta-row [data-testid="home-host-recovery"] .home-choice-button__description',
+            ),
+          ).some((line) => line.textContent?.trim().startsWith('Offen bis ')) === true,
+        { timeout: 1000, interval: 10 },
+      );
+
+      const descriptions = Array.from(
+        fixture.nativeElement.querySelectorAll<HTMLElement>(
+          '.home-host-session-cta-row [data-testid="home-host-recovery"] .home-choice-button__description',
+        ),
+      ).map((line) => line.textContent?.trim());
+      expect(descriptions[0]).toMatch(/^Zugang bis /);
+      expect(descriptions[0]).toContain('2026');
+      expect(descriptions[1]).toMatch(/^Offen bis /);
+      expect(descriptions[1]).toContain('2026');
+      expect(
+        fixture.nativeElement
+          .querySelector('.home-host-session-cta-row [data-testid="home-host-recovery"]')
+          ?.classList.contains('mat-mdc-unelevated-button'),
+      ).toBe(true);
+      expect(trpc.session.getInfo.query).toHaveBeenCalledWith(
+        expect.objectContaining({ code: 'ABC123' }),
+      );
+    });
+
+    it('zeigt Forum geschlossen, wenn die Q&A-Frist vorbei ist', async () => {
+      const { trpc } = await import('../../core/trpc.client');
+      seedHostCapability();
+      vi.mocked(trpc.session.getInfo.query).mockResolvedValue({
+        id: 'sess-abc',
+        code: 'ABC123',
+        type: 'QUIZ',
+        status: 'FINISHED',
+        serverTime: '2026-09-19T12:00:00.000Z',
+        quizName: 'Live',
+        title: null,
+        participantCount: 2,
+        expiresAt: '2026-09-18T12:22:30.000Z',
+        qaClosesAt: '2026-09-18T12:22:30.000Z',
+        qaEnabled: true,
+        qaOpen: true,
+        postProcessingEndsAt: '2026-10-01T12:25:00.000Z',
         timeZone: 'Europe/Berlin',
       });
       const fixture = createHomeFixture();
       fixture.detectChanges();
       await fixture.whenStable();
       fixture.detectChanges();
-
-      const description = fixture.nativeElement
-        .querySelector(
-          '.home-live-grid [data-testid="home-host-recovery"] .home-choice-button__description',
-        )
-        ?.textContent?.trim();
-      expect(description).toMatch(/^Zugang bis /);
-      expect(description).toContain('2026');
-      expect(trpc.session.getInfo.query).toHaveBeenCalledWith(
-        expect.objectContaining({ code: 'ABC123' }),
+      await vi.waitUntil(
+        () =>
+          Array.from(
+            fixture.nativeElement.querySelectorAll<HTMLElement>(
+              '.home-host-session-cta-row [data-testid="home-host-recovery"] .home-choice-button__description',
+            ),
+          ).some((line) => line.textContent?.trim() === 'Forum geschlossen') === true,
+        { timeout: 1000, interval: 10 },
       );
+
+      const descriptions = Array.from(
+        fixture.nativeElement.querySelectorAll<HTMLElement>(
+          '.home-host-session-cta-row [data-testid="home-host-recovery"] .home-choice-button__description',
+        ),
+      ).map((line) => line.textContent?.trim());
+      expect(descriptions[0]).toMatch(/^Zugang bis /);
+      expect(descriptions[1]).toBe('Forum geschlossen');
+      expect(
+        fixture.nativeElement
+          .querySelector('.home-host-session-cta-row [data-testid="home-host-recovery"]')
+          ?.classList.contains('mat-mdc-outlined-button'),
+      ).toBe(true);
+
+      restoreDefaultSessionGetInfo(vi.mocked(trpc.session.getInfo.query));
+    });
+
+    it('hält den CTA offen, wenn die Geräteuhr voraus ist, die Serverzeit aber noch vor den Fristen liegt', async () => {
+      const { trpc } = await import('../../core/trpc.client');
+      seedHostCapability();
+      vi.setSystemTime(new Date('2026-10-05T00:00:00.000Z'));
+      vi.mocked(trpc.session.getInfo.query).mockResolvedValue(
+        hostSessionGetInfo('ABC123', true, {
+          qaClosesAt: '2026-09-20T06:07:00.000Z',
+          postProcessingEndsAt: '2026-10-04T06:07:00.000Z',
+        }),
+      );
+      const fixture = createHomeFixture();
+      fixture.detectChanges();
+      await fixture.whenStable();
+      fixture.detectChanges();
+      await vi.waitUntil(
+        () =>
+          fixture.nativeElement.querySelector(
+            '.home-host-session-cta-row [data-session-code="ABC123"].mat-mdc-unelevated-button',
+          ) !== null,
+        { timeout: 1000, interval: 10 },
+      );
+
+      expect(
+        fixture.nativeElement.querySelectorAll(
+          '.home-host-session-cta-row [data-testid="home-host-recovery"]',
+        ),
+      ).toHaveLength(1);
+
+      restoreDefaultSessionGetInfo(vi.mocked(trpc.session.getInfo.query));
+    });
+
+    it('entfernt den CTA, wenn die Serverzeit die Zugangsfrist überschritten hat', async () => {
+      const { trpc } = await import('../../core/trpc.client');
+      seedHostCapability();
+      vi.mocked(trpc.session.getInfo.query).mockResolvedValue({
+        ...hostSessionGetInfo('ABC123', true, {
+          postProcessingEndsAt: '2026-10-04T06:07:00.000Z',
+        }),
+        serverTime: '2026-10-05T00:00:00.000Z',
+      });
+      const fixture = createHomeFixture();
+      fixture.detectChanges();
+      await fixture.whenStable();
+      fixture.detectChanges();
+      await vi.waitUntil(
+        () =>
+          fixture.nativeElement.querySelector('.home-host-session-cta-row') === null &&
+          vi.mocked(trpc.session.getInfo.query).mock.calls.length > 0,
+        { timeout: 1000, interval: 10 },
+      );
+
+      expect(
+        fixture.nativeElement.querySelector(
+          '.home-host-session-cta-row [data-testid="home-host-recovery"]',
+        ),
+      ).toBeNull();
+
+      restoreDefaultSessionGetInfo(vi.mocked(trpc.session.getInfo.query));
+    });
+
+    it('füllt die zuletzt gehostete Session nur bei offenem Forum, sonst die nächste offene', async () => {
+      const { trpc } = await import('../../core/trpc.client');
+      storeHostBrowserCapability('AAA111', 'older-browser-capability-abcdefghijklmnopqrstuvwxyz');
+      storeHostBrowserCapability('BBB222', 'newer-browser-capability-abcdefghijklmnopqrstuvwxyz');
+      vi.mocked(trpc.session.getInfo.query).mockImplementation(async (input: { code: string }) =>
+        hostSessionGetInfo(input.code, input.code === 'AAA111'),
+      );
+      const fixture = createHomeFixture();
+      fixture.detectChanges();
+      await fixture.whenStable();
+      fixture.detectChanges();
+      await vi.waitUntil(
+        () =>
+          fixture.nativeElement.querySelector(
+            '.home-host-session-cta-row [data-session-code="AAA111"].mat-mdc-unelevated-button',
+          ) !== null,
+        { timeout: 1000, interval: 10 },
+      );
+
+      const recoveryActions = Array.from(
+        fixture.nativeElement.querySelectorAll<HTMLElement>(
+          '.home-host-session-cta-row [data-testid="home-host-recovery"]',
+        ),
+      );
+      expect(recoveryActions.map((action) => action.getAttribute('data-session-code'))).toEqual([
+        'AAA111',
+        'BBB222',
+      ]);
+      expect(recoveryActions[0]?.classList.contains('mat-mdc-unelevated-button')).toBe(true);
+      expect(recoveryActions[1]?.classList.contains('mat-mdc-outlined-button')).toBe(true);
+
+      vi.mocked(trpc.session.getInfo.query).mockResolvedValue({
+        id: 'sess-1',
+        code: 'TEST01',
+        type: 'QUIZ',
+        status: 'LOBBY',
+        serverTime: new Date().toISOString(),
+        quizName: 'Test',
+        title: null,
+        participantCount: 0,
+      });
+    });
+
+    it('füllt die zuletzt gehostete Session, wenn deren Forum noch offen ist', async () => {
+      const { trpc } = await import('../../core/trpc.client');
+      storeHostBrowserCapability('AAA111', 'older-browser-capability-abcdefghijklmnopqrstuvwxyz');
+      storeHostBrowserCapability('BBB222', 'newer-browser-capability-abcdefghijklmnopqrstuvwxyz');
+      vi.mocked(trpc.session.getInfo.query).mockImplementation(async (input: { code: string }) =>
+        hostSessionGetInfo(input.code, true),
+      );
+      const fixture = createHomeFixture();
+      fixture.detectChanges();
+      await fixture.whenStable();
+      fixture.detectChanges();
+      await vi.waitUntil(
+        () =>
+          fixture.nativeElement.querySelector(
+            '.home-host-session-cta-row [data-session-code="BBB222"].mat-mdc-unelevated-button',
+          ) !== null,
+        { timeout: 1000, interval: 10 },
+      );
+
+      const recoveryActions = Array.from(
+        fixture.nativeElement.querySelectorAll<HTMLElement>(
+          '.home-host-session-cta-row [data-testid="home-host-recovery"]',
+        ),
+      );
+      expect(recoveryActions[0]?.getAttribute('data-session-code')).toBe('BBB222');
+      expect(recoveryActions[0]?.classList.contains('mat-mdc-unelevated-button')).toBe(true);
+      expect(recoveryActions[1]?.classList.contains('mat-mdc-outlined-button')).toBe(true);
+
+      restoreDefaultSessionGetInfo(vi.mocked(trpc.session.getInfo.query));
+    });
+
+    it('ordnet offene Foren vor geschlossenen und früher schließende zuerst', async () => {
+      const { trpc } = await import('../../core/trpc.client');
+      storeHostBrowserCapability('ZZZ999', 'later-browser-capability-abcdefghijklmnopqrstuvwxyz');
+      storeHostBrowserCapability('MMM555', 'mid-browser-capability-abcdefghijklmnopqrstuvwxyz');
+      storeHostBrowserCapability('AAA111', 'closed-browser-capability-abcdefghijklmnopqrstuvwxyz');
+      localStorage.removeItem('arsnova-last-hosted-session');
+      vi.mocked(trpc.session.getInfo.query).mockImplementation(async (input: { code: string }) => {
+        if (input.code === 'AAA111') {
+          return hostSessionGetInfo(input.code, false, {
+            postProcessingEndsAt: '2026-10-01T12:00:00.000Z',
+          });
+        }
+        if (input.code === 'ZZZ999') {
+          return hostSessionGetInfo(input.code, true, {
+            qaClosesAt: '2026-09-20T10:00:00.000Z',
+          });
+        }
+        return hostSessionGetInfo(input.code, true, {
+          qaClosesAt: '2026-09-19T18:00:00.000Z',
+        });
+      });
+      const fixture = createHomeFixture();
+      fixture.detectChanges();
+      await fixture.whenStable();
+      fixture.detectChanges();
+      await vi.waitUntil(
+        () =>
+          fixture.nativeElement.querySelector(
+            '.home-host-session-cta-row [data-session-code="MMM555"].mat-mdc-unelevated-button',
+          ) !== null,
+        { timeout: 1000, interval: 10 },
+      );
+
+      expect(
+        Array.from(
+          fixture.nativeElement.querySelectorAll<HTMLElement>(
+            '.home-host-session-cta-row [data-testid="home-host-recovery"]',
+          ),
+        ).map((action) => action.getAttribute('data-session-code')),
+      ).toEqual(['MMM555', 'ZZZ999', 'AAA111']);
+
+      restoreDefaultSessionGetInfo(vi.mocked(trpc.session.getInfo.query));
+    });
+
+    it('behält ein späteres offenes Forum in der Achterreihe', async () => {
+      const { trpc } = await import('../../core/trpc.client');
+      const closedCodes = [
+        'AAA111',
+        'BBB222',
+        'CCC333',
+        'DDD444',
+        'EEE555',
+        'FFF666',
+        'GGG777',
+        'HHH888',
+      ];
+      for (const code of closedCodes) {
+        storeHostBrowserCapability(code, `${code}-browser-capability-abcdefghijklmnopqrstuvwxyz`);
+      }
+      storeHostBrowserCapability('ZZZ999', 'open-browser-capability-abcdefghijklmnopqrstuvwxyz');
+      localStorage.removeItem('arsnova-last-hosted-session');
+      vi.mocked(trpc.session.getInfo.query).mockImplementation(async (input: { code: string }) =>
+        hostSessionGetInfo(input.code, input.code === 'ZZZ999'),
+      );
+      const fixture = createHomeFixture();
+      fixture.detectChanges();
+      await fixture.whenStable();
+      fixture.detectChanges();
+      await vi.waitUntil(
+        () =>
+          fixture.nativeElement.querySelector(
+            '.home-host-session-cta-row [data-session-code="ZZZ999"]',
+          ) !== null,
+        { timeout: 1000, interval: 10 },
+      );
+
+      const codes = Array.from(
+        fixture.nativeElement.querySelectorAll<HTMLElement>(
+          '.home-host-session-cta-row [data-testid="home-host-recovery"]',
+        ),
+      ).map((action) => action.getAttribute('data-session-code'));
+      expect(codes).toHaveLength(8);
+      expect(codes[0]).toBe('ZZZ999');
+      expect(codes).not.toContain('HHH888');
+
+      restoreDefaultSessionGetInfo(vi.mocked(trpc.session.getInfo.query));
     });
 
     it('zeigt mit Wiederherstellungskandidat keinen Host-CTA auf der Live-Karte', () => {
@@ -513,33 +872,46 @@ describe('HomeComponent', () => {
       expect(fixture.nativeElement.querySelector('a[href*="host-recovery"]')).toBeNull();
     });
 
-    it('öffnet bei mehreren gespeicherten Host-Sessions die zuletzt gehostete', () => {
+    it('reiht mehrere gespeicherte Host-Sessions, zuletzt gehostete zuerst', () => {
       storeHostBrowserCapability('AAA111', 'older-browser-capability-abcdefghijklmnopqrstuvwxyz');
       storeHostBrowserCapability('BBB222', 'newer-browser-capability-abcdefghijklmnopqrstuvwxyz');
       const fixture = createHomeFixture();
       fixture.detectChanges();
 
-      const recoveryAction = fixture.nativeElement.querySelector(
-        '.home-live-grid [data-testid="home-host-recovery"]',
-      ) as HTMLElement | null;
-      expect(recoveryAction?.getAttribute('href') ?? '').toContain('session/BBB222/host');
-      expect(recoveryAction?.getAttribute('href') ?? '').toContain('tab=qa');
-      expect(recoveryAction?.querySelector('.home-choice-button__label')?.textContent?.trim()).toBe(
-        'Q&A-Session BBB222',
+      const recoveryActions = Array.from(
+        fixture.nativeElement.querySelectorAll<HTMLElement>(
+          '.home-host-session-cta-row [data-testid="home-host-recovery"]',
+        ),
       );
+      expect(recoveryActions).toHaveLength(2);
+      expect(recoveryActions[0]?.getAttribute('data-session-code')).toBe('BBB222');
+      expect(recoveryActions[1]?.getAttribute('data-session-code')).toBe('AAA111');
+      expect(recoveryActions[0]?.getAttribute('href') ?? '').toContain('session/BBB222/host');
+      expect(recoveryActions[0]?.getAttribute('href') ?? '').toContain('tab=qa');
+      expect(
+        recoveryActions[0]?.querySelector('.home-choice-button__label')?.textContent?.trim(),
+      ).toBe('Q&A-Session BBB222');
       expect(
         fixture.nativeElement.querySelector('[data-testid="home-host-recovery-link"]'),
       ).toBeNull();
     });
 
-    it('blendet den direkten Host-CTA ohne eindeutige Session aus', () => {
+    it('zeigt alle gespeicherten Host-Sessions auch ohne last-hosted-Zeiger', () => {
       storeHostBrowserCapability('AAA111', 'older-browser-capability-abcdefghijklmnopqrstuvwxyz');
       storeHostBrowserCapability('BBB222', 'newer-browser-capability-abcdefghijklmnopqrstuvwxyz');
       localStorage.removeItem('arsnova-last-hosted-session');
       const fixture = createHomeFixture();
       fixture.detectChanges();
 
-      expect(fixture.nativeElement.querySelector('[data-testid="home-host-recovery"]')).toBeNull();
+      const recoveryActions = Array.from(
+        fixture.nativeElement.querySelectorAll<HTMLElement>(
+          '.home-host-session-cta-row [data-testid="home-host-recovery"]',
+        ),
+      );
+      expect(recoveryActions.map((action) => action.getAttribute('data-session-code'))).toEqual([
+        'AAA111',
+        'BBB222',
+      ]);
       expect(
         fixture.nativeElement.querySelector('[data-testid="home-host-recovery-link"]'),
       ).toBeNull();
@@ -666,7 +1038,7 @@ describe('HomeComponent', () => {
         /@media \(min-width:\s*600px\)\s*\{[\s\S]*?\.home-live-grid\s*\{[^}]*grid-template-columns:\s*repeat\(3,\s*minmax\(0,\s*1fr\)\)[^}]*row-gap:\s*0\.75rem/,
       );
       expect(scss).toMatch(
-        /@media \(min-width:\s*600px\)\s*\{[\s\S]*?\.home-live-grid--with-recovery\s*\{[^}]*grid-template-columns:\s*repeat\(2,\s*minmax\(0,\s*1fr\)\)/,
+        /@media \(min-width:\s*600px\)\s*\{[\s\S]*?\.home-host-session-cta-row\s*\{[^}]*grid-template-columns:\s*repeat\(2,\s*minmax\(0,\s*1fr\)\)/,
       );
       expect(scss).toMatch(
         /\.home-card__cta-stack\s*\{[^}]*flex-direction:\s*column[^}]*gap:\s*1rem/,
@@ -681,7 +1053,7 @@ describe('HomeComponent', () => {
         /@media \(min-width:\s*480px\)\s*\{[^}]*\.home-prepare-secondary-grid\s*\{[^}]*grid-template-columns:\s*repeat\(2,\s*minmax\(0,\s*1fr\)\)/,
       );
       expect(desktopLayout).toMatch(
-        /\.home-live-grid,\s*\.home-live-grid--with-recovery,\s*\.home-prepare-secondary-grid\s*\{[^}]*grid-template-columns:\s*minmax\(0,\s*1fr\)[^}]*row-gap:\s*1rem/,
+        /\.home-host-session-cta-row,\s*\.home-live-grid,\s*\.home-prepare-secondary-grid\s*\{[^}]*grid-template-columns:\s*minmax\(0,\s*1fr\)[^}]*row-gap:\s*1rem/,
       );
       expect(desktopLayout).toMatch(
         /\.home-sync-entry__form\s*\{[^}]*flex-direction:\s*column[^}]*align-items:\s*stretch/,
@@ -730,7 +1102,7 @@ describe('HomeComponent', () => {
         liveButtons.map((button) =>
           button.querySelector('.home-choice-button__label')?.textContent?.trim(),
         ),
-      ).toEqual(['Quiz', 'Q&A', 'Blitzlicht']);
+      ).toEqual(['Quiz', 'Neue Q&A-Session', 'Blitzlicht']);
       expect(
         liveButtons.map((button) =>
           button.querySelector('.home-choice-button__description')?.textContent?.trim(),
@@ -1030,6 +1402,47 @@ describe('HomeComponent', () => {
       expect(comp.recentSessionCodes()).toEqual([]);
     });
 
+    it('behält Recent-Codes nach Quiz-FINISHED, solange Q&A joinbar ist', async () => {
+      const { trpc } = await import('../../core/trpc.client');
+      vi.mocked(trpc.quickFeedback.isActiveForReconnect.query).mockResolvedValueOnce({
+        active: false,
+        sessionStatus: 'FINISHED',
+        sessionType: 'QUIZ',
+        qaJoinable: true,
+      });
+      const kept = { code: 'QAOPEN', usedAt: Date.now() };
+      const comp = createHomeComponent();
+      comp.recentSessionCodes.set([kept]);
+
+      await (
+        comp as unknown as {
+          validateRecentSessions: () => Promise<void>;
+        }
+      ).validateRecentSessions();
+
+      expect(comp.recentSessionCodes()).toEqual([kept]);
+    });
+
+    it('entfernt Recent-Codes nach Quiz-FINISHED, wenn Q&A nicht mehr joinbar ist', async () => {
+      const { trpc } = await import('../../core/trpc.client');
+      vi.mocked(trpc.quickFeedback.isActiveForReconnect.query).mockResolvedValueOnce({
+        active: false,
+        sessionStatus: 'FINISHED',
+        sessionType: 'QUIZ',
+        qaJoinable: false,
+      });
+      const comp = createHomeComponent();
+      comp.recentSessionCodes.set([{ code: 'QADONE', usedAt: Date.now() }]);
+
+      await (
+        comp as unknown as {
+          validateRecentSessions: () => Promise<void>;
+        }
+      ).validateRecentSessions();
+
+      expect(comp.recentSessionCodes()).toEqual([]);
+    });
+
     it('verhindert doppelten Join während isJoining', async () => {
       const comp = createHomeComponent();
       const router = TestBed.inject(Router);
@@ -1139,6 +1552,27 @@ describe('HomeComponent', () => {
   });
 
   describe('openHeroHostTab', () => {
+    it('legt über Q&A immer eine neue Host-Session an, auch mit vorhandenem Host-Token', async () => {
+      const { trpc } = await import('../../core/trpc.client');
+      vi.mocked(trpc.session.create.mutate).mockResolvedValueOnce({
+        id: 'sess-qa-forced',
+        code: 'QA9999',
+        hostToken: 'qa-forced-token',
+      });
+      vi.mocked(trpc.session.getInfoForReconnect.query).mockClear();
+      setHostToken('TEST01', 'host-token-test01');
+      const comp = createHomeComponent();
+      comp.sessionCode.set('TEST01');
+      const navigateSpy = vi.spyOn(TestBed.inject(Router), 'navigateByUrl').mockResolvedValue(true);
+
+      await comp.openHeroHostTab('qa');
+
+      expect(trpc.session.create.mutate).toHaveBeenCalled();
+      expect(trpc.session.getInfoForReconnect.query).not.toHaveBeenCalled();
+      expect(navigateSpy).toHaveBeenCalledWith('/session/QA9999/host?tab=qa&qaSetup=1');
+      clearHostToken('TEST01');
+    });
+
     it('prüft vorhandene oder kürzlich verwendete Codes über den Reconnect-Pfad', async () => {
       const { trpc } = await import('../../core/trpc.client');
       vi.mocked(trpc.session.getInfo.query).mockClear();
@@ -1148,13 +1582,13 @@ describe('HomeComponent', () => {
       comp.sessionCode.set('TEST01');
       vi.spyOn(TestBed.inject(Router), 'navigate').mockResolvedValue(true);
 
-      await comp.openHeroHostTab('qa');
+      await comp.openHeroHostTab('quickFeedback');
 
       expect(trpc.session.getInfoForReconnect.query).toHaveBeenCalledWith({
         code: 'TEST01',
         anonymousClientId: expect.any(String),
       });
-      expect(trpc.session.getInfo.query).not.toHaveBeenCalled();
+      expect(trpc.session.create.mutate).not.toHaveBeenCalled();
       clearHostToken('TEST01');
     });
 

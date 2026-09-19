@@ -8249,11 +8249,35 @@
           <context context-type="sourcefile">src/app/features/home/home.component.ts</context>
         </context-group>
       </trans-unit>
+      <trans-unit id="homeLiveCard.qaOpenDeadline" datatype="html">
+        <source>Offen bis <x id="deadline" equiv-text="deadline"/></source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/home/home.component.ts</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="homeLiveCard.qaClosed" datatype="html">
+        <source>Forum geschlossen</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/home/home.component.ts</context>
+        </context-group>
+      </trans-unit>
       <trans-unit id="homeLiveCard.quizDescription" datatype="html">
         <source>Wissen abfragen</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/home/home.component.html</context>
           <context context-type="linenumber">233</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="homeLiveCard.qaCreateLabel" datatype="html">
+        <source>Neue Q&amp;A-Session</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/home/home.component.html</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="homeLiveCard.openHostSessionsAria" datatype="html">
+        <source>Deine Q&amp;A-Sessions</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/home/home.component.html</context>
         </context-group>
       </trans-unit>
       <trans-unit id="homeLiveCard.qaDescription" datatype="html">

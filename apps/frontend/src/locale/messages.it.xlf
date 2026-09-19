@@ -9359,6 +9359,14 @@
         <source>Zugang bis <x id="deadline" equiv-text="deadline"/></source>
         <target>Accesso fino al <x id="deadline" equiv-text="deadline"/></target>
       </trans-unit>
+      <trans-unit id="homeLiveCard.qaOpenDeadline" datatype="html">
+        <source>Offen bis <x id="deadline" equiv-text="deadline"/></source>
+        <target>Aperto fino al <x id="deadline" equiv-text="deadline"/></target>
+      </trans-unit>
+      <trans-unit id="homeLiveCard.qaClosed" datatype="html">
+        <source>Forum geschlossen</source>
+        <target>Forum chiuso</target>
+      </trans-unit>
       <trans-unit id="homeLiveCard.title" datatype="html">
         <source> Session starten</source>
         <target>Avvia una sessione</target>
@@ -9374,6 +9382,14 @@
           <context context-type="sourcefile">src/app/features/home/home.component.html</context>
           <context context-type="linenumber">278</context>
         </context-group>
+      </trans-unit>
+      <trans-unit id="homeLiveCard.qaCreateLabel" datatype="html">
+        <source>Neue Q&amp;A-Session</source>
+        <target>Nuova sessione Q&amp;A</target>
+      </trans-unit>
+      <trans-unit id="homeLiveCard.openHostSessionsAria" datatype="html">
+        <source>Deine Q&amp;A-Sessions</source>
+        <target>Le tue sessioni Q&amp;A</target>
       </trans-unit>
       <trans-unit id="homeLiveCard.qaDescription" datatype="html">
         <source>Fragen &amp; Wortwolke</source>
