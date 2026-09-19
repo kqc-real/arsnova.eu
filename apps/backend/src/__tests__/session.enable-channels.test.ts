@@ -187,6 +187,97 @@ describe('session.enable channel mutations', () => {
     },
   );
 
+  it('öffnet Blitzlicht nach Quiz-FINISHED, solange Q&A offen ist', async () => {
+    prismaMock.session.findUnique.mockResolvedValue({
+      ...ACTIVE_SESSION,
+      id: SESSION_ID,
+      status: 'FINISHED',
+      endedAt: new Date('2026-09-19T06:00:00.000Z'),
+      type: 'QUIZ',
+      quizId: '11111111-1111-4111-8111-111111111111',
+      qaEnabled: true,
+      qaOpen: true,
+      qaClosesAt: new Date('2099-01-01T00:00:00.000Z'),
+      qaTitle: 'Fragen',
+      qaModerationMode: true,
+      title: null,
+      moderationMode: false,
+      quickFeedbackEnabled: false,
+      quickFeedbackOpen: false,
+    });
+    prismaMock.session.update.mockResolvedValue({
+      type: 'QUIZ',
+      quizId: '11111111-1111-4111-8111-111111111111',
+      qaEnabled: true,
+      qaOpen: true,
+      qaTitle: 'Fragen',
+      qaModerationMode: true,
+      title: null,
+      moderationMode: false,
+      quickFeedbackEnabled: true,
+      quickFeedbackOpen: true,
+    });
+
+    const result = await caller.enableQuickFeedbackChannel({ code: 'ABC123' });
+
+    expect(prismaMock.session.update).toHaveBeenCalledWith(
+      expect.objectContaining({
+        data: expect.objectContaining({
+          quickFeedbackEnabled: true,
+          quickFeedbackOpen: true,
+          status: 'LOBBY',
+          endedAt: null,
+        }),
+      }),
+    );
+    expect(result.quickFeedback.enabled).toBe(true);
+  });
+
+  it('öffnet einen vorhandenen Blitzlicht-Kanal nach Quiz-FINISHED wieder', async () => {
+    prismaMock.session.findUnique.mockResolvedValue({
+      ...ACTIVE_SESSION,
+      id: SESSION_ID,
+      status: 'FINISHED',
+      endedAt: new Date('2026-09-19T06:00:00.000Z'),
+      type: 'QUIZ',
+      quizId: '11111111-1111-4111-8111-111111111111',
+      qaEnabled: true,
+      qaOpen: true,
+      qaClosesAt: new Date('2099-01-01T00:00:00.000Z'),
+      qaTitle: 'Fragen',
+      qaModerationMode: true,
+      title: null,
+      moderationMode: false,
+      quickFeedbackEnabled: true,
+      quickFeedbackOpen: false,
+    });
+    prismaMock.session.update.mockResolvedValue({
+      type: 'QUIZ',
+      quizId: '11111111-1111-4111-8111-111111111111',
+      qaEnabled: true,
+      qaOpen: true,
+      qaTitle: 'Fragen',
+      qaModerationMode: true,
+      title: null,
+      moderationMode: false,
+      quickFeedbackEnabled: true,
+      quickFeedbackOpen: true,
+    });
+
+    const result = await caller.reopenQuickFeedbackChannel({ code: 'ABC123' });
+
+    expect(prismaMock.session.update).toHaveBeenCalledWith(
+      expect.objectContaining({
+        data: expect.objectContaining({
+          quickFeedbackOpen: true,
+          status: 'LOBBY',
+          endedAt: null,
+        }),
+      }),
+    );
+    expect(result.quickFeedback).toMatchObject({ enabled: true, open: true });
+  });
+
   it('ist idempotent, wenn der Kanal bereits aktiv ist', async () => {
     prismaMock.session.findUnique.mockResolvedValue({
       ...ACTIVE_SESSION,
@@ -748,10 +839,12 @@ describe('session.enable channel mutations', () => {
       ...ACTIVE_SESSION,
       id: SESSION_ID,
       status: 'FINISHED',
+      endedAt: new Date('2026-09-19T06:00:00.000Z'),
       type: 'QUIZ',
       quizId: '11111111-1111-4111-8111-111111111111',
-      qaEnabled: true,
-      qaOpen: true,
+      qaEnabled: false,
+      qaOpen: false,
+      qaClosesAt: null,
       qaTitle: 'Fragen',
       qaModerationMode: true,
       title: null,

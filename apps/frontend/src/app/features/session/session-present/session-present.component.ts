@@ -60,7 +60,11 @@ import type {
   WordCloudWeightMetric,
 } from '@arsnova/shared-types';
 import { recordServerTimeSample } from '../session-server-clock';
-import { SessionDeadlineController, type SessionDeadlineSnapshot } from '../session-deadline';
+import {
+  enrichDeadlineSnapshot,
+  SessionDeadlineController,
+  type SessionDeadlineSnapshot,
+} from '../session-deadline';
 import { readSessionCodeFromActivatedRoute } from '../session-route-code';
 import { localizePath, resolveLocalizedJoinUrl } from '../../../core/locale-router';
 import { formatLocaleCount, formatLocalePercent } from '../../../core/locale-number.util';
@@ -1186,6 +1190,7 @@ export class SessionPresentComponent implements OnInit, OnDestroy {
     if (!hasLifecycleSnapshot) {
       return true;
     }
+    snapshot = enrichDeadlineSnapshot(snapshot, this.session() ?? undefined);
     if (!this.sessionDeadline.applySnapshot(snapshot)) {
       if (this.sessionDeadline.isExpired()) {
         this.closePresentAtDeadline();

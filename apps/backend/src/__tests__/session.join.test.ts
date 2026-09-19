@@ -387,6 +387,53 @@ describe('session.join', () => {
     },
   );
 
+  it('lässt den Join nach Quiz-FINISHED zu, solange Q&A offen ist', async () => {
+    prismaMock.participant.create.mockResolvedValue({ id: PARTICIPANT_ID });
+    prismaMock.participant.count.mockResolvedValue(4);
+    prismaMock.session.findUnique.mockResolvedValue({
+      ...buildSession(),
+      status: 'FINISHED',
+      endedAt: new Date('2026-09-19T07:00:00.000Z'),
+      expiresAt: new Date('2026-09-20T08:00:00.000Z'),
+      qaEnabled: true,
+      qaOpen: true,
+      qaClosesAt: new Date('2026-09-20T08:00:00.000Z'),
+    });
+
+    const result = await caller.join({
+      code: 'ABC123',
+      nickname: 'Forum',
+      anonymousClientId: CLIENT_ID,
+      joinIdempotencyKey: JOIN_KEY,
+    });
+
+    expect(result.participantId).toBe(PARTICIPANT_ID);
+    expect(result.status).toBe('FINISHED');
+    expect(result.channels?.qa.open).toBe(true);
+  });
+
+  it('lehnt den Join nach Quiz-FINISHED ab, wenn Q&A nicht offen ist', async () => {
+    prismaMock.session.findUnique.mockResolvedValue({
+      ...buildSession(),
+      status: 'FINISHED',
+      endedAt: new Date('2026-09-19T07:00:00.000Z'),
+      expiresAt: new Date('2026-09-20T08:00:00.000Z'),
+    });
+
+    await expect(
+      caller.join({
+        code: 'ABC123',
+        nickname: 'Forum',
+        anonymousClientId: CLIENT_ID,
+        joinIdempotencyKey: JOIN_KEY,
+      }),
+    ).rejects.toMatchObject({
+      code: 'BAD_REQUEST',
+      message: 'Diese Session ist bereits beendet.',
+    });
+    expect(participantJoinMocks.prepareParticipantJoin).not.toHaveBeenCalled();
+  });
+
   it('lässt 500 gültige Join-Inputs aus demselben Netz ohne Fehlbudget durch', async () => {
     prismaMock.participant.create.mockResolvedValue({ id: PARTICIPANT_ID });
     prismaMock.participant.count.mockResolvedValue(500);

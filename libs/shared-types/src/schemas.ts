@@ -5721,6 +5721,7 @@ export const QaQuestionDTOSchema = z.object({
   status: QaQuestionStatusEnum,
   createdAt: z.string(),
   authorNickname: z.string().min(1).max(30).optional(),
+  authorTeamName: z.string().trim().min(1).max(40).optional(),
   positiveVoteCount: z.number().int().min(0).optional(),
   negativeVoteCount: z.number().int().min(0).optional(),
   voteCount: z.number().int().min(0).optional(),
@@ -6089,6 +6090,8 @@ export const QuickFeedbackIsActiveOutputSchema = z.object({
   /** Der kombinierte Resolver liefert Session-Metadaten ohne zweiten Client-Lookup. */
   sessionStatus: SessionStatusEnum.optional(),
   sessionType: SessionTypeEnum.optional(),
+  /** Offenes Q&A bleibt nach Quiz-FINISHED bis qaClosesAt beitretbar. */
+  qaJoinable: z.boolean().optional(),
 });
 export type QuickFeedbackIsActiveOutput = z.infer<typeof QuickFeedbackIsActiveOutputSchema>;
 

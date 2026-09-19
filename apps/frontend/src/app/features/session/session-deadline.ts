@@ -1,9 +1,36 @@
+import { isQaOpenForParticipants } from '@arsnova/shared-types';
+
 export type SessionDeadlineSnapshot = {
   status?: string;
   serverNow?: string;
   expiresAt?: string;
   sessionLifecycleRevision?: number;
+  type?: 'QUIZ' | 'Q_AND_A' | null;
+  channels?: Parameters<typeof isQaOpenForParticipants>[0]['channels'];
+  qaEnabled?: boolean | null;
+  qaOpen?: boolean | null;
+  qaClosesAt?: string | Date | null;
 };
+
+export function enrichDeadlineSnapshot(
+  snapshot: SessionDeadlineSnapshot,
+  known?: Pick<
+    SessionDeadlineSnapshot,
+    'type' | 'channels' | 'qaEnabled' | 'qaOpen' | 'qaClosesAt'
+  >,
+): SessionDeadlineSnapshot {
+  if (!known) {
+    return snapshot;
+  }
+  return {
+    ...snapshot,
+    type: snapshot.type ?? known.type,
+    channels: snapshot.channels ?? known.channels,
+    qaEnabled: snapshot.qaEnabled ?? known.qaEnabled,
+    qaOpen: snapshot.qaOpen ?? known.qaOpen,
+    qaClosesAt: snapshot.qaClosesAt ?? known.qaClosesAt,
+  };
+}
 
 export type SessionDeadlineClock = {
   monotonicNow(): number;
@@ -20,6 +47,7 @@ const defaultDeadlineClock: SessionDeadlineClock = {
  * Fail-closed Sessionfrist ohne Vertrauen in die laufende Geräte-Wanduhr.
  * Ein lokales Ende ist gelatcht; nur ein autoritativer Snapshot mit höherer
  * Revision kann anschließend wieder einen aktiven Zustand bestätigen.
+ * Quiz-FINISHED bei tatsächlich offenem Q&A ist kein globales Teilnahmeende.
  */
 export class SessionDeadlineController {
   private revision = -1;
@@ -82,8 +110,19 @@ export class SessionDeadlineController {
     // bereits monoton fortgeschriebene Serverzeit nie zurücksetzen.
     this.serverNowAtSampleMs = Math.max(serverNowMs, previousEstimatedServerNow ?? serverNowMs);
     this.monotonicAtSampleMs = monotonicNow;
+    const qaStillOpen = isQaOpenForParticipants(
+      {
+        type: snapshot.type,
+        channels: snapshot.channels,
+        qaEnabled: snapshot.qaEnabled,
+        qaOpen: snapshot.qaOpen,
+        qaClosesAt: snapshot.qaClosesAt,
+        expiresAt: snapshot.expiresAt,
+      },
+      new Date(this.serverNowAtSampleMs),
+    );
     this.expired =
-      snapshot.status === 'FINISHED' ||
+      (snapshot.status === 'FINISHED' && !qaStillOpen) ||
       this.serverNowAtSampleMs >= expiresAtMs ||
       (wasExpired && revision === previousRevision);
     return true;

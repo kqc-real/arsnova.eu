@@ -110,11 +110,15 @@ describe('DTO security (Story 2.4)', () => {
       upvoteCount: 4,
       status: 'ACTIVE',
       createdAt: '2026-03-13T12:00:00.000Z',
+      authorNickname: 'Green frog 1',
+      authorTeamName: 'Team 🍎',
       hasUpvoted: true,
       isOwn: false,
       myVote: 'UP',
     });
 
+    expect(parsed.authorNickname).toBe('Green frog 1');
+    expect(parsed.authorTeamName).toBe('Team 🍎');
     expect(parsed).not.toHaveProperty('controversyScore');
     expect(parsed).not.toHaveProperty('isControversial');
     expect(parsed).not.toHaveProperty('bestScore');

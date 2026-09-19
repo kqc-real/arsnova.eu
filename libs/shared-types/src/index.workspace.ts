@@ -5,6 +5,7 @@
  * directly without requiring the package dist output first.
  */
 export * from './schemas';
+export * from './qa-joinable';
 export * from './confidence';
 export * from './session-export-insights';
 export * from './word-cloud-normalization';

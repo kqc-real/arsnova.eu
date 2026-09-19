@@ -297,6 +297,7 @@ describe('quickFeedback.vote und Session-Status', () => {
       active: true,
       sessionStatus: 'ACTIVE',
       sessionType: 'QUIZ',
+      qaJoinable: false,
     });
 
     expect(prismaMock.session.findUnique).toHaveBeenCalledOnce();
@@ -311,7 +312,12 @@ describe('quickFeedback.vote und Session-Status', () => {
       caller.isActive({
         sessionCode: 'ABC123',
       }),
-    ).resolves.toEqual({ active: false, sessionStatus: 'LOBBY', sessionType: 'QUIZ' });
+    ).resolves.toEqual({
+      active: false,
+      sessionStatus: 'LOBBY',
+      sessionType: 'QUIZ',
+      qaJoinable: false,
+    });
 
     expect(prismaMock.session.findUnique).toHaveBeenCalledOnce();
     expect(rejectInvalidSessionCodeMock).not.toHaveBeenCalled();

@@ -155,7 +155,8 @@ export async function prepareParticipantJoin(params: {
   joinIdempotencyKey: string;
   productFeedbackClaimToken?: string;
 }): Promise<PreparedParticipantJoin> {
-  await params.tx.$executeRaw`SELECT arsnova_lock_active_session(${params.sessionId})`;
+  await params.tx
+    .$executeRaw`SELECT arsnova_lock_session_for_participant_join(${params.sessionId})`;
   const now = await databaseNow(params.tx);
   const idempotencyKeyHash = hashCapabilityIndex(
     params.joinIdempotencyKey,

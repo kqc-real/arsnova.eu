@@ -86,6 +86,23 @@ describe('Q&A-Zusammenfassungsvertrag (Story 8.9c)', () => {
     });
   });
 
+  it('behaelt Autor und Team an Teilnehmer-Fragen', () => {
+    const parsed = QaQuestionDTOSchema.parse({
+      id: QUESTION_ID,
+      text: 'ich hab eine Frage.',
+      upvoteCount: 0,
+      status: 'ACTIVE',
+      createdAt: '2026-09-19T10:00:00.000Z',
+      authorNickname: 'Green frog 1',
+      authorTeamName: 'Team 🍎',
+      hasUpvoted: false,
+      isOwn: false,
+      myVote: null,
+    });
+    expect(parsed.authorNickname).toBe('Green frog 1');
+    expect(parsed.authorTeamName).toBe('Team 🍎');
+  });
+
   it('laesst Teilnehmer-Fragen ohne Summary-Artefakte zu', () => {
     const parsed = QaQuestionDTOSchema.parse({
       id: QUESTION_ID,

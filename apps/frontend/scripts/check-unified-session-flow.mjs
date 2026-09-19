@@ -2,6 +2,7 @@
 /**
  * Smoke test for the unified live session flow:
  * quiz + Q&A + quick feedback under one session code.
+ * Host leave with open Q&A returns home without ending the forum.
  *
  * Run:
  *   BASE_URL=http://localhost:4200/de TRPC_URL=http://localhost:3000/trpc npm run smoke:unified-session -w @arsnova/frontend
@@ -742,15 +743,63 @@ async function verifyPresenterQuizChannel(host, presenter, hardFailures) {
   logStep(false, 'Presenter switches exclusively back to quiz');
 }
 
+const HOST_LEAVE_HOME_RE =
+  /zur startseite|back to home|retour à l['’]accueil|volver al inicio|torna alla home/i;
+const HOST_END_SESSION_RE = /session beenden|end session/i;
+
 async function endSessionAndScan(host, participant, hardFailures) {
   const joinPopoverClose = host.locator('.session-host__join-viewport-overlay__close').first();
   if (await joinPopoverClose.isVisible().catch(() => false)) {
     await joinPopoverClose.click();
   }
 
-  const endButton = host.getByRole('button', { name: /session beenden|end session/i }).first();
+  const leaveHomeButton = host.getByRole('button', { name: HOST_LEAVE_HOME_RE }).first();
+  if (await leaveHomeButton.isVisible().catch(() => false)) {
+    await leaveHomeButton.click();
+    const homePathRe = /^\/(?:de|en|fr|it|es)\/?$/;
+    const hostHome = await host
+      .waitForFunction(
+        (homePathSource) => new RegExp(homePathSource).test(window.location.pathname),
+        homePathRe.source,
+        { timeout: 20_000 },
+      )
+      .then(() => true)
+      .catch(() => false);
+    if (!hostHome) {
+      hardFailures.push('Host did not return home after leaving an open Q&A session.');
+      return;
+    }
+    const stillOnVote = /\/session\/[^/]+\/vote/.test(new URL(participant.url()).pathname);
+    const endGateVisible = await participant
+      .locator('#vote-session-end-anchor')
+      .first()
+      .isVisible()
+      .catch(() => false);
+    if (!stillOnVote || endGateVisible) {
+      hardFailures.push(
+        'Participant left or saw the session-end gate after the host returned home with Q&A still open.',
+      );
+      return;
+    }
+    await clickChannelTab(participant, 1);
+    const participantStayed = await participant
+      .getByText(SMOKE_QUESTIONS.participantFirst, { exact: true })
+      .first()
+      .waitFor({ state: 'visible', timeout: 10_000 })
+      .then(() => true)
+      .catch(() => false);
+    if (!participantStayed) {
+      hardFailures.push('Participant no longer sees Q&A questions after the host returned home.');
+      return;
+    }
+    await scanA11y(participant, 'participant-qa-after-host-leave');
+    logStep(true, 'Host returns home while the participant stays in the open Q&A forum');
+    return;
+  }
+
+  const endButton = host.getByRole('button', { name: HOST_END_SESSION_RE }).first();
   if (!(await endButton.isVisible().catch(() => false))) {
-    hardFailures.push('Host session end action is not visible.');
+    hardFailures.push('Host session leave or end action is not visible.');
     return;
   }
 

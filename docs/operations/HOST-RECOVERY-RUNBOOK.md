@@ -23,7 +23,10 @@ nicht den PostgreSQL-basierten Wiederzugang. Ist Redis nicht erreichbar, bleibt
 der Zugriff fail-closed, bis Redis wieder verfügbar ist.
 
 Besitzt der Browser eine eindeutige, zuletzt genutzte Host-Capability, öffnet
-der erste Button der Live-Karte diese Host-Session direkt im Q&A-Kanal. Der Guard stellt den
+der erste Button der Live-Karte diese Host-Session direkt im Q&A-Kanal. Die erste
+Zeile nennt **Q&A-Session** und den sechsstelligen Sessioncode. Die zweite
+Zeile zeigt die Host-Zugangsfrist (`postProcessingEndsAt`, sonst `expiresAt`)
+als »Zugang bis …« mit lokalem Datum und Uhrzeit. Der Guard stellt den
 kurzlebigen Host-Token aus der Capability aus. Die Wiederherstellungsseite
 bleibt unter `/<locale>/host-recovery` erreichbar, erscheint auf der Live-Karte
 aber nicht als Textlink. Der Live-Karten-CTA erscheint nur bei genau einer

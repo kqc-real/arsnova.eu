@@ -242,6 +242,34 @@ describe('JoinComponent', () => {
     expect(fixture.nativeElement.querySelector('.join-card__host-link')).toBeNull();
   });
 
+  it('lässt den Join nach Quiz-FINISHED zu, solange Q&A offen ist', async () => {
+    vi.mocked(trpc.session.getInfo.query).mockResolvedValue({
+      ...mockSession,
+      status: 'FINISHED' as const,
+      channels: {
+        quiz: { enabled: true },
+        qa: {
+          enabled: true,
+          open: true,
+          title: 'Fragen',
+          moderationMode: true,
+          state: 'OPEN',
+          closesAt: '2026-09-20T08:00:00.000Z',
+        },
+        quickFeedback: { enabled: false, open: false },
+      },
+    });
+
+    const { fixture, comp } = createWithCode('ABC123');
+    fixture.detectChanges();
+    await fixture.whenStable();
+    await new Promise((r) => setTimeout(r, 80));
+
+    expect(comp.error()).toBeNull();
+    expect(comp.errorSessionFinished()).toBe(false);
+    expect(comp.session()?.code).toBe('ABC123');
+  });
+
   it('stellt Nickname-Liste bereit bei QUIZ mit nicknameTheme (Story 3.2)', async () => {
     const { fixture, comp } = createWithCode('ABC123');
     fixture.detectChanges();
@@ -563,6 +591,7 @@ describe('JoinComponent', () => {
 
   it('sendet vorhandenen Teilnehmer-Schlüssel als rejoinToken mit', async () => {
     storeParticipantCapability('ABC123', participantIds.existing);
+    localStorage.setItem('arsnova-nickname-ABC123', 'Ada Yonath');
 
     const { fixture, comp } = createWithCode('ABC123');
     fixture.detectChanges();
@@ -578,6 +607,30 @@ describe('JoinComponent', () => {
       nickname: 'Ada Yonath',
       anonymousClientId: ANONYMOUS_CLIENT_ID,
       rejoinToken: participantIds.existing,
+      joinIdempotencyKey: expect.any(String),
+      productFeedbackClaimToken: undefined,
+      teamId: undefined,
+    });
+  });
+
+  it('sendet rejoinToken nicht, wenn ein anderes Pseudonym gewählt wird', async () => {
+    storeParticipantCapability('ABC123', participantIds.existing);
+    localStorage.setItem('arsnova-nickname-ABC123', 'Grüner Frosch 2');
+
+    const { fixture, comp } = createWithCode('ABC123');
+    fixture.detectChanges();
+    await fixture.whenStable();
+    await new Promise((r) => setTimeout(r, 80));
+
+    comp.selectedNickname.set('Lila Delfin');
+    await comp.submitJoin();
+    await fixture.whenStable();
+
+    expect(trpc.session.join.mutate).toHaveBeenCalledWith({
+      code: 'ABC123',
+      nickname: 'Lila Delfin',
+      anonymousClientId: ANONYMOUS_CLIENT_ID,
+      rejoinToken: undefined,
       joinIdempotencyKey: expect.any(String),
       productFeedbackClaimToken: undefined,
       teamId: undefined,

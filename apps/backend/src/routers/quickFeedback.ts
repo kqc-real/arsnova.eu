@@ -24,6 +24,7 @@ import {
   type QuickFeedbackResult,
   type QuickFeedbackVoteInput,
   quickFeedbackDefaultsToLiveResults,
+  isQaChannelJoinable,
 } from '@arsnova/shared-types';
 import { publicProcedure, resolveClientIp, router } from '../trpc';
 import { getRedis } from '../redis';
@@ -250,14 +251,28 @@ async function resolveQuickFeedbackAvailability(
 
   const session = await prisma.session.findUnique({
     where: { code },
-    select: { status: true, type: true, endedAt: true, expiresAt: true },
+    select: {
+      status: true,
+      type: true,
+      endedAt: true,
+      expiresAt: true,
+      qaEnabled: true,
+      qaOpen: true,
+      qaClosesAt: true,
+    },
   });
-  const effectivelyFinished = session !== null && isSessionEffectivelyFinished(session, new Date());
+  const now = new Date();
+  const effectivelyFinished = session !== null && isSessionEffectivelyFinished(session, now);
+  const qaJoinable =
+    session !== null &&
+    !(session.expiresAt instanceof Date && now.getTime() >= session.expiresAt.getTime()) &&
+    isQaChannelJoinable(session, now);
   if (raw && session) {
     return {
       active: !effectivelyFinished,
       sessionStatus: effectivelyFinished ? ('FINISHED' as const) : session.status,
       sessionType: session.type,
+      qaJoinable,
     };
   }
   if (raw) return { active: true as const };
@@ -268,6 +283,7 @@ async function resolveQuickFeedbackAvailability(
     active: false as const,
     sessionStatus: effectivelyFinished ? ('FINISHED' as const) : session.status,
     sessionType: session.type,
+    qaJoinable,
   };
 }
 

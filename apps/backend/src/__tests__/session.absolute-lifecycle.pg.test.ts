@@ -457,4 +457,88 @@ describe.skipIf(!RUN_PG)('absolute session lifecycle (PostgreSQL)', () => {
     );
     expect(persisted.rows[0]).toMatchObject({ title: 'Nur Titel', revision: 2 });
   });
+
+  it('lässt Join und Q&A-Beitrag nach Quiz-FINISHED zu, solange der Kanal offen ist', async () => {
+    const sessionId = randomUUID();
+    const firstParticipantId = randomUUID();
+    const lateParticipantId = randomUUID();
+    sessionIds.push(sessionId);
+    await primary.query(
+      `
+        INSERT INTO "Session" (
+          id, code, status, "createdAt", "expiresAt", "startedAt",
+          "qaEnabled", "qaOpen", "qaClosesAt", "preferredChannel"
+        )
+        VALUES (
+          $1, $2, 'ACTIVE',
+          clock_timestamp() - INTERVAL '2 hours',
+          clock_timestamp() + INTERVAL '12 hours',
+          clock_timestamp() - INTERVAL '2 hours',
+          TRUE, TRUE, clock_timestamp() + INTERVAL '10 hours', 'qa'
+        )
+      `,
+      [sessionId, uniqueSessionCode()],
+    );
+    await primary.query(
+      `INSERT INTO "Participant" (id, nickname, "sessionId") VALUES ($1, 'Früh', $2)`,
+      [firstParticipantId, sessionId],
+    );
+    await primary.query(`UPDATE "Session" SET status = 'FINISHED' WHERE id = $1`, [sessionId]);
+
+    await expect(
+      primary.query(`SELECT arsnova_lock_session_for_participant_join($1)`, [sessionId]),
+    ).resolves.toMatchObject({ rowCount: 1 });
+
+    const numbered = await primary.query<{ next_number: number }>(
+      `
+        UPDATE "Session"
+        SET "nextParticipantNumber" = "nextParticipantNumber" + 1
+        WHERE id = $1
+        RETURNING "nextParticipantNumber" AS next_number
+      `,
+      [sessionId],
+    );
+    expect(numbered.rows[0]!.next_number).toBeGreaterThan(0);
+
+    await expect(
+      primary.query(
+        `INSERT INTO "Participant" (id, nickname, "sessionId") VALUES ($1, 'Spät', $2)`,
+        [lateParticipantId, sessionId],
+      ),
+    ).resolves.toMatchObject({ rowCount: 1 });
+
+    const created = await primary.query<{ id: string }>(
+      `
+        SELECT id
+        FROM arsnova_create_qa_question(
+          $1, $2, 'Noch eine Frage nach dem Quiz',
+          $3::CHAR(64), 'DISABLED'::"QaNlpStatus"
+        )
+      `,
+      [sessionId, lateParticipantId, randomUUID().replaceAll('-', '').padEnd(64, '0')],
+    );
+    expect(created.rows[0]?.id).toMatch(/./);
+
+    await expect(
+      primary.query(
+        `UPDATE "Session" SET "qaModerationMode" = TRUE WHERE id = $1 RETURNING "qaModerationMode"`,
+        [sessionId],
+      ),
+    ).resolves.toMatchObject({ rowCount: 1 });
+
+    await expect(
+      primary.query(`UPDATE "Session" SET title = 'Wieder offen' WHERE id = $1`, [sessionId]),
+    ).rejects.toThrow(/ARSNOVA_SESSION_ENDED/);
+
+    await expect(
+      primary.query(
+        `
+          UPDATE "Session"
+          SET status = 'LOBBY', "endedAt" = NULL, "quickFeedbackEnabled" = TRUE, "quickFeedbackOpen" = TRUE
+          WHERE id = $1
+        `,
+        [sessionId],
+      ),
+    ).resolves.toMatchObject({ rowCount: 1 });
+  });
 });

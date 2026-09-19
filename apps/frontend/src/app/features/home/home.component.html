@@ -216,14 +216,10 @@
               data-testid="home-host-recovery"
             >
               <span class="home-choice-button__copy">
-                <span class="home-choice-button__label" i18n="@@homeLiveCard.recoveryLabel"
-                  >Host-Session</span
-                >
-                <span
-                  class="home-choice-button__description"
-                  i18n="@@homeLiveCard.recoveryDescription"
-                  >Zugang als Host</span
-                >
+                <span class="home-choice-button__label">{{ hostRecoveryCtaLabel() }}</span>
+                <span class="home-choice-button__description">{{
+                  hostRecoveryCtaDescription()
+                }}</span>
               </span>
             </a>
           }

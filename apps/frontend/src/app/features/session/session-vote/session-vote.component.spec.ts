@@ -247,6 +247,7 @@ describe('SessionVoteComponent', { timeout: 30_000 }, () => {
     getInfoForReconnectQueryMock.mockImplementation(() => getInfoQueryMock());
     localStorage.setItem('arsnova-participant-ABC123', '11111111-1111-4111-8111-111111111111');
     localStorage.removeItem('arsnova-nickname-ABC123');
+    localStorage.removeItem('arsnova-participant-capability-ABC123');
     sessionStorage.clear();
 
     statusChangedSubscribeMock.mockReturnValue({ unsubscribe: vi.fn() });
@@ -321,6 +322,7 @@ describe('SessionVoteComponent', { timeout: 30_000 }, () => {
     joinMutateMock.mockResolvedValue({
       id: '6a8edced-5f8f-4cfa-9176-454fac9570ad',
       participantId: '11111111-1111-4111-8111-111111111111',
+      participantNickname: 'Roter Drache 1',
     });
     voteSubmitMutateMock.mockResolvedValue({});
     quickFeedbackResultsQueryMock.mockRejectedValue(new Error('not found'));
@@ -1130,6 +1132,50 @@ describe('SessionVoteComponent', { timeout: 30_000 }, () => {
     expect(component.voteSent()).toBe(false);
     expect(component.voteClosed()).toBe(false);
     expect(component['scorePreviewTimer']).toBeTruthy();
+    fixture.destroy();
+  });
+
+  it('stellt vor dem Absenden eine gültige Teilnahme her, statt eine leere participantId zu senden', async () => {
+    localStorage.setItem('arsnova-participant-ABC123', 'kein-uuid');
+    joinMutateMock.mockResolvedValue({
+      id: '6a8edced-5f8f-4cfa-9176-454fac9570ad',
+      participantId: '22222222-2222-4222-8222-222222222222',
+      participantNickname: 'Grüner Frosch',
+      rejoinToken: 'participant-capability-abcdefghijklmnopqrstuvwxyz',
+    });
+    const fixture = TestBed.createComponent(SessionVoteComponent);
+    const component = fixture.componentInstance;
+    component.sessionId.set('6a8edced-5f8f-4cfa-9176-454fac9570ad');
+    component.participantId.set('');
+    component.status.set('ACTIVE');
+    component.currentRound.set(1);
+    component.selectedAnswerIds.set(new Set(['a1']));
+    component.currentQuestion.set({
+      id: '11111111-1111-4111-8111-111111111111',
+      text: 'Frage',
+      type: 'SINGLE_CHOICE',
+      difficulty: 'MEDIUM',
+      order: 0,
+      totalQuestions: 1,
+      answers: [
+        { id: 'a1', text: 'A' },
+        { id: 'a2', text: 'B' },
+      ],
+      timer: null,
+      currentRound: 1,
+    });
+
+    await component.submitVote();
+
+    expect(joinMutateMock).toHaveBeenCalled();
+    expect(voteSubmitMutateMock).toHaveBeenCalledWith(
+      expect.objectContaining({
+        sessionId: '6a8edced-5f8f-4cfa-9176-454fac9570ad',
+        participantId: '22222222-2222-4222-8222-222222222222',
+      }),
+    );
+    expect(component.participantId()).toBe('22222222-2222-4222-8222-222222222222');
+    expect(component.voteError()).toBeNull();
     fixture.destroy();
   });
 
@@ -4158,6 +4204,221 @@ describe('SessionVoteComponent', { timeout: 30_000 }, () => {
     fixture.destroy();
   });
 
+  it('hält nach Quiz-FINISHED den Q&A-Kanal offen statt der Abschlussseite', async () => {
+    getInfoQueryMock.mockResolvedValue({
+      id: '6a8edced-5f8f-4cfa-9176-454fac9570ad',
+      serverTime: MOCK_SERVER_TIME,
+      code: 'ABC123',
+      type: 'QUIZ',
+      status: 'FINISHED',
+      quizName: 'Team-Quiz',
+      title: null,
+      participantCount: 6,
+      teamMode: false,
+      quizStarted: true,
+      preset: 'PLAYFUL',
+      qaClosesAt: '2026-09-20T08:00:00.000Z',
+      channels: {
+        quiz: { enabled: true },
+        qa: {
+          enabled: true,
+          open: true,
+          title: 'Fragen',
+          moderationMode: true,
+          state: 'OPEN',
+          closesAt: '2026-09-20T08:00:00.000Z',
+        },
+        quickFeedback: { enabled: false, open: false },
+      },
+    });
+    currentQuestionQueryMock.mockResolvedValue(null);
+
+    const fixture = TestBed.createComponent(SessionVoteComponent);
+    fixture.detectChanges();
+    await flushComponentAfterStable(fixture, 80);
+    fixture.detectChanges();
+
+    const inst = fixture.componentInstance;
+    expect(inst.isFinished()).toBe(false);
+    expect(inst.qaStillJoinable()).toBe(true);
+    expect(inst.activeChannel()).toBe('qa');
+    expect(inst.showSessionEndGate()).toBe(false);
+    fixture.destroy();
+  });
+
+  it('übernimmt Q&A-Fragen nach Quiz-FINISHED derselben Lifecycle-Revision und schließt erst bei globaler Frist', async () => {
+    const lifecycle = {
+      serverNow: '2026-09-19T08:00:00.000Z',
+      expiresAt: '2026-09-20T08:00:00.000Z',
+      sessionLifecycleRevision: 4,
+      qaClosesAt: '2026-09-20T08:00:00.000Z',
+    };
+    const openQaChannels = {
+      quiz: { enabled: true },
+      qa: {
+        enabled: true,
+        open: true,
+        title: 'Fragen',
+        moderationMode: true,
+        state: 'OPEN' as const,
+        closesAt: lifecycle.qaClosesAt,
+      },
+      quickFeedback: { enabled: false, open: false },
+    };
+    const sessionInfo = {
+      id: '6a8edced-5f8f-4cfa-9176-454fac9570ad',
+      serverTime: lifecycle.serverNow,
+      code: 'ABC123',
+      type: 'QUIZ' as const,
+      status: 'FINISHED' as const,
+      quizName: 'Team-Quiz',
+      title: null,
+      participantCount: 6,
+      teamMode: false,
+      quizStarted: true,
+      preset: 'PLAYFUL',
+      ...lifecycle,
+      channels: openQaChannels,
+    };
+    const firstQuestion = {
+      id: 'qa-open-1',
+      text: 'Erste Frage nach dem Quiz',
+      upvoteCount: 2,
+      status: 'ACTIVE' as const,
+      createdAt: '2026-09-19T07:00:00.000Z',
+      myVote: null,
+      isOwn: false,
+      hasUpvoted: false,
+      authorNickname: 'Grüner Frosch 2',
+      authorTeamName: 'Team 🍐',
+    };
+    qaListQueryMock.mockResolvedValue({
+      questions: [firstQuestion],
+      state: 'ACTIVE',
+      rankingRevision: '4:TOP:',
+      totalCount: 1,
+      endedAt: '2026-09-19T07:50:00.000Z',
+      postProcessingEndsAt: null,
+      ...lifecycle,
+    });
+    getInfoQueryMock.mockResolvedValue(sessionInfo);
+    currentQuestionQueryMock.mockResolvedValue(null);
+    let qaOnData:
+      | ((data: {
+          kind: 'INVALIDATED';
+          state: string;
+          sessionLifecycleRevision: number;
+          rankingRevision: number;
+          participantRevision: number;
+          serverNow: string;
+          expiresAt: string;
+          qaClosesAt: string;
+          endedAt: string | null;
+          postProcessingEndsAt: string | null;
+        }) => void)
+      | undefined;
+    qaQuestionsUpdatedSubscribeMock.mockImplementation(
+      (_input: unknown, handlers: { onData: typeof qaOnData }) => {
+        qaOnData = handlers.onData;
+        return { unsubscribe: vi.fn() };
+      },
+    );
+
+    const fixture = TestBed.createComponent(SessionVoteComponent);
+    fixture.detectChanges();
+    await flushComponentAfterStable(fixture, 80);
+    fixture.detectChanges();
+
+    const inst = fixture.componentInstance;
+    expect(inst.isFinished()).toBe(false);
+    expect(inst.qaStillJoinable()).toBe(true);
+    expect(inst.activeChannel()).toBe('qa');
+    expect(inst.showSessionEndGate()).toBe(false);
+    expect(inst.qaQuestions().map((question) => question.id)).toEqual(['qa-open-1']);
+    expect(fixture.nativeElement.textContent as string).toContain('Erste Frage nach dem Quiz');
+
+    qaListQueryMock.mockResolvedValue({
+      questions: [
+        {
+          ...firstQuestion,
+          id: 'qa-open-2',
+          text: 'Aktualisierte Frage nach Invalidierung',
+        },
+      ],
+      state: 'ACTIVE',
+      rankingRevision: '4:TOP:2',
+      totalCount: 1,
+      endedAt: '2026-09-19T07:50:00.000Z',
+      postProcessingEndsAt: null,
+      ...lifecycle,
+      serverNow: '2026-09-19T08:00:02.000Z',
+    });
+    qaOnData?.({
+      kind: 'INVALIDATED',
+      state: 'ACTIVE',
+      sessionLifecycleRevision: 4,
+      rankingRevision: 2,
+      participantRevision: 1,
+      serverNow: '2026-09-19T08:00:02.000Z',
+      expiresAt: lifecycle.expiresAt,
+      qaClosesAt: lifecycle.qaClosesAt,
+      endedAt: '2026-09-19T07:50:00.000Z',
+      postProcessingEndsAt: null,
+    });
+    await flushComponentAfterStable(fixture, 80);
+    fixture.detectChanges();
+    expect(inst.qaQuestions().map((question) => question.id)).toEqual(['qa-open-2']);
+    expect(fixture.nativeElement.textContent as string).toContain(
+      'Aktualisierte Frage nach Invalidierung',
+    );
+
+    fixture.destroy();
+    const reloadedQuestion = {
+      ...firstQuestion,
+      id: 'qa-open-3',
+      text: 'Frage nach Reload',
+    };
+    qaListQueryMock.mockResolvedValue({
+      questions: [reloadedQuestion],
+      state: 'ACTIVE',
+      rankingRevision: '4:TOP:3',
+      totalCount: 1,
+      endedAt: '2026-09-19T07:50:00.000Z',
+      postProcessingEndsAt: null,
+      ...lifecycle,
+    });
+    getInfoQueryMock.mockResolvedValue(sessionInfo);
+    const reloadFixture = TestBed.createComponent(SessionVoteComponent);
+    reloadFixture.detectChanges();
+    await flushComponentAfterStable(reloadFixture, 80);
+    reloadFixture.detectChanges();
+    expect(reloadFixture.componentInstance.qaQuestions().map((question) => question.id)).toEqual([
+      'qa-open-3',
+    ]);
+    expect(reloadFixture.nativeElement.textContent as string).toContain('Frage nach Reload');
+
+    expect(
+      (
+        reloadFixture.componentInstance as unknown as {
+          applySessionDeadlineSnapshot(snapshot: {
+            status: string;
+            serverNow: string;
+            expiresAt: string;
+            sessionLifecycleRevision: number;
+          }): boolean;
+        }
+      ).applySessionDeadlineSnapshot({
+        status: 'FINISHED',
+        serverNow: '2026-09-20T08:00:00.000Z',
+        expiresAt: '2026-09-20T08:00:00.000Z',
+        sessionLifecycleRevision: 5,
+      }),
+    ).toBe(false);
+    expect(reloadFixture.componentInstance.showSessionEndGate()).toBe(true);
+    expect(reloadFixture.componentInstance.qaQuestions()).toEqual([]);
+    reloadFixture.destroy();
+  });
+
   it('zeigt im Session-End-Gate Bonus und Startseite im Aktionsanker; Bewertung absenden in der Karte', async () => {
     getInfoQueryMock.mockResolvedValue({
       id: '6a8edced-5f8f-4cfa-9176-454fac9570ad',
@@ -4561,6 +4822,94 @@ describe('SessionVoteComponent', { timeout: 30_000 }, () => {
         hasUpvoted: false,
       }),
     ).toBe('🐉 2');
+    fixture.destroy();
+  });
+
+  it('zeigt die Teamzugehörigkeit an Q&A-Fragen', () => {
+    const fixture = TestBed.createComponent(SessionVoteComponent);
+    const component = fixture.componentInstance;
+    component.status.set('ACTIVE');
+    component.activeChannel.set('qa');
+    component.sessionSettings.set({
+      nicknameTheme: 'HIGH_SCHOOL',
+      anonymousMode: false,
+      teamMode: true,
+      channels: {
+        quiz: { enabled: false },
+        qa: { enabled: true, open: true, title: 'Fragen', moderationMode: false, state: 'OPEN' },
+        quickFeedback: { enabled: false, open: false },
+      },
+    });
+    component.qaQuestions.set([
+      {
+        id: 'question-1',
+        text: 'Kommt Kapitel 4 in der Klausur vor?',
+        upvoteCount: 2,
+        status: 'ACTIVE',
+        createdAt: '2026-03-13T12:00:00.000Z',
+        authorNickname: 'Roter Drache 2',
+        authorTeamName: 'Team 🍎',
+        myVote: null,
+        isOwn: false,
+        hasUpvoted: false,
+      },
+    ]);
+    fixture.detectChanges();
+
+    expect(component.qaQuestionAuthorTeamName(component.qaQuestions()[0]!)).toBe('Team 🍎');
+    expect(fixture.nativeElement.textContent).toContain('Roter Drache 2');
+    expect(
+      fixture.nativeElement.querySelector('.session-qa-card__author-team')?.textContent,
+    ).toContain('Team');
+    fixture.destroy();
+  });
+
+  it('zeigt die Teamzugehörigkeit fremder Q&A-Fragen auch über das Leaderboard', () => {
+    const fixture = TestBed.createComponent(SessionVoteComponent);
+    const component = fixture.componentInstance;
+    component.status.set('ACTIVE');
+    component.activeChannel.set('qa');
+    component.sessionSettings.set({
+      nicknameTheme: 'KINDERGARTEN',
+      anonymousMode: false,
+      teamMode: true,
+      channels: {
+        quiz: { enabled: false },
+        qa: { enabled: true, open: true, title: 'Fragen', moderationMode: false, state: 'OPEN' },
+        quickFeedback: { enabled: false, open: false },
+      },
+    });
+    component.personalLeaderboard.set([
+      {
+        rank: 1,
+        nickname: 'Green frog 1',
+        totalScore: 0,
+        correctCount: 0,
+        totalQuestions: 0,
+        totalResponseTimeMs: 0,
+        teamName: 'Team 🍎',
+        teamColor: null,
+      },
+    ]);
+    component.qaQuestions.set([
+      {
+        id: 'question-1',
+        text: 'ich hab eine Frage.',
+        upvoteCount: 0,
+        status: 'ACTIVE',
+        createdAt: '2026-09-19T12:00:00.000Z',
+        authorNickname: 'Green frog 1',
+        myVote: null,
+        isOwn: false,
+        hasUpvoted: false,
+      },
+    ]);
+    fixture.detectChanges();
+
+    expect(component.qaQuestionAuthorTeamName(component.qaQuestions()[0]!)).toBe('Team 🍎');
+    expect(
+      fixture.nativeElement.querySelector('.session-qa-card__author-team')?.textContent,
+    ).toContain('Team');
     fixture.destroy();
   });
 

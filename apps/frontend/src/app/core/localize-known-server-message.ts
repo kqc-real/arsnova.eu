@@ -126,10 +126,20 @@ export function localizeKnownServerMessage(message: string): string {
   return normalized;
 }
 
+function isRawContractValidationDump(message: string): boolean {
+  const trimmed = message.trim();
+  return (
+    trimmed.startsWith('[') && (trimmed.includes('"invalid_format"') || trimmed.includes('"code":'))
+  );
+}
+
 function extractErrorMessage(error: unknown, fallbackMessage: string): string {
   const root = asRecord(error);
   const message = root?.['message'];
   if (typeof message === 'string' && message.trim().length > 0) {
+    if (isRawContractValidationDump(message)) {
+      return fallbackMessage;
+    }
     return message;
   }
   return fallbackMessage;
