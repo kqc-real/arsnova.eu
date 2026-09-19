@@ -1573,7 +1573,7 @@ describe('WordCloudComponent', () => {
     expect(maximizeSpy).toHaveBeenCalledTimes(1);
   });
 
-  it('ersetzt die Vollbild-Wolke sofort wenn sich die Woerter aendern', () => {
+  it('behaelt das vorherige Pack bis das neue Layout steht', () => {
     const fixture = TestBed.createComponent(WordCloudComponent);
     fixture.componentRef.setInput('presentationMode', true);
     fixture.componentRef.setInput('terms', [
@@ -1673,6 +1673,6 @@ describe('WordCloudComponent', () => {
     component.layoutPending.set(true);
 
     expect(component.displayWords().map((entry) => entry.word)).toEqual(['Regression']);
-    expect(component.cloudLayoutActive()).toBe(false);
+    expect(component.cloudLayoutActive()).toBe(true);
   });
 });

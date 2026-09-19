@@ -10679,7 +10679,7 @@ export class SessionHostComponent implements OnInit, OnDestroy {
     this.clearQaWordCloudThemeAnalysisTimer();
     this.qaWordCloudThemeAnalysisTimer = setTimeout(() => {
       this.qaWordCloudThemeAnalysisTimer = null;
-      void this.refreshQaWordCloudThemeAnalysis(request);
+      void this.refreshQaWordCloudThemeAnalysis(request, { keepPrevious: true });
     }, QA_WORD_CLOUD_ANALYSIS_DEBOUNCE_MS);
   }
 

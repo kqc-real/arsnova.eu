@@ -620,9 +620,7 @@ export class WordCloudComponent implements AfterViewInit, OnDestroy {
       return true;
     }
 
-    return (
-      this.layoutPending() && this.activeLayoutContentSignature() === this.layoutContentSignature()
-    );
+    return this.layoutPending();
   });
 
   readonly renderedCloudStageHeightPx = computed(() =>
