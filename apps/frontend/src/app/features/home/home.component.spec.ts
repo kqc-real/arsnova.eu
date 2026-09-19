@@ -490,6 +490,11 @@ describe('HomeComponent', () => {
       const recoveryAction = fixture.nativeElement.querySelector(
         '.home-host-session-cta-row [data-testid="home-host-recovery"]',
       ) as HTMLElement | null;
+      expect(recoveryAction?.tagName).toBe('A');
+      expect(recoveryAction?.getAttribute('role')).not.toBe('listitem');
+      expect(
+        recoveryAction?.closest('ul.home-host-session-cta-row')?.getAttribute('aria-label'),
+      ).toBe('Deine Q&A-Sessions');
       expect(recoveryAction?.getAttribute('href') ?? '').toContain('session/ABC123/host');
       expect(recoveryAction?.getAttribute('href') ?? '').toContain('tab=qa');
       expect(recoveryAction?.getAttribute('href') ?? '').not.toContain('host-recovery');

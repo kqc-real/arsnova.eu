@@ -9388,8 +9388,8 @@
         <target>Nueva sesión de Q&amp;A</target>
       </trans-unit>
       <trans-unit id="homeLiveCard.openHostSessionsAria" datatype="html">
-        <source>Offene Q&amp;A-Sessions</source>
-        <target>Sesiones de Q&amp;A abiertas</target>
+        <source>Deine Q&amp;A-Sessions</source>
+        <target>Tus sesiones de Q&amp;A</target>
       </trans-unit>
       <trans-unit id="homeLiveCard.qaDescription" datatype="html">
         <source>Fragen &amp; Wortwolke</source>

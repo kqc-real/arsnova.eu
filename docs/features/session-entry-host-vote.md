@@ -240,7 +240,7 @@ Quellen: `session.ts` `join`, `vote.ts` `submit`, `isQaOpenForParticipants`,
 | »Andere Session wiederherstellen«              | Formular zurücksetzen, kein Session-Wechsel-Menü                        | Code+Test |
 | Genau ein offenes Resume                       | Auto-Fortsetzung                                                        | Code+Test |
 | Gekoppelter Host                               | Host-Route ja; `GLOBAL_EXTENSION` `FORBIDDEN`; keine Pairing-Verwaltung | Code+Test |
-| Host-Ansicht aller wieder aufrufbaren Sessions | Existiert **nicht**. Höchstens ein CTA.                                 | Code+Test |
+| Host-Ansicht aller wieder aufrufbaren Sessions | Home-CTA-Reihe, Lookup 32, Anzeige höchstens 8                          | Code+Test |
 
 ---
 
@@ -269,7 +269,8 @@ Quellen: `session.ts` `join`, `vote.ts` `submit`, `isQaOpenForParticipants`,
 Session-**Anzahl** ist keine eigene DoS-Klasse. Öffentliches `session.create`
 liegt bei 10/IP/h und 120 (Dev) bzw. 2 400 (Prod) global je Stunde; 100 000
 Zeilen entstehen darüber nicht in einem Lastfenster. Die Home-CTA-Reihe ruft
-höchstens acht `session.getInfo` auf, Lookups laufen über den eindeutigen Code,
+höchstens 32 `session.getInfo` auf und zeigt acht Einträge. Lookups laufen über
+den eindeutigen Code,
 Purge in 100er-Batches. Ein DoD-Lasttest mit 100 000 Sessions ist nicht
 erforderlich. Kritisch bleiben 500 gleichzeitige Hörsaal-Clients und das
 Create-Globalbudget, nicht die historische Sessionzahl.

@@ -205,38 +205,38 @@
 
         <mat-card-actions class="home-card__actions home-card__actions--stack home-live-actions">
           @if (showHostRecoveryCta()) {
-            <div
+            <ul
               class="home-host-session-cta-row"
-              role="list"
               i18n-aria-label="@@homeLiveCard.openHostSessionsAria"
-              aria-label="Offene Q&amp;A-Sessions"
+              aria-label="Deine Q&amp;A-Sessions"
             >
               @for (item of hostSessionCtas(); track item.code) {
-                <a
-                  [matButton]="item.primary ? 'filled' : 'outlined'"
-                  role="listitem"
-                  [routerLink]="hostSessionCtaLink(item.code)"
-                  [queryParams]="{ tab: 'qa' }"
-                  class="home-cta home-choice-button"
-                  [class.home-cta--secondary]="!item.primary"
-                  [class.home-library-button]="!item.primary"
-                  data-testid="home-host-recovery"
-                  [attr.data-session-code]="item.code"
-                >
-                  <span class="home-choice-button__copy">
-                    <span class="home-choice-button__label">{{
-                      hostSessionCtaLabel(item.code)
-                    }}</span>
-                    <span class="home-choice-button__description">{{
-                      hostSessionCtaDescription(item.deadlineLabel)
-                    }}</span>
-                    @if (hostSessionCtaOpenDescription(item); as openLabel) {
-                      <span class="home-choice-button__description">{{ openLabel }}</span>
-                    }
-                  </span>
-                </a>
+                <li class="home-host-session-cta-row__item">
+                  <a
+                    [matButton]="item.primary ? 'filled' : 'outlined'"
+                    [routerLink]="hostSessionCtaLink(item.code)"
+                    [queryParams]="{ tab: 'qa' }"
+                    class="home-cta home-choice-button"
+                    [class.home-cta--secondary]="!item.primary"
+                    [class.home-library-button]="!item.primary"
+                    data-testid="home-host-recovery"
+                    [attr.data-session-code]="item.code"
+                  >
+                    <span class="home-choice-button__copy">
+                      <span class="home-choice-button__label">{{
+                        hostSessionCtaLabel(item.code)
+                      }}</span>
+                      <span class="home-choice-button__description">{{
+                        hostSessionCtaDescription(item.deadlineLabel)
+                      }}</span>
+                      @if (hostSessionCtaOpenDescription(item); as openLabel) {
+                        <span class="home-choice-button__description">{{ openLabel }}</span>
+                      }
+                    </span>
+                  </a>
+                </li>
               }
-            </div>
+            </ul>
           }
           <div class="home-live-grid">
             <a
