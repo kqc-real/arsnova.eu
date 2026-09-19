@@ -172,6 +172,7 @@ import {
   type OrderingItemInput,
   type CategorizationCategoryInput,
   type CategorizationItemInput,
+  isQaChannelJoinable,
 } from '@arsnova/shared-types';
 import {
   isExactCorrectSelection,
@@ -3140,7 +3141,7 @@ function areSessionOnboardingProfilesCompatible(
   return sessionProfile.teamMode === quizProfile.teamMode;
 }
 
-/** Showcase-Demo-Quiz: teamlose Session darf Teams (Apfel/Birne) per AUTO nachziehen. */
+/** Showcase-Demo-Quiz: teamlose Session darf Teams (Apfel/Birne) per AUTO nachziehen, auch nach dem ersten Join. */
 function canBootstrapDemoQuizTeamsOntoTeamlessSession(
   sessionProfile: SessionOnboardingProfile,
   quizProfile: SessionOnboardingProfile,
@@ -3485,6 +3486,57 @@ function assertSessionAllowsLiveMutation(status: string | null | undefined): voi
       message: 'Beendete Sessions können nicht mehr verändert werden.',
     });
   }
+}
+
+function sessionAllowsFollowUpLiveChannel(
+  session: {
+    status?: string | null;
+    type?: 'QUIZ' | 'Q_AND_A' | null;
+    qaEnabled?: boolean | null;
+    qaOpen?: boolean | null;
+    qaClosesAt?: Date | string | null;
+    expiresAt?: Date | null;
+    endedAt?: Date | null;
+  },
+  now = new Date(),
+): boolean {
+  const finished = session.status === 'FINISHED' || session.endedAt instanceof Date;
+  if (!finished) {
+    return true;
+  }
+  if (session.expiresAt instanceof Date && now.getTime() >= session.expiresAt.getTime()) {
+    return false;
+  }
+  return isQaChannelJoinable(session, now);
+}
+
+function assertSessionAllowsFollowUpLiveChannel(
+  session: Parameters<typeof sessionAllowsFollowUpLiveChannel>[0],
+  now = new Date(),
+): void {
+  if (sessionAllowsFollowUpLiveChannel(session, now)) {
+    return;
+  }
+  throw new TRPCError({
+    code: 'BAD_REQUEST',
+    message: 'Beendete Sessions können nicht mehr verändert werden.',
+  });
+}
+
+function finishedSessionReopenData() {
+  return {
+    status: 'LOBBY' as const,
+    endedAt: null,
+    currentQuestion: null,
+    currentRound: 1,
+    quizStarted: false,
+    questionProgress: Prisma.JsonNull,
+    questionProgressComplete: false,
+    activeQuestionStartedAt: null,
+    pausedFromStatus: null,
+    lastSkippedQuestionId: null,
+    lastQuestionSkippedAt: null,
+  };
 }
 
 function defaultPreferredLiveChannel(
@@ -6151,6 +6203,9 @@ const sessionCoreRouter = router({
           quizId: true,
           qaEnabled: true,
           qaOpen: true,
+          qaClosesAt: true,
+          endedAt: true,
+          expiresAt: true,
           qaTitle: true,
           qaModerationMode: true,
           title: true,
@@ -6162,12 +6217,17 @@ const sessionCoreRouter = router({
       if (!session) {
         throw new TRPCError({ code: 'NOT_FOUND', message: 'Session nicht gefunden.' });
       }
-      assertSessionAllowsLiveMutation(session.status);
+      assertSessionAllowsFollowUpLiveChannel(session);
+      const reopenFinished = session.status === 'FINISHED' || session.endedAt instanceof Date;
 
-      if (session.quickFeedbackEnabled !== true) {
+      if (session.quickFeedbackEnabled !== true || reopenFinished) {
         const updated = await prisma.session.update({
           where: { id: session.id },
-          data: { quickFeedbackEnabled: true, quickFeedbackOpen: true },
+          data: {
+            quickFeedbackEnabled: true,
+            quickFeedbackOpen: true,
+            ...(reopenFinished ? finishedSessionReopenData() : {}),
+          },
           select: {
             type: true,
             quizId: true,
@@ -6218,6 +6278,9 @@ const sessionCoreRouter = router({
           onboardingTeamNames: true,
           onboardingNicknameTheme: true,
           firstParticipantJoinedAt: true,
+          endedAt: true,
+          expiresAt: true,
+          qaClosesAt: true,
           _count: { select: { participants: true } },
         },
       });
@@ -6230,11 +6293,9 @@ const sessionCoreRouter = router({
           message: 'Nur Live-Sessions können ein Quiz nachträglich anhängen.',
         });
       }
-      if (session.status === 'FINISHED') {
-        throw new TRPCError({
-          code: 'BAD_REQUEST',
-          message: 'Beendete Sessions können nicht mehr verändert werden.',
-        });
+      const finishedFollowUp = sessionAllowsFollowUpLiveChannel(session);
+      if (session.status === 'FINISHED' || session.endedAt instanceof Date) {
+        assertSessionAllowsFollowUpLiveChannel(session);
       }
       const voteCountForSession =
         session.quizId !== null
@@ -6243,10 +6304,13 @@ const sessionCoreRouter = router({
             })
           : 0;
       const canReplaceExistingQuiz =
-        session.quizId !== null &&
-        session.status === 'LOBBY' &&
-        session.currentQuestion === null &&
-        voteCountForSession === 0;
+        (session.status === 'FINISHED' || session.endedAt instanceof Date
+          ? finishedFollowUp
+          : false) ||
+        (session.quizId !== null &&
+          session.status === 'LOBBY' &&
+          session.currentQuestion === null &&
+          (voteCountForSession === 0 || isQaChannelJoinable(session)));
       if (session.quizId && !canReplaceExistingQuiz) {
         throw new TRPCError({
           code: 'BAD_REQUEST',
@@ -6274,15 +6338,12 @@ const sessionCoreRouter = router({
 
       const sessionOnboardingProfile = resolveSessionOnboardingProfile(session, null);
       const quizOnboardingProfile = buildSessionOnboardingProfileFromQuiz(quiz);
-      const bootstrapDemoTeams =
-        session.firstParticipantJoinedAt === null &&
-        canBootstrapDemoQuizTeamsOntoTeamlessSession(
-          sessionOnboardingProfile,
-          quizOnboardingProfile,
-          quiz,
-        );
+      const bootstrapDemoTeams = canBootstrapDemoQuizTeamsOntoTeamlessSession(
+        sessionOnboardingProfile,
+        quizOnboardingProfile,
+        quiz,
+      );
       if (
-        session.firstParticipantJoinedAt !== null &&
         !areSessionOnboardingProfilesCompatible(sessionOnboardingProfile, quizOnboardingProfile) &&
         !bootstrapDemoTeams
       ) {
@@ -6330,6 +6391,9 @@ const sessionCoreRouter = router({
           currentQuestion: null,
           currentRound: 1,
           answerDisplayOrder: Prisma.JsonNull,
+          ...((session.status === 'FINISHED' || session.endedAt instanceof Date) && finishedFollowUp
+            ? finishedSessionReopenData()
+            : {}),
           ...buildSessionOnboardingUpdate(onboardingForUpdate),
         },
         select: {
@@ -6597,6 +6661,9 @@ const sessionCoreRouter = router({
           quizId: true,
           qaEnabled: true,
           qaOpen: true,
+          qaClosesAt: true,
+          endedAt: true,
+          expiresAt: true,
           qaTitle: true,
           qaModerationMode: true,
           title: true,
@@ -6608,7 +6675,7 @@ const sessionCoreRouter = router({
       if (!session) {
         throw new TRPCError({ code: 'NOT_FOUND', message: 'Session nicht gefunden.' });
       }
-      assertSessionAllowsLiveMutation(session.status);
+      assertSessionAllowsFollowUpLiveChannel(session);
 
       if (session.quickFeedbackEnabled !== true) {
         throw new TRPCError({
@@ -6617,13 +6684,17 @@ const sessionCoreRouter = router({
         });
       }
 
-      if (session.quickFeedbackOpen !== false) {
+      const reopenFinished = session.status === 'FINISHED' || session.endedAt instanceof Date;
+      if (session.quickFeedbackOpen !== false && !reopenFinished) {
         return buildSessionChannels(session);
       }
 
       const updated = await prisma.session.update({
         where: { id: session.id },
-        data: { quickFeedbackOpen: true },
+        data: {
+          quickFeedbackOpen: true,
+          ...(reopenFinished ? finishedSessionReopenData() : {}),
+        },
         select: {
           type: true,
           quizId: true,
@@ -9339,11 +9410,14 @@ const sessionCoreRouter = router({
       if (!session) {
         return rejectInvalidSessionCode(input.anonymousClientId, code, 'join');
       }
-      if (session.status === 'FINISHED') {
+      const joinNow = new Date();
+      if (session.expiresAt instanceof Date && joinNow.getTime() >= session.expiresAt.getTime()) {
         throw new TRPCError({ code: 'BAD_REQUEST', message: 'Diese Session ist bereits beendet.' });
       }
-      if (session.expiresAt instanceof Date) {
-        assertSessionEffectivelyActive(session, new Date());
+      const sessionFinishedForJoin =
+        session.status === 'FINISHED' || session.endedAt instanceof Date;
+      if (sessionFinishedForJoin && buildSessionChannels(session, joinNow).qa.state !== 'OPEN') {
+        throw new TRPCError({ code: 'BAD_REQUEST', message: 'Diese Session ist bereits beendet.' });
       }
       const onboardingProfile = resolveSessionOnboardingProfile(session, session.quiz);
       const trimmedNickname = input.nickname.trim().slice(0, 30);

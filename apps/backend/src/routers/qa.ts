@@ -21,6 +21,7 @@ import {
   SubmitQaQuestionInputSchema,
   SubmitQaQuestionOutputSchema,
   ToggleQaModerationInputSchema,
+  isQaChannelJoinable,
   ToggleQaUpvoteOutputSchema,
   UpvoteQaQuestionInputSchema,
 } from '@arsnova/shared-types';
@@ -79,7 +80,10 @@ type QaQuestionRecord = {
   nlpAnalyzedAt?: Date | null;
   participant?: {
     nickname?: string | null;
+    teamName?: string | null;
   } | null;
+  authorNickname?: string | null;
+  authorTeamName?: string | null;
   upvotes?: QaQuestionVoteRecord[];
 };
 
@@ -100,6 +104,9 @@ type QaSessionLifecycleGate = {
   endedAt?: Date | null;
   expiresAt?: Date | null;
   sessionLifecycleRevision?: number | null;
+  type?: 'QUIZ' | 'Q_AND_A' | null;
+  qaEnabled?: boolean | null;
+  qaOpen?: boolean | null;
   qaClosesAt?: Date | null;
 };
 
@@ -183,6 +190,9 @@ function buildQaQuestionsInvalidation(
 function assertQaSessionOpenForParticipants(
   session: QaSessionLifecycleGate | null | undefined,
 ): void {
+  if (session && isQaChannelJoinable(session)) {
+    return;
+  }
   if (isQaSessionEffectivelyFinished(session)) {
     throw new TRPCError({
       code: 'FORBIDDEN',
@@ -370,7 +380,18 @@ function mapQaQuestion(
       question.createdAt instanceof Date
         ? question.createdAt.toISOString()
         : new Date(question.createdAt).toISOString(),
-    ...(question.participant?.nickname ? { authorNickname: question.participant.nickname } : {}),
+    ...(question.participant?.nickname?.trim() || question.authorNickname?.trim()
+      ? {
+          authorNickname:
+            question.participant?.nickname?.trim() || question.authorNickname?.trim() || undefined,
+        }
+      : {}),
+    ...(question.participant?.teamName?.trim() || question.authorTeamName?.trim()
+      ? {
+          authorTeamName:
+            question.participant?.teamName?.trim() || question.authorTeamName?.trim() || undefined,
+        }
+      : {}),
     myVote: myUpvote ? (myUpvote.direction === 'DOWN' ? 'DOWN' : 'UP') : null,
     isOwn: !!participantId && question.participantId === participantId,
     hasUpvoted: !!myUpvote && myUpvote.direction !== 'DOWN',
@@ -390,6 +411,7 @@ type QaPageCursor = {
 
 type RankedQaQuestionRow = QaQuestionRecord & {
   authorNickname: string | null;
+  authorTeamName: string | null;
   myVote: 'UP' | 'DOWN' | null;
   positiveVoteCount: number;
   negativeVoteCount: number;
@@ -764,6 +786,7 @@ async function buildQaQuestionPayloadFromDb(options: {
     SELECT
       question.*,
       participant."nickname" AS "authorNickname",
+      author_team."name" AS "authorTeamName",
       ${myVoteSelect} AS "myVote",
       page.status_bucket,
       page.status_tie,
@@ -775,6 +798,8 @@ async function buildQaQuestionPayloadFromDb(options: {
       ON question."id" = page."id"
     LEFT JOIN "Participant" AS participant
       ON participant."id" = question."participantId"
+    LEFT JOIN "Team" AS author_team
+      ON author_team."id" = participant."teamId"
     ${myVoteJoin}
     ORDER BY
       page.status_bucket ASC,
@@ -850,8 +875,8 @@ async function buildQaQuestionPayloadFromDb(options: {
         ...row,
         upvoteCount: Number(row.upvoteCount),
         participant:
-          options.includeAuthorNickname && row.authorNickname
-            ? { nickname: row.authorNickname }
+          options.includeAuthorNickname && (row.authorNickname || row.authorTeamName)
+            ? { nickname: row.authorNickname, teamName: row.authorTeamName }
             : undefined,
         upvotes:
           options.participantId && row.myVote
@@ -1153,7 +1178,17 @@ export const qaRouter = router({
     .mutation(async ({ input, ctx }) => {
       const session = await prisma.session.findUnique({
         where: { id: input.sessionId },
-        select: { id: true, code: true, status: true, endedAt: true, expiresAt: true },
+        select: {
+          id: true,
+          code: true,
+          type: true,
+          status: true,
+          endedAt: true,
+          expiresAt: true,
+          qaEnabled: true,
+          qaOpen: true,
+          qaClosesAt: true,
+        },
       });
       if (!session) {
         throw new TRPCError({ code: 'NOT_FOUND', message: 'Session nicht gefunden.' });
@@ -1179,6 +1214,7 @@ export const qaRouter = router({
           id: true,
           type: true,
           qaEnabled: true,
+          qaOpen: true,
           qaClosesAt: true,
           status: true,
           endedAt: true,
@@ -1198,7 +1234,7 @@ export const qaRouter = router({
 
       try {
         const moderated = await prisma.$transaction(async (tx) => {
-          await tx.$executeRaw`SELECT arsnova_lock_active_session(${session.id})`;
+          await tx.$executeRaw`SELECT arsnova_lock_session_for_participant_join(${session.id})`;
           const question = await tx.qaQuestion.findUnique({
             where: { id: input.questionId },
             select: {
@@ -1469,7 +1505,16 @@ export const qaRouter = router({
     .mutation(async ({ input }) => {
       const session = await prisma.session.findFirst({
         where: { code: input.sessionCode.toUpperCase() },
-        select: { id: true, status: true, endedAt: true, expiresAt: true },
+        select: {
+          id: true,
+          type: true,
+          status: true,
+          endedAt: true,
+          expiresAt: true,
+          qaEnabled: true,
+          qaOpen: true,
+          qaClosesAt: true,
+        },
       });
       if (!session) {
         throw new TRPCError({ code: 'NOT_FOUND', message: 'Session nicht gefunden.' });
@@ -1477,7 +1522,7 @@ export const qaRouter = router({
       assertQaSessionOpenForParticipants(session);
       const updated = await prisma
         .$transaction(async (tx) => {
-          await tx.$executeRaw`SELECT arsnova_lock_active_session(${session.id})`;
+          await tx.$executeRaw`SELECT arsnova_lock_session_for_participant_join(${session.id})`;
           return tx.session.update({
             where: { id: session.id },
             data: { qaModerationMode: input.enabled },

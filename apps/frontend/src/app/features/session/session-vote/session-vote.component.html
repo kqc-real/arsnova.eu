@@ -2786,6 +2786,34 @@
                         >
                           <span aria-hidden="true">{{ authorBadge }}</span>
                         </button>
+                      } @else if (qaQuestionAuthorNickname(question); as authorNickname) {
+                        <button
+                          type="button"
+                          class="session-qa-card__author-name session-qa-card__author-icon--button"
+                          [class.session-qa-card__author-icon--selected]="
+                            isQaAuthorSelected(question)
+                          "
+                          [attr.aria-label]="qaAuthorSelectionAriaLabel(question)"
+                          [attr.aria-pressed]="isQaAuthorSelected(question)"
+                          (click)="toggleQaAuthorSelection(authorNickname)"
+                        >
+                          {{ authorNickname }}
+                        </button>
+                      }
+                      @if (qaQuestionAuthorTeamName(question); as authorTeamName) {
+                        <span class="session-qa-card__author-team">
+                          @if (teamNameEmojiMarker(authorTeamName); as teamEmoji) {
+                            @if (teamNameEmojiMarkerTrailing(authorTeamName)) {
+                              <span>{{ teamNameLabelWithoutEmojiMarker(authorTeamName) }}</span>
+                              <span aria-hidden="true">{{ teamEmoji }}</span>
+                            } @else {
+                              <span aria-hidden="true">{{ teamEmoji }}</span>
+                              <span>{{ teamNameLabelWithoutEmojiMarker(authorTeamName) }}</span>
+                            }
+                          } @else {
+                            <span>{{ teamNameLabelWithoutEmojiMarker(authorTeamName) }}</span>
+                          }
+                        </span>
                       }
                       <span
                         class="session-qa-card__status"

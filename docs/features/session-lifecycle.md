@@ -1,6 +1,6 @@
 # Absoluter Session-Lebenszyklus
 
-**Stand:** 2026-09-18 · Epic #405, Slices #407, #409 und #412
+**Stand:** 2026-09-19 · Epic #405, Slices #407, #409 und #412
 
 ## Fachlicher Vertrag
 
@@ -25,7 +25,12 @@ die PostgreSQL-Felder:
 
 Aktiv ist eine Session nur, solange `endedAt IS NULL` und die Datenbankzeit vor
 `expiresAt` liegt. Aktivität, Reload, Reconnect und Warnungsdialoge verschieben
-keine Frist.
+keine Frist. Nach `FINISHED`/`endedAt` bleiben Quiz, Abstimmung und Teams
+geschlossen. Ein noch offener Q&A-Kanal (`qaOpen`, `qaClosesAt` in der Zukunft)
+erlaubt weiter Beitritt und Forenbeiträge bis zum früheren Zeitpunkt aus
+`qaClosesAt` und `expiresAt`. Dafür dürfen nur operative Zähler wie
+`nextParticipantNumber`, `participantRevision` und die Q&A-Bestandszähler
+laufen; der Sessionkern bleibt unveränderlich.
 
 Vor dem ersten Beitritt kann ein Host die Anfangsfrist als Kalendertage oder als
 absolutes Datum mit Uhrzeit festlegen. Kalendertage werden ab `createdAt` in der
@@ -59,7 +64,15 @@ Schritt zu verlangen. Der Tastaturfokus liegt danach auf der
 Fragenwand-Überschrift. Schlägt `startQa` fehl, bleibt die Session in `LOBBY`
 und der bestehende Steuerungs-Callout fokussiert »Nochmal probieren«.
 »Fragerunde starten« bleibt sichtbar, wenn die Session nach Reload noch in
-`LOBBY` ist. Ältere, noch unkonfigurierte Standalone-Sessions
+`LOBBY` ist. Solange der Q&A-Kanal offen ist (`state === OPEN`), beendet weder das
+Verlassen der Host-Ansicht noch der Exit-Anker die Session — auch nach Wechsel
+zu Quiz oder Blitzlicht. Ein durchgespieltes Quiz darf die Session auf
+`FINISHED` setzen; solange Q&A `OPEN` ist, bleiben neue Teilnahmen und
+Forenbeiträge bis `qaClosesAt` möglich und landen im Forum. Ein noch offenes Blitzlicht wird beim Verlassen
+geschlossen, damit der Teilnehmer-Join wieder ins Q&A fällt. Liegt die Session
+noch in `LOBBY`, startet das Verlassen zuerst die Fragerunde. Der Exit-Anker
+heißt dann **Zur Startseite**. **Session beenden** bleibt nur, wenn Q&A nicht
+offen ist. Ältere, noch unkonfigurierte Standalone-Sessions
 (`qaClosesAt IS NULL`) öffnen weiterhin die Einrichtung; Abbrechen dort
 beendet die Session und kehrt zur Startseite zurück. Wird Q&A
 später in einer bestehenden Session aktiviert, bleiben Einrichtung und
@@ -170,11 +183,16 @@ Modus daher nicht als vollständige Anonymisierung.
 ## Nachbereitung und technische Löschung
 
 `endedAt` startet ein 14-tägiges Host-Nachbereitungsfenster. Währenddessen
-dürfen validierte Hosts bestehende Q&A-Inhalte ausschließlich lesen und
-exportieren. Teilnehmerreads und sämtliche fachlichen Schreibpfade bleiben
-nach dem effektiven Sessionende geschlossen. Nach
-`postProcessingEndsAt = endedAt + 14 Tage` endet auch der Inhaltszugriff des
-Hosts.
+dürfen validierte Hosts bestehende Q&A-Inhalte lesen und exportieren.
+Ist Q&A nach einem durchgespielten Quiz noch `OPEN`, bleiben Teilnehmerbeitritt,
+Forenschreiben und Host-Moderation bis `qaClosesAt` (und höchstens bis
+`expiresAt`) zulässig. Der Host sieht dann wieder die Kanalwahl und kann mit
+den anwesenden Teilnahmen ein weiteres Quiz oder Blitzlicht starten; das hebt
+`FINISHED`/`endedAt` auf und setzt die Session in die Lobby.
+Nach geschlossenem Q&A-Kanal, globalem Fristablauf oder einem echten
+Sessionende ohne offenen Kanal sind Teilnehmerreads und fachliche Schreibpfade
+geschlossen. Nach `postProcessingEndsAt = endedAt + 14 Tage` endet auch der
+Inhaltszugriff des Hosts.
 
 Die Join-Kapsel neben dem QR-Code bleibt kompakt: Code und Teilnehmerzahl,
 ohne Sessionende und ohne Löschtermin. Das absolute Sessionende bleibt

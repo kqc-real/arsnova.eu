@@ -135,6 +135,25 @@ describe('localizeKnownServerError', () => {
     }
   });
 
+  it('ersetzt rohe Zod-Vertragsfehler durch die Fallback-Meldung', () => {
+    expect(
+      localizeKnownServerError(
+        {
+          message: JSON.stringify([
+            {
+              origin: 'string',
+              code: 'invalid_format',
+              format: 'uuid',
+              path: ['participantId'],
+              message: 'Invalid UUID',
+            },
+          ]),
+        },
+        'Abstimmung fehlgeschlagen.',
+      ),
+    ).toBe('Abstimmung fehlgeschlagen.');
+  });
+
   it('zeigt ohne validiertes Datenfeld nur die generische Fehlermeldung', () => {
     const error = {
       message: 'Zu viele Session-Erstellungen. Bitte später erneut versuchen.',

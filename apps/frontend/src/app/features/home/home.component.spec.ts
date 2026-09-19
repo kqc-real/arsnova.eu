@@ -444,7 +444,7 @@ describe('HomeComponent', () => {
       expect(recoveryAction?.getAttribute('href') ?? '').toContain('tab=qa');
       expect(recoveryAction?.getAttribute('href') ?? '').not.toContain('host-recovery');
       expect(recoveryAction?.querySelector('.home-choice-button__label')?.textContent?.trim()).toBe(
-        'Host-Session',
+        'Q&A-Session ABC123',
       );
       expect(
         fixture.nativeElement.querySelector('[data-testid="home-host-recovery-link"]'),
@@ -466,6 +466,39 @@ describe('HomeComponent', () => {
       expect(
         liveButtons.slice(1).every((button) => button.classList.contains('home-cta--secondary')),
       ).toBe(true);
+    });
+
+    it('zeigt die Zugangsfrist in der zweiten CTA-Zeile', async () => {
+      const { trpc } = await import('../../core/trpc.client');
+      seedHostCapability();
+      vi.mocked(trpc.session.getInfo.query).mockResolvedValueOnce({
+        id: 'sess-abc',
+        code: 'ABC123',
+        type: 'QUIZ',
+        status: 'ACTIVE',
+        serverTime: '2026-09-18T12:00:00.000Z',
+        quizName: 'Live',
+        title: null,
+        participantCount: 2,
+        expiresAt: '2026-09-19T10:00:00.000Z',
+        postProcessingEndsAt: '2026-09-20T18:30:00.000Z',
+        timeZone: 'Europe/Berlin',
+      });
+      const fixture = createHomeFixture();
+      fixture.detectChanges();
+      await fixture.whenStable();
+      fixture.detectChanges();
+
+      const description = fixture.nativeElement
+        .querySelector(
+          '.home-live-grid [data-testid="home-host-recovery"] .home-choice-button__description',
+        )
+        ?.textContent?.trim();
+      expect(description).toMatch(/^Zugang bis /);
+      expect(description).toContain('2026');
+      expect(trpc.session.getInfo.query).toHaveBeenCalledWith(
+        expect.objectContaining({ code: 'ABC123' }),
+      );
     });
 
     it('zeigt mit Wiederherstellungskandidat keinen Host-CTA auf der Live-Karte', () => {
@@ -491,6 +524,9 @@ describe('HomeComponent', () => {
       ) as HTMLElement | null;
       expect(recoveryAction?.getAttribute('href') ?? '').toContain('session/BBB222/host');
       expect(recoveryAction?.getAttribute('href') ?? '').toContain('tab=qa');
+      expect(recoveryAction?.querySelector('.home-choice-button__label')?.textContent?.trim()).toBe(
+        'Q&A-Session BBB222',
+      );
       expect(
         fixture.nativeElement.querySelector('[data-testid="home-host-recovery-link"]'),
       ).toBeNull();
@@ -1592,6 +1628,30 @@ describe('HomeComponent', () => {
       expect(fixture.nativeElement.textContent ?? '').not.toContain('Als Host anzeigen');
       expect(fixture.nativeElement.querySelector('.home-error-link')).toBeNull();
       expect(vi.mocked(trpc.motd.getCurrent.query)).not.toHaveBeenCalled();
+    });
+
+    it('leitet nach Quiz-FINISHED ins Q&A-Onboarding, solange der Kanal offen ist', async () => {
+      setRouteQueryParams({ join: 'abc123' });
+      const { trpc } = await import('../../core/trpc.client');
+      vi.mocked(trpc.quickFeedback.isActive.query).mockResolvedValueOnce({
+        active: false,
+        sessionStatus: 'FINISHED',
+        sessionType: 'QUIZ',
+        qaJoinable: true,
+      });
+      const router = TestBed.inject(Router);
+      const navSpy = vi.spyOn(router, 'navigate').mockResolvedValue(true);
+
+      const fixture = createHomeFixture();
+      fixture.detectChanges();
+      vi.runOnlyPendingTimers();
+      await vi.waitUntil(() => navSpy.mock.calls.length === 1, {
+        timeout: 1000,
+        interval: 10,
+      });
+
+      expect(navSpy).toHaveBeenCalledWith(['join', 'ABC123'], { replaceUrl: true });
+      expect(fixture.componentInstance.joinError()).toBeNull();
     });
 
     it('rendert MOTD-Bilder relativ zur aktuellen Locale-Basis und hängt die contentVersion an', async () => {

@@ -2510,6 +2510,28 @@
   color: var(--mat-sys-primary);
 }
 
+.session-qa-card__author-name {
+  display: inline-flex;
+  align-items: center;
+  min-height: 1.95rem;
+  padding: 0.12rem 0.65rem;
+  border-radius: var(--mat-sys-corner-full);
+  background: color-mix(in srgb, var(--mat-sys-primary) 10%, var(--mat-sys-surface));
+  border: 1px solid color-mix(in srgb, var(--mat-sys-primary) 18%, transparent);
+  font: var(--mat-sys-label-large);
+  line-height: 1.4;
+  flex-shrink: 0;
+}
+
+.session-qa-card__author-team {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  color: var(--mat-sys-on-surface-variant);
+  font: var(--mat-sys-label-medium);
+  line-height: 1.4;
+}
+
 .session-qa-card__status {
   display: inline-flex;
   align-items: center;
@@ -3438,7 +3460,12 @@
 }
 
 .session-participant-directory__team {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
   color: var(--mat-sys-on-surface-variant);
+  font: var(--mat-sys-label-medium);
+  line-height: 1.4;
 }
 
 .session-participant-directory__paging {

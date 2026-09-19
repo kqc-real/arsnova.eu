@@ -5,7 +5,6 @@ import {
   isDocumentFullscreenEnterAvailable,
   tryAutoRequestDocumentFullscreen,
   tryExitDocumentFullscreen,
-  tryRequestDocumentFullscreen,
 } from '../../../core/document-fullscreen.util';
 import { formatLocaleCount, formatLocaleNumber } from '../../../core/locale-number.util';
 import {
@@ -126,6 +125,7 @@ import {
   isWordCloudLemmaLocale,
   isWordCloudPhraseAnalysisVariant,
   parseQaSummaryQuestionSourceId,
+  isQaChannelJoinable,
   type WordCloudLemmaLocale,
   type ProductFeedbackInAppArea,
 } from '@arsnova/shared-types';
@@ -518,6 +518,20 @@ function isScoredQuestionType(type: HostCurrentQuestionDTO['type'] | null | unde
 function isPrevQuestionUnavailableError(error: unknown): boolean {
   if (!(error instanceof Error)) return false;
   return error.message.includes('Rückwärtsnavigation nicht möglich');
+}
+
+function hostSteeringFailureDetail(error: unknown): string | undefined {
+  if (!(error instanceof Error)) {
+    return undefined;
+  }
+  const message = error.message.trim();
+  if (message.length === 0) {
+    return undefined;
+  }
+  if (/failed to fetch|network error|load failed/i.test(message)) {
+    return undefined;
+  }
+  return message;
 }
 
 function sameStringArray(
@@ -1495,7 +1509,9 @@ export class SessionHostComponent implements OnInit, OnDestroy {
     return ['quiz', 'qa', 'quickFeedback'];
   });
   readonly showChannelTabs = computed(
-    () => this.effectiveStatus() !== 'FINISHED' && this.availableChannels().length > 1,
+    () =>
+      this.availableChannels().length > 1 &&
+      (this.effectiveStatus() !== 'FINISHED' || this.qaHostWritesAllowed()),
   );
   readonly showPrimaryLiveView = computed(() => {
     const active = this.activeChannel();
@@ -1512,6 +1528,30 @@ export class SessionHostComponent implements OnInit, OnDestroy {
   readonly isQaSession = computed(
     () => this.channels().quiz === false && this.channels().qa === true,
   );
+  /** Nach Quiz-FINISHED bleibt Host-Moderation möglich, solange Q&A offen ist. */
+  readonly qaHostWritesAllowed = computed(() => {
+    if (this.postProcessingEnded()) {
+      return false;
+    }
+    if (this.effectiveStatus() !== 'FINISHED') {
+      return true;
+    }
+    const session = this.session();
+    return !!session && isQaChannelJoinable(session);
+  });
+  readonly canStartAnotherQuiz = computed(
+    () => this.effectiveStatus() === 'FINISHED' && this.qaHostWritesAllowed(),
+  );
+  /** Offenes Q&A überlebt Host-Leave und »Session beenden« in Quiz/Blitzlicht. */
+  readonly keepQaOpenOnHostLeave = computed(() => {
+    const qa = this.session()?.channels?.qa;
+    if (qa) {
+      return (
+        qa.enabled === true && qa.open === true && (qa.state === undefined || qa.state === 'OPEN')
+      );
+    }
+    return this.isQaSession() && this.isChannelOpen('qa') && !this.qaDeadlineExpired();
+  });
   /** Frist und Retention sind mehrtägiges Q&A-Chrome, nicht Teil der Quiz-/Blitzlicht-Live-Kapsel. */
   readonly showQaChannelLifecycleChrome = computed(
     () => this.activeChannel() === 'qa' && this.channels().qa,
@@ -2182,7 +2222,6 @@ export class SessionHostComponent implements OnInit, OnDestroy {
   );
   readonly openQaWordCloudDialog = async (focusedTerm: string | null = null): Promise<void> => {
     this.moderationCompassFocusedTerm.set(focusedTerm);
-    this.tryEnterWordCloudFullscreenFromUserGesture();
     this.qaWordCloudDialogOpen.set(true);
     void this.activatePresenterSurface('qaWordCloud', 'qa');
     const request = this.qaWordCloudAnalysisRequest();
@@ -3211,7 +3250,6 @@ export class SessionHostComponent implements OnInit, OnDestroy {
   }
 
   private previousStatus: string | null = null;
-  private terminalStatusObserved = false;
   private previousReadingReadyQuestionId: string | null = null;
   private previousAllConnectedParticipantsReady = false;
   private priorLobbyForAutoJoinMenu = false;
@@ -3682,7 +3720,6 @@ export class SessionHostComponent implements OnInit, OnDestroy {
   }
 
   readonly maximizeFreetextWordCloud = (): void => {
-    this.tryEnterWordCloudFullscreenFromUserGesture();
     this.wordCloudExpanded.set(true);
     this.syncWordCloudOverlayTop();
     this.freetextWordCloudMaximized.set(true);
@@ -4290,6 +4327,20 @@ export class SessionHostComponent implements OnInit, OnDestroy {
     this.sessionUnavailable.set(false);
     this.keepHostTokenOnDeactivate = false;
     this.session.set(session);
+    if (session.status !== 'FINISHED') {
+      const statusUpdate = this.statusUpdate();
+      if (statusUpdate?.status === 'FINISHED') {
+        this.statusUpdate.set({
+          status: session.status,
+          currentQuestion: session.currentQuestion ?? null,
+          currentRound: session.currentRound ?? 1,
+          expiresAt: session.expiresAt,
+          serverNow: session.serverTime,
+          sessionLifecycleRevision: session.sessionLifecycleRevision,
+          endedAt: session.endedAt ?? null,
+        });
+      }
+    }
     this.syncQaTitleDraftFromSession();
     this.scheduleQaDeadlineCheck();
     return session;
@@ -4402,7 +4453,7 @@ export class SessionHostComponent implements OnInit, OnDestroy {
     }
     this.qaDeadlineNow.set(getSkewAdjustedNow());
     const closesAt = this.session()?.channels?.qa.closesAt ?? this.session()?.qaClosesAt;
-    if (!closesAt || this.effectiveStatus() === 'FINISHED') {
+    if (!closesAt || (this.effectiveStatus() === 'FINISHED' && !this.qaHostWritesAllowed())) {
       return;
     }
     const remainingMs = Date.parse(closesAt) - this.qaDeadlineNow();
@@ -5132,6 +5183,7 @@ export class SessionHostComponent implements OnInit, OnDestroy {
     if (!this.showPresenterViewButton() || this.presenterWindowOpenInFlight) {
       return;
     }
+    this.tryEnterHostFullscreenFromUserGesture();
     const decision = await firstValueFrom(
       this.dialog
         .open(PresentationStartDialogComponent, {
@@ -5375,16 +5427,46 @@ export class SessionHostComponent implements OnInit, OnDestroy {
     });
   }
 
-  private tryEnterWordCloudFullscreenFromUserGesture(): void {
-    tryRequestDocumentFullscreen(this.document, () => {
-      this.isFullscreenActive.set(this.getFullscreenElement() !== null);
-    });
-  }
-
   /** Prüft, ob die Session noch läuft (nicht FINISHED und nicht null). */
   private isSessionActive(): boolean {
     const status = this.effectiveStatus();
     return !this.sessionUnavailable() && status !== null && status !== 'FINISHED';
+  }
+
+  private async leaveHostViewKeepingQaOpen(): Promise<void> {
+    await this.ensureStandaloneQaStartedBeforeLeave();
+    await this.closeQuickFeedbackBeforeKeepingQa();
+    await this.exitFullscreenBeforeHomeNavigation();
+    await this.ngZone.run(async () => {
+      await this.router.navigateByUrl(this.localizedPath('/'), { replaceUrl: true });
+    });
+  }
+
+  private async closeQuickFeedbackBeforeKeepingQa(): Promise<void> {
+    if (!this.code || !this.channels().quickFeedback || !this.isChannelOpen('quickFeedback')) {
+      return;
+    }
+    try {
+      const channels = await trpc.session.closeQuickFeedbackChannel.mutate({
+        code: this.code.toUpperCase(),
+      });
+      this.patchSessionChannels(channels);
+    } catch {
+      // Q&A bleibt offen; ein noch laufendes Blitzlicht darf das Verlassen nicht blockieren.
+    }
+  }
+
+  private async ensureStandaloneQaStartedBeforeLeave(): Promise<void> {
+    if (!this.code || this.effectiveStatus() !== 'LOBBY') {
+      return;
+    }
+    try {
+      const result = await trpc.session.startQa.mutate({ code: this.code.toUpperCase() });
+      this.clearFoyerArrivalStateWhenLeavingLobby(result.status);
+      this.statusUpdate.set(result);
+    } catch {
+      // Session bleibt offen; Teilnehmende können später beitreten.
+    }
   }
 
   private isSessionNotFoundError(error: unknown): boolean {
@@ -5510,10 +5592,12 @@ export class SessionHostComponent implements OnInit, OnDestroy {
     return this.document.location?.href ?? this.localizedPath('/');
   }
 
-  private openHostSteeringCalloutForSteeringFailure(retry: () => void): void {
+  private openHostSteeringCalloutForSteeringFailure(retry: () => void, error?: unknown): void {
     this.hostSteeringCallout.set({
       title: $localize`:@@sessionHost.steeringCalloutTitle:Das ist gerade nicht angekommen`,
-      body: $localize`:@@sessionHost.steeringCalloutBody:Kein Stress – so was passiert manchmal (kurzer Ruckler oder instabiles WLAN). Warte zwei, drei Sekunden und tippe auf »Nochmal probieren« – meist reicht das.`,
+      body:
+        hostSteeringFailureDetail(error) ??
+        $localize`:@@sessionHost.steeringCalloutBody:Kein Stress – so was passiert manchmal (kurzer Ruckler oder instabiles WLAN). Warte zwei, drei Sekunden und tippe auf »Nochmal probieren« – meist reicht das.`,
       retry,
       errorRequestId: 'host.steering:failed',
       suggestedArea: 'LIVE_CONTROL',
@@ -5645,6 +5729,10 @@ export class SessionHostComponent implements OnInit, OnDestroy {
     if (!this.isSessionActive() || this.sessionEndPending()) {
       return;
     }
+    if (this.keepQaOpenOnHostLeave()) {
+      await this.leaveHostViewKeepingQaOpen();
+      return;
+    }
     const focusReturn = event?.currentTarget instanceof HTMLElement ? event.currentTarget : null;
     this.sessionEndPending.set(true);
     let shouldShowFinishedView = false;
@@ -5733,6 +5821,13 @@ export class SessionHostComponent implements OnInit, OnDestroy {
           // Token behalten, damit die Person den Dismiss nach Navigation/Relaunch erneut auslösen kann.
         }
       }
+      return true;
+    }
+
+    if (this.keepQaOpenOnHostLeave()) {
+      await this.ensureStandaloneQaStartedBeforeLeave();
+      await this.closeQuickFeedbackBeforeKeepingQa();
+      await this.exitFullscreenBeforeHomeNavigation();
       return true;
     }
 
@@ -6164,9 +6259,6 @@ export class SessionHostComponent implements OnInit, OnDestroy {
     const su = this.statusUpdate();
     const s = this.session();
     if (su?.status === 'FINISHED' || s?.status === 'FINISHED') {
-      this.terminalStatusObserved = true;
-    }
-    if (this.terminalStatusObserved) {
       return 'FINISHED';
     }
     return su?.status ?? s?.status ?? null;
@@ -8453,6 +8545,37 @@ export class SessionHostComponent implements OnInit, OnDestroy {
     return nickname ? nickname : null;
   }
 
+  readonly qaAuthorTeamByNickname = computed(() => {
+    const teams = new Map<string, string>();
+    const remember = (nickname: string | null | undefined, teamName: string | null | undefined) => {
+      const trimmedNickname = nickname?.trim();
+      const trimmedTeam = teamName?.trim();
+      if (!trimmedNickname || !trimmedTeam) {
+        return;
+      }
+      teams.set(trimmedNickname, trimmedTeam);
+    };
+    for (const participant of this.participantsPayload()?.participants ?? []) {
+      remember(participant.nickname, participant.teamName);
+    }
+    for (const participant of this.participantDirectoryEntries()) {
+      remember(participant.nickname, participant.teamName);
+    }
+    return teams;
+  });
+
+  qaQuestionAuthorTeamName(question: QaQuestionDTO): string | null {
+    const fromQuestion = question.authorTeamName?.trim();
+    if (fromQuestion) {
+      return fromQuestion;
+    }
+    const nickname = this.qaQuestionAuthorNickname(question);
+    if (!nickname) {
+      return null;
+    }
+    return this.qaAuthorTeamByNickname().get(nickname) ?? null;
+  }
+
   qaAuthorSelectionAriaLabel(question: QaQuestionDTO): string {
     const nickname = this.qaQuestionAuthorNickname(question);
     if (!nickname) {
@@ -8725,7 +8848,7 @@ export class SessionHostComponent implements OnInit, OnDestroy {
     question: QaQuestionDTO,
     action: 'APPROVE' | 'PIN' | 'UNPIN' | 'ARCHIVE' | 'DELETE',
   ): boolean {
-    if (this.effectiveStatus() === 'FINISHED') {
+    if (!this.qaHostWritesAllowed()) {
       return false;
     }
     if (this.qaPendingQuestionIds().has(question.id)) {
@@ -8946,7 +9069,11 @@ export class SessionHostComponent implements OnInit, OnDestroy {
       // Eine bewusste Auswahl darf nicht von einem noch ausstehenden Initial-Snapshot überschrieben werden.
       this.initialPreferredChannelApplied = true;
       this.initialUrlTabApplied = true;
-      if (this.effectiveStatus() === 'FINISHED' && !this.isChannelEnabled(channel)) {
+      if (
+        this.effectiveStatus() === 'FINISHED' &&
+        !this.isChannelEnabled(channel) &&
+        !this.qaHostWritesAllowed()
+      ) {
         return;
       }
       if (channel === 'qa' && this.qaChannelNeedsConfiguration()) {
@@ -8960,6 +9087,13 @@ export class SessionHostComponent implements OnInit, OnDestroy {
           await this.enableChannel(channel);
         }
         return;
+      }
+      if (
+        channel === 'quickFeedback' &&
+        this.effectiveStatus() === 'FINISHED' &&
+        this.qaHostWritesAllowed()
+      ) {
+        await this.reopenQuickFeedbackAfterQuiz();
       }
       const prev = this.activeChannel();
       if (prev === 'qa' && channel !== 'qa') {
@@ -9010,6 +9144,36 @@ export class SessionHostComponent implements OnInit, OnDestroy {
     await this.startQuizSelectionFlow();
   }
 
+  async startAnotherQuizAfterFinish(): Promise<void> {
+    if (!this.canStartAnotherQuiz()) {
+      return;
+    }
+    await this.startQuizSelectionFlow();
+  }
+
+  private async reopenQuickFeedbackAfterQuiz(): Promise<void> {
+    if (!this.code || this.channelActivationPending()) {
+      return;
+    }
+    this.channelActivationPending.set('quickFeedback');
+    try {
+      const channels = await trpc.session.reopenQuickFeedbackChannel.mutate({
+        code: this.code.toUpperCase(),
+      });
+      this.patchSessionChannels(channels);
+      await this.reloadSessionInfo();
+      await this.refreshQuickFeedbackResult();
+      this.dismissHostSteeringCallout();
+    } catch (error) {
+      this.openHostSteeringCalloutForSteeringFailure(
+        () => void this.reopenQuickFeedbackAfterQuiz(),
+        error,
+      );
+    } finally {
+      this.channelActivationPending.set(null);
+    }
+  }
+
   private async startQuizSelectionFlow(): Promise<void> {
     if (this.channelActivationPending() || !this.code) {
       return;
@@ -9030,8 +9194,11 @@ export class SessionHostComponent implements OnInit, OnDestroy {
         await createQuizHistoryAccessProof(payload),
       );
       await this.attachUploadedQuizToSession(uploadedQuizId);
-    } catch {
-      this.openHostSteeringCalloutForSteeringFailure(() => void this.startQuizSelectionFlow());
+    } catch (error) {
+      this.openHostSteeringCalloutForSteeringFailure(
+        () => void this.startQuizSelectionFlow(),
+        error,
+      );
     } finally {
       this.channelActivationPending.set(null);
     }
@@ -9051,11 +9218,11 @@ export class SessionHostComponent implements OnInit, OnDestroy {
       this.ensureActiveChannel();
       await this.finalizeQuizChannelActivation();
       this.dismissHostSteeringCallout();
-    } catch {
+    } catch (error) {
       const retry = attached
         ? () => void this.finalizeQuizChannelActivation()
         : () => void this.attachUploadedQuizToSession(uploadedQuizId);
-      this.openHostSteeringCalloutForSteeringFailure(retry);
+      this.openHostSteeringCalloutForSteeringFailure(retry, error);
     }
   }
 
@@ -10980,7 +11147,7 @@ export class SessionHostComponent implements OnInit, OnDestroy {
   }
 
   async toggleQaModeration(): Promise<void> {
-    if (this.session()?.status === 'FINISHED' || this.effectiveStatus() === 'FINISHED') return;
+    if (!this.qaHostWritesAllowed()) return;
     const current = this.session()?.channels?.qa?.moderationMode ?? false;
     try {
       const result = await trpc.qa.toggleModeration.mutate({
@@ -11009,12 +11176,7 @@ export class SessionHostComponent implements OnInit, OnDestroy {
     questionId: string,
     action: 'APPROVE' | 'PIN' | 'ARCHIVE' | 'DELETE',
   ): Promise<void> {
-    if (
-      !this.code ||
-      this.session()?.status === 'FINISHED' ||
-      this.effectiveStatus() === 'FINISHED' ||
-      this.postProcessingEnded()
-    ) {
+    if (!this.code || !this.qaHostWritesAllowed()) {
       return;
     }
 
@@ -11482,7 +11644,7 @@ export class SessionHostComponent implements OnInit, OnDestroy {
       }
 
       const rows: string[] = [
-        $localize`:@@sessionQa.exportHeader:Nr.;Frage-ID;Status;Statusbezeichnung;Autor;Frage;Score;Positive Stimmen;Negative Stimmen;Stimmen gesamt;Wilson-Score;Kontroverse-Score;Umstritten;Hervorgehoben;Erstellt am`,
+        $localize`:@@sessionQa.exportHeader:Nr.;Frage-ID;Status;Statusbezeichnung;Autor;Team;Frage;Score;Positive Stimmen;Negative Stimmen;Stimmen gesamt;Wilson-Score;Kontroverse-Score;Umstritten;Hervorgehoben;Erstellt am`,
       ];
 
       for (const [index, question] of questions.entries()) {
@@ -11493,6 +11655,7 @@ export class SessionHostComponent implements OnInit, OnDestroy {
             question.status,
             escapeCsv(this.qaStatusLabel(question.status)),
             escapeCsv(question.authorNickname ?? ''),
+            escapeCsv(question.authorTeamName ?? ''),
             escapeCsv(stripMarkdownToPlainText(question.text)),
             this.qaQuestionScore(question),
             question.positiveVoteCount ?? '',

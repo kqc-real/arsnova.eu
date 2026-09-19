@@ -881,6 +881,20 @@
           <div class="session-host__run l-page">
             @if (effectiveStatus() === 'FINISHED') {
               <div class="session-host__results">
+                @if (canStartAnotherQuiz()) {
+                  <div class="session-host__steering">
+                    <button
+                      mat-flat-button
+                      color="primary"
+                      type="button"
+                      [disabled]="controlPending() || channelActivationPending() === 'quiz'"
+                      (click)="startAnotherQuizAfterFinish()"
+                    >
+                      <mat-icon aria-hidden="true">play_arrow</mat-icon>
+                      <span i18n="@@sessionHost.startAnotherQuiz">Weiteres Quiz starten</span>
+                    </button>
+                  </div>
+                }
                 @if (finishedConfidenceSummary(); as confidenceSummary) {
                   <section
                     class="session-host__finished-confidence"
@@ -4052,7 +4066,7 @@
                 @if (qaInfo(); as info) {
                   <p class="session-channel-card__info" role="status">{{ info }}</p>
                 }
-                @if (effectiveStatus() === 'FINISHED') {
+                @if (effectiveStatus() === 'FINISHED' && !qaHostWritesAllowed()) {
                   <p
                     class="session-channel-card__info"
                     role="status"
@@ -4063,7 +4077,7 @@
                   </p>
                 }
 
-                @if (effectiveStatus() !== 'FINISHED') {
+                @if (qaHostWritesAllowed()) {
                   <div class="session-qa-moderation-toggle">
                     <mat-slide-toggle
                       [checked]="!!session()?.channels?.qa?.moderationMode"
@@ -4347,7 +4361,23 @@
                                 <span>{{ participant.nickname }}</span>
                                 @if (participant.teamName) {
                                   <span class="session-participant-directory__team">
-                                    {{ participant.teamName }}
+                                    @if (teamNameEmojiMarker(participant.teamName); as teamEmoji) {
+                                      @if (teamNameEmojiMarkerTrailing(participant.teamName)) {
+                                        <span>{{
+                                          teamNameLabelWithoutEmojiMarker(participant.teamName)
+                                        }}</span>
+                                        <span aria-hidden="true">{{ teamEmoji }}</span>
+                                      } @else {
+                                        <span aria-hidden="true">{{ teamEmoji }}</span>
+                                        <span>{{
+                                          teamNameLabelWithoutEmojiMarker(participant.teamName)
+                                        }}</span>
+                                      }
+                                    } @else {
+                                      <span>{{
+                                        teamNameLabelWithoutEmojiMarker(participant.teamName)
+                                      }}</span>
+                                    }
                                   </span>
                                 }
                               </button>
@@ -4489,6 +4519,38 @@
                               >
                                 <span aria-hidden="true">{{ authorBadge }}</span>
                               </button>
+                            } @else if (qaQuestionAuthorNickname(question); as authorNickname) {
+                              <button
+                                type="button"
+                                class="session-qa-card__author-name session-qa-card__author-icon--button"
+                                [class.session-qa-card__author-icon--selected]="
+                                  isQaAuthorSelected(question)
+                                "
+                                [attr.aria-label]="qaAuthorSelectionAriaLabel(question)"
+                                [attr.aria-pressed]="isQaAuthorSelected(question)"
+                                (click)="toggleQaAuthorSelection(authorNickname)"
+                              >
+                                {{ authorNickname }}
+                              </button>
+                            }
+                            @if (qaQuestionAuthorTeamName(question); as authorTeamName) {
+                              <span class="session-qa-card__author-team">
+                                @if (teamNameEmojiMarker(authorTeamName); as teamEmoji) {
+                                  @if (teamNameEmojiMarkerTrailing(authorTeamName)) {
+                                    <span>{{
+                                      teamNameLabelWithoutEmojiMarker(authorTeamName)
+                                    }}</span>
+                                    <span aria-hidden="true">{{ teamEmoji }}</span>
+                                  } @else {
+                                    <span aria-hidden="true">{{ teamEmoji }}</span>
+                                    <span>{{
+                                      teamNameLabelWithoutEmojiMarker(authorTeamName)
+                                    }}</span>
+                                  }
+                                } @else {
+                                  <span>{{ teamNameLabelWithoutEmojiMarker(authorTeamName) }}</span>
+                                }
+                              </span>
                             }
                             @if (question.status !== 'ACTIVE') {
                               <span
@@ -4703,8 +4765,12 @@
           [attr.aria-busy]="sessionEndPending()"
           (click)="onSessionEndAnchorClick($event)"
         >
-          <mat-icon aria-hidden="true">logout</mat-icon>
-          <span i18n="@@sessionHost.endGlobalSessionAnchor">Session beenden</span>
+          <mat-icon aria-hidden="true">{{ keepQaOpenOnHostLeave() ? 'home' : 'logout' }}</mat-icon>
+          @if (keepQaOpenOnHostLeave()) {
+            <span i18n="@@sessionHost.leaveQaHostAnchor">Zur Startseite</span>
+          } @else {
+            <span i18n="@@sessionHost.endGlobalSessionAnchor">Session beenden</span>
+          }
         </button>
         @if (showQaChannelLifecycleChrome() && sessionLifecycle()?.configurationAllowed) {
           <button

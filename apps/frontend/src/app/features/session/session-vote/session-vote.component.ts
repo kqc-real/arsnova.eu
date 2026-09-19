@@ -91,6 +91,7 @@ import {
   type TeamLeaderboardEntryDTO,
   type TimerAccommodation,
   usesNumericShortTextEvaluation,
+  isQaChannelJoinable,
 } from '@arsnova/shared-types';
 import { CountdownFingersComponent } from '../../../shared/countdown-fingers/countdown-fingers.component';
 import { MarkdownImageLightboxDirective } from '../../../shared/markdown-image-lightbox/markdown-image-lightbox.directive';
@@ -145,6 +146,12 @@ import {
 
 const PARTICIPANT_STORAGE_KEY = 'arsnova-participant';
 const NICKNAME_STORAGE_KEY = 'arsnova-nickname';
+const PARTICIPANT_UUID_RE =
+  /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+
+function isParticipantUuid(value: string | null | undefined): value is string {
+  return typeof value === 'string' && PARTICIPANT_UUID_RE.test(value);
+}
 /** Geräteweite Präferenz für persönliche Timer-Anpassung (WCAG 2.2.1). */
 const TIMER_ACCOMMODATION_STORAGE_KEY = 'arsnova-timer-accommodation';
 const LIVE_SCORE_PREVIEW_STORAGE_KEY = 'arsnova-live-score-preview';
@@ -743,6 +750,41 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
     return trimmedNickname ? trimmedNickname : null;
   }
 
+  readonly qaAuthorTeamByNickname = computed(() => {
+    const teams = new Map<string, string>();
+    const remember = (nickname: string | null | undefined, teamName: string | null | undefined) => {
+      const trimmedNickname = nickname?.trim();
+      const trimmedTeam = teamName?.trim();
+      if (!trimmedNickname || !trimmedTeam) {
+        return;
+      }
+      teams.set(trimmedNickname, trimmedTeam);
+    };
+    remember(this.playerNickname(), this.playerTeamName());
+    for (const entry of this.personalLeaderboard()) {
+      remember(entry.nickname, entry.teamName);
+    }
+    return teams;
+  });
+
+  qaQuestionAuthorTeamName(question: QaQuestionDTO): string | null {
+    const fromQuestion = question.authorTeamName?.trim();
+    if (fromQuestion) {
+      return fromQuestion;
+    }
+    if (question.isOwn) {
+      const ownTeam = this.playerTeamName()?.trim();
+      if (ownTeam) {
+        return ownTeam;
+      }
+    }
+    const nickname = this.qaQuestionAuthorNickname(question);
+    if (!nickname) {
+      return null;
+    }
+    return this.qaAuthorTeamByNickname().get(nickname) ?? null;
+  }
+
   qaAuthorKindergartenBadgeLabel(question: QaQuestionDTO): string | null {
     if (!this.usesKindergartenNicknames()) {
       return null;
@@ -1057,7 +1099,13 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
   readonly isDiscussion = computed(() => this.status() === 'DISCUSSION');
   readonly isResults = computed(() => this.status() === 'RESULTS');
   readonly isLobby = computed(() => this.status() === 'LOBBY');
-  readonly isFinished = computed(() => this.status() === 'FINISHED');
+  readonly qaStillJoinable = computed(() =>
+    isQaChannelJoinable({
+      channels: this.sessionSettings().channels,
+      qaClosesAt: this.sessionSettings().qaClosesAt,
+    }),
+  );
+  readonly isFinished = computed(() => this.status() === 'FINISHED' && !this.qaStillJoinable());
   readonly readingReadyConfirmed = computed(() => {
     const question = this.currentQuestion();
     return (
@@ -3143,7 +3191,22 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
     void this.runSessionEndRedirect();
   }
 
+  private enterOpenQaAfterQuizFinished(): void {
+    this.status.set('FINISHED');
+    this.currentQuestion.set(null);
+    this.stopCountdown();
+    this.showSessionEndGate.set(false);
+    this.setActiveChannelProgrammatically('qa');
+    this.rememberParticipantLiveChannelOverride('qa');
+    this.ensureQaSubscription();
+    void this.refreshQaQuestions();
+  }
+
   private handleSessionFinished(): void {
+    if (this.qaStillJoinable()) {
+      this.enterOpenQaAfterQuizFinished();
+      return;
+    }
     this.localDeadlineClosed = false;
     this.status.set('FINISHED');
     this.currentQuestion.set(null);
@@ -3351,7 +3414,7 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
     const confirmedTeam = peekConfirmedParticipantTeam(this.code);
 
     if (typeof localStorage !== 'undefined') {
-      this.participantId.set(localStorage.getItem(`${PARTICIPANT_STORAGE_KEY}-${this.code}`) ?? '');
+      this.participantId.set(this.readStoredParticipantId());
       this.playerNickname.set(localStorage.getItem(`${NICKNAME_STORAGE_KEY}-${this.code}`) ?? null);
       this.liveScorePreviewVisible.set(
         localStorage.getItem(LIVE_SCORE_PREVIEW_STORAGE_KEY) !== 'false',
@@ -3882,7 +3945,7 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
 
   private markParticipantOffline(): void {
     const participantId = this.participantId();
-    if (!this.code || !participantId || this.participantOfflineMarked) {
+    if (!this.code || !isParticipantUuid(participantId) || this.participantOfflineMarked) {
       return;
     }
 
@@ -3901,7 +3964,7 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
     if (this.presenceHeartbeatTimer) return;
     const heartbeat = () => {
       const participantId = this.participantId();
-      if (!this.code || !participantId || this.isFinished()) return;
+      if (!this.code || !isParticipantUuid(participantId) || this.isFinished()) return;
       void trpc.session.heartbeatParticipantPresence
         .mutate({ code: this.code, participantId })
         .catch(() => {
@@ -4705,7 +4768,36 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
     }
   }
 
-  private async ensureQaSubmitContext(): Promise<{
+  private readStoredParticipantId(): string {
+    if (typeof localStorage === 'undefined' || !this.code) {
+      return '';
+    }
+    const raw = localStorage.getItem(`${PARTICIPANT_STORAGE_KEY}-${this.code}`) ?? '';
+    if (isParticipantUuid(raw)) {
+      return raw;
+    }
+    if (raw) {
+      localStorage.removeItem(`${PARTICIPANT_STORAGE_KEY}-${this.code}`);
+    }
+    return '';
+  }
+
+  private rememberParticipantIdentity(participantId: string, nickname?: string | null): void {
+    this.participantId.set(participantId);
+    if (nickname) {
+      this.playerNickname.set(nickname);
+    }
+    if (typeof localStorage === 'undefined' || !this.code) {
+      return;
+    }
+    localStorage.setItem(`${PARTICIPANT_STORAGE_KEY}-${this.code}`, participantId);
+    if (nickname) {
+      localStorage.setItem(`${NICKNAME_STORAGE_KEY}-${this.code}`, nickname);
+    }
+    refreshTrpcWsBinding();
+  }
+
+  private async resolveParticipantIdentity(): Promise<{
     sessionId: string;
     participantId: string;
   } | null> {
@@ -4721,49 +4813,49 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
         this.sessionSettings.set(session);
         this.scheduleQaDeadlineCheck();
       } catch {
-        this.showQaError($localize`:@@sessionQa.submitError:Frage konnte nicht gesendet werden.`);
         return null;
       }
     }
 
-    let participantId = this.participantId();
-    if (!participantId && typeof localStorage !== 'undefined' && this.code) {
-      participantId = localStorage.getItem(`${PARTICIPANT_STORAGE_KEY}-${this.code}`) ?? '';
-      if (participantId) {
-        this.participantId.set(participantId);
-      }
+    let participantId = isParticipantUuid(this.participantId())
+      ? this.participantId()
+      : this.readStoredParticipantId();
+    if (participantId && participantId !== this.participantId()) {
+      this.participantId.set(participantId);
     }
 
-    if (!participantId && this.code) {
+    if (!isParticipantUuid(participantId) && this.code) {
       try {
         const join = await this.autoJoinParticipant();
+        if (!isParticipantUuid(join.participantId)) {
+          return null;
+        }
         participantId = join.participantId;
         sessionId = join.sessionId;
-        this.participantId.set(participantId);
         this.sessionId.set(sessionId);
-        this.playerNickname.set(join.nickname);
-        if (typeof localStorage !== 'undefined') {
-          localStorage.setItem(`${PARTICIPANT_STORAGE_KEY}-${this.code}`, participantId);
-          localStorage.setItem(`${NICKNAME_STORAGE_KEY}-${this.code}`, join.nickname);
-          refreshTrpcWsBinding();
-        }
-      } catch (error) {
-        this.showQaError(
-          localizeKnownServerError(
-            error,
-            $localize`:@@sessionQa.submitError:Frage konnte nicht gesendet werden.`,
-          ),
-        );
+        this.rememberParticipantIdentity(participantId, join.nickname);
+      } catch {
         return null;
       }
     }
 
-    if (!sessionId || !participantId) {
-      this.showQaError($localize`:@@sessionQa.submitError:Frage konnte nicht gesendet werden.`);
+    if (!sessionId || !isParticipantUuid(participantId)) {
       return null;
     }
 
     return { sessionId, participantId };
+  }
+
+  private async ensureQaSubmitContext(): Promise<{
+    sessionId: string;
+    participantId: string;
+  } | null> {
+    const identity = await this.resolveParticipantIdentity();
+    if (!identity) {
+      this.showQaError($localize`:@@sessionQa.submitError:Frage konnte nicht gesendet werden.`);
+      return null;
+    }
+    return identity;
   }
 
   async voteQa(questionId: string, direction: 'UP' | 'DOWN'): Promise<void> {
@@ -5860,6 +5952,16 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
     this.cdr.detectChanges();
 
     try {
+      const identity = await this.resolveParticipantIdentity();
+      if (!identity) {
+        this.voteSent.set(false);
+        this.voteError.set(
+          $localize`:@@sessionVote.participantRequired:Deine Teilnahme fehlt. Bitte tritt der Session erneut bei.`,
+        );
+        this.cdr.detectChanges();
+        this.focusVoteError();
+        return;
+      }
       const orderingSeq =
         q.type === 'ORDERING' ? this.orderingItemsState().map((item) => item.id) : undefined;
       const matchingSel =
@@ -5875,8 +5977,8 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
           : undefined;
 
       await trpc.vote.submit.mutate({
-        sessionId: this.sessionId(),
-        participantId: this.participantId(),
+        sessionId: identity.sessionId,
+        participantId: identity.participantId,
         questionId: q.id,
         answerIds: answerIds.length > 0 ? answerIds : undefined,
         freeText: freeText || undefined,

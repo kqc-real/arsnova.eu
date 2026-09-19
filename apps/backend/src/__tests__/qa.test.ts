@@ -121,6 +121,7 @@ type RankedQaTestRow = {
   status: 'PENDING' | 'ACTIVE' | 'PINNED' | 'ARCHIVED' | 'DELETED';
   createdAt: Date;
   authorNickname: string | null;
+  authorTeamName: string | null;
   myVote: 'UP' | 'DOWN' | null;
   positiveVoteCount: number;
   negativeVoteCount: number;
@@ -168,6 +169,7 @@ function rankedQaRow(overrides: Partial<RankedQaTestRow> = {}): RankedQaTestRow 
     status: 'ACTIVE',
     createdAt: new Date('2026-03-13T12:00:00.000Z'),
     authorNickname: null,
+    authorTeamName: null,
     myVote: null,
     positiveVoteCount: 0,
     negativeVoteCount: 0,
@@ -1121,6 +1123,70 @@ describe('qa router (Epic 8)', () => {
     });
   });
 
+  it('moderiert nach Quiz-FINISHED, solange Q&A offen ist', async () => {
+    prismaMock.session.findUnique.mockResolvedValue({
+      ...ACTIVE_QA_SESSION,
+      id: SESSION_ID,
+      type: 'QUIZ',
+      qaEnabled: true,
+      qaOpen: true,
+      qaClosesAt: new Date('2099-01-01T00:00:00.000Z'),
+      status: 'FINISHED',
+      endedAt: new Date('2026-09-19T06:00:00.000Z'),
+    });
+    prismaMock.qaQuestion.findUnique.mockResolvedValue({
+      id: QUESTION_ID,
+      sessionId: SESSION_ID,
+      participantId: PARTICIPANT_ID,
+      text: 'Bitte freigeben',
+      upvoteCount: 0,
+      status: 'PENDING',
+      createdAt: new Date('2026-09-19T06:05:00.000Z'),
+    });
+    prismaMock.qaQuestion.update.mockResolvedValue({
+      id: QUESTION_ID,
+      participantId: PARTICIPANT_ID,
+      text: 'Bitte freigeben',
+      upvoteCount: 0,
+      status: 'ACTIVE',
+      createdAt: new Date('2026-09-19T06:05:00.000Z'),
+    });
+
+    const result = await hostCaller.moderate({
+      sessionCode: 'ABC123',
+      questionId: QUESTION_ID,
+      action: 'APPROVE',
+    });
+
+    expect(result.status).toBe('ACTIVE');
+    expect(prismaMock.$executeRaw).toHaveBeenCalled();
+  });
+
+  it('lehnt Host-Moderation nach Quiz-FINISHED ab, wenn Q&A geschlossen ist', async () => {
+    prismaMock.session.findUnique.mockResolvedValue({
+      ...ACTIVE_QA_SESSION,
+      id: SESSION_ID,
+      type: 'QUIZ',
+      qaEnabled: true,
+      qaOpen: false,
+      qaClosesAt: new Date('2026-09-19T06:00:00.000Z'),
+      status: 'FINISHED',
+      endedAt: new Date('2026-09-19T06:00:00.000Z'),
+    });
+
+    await expect(
+      hostCaller.moderate({
+        sessionCode: 'ABC123',
+        questionId: QUESTION_ID,
+        action: 'APPROVE',
+      }),
+    ).rejects.toMatchObject({
+      code: 'FORBIDDEN',
+      message: 'Die Session ist beendet. Fragen und Bewertungen sind nicht mehr möglich.',
+    });
+    expect(prismaMock.qaQuestion.update).not.toHaveBeenCalled();
+  });
+
   trpcDodIt(
     {
       procedure: 'qa.moderate',
@@ -1335,6 +1401,7 @@ describe('qa router (Epic 8)', () => {
         text: 'Kannst du das Beispiel nochmal zeigen?',
         upvoteCount: 3,
         authorNickname: 'Gelber Löwe',
+        authorTeamName: 'Team Apfel',
         positiveVoteCount: 3,
         bestScore: 0.4385,
       }),
@@ -1348,9 +1415,13 @@ describe('qa router (Epic 8)', () => {
     expect(rawSqlText(prismaMock.$queryRaw.mock.calls[0] ?? [])).toContain(
       `participant."nickname" AS "authorNickname"`,
     );
+    expect(rawSqlText(prismaMock.$queryRaw.mock.calls[0] ?? [])).toContain(
+      `author_team."name" AS "authorTeamName"`,
+    );
     expect(result[0]).toMatchObject({
       id: QUESTION_ID,
       authorNickname: 'Gelber Löwe',
+      authorTeamName: 'Team Apfel',
     });
   });
 
@@ -1419,6 +1490,40 @@ describe('qa router (Epic 8)', () => {
 
     const sql = rawSqlText(prismaMock.$queryRaw.mock.calls[0] ?? []);
     expect(sql).not.toContain('author."nickname"');
+  });
+
+  it('liefert in der Teilnehmer-Q&A-Liste Autor und Team an den Fragen', async () => {
+    prismaMock.session.findUnique.mockResolvedValue({
+      ...ACTIVE_QA_SESSION,
+      type: 'Q_AND_A',
+      qaEnabled: true,
+      qaOpen: true,
+      qaModerationMode: false,
+      qaQuestionCount: 1,
+      onboardingAnonymousMode: false,
+    });
+    rawQueryResults.rankedQuestions.push([
+      rankedQaRow({
+        id: QUESTION_ID,
+        participantId: OTHER_PARTICIPANT_ID,
+        text: 'Offene Frage',
+        upvoteCount: 1,
+        authorNickname: 'Green frog 1',
+        authorTeamName: 'Team 🍎',
+      }),
+    ]);
+
+    const { questions: result } = await caller.list({
+      sessionId: SESSION_ID,
+      participantId: PARTICIPANT_ID,
+    });
+
+    expect(result[0]).toMatchObject({
+      id: QUESTION_ID,
+      authorNickname: 'Green frog 1',
+      authorTeamName: 'Team 🍎',
+      isOwn: false,
+    });
   });
 
   it('sortiert Host-Q&A im BEST-Modus nach Wilson-Score', async () => {

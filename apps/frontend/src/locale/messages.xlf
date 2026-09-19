@@ -8232,17 +8232,21 @@
         </context-group>
       </trans-unit>
       <trans-unit id="homeLiveCard.recoveryLabel" datatype="html">
-        <source>Host-Session</source>
+        <source>Q&amp;A-Session <x id="code" equiv-text="code"/></source>
         <context-group purpose="location">
-          <context context-type="sourcefile">src/app/features/home/home.component.html</context>
-          <context context-type="linenumber">224</context>
+          <context context-type="sourcefile">src/app/features/home/home.component.ts</context>
         </context-group>
       </trans-unit>
       <trans-unit id="homeLiveCard.recoveryDescription" datatype="html">
         <source>Zugang als Host</source>
         <context-group purpose="location">
-          <context context-type="sourcefile">src/app/features/home/home.component.html</context>
-          <context context-type="linenumber">228</context>
+          <context context-type="sourcefile">src/app/features/home/home.component.ts</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="homeLiveCard.recoveryDeadline" datatype="html">
+        <source>Zugang bis <x id="deadline" equiv-text="deadline"/></source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/home/home.component.ts</context>
         </context-group>
       </trans-unit>
       <trans-unit id="homeLiveCard.quizDescription" datatype="html">
@@ -18570,6 +18574,9 @@
           <context context-type="linenumber">3724</context>
         </context-group>
       </trans-unit>
+      <trans-unit id="sessionHost.startAnotherQuiz" datatype="html">
+        <source>Weiteres Quiz starten</source>
+      </trans-unit>
       <trans-unit id="sessionHost.wordCloudAnalysisAria" datatype="html">
         <source>Wortwolken-Ansicht</source>
         <context-group purpose="location">
@@ -19063,6 +19070,12 @@
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.html</context>
           <context context-type="linenumber">4647,4649</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="sessionHost.leaveQaHostAnchor" datatype="html">
+        <source>Zur Startseite</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.html</context>
         </context-group>
       </trans-unit>
       <trans-unit id="sessionHost.endGlobalSessionAnchor" datatype="html">
@@ -22006,7 +22019,7 @@
         </context-group>
       </trans-unit>
       <trans-unit id="sessionQa.exportHeader" datatype="html">
-        <source>Nr.;Frage-ID;Status;Statusbezeichnung;Autor;Frage;Score;Positive Stimmen;Negative Stimmen;Stimmen gesamt;Wilson-Score;Kontroverse-Score;Umstritten;Hervorgehoben;Erstellt am</source>
+        <source>Nr.;Frage-ID;Status;Statusbezeichnung;Autor;Team;Frage;Score;Positive Stimmen;Negative Stimmen;Stimmen gesamt;Wilson-Score;Kontroverse-Score;Umstritten;Hervorgehoben;Erstellt am</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.ts</context>
           <context context-type="linenumber">11418</context>
@@ -25912,6 +25925,13 @@
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-vote/session-vote.component.ts</context>
           <context context-type="linenumber">5809</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="sessionVote.participantRequired" datatype="html">
+        <source>Deine Teilnahme fehlt. Bitte tritt der Session erneut bei.</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/session-vote/session-vote.component.ts</context>
+          <context context-type="linenumber">5890</context>
         </context-group>
       </trans-unit>
       <trans-unit id="9175670018185396326" datatype="html">

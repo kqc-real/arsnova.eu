@@ -59,11 +59,12 @@ import {
   type SessionParticipationProfileDialogResult,
 } from '../session/session-participation-profile-dialog.component';
 import { QUICK_FEEDBACK_HOME_CHIPS } from '../feedback/feedback.config';
-import type {
-  MotdInteractionKind,
-  MotdPublicDTO,
-  QuickFeedbackType,
-  SessionInfoDTO,
+import {
+  isQaChannelJoinable,
+  type MotdInteractionKind,
+  type MotdPublicDTO,
+  type QuickFeedbackType,
+  type SessionInfoDTO,
 } from '@arsnova/shared-types';
 import {
   clearMotdThumbInteractionKeys,
@@ -205,6 +206,18 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
   readonly hostRecoveryCtaLink = computed(() => {
     const code = this.hostRecoveryPreferredCode();
     return code ? localizePath(`/session/${code}/host`) : localizePath('/host-recovery');
+  });
+  readonly hostRecoveryCtaLabel = computed(() => {
+    const code = this.hostRecoveryPreferredCode() ?? '';
+    return $localize`:@@homeLiveCard.recoveryLabel:Q&A-Session ${code}:code:`;
+  });
+  readonly hostRecoveryDeadlineLabel = signal<string | null>(null);
+  readonly hostRecoveryCtaDescription = computed(() => {
+    const deadline = this.hostRecoveryDeadlineLabel();
+    if (deadline) {
+      return $localize`:@@homeLiveCard.recoveryDeadline:Zugang bis ${deadline}:deadline:`;
+    }
+    return $localize`:@@homeLiveCard.recoveryDescription:Zugang als Host`;
   });
   private readonly platformId = inject(PLATFORM_ID);
   private readonly sanitizer = inject(DomSanitizer);
@@ -351,6 +364,7 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
         this.markJoinIntentForMotd();
       }
       this.loadRecentSessionCodes();
+      void this.loadHostRecoveryDeadline();
       const pendingHost = consumePendingHostInvite();
       if (pendingHost?.sessionCode && hasHostToken(pendingHost.sessionCode)) {
         // Damit claimInvite das x-host-token mitschickt (Home-Route hat keinen Session-Pfad).
@@ -473,6 +487,50 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
       return session.status !== 'FINISHED';
     } catch {
       return false;
+    }
+  }
+
+  private async loadHostRecoveryDeadline(): Promise<void> {
+    const code = this.hostRecoveryPreferredCode();
+    if (!code) {
+      this.hostRecoveryDeadlineLabel.set(null);
+      return;
+    }
+    try {
+      const session = await trpc.session.getInfo.query({
+        code,
+        anonymousClientId: getAnonymousClientId(),
+      });
+      const iso = session.postProcessingEndsAt ?? session.expiresAt ?? null;
+      if (!iso) {
+        this.hostRecoveryDeadlineLabel.set(null);
+        return;
+      }
+      this.hostRecoveryDeadlineLabel.set(this.formatHostAccessDeadline(iso, session.timeZone));
+    } catch {
+      this.hostRecoveryDeadlineLabel.set(null);
+    }
+  }
+
+  private formatHostAccessDeadline(iso: string, timeZone?: string): string | null {
+    const date = new Date(iso);
+    if (Number.isNaN(date.getTime())) {
+      return null;
+    }
+    const options: Intl.DateTimeFormatOptions = {
+      dateStyle: 'medium',
+      timeStyle: 'short',
+    };
+    if (timeZone) {
+      options.timeZone = timeZone;
+    }
+    try {
+      return new Intl.DateTimeFormat(this.localeId, options).format(date);
+    } catch {
+      return new Intl.DateTimeFormat(this.localeId, {
+        dateStyle: 'medium',
+        timeStyle: 'short',
+      }).format(date);
     }
   }
 
@@ -897,11 +955,14 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
       return 'feedback';
     }
     if (resolution.sessionStatus) {
-      return resolution.sessionStatus === 'FINISHED' ? 'finished' : 'join';
+      if (resolution.sessionStatus === 'FINISHED' && resolution.qaJoinable !== true) {
+        return 'finished';
+      }
+      return 'join';
     }
     // Kompatibilitätsfallback für einen alten Backend-Stand während Rolling Deployments.
     const session = await trpc.session.getInfo.query({ code, anonymousClientId });
-    return session.status === 'FINISHED' ? 'finished' : 'join';
+    return session.status === 'FINISHED' && !isQaChannelJoinable(session) ? 'finished' : 'join';
   }
 
   private applyFinishedJoinError(code: string): void {

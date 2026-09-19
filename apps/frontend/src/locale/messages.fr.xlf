@@ -9348,12 +9348,16 @@
         </context-group>
       </trans-unit>
       <trans-unit id="homeLiveCard.recoveryLabel" datatype="html">
-        <source>Host-Session</source>
-        <target>Session hôte</target>
+        <source>Q&amp;A-Session <x id="code" equiv-text="code"/></source>
+        <target>Session Q&amp;R <x id="code" equiv-text="code"/></target>
       </trans-unit>
       <trans-unit id="homeLiveCard.recoveryDescription" datatype="html">
         <source>Zugang als Host</source>
         <target>Accès hôte</target>
+      </trans-unit>
+      <trans-unit id="homeLiveCard.recoveryDeadline" datatype="html">
+        <source>Zugang bis <x id="deadline" equiv-text="deadline"/></source>
+        <target>Accès jusqu’au <x id="deadline" equiv-text="deadline"/></target>
       </trans-unit>
       <trans-unit id="homeLiveCard.title" datatype="html">
         <source> Session starten</source>
@@ -20251,6 +20255,10 @@
           <context context-type="linenumber">3881</context>
         </context-group>
       </trans-unit>
+      <trans-unit id="sessionHost.startAnotherQuiz" datatype="html">
+        <source>Weiteres Quiz starten</source>
+        <target>Lancer un autre quiz</target>
+      </trans-unit>
       <trans-unit id="sessionHost.wordCloudAnalysisAria" datatype="html">
         <source>Wortwolken-Ansicht</source>
         <target>Vue du nuage de mots</target>
@@ -20690,6 +20698,10 @@
       <trans-unit id="sessionQa.authorFilterClearAria" datatype="html">
         <source>Teilnahme-Filter aufheben</source>
         <target>Annuler le filtre de participation</target>
+      </trans-unit>
+      <trans-unit id="sessionHost.leaveQaHostAnchor" datatype="html">
+        <source>Zur Startseite</source>
+        <target>Retour à l’accueil</target>
       </trans-unit>
       <trans-unit id="sessionHost.endGlobalSessionAnchor" datatype="html">
         <source> Session beenden</source>
@@ -24000,8 +24012,8 @@
         </context-group>
       </trans-unit>
       <trans-unit id="sessionQa.exportHeader" datatype="html">
-        <source>Nr.;Frage-ID;Status;Statusbezeichnung;Autor;Frage;Score;Positive Stimmen;Negative Stimmen;Stimmen gesamt;Wilson-Score;Kontroverse-Score;Umstritten;Hervorgehoben;Erstellt am</source>
-        <target>N°;ID de question;Statut;Libellé du statut;Auteur;Question;Score;Votes positifs;Votes négatifs;Votes au total;Score de Wilson;Score de controverse;Controversée;Mise en avant;Créée le</target>
+        <source>Nr.;Frage-ID;Status;Statusbezeichnung;Autor;Team;Frage;Score;Positive Stimmen;Negative Stimmen;Stimmen gesamt;Wilson-Score;Kontroverse-Score;Umstritten;Hervorgehoben;Erstellt am</source>
+        <target>N°;ID de question;Statut;Libellé du statut;Auteur;Équipe;Question;Score;Votes positifs;Votes négatifs;Votes au total;Score de Wilson;Score de controverse;Controversée;Mise en avant;Créée le</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.ts</context>
           <context context-type="linenumber">11071</context>
@@ -28397,6 +28409,14 @@
       <trans-unit id="sessionVote.confidenceRequired" datatype="html">
         <source>Gib deine Selbsteinschätzung an, bevor du absendest.</source>
         <target>Indique ton autoévaluation avant d’envoyer.</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/session-vote/session-vote.component.ts</context>
+          <context context-type="linenumber">5600</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="sessionVote.participantRequired" datatype="html">
+        <source>Deine Teilnahme fehlt. Bitte tritt der Session erneut bei.</source>
+        <target>Ta participation manque. Rejoins la session.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-vote/session-vote.component.ts</context>
           <context context-type="linenumber">5600</context>
