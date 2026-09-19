@@ -733,14 +733,18 @@ describe('qa router (Epic 8)', () => {
   );
 
   it('liefert Teilnehmenden nach globalem Sessionende keine Q&A-Inhalte', async () => {
+    const endedAt = new Date('2026-09-18T08:00:00.000Z');
     prismaMock.session.findUnique.mockResolvedValue({
       ...ACTIVE_QA_SESSION,
       id: SESSION_ID,
       code: 'CODE12',
       status: 'FINISHED',
+      endedAt,
+      expiresAt: endedAt,
       type: 'QUIZ',
       qaEnabled: true,
       qaOpen: true,
+      qaClosesAt: new Date('2026-09-20T08:00:00.000Z'),
       qaModerationMode: false,
     });
 
@@ -748,6 +752,93 @@ describe('qa router (Epic 8)', () => {
       caller.list({ sessionId: SESSION_ID, participantId: PARTICIPANT_ID }),
     ).resolves.toMatchObject({ questions: [], state: 'SESSION_ENDED' });
     expect(prismaMock.$queryRaw).not.toHaveBeenCalled();
+  });
+
+  it('liefert Teilnehmenden nach Quiz-FINISHED bestehende Fragen, solange Q&A offen ist', async () => {
+    const endedAt = new Date('2026-09-19T07:00:00.000Z');
+    prismaMock.session.findUnique.mockResolvedValue({
+      ...ACTIVE_QA_SESSION,
+      id: SESSION_ID,
+      code: 'CODE12',
+      status: 'FINISHED',
+      endedAt,
+      type: 'QUIZ',
+      qaEnabled: true,
+      qaOpen: true,
+      qaModerationMode: false,
+      qaQuestionCount: 1,
+    });
+    const remainingQuestion = rankedQaRow({
+      id: QUESTION_ID,
+      participantId: OTHER_PARTICIPANT_ID,
+      text: 'Frage bleibt im Forum',
+      upvoteCount: 2,
+    });
+    rawQueryResults.rankedQuestions.push([remainingQuestion], [remainingQuestion]);
+
+    await expect(
+      caller.list({ sessionId: SESSION_ID, participantId: PARTICIPANT_ID }),
+    ).resolves.toMatchObject({
+      state: 'ACTIVE',
+      questions: [expect.objectContaining({ id: QUESTION_ID, text: 'Frage bleibt im Forum' })],
+    });
+    await expect(
+      caller.list({ sessionId: SESSION_ID, participantId: PARTICIPANT_ID }),
+    ).resolves.toMatchObject({
+      state: 'ACTIVE',
+      questions: [expect.objectContaining({ id: QUESTION_ID })],
+    });
+  });
+
+  it('beendet Teilnehmer-Q&A nach Quiz-FINISHED wenn der Kanal geschlossen oder abgelaufen ist', async () => {
+    const endedAt = new Date('2026-09-19T07:00:00.000Z');
+    prismaMock.session.findUnique.mockResolvedValueOnce({
+      ...ACTIVE_QA_SESSION,
+      status: 'FINISHED',
+      endedAt,
+      type: 'QUIZ',
+      qaEnabled: true,
+      qaOpen: false,
+      qaModerationMode: false,
+    });
+    await expect(
+      caller.list({ sessionId: SESSION_ID, participantId: PARTICIPANT_ID }),
+    ).resolves.toMatchObject({ questions: [], state: 'SESSION_ENDED' });
+
+    prismaMock.session.findUnique.mockResolvedValueOnce({
+      ...ACTIVE_QA_SESSION,
+      status: 'FINISHED',
+      endedAt,
+      type: 'QUIZ',
+      qaEnabled: true,
+      qaOpen: true,
+      qaClosesAt: new Date('2026-09-19T06:00:00.000Z'),
+      qaModerationMode: false,
+    });
+    await expect(
+      caller.list({ sessionId: SESSION_ID, participantId: PARTICIPANT_ID }),
+    ).resolves.toMatchObject({ questions: [], state: 'SESSION_ENDED' });
+  });
+
+  it('liefert der Presenter-Projektion nach Quiz-FINISHED offene Q&A-Fragen', async () => {
+    const endedAt = new Date('2026-09-19T07:00:00.000Z');
+    prismaMock.session.findUnique.mockResolvedValue({
+      ...ACTIVE_QA_SESSION,
+      status: 'FINISHED',
+      endedAt,
+      type: 'QUIZ',
+      qaEnabled: true,
+      qaOpen: true,
+      qaModerationMode: false,
+      qaQuestionCount: 1,
+    });
+    rawQueryResults.rankedQuestions.push([
+      rankedQaRow({ text: 'Weiter auf der Leinwand', status: 'ACTIVE' }),
+    ]);
+
+    const result = await caller.presentProjection({ sessionId: SESSION_ID });
+    expect(result.state).toBe('ACTIVE');
+    expect(result.questions.map((question) => question.text)).toEqual(['Weiter auf der Leinwand']);
   });
 
   it('begrenzt pageSize auf 100 und liefert einen fortsetzbaren nextCursor', async () => {
@@ -1526,6 +1617,58 @@ describe('qa router (Epic 8)', () => {
     });
   });
 
+  it('laesst Autor und Team im anonymen Modus auch bei gesetzten Rohfeldern weg', async () => {
+    const anonymousSession = {
+      ...ACTIVE_QA_SESSION,
+      type: 'Q_AND_A' as const,
+      qaEnabled: true,
+      qaOpen: true,
+      qaModerationMode: false,
+      qaQuestionCount: 1,
+      onboardingAnonymousMode: true,
+    };
+    const authoredRow = rankedQaRow({
+      id: QUESTION_ID,
+      participantId: OTHER_PARTICIPANT_ID,
+      text: 'Anonyme Frage',
+      upvoteCount: 1,
+      authorNickname: 'Green frog 1',
+      authorTeamName: 'Team 🍎',
+    });
+
+    prismaMock.session.findUnique.mockResolvedValue(anonymousSession);
+    rawQueryResults.rankedQuestions.push([authoredRow]);
+    const participantList = await caller.list({
+      sessionId: SESSION_ID,
+      participantId: PARTICIPANT_ID,
+    });
+    expect(participantList.questions[0]).toMatchObject({
+      id: QUESTION_ID,
+      text: 'Anonyme Frage',
+    });
+    expect(participantList.questions[0]).not.toHaveProperty('authorNickname');
+    expect(participantList.questions[0]).not.toHaveProperty('authorTeamName');
+
+    prismaMock.session.findUnique.mockResolvedValue({
+      ...anonymousSession,
+      id: SESSION_ID,
+      code: 'ABC123',
+    });
+    rawQueryResults.rankedQuestions.push([authoredRow]);
+    const hostList = await hostCaller.list({
+      sessionId: SESSION_ID,
+      moderatorView: true,
+    });
+    expect(hostList.questions[0]).not.toHaveProperty('authorNickname');
+    expect(hostList.questions[0]).not.toHaveProperty('authorTeamName');
+
+    prismaMock.session.findUnique.mockResolvedValue(anonymousSession);
+    rawQueryResults.rankedQuestions.push([authoredRow]);
+    const projection = await caller.presentProjection({ sessionId: SESSION_ID });
+    expect(projection.questions[0]).not.toHaveProperty('authorNickname');
+    expect(projection.questions[0]).not.toHaveProperty('authorTeamName');
+  });
+
   it('sortiert Host-Q&A im BEST-Modus nach Wilson-Score', async () => {
     prismaMock.session.findUnique.mockResolvedValue({
       ...ACTIVE_QA_SESSION,
@@ -1829,14 +1972,18 @@ describe('qa router (Epic 8)', () => {
   });
 
   it('beendet die Teilnehmer-Subscription nach globalem Sessionende inhaltsfrei', async () => {
+    const endedAt = new Date('2026-09-18T08:00:00.000Z');
     prismaMock.session.findUnique.mockResolvedValue({
       ...ACTIVE_QA_SESSION,
       id: SESSION_ID,
       code: 'ABC123',
       status: 'FINISHED',
+      endedAt,
+      expiresAt: endedAt,
       type: 'QUIZ',
       qaEnabled: true,
       qaOpen: true,
+      qaClosesAt: new Date('2026-09-20T08:00:00.000Z'),
     });
 
     const stream = await caller.onQuestionsUpdated({
@@ -1851,6 +1998,32 @@ describe('qa router (Epic 8)', () => {
     });
     await expect(iterator.next()).resolves.toEqual({ value: undefined, done: true });
     expect(prismaMock.$queryRaw).not.toHaveBeenCalled();
+  });
+
+  it('haelt die Teilnehmer-Subscription nach Quiz-FINISHED offen, solange Q&A offen ist', async () => {
+    const endedAt = new Date('2026-09-19T07:00:00.000Z');
+    prismaMock.session.findUnique.mockResolvedValue({
+      ...ACTIVE_QA_SESSION,
+      id: SESSION_ID,
+      code: 'ABC123',
+      status: 'FINISHED',
+      endedAt,
+      type: 'QUIZ',
+      qaEnabled: true,
+      qaOpen: true,
+    });
+
+    const stream = await caller.onQuestionsUpdated({
+      sessionId: SESSION_ID,
+      participantId: PARTICIPANT_ID,
+    });
+    const iterator = stream[Symbol.asyncIterator]();
+
+    await expect(iterator.next()).resolves.toMatchObject({
+      value: { kind: 'INVALIDATED', state: 'ACTIVE' },
+      done: false,
+    });
+    await iterator.return?.(undefined);
   });
 
   it('liefert qa.onQuestionsUpdated als inhaltslose Host-Invalidierung', async () => {

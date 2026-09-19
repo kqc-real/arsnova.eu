@@ -21,7 +21,7 @@ import {
   SubmitQaQuestionInputSchema,
   SubmitQaQuestionOutputSchema,
   ToggleQaModerationInputSchema,
-  isQaChannelJoinable,
+  isQaOpenForParticipants,
   ToggleQaUpvoteOutputSchema,
   UpvoteQaQuestionInputSchema,
 } from '@arsnova/shared-types';
@@ -112,6 +112,7 @@ type QaSessionLifecycleGate = {
 
 function isQaSessionEffectivelyFinished(
   session: QaSessionLifecycleGate | null | undefined,
+  now = new Date(),
 ): boolean {
   return (
     !!session &&
@@ -121,8 +122,19 @@ function isQaSessionEffectivelyFinished(
         endedAt: session.endedAt,
         expiresAt: session.expiresAt,
       },
-      new Date(),
+      now,
     )
+  );
+}
+
+function isQaParticipantReadEnded(
+  session: QaSessionLifecycleGate | null | undefined,
+  now = new Date(),
+): boolean {
+  return (
+    !!session &&
+    isQaSessionEffectivelyFinished(session, now) &&
+    !isQaOpenForParticipants(session, now)
   );
 }
 
@@ -190,7 +202,7 @@ function buildQaQuestionsInvalidation(
 function assertQaSessionOpenForParticipants(
   session: QaSessionLifecycleGate | null | undefined,
 ): void {
-  if (session && isQaChannelJoinable(session)) {
+  if (session && isQaOpenForParticipants(session)) {
     return;
   }
   if (isQaSessionEffectivelyFinished(session)) {
@@ -380,17 +392,11 @@ function mapQaQuestion(
       question.createdAt instanceof Date
         ? question.createdAt.toISOString()
         : new Date(question.createdAt).toISOString(),
-    ...(question.participant?.nickname?.trim() || question.authorNickname?.trim()
-      ? {
-          authorNickname:
-            question.participant?.nickname?.trim() || question.authorNickname?.trim() || undefined,
-        }
+    ...(question.participant?.nickname?.trim()
+      ? { authorNickname: question.participant.nickname.trim() }
       : {}),
-    ...(question.participant?.teamName?.trim() || question.authorTeamName?.trim()
-      ? {
-          authorTeamName:
-            question.participant?.teamName?.trim() || question.authorTeamName?.trim() || undefined,
-        }
+    ...(question.participant?.teamName?.trim()
+      ? { authorTeamName: question.participant.teamName.trim() }
       : {}),
     myVote: myUpvote ? (myUpvote.direction === 'DOWN' ? 'DOWN' : 'UP') : null,
     isOwn: !!participantId && question.participantId === participantId,
@@ -966,7 +972,7 @@ export const qaRouter = router({
           sessionId: session.id,
           participantId: input.participantId,
         });
-        if (isSessionEffectivelyFinished(session, serverNow)) {
+        if (isQaParticipantReadEnded(session, serverNow)) {
           return buildQaQuestionsSnapshot(session, [], 'SESSION_ENDED', serverNow);
         }
         if (session.qaClosesAt === null) {
@@ -1092,7 +1098,7 @@ export const qaRouter = router({
         throw new TRPCError({ code: 'NOT_FOUND', message: 'Session nicht gefunden.' });
       }
       const serverNow = new Date();
-      if (isSessionEffectivelyFinished(session, serverNow)) {
+      if (isQaParticipantReadEnded(session, serverNow)) {
         return buildQaQuestionsSnapshot(session, [], 'SESSION_ENDED', serverNow);
       }
       if (!isQaEnabled(session)) {
@@ -1586,7 +1592,7 @@ export const qaRouter = router({
           sessionId: gateSession.id,
           participantId: input.participantId,
         });
-        if (isSessionEffectivelyFinished(gateSession, gateNow)) {
+        if (isQaParticipantReadEnded(gateSession, gateNow)) {
           yield buildQaQuestionsInvalidation(gateSession, 'SESSION_ENDED', gateNow);
           return;
         }
@@ -1657,7 +1663,7 @@ export const qaRouter = router({
             yield buildQaQuestionsInvalidation(session, 'POST_PROCESSING_ENDED', snapshotNow);
             return;
           }
-        } else if (isSessionEffectivelyFinished(session, snapshotNow)) {
+        } else if (isQaParticipantReadEnded(session, snapshotNow)) {
           yield buildQaQuestionsInvalidation(session, 'SESSION_ENDED', snapshotNow);
           return;
         }

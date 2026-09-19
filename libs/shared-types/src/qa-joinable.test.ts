@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { isQaChannelJoinable } from './qa-joinable.js';
+import { isQaChannelJoinable, isQaOpenForParticipants } from './qa-joinable.js';
 
 const NOW = new Date('2026-09-19T08:00:00.000Z');
 
@@ -44,6 +44,31 @@ describe('isQaChannelJoinable', () => {
           qaEnabled: true,
           qaOpen: true,
           qaClosesAt: '2026-09-19T07:00:00.000Z',
+        },
+        NOW,
+      ),
+    ).toBe(false);
+  });
+
+  it('laesst offenes Q&A nach Quizende nur vor dem globalen Sessionende zu', () => {
+    expect(
+      isQaOpenForParticipants(
+        {
+          qaEnabled: true,
+          qaOpen: true,
+          qaClosesAt: '2026-09-20T08:00:00.000Z',
+          expiresAt: '2026-09-20T08:00:00.000Z',
+        },
+        NOW,
+      ),
+    ).toBe(true);
+    expect(
+      isQaOpenForParticipants(
+        {
+          qaEnabled: true,
+          qaOpen: true,
+          qaClosesAt: '2026-09-20T08:00:00.000Z',
+          expiresAt: '2026-09-19T07:00:00.000Z',
         },
         NOW,
       ),
