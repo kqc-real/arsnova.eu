@@ -79,7 +79,7 @@ npm run dev
 
 Dann im Browser: **`http://localhost:4200`**
 
-Das ist absichtlich der einfachste Pfad: **Deutsch**, beide Server laufen parallel, Postgres + Redis sind gestartet, Prisma ist vorbereitet und `shared-types` ist gebaut. **Englisch** brauchst du erst später; dafür gibt es **`npm run dev:en`**. Die Startseite ist dann leer — für eine **volle Hörsaal-Session** (Freitext + Q&A, ~500 Einträge) den nächsten Abschnitt nutzen.
+Das ist absichtlich der einfachste Pfad: **Deutsch**, Backend, Frontend und der Host-spaCy-Sidecar laufen parallel, Postgres + Redis sind gestartet, Prisma ist vorbereitet und `shared-types` ist gebaut. Wortwolken-Glättung braucht Python 3.10+; der erste Lauf legt `docker/spacy/.venv` an und lädt die Modelle (oft mehrere Minuten, Spalte `spacy` in concurrently). **Englisch** brauchst du erst später; dafür gibt es **`npm run dev:en`**. Die Startseite ist dann leer — für eine **volle Hörsaal-Session** (Freitext + Q&A, ~500 Einträge) den nächsten Abschnitt nutzen.
 
 **Wichtig für Windows:** Diese Befehle laufen dann in **WSL/Ubuntu**, nicht in PowerShell oder Git Bash.
 
@@ -199,17 +199,18 @@ belegt die Korrekturen der damals roten Gates.
 
 ### Typische Stolperstellen beim ersten Start
 
-| Symptom                                 | Wahrscheinliche Ursache                                                          | Direkt ausprobieren                                                                 |
-| --------------------------------------- | -------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------- |
-| `docker compose` geht nicht             | Docker Desktop ist nicht installiert oder nicht gestartet                        | Docker starten, dann `docker compose version` prüfen                                |
-| `npm run dev` bricht sofort ab          | Node-Version ist nicht passend                                                   | `node -v` prüfen; dann `nvm use` oder Node 24/22 installieren                       |
-| Browser zeigt nicht `/en/`, sondern `/` | Das ist korrekt: Standard-`dev` ist **Deutsch**                                  | Einfach `http://localhost:4200` nutzen; für Englisch `npm run dev:en`               |
-| Fehler zu Prisma oder fehlenden Typen   | `setup:dev`, `prisma:generate` oder `shared-types`-Build fehlt                   | `npm run setup:dev` erneut ausführen                                                |
-| Port 3000 oder 4200 ist schon belegt    | Voriger Dev-Server läuft noch                                                    | `npm run free-dev-ports` und dann erneut `npm run dev`                              |
-| Wortwolke bleibt leer / Seed bricht ab  | Keine Freitextfrage in der Session, oder `npm run dev` parallel zum macOS-Helfer | Demo-Quiz anzeigen; auf macOS nur `spacy:macos-dev`, nicht zusätzlich `npm run dev` |
-| `The table public.Quiz does not exist`  | Postgres läuft, Prisma-Schema wurde nie angewendet                               | `npm run prisma:migrate` (der macOS-Helfer macht das jetzt selbst)                  |
-| „Wähle die Sprache der Antworten“ in it | Host-UI `it` hat kein Lemma-Modell; Default folgt der UI                         | Am Glätten-Button DE/EN/FR/ES wählen                                                |
-| `/admin` funktioniert lokal nicht       | `ADMIN_SECRET` wurde nicht gesetzt                                               | `.env` ergänzen und Backend neu starten                                             |
+| Symptom                                 | Wahrscheinliche Ursache                                                          | Direkt ausprobieren                                                                   |
+| --------------------------------------- | -------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------- |
+| `docker compose` geht nicht             | Docker Desktop ist nicht installiert oder nicht gestartet                        | Docker starten, dann `docker compose version` prüfen                                  |
+| `npm run dev` bricht sofort ab          | Node-Version ist nicht passend                                                   | `node -v` prüfen; dann `nvm use` oder Node 24/22 installieren                         |
+| Browser zeigt nicht `/en/`, sondern `/` | Das ist korrekt: Standard-`dev` ist **Deutsch**                                  | Einfach `http://localhost:4200` nutzen; für Englisch `npm run dev:en`                 |
+| Fehler zu Prisma oder fehlenden Typen   | `setup:dev`, `prisma:generate` oder `shared-types`-Build fehlt                   | `npm run setup:dev` erneut ausführen                                                  |
+| Port 3000 oder 4200 ist schon belegt    | Voriger Dev-Server läuft noch                                                    | `npm run free-dev-ports` und dann erneut `npm run dev`                                |
+| Wortwolke bleibt leer / Seed bricht ab  | Keine Freitextfrage in der Session, oder `npm run dev` parallel zum macOS-Helfer | Demo-Quiz anzeigen; auf macOS nur `spacy:macos-dev`, nicht zusätzlich `npm run dev`   |
+| „Glättung nicht verfügbar“              | Sidecar lädt noch Modelle, Python fehlt, oder `dev:backend` ohne Sidecar         | Spalte `spacy` in concurrently prüfen; Python 3.10+; nach Socket-Bind neu analysieren |
+| `The table public.Quiz does not exist`  | Postgres läuft, Prisma-Schema wurde nie angewendet                               | `npm run prisma:migrate` (der macOS-Helfer macht das jetzt selbst)                    |
+| „Wähle die Sprache der Antworten“ in it | Host-UI `it` hat kein Lemma-Modell; Default folgt der UI                         | Am Glätten-Button DE/EN/FR/ES wählen                                                  |
+| `/admin` funktioniert lokal nicht       | `ADMIN_SECRET` wurde nicht gesetzt                                               | `.env` ergänzen und Backend neu starten                                               |
 
 **Spezialfall Windows:** Wenn das Setup unter Windows „zufällig kaputt“ wirkt, wechsle auf **WSL2/Ubuntu**, klone das Repo dort unter `~/...` neu und starte den Ablauf noch einmal komplett in WSL.
 

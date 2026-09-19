@@ -108,13 +108,15 @@ describe('session.getInfo (ADR-0009)', () => {
         qaModerationMode: true,
         quickFeedbackEnabled: false,
         quickFeedbackOpen: false,
-        _count: { participants: 3 },
+        qaQuestionCount: 0,
+        _count: { participants: 3, qaQuestions: 7 },
       });
 
       const result = await caller.getInfoForReconnect({ code: 'ABC123' });
 
       expect(result).toMatchObject({
         code: 'ABC123',
+        qaQuestionCount: 7,
         channels: {
           qa: { enabled: true, open: true, title: 'Offene Fragerunde' },
           quickFeedback: { enabled: false, open: false },
@@ -145,7 +147,8 @@ describe('session.getInfo (ADR-0009)', () => {
         qaModerationMode: true,
         quickFeedbackEnabled: true,
         quickFeedbackOpen: true,
-        _count: { participants: 12 },
+        qaQuestionCount: 0,
+        _count: { participants: 12, qaQuestions: 4 },
       });
       prismaMock.quiz.findUnique.mockResolvedValue({
         name: 'Demo Quiz',
@@ -188,8 +191,32 @@ describe('session.getInfo (ADR-0009)', () => {
       expect(result.quizStarted).toBe(true);
       expect(result.quizName).toBe('Demo Quiz');
       expect(result.nicknameTheme).toBe('NOBEL_LAUREATES');
+      expect(result.qaQuestionCount).toBe(4);
     },
   );
+
+  it('zählt nicht gelöschte Q&A-Fragen live, auch wenn der Session-Zähler driftet', async () => {
+    prismaMock.session.findUnique.mockResolvedValue({
+      id: '6a8edced-5f8f-4cfa-9176-454fac9570ad',
+      code: 'GUNGB5',
+      type: 'QUIZ',
+      status: 'FINISHED',
+      title: null,
+      quizId: null,
+      qaEnabled: true,
+      qaOpen: true,
+      qaTitle: 'Fragen',
+      qaModerationMode: true,
+      quickFeedbackEnabled: false,
+      quickFeedbackOpen: false,
+      qaQuestionCount: 0,
+      _count: { participants: 2, qaQuestions: 40 },
+    });
+
+    const result = await caller.getInfo({ code: 'gungb5' });
+
+    expect(result.qaQuestionCount).toBe(40);
+  });
 
   it('liefert nicknameTheme KINDERGARTEN aus dem Quiz (Join-Liste Kita)', async () => {
     prismaMock.session.findUnique.mockResolvedValue({

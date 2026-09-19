@@ -79,9 +79,9 @@ Sessionzeilen-Lock für Frist und Kanal bleibt bestehen.
 Nur `ACTIVE` und `PINNED` sind berechtigt; »nur hervorgehoben« schränkt auf
 `PINNED` ein. Erst nach dem vollständigen serverseitigen Ranking werden exakt
 `min(500, eligibleQuestionCount)` Quellen an Lexik-, Lemma-, Phrasen- oder
-Themenanalyse übergeben. Die Host-UI zeigt die gekürzte Form
-»500 höchstplatzierte von N berücksichtigten Fragen« nur über dieser Kappe;
-darunter steht allein die ausgewertete Fragenzahl.
+Themenanalyse übergeben. Die ausgewertete Fragenzahl steht in der Wortwolken-Pill »N Fragen«, nicht
+die Anzahl gekürzter Erklärbeispiele. Eine Extra-Coverage-Zeile
+(»N ausgewertete Fragen · …«) gibt es in der Host-Wolke nicht.
 
 Die Analyseantwort bleibt davon unabhängig transportbegrenzt: höchstens 80
 Einträge und pro Eintrag ein gekennzeichnetes Erklärbeispiel mit maximal 128

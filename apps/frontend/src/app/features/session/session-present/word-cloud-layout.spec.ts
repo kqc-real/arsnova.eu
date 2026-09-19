@@ -4,6 +4,8 @@ import {
   DESKTOP_WORD_CLOUD_LIMIT,
   MIN_WORD_CLOUD_LAYOUT_WIDTH,
   MOBILE_WORD_CLOUD_LIMIT,
+  estimateWordCloudFontFillScale,
+  fitWordCloudPositionsToStage,
   getWordCloudChipPadding,
   getWordCloudRangeScale,
   getWordCloudLayoutHeight,
@@ -71,6 +73,65 @@ describe('word-cloud layout helpers', () => {
     expect(getWordCloudRotation(shortWords[0] ?? 'kurz0', 2, 960)).toBe(
       getWordCloudRotation(shortWords[0] ?? 'kurz0', 8, 960),
     );
+  });
+
+  it('skaliert ein kleines Packing gleichmaessig und ohne Streckung', () => {
+    const source = [
+      { x: -40, y: -10, size: 24, x0: -70, x1: -10, y0: -22, y1: 2 },
+      { x: 30, y: 8, size: 14, x0: 10, x1: 50, y0: -2, y1: 18 },
+    ];
+    const fitted = fitWordCloudPositionsToStage(source, 1200, 600);
+
+    const sourceSpanX =
+      Math.max(...source.map((word) => word.x1)) - Math.min(...source.map((word) => word.x0));
+    const sourceSpanY =
+      Math.max(...source.map((word) => word.y1)) - Math.min(...source.map((word) => word.y0));
+    const fittedSpanX =
+      Math.max(...fitted.map((word) => word.x1)) - Math.min(...fitted.map((word) => word.x0));
+    const fittedSpanY =
+      Math.max(...fitted.map((word) => word.y1)) - Math.min(...fitted.map((word) => word.y0));
+
+    expect(fitted[0]?.size ?? 0).toBeGreaterThan(24);
+    expect(fittedSpanX / sourceSpanX).toBeCloseTo(fittedSpanY / sourceSpanY, 2);
+    expect(fittedSpanX).toBeGreaterThan(sourceSpanX);
+    expect(fittedSpanX).toBeLessThan(1200 * 0.95);
+    expect(fittedSpanY).toBeLessThan(600 * 0.95);
+  });
+
+  it('vergroessert die D3-Schrift wenn wenige Begriffe eine grosse Buehne nicht fuellen', () => {
+    const scale = estimateWordCloudFontFillScale(
+      [
+        { word: 'Quiz', size: 28 },
+        { word: 'Klausur', size: 20 },
+        { word: 'Thema', size: 16 },
+      ],
+      1200,
+      700,
+    );
+
+    expect(scale).toBeGreaterThan(1.5);
+    expect(scale).toBeLessThanOrEqual(2.6);
+  });
+
+  it('laesst ein bereits dichtes Packing auf der Ausgangsschrift', () => {
+    const words = Array.from({ length: 40 }, (_, index) => ({
+      word: `Begriff${index}`,
+      size: 48,
+    }));
+
+    expect(estimateWordCloudFontFillScale(words, 800, 400)).toBe(1);
+  });
+
+  it('laesst fuer Chip-Innenabstand Abstand zum Buehnenrand', () => {
+    const fitted = fitWordCloudPositionsToStage(
+      [{ x: 0, y: 0, size: 40, x0: -200, x1: 200, y0: -80, y1: 80 }],
+      500,
+      220,
+    );
+
+    expect(Math.min(...fitted.map((word) => word.y0))).toBeGreaterThan(-110);
+    expect(Math.max(...fitted.map((word) => word.y1))).toBeLessThan(110);
+    expect(fitted[0]?.size ?? 40).toBeLessThan(40);
   });
 
   it('skaliert die mobile Wortwolke unterhalb des Breakpoints stufenlos weiter', () => {

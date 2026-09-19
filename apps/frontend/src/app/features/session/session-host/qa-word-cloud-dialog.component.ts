@@ -87,10 +87,6 @@ export class QaWordCloudDialogComponent {
   readonly wordLabelPlural = computed(() => this.data.wordLabelPlural());
   readonly tooltipMetricLabel = computed(() => this.data.tooltipMetricLabel());
   readonly analyzedQuestionCount = computed(() => this.data.analyzedQuestionCount());
-  readonly eligibleQuestionCount = computed(() => this.data.eligibleQuestionCount());
-  readonly coverageTruncated = computed(
-    () => this.analyzedQuestionCount() < this.eligibleQuestionCount(),
-  );
   readonly analysisModelVersion = computed(() => this.data.analysisModelVersion?.() ?? null);
   readonly analysisVariant = computed(() => this.data.analysisVariant());
   readonly themeModeAvailable = computed(() => this.data.themeModeAvailable());

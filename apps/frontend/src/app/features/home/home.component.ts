@@ -104,6 +104,7 @@ type HostSessionCta = {
   code: string;
   deadlineLabel: string | null;
   openUntilLabel: string | null;
+  questionCount: number | null;
   qaOpen: boolean | null;
   openUntilMs: number | null;
   accessUntilMs: number | null;
@@ -581,6 +582,16 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
     return null;
   }
 
+  hostSessionCtaQuestionDescription(item: HostSessionCta): string | null {
+    if (item.questionCount === null) {
+      return null;
+    }
+    if (item.questionCount === 1) {
+      return $localize`:@@homeLiveCard.qaQuestionCountOne:1 Frage`;
+    }
+    return $localize`:@@homeLiveCard.qaQuestionCountMany:${formatLocaleCount(item.questionCount, this.localeId)}:count: Fragen`;
+  }
+
   private listHostSessionCtaCodes(limit: number): string[] {
     const stored = listStoredHostBrowserCapabilityCodes();
     const lastHosted = getLastHostedSessionCode();
@@ -598,6 +609,7 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
       code,
       deadlineLabel: null,
       openUntilLabel: null,
+      questionCount: null,
       qaOpen: null,
       openUntilMs: null,
       accessUntilMs: null,
@@ -637,6 +649,8 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
             openUntilLabel: openIso
               ? this.formatHostAccessDeadline(openIso, session.timeZone)
               : null,
+            questionCount:
+              typeof session.qaQuestionCount === 'number' ? session.qaQuestionCount : null,
             qaOpen: isQaOpenForParticipants(session, new Date(now)),
             openUntilMs: Number.isFinite(openUntilMs) ? openUntilMs : null,
             accessUntilMs: Number.isFinite(accessUntilMs) ? accessUntilMs : null,

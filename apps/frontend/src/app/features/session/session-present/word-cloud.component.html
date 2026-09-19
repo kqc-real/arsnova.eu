@@ -29,6 +29,15 @@
         <span class="word-cloud__meta-pill"
           >{{ formatCount(responseSummary().total) }} {{ itemLabel(responseSummary().total) }}</span
         >
+        @if (analysisDetailLabel()) {
+          <span class="word-cloud__meta-pill word-cloud__meta-pill--focus">
+            @if (showsSelectedFilterDetails()) {
+              {{ selectedFilterPrefix }} {{ analysisDetailLabel() }}
+            } @else {
+              {{ focusFilterPrefix }} {{ analysisDetailLabel() }}
+            }
+          </span>
+        }
         @for (pill of contextPills(); track pill) {
           <span class="word-cloud__meta-pill word-cloud__meta-pill--context">{{ pill }}</span>
         }
@@ -39,28 +48,19 @@
           <span>{{ weightingHint() }}</span>
         </div>
       }
-      @if (analysisDetailLabel()) {
+      @if (selectedWordAnalysisDetails().length > 0) {
         <div class="word-cloud__filter-info">
-          <p class="word-cloud__filter-info-line">
-            @if (showsSelectedFilterDetails()) {
-              {{ selectedFilterPrefix }} <strong>{{ analysisDetailLabel() }}</strong>
-            } @else {
-              {{ focusFilterPrefix }} <strong>{{ analysisDetailLabel() }}</strong>
+          <p class="word-cloud__analysis-meta">
+            @for (detail of selectedWordAnalysisDetails(); track detail.label) {
+              <span
+                class="word-cloud__meta-pill word-cloud__meta-pill--detail"
+                [class.word-cloud__meta-pill--detail-high]="detail.tone === 'high'"
+                [class.word-cloud__meta-pill--detail-medium]="detail.tone === 'medium'"
+                [class.word-cloud__meta-pill--detail-cautious]="detail.tone === 'cautious'"
+                >{{ detail.label }}</span
+              >
             }
           </p>
-          @if (selectedWordAnalysisDetails().length > 0) {
-            <p class="word-cloud__analysis-meta">
-              @for (detail of selectedWordAnalysisDetails(); track detail.label) {
-                <span
-                  class="word-cloud__meta-pill word-cloud__meta-pill--detail"
-                  [class.word-cloud__meta-pill--detail-high]="detail.tone === 'high'"
-                  [class.word-cloud__meta-pill--detail-medium]="detail.tone === 'medium'"
-                  [class.word-cloud__meta-pill--detail-cautious]="detail.tone === 'cautious'"
-                  >{{ detail.label }}</span
-                >
-              }
-            </p>
-          }
         </div>
       }
     </div>
@@ -96,6 +96,9 @@
           class="word-cloud__visual"
           [class.word-cloud__visual--cloud]="cloudLayoutActive()"
           [class.word-cloud__visual--pending]="layoutPending() && !cloudLayoutActive()"
+          [class.word-cloud__visual--allow-pill-overflow]="
+            presentationMode() && !disableCloudLayout()
+          "
           [class.word-cloud__visual--wrapped-presentation]="
             presentationMode() && disableCloudLayout()
           "

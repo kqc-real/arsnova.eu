@@ -1855,7 +1855,7 @@ export class SessionHostComponent implements OnInit, OnDestroy {
       case 'CONTROVERSIAL':
         return $localize`:@@sessionQa.wordCloudMetricControversial:Kontroverse`;
       case 'TIME':
-        return $localize`:@@sessionQa.wordCloudMetricTime:Zeit`;
+        return $localize`:@@sessionQa.wordCloudMetricTime:Häufigkeit`;
       default:
         return $localize`:@@sessionQa.wordCloudMetricTop:positive Stimmen`;
     }
@@ -1902,7 +1902,7 @@ export class SessionHostComponent implements OnInit, OnDestroy {
       case 'CONTROVERSIAL':
         return $localize`:@@sessionQa.wordCloudHintControversial:Große Wörter und Phrasen kommen aus Fragen mit gegensätzlichen Reaktionen. Darüberfahren zeigt die zugehörigen Fragen.`;
       case 'TIME':
-        return $localize`:@@sessionQa.wordCloudHintTime:Die Fragenliste folgt der Zeit. Die Wortgröße bleibt bei den Stimmen.`;
+        return $localize`:@@sessionQa.wordCloudHintTime:Jede sichtbare Frage zählt gleich. Die Größe folgt der Häufigkeit, nicht den Stimmen.`;
       default:
         return $localize`:@@sessionQa.wordCloudHintTop:Große Wörter und Phrasen kommen aus Fragen mit vielen positiven Stimmen.`;
     }
@@ -3742,10 +3742,12 @@ export class SessionHostComponent implements OnInit, OnDestroy {
   }
 
   private syncWordCloudOverlayTop(): void {
-    const tabs = this.document.querySelector('.session-channel-tabs-shell');
+    const marker = this.qaWordCloudDialogOpen()
+      ? this.document.querySelector('app-top-toolbar')
+      : this.document.querySelector('.session-channel-tabs-shell');
     const top =
-      tabs instanceof HTMLElement
-        ? Math.max(0, Math.round(tabs.getBoundingClientRect().bottom))
+      marker instanceof HTMLElement
+        ? Math.max(0, Math.round(marker.getBoundingClientRect().bottom))
         : 0;
     this.document.documentElement.style.setProperty(
       '--session-host-word-cloud-overlay-top',

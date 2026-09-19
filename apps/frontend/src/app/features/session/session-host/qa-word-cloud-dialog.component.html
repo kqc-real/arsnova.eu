@@ -34,21 +34,21 @@
 
     <label class="qa-word-cloud-dialog__size">
       <span class="qa-word-cloud-dialog__size-label" i18n="@@sessionQa.wordCloudSizeLabel"
-        >Größe</span
+        >Größe nach:</span
       >
       <select
         class="qa-word-cloud-dialog__size-select"
         [value]="sortMode()"
         (change)="onSizeChange($event)"
         i18n-aria-label="@@sessionQa.wordCloudSizeAria"
-        aria-label="Größe nach Stimmen, besten Fragen, Kontroverse oder Zeit"
+        aria-label="Größe nach Stimmen, besten Fragen, Kontroverse oder Häufigkeit"
       >
         <option value="TOP" i18n="@@sessionQa.wordCloudSizeTop">Stimmen</option>
         <option value="BEST" i18n="@@sessionQa.sortBest">Beste Fragen</option>
         <option value="CONTROVERSIAL" i18n="@@sessionQa.wordCloudMetricControversial">
           Kontroverse
         </option>
-        <option value="TIME" i18n="@@sessionQa.sortTime">Zeit</option>
+        <option value="TIME" i18n="@@sessionQa.wordCloudMetricTime">Häufigkeit</option>
       </select>
     </label>
 
@@ -124,25 +124,6 @@
   @if (smoothingHint() && showSmoothingControls()) {
     <p class="qa-word-cloud-dialog__mode-note" aria-live="polite">{{ smoothingHint() }}</p>
   }
-  @if (eligibleQuestionCount() > 0) {
-    <p class="qa-word-cloud-dialog__coverage" role="status">
-      @if (coverageTruncated()) {
-        <span i18n="@@sessionQa.wordCloudCoverage"
-          >{{ analyzedQuestionCount() }} höchstplatzierte von
-          {{ eligibleQuestionCount() }} berücksichtigten Fragen</span
-        >
-      } @else if (analyzedQuestionCount() === 1) {
-        <span i18n="@@sessionQa.wordCloudCoverageExactSingular">1 ausgewertete Frage</span>
-      } @else {
-        <span i18n="@@sessionQa.wordCloudCoverageExact"
-          >{{ analyzedQuestionCount() }} ausgewertete Fragen</span
-        >
-      }
-      @if (tooltipMetricLabel(); as metric) {
-        <span aria-hidden="true"> · </span><span>{{ metric }}</span>
-      }
-    </p>
-  }
 
   <app-word-cloud
     class="qa-word-cloud-dialog__cloud"
@@ -156,6 +137,7 @@
     [description]="description()"
     [itemLabelSingular]="data.itemLabelSingular"
     [itemLabelPlural]="data.itemLabelPlural"
+    [itemCount]="analyzedQuestionCount()"
     [wordLabelSingular]="wordLabelSingular()"
     [wordLabelPlural]="wordLabelPlural()"
     [showConfidenceFilter]="analysisVariant() === 'SEMANTIC'"

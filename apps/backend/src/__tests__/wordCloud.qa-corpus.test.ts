@@ -38,6 +38,19 @@ import { wordCloudRouter } from '../routers/wordCloud';
 
 const caller = wordCloudRouter.createCaller({ req: {} as never });
 
+function flattenSql(value: unknown): string {
+  if (typeof value === 'string') {
+    return value;
+  }
+  if (Array.isArray(value)) {
+    return value.map(flattenSql).join('');
+  }
+  if (value && typeof value === 'object') {
+    return flattenSql(Object.values(value));
+  }
+  return String(value ?? '');
+}
+
 function corpusRows(returnedCount: number, eligibleCount: number) {
   return Array.from({ length: returnedCount }, (_, index) => ({
     id: `00000000-0000-4000-8000-${String(index + 1).padStart(12, '0')}`,
@@ -85,9 +98,10 @@ describe('wordCloud.analyzeQa – kanonisch begrenzter Korpus', () => {
       expect(result.sortMode).toBe('TOP');
       expect(result.filter).toBe('ALL_ELIGIBLE');
       expect(prismaMock.$queryRaw.mock.calls[0]?.slice(1)).toContain(500);
-      const corpusSql = (prismaMock.$queryRaw.mock.calls[0]?.[0] as readonly string[]).join('');
+      const corpusSql = flattenSql(prismaMock.$queryRaw.mock.calls[0]);
       expect(corpusSql).toContain('END AS "bestScore"');
       expect(corpusSql).toContain('END AS "controversyScore"');
+      expect(corpusSql).toContain('ranked."upvoteCount" DESC');
       expect(result.entries.length).toBeLessThanOrEqual(80);
       expect(
         Math.max(0, ...result.entries.map((entry) => entry.members.length)),
@@ -99,6 +113,27 @@ describe('wordCloud.analyzeQa – kanonisch begrenzter Korpus', () => {
       }
     });
   }
+
+  it('wertet bei TIME alle berechtigten Fragen gleich und sortiert nach createdAt', async () => {
+    prismaMock.$queryRaw.mockResolvedValue(corpusRows(120, 120));
+
+    const result = await caller.analyzeQa({
+      sessionCode: 'ABC123',
+      mode: 'LEXICAL',
+      locale: 'de',
+      metric: 'TIME',
+      filter: 'ALL_ELIGIBLE',
+      normalization: 'NONE',
+      maxEntries: 40,
+    });
+
+    expect(result.eligibleQuestionCount).toBe(120);
+    expect(result.analyzedQuestionCount).toBe(120);
+    expect(result.sortMode).toBe('TIME');
+    const corpusSql = flattenSql(prismaMock.$queryRaw.mock.calls[0]);
+    expect(corpusSql).toContain('ranked."createdAt" DESC');
+    expect(corpusSql).not.toContain('ranked."upvoteCount" DESC');
+  });
 
   trpcDodIt(
     {

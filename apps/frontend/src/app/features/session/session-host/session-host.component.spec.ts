@@ -6950,6 +6950,10 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
 
     expect(dialogOpenMock).toHaveBeenCalledTimes(1);
     expect(component.qaWordCloudDialogOpen()).toBe(true);
+    fixture.detectChanges();
+    expect(
+      fixture.nativeElement.querySelector('.session-host--qa-word-cloud-overlay'),
+    ).not.toBeNull();
     await vi.waitUntil(() => setPresenterSurfaceMutateMock.mock.calls.length === 1);
 
     releaseProjection();

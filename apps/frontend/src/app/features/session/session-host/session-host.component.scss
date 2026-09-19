@@ -5530,7 +5530,8 @@ button.session-host__btn-discussion {
   margin-top: 0.6rem;
 }
 
-.session-host--word-cloud-overlay .session-channel-tabs-shell {
+.session-host--word-cloud-overlay:not(.session-host--qa-word-cloud-overlay)
+  .session-channel-tabs-shell {
   position: sticky;
   top: max(0.35rem, env(safe-area-inset-top, 0px));
   z-index: 1300;
@@ -5539,6 +5540,11 @@ button.session-host__btn-discussion {
   background: color-mix(in srgb, var(--mat-sys-surface) 88%, transparent);
   box-shadow: var(--mat-sys-level2);
   backdrop-filter: blur(12px) saturate(1.15);
+}
+
+.session-host--qa-word-cloud-overlay .session-channel-tabs-shell,
+.session-host--qa-word-cloud-overlay .session-host__live-shell-row {
+  display: none;
 }
 
 .session-host__extra--maximized {
@@ -5626,7 +5632,7 @@ button.session-host__btn-discussion {
   align-self: stretch;
   min-height: 0;
   width: 100%;
-  height: auto;
+  height: 100%;
   overflow: hidden;
 }
 

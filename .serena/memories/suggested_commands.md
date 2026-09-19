@@ -5,9 +5,9 @@
   - `npm ci`
   - `npm run setup:dev` (starts Postgres/Redis, applies Prisma db push, generates client, builds shared-types)
 - Dev servers:
-  - `npm run dev` or `npm run dev:de`: backend + German frontend.
-  - `npm run dev:en`: backend + English frontend.
-  - `npm run dev:backend`: backend only; `npm run dev:frontend` / `npm run dev:frontend:de` / `npm run dev:frontend:en`: frontend only.
+  - `npm run dev` or `npm run dev:de`: backend + German frontend + Host-spaCy sidecar (`NLP_ENABLED=true`, socket `/tmp/arsnova-nlp.sock`).
+  - `npm run dev:en`: backend + English frontend + Host-spaCy sidecar.
+  - `npm run dev:backend`: backend only (no sidecar); `npm run dev:frontend` / `npm run dev:frontend:de` / `npm run dev:frontend:en`: frontend only.
   - `npm run dev:landing`: Astro landing app.
   - `npm run free-dev-ports` or `npm run free-port-3000` instead of manual port cleanup.
 - Docker/Prisma:

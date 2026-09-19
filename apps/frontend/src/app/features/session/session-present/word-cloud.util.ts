@@ -524,6 +524,8 @@ export function getQaWordCloudQuestionWeight(
             Math.max(1, getWordCloudWeightFromNormalizedMetric(question.controversyScore)),
           )
         : fallback;
+    case 'TIME':
+      return 1;
     default:
       return fallback;
   }

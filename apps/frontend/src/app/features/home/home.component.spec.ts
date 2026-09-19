@@ -124,7 +124,7 @@ function seedHostCapability(): void {
 function hostSessionGetInfo(
   code: string,
   qaOpen: boolean,
-  options?: { qaClosesAt?: string; postProcessingEndsAt?: string },
+  options?: { qaClosesAt?: string; postProcessingEndsAt?: string; qaQuestionCount?: number },
 ) {
   const closesAt =
     options?.qaClosesAt ?? (qaOpen ? '2026-09-20T06:07:00.000Z' : '2026-09-18T12:22:30.000Z');
@@ -137,6 +137,7 @@ function hostSessionGetInfo(
     quizName: 'Live',
     title: null,
     participantCount: 1,
+    qaQuestionCount: options?.qaQuestionCount ?? 0,
     expiresAt: closesAt,
     qaClosesAt: closesAt,
     qaEnabled: true,
@@ -541,6 +542,7 @@ describe('HomeComponent', () => {
         quizName: 'Live',
         title: null,
         participantCount: 2,
+        qaQuestionCount: 5,
         expiresAt: '2026-09-20T06:07:00.000Z',
         qaClosesAt: '2026-09-20T06:07:00.000Z',
         qaEnabled: true,
@@ -579,6 +581,7 @@ describe('HomeComponent', () => {
       expect(descriptions[0]).toContain('2026');
       expect(descriptions[1]).toMatch(/^Offen bis /);
       expect(descriptions[1]).toContain('2026');
+      expect(descriptions[2]).toBe('5 Fragen');
       expect(
         fixture.nativeElement
           .querySelector('.home-host-session-cta-row [data-testid="home-host-recovery"]')
@@ -601,6 +604,7 @@ describe('HomeComponent', () => {
         quizName: 'Live',
         title: null,
         participantCount: 2,
+        qaQuestionCount: 1,
         expiresAt: '2026-09-18T12:22:30.000Z',
         qaClosesAt: '2026-09-18T12:22:30.000Z',
         qaEnabled: true,
@@ -629,6 +633,7 @@ describe('HomeComponent', () => {
       ).map((line) => line.textContent?.trim());
       expect(descriptions[0]).toMatch(/^Zugang bis /);
       expect(descriptions[1]).toBe('Forum geschlossen');
+      expect(descriptions[2]).toBe('1 Frage');
       expect(
         fixture.nativeElement
           .querySelector('.home-host-session-cta-row [data-testid="home-host-recovery"]')

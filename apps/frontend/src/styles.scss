@@ -871,6 +871,9 @@ html {
   max-width: 100vw !important;
   height: calc(100dvh - var(--session-host-word-cloud-overlay-top, 0px)) !important;
   max-height: calc(100dvh - var(--session-host-word-cloud-overlay-top, 0px)) !important;
+  background: transparent;
+  --mat-dialog-container-color: transparent;
+  --mdc-dialog-container-color: transparent;
 }
 
 .cdk-overlay-pane.word-cloud-dialog-panel .mat-mdc-dialog-inner-container,
@@ -878,6 +881,8 @@ html {
 .cdk-overlay-pane.word-cloud-dialog-panel .mat-mdc-dialog-container,
 .cdk-overlay-pane.word-cloud-dialog-panel .mat-mdc-dialog-surface,
 .cdk-overlay-pane.word-cloud-dialog-panel .mat-mdc-dialog-content {
+  display: flex;
+  flex-direction: column;
   width: 100%;
   height: 100%;
   max-width: none;
@@ -896,15 +901,21 @@ html {
   border-radius: 0;
   background: transparent;
   box-shadow: none;
-  overflow-x: hidden;
-  overflow-y: auto;
+  overflow: hidden;
+}
+
+.cdk-overlay-pane.word-cloud-dialog-panel .mat-mdc-dialog-surface > * {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  height: 100%;
+  min-height: 0;
+  overflow: hidden;
 }
 
 .cdk-overlay-pane.word-cloud-dialog-panel .mat-mdc-dialog-content {
-  overflow-x: hidden;
-  overflow-y: auto;
+  overflow: hidden;
   overscroll-behavior: contain;
-  -webkit-overflow-scrolling: touch;
 }
 
 .cdk-overlay-pane.moderation-compass-dialog-panel {
@@ -927,8 +938,8 @@ html {
 
 .cdk-overlay-backdrop.word-cloud-dialog-backdrop {
   top: var(--session-host-word-cloud-overlay-top, 0px);
-  background: color-mix(in srgb, #08040f 80%, var(--mat-sys-primary) 20%);
-  backdrop-filter: blur(12px) saturate(1.15);
+  background: var(--app-bg-root);
+  backdrop-filter: none;
 }
 
 .word-cloud-tooltip .mdc-tooltip__surface {

@@ -514,20 +514,6 @@ export class SessionPresentComponent implements OnInit, OnDestroy {
         return $localize`:@@wordCloud.wordPlural:Wörter`;
     }
   });
-  readonly qaWordCloudWeightingHint = computed(() => {
-    switch (this.qaWordCloudProjection()?.metric) {
-      case 'BEST':
-        return $localize`:@@sessionQa.wordCloudHintBest:Große Wörter und Phrasen kommen aus Fragen mit viel Zustimmung und ausreichend Stimmen.`;
-      case 'CONTROVERSIAL':
-        return $localize`:@@sessionQa.wordCloudHintControversial:Große Wörter und Phrasen kommen aus Fragen mit gegensätzlichen Reaktionen. Darüberfahren zeigt die zugehörigen Fragen.`;
-      case 'TIME':
-        return $localize`:@@sessionQa.wordCloudHintTime:Die Fragenliste folgt der Zeit. Die Wortgröße bleibt bei den Stimmen.`;
-      case 'TOP':
-        return $localize`:@@sessionQa.wordCloudHintTop:Große Wörter und Phrasen kommen aus Fragen mit vielen positiven Stimmen.`;
-      default:
-        return $localize`:@@sessionWordCloud.qaHint:Große Wörter und Phrasen kommen aus häufiger genannten oder stärker unterstützten Fragen. Ähnliche Schreibweisen können zusammengefasst sein.`;
-    }
-  });
   readonly qaWordCloudContextPills = computed(() => {
     const projection = this.qaWordCloudProjection();
     if (!projection) {
@@ -561,7 +547,7 @@ export class SessionPresentComponent implements OnInit, OnDestroy {
       case 'CONTROVERSIAL':
         return $localize`:@@sessionPresent.wordCloudMetricControversial:Kontroverse`;
       case 'TIME':
-        return $localize`:@@sessionQa.sortTime:Zeit`;
+        return $localize`:@@sessionQa.wordCloudMetricTime:Häufigkeit`;
       default:
         return $localize`:@@sessionQa.wordCloudSizeTop:Stimmen`;
     }

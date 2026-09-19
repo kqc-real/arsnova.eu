@@ -232,6 +232,9 @@
                       @if (hostSessionCtaOpenDescription(item); as openLabel) {
                         <span class="home-choice-button__description">{{ openLabel }}</span>
                       }
+                      @if (hostSessionCtaQuestionDescription(item); as questionLabel) {
+                        <span class="home-choice-button__description">{{ questionLabel }}</span>
+                      }
                     </span>
                   </a>
                 </li>

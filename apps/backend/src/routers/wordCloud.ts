@@ -260,10 +260,12 @@ export const wordCloudRouter = router({
           : Prisma.sql`question."status" IN ('PINNED', 'ACTIVE')`;
       const modeOrder =
         input.metric === 'BEST'
-          ? Prisma.sql`ranked."bestScore" DESC, ranked."positiveVoteCount" DESC,`
+          ? Prisma.sql`ranked."bestScore" DESC, ranked."positiveVoteCount" DESC, ranked."upvoteCount" DESC, ranked.status_tie ASC, ranked."createdAt" ASC, ranked."id" ASC`
           : input.metric === 'CONTROVERSIAL'
-            ? Prisma.sql`ranked."controversyScore" DESC, ranked."positiveVoteCount" DESC,`
-            : Prisma.empty;
+            ? Prisma.sql`ranked."controversyScore" DESC, ranked."positiveVoteCount" DESC, ranked."upvoteCount" DESC, ranked.status_tie ASC, ranked."createdAt" ASC, ranked."id" ASC`
+            : input.metric === 'TIME'
+              ? Prisma.sql`ranked."createdAt" DESC, ranked."id" ASC`
+              : Prisma.sql`ranked."upvoteCount" DESC, ranked.status_tie ASC, ranked."createdAt" ASC, ranked."id" ASC`;
       const controversyThreshold = Math.max(1, participantCount * 0.1);
       const controversyThresholdSql = Prisma.sql`${controversyThreshold}::DOUBLE PRECISION`;
       type CorpusRow = {
@@ -346,10 +348,6 @@ export const wordCloudRouter = router({
         FROM ranked
         ORDER BY
           ${modeOrder}
-          ranked."upvoteCount" DESC,
-          ranked.status_tie ASC,
-          ranked."createdAt" ASC,
-          ranked."id" ASC
         LIMIT ${WORD_CLOUD_MAX_ANALYZE_ITEMS}
       `;
       const current = await prisma.session.findUnique({
@@ -381,7 +379,9 @@ export const wordCloudRouter = router({
             ? normalizedWeight(question.bestScore)
             : input.metric === 'CONTROVERSIAL'
               ? normalizedWeight(question.controversyScore)
-              : upvoteWeight(question.upvoteCount),
+              : input.metric === 'TIME'
+                ? 1
+                : upvoteWeight(question.upvoteCount),
       }));
       const analysis = (await analyzeWordCloudSnapshot(
         {
