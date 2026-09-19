@@ -360,8 +360,10 @@ async function seedRankedQaBoardAndAssertHostViews(page, hostTrpc, created, fail
   await cloud.waitFor({ state: 'visible', timeout: 15_000 });
   const sizeSelect = page.getByLabel(/Größe nach Stimmen/i);
   await sizeSelect.waitFor({ state: 'visible', timeout: 10_000 });
-  await page
-    .getByText(/Glättung fehlgeschlagen|berücksichtigten Fragen|ausgewertete Frage/i)
+  const questionCountPill = page
+    .locator('.word-cloud__meta-pill')
+    .filter({ hasText: /\d+\s+Fragen?/i });
+  await questionCountPill
     .first()
     .waitFor({ state: 'visible', timeout: 20_000 })
     .catch(() => undefined);
@@ -400,9 +402,7 @@ async function seedRankedQaBoardAndAssertHostViews(page, hostTrpc, created, fail
     }
   }
 
-  const coverageVisible = await page
-    .locator('.qa-word-cloud-dialog__coverage')
-    .filter({ hasText: /berücksichtigten Fragen|ausgewertete Frage/i })
+  const questionCountVisible = await questionCountPill
     .first()
     .waitFor({ state: 'visible', timeout: 10_000 })
     .then(
@@ -412,19 +412,21 @@ async function seedRankedQaBoardAndAssertHostViews(page, hostTrpc, created, fail
   const hasSeededTerm = firstWordLabels.some((term) =>
     /klausur|hausaufgabe|kontrovers|sommer|frist|nennen/i.test(term),
   );
-  logStep(hasSeededTerm && coverageVisible, 'Q&A-Wortwolke zeigt Begriffe');
-  if (!hasSeededTerm || !coverageVisible) {
+  logStep(hasSeededTerm && questionCountVisible, 'Q&A-Wortwolke zeigt Begriffe');
+  if (!hasSeededTerm || !questionCountVisible) {
     const cloudDiagnostics = await page.evaluate(() => ({
       empty: document.querySelector('.word-cloud__empty')?.textContent?.trim() ?? null,
       meta: [...document.querySelectorAll('.word-cloud__meta-pill')]
         .map((node) => (node.textContent ?? '').trim())
         .filter(Boolean),
-      coverage:
-        document.querySelector('.qa-word-cloud-dialog__coverage')?.textContent?.trim() ?? null,
+      questionCount:
+        [...document.querySelectorAll('.word-cloud__meta-pill')]
+          .map((node) => (node.textContent ?? '').trim())
+          .find((text) => /\d+\s+Fragen?/i.test(text)) ?? null,
       note: document.querySelector('.qa-word-cloud-dialog__mode-note')?.textContent?.trim() ?? null,
     }));
     failures.push(
-      `Wortwolke ohne erwartete Begriffe: ${firstWordLabels.join(', ') || 'leer'} (coverage=${coverageVisible}, diag=${JSON.stringify(cloudDiagnostics)})`,
+      `Wortwolke ohne erwartete Begriffe: ${firstWordLabels.join(', ') || 'leer'} (questionCount=${questionCountVisible}, diag=${JSON.stringify(cloudDiagnostics)})`,
     );
   }
 
