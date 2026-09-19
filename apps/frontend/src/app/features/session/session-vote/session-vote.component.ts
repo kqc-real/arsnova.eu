@@ -91,7 +91,7 @@ import {
   type TeamLeaderboardEntryDTO,
   type TimerAccommodation,
   usesNumericShortTextEvaluation,
-  isQaChannelJoinable,
+  isQaOpenForParticipants,
 } from '@arsnova/shared-types';
 import { CountdownFingersComponent } from '../../../shared/countdown-fingers/countdown-fingers.component';
 import { MarkdownImageLightboxDirective } from '../../../shared/markdown-image-lightbox/markdown-image-lightbox.directive';
@@ -101,7 +101,11 @@ import {
   recordServerTimeIso,
   recordServerTimeSample,
 } from '../session-server-clock';
-import { SessionDeadlineController, type SessionDeadlineSnapshot } from '../session-deadline';
+import {
+  enrichDeadlineSnapshot,
+  SessionDeadlineController,
+  type SessionDeadlineSnapshot,
+} from '../session-deadline';
 import { resolveQaDeadlineClockParts } from '../session-qa-deadline-label.util';
 import {
   consumeParticipantJoinArrival,
@@ -1100,9 +1104,10 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
   readonly isResults = computed(() => this.status() === 'RESULTS');
   readonly isLobby = computed(() => this.status() === 'LOBBY');
   readonly qaStillJoinable = computed(() =>
-    isQaChannelJoinable({
+    isQaOpenForParticipants({
       channels: this.sessionSettings().channels,
       qaClosesAt: this.sessionSettings().qaClosesAt,
+      expiresAt: this.sessionSettings().expiresAt,
     }),
   );
   readonly isFinished = computed(() => this.status() === 'FINISHED' && !this.qaStillJoinable());
@@ -3203,7 +3208,7 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
   }
 
   private handleSessionFinished(): void {
-    if (this.qaStillJoinable()) {
+    if (!this.sessionDeadline.isExpired() && this.qaStillJoinable()) {
       this.enterOpenQaAfterQuizFinished();
       return;
     }
@@ -3236,6 +3241,7 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
     if (!hasLifecycleSnapshot) {
       return true;
     }
+    snapshot = enrichDeadlineSnapshot(snapshot, this.sessionSettings());
     if (!this.sessionDeadline.applySnapshot(snapshot)) {
       if (this.sessionDeadline.isExpired()) {
         this.handleLocalSessionExpiration();

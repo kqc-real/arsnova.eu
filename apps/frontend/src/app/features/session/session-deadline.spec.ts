@@ -129,4 +129,94 @@ describe('SessionDeadlineController', () => {
     expect(deadline.applySnapshot({ status: 'ACTIVE' })).toBe(false);
     expect(deadline.isExpired()).toBe(false);
   });
+
+  it('latched Quiz-FINISHED bei offenem Q&A nicht und übernimmt ACTIVE derselben Revision', () => {
+    const deadline = new SessionDeadlineController({ monotonicNow: () => 0 });
+    expect(
+      deadline.applySnapshot({
+        status: 'FINISHED',
+        serverNow: '2026-09-19T08:00:00.000Z',
+        expiresAt: '2026-09-20T08:00:00.000Z',
+        sessionLifecycleRevision: 4,
+        channels: {
+          qa: {
+            enabled: true,
+            open: true,
+            state: 'OPEN',
+            closesAt: '2026-09-20T08:00:00.000Z',
+          },
+        },
+      }),
+    ).toBe(true);
+    expect(deadline.isExpired()).toBe(false);
+
+    expect(
+      deadline.applySnapshot({
+        status: 'ACTIVE',
+        serverNow: '2026-09-19T08:00:01.000Z',
+        expiresAt: '2026-09-20T08:00:00.000Z',
+        sessionLifecycleRevision: 4,
+        qaClosesAt: '2026-09-20T08:00:00.000Z',
+      }),
+    ).toBe(true);
+    expect(deadline.isExpired()).toBe(false);
+  });
+
+  it('behält die Fristsperre nach Quiz-FINISHED ohne offenen Q&A-Kanal', () => {
+    const deadline = new SessionDeadlineController({ monotonicNow: () => 0 });
+    expect(
+      deadline.applySnapshot({
+        status: 'FINISHED',
+        serverNow: '2026-09-19T08:00:00.000Z',
+        expiresAt: '2026-09-20T08:00:00.000Z',
+        sessionLifecycleRevision: 4,
+      }),
+    ).toBe(true);
+    expect(deadline.isExpired()).toBe(true);
+
+    expect(
+      deadline.applySnapshot({
+        status: 'ACTIVE',
+        serverNow: '2026-09-19T08:00:01.000Z',
+        expiresAt: '2026-09-20T08:00:00.000Z',
+        sessionLifecycleRevision: 4,
+      }),
+    ).toBe(false);
+    expect(deadline.isExpired()).toBe(true);
+  });
+
+  it('sperrt nach echtem expiresAt trotz offenem Q&A und verwirft dieselbe Revision', () => {
+    let monotonicNow = 0;
+    const deadline = new SessionDeadlineController({ monotonicNow: () => monotonicNow });
+    expect(
+      deadline.applySnapshot({
+        status: 'FINISHED',
+        serverNow: '2026-09-19T08:00:00.000Z',
+        expiresAt: '2026-09-19T08:00:01.000Z',
+        sessionLifecycleRevision: 4,
+        channels: {
+          qa: {
+            enabled: true,
+            open: true,
+            state: 'OPEN',
+            closesAt: '2026-09-20T08:00:00.000Z',
+          },
+        },
+      }),
+    ).toBe(true);
+    expect(deadline.isExpired()).toBe(false);
+
+    monotonicNow = 1_000;
+    expect(deadline.isExpired()).toBe(true);
+    expect(
+      deadline.applySnapshot({
+        status: 'ACTIVE',
+        serverNow: '2026-09-19T08:00:00.500Z',
+        expiresAt: '2026-09-19T08:00:01.000Z',
+        sessionLifecycleRevision: 4,
+        qaClosesAt: '2026-09-20T08:00:00.000Z',
+      }),
+    ).toBe(false);
+    expect(deadline.isExpired()).toBe(true);
+  });
 });
