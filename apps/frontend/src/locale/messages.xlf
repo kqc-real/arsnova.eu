@@ -8261,6 +8261,18 @@
           <context context-type="sourcefile">src/app/features/home/home.component.ts</context>
         </context-group>
       </trans-unit>
+      <trans-unit id="homeLiveCard.qaQuestionCountOne" datatype="html">
+        <source>1 Frage</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/home/home.component.ts</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="homeLiveCard.qaQuestionCountMany" datatype="html">
+        <source><x id="count" equiv-text="count"/> Fragen</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/home/home.component.ts</context>
+        </context-group>
+      </trans-unit>
       <trans-unit id="homeLiveCard.quizDescription" datatype="html">
         <source>Wissen abfragen</source>
         <context-group purpose="location">
@@ -17086,14 +17098,14 @@
         </context-group>
       </trans-unit>
       <trans-unit id="sessionQa.wordCloudSizeLabel" datatype="html">
-        <source>Größe</source>
+        <source>Größe nach:</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-host/qa-word-cloud-dialog.component.html</context>
           <context context-type="linenumber">37</context>
         </context-group>
       </trans-unit>
       <trans-unit id="sessionQa.wordCloudSizeAria" datatype="html">
-        <source>Größe nach Stimmen, besten Fragen, Kontroverse oder Zeit</source>
+        <source>Größe nach Stimmen, besten Fragen, Kontroverse oder Häufigkeit</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-host/qa-word-cloud-dialog.component.html</context>
           <context context-type="linenumber">44</context>
@@ -17161,6 +17173,13 @@
       </trans-unit>
       <trans-unit id="sessionQa.wordCloudCoverage" datatype="html">
         <source><x id="INTERPOLATION" equiv-text="{{ analyzedQuestionCount() }}"/> höchstplatzierte von <x id="INTERPOLATION_1" equiv-text="{{ eligibleQuestionCount() }}"/> berücksichtigten Fragen</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/session-host/qa-word-cloud-dialog.component.html</context>
+          <context context-type="linenumber">136,137</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="sessionQa.wordCloudCoverageTime" datatype="html">
+        <source><x id="INTERPOLATION" equiv-text="{{ analyzedQuestionCount() }}"/> neueste von <x id="INTERPOLATION_1" equiv-text="{{ eligibleQuestionCount() }}"/> berücksichtigten Fragen</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-host/qa-word-cloud-dialog.component.html</context>
           <context context-type="linenumber">131,132</context>
@@ -19815,7 +19834,7 @@
         </context-group>
       </trans-unit>
       <trans-unit id="sessionQa.wordCloudMetricTime" datatype="html">
-        <source>Zeit</source>
+        <source>Häufigkeit</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.ts</context>
           <context context-type="linenumber">1818</context>
@@ -19895,7 +19914,7 @@
         </context-group>
       </trans-unit>
       <trans-unit id="sessionQa.wordCloudHintTime" datatype="html">
-        <source>Die Fragenliste folgt der Zeit. Die Wortgröße bleibt bei den Stimmen.</source>
+        <source>Jede sichtbare Frage zählt gleich. Die Größe folgt der Häufigkeit, nicht den Stimmen.</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.ts</context>
           <context context-type="linenumber">1865</context>

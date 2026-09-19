@@ -30,6 +30,9 @@ import { getEffectiveLocale, localeIdToSupported } from '../../../core/locale-fr
 import { formatLocaleCount } from '../../../core/locale-number.util';
 import { tryRequestDocumentFullscreen } from '../../../core/document-fullscreen.util';
 import {
+  capWordCloudFontToStage,
+  estimateWordCloudFontFillScale,
+  fitWordCloudPositionsToStage,
   getWordCloudChipPadding,
   getWordCloudLayoutHeight,
   getWordCloudLayoutWordCap,
@@ -206,6 +209,8 @@ export class WordCloudComponent implements AfterViewInit, OnDestroy {
   );
   readonly itemLabelSingular = input($localize`:@@wordCloud.itemSingular:Antwort`);
   readonly itemLabelPlural = input($localize`:@@wordCloud.itemPlural:Antworten`);
+  /** Kanonische Quellenanzahl, wenn die sichtbaren Mitglieder gekürzt sind. */
+  readonly itemCount = input<number | null>(null);
   readonly wordLabelSingular = input($localize`:@@wordCloud.wordSingular:Wort`);
   readonly wordLabelPlural = input($localize`:@@wordCloud.wordPlural:Wörter`);
   readonly showConfidenceFilter = input(true);
@@ -574,7 +579,7 @@ export class WordCloudComponent implements AfterViewInit, OnDestroy {
       return minimumHeight;
     }
 
-    return Math.max(minimumHeight, Math.min(preferredHeight, availableHeight));
+    return Math.max(minimumHeight, availableHeight);
   });
 
   readonly presentationFrameScrollable = computed(() => {
@@ -615,9 +620,7 @@ export class WordCloudComponent implements AfterViewInit, OnDestroy {
       return true;
     }
 
-    return (
-      this.layoutPending() && this.activeLayoutContentSignature() === this.layoutContentSignature()
-    );
+    return this.layoutPending();
   });
 
   readonly renderedCloudStageHeightPx = computed(() =>
@@ -779,13 +782,20 @@ export class WordCloudComponent implements AfterViewInit, OnDestroy {
     return '22rem';
   });
 
-  readonly responseSummary = computed(() => ({
-    total:
-      this.responses().length ||
-      this.allTermResponses().length ||
-      this.allAnalysisResponses().length,
-    visible: this.filteredResponses().length,
-  }));
+  readonly responseSummary = computed(() => {
+    const override = this.itemCount();
+    const total =
+      override !== null && Number.isFinite(override)
+        ? Math.max(0, Math.trunc(override))
+        : this.responses().length ||
+          this.allTermResponses().length ||
+          this.allAnalysisResponses().length;
+
+    return {
+      total,
+      visible: this.filteredResponses().length,
+    };
+  });
 
   constructor() {
     effect(() => {
@@ -1506,6 +1516,17 @@ export class WordCloudComponent implements AfterViewInit, OnDestroy {
         };
       }
 
+      if (availableHeight >= 360 && stageWidth > 0) {
+        const countFactor =
+          wordCount >= 40 ? 0.14 : wordCount >= 24 ? 0.17 : wordCount >= 12 ? 0.21 : 0.26;
+        const areaSide = Math.sqrt(stageWidth * availableHeight);
+        const max = Math.round(Math.min(168, Math.max(68, areaSide * countFactor)));
+        return {
+          min: Math.round(Math.min(40, Math.max(16, max * 0.3))),
+          max,
+        };
+      }
+
       return { min: 16, max: 68 };
     }
 
@@ -1562,13 +1583,54 @@ export class WordCloudComponent implements AfterViewInit, OnDestroy {
 
   private createLayoutWords(entries: CloudWord[]): LayoutWord[] {
     const stageWidth = this.stageWidth();
-    return entries.map((entry) => ({
-      text: entry.word,
-      size: entry.size,
-      rotate: getWordCloudRotation(entry.word, entry.rank, stageWidth),
-      padding: getWordCloudChipPadding(entry.size, stageWidth),
-      entry,
-    }));
+    const stageHeight = this.cloudStageHeightPx();
+    return entries.map((entry) => {
+      const rotate = getWordCloudRotation(entry.word, entry.rank, stageWidth);
+      const size = capWordCloudFontToStage(entry.word, entry.size, stageWidth, stageHeight, rotate);
+      return {
+        text: entry.word,
+        size,
+        rotate,
+        padding: getWordCloudChipPadding(size, stageWidth),
+        entry: { ...entry, size },
+      };
+    });
+  }
+
+  private scaleLayoutWordsToFillStage(
+    words: LayoutWord[],
+    stageWidth: number,
+    stageHeight: number,
+  ): LayoutWord[] {
+    if (!this.presentationMode()) {
+      return words;
+    }
+
+    const fillScale = estimateWordCloudFontFillScale(
+      words.map((word) => ({ word: word.text, size: word.size })),
+      stageWidth,
+      stageHeight,
+    );
+    if (fillScale <= 1.02) {
+      return words;
+    }
+
+    return words.map((word) => {
+      const grown = Math.max(1, Math.round(word.size * fillScale));
+      const size = capWordCloudFontToStage(
+        word.text,
+        grown,
+        stageWidth,
+        stageHeight,
+        word.rotate === 90 ? 90 : 0,
+      );
+      return {
+        ...word,
+        size,
+        padding: getWordCloudChipPadding(size, stageWidth),
+        entry: { ...word.entry, size },
+      };
+    });
   }
 
   private async runCloudLayout(
@@ -1594,9 +1656,10 @@ export class WordCloudComponent implements AfterViewInit, OnDestroy {
         return;
       }
 
+      const layoutWords = this.scaleLayoutWordsToFillStage(words, stageWidth, stageHeight);
       const layout = d3Cloud<LayoutWord>()
         .size([Math.round(stageWidth), Math.round(stageHeight)])
-        .words(words.map((word) => ({ ...word })))
+        .words(layoutWords.map((word) => ({ ...word })))
         .font(fontFamily || 'system-ui')
         .padding((word) => word.padding)
         .rotate((word) => word.rotate)
@@ -1612,6 +1675,7 @@ export class WordCloudComponent implements AfterViewInit, OnDestroy {
 
         const positioned = placedWords.map((word) => ({
           ...word.entry,
+          size: word.size,
           x: word.x ?? 0,
           y: word.y ?? 0,
           x0: word.x0 ?? 0,
@@ -1620,10 +1684,13 @@ export class WordCloudComponent implements AfterViewInit, OnDestroy {
           y1: word.y1 ?? 0,
           rotate: word.rotate ?? 0,
         }));
+        const fitted = this.presentationMode()
+          ? fitWordCloudPositionsToStage(positioned, stageWidth, stageHeight)
+          : positioned;
 
         this.activeCloudLayout = null;
         this.layoutPending.set(false);
-        this.positionedWords.set(positioned);
+        this.positionedWords.set(fitted);
         this.renderedCloudStageWidth.set(Math.round(stageWidth));
         this.renderedCloudStageHeight.set(Math.round(stageHeight));
         this.activeLayoutSignature.set(positioned.length > 0 ? signature : '');
@@ -1724,8 +1791,12 @@ export class WordCloudComponent implements AfterViewInit, OnDestroy {
   }
 
   private analysisEntrySourceCount(entry: WordCloudAnalysisEntryDTO): number {
-    const sourceIds = new Set(entry.members.map((member) => member.sourceId));
-    return Math.max(1, sourceIds.size);
+    const compactCount = new Set(entry.members.map((member) => member.sourceId)).size;
+    const reported = entry.memberCount;
+    if (typeof reported === 'number' && Number.isFinite(reported)) {
+      return Math.max(1, compactCount, Math.trunc(reported));
+    }
+    return Math.max(1, compactCount);
   }
 
   private analysisBasisLine(entry: Pick<CloudWord, 'basisLabel' | 'word'>): string | null {

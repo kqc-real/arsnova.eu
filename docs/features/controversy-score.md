@@ -114,7 +114,7 @@ Die Kartenzeile wiederholt den Sortiernamen nicht: bei `Beste Fragen` steht `Zus
 
 Der aktive Modus bleibt während einer Session stabil, bis ein autorisierter Host ihn bewusst ändert.
 
-Die Host-Q&A-Wortwolke nutzt denselben Modus: `Meist unterstützt` gewichtet nach Netto-Score, `Beste Fragen` nach Wilson-Score und `Umstritten` nach Kontroversität. `Zeit` sortiert nur die Fragenliste; die Wortgröße bleibt bei den Stimmen. Die Visualisierung bekommt bereits gewichtete Terme und analysiert keine Rohtexte selbst. In der maximierten Vollansicht sitzt die Sortierauswahl oberhalb der Wolke, damit der Kontext beim Wechsel sichtbar bleibt; ein Freeze-Schalter haelt die aktuell dargestellte Wolke fuer die Auditoriumssituation fest.
+Die Host-Q&A-Wortwolke nutzt denselben Modus: `Meist unterstützt` gewichtet nach Netto-Score, `Beste Fragen` nach Wilson-Score und `Umstritten` nach Kontroversität. `Häufigkeit` wertet alle berechtigten Fragen gleich; die Fragenliste bleibt nach Eingangszeit sortiert. Die Visualisierung bekommt bereits gewichtete Terme und analysiert keine Rohtexte selbst. In der maximierten Vollansicht sitzt die Sortierauswahl oberhalb der Wolke, damit der Kontext beim Wechsel sichtbar bleibt; ein Freeze-Schalter haelt die aktuell dargestellte Wolke fuer die Auditoriumssituation fest.
 
 ## Akzeptanzkriterien
 

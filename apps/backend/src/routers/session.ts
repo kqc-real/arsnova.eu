@@ -5041,7 +5041,12 @@ async function resolvePublicSessionInfo(
       const session = await prisma.session.findUnique({
         where: { code },
         include: {
-          _count: { select: { participants: true } },
+          _count: {
+            select: {
+              participants: true,
+              qaQuestions: { where: { status: { in: ['ACTIVE', 'PINNED', 'ARCHIVED'] } } },
+            },
+          },
         },
       });
       if (!session) {
@@ -5133,6 +5138,10 @@ async function resolvePublicSessionInfo(
           finishProjection: await resolveFinishProjection(session.code, effectiveStatus),
         }),
         participantCount: session._count.participants,
+        qaQuestionCount:
+          typeof session._count.qaQuestions === 'number'
+            ? session._count.qaQuestions
+            : (session.qaQuestionCount ?? 0),
         nicknameTheme: onboardingProfile.nicknameTheme,
         allowCustomNicknames: onboardingProfile.allowCustomNicknames,
         anonymousMode: onboardingProfile.anonymousMode,

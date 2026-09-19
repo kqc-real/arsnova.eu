@@ -8,6 +8,7 @@
   [class.session-host--finished]="effectiveStatus() === 'FINISHED'"
   [class.session-host--immersive]="isImmersiveMode()"
   [class.session-host--word-cloud-overlay]="freetextWordCloudMaximized() || qaWordCloudDialogOpen()"
+  [class.session-host--qa-word-cloud-overlay]="qaWordCloudDialogOpen()"
   [class.session-host--revoked]="hostAccessRevoked()"
 >
   @if (hostAccessRevoked()) {

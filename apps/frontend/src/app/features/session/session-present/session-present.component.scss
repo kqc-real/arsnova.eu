@@ -187,6 +187,9 @@ app-session-projection-quiz,
 .session-present--word-cloud {
   justify-content: stretch;
   gap: 0;
+  margin: 0;
+  padding: clamp(0.9rem, 2vw, 1.55rem);
+  background: transparent;
 }
 
 .session-present--word-cloud .session-present__qa-stage,
@@ -196,6 +199,9 @@ app-session-projection-quiz,
   max-width: none;
   height: 100%;
   min-height: 0;
+  background: transparent;
+  border: 0;
+  box-shadow: none;
 }
 
 .session-present__standby-stage {

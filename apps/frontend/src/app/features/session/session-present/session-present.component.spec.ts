@@ -1445,6 +1445,7 @@ describe('SessionPresentComponent', () => {
     expect(text).not.toContain('Antwort anzeigen');
     expect(text).not.toContain('Maximieren');
     expect(text).not.toContain('Als Nächstes im Raum');
+    expect(text).not.toContain('Je größer ein Wort, desto öfter wurde es genannt.');
     expect(fixture.nativeElement.querySelector('.session-present__qa-list-card')).toBeNull();
     expectNoHostControls(fixture.nativeElement as HTMLElement);
     fixture.destroy();
@@ -1630,6 +1631,85 @@ describe('SessionPresentComponent', () => {
     ]);
     expect(text).toContain('Beste Fragen');
     expect(text).toContain('ohne Glättung');
+    fixture.destroy();
+  });
+
+  it('zeigt in der Fragen-Pill die ausgewertete Korpusgroesse, nicht die gekuerzten Mitglieder', async () => {
+    getInfoQueryMock.mockResolvedValue({
+      id: '6a8edced-5f8f-4cfa-9176-454fac9570ad',
+      serverTime: MOCK_SERVER_TIME,
+      code: 'ABC123',
+      type: 'QUIZ',
+      status: 'ACTIVE',
+      quizName: 'Team-Quiz',
+      title: null,
+      participantCount: 3,
+      teamMode: false,
+      preferredChannel: 'qa',
+      presenterSurface: 'qaWordCloud',
+      channels: {
+        quiz: { enabled: true },
+        qa: { enabled: true, title: 'Fragen', moderationMode: false },
+        quickFeedback: { enabled: false },
+      },
+    });
+    qaListQueryMock.mockResolvedValue([
+      {
+        id: '11111111-1111-4111-8111-111111111111',
+        text: 'Kommt Kapitel 4 in der Klausur vor?',
+        upvoteCount: 9,
+        status: 'ACTIVE',
+        createdAt: '2026-03-13T12:00:00.000Z',
+        myVote: null,
+        isOwn: false,
+        hasUpvoted: false,
+      },
+    ]);
+    getQaWordCloudProjectionQueryMock.mockResolvedValue({
+      projection: {
+        mode: 'THEME',
+        metric: 'TIME',
+        locale: 'de',
+        analysisEntries: [
+          {
+            key: 'klausur',
+            label: 'Klausur',
+            count: 1,
+            basisLabel: 'Klausur',
+            members: [
+              {
+                sourceId: '11111111-1111-4111-8111-111111111111',
+                text: 'Kommt Kapitel 4 in der Klausur vor?',
+                weight: 1,
+              },
+            ],
+            variants: ['Klausur'],
+            confidence: 0.8,
+            memberCount: 80,
+            membersTruncated: true,
+          },
+        ],
+        analyzedQuestionCount: 120,
+        eligibleQuestionCount: 120,
+        modelVersion: 'theme-v1',
+        smoothingActive: false,
+      },
+    });
+
+    const fixture = TestBed.createComponent(SessionPresentComponent);
+    fixture.detectChanges();
+    await fixture.whenStable();
+    await new Promise((r) => setTimeout(r, 50));
+    fixture.detectChanges();
+
+    const pills = [...fixture.nativeElement.querySelectorAll('.word-cloud__meta-pill')].map((el) =>
+      (el.textContent ?? '').replace(/\s+/g, ' ').trim(),
+    );
+    expect(pills).toContain('120 Fragen');
+    expect(pills).toContain('Häufigkeit');
+    expect(
+      pills.some((pill) => pill === '1 Frage' || pill === '12 Fragen' || pill === 'Zeit'),
+    ).toBe(false);
     fixture.destroy();
   });
 

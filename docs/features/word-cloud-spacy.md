@@ -41,7 +41,7 @@ Presenter zeigt die Wolke ohne Glättungssteuerung und ohne Wolkensprache. Die v
 
 Die **Wolkensprache** steht klein neben **Wortformen glätten** und nur in der Ansicht, in der Glättung wirkt (Q&A: **Wörter** und **Wörter & Phrasen**; Freitext: **Wörter** und **Wörter & Phrasen**). Sie ist unabhängig von Quiz und Participant-Browser. Default ist die Host-UI-Sprache, sofern ein Lemma-Modell existiert (`de`/`en`/`fr`/`es`). Unter `/it/` bleibt die Glättung aus, bis der Host eine dieser Sprachen wählt. Ein Wechsel bei aktiver Glättung analysiert denselben Snapshot mit dem neuen Modell neu. Die Wahl gilt für die Session (Freitext und Q&A) und bleibt im `sessionStorage` des Tabs.
 
-In der Q&A-Wolke steht die **Größe** (Stimmen / Beste Fragen / Kontroverse) als kompaktes Menü neben der Ansicht; **Einfrieren** ist ein Icon. **Themen aktualisieren** erscheint nur, wenn die Themenanalyse veraltet ist.
+In der Q&A-Wolke steht **Größe nach:** (Stimmen / Beste Fragen / Kontroverse / Häufigkeit) als kompaktes Menü neben der Ansicht; **Einfrieren** ist ein Icon. **Themen aktualisieren** erscheint nur, wenn die Themenanalyse veraltet ist.
 
 ### Wann neu geglättet wird
 
@@ -49,8 +49,8 @@ In der Q&A-Wolke steht die **Größe** (Stimmen / Beste Fragen / Kontroverse) al
 - **Neue eingehende Daten:** Snapshot wird **veraltet** markiert; keine automatische Neuberechnung.
 - **Freitext-Ansicht wechseln** bei aktiver Glättung: dieselbe Antwortmenge mit der anderen N-Gramm-Länge neu analysieren.
 - **Wolkensprache wechseln** bei aktiver Glättung: dieselbe Datenmenge mit dem anderen Modell neu analysieren.
-- **Q&A-Sortierung** `Größe: Stimmen` / `Beste Fragen` / `Kontroverse` / `Zeit` (Forumsliste weiter `Meist unterstützt` / `Beste Fragen` / `Umstritten` / `Zeit`) bei aktiver Glättung: dieselbe Fragenmenge mit der neuen Metrik neu glätten. `Zeit` ändert die Listenreihenfolge in der Datenbank, nicht die Wortgewichtung.
-- **Q&A `Wörter & Phrasen`:** Sortwechsel startet die bestehende Themenanalyse mit `normalization: NONE` und, wenn Glättung aktiv ist, parallel den Lemma-Pfad nur für Unigramme (`mode: LEXICAL`). Phrasen bleiben `THEME`. `THEME + LEMMA` ist `MODE_UNSUPPORTED`.
+- **Q&A-Sortierung** `Größe nach: Stimmen` / `Beste Fragen` / `Kontroverse` / `Häufigkeit` (Forumsliste weiter `Meist unterstützt` / `Beste Fragen` / `Umstritten` / `Zeit`) bei aktiver Glättung: dieselbe Fragenmenge mit der neuen Metrik neu glätten. `Häufigkeit` wertet alle berechtigten Fragen gleich (Gewicht 1); die Fragenliste bleibt nach Eingangszeit sortiert. Stimmen steuern die Wortgröße nicht.
+- **Q&A `Wörter & Phrasen`:** Sortwechsel startet die bestehende Themenanalyse mit `normalization: NONE` und, wenn Glättung aktiv ist, danach den Lemma-Pfad nur für Unigramme (`mode: LEXICAL`). Die Session-Sperre erlaubt nur eine `analyzeQa`-Analyse gleichzeitig; der Host reiht Theme- und Lemma-Aufrufe und wiederholt `CONFLICT`. Phrasen bleiben `THEME`. `THEME + LEMMA` ist `MODE_UNSUPPORTED`.
 - **Q&A `Themen`:** Story 1.14c Stufe 1. Encoder + Clustering nur hinter `WORD_CLOUD_SEMANTIC_ENABLED`; ohne Kill-Switch `status: disabled` plus 2.x. `SEMANTIC + LEMMA` ist `MODE_UNSUPPORTED`. Die Glättung bleibt wie im Freitext ausgeblendet und wechselt nicht still auf `LEXICAL`. Kanonisch: [word-cloud-semantic.md](word-cloud-semantic.md).
 - **Freitext `Themen`:** derselbe Host-Toggle; Encoder-Clustering gilt in 1.14c nicht (kontrollierter 2.x-Fallback). **Story 1.14d** hebt das für Host-Freitext auf. Der Q&A-Presenter übernimmt die aktuelle Host-Projektion; Freitext-Presenter bleibt ohne den dritten Modus. `maxNgramLength` 1 bzw. 3 gilt weiter für `Wörter` / `Wörter & Phrasen`.
 
@@ -85,20 +85,28 @@ Locales: `de`/`en` (MIT), `fr` (LGPL-LR) und `es` (GPL-3.0) im Default-Sidecar. 
 
 spaCy läuft als **optionaler Sidecar** hinter dem Backend, nicht im Angular-Frontend und nicht im Node-App-Container.
 
-| Größe               | Wert                                                                                                                  |
-| ------------------- | --------------------------------------------------------------------------------------------------------------------- |
-| Kill-Switch         | `NLP_ENABLED` (nur exakt `true`; Default `false`)                                                                     |
-| Socket              | `NLP_SOCKET_PATH` (Unix-Socket, kein TCP, `network_mode: none`)                                                       |
-| Timeout / Cache-TTL | `NLP_TIMEOUT_MS`, `NLP_CACHE_TTL_SECONDS` (Default 1800 s)                                                            |
-| Image               | `SPACY_IMAGE` (getrennt von `ARSNOVA_IMAGE`)                                                                          |
-| Compose             | Profil `nlp`; `deploy.sh` startet den Sidecar nicht                                                                   |
-| Lokal (Docker-App)  | `npm run docker:up:nlp` plus `NLP_ENABLED=true` im App-Container                                                      |
-| Lokal (Host-npm)    | macOS: `npm run spacy:macos-dev` (Abschnitt unten). Docker-Volume `/run/spacy/nlp.sock` ist für Host-Node unsichtbar. |
-| Limits              | 1 CPU / 1 GiB RAM / 64 PIDs, non-root, read-only                                                                      |
+| Größe               | Wert                                                                                                                                                                                                               |
+| ------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Kill-Switch         | `NLP_ENABLED` (nur exakt `true`; Default `false`)                                                                                                                                                                  |
+| Socket              | `NLP_SOCKET_PATH` (Unix-Socket, kein TCP, `network_mode: none`)                                                                                                                                                    |
+| Timeout / Cache-TTL | `NLP_TIMEOUT_MS`, `NLP_CACHE_TTL_SECONDS` (Default 1800 s)                                                                                                                                                         |
+| Image               | `SPACY_IMAGE` (getrennt von `ARSNOVA_IMAGE`)                                                                                                                                                                       |
+| Compose             | Profil `nlp`; `deploy.sh` startet den Sidecar nicht                                                                                                                                                                |
+| Lokal (Docker-App)  | `npm run docker:up:nlp` plus `NLP_ENABLED=true` im App-Container                                                                                                                                                   |
+| Lokal (Host-npm)    | `npm run dev` startet den Sidecar (`/tmp/arsnova-nlp.sock`, `NLP_ENABLED=true` nur im Backend-Prozess). Locale-Build: `npm run spacy:macos-dev`. Docker-Volume `/run/spacy/nlp.sock` ist für Host-Node unsichtbar. |
+| Limits              | 1 CPU / 1 GiB RAM / 64 PIDs, non-root, read-only                                                                                                                                                                   |
 
 Cache: Text-Cache (`locale + hash + Analyseversion`) und Snapshot-Cache (`session + Kanal + Metrik + Normalisierung + maxNgramLength + snapshotHash`). Transiente Fehler (`TIMEOUT`, `SIDECAR_UNAVAILABLE`, `INVALID_RESPONSE`) und `NLP_DISABLED` werden nicht gecacht. Telemetrie loggt Dauer, Fallback und Cache-Hits ohne Rohtexte.
 
 Env-Referenz: [ENVIRONMENT.md](../ENVIRONMENT.md). Härtung: [SECURITY-OVERVIEW.md](../SECURITY-OVERVIEW.md). Deployment: [deployment-debian-root-server.md](../deployment-debian-root-server.md).
+
+### Lokaler Dev-Server (`npm run dev`)
+
+`npm run dev`, `npm run dev:de` und `npm run dev:en` starten den Host-Sidecar (`npm run spacy:dev`). Das Backend bekommt prozesslokal `NLP_ENABLED=true`, `NLP_SOCKET_PATH=/tmp/arsnova-nlp.sock` und `NLP_TIMEOUT_MS=15000`. Die Datei `.env` bleibt `NLP_ENABLED=false` (Produktiv-Default).
+
+Erster Lauf legt `docker/spacy/.venv` an und lädt die Modelle `de`/`en`/`fr`/`es` (oft mehrere Minuten). Dafür braucht es Python 3.10+. In concurrently erscheint die Spalte `spacy`. Solange die Modelle laden, bleibt die Host-UI bei **Glättung nicht verfügbar**; nach dem Socket-Bind neu analysieren.
+
+`npm run docker:up:nlp` hilft Host-Node nicht: das Compose-Volume `/run/spacy/nlp.sock` ist außerhalb des App-Containers unsichtbar. Nur API ohne Wolke: `npm run dev:backend` lässt den Sidecar aus.
 
 ### Lokale Prüfung auf macOS (Host-npm)
 
@@ -155,7 +163,7 @@ Logs: Sidecar `/tmp/arsnova-nlp-sidecar.log`, Backend `/tmp/arsnova-backend-nlp.
 
 Lokales `start:prod` verlangt ein HMAC-Secret ≥32 UTF-8-Bytes (`YJS_SHARE_TOKEN_SECRET` oder `JWT_SECRET`). Ist `JWT_SECRET` in `.env` kürzer, setzt der Helfer ein **prozesslokales** `YJS_SHARE_TOKEN_SECRET` und schreibt es nicht in `.env`.
 
-`npm run docker:up:nlp` hilft Host-Node auf macOS nicht. Unter Linux im App-Container: `npm run docker:up:nlp`. Hilfe-/Syntax-Tests: `npm run spacy:macos-dev:test`. Locale-Proxy allgemein: [I18N-ANGULAR.md](../I18N-ANGULAR.md) („Lokalisierter Build lokal“).
+`npm run docker:up:nlp` hilft Host-Node auf macOS nicht. Unter Linux im App-Container: `npm run docker:up:nlp`. Hilfe-/Syntax-Tests: `npm run spacy:dev:test`, `npm run spacy:macos-dev:test`. Locale-Proxy allgemein: [I18N-ANGULAR.md](../I18N-ANGULAR.md) („Lokalisierter Build lokal“).
 
 ## Verträge und Code
 
@@ -174,6 +182,7 @@ Lokales `start:prod` verlangt ein HMAC-Secret ≥32 UTF-8-Bytes (`YJS_SHARE_TOKE
 | Sidecar ohne Modell-Download               | `npm run test:spacy-sidecar`                                                                                                                                                                                                     |
 | Compose-Profil, kein TCP, getrenntes Image | `npm run test:spacy-compose`                                                                                                                                                                                                     |
 | Lokale UI-Füllung Freitext / Q&A / Kompass | `npm run seed:session-votes -w @arsnova/backend`, `npm run seed:qa-forum -w @arsnova/backend`, `npm run seed:moderation-compass -w @arsnova/backend` (Session-Code, Default 500 lemma-/phrasenreiche Einträge plus 8.9a-Signale) |
+| Host-npm Dev-Sidecar                       | `npm run spacy:dev` — siehe [Lokaler Dev-Server](#lokaler-dev-server-npm-run-dev); Syntax/Hilfe: `npm run spacy:dev:test`                                                                                                        |
 | macOS Host-npm (Sidecar + Seeds)           | `npm run spacy:macos-dev` — siehe [Lokale Prüfung auf macOS](#lokale-prüfung-auf-macos-host-npm); Syntax/Hilfe: `npm run spacy:macos-dev:test`                                                                                   |
 
 Siehe [TESTING.md](../TESTING.md).

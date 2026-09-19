@@ -31,7 +31,9 @@ die Host-Session direkt im Q&A-Kanal. Die erste Zeile nennt **Q&A-Session** und
 den sechsstelligen Sessioncode. Die zweite Zeile zeigt die Host-Zugangsfrist
 (`postProcessingEndsAt`, sonst `expiresAt`) als »Zugang bis …« mit lokalem
 Datum und Uhrzeit. Die dritte Zeile zeigt die Q&A-Offen-Frist (`qaClosesAt`,
-sonst `expiresAt`) als »Offen bis …« oder »Forum geschlossen«. Der Guard stellt den
+sonst `expiresAt`) als »Offen bis …« oder »Forum geschlossen«. Die vierte Zeile
+zeigt die nicht gelöschten Q&A-Fragen (`getInfo` zählt live, nicht den
+Seed-Zähler) als »1 Frage« oder »{n} Fragen«. Der Guard stellt den
 kurzlebigen Host-Token aus der Capability aus. Die Wiederherstellungsseite
 bleibt unter `/<locale>/host-recovery` erreichbar, erscheint auf der Live-Karte
 aber nicht als Textlink. Nur ein Wiederherstellungskandidat ohne aktivierte

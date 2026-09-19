@@ -4077,6 +4077,8 @@ export const SessionInfoDTOSchema = z.object({
   /** Nur bei FINISHED: Leaderboard vs. Exit-Branding auf dem Presenter. */
   finishProjection: SessionFinishProjectionSchema.optional(),
   participantCount: z.number(),
+  /** Teilnehmendensichtbare Q&A-Fragen (ACTIVE/PINNED/ARCHIVED), nicht Quizfragen. Optional für Rolling Deploy. */
+  qaQuestionCount: z.number().int().min(0).optional(),
   nicknameTheme: NicknameThemeEnum.optional(),
   allowCustomNicknames: z.boolean().optional(),
   anonymousMode: z.boolean().optional(),

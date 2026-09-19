@@ -87,7 +87,7 @@ describe('QaWordCloudDialogComponent', () => {
     expect(text).toContain('Wörter');
     expect(text).toContain('Wörter & Phrasen');
     expect(text).toContain('Themen');
-    expect(text).toContain('Größe');
+    expect(text).toContain('Größe nach:');
     expect(text).toContain('Stimmen');
     expect(text).not.toContain('Meist unterstützt');
     expect(text).toContain('Wortformen glätten');
@@ -102,40 +102,21 @@ describe('QaWordCloudDialogComponent', () => {
     ) as HTMLButtonElement;
     expect(freeze.getAttribute('aria-label')).toBe('Wortwolke einfrieren');
     expect(fixture.nativeElement.querySelector('.qa-word-cloud-dialog__smooth')).not.toBeNull();
-
-    const coverage = fixture.nativeElement.querySelector(
-      '.qa-word-cloud-dialog__coverage',
-    ) as HTMLElement;
-    expect(coverage.getAttribute('role')).toBe('status');
-    expect(coverage.textContent?.replace(/\s+/g, ' ').trim()).toBe(
-      '12 höchstplatzierte von 18 berücksichtigten Fragen · positive Stimmen',
-    );
+    expect(fixture.nativeElement.querySelector('.qa-word-cloud-dialog__coverage')).toBeNull();
+    expect(text).not.toContain('ausgewertete Fragen');
+    expect(text).not.toContain('berücksichtigten Fragen');
   });
 
-  it('zeigt unter der Analysekappe nur die ausgewertete Fragenzahl', () => {
+  it('zeigt bei Haeufigkeit die Groessenoption ohne Coverage-Zeile', () => {
     const { fixture } = setup('THEME', {
-      analyzedQuestionCount: () => 240,
-      eligibleQuestionCount: () => 240,
+      sortMode: () => 'TIME',
+      tooltipMetricLabel: () => 'Häufigkeit',
     });
-    const coverage = fixture.nativeElement.querySelector(
-      '.qa-word-cloud-dialog__coverage',
-    ) as HTMLElement;
-    expect(coverage.textContent?.replace(/\s+/g, ' ').trim()).toBe(
-      '240 ausgewertete Fragen · positive Stimmen',
-    );
-  });
-
-  it('zeigt eine einzelne ausgewertete Frage im Singular', () => {
-    const { fixture } = setup('THEME', {
-      analyzedQuestionCount: () => 1,
-      eligibleQuestionCount: () => 1,
-    });
-    const coverage = fixture.nativeElement.querySelector(
-      '.qa-word-cloud-dialog__coverage',
-    ) as HTMLElement;
-    expect(coverage.textContent?.replace(/\s+/g, ' ').trim()).toBe(
-      '1 ausgewertete Frage · positive Stimmen',
-    );
+    const timeOption = fixture.nativeElement.querySelector(
+      'option[value="TIME"]',
+    ) as HTMLOptionElement;
+    expect(timeOption.textContent?.replace(/\s+/g, ' ').trim()).toBe('Häufigkeit');
+    expect(fixture.nativeElement.querySelector('.qa-word-cloud-dialog__coverage')).toBeNull();
   });
 
   it('zeigt Sprache und Glaettung bei Woertern', () => {
@@ -221,5 +202,27 @@ describe('QaWordCloudDialogComponent', () => {
 
     refresh.click();
     expect(toggleSmoothing).toHaveBeenCalledTimes(1);
+  });
+
+  it('fuellt die Dialog-Restflaeche und erlaubt vertikalen Zoom-Scroll', async () => {
+    const { readFileSync } = await import('node:fs');
+    const { fileURLToPath } = await import('node:url');
+    const { dirname, join } = await import('node:path');
+    const componentDir = dirname(fileURLToPath(import.meta.url));
+    const dialogStyles = readFileSync(
+      join(componentDir, 'qa-word-cloud-dialog.component.scss'),
+      'utf8',
+    );
+    const panelStyles = readFileSync(join(componentDir, '../../../../styles.scss'), 'utf8');
+
+    expect(dialogStyles).toMatch(/:host \{[^}]*display:\s*flex/);
+    expect(dialogStyles).toMatch(/\.qa-word-cloud-dialog__cloud \{[^}]*flex:\s*1 1 0%/);
+    expect(dialogStyles).toMatch(/\.qa-word-cloud-dialog__cloud \{[^}]*height:\s*0/);
+    expect(panelStyles).toMatch(
+      /\.cdk-overlay-pane\.word-cloud-dialog-panel \.mat-mdc-dialog-surface > \* \{[^}]*height:\s*100%/,
+    );
+    expect(panelStyles).toMatch(
+      /\.cdk-overlay-pane\.word-cloud-dialog-panel \.mat-mdc-dialog-surface \{[^}]*overflow-y:\s*auto/,
+    );
   });
 });
