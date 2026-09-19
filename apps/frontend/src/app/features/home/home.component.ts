@@ -36,7 +36,8 @@ import { setFeedbackHostToken } from '../../core/feedback-host-token';
 import { clearHostToken, hasHostToken } from '../../core/host-session-token';
 import { setHostToken, setPendingHostSessionCode, trpc } from '../../core/trpc.client';
 import {
-  findPreferredHostBrowserCapabilityCode,
+  getLastHostedSessionCode,
+  listStoredHostBrowserCapabilityCodes,
   persistInitialHostRecovery,
 } from '../../core/host-recovery-access';
 import { createDefaultLiveSessionOnboardingProfile } from '../../core/home-preset-storage';
@@ -61,6 +62,7 @@ import {
 import { QUICK_FEEDBACK_HOME_CHIPS } from '../feedback/feedback.config';
 import {
   isQaChannelJoinable,
+  isQaOpenForParticipants,
   type MotdInteractionKind,
   type MotdPublicDTO,
   type QuickFeedbackType,
@@ -97,6 +99,70 @@ import {
 import { INFO_LANDING_ANCHORS } from '../../core/info-landing-url';
 
 type MotdReturnFocusOrigin = 'keyboard' | 'mouse' | 'touch' | 'program';
+
+type HostSessionCta = {
+  code: string;
+  deadlineLabel: string | null;
+  openUntilLabel: string | null;
+  qaOpen: boolean | null;
+  openUntilMs: number | null;
+  accessUntilMs: number | null;
+  primary: boolean;
+};
+
+const HOST_SESSION_CTA_LIMIT = 8;
+const HOST_SESSION_INFO_FETCH_LIMIT = 32;
+
+function withPrimaryHostSessionCta(items: HostSessionCta[]): HostSessionCta[] {
+  const primaryIndex = items.findIndex((item) => item.qaOpen === true);
+  return items.map((item, index) => ({ ...item, primary: index === primaryIndex }));
+}
+
+function compareHostSessionCtas(
+  left: HostSessionCta,
+  right: HostSessionCta,
+  lastHosted: string | null,
+): number {
+  const leftOpen = left.qaOpen === true;
+  const rightOpen = right.qaOpen === true;
+  if (leftOpen !== rightOpen) {
+    return leftOpen ? -1 : 1;
+  }
+  if (leftOpen) {
+    if (lastHosted) {
+      if (left.code === lastHosted) return -1;
+      if (right.code === lastHosted) return 1;
+    }
+    const leftClose = left.openUntilMs ?? Number.POSITIVE_INFINITY;
+    const rightClose = right.openUntilMs ?? Number.POSITIVE_INFINITY;
+    if (leftClose !== rightClose) {
+      return leftClose - rightClose;
+    }
+    return left.code.localeCompare(right.code);
+  }
+  const leftAccess = left.accessUntilMs ?? Number.POSITIVE_INFINITY;
+  const rightAccess = right.accessUntilMs ?? Number.POSITIVE_INFINITY;
+  if (leftAccess !== rightAccess) {
+    return leftAccess - rightAccess;
+  }
+  return left.code.localeCompare(right.code);
+}
+
+function rankHostSessionCtas(items: HostSessionCta[], lastHosted: string | null): HostSessionCta[] {
+  return withPrimaryHostSessionCta(
+    [...items]
+      .sort((left, right) => compareHostSessionCtas(left, right, lastHosted))
+      .slice(0, HOST_SESSION_CTA_LIMIT),
+  );
+}
+
+/** Join und Recent-Liste teilen dasselbe Gatter: FINISHED bleibt offen, solange Q&A joinbar ist. */
+function isFinishedWithoutJoinableQa(resolution: {
+  sessionStatus?: string | null;
+  qaJoinable?: boolean;
+}): boolean {
+  return resolution.sessionStatus === 'FINISHED' && resolution.qaJoinable !== true;
+}
 
 @Component({
   selector: 'app-home',
@@ -199,26 +265,8 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
     }, null);
   });
   readonly hasHostedQuiz = computed(() => this.latestHostedQuizId() !== null);
-  readonly hostRecoveryPreferredCode = computed(() =>
-    findPreferredHostBrowserCapabilityCode(this.recentSessionCodes().map((entry) => entry.code)),
-  );
-  readonly showHostRecoveryCta = computed(() => this.hostRecoveryPreferredCode() !== null);
-  readonly hostRecoveryCtaLink = computed(() => {
-    const code = this.hostRecoveryPreferredCode();
-    return code ? localizePath(`/session/${code}/host`) : localizePath('/host-recovery');
-  });
-  readonly hostRecoveryCtaLabel = computed(() => {
-    const code = this.hostRecoveryPreferredCode() ?? '';
-    return $localize`:@@homeLiveCard.recoveryLabel:Q&A-Session ${code}:code:`;
-  });
-  readonly hostRecoveryDeadlineLabel = signal<string | null>(null);
-  readonly hostRecoveryCtaDescription = computed(() => {
-    const deadline = this.hostRecoveryDeadlineLabel();
-    if (deadline) {
-      return $localize`:@@homeLiveCard.recoveryDeadline:Zugang bis ${deadline}:deadline:`;
-    }
-    return $localize`:@@homeLiveCard.recoveryDescription:Zugang als Host`;
-  });
+  readonly hostSessionCtas = signal<HostSessionCta[]>([]);
+  readonly showHostRecoveryCta = computed(() => this.hostSessionCtas().length > 0);
   private readonly platformId = inject(PLATFORM_ID);
   private readonly sanitizer = inject(DomSanitizer);
   private readonly motdCurrent = inject(MotdCurrentService);
@@ -364,7 +412,7 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
         this.markJoinIntentForMotd();
       }
       this.loadRecentSessionCodes();
-      void this.loadHostRecoveryDeadline();
+      void this.loadHostSessionCtas();
       const pendingHost = consumePendingHostInvite();
       if (pendingHost?.sessionCode && hasHostToken(pendingHost.sessionCode)) {
         // Damit claimInvite das x-host-token mitschickt (Home-Route hat keinen Session-Pfad).
@@ -459,7 +507,7 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
     }
   }
 
-  /** Entfernt Sessions, die nicht mehr besucht werden können (cron gelöscht, beendet). */
+  /** Entfernt Sessions, die nicht mehr besucht werden können (gelöscht oder ohne offenes Q&A beendet). */
   private async validateRecentSessions(): Promise<void> {
     const list = this.recentSessionCodes();
     if (list.length === 0) return;
@@ -481,35 +529,117 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
         anonymousClientId,
       });
       if (resolution.active) return true;
-      if (resolution.sessionStatus) return resolution.sessionStatus !== 'FINISHED';
+      if (resolution.sessionStatus) {
+        return !isFinishedWithoutJoinableQa(resolution);
+      }
       // Rolling-Deployment-Fallback für Backends vor dem kombinierten Resolver.
       const session = await trpc.session.getInfoForReconnect.query({ code, anonymousClientId });
-      return session.status !== 'FINISHED';
+      return !isFinishedWithoutJoinableQa({
+        sessionStatus: session.status,
+        qaJoinable: isQaChannelJoinable(session),
+      });
     } catch {
       return false;
     }
   }
 
-  private async loadHostRecoveryDeadline(): Promise<void> {
-    const code = this.hostRecoveryPreferredCode();
-    if (!code) {
-      this.hostRecoveryDeadlineLabel.set(null);
+  hostSessionCtaLink(code: string): string {
+    return localizePath(`/session/${code}/host`);
+  }
+
+  hostSessionCtaLabel(code: string): string {
+    return $localize`:@@homeLiveCard.recoveryLabel:Q&A-Session ${code}:code:`;
+  }
+
+  hostSessionCtaDescription(deadlineLabel: string | null): string {
+    if (deadlineLabel) {
+      return $localize`:@@homeLiveCard.recoveryDeadline:Zugang bis ${deadlineLabel}:deadline:`;
+    }
+    return $localize`:@@homeLiveCard.recoveryDescription:Zugang als Host`;
+  }
+
+  hostSessionCtaOpenDescription(item: HostSessionCta): string | null {
+    if (item.qaOpen && item.openUntilLabel) {
+      return $localize`:@@homeLiveCard.qaOpenDeadline:Offen bis ${item.openUntilLabel}:deadline:`;
+    }
+    if (item.openUntilLabel && item.qaOpen === false) {
+      return $localize`:@@homeLiveCard.qaClosed:Forum geschlossen`;
+    }
+    return null;
+  }
+
+  private listHostSessionCtaCodes(limit: number): string[] {
+    const stored = listStoredHostBrowserCapabilityCodes();
+    const lastHosted = getLastHostedSessionCode();
+    return [...stored]
+      .sort((left, right) => {
+        if (left === lastHosted) return -1;
+        if (right === lastHosted) return 1;
+        return left.localeCompare(right);
+      })
+      .slice(0, limit);
+  }
+
+  private placeholderHostSessionCta(code: string): HostSessionCta {
+    return {
+      code,
+      deadlineLabel: null,
+      openUntilLabel: null,
+      qaOpen: null,
+      openUntilMs: null,
+      accessUntilMs: null,
+      primary: false,
+    };
+  }
+
+  private async loadHostSessionCtas(): Promise<void> {
+    const placeholderCodes = this.listHostSessionCtaCodes(HOST_SESSION_CTA_LIMIT);
+    const fetchCodes = this.listHostSessionCtaCodes(HOST_SESSION_INFO_FETCH_LIMIT);
+    this.hostSessionCtas.set(
+      withPrimaryHostSessionCta(
+        placeholderCodes.map((code) => this.placeholderHostSessionCta(code)),
+      ),
+    );
+    if (fetchCodes.length === 0) {
       return;
     }
-    try {
-      const session = await trpc.session.getInfo.query({
-        code,
-        anonymousClientId: getAnonymousClientId(),
-      });
-      const iso = session.postProcessingEndsAt ?? session.expiresAt ?? null;
-      if (!iso) {
-        this.hostRecoveryDeadlineLabel.set(null);
-        return;
-      }
-      this.hostRecoveryDeadlineLabel.set(this.formatHostAccessDeadline(iso, session.timeZone));
-    } catch {
-      this.hostRecoveryDeadlineLabel.set(null);
-    }
+
+    const anonymousClientId = getAnonymousClientId();
+    const now = Date.now();
+    const lastHosted = getLastHostedSessionCode();
+    const resolved = await Promise.all(
+      fetchCodes.map(async (code): Promise<HostSessionCta | null> => {
+        try {
+          const session = await trpc.session.getInfo.query({ code, anonymousClientId });
+          const iso = session.postProcessingEndsAt ?? session.expiresAt ?? null;
+          const accessUntilMs = iso ? Date.parse(iso) : Number.NaN;
+          if (Number.isFinite(accessUntilMs) && accessUntilMs <= now) {
+            return null;
+          }
+          const openIso = session.qaClosesAt ?? session.expiresAt ?? null;
+          const openUntilMs = openIso ? Date.parse(openIso) : Number.NaN;
+          return {
+            code,
+            deadlineLabel: iso ? this.formatHostAccessDeadline(iso, session.timeZone) : null,
+            openUntilLabel: openIso
+              ? this.formatHostAccessDeadline(openIso, session.timeZone)
+              : null,
+            qaOpen: isQaOpenForParticipants(session),
+            openUntilMs: Number.isFinite(openUntilMs) ? openUntilMs : null,
+            accessUntilMs: Number.isFinite(accessUntilMs) ? accessUntilMs : null,
+            primary: false,
+          };
+        } catch {
+          return null;
+        }
+      }),
+    );
+    this.hostSessionCtas.set(
+      rankHostSessionCtas(
+        resolved.filter((item): item is HostSessionCta => item !== null),
+        lastHosted,
+      ),
+    );
   }
 
   private formatHostAccessDeadline(iso: string, timeZone?: string): string | null {
@@ -671,6 +801,11 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
     this.hostSessionStarting.set(tab);
 
     try {
+      if (tab === 'qa') {
+        await this.startHeroHostSession(tab);
+        return;
+      }
+
       const code = this.resolveHeroHostCode();
       if (!code) {
         await this.startHeroHostSession(tab);
@@ -955,14 +1090,16 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
       return 'feedback';
     }
     if (resolution.sessionStatus) {
-      if (resolution.sessionStatus === 'FINISHED' && resolution.qaJoinable !== true) {
-        return 'finished';
-      }
-      return 'join';
+      return isFinishedWithoutJoinableQa(resolution) ? 'finished' : 'join';
     }
     // Kompatibilitätsfallback für einen alten Backend-Stand während Rolling Deployments.
     const session = await trpc.session.getInfo.query({ code, anonymousClientId });
-    return session.status === 'FINISHED' && !isQaChannelJoinable(session) ? 'finished' : 'join';
+    return isFinishedWithoutJoinableQa({
+      sessionStatus: session.status,
+      qaJoinable: isQaChannelJoinable(session),
+    })
+      ? 'finished'
+      : 'join';
   }
 
   private applyFinishedJoinError(code: string): void {

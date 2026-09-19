@@ -22,16 +22,20 @@ Browserneustart sowie Redis-Neustart oder Redis-Datenverlust zerstören deshalb
 nicht den PostgreSQL-basierten Wiederzugang. Ist Redis nicht erreichbar, bleibt
 der Zugriff fail-closed, bis Redis wieder verfügbar ist.
 
-Besitzt der Browser eine eindeutige, zuletzt genutzte Host-Capability, öffnet
-der erste Button der Live-Karte diese Host-Session direkt im Q&A-Kanal. Die erste
-Zeile nennt **Q&A-Session** und den sechsstelligen Sessioncode. Die zweite
-Zeile zeigt die Host-Zugangsfrist (`postProcessingEndsAt`, sonst `expiresAt`)
-als »Zugang bis …« mit lokalem Datum und Uhrzeit. Der Guard stellt den
+Besitzt der Browser aktivierte Host-Capabilities, zeigt die Live-Karte eine
+Reihe: Lookup bis 32 Codes, Anzeige höchstens 8, offene Foren zuerst
+(zuletzt gehostete, sonst frühestes Offen-bis), danach geschlossene
+(frühestes Zugang-bis). Gefüllt ist nur das erste noch offene Forum; der
+Rest ist outlined wie »Quiz-Sammlung öffnen«. Jeder öffnet
+die Host-Session direkt im Q&A-Kanal. Die erste Zeile nennt **Q&A-Session** und
+den sechsstelligen Sessioncode. Die zweite Zeile zeigt die Host-Zugangsfrist
+(`postProcessingEndsAt`, sonst `expiresAt`) als »Zugang bis …« mit lokalem
+Datum und Uhrzeit. Die dritte Zeile zeigt die Q&A-Offen-Frist (`qaClosesAt`,
+sonst `expiresAt`) als »Offen bis …« oder »Forum geschlossen«. Der Guard stellt den
 kurzlebigen Host-Token aus der Capability aus. Die Wiederherstellungsseite
 bleibt unter `/<locale>/host-recovery` erreichbar, erscheint auf der Live-Karte
-aber nicht als Textlink. Der Live-Karten-CTA erscheint nur bei genau einer
-bevorzugten aktivierten Capability; mehrere ungeordnete Einträge oder nur ein
-Kandidat führen nicht auf eine zufällige ältere Session.
+aber nicht als Textlink. Nur ein Wiederherstellungskandidat ohne aktivierte
+Capability erzeugt keinen Live-Karten-CTA.
 Der Ablauf hat drei Schritte: Angaben prüfen (Prepare), neue Zugangsdaten
 sichern und erst danach ausdrücklich aktivieren, anschließend bestätigter
 Erfolg. Ein Download ist optional; eine Klartextnotiz mit Session-Kennung,
