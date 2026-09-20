@@ -4217,7 +4217,7 @@ describe('SessionVoteComponent', { timeout: 30_000 }, () => {
       teamMode: false,
       quizStarted: true,
       preset: 'PLAYFUL',
-      qaClosesAt: '2026-09-20T08:00:00.000Z',
+      qaClosesAt: '2027-09-20T08:00:00.000Z',
       channels: {
         quiz: { enabled: true },
         qa: {
@@ -4226,7 +4226,7 @@ describe('SessionVoteComponent', { timeout: 30_000 }, () => {
           title: 'Fragen',
           moderationMode: true,
           state: 'OPEN',
-          closesAt: '2026-09-20T08:00:00.000Z',
+          closesAt: '2027-09-20T08:00:00.000Z',
         },
         quickFeedback: { enabled: false, open: false },
       },
@@ -4249,9 +4249,9 @@ describe('SessionVoteComponent', { timeout: 30_000 }, () => {
   it('übernimmt Q&A-Fragen nach Quiz-FINISHED derselben Lifecycle-Revision und schließt erst bei globaler Frist', async () => {
     const lifecycle = {
       serverNow: '2026-09-19T08:00:00.000Z',
-      expiresAt: '2026-09-20T08:00:00.000Z',
+      expiresAt: '2027-09-20T08:00:00.000Z',
       sessionLifecycleRevision: 4,
-      qaClosesAt: '2026-09-20T08:00:00.000Z',
+      qaClosesAt: '2027-09-20T08:00:00.000Z',
     };
     const openQaChannels = {
       quiz: { enabled: true },

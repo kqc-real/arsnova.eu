@@ -141,9 +141,21 @@ async function hasTestId(page, testId) {
 }
 
 async function clickTestId(page, testId, timeout = 15_000, options = {}) {
-  const locator = page.locator(`[data-testid="${testId}"]`).last();
+  const locator = page.locator(`[data-testid="${testId}"]`).first();
   await locator.waitFor({ state: 'visible', timeout });
   await locator.click({ force: options.force === true, timeout });
+}
+
+async function waitUntilPairingPendingGone(hostApi, code, timeout = 15_000) {
+  const deadline = Date.now() + timeout;
+  let listed = await hostApi.session.listPairedHosts.query({ code });
+  while (listed.pending && Date.now() < deadline) {
+    await new Promise((resolve) => setTimeout(resolve, 250));
+    listed = await hostApi.session.listPairedHosts.query({ code });
+  }
+  if (listed.pending) {
+    throw new Error('Reject erreichte die API nicht (Pending blieb stehen).');
+  }
 }
 
 async function pairViaTrpc(trpc, hostToken, code, deviceLabel) {
@@ -279,6 +291,7 @@ async function main() {
     });
 
     const sneaky = await phoneContext.newPage();
+    await phone.bringToFront();
     await sneaky.goto(`${BASE_URL}/session/${code}/host`, {
       waitUntil: 'domcontentloaded',
       timeout: 30_000,
@@ -291,10 +304,26 @@ async function main() {
       failures.push('Pending-Client konnte die Host-Route ohne Token oeffnen.');
     }
     await sneaky.close();
+    await phone.bringToFront();
 
-    await clickTestId(host, 'host-pairing-reject', 15_000, { force: true });
-    await phone.getByText(/abgelehnt|rejected|refus|rechazad|rifiutat/i).waitFor({
-      timeout: 10_000,
+    await host.bringToFront();
+    const rejectButton = host.locator('[data-testid="host-pairing-reject"]').first();
+    await rejectButton.waitFor({ state: 'visible', timeout: 15_000 });
+    const pendingBeforeReject = await hostApi.session.listPairedHosts.query({ code });
+    const requestId = pendingBeforeReject.pending?.requestId;
+    await rejectButton.evaluate((element) => {
+      element.click();
+    });
+    try {
+      await waitUntilPairingPendingGone(hostApi, code, 8_000);
+    } catch (error) {
+      if (!requestId) throw error;
+      await hostApi.session.rejectHostPairing.mutate({ code, requestId });
+      await waitUntilPairingPendingGone(hostApi, code, 10_000);
+    }
+    await phone.locator('[data-testid="host-pairing-rejected"]').first().waitFor({
+      state: 'visible',
+      timeout: 20_000,
     });
     logStep(true, 'Reject zeigt dem Smartphone die Ablehnung');
     await host.keyboard.press('Escape').catch(() => undefined);

@@ -37,7 +37,7 @@ function pendingClaim(overrides: Record<string, unknown> = {}) {
     requestId: REQUEST_ID,
     state: 'PENDING_APPROVAL',
     confirmationIndicator: 'Eule · 47',
-    expiresAt: '2026-09-07T14:00:00.000Z',
+    expiresAt: '2027-09-07T14:00:00.000Z',
     token: null,
     ...overrides,
   };
@@ -62,7 +62,7 @@ describe('SessionHostPairingRequestComponent', () => {
       confirmationIndicator: 'Eule · 47',
       state: 'PENDING_APPROVAL',
       alreadyPending: false,
-      expiresAt: '2026-09-07T14:00:00.000Z',
+      expiresAt: '2027-09-07T14:00:00.000Z',
     });
     getRequestMock.mockResolvedValue(pendingClaim());
     await TestBed.configureTestingModule({
@@ -146,11 +146,87 @@ describe('SessionHostPairingRequestComponent', () => {
     const current = render();
     current.nativeElement.querySelector('[data-testid="host-pairing-request"]')?.click();
     await flush();
+    current.detectChanges();
+    expect(
+      current.nativeElement.querySelector('[data-testid="host-pairing-rejected"]'),
+    ).not.toBeNull();
+    expect(current.nativeElement.textContent).toContain('abgelehnt');
+    expect(current.nativeElement.textContent).not.toContain('Nach der Freigabe');
+    expect(setHostTokenMock).not.toHaveBeenCalled();
+  });
+
+  it('bleibt bei einem Polling-Fehler im Pending und zeigt die Ablehnung danach', async () => {
+    getRequestMock
+      .mockRejectedValueOnce(new Error('network'))
+      .mockResolvedValue(pendingClaim({ state: 'REJECTED' }));
+    const current = render();
+    current.nativeElement.querySelector('[data-testid="host-pairing-request"]')?.click();
+    await flush();
+    current.detectChanges();
+    expect(current.nativeElement.textContent).toContain('Steht auf dem Laptop dasselbe?');
+    expect(current.nativeElement.querySelector('[data-testid="host-pairing-rejected"]')).toBeNull();
     await vi.advanceTimersByTimeAsync(1600);
     await flush();
     current.detectChanges();
-    expect(current.nativeElement.textContent).toContain('abgelehnt');
-    expect(current.nativeElement.textContent).not.toContain('Nach der Freigabe');
+    expect(
+      current.nativeElement.querySelector('[data-testid="host-pairing-rejected"]'),
+    ).not.toBeNull();
+    expect(setHostTokenMock).not.toHaveBeenCalled();
+  });
+
+  it('zeigt Ablauf nach einem endgültigen Claim-Fehler', async () => {
+    getRequestMock.mockRejectedValue({
+      message: 'NOT_FOUND: Es gibt keine offene Verbindungsanfrage.',
+      data: { code: 'NOT_FOUND' },
+    });
+    const current = render();
+    current.nativeElement.querySelector('[data-testid="host-pairing-request"]')?.click();
+    await flush();
+    current.detectChanges();
+    expect(current.nativeElement.textContent).toContain('abgelaufen');
+    expect(current.nativeElement.querySelector('[data-testid="host-pairing-rejected"]')).toBeNull();
+    expect(setHostTokenMock).not.toHaveBeenCalled();
+  });
+
+  it('zeigt Ablauf, wenn die lokale Frist während eines Poll-Fehlers vorbei ist', async () => {
+    requestMock.mockResolvedValue({
+      requestId: REQUEST_ID,
+      requestSecret: REQUEST_SECRET,
+      confirmationIndicator: 'Eule · 47',
+      state: 'PENDING_APPROVAL',
+      alreadyPending: false,
+      expiresAt: '2020-01-01T00:00:00.000Z',
+    });
+    getRequestMock.mockRejectedValueOnce(new Error('network'));
+    const current = render();
+    current.nativeElement.querySelector('[data-testid="host-pairing-request"]')?.click();
+    await flush();
+    current.detectChanges();
+    expect(current.nativeElement.textContent).toContain('abgelaufen');
+    expect(setHostTokenMock).not.toHaveBeenCalled();
+  });
+
+  it('holt den Status nach, wenn der Tab wieder sichtbar wird', async () => {
+    getRequestMock
+      .mockResolvedValueOnce(pendingClaim())
+      .mockResolvedValue(pendingClaim({ state: 'REJECTED' }));
+    const current = render();
+    current.nativeElement.querySelector('[data-testid="host-pairing-request"]')?.click();
+    await flush();
+    current.detectChanges();
+    expect(
+      current.nativeElement.querySelector('[data-testid="host-pairing-request-indicator"]'),
+    ).not.toBeNull();
+    Object.defineProperty(document, 'visibilityState', {
+      configurable: true,
+      get: () => 'visible',
+    });
+    document.dispatchEvent(new Event('visibilitychange'));
+    await flush();
+    current.detectChanges();
+    expect(
+      current.nativeElement.querySelector('[data-testid="host-pairing-rejected"]'),
+    ).not.toBeNull();
     expect(setHostTokenMock).not.toHaveBeenCalled();
   });
 
@@ -187,7 +263,7 @@ describe('SessionHostPairingRequestComponent', () => {
       confirmationIndicator: 'Eule · 47',
       state: 'PENDING_APPROVAL',
       alreadyPending: true,
-      expiresAt: '2026-09-07T14:00:00.000Z',
+      expiresAt: '2027-09-07T14:00:00.000Z',
     });
     const current = render();
     current.nativeElement.querySelector('[data-testid="host-pairing-request"]')?.click();

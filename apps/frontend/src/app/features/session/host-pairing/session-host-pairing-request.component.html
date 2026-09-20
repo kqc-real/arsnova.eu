@@ -109,7 +109,10 @@
           </p>
         </section>
       } @else if (view() === 'rejected') {
-        <section class="host-pairing-request__section host-pairing-request__section--alert">
+        <section
+          class="host-pairing-request__section host-pairing-request__section--alert"
+          data-testid="host-pairing-rejected"
+        >
           <p class="host-pairing-request__hint" role="alert" i18n="@@hostPairing.errorRejected">
             Die Verbindung wurde abgelehnt.
           </p>
