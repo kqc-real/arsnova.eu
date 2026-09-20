@@ -161,7 +161,7 @@ describe('JoinComponent', () => {
     expect(trpc.session.getParticipantNicknames.query).not.toHaveBeenCalled();
   });
 
-  it('zeigt vor dem Beitritt Sessionende und früheste Löschbarkeit mit Ausnahmehinweis', async () => {
+  it('zeigt vor dem Beitritt das geplante Sessionende ohne Löschtermin', async () => {
     vi.mocked(trpc.session.getInfo.query).mockResolvedValue({
       ...mockSession,
       expiresAt: '2026-09-15T10:00:00.000Z',
@@ -178,8 +178,8 @@ describe('JoinComponent', () => {
     const retention = (fixture.nativeElement as HTMLElement).querySelector('.join-card__retention');
     expect(retention?.getAttribute('role')).toBe('note');
     expect(retention?.textContent).toContain('Geplantes Sessionende');
-    expect(retention?.textContent).toContain('Sessiondaten frühestens löschbar');
-    expect(retention?.textContent).toContain('kein zusätzlicher Teilnehmerzugriff');
+    expect(retention?.textContent).not.toContain('Sessiondaten frühestens löschbar');
+    expect(retention?.textContent).not.toContain('kein zusätzlicher Teilnehmerzugriff');
   });
 
   it('fixiert den Beitrittsbutton im unteren Aktionsbereich des Join-Clients', async () => {

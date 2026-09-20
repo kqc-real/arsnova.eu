@@ -10,7 +10,8 @@
 - Pro Teilnahme können höchstens 10 Q&A-Fragen erstmalig angelegt werden.
 - Pro Session können höchstens 25.000 Fragen gleichzeitig physisch gespeichert
   sein.
-- API-Seiten und begrenzte Snapshots enthalten höchstens 100 Einträge. Der
+- API-Seiten und begrenzte Snapshots enthalten höchstens 100 Einträge. Die
+  Lobby-Ankunftsliste darf 500 jüngste Teilnehmende enthalten. Der
   serverseitig gerankte Wortwolkenkorpus enthält höchstens 500 Fragen.
 
 Die Grenzen werden nicht über IP-Adressen durchgesetzt und bleiben deshalb für
@@ -19,7 +20,7 @@ Hörsäle hinter Shared NAT nutzbar.
 ## Teilnahme
 
 `session.getParticipantSummary` liefert Gesamtzahl, eindeutige Presence-Zahl,
-`participantRevision` und höchstens 20 jüngste Ankünfte. Die Host-Subscription
+`participantRevision` und höchstens 500 jüngste Ankünfte. Die Host-Subscription
 sendet denselben begrenzten Snapshot. `session.searchParticipants` stellt bei
 Bedarf revisionsgebundene Keyset-Seiten alphabetisch nach Nickname bereit; ein
 paralleler Join verwirft einen alten Cursor mit `CONFLICT`.

@@ -1447,6 +1447,39 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
     fixture.destroy();
   });
 
+  it('hält die Kindergarten-Lobby sichtbar, solange ACTIVE ohne Quizfrage bleibt', async () => {
+    getInfoQueryMock.mockResolvedValue({
+      ...defaultSession,
+      status: 'ACTIVE',
+      currentQuestion: null,
+      teamMode: false,
+      anonymousMode: false,
+      nicknameTheme: 'KINDERGARTEN',
+    });
+    getParticipantsQueryMock.mockResolvedValue({
+      participantCount: 2,
+      participants: [
+        { id: 'p1', nickname: 'Mintgrüne Eidechse 1' },
+        { id: 'p2', nickname: 'Lila Delfin 2' },
+      ],
+    });
+
+    const fixture = setup();
+    fixture.detectChanges();
+    await fixture.whenStable();
+    await new Promise((resolve) => setTimeout(resolve, 50));
+    fixture.detectChanges();
+
+    expect(fixture.componentInstance.isQuizAwaitingFirstQuestion()).toBe(true);
+    expect(fixture.componentInstance.showLobbyStage()).toBe(true);
+    const icons = Array.from(
+      fixture.nativeElement.querySelectorAll('.session-lobby__nick-emoji--host-lobby'),
+      (el) => (el.textContent ?? '').trim(),
+    );
+    expect(icons).toEqual(['🐬', '🦎']);
+    fixture.destroy();
+  });
+
   it('lädt die Teilnehmerübersicht bedarfsgesteuert in ersetzten Seiten mit höchstens 80 Einträgen', async () => {
     getInfoQueryMock.mockResolvedValue({
       ...defaultSession,
@@ -4645,11 +4678,11 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
     fixture.detectChanges();
 
     const host = fixture.nativeElement as HTMLElement;
-    const steering = host.querySelector('.session-host__steering') as HTMLElement | null;
     expect(component.activeChannel()).toBe('quiz');
+    expect(component.showLobbyStage()).toBe(true);
     expect(host.textContent ?? '').toContain('Erste Frage starten');
     expect(host.querySelector('.session-host__no-question')).toBeNull();
-    expect(steering?.className).toContain('session-host__steering--prestart');
+    expect(host.querySelector('[data-testid="lobby-start-session"]')).not.toBeNull();
     fixture.destroy();
   });
 
@@ -15392,6 +15425,43 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
     expect(text).toContain('2 Mitglieder');
     expect(text).toContain('0 Mitglieder');
     expect(getTeamsQueryMock).toHaveBeenCalledTimes(1);
+    fixture.destroy();
+  });
+
+  it('nimmt Team- und Gesamtzahlen aus getTeams, wenn die Ankunftsliste leer bleibt', async () => {
+    getInfoQueryMock.mockResolvedValue({
+      ...defaultSession,
+      status: 'LOBBY',
+      teamMode: true,
+      anonymousMode: false,
+      participantCount: 0,
+    });
+    getTeamsQueryMock.mockResolvedValue({
+      teamCount: 2,
+      teams: [
+        { id: 'team-a', name: 'Rot', color: '#1E88E5', memberCount: 30 },
+        { id: 'team-b', name: 'Blau', color: '#43A047', memberCount: 30 },
+      ],
+    });
+    getParticipantsQueryMock.mockResolvedValue({
+      participantCount: 0,
+      participants: [],
+    });
+
+    const fixture = setup();
+    fixture.detectChanges();
+    await flushComponentAfterStable(fixture, 50);
+    fixture.detectChanges();
+
+    const text = fixture.nativeElement.textContent ?? '';
+    const teamCounts = [
+      ...fixture.nativeElement.querySelectorAll('.session-lobby__team-card-count'),
+    ].map((node) => (node.textContent ?? '').replace(/\s+/g, ' ').trim());
+    expect(teamCounts).toEqual(['30 Mitglieder', '30 Mitglieder']);
+    expect(text).not.toContain(fixture.componentInstance.lobbyTeamEmptyLabel());
+    expect(
+      fixture.nativeElement.querySelector('.session-host__live-participants-count')?.textContent,
+    ).toContain('60');
     fixture.destroy();
   });
 

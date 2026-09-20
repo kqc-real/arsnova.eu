@@ -302,12 +302,17 @@ export class SessionPresentComponent implements OnInit, OnDestroy {
     const people = [...this.lobbyParticipants()].reverse();
     const hideNames = this.session()?.anonymousMode === true;
     const hiddenIds = this.hiddenLobbyParticipantIds();
-    return this.lobbyTeams().map((team) => ({
-      ...team,
-      members: hideNames
+    return this.lobbyTeams().map((team) => {
+      const members = hideNames
         ? []
-        : people.filter((person) => person.teamId === team.id && !hiddenIds.has(person.id)),
-    }));
+        : people.filter((person) => person.teamId === team.id && !hiddenIds.has(person.id));
+      const placeholderCount = Math.max(0, team.memberCount - members.length);
+      return {
+        ...team,
+        members,
+        placeholders: Array.from({ length: placeholderCount }, (_, index) => index),
+      };
+    });
   });
   readonly lobbyPeople = computed(() => {
     if (this.lobbyTeams().length > 0) {
@@ -322,6 +327,10 @@ export class SessionPresentComponent implements OnInit, OnDestroy {
     const fromSession = this.session()?.participantCount ?? 0;
     const fromTeams = this.lobbyTeams().reduce((sum, team) => sum + team.memberCount, 0);
     return Math.max(listed, fromSummary, fromSession, fromTeams);
+  });
+  readonly isKindergartenLobby = computed(() => {
+    const session = this.session();
+    return session?.nicknameTheme === 'KINDERGARTEN' && session.anonymousMode !== true;
   });
   readonly canShowLobbyFoyer = computed(() => {
     const session = this.session();
@@ -647,16 +656,31 @@ export class SessionPresentComponent implements OnInit, OnDestroy {
       this.teamLeaderboard().length > 0
     );
   });
-  readonly showLobbyProjection = computed(
-    () =>
-      this.session()?.status === 'LOBBY' &&
-      !this.showFinishProjection() &&
-      !this.showQuizPauseProjection() &&
-      !this.showQaProjection() &&
-      !this.showQaWordCloud() &&
-      !this.showQuickFeedbackCard() &&
-      this.presenterStandbyChannel() === null,
-  );
+  readonly waitingLobbySession = computed(() => {
+    const session = this.session();
+    if (!session) return false;
+    if (session.status === 'LOBBY') return true;
+    if (session.type === 'Q_AND_A') return false;
+    return session.status === 'ACTIVE' && this.hostQuestion() === null;
+  });
+  readonly showLobbyProjection = computed(() => {
+    if (
+      this.showFinishProjection() ||
+      this.showQuizPauseProjection() ||
+      this.showQaProjection() ||
+      this.showQaWordCloud() ||
+      this.showQuickFeedbackCard() ||
+      this.presenterStandbyChannel() !== null
+    ) {
+      return false;
+    }
+    if (!this.waitingLobbySession()) {
+      return false;
+    }
+    // Freitext-Projektion hat Vorrang, sobald das Quiz schon eine Frage hat.
+    // In der echten Lobby bleibt das Foyer sichtbar.
+    return this.session()?.status === 'LOBBY' || !this.presenterFreetextActive();
+  });
   readonly hasLobbyAudienceColumns = computed(
     () => this.lobbyTeamsView().length > 0 || this.lobbyPeople().length > 0,
   );
@@ -1727,7 +1751,7 @@ export class SessionPresentComponent implements OnInit, OnDestroy {
   }
 
   private async refreshLobbyAudience(): Promise<void> {
-    if (this.session()?.status !== 'LOBBY' || this.presentDeadlineClosed) {
+    if (!this.waitingLobbySession() || this.presentDeadlineClosed) {
       this.clearLobbyAudience();
       return;
     }

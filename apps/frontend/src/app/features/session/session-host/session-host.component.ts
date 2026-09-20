@@ -121,6 +121,7 @@ import {
   WORD_CLOUD_DEFAULT_MAX_NGRAM_LENGTH,
   WORD_CLOUD_PHRASE_MAX_NGRAM_LENGTH,
   QA_WORD_CLOUD_MAX_OUTPUT_ENTRIES,
+  SESSION_LOBBY_RECENT_ARRIVALS_MAX,
   WordCloudAnalysisEntryDTOSchema,
   isWordCloudLemmaLocale,
   isWordCloudPhraseAnalysisVariant,
@@ -700,7 +701,7 @@ export class SessionHostComponent implements OnInit, OnDestroy {
     if (!session || session.anonymousMode) {
       return false;
     }
-    return (this.participantsPayload()?.participantCount ?? session.participantCount) > 0;
+    return this.liveParticipantCount() > 0;
   });
   private participantDirectoryCurrentCursor: string | null = null;
   private participantDirectoryCursorHistory: Array<string | null> = [];
@@ -1098,7 +1099,10 @@ export class SessionHostComponent implements OnInit, OnDestroy {
     () => this.hasCurrentQuizQuestionForHost() && this.displayedCurrentQuestionForHost() === null,
   );
   readonly showLobbyStage = computed(
-    () => this.effectiveStatus() === 'LOBBY' || this.quizStartQuestionPending(),
+    () =>
+      this.effectiveStatus() === 'LOBBY' ||
+      this.quizStartQuestionPending() ||
+      this.isQuizAwaitingFirstQuestion(),
   );
   /** Emoji-Reaktionen der Teilnehmenden in der Ergebnis-Phase (Story 5.8). */
   readonly emojiReactions = signal<{ reactions: Record<string, number>; total: number } | null>(
@@ -3113,9 +3117,18 @@ export class SessionHostComponent implements OnInit, OnDestroy {
 
     return teams.map((team) => ({
       ...team,
-      memberCount: teamMemberCounts.get(team.id) ?? 0,
+      memberCount: Math.max(team.memberCount ?? 0, teamMemberCounts.get(team.id) ?? 0),
       participants: participantMap.get(team.id) ?? [],
     }));
+  });
+  readonly liveParticipantCount = computed(() => {
+    const session = this.session();
+    const payload = this.participantsPayload();
+    const fromPayload = payload?.participantCount ?? 0;
+    const fromSession = session?.participantCount ?? 0;
+    const fromListed = payload?.participants.length ?? 0;
+    const fromTeams = this.lobbyTeams().reduce((sum, team) => sum + (team.memberCount ?? 0), 0);
+    return Math.max(fromPayload, fromSession, fromListed, fromTeams);
   });
   readonly lobbyParticipantsNewestFirst = computed(() => {
     const participants = this.participantsPayload()?.participants ?? [];
@@ -7465,12 +7478,13 @@ export class SessionHostComponent implements OnInit, OnDestroy {
     summary: SessionParticipantSummaryDTO | SessionParticipantsPayload,
   ): SessionParticipantsPayload {
     // Während eines Rolling Deployments können bereits verbundene alte
-    // Backend-Instanzen noch den früheren, vollständigen Payload senden. Die
-    // neue UI verarbeitet davon bewusst nur die letzten 20 Einträge.
+    // Backend-Instanzen noch den früheren, vollständigen Payload senden.
     const participants =
       'recentArrivals' in summary
         ? summary.recentArrivals
-        : summary.participants.slice(Math.max(0, summary.participants.length - 20));
+        : summary.participants.slice(
+            Math.max(0, summary.participants.length - SESSION_LOBBY_RECENT_ARRIVALS_MAX),
+          );
     return {
       participants: participants.map((participant) => ({
         id: participant.id,

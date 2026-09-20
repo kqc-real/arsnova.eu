@@ -487,6 +487,7 @@
             [class.session-present__lobby-audience--packed]="
               lobbyAudienceIsPacked(lobbyParticipantCount())
             "
+            [class.session-present__lobby-audience--kindergarten]="isKindergartenLobby()"
             aria-labelledby="session-present-lobby-audience"
           >
             @if (showLobbyFoyerOverlay() && lobbyFoyerOverlayChips().length > 0) {
@@ -537,7 +538,7 @@
                         />
                       </div>
                     }
-                    @if (team.members.length > 0) {
+                    @if (team.members.length > 0 || team.placeholders.length > 0) {
                       <ul
                         class="session-present__lobby-team-members"
                         role="list"
@@ -601,10 +602,23 @@
                                 }
                                 <span
                                   class="session-present__lobby-nick-text"
-                                  [class.sr-only]="lobbyAudienceIsPacked(team.memberCount)"
+                                  [class.sr-only]="
+                                    lobbyAudienceIsPacked(team.memberCount) || isKindergartenLobby()
+                                  "
                                   >{{ member.nickname }}</span
                                 >
                               </span>
+                            }
+                          </li>
+                        }
+                        @for (slot of team.placeholders; track slot) {
+                          <li class="session-present__lobby-placeholder" aria-hidden="true">
+                            @if (!isKindergartenLobby()) {
+                              <mat-icon
+                                class="session-present__lobby-nick-mat-icon"
+                                aria-hidden="true"
+                                >person</mat-icon
+                              >
                             }
                           </li>
                         }
@@ -678,7 +692,10 @@
                           }
                           <span
                             class="session-present__lobby-nick-text"
-                            [class.sr-only]="lobbyAudienceIsPacked(lobbyParticipantCount())"
+                            [class.sr-only]="
+                              lobbyAudienceIsPacked(lobbyParticipantCount()) ||
+                              isKindergartenLobby()
+                            "
                             >{{ person.nickname }}</span
                           >
                         </span>

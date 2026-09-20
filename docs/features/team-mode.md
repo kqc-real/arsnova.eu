@@ -354,6 +354,15 @@ stateDiagram-v2
 | `session.getParticipants`    | Query    | Teilnehmer inkl. teamId, teamName           |
 | `session.getTeamLeaderboard` | Query    | Team-Ranking nach normalisiertem Score      |
 
+Die Host-Lobby nimmt je Team die groessere Zahl aus `getTeams.memberCount` und den
+gelieferten Ankuenften. So bleiben Quizkanal und Praesentation synchron. Die
+Ankunftsliste umfasst bis zu 500 juengste Teilnehmende, damit Kita-Tiere und
+Avatare die Teamkarte fuellen statt einer 20er-Stichprobe. Fehlende Plaetze
+fuellt die Presenter-Lobby weiter mit Platzhaltern. Wenige Kita-Tiere wachsen
+in der Teamkarte; Namens-Pills bleiben kompakt. Host und Praesentation
+halten die Warte-Lobby (inkl. Kita-Tiere), solange die Session `ACTIVE` ist, aber
+noch keine Quizfrage laeuft.
+
 ---
 
 ## Relevante Dateien

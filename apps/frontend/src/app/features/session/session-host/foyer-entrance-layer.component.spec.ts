@@ -378,5 +378,11 @@ describe('FoyerEntranceLayerComponent', () => {
     );
     expect(scss).toMatch(/animation-duration:\s*var\(--foyer-arrive-duration\)/);
     expect(scss).toMatch(/animation-fill-mode:\s*both/);
+    expect(scss).toMatch(
+      /\.foyer-entrance-layer--overlay[\s\S]*?\.foyer-entrance-layer__chip--emoji-only[\s\S]*?\.foyer-entrance-layer__chip-emoji \{[\s\S]*?clamp\(5\.5rem,\s*14vmin,\s*11rem\)/,
+    );
+    expect(scss).toMatch(
+      /@media \(min-width: 600px\)[\s\S]*?\.foyer-entrance-layer__chip--emoji-only[\s\S]*?clamp\(7rem,\s*16vmin,\s*12rem\)/,
+    );
   });
 });

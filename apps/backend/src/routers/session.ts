@@ -38,6 +38,7 @@ import {
   SessionParticipantNicknamesPayloadSchema,
   GetSessionParticipantSummaryInputSchema,
   SessionParticipantSummaryDTOSchema,
+  SESSION_LOBBY_RECENT_ARRIVALS_MAX,
   SearchSessionParticipantsInputSchema,
   SessionParticipantPageDTOSchema,
   CheckSessionParticipantNicknameInputSchema,
@@ -1666,7 +1667,7 @@ const sessionParticipantsQuerySelect = Prisma.validator<Prisma.SessionSelect>()(
   _count: { select: { participants: true } },
   participants: {
     orderBy: [{ joinedAt: 'desc' }, { id: 'desc' }],
-    take: 20,
+    take: SESSION_LOBBY_RECENT_ARRIVALS_MAX,
     select: {
       id: true,
       nickname: true,
@@ -1806,7 +1807,7 @@ async function buildSessionParticipantSummary(
     recentArrivals:
       session.onboardingAnonymousMode === true
         ? []
-        : session.participants.slice(0, 20).map((participant) => ({
+        : session.participants.slice(0, SESSION_LOBBY_RECENT_ARRIVALS_MAX).map((participant) => ({
             id: participant.id,
             nickname: participant.nickname,
             teamId: participant.teamId ?? null,

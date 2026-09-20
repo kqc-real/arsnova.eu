@@ -4376,9 +4376,12 @@ export const ParticipantDTOSchema = z.object({
 });
 export type ParticipantDTO = z.infer<typeof ParticipantDTOSchema>;
 
+/** Jüngste Lobby-Ankünfte für Host/Presenter; deckt den Hörsaal-Pfad von 500 Clients. */
+export const SESSION_LOBBY_RECENT_ARRIVALS_MAX = 500;
+
 /** Payload: Teilnehmerliste einer Session (Story 2.2 – getParticipants / onParticipantJoined). */
 export const SessionParticipantsPayloadSchema = z.object({
-  participants: z.array(ParticipantDTOSchema).max(100),
+  participants: z.array(ParticipantDTOSchema).max(SESSION_LOBBY_RECENT_ARRIVALS_MAX),
   participantCount: z.number(),
   connectedCount: z.number().int().min(0).optional(),
   readingReady: ReadingReadyStatusDTOSchema.optional(),
@@ -4411,7 +4414,7 @@ export const SessionParticipantSummaryDTOSchema = z.object({
   participantCount: z.number().int().min(0),
   connectedCount: z.number().int().min(0),
   revision: z.number().int().min(0),
-  recentArrivals: z.array(ParticipantArrivalDTOSchema).max(20),
+  recentArrivals: z.array(ParticipantArrivalDTOSchema).max(SESSION_LOBBY_RECENT_ARRIVALS_MAX),
   readingReady: ReadingReadyStatusDTOSchema.optional(),
 });
 export type SessionParticipantSummaryDTO = z.infer<typeof SessionParticipantSummaryDTOSchema>;

@@ -176,7 +176,7 @@ describe('session participant access (Story 2.2)', () => {
           _count: { select: { participants: true } },
           participants: {
             orderBy: [{ joinedAt: 'desc' }, { id: 'desc' }],
-            take: 20,
+            take: 500,
             select: {
               id: true,
               nickname: true,
@@ -297,10 +297,10 @@ describe('session participant access (Story 2.2)', () => {
       case: 'happy',
       mode: 'direct',
       title:
-        'liefert im Host-Summary höchstens 20 jüngste Ankünfte sowie Gesamt-, Presence- und Revisionsstand',
+        'liefert im Host-Summary höchstens 500 jüngste Ankünfte sowie Gesamt-, Presence- und Revisionsstand',
     },
     async () => {
-      const recentParticipants = Array.from({ length: 25 }, (_, index) =>
+      const recentParticipants = Array.from({ length: 510 }, (_, index) =>
         buildParticipantRow(index),
       );
       prismaMock.session.findUnique.mockResolvedValue({
@@ -322,7 +322,7 @@ describe('session participant access (Story 2.2)', () => {
         connectedCount: 2,
         revision: 17,
       });
-      expect(result.recentArrivals).toHaveLength(20);
+      expect(result.recentArrivals).toHaveLength(500);
       expect(presenceMocks.getActiveParticipantIdsForSession).not.toHaveBeenCalled();
       expect(result.recentArrivals[0]).toEqual({
         id: recentParticipants[0].id,

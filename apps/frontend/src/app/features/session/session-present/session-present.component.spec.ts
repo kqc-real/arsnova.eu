@@ -6,6 +6,7 @@ import { describe, expect, it, beforeEach, vi } from 'vitest';
 import { SessionPresentComponent } from './session-present.component';
 import { ThemePresetService } from '../../../core/theme-preset.service';
 import { getQaWordCloudQuestionWeight } from './word-cloud.util';
+import { NICKNAME_LISTS } from '../../join/nickname-themes';
 
 const {
   liveQueryMock,
@@ -2385,10 +2386,31 @@ describe('SessionPresentComponent', () => {
       /\.session-present__lobby-team-members li \{\s*container-type:\s*size;/,
     );
     expect(styles).toMatch(
-      /\.session-present__lobby-team--crowd \.session-present__lobby-team-members,[\s\S]*?\.session-present__lobby-team--packed \.session-present__lobby-team-members \{[\s\S]*?grid-auto-rows:\s*minmax\(0,\s*1fr\);[\s\S]*?align-items:\s*stretch;[\s\S]*?justify-items:\s*stretch;/,
+      /\.session-present__lobby-team--crowd \.session-present__lobby-team-members,[\s\S]*?\.session-present__lobby-team--packed \.session-present__lobby-team-members \{[\s\S]*?grid-auto-rows:\s*minmax\(min-content,\s*1fr\);[\s\S]*?align-items:\s*stretch;[\s\S]*?justify-items:\s*stretch;/,
     );
     expect(styles).toMatch(
       /\.session-present__lobby-team--crowd \.session-present__lobby-team-members li,[\s\S]*?\.session-present__lobby-team--packed \.session-present__lobby-team-members li \{[\s\S]*?container-type:\s*size;/,
+    );
+    const memberChipRule = styles.match(
+      /\.session-present__lobby-team-members li,\s*\.session-present__lobby-person \{([^}]+)\}/,
+    )?.[1];
+    expect(memberChipRule).toMatch(/background:\s*transparent;/);
+    expect(memberChipRule).toMatch(/border-radius:\s*0;/);
+    expect(memberChipRule).not.toMatch(/corner-full/);
+    expect(styles).toMatch(
+      /\.session-present__lobby-team--crowd \.session-present__lobby-nick-icon,[\s\S]*?\.session-present__lobby-team--packed \.session-present__lobby-nick-icon \{[\s\S]*?min\(86cqh,\s*80cqw\)/,
+    );
+    expect(styles).not.toMatch(
+      /\.session-present__lobby-audience--kindergarten \.session-present__lobby-team-members \{[\s\S]*?grid-auto-rows:\s*auto;/,
+    );
+    expect(styles).toMatch(
+      /\.session-present__lobby-audience--kindergarten \.session-present__lobby-team-members \{[\s\S]*?grid-auto-rows:\s*minmax\(0,\s*1fr\);[\s\S]*?align-items:\s*stretch;[\s\S]*?justify-items:\s*stretch;/,
+    );
+    expect(styles).toMatch(
+      /\.session-present__lobby-audience--kindergarten \.session-present__lobby-team-members li \{[\s\S]*?container-type:\s*size;/,
+    );
+    expect(styles).toMatch(
+      /\.session-present__lobby-audience--kindergarten[\s\S]*?\.session-present__lobby-team:not\(\.session-present__lobby-team--packed\)[\s\S]*?\.session-present__lobby-nick-icon \{[\s\S]*?min\(86cqh,\s*80cqw\)[\s\S]*?16rem/,
     );
   });
 
@@ -2453,6 +2475,80 @@ describe('SessionPresentComponent', () => {
     expect(nickTexts.map((node) => node.textContent?.trim())).not.toContain('Person 1');
     expect(fixture.nativeElement.textContent).toContain('Person 11');
     expect(fixture.nativeElement.textContent).toContain('Person 30');
+    expect(
+      fixture.nativeElement.querySelectorAll('.session-present__lobby-placeholder').length,
+    ).toBe(10);
+    expect(
+      fixture.nativeElement.querySelectorAll('.session-present__lobby-team-members li').length,
+    ).toBe(30);
+    fixture.destroy();
+  });
+
+  it('fuellt Teamkarten auf die echte Mitgliederzahl statt 20 Ankuenfte zu strecken', async () => {
+    const teamA = 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa';
+    const teamB = 'bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb';
+    const arrivals = [
+      ...Array.from({ length: 10 }, (_, index) => ({
+        id: `11111111-1111-4111-8111-${String(index + 1).padStart(12, '0')}`,
+        nickname: `Apfel ${index + 1}`,
+        teamId: teamA,
+        teamName: 'Äpfel',
+      })),
+      ...Array.from({ length: 10 }, (_, index) => ({
+        id: `22222222-2222-4222-8222-${String(index + 1).padStart(12, '0')}`,
+        nickname: `Birne ${index + 1}`,
+        teamId: teamB,
+        teamName: 'Birnen',
+      })),
+    ];
+    getInfoQueryMock.mockResolvedValue({
+      id: '6a8edced-5f8f-4cfa-9176-454fac9570ad',
+      serverTime: MOCK_SERVER_TIME,
+      code: 'ABC123',
+      type: 'QUIZ',
+      status: 'LOBBY',
+      quizName: 'Team-Quiz',
+      title: null,
+      participantCount: 60,
+      teamMode: true,
+      anonymousMode: false,
+    });
+    getParticipantSummaryQueryMock.mockResolvedValue({
+      participantCount: 60,
+      recentArrivals: arrivals,
+    });
+    getTeamsQueryMock.mockResolvedValue({
+      teamCount: 2,
+      teams: [
+        { id: teamA, name: 'Äpfel', color: '#c62828', memberCount: 30 },
+        { id: teamB, name: 'Birnen', color: '#1565c0', memberCount: 30 },
+      ],
+    });
+
+    const fixture = TestBed.createComponent(SessionPresentComponent);
+    fixture.detectChanges();
+    await fixture.whenStable();
+    await new Promise((r) => setTimeout(r, 50));
+    fixture.detectChanges();
+
+    const teams = [
+      ...fixture.nativeElement.querySelectorAll('.session-present__lobby-team'),
+    ] as HTMLElement[];
+    expect(teams).toHaveLength(2);
+    expect(fixture.nativeElement.textContent).toContain('60 Teilnehmende');
+    expect(
+      teams.every((team) => team.classList.contains('session-present__lobby-team--packed')),
+    ).toBe(true);
+    for (const team of teams) {
+      const members = team.querySelector(
+        '.session-present__lobby-team-members',
+      ) as HTMLElement | null;
+      expect(members?.style.gridTemplateColumns.replace(/\s+/g, ' ').trim()).toBe(
+        'repeat(4, minmax(0, 1fr))',
+      );
+      expect(team.querySelectorAll('.session-present__lobby-team-members li').length).toBe(30);
+      expect(team.querySelectorAll('.session-present__lobby-placeholder').length).toBe(20);
+    }
     fixture.destroy();
   });
 
@@ -2631,6 +2727,217 @@ describe('SessionPresentComponent', () => {
       (el) => (el.textContent ?? '').trim(),
     );
     expect(icons).toEqual(['🐉', '🐸']);
+    expect(fixture.nativeElement.querySelector('.session-present__lobby-nick-mat-icon')).toBeNull();
+    expect(
+      fixture.nativeElement.querySelector('.session-present__lobby-audience--kindergarten'),
+    ).toBeTruthy();
+    expect(fixture.nativeElement.querySelector('.session-present__lobby-team--crowd')).toBeNull();
+    expect(fixture.nativeElement.querySelector('.session-present__lobby-team--packed')).toBeNull();
+    const kindergartenMembers = [
+      ...fixture.nativeElement.querySelectorAll('.session-present__lobby-team-members'),
+    ] as HTMLElement[];
+    expect(
+      kindergartenMembers.every(
+        (list) => list.style.gridTemplateColumns === 'repeat(1, minmax(0, 1fr))',
+      ),
+    ).toBe(true);
+    const nickTexts = [
+      ...fixture.nativeElement.querySelectorAll('.session-present__lobby-nick-text'),
+    ] as HTMLElement[];
+    expect(nickTexts.every((node) => node.classList.contains('sr-only'))).toBe(true);
+    fixture.destroy();
+  });
+
+  it('zeigt Kindergarten-Tiere auch bei ACTIVE ohne aktuelle Quizfrage', async () => {
+    getInfoQueryMock.mockResolvedValue({
+      id: '6a8edced-5f8f-4cfa-9176-454fac9570ad',
+      serverTime: MOCK_SERVER_TIME,
+      code: 'ABC123',
+      type: 'QUIZ',
+      status: 'ACTIVE',
+      quizName: 'Team-Quiz',
+      title: null,
+      participantCount: 2,
+      teamMode: true,
+      anonymousMode: false,
+      nicknameTheme: 'KINDERGARTEN',
+    });
+    getCurrentQuestionForHostQueryMock.mockResolvedValue(null);
+    liveQueryMock.mockRejectedValue(new Error('no live freetext'));
+    getParticipantSummaryQueryMock.mockResolvedValue({
+      participantCount: 2,
+      recentArrivals: [
+        {
+          id: '11111111-1111-4111-8111-111111111111',
+          nickname: 'Roter Drache 1',
+          teamId: 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa',
+          teamName: 'Rot',
+        },
+        {
+          id: '22222222-2222-4222-8222-222222222222',
+          nickname: 'Grüner Frosch 2',
+          teamId: 'bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb',
+          teamName: 'Blau',
+        },
+      ],
+    });
+    getTeamsQueryMock.mockResolvedValue({
+      teamCount: 2,
+      teams: [
+        {
+          id: 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa',
+          name: 'Rot',
+          color: '#c62828',
+          memberCount: 1,
+        },
+        {
+          id: 'bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb',
+          name: 'Blau',
+          color: '#1565c0',
+          memberCount: 1,
+        },
+      ],
+    });
+
+    const fixture = TestBed.createComponent(SessionPresentComponent);
+    fixture.detectChanges();
+    await fixture.whenStable();
+    await new Promise((resolve) => setTimeout(resolve, 50));
+    fixture.detectChanges();
+
+    expect(fixture.componentInstance.showLobbyProjection()).toBe(true);
+    const icons = Array.from(
+      fixture.nativeElement.querySelectorAll('.session-present__lobby-nick-icon'),
+      (el) => (el.textContent ?? '').trim(),
+    );
+    expect(icons).toEqual(['🐉', '🐸']);
+    fixture.destroy();
+  });
+
+  it('füllt Kindergarten-Teams ohne Personen-Platzhalter in Kreisen', async () => {
+    const teamId = 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa';
+    getInfoQueryMock.mockResolvedValue({
+      id: '6a8edced-5f8f-4cfa-9176-454fac9570ad',
+      serverTime: MOCK_SERVER_TIME,
+      code: 'ABC123',
+      type: 'QUIZ',
+      status: 'LOBBY',
+      quizName: 'Team-Quiz',
+      title: null,
+      participantCount: 20,
+      teamMode: true,
+      anonymousMode: false,
+      nicknameTheme: 'KINDERGARTEN',
+    });
+    getParticipantSummaryQueryMock.mockResolvedValue({
+      participantCount: 20,
+      recentArrivals: [
+        {
+          id: '11111111-1111-4111-8111-111111111111',
+          nickname: 'Beiger Igel 25',
+          teamId,
+          teamName: 'Rot',
+        },
+        {
+          id: '22222222-2222-4222-8222-222222222222',
+          nickname: 'Lavendelblaue Eule 27',
+          teamId,
+          teamName: 'Rot',
+        },
+      ],
+    });
+    getTeamsQueryMock.mockResolvedValue({
+      teamCount: 1,
+      teams: [{ id: teamId, name: 'Rot', color: '#c62828', memberCount: 20 }],
+    });
+
+    const fixture = TestBed.createComponent(SessionPresentComponent);
+    fixture.detectChanges();
+    await fixture.whenStable();
+    await new Promise((resolve) => setTimeout(resolve, 50));
+    fixture.detectChanges();
+
+    const icons = Array.from(
+      fixture.nativeElement.querySelectorAll('.session-present__lobby-nick-icon'),
+      (el) => (el.textContent ?? '').trim(),
+    );
+    expect(icons).toEqual(['🦉', '🦔']);
+    expect(
+      fixture.nativeElement.querySelectorAll('.session-present__lobby-placeholder').length,
+    ).toBe(18);
+    expect(
+      fixture.nativeElement.querySelectorAll('.session-present__lobby-team-members li').length,
+    ).toBe(20);
+    expect(fixture.nativeElement.querySelector('.session-present__lobby-nick-mat-icon')).toBeNull();
+    expect(
+      fixture.nativeElement.querySelector('.session-present__lobby-audience--kindergarten'),
+    ).toBeTruthy();
+    fixture.destroy();
+  });
+
+  it('zeigt alle Kita-Tiere der Ankunftsliste statt nur 20 Icons', async () => {
+    const teamA = 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa';
+    const teamB = 'bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb';
+    const names = NICKNAME_LISTS.KINDERGARTEN.slice(0, 40);
+    const arrivals = [
+      ...names.map((nickname, index) => ({
+        id: `11111111-1111-4111-8111-${String(index + 1).padStart(12, '0')}`,
+        nickname: `${nickname} ${index + 1}`,
+        teamId: teamA,
+        teamName: 'Äpfel',
+      })),
+      ...names.map((nickname, index) => ({
+        id: `22222222-2222-4222-8222-${String(index + 1).padStart(12, '0')}`,
+        nickname: `${nickname} ${index + 41}`,
+        teamId: teamB,
+        teamName: 'Birnen',
+      })),
+      {
+        id: '11111111-1111-4111-8111-000000000041',
+        nickname: 'Roter Drache 81',
+        teamId: teamA,
+        teamName: 'Äpfel',
+      },
+    ];
+    getInfoQueryMock.mockResolvedValue({
+      id: '6a8edced-5f8f-4cfa-9176-454fac9570ad',
+      serverTime: MOCK_SERVER_TIME,
+      code: 'ABC123',
+      type: 'QUIZ',
+      status: 'ACTIVE',
+      quizName: 'Team-Quiz',
+      title: null,
+      participantCount: 81,
+      teamMode: true,
+      anonymousMode: false,
+      nicknameTheme: 'KINDERGARTEN',
+    });
+    getCurrentQuestionForHostQueryMock.mockResolvedValue(null);
+    liveQueryMock.mockRejectedValue(new Error('no live freetext'));
+    getParticipantSummaryQueryMock.mockResolvedValue({
+      participantCount: 81,
+      recentArrivals: arrivals,
+    });
+    getTeamsQueryMock.mockResolvedValue({
+      teamCount: 2,
+      teams: [
+        { id: teamA, name: 'Äpfel', color: '#c62828', memberCount: 41 },
+        { id: teamB, name: 'Birnen', color: '#1565c0', memberCount: 40 },
+      ],
+    });
+
+    const fixture = TestBed.createComponent(SessionPresentComponent);
+    fixture.detectChanges();
+    await fixture.whenStable();
+    await new Promise((resolve) => setTimeout(resolve, 50));
+    fixture.detectChanges();
+
+    expect(fixture.nativeElement.querySelectorAll('.session-present__lobby-nick-icon').length).toBe(
+      81,
+    );
+    expect(
+      fixture.nativeElement.querySelectorAll('.session-present__lobby-placeholder').length,
+    ).toBe(0);
     expect(fixture.nativeElement.querySelector('.session-present__lobby-nick-mat-icon')).toBeNull();
     fixture.destroy();
   });
