@@ -14,7 +14,7 @@ import {
   inject,
   signal,
 } from '@angular/core';
-import { isPlatformBrowser } from '@angular/common';
+import { DOCUMENT, isPlatformBrowser } from '@angular/common';
 import { CdkTrapFocus, FocusMonitor } from '@angular/cdk/a11y';
 import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
@@ -36,10 +36,13 @@ import { setFeedbackHostToken } from '../../core/feedback-host-token';
 import { clearHostToken, hasHostToken } from '../../core/host-session-token';
 import { setHostToken, setPendingHostSessionCode, trpc } from '../../core/trpc.client';
 import {
+  forgetHostedSessionOnThisDevice,
+  getHostBrowserCapability,
   getLastHostedSessionCode,
   listStoredHostBrowserCapabilityCodes,
   persistInitialHostRecovery,
 } from '../../core/host-recovery-access';
+import { ConfirmLeaveDialogComponent } from '../../shared/confirm-leave-dialog/confirm-leave-dialog.component';
 import { createDefaultLiveSessionOnboardingProfile } from '../../core/home-preset-storage';
 import { ThemePresetService } from '../../core/theme-preset.service';
 import { PresetSnackbarFocusService } from '../../core/preset-snackbar-focus.service';
@@ -62,6 +65,7 @@ import {
 import { QUICK_FEEDBACK_HOME_CHIPS } from '../feedback/feedback.config';
 import {
   isQaChannelJoinable,
+  isQaConfiguredForHostResume,
   isQaOpenForParticipants,
   type MotdInteractionKind,
   type MotdPublicDTO,
@@ -281,6 +285,10 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
   readonly hasHostedQuiz = computed(() => this.latestHostedQuizId() !== null);
   readonly hostSessionCtas = signal<HostSessionCta[]>([]);
   readonly showHostRecoveryCta = computed(() => this.hostSessionCtas().length > 0);
+  readonly hostSessionCtaBusy = signal(false);
+  private hostSessionCtaLoadGeneration = 0;
+  private readonly forgottenHostSessionCodes = new Set<string>();
+  private readonly document = inject(DOCUMENT);
   private readonly platformId = inject(PLATFORM_ID);
   private readonly sanitizer = inject(DomSanitizer);
   private readonly motdCurrent = inject(MotdCurrentService);
@@ -592,6 +600,122 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
     return $localize`:@@homeLiveCard.qaQuestionCountMany:${formatLocaleCount(item.questionCount, this.localeId)}:count: Fragen`;
   }
 
+  hostSessionCtaRemoveAria(item: HostSessionCta): string {
+    return $localize`:@@homeLiveCard.removeCtaAria:Q&A-Session ${item.code}:code: löschen`;
+  }
+
+  async removeHostSessionCta(item: HostSessionCta, event?: Event): Promise<void> {
+    event?.preventDefault();
+    event?.stopPropagation();
+    if (this.hostSessionCtaBusy()) {
+      return;
+    }
+    this.hostSessionCtaBusy.set(true);
+    try {
+      const consequences = [
+        this.hostSessionCtaOpenDescription(item),
+        this.hostSessionCtaQuestionDescription(item),
+        this.hostSessionCtaDescription(item.deadlineLabel),
+      ].filter((entry): entry is string => !!entry);
+      const decision = await firstValueFrom(
+        this.dialog
+          .open(ConfirmLeaveDialogComponent, {
+            width: 'min(28rem, calc(100vw - 2rem))',
+            autoFocus: 'dialog',
+            restoreFocus: false,
+            data: {
+              title: $localize`:@@homeLiveCard.removeCtaTitle:Q&A-Session ${item.code}:code: löschen?`,
+              message: $localize`:@@sessionHost.endGlobalSessionMessage:Damit beendest du Quiz, Q&A und Blitzlicht für alle.`,
+              consequences,
+              note: $localize`:@@homeLiveCard.removeCtaForgetHint:Nur den Schnellzugang zu entfernen lässt das Forum offen. Mit der Wiederherstellungskarte kannst du den Host-Zugang später wiederherstellen.`,
+              confirmLabel: $localize`:@@homeLiveCard.removeCtaConfirm:Session löschen`,
+              alternateLabel: $localize`:@@homeLiveCard.removeCtaForget:Nur Schnellzugang entfernen`,
+              cancelLabel: $localize`:@@homeLiveCard.removeCtaCancel:Abbrechen`,
+            },
+          })
+          .afterClosed(),
+      );
+      if ((decision !== true && decision !== 'alternate') || !isPlatformBrowser(this.platformId)) {
+        this.focusHostSessionCtaControl(item.code);
+        return;
+      }
+      this.hostSessionCtas.update((items) => items.filter((entry) => entry.code !== item.code));
+      if (decision === true) {
+        const ended = await this.endHostedSessionFromHome(item.code);
+        if (!ended) {
+          await this.loadHostSessionCtas();
+          this.focusHostSessionCtaControl(item.code);
+          return;
+        }
+      }
+      this.forgottenHostSessionCodes.add(item.code);
+      forgetHostedSessionOnThisDevice(item.code);
+      clearHostToken(item.code);
+      await this.loadHostSessionCtas();
+      this.focusHostSessionCtaControl();
+    } finally {
+      this.hostSessionCtaBusy.set(false);
+    }
+  }
+
+  private focusHostSessionCtaControl(preferredCode?: string): void {
+    if (!isPlatformBrowser(this.platformId)) {
+      return;
+    }
+    afterNextRender(
+      () => {
+        const preferred = preferredCode
+          ? this.document.querySelector<HTMLButtonElement>(
+              `[data-testid="home-host-session-remove"][data-session-code="${preferredCode}"]`,
+            )
+          : null;
+        const nextRemove = this.document.querySelector<HTMLButtonElement>(
+          '[data-testid="home-host-session-remove"]',
+        );
+        const qaCreate = this.document.querySelector<HTMLButtonElement>(
+          '[data-testid="home-live-qa-create"]',
+        );
+        (preferred ?? nextRemove ?? qaCreate)?.focus({ preventScroll: true });
+      },
+      { injector: this.injector },
+    );
+  }
+
+  private async endHostedSessionFromHome(code: string): Promise<boolean> {
+    setPendingHostSessionCode(code);
+    try {
+      const capability = getHostBrowserCapability(code);
+      if (capability) {
+        const issued = await trpc.session.issueHostAccessToken.mutate({
+          code,
+          browserCapability: capability,
+        });
+        setHostToken(code, issued.hostToken);
+      } else if (!hasHostToken(code)) {
+        this.snackBar.open(
+          $localize`:@@homeLiveCard.removeCtaError:Session konnte nicht gelöscht werden. Bitte erneut versuchen.`,
+          '',
+          { duration: 4500, horizontalPosition: 'center', verticalPosition: 'top' },
+        );
+        return false;
+      }
+      await trpc.session.end.mutate({ code });
+      return true;
+    } catch (error: unknown) {
+      this.snackBar.open(
+        localizeKnownServerError(
+          error,
+          $localize`:@@homeLiveCard.removeCtaError:Session konnte nicht gelöscht werden. Bitte erneut versuchen.`,
+        ),
+        '',
+        { duration: 4500, horizontalPosition: 'center', verticalPosition: 'top' },
+      );
+      return false;
+    } finally {
+      setPendingHostSessionCode(null);
+    }
+  }
+
   private listHostSessionCtaCodes(limit: number): string[] {
     const stored = listStoredHostBrowserCapabilityCodes();
     const lastHosted = getLastHostedSessionCode();
@@ -604,28 +728,15 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
       .slice(0, limit);
   }
 
-  private placeholderHostSessionCta(code: string): HostSessionCta {
-    return {
-      code,
-      deadlineLabel: null,
-      openUntilLabel: null,
-      questionCount: null,
-      qaOpen: null,
-      openUntilMs: null,
-      accessUntilMs: null,
-      primary: false,
-    };
-  }
-
   private async loadHostSessionCtas(): Promise<void> {
-    const placeholderCodes = this.listHostSessionCtaCodes(HOST_SESSION_CTA_LIMIT);
-    const fetchCodes = this.listHostSessionCtaCodes(HOST_SESSION_INFO_FETCH_LIMIT);
-    this.hostSessionCtas.set(
-      withPrimaryHostSessionCta(
-        placeholderCodes.map((code) => this.placeholderHostSessionCta(code)),
-      ),
+    const generation = ++this.hostSessionCtaLoadGeneration;
+    const fetchCodes = this.listHostSessionCtaCodes(HOST_SESSION_INFO_FETCH_LIMIT).filter(
+      (code) => !this.forgottenHostSessionCodes.has(code),
     );
     if (fetchCodes.length === 0) {
+      if (generation === this.hostSessionCtaLoadGeneration) {
+        this.hostSessionCtas.set([]);
+      }
       return;
     }
 
@@ -635,6 +746,9 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
       fetchCodes.map(async (code): Promise<HostSessionCta | null> => {
         try {
           const session = await trpc.session.getInfo.query({ code, anonymousClientId });
+          if (!isQaConfiguredForHostResume(session)) {
+            return null;
+          }
           const now = resolveSessionServerNow(session);
           const iso = session.postProcessingEndsAt ?? session.expiresAt ?? null;
           const accessUntilMs = iso ? Date.parse(iso) : Number.NaN;
@@ -661,9 +775,15 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
         }
       }),
     );
+    if (generation !== this.hostSessionCtaLoadGeneration) {
+      return;
+    }
     this.hostSessionCtas.set(
       rankHostSessionCtas(
-        resolved.filter((item): item is HostSessionCta => item !== null),
+        resolved.filter(
+          (item): item is HostSessionCta =>
+            item !== null && !this.forgottenHostSessionCodes.has(item.code),
+        ),
         lastHosted,
       ),
     );
@@ -844,6 +964,14 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
           code,
           anonymousClientId: getAnonymousClientId(),
         });
+        if (
+          tab === 'quickFeedback' &&
+          session.status === 'FINISHED' &&
+          !isQaChannelJoinable(session)
+        ) {
+          await this.startHeroHostSession(tab);
+          return;
+        }
         const queryParams = this.isHeroTabAvailableForSession(session, tab) ? { tab } : undefined;
         await this.router.navigate(this.localizedCommands(['session', code, 'host']), {
           queryParams,

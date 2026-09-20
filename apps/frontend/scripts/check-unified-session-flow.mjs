@@ -597,12 +597,19 @@ async function verifyPresenterView(host, presenter, code, hardFailures) {
   const closeWordCloud = host.locator('.qa-word-cloud-dialog__close').first();
   if (await closeWordCloud.isVisible().catch(() => false)) {
     await clickViaDom(closeWordCloud);
-  } else {
+  }
+  const wordCloudHidden = await presenter
+    .locator('.session-present__word-cloud-card')
+    .waitFor({ state: 'hidden', timeout: 8_000 })
+    .then(() => true)
+    .catch(() => false);
+  if (!wordCloudHidden) {
     await host.keyboard.press('Escape');
   }
   const questionsRestored = await presenter
-    .locator('.session-present__qa-list-card')
-    .waitFor({ state: 'visible', timeout: 10_000 })
+    .locator('.session-present__qa-card, .session-present__qa-list-card')
+    .first()
+    .waitFor({ state: 'visible', timeout: 15_000 })
     .then(() => true)
     .catch(() => false);
   if (questionsRestored) {

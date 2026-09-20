@@ -12,7 +12,15 @@
   line-height: 1.7;
 }
 
-.confirm-leave__actions--with-save {
+.confirm-leave__note {
+  margin: 0.75rem 0 0;
+  font: var(--mat-sys-body-medium);
+  line-height: 1.5;
+  color: var(--mat-sys-on-surface-variant);
+}
+
+.confirm-leave__actions--with-save,
+.confirm-leave__actions--stacked {
   flex-direction: column;
   align-items: stretch;
   gap: 0.5rem;

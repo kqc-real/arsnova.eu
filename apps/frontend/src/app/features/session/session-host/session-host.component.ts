@@ -1518,7 +1518,9 @@ export class SessionHostComponent implements OnInit, OnDestroy {
   readonly showChannelTabs = computed(
     () =>
       this.availableChannels().length > 1 &&
-      (this.effectiveStatus() !== 'FINISHED' || this.qaHostWritesAllowed()),
+      (this.effectiveStatus() !== 'FINISHED' ||
+        this.qaHostWritesAllowed() ||
+        this.qaChannelNeedsConfiguration()),
   );
   readonly showPrimaryLiveView = computed(() => {
     const active = this.activeChannel();
@@ -4257,9 +4259,9 @@ export class SessionHostComponent implements OnInit, OnDestroy {
     });
   }
 
-  /** Nach 1/2–2/2 nicht in der leeren Lobby hängen bleiben; Button bleibt für Reload in LOBBY. */
+  /** Nach Einrichtung/Zugangskarte nicht in der leeren Lobby hängen bleiben; Button bleibt für Reload. */
   private async startQaAfterCreateSetup(): Promise<void> {
-    if (!this.requestedQaCreateSetup || !this.channels().qa) {
+    if (!this.channels().qa) {
       return;
     }
     if (this.effectiveStatus() !== 'LOBBY') {
@@ -9108,7 +9110,8 @@ export class SessionHostComponent implements OnInit, OnDestroy {
       if (
         this.effectiveStatus() === 'FINISHED' &&
         !this.isChannelEnabled(channel) &&
-        !this.qaHostWritesAllowed()
+        !this.qaHostWritesAllowed() &&
+        !(this.qaChannelNeedsConfiguration() && (channel === 'qa' || channel === 'quickFeedback'))
       ) {
         return;
       }
@@ -9127,7 +9130,7 @@ export class SessionHostComponent implements OnInit, OnDestroy {
       if (
         channel === 'quickFeedback' &&
         this.effectiveStatus() === 'FINISHED' &&
-        this.qaHostWritesAllowed()
+        (this.qaHostWritesAllowed() || this.qaChannelNeedsConfiguration())
       ) {
         await this.reopenQuickFeedbackAfterQuiz();
       }
@@ -9478,7 +9481,10 @@ export class SessionHostComponent implements OnInit, OnDestroy {
     abortUnconfiguredSessionOnCancel?: boolean;
   }): Promise<void> {
     const session = this.session();
-    if (!session || !this.code || this.effectiveStatus() === 'FINISHED') {
+    if (!session || !this.code) {
+      return;
+    }
+    if (this.effectiveStatus() === 'FINISHED' && !this.qaChannelNeedsConfiguration()) {
       return;
     }
     if (getStagedHostRecoveryCard(this.code) && !this.qaChannelNeedsConfiguration()) {
@@ -9534,10 +9540,12 @@ export class SessionHostComponent implements OnInit, OnDestroy {
       }
       return;
     }
+    const reopenedFromFinished = this.effectiveStatus() === 'FINISHED';
     this.session.update((current) =>
       current
         ? {
             ...current,
+            ...(reopenedFromFinished ? { status: 'LOBBY' as const } : {}),
             channels: result.channels,
             preferredChannel: result.preferredChannel,
             qaClosesAt: result.qaClosesAt,
@@ -9547,16 +9555,29 @@ export class SessionHostComponent implements OnInit, OnDestroy {
           }
         : current,
     );
+    if (reopenedFromFinished) {
+      this.statusUpdate.set({
+        status: 'LOBBY',
+        currentQuestion: null,
+        currentRound: 1,
+      });
+    }
     this.syncQaTitleDraftFromSession();
     this.activeChannel.set('qa');
     this.ensureActiveChannel();
     this.scheduleQaDeadlineCheck();
     await this.refreshQaQuestions();
-    await this.showStagedRecoveryCard(
+    if (reopenedFromFinished) {
+      await this.reloadSessionInfo();
+    }
+    const recoveryResult = await this.showStagedRecoveryCard(
       (this.requestedQaCreateSetup && !this.qaCreateSetupCompleted) || numberSetupSequence
         ? { setupStep: 2, setupStepCount: 2 }
         : undefined,
     );
+    if (recoveryResult === undefined) {
+      await this.startQaAfterCreateSetup();
+    }
   }
 
   private syncPreferredLiveChannel(channel: SessionChannelTab): Promise<void> {

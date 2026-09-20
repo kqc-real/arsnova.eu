@@ -234,6 +234,30 @@ export function clearHostBrowserCapability(code: string): void {
   localStorage.removeItem(`${HOST_BROWSER_CAPABILITY_PREFIX}-${normalizeCode(code)}`);
 }
 
+export function clearLastHostedSessionIfMatches(code: string): void {
+  if (getLastHostedSessionCode() !== normalizeCode(code) || !canUseLocalStorage()) return;
+  localStorage.removeItem(LAST_HOSTED_SESSION_KEY);
+}
+
+/** Entfernt den lokalen Host-Schnellzugang; die Session selbst bleibt bestehen. */
+export function forgetHostedSessionOnThisDevice(code: string): void {
+  const normalized = normalizeCode(code);
+  const resume = findHostRecoveryResumeByCode(normalized);
+  clearHostBrowserCapability(normalized);
+  clearHostRecoveryCandidate(normalized);
+  clearStagedHostRecoveryCard(normalized);
+  clearPendingHostRecoveryCard(normalized);
+  clearRecoveryExchangeId(normalized);
+  clearLastHostedSessionIfMatches(normalized);
+  if (!resume) {
+    return;
+  }
+  clearPreparedHostRecoverySecrets(resume.supportId);
+  clearHostRecoveryResume(resume.supportId);
+  clearRecoveryExchangeId(resume.supportId);
+  clearPendingHostCredentialActivation(resume.supportId);
+}
+
 export function getHostRecoveryCandidate(code: string): string | null {
   if (!canUseLocalStorage()) return null;
   const stored = readJson<{ capability?: unknown }>(

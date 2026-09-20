@@ -601,11 +601,40 @@
 
 .home-host-session-cta-row__item {
   display: flex;
+  align-items: center;
+  gap: 0.25rem;
   min-width: 0;
 }
 
 .home-host-session-cta-row__item > .home-choice-button {
-  width: 100%;
+  flex: 1 1 auto;
+  width: auto;
+  min-width: 0;
+  justify-content: flex-start;
+  text-align: start;
+  padding-inline: 1rem;
+  --mdc-filled-button-container-shape: var(--mat-sys-corner-medium);
+  --mdc-outlined-button-container-shape: var(--mat-sys-corner-medium);
+  --mat-button-filled-container-shape: var(--mat-sys-corner-medium);
+  --mat-button-outlined-container-shape: var(--mat-sys-corner-medium);
+}
+
+.home-host-session-cta-row__item > .home-choice-button .home-choice-button__copy {
+  align-items: flex-start;
+}
+
+.home-host-session-cta-row__remove {
+  flex: 0 0 auto;
+  align-self: center;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.75rem;
+  height: 2.75rem;
+  --mat-icon-button-state-layer-size: 2.75rem;
+  --mat-icon-button-icon-size: 1.5rem;
+  --mdc-icon-button-state-layer-size: 2.75rem;
+  color: var(--mat-sys-on-surface-variant);
 }
 
 .home-live-grid {

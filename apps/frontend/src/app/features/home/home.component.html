@@ -237,6 +237,18 @@
                       }
                     </span>
                   </a>
+                  <button
+                    mat-icon-button
+                    type="button"
+                    class="home-host-session-cta-row__remove"
+                    data-testid="home-host-session-remove"
+                    [attr.data-session-code]="item.code"
+                    [attr.aria-label]="hostSessionCtaRemoveAria(item)"
+                    [disabled]="hostSessionCtaBusy()"
+                    (click)="removeHostSessionCta(item, $event)"
+                  >
+                    <mat-icon aria-hidden="true">delete_outline</mat-icon>
+                  </button>
                 </li>
               }
             </ul>
@@ -259,14 +271,21 @@
               matButton="tonal"
               type="button"
               class="home-cta home-cta--secondary home-choice-button"
+              data-testid="home-live-qa-create"
               (click)="openHeroHostTab('qa')"
               [disabled]="!!hostSessionStarting()"
               [attr.aria-busy]="hostSessionStarting() === 'qa' ? 'true' : null"
             >
               <span class="home-choice-button__copy">
-                <span class="home-choice-button__label" i18n="@@homeLiveCard.qaCreateLabel"
-                  >Neue Q&amp;A-Session</span
-                >
+                <span class="home-choice-button__label">
+                  @if (showHostRecoveryCta()) {
+                    <ng-container i18n="@@homeLiveCard.qaCreateLabel"
+                      >Neue Q&amp;A-Session</ng-container
+                    >
+                  } @else {
+                    <ng-container i18n="@@homeLiveCard.qaLabel">Q&amp;A-Session</ng-container>
+                  }
+                </span>
                 <span class="home-choice-button__description" i18n="@@homeLiveCard.qaDescription"
                   >Fragen &amp; Wortwolke</span
                 >

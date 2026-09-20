@@ -57,6 +57,30 @@ export function isSessionGloballyExpired(
   return !Number.isNaN(expiresMs) && expiresMs <= now.getTime();
 }
 
+/** Q&A wurde mit Frist eingerichtet – erst dann gibt es eine Host-Wiederaufnahme/CTA. */
+export function isQaConfiguredForHostResume(
+  input: Parameters<typeof isQaChannelJoinable>[0],
+): boolean {
+  const qa = input.channels?.qa;
+  if (qa) {
+    if (qa.state === 'DISABLED' || qa.state === 'UNCONFIGURED') {
+      return false;
+    }
+    if (qa.state !== undefined) {
+      return true;
+    }
+    return (
+      qa.enabled === true && qa.closesAt !== null && qa.closesAt !== undefined && qa.closesAt !== ''
+    );
+  }
+
+  const enabled = input.type === 'Q_AND_A' || input.qaEnabled === true;
+  if (!enabled) {
+    return false;
+  }
+  return input.qaClosesAt !== null && input.qaClosesAt !== undefined && input.qaClosesAt !== '';
+}
+
 /** Offenes Q&A bleibt nach Quiz-FINISHED lesbar, nicht aber nach globalem `expiresAt`. */
 export function isQaOpenForParticipants(
   input: Parameters<typeof isQaChannelJoinable>[0] & {

@@ -14,6 +14,7 @@ import {
   markHostRecoveryActivationUnconfirmed,
   persistInitialHostRecovery,
   persistPreparedHostRecovery,
+  forgetHostedSessionOnThisDevice,
   stagePendingHostCredentialActivation,
   storeHostBrowserCapability,
   storeHostRecoveryCandidate,
@@ -235,6 +236,18 @@ describe('host-recovery-access', () => {
     localStorage.removeItem('arsnova-last-hosted-session');
     expect(findPreferredHostBrowserCapabilityCode()).toBeNull();
     expect(findPreferredHostBrowserCapabilityCode(['def456'])).toBe('DEF456');
+  });
+
+  it('entfernt den lokalen Host-Schnellzugang inkl. last-hosted-Zeiger', () => {
+    persistInitialHostRecovery({
+      code: 'ABC123',
+      browserCapability: 'browser-capability-abcdefghijklmnopqrstuvwxyz',
+      recoveryCard: CARD,
+    });
+    expect(getLastHostedSessionCode()).toBe('ABC123');
+    forgetHostedSessionOnThisDevice('abc123');
+    expect(getHostBrowserCapability('ABC123')).toBeNull();
+    expect(getLastHostedSessionCode()).toBeNull();
   });
 
   it('legt Geheimnisse weder in Location noch in URL-artigen Storage-Schlüsseln ab', () => {

@@ -9375,6 +9375,34 @@
         <source><x id="count" equiv-text="count"/> Fragen</source>
         <target><x id="count" equiv-text="count"/> questions</target>
       </trans-unit>
+      <trans-unit id="homeLiveCard.removeCtaAria" datatype="html">
+        <source>Q&amp;A-Session <x id="code" equiv-text="item.code"/> löschen</source>
+        <target>Supprimer la session Q&amp;R <x id="code" equiv-text="item.code"/></target>
+      </trans-unit>
+      <trans-unit id="homeLiveCard.removeCtaTitle" datatype="html">
+        <source>Q&amp;A-Session <x id="code" equiv-text="item.code"/> löschen?</source>
+        <target>Supprimer la session Q&amp;R <x id="code" equiv-text="item.code"/> ?</target>
+      </trans-unit>
+      <trans-unit id="homeLiveCard.removeCtaForgetHint" datatype="html">
+        <source>Nur den Schnellzugang zu entfernen lässt das Forum offen. Mit der Wiederherstellungskarte kannst du den Host-Zugang später wiederherstellen.</source>
+        <target>Retirer uniquement l’accès rapide laisse le forum ouvert. Tu pourras rétablir l’accès hôte plus tard avec la carte de récupération.</target>
+      </trans-unit>
+      <trans-unit id="homeLiveCard.removeCtaConfirm" datatype="html">
+        <source>Session löschen</source>
+        <target>Supprimer la session</target>
+      </trans-unit>
+      <trans-unit id="homeLiveCard.removeCtaForget" datatype="html">
+        <source>Nur Schnellzugang entfernen</source>
+        <target>Retirer uniquement l’accès rapide</target>
+      </trans-unit>
+      <trans-unit id="homeLiveCard.removeCtaCancel" datatype="html">
+        <source>Abbrechen</source>
+        <target>Annuler</target>
+      </trans-unit>
+      <trans-unit id="homeLiveCard.removeCtaError" datatype="html">
+        <source>Session konnte nicht gelöscht werden. Bitte erneut versuchen.</source>
+        <target>La session n’a pas pu être supprimée. Merci de réessayer.</target>
+      </trans-unit>
       <trans-unit id="homeLiveCard.title" datatype="html">
         <source> Session starten</source>
         <target>Lancer une session</target>
@@ -9394,6 +9422,10 @@
       <trans-unit id="homeLiveCard.qaCreateLabel" datatype="html">
         <source>Neue Q&amp;A-Session</source>
         <target>Nouvelle session Q&amp;A</target>
+      </trans-unit>
+      <trans-unit id="homeLiveCard.qaLabel" datatype="html">
+        <source>Q&amp;A-Session</source>
+        <target>Session Q&amp;R</target>
       </trans-unit>
       <trans-unit id="homeLiveCard.openHostSessionsAria" datatype="html">
         <source>Deine Q&amp;A-Sessions</source>

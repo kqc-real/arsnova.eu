@@ -18,6 +18,10 @@ export interface ConfirmLeaveDialogData {
   cancelLabel: string;
   /** Optionale, nicht-destruktive Aktion, bevor die auslösende Navigation fortgesetzt wird. */
   saveLabel?: string;
+  /** Zweite Bestätigungsoption, schließt mit `alternate`. */
+  alternateLabel?: string;
+  /** Hinweis unter den Konsequenzen, z. B. zur Ausnahmeoption. */
+  note?: string;
   /**
    * Synchron im Cancel-Klick (User-Geste), z. B. Vollbild wiederherstellen,
    * bevor der Dialog schließt (afterClosed wäre oft zu spät für die Fullscreen-API).
@@ -48,8 +52,14 @@ export interface ConfirmLeaveDialogData {
           }
         </ul>
       }
+      @if (data.note) {
+        <p class="confirm-leave__note">{{ data.note }}</p>
+      }
     </mat-dialog-content>
-    <mat-dialog-actions align="end" [class.confirm-leave__actions--with-save]="data.saveLabel">
+    <mat-dialog-actions
+      align="end"
+      [class.confirm-leave__actions--stacked]="!!data.saveLabel || !!data.alternateLabel"
+    >
       @if (data.saveLabel) {
         <button mat-flat-button type="button" [mat-dialog-close]="'save'">
           <mat-icon>save</mat-icon>
@@ -61,6 +71,11 @@ export interface ConfirmLeaveDialogData {
         <button mat-button type="button" (click)="onCancel()">{{ data.cancelLabel }}</button>
       } @else {
         <button mat-button type="button" (click)="onCancel()">{{ data.cancelLabel }}</button>
+        @if (data.alternateLabel) {
+          <button mat-button type="button" [mat-dialog-close]="'alternate'">
+            {{ data.alternateLabel }}
+          </button>
+        }
         <button mat-flat-button type="button" color="warn" [mat-dialog-close]="true">
           {{ data.confirmLabel }}
         </button>
@@ -70,7 +85,9 @@ export interface ConfirmLeaveDialogData {
 })
 export class ConfirmLeaveDialogComponent {
   readonly data = inject<ConfirmLeaveDialogData>(MAT_DIALOG_DATA);
-  private readonly dialogRef = inject(MatDialogRef<ConfirmLeaveDialogComponent, boolean | 'save'>);
+  private readonly dialogRef = inject(
+    MatDialogRef<ConfirmLeaveDialogComponent, boolean | 'save' | 'alternate'>,
+  );
 
   onCancel(): void {
     this.data.onCancelUserGesture?.();

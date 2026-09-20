@@ -9380,6 +9380,34 @@
         <source><x id="count" equiv-text="count"/> Fragen</source>
         <target><x id="count" equiv-text="count"/> questions</target>
       </trans-unit>
+      <trans-unit id="homeLiveCard.removeCtaAria" datatype="html">
+        <source>Q&amp;A-Session <x id="code" equiv-text="item.code"/> löschen</source>
+        <target>Delete Q&amp;A session <x id="code" equiv-text="item.code"/></target>
+      </trans-unit>
+      <trans-unit id="homeLiveCard.removeCtaTitle" datatype="html">
+        <source>Q&amp;A-Session <x id="code" equiv-text="item.code"/> löschen?</source>
+        <target>Delete Q&amp;A session <x id="code" equiv-text="item.code"/>?</target>
+      </trans-unit>
+      <trans-unit id="homeLiveCard.removeCtaForgetHint" datatype="html">
+        <source>Nur den Schnellzugang zu entfernen lässt das Forum offen. Mit der Wiederherstellungskarte kannst du den Host-Zugang später wiederherstellen.</source>
+        <target>Removing only the shortcut leaves the forum open. You can restore host access later with the recovery card.</target>
+      </trans-unit>
+      <trans-unit id="homeLiveCard.removeCtaConfirm" datatype="html">
+        <source>Session löschen</source>
+        <target>Delete session</target>
+      </trans-unit>
+      <trans-unit id="homeLiveCard.removeCtaForget" datatype="html">
+        <source>Nur Schnellzugang entfernen</source>
+        <target>Remove shortcut only</target>
+      </trans-unit>
+      <trans-unit id="homeLiveCard.removeCtaCancel" datatype="html">
+        <source>Abbrechen</source>
+        <target>Cancel</target>
+      </trans-unit>
+      <trans-unit id="homeLiveCard.removeCtaError" datatype="html">
+        <source>Session konnte nicht gelöscht werden. Bitte erneut versuchen.</source>
+        <target>The session could not be deleted. Please try again.</target>
+      </trans-unit>
       <trans-unit id="homeLiveCard.title" datatype="html">
         <source> Session starten</source>
         <target>Start a session</target>
@@ -9399,6 +9427,10 @@
       <trans-unit id="homeLiveCard.qaCreateLabel" datatype="html">
         <source>Neue Q&amp;A-Session</source>
         <target>New Q&amp;A session</target>
+      </trans-unit>
+      <trans-unit id="homeLiveCard.qaLabel" datatype="html">
+        <source>Q&amp;A-Session</source>
+        <target>Q&amp;A session</target>
       </trans-unit>
       <trans-unit id="homeLiveCard.openHostSessionsAria" datatype="html">
         <source>Deine Q&amp;A-Sessions</source>

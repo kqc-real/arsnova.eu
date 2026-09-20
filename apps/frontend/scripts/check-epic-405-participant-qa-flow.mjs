@@ -474,7 +474,12 @@ async function main() {
     if (await startQa.isVisible().catch(() => false)) {
       await startQa.click({ timeout: 5_000, force: true }).catch(() => undefined);
     }
-    await hostTrpc.session.startQa.mutate({ code: created.code });
+    const lifecycle = await hostTrpc.session.getLifecycleForHost.query({ code: created.code });
+    if (lifecycle.status === 'LOBBY') {
+      await hostTrpc.session.startQa.mutate({ code: created.code });
+    } else if (lifecycle.status !== 'ACTIVE') {
+      throw new Error(`Unerwarteter Sessionstatus vor der Fragerunde: ${lifecycle.status}.`);
+    }
     logStep(true, 'Host startet die Fragerunde');
 
     await participant.goto(`${BASE_URL}/join/${created.code}`, {
