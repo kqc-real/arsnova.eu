@@ -828,6 +828,13 @@
   --mat-button-tonal-label-text-color: var(--mat-sys-on-primary-container);
 }
 
+.home-live-qa {
+  --mdc-protected-button-container-color: var(--mat-sys-surface-container-highest);
+  --mdc-protected-button-label-text-color: var(--mat-sys-on-surface);
+  --mat-button-tonal-container-color: var(--mat-sys-surface-container-highest);
+  --mat-button-tonal-label-text-color: var(--mat-sys-on-surface);
+}
+
 .home-live-grid > :last-child:not(.home-live-last-quiz) {
   grid-column: 1 / -1;
 }
@@ -1398,6 +1405,13 @@
     --mdc-protected-button-label-text-color: var(--mat-sys-on-tertiary-container);
     --mat-button-tonal-container-color: var(--mat-sys-tertiary-container);
     --mat-button-tonal-label-text-color: var(--mat-sys-on-tertiary-container);
+  }
+
+  .home-live-qa {
+    --mdc-protected-button-container-color: var(--mat-sys-surface-container-highest);
+    --mdc-protected-button-label-text-color: var(--mat-sys-on-surface);
+    --mat-button-tonal-container-color: var(--mat-sys-surface-container-highest);
+    --mat-button-tonal-label-text-color: var(--mat-sys-on-surface);
   }
 
   .home-hero-band {
