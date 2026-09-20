@@ -14,11 +14,13 @@ const { prismaMock, hostAuthMocks } = vi.hoisted(() => ({
     team: {
       findMany: vi.fn(),
       createMany: vi.fn(),
+      deleteMany: vi.fn(),
     },
     participant: {
       findMany: vi.fn(),
       update: vi.fn(),
       updateMany: vi.fn(),
+      count: vi.fn(),
     },
     vote: {
       count: vi.fn(),
@@ -70,6 +72,18 @@ describe('session.attachQuizToSession', () => {
       { id: TEAM_B, name: 'Team B', color: '#43A047', _count: { participants: 0 } },
     ]);
     prismaMock.participant.findMany.mockResolvedValue([]);
+    prismaMock.participant.count.mockImplementation(async () => {
+      const results = prismaMock.session.findUnique.mock.results;
+      for (let index = results.length - 1; index >= 0; index -= 1) {
+        const value = await results[index]?.value;
+        const participants = value?._count?.participants;
+        if (typeof participants === 'number') {
+          return participants;
+        }
+      }
+      return 0;
+    });
+    prismaMock.team.deleteMany.mockResolvedValue({ count: 0 });
     prismaMock.vote.count.mockResolvedValue(0);
     prismaMock.$transaction.mockImplementation(async (fn: (tx: typeof prismaMock) => unknown) =>
       fn(prismaMock),
@@ -729,6 +743,138 @@ describe('session.attachQuizToSession', () => {
     expect(prismaMock.session.update).not.toHaveBeenCalled();
   });
 
+  it('prüft die Teilnehmerzahl unter Session-Lock erneut, bevor ein leerer Raum Teams übernimmt', async () => {
+    prismaMock.session.findUnique.mockResolvedValue({
+      id: SESSION_ID,
+      type: 'Q_AND_A',
+      status: 'ACTIVE',
+      currentQuestion: null,
+      quizId: null,
+      qaEnabled: true,
+      qaOpen: true,
+      qaTitle: 'Fragen',
+      qaModerationMode: true,
+      title: 'Fragen',
+      moderationMode: true,
+      quickFeedbackEnabled: false,
+      quickFeedbackOpen: false,
+      onboardingProfileConfigured: true,
+      onboardingAllowCustomNicknames: false,
+      onboardingAnonymousMode: false,
+      onboardingTeamMode: false,
+      onboardingTeamCount: null,
+      onboardingTeamAssignment: 'AUTO',
+      onboardingTeamNames: [],
+      onboardingNicknameTheme: 'KINDERGARTEN',
+      firstParticipantJoinedAt: null,
+      _count: { participants: 0 },
+    });
+    prismaMock.participant.count.mockResolvedValue(1);
+    prismaMock.quiz.findUnique.mockResolvedValue({
+      id: QUIZ_ID,
+      historyScopeId: 'cccccccc-cccc-4ccc-8ccc-cccccccccccc',
+      nicknameTheme: 'HIGH_SCHOOL',
+      allowCustomNicknames: false,
+      anonymousMode: false,
+      teamMode: true,
+      teamCount: 2,
+      teamAssignment: 'MANUAL',
+      teamNames: ['Rot', 'Blau'],
+    });
+
+    await expect(
+      caller.attachQuizToSession({ code: 'ABC123', quizId: QUIZ_ID }),
+    ).rejects.toMatchObject({
+      code: 'BAD_REQUEST',
+      message: 'Dieses Quiz passt nicht zur Teamsituation der laufenden Session.',
+    });
+    expect(prismaMock.session.update).not.toHaveBeenCalled();
+  });
+
+  it('ersetzt vorhandene Team-Zeilen, wenn adoptQuizTeams ein neues Teamprofil übernimmt', async () => {
+    prismaMock.session.findUnique.mockResolvedValue({
+      id: SESSION_ID,
+      type: 'QUIZ',
+      status: 'LOBBY',
+      currentQuestion: null,
+      quizId: 'old-quiz',
+      qaEnabled: true,
+      qaOpen: true,
+      qaTitle: 'Fragen',
+      qaModerationMode: true,
+      title: null,
+      moderationMode: false,
+      quickFeedbackEnabled: false,
+      quickFeedbackOpen: false,
+      onboardingProfileConfigured: true,
+      onboardingAllowCustomNicknames: false,
+      onboardingAnonymousMode: false,
+      onboardingTeamMode: true,
+      onboardingTeamCount: 2,
+      onboardingTeamAssignment: 'AUTO',
+      onboardingTeamNames: ['Alt A', 'Alt B'],
+      onboardingNicknameTheme: 'HIGH_SCHOOL',
+      firstParticipantJoinedAt: new Date('2026-09-15T08:00:00.000Z'),
+      _count: { participants: 2 },
+    });
+    prismaMock.quiz.findUnique.mockResolvedValue({
+      id: QUIZ_ID,
+      historyScopeId: 'dddddddd-dddd-4ddd-8ddd-dddddddddddd',
+      nicknameTheme: 'HIGH_SCHOOL',
+      allowCustomNicknames: false,
+      anonymousMode: false,
+      teamMode: true,
+      teamCount: 3,
+      teamAssignment: 'AUTO',
+      teamNames: ['Rot', 'Blau', 'Grün'],
+    });
+    prismaMock.team.findMany.mockResolvedValueOnce([]).mockResolvedValueOnce([
+      { id: TEAM_A, name: 'Rot', color: '#1E88E5', _count: { participants: 0 } },
+      { id: TEAM_B, name: 'Blau', color: '#43A047', _count: { participants: 0 } },
+      {
+        id: '44444444-4444-4444-8444-444444444444',
+        name: 'Grün',
+        color: '#FB8C00',
+        _count: { participants: 0 },
+      },
+    ]);
+    prismaMock.participant.findMany.mockResolvedValue([
+      { id: 'p-1', teamId: null },
+      { id: 'p-2', teamId: null },
+    ]);
+    prismaMock.session.update.mockResolvedValue({
+      id: SESSION_ID,
+      type: 'QUIZ',
+      quizId: QUIZ_ID,
+      qaEnabled: true,
+      qaOpen: true,
+      qaTitle: 'Fragen',
+      qaModerationMode: true,
+      title: null,
+      moderationMode: false,
+      quickFeedbackEnabled: false,
+      quickFeedbackOpen: false,
+    });
+
+    await caller.attachQuizToSession({
+      code: 'ABC123',
+      quizId: QUIZ_ID,
+      adoptQuizTeams: true,
+    });
+
+    expect(prismaMock.team.deleteMany).toHaveBeenCalledWith({ where: { sessionId: SESSION_ID } });
+    expect(prismaMock.team.createMany).toHaveBeenCalledWith(
+      expect.objectContaining({
+        data: expect.arrayContaining([
+          expect.objectContaining({ name: 'Rot' }),
+          expect.objectContaining({ name: 'Blau' }),
+          expect.objectContaining({ name: 'Grün' }),
+        ]),
+      }),
+    );
+    expect(prismaMock.participant.update).toHaveBeenCalledTimes(2);
+  });
+
   it('ordnet Teilnehmende einem Team-Quiz zu, wenn der Host adoptQuizTeams bestätigt', async () => {
     prismaMock.session.findUnique.mockResolvedValue({
       id: SESSION_ID,
@@ -805,6 +951,7 @@ describe('session.attachQuizToSession', () => {
       }),
     );
     expect(prismaMock.participant.update).toHaveBeenCalledTimes(2);
+    expect(prismaMock.team.deleteMany).toHaveBeenCalledWith({ where: { sessionId: SESSION_ID } });
   });
 
   it('löst Teams auf, wenn der Host ein Einzelspieler-Quiz mit adoptQuizTeams anhängt', async () => {
@@ -875,6 +1022,7 @@ describe('session.attachQuizToSession', () => {
       where: { sessionId: SESSION_ID },
       data: { teamId: null },
     });
+    expect(prismaMock.team.deleteMany).toHaveBeenCalledWith({ where: { sessionId: SESSION_ID } });
   });
 
   it('hängt nach Quiz-FINISHED ein neues Quiz an, solange Q&A offen ist', async () => {

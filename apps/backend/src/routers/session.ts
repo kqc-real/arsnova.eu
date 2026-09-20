@@ -3165,14 +3165,28 @@ function canAdoptQuizTeamsOntoEmptyTeamlessSession(
   return participantCount === 0 && !sessionProfile.teamMode && quizProfile.teamMode;
 }
 
+type SessionTeamDb = {
+  team: Pick<typeof prisma.team, 'findMany' | 'createMany' | 'deleteMany'>;
+  participant: Pick<typeof prisma.participant, 'findMany' | 'update' | 'updateMany'>;
+};
+
+async function clearSessionTeamRows(sessionId: string, db: SessionTeamDb = prisma): Promise<void> {
+  await db.participant.updateMany({
+    where: { sessionId },
+    data: { teamId: null },
+  });
+  await db.team.deleteMany({ where: { sessionId } });
+}
+
 async function ensureSessionTeams(
   sessionId: string,
   requestedTeamCount: number,
   configuredTeamNames?: string[] | null,
+  db: SessionTeamDb = prisma,
 ) {
   const effectiveTeamCount = Math.min(8, Math.max(2, requestedTeamCount));
   const teamNames = normalizeConfiguredTeamNames(configuredTeamNames);
-  const existing = await prisma.team.findMany({
+  const existing = await db.team.findMany({
     where: { sessionId },
     include: { _count: { select: { participants: true } } },
     orderBy: { name: 'asc' },
@@ -3182,7 +3196,7 @@ async function ensureSessionTeams(
   }
 
   try {
-    await prisma.team.createMany({
+    await db.team.createMany({
       data: Array.from({ length: effectiveTeamCount }, (_, index) => ({
         sessionId,
         name: teamNames[index] ?? buildDefaultTeamName(index),
@@ -3197,7 +3211,7 @@ async function ensureSessionTeams(
     }
   }
 
-  return prisma.team.findMany({
+  return db.team.findMany({
     where: { sessionId },
     include: { _count: { select: { participants: true } } },
     orderBy: { name: 'asc' },
@@ -3318,19 +3332,23 @@ async function buildSessionTeamLeaderboard(
     }));
 }
 
-async function assignAllParticipantsToTeams(sessionId: string, teamIds: string[]): Promise<void> {
+async function assignAllParticipantsToTeams(
+  sessionId: string,
+  teamIds: string[],
+  db: SessionTeamDb = prisma,
+): Promise<void> {
   if (teamIds.length === 0) {
     return;
   }
 
-  const participants = await prisma.participant.findMany({
+  const participants = await db.participant.findMany({
     where: { sessionId },
     orderBy: { joinedAt: 'asc' },
     select: { id: true },
   });
   await Promise.all(
     participants.map((participant, index) =>
-      prisma.participant.update({
+      db.participant.update({
         where: { id: participant.id },
         data: { teamId: teamIds[index % teamIds.length] },
       }),
@@ -3341,12 +3359,13 @@ async function assignAllParticipantsToTeams(sessionId: string, teamIds: string[]
 async function assignExistingParticipantsToTeams(
   sessionId: string,
   teamIds: string[],
+  db: SessionTeamDb = prisma,
 ): Promise<void> {
   if (teamIds.length === 0) {
     return;
   }
 
-  const participants = await prisma.participant.findMany({
+  const participants = await db.participant.findMany({
     where: { sessionId },
     orderBy: { joinedAt: 'asc' },
     select: { id: true, teamId: true },
@@ -3359,7 +3378,7 @@ async function assignExistingParticipantsToTeams(
     }
     const teamId = teamIds[nextTeamIndex % teamIds.length];
     nextTeamIndex++;
-    await prisma.participant.update({
+    await db.participant.update({
       where: { id: participant.id },
       data: { teamId },
     });
@@ -6323,192 +6342,212 @@ const sessionCoreRouter = router({
     .output(UpdateSessionChannelsOutputSchema)
     .mutation(async ({ input }) => {
       const code = input.code.toUpperCase();
-      const session = await prisma.session.findUnique({
+      const identity = await prisma.session.findUnique({
         where: { code },
-        select: {
-          id: true,
-          status: true,
-          type: true,
-          currentQuestion: true,
-          quizId: true,
-          qaEnabled: true,
-          qaOpen: true,
-          qaTitle: true,
-          qaModerationMode: true,
-          title: true,
-          moderationMode: true,
-          quickFeedbackEnabled: true,
-          quickFeedbackOpen: true,
-          onboardingProfileConfigured: true,
-          onboardingAllowCustomNicknames: true,
-          onboardingAnonymousMode: true,
-          onboardingTeamMode: true,
-          onboardingTeamCount: true,
-          onboardingTeamAssignment: true,
-          onboardingTeamNames: true,
-          onboardingNicknameTheme: true,
-          firstParticipantJoinedAt: true,
-          endedAt: true,
-          expiresAt: true,
-          qaClosesAt: true,
-          _count: { select: { participants: true } },
-        },
+        select: { id: true },
       });
-      if (!session) {
+      if (!identity) {
         throw new TRPCError({ code: 'NOT_FOUND', message: 'Session nicht gefunden.' });
       }
-      if (session.type !== 'QUIZ' && session.type !== 'Q_AND_A') {
-        throw new TRPCError({
-          code: 'BAD_REQUEST',
-          message: 'Nur Live-Sessions können ein Quiz nachträglich anhängen.',
+      const updated = await prisma.$transaction(async (tx) => {
+        await lockSessionRow(tx, identity.id);
+        const session = await tx.session.findUnique({
+          where: { id: identity.id },
+          select: {
+            id: true,
+            status: true,
+            type: true,
+            currentQuestion: true,
+            quizId: true,
+            qaEnabled: true,
+            qaOpen: true,
+            qaTitle: true,
+            qaModerationMode: true,
+            title: true,
+            moderationMode: true,
+            quickFeedbackEnabled: true,
+            quickFeedbackOpen: true,
+            onboardingProfileConfigured: true,
+            onboardingAllowCustomNicknames: true,
+            onboardingAnonymousMode: true,
+            onboardingTeamMode: true,
+            onboardingTeamCount: true,
+            onboardingTeamAssignment: true,
+            onboardingTeamNames: true,
+            onboardingNicknameTheme: true,
+            firstParticipantJoinedAt: true,
+            endedAt: true,
+            expiresAt: true,
+            qaClosesAt: true,
+          },
         });
-      }
-      const finishedFollowUp = sessionAllowsFollowUpLiveChannel(session);
-      if (session.status === 'FINISHED' || session.endedAt instanceof Date) {
-        assertSessionAllowsFollowUpLiveChannel(session);
-      }
-      const voteCountForSession =
-        session.quizId !== null
-          ? await prisma.vote.count({
-              where: { sessionId: session.id },
-            })
-          : 0;
-      const canReplaceExistingQuiz =
-        (session.status === 'FINISHED' || session.endedAt instanceof Date
-          ? finishedFollowUp
-          : false) ||
-        (session.quizId !== null &&
-          session.status === 'LOBBY' &&
-          session.currentQuestion === null &&
-          (voteCountForSession === 0 || isQaChannelJoinable(session)));
-      if (session.quizId && !canReplaceExistingQuiz) {
-        throw new TRPCError({
-          code: 'BAD_REQUEST',
-          message: 'Das aktuelle Quiz kann nur vor der ersten gestarteten Frage gewechselt werden.',
-        });
-      }
-
-      const quiz = await prisma.quiz.findUnique({
-        where: { id: input.quizId },
-        select: {
-          id: true,
-          historyScopeId: true,
-          nicknameTheme: true,
-          allowCustomNicknames: true,
-          anonymousMode: true,
-          teamMode: true,
-          teamCount: true,
-          teamAssignment: true,
-          teamNames: true,
-        },
-      });
-      if (!quiz) {
-        throw new TRPCError({ code: 'NOT_FOUND', message: 'Quiz nicht gefunden.' });
-      }
-
-      const sessionOnboardingProfile = resolveSessionOnboardingProfile(session, null);
-      const quizOnboardingProfile = buildSessionOnboardingProfileFromQuiz(quiz);
-      const bootstrapDemoTeams = canBootstrapDemoQuizTeamsOntoTeamlessSession(
-        sessionOnboardingProfile,
-        quizOnboardingProfile,
-        quiz,
-      );
-      const adoptEmptyRoomTeams = canAdoptQuizTeamsOntoEmptyTeamlessSession(
-        sessionOnboardingProfile,
-        quizOnboardingProfile,
-        session._count.participants,
-      );
-      const adoptQuizTeams = input.adoptQuizTeams === true;
-      if (
-        !areSessionOnboardingProfilesCompatible(sessionOnboardingProfile, quizOnboardingProfile) &&
-        !bootstrapDemoTeams &&
-        !adoptEmptyRoomTeams &&
-        !adoptQuizTeams
-      ) {
-        throw new TRPCError({
-          code: 'BAD_REQUEST',
-          message: 'Dieses Quiz passt nicht zur Teamsituation der laufenden Session.',
-        });
-      }
-      const existingParticipantsForManualTeams =
-        !adoptQuizTeams &&
-        quizOnboardingProfile.teamMode &&
-        quizOnboardingProfile.teamAssignment === 'MANUAL' &&
-        session._count.participants > 0
-          ? await prisma.participant.findMany({
-              where: { sessionId: session.id },
-              select: { id: true, teamId: true },
-            })
-          : null;
-      if (existingParticipantsForManualTeams?.some((participant) => !participant.teamId)) {
-        throw new TRPCError({
-          code: 'BAD_REQUEST',
-          message:
-            'Dieses Quiz erfordert Teamwahl, aber die laufende Session enthält Teilnehmende ohne Teamzuordnung.',
-        });
-      }
-
-      const liftQuizTeamProfile = bootstrapDemoTeams || adoptEmptyRoomTeams || adoptQuizTeams;
-      const onboardingForUpdate = liftQuizTeamProfile
-        ? {
-            ...sessionOnboardingProfile,
-            teamMode: quizOnboardingProfile.teamMode,
-            teamCount: quizOnboardingProfile.teamCount,
-            teamAssignment: quizOnboardingProfile.teamAssignment,
-            teamNames: quizOnboardingProfile.teamNames,
-          }
-        : hasStoredSessionOnboardingProfile(session)
-          ? sessionOnboardingProfile
-          : session.firstParticipantJoinedAt !== null
-            ? sessionOnboardingProfile
-            : quizOnboardingProfile;
-
-      const updated = await prisma.session.update({
-        where: { id: session.id },
-        data: {
-          type: 'QUIZ',
-          quizId: quiz.id,
-          currentQuestion: null,
-          currentRound: 1,
-          answerDisplayOrder: Prisma.JsonNull,
-          ...((session.status === 'FINISHED' || session.endedAt instanceof Date) && finishedFollowUp
-            ? finishedSessionReopenData()
-            : {}),
-          ...buildSessionOnboardingUpdate(onboardingForUpdate),
-        },
-        select: {
-          id: true,
-          type: true,
-          quizId: true,
-          qaEnabled: true,
-          qaOpen: true,
-          qaTitle: true,
-          qaModerationMode: true,
-          title: true,
-          moderationMode: true,
-          quickFeedbackEnabled: true,
-          quickFeedbackOpen: true,
-        },
-      });
-
-      if (quizOnboardingProfile.teamMode) {
-        const teams = await ensureSessionTeams(
-          session.id,
-          quizOnboardingProfile.teamCount ?? DEFAULT_TEAM_COUNT,
-          quizOnboardingProfile.teamNames,
-        );
-        const teamIds = teams.map((team) => team.id);
-        if (adoptQuizTeams) {
-          await assignAllParticipantsToTeams(session.id, teamIds);
-        } else if (quizOnboardingProfile.teamAssignment === 'AUTO') {
-          await assignExistingParticipantsToTeams(session.id, teamIds);
+        if (!session) {
+          throw new TRPCError({ code: 'NOT_FOUND', message: 'Session nicht gefunden.' });
         }
-      } else if (adoptQuizTeams) {
-        await prisma.participant.updateMany({
+        const participantCount = await tx.participant.count({
           where: { sessionId: session.id },
-          data: { teamId: null },
         });
-      }
+        if (session.type !== 'QUIZ' && session.type !== 'Q_AND_A') {
+          throw new TRPCError({
+            code: 'BAD_REQUEST',
+            message: 'Nur Live-Sessions können ein Quiz nachträglich anhängen.',
+          });
+        }
+        const finishedFollowUp = sessionAllowsFollowUpLiveChannel(session);
+        if (session.status === 'FINISHED' || session.endedAt instanceof Date) {
+          assertSessionAllowsFollowUpLiveChannel(session);
+        }
+        const voteCountForSession =
+          session.quizId !== null
+            ? await tx.vote.count({
+                where: { sessionId: session.id },
+              })
+            : 0;
+        const canReplaceExistingQuiz =
+          (session.status === 'FINISHED' || session.endedAt instanceof Date
+            ? finishedFollowUp
+            : false) ||
+          (session.quizId !== null &&
+            session.status === 'LOBBY' &&
+            session.currentQuestion === null &&
+            (voteCountForSession === 0 || isQaChannelJoinable(session)));
+        if (session.quizId && !canReplaceExistingQuiz) {
+          throw new TRPCError({
+            code: 'BAD_REQUEST',
+            message:
+              'Das aktuelle Quiz kann nur vor der ersten gestarteten Frage gewechselt werden.',
+          });
+        }
+
+        const quiz = await tx.quiz.findUnique({
+          where: { id: input.quizId },
+          select: {
+            id: true,
+            historyScopeId: true,
+            nicknameTheme: true,
+            allowCustomNicknames: true,
+            anonymousMode: true,
+            teamMode: true,
+            teamCount: true,
+            teamAssignment: true,
+            teamNames: true,
+          },
+        });
+        if (!quiz) {
+          throw new TRPCError({ code: 'NOT_FOUND', message: 'Quiz nicht gefunden.' });
+        }
+
+        const sessionOnboardingProfile = resolveSessionOnboardingProfile(session, null);
+        const quizOnboardingProfile = buildSessionOnboardingProfileFromQuiz(quiz);
+        const bootstrapDemoTeams = canBootstrapDemoQuizTeamsOntoTeamlessSession(
+          sessionOnboardingProfile,
+          quizOnboardingProfile,
+          quiz,
+        );
+        const adoptEmptyRoomTeams = canAdoptQuizTeamsOntoEmptyTeamlessSession(
+          sessionOnboardingProfile,
+          quizOnboardingProfile,
+          participantCount,
+        );
+        const adoptQuizTeams = input.adoptQuizTeams === true;
+        if (
+          !areSessionOnboardingProfilesCompatible(
+            sessionOnboardingProfile,
+            quizOnboardingProfile,
+          ) &&
+          !bootstrapDemoTeams &&
+          !adoptEmptyRoomTeams &&
+          !adoptQuizTeams
+        ) {
+          throw new TRPCError({
+            code: 'BAD_REQUEST',
+            message: 'Dieses Quiz passt nicht zur Teamsituation der laufenden Session.',
+          });
+        }
+        const existingParticipantsForManualTeams =
+          !adoptQuizTeams &&
+          quizOnboardingProfile.teamMode &&
+          quizOnboardingProfile.teamAssignment === 'MANUAL' &&
+          participantCount > 0
+            ? await tx.participant.findMany({
+                where: { sessionId: session.id },
+                select: { id: true, teamId: true },
+              })
+            : null;
+        if (existingParticipantsForManualTeams?.some((participant) => !participant.teamId)) {
+          throw new TRPCError({
+            code: 'BAD_REQUEST',
+            message:
+              'Dieses Quiz erfordert Teamwahl, aber die laufende Session enthält Teilnehmende ohne Teamzuordnung.',
+          });
+        }
+
+        const liftQuizTeamProfile = bootstrapDemoTeams || adoptEmptyRoomTeams || adoptQuizTeams;
+        const onboardingForUpdate = liftQuizTeamProfile
+          ? {
+              ...sessionOnboardingProfile,
+              teamMode: quizOnboardingProfile.teamMode,
+              teamCount: quizOnboardingProfile.teamCount,
+              teamAssignment: quizOnboardingProfile.teamAssignment,
+              teamNames: quizOnboardingProfile.teamNames,
+            }
+          : hasStoredSessionOnboardingProfile(session)
+            ? sessionOnboardingProfile
+            : session.firstParticipantJoinedAt !== null
+              ? sessionOnboardingProfile
+              : quizOnboardingProfile;
+
+        const attached = await tx.session.update({
+          where: { id: session.id },
+          data: {
+            type: 'QUIZ',
+            quizId: quiz.id,
+            currentQuestion: null,
+            currentRound: 1,
+            answerDisplayOrder: Prisma.JsonNull,
+            ...((session.status === 'FINISHED' || session.endedAt instanceof Date) &&
+            finishedFollowUp
+              ? finishedSessionReopenData()
+              : {}),
+            ...buildSessionOnboardingUpdate(onboardingForUpdate),
+          },
+          select: {
+            id: true,
+            type: true,
+            quizId: true,
+            qaEnabled: true,
+            qaOpen: true,
+            qaTitle: true,
+            qaModerationMode: true,
+            title: true,
+            moderationMode: true,
+            quickFeedbackEnabled: true,
+            quickFeedbackOpen: true,
+          },
+        });
+
+        if (quizOnboardingProfile.teamMode) {
+          if (adoptQuizTeams) {
+            await clearSessionTeamRows(session.id, tx);
+          }
+          const teams = await ensureSessionTeams(
+            session.id,
+            quizOnboardingProfile.teamCount ?? DEFAULT_TEAM_COUNT,
+            quizOnboardingProfile.teamNames,
+            tx,
+          );
+          const teamIds = teams.map((team) => team.id);
+          if (adoptQuizTeams) {
+            await assignAllParticipantsToTeams(session.id, teamIds, tx);
+          } else if (quizOnboardingProfile.teamAssignment === 'AUTO') {
+            await assignExistingParticipantsToTeams(session.id, teamIds, tx);
+          }
+        } else if (adoptQuizTeams) {
+          await clearSessionTeamRows(session.id, tx);
+        }
+
+        return attached;
+      });
 
       invalidateSessionStatusCachesForCode(code);
       return buildSessionChannels(updated);
