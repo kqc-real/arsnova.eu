@@ -43,6 +43,19 @@ describe('foyer-chip-label.util', () => {
     expect(label.ariaLabel).toBe('Alexandrina Victoria');
   });
 
+  it('nutzt im Kindergarten-Fall bei preferEmojiOnly nur das Emoji', () => {
+    const label = buildFoyerChipLabel({
+      nickname: 'Roter Drache 1',
+      kindergartenEmoji: '🐉',
+      preferEmojiOnly: true,
+    });
+
+    expect(label.kind).toBe('emoji-only');
+    expect(label.emoji).toBe('🐉');
+    expect(label.text).toBe('');
+    expect(label.ariaLabel).toBe('Roter Drache 1');
+  });
+
   it('nutzt im Kindergarten-Fall im dichten Modus nur das Emoji', () => {
     const label = buildFoyerChipLabel({
       nickname: 'Faultier Fritzi',

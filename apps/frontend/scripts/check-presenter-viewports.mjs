@@ -59,7 +59,7 @@ if (
   throw new Error('PRESENTER_PARTICIPANT_COUNT muss eine ganze Zahl zwischen 1 und 500 sein.');
 }
 const PARTICIPANT_COUNT = requestedParticipantCount;
-const EXPECTED_DISPLAY_COUNT = ANONYMOUS_MODE ? 0 : Math.min(PARTICIPANT_COUNT, 20);
+const EXPECTED_DISPLAY_COUNT = ANONYMOUS_MODE ? 0 : Math.min(PARTICIPANT_COUNT, 500);
 const GEOMETRY_TOLERANCE_PX = 1.5;
 const NOBEL_LAUREATE_NICKNAMES = [
   'Marie Curie',

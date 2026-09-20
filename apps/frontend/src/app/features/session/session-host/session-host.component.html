@@ -731,11 +731,6 @@
               </section>
             }
             @let payload = participantsPayload();
-            @if (showFoyerEntranceLayer() && foyerArrivalChips().length > 0) {
-              <div class="session-lobby__foyer-stage">
-                <app-foyer-entrance-layer [chips]="foyerArrivalChips()" />
-              </div>
-            }
             @if (s.teamMode && lobbyTeamsWithParticipants().length > 0) {
               <section
                 class="session-lobby__teams session-lobby__teams--hero"
@@ -850,7 +845,7 @@
                 </div>
               </section>
             }
-            @if (!s.teamMode && !s.anonymousMode && payload && payload.participants.length > 0) {
+            @if (!s.teamMode && !s.anonymousMode && lobbyParticipantsNewestFirst().length > 0) {
               <ul
                 class="session-lobby__list session-lobby__list--chips"
                 role="list"
@@ -873,6 +868,11 @@
                   </li>
                 }
               </ul>
+            }
+            @if (showFoyerEntranceLayer() && foyerArrivalChips().length > 0) {
+              <div class="session-lobby__foyer-stage session-lobby__foyer-stage--overlay">
+                <app-foyer-entrance-layer [chips]="foyerArrivalChips()" [overlay]="true" />
+              </div>
             }
           </div>
         } @else {

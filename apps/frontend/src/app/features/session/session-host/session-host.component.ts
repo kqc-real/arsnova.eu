@@ -1614,7 +1614,7 @@ export class SessionHostComponent implements OnInit, OnDestroy {
     return grouped;
   });
   readonly hiddenLobbyParticipantIds = computed(() => {
-    if (!this.showTeamFoyerEntranceLayers()) {
+    if (!this.canShowFoyerEntrance() || this.suppressTeamFoyerEntrance()) {
       return new Set<string>();
     }
 
@@ -3132,7 +3132,8 @@ export class SessionHostComponent implements OnInit, OnDestroy {
   });
   readonly lobbyParticipantsNewestFirst = computed(() => {
     const participants = this.participantsPayload()?.participants ?? [];
-    return [...participants].reverse();
+    const hiddenIds = this.hiddenLobbyParticipantIds();
+    return participants.filter((participant) => !hiddenIds.has(participant.id));
   });
 
   /** Reihenfolge der Emojis für die Reaktions-Anzeige (Story 5.8). */
@@ -6528,14 +6529,14 @@ export class SessionHostComponent implements OnInit, OnDestroy {
         ? this.withCalmTeamArrivalDelays(this.foyerArrivalChips(), additions)
         : this.withCalmNonTeamArrivalDelays(this.foyerArrivalChips(), additions);
 
-    if (this.session()?.teamMode === true) {
-      for (const chip of timedAdditions) {
-        const hiddenIds = new Set<string>();
-        if (chip.participantId) {
-          hiddenIds.add(chip.participantId);
-        }
-        chip.hiddenParticipantIds?.forEach((participantId) => hiddenIds.add(participantId));
-        this.registerHiddenLobbyParticipants([...hiddenIds], chip.presenceMs + chip.delayMs);
+    for (const chip of timedAdditions) {
+      const hiddenIds = new Set<string>();
+      if (chip.participantId) {
+        hiddenIds.add(chip.participantId);
+      }
+      chip.hiddenParticipantIds?.forEach((participantId) => hiddenIds.add(participantId));
+      this.registerHiddenLobbyParticipants([...hiddenIds], chip.presenceMs + chip.delayMs);
+      if (this.session()?.teamMode === true) {
         this.scheduleTeamLandingEcho(chip.teamId, chip.sequence, chip.presenceMs + chip.delayMs);
       }
     }
@@ -6600,7 +6601,7 @@ export class SessionHostComponent implements OnInit, OnDestroy {
       anonymousMode: session?.anonymousMode === true,
       kindergartenEmoji,
       dense,
-      preferEmojiOnly: session?.teamMode === true && !!kindergartenEmoji,
+      preferEmojiOnly: !!kindergartenEmoji,
       preferReadableText:
         session?.teamMode !== true ||
         (session?.allowCustomNicknames === false &&
@@ -6635,6 +6636,18 @@ export class SessionHostComponent implements OnInit, OnDestroy {
     | 'badgePresenceMs'
     | 'pulseDelayMs'
   > {
+    if (this.session()?.nicknameTheme === 'KINDERGARTEN') {
+      const profile = this.kindergartenArrivalMotionProfile(0);
+      return {
+        enterDurationMs: profile.enterDurationMs,
+        presenceMs: profile.presenceMs,
+        settleDelayMs: profile.settleDelayMs,
+        badgeDelayMs: profile.badgeDelayMs,
+        badgePresenceMs: profile.badgePresenceMs,
+        pulseDelayMs: profile.pulseDelayMs,
+      };
+    }
+
     const enterDurationMs = teamMode ? 1760 : 680;
     const presenceMs = teamMode ? 3200 : this.foyerChipLifetimeMs;
     return {
@@ -6691,6 +6704,10 @@ export class SessionHostComponent implements OnInit, OnDestroy {
       return [];
     }
 
+    if (this.session()?.nicknameTheme === 'KINDERGARTEN') {
+      return this.withKindergartenArrivalDelays(current, additions);
+    }
+
     const activeCurrent = current.filter((chip) => chip.teamId === null);
     let nextDelay =
       activeCurrent.length > 0
@@ -6721,7 +6738,7 @@ export class SessionHostComponent implements OnInit, OnDestroy {
     current: readonly FoyerEntranceChip[],
     additions: readonly FoyerEntranceChip[],
   ): FoyerEntranceChip[] {
-    const activeCurrent = current.filter((chip) => chip.teamId !== null);
+    const activeCurrent = current;
     let queueDepth = activeCurrent.length;
     let nextDelay =
       activeCurrent.length > 0

@@ -277,7 +277,8 @@ export class SessionPresentComponent implements OnInit, OnDestroy {
     () =>
       new Map(
         this.lobbyParticipants().map(
-          (participant, index) => [participant.id, String(index + 1).padStart(2, '0')] as const,
+          (participant, index, list) =>
+            [participant.id, String(list.length - index).padStart(2, '0')] as const,
         ),
       ),
   );
@@ -299,7 +300,7 @@ export class SessionPresentComponent implements OnInit, OnDestroy {
     return hidden;
   });
   readonly lobbyTeamsView = computed(() => {
-    const people = [...this.lobbyParticipants()].reverse();
+    const people = this.lobbyParticipants();
     const hideNames = this.session()?.anonymousMode === true;
     const hiddenIds = this.hiddenLobbyParticipantIds();
     return this.lobbyTeams().map((team) => {
@@ -319,7 +320,7 @@ export class SessionPresentComponent implements OnInit, OnDestroy {
       return [];
     }
     const hiddenIds = this.hiddenLobbyParticipantIds();
-    return [...this.lobbyParticipants()].reverse().filter((person) => !hiddenIds.has(person.id));
+    return this.lobbyParticipants().filter((person) => !hiddenIds.has(person.id));
   });
   readonly lobbyParticipantCount = computed(() => {
     const listed = this.lobbyParticipants().length;
@@ -1877,7 +1878,7 @@ export class SessionPresentComponent implements OnInit, OnDestroy {
       anonymousMode: session?.anonymousMode === true,
       kindergartenEmoji,
       dense,
-      preferEmojiOnly: session?.teamMode === true && !!kindergartenEmoji,
+      preferEmojiOnly: !!kindergartenEmoji,
       preferReadableText:
         session?.teamMode !== true ||
         (session?.allowCustomNicknames === false &&

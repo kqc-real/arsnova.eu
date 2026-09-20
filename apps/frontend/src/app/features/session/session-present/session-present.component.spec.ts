@@ -2418,6 +2418,12 @@ describe('SessionPresentComponent', () => {
     expect(styles).toMatch(
       /\.session-present__lobby-audience--kindergarten[\s\S]*?\.session-present__lobby-team:not\(\.session-present__lobby-team--packed\)[\s\S]*?\.session-present__lobby-nick-icon \{[\s\S]*?min\(86cqh,\s*80cqw\)[\s\S]*?16rem/,
     );
+    expect(styles).toMatch(
+      /\.session-present__lobby-audience--kindergarten \.session-present__lobby-person-col \{[\s\S]*?border:\s*none;[\s\S]*?background:\s*transparent;[\s\S]*?container-type:\s*size;/,
+    );
+    expect(styles).toMatch(
+      /\.session-present__lobby-audience--kindergarten:not\(\.session-present__lobby-audience--packed\)[\s\S]*?\.session-present__lobby-person-col[\s\S]*?\.session-present__lobby-nick-icon \{[\s\S]*?min\(86cqh,\s*80cqw\)[\s\S]*?16rem/,
+    );
   });
 
   it('packt volle Teamspalten ohne Scroll und haelt Namen nur fuer den Screenreader', async () => {
@@ -2604,7 +2610,7 @@ describe('SessionPresentComponent', () => {
       });
       getParticipantSummaryQueryMock.mockResolvedValue({
         participantCount: participants.length,
-        recentArrivals: participants.slice(-20),
+        recentArrivals: [...participants.slice(-20)].reverse(),
       });
       getTeamsQueryMock.mockResolvedValue({ teamCount: 0, teams: [] });
 
@@ -2890,13 +2896,13 @@ describe('SessionPresentComponent', () => {
       recentArrivals: [
         {
           id: '11111111-1111-4111-8111-111111111111',
-          nickname: 'Beiger Igel 25',
+          nickname: 'Lavendelblaue Eule 27',
           teamId,
           teamName: 'Rot',
         },
         {
           id: '22222222-2222-4222-8222-222222222222',
-          nickname: 'Lavendelblaue Eule 27',
+          nickname: 'Beiger Igel 25',
           teamId,
           teamName: 'Rot',
         },
@@ -3060,14 +3066,14 @@ describe('SessionPresentComponent', () => {
       participantCount: 2,
       recentArrivals: [
         {
-          id: '11111111-1111-4111-8111-111111111111',
-          nickname: 'Luna',
+          id: '22222222-2222-4222-8222-222222222222',
+          nickname: 'Milo',
           teamId: null,
           teamName: null,
         },
         {
-          id: '22222222-2222-4222-8222-222222222222',
-          nickname: 'Milo',
+          id: '11111111-1111-4111-8111-111111111111',
+          nickname: 'Luna',
           teamId: null,
           teamName: null,
         },
@@ -3140,14 +3146,14 @@ describe('SessionPresentComponent', () => {
       participantCount: 2,
       recentArrivals: [
         {
-          id: '11111111-1111-4111-8111-111111111111',
-          nickname: 'Luna',
+          id: '22222222-2222-4222-8222-222222222222',
+          nickname: 'Milo',
           teamId: null,
           teamName: null,
         },
         {
-          id: '22222222-2222-4222-8222-222222222222',
-          nickname: 'Milo',
+          id: '11111111-1111-4111-8111-111111111111',
+          nickname: 'Luna',
           teamId: null,
           teamName: null,
         },
@@ -3182,6 +3188,74 @@ describe('SessionPresentComponent', () => {
         (node.textContent ?? '').trim(),
       ),
     ).toEqual(['Milo', 'Luna']);
+    fixture.destroy();
+  });
+
+  it('laesst Kindergarten-Tiere ohne Team ohne dunkle Overlay-Kapsel einfliegen', async () => {
+    getInfoQueryMock.mockResolvedValue({
+      id: '6a8edced-5f8f-4cfa-9176-454fac9570ad',
+      serverTime: MOCK_SERVER_TIME,
+      code: 'ABC123',
+      type: 'QUIZ',
+      status: 'LOBBY',
+      quizName: 'Quiz',
+      title: null,
+      participantCount: 1,
+      teamMode: false,
+      anonymousMode: false,
+      nicknameTheme: 'KINDERGARTEN',
+    });
+    getParticipantSummaryQueryMock.mockResolvedValue({
+      participantCount: 1,
+      recentArrivals: [
+        {
+          id: '11111111-1111-4111-8111-111111111111',
+          nickname: 'Roter Drache 1',
+          teamId: null,
+          teamName: null,
+        },
+      ],
+    });
+
+    const fixture = TestBed.createComponent(SessionPresentComponent);
+    fixture.detectChanges();
+    await fixture.whenStable();
+    await new Promise((r) => setTimeout(r, 50));
+    fixture.detectChanges();
+
+    getParticipantSummaryQueryMock.mockResolvedValue({
+      participantCount: 2,
+      recentArrivals: [
+        {
+          id: '11111111-1111-4111-8111-111111111111',
+          nickname: 'Roter Drache 1',
+          teamId: null,
+          teamName: null,
+        },
+        {
+          id: '22222222-2222-4222-8222-222222222222',
+          nickname: 'Grüner Frosch 1',
+          teamId: null,
+          teamName: null,
+        },
+      ],
+    });
+    await (
+      fixture.componentInstance as unknown as { refreshLobbyAudience(): Promise<void> }
+    ).refreshLobbyAudience();
+    fixture.detectChanges();
+
+    const chip = fixture.componentInstance.lobbyFoyerChips()[0];
+    expect(chip?.kind).toBe('emoji-only');
+    expect(chip?.text).toBe('');
+    expect(chip?.emoji).toBeTruthy();
+    expect(chip?.fullLabel).toBe('Grüner Frosch 1');
+    expect(
+      fixture.nativeElement.querySelector('.foyer-entrance-layer__chip--emoji-only'),
+    ).toBeTruthy();
+    expect(
+      fixture.nativeElement.querySelector('.foyer-entrance-layer__chip--emoji-with-text'),
+    ).toBeNull();
     fixture.destroy();
   });
 
@@ -3234,14 +3308,14 @@ describe('SessionPresentComponent', () => {
       participantCount: 2,
       recentArrivals: [
         {
-          id: '11111111-1111-4111-8111-111111111111',
-          nickname: 'Luna',
+          id: '22222222-2222-4222-8222-222222222222',
+          nickname: 'Milo',
           teamId: 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa',
           teamName: 'Rot',
         },
         {
-          id: '22222222-2222-4222-8222-222222222222',
-          nickname: 'Milo',
+          id: '11111111-1111-4111-8111-111111111111',
+          nickname: 'Luna',
           teamId: 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa',
           teamName: 'Rot',
         },

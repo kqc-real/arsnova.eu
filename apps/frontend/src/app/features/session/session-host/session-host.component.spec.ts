@@ -1382,9 +1382,9 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
     getParticipantsQueryMock.mockResolvedValue({
       participantCount: 3,
       participants: [
-        { id: 'p1', nickname: 'Ada' },
-        { id: 'p2', nickname: 'Linus' },
         { id: 'p3', nickname: 'Grace' },
+        { id: 'p2', nickname: 'Linus' },
+        { id: 'p1', nickname: 'Ada' },
       ],
     });
 
@@ -1442,8 +1442,8 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
     );
 
     expect(list).not.toBeNull();
-    expect(icons.map((icon) => icon.textContent?.trim())).toEqual(['🐬', '🦎']);
-    expect(srOnlyLabels).toEqual(['Lila Delfin', 'Mintgrüne Eidechse']);
+    expect(icons.map((icon) => icon.textContent?.trim())).toEqual(['🦎', '🐬']);
+    expect(srOnlyLabels).toEqual(['Mintgrüne Eidechse', 'Lila Delfin']);
     fixture.destroy();
   });
 
@@ -1476,7 +1476,7 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
       fixture.nativeElement.querySelectorAll('.session-lobby__nick-emoji--host-lobby'),
       (el) => (el.textContent ?? '').trim(),
     );
-    expect(icons).toEqual(['🐬', '🦎']);
+    expect(icons).toEqual(['🦎', '🐬']);
     fixture.destroy();
   });
 
@@ -15735,6 +15735,81 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
     expect(teamBMembers).toEqual(['Linus']);
     expect(cards[1].querySelector('.session-lobby__team-empty')).toBeNull();
     fixture.destroy();
+  });
+
+  it('laesst Kindergarten-Tiere ohne Team erst einfliegen und haelt sie bis zur Landung aus dem Raster', async () => {
+    vi.useFakeTimers();
+    try {
+      let participantJoinedHandler: ((data: unknown) => void) | null = null;
+      getInfoQueryMock.mockResolvedValue({
+        ...defaultSession,
+        status: 'LOBBY',
+        teamMode: false,
+        anonymousMode: false,
+        nicknameTheme: 'KINDERGARTEN',
+        preset: 'PLAYFUL',
+        enableRewardEffects: true,
+      });
+      getParticipantsQueryMock.mockResolvedValue({
+        participantCount: 1,
+        participants: [{ id: 'p1', nickname: 'Brauner Bär' }],
+      });
+      onParticipantJoinedSubscribeMock.mockImplementation(
+        (_input: unknown, opts: { onData: (d: unknown) => void }) => {
+          participantJoinedHandler = opts.onData;
+          return { unsubscribe: unsubscribeMock };
+        },
+      );
+
+      const fixture = setup();
+      fixture.detectChanges();
+      await fixture.whenStable();
+      await vi.advanceTimersByTimeAsync(50);
+      fixture.detectChanges();
+
+      expect(
+        [...fixture.nativeElement.querySelectorAll('.session-lobby__nick-emoji--host-lobby')].map(
+          (node) => (node.textContent ?? '').trim(),
+        ),
+      ).toEqual(['🐻']);
+
+      participantJoinedHandler?.({
+        participantCount: 2,
+        participants: [
+          { id: 'p2', nickname: 'Gelber Löwe' },
+          { id: 'p1', nickname: 'Brauner Bär' },
+        ],
+      });
+      await vi.advanceTimersByTimeAsync(0);
+      fixture.detectChanges();
+
+      expect(
+        [...fixture.nativeElement.querySelectorAll('.session-lobby__nick-emoji--host-lobby')].map(
+          (node) => (node.textContent ?? '').trim(),
+        ),
+      ).toEqual(['🐻']);
+      const overlayChip = fixture.nativeElement.querySelector(
+        '.session-lobby__foyer-stage--overlay .foyer-entrance-layer__chip--emoji-only',
+      ) as HTMLElement | null;
+      expect(overlayChip).not.toBeNull();
+      expect(overlayChip?.querySelector('.foyer-entrance-layer__chip-text')).toBeNull();
+      expect(
+        overlayChip?.querySelector('.foyer-entrance-layer__chip-emoji')?.textContent?.trim().length,
+      ).toBeGreaterThan(0);
+      expect(fixture.nativeElement.querySelector('.foyer-entrance-layer--overlay')).not.toBeNull();
+
+      await vi.advanceTimersByTimeAsync(5200);
+      fixture.detectChanges();
+
+      expect(
+        [...fixture.nativeElement.querySelectorAll('.session-lobby__nick-emoji--host-lobby')].map(
+          (node) => (node.textContent ?? '').trim(),
+        ),
+      ).toEqual(['🦁', '🐻']);
+      fixture.destroy();
+    } finally {
+      vi.useRealTimers();
+    }
   });
 
   it('rendert Kindergarten-Team-Arrivals mit Icon und separatem Namens-Badge', async () => {
