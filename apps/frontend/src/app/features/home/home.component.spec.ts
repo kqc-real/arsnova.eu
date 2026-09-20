@@ -1043,6 +1043,7 @@ describe('HomeComponent', () => {
       expect(matDialogMock.open).toHaveBeenCalledWith(
         expect.any(Function),
         expect.objectContaining({
+          restoreFocus: false,
           data: expect.objectContaining({
             title: 'Q&A-Session ABC123 löschen?',
             confirmLabel: 'Session löschen',
@@ -1061,11 +1062,56 @@ describe('HomeComponent', () => {
         code: 'ABC123',
         browserCapability: 'browser-capability-abcdefghijklmnopqrstuvwxyz',
       });
-      expect(trpc.session.closeQaChannel.mutate).toHaveBeenCalledWith({ code: 'ABC123' });
+      expect(trpc.session.closeQaChannel.mutate).not.toHaveBeenCalled();
       expect(trpc.session.end.mutate).toHaveBeenCalledWith({ code: 'ABC123' });
       expect(getHostBrowserCapability('ABC123')).toBeNull();
       fixture.detectChanges();
       expect(fixture.nativeElement.querySelector('.home-host-session-cta-row')).toBeNull();
+      fixture.detectChanges();
+      await fixture.whenStable();
+      fixture.detectChanges();
+      expect(document.activeElement).toBe(
+        fixture.nativeElement.querySelector('[data-testid="home-live-qa-create"]'),
+      );
+      restoreDefaultSessionGetInfo(vi.mocked(trpc.session.getInfo.query));
+    });
+
+    it('blockiert parallele Host-CTA-Löschungen bis session.end abgeschlossen ist', async () => {
+      const { trpc } = await import('../../core/trpc.client');
+      seedHostCapability();
+      storeHostBrowserCapability('XYZ789', 'other-browser-capability-abcdefghijklmnopqrstuvwxyz');
+      vi.mocked(trpc.session.getInfo.query).mockImplementation((input: { code: string }) =>
+        Promise.resolve(hostSessionGetInfo(input.code, true, { qaQuestionCount: 1 })),
+      );
+      let releaseEnd!: (value: { status: 'FINISHED' }) => void;
+      const pendingEnd = new Promise<{ status: 'FINISHED' }>((resolve) => {
+        releaseEnd = resolve;
+      });
+      vi.mocked(trpc.session.end.mutate).mockImplementationOnce(() => pendingEnd);
+      const fixture = createHomeFixture();
+      fixture.detectChanges();
+      await fixture.whenStable();
+      fixture.detectChanges();
+      await vi.waitUntil(() => fixture.componentInstance.hostSessionCtas().length >= 1, {
+        timeout: 1000,
+        interval: 10,
+      });
+
+      matDialogMock.open.mockImplementation(() => ({
+        afterClosed: () => of(true),
+      }));
+      const first = fixture.componentInstance.hostSessionCtas()[0];
+      const pendingRemove = fixture.componentInstance.removeHostSessionCta(first);
+      await Promise.resolve();
+      expect(fixture.componentInstance.hostSessionCtaBusy()).toBe(true);
+      await fixture.componentInstance.removeHostSessionCta({
+        ...first,
+        code: first.code === 'ABC123' ? 'XYZ789' : 'ABC123',
+      });
+      expect(trpc.session.end.mutate).toHaveBeenCalledTimes(1);
+      releaseEnd({ status: 'FINISHED' });
+      await pendingRemove;
+      expect(fixture.componentInstance.hostSessionCtaBusy()).toBe(false);
       restoreDefaultSessionGetInfo(vi.mocked(trpc.session.getInfo.query));
     });
 

@@ -244,6 +244,7 @@
                     data-testid="home-host-session-remove"
                     [attr.data-session-code]="item.code"
                     [attr.aria-label]="hostSessionCtaRemoveAria(item)"
+                    [disabled]="hostSessionCtaBusy()"
                     (click)="removeHostSessionCta(item, $event)"
                   >
                     <mat-icon aria-hidden="true">delete_outline</mat-icon>
@@ -270,6 +271,7 @@
               matButton="tonal"
               type="button"
               class="home-cta home-cta--secondary home-choice-button"
+              data-testid="home-live-qa-create"
               (click)="openHeroHostTab('qa')"
               [disabled]="!!hostSessionStarting()"
               [attr.aria-busy]="hostSessionStarting() === 'qa' ? 'true' : null"

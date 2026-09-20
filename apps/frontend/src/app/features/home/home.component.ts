@@ -14,7 +14,7 @@ import {
   inject,
   signal,
 } from '@angular/core';
-import { isPlatformBrowser } from '@angular/common';
+import { DOCUMENT, isPlatformBrowser } from '@angular/common';
 import { CdkTrapFocus, FocusMonitor } from '@angular/cdk/a11y';
 import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
@@ -285,8 +285,10 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
   readonly hasHostedQuiz = computed(() => this.latestHostedQuizId() !== null);
   readonly hostSessionCtas = signal<HostSessionCta[]>([]);
   readonly showHostRecoveryCta = computed(() => this.hostSessionCtas().length > 0);
+  readonly hostSessionCtaBusy = signal(false);
   private hostSessionCtaLoadGeneration = 0;
   private readonly forgottenHostSessionCodes = new Set<string>();
+  private readonly document = inject(DOCUMENT);
   private readonly platformId = inject(PLATFORM_ID);
   private readonly sanitizer = inject(DomSanitizer);
   private readonly motdCurrent = inject(MotdCurrentService);
@@ -605,44 +607,78 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
   async removeHostSessionCta(item: HostSessionCta, event?: Event): Promise<void> {
     event?.preventDefault();
     event?.stopPropagation();
-    const consequences = [
-      this.hostSessionCtaOpenDescription(item),
-      this.hostSessionCtaQuestionDescription(item),
-      this.hostSessionCtaDescription(item.deadlineLabel),
-    ].filter((entry): entry is string => !!entry);
-    const decision = await firstValueFrom(
-      this.dialog
-        .open(ConfirmLeaveDialogComponent, {
-          width: 'min(28rem, calc(100vw - 2rem))',
-          autoFocus: 'dialog',
-          restoreFocus: true,
-          data: {
-            title: $localize`:@@homeLiveCard.removeCtaTitle:Q&A-Session ${item.code}:code: löschen?`,
-            message: $localize`:@@sessionHost.endGlobalSessionMessage:Damit beendest du Quiz, Q&A und Blitzlicht für alle.`,
-            consequences,
-            note: $localize`:@@homeLiveCard.removeCtaForgetHint:Nur den Schnellzugang zu entfernen lässt das Forum offen. Mit der Wiederherstellungskarte kannst du den Host-Zugang später wiederherstellen.`,
-            confirmLabel: $localize`:@@homeLiveCard.removeCtaConfirm:Session löschen`,
-            alternateLabel: $localize`:@@homeLiveCard.removeCtaForget:Nur Schnellzugang entfernen`,
-            cancelLabel: $localize`:@@homeLiveCard.removeCtaCancel:Abbrechen`,
-          },
-        })
-        .afterClosed(),
-    );
-    if ((decision !== true && decision !== 'alternate') || !isPlatformBrowser(this.platformId)) {
+    if (this.hostSessionCtaBusy()) {
       return;
     }
-    this.hostSessionCtas.update((items) => items.filter((entry) => entry.code !== item.code));
-    if (decision === true) {
-      const ended = await this.endHostedSessionFromHome(item.code);
-      if (!ended) {
-        await this.loadHostSessionCtas();
+    this.hostSessionCtaBusy.set(true);
+    try {
+      const consequences = [
+        this.hostSessionCtaOpenDescription(item),
+        this.hostSessionCtaQuestionDescription(item),
+        this.hostSessionCtaDescription(item.deadlineLabel),
+      ].filter((entry): entry is string => !!entry);
+      const decision = await firstValueFrom(
+        this.dialog
+          .open(ConfirmLeaveDialogComponent, {
+            width: 'min(28rem, calc(100vw - 2rem))',
+            autoFocus: 'dialog',
+            restoreFocus: false,
+            data: {
+              title: $localize`:@@homeLiveCard.removeCtaTitle:Q&A-Session ${item.code}:code: löschen?`,
+              message: $localize`:@@sessionHost.endGlobalSessionMessage:Damit beendest du Quiz, Q&A und Blitzlicht für alle.`,
+              consequences,
+              note: $localize`:@@homeLiveCard.removeCtaForgetHint:Nur den Schnellzugang zu entfernen lässt das Forum offen. Mit der Wiederherstellungskarte kannst du den Host-Zugang später wiederherstellen.`,
+              confirmLabel: $localize`:@@homeLiveCard.removeCtaConfirm:Session löschen`,
+              alternateLabel: $localize`:@@homeLiveCard.removeCtaForget:Nur Schnellzugang entfernen`,
+              cancelLabel: $localize`:@@homeLiveCard.removeCtaCancel:Abbrechen`,
+            },
+          })
+          .afterClosed(),
+      );
+      if ((decision !== true && decision !== 'alternate') || !isPlatformBrowser(this.platformId)) {
+        this.focusHostSessionCtaControl(item.code);
         return;
       }
+      this.hostSessionCtas.update((items) => items.filter((entry) => entry.code !== item.code));
+      if (decision === true) {
+        const ended = await this.endHostedSessionFromHome(item.code);
+        if (!ended) {
+          await this.loadHostSessionCtas();
+          this.focusHostSessionCtaControl(item.code);
+          return;
+        }
+      }
+      this.forgottenHostSessionCodes.add(item.code);
+      forgetHostedSessionOnThisDevice(item.code);
+      clearHostToken(item.code);
+      await this.loadHostSessionCtas();
+      this.focusHostSessionCtaControl();
+    } finally {
+      this.hostSessionCtaBusy.set(false);
     }
-    this.forgottenHostSessionCodes.add(item.code);
-    forgetHostedSessionOnThisDevice(item.code);
-    clearHostToken(item.code);
-    await this.loadHostSessionCtas();
+  }
+
+  private focusHostSessionCtaControl(preferredCode?: string): void {
+    if (!isPlatformBrowser(this.platformId)) {
+      return;
+    }
+    afterNextRender(
+      () => {
+        const preferred = preferredCode
+          ? this.document.querySelector<HTMLButtonElement>(
+              `[data-testid="home-host-session-remove"][data-session-code="${preferredCode}"]`,
+            )
+          : null;
+        const nextRemove = this.document.querySelector<HTMLButtonElement>(
+          '[data-testid="home-host-session-remove"]',
+        );
+        const qaCreate = this.document.querySelector<HTMLButtonElement>(
+          '[data-testid="home-live-qa-create"]',
+        );
+        (preferred ?? nextRemove ?? qaCreate)?.focus({ preventScroll: true });
+      },
+      { injector: this.injector },
+    );
   }
 
   private async endHostedSessionFromHome(code: string): Promise<boolean> {
@@ -662,11 +698,6 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
           { duration: 4500, horizontalPosition: 'center', verticalPosition: 'top' },
         );
         return false;
-      }
-      try {
-        await trpc.session.closeQaChannel.mutate({ code });
-      } catch {
-        // Bereits geschlossen oder Session schon beendet: session.end bleibt maßgeblich.
       }
       await trpc.session.end.mutate({ code });
       return true;
