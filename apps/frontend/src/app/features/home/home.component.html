@@ -275,9 +275,15 @@
               [attr.aria-busy]="hostSessionStarting() === 'qa' ? 'true' : null"
             >
               <span class="home-choice-button__copy">
-                <span class="home-choice-button__label" i18n="@@homeLiveCard.qaCreateLabel"
-                  >Neue Q&amp;A-Session</span
-                >
+                <span class="home-choice-button__label">
+                  @if (showHostRecoveryCta()) {
+                    <ng-container i18n="@@homeLiveCard.qaCreateLabel"
+                      >Neue Q&amp;A-Session</ng-container
+                    >
+                  } @else {
+                    <ng-container i18n="@@homeLiveCard.qaLabel">Q&amp;A-Session</ng-container>
+                  }
+                </span>
                 <span class="home-choice-button__description" i18n="@@homeLiveCard.qaDescription"
                   >Fragen &amp; Wortwolke</span
                 >

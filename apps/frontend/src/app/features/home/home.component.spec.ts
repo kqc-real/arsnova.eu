@@ -550,6 +550,11 @@ describe('HomeComponent', () => {
       expect(liveButtons.every((button) => button.classList.contains('home-cta--secondary'))).toBe(
         true,
       );
+      expect(
+        liveButtons.map((button) =>
+          button.querySelector('.home-choice-button__label')?.textContent?.trim(),
+        ),
+      ).toEqual(['Quiz', 'Neue Q&A-Session', 'Blitzlicht']);
       restoreDefaultSessionGetInfo(vi.mocked(trpc.session.getInfo.query));
     });
 
@@ -1319,7 +1324,7 @@ describe('HomeComponent', () => {
         liveButtons.map((button) =>
           button.querySelector('.home-choice-button__label')?.textContent?.trim(),
         ),
-      ).toEqual(['Quiz', 'Neue Q&A-Session', 'Blitzlicht']);
+      ).toEqual(['Quiz', 'Q&A-Session', 'Blitzlicht']);
       expect(
         liveButtons.map((button) =>
           button.querySelector('.home-choice-button__description')?.textContent?.trim(),

@@ -9423,6 +9423,10 @@
         <source>Neue Q&amp;A-Session</source>
         <target>Nouvelle session Q&amp;A</target>
       </trans-unit>
+      <trans-unit id="homeLiveCard.qaLabel" datatype="html">
+        <source>Q&amp;A-Session</source>
+        <target>Session Q&amp;R</target>
+      </trans-unit>
       <trans-unit id="homeLiveCard.openHostSessionsAria" datatype="html">
         <source>Deine Q&amp;A-Sessions</source>
         <target>Tes sessions Q&amp;A</target>
