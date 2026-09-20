@@ -541,4 +541,43 @@ describe.skipIf(!RUN_PG)('absolute session lifecycle (PostgreSQL)', () => {
       ),
     ).resolves.toMatchObject({ rowCount: 1 });
   });
+
+  it('öffnet eine beendete Quiz-Session ohne Q&A für die Erstkonfiguration wieder', async () => {
+    const sessionId = randomUUID();
+    sessionIds.push(sessionId);
+    await primary.query(
+      `
+        INSERT INTO "Session" (
+          id, code, status, "createdAt", "expiresAt", "startedAt",
+          "qaEnabled", "qaOpen", "qaClosesAt", "preferredChannel"
+        )
+        VALUES (
+          $1, $2, 'ACTIVE',
+          clock_timestamp() - INTERVAL '2 hours',
+          clock_timestamp() + INTERVAL '12 hours',
+          clock_timestamp() - INTERVAL '2 hours',
+          FALSE, FALSE, NULL, 'quiz'
+        )
+      `,
+      [sessionId, uniqueSessionCode()],
+    );
+    await primary.query(`UPDATE "Session" SET status = 'FINISHED' WHERE id = $1`, [sessionId]);
+
+    await expect(
+      primary.query(
+        `
+          UPDATE "Session"
+          SET
+            status = 'LOBBY',
+            "endedAt" = NULL,
+            "qaEnabled" = TRUE,
+            "qaOpen" = TRUE,
+            "qaClosesAt" = clock_timestamp() + INTERVAL '6 hours',
+            "preferredChannel" = 'qa'
+          WHERE id = $1
+        `,
+        [sessionId],
+      ),
+    ).resolves.toMatchObject({ rowCount: 1 });
+  });
 });

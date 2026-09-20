@@ -840,6 +840,7 @@ describe('session.enable channel mutations', () => {
       id: SESSION_ID,
       status: 'FINISHED',
       endedAt: new Date('2026-09-19T06:00:00.000Z'),
+      expiresAt: new Date('2026-09-19T05:00:00.000Z'),
       type: 'QUIZ',
       quizId: '11111111-1111-4111-8111-111111111111',
       qaEnabled: false,

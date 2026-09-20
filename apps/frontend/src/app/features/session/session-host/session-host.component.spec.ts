@@ -857,7 +857,7 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
     fixture.destroy();
   });
 
-  it('bietet die Host-Zugangskarte erst nach dem nachträglichen Aktivieren von Q&A an', async () => {
+  it('bietet die Host-Zugangskarte nach dem nachträglichen Aktivieren von Q&A an und startet die Fragerunde', async () => {
     persistInitialHostRecovery({
       code: 'ABC123',
       recoveryCard: {
@@ -914,7 +914,57 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
         data: expect.objectContaining({ setupStep: 2, setupStepCount: 2 }),
       }),
     );
-    expect(startQaMutateMock).not.toHaveBeenCalled();
+    expect(startQaMutateMock).toHaveBeenCalledWith({ code: 'ABC123' });
+    fixture.destroy();
+  });
+
+  it('richtet Q&A nach Quiz-FINISHED ohne bestehende Fragerunde ein', async () => {
+    persistInitialHostRecovery({
+      code: 'ABC123',
+      recoveryCard: {
+        supportId: 'ARS-ABCD-2345',
+        recoveryCode: 'recovery-capability-abcdefghijklmnopqrstuvwxyz',
+      },
+    });
+    const finishedQuizOnly = {
+      ...defaultSession,
+      status: 'FINISHED' as const,
+      channels: {
+        quiz: { enabled: true },
+        qa: {
+          enabled: false,
+          open: false,
+          title: null,
+          moderationMode: false,
+          state: 'DISABLED' as const,
+        },
+        quickFeedback: { enabled: false, open: false },
+      },
+    };
+    getLifecycleForHostQueryMock.mockResolvedValue({ ...defaultLifecycle });
+    getInfoQueryMock.mockResolvedValue({
+      ...finishedQuizOnly,
+      status: 'LOBBY',
+      channels: configuredQaChannelResult.channels,
+    });
+    dialogOpenMock.mockImplementation((component) => ({
+      afterClosed: () =>
+        of(component === QaChannelConfigurationDialogComponent ? configuredQaChannelResult : true),
+    }));
+    const fixture = setup();
+    fixture.componentInstance.session.set(finishedQuizOnly);
+    fixture.detectChanges();
+
+    await fixture.componentInstance.selectChannel('qa');
+    fixture.detectChanges();
+
+    expect(dialogOpenMock).toHaveBeenCalledWith(
+      QaChannelConfigurationDialogComponent,
+      expect.anything(),
+    );
+    expect(fixture.componentInstance.activeChannel()).toBe('qa');
+    expect(startQaMutateMock).toHaveBeenCalledWith({ code: 'ABC123' });
+    expect(fixture.componentInstance.effectiveStatus()).toBe('ACTIVE');
     fixture.destroy();
   });
 
@@ -2439,6 +2489,30 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
     expect(text).toContain('Q&A');
     expect(text).toContain('Blitzlicht');
     expect(text).toContain('Aus');
+    fixture.destroy();
+  });
+
+  it('zeigt den Kanalwahlschalter nach Quiz-FINISHED, solange Q&A noch eingerichtet werden kann', () => {
+    const fixture = setup();
+    fixture.componentInstance.session.set({
+      ...defaultSession,
+      status: 'FINISHED',
+      channels: {
+        quiz: { enabled: true },
+        qa: {
+          enabled: false,
+          open: false,
+          title: null,
+          moderationMode: false,
+          state: 'DISABLED',
+        },
+        quickFeedback: { enabled: false, open: false },
+      },
+    });
+    fixture.detectChanges();
+
+    expect(fixture.componentInstance.showChannelTabs()).toBe(true);
+    expect(fixture.nativeElement.querySelector('.session-channel-tabs')).not.toBeNull();
     fixture.destroy();
   });
 

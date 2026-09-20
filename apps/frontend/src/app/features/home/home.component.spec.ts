@@ -12,6 +12,7 @@ import { QuizStoreService } from '../quiz/data/quiz-store.service';
 import { clearHostToken, setHostToken } from '../../core/host-session-token';
 import { MotdHeaderStateService } from '../../core/motd-header-state.service';
 import {
+  getHostBrowserCapability,
   storeHostBrowserCapability,
   storeHostRecoveryCandidate,
 } from '../../core/host-recovery-access';
@@ -26,6 +27,7 @@ vi.mock('../../core/feedback-host-token', () => ({
 
 vi.mock('../../core/trpc.client', () => ({
   setHostToken: vi.fn(),
+  setPendingHostSessionCode: vi.fn(),
   trpc: {
     health: {
       check: {
@@ -89,6 +91,15 @@ vi.mock('../../core/trpc.client', () => ({
           code: 'HERO01',
           hostToken: 'host-token-hero',
         }),
+      },
+      issueHostAccessToken: {
+        mutate: vi.fn().mockResolvedValue({ hostToken: 'issued-host-token' }),
+      },
+      closeQaChannel: {
+        mutate: vi.fn().mockResolvedValue({ qa: { enabled: true, open: false, state: 'CLOSED' } }),
+      },
+      end: {
+        mutate: vi.fn().mockResolvedValue({ status: 'FINISHED' }),
       },
     },
   },
@@ -484,10 +495,21 @@ describe('HomeComponent', () => {
       ).toBe('An einer Session teilnehmen');
     });
 
-    it('hält den Host-Recovery-Einstieg als erste CTA-Reihe über den Live-Buttons', () => {
+    it('hält den Host-Recovery-Einstieg als erste CTA-Reihe über den Live-Buttons', async () => {
+      const { trpc } = await import('../../core/trpc.client');
       seedHostCapability();
+      vi.mocked(trpc.session.getInfo.query).mockResolvedValue(hostSessionGetInfo('ABC123', true));
       const fixture = createHomeFixture();
       fixture.detectChanges();
+      await fixture.whenStable();
+      fixture.detectChanges();
+      await vi.waitUntil(
+        () =>
+          fixture.nativeElement.querySelector(
+            '.home-host-session-cta-row [data-testid="home-host-recovery"]',
+          ) !== null,
+        { timeout: 1000, interval: 10 },
+      );
 
       const recoveryAction = fixture.nativeElement.querySelector(
         '.home-host-session-cta-row [data-testid="home-host-recovery"]',
@@ -508,7 +530,7 @@ describe('HomeComponent', () => {
       ).toBeNull();
       expect(
         recoveryAction?.querySelector('.home-choice-button__description')?.textContent?.trim(),
-      ).toBe('Zugang als Host');
+      ).toContain('Zugang bis');
 
       const liveGrid = fixture.nativeElement.querySelector('.home-live-grid') as HTMLElement | null;
       expect(liveGrid?.classList.contains('home-live-grid--with-recovery')).toBe(false);
@@ -528,6 +550,7 @@ describe('HomeComponent', () => {
       expect(liveButtons.every((button) => button.classList.contains('home-cta--secondary'))).toBe(
         true,
       );
+      restoreDefaultSessionGetInfo(vi.mocked(trpc.session.getInfo.query));
     });
 
     it('zeigt die Zugangsfrist in der zweiten CTA-Zeile und die Offen-Frist in der dritten', async () => {
@@ -877,11 +900,24 @@ describe('HomeComponent', () => {
       expect(fixture.nativeElement.querySelector('a[href*="host-recovery"]')).toBeNull();
     });
 
-    it('reiht mehrere gespeicherte Host-Sessions, zuletzt gehostete zuerst', () => {
+    it('reiht mehrere gespeicherte Host-Sessions, zuletzt gehostete zuerst', async () => {
+      const { trpc } = await import('../../core/trpc.client');
       storeHostBrowserCapability('AAA111', 'older-browser-capability-abcdefghijklmnopqrstuvwxyz');
       storeHostBrowserCapability('BBB222', 'newer-browser-capability-abcdefghijklmnopqrstuvwxyz');
+      vi.mocked(trpc.session.getInfo.query).mockImplementation(async (input: { code: string }) =>
+        hostSessionGetInfo(input.code, true),
+      );
       const fixture = createHomeFixture();
       fixture.detectChanges();
+      await fixture.whenStable();
+      fixture.detectChanges();
+      await vi.waitUntil(
+        () =>
+          fixture.nativeElement.querySelectorAll(
+            '.home-host-session-cta-row [data-testid="home-host-recovery"]',
+          ).length === 2,
+        { timeout: 1000, interval: 10 },
+      );
 
       const recoveryActions = Array.from(
         fixture.nativeElement.querySelectorAll<HTMLElement>(
@@ -899,14 +935,28 @@ describe('HomeComponent', () => {
       expect(
         fixture.nativeElement.querySelector('[data-testid="home-host-recovery-link"]'),
       ).toBeNull();
+      restoreDefaultSessionGetInfo(vi.mocked(trpc.session.getInfo.query));
     });
 
-    it('zeigt alle gespeicherten Host-Sessions auch ohne last-hosted-Zeiger', () => {
+    it('zeigt alle gespeicherten Host-Sessions auch ohne last-hosted-Zeiger', async () => {
+      const { trpc } = await import('../../core/trpc.client');
       storeHostBrowserCapability('AAA111', 'older-browser-capability-abcdefghijklmnopqrstuvwxyz');
       storeHostBrowserCapability('BBB222', 'newer-browser-capability-abcdefghijklmnopqrstuvwxyz');
       localStorage.removeItem('arsnova-last-hosted-session');
+      vi.mocked(trpc.session.getInfo.query).mockImplementation(async (input: { code: string }) =>
+        hostSessionGetInfo(input.code, true),
+      );
       const fixture = createHomeFixture();
       fixture.detectChanges();
+      await fixture.whenStable();
+      fixture.detectChanges();
+      await vi.waitUntil(
+        () =>
+          fixture.nativeElement.querySelectorAll(
+            '.home-host-session-cta-row [data-testid="home-host-recovery"]',
+          ).length === 2,
+        { timeout: 1000, interval: 10 },
+      );
 
       const recoveryActions = Array.from(
         fixture.nativeElement.querySelectorAll<HTMLElement>(
@@ -920,6 +970,168 @@ describe('HomeComponent', () => {
       expect(
         fixture.nativeElement.querySelector('[data-testid="home-host-recovery-link"]'),
       ).toBeNull();
+      restoreDefaultSessionGetInfo(vi.mocked(trpc.session.getInfo.query));
+    });
+
+    it('zeigt keinen Host-CTA für Quiz oder Blitzlicht ohne eingerichtetes Q&A', async () => {
+      const { trpc } = await import('../../core/trpc.client');
+      storeHostBrowserCapability('QUIZ01', 'quiz-browser-capability-abcdefghijklmnopqrstuvwxyz');
+      vi.mocked(trpc.session.getInfo.query).mockResolvedValue({
+        id: 'sess-quiz',
+        code: 'QUIZ01',
+        type: 'QUIZ',
+        status: 'FINISHED',
+        serverTime: '2026-09-19T12:00:00.000Z',
+        quizName: 'Live',
+        title: null,
+        participantCount: 3,
+        qaEnabled: false,
+        qaOpen: false,
+        qaClosesAt: null,
+        expiresAt: '2026-09-20T12:00:00.000Z',
+        channels: {
+          quiz: { enabled: true },
+          qa: { enabled: false, open: false, state: 'DISABLED' as const },
+          quickFeedback: { enabled: false, open: false },
+        },
+      });
+      const fixture = createHomeFixture();
+      fixture.detectChanges();
+      await fixture.whenStable();
+      fixture.detectChanges();
+
+      expect(fixture.nativeElement.querySelector('.home-host-session-cta-row')).toBeNull();
+      restoreDefaultSessionGetInfo(vi.mocked(trpc.session.getInfo.query));
+    });
+
+    it('bietet neben jedem Host-CTA eine Lösch-Aktion mit Sessionende als Hauptoption', async () => {
+      const { trpc } = await import('../../core/trpc.client');
+      seedHostCapability();
+      vi.mocked(trpc.session.getInfo.query).mockResolvedValue(
+        hostSessionGetInfo('ABC123', true, { qaQuestionCount: 4 }),
+      );
+      const fixture = createHomeFixture();
+      fixture.detectChanges();
+      await fixture.whenStable();
+      fixture.detectChanges();
+      await vi.waitUntil(
+        () =>
+          fixture.nativeElement.querySelector(
+            '[data-testid="home-host-session-remove"][data-session-code="ABC123"]',
+          ) !== null,
+        { timeout: 1000, interval: 10 },
+      );
+
+      const remove = fixture.nativeElement.querySelector(
+        '[data-testid="home-host-session-remove"][data-session-code="ABC123"]',
+      ) as HTMLButtonElement;
+      expect(remove.getAttribute('aria-label')).toBe('Q&A-Session ABC123 löschen');
+      expect(remove.querySelector('mat-icon')?.textContent?.trim()).toBe('delete_outline');
+
+      const item = fixture.componentInstance.hostSessionCtas()[0];
+      expect(item?.code).toBe('ABC123');
+      matDialogMock.open.mockImplementationOnce(() => ({
+        afterClosed: () => of(true),
+      }));
+      await fixture.componentInstance.removeHostSessionCta(item);
+
+      expect(matDialogMock.open).toHaveBeenCalledWith(
+        expect.any(Function),
+        expect.objectContaining({
+          data: expect.objectContaining({
+            title: 'Q&A-Session ABC123 löschen?',
+            confirmLabel: 'Session löschen',
+            alternateLabel: 'Nur Schnellzugang entfernen',
+            cancelLabel: 'Abbrechen',
+            note: expect.stringContaining('Wiederherstellungskarte'),
+            consequences: expect.arrayContaining([
+              expect.stringContaining('Offen bis'),
+              '4 Fragen',
+              expect.stringContaining('Zugang bis'),
+            ]),
+          }),
+        }),
+      );
+      expect(trpc.session.issueHostAccessToken.mutate).toHaveBeenCalledWith({
+        code: 'ABC123',
+        browserCapability: 'browser-capability-abcdefghijklmnopqrstuvwxyz',
+      });
+      expect(trpc.session.closeQaChannel.mutate).toHaveBeenCalledWith({ code: 'ABC123' });
+      expect(trpc.session.end.mutate).toHaveBeenCalledWith({ code: 'ABC123' });
+      expect(getHostBrowserCapability('ABC123')).toBeNull();
+      fixture.detectChanges();
+      expect(fixture.nativeElement.querySelector('.home-host-session-cta-row')).toBeNull();
+      restoreDefaultSessionGetInfo(vi.mocked(trpc.session.getInfo.query));
+    });
+
+    it('entfernt optional nur den lokalen Host-CTA ohne session.end', async () => {
+      const { trpc } = await import('../../core/trpc.client');
+      seedHostCapability();
+      vi.mocked(trpc.session.getInfo.query).mockResolvedValue(
+        hostSessionGetInfo('ABC123', true, { qaQuestionCount: 4 }),
+      );
+      const fixture = createHomeFixture();
+      fixture.detectChanges();
+      await fixture.whenStable();
+      fixture.detectChanges();
+      await vi.waitUntil(
+        () => fixture.componentInstance.hostSessionCtas().some((entry) => entry.code === 'ABC123'),
+        { timeout: 1000, interval: 10 },
+      );
+
+      matDialogMock.open.mockImplementationOnce(() => ({
+        afterClosed: () => of('alternate'),
+      }));
+      await fixture.componentInstance.removeHostSessionCta(
+        fixture.componentInstance.hostSessionCtas()[0],
+      );
+
+      expect(trpc.session.end.mutate).not.toHaveBeenCalled();
+      expect(getHostBrowserCapability('ABC123')).toBeNull();
+      restoreDefaultSessionGetInfo(vi.mocked(trpc.session.getInfo.query));
+    });
+
+    it('stellt den Host-CTA nach Session-Löschen nicht durch eine veraltete Infosuche wieder her', async () => {
+      const { trpc } = await import('../../core/trpc.client');
+      seedHostCapability();
+      let releaseInfo!: (value: ReturnType<typeof hostSessionGetInfo>) => void;
+      const pendingInfo = new Promise<ReturnType<typeof hostSessionGetInfo>>((resolve) => {
+        releaseInfo = resolve;
+      });
+      let infoCalls = 0;
+      vi.mocked(trpc.session.getInfo.query).mockImplementation(() => {
+        infoCalls += 1;
+        if (infoCalls === 1) {
+          return pendingInfo;
+        }
+        return Promise.resolve(hostSessionGetInfo('ABC123', true, { qaQuestionCount: 0 }));
+      });
+      const fixture = createHomeFixture();
+      fixture.detectChanges();
+      await Promise.resolve();
+
+      matDialogMock.open.mockImplementationOnce(() => ({
+        afterClosed: () => of(true),
+      }));
+      await fixture.componentInstance.removeHostSessionCta({
+        code: 'ABC123',
+        deadlineLabel: '5.10.2026, 11:29',
+        openUntilLabel: '21.9.2026, 12:29',
+        questionCount: 0,
+        qaOpen: true,
+        openUntilMs: Date.parse('2026-09-21T10:29:00.000Z'),
+        accessUntilMs: Date.parse('2026-10-05T09:29:00.000Z'),
+        primary: true,
+      });
+
+      releaseInfo(hostSessionGetInfo('ABC123', true, { qaQuestionCount: 0 }));
+      await Promise.resolve();
+      await Promise.resolve();
+      fixture.detectChanges();
+
+      expect(getHostBrowserCapability('ABC123')).toBeNull();
+      expect(fixture.nativeElement.querySelector('.home-host-session-cta-row')).toBeNull();
+      restoreDefaultSessionGetInfo(vi.mocked(trpc.session.getInfo.query));
     });
 
     it('überlässt den Preset-Wechsel der globalen Toolbar', () => {
@@ -1179,6 +1391,9 @@ describe('HomeComponent', () => {
       expect(descriptionRule).toMatch(/color:\s*inherit/);
       expect(descriptionRule).not.toMatch(/opacity|color-mix/);
       expect(scss).toMatch(/\.home-choice-button\s*\{[^}]*min-height:\s*3\.75rem/);
+      expect(scss).toMatch(
+        /\.home-host-session-cta-row__item > \.home-choice-button\s*\{[\s\S]*?--mdc-filled-button-container-shape:\s*var\(--mat-sys-corner-medium\)/,
+      );
       expect(scss).toMatch(/\.home-feedback-chip\s*\{[^}]*min-height:\s*4rem/);
       expect(scss).not.toContain('var(--mat-sys-label-small)');
       expect(playfulLibraryRule).toMatch(/color:\s*var\(--mat-sys-on-surface\)/);
@@ -1594,6 +1809,44 @@ describe('HomeComponent', () => {
         anonymousClientId: expect.any(String),
       });
       expect(trpc.session.create.mutate).not.toHaveBeenCalled();
+      clearHostToken('TEST01');
+    });
+
+    it('legt ein neues Blitzlicht an, wenn die letzte Host-Session ohne Q&A beendet ist', async () => {
+      const { trpc } = await import('../../core/trpc.client');
+      vi.mocked(trpc.session.create.mutate).mockResolvedValueOnce({
+        id: 'sess-qf-new',
+        code: 'QF0002',
+        hostToken: 'qf-new-token',
+      });
+      vi.mocked(trpc.session.getInfoForReconnect.query).mockResolvedValueOnce({
+        id: 'sess-finished',
+        code: 'TEST01',
+        type: 'QUIZ',
+        status: 'FINISHED',
+        serverTime: '2026-09-19T12:00:00.000Z',
+        quizName: 'Live',
+        title: null,
+        participantCount: 2,
+        qaEnabled: false,
+        qaOpen: false,
+        qaClosesAt: null,
+        channels: {
+          quiz: { enabled: true },
+          qa: { enabled: false, open: false, state: 'DISABLED' as const },
+          quickFeedback: { enabled: false, open: false },
+        },
+      });
+      setHostToken('TEST01', 'host-token-test01');
+      const comp = createHomeComponent();
+      comp.sessionCode.set('TEST01');
+      const router = TestBed.inject(Router);
+      const navigateSpy = vi.spyOn(router, 'navigateByUrl').mockResolvedValue(true);
+
+      await comp.openHeroHostTab('quickFeedback');
+
+      expect(trpc.session.create.mutate).toHaveBeenCalled();
+      expect(navigateSpy).toHaveBeenCalledWith('/session/QF0002/host?tab=quickFeedback');
       clearHostToken('TEST01');
     });
 

@@ -9375,6 +9375,34 @@
         <source><x id="count" equiv-text="count"/> Fragen</source>
         <target><x id="count" equiv-text="count"/> domande</target>
       </trans-unit>
+      <trans-unit id="homeLiveCard.removeCtaAria" datatype="html">
+        <source>Q&amp;A-Session <x id="code" equiv-text="item.code"/> löschen</source>
+        <target>Elimina la sessione Q&amp;A <x id="code" equiv-text="item.code"/></target>
+      </trans-unit>
+      <trans-unit id="homeLiveCard.removeCtaTitle" datatype="html">
+        <source>Q&amp;A-Session <x id="code" equiv-text="item.code"/> löschen?</source>
+        <target>Eliminare la sessione Q&amp;A <x id="code" equiv-text="item.code"/>?</target>
+      </trans-unit>
+      <trans-unit id="homeLiveCard.removeCtaForgetHint" datatype="html">
+        <source>Nur den Schnellzugang zu entfernen lässt das Forum offen. Mit der Wiederherstellungskarte kannst du den Host-Zugang später wiederherstellen.</source>
+        <target>Rimuovere solo l’accesso rapido lascia il forum aperto. Potrai ripristinare l’accesso host in seguito con la scheda di recupero.</target>
+      </trans-unit>
+      <trans-unit id="homeLiveCard.removeCtaConfirm" datatype="html">
+        <source>Session löschen</source>
+        <target>Elimina sessione</target>
+      </trans-unit>
+      <trans-unit id="homeLiveCard.removeCtaForget" datatype="html">
+        <source>Nur Schnellzugang entfernen</source>
+        <target>Rimuovi solo l’accesso rapido</target>
+      </trans-unit>
+      <trans-unit id="homeLiveCard.removeCtaCancel" datatype="html">
+        <source>Abbrechen</source>
+        <target>Annulla</target>
+      </trans-unit>
+      <trans-unit id="homeLiveCard.removeCtaError" datatype="html">
+        <source>Session konnte nicht gelöscht werden. Bitte erneut versuchen.</source>
+        <target>Non è stato possibile eliminare la sessione. Riprova.</target>
+      </trans-unit>
       <trans-unit id="homeLiveCard.title" datatype="html">
         <source> Session starten</source>
         <target>Avvia una sessione</target>

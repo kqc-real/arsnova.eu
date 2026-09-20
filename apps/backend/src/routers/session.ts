@@ -3489,6 +3489,12 @@ function assertSessionAllowsLiveMutation(status: string | null | undefined): voi
   }
 }
 
+function sessionAllowsUnconfiguredFollowUp(session: {
+  qaClosesAt?: Date | string | null;
+}): boolean {
+  return session.qaClosesAt === null || session.qaClosesAt === undefined;
+}
+
 function sessionAllowsFollowUpLiveChannel(
   session: {
     status?: string | null;
@@ -3508,7 +3514,30 @@ function sessionAllowsFollowUpLiveChannel(
   if (session.expiresAt instanceof Date && now.getTime() >= session.expiresAt.getTime()) {
     return false;
   }
-  return isQaChannelJoinable(session, now);
+  return isQaChannelJoinable(session, now) || sessionAllowsUnconfiguredFollowUp(session);
+}
+
+function assertSessionAllowsInitialQaConfiguration(
+  session: {
+    status: string;
+    endedAt?: Date | null;
+    expiresAt?: Date | null;
+    qaClosesAt?: Date | null;
+  },
+  now: Date,
+  mode: 'INITIAL' | 'REPLAN',
+): void {
+  if (!isSessionEffectivelyFinished(session, now)) {
+    return;
+  }
+  if (
+    mode === 'INITIAL' &&
+    (session.qaClosesAt === null || session.qaClosesAt === undefined) &&
+    !(session.expiresAt instanceof Date && now.getTime() >= session.expiresAt.getTime())
+  ) {
+    return;
+  }
+  assertSessionEffectivelyActive(session, now);
 }
 
 function assertSessionAllowsFollowUpLiveChannel(
@@ -5797,7 +5826,7 @@ const sessionCoreRouter = router({
         throw new TRPCError({ code: 'NOT_FOUND', message: 'Session nicht gefunden.' });
       }
       const serverNow = new Date();
-      assertSessionEffectivelyActive(session, serverNow);
+      assertSessionAllowsInitialQaConfiguration(session, serverNow, input.mode);
       if (input.mode === 'INITIAL' && session.qaClosesAt !== null) {
         throw new TRPCError({
           code: 'CONFLICT',
@@ -5887,7 +5916,7 @@ const sessionCoreRouter = router({
             throw new TRPCError({ code: 'NOT_FOUND', message: 'Session nicht gefunden.' });
           }
           const serverNow = new Date();
-          assertSessionEffectivelyActive(session, serverNow);
+          assertSessionAllowsInitialQaConfiguration(session, serverNow, input.mode);
           const previewServerNow = new Date(input.previewServerNow);
           const confirmedQaClosesAt = new Date(input.confirmedQaClosesAt);
           const confirmedExpiresAt = new Date(input.confirmedExpiresAt);
@@ -5997,6 +6026,7 @@ const sessionCoreRouter = router({
                 onboardingAnonymousMode: input.participationProfile.identityMode === 'ANONYMOUS',
               }
             : {};
+          const reopenFinished = session.status === 'FINISHED' || session.endedAt instanceof Date;
           const updated = await tx.session.update({
             where: { id: session.id },
             data: {
@@ -6013,6 +6043,7 @@ const sessionCoreRouter = router({
               ...(window.requiresSessionExtension ? { expiresAt: window.expiresAt } : {}),
               sessionLifecycleRevision: { increment: 1 },
               ...participation,
+              ...(reopenFinished ? finishedSessionReopenData() : {}),
             },
             select: {
               status: true,

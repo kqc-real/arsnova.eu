@@ -237,6 +237,17 @@
                       }
                     </span>
                   </a>
+                  <button
+                    mat-icon-button
+                    type="button"
+                    class="home-host-session-cta-row__remove"
+                    data-testid="home-host-session-remove"
+                    [attr.data-session-code]="item.code"
+                    [attr.aria-label]="hostSessionCtaRemoveAria(item)"
+                    (click)="removeHostSessionCta(item, $event)"
+                  >
+                    <mat-icon aria-hidden="true">delete_outline</mat-icon>
+                  </button>
                 </li>
               }
             </ul>

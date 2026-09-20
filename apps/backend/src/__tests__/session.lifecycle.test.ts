@@ -445,6 +445,51 @@ describe('session absolute lifecycle', () => {
     },
   );
 
+  it('öffnet Q&A nach Quiz-FINISHED, wenn noch keine Frist eingerichtet war', async () => {
+    const finished = qaConfigurationRow({
+      status: 'FINISHED',
+      endedAt: new Date('2026-09-15T06:30:00.000Z'),
+    });
+    prismaMock.session.findUnique.mockResolvedValue(finished);
+    prismaMock.session.update.mockResolvedValue({
+      ...finished,
+      status: 'LOBBY',
+      endedAt: null,
+      qaEnabled: true,
+      qaOpen: true,
+      qaClosesAt: new Date('2026-09-16T07:00:00.000Z'),
+      expiresAt: new Date('2026-09-16T07:00:00.000Z'),
+      preferredChannel: 'qa',
+      sessionLifecycleRevision: 3,
+    });
+
+    await expect(
+      caller.configureQaChannel({
+        code: 'ABC123',
+        mode: 'INITIAL',
+        selection: { kind: 'DURATION_DAYS', days: 1 },
+        expectedLifecycleRevision: 2,
+        previewServerNow: '2026-09-15T07:00:00.000Z',
+        confirmedQaClosesAt: '2026-09-16T07:00:00.000Z',
+        confirmedExpiresAt: '2026-09-16T07:00:00.000Z',
+        confirmSessionExtension: true,
+        moderationMode: true,
+      }),
+    ).resolves.toMatchObject({
+      preferredChannel: 'qa',
+      qaClosesAt: '2026-09-16T07:00:00.000Z',
+    });
+    expect(prismaMock.session.update).toHaveBeenCalledWith(
+      expect.objectContaining({
+        data: expect.objectContaining({
+          qaEnabled: true,
+          status: 'LOBBY',
+          endedAt: null,
+        }),
+      }),
+    );
+  });
+
   trpcDodIt(
     {
       procedure: 'session.configureQaChannel',
