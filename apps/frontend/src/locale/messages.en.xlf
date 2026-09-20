@@ -9417,8 +9417,8 @@
         </context-group>
       </trans-unit>
       <trans-unit id="homeLiveCard.quizDescription" datatype="html">
-        <source>Wissen abfragen</source>
-        <target>Check understanding</target>
+        <source>Quiz wählen</source>
+        <target>Choose a quiz</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/home/home.component.html</context>
           <context context-type="linenumber">278</context>
@@ -9451,6 +9451,10 @@
           <context context-type="sourcefile">src/app/features/home/home.component.html</context>
           <context context-type="linenumber">263</context>
         </context-group>
+      </trans-unit>
+      <trans-unit id="homeLiveCard.quickFeedbackCreatedSnack" datatype="html">
+        <source>Neue Blitzlicht-Session gestartet.</source>
+        <target>New lightning-feedback session started.</target>
       </trans-unit>
       <trans-unit id="homeLiveCard.quickFeedbackDescription" datatype="html">
         <source>Sofort-Feedback</source>
@@ -18926,6 +18930,18 @@
           <context context-type="linenumber">60</context>
         </context-group>
       </trans-unit>
+      <trans-unit id="sessionHost.quizPendingTitle" datatype="html">
+        <source>Noch kein Quiz gewählt</source>
+        <target>No quiz selected yet</target>
+      </trans-unit>
+      <trans-unit id="sessionHost.quizPendingBody" datatype="html">
+        <source>Wähle ein Quiz aus deiner Sammlung, um diesen Kanal zu starten.</source>
+        <target>Choose a quiz from your collection to start this channel.</target>
+      </trans-unit>
+      <trans-unit id="sessionHost.quizPendingAction" datatype="html">
+        <source>Quiz wählen</source>
+        <target>Choose a quiz</target>
+      </trans-unit>
       <trans-unit id="sessionHost.steeringCalloutRetry" datatype="html">
         <source> Nochmal probieren</source>
         <target>Try again</target>
@@ -20373,8 +20389,8 @@
         </context-group>
       </trans-unit>
       <trans-unit id="sessionHost.startAnotherQuiz" datatype="html">
-        <source>Weiteres Quiz starten</source>
-        <target>Start another quiz</target>
+        <source>Nächstes Quiz in diesem Raum</source>
+        <target>Next quiz in this room</target>
       </trans-unit>
       <trans-unit id="sessionHost.wordCloudAnalysisAria" datatype="html">
         <source>Wortwolken-Ansicht</source>
@@ -25311,8 +25327,8 @@
         </context-group>
       </trans-unit>
       <trans-unit id="sessionQuizPicker.intro" datatype="html">
-        <source> Wähle ein Quiz, das zur aktuellen Teambindung deiner Teilnehmenden passt:</source>
-        <target>Choose a quiz that matches your participants&apos; current team setup:</target>
+        <source> Wähle ein Quiz aus deiner Sammlung.</source>
+        <target>Choose a quiz from your collection.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-quiz-picker-dialog.component.html</context>
           <context context-type="linenumber">9,11</context>
@@ -25327,8 +25343,8 @@
         </context-group>
       </trans-unit>
       <trans-unit id="sessionQuizPicker.empty" datatype="html">
-        <source> Zur aktuellen Teambindung deiner Teilnehmenden passt aktuell kein Quiz aus deiner Sammlung.</source>
-        <target>No quiz in your collection currently matches your participants&apos; current team setup.</target>
+        <source> In deiner Sammlung ist noch kein Quiz.</source>
+        <target>There is no quiz in your collection yet.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-quiz-picker-dialog.component.html</context>
           <context context-type="linenumber">32,35</context>
@@ -25358,17 +25374,37 @@
           <context context-type="linenumber">59</context>
         </context-group>
       </trans-unit>
+      <trans-unit id="sessionQuizPicker.emptyRoomHint" datatype="html">
+        <source>Noch niemand im Raum. Jedes Quiz richtet die Teambindung mit ein.</source>
+        <target>Nobody is in the room yet. Any quiz will set up the team configuration.</target>
+      </trans-unit>
+      <trans-unit id="sessionQuizPicker.mismatchTeam" datatype="html">
+        <source>Teambindung passt nicht. Du kannst alle im Raum den Teams dieses Quiz zuordnen.</source>
+        <target>Team setup does not match. You can assign everyone in the room to this quiz’s teams.</target>
+      </trans-unit>
+      <trans-unit id="sessionQuizPicker.mismatchSolo" datatype="html">
+        <source>Teambindung passt nicht. Du kannst die Teams auflösen und alle einzeln spielen lassen.</source>
+        <target>Team setup does not match. You can end team play and let everyone play individually.</target>
+      </trans-unit>
+      <trans-unit id="sessionQuizPicker.adoptTeam" datatype="html">
+        <source>Teams neu zuordnen</source>
+        <target>Reassign teams</target>
+      </trans-unit>
+      <trans-unit id="sessionQuizPicker.adoptSolo" datatype="html">
+        <source>Ohne Teams starten</source>
+        <target>Start without teams</target>
+      </trans-unit>
       <trans-unit id="sessionQuizPicker.teamsDisabled" datatype="html">
-        <source>Keine aktiven Teams. Du siehst nur Einzelspieler-Quizze. (Ausnahme Demo-Quiz: Hier werden alle automatisch in 2 Teams aufgeteilt.)</source>
-        <target>No active teams. You only see single-player quizzes. (Exception: Demo Quiz, where everyone is automatically split into 2 teams.)</target>
+        <source>Keine aktiven Teams. Einzelspieler-Quizze startest du direkt. Bei einem Team-Quiz kannst du alle im Raum den Teams des Quiz zuordnen.</source>
+        <target>No active teams. Start single-player quizzes directly. For a team quiz, you can assign everyone in the room to that quiz’s teams.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-quiz-picker-dialog.component.ts</context>
           <context context-type="linenumber">64</context>
         </context-group>
       </trans-unit>
       <trans-unit id="sessionQuizPicker.teamModeHint" datatype="html">
-        <source>Aktive Teams. Du siehst nur Team-Quizze. Eure aktuelle Teamstruktur und alle Pseudonyme werden nahtlos ins Quiz übernommen.</source>
-        <target>Active teams. You only see team quizzes. Your current team structure and all pseudonyms are seamlessly transferred to the quiz.</target>
+        <source>Aktive Teams. Team-Quizze übernehmen die aktuelle Struktur. Ein Einzelspieler-Quiz kannst du trotzdem wählen – dann endet die Teambindung.</source>
+        <target>Teams are active. Team quizzes keep the current structure. You can still pick a single-player quiz — then team play ends.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-quiz-picker-dialog.component.ts</context>
           <context context-type="linenumber">66</context>

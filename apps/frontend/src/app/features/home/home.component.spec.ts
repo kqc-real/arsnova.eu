@@ -6,6 +6,7 @@ import { TestBed } from '@angular/core/testing';
 import { ActivatedRoute, convertToParamMap, provideRouter, Router } from '@angular/router';
 import { provideHttpClient } from '@angular/common/http';
 import { MatDialog } from '@angular/material/dialog';
+import { MatSnackBar } from '@angular/material/snack-bar';
 import { of } from 'rxjs';
 import { HomeComponent } from './home.component';
 import { QuizStoreService } from '../quiz/data/quiz-store.service';
@@ -408,7 +409,13 @@ describe('HomeComponent', () => {
       );
       expect(taskTitles).toEqual(['Session starten', 'Mit einem Klick', 'Quiz erstellen']);
       expect(fixture.nativeElement.querySelectorAll('.home-card__eyebrow')).toHaveLength(4);
-      expect(fixture.nativeElement.querySelector('.home-card__icon-wrap')).toBeNull();
+      expect(
+        Array.from(
+          fixture.nativeElement.querySelectorAll<HTMLElement>(
+            '.home-card__icon-wrap .home-card__icon',
+          ),
+        ).map((icon) => icon.textContent?.trim()),
+      ).toEqual(['group_add', 'play_circle', 'bolt', 'event']);
       expect(fixture.nativeElement.querySelector('.home-card mat-card-subtitle')).toBeNull();
     });
 
@@ -1300,7 +1307,7 @@ describe('HomeComponent', () => {
         /\.home-card__actions--stack\s*\{[^}]*flex-direction:\s*column[^}]*justify-content:\s*center/,
       );
       expect(scss).toMatch(
-        /\.home-live-grid\s*\{[^}]*grid-template-columns:\s*minmax\(0,\s*1fr\)[^}]*column-gap:\s*0\.75rem[^}]*row-gap:\s*1rem/,
+        /\.home-live-grid\s*\{[^}]*grid-template-columns:\s*repeat\(2,\s*minmax\(0,\s*1fr\)\)[^}]*grid-auto-rows:\s*1fr[^}]*column-gap:\s*0\.75rem[^}]*row-gap:\s*1rem/,
       );
       expect(scss).toMatch(
         /@media \(min-width:\s*600px\)\s*\{[\s\S]*?\.home-live-grid\s*\{[^}]*grid-template-columns:\s*repeat\(3,\s*minmax\(0,\s*1fr\)\)[^}]*row-gap:\s*0\.75rem/,
@@ -1312,10 +1319,10 @@ describe('HomeComponent', () => {
         /\.home-card__cta-stack\s*\{[^}]*flex-direction:\s*column[^}]*gap:\s*1rem/,
       );
       expect(scss).toMatch(
-        /\.home-prepare-secondary-grid\s*\{[^}]*grid-template-columns:\s*minmax\(0,\s*1fr\)[^}]*column-gap:\s*0\.75rem[^}]*row-gap:\s*1rem/,
+        /\.home-prepare-secondary-grid\s*\{[^}]*grid-template-columns:\s*minmax\(0,\s*1fr\)[^}]*grid-auto-rows:\s*1fr[^}]*column-gap:\s*0\.75rem[^}]*row-gap:\s*1rem/,
       );
       expect(scss).toMatch(
-        /\.home-feedback-chip-grid\s*\{[^}]*grid-template-columns:\s*repeat\(2,\s*minmax\(0,\s*1fr\)\)/,
+        /\.home-feedback-chip-grid\s*\{[^}]*grid-template-columns:\s*repeat\(2,\s*minmax\(0,\s*1fr\)\)[^}]*grid-auto-rows:\s*1fr/,
       );
       expect(scss).toMatch(
         /@media \(min-width:\s*480px\)\s*\{[^}]*\.home-prepare-secondary-grid\s*\{[^}]*grid-template-columns:\s*repeat\(2,\s*minmax\(0,\s*1fr\)\)/,
@@ -1341,16 +1348,15 @@ describe('HomeComponent', () => {
       expect(desktopLayout).toMatch(
         /\.home-card \.home-card__content,\s*\.home-card \.home-card__actions\s*\{[^}]*padding-bottom:\s*1\.25rem/,
       );
-      expect(desktopLayout).toMatch(/\.home-feedback-chip-grid\s*\{[^}]*gap:\s*1rem/);
       expect(desktopLayout).toMatch(
-        /\.home-feedback-chip\s*\{[^}]*min-height:\s*4\.25rem[^}]*padding:\s*0\.65rem 0\.5rem/,
+        /\.home-feedback-chip-grid\s*\{[^}]*grid-template-columns:\s*minmax\(0,\s*1fr\)[^}]*grid-auto-rows:\s*1fr[^}]*gap:\s*1rem/,
+      );
+      expect(desktopLayout).toMatch(
+        /\.home-feedback-chip\s*\{[^}]*min-height:\s*var\(--home-host-action-min-height[^}]*padding:\s*0\.75rem 0\.65rem/,
       );
       expect(scss).toMatch(/\.home-feedback-chip__label--wide-compact\s*\{[^}]*display:\s*none/);
-      expect(desktopLayout).toMatch(
+      expect(desktopLayout).not.toMatch(
         /\.home-feedback-chip__label--wide-full\s*\{[^}]*display:\s*none/,
-      );
-      expect(desktopLayout).toMatch(
-        /\.home-feedback-chip__label--wide-compact\s*\{[^}]*display:\s*block/,
       );
     });
 
@@ -1375,7 +1381,7 @@ describe('HomeComponent', () => {
         liveButtons.map((button) =>
           button.querySelector('.home-choice-button__description')?.textContent?.trim(),
         ),
-      ).toEqual(['Wissen abfragen', 'Fragen & Wortwolke', 'Sofort-Feedback']);
+      ).toEqual(['Quiz wählen', 'Fragen & Wortwolke', 'Sofort-Feedback']);
       for (const button of liveButtons) {
         expect(button.querySelector('.home-choice-button__label')).not.toBeNull();
         expect(button.querySelector('.home-choice-button__description')).not.toBeNull();
@@ -1441,11 +1447,17 @@ describe('HomeComponent', () => {
       expect(descriptionRule).toMatch(/font:\s*var\(--mat-sys-body-small\)/);
       expect(descriptionRule).toMatch(/color:\s*inherit/);
       expect(descriptionRule).not.toMatch(/opacity|color-mix/);
-      expect(scss).toMatch(/\.home-choice-button\s*\{[^}]*min-height:\s*3\.75rem/);
+      expect(scss).toMatch(/\.home-host-stack\s*\{[^}]*--home-host-action-min-height:\s*4\.75rem/);
+      expect(scss).toMatch(
+        /\.home-choice-button\s*\{[^}]*min-height:\s*var\(--home-host-action-min-height/,
+      );
       expect(scss).toMatch(
         /\.home-host-session-cta-row__item > \.home-choice-button\s*\{[\s\S]*?--mdc-filled-button-container-shape:\s*var\(--mat-sys-corner-medium\)/,
       );
-      expect(scss).toMatch(/\.home-feedback-chip\s*\{[^}]*min-height:\s*4rem/);
+      expect(scss).toMatch(
+        /\.home-feedback-chip\s*\{[^}]*min-height:\s*var\(--home-host-action-min-height/,
+      );
+      expect(scss).toMatch(/\.home-feedback-chip__icons\s*\{[^}]*gap:\s*0\.6rem/);
       expect(scss).not.toContain('var(--mat-sys-label-small)');
       expect(playfulLibraryRule).toMatch(/color:\s*var\(--mat-sys-on-surface\)/);
       expect(playfulLibraryRule).toMatch(/border-color:\s*var\(--mat-sys-on-surface-variant\)/);
@@ -1823,6 +1835,60 @@ describe('HomeComponent', () => {
   });
 
   describe('openHeroHostTab', () => {
+    it('legt über Quiz eine leere Host-Session an und öffnet die Auswahl', async () => {
+      const { trpc } = await import('../../core/trpc.client');
+      vi.mocked(trpc.session.create.mutate).mockResolvedValueOnce({
+        id: 'sess-quiz-new',
+        code: 'QZ0001',
+        hostToken: 'quiz-new-token',
+      });
+      const comp = createHomeComponent();
+      const navigateSpy = vi.spyOn(TestBed.inject(Router), 'navigateByUrl').mockResolvedValue(true);
+
+      await comp.openHeroHostTab('quiz');
+
+      const created = vi.mocked(trpc.session.create.mutate).mock.calls.at(-1)?.[0] as {
+        type?: string;
+        qaEnabled?: boolean;
+        quickFeedbackEnabled?: boolean;
+      };
+      expect(created).toMatchObject({ type: 'QUIZ' });
+      expect(created.qaEnabled).not.toBe(true);
+      expect(created.quickFeedbackEnabled).not.toBe(true);
+      expect(navigateSpy).toHaveBeenCalledWith('/session/QZ0001/host?tab=quiz');
+    });
+
+    it('öffnet eine vorhandene Host-Session über Quiz mit Auswahl-Tab', async () => {
+      const { trpc } = await import('../../core/trpc.client');
+      vi.mocked(trpc.session.getInfoForReconnect.query).mockResolvedValueOnce({
+        id: 'sess-existing',
+        code: 'TEST01',
+        type: 'QUIZ',
+        status: 'ACTIVE',
+        serverTime: '2026-09-20T12:00:00.000Z',
+        quizName: null,
+        title: null,
+        participantCount: 0,
+        channels: {
+          quiz: { enabled: false },
+          qa: { enabled: true, open: true, state: 'OPEN' as const },
+          quickFeedback: { enabled: false, open: false },
+        },
+      });
+      setHostToken('TEST01', 'host-token-test01');
+      const comp = createHomeComponent();
+      comp.sessionCode.set('TEST01');
+      const navigateSpy = vi.spyOn(TestBed.inject(Router), 'navigate').mockResolvedValue(true);
+
+      await comp.openHeroHostTab('quiz');
+
+      expect(trpc.session.create.mutate).not.toHaveBeenCalled();
+      expect(navigateSpy).toHaveBeenCalledWith(['session', 'TEST01', 'host'], {
+        queryParams: { tab: 'quiz' },
+      });
+      clearHostToken('TEST01');
+    });
+
     it('legt über Q&A immer eine neue Host-Session an, auch mit vorhandenem Host-Token', async () => {
       const { trpc } = await import('../../core/trpc.client');
       vi.mocked(trpc.session.create.mutate).mockResolvedValueOnce({
@@ -1852,6 +1918,7 @@ describe('HomeComponent', () => {
       const comp = createHomeComponent();
       comp.sessionCode.set('TEST01');
       vi.spyOn(TestBed.inject(Router), 'navigate').mockResolvedValue(true);
+      const snackSpy = vi.spyOn(TestBed.inject(MatSnackBar), 'open');
 
       await comp.openHeroHostTab('quickFeedback');
 
@@ -1860,6 +1927,7 @@ describe('HomeComponent', () => {
         anonymousClientId: expect.any(String),
       });
       expect(trpc.session.create.mutate).not.toHaveBeenCalled();
+      expect(snackSpy).not.toHaveBeenCalled();
       clearHostToken('TEST01');
     });
 
@@ -1893,11 +1961,17 @@ describe('HomeComponent', () => {
       comp.sessionCode.set('TEST01');
       const router = TestBed.inject(Router);
       const navigateSpy = vi.spyOn(router, 'navigateByUrl').mockResolvedValue(true);
+      const snackSpy = vi.spyOn(TestBed.inject(MatSnackBar), 'open');
 
       await comp.openHeroHostTab('quickFeedback');
 
       expect(trpc.session.create.mutate).toHaveBeenCalled();
       expect(navigateSpy).toHaveBeenCalledWith('/session/QF0002/host?tab=quickFeedback');
+      expect(snackSpy).toHaveBeenCalledWith(
+        'Neue Blitzlicht-Session gestartet.',
+        '',
+        expect.objectContaining({ duration: 4500 }),
+      );
       clearHostToken('TEST01');
     });
 
@@ -2117,6 +2191,7 @@ describe('HomeComponent', () => {
       const comp = createHomeComponent();
       const router = TestBed.inject(Router);
       const navigateSpy = vi.spyOn(router, 'navigateByUrl').mockResolvedValue(true);
+      const snackSpy = vi.spyOn(TestBed.inject(MatSnackBar), 'open');
 
       await comp.openHeroHostTab('quickFeedback');
 
@@ -2134,6 +2209,11 @@ describe('HomeComponent', () => {
       });
       expect(navigateSpy).toHaveBeenCalledWith('/session/QF1234/host?tab=quickFeedback');
       expect(comp.joinError()).toBeNull();
+      expect(snackSpy).toHaveBeenCalledWith(
+        'Neue Blitzlicht-Session gestartet.',
+        '',
+        expect.objectContaining({ duration: 4500 }),
+      );
     });
 
     it('startet im seriösen Preset eine neue Blitzlicht-Host-Session mit Oberstufen-Pseudonymen', async () => {
@@ -3460,23 +3540,30 @@ describe('HomeComponent', () => {
       expect(library.classList.contains('mat-tonal-button')).toBe(false);
     });
 
-    it('zeigt mit eigenem Quiz nur Starten gefuellt, Erstellen tonal und Sammlung outlined', () => {
+    it('zeigt mit eigenem Quiz Starten auf der Live-Karte, Vorbereiten bleibt ohne Filled-CTA', () => {
       const quizStore = TestBed.inject(QuizStoreService);
       quizStore.createQuiz({ name: 'Live-Quiz', description: '' });
 
       const fixture = createHomeFixture();
       fixture.detectChanges();
-      const card = fixture.nativeElement.querySelector('.home-card--create') as HTMLElement;
+      const prepareCard = fixture.nativeElement.querySelector('.home-card--create') as HTMLElement;
+      const liveCard = fixture.nativeElement.querySelector('.home-card--live') as HTMLElement;
 
-      const filled = card.querySelectorAll('.mat-mdc-unelevated-button');
-      expect(filled).toHaveLength(1);
-      expect(filled[0]?.textContent).toContain('Letztes Quiz starten');
-      expect(card.textContent).toContain('Neues Quiz erstellen');
+      const lastQuiz = liveCard.querySelector(
+        '[data-testid="home-live-last-quiz"]',
+      ) as HTMLAnchorElement | null;
+      expect(lastQuiz).not.toBeNull();
+      expect(lastQuiz?.textContent).toContain('Letztes Quiz starten');
+      expect(lastQuiz?.classList.contains('mat-mdc-unelevated-button')).toBe(true);
+      expect(lastQuiz?.getAttribute('href') ?? '').toContain('startLiveQuiz');
+      expect(prepareCard.querySelectorAll('.mat-mdc-unelevated-button')).toHaveLength(0);
+      expect(prepareCard.textContent).not.toContain('Letztes Quiz starten');
+      expect(prepareCard.textContent).toContain('Neues Quiz erstellen');
 
-      const create = Array.from(card.querySelectorAll('.home-cta')).find((el) =>
+      const create = Array.from(prepareCard.querySelectorAll('.home-cta')).find((el) =>
         el.textContent?.includes('Neues Quiz erstellen'),
       ) as HTMLAnchorElement | undefined;
-      const library = Array.from(card.querySelectorAll('.home-cta')).find((el) =>
+      const library = Array.from(prepareCard.querySelectorAll('.home-cta')).find((el) =>
         el.textContent?.includes('Quiz-Sammlung öffnen'),
       ) as HTMLAnchorElement | undefined;
       expect(create?.classList.contains('home-cta--secondary')).toBe(true);

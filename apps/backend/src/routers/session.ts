@@ -3156,6 +3156,15 @@ function canBootstrapDemoQuizTeamsOntoTeamlessSession(
   );
 }
 
+/** Leerer Raum: Team-Quiz darf die noch teamlose Session auf das Quizprofil heben. */
+function canAdoptQuizTeamsOntoEmptyTeamlessSession(
+  sessionProfile: SessionOnboardingProfile,
+  quizProfile: SessionOnboardingProfile,
+  participantCount: number,
+): boolean {
+  return participantCount === 0 && !sessionProfile.teamMode && quizProfile.teamMode;
+}
+
 async function ensureSessionTeams(
   sessionId: string,
   requestedTeamCount: number,
@@ -3307,6 +3316,26 @@ async function buildSessionTeamLeaderboard(
       memberCount: team.memberCount,
       averageScore: team.averageScore,
     }));
+}
+
+async function assignAllParticipantsToTeams(sessionId: string, teamIds: string[]): Promise<void> {
+  if (teamIds.length === 0) {
+    return;
+  }
+
+  const participants = await prisma.participant.findMany({
+    where: { sessionId },
+    orderBy: { joinedAt: 'asc' },
+    select: { id: true },
+  });
+  await Promise.all(
+    participants.map((participant, index) =>
+      prisma.participant.update({
+        where: { id: participant.id },
+        data: { teamId: teamIds[index % teamIds.length] },
+      }),
+    ),
+  );
 }
 
 async function assignExistingParticipantsToTeams(
@@ -6384,9 +6413,17 @@ const sessionCoreRouter = router({
         quizOnboardingProfile,
         quiz,
       );
+      const adoptEmptyRoomTeams = canAdoptQuizTeamsOntoEmptyTeamlessSession(
+        sessionOnboardingProfile,
+        quizOnboardingProfile,
+        session._count.participants,
+      );
+      const adoptQuizTeams = input.adoptQuizTeams === true;
       if (
         !areSessionOnboardingProfilesCompatible(sessionOnboardingProfile, quizOnboardingProfile) &&
-        !bootstrapDemoTeams
+        !bootstrapDemoTeams &&
+        !adoptEmptyRoomTeams &&
+        !adoptQuizTeams
       ) {
         throw new TRPCError({
           code: 'BAD_REQUEST',
@@ -6394,6 +6431,7 @@ const sessionCoreRouter = router({
         });
       }
       const existingParticipantsForManualTeams =
+        !adoptQuizTeams &&
         quizOnboardingProfile.teamMode &&
         quizOnboardingProfile.teamAssignment === 'MANUAL' &&
         session._count.participants > 0
@@ -6410,10 +6448,11 @@ const sessionCoreRouter = router({
         });
       }
 
-      const onboardingForUpdate = bootstrapDemoTeams
+      const liftQuizTeamProfile = bootstrapDemoTeams || adoptEmptyRoomTeams || adoptQuizTeams;
+      const onboardingForUpdate = liftQuizTeamProfile
         ? {
             ...sessionOnboardingProfile,
-            teamMode: true,
+            teamMode: quizOnboardingProfile.teamMode,
             teamCount: quizOnboardingProfile.teamCount,
             teamAssignment: quizOnboardingProfile.teamAssignment,
             teamNames: quizOnboardingProfile.teamNames,
@@ -6458,12 +6497,17 @@ const sessionCoreRouter = router({
           quizOnboardingProfile.teamCount ?? DEFAULT_TEAM_COUNT,
           quizOnboardingProfile.teamNames,
         );
-        if (quizOnboardingProfile.teamAssignment === 'AUTO') {
-          await assignExistingParticipantsToTeams(
-            session.id,
-            teams.map((team) => team.id),
-          );
+        const teamIds = teams.map((team) => team.id);
+        if (adoptQuizTeams) {
+          await assignAllParticipantsToTeams(session.id, teamIds);
+        } else if (quizOnboardingProfile.teamAssignment === 'AUTO') {
+          await assignExistingParticipantsToTeams(session.id, teamIds);
         }
+      } else if (adoptQuizTeams) {
+        await prisma.participant.updateMany({
+          where: { sessionId: session.id },
+          data: { teamId: null },
+        });
       }
 
       invalidateSessionStatusCachesForCode(code);

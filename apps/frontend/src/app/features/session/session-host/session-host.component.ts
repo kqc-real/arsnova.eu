@@ -38,7 +38,7 @@ import {
   MatCardSubtitle,
   MatCardTitle,
 } from '@angular/material/card';
-import { MatDialog } from '@angular/material/dialog';
+import { MatDialog, MatDialogRef } from '@angular/material/dialog';
 import { MatFormField, MatLabel } from '@angular/material/form-field';
 import { MatIcon } from '@angular/material/icon';
 import { MatInput } from '@angular/material/input';
@@ -236,7 +236,7 @@ import {
   tempoTrendEmoji,
   tempoTrendLabel,
 } from '../../feedback/feedback.config';
-import { QuizStoreService, DEMO_QUIZ_ID } from '../../quiz/data/quiz-store.service';
+import { QuizStoreService } from '../../quiz/data/quiz-store.service';
 import {
   buildQaQuestionsCsvFilename,
   buildSessionResultsCsvFilename,
@@ -257,6 +257,7 @@ import {
 import {
   SessionQuizPickerDialogComponent,
   type SessionQuizPickerDialogData,
+  type SessionQuizPickerResult,
 } from '../session-quiz-picker-dialog.component';
 import {
   FoyerEntranceLayerComponent,
@@ -761,6 +762,7 @@ export class SessionHostComponent implements OnInit, OnDestroy {
   @ViewChild('qaTitleInput') qaTitleInputRef?: ElementRef<HTMLInputElement>;
   @ViewChild('qaChannelHeading') qaChannelHeadingRef?: ElementRef<HTMLElement>;
   @ViewChild('moderationCompassButton') moderationCompassButtonRef?: ElementRef<HTMLButtonElement>;
+  @ViewChild('exitAnchor') private exitAnchorRef?: ElementRef<HTMLElement>;
   @ViewChild('freetextWordCloud') freetextWordCloud?: WordCloudComponent;
   @ViewChildren('lobbyTeamCard') lobbyTeamCardRefs?: QueryList<ElementRef<HTMLElement>>;
   readonly qaHighlightedQuestionIds = signal<Set<string>>(new Set());
@@ -797,6 +799,11 @@ export class SessionHostComponent implements OnInit, OnDestroy {
   private readonly foyerTeamPulseClearTimers = new Map<string, ReturnType<typeof setTimeout>>();
   private readonly hiddenLobbyParticipantTimers = new Map<string, ReturnType<typeof setTimeout>>();
   private readonly landedTeamEchoTimers = new Map<string, ReturnType<typeof setTimeout>>();
+  private exitClearanceObserver: ResizeObserver | null = null;
+  private exitClearanceViewport: VisualViewport | null = null;
+  private readonly onExitClearanceViewportChange = (): void => {
+    this.syncExitAnchorClearance();
+  };
   private exitAnchorTouchStartY: number | null = null;
   private exitAnchorTouchLastY: number | null = null;
   private exitAnchorTouchScrolling = false;
@@ -1002,6 +1009,12 @@ export class SessionHostComponent implements OnInit, OnDestroy {
   readonly qaWordCloudAnalysisVariant = signal<WordCloudAnalysisVariant>('THEME');
   readonly qaWordCloudDialogOpen = signal(false);
   private qaWordCloudDialogRef: { close?: (result?: unknown) => void } | null = null;
+  private quizPickerDialogRef: MatDialogRef<
+    SessionQuizPickerDialogComponent,
+    SessionQuizPickerResult | false
+  > | null = null;
+  private quizPickerOpening = false;
+  readonly quizPickerPending = signal(false);
   readonly qaWordCloudFrozen = signal(false);
   readonly frozenQaWordCloudQuestions = signal<QaQuestionDTO[] | null>(null);
   readonly qaWordCloudThemeAnalysisPending = signal(false);
@@ -3604,9 +3617,17 @@ export class SessionHostComponent implements OnInit, OnDestroy {
     afterNextRender(
       () => {
         this.bindPresenterDesktopMedia();
+        this.bindExitAnchorClearance();
       },
       { injector: this.injector },
     );
+    effect(() => {
+      void this.effectiveStatus();
+      void this.showChannelTabs();
+      void this.keepQaOpenOnHostLeave();
+      void this.sessionLifecycle();
+      afterNextRender(() => this.bindExitAnchorClearance(), { injector: this.injector });
+    });
   }
 
   getColor(index: number): string {
@@ -4335,6 +4356,21 @@ export class SessionHostComponent implements OnInit, OnDestroy {
 
       this.document.addEventListener('click', this.unlockListener, { once: true });
       this.document.addEventListener('keydown', this.unlockListener, { once: true });
+    }
+
+    await this.openRequestedQuizPicker();
+  }
+
+  private async openRequestedQuizPicker(): Promise<void> {
+    if (this.requestedInitialTab !== 'quiz') {
+      return;
+    }
+    if (!this.channels().quiz) {
+      await this.selectChannel('quiz');
+      return;
+    }
+    if (this.canStartAnotherQuiz()) {
+      await this.startAnotherQuizAfterFinish();
     }
   }
 
@@ -5150,6 +5186,7 @@ export class SessionHostComponent implements OnInit, OnDestroy {
     }
     this.document.removeEventListener('click', this.unlockListener);
     this.document.removeEventListener('keydown', this.unlockListener);
+    this.unbindExitAnchorClearance();
   }
 
   /** Warnt den Host, wenn er den Tab schließt oder die Seite neu lädt. */
@@ -5567,6 +5604,12 @@ export class SessionHostComponent implements OnInit, OnDestroy {
     this.hostSteeringCallout.set(null);
   }
 
+  private dismissQaSteeringCallout(): void {
+    if (this.hostSteeringCallout()?.suggestedArea === 'QA') {
+      this.dismissHostSteeringCallout();
+    }
+  }
+
   openHostProblemFeedback(event: Event, state: HostSteeringCalloutState): void {
     const target = event.currentTarget instanceof HTMLElement ? event.currentTarget : null;
     this.contextualFeedbackOffer.open(
@@ -5674,6 +5717,59 @@ export class SessionHostComponent implements OnInit, OnDestroy {
       }
       /* Hinweis bleibt, bis Retry klappt oder die Person schließt. */
     }
+  }
+
+  private bindExitAnchorClearance(): void {
+    this.unbindExitAnchorClearance();
+    const bar = this.exitAnchorRef?.nativeElement;
+    if (!bar || typeof ResizeObserver === 'undefined') {
+      this.syncExitAnchorClearance();
+      return;
+    }
+    this.exitClearanceObserver = new ResizeObserver(() => this.syncExitAnchorClearance());
+    this.exitClearanceObserver.observe(bar);
+    this.exitClearanceViewport = window.visualViewport ?? null;
+    this.exitClearanceViewport?.addEventListener('resize', this.onExitClearanceViewportChange);
+    this.exitClearanceViewport?.addEventListener('scroll', this.onExitClearanceViewportChange);
+    this.syncExitAnchorClearance();
+  }
+
+  private unbindExitAnchorClearance(): void {
+    this.exitClearanceObserver?.disconnect();
+    this.exitClearanceObserver = null;
+    this.exitClearanceViewport?.removeEventListener('resize', this.onExitClearanceViewportChange);
+    this.exitClearanceViewport?.removeEventListener('scroll', this.onExitClearanceViewportChange);
+    this.exitClearanceViewport = null;
+  }
+
+  private sessionHostRoot(): HTMLElement | null {
+    const bar = this.exitAnchorRef?.nativeElement;
+    if (bar) {
+      return bar.closest('.session-host');
+    }
+    return this.document.querySelector('section.session-host');
+  }
+
+  private syncExitAnchorClearance(): void {
+    const root = this.sessionHostRoot();
+    const bar = this.exitAnchorRef?.nativeElement;
+    if (!root || !bar) {
+      root?.style.removeProperty('--session-host-exit-clearance');
+      return;
+    }
+    const rect = bar.getBoundingClientRect();
+    if (rect.height <= 0) {
+      root.style.removeProperty('--session-host-exit-clearance');
+      return;
+    }
+    const viewportHeight = window.visualViewport?.height ?? window.innerHeight;
+    const viewportTop = window.visualViewport?.offsetTop ?? 0;
+    const occupied = Math.ceil(viewportTop + viewportHeight - rect.top);
+    if (occupied <= 0) {
+      root.style.removeProperty('--session-host-exit-clearance');
+      return;
+    }
+    root.style.setProperty('--session-host-exit-clearance', `${occupied}px`);
   }
 
   onExitAnchorWheel(event: WheelEvent): void {
@@ -6427,6 +6523,7 @@ export class SessionHostComponent implements OnInit, OnDestroy {
 
   @HostListener('window:resize')
   onWindowResize(): void {
+    this.syncExitAnchorClearance();
     if (!this.showTeamFoyerEntranceLayers()) {
       return;
     }
@@ -9147,6 +9244,9 @@ export class SessionHostComponent implements OnInit, OnDestroy {
         this.syncQaTitleDraftFromSession();
       }
       this.ensureActiveChannel();
+      if (channel === 'quiz') {
+        await this.startQuizSelectionFlowIfPending();
+      }
       if (this.effectiveStatus() !== 'FINISHED') {
         await this.reconcilePresentedChannel();
       }
@@ -9190,6 +9290,13 @@ export class SessionHostComponent implements OnInit, OnDestroy {
     await this.startQuizSelectionFlow();
   }
 
+  async startQuizSelectionFromEmptyChannel(): Promise<void> {
+    if (this.channels().quiz || this.channelActivationPending()) {
+      return;
+    }
+    await this.startQuizSelectionFlow();
+  }
+
   private async reopenQuickFeedbackAfterQuiz(): Promise<void> {
     if (!this.code || this.channelActivationPending()) {
       return;
@@ -9213,42 +9320,66 @@ export class SessionHostComponent implements OnInit, OnDestroy {
     }
   }
 
+  private async startQuizSelectionFlowIfPending(): Promise<void> {
+    if (!this.quizPickerPending() || this.quizPickerDialogRef || this.channelActivationPending()) {
+      return;
+    }
+    await this.startQuizSelectionFlow();
+  }
+
   private async startQuizSelectionFlow(): Promise<void> {
-    if (this.channelActivationPending() || !this.code) {
+    if (
+      this.channelActivationPending() ||
+      !this.code ||
+      this.quizPickerDialogRef ||
+      this.quizPickerOpening
+    ) {
       return;
     }
 
-    const localQuizId = await this.chooseQuizForSession();
-    if (!localQuizId) {
-      return;
-    }
-
-    this.channelActivationPending.set('quiz');
+    this.quizPickerOpening = true;
+    this.quizPickerPending.set(true);
     try {
-      const payload = this.quizStore.getUploadPayload(localQuizId);
-      const { quizId: uploadedQuizId } = await trpc.quiz.upload.mutate(payload);
-      this.quizStore.setLastServerUploadAccess(
-        localQuizId,
-        uploadedQuizId,
-        await createQuizHistoryAccessProof(payload),
-      );
-      await this.attachUploadedQuizToSession(uploadedQuizId);
-    } catch (error) {
-      this.openHostSteeringCalloutForSteeringFailure(
-        () => void this.startQuizSelectionFlow(),
-        error,
-      );
+      const choice = await this.chooseQuizForSession();
+      if (!choice) {
+        this.restoreChannelAfterQuizPickerDismissed();
+        return;
+      }
+      this.quizPickerPending.set(false);
+
+      this.channelActivationPending.set('quiz');
+      try {
+        const payload = this.quizStore.getUploadPayload(choice.quizId);
+        const { quizId: uploadedQuizId } = await trpc.quiz.upload.mutate(payload);
+        this.quizStore.setLastServerUploadAccess(
+          choice.quizId,
+          uploadedQuizId,
+          await createQuizHistoryAccessProof(payload),
+        );
+        await this.attachUploadedQuizToSession(uploadedQuizId, choice.adoptQuizTeams);
+      } catch (error) {
+        this.openHostSteeringCalloutForSteeringFailure(
+          () => void this.startQuizSelectionFlow(),
+          error,
+        );
+      } finally {
+        this.channelActivationPending.set(null);
+      }
     } finally {
-      this.channelActivationPending.set(null);
+      this.quizPickerOpening = false;
     }
   }
 
-  private async attachUploadedQuizToSession(uploadedQuizId: string): Promise<void> {
+  private async attachUploadedQuizToSession(
+    uploadedQuizId: string,
+    adoptQuizTeams = false,
+  ): Promise<void> {
     let attached = false;
     try {
       const channels = await trpc.session.attachQuizToSession.mutate({
         code: this.code.toUpperCase(),
         quizId: uploadedQuizId,
+        ...(adoptQuizTeams ? { adoptQuizTeams: true } : {}),
       });
       attached = true;
       // Kanal sofort lokal aktivieren, bevor Folge-Refreshes (getInfo/Teams/…) durchlaufen.
@@ -9260,7 +9391,7 @@ export class SessionHostComponent implements OnInit, OnDestroy {
     } catch (error) {
       const retry = attached
         ? () => void this.finalizeQuizChannelActivation()
-        : () => void this.attachUploadedQuizToSession(uploadedQuizId);
+        : () => void this.attachUploadedQuizToSession(uploadedQuizId, adoptQuizTeams);
       this.openHostSteeringCalloutForSteeringFailure(retry, error);
     }
   }
@@ -9341,15 +9472,12 @@ export class SessionHostComponent implements OnInit, OnDestroy {
     await this.refreshQaQuestions({ silent: true });
   }
 
-  private async chooseQuizForSession(): Promise<string | undefined> {
+  private async chooseQuizForSession(): Promise<SessionQuizPickerResult | undefined> {
     this.quizStore.ensureDemoQuiz();
-    const quizzes = this.quizStore
-      .quizzes()
-      .filter((quiz) => this.isLocalQuizCompatibleWithSession(quiz.id));
     const dialogRef = this.dialog.open<
       SessionQuizPickerDialogComponent,
       SessionQuizPickerDialogData,
-      string
+      SessionQuizPickerResult | false
     >(SessionQuizPickerDialogComponent, {
       width: '36rem',
       maxWidth: 'calc(100vw - 1.5rem)',
@@ -9357,40 +9485,43 @@ export class SessionHostComponent implements OnInit, OnDestroy {
       panelClass: 'session-quiz-picker-dialog-panel',
       backdropClass: 'session-quiz-picker-dialog-backdrop',
       data: {
-        quizzes,
+        quizzes: this.quizStore.quizzes(),
         sessionProfile: this.getSessionOnboardingProfile(),
+        emptyRoom: (this.session()?.participantCount ?? 0) === 0,
       },
     });
-    return firstValueFrom(dialogRef.afterClosed());
+    this.quizPickerDialogRef = dialogRef;
+    const result = await firstValueFrom(dialogRef.afterClosed());
+    this.quizPickerDialogRef = null;
+    if (result === false) {
+      this.quizPickerPending.set(false);
+      return undefined;
+    }
+    if (result && typeof result === 'object' && typeof result.quizId === 'string') {
+      return result;
+    }
+    return undefined;
   }
 
-  private isLocalQuizCompatibleWithSession(localQuizId: string): boolean {
-    const sessionProfile = this.getSessionOnboardingProfile();
-    if (!sessionProfile) {
-      return true;
+  private restoreChannelAfterQuizPickerDismissed(): void {
+    if (this.channels().quiz) {
+      this.ensureActiveChannel();
+      return;
     }
-    const quiz = this.quizStore.getQuizById(localQuizId);
-    if (!quiz) {
-      return false;
+    const current = this.activeChannel();
+    if (current !== 'quiz' && this.isChannelEnabled(current)) {
+      this.ensureActiveChannel();
+      return;
     }
-    const quizProfile = {
-      nicknameTheme: quiz.settings.nicknameTheme,
-      allowCustomNicknames: quiz.settings.allowCustomNicknames,
-      anonymousMode: quiz.settings.anonymousMode,
-      teamMode: quiz.settings.teamMode,
-      teamCount: quiz.settings.teamMode ? quiz.settings.teamCount : null,
-      teamAssignment: quiz.settings.teamMode ? quiz.settings.teamAssignment : 'AUTO',
-      teamNames: quiz.settings.teamMode ? quiz.settings.teamNames : [],
-    };
-    if (
-      localQuizId === DEMO_QUIZ_ID &&
-      !sessionProfile.teamMode &&
-      quizProfile.teamMode &&
-      quizProfile.teamAssignment === 'AUTO'
-    ) {
-      return true;
+    const preferred = this.session()?.preferredChannel;
+    const fallback =
+      preferred && preferred !== 'quiz' && this.isChannelEnabled(preferred)
+        ? preferred
+        : this.visibleChannels().find((channel) => channel !== 'quiz');
+    if (fallback) {
+      this.activeChannel.set(fallback);
     }
-    return this.areOnboardingProfilesCompatible(sessionProfile, quizProfile);
+    this.ensureActiveChannel();
   }
 
   private getSessionOnboardingProfile(): SessionOnboardingProfile | null {
@@ -9409,13 +9540,6 @@ export class SessionHostComponent implements OnInit, OnDestroy {
         : 'AUTO',
       teamNames: session.teamMode ? (session.teamNames ?? []) : [],
     };
-  }
-
-  private areOnboardingProfilesCompatible(
-    sessionProfile: SessionOnboardingProfile,
-    quizProfile: SessionOnboardingProfile,
-  ): boolean {
-    return sessionProfile.teamMode === quizProfile.teamMode;
   }
 
   private async enableChannel(
@@ -10369,7 +10493,7 @@ export class SessionHostComponent implements OnInit, OnDestroy {
       this.qaListNextCursor.set(null);
       this.qaListRankingRevision.set(null);
       this.resetQaListPageNavigation();
-      this.dismissHostSteeringCallout();
+      this.dismissQaSteeringCallout();
       return true;
     }
     if (snapshot.sessionLifecycleRevision < this.latestQaLifecycleRevision) {
@@ -10417,7 +10541,7 @@ export class SessionHostComponent implements OnInit, OnDestroy {
     this.qaListTotalCount.set(snapshot.totalCount ?? snapshot.questions.length);
     this.qaListNextCursor.set(snapshot.nextCursor ?? null);
     this.qaListRankingRevision.set(snapshot.rankingRevision ?? null);
-    this.dismissHostSteeringCallout();
+    this.dismissQaSteeringCallout();
     return true;
   }
 
@@ -10587,7 +10711,7 @@ export class SessionHostComponent implements OnInit, OnDestroy {
         return;
       }
       await this.applyHostQaQuestionsSnapshot(snapshot);
-      this.dismissHostSteeringCallout();
+      this.dismissQaSteeringCallout();
     } catch (error) {
       if (requestGeneration !== this.qaListRequestGeneration) {
         return;

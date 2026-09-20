@@ -1141,6 +1141,7 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
     expect(footerButton?.textContent).toContain('Maximales Q&A-Ende');
     expect(endButton?.textContent).toContain('Zur Startseite');
     expect(endButton?.nextElementSibling).toBe(footerButton);
+    expect(fixture.nativeElement.querySelector('.session-host__exit-clearance')).not.toBeNull();
 
     footerButton?.click();
     await fixture.whenStable();
@@ -2564,6 +2565,9 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
     expect(fixture.componentInstance.showChannelTabs()).toBe(true);
     expect(fixture.componentInstance.canStartAnotherQuiz()).toBe(true);
     expect(fixture.nativeElement.querySelector('.session-channel-tabs')).not.toBeNull();
+    expect(
+      fixture.nativeElement.querySelector('[data-testid="start-another-quiz"]')?.textContent,
+    ).toContain('Nächstes Quiz in diesem Raum');
     fixture.destroy();
   });
 
@@ -3595,7 +3599,9 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
           quickFeedback: { enabled: true, open: true },
         },
       });
-    dialogOpenMock.mockReturnValueOnce({ afterClosed: () => of('local-quiz-1') });
+    dialogOpenMock.mockReturnValueOnce({
+      afterClosed: () => of({ quizId: 'local-quiz-1', adoptQuizTeams: false }),
+    });
 
     const fixture = setup();
     fixture.detectChanges();
@@ -3664,6 +3670,79 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
     },
   );
 
+  it('öffnet die Quizauswahl nach einem Kanalwechsel erneut, solange nicht abgebrochen wurde', async () => {
+    getInfoQueryMock.mockResolvedValue({
+      ...defaultSession,
+      status: 'FINISHED',
+      qaClosesAt: '2026-09-21T12:00:00.000Z',
+      channels: {
+        quiz: { enabled: true },
+        qa: {
+          enabled: true,
+          open: true,
+          title: 'Fragen',
+          moderationMode: true,
+          state: 'OPEN',
+          closesAt: '2026-09-21T12:00:00.000Z',
+        },
+        quickFeedback: { enabled: true, open: false },
+      },
+    });
+    dialogOpenMock.mockReturnValueOnce({ afterClosed: () => of(undefined) });
+
+    const fixture = setup();
+    fixture.detectChanges();
+    await fixture.whenStable();
+    fixture.componentInstance.activeChannel.set('qa');
+    fixture.detectChanges();
+
+    await fixture.componentInstance.startAnotherQuizAfterFinish();
+    expect(fixture.componentInstance.quizPickerPending()).toBe(true);
+    expect(dialogOpenMock).toHaveBeenCalledTimes(1);
+
+    dialogOpenMock.mockClear();
+    dialogOpenMock.mockReturnValue({ afterClosed: () => of(undefined) });
+    await fixture.componentInstance.selectChannel('quiz');
+    await fixture.whenStable();
+
+    expect(dialogOpenMock).toHaveBeenCalled();
+    expect(fixture.componentInstance.quizPickerPending()).toBe(true);
+    fixture.destroy();
+  });
+
+  it('öffnet die Quizauswahl nach Abbrechen nicht erneut', async () => {
+    getInfoQueryMock.mockResolvedValue({
+      ...defaultSession,
+      status: 'FINISHED',
+      qaClosesAt: '2026-09-21T12:00:00.000Z',
+      channels: {
+        quiz: { enabled: true },
+        qa: {
+          enabled: true,
+          open: true,
+          title: 'Fragen',
+          moderationMode: true,
+          state: 'OPEN',
+          closesAt: '2026-09-21T12:00:00.000Z',
+        },
+        quickFeedback: { enabled: true, open: false },
+      },
+    });
+    dialogOpenMock.mockReturnValueOnce({ afterClosed: () => of(false) });
+
+    const fixture = setup();
+    fixture.detectChanges();
+    await fixture.whenStable();
+    await fixture.componentInstance.startAnotherQuizAfterFinish();
+    expect(fixture.componentInstance.quizPickerPending()).toBe(false);
+
+    dialogOpenMock.mockClear();
+    await fixture.componentInstance.selectChannel('quiz');
+    await fixture.whenStable();
+    expect(dialogOpenMock).not.toHaveBeenCalled();
+    fixture.destroy();
+  });
+
   it('zeigt vor dem ersten Quizstart nur kompatible Quizze zum Wechsel an', async () => {
     getInfoQueryMock
       .mockResolvedValueOnce({
@@ -3684,7 +3763,9 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
           quickFeedback: { enabled: false, open: false },
         },
       });
-    dialogOpenMock.mockReturnValueOnce({ afterClosed: () => of('local-quiz-1') });
+    dialogOpenMock.mockReturnValueOnce({
+      afterClosed: () => of({ quizId: 'local-quiz-1', adoptQuizTeams: false }),
+    });
 
     const fixture = setup();
     fixture.detectChanges();
@@ -3707,12 +3788,15 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
             teamCount: null,
             teamAssignment: 'AUTO',
           }),
-          quizzes: [
+          quizzes: expect.arrayContaining([
             expect.objectContaining({
               id: 'local-quiz-1',
               name: 'Quiz Sammlung',
             }),
-          ],
+            expect.objectContaining({
+              id: 'local-quiz-incompatible',
+            }),
+          ]),
         }),
       }),
     );
@@ -3724,9 +3808,127 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
     fixture.destroy();
   });
 
+  it('öffnet die Quizauswahl, wenn der Host mit tab=quiz ohne Quizkanal kommt', async () => {
+    getInfoQueryMock.mockResolvedValue({
+      ...defaultSession,
+      quizName: null,
+      preferredChannel: 'qa',
+      channels: {
+        quiz: { enabled: false },
+        qa: { enabled: true, open: true, title: 'Fragen', moderationMode: false },
+        quickFeedback: { enabled: false, open: false },
+      },
+    });
+    dialogOpenMock.mockReturnValueOnce({ afterClosed: () => of(undefined) });
+
+    const fixture = setup([
+      {
+        provide: ActivatedRoute,
+        useValue: {
+          snapshot: {
+            queryParamMap: convertToParamMap({ tab: 'quiz' }),
+          },
+          parent: {
+            snapshot: {
+              paramMap: convertToParamMap({ code: 'ABC123' }),
+            },
+          },
+        },
+      },
+    ]);
+    fixture.detectChanges();
+    await fixture.whenStable();
+    await vi.waitUntil(() => dialogOpenMock.mock.calls.length >= 1);
+
+    expect(dialogOpenMock).toHaveBeenCalledWith(
+      expect.anything(),
+      expect.objectContaining({
+        panelClass: 'session-quiz-picker-dialog-panel',
+      }),
+    );
+    fixture.destroy();
+  });
+
+  it('kehrt nach Abbrechen der Quizauswahl zum Q&A-Kanal zurück', async () => {
+    getInfoQueryMock.mockResolvedValue({
+      ...defaultSession,
+      quizName: null,
+      preferredChannel: 'qa',
+      channels: {
+        quiz: { enabled: false },
+        qa: { enabled: true, open: true, title: 'Fragen', moderationMode: false },
+        quickFeedback: { enabled: false, open: false },
+      },
+    });
+    dialogOpenMock.mockReturnValueOnce({ afterClosed: () => of(false) });
+
+    const fixture = setup([
+      {
+        provide: ActivatedRoute,
+        useValue: {
+          snapshot: {
+            queryParamMap: convertToParamMap({ tab: 'quiz' }),
+          },
+          parent: {
+            snapshot: {
+              paramMap: convertToParamMap({ code: 'ABC123' }),
+            },
+          },
+        },
+      },
+    ]);
+    fixture.detectChanges();
+    await fixture.whenStable();
+    await vi.waitUntil(() => fixture.componentInstance.activeChannel() === 'qa');
+
+    expect(fixture.componentInstance.channels().quiz).toBe(false);
+    expect(fixture.nativeElement.querySelector('[data-testid="quiz-channel-pending"]')).toBeNull();
+    fixture.destroy();
+  });
+
+  it('zeigt nach Abbrechen ohne anderen Kanal die Quiz-Leerfläche', async () => {
+    getInfoQueryMock.mockResolvedValue({
+      ...defaultSession,
+      quizName: null,
+      preferredChannel: 'quiz',
+      channels: {
+        quiz: { enabled: false },
+        qa: { enabled: false, open: false, title: null, moderationMode: false },
+        quickFeedback: { enabled: false, open: false },
+      },
+    });
+    dialogOpenMock.mockReturnValueOnce({ afterClosed: () => of(false) });
+
+    const fixture = setup([
+      {
+        provide: ActivatedRoute,
+        useValue: {
+          snapshot: {
+            queryParamMap: convertToParamMap({ tab: 'quiz' }),
+          },
+          parent: {
+            snapshot: {
+              paramMap: convertToParamMap({ code: 'ABC123' }),
+            },
+          },
+        },
+      },
+    ]);
+    fixture.detectChanges();
+    await fixture.whenStable();
+    await vi.waitUntil(() =>
+      Boolean(fixture.nativeElement.querySelector('[data-testid="quiz-channel-pending"]')),
+    );
+
+    expect(fixture.componentInstance.activeChannel()).toBe('quiz');
+    expect(fixture.nativeElement.textContent).toContain('Noch kein Quiz gewählt');
+    fixture.destroy();
+  });
+
   it('bietet das Demo-Quiz in teamlosen Sessions trotz teamMode an', async () => {
     getInfoQueryMock.mockResolvedValue({
       ...defaultSession,
+      participantCount: 1,
       quizName: null,
       teamMode: false,
       teamCount: null,
@@ -3808,7 +4010,122 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
     const offeredIds = (
       dialogOpenMock.mock.calls[0]?.[1] as { data: { quizzes: Array<{ id: string }> } }
     ).data.quizzes.map((quiz) => quiz.id);
-    expect(offeredIds).not.toContain('local-quiz-incompatible');
+    expect(offeredIds).toContain('local-quiz-incompatible');
+    fixture.destroy();
+  });
+
+  it('bietet Team-Quizze in einem leeren teamlosen Raum an', async () => {
+    getInfoQueryMock.mockResolvedValue({
+      ...defaultSession,
+      participantCount: 0,
+      quizName: null,
+      teamMode: false,
+      teamCount: null,
+      teamAssignment: null,
+      teamNames: [],
+      preferredChannel: 'qa',
+      channels: {
+        quiz: { enabled: false },
+        qa: { enabled: true, open: true, title: 'Fragen', moderationMode: false },
+        quickFeedback: { enabled: false, open: false },
+      },
+    });
+    quizStoreMock.quizzes.set([
+      {
+        id: 'local-quiz-1',
+        name: 'Quiz Sammlung',
+        description: 'Mitgebrachte Fragen',
+        createdAt: '2026-03-20T12:00:00.000Z',
+        updatedAt: '2026-03-24T12:00:00.000Z',
+        questionCount: 3,
+        teamMode: false,
+        hasBonus: false,
+        lastServerQuizId: null,
+        lastServerQuizAccessProof: null,
+      },
+      {
+        id: DEMO_QUIZ_ID,
+        name: 'Demo Quiz',
+        description: 'Showcase',
+        createdAt: '2026-03-21T12:00:00.000Z',
+        updatedAt: '2026-03-25T12:00:00.000Z',
+        questionCount: 13,
+        teamMode: true,
+        hasBonus: true,
+        lastServerQuizId: null,
+        lastServerQuizAccessProof: null,
+      },
+      {
+        id: 'local-quiz-incompatible',
+        name: 'Team Quiz',
+        description: 'Nur für Teams',
+        createdAt: '2026-03-21T12:00:00.000Z',
+        updatedAt: '2026-03-25T12:00:00.000Z',
+        questionCount: 2,
+        teamMode: true,
+        hasBonus: false,
+        lastServerQuizId: null,
+        lastServerQuizAccessProof: null,
+      },
+    ]);
+    dialogOpenMock.mockReturnValueOnce({ afterClosed: () => of(undefined) });
+
+    const fixture = setup();
+    fixture.detectChanges();
+    await fixture.whenStable();
+    fixture.componentInstance.activeChannel.set('qa');
+    fixture.detectChanges();
+
+    const toggles = Array.from(
+      fixture.nativeElement.querySelectorAll('mat-button-toggle'),
+    ) as HTMLElement[];
+    const quizToggle = toggles.find((toggle) => toggle.textContent?.includes('Quiz'));
+    (quizToggle?.querySelector('button') as HTMLButtonElement | null)?.click();
+
+    await vi.waitUntil(() => dialogOpenMock.mock.calls.length === 1);
+
+    const offered = dialogOpenMock.mock.calls[0]?.[1] as {
+      data: { emptyRoom?: boolean; quizzes: Array<{ id: string }> };
+    };
+    expect(offered.data.emptyRoom).toBe(true);
+    expect(offered.data.quizzes.map((quiz) => quiz.id)).toEqual(
+      expect.arrayContaining(['local-quiz-1', DEMO_QUIZ_ID, 'local-quiz-incompatible']),
+    );
+    fixture.destroy();
+  });
+
+  it('hängt ein inkompatibles Quiz mit bestätigter Team-Neuordnung an', async () => {
+    getInfoQueryMock.mockResolvedValue({
+      ...defaultSession,
+      participantCount: 2,
+      quizName: null,
+      teamMode: false,
+      preferredChannel: 'qa',
+      channels: {
+        quiz: { enabled: false },
+        qa: { enabled: true, open: true, title: 'Fragen', moderationMode: false },
+        quickFeedback: { enabled: false, open: false },
+      },
+    });
+    dialogOpenMock.mockReturnValueOnce({
+      afterClosed: () => of({ quizId: 'local-quiz-incompatible', adoptQuizTeams: true }),
+    });
+
+    const fixture = setup();
+    fixture.detectChanges();
+    await fixture.whenStable();
+    fixture.componentInstance.activeChannel.set('qa');
+    fixture.detectChanges();
+
+    await fixture.componentInstance.selectChannel('quiz');
+    await fixture.whenStable();
+
+    expect(quizStoreMock.getUploadPayload).toHaveBeenCalledWith('local-quiz-incompatible');
+    expect(attachQuizToSessionMutateMock).toHaveBeenCalledWith({
+      code: 'ABC123',
+      quizId: '44444444-4444-4444-8444-444444444444',
+      adoptQuizTeams: true,
+    });
     fixture.destroy();
   });
 
@@ -3823,7 +4140,9 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
         quickFeedback: { enabled: false, open: false },
       },
     });
-    dialogOpenMock.mockReturnValueOnce({ afterClosed: () => of('local-quiz-1') });
+    dialogOpenMock.mockReturnValueOnce({
+      afterClosed: () => of({ quizId: 'local-quiz-1', adoptQuizTeams: false }),
+    });
     attachQuizToSessionMutateMock.mockRejectedValue(
       new Error('Dieses Quiz passt nicht zur Teamsituation der laufenden Session.'),
     );
@@ -3835,6 +4154,7 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
     fixture.detectChanges();
 
     await fixture.componentInstance.selectChannel('quiz');
+    await fixture.whenStable();
     fixture.detectChanges();
 
     expect(attachQuizToSessionMutateMock).toHaveBeenCalled();
@@ -3857,7 +4177,9 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
         quickFeedback: { enabled: false, open: false },
       },
     });
-    dialogOpenMock.mockReturnValueOnce({ afterClosed: () => of('local-quiz-1') });
+    dialogOpenMock.mockReturnValueOnce({
+      afterClosed: () => of({ quizId: 'local-quiz-1', adoptQuizTeams: false }),
+    });
     getTeamsQueryMock.mockResolvedValue({
       teamCount: 2,
       teams: [
@@ -14115,6 +14437,10 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
     );
     expect(styles).toMatch(
       /\.session-host__exit-anchor \{[^}]*surface-container-highest[^}]*primary-container/,
+    );
+    expect(styles).toMatch(/\.session-host__exit-clearance\s*\{[^}]*min-height:\s*var\(/);
+    expect(styles).toMatch(
+      /exit-anchor-button--lifecycle[\s\S]*?exit-anchor-button--retention[\s\S]*?session-host__exit-clearance/,
     );
     expect(styles).toMatch(
       /\.session-host__exit-anchor-button--skip,\s*\.session-host__exit-anchor-button--previous/,

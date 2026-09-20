@@ -37,7 +37,7 @@ describe('navigateToHostSession', () => {
 
     await navigateToHostSession(router, 'ABC123', 'quiz', { assign: assignMock });
 
-    expect(navigateByUrlMock).toHaveBeenCalledWith('/en/session/ABC123/host');
-    expect(assignMock).toHaveBeenCalledWith('/en/session/ABC123/host');
+    expect(navigateByUrlMock).toHaveBeenCalledWith('/en/session/ABC123/host?tab=quiz');
+    expect(assignMock).toHaveBeenCalledWith('/en/session/ABC123/host?tab=quiz');
   });
 });

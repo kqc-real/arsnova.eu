@@ -197,6 +197,20 @@
               }}</span>
             </button>
           }
+          @if (canStartAnotherQuiz()) {
+            <button
+              mat-flat-button
+              color="primary"
+              type="button"
+              class="session-host__start-another-quiz"
+              data-testid="start-another-quiz"
+              [disabled]="controlPending() || channelActivationPending() === 'quiz'"
+              (click)="startAnotherQuizAfterFinish()"
+            >
+              <mat-icon aria-hidden="true">play_arrow</mat-icon>
+              <span i18n="@@sessionHost.startAnotherQuiz">Nächstes Quiz in diesem Raum</span>
+            </button>
+          }
         </div>
 
         @if (showHostViewControls()) {
@@ -879,20 +893,6 @@
           <div class="session-host__run l-page">
             @if (effectiveStatus() === 'FINISHED') {
               <div class="session-host__results">
-                @if (canStartAnotherQuiz()) {
-                  <div class="session-host__steering">
-                    <button
-                      mat-flat-button
-                      color="primary"
-                      type="button"
-                      [disabled]="controlPending() || channelActivationPending() === 'quiz'"
-                      (click)="startAnotherQuizAfterFinish()"
-                    >
-                      <mat-icon aria-hidden="true">play_arrow</mat-icon>
-                      <span i18n="@@sessionHost.startAnotherQuiz">Weiteres Quiz starten</span>
-                    </button>
-                  </div>
-                }
                 @if (finishedConfidenceSummary(); as confidenceSummary) {
                   <section
                     class="session-host__finished-confidence"
@@ -3927,6 +3927,31 @@
             }
           </div>
         }
+      } @else if (activeChannel() === 'quiz') {
+        <section
+          class="session-host__quiz-pending"
+          role="status"
+          aria-labelledby="quiz-channel-pending-title"
+          data-testid="quiz-channel-pending"
+        >
+          <mat-icon aria-hidden="true">quiz</mat-icon>
+          <h2 id="quiz-channel-pending-title" i18n="@@sessionHost.quizPendingTitle">
+            Noch kein Quiz gewählt
+          </h2>
+          <p i18n="@@sessionHost.quizPendingBody">
+            Wähle ein Quiz aus deiner Sammlung, um diesen Kanal zu starten.
+          </p>
+          <button
+            mat-flat-button
+            color="primary"
+            type="button"
+            data-testid="quiz-channel-pending-pick"
+            (click)="startQuizSelectionFromEmptyChannel()"
+            i18n="@@sessionHost.quizPendingAction"
+          >
+            Quiz wählen
+          </button>
+        </section>
       } @else if (activeChannel() === 'qa') {
         <div class="session-host__channel-panel session-host__channel-panel--qa">
           @if (postProcessingEnded()) {
@@ -4742,7 +4767,9 @@
       }
     </div>
     @if (effectiveStatus() !== 'FINISHED') {
+      <div class="session-host__exit-clearance" aria-hidden="true"></div>
       <div
+        #exitAnchor
         class="session-host__exit-anchor"
         [class.session-host__exit-anchor--fixed]="showChannelTabs()"
         [class.session-host__exit-anchor--with-primary]="

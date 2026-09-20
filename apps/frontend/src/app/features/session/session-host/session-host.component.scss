@@ -198,8 +198,17 @@
   display: grid;
   justify-items: center;
   gap: var(--session-host-zone-gap);
-  /* Genug Scroll-Reserve, damit Inhalte komplett über die fixe Aktionsleiste gezogen werden können. */
-  padding-bottom: calc(env(safe-area-inset-bottom, 0px) + 9rem);
+  padding-bottom: 0;
+}
+
+.session-host__exit-clearance {
+  width: 100%;
+  pointer-events: none;
+  /* In-Flow-Puffer: Grid-padding-bottom wird in Mobile Safari oft nicht mitgescrollt. */
+  min-height: var(
+    --session-host-exit-clearance,
+    calc(env(safe-area-inset-bottom, 0px) + var(--app-footer-visible-offset, 0px) + 9rem)
+  );
 }
 
 @media (min-width: 600px) {
@@ -406,21 +415,42 @@
     --session-host-toolbar-clearance: calc(env(safe-area-inset-top, 0px) + 5.5rem);
     --session-host-float-top: calc(0.5rem + env(safe-area-inset-top, 0px));
     --session-host-exit-bottom-base: max(0.5rem, calc(var(--host-mobile-safe-bottom) + 0.25rem));
-    padding-bottom: calc(var(--host-mobile-safe-bottom) + 11rem);
   }
 
-  .session-host:has(.session-host__exit-anchor--with-primary) {
-    /* Zwei Button-Zeilen + Tray-Padding freiräumen. */
-    padding-bottom: calc(var(--host-mobile-safe-bottom) + 13.5rem);
+  .session-host__exit-clearance {
+    min-height: var(
+      --session-host-exit-clearance,
+      calc(var(--host-mobile-safe-bottom) + var(--app-footer-visible-offset, 0px) + 11rem)
+    );
   }
 
-  .session-host:has(.session-host__emoji-reactions) {
-    padding-bottom: calc(var(--host-mobile-safe-bottom) + 13rem);
+  .session-host:has(.session-host__exit-anchor--with-primary) .session-host__exit-clearance,
+  .session-host:has(
+      .session-host__exit-anchor:not(.session-host__exit-anchor--with-primary):has(
+          > .session-host__exit-anchor-button--lifecycle
+        ):has(> .session-host__exit-anchor-button--retention)
+    )
+    .session-host__exit-clearance {
+    /* Zwei Button-Zeilen (Quiz-Primär oder Q&A-Frist/Löschtermin). */
+    min-height: var(
+      --session-host-exit-clearance,
+      calc(var(--host-mobile-safe-bottom) + var(--app-footer-visible-offset, 0px) + 13.5rem)
+    );
   }
 
-  .session-host:has(.session-host__exit-anchor--with-primary):has(.session-host__emoji-reactions) {
-    /* Primäraktionen + Reaktionszeile + Session beenden. */
-    padding-bottom: calc(var(--host-mobile-safe-bottom) + 15.5rem);
+  .session-host:has(.session-host__emoji-reactions) .session-host__exit-clearance {
+    min-height: var(
+      --session-host-exit-clearance,
+      calc(var(--host-mobile-safe-bottom) + var(--app-footer-visible-offset, 0px) + 13rem)
+    );
+  }
+
+  .session-host:has(.session-host__exit-anchor--with-primary):has(.session-host__emoji-reactions)
+    .session-host__exit-clearance {
+    min-height: var(
+      --session-host-exit-clearance,
+      calc(var(--host-mobile-safe-bottom) + var(--app-footer-visible-offset, 0px) + 15.5rem)
+    );
   }
 
   .session-host__run {
@@ -725,6 +755,11 @@
   align-items: center;
   gap: 0.35rem;
   white-space: nowrap;
+}
+
+.session-host__start-another-quiz {
+  flex: 0 1 auto;
+  white-space: normal;
 }
 
 .session-host__channel-visibility-label {
@@ -2066,6 +2101,7 @@
   text-align: center;
 }
 
+.session-host__quiz-pending,
 .session-host__post-processing-ended {
   display: grid;
   justify-items: center;

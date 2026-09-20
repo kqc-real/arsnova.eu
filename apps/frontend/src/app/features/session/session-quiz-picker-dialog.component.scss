@@ -164,6 +164,26 @@
   margin-left: auto;
 }
 
+.session-quiz-picker__item--mismatch {
+  display: grid;
+  gap: 0.75rem;
+  cursor: default;
+}
+
+.session-quiz-picker__item--mismatch:hover {
+  transform: none;
+}
+
+.session-quiz-picker__item-hint {
+  color: var(--mat-sys-on-surface-variant);
+  font: var(--mat-sys-body-medium);
+  line-height: 1.5;
+}
+
+.session-quiz-picker__adopt {
+  justify-self: start;
+}
+
 @media (max-width: 40rem) {
   .session-quiz-picker__title-header {
     padding-bottom: 1.2rem;
