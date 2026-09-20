@@ -119,7 +119,7 @@
 .home-hero-usp {
   max-width: 34rem;
   margin: 0 0 0.2rem;
-  font: var(--mat-sys-body-medium);
+  font: var(--mat-sys-body-large);
   line-height: 1.5;
   color: var(--mat-sys-primary);
   text-align: center;
@@ -131,6 +131,34 @@
   margin-bottom: 0.6rem;
   color: var(--mat-sys-on-surface-variant);
   font-weight: 400;
+}
+
+.home-hero-usp-chips {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0.4rem;
+  max-width: 36rem;
+  margin: 0.15rem 0 0.55rem;
+  padding: 0;
+  list-style: none;
+}
+
+.home-hero-usp-chip {
+  display: inline-flex;
+  align-items: center;
+  min-height: 1.75rem;
+  padding: 0.2rem 0.7rem;
+  border: 1px solid var(--mat-sys-outline-variant);
+  border-radius: var(--mat-sys-corner-full);
+  background: var(--mat-sys-surface-container-high);
+  color: var(--mat-sys-on-surface);
+  font: var(--mat-sys-label-large);
+  line-height: 1.25;
+}
+
+.home-hero-usp-chip--desktop {
+  display: none;
 }
 
 .home-hero-usp.mobile-only,
@@ -152,6 +180,10 @@
   .home-hero-usp.desktop-only {
     display: block !important;
   }
+
+  .home-hero-usp-chip--desktop {
+    display: inline-flex;
+  }
 }
 
 @media (min-width: 600px) {
@@ -160,8 +192,17 @@
     display: inline;
   }
 
+  .home-hero {
+    font: var(--mat-sys-display-small);
+    line-height: 1.15;
+  }
+
   .home-hero-usp.desktop-only {
     display: block;
+  }
+
+  .home-hero-usp-chip--desktop {
+    display: inline-flex;
   }
 }
 
@@ -172,6 +213,30 @@
   box-shadow: var(--mat-sys-level2);
   cursor: default;
   user-select: none;
+}
+
+.home-card--stage-main#participant-entry {
+  --mdc-elevated-card-container-shape: var(--mat-sys-corner-extra-large);
+  --mat-card-elevated-container-shape: var(--mat-sys-corner-extra-large);
+  box-shadow: var(--mat-sys-level3);
+}
+
+.home-card--live.home-card--stage-side {
+  --mdc-elevated-card-container-color: var(--mat-sys-surface-container-low);
+  --mat-card-elevated-container-color: var(--mat-sys-surface-container-low);
+  box-shadow: var(--mat-sys-level1);
+}
+
+.home-card--feedback.home-card--stage-side {
+  --mdc-elevated-card-container-color: var(--mat-sys-surface-container);
+  --mat-card-elevated-container-color: var(--mat-sys-surface-container);
+  box-shadow: var(--mat-sys-level1);
+}
+
+.home-card--create.home-card--stage-side {
+  --mdc-elevated-card-container-color: var(--mat-sys-surface-container-high);
+  --mat-card-elevated-container-color: var(--mat-sys-surface-container-high);
+  box-shadow: var(--mat-sys-level1);
 }
 
 .home-card :where(a[href], button:not(:disabled), [role='button']) {
@@ -383,7 +448,7 @@
   aspect-ratio: 1;
   border: 2px solid var(--mat-sys-outline);
   border-radius: var(--mat-sys-corner-medium);
-  background: var(--mat-sys-surface);
+  background: var(--mat-sys-surface-container-highest);
   color: var(--mat-sys-on-surface);
   font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
   font-size: clamp(1.05rem, 7.5cqi, 1.65rem);
@@ -560,6 +625,18 @@
 }
 
 /* Zweizeilige Auswahlbuttons: 14px Hauptzeile, 12px Beschreibung, ohne Kontrastreduktion. */
+@media (prefers-reduced-motion: no-preference) {
+  .home-choice-button,
+  .home-feedback-chip {
+    transition: transform 280ms cubic-bezier(0.2, 0, 0, 1);
+  }
+
+  .home-choice-button:active:not(:disabled),
+  .home-feedback-chip:active:not(:disabled) {
+    transform: scale(0.98);
+  }
+}
+
 .home-choice-button {
   position: relative;
   display: flex;
@@ -682,6 +759,17 @@
 .home-live-last-quiz {
   width: 100%;
   grid-column: 1 / -1;
+  --mdc-filled-button-container-color: var(--mat-sys-tertiary);
+  --mdc-filled-button-label-text-color: var(--mat-sys-on-tertiary);
+  --mat-button-filled-container-color: var(--mat-sys-tertiary);
+  --mat-button-filled-label-text-color: var(--mat-sys-on-tertiary);
+}
+
+.home-live-grid:not(:has(.home-live-last-quiz)) > button.home-choice-button:last-child {
+  --mdc-protected-button-container-color: var(--mat-sys-tertiary-container);
+  --mdc-protected-button-label-text-color: var(--mat-sys-on-tertiary-container);
+  --mat-button-tonal-container-color: var(--mat-sys-tertiary-container);
+  --mat-button-tonal-label-text-color: var(--mat-sys-on-tertiary-container);
 }
 
 .home-live-grid > :last-child:not(.home-live-last-quiz) {
@@ -1242,28 +1330,13 @@
     isolation: isolate;
     border: 1px solid
       color-mix(in srgb, var(--mat-sys-outline-variant) 52%, var(--mat-sys-primary) 38%);
-    background:
-      radial-gradient(
-        ellipse 88% 58% at 94% 12%,
-        color-mix(in srgb, var(--mat-sys-primary) 26%, transparent),
-        transparent 58%
-      ),
-      radial-gradient(
-        ellipse 72% 52% at 6% 92%,
-        color-mix(in srgb, var(--mat-sys-tertiary) 22%, transparent),
-        transparent 52%
-      ),
-      linear-gradient(
-        168deg,
-        color-mix(in srgb, var(--mat-sys-primary-container) 48%, var(--mat-sys-surface)) 0%,
-        color-mix(in srgb, var(--mat-sys-surface-container-high) 72%, var(--mat-sys-primary) 16%)
-          42%,
-        color-mix(in srgb, var(--mat-sys-surface) 88%, var(--mat-sys-tertiary) 12%) 100%
-      );
-    box-shadow:
-      var(--mat-sys-level3),
-      var(--app-shadow-card-playful),
-      inset 0 0 0 1px color-mix(in srgb, var(--mat-sys-primary) 12%, transparent);
+    background: linear-gradient(
+      168deg,
+      color-mix(in srgb, var(--mat-sys-primary-container) 42%, var(--mat-sys-surface)) 0%,
+      color-mix(in srgb, var(--mat-sys-surface-container-high) 78%, var(--mat-sys-tertiary) 12%)
+        100%
+    );
+    box-shadow: var(--mat-sys-level3);
   }
 
   .home-card.home-card--stage-side {
@@ -1272,27 +1345,13 @@
     isolation: isolate;
     border: 1px solid
       color-mix(in srgb, var(--mat-sys-outline-variant) 44%, var(--mat-sys-primary) 30%);
-    background:
-      radial-gradient(
-        ellipse 100% 68% at 96% 4%,
-        color-mix(in srgb, var(--mat-sys-primary) 18%, transparent),
-        transparent 56%
-      ),
-      radial-gradient(
-        ellipse 88% 56% at 4% 96%,
-        color-mix(in srgb, var(--mat-sys-tertiary) 14%, transparent),
-        transparent 50%
-      ),
-      linear-gradient(
-        168deg,
-        color-mix(in srgb, var(--mat-sys-primary-container) 34%, var(--mat-sys-surface)) 0%,
-        color-mix(in srgb, var(--mat-sys-surface-container-high) 82%, var(--mat-sys-primary) 8%) 46%,
-        color-mix(in srgb, var(--mat-sys-surface) 90%, var(--mat-sys-tertiary) 10%) 100%
-      );
-    box-shadow:
-      var(--mat-sys-level2),
-      0 6px 26px -8px color-mix(in srgb, var(--mat-sys-primary) 24%, transparent),
-      inset 0 0 0 1px color-mix(in srgb, var(--mat-sys-primary) 8%, transparent);
+    background: linear-gradient(
+      168deg,
+      color-mix(in srgb, var(--mat-sys-primary-container) 22%, var(--mat-sys-surface-container-low))
+        0%,
+      color-mix(in srgb, var(--mat-sys-surface-container) 88%, var(--mat-sys-tertiary) 8%) 100%
+    );
+    box-shadow: var(--mat-sys-level1);
   }
 
   .home-card--stage-main#participant-entry .home-card__icon-wrap,
@@ -1311,24 +1370,7 @@
       var(--mat-sys-outline-variant) 40%,
       var(--mat-sys-primary) 34%
     );
-    background:
-      radial-gradient(
-        ellipse 105% 72% at 94% 2%,
-        color-mix(in srgb, var(--mat-sys-primary) 24%, transparent),
-        transparent 54%
-      ),
-      radial-gradient(
-        ellipse 82% 52% at 8% 98%,
-        color-mix(in srgb, var(--mat-sys-tertiary) 12%, transparent),
-        transparent 48%
-      ),
-      linear-gradient(
-        168deg,
-        color-mix(in srgb, var(--mat-sys-primary-container) 42%, var(--mat-sys-surface)) 0%,
-        color-mix(in srgb, var(--mat-sys-surface-container-high) 76%, var(--mat-sys-primary) 10%)
-          48%,
-        color-mix(in srgb, var(--mat-sys-surface) 92%, var(--mat-sys-tertiary) 8%) 100%
-      );
+    background: var(--mat-sys-surface-container);
   }
 
   .home-card.home-card--create.home-card--stage-side {
@@ -1337,24 +1379,11 @@
       var(--mat-sys-outline-variant) 42%,
       var(--mat-sys-tertiary) 32%
     );
-    background:
-      radial-gradient(
-        ellipse 98% 66% at 6% 6%,
-        color-mix(in srgb, var(--mat-sys-tertiary) 22%, transparent),
-        transparent 52%
-      ),
-      radial-gradient(
-        ellipse 90% 58% at 98% 94%,
-        color-mix(in srgb, var(--mat-sys-primary) 14%, transparent),
-        transparent 50%
-      ),
-      linear-gradient(
-        168deg,
-        color-mix(in srgb, var(--mat-sys-tertiary-container) 40%, var(--mat-sys-surface)) 0%,
-        color-mix(in srgb, var(--mat-sys-surface-container-high) 80%, var(--mat-sys-tertiary) 9%)
-          50%,
-        color-mix(in srgb, var(--mat-sys-surface) 88%, var(--mat-sys-primary) 12%) 100%
-      );
+    background: color-mix(
+      in srgb,
+      var(--mat-sys-tertiary-container) 36%,
+      var(--mat-sys-surface-container-high)
+    );
   }
 
   .home-card.home-card--stage-side.home-card--sync-open {

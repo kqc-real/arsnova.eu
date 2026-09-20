@@ -442,9 +442,13 @@ describe('HomeComponent', () => {
       expect(fixture.nativeElement.querySelector('.home-step-chip')).toBeNull();
       expect(fixture.nativeElement.querySelector('.home-stage-rotator')).toBeNull();
       expect(fixture.nativeElement.querySelector('.home-hero-serious-tagline')).toBeNull();
-      expect(
-        fixture.nativeElement.querySelector('.home-hero-usp--secondary')?.textContent,
-      ).toContain('Ohne Anmeldung');
+      expect(fixture.nativeElement.querySelector('.home-hero-usp--secondary')).toBeNull();
+      const uspChips = Array.from(
+        fixture.nativeElement.querySelectorAll<HTMLElement>('.home-hero-usp-chip'),
+      ).map((chip) => chip.textContent?.replace(/\s+/g, ' ').trim());
+      expect(uspChips).toEqual(
+        expect.arrayContaining(['Kostenlos', 'Open Source', 'Ohne Anmeldung', 'Made in Europe']),
+      );
       const codeEnterButtons = Array.from(fixture.nativeElement.querySelectorAll('button')).filter(
         (button) => button.textContent?.includes('Code eingeben'),
       );
@@ -1210,6 +1214,9 @@ describe('HomeComponent', () => {
       expect(scss).toMatch(
         /@media \(max-width:\s*599px\)\s*\{[\s\S]*?\.home-hero\s*\{[^}]*font:\s*var\(--mat-sys-title-large\)/,
       );
+      expect(scss).toMatch(
+        /@media \(min-width:\s*600px\)\s*\{[\s\S]*?\.home-hero\s*\{[^}]*font:\s*var\(--mat-sys-display-small\)/,
+      );
       expect(scss).not.toContain('.home-hero-preset-toggle');
     });
 
@@ -1482,6 +1489,15 @@ describe('HomeComponent', () => {
       );
       expect(scss).toMatch(
         /:host-context\(html:not\(\.preset-playful\)\) \.home-card#participant-entry\s*\{[^}]*border-top:\s*3px solid var\(--mat-sys-primary\)/,
+      );
+      expect(scss).toMatch(
+        /\.home-card--live\.home-card--stage-side\s*\{[^}]*surface-container-low/,
+      );
+      expect(scss).toMatch(
+        /\.home-live-last-quiz\s*\{[^}]*--mat-button-filled-container-color:\s*var\(--mat-sys-tertiary\)/,
+      );
+      expect(scss).toMatch(
+        /\.home-code-segment\s*\{[^}]*background:\s*var\(--mat-sys-surface-container-highest\)/,
       );
     });
 

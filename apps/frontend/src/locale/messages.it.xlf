@@ -9187,6 +9187,22 @@
           <context context-type="linenumber">27,29</context>
         </context-group>
       </trans-unit>
+      <trans-unit id="homeHero.uspChipFree" datatype="html">
+        <source>Kostenlos</source>
+        <target>Gratis</target>
+      </trans-unit>
+      <trans-unit id="homeHero.uspChipOpenSource" datatype="html">
+        <source>Open Source</source>
+        <target>Open source</target>
+      </trans-unit>
+      <trans-unit id="homeHero.uspChipNoSignup" datatype="html">
+        <source>Ohne Anmeldung</source>
+        <target>Senza registrazione</target>
+      </trans-unit>
+      <trans-unit id="homeHero.uspChipMadeInEurope" datatype="html">
+        <source>Made in Europe</source>
+        <target>Fatto in Europa</target>
+      </trans-unit>
       <trans-unit id="homeHero.uspTrust" datatype="html">
         <source> Kostenlos. Open Source. Ohne Anmeldung.</source>
         <target>Gratis. Open source. Senza registrazione.</target>
