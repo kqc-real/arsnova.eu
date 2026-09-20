@@ -484,7 +484,7 @@
     },
     "session.configureQaChannel": {
       "kind": "mutation",
-      "fingerprint": "sha256:efafc6865e74d4b36263a2c929a9831b7c58bd10fb23df1f71a4e7df206c9030",
+      "fingerprint": "sha256:022243550d61fa7ed36bef5f1b113d171ca7b56e3c41df2b1b0b179a95938d33",
       "missing": []
     },
     "session.confirmReadingReady": {
@@ -769,7 +769,7 @@
     },
     "session.previewQaConfiguration": {
       "kind": "query",
-      "fingerprint": "sha256:74145eda6d21dc1217a0dcbc7eba9c7db2c4de1aac7431ce0b0fa8bf1a3ad0b4",
+      "fingerprint": "sha256:495d3cbd5c4e6a46a893aa28d851ae8e4f2542887fbfe505eaf36fe69f5d0c7d",
       "missing": []
     },
     "session.react": {
