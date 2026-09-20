@@ -9292,16 +9292,16 @@
         </context-group>
       </trans-unit>
       <trans-unit id="home.step1" datatype="html">
-        <source>Code eingeben</source>
-        <target>Saisir le code</target>
+        <source>6-stelligen Code eingeben</source>
+        <target>Saisir le code à 6 caractères</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/home/home.component.html</context>
           <context context-type="linenumber">88</context>
         </context-group>
       </trans-unit>
       <trans-unit id="homeJoinCard.title" datatype="html">
-        <source> An einer Session teilnehmen</source>
-        <target>Rejoindre une session</target>
+        <source> Session beitreten</source>
+        <target>Rejoindre la session</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/home/home.component.html</context>
           <context context-type="linenumber">93,95</context>
@@ -9428,20 +9428,24 @@
         </context-group>
       </trans-unit>
       <trans-unit id="homeLiveCard.quizDescription" datatype="html">
-        <source>Quiz wählen</source>
-        <target>Choisir un quiz</target>
+        <source>Aus Sammlung wählen</source>
+        <target>Choisir dans la collection</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/home/home.component.html</context>
           <context context-type="linenumber">278</context>
         </context-group>
       </trans-unit>
+      <trans-unit id="homeLiveCard.quizLabel" datatype="html">
+        <source>Live-Quiz</source>
+        <target>Quiz en direct</target>
+      </trans-unit>
       <trans-unit id="homeLiveCard.qaCreateLabel" datatype="html">
-        <source>Neue Q&amp;A-Session</source>
-        <target>Nouvelle session Q&amp;A</target>
+        <source>Neue Q&amp;A</source>
+        <target>Nouveau Q&amp;R</target>
       </trans-unit>
       <trans-unit id="homeLiveCard.qaLabel" datatype="html">
-        <source>Q&amp;A-Session</source>
-        <target>Session Q&amp;R</target>
+        <source>Q&amp;A</source>
+        <target>Q&amp;R</target>
       </trans-unit>
       <trans-unit id="homeLiveCard.openHostSessionsAria" datatype="html">
         <source>Deine Q&amp;A-Sessions</source>
@@ -9516,7 +9520,7 @@
         </context-group>
       </trans-unit>
       <trans-unit id="homeHostCard.libraryCtaDescription" datatype="html">
-        <source>Quizzes verwalten</source>
+        <source>Quizze verwalten</source>
         <target>Gérer les quiz</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/home/home.component.html</context>
@@ -30024,6 +30028,22 @@
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/shared/top-toolbar/top-toolbar.component.html</context>
           <context context-type="linenumber">12</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="topToolbar.presetChipAriaPlayful" datatype="html">
+        <source>Spielerisch, Einstellungen öffnen</source>
+        <target>Ludique, ouvrir les paramètres</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/shared/top-toolbar/top-toolbar.component.ts</context>
+          <context context-type="linenumber">86</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="topToolbar.presetChipAriaSerious" datatype="html">
+        <source>Seriös, Einstellungen öffnen</source>
+        <target>Sérieux, ouvrir les paramètres</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/shared/top-toolbar/top-toolbar.component.ts</context>
+          <context context-type="linenumber">88</context>
         </context-group>
       </trans-unit>
       <trans-unit id="topToolbar.openMenuAria" datatype="html">

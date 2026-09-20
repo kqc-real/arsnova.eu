@@ -60,7 +60,7 @@ Aktuell globale Tokens in `styles.scss`:
 | `--host-mobile-stack-gap`      | Mobile Stack-Gap in Live-Ansichten                        | Layout-Konstante                                                     |
 | `--host-mobile-card-padding`   | Mobile Card-Padding in Live-Ansichten                     | Layout-Konstante                                                     |
 | `--host-mobile-toolbar-gap`    | Mobile Abstand zu Toolbar-/Bottom-Actions                 | Layout-Konstante                                                     |
-| `--host-mobile-safe-bottom`    | Safe-Area-Offset für mobile Bottom-Actions                | `env(safe-area-inset-bottom)`                                        |
+| `--host-mobile-safe-bottom`    | Safe-Area-Offset für mobile Bottom-Actions                | `env(safe-area-inset-bottom)`; wirksam nur mit `viewport-fit=cover`  |
 | `--app-qr-size`                | Standardgröße für QR-Flächen                              | Layout-Konstante                                                     |
 | `--app-qr-size-compact`        | kompakte QR-Größe                                         | Layout-Konstante                                                     |
 
@@ -85,7 +85,7 @@ Das globale Theme in `styles.scss` nutzt `mat.theme()` mit:
 | Preset      | CSS-Scope             | Primary-Palette        | Tertiary-Palette      |
 | ----------- | --------------------- | ---------------------- | --------------------- |
 | Seriös      | `html`                | `mat.$azure-palette`   | `mat.$cyan-palette`   |
-| Spielerisch | `html.preset-playful` | `mat.$magenta-palette` | `mat.$violet-palette` |
+| Spielerisch | `html.preset-playful` | `mat.$magenta-palette` | `mat.$orange-palette` |
 
 Light/Dark wird über `color-scheme` gesteuert:
 

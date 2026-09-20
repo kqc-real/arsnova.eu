@@ -931,7 +931,7 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
   private triggerCtaPulse(): void {
     this.ctaReady.set(false);
     this.scheduleAnimationFrame(() => this.ctaReady.set(true));
-    this.scheduleTimeout(() => this.ctaReady.set(false), 350);
+    this.scheduleTimeout(() => this.ctaReady.set(false), 520);
   }
 
   preloadQuiz(): void {

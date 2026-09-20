@@ -161,10 +161,11 @@
 
 .app-footer {
   flex: 0 0 auto;
-  /* Mobil: kein vertikales Padding außer Safe-Area; Desktop im 960px-Block. */
+  /* Mobil: kompakt, aber Home-Indicator und Notch nicht überdecken.
+     `viewport-fit=cover` in index.html macht env(safe-area-inset-*) auf iOS wirksam. */
   padding-block: 0;
   padding-inline: 0.15rem;
-  padding-bottom: env(safe-area-inset-bottom, 0px);
+  padding-bottom: max(0.5rem, env(safe-area-inset-bottom, 0px));
   border-top: 1px solid var(--mat-sys-outline-variant);
   background: var(--mat-sys-surface-container-low);
   /* Touch-Targets dürfen leicht über die kompakte Leiste ragen. */

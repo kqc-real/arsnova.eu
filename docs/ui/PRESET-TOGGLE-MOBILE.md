@@ -2,9 +2,9 @@
 
 ## Aktueller Stand
 
-- **Startseite (Mobile):** Preset-Toggle im Hero (`home-hero-preset-mobile`), ohne Menü-Klick.
-- **Hamburger-Menü:** nur Theme und Sprache. Kein Preset-Umschalter.
 - **Desktop-Toolbar:** Preset, Theme und Sprache in der Header-Zeile.
+- **Mobile-Toolbar:** icon-only Preset-Button (`celebration` / `work`) öffnet dasselbe Hamburger-Menü wie der Menu-Button. Beschriftung nur im `aria-label`. Umschalten bleibt im ausgeklappten Bereich (`top-toolbar__mobile`).
+- **Hero:** kein zweiter Preset-Toggle. Die Hero-Karte bleibt kompakt, damit die Dozierenden-Sektion auf schmalen Displays im ersten Viewport anschneidet.
 
 ## Wann wurde der sichtbare Preset-Toggle auf Mobile entfernt?
 
@@ -25,14 +25,14 @@
 - Die **gesamte** alte Home-Header- und Hero-Logik (inkl. `home-hero-preset-mobile` und `presetToastHost`/Snackbar) wurde aus `home.component.html` **entfernt**.
 - In der **Top-Toolbar** gibt es seither:
   - **Desktop:** Preset-Toggles sichtbar in der Toolbar.
-  - **Mobile:** Nur der Hamburger-Button; Preset/Theme/Sprache erscheinen **nur** im ausklappbaren Menü (`top-toolbar__mobile`).
+  - **Mobile:** Zuerst nur der Hamburger-Button; Preset/Theme/Sprache erschienen **nur** im ausklappbaren Menü (`top-toolbar__mobile`).
 
-Der **sichtbare** Preset-Toggle im Hero (ohne Menü-Klick) existiert seit diesem Commit auf Mobile **nicht mehr** – Nutzer müssen das Hamburger-Menü öffnen, um die Preset-Option zu sehen.
+Der **sichtbare** Preset-Toggle im Hero existiert seit diesem Commit auf Mobile **nicht mehr**.
 
 ## Warum war der Toggle im Hero eingeführt worden?
 
 Laut Kontext: Damit Nutzer die Preset-Option **wahrnehmen**, statt sie nur unter dem More/Hamburger-Icon zu verstecken.
 
-## Wiederherstellung
+## Auffindbarkeit ohne Hero-Toggle
 
-Um das ursprüngliche Verhalten wiederherzustellen, wurde der Block **„Stil wählen“ (Preset-Toggle)** im Hero der Home-Seite **nur auf Mobile** wieder eingebaut (gleiche Klasse `home-hero-preset-mobile`, Styles in `home.component.scss` waren erhalten). Die Top-Toolbar bleibt unverändert; auf der Startseite ist der Preset zusätzlich im Hero sichtbar (nur mobile).
+Statt den Hero wieder zu füllen, zeigt die Toolbar den aktuellen Modus als Icon. Der Button öffnet das bestehende Menü; Hosts erkennen Spielerisch/Seriös ohne Text in der schmalen Zeile.

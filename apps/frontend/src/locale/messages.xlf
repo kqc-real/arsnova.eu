@@ -8172,7 +8172,7 @@
         </context-group>
       </trans-unit>
       <trans-unit id="homeJoinCard.title" datatype="html">
-        <source> An einer Session teilnehmen </source>
+        <source> Session beitreten </source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/home/home.component.html</context>
           <context context-type="linenumber">54,56</context>
@@ -8186,7 +8186,7 @@
         </context-group>
       </trans-unit>
       <trans-unit id="home.step1" datatype="html">
-        <source>Code eingeben</source>
+        <source>6-stelligen Code eingeben</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/home/home.component.html</context>
           <context context-type="linenumber">99</context>
@@ -8344,20 +8344,23 @@
         </context-group>
       </trans-unit>
       <trans-unit id="homeLiveCard.quizDescription" datatype="html">
-        <source>Quiz wählen</source>
+        <source>Aus Sammlung wählen</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/home/home.component.html</context>
           <context context-type="linenumber">233</context>
         </context-group>
       </trans-unit>
+      <trans-unit id="homeLiveCard.quizLabel" datatype="html">
+        <source>Live-Quiz</source>
+      </trans-unit>
       <trans-unit id="homeLiveCard.qaCreateLabel" datatype="html">
-        <source>Neue Q&amp;A-Session</source>
+        <source>Neue Q&amp;A</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/home/home.component.html</context>
         </context-group>
       </trans-unit>
       <trans-unit id="homeLiveCard.qaLabel" datatype="html">
-        <source>Q&amp;A-Session</source>
+        <source>Q&amp;A</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/home/home.component.html</context>
         </context-group>
@@ -8474,7 +8477,7 @@
         </context-group>
       </trans-unit>
       <trans-unit id="homeHostCard.libraryCtaDescription" datatype="html">
-        <source>Quizzes verwalten</source>
+        <source>Quizze verwalten</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/home/home.component.html</context>
           <context context-type="linenumber">456</context>
@@ -27386,6 +27389,20 @@
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/shared/top-toolbar/top-toolbar.component.html</context>
           <context context-type="linenumber">12</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="topToolbar.presetChipAriaPlayful" datatype="html">
+        <source>Spielerisch, Einstellungen öffnen</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/shared/top-toolbar/top-toolbar.component.ts</context>
+          <context context-type="linenumber">86</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="topToolbar.presetChipAriaSerious" datatype="html">
+        <source>Seriös, Einstellungen öffnen</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/shared/top-toolbar/top-toolbar.component.ts</context>
+          <context context-type="linenumber">88</context>
         </context-group>
       </trans-unit>
       <trans-unit id="topToolbar.openMenuAria" datatype="html">

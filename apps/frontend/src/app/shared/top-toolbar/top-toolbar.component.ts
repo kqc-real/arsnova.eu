@@ -81,6 +81,13 @@ export class TopToolbarComponent {
   language = signal<'de' | 'en' | 'fr' | 'it' | 'es'>('de');
   controlsMenuOpen = signal(false);
 
+  /** Mobile: aktuelles Preset sichtbar, öffnet dasselbe Hamburger-Menü. */
+  readonly presetChipAria = computed(() =>
+    this.themePreset.preset() === 'spielerisch'
+      ? $localize`:@@topToolbar.presetChipAriaPlayful:Spielerisch, Einstellungen öffnen`
+      : $localize`:@@topToolbar.presetChipAriaSerious:Seriös, Einstellungen öffnen`,
+  );
+
   /** Badge-Text (max. „99+“). */
   readonly motdArchiveBadgeText = computed(() => {
     const n = this.motdHeaderState.archiveUnreadCount();

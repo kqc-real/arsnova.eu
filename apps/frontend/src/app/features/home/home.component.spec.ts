@@ -387,6 +387,57 @@ describe('HomeComponent', () => {
 
       expect(button.hasAttribute('aria-label')).toBe(false);
       expect(button.textContent).toContain('Los geht’s');
+      expect(button.classList.contains('mat-mdc-outlined-button')).toBe(true);
+      expect(button.disabled).toBe(true);
+    });
+
+    it('lässt Los geht’s nach sechs Zeichen als Tertiary-CTA aufleuchten', () => {
+      const fixture = createHomeFixture();
+      fixture.componentInstance.sessionCode.set('ABC123');
+      fixture.detectChanges();
+
+      const button = fixture.nativeElement.querySelector(
+        '.home-cta--join',
+      ) as HTMLButtonElement | null;
+      expect(button?.disabled).toBe(false);
+      expect(button?.classList.contains('home-cta--armed')).toBe(true);
+      expect(button?.classList.contains('mat-mdc-unelevated-button')).toBe(true);
+    });
+
+    it('armt Los geht’s beim sechsten Zeichen mit Spring-Scale', () => {
+      const animationFrames: FrameRequestCallback[] = [];
+      vi.stubGlobal(
+        'requestAnimationFrame',
+        vi.fn((callback: FrameRequestCallback) => {
+          animationFrames.push(callback);
+          return animationFrames.length;
+        }),
+      );
+      const fixture = createHomeFixture();
+      fixture.componentInstance.onSessionCodeInput({
+        target: { value: 'ABC12' },
+      } as unknown as Event);
+      fixture.detectChanges();
+      expect(fixture.componentInstance.ctaReady()).toBe(false);
+      expect(
+        (fixture.nativeElement.querySelector('.home-cta--join') as HTMLButtonElement).disabled,
+      ).toBe(true);
+
+      fixture.componentInstance.onSessionCodeInput({
+        target: { value: 'ABC123' },
+      } as unknown as Event);
+      for (const frame of animationFrames) {
+        frame(0);
+      }
+      fixture.detectChanges();
+
+      const button = fixture.nativeElement.querySelector(
+        '.home-cta--join',
+      ) as HTMLButtonElement | null;
+      expect(button?.disabled).toBe(false);
+      expect(button?.classList.contains('home-cta--armed')).toBe(true);
+      expect(button?.classList.contains('home-cta--ready')).toBe(true);
+      expect(fixture.componentInstance.ctaReady()).toBe(true);
     });
 
     it('stellt Rollen und Aufgaben als hierarchische Überschriften bereit', () => {
@@ -405,7 +456,7 @@ describe('HomeComponent', () => {
       expect(hero.textContent).toMatch(/Quiz/);
       expect(hero.querySelector('.home-hero-divider')).not.toBeNull();
       expect(levelTwoTitles).toEqual(
-        expect.arrayContaining(['An einer Session teilnehmen', 'Was möchtest du tun?']),
+        expect.arrayContaining(['Session beitreten', 'Was möchtest du tun?']),
       );
       expect(taskTitles).toEqual(['Session starten', 'Mit einem Klick', 'Quiz erstellen']);
       expect(fixture.nativeElement.querySelectorAll('.home-card__eyebrow')).toHaveLength(4);
@@ -415,7 +466,7 @@ describe('HomeComponent', () => {
             '.home-card__icon-wrap .home-card__icon',
           ),
         ).map((icon) => icon.textContent?.trim()),
-      ).toEqual(['group_add', 'play_circle', 'bolt', 'event']);
+      ).toEqual(['meeting_room', 'play_arrow', 'bolt', 'edit_note']);
       expect(fixture.nativeElement.querySelector('.home-card mat-card-subtitle')).toBeNull();
     });
 
@@ -472,7 +523,7 @@ describe('HomeComponent', () => {
         'Für Teilnehmende',
       );
       expect(joinCard?.querySelector('.home-card__title')?.textContent?.trim()).toBe(
-        'An einer Session teilnehmen',
+        'Session beitreten',
       );
       expect(joinCard?.textContent).not.toContain('Dabei sein');
       expect(joinCard?.textContent).not.toContain('Session-Code');
@@ -503,7 +554,7 @@ describe('HomeComponent', () => {
         fixture.nativeElement
           .querySelector('#participant-entry .home-card__title')
           ?.textContent?.trim(),
-      ).toBe('An einer Session teilnehmen');
+      ).toBe('Session beitreten');
     });
 
     it('hält den Host-Recovery-Einstieg als erste CTA-Reihe über den Live-Buttons', async () => {
@@ -565,7 +616,7 @@ describe('HomeComponent', () => {
         liveButtons.map((button) =>
           button.querySelector('.home-choice-button__label')?.textContent?.trim(),
         ),
-      ).toEqual(['Quiz', 'Neue Q&A-Session', 'Blitzlicht']);
+      ).toEqual(['Live-Quiz', 'Neue Q&A', 'Blitzlicht']);
       restoreDefaultSessionGetInfo(vi.mocked(trpc.session.getInfo.query));
     });
 
@@ -624,7 +675,7 @@ describe('HomeComponent', () => {
       expect(
         fixture.nativeElement
           .querySelector('.home-host-session-cta-row [data-testid="home-host-recovery"]')
-          ?.classList.contains('mat-mdc-unelevated-button'),
+          ?.classList.contains('home-host-session-cta--open'),
       ).toBe(true);
       expect(trpc.session.getInfo.query).toHaveBeenCalledWith(
         expect.objectContaining({ code: 'ABC123' }),
@@ -699,7 +750,7 @@ describe('HomeComponent', () => {
       await vi.waitUntil(
         () =>
           fixture.nativeElement.querySelector(
-            '.home-host-session-cta-row [data-session-code="ABC123"].mat-mdc-unelevated-button',
+            '.home-host-session-cta-row [data-session-code="ABC123"].home-host-session-cta--open',
           ) !== null,
         { timeout: 1000, interval: 10 },
       );
@@ -756,7 +807,7 @@ describe('HomeComponent', () => {
       await vi.waitUntil(
         () =>
           fixture.nativeElement.querySelector(
-            '.home-host-session-cta-row [data-session-code="AAA111"].mat-mdc-unelevated-button',
+            '.home-host-session-cta-row [data-session-code="AAA111"].home-host-session-cta--open',
           ) !== null,
         { timeout: 1000, interval: 10 },
       );
@@ -770,7 +821,7 @@ describe('HomeComponent', () => {
         'AAA111',
         'BBB222',
       ]);
-      expect(recoveryActions[0]?.classList.contains('mat-mdc-unelevated-button')).toBe(true);
+      expect(recoveryActions[0]?.classList.contains('home-host-session-cta--open')).toBe(true);
       expect(recoveryActions[1]?.classList.contains('mat-mdc-outlined-button')).toBe(true);
 
       vi.mocked(trpc.session.getInfo.query).mockResolvedValue({
@@ -799,7 +850,7 @@ describe('HomeComponent', () => {
       await vi.waitUntil(
         () =>
           fixture.nativeElement.querySelector(
-            '.home-host-session-cta-row [data-session-code="BBB222"].mat-mdc-unelevated-button',
+            '.home-host-session-cta-row [data-session-code="BBB222"].home-host-session-cta--open',
           ) !== null,
         { timeout: 1000, interval: 10 },
       );
@@ -810,7 +861,7 @@ describe('HomeComponent', () => {
         ),
       );
       expect(recoveryActions[0]?.getAttribute('data-session-code')).toBe('BBB222');
-      expect(recoveryActions[0]?.classList.contains('mat-mdc-unelevated-button')).toBe(true);
+      expect(recoveryActions[0]?.classList.contains('home-host-session-cta--open')).toBe(true);
       expect(recoveryActions[1]?.classList.contains('mat-mdc-outlined-button')).toBe(true);
 
       restoreDefaultSessionGetInfo(vi.mocked(trpc.session.getInfo.query));
@@ -844,7 +895,7 @@ describe('HomeComponent', () => {
       await vi.waitUntil(
         () =>
           fixture.nativeElement.querySelector(
-            '.home-host-session-cta-row [data-session-code="MMM555"].mat-mdc-unelevated-button',
+            '.home-host-session-cta-row [data-session-code="MMM555"].home-host-session-cta--open',
           ) !== null,
         { timeout: 1000, interval: 10 },
       );
@@ -1215,7 +1266,7 @@ describe('HomeComponent', () => {
         /@media \(max-width:\s*599px\)\s*\{[\s\S]*?\.home-hero\s*\{[^}]*font:\s*var\(--mat-sys-title-large\)/,
       );
       expect(scss).toMatch(
-        /@media \(min-width:\s*600px\)\s*\{[\s\S]*?\.home-hero\s*\{[^}]*font:\s*var\(--mat-sys-display-small\)/,
+        /@media \(min-width:\s*600px\)\s*\{[\s\S]*?\.home-hero\s*\{[^}]*font:\s*var\(--mat-sys-display-medium\)/,
       );
       expect(scss).not.toContain('.home-hero-preset-toggle');
     });
@@ -1290,9 +1341,6 @@ describe('HomeComponent', () => {
       );
       expect(desktopLayout).toMatch(
         /\.home-card#participant-entry\s*\{[^}]*max-width:\s*36rem[^}]*margin-inline:\s*auto/,
-      );
-      expect(desktopLayout).toMatch(
-        /\.home-host-intro__description\s*\{[^}]*font:\s*var\(--mat-sys-body-medium\)[^}]*line-height:\s*1\.5/,
       );
       expect(layout).not.toMatch(
         /\.home-main\s*\{[^}]*grid-template-columns:\s*repeat|\.home-main\s*\{[^}]*grid-template-columns:\s*minmax/,
@@ -1383,17 +1431,20 @@ describe('HomeComponent', () => {
         liveButtons.map((button) =>
           button.querySelector('.home-choice-button__label')?.textContent?.trim(),
         ),
-      ).toEqual(['Quiz', 'Q&A-Session', 'Blitzlicht']);
+      ).toEqual(['Live-Quiz', 'Q&A', 'Blitzlicht']);
+      expect(liveButtons[0]?.classList.contains('home-live-quiz-primary')).toBe(true);
+      expect(liveButtons[2]?.classList.contains('mat-mdc-outlined-button')).toBe(true);
       expect(
         liveButtons.map((button) =>
           button.querySelector('.home-choice-button__description')?.textContent?.trim(),
         ),
-      ).toEqual(['Quiz wählen', 'Fragen & Wortwolke', 'Sofort-Feedback']);
+      ).toEqual(['Aus Sammlung wählen', 'Fragen & Wortwolke', 'Sofort-Feedback']);
       for (const button of liveButtons) {
         expect(button.querySelector('.home-choice-button__label')).not.toBeNull();
         expect(button.querySelector('.home-choice-button__description')).not.toBeNull();
       }
       expect(fixture.nativeElement.querySelector('.home-card__description')).toBeNull();
+      expect(fixture.nativeElement.querySelector('.home-host-intro__description')).toBeNull();
 
       const quickFeedbackButtons = Array.from(
         fixture.nativeElement.querySelectorAll<HTMLElement>(
@@ -1496,6 +1547,38 @@ describe('HomeComponent', () => {
       expect(scss).toMatch(
         /\.home-live-last-quiz\s*\{[^}]*--mat-button-filled-container-color:\s*var\(--mat-sys-tertiary\)/,
       );
+      expect(scss).toMatch(
+        /\.home-live-quiz-primary\s*\{[^}]*--mat-button-tonal-container-color:\s*var\(--mat-sys-primary-container\)/,
+      );
+      expect(scss).toMatch(
+        /\.home-code-segment--active\s*\{[^}]*border:\s*2px solid var\(--mat-sys-tertiary\)/,
+      );
+      expect(scss).toMatch(
+        /\.home-cta--join\.home-cta--armed\s*\{[^}]*--mat-button-filled-container-color:\s*var\(--mat-sys-tertiary\)/,
+      );
+      expect(scss).toMatch(
+        /\.home-prepare-create:hover:not\(:disabled\)\s*\{[^}]*surface-container-high/,
+      );
+      expect(scss).toMatch(
+        /@media \(prefers-reduced-motion:\s*no-preference\)[\s\S]*\.home-cta--ready\s*\{[^}]*home-cta-arm/,
+      );
+      expect(scss).toMatch(/@keyframes home-cta-arm \{[\s\S]*scale\(0\.96\)[\s\S]*scale\(1\)/);
+      expect(scss).toMatch(
+        /@media \(prefers-reduced-motion:\s*no-preference\)[\s\S]*\.home-code-segments--shake \.home-code-segment\s*\{[^}]*home-shake/,
+      );
+      expect(scss).not.toMatch(
+        /@media \(prefers-reduced-motion:\s*no-preference\)[\s\S]*\.home-code-segments--shake\s*\{\s*animation:/,
+      );
+      expect(scss).toMatch(
+        /\.home-card__icon-wrap\s*\{[^}]*background:\s*transparent[^}]*color:\s*var\(--mat-sys-primary\)/,
+      );
+      expect(scss).toMatch(
+        /\.home-host-session-cta--open\s*\{[^}]*surface-container-highest[^}]*outline-variant/,
+      );
+      expect(scss).toMatch(
+        /\.home-card--stage-main#participant-entry\s*\{[^}]*outline:\s*1px solid/,
+      );
+      expect(scss).toMatch(/\.home-prepare-text-action\s*\{[^}]*on-surface-variant/);
       expect(scss).toMatch(
         /\.home-code-segment\s*\{[^}]*background:\s*var\(--mat-sys-surface-container-highest\)/,
       );
@@ -3161,18 +3244,27 @@ describe('HomeComponent', () => {
   });
 
   describe('openSyncLink', () => {
-    it('zeigt Sync als Icon rechts im Veranstalten-Kopf statt als Text-CTA', () => {
+    it('zeigt Sync als Textaktion unter den Vorbereiten-CTAs statt als Kopf-Icon', () => {
       const fixture = createHomeFixture();
       fixture.detectChanges();
 
       const header = fixture.nativeElement.querySelector(
-        '.home-card--create .home-card__header-with-action',
+        '.home-card--create .home-card__header',
       ) as HTMLElement;
-      const btn = header.querySelector('.home-card__sync-btn') as HTMLButtonElement | null;
+      const btn = fixture.nativeElement.querySelector(
+        '.home-card--create .home-card__sync-btn',
+      ) as HTMLButtonElement | null;
 
+      expect(header?.querySelector('.home-card__sync-btn')).toBeNull();
       expect(btn).not.toBeNull();
-      expect(btn?.getAttribute('aria-label')).toBe('Geteilte Sammlung nutzen');
-      expect(header.lastElementChild).toBe(btn);
+      expect(btn?.textContent).toContain('Geteilte Sammlung nutzen');
+      expect(btn?.querySelector('mat-icon')?.textContent?.trim()).toBe('devices');
+      expect(
+        fixture.nativeElement
+          .querySelector('.home-card--create .info-landing-link__lead-icon')
+          ?.textContent?.trim(),
+      ).toBe('help_outline');
+      expect(header?.querySelector('.home-card__icon')?.textContent?.trim()).toBe('edit_note');
       expect(fixture.nativeElement.querySelector('.home-card__tertiary-link')).toBeNull();
 
       btn?.click();
@@ -3588,6 +3680,8 @@ describe('HomeComponent', () => {
       expect(library?.classList.contains('home-library-button')).toBe(true);
       expect(library?.classList.contains('mat-mdc-outlined-button')).toBe(true);
       expect(library?.classList.contains('mat-tonal-button')).toBe(false);
+      expect(library?.textContent).toContain('Quizze verwalten');
+      expect(library?.textContent).not.toContain('Quizzes');
     });
   });
 });

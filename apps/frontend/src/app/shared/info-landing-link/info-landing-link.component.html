@@ -1,6 +1,7 @@
 <a
   class="info-landing-link"
   [class.info-landing-link--dense]="dense()"
+  [class.info-landing-link--text]="appearance() === 'text'"
   [href]="href()"
   target="_blank"
   rel="noopener noreferrer"
@@ -9,7 +10,9 @@
   @if (leadIcon() === 'presenter') {
     <app-presenter-icon class="info-landing-link__lead-icon" />
   } @else {
-    <mat-icon class="info-landing-link__lead-icon" aria-hidden="true">info</mat-icon>
+    <mat-icon class="info-landing-link__lead-icon" aria-hidden="true">{{
+      leadIcon() === 'help' ? 'help_outline' : 'info'
+    }}</mat-icon>
   }
   <span class="info-landing-link__label">{{ label() }}</span>
   <mat-icon class="info-landing-link__external-icon" aria-hidden="true">open_in_new</mat-icon>
