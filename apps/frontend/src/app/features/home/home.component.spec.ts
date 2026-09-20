@@ -1551,6 +1551,9 @@ describe('HomeComponent', () => {
         /\.home-live-quiz-primary\s*\{[^}]*--mat-button-tonal-container-color:\s*var\(--mat-sys-primary-container\)/,
       );
       expect(scss).toMatch(
+        /:host-context\(html\.preset-playful\)[\s\S]*?\.home-live-quiz-primary\s*\{[^}]*--mat-button-tonal-container-color:\s*var\(--mat-sys-tertiary-container\)/,
+      );
+      expect(scss).toMatch(
         /\.home-code-segment--active\s*\{[^}]*border:\s*2px solid var\(--mat-sys-tertiary\)/,
       );
       expect(scss).toMatch(

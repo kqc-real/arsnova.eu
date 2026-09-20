@@ -1393,6 +1393,13 @@
 
 /* Spielerisch behält die bestehende Magenta/Violett-Palette und Bühnenflächen. */
 :host-context(html.preset-playful) {
+  .home-live-quiz-primary {
+    --mdc-protected-button-container-color: var(--mat-sys-tertiary-container);
+    --mdc-protected-button-label-text-color: var(--mat-sys-on-tertiary-container);
+    --mat-button-tonal-container-color: var(--mat-sys-tertiary-container);
+    --mat-button-tonal-label-text-color: var(--mat-sys-on-tertiary-container);
+  }
+
   .home-hero-band {
     position: relative;
     z-index: 0;

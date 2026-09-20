@@ -4,6 +4,17 @@
   width: min(100%, var(--app-live-channel-max-width));
   margin-inline: auto;
   padding: 0.5rem;
+  /* Steht vor dem Karten-Wrapper. App-Main-Padding endet unter der floating
+     Toolbar (top + margin-top + Zeilenhöhe), sonst überdeckt die App-Bar den Link. */
+  padding-top: 1.75rem;
+
+  @media (min-width: 600px) {
+    padding-top: 2rem;
+  }
+
+  @media (min-width: 840px) {
+    padding-top: 2.25rem;
+  }
 }
 
 .feedback-host__product-feedback-utility button {

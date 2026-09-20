@@ -74,8 +74,10 @@
 
   &__session {
     margin-bottom: 1.5rem;
-    padding: 1rem 0;
-    border-bottom: 1px solid var(--mat-sys-outline-variant, rgba(0, 0, 0, 0.12));
+    padding: 1rem 1.05rem;
+    border: 1px solid var(--mat-sys-outline-variant);
+    border-radius: var(--mat-sys-corner-extra-large);
+    background: var(--mat-sys-surface-container-highest);
   }
 
   &__session-heading {
@@ -102,9 +104,21 @@
   }
 
   &__participants {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.4rem;
     margin: 0;
     font: var(--mat-sys-body-medium);
     color: var(--mat-sys-on-surface-variant);
+  }
+
+  &__status-dot {
+    flex: 0 0 auto;
+    width: 0.5rem;
+    height: 0.5rem;
+    border-radius: var(--mat-sys-corner-full);
+    background: var(--app-status-healthy);
   }
 
   &__participants-count {
@@ -421,6 +435,15 @@
   width: 100%;
 }
 
+.join-card__submit--armed:not(:disabled) {
+  --mdc-filled-button-container-color: var(--mat-sys-tertiary);
+  --mdc-filled-button-label-text-color: var(--mat-sys-on-tertiary);
+  --mat-button-filled-container-color: var(--mat-sys-tertiary);
+  --mat-button-filled-label-text-color: var(--mat-sys-on-tertiary);
+  background-color: var(--mat-sys-tertiary);
+  color: var(--mat-sys-on-tertiary);
+}
+
 .join-page__bottom-action-hint {
   margin: 0.45rem 0 0;
   text-align: center;
@@ -490,7 +513,7 @@
 
     &__session {
       margin-bottom: 1.75rem;
-      padding: 1.2rem 0 1.35rem;
+      padding: 1.2rem 1.15rem 1.35rem;
     }
 
     &__nickname-group {
@@ -526,5 +549,12 @@
       transform: translateY(-1px);
       box-shadow: 0 0.35rem 1rem color-mix(in srgb, var(--mat-sys-tertiary) 18%, transparent);
     }
+  }
+}
+
+:host-context(html.preset-playful) {
+  .join-card__code {
+    color: var(--mat-sys-tertiary);
+    text-shadow: 0 0 0.75rem color-mix(in srgb, var(--mat-sys-tertiary) 34%, transparent);
   }
 }

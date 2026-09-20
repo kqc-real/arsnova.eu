@@ -1961,6 +1961,7 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
     ) as HTMLButtonElement | null;
     expect(lobbyPresenterCta).not.toBeNull();
     expect(lobbyPresenterCta?.textContent).toContain('Präsentation starten');
+    expect(lobbyPresenterCta?.className ?? '').toMatch(/unelevated|filled/i);
     expect(lobbyPresenterCta?.querySelector('app-presenter-icon')).not.toBeNull();
     const lobbyIcon = lobbyPresenterCta?.querySelector('app-presenter-icon');
     const lobbyLabel = lobbyPresenterCta?.querySelector('.mdc-button__label');
@@ -1986,16 +1987,19 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
       'utf8',
     );
     expect(styles).toMatch(
-      /\.session-host__view-toggle\.session-host__view-toggle--presenter\s*\{[^}]*mat-sys-primary/s,
+      /\.session-host__view-toggle\.session-host__view-toggle--presenter\s*\{[^}]*mat-sys-primary-container/s,
     );
     expect(styles).toMatch(
-      /\.session-host__view-toggle\.session-host__view-toggle--presenter\s*\{[^}]*mat-sys-on-primary/s,
+      /\.session-host__view-toggle\.session-host__view-toggle--presenter\s*\{[^}]*mat-sys-on-primary-container/s,
     );
     expect(styles).toMatch(
       /\.session-host__view-toggle\.session-host__view-toggle--presenter\s*\{[^}]*--app-presenter-icon-size:\s*1\.75rem/s,
     );
     expect(styles).toMatch(
       /\.session-host__presenter-cta \{[^}]*--app-presenter-icon-size:\s*1\.75rem/s,
+    );
+    expect(styles).not.toMatch(
+      /\.session-host__presenter-cta \{[^}]*--mat-button-tonal-container-color/s,
     );
     fixture.destroy();
   });
@@ -4611,6 +4615,7 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
     expect(
       fixture.nativeElement.querySelector('.session-host__live-participants-count'),
     ).not.toBeNull();
+    expect(fixture.nativeElement.querySelector('.session-host__live-status-dot')).not.toBeNull();
     expect(fixture.nativeElement.querySelector('[data-testid="host-access-revoked"]')).toBeNull();
     fixture.destroy();
   });

@@ -153,6 +153,22 @@ html.preset-playful {
       elevated-container-shape: 1.5rem,
     )
   );
+
+  /* Magenta-Primary bleibt fuer Flaechen; Buttons nicht hellrosa. */
+  .mat-mdc-unelevated-button:not(.mat-warn),
+  .mat-mdc-protected-button:not(.mat-warn) {
+    --mdc-filled-button-container-color: var(--mat-sys-tertiary);
+    --mdc-filled-button-label-text-color: var(--mat-sys-on-tertiary);
+    --mat-button-filled-container-color: var(--mat-sys-tertiary);
+    --mat-button-filled-label-text-color: var(--mat-sys-on-tertiary);
+    --mat-button-protected-container-color: var(--mat-sys-tertiary);
+    --mat-button-protected-label-text-color: var(--mat-sys-on-tertiary);
+  }
+
+  .mat-tonal-button:not(.mat-warn) {
+    --mat-button-tonal-container-color: var(--mat-sys-surface-container-high);
+    --mat-button-tonal-label-text-color: var(--mat-sys-on-surface);
+  }
 }
 
 // ---------------------------------------------------------------------------
@@ -730,14 +746,16 @@ html {
 
 .cdk-overlay-pane.session-lifecycle-dialog-panel .dialog-title-header__icon,
 .cdk-overlay-pane.host-recovery-card-dialog-panel .dialog-title-header__icon {
-  background: var(--mat-sys-primary-container);
-  color: var(--mat-sys-on-primary-container);
+  background: transparent;
+  border: 1.5px solid color-mix(in srgb, var(--mat-sys-outline) 72%, var(--mat-sys-primary) 28%);
+  color: var(--mat-sys-primary);
 }
 
 .cdk-overlay-pane.session-lifecycle-dialog-panel .dialog-title-header__icon--warn,
 .cdk-overlay-pane.host-recovery-card-dialog-panel .dialog-title-header__icon--warn {
-  background: var(--mat-sys-error-container);
-  color: var(--mat-sys-on-error-container);
+  background: transparent;
+  border-color: color-mix(in srgb, var(--mat-sys-outline) 48%, var(--mat-sys-error) 52%);
+  color: var(--mat-sys-error);
 }
 
 .cdk-overlay-backdrop.host-pairing-dialog-backdrop,

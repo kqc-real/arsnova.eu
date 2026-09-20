@@ -83,6 +83,7 @@ describe('SessionQuizPickerDialogComponent', () => {
     const adopt = Array.from(host.querySelectorAll('button')).find((button) =>
       button.textContent?.includes('Teams neu zuordnen'),
     ) as HTMLButtonElement;
+    expect(adopt.classList.contains('session-quiz-picker__adopt')).toBe(true);
     adopt.click();
 
     expect(close).toHaveBeenCalledWith({ quizId: 'newer', adoptQuizTeams: true });

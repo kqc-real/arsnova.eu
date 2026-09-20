@@ -217,8 +217,7 @@
           <div class="session-host__view-controls session-host__view-controls--inline">
             @if (showPresenterViewButton()) {
               <button
-                mat-flat-button
-                color="primary"
+                matButton="tonal"
                 type="button"
                 class="session-host__view-toggle session-host__view-toggle--labeled session-host__view-toggle--presenter"
                 data-testid="open-presenter-view"
@@ -420,6 +419,7 @@
                   {{ s.code }}
                 </p>
                 <p class="session-host__live-participants">
+                  <span class="session-host__live-status-dot" aria-hidden="true"></span>
                   <span class="session-host__live-participants-count">{{ audienceCount }}</span>
                   {{ audienceCount === 1 ? participantLabelSingular() : participantLabelPlural() }}
                 </p>
@@ -487,8 +487,7 @@
 
                     @if (showPresenterViewButton()) {
                       <button
-                        mat-flat-button
-                        color="primary"
+                        matButton="tonal"
                         type="button"
                         class="session-host__view-toggle session-host__view-toggle--labeled session-host__view-toggle--presenter"
                         data-testid="open-presenter-view"
@@ -707,8 +706,7 @@
                 <div class="session-lobby__actions session-lobby__actions--hero">
                   @if (showPresenterViewButton()) {
                     <button
-                      mat-flat-button
-                      color="primary"
+                      matButton="filled"
                       type="button"
                       class="session-host__presenter-cta"
                       data-testid="open-presenter-view"
@@ -3724,8 +3722,7 @@
                 @if (isQuizAwaitingFirstQuestion()) {
                   @if (showPresenterViewButton()) {
                     <button
-                      mat-flat-button
-                      color="primary"
+                      matButton="filled"
                       type="button"
                       class="session-host__presenter-cta"
                       data-testid="open-presenter-view"

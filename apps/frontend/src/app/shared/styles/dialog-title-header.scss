@@ -18,8 +18,9 @@
   height: 2.5rem;
   margin-top: 0.125rem;
   border-radius: var(--mat-sys-corner-medium, 0.75rem);
-  background: color-mix(in srgb, var(--mat-sys-primary-container) 65%, transparent);
-  color: var(--mat-sys-on-primary-container);
+  border: 1.5px solid color-mix(in srgb, var(--mat-sys-outline) 72%, var(--mat-sys-primary) 28%);
+  background: transparent;
+  color: var(--mat-sys-primary);
   --app-presenter-icon-size: 1.5rem;
 
   mat-icon,
@@ -31,8 +32,9 @@
 }
 
 .dialog-title-header__icon--warn {
-  background: color-mix(in srgb, var(--mat-sys-error-container) 72%, transparent);
-  color: var(--mat-sys-on-error-container);
+  border-color: color-mix(in srgb, var(--mat-sys-outline) 48%, var(--mat-sys-error) 52%);
+  background: transparent;
+  color: var(--mat-sys-error);
 }
 
 .dialog-title-header__copy {

@@ -441,6 +441,21 @@ describe('TopToolbarComponent', () => {
     expect(styles).toMatch(/primary-container:\s*var\(--app-eu-blue\)/);
   });
 
+  it('faerbt spielerische Filled-CTAs tertiaer statt magenta-rosa', async () => {
+    const { readFileSync } = await import('node:fs');
+    const { fileURLToPath } = await import('node:url');
+    const { dirname, join } = await import('node:path');
+    const stylesPath = join(dirname(fileURLToPath(import.meta.url)), '../../../styles.scss');
+    const styles = readFileSync(stylesPath, 'utf8');
+    const playful = styles.slice(styles.indexOf('html.preset-playful'));
+    expect(playful).toMatch(
+      /\.mat-mdc-unelevated-button:not\(\.mat-warn\)[\s\S]*?--mat-button-filled-container-color:\s*var\(--mat-sys-tertiary\)/,
+    );
+    expect(playful).toMatch(
+      /\.mat-tonal-button:not\(\.mat-warn\)[\s\S]*?--mat-button-tonal-container-color:\s*var\(--mat-sys-surface-container-high\)/,
+    );
+  });
+
   it('stilisiert Fokus direkt am Toggle-Button', async () => {
     const { readFileSync } = await import('node:fs');
     const { fileURLToPath } = await import('node:url');
