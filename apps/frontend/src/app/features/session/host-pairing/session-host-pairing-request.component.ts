@@ -59,6 +59,10 @@ export class SessionHostPairingRequestComponent implements OnInit, OnDestroy {
   private requestSecret: string | null = null;
   private pollTimer: ReturnType<typeof setInterval> | null = null;
   private remainingTimer: ReturnType<typeof setInterval> | null = null;
+  private readonly onVisibilityChange = (): void => {
+    if (globalThis.document?.visibilityState !== 'visible') return;
+    void this.refreshRequest();
+  };
 
   ngOnInit(): void {
     if (this.code.length !== 6) {
@@ -132,6 +136,8 @@ export class SessionHostPairingRequestComponent implements OnInit, OnDestroy {
     this.pollTimer = setInterval(() => {
       void this.refreshRequest();
     }, POLL_MS);
+    globalThis.document?.addEventListener('visibilitychange', this.onVisibilityChange);
+    void this.refreshRequest();
   }
 
   private stopPolling(): void {
@@ -139,6 +145,7 @@ export class SessionHostPairingRequestComponent implements OnInit, OnDestroy {
       clearInterval(this.pollTimer);
       this.pollTimer = null;
     }
+    globalThis.document?.removeEventListener('visibilitychange', this.onVisibilityChange);
   }
 
   private async refreshRequest(): Promise<void> {
@@ -181,15 +188,8 @@ export class SessionHostPairingRequestComponent implements OnInit, OnDestroy {
         this.view.set('expired');
         return;
       }
-    } catch (error: unknown) {
-      this.stopPolling();
-      this.view.set('error');
-      this.error.set(
-        localizeKnownServerError(
-          error,
-          $localize`:@@hostPairing.errorInvalidLink:Dieser Link ist nicht mehr gültig. Bitte zeige einen neuen QR-Code an.`,
-        ),
-      );
+    } catch {
+      /* Polling-Fehler nicht als Abbruch zeigen — der nächste Tick holt nach. */
     }
   }
 

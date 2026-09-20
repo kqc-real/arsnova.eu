@@ -146,11 +146,55 @@ describe('SessionHostPairingRequestComponent', () => {
     const current = render();
     current.nativeElement.querySelector('[data-testid="host-pairing-request"]')?.click();
     await flush();
+    current.detectChanges();
+    expect(
+      current.nativeElement.querySelector('[data-testid="host-pairing-rejected"]'),
+    ).not.toBeNull();
+    expect(current.nativeElement.textContent).toContain('abgelehnt');
+    expect(current.nativeElement.textContent).not.toContain('Nach der Freigabe');
+    expect(setHostTokenMock).not.toHaveBeenCalled();
+  });
+
+  it('bleibt bei einem Polling-Fehler im Pending und zeigt die Ablehnung danach', async () => {
+    getRequestMock
+      .mockRejectedValueOnce(new Error('network'))
+      .mockResolvedValue(pendingClaim({ state: 'REJECTED' }));
+    const current = render();
+    current.nativeElement.querySelector('[data-testid="host-pairing-request"]')?.click();
+    await flush();
+    current.detectChanges();
+    expect(current.nativeElement.textContent).toContain('Steht auf dem Laptop dasselbe?');
+    expect(current.nativeElement.querySelector('[data-testid="host-pairing-rejected"]')).toBeNull();
     await vi.advanceTimersByTimeAsync(1600);
     await flush();
     current.detectChanges();
-    expect(current.nativeElement.textContent).toContain('abgelehnt');
-    expect(current.nativeElement.textContent).not.toContain('Nach der Freigabe');
+    expect(
+      current.nativeElement.querySelector('[data-testid="host-pairing-rejected"]'),
+    ).not.toBeNull();
+    expect(setHostTokenMock).not.toHaveBeenCalled();
+  });
+
+  it('holt den Status nach, wenn der Tab wieder sichtbar wird', async () => {
+    getRequestMock
+      .mockResolvedValueOnce(pendingClaim())
+      .mockResolvedValue(pendingClaim({ state: 'REJECTED' }));
+    const current = render();
+    current.nativeElement.querySelector('[data-testid="host-pairing-request"]')?.click();
+    await flush();
+    current.detectChanges();
+    expect(
+      current.nativeElement.querySelector('[data-testid="host-pairing-request-indicator"]'),
+    ).not.toBeNull();
+    Object.defineProperty(document, 'visibilityState', {
+      configurable: true,
+      get: () => 'visible',
+    });
+    document.dispatchEvent(new Event('visibilitychange'));
+    await flush();
+    current.detectChanges();
+    expect(
+      current.nativeElement.querySelector('[data-testid="host-pairing-rejected"]'),
+    ).not.toBeNull();
     expect(setHostTokenMock).not.toHaveBeenCalled();
   });
 
