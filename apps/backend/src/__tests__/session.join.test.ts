@@ -394,10 +394,10 @@ describe('session.join', () => {
       ...buildSession(),
       status: 'FINISHED',
       endedAt: new Date('2026-09-19T07:00:00.000Z'),
-      expiresAt: new Date('2026-09-20T08:00:00.000Z'),
+      expiresAt: new Date('2027-09-20T08:00:00.000Z'),
       qaEnabled: true,
       qaOpen: true,
-      qaClosesAt: new Date('2026-09-20T08:00:00.000Z'),
+      qaClosesAt: new Date('2027-09-20T08:00:00.000Z'),
     });
 
     const result = await caller.join({

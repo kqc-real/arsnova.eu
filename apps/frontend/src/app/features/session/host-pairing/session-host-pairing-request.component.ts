@@ -22,6 +22,47 @@ type RequestView =
   'missing' | 'ready' | 'requesting' | 'pending' | 'connected' | 'rejected' | 'expired' | 'error';
 
 const POLL_MS = 1500;
+const DEFINITIVE_EXPIRED_POLL_MARKERS = [
+  'Es gibt keine offene Verbindungsanfrage.',
+  'Die Verbindungsanfrage ist abgelaufen.',
+  'Dieser Verbindungslink ist ungültig oder abgelaufen.',
+] as const;
+
+function readErrorMessage(error: unknown): string {
+  if (
+    error &&
+    typeof error === 'object' &&
+    'message' in error &&
+    typeof error.message === 'string'
+  ) {
+    return error.message;
+  }
+  return '';
+}
+
+function readTrpcDataCode(error: unknown): string | null {
+  if (!error || typeof error !== 'object' || !('data' in error)) return null;
+  const data = error.data;
+  if (!data || typeof data !== 'object' || !('code' in data)) return null;
+  return typeof data.code === 'string' ? data.code : null;
+}
+
+function definitivePairingPollOutcome(error: unknown): 'expired' | 'error' | null {
+  const message = readErrorMessage(error);
+  if (DEFINITIVE_EXPIRED_POLL_MARKERS.some((marker) => message.includes(marker))) {
+    return 'expired';
+  }
+  if (readTrpcDataCode(error) === 'NOT_FOUND') {
+    return 'expired';
+  }
+  if (
+    message.includes('Die Veranstaltung ist bereits beendet.') ||
+    message.includes('Session nicht gefunden.')
+  ) {
+    return 'error';
+  }
+  return null;
+}
 
 @Component({
   selector: 'app-session-host-pairing-request',
@@ -148,6 +189,18 @@ export class SessionHostPairingRequestComponent implements OnInit, OnDestroy {
     globalThis.document?.removeEventListener('visibilitychange', this.onVisibilityChange);
   }
 
+  private hasRequestExpiredLocally(): boolean {
+    const expiresAt = this.expiresAt();
+    if (!expiresAt) return false;
+    const parsed = Date.parse(expiresAt);
+    return Number.isFinite(parsed) && parsed <= Date.now();
+  }
+
+  private finishAsExpired(): void {
+    this.stopPolling();
+    this.view.set('expired');
+  }
+
   private async refreshRequest(): Promise<void> {
     if (!this.requestId || !this.requestSecret) return;
     try {
@@ -159,6 +212,9 @@ export class SessionHostPairingRequestComponent implements OnInit, OnDestroy {
       if (result.state === 'PENDING_APPROVAL') {
         this.indicator.set(result.confirmationIndicator);
         this.expiresAt.set(result.expiresAt);
+        if (this.hasRequestExpiredLocally()) {
+          this.finishAsExpired();
+        }
         return;
       }
       if (result.token?.pairedHostToken) {
@@ -188,8 +244,28 @@ export class SessionHostPairingRequestComponent implements OnInit, OnDestroy {
         this.view.set('expired');
         return;
       }
-    } catch {
-      /* Polling-Fehler nicht als Abbruch zeigen — der nächste Tick holt nach. */
+    } catch (error: unknown) {
+      if (this.hasRequestExpiredLocally()) {
+        this.finishAsExpired();
+        return;
+      }
+      const outcome = definitivePairingPollOutcome(error);
+      if (outcome === 'expired') {
+        this.finishAsExpired();
+        return;
+      }
+      if (outcome === 'error') {
+        this.stopPolling();
+        this.view.set('error');
+        this.error.set(
+          localizeKnownServerError(
+            error,
+            $localize`:@@hostPairing.errorInvalidLink:Dieser Link ist nicht mehr gültig. Bitte zeige einen neuen QR-Code an.`,
+          ),
+        );
+        return;
+      }
+      /* Transiente Transportfehler nicht als Abbruch zeigen — der nächste Tick holt nach. */
     }
   }
 

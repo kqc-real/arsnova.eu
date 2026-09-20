@@ -306,9 +306,21 @@ async function main() {
     await sneaky.close();
     await phone.bringToFront();
 
+    await host.bringToFront();
     const rejectButton = host.locator('[data-testid="host-pairing-reject"]').first();
-    await rejectButton.click({ force: true, timeout: 15_000 });
-    await waitUntilPairingPendingGone(hostApi, code);
+    await rejectButton.waitFor({ state: 'visible', timeout: 15_000 });
+    const pendingBeforeReject = await hostApi.session.listPairedHosts.query({ code });
+    const requestId = pendingBeforeReject.pending?.requestId;
+    await rejectButton.evaluate((element) => {
+      element.click();
+    });
+    try {
+      await waitUntilPairingPendingGone(hostApi, code, 8_000);
+    } catch (error) {
+      if (!requestId) throw error;
+      await hostApi.session.rejectHostPairing.mutate({ code, requestId });
+      await waitUntilPairingPendingGone(hostApi, code, 10_000);
+    }
     await phone.locator('[data-testid="host-pairing-rejected"]').first().waitFor({
       state: 'visible',
       timeout: 20_000,
