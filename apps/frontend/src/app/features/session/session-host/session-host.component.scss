@@ -2885,6 +2885,8 @@
 }
 
 .session-lobby {
+  position: relative;
+  isolation: isolate;
   display: grid;
   gap: 1.5rem;
   text-align: center;
@@ -3020,6 +3022,13 @@
   display: block;
   width: 100%;
   pointer-events: none;
+}
+
+.session-lobby__foyer-stage--overlay {
+  position: absolute;
+  inset: 0;
+  z-index: 30;
+  height: auto;
 }
 
 .session-lobby__teams--hero {

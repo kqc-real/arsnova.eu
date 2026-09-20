@@ -121,6 +121,7 @@ import {
   WORD_CLOUD_DEFAULT_MAX_NGRAM_LENGTH,
   WORD_CLOUD_PHRASE_MAX_NGRAM_LENGTH,
   QA_WORD_CLOUD_MAX_OUTPUT_ENTRIES,
+  SESSION_LOBBY_RECENT_ARRIVALS_MAX,
   WordCloudAnalysisEntryDTOSchema,
   isWordCloudLemmaLocale,
   isWordCloudPhraseAnalysisVariant,
@@ -700,7 +701,7 @@ export class SessionHostComponent implements OnInit, OnDestroy {
     if (!session || session.anonymousMode) {
       return false;
     }
-    return (this.participantsPayload()?.participantCount ?? session.participantCount) > 0;
+    return this.liveParticipantCount() > 0;
   });
   private participantDirectoryCurrentCursor: string | null = null;
   private participantDirectoryCursorHistory: Array<string | null> = [];
@@ -1098,7 +1099,10 @@ export class SessionHostComponent implements OnInit, OnDestroy {
     () => this.hasCurrentQuizQuestionForHost() && this.displayedCurrentQuestionForHost() === null,
   );
   readonly showLobbyStage = computed(
-    () => this.effectiveStatus() === 'LOBBY' || this.quizStartQuestionPending(),
+    () =>
+      this.effectiveStatus() === 'LOBBY' ||
+      this.quizStartQuestionPending() ||
+      this.isQuizAwaitingFirstQuestion(),
   );
   /** Emoji-Reaktionen der Teilnehmenden in der Ergebnis-Phase (Story 5.8). */
   readonly emojiReactions = signal<{ reactions: Record<string, number>; total: number } | null>(
@@ -1610,7 +1614,7 @@ export class SessionHostComponent implements OnInit, OnDestroy {
     return grouped;
   });
   readonly hiddenLobbyParticipantIds = computed(() => {
-    if (!this.showTeamFoyerEntranceLayers()) {
+    if (!this.canShowFoyerEntrance() || this.suppressTeamFoyerEntrance()) {
       return new Set<string>();
     }
 
@@ -3113,13 +3117,23 @@ export class SessionHostComponent implements OnInit, OnDestroy {
 
     return teams.map((team) => ({
       ...team,
-      memberCount: teamMemberCounts.get(team.id) ?? 0,
+      memberCount: Math.max(team.memberCount ?? 0, teamMemberCounts.get(team.id) ?? 0),
       participants: participantMap.get(team.id) ?? [],
     }));
   });
+  readonly liveParticipantCount = computed(() => {
+    const session = this.session();
+    const payload = this.participantsPayload();
+    const fromPayload = payload?.participantCount ?? 0;
+    const fromSession = session?.participantCount ?? 0;
+    const fromListed = payload?.participants.length ?? 0;
+    const fromTeams = this.lobbyTeams().reduce((sum, team) => sum + (team.memberCount ?? 0), 0);
+    return Math.max(fromPayload, fromSession, fromListed, fromTeams);
+  });
   readonly lobbyParticipantsNewestFirst = computed(() => {
     const participants = this.participantsPayload()?.participants ?? [];
-    return [...participants].reverse();
+    const hiddenIds = this.hiddenLobbyParticipantIds();
+    return participants.filter((participant) => !hiddenIds.has(participant.id));
   });
 
   /** Reihenfolge der Emojis für die Reaktions-Anzeige (Story 5.8). */
@@ -6515,14 +6529,14 @@ export class SessionHostComponent implements OnInit, OnDestroy {
         ? this.withCalmTeamArrivalDelays(this.foyerArrivalChips(), additions)
         : this.withCalmNonTeamArrivalDelays(this.foyerArrivalChips(), additions);
 
-    if (this.session()?.teamMode === true) {
-      for (const chip of timedAdditions) {
-        const hiddenIds = new Set<string>();
-        if (chip.participantId) {
-          hiddenIds.add(chip.participantId);
-        }
-        chip.hiddenParticipantIds?.forEach((participantId) => hiddenIds.add(participantId));
-        this.registerHiddenLobbyParticipants([...hiddenIds], chip.presenceMs + chip.delayMs);
+    for (const chip of timedAdditions) {
+      const hiddenIds = new Set<string>();
+      if (chip.participantId) {
+        hiddenIds.add(chip.participantId);
+      }
+      chip.hiddenParticipantIds?.forEach((participantId) => hiddenIds.add(participantId));
+      this.registerHiddenLobbyParticipants([...hiddenIds], chip.presenceMs + chip.delayMs);
+      if (this.session()?.teamMode === true) {
         this.scheduleTeamLandingEcho(chip.teamId, chip.sequence, chip.presenceMs + chip.delayMs);
       }
     }
@@ -6587,7 +6601,7 @@ export class SessionHostComponent implements OnInit, OnDestroy {
       anonymousMode: session?.anonymousMode === true,
       kindergartenEmoji,
       dense,
-      preferEmojiOnly: session?.teamMode === true && !!kindergartenEmoji,
+      preferEmojiOnly: !!kindergartenEmoji,
       preferReadableText:
         session?.teamMode !== true ||
         (session?.allowCustomNicknames === false &&
@@ -6622,6 +6636,18 @@ export class SessionHostComponent implements OnInit, OnDestroy {
     | 'badgePresenceMs'
     | 'pulseDelayMs'
   > {
+    if (this.session()?.nicknameTheme === 'KINDERGARTEN') {
+      const profile = this.kindergartenArrivalMotionProfile(0);
+      return {
+        enterDurationMs: profile.enterDurationMs,
+        presenceMs: profile.presenceMs,
+        settleDelayMs: profile.settleDelayMs,
+        badgeDelayMs: profile.badgeDelayMs,
+        badgePresenceMs: profile.badgePresenceMs,
+        pulseDelayMs: profile.pulseDelayMs,
+      };
+    }
+
     const enterDurationMs = teamMode ? 1760 : 680;
     const presenceMs = teamMode ? 3200 : this.foyerChipLifetimeMs;
     return {
@@ -6678,6 +6704,10 @@ export class SessionHostComponent implements OnInit, OnDestroy {
       return [];
     }
 
+    if (this.session()?.nicknameTheme === 'KINDERGARTEN') {
+      return this.withKindergartenArrivalDelays(current, additions);
+    }
+
     const activeCurrent = current.filter((chip) => chip.teamId === null);
     let nextDelay =
       activeCurrent.length > 0
@@ -6708,7 +6738,7 @@ export class SessionHostComponent implements OnInit, OnDestroy {
     current: readonly FoyerEntranceChip[],
     additions: readonly FoyerEntranceChip[],
   ): FoyerEntranceChip[] {
-    const activeCurrent = current.filter((chip) => chip.teamId !== null);
+    const activeCurrent = current;
     let queueDepth = activeCurrent.length;
     let nextDelay =
       activeCurrent.length > 0
@@ -7465,12 +7495,13 @@ export class SessionHostComponent implements OnInit, OnDestroy {
     summary: SessionParticipantSummaryDTO | SessionParticipantsPayload,
   ): SessionParticipantsPayload {
     // Während eines Rolling Deployments können bereits verbundene alte
-    // Backend-Instanzen noch den früheren, vollständigen Payload senden. Die
-    // neue UI verarbeitet davon bewusst nur die letzten 20 Einträge.
+    // Backend-Instanzen noch den früheren, vollständigen Payload senden.
     const participants =
       'recentArrivals' in summary
         ? summary.recentArrivals
-        : summary.participants.slice(Math.max(0, summary.participants.length - 20));
+        : summary.participants.slice(
+            Math.max(0, summary.participants.length - SESSION_LOBBY_RECENT_ARRIVALS_MAX),
+          );
     return {
       participants: participants.map((participant) => ({
         id: participant.id,

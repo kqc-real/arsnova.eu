@@ -687,17 +687,18 @@ app-session-projection-quiz,
 
 .session-present__lobby-team--crowd .session-present__lobby-team-members,
 .session-present__lobby-team--packed .session-present__lobby-team-members {
-  grid-auto-rows: minmax(0, 1fr);
   align-content: stretch;
   align-items: stretch;
   justify-items: stretch;
 }
 
 .session-present__lobby-team--crowd .session-present__lobby-team-members {
+  grid-auto-rows: minmax(min-content, 1fr);
   gap: 0.18rem;
 }
 
 .session-present__lobby-team--packed .session-present__lobby-team-members {
+  grid-auto-rows: minmax(0, 1fr);
   gap: 0.02rem 0.14rem;
 }
 
@@ -707,15 +708,11 @@ app-session-projection-quiz,
   display: grid;
   place-items: center;
   min-width: 0;
-  min-height: 0;
+  min-height: 2.25rem;
   overflow: hidden;
   padding: 0.18rem 0.4rem;
-  border-radius: var(--mat-sys-corner-full);
-  background: color-mix(
-    in srgb,
-    var(--mat-sys-surface-container-high) 82%,
-    var(--mat-sys-primary) 18%
-  );
+  border-radius: 0;
+  background: transparent;
   font-size: clamp(0.78rem, 1.35vw, 1.05rem);
   font-weight: 650;
   line-height: 1.2;
@@ -746,6 +743,7 @@ app-session-projection-quiz,
 
 .session-present__lobby-team--packed .session-present__lobby-team-members li,
 .session-present__lobby-people-cols--packed .session-present__lobby-person {
+  min-height: 0;
   padding: 0.02rem 0.08rem;
   background: transparent;
 }
@@ -785,6 +783,37 @@ app-session-projection-quiz,
   user-select: none;
 }
 
+.session-present__lobby-audience--kindergarten .session-present__lobby-team-members {
+  grid-auto-rows: minmax(0, 1fr);
+  align-content: stretch;
+  align-items: stretch;
+  justify-items: stretch;
+}
+
+.session-present__lobby-audience--kindergarten .session-present__lobby-team-members li {
+  width: auto;
+  min-height: 0;
+  padding: 0.08rem;
+  container-type: size;
+}
+
+.session-present__lobby-audience--kindergarten .session-present__lobby-nick {
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+}
+
+.session-present__lobby-audience--kindergarten .session-present__lobby-nick-seq {
+  display: none;
+}
+
+.session-present__lobby-team--crowd .session-present__lobby-nick,
+.session-present__lobby-team--packed .session-present__lobby-nick {
+  width: 100%;
+  height: 100%;
+  justify-content: center;
+}
+
 .session-present__lobby-nick-icon,
 .session-present__lobby-nick-mat-icon {
   flex: 0 0 auto;
@@ -794,11 +823,45 @@ app-session-projection-quiz,
 }
 
 .session-present__lobby-nick-icon {
-  font-size: clamp(0.95rem, 1.8vw, 1.7rem);
+  font-size: clamp(1.35rem, 3.2vw, 2.8rem);
 }
 
-.session-present__lobby-team--crowd .session-present__lobby-nick-icon {
-  font-size: clamp(0.85rem, min(70cqh, 70cqw), 1.7rem);
+.session-present__lobby-team--crowd .session-present__lobby-nick-icon,
+.session-present__lobby-team--packed .session-present__lobby-nick-icon {
+  font-size: clamp(1.2rem, min(86cqh, 80cqw), 4.5rem);
+}
+
+.session-present__lobby-audience--kindergarten
+  .session-present__lobby-team:not(.session-present__lobby-team--packed)
+  .session-present__lobby-nick-icon {
+  font-size: clamp(1.6rem, min(86cqh, 80cqw), 16rem);
+}
+
+.session-present__lobby-audience--kindergarten .session-present__lobby-person-col {
+  padding: 0.08rem;
+  border: none;
+  background: transparent;
+  align-content: stretch;
+  justify-items: stretch;
+  container-type: size;
+}
+
+.session-present__lobby-audience--kindergarten
+  .session-present__lobby-person-col
+  .session-present__lobby-person,
+.session-present__lobby-audience--kindergarten
+  .session-present__lobby-person-col
+  .session-present__lobby-nick {
+  width: 100%;
+  height: 100%;
+  min-height: 0;
+  justify-content: center;
+}
+
+.session-present__lobby-audience--kindergarten:not(.session-present__lobby-audience--packed)
+  .session-present__lobby-person-col
+  .session-present__lobby-nick-icon {
+  font-size: clamp(1.6rem, min(86cqh, 80cqw), 16rem);
 }
 
 .session-present__lobby-nick-mat-icon {
@@ -821,8 +884,10 @@ app-session-projection-quiz,
   gap: 0.08rem;
 }
 
-.session-present__lobby-team--packed .session-present__lobby-nick-icon,
+.session-present__lobby-team--crowd .session-present__lobby-nick-mat-icon,
 .session-present__lobby-team--packed .session-present__lobby-nick-mat-icon {
+  width: 1em;
+  height: 1em;
   font-size: clamp(0.7rem, min(88cqh, 78cqw), 2.9rem);
 }
 
@@ -918,7 +983,10 @@ app-session-projection-quiz,
   gap: 0.12rem;
 }
 
-.session-present__lobby-people-cols--packed .session-present__lobby-nick-icon,
+.session-present__lobby-people-cols--packed .session-present__lobby-nick-icon {
+  font-size: clamp(1.2rem, min(78cqh, 72cqw), 3.4rem);
+}
+
 .session-present__lobby-people-cols--packed .session-present__lobby-nick-mat-icon {
   font-size: clamp(0.7rem, min(88cqh, 78cqw), 2.9rem);
 }

@@ -64,18 +64,6 @@
                 <span i18n="@@join.sessionPlannedEnd">Geplantes Sessionende:</span>
                 <strong>{{ formatLifecycleDateTime(s.expiresAt, s.timeZone) }}</strong>
               </p>
-              @if (s.purgeEligibleAt) {
-                <p>
-                  <mat-icon aria-hidden="true">delete_outline</mat-icon>
-                  <span i18n="@@join.sessionPurgeEligible">Sessiondaten frühestens löschbar:</span>
-                  <strong>{{ formatLifecycleDateTime(s.purgeEligibleAt, s.timeZone) }}</strong>
-                </p>
-              }
-              <p i18n="@@join.sessionDeletionException">
-                Die technische Löschung kann sich durch eng begrenzte gesetzliche oder
-                zweckgebundene Aufbewahrung verlängern. Daraus entsteht kein zusätzlicher
-                Teilnehmerzugriff.
-              </p>
             </div>
           }
         </div>

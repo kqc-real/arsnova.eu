@@ -380,7 +380,7 @@
     </mat-menu>
 
     @if (effectiveStatus() !== 'FINISHED') {
-      @let liveParticipantCount = participantsPayload()?.participantCount ?? s.participantCount;
+      @let audienceCount = liveParticipantCount();
       <div class="session-host__live-shell-row">
         <section class="session-host__live-banner">
           <div class="session-host__live-banner-main">
@@ -406,19 +406,13 @@
                   {{ s.code }}
                 </p>
                 <p class="session-host__live-participants">
-                  <span class="session-host__live-participants-count">{{
-                    liveParticipantCount
-                  }}</span>
-                  {{
-                    liveParticipantCount === 1
-                      ? participantLabelSingular()
-                      : participantLabelPlural()
-                  }}
+                  <span class="session-host__live-participants-count">{{ audienceCount }}</span>
+                  {{ audienceCount === 1 ? participantLabelSingular() : participantLabelPlural() }}
                 </p>
                 @if (
                   connectedParticipantStatusLabel(
                     participantsPayload()?.connectedCount,
-                    liveParticipantCount
+                    audienceCount
                   );
                   as connectedStatus
                 ) {
@@ -737,11 +731,6 @@
               </section>
             }
             @let payload = participantsPayload();
-            @if (showFoyerEntranceLayer() && foyerArrivalChips().length > 0) {
-              <div class="session-lobby__foyer-stage">
-                <app-foyer-entrance-layer [chips]="foyerArrivalChips()" />
-              </div>
-            }
             @if (s.teamMode && lobbyTeamsWithParticipants().length > 0) {
               <section
                 class="session-lobby__teams session-lobby__teams--hero"
@@ -844,7 +833,11 @@
                             </li>
                           }
                         </ul>
-                      } @else if (!s.anonymousMode && !teamHasHiddenLobbyArrivals(team.id)) {
+                      } @else if (
+                        !s.anonymousMode &&
+                        team.memberCount === 0 &&
+                        !teamHasHiddenLobbyArrivals(team.id)
+                      ) {
                         <p class="session-lobby__team-empty">{{ lobbyTeamEmptyLabel() }}</p>
                       }
                     </article>
@@ -852,7 +845,7 @@
                 </div>
               </section>
             }
-            @if (!s.teamMode && !s.anonymousMode && payload && payload.participants.length > 0) {
+            @if (!s.teamMode && !s.anonymousMode && lobbyParticipantsNewestFirst().length > 0) {
               <ul
                 class="session-lobby__list session-lobby__list--chips"
                 role="list"
@@ -875,6 +868,11 @@
                   </li>
                 }
               </ul>
+            }
+            @if (showFoyerEntranceLayer() && foyerArrivalChips().length > 0) {
+              <div class="session-lobby__foyer-stage session-lobby__foyer-stage--overlay">
+                <app-foyer-entrance-layer [chips]="foyerArrivalChips()" [overlay]="true" />
+              </div>
             }
           </div>
         } @else {

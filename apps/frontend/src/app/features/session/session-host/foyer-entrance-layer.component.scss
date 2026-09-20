@@ -440,9 +440,10 @@
 }
 
 .foyer-entrance-layer--overlay .foyer-entrance-layer__chip--emoji-only {
-  min-width: 6.25rem;
-  min-height: 6.25rem;
-  padding: 0.5rem;
+  min-width: 7.5rem;
+  min-height: 7.5rem;
+  max-width: none;
+  padding: 0.15rem;
   background: transparent;
   border-color: transparent;
   box-shadow: none;
@@ -451,7 +452,7 @@
 .foyer-entrance-layer--overlay
   .foyer-entrance-layer__chip--emoji-only
   .foyer-entrance-layer__chip-emoji {
-  font-size: 3.75rem;
+  font-size: clamp(5.5rem, 14vmin, 11rem);
 }
 
 .foyer-entrance-layer__name-badge {
@@ -490,7 +491,7 @@
   .foyer-entrance-layer--overlay
     .foyer-entrance-layer__chip--emoji-only
     .foyer-entrance-layer__chip-emoji {
-    font-size: 5.25rem;
+    font-size: clamp(7rem, 16vmin, 12rem);
   }
 }
 
