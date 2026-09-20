@@ -661,7 +661,11 @@ export class SessionPresentComponent implements OnInit, OnDestroy {
     if (!session) return false;
     if (session.status === 'LOBBY') return true;
     if (session.type === 'Q_AND_A') return false;
-    return session.status === 'ACTIVE' && this.hostQuestion() === null;
+    return (
+      session.status === 'ACTIVE' &&
+      this.hostQuestion() === null &&
+      typeof session.currentQuestion !== 'number'
+    );
   });
   readonly showLobbyProjection = computed(() => {
     if (

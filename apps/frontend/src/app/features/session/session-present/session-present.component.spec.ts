@@ -2386,7 +2386,13 @@ describe('SessionPresentComponent', () => {
       /\.session-present__lobby-team-members li \{\s*container-type:\s*size;/,
     );
     expect(styles).toMatch(
-      /\.session-present__lobby-team--crowd \.session-present__lobby-team-members,[\s\S]*?\.session-present__lobby-team--packed \.session-present__lobby-team-members \{[\s\S]*?grid-auto-rows:\s*minmax\(min-content,\s*1fr\);[\s\S]*?align-items:\s*stretch;[\s\S]*?justify-items:\s*stretch;/,
+      /\.session-present__lobby-team--crowd \.session-present__lobby-team-members,[\s\S]*?\.session-present__lobby-team--packed \.session-present__lobby-team-members \{[\s\S]*?align-items:\s*stretch;[\s\S]*?justify-items:\s*stretch;/,
+    );
+    expect(styles).toMatch(
+      /\.session-present__lobby-team--crowd \.session-present__lobby-team-members \{[\s\S]*?grid-auto-rows:\s*minmax\(min-content,\s*1fr\);/,
+    );
+    expect(styles).toMatch(
+      /\.session-present__lobby-team--packed \.session-present__lobby-team-members \{[\s\S]*?grid-auto-rows:\s*minmax\(0,\s*1fr\);/,
     );
     expect(styles).toMatch(
       /\.session-present__lobby-team--crowd \.session-present__lobby-team-members li,[\s\S]*?\.session-present__lobby-team--packed \.session-present__lobby-team-members li \{[\s\S]*?container-type:\s*size;/,
@@ -2811,6 +2817,56 @@ describe('SessionPresentComponent', () => {
       (el) => (el.textContent ?? '').trim(),
     );
     expect(icons).toEqual(['🐉', '🐸']);
+    fixture.destroy();
+  });
+
+  it('hält die Lobby zu, wenn ACTIVE bereits eine Quizfrage trägt', async () => {
+    getInfoQueryMock.mockResolvedValue({
+      id: '6a8edced-5f8f-4cfa-9176-454fac9570ad',
+      serverTime: MOCK_SERVER_TIME,
+      code: 'ABC123',
+      type: 'QUIZ',
+      status: 'ACTIVE',
+      currentQuestion: 0,
+      quizName: 'Team-Quiz',
+      title: null,
+      participantCount: 2,
+      teamMode: true,
+      anonymousMode: false,
+      nicknameTheme: 'KINDERGARTEN',
+    });
+    getCurrentQuestionForHostQueryMock.mockResolvedValue(null);
+    liveQueryMock.mockRejectedValue(new Error('no live freetext'));
+    getParticipantSummaryQueryMock.mockResolvedValue({
+      participantCount: 2,
+      recentArrivals: [],
+    });
+    getTeamsQueryMock.mockResolvedValue({
+      teamCount: 2,
+      teams: [
+        {
+          id: 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa',
+          name: 'Rot',
+          color: '#c62828',
+          memberCount: 1,
+        },
+        {
+          id: 'bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb',
+          name: 'Blau',
+          color: '#1565c0',
+          memberCount: 1,
+        },
+      ],
+    });
+
+    const fixture = TestBed.createComponent(SessionPresentComponent);
+    fixture.detectChanges();
+    await fixture.whenStable();
+    await new Promise((resolve) => setTimeout(resolve, 50));
+    fixture.detectChanges();
+
+    expect(fixture.componentInstance.showLobbyProjection()).toBe(false);
+    expect(fixture.nativeElement.querySelector('.session-present__lobby-audience')).toBeNull();
     fixture.destroy();
   });
 

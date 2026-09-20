@@ -687,17 +687,18 @@ app-session-projection-quiz,
 
 .session-present__lobby-team--crowd .session-present__lobby-team-members,
 .session-present__lobby-team--packed .session-present__lobby-team-members {
-  grid-auto-rows: minmax(min-content, 1fr);
   align-content: stretch;
   align-items: stretch;
   justify-items: stretch;
 }
 
 .session-present__lobby-team--crowd .session-present__lobby-team-members {
+  grid-auto-rows: minmax(min-content, 1fr);
   gap: 0.18rem;
 }
 
 .session-present__lobby-team--packed .session-present__lobby-team-members {
+  grid-auto-rows: minmax(0, 1fr);
   gap: 0.02rem 0.14rem;
 }
 
@@ -742,6 +743,7 @@ app-session-projection-quiz,
 
 .session-present__lobby-team--packed .session-present__lobby-team-members li,
 .session-present__lobby-people-cols--packed .session-present__lobby-person {
+  min-height: 0;
   padding: 0.02rem 0.08rem;
   background: transparent;
 }
