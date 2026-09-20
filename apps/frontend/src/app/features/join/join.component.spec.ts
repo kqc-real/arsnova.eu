@@ -572,6 +572,12 @@ describe('JoinComponent', () => {
 
     comp.selectedNickname.set(longNickname);
     expect(comp.canSubmit()).toBe(true);
+    fixture.detectChanges();
+    const submit = fixture.nativeElement.querySelector(
+      '.join-card__submit',
+    ) as HTMLButtonElement | null;
+    expect(submit?.classList.contains('join-card__submit--armed')).toBe(true);
+    expect(submit?.classList.contains('mat-mdc-outlined-button')).toBe(false);
     await comp.submitJoin();
     await fixture.whenStable();
 

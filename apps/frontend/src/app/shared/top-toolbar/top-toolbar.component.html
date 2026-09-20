@@ -54,18 +54,32 @@
       }
     </div>
 
-    <button
-      type="button"
-      matIconButton
-      class="top-toolbar__menu-btn mobile-only"
-      [attr.aria-expanded]="controlsMenuOpen() ? 'true' : 'false'"
-      aria-controls="top-toolbar-mobile"
-      i18n-aria-label="@@topToolbar.openMenuAria"
-      aria-label="Einstellungen öffnen"
-      (click)="toggleControlsMenu($event)"
-    >
-      <mat-icon>menu</mat-icon>
-    </button>
+    <div class="top-toolbar__end mobile-only">
+      <button
+        type="button"
+        class="top-toolbar__preset-chip"
+        [attr.aria-expanded]="controlsMenuOpen() ? 'true' : 'false'"
+        aria-controls="top-toolbar-mobile"
+        [attr.aria-label]="presetChipAria()"
+        (click)="toggleControlsMenu($event)"
+      >
+        <mat-icon aria-hidden="true">{{
+          themePreset.preset() === 'spielerisch' ? 'celebration' : 'work'
+        }}</mat-icon>
+      </button>
+      <button
+        type="button"
+        matIconButton
+        class="top-toolbar__menu-btn"
+        [attr.aria-expanded]="controlsMenuOpen() ? 'true' : 'false'"
+        aria-controls="top-toolbar-mobile"
+        i18n-aria-label="@@topToolbar.openMenuAria"
+        aria-label="Einstellungen öffnen"
+        (click)="toggleControlsMenu($event)"
+      >
+        <mat-icon>menu</mat-icon>
+      </button>
+    </div>
 
     <div class="top-toolbar__controls desktop-only">
       <div
@@ -107,7 +121,7 @@
         role="group"
         i18n-aria-label="@@topToolbar.themeGroupAria"
         aria-label="Theme"
-        class="top-toolbar__toggles"
+        class="top-toolbar__toggles top-toolbar__toggles--theme"
       >
         <button
           type="button"
@@ -205,7 +219,7 @@
         role="group"
         i18n-aria-label="@@topToolbar.themeGroupAria"
         aria-label="Theme"
-        class="top-toolbar__toggles"
+        class="top-toolbar__toggles top-toolbar__toggles--theme"
       >
         <button
           type="button"

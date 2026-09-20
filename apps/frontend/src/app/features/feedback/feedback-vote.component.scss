@@ -2,6 +2,15 @@
   display: flex;
   justify-content: flex-end;
   width: 100%;
+  padding-top: 1.75rem;
+
+  @media (min-width: 600px) {
+    padding-top: 2rem;
+  }
+
+  @media (min-width: 840px) {
+    padding-top: 2.25rem;
+  }
 }
 
 .feedback-vote__product-feedback-utility button {

@@ -467,12 +467,42 @@ describe('session.create (Story 2.1a)', () => {
     );
   });
 
-  it('lehnt Quiz-Sessions ohne quizId ab', async () => {
-    await expect(caller.create({})).rejects.toMatchObject({
-      code: 'BAD_REQUEST',
+  it('erlaubt Quiz-Sessions ohne quizId als leeren Quizkanal', async () => {
+    prismaMock.session.create.mockResolvedValueOnce({
+      id: SESSION_ID,
+      code: CODE,
+      type: 'QUIZ',
+      status: 'LOBBY',
+      quizId: null,
+      qaEnabled: false,
+      qaOpen: false,
+      qaTitle: null,
+      qaModerationMode: false,
+      quickFeedbackEnabled: false,
+      quickFeedbackOpen: false,
+      quiz: null,
     });
 
-    expect(prismaMock.session.create).not.toHaveBeenCalled();
+    const result = await caller.create({ type: 'QUIZ' });
+
+    expect(result).toMatchObject({
+      sessionId: SESSION_ID,
+      code: CODE,
+      status: 'LOBBY',
+      quizName: null,
+      hostToken: HOST_TOKEN,
+    });
+    expect(prismaMock.session.create).toHaveBeenCalledWith(
+      expect.objectContaining({
+        data: expect.objectContaining({
+          type: 'QUIZ',
+          quizId: null,
+          qaEnabled: false,
+          quickFeedbackEnabled: false,
+          preferredChannel: 'quiz',
+        }),
+      }),
+    );
   });
 
   it('wirft TOO_MANY_REQUESTS wenn Rate-Limit überschritten', async () => {

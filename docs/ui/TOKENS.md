@@ -1,6 +1,6 @@
 # Token-Konventionen (Angular Material 3)
 
-**Stand:** 2026-09-03 — abgeglichen mit `apps/frontend/src/styles.scss`, `apps/frontend/src/styles/playful-inner-chrome.scss`, `apps/frontend/src/app/shared/server-status-help-dialog/server-status-help-dialog.component.scss`, [STYLEGUIDE.md](STYLEGUIDE.md) und Angular Material 21.2.
+**Stand:** 2026-09-20 — abgeglichen mit `apps/frontend/src/styles.scss`, `apps/frontend/src/styles/playful-inner-chrome.scss`, `apps/frontend/src/app/shared/server-status-help-dialog/server-status-help-dialog.component.scss`, [STYLEGUIDE.md](STYLEGUIDE.md) und Angular Material 21.2.
 
 ## Ziel
 
@@ -60,7 +60,7 @@ Aktuell globale Tokens in `styles.scss`:
 | `--host-mobile-stack-gap`      | Mobile Stack-Gap in Live-Ansichten                        | Layout-Konstante                                                     |
 | `--host-mobile-card-padding`   | Mobile Card-Padding in Live-Ansichten                     | Layout-Konstante                                                     |
 | `--host-mobile-toolbar-gap`    | Mobile Abstand zu Toolbar-/Bottom-Actions                 | Layout-Konstante                                                     |
-| `--host-mobile-safe-bottom`    | Safe-Area-Offset für mobile Bottom-Actions                | `env(safe-area-inset-bottom)`                                        |
+| `--host-mobile-safe-bottom`    | Safe-Area-Offset für mobile Bottom-Actions                | `env(safe-area-inset-bottom)`; wirksam nur mit `viewport-fit=cover`  |
 | `--app-qr-size`                | Standardgröße für QR-Flächen                              | Layout-Konstante                                                     |
 | `--app-qr-size-compact`        | kompakte QR-Größe                                         | Layout-Konstante                                                     |
 
@@ -85,7 +85,7 @@ Das globale Theme in `styles.scss` nutzt `mat.theme()` mit:
 | Preset      | CSS-Scope             | Primary-Palette        | Tertiary-Palette      |
 | ----------- | --------------------- | ---------------------- | --------------------- |
 | Seriös      | `html`                | `mat.$azure-palette`   | `mat.$cyan-palette`   |
-| Spielerisch | `html.preset-playful` | `mat.$magenta-palette` | `mat.$violet-palette` |
+| Spielerisch | `html.preset-playful` | `mat.$magenta-palette` | `mat.$orange-palette` |
 
 Light/Dark wird über `color-scheme` gesteuert:
 
@@ -181,7 +181,9 @@ Diese Ausnahme ist technisch bedingt und dokumentiert in ADR 0005.
 
 `--app-eu-blue`, `--app-eu-blue-dark` und `--app-eu-yellow` sind produktsemantische Markenfarben im Brand-SVG (Home und Top-Toolbar).
 
-**Ausnahme Seriös:** Azure-Primary wirkt cyan-stichig neben dem Logo. Deshalb überschreibt `html.light:not(.preset-playful)` (und System-Light ohne `.dark`) Primary auf `--app-eu-blue` und On-Primary auf `--app-eu-on-primary`, damit gefüllte CTAs zur Brand-Farbe passen. In Dark setzt `html.dark:not(.preset-playful)` (und System-Dark ohne `.light`) Primary-Container auf `--app-eu-blue` und Primary auf `--app-eu-blue-on-dark` (`#b4c4ff`), damit Karten-Icon-Kacheln und Toolbar-Icons zur Brand-Farbe passen. Spielerisch bleibt unverändert.
+**Ausnahme Seriös:** Azure-Primary wirkt cyan-stichig neben dem Logo. Deshalb überschreibt `html.light:not(.preset-playful)` (und System-Light ohne `.dark`) Primary auf `--app-eu-blue` und On-Primary auf `--app-eu-on-primary`, damit gefüllte CTAs zur Brand-Farbe passen. In Dark setzt `html.dark:not(.preset-playful)` (und System-Dark ohne `.light`) Primary-Container auf `--app-eu-blue` und Primary auf `--app-eu-blue-on-dark` (`#b4c4ff`), damit Karten-Icon-Kacheln und Toolbar-Icons zur Brand-Farbe passen.
+
+**Ausnahme Spielerisch:** Magenta-Primary bleibt für Flächen. Unter `html.preset-playful` mappen Filled-CTAs auf `--mat-sys-tertiary` und Tonal-CTAs auf `--mat-sys-surface-container-high`, damit keine hellrosa Buttons entstehen. Warn-Buttons bleiben Error.
 
 ## Responsive Breakpoints (Material Design 3)
 

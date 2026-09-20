@@ -2,7 +2,7 @@
 
 Diese Checkliste ist für alle PRs mit UI-Änderungen in `apps/frontend` verpflichtend.
 
-**Stand:** 2026-09-10 — abgeglichen mit [STYLEGUIDE.md](STYLEGUIDE.md) (inkl. Style-Vertraege), [TOKENS.md](TOKENS.md), Angular 21.2, den aktuellen Frontend-Skripten und der i18n-Dokumentation.
+**Stand:** 2026-09-20 — abgeglichen mit [STYLEGUIDE.md](STYLEGUIDE.md) (inkl. Style-Vertraege), [TOKENS.md](TOKENS.md), Angular 21.2, den aktuellen Frontend-Skripten und der i18n-Dokumentation.
 
 ## 1) Design-System-Konformität
 
@@ -10,6 +10,7 @@ Diese Checkliste ist für alle PRs mit UI-Änderungen in `apps/frontend` verpfli
 - [ ] Eigenkomponenten wurden nur dort verwendet, wo Material funktional nicht ausreicht.
 - [ ] Es wurden keine Tailwind-Klassen, Tailwind-Configs oder Tailwind-Utilities eingeführt.
 - [ ] Spielerisch/Seriös bleiben über `html.preset-playful` und Tokens getrennt; keine Preset-Sonderlogik über freie Hex-Werte.
+- [ ] Spielerisch: keine hellrosa/Magenta-CTAs (Filled = Tertiary, Tonal = Surface; kein `primary-container` auf Buttons).
 
 ## 2) Theming und Tokens
 

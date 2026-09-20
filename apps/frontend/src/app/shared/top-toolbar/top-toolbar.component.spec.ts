@@ -139,6 +139,48 @@ describe('TopToolbarComponent', () => {
     fixture.destroy();
   });
 
+  it('trennt Mobile-Cluster und Desktop-Steuerung per Breakpoint-Klassen', () => {
+    const fixture = createToolbar();
+    const mobileEnd = fixture.nativeElement.querySelector('.top-toolbar__end') as HTMLElement;
+    const desktopControls = fixture.nativeElement.querySelector(
+      '.top-toolbar__controls',
+    ) as HTMLElement;
+
+    expect(mobileEnd.classList.contains('mobile-only')).toBe(true);
+    expect(desktopControls.classList.contains('desktop-only')).toBe(true);
+    expect(
+      mobileEnd.contains(fixture.nativeElement.querySelector('.top-toolbar__preset-chip')),
+    ).toBe(true);
+    expect(mobileEnd.contains(fixture.nativeElement.querySelector('.top-toolbar__menu-btn'))).toBe(
+      true,
+    );
+    fixture.destroy();
+  });
+
+  it('zeigt das aktuelle Preset mobil als Chip und öffnet dasselbe Menü', async () => {
+    const fixture = createToolbar();
+    TestBed.inject(ThemePresetService).setPreset('spielerisch', { silent: true });
+    fixture.detectChanges();
+    const chip = fixture.nativeElement.querySelector(
+      '.top-toolbar__preset-chip',
+    ) as HTMLButtonElement;
+
+    expect(chip).toBeTruthy();
+    expect(chip.querySelector('mat-icon')?.textContent?.trim()).toBe('celebration');
+    expect(chip.textContent?.replace(/\s+/g, ' ').trim()).not.toContain('Spielerisch');
+    expect(chip.getAttribute('aria-label')).toBe('Spielerisch, Einstellungen öffnen');
+    expect(chip.getAttribute('aria-controls')).toBe('top-toolbar-mobile');
+
+    chip.click();
+    fixture.detectChanges();
+    await new Promise((resolve) => setTimeout(resolve, 0));
+
+    expect(fixture.componentInstance.controlsMenuOpen()).toBe(true);
+    expect(chip.getAttribute('aria-expanded')).toBe('true');
+    expect(fixture.nativeElement.querySelector('#top-toolbar-mobile')).toBeTruthy();
+    fixture.destroy();
+  });
+
   it('bietet Preset, Theme und Sprache im mobilen Menü an', async () => {
     const fixture = createToolbar();
     const trigger = fixture.nativeElement.querySelector(
@@ -399,6 +441,21 @@ describe('TopToolbarComponent', () => {
     expect(styles).toMatch(/primary-container:\s*var\(--app-eu-blue\)/);
   });
 
+  it('faerbt spielerische Filled-CTAs tertiaer statt magenta-rosa', async () => {
+    const { readFileSync } = await import('node:fs');
+    const { fileURLToPath } = await import('node:url');
+    const { dirname, join } = await import('node:path');
+    const stylesPath = join(dirname(fileURLToPath(import.meta.url)), '../../../styles.scss');
+    const styles = readFileSync(stylesPath, 'utf8');
+    const playful = styles.slice(styles.indexOf('html.preset-playful'));
+    expect(playful).toMatch(
+      /\.mat-mdc-unelevated-button:not\(\.mat-warn\)[\s\S]*?--mat-button-filled-container-color:\s*var\(--mat-sys-tertiary\)/,
+    );
+    expect(playful).toMatch(
+      /\.mat-tonal-button:not\(\.mat-warn\)[\s\S]*?--mat-button-tonal-container-color:\s*var\(--mat-sys-surface-container-high\)/,
+    );
+  });
+
   it('stilisiert Fokus direkt am Toggle-Button', async () => {
     const { readFileSync } = await import('node:fs');
     const { fileURLToPath } = await import('node:url');
@@ -417,6 +474,12 @@ describe('TopToolbarComponent', () => {
     );
     expect(scss).toMatch(
       /\.top-toolbar__mobile \.top-toolbar__toggle\s*\{[^}]*min-height:\s*2\.75rem/,
+    );
+    expect(scss).toMatch(
+      /\.top-toolbar__toggles--theme\s*\{[^}]*border:\s*1px solid var\(--mat-sys-outline-variant\)/,
+    );
+    expect(scss).toMatch(
+      /\.top-toolbar__toggles--theme\s*\{[\s\S]*?\.top-toolbar__toggle\s*\{[^}]*min-width:\s*3rem[^}]*min-height:\s*3rem/,
     );
   });
 

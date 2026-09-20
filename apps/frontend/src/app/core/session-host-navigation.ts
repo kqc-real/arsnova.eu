@@ -21,9 +21,7 @@ export async function navigateToHostSession(
 ): Promise<void> {
   const basePath = localizePath(`/session/${sessionCode}/host`);
   const params = new URLSearchParams();
-  if (initialTab !== 'quiz') {
-    params.set('tab', initialTab);
-  }
+  params.set('tab', initialTab);
   for (const [key, value] of Object.entries(extraQuery)) {
     params.set(key, value);
   }

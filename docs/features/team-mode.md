@@ -83,7 +83,9 @@ Besonderheiten:
 - `Team.color` ist eine feste Hex-Farbe aus einer Palette von 8 Farben
 - Eine vorhandene Teamzugehörigkeit erscheint an Q&A-Fragen (`authorTeamName`) und in der Host-Liste »Teilnahmen durchsuchen«
 - Beim Session-Start kann ein **Session-Onboarding-Profil** die Quiz-Werte spiegeln; die laufende Session nutzt dann die `onboarding*`-Felder, damit spätere Quiz-Edits die Live-Session nicht nachträglich verändern.
-- **Sonderfall Showcase-Demo-Quiz** (`DEMO_QUIZ_HISTORY_SCOPE_ID`): Darf an eine **teamlose** Session mit Teilnehmenden angehängt werden, auch wenn die Q&A-Runde schon läuft (`firstParticipantJoinedAt` gesetzt). Pseudonyme bleiben (Session-Theme). Die Session aktiviert danach `teamMode` mit den Demo-Teams (Apfel/Birne, AUTO); Teilnehmende ohne `teamId` werden round-robin zugewiesen. Andere Team-Quizzes bleiben an die `teamMode`-Kompatibilität gebunden. Team-Anlage ist konfliktfest (`skipDuplicates` / Unique-Catch); Joins ohne Team holen AUTO-Zuweisung nach dem Create nach (ohne Session-Row-Lock, damit Attach unter Last nicht timeoutet).
+- **Sonderfall Showcase-Demo-Quiz** (`DEMO_QUIZ_HISTORY_SCOPE_ID`): Darf an eine **teamlose** Session mit Teilnehmenden angehängt werden, auch wenn die Q&A-Runde schon läuft (`firstParticipantJoinedAt` gesetzt). Pseudonyme bleiben (Session-Theme). Die Session aktiviert danach `teamMode` mit den Demo-Teams (Apfel/Birne, AUTO); Teilnehmende ohne `teamId` werden round-robin zugewiesen.
+- **Leerer Raum** (`participantCount === 0`): Jedes Team-Quiz darf die teamlose Session auf das Quiz-Teamprofil heben.
+- **Host-Bestätigung `adoptQuizTeams`:** Der Host sieht immer alle Quizze. Passt die Teambindung nicht, kann er bewusst die Session auf das Quizprofil heben: Team-Quiz weist alle Teilnehmenden den Teams des Quiz zu (wie Demo); Einzelspieler-Quiz setzt `teamMode` zurück und löst `teamId`. Ohne dieses Flag bleibt die `teamMode`-Kompatibilität verbindlich. Team-Anlage ist konfliktfest (`skipDuplicates` / Unique-Catch); Joins ohne Team holen AUTO-Zuweisung nach dem Create nach (ohne Session-Row-Lock, damit Attach unter Last nicht timeoutet).
 
 ---
 

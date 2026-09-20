@@ -240,7 +240,7 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
   quickFeedbackError = signal<string | null>(null);
   quickFeedbackStarting = signal<QuickFeedbackType | null>(null);
   hostSessionError = signal<string | null>(null);
-  hostSessionStarting = signal<'qa' | 'quickFeedback' | null>(null);
+  hostSessionStarting = signal<'quiz' | 'qa' | 'quickFeedback' | null>(null);
 
   readonly themePreset = inject(ThemePresetService);
   private readonly quizStore = inject(QuizStoreService);
@@ -931,14 +931,14 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
   private triggerCtaPulse(): void {
     this.ctaReady.set(false);
     this.scheduleAnimationFrame(() => this.ctaReady.set(true));
-    this.scheduleTimeout(() => this.ctaReady.set(false), 350);
+    this.scheduleTimeout(() => this.ctaReady.set(false), 520);
   }
 
   preloadQuiz(): void {
     import('../quiz/quiz.component').then(() => {});
   }
 
-  async openHeroHostTab(tab: 'qa' | 'quickFeedback'): Promise<void> {
+  async openHeroHostTab(tab: 'quiz' | 'qa' | 'quickFeedback'): Promise<void> {
     if (this.hostSessionStarting()) return;
 
     this.joinError.set(null);
@@ -965,14 +965,15 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
           anonymousClientId: getAnonymousClientId(),
         });
         if (
-          tab === 'quickFeedback' &&
+          (tab === 'quickFeedback' || tab === 'quiz') &&
           session.status === 'FINISHED' &&
           !isQaChannelJoinable(session)
         ) {
           await this.startHeroHostSession(tab);
           return;
         }
-        const queryParams = this.isHeroTabAvailableForSession(session, tab) ? { tab } : undefined;
+        const queryParams =
+          tab === 'quiz' || this.isHeroTabAvailableForSession(session, tab) ? { tab } : undefined;
         await this.router.navigate(this.localizedCommands(['session', code, 'host']), {
           queryParams,
         });
@@ -986,7 +987,7 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
     }
   }
 
-  private async startHeroHostSession(tab: 'qa' | 'quickFeedback'): Promise<void> {
+  private async startHeroHostSession(tab: 'quiz' | 'qa' | 'quickFeedback'): Promise<void> {
     try {
       const onboardingProfile = createDefaultLiveSessionOnboardingProfile(
         this.themePreset.preset(),
@@ -1017,27 +1018,32 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
           participationProfile.identityMode === 'CUSTOM_NICKNAME';
         onboardingProfile.anonymousMode = participationProfile.identityMode === 'ANONYMOUS';
       }
-      const result =
-        tab === 'qa'
-          ? await trpc.session.create.mutate({
-              type: 'QUIZ',
+      const result = await trpc.session.create.mutate({
+        type: 'QUIZ',
+        ...(tab === 'qa'
+          ? {
               qaEnabled: true,
               qaTitle: $localize`:@@qaConfig.defaultTitle:Fragen & Antworten`,
-              timeZone: resolveBrowserSessionTimeZone(),
-              ...onboardingProfile,
-            })
-          : await trpc.session.create.mutate({
-              type: 'QUIZ',
-              quickFeedbackEnabled: true,
-              timeZone: resolveBrowserSessionTimeZone(),
-              ...onboardingProfile,
-            });
+            }
+          : tab === 'quickFeedback'
+            ? { quickFeedbackEnabled: true }
+            : {}),
+        timeZone: resolveBrowserSessionTimeZone(),
+        ...onboardingProfile,
+      });
       setHostToken(result.code, result.hostToken);
       persistInitialHostRecovery({
         code: result.code,
         browserCapability: result.hostBrowserCapability,
         recoveryCard: result.hostRecoveryCard,
       });
+      if (tab === 'quickFeedback') {
+        this.snackBar.open(
+          $localize`:@@homeLiveCard.quickFeedbackCreatedSnack:Neue Blitzlicht-Session gestartet.`,
+          '',
+          { duration: 4500, horizontalPosition: 'center', verticalPosition: 'top' },
+        );
+      }
       await navigateToHostSession(
         this.router,
         result.code,

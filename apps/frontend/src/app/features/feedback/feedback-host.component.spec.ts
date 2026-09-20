@@ -574,6 +574,23 @@ describe('FeedbackHostComponent', () => {
     );
   });
 
+  it('hält den Verbessern-Link unter der floating App-Bar', async () => {
+    const { readFileSync } = await import('node:fs');
+    const { fileURLToPath } = await import('node:url');
+    const { dirname, join } = await import('node:path');
+    const styles = readFileSync(
+      join(dirname(fileURLToPath(import.meta.url)), 'feedback-host.component.scss'),
+      'utf8',
+    );
+
+    expect(styles).toMatch(
+      /\.feedback-host__product-feedback-utility\s*\{[^}]*padding-top:\s*1\.75rem/,
+    );
+    expect(styles).toMatch(
+      /\.feedback-host__product-feedback-utility\s*\{[\s\S]*?@media \(min-width: 840px\)\s*\{[^}]*padding-top:\s*2\.25rem/,
+    );
+  });
+
   it('hält Host-Radii auf Material-Corner-Tokens', async () => {
     const { readFileSync } = await import('node:fs');
     const { fileURLToPath } = await import('node:url');

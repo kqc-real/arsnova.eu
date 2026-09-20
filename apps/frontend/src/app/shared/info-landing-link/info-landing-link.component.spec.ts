@@ -25,10 +25,35 @@ class InfoLandingLinkPresenterHostComponent {
   label = 'Frei im Raum präsentieren';
 }
 
+@Component({
+  selector: 'app-info-landing-link-text-host',
+  imports: [InfoLandingLinkComponent],
+  template: `<app-info-landing-link [anchor]="anchor" [label]="label" appearance="text" />`,
+})
+class InfoLandingLinkTextHostComponent {
+  anchor = INFO_LANDING_ANCHORS.workflow;
+  label = 'Einsatzmöglichkeiten';
+}
+
+@Component({
+  selector: 'app-info-landing-link-help-host',
+  imports: [InfoLandingLinkComponent],
+  template: `<app-info-landing-link [anchor]="anchor" [label]="label" leadIcon="help" />`,
+})
+class InfoLandingLinkHelpHostComponent {
+  anchor = INFO_LANDING_ANCHORS.workflow;
+  label = 'Einsatzmöglichkeiten';
+}
+
 describe('InfoLandingLinkComponent', () => {
   beforeEach(() => {
     TestBed.configureTestingModule({
-      imports: [InfoLandingLinkHostComponent, InfoLandingLinkPresenterHostComponent],
+      imports: [
+        InfoLandingLinkHostComponent,
+        InfoLandingLinkPresenterHostComponent,
+        InfoLandingLinkTextHostComponent,
+        InfoLandingLinkHelpHostComponent,
+      ],
     });
   });
 
@@ -59,6 +84,22 @@ describe('InfoLandingLinkComponent', () => {
     themePreset.setPreset('serious', { silent: true });
     fixture.detectChanges();
     expect(link()?.getAttribute('href')).toBe('https://info.arsnova.eu/de/?theme=light#workflow');
+  });
+
+  it('kann als MD3-Textaktion ohne Unterstreichung dargestellt werden', () => {
+    const fixture = TestBed.createComponent(InfoLandingLinkTextHostComponent);
+    fixture.detectChanges();
+    const link = (fixture.nativeElement as HTMLElement).querySelector('a.info-landing-link');
+    expect(link?.classList.contains('info-landing-link--text')).toBe(true);
+  });
+
+  it('kann das Outlined-Hilfe-Icon statt des Info-Punkts zeigen', () => {
+    const fixture = TestBed.createComponent(InfoLandingLinkHelpHostComponent);
+    fixture.detectChanges();
+    const icon = (fixture.nativeElement as HTMLElement).querySelector(
+      'mat-icon.info-landing-link__lead-icon',
+    );
+    expect(icon?.textContent?.trim()).toBe('help_outline');
   });
 
   it('zeigt optional die Beamer-Silhouette statt des Info-Icons', () => {

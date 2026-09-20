@@ -2906,7 +2906,7 @@ export type SessionExpirationExtensionSelection = z.infer<
 export const CreateSessionInputSchema = z
   .object({
     type: SessionTypeEnum.optional().default('QUIZ'), // Story 8.1: Quiz oder Q&A
-    quizId: z.uuid().optional(), // Pflicht bei Quiz-Session, optional bei kanalbasiertem Q&A/Blitzlicht
+    quizId: z.uuid().optional(), // Optional: ohne quizId entsteht ein leerer Live-Raum zum Anhängen
     startQuestionIndex: z.number().int().min(0).optional(), // Optionaler 0-basierter Startpunkt für Quiz-Sessions
     title: z.string().trim().max(200).optional(), // Story 8.1: Titel für Q&A-Runde
     moderationMode: z.boolean().optional().default(true), // Story 8.4 / Q&A: Vorab-Moderation (Default an)
@@ -2919,19 +2919,6 @@ export const CreateSessionInputSchema = z
     ...SessionOnboardingProfileInputSchema.shape,
   })
   .superRefine((value, ctx) => {
-    const isQuizlessChannelSession =
-      value.type === 'QUIZ' &&
-      !value.quizId &&
-      (value.qaEnabled === true || value.quickFeedbackEnabled === true);
-
-    if (value.type === 'QUIZ' && !value.quizId && !isQuizlessChannelSession) {
-      ctx.addIssue({
-        code: z.ZodIssueCode.custom,
-        path: ['quizId'],
-        message: 'Für Quiz-Sessions ist eine quizId erforderlich.',
-      });
-    }
-
     if (value.type === 'Q_AND_A' && value.quizId) {
       ctx.addIssue({
         code: z.ZodIssueCode.custom,
@@ -3153,6 +3140,8 @@ export type GetCurrentQuestionForStudentInput = z.infer<
 /** Input: Ein Quiz an eine laufende Quiz-Session anhängen. */
 export const AttachQuizToSessionInputSchema = GetSessionInfoInputSchema.extend({
   quizId: z.uuid(),
+  /** Host bestätigt: Teambindung der Session an das Quiz anpassen und Teilnehmende neu zuordnen. */
+  adoptQuizTeams: z.boolean().optional(),
 });
 export type AttachQuizToSessionInput = z.infer<typeof AttachQuizToSessionInputSchema>;
 

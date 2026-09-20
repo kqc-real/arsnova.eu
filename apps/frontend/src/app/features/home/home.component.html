@@ -31,15 +31,17 @@
       <p class="home-hero-usp desktop-only" i18n="@@homeHero.uspAudience">
         Für Schulen, Unis &amp; Events – bis zu 500 Personen.
       </p>
-      <p class="home-hero-usp home-hero-usp--secondary mobile-only" i18n="@@homeHero.uspTrust">
-        Kostenlos. Open Source. Ohne Anmeldung.
-      </p>
-      <p
-        class="home-hero-usp home-hero-usp--secondary desktop-only"
-        i18n="@@homeHero.sloganFeatures"
-      >
-        Kostenlos. Open Source. Ohne Anmeldung. Made in Europe.
-      </p>
+      <ul class="home-hero-usp-chips">
+        <li class="home-hero-usp-chip" i18n="@@homeHero.uspChipFree">Kostenlos</li>
+        <li class="home-hero-usp-chip" i18n="@@homeHero.uspChipOpenSource">Open Source</li>
+        <li class="home-hero-usp-chip" i18n="@@homeHero.uspChipNoSignup">Ohne Anmeldung</li>
+        <li
+          class="home-hero-usp-chip home-hero-usp-chip--desktop"
+          i18n="@@homeHero.uspChipMadeInEurope"
+        >
+          Made in Europe
+        </li>
+      </ul>
     </section>
 
     <mat-card
@@ -49,11 +51,16 @@
       [attr.inert]="syncLinkVisible() ? '' : null"
     >
       <mat-card-header class="home-card__header">
-        <div class="home-card__header-copy">
-          <p class="home-card__eyebrow" i18n="@@homeJoinCard.eyebrow">Für Teilnehmende</p>
-          <h2 mat-card-title class="home-card__title" i18n="@@homeJoinCard.title">
-            An einer Session teilnehmen
-          </h2>
+        <div class="home-card__heading">
+          <span class="home-card__icon-wrap" aria-hidden="true">
+            <mat-icon class="home-card__icon">meeting_room</mat-icon>
+          </span>
+          <div class="home-card__header-copy">
+            <p class="home-card__eyebrow" i18n="@@homeJoinCard.eyebrow">Für Teilnehmende</p>
+            <h2 mat-card-title class="home-card__title" i18n="@@homeJoinCard.title">
+              Session beitreten
+            </h2>
+          </div>
         </div>
       </mat-card-header>
 
@@ -96,7 +103,7 @@
           class="home-code-prompt home-hero-code-enter"
           (click)="focusCodeInput()"
         >
-          <span i18n="@@home.step1">Code eingeben</span>
+          <span i18n="@@home.step1">6-stelligen Code eingeben</span>
         </button>
 
         <div class="home-join-row">
@@ -148,8 +155,9 @@
               </button>
             } @else {
               <button
-                matButton="filled"
+                [matButton]="isValidSessionCode() ? 'filled' : 'outlined'"
                 class="home-cta home-cta--join"
+                [class.home-cta--armed]="isValidSessionCode()"
                 [class.home-cta--ready]="ctaReady()"
                 (click)="joinSession()"
                 [disabled]="!isValidSessionCode()"
@@ -183,9 +191,6 @@
       <h2 id="home-host-title" class="home-host-intro__title" i18n="@@homeHostIntro.title">
         Was möchtest du tun?
       </h2>
-      <p class="home-host-intro__description" i18n="@@homeHostIntro.description">
-        Starte eine Live-Session, hole direkt Feedback ein oder bereite ein Quiz vor.
-      </p>
     </section>
 
     <div class="home-host-stack">
@@ -195,11 +200,16 @@
         [attr.inert]="syncLinkVisible() ? '' : null"
       >
         <mat-card-header class="home-card__header">
-          <div class="home-card__header-copy">
-            <p class="home-card__eyebrow" i18n="@@homeLiveCard.eyebrow">Live</p>
-            <h3 mat-card-title class="home-card__title" i18n="@@homeLiveCard.title">
-              Session starten
-            </h3>
+          <div class="home-card__heading">
+            <span class="home-card__icon-wrap" aria-hidden="true">
+              <mat-icon class="home-card__icon">play_arrow</mat-icon>
+            </span>
+            <div class="home-card__header-copy">
+              <p class="home-card__eyebrow" i18n="@@homeLiveCard.eyebrow">Live</p>
+              <h3 mat-card-title class="home-card__title" i18n="@@homeLiveCard.title">
+                Session starten
+              </h3>
+            </div>
           </div>
         </mat-card-header>
 
@@ -213,19 +223,23 @@
               @for (item of hostSessionCtas(); track item.code) {
                 <li class="home-host-session-cta-row__item">
                   <a
-                    [matButton]="item.primary ? 'filled' : 'outlined'"
+                    [matButton]="item.primary ? 'tonal' : 'outlined'"
                     [routerLink]="hostSessionCtaLink(item.code)"
                     [queryParams]="{ tab: 'qa' }"
                     class="home-cta home-choice-button"
                     [class.home-cta--secondary]="!item.primary"
                     [class.home-library-button]="!item.primary"
+                    [class.home-host-session-cta--open]="item.primary"
                     data-testid="home-host-recovery"
                     [attr.data-session-code]="item.code"
                   >
                     <span class="home-choice-button__copy">
-                      <span class="home-choice-button__label">{{
-                        hostSessionCtaLabel(item.code)
-                      }}</span>
+                      <span class="home-choice-button__label">
+                        @if (item.qaOpen) {
+                          <span class="home-host-session-cta__dot" aria-hidden="true"></span>
+                        }
+                        {{ hostSessionCtaLabel(item.code) }}
+                      </span>
                       <span class="home-choice-button__description">{{
                         hostSessionCtaDescription(item.deadlineLabel)
                       }}</span>
@@ -254,19 +268,51 @@
             </ul>
           }
           <div class="home-live-grid">
-            <a
+            @if (hasHostedQuiz()) {
+              <a
+                matButton="filled"
+                [routerLink]="localizedPath('/quiz')"
+                [queryParams]="{ startLiveQuiz: latestHostedQuizId() }"
+                class="home-cta home-choice-button home-live-last-quiz"
+                data-testid="home-live-last-quiz"
+                (mouseenter)="preloadQuiz()"
+              >
+                <span class="home-choice-button__copy">
+                  <span class="home-choice-button__label" i18n="@@homeHostCard.primaryCta"
+                    >Letztes Quiz starten</span
+                  >
+                  <span
+                    class="home-choice-button__description"
+                    i18n="@@homeHostCard.primaryCtaDescription"
+                    >Direkt live gehen</span
+                  >
+                </span>
+              </a>
+            }
+            <button
               matButton="tonal"
-              [routerLink]="localizedPath('/quiz')"
-              class="home-cta home-cta--secondary home-choice-button"
+              type="button"
+              class="home-cta home-cta--secondary home-choice-button home-live-quiz-primary"
+              data-testid="home-live-quiz-start"
               (mouseenter)="preloadQuiz()"
+              (click)="openHeroHostTab('quiz')"
+              [disabled]="!!hostSessionStarting()"
+              [attr.aria-busy]="hostSessionStarting() === 'quiz' ? 'true' : null"
             >
               <span class="home-choice-button__copy">
-                <span class="home-choice-button__label" i18n="@@homeHero.channelQuiz">Quiz</span>
+                <span class="home-choice-button__label" i18n="@@homeLiveCard.quizLabel"
+                  >Live-Quiz</span
+                >
                 <span class="home-choice-button__description" i18n="@@homeLiveCard.quizDescription"
-                  >Wissen abfragen</span
+                  >Aus Sammlung wählen</span
                 >
               </span>
-            </a>
+              @if (hostSessionStarting() === 'quiz') {
+                <mat-icon class="home-choice-button__busy home-spin" aria-hidden="true"
+                  >sync</mat-icon
+                >
+              }
+            </button>
             <button
               matButton="tonal"
               type="button"
@@ -279,11 +325,9 @@
               <span class="home-choice-button__copy">
                 <span class="home-choice-button__label">
                   @if (showHostRecoveryCta()) {
-                    <ng-container i18n="@@homeLiveCard.qaCreateLabel"
-                      >Neue Q&amp;A-Session</ng-container
-                    >
+                    <ng-container i18n="@@homeLiveCard.qaCreateLabel">Neue Q&amp;A</ng-container>
                   } @else {
-                    <ng-container i18n="@@homeLiveCard.qaLabel">Q&amp;A-Session</ng-container>
+                    <ng-container i18n="@@homeLiveCard.qaLabel">Q&amp;A</ng-container>
                   }
                 </span>
                 <span class="home-choice-button__description" i18n="@@homeLiveCard.qaDescription"
@@ -297,7 +341,7 @@
               }
             </button>
             <button
-              matButton="tonal"
+              matButton="outlined"
               type="button"
               class="home-cta home-cta--secondary home-choice-button"
               (click)="openHeroHostTab('quickFeedback')"
@@ -337,11 +381,16 @@
         [attr.inert]="syncLinkVisible() ? '' : null"
       >
         <mat-card-header class="home-card__header">
-          <div class="home-card__header-copy">
-            <p class="home-card__eyebrow" i18n="@@homeFeedbackCard.eyebrow">Direktes Feedback</p>
-            <h3 mat-card-title class="home-card__title" i18n="@@homeFeedbackCard.title">
-              Mit einem Klick
-            </h3>
+          <div class="home-card__heading">
+            <span class="home-card__icon-wrap" aria-hidden="true">
+              <mat-icon class="home-card__icon">bolt</mat-icon>
+            </span>
+            <div class="home-card__header-copy">
+              <p class="home-card__eyebrow" i18n="@@homeFeedbackCard.eyebrow">Direktes Feedback</p>
+              <h3 mat-card-title class="home-card__title" i18n="@@homeFeedbackCard.title">
+                Mit einem Klick
+              </h3>
+            </div>
           </div>
         </mat-card-header>
 
@@ -417,57 +466,27 @@
         class="home-card home-card--create home-card--stage-side"
         [class.home-card--sync-open]="syncLinkVisible()"
       >
-        <mat-card-header class="home-card__header home-card__header-with-action">
-          <div class="home-card__header-copy">
-            <p class="home-card__eyebrow" i18n="@@homeHostCard.eyebrow">Vorbereiten</p>
-            <h3 mat-card-title class="home-card__title" i18n="@@homeHostCard.title">
-              Quiz erstellen
-            </h3>
+        <mat-card-header class="home-card__header">
+          <div class="home-card__heading">
+            <span class="home-card__icon-wrap" aria-hidden="true">
+              <mat-icon class="home-card__icon">edit_note</mat-icon>
+            </span>
+            <div class="home-card__header-copy">
+              <p class="home-card__eyebrow" i18n="@@homeHostCard.eyebrow">Vorbereiten</p>
+              <h3 mat-card-title class="home-card__title" i18n="@@homeHostCard.title">
+                Quiz erstellen
+              </h3>
+            </div>
           </div>
-          <button
-            #syncToggleBtn
-            type="button"
-            matIconButton
-            class="home-card__sync-btn"
-            (click)="toggleSyncLinkEntry()"
-            [attr.aria-expanded]="syncLinkVisible()"
-            [attr.aria-controls]="syncLinkVisible() ? 'home-sync-entry' : null"
-            i18n-aria-label="@@homeHostCard.syncPanelCta"
-            aria-label="Geteilte Sammlung nutzen"
-            i18n-matTooltip="@@homeHostCard.syncPanelCta"
-            matTooltip="Geteilte Sammlung nutzen"
-          >
-            <mat-icon aria-hidden="true">devices</mat-icon>
-          </button>
         </mat-card-header>
 
         <mat-card-actions class="home-card__actions home-card__actions--stack">
           <div class="home-card__cta-stack" [attr.inert]="syncLinkVisible() ? '' : null">
-            @if (hasHostedQuiz()) {
-              <a
-                matButton="filled"
-                [routerLink]="localizedPath('/quiz')"
-                [queryParams]="{ startLiveQuiz: latestHostedQuizId() }"
-                class="home-cta home-choice-button home-prepare-primary"
-                (mouseenter)="preloadQuiz()"
-              >
-                <span class="home-choice-button__copy">
-                  <span class="home-choice-button__label" i18n="@@homeHostCard.primaryCta"
-                    >Letztes Quiz starten</span
-                  >
-                  <span
-                    class="home-choice-button__description"
-                    i18n="@@homeHostCard.primaryCtaDescription"
-                    >Direkt live gehen</span
-                  >
-                </span>
-              </a>
-            }
             <div class="home-prepare-secondary-grid">
               <a
                 matButton="tonal"
                 [routerLink]="localizedPath('/quiz/new')"
-                class="home-cta home-cta--secondary home-choice-button"
+                class="home-cta home-cta--secondary home-choice-button home-prepare-create"
                 (mouseenter)="preloadQuiz()"
               >
                 <span class="home-choice-button__copy">
@@ -496,19 +515,35 @@
                   <span
                     class="home-choice-button__description"
                     i18n="@@homeHostCard.libraryCtaDescription"
-                    >Quizzes verwalten</span
+                    >Quizze verwalten</span
                   >
                 </span>
               </a>
             </div>
           </div>
-          <div class="home-card__tertiary" [attr.inert]="syncLinkVisible() ? '' : null">
-            <app-info-landing-link
-              class="home-card__info-landing"
-              [anchor]="infoLandingWorkflowAnchor"
-              [label]="infoLandingWorkflowLabel"
-              [dense]="true"
-            />
+          <div class="home-prepare-text-actions">
+            <div class="home-card__tertiary" [attr.inert]="syncLinkVisible() ? '' : null">
+              <app-info-landing-link
+                class="home-card__info-landing home-prepare-text-action"
+                appearance="text"
+                leadIcon="help"
+                [anchor]="infoLandingWorkflowAnchor"
+                [label]="infoLandingWorkflowLabel"
+                [dense]="true"
+              />
+            </div>
+            <button
+              #syncToggleBtn
+              type="button"
+              matButton="text"
+              class="home-card__sync-btn home-prepare-text-action"
+              (click)="toggleSyncLinkEntry()"
+              [attr.aria-expanded]="syncLinkVisible()"
+              [attr.aria-controls]="syncLinkVisible() ? 'home-sync-entry' : null"
+            >
+              <mat-icon aria-hidden="true">devices</mat-icon>
+              <span i18n="@@homeHostCard.syncPanelCta">Geteilte Sammlung nutzen</span>
+            </button>
           </div>
           @if (syncLinkVisible()) {
             <div id="home-sync-entry" class="home-sync-entry" cdkTrapFocus>

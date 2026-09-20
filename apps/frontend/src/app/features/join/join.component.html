@@ -16,7 +16,7 @@
           <span class="join-card__error-text">{{ error() }}</span>
         </p>
         <div class="join-card__actions">
-          <a [routerLink]="localizedPath('/')" matButton="filled" class="join-card__home-link">
+          <a [routerLink]="localizedPath('/')" matButton="tonal" class="join-card__home-link">
             <mat-icon>home</mat-icon>
             <span i18n="@@sessionVote.sessionEndGateContinue">Zur Startseite</span>
           </a>
@@ -33,7 +33,7 @@
       <mat-card-content>
         <header class="dialog-title-header dialog-title-header--page join-card__page-head">
           <span class="dialog-title-header__icon" aria-hidden="true">
-            <mat-icon>qr_code_2</mat-icon>
+            <mat-icon>meeting_room</mat-icon>
           </span>
           <div class="dialog-title-header__copy">
             <h1 id="join-page-title" class="dialog-title-header__heading" i18n>
@@ -53,6 +53,7 @@
             <p class="join-card__quiz">{{ s.title }}</p>
           }
           <p class="join-card__participants">
+            <span class="join-card__status-dot" aria-hidden="true"></span>
             <span class="join-card__participants-count">{{ formatCount(s.participantCount) }}</span>
             {{ s.participantCount === 1 ? participantSingular() : participantPlural() }}
             {{ inLobbyLabel() }}
@@ -261,9 +262,9 @@
     </mat-card>
     <div class="join-page__bottom-action">
       <button
-        mat-flat-button
-        color="primary"
+        [matButton]="canSubmit() ? 'filled' : 'outlined'"
         class="join-card__submit join-page__bottom-action-button"
+        [class.join-card__submit--armed]="canSubmit()"
         [disabled]="!canSubmit() || joining()"
         (click)="submitJoin()"
       >

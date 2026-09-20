@@ -449,7 +449,7 @@
     },
     "session.attachQuizToSession": {
       "kind": "mutation",
-      "fingerprint": "sha256:810c1b01cfe213f587db3d622ecbb86a75aaaee107bdc2aa1308541cf86d91fa",
+      "fingerprint": "sha256:ede19a289ffa312b6a556e4eb1d1d2020fe3b85695bc8a69280e8aff41e3c431",
       "missing": []
     },
     "session.bindQuizHistoryScope": {

@@ -28,6 +28,25 @@
   font-size: var(--mat-sys-label-large-size, 0.875rem);
 }
 
+.info-landing-link--text {
+  color: var(--mat-sys-on-surface-variant);
+  text-decoration: none;
+}
+
+.info-landing-link--text:hover {
+  color: var(--mat-sys-on-surface);
+}
+
+.info-landing-link--text .info-landing-link__lead-icon {
+  width: 1.25rem;
+  height: 1.25rem;
+  font-size: 1.25rem;
+}
+
+.info-landing-link--text .info-landing-link__external-icon {
+  display: none;
+}
+
 .info-landing-link__lead-icon,
 .info-landing-link__external-icon {
   flex-shrink: 0;

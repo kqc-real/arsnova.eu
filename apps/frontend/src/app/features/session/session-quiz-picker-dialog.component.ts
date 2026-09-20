@@ -3,14 +3,13 @@ import { MatButton } from '@angular/material/button';
 import {
   MAT_DIALOG_DATA,
   MatDialogActions,
-  MatDialogClose,
   MatDialogContent,
   MatDialogRef,
   MatDialogTitle,
 } from '@angular/material/dialog';
 import { MatIcon } from '@angular/material/icon';
 import type { TeamAssignment } from '@arsnova/shared-types';
-import type { QuizSummary } from '../quiz/data/quiz-store.service';
+import { DEMO_QUIZ_ID, type QuizSummary } from '../quiz/data/quiz-store.service';
 
 export interface SessionQuizPickerProfile {
   teamMode: boolean;
@@ -21,12 +20,18 @@ export interface SessionQuizPickerProfile {
 export interface SessionQuizPickerDialogData {
   quizzes: QuizSummary[];
   sessionProfile: SessionQuizPickerProfile | null;
+  emptyRoom?: boolean;
+}
+
+export interface SessionQuizPickerResult {
+  quizId: string;
+  adoptQuizTeams: boolean;
 }
 
 @Component({
   selector: 'app-session-quiz-picker-dialog',
   standalone: true,
-  imports: [MatButton, MatDialogActions, MatDialogClose, MatDialogContent, MatDialogTitle, MatIcon],
+  imports: [MatButton, MatDialogActions, MatDialogContent, MatDialogTitle, MatIcon],
   templateUrl: './session-quiz-picker-dialog.component.html',
   styleUrls: [
     '../../shared/styles/dialog-title-header.scss',
@@ -35,14 +40,38 @@ export interface SessionQuizPickerDialogData {
 })
 export class SessionQuizPickerDialogComponent {
   readonly data = inject<SessionQuizPickerDialogData>(MAT_DIALOG_DATA);
-  private readonly dialogRef = inject(MatDialogRef<SessionQuizPickerDialogComponent, string>);
+  private readonly dialogRef = inject(
+    MatDialogRef<SessionQuizPickerDialogComponent, SessionQuizPickerResult | false>,
+  );
   readonly quizzes = [...this.data.quizzes].sort(
     (left, right) => Date.parse(right.updatedAt) - Date.parse(left.updatedAt),
   );
   readonly sessionProfile = this.data.sessionProfile;
 
-  pick(quizId: string): void {
-    this.dialogRef.close(quizId);
+  pick(quizId: string, adoptQuizTeams = false): void {
+    this.dialogRef.close({ quizId, adoptQuizTeams });
+  }
+
+  cancel(): void {
+    this.dialogRef.close(false);
+  }
+
+  isCompatible(quiz: QuizSummary): boolean {
+    const profile = this.sessionProfile;
+    if (!profile) {
+      return true;
+    }
+    if (profile.teamMode === quiz.teamMode) {
+      return true;
+    }
+    if (
+      (this.data.emptyRoom === true || quiz.id === DEMO_QUIZ_ID) &&
+      !profile.teamMode &&
+      quiz.teamMode
+    ) {
+      return true;
+    }
+    return false;
   }
 
   profileSummary(): string | null {
@@ -59,10 +88,25 @@ export class SessionQuizPickerDialogComponent {
       : $localize`:@@sessionQuizPicker.questionCountMany:${quiz.questionCount}:count: Fragen`;
   }
 
+  mismatchHint(quiz: QuizSummary): string {
+    return quiz.teamMode
+      ? $localize`:@@sessionQuizPicker.mismatchTeam:Teambindung passt nicht. Du kannst alle im Raum den Teams dieses Quiz zuordnen.`
+      : $localize`:@@sessionQuizPicker.mismatchSolo:Teambindung passt nicht. Du kannst die Teams auflösen und alle einzeln spielen lassen.`;
+  }
+
+  adoptLabel(quiz: QuizSummary): string {
+    return quiz.teamMode
+      ? $localize`:@@sessionQuizPicker.adoptTeam:Teams neu zuordnen`
+      : $localize`:@@sessionQuizPicker.adoptSolo:Ohne Teams starten`;
+  }
+
   private teamModeLabel(profile: SessionQuizPickerProfile): string {
     if (!profile.teamMode) {
-      return $localize`:@@sessionQuizPicker.teamsDisabled:Keine aktiven Teams. Du siehst nur Einzelspieler-Quizze. (Ausnahme Demo-Quiz: Hier werden alle automatisch in 2 Teams aufgeteilt.)`;
+      if (this.data.emptyRoom) {
+        return $localize`:@@sessionQuizPicker.emptyRoomHint:Noch niemand im Raum. Jedes Quiz richtet die Teambindung mit ein.`;
+      }
+      return $localize`:@@sessionQuizPicker.teamsDisabled:Keine aktiven Teams. Einzelspieler-Quizze startest du direkt. Bei einem Team-Quiz kannst du alle im Raum den Teams des Quiz zuordnen.`;
     }
-    return $localize`:@@sessionQuizPicker.teamModeHint:Aktive Teams. Du siehst nur Team-Quizze. Eure aktuelle Teamstruktur und alle Pseudonyme werden nahtlos ins Quiz übernommen.`;
+    return $localize`:@@sessionQuizPicker.teamModeHint:Aktive Teams. Team-Quizze übernehmen die aktuelle Struktur. Ein Einzelspieler-Quiz kannst du trotzdem wählen – dann endet die Teambindung.`;
   }
 }

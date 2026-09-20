@@ -23,8 +23,10 @@ export class InfoLandingLinkComponent {
   readonly label = input.required<string>();
   /** Optional dichtere Darstellung (z. B. unter Formularfeldern). */
   readonly dense = input(false);
-  /** Lead-Icon: Info (Standard) oder Beamer-Silhouette für Presenter/Pairing. */
-  readonly leadIcon = input<'info' | 'presenter'>('info');
+  /** `text` gleicht einen MD3-Text-Button an; Standard bleibt der unterstrichene Link. */
+  readonly appearance = input<'link' | 'text'>('link');
+  /** Lead-Icon: Info (Standard), Outlined-Hilfe oder Beamer-Silhouette. */
+  readonly leadIcon = input<'info' | 'help' | 'presenter'>('info');
 
   protected readonly href = computed(() =>
     infoLandingUrl(this.anchor(), undefined, this.themePreset.theme()),
