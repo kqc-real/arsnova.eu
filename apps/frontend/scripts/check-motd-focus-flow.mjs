@@ -85,7 +85,7 @@ async function isActiveLocator(locator) {
 }
 
 async function assertNextTabContinuesHeroFlow(page) {
-  const nextAction = page.locator('.home-live-grid a.home-choice-button').first();
+  const nextAction = page.locator('.home-live-grid .home-choice-button').first();
   await page.keyboard.press('Tab');
   if (await isActiveLocator(nextAction)) return;
 
@@ -98,7 +98,8 @@ async function assertNextTabContinuesHeroFlow(page) {
   }
 
   // Safari überspringt bei deaktivierter vollständiger Tab-Navigation Links
-  // mit Tab. ⌥ Tab schaltet für diesen Tastendruck auf alle Bedienelemente.
+  // mit Tab. Die Live-Aktionen sind jetzt Buttons und bleiben tabbar;
+  // ⌥ Tab bleibt der Fallback für reduzierte Safari-Tabs.
   // Andere Playwright-WebKit-Ports verwenden bereits Tab und kehren oben zurück.
   assert(
     BROWSER_NAME === 'webkit' && codeInputActive,
