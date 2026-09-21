@@ -224,5 +224,9 @@ describe('QaWordCloudDialogComponent', () => {
     expect(panelStyles).toMatch(
       /\.cdk-overlay-pane\.word-cloud-dialog-panel \.mat-mdc-dialog-surface \{[^}]*overflow-y:\s*auto/,
     );
+    expect(dialogStyles).toMatch(
+      /\.qa-word-cloud-dialog__size-label \{[\s\S]*color:\s*var\(--mat-sys-on-surface-variant\)/,
+    );
+    expect(dialogStyles).not.toMatch(/on-surface\) 78%, white/);
   });
 });

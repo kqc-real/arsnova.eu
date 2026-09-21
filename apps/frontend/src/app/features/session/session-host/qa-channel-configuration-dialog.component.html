@@ -88,10 +88,14 @@
       <mat-form-field appearance="outline" subscriptSizing="dynamic">
         <mat-label i18n="@@qaConfig.absoluteLabel">Datum und Uhrzeit</mat-label>
         <input
+          #absoluteInput
           matInput
           type="datetime-local"
+          [min]="absoluteMinLocal()"
+          [max]="absoluteMaxLocal()"
           [(ngModel)]="absoluteLocal"
           (ngModelChange)="onDeadlineChange()"
+          (click)="openAbsolutePicker(absoluteInput)"
         />
       </mat-form-field>
     }

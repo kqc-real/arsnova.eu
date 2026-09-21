@@ -16,7 +16,14 @@ import type {
   SessionInitialExpirationSelection,
   SessionLifecycleHostDTO,
 } from '@arsnova/shared-types';
-import { maxSelectableCalendarDays, sessionLocalDateTimeToIso } from '../session-local-datetime';
+import {
+  laterIsoTimestamp,
+  maxSelectableCalendarDays,
+  openSessionDateTimePicker,
+  reportSessionDateTimePickerValidity,
+  sessionDateTimeLocalBounds,
+  sessionLocalDateTimeToIso,
+} from '../session-local-datetime';
 
 export type SessionExpirationDialogData =
   | {
@@ -76,6 +83,13 @@ export class SessionExpirationDialogComponent {
   readonly days = signal(this.maxSelectableDays() >= 1 ? Math.min(7, this.maxSelectableDays()) : 0);
   readonly absoluteLocal = signal('');
   readonly inputError = signal<string | null>(null);
+  readonly absoluteBounds = sessionDateTimeLocalBounds(
+    this.data.mode === 'GLOBAL_WARNING'
+      ? laterIsoTimestamp(this.data.lifecycle.expiresAt, this.data.lifecycle.serverNow)
+      : this.data.lifecycle.serverNow,
+    this.data.lifecycle.maxExpiresAt,
+    this.data.lifecycle.timeZone,
+  );
 
   formatDateTime(value: string): string {
     return new Intl.DateTimeFormat(this.localeId, {
@@ -114,7 +128,14 @@ export class SessionExpirationDialogComponent {
     });
   }
 
-  chooseAbsolute(): void {
+  openAbsolutePicker(input: HTMLInputElement): void {
+    openSessionDateTimePicker(input);
+  }
+
+  chooseAbsolute(input: HTMLInputElement): void {
+    if (!reportSessionDateTimePickerValidity(input)) {
+      return;
+    }
     try {
       const expiresAt = sessionLocalDateTimeToIso(
         this.absoluteLocal(),

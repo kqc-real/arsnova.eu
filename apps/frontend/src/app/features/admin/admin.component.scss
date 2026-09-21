@@ -243,7 +243,11 @@
   padding: 0.95rem 1rem 1rem;
   border: 1px solid color-mix(in srgb, var(--mat-sys-primary) 22%, var(--mat-sys-outline-variant));
   border-radius: var(--mat-sys-corner-large);
-  background: color-mix(in srgb, var(--mat-sys-surface-container-low) 80%, white 20%);
+  background: color-mix(
+    in srgb,
+    var(--mat-sys-surface-container-low) 80%,
+    var(--mat-sys-surface) 20%
+  );
 }
 
 .admin-danger-zone {

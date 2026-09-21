@@ -456,6 +456,37 @@ describe('TopToolbarComponent', () => {
     );
   });
 
+  it('faerbt spielerische Textfeld-Platzhalter on-surface-variant statt invers-hell', async () => {
+    const { readFileSync } = await import('node:fs');
+    const { fileURLToPath } = await import('node:url');
+    const { dirname, join } = await import('node:path');
+    const stylesPath = join(dirname(fileURLToPath(import.meta.url)), '../../../styles.scss');
+    const styles = readFileSync(stylesPath, 'utf8');
+    const playful = styles.slice(styles.indexOf('html.preset-playful'));
+    expect(playful).toMatch(/form-field-overrides/);
+    expect(playful).toMatch(
+      /outlined-input-text-placeholder-color:\s*var\(--mat-sys-on-surface-variant\)/,
+    );
+    expect(playful).toMatch(/filled-container-color:\s*var\(--mat-sys-surface-container-high\)/);
+    expect(playful).toMatch(/input::placeholder[\s\S]*--mat-sys-on-surface-variant/);
+    expect(playful).toMatch(/--app-playful-field-fill:/);
+    expect(playful).toMatch(/input\[type='datetime-local'\][\s\S]*?appearance:\s*auto/);
+    expect(playful).toMatch(/-webkit-appearance:\s*auto/);
+    expect(styles).toMatch(
+      /\.mdc-text-field__input\[type='datetime-local'\]::-webkit-calendar-picker-indicator[\s\S]*display:\s*block/,
+    );
+    expect(playful).toMatch(/tooltip-overrides/);
+    expect(playful).toMatch(/menu-overrides/);
+    expect(playful).toMatch(/select-overrides/);
+    expect(playful).toMatch(/autocomplete-overrides/);
+    expect(playful).toMatch(/datepicker-overrides/);
+    expect(playful).toMatch(/container-color:[\s\S]*--mat-sys-surface-container-high/);
+    expect(playful).not.toMatch(/tooltip-overrides[\s\S]*inverse-surface/);
+    expect(styles).toMatch(
+      /html\.preset-playful \.feedback-compare-round-snackbar \.mat-mdc-snack-bar-action \{[\s\S]*--mat-sys-tertiary/,
+    );
+  });
+
   it('stilisiert Fokus direkt am Toggle-Button', async () => {
     const { readFileSync } = await import('node:fs');
     const { fileURLToPath } = await import('node:url');

@@ -87,6 +87,15 @@ describe('SessionProjectionQuizComponent', () => {
     expect(playful).toMatch(
       /\.session-present mat-card\.session-projection-quiz__stage[\s\S]*?app-playful-inner-panel-muted/,
     );
+    expect(playful).toMatch(
+      /\.session-present mat-card\.session-present__board-card[\s\S]*?app-playful-inner-card-primary/,
+    );
+    expect(playful).toMatch(
+      /\.session-present \.session-present__fullscreen-gate-card[\s\S]*?app-playful-inner-card-primary/,
+    );
+    expect(playful).toMatch(
+      /\.session-present mat-card\.session-projection-quiz__fingers[\s\S]*?app-playful-inner-panel-muted/,
+    );
   });
 
   it('zeigt in der Lesephase den Fragetext ohne Antwortoptionen', () => {

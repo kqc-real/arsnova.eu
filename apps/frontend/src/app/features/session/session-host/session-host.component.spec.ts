@@ -10665,7 +10665,7 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
     fixture.destroy();
   });
 
-  it('spielt den Schlusspfiff nur einmal und hält die Null-Finger, solange ACTIVE bleibt', async () => {
+  it('spielt nach Reload keinen Schlusspfiff für einen schon abgelaufenen Countdown', async () => {
     getInfoQueryMock.mockResolvedValue({
       ...defaultSession,
       status: 'ACTIVE',
@@ -10711,15 +10711,118 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
     expect(component.countdownEnded()).toBe(true);
     expect(component.countdownSeconds()).toBe(0);
     expect(component.showFingerCountdown()).toBe(true);
-    expect(playSpy.mock.calls.filter((call) => call[0] === 'sessionEnd')).toHaveLength(1);
+    expect(playSpy.mock.calls.filter((call) => call[0] === 'sessionEnd')).toHaveLength(0);
+    expect(playSpy.mock.calls.filter((call) => call[0] === 'countdownEnd')).toHaveLength(0);
 
     component['syncCountdownFromStatusUpdate'](expiredUpdate);
     component['syncCountdownFromStatusUpdate'](expiredUpdate);
     fixture.detectChanges();
 
-    expect(playSpy.mock.calls.filter((call) => call[0] === 'sessionEnd')).toHaveLength(1);
+    expect(playSpy.mock.calls.filter((call) => call[0] === 'sessionEnd')).toHaveLength(0);
     expect(component.countdownSeconds()).toBe(0);
     expect(component.showFingerCountdown()).toBe(true);
+    fixture.destroy();
+  });
+
+  it('spielt den Schlusspfiff einmal, wenn der Countdown live auf 0 fällt', async () => {
+    getInfoQueryMock.mockResolvedValue({
+      ...defaultSession,
+      status: 'ACTIVE',
+      preset: 'PLAYFUL',
+      enableSoundEffects: true,
+    });
+
+    const fixture = setup();
+    const component = fixture.componentInstance;
+    const playSpy = vi.spyOn(component.sound, 'play').mockResolvedValue();
+    fixture.detectChanges();
+    await flushComponentAfterStable(fixture, 50);
+
+    component.session.set({
+      ...defaultSession,
+      status: 'ACTIVE',
+      enableSoundEffects: true,
+    } as typeof defaultSession & { enableSoundEffects: boolean; status: 'ACTIVE' });
+    component.currentQuestionForHost.set({
+      questionId: 'bbbbbbbb-2222-4222-8222-222222222222',
+      questionOrder: 0,
+      text: '2 + 2?',
+      type: 'SINGLE_CHOICE' as const,
+      currentRound: 1,
+      timer: 30,
+      answers: [
+        { id: 'aaaaaaaa-1111-4111-8111-111111111111', text: '3', isCorrect: false },
+        { id: 'bbbbbbbb-2222-4222-8222-222222222222', text: '4', isCorrect: true },
+      ],
+      totalVotes: 0,
+    });
+    component['syncCountdownFromStatusUpdate']({
+      status: 'ACTIVE',
+      currentQuestion: 0,
+      currentRound: 1,
+      timer: 30,
+      activeAt: new Date(getSkewAdjustedNow() - 29_000).toISOString(),
+    });
+    fixture.detectChanges();
+
+    expect(playSpy.mock.calls.filter((call) => call[0] === 'sessionEnd')).toHaveLength(1);
+
+    component['syncCountdownFromStatusUpdate']({
+      status: 'ACTIVE',
+      currentQuestion: 0,
+      currentRound: 1,
+      timer: 30,
+      activeAt: new Date(getSkewAdjustedNow() - 35_000).toISOString(),
+    });
+    fixture.detectChanges();
+
+    expect(playSpy.mock.calls.filter((call) => call[0] === 'sessionEnd')).toHaveLength(1);
+    fixture.destroy();
+  });
+
+  it('spielt den Finger-Gong bei einem frisch gestarteten 5-Sekunden-Timer', async () => {
+    getInfoQueryMock.mockResolvedValue({
+      ...defaultSession,
+      status: 'ACTIVE',
+      preset: 'PLAYFUL',
+      enableSoundEffects: true,
+    });
+
+    const fixture = setup();
+    const component = fixture.componentInstance;
+    const playSpy = vi.spyOn(component.sound, 'play').mockResolvedValue();
+    fixture.detectChanges();
+    await flushComponentAfterStable(fixture, 50);
+
+    component.session.set({
+      ...defaultSession,
+      status: 'ACTIVE',
+      enableSoundEffects: true,
+    } as typeof defaultSession & { enableSoundEffects: boolean; status: 'ACTIVE' });
+    component.currentQuestionForHost.set({
+      questionId: 'bbbbbbbb-2222-4222-8222-222222222222',
+      questionOrder: 0,
+      text: '2 + 2?',
+      type: 'SINGLE_CHOICE' as const,
+      currentRound: 1,
+      timer: 5,
+      answers: [
+        { id: 'aaaaaaaa-1111-4111-8111-111111111111', text: '3', isCorrect: false },
+        { id: 'bbbbbbbb-2222-4222-8222-222222222222', text: '4', isCorrect: true },
+      ],
+      totalVotes: 0,
+    });
+    component['syncCountdownFromStatusUpdate']({
+      status: 'ACTIVE',
+      currentQuestion: 0,
+      currentRound: 1,
+      timer: 5,
+      activeAt: new Date(getSkewAdjustedNow()).toISOString(),
+    });
+    fixture.detectChanges();
+
+    expect(playSpy.mock.calls.filter((call) => call[0] === 'countdownEnd')).toHaveLength(1);
+    expect(component.countdownEnded()).toBe(false);
     fixture.destroy();
   });
 

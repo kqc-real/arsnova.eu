@@ -202,4 +202,85 @@ describe('SessionExpirationDialogComponent', () => {
     expect(text).toContain('7 Tage');
     expect(text).toContain('Verlängern um');
   });
+
+  it('begrenzt den Datepicker der Anfangskonfiguration auf Serverjetzt bis maxExpiresAt', () => {
+    TestBed.configureTestingModule({
+      imports: [SessionExpirationDialogComponent],
+      providers: [
+        {
+          provide: MAT_DIALOG_DATA,
+          useValue: {
+            mode: 'INITIAL_CONFIGURATION',
+            lifecycle: { ...lifecycle, firstParticipantJoinedAt: null, configurationAllowed: true },
+          },
+        },
+        { provide: MatDialogRef, useValue: { close: vi.fn() } },
+      ],
+    });
+    const fixture = TestBed.createComponent(SessionExpirationDialogComponent);
+    fixture.detectChanges();
+
+    const input = fixture.nativeElement.querySelector(
+      'input[type="datetime-local"]',
+    ) as HTMLInputElement | null;
+    expect(input?.getAttribute('min')).toBe('2026-03-25T12:31');
+    expect(input?.getAttribute('max')).toBe('2026-04-07T14:00');
+    expect(input).not.toBeNull();
+    const showPicker = vi.fn();
+    Object.defineProperty(input, 'showPicker', { value: showPicker });
+    input?.click();
+    expect(showPicker).toHaveBeenCalled();
+  });
+
+  it('begrenzt den Verlängerungs-Datepicker auf nach dem bisherigen Sessionende', () => {
+    TestBed.configureTestingModule({
+      imports: [SessionExpirationDialogComponent],
+      providers: [
+        {
+          provide: MAT_DIALOG_DATA,
+          useValue: {
+            mode: 'GLOBAL_WARNING',
+            warningMinutes: 30,
+            lifecycle,
+          },
+        },
+        { provide: MatDialogRef, useValue: { close: vi.fn() } },
+      ],
+    });
+    const fixture = TestBed.createComponent(SessionExpirationDialogComponent);
+    fixture.detectChanges();
+
+    const input = fixture.nativeElement.querySelector(
+      'input[type="datetime-local"]',
+    ) as HTMLInputElement | null;
+    expect(input?.getAttribute('min')).toBe('2026-03-25T13:01');
+    expect(input?.getAttribute('max')).toBe('2026-04-07T14:00');
+  });
+
+  it('bestätigt kein Datum außerhalb von min/max', () => {
+    const close = vi.fn();
+    TestBed.configureTestingModule({
+      imports: [SessionExpirationDialogComponent],
+      providers: [
+        {
+          provide: MAT_DIALOG_DATA,
+          useValue: {
+            mode: 'INITIAL_CONFIGURATION',
+            lifecycle: { ...lifecycle, firstParticipantJoinedAt: null, configurationAllowed: true },
+          },
+        },
+        { provide: MatDialogRef, useValue: { close } },
+      ],
+    });
+    const fixture = TestBed.createComponent(SessionExpirationDialogComponent);
+    const input = document.createElement('input');
+    input.type = 'datetime-local';
+    vi.spyOn(input, 'checkValidity').mockReturnValue(false);
+    const reportValidity = vi.spyOn(input, 'reportValidity').mockReturnValue(false);
+
+    fixture.componentInstance.chooseAbsolute(input);
+
+    expect(reportValidity).toHaveBeenCalled();
+    expect(close).not.toHaveBeenCalled();
+  });
 });

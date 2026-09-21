@@ -3514,5 +3514,9 @@ describe('SessionPresentComponent', () => {
     );
     expect(styles).not.toContain('font-weight: 800');
     expect(styles).not.toContain('::ng-deep');
+    expect(styles).toMatch(
+      /\.session-present__winner-card \{[\s\S]*primary-container\) 72%, var\(--mat-sys-surface\)/,
+    );
+    expect(styles).not.toMatch(/primary-container\) 72%, white/);
   });
 });

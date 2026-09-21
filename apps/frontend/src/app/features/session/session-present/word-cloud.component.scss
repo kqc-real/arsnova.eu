@@ -305,13 +305,17 @@
   border: 1px solid color-mix(in srgb, var(--mat-sys-outline-variant) 78%, transparent);
   background: linear-gradient(
     180deg,
-    color-mix(in srgb, white 58%, var(--mat-sys-primary-container) 42%),
+    color-mix(
+      in srgb,
+      var(--mat-sys-surface-container-lowest) 58%,
+      var(--mat-sys-primary-container) 42%
+    ),
     color-mix(in srgb, var(--mat-sys-surface) 68%, var(--mat-sys-primary-container) 32%)
   );
   color: var(--mat-sys-on-surface);
   box-shadow:
     0 0.45rem 1rem color-mix(in srgb, var(--mat-sys-shadow) 9%, transparent),
-    inset 0 1px 0 color-mix(in srgb, white 60%, transparent);
+    inset 0 1px 0 color-mix(in srgb, var(--mat-sys-surface-container-lowest) 60%, transparent);
   letter-spacing: -0.01em;
   line-height: calc(1em + 0.35rem);
   text-align: center;
@@ -368,7 +372,11 @@
   border-color: color-mix(in srgb, var(--mat-sys-primary) 24%, var(--mat-sys-outline-variant));
   background: linear-gradient(
     180deg,
-    color-mix(in srgb, white 44%, var(--mat-sys-primary-container) 56%),
+    color-mix(
+      in srgb,
+      var(--mat-sys-surface-container-lowest) 44%,
+      var(--mat-sys-primary-container) 56%
+    ),
     color-mix(in srgb, var(--mat-sys-primary-container) 72%, var(--mat-sys-surface))
   );
 }
@@ -376,7 +384,11 @@
 .word-cloud__word--featured {
   background: linear-gradient(
     180deg,
-    color-mix(in srgb, white 52%, var(--mat-sys-secondary-container) 48%),
+    color-mix(
+      in srgb,
+      var(--mat-sys-surface-container-lowest) 52%,
+      var(--mat-sys-secondary-container) 48%
+    ),
     color-mix(in srgb, var(--mat-sys-surface) 70%, var(--mat-sys-secondary-container) 30%)
   );
 }

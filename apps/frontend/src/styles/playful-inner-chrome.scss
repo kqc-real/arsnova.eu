@@ -740,7 +740,12 @@ html.preset-playful {
   .session-present mat-card.session-present__team-board-card,
   .session-present mat-card.session-present__qa-card,
   .session-present mat-card.session-present__qa-list-card,
-  .session-present mat-card.session-present__feedback-card {
+  .session-present mat-card.session-present__feedback-card,
+  .session-present mat-card.session-present__board-card {
+    @include app-playful-inner-card-primary;
+  }
+
+  .session-present .session-present__fullscreen-gate-card {
     @include app-playful-inner-card-primary;
   }
 
@@ -820,7 +825,8 @@ html.preset-playful {
   }
 
   .session-present mat-card.session-projection-quiz__stage,
-  .session-present mat-card.session-projection-quiz__code {
+  .session-present mat-card.session-projection-quiz__code,
+  .session-present mat-card.session-projection-quiz__fingers {
     @include app-playful-inner-panel-muted;
     --mat-card-outlined-container-color: transparent;
   }
@@ -864,5 +870,19 @@ html.preset-playful {
 
   mat-card.admin-card {
     @include app-playful-inner-card-primary;
+  }
+
+  .admin-list__detail {
+    @include app-playful-inner-card-nested;
+  }
+
+  mat-card.host-pairing-request__card {
+    @include app-playful-inner-card-primary;
+  }
+
+  .host-pairing-dialog__section,
+  .presentation-start-dialog__section,
+  .host-pairing-request__section:not(.host-pairing-request__section--alert) {
+    @include app-playful-inner-card-nested;
   }
 }

@@ -64,6 +64,13 @@ describe('Host-Pairing Oberflächengrenzen (Story 2.10)', () => {
     expect(styles).toMatch(
       /\.cdk-overlay-pane\.host-pairing-dialog-panel\s*\{[\s\S]*?width:\s*min\(28rem/,
     );
+    expect(styles).toMatch(
+      /\.cdk-overlay-pane\.host-pairing-dialog-panel \.mat-mdc-dialog-surface[\s\S]*?--mat-sys-surface-container-high/,
+    );
+    expect(styles).toContain('@mixin app-playful-surface-chrome');
+    expect(styles).toMatch(
+      /html\.preset-playful[\s\S]*\.cdk-overlay-pane:not\(\.word-cloud-dialog-panel\)[\s\S]*\.mat-mdc-dialog-surface/,
+    );
     expect(styles).not.toMatch(/host-pairing[\s\S]*::ng-deep/);
   });
 
@@ -134,6 +141,14 @@ describe('Host-Pairing Oberflächengrenzen (Story 2.10)', () => {
     expect(pairingScss).toContain('host-pairing-md3');
     expect(startScss).toContain('host-pairing-md3');
     expect(pairScss).toContain('host-pairing-md3');
+    const playful = readFileSync(
+      resolve(process.cwd(), 'src/styles/playful-inner-chrome.scss'),
+      'utf8',
+    );
+    expect(playful).toMatch(
+      /mat-card\.host-pairing-request__card[\s\S]*?app-playful-inner-card-primary/,
+    );
+    expect(playful).toMatch(/\.host-pairing-dialog__section[\s\S]*?app-playful-inner-card-nested/);
   });
 
   it('zentriert die Smartphone-Pair-Karte in der verbleibenden Viewport-Höhe', () => {

@@ -1,6 +1,6 @@
 # Token-Konventionen (Angular Material 3)
 
-**Stand:** 2026-09-20 — abgeglichen mit `apps/frontend/src/styles.scss`, `apps/frontend/src/styles/playful-inner-chrome.scss`, `apps/frontend/src/app/shared/server-status-help-dialog/server-status-help-dialog.component.scss`, [STYLEGUIDE.md](STYLEGUIDE.md) und Angular Material 21.2.
+**Stand:** 2026-09-21 — abgeglichen mit `apps/frontend/src/styles.scss`, `apps/frontend/src/styles/playful-inner-chrome.scss`, `apps/frontend/src/app/shared/server-status-help-dialog/server-status-help-dialog.component.scss`, [STYLEGUIDE.md](STYLEGUIDE.md) und Angular Material 21.2.
 
 ## Ziel
 
@@ -76,7 +76,7 @@ Komponentenspezifische Tokens:
 - Anpassungen für Angular-Material-Komponenten erfolgen über offizielle Override-APIs.
 - Erlaubt sind `mat.theme-overrides(...)`, `mat.button-overrides(...)`, `mat.card-overrides(...)`, `mat.button-toggle-overrides(...)` und vergleichbare Material-Mixins.
 - Keine direkte Überschreibung interner Klassen/DOM-Strukturen als Normalfall.
-- Globales Styling von CDK-/Material-Overlay-Surfaces ist nur mit enger `panelClass` / `backdropClass` erlaubt.
+- Overlay-Surface-Chrome (Dialog, Menü, Select, Tooltip, Datepicker, Snackbar) wird global in `styles.scss` gesetzt. `panelClass` / `backdropClass` bleiben für Layout, Backdrop und dokumentierte Fullscreen-/Sheet-Ausnahmen.
 
 ## Theme-Konfiguration
 
@@ -103,7 +103,7 @@ Preset-Umschaltung läuft über die CSS-Klasse `html.preset-playful`.
 - `--mat-sys-*` für Farbe, Typografie, Shape und Elevation
 - `--app-*` und `--arsnova-*` für dokumentierte App-Semantik
 - SCSS-Patterns für Layout und app-spezifische Strukturen
-- enge `panelClass` / `backdropClass` für CDK-Overlays und Fullscreen-Tools
+- globale Overlay-Surface-Chrome in `styles.scss`; `panelClass` / `backdropClass` nur für Layout und Fullscreen-Ausnahmen
 
 ## Nicht erlaubt
 

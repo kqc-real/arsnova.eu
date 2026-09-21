@@ -299,11 +299,11 @@
   padding: 0.55rem 0.75rem;
   border-radius: 1.15rem;
   border: 1px solid color-mix(in srgb, var(--mat-sys-primary) 18%, transparent);
-  background: color-mix(in srgb, var(--mat-sys-primary-container) 88%, white);
+  background: color-mix(in srgb, var(--mat-sys-primary-container) 88%, var(--mat-sys-surface));
   pointer-events: auto;
   box-shadow:
     0 10px 24px color-mix(in srgb, var(--mat-sys-primary) 14%, transparent),
-    inset 0 1px 0 color-mix(in srgb, white 60%, transparent);
+    inset 0 1px 0 color-mix(in srgb, var(--mat-sys-surface-container-lowest) 60%, transparent);
 }
 
 .app-update-banner__icon-wrap {
@@ -671,7 +671,7 @@
   }
 }
 
-/* Preset-Snackbar (global): Pill, inverse-surface, Blur/Refocus über PresetSnackbarFocusService */
+/* Preset-Snackbar (global): Pill; Seriös inverse-surface, Spielerisch Toolbar-Chrome. */
 .app-preset-snackbar {
   position: fixed;
   bottom: max(1.5rem, env(safe-area-inset-bottom));
@@ -890,4 +890,63 @@
   font-size: 1.125rem;
   width: 1.125rem;
   height: 1.125rem;
+}
+
+/* Spielerisch: Snackbars in der Magenta-/Orange-Sprache der Toolbar, nicht invers-weiß. */
+:host-context(html.preset-playful) {
+  .app-preset-snackbar,
+  .app-install-snackbar {
+    background: linear-gradient(
+      165deg,
+      color-mix(
+          in srgb,
+          var(--mat-sys-primary-container) 42%,
+          var(--mat-sys-surface-container-high)
+        )
+        0%,
+      color-mix(in srgb, var(--mat-sys-surface-container) 78%, var(--mat-sys-tertiary-container))
+        100%
+    );
+    color: var(--mat-sys-on-surface);
+    border: 1px solid color-mix(in srgb, var(--mat-sys-primary) 28%, var(--mat-sys-outline-variant));
+    box-shadow:
+      var(--mat-sys-level3),
+      var(--app-shadow-accent),
+      inset 0 1px 0 color-mix(in srgb, var(--mat-sys-inverse-on-surface) 8%, transparent);
+  }
+
+  .app-preset-snackbar__icon-wrap,
+  .app-install-snackbar__icon-wrap {
+    background: transparent;
+    border: 1px solid color-mix(in srgb, var(--mat-sys-primary) 36%, var(--mat-sys-outline-variant));
+    color: var(--mat-sys-primary);
+  }
+
+  .app-preset-snackbar__action,
+  .app-install-snackbar__action {
+    color: var(--mat-sys-tertiary);
+  }
+
+  .app-preset-snackbar__action:hover,
+  .app-install-snackbar__action:hover {
+    background: color-mix(in srgb, var(--mat-sys-tertiary) 14%, transparent);
+  }
+
+  .app-preset-snackbar__action:focus-visible,
+  .app-install-snackbar__action:focus-visible,
+  .app-preset-snackbar__close:focus-visible,
+  .app-install-snackbar__close:focus-visible {
+    outline: 2px solid var(--mat-sys-primary);
+    outline-offset: 2px;
+  }
+
+  .app-preset-snackbar__close,
+  .app-install-snackbar__close {
+    color: var(--mat-sys-on-surface-variant);
+  }
+
+  .app-preset-snackbar__close:hover,
+  .app-install-snackbar__close:hover {
+    background: color-mix(in srgb, var(--mat-sys-on-surface) 10%, transparent);
+  }
 }

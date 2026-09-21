@@ -19,9 +19,9 @@
 }
 
 .admin-motd__datetime-legend {
-  font: var(--mat-sys-title-small, 600 0.875rem/1.35 system-ui);
+  font: var(--mat-sys-title-small);
   font-weight: 600;
-  color: var(--mat-sys-on-surface-variant, rgba(0, 0, 0, 0.65));
+  color: var(--mat-sys-on-surface-variant);
 }
 
 .admin-motd__datetime-legend--inline {
@@ -56,8 +56,7 @@
   flex: 0 0 0.75rem;
   align-self: stretch;
   margin-block: 0.35rem 0.65rem;
-  border-inline-start: 1px solid
-    color-mix(in srgb, var(--mat-sys-outline-variant, rgba(0, 0, 0, 0.12)) 65%, transparent);
+  border-inline-start: 1px solid color-mix(in srgb, var(--mat-sys-outline-variant) 65%, transparent);
 }
 
 @media (max-width: 719px) {
@@ -67,7 +66,7 @@
     margin: 0;
     border-inline-start: none;
     border-block-start: 1px solid
-      color-mix(in srgb, var(--mat-sys-outline-variant, rgba(0, 0, 0, 0.12)) 55%, transparent);
+      color-mix(in srgb, var(--mat-sys-outline-variant) 55%, transparent);
   }
 }
 
@@ -137,9 +136,8 @@
   gap: 0.75rem;
   padding: 0.75rem 0.875rem;
   border-radius: var(--mat-sys-corner-medium, 8px);
-  background: var(--mat-sys-surface-container-low, rgba(0, 0, 0, 0.03));
-  outline: 1px solid
-    color-mix(in srgb, var(--mat-sys-outline-variant, rgba(0, 0, 0, 0.12)) 70%, transparent);
+  background: var(--mat-sys-surface-container-low);
+  outline: 1px solid color-mix(in srgb, var(--mat-sys-outline-variant) 70%, transparent);
   outline-offset: -1px;
 }
 
@@ -152,19 +150,19 @@
 }
 
 .admin-motd__tpl-name {
-  font: var(--mat-sys-title-small, 600 0.875rem/1.35 system-ui);
+  font: var(--mat-sys-title-small);
   font-weight: 600;
-  color: var(--mat-sys-on-surface, inherit);
+  color: var(--mat-sys-on-surface);
 }
 
 .admin-motd__tpl-desc {
   font: var(--mat-sys-body-small, 0.8125rem/1.45 system-ui);
-  color: var(--mat-sys-on-surface-variant, rgba(0, 0, 0, 0.65));
+  color: var(--mat-sys-on-surface-variant);
 }
 
 .admin-motd__tpl-meta {
   font: var(--mat-sys-label-small, 0.6875rem/1.3 system-ui);
-  color: var(--mat-sys-outline, rgba(0, 0, 0, 0.45));
+  color: var(--mat-sys-outline);
 }
 
 .admin-motd__tpl-buttons {
@@ -190,8 +188,7 @@
   margin-block-start: 0.85rem;
   padding-block: 0.85rem 0.15rem;
   padding-inline: 0.1rem;
-  border-block-start: 1px solid
-    color-mix(in srgb, var(--mat-sys-outline-variant, rgba(0, 0, 0, 0.12)) 80%, transparent);
+  border-block-start: 1px solid color-mix(in srgb, var(--mat-sys-outline-variant) 80%, transparent);
 }
 
 /* Listen-Aktionen: native <button> mit festem Chrome (unabhängig von MatButton/MDC). */
@@ -209,9 +206,9 @@
   font: var(--mat-sys-label-large, 600 0.875rem/1.25 system-ui);
   font-weight: 600;
   cursor: pointer;
-  border: 1px solid color-mix(in srgb, var(--mat-sys-outline, rgba(0, 0, 0, 0.38)) 55%, transparent);
-  background: var(--mat-sys-surface-container-high, rgba(0, 0, 0, 0.06));
-  color: var(--mat-sys-on-surface, inherit);
+  border: 1px solid color-mix(in srgb, var(--mat-sys-outline) 55%, transparent);
+  background: var(--mat-sys-surface-container-high);
+  color: var(--mat-sys-on-surface);
   max-width: 100%;
   text-align: center;
   line-height: 1.25;
@@ -223,26 +220,20 @@
 }
 
 .admin-motd__list-action-btn:focus-visible {
-  outline: 2px solid var(--mat-sys-primary, #1565c0);
+  outline: 2px solid var(--mat-sys-primary);
   outline-offset: 2px;
 }
 
 .admin-motd__list-action-btn--reset:not(:disabled) {
-  border-color: color-mix(in srgb, var(--mat-sys-primary, #1565c0) 42%, transparent);
-  background: var(
-    --mat-sys-primary-container,
-    color-mix(in srgb, var(--mat-sys-primary, #1565c0) 16%, transparent)
-  );
-  color: var(--mat-sys-on-primary-container, var(--mat-sys-on-surface, #1a1a1a));
+  border-color: color-mix(in srgb, var(--mat-sys-primary) 42%, transparent);
+  background: var(--mat-sys-surface-container-high);
+  color: var(--mat-sys-on-surface);
 }
 
 .admin-motd__list-action-btn--delete {
-  border-color: color-mix(in srgb, var(--mat-sys-error, #b3261e) 48%, transparent);
-  background: var(
-    --mat-sys-error-container,
-    color-mix(in srgb, var(--mat-sys-error, #b3261e) 12%, transparent)
-  );
-  color: var(--mat-sys-on-error-container, var(--mat-sys-error, #8c1d18));
+  border-color: color-mix(in srgb, var(--mat-sys-error) 48%, transparent);
+  background: var(--mat-sys-error-container);
+  color: var(--mat-sys-on-error-container);
 }
 
 @media (max-width: 560px) {
@@ -289,7 +280,7 @@
   gap: 0.45rem 0.65rem;
   padding-block: 0.85rem 1rem;
   padding-inline: 0.15rem;
-  border-block-end: 1px solid var(--mat-sys-outline-variant, rgba(0, 0, 0, 0.12));
+  border-block-end: 1px solid var(--mat-sys-outline-variant);
 }
 
 .admin-motd__items li:first-child {
@@ -313,7 +304,7 @@
   flex: 1 1 100%;
   margin: 0;
   font-size: 0.8125rem;
-  color: var(--mat-sys-on-surface-variant, rgba(0, 0, 0, 0.68));
+  color: var(--mat-sys-on-surface-variant);
   line-height: 1.5;
 }
 
@@ -354,7 +345,7 @@
   margin: 0.25rem 0 0;
   padding-inline-start: 2.5rem;
   font-size: 0.8125rem;
-  color: var(--mat-sys-on-surface-variant, rgba(0, 0, 0, 0.6));
+  color: var(--mat-sys-on-surface-variant);
   max-width: 40rem;
 }
 
@@ -367,8 +358,8 @@
   margin-block-start: 1rem;
   padding: 1rem;
   border-radius: 8px;
-  border: 1px solid var(--mat-sys-outline-variant, rgba(0, 0, 0, 0.12));
-  background: var(--mat-sys-surface-container-low, rgba(0, 0, 0, 0.03));
+  border: 1px solid var(--mat-sys-outline-variant);
+  background: var(--mat-sys-surface-container-low);
 }
 
 .admin-motd__preview h4 {
@@ -388,8 +379,7 @@
   gap: 0.75rem;
   margin-block-start: 2rem;
   padding-block-start: 1.25rem;
-  border-block-start: 1px solid
-    color-mix(in srgb, var(--mat-sys-outline-variant, rgba(0, 0, 0, 0.12)) 55%, transparent);
+  border-block-start: 1px solid color-mix(in srgb, var(--mat-sys-outline-variant) 55%, transparent);
 }
 
 .admin-motd__save-btn.mat-mdc-unelevated-button {

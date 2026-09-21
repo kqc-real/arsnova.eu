@@ -5602,6 +5602,10 @@ describe('SessionVoteComponent', { timeout: 30_000 }, () => {
     expect(globalStyles).toMatch(
       /\.vote-timer-a11y__option \.mat-button-toggle-label-content\s*\{/,
     );
+    expect(voteStyles).toMatch(
+      /\.vote-team-reward[\s\S]*?&--leader \{[\s\S]*primary-container\) 55%, var\(--mat-sys-surface\)/,
+    );
+    expect(voteStyles).not.toMatch(/primary-container\) 55%, white/);
   });
 
   it('zeigt nach frischem Join im spielerischen Lobby-Client einen einmaligen Arrival-Moment', async () => {

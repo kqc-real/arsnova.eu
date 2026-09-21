@@ -1675,4 +1675,19 @@ describe('WordCloudComponent', () => {
     expect(component.displayWords().map((entry) => entry.word)).toEqual(['Regression']);
     expect(component.cloudLayoutActive()).toBe(true);
   });
+
+  it('mischt Wortkacheln mit Surface statt Weiß', async () => {
+    const { readFileSync } = await import('node:fs');
+    const { fileURLToPath } = await import('node:url');
+    const { dirname, join } = await import('node:path');
+    const styles = readFileSync(
+      join(dirname(fileURLToPath(import.meta.url)), 'word-cloud.component.scss'),
+      'utf8',
+    );
+
+    expect(styles).toMatch(
+      /\.word-cloud__word \{[\s\S]*surface-container-lowest\) 58%,\s*var\(--mat-sys-primary-container\)/,
+    );
+    expect(styles).not.toMatch(/color-mix\(in srgb, white /);
+  });
 });
