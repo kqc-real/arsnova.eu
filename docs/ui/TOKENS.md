@@ -185,7 +185,7 @@ Diese Ausnahme ist technisch bedingt und dokumentiert in ADR 0005.
 
 **Ausnahme Spielerisch:** Magenta-Primary bleibt für Flächen. Unter `html.preset-playful` mappen Filled-CTAs auf `--mat-sys-tertiary` und Tonal-CTAs auf `--mat-sys-surface-container-high`, damit keine hellrosa Buttons entstehen. Warn-Buttons bleiben Error.
 
-**Landing:** `apps/landing` nutzt eigene `--landing-*`-Tokens (kein `--mat-sys-*`). Sie folgen dem Startseiten-Spielerisch-Konzept: Magenta-Primary, Orange-Tertiary, Surfaces analog zu `surface-container-*`. Gefüllte Landing-CTAs (`.landing-btn-primary`) mappen auf Tertiary. Statuschips: `--landing-status-amber-*` folgt Tertiary, `--landing-status-violet-*` folgt Primary; Emerald (richtig) und Rose (falsch) bleiben semantische Ausnahmen.
+**Landing:** `apps/landing` nutzt eigene `--landing-*`-Tokens (kein `--mat-sys-*`). Sie folgen dem Startseiten-Spielerisch-Konzept: Magenta-Primary, Orange-Tertiary, Surfaces analog zu `surface-container-*`. Gefüllte Landing-CTAs (`.landing-btn-primary`) mappen auf Tertiary.
 
 ## Responsive Breakpoints (Material Design 3)
 

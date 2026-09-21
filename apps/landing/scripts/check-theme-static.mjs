@@ -236,15 +236,6 @@ function checkAlphaCapableTailwind() {
   if (!themeCss.includes('#8b5000') || !themeCss.includes('#ffb787')) {
     fail('landing-theme.css must use orange tertiary tokens from the home playful palette');
   }
-  if (themeCss.includes('#5b21b6') || themeCss.includes('#ede9fe')) {
-    fail('landing-theme.css must not use leftover violet status chips');
-  }
-  if (!themeCss.includes('--landing-status-violet-fg: #580055')) {
-    fail('landing-theme.css status-violet must follow primary magenta');
-  }
-  if (!themeCss.includes('--landing-status-amber-fg: #8b5000')) {
-    fail('landing-theme.css status-amber must follow tertiary orange');
-  }
   if (!themeCss.includes(':where(:root)') || !themeCss.includes(':where(html.light)')) {
     fail(
       'landing-theme.css must use :where(:root)/:where(html.light) so dark + forced-colors can win',
