@@ -75,91 +75,91 @@
   ],
   "screenshots": [
     {
-      "src": "/assets/icons/screenshot-wide.png?v=10",
+      "src": "/assets/icons/screenshot-wide.png?v=11",
       "sizes": "1920x1080",
       "type": "image/png",
       "form_factor": "wide",
       "label": "Quiz, Q&A und Blitzlicht – ohne Anmeldung"
     },
     {
-      "src": "/assets/icons/screenshot-wide-lobby.png?v=10",
+      "src": "/assets/icons/screenshot-wide-lobby.png?v=11",
       "sizes": "1920x1080",
       "type": "image/png",
       "form_factor": "wide",
       "label": "Beitritt per QR-Code – ohne Account"
     },
     {
-      "src": "/assets/icons/screenshot-wide-quiz.png?v=10",
+      "src": "/assets/icons/screenshot-wide-quiz.png?v=11",
       "sizes": "1920x1080",
       "type": "image/png",
       "form_factor": "wide",
       "label": "Live-Quiz, Q&A und Blitzlicht in einer Session"
     },
     {
-      "src": "/assets/icons/screenshot-wide-present.png?v=10",
+      "src": "/assets/icons/screenshot-wide-present.png?v=11",
       "sizes": "1920x1080",
       "type": "image/png",
       "form_factor": "wide",
       "label": "Beamer-Ansicht für Hörsaal und Workshop"
     },
     {
-      "src": "/assets/icons/screenshot-wide-cloud.png?v=10",
+      "src": "/assets/icons/screenshot-wide-cloud.png?v=11",
       "sizes": "1920x1080",
       "type": "image/png",
       "form_factor": "wide",
       "label": "Wortwolke live aus dem Publikum"
     },
     {
-      "src": "/assets/icons/screenshot-wide-qa.png?v=10",
+      "src": "/assets/icons/screenshot-wide-qa.png?v=11",
       "sizes": "1920x1080",
       "type": "image/png",
       "form_factor": "wide",
       "label": "Fragen aus dem Publikum – ohne Login"
     },
     {
-      "src": "/assets/icons/screenshot-wide-feedback.png?v=10",
+      "src": "/assets/icons/screenshot-wide-feedback.png?v=11",
       "sizes": "1920x1080",
       "type": "image/png",
       "form_factor": "wide",
       "label": "Blitzlicht: Stimmung in Sekunden"
     },
     {
-      "src": "/assets/icons/screenshot-wide-leaderboard.png?v=10",
+      "src": "/assets/icons/screenshot-wide-leaderboard.png?v=11",
       "sizes": "1920x1080",
       "type": "image/png",
       "form_factor": "wide",
       "label": "Rangliste mit Teams und Nicknames"
     },
     {
-      "src": "/assets/icons/screenshot-narrow.png?v=10",
+      "src": "/assets/icons/screenshot-narrow.png?v=11",
       "sizes": "440x956",
       "type": "image/png",
       "form_factor": "narrow",
       "label": "Ohne Anmeldung live mitmachen"
     },
     {
-      "src": "/assets/icons/screenshot-narrow-quiz.png?v=10",
+      "src": "/assets/icons/screenshot-narrow-quiz.png?v=11",
       "sizes": "440x956",
       "type": "image/png",
       "form_factor": "narrow",
       "label": "Abstimmen am Handy – ohne Account"
     },
     {
-      "src": "/assets/icons/screenshot-narrow-cloud.png?v=10",
+      "src": "/assets/icons/screenshot-narrow-cloud.png?v=11",
       "sizes": "440x956",
       "type": "image/png",
       "form_factor": "narrow",
       "label": "Freitext wird zur Wortwolke"
     },
     {
-      "src": "/assets/icons/screenshot-narrow-qa.png?v=10",
+      "src": "/assets/icons/screenshot-narrow-qa.png?v=11",
       "sizes": "440x956",
       "type": "image/png",
       "form_factor": "narrow",
       "label": "Anonym Fragen stellen"
     },
     {
-      "src": "/assets/icons/screenshot-narrow-feedback.png?v=10",
+      "src": "/assets/icons/screenshot-narrow-feedback.png?v=11",
       "sizes": "440x956",
       "type": "image/png",
       "form_factor": "narrow",

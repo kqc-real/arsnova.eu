@@ -214,6 +214,87 @@ export function fitWordCloudPositionsToStage<
   }));
 }
 
+/** Sichtbare HTML-Kapsel inkl. Innenabstand, nicht nur die D3-Textbox. */
+export function estimateWordCloudPillExtent(
+  word: string,
+  size: number,
+  rotate: number = 0,
+): { halfWidth: number; halfHeight: number } {
+  const pad = getWordCloudChipPadding(size);
+  const charCount = Math.max(1, [...word.trim()].length);
+  const textWidth = Math.max(size, size * 0.72 * charCount);
+  const textHeight = size * 1.2;
+  const boxWidth = textWidth + pad * 2 + 6;
+  const boxHeight = textHeight + Math.max(8, size * 0.36) * 2 + 6;
+  if (Math.abs(rotate) === 90) {
+    return { halfWidth: boxHeight / 2, halfHeight: boxWidth / 2 };
+  }
+  return { halfWidth: boxWidth / 2, halfHeight: boxHeight / 2 };
+}
+
+/**
+ * Skaliert die Wolke nur nach unten, bis jede Kapsel vollständig in der Bühne liegt.
+ * Verhindert abgeschnittene Pills nach D3-Packing und Präsentations-Auffüllung.
+ */
+export function containWordCloudPillsInStage<
+  T extends {
+    readonly x: number;
+    readonly y: number;
+    readonly size: number;
+    readonly word: string;
+    readonly rotate?: number;
+    readonly x0: number;
+    readonly x1: number;
+    readonly y0: number;
+    readonly y1: number;
+  },
+>(words: readonly T[], stageWidth: number, stageHeight: number): T[] {
+  if (words.length === 0 || stageWidth <= 0 || stageHeight <= 0) {
+    return [...words];
+  }
+
+  const insetX = Math.max(stageWidth * 0.08, WORD_CLOUD_STAGE_FIT_MIN_INSET_X + 24);
+  const insetY = Math.max(stageHeight * 0.08, WORD_CLOUD_STAGE_FIT_MIN_INSET_Y + 16);
+  const halfStageW = stageWidth / 2 - insetX;
+  const halfStageH = stageHeight * 0.5 - insetY;
+  if (halfStageW <= 1 || halfStageH <= 1) {
+    return [...words];
+  }
+
+  let scale = 1;
+  for (const word of words) {
+    const { halfWidth, halfHeight } = estimateWordCloudPillExtent(
+      word.word,
+      word.size,
+      word.rotate ?? 0,
+    );
+    const needX = Math.abs(word.x) + halfWidth;
+    const needY = Math.abs(word.y) + halfHeight;
+    if (needX > 0) {
+      scale = Math.min(scale, halfStageW / needX);
+    }
+    if (needY > 0) {
+      scale = Math.min(scale, halfStageH / needY);
+    }
+  }
+
+  if (!Number.isFinite(scale) || scale >= 0.995) {
+    return [...words];
+  }
+
+  const safe = Math.max(0.15, scale);
+  return words.map((word) => ({
+    ...word,
+    x: word.x * safe,
+    y: word.y * safe,
+    size: Math.max(1, Math.round(word.size * safe)),
+    x0: word.x0 * safe,
+    x1: word.x1 * safe,
+    y0: word.y0 * safe,
+    y1: word.y1 * safe,
+  }));
+}
+
 export function getWordCloudLayoutHeight(
   stageWidth: number,
   wordCount: number,

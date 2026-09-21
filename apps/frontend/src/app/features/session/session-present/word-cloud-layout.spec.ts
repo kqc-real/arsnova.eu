@@ -5,7 +5,9 @@ import {
   MIN_WORD_CLOUD_LAYOUT_WIDTH,
   MOBILE_WORD_CLOUD_LIMIT,
   capWordCloudFontToStage,
+  containWordCloudPillsInStage,
   estimateWordCloudFontFillScale,
+  estimateWordCloudPillExtent,
   fitWordCloudPositionsToStage,
   getWordCloudChipPadding,
   getWordCloudRangeScale,
@@ -143,6 +145,35 @@ describe('word-cloud layout helpers', () => {
     expect(Math.min(...fitted.map((word) => word.y0))).toBeGreaterThan(-110);
     expect(Math.max(...fitted.map((word) => word.y1))).toBeLessThan(110);
     expect(fitted[0]?.size ?? 40).toBeLessThan(40);
+  });
+
+  it('haelt grosse Kapseln vollstaendig in der Buehne', () => {
+    const contained = containWordCloudPillsInStage(
+      [
+        {
+          word: 'Verwaltung',
+          x: 420,
+          y: 40,
+          size: 96,
+          rotate: 0,
+          x0: 200,
+          x1: 640,
+          y0: -20,
+          y1: 100,
+        },
+      ],
+      1200,
+      700,
+    );
+    const word = contained[0];
+    expect(word).toBeTruthy();
+    const extent = estimateWordCloudPillExtent(
+      word?.word ?? '',
+      word?.size ?? 0,
+      word?.rotate ?? 0,
+    );
+    expect(Math.abs(word?.x ?? 0) + extent.halfWidth).toBeLessThanOrEqual(1200 / 2 - 40);
+    expect(Math.abs(word?.y ?? 0) + extent.halfHeight).toBeLessThanOrEqual(700 / 2 - 36);
   });
 
   it('skaliert die mobile Wortwolke unterhalb des Breakpoints stufenlos weiter', () => {

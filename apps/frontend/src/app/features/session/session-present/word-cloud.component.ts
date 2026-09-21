@@ -31,6 +31,7 @@ import { formatLocaleCount } from '../../../core/locale-number.util';
 import { tryRequestDocumentFullscreen } from '../../../core/document-fullscreen.util';
 import {
   capWordCloudFontToStage,
+  containWordCloudPillsInStage,
   estimateWordCloudFontFillScale,
   fitWordCloudPositionsToStage,
   getWordCloudChipPadding,
@@ -1687,10 +1688,11 @@ export class WordCloudComponent implements AfterViewInit, OnDestroy {
         const fitted = this.presentationMode()
           ? fitWordCloudPositionsToStage(positioned, stageWidth, stageHeight)
           : positioned;
+        const contained = containWordCloudPillsInStage(fitted, stageWidth, stageHeight);
 
         this.activeCloudLayout = null;
         this.layoutPending.set(false);
-        this.positionedWords.set(fitted);
+        this.positionedWords.set(contained);
         this.renderedCloudStageWidth.set(Math.round(stageWidth));
         this.renderedCloudStageHeight.set(Math.round(stageHeight));
         this.activeLayoutSignature.set(positioned.length > 0 ? signature : '');

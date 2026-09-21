@@ -1063,7 +1063,7 @@ app-session-projection-quiz,
   grid-area: cloud;
   display: flex;
   min-height: 0;
-  overflow: hidden;
+  overflow: visible;
 }
 
 .session-present__qa-stage > .session-present__word-cloud-card app-word-cloud {
