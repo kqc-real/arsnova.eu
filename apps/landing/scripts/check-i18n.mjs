@@ -776,9 +776,9 @@ function checkNavAndSectionOrder() {
         `/${locale}/ CTA ${JSON.stringify(tryNow)} must remain a separate #start control (desktop + mobile)`,
       );
     }
-    if (!html.includes('bg-landing-primary') || !html.includes(tryNow)) {
+    if (!html.includes('landing-btn-primary') || !html.includes(tryNow)) {
       fail(
-        `/${locale}/ CTA ${JSON.stringify(tryNow)} must remain visually emphasized (landing primary button)`,
+        `/${locale}/ CTA ${JSON.stringify(tryNow)} must remain visually emphasized (landing tertiary filled button)`,
       );
     }
 

@@ -1,7 +1,9 @@
 /**
  * Eigenständige semantische Theme-Schicht für info.arsnova.eu (Issue #199).
- * Visuell an das spielerische Magenta-/Violett-Default-Preset der App angelehnt,
- * ohne Angular-Material-Systemtokens oder Material-Komponentenbibliotheken.
+ * Farbkonzept wie die App-Startseite im Preset Spielerisch:
+ * Magenta-Primary für Flächen, Akzente und Icons; Orange-Tertiary für
+ * gefüllte CTAs. Keine hellrosa Buttons, kein Violett-Tertiary.
+ * Ohne Angular-Material-Systemtokens oder Material-Komponentenbibliotheken.
  *
  * Tailwind-Farben nutzen RGB-Kanäle (`--landing-*-rgb`) für Slash-Opacity.
  */
@@ -11,14 +13,14 @@
 :where(html.light) {
   color-scheme: light;
 
-  --landing-background: #faf7fb;
-  --landing-background-rgb: 250 247 251;
+  --landing-background: #fbf1f5;
+  --landing-background-rgb: 251 241 245;
   --landing-surface: #ffffff;
   --landing-surface-rgb: 255 255 255;
-  --landing-surface-container: #f3eef6;
-  --landing-surface-container-rgb: 243 238 246;
-  --landing-surface-container-high: #ebe3f0;
-  --landing-surface-container-high-rgb: 235 227 240;
+  --landing-surface-container: #f5ebf0;
+  --landing-surface-container-rgb: 245 235 240;
+  --landing-surface-container-high: #efe6ea;
+  --landing-surface-container-high-rgb: 239 230 234;
   --landing-on-surface: #1c1b1f;
   --landing-on-surface-rgb: 28 27 31;
   --landing-on-surface-muted: #5a535e;
@@ -37,14 +39,16 @@
   --landing-primary-hover: #8e008e;
   --landing-primary-hover-rgb: 142 0 142;
 
-  --landing-tertiary: #7d00fa;
-  --landing-tertiary-rgb: 125 0 250;
+  --landing-tertiary: #8b5000;
+  --landing-tertiary-rgb: 139 80 0;
   --landing-on-tertiary: #ffffff;
   --landing-on-tertiary-rgb: 255 255 255;
-  --landing-tertiary-container: #ebddff;
-  --landing-tertiary-container-rgb: 235 221 255;
-  --landing-on-tertiary-container: #2a0054;
-  --landing-on-tertiary-container-rgb: 42 0 84;
+  --landing-tertiary-container: #ffdcc7;
+  --landing-tertiary-container-rgb: 255 220 199;
+  --landing-on-tertiary-container: #2d1600;
+  --landing-on-tertiary-container-rgb: 45 22 0;
+  --landing-tertiary-hover: #6f3f00;
+  --landing-tertiary-hover-rgb: 111 63 0;
 
   --landing-outline: #7a727e;
   --landing-outline-rgb: 122 114 126;
@@ -77,8 +81,19 @@
   --landing-status-violet-bg: #ede9fe;
 
   --landing-hero-spotlight: rgba(169, 0, 169, 0.16);
-  --landing-hero-spotlight-secondary: rgba(125, 0, 250, 0.1);
-  --landing-theme-color: #faf7fb;
+  --landing-hero-spotlight-secondary: rgba(139, 80, 0, 0.1);
+  --landing-theme-color: #fbf1f5;
+  /* Light-Verlauf nur aus Container-/Background-Mischungen: gesaettigte
+     22%-Stops (z. B. #e5bd9b) unterschreiten 4,5:1 fuer Muted-Text und Links. */
+  --landing-bg-root: linear-gradient(
+    145deg,
+    #fff8fc 0%,
+    color-mix(in srgb, var(--landing-tertiary) 6%, var(--landing-background)) 18%,
+    color-mix(in srgb, var(--landing-tertiary-container) 55%, var(--landing-background)) 42%,
+    color-mix(in srgb, var(--landing-primary-container) 55%, var(--landing-background)) 58%,
+    color-mix(in srgb, var(--landing-primary) 6%, var(--landing-background)) 82%,
+    var(--landing-surface-container) 100%
+  );
 
   --landing-radius-button: 9999px;
   --landing-radius-card: 1.5rem;
@@ -93,14 +108,14 @@
   :where(:root:not(.light)) {
     color-scheme: dark;
 
-    --landing-background: #161018;
-    --landing-background-rgb: 22 16 24;
-    --landing-surface: #1e1722;
-    --landing-surface-rgb: 30 23 34;
-    --landing-surface-container: #2a2230;
-    --landing-surface-container-rgb: 42 34 48;
-    --landing-surface-container-high: #352c3c;
-    --landing-surface-container-high-rgb: 53 44 60;
+    --landing-background: #1e1a1d;
+    --landing-background-rgb: 30 26 29;
+    --landing-surface: #231e22;
+    --landing-surface-rgb: 35 30 34;
+    --landing-surface-container: #231e22;
+    --landing-surface-container-rgb: 35 30 34;
+    --landing-surface-container-high: #2d292c;
+    --landing-surface-container-high-rgb: 45 41 44;
     --landing-on-surface: #ece2ec;
     --landing-on-surface-rgb: 236 226 236;
     --landing-on-surface-muted: #c9becb;
@@ -119,14 +134,16 @@
     --landing-primary-hover: #ffc2f6;
     --landing-primary-hover-rgb: 255 194 246;
 
-    --landing-tertiary: #d5baff;
-    --landing-tertiary-rgb: 213 186 255;
-    --landing-on-tertiary: #3b0091;
-    --landing-on-tertiary-rgb: 59 0 145;
-    --landing-tertiary-container: #5e00c8;
-    --landing-tertiary-container-rgb: 94 0 200;
-    --landing-on-tertiary-container: #ebddff;
-    --landing-on-tertiary-container-rgb: 235 221 255;
+    --landing-tertiary: #ffb787;
+    --landing-tertiary-rgb: 255 183 135;
+    --landing-on-tertiary: #502400;
+    --landing-on-tertiary-rgb: 80 36 0;
+    --landing-tertiary-container: #723600;
+    --landing-tertiary-container-rgb: 114 54 0;
+    --landing-on-tertiary-container: #ffdcc7;
+    --landing-on-tertiary-container-rgb: 255 220 199;
+    --landing-tertiary-hover: #ffc8a0;
+    --landing-tertiary-hover-rgb: 255 200 160;
 
     --landing-outline: #948b97;
     --landing-outline-rgb: 148 139 151;
@@ -158,22 +175,31 @@
     --landing-status-violet-bg: rgb(var(--landing-status-violet-bg-rgb) / 0.16);
 
     --landing-hero-spotlight: rgba(255, 171, 243, 0.14);
-    --landing-hero-spotlight-secondary: rgba(213, 186, 255, 0.1);
-    --landing-theme-color: #161018;
+    --landing-hero-spotlight-secondary: rgba(255, 183, 135, 0.12);
+    --landing-theme-color: #1e1a1d;
+    --landing-bg-root: linear-gradient(
+      145deg,
+      #141214 0%,
+      var(--landing-background) 15%,
+      var(--landing-tertiary-container) 40%,
+      var(--landing-primary-container) 60%,
+      var(--landing-background) 85%,
+      var(--landing-surface-container) 100%
+    );
   }
 }
 
 :where(html.dark) {
   color-scheme: dark;
 
-  --landing-background: #161018;
-  --landing-background-rgb: 22 16 24;
-  --landing-surface: #1e1722;
-  --landing-surface-rgb: 30 23 34;
-  --landing-surface-container: #2a2230;
-  --landing-surface-container-rgb: 42 34 48;
-  --landing-surface-container-high: #352c3c;
-  --landing-surface-container-high-rgb: 53 44 60;
+  --landing-background: #1e1a1d;
+  --landing-background-rgb: 30 26 29;
+  --landing-surface: #231e22;
+  --landing-surface-rgb: 35 30 34;
+  --landing-surface-container: #231e22;
+  --landing-surface-container-rgb: 35 30 34;
+  --landing-surface-container-high: #2d292c;
+  --landing-surface-container-high-rgb: 45 41 44;
   --landing-on-surface: #ece2ec;
   --landing-on-surface-rgb: 236 226 236;
   --landing-on-surface-muted: #c9becb;
@@ -192,14 +218,16 @@
   --landing-primary-hover: #ffc2f6;
   --landing-primary-hover-rgb: 255 194 246;
 
-  --landing-tertiary: #d5baff;
-  --landing-tertiary-rgb: 213 186 255;
-  --landing-on-tertiary: #3b0091;
-  --landing-on-tertiary-rgb: 59 0 145;
-  --landing-tertiary-container: #5e00c8;
-  --landing-tertiary-container-rgb: 94 0 200;
-  --landing-on-tertiary-container: #ebddff;
-  --landing-on-tertiary-container-rgb: 235 221 255;
+  --landing-tertiary: #ffb787;
+  --landing-tertiary-rgb: 255 183 135;
+  --landing-on-tertiary: #502400;
+  --landing-on-tertiary-rgb: 80 36 0;
+  --landing-tertiary-container: #723600;
+  --landing-tertiary-container-rgb: 114 54 0;
+  --landing-on-tertiary-container: #ffdcc7;
+  --landing-on-tertiary-container-rgb: 255 220 199;
+  --landing-tertiary-hover: #ffc8a0;
+  --landing-tertiary-hover-rgb: 255 200 160;
 
   --landing-outline: #948b97;
   --landing-outline-rgb: 148 139 151;
@@ -231,14 +259,33 @@
   --landing-status-violet-bg: rgb(var(--landing-status-violet-bg-rgb) / 0.16);
 
   --landing-hero-spotlight: rgba(255, 171, 243, 0.14);
-  --landing-hero-spotlight-secondary: rgba(213, 186, 255, 0.1);
-  --landing-theme-color: #161018;
+  --landing-hero-spotlight-secondary: rgba(255, 183, 135, 0.12);
+  --landing-theme-color: #1e1a1d;
+  --landing-bg-root: linear-gradient(
+    145deg,
+    #141214 0%,
+    var(--landing-background) 15%,
+    var(--landing-tertiary-container) 40%,
+    var(--landing-primary-container) 60%,
+    var(--landing-background) 85%,
+    var(--landing-surface-container) 100%
+  );
 }
 
 html,
 body {
   background-color: var(--landing-background);
+  background-image: var(--landing-bg-root);
+  background-attachment: fixed;
   color: var(--landing-on-surface);
+}
+
+.landing-footer {
+  background: linear-gradient(
+    180deg,
+    color-mix(in srgb, var(--landing-background) 70%, transparent),
+    var(--landing-tertiary-container)
+  );
 }
 
 /* Skip-link and focus defaults — Outline folgt gerundeter Form. */
@@ -324,6 +371,8 @@ body {
     --landing-tertiary-container-rgb: 255 255 255;
     --landing-on-tertiary-container: CanvasText;
     --landing-on-tertiary-container-rgb: 0 0 0;
+    --landing-tertiary-hover: LinkText;
+    --landing-tertiary-hover-rgb: 0 0 255;
     --landing-outline: ButtonText;
     --landing-outline-rgb: 0 0 0;
     --landing-outline-variant: ButtonText;
@@ -334,6 +383,7 @@ body {
     --landing-error-rgb: 255 0 0;
     --landing-on-error: Canvas;
     --landing-on-error-rgb: 255 255 255;
+    --landing-bg-root: none;
     --landing-status-amber-fg: CanvasText;
     --landing-status-amber-fg-rgb: 0 0 0;
     --landing-status-amber-bg-rgb: 255 255 255;

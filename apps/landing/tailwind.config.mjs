@@ -26,6 +26,7 @@ export default {
           'on-tertiary': 'rgb(var(--landing-on-tertiary-rgb) / <alpha-value>)',
           'tertiary-container': 'rgb(var(--landing-tertiary-container-rgb) / <alpha-value>)',
           'on-tertiary-container': 'rgb(var(--landing-on-tertiary-container-rgb) / <alpha-value>)',
+          'tertiary-hover': 'rgb(var(--landing-tertiary-hover-rgb) / <alpha-value>)',
           outline: 'rgb(var(--landing-outline-rgb) / <alpha-value>)',
           'outline-variant': 'rgb(var(--landing-outline-variant-rgb) / <alpha-value>)',
           focus: 'rgb(var(--landing-focus-rgb) / <alpha-value>)',
