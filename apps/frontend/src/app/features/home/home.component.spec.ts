@@ -3013,6 +3013,7 @@ describe('HomeComponent', () => {
         input,
       );
       fixture.detectChanges();
+      expect(motdHeader.overlayOpen()).toBe(true);
       expect(motdHeader.motdToolbarAttention()).toBe(false);
       document.body.setAttribute('tabindex', '-1');
       document.body.focus();
@@ -3027,6 +3028,7 @@ describe('HomeComponent', () => {
       ) as HTMLButtonElement;
       expect(document.activeElement).toBe(primaryAction);
       expect(primaryAction.classList.contains('cdk-mouse-focused')).toBe(true);
+      expect(motdHeader.overlayOpen()).toBe(false);
     });
 
     it('zeigt nach Pointer-Dismiss keinen Tastatur-Fokusrahmen', async () => {

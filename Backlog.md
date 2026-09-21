@@ -1927,7 +1927,7 @@ ist abgeschlossen ✅. Damit ist Epic 6 geschlossen.
     - Eingabefeld für Freitext (max. 500 Zeichen) + „Absenden"-Button.
     - Fragen werden anonym eingereicht (kein Nickname sichtbar) — konsistent mit dem seriösen Modus (Story 3.6).
     - Markdown wird in Fragen unterstützt (Story 1.7).
-    - Maximal 3 Fragen pro teilnehmender Person pro Session (Spam-Schutz).
+    - Maximal 10 Fragen pro teilnehmender Person pro Teilnahme (Spam-Schutz); Session-Obergrenze 25.000 Fragen.
     - Fragen erscheinen sofort im Teilnehmenden-Tab und in der Host-Moderation; freigegebene bzw. hervorgehobene Fragen sind auf der Presenter-Ansicht sichtbar.
 - **Story 8.3 (Voting & Sortierung):** 🟢 Als Teilnehmende:r möchte ich die Fragen anderer Teilnehmender bewerten können, damit die relevantesten Fragen nach oben wandern.
   - **Akzeptanzkriterien:**

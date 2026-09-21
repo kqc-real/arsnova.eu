@@ -3,7 +3,7 @@
 # Diagramme: arsnova.eu
 
 Alle Diagramme sind in Mermaid geschrieben und werden von GitHub nativ gerendert.
-**Stand:** 2026-09-10 · **Epics 0–6 inkl. 5.4a, 7.1, 8.1–8.4, 8.6–8.8, 8.9a/8.9b, 9, 10 (MOTD), 12 (Produktfeedback 12.1–12.4 implementiert und am 2026-09-10 manuell abgenommen) umgesetzt;** **1.14 / 1.14a / 1.14b** (Wortwolke inkl. optionaler spaCy-Glättung) fertig, **1.14c Stufe 1** (Encoder-Sidecar, Kill-Switch default aus) im Repo, **1.14c Stufe 2** und **8.9c Slice 4** offen; **8.9c** Slices 1–3 im Repo (Kill-Switch default aus). **6.5 Barrierefreiheit** ist technisch validiert und formal mit AT/Zoom/OS/PDF-Readern nach WCAG 2.2 AA abgenommen; **6.6 Thinking Aloud** ist fertig. Plattformstatistik Rekordteilnehmer und Tagesrekorde laufen über `health.footerBundle` / `health.stats` (`PlatformStatistic`, `DailyStatistic`). Kurzantwort (`SHORT_TEXT`) inkl. numerischer Bewertung, numerische Schätzfragen (`NUMERIC_ESTIMATE`) inkl. Zwei-Runden-Flow/Statistik und die Effective-Vote-Regel für Peer Instruction sind umgesetzt. Der Host-Live-Fortschritt während `ACTIVE` ist über `HostVoteProgressDTO` vom vollständigen Host-Fragen-DTO getrennt. Markdown-Erweiterungen **1.7a** und **1.7b** umgesetzt ([ADR-0015](../architecture/decisions/0015-markdown-images-url-only-and-lightbox.md), [ADR-0016](../architecture/decisions/0016-markdown-katex-editor-split-view-and-md3-toolbar.md)). `Blitzlicht` ist als Startseiten-Shortcut und Session-Kanal konsolidiert. `FINISHED` beendet die Session fuer Vote-Clients kanaluebergreifend und raeumt Live-Kanal-Subscriptions ab. Rollen/Routen/Autorisierung siehe [ADR-0006](../architecture/decisions/0006-roles-routes-authorization-host-admin.md), [ADR-0009](../architecture/decisions/0009-unified-live-session-channels.md), [ADR-0010](../architecture/decisions/0010-blitzlicht-as-core-live-mode.md), [ADR-0018](../architecture/decisions/0018-message-of-the-day-platform-communication.md), [ROUTES_AND_STORIES.md](../ROUTES_AND_STORIES.md). Wortwolke/Kompass: [moderation-compass.md](../features/moderation-compass.md), [word-cloud-spacy.md](../features/word-cloud-spacy.md), [word-cloud-semantic.md](../features/word-cloud-semantic.md), [qa-nlp-moderation.md](../features/qa-nlp-moderation.md), [qa-summary.md](../features/qa-summary.md).
+**Stand:** 2026-09-21 · **Epics 0–6 inkl. 5.4a, 7.1, 8.1–8.4, 8.6–8.8, 8.9a/8.9b, 9, 10 (MOTD), 12 (Produktfeedback 12.1–12.4 implementiert und am 2026-09-10 manuell abgenommen), Epic #405 (absoluter Session-Lebenszyklus, Host-Recovery, Q&A-Skalierung) umgesetzt;** **1.14 / 1.14a / 1.14b** (Wortwolke inkl. optionaler spaCy-Glättung) fertig, **1.14c Stufe 1** (Encoder-Sidecar, Kill-Switch default aus) im Repo, **1.14c Stufe 2** und **8.9c Slice 4** offen; **8.9c** Slices 1–3 im Repo (Kill-Switch default aus). **6.5 Barrierefreiheit** ist technisch validiert und formal mit AT/Zoom/OS/PDF-Readern nach WCAG 2.2 AA abgenommen; **6.6 Thinking Aloud** ist fertig. Plattformstatistik Rekordteilnehmer und Tagesrekorde laufen über `health.footerBundle` / `health.stats` (`PlatformStatistic`, `DailyStatistic`). Kurzantwort (`SHORT_TEXT`) inkl. numerischer Bewertung, numerische Schätzfragen (`NUMERIC_ESTIMATE`) inkl. Zwei-Runden-Flow/Statistik und die Effective-Vote-Regel für Peer Instruction sind umgesetzt. Der Host-Live-Fortschritt während `ACTIVE` ist über `HostVoteProgressDTO` vom vollständigen Host-Fragen-DTO getrennt. Markdown-Erweiterungen **1.7a** und **1.7b** umgesetzt ([ADR-0015](../architecture/decisions/0015-markdown-images-url-only-and-lightbox.md), [ADR-0016](../architecture/decisions/0016-markdown-katex-editor-split-view-and-md3-toolbar.md)). `Blitzlicht` ist als Startseiten-Shortcut und Session-Kanal konsolidiert. `FINISHED` beendet Quiz- und Blitzlicht-Live; ein noch offener Q&A-Kanal (`qaOpen`, `qaClosesAt` in der Zukunft) bleibt bis zum Q&A-Schluss beschreibbar (Epic #405). Rollen/Routen/Autorisierung siehe [ADR-0006](../architecture/decisions/0006-roles-routes-authorization-host-admin.md), [ADR-0009](../architecture/decisions/0009-unified-live-session-channels.md), [ADR-0010](../architecture/decisions/0010-blitzlicht-as-core-live-mode.md), [ADR-0018](../architecture/decisions/0018-message-of-the-day-platform-communication.md), [ROUTES_AND_STORIES.md](../ROUTES_AND_STORIES.md). Wortwolke/Kompass: [moderation-compass.md](../features/moderation-compass.md), [word-cloud-spacy.md](../features/word-cloud-spacy.md), [word-cloud-semantic.md](../features/word-cloud-semantic.md), [qa-nlp-moderation.md](../features/qa-nlp-moderation.md), [qa-summary.md](../features/qa-summary.md).
 
 > **VS Code:** Mermaid wird in der Standard-Markdown-Vorschau nicht gerendert. Bitte die Erweiterung **„Markdown Preview Mermaid Support“** (`bierner.markdown-mermaid`) installieren. Siehe [README.md](./README.md) in diesem Ordner.
 
@@ -215,6 +215,7 @@ graph LR
         STATUS[ServerStatusWidgetComponent]
         PRESET[PresetToastComponent]
         BANNER[ConnectionBannerComponent]
+        UPDATE[Update-Banner]
         CONFIRM[ConfirmLeaveDialogComponent]
     end
 
@@ -224,6 +225,7 @@ graph LR
         THEME[theme-preset.service]
         LOCALE[locale-switch-guard.service]
         SOUND[sound.service]
+        MOTDSTATE[MotdHeaderStateService]
     end
 
     BACKEND[Backend tRPC]
@@ -234,9 +236,12 @@ graph LR
     APP --> ROUTES
     APP --> TOOLBAR
     APP --> BANNER
+    APP --> UPDATE
     APP --> STATUS
     APP --> PRESET
     TOOLBAR --> CONFIRM
+    MOTDSTATE --> UPDATE
+    TOOLBAR --> MOTDSTATE
 
     TRPC --> BACKEND
     TRPC --> WS
@@ -263,11 +268,13 @@ graph LR
     HELP[HelpComponent]
     NEWS[NewsArchivePageComponent]
     LEGAL[LegalPageComponent]
+    HOSTRECOVERY[HostRecoveryComponent]
 
     ROUTES --> HOME
     ROUTES --> QUIZ
     ROUTES --> SESSION
     ROUTES --> JOIN
+    ROUTES --> HOSTRECOVERY
     ROUTES --> FBHOST
     ROUTES --> FBVOTE
     ROUTES --> ADMIN
@@ -300,6 +307,7 @@ graph LR
         SHOST[SessionHostComponent]
         SPRESENT[SessionPresentComponent]
         SVOTE[SessionVoteComponent]
+        SPAIR[SessionPair / Host-Pairing]
         FBHOST[FeedbackHostComponent]
         FBVOTE[FeedbackVoteComponent]
         WCLOUD[WordCloudComponent]
@@ -309,6 +317,7 @@ graph LR
         SROOT --> SHOST
         SROOT --> SPRESENT
         SROOT --> SVOTE
+        SROOT --> SPAIR
         SHOST --> FBHOST
         SVOTE --> FBVOTE
         SHOST --> FOYER
@@ -414,6 +423,11 @@ erDiagram
         enum type
         enum status
         datetime statusChangedAt
+        datetime createdAt
+        datetime expiresAt
+        datetime endedAt
+        datetime qaClosesAt
+        int sessionLifecycleRevision
         boolean qaEnabled
         boolean qaOpen
         boolean quickFeedbackEnabled
@@ -777,8 +791,12 @@ sequenceDiagram
     BE->>PG: Status = FINISHED
     BE->>BE: Status-/Question-/Participant-Caches invalidieren
     BE-->>V: session.onStatusChanged FINISHED
-    V->>V: FINISHED ueberstimmt Quiz, Q&A und Blitzlicht
-    V->>V: Countdown, Fallback-Polling und Live-Kanal-Subscriptions stoppen
+    V->>V: Quiz und Blitzlicht beenden; Countdown und Quiz-Subscriptions stoppen
+    alt Q&A-Kanal noch OPEN und qaClosesAt in der Zukunft
+        V->>V: Q&A-Forum bleibt beschreibbar bis min(qaClosesAt, expiresAt)
+    else Q&A geschlossen oder abgelaufen
+        V->>V: Q&A-Sub stoppen; FINISHED gilt kanaluebergreifend
+    end
     opt Bonus-Code oder Session-Feedback offen
         V->>V: Abschluss-Gate mit CTA Zur Startseite anzeigen
     end
@@ -803,6 +821,31 @@ sequenceDiagram
         FE->>BE: getLastSessionExportPdfForQuiz (accessProof)
         BE-->>FE: PDF base64 oder SessionExportDTO
         FE->>D: Nachbesprechung-Dialog / Ergebnisbericht (PDF)
+    end
+```
+
+### 4.4 Host-Recovery (Epic #405)
+
+```mermaid
+sequenceDiagram
+    participant D as Dozent
+    participant FE as Browser Angular
+    participant BE as Backend tRPC
+    participant PG as PostgreSQL
+
+    alt gespeicherte Host-Capability auf der Startseite
+        D->>FE: Live-Karte Q&A-Session plus Code
+        FE->>BE: session.issueHostAccessToken
+        BE-->>FE: Host-Token
+        FE->>D: /session/:code/host?tab=qa
+    else kein Token und keine Capability
+        FE->>D: /host-recovery
+        D->>FE: Support-ID und Geheimnis aus Zugangskarte
+        FE->>BE: session.activateHostCredential
+        BE->>PG: Credential-Generation pruefen
+        BE->>BE: session.issueHostAccessToken
+        BE-->>FE: Host-Token und Capability
+        FE->>D: /session/:code/host
     end
 ```
 
@@ -872,8 +915,12 @@ sequenceDiagram
 
     Note over S,BE: Phase 6 - Session-Ende
     BE->>FE: onStatusChanged FINISHED
-    FE->>FE: Aktiven Kanal verlassen (Quiz, Q&A oder Blitzlicht)
-    FE->>FE: Countdown, Fallback-Polling, Q&A-Sub und Blitzlicht-Sub stoppen
+    FE->>FE: Quiz und Blitzlicht verlassen; Countdown und Quiz-Polling stoppen
+    alt Q&A-Kanal noch OPEN und qaClosesAt in der Zukunft
+        FE->>S: Q&A-Forum bleibt bis zum Q&A-Schluss
+    else Q&A geschlossen oder abgelaufen
+        FE->>FE: Q&A-Sub und Blitzlicht-Sub stoppen
+    end
     opt Top-X
         BE->>FE: onPersonalResult mit bonusToken
         FE->>S: Bonus-Token anzeigen, Kopieren
@@ -1179,4 +1226,30 @@ flowchart LR
     B6 -.->|session.onStatusChanged FINISHED| V6
 ```
 
-**Hinweis:** Standalone-Blitzlicht (`/feedback/:code`, `/feedback/:code/vote`) und Blitzlicht im Session-Kanal teilen sich denselben Fachkern. Unterschiedlich ist der Endpfad: `quickFeedback.end` loescht die Redis-Runde und der Standalone-Vote zeigt den abgelaufen/geschlossen-Zustand mit Home-CTA; `session.end` setzt dagegen die gesamte Session auf `FINISHED`, der Session-Vote verlaesst jeden aktiven Kanal und stoppt Q&A-/Blitzlicht-Subscriptions. **Technische Procedure-Namen und Tabelle:** [blitzlicht-quickfeedback-api.md](../features/blitzlicht-quickfeedback-api.md). Produktbegriffe (z. B. „Vergleichsrunde“) siehe [ADR-0010](../architecture/decisions/0010-blitzlicht-as-core-live-mode.md) und [BLITZLICHT-GUIDELINES.md](../ui/BLITZLICHT-GUIDELINES.md).
+**Hinweis:** Standalone-Blitzlicht (`/feedback/:code`, `/feedback/:code/vote`) und Blitzlicht im Session-Kanal teilen sich denselben Fachkern. Unterschiedlich ist der Endpfad: `quickFeedback.end` loescht die Redis-Runde und der Standalone-Vote zeigt den abgelaufen/geschlossen-Zustand mit Home-CTA; `session.end` setzt die Session auf `FINISHED` und stoppt Quiz- sowie Blitzlicht-Live. Ein noch offener Q&A-Kanal (`qaOpen`, `qaClosesAt` in der Zukunft) bleibt bis zum Q&A-Schluss beschreibbar (Epic #405). **Technische Procedure-Namen und Tabelle:** [blitzlicht-quickfeedback-api.md](../features/blitzlicht-quickfeedback-api.md). Produktbegriffe (z. B. „Vergleichsrunde“) siehe [ADR-0010](../architecture/decisions/0010-blitzlicht-as-core-live-mode.md) und [BLITZLICHT-GUIDELINES.md](../ui/BLITZLICHT-GUIDELINES.md).
+
+### 6.4 Host-Recovery (Epic #405)
+
+```mermaid
+%%{init: {'flowchart': {'curve': 'basis', 'nodeSpacing': 64, 'rankSpacing': 96, 'padding': 20}}}%%
+flowchart LR
+    subgraph Startseite["Startseite"]
+        H1[Live-Karte mit gespeicherter Capability]
+        H2[CTA Host-Zugang wiederherstellen]
+    end
+
+    subgraph Recovery["Wiederherstellung"]
+        R1["/host-recovery: Support-ID + Geheimnis"]
+        R2[session.activateHostCredential]
+        R3[session.issueHostAccessToken]
+    end
+
+    subgraph Host["Host-Ansicht"]
+        S1["/session/:code/host"]
+        S2[Q&A-Kanal wenn offen]
+    end
+
+    H1 --> R3 --> S1
+    H2 --> R1 --> R2 --> R3
+    S1 --> S2
+```

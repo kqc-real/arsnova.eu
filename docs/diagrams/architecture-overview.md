@@ -4,11 +4,11 @@
 
 **Erstellt:** 2026-02-20
 
-**Zuletzt aktualisiert:** 2026-09-10
+**Zuletzt aktualisiert:** 2026-09-21
 
 **Zweck:** Visualisierung der gesamten Codebasis-Struktur und Architektur
 
-**Status:** Epics 0–6 inkl. 5.4a, 7.1, 8.1–8.4, 8.6–8.8, **8.9a/8.9b**, 9, **10 (MOTD)**, **12 (Produktfeedback 12.1–12.4 implementiert und am 2026-09-10 manuell abgenommen)** umgesetzt · **1.14 / 1.14a / 1.14b** fertig, **1.14c Stufe 1** im Repo (Kill-Switch default aus), **1.14c Stufe 2** und **8.9c Slice 4** offen; **8.9c** Slices 1–3 im Repo (Kill-Switch default aus) · 6.5 technisch validiert und formal mit AT/Zoom/OS/PDF-Readern nach WCAG 2.2 AA abgenommen; 6.6 fertig · Plattformstatistik Rekordteilnehmer und Tagesrekorde (`PlatformStatistic`, `DailyStatistic`) in `health.footerBundle` / `health.stats` · Kurzantwort (`SHORT_TEXT`) inkl. numerischer Bewertung, numerische Schätzfrage (`NUMERIC_ESTIMATE`) inkl. Zwei-Runden-Flow/Statistik und Effective-Vote-Regel umgesetzt · Host-Live-Fortschritt in `ACTIVE` läuft getrennt über `HostVoteProgressDTO` statt über vote-getriebene Full-Question-Events · Host-Härtung, Feedback-Host-Token und besitzgebundene Quiz-Historie umgesetzt · Markdown-Stories **1.7a** und **1.7b** umgesetzt ([ADR-0015](../architecture/decisions/0015-markdown-images-url-only-and-lightbox.md), [ADR-0016](../architecture/decisions/0016-markdown-katex-editor-split-view-and-md3-toolbar.md), [ADR-0017](../architecture/decisions/0017-markdown-editor-ui-scope-and-ki-import-paste-field.md) — Geltungsbereich Editor vs. KI-Paste). Blitzlicht ist als Startseiten-Shortcut und Session-Kanal konsolidiert; `FINISHED` beendet den Session-Vote kanaluebergreifend und stoppt Q&A-/Blitzlicht-Live-Subscriptions. Rollen/Routen/Autorisierung inkl. Admin, Host-Härtung und MOTD siehe [ADR-0006](../architecture/decisions/0006-roles-routes-authorization-host-admin.md), [ADR-0019](../architecture/decisions/0019-host-hardening-and-owner-bound-session-access.md), [ADR-0009](../architecture/decisions/0009-unified-live-session-channels.md), [ADR-0010](../architecture/decisions/0010-blitzlicht-as-core-live-mode.md), [ADR-0018](../architecture/decisions/0018-message-of-the-day-platform-communication.md), [ROUTES_AND_STORIES.md](../ROUTES_AND_STORIES.md). Wortwolke/Kompass: [moderation-compass.md](../features/moderation-compass.md), [word-cloud-spacy.md](../features/word-cloud-spacy.md), [qa-nlp-moderation.md](../features/qa-nlp-moderation.md), [qa-summary.md](../features/qa-summary.md).
+**Status:** Epics 0–6 inkl. 5.4a, 7.1, 8.1–8.4, 8.6–8.8, **8.9a/8.9b**, 9, **10 (MOTD)**, **12 (Produktfeedback 12.1–12.4 implementiert und am 2026-09-10 manuell abgenommen)**, **Epic #405** (absoluter Session-Lebenszyklus, Host-Recovery, Q&A-Skalierung) umgesetzt · **1.14 / 1.14a / 1.14b** fertig, **1.14c Stufe 1** im Repo (Kill-Switch default aus), **1.14c Stufe 2** und **8.9c Slice 4** offen; **8.9c** Slices 1–3 im Repo (Kill-Switch default aus) · 6.5 technisch validiert und formal mit AT/Zoom/OS/PDF-Readern nach WCAG 2.2 AA abgenommen; 6.6 fertig · Plattformstatistik Rekordteilnehmer und Tagesrekorde (`PlatformStatistic`, `DailyStatistic`) in `health.footerBundle` / `health.stats` · Kurzantwort (`SHORT_TEXT`) inkl. numerischer Bewertung, numerische Schätzfrage (`NUMERIC_ESTIMATE`) inkl. Zwei-Runden-Flow/Statistik und Effective-Vote-Regel umgesetzt · Host-Live-Fortschritt in `ACTIVE` läuft getrennt über `HostVoteProgressDTO` statt über vote-getriebene Full-Question-Events · Host-Härtung, Feedback-Host-Token und besitzgebundene Quiz-Historie umgesetzt · Markdown-Stories **1.7a** und **1.7b** umgesetzt ([ADR-0015](../architecture/decisions/0015-markdown-images-url-only-and-lightbox.md), [ADR-0016](../architecture/decisions/0016-markdown-katex-editor-split-view-and-md3-toolbar.md), [ADR-0017](../architecture/decisions/0017-markdown-editor-ui-scope-and-ki-import-paste-field.md) — Geltungsbereich Editor vs. KI-Paste). Blitzlicht ist als Startseiten-Shortcut und Session-Kanal konsolidiert; `FINISHED` beendet Quiz und Blitzlicht, offenes Q&A bleibt bis `qaClosesAt` beschreibbar. Der PWA-Update-Banner erscheint nicht gleichzeitig mit einer neuen MOTD. Rollen/Routen/Autorisierung inkl. Admin, Host-Härtung und MOTD siehe [ADR-0006](../architecture/decisions/0006-roles-routes-authorization-host-admin.md), [ADR-0019](../architecture/decisions/0019-host-hardening-and-owner-bound-session-access.md), [ADR-0009](../architecture/decisions/0009-unified-live-session-channels.md), [ADR-0010](../architecture/decisions/0010-blitzlicht-as-core-live-mode.md), [ADR-0018](../architecture/decisions/0018-message-of-the-day-platform-communication.md), [ROUTES_AND_STORIES.md](../ROUTES_AND_STORIES.md). Wortwolke/Kompass: [moderation-compass.md](../features/moderation-compass.md), [word-cloud-spacy.md](../features/word-cloud-spacy.md), [qa-nlp-moderation.md](../features/qa-nlp-moderation.md), [qa-summary.md](../features/qa-summary.md).
 
 ## System-Architektur-Diagramm
 
@@ -19,7 +19,7 @@ graph LR
         subgraph "Frontend - Angular 21.2.x"
             FE[Angular App<br/>Port 4200]
             FE_COMP[Standalone Components<br/>Signals · Angular Material 3]
-            FE_ROUTES["Routing<br/>/quiz<br/>/session/:code/(host|present|vote)<br/>/join/:code · /feedback/:code · /feedback/:code/vote<br/>/admin · /help · /news-archive · /legal/*<br/>optional locale prefix:<br/>/de /en /fr /es /it"]
+            FE_ROUTES["Routing<br/>/<br/>/quiz · /quiz/sync/:docId<br/>/session/:code/(host|present|vote|pair)<br/>/host-recovery<br/>/join/:code · /feedback/:code · /feedback/:code/vote<br/>/admin · /help · /news-archive · /legal/*<br/>optional locale prefix:<br/>/de /en /fr /es /it"]
             FE_SERVICES[Core Services<br/>tRPC Client · ws-connection · theme-preset<br/>locale guard · sound]
         end
 
@@ -267,6 +267,7 @@ graph LR
     subgraph "Shared UI"
         TOOLBAR[TopToolbarComponent]
         BANNER[ConnectionBannerComponent]
+        UPDATE[Update-Banner]
         PRESET[PresetToastComponent]
         STATUS[ServerStatusWidgetComponent]
         CONFIRM[ConfirmLeaveDialogComponent]
@@ -278,15 +279,19 @@ graph LR
         THEME[theme-preset.service]
         LOCALE[locale-switch-guard.service]
         SOUND[sound.service]
+        MOTDSTATE[MotdHeaderStateService]
     end
 
     APP --> ROUTES
     APP --> TOOLBAR
     APP --> BANNER
+    APP --> UPDATE
     APP --> PRESET
     APP --> STATUS
 
     TOOLBAR --> CONFIRM
+    MOTDSTATE --> UPDATE
+    TOOLBAR --> MOTDSTATE
     THEME --> TOOLBAR
     LOCALE --> TOOLBAR
     WSCONN --> TRPC
@@ -310,11 +315,13 @@ graph LR
     HELP[HelpComponent]
     NEWS[NewsArchivePageComponent]
     LEGAL[LegalPageComponent]
+    HOSTRECOVERY[HostRecoveryComponent]
 
     ROUTES --> HOME
     ROUTES --> QUIZ
     ROUTES --> SESSION
     ROUTES --> JOIN
+    ROUTES --> HOSTRECOVERY
     ROUTES --> FEEDBACK_HOST
     ROUTES --> FEEDBACK_VOTE
     ROUTES --> ADMIN
@@ -347,6 +354,7 @@ graph LR
         SHOST[SessionHostComponent]
         SPRESENT[SessionPresentComponent]
         SVOTE[SessionVoteComponent]
+        SPAIR[SessionPair / Host-Pairing]
         FBHOST[FeedbackHostComponent]
         FBVOTE[FeedbackVoteComponent]
         WCLOUD[WordCloudComponent]
@@ -356,6 +364,7 @@ graph LR
         SROOT --> SHOST
         SROOT --> SPRESENT
         SROOT --> SVOTE
+        SROOT --> SPAIR
         SHOST --> FBHOST
         SVOTE --> FBVOTE
         SHOST --> FOYER
@@ -493,7 +502,13 @@ erDiagram
         string code UK
         enum type
         enum status
+        datetime createdAt
+        datetime expiresAt
+        datetime endedAt
+        datetime qaClosesAt
+        int sessionLifecycleRevision
         boolean qaEnabled
+        boolean qaOpen
         boolean quickFeedbackEnabled
     }
     Participant {
@@ -530,6 +545,9 @@ erDiagram
 
     Session {
         string title
+        datetime expiresAt
+        datetime endedAt
+        datetime qaClosesAt
         boolean qaEnabled
         boolean qaOpen
         boolean qaModerationMode

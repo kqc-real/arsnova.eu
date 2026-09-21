@@ -36,6 +36,7 @@ import { PresetSnackbarFocusService } from './core/preset-snackbar-focus.service
 import { Subscription } from 'rxjs';
 import { TopToolbarComponent } from './shared/top-toolbar/top-toolbar.component';
 import { trpc } from './core/trpc.client';
+import { MotdHeaderStateService } from './core/motd-header-state.service';
 import { clearMotdSessionOverlayLocks } from './core/motd-storage';
 import type { FooterStatusDTO, ServerStatsDTO } from '@arsnova/shared-types';
 import { localizePath } from './core/locale-router';
@@ -116,6 +117,11 @@ export class AppComponent implements OnInit, OnDestroy {
   );
   isOnline = signal(true);
   updateAvailable = signal(false);
+  private readonly motdHeaderState = inject(MotdHeaderStateService);
+  /** Kein Update-Banner, solange eine neue MOTD entschieden wird oder offen ist. */
+  readonly updateBannerVisible = computed(
+    () => this.updateAvailable() && !this.motdHeaderState.blocksUpdateNotice(),
+  );
   updateReloading = signal(false);
   apiStatus = signal<string | null>(null);
   /**

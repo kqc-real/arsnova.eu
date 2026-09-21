@@ -336,7 +336,7 @@ LD übergibt DS sowie AP oder MP:
 - freigegebenes Aggregat oder Bestätigung, dass keines benötigt wird;
 - erforderlichen Löschweg und erwartete Abwesenheitsprüfung.
 
-ARSnova-Code sieht eine reguläre Purge-Fälligkeit 24 Stunden nach `endedAt` mit stündlichem Cleanup vor. Bonus- oder Feedbackdaten und ein aktiver Legal Hold können diesen Pfad verzögern. Deshalb gilt die automatische Fälligkeit nicht als Löschbeleg: AP bestätigt den tatsächlichen Kurslöschvollzug nach dem Datenplan. Dasselbe gilt für persistente MC-Test-Summaries; das Freigeben eines Pseudonyms genügt nicht.
+ARSnova-Code sieht nach `endedAt` eine 14-tägige Host-Nachbereitung und erst danach den technischen Purge vor, sofern kein Legal Hold greift. Bonus- oder Feedbackdaten können diesen Pfad zusätzlich verzögern. Deshalb gilt die automatische Fälligkeit nicht als Löschbeleg: AP bestätigt den tatsächlichen Kurslöschvollzug nach dem Datenplan. Dasselbe gilt für persistente MC-Test-Summaries; das Freigeben eines Pseudonyms genügt nicht.
 
 ## 11. Incident- und Abbruchwege
 

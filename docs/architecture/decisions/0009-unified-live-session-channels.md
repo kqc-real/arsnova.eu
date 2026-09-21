@@ -187,3 +187,10 @@ Stand 2026-06-06:
 Stand 2026-09-18:
 
 - Ist Q&A eingerichtet, öffnet der Host nach `FINISHED` (inkl. Live-Karten-CTA `?tab=qa`) den Q&A-Kanal statt der Quiz-Abschlussansicht. Die Kanalwahl entfällt im Endzustand.
+
+Stand 2026-09-21 (Epic #405):
+
+- Die frühere Leitlinie „`FINISHED` beendet kanalübergreifend auch Q&A“ gilt nicht mehr als Produktvertrag.
+- Quiz-`FINISHED` und Q&A sind orthogonal: solange `qaOpen` und `qaClosesAt` in der Zukunft liegen, bleibt das Forum beschreibbar, auch nach `session.end`.
+- Vote-Clients räumen Quiz- und Blitzlicht-Live bei `FINISHED` ab; der Q&A-Kanal bleibt in diesem Fall offen. Das End-Gate erscheint erst, wenn Q&A nicht mehr joinbar ist oder `expiresAt` erreicht ist.
+- Kanonisch: [session-lifecycle.md](../../features/session-lifecycle.md), [session-entry-host-vote.md](../../features/session-entry-host-vote.md).

@@ -6,6 +6,7 @@ import { MatDialog } from '@angular/material/dialog';
 import { SwUpdate } from '@angular/service-worker';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { AppComponent } from './app.component';
+import { MotdHeaderStateService } from './core/motd-header-state.service';
 import { ThemePresetService } from './core/theme-preset.service';
 import { markContentPageFocusReturn } from './shared/content-page-nav';
 import { TopToolbarComponent } from './shared/top-toolbar/top-toolbar.component';
@@ -544,6 +545,45 @@ describe('AppComponent', () => {
     expect(banner?.textContent).toContain('Aktualisieren für den neuesten Stand.');
     expect(action?.textContent).toContain('Jetzt aktualisieren');
     expect(fixture.nativeElement.querySelector('.app-update-banner__inner')).toBeTruthy();
+
+    fixture.destroy();
+  });
+
+  it('haelt den Update-Banner zurueck, solange eine MOTD entschieden wird oder offen ist', async () => {
+    TestBed.configureTestingModule({
+      imports: [AppComponent],
+      providers: [
+        provideRouter([]),
+        { provide: MatDialog, useValue: createDialogMock() },
+        {
+          provide: SwUpdate,
+          useValue: {
+            isEnabled: true,
+            versionUpdates: { subscribe: swVersionUpdatesSubscribeMock },
+            checkForUpdate: vi.fn().mockResolvedValue(false),
+            activateUpdate: vi.fn().mockResolvedValue(undefined),
+          },
+        },
+      ],
+    });
+
+    const fixture = TestBed.createComponent(AppComponent);
+    const component = fixture.componentInstance;
+    const motdHeader = TestBed.inject(MotdHeaderStateService);
+
+    component.updateAvailable.set(true);
+    motdHeader.beginOverlayDecision();
+    fixture.detectChanges();
+    expect(fixture.nativeElement.querySelector('.app-update-banner')).toBeNull();
+
+    motdHeader.releaseOverlayDecision();
+    motdHeader.setOverlayOpen(true);
+    fixture.detectChanges();
+    expect(fixture.nativeElement.querySelector('.app-update-banner')).toBeNull();
+
+    motdHeader.setOverlayOpen(false);
+    fixture.detectChanges();
+    expect(fixture.nativeElement.querySelector('.app-update-banner')).toBeTruthy();
 
     fixture.destroy();
   });

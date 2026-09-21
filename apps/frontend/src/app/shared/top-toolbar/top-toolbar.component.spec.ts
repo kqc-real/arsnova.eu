@@ -480,6 +480,7 @@ describe('TopToolbarComponent', () => {
     expect(playful).toMatch(/select-overrides/);
     expect(playful).toMatch(/autocomplete-overrides/);
     expect(playful).toMatch(/datepicker-overrides/);
+    expect(playful).toMatch(/snack-bar-overrides/);
     expect(playful).toMatch(/container-color:[\s\S]*--mat-sys-surface-container-high/);
     expect(playful).not.toMatch(/tooltip-overrides[\s\S]*inverse-surface/);
     expect(styles).toMatch(

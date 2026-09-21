@@ -43,6 +43,12 @@ Die konkrete Härtung des Ist-Stands ist in [ADR-0019](./0019-host-hardening-and
 - QR-Code (Story 2.1b) verweist auf **`/join/:code`**.
 - Vollständige Routen- und Story-Referenz: [docs/ROUTES_AND_STORIES.md](../../ROUTES_AND_STORIES.md).
 
+Stand 2026-09-21 (Ist-Routen, Rechte unverändert tokenbasiert):
+
+- **`/session/:code/pair`**: Smartphone fragt eine Host-Verbindung an; Freigabe bleibt auf `/host`.
+- **`/host-recovery`**: Self-Service mit Support-ID und Geheimnis; kein Recht aus der URL.
+- **`/legal/imprint`**, **`/legal/privacy`**, **`/legal/accessibility`**: öffentliche Info-Routen.
+
 ### 2. Host-Autorisierung (kein „Host werden“ per URL)
 
 - **Host-Rechte** hängen nicht an der URL, sondern am **Host-Token**.

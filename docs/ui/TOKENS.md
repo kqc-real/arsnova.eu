@@ -76,7 +76,7 @@ Komponentenspezifische Tokens:
 - Anpassungen für Angular-Material-Komponenten erfolgen über offizielle Override-APIs.
 - Erlaubt sind `mat.theme-overrides(...)`, `mat.button-overrides(...)`, `mat.card-overrides(...)`, `mat.button-toggle-overrides(...)` und vergleichbare Material-Mixins.
 - Keine direkte Überschreibung interner Klassen/DOM-Strukturen als Normalfall.
-- Overlay-Surface-Chrome (Dialog, Menü, Select, Tooltip, Datepicker, Snackbar) wird global in `styles.scss` gesetzt. `panelClass` / `backdropClass` bleiben für Layout, Backdrop und dokumentierte Fullscreen-/Sheet-Ausnahmen.
+- Overlay-Surface-Chrome (Dialog, Menü, Select, Tooltip, Datepicker, Snackbar) wird global in `styles.scss` gesetzt. Snackbars im Spielerisch-Preset über `mat.snack-bar-overrides` (`container-color` / `supporting-text-color`, nicht M3-`inverse-surface`). `panelClass` / `backdropClass` bleiben für Layout, Backdrop und dokumentierte Fullscreen-/Sheet-Ausnahmen.
 
 ## Theme-Konfiguration
 

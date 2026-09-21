@@ -2,6 +2,23 @@
 
 **Stand:** 2026-09-21 · Epic #405, Slices #407, #409 und #412
 
+```mermaid
+stateDiagram-v2
+    [*] --> LOBBY: session.create
+    LOBBY --> ACTIVE: startQa / erste Quizfrage
+    ACTIVE --> FINISHED: session.end oder expiresAt
+    state ACTIVE {
+        [*] --> QuizKanal
+        [*] --> QaKanal
+        QuizKanal --> QuizKanal: Fragezyklus
+        QaKanal --> QaKanal: Forum solange qaOpen
+    }
+    FINISHED --> QaNachEnde: qaOpen und qaClosesAt in der Zukunft
+    FINISHED --> Retention: Q&A geschlossen
+    QaNachEnde --> Retention: qaClosesAt oder expiresAt
+    Retention --> [*]: Purge nach Nachbereitung ohne Legal Hold
+```
+
 ## Fachlicher Vertrag
 
 Jede Session besitzt eine aktivitätsunabhängige absolute Frist. Maßgeblich sind

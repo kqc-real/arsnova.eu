@@ -6,7 +6,7 @@
 **Datum:** 2026-04-30  
 **Entscheider:** Projektteam
 
-**Letzter Repo-Abgleich:** 2026-06-05
+**Letzter Repo-Abgleich:** 2026-09-21
 
 ## Kontext
 
@@ -177,6 +177,14 @@ Stand 2026-06-05:
 - Der Klick auf `Jetzt aktualisieren` nutzt bewusst keinen `SwUpdate.activateUpdate()`-Aufruf mehr.
   Der vollstaendige Page-Reload ist die Versionsgrenze, damit Live-Sessions nicht mit alter App-Shell
   und neuer Service-Worker-/Chunk-Version weiterlaufen.
+
+Stand 2026-09-21:
+
+- Die Sichtbarkeit ist `updateBannerVisible = updateAvailable && !motdHeaderState.blocksUpdateNotice()`.
+- `blocksUpdateNotice` ist wahr, solange die Startseite das MOTD-Auto-Overlay noch entscheidet oder es offen ist.
+- Nach Dismiss der MOTD darf der Banner wieder erscheinen; das Update geht nicht verloren.
+- Die PWA-Install-Snackbar ist ein anderer Hinweis und unterliegt diesem Gating nicht.
+- Kanonisch: [motd.md](../../features/motd.md) §3.5, `motd-header-state.service.ts`, `app.component.ts`.
 
 ---
 

@@ -2,12 +2,13 @@
 
 # 🏛️ Architektur-Handbuch: arsnova.eu
 
-**Zuletzt aktualisiert:** 2026-09-10
+**Zuletzt aktualisiert:** 2026-09-21
 **Rolle:** Living Documentation (Documentation as Code)
 
-**Produktstatus (Stand 2026-09-10):**
+**Produktstatus (Stand 2026-09-21):**
 
 - Produktionsreif umgesetzt: Epics **0–6** (einschließlich formaler WCAG-2.2-AA-Abnahme von **6.5** und UX-Testreihen **6.6**), **7.1** (Team-Modus), der Kern von **8** (Q&A inkl. Sortiermodi, Tempo-Blitzlicht, Moderationskompass **8.9a** und optionaler Q&A-NLP-Kaskade **8.9b**; offen: 8.9c Slice 4), **9** (Admin), **10** (MOTD — ADR-0018, `docs/features/motd.md`) und **12** (Produktfeedback: **12.1–12.4 implementiert und am 2026-09-10 manuell abgenommen** — [product-feedback.md](../features/product-feedback.md)).
+- **Epic #405:** Absoluter Session-Lebenszyklus (`expiresAt`, `endedAt`, `qaClosesAt`), Host-Recovery unter `/host-recovery`, 10 Q&A-Fragen je Teilnahme. Q&A bleibt nach Quiz-`FINISHED` beschreibbar, solange der Kanal offen ist. Kanonisch: [session-lifecycle.md](../features/session-lifecycle.md).
 - **Wortwolke:** **1.14 / 1.14a** lexikalisch produktiv; **1.14b** optionale spaCy-Glättung (Kill-Switch default aus); **1.14c Stufe 1** privater Encoder + Clustering für Host-Q&A-Themen (`WORD_CLOUD_SEMANTIC_ENABLED` default aus); Stufe 2 LLM-Labels offen; **1.14d** Host-Freitext-Themen (offen, gleicher Encoder). Kanonisch: [word-cloud-spacy.md](../features/word-cloud-spacy.md), [word-cloud-semantic.md](../features/word-cloud-semantic.md), [`WORD-CLOUD-3.0-STORY-VORSCHLAG.md`](../implementation/WORD-CLOUD-3.0-STORY-VORSCHLAG.md).
 - **Moderationshilfe:** **8.9a** regelbasiert im Host; **8.9b** asynchron, Host-only, `QA_NLP_ENABLED` default aus; **8.9c** Slices 1–3 (Vertrag, Host-Button, privater Adapter, Loopback-Helfer), Kill-Switch default aus, echtes Modell erst mit Slice 4 nach 1.14c Stufe 1. Kanonisch: [moderation-compass.md](../features/moderation-compass.md), [qa-nlp-moderation.md](../features/qa-nlp-moderation.md), [qa-summary.md](../features/qa-summary.md). Diagramm: [diagrams.md §1.3](../diagrams/diagrams.md).
 - **Plattformstatistik:** Rekord **max. Teilnehmende je Session** (`PlatformStatistic`) plus 30-Tage-Verlauf der Session-Tagesrekorde (`DailyStatistic`, `dailyHighscores`) in `health.stats` und im Server-Status-Hilfedialog.
@@ -93,7 +94,9 @@ Wir dokumentieren jede signifikante Änderung an der Architektur, neue Bibliothe
 - [ADR-0016: Markdown/KaTeX-Editor — Split-View und eigene MD3-Toolbar](./decisions/0016-markdown-katex-editor-split-view-and-md3-toolbar.md)
 - [ADR-0017: Markdown-Editor — UI-Umfang vs. KI-Import-Paste-Feld](./decisions/0017-markdown-editor-ui-scope-and-ki-import-paste-field.md)
 - [ADR-0018: Message of the Day / Plattform-Kommunikation (MOTD)](./decisions/0018-message-of-the-day-platform-communication.md)
+- [ADR-0020: Einheitliche Exit-Strategie für beendete Session-Pfade](./decisions/0020-session-end-and-error-exit-to-home.md)
 - [ADR-0021: Trennung von Betriebsstatus (SLO) und Systemlast mit Live-Telemetrie](./decisions/0021-separate-service-status-from-load-status-with-live-slo-telemetry.md)
+- [ADR-0023: PWA-Update-Hinweis ohne Modal und ohne stilles Live-Reload](./decisions/0023-pwa-update-hint-non-modal-and-no-silent-live-reload.md)
 - [ADR-0024: Session-Tagesrekord-Verlauf fuer Session-Teilnehmende im Server-Status-Hilfedialog](./decisions/0024-daily-session-records-in-server-status-help-dialog.md)
 - [ADR-0025: Zukuenftige Erweiterungen standardmaessig als performance-kritisch behandeln](./decisions/0025-treat-future-extensions-as-performance-critical-until-proven-otherwise.md)
 - [ADR-0026: Performance-Hotpaths priorisieren und Telemetrie-Nebenlast entkoppeln](./decisions/0026-prioritize-performance-hotpaths-and-de-escalate-telemetry-side-load.md)
@@ -109,6 +112,7 @@ Wir dokumentieren jede signifikante Änderung an der Architektur, neue Bibliothe
 - [Dokumentations-Landkarte (`docs/README.md`)](../README.md) · [Umgebungsvariablen (`docs/ENVIRONMENT.md`)](../ENVIRONMENT.md) · [Sicherheitsüberblick](../SECURITY-OVERVIEW.md) · [Tests & CI](../TESTING.md)
 - [Projekt-Glossar (Begriffe, UI, Workflows)](../GLOSSAR.md)
 - [Synchronisierung der Quiz-Sammlung](./quiz-library-sync.md)
+- [Absoluter Session-Lebenszyklus](../features/session-lifecycle.md) · [Host-/Vote-Einstieg](../features/session-entry-host-vote.md) · [Host-Recovery-Runbook](../operations/HOST-RECOVERY-RUNBOOK.md)
 - [Epic 6: Akzeptanzkriterien & Prüfung](../EPIC6-AC-PRUEFUNG.md) (inkl. Story 6.6 — Thinking Aloud / UX-Umsetzung)
 
 ---

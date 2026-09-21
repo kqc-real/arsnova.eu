@@ -63,7 +63,24 @@ Der Betreiber kann **kuratierte Hinweise** an **alle Nutzer:innen** ausspielen �
   wenn sonst kein sinnvolles Fokusziel aktiv ist. Der Preset-Snackbar-Timer refokussiert die
   Session-Code-Eingabe nicht, solange MOTD oder ein Overlay den Fokus hält.
 - **Erster Handy-Besuch:** Auf schmalen Viewports (`max-width: 599px`) oder Geräten mit grobem Primärzeiger erscheint das Overlay **nicht beim ersten Startseiten-Besuch** und nicht bei Reloads derselben Browsersitzung. Teilnehmende treten in der Regel per Handy bei; der Join soll zuerst frei bleiben. Ab dem nächsten Besuch (neue Sitzung nach dem ersten Handy-Home) kann das Overlay erscheinen. **Desktop** bleibt unverändert. Das Archiv-Icon in der Toolbar ist nicht betroffen.
-- **Kein Overlay-Stapel in derselben Sitzung:** Das Auto-Overlay erscheint **höchstens einmal pro Browsersitzung**. Nach Dismiss/Ack öffnet Reload oder Rückkehr zur Startseite **in derselben Sitzung** nicht die nächstpriore andere Meldung. Eine **neue Browsersitzung** darf die dann aktuelle, noch nicht dismissed MOTD automatisch zeigen. **»Jetzt aktualisieren«** auf der Startseite löst die Sitzungssperre vor dem Reload, damit die aktuelle ungelesene MOTD nach dem Update erscheinen kann. Ungelesene ältere Meldungen bleiben über **Badge** und **Archiv** erreichbar. Eine **höhere `contentVersion` derselben MOTD** darf erneut als Overlay erscheinen (inhaltliche Aktualisierung, ADR-0018).
+
+**Update-Banner vs. MOTD-Overlay** (ADR-0023):
+
+```mermaid
+flowchart TD
+    A[Startseite laedt] --> B[beginOverlayDecision]
+    B --> C{Auto-Overlay kommt?}
+    C -->|ja, offen oder pending| D[blocksUpdateNotice]
+    C -->|nein| E[releaseOverlayDecision]
+    D --> F[Update-Banner unsichtbar]
+    E --> G{VERSION_READY?}
+    G -->|ja| H[Update-Banner sichtbar]
+    G -->|nein| I[kein Banner]
+    F --> J[MOTD schliessen]
+    J --> E
+```
+
+- **Kein Overlay-Stapel in derselben Sitzung:** Das Auto-Overlay erscheint **höchstens einmal pro Browsersitzung**. Nach Dismiss/Ack öffnet Reload oder Rückkehr zur Startseite **in derselben Sitzung** nicht die nächstpriore andere Meldung. Eine **neue Browsersitzung** darf die dann aktuelle, noch nicht dismissed MOTD automatisch zeigen. **»Jetzt aktualisieren«** auf der Startseite löst die Sitzungssperre vor dem Reload, damit die aktuelle ungelesene MOTD nach dem Update erscheinen kann. Der PWA-Update-Banner erscheint **nicht gleichzeitig** mit einer neuen Overlay-MOTD: solange die Startseite das Auto-Overlay noch entscheidet oder es offen ist, bleibt der Banner unsichtbar; nach Dismiss darf er erscheinen. Ungelesene ältere Meldungen bleiben über **Badge** und **Archiv** erreichbar. Eine **höhere `contentVersion` derselben MOTD** darf erneut als Overlay erscheinen (inhaltliche Aktualisierung, ADR-0018).
 
 ### 3.6 Clientzustand (localStorage)
 
@@ -186,3 +203,4 @@ Synergie: [`docs/didaktik/zweiter-kurs-und-agentische-ki.md`](../didaktik/zweite
 | 2026-09-11 | Abschnitt 3.8: Campaign-Icon in der Toolbar optisch hervorheben, wenn eine aktuelle MOTD existiert, aber in dieser Sitzung noch nicht angezeigt wurde.                                                                             |
 | 2026-09-11 | Abschnitte 3.8/4.1: Megafon-Ack merkt die Overlay-Identität in der Sitzung; `getHeaderState.activeOverlay` liefert `motdId` und `contentVersion`.                                                                                  |
 | 2026-09-16 | Abschnitt 9: lokale Seed-Kette um die Feature-MOTD **Q&A zum Vorabeinholen** (Epic #405) ergänzt.                                                                                                                                  |
+| 2026-09-21 | Abschnitt 3.5: PWA-Update-Banner nicht gleichzeitig mit neuer Overlay-MOTD.                                                                                                                                                        |
