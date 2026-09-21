@@ -1,6 +1,7 @@
 import {
   AfterViewInit,
   Component,
+  DestroyRef,
   ElementRef,
   HostListener,
   Injector,
@@ -293,6 +294,7 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
   private readonly sanitizer = inject(DomSanitizer);
   private readonly motdCurrent = inject(MotdCurrentService);
   private readonly motdHeaderState = inject(MotdHeaderStateService);
+  private readonly destroyRef = inject(DestroyRef);
   private readonly focusMonitor = inject(FocusMonitor);
   private readonly localeId = inject(LOCALE_ID) as string;
   private readonly injector = inject(Injector);
@@ -1314,6 +1316,9 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
       return;
     }
     const motd = await this.motdCurrent.getCurrent();
+    if (this.destroyRef.destroyed) {
+      return;
+    }
     if (!motd || isMotdDismissedForVersion(motd.id, motd.contentVersion)) {
       this.motdHeaderState.releaseOverlayDecision();
       return;
@@ -1332,6 +1337,9 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   private openMotdOverlay(motd: MotdPublicDTO, activeElement: Element | null): void {
+    if (this.destroyRef.destroyed) {
+      return;
+    }
     this.clearToolbarMotdDefer();
     this.motdHeaderState.setOverlayOpen(true);
     markMotdOverlayOfferedThisSession();
@@ -1362,6 +1370,9 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
     this.motdBodyHtml.set(this.sanitizer.bypassSecurityTrustHtml(html));
     afterNextRender(
       () => {
+        if (this.destroyRef.destroyed) {
+          return;
+        }
         this.motdCloseBtn?.nativeElement?.focus();
       },
       { injector: this.injector },

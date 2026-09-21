@@ -3031,6 +3031,43 @@ describe('HomeComponent', () => {
       expect(motdHeader.overlayOpen()).toBe(false);
     });
 
+    it('setzt overlayOpen nach Home-Teardown nicht mehr aus einem offenen getCurrent', async () => {
+      const { trpc } = await import('../../core/trpc.client');
+      let resolveCurrent!: (value: {
+        motd: {
+          id: string;
+          contentVersion: number;
+          markdown: string;
+          endsAt: string;
+        };
+      }) => void;
+      vi.mocked(trpc.motd.getCurrent.query).mockReturnValueOnce(
+        new Promise((resolve) => {
+          resolveCurrent = resolve;
+        }),
+      );
+      const fixture = createHomeFixture();
+      const motdHeader = TestBed.inject(MotdHeaderStateService);
+      const pending = fixture.componentInstance['loadMotdOverlay']();
+      fixture.destroy();
+      expect(motdHeader.overlayOpen()).toBe(false);
+      expect(motdHeader.blocksUpdateNotice()).toBe(false);
+
+      resolveCurrent({
+        motd: {
+          id: 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa',
+          contentVersion: 1,
+          markdown: 'Hallo',
+          endsAt: '2099-12-31T12:00:00.000Z',
+        },
+      });
+      await pending;
+
+      expect(motdHeader.overlayOpen()).toBe(false);
+      expect(motdHeader.blocksUpdateNotice()).toBe(false);
+      expect(motdHeader.overlayDecisionPending()).toBe(false);
+    });
+
     it('zeigt nach Pointer-Dismiss keinen Tastatur-Fokusrahmen', async () => {
       const fixture = createHomeFixture();
       fixture.componentInstance['motdFocusReturn'] = null;
