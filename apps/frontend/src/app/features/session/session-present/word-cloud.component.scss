@@ -218,7 +218,7 @@
   box-shadow: none;
   display: flex;
   flex-direction: column;
-  overflow: hidden;
+  overflow: visible;
 }
 
 .word-cloud--presentation .word-cloud__visual-frame--scrollable {
@@ -295,27 +295,40 @@
 }
 
 .word-cloud__word {
+  isolation: isolate;
+  position: relative;
   min-width: 0;
   max-inline-size: min(100%, 18rem);
   height: auto;
   min-height: 2.8rem;
   padding-block: clamp(0.5rem, 0.32em, 0.9rem);
   padding-inline: 1rem;
+  overflow: hidden;
   border-radius: var(--mat-sys-corner-full);
-  border: 1px solid color-mix(in srgb, var(--mat-sys-outline-variant) 78%, transparent);
-  background: linear-gradient(
-    180deg,
-    color-mix(
-      in srgb,
-      var(--mat-sys-surface-container-lowest) 58%,
-      var(--mat-sys-primary-container) 42%
+  border: 1px solid color-mix(in srgb, var(--mat-sys-outline-variant) 62%, transparent);
+  background:
+    linear-gradient(
+      180deg,
+      color-mix(in srgb, var(--mat-sys-surface-container-lowest) 72%, transparent) 0%,
+      transparent 46%
     ),
-    color-mix(in srgb, var(--mat-sys-surface) 68%, var(--mat-sys-primary-container) 32%)
-  );
+    linear-gradient(
+      180deg,
+      color-mix(
+          in srgb,
+          var(--mat-sys-surface-container-lowest) 46%,
+          var(--mat-sys-primary-container) 54%
+        )
+        0%,
+      color-mix(in srgb, var(--mat-sys-primary-container) 68%, var(--mat-sys-surface) 32%) 52%,
+      color-mix(in srgb, var(--mat-sys-primary) 18%, var(--mat-sys-primary-container) 82%) 100%
+    );
   color: var(--mat-sys-on-surface);
   box-shadow:
-    0 0.45rem 1rem color-mix(in srgb, var(--mat-sys-shadow) 9%, transparent),
-    inset 0 1px 0 color-mix(in srgb, var(--mat-sys-surface-container-lowest) 60%, transparent);
+    inset 0 1px 0 color-mix(in srgb, var(--mat-sys-surface-container-lowest) 88%, transparent),
+    inset 0 -0.16em 0.28em color-mix(in srgb, var(--mat-sys-shadow) 20%, transparent),
+    0 0.07em 0 color-mix(in srgb, var(--mat-sys-outline-variant) 48%, transparent),
+    0 0.55rem 1.2rem color-mix(in srgb, var(--mat-sys-shadow) 18%, transparent);
   letter-spacing: -0.01em;
   line-height: calc(1em + 0.35rem);
   text-align: center;
@@ -369,28 +382,42 @@
 }
 
 .word-cloud__word--top {
-  border-color: color-mix(in srgb, var(--mat-sys-primary) 24%, var(--mat-sys-outline-variant));
-  background: linear-gradient(
-    180deg,
-    color-mix(
-      in srgb,
-      var(--mat-sys-surface-container-lowest) 44%,
-      var(--mat-sys-primary-container) 56%
+  border-color: color-mix(in srgb, var(--mat-sys-primary) 28%, var(--mat-sys-outline-variant));
+  background:
+    linear-gradient(
+      180deg,
+      color-mix(in srgb, var(--mat-sys-surface-container-lowest) 76%, transparent) 0%,
+      transparent 44%
     ),
-    color-mix(in srgb, var(--mat-sys-primary-container) 72%, var(--mat-sys-surface))
-  );
+    linear-gradient(
+      180deg,
+      color-mix(
+          in srgb,
+          var(--mat-sys-surface-container-lowest) 38%,
+          var(--mat-sys-primary-container) 62%
+        )
+        0%,
+      color-mix(in srgb, var(--mat-sys-primary-container) 78%, var(--mat-sys-surface) 22%) 100%
+    );
 }
 
 .word-cloud__word--featured {
-  background: linear-gradient(
-    180deg,
-    color-mix(
-      in srgb,
-      var(--mat-sys-surface-container-lowest) 52%,
-      var(--mat-sys-secondary-container) 48%
+  background:
+    linear-gradient(
+      180deg,
+      color-mix(in srgb, var(--mat-sys-surface-container-lowest) 70%, transparent) 0%,
+      transparent 46%
     ),
-    color-mix(in srgb, var(--mat-sys-surface) 70%, var(--mat-sys-secondary-container) 30%)
-  );
+    linear-gradient(
+      180deg,
+      color-mix(
+          in srgb,
+          var(--mat-sys-surface-container-lowest) 42%,
+          var(--mat-sys-secondary-container) 58%
+        )
+        0%,
+      color-mix(in srgb, var(--mat-sys-secondary-container) 62%, var(--mat-sys-surface) 38%) 100%
+    );
 }
 
 .word-cloud__actions {

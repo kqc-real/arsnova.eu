@@ -38,7 +38,7 @@ describe('PWA-Manifest-Screenshots', () => {
       'screenshot-narrow-feedback.png',
     ]);
     for (const shot of shots) {
-      expect(shot.src).toMatch(/\?v=10$/);
+      expect(shot.src).toMatch(/\?v=11$/);
       const file = shot.src.split('?')[0]?.split('/').pop();
       expect(file && existsSync(join(iconsDir, file))).toBe(true);
       if (file) {
@@ -55,14 +55,14 @@ describe('PWA-Manifest-Screenshots', () => {
     ).href;
     const { applyScreenshotLabels, MANIFEST_I18N, screenshotLabelKey } = await import(patcherUrl);
 
-    expect(screenshotLabelKey('/assets/icons/screenshot-wide-quiz.png?v=10')).toBe(
+    expect(screenshotLabelKey('/assets/icons/screenshot-wide-quiz.png?v=11')).toBe(
       'screenshotWideQuiz',
     );
-    expect(screenshotLabelKey('/assets/icons/screenshot-wide.png?v=10')).toBe('screenshotWide');
-    expect(screenshotLabelKey('/assets/icons/screenshot-wide-lobby.png?v=10')).toBe(
+    expect(screenshotLabelKey('/assets/icons/screenshot-wide.png?v=11')).toBe('screenshotWide');
+    expect(screenshotLabelKey('/assets/icons/screenshot-wide-lobby.png?v=11')).toBe(
       'screenshotWideLobby',
     );
-    expect(screenshotLabelKey('/assets/icons/screenshot-narrow-qa.png?v=10')).toBe(
+    expect(screenshotLabelKey('/assets/icons/screenshot-narrow-qa.png?v=11')).toBe(
       'screenshotNarrowQa',
     );
 

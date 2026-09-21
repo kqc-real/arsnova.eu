@@ -1,0 +1,53 @@
+{
+  "exportVersion": 30,
+  "exportedAt": "2026-09-21T15:00:00.000Z",
+  "quiz": {
+    "name": "Betriebsversammlung Herbst 2026",
+    "description": "# Betriebsversammlung\n\nLive-Stimmungsbild und offene Fragen an Vorstand und Betriebsrat. Die Ergebnisse bleiben in der Versammlung und gehen nicht in Personalakten.",
+    "motifImageUrl": null,
+    "motifImageCredit": null,
+    "showLeaderboard": true,
+    "allowCustomNicknames": true,
+    "defaultTimer": 45,
+    "timerScaleByDifficulty": false,
+    "enableSoundEffects": false,
+    "enableRewardEffects": false,
+    "enableMotivationMessages": false,
+    "enableEmojiReactions": true,
+    "anonymousMode": false,
+    "teamMode": true,
+    "teamCount": 3,
+    "teamAssignment": "AUTO",
+    "teamNames": ["Produktion", "Verwaltung", "Vertrieb"],
+    "backgroundMusic": null,
+    "nicknameTheme": "HIGH_SCHOOL",
+    "bonusTokenCount": null,
+    "readingPhaseEnabled": false,
+    "questions": [
+      {
+        "text": "### Was belastet euch im Arbeitsalltag am meisten?\n\nBitte stichwortartig. Die Antworten erscheinen als Wortwolke für die Aussprache.",
+        "type": "FREETEXT",
+        "timer": null,
+        "difficulty": "EASY",
+        "order": 0,
+        "skipReadingPhase": true,
+        "answers": [],
+        "confidenceEnabled": false
+      },
+      {
+        "text": "### Welches Homeoffice-Modell sollen wir für 2027 festschreiben?\n\nDie Betriebsvereinbarung gilt für Verwaltung und Vertrieb. Produktion bleibt schichtgebunden.",
+        "type": "SINGLE_CHOICE",
+        "timer": 60,
+        "difficulty": "EASY",
+        "order": 1,
+        "skipReadingPhase": true,
+        "answers": [
+          { "text": "Zwei feste Bürotage, Rest flexibel", "isCorrect": false },
+          { "text": "Drei feste Bürotage", "isCorrect": true },
+          { "text": "Vollständig flexibel nach Teamabsprache", "isCorrect": false },
+          { "text": "Präsenzpflicht außer bei Dienstreise", "isCorrect": false }
+        ]
+      }
+    ]
+  }
+}
