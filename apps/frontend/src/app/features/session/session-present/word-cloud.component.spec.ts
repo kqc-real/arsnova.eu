@@ -1686,7 +1686,10 @@ describe('WordCloudComponent', () => {
     );
 
     expect(styles).toMatch(
-      /\.word-cloud__word \{[\s\S]*surface-container-lowest\) 46%,\s*var\(--mat-sys-primary-container\)/,
+      /\.word-cloud__word \{[\s\S]*surface-container-lowest\) 58%,\s*var\(--mat-sys-primary-container\)/,
+    );
+    expect(styles).toMatch(
+      /:host-context\(html\.preset-playful\) \.word-cloud__word \{[\s\S]*surface-container-lowest\) 46%,\s*var\(--mat-sys-primary-container\)/,
     );
     expect(styles).not.toMatch(/color-mix\(in srgb, white /);
   });
