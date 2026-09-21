@@ -1511,7 +1511,10 @@ describe('HomeComponent', () => {
         /\.home-choice-button\s*\{[^}]*min-height:\s*var\(--home-host-action-min-height/,
       );
       expect(scss).toMatch(
-        /\.home-host-session-cta-row__item > \.home-choice-button\s*\{[\s\S]*?--mdc-filled-button-container-shape:\s*var\(--mat-sys-corner-medium\)/,
+        /\.home-host-session-cta-row__item > \.home-choice-button\s*\{[\s\S]*?justify-content:\s*center[\s\S]*?--mdc-filled-button-container-shape:\s*var\(--mat-sys-corner-medium\)/,
+      );
+      expect(scss).toMatch(
+        /@media \(min-width:\s*600px\)\s*\{[\s\S]*?\.home-host-session-cta-row__item > \.home-choice-button\s*\{[\s\S]*?justify-content:\s*flex-start[\s\S]*?text-align:\s*start/,
       );
       expect(scss).toMatch(
         /\.home-feedback-chip\s*\{[^}]*min-height:\s*var\(--home-host-action-min-height/,
