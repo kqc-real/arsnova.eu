@@ -228,6 +228,23 @@ describe('JoinComponent', () => {
     expect(submitButtons).toHaveLength(1);
   });
 
+  it('mischt Join-Hinweisflächen mit Surface statt Weiß', async () => {
+    const { readFileSync } = await import('node:fs');
+    const { fileURLToPath } = await import('node:url');
+    const { dirname, join } = await import('node:path');
+    const styles = readFileSync(
+      join(dirname(fileURLToPath(import.meta.url)), 'join.component.scss'),
+      'utf8',
+    );
+
+    expect(styles).toMatch(/&__info \{[\s\S]*primary-container\) 78%, var\(--mat-sys-surface\)/);
+    expect(styles).toMatch(
+      /&__team-playful \{[\s\S]*tertiary-container\) 78%, var\(--mat-sys-surface\)/,
+    );
+    expect(styles).not.toMatch(/primary-container\) 78%, white/);
+    expect(styles).not.toMatch(/tertiary-container\) 78%, white/);
+  });
+
   it('zeigt Fehler bei ungültigem Code (zu kurz)', async () => {
     const { fixture, comp } = createWithCode('AB');
     fixture.detectChanges();

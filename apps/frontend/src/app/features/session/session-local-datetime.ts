@@ -9,6 +9,53 @@ export function sessionLocalDateTimeToIso(localDateTime: string, timeZone: strin
     .toString();
 }
 
+/** Späteren der beiden ISO-Zeitpunkte, für die exklusive Picker-Untergrenze. */
+export function laterIsoTimestamp(leftIso: string, rightIso: string): string {
+  return Temporal.Instant.from(leftIso).epochMilliseconds >=
+    Temporal.Instant.from(rightIso).epochMilliseconds
+    ? leftIso
+    : rightIso;
+}
+
+/**
+ * Native `datetime-local`-Grenzen in der Sessionzeitzone.
+ * `min` ist die nächste volle Minute nach `minExclusiveIso` (Server: muss danach liegen),
+ * `max` ist `maxInclusiveIso` einschließlich.
+ */
+export function sessionDateTimeLocalBounds(
+  minExclusiveIso: string,
+  maxInclusiveIso: string,
+  timeZone: string,
+): { min: string; max: string } {
+  const minLocal = isoToSessionLocalDateTime(
+    Temporal.Instant.from(minExclusiveIso).add({ minutes: 1 }).toString(),
+    timeZone,
+  );
+  const maxLocal = isoToSessionLocalDateTime(maxInclusiveIso, timeZone);
+  return { min: minLocal, max: maxLocal };
+}
+
+/** Öffnet den nativen Datepicker; fehlende Unterstützung oder Doppelklick bleiben still. */
+export function openSessionDateTimePicker(input: HTMLInputElement): void {
+  try {
+    input.showPicker();
+  } catch {
+    /* schon offen, kein User-Gesture, iOS-Safari ohne showPicker */
+  }
+}
+
+/**
+ * Native min/max-Gültigkeit. Chromium blendet unerlaubte Räder aus;
+ * WebKit/iOS erlaubt sie oft sichtbar und scheitert erst hier.
+ */
+export function reportSessionDateTimePickerValidity(input: HTMLInputElement): boolean {
+  if (input.checkValidity()) {
+    return true;
+  }
+  input.reportValidity();
+  return false;
+}
+
 /** ISO-Zeit in den datetime-local-Wert der Sessionzeitzone. */
 export function isoToSessionLocalDateTime(iso: string, timeZone: string): string {
   const zoned = Temporal.Instant.from(iso).toZonedDateTimeISO(timeZone);

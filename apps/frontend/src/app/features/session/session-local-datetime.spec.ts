@@ -1,8 +1,12 @@
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import {
   addCalendarDays,
   isoToSessionLocalDateTime,
+  laterIsoTimestamp,
   maxSelectableCalendarDays,
+  openSessionDateTimePicker,
+  reportSessionDateTimePickerValidity,
+  sessionDateTimeLocalBounds,
   sessionLocalDateTimeToIso,
 } from './session-local-datetime';
 
@@ -51,6 +55,65 @@ describe('session-local-datetime', () => {
 
   it('lehnt eine mehrdeutige lokale Uhrzeit in der doppelten Stunde ab', () => {
     expect(() => sessionLocalDateTimeToIso('2026-10-25T02:30', 'Europe/Berlin')).toThrow();
+  });
+
+  it('begrenzt den Datepicker auf die nächste Minute bis zur Obergrenze', () => {
+    expect(
+      sessionDateTimeLocalBounds(
+        '2026-03-25T11:30:00.000Z',
+        '2026-04-07T12:00:00.000Z',
+        'Europe/Berlin',
+      ),
+    ).toEqual({
+      min: '2026-03-25T12:31',
+      max: '2026-04-07T14:00',
+    });
+  });
+
+  it('nimmt für die Untergrenze den späteren von Sessionende und Serverzeit', () => {
+    expect(laterIsoTimestamp('2026-03-25T12:00:00.000Z', '2026-03-25T11:30:00.000Z')).toBe(
+      '2026-03-25T12:00:00.000Z',
+    );
+    expect(
+      sessionDateTimeLocalBounds(
+        laterIsoTimestamp('2026-03-25T12:00:00.000Z', '2026-03-25T11:30:00.000Z'),
+        '2026-04-07T12:00:00.000Z',
+        'Europe/Berlin',
+      ),
+    ).toEqual({
+      min: '2026-03-25T13:01',
+      max: '2026-04-07T14:00',
+    });
+  });
+
+  it('öffnet den nativen Datepicker und schluckt fehlende Unterstützung', () => {
+    const showPicker = vi.fn();
+    openSessionDateTimePicker({ showPicker } as unknown as HTMLInputElement);
+    expect(showPicker).toHaveBeenCalledTimes(1);
+
+    openSessionDateTimePicker({
+      showPicker: () => {
+        throw new Error('already open');
+      },
+    } as unknown as HTMLInputElement);
+  });
+
+  it('lehnt Werte außerhalb von min/max auch ohne Picker-UI ab', () => {
+    const reportValidity = vi.fn();
+    expect(
+      reportSessionDateTimePickerValidity({
+        checkValidity: () => true,
+        reportValidity,
+      } as unknown as HTMLInputElement),
+    ).toBe(true);
+    expect(reportValidity).not.toHaveBeenCalled();
+    expect(
+      reportSessionDateTimePickerValidity({
+        checkValidity: () => false,
+        reportValidity,
+      } as unknown as HTMLInputElement),
+    ).toBe(false);
+    expect(reportValidity).toHaveBeenCalledTimes(1);
   });
 
   it('rundet datetime-local in der Sessionzeitzone um', () => {

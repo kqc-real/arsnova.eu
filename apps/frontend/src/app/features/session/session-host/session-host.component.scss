@@ -5818,7 +5818,7 @@ button.session-host__btn-discussion {
   margin: 0 0 0.5rem;
   text-align: right;
   font: var(--mat-sys-label-medium);
-  color: color-mix(in srgb, var(--mat-sys-on-surface) 84%, white 16%);
+  color: var(--mat-sys-on-surface-variant);
 }
 
 .session-host__word-cloud-progress {
@@ -5841,13 +5841,13 @@ button.session-host__btn-discussion {
 .session-host__word-cloud-progress-wait {
   margin: 0;
   font: var(--mat-sys-body-medium);
-  color: color-mix(in srgb, var(--mat-sys-on-surface) 88%, white 12%);
+  color: var(--mat-sys-on-surface-variant);
 }
 
 .session-host__word-cloud-progress-fallback {
   margin: 0;
   font: var(--mat-sys-label-medium);
-  color: color-mix(in srgb, var(--mat-sys-on-surface) 78%, white 22%);
+  color: var(--mat-sys-on-surface-variant);
 }
 
 .session-host__word-cloud-progress-bar {
@@ -7407,7 +7407,7 @@ $confidence-heat-tones: (
 }
 
 $round1-color: #ef6c00;
-$round2-color: var(--mat-sys-primary, #1565c0);
+$round2-color: var(--mat-sys-primary);
 
 .session-host__round-comparison {
   display: flex;

@@ -833,7 +833,7 @@ mat-icon.session-projection-quiz__reading-icon {
   }
 
   &--r2::before {
-    background: var(--mat-sys-primary, #1565c0);
+    background: var(--mat-sys-primary);
   }
 }
 
@@ -876,7 +876,7 @@ mat-icon.session-projection-quiz__reading-icon {
 
 .session-projection-quiz__round-bar-label--r2,
 .session-projection-quiz__round-bar-pct--r2 {
-  color: var(--mat-sys-primary, #1565c0);
+  color: var(--mat-sys-primary);
 }
 
 .session-projection-quiz__bar-fill--r1 {
@@ -884,7 +884,7 @@ mat-icon.session-projection-quiz__reading-icon {
 }
 
 .session-projection-quiz__bar-fill--r2 {
-  background: var(--mat-sys-primary, #1565c0);
+  background: var(--mat-sys-primary);
 }
 
 .session-projection-quiz__round-bar .session-projection-quiz__bar-track {

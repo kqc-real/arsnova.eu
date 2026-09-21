@@ -699,4 +699,19 @@ describe('QaChannelConfigurationDialogComponent', () => {
     expect(dialogOpen.mock.calls[0]?.[1].data.message).not.toContain('Die Fragerunde läuft');
     expect(configureMock).toHaveBeenCalledWith(expect.objectContaining({ reopenQa: false }));
   });
+
+  it('begrenzt den Datepicker auf Serverjetzt bis maxExpiresAt', async () => {
+    previewMock.mockResolvedValue(preview);
+    const { fixture, component } = configureTestBed();
+    component.deadlineKind = 'ABSOLUTE';
+    component.absoluteLocal = '2026-09-16T10:00';
+    await component.onDeadlineChange();
+    fixture.detectChanges();
+
+    const input = fixture.nativeElement.querySelector(
+      'input[type="datetime-local"]',
+    ) as HTMLInputElement | null;
+    expect(input?.getAttribute('min')).toBe('2026-09-15T09:01');
+    expect(input?.getAttribute('max')).toBe('2026-09-29T08:00');
+  });
 });

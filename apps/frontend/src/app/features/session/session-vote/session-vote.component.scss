@@ -2699,7 +2699,7 @@
 
   &--leader {
     border-color: color-mix(in srgb, var(--mat-sys-primary) 35%, var(--mat-sys-outline-variant));
-    background: color-mix(in srgb, var(--mat-sys-primary-container) 55%, white);
+    background: color-mix(in srgb, var(--mat-sys-primary-container) 55%, var(--mat-sys-surface));
     box-shadow: 0 1rem 2rem color-mix(in srgb, #ffd700 12%, transparent);
   }
 

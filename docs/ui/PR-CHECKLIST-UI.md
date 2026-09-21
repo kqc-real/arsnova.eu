@@ -26,7 +26,7 @@ Diese Checkliste ist für alle PRs mit UI-Änderungen in `apps/frontend` verpfli
 - [ ] Anpassungen an Material-Komponenten erfolgen über `mat.theme-overrides(...)` oder `<component>-overrides(...)`.
 - [ ] Keine fragilen Overrides gegen interne Material-DOM-Strukturen in Feature-SCSS.
 - [ ] Kein `::ng-deep` und kein `:deep(...)`; Material-Internals / `innerHTML`-Markdown nur global gescoped in `styles.scss` oder per Shell-Klasse.
-- [ ] Globale Overlay-Regeln sind über enge `panelClass` / `backdropClass` begrenzt.
+- [ ] Overlay-Surface-Chrome gilt global; `panelClass` / `backdropClass` nur für Layout, Backdrop und dokumentierte Fullscreen-/Sheet-Ausnahmen.
 - [ ] Standard-Dialoge nutzen `dialog-title-header`; Fullscreen-Tools (Word Cloud, Bild-Lightbox) und Produktfeedback-Sheets sind als Ausnahme begründet und separat auf Fokus/Close/Scroll geprüft.
 - [ ] Floating-Bottom-Contract eingehalten (Solo-CTA ohne Glas-Prospekt; Multi-Tray nur bei 2+ Aktionen) oder Ausnahme dokumentiert.
 

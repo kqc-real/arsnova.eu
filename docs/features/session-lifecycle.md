@@ -1,6 +1,6 @@
 # Absoluter Session-Lebenszyklus
 
-**Stand:** 2026-09-19 · Epic #405, Slices #407, #409 und #412
+**Stand:** 2026-09-21 · Epic #405, Slices #407, #409 und #412
 
 ## Fachlicher Vertrag
 
@@ -87,7 +87,15 @@ Verfügbar sind:
 - um eine Stunde;
 - um einen Kalendertag;
 - um sieben Kalendertage;
-- bis zu einem absoluten Datum mit Uhrzeit.
+- bis zu einem absoluten Datum mit Uhrzeit. Native `datetime-local`-Picker
+  begrenzen Tage, Monate und Jahre auf das zulässige Fenster: nach `serverNow`
+  (bei einer Verlängerung zusätzlich nach dem bisherigen `expiresAt`) bis
+  `maxExpiresAt`, jeweils in der Sessionzeitzone. Der Kalender-Indikator bleibt
+  sichtbar; ein Klick öffnet den nativen Picker in Chromium und Desktop-Safari.
+  Auf iOS öffnet ein Tipp auf das Feld die Systemräder (`showPicker` fehlt dort).
+  `min`/`max` beschränken die Räder in Chromium einschließlich Android. WebKit/iOS
+  zeigt oft weiter alle Daten; die Grenzen gelten dann als Gültigkeit vor dem
+  Bestätigen.
 
 Relative Verlängerungen rechnen ab dem bisherigen `expiresAt`. Die
 warnungsbasierte Aktion ändert ausschließlich `expiresAt`. Insbesondere bleiben

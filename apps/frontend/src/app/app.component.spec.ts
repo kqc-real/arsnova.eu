@@ -479,6 +479,35 @@ describe('AppComponent', () => {
     expect(styles).toMatch(/\.app-install-snackbar__action\s*\{[^}]*white-space:\s*nowrap/s);
   });
 
+  it('faerbt Preset- und Install-Snackbar im Spielerisch-Preset wie die Toolbar', async () => {
+    const { readFileSync } = await import('node:fs');
+    const { dirname, join } = await import('node:path');
+    const { fileURLToPath } = await import('node:url');
+    const styles = readFileSync(
+      join(dirname(fileURLToPath(import.meta.url)), 'app.component.scss'),
+      'utf8',
+    );
+
+    expect(styles).toMatch(
+      /:host-context\(html\.preset-playful\)[\s\S]*\.app-preset-snackbar,\s*\n\s*\.app-install-snackbar \{/,
+    );
+    expect(styles).toMatch(
+      /:host-context\(html\.preset-playful\)[\s\S]*--mat-sys-primary-container[\s\S]*--mat-sys-tertiary-container/,
+    );
+    expect(styles).toMatch(
+      /:host-context\(html\.preset-playful\)[\s\S]*\.app-preset-snackbar__action[\s\S]*--mat-sys-tertiary/,
+    );
+    expect(styles).not.toMatch(
+      /:host-context\(html\.preset-playful\)[\s\S]*background:\s*var\(--mat-sys-inverse-surface\)/,
+    );
+    expect(styles).toMatch(
+      /\.app-update-banner__inner \{[\s\S]*color-mix\(in srgb, var\(--mat-sys-primary-container\) 88%, var\(--mat-sys-surface\)\)/,
+    );
+    expect(styles).not.toMatch(
+      /\.app-update-banner__inner \{[\s\S]*primary-container\) 88%, white/,
+    );
+  });
+
   it('rendert den Update-Banner als auffaelliges Callout mit primaerer CTA', async () => {
     TestBed.configureTestingModule({
       imports: [AppComponent],

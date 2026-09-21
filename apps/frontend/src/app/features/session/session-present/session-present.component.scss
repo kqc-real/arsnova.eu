@@ -1325,7 +1325,7 @@ app-session-projection-quiz,
   overflow: hidden;
   background: linear-gradient(
     180deg,
-    color-mix(in srgb, var(--mat-sys-primary-container) 72%, white),
+    color-mix(in srgb, var(--mat-sys-primary-container) 72%, var(--mat-sys-surface)),
     var(--mat-sys-surface)
   );
 }

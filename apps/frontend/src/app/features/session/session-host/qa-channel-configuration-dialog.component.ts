@@ -1,4 +1,4 @@
-import { Component, LOCALE_ID, OnInit, inject, signal } from '@angular/core';
+import { Component, ElementRef, LOCALE_ID, OnInit, inject, signal, viewChild } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { MatButton } from '@angular/material/button';
 import {
@@ -32,6 +32,9 @@ import {
 import {
   isoToSessionLocalDateTime,
   maxSelectableCalendarDays,
+  openSessionDateTimePicker,
+  reportSessionDateTimePickerValidity,
+  sessionDateTimeLocalBounds,
   sessionLocalDateTimeToIso,
 } from '../session-local-datetime';
 
@@ -81,6 +84,7 @@ export class QaChannelConfigurationDialogComponent implements OnInit {
     MatDialogRef<QaChannelConfigurationDialogComponent, SessionQaConfigurationDTO | null>,
   );
   private previewRequest = 0;
+  private readonly absoluteInput = viewChild<ElementRef<HTMLInputElement>>('absoluteInput');
 
   readonly pending = signal(false);
   readonly error = signal<string | null>(null);
@@ -133,6 +137,15 @@ export class QaChannelConfigurationDialogComponent implements OnInit {
   async confirm(): Promise<void> {
     const selection = this.buildSelection();
     if (!selection) {
+      return;
+    }
+    const absoluteField = this.absoluteInput()?.nativeElement;
+    if (
+      selection.kind === 'ABSOLUTE' &&
+      !this.unchangedSavedAbsoluteClosesAt() &&
+      absoluteField &&
+      !reportSessionDateTimePickerValidity(absoluteField)
+    ) {
       return;
     }
     if (!this.qaTitle.trim()) {
@@ -253,6 +266,27 @@ export class QaChannelConfigurationDialogComponent implements OnInit {
       timeZone: this.timeZone,
       timeZoneName: 'short',
     }).format(new Date(value));
+  }
+
+  openAbsolutePicker(input: HTMLInputElement): void {
+    openSessionDateTimePicker(input);
+  }
+
+  absoluteMinLocal(): string {
+    return this.absoluteBounds()?.min ?? '';
+  }
+
+  absoluteMaxLocal(): string {
+    return this.absoluteBounds()?.max ?? '';
+  }
+
+  private absoluteBounds(): { min: string; max: string } | null {
+    const minExclusive = this.preview()?.serverNow ?? this.data.session.serverNow;
+    const maxInclusive = this.preview()?.maxExpiresAt;
+    if (!minExclusive || !maxInclusive) {
+      return null;
+    }
+    return sessionDateTimeLocalBounds(minExclusive, maxInclusive, this.timeZone);
   }
 
   private async refreshPreview(): Promise<void> {

@@ -194,7 +194,7 @@ describe('ServerStatusHelpDialogComponent', () => {
       /\.app-status-help-dialog-panel \.mat-mdc-dialog-content\s*\{[^}]*padding:\s*0 1rem 0\.5rem/,
     );
     expect(styles).toMatch(
-      /html\.preset-playful \.app-status-help-dialog-panel \.mat-mdc-dialog-surface\s*\{/,
+      /html\.preset-playful[\s\S]*\.cdk-overlay-pane:not\(\.word-cloud-dialog-panel\)[\s\S]*\.mat-mdc-dialog-surface/,
     );
 
     TestBed.configureTestingModule({

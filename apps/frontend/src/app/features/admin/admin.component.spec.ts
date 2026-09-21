@@ -136,6 +136,22 @@ describe('AdminComponent', () => {
     expect(styles).toMatch(/\.admin-card \.mdc-button__label\s*\{/);
     expect(styles).toMatch(/\.admin-question__text\.markdown-body p\s*\{/);
     expect(styles).toMatch(/\.admin-answer-text\.markdown-body p\s*\{/);
+    const motd = readFileSync(
+      resolve(process.cwd(), 'src/app/features/admin/admin-motd-panel.component.scss'),
+      'utf8',
+    );
+    expect(motd).not.toMatch(/#1565c0|#1a1a1a|#b3261e/);
+    expect(motd).toMatch(
+      /\.admin-motd__list-action-btn--reset:not\(:disabled\) \{[\s\S]*--mat-sys-surface-container-high/,
+    );
+    expect(motd).not.toMatch(
+      /\.admin-motd__list-action-btn--reset:not\(:disabled\) \{[\s\S]*primary-container/,
+    );
+    const global = readFileSync(resolve(process.cwd(), 'src/styles.scss'), 'utf8');
+    expect(global).toContain('@mixin app-playful-surface-chrome');
+    expect(global).toMatch(
+      /html\.preset-playful[\s\S]*\.cdk-overlay-pane:not\(\.word-cloud-dialog-panel\)[\s\S]*\.mat-mdc-dialog-surface/,
+    );
   });
 
   it('kürzt eine Session-Kennung nicht still auf sechs Zeichen', () => {

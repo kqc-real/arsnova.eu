@@ -309,7 +309,7 @@
     margin-top: 0.65rem;
     padding: 0.45rem 0.7rem;
     border-radius: var(--mat-sys-corner-full);
-    background: color-mix(in srgb, var(--mat-sys-tertiary-container) 78%, white);
+    background: color-mix(in srgb, var(--mat-sys-tertiary-container) 78%, var(--mat-sys-surface));
     color: var(--mat-sys-on-tertiary-container);
     font: var(--mat-sys-label-medium);
     font-weight: 600;
@@ -353,8 +353,8 @@
     border: 1px solid color-mix(in srgb, var(--mat-sys-primary) 22%, transparent);
     background: linear-gradient(
       135deg,
-      color-mix(in srgb, var(--mat-sys-primary-container) 78%, white),
-      color-mix(in srgb, var(--mat-sys-secondary-container) 54%, white)
+      color-mix(in srgb, var(--mat-sys-primary-container) 78%, var(--mat-sys-surface)),
+      color-mix(in srgb, var(--mat-sys-secondary-container) 54%, var(--mat-sys-surface))
     );
     box-shadow: 0 0.35rem 1.1rem color-mix(in srgb, var(--mat-sys-primary) 10%, transparent);
     line-height: 1.45;

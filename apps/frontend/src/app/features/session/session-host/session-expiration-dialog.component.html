@@ -157,10 +157,14 @@
         <mat-form-field appearance="outline" subscriptSizing="dynamic">
           <mat-label i18n="@@sessionLifecycle.absoluteLabel">Bis Datum und Uhrzeit</mat-label>
           <input
+            #absoluteInput
             matInput
             type="datetime-local"
+            [min]="absoluteBounds.min"
+            [max]="absoluteBounds.max"
             [ngModel]="absoluteLocal()"
             (ngModelChange)="absoluteLocal.set($event)"
+            (click)="openAbsolutePicker(absoluteInput)"
           />
         </mat-form-field>
         <button
@@ -168,7 +172,7 @@
           type="button"
           class="lifecycle-dialog__action"
           [disabled]="!absoluteLocal()"
-          (click)="chooseAbsolute()"
+          (click)="chooseAbsolute(absoluteInput)"
           i18n="@@sessionLifecycle.checkDeadline"
         >
           Termin prüfen
