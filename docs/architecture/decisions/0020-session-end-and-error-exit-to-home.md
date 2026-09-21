@@ -6,7 +6,7 @@
 **Datum:** 2026-04-06  
 **Entscheider:** Projektteam
 
-**Letzter Repo-Abgleich:** 2026-06-06
+**Letzter Repo-Abgleich:** 2026-09-21
 
 ## Kontext
 
@@ -29,7 +29,7 @@ Views, die bereits **in einer laufenden Session** sind und deren Session-Kontext
 Das gilt insbesondere fuer:
 
 - Presenter (`/session/:code/present`) bei `FINISHED`, sofern kein Abschluss-Gate (Gesamtauswertung/Leaderboard) angezeigt wird
-- Vote (`/session/:code/vote`) bei `FINISHED`, sofern kein explizites Abschluss-Gate offen bleiben muss; `FINISHED` hat dabei Vorrang vor dem gerade aktiven Live-Kanal (`Quiz`, `Q&A`, `Blitzlicht`)
+- Vote (`/session/:code/vote`) bei terminalem Sessionende, sofern kein explizites Abschluss-Gate offen bleiben muss; `FINISHED` hat Vorrang vor Quiz und Blitzlicht, nicht aber vor einem noch joinbaren Q&A-Kanal (`qaJoinable`)
 - Host (`/session/:code/host`) bei verwaister oder serverseitig bereits beendeter Session, wenn eine Host-Aktion wie `session.end` keine gueltige Session mehr findet
 
 `replaceUrl` ist verbindlich, damit der veraltete Session-Pfad nicht im Verlauf als naechster Ruecksprungpunkt erhalten bleibt.
@@ -126,6 +126,13 @@ Stand 2026-06-06:
 - Session-Vote behandelt `FINISHED` als kanaluebergreifenden Endzustand: Die Abschlussansicht bzw. das Abschluss-Gate ersetzt auch dann Q&A oder Blitzlicht, wenn dieser Kanal gerade aktiv war.
 - Beim `FINISHED`-Signal werden Countdown, Fallback-Polling, Status-, Q&A- und Blitzlicht-Subscriptions im Vote-Client abgeraeumt.
 - Standalone-Blitzlicht bleibt ein separater Redis-Rundenpfad: `quickFeedback.end` loescht die Runde, der Vote-Client zeigt danach den abgelaufen/geschlossen-Zustand mit lokaler Home-CTA.
+
+Stand 2026-09-21 (Epic #405):
+
+- `FINISHED` ohne joinbares Q&A bleibt der Vote-Endzustand mit Abschluss-Gate bzw. Home-CTA.
+- `FINISHED` plus `qaJoinable` ist kein Sofort-Exit: Quiz-Bewertung kann sichtbar bleiben, Q&A bleibt beschreibbar, Blitzlicht folgt dem Kanalwechsel.
+- Vote-Clients räumen bei `FINISHED` Quiz-Countdown und Blitzlicht-Live ab; Q&A-Subscriptions bleiben, solange `qaClosesAt` in der Zukunft liegt.
+- Kanonisch: [session-entry-host-vote.md](../../features/session-entry-host-vote.md).
 
 ---
 

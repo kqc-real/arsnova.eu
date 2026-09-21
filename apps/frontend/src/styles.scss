@@ -313,6 +313,18 @@ html.preset-playful {
     )
   );
 
+  @include mat.snack-bar-overrides(
+    (
+      container-color: color-mix(
+          in srgb,
+          var(--mat-sys-primary-container) 42%,
+          var(--mat-sys-surface-container-high)
+        ),
+      supporting-text-color: var(--mat-sys-on-surface),
+      button-color: var(--mat-sys-tertiary),
+    )
+  );
+
   @include mat.menu-overrides(
     (
       container-color: color-mix(
@@ -1868,6 +1880,8 @@ html.dark .app-qr-image {
 
 .feedback-compare-round-snackbar.mat-mdc-snack-bar-container {
   --mdc-snackbar-container-color: transparent;
+  --mat-snack-bar-container-color: transparent;
+  --mat-snack-bar-supporting-text-color: var(--mat-sys-on-surface);
   --mat-snack-bar-button-color: var(--mat-sys-on-primary-container);
 }
 
@@ -2395,18 +2409,34 @@ $markdown-katex-flow-hosts:
 html.preset-playful .mat-mdc-snack-bar-container:not(.feedback-compare-round-snackbar) {
   --mdc-snackbar-container-color: color-mix(
     in srgb,
-    var(--mat-sys-primary-container) 28%,
+    var(--mat-sys-primary-container) 42%,
     var(--mat-sys-surface-container-high)
   );
   --mdc-snackbar-supporting-text-color: var(--mat-sys-on-surface);
+  --mat-snack-bar-container-color: color-mix(
+    in srgb,
+    var(--mat-sys-primary-container) 42%,
+    var(--mat-sys-surface-container-high)
+  );
+  --mat-snack-bar-supporting-text-color: var(--mat-sys-on-surface);
   --mat-snack-bar-button-color: var(--mat-sys-tertiary);
 }
 
 html.preset-playful
   .mat-mdc-snack-bar-container:not(.feedback-compare-round-snackbar)
   .mat-mdc-snackbar-surface {
+  background: linear-gradient(
+    165deg,
+    color-mix(in srgb, var(--mat-sys-primary-container) 42%, var(--mat-sys-surface-container-high))
+      0%,
+    color-mix(in srgb, var(--mat-sys-surface-container) 78%, var(--mat-sys-tertiary-container)) 100%
+  );
+  color: var(--mat-sys-on-surface);
   border: 1px solid color-mix(in srgb, var(--mat-sys-primary) 28%, var(--mat-sys-outline-variant));
-  box-shadow: var(--mat-sys-level3), var(--app-shadow-accent);
+  box-shadow:
+    var(--mat-sys-level3),
+    var(--app-shadow-accent),
+    inset 0 1px 0 color-mix(in srgb, var(--mat-sys-inverse-on-surface) 8%, transparent);
 }
 
 /* Motd-Zähler: MD3-Overlap behalten, Ziffern zentrieren; Breite für 99+ wachsen lassen.

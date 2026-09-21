@@ -39,12 +39,16 @@ describe('Globales Farbkonzept (Overlay-Chrome)', () => {
     expect(styles).toContain('@include mat.select-overrides');
     expect(styles).toContain('@include mat.autocomplete-overrides');
     expect(styles).toContain('@include mat.datepicker-overrides');
+    expect(styles).toContain('@include mat.snack-bar-overrides');
     expect(styles).toContain('--mat-button-filled-container-color: var(--mat-sys-tertiary)');
     expect(styles).toContain(
       '--mat-button-tonal-container-color: var(--mat-sys-surface-container-high)',
     );
     expect(styles).toMatch(
       /html\.preset-playful \.mat-mdc-snack-bar-container:not\(\.feedback-compare-round-snackbar\)/,
+    );
+    expect(styles).toMatch(
+      /html\.preset-playful \.mat-mdc-snack-bar-container:not\(\.feedback-compare-round-snackbar\)[\s\S]*--mat-snack-bar-container-color/,
     );
     expect(styles).not.toMatch(/tooltip-overrides[\s\S]*inverse-surface/);
     expect(styles).not.toMatch(/menu-overrides[\s\S]*inverse-surface/);

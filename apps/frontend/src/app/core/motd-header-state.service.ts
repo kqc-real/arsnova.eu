@@ -78,6 +78,20 @@ export class MotdHeaderStateService {
     return !this.unseenCurrentMotdAcked();
   });
 
+  /**
+   * Auto-Overlay der Startseite ist sichtbar.
+   * Hält den PWA-Update-Banner zurück, damit nicht zwei Hinweise konkurrieren.
+   */
+  readonly overlayOpen = signal(false);
+
+  /**
+   * Startseite prüft noch, ob das Auto-Overlay kommt (inkl. Aufschub bei Toolbar-Fokus).
+   */
+  readonly overlayDecisionPending = signal(false);
+
+  /** Update-Banner erst, wenn keine neue MOTD mehr im Weg steht. */
+  readonly blocksUpdateNotice = computed(() => this.overlayOpen() || this.overlayDecisionPending());
+
   /** Ungelesene Archiv-MOTDs relativ zum Client-Wasserzeichen und einzeln Gelesenen. */
   readonly archiveUnreadCount = signal(0);
 
@@ -108,6 +122,21 @@ export class MotdHeaderStateService {
 
   setArchiveUnreadCount(count: number): void {
     this.archiveUnreadCount.set(Math.max(0, count));
+  }
+
+  beginOverlayDecision(): void {
+    this.overlayDecisionPending.set(true);
+  }
+
+  releaseOverlayDecision(): void {
+    this.overlayDecisionPending.set(false);
+  }
+
+  setOverlayOpen(open: boolean): void {
+    this.overlayOpen.set(open);
+    if (open) {
+      this.overlayDecisionPending.set(false);
+    }
   }
 
   /** Overlay oder Archiv hat die aktuelle MOTD in dieser Sitzung gezeigt. */

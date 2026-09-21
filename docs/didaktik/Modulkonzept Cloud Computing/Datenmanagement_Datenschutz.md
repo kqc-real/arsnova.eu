@@ -171,7 +171,7 @@ Kursregeln:
 - die lokale Quizbibliothek im Hostbrowser liegt local-first in IndexedDB/Yjs; Sync-Links, Fragmente, Access-Proofs und Host-Tokens sind Geheimnisse beziehungsweise Capabilities und keine Lehrdaten;
 - eine Quizdefinition darf als REPO oder LEHRDATEN versioniert werden, jedoch nie mit Sessioncode, Host-Token oder LIVE-Ergebnissen.
 
-Der aktuelle Backendcode macht beendete Sessions regulär 24 Stunden nach `endedAt` purge-fällig und startet den Cleanup stündlich. Bonus-Tokens, Sessionfeedback und ein Legal Hold können den Purge verzögern. Diese Implementierung ist deshalb kein Nachweis der Löschung einer konkreten Kursinstanz.
+Der aktuelle Backendcode materialisiert bei Ablauf `endedAt = expiresAt` und löscht nach der 14-tägigen Host-Nachbereitung, sofern kein Legal Hold greift. Bonus-Tokens und Sessionfeedback können den Purge zusätzlich verzögern. Diese Implementierung ist deshalb kein Nachweis der Löschung einer konkreten Kursinstanz. Kanonisch: [session-lifecycle.md](../../features/session-lifecycle.md).
 
 ### 5.2 MC-Test
 
@@ -397,7 +397,7 @@ Ist die institutionell bestätigte Frist kürzer, gilt sie. Erfordert eine dokum
 
 ### 10.3 Technische Grenzen
 
-- Die ARSnova-Purge-Fälligkeit nach 24 Stunden ist keine Exportzusage und kein Abwesenheitsnachweis.
+- Die ARSnova-Purge-Fälligkeit nach der 14-tägigen Nachbereitung ist keine Exportzusage und kein Abwesenheitsnachweis.
 - Bonus- oder Feedbackretention und Legal Hold können einen automatischen ARSnova-Purge verzögern. AP muss den Kursbestand deshalb ausdrücklich prüfen.
 - Die MC-Freigabe eines Pseudonyms beweist nicht, dass Antworten oder Session-Summaries gelöscht sind.
 - Es werden keine eigenen RAW-Backups angelegt. Institutionelle oder Plattformbackups folgen ihrem bestätigten Zyklus; das Löschprotokoll nennt diese Grenze.

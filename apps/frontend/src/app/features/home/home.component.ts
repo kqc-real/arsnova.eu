@@ -1,6 +1,7 @@
 import {
   AfterViewInit,
   Component,
+  DestroyRef,
   ElementRef,
   HostListener,
   Injector,
@@ -293,6 +294,7 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
   private readonly sanitizer = inject(DomSanitizer);
   private readonly motdCurrent = inject(MotdCurrentService);
   private readonly motdHeaderState = inject(MotdHeaderStateService);
+  private readonly destroyRef = inject(DestroyRef);
   private readonly focusMonitor = inject(FocusMonitor);
   private readonly localeId = inject(LOCALE_ID) as string;
   private readonly injector = inject(Injector);
@@ -418,6 +420,8 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
   ngOnDestroy(): void {
     this.focusService.registerInput(undefined);
     this.clearToolbarMotdDefer();
+    this.motdHeaderState.setOverlayOpen(false);
+    this.motdHeaderState.releaseOverlayDecision();
     this.clearScheduledCallbacks();
     if (typeof document !== 'undefined') {
       document.removeEventListener('keydown', this.keydownListener, true);
@@ -444,6 +448,7 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
       this.scheduleIdleWork(() => void this.validateRecentSessions(), 2000, 500);
       // MOTD: bewusst etwas später laden, damit der Session-Einstieg auf Home
       // nicht direkt von einem Overlay unterbrochen wird.
+      this.motdHeaderState.beginOverlayDecision();
       this.scheduleIdleWork(() => void this.loadMotdOverlay(), 2400, 1600);
       this.launchHostShortcutIfRequested();
     }
@@ -1286,14 +1291,20 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   private async loadMotdOverlay(): Promise<void> {
-    if (!isPlatformBrowser(this.platformId)) return;
+    if (!isPlatformBrowser(this.platformId)) {
+      this.motdHeaderState.releaseOverlayDecision();
+      return;
+    }
     if (consumeMotdOverlayReloadSuppress()) {
+      this.motdHeaderState.releaseOverlayDecision();
       return;
     }
     if (shouldSuppressMotdOverlayOnMobileFirstHomeVisit()) {
+      this.motdHeaderState.releaseOverlayDecision();
       return;
     }
     if (hasMotdOverlayBeenOfferedThisSession()) {
+      this.motdHeaderState.releaseOverlayDecision();
       return;
     }
     if (
@@ -1301,13 +1312,19 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
       this.sessionCode().trim().length > 0 ||
       this.isJoining()
     ) {
+      this.motdHeaderState.releaseOverlayDecision();
       return;
     }
     const motd = await this.motdCurrent.getCurrent();
+    if (this.destroyRef.destroyed) {
+      return;
+    }
     if (!motd || isMotdDismissedForVersion(motd.id, motd.contentVersion)) {
+      this.motdHeaderState.releaseOverlayDecision();
       return;
     }
     if (shouldSkipQueuedMotdAutoOverlay(motd.id)) {
+      this.motdHeaderState.releaseOverlayDecision();
       return;
     }
     const activeElement = document.activeElement;
@@ -1320,7 +1337,11 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   private openMotdOverlay(motd: MotdPublicDTO, activeElement: Element | null): void {
+    if (this.destroyRef.destroyed) {
+      return;
+    }
     this.clearToolbarMotdDefer();
+    this.motdHeaderState.setOverlayOpen(true);
     markMotdOverlayOfferedThisSession();
     this.motdHeaderState.acknowledgeUnseenCurrentMotd({
       motdId: motd.id,
@@ -1349,6 +1370,9 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
     this.motdBodyHtml.set(this.sanitizer.bypassSecurityTrustHtml(html));
     afterNextRender(
       () => {
+        if (this.destroyRef.destroyed) {
+          return;
+        }
         this.motdCloseBtn?.nativeElement?.focus();
       },
       { injector: this.injector },
@@ -1383,6 +1407,7 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
           this.isJoining() ||
           this.motd()
         ) {
+          this.motdHeaderState.releaseOverlayDecision();
           return;
         }
         this.openMotdOverlay(pending, delayedActive instanceof Element ? delayedActive : null);
@@ -1420,6 +1445,7 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
     }
     this.suppressMotdForJoinIntent.set(true);
     this.clearToolbarMotdDefer();
+    this.motdHeaderState.releaseOverlayDecision();
     if (this.motd()) {
       this.clearMotdOverlay();
     }
@@ -1492,6 +1518,7 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
         !!activeBefore.closest('.home-motd-layer, .home-motd-sheet, [inert]'));
     this.motd.set(null);
     this.motdBodyHtml.set(null);
+    this.motdHeaderState.setOverlayOpen(false);
     afterNextRender(
       () => {
         if (focusReturn?.isConnected === true) {

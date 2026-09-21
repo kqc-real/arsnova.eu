@@ -35,11 +35,11 @@ Falls die Integration in die Markdown-Vorschau nicht funktioniert:
 
 ## Dateien
 
-| Datei                          | Inhalt                                                                                                                                                                                                                                                              |
-| ------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `diagrams.md`                  | Backend-, Frontend-, DB-Schema inkl. SessionFeedback, ProductFeedback (Epic 12), Platform/DailyStatistic, MOTD, Kurzantwort, numerischer Schätzfrage, Effective Vote, Wortwolke/Kompass (1.14 / 8.9) und Kommunikation Dozent/Student/**Admin** (Stand: 2026-09-10) |
-| `architecture-overview.md`     | System-Architektur, Datenfluss inkl. Admin/MOTD/Produktfeedback, optionale Inferenzpfade 1.14/8.9, Prisma/PostgreSQL-Kompaktsicht mit `NUMERIC_ESTIMATE` und ProductFeedback, Komponenten-Hierarchie, Sicherheit inkl. Rollen-Autorisierung (Stand: 2026-09-10)     |
-| `diagram-consistency-check.md` | Konsistenzprüfung Diagramme vs. Handbuch/Backlog/ADR-0006/Prisma; hält bewusste Vereinfachungen der Mermaid-ER-Diagramme fest (Stand: 2026-09-10).                                                                                                                  |
+| Datei                          | Inhalt                                                                                                                                                                                                                                                                                       |
+| ------------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `diagrams.md`                  | Backend-, Frontend-, DB-Schema inkl. SessionFeedback, ProductFeedback (Epic 12), Platform/DailyStatistic, MOTD, Kurzantwort, numerischer Schätzfrage, Effective Vote, Wortwolke/Kompass (1.14 / 8.9), Epic #405 Host-Recovery und Kommunikation Dozent/Student/**Admin** (Stand: 2026-09-21) |
+| `architecture-overview.md`     | System-Architektur, Datenfluss inkl. Admin/MOTD/Produktfeedback, optionale Inferenzpfade 1.14/8.9, Prisma/PostgreSQL-Kompaktsicht mit `NUMERIC_ESTIMATE`, ProductFeedback und Session-Lifecycle, Komponenten-Hierarchie, Sicherheit inkl. Rollen-Autorisierung (Stand: 2026-09-21)           |
+| `diagram-consistency-check.md` | Konsistenzprüfung Diagramme vs. Handbuch/Backlog/ADR-0006/Prisma; hält bewusste Vereinfachungen der Mermaid-ER-Diagramme fest (Stand: 2026-09-21).                                                                                                                                           |
 
 ## Online-Rendering
 

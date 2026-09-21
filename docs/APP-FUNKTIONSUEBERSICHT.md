@@ -1,6 +1,6 @@
 # arsnova.eu – ausführliche Funktionsübersicht der App
 
-> Stand dieser Übersicht: 2026-09-10
+> Stand dieser Übersicht: 2026-09-21
 >
 > Grundlage: Auswertung des aktuellen Repos, insbesondere `apps/frontend`, `apps/backend`, `libs/shared-types`, `prisma/schema.prisma`, `README.md`, `docs/README.md`, `docs/ROUTES_AND_STORIES.md`, `docs/TESTING.md` und der Feature-Dokumente unter `docs/features/`.
 
@@ -43,20 +43,21 @@ Rollenrechte werden dabei **nicht nur über die URL**, sondern zusätzlich über
 
 ## 1. Hauptbestandteile der App
 
-| Bereich               | Zentrale Routen                                              | Zweck                                                                                  |
-| --------------------- | ------------------------------------------------------------ | -------------------------------------------------------------------------------------- |
-| Startseite            | `/`                                                          | Session-Code eingeben, letzte Sessions öffnen, Quiz/Q&A/Blitzlicht starten, MOTD sehen |
-| Quiz-Sammlung         | `/quiz`                                                      | Eigene Quizze lokal verwalten, importieren, exportieren, live schalten                 |
-| Quiz-Erstellung       | `/quiz/new`, `/quiz/:id`, `/quiz/:id/preview`                | Quiz anlegen, bearbeiten, prüfen, direkt aus der Vorschau starten                      |
-| Quiz-Sync             | `/quiz/sync/:docId`                                          | Quiz-Sammlung auf einem zweiten Gerät oder mit anderen Personen synchron öffnen        |
-| Join                  | `/join`, `/join/:code`                                       | Code-Eingabe bzw. direkter Einstieg für Teilnehmende in eine Session                   |
-| Session Host          | `/session/:code/host`                                        | Lehrendensteuerung für Quiz, Q&A und Blitzlicht                                        |
-| Session Present       | `/session/:code/present`                                     | Beamer- / Raumansicht                                                                  |
-| Session Vote          | `/session/:code/vote`                                        | Teilnehmendenansicht für Antworten, Q&A, Blitzlicht, Ergebnis und Feedback             |
-| Session Pair          | `/session/:code/pair`                                        | Smartphone fragt eine Host-Verbindung an; Freigabe bleibt auf `/host`                  |
-| Standalone-Blitzlicht | `/feedback/:code`, `/feedback/:code/vote`                    | Schnelle Feedback-Runden außerhalb einer normalen Quiz-Session                         |
-| Admin                 | `/admin`                                                     | Betreiberzugriff auf Sessions, Exporte, Löschungen, Legal Hold, MOTD, Produktfeedback  |
-| Hilfe und Info        | `/help`, `/news-archive`, `/legal/imprint`, `/legal/privacy` | Produktbeschreibung, Nachrichtenarchiv, Impressum, Datenschutz                         |
+| Bereich               | Zentrale Routen                                                                      | Zweck                                                                                  |
+| --------------------- | ------------------------------------------------------------------------------------ | -------------------------------------------------------------------------------------- |
+| Startseite            | `/`                                                                                  | Session-Code eingeben, letzte Sessions öffnen, Quiz/Q&A/Blitzlicht starten, MOTD sehen |
+| Quiz-Sammlung         | `/quiz`                                                                              | Eigene Quizze lokal verwalten, importieren, exportieren, live schalten                 |
+| Quiz-Erstellung       | `/quiz/new`, `/quiz/:id`, `/quiz/:id/preview`                                        | Quiz anlegen, bearbeiten, prüfen, direkt aus der Vorschau starten                      |
+| Quiz-Sync             | `/quiz/sync/:docId`                                                                  | Quiz-Sammlung auf einem zweiten Gerät oder mit anderen Personen synchron öffnen        |
+| Join                  | `/join`, `/join/:code`                                                               | Code-Eingabe bzw. direkter Einstieg für Teilnehmende in eine Session                   |
+| Session Host          | `/session/:code/host`                                                                | Lehrendensteuerung für Quiz, Q&A und Blitzlicht                                        |
+| Session Present       | `/session/:code/present`                                                             | Beamer- / Raumansicht                                                                  |
+| Session Vote          | `/session/:code/vote`                                                                | Teilnehmendenansicht für Antworten, Q&A, Blitzlicht, Ergebnis und Feedback             |
+| Session Pair          | `/session/:code/pair`                                                                | Smartphone fragt eine Host-Verbindung an; Freigabe bleibt auf `/host`                  |
+| Standalone-Blitzlicht | `/feedback/:code`, `/feedback/:code/vote`                                            | Schnelle Feedback-Runden außerhalb einer normalen Quiz-Session                         |
+| Admin                 | `/admin`                                                                             | Betreiberzugriff auf Sessions, Exporte, Löschungen, Legal Hold, MOTD, Produktfeedback  |
+| Host-Recovery         | `/host-recovery`                                                                     | Self-Service: Support-ID + Geheimnis aus der Zugangskarte (Epic #405)                  |
+| Hilfe und Info        | `/help`, `/news-archive`, `/legal/imprint`, `/legal/privacy`, `/legal/accessibility` | Produktbeschreibung, Nachrichtenarchiv, Impressum, Datenschutz, Barrierefreiheit       |
 
 Zusätzlich werden **Locale-Präfixe** wie `/de/...`, `/en/...`, `/fr/...`, `/es/...`, `/it/...` unterstützt. Fachlich sind das dieselben Routen mit lokalisierter Oberfläche.
 
@@ -81,8 +82,10 @@ Von der Startseite aus können Hosts direkt:
 - die **Quiz-Sammlung** öffnen
 - einen **Q&A-Kanal** starten
 - ein **Blitzlicht** starten
+- gespeicherte **Host-Zugänge** wieder öffnen (Live-Karte, höchstens 8 von 32 Capabilities)
+- ohne gespeicherte Capability über **Host-Zugang wiederherstellen** nach `/host-recovery`
 
-Wichtig ist: Q&A und Blitzlicht können nicht nur als Zusatzkanäle einer bestehenden Session laufen, sondern auch sehr schnell aus dem Home-Bereich heraus initialisiert werden.
+Wichtig ist: Q&A und Blitzlicht können nicht nur als Zusatzkanäle einer bestehenden Session laufen, sondern auch sehr schnell aus dem Home-Bereich heraus initialisiert werden. Ein noch offenes Q&A-Forum überlebt ein beendetes Quiz (Epic #405).
 
 ### 2.3 Standalone-Blitzlicht von der Startseite
 
@@ -480,7 +483,7 @@ Q&A kann laufen als:
 Teilnehmende können:
 
 - Fragen einreichen
-- bis zu **drei Fragen pro Session** stellen
+- bis zu **10 Fragen pro Teilnahme** stellen (Spam-Schutz); Session-Obergrenze 25.000 Fragen
 - eigene Fragen wieder löschen
 - fremde Fragen bewerten
 - je nach Oberfläche aufwärts oder auf- und abwärts voten
@@ -863,7 +866,7 @@ Die App ist als Progressive Web App ausgelegt und unterstützt:
 
 - Installationshinweise
 - Service Worker
-- Update-Banner
+- Update-Banner (»Neue Version bereit«; auf der Startseite unsichtbar, solange eine MOTD entschieden wird oder offen ist)
 - Manifest
 - App-Icons und Screenshots
 
@@ -945,8 +948,9 @@ Im Datenmodell existieren unter anderem:
 
 Wichtige Lebenszyklusregeln im Ist-Stand:
 
-- verwaiste aktive Sessions werden nach **24 Stunden** beendet
-- beendete Sessions werden nach **24 Stunden** gelöscht, sofern kein Legal Hold und keine noch aufzubewahrenden Bonuscodes oder Feedbackdaten entgegenstehen
+- jede Session hat eine absolute Frist `expiresAt` (Default 24 Stunden nach `createdAt`, verlängerbar bis 30 Tage)
+- nach manuellem oder automatischem Ende gilt `endedAt`; Host-Nachbereitung 14 Tage, danach Purge sofern kein Legal Hold
+- ein offener Q&A-Kanal (`qaOpen`, `qaClosesAt`) bleibt nach Quiz-`FINISHED` beschreibbar bis zum früheren Zeitpunkt aus `qaClosesAt` und `expiresAt`
 - Bonuscodes werden nach **90 Tagen** bereinigt
 - Session-Feedback wird nach **90 Tagen** bereinigt
 - Produktfeedback: strukturierte Datensätze höchstens **13 Monate**, optionale Freitexte höchstens **90 Tage**, lokale Outbox höchstens **7 Tage**

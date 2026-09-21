@@ -4,7 +4,7 @@
 
 Kurzreferenz für **Annahmen, Grenzen und eingebaute Kontrollen**. Kein vollständiges Threat-Model und keine Rechtsberatung; technische Tiefe: Handbuch, ADRs, Prisma, `session.ts` / DTO-Schicht.
 
-**Stand:** 2026-08-20 — abgeglichen mit Root-[README](../README.md), [docs/README.md](README.md), [deployment-debian-root-server.md](deployment-debian-root-server.md), [ENVIRONMENT.md](ENVIRONMENT.md), [TESTING.md](TESTING.md), Admin-Flow und aktuellem Backend. Enthalten sind Host-/Feedback-Host-Token, Admin-Tokens, besitzgebundene Quiz-Historie (`accessProof`), MOTD, öffentlicher Server-Status (`health.footerBundle` / `health.stats`), admin-geschützte Betriebsmetriken (`health.securityStats`), Plattformstatistik (`PlatformStatistic`, `DailyStatistic`) sowie die optionalen Host-NLP-/Summary-Pfade (1.14b, 8.9b, 8.9c).
+**Stand:** 2026-09-21 — abgeglichen mit Root-[README](../README.md), [docs/README.md](README.md), [deployment-debian-root-server.md](deployment-debian-root-server.md), [ENVIRONMENT.md](ENVIRONMENT.md), [TESTING.md](TESTING.md), Admin-Flow und aktuellem Backend. Enthalten sind Host-/Feedback-Host-Token, Admin-Tokens, besitzgebundene Quiz-Historie (`accessProof`), MOTD, öffentlicher Server-Status (`health.footerBundle` / `health.stats`), admin-geschützte Betriebsmetriken (`health.securityStats`), Plattformstatistik (`PlatformStatistic`, `DailyStatistic`) sowie die optionalen Host-NLP-/Summary-Pfade (1.14b, 8.9b, 8.9c).
 
 ---
 
@@ -271,7 +271,7 @@ Cache existiert nicht:
 
 ## 5. Aufbewahrung & Löschung
 
-- **Sessions:** Aktive, verwaiste Sessions werden nach **24 Stunden** auf `FINISHED` gesetzt. Bereits beendete Sessions werden nach weiteren **24 Stunden** gelöscht, sofern kein aktiver **Legal Hold** greift. Diese Fenster sind derzeit **fest im Code** definiert, nicht per Env konfigurierbar ([apps/backend/src/lib/sessionCleanup.ts](../apps/backend/src/lib/sessionCleanup.ts)).
+- **Sessions:** Absolute Frist `expiresAt` (Default 24 Stunden nach `createdAt`, verlängerbar bis 30 Tage). Cleanup materialisiert `endedAt = expiresAt` und löscht nach der 14-tägigen Host-Nachbereitung, sofern kein Legal Hold greift. Offenes Q&A bleibt bis `qaClosesAt` beschreibbar. Kanonisch: [session-lifecycle.md](features/session-lifecycle.md), [apps/backend/src/lib/sessionCleanup.ts](../apps/backend/src/lib/sessionCleanup.ts).
 - **Bonus-Tokens:** Zusätzliche Bereinigung nach **90 Tagen** ([apps/backend/src/lib/sessionCleanup.ts](../apps/backend/src/lib/sessionCleanup.ts)).
 - **Session-Feedback:** Zusätzliche Bereinigung nach **90 Tagen** ([apps/backend/src/lib/sessionCleanup.ts](../apps/backend/src/lib/sessionCleanup.ts)).
 - **Blitzlicht / Quick Feedback:** Nur Redis, Hauptdatensatz mit TTL **30 Minuten** — kein langfristiges PII dort. Der `qf:known:<CODE>`-Tombstone lebt fünf Minuten länger als der Hauptdatensatz, damit das natürliche Ablaufende nicht nachträglich als unbekannter Code in das Fehlbudget eingeht. Jede schreibende Mutation, die die Haupt-TTL verlängert, erneuert auch den Tombstone auf **35 Minuten**; ein explizites `end` hält ihn noch fünf Minuten. Standalone-Polling und -Subscription stoppen bei `NOT_FOUND` ([apps/backend/src/routers/quickFeedback.ts](../apps/backend/src/routers/quickFeedback.ts)).
