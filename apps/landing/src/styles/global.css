@@ -17,7 +17,7 @@ main [id],
 
 @layer components {
   .landing-btn-primary {
-    @apply inline-flex items-center justify-center gap-2 rounded-landing-button bg-landing-primary px-6 py-3.5 text-base font-semibold text-landing-on-primary shadow-landing-1 transition duration-landing-fast hover:bg-landing-primary-hover focus:outline-none focus-visible:ring-2 focus-visible:ring-landing-focus focus-visible:ring-offset-4 focus-visible:ring-offset-landing-bg;
+    @apply inline-flex items-center justify-center gap-2 rounded-landing-button bg-landing-tertiary px-6 py-3.5 text-base font-semibold text-landing-on-tertiary shadow-landing-1 transition duration-landing-fast hover:bg-landing-tertiary-hover focus:outline-none focus-visible:ring-2 focus-visible:ring-landing-focus focus-visible:ring-offset-4 focus-visible:ring-offset-landing-bg;
   }
 
   .landing-btn-secondary {

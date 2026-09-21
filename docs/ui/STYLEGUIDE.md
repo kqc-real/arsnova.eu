@@ -2,7 +2,7 @@
 
 # UI Styleguide (Angular Material 3)
 
-**Stand:** 2026-09-20 — abgeglichen mit Angular 21.2, `apps/frontend/src/styles.scss`, `apps/frontend/src/styles/playful-inner-chrome.scss`, den Shared-Styles unter `apps/frontend/src/app/shared/styles/`, [TOKENS.md](TOKENS.md) und [PR-CHECKLIST-UI.md](PR-CHECKLIST-UI.md).
+**Stand:** 2026-09-21 — abgeglichen mit Angular 21.2, `apps/frontend/src/styles.scss`, `apps/frontend/src/styles/playful-inner-chrome.scss`, den Shared-Styles unter `apps/frontend/src/app/shared/styles/`, [TOKENS.md](TOKENS.md), [PR-CHECKLIST-UI.md](PR-CHECKLIST-UI.md) und `apps/landing/src/styles/landing-theme.css`.
 
 ## Ziel und Geltungsbereich
 
@@ -21,7 +21,7 @@ Ergänzend zur ADR `docs/architecture/decisions/0005-use-angular-material-design
 
 - Das globale Theme wird auf Root-Ebene (`html`) mit `mat.theme(...)` definiert.
 - Standard-Preset **Seriös:** Primary `mat.$azure-palette`, Tertiary `mat.$cyan-palette`. Zusätzlich EU-Blau: in **Light** für Primary/CTAs (`--app-eu-blue` / `--app-eu-on-primary`), in **Dark** für Primary-Container/Icons (`--app-eu-blue` / `--app-eu-blue-on-dark`).
-- Preset **Spielerisch:** `html.preset-playful` überschreibt die Palette mit `mat.$magenta-palette` und `mat.$orange-palette` und setzt zusätzliche app-spezifische Surface-/Shadow-Tokens. **Buttons:** Filled-CTAs (`matButton="filled"` / `mat-flat-button`) nutzen **Tertiary** (Orange), Tonal-CTAs **`surface-container-high`**. Magenta/`primary-container` bleibt Flächen und Icons vorbehalten – keine hellrosa CTAs. `color="warn"` bleibt Error.
+- Preset **Spielerisch:** `html.preset-playful` überschreibt die Palette mit `mat.$magenta-palette` und `mat.$orange-palette` und setzt zusätzliche app-spezifische Surface-/Shadow-Tokens. **Buttons:** Filled-CTAs (`matButton="filled"` / `mat-flat-button`) nutzen **Tertiary** (Orange), Tonal-CTAs **`surface-container-high`**. Magenta/`primary-container` bleibt Flächen und Icons vorbehalten – keine hellrosa CTAs. `color="warn"` bleibt Error. Die Astro-Landing (`apps/landing`, info.arsnova.eu) folgt demselben Magenta-/Orange-Konzept mit eigenen `--landing-*`-Tokens, ohne Material-Systemtokens.
 - `color-scheme` steuert Light/Dark-Verhalten.
 - Bei Komponenten gilt: Farben nur aus Tokens, keine ad-hoc Hex-Werte.
 - Standard-Hintergrund/Farbe für die App orientiert sich an `--app-bg-root`, `--mat-sys-surface` und `--mat-sys-on-surface`.
