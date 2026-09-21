@@ -6,6 +6,7 @@
  *  1. Quiz/Session anlegen, 3 Teilnehmende joinen und abstimmen (Stichprobe ≥1)
  *  2. Session über die Host-UI beenden und zur Startseite zurückkehren → Home-Sheet
  *  3. Deterministisch gewählte:r Teilnehmende:r sieht die Karte am Session-Ende
+ *     (sofort nach hostEnded; Reload nur falls Claim vor Invite-Job)
  *  4. Beide Rollen: Zwei-Klick → Schreiben → optionale Ergänzung → Senden
  *
  * Run (Dev):
@@ -419,42 +420,50 @@ async function main() {
     logStep('Host-Sheet', 'ProductFeedback sichtbar');
     await completeProductFeedbackCard(hostPage, 'host', { withMessage: true });
 
-    await votePage.reload({ waitUntil: 'domcontentloaded', timeout: 30_000 });
-    await votePage.waitForTimeout(2000);
-
-    // SessionFeedback (4.8) hat Vorrang — Produktfrage erscheint erst danach.
-    const sessionFeedbackCard = votePage.locator('.vote-feedback-card--session-end-gate');
-    if (await sessionFeedbackCard.isVisible().catch(() => false)) {
-      const stars = sessionFeedbackCard.locator('.vote-feedback-card__star');
-      if ((await stars.count()) >= 2) {
-        await stars.nth(0).click();
-        await stars
-          .nth(5)
-          .click()
-          .catch(() => undefined);
-      }
-      const yesRepeat = sessionFeedbackCard.getByRole('button', {
-        name: /Ja, klar|thumb_up|Yes/i,
-      });
-      if (
-        await yesRepeat
-          .first()
-          .isVisible()
-          .catch(() => false)
-      ) {
-        await yesRepeat.first().click();
-      }
-      const submitFeedback = sessionFeedbackCard.locator('.vote-feedback-card__submit');
-      await submitFeedback.click();
-      await votePage.waitForTimeout(1200);
-    }
-
+    // Nach session.end (hostEnded) zeigt Vote das End-Gate sofort und claimt die Einladung.
+    // Reload nur, wenn die Karte noch fehlt (Claim vor Invite-Job oder altes Wrap-up).
     const voteCard = votePage.locator('[data-testid="product-feedback-card"]');
-    await voteCard.waitFor({ state: 'visible', timeout: 25_000 }).catch(async () => {
-      throw new Error(
-        `Vote ProductFeedback-Karte fehlt am Session-Ende.\n${await bodySnippet(votePage)}`,
-      );
-    });
+    const alreadyVisible = await voteCard
+      .waitFor({ state: 'visible', timeout: 8_000 })
+      .then(() => true)
+      .catch(() => false);
+    if (!alreadyVisible) {
+      await votePage.reload({ waitUntil: 'domcontentloaded', timeout: 30_000 });
+      await votePage.waitForTimeout(2000);
+
+      // SessionFeedback (4.8) hat Vorrang — Produktfrage erscheint erst danach.
+      const sessionFeedbackCard = votePage.locator('.vote-feedback-card--session-end-gate');
+      if (await sessionFeedbackCard.isVisible().catch(() => false)) {
+        const stars = sessionFeedbackCard.locator('.vote-feedback-card__star');
+        if ((await stars.count()) >= 2) {
+          await stars.nth(0).click();
+          await stars
+            .nth(5)
+            .click()
+            .catch(() => undefined);
+        }
+        const yesRepeat = sessionFeedbackCard.getByRole('button', {
+          name: /Ja, klar|thumb_up|Yes/i,
+        });
+        if (
+          await yesRepeat
+            .first()
+            .isVisible()
+            .catch(() => false)
+        ) {
+          await yesRepeat.first().click();
+        }
+        const submitFeedback = sessionFeedbackCard.locator('.vote-feedback-card__submit');
+        await submitFeedback.click();
+        await votePage.waitForTimeout(1200);
+      }
+
+      await voteCard.waitFor({ state: 'visible', timeout: 25_000 }).catch(async () => {
+        throw new Error(
+          `Vote ProductFeedback-Karte fehlt am Session-Ende.\n${await bodySnippet(votePage)}`,
+        );
+      });
+    }
     logStep('Vote-Karte', 'ProductFeedback inline sichtbar');
     await completeProductFeedbackCard(votePage, 'vote', { withMessage: true });
 

@@ -37,6 +37,9 @@ import {
   isRetriableProductFeedbackError,
   markProductFeedbackCooldown,
   newIdempotencyKey,
+  peekClaimedProductFeedbackInvite,
+  storeClaimedProductFeedbackInvite,
+  clearClaimedProductFeedbackInvite,
   suppressProductFeedbackSurvey,
 } from './product-feedback-storage';
 
@@ -112,23 +115,54 @@ export class ProductFeedbackCardComponent implements OnInit, OnDestroy {
       });
       if (this.destroyed) return;
 
-      const claimed = await trpc.productFeedback.claimInvite.mutate({
-        sessionCode: this.sessionCode().toUpperCase(),
-        role: this.feedbackRole(),
-        ...(this.feedbackRole() === 'PARTICIPANT' && this.participantId()
-          ? {
-              participantId: this.participantId(),
-              participantClaimToken: getProductFeedbackParticipantClaimToken(this.sessionCode()),
-            }
-          : {}),
-      });
-      if (this.destroyed) return;
-      if (!claimed.inviteToken || !claimed.survey) {
-        this.step.set('hidden');
-        this.dismissed.emit();
-        return;
+      const sessionCode = this.sessionCode().toUpperCase();
+      const role = this.feedbackRole();
+      let inviteToken: string | null = null;
+      let survey: ProductFeedbackSurveyDTO | null = null;
+
+      const restored = peekClaimedProductFeedbackInvite(sessionCode, role);
+      if (restored) {
+        try {
+          const payload = await trpc.productFeedback.getSurvey.query({
+            inviteToken: restored.inviteToken,
+          });
+          if (payload.inviteToken && payload.survey) {
+            inviteToken = payload.inviteToken;
+            survey = payload.survey;
+          } else {
+            clearClaimedProductFeedbackInvite(sessionCode, role);
+          }
+        } catch {
+          clearClaimedProductFeedbackInvite(sessionCode, role);
+        }
       }
-      const surveyKey = claimed.survey.surveyKey;
+
+      if (!inviteToken || !survey) {
+        const claimed = await trpc.productFeedback.claimInvite.mutate({
+          sessionCode,
+          role,
+          ...(role === 'PARTICIPANT' && this.participantId()
+            ? {
+                participantId: this.participantId(),
+                participantClaimToken: getProductFeedbackParticipantClaimToken(sessionCode),
+              }
+            : {}),
+        });
+        if (this.destroyed) return;
+        if (!claimed.inviteToken || !claimed.survey) {
+          this.step.set('hidden');
+          this.dismissed.emit();
+          return;
+        }
+        inviteToken = claimed.inviteToken;
+        survey = claimed.survey;
+        storeClaimedProductFeedbackInvite(sessionCode, role, {
+          inviteToken,
+          survey,
+        });
+      }
+      if (this.destroyed) return;
+      const surveyKey = survey.surveyKey;
       const cooldownMs =
         this.feedbackRole() === 'HOST'
           ? PRODUCT_FEEDBACK_HOST_COOLDOWN_MS
@@ -141,8 +175,8 @@ export class ProductFeedbackCardComponent implements OnInit, OnDestroy {
         this.dismissed.emit();
         return;
       }
-      this.inviteToken.set(claimed.inviteToken);
-      this.survey.set(claimed.survey);
+      this.inviteToken.set(inviteToken);
+      this.survey.set(survey);
       this.step.set('primary');
       if (this.focusOnBootstrap()) {
         this.moveFocusForStep();
@@ -405,12 +439,14 @@ export class ProductFeedbackCardComponent implements OnInit, OnDestroy {
   }
 
   finish(): void {
+    this.forgetClaimedInvite();
     this.step.set('done');
     this.restoreFocus();
     this.dismissed.emit();
   }
 
   dismiss(): void {
+    this.forgetClaimedInvite();
     if (this.survey()) markProductFeedbackCooldown(this.cooldownScope());
     this.step.set('hidden');
     this.restoreFocus();
@@ -451,11 +487,16 @@ export class ProductFeedbackCardComponent implements OnInit, OnDestroy {
   }
 
   neverAsk(): void {
+    this.forgetClaimedInvite();
     const survey = this.survey();
     if (survey) suppressProductFeedbackSurvey(survey.surveyKey);
     this.step.set('hidden');
     this.restoreFocus();
     this.dismissed.emit();
+  }
+
+  private forgetClaimedInvite(): void {
+    clearClaimedProductFeedbackInvite(this.sessionCode(), this.feedbackRole());
   }
 
   visible(): boolean {

@@ -140,6 +140,7 @@ vi.mock('../../../core/trpc.client', () => ({
     },
     productFeedback: {
       claimInvite: { mutate: productFeedbackClaimInviteMutateMock },
+      getSurvey: { query: vi.fn().mockRejectedValue(new Error('no restored invite')) },
     },
   },
 }));
