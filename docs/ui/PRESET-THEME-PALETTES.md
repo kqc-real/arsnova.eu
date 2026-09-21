@@ -61,5 +61,6 @@ Definition in **`apps/frontend/src/styles.scss`**:
 - **Seriös (Light):** Azure bleibt die Basispalette; `html.light:not(.preset-playful)` setzt Primary auf `--app-eu-blue`, damit gefüllte CTAs zum Brand-SVG passen.
 - **Seriös (Dark):** Azure bleibt die Basispalette; `html.dark:not(.preset-playful)` setzt Primary-Container auf `--app-eu-blue` und Primary auf `--app-eu-blue-on-dark`, damit Icons zum Brand-SVG passen.
 - **Spielerisch:** `html.preset-playful` → `primary: mat.$magenta-palette`, `tertiary: mat.$orange-palette`.
+- **Landing:** `apps/landing/src/styles/landing-theme.css` spiegelt Spielerisch (Magenta-Flächen, Orange-CTAs) unabhängig von Angular Material.
 
 Theme (Hell/Dunkel) wird über `html.light` / `html.dark` und `color-scheme` gesteuert; die Paletten bleiben pro Preset gleich.

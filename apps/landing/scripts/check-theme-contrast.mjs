@@ -83,12 +83,12 @@ async function settleTheme(page, mode) {
     }
   }, mode);
   // Wait until presentation tokens resolve (color transitions can outlast double-rAF).
-  const expectedBodyBg = mode === 'dark' ? 'rgb(22, 16, 24)' : 'rgb(250, 247, 251)';
-  const expectedCtaBg = mode === 'dark' ? 'rgb(255, 171, 243)' : 'rgb(169, 0, 169)';
+  const expectedBodyBg = mode === 'dark' ? 'rgb(30, 26, 29)' : 'rgb(251, 241, 245)';
+  const expectedCtaBg = mode === 'dark' ? 'rgb(255, 183, 135)' : 'rgb(139, 80, 0)';
   await page.waitForFunction(
     ({ bodyBg, ctaBg }) => {
       const body = getComputedStyle(document.body).backgroundColor;
-      const cta = document.querySelector('#main-header a.bg-landing-primary');
+      const cta = document.querySelector('#main-header a.landing-btn-primary');
       if (!cta) return body === bodyBg;
       return body === bodyBg && getComputedStyle(cta).backgroundColor === ctaBg;
     },
@@ -114,6 +114,7 @@ async function readTokens(page, mode) {
       '--landing-primary-container',
       '--landing-on-primary-container',
       '--landing-tertiary',
+      '--landing-on-tertiary',
       '--landing-outline',
       '--landing-outline-variant',
       '--landing-focus',
@@ -161,6 +162,12 @@ function checkPairs(mode, tokens) {
       MIN_TEXT,
     ],
     ['on-primary / primary', tokens['--landing-on-primary'], tokens['--landing-primary'], MIN_TEXT],
+    [
+      'on-tertiary / tertiary',
+      tokens['--landing-on-tertiary'],
+      tokens['--landing-tertiary'],
+      MIN_TEXT,
+    ],
     [
       'on-primary-container / primary-container',
       tokens['--landing-on-primary-container'],
@@ -225,8 +232,7 @@ async function checkDomPairs(page, mode) {
   const checks = [
     {
       name: 'primary CTA',
-      selector:
-        'a.landing-btn-primary, a[href*="#start"].rounded-landing-button.bg-landing-primary',
+      selector: 'a.landing-btn-primary',
       min: MIN_TEXT,
     },
     {
@@ -247,9 +253,9 @@ async function checkDomPairs(page, mode) {
   ];
 
   // Prefer header CTA if present
-  const ctaSel = (await page.locator('#main-header a.bg-landing-primary').count())
-    ? '#main-header a.bg-landing-primary'
-    : 'a.bg-landing-primary';
+  const ctaSel = (await page.locator('#main-header a.landing-btn-primary').count())
+    ? '#main-header a.landing-btn-primary'
+    : 'a.landing-btn-primary';
   checks[0].selector = ctaSel;
 
   for (const check of checks) {

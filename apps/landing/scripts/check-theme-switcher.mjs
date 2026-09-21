@@ -336,10 +336,10 @@ async function assertNoJsPrefersColorScheme(browser) {
         darkMedia: dark?.getAttribute('media'),
       };
     });
-    if (metas.lightContent !== '#faf7fb' || metas.lightMedia !== '(prefers-color-scheme: light)') {
+    if (metas.lightContent !== '#fbf1f5' || metas.lightMedia !== '(prefers-color-scheme: light)') {
       throw new Error(`no-js: light theme-color meta wrong: ${JSON.stringify(metas)}`);
     }
-    if (metas.darkContent !== '#161018' || metas.darkMedia !== '(prefers-color-scheme: dark)') {
+    if (metas.darkContent !== '#1e1a1d' || metas.darkMedia !== '(prefers-color-scheme: dark)') {
       throw new Error(`no-js: dark theme-color meta wrong: ${JSON.stringify(metas)}`);
     }
 
@@ -668,7 +668,7 @@ async function assertForcedColorsSystemDark(browser) {
       );
     }
     // Authored dark magenta tokens must not remain active under forced colors.
-    if (tokens.background === '#161018' || tokens.primary === '#a900a9') {
+    if (tokens.background === '#1e1a1d' || tokens.primary === '#a900a9') {
       throw new Error(
         `forced-colors/system-dark: authored dark tokens still active (${JSON.stringify(tokens)})`,
       );

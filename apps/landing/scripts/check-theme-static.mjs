@@ -227,6 +227,15 @@ function checkAlphaCapableTailwind() {
   if (!themeCss.includes('--landing-primary-rgb')) {
     fail('landing-theme.css missing --landing-*-rgb channel variables');
   }
+  if (!themeCss.includes('--landing-tertiary-hover-rgb')) {
+    fail('landing-theme.css missing --landing-tertiary-hover-rgb for filled CTAs');
+  }
+  if (themeCss.includes('#7d00fa') || themeCss.includes('#d5baff')) {
+    fail('landing-theme.css must not use the old violet tertiary');
+  }
+  if (!themeCss.includes('#8b5000') || !themeCss.includes('#ffb787')) {
+    fail('landing-theme.css must use orange tertiary tokens from the home playful palette');
+  }
   if (!themeCss.includes(':where(:root)') || !themeCss.includes(':where(html.light)')) {
     fail(
       'landing-theme.css must use :where(:root)/:where(html.light) so dark + forced-colors can win',
