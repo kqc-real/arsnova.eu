@@ -620,6 +620,7 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
   readonly showRewardEffect = signal(false);
   readonly timeoutMessage = signal<string | null>(null);
   private countdownTimer: ReturnType<typeof setInterval> | null = null;
+  private countdownDeadlineMs: number | null = null;
   private fingerHideTimeout: ReturnType<typeof setTimeout> | null = null;
   private lateSubmitCloseTimeout: ReturnType<typeof setTimeout> | null = null;
   private lobbyArrivalTimeout: ReturnType<typeof setTimeout> | null = null;
@@ -1111,6 +1112,12 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
     }),
   );
   readonly isFinished = computed(() => this.status() === 'FINISHED' && !this.qaStillJoinable());
+  readonly showQuizFinishedWrapUp = computed(
+    () =>
+      this.status() === 'FINISHED' &&
+      this.sessionSettings().hostEnded !== true &&
+      !this.showSessionEndGate(),
+  );
   readonly readingReadyConfirmed = computed(() => {
     const question = this.currentQuestion();
     return (
@@ -1223,6 +1230,9 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
   );
   readonly showPrimaryLiveView = computed(() => {
     if (this.isFinished()) {
+      return true;
+    }
+    if (this.showQuizFinishedWrapUp() && this.activeChannel() === 'quiz') {
       return true;
     }
 
@@ -2183,11 +2193,15 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
       this.activeChannel() === 'qa' &&
       this.isQaChannelOpen(),
   );
-  readonly showFinishedActions = computed(() => this.isFinished() && !this.showSessionEndGate());
+  readonly showFinishedActions = computed(
+    () => this.showQuizFinishedWrapUp() && this.activeChannel() === 'quiz',
+  );
   readonly showSessionEndGateBonusAction = computed(
     () => this.showSessionEndGate() && Boolean(this.bonusToken()),
   );
-  readonly sessionFeedbackAvailable = computed(() => this.sessionSettings().quizStarted === true);
+  readonly sessionFeedbackAvailable = computed(
+    () => this.sessionSettings().quizStarted === true && this.sessionSettings().hostEnded !== true,
+  );
   readonly showSessionEndGateFeedbackAction = computed(
     () => this.showSessionEndGate() && this.sessionFeedbackAvailable() && !this.feedbackSubmitted(),
   );
@@ -3196,20 +3210,28 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
     void this.runSessionEndRedirect();
   }
 
-  private enterOpenQaAfterQuizFinished(): void {
+  private sessionClosedByHostOrDeadline(): boolean {
+    return this.sessionSettings().hostEnded === true || this.sessionDeadline.isExpired();
+  }
+
+  private enterQuizFinishedWrapUp(): void {
     this.status.set('FINISHED');
     this.currentQuestion.set(null);
     this.stopCountdown();
     this.showSessionEndGate.set(false);
-    this.setActiveChannelProgrammatically('qa');
-    this.rememberParticipantLiveChannelOverride('qa');
     this.ensureQaSubscription();
+    this.ensureQuickFeedbackSubscription();
     void this.refreshQaQuestions();
+    void this.refreshQuickFeedbackResult();
+    void this.loadPersonalResult();
+    if (this.sessionFeedbackAvailable()) {
+      void this.refreshFeedbackSubmittedForGate();
+    }
   }
 
   private handleSessionFinished(): void {
-    if (!this.sessionDeadline.isExpired() && this.qaStillJoinable()) {
-      this.enterOpenQaAfterQuizFinished();
+    if (!this.sessionClosedByHostOrDeadline()) {
+      this.enterQuizFinishedWrapUp();
       return;
     }
     this.localDeadlineClosed = false;
@@ -3248,12 +3270,38 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
       }
       return false;
     }
-    this.sessionSettings.update((settings) => ({
-      ...settings,
-      expiresAt: snapshot.expiresAt,
-      serverNow: snapshot.serverNow,
-      sessionLifecycleRevision: snapshot.sessionLifecycleRevision,
-    }));
+    this.sessionSettings.update((settings) => {
+      const qaPatch = snapshot.channels?.qa;
+      const qaOpen = qaPatch?.open ?? snapshot.qaOpen;
+      const channels = settings.channels
+        ? {
+            ...settings.channels,
+            qa: {
+              ...settings.channels.qa,
+              ...(qaPatch?.enabled !== undefined ? { enabled: qaPatch.enabled } : {}),
+              ...(qaOpen !== undefined && qaOpen !== null ? { open: qaOpen } : {}),
+              ...(qaPatch?.state !== undefined ? { state: qaPatch.state } : {}),
+              ...(qaPatch?.closesAt !== undefined ? { closesAt: qaPatch.closesAt } : {}),
+            },
+          }
+        : settings.channels;
+      return {
+        ...settings,
+        expiresAt: snapshot.expiresAt,
+        serverNow: snapshot.serverNow,
+        sessionLifecycleRevision: snapshot.sessionLifecycleRevision,
+        ...(channels ? { channels } : {}),
+        ...(snapshot.qaClosesAt !== undefined
+          ? {
+              qaClosesAt:
+                snapshot.qaClosesAt instanceof Date
+                  ? snapshot.qaClosesAt.toISOString()
+                  : snapshot.qaClosesAt,
+            }
+          : {}),
+        ...(snapshot.hostEnded !== undefined ? { hostEnded: snapshot.hostEnded } : {}),
+      };
+    });
     if (this.sessionDeadline.isExpired()) {
       this.status.set('FINISHED');
       if (snapshot.status === 'FINISHED') {
@@ -3337,6 +3385,20 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
     this.qaPendingQuestionIds.set(new Set());
   }
 
+  /** End-Gate immer an den Seitenanfang: Vote bleibt sonst in der gescrollten Kanalliste. */
+  private scrollVoteSurfaceToTop(): void {
+    const host = this.el.nativeElement as HTMLElement;
+    const doc = host.ownerDocument;
+    const scrollRoot =
+      (host.closest('.app-main') as HTMLElement | null) ??
+      (doc?.getElementById('main-content') as HTMLElement | null);
+    if (!scrollRoot) {
+      return;
+    }
+    scrollRoot.scrollTo({ top: 0, behavior: 'auto' });
+    scrollRoot.scrollTop = 0;
+  }
+
   private focusSessionEndGate(): void {
     if (this.destroyRef.destroyed) {
       return;
@@ -3347,6 +3409,7 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
           if (this.destroyRef.destroyed) {
             return;
           }
+          this.scrollVoteSurfaceToTop();
           const target = (this.el.nativeElement as HTMLElement).querySelector<HTMLElement>(
             '#vote-session-end-anchor',
           );
@@ -3471,6 +3534,10 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
       this.sessionSettings.set(session);
       this.scheduleQaDeadlineCheck();
       if (!this.applySessionDeadlineSnapshot(session)) {
+        this.status.set(session.status as SessionStatus);
+        if (session.status === 'FINISHED') {
+          this.handleSessionFinished();
+        }
         this.applyPendingLobbyArrivalIfNeeded();
         return true;
       }
@@ -3677,6 +3744,7 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
           expiresAt?: string;
           sessionLifecycleRevision?: number;
           endedAt?: string | null;
+          hostEnded?: boolean;
           skippedQuestionId?: string;
           questionSkippedAt?: string;
           enableTimerAccommodation?: boolean;
@@ -3699,6 +3767,12 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
             this.sessionSettings.update((settings) => ({
               ...settings,
               endedAt: data.endedAt,
+            }));
+          }
+          if (data.hostEnded !== undefined) {
+            this.sessionSettings.update((settings) => ({
+              ...settings,
+              hostEnded: data.hostEnded,
             }));
           }
           if (data.enableTimerAccommodation !== undefined) {
@@ -3768,6 +3842,7 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
             this.startCountdownFromSessionTimer(data.timer, data.activeAt);
           } else if (data.status !== 'ACTIVE') {
             this.stopCountdown();
+            this.countdownDeadlineMs = null;
             this.countdownSeconds.set(null);
             this.sessionTimerSeconds.set(null);
           }
@@ -4056,6 +4131,7 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
   private startCountdown(q: CurrentQuestion | null): void {
     if (!q || !('timer' in q)) {
       this.stopCountdown();
+      this.countdownDeadlineMs = null;
       this.countdownSeconds.set(null);
       return;
     }
@@ -4097,6 +4173,7 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
     );
     if (!personalTimer || personalTimer <= 0) {
       this.stopCountdown();
+      this.countdownDeadlineMs = null;
       this.countdownSeconds.set(null);
       this.clearLateSubmitCloseTimeout();
       this.timeoutMessage.set(null);
@@ -4104,7 +4181,18 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
       return;
     }
     this.stopScorePreviewTicker();
-    this.startCountdownFromDeadline(activeAtMs + personalTimer * 1000);
+    const deadline = activeAtMs + personalTimer * 1000;
+    const remainingNow = remainingCountdownSeconds(deadline);
+    const sameDeadline =
+      this.countdownDeadlineMs !== null && Math.abs(this.countdownDeadlineMs - deadline) < 750;
+    if (sameDeadline && remainingNow <= 0) {
+      return;
+    }
+    if (sameDeadline && this.countdownTimer !== null) {
+      this.syncScorePreviewTicker();
+      return;
+    }
+    this.startCountdownFromDeadline(deadline);
     this.syncScorePreviewTicker();
   }
 
@@ -4183,9 +4271,9 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
     this.stopCountdown();
     this.clearLateSubmitCloseTimeout();
     this.timeoutMessage.set(null);
+    this.countdownDeadlineMs = deadline;
     const tick = (): void => {
-      const remaining = remainingCountdownSeconds(deadline);
-      this.countdownSeconds.set(remaining);
+      const remaining = remainingCountdownSeconds(this.countdownDeadlineMs ?? deadline);
       if (remaining <= 0) {
         this.stopCountdown();
         this.countdownSeconds.set(0);
@@ -4201,10 +4289,14 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
           this.countdownSeconds.set(null);
           this.fingerHideTimeout = null;
         }, 5000);
+        return;
       }
+      this.countdownSeconds.set(remaining);
     };
     tick();
-    this.countdownTimer = setInterval(tick, 1000);
+    if ((this.countdownSeconds() ?? 0) > 0) {
+      this.countdownTimer = setInterval(tick, 1000);
+    }
   }
 
   private setScorePreviewElapsedSeconds(elapsedSeconds: number): void {

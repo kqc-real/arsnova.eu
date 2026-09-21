@@ -18,6 +18,15 @@ describe('CountdownFingersComponent', () => {
     expect(image.getAttribute('aria-hidden')).toBe('true');
   });
 
+  it('zeigt die Null-Finger-Grafik als letztes Bild', () => {
+    const fixture = TestBed.createComponent(CountdownFingersComponent);
+    fixture.componentRef.setInput('seconds', 0);
+    fixture.detectChanges();
+
+    const image = fixture.nativeElement.querySelector('img') as HTMLImageElement;
+    expect(image.src).toContain('countdown_poster_clean_0.png');
+  });
+
   it('verwendet für eine Sekunde die Singularform', () => {
     const fixture = TestBed.createComponent(CountdownFingersComponent);
     fixture.componentRef.setInput('seconds', 1);

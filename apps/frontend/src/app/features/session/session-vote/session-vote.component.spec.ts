@@ -488,6 +488,81 @@ describe('SessionVoteComponent', { timeout: 30_000 }, () => {
     fixture.destroy();
   });
 
+  it('scrollt die Session-beendet-Ansicht an den Seitenanfang', async () => {
+    const fixture = TestBed.createComponent(SessionVoteComponent);
+    const scrollRoot = document.createElement('div');
+    scrollRoot.className = 'app-main';
+    Object.defineProperty(scrollRoot, 'scrollTop', {
+      configurable: true,
+      writable: true,
+      value: 640,
+    });
+    const scrollToSpy = vi.fn((options?: ScrollToOptions | number, y?: number) => {
+      if (typeof options === 'object' && options && typeof options.top === 'number') {
+        scrollRoot.scrollTop = options.top;
+        return;
+      }
+      if (typeof y === 'number') {
+        scrollRoot.scrollTop = y;
+      }
+    });
+    scrollRoot.scrollTo = scrollToSpy as unknown as typeof scrollRoot.scrollTo;
+    document.body.append(scrollRoot);
+    scrollRoot.append(fixture.nativeElement);
+
+    const component = fixture.componentInstance;
+    component.status.set('ACTIVE');
+    component.qaQuestions.set([{ id: 'qa-1', text: 'Noch sichtbar' } as never]);
+
+    (
+      component as unknown as {
+        handleQaQuestionsInvalidation(data: {
+          kind: 'INVALIDATED';
+          state: 'SESSION_ENDED';
+          sessionLifecycleRevision: number;
+          rankingRevision: number;
+          participantRevision: number;
+          serverNow: string;
+          expiresAt: string;
+          qaClosesAt: string | null;
+          endedAt: string;
+          postProcessingEndsAt: string;
+        }): void;
+      }
+    ).handleQaQuestionsInvalidation({
+      kind: 'INVALIDATED',
+      state: 'SESSION_ENDED',
+      sessionLifecycleRevision: 3,
+      rankingRevision: 4,
+      participantRevision: 5,
+      serverNow: '2026-09-15T08:00:00.000Z',
+      expiresAt: '2026-09-15T08:00:00.000Z',
+      qaClosesAt: '2026-09-15T08:00:00.000Z',
+      endedAt: '2026-09-15T08:00:00.000Z',
+      postProcessingEndsAt: '2026-09-29T08:00:00.000Z',
+    });
+
+    fixture.detectChanges();
+    await fixture.whenStable();
+    const endHeading = (fixture.nativeElement as HTMLElement).querySelector<HTMLElement>(
+      '#vote-session-end-anchor',
+    );
+    await vi.waitUntil(() => document.activeElement === endHeading, {
+      timeout: 1000,
+      interval: 10,
+    });
+    expect(scrollToSpy).toHaveBeenCalledWith(
+      expect.objectContaining({
+        top: 0,
+        behavior: 'auto',
+      }),
+    );
+    expect(scrollRoot.scrollTop).toBe(0);
+
+    scrollRoot.remove();
+    fixture.destroy();
+  });
+
   it('beendet zwei verbundene Teilnehmerclients gleichzeitig inhaltsfrei', async () => {
     const payload = {
       kind: 'INVALIDATED' as const,
@@ -960,6 +1035,26 @@ describe('SessionVoteComponent', { timeout: 30_000 }, () => {
     expect(component.timerExpired()).toBe(false);
     expect(component.voteInteractionLocked()).toBe(false);
     expect(component.showTimerAccommodationControls()).toBe(true);
+    fixture.destroy();
+  });
+
+  it('startet einen abgelaufenen Raum-Countdown nicht erneut bei weiteren ACTIVE-Updates', () => {
+    const fixture = TestBed.createComponent(SessionVoteComponent);
+    const component = fixture.componentInstance;
+    component.status.set('ACTIVE');
+    component.currentRound.set(1);
+    component.sessionTimerSeconds.set(30);
+    const activeAt = new Date(Date.now() - 40_000).toISOString();
+
+    component['startCountdownFromSessionTimer'](30, activeAt);
+    expect(component.countdownSeconds()).toBe(0);
+    expect(component.showFingerCountdown()).toBe(true);
+
+    component['startCountdownFromSessionTimer'](30, activeAt);
+    component['startCountdownFromSessionTimer'](30, activeAt);
+
+    expect(component.countdownSeconds()).toBe(0);
+    expect(component.showFingerCountdown()).toBe(true);
     fixture.destroy();
   });
 
@@ -4111,6 +4206,7 @@ describe('SessionVoteComponent', { timeout: 30_000 }, () => {
       code: 'ABC123',
       type: 'QUIZ',
       status: 'FINISHED',
+      hostEnded: true,
       quizName: 'Team-Quiz',
       title: null,
       participantCount: 6,
@@ -4179,32 +4275,22 @@ describe('SessionVoteComponent', { timeout: 30_000 }, () => {
     fixture.detectChanges();
 
     const inst = fixture.componentInstance;
-    expect(inst.showSessionEndGate()).toBe(true);
-    const endHeading = (fixture.nativeElement as HTMLElement).querySelector<HTMLElement>(
-      '#vote-session-end-anchor',
-    );
-    expect(endHeading?.getAttribute('tabindex')).toBe('-1');
-    await vi.waitUntil(() => document.activeElement === endHeading, {
-      timeout: 1000,
-      interval: 10,
-    });
+    expect(inst.showSessionEndGate()).toBe(false);
+    expect(inst.showQuizFinishedWrapUp()).toBe(true);
     const text = fixture.nativeElement.textContent as string;
-    expect(text).toContain('Die Session ist beendet.');
-    expect(text).toContain('bewerte sie kurz');
     expect(text).toMatch(/Kurzes Feedback\?|Deine Meinung zählt/);
     const bottomActions = fixture.nativeElement.querySelector('.vote-page__bottom-actions');
-    expect(bottomActions?.textContent).toContain('Zur Startseite');
-    expect(bottomActions?.textContent).not.toMatch(/Absenden!|Bewertung absenden/);
-    expect(bottomActions?.className).toContain('vote-page__bottom-actions--session-end');
+    expect(bottomActions?.textContent).toMatch(/Startseite/);
+    expect(bottomActions?.textContent).toMatch(/Absenden!|Bewertung absenden/);
     const feedbackSubmit = fixture.nativeElement.querySelector(
-      '.vote-feedback-card--session-end-gate .vote-feedback-card__submit',
+      '.vote-page__bottom-actions .vote-feedback-card__submit',
     );
     expect(feedbackSubmit?.textContent).toMatch(/Absenden!|Bewertung absenden/);
     expect(navSpy).not.toHaveBeenCalled();
     fixture.destroy();
   });
 
-  it('hält nach Quiz-FINISHED den Q&A-Kanal offen statt der Abschlussseite', async () => {
+  it('zeigt nach Quiz-FINISHED die Bewertung, auch wenn Q&A noch offen ist', async () => {
     getInfoQueryMock.mockResolvedValue({
       id: '6a8edced-5f8f-4cfa-9176-454fac9570ad',
       serverTime: MOCK_SERVER_TIME,
@@ -4241,8 +4327,60 @@ describe('SessionVoteComponent', { timeout: 30_000 }, () => {
     const inst = fixture.componentInstance;
     expect(inst.isFinished()).toBe(false);
     expect(inst.qaStillJoinable()).toBe(true);
-    expect(inst.activeChannel()).toBe('qa');
+    expect(inst.showQuizFinishedWrapUp()).toBe(true);
+    expect(inst.sessionFeedbackAvailable()).toBe(true);
     expect(inst.showSessionEndGate()).toBe(false);
+    expect(fixture.nativeElement.textContent).toMatch(/Kurzes Feedback\?|Deine Meinung zählt/);
+    fixture.destroy();
+  });
+
+  it('zeigt nach globalem Session-Ende das End-Gate statt Quiz, Q&A oder Blitzlicht', async () => {
+    getInfoQueryMock.mockResolvedValue({
+      id: '6a8edced-5f8f-4cfa-9176-454fac9570ad',
+      serverTime: MOCK_SERVER_TIME,
+      code: 'ABC123',
+      type: 'QUIZ',
+      status: 'FINISHED',
+      endedAt: '2026-09-21T06:00:00.000Z',
+      hostEnded: true,
+      expiresAt: '2026-09-22T06:00:00.000Z',
+      sessionLifecycleRevision: 5,
+      serverNow: '2026-09-21T06:00:01.000Z',
+      quizName: 'Team-Quiz',
+      title: null,
+      participantCount: 6,
+      teamMode: false,
+      quizStarted: true,
+      preset: 'PLAYFUL',
+      qaClosesAt: '2027-09-20T08:00:00.000Z',
+      channels: {
+        quiz: { enabled: true },
+        qa: {
+          enabled: true,
+          open: false,
+          title: 'Fragen',
+          moderationMode: true,
+          state: 'MANUALLY_CLOSED',
+          closesAt: '2027-09-20T08:00:00.000Z',
+        },
+        quickFeedback: { enabled: true, open: false },
+      },
+    });
+    currentQuestionQueryMock.mockResolvedValue(null);
+
+    const fixture = TestBed.createComponent(SessionVoteComponent);
+    fixture.detectChanges();
+    await flushComponentAfterStable(fixture, 80);
+    fixture.detectChanges();
+
+    const inst = fixture.componentInstance;
+    expect(inst.qaStillJoinable()).toBe(false);
+    expect(inst.isFinished()).toBe(true);
+    expect(inst.showSessionEndGate()).toBe(true);
+    expect(inst.showChannelTabs()).toBe(false);
+    expect(fixture.nativeElement.textContent).toContain('Diese Session wurde gelöscht');
+    expect(fixture.nativeElement.textContent).toContain('Blitzlicht');
+    expect(fixture.nativeElement.querySelector('.vote-feedback-card')).toBeNull();
     fixture.destroy();
   });
 
@@ -4332,9 +4470,12 @@ describe('SessionVoteComponent', { timeout: 30_000 }, () => {
     const inst = fixture.componentInstance;
     expect(inst.isFinished()).toBe(false);
     expect(inst.qaStillJoinable()).toBe(true);
-    expect(inst.activeChannel()).toBe('qa');
+    expect(inst.showQuizFinishedWrapUp()).toBe(true);
     expect(inst.showSessionEndGate()).toBe(false);
     expect(inst.qaQuestions().map((question) => question.id)).toEqual(['qa-open-1']);
+    inst.onChannelTabValueChange('qa');
+    fixture.detectChanges();
+    expect(inst.activeChannel()).toBe('qa');
     expect(fixture.nativeElement.textContent as string).toContain('Erste Frage nach dem Quiz');
 
     qaListQueryMock.mockResolvedValue({
@@ -4395,6 +4536,8 @@ describe('SessionVoteComponent', { timeout: 30_000 }, () => {
     expect(reloadFixture.componentInstance.qaQuestions().map((question) => question.id)).toEqual([
       'qa-open-3',
     ]);
+    reloadFixture.componentInstance.onChannelTabValueChange('qa');
+    reloadFixture.detectChanges();
     expect(reloadFixture.nativeElement.textContent as string).toContain('Frage nach Reload');
 
     expect(
@@ -4454,14 +4597,51 @@ describe('SessionVoteComponent', { timeout: 30_000 }, () => {
     ) as HTMLElement | null;
     expect(bottomActions).not.toBeNull();
     expect(bottomActions?.textContent).toContain('Code kopieren');
-    expect(bottomActions?.textContent).not.toMatch(/Absenden!|Bewertung absenden/);
-    expect(bottomActions?.textContent).toContain('Zur Startseite');
+    expect(bottomActions?.textContent).toMatch(/Absenden!|Bewertung absenden/);
+    expect(bottomActions?.textContent).toMatch(/Startseite/);
     expect(bottomActions?.className).toContain('vote-page__bottom-actions--session-end');
+    expect(bottomActions?.className).toContain('vote-page__bottom-actions--triple');
     const feedbackSubmit = fixture.nativeElement.querySelector(
-      '.vote-feedback-card--session-end-gate .vote-feedback-card__submit',
+      '.vote-page__bottom-actions .vote-feedback-card__submit',
     );
     expect(feedbackSubmit?.textContent).toMatch(/Absenden!|Bewertung absenden/);
     expect(navSpy).not.toHaveBeenCalled();
+    fixture.destroy();
+  });
+
+  it('zeigt nach Host-session.end den Bonus-Code ohne Quiz-Bewertung', async () => {
+    getInfoQueryMock.mockResolvedValue({
+      id: '6a8edced-5f8f-4cfa-9176-454fac9570ad',
+      serverTime: MOCK_SERVER_TIME,
+      code: 'ABC123',
+      type: 'QUIZ',
+      status: 'FINISHED',
+      hostEnded: true,
+      quizName: 'Team-Quiz',
+      title: null,
+      participantCount: 6,
+      teamMode: false,
+      quizStarted: true,
+      preset: 'PLAYFUL',
+    });
+    currentQuestionQueryMock.mockResolvedValue(null);
+    getPersonalResultQueryMock.mockResolvedValue({
+      totalScore: 10,
+      rank: 3,
+      bonusToken: 'BONUS-123',
+    });
+
+    const fixture = TestBed.createComponent(SessionVoteComponent);
+    fixture.detectChanges();
+    await flushComponentAfterStable(fixture, 80);
+    fixture.detectChanges();
+
+    const host = fixture.nativeElement as HTMLElement;
+    expect(host.textContent).toContain('BONUS-123');
+    expect(host.textContent).toContain('Code kopieren');
+    expect(host.querySelector('.vote-feedback-card')).toBeNull();
+    expect(host.textContent).not.toMatch(/Kurzes Feedback\?|Deine Meinung zählt|bewerte sie kurz/);
+    expect(getHasSubmittedFeedbackQueryMock).not.toHaveBeenCalled();
     fixture.destroy();
   });
 
@@ -4472,6 +4652,7 @@ describe('SessionVoteComponent', { timeout: 30_000 }, () => {
       code: 'ABC123',
       type: 'QUIZ',
       status: 'FINISHED',
+      hostEnded: true,
       quizName: 'Team-Quiz',
       title: null,
       participantCount: 6,
@@ -4499,7 +4680,7 @@ describe('SessionVoteComponent', { timeout: 30_000 }, () => {
     expect(host.querySelector('.vote-feedback-card')).toBeNull();
     expect(bottomActions).not.toBeNull();
     expect(bottomActions?.textContent).toContain('Code kopieren');
-    expect(bottomActions?.textContent).toContain('Zur Startseite');
+    expect(bottomActions?.textContent).toMatch(/Startseite/);
     expect(bottomActions?.textContent).not.toMatch(/Absenden!|Bewertung absenden/);
     expect(getHasSubmittedFeedbackQueryMock).not.toHaveBeenCalled();
     expect(navSpy).not.toHaveBeenCalled();
@@ -7147,6 +7328,7 @@ describe('SessionVoteComponent', { timeout: 30_000 }, () => {
       status: 'FINISHED',
       currentQuestion: null,
       currentRound: 1,
+      hostEnded: true,
       serverTime: MOCK_SERVER_TIME,
     });
 

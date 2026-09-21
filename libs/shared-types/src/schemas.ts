@@ -3285,6 +3285,8 @@ export const SessionStatusUpdateSchema = z.object({
   sessionLifecycleRevision: z.number().int().min(0).optional(),
   /** Kanonisches Ende; im terminalen Zustand immer gesetzt. */
   endedAt: z.string().datetime().nullable().optional(),
+  /** Host hat die Session global beendet (`session.end`); Quiz-FINISHED allein setzt das nicht. */
+  hostEnded: z.boolean().optional(),
   /** Autoritative Serverzeit für den monoton fortgeschriebenen Client-Fallback. */
   serverNow: z.string().datetime().optional(),
   pausedFromStatus: SessionPausedFromStatusSchema.nullable().optional(),
@@ -4051,6 +4053,8 @@ export const SessionInfoDTOSchema = z.object({
   timeZone: z.string().min(1).max(64).optional(),
   sessionLifecycleRevision: z.number().int().min(0).optional(),
   endedAt: z.string().datetime().nullable().optional(),
+  /** Host hat die Session global beendet (`session.end`); Quiz-FINISHED allein setzt das nicht. */
+  hostEnded: z.boolean().optional(),
   postProcessingEndsAt: z.string().datetime().nullable().optional(),
   purgeEligibleAt: z.string().datetime().nullable().optional(),
   qaClosesAt: z.string().datetime().nullable().optional(),

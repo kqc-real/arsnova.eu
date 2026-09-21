@@ -172,6 +172,8 @@ model Session {
   hostSupportId                  String?                  @unique @db.VarChar(13) // Nicht geheime Referenz für verifizierten Support
   startedAt                      DateTime                 @default(now()) // Legacy-Cleanup-Anker für rollbackfeste längere Fristen
   endedAt                        DateTime?
+  /// Nur session.end (Startseite »löschen«); nicht das letzte Quiz-FINISHED.
+  hostEnded                      Boolean                  @default(false)
   legalHoldUntil                 DateTime? // Epic 9: schützt vor Purge bis Zeitpunkt
   legalHoldReason                String? // Epic 9: Begründung für Legal Hold
   legalHoldSetAt                 DateTime? // Epic 9: Zeitpunkt des letzten Hold-Setzens

@@ -1718,7 +1718,8 @@ export class SessionPresentComponent implements OnInit, OnDestroy {
     this.countdownDeadlineMs = nextDeadline;
 
     if (sameRun && (this.countdownTimer !== null || remainingCountdownSeconds(nextDeadline) <= 0)) {
-      this.countdownSeconds.set(remainingCountdownSeconds(nextDeadline));
+      const remaining = remainingCountdownSeconds(nextDeadline);
+      this.countdownSeconds.set(remaining);
       return;
     }
 

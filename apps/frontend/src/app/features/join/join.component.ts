@@ -8,7 +8,7 @@ import { MatInput } from '@angular/material/input';
 import { MatSelect, MatSelectTrigger } from '@angular/material/select';
 import { MatOption } from '@angular/material/core';
 import { refreshTrpcWsBinding, trpc } from '../../core/trpc.client';
-import { isQaChannelJoinable, type SessionInfoDTO, type TeamDTO } from '@arsnova/shared-types';
+import { isQaOpenForParticipants, type SessionInfoDTO, type TeamDTO } from '@arsnova/shared-types';
 import type { NicknameTheme } from '@arsnova/shared-types';
 import { getEffectiveLocale, localeIdToSupported } from '../../core/locale-from-path';
 import { formatLocaleCount } from '../../core/locale-number.util';
@@ -224,6 +224,11 @@ export class JoinComponent implements OnInit, OnDestroy {
 
   readonly showTeamInfo = computed(() => this.session()?.teamMode === true);
   readonly isPlayfulPreset = computed(() => this.themePreset.preset() === 'spielerisch');
+  /** Sessionende ist für Teilnehmende nur in reinen Q&A-Sessions relevant. */
+  readonly showPlannedSessionEnd = computed(() => {
+    const s = this.session();
+    return !!s?.expiresAt && s.type === 'Q_AND_A';
+  });
 
   readonly selectedTeam = computed(
     () => this.teams().find((team) => team.id === this.selectedTeamId()) ?? null,
@@ -376,9 +381,9 @@ export class JoinComponent implements OnInit, OnDestroy {
         anonymousClientId: getAnonymousClientId(),
       });
       recordServerTimeIso(session.serverTime);
-      if (session.status === 'FINISHED' && !isQaChannelJoinable(session)) {
+      if (session.status === 'FINISHED' && !isQaOpenForParticipants(session)) {
         this.errorSessionFinished.set(true);
-        this.error.set($localize`Diese Session ist bereits beendet.`);
+        this.error.set($localize`:@@join.sessionDeleted:Diese Session wurde gelöscht.`);
         this.loading.set(false);
         return;
       }
@@ -434,10 +439,10 @@ export class JoinComponent implements OnInit, OnDestroy {
         anonymousClientId: getAnonymousClientId(),
       });
       recordServerTimeIso(session.serverTime);
-      if (session.status === 'FINISHED' && !isQaChannelJoinable(session)) {
-        this.session.set(session);
+      if (session.status === 'FINISHED' && !isQaOpenForParticipants(session)) {
+        this.session.set(null);
         this.errorSessionFinished.set(true);
-        this.error.set($localize`Diese Session ist bereits beendet.`);
+        this.error.set($localize`:@@join.sessionDeleted:Diese Session wurde gelöscht.`);
         this.stopSessionPoll();
         return;
       }

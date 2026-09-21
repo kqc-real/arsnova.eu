@@ -9943,6 +9943,10 @@
           <context context-type="linenumber">56</context>
         </context-group>
       </trans-unit>
+      <trans-unit id="join.sessionDeleted" datatype="html">
+        <source>Diese Session wurde gelöscht.</source>
+        <target>Cette séance a été supprimée.</target>
+      </trans-unit>
       <trans-unit id="join.sessionPlannedEnd" datatype="html">
         <source>Geplantes Sessionende:</source>
         <target>Fin de séance prévue :</target>
@@ -26736,6 +26740,14 @@
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-vote/session-vote.component.html</context>
           <context context-type="linenumber">140,142</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="sessionVote.sessionDeletedLead" datatype="html">
+        <source> Diese Session wurde gelöscht. Quiz, Q&amp;A und Blitzlicht sind nicht mehr verfügbar.</source>
+        <target>Cette session a été supprimée. Quiz, Q&amp;R et feedback express ne sont plus disponibles.</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/session-vote/session-vote.component.html</context>
+          <context context-type="linenumber">147,149</context>
         </context-group>
       </trans-unit>
       <trans-unit id="sessionVote.bonusGateLead" datatype="html">

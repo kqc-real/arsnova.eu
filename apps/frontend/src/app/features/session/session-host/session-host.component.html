@@ -4,8 +4,10 @@
   [class.session-host--lobby]="effectiveStatus() === 'LOBBY'"
   [class.session-host--team-mode]="session()?.teamMode === true"
   [class.session-host--with-channel-tabs]="showChannelTabs()"
-  [class.session-host--with-live-banner]="effectiveStatus() !== 'FINISHED'"
-  [class.session-host--finished]="effectiveStatus() === 'FINISHED'"
+  [class.session-host--with-live-banner]="isLiveHostSurface()"
+  [class.session-host--finished]="
+    effectiveStatus() === 'FINISHED' && !liveChannelsRemainAfterQuiz()
+  "
   [class.session-host--immersive]="isImmersiveMode()"
   [class.session-host--word-cloud-overlay]="freetextWordCloudMaximized() || qaWordCloudDialogOpen()"
   [class.session-host--qa-word-cloud-overlay]="qaWordCloudDialogOpen()"
@@ -392,7 +394,7 @@
       </div>
     </mat-menu>
 
-    @if (effectiveStatus() !== 'FINISHED') {
+    @if (isLiveHostSurface()) {
       @let audienceCount = liveParticipantCount();
       <div class="session-host__live-shell-row">
         <section class="session-host__live-banner">
@@ -4763,7 +4765,7 @@
         </div>
       }
     </div>
-    @if (effectiveStatus() !== 'FINISHED') {
+    @if (isLiveHostSurface()) {
       <div class="session-host__exit-clearance" aria-hidden="true"></div>
       <div
         #exitAnchor

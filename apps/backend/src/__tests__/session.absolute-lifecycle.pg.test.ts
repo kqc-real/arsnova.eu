@@ -580,4 +580,80 @@ describe.skipIf(!RUN_PG)('absolute session lifecycle (PostgreSQL)', () => {
       ),
     ).resolves.toMatchObject({ rowCount: 1 });
   });
+
+  it('erlaubt nach globalem Ende nur das Schließen von Q&A und Blitzlicht', async () => {
+    const sessionId = randomUUID();
+    sessionIds.push(sessionId);
+    await primary.query(
+      `
+        INSERT INTO "Session" (
+          id, code, status, "createdAt", "expiresAt", "startedAt",
+          "qaEnabled", "qaOpen", "quickFeedbackOpen"
+        )
+        VALUES (
+          $1, $2, 'ACTIVE',
+          clock_timestamp() - INTERVAL '2 hours',
+          clock_timestamp() + INTERVAL '12 hours',
+          clock_timestamp() - INTERVAL '2 hours',
+          TRUE, TRUE, TRUE
+        )
+      `,
+      [sessionId, uniqueSessionCode()],
+    );
+    await primary.query(`UPDATE "Session" SET status = 'FINISHED' WHERE id = $1`, [sessionId]);
+
+    await expect(
+      primary.query(
+        `
+          UPDATE "Session"
+          SET "qaOpen" = FALSE, "quickFeedbackOpen" = FALSE
+          WHERE id = $1
+          RETURNING "qaOpen", "quickFeedbackOpen", "sessionLifecycleRevision" AS revision
+        `,
+        [sessionId],
+      ),
+    ).resolves.toMatchObject({
+      rowCount: 1,
+      rows: [{ qaOpen: false, quickFeedbackOpen: false, revision: 2 }],
+    });
+
+    await expect(
+      primary.query(`UPDATE "Session" SET "qaOpen" = TRUE WHERE id = $1`, [sessionId]),
+    ).rejects.toThrow(/ARSNOVA_SESSION_ENDED/);
+  });
+
+  it('erlaubt nach Quiz-FINISHED das Markieren von hostEnded', async () => {
+    const sessionId = randomUUID();
+    sessionIds.push(sessionId);
+    await primary.query(
+      `
+        INSERT INTO "Session" (
+          id, code, status, "createdAt", "expiresAt", "startedAt"
+        )
+        VALUES (
+          $1, $2, 'ACTIVE',
+          clock_timestamp() - INTERVAL '2 hours',
+          clock_timestamp() + INTERVAL '12 hours',
+          clock_timestamp() - INTERVAL '2 hours'
+        )
+      `,
+      [sessionId, uniqueSessionCode()],
+    );
+    await primary.query(`UPDATE "Session" SET status = 'FINISHED' WHERE id = $1`, [sessionId]);
+
+    await expect(
+      primary.query(
+        `
+          UPDATE "Session"
+          SET "hostEnded" = TRUE
+          WHERE id = $1
+          RETURNING "hostEnded", "sessionLifecycleRevision" AS revision
+        `,
+        [sessionId],
+      ),
+    ).resolves.toMatchObject({
+      rowCount: 1,
+      rows: [{ hostEnded: true, revision: 2 }],
+    });
+  });
 });

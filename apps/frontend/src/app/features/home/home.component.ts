@@ -1266,7 +1266,7 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
   private applyFinishedJoinError(code: string): void {
     this.sessionCode.set(code);
     this.joinErrorSessionFinished.set(true);
-    this.joinError.set($localize`Diese Session ist bereits beendet.`);
+    this.joinError.set($localize`:@@join.sessionDeleted:Diese Session wurde gelöscht.`);
     this.triggerShake();
   }
 

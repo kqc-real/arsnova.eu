@@ -10,6 +10,7 @@ export type SessionDeadlineSnapshot = {
   qaEnabled?: boolean | null;
   qaOpen?: boolean | null;
   qaClosesAt?: string | Date | null;
+  hostEnded?: boolean;
 };
 
 export function enrichDeadlineSnapshot(

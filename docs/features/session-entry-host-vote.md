@@ -181,8 +181,9 @@ keine Quiz-Stimme mehr abgeben.
 | Laufende oder verlängerte Session (`expiresAt` in der Zukunft) | **Kein** Button »Zur Startseite«. Nur Logo (Toolbar bleibt sichtbar: `hideAppChrome` gilt nicht für Vote) oder Browser-Zurück. | Code      |
 | Session-End-Gate / Abschlussaktionen                           | Primäraktion **Zur Startseite** (`continueToHomeAfterSessionEnd`)                                                              | Code+Test |
 | Verlassen (Logo, Zurück, Navigate)                             | Kein `canDeactivate`. `markParticipantOffline` (Presence weg, Datensatz bleibt).                                               | Code+Test |
-| `FINISHED` + Q&A noch joinbar                                  | Kein End-Gate; Vote bleibt im Q&A-Kanal                                                                                        | Code+Test |
-| `FINISHED` + Q&A zu, oder `expiresAt` erreicht                 | End-Gate                                                                                                                       | Code+Test |
+| `FINISHED` + Q&A noch joinbar                                  | Kein End-Gate; Quiz-Bewertung auf dem Vote; Q&A/Blitzlicht bleiben per Kanalwahl erreichbar                                    | Code+Test |
+| `FINISHED` + Q&A zu, oder `expiresAt` erreicht                 | End-Gate; Quiz-Bewertung nur wenn `quizStarted` und nicht `hostEnded`                                                          | Code+Test |
+| Host `session.end`                                             | End-Gate ohne Quiz-Bewertung; Bonus-Code bleibt sichtbar                                                                       | Code+Test |
 
 Verlängerung (`changeExpiration`) ändert nur `expiresAt`. Sie fügt keinen
 Vote-Exit hinzu und ändert Q&A-Öffnung nicht
@@ -207,13 +208,14 @@ Vote-Exit hinzu und ändert Q&A-Öffnung nicht
 
 ## 8. Lebenszyklus-Gatter
 
-| Zustand                                      | Home-Join | `session.join` | Vote-UI live       | Quiz-`vote.submit`  | Q&A lesen/schreiben | Host-UI                                                                                           |
-| -------------------------------------------- | --------- | -------------- | ------------------ | ------------------- | ------------------- | ------------------------------------------------------------------------------------------------- |
-| `LOBBY` / `ACTIVE`, vor `expiresAt`          | Join      | Ja             | Ja                 | Ja (Phase `ACTIVE`) | Wenn Q&A offen      | Steuern                                                                                           |
-| Quiz `FINISHED`, Q&A `OPEN`, vor `expiresAt` | Join      | Ja             | Q&A, kein End-Gate | **Nein** (FINISHED) | Ja                  | Q&A + Kanalwahl; **Nächstes Quiz in diesem Raum** / Blitzlicht öffnet neu (`canStartAnotherQuiz`) |
-| `FINISHED`, Q&A zu                           | Fehler    | `BAD_REQUEST`  | End-Gate           | Nein                | Nein                | Nachbereitung lesen/exportieren                                                                   |
-| `expiresAt` erreicht                         | Fehler    | `BAD_REQUEST`  | End-Gate           | Nein                | Nein                | Abgelaufen                                                                                        |
-| Nachbereitung (`postProcessingEndsAt`)       | —         | Nein           | End-Gate           | Nein                | Nein                | Host-Zugang bis Frist, ohne Live-Steuerung                                                        |
+| Zustand                                      | Home-Join | `session.join` | Vote-UI live           | Quiz-`vote.submit`  | Q&A lesen/schreiben | Host-UI                                                                                                                                 |
+| -------------------------------------------- | --------- | -------------- | ---------------------- | ------------------- | ------------------- | --------------------------------------------------------------------------------------------------------------------------------------- |
+| `LOBBY` / `ACTIVE`, vor `expiresAt`          | Join      | Ja             | Ja                     | Ja (Phase `ACTIVE`) | Wenn Q&A offen      | Steuern                                                                                                                                 |
+| Quiz `FINISHED`, Q&A `OPEN`, vor `expiresAt` | Join      | Ja             | Q&A, kein End-Gate     | **Nein** (FINISHED) | Ja                  | Q&A + Kanalwahl; **Nächstes Quiz in diesem Raum** / Blitzlicht öffnet neu (`canStartAnotherQuiz`)                                       |
+| `FINISHED`, Q&A zu                           | Fehler    | `BAD_REQUEST`  | End-Gate               | Nein                | Nein                | Nachbereitung lesen/exportieren                                                                                                         |
+| Host `session.end` (Startseite »löschen«)    | Fehler    | `BAD_REQUEST`  | End-Gate (alle Kanäle) | Nein                | Nein                | Q&A und Blitzlicht werden mitbeendet; `hostEnded` blendet die Quiz-Bewertung aus, Bonus-Code bleibt; Join-URL und Recent-Join entfallen |
+| `expiresAt` erreicht                         | Fehler    | `BAD_REQUEST`  | End-Gate               | Nein                | Nein                | Abgelaufen                                                                                                                              |
+| Nachbereitung (`postProcessingEndsAt`)       | —         | Nein           | End-Gate               | Nein                | Nein                | Host-Zugang bis Frist, ohne Live-Steuerung                                                                                              |
 
 Quellen: `session.ts` `join`, `vote.ts` `submit`, `isQaOpenForParticipants`,
 `qaHostWritesAllowed`, `handleSessionFinished`,

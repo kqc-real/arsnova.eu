@@ -26,6 +26,24 @@ describe('isQaChannelJoinable', () => {
     ).toBe(true);
   });
 
+  it('lehnt einen als offen markierten, aber geschlossenen Q&A-Kanal ab', () => {
+    expect(
+      isQaChannelJoinable(
+        {
+          channels: {
+            qa: {
+              enabled: true,
+              open: false,
+              state: 'OPEN',
+              closesAt: '2026-09-20T08:00:00.000Z',
+            },
+          },
+        },
+        NOW,
+      ),
+    ).toBe(false);
+  });
+
   it('lehnt beendete oder geschlossene Q&A-Kanäle ab', () => {
     expect(
       isQaChannelJoinable(

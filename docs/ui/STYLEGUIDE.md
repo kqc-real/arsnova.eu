@@ -243,12 +243,12 @@ Abgeschlossen mit dem Token-/Chrome-Nachzug (Wellen 1–8). Bei **neuen oder ge�
 
 ### Floating-Bottom-Contract
 
-| Muster                     | Wann                                                                                                | Verhalten                                                                                      |
-| -------------------------- | --------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------- |
-| Solo-Primary-CTA           | Ein sichtbarer Primary (Vote-Submit, Q&amp;A „Frage stellen“, Join-Submit, Session-Ende `--single`) | `width: fit-content`, zentriert inkl. Safe-Area; **kein** Glas-/Surface-Prospekt um den Button |
-| Multi-Action-Tray          | 2–3 Aktionen (Session-Ende)                                                                         | opake Kapsel, Grid, begrenzte Breite                                                           |
-| Blitzlicht-Host-Standalone | Host-Standalone-Bottom                                                                              | Buttons ohne Tray (wie etabliert)                                                              |
-| Quiz-Edit-Leiste           | Editor speichern/verwerfen                                                                          | **eigener** Editor-Chrome – nicht in den Vote-Floating-Contract zwingen                        |
+| Muster                     | Wann                                                                                                | Verhalten                                                                                                                          |
+| -------------------------- | --------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------- |
+| Solo-Primary-CTA           | Ein sichtbarer Primary (Vote-Submit, Q&amp;A „Frage stellen“, Join-Submit, Session-Ende `--single`) | `width: fit-content`, zentriert inkl. Safe-Area; **kein** Glas-/Surface-Prospekt um den Button                                     |
+| Multi-Action-Tray          | 2–3 Aktionen (Session-Ende)                                                                         | opake Kapsel, Grid, begrenzte Breite; `padding-bottom` der Vote-Seite hält den Inhalt über der Leiste scrollbar (`--triple` höher) |
+| Blitzlicht-Host-Standalone | Host-Standalone-Bottom                                                                              | Buttons ohne Tray (wie etabliert)                                                                                                  |
+| Quiz-Edit-Leiste           | Editor speichern/verwerfen                                                                          | **eigener** Editor-Chrome – nicht in den Vote-Floating-Contract zwingen                                                            |
 
 ### Live-Kanal-Breite (Session-Shell)
 

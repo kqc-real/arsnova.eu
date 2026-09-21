@@ -38,7 +38,15 @@
 }
 
 .vote-page--with-session-end-actions {
-  padding-bottom: calc(env(safe-area-inset-bottom, 0px) + 8.5rem);
+  padding-bottom: calc(
+    env(safe-area-inset-bottom, 0px) + var(--app-footer-visible-offset, 0px) + 8.5rem
+  );
+}
+
+.vote-page--with-session-end-actions:has(.vote-page__bottom-actions--triple) {
+  padding-bottom: calc(
+    env(safe-area-inset-bottom, 0px) + var(--app-footer-visible-offset, 0px) + 16rem
+  );
 }
 
 /* Q&A: Texteingabe und Fragenliste brauchen mehr als die Quiz-Abstimmungsspalte (36rem).
@@ -393,11 +401,25 @@
   }
 
   .vote-page--with-session-end-actions {
-    padding-bottom: calc(var(--host-mobile-safe-bottom) + 9rem);
+    padding-bottom: calc(
+      var(--host-mobile-safe-bottom) + var(--app-footer-visible-offset, 0px) + 9rem
+    );
+  }
+
+  .vote-page--with-session-end-actions:has(.vote-page__bottom-actions--triple) {
+    padding-bottom: calc(
+      var(--host-mobile-safe-bottom) + var(--app-footer-visible-offset, 0px) + 16.5rem
+    );
   }
 
   .vote-page--session-end-gate {
     padding-bottom: calc(var(--host-mobile-safe-bottom) + 9rem);
+  }
+
+  .vote-page--session-end-gate:has(.vote-page__bottom-actions--triple) {
+    padding-bottom: calc(
+      var(--host-mobile-safe-bottom) + var(--app-footer-visible-offset, 0px) + 16.5rem
+    );
   }
 
   .vote-page__bottom-actions--floating {
@@ -4289,6 +4311,12 @@
   max-width: 28rem;
   margin: 0 auto;
   padding: 1.5rem 1rem calc(env(safe-area-inset-bottom, 0px) + 8.5rem);
+}
+
+.vote-page--session-end-gate:has(.vote-page__bottom-actions--triple) {
+  padding-bottom: calc(
+    env(safe-area-inset-bottom, 0px) + var(--app-footer-visible-offset, 0px) + 16rem
+  );
 }
 
 .vote-session-end-gate__hero.dialog-title-header {
