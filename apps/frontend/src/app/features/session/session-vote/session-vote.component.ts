@@ -3211,7 +3211,9 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
   }
 
   private sessionClosedByHostOrDeadline(): boolean {
-    return this.sessionSettings().hostEnded === true || this.sessionDeadline.isExpired();
+    return (
+      this.sessionSettings().hostEnded === true || this.sessionDeadline.isAbsoluteDeadlineReached()
+    );
   }
 
   private enterQuizFinishedWrapUp(): void {

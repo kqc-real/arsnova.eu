@@ -9944,16 +9944,16 @@ const sessionCoreRouter = router({
 
       if (outcome.transitioned || outcome.channelsClosed) {
         invalidateSessionStatusCachesForCode(code);
-      }
-      if (outcome.transitioned) {
-        markFinishProjectionLeaderboard(code);
-        await incrementCompletedSessionsTotal();
-        void recordSessionTransitionActivity();
         try {
           await invalidateHostPairingForSession(code);
         } catch {
           /* Pairing-Registry ist Hilfszustand; Session-Ende bleibt maßgeblich. */
         }
+      }
+      if (outcome.transitioned) {
+        markFinishProjectionLeaderboard(code);
+        await incrementCompletedSessionsTotal();
+        void recordSessionTransitionActivity();
         await issueProductFeedbackInvitesAfterFinishAwait(identity.id);
       }
 

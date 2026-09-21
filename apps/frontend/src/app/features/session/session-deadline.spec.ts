@@ -162,6 +162,20 @@ describe('SessionDeadlineController', () => {
     expect(deadline.isExpired()).toBe(false);
   });
 
+  it('unterscheidet Quiz-FINISHED ohne Q&A von der globalen expiresAt', () => {
+    const deadline = new SessionDeadlineController({ monotonicNow: () => 0 });
+    expect(
+      deadline.applySnapshot({
+        status: 'FINISHED',
+        serverNow: '2026-09-19T08:00:00.000Z',
+        expiresAt: '2026-09-20T08:00:00.000Z',
+        sessionLifecycleRevision: 4,
+      }),
+    ).toBe(true);
+    expect(deadline.isExpired()).toBe(true);
+    expect(deadline.isAbsoluteDeadlineReached()).toBe(false);
+  });
+
   it('behält die Fristsperre nach Quiz-FINISHED ohne offenen Q&A-Kanal', () => {
     const deadline = new SessionDeadlineController({ monotonicNow: () => 0 });
     expect(

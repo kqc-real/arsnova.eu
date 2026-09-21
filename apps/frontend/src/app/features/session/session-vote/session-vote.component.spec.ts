@@ -4334,6 +4334,46 @@ describe('SessionVoteComponent', { timeout: 30_000 }, () => {
     fixture.destroy();
   });
 
+  it('bleibt nach Quiz-FINISHED ohne Q&A im Wrap-up, solange expiresAt in der Zukunft liegt', () => {
+    const fixture = TestBed.createComponent(SessionVoteComponent);
+    const inst = fixture.componentInstance;
+    inst.status.set('ACTIVE');
+    inst.sessionSettings.set({
+      type: 'QUIZ',
+      quizStarted: true,
+      hostEnded: false,
+      expiresAt: '2027-09-20T08:00:00.000Z',
+      channels: {
+        quiz: { enabled: true },
+        qa: { enabled: false, open: false, title: null, moderationMode: false },
+        quickFeedback: { enabled: false, open: false },
+      },
+    });
+    (
+      inst as unknown as {
+        applySessionDeadlineSnapshot(snapshot: {
+          status: string;
+          serverNow: string;
+          expiresAt: string;
+          sessionLifecycleRevision: number;
+          hostEnded?: boolean;
+        }): boolean;
+      }
+    ).applySessionDeadlineSnapshot({
+      status: 'FINISHED',
+      serverNow: '2026-09-21T08:00:00.000Z',
+      expiresAt: '2027-09-20T08:00:00.000Z',
+      sessionLifecycleRevision: 4,
+      hostEnded: false,
+    });
+    fixture.detectChanges();
+
+    expect(inst.status()).toBe('FINISHED');
+    expect(inst.showSessionEndGate()).toBe(false);
+    expect(inst.showQuizFinishedWrapUp()).toBe(true);
+    fixture.destroy();
+  });
+
   it('zeigt nach globalem Session-Ende das End-Gate statt Quiz, Q&A oder Blitzlicht', async () => {
     getInfoQueryMock.mockResolvedValue({
       id: '6a8edced-5f8f-4cfa-9176-454fac9570ad',

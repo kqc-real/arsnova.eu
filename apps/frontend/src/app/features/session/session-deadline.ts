@@ -158,4 +158,10 @@ export class SessionDeadlineController {
     }
     return this.expired;
   }
+
+  /** Globale `expiresAt`, ohne das Quiz-FINISHED-Latch bei geschlossenem Q&A. */
+  isAbsoluteDeadlineReached(): boolean {
+    const remaining = this.remainingMs();
+    return remaining !== null && remaining <= 0;
+  }
 }

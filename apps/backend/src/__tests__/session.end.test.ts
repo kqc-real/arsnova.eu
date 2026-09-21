@@ -298,6 +298,7 @@ describe('session.end', () => {
       }),
     );
     expect(platformStatisticMocks.incrementCompletedSessionsTotal).not.toHaveBeenCalled();
+    expect(invalidateHostPairingForSessionMock).toHaveBeenCalledWith('ABC123');
   });
 
   it('markiert ein bereits beendetes Quiz nach session.end als hostEnded', async () => {
@@ -338,6 +339,7 @@ describe('session.end', () => {
         },
       }),
     );
+    expect(invalidateHostPairingForSessionMock).toHaveBeenCalledWith('ABC123');
   });
 
   it('liefert bei bereits fälliger Frist das trigger-kanonische endedAt = expiresAt', async () => {
