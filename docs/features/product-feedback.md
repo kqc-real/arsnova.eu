@@ -43,7 +43,10 @@ nutzt dieselbe Kartenoptik (Primary-Rand, Elevated Surface, Icon-Kachel,
 Schritt-Badge); modal mit 42-Prozent-Scrim und leichtem Blur, Desktop unten rechts,
 mobil als Bottom-Sheet. Session-Bewertung
 (4.8) hat Vorrang — Produktfrage erscheint bei Teilnehmenden erst nach Absenden
-der Session-Bewertung (oder wenn 4.8 fehlt / `quizStarted` false). Floating-Tray:
+der Session-Bewertung (oder wenn 4.8 fehlt / `quizStarted` false / `hostEnded`).
+Nach `session.end` erscheint die Karte sofort auf dem Vote-End-Gate. Ein Reload
+stellt eine bereits geclaimte, noch ungenutzte Einladung aus `sessionStorage`
+wieder her; ein zweiter serverseitiger Claim bleibt leer. Floating-Tray:
 Navigation/Bonus. Area-Chips folgen dem Nutzungsflow (linke Spalte frühe
 Schritte, rechte Spalte später/Meta; mobil einspaltig).
 

@@ -54,6 +54,7 @@ describe('session.submitSessionFeedback', () => {
         id: 'sess-1',
         status: 'FINISHED',
         quizStarted: false,
+        hostEnded: false,
       });
 
       await expect(caller.submitSessionFeedback(feedbackInput)).rejects.toMatchObject({
@@ -77,6 +78,7 @@ describe('session.submitSessionFeedback', () => {
         id: 'sess-1',
         status: 'FINISHED',
         quizStarted: true,
+        hostEnded: false,
       });
       prismaMock.sessionFeedback.findUnique.mockResolvedValue(null);
       prismaMock.sessionFeedback.create.mockResolvedValue({ id: 'feedback-1' });
@@ -91,6 +93,30 @@ describe('session.submitSessionFeedback', () => {
           wouldRepeat: true,
         },
       });
+    },
+  );
+
+  trpcDodIt(
+    {
+      procedure: 'session.submitSessionFeedback',
+      case: 'error',
+      mode: 'direct',
+      contract: 'BAD_REQUEST',
+      title: 'lehnt Bewertungen nach globalem Host-Ende ab',
+    },
+    async () => {
+      prismaMock.session.findUnique.mockResolvedValue({
+        id: 'sess-1',
+        status: 'FINISHED',
+        quizStarted: true,
+        hostEnded: true,
+      });
+
+      await expect(caller.submitSessionFeedback(feedbackInput)).rejects.toMatchObject({
+        code: 'BAD_REQUEST',
+        message: 'Bewertung nach globalem Session-Ende nicht mehr möglich.',
+      });
+      expect(prismaMock.sessionFeedback.create).not.toHaveBeenCalled();
     },
   );
 });

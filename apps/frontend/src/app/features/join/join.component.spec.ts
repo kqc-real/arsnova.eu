@@ -161,9 +161,12 @@ describe('JoinComponent', () => {
     expect(trpc.session.getParticipantNicknames.query).not.toHaveBeenCalled();
   });
 
-  it('zeigt vor dem Beitritt das geplante Sessionende ohne Löschtermin', async () => {
+  it('zeigt vor dem Beitritt das geplante Sessionende nur in Q&A-Sessions', async () => {
     vi.mocked(trpc.session.getInfo.query).mockResolvedValue({
       ...mockSession,
+      type: 'Q_AND_A',
+      quizName: null,
+      title: 'Offene Fragen',
       expiresAt: '2026-09-15T10:00:00.000Z',
       timeZone: 'Europe/Berlin',
       postProcessingEndsAt: '2026-09-29T10:00:00.000Z',
@@ -180,6 +183,32 @@ describe('JoinComponent', () => {
     expect(retention?.textContent).toContain('Geplantes Sessionende');
     expect(retention?.textContent).not.toContain('Sessiondaten frühestens löschbar');
     expect(retention?.textContent).not.toContain('kein zusätzlicher Teilnehmerzugriff');
+  });
+
+  it('blendet das geplante Sessionende beim Beitritt zu Quiz und Blitzlicht aus', async () => {
+    vi.mocked(trpc.session.getInfo.query).mockResolvedValue({
+      ...mockSession,
+      type: 'QUIZ',
+      expiresAt: '2026-09-15T10:00:00.000Z',
+      timeZone: 'Europe/Berlin',
+      channels: {
+        quiz: { enabled: true },
+        qa: { enabled: false, open: false },
+        quickFeedback: { enabled: true, open: true },
+      },
+    });
+    const { fixture } = createWithCode('ABC123');
+    fixture.detectChanges();
+    await fixture.whenStable();
+    await new Promise((resolve) => setTimeout(resolve, 50));
+    fixture.detectChanges();
+
+    expect(
+      (fixture.nativeElement as HTMLElement).querySelector('.join-card__retention'),
+    ).toBeNull();
+    expect((fixture.nativeElement as HTMLElement).textContent).not.toContain(
+      'Geplantes Sessionende',
+    );
   });
 
   it('fixiert den Beitrittsbutton im unteren Aktionsbereich des Join-Clients', async () => {
@@ -235,7 +264,7 @@ describe('JoinComponent', () => {
     await fixture.whenStable();
     await new Promise((r) => setTimeout(r, 80));
 
-    expect(comp.error()).toBe('Diese Session ist bereits beendet.');
+    expect(comp.error()).toBe('Diese Session wurde gelöscht.');
     expect(comp.session()).toBeNull();
     expect(fixture.nativeElement.textContent ?? '').toContain('Zur Startseite');
     expect(fixture.nativeElement.textContent ?? '').not.toContain('Als Host anzeigen');
@@ -268,6 +297,38 @@ describe('JoinComponent', () => {
     expect(comp.error()).toBeNull();
     expect(comp.errorSessionFinished()).toBe(false);
     expect(comp.session()?.code).toBe('ABC123');
+  });
+
+  it('blockiert den Join nach globalem Session-Ende trotz noch offener Q&A-Frist', async () => {
+    vi.mocked(trpc.session.getInfo.query).mockResolvedValue({
+      ...mockSession,
+      status: 'FINISHED' as const,
+      endedAt: '2026-09-21T05:22:54.470Z',
+      expiresAt: '2026-09-21T14:47:57.810Z',
+      qaClosesAt: '2026-09-21T14:47:57.810Z',
+      channels: {
+        quiz: { enabled: true },
+        qa: {
+          enabled: true,
+          open: false,
+          title: 'Fragen',
+          moderationMode: true,
+          state: 'MANUALLY_CLOSED',
+          closesAt: '2026-09-21T14:47:57.810Z',
+        },
+        quickFeedback: { enabled: true, open: false },
+      },
+    });
+
+    const { fixture, comp } = createWithCode('ABC123');
+    fixture.detectChanges();
+    await fixture.whenStable();
+    await new Promise((r) => setTimeout(r, 80));
+
+    expect(comp.error()).toBe('Diese Session wurde gelöscht.');
+    expect(comp.errorSessionFinished()).toBe(true);
+    expect(comp.session()).toBeNull();
+    expect(fixture.nativeElement.textContent ?? '').not.toContain('Jetzt beitreten');
   });
 
   it('stellt Nickname-Liste bereit bei QUIZ mit nicknameTheme (Story 3.2)', async () => {

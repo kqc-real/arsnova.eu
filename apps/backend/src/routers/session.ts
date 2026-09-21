@@ -389,6 +389,7 @@ type StatusSnapshotPayload = {
   sessionLifecycleRevision?: number;
   serverNow?: string;
   endedAt?: string | null;
+  hostEnded?: boolean;
   pausedFromStatus?: 'QUESTION_OPEN' | 'ACTIVE' | null;
   activeAt?: string;
   timer?: number | null;
@@ -873,6 +874,7 @@ async function fetchStatusSnapshot(code: string): Promise<StatusSnapshotPayload>
           preferredChannel: true,
           status: true,
           endedAt: true,
+          hostEnded: true,
           expiresAt: true,
           sessionLifecycleRevision: true,
           currentQuestion: true,
@@ -934,6 +936,7 @@ async function fetchStatusSnapshot(code: string): Promise<StatusSnapshotPayload>
         serverNow: serverNow.toISOString(),
         endedAt:
           effectiveStatus === 'FINISHED' ? (session.endedAt ?? expiresAt).toISOString() : null,
+        hostEnded: session.hostEnded === true,
         pausedFromStatus:
           session.pausedFromStatus === 'QUESTION_OPEN' || session.pausedFromStatus === 'ACTIVE'
             ? session.pausedFromStatus
@@ -3614,6 +3617,7 @@ function finishedSessionReopenData() {
     pausedFromStatus: null,
     lastSkippedQuestionId: null,
     lastQuestionSkippedAt: null,
+    hostEnded: false,
   };
 }
 
@@ -5193,6 +5197,7 @@ async function resolvePublicSessionInfo(
         timeZone: session.timeZone,
         sessionLifecycleRevision: session.sessionLifecycleRevision ?? 0,
         endedAt: retention.endedAt?.toISOString() ?? null,
+        hostEnded: session.hostEnded === true,
         postProcessingEndsAt: retention.postProcessingEndsAt?.toISOString() ?? null,
         purgeEligibleAt: retention.purgeEligibleAt?.toISOString() ?? null,
         qaClosesAt: session.qaClosesAt?.toISOString() ?? null,
@@ -9867,8 +9872,35 @@ const sessionCoreRouter = router({
           throw new TRPCError({ code: 'NOT_FOUND', message: 'Session nicht gefunden.' });
         }
         if (session.status === 'FINISHED' || session.endedAt instanceof Date) {
+          const liveChannelsStillOpen =
+            session.qaOpen === true || session.quickFeedbackOpen === true;
+          const needsHostEnded = session.hostEnded !== true;
+          if (liveChannelsStillOpen || needsHostEnded) {
+            const closed = await tx.session.update({
+              where: { id: session.id },
+              data: {
+                qaOpen: false,
+                quickFeedbackOpen: false,
+                hostEnded: true,
+                sessionLifecycleRevision: { increment: 1 },
+              },
+              select: {
+                endedAt: true,
+                expiresAt: true,
+                sessionLifecycleRevision: true,
+              },
+            });
+            return {
+              transitioned: false as const,
+              channelsClosed: true as const,
+              endedAt: closed.endedAt ?? session.endedAt ?? null,
+              expiresAt: closed.expiresAt,
+              sessionLifecycleRevision: closed.sessionLifecycleRevision,
+            };
+          }
           return {
             transitioned: false as const,
+            channelsClosed: false as const,
             endedAt: session.endedAt ?? null,
             expiresAt: session.expiresAt,
             sessionLifecycleRevision: session.sessionLifecycleRevision,
@@ -9886,6 +9918,10 @@ const sessionCoreRouter = router({
             pausedFromStatus: null,
             statusChangedAt: now,
             endedAt: now,
+            hostEnded: true,
+            qaOpen: false,
+            quickFeedbackOpen: false,
+            sessionLifecycleRevision: { increment: 1 },
             lastSkippedQuestionId: null,
             lastQuestionSkippedAt: null,
           },
@@ -9899,22 +9935,25 @@ const sessionCoreRouter = router({
         await enqueueProductFeedbackInviteJob(session.id, tx);
         return {
           transitioned: true as const,
+          channelsClosed: true as const,
           endedAt: lifecycle.endedAt,
           expiresAt: lifecycle.expiresAt,
           sessionLifecycleRevision: lifecycle.sessionLifecycleRevision,
         };
       });
 
-      if (outcome.transitioned) {
-        markFinishProjectionLeaderboard(code);
-        await incrementCompletedSessionsTotal();
+      if (outcome.transitioned || outcome.channelsClosed) {
         invalidateSessionStatusCachesForCode(code);
-        void recordSessionTransitionActivity();
         try {
           await invalidateHostPairingForSession(code);
         } catch {
           /* Pairing-Registry ist Hilfszustand; Session-Ende bleibt maßgeblich. */
         }
+      }
+      if (outcome.transitioned) {
+        markFinishProjectionLeaderboard(code);
+        await incrementCompletedSessionsTotal();
+        void recordSessionTransitionActivity();
         await issueProductFeedbackInvitesAfterFinishAwait(identity.id);
       }
 
@@ -9926,6 +9965,7 @@ const sessionCoreRouter = router({
         currentRound: 1,
         finishProjection: 'leaderboard' as const,
         endedAt: canonicalEndedAt.toISOString(),
+        hostEnded: true,
         expiresAt: outcome.expiresAt.toISOString(),
         sessionLifecycleRevision: outcome.sessionLifecycleRevision,
         serverNow: new Date().toISOString(),
@@ -10547,7 +10587,7 @@ const sessionCoreRouter = router({
     .mutation(async ({ input, ctx }) => {
       const session = await prisma.session.findUnique({
         where: { code: input.code.toUpperCase() },
-        select: { id: true, status: true, quizStarted: true },
+        select: { id: true, status: true, quizStarted: true, hostEnded: true },
       });
       if (!session) {
         return rejectInvalidSessionCode(undefined, input.code.toUpperCase(), 'other');
@@ -10567,6 +10607,12 @@ const sessionCoreRouter = router({
         throw new TRPCError({
           code: 'BAD_REQUEST',
           message: 'Bewertung nur nach gestartetem Quiz möglich.',
+        });
+      }
+      if (session.hostEnded === true) {
+        throw new TRPCError({
+          code: 'BAD_REQUEST',
+          message: 'Bewertung nach globalem Session-Ende nicht mehr möglich.',
         });
       }
 

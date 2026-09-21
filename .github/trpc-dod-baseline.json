@@ -524,7 +524,7 @@
     },
     "session.end": {
       "kind": "mutation",
-      "fingerprint": "sha256:a59b72297d2e36fde38056f533e4cede027f7f16067f5bbd66e50d4d6dcc8ebc",
+      "fingerprint": "sha256:bf4f495a914d448f8dafe136cd27455441adffe6c5ef4eb01bc75d0fa28d4fd9",
       "missing": []
     },
     "session.getActiveQuizIds": {
@@ -864,7 +864,7 @@
     },
     "session.submitSessionFeedback": {
       "kind": "mutation",
-      "fingerprint": "sha256:f47d6519f840dd40e6d4fb1198713324e10b19ef10aceb294e1a048d9d65be80",
+      "fingerprint": "sha256:3f372d3f7741847bd66ee9a9d95f56087a470c00f1187491c42c1c8937bdb3a0",
       "missing": []
     },
     "session.updateQaTitle": {

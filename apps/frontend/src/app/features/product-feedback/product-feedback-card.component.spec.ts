@@ -3,10 +3,14 @@ import { provideNoopAnimations } from '@angular/platform-browser/animations';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { resolveProductFeedbackAreaPromptKind } from '@arsnova/shared-types';
 import { ProductFeedbackCardComponent } from './product-feedback-card.component';
-import { storeProductFeedbackParticipantClaimToken } from './product-feedback-storage';
+import {
+  storeClaimedProductFeedbackInvite,
+  storeProductFeedbackParticipantClaimToken,
+} from './product-feedback-storage';
 
-const { claimInviteMock, submitMock, followUpMock } = vi.hoisted(() => ({
+const { claimInviteMock, getSurveyMock, submitMock, followUpMock } = vi.hoisted(() => ({
   claimInviteMock: vi.fn(),
+  getSurveyMock: vi.fn(),
   submitMock: vi.fn(),
   followUpMock: vi.fn(),
 }));
@@ -15,6 +19,7 @@ vi.mock('../../core/trpc.client', () => ({
   trpc: {
     productFeedback: {
       claimInvite: { mutate: claimInviteMock },
+      getSurvey: { query: getSurveyMock },
       submit: { mutate: submitMock },
       followUp: { mutate: followUpMock },
     },
@@ -33,6 +38,8 @@ describe('ProductFeedbackCard', () => {
   beforeEach(async () => {
     vi.clearAllMocks();
     localStorage.clear();
+    sessionStorage.clear();
+    getSurveyMock.mockRejectedValue(new Error('no restored invite'));
     claimInviteMock.mockResolvedValue({
       inviteToken: 'invite-token-value-123456789012345',
       survey: hostSurvey,
@@ -49,6 +56,7 @@ describe('ProductFeedbackCard', () => {
   });
 
   afterEach(() => {
+    sessionStorage.clear();
     document.querySelector('[data-test-focus-origin]')?.remove();
   });
 
@@ -108,6 +116,36 @@ describe('ProductFeedbackCard', () => {
       participantId: '11111111-1111-4111-8111-111111111111',
       participantClaimToken: 'participant-claim-token-value-1234567890',
     });
+  });
+
+  it('stellt eine bereits geclaimte Einladung nach Reload aus sessionStorage wieder her', async () => {
+    storeClaimedProductFeedbackInvite('ABC123', 'PARTICIPANT', {
+      inviteToken: 'invite-token-value-123456789012345',
+      survey: {
+        ...hostSurvey,
+        surveyKey: 'POST_SESSION_EASE_PARTICIPANT_V1',
+        role: 'PARTICIPANT',
+      },
+    });
+    getSurveyMock.mockResolvedValue({
+      inviteToken: 'invite-token-value-123456789012345',
+      survey: {
+        ...hostSurvey,
+        surveyKey: 'POST_SESSION_EASE_PARTICIPANT_V1',
+        role: 'PARTICIPANT',
+      },
+    });
+    const fixture = TestBed.createComponent(ProductFeedbackCardComponent);
+    fixture.componentRef.setInput('sessionCode', 'ABC123');
+    fixture.componentRef.setInput('feedbackRole', 'PARTICIPANT');
+    fixture.componentRef.setInput('participantId', '11111111-1111-4111-8111-111111111111');
+    fixture.detectChanges();
+    await vi.waitFor(() => expect(fixture.componentInstance.step()).toBe('primary'));
+
+    expect(getSurveyMock).toHaveBeenCalledWith({
+      inviteToken: 'invite-token-value-123456789012345',
+    });
+    expect(claimInviteMock).not.toHaveBeenCalled();
   });
 
   it('bietet bei dauerhaft abgelehntem Invite-Claim keinen wirkungslosen Retry an', async () => {

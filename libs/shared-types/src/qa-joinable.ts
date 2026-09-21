@@ -18,6 +18,9 @@ export function isQaChannelJoinable(
 ): boolean {
   const qa = input.channels?.qa;
   if (qa) {
+    if (qa.open === false) {
+      return false;
+    }
     if (qa.state === 'OPEN') {
       return true;
     }

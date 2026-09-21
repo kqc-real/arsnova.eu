@@ -10,6 +10,7 @@ export type SessionDeadlineSnapshot = {
   qaEnabled?: boolean | null;
   qaOpen?: boolean | null;
   qaClosesAt?: string | Date | null;
+  hostEnded?: boolean;
 };
 
 export function enrichDeadlineSnapshot(
@@ -156,5 +157,11 @@ export class SessionDeadlineController {
       this.expired = true;
     }
     return this.expired;
+  }
+
+  /** Globale `expiresAt`, ohne das Quiz-FINISHED-Latch bei geschlossenem Q&A. */
+  isAbsoluteDeadlineReached(): boolean {
+    const remaining = this.remainingMs();
+    return remaining !== null && remaining <= 0;
   }
 }

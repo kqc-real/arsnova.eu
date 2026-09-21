@@ -2555,7 +2555,7 @@ describe('HomeComponent', () => {
         queryParamsHandling: '',
       });
       expect(fixture.componentInstance.joinErrorSessionFinished()).toBe(true);
-      expect(fixture.componentInstance.joinError()).toBe('Diese Session ist bereits beendet.');
+      expect(fixture.componentInstance.joinError()).toBe('Diese Session wurde gelöscht.');
       expect(fixture.componentInstance.sessionCode()).toBe('ABC123');
       expect(fixture.nativeElement.textContent ?? '').not.toContain('Als Host anzeigen');
       expect(fixture.nativeElement.querySelector('.home-error-link')).toBeNull();

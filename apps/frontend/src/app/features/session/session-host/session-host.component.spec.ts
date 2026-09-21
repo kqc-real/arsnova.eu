@@ -24,7 +24,7 @@ import { WordCloudComponent } from '../session-present/word-cloud.component';
 import { SessionTokenStorageService } from '../session-present/session-token-storage.service';
 import { ThemePresetService } from '../../../core/theme-preset.service';
 import { QuizStoreService, DEMO_QUIZ_ID } from '../../quiz/data/quiz-store.service';
-import { resetServerClockSkew } from '../session-server-clock';
+import { getSkewAdjustedNow, resetServerClockSkew } from '../session-server-clock';
 
 function exitAnchorButtonLabel(button: Element): string {
   return (button.textContent ?? '')
@@ -2526,6 +2526,7 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
     fixture.componentInstance.session.set({
       ...defaultSession,
       status: 'FINISHED',
+      hostEnded: true,
       channels: {
         quiz: { enabled: true },
         qa: {
@@ -2542,6 +2543,53 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
 
     expect(fixture.componentInstance.showChannelTabs()).toBe(false);
     expect(fixture.nativeElement.querySelector('.session-channel-tabs')).toBeNull();
+    fixture.destroy();
+  });
+
+  it('zeigt den Kanalwahlschalter nach Quiz-FINISHED auch bei lokal gelatchter Sessionfrist', () => {
+    const fixture = setup();
+    const inst = fixture.componentInstance;
+    inst.session.set({
+      ...defaultSession,
+      status: 'FINISHED',
+      hostEnded: false,
+      expiresAt: '2027-09-22T06:00:00.000Z',
+      qaClosesAt: '2027-09-22T06:00:00.000Z',
+      channels: {
+        quiz: { enabled: true },
+        qa: {
+          enabled: true,
+          open: true,
+          title: 'Fragen',
+          moderationMode: true,
+          state: 'OPEN',
+          closesAt: '2027-09-22T06:00:00.000Z',
+        },
+        quickFeedback: { enabled: true, open: true },
+      },
+    });
+    (
+      inst as unknown as {
+        sessionDeadline: {
+          applySnapshot(snapshot: {
+            status: string;
+            serverNow: string;
+            expiresAt: string;
+            sessionLifecycleRevision: number;
+          }): boolean;
+        };
+      }
+    ).sessionDeadline.applySnapshot({
+      status: 'FINISHED',
+      serverNow: '2027-09-22T06:00:00.000Z',
+      expiresAt: '2027-09-22T06:00:00.000Z',
+      sessionLifecycleRevision: 8,
+    });
+    fixture.detectChanges();
+
+    expect(inst.showChannelTabs()).toBe(true);
+    expect(inst.liveChannelsRemainAfterQuiz()).toBe(true);
+    expect(fixture.nativeElement.querySelector('.session-channel-tabs')).not.toBeNull();
     fixture.destroy();
   });
 
@@ -10564,6 +10612,7 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
     component.countdownEnded.set(true);
     component.countdownSeconds.set(0);
     fixture.detectChanges();
+    expect(component.showFingerCountdown()).toBe(true);
     expect(component.personalTimeOvertimeActive()).toBe(false);
     expect(component.activeMusicTrack()).toBeNull();
 
@@ -10613,6 +10662,64 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
 
     expect(component.personalTimeOvertimeActive()).toBe(false);
     expect(component.activeMusicTrack()).toBeNull();
+    fixture.destroy();
+  });
+
+  it('spielt den Schlusspfiff nur einmal und hält die Null-Finger, solange ACTIVE bleibt', async () => {
+    getInfoQueryMock.mockResolvedValue({
+      ...defaultSession,
+      status: 'ACTIVE',
+      preset: 'PLAYFUL',
+      enableSoundEffects: true,
+    });
+
+    const fixture = setup();
+    const component = fixture.componentInstance;
+    const playSpy = vi.spyOn(component.sound, 'play').mockResolvedValue();
+    fixture.detectChanges();
+    await flushComponentAfterStable(fixture, 50);
+
+    const question = {
+      questionId: 'bbbbbbbb-2222-4222-8222-222222222222',
+      questionOrder: 0,
+      text: '2 + 2?',
+      type: 'SINGLE_CHOICE' as const,
+      currentRound: 1,
+      timer: 30,
+      answers: [
+        { id: 'aaaaaaaa-1111-4111-8111-111111111111', text: '3', isCorrect: false },
+        { id: 'bbbbbbbb-2222-4222-8222-222222222222', text: '4', isCorrect: true },
+      ],
+      totalVotes: 0,
+    };
+    component.session.set({
+      ...defaultSession,
+      status: 'ACTIVE',
+      enableSoundEffects: true,
+    } as typeof defaultSession & { enableSoundEffects: boolean; status: 'ACTIVE' });
+    component.currentQuestionForHost.set(question);
+    const expiredUpdate = {
+      status: 'ACTIVE' as const,
+      currentQuestion: 0,
+      currentRound: 1,
+      timer: 30,
+      activeAt: new Date(getSkewAdjustedNow() - 35_000).toISOString(),
+    };
+    component['syncCountdownFromStatusUpdate'](expiredUpdate);
+    fixture.detectChanges();
+
+    expect(component.countdownEnded()).toBe(true);
+    expect(component.countdownSeconds()).toBe(0);
+    expect(component.showFingerCountdown()).toBe(true);
+    expect(playSpy.mock.calls.filter((call) => call[0] === 'sessionEnd')).toHaveLength(1);
+
+    component['syncCountdownFromStatusUpdate'](expiredUpdate);
+    component['syncCountdownFromStatusUpdate'](expiredUpdate);
+    fixture.detectChanges();
+
+    expect(playSpy.mock.calls.filter((call) => call[0] === 'sessionEnd')).toHaveLength(1);
+    expect(component.countdownSeconds()).toBe(0);
+    expect(component.showFingerCountdown()).toBe(true);
     fixture.destroy();
   });
 
@@ -18269,7 +18376,11 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
     });
 
     it('blendet den Button nach Session-Ende aus', async () => {
-      getInfoQueryMock.mockResolvedValue({ ...defaultSession, status: 'FINISHED' });
+      getInfoQueryMock.mockResolvedValue({
+        ...defaultSession,
+        status: 'FINISHED',
+        hostEnded: true,
+      });
 
       const fixture = setup();
       fixture.detectChanges();

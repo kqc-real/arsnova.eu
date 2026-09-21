@@ -219,7 +219,7 @@ import {
 import { CountdownFingersComponent } from '../../../shared/countdown-fingers/countdown-fingers.component';
 import { MarkdownImageLightboxDirective } from '../../../shared/markdown-image-lightbox/markdown-image-lightbox.directive';
 import { questionTypeLabel } from '../../../shared/question-type-label';
-import { remainingCountdownSeconds } from '../session-countdown.util';
+import { remainingCountdownSeconds, stableCountdownDeadlineMs } from '../session-countdown.util';
 import {
   getSkewAdjustedNow,
   recordServerTimeIso,
@@ -1136,6 +1136,8 @@ export class SessionHostComponent implements OnInit, OnDestroy {
   /** true, sobald der Countdown 0 erreicht hat (bis zum nächsten Start). */
   readonly countdownEnded = signal(false);
   private countdownTimer: ReturnType<typeof setInterval> | null = null;
+  private countdownDeadlineMs: number | null = null;
+  private countdownKey: string | null = null;
   private fingerHideTimeout: ReturnType<typeof setTimeout> | null = null;
   private countdownFingerSoundPlayed = false;
   private countdownFinalSoundPlayed = false;
@@ -1528,12 +1530,24 @@ export class SessionHostComponent implements OnInit, OnDestroy {
     if (!session) return [];
     return ['quiz', 'qa', 'quickFeedback'];
   });
+  readonly liveChannelsRemainAfterQuiz = computed(() => {
+    if (this.effectiveStatus() !== 'FINISHED') {
+      return false;
+    }
+    if (this.session()?.hostEnded === true) {
+      return false;
+    }
+    return (
+      this.qaHostWritesAllowed() ||
+      this.keepQaOpenOnHostLeave() ||
+      this.qaChannelNeedsConfiguration() ||
+      this.isChannelOpen('quickFeedback')
+    );
+  });
   readonly showChannelTabs = computed(
     () =>
       this.availableChannels().length > 1 &&
-      (this.effectiveStatus() !== 'FINISHED' ||
-        this.qaHostWritesAllowed() ||
-        this.qaChannelNeedsConfiguration()),
+      (this.effectiveStatus() !== 'FINISHED' || this.liveChannelsRemainAfterQuiz()),
   );
   readonly showPrimaryLiveView = computed(() => {
     const active = this.activeChannel();
@@ -1649,7 +1663,7 @@ export class SessionHostComponent implements OnInit, OnDestroy {
   /** Host-Chrome inkl. Presenter: laufende Session und Lobby (Quiz, Q&A, Blitzlicht). */
   readonly isLiveHostSurface = computed(() => {
     if (this.session() === null) return false;
-    return this.effectiveStatus() !== 'FINISHED';
+    return this.effectiveStatus() !== 'FINISHED' || this.liveChannelsRemainAfterQuiz();
   });
   readonly showHostViewControls = computed(() => this.isLiveHostSurface());
   readonly pairedHostConnected = signal(false);
@@ -6136,24 +6150,57 @@ export class SessionHostComponent implements OnInit, OnDestroy {
   }
 
   private startCountdown(timerSeconds: number | null | undefined, activeAt?: string): void {
-    this.stopCountdown();
-    this.countdownEnded.set(false);
-    this.countdownSfxPhase.set(false);
-    this.countdownFingerSoundPlayed = false;
-    this.countdownFinalSoundPlayed = false;
-    this.countdownMusicFadeStarted = false;
     if (!timerSeconds || timerSeconds <= 0) {
+      this.clearCountdownClock();
       this.countdownSeconds.set(null);
       return;
     }
-    const start = activeAt ? new Date(activeAt).getTime() : Date.now();
-    const deadline = start + timerSeconds * 1000;
+
+    const question = this.displayedCurrentQuestionForHost();
+    const nextKey = `${question?.questionId ?? 'none'}:${question?.currentRound ?? 1}:${timerSeconds}`;
+    const nextDeadline = stableCountdownDeadlineMs({
+      timerSeconds,
+      activeAt,
+      currentDeadlineMs: this.countdownDeadlineMs,
+      currentKey: this.countdownKey,
+      nextKey,
+    });
+    const remainingNow = remainingCountdownSeconds(nextDeadline);
+    const sameDeadline =
+      this.countdownDeadlineMs !== null && Math.abs(this.countdownDeadlineMs - nextDeadline) < 750;
+
+    if (sameDeadline && (this.countdownEnded() || remainingNow <= 0)) {
+      if (!this.countdownEnded()) {
+        this.finishRoomCountdown();
+      }
+      return;
+    }
+    if (sameDeadline && this.countdownTimer !== null) {
+      return;
+    }
+
+    const keepSfxState = sameDeadline;
+    this.stopCountdown();
+    this.countdownKey = nextKey;
+    this.countdownDeadlineMs = nextDeadline;
+    if (!keepSfxState) {
+      this.countdownEnded.set(false);
+      this.countdownSfxPhase.set(false);
+      this.countdownFingerSoundPlayed = false;
+      this.countdownFinalSoundPlayed = false;
+      this.countdownMusicFadeStarted = false;
+    }
+
     const sfxEnabled = () => !!this.session()?.enableSoundEffects && this.isPlayfulPreset();
     if (sfxEnabled()) {
       void this.sound.preload(['countdownEnd', 'sessionEnd']);
     }
 
     const tick = (): void => {
+      const deadline = this.countdownDeadlineMs;
+      if (deadline === null) {
+        return;
+      }
       const remaining = remainingCountdownSeconds(deadline);
       this.countdownSeconds.set(remaining);
 
@@ -6168,7 +6215,7 @@ export class SessionHostComponent implements OnInit, OnDestroy {
       }
 
       const sfxCountdown = sfxEnabled();
-      // Gong läutet die Fingerphase ein (ab 7s); am Ablauf leiser Pfiff statt Gong.
+      // Gong läutet die Fingerphase ein (ab 7s); am Ablauf einmaliger Pfiff statt Gong.
       if (sfxCountdown && remaining <= 7 && remaining > 0 && !this.countdownFingerSoundPlayed) {
         void this.sound.play('countdownEnd', { gain: 0.32, fadeOutSeconds: 0.55 });
         this.countdownFingerSoundPlayed = true;
@@ -6187,12 +6234,14 @@ export class SessionHostComponent implements OnInit, OnDestroy {
     };
 
     tick();
-    this.countdownTimer = setInterval(tick, 1000);
+    if ((this.countdownSeconds() ?? 0) > 0) {
+      this.countdownTimer = setInterval(tick, 1000);
+    }
   }
 
   private syncCountdownFromStatusUpdate(update: SessionStatusUpdate): void {
     if (update.status !== 'ACTIVE' || (update.currentRound ?? 1) === 2) {
-      this.stopCountdown();
+      this.clearCountdownClock();
       this.countdownSeconds.set(null);
       return;
     }
@@ -6221,7 +6270,13 @@ export class SessionHostComponent implements OnInit, OnDestroy {
     }
   }
 
-  /** Raum-Countdown ist bei 0: Finger/Zahl bleiben kurz, persönliche Zeit-Musik erst danach. */
+  private clearCountdownClock(): void {
+    this.stopCountdown();
+    this.countdownDeadlineMs = null;
+    this.countdownKey = null;
+  }
+
+  /** Raum-Countdown ist bei 0: Null-Finger bleiben kurz, Schlusspfiff nicht erneut starten. */
   private finishRoomCountdown(): void {
     this.stopCountdown();
     this.countdownSeconds.set(0);
@@ -10186,7 +10241,7 @@ export class SessionHostComponent implements OnInit, OnDestroy {
     }
     try {
       this.clearEmojiNewBadge();
-      this.stopCountdown();
+      this.clearCountdownClock();
       this.countdownSeconds.set(null);
       const result = await trpc.session.nextQuestion.mutate({
         code: this.code.toUpperCase(),
@@ -10277,7 +10332,7 @@ export class SessionHostComponent implements OnInit, OnDestroy {
     this.controlPending.set(true);
     try {
       this.clearEmojiNewBadge();
-      this.stopCountdown();
+      this.clearCountdownClock();
       this.countdownSeconds.set(null);
       const result = await trpc.session.skipQuestion.mutate({
         code: this.code.toUpperCase(),

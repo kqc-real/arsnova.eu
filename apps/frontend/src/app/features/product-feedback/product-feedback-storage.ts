@@ -2,10 +2,13 @@
  * Client-seitiger Zustand für ProductFeedback (Cooldown, Abwahl, Offline-Postausgang).
  * Kein geräteübergreifendes Profil — nur localStorage.
  */
-import type {
-  ProductFeedbackDeviceClass,
-  ProductFeedbackInAppSubmitInput,
-  ProductFeedbackSubmitInput,
+import {
+  PRODUCT_FEEDBACK_INVITE_TTL_SECONDS,
+  type ProductFeedbackDeviceClass,
+  type ProductFeedbackInAppSubmitInput,
+  type ProductFeedbackRole,
+  type ProductFeedbackSubmitInput,
+  type ProductFeedbackSurveyDTO,
 } from '@arsnova/shared-types';
 
 const COOLDOWN_PREFIX = 'productFeedback:cooldown:v1:';
@@ -13,6 +16,8 @@ const SUPPRESS_PREFIX = 'productFeedback:suppress:v1:';
 const OUTBOX_KEY = 'productFeedback:outbox:v1';
 const PENDING_HOST_KEY = 'productFeedback:pendingHost:v1';
 const PARTICIPANT_CLAIM_PREFIX = 'productFeedback:participantClaim:v1:';
+const CLAIMED_INVITE_PREFIX = 'productFeedback:claimedInvite:v1:';
+const CLAIMED_INVITE_MAX_AGE_MS = PRODUCT_FEEDBACK_INVITE_TTL_SECONDS * 1000;
 
 export const PRODUCT_FEEDBACK_PARTICIPANT_COOLDOWN_MS = 30 * 24 * 60 * 60 * 1000;
 export const PRODUCT_FEEDBACK_HOST_COOLDOWN_MS = 14 * 24 * 60 * 60 * 1000;
@@ -30,8 +35,22 @@ export type PendingHostInvite = {
   storedAt: number;
 };
 
+export type ClaimedProductFeedbackInvite = {
+  inviteToken: string;
+  survey: ProductFeedbackSurveyDTO;
+  storedAt: number;
+};
+
 function canUseStorage(): boolean {
   return typeof localStorage !== 'undefined';
+}
+
+function canUseSessionStorage(): boolean {
+  return typeof sessionStorage !== 'undefined';
+}
+
+function claimedInviteKey(sessionCode: string, role: ProductFeedbackRole): string {
+  return `${CLAIMED_INVITE_PREFIX}${role}:${sessionCode.trim().toUpperCase()}`;
 }
 
 export function isProductFeedbackSuppressed(surveyKey: string): boolean {
@@ -121,6 +140,53 @@ export function getProductFeedbackParticipantClaimToken(sessionCode: string): st
     localStorage.getItem(`${PARTICIPANT_CLAIM_PREFIX}${sessionCode.trim().toUpperCase()}`) ??
     undefined
   );
+}
+
+/** Tab-lokaler Invite nach dem ersten Claim, damit Reload die Karte nicht verliert. */
+export function storeClaimedProductFeedbackInvite(
+  sessionCode: string,
+  role: ProductFeedbackRole,
+  invite: { inviteToken: string; survey: ProductFeedbackSurveyDTO },
+): void {
+  if (!canUseSessionStorage() || !invite.inviteToken || !invite.survey) return;
+  const payload: ClaimedProductFeedbackInvite = {
+    inviteToken: invite.inviteToken,
+    survey: invite.survey,
+    storedAt: Date.now(),
+  };
+  sessionStorage.setItem(claimedInviteKey(sessionCode, role), JSON.stringify(payload));
+}
+
+export function peekClaimedProductFeedbackInvite(
+  sessionCode: string,
+  role: ProductFeedbackRole,
+): ClaimedProductFeedbackInvite | null {
+  if (!canUseSessionStorage()) return null;
+  const raw = sessionStorage.getItem(claimedInviteKey(sessionCode, role));
+  if (!raw) return null;
+  try {
+    const parsed = JSON.parse(raw) as ClaimedProductFeedbackInvite;
+    if (!parsed.inviteToken || !parsed.survey || !Number.isFinite(parsed.storedAt)) {
+      sessionStorage.removeItem(claimedInviteKey(sessionCode, role));
+      return null;
+    }
+    if (Date.now() - parsed.storedAt > CLAIMED_INVITE_MAX_AGE_MS) {
+      sessionStorage.removeItem(claimedInviteKey(sessionCode, role));
+      return null;
+    }
+    return parsed;
+  } catch {
+    sessionStorage.removeItem(claimedInviteKey(sessionCode, role));
+    return null;
+  }
+}
+
+export function clearClaimedProductFeedbackInvite(
+  sessionCode: string,
+  role: ProductFeedbackRole,
+): void {
+  if (!canUseSessionStorage()) return;
+  sessionStorage.removeItem(claimedInviteKey(sessionCode, role));
 }
 
 export function loadProductFeedbackOutbox(): ProductFeedbackOutboxItem[] {

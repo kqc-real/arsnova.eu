@@ -58,7 +58,7 @@
             {{ s.participantCount === 1 ? participantSingular() : participantPlural() }}
             {{ inLobbyLabel() }}
           </p>
-          @if (s.expiresAt) {
+          @if (showPlannedSessionEnd() && s.expiresAt) {
             <div class="join-card__retention" role="note">
               <p>
                 <mat-icon aria-hidden="true">schedule</mat-icon>

@@ -11,11 +11,36 @@ import {
   suppressProductFeedbackSurvey,
   isProductFeedbackSuppressed,
   removeProductFeedbackOutboxItem,
+  storeClaimedProductFeedbackInvite,
+  peekClaimedProductFeedbackInvite,
+  clearClaimedProductFeedbackInvite,
 } from './product-feedback-storage';
 
 describe('product-feedback-storage', () => {
   afterEach(() => {
     localStorage.clear();
+    sessionStorage.clear();
+  });
+
+  it('bewahrt eine geclaimte Einladung tab-lokal für Reload', () => {
+    const survey = {
+      surveyKey: 'POST_SESSION_EASE_PARTICIPANT_V1' as const,
+      surveyVersion: 1,
+      role: 'PARTICIPANT' as const,
+      primaryAnswers: ['EASY', 'MINOR_FRICTION', 'HARD'] as const,
+      areas: ['JOIN', 'VOTE', 'TECH'] as const,
+    };
+    expect(peekClaimedProductFeedbackInvite('abc123', 'PARTICIPANT')).toBeNull();
+    storeClaimedProductFeedbackInvite('abc123', 'PARTICIPANT', {
+      inviteToken: 'invite-token-value-123456789012345',
+      survey,
+    });
+    expect(peekClaimedProductFeedbackInvite('ABC123', 'PARTICIPANT')?.inviteToken).toBe(
+      'invite-token-value-123456789012345',
+    );
+    expect(peekClaimedProductFeedbackInvite('ABC123', 'HOST')).toBeNull();
+    clearClaimedProductFeedbackInvite('ABC123', 'PARTICIPANT');
+    expect(peekClaimedProductFeedbackInvite('ABC123', 'PARTICIPANT')).toBeNull();
   });
 
   it('merkt Cooldown und Suppress lokal', () => {

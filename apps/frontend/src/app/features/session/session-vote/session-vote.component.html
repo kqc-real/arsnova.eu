@@ -143,6 +143,10 @@
       </div>
     </header>
 
+    <p class="vote-session-end-gate__lead" i18n="@@sessionVote.sessionDeletedLead">
+      Diese Session wurde gelöscht. Quiz, Q&A und Blitzlicht sind nicht mehr verfügbar.
+    </p>
+
     @if (bonusToken(); as gateToken) {
       <p class="vote-session-end-gate__lead" i18n="@@sessionVote.bonusGateLead">
         Du hast einen Bonus-Code erhalten. Kopiere ihn jetzt in die Zwischenablage (z. B. für eine
@@ -627,7 +631,7 @@
           <p class="vote-lobby__text">{{ vpc.voteQaActiveTitle(isPlayfulPreset()) }}</p>
           <p class="vote-lobby__hint">{{ vpc.voteQaActiveHint(isPlayfulPreset()) }}</p>
         </div>
-      } @else if (isFinished()) {
+      } @else if (isFinished() || showQuizFinishedWrapUp()) {
         <div class="vote-finished-page">
           <!-- Hero: Ergebnis -->
           <section
