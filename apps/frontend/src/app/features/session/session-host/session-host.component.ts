@@ -6184,12 +6184,14 @@ export class SessionHostComponent implements OnInit, OnDestroy {
     this.countdownKey = nextKey;
     this.countdownDeadlineMs = nextDeadline;
     if (!keepSfxState) {
-      // Reload/Reconnect: schon abgelaufene oder laufende Fingerphase nicht noch einmal anpfeifen.
+      // Reload/Reconnect in laufender Finger-/Endphase: nicht erneut anpfeifen.
+      // Frisch gestartete Kurz-Timer (Rest ≈ timerSeconds) dürfen Gong und Fade noch auslösen.
+      const restoredInFlight = remainingNow < timerSeconds - 1;
       this.countdownEnded.set(false);
       this.countdownSfxPhase.set(remainingNow <= 7 && remainingNow > 0);
-      this.countdownFingerSoundPlayed = remainingNow <= 7;
+      this.countdownFingerSoundPlayed = remainingNow <= 7 && restoredInFlight;
       this.countdownFinalSoundPlayed = remainingNow <= 0;
-      this.countdownMusicFadeStarted = remainingNow <= 10;
+      this.countdownMusicFadeStarted = remainingNow <= 10 && restoredInFlight;
     }
 
     const sfxEnabled = () => !!this.session()?.enableSoundEffects && this.isPlayfulPreset();

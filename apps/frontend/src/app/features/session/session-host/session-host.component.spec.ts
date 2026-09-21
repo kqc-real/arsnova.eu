@@ -10780,6 +10780,52 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
     fixture.destroy();
   });
 
+  it('spielt den Finger-Gong bei einem frisch gestarteten 5-Sekunden-Timer', async () => {
+    getInfoQueryMock.mockResolvedValue({
+      ...defaultSession,
+      status: 'ACTIVE',
+      preset: 'PLAYFUL',
+      enableSoundEffects: true,
+    });
+
+    const fixture = setup();
+    const component = fixture.componentInstance;
+    const playSpy = vi.spyOn(component.sound, 'play').mockResolvedValue();
+    fixture.detectChanges();
+    await flushComponentAfterStable(fixture, 50);
+
+    component.session.set({
+      ...defaultSession,
+      status: 'ACTIVE',
+      enableSoundEffects: true,
+    } as typeof defaultSession & { enableSoundEffects: boolean; status: 'ACTIVE' });
+    component.currentQuestionForHost.set({
+      questionId: 'bbbbbbbb-2222-4222-8222-222222222222',
+      questionOrder: 0,
+      text: '2 + 2?',
+      type: 'SINGLE_CHOICE' as const,
+      currentRound: 1,
+      timer: 5,
+      answers: [
+        { id: 'aaaaaaaa-1111-4111-8111-111111111111', text: '3', isCorrect: false },
+        { id: 'bbbbbbbb-2222-4222-8222-222222222222', text: '4', isCorrect: true },
+      ],
+      totalVotes: 0,
+    });
+    component['syncCountdownFromStatusUpdate']({
+      status: 'ACTIVE',
+      currentQuestion: 0,
+      currentRound: 1,
+      timer: 5,
+      activeAt: new Date(getSkewAdjustedNow()).toISOString(),
+    });
+    fixture.detectChanges();
+
+    expect(playSpy.mock.calls.filter((call) => call[0] === 'countdownEnd')).toHaveLength(1);
+    expect(component.countdownEnded()).toBe(false);
+    fixture.destroy();
+  });
+
   it('blendet die Musikphase Persönliche Zeit aus, wenn sie im Quiz ausgeschaltet ist', async () => {
     getInfoQueryMock.mockResolvedValue({
       ...defaultSession,
