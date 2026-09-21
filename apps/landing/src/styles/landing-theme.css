@@ -83,13 +83,15 @@
   --landing-hero-spotlight: rgba(169, 0, 169, 0.16);
   --landing-hero-spotlight-secondary: rgba(139, 80, 0, 0.1);
   --landing-theme-color: #fbf1f5;
+  /* Light-Verlauf nur aus Container-/Background-Mischungen: gesaettigte
+     22%-Stops (z. B. #e5bd9b) unterschreiten 4,5:1 fuer Muted-Text und Links. */
   --landing-bg-root: linear-gradient(
     145deg,
     #fff8fc 0%,
-    color-mix(in srgb, var(--landing-tertiary) 12%, var(--landing-background)) 18%,
-    color-mix(in srgb, var(--landing-tertiary) 22%, var(--landing-tertiary-container)) 42%,
-    color-mix(in srgb, var(--landing-primary) 22%, var(--landing-primary-container)) 58%,
-    color-mix(in srgb, var(--landing-primary) 10%, var(--landing-background)) 82%,
+    color-mix(in srgb, var(--landing-tertiary) 6%, var(--landing-background)) 18%,
+    color-mix(in srgb, var(--landing-tertiary-container) 55%, var(--landing-background)) 42%,
+    color-mix(in srgb, var(--landing-primary-container) 55%, var(--landing-background)) 58%,
+    color-mix(in srgb, var(--landing-primary) 6%, var(--landing-background)) 82%,
     var(--landing-surface-container) 100%
   );
 

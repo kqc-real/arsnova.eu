@@ -25,6 +25,14 @@ function parseColor(input, { underlay } = {}) {
       b: parseInt(h.slice(4, 6), 16),
     };
   }
+  const srgb = raw.match(/^color\(srgb\s+([0-9.]+)\s+([0-9.]+)\s+([0-9.]+)\s*\)$/i);
+  if (srgb) {
+    return {
+      r: Math.round(Number(srgb[1]) * 255),
+      g: Math.round(Number(srgb[2]) * 255),
+      b: Math.round(Number(srgb[3]) * 255),
+    };
+  }
   const rgba = raw.match(/rgba?\((\d+),\s*(\d+),\s*(\d+)(?:,\s*([0-9.]+))?\)/i);
   if (!rgba) throw new Error(`Unsupported color: ${input}`);
   const r = Number(rgba[1]);
@@ -191,6 +199,67 @@ function checkPairs(mode, tokens) {
       errors.push(`${mode}: ${name} = ${ratio.toFixed(2)}:1 (need ≥ ${min}:1) [${fg} on ${bg}]`);
     } else {
       console.log(`  ✓ ${mode}: ${name} = ${ratio.toFixed(2)}:1`);
+    }
+  }
+  return errors;
+}
+
+async function checkGradientStops(page, mode) {
+  const errors = [];
+  const samples = await page.evaluate(() => {
+    const styles = getComputedStyle(document.documentElement);
+    const token = (name) => styles.getPropertyValue(name).trim();
+    const mix = (a, b, pct) => {
+      const el = document.createElement('div');
+      el.style.background = `color-mix(in srgb, ${a} ${pct}%, ${b})`;
+      document.body.appendChild(el);
+      const color = getComputedStyle(el).backgroundColor;
+      el.remove();
+      return color;
+    };
+    const background = token('--landing-background');
+    const primary = token('--landing-primary');
+    const muted = token('--landing-on-surface-muted');
+    const body = token('--landing-on-surface-body');
+    if (document.documentElement.classList.contains('dark')) {
+      return {
+        stops: {
+          'tertiary-container': token('--landing-tertiary-container'),
+          'primary-container': token('--landing-primary-container'),
+        },
+        foregrounds: { muted, body, primary },
+      };
+    }
+    return {
+      stops: {
+        'tertiary 6% / background': mix(token('--landing-tertiary'), background, 6),
+        'tertiary-container 55% / background': mix(
+          token('--landing-tertiary-container'),
+          background,
+          55,
+        ),
+        'primary-container 55% / background': mix(
+          token('--landing-primary-container'),
+          background,
+          55,
+        ),
+        'primary 6% / background': mix(primary, background, 6),
+      },
+      foregrounds: { muted, body, primary },
+    };
+  });
+
+  for (const [stopName, bg] of Object.entries(samples.stops)) {
+    for (const [fgName, fg] of Object.entries(samples.foregrounds)) {
+      const ratio = contrastRatio(fg, bg);
+      const label = `${fgName} / ${stopName}`;
+      if (ratio + 1e-6 < MIN_TEXT) {
+        errors.push(
+          `${mode}: ${label} = ${ratio.toFixed(2)}:1 (need ≥ ${MIN_TEXT}:1) [${fg} on ${bg}]`,
+        );
+      } else {
+        console.log(`  ✓ ${mode}: ${label} = ${ratio.toFixed(2)}:1`);
+      }
     }
   }
   return errors;
@@ -445,6 +514,7 @@ async function main() {
       console.log(`Checking ${mode} contrast…`);
       const tokens = await readTokens(page, mode);
       errors.push(...checkPairs(mode, tokens));
+      errors.push(...(await checkGradientStops(page, mode)));
       errors.push(...(await checkDomPairs(page, mode)));
       errors.push(...(await checkAlphaOpacities(page, mode)));
     }
