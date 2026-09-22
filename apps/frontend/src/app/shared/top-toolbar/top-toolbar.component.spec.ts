@@ -145,16 +145,14 @@ describe('TopToolbarComponent', () => {
 
     expect(mobileEnd.classList.contains('mobile-only')).toBe(true);
     expect(desktopControls.classList.contains('desktop-only')).toBe(true);
-    expect(
-      mobileEnd.contains(fixture.nativeElement.querySelector('.top-toolbar__preset-chip')),
-    ).toBe(true);
+    expect(fixture.nativeElement.querySelector('.top-toolbar__preset-chip')).toBeNull();
     expect(mobileEnd.contains(fixture.nativeElement.querySelector('.top-toolbar__menu-btn'))).toBe(
       true,
     );
     fixture.destroy();
   });
 
-  it('schaltet die kompakte Preset-Icon-Toolbar schon unter 840px (Tablet-Portrait)', async () => {
+  it('schaltet die kompakte Toolbar schon unter 840px (Tablet-Portrait)', async () => {
     const { readFileSync } = await import('node:fs');
     const { dirname, join } = await import('node:path');
     const { fileURLToPath } = await import('node:url');
@@ -260,26 +258,23 @@ describe('TopToolbarComponent', () => {
     fixture.destroy();
   });
 
-  it('zeigt das aktuelle Preset mobil als Chip und öffnet dasselbe Menü', async () => {
+  it('öffnet Preset, Theme und Sprache nur über den More-Button in der kompakten Toolbar', async () => {
     const fixture = createToolbar();
-    TestBed.inject(ThemePresetService).setPreset('spielerisch', { silent: true });
-    fixture.detectChanges();
-    const chip = fixture.nativeElement.querySelector(
-      '.top-toolbar__preset-chip',
+    expect(fixture.nativeElement.querySelector('.top-toolbar__preset-chip')).toBeNull();
+    const trigger = fixture.nativeElement.querySelector(
+      '.top-toolbar__menu-btn',
     ) as HTMLButtonElement;
 
-    expect(chip).toBeTruthy();
-    expect(chip.querySelector('mat-icon')?.textContent?.trim()).toBe('celebration');
-    expect(chip.textContent?.replace(/\s+/g, ' ').trim()).not.toContain('Spielerisch');
-    expect(chip.getAttribute('aria-label')).toBe('Spielerisch, Einstellungen öffnen');
-    expect(chip.getAttribute('aria-controls')).toBe('top-toolbar-mobile');
+    expect(trigger).toBeTruthy();
+    expect(trigger.getAttribute('aria-label')).toBe('Einstellungen öffnen');
+    expect(trigger.getAttribute('aria-controls')).toBe('top-toolbar-mobile');
 
-    chip.click();
+    trigger.click();
     fixture.detectChanges();
     await new Promise((resolve) => setTimeout(resolve, 0));
 
     expect(fixture.componentInstance.controlsMenuOpen()).toBe(true);
-    expect(chip.getAttribute('aria-expanded')).toBe('true');
+    expect(trigger.getAttribute('aria-expanded')).toBe('true');
     expect(fixture.nativeElement.querySelector('#top-toolbar-mobile')).toBeTruthy();
     fixture.destroy();
   });
