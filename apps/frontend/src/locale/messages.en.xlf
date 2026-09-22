@@ -30103,22 +30103,6 @@
           <context context-type="linenumber">12</context>
         </context-group>
       </trans-unit>
-      <trans-unit id="topToolbar.presetChipAriaPlayful" datatype="html">
-        <source>Spielerisch, Einstellungen öffnen</source>
-        <target>Gamification, open settings</target>
-        <context-group purpose="location">
-          <context context-type="sourcefile">src/app/shared/top-toolbar/top-toolbar.component.ts</context>
-          <context context-type="linenumber">86</context>
-        </context-group>
-      </trans-unit>
-      <trans-unit id="topToolbar.presetChipAriaSerious" datatype="html">
-        <source>Seriös, Einstellungen öffnen</source>
-        <target>Business, open settings</target>
-        <context-group purpose="location">
-          <context context-type="sourcefile">src/app/shared/top-toolbar/top-toolbar.component.ts</context>
-          <context context-type="linenumber">88</context>
-        </context-group>
-      </trans-unit>
       <trans-unit id="topToolbar.openMenuAria" datatype="html">
         <source>Einstellungen öffnen</source>
         <target>Open settings</target>

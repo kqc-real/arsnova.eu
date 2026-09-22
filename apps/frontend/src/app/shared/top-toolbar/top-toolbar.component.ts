@@ -58,7 +58,7 @@ import {
   styleUrls: ['./top-toolbar.component.scss'],
 })
 export class TopToolbarComponent {
-  /** Ab diesem Breakpoint: volle Desktop-Steuerung; darunter Preset-Icon + Menü. */
+  /** Ab diesem Breakpoint: volle Desktop-Steuerung; darunter nur Hamburger-Menü. */
   static readonly DESKTOP_CONTROLS_MEDIA_QUERY = '(min-width: 840px)';
 
   @ViewChild('mobileControls') private mobileControls?: ElementRef<HTMLElement>;
@@ -91,13 +91,6 @@ export class TopToolbarComponent {
   ];
   language = signal<'de' | 'en' | 'fr' | 'it' | 'es'>('de');
   controlsMenuOpen = signal(false);
-
-  /** Mobile: aktuelles Preset sichtbar, öffnet dasselbe Hamburger-Menü. */
-  readonly presetChipAria = computed(() =>
-    this.themePreset.preset() === 'spielerisch'
-      ? $localize`:@@topToolbar.presetChipAriaPlayful:Spielerisch, Einstellungen öffnen`
-      : $localize`:@@topToolbar.presetChipAriaSerious:Seriös, Einstellungen öffnen`,
-  );
 
   /** Badge-Text (max. „99+“). */
   readonly motdArchiveBadgeText = computed(() => {
