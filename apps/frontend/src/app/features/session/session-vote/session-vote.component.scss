@@ -1150,6 +1150,8 @@
 .session-qa-card__author-name {
   display: inline-flex;
   align-items: center;
+  min-width: 0;
+  max-width: min(100%, 12rem);
   min-height: 2rem;
   padding: 0.12rem 0.65rem;
   border-radius: var(--mat-sys-corner-full);
@@ -1157,6 +1159,14 @@
   border: 1px solid color-mix(in srgb, var(--mat-sys-primary) 18%, transparent);
   font: var(--mat-sys-label-large);
   line-height: 1.4;
+}
+
+.session-qa-card__author-name-text {
+  display: block;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .session-qa-card__author-team {
