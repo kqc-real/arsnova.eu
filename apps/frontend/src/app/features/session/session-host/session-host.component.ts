@@ -8,7 +8,14 @@ import {
 } from '../../../core/document-fullscreen.util';
 import { formatLocaleCount, formatLocaleNumber } from '../../../core/locale-number.util';
 import {
+  scrollAndFocusInAppMain,
+  scrollAppMainToTop,
+  scrollIntoAppMain,
+  sessionScrollBehavior,
+} from '../session-auto-scroll.util';
+import {
   Component,
+  DestroyRef,
   ElementRef,
   HostListener,
   Injector,
@@ -819,6 +826,7 @@ export class SessionHostComponent implements OnInit, OnDestroy {
     : FOYER_CHIP_LIFETIME_MS;
   private readonly document = inject(DOCUMENT);
   private readonly hostElement = inject<ElementRef<HTMLElement>>(ElementRef);
+  private readonly destroyRef = inject(DestroyRef);
   private unloadWarningEnabled = !this.isLocalDevSession();
   private readonly localeId = inject(LOCALE_ID);
   private readonly route = inject(ActivatedRoute);
@@ -2825,10 +2833,13 @@ export class SessionHostComponent implements OnInit, OnDestroy {
   }
 
   private scrollHostQaQuestionIntoView(questionId: string): void {
+    if (this.destroyRef.destroyed) return;
     const elementId = `host-qa-question-${questionId}`;
     afterNextRender(
       () => {
+        if (this.destroyRef.destroyed) return;
         const attempt = (remaining: number): void => {
+          if (this.destroyRef.destroyed) return;
           const target = this.document.getElementById(elementId);
           const list = this.qaListContainerRef?.nativeElement;
           if (!(target instanceof HTMLElement)) {
@@ -2844,28 +2855,15 @@ export class SessionHostComponent implements OnInit, OnDestroy {
             const offset =
               targetRect.top - listRect.top - (list.clientHeight - target.offsetHeight) / 2;
             const nextTop = Math.max(0, list.scrollTop + offset);
+            const behavior = sessionScrollBehavior();
             try {
-              list.scrollTo({ top: nextTop, behavior: 'smooth' });
+              list.scrollTo({ top: nextTop, behavior });
             } catch {
               list.scrollTop = nextTop;
             }
           }
 
-          if (typeof target.scrollIntoView === 'function') {
-            try {
-              target.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-            } catch {
-              target.scrollIntoView();
-            }
-          }
-          if (!target.hasAttribute('tabindex')) {
-            target.tabIndex = -1;
-          }
-          try {
-            target.focus({ preventScroll: true });
-          } catch {
-            target.focus();
-          }
+          scrollAndFocusInAppMain(target, { block: 'nearest' });
         };
 
         const view = this.document.defaultView;
@@ -3301,6 +3299,8 @@ export class SessionHostComponent implements OnInit, OnDestroy {
   }
 
   private previousStatus: string | null = null;
+  private previousFinishedForAutoScroll = false;
+  private firstLobbyArrivalScrolled = false;
   private previousReadingReadyQuestionId: string | null = null;
   private previousAllConnectedParticipantsReady = false;
   private priorLobbyForAutoJoinMenu = false;
@@ -3467,9 +3467,14 @@ export class SessionHostComponent implements OnInit, OnDestroy {
       }
     });
     effect(() => {
-      if (this.effectiveStatus() === 'FINISHED') {
+      const finished = this.effectiveStatus() === 'FINISHED';
+      if (finished) {
         void this.loadFinishedConfidenceSummary();
       }
+      if (finished && !this.previousFinishedForAutoScroll) {
+        untracked(() => this.scrollHostFinishedIntoView());
+      }
+      this.previousFinishedForAutoScroll = finished;
     });
     effect(() => {
       this.hostDisplayMode.setHostSessionActive(this.isLiveHostSurface());
@@ -3783,6 +3788,7 @@ export class SessionHostComponent implements OnInit, OnDestroy {
     this.syncWordCloudOverlayTop();
     this.freetextWordCloudMaximized.set(true);
     void this.activatePresenterSurface('freetextWordCloud', 'quiz');
+    this.scrollFreetextWordCloudIntoView();
   };
 
   closeFreetextWordCloudMaximize(): void {
@@ -3830,6 +3836,27 @@ export class SessionHostComponent implements OnInit, OnDestroy {
     }
 
     this.wordCloudExpanded.set(target.open);
+    if (target.open) {
+      this.scrollFreetextWordCloudIntoView(target);
+    }
+  }
+
+  /** Freitext-Wortwolke möglichst weit oben im Viewport — mehr Fläche für die Wolke. */
+  private scrollFreetextWordCloudIntoView(anchor?: HTMLElement | null): void {
+    if (this.destroyRef.destroyed) return;
+    afterNextRender(
+      () => {
+        if (this.destroyRef.destroyed) return;
+        const host = this.hostElement.nativeElement as HTMLElement;
+        const target =
+          (host.querySelector('#host-freetext-word-cloud') as HTMLElement | null) ??
+          (host.querySelector('.session-host__extra--freetext') as HTMLElement | null) ??
+          anchor ??
+          null;
+        scrollIntoAppMain(target, { block: 'start' });
+      },
+      { injector: this.injector },
+    );
   }
 
   ratingBarRange(q: HostCurrentQuestionDTO): number[] {
@@ -4166,7 +4193,10 @@ export class SessionHostComponent implements OnInit, OnDestroy {
     this.joinInfoPopoverOpen.set(false);
     queueMicrotask(() => {
       if (focusReturn?.isConnected) {
+        scrollIntoAppMain(focusReturn, { block: 'nearest' });
         focusReturn.focus({ preventScroll: true });
+      } else if (this.effectiveStatus() === 'LOBBY') {
+        this.scrollHostLiveContentIntoView();
       }
     });
   }
@@ -5685,6 +5715,7 @@ export class SessionHostComponent implements OnInit, OnDestroy {
       errorRequestId: 'host.steering:failed',
       suggestedArea: 'LIVE_CONTROL',
     });
+    this.scrollHostSteeringCalloutIntoView();
     setTimeout(() => {
       const target = this.hostElement.nativeElement.querySelector<HTMLButtonElement>(
         '[data-testid="host-steering-retry"]',
@@ -5703,6 +5734,7 @@ export class SessionHostComponent implements OnInit, OnDestroy {
       errorRequestId: 'host.qa:failed',
       suggestedArea: 'QA',
     });
+    this.scrollHostSteeringCalloutIntoView();
   }
 
   private openHostSteeringCalloutForExportFailure(retry: () => void): void {
@@ -5713,6 +5745,7 @@ export class SessionHostComponent implements OnInit, OnDestroy {
       errorRequestId: 'host.export:failed',
       suggestedArea: 'PDF_OR_EXPORT',
     });
+    this.scrollHostSteeringCalloutIntoView();
   }
 
   private openHostSteeringCalloutForExportConflict(retry: () => void): void {
@@ -5723,6 +5756,7 @@ export class SessionHostComponent implements OnInit, OnDestroy {
       errorRequestId: 'host.export:conflict',
       suggestedArea: 'PDF_OR_EXPORT',
     });
+    this.scrollHostSteeringCalloutIntoView();
   }
 
   private async retryEndSessionAndNavigateHome(): Promise<void> {
@@ -6476,6 +6510,7 @@ export class SessionHostComponent implements OnInit, OnDestroy {
   private clearFoyerArrivalStateWhenLeavingLobby(nextStatus: SessionInfoDTO['status']): void {
     if (this.effectiveStatus() === 'LOBBY' && nextStatus !== 'LOBBY') {
       this.clearFoyerArrivalState();
+      this.firstLobbyArrivalScrolled = false;
     }
   }
 
@@ -6637,6 +6672,7 @@ export class SessionHostComponent implements OnInit, OnDestroy {
       return;
     }
 
+    const previousCount = previousPayload?.participantCount ?? 0;
     const nextParticipantIds = new Set(payload.participants.map((participant) => participant.id));
     const newParticipants =
       allowArrivalEvents && this.participantBaselineReady
@@ -6656,7 +6692,40 @@ export class SessionHostComponent implements OnInit, OnDestroy {
 
     if (newParticipants.length > 0) {
       this.enqueueFoyerArrivalChips(newParticipants, payload.participantCount);
+      this.maybeScrollForFirstLobbyArrival(previousCount, payload.participantCount);
     }
+  }
+
+  /** Erster Beitritt/Einflug in der Lobby: nach unten zur Audience-Fläche. */
+  private maybeScrollForFirstLobbyArrival(previousCount: number, nextCount: number): void {
+    if (this.firstLobbyArrivalScrolled) {
+      return;
+    }
+    if (this.effectiveStatus() !== 'LOBBY') {
+      return;
+    }
+    if (previousCount > 0 || nextCount <= 0) {
+      return;
+    }
+    this.firstLobbyArrivalScrolled = true;
+    this.scrollHostLobbyAudienceIntoView();
+  }
+
+  private scrollHostLobbyAudienceIntoView(): void {
+    if (this.destroyRef.destroyed) return;
+    afterNextRender(
+      () => {
+        if (this.destroyRef.destroyed) return;
+        const host = this.hostElement.nativeElement as HTMLElement;
+        const target =
+          (host.querySelector('#host-lobby-audience') as HTMLElement | null) ??
+          (host.querySelector('.session-lobby__foyer-stage') as HTMLElement | null) ??
+          (host.querySelector('.session-lobby__teams') as HTMLElement | null) ??
+          (host.querySelector('.session-lobby__list') as HTMLElement | null);
+        scrollIntoAppMain(target, { block: 'start' });
+      },
+      { injector: this.injector },
+    );
   }
 
   private enqueueFoyerArrivalChips(
@@ -8941,8 +9010,9 @@ export class SessionHostComponent implements OnInit, OnDestroy {
   private scrollQaListToTop(options: { markSeen?: boolean } = {}): void {
     const el = this.qaListContainerRef?.nativeElement;
     if (el) {
+      const behavior = sessionScrollBehavior();
       try {
-        el.scrollTo({ top: 0, behavior: 'smooth' });
+        el.scrollTo({ top: 0, behavior });
       } catch {
         el.scrollTop = 0;
       }
@@ -8955,40 +9025,74 @@ export class SessionHostComponent implements OnInit, OnDestroy {
   }
 
   private scrollHostTargetIntoView(targetRef: ElementRef<HTMLElement> | undefined): void {
+    if (this.destroyRef.destroyed) return;
     afterNextRender(
       () => {
+        if (this.destroyRef.destroyed) return;
         const target = targetRef?.nativeElement;
-        const scrollingElement = (this.document.scrollingElement ??
-          this.document.documentElement) as HTMLElement | null;
         if (target) {
-          try {
-            if (scrollingElement) {
-              const rect = target.getBoundingClientRect();
-              const marginTop =
-                parseFloat(
-                  this.document.defaultView?.getComputedStyle(target).scrollMarginTop ?? '0',
-                ) || 0;
-              const currentTop = scrollingElement.scrollTop ?? 0;
-              const nextTop = Math.max(0, currentTop + rect.top - marginTop);
-              scrollingElement.scrollTo({ top: nextTop, behavior: 'smooth' });
-            } else if (typeof target.scrollIntoView === 'function') {
-              target.scrollIntoView({ behavior: 'smooth', block: 'start' });
-            }
-          } catch {
-            if (typeof target.scrollIntoView === 'function') {
-              target.scrollIntoView();
-            }
-          }
+          scrollIntoAppMain(target, { block: 'start' });
           return;
         }
+        scrollAppMainToTop(this.hostElement.nativeElement);
+      },
+      { injector: this.injector },
+    );
+  }
 
-        try {
-          scrollingElement?.scrollTo({ top: 0, behavior: 'smooth' });
-        } catch {
-          if (scrollingElement) {
-            scrollingElement.scrollTop = 0;
-          }
+  private scrollHostLiveContentIntoView(): void {
+    if (this.destroyRef.destroyed) return;
+    afterNextRender(
+      () => {
+        if (this.destroyRef.destroyed) return;
+        const host = this.hostElement.nativeElement as HTMLElement;
+        const target =
+          (host.querySelector('#host-live-content') as HTMLElement | null) ??
+          (host.querySelector('.session-channel-tabs-shell') as HTMLElement | null);
+        if (target) {
+          scrollIntoAppMain(target, { block: 'start' });
+          return;
         }
+        scrollAppMainToTop(host);
+      },
+      { injector: this.injector },
+    );
+  }
+
+  private scrollHostSteeringCalloutIntoView(): void {
+    if (this.destroyRef.destroyed) return;
+    afterNextRender(
+      () => {
+        if (this.destroyRef.destroyed) return;
+        const callout =
+          this.hostElement.nativeElement.querySelector<HTMLElement>('#host-steering-callout');
+        scrollAndFocusInAppMain(callout, { block: 'start' });
+      },
+      { injector: this.injector },
+    );
+  }
+
+  private scrollHostFinishedIntoView(): void {
+    if (this.destroyRef.destroyed) return;
+    afterNextRender(
+      () => {
+        const attempt = (remaining: number): void => {
+          if (this.destroyRef.destroyed) return;
+          const host = this.hostElement.nativeElement as HTMLElement;
+          const target =
+            (host.querySelector('#host-session-finished-card') as HTMLElement | null) ??
+            (host.querySelector('#session-finished-heading') as HTMLElement | null) ??
+            (this.sessionFinishedHeadingRef?.nativeElement as HTMLElement | undefined) ??
+            null;
+          if (target?.isConnected) {
+            scrollAndFocusInAppMain(target, { block: 'start' });
+            return;
+          }
+          if (remaining > 0) {
+            this.document.defaultView?.setTimeout(() => attempt(remaining - 1), 120);
+          }
+        };
+        attempt(10);
       },
       { injector: this.injector },
     );
@@ -9301,6 +9405,19 @@ export class SessionHostComponent implements OnInit, OnDestroy {
       this.activeChannel.set(channel);
       if (prev !== channel) {
         this.closeOpenWordCloudOverlays();
+        // Quiz: kein Scroll zum Kanalschalter — wirkt unruhig.
+        if (channel !== 'quiz') {
+          this.scrollHostLiveContentIntoView();
+        }
+        if (channel === 'qa' && this.qaUnseenCount() > 0) {
+          this.scrollQaListToTop({ markSeen: true });
+        }
+        if (channel === 'quickFeedback') {
+          const result = this.quickFeedbackResult();
+          if (result) {
+            this.quickFeedbackSeenVoteCount.set(result.totalVotes);
+          }
+        }
       }
       if (channel === 'qa') {
         this.qaTitleEditing.set(false);
@@ -10277,6 +10394,11 @@ export class SessionHostComponent implements OnInit, OnDestroy {
           this.startCountdown(refreshedTimer ?? result.timer, result.activeAt);
         }
       }
+      if (result.status === 'FINISHED') {
+        this.scrollHostFinishedIntoView();
+      } else {
+        this.scrollHostTargetIntoView(this.hostQuestionCardRef);
+      }
     } catch {
       this.quizStartQuestionPending.set(false);
       this.clearHostQuestionDetailsRetry();
@@ -10413,7 +10535,9 @@ export class SessionHostComponent implements OnInit, OnDestroy {
           status === 'FINISHED'
             ? this.sessionFinishedHeadingRef?.nativeElement
             : this.hostQuestionCardRef?.nativeElement;
-        if (target?.isConnected) target.focus({ preventScroll: true });
+        if (target?.isConnected) {
+          scrollAndFocusInAppMain(target, { block: 'start' });
+        }
       },
       { injector: this.injector },
     );
@@ -11513,6 +11637,9 @@ export class SessionHostComponent implements OnInit, OnDestroy {
               : $localize`:@@sessionQa.moderationDeleted:Frage entfernt.`,
       );
       this.dismissHostSteeringCallout();
+      if (action !== 'DELETE') {
+        this.scrollHostQaQuestionIntoView(questionId);
+      }
     } catch {
       this.openHostSteeringCalloutForQaFailure(
         () => void this.moderateQaQuestion(questionId, action),
@@ -11572,7 +11699,14 @@ export class SessionHostComponent implements OnInit, OnDestroy {
       this.controlPending.set(false);
       await this.refreshCurrentQuestionForHost();
       if (!this.isCurrentStatusUpdate(result)) return;
-      this.scrollHostTargetIntoView(this.hostResultsSectionRef);
+      const isFreetext = this.displayedCurrentQuestionForHost()?.type === 'FREETEXT';
+      const wordCloudAlreadyOpen = this.wordCloudExpanded() || this.freetextWordCloudMaximized();
+      if (isFreetext && !wordCloudAlreadyOpen) {
+        this.wordCloudExpanded.set(true);
+        this.scrollFreetextWordCloudIntoView();
+      } else {
+        this.scrollHostTargetIntoView(this.hostResultsSectionRef);
+      }
     } catch {
       this.openHostSteeringCalloutForSteeringFailure(() => void this.revealResults());
     } finally {
@@ -11599,6 +11733,8 @@ export class SessionHostComponent implements OnInit, OnDestroy {
       this.dismissHostSteeringCallout();
       this.controlPending.set(false);
       await this.refreshCurrentQuestionForHost();
+      if (!this.isCurrentStatusUpdate(result)) return;
+      this.scrollHostTargetIntoView(this.hostQuestionCardRef);
     } catch {
       this.openHostSteeringCalloutForSteeringFailure(() => void this.startDiscussion());
     } finally {
@@ -11748,6 +11884,10 @@ export class SessionHostComponent implements OnInit, OnDestroy {
       this.finishedConfidenceSummary.set(summary);
     } catch {
       this.finishedConfidenceSummary.set(null);
+    }
+    if (this.effectiveStatus() === 'FINISHED') {
+      // Confidence-Block liegt über „Session beendet“ — nach Layout-Shift erneut dorthin.
+      this.scrollHostFinishedIntoView();
     }
   }
 
@@ -12085,6 +12225,9 @@ export class SessionHostComponent implements OnInit, OnDestroy {
       this.statusUpdate.set(result);
       this.syncCurrentQuestionForHost(null);
       this.dismissHostSteeringCallout();
+      if (result.status === 'FINISHED') {
+        this.scrollHostFinishedIntoView();
+      }
     } catch (error) {
       if (this.isSessionNotFoundError(error)) {
         await this.navigateHomeAfterSessionUnavailable();

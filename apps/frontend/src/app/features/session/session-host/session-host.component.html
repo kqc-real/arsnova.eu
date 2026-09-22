@@ -57,6 +57,7 @@
   } @else if (session(); as s) {
     @if (hostSteeringCallout(); as steer) {
       <div
+        id="host-steering-callout"
         class="session-host__steering-callout"
         role="alert"
         aria-live="assertive"
@@ -118,7 +119,7 @@
       </div>
     }
     @if (showChannelTabs()) {
-      <div class="session-channel-tabs-shell">
+      <div id="host-live-content" class="session-channel-tabs-shell">
         <div class="session-host__channel-nav">
           <mat-button-toggle-group
             #channelTabs="matButtonToggleGroup"
@@ -736,6 +737,11 @@
                 </div>
               </section>
             }
+            <div
+              id="host-lobby-audience"
+              class="session-lobby__audience-anchor"
+              tabindex="-1"
+            ></div>
             @if (s.teamMode && lobbyTeamsWithParticipants().length > 0) {
               <section
                 class="session-lobby__teams session-lobby__teams--hero"
@@ -884,7 +890,7 @@
           <!-- Keine Lobby: Beamer-tauglich. Fragenkarte = Toolbar-Breite (56rem), Ergebniskarte darunter. -->
           <div class="session-host__run l-page">
             @if (effectiveStatus() === 'FINISHED') {
-              <div class="session-host__results">
+              <div id="host-finished-anchor" class="session-host__results" tabindex="-1">
                 @if (finishedConfidenceSummary(); as confidenceSummary) {
                   <section
                     class="session-host__finished-confidence"
@@ -1450,7 +1456,7 @@
                   </section>
                 }
 
-                <header class="session-host__finished">
+                <header class="session-host__finished" id="host-session-finished-card">
                   <mat-icon class="session-host__finished-icon" aria-hidden="true"
                     >verified</mat-icon
                   >
@@ -3751,6 +3757,7 @@
 
               @if (displayedCurrentQuestionForHost()?.type === 'FREETEXT') {
                 <details
+                  id="host-freetext-word-cloud"
                   class="session-host__extra session-host__extra--freetext session-host__extra--no-divider"
                   [class.session-host__extra--maximized]="freetextWordCloudMaximized()"
                   [attr.open]="wordCloudExpanded() || freetextWordCloudMaximized() ? true : null"

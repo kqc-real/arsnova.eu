@@ -3084,6 +3084,13 @@
   color: var(--mat-sys-primary);
 }
 
+.session-lobby__audience-anchor {
+  scroll-margin-top: calc(var(--app-toolbar-offset, 4.5rem) + 0.5rem);
+  height: 0;
+  overflow: hidden;
+  pointer-events: none;
+}
+
 .session-lobby__teams {
   margin: 0;
   text-align: left;

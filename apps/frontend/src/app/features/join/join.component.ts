@@ -1,4 +1,13 @@
-import { Component, OnInit, OnDestroy, inject, LOCALE_ID, signal, computed } from '@angular/core';
+import {
+  Component,
+  ElementRef,
+  OnInit,
+  OnDestroy,
+  inject,
+  LOCALE_ID,
+  signal,
+  computed,
+} from '@angular/core';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { MatCard, MatCardContent } from '@angular/material/card';
 import { MatButton } from '@angular/material/button';
@@ -29,6 +38,7 @@ import {
   kindergartenEmojiAtIndex,
 } from './kindergarten-nickname-icons';
 import { recordServerTimeIso } from '../session/session-server-clock';
+import { scrollAndFocusInAppMain } from '../session/session-auto-scroll.util';
 import { setParticipantJoinArrival } from '../../core/participant-join-arrival';
 import { setConfirmedParticipantTeam } from '../../core/participant-team-confirmation';
 import { ThemePresetService } from '../../core/theme-preset.service';
@@ -93,6 +103,7 @@ export class JoinComponent implements OnInit, OnDestroy {
   private readonly router = inject(Router);
   private readonly localeId = inject(LOCALE_ID);
   private readonly themePreset = inject(ThemePresetService);
+  private readonly hostElement = inject(ElementRef<HTMLElement>);
   readonly code = (this.route.snapshot.paramMap.get('code') ?? '').trim().toUpperCase();
   private readonly locale = getEffectiveLocale(localeIdToSupported(this.localeId));
 
@@ -579,9 +590,16 @@ export class JoinComponent implements OnInit, OnDestroy {
   }
 
   async submitJoin(): Promise<void> {
-    if (this.joining() || !this.canSubmit()) return;
+    if (this.joining()) return;
     const nickname = this.effectiveNickname();
-    if (!nickname) return;
+    if (!nickname) {
+      this.focusFirstJoinField();
+      return;
+    }
+    if (!this.canSubmit()) {
+      this.focusFirstJoinField();
+      return;
+    }
     this.error.set(null);
     this.joinError.set(null);
     this.joining.set(true);
@@ -620,8 +638,30 @@ export class JoinComponent implements OnInit, OnDestroy {
           this.selectedNickname.set('');
         }
       }
+      this.focusJoinError();
     } finally {
       this.joining.set(false);
     }
+  }
+
+  private focusFirstJoinField(): void {
+    const host = this.hostElement.nativeElement;
+    const target =
+      (host.querySelector('#join-nickname-input') as HTMLElement | null) ??
+      (host.querySelector('mat-select') as HTMLElement | null) ??
+      (host.querySelector('.join-card__nickname-group') as HTMLElement | null);
+    scrollAndFocusInAppMain(target, { block: 'start' });
+  }
+
+  private focusJoinError(): void {
+    queueMicrotask(() => {
+      const host = this.hostElement.nativeElement;
+      const errorEl = host.querySelector('.join-card__error') as HTMLElement | null;
+      if (errorEl) {
+        scrollAndFocusInAppMain(errorEl, { block: 'nearest' });
+        return;
+      }
+      this.focusFirstJoinField();
+    });
   }
 }

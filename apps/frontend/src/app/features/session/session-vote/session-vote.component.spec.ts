@@ -203,8 +203,8 @@ describe('SessionVoteComponent', { timeout: 30_000 }, () => {
       'vote-top',
     ]);
     expect(anchorCandidatesForPhase('result', false)).toEqual([
-      'vote-result-message',
       'vote-result-score',
+      'vote-result-message',
       'vote-result-anchor',
       'vote-top',
       'vote-error',

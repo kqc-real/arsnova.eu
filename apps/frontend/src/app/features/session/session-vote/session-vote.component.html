@@ -2598,15 +2598,23 @@
         @if (!isQaChannelOpen()) {
           @if (isQaDeadlineExpired()) {
             <p
+              id="vote-qa-closed-notice"
               class="session-channel-card__text"
               role="status"
+              tabindex="-1"
               i18n="@@sessionQa.deadlineExpiredParticipant"
             >
               Die Teilnahmefrist ist abgelaufen. Neue Fragen und Bewertungen sind nicht mehr
               möglich.
             </p>
           } @else {
-            <p class="session-channel-card__text" i18n="@@sessionTabs.qaClosedNotice">
+            <p
+              id="vote-qa-closed-notice"
+              class="session-channel-card__text"
+              role="status"
+              tabindex="-1"
+              i18n="@@sessionTabs.qaClosedNotice"
+            >
               Der Q&A-Kanal wurde von der Lehrperson geschlossen. Fragen und Bewertungen sind gerade
               nicht möglich.
             </p>
@@ -2922,7 +2930,11 @@
               <p class="session-channel-card__eyebrow" i18n="@@sessionTabs.quickFeedback">
                 Blitzlicht
               </p>
-              <h2 class="session-channel-card__title" i18n="@@sessionTabs.quickFeedbackClosedTitle">
+              <h2
+                id="vote-quick-feedback-heading"
+                class="session-channel-card__title"
+                i18n="@@sessionTabs.quickFeedbackClosedTitle"
+              >
                 Blitzlicht geschlossen
               </h2>
             </div>
@@ -2933,20 +2945,27 @@
           </p>
         </section>
       } @else {
-        <app-feedback-vote
-          [sessionCode]="code"
-          [participantId]="participantId()"
-          [participantName]="playerNickname()"
-          [participantAvatar]="playerKindergartenEmoji()"
-          [participantAvatarSequence]="playerKindergartenSequence()"
-          [participantTeamName]="playerTeamName()"
-          [sessionTitle]="liveHeading()"
-          [embeddedInSession]="true"
-          [sharedResult]="quickFeedbackResult()"
-          [showSessionCode]="false"
-          [showAskQuestionButton]="showTempoAskQuestionShortcut()"
-          (askQuestion)="openQaAskView()"
-        />
+        <section
+          id="vote-quick-feedback-heading"
+          data-testid="vote-quick-feedback"
+          class="session-channel-card session-channel-card--quick-feedback app-live-channel-shell"
+          tabindex="-1"
+        >
+          <app-feedback-vote
+            [sessionCode]="code"
+            [participantId]="participantId()"
+            [participantName]="playerNickname()"
+            [participantAvatar]="playerKindergartenEmoji()"
+            [participantAvatarSequence]="playerKindergartenSequence()"
+            [participantTeamName]="playerTeamName()"
+            [sessionTitle]="liveHeading()"
+            [embeddedInSession]="true"
+            [sharedResult]="quickFeedbackResult()"
+            [showSessionCode]="false"
+            [showAskQuestionButton]="showTempoAskQuestionShortcut()"
+            (askQuestion)="openQaAskView()"
+          />
+        </section>
       }
     }
 
