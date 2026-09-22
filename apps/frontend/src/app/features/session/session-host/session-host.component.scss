@@ -2331,12 +2331,15 @@
     box-shadow 200ms,
     transform 120ms;
   white-space: nowrap;
-  flex-shrink: 0;
+  flex-shrink: 1;
+  min-width: 0;
+  max-width: min(100%, 18rem);
 
   mat-icon {
     font-size: 1.15rem;
     width: 1.15rem;
     height: 1.15rem;
+    flex-shrink: 0;
   }
 
   &:hover {
@@ -2370,6 +2373,14 @@
         0 4px 12px color-mix(in srgb, var(--mat-sys-error) 35%, transparent);
     }
   }
+}
+
+.session-qa-filter-btn__label {
+  display: block;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .session-qa-empty--filtered {
@@ -2563,6 +2574,8 @@
 .session-qa-card__author-name {
   display: inline-flex;
   align-items: center;
+  min-width: 0;
+  max-width: min(100%, 12rem);
   min-height: 1.95rem;
   padding: 0.12rem 0.65rem;
   border-radius: var(--mat-sys-corner-full);
@@ -2570,7 +2583,15 @@
   border: 1px solid color-mix(in srgb, var(--mat-sys-primary) 18%, transparent);
   font: var(--mat-sys-label-large);
   line-height: 1.4;
-  flex-shrink: 0;
+  flex-shrink: 1;
+}
+
+.session-qa-card__author-name-text {
+  display: block;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .session-qa-card__author-team {

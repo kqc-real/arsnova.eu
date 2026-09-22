@@ -2804,9 +2804,12 @@
                           "
                           [attr.aria-label]="qaAuthorSelectionAriaLabel(question)"
                           [attr.aria-pressed]="isQaAuthorSelected(question)"
+                          [attr.title]="authorNickname"
                           (click)="toggleQaAuthorSelection(authorNickname)"
                         >
-                          {{ authorNickname }}
+                          <span class="session-qa-card__author-name-text">{{
+                            authorNickname
+                          }}</span>
                         </button>
                       }
                       @if (qaQuestionAuthorTeamName(question); as authorTeamName) {
