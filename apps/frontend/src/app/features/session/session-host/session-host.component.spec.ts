@@ -1706,6 +1706,10 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
     expect(
       fixture.nativeElement.querySelector('.session-qa-filter-btn--active')?.textContent ?? '',
     ).toContain('Fragen von Roter Drache 2');
+    expect(
+      fixture.nativeElement.querySelector('.session-qa-filter-btn--active')?.getAttribute('title'),
+    ).toBe('Roter Drache 2');
+    expect(fixture.nativeElement.querySelector('.session-qa-filter-btn__label')).toBeTruthy();
     expect(fixture.componentInstance.participantDirectoryOpen()).toBe(false);
     expect(fixture.nativeElement.querySelector('.session-participant-directory__list')).toBeNull();
 

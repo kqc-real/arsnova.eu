@@ -5098,6 +5098,48 @@ describe('SessionVoteComponent', { timeout: 30_000 }, () => {
     fixture.destroy();
   });
 
+  it('kürzt lange Autoren-Namen im Q&A-Chip und behält die volle Länge im Tooltip', () => {
+    const fixture = TestBed.createComponent(SessionVoteComponent);
+    const component = fixture.componentInstance;
+    const longName = 'Maximilian Mustermann XX';
+    component.status.set('ACTIVE');
+    component.activeChannel.set('qa');
+    component.sessionSettings.set({
+      nicknameTheme: 'HIGH_SCHOOL',
+      anonymousMode: false,
+      teamMode: false,
+      channels: {
+        quiz: { enabled: false },
+        qa: { enabled: true, open: true, title: 'Fragen', moderationMode: false, state: 'OPEN' },
+        quickFeedback: { enabled: false, open: false },
+      },
+    });
+    component.qaQuestions.set([
+      {
+        id: 'question-long-nick',
+        text: 'Wann ist die Klausur?',
+        upvoteCount: 1,
+        status: 'ACTIVE',
+        createdAt: '2026-03-13T12:00:00.000Z',
+        authorNickname: longName,
+        myVote: null,
+        isOwn: false,
+        hasUpvoted: false,
+      },
+    ]);
+    fixture.detectChanges();
+
+    const authorBtn = fixture.nativeElement.querySelector(
+      '.session-qa-card__author-name',
+    ) as HTMLButtonElement;
+    expect(authorBtn).toBeTruthy();
+    expect(authorBtn.getAttribute('title')).toBe(longName);
+    expect(authorBtn.querySelector('.session-qa-card__author-name-text')?.textContent?.trim()).toBe(
+      longName,
+    );
+    fixture.destroy();
+  });
+
   it('zeigt die Teamzugehörigkeit fremder Q&A-Fragen auch über das Leaderboard', () => {
     const fixture = TestBed.createComponent(SessionVoteComponent);
     const component = fixture.componentInstance;
