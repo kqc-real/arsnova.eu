@@ -1156,7 +1156,7 @@ describe('Quiz-Datei-Import-Limits', () => {
     expect(QuizImportSchema.safeParse(payload).success).toBe(true);
   });
 
-  it('weist mehr als QUIZ_UPLOAD_MAX_QUESTIONS Fragen zurück', () => {
+  it('weist mehr als QUIZ_UPLOAD_MAX_QUESTIONS Fragen beim Import zurück', () => {
     const payload = {
       ...importBase,
       quiz: {
@@ -1168,5 +1168,20 @@ describe('Quiz-Datei-Import-Limits', () => {
       },
     };
     expect(QuizImportSchema.safeParse(payload).success).toBe(false);
+  });
+
+  it('lässt Export ohne Fragen-Cap zu (Backup großer lokaler Quiz)', async () => {
+    const { QuizExportSchema } = await import('./schemas.js');
+    const payload = {
+      ...importBase,
+      quiz: {
+        ...importBase.quiz,
+        questions: Array.from({ length: QUIZ_UPLOAD_MAX_QUESTIONS + 1 }, (_, order) => ({
+          ...question,
+          order,
+        })),
+      },
+    };
+    expect(QuizExportSchema.safeParse(payload).success).toBe(true);
   });
 });

@@ -329,9 +329,35 @@ export class MarkdownKatexEditorComponent implements AfterViewInit, OnChanges, O
 
     const inserted = wrap + selected + wrapEnd + trailingSpaces;
     const next = v.slice(0, start) + inserted + v.slice(end);
+    if (
+      !this.commitFieldValue(
+        field,
+        next,
+        start + wrap.length,
+        start + wrap.length + selected.length,
+      )
+    ) {
+      return;
+    }
+  }
+
+  /**
+   * Programmatische Toolbar-/Einfüge-Edits: bei maxLength ablehnen statt vom
+   * Dokumentende zu kürzen (sonst gehen unbeteiligte Suffixe verloren).
+   */
+  private commitFieldValue(
+    field: HTMLTextAreaElement,
+    next: string,
+    selectionStart: number,
+    selectionEnd: number,
+  ): boolean {
+    if (this.maxLength !== null && next.length > this.maxLength) {
+      return false;
+    }
     field.value = next;
-    field.setSelectionRange(start + wrap.length, start + wrap.length + selected.length);
+    field.setSelectionRange(selectionStart, selectionEnd);
     this.onInput(field.value);
+    return true;
   }
 
   onInput(value: string): void {
@@ -427,13 +453,11 @@ export class MarkdownKatexEditorComponent implements AfterViewInit, OnChanges, O
     const a = Math.max(0, Math.min(rangeStart, len));
     const b = Math.max(0, Math.min(rangeEnd, len));
     const next = v.slice(0, a) + text + v.slice(b);
-    field.value = next;
     const caret =
       caretOffsetInInsertedText !== undefined
         ? a + Math.min(Math.max(0, caretOffsetInInsertedText), text.length)
         : a + text.length;
-    field.setSelectionRange(caret, caret);
-    this.onInput(field.value);
+    this.commitFieldValue(field, next, caret, caret);
   }
 
   applyBold(): void {
@@ -460,10 +484,7 @@ export class MarkdownKatexEditorComponent implements AfterViewInit, OnChanges, O
       const right = v.slice(start, start + mlen);
       if (left === marker && right === marker) {
         const next = v.slice(0, start - mlen) + v.slice(start + mlen);
-        field.value = next;
-        const pos = start - mlen;
-        field.setSelectionRange(pos, pos);
-        this.onInput(field.value);
+        this.commitFieldValue(field, next, start - mlen, start - mlen);
         return;
       }
     }
@@ -473,9 +494,7 @@ export class MarkdownKatexEditorComponent implements AfterViewInit, OnChanges, O
       if (sel.length >= 2 * mlen && sel.startsWith(marker) && sel.endsWith(marker)) {
         const inner = sel.slice(mlen, -mlen);
         const next = v.slice(0, start) + inner + v.slice(end);
-        field.value = next;
-        field.setSelectionRange(start, start + inner.length);
-        this.onInput(field.value);
+        this.commitFieldValue(field, next, start, start + inner.length);
         return;
       }
     }
@@ -497,10 +516,12 @@ export class MarkdownKatexEditorComponent implements AfterViewInit, OnChanges, O
       const sel = v.slice(start, end);
       const inner = this.tryStripOuterCodeFence(sel);
       if (inner !== null) {
-        field.value = v.slice(0, start) + inner + v.slice(end);
-        const pos = start + inner.length;
-        field.setSelectionRange(pos, pos);
-        this.onInput(field.value);
+        this.commitFieldValue(
+          field,
+          v.slice(0, start) + inner + v.slice(end),
+          start + inner.length,
+          start + inner.length,
+        );
         return;
       }
     }
@@ -548,12 +569,16 @@ export class MarkdownKatexEditorComponent implements AfterViewInit, OnChanges, O
       .join('\n');
 
     const nextValue = value.slice(0, lineStart) + updatedBlock + value.slice(lineEnd);
-    field.value = nextValue;
-    field.setSelectionRange(
-      Math.max(lineStart, start + startShift),
-      Math.max(lineStart, end + endShift),
-    );
-    this.onInput(field.value);
+    if (
+      !this.commitFieldValue(
+        field,
+        nextValue,
+        Math.max(lineStart, start + startShift),
+        Math.max(lineStart, end + endShift),
+      )
+    ) {
+      return;
+    }
     this.schedulePreviewScrollSync();
   }
 
@@ -591,10 +616,8 @@ export class MarkdownKatexEditorComponent implements AfterViewInit, OnChanges, O
           .map((line) => (line.trim().length === 0 ? line : line.replace(/^(#{1,6}\s+)?/, prefix)))
           .join('\n');
     const nextValue = value.slice(0, lineStart) + updatedBlock + value.slice(lineEnd);
-    field.value = nextValue;
     const nextPos = lineStart + updatedBlock.length;
-    field.setSelectionRange(nextPos, nextPos);
-    this.onInput(field.value);
+    this.commitFieldValue(field, nextValue, nextPos, nextPos);
   }
 
   applyBulletList(): void {
@@ -618,10 +641,8 @@ export class MarkdownKatexEditorComponent implements AfterViewInit, OnChanges, O
       })
       .join('\n');
     const nextValue = value.slice(0, lineStart) + updatedBlock + value.slice(lineEnd);
-    field.value = nextValue;
     const nextPos = lineStart + updatedBlock.length;
-    field.setSelectionRange(nextPos, nextPos);
-    this.onInput(field.value);
+    this.commitFieldValue(field, nextValue, nextPos, nextPos);
   }
 
   applyQuote(): void {
@@ -645,10 +666,8 @@ export class MarkdownKatexEditorComponent implements AfterViewInit, OnChanges, O
       })
       .join('\n');
     const nextValue = value.slice(0, lineStart) + updatedBlock + value.slice(lineEnd);
-    field.value = nextValue;
     const nextPos = lineStart + updatedBlock.length;
-    field.setSelectionRange(nextPos, nextPos);
-    this.onInput(field.value);
+    this.commitFieldValue(field, nextValue, nextPos, nextPos);
   }
 
   applyInlineMath(): void {

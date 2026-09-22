@@ -1410,9 +1410,9 @@ function countAiImportQuestions(payload: unknown): number {
   }
   const root = payload as Record<string, unknown>;
   const quiz = root['quiz'];
-  const questions =
-    (quiz && typeof quiz === 'object' ? (quiz as Record<string, unknown>)['questions'] : null) ??
-    root['questions'];
+  const fromQuiz =
+    quiz && typeof quiz === 'object' ? (quiz as Record<string, unknown>)['questions'] : null;
+  const questions = fromQuiz ?? root['questions'] ?? root['questionList'];
   return Array.isArray(questions) ? questions.length : 0;
 }
 

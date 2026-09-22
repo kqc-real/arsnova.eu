@@ -270,4 +270,23 @@ describe('MarkdownKatexEditorComponent', () => {
     expect(component.rawValue()).toBe('abcdefghij');
     expect(fixture.nativeElement.textContent).toContain('10/10');
   });
+
+  it('verwirft Toolbar-Wraps, die maxLength überschreiten würden', () => {
+    const fixture = TestBed.createComponent(MarkdownKatexEditorComponent);
+    const component = fixture.componentInstance;
+    component.fieldId = 'md-limit-wrap';
+    component.maxLength = 10;
+    fixture.detectChanges();
+    const field = fixture.nativeElement.querySelector('textarea') as HTMLTextAreaElement;
+    field.value = 'abcdefghij';
+    component.onInput(field.value);
+    fixture.detectChanges();
+    field.focus();
+    field.setSelectionRange(0, 4);
+    component['toolbarSelectionStash'] = { start: 0, end: 4 };
+    component.applyBold();
+    fixture.detectChanges();
+    expect(field.value).toBe('abcdefghij');
+    expect(component.rawValue()).toBe('abcdefghij');
+  });
 });

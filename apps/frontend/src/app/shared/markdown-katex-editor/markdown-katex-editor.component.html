@@ -301,7 +301,7 @@
         (scroll)="onSourceScroll()"
       ></textarea>
       @if (maxLength != null) {
-        <p class="mk-editor__count" aria-live="polite">{{ rawValue().length }}/{{ maxLength }}</p>
+        <p class="mk-editor__count">{{ rawValue().length }}/{{ maxLength }}</p>
       }
     </div>
     <div

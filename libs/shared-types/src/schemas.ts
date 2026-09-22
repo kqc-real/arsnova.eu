@@ -4948,21 +4948,25 @@ export const QuizExportSchema = z.object({
     nicknameTheme: NicknameThemeEnum,
     bonusTokenCount: z.number().int().min(1).max(50).nullable().optional(), // Story 4.6
     readingPhaseEnabled: z.boolean().optional(), // Story 2.6: Lesephase
-    questions: z
-      .array(ExportedQuestionSchema)
-      .min(1)
-      .max(QUIZ_UPLOAD_MAX_QUESTIONS, {
-        error: `Import erlaubt maximal ${QUIZ_UPLOAD_MAX_QUESTIONS} Fragen.`,
-      }),
+    questions: z.array(ExportedQuestionSchema).min(1),
   }),
 });
 export type QuizExport = z.infer<typeof QuizExportSchema>;
 
 /**
- * Alias für Import-Validierung (Story 1.9a).
- * Import und Export nutzen bewusst dasselbe JSON-Format.
+ * Import-Validierung (Story 1.9a): gleiches Export-JSON, zusätzlich Fragen-Cap
+ * wie Live-Upload — damit OOM-/Upload-untaugliche Pakete nicht in die Bibliothek
+ * gelangen. Export bleibt ohne dieses Cap (Backup großer lokaler Quiz).
  */
-export const QuizImportSchema = QuizExportSchema;
+export const QuizImportSchema = QuizExportSchema.superRefine((value, ctx) => {
+  if (value.quiz.questions.length > QUIZ_UPLOAD_MAX_QUESTIONS) {
+    ctx.addIssue({
+      code: 'custom',
+      path: ['quiz', 'questions'],
+      message: `Import erlaubt maximal ${QUIZ_UPLOAD_MAX_QUESTIONS} Fragen.`,
+    });
+  }
+});
 export type QuizImport = z.infer<typeof QuizImportSchema>;
 
 // ---------------------------------------------------------------------------
