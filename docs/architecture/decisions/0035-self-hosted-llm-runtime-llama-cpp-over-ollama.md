@@ -352,3 +352,56 @@ Flags, gemeinsames Inflight, Health, Tests ohne Modell-Download) → 1.14c Stufe
 [github.com/ollama/ollama](https://github.com/ollama/ollama),
 [github.com/vllm-project/vllm](https://github.com/vllm-project/vllm),
 [github.com/huggingface/text-generation-inference](https://github.com/huggingface/text-generation-inference).
+
+## Ergänzung 2026-09-22: Runtime-Voraussetzung für Issue #456
+
+**Status:** beauftragte Planung, noch keine Runtime-Implementierung oder Produktivfreigabe.
+[Issue #456](https://github.com/kqc-real/arsnova.eu/issues/456) erweitert den bisherigen
+Geltungsbereich (Labels und Summary) um einen dritten Auftrag: **Lernzielableitung**.
+Frühere Aussagen über zwei Aufträge beschreiben den bisherigen Scope; die übrigen
+Betriebsleitplanken bleiben verbindlich.
+
+### Runtime-PR R und Abnahme
+
+Story 8.9d liefert die gemeinsame Runtime in einem separaten **Runtime-PR R**.
+Die Kontext-Slices 1–4 aus #456 können ohne Modell umgesetzt werden. **Vor Slice 5**
+muss R implementiert und durch Codex technisch abgenommen sein.
+Grok 4.7 High Fast implementiert; Codex reviewt den jeweiligen Commit.
+HTTP-Adapter, Encoder und Gemini-Dev-Helfer ersetzen diese Abnahme nicht.
+
+R umfasst Image/Compose-Profil, gepinntes GGUF, privaten authentisierten Transport,
+Node-Übersetzer mit Schema pro Auftrag, gemeinsamen Slot-Schutz, Health, Abbruch,
+Timeout und Circuit Breaker. Modellfreie Vertrags-/Isolationstests und ein realer lokaler
+Lauf mit Modell-/Image-Digest, Hardware, Tokenumfang, Prefill/TTFT, Laufzeit und Speicher
+sind nachzuweisen. Produktivaktivierung bleibt eine separate Betreiberentscheidung.
+
+### Lernzielauftrag auf derselben Runtime
+
+- Bewusste Host-Aktion in der Quizvorbereitung; eigener versionierter Vertrag, Prompt,
+  Tokenbudget und Timeout. Kein automatischer Aufruf bei Vote, Summary oder Quizwechsel.
+- Derselbe globale Slot wie für Labels und Summary; kein zweiter Server, keine erhöhte
+  Parallelität und weiterhin kein 8.9b-Auftrag auf diesem Slot.
+- Slot belegt: Ableitung startet nicht; verständlicher Zustand mit manuellem Retry.
+  Keine interne Modellwarteschlange und keine erfundenen extraktiven Lernziele.
+- Laufende Ableitung ist abbrechbar; Abbruch/Timeout gibt den Slot tatsächlich frei.
+  Keine automatische Präemption. Live-Aufträge nutzen bei belegtem Slot ihren
+  definierten Label-/Summary-Fallback.
+- Bestätigte/manuelle Ziele bleiben bei Fehler oder erneuter Ableitung erhalten.
+- Bewusst bereitgestellte Lösungen sind im Vorbereitungsauftrag zulässig; der
+  Live-Kontext übernimmt nur zulässige Ziele/Referenzen und wahrt Freigabegrenzen.
+
+### Messprofil und Rollout
+
+2.048/4.096 Kontexttokens und Qwen3-4B-Instruct-2507 Q4_K_M bleiben das initiale
+Messprofil, keine Eignungsgarantie für den reicheren Kontext. Instruktionen, Metadaten,
+Quellen, Antwort- und Sicherheitsreserve gemeinsam budgetieren. „Richtung acht Quellen“
+ist keine feste neue Quellenzahl.
+
+Kurze Labels bleiben der erste generative Betriebsnachweis. Lernzielableitung und
+angereicherte Summary benötigen eigene Messungen. Die produktionsnahe 8-vCPU-Prefill-Abnahme
+der Summary bleibt Voraussetzung für 8.9c Slice 4 und die Gesamt-/Betriebsabnahme von #456;
+der lokale Lauf für R ersetzt sie nicht. Kein stilles Hochsetzen des Kontexts oder
+GPU-/SaaS-Wechsel. Bei fehlender Eignung bleibt der betreffende generative Pfad
+deaktiviert und seine Abnahme offen; Kompass, extraktive Labels und manuelle Ziele bleiben nutzbar.
+
+Der finale Moderationsprompt bleibt Folgearbeit; der Lernzielauftrag gehört zu #456.
