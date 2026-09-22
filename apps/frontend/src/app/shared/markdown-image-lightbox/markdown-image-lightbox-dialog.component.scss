@@ -16,9 +16,12 @@
   /*
     Fit-Ansicht: Bild bleibt unter Steuerung/URL-Caption; gleiche Block-Insets,
     damit object-fit und Zoom-Logik die Mitte behalten.
+    Cap per Seite (~20vh), damit 400%-Zoom / kurze Viewports das Bild nicht auf 0 quetschen.
   */
-  --markdown-lightbox-inset-block: calc(
-    4.75rem + max(env(safe-area-inset-top, 0px), env(safe-area-inset-bottom, 0px))
+  --markdown-lightbox-inset-block: min(
+    calc(4.75rem + max(env(safe-area-inset-top, 0px), env(safe-area-inset-bottom, 0px))),
+    20vh,
+    20dvh
   );
   --markdown-lightbox-inset-inline: max(
     1rem,
@@ -202,9 +205,11 @@
 
 @media (max-width: 599px) {
   .markdown-image-lightbox {
-    /* Close + Zoom-Leiste gestapelt: mehr Luft oben/unten. */
-    --markdown-lightbox-inset-block: calc(
-      7.25rem + max(env(safe-area-inset-top, 0px), env(safe-area-inset-bottom, 0px))
+    /* Close + Zoom-Leiste gestapelt: mehr Luft oben/unten, weiterhin auf Viewport gekappt. */
+    --markdown-lightbox-inset-block: min(
+      calc(7.25rem + max(env(safe-area-inset-top, 0px), env(safe-area-inset-bottom, 0px))),
+      20vh,
+      20dvh
     );
     --markdown-lightbox-inset-inline: max(
       0.75rem,

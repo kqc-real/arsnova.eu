@@ -137,6 +137,7 @@ describe('MarkdownImageLightboxDialogComponent', () => {
     );
     expect(styles).toMatch(/\.markdown-image-lightbox__caption \{[^}]*mat-sys-on-surface/s);
     expect(styles).toMatch(/--markdown-lightbox-inset-block:/);
+    expect(styles).toMatch(/--markdown-lightbox-inset-block:\s*min\(/);
     expect(styles).toMatch(
       /\.markdown-image-lightbox__image \{[^}]*padding-block:\s*var\(--markdown-lightbox-inset-block\)/s,
     );

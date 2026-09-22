@@ -207,6 +207,10 @@
   .desktop-only {
     display: inline-flex;
   }
+  /* Offenes Kompakt-Menü nach Rotation nicht unter der Desktop-Steuerung stehen lassen. */
+  .top-toolbar__mobile {
+    display: none !important;
+  }
 }
 
 .top-toolbar__end {

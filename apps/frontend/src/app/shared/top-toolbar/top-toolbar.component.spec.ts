@@ -168,6 +168,51 @@ describe('TopToolbarComponent', () => {
     expect(scss).toMatch(
       /@media \(min-width:\s*840px\)\s*\{[\s\S]*?\.top-toolbar__center[\s\S]*?grid-column:\s*2/,
     );
+    expect(scss).toMatch(
+      /@media \(min-width:\s*840px\)\s*\{[\s\S]*?\.top-toolbar__mobile\s*\{[^}]*display:\s*none/,
+    );
+  });
+
+  it('schließt das Kompakt-Menü beim Wechsel auf Desktop-Breite', () => {
+    type MediaChangeListener = (event: MediaQueryListEvent) => void;
+    let changeListener: MediaChangeListener | null = null;
+    const mediaQuery = {
+      matches: false,
+      media: TopToolbarComponent.DESKTOP_CONTROLS_MEDIA_QUERY,
+      addEventListener: vi.fn((_type: string, listener: MediaChangeListener) => {
+        changeListener = listener;
+      }),
+      removeEventListener: vi.fn(),
+      addListener: vi.fn(),
+      removeListener: vi.fn(),
+      dispatchEvent: vi.fn(),
+      onchange: null,
+    } as unknown as MediaQueryList;
+    const previousMatchMedia = window.matchMedia;
+    Object.defineProperty(window, 'matchMedia', {
+      configurable: true,
+      writable: true,
+      value: vi.fn(() => mediaQuery),
+    });
+
+    try {
+      const fixture = createToolbar();
+      fixture.componentInstance.controlsMenuOpen.set(true);
+      fixture.detectChanges();
+      expect(changeListener).toBeTypeOf('function');
+      changeListener!({
+        matches: true,
+        media: TopToolbarComponent.DESKTOP_CONTROLS_MEDIA_QUERY,
+      } as MediaQueryListEvent);
+      expect(fixture.componentInstance.controlsMenuOpen()).toBe(false);
+      fixture.destroy();
+    } finally {
+      Object.defineProperty(window, 'matchMedia', {
+        configurable: true,
+        writable: true,
+        value: previousMatchMedia,
+      });
+    }
   });
 
   it('stellt den Sprachschalter als letztes Desktop-Steuerelement bereit', () => {
