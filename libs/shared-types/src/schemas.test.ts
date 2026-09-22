@@ -9,6 +9,7 @@ import {
   QUIZ_UPLOAD_MAX_PAYLOAD_BYTES,
   QUIZ_UPLOAD_MAX_QUESTIONS,
   QuizUploadInputSchema,
+  QuizImportSchema,
   QuestionRevealedDTOSchema,
   QuestionStudentDTOSchema,
   resolvePersonalTimerSeconds,
@@ -1104,5 +1105,68 @@ describe('Admin-Session-Lookup und Host-Reset-Vertrag', () => {
         supportId: 'ARS-ABCD-2345',
       }).success,
     ).toBe(false);
+  });
+});
+
+describe('AI-Import-Limits', () => {
+  it('begrenzt KI-Paste auf 30 Fragen und Zeichenbudget', async () => {
+    const { QUIZ_AI_IMPORT_MAX_QUESTIONS, QUIZ_AI_IMPORT_MAX_CHARS } = await import('./schemas.js');
+    expect(QUIZ_AI_IMPORT_MAX_QUESTIONS).toBe(30);
+    expect(QUIZ_AI_IMPORT_MAX_CHARS).toBe(120_000);
+  });
+});
+
+describe('Quiz-Datei-Import-Limits', () => {
+  const importBase = {
+    exportVersion: 1,
+    exportedAt: '2026-09-22T10:00:00.000Z',
+    quiz: {
+      name: 'Import-Quiz',
+      showLeaderboard: true,
+      allowCustomNicknames: true,
+      enableSoundEffects: true,
+      enableRewardEffects: true,
+      enableMotivationMessages: true,
+      enableEmojiReactions: true,
+      anonymousMode: false,
+      teamMode: false,
+      nicknameTheme: 'HIGH_SCHOOL' as const,
+    },
+  };
+
+  const question = {
+    text: 'Frage',
+    type: 'SINGLE_CHOICE' as const,
+    difficulty: 'MEDIUM' as const,
+    order: 0,
+    answers: [{ text: 'A', isCorrect: true }],
+  };
+
+  it('erlaubt bis QUIZ_UPLOAD_MAX_QUESTIONS Fragen', () => {
+    const payload = {
+      ...importBase,
+      quiz: {
+        ...importBase.quiz,
+        questions: Array.from({ length: QUIZ_UPLOAD_MAX_QUESTIONS }, (_, order) => ({
+          ...question,
+          order,
+        })),
+      },
+    };
+    expect(QuizImportSchema.safeParse(payload).success).toBe(true);
+  });
+
+  it('weist mehr als QUIZ_UPLOAD_MAX_QUESTIONS Fragen zurück', () => {
+    const payload = {
+      ...importBase,
+      quiz: {
+        ...importBase.quiz,
+        questions: Array.from({ length: QUIZ_UPLOAD_MAX_QUESTIONS + 1 }, (_, order) => ({
+          ...question,
+          order,
+        })),
+      },
+    };
+    expect(QuizImportSchema.safeParse(payload).success).toBe(false);
   });
 });

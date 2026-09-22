@@ -600,6 +600,14 @@
   background: transparent;
 }
 
+.quiz-preview-editor__char-count {
+  display: block;
+  margin-top: 0.25rem;
+  text-align: end;
+  font: var(--mat-sys-body-small);
+  color: var(--mat-sys-on-surface-variant);
+}
+
 .quiz-preview-editor__answers {
   display: flex;
   flex-direction: column;

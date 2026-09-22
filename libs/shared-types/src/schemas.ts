@@ -1429,6 +1429,10 @@ export type HostRecoveryCardDTO = z.infer<typeof HostRecoveryCardDTOSchema>;
 export const QUIZ_UPLOAD_MAX_QUESTIONS = 200;
 export const QUIZ_UPLOAD_MAX_OPTIONS_PER_QUESTION = 10;
 export const QUIZ_UPLOAD_MAX_PAYLOAD_BYTES = 1_250_000;
+/** KI-Paste-Import: produktseitig max. 30 Fragen (Hörsaal-taugliche Pakete). */
+export const QUIZ_AI_IMPORT_MAX_QUESTIONS = 30;
+/** Zeichenlimit für den KI-JSON-Einfüge-Bereich (~30 Fragen inkl. Markdown). */
+export const QUIZ_AI_IMPORT_MAX_CHARS = 120_000;
 
 export const AnswerOptionInputSchema = z.object({
   text: z.string().min(1, { error: 'Antworttext darf nicht leer sein' }).max(500),
@@ -3751,7 +3755,7 @@ export const MatchingSelectionInputSchema = z.object({
 });
 export type MatchingSelectionInput = z.infer<typeof MatchingSelectionInputSchema>;
 
-export const OrderingSequenceInputSchema = z.array(z.string().min(1)).min(3).max(8);
+export const OrderingSequenceInputSchema = z.array(z.string().min(1).max(100)).min(3).max(8);
 export type OrderingSequenceInput = z.infer<typeof OrderingSequenceInputSchema>;
 
 export const CategorizationSelectionInputSchema = z.object({
@@ -4944,7 +4948,12 @@ export const QuizExportSchema = z.object({
     nicknameTheme: NicknameThemeEnum,
     bonusTokenCount: z.number().int().min(1).max(50).nullable().optional(), // Story 4.6
     readingPhaseEnabled: z.boolean().optional(), // Story 2.6: Lesephase
-    questions: z.array(ExportedQuestionSchema).min(1),
+    questions: z
+      .array(ExportedQuestionSchema)
+      .min(1)
+      .max(QUIZ_UPLOAD_MAX_QUESTIONS, {
+        error: `Import erlaubt maximal ${QUIZ_UPLOAD_MAX_QUESTIONS} Fragen.`,
+      }),
   }),
 });
 export type QuizExport = z.infer<typeof QuizExportSchema>;
@@ -6072,9 +6081,9 @@ export const CreateQuickFeedbackOutputSchema = z.object({
 export type CreateQuickFeedbackOutput = z.infer<typeof CreateQuickFeedbackOutputSchema>;
 
 export const QuickFeedbackVoteInputSchema = z.object({
-  sessionCode: z.string(),
+  sessionCode: z.string().trim().length(6),
   voterId: z.string().uuid(),
-  value: z.string(),
+  value: z.string().trim().min(1).max(64),
 });
 export type QuickFeedbackVoteInput = z.infer<typeof QuickFeedbackVoteInputSchema>;
 

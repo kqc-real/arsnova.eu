@@ -1,4 +1,5 @@
 import type { Difficulty, NicknameTheme, QuizPreset, TeamAssignment } from '@arsnova/shared-types';
+import { QUIZ_AI_IMPORT_MAX_QUESTIONS } from '@arsnova/shared-types';
 
 export interface KiPromptContext {
   presetLabel: string;
@@ -157,7 +158,7 @@ export function buildKiQuizSystemPrompt(context: KiPromptContext): string {
     '  "nicknameTheme": "HIGH_SCHOOL" | "NOBEL_LAUREATES" | "KINDERGARTEN" | "PRIMARY_SCHOOL" | "MIDDLE_SCHOOL" (default product preset: HIGH_SCHOOL),',
     '  "bonusTokenCount": integer 1..50 | null (optional),',
     '  "readingPhaseEnabled": boolean (optional),',
-    '  "questions": [ ... at least 1 question ... ]',
+    '  "questions": [ ... 1..' + String(QUIZ_AI_IMPORT_MAX_QUESTIONS) + ' questions ... ]',
     '}',
     '```',
     '',
@@ -303,7 +304,7 @@ export function buildKiQuizSystemPrompt(context: KiPromptContext): string {
     '```',
     '',
     'Validation constraints:',
-    '- questions must contain at least 1 element.',
+    `- questions must contain at least 1 and at most ${QUIZ_AI_IMPORT_MAX_QUESTIONS} elements.`,
     '- answers per question: max 10.',
     '- SINGLE_CHOICE: at least 2 answers, exactly one isCorrect=true.',
     '- MULTIPLE_CHOICE: at least 2 answers, at least one isCorrect=true.',
@@ -527,7 +528,7 @@ export function buildKiQuizValidationPrompt(): string {
     '',
     '- JSON is valid and parseable.',
     '- The output has only `exportVersion`, `exportedAt`, and `quiz` at the top level.',
-    '- `quiz.questions.length >= 1`.',
+    `- \`quiz.questions.length\` between 1 and ${QUIZ_AI_IMPORT_MAX_QUESTIONS} inclusive.`,
     '- Every question has sequential `order` values starting at 0.',
     '- Every question has a valid `type`, `difficulty`, and `answers` array.',
     '- Type-specific fields are used only on the matching question type.',

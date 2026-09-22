@@ -290,6 +290,7 @@
         [id]="fieldId"
         class="mk-editor__field"
         [attr.placeholder]="placeholder"
+        [attr.maxlength]="maxLength == null ? null : maxLength"
         [disabled]="disabled"
         [rows]="visibleRows()"
         (input)="onInput(field.value)"
@@ -299,6 +300,9 @@
         (select)="onFieldSelectionChange()"
         (scroll)="onSourceScroll()"
       ></textarea>
+      @if (maxLength != null) {
+        <p class="mk-editor__count" aria-live="polite">{{ rawValue().length }}/{{ maxLength }}</p>
+      }
     </div>
     <div
       class="mk-editor__preview"

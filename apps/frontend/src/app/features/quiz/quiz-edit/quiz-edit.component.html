@@ -77,12 +77,8 @@
                 [value]="metadataForm.controls.description.value"
                 (valueChange)="onMetadataDescriptionChange($event)"
                 [rows]="8"
+                [maxLength]="5000"
               />
-              <div class="quiz-edit-form__markdown-hints">
-                <span class="quiz-edit-form__markdown-count"
-                  >{{ metadataForm.controls.description.value.length }}/5000</span
-                >
-              </div>
               @if (
                 metadataForm.controls.description.hasError('maxlength') &&
                 metadataForm.controls.description.touched
@@ -581,10 +577,8 @@
             [value]="textControl.value"
             (valueChange)="textControl.setValue($event); onLivePreviewInput()"
             [rows]="4"
+            [maxLength]="2000"
           />
-          <div class="quiz-edit-form__markdown-hints">
-            <span class="quiz-edit-form__markdown-count">{{ textControl.value.length }}/2000</span>
-          </div>
           @if (textControl.hasError('required') && (textControl.touched || submitted())) {
             <mat-error i18n>Gib einen Fragetext ein.</mat-error>
           }
@@ -715,6 +709,9 @@
                       [placeholder]="confidenceLabelLowPlaceholder"
                       (input)="onLivePreviewInput()"
                     />
+                    <mat-hint align="end"
+                      >{{ form.controls.confidenceLabelLow.value.length }}/50</mat-hint
+                    >
                   </mat-form-field>
                 </div>
 
@@ -735,6 +732,9 @@
                       [placeholder]="confidenceLabelHighPlaceholder"
                       (input)="onLivePreviewInput()"
                     />
+                    <mat-hint align="end"
+                      >{{ form.controls.confidenceLabelHigh.value.length }}/50</mat-hint
+                    >
                   </mat-form-field>
                 </div>
               </div>
@@ -1037,6 +1037,7 @@
                 </span>
               </mat-label>
               <input matInput formControlName="ratingLabelMin" maxlength="50" />
+              <mat-hint align="end">{{ form.controls.ratingLabelMin.value.length }}/50</mat-hint>
             </mat-form-field>
           </div>
           <mat-form-field appearance="outline">
@@ -1049,6 +1050,7 @@
               </span>
             </mat-label>
             <input matInput formControlName="ratingLabelMax" maxlength="50" />
+            <mat-hint align="end">{{ form.controls.ratingLabelMax.value.length }}/50</mat-hint>
           </mat-form-field>
         }
 
@@ -1080,6 +1082,7 @@
                     maxlength="500"
                     (input)="onLivePreviewInput()"
                   ></textarea>
+                  <mat-hint align="end">{{ pair.controls.left.value.length }}/500</mat-hint>
                 </mat-form-field>
                 <mat-form-field appearance="outline" class="quiz-edit-form__grow">
                   <mat-label i18n="@@quizEdit.matchingRightLabel">Rechts</mat-label>
@@ -1092,6 +1095,7 @@
                     maxlength="500"
                     (input)="onLivePreviewInput()"
                   ></textarea>
+                  <mat-hint align="end">{{ pair.controls.right.value.length }}/500</mat-hint>
                 </mat-form-field>
                 <button
                   mat-icon-button
@@ -1146,6 +1150,7 @@
                     maxlength="500"
                     (input)="onLivePreviewInput()"
                   ></textarea>
+                  <mat-hint align="end">{{ item.controls.text.value.length }}/500</mat-hint>
                 </mat-form-field>
                 <div
                   class="quiz-edit-answer__reorder-actions"
@@ -1238,6 +1243,7 @@
                     maxlength="200"
                     (input)="onLivePreviewInput()"
                   ></textarea>
+                  <mat-hint align="end">{{ category.controls.name.value.length }}/200</mat-hint>
                 </mat-form-field>
                 <button
                   mat-icon-button
@@ -1296,6 +1302,7 @@
                     maxlength="500"
                     (input)="onLivePreviewInput()"
                   ></textarea>
+                  <mat-hint align="end">{{ item.controls.text.value.length }}/500</mat-hint>
                 </mat-form-field>
                 <mat-form-field appearance="outline" class="quiz-edit-form__grow">
                   <mat-label i18n="@@quizEdit.categorizationTargetLabel">Zielkategorie</mat-label>
@@ -1649,12 +1656,8 @@
                     [rows]="2"
                     [compact]="true"
                     [answerPreview]="true"
+                    [maxLength]="500"
                   />
-                  <div class="quiz-edit-answer__hints">
-                    <span class="quiz-edit-answer__count"
-                      >{{ answerTextControl(i).value.length }}/500</span
-                    >
-                  </div>
                   @if (
                     answerTextControl(i).hasError('required') &&
                     (answerTextControl(i).touched || submitted())

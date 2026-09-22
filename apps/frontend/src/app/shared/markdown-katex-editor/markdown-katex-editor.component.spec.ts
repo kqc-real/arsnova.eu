@@ -257,4 +257,17 @@ describe('MarkdownKatexEditorComponent', () => {
     expect(text).toContain('*[credit] Bildnachweis*');
     expect(text).toContain('Bildnachweis direkt unter dem Bild');
   });
+
+  it('schneidet Eingaben auf maxLength und zeigt den Zähler', () => {
+    const fixture = TestBed.createComponent(MarkdownKatexEditorComponent);
+    const component = fixture.componentInstance;
+    component.fieldId = 'md-limit-test';
+    component.value = '';
+    component.maxLength = 10;
+    fixture.detectChanges();
+    component.onInput('abcdefghijklmnop');
+    fixture.detectChanges();
+    expect(component.rawValue()).toBe('abcdefghij');
+    expect(fixture.nativeElement.textContent).toContain('10/10');
+  });
 });

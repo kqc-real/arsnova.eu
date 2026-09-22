@@ -117,6 +117,8 @@ export class MarkdownKatexEditorComponent implements AfterViewInit, OnChanges, O
   @Input() rows = 4;
   @Input() compact = false;
   @Input() answerPreview = false;
+  /** Optional: hartes Zeichenlimit inkl. Zähler unter dem Quellfeld. */
+  @Input() maxLength: number | null = null;
   /** Kein Rand um Quelltext + Vorschau (Toolbar bleibt mit Umrandung). */
   @Input() framelessPanels = false;
 
@@ -333,9 +335,21 @@ export class MarkdownKatexEditorComponent implements AfterViewInit, OnChanges, O
   }
 
   onInput(value: string): void {
-    this.rawValue.set(value);
+    const limited =
+      this.maxLength !== null && value.length > this.maxLength
+        ? value.slice(0, this.maxLength)
+        : value;
+    if (limited !== value) {
+      const field = this.fieldRef?.nativeElement;
+      if (field) {
+        const pos = Math.min(field.selectionStart ?? limited.length, limited.length);
+        field.value = limited;
+        field.setSelectionRange(pos, pos);
+      }
+    }
+    this.rawValue.set(limited);
     this.syncToolbarStateFromField();
-    this.valueChange.emit(value);
+    this.valueChange.emit(limited);
   }
 
   /**

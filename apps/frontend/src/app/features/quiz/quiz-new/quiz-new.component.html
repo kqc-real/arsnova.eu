@@ -41,12 +41,8 @@
             [value]="descriptionControl.value"
             (valueChange)="descriptionControl.setValue($event)"
             [rows]="8"
+            [maxLength]="5000"
           />
-          <div class="quiz-form__markdown-hints">
-            <span class="quiz-form__markdown-count"
-              >{{ descriptionControl.value.length }}/5000</span
-            >
-          </div>
           @if (
             descriptionControl.hasError('maxlength') && (descriptionControl.touched || submitted())
           ) {

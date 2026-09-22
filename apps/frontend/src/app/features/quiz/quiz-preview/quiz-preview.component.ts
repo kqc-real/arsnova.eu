@@ -678,8 +678,9 @@ export class QuizPreviewComponent implements OnDestroy {
   }
 
   onCategoryDraftChanged(index: number, value: string): void {
+    const clipped = value.slice(0, 200);
     this.categoryDraftNames.update((current) =>
-      current.map((entry, currentIndex) => (currentIndex === index ? value : entry)),
+      current.map((entry, currentIndex) => (currentIndex === index ? clipped : entry)),
     );
   }
 

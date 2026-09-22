@@ -1250,6 +1250,48 @@ describe('QuizStoreService', () => {
     ).toThrowError(/Frage 1, Antwort 1, Feld "isCorrect"/);
   });
 
+  it('lehnt Datei-Importe mit mehr als QUIZ_UPLOAD_MAX_QUESTIONS Fragen ab', async () => {
+    const { QUIZ_UPLOAD_MAX_QUESTIONS } = await import('@arsnova/shared-types');
+    const service = TestBed.inject(QuizStoreService);
+    const questions = Array.from({ length: QUIZ_UPLOAD_MAX_QUESTIONS + 1 }, (_, order) => ({
+      text: `Frage ${order}`,
+      type: 'SINGLE_CHOICE' as const,
+      difficulty: 'MEDIUM' as const,
+      order,
+      answers: [
+        { text: 'A', isCorrect: true },
+        { text: 'B', isCorrect: false },
+      ],
+    }));
+
+    expect(() =>
+      service.importQuiz({
+        exportVersion: 1,
+        exportedAt: '2026-09-22T12:00:00.000Z',
+        quiz: {
+          name: 'Zu groß',
+          showLeaderboard: true,
+          allowCustomNicknames: true,
+          defaultTimer: null,
+          enableSoundEffects: true,
+          enableRewardEffects: true,
+          enableMotivationMessages: true,
+          enableEmojiReactions: true,
+          showQuestionTypeIndicators: true,
+          anonymousMode: false,
+          teamMode: false,
+          teamAssignment: 'AUTO',
+          teamNames: [],
+          backgroundMusic: null,
+          nicknameTheme: 'HIGH_SCHOOL',
+          bonusTokenCount: null,
+          readingPhaseEnabled: true,
+          questions,
+        },
+      }),
+    ).toThrow(/maximal|Fragen/i);
+  });
+
   it('validiert RATING-Fragen (nur 1..5 oder 1..10, keine Antwortoptionen)', () => {
     const service = TestBed.inject(QuizStoreService);
     const created = service.createQuiz({ name: 'Rating Regeln' });

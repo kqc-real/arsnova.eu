@@ -22,7 +22,7 @@ import { MatCheckbox } from '@angular/material/checkbox';
 import { MatDatepickerModule } from '@angular/material/datepicker';
 import { MatDialog } from '@angular/material/dialog';
 import { MatExpansionModule } from '@angular/material/expansion';
-import { MatFormField, MatLabel, MatSuffix } from '@angular/material/form-field';
+import { MatFormField, MatHint, MatLabel, MatSuffix } from '@angular/material/form-field';
 import { MatInput } from '@angular/material/input';
 import { MatProgressSpinner } from '@angular/material/progress-spinner';
 import { MatSelect, MatOption } from '@angular/material/select';
@@ -35,6 +35,7 @@ import type {
   AdminMotdListItemDTO,
   AdminMotdTemplateListItemDTO,
 } from '@arsnova/shared-types';
+import { MOTD_MARKDOWN_MAX_LENGTH } from '@arsnova/shared-types';
 import { firstValueFrom } from 'rxjs';
 import {
   formatMotdAdminDateTimeForDisplay,
@@ -72,6 +73,7 @@ const ADMIN_MOTD_DATE_LOCALE: Record<string, string> = {
     MatButton,
     MatProgressSpinner,
     MatFormField,
+    MatHint,
     MatLabel,
     MatSuffix,
     MatInput,
@@ -120,6 +122,7 @@ export class AdminMotdPanelComponent implements OnInit {
   readonly visibleInArchive = signal(false);
   readonly templateId = signal<string>('');
   readonly mdDe = signal('');
+  readonly motdMarkdownMaxLength = MOTD_MARKDOWN_MAX_LENGTH;
   readonly mdEn = signal('');
   readonly mdFr = signal('');
   readonly mdEs = signal('');

@@ -7,11 +7,12 @@ import {
   MatDialogRef,
   MatDialogTitle,
 } from '@angular/material/dialog';
-import { MatFormField, MatLabel } from '@angular/material/form-field';
+import { MatFormField, MatHint, MatLabel } from '@angular/material/form-field';
 import { MatInput } from '@angular/material/input';
 import { MatIcon } from '@angular/material/icon';
 import { MatProgressSpinner } from '@angular/material/progress-spinner';
 import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
+import { MOTD_MARKDOWN_MAX_LENGTH } from '@arsnova/shared-types';
 import { trpc } from '../../core/trpc.client';
 import { localizeKnownServerError } from '../../core/localize-known-server-message';
 import { resolveMotdAssetOrigin } from '../../core/motd-asset-origin';
@@ -33,6 +34,7 @@ export type AdminMotdTemplateDialogData = { templateId: string | null };
     MatButton,
     MatIcon,
     MatFormField,
+    MatHint,
     MatLabel,
     MatInput,
     MatProgressSpinner,
@@ -60,6 +62,38 @@ export class AdminMotdTemplateDialogComponent implements OnInit {
   readonly tplMdFr = signal('');
   readonly tplMdEs = signal('');
   readonly tplMdIt = signal('');
+  readonly tplNameMaxLength = 200;
+  readonly tplDescriptionMaxLength = 2000;
+  readonly motdMarkdownMaxLength = MOTD_MARKDOWN_MAX_LENGTH;
+
+  onTplNameInput(value: string): void {
+    this.tplName.set(value.slice(0, this.tplNameMaxLength));
+  }
+
+  onTplDescriptionInput(value: string): void {
+    this.tplDescription.set(value.slice(0, this.tplDescriptionMaxLength));
+  }
+
+  onTplMarkdownInput(locale: 'de' | 'en' | 'fr' | 'es' | 'it', value: string): void {
+    const clipped = value.slice(0, this.motdMarkdownMaxLength);
+    switch (locale) {
+      case 'de':
+        this.tplMdDe.set(clipped);
+        break;
+      case 'en':
+        this.tplMdEn.set(clipped);
+        break;
+      case 'fr':
+        this.tplMdFr.set(clipped);
+        break;
+      case 'es':
+        this.tplMdEs.set(clipped);
+        break;
+      case 'it':
+        this.tplMdIt.set(clipped);
+        break;
+    }
+  }
 
   /** Live aus DE (Fallback EN); `innerHTML` liegt außerhalb des Encapsulation-Scopes → Typo in `styles.scss`. */
   readonly previewHtml = computed<SafeHtml>(() => {

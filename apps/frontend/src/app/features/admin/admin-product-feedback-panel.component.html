@@ -229,8 +229,10 @@
           matInput
           [(ngModel)]="inboxAreaFilter"
           name="pfInboxArea"
+          maxlength="64"
           (change)="onInboxFiltersChanged()"
         />
+        <mat-hint align="end">{{ inboxAreaFilter.length }}/64</mat-hint>
       </mat-form-field>
       <mat-form-field appearance="outline">
         <mat-label i18n="@@admin.productFeedback.filterImpact">Auswirkung</mat-label>
@@ -251,8 +253,10 @@
           matInput
           [(ngModel)]="inboxAppVersionFilter"
           name="pfInboxAppVersion"
+          maxlength="64"
           (change)="onInboxFiltersChanged()"
         />
+        <mat-hint align="end">{{ inboxAppVersionFilter.length }}/64</mat-hint>
       </mat-form-field>
       <mat-form-field appearance="outline">
         <mat-label i18n="@@admin.productFeedback.filterLocale">Sprache</mat-label>
@@ -397,7 +401,13 @@
               <mat-label i18n="@@admin.productFeedback.duplicateTarget"
                 >ID der Hauptrückmeldung (leer = keine Zuordnung)</mat-label
               >
-              <input matInput [(ngModel)]="duplicateTargetId" name="pfDuplicateTarget" />
+              <input
+                matInput
+                [(ngModel)]="duplicateTargetId"
+                name="pfDuplicateTarget"
+                maxlength="36"
+              />
+              <mat-hint align="end">{{ duplicateTargetId.length }}/36</mat-hint>
             </mat-form-field>
             <button matButton type="button" [disabled]="triageBusy()" (click)="linkDuplicate()">
               <span i18n="@@admin.productFeedback.linkDuplicate">Zuordnung speichern</span>
@@ -409,7 +419,8 @@
             </mat-form-field>
             <mat-form-field appearance="outline">
               <mat-label i18n="@@admin.productFeedback.issueUrl">Link zum GitHub-Issue</mat-label>
-              <input matInput type="url" [(ngModel)]="issueUrl" name="pfIssueUrl" />
+              <input matInput type="url" [(ngModel)]="issueUrl" name="pfIssueUrl" maxlength="512" />
+              <mat-hint align="end">{{ issueUrl.length }}/512</mat-hint>
             </mat-form-field>
             <button matButton type="button" [disabled]="triageBusy()" (click)="linkIssue()">
               <span i18n="@@admin.productFeedback.linkIssue">Issue verknüpfen</span>
@@ -425,12 +436,20 @@
                 name="pfResolvedInVersion"
                 maxlength="64"
               />
+              <mat-hint align="end">{{ resolvedInVersion.length }}/64</mat-hint>
             </mat-form-field>
             <mat-form-field appearance="outline">
               <mat-label i18n="@@admin.productFeedback.resolutionUrl"
                 >Öffentlicher Lösungslink</mat-label
               >
-              <input matInput type="url" [(ngModel)]="publicResolutionUrl" name="pfResolutionUrl" />
+              <input
+                matInput
+                type="url"
+                [(ngModel)]="publicResolutionUrl"
+                name="pfResolutionUrl"
+                maxlength="512"
+              />
+              <mat-hint align="end">{{ publicResolutionUrl.length }}/512</mat-hint>
             </mat-form-field>
           </div>
 
