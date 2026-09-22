@@ -10003,15 +10003,15 @@
           <context context-type="linenumber">262</context>
         </context-group>
       </trans-unit>
-      <trans-unit id="9214614307851377083" datatype="html">
-        <source>z. B. Max oder M. Mustermann</source>
-        <target>per esempio. B. Max o M. Mustermann</target>
+
+      <trans-unit id="join.nicknameVisibleHint" datatype="html">
+        <source>Wird in der Session angezeigt.</source>
+        <target>Visibile durante la sessione.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/join/join.component.html</context>
-          <context context-type="linenumber">269</context>
+          <context context-type="linenumber">251</context>
         </context-group>
-      </trans-unit>
-      <trans-unit id="join.anonymousNickname" datatype="html">
+      </trans-unit>      <trans-unit id="join.anonymousNickname" datatype="html">
         <source>Teilnehmende <x id="position" equiv-text="position"/></source>
         <target>Partecipante <x id="position" equiv-text="position"/></target>
         <context-group purpose="location">

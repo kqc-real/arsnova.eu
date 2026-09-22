@@ -207,6 +207,8 @@ model Participant {
   team                          Team?                   @relation(fields: [teamId], references: [id], onDelete: SetNull)
   /// Persönliche Timer-Anpassung (WCAG 2.2.1): DEFAULT | EXTENDED | OFF
   timerAccommodation            String                  @default("DEFAULT")
+  /// SHA-256 der browserweiten anonymousClientId; max. eine Teilnahme pro Client und Session.
+  anonymousClientIdHash         String?                 @db.Char(64)
   votes                         Vote[]
   bonusTokens                   BonusToken[] // Story 4.6: Ausgestellte Bonus-Tokens
   sessionFeedbacks              SessionFeedback[] // Story 4.8: Bewertungen
@@ -217,6 +219,7 @@ model Participant {
 
   @@unique([sessionId, nickname]) // Kein doppelter Nickname pro Session
   @@unique([sessionId, participantNumber])
+  @@unique([sessionId, anonymousClientIdHash]) // Ein Browser-Client = eine Teilnahme
   @@index([sessionId, timerAccommodation]) // Host-Fortschritt für persönliche Zeitfenster
   @@index([sessionId, joinedAt, id]) // Revisionsgebundene Host-Pagination ohne Vollbestand
 }

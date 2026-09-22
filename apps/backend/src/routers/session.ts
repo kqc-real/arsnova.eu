@@ -9591,6 +9591,7 @@ const sessionCoreRouter = router({
           requireAssignedTeamForNew,
           profile: onboardingProfile,
           rejoinCapability: input.rejoinToken,
+          anonymousClientId: input.anonymousClientId,
           joinIdempotencyKey: input.joinIdempotencyKey,
           productFeedbackClaimToken: input.productFeedbackClaimToken,
         }),
