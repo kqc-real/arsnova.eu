@@ -161,6 +161,26 @@ describe('JoinComponent', () => {
     expect(trpc.session.getParticipantNicknames.query).not.toHaveBeenCalled();
   });
 
+  it('hält das Namens-Label bei gefülltem Feld oben (kein Überlappen mit dem Wert)', async () => {
+    const { fixture, comp } = createWithCode('ABC123');
+    fixture.detectChanges();
+    await fixture.whenStable();
+    await new Promise((r) => setTimeout(r, 50));
+    comp.customNickname.set('Max M. Mustermann');
+    fixture.detectChanges();
+
+    const field = (fixture.nativeElement as HTMLElement).querySelector(
+      '.join-card__nickname-group mat-form-field',
+    ) as HTMLElement;
+    const input = field?.querySelector('input') as HTMLInputElement;
+
+    const label = field?.querySelector('.mdc-floating-label') as HTMLElement;
+
+    expect(input?.value).toBe('Max M. Mustermann');
+    expect(field?.classList.contains('mat-mdc-form-field-label-always-float')).toBe(true);
+    expect(label?.classList.contains('mdc-floating-label--float-above')).toBe(true);
+  });
+
   it('zeigt vor dem Beitritt das geplante Sessionende nur in Q&A-Sessions', async () => {
     vi.mocked(trpc.session.getInfo.query).mockResolvedValue({
       ...mockSession,
