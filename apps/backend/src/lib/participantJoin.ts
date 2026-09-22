@@ -73,6 +73,15 @@ function conflictNicknameError(): TRPCError {
   });
 }
 
+/** Gleiche Client-ID ohne gültige Rejoin-Capability: keine Credential-Rotation. */
+function existingClientBoundError(): TRPCError {
+  return new TRPCError({
+    code: 'CONFLICT',
+    message:
+      'Auf diesem Gerät bist du bereits in der Session. Setze den Beitritt mit dem gespeicherten Zugang fort oder leere die lokale Sitzungsdaten.',
+  });
+}
+
 function appendParticipantNumber(nickname: string, participantNumber: number): string {
   const suffix = ` ${participantNumber}`;
   const maxBaseLength = Math.max(1, 30 - suffix.length);
@@ -219,7 +228,6 @@ export async function prepareParticipantJoin(params: {
   async function finishRejoin(args: {
     existing: ExistingRow;
     rejoinCapability: string;
-    rotateCapability: boolean;
   }): Promise<PreparedParticipantJoin> {
     const { existing } = args;
     if (existing.participantNumber === null || existing.participantNumber === undefined) {
@@ -228,14 +236,7 @@ export async function prepareParticipantJoin(params: {
         message: 'Teilnahme ohne Nummer kann nicht wiederverwendet werden.',
       });
     }
-    let rejoinCapability = args.rejoinCapability;
-    if (args.rotateCapability) {
-      rejoinCapability = createOpaqueCapability();
-      await params.tx.participant.update({
-        where: { id: existing.id },
-        data: { rejoinCapabilityHash: hashCapability(rejoinCapability) },
-      });
-    }
+    const rejoinCapability = args.rejoinCapability;
     await bindAnonymousClientHash(existing.id);
     const productFeedbackClaimToken =
       params.productFeedbackClaimToken &&
@@ -286,7 +287,6 @@ export async function prepareParticipantJoin(params: {
       return finishRejoin({
         existing,
         rejoinCapability: params.rejoinCapability,
-        rotateCapability: false,
       });
     }
   }
@@ -300,12 +300,9 @@ export async function prepareParticipantJoin(params: {
       select: existingSelect,
     });
     if (byClient) {
-      // Gleiches Gerät: immer dieselbe Teilnahme — Nickname-Wechsel legt keine Zweitstimme an.
-      return finishRejoin({
-        existing: byClient,
-        rejoinCapability: '',
-        rotateCapability: true,
-      });
+      // Deduplizieren ohne Auth: anonymousClientId ist Throttle-/Bindungs-ID, kein Besitzbeweis.
+      // Capability nur über validierten rejoinCapability-Pfad oben.
+      throw existingClientBoundError();
     }
   }
 
@@ -399,11 +396,7 @@ export async function prepareParticipantJoin(params: {
           select: existingSelect,
         });
         if (raced) {
-          return finishRejoin({
-            existing: raced,
-            rejoinCapability: '',
-            rotateCapability: true,
-          });
+          throw existingClientBoundError();
         }
       }
       throw conflictNicknameError();

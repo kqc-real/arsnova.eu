@@ -172,7 +172,7 @@ describe('prepareParticipantJoin', () => {
     expect(tx.session.update).not.toHaveBeenCalled();
   });
 
-  it('wiederverwendet dieselbe Teilnahme für dieselbe anonymousClientId trotz anderem Nickname', async () => {
+  it('verweigert Credential-Rotation bei bekannter Client-ID ohne gültige Rejoin-Capability', async () => {
     const tx = createTx();
     const clientId = 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa';
     tx.participant.findFirst.mockResolvedValue({
@@ -185,36 +185,22 @@ describe('prepareParticipantJoin', () => {
       team: null,
     });
 
-    const result = await prepareParticipantJoin({
-      tx: tx as never,
-      sessionId: SESSION_ID,
-      requestedNickname: 'Zweite Identität',
-      profile: { allowCustomNicknames: true, anonymousMode: false },
-      anonymousClientId: clientId,
-      joinIdempotencyKey: 'join-key-client-bind-abcdefghijklmnopqrstuvwxyz',
-    });
-
-    expect(result).toMatchObject({
-      participantId: PARTICIPANT_ID,
-      participantNumber: 4,
-      nickname: 'Erste Identität 4',
-      rejoined: true,
+    await expect(
+      prepareParticipantJoin({
+        tx: tx as never,
+        sessionId: SESSION_ID,
+        requestedNickname: 'Zweite Identität',
+        profile: { allowCustomNicknames: true, anonymousMode: false },
+        anonymousClientId: clientId,
+        joinIdempotencyKey: 'join-key-client-bind-abcdefghijklmnopqrstuvwxyz',
+      }),
+    ).rejects.toMatchObject({
+      code: 'CONFLICT',
+      message: expect.stringContaining('bereits in der Session'),
     });
     expect(tx.participant.create).not.toHaveBeenCalled();
-    expect(tx.participant.update).toHaveBeenCalledWith(
-      expect.objectContaining({
-        where: { id: PARTICIPANT_ID },
-        data: expect.objectContaining({
-          rejoinCapabilityHash: hashCapability(result.rejoinCapability),
-        }),
-      }),
-    );
-    expect(tx.participant.update).toHaveBeenCalledWith(
-      expect.objectContaining({
-        where: { id: PARTICIPANT_ID },
-        data: { anonymousClientIdHash: hashCapability(clientId) },
-      }),
-    );
+    expect(tx.participant.update).not.toHaveBeenCalled();
+    expect(tx.session.update).not.toHaveBeenCalled();
   });
 
   it('persistiert den Client-Hash bei neuer Teilnahme', async () => {
