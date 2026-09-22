@@ -26,7 +26,6 @@ import {
 } from './nickname-themes';
 import {
   findKindergartenNicknameEmoji,
-  findKindergartenNicknameIndex,
   kindergartenEmojiAtIndex,
 } from './kindergarten-nickname-icons';
 import { recordServerTimeIso } from '../session/session-server-clock';
@@ -58,22 +57,6 @@ const PARTICIPANT_NICKNAME_MAX_LENGTH = 30;
 
 function toParticipantNickname(value: string): string {
   return value.trim().slice(0, PARTICIPANT_NICKNAME_MAX_LENGTH);
-}
-
-function joinNicknameIdentityKey(nickname: string): string {
-  return nickname
-    .trim()
-    .replace(/\s+\d+$/, '')
-    .toLocaleLowerCase();
-}
-
-function isSameJoinIdentity(storedNickname: string, requestedNickname: string): boolean {
-  if (joinNicknameIdentityKey(storedNickname) === joinNicknameIdentityKey(requestedNickname)) {
-    return true;
-  }
-  const storedIndex = findKindergartenNicknameIndex(storedNickname);
-  const requestedIndex = findKindergartenNicknameIndex(requestedNickname);
-  return storedIndex !== null && storedIndex === requestedIndex;
 }
 
 function toParticipantNicknameKey(value: string): string {
@@ -524,20 +507,10 @@ export class JoinComponent implements OnInit, OnDestroy {
     this.joinError.set(null);
   }
 
-  private getStoredRejoinToken(requestedNickname?: string): string | undefined {
-    const token = getParticipantCapability(this.code) ?? undefined;
-    if (!token) {
-      return undefined;
-    }
-    const storedNickname =
-      typeof localStorage === 'undefined'
-        ? null
-        : localStorage.getItem(`${NICKNAME_STORAGE_KEY}-${this.code}`)?.trim();
-    const requested = requestedNickname?.trim();
-    if (!storedNickname || !requested) {
-      return token;
-    }
-    return isSameJoinIdentity(storedNickname, requested) ? token : undefined;
+  private getStoredRejoinToken(_requestedNickname?: string): string | undefined {
+    // Immer mitsenden, wenn vorhanden: Serverseitig bindet anonymousClientId an eine Teilnahme.
+    // Ein anderer Nickname darf keine zweite Stimme im selben Browser erzeugen.
+    return getParticipantCapability(this.code) ?? undefined;
   }
 
   private clearExpiredJoinAttempt(error: unknown): void {

@@ -697,7 +697,7 @@ describe('JoinComponent', () => {
     });
   });
 
-  it('sendet rejoinToken nicht, wenn ein anderes Pseudonym gewählt wird', async () => {
+  it('sendet vorhandenen Teilnehmer-Schlüssel auch bei anderem Pseudonym mit', async () => {
     storeParticipantCapability('ABC123', participantIds.existing);
     localStorage.setItem('arsnova-nickname-ABC123', 'Grüner Frosch 2');
 
@@ -714,7 +714,7 @@ describe('JoinComponent', () => {
       code: 'ABC123',
       nickname: 'Lila Delfin',
       anonymousClientId: ANONYMOUS_CLIENT_ID,
-      rejoinToken: undefined,
+      rejoinToken: participantIds.existing,
       joinIdempotencyKey: expect.any(String),
       productFeedbackClaimToken: undefined,
       teamId: undefined,

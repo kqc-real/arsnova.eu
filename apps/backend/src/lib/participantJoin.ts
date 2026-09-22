@@ -152,6 +152,8 @@ export async function prepareParticipantJoin(params: {
   requireAssignedTeamForNew?: boolean;
   profile: JoinProfile;
   rejoinCapability?: string;
+  /** Browserweite Client-UUID; bindet max. eine Teilnahme pro Session. */
+  anonymousClientId?: string;
   joinIdempotencyKey: string;
   productFeedbackClaimToken?: string;
 }): Promise<PreparedParticipantJoin> {
@@ -172,58 +174,138 @@ export async function prepareParticipantJoin(params: {
     return replay;
   }
 
+  const anonymousClientIdHash = params.anonymousClientId
+    ? hashCapability(params.anonymousClientId)
+    : null;
+
+  type ExistingRow = {
+    id: string;
+    participantNumber: number | null;
+    nickname: string;
+    teamId: string | null;
+    timerAccommodation: string;
+    productFeedbackClaimTokenHash: string | null;
+    team: { name: string } | null;
+  };
+
+  const existingSelect = {
+    id: true,
+    participantNumber: true,
+    nickname: true,
+    teamId: true,
+    timerAccommodation: true,
+    productFeedbackClaimTokenHash: true,
+    team: { select: { name: true } },
+  } as const;
+
+  async function bindAnonymousClientHash(participantId: string): Promise<void> {
+    if (!anonymousClientIdHash) {
+      return;
+    }
+    await params.tx.participant.updateMany({
+      where: {
+        sessionId: params.sessionId,
+        anonymousClientIdHash,
+        NOT: { id: participantId },
+      },
+      data: { anonymousClientIdHash: null },
+    });
+    await params.tx.participant.update({
+      where: { id: participantId },
+      data: { anonymousClientIdHash },
+    });
+  }
+
+  async function finishRejoin(args: {
+    existing: ExistingRow;
+    rejoinCapability: string;
+    rotateCapability: boolean;
+  }): Promise<PreparedParticipantJoin> {
+    const { existing } = args;
+    if (existing.participantNumber === null || existing.participantNumber === undefined) {
+      throw new TRPCError({
+        code: 'INTERNAL_SERVER_ERROR',
+        message: 'Teilnahme ohne Nummer kann nicht wiederverwendet werden.',
+      });
+    }
+    let rejoinCapability = args.rejoinCapability;
+    if (args.rotateCapability) {
+      rejoinCapability = createOpaqueCapability();
+      await params.tx.participant.update({
+        where: { id: existing.id },
+        data: { rejoinCapabilityHash: hashCapability(rejoinCapability) },
+      });
+    }
+    await bindAnonymousClientHash(existing.id);
+    const productFeedbackClaimToken =
+      params.productFeedbackClaimToken &&
+      existing.productFeedbackClaimTokenHash ===
+        hashProductFeedbackToken(params.productFeedbackClaimToken)
+        ? params.productFeedbackClaimToken
+        : null;
+    const envelope: ParticipantJoinEnvelope = {
+      rejoinCapability,
+      productFeedbackClaimToken,
+    };
+    await params.tx.participantJoinReplay.create({
+      data: {
+        id: randomUUID(),
+        sessionId: params.sessionId,
+        participantId: existing.id,
+        idempotencyKeyHash,
+        encryptedEnvelope: encryptCapabilityEnvelope(
+          envelope,
+          replayAad(params.sessionId, idempotencyKeyHash),
+        ),
+        createdAt: now,
+        expiresAt: new Date(now.getTime() + PARTICIPANT_JOIN_REPLAY_MS),
+      },
+    });
+    return {
+      participantId: existing.id,
+      participantNumber: existing.participantNumber,
+      nickname: existing.nickname,
+      teamId: existing.teamId,
+      teamName: existing.team?.name ?? null,
+      timerAccommodation: existing.timerAccommodation,
+      rejoinCapability,
+      productFeedbackClaimToken,
+      rejoined: true,
+    };
+  }
+
   if (params.rejoinCapability) {
     const existing = await params.tx.participant.findFirst({
       where: {
         sessionId: params.sessionId,
         rejoinCapabilityHash: hashCapability(params.rejoinCapability),
       },
-      select: {
-        id: true,
-        participantNumber: true,
-        nickname: true,
-        teamId: true,
-        timerAccommodation: true,
-        productFeedbackClaimTokenHash: true,
-        team: { select: { name: true } },
-      },
+      select: existingSelect,
     });
-    if (existing?.participantNumber !== null && existing?.participantNumber !== undefined) {
-      const productFeedbackClaimToken =
-        params.productFeedbackClaimToken &&
-        existing.productFeedbackClaimTokenHash ===
-          hashProductFeedbackToken(params.productFeedbackClaimToken)
-          ? params.productFeedbackClaimToken
-          : null;
-      const envelope: ParticipantJoinEnvelope = {
+    if (existing) {
+      return finishRejoin({
+        existing,
         rejoinCapability: params.rejoinCapability,
-        productFeedbackClaimToken,
-      };
-      await params.tx.participantJoinReplay.create({
-        data: {
-          id: randomUUID(),
-          sessionId: params.sessionId,
-          participantId: existing.id,
-          idempotencyKeyHash,
-          encryptedEnvelope: encryptCapabilityEnvelope(
-            envelope,
-            replayAad(params.sessionId, idempotencyKeyHash),
-          ),
-          createdAt: now,
-          expiresAt: new Date(now.getTime() + PARTICIPANT_JOIN_REPLAY_MS),
-        },
+        rotateCapability: false,
       });
-      return {
-        participantId: existing.id,
-        participantNumber: existing.participantNumber,
-        nickname: existing.nickname,
-        teamId: existing.teamId,
-        teamName: existing.team?.name ?? null,
-        timerAccommodation: existing.timerAccommodation,
-        rejoinCapability: params.rejoinCapability,
-        productFeedbackClaimToken,
-        rejoined: true,
-      };
+    }
+  }
+
+  if (anonymousClientIdHash) {
+    const byClient = await params.tx.participant.findFirst({
+      where: {
+        sessionId: params.sessionId,
+        anonymousClientIdHash,
+      },
+      select: existingSelect,
+    });
+    if (byClient) {
+      // Gleiches Gerät: immer dieselbe Teilnahme — Nickname-Wechsel legt keine Zweitstimme an.
+      return finishRejoin({
+        existing: byClient,
+        rejoinCapability: '',
+        rotateCapability: true,
+      });
     }
   }
 
@@ -260,6 +342,7 @@ export async function prepareParticipantJoin(params: {
         teamId: assignedTeamId,
         rejoinCapabilityHash: hashCapability(rejoinCapability),
         productFeedbackClaimTokenHash: hashProductFeedbackToken(productFeedbackClaimToken),
+        ...(anonymousClientIdHash ? { anonymousClientIdHash } : {}),
       },
       select: {
         id: true,
@@ -301,6 +384,28 @@ export async function prepareParticipantJoin(params: {
     };
   } catch (error) {
     if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2002') {
+      const target = error.meta?.['target'];
+      const targets = Array.isArray(target)
+        ? target.map(String)
+        : typeof target === 'string'
+          ? [target]
+          : [];
+      if (
+        anonymousClientIdHash &&
+        targets.some((entry) => entry.includes('anonymousClientIdHash'))
+      ) {
+        const raced = await params.tx.participant.findFirst({
+          where: { sessionId: params.sessionId, anonymousClientIdHash },
+          select: existingSelect,
+        });
+        if (raced) {
+          return finishRejoin({
+            existing: raced,
+            rejoinCapability: '',
+            rotateCapability: true,
+          });
+        }
+      }
       throw conflictNicknameError();
     }
     throw error;
