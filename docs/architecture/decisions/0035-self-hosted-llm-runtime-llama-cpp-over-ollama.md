@@ -375,6 +375,17 @@ Timeout und Circuit Breaker. Modellfreie Vertrags-/Isolationstests und ein reale
 Lauf mit Modell-/Image-Digest, Hardware, Tokenumfang, Prefill/TTFT, Laufzeit und Speicher
 sind nachzuweisen. Produktivaktivierung bleibt eine separate Betreiberentscheidung.
 
+R enthält bereits versionierte Shared-Ein-/Ausgabeschemas, Auftragserkennung und
+Adapterübersetzung für **Label, Summary und Lernzielableitung**. Dies umfasst technische
+Vertragstests für gültige und schemainkompatible Antworten sowie unzulässige Referenzen.
+Lernziel-Fixtures reichen für diese technische Prüfung; fachlicher Ableitungsprompt,
+Ableitungsqualität und Host-UI bleiben #456 Slice 5.
+
+Die Slot-Abnahme prüft alle drei Auftragspaarungen in beiden Belegungsreihenfolgen,
+drei gleichzeitige Anfragen und die Freigabe nach Abbruch/Timeout jedes Auftragstyps.
+Es läuft höchstens ein Modellaufruf; Live-Aufträge erhalten ihren Fallback und
+Lernzielaufträge einen typisierten Belegt-Zustand für manuellen Retry.
+
 ### Lernzielauftrag auf derselben Runtime
 
 - Bewusste Host-Aktion in der Quizvorbereitung; eigener versionierter Vertrag, Prompt,
