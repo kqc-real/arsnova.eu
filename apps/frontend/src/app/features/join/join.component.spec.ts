@@ -179,6 +179,10 @@ describe('JoinComponent', () => {
     expect(input?.value).toBe('Max M. Mustermann');
     expect(field?.classList.contains('mat-mdc-form-field-label-always-float')).toBe(true);
     expect(label?.classList.contains('mdc-floating-label--float-above')).toBe(true);
+    expect(field?.textContent).toContain('Wird in der Session angezeigt.');
+    expect(field?.textContent).toContain('17/30');
+    expect(input?.getAttribute('maxlength')).toBe('30');
+    expect(input?.getAttribute('placeholder')).toBeNull();
   });
 
   it('zeigt vor dem Beitritt das geplante Sessionende nur in Q&A-Sessions', async () => {

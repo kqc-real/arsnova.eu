@@ -3,7 +3,7 @@ import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { MatCard, MatCardContent } from '@angular/material/card';
 import { MatButton } from '@angular/material/button';
 import { MatIcon } from '@angular/material/icon';
-import { MatFormField, MatLabel } from '@angular/material/form-field';
+import { MatFormField, MatHint, MatLabel } from '@angular/material/form-field';
 import { MatInput } from '@angular/material/input';
 import { MatSelect, MatSelectTrigger } from '@angular/material/select';
 import { MatOption } from '@angular/material/core';
@@ -77,6 +77,7 @@ function toParticipantNicknameKey(value: string): string {
     MatIcon,
     RouterLink,
     MatFormField,
+    MatHint,
     MatLabel,
     MatInput,
     MatSelect,
@@ -107,6 +108,8 @@ export class JoinComponent implements OnInit, OnDestroy {
   readonly selectedNickname = signal<string>('');
   readonly selectedTeamId = signal('');
   readonly customNickname = signal('');
+  /** Entspricht dem Shared-Zod-Maximum (`nickname.max(30)`). */
+  readonly nicknameMaxLength = PARTICIPANT_NICKNAME_MAX_LENGTH;
   readonly joining = signal(false);
 
   private pollTimer: ReturnType<typeof setInterval> | null = null;

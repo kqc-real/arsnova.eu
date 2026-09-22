@@ -245,10 +245,10 @@
                 [value]="customNickname()"
                 (input)="onCustomNicknameInput($any($event.target).value)"
                 autocomplete="nickname"
-                i18n-placeholder
-                placeholder="z. B. Max oder M. Mustermann"
-                maxlength="30"
+                [attr.maxlength]="nicknameMaxLength"
               />
+              <mat-hint i18n="@@join.nicknameVisibleHint">Wird in der Session angezeigt.</mat-hint>
+              <mat-hint align="end">{{ customNickname().length }}/{{ nicknameMaxLength }}</mat-hint>
             </mat-form-field>
           </div>
         }
