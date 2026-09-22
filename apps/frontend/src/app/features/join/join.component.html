@@ -237,17 +237,18 @@
           </div>
         } @else if (showCustomNickname()) {
           <div class="join-card__nickname-group">
-            <mat-form-field appearance="outline" class="join-card__field">
+            <mat-form-field appearance="outline" class="join-card__field" floatLabel="always">
               <mat-label i18n="@@join.nicknameLabel">Dein Name</mat-label>
               <input
                 matInput
                 type="text"
                 [value]="customNickname()"
                 (input)="onCustomNicknameInput($any($event.target).value)"
-                i18n-placeholder
-                placeholder="z. B. Max oder M. Mustermann"
-                maxlength="30"
+                autocomplete="nickname"
+                [attr.maxlength]="nicknameMaxLength"
               />
+              <mat-hint i18n="@@join.nicknameVisibleHint">Wird in der Session angezeigt.</mat-hint>
+              <mat-hint align="end">{{ customNickname().length }}/{{ nicknameMaxLength }}</mat-hint>
             </mat-form-field>
           </div>
         }

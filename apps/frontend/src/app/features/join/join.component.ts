@@ -3,7 +3,7 @@ import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { MatCard, MatCardContent } from '@angular/material/card';
 import { MatButton } from '@angular/material/button';
 import { MatIcon } from '@angular/material/icon';
-import { MatFormField, MatLabel } from '@angular/material/form-field';
+import { MatFormField, MatHint, MatLabel } from '@angular/material/form-field';
 import { MatInput } from '@angular/material/input';
 import { MatSelect, MatSelectTrigger } from '@angular/material/select';
 import { MatOption } from '@angular/material/core';
@@ -26,7 +26,6 @@ import {
 } from './nickname-themes';
 import {
   findKindergartenNicknameEmoji,
-  findKindergartenNicknameIndex,
   kindergartenEmojiAtIndex,
 } from './kindergarten-nickname-icons';
 import { recordServerTimeIso } from '../session/session-server-clock';
@@ -60,22 +59,6 @@ function toParticipantNickname(value: string): string {
   return value.trim().slice(0, PARTICIPANT_NICKNAME_MAX_LENGTH);
 }
 
-function joinNicknameIdentityKey(nickname: string): string {
-  return nickname
-    .trim()
-    .replace(/\s+\d+$/, '')
-    .toLocaleLowerCase();
-}
-
-function isSameJoinIdentity(storedNickname: string, requestedNickname: string): boolean {
-  if (joinNicknameIdentityKey(storedNickname) === joinNicknameIdentityKey(requestedNickname)) {
-    return true;
-  }
-  const storedIndex = findKindergartenNicknameIndex(storedNickname);
-  const requestedIndex = findKindergartenNicknameIndex(requestedNickname);
-  return storedIndex !== null && storedIndex === requestedIndex;
-}
-
 function toParticipantNicknameKey(value: string): string {
   return toParticipantNickname(value).toLowerCase();
 }
@@ -94,6 +77,7 @@ function toParticipantNicknameKey(value: string): string {
     MatIcon,
     RouterLink,
     MatFormField,
+    MatHint,
     MatLabel,
     MatInput,
     MatSelect,
@@ -124,6 +108,8 @@ export class JoinComponent implements OnInit, OnDestroy {
   readonly selectedNickname = signal<string>('');
   readonly selectedTeamId = signal('');
   readonly customNickname = signal('');
+  /** Entspricht dem Shared-Zod-Maximum (`nickname.max(30)`). */
+  readonly nicknameMaxLength = PARTICIPANT_NICKNAME_MAX_LENGTH;
   readonly joining = signal(false);
 
   private pollTimer: ReturnType<typeof setInterval> | null = null;
@@ -524,20 +510,10 @@ export class JoinComponent implements OnInit, OnDestroy {
     this.joinError.set(null);
   }
 
-  private getStoredRejoinToken(requestedNickname?: string): string | undefined {
-    const token = getParticipantCapability(this.code) ?? undefined;
-    if (!token) {
-      return undefined;
-    }
-    const storedNickname =
-      typeof localStorage === 'undefined'
-        ? null
-        : localStorage.getItem(`${NICKNAME_STORAGE_KEY}-${this.code}`)?.trim();
-    const requested = requestedNickname?.trim();
-    if (!storedNickname || !requested) {
-      return token;
-    }
-    return isSameJoinIdentity(storedNickname, requested) ? token : undefined;
+  private getStoredRejoinToken(_requestedNickname?: string): string | undefined {
+    // Immer mitsenden, wenn vorhanden: Serverseitig bindet anonymousClientId an eine Teilnahme.
+    // Ein anderer Nickname darf keine zweite Stimme im selben Browser erzeugen.
+    return getParticipantCapability(this.code) ?? undefined;
   }
 
   private clearExpiredJoinAttempt(error: unknown): void {

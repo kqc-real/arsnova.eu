@@ -704,7 +704,7 @@
     },
     "session.join": {
       "kind": "mutation",
-      "fingerprint": "sha256:c7319b4a901988723b0978eb6ed4dda508ad33c816245b4ec0ab46611100961e",
+      "fingerprint": "sha256:bbceb3bda0a2668130377760ac378dfe073e6a49056fafddb272751f8498cda8",
       "missing": []
     },
     "session.listPairedHosts": {

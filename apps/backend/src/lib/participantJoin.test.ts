@@ -27,6 +27,8 @@ function createTx() {
         timerAccommodation: 'DEFAULT',
         team: null,
       }),
+      update: vi.fn().mockResolvedValue({ id: PARTICIPANT_ID }),
+      updateMany: vi.fn().mockResolvedValue({ count: 0 }),
     },
     participantJoinReplay: {
       findUnique: vi.fn().mockResolvedValue(null),
@@ -168,6 +170,59 @@ describe('prepareParticipantJoin', () => {
       rejoined: true,
     });
     expect(tx.session.update).not.toHaveBeenCalled();
+  });
+
+  it('verweigert Credential-Rotation bei bekannter Client-ID ohne gültige Rejoin-Capability', async () => {
+    const tx = createTx();
+    const clientId = 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa';
+    tx.participant.findFirst.mockResolvedValue({
+      id: PARTICIPANT_ID,
+      participantNumber: 4,
+      nickname: 'Erste Identität 4',
+      teamId: null,
+      timerAccommodation: 'DEFAULT',
+      productFeedbackClaimTokenHash: null,
+      team: null,
+    });
+
+    await expect(
+      prepareParticipantJoin({
+        tx: tx as never,
+        sessionId: SESSION_ID,
+        requestedNickname: 'Zweite Identität',
+        profile: { allowCustomNicknames: true, anonymousMode: false },
+        anonymousClientId: clientId,
+        joinIdempotencyKey: 'join-key-client-bind-abcdefghijklmnopqrstuvwxyz',
+      }),
+    ).rejects.toMatchObject({
+      code: 'CONFLICT',
+      message: expect.stringContaining('bereits in der Session'),
+    });
+    expect(tx.participant.create).not.toHaveBeenCalled();
+    expect(tx.participant.update).not.toHaveBeenCalled();
+    expect(tx.session.update).not.toHaveBeenCalled();
+  });
+
+  it('persistiert den Client-Hash bei neuer Teilnahme', async () => {
+    const tx = createTx();
+    const clientId = 'bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb';
+
+    await prepareParticipantJoin({
+      tx: tx as never,
+      sessionId: SESSION_ID,
+      requestedNickname: 'Roter Drache',
+      profile: { allowCustomNicknames: false, anonymousMode: false },
+      anonymousClientId: clientId,
+      joinIdempotencyKey: 'join-key-new-client-abcdefghijklmnopqrstuvwxyz',
+    });
+
+    expect(tx.participant.create).toHaveBeenCalledWith(
+      expect.objectContaining({
+        data: expect.objectContaining({
+          anonymousClientIdHash: hashCapability(clientId),
+        }),
+      }),
+    );
   });
 });
 
