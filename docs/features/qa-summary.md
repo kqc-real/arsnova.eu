@@ -88,3 +88,24 @@ npm run test -w @arsnova/frontend -- \
 ```
 
 Produktiv `QA_SUMMARY_ENABLED` nicht stillschweigend auf `true` setzen. Ohne privaten Inferenzserver gibt es keine Zusammenfassung. `OPEN_WEIGHT_LLM_ENABLED` (Story 8.9d, noch nicht implementiert) schaltet den Themenmodus nicht ab.
+
+## Geplante Kontextvorbereitung aus Issue #456
+
+[Issue #456](https://github.com/kqc-real/arsnova.eu/issues/456) bereitet einen versionierten
+Kontext mit Bewertungen, Kategorien, Themen, Kompasssignalen, Lernzielen und zulässigen
+Ergebnis-/Feedbackaggregaten vor. Dies ist noch kein implementierter Summary-Vertrag.
+
+Die private Runtime aus Story 8.9d ist ebenfalls noch zu implementieren.
+Ein separater **Runtime-PR R** muss vor #456 Slice 5 (Lernzielableitung) technisch
+abgenommen sein; Slices 1–4 können ohne Modell umgesetzt werden. HTTP-Adapter und
+Entwicklungshilfsserver gelten nicht als Runtime-Nachweis.
+
+Die [Ergänzung zu ADR-0035](../architecture/decisions/0035-self-hosted-llm-runtime-llama-cpp-over-ollama.md#ergänzung-2026-09-22-runtime-voraussetzung-für-issue-456)
+regelt den dritten Auftrag, den gemeinsamen Slot und die Abnahme.
+Slot belegt bedeutet für Lernziele manueller Retry, für Live-Aufträge ihren jeweiligen
+Fallback. Der extraktive Summary-Fallback muss für 8.9c Slice 4 weiterhin in die
+App-Queue verlagert werden; heute liegt er nur im Dev-Helfer.
+
+Der reichere Kontext benötigt eigene Token-/Prefill-Messungen einschließlich
+Instruktionen und Antwortreserve. Weder 20 Snapshot-Quellen noch 2.048/4.096 Kontexttokens
+belegen seine Praxistauglichkeit. Diese Planung aktiviert keinen Produktivpfad.
