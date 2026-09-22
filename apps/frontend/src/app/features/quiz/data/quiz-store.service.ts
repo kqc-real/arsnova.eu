@@ -22,6 +22,7 @@ import {
   QuizExportSchema,
   QuizUploadInputSchema,
   QUIZ_EXPORT_VERSION,
+  QUIZ_UPLOAD_MAX_QUESTIONS,
   SHORT_TEXT_DEFAULT_EVALUATION_KIND,
   SHORT_TEXT_DEFAULT_EVALUATION_MODE,
   SHORT_TEXT_DEFAULT_TOLERANCE_LEVEL,
@@ -1819,6 +1820,12 @@ export class QuizStoreService implements OnDestroy {
         throw new Error(`Import fehlgeschlagen: ${message}`);
       }
       quizData = parsed.data.quiz;
+    }
+
+    if (quizData.questions.length > QUIZ_UPLOAD_MAX_QUESTIONS) {
+      throw new Error(
+        $localize`:@@quizList.import.tooManyQuestions:Import erlaubt maximal ${QUIZ_UPLOAD_MAX_QUESTIONS}:maxQuestions: Fragen. Reduziere die Datei und versuche es erneut.`,
+      );
     }
 
     const metadata = QuizMetadataSchema.safeParse({

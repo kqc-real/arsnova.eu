@@ -353,6 +353,7 @@
                 (valueChange)="onQuestionDraftChanged($event)"
                 [rows]="4"
                 [framelessPanels]="true"
+                [maxLength]="2000"
               />
 
               <div class="quiz-preview-editor__timer-sections">
@@ -511,6 +512,7 @@
                           (valueChange)="onAnswerDraftChanged(i, $event)"
                           [rows]="2"
                           [compact]="true"
+                          [maxLength]="500"
                         />
                       </div>
                     </div>
@@ -548,6 +550,7 @@
                           (valueChange)="onOrderingDraftChanged(i, $event)"
                           [rows]="2"
                           [compact]="true"
+                          [maxLength]="500"
                         />
                       </div>
                     </div>
@@ -578,6 +581,7 @@
                           (valueChange)="onMatchingDraftChanged(i, 'left', $event)"
                           [rows]="2"
                           [compact]="true"
+                          [maxLength]="500"
                         />
                       </div>
                       <mat-icon class="quiz-preview-editor__pair-arrow" aria-hidden="true"
@@ -596,6 +600,7 @@
                           (valueChange)="onMatchingDraftChanged(i, 'right', $event)"
                           [rows]="2"
                           [compact]="true"
+                          [maxLength]="500"
                         />
                       </div>
                     </div>
@@ -624,6 +629,9 @@
                           (input)="onCategoryDraftChanged(i, $any($event.target).value)"
                           maxlength="200"
                         />
+                        <span class="quiz-preview-editor__char-count" aria-hidden="true"
+                          >{{ (categoryDraftNames()[i] ?? '').length }}/200</span
+                        >
                       </div>
                     </div>
                   }
@@ -651,6 +659,7 @@
                           (valueChange)="onCategorizationItemTextChanged(i, $event)"
                           [rows]="2"
                           [compact]="true"
+                          [maxLength]="500"
                         />
                       </div>
                       <mat-form-field

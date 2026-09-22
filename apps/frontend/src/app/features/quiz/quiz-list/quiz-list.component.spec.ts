@@ -4,7 +4,10 @@ import { MatSnackBar } from '@angular/material/snack-bar';
 import { NoopAnimationsModule } from '@angular/platform-browser/animations';
 import { ActivatedRoute, Router, convertToParamMap, provideRouter } from '@angular/router';
 import { webcrypto } from 'node:crypto';
-import { createLegacyQuizHistoryAccessProof } from '@arsnova/shared-types';
+import {
+  createLegacyQuizHistoryAccessProof,
+  QUIZ_UPLOAD_MAX_PAYLOAD_BYTES,
+} from '@arsnova/shared-types';
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { QuizListComponent } from './quiz-list.component';
 import { DEMO_QUIZ_ID, QuizStoreService, type QuizSummary } from '../data/quiz-store.service';
@@ -1193,6 +1196,27 @@ Viel Erfolg beim Import.`);
       'Quiz: Die Selbsteinschätzung wurde für bewertbare Fragen übernommen.',
     );
     expect(component.actionError()).toBeNull();
+  });
+
+  it('lehnt zu große Import-Dateien ab, bevor der Inhalt gelesen wird', async () => {
+    const fixture = TestBed.createComponent(QuizListComponent);
+    const component = fixture.componentInstance;
+    const textMock = vi.fn();
+    const file = {
+      size: QUIZ_UPLOAD_MAX_PAYLOAD_BYTES + 1,
+      text: textMock,
+    } as unknown as File;
+    const input = document.createElement('input');
+    Object.defineProperty(input, 'files', {
+      configurable: true,
+      value: [file],
+    });
+
+    await component.onImportFileSelected({ target: input } as Event);
+
+    expect(textMock).not.toHaveBeenCalled();
+    expect(mockStore.importQuiz).not.toHaveBeenCalled();
+    expect(component.actionError()).toContain(String(QUIZ_UPLOAD_MAX_PAYLOAD_BYTES));
   });
 
   it('zeigt direkten Start-CTA bei startLive-Shortcut', async () => {

@@ -1429,6 +1429,10 @@ export type HostRecoveryCardDTO = z.infer<typeof HostRecoveryCardDTOSchema>;
 export const QUIZ_UPLOAD_MAX_QUESTIONS = 200;
 export const QUIZ_UPLOAD_MAX_OPTIONS_PER_QUESTION = 10;
 export const QUIZ_UPLOAD_MAX_PAYLOAD_BYTES = 1_250_000;
+/** KI-Paste-Import: produktseitig max. 30 Fragen (Hörsaal-taugliche Pakete). */
+export const QUIZ_AI_IMPORT_MAX_QUESTIONS = 30;
+/** Zeichenlimit für den KI-JSON-Einfüge-Bereich (~30 Fragen inkl. Markdown). */
+export const QUIZ_AI_IMPORT_MAX_CHARS = 120_000;
 
 export const AnswerOptionInputSchema = z.object({
   text: z.string().min(1, { error: 'Antworttext darf nicht leer sein' }).max(500),
@@ -3751,7 +3755,7 @@ export const MatchingSelectionInputSchema = z.object({
 });
 export type MatchingSelectionInput = z.infer<typeof MatchingSelectionInputSchema>;
 
-export const OrderingSequenceInputSchema = z.array(z.string().min(1)).min(3).max(8);
+export const OrderingSequenceInputSchema = z.array(z.string().min(1).max(100)).min(3).max(8);
 export type OrderingSequenceInput = z.infer<typeof OrderingSequenceInputSchema>;
 
 export const CategorizationSelectionInputSchema = z.object({
@@ -4950,10 +4954,19 @@ export const QuizExportSchema = z.object({
 export type QuizExport = z.infer<typeof QuizExportSchema>;
 
 /**
- * Alias für Import-Validierung (Story 1.9a).
- * Import und Export nutzen bewusst dasselbe JSON-Format.
+ * Import-Validierung (Story 1.9a): gleiches Export-JSON, zusätzlich Fragen-Cap
+ * wie Live-Upload — damit OOM-/Upload-untaugliche Pakete nicht in die Bibliothek
+ * gelangen. Export bleibt ohne dieses Cap (Backup großer lokaler Quiz).
  */
-export const QuizImportSchema = QuizExportSchema;
+export const QuizImportSchema = QuizExportSchema.superRefine((value, ctx) => {
+  if (value.quiz.questions.length > QUIZ_UPLOAD_MAX_QUESTIONS) {
+    ctx.addIssue({
+      code: 'custom',
+      path: ['quiz', 'questions'],
+      message: `Import erlaubt maximal ${QUIZ_UPLOAD_MAX_QUESTIONS} Fragen.`,
+    });
+  }
+});
 export type QuizImport = z.infer<typeof QuizImportSchema>;
 
 // ---------------------------------------------------------------------------
@@ -6072,9 +6085,9 @@ export const CreateQuickFeedbackOutputSchema = z.object({
 export type CreateQuickFeedbackOutput = z.infer<typeof CreateQuickFeedbackOutputSchema>;
 
 export const QuickFeedbackVoteInputSchema = z.object({
-  sessionCode: z.string(),
+  sessionCode: z.string().trim().length(6),
   voterId: z.string().uuid(),
-  value: z.string(),
+  value: z.string().trim().min(1).max(64),
 });
 export type QuickFeedbackVoteInput = z.infer<typeof QuickFeedbackVoteInputSchema>;
 

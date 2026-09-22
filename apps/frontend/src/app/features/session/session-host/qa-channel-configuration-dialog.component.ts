@@ -10,7 +10,7 @@ import {
   MatDialogRef,
   MatDialogTitle,
 } from '@angular/material/dialog';
-import { MatFormField, MatLabel } from '@angular/material/form-field';
+import { MatFormField, MatHint, MatLabel } from '@angular/material/form-field';
 import { MatIcon } from '@angular/material/icon';
 import { MatInput } from '@angular/material/input';
 import { MatOption, MatSelect } from '@angular/material/select';
@@ -63,6 +63,7 @@ export interface QaChannelConfigurationDialogData {
     MatDialogContent,
     MatDialogTitle,
     MatFormField,
+    MatHint,
     MatIcon,
     MatInput,
     MatLabel,

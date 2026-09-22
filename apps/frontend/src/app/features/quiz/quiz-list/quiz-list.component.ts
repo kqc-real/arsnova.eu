@@ -16,7 +16,7 @@ import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { MatButton, MatIconButton } from '@angular/material/button';
 import { MatCard, MatCardActions, MatCardContent } from '@angular/material/card';
 import { MatDialog } from '@angular/material/dialog';
-import { MatFormField, MatLabel } from '@angular/material/form-field';
+import { MatFormField, MatHint, MatLabel } from '@angular/material/form-field';
 import { MatIcon } from '@angular/material/icon';
 import { MatInput } from '@angular/material/input';
 import { MatMenu, MatMenuItem, MatMenuTrigger } from '@angular/material/menu';
@@ -25,6 +25,9 @@ import { MatSnackBar } from '@angular/material/snack-bar';
 import { MatTooltip } from '@angular/material/tooltip';
 import { firstValueFrom } from 'rxjs';
 import {
+  QUIZ_AI_IMPORT_MAX_CHARS,
+  QUIZ_AI_IMPORT_MAX_QUESTIONS,
+  QUIZ_UPLOAD_MAX_PAYLOAD_BYTES,
   QUIZ_PRESETS,
   PresetStorageEntrySchema,
   createQuizHistoryAccessProof,
@@ -97,6 +100,7 @@ const QUIZ_HISTORY_SCOPE_ID_PATTERN =
     MatCardActions,
     MatCardContent,
     MatFormField,
+    MatHint,
     MatIcon,
     MatInput,
     MatLabel,
@@ -182,6 +186,8 @@ export class QuizListComponent implements OnInit {
   /** Volltext der KI-Validierungsvorlage im Panel (Schritt 2). */
   readonly showKiValidationPromptPreview = signal(false);
   readonly aiJsonInput = signal('');
+  readonly aiImportMaxChars = QUIZ_AI_IMPORT_MAX_CHARS;
+  readonly aiImportMaxQuestions = QUIZ_AI_IMPORT_MAX_QUESTIONS;
   /** Gerendertes Markdown/KaTeX der Systemvorlage (nur sichtbar wenn Panel offen). */
   readonly kiPromptPreviewHtml = computed(() => {
     if (!this.showKiPromptPreview()) {
@@ -558,7 +564,7 @@ export class QuizListComponent implements OnInit {
   }
 
   updateAiJsonInput(value: string): void {
-    this.aiJsonInput.set(value);
+    this.aiJsonInput.set(value.slice(0, QUIZ_AI_IMPORT_MAX_CHARS));
   }
 
   resetAiImport(): void {
@@ -680,7 +686,17 @@ export class QuizListComponent implements OnInit {
     if (!file) return;
 
     try {
+      if (file.size > QUIZ_UPLOAD_MAX_PAYLOAD_BYTES) {
+        throw new Error(
+          $localize`:@@quizList.import.fileTooLarge:Die Datei ist zu groß (maximal ${QUIZ_UPLOAD_MAX_PAYLOAD_BYTES}:maxBytes: Bytes).`,
+        );
+      }
       const raw = await file.text();
+      if (new TextEncoder().encode(raw).byteLength > QUIZ_UPLOAD_MAX_PAYLOAD_BYTES) {
+        throw new Error(
+          $localize`:@@quizList.import.fileTooLarge:Die Datei ist zu groß (maximal ${QUIZ_UPLOAD_MAX_PAYLOAD_BYTES}:maxBytes: Bytes).`,
+        );
+      }
       const parsed = JSON.parse(raw) as unknown;
       const imported = this.quizStore.importQuiz(parsed);
       this.actionInfo.set(this.buildImportInfoMessage(imported));
@@ -855,6 +871,13 @@ export class QuizListComponent implements OnInit {
 
     try {
       const parsed = parseAiImportPayload(raw);
+      const questionCount = countAiImportQuestions(parsed);
+      if (questionCount > QUIZ_AI_IMPORT_MAX_QUESTIONS) {
+        this.actionError.set(
+          $localize`:@@quizList.aiImport.tooManyQuestions:Der KI-Import erlaubt maximal ${QUIZ_AI_IMPORT_MAX_QUESTIONS}:maxQuestions: Fragen. Reduziere die Liste und versuche es erneut.`,
+        );
+        return;
+      }
       const imported = this.quizStore.importQuiz(parsed);
       this.actionInfo.set(this.buildImportInfoMessage(imported));
       this.aiJsonInput.set('');
@@ -1379,6 +1402,18 @@ function parseAiImportPayload(raw: string): unknown {
   }
 
   throw directParse.error ?? new Error('Import fehlgeschlagen.');
+}
+
+function countAiImportQuestions(payload: unknown): number {
+  if (!payload || typeof payload !== 'object') {
+    return 0;
+  }
+  const root = payload as Record<string, unknown>;
+  const quiz = root['quiz'];
+  const fromQuiz =
+    quiz && typeof quiz === 'object' ? (quiz as Record<string, unknown>)['questions'] : null;
+  const questions = fromQuiz ?? root['questions'] ?? root['questionList'];
+  return Array.isArray(questions) ? questions.length : 0;
 }
 
 function tryParseJson(

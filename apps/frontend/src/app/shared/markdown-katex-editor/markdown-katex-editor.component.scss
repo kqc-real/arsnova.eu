@@ -459,3 +459,10 @@
     padding-bottom: 0.3rem;
   }
 }
+
+.mk-editor__count {
+  margin: 0.35rem 0 0;
+  text-align: end;
+  font: var(--mat-sys-label-small);
+  color: var(--mat-sys-on-surface-variant);
+}

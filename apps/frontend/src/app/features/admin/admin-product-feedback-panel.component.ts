@@ -11,7 +11,7 @@ import {
 } from '@angular/material/card';
 import { MatDatepickerModule } from '@angular/material/datepicker';
 import { MatDialog } from '@angular/material/dialog';
-import { MatFormField, MatLabel, MatSuffix } from '@angular/material/form-field';
+import { MatFormField, MatHint, MatLabel, MatSuffix } from '@angular/material/form-field';
 import { MatInput } from '@angular/material/input';
 import { MatProgressSpinner } from '@angular/material/progress-spinner';
 import { MatSelect, MatOption } from '@angular/material/select';
@@ -50,6 +50,7 @@ import { AdminProductFeedbackPurgeDialogComponent } from './admin-product-feedba
     MatCardTitle,
     MatDatepickerModule,
     MatFormField,
+    MatHint,
     MatLabel,
     MatSuffix,
     MatInput,

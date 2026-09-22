@@ -270,9 +270,14 @@
                 class="quiz-list__ai-textarea"
                 matInput
                 rows="8"
+                [attr.maxlength]="aiImportMaxChars"
                 [value]="aiJsonInput()"
                 (input)="updateAiJsonInput(aiJsonTextarea.value)"
               ></textarea>
+              <mat-hint i18n="@@quizList.aiImport.maxQuestionsHint"
+                >Maximal {{ aiImportMaxQuestions }} Fragen</mat-hint
+              >
+              <mat-hint align="end">{{ aiJsonInput().length }}/{{ aiImportMaxChars }}</mat-hint>
             </mat-form-field>
           </section>
 

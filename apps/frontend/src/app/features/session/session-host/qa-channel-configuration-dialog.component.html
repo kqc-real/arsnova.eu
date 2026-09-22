@@ -21,7 +21,8 @@
     <legend i18n="@@qaConfig.contentLegend">Inhalt</legend>
     <mat-form-field appearance="outline" subscriptSizing="dynamic">
       <mat-label i18n="@@qaConfig.qaTitleLabel">Titel der Fragenwand</mat-label>
-      <input matInput maxlength="120" [(ngModel)]="qaTitle" />
+      <input matInput maxlength="200" [(ngModel)]="qaTitle" />
+      <mat-hint align="end">{{ qaTitle.length }}/200</mat-hint>
     </mat-form-field>
     <mat-slide-toggle [(ngModel)]="moderationMode" i18n="@@qaConfig.moderationLabel">
       Neue Fragen vor Veröffentlichung prüfen

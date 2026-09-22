@@ -34,7 +34,13 @@
       class="admin-motd-tpl-dialog__field admin-motd-tpl-dialog__field--full"
     >
       <mat-label i18n="@@admin.motd.tplName">Anzeigename</mat-label>
-      <input matInput [value]="tplName()" (input)="tplName.set($any($event.target).value)" />
+      <input
+        matInput
+        [attr.maxlength]="tplNameMaxLength"
+        [value]="tplName()"
+        (input)="onTplNameInput($any($event.target).value)"
+      />
+      <mat-hint align="end">{{ tplName().length }}/{{ tplNameMaxLength }}</mat-hint>
     </mat-form-field>
 
     <mat-form-field
@@ -45,9 +51,11 @@
       <textarea
         matInput
         rows="2"
+        [attr.maxlength]="tplDescriptionMaxLength"
         [value]="tplDescription()"
-        (input)="tplDescription.set($any($event.target).value)"
+        (input)="onTplDescriptionInput($any($event.target).value)"
       ></textarea>
+      <mat-hint align="end">{{ tplDescription().length }}/{{ tplDescriptionMaxLength }}</mat-hint>
     </mat-form-field>
 
     <h3 class="admin-motd-tpl-dialog__locale" i18n="@@admin.motd.localeDe">Deutsch (Markdown)</h3>
@@ -58,9 +66,11 @@
       <textarea
         matInput
         rows="5"
+        [attr.maxlength]="motdMarkdownMaxLength"
         [value]="tplMdDe()"
-        (input)="tplMdDe.set($any($event.target).value)"
+        (input)="onTplMarkdownInput('de', $any($event.target).value)"
       ></textarea>
+      <mat-hint align="end">{{ tplMdDe().length }}/{{ motdMarkdownMaxLength }}</mat-hint>
     </mat-form-field>
 
     <section
@@ -89,9 +99,11 @@
       <textarea
         matInput
         rows="4"
+        [attr.maxlength]="motdMarkdownMaxLength"
         [value]="tplMdEn()"
-        (input)="tplMdEn.set($any($event.target).value)"
+        (input)="onTplMarkdownInput('en', $any($event.target).value)"
       ></textarea>
+      <mat-hint align="end">{{ tplMdEn().length }}/{{ motdMarkdownMaxLength }}</mat-hint>
     </mat-form-field>
 
     <h3 class="admin-motd-tpl-dialog__locale" i18n="@@admin.motd.localeFr">Französisch</h3>
@@ -102,9 +114,11 @@
       <textarea
         matInput
         rows="4"
+        [attr.maxlength]="motdMarkdownMaxLength"
         [value]="tplMdFr()"
-        (input)="tplMdFr.set($any($event.target).value)"
+        (input)="onTplMarkdownInput('fr', $any($event.target).value)"
       ></textarea>
+      <mat-hint align="end">{{ tplMdFr().length }}/{{ motdMarkdownMaxLength }}</mat-hint>
     </mat-form-field>
 
     <h3 class="admin-motd-tpl-dialog__locale" i18n="@@admin.motd.localeEs">Spanisch</h3>
@@ -115,9 +129,11 @@
       <textarea
         matInput
         rows="4"
+        [attr.maxlength]="motdMarkdownMaxLength"
         [value]="tplMdEs()"
-        (input)="tplMdEs.set($any($event.target).value)"
+        (input)="onTplMarkdownInput('es', $any($event.target).value)"
       ></textarea>
+      <mat-hint align="end">{{ tplMdEs().length }}/{{ motdMarkdownMaxLength }}</mat-hint>
     </mat-form-field>
 
     <h3 class="admin-motd-tpl-dialog__locale" i18n="@@admin.motd.localeIt">Italienisch</h3>
@@ -128,9 +144,11 @@
       <textarea
         matInput
         rows="4"
+        [attr.maxlength]="motdMarkdownMaxLength"
         [value]="tplMdIt()"
-        (input)="tplMdIt.set($any($event.target).value)"
+        (input)="onTplMarkdownInput('it', $any($event.target).value)"
       ></textarea>
+      <mat-hint align="end">{{ tplMdIt().length }}/{{ motdMarkdownMaxLength }}</mat-hint>
     </mat-form-field>
   }
 </mat-dialog-content>
