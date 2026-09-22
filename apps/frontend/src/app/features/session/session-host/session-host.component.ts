@@ -227,6 +227,7 @@ import {
 } from '../session-server-clock';
 import { SessionDeadlineController } from '../session-deadline';
 import { resolveQaDeadlineClockParts } from '../session-qa-deadline-label.util';
+import { normalizeQaSearchQuery } from '../qa-search.util';
 import { MusicEqualizerIconComponent } from '../../../shared/music-equalizer-icon/music-equalizer-icon.component';
 import { ModerationCompassIconComponent } from './moderation-compass-icon.component';
 import { PresenterIconComponent } from '../presenter-icon.component';
@@ -675,7 +676,11 @@ function musicTracksForPhase(
     PresenterDistributionMatrixComponent,
   ],
   templateUrl: './session-host.component.html',
-  styleUrls: ['../../../shared/styles/dialog-title-header.scss', './session-host.component.scss'],
+  styleUrls: [
+    '../../../shared/styles/dialog-title-header.scss',
+    '../../../shared/styles/session-channel-card-lead-icon.scss',
+    './session-host.component.scss',
+  ],
 })
 export class SessionHostComponent implements OnInit, OnDestroy {
   readonly localizedPath = localizePath;
@@ -10663,9 +10668,10 @@ export class SessionHostComponent implements OnInit, OnDestroy {
     if (this.qaSearchTimer) clearTimeout(this.qaSearchTimer);
     this.qaSearchTimer = setTimeout(() => {
       this.qaSearchTimer = null;
-      const search = this.qaSearchDraft().trim();
+      const search = normalizeQaSearchQuery(this.qaSearchDraft());
       if (search === this.qaSearch()) return;
-      if (search && !this.qaSearch()) {
+      const previousSearch = this.qaSearch();
+      if (search && !previousSearch) {
         this.captureUnfilteredQaChrome();
       }
       this.qaSearch.set(search);
@@ -10673,7 +10679,15 @@ export class SessionHostComponent implements OnInit, OnDestroy {
         this.releaseQaChromeIfUnfiltered();
       }
       this.ensureQaSubscription();
-      void this.refreshQaQuestions({ replaceStale: true }).then(() => this.scrollQaListToTop());
+      // Keep the previous result surface while the next page loads (no blank→loading flicker).
+      this.resetQaListPageNavigation();
+      this.qaListNextCursor.set(null);
+      const refiningSearch = Boolean(previousSearch && search);
+      void this.refreshQaQuestions().then(() => {
+        if (!refiningSearch) {
+          this.scrollQaListToTop();
+        }
+      });
     }, 300);
   }
 
@@ -10687,7 +10701,9 @@ export class SessionHostComponent implements OnInit, OnDestroy {
     this.qaSearch.set('');
     this.releaseQaChromeIfUnfiltered();
     this.ensureQaSubscription();
-    void this.refreshQaQuestions({ replaceStale: true }).then(() => this.scrollQaListToTop());
+    this.resetQaListPageNavigation();
+    this.qaListNextCursor.set(null);
+    void this.refreshQaQuestions().then(() => this.scrollQaListToTop());
   }
 
   async loadMoreQaQuestions(): Promise<void> {

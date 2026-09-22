@@ -22,10 +22,9 @@ describe('PresenterIconComponent', () => {
     expect(path?.getAttribute('fill')).toBe('currentColor');
     expect(path?.getAttribute('fill-rule')).toBe('evenodd');
     expect(svg?.querySelectorAll('rect')).toHaveLength(2);
-    expect(svg?.querySelector('g')?.getAttribute('transform')).toBe('translate(0 1.2)');
-    expect(getComputedStyle(svg!).transform).toMatch(
-      /translateY\(-2px\)|matrix\(1,\s*0,\s*0,\s*1,\s*0,\s*-2/,
-    );
+    expect(svg?.querySelector('g')?.getAttribute('transform')).toBe('translate(0 -0.7)');
+    // happy-dom liefert CSS-Variablen in transform unaufgeloest; Style-Vertrag pruefen.
+    expect(getComputedStyle(svg!).transform).toContain('--app-presenter-icon-nudge-y');
   });
 
   it('steht in Material-Buttons als Leading-Icon neben dem Label', () => {
@@ -38,5 +37,15 @@ describe('PresenterIconComponent', () => {
     expect(styles.verticalAlign).toBe('middle');
     expect(styles.width).toMatch(/1\.75rem|app-presenter-icon-size/);
     expect(styles.height).toMatch(/1\.75rem|app-presenter-icon-size/);
+  });
+
+  it('laesst den vertikalen Nudge ueber CSS-Variable steuern', () => {
+    const host = fixture.nativeElement as HTMLElement;
+    const svg = host.querySelector('svg.presenter-icon') as SVGElement;
+    expect(getComputedStyle(svg).transform).toContain('var(--app-presenter-icon-nudge-y');
+    host.style.setProperty('--app-presenter-icon-nudge-y', '0px');
+    expect(getComputedStyle(host).getPropertyValue('--app-presenter-icon-nudge-y').trim()).toBe(
+      '0px',
+    );
   });
 });

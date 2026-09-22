@@ -42,7 +42,7 @@ describe('TopToolbarComponent', () => {
 
   function desktopPresetButtons(fixture: ReturnType<typeof createToolbar>) {
     const group = fixture.nativeElement.querySelector(
-      '.top-toolbar__controls .top-toolbar__toggles--preset',
+      '.top-toolbar__center .top-toolbar__toggles--preset',
     ) as HTMLElement;
     const buttons = Array.from(
       group.querySelectorAll('button.top-toolbar__toggle'),
@@ -52,12 +52,9 @@ describe('TopToolbarComponent', () => {
   }
 
   function desktopThemeButtons(fixture: ReturnType<typeof createToolbar>) {
-    const groups = fixture.nativeElement.querySelectorAll(
-      '.top-toolbar__controls .top-toolbar__toggles',
-    ) as NodeListOf<HTMLElement>;
-    const themeGroup = Array.from(groups).find(
-      (g) => !g.classList.contains('top-toolbar__toggles--preset'),
-    )!;
+    const themeGroup = fixture.nativeElement.querySelector(
+      '.top-toolbar__controls .top-toolbar__toggles--theme',
+    ) as HTMLElement;
     const buttons = Array.from(
       themeGroup.querySelectorAll('button.top-toolbar__toggle'),
     ) as HTMLButtonElement[];
@@ -154,6 +151,67 @@ describe('TopToolbarComponent', () => {
     expect(mobileEnd.contains(fixture.nativeElement.querySelector('.top-toolbar__menu-btn'))).toBe(
       true,
     );
+    fixture.destroy();
+  });
+
+  it('schaltet die kompakte Preset-Icon-Toolbar schon unter 840px (Tablet-Portrait)', async () => {
+    const { readFileSync } = await import('node:fs');
+    const { dirname, join } = await import('node:path');
+    const { fileURLToPath } = await import('node:url');
+    const scss = readFileSync(
+      join(dirname(fileURLToPath(import.meta.url)), 'top-toolbar.component.scss'),
+      'utf8',
+    );
+
+    expect(scss).toMatch(/@media \(max-width:\s*839px\)\s*\{\s*\.desktop-only/);
+    expect(scss).toMatch(/@media \(min-width:\s*840px\)\s*\{[^}]*\.mobile-only/);
+    expect(scss).toMatch(
+      /@media \(min-width:\s*840px\)\s*\{[\s\S]*?\.top-toolbar__center[\s\S]*?grid-column:\s*2/,
+    );
+  });
+
+  it('stellt den Sprachschalter als letztes Desktop-Steuerelement bereit', () => {
+    const fixture = createToolbar();
+    const controls = fixture.nativeElement.querySelector('.top-toolbar__controls') as HTMLElement;
+    const children = Array.from(controls.children) as HTMLElement[];
+    const langIndex = children.findIndex((el) => el.classList.contains('top-toolbar__lang-btn'));
+
+    expect(langIndex).toBeGreaterThan(0);
+    // Theme steht unmittelbar links vom Sprachschalter; mat-menu folgt danach.
+    expect(children[langIndex - 1]?.classList.contains('top-toolbar__toggles--theme')).toBe(true);
+    expect(children[langIndex + 1]?.tagName.toLowerCase()).toBe('mat-menu');
+    expect(
+      fixture.nativeElement.querySelector('.top-toolbar__center .top-toolbar__toggles--preset'),
+    ).toBeTruthy();
+    fixture.destroy();
+  });
+
+  it('lässt die Sprachmenü-Breite am Inhalt wachsen', async () => {
+    const { readFileSync } = await import('node:fs');
+    const { dirname, join, resolve } = await import('node:path');
+    const { fileURLToPath } = await import('node:url');
+    const dir = dirname(fileURLToPath(import.meta.url));
+    const html = readFileSync(join(dir, 'top-toolbar.component.html'), 'utf8');
+    const styles = readFileSync(resolve(process.cwd(), 'src/styles.scss'), 'utf8');
+
+    expect(html.match(/class="top-toolbar__lang-menu"/g)?.length).toBe(2);
+    expect(styles).toMatch(
+      /\.top-toolbar__lang-menu\.mat-mdc-menu-panel\s*\{[^}]*min-width:\s*max-content/,
+    );
+    expect(styles).toMatch(
+      /\.top-toolbar__lang-menu\.mat-mdc-menu-panel\s*\{[^}]*width:\s*max-content/,
+    );
+  });
+
+  it('ordnet die Sprachauswahl alphabetisch nach Anzeigenamen', () => {
+    const fixture = createToolbar();
+    expect(fixture.componentInstance.supportedLanguages.map((lang) => lang.label)).toEqual([
+      'Deutsch',
+      'English',
+      'Español',
+      'Français',
+      'Italiano',
+    ]);
     fixture.destroy();
   });
 
@@ -277,6 +335,10 @@ describe('TopToolbarComponent', () => {
 
     expect(scss).toMatch(/\.top-toolbar__brand\s*\{[^}]*align-items:\s*center/);
     expect(scss).toMatch(/\.top-toolbar__start\s*\{[^}]*align-items:\s*center/);
+    expect(scss).toMatch(/\.top-toolbar__start\s*\{[^}]*gap:\s*0\.75rem/);
+    expect(scss).toMatch(
+      /\.top-toolbar__controls \.top-toolbar__lang-btn\s*\{[^}]*margin-inline-end:\s*calc/,
+    );
     expect(scss).toMatch(/\.top-toolbar__brand-icon\s*\{[^}]*display:\s*block/);
     expect(scss).toMatch(/\.top-toolbar__brand-icon\s*\{[^}]*width:\s*2\.25rem/);
     expect(scss).toMatch(/\.top-toolbar__brand-icon\s*\{[^}]*height:\s*2\.25rem/);

@@ -83,7 +83,10 @@ function writeStoredTempoSelection(code: string, value: string | null): void {
   standalone: true,
   imports: [MatButton, MatFabButton, MatCard, MatCardContent, MatIcon, RouterLink],
   templateUrl: './feedback-vote.component.html',
-  styleUrl: './feedback-vote.component.scss',
+  styleUrls: [
+    '../../shared/styles/session-channel-card-lead-icon.scss',
+    './feedback-vote.component.scss',
+  ],
   host: {
     class: 'feedback-vote-shell',
     '[class.feedback-vote-shell--embedded]': 'embeddedInSession()',

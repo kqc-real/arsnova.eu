@@ -1,0 +1,22 @@
+/* Lead-Icon-Kachel für Live-Kanal-Karten (wie Dialog-/Startseiten-Kachel). */
+
+.session-channel-card__header-lead-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 2.5rem;
+  height: 2.5rem;
+  margin-top: 0.125rem;
+  box-sizing: border-box;
+  border-radius: var(--mat-sys-corner-medium);
+  border: 1.5px solid color-mix(in srgb, var(--mat-sys-outline) 72%, var(--mat-sys-primary) 28%);
+  background: transparent;
+  color: var(--mat-sys-primary);
+
+  mat-icon {
+    font-size: 1.5rem;
+    width: 1.5rem;
+    height: 1.5rem;
+  }
+}

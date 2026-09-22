@@ -557,15 +557,6 @@
   flex: 1 1 auto;
 }
 
-.session-channel-card__header-lead-icon {
-  flex-shrink: 0;
-  font-size: 2rem;
-  width: 2rem;
-  height: 2rem;
-  margin-top: 0.1rem;
-  color: var(--mat-sys-primary);
-}
-
 .session-channel-card__eyebrow {
   margin: 0;
   font: var(--mat-sys-label-large);
@@ -868,6 +859,13 @@
   gap: 0.6rem;
   padding: 2rem 1rem;
   text-align: center;
+}
+
+.session-qa-empty--filtered {
+  box-sizing: border-box;
+  justify-content: center;
+  min-height: 8rem;
+  padding: 1.5rem 1rem;
 }
 
 .session-qa-empty__icon {

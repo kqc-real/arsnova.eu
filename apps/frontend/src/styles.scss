@@ -1062,7 +1062,7 @@ html {
 }
 
 .cdk-overlay-backdrop.markdown-image-lightbox-dialog-backdrop {
-  background: rgb(7 10 16 / 88%);
+  background: color-mix(in srgb, var(--mat-sys-scrim) 88%, transparent);
   backdrop-filter: blur(8px);
 }
 
@@ -2472,6 +2472,20 @@ html.preset-playful
   width: 100% !important;
   height: var(--mat-button-text-touch-target-size, 2.75rem) !important;
   transform: translateY(-50%) !important;
+}
+
+/*
+ * Sprachmenü der Top-Toolbar: Breite am längsten Label (Material-Default min-width 112px).
+ * class auf <mat-menu> landet als Panel-Klasse (panelClass-Alias).
+ */
+.top-toolbar__lang-menu.mat-mdc-menu-panel {
+  min-width: max-content;
+  width: max-content;
+  max-width: min(16rem, calc(100vw - 2rem));
+
+  .mat-mdc-menu-item .mat-mdc-menu-item-text {
+    white-space: nowrap;
+  }
 }
 
 /*

@@ -31,6 +31,12 @@ describe('Globales Farbkonzept (Overlay-Chrome)', () => {
     expect(styles).toMatch(
       /\.cdk-overlay-pane\.product-feedback-in-app-dialog-panel \.mat-mdc-dialog-surface\s*\{[\s\S]*?background:\s*transparent/,
     );
+    expect(styles).toMatch(
+      /\.cdk-overlay-backdrop\.markdown-image-lightbox-dialog-backdrop\s*\{[\s\S]*?mat-sys-scrim/,
+    );
+    expect(styles).not.toMatch(
+      /\.cdk-overlay-backdrop\.markdown-image-lightbox-dialog-backdrop\s*\{[\s\S]*?rgb\(\s*7\s+10\s+16/,
+    );
   });
 
   it('bindet Menü, Select, Tooltip, Datepicker, Snackbar und Filled-CTAs global', () => {

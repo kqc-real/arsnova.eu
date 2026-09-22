@@ -1949,13 +1949,16 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
       fixture.nativeElement.querySelector('.session-host__view-controls--inline'),
     ).not.toBeNull();
     const presenterButton = fixture.nativeElement.querySelector(
-      '[data-testid="open-presenter-view"]',
+      '.session-host__view-controls [data-testid="open-presenter-view"]',
     ) as HTMLButtonElement | null;
     expect(presenterButton).not.toBeNull();
-    expect(presenterButton?.textContent).toContain('Präsentation starten');
+    expect(presenterButton?.getAttribute('aria-label')).toBe('Präsentation starten');
+    expect(presenterButton?.className ?? '').toMatch(/mat-mdc-icon-button/);
+    expect(presenterButton?.classList.contains('session-host__view-toggle--labeled')).toBe(false);
     expect(presenterButton?.querySelector('app-presenter-icon')).not.toBeNull();
+    expect(presenterButton?.querySelector('.session-host__view-toggle-label')).toBeNull();
     expect(presenterButton?.querySelector('.session-host__view-toggle-content')).toBeNull();
-    expect(getComputedStyle(presenterButton!).alignItems).toBe('center');
+    expect(presenterButton?.classList.contains('session-host__view-toggle')).toBe(true);
     const lobbyPresenterCta = fixture.nativeElement.querySelector(
       '.session-lobby__actions--hero [data-testid="open-presenter-view"]',
     ) as HTMLButtonElement | null;
@@ -1993,7 +1996,10 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
       /\.session-host__view-toggle\.session-host__view-toggle--presenter\s*\{[^}]*mat-sys-on-primary-container/s,
     );
     expect(styles).toMatch(
-      /\.session-host__view-toggle\.session-host__view-toggle--presenter\s*\{[^}]*--app-presenter-icon-size:\s*1\.75rem/s,
+      /\.session-host__view-toggle\.session-host__view-toggle--presenter\s*\{[^}]*--app-presenter-icon-size:\s*1\.5rem/s,
+    );
+    expect(styles).toMatch(
+      /\.session-host__view-toggle\.session-host__view-toggle--presenter\s*\{[^}]*--mat-icon-button-state-layer-size:\s*2\.75rem/s,
     );
     expect(styles).toMatch(
       /\.session-host__presenter-cta \{[^}]*--app-presenter-icon-size:\s*1\.75rem/s,
@@ -2198,14 +2204,12 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
     ) as HTMLButtonElement | null;
     expect(toolbarPresenter).not.toBeNull();
     const toolbarIcon = toolbarPresenter?.querySelector('app-presenter-icon');
-    const toolbarLabel = toolbarPresenter?.querySelector('.mdc-button__label');
     expect(toolbarIcon).not.toBeNull();
-    expect(toolbarLabel).not.toBeNull();
-    expect(toolbarLabel?.contains(toolbarIcon!)).toBe(false);
-    expect(getComputedStyle(toolbarPresenter!).alignItems).toBe('center');
-    expect(getComputedStyle(toolbarIcon!).alignSelf).toBe('center');
-    expect(getComputedStyle(toolbarIcon!).width).toMatch(/1\.75rem|28px|app-presenter-icon-size/);
-    expect(getComputedStyle(toolbarIcon!).height).toMatch(/1\.75rem|28px|app-presenter-icon-size/);
+    expect(toolbarPresenter?.className ?? '').toMatch(/mat-mdc-icon-button/);
+    expect(toolbarPresenter?.querySelector('.mdc-button__label')).toBeNull();
+    expect(toolbarPresenter?.getAttribute('aria-label')).toBe('Präsentation starten');
+    expect(getComputedStyle(toolbarIcon!).width).toMatch(/1\.5rem|24px|app-presenter-icon-size/);
+    expect(getComputedStyle(toolbarIcon!).height).toMatch(/1\.5rem|24px|app-presenter-icon-size/);
     fixture.destroy();
   });
 

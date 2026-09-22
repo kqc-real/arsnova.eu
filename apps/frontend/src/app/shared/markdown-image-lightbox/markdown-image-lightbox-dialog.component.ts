@@ -425,17 +425,33 @@ export class MarkdownImageLightboxDialogComponent {
       return { width: 1, height: 1 };
     }
     const rect = viewport.getBoundingClientRect();
-    const viewportRatio = rect.width / rect.height;
+    const { width: availWidth, height: availHeight } = this.availableImageViewportSize(rect);
+    const viewportRatio = availWidth / availHeight;
     const imageRatio = this.naturalWidth / this.naturalHeight;
     if (imageRatio >= viewportRatio) {
       return {
-        width: rect.width,
-        height: rect.width / imageRatio,
+        width: availWidth,
+        height: availWidth / imageRatio,
       };
     }
     return {
-      width: rect.height * imageRatio,
-      height: rect.height,
+      width: availHeight * imageRatio,
+      height: availHeight,
+    };
+  }
+
+  /** Content-Box der Fit-Ansicht (ohne Chrome-Insets an Steuerung/Untertitel). */
+  private availableImageViewportSize(rect: DOMRect): { width: number; height: number } {
+    const image = this.viewportRef?.nativeElement.querySelector('.markdown-image-lightbox__image');
+    if (!(image instanceof HTMLElement)) {
+      return { width: Math.max(1, rect.width), height: Math.max(1, rect.height) };
+    }
+    const style = getComputedStyle(image);
+    const padX = (parseFloat(style.paddingLeft) || 0) + (parseFloat(style.paddingRight) || 0);
+    const padY = (parseFloat(style.paddingTop) || 0) + (parseFloat(style.paddingBottom) || 0);
+    return {
+      width: Math.max(1, rect.width - padX),
+      height: Math.max(1, rect.height - padY),
     };
   }
 

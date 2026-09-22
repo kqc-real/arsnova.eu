@@ -13,6 +13,18 @@
   box-sizing: border-box;
   overflow: hidden;
   animation: markdown-image-lightbox-enter 180ms cubic-bezier(0.2, 0.9, 0.2, 1);
+  /*
+    Fit-Ansicht: Bild bleibt unter Steuerung/URL-Caption; gleiche Block-Insets,
+    damit object-fit und Zoom-Logik die Mitte behalten.
+  */
+  --markdown-lightbox-inset-block: calc(
+    4.75rem + max(env(safe-area-inset-top, 0px), env(safe-area-inset-bottom, 0px))
+  );
+  --markdown-lightbox-inset-inline: max(
+    1rem,
+    env(safe-area-inset-left, 0px),
+    env(safe-area-inset-right, 0px)
+  );
 }
 
 .markdown-image-lightbox__viewport {
@@ -51,10 +63,13 @@
 
 .markdown-image-lightbox__image {
   display: block;
+  box-sizing: border-box;
   width: 100%;
   height: 100%;
   min-width: 0;
   min-height: 0;
+  padding-block: var(--markdown-lightbox-inset-block);
+  padding-inline: var(--markdown-lightbox-inset-inline);
   object-fit: contain;
   object-position: center;
   transform-origin: center center;
@@ -81,12 +96,15 @@
   max-width: min(calc(100% - 1rem), 64rem);
   margin-inline: auto;
   padding: 0.625rem 0.875rem;
-  border-radius: 1rem;
-  background: rgb(15 18 24 / 72%);
-  color: #fff;
+  border: 1px solid color-mix(in srgb, var(--mat-sys-outline-variant) 55%, transparent);
+  border-radius: var(--mat-sys-corner-large);
+  background: color-mix(in srgb, var(--mat-sys-surface-container-high) 88%, transparent);
+  color: var(--mat-sys-on-surface);
+  box-shadow: var(--mat-sys-level2);
   font: var(--mat-sys-body-medium);
   line-height: 1.45;
   text-align: center;
+  backdrop-filter: blur(12px) saturate(1.15);
   transition:
     opacity 140ms ease,
     transform 140ms ease;
@@ -100,13 +118,9 @@
   min-height: 3rem;
   padding-inline: 1rem 1.125rem;
   border-radius: var(--mat-sys-corner-full);
-  border: 1px solid rgb(255 255 255 / 24%);
-  background: var(--mat-sys-primary);
-  color: var(--mat-sys-on-primary);
-  box-shadow:
-    0 0 0 1px rgb(0 0 0 / 16%),
-    0 0.75rem 2rem rgb(0 0 0 / 28%);
-  font-weight: 700;
+  /* Filled folgt dem Preset (Seriös Primary, Spielerisch Tertiary) — kein Primary-Override. */
+  box-shadow: var(--mat-sys-level3);
+  font-weight: 600;
   letter-spacing: 0.01em;
 }
 
@@ -121,25 +135,26 @@
   gap: 0.25rem;
   max-width: calc(100% - 10rem);
   padding: 0.25rem;
-  border: 1px solid rgb(255 255 255 / 24%);
+  border: 1px solid color-mix(in srgb, var(--mat-sys-outline-variant) 55%, transparent);
   border-radius: var(--mat-sys-corner-full);
-  background: rgb(15 18 24 / 78%);
-  color: #fff;
-  box-shadow: 0 0.5rem 1.5rem rgb(0 0 0 / 24%);
+  background: color-mix(in srgb, var(--mat-sys-surface-container-high) 88%, transparent);
+  color: var(--mat-sys-on-surface);
+  box-shadow: var(--mat-sys-level2);
+  backdrop-filter: blur(12px) saturate(1.15);
 }
 
 .markdown-image-lightbox__control {
   width: 2.75rem;
   height: 2.75rem;
-  color: #fff;
+  color: var(--mat-sys-on-surface);
 
   &:focus-visible {
-    outline: 3px solid rgb(255 255 255 / 82%);
+    outline: 3px solid color-mix(in srgb, var(--mat-sys-primary) 72%, transparent);
     outline-offset: 1px;
   }
 
   &:disabled {
-    color: rgb(255 255 255 / 38%);
+    color: color-mix(in srgb, var(--mat-sys-on-surface) 38%, transparent);
   }
 }
 
@@ -154,7 +169,7 @@
   width: 1px;
   height: 1.75rem;
   margin-inline: 0.125rem;
-  background: rgb(255 255 255 / 32%);
+  background: color-mix(in srgb, var(--mat-sys-outline-variant) 70%, transparent);
 }
 
 @keyframes markdown-image-lightbox-enter {
@@ -180,23 +195,31 @@
   }
 }
 
-.markdown-image-lightbox__close:hover {
-  filter: brightness(1.04);
-}
-
 .markdown-image-lightbox__close:focus-visible {
-  outline: 3px solid rgb(255 255 255 / 82%);
+  outline: 3px solid color-mix(in srgb, var(--mat-sys-primary) 72%, transparent);
   outline-offset: 2px;
 }
 
 @media (max-width: 599px) {
+  .markdown-image-lightbox {
+    /* Close + Zoom-Leiste gestapelt: mehr Luft oben/unten. */
+    --markdown-lightbox-inset-block: calc(
+      7.25rem + max(env(safe-area-inset-top, 0px), env(safe-area-inset-bottom, 0px))
+    );
+    --markdown-lightbox-inset-inline: max(
+      0.75rem,
+      env(safe-area-inset-left, 0px),
+      env(safe-area-inset-right, 0px)
+    );
+  }
+
   .markdown-image-lightbox__controls {
     top: calc(max(0.35rem, env(safe-area-inset-top)) + 3.25rem);
     right: max(0.35rem, env(safe-area-inset-right));
     left: max(0.35rem, env(safe-area-inset-left));
     justify-content: center;
     max-width: none;
-    border-radius: 1rem;
+    border-radius: var(--mat-sys-corner-large);
   }
 
   .markdown-image-lightbox__close {

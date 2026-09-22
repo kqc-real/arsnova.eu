@@ -74,9 +74,9 @@ export class TopToolbarComponent {
   readonly supportedLanguages = [
     { code: 'de' as const, label: 'Deutsch' },
     { code: 'en' as const, label: 'English' },
+    { code: 'es' as const, label: 'Español' },
     { code: 'fr' as const, label: 'Français' },
     { code: 'it' as const, label: 'Italiano' },
-    { code: 'es' as const, label: 'Español' },
   ];
   language = signal<'de' | 'en' | 'fr' | 'it' | 'es'>('de');
   controlsMenuOpen = signal(false);

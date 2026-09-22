@@ -81,7 +81,7 @@
       </button>
     </div>
 
-    <div class="top-toolbar__controls desktop-only">
+    <div class="top-toolbar__center desktop-only">
       <div
         role="group"
         i18n-aria-label="@@topToolbar.choosePresetAria"
@@ -116,7 +116,9 @@
           </span>
         </button>
       </div>
+    </div>
 
+    <div class="top-toolbar__controls desktop-only">
       <div
         role="group"
         i18n-aria-label="@@topToolbar.themeGroupAria"
@@ -168,10 +170,9 @@
       >
         <mat-icon aria-hidden="true">language</mat-icon>
       </button>
-      <mat-menu #langMenu="matMenu">
+      <mat-menu #langMenu="matMenu" class="top-toolbar__lang-menu" xPosition="before">
         @for (lang of supportedLanguages; track lang.code) {
           <button mat-menu-item (click)="setLanguage(lang.code)">
-            <mat-icon matMenuItemIcon>language</mat-icon>
             {{ lang.label }}
           </button>
         }
@@ -268,10 +269,9 @@
           <mat-icon aria-hidden="true">language</mat-icon>
         </button>
       </div>
-      <mat-menu #langMenuMobile="matMenu">
+      <mat-menu #langMenuMobile="matMenu" class="top-toolbar__lang-menu" xPosition="before">
         @for (lang of supportedLanguages; track lang.code) {
           <button mat-menu-item (click)="setLanguage(lang.code)">
-            <mat-icon matMenuItemIcon>language</mat-icon>
             {{ lang.label }}
           </button>
         }

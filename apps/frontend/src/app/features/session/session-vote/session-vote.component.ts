@@ -107,6 +107,7 @@ import {
   type SessionDeadlineSnapshot,
 } from '../session-deadline';
 import { resolveQaDeadlineClockParts } from '../session-qa-deadline-label.util';
+import { normalizeQaSearchQuery } from '../qa-search.util';
 import {
   consumeParticipantJoinArrival,
   hasParticipantJoinArrival,
@@ -451,7 +452,11 @@ export function getNumericEstimateMotivation(input: {
     ProductFeedbackCardComponent,
   ],
   templateUrl: './session-vote.component.html',
-  styleUrls: ['../../../shared/styles/dialog-title-header.scss', './session-vote.component.scss'],
+  styleUrls: [
+    '../../../shared/styles/dialog-title-header.scss',
+    '../../../shared/styles/session-channel-card-lead-icon.scss',
+    './session-vote.component.scss',
+  ],
 })
 export class SessionVoteComponent implements OnInit, OnDestroy {
   readonly qaSessionQuestionLimit = QA_MAX_QUESTIONS_PER_SESSION;
@@ -4498,7 +4503,7 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
     }
     this.qaSearchTimer = setTimeout(() => {
       this.qaSearchTimer = null;
-      const search = this.qaSearchDraft().trim();
+      const search = normalizeQaSearchQuery(this.qaSearchDraft());
       if (search === this.qaSearch()) {
         return;
       }
