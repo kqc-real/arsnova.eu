@@ -5383,6 +5383,71 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
     fixture.destroy();
   });
 
+  it('scrollt die Freitext-Wortwolke nach dem Öffnen in den sichtbaren Bereich', async () => {
+    getInfoQueryMock.mockResolvedValue({ ...defaultSession, status: 'ACTIVE' });
+    getCurrentQuestionForHostQueryMock.mockResolvedValue({
+      questionId: '11111111-1111-4111-8111-111111111111',
+      questionOrder: 5,
+      text: 'Warum bleibt ein Satellit im Orbit?',
+      type: 'FREETEXT',
+      answers: [],
+    });
+    getLiveFreetextQueryMock.mockResolvedValue({
+      ...defaultLiveFreetext,
+      questionId: '11111111-1111-4111-8111-111111111111',
+      questionOrder: 5,
+      questionType: 'FREETEXT',
+      questionText: 'Warum bleibt ein Satellit im Orbit?',
+      responses: ['Gravitation', 'Orbit'],
+    });
+
+    const fixture = setup();
+    fixture.detectChanges();
+    await fixture.whenStable();
+    await vi.waitUntil(
+      () => fixture.nativeElement.querySelector('#host-freetext-word-cloud') !== null,
+      { timeout: 5000, interval: 25 },
+    );
+
+    const details = fixture.nativeElement.querySelector(
+      '#host-freetext-word-cloud',
+    ) as HTMLDetailsElement;
+    expect(details).toBeTruthy();
+
+    const scrollingElement = (document.scrollingElement ?? document.documentElement) as HTMLElement;
+    scrollingElement.scrollTop = 0;
+    Object.defineProperty(scrollingElement, 'scrollTo', {
+      configurable: true,
+      writable: true,
+      value: vi.fn(),
+    });
+    const scrollToSpy = vi.spyOn(scrollingElement, 'scrollTo').mockImplementation(() => undefined);
+    Object.defineProperty(details, 'getBoundingClientRect', {
+      configurable: true,
+      value: () =>
+        ({
+          top: 480,
+          left: 0,
+          right: 0,
+          bottom: 900,
+          width: 400,
+          height: 420,
+          x: 0,
+          y: 480,
+          toJSON: () => ({}),
+        }) as DOMRect,
+    });
+
+    details.open = true;
+    fixture.componentInstance.onFreetextWordCloudDetailsToggle(details);
+    await flushComponentAfterStable(fixture, 0);
+
+    expect(fixture.componentInstance.wordCloudExpanded()).toBe(true);
+    expect(scrollToSpy).toHaveBeenCalled();
+    scrollToSpy.mockRestore();
+    fixture.destroy();
+  });
+
   it('kann die Host-Wortwolke einfrieren und wieder live fortsetzen', async () => {
     getInfoQueryMock.mockResolvedValue({ ...defaultSession, status: 'ACTIVE' });
     getCurrentQuestionForHostQueryMock.mockResolvedValue({
@@ -7193,7 +7258,7 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
     expect(fixture.nativeElement.textContent ?? '').toContain(
       'Zeigt Fragen mit viel Zustimmung und genug Stimmen zuerst. Hervorgehobene Fragen sind markiert, aber nicht vorgezogen.',
     );
-    expect(scrollToSpy).toHaveBeenCalledWith({ top: 0, behavior: 'smooth' });
+    expect(scrollToSpy).toHaveBeenCalledWith({ top: 0, behavior: 'auto' });
     scrollToSpy.mockRestore();
     fixture.destroy();
   });
@@ -12656,9 +12721,90 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
     await flushComponentAfterStable(fixture, 0);
 
     expect(revealResultsMutateMock).toHaveBeenCalledWith({ code: 'ABC123' });
-    expect(scrollToSpy).toHaveBeenCalledWith({ behavior: 'smooth', top: 520 });
+    expect(scrollToSpy).toHaveBeenCalledWith({ behavior: 'auto', top: 520 });
 
     scrollToSpy.mockRestore();
+    fixture.destroy();
+  });
+
+  it('öffnet bei Freitext-Ergebniszeigen die Wortwolke und scrollt dorthin, wenn sie noch zu war', async () => {
+    getInfoQueryMock.mockResolvedValue({ ...defaultSession, status: 'ACTIVE' });
+    getCurrentQuestionForHostQueryMock.mockResolvedValue({
+      questionId: '11111111-1111-4111-8111-111111111111',
+      order: 0,
+      totalQuestions: 1,
+      text: 'Was fällt dir ein?',
+      type: 'FREETEXT',
+      answers: [],
+      freeTextResponses: ['Orbit', 'Gravitation'],
+    });
+    getLiveFreetextQueryMock.mockResolvedValue({
+      ...defaultLiveFreetext,
+      questionId: '11111111-1111-4111-8111-111111111111',
+      questionOrder: 1,
+      questionType: 'FREETEXT',
+      questionText: 'Was fällt dir ein?',
+      responses: ['Orbit', 'Gravitation'],
+    });
+    revealResultsMutateMock.mockResolvedValue({
+      status: 'RESULTS',
+      currentQuestion: 0,
+      currentRound: 1,
+    });
+
+    const fixture = setup();
+    fixture.detectChanges();
+    await flushComponentAfterStable(fixture, 50);
+    fixture.detectChanges();
+
+    const component = fixture.componentInstance;
+    expect(component.wordCloudExpanded()).toBe(false);
+
+    await component.revealResults();
+    await flushComponentAfterStable(fixture, 0);
+
+    expect(revealResultsMutateMock).toHaveBeenCalledWith({ code: 'ABC123' });
+    expect(component.wordCloudExpanded()).toBe(true);
+    expect(fixture.nativeElement.querySelector('#host-freetext-word-cloud')).toBeTruthy();
+    fixture.destroy();
+  });
+
+  it('lässt bei Freitext-Ergebniszeigen eine bereits offene Wortwolke unverändert', async () => {
+    getInfoQueryMock.mockResolvedValue({ ...defaultSession, status: 'ACTIVE' });
+    getCurrentQuestionForHostQueryMock.mockResolvedValue({
+      questionId: '11111111-1111-4111-8111-111111111111',
+      order: 0,
+      totalQuestions: 1,
+      text: 'Was fällt dir ein?',
+      type: 'FREETEXT',
+      answers: [],
+      freeTextResponses: ['Orbit'],
+    });
+    getLiveFreetextQueryMock.mockResolvedValue({
+      ...defaultLiveFreetext,
+      questionId: '11111111-1111-4111-8111-111111111111',
+      questionOrder: 1,
+      questionType: 'FREETEXT',
+      questionText: 'Was fällt dir ein?',
+      responses: ['Orbit'],
+    });
+    revealResultsMutateMock.mockResolvedValue({
+      status: 'RESULTS',
+      currentQuestion: 0,
+      currentRound: 1,
+    });
+
+    const fixture = setup();
+    fixture.detectChanges();
+    await flushComponentAfterStable(fixture, 50);
+    const component = fixture.componentInstance;
+    component.wordCloudExpanded.set(true);
+    fixture.detectChanges();
+
+    await component.revealResults();
+    await flushComponentAfterStable(fixture, 0);
+
+    expect(component.wordCloudExpanded()).toBe(true);
     fixture.destroy();
   });
 
@@ -12733,7 +12879,7 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
     await flushComponentAfterStable(fixture, 0);
 
     expect(revealAnswersMutateMock).toHaveBeenCalledWith({ code: 'ABC123' });
-    expect(scrollToSpy).toHaveBeenCalledWith({ behavior: 'smooth', top: 412 });
+    expect(scrollToSpy).toHaveBeenCalledWith({ behavior: 'auto', top: 412 });
 
     scrollToSpy.mockRestore();
     fixture.destroy();

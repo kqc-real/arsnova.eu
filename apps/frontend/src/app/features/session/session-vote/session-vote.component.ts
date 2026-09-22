@@ -97,6 +97,12 @@ import { CountdownFingersComponent } from '../../../shared/countdown-fingers/cou
 import { MarkdownImageLightboxDirective } from '../../../shared/markdown-image-lightbox/markdown-image-lightbox.directive';
 import { remainingCountdownSeconds } from '../session-countdown.util';
 import {
+  scrollAndFocusInAppMain,
+  scrollAppMainToTop,
+  scrollIntoAppMain,
+  sessionScrollBehavior,
+} from '../session-auto-scroll.util';
+import {
   getSkewAdjustedNow,
   recordServerTimeIso,
   recordServerTimeSample,
@@ -324,8 +330,8 @@ export function anchorCandidatesForPhase(
     return [VOTE_ANCHOR_QUESTION, VOTE_ANCHOR_OPTIONS_START, VOTE_ANCHOR_OPTION_0, VOTE_ANCHOR_TOP];
   }
   return [
-    VOTE_ANCHOR_RESULT_MESSAGE,
     VOTE_ANCHOR_RESULT_SCORE,
+    VOTE_ANCHOR_RESULT_MESSAGE,
     VOTE_ANCHOR_RESULT_CONTAINER,
     VOTE_ANCHOR_TOP,
     VOTE_ANCHOR_ERROR,
@@ -1045,6 +1051,8 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
   readonly showSessionEndGate = signal(false);
   private sessionEndRedirectInFlight = false;
   private participantOfflineMarked = false;
+  private previousPausedForAutoScroll = false;
+  private previousQaOpenForAutoScroll: boolean | null = null;
 
   constructor() {
     effect(() => {
@@ -1095,6 +1103,21 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
       if (!hasMatchingQuestion) {
         untracked(() => this.clearQaAuthorSelection());
       }
+    });
+    effect(() => {
+      const paused = this.isPaused();
+      if (paused && !this.previousPausedForAutoScroll) {
+        untracked(() => this.scrollVotePausedIntoView());
+      }
+      this.previousPausedForAutoScroll = paused;
+    });
+    effect(() => {
+      const qaOpen = this.isQaChannelOpen();
+      const onQa = this.activeChannel() === 'qa';
+      if (onQa && this.previousQaOpenForAutoScroll === true && !qaOpen) {
+        untracked(() => this.scrollVoteQaClosedIntoView());
+      }
+      this.previousQaOpenForAutoScroll = qaOpen;
     });
   }
 
@@ -2712,9 +2735,16 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
 
   selectChannel(channel: string): void {
     if (channel === 'quiz' || channel === 'qa' || channel === 'quickFeedback') {
+      const prev = this.activeChannel();
       this.rememberParticipantLiveChannelOverride(channel);
       this.activeChannel.set(channel);
       this.ensureActiveChannel();
+      if (prev !== channel) {
+        // Quiz: kein Auto-Scroll — Kanalschalter/Fragekopf wirkt sonst unruhig.
+        if (channel !== 'quiz') {
+          this.scrollVoteChannelIntoView(channel);
+        }
+      }
     }
   }
 
@@ -3394,16 +3424,64 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
 
   /** End-Gate immer an den Seitenanfang: Vote bleibt sonst in der gescrollten Kanalliste. */
   private scrollVoteSurfaceToTop(): void {
-    const host = this.el.nativeElement as HTMLElement;
-    const doc = host.ownerDocument;
-    const scrollRoot =
-      (host.closest('.app-main') as HTMLElement | null) ??
-      (doc?.getElementById('main-content') as HTMLElement | null);
-    if (!scrollRoot) {
-      return;
-    }
-    scrollRoot.scrollTo({ top: 0, behavior: 'auto' });
-    scrollRoot.scrollTop = 0;
+    scrollAppMainToTop(this.el.nativeElement, 'auto');
+  }
+
+  private scrollVoteChannelIntoView(channel: SessionChannelTab): void {
+    afterNextRender(
+      () => {
+        const host = this.el.nativeElement as HTMLElement;
+        const target =
+          channel === 'qa'
+            ? (host.querySelector('#vote-qa-heading') as HTMLElement | null)
+            : channel === 'quickFeedback'
+              ? ((host.querySelector('#vote-quick-feedback-heading') as HTMLElement | null) ??
+                (host.querySelector('[data-testid="vote-quick-feedback"]') as HTMLElement | null))
+              : ((host.querySelector('#vote-question-anchor') as HTMLElement | null) ??
+                (host.querySelector('#vote-top') as HTMLElement | null));
+        if (target) {
+          scrollIntoAppMain(target, { block: 'start' });
+          return;
+        }
+        scrollAppMainToTop(host);
+      },
+      { injector: this.injector },
+    );
+  }
+
+  private scrollVoteOwnQaQuestionIntoView(questionId?: string | null): void {
+    afterNextRender(
+      () => {
+        const host = this.el.nativeElement as HTMLElement;
+        const target = questionId
+          ? (host.querySelector(`[data-qa-id="${questionId}"]`) as HTMLElement | null)
+          : (host.querySelector('.session-qa-card--own') as HTMLElement | null);
+        scrollIntoAppMain(target, { block: 'nearest' });
+      },
+      { injector: this.injector },
+    );
+  }
+
+  private scrollVotePausedIntoView(): void {
+    afterNextRender(
+      () => {
+        const host = this.el.nativeElement as HTMLElement;
+        const target = host.querySelector('[data-testid="vote-quiz-paused"]') as HTMLElement | null;
+        scrollAndFocusInAppMain(target, { block: 'start' });
+      },
+      { injector: this.injector },
+    );
+  }
+
+  private scrollVoteQaClosedIntoView(): void {
+    afterNextRender(
+      () => {
+        const host = this.el.nativeElement as HTMLElement;
+        const target = host.querySelector('#vote-qa-closed-notice') as HTMLElement | null;
+        scrollIntoAppMain(target, { block: 'start' });
+      },
+      { injector: this.injector },
+    );
   }
 
   private focusSessionEndGate(): void {
@@ -3417,11 +3495,16 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
             return;
           }
           this.scrollVoteSurfaceToTop();
-          const target = (this.el.nativeElement as HTMLElement).querySelector<HTMLElement>(
-            '#vote-session-end-anchor',
-          );
+          const host = this.el.nativeElement as HTMLElement;
+          const ownEntry = host.querySelector(
+            '.vote-finished-leaderboard__item--own',
+          ) as HTMLElement | null;
+          const target =
+            ownEntry ??
+            (host.querySelector('#vote-session-end-anchor') as HTMLElement | null) ??
+            (host.querySelector('#finished-heading') as HTMLElement | null);
           if (target?.isConnected) {
-            target.focus({ preventScroll: true });
+            scrollAndFocusInAppMain(target, { block: 'nearest', behavior: 'auto' });
           }
         };
         apply();
@@ -4550,6 +4633,14 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
       requireDeadline: false,
       animate: false,
     });
+    afterNextRender(
+      () => {
+        const host = this.el.nativeElement as HTMLElement;
+        const heading = host.querySelector('#vote-qa-heading') as HTMLElement | null;
+        scrollIntoAppMain(heading, { block: 'start' });
+      },
+      { injector: this.injector },
+    );
   }
 
   private applyQaQuestionsSnapshot(
@@ -4861,6 +4952,7 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
       this.collapseTextarea();
       this.showQaInfo($localize`:@@sessionQa.submitSuccess:Frage gesendet.`);
       await this.refreshQaQuestions();
+      this.scrollVoteOwnQaQuestionIntoView(result.question?.id ?? null);
     } catch (error) {
       this.showQaError(
         localizeKnownServerError(
@@ -5898,8 +5990,7 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
   }
 
   private voteScrollBehavior(): ScrollBehavior {
-    if (typeof globalThis.matchMedia !== 'function') return 'auto';
-    return globalThis.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth';
+    return sessionScrollBehavior();
   }
 
   private findFirstAvailableVoteAnchor(candidateIds: string[]): HTMLElement | null {
@@ -5924,19 +6015,12 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
   ): void {
     if (!this.showPrimaryLiveView()) return;
     const host = this.el.nativeElement as HTMLElement;
-    const scrollRoot = host.closest('.app-main') as HTMLElement | null;
     const anchor = this.findFirstAvailableVoteAnchor(
       anchorCandidatesForPhase(phase, hadReadPhase, prioritizeQuestionOnVote),
     );
-    if (!scrollRoot) return;
     const behavior = this.voteScrollBehavior();
     if (anchor) {
-      const rootRect = scrollRoot.getBoundingClientRect();
-      const anchorRect = anchor.getBoundingClientRect();
-      const toolbarClearancePx = parseFloat(getComputedStyle(scrollRoot).paddingTop) || 0;
-      const gapPx = 8;
-      const y = anchorRect.top - rootRect.top + scrollRoot.scrollTop - toolbarClearancePx - gapPx;
-      scrollRoot.scrollTo({ top: Math.max(0, y), behavior });
+      scrollIntoAppMain(anchor, { behavior, block: 'start' });
       const focusTargetId = focusTargetIdForAnchor(anchor.id);
       const focusTarget =
         (focusTargetId ? (host.querySelector(`#${focusTargetId}`) as HTMLElement | null) : null) ??
@@ -5944,7 +6028,7 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
       this.ensureFocusable(focusTarget);
       focusTarget.focus({ preventScroll: true });
     } else {
-      scrollRoot.scrollTo({ top: 0, behavior });
+      scrollAppMainToTop(host, behavior);
     }
   }
 

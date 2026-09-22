@@ -240,6 +240,7 @@
             <mat-form-field appearance="outline" class="join-card__field" floatLabel="always">
               <mat-label i18n="@@join.nicknameLabel">Dein Name</mat-label>
               <input
+                id="join-nickname-input"
                 matInput
                 type="text"
                 [value]="customNickname()"
@@ -254,7 +255,7 @@
         }
 
         @if (joinError()) {
-          <p class="join-card__error" role="alert">
+          <p class="join-card__error" role="alert" tabindex="-1">
             <mat-icon class="join-card__error-icon" aria-hidden="true">warning</mat-icon>
             <span class="join-card__error-text">{{ joinError() }}</span>
           </p>

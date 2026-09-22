@@ -1,10 +1,14 @@
 import { DecimalPipe, DOCUMENT, NgTemplateOutlet } from '@angular/common';
 import {
   Component,
+  DestroyRef,
+  ElementRef,
   HostListener,
+  Injector,
   LOCALE_ID,
   OnDestroy,
   OnInit,
+  afterNextRender,
   computed,
   inject,
   isDevMode,
@@ -26,6 +30,7 @@ import {
   tryRequestDocumentFullscreen,
 } from '../../../core/document-fullscreen.util';
 import { remainingCountdownSeconds, stableCountdownDeadlineMs } from '../session-countdown.util';
+import { scrollAppMainToTop } from '../session-auto-scroll.util';
 import {
   localizeKnownServerError,
   sessionNotFoundUiMessage,
@@ -182,6 +187,10 @@ export class SessionPresentComponent implements OnInit, OnDestroy {
   private readonly themePreset = inject(ThemePresetService);
   private readonly hostDisplayMode = inject(HostDisplayModeService);
   private readonly document = inject(DOCUMENT);
+  private readonly hostElement = inject(ElementRef<HTMLElement>);
+  private readonly destroyRef = inject(DestroyRef);
+  private readonly injector = inject(Injector);
+  private previousPresentStatusForScroll: string | null = null;
   private metaPollTimer: ReturnType<typeof setInterval> | null = null;
   private livePollTimer: ReturnType<typeof setInterval> | null = null;
   private boardPageTimer: ReturnType<typeof setInterval> | null = null;
@@ -1622,6 +1631,7 @@ export class SessionPresentComponent implements OnInit, OnDestroy {
               : current,
           );
           this.syncCountdownFromStatus(data.timer, data.activeAt);
+          this.resetPresentScrollForPhase(data.status);
           if (data.status === 'FINISHED') {
             if (data.finishProjection === 'idle') {
               this.personalLeaderboard.set([]);
@@ -1642,6 +1652,30 @@ export class SessionPresentComponent implements OnInit, OnDestroy {
           this.statusSub = null;
         },
       },
+    );
+  }
+
+  /** Phasenwechsel: Beamer-Bühne immer an den Anfang setzen. */
+  private resetPresentScrollForPhase(status: string | null | undefined): void {
+    if (!status || status === this.previousPresentStatusForScroll) {
+      return;
+    }
+    this.previousPresentStatusForScroll = status;
+    if (this.destroyRef.destroyed) return;
+    afterNextRender(
+      () => {
+        if (this.destroyRef.destroyed) return;
+        scrollAppMainToTop(this.hostElement.nativeElement, 'auto');
+        const view = this.document.defaultView;
+        try {
+          view?.scrollTo({ top: 0, behavior: 'auto' });
+        } catch {
+          if (view) {
+            view.scrollTo(0, 0);
+          }
+        }
+      },
+      { injector: this.injector },
     );
   }
 
