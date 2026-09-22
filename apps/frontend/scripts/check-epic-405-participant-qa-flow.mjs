@@ -470,15 +470,17 @@ async function main() {
     });
     await waitForPathSuffix(host, `/session/${created.code}/host`);
     await dismissRecoveryCardIfPresent(host);
-    const startQa = host.getByRole('button', { name: /Fragerunde starten/i }).first();
-    if (await startQa.isVisible().catch(() => false)) {
-      await startQa.click({ timeout: 5_000, force: true }).catch(() => undefined);
-    }
+    // Nur tRPC starten — paralleler UI-Klick + mutate race't sonst LOBBY→ACTIVE
+    // (getLifecycle liest noch LOBBY, startQa sieht schon ACTIVE).
     const lifecycle = await hostTrpc.session.getLifecycleForHost.query({ code: created.code });
     if (lifecycle.status === 'LOBBY') {
       await hostTrpc.session.startQa.mutate({ code: created.code });
     } else if (lifecycle.status !== 'ACTIVE') {
       throw new Error(`Unerwarteter Sessionstatus vor der Fragerunde: ${lifecycle.status}.`);
+    }
+    const afterStart = await hostTrpc.session.getLifecycleForHost.query({ code: created.code });
+    if (afterStart.status !== 'ACTIVE') {
+      throw new Error(`Fragerunde nicht ACTIVE nach startQa: ${afterStart.status}.`);
     }
     logStep(true, 'Host startet die Fragerunde');
 
