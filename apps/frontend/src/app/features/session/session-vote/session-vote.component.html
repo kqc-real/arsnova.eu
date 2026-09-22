@@ -2573,9 +2573,9 @@
         aria-labelledby="vote-qa-heading"
       >
         <div class="session-channel-card__header">
-          <mat-icon class="session-channel-card__header-lead-icon" aria-hidden="true"
-            >forum</mat-icon
-          >
+          <span class="session-channel-card__header-lead-icon" aria-hidden="true">
+            <mat-icon>forum</mat-icon>
+          </span>
           <div class="session-channel-card__header-main">
             <p class="session-channel-card__eyebrow">{{ channelLabel('qa') }}</p>
             <h2 class="session-channel-card__title" id="vote-qa-heading">{{ qaHeading() }}</h2>
@@ -2710,21 +2710,26 @@
           <p class="session-qa-sort-hint">{{ qaSortHint() }}</p>
 
           @if (visibleQaQuestions().length === 0 && qaSearch()) {
-            <div class="session-qa-empty">
+            <div
+              class="session-qa-empty session-qa-empty--filtered"
+              role="status"
+              aria-live="polite"
+              [attr.aria-busy]="qaListPageLoading()"
+            >
               <mat-icon class="session-qa-empty__icon" aria-hidden="true">search_off</mat-icon>
               <p class="session-qa-empty__text" i18n="@@sessionQa.searchEmpty">
                 Keine passenden Fragen gefunden.
               </p>
             </div>
           } @else if (visibleQaQuestions().length === 0) {
-            <div class="session-qa-empty">
+            <div class="session-qa-empty" role="status">
               <mat-icon class="session-qa-empty__icon" aria-hidden="true"
                 >chat_bubble_outline</mat-icon
               >
               <p class="session-qa-empty__text">{{ vpc.voteQaEmpty(isPlayfulPreset()) }}</p>
             </div>
           } @else {
-            <div class="session-qa-list" role="list">
+            <div class="session-qa-list" role="list" [attr.aria-busy]="qaListPageLoading()">
               @for (question of visibleQaQuestions(); track question.id) {
                 <article
                   class="session-qa-card"
@@ -2907,9 +2912,9 @@
           class="session-channel-card session-channel-card--quick-feedback app-live-channel-shell"
         >
           <div class="session-channel-card__header">
-            <mat-icon class="session-channel-card__header-lead-icon" aria-hidden="true"
-              >bolt</mat-icon
-            >
+            <span class="session-channel-card__header-lead-icon" aria-hidden="true">
+              <mat-icon>bolt</mat-icon>
+            </span>
             <div class="session-channel-card__header-main">
               <p class="session-channel-card__eyebrow" i18n="@@sessionTabs.quickFeedback">
                 Blitzlicht

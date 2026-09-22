@@ -10,7 +10,11 @@ import { Component } from '@angular/core';
   },
   template: `
     <svg class="presenter-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
-      <g transform="translate(0 1.2)">
+      <!--
+        Glyph leicht nach oben (y −0.7), damit Gehäuse+Füße im 24er-ViewBox
+        vertikal mittig sitzen; horizontale Mitte bleibt x=12.
+      -->
+      <g transform="translate(0 -0.7)">
         <path
           fill="currentColor"
           fill-rule="evenodd"
@@ -40,8 +44,11 @@ import { Component } from '@angular/core';
       display: block;
       width: 100%;
       height: 100%;
-      /* Optische Mitte mit Button-Label (Gehäuse sitzt sonst 1–2px zu tief). */
-      transform: translateY(-2px);
+      /*
+        Feiner Nudge nur neben Text-Labels; icon-only-Kreise setzen
+        --app-presenter-icon-nudge-y: 0px.
+      */
+      transform: translateY(var(--app-presenter-icon-nudge-y, -1px));
     }
   `,
 })

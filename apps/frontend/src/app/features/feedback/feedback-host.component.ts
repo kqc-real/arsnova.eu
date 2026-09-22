@@ -77,7 +77,11 @@ interface StarAverageSummary {
     MarkdownImageLightboxDirective,
   ],
   templateUrl: './feedback-host.component.html',
-  styleUrls: ['../../shared/styles/dialog-title-header.scss', './feedback-host.component.scss'],
+  styleUrls: [
+    '../../shared/styles/dialog-title-header.scss',
+    '../../shared/styles/session-channel-card-lead-icon.scss',
+    './feedback-host.component.scss',
+  ],
   host: {
     class: 'feedback-host-shell',
     '[class.feedback-host-shell--embedded]': 'embeddedInSession()',

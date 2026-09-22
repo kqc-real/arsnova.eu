@@ -109,4 +109,37 @@ describe('MarkdownImageLightboxDialogComponent', () => {
     expect(component.zoomPercent()).toBe(100);
     expect(component.translateX).toBe(0);
   });
+
+  it('nutzt Filled-CTA und Surface-Tokens statt Primary/Hex-Chrome', async () => {
+    const { fixture } = setup();
+    const close = fixture.nativeElement.querySelector(
+      '.markdown-image-lightbox__close',
+    ) as HTMLButtonElement;
+    expect(close).not.toBeNull();
+    expect(close.className).toMatch(/mat-mdc-unelevated-button|mat-mdc-button-base/);
+    expect(close.getAttribute('mat-flat-button')).toBeNull();
+
+    const { readFileSync } = await import('node:fs');
+    const { fileURLToPath } = await import('node:url');
+    const { dirname, join } = await import('node:path');
+    const styles = readFileSync(
+      join(
+        dirname(fileURLToPath(import.meta.url)),
+        'markdown-image-lightbox-dialog.component.scss',
+      ),
+      'utf8',
+    );
+    expect(styles).not.toMatch(/background:\s*var\(--mat-sys-primary\)/);
+    expect(styles).not.toMatch(/#[0-9a-fA-F]{3,8}\b/);
+    expect(styles).not.toMatch(/rgb\(\s*15\s+18\s+24/);
+    expect(styles).toMatch(
+      /\.markdown-image-lightbox__controls \{[^}]*mat-sys-surface-container-high/s,
+    );
+    expect(styles).toMatch(/\.markdown-image-lightbox__caption \{[^}]*mat-sys-on-surface/s);
+    expect(styles).toMatch(/--markdown-lightbox-inset-block:/);
+    expect(styles).toMatch(/--markdown-lightbox-inset-block:\s*min\(/);
+    expect(styles).toMatch(
+      /\.markdown-image-lightbox__image \{[^}]*padding-block:\s*var\(--markdown-lightbox-inset-block\)/s,
+    );
+  });
 });

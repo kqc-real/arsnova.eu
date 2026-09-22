@@ -2,8 +2,8 @@
 
 ## Aktueller Stand
 
-- **Desktop-Toolbar:** Preset, Theme und Sprache in der Header-Zeile.
-- **Mobile-Toolbar:** icon-only Preset-Button (`celebration` / `work`) öffnet dasselbe Hamburger-Menü wie der Menu-Button. Beschriftung nur im `aria-label`. Umschalten bleibt im ausgeklappten Bereich (`top-toolbar__mobile`).
+- **Desktop-Toolbar (≥ 840 px):** Preset, Theme und Sprache in der Header-Zeile.
+- **Kompakte Toolbar (< 840 px, Phone + Tablet-Portrait):** icon-only Preset-Button (`celebration` / `work`) öffnet dasselbe Hamburger-Menü wie der Menu-Button. Beschriftung nur im `aria-label`. Umschalten bleibt im ausgeklappten Bereich (`top-toolbar__mobile`).
 - **Hero:** kein zweiter Preset-Toggle. Die Hero-Karte bleibt kompakt, damit die Dozierenden-Sektion auf schmalen Displays im ersten Viewport anschneidet.
 
 ## Wann wurde der sichtbare Preset-Toggle auf Mobile entfernt?

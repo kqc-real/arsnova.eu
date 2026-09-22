@@ -155,6 +155,7 @@ async function main(): Promise<void> {
           code: string;
           nickname: string;
           anonymousClientId: string;
+          joinIdempotencyKey: string;
         }) => Promise<{ id: string; participantId: string }>;
       };
     };
@@ -182,6 +183,7 @@ async function main(): Promise<void> {
       code,
       nickname,
       anonymousClientId: randomUUID(),
+      joinIdempotencyKey: randomUUID(),
     }),
   );
   const participantIds = [

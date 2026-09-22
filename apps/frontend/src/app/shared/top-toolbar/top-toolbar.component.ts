@@ -1,5 +1,6 @@
 import {
   Component,
+  DestroyRef,
   ElementRef,
   HostListener,
   Input,
@@ -57,9 +58,19 @@ import {
   styleUrls: ['./top-toolbar.component.scss'],
 })
 export class TopToolbarComponent {
+  /** Ab diesem Breakpoint: volle Desktop-Steuerung; darunter Preset-Icon + Menü. */
+  static readonly DESKTOP_CONTROLS_MEDIA_QUERY = '(min-width: 840px)';
+
   @ViewChild('mobileControls') private mobileControls?: ElementRef<HTMLElement>;
   private controlsMenuTrigger: HTMLButtonElement | null = null;
   private readonly host = inject(ElementRef<HTMLElement>);
+  private readonly destroyRef = inject(DestroyRef);
+  private desktopControlsMediaQuery: MediaQueryList | null = null;
+  private readonly onDesktopControlsMediaChange = (event: MediaQueryListEvent): void => {
+    if (event.matches) {
+      this.closeControlsMenu();
+    }
+  };
 
   readonly localizedPath = localizePath;
   readonly themePreset = inject(ThemePresetService);
@@ -74,9 +85,9 @@ export class TopToolbarComponent {
   readonly supportedLanguages = [
     { code: 'de' as const, label: 'Deutsch' },
     { code: 'en' as const, label: 'English' },
+    { code: 'es' as const, label: 'Español' },
     { code: 'fr' as const, label: 'Français' },
     { code: 'it' as const, label: 'Italiano' },
-    { code: 'es' as const, label: 'Español' },
   ];
   language = signal<'de' | 'en' | 'fr' | 'it' | 'es'>('de');
   controlsMenuOpen = signal(false);
@@ -142,6 +153,33 @@ export class TopToolbarComponent {
           this.language.set(stored as 'de' | 'en' | 'fr' | 'it' | 'es');
         }
       }
+      this.setupDesktopControlsMediaQuery();
+    }
+  }
+
+  private setupDesktopControlsMediaQuery(): void {
+    if (typeof globalThis.matchMedia !== 'function') {
+      return;
+    }
+    this.desktopControlsMediaQuery = globalThis.matchMedia(
+      TopToolbarComponent.DESKTOP_CONTROLS_MEDIA_QUERY,
+    );
+    if (this.desktopControlsMediaQuery.matches) {
+      this.closeControlsMenu();
+    }
+    if (typeof this.desktopControlsMediaQuery.addEventListener === 'function') {
+      this.desktopControlsMediaQuery.addEventListener('change', this.onDesktopControlsMediaChange);
+      this.destroyRef.onDestroy(() => {
+        this.desktopControlsMediaQuery?.removeEventListener(
+          'change',
+          this.onDesktopControlsMediaChange,
+        );
+      });
+    } else {
+      this.desktopControlsMediaQuery.addListener(this.onDesktopControlsMediaChange);
+      this.destroyRef.onDestroy(() => {
+        this.desktopControlsMediaQuery?.removeListener(this.onDesktopControlsMediaChange);
+      });
     }
   }
 

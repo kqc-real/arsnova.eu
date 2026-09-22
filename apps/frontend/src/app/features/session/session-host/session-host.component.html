@@ -219,9 +219,9 @@
           <div class="session-host__view-controls session-host__view-controls--inline">
             @if (showPresenterViewButton()) {
               <button
-                matButton="tonal"
+                mat-icon-button
                 type="button"
-                class="session-host__view-toggle session-host__view-toggle--labeled session-host__view-toggle--presenter"
+                class="session-host__view-toggle session-host__view-toggle--presenter"
                 data-testid="open-presenter-view"
                 (click)="openPresenterView()"
                 i18n-aria-label="@@presentationStart.title"
@@ -230,10 +230,7 @@
                 matTooltip="Präsentation starten"
                 matTooltipTouchGestures="off"
               >
-                <app-presenter-icon matButtonIcon class="session-host__view-toggle-icon" />
-                <span class="session-host__view-toggle-label" i18n="@@presentationStart.title"
-                  >Präsentation starten</span
-                >
+                <app-presenter-icon class="session-host__view-toggle-icon" />
               </button>
             }
 
@@ -489,9 +486,9 @@
 
                     @if (showPresenterViewButton()) {
                       <button
-                        matButton="tonal"
+                        mat-icon-button
                         type="button"
-                        class="session-host__view-toggle session-host__view-toggle--labeled session-host__view-toggle--presenter"
+                        class="session-host__view-toggle session-host__view-toggle--presenter"
                         data-testid="open-presenter-view"
                         (click)="openPresenterView()"
                         i18n-aria-label="@@presentationStart.title"
@@ -500,12 +497,7 @@
                         matTooltip="Präsentation starten"
                         matTooltipTouchGestures="off"
                       >
-                        <app-presenter-icon matButtonIcon class="session-host__view-toggle-icon" />
-                        <span
-                          class="session-host__view-toggle-label"
-                          i18n="@@presentationStart.title"
-                          >Präsentation starten</span
-                        >
+                        <app-presenter-icon class="session-host__view-toggle-icon" />
                       </button>
                     }
 
@@ -3982,9 +3974,9 @@
                 class="session-channel-card__content session-channel-card__content--left"
               >
                 <div class="session-channel-card__header session-channel-card__header--qa-title">
-                  <mat-icon class="session-channel-card__header-lead-icon" aria-hidden="true"
-                    >forum</mat-icon
-                  >
+                  <span class="session-channel-card__header-lead-icon" aria-hidden="true">
+                    <mat-icon>forum</mat-icon>
+                  </span>
                   <div class="session-host__qa-title-block">
                     <p class="session-channel-card__eyebrow">{{ channelLabel('qa') }}</p>
                     @if (!qaTitleEditing() || effectiveStatus() === 'FINISHED') {
@@ -4438,7 +4430,12 @@
                     </div>
                   }
                 </div>
-                @if (qaListPageLoading() && qaVisibleQuestions().length === 0) {
+                @if (
+                  qaListPageLoading() &&
+                  qaVisibleQuestions().length === 0 &&
+                  !qaSearch() &&
+                  !qaSelectedAuthorNickname()
+                ) {
                   <div class="session-qa-empty" role="status" aria-live="polite">
                     <p class="session-qa-empty__text" i18n="@@sessionQa.questionsLoading">
                       Fragen werden geladen.
@@ -4729,7 +4726,12 @@
                     </nav>
                   }
                   @if (qaFilteredQuestions().length === 0 && qaSearch()) {
-                    <div class="session-qa-empty session-qa-empty--filtered">
+                    <div
+                      class="session-qa-empty session-qa-empty--filtered"
+                      role="status"
+                      aria-live="polite"
+                      [attr.aria-busy]="qaListPageLoading()"
+                    >
                       <mat-icon class="session-qa-empty__icon" aria-hidden="true"
                         >search_off</mat-icon
                       >
@@ -4738,14 +4740,18 @@
                       </p>
                     </div>
                   } @else if (qaFilteredQuestions().length === 0 && qaShowPinnedOnly()) {
-                    <div class="session-qa-empty session-qa-empty--filtered">
+                    <div class="session-qa-empty session-qa-empty--filtered" role="status">
                       <mat-icon class="session-qa-empty__icon" aria-hidden="true">shield</mat-icon>
                       <p class="session-qa-empty__text" i18n="@@sessionQa.filterEmptyHint">
                         Nur hervorgehobene aktiv – noch keine hervorgehobenen Fragen.
                       </p>
                     </div>
                   } @else if (qaFilteredQuestions().length === 0 && qaSelectedAuthorNickname()) {
-                    <div class="session-qa-empty session-qa-empty--filtered">
+                    <div
+                      class="session-qa-empty session-qa-empty--filtered"
+                      role="status"
+                      [attr.aria-busy]="qaListPageLoading()"
+                    >
                       <mat-icon class="session-qa-empty__icon" aria-hidden="true"
                         >person_off</mat-icon
                       >

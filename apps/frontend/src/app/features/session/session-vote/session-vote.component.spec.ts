@@ -4972,6 +4972,18 @@ describe('SessionVoteComponent', { timeout: 30_000 }, () => {
       expect(fixture.nativeElement.textContent as string).toContain(
         'Keine passenden Fragen gefunden.',
       );
+
+      qaListQueryMock.mockClear();
+      fixture.componentInstance.onQaSearchInput('k');
+      await flushMacroTask(310);
+      expect(fixture.componentInstance.qaSearchDraft()).toBe('k');
+      expect(fixture.componentInstance.qaSearch()).toBe('');
+      expect(qaListQueryMock).toHaveBeenCalledWith({
+        sessionId: '6a8edced-5f8f-4cfa-9176-454fac9570ad',
+        participantId: '11111111-1111-4111-8111-111111111111',
+        pageSize: 100,
+        sort: 'CONTROVERSIAL',
+      });
     } finally {
       Object.defineProperty(Element.prototype, 'scrollIntoView', {
         configurable: true,
