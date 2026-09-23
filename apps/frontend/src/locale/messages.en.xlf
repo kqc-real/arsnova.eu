@@ -18712,11 +18712,35 @@
         </context-group>
       </trans-unit>
       <trans-unit id="sessionHost.moderationMoreSources" datatype="html">
-        <source>Noch <x id="count" equiv-text="count"/> anzeigen</source>
-        <target>Show <x id="count" equiv-text="count"/> more</target>
+        <source>Weitere Einstiege (<x id="count" equiv-text="extras.length"/>)</source>
+        <target>More entry points (<x id="count" equiv-text="extras.length"/>)</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-host/moderation-compass-dialog.component.ts</context>
-          <context context-type="linenumber">146</context>
+          <context context-type="linenumber">158</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="sessionHost.moderationMoreWordCloudTop" datatype="html">
+        <source>Top-Themen der Wortwolke</source>
+        <target>Top word-cloud themes</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/session-host/moderation-compass-dialog.component.ts</context>
+          <context context-type="linenumber">152</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="sessionHost.moderationMoreWordCloudTopics" datatype="html">
+        <source>Weitere Wortwolken-Themen</source>
+        <target>More word-cloud themes</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/session-host/moderation-compass-dialog.component.ts</context>
+          <context context-type="linenumber">154</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="sessionHost.moderationMoreWordCloudHint" datatype="html">
+        <source>Zuerst der Begriff aus der Wortwolke, danach ein Beispiel aus einer zugehörigen Frage.</source>
+        <target>First the word-cloud term, then an example from a related question.</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/session-host/moderation-compass-dialog.component.ts</context>
+          <context context-type="linenumber">168</context>
         </context-group>
       </trans-unit>
       <trans-unit id="sessionHost.moderationSourceOpenAria" datatype="html">
@@ -21516,14 +21540,6 @@
           <context context-type="linenumber">4119,4120</context>
         </context-group>
       </trans-unit>
-      <trans-unit id="sessionQa.summaryPending" datatype="html">
-        <source>Warten auf Freigabe: <x id="INTERPOLATION" equiv-text="{{ formatCount(qaPendingCount()) }}"/></source>
-        <target>Waiting for approval: <x id="INTERPOLATION" equiv-text="qaPendingCount()"/></target>
-        <context-group purpose="location">
-          <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.html</context>
-          <context context-type="linenumber">4128,4129</context>
-        </context-group>
-      </trans-unit>
       <trans-unit id="sessionHost.participantDirectoryToggle" datatype="html">
         <source>Teilnahmen durchsuchen</source>
         <target>Browse participants</target>
@@ -21662,6 +21678,22 @@
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.html</context>
           <context context-type="linenumber">4273</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="sessionQa.filterPendingAria" datatype="html">
+        <source>Nur Fragen in Moderation anzeigen</source>
+        <target>Show questions in moderation only</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.html</context>
+          <context context-type="linenumber">4315</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="sessionQa.filterPendingLabel" datatype="html">
+        <source>Nur in Moderation</source>
+        <target>In moderation only</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.html</context>
+          <context context-type="linenumber">4318</context>
         </context-group>
       </trans-unit>
       <trans-unit id="sessionQa.exportAria" datatype="html">
@@ -21922,6 +21954,14 @@
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.html</context>
           <context context-type="linenumber">4751,4753</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="sessionQa.filterPendingEmptyHint" datatype="html">
+        <source> Nur in Moderation aktiv – gerade wartet nichts auf Freigabe.</source>
+        <target>Moderation-only view – nothing is waiting for approval right now.</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.html</context>
+          <context context-type="linenumber">4760,4762</context>
         </context-group>
       </trans-unit>
       <trans-unit id="sessionQa.authorEmpty" datatype="html">
@@ -24869,12 +24909,20 @@
           <context context-type="linenumber">8902</context>
         </context-group>
       </trans-unit>
+      <trans-unit id="sessionQa.summaryPendingTooltip" datatype="html">
+        <source>In Moderation: Diese Fragen warten auf deine Freigabe.</source>
+        <target>In moderation: These questions are waiting for your approval.</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.ts</context>
+          <context context-type="linenumber">8906</context>
+        </context-group>
+      </trans-unit>
       <trans-unit id="sessionQa.summaryArchivedTooltip" datatype="html">
         <source>Archiviert: Diese Fragen sind als beantwortet markiert und bleiben nachlesbar.</source>
         <target>Archived: These questions are marked as answered and remain readable.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.ts</context>
-          <context context-type="linenumber">8906</context>
+          <context context-type="linenumber">8910</context>
         </context-group>
       </trans-unit>
       <trans-unit id="sessionQa.summaryPinnedAria" datatype="html">
@@ -24882,7 +24930,15 @@
         <target><x id="count" equiv-text="this.formatCount(this.qaPinnedCount())"/> pinned questions</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.ts</context>
-          <context context-type="linenumber">8910</context>
+          <context context-type="linenumber">8914</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="sessionQa.summaryPendingAria" datatype="html">
+        <source><x id="count" equiv-text="this.formatCount(this.qaPendingCount())"/> Fragen in Moderation</source>
+        <target><x id="count" equiv-text="this.formatCount(this.qaPendingCount())"/> questions in moderation</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.ts</context>
+          <context context-type="linenumber">8918</context>
         </context-group>
       </trans-unit>
       <trans-unit id="sessionQa.summaryArchivedAria" datatype="html">
@@ -24890,7 +24946,7 @@
         <target><x id="count" equiv-text="this.formatCount(this.qaArchivedCount())"/> archived questions</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.ts</context>
-          <context context-type="linenumber">8914</context>
+          <context context-type="linenumber">8922</context>
         </context-group>
       </trans-unit>
       <trans-unit id="sessionQa.actionApprove" datatype="html">

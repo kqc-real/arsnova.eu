@@ -11,6 +11,7 @@ import {
   notableQuickFeedbackSplit,
   rememberModerationQuizSnapshot,
   resolveModerationCompassAnalysisMode,
+  resolveModerationCompassMoreSourcesKind,
   splitModerationSummaryLead,
   truncateCompassLabel,
   visibleModerationCompassSources,
@@ -705,6 +706,80 @@ describe('buildModerationCompassCards', () => {
       'Frage vier?',
       'Frage fünf?',
     ]);
+  });
+});
+
+describe('resolveModerationCompassMoreSourcesKind', () => {
+  const singleWordTerms = [
+    {
+      kind: 'qa-term' as const,
+      label: 'Median · Wie berechnet man den Median?',
+      target: { channel: 'qa' as const, surface: 'word-cloud' as const, termLabel: 'Median' },
+    },
+    {
+      kind: 'qa-term' as const,
+      label: 'Varianz',
+      target: { channel: 'qa' as const, surface: 'word-cloud' as const, termLabel: 'Varianz' },
+    },
+  ];
+
+  it('liefert Top-Themen nur bei BEST, Glättung und Einzelwörtern', () => {
+    expect(
+      resolveModerationCompassMoreSourcesKind(singleWordTerms, {
+        qaSortMode: 'BEST',
+        wordCloudSmoothingActive: true,
+        wordCloudSingleWordsOnly: true,
+      }),
+    ).toBe('word-cloud-top');
+  });
+
+  it('fällt bei Phrasen-Modus auf Weitere Wortwolken-Themen zurück', () => {
+    expect(
+      resolveModerationCompassMoreSourcesKind(singleWordTerms, {
+        qaSortMode: 'BEST',
+        wordCloudSmoothingActive: true,
+        wordCloudSingleWordsOnly: false,
+      }),
+    ).toBe('word-cloud-more');
+  });
+
+  it('fällt bei mehrwortigen Term-Labels auf Weitere Wortwolken-Themen zurück', () => {
+    expect(
+      resolveModerationCompassMoreSourcesKind(
+        [
+          {
+            kind: 'qa-term',
+            label: 'peer instruction',
+            target: {
+              channel: 'qa',
+              surface: 'word-cloud',
+              termLabel: 'peer instruction',
+            },
+          },
+        ],
+        {
+          qaSortMode: 'BEST',
+          wordCloudSmoothingActive: true,
+          wordCloudSingleWordsOnly: true,
+        },
+      ),
+    ).toBe('word-cloud-more');
+  });
+
+  it('liefert generic bei gemischten Quellen', () => {
+    expect(
+      resolveModerationCompassMoreSourcesKind(
+        [
+          { kind: 'qa-term', label: 'Median' },
+          { kind: 'qa-question', label: 'Was ist der Median?' },
+        ],
+        {
+          qaSortMode: 'BEST',
+          wordCloudSmoothingActive: true,
+          wordCloudSingleWordsOnly: true,
+        },
+      ),
+    ).toBe('generic');
   });
 });
 

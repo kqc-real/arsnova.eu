@@ -59,6 +59,8 @@ import type { WordCloudDialogData } from './word-cloud-dialog.component';
 
 const CLOUD_LAYOUT_DEBOUNCE_MS = 120;
 const CLOUD_LAYOUT_TIME_SLICE_MS = 8;
+/** Layout-Priorität für Fokusbegriffe: d3-cloud sortiert vor dem Platzieren nach size DESC. */
+const FOCUSED_LAYOUT_SIZE_BOOST = 1;
 
 interface CloudWord {
   word: string;
@@ -958,18 +960,35 @@ export class WordCloudComponent implements AfterViewInit, OnDestroy {
   }
 
   private pinFocusedWord(words: CloudWord[], cap: number): CloudWord[] {
-    const visible = words.slice(0, cap);
-    const focusedKey = this.selectedGroupKey();
-    if (!focusedKey || visible.some((entry) => entry.groupKey === focusedKey)) {
-      return visible;
+    const focusedKey = this.resolvePinnedFocusGroupKey(words);
+    if (!focusedKey) {
+      return words.slice(0, cap);
     }
 
-    const extra = words.find((entry) => entry.groupKey === focusedKey);
-    if (!extra) {
-      return visible;
+    const focused = words.find((entry) => entry.groupKey === focusedKey);
+    if (!focused) {
+      return words.slice(0, cap);
     }
 
-    return [extra, ...visible.slice(0, Math.max(0, cap - 1))];
+    // Fokus im Cap behalten und vorne halten. Für die tatsächliche Platzierung
+    // boostet runCloudLayout zusätzlich die Layout-Schriftgröße (d3-cloud sortiert
+    // nach size DESC) und injiziert ggf. einen sichtbaren Fallback.
+    const rest = words.filter((entry) => entry.groupKey !== focusedKey);
+    return [focused, ...rest].slice(0, Math.max(1, cap));
+  }
+
+  private resolvePinnedFocusGroupKey(words: readonly CloudWord[]): string | null {
+    const selected = this.selectedGroupKey();
+    if (selected && words.some((entry) => entry.groupKey === selected)) {
+      return selected;
+    }
+
+    const label = this.focusedTermLabel()?.trim() ?? '';
+    if (!label) {
+      return null;
+    }
+
+    return this.findFocusedWord(words, label)?.groupKey ?? null;
   }
 
   private findFocusedWord(words: readonly CloudWord[], label: string): CloudWord | undefined {
@@ -1634,6 +1653,78 @@ export class WordCloudComponent implements AfterViewInit, OnDestroy {
     });
   }
 
+  /**
+   * Erhöht nur die Layout-Schriftgröße des Fokusbegriffs, damit d3-cloud ihn
+   * früh platziert. `entry.size` bleibt die visuelle Pill-Größe.
+   */
+  private boostFocusedLayoutSize(words: LayoutWord[], stageWidth: number): LayoutWord[] {
+    if (words.length === 0) {
+      return words;
+    }
+
+    const focusedKey = this.resolvePinnedFocusGroupKey(words.map((word) => word.entry));
+    if (!focusedKey) {
+      return words;
+    }
+
+    const maxSize = Math.max(...words.map((word) => word.size));
+    const targetSize = maxSize + FOCUSED_LAYOUT_SIZE_BOOST;
+
+    return words.map((word) => {
+      if (word.entry.groupKey !== focusedKey || word.size >= targetSize) {
+        return word;
+      }
+
+      return {
+        ...word,
+        size: targetSize,
+        padding: getWordCloudChipPadding(targetSize, stageWidth),
+      };
+    });
+  }
+
+  /**
+   * Falls d3-cloud den Fokusbegriff trotz Boost nicht legt, an sichtbarer
+   * Mittelposition nachziehen (visuelle Größe unverändert).
+   */
+  private ensureFocusedWordPlaced(
+    positioned: PositionedCloudWord[],
+    layoutWords: LayoutWord[],
+    stageWidth: number,
+    stageHeight: number,
+  ): PositionedCloudWord[] {
+    const focusedKey = this.resolvePinnedFocusGroupKey(layoutWords.map((word) => word.entry));
+    if (!focusedKey || positioned.some((entry) => entry.groupKey === focusedKey)) {
+      return positioned;
+    }
+
+    const focused = layoutWords.find((word) => word.entry.groupKey === focusedKey);
+    if (!focused) {
+      return positioned;
+    }
+
+    const size = focused.entry.size;
+    const halfWidth = Math.max(size, size * 0.6 * focused.text.length) / 2 + focused.padding;
+    const halfHeight = size / 2 + focused.padding;
+    const x = stageWidth / 2;
+    const y = stageHeight / 2;
+
+    return [
+      ...positioned,
+      {
+        ...focused.entry,
+        size,
+        x,
+        y,
+        x0: x - halfWidth,
+        x1: x + halfWidth,
+        y0: y - halfHeight,
+        y1: y + halfHeight,
+        rotate: focused.rotate,
+      },
+    ];
+  }
+
   private async runCloudLayout(
     words: LayoutWord[],
     stageWidth: number,
@@ -1657,7 +1748,10 @@ export class WordCloudComponent implements AfterViewInit, OnDestroy {
         return;
       }
 
-      const layoutWords = this.scaleLayoutWordsToFillStage(words, stageWidth, stageHeight);
+      const layoutWords = this.boostFocusedLayoutSize(
+        this.scaleLayoutWordsToFillStage(words, stageWidth, stageHeight),
+        stageWidth,
+      );
       const layout = d3Cloud<LayoutWord>()
         .size([Math.round(stageWidth), Math.round(stageHeight)])
         .words(layoutWords.map((word) => ({ ...word })))
@@ -1674,9 +1768,10 @@ export class WordCloudComponent implements AfterViewInit, OnDestroy {
           return;
         }
 
+        // Visuelle Größe aus entry.size (nicht Layout-Boost) übernehmen.
         const positioned = placedWords.map((word) => ({
           ...word.entry,
-          size: word.size,
+          size: word.entry.size,
           x: word.x ?? 0,
           y: word.y ?? 0,
           x0: word.x0 ?? 0,
@@ -1685,9 +1780,15 @@ export class WordCloudComponent implements AfterViewInit, OnDestroy {
           y1: word.y1 ?? 0,
           rotate: word.rotate ?? 0,
         }));
+        const withFocus = this.ensureFocusedWordPlaced(
+          positioned,
+          layoutWords,
+          stageWidth,
+          stageHeight,
+        );
         const fitted = this.presentationMode()
-          ? fitWordCloudPositionsToStage(positioned, stageWidth, stageHeight)
-          : positioned;
+          ? fitWordCloudPositionsToStage(withFocus, stageWidth, stageHeight)
+          : withFocus;
         const contained = containWordCloudPillsInStage(fitted, stageWidth, stageHeight);
 
         this.activeCloudLayout = null;
@@ -1695,8 +1796,8 @@ export class WordCloudComponent implements AfterViewInit, OnDestroy {
         this.positionedWords.set(contained);
         this.renderedCloudStageWidth.set(Math.round(stageWidth));
         this.renderedCloudStageHeight.set(Math.round(stageHeight));
-        this.activeLayoutSignature.set(positioned.length > 0 ? signature : '');
-        this.activeLayoutContentSignature.set(positioned.length > 0 ? contentSignature : '');
+        this.activeLayoutSignature.set(contained.length > 0 ? signature : '');
+        this.activeLayoutContentSignature.set(contained.length > 0 ? contentSignature : '');
       });
       layout.start();
     } catch {

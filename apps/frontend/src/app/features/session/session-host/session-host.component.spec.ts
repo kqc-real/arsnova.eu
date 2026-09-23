@@ -2958,7 +2958,7 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
     fixture.destroy();
   });
 
-  it('erklärt angepinnte und archivierte Q&A-Pills per Tooltip', async () => {
+  it('erklärt Moderations-, Pin- und Archiv-Pills per Tooltip', async () => {
     getInfoQueryMock.mockResolvedValue({
       ...defaultSession,
       type: 'Q_AND_A',
@@ -2967,32 +2967,55 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
       status: 'ACTIVE',
       channels: {
         quiz: { enabled: false },
-        qa: { enabled: true, open: true, title: 'Fragen', moderationMode: false },
+        qa: { enabled: true, open: true, title: 'Fragen', moderationMode: true },
         quickFeedback: { enabled: false, open: false },
       },
     });
-    qaListQueryMock.mockResolvedValue([
-      {
-        id: '11111111-1111-4111-8111-111111111111',
-        text: 'Angepinnte Exportfrage',
-        upvoteCount: 4,
-        status: 'PINNED',
-        createdAt: '2026-03-24T12:00:00.000Z',
-        myVote: null,
-        isOwn: false,
-        hasUpvoted: false,
-      },
-      {
-        id: '22222222-2222-4222-8222-222222222222',
-        text: 'Archivierte Exportfrage',
-        upvoteCount: 1,
-        status: 'ARCHIVED',
-        createdAt: '2026-03-24T12:01:00.000Z',
-        myVote: null,
-        isOwn: false,
-        hasUpvoted: false,
-      },
-    ]);
+    qaListQueryMock.mockResolvedValue({
+      questions: [
+        {
+          id: '00000000-0000-4000-8000-000000000000',
+          text: 'Wartet auf Freigabe',
+          upvoteCount: 0,
+          status: 'PENDING' as const,
+          createdAt: '2026-03-24T11:59:00.000Z',
+          myVote: null,
+          isOwn: false,
+          hasUpvoted: false,
+        },
+        {
+          id: '11111111-1111-4111-8111-111111111111',
+          text: 'Angepinnte Exportfrage',
+          upvoteCount: 4,
+          status: 'PINNED' as const,
+          createdAt: '2026-03-24T12:00:00.000Z',
+          myVote: null,
+          isOwn: false,
+          hasUpvoted: false,
+        },
+        {
+          id: '22222222-2222-4222-8222-222222222222',
+          text: 'Archivierte Exportfrage',
+          upvoteCount: 1,
+          status: 'ARCHIVED' as const,
+          createdAt: '2026-03-24T12:01:00.000Z',
+          myVote: null,
+          isOwn: false,
+          hasUpvoted: false,
+        },
+      ],
+      state: 'ACTIVE' as const,
+      sessionLifecycleRevision: 1,
+      serverNow: '2026-03-24T12:02:00.000Z',
+      expiresAt: '2026-03-25T12:00:00.000Z',
+      qaClosesAt: '2026-03-25T12:00:00.000Z',
+      endedAt: null,
+      postProcessingEndsAt: null,
+      rankingRevision: '1:BEST:',
+      nextCursor: null,
+      totalCount: 3,
+      pendingCount: 1,
+    });
 
     const fixture = setup();
     fixture.detectChanges();
@@ -3004,19 +3027,26 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
 
     const host = fixture.nativeElement as HTMLElement;
     expect(fixture.componentInstance.qaPinnedSummaryTooltip()).toContain('Angepinnt');
+    expect(fixture.componentInstance.qaPendingSummaryTooltip()).toContain('In Moderation');
     expect(fixture.componentInstance.qaArchivedSummaryTooltip()).toContain('Archiviert');
     expect(fixture.componentInstance.qaStatusTooltip('PINNED')).toContain('Wird beantwortet');
     expect(fixture.componentInstance.qaStatusTooltip('ARCHIVED')).toContain('beantwortet');
+    const pendingChip = host.querySelector(
+      '.session-qa-summary__chip--pending',
+    ) as HTMLElement | null;
     const pinnedChip = host.querySelector(
       '.session-qa-summary__chip--pinned',
     ) as HTMLElement | null;
     const archivedChip = host.querySelector(
       '.session-qa-summary__chip--archived',
     ) as HTMLElement | null;
+    expect(pendingChip).not.toBeNull();
     expect(pinnedChip).not.toBeNull();
     expect(archivedChip).not.toBeNull();
+    expect(pendingChip?.getAttribute('aria-label')).toContain('Fragen in Moderation');
     expect(pinnedChip?.getAttribute('aria-label')).toContain('angepinnte Fragen');
     expect(archivedChip?.getAttribute('aria-label')).toContain('archivierte Fragen');
+    expect(pendingChip?.tabIndex).toBe(0);
     expect(pinnedChip?.tabIndex).toBe(0);
     expect(archivedChip?.tabIndex).toBe(0);
     fixture.destroy();
@@ -7947,6 +7977,389 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
         moderatorView: true,
       }),
     );
+    fixture.destroy();
+  });
+
+  it('zeigt Warten auf Freigabe aus pendingCount auch wenn die Seite nur ACTIVE enthält', async () => {
+    getInfoQueryMock.mockResolvedValue({
+      ...defaultSession,
+      status: 'ACTIVE',
+      channels: {
+        quiz: { enabled: true },
+        qa: { enabled: true, open: true, title: 'Fragen aus dem Publikum', moderationMode: true },
+        quickFeedback: { enabled: false, open: false },
+      },
+    });
+    qaListQueryMock.mockResolvedValue({
+      questions: Array.from({ length: 3 }, (_, index) => ({
+        id: `11111111-1111-4111-8111-11111111111${index}`,
+        text: `Freigegeben ${index + 1}`,
+        upvoteCount: 10 - index,
+        status: 'ACTIVE' as const,
+        createdAt: '2026-03-13T12:00:00.000Z',
+        myVote: null,
+        isOwn: false,
+        hasUpvoted: false,
+      })),
+      state: 'ACTIVE' as const,
+      sessionLifecycleRevision: 1,
+      serverNow: '2026-03-13T12:00:00.000Z',
+      expiresAt: '2026-03-14T12:00:00.000Z',
+      qaClosesAt: '2026-03-14T12:00:00.000Z',
+      endedAt: null,
+      postProcessingEndsAt: null,
+      rankingRevision: '1:BEST:',
+      nextCursor: 'cursor-next',
+      totalCount: 1553,
+      pendingCount: 1,
+    });
+
+    const fixture = setup();
+    fixture.detectChanges();
+    await flushComponentAfterStable(fixture, 50);
+    const component = fixture.componentInstance;
+    component.activeChannel.set('qa');
+    fixture.detectChanges();
+    await flushComponentAfterStable(fixture, 50);
+
+    expect(component.qaPendingCount()).toBe(1);
+    expect(
+      fixture.nativeElement.querySelector('[data-testid="qa-summary-pending"]'),
+    ).not.toBeNull();
+    expect(fixture.nativeElement.textContent).toMatch(/Gesamt:\s*1([.,])553/);
+    fixture.destroy();
+  });
+
+  it('filtert die Host-Liste auf Nur in Moderation und schließt hervorgehobene aus', async () => {
+    getInfoQueryMock.mockResolvedValue({
+      ...defaultSession,
+      status: 'ACTIVE',
+      channels: {
+        quiz: { enabled: true },
+        qa: { enabled: true, open: true, title: 'Fragen aus dem Publikum', moderationMode: true },
+        quickFeedback: { enabled: false, open: false },
+      },
+    });
+    qaListQueryMock.mockResolvedValue({
+      questions: [
+        {
+          id: '11111111-1111-4111-8111-111111111111',
+          text: 'Freigegeben',
+          upvoteCount: 2,
+          status: 'ACTIVE' as const,
+          createdAt: '2026-03-13T12:00:00.000Z',
+          myVote: null,
+          isOwn: false,
+          hasUpvoted: false,
+        },
+        {
+          id: '22222222-2222-4222-8222-222222222222',
+          text: 'Wartet',
+          upvoteCount: 0,
+          status: 'PENDING' as const,
+          createdAt: '2026-03-13T12:01:00.000Z',
+          myVote: null,
+          isOwn: false,
+          hasUpvoted: false,
+        },
+      ],
+      state: 'ACTIVE' as const,
+      sessionLifecycleRevision: 1,
+      serverNow: '2026-03-13T12:00:00.000Z',
+      expiresAt: '2026-03-14T12:00:00.000Z',
+      qaClosesAt: '2026-03-14T12:00:00.000Z',
+      endedAt: null,
+      postProcessingEndsAt: null,
+      rankingRevision: '1:BEST:',
+      nextCursor: null,
+      totalCount: 2,
+      pendingCount: 1,
+    });
+
+    const fixture = setup();
+    fixture.detectChanges();
+    await flushComponentAfterStable(fixture, 50);
+    const component = fixture.componentInstance;
+    component.activeChannel.set('qa');
+    fixture.detectChanges();
+    await flushComponentAfterStable(fixture, 50);
+
+    expect(fixture.nativeElement.querySelector('[data-testid="qa-filter-pending"]')).not.toBeNull();
+    qaListQueryMock.mockClear();
+    qaListQueryMock.mockResolvedValue({
+      questions: [
+        {
+          id: '22222222-2222-4222-8222-222222222222',
+          text: 'Wartet',
+          upvoteCount: 0,
+          status: 'PENDING' as const,
+          createdAt: '2026-03-13T12:01:00.000Z',
+          myVote: null,
+          isOwn: false,
+          hasUpvoted: false,
+        },
+      ],
+      state: 'ACTIVE' as const,
+      sessionLifecycleRevision: 1,
+      serverNow: '2026-03-13T12:00:00.000Z',
+      expiresAt: '2026-03-14T12:00:00.000Z',
+      qaClosesAt: '2026-03-14T12:00:00.000Z',
+      endedAt: null,
+      postProcessingEndsAt: null,
+      rankingRevision: '1:BEST:',
+      nextCursor: null,
+      totalCount: 1,
+      pendingCount: 1,
+    });
+
+    const pendingButton = fixture.nativeElement.querySelector(
+      '[data-testid="qa-filter-pending"]',
+    ) as HTMLButtonElement | null;
+    expect(pendingButton).not.toBeNull();
+    pendingButton?.focus();
+    expect(document.activeElement).toBe(pendingButton);
+
+    await component.setQaPendingFilter(true);
+    fixture.detectChanges();
+    await flushComponentAfterStable(fixture, 50);
+
+    expect(component.qaShowPendingOnly()).toBe(true);
+    expect(component.qaShowPinnedOnly()).toBe(false);
+    expect(qaListQueryMock).toHaveBeenCalledWith(
+      expect.objectContaining({
+        statuses: ['PENDING'],
+        moderatorView: true,
+      }),
+    );
+    const pendingButtonAfter = fixture.nativeElement.querySelector(
+      '[data-testid="qa-filter-pending"]',
+    ) as HTMLButtonElement | null;
+    expect(pendingButtonAfter).toBe(pendingButton);
+    expect(pendingButtonAfter?.getAttribute('aria-pressed')).toBe('true');
+    expect(pendingButtonAfter?.classList.contains('session-qa-filter-btn--active')).toBe(true);
+    expect(document.activeElement).toBe(pendingButtonAfter);
+
+    qaListQueryMock.mockClear();
+    const pinnedButton = fixture.nativeElement.querySelector(
+      '[data-testid="qa-filter-pinned"]',
+    ) as HTMLButtonElement | null;
+    expect(pinnedButton).not.toBeNull();
+    pinnedButton?.focus();
+    await component.setQaPinnedFilter(true);
+    fixture.detectChanges();
+    await flushComponentAfterStable(fixture, 50);
+    expect(component.qaShowPinnedOnly()).toBe(true);
+    expect(component.qaShowPendingOnly()).toBe(false);
+    expect(qaListQueryMock).toHaveBeenCalledWith(
+      expect.objectContaining({
+        statuses: ['PINNED'],
+        moderatorView: true,
+      }),
+    );
+    const pinnedButtonAfter = fixture.nativeElement.querySelector(
+      '[data-testid="qa-filter-pinned"]',
+    ) as HTMLButtonElement | null;
+    expect(pinnedButtonAfter).toBe(pinnedButton);
+    expect(pinnedButtonAfter?.getAttribute('aria-pressed')).toBe('true');
+    expect(document.activeElement).toBe(pinnedButtonAfter);
+    fixture.destroy();
+  });
+
+  it('setzt Nur in Moderation zurück wenn die Vorab-Moderation im Konfigurationsdialog ausgeschaltet wird', async () => {
+    getLifecycleForHostQueryMock.mockResolvedValue({ ...defaultLifecycle });
+    getInfoQueryMock.mockResolvedValue({
+      ...defaultSession,
+      status: 'ACTIVE',
+      channels: {
+        quiz: { enabled: true },
+        qa: { enabled: true, open: true, title: 'Fragen aus dem Publikum', moderationMode: true },
+        quickFeedback: { enabled: false, open: false },
+      },
+    });
+    qaListQueryMock.mockResolvedValue({
+      questions: [
+        {
+          id: '11111111-1111-4111-8111-111111111111',
+          text: 'Freigegeben',
+          upvoteCount: 2,
+          status: 'ACTIVE' as const,
+          createdAt: '2026-03-13T12:00:00.000Z',
+          myVote: null,
+          isOwn: false,
+          hasUpvoted: false,
+        },
+        {
+          id: '22222222-2222-4222-8222-222222222222',
+          text: 'Wartet',
+          upvoteCount: 0,
+          status: 'PENDING' as const,
+          createdAt: '2026-03-13T12:01:00.000Z',
+          myVote: null,
+          isOwn: false,
+          hasUpvoted: false,
+        },
+      ],
+      state: 'ACTIVE' as const,
+      sessionLifecycleRevision: 1,
+      serverNow: '2026-03-13T12:00:00.000Z',
+      expiresAt: '2026-03-14T12:00:00.000Z',
+      qaClosesAt: '2026-03-14T12:00:00.000Z',
+      endedAt: null,
+      postProcessingEndsAt: null,
+      rankingRevision: '1:BEST:',
+      nextCursor: null,
+      totalCount: 2,
+      pendingCount: 1,
+    });
+
+    const fixture = setup();
+    fixture.detectChanges();
+    await flushComponentAfterStable(fixture, 50);
+    const component = fixture.componentInstance;
+    component.activeChannel.set('qa');
+    fixture.detectChanges();
+    await flushComponentAfterStable(fixture, 50);
+
+    await component.setQaPendingFilter(true);
+    fixture.detectChanges();
+    expect(component.qaShowPendingOnly()).toBe(true);
+
+    const moderationOffResult = {
+      ...configuredQaChannelResult,
+      channels: {
+        ...configuredQaChannelResult.channels,
+        qa: {
+          ...configuredQaChannelResult.channels.qa,
+          moderationMode: false,
+        },
+      },
+    };
+    dialogOpenMock.mockReturnValue({ afterClosed: () => of(moderationOffResult) });
+    qaListQueryMock.mockClear();
+    qaListQueryMock.mockResolvedValue({
+      questions: [
+        {
+          id: '11111111-1111-4111-8111-111111111111',
+          text: 'Freigegeben',
+          upvoteCount: 2,
+          status: 'ACTIVE' as const,
+          createdAt: '2026-03-13T12:00:00.000Z',
+          myVote: null,
+          isOwn: false,
+          hasUpvoted: false,
+        },
+      ],
+      state: 'ACTIVE' as const,
+      sessionLifecycleRevision: 3,
+      serverNow: '2026-03-13T12:00:00.000Z',
+      expiresAt: '2026-03-14T12:00:00.000Z',
+      qaClosesAt: '2026-03-14T12:00:00.000Z',
+      endedAt: null,
+      postProcessingEndsAt: null,
+      rankingRevision: '1:BEST:',
+      nextCursor: null,
+      totalCount: 1,
+      pendingCount: 0,
+    });
+
+    await component.openQaConfigurationDialog();
+    fixture.detectChanges();
+    await flushComponentAfterStable(fixture, 50);
+
+    expect(component.qaShowPendingOnly()).toBe(false);
+    expect(component.session()?.channels?.qa?.moderationMode).toBe(false);
+    expect(fixture.nativeElement.querySelector('[data-testid="qa-filter-pending"]')).toBeNull();
+    expect(qaListQueryMock).toHaveBeenCalledWith(
+      expect.objectContaining({
+        statuses: ['PENDING', 'ACTIVE', 'PINNED', 'ARCHIVED'],
+        moderatorView: true,
+      }),
+    );
+    expect(component.qaQuestions().some((question) => question.status === 'ACTIVE')).toBe(true);
+    fixture.destroy();
+  });
+
+  it('hält den Tastaturfokus auf den Q&A-Filtern auch wenn qa.list fehlschlägt', async () => {
+    getInfoQueryMock.mockResolvedValue({
+      ...defaultSession,
+      status: 'ACTIVE',
+      channels: {
+        quiz: { enabled: true },
+        qa: { enabled: true, open: true, title: 'Fragen aus dem Publikum', moderationMode: true },
+        quickFeedback: { enabled: false, open: false },
+      },
+    });
+    qaListQueryMock.mockResolvedValue({
+      questions: [],
+      state: 'ACTIVE' as const,
+      sessionLifecycleRevision: 1,
+      serverNow: '2026-03-13T12:00:00.000Z',
+      expiresAt: '2026-03-14T12:00:00.000Z',
+      qaClosesAt: '2026-03-14T12:00:00.000Z',
+      endedAt: null,
+      postProcessingEndsAt: null,
+      rankingRevision: '1:TOP:',
+      nextCursor: null,
+      totalCount: 0,
+      pendingCount: 0,
+    });
+
+    const fixture = setup();
+    fixture.detectChanges();
+    await flushComponentAfterStable(fixture, 50);
+    const component = fixture.componentInstance;
+    component.activeChannel.set('qa');
+    fixture.detectChanges();
+    await flushComponentAfterStable(fixture, 50);
+
+    qaListQueryMock.mockRejectedValueOnce(new Error('Netzwerkfehler'));
+    const pendingButton = fixture.nativeElement.querySelector(
+      '[data-testid="qa-filter-pending"]',
+    ) as HTMLButtonElement | null;
+    expect(pendingButton).not.toBeNull();
+    pendingButton?.focus();
+    await component.setQaPendingFilter(true);
+    fixture.detectChanges();
+    await flushComponentAfterStable(fixture, 50);
+
+    expect(component.qaShowPendingOnly()).toBe(true);
+    const pendingAfterReject = fixture.nativeElement.querySelector(
+      '[data-testid="qa-filter-pending"]',
+    ) as HTMLButtonElement | null;
+    expect(pendingAfterReject).toBe(pendingButton);
+    expect(pendingAfterReject?.getAttribute('aria-pressed')).toBe('true');
+    // Bei Fehlschlag öffnet das Steering-Callout und darf den Fokus übernehmen;
+    // entscheidend ist ein sichtbares Bedienelement, nicht Fokusverlust auf body.
+    const activeAfterPending = document.activeElement as HTMLElement | null;
+    expect(activeAfterPending).not.toBeNull();
+    expect(activeAfterPending).not.toBe(document.body);
+    expect(
+      activeAfterPending === pendingAfterReject ||
+        Boolean(activeAfterPending?.closest('.session-host__steering-callout')),
+    ).toBe(true);
+
+    qaListQueryMock.mockRejectedValueOnce(new Error('Netzwerkfehler'));
+    const pinnedButton = fixture.nativeElement.querySelector(
+      '[data-testid="qa-filter-pinned"]',
+    ) as HTMLButtonElement | null;
+    expect(pinnedButton).not.toBeNull();
+    pinnedButton?.focus();
+    await component.setQaPinnedFilter(true);
+    fixture.detectChanges();
+    await flushComponentAfterStable(fixture, 50);
+
+    const pinnedAfterReject = fixture.nativeElement.querySelector(
+      '[data-testid="qa-filter-pinned"]',
+    ) as HTMLButtonElement | null;
+    expect(pinnedAfterReject).toBe(pinnedButton);
+    expect(pinnedAfterReject?.getAttribute('aria-pressed')).toBe('true');
+    const activeAfterPinned = document.activeElement as HTMLElement | null;
+    expect(activeAfterPinned).not.toBeNull();
+    expect(activeAfterPinned).not.toBe(document.body);
+    expect(
+      activeAfterPinned === pinnedAfterReject ||
+        Boolean(activeAfterPinned?.closest('.session-host__steering-callout')),
+    ).toBe(true);
     fixture.destroy();
   });
 

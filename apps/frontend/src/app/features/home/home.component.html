@@ -240,8 +240,11 @@
                       @if (hostSessionCtaOpenDescription(item); as openLabel) {
                         <span class="home-choice-button__description">{{ openLabel }}</span>
                       }
-                      @if (hostSessionCtaQuestionDescription(item); as questionLabel) {
-                        <span class="home-choice-button__description">{{ questionLabel }}</span>
+                      @if (hostSessionCtaApprovedQuestionDescription(item); as approvedLabel) {
+                        <span class="home-choice-button__description">{{ approvedLabel }}</span>
+                      }
+                      @if (hostSessionCtaPendingQuestionDescription(item); as pendingLabel) {
+                        <span class="home-choice-button__description">{{ pendingLabel }}</span>
                       }
                     </span>
                   </a>

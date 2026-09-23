@@ -148,6 +148,7 @@ function buildQaQuestionsSnapshot(
     | 'rankingRevision'
     | 'nextCursor'
     | 'totalCount'
+    | 'pendingCount'
     | 'sessionQuestionCount'
     | 'sessionRemaining'
     | 'quota'
@@ -430,6 +431,7 @@ type RankedQaPage = {
   questions: z.infer<typeof QaQuestionDTOSchema>[];
   nextCursor: string | null;
   totalCount: number;
+  pendingCount?: number;
 };
 
 const QA_PAGE_CACHE_TTL_MS = 2_000;
@@ -651,21 +653,41 @@ async function buildQaQuestionPayloadFromDb(options: {
     options.sortMode === 'BEST' ||
     options.sortMode === 'CONTROVERSIAL' ||
     options.sortMode === 'TIME';
-  const statusBucket = metricFirstRanking
-    ? Prisma.sql`CASE question."status"
-        WHEN 'PINNED' THEN 0
-        WHEN 'ACTIVE' THEN 0
-        WHEN 'PENDING' THEN 1
-        WHEN 'ARCHIVED' THEN 2
-        ELSE 3
-      END`
-    : Prisma.sql`CASE question."status"
-        WHEN 'PINNED' THEN 0
-        WHEN 'ACTIVE' THEN 1
-        WHEN 'PENDING' THEN 2
-        WHEN 'ARCHIVED' THEN 3
-        ELSE 4
-      END`;
+  // Host: PENDING zuerst, damit Moderationsbedarf nicht hinter großen ACTIVE-Seiten verschwindet.
+  // Host-TOP: PINNED vor ACTIVE (sonst begräbt upvoteCount angepinnte Fragen ohne Stimmen).
+  // Host BEST/CONTROVERSIAL/TIME: PINNED und ACTIVE teilen sich den Metrik-Bucket nach PENDING.
+  // Teilnehmer: freigegebene/angepinnte vor PENDING (eigene PENDING bleiben sichtbar).
+  const statusBucket = moderatorView
+    ? options.sortMode === 'TOP'
+      ? Prisma.sql`CASE question."status"
+          WHEN 'PENDING' THEN 0
+          WHEN 'PINNED' THEN 1
+          WHEN 'ACTIVE' THEN 2
+          WHEN 'ARCHIVED' THEN 3
+          ELSE 4
+        END`
+      : Prisma.sql`CASE question."status"
+          WHEN 'PENDING' THEN 0
+          WHEN 'PINNED' THEN 1
+          WHEN 'ACTIVE' THEN 1
+          WHEN 'ARCHIVED' THEN 2
+          ELSE 3
+        END`
+    : metricFirstRanking
+      ? Prisma.sql`CASE question."status"
+          WHEN 'PINNED' THEN 0
+          WHEN 'ACTIVE' THEN 0
+          WHEN 'PENDING' THEN 1
+          WHEN 'ARCHIVED' THEN 2
+          ELSE 3
+        END`
+      : Prisma.sql`CASE question."status"
+          WHEN 'PINNED' THEN 0
+          WHEN 'ACTIVE' THEN 1
+          WHEN 'PENDING' THEN 2
+          WHEN 'ARCHIVED' THEN 3
+          ELSE 4
+        END`;
   const modeOrder =
     options.sortMode === 'BEST'
       ? Prisma.sql`ranked."bestScore" DESC, ranked."positiveVoteCount" DESC, ranked."upvoteCount" DESC,`
@@ -918,6 +940,20 @@ async function buildQaQuestionPayloadFromDb(options: {
           statuses: statusesKey,
         })
       : null,
+    ...(moderatorView
+      ? {
+          pendingCount: await prisma.qaQuestion.count({
+            where: {
+              sessionId: options.sessionId,
+              status: 'PENDING',
+              ...(search ? { text: { contains: search, mode: 'insensitive' as const } } : {}),
+              ...(authorNickname
+                ? { participant: { nickname: authorNickname, sessionId: options.sessionId } }
+                : {}),
+            },
+          }),
+        }
+      : {}),
   };
 }
 
@@ -1066,6 +1102,7 @@ export const qaRouter = router({
         rankingRevision,
         nextCursor: page.nextCursor,
         totalCount: page.totalCount,
+        ...(typeof page.pendingCount === 'number' ? { pendingCount: page.pendingCount } : {}),
         sessionQuestionCount: session.qaQuestionCount,
         sessionRemaining: Math.max(0, QA_MAX_QUESTIONS_PER_SESSION - session.qaQuestionCount),
         quota,

@@ -5806,6 +5806,11 @@ export const QaQuestionsListDTOSchema = z.object({
   rankingRevision: z.string().min(1).max(100).optional(),
   nextCursor: z.string().min(1).max(1000).nullable().optional(),
   totalCount: z.number().int().min(0).optional(),
+  /**
+   * Host-only: PENDING-Fragen im aktuellen Such-/Autorenfilter, unabhängig von
+   * Seitengröße und Statusfilter. Fehlt bei Teilnehmer-Snapshots.
+   */
+  pendingCount: z.number().int().min(0).optional(),
   /** Kanonischer physischer Bestand einschließlich archivierter und soft-gelöschter Fragen. */
   sessionQuestionCount: z.number().int().min(0).max(QA_MAX_QUESTIONS_PER_SESSION).optional(),
   sessionRemaining: z.number().int().min(0).max(QA_MAX_QUESTIONS_PER_SESSION).optional(),

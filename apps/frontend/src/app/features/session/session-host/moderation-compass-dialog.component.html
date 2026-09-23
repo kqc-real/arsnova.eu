@@ -120,8 +120,11 @@
           @if (extraSources(card).length > 0) {
             <details class="moderation-compass-card__more">
               <summary class="moderation-compass-card__more-summary">
-                {{ moreSourcesLabel(extraSources(card).length) }}
+                {{ moreSourcesLabel(card) }}
               </summary>
+              @if (moreSourcesHint(card); as hint) {
+                <p class="moderation-compass-card__more-hint">{{ hint }}</p>
+              }
               <ul class="moderation-compass-card__sources">
                 @for (source of extraSources(card); track source.kind + source.label) {
                   <li>

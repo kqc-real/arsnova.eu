@@ -4144,13 +4144,18 @@
                         >
                       </span>
                       @if (qaPendingCount() > 0) {
-                        <span class="session-qa-summary__chip session-qa-summary__chip--pending">
+                        <span
+                          class="session-qa-summary__chip session-qa-summary__chip--pending"
+                          tabindex="0"
+                          [matTooltip]="qaPendingSummaryTooltip()"
+                          matTooltipPosition="above"
+                          [attr.aria-label]="qaPendingSummaryAria()"
+                          data-testid="qa-summary-pending"
+                        >
                           <mat-icon class="session-qa-summary__icon" aria-hidden="true"
                             >hourglass_top</mat-icon
                           >
-                          <span i18n="@@sessionQa.summaryPending"
-                            >Warten auf Freigabe: {{ formatCount(qaPendingCount()) }}</span
-                          >
+                          {{ formatCount(qaPendingCount()) }}
                         </span>
                       }
                       @if (qaPinnedCount() > 0) {
@@ -4274,27 +4279,40 @@
                         >Zeit</mat-button-toggle
                       >
                     </mat-button-toggle-group>
-                    @if (qaShowPinnedOnly()) {
-                      <button
-                        type="button"
-                        class="session-qa-filter-btn session-qa-filter-btn--active"
-                        (click)="setQaPinnedFilter(false)"
-                        i18n-aria-label="@@sessionQa.filterShowAllAria"
-                        aria-label="Alle Fragen anzeigen"
-                      >
+                    <button
+                      type="button"
+                      class="session-qa-filter-btn"
+                      [class.session-qa-filter-btn--active]="qaShowPinnedOnly()"
+                      data-testid="qa-filter-pinned"
+                      [attr.aria-pressed]="qaShowPinnedOnly()"
+                      [attr.aria-label]="qaPinnedFilterAriaLabel()"
+                      (click)="setQaPinnedFilter(!qaShowPinnedOnly())"
+                    >
+                      @if (qaShowPinnedOnly()) {
                         <mat-icon aria-hidden="true">visibility</mat-icon>
                         <span i18n="@@sessionQa.filterShowAllLabel">Alle anzeigen</span>
-                      </button>
-                    } @else {
+                      } @else {
+                        <mat-icon aria-hidden="true">push_pin</mat-icon>
+                        <span i18n="@@sessionQa.filterPinnedLabel">Nur hervorgehobene</span>
+                      }
+                    </button>
+                    @if (session()?.channels?.qa?.moderationMode) {
                       <button
                         type="button"
                         class="session-qa-filter-btn"
-                        (click)="setQaPinnedFilter(true)"
-                        i18n-aria-label="@@sessionQa.filterPinnedAria"
-                        aria-label="Nur hervorgehobene Fragen anzeigen"
+                        [class.session-qa-filter-btn--active]="qaShowPendingOnly()"
+                        data-testid="qa-filter-pending"
+                        [attr.aria-pressed]="qaShowPendingOnly()"
+                        [attr.aria-label]="qaPendingFilterAriaLabel()"
+                        (click)="setQaPendingFilter(!qaShowPendingOnly())"
                       >
-                        <mat-icon aria-hidden="true">shield</mat-icon>
-                        <span i18n="@@sessionQa.filterPinnedLabel">Nur hervorgehobene</span>
+                        @if (qaShowPendingOnly()) {
+                          <mat-icon aria-hidden="true">visibility</mat-icon>
+                          <span i18n="@@sessionQa.filterShowAllLabel">Alle anzeigen</span>
+                        } @else {
+                          <mat-icon aria-hidden="true">hourglass_top</mat-icon>
+                          <span i18n="@@sessionQa.filterPendingLabel">Nur in Moderation</span>
+                        }
                       </button>
                     }
                     <button
@@ -4800,9 +4818,20 @@
                     </div>
                   } @else if (qaFilteredQuestions().length === 0 && qaShowPinnedOnly()) {
                     <div class="session-qa-empty session-qa-empty--filtered" role="status">
-                      <mat-icon class="session-qa-empty__icon" aria-hidden="true">shield</mat-icon>
+                      <mat-icon class="session-qa-empty__icon" aria-hidden="true"
+                        >push_pin</mat-icon
+                      >
                       <p class="session-qa-empty__text" i18n="@@sessionQa.filterEmptyHint">
                         Nur hervorgehobene aktiv – noch keine hervorgehobenen Fragen.
+                      </p>
+                    </div>
+                  } @else if (qaFilteredQuestions().length === 0 && qaShowPendingOnly()) {
+                    <div class="session-qa-empty session-qa-empty--filtered" role="status">
+                      <mat-icon class="session-qa-empty__icon" aria-hidden="true"
+                        >hourglass_top</mat-icon
+                      >
+                      <p class="session-qa-empty__text" i18n="@@sessionQa.filterPendingEmptyHint">
+                        Nur in Moderation aktiv – gerade wartet nichts auf Freigabe.
                       </p>
                     </div>
                   } @else if (qaFilteredQuestions().length === 0 && qaSelectedAuthorNickname()) {

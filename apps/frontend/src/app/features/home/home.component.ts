@@ -594,10 +594,7 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
     return null;
   }
 
-  hostSessionCtaQuestionDescription(item: HostSessionCta): string | null {
-    if (item.pendingQuestionCount !== null && item.pendingQuestionCount > 0) {
-      return $localize`:@@homeLiveCard.qaPendingCount:In Moderation: ${formatLocaleCount(item.pendingQuestionCount, this.localeId)}:count:`;
-    }
+  hostSessionCtaApprovedQuestionDescription(item: HostSessionCta): string | null {
     if (item.questionCount === null || item.questionCount <= 0) {
       return null;
     }
@@ -605,6 +602,24 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
       return $localize`:@@homeLiveCard.qaQuestionCountOne:1 Frage`;
     }
     return $localize`:@@homeLiveCard.qaQuestionCountMany:${formatLocaleCount(item.questionCount, this.localeId)}:count: Fragen`;
+  }
+
+  hostSessionCtaPendingQuestionDescription(item: HostSessionCta): string | null {
+    if (item.pendingQuestionCount === null || item.pendingQuestionCount <= 0) {
+      return null;
+    }
+    return $localize`:@@homeLiveCard.qaPendingCount:In Moderation: ${formatLocaleCount(item.pendingQuestionCount, this.localeId)}:count:`;
+  }
+
+  hostSessionCtaQuestionDescription(item: HostSessionCta): string | null {
+    const parts = [
+      this.hostSessionCtaApprovedQuestionDescription(item),
+      this.hostSessionCtaPendingQuestionDescription(item),
+    ].filter((entry): entry is string => !!entry);
+    if (parts.length === 0) {
+      return null;
+    }
+    return parts.join(' · ');
   }
 
   hostSessionCtaRemoveAria(item: HostSessionCta): string {

@@ -684,7 +684,8 @@ describe('HomeComponent', () => {
       expect(descriptions[0]).toContain('2026');
       expect(descriptions[1]).toMatch(/^Offen bis /);
       expect(descriptions[1]).toContain('2026');
-      expect(descriptions[2]).toBe('In Moderation: 5');
+      expect(descriptions[2]).toBe('5 Fragen');
+      expect(descriptions[3]).toBe('In Moderation: 5');
       expect(
         fixture.nativeElement
           .querySelector('.home-host-session-cta-row [data-testid="home-host-recovery"]')
@@ -820,12 +821,48 @@ describe('HomeComponent', () => {
       ).map((line) => line.textContent?.trim());
       expect(descriptions[0]).toMatch(/^Zugang bis /);
       expect(descriptions[1]).toBe('Forum geschlossen');
-      expect(descriptions[2]).toBe('In Moderation: 1');
+      expect(descriptions[2]).toBe('1 Frage');
+      expect(descriptions[3]).toBe('In Moderation: 1');
       expect(
         fixture.nativeElement
           .querySelector('.home-host-session-cta-row [data-testid="home-host-recovery"]')
           ?.classList.contains('mat-mdc-outlined-button'),
       ).toBe(true);
+
+      restoreDefaultSessionGetInfo(vi.mocked(trpc.session.getInfo.query));
+    });
+
+    it('zeigt freigegebene Fragen und Moderationszähler gemeinsam im Host-CTA', async () => {
+      const { trpc } = await import('../../core/trpc.client');
+      seedHostCapability();
+      vi.mocked(trpc.session.getInfo.query).mockResolvedValue(
+        hostSessionGetInfo('ABC123', true, {
+          qaQuestionCount: 1552,
+          qaPendingQuestionCount: 1,
+        }),
+      );
+      const fixture = createHomeFixture();
+      fixture.detectChanges();
+      await fixture.whenStable();
+      fixture.detectChanges();
+      await vi.waitUntil(
+        () =>
+          Array.from(
+            fixture.nativeElement.querySelectorAll<HTMLElement>(
+              '.home-host-session-cta-row [data-testid="home-host-recovery"] .home-choice-button__description',
+            ),
+          ).some((line) => line.textContent?.trim() === 'In Moderation: 1') === true,
+        { timeout: 1000, interval: 10 },
+      );
+
+      const descriptions = Array.from(
+        fixture.nativeElement.querySelectorAll<HTMLElement>(
+          '.home-host-session-cta-row [data-testid="home-host-recovery"] .home-choice-button__description',
+        ),
+      ).map((line) => line.textContent?.trim());
+      expect(descriptions).toEqual(
+        expect.arrayContaining([expect.stringMatching(/1([.,])552 Fragen/), 'In Moderation: 1']),
+      );
 
       restoreDefaultSessionGetInfo(vi.mocked(trpc.session.getInfo.query));
     });
@@ -1211,7 +1248,7 @@ describe('HomeComponent', () => {
             note: expect.stringContaining('Wiederherstellungskarte'),
             consequences: expect.arrayContaining([
               expect.stringContaining('Offen bis'),
-              'In Moderation: 4',
+              '4 Fragen · In Moderation: 4',
               expect.stringContaining('Zugang bis'),
             ]),
           }),
