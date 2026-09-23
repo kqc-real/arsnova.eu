@@ -20,12 +20,15 @@ import { ModerationCompassIconComponent } from './moderation-compass-icon.compon
 import {
   extraModerationCompassSources,
   moderationCompassSourceDestination,
+  resolveModerationCompassMoreSourcesKind,
   splitModerationSummaryLead,
   visibleModerationCompassSources,
   type ModerationCompassAnalysisMode,
   type ModerationCompassCard,
   type ModerationCompassCardKind,
+  type ModerationCompassMoreSourcesKind,
   type ModerationCompassNextStepReason,
+  type ModerationCompassSortMode,
   type ModerationCompassSource,
   type ModerationCompassSourceDestination,
   type ModerationSummaryScanParts,
@@ -48,6 +51,12 @@ export type ModerationCompassDialogData = {
   summary?: () => QaSummaryRuntimeDTO | null;
   onRequestSummary?: () => void;
   onSummarySourceActivate?: (source: QaSummarySource) => void;
+  /** Aktuelle Q&A-Sortierung für kontextbezogene Extra-Quellen-Labels. */
+  qaSortMode?: () => ModerationCompassSortMode;
+  /** True, wenn die Q&A-Wortwolken-Glättung aktiv und aktuell ist. */
+  wordCloudSmoothingActive?: () => boolean;
+  /** True, wenn die Q&A-Wortwolke im Einzelwort-Modus läuft (keine Phrasen). */
+  wordCloudSingleWordsOnly?: () => boolean;
 };
 
 @Component({
@@ -142,8 +151,34 @@ export class ModerationCompassDialogComponent {
     );
   }
 
-  moreSourcesLabel(count: number): string {
-    return $localize`:@@sessionHost.moderationMoreSources:Noch ${count}:count: anzeigen`;
+  moreSourcesKind(card: ModerationCompassCard): ModerationCompassMoreSourcesKind {
+    return resolveModerationCompassMoreSourcesKind(this.extraSources(card), {
+      qaSortMode: this.data.qaSortMode?.() ?? 'BEST',
+      wordCloudSmoothingActive: this.data.wordCloudSmoothingActive?.() === true,
+      wordCloudSingleWordsOnly: this.data.wordCloudSingleWordsOnly?.() === true,
+    });
+  }
+
+  moreSourcesLabel(card: ModerationCompassCard): string {
+    const extras = this.extraSources(card);
+    switch (this.moreSourcesKind(card)) {
+      case 'word-cloud-top':
+        return $localize`:@@sessionHost.moderationMoreWordCloudTop:Top-Themen der Wortwolke`;
+      case 'word-cloud-more':
+        return $localize`:@@sessionHost.moderationMoreWordCloudTopics:Weitere Wortwolken-Themen`;
+      default:
+        return $localize`:@@sessionHost.moderationMoreSources:Weitere Einstiege (${extras.length}:count:)`;
+    }
+  }
+
+  moreSourcesHint(card: ModerationCompassCard): string | null {
+    switch (this.moreSourcesKind(card)) {
+      case 'word-cloud-top':
+      case 'word-cloud-more':
+        return $localize`:@@sessionHost.moderationMoreWordCloudHint:Zuerst der Begriff aus der Wortwolke, danach ein Beispiel aus einer zugehörigen Frage.`;
+      default:
+        return null;
+    }
   }
 
   sourceDestinationLabel(source: ModerationCompassSource): string {

@@ -239,6 +239,56 @@ export function extraModerationCompassSources(
   return sources.slice(MODERATION_COMPASS_VISIBLE_SOURCE_COUNT);
 }
 
+export type ModerationCompassMoreSourcesKind = 'word-cloud-top' | 'word-cloud-more' | 'generic';
+
+function moderationCompassSourceTopicLabel(source: ModerationCompassSource): string {
+  const fromTarget = source.target?.termLabel?.trim() ?? '';
+  if (fromTarget) {
+    return fromTarget;
+  }
+  return (source.label.split(' · ')[0] ?? source.label).trim();
+}
+
+function isSingleWordCloudTopic(topic: string): boolean {
+  return topic.length > 0 && !/\s/u.test(topic);
+}
+
+/**
+ * Label-Art für »weitere Quellen«.
+ * »Top-Themen der Wortwolke« nur bei BEST + aktiver Glättung + Einzelwort-Modus
+ * (keine Phrasen-/Themen-Analyse).
+ */
+export function resolveModerationCompassMoreSourcesKind(
+  extras: readonly ModerationCompassSource[],
+  options: {
+    readonly qaSortMode: ModerationCompassSortMode;
+    readonly wordCloudSmoothingActive: boolean;
+    readonly wordCloudSingleWordsOnly: boolean;
+  },
+): ModerationCompassMoreSourcesKind {
+  if (extras.length === 0) {
+    return 'generic';
+  }
+  const allWordCloudTerms = extras.every(
+    (source) => source.kind === 'qa-term' || source.kind === 'freetext-term',
+  );
+  if (!allWordCloudTerms) {
+    return 'generic';
+  }
+  const allSingleWords = extras.every((source) =>
+    isSingleWordCloudTopic(moderationCompassSourceTopicLabel(source)),
+  );
+  if (
+    options.qaSortMode === 'BEST' &&
+    options.wordCloudSmoothingActive &&
+    options.wordCloudSingleWordsOnly &&
+    allSingleWords
+  ) {
+    return 'word-cloud-top';
+  }
+  return 'word-cloud-more';
+}
+
 export type ModerationSummaryScanParts = {
   readonly lead: string | null;
   readonly body: string;

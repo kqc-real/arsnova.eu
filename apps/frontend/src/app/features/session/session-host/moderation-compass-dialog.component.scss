@@ -301,6 +301,13 @@ html.dark .cdk-overlay-backdrop.moderation-compass-dialog-backdrop {
   min-width: 0;
 }
 
+.moderation-compass-card__more-hint {
+  margin: 0 0 0.35rem;
+  padding: 0 0.15rem;
+  color: var(--mat-sys-on-surface-variant);
+  font: var(--mat-sys-body-small);
+}
+
 .moderation-compass-card__more-summary,
 .moderation-compass-dialog__summary-sources-summary {
   display: flex;

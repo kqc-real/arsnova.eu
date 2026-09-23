@@ -18,6 +18,11 @@ describe('ModerationCompassDialogComponent', () => {
       onRequestSummary?: () => void;
       onSummarySourceActivate?: (source: { id: string; label: string }) => void;
     },
+    moreSourcesContext?: {
+      qaSortMode?: 'TOP' | 'BEST' | 'CONTROVERSIAL' | 'TIME';
+      wordCloudSmoothingActive?: boolean;
+      wordCloudSingleWordsOnly?: boolean;
+    },
   ) {
     const dialogRef = { close: vi.fn() };
     TestBed.configureTestingModule({
@@ -34,6 +39,9 @@ describe('ModerationCompassDialogComponent', () => {
             summary: () => summary?.runtime ?? null,
             onRequestSummary: summary?.onRequestSummary,
             onSummarySourceActivate: summary?.onSummarySourceActivate,
+            qaSortMode: () => moreSourcesContext?.qaSortMode ?? 'BEST',
+            wordCloudSmoothingActive: () => moreSourcesContext?.wordCloudSmoothingActive === true,
+            wordCloudSingleWordsOnly: () => moreSourcesContext?.wordCloudSingleWordsOnly === true,
           },
         },
         { provide: MatDialogRef, useValue: dialogRef },
@@ -260,7 +268,7 @@ describe('ModerationCompassDialogComponent', () => {
       '.moderation-compass-card > .moderation-compass-card__sources li',
     );
     expect(visible).toHaveLength(3);
-    expect(fixture.nativeElement.textContent).toContain('Noch 2 anzeigen');
+    expect(fixture.nativeElement.textContent).toContain('Weitere Einstiege (2)');
     expect([...visible].map((item) => item.textContent ?? '').join(' ')).not.toContain(
       'Frage fünf?',
     );
@@ -272,6 +280,106 @@ describe('ModerationCompassDialogComponent', () => {
     details.open = true;
     fixture.detectChanges();
     expect(fixture.nativeElement.textContent).toContain('Frage fünf?');
+  });
+
+  it('zeigt Top-Themen der Wortwolke bei BEST, Glättung und Einzelwörtern', () => {
+    const { fixture } = setup(
+      [
+        {
+          kind: 'topics',
+          sources: [
+            {
+              kind: 'qa-term',
+              label: 'eins',
+              target: { channel: 'qa', surface: 'word-cloud', termLabel: 'eins' },
+            },
+            {
+              kind: 'qa-term',
+              label: 'zwei',
+              target: { channel: 'qa', surface: 'word-cloud', termLabel: 'zwei' },
+            },
+            {
+              kind: 'qa-term',
+              label: 'drei',
+              target: { channel: 'qa', surface: 'word-cloud', termLabel: 'drei' },
+            },
+            {
+              kind: 'qa-term',
+              label: 'vier',
+              target: { channel: 'qa', surface: 'word-cloud', termLabel: 'vier' },
+            },
+            {
+              kind: 'qa-term',
+              label: 'fünf',
+              target: { channel: 'qa', surface: 'word-cloud', termLabel: 'fünf' },
+            },
+          ],
+        },
+      ],
+      vi.fn(),
+      'rule-based',
+      undefined,
+      {
+        qaSortMode: 'BEST',
+        wordCloudSmoothingActive: true,
+        wordCloudSingleWordsOnly: true,
+      },
+    );
+
+    expect(fixture.nativeElement.textContent).toContain('Top-Themen der Wortwolke');
+    expect(fixture.nativeElement.textContent).not.toContain('Weitere Wortwolken-Themen');
+
+    const details = fixture.nativeElement.querySelector(
+      '.moderation-compass-card__more',
+    ) as HTMLDetailsElement;
+    details.open = true;
+    fixture.detectChanges();
+    expect(fixture.nativeElement.textContent).toContain(
+      'Zuerst der Begriff aus der Wortwolke, danach ein Beispiel aus einer zugehörigen Frage.',
+    );
+  });
+
+  it('zeigt Weitere Wortwolken-Themen wenn Phrasen aktiv sind', () => {
+    const { fixture } = setup(
+      [
+        {
+          kind: 'topics',
+          sources: [
+            {
+              kind: 'qa-term',
+              label: 'eins',
+              target: { channel: 'qa', surface: 'word-cloud', termLabel: 'eins' },
+            },
+            {
+              kind: 'qa-term',
+              label: 'zwei',
+              target: { channel: 'qa', surface: 'word-cloud', termLabel: 'zwei' },
+            },
+            {
+              kind: 'qa-term',
+              label: 'drei',
+              target: { channel: 'qa', surface: 'word-cloud', termLabel: 'drei' },
+            },
+            {
+              kind: 'qa-term',
+              label: 'vier',
+              target: { channel: 'qa', surface: 'word-cloud', termLabel: 'vier' },
+            },
+          ],
+        },
+      ],
+      vi.fn(),
+      'rule-based',
+      undefined,
+      {
+        qaSortMode: 'BEST',
+        wordCloudSmoothingActive: true,
+        wordCloudSingleWordsOnly: false,
+      },
+    );
+
+    expect(fixture.nativeElement.textContent).toContain('Weitere Wortwolken-Themen');
+    expect(fixture.nativeElement.textContent).not.toContain('Top-Themen der Wortwolke');
   });
 
   it('blendet die Zusammenfassung aus wenn der Kill-Switch aus ist', () => {

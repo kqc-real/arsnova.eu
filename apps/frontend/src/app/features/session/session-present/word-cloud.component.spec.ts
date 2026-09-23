@@ -114,6 +114,45 @@ describe('WordCloudComponent', () => {
     expect(fixture.componentInstance.showResponses()).toBe(true);
   });
 
+  it('stellt den Fokusbegriff in displayWords nach vorne, auch wenn er schon im Cap liegt', () => {
+    const fixture = TestBed.createComponent(WordCloudComponent);
+    const terms = ['Zulage', 'Betrieb', 'Prämie', 'Stelle', 'Plan', 'Entgelt'].map(
+      (label, index) => ({
+        key: label.toLowerCase(),
+        label,
+        score: 20 - index,
+        documentFrequency: 20 - index,
+        sourceCount: 20 - index,
+        variants: [label],
+        kind: 'unigram' as const,
+        basisLabel: label,
+        confidence: null,
+        members: [
+          {
+            sourceId: `q${index + 1}`,
+            text: `${label} in der Praxis`,
+            weight: 20 - index,
+          },
+        ],
+      }),
+    );
+    fixture.componentRef.setInput('terms', terms);
+    fixture.componentRef.setInput('focusedTermLabel', 'Entgelt');
+    fixture.detectChanges();
+
+    const component = fixture.componentInstance as WordCloudComponent & {
+      stageWidth: { set(value: number): void };
+    };
+    component.stageWidth.set(960);
+    fixture.detectChanges();
+
+    expect(component.selectedGroupKey()).toBe('entgelt');
+    expect(component.selectedWordLabel()).toBe('Entgelt');
+    expect(component.words().map((entry) => entry.word)[0]).toBe('Zulage');
+    expect(component.displayWords().map((entry) => entry.word)[0]).toBe('Entgelt');
+    expect(component.displayWords().map((entry) => entry.word)).toContain('Zulage');
+  });
+
   it('faellt bei leerer geglaetteter Analyse nicht auf ungeglättete Antworten zurueck', () => {
     const fixture = TestBed.createComponent(WordCloudComponent);
     fixture.componentRef.setInput('responses', [

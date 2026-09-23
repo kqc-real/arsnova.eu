@@ -958,18 +958,35 @@ export class WordCloudComponent implements AfterViewInit, OnDestroy {
   }
 
   private pinFocusedWord(words: CloudWord[], cap: number): CloudWord[] {
-    const visible = words.slice(0, cap);
-    const focusedKey = this.selectedGroupKey();
-    if (!focusedKey || visible.some((entry) => entry.groupKey === focusedKey)) {
-      return visible;
+    const focusedKey = this.resolvePinnedFocusGroupKey(words);
+    if (!focusedKey) {
+      return words.slice(0, cap);
     }
 
-    const extra = words.find((entry) => entry.groupKey === focusedKey);
-    if (!extra) {
-      return visible;
+    const focused = words.find((entry) => entry.groupKey === focusedKey);
+    if (!focused) {
+      return words.slice(0, cap);
     }
 
-    return [extra, ...visible.slice(0, Math.max(0, cap - 1))];
+    // Fokus immer zuerst: d3-cloud platziert in Eingabereihenfolge und lässt
+    // bei knappem Platz hintere Terme oft weg — sonst bleibt »Ausgewählt: X«
+    // ohne sichtbare Pill.
+    const rest = words.filter((entry) => entry.groupKey !== focusedKey);
+    return [focused, ...rest].slice(0, Math.max(1, cap));
+  }
+
+  private resolvePinnedFocusGroupKey(words: readonly CloudWord[]): string | null {
+    const selected = this.selectedGroupKey();
+    if (selected && words.some((entry) => entry.groupKey === selected)) {
+      return selected;
+    }
+
+    const label = this.focusedTermLabel()?.trim() ?? '';
+    if (!label) {
+      return null;
+    }
+
+    return this.findFocusedWord(words, label)?.groupKey ?? null;
   }
 
   private findFocusedWord(words: readonly CloudWord[], label: string): CloudWord | undefined {

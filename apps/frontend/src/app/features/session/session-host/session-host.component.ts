@@ -2501,6 +2501,10 @@ export class SessionHostComponent implements OnInit, OnDestroy {
         onSummarySourceActivate: (source: QaSummarySource) => {
           void this.followQaSummarySource(source);
         },
+        qaSortMode: () => this.qaSortMode(),
+        wordCloudSmoothingActive: () => this.qaWordCloudSmoothingStatus() === 'active',
+        wordCloudSingleWordsOnly: () =>
+          !isWordCloudPhraseAnalysisVariant(this.qaWordCloudEffectiveAnalysisVariant()),
       },
       autoFocus: 'first-tabbable',
       restoreFocus: true,

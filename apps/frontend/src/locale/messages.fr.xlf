@@ -18656,11 +18656,35 @@
         </context-group>
       </trans-unit>
       <trans-unit id="sessionHost.moderationMoreSources" datatype="html">
-        <source>Noch <x id="count" equiv-text="count"/> anzeigen</source>
-        <target>Afficher <x id="count" equiv-text="count"/> de plus</target>
+        <source>Weitere Einstiege (<x id="count" equiv-text="extras.length"/>)</source>
+        <target>Autres points d’entrée (<x id="count" equiv-text="extras.length"/>)</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-host/moderation-compass-dialog.component.ts</context>
-          <context context-type="linenumber">146</context>
+          <context context-type="linenumber">158</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="sessionHost.moderationMoreWordCloudTop" datatype="html">
+        <source>Top-Themen der Wortwolke</source>
+        <target>Thèmes principaux du nuage de mots</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/session-host/moderation-compass-dialog.component.ts</context>
+          <context context-type="linenumber">152</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="sessionHost.moderationMoreWordCloudTopics" datatype="html">
+        <source>Weitere Wortwolken-Themen</source>
+        <target>Autres thèmes du nuage de mots</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/session-host/moderation-compass-dialog.component.ts</context>
+          <context context-type="linenumber">154</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="sessionHost.moderationMoreWordCloudHint" datatype="html">
+        <source>Zuerst der Begriff aus der Wortwolke, danach ein Beispiel aus einer zugehörigen Frage.</source>
+        <target>D’abord le terme du nuage de mots, puis un exemple tiré d’une question associée.</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/session-host/moderation-compass-dialog.component.ts</context>
+          <context context-type="linenumber">168</context>
         </context-group>
       </trans-unit>
       <trans-unit id="sessionHost.moderationSourceOpenAria" datatype="html">
