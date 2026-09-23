@@ -1404,13 +1404,14 @@ describe('qa router (Epic 8)', () => {
         status: 'PENDING',
       }),
     ]);
+    prismaMock.qaQuestion.count.mockResolvedValue(1);
 
-    const { questions: result } = await hostCaller.list({
+    const result = await hostCaller.list({
       sessionId: SESSION_ID,
       moderatorView: true,
     });
 
-    expect(result).toEqual([
+    expect(result.questions).toEqual([
       {
         id: QUESTION_ID,
         text: 'Noch nicht freigegeben',
@@ -1429,9 +1430,54 @@ describe('qa router (Epic 8)', () => {
         myVote: null,
       },
     ]);
+    expect(result.pendingCount).toBe(1);
+    expect(rawSqlText(prismaMock.$queryRaw.mock.calls[0] ?? [])).toContain("WHEN 'PENDING' THEN 0");
     expect(rawSqlText(prismaMock.$queryRaw.mock.calls[0] ?? [])).toContain('GREATEST(');
   });
 
+  it('stellt PENDING im Host-Ranking vor ACTIVE und liefert seitenunabhängigen pendingCount', async () => {
+    prismaMock.session.findUnique.mockResolvedValue({
+      ...ACTIVE_QA_SESSION,
+      id: SESSION_ID,
+      code: 'ABC123',
+      type: 'QUIZ',
+      qaEnabled: true,
+      qaOpen: true,
+      qaModerationMode: true,
+      qaQuestionCount: 101,
+    });
+    rawQueryResults.rankedQuestions.push([
+      rankedQaRow({
+        id: 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa',
+        text: 'Freigegebene Top-Frage',
+        status: 'ACTIVE',
+        upvoteCount: 40,
+        positiveVoteCount: 40,
+        bestScore: 0.9,
+        totalCount: 101,
+      }),
+    ]);
+    prismaMock.qaQuestion.count.mockResolvedValue(1);
+
+    const result = await hostCaller.list({
+      sessionId: SESSION_ID,
+      moderatorView: true,
+      sort: 'BEST',
+      pageSize: 100,
+    });
+
+    expect(result.pendingCount).toBe(1);
+    expect(result.questions.every((question) => question.status === 'ACTIVE')).toBe(true);
+    expect(rawSqlText(prismaMock.$queryRaw.mock.calls[0] ?? [])).toMatch(
+      /WHEN 'PENDING' THEN 0[\s\S]*WHEN 'ACTIVE' THEN 1/,
+    );
+    expect(prismaMock.qaQuestion.count).toHaveBeenCalledWith({
+      where: {
+        sessionId: SESSION_ID,
+        status: 'PENDING',
+      },
+    });
+  });
   it('liefert einem autorisierten Host beendete Q&A-Inhalte innerhalb der 336h nur lesend', async () => {
     const endedAt = new Date(Date.now() - 13 * 24 * 60 * 60 * 1000);
     prismaMock.session.findUnique.mockResolvedValue({

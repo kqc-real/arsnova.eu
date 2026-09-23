@@ -748,6 +748,8 @@ export class SessionHostComponent implements OnInit, OnDestroy {
   readonly activeChannel = signal<SessionChannelTab>('quiz');
   readonly qaQuestions = signal<QaQuestionDTO[]>([]);
   readonly qaListTotalCount = signal(0);
+  /** Host: PENDING-Zähler aus qa.list (filterweit, seitenunabhängig); null = Fallback auf geladene Seite. */
+  private readonly qaListPendingCount = signal<number | null>(null);
   readonly qaListNextCursor = signal<string | null>(null);
   readonly qaListRankingRevision = signal<string | null>(null);
   readonly qaListPageIndex = signal(0);
@@ -2298,9 +2300,13 @@ export class SessionHostComponent implements OnInit, OnDestroy {
   readonly qaPinnedCount = computed(
     () => this.qaForumQuestions().filter((q) => q.status === 'PINNED').length,
   );
-  readonly qaPendingCount = computed(
-    () => this.qaForumQuestions().filter((question) => question.status === 'PENDING').length,
-  );
+  readonly qaPendingCount = computed(() => {
+    const fromList = this.qaListPendingCount();
+    if (fromList !== null) {
+      return fromList;
+    }
+    return this.qaForumQuestions().filter((question) => question.status === 'PENDING').length;
+  });
   readonly qaArchivedCount = computed(
     () => this.qaForumQuestions().filter((q) => q.status === 'ARCHIVED').length,
   );
@@ -10803,6 +10809,9 @@ export class SessionHostComponent implements OnInit, OnDestroy {
       this.qaListTotalCount.set(
         snapshot.filter((question) => question.status !== 'DELETED').length,
       );
+      this.qaListPendingCount.set(
+        snapshot.filter((question) => question.status === 'PENDING').length,
+      );
       this.qaListNextCursor.set(null);
       this.qaListRankingRevision.set(null);
       this.resetQaListPageNavigation();
@@ -10841,6 +10850,7 @@ export class SessionHostComponent implements OnInit, OnDestroy {
     if (snapshot.state !== 'ACTIVE') {
       this.qaQuestions.set([]);
       this.qaListTotalCount.set(0);
+      this.qaListPendingCount.set(0);
       this.qaListNextCursor.set(null);
       this.qaListRankingRevision.set(snapshot.rankingRevision ?? null);
       this.resetQaListPageNavigation();
@@ -10854,6 +10864,11 @@ export class SessionHostComponent implements OnInit, OnDestroy {
       this.resetQaListPageNavigation();
     }
     this.qaListTotalCount.set(snapshot.totalCount ?? snapshot.questions.length);
+    this.qaListPendingCount.set(
+      typeof snapshot.pendingCount === 'number'
+        ? snapshot.pendingCount
+        : snapshot.questions.filter((question) => question.status === 'PENDING').length,
+    );
     this.qaListNextCursor.set(snapshot.nextCursor ?? null);
     this.qaListRankingRevision.set(snapshot.rankingRevision ?? null);
     this.dismissQaSteeringCallout();
@@ -10865,6 +10880,7 @@ export class SessionHostComponent implements OnInit, OnDestroy {
     this.postProcessingEnded.set(true);
     this.qaQuestions.set([]);
     this.qaListTotalCount.set(0);
+    this.qaListPendingCount.set(null);
     this.qaListNextCursor.set(null);
     this.qaListRankingRevision.set(null);
     this.resetQaListPageNavigation();
@@ -11044,6 +11060,7 @@ export class SessionHostComponent implements OnInit, OnDestroy {
     if (!sessionId || !this.channels().qa) {
       this.qaQuestions.set([]);
       this.qaListTotalCount.set(0);
+      this.qaListPendingCount.set(null);
       this.qaListNextCursor.set(null);
       this.resetQaListPageNavigation();
       this.qaListPageLoading.set(false);
@@ -11053,6 +11070,7 @@ export class SessionHostComponent implements OnInit, OnDestroy {
     if (options?.replaceStale) {
       this.qaQuestions.set([]);
       this.qaListTotalCount.set(0);
+      this.qaListPendingCount.set(null);
       this.qaListNextCursor.set(null);
       this.resetQaListPageNavigation();
     }

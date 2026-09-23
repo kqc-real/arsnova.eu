@@ -7754,6 +7754,54 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
     fixture.destroy();
   });
 
+  it('zeigt Warten auf Freigabe aus pendingCount auch wenn die Seite nur ACTIVE enthält', async () => {
+    getInfoQueryMock.mockResolvedValue({
+      ...defaultSession,
+      status: 'ACTIVE',
+      channels: {
+        quiz: { enabled: true },
+        qa: { enabled: true, open: true, title: 'Fragen aus dem Publikum', moderationMode: true },
+        quickFeedback: { enabled: false, open: false },
+      },
+    });
+    qaListQueryMock.mockResolvedValue({
+      questions: Array.from({ length: 3 }, (_, index) => ({
+        id: `11111111-1111-4111-8111-11111111111${index}`,
+        text: `Freigegeben ${index + 1}`,
+        upvoteCount: 10 - index,
+        status: 'ACTIVE' as const,
+        createdAt: '2026-03-13T12:00:00.000Z',
+        myVote: null,
+        isOwn: false,
+        hasUpvoted: false,
+      })),
+      state: 'ACTIVE' as const,
+      sessionLifecycleRevision: 1,
+      serverNow: '2026-03-13T12:00:00.000Z',
+      expiresAt: '2026-03-14T12:00:00.000Z',
+      qaClosesAt: '2026-03-14T12:00:00.000Z',
+      endedAt: null,
+      postProcessingEndsAt: null,
+      rankingRevision: '1:BEST:',
+      nextCursor: 'cursor-next',
+      totalCount: 1553,
+      pendingCount: 1,
+    });
+
+    const fixture = setup();
+    fixture.detectChanges();
+    await flushComponentAfterStable(fixture, 50);
+    const component = fixture.componentInstance;
+    component.activeChannel.set('qa');
+    fixture.detectChanges();
+    await flushComponentAfterStable(fixture, 50);
+
+    expect(component.qaPendingCount()).toBe(1);
+    expect(fixture.nativeElement.textContent).toContain('Warten auf Freigabe: 1');
+    expect(fixture.nativeElement.textContent).toMatch(/Gesamt:\s*1([.,])553/);
+    fixture.destroy();
+  });
+
   it('kennzeichnet kontroverse Fragen in der Host-Liste sichtbar', async () => {
     getInfoQueryMock.mockResolvedValue({
       ...defaultSession,
