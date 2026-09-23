@@ -11542,6 +11542,10 @@ export class SessionHostComponent implements OnInit, OnDestroy {
     if (!request) {
       return;
     }
+    // Laufende Analyse nicht mit neuem Korpus ersetzen — Abschluss gleicht Stale ab.
+    if (this.freetextWordCloudSemanticAnalysisPending()) {
+      return;
+    }
     if (!this.freetextWordCloudSemanticAnalysisResult()) {
       this.queueFreetextWordCloudSemanticAnalysis(request);
       return;
@@ -11561,8 +11565,7 @@ export class SessionHostComponent implements OnInit, OnDestroy {
   }
 
   private queueFreetextWordCloudSemanticAnalysis(request: AnalyzeWordCloudInput): void {
-    // Wie Q&A: Debounce neu starten; kein Early-Return — sonst blockiert »Themen aktualisieren«.
-    this.freetextWordCloudSemanticStale.set(false);
+    // Stale nicht vorzeitig löschen — sonst fehlt nach Fehler die Wiederholungsaktion.
     this.markFreetextWordCloudSemanticPending();
     this.clearFreetextWordCloudSemanticAnalysisTimer();
     this.freetextWordCloudSemanticAnalysisTimer = setTimeout(() => {
@@ -11589,6 +11592,7 @@ export class SessionHostComponent implements OnInit, OnDestroy {
       this.freetextWordCloudSemanticAnalysisResult.set(null);
     }
     const pendingStartedAt = this.markFreetextWordCloudSemanticPending();
+    const analyzedKey = wordCloudAnalysisRequestKey(request);
 
     try {
       const result = await trpc.wordCloud.analyze.mutate(request);
@@ -11602,8 +11606,9 @@ export class SessionHostComponent implements OnInit, OnDestroy {
       }
 
       this.freetextWordCloudSemanticAnalysisResult.set(result);
-      this.lastFreetextWordCloudSemanticAnalyzedKey = wordCloudAnalysisRequestKey(request);
-      this.freetextWordCloudSemanticStale.set(false);
+      this.lastFreetextWordCloudSemanticAnalyzedKey = analyzedKey;
+      // Korpus kann während der Anfrage gewachsen sein — dann bleibt die Analyse veraltet.
+      this.reconcileFreetextWordCloudSemanticStaleAfterAnalysis(analyzedKey);
     } catch {
       if (runId !== this.freetextWordCloudSemanticAnalysisRunId) {
         return;
@@ -11617,7 +11622,10 @@ export class SessionHostComponent implements OnInit, OnDestroy {
       if (!options.keepPrevious) {
         this.freetextWordCloudSemanticAnalysisResult.set(null);
       }
-      // Fingerprint und Stale nur bei Erfolg – sonst bleibt der Refresh-Hinweis sichtbar.
+      // Fingerprint unverändert; Stale aus aktuellem Korpus vs. letzter Erfolg wiederherstellen.
+      this.reconcileFreetextWordCloudSemanticStaleAfterAnalysis(
+        this.lastFreetextWordCloudSemanticAnalyzedKey,
+      );
     } finally {
       if (runId === this.freetextWordCloudSemanticAnalysisRunId) {
         this.freetextWordCloudSemanticAnalysisPending.set(false);
@@ -11625,6 +11633,16 @@ export class SessionHostComponent implements OnInit, OnDestroy {
         this.clearFreetextWordCloudSemanticWaitHint();
       }
     }
+  }
+
+  /** Stale, wenn der aktuelle Korpus nicht der analysierten Anfrage entspricht. */
+  private reconcileFreetextWordCloudSemanticStaleAfterAnalysis(analyzedKey: string | null): void {
+    const current = this.buildFreetextWordCloudSemanticAnalysisRequest();
+    if (!current || !analyzedKey) {
+      this.freetextWordCloudSemanticStale.set(false);
+      return;
+    }
+    this.freetextWordCloudSemanticStale.set(wordCloudAnalysisRequestKey(current) !== analyzedKey);
   }
 
   private buildQaWordCloudLemmaAnalysisRequest(): AnalyzeWordCloudInput | null {
