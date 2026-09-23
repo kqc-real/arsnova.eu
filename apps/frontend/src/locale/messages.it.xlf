@@ -19104,8 +19104,8 @@
         </context-group>
       </trans-unit>
       <trans-unit id="qaConfig.extensionWarning" datatype="html">
-        <source> Der neue Zugang für Teilnehmende liegt nach dem bisherigen Sessionende. Beim Bestätigen wird die globale Sessionfrist mit verlängert; nur der ursprüngliche Host darf das ausführen.</source>
-        <target>Il nuovo accesso di chi partecipa è successivo alla fine attuale della sessione. Confermando, prolunghi anche la durata globale; solo l’host originale può farlo.</target>
+        <source> Der Zugang für Teilnehmende endet nach dem bisherigen Sessionende. Beim Bestätigen kannst du die Fragen danach länger einsehen; die Daten bleiben länger gespeichert.</source>
+        <target>Il nuovo accesso di chi partecipa è successivo alla fine attuale della sessione. Confermando, prolunghi anche la durata globale</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-host/qa-channel-configuration-dialog.component.html</context>
           <context context-type="linenumber">143,146</context>
@@ -19256,7 +19256,7 @@
         </context-group>
       </trans-unit>
       <trans-unit id="qaConfig.extensionConfirmTitle" datatype="html">
-        <source>Sessionverlängerung bestätigen</source>
+        <source>Längeren Host-Lesezugang bestätigen</source>
         <target>Conferma il prolungamento della sessione</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-host/qa-channel-configuration-dialog.component.ts</context>
@@ -19271,8 +19271,16 @@
           <context context-type="linenumber">350</context>
         </context-group>
       </trans-unit>
+            <trans-unit id="qaConfig.absoluteRequired" datatype="html">
+        <source>Bitte wähle Datum und Uhrzeit.</source>
+        <target state="translated">Scegli data e ora.</target>
+      </trans-unit>
+            <trans-unit id="qaConfig.absoluteOutOfBounds" datatype="html">
+        <source>Dieses Datum und diese Uhrzeit liegen außerhalb des zulässigen Zeitfensters.</source>
+        <target state="translated">Questa data e ora sono fuori dall’intervallo consentito.</target>
+      </trans-unit>
       <trans-unit id="qaConfig.invalidLocalDate" datatype="html">
-        <source>Diese lokale Uhrzeit ist in der Sessionzeitzone nicht eindeutig oder ungültig.</source>
+        <source>Diese Uhrzeit gibt es in der Zeitzone der Session nicht oder sie kommt zweimal vor (Zeitumstellung). Wähle eine andere Minute.</source>
         <target>Questa ora locale è ambigua o non valida nel fuso orario della sessione.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-host/qa-channel-configuration-dialog.component.ts</context>
@@ -19280,16 +19288,16 @@
         </context-group>
       </trans-unit>
       <trans-unit id="qaConfig.extensionConfirmMessageKeepClosed" datatype="html">
-        <source>Der neue Zugang für Teilnehmende liegt nach dem bisherigen Sessionende. Beim Bestätigen wird die globale Sessionfrist mitverlängert; die Daten werden länger gespeichert. Nur der ursprüngliche Host darf das ausführen.</source>
-        <target>Il nuovo accesso di chi partecipa è dopo la fine attuale della sessione. Confermando prolunghi anche la scadenza globale; i dati restano più a lungo. Solo l’host originale può farlo.</target>
+        <source>Der Zugang für Teilnehmende endet nach dem bisherigen Sessionende. Beim Bestätigen kannst du die Fragen danach länger einsehen; die Daten bleiben länger gespeichert.</source>
+        <target>Il nuovo accesso di chi partecipa è dopo la fine attuale della sessione. Confermando prolunghi anche la scadenza globale; i dati restano più a lungo.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-host/qa-channel-configuration-dialog.component.ts</context>
           <context context-type="linenumber">392</context>
         </context-group>
       </trans-unit>
       <trans-unit id="qaConfig.extensionConfirmMessage" datatype="html">
-        <source>Die Fragerunde läuft über das bisherige Sessionende hinaus. Beim Bestätigen wird die globale Sessionfrist mitverlängert; die Daten werden länger gespeichert. Nur der ursprüngliche Host darf das ausführen.</source>
-        <target>Le domande e risposte supererebbero la fine attuale della sessione. Confermando prolunghi anche la scadenza globale e i dati restano più a lungo. Solo l’host originale può farlo.</target>
+        <source>Die Fragerunde läuft über das bisherige Sessionende hinaus. Beim Bestätigen kannst du die Fragen danach länger einsehen; die Daten bleiben länger gespeichert.</source>
+        <target>Le domande e risposte supererebbero la fine attuale della sessione. Confermando prolunghi anche la scadenza globale e i dati restano più a lungo.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-host/qa-channel-configuration-dialog.component.ts</context>
           <context context-type="linenumber">394</context>
@@ -19891,8 +19899,16 @@
           <context context-type="linenumber">113</context>
         </context-group>
       </trans-unit>
+            <trans-unit id="sessionLifecycle.absoluteRequired" datatype="html">
+        <source>Bitte wähle Datum und Uhrzeit.</source>
+        <target state="translated">Scegli data e ora.</target>
+      </trans-unit>
+            <trans-unit id="sessionLifecycle.absoluteOutOfBounds" datatype="html">
+        <source>Dieses Datum und diese Uhrzeit liegen außerhalb des zulässigen Zeitfensters.</source>
+        <target state="translated">Questa data e ora sono fuori dall’intervallo consentito.</target>
+      </trans-unit>
       <trans-unit id="sessionLifecycle.invalidLocalDate" datatype="html">
-        <source>Diese lokale Uhrzeit ist in der Sessionzeitzone nicht eindeutig oder ungültig.</source>
+        <source>Diese Uhrzeit gibt es in der Zeitzone der Session nicht oder sie kommt zweimal vor (Zeitumstellung). Wähle eine andere Minute.</source>
         <target>Questa ora locale è ambigua o non valida nel fuso orario della sessione.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-host/session-expiration-dialog.component.ts</context>

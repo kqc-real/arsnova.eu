@@ -5905,7 +5905,8 @@ const sessionCoreRouter = router({
         timeZone: session.timeZone,
         maxExpiresAt: getSessionMaxExpiresAt(session.createdAt).toISOString(),
         serverNow: serverNow.toISOString(),
-        projectedPostProcessingEndsAt: getPostProcessingEndsAt(window.expiresAt).toISOString(),
+        // Host-Leseende folgt der Q&A-Öffnung (+14 Tage), nicht dem ggf. unveränderten Sessionende.
+        projectedPostProcessingEndsAt: getPostProcessingEndsAt(window.qaClosesAt).toISOString(),
         projectedPurgeEligibleAt: getPostProcessingEndsAt(window.expiresAt).toISOString(),
       };
     }),

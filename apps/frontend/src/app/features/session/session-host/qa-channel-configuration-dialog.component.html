@@ -114,10 +114,6 @@
           />
         </mat-form-field>
       </div>
-      <p class="qa-config__calendar-legend" i18n="@@qaConfig.calendarLegend">
-        Grün markierte Tage sind wählbar, rot markierte nicht. Die aktuelle Auswahl ist anders
-        hervorgehoben.
-      </p>
     }
     <p class="qa-config__zone">
       <span i18n="@@qaConfig.timeZone">Zeitzone:</span>
@@ -134,37 +130,6 @@
           <dd>{{ formatDateTime(resolved.projectedPostProcessingEndsAt) }}</dd>
         </div>
       </dl>
-      @if (resolved.requiresSessionExtension) {
-        <p class="qa-config__resolved" role="status">
-          <span i18n="@@qaConfig.previewSessionEnds">Session endet</span>
-          {{ formatDateTime(resolved.newExpiresAt) }}
-        </p>
-        <dl class="qa-config__compare">
-          @if (resolved.oldQaClosesAt) {
-            <div>
-              <dt i18n="@@qaConfig.extensionOldQaLabel">Bisheriger Zugang für Teilnehmende</dt>
-              <dd>{{ formatDateTime(resolved.oldQaClosesAt) }}</dd>
-            </div>
-          }
-          <div>
-            <dt i18n="@@qaConfig.extensionNewQaLabel">Neuer Zugang für Teilnehmende</dt>
-            <dd>{{ formatDateTime(resolved.newQaClosesAt) }}</dd>
-          </div>
-          <div>
-            <dt i18n="@@qaConfig.extensionOldExpiresLabel">Bisheriges Sessionende</dt>
-            <dd>{{ formatDateTime(resolved.oldExpiresAt) }}</dd>
-          </div>
-          <div>
-            <dt i18n="@@qaConfig.extensionNewExpiresLabel">Neues Sessionende</dt>
-            <dd>{{ formatDateTime(resolved.newExpiresAt) }}</dd>
-          </div>
-        </dl>
-        <p class="qa-config__warning" role="status" i18n="@@qaConfig.extensionWarning">
-          Der neue Zugang für Teilnehmende liegt nach dem bisherigen Sessionende. Beim Bestätigen
-          wird die globale Sessionfrist mit verlängert; nur der ursprüngliche Host darf das
-          ausführen.
-        </p>
-      }
     }
     @if (canReopen) {
       <mat-slide-toggle

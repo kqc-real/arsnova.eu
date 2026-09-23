@@ -4820,19 +4820,6 @@
             <span i18n="@@sessionHost.endGlobalSessionAnchor">Session beenden</span>
           }
         </button>
-        @if (showQaChannelLifecycleChrome()) {
-          <button
-            mat-button
-            type="button"
-            class="session-host__exit-anchor-button session-host__exit-anchor-button--lifecycle"
-            data-testid="configure-session-expiration"
-            [disabled]="sessionLifecyclePending()"
-            (click)="openSessionLifecycleConfiguration($event)"
-          >
-            <mat-icon aria-hidden="true">schedule</mat-icon>
-            <span i18n="@@sessionLifecycle.configureAction">Zugang für Teilnehmende</span>
-          </button>
-        }
         @if (
           showQuizAnchorActions() &&
           (effectiveStatus() === 'RESULTS' || effectiveStatus() === 'DISCUSSION') &&

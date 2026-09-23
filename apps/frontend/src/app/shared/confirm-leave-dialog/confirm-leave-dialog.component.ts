@@ -44,7 +44,9 @@ export interface ConfirmLeaveDialogData {
       </span>
     </h2>
     <mat-dialog-content>
-      <p class="confirm-leave__message">{{ data.message }}</p>
+      @if (data.message) {
+        <p class="confirm-leave__message">{{ data.message }}</p>
+      }
       @if (data.consequences.length > 0) {
         <ul class="confirm-leave__list">
           @for (item of data.consequences; track item) {

@@ -266,22 +266,14 @@ export class QaChannelConfigurationDialogComponent implements OnInit {
   private async confirmRequiredSessionExtension(
     preview: SessionQaConfigurationPreviewDTO,
   ): Promise<boolean> {
-    const consequences: string[] = [];
-    if (preview.oldQaClosesAt) {
-      consequences.push(
-        $localize`:@@qaConfig.extensionOldQa:Bisheriger Zugang für Teilnehmende: ${this.formatDateTime(preview.oldQaClosesAt)}:date:`,
-      );
-    }
-    consequences.push(
-      $localize`:@@qaConfig.extensionNewQa:Neuer Zugang für Teilnehmende: ${this.formatDateTime(preview.newQaClosesAt)}:date:`,
-      $localize`:@@qaConfig.extensionOldExpires:Bisheriges Sessionende: ${this.formatDateTime(preview.oldExpiresAt)}:date:`,
-      $localize`:@@qaConfig.extensionNewExpires:Neues Sessionende: ${this.formatDateTime(preview.newExpiresAt)}:date:`,
+    const consequences = [
+      $localize`:@@qaConfig.extensionNewQa:Zugang für Teilnehmende endet: ${this.formatDateTime(preview.newQaClosesAt)}:date:`,
       $localize`:@@qaConfig.extensionPostProcessing:Fragen einsehen kannst du bis: ${this.formatDateTime(preview.projectedPostProcessingEndsAt)}:date:`,
-    );
+    ];
     const dialogRef = this.dialog.open(ConfirmLeaveDialogComponent, {
       data: {
-        title: $localize`:@@qaConfig.extensionConfirmTitle:Sessionverlängerung bestätigen`,
-        message: this.extensionConfirmMessage(),
+        title: $localize`:@@qaConfig.extensionConfirmTitle:Frist bestätigen`,
+        message: '',
         consequences,
         confirmLabel: this.confirmLabel(),
         cancelLabel: $localize`:@@common.cancel:Abbrechen`,
@@ -451,10 +443,16 @@ export class QaChannelConfigurationDialogComponent implements OnInit {
     }
     const local = this.absoluteLocal;
     const bounds = this.absoluteBounds();
-    if (!local || !bounds || !isSessionLocalDateTimeWithinBounds(local, bounds.min, bounds.max)) {
+    if (!local) {
+      if (!silent) {
+        this.error.set($localize`:@@qaConfig.absoluteRequired:Bitte wähle Datum und Uhrzeit.`);
+      }
+      return null;
+    }
+    if (!bounds || !isSessionLocalDateTimeWithinBounds(local, bounds.min, bounds.max)) {
       if (!silent) {
         this.error.set(
-          $localize`:@@qaConfig.invalidLocalDate:Diese lokale Uhrzeit ist in der Sessionzeitzone nicht eindeutig oder ungültig.`,
+          $localize`:@@qaConfig.absoluteOutOfBounds:Dieses Datum und diese Uhrzeit liegen außerhalb des zulässigen Zeitfensters.`,
         );
       }
       return null;
@@ -467,7 +465,7 @@ export class QaChannelConfigurationDialogComponent implements OnInit {
     } catch {
       if (!silent) {
         this.error.set(
-          $localize`:@@qaConfig.invalidLocalDate:Diese lokale Uhrzeit ist in der Sessionzeitzone nicht eindeutig oder ungültig.`,
+          $localize`:@@qaConfig.invalidLocalDate:Diese Uhrzeit gibt es in der Zeitzone der Session nicht oder sie kommt zweimal vor (Zeitumstellung). Wähle eine andere Minute.`,
         );
       }
       return null;
@@ -486,13 +484,6 @@ export class QaChannelConfigurationDialogComponent implements OnInit {
     const nowIso = this.preview()?.serverNow ?? this.data.session.serverNow;
     const now = nowIso ? Date.parse(nowIso) : Number.NaN;
     return Number.isFinite(closesAt) && Number.isFinite(now) && closesAt <= now;
-  }
-
-  private extensionConfirmMessage(): string {
-    if (this.configurationMode() === 'REPLAN' && !this.willReopenQa()) {
-      return $localize`:@@qaConfig.extensionConfirmMessageKeepClosed:Der neue Zugang für Teilnehmende liegt nach dem bisherigen Sessionende. Beim Bestätigen wird die globale Sessionfrist mitverlängert; die Daten werden länger gespeichert. Nur der ursprüngliche Host darf das ausführen.`;
-    }
-    return $localize`:@@qaConfig.extensionConfirmMessage:Die Fragerunde läuft über das bisherige Sessionende hinaus. Beim Bestätigen wird die globale Sessionfrist mitverlängert; die Daten werden länger gespeichert. Nur der ursprüngliche Host darf das ausführen.`;
   }
 
   private unchangedSavedAbsoluteClosesAt(): string | null {

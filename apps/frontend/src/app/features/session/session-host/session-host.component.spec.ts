@@ -1298,8 +1298,7 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
     fixture.destroy();
   });
 
-  it('bietet Zugang für Teilnehmende im Q&A-Kanal und öffnet nach dem ersten Beitritt die Q&A-Einstellungen', async () => {
-    dialogOpenMock.mockReturnValue({ afterClosed: () => of(null) });
+  it('zeigt keinen Footer-Button für Teilnehmerzugang; Friständerungen laufen über Q&A-Einstellungen', async () => {
     const fixture = setup();
     getInfoQueryMock.mockResolvedValue({
       ...defaultSession,
@@ -1311,63 +1310,17 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
     });
     await fixture.componentInstance.ngOnInit();
     fixture.componentInstance.sessionLifecycle.set(defaultLifecycle);
-    fixture.componentInstance.activeChannel.set('quiz');
-    fixture.detectChanges();
-
-    const expirationButton = () =>
-      fixture.nativeElement.querySelector(
-        '.session-host__exit-anchor [data-testid="configure-session-expiration"]',
-      ) as HTMLButtonElement | null;
-
-    expect(
-      fixture.nativeElement.querySelector(
-        '.session-host__view-controls [data-testid="configure-session-expiration"]',
-      ),
-    ).toBeNull();
-    expect(expirationButton()).toBeNull();
-
-    fixture.componentInstance.activeChannel.set('quickFeedback');
-    fixture.detectChanges();
-    expect(expirationButton()).toBeNull();
-
     fixture.componentInstance.activeChannel.set('qa');
     fixture.detectChanges();
-    const footerButton = expirationButton();
-    const endButton = fixture.nativeElement.querySelector(
-      '.session-host__exit-anchor-button--end',
-    ) as HTMLButtonElement | null;
-    expect(footerButton?.textContent).toContain('Zugang für Teilnehmende');
-    expect(endButton?.textContent).toContain('Zur Startseite');
-    expect(endButton?.nextElementSibling).toBe(footerButton);
+
+    expect(
+      fixture.nativeElement.querySelector('[data-testid="configure-session-expiration"]'),
+    ).toBeNull();
+    expect(fixture.nativeElement.textContent).not.toMatch(
+      /Zugang für Teilnehmende(?! endet| ist beendet)/,
+    );
+    expect(fixture.nativeElement.textContent).toContain('Q&A-Einstellungen');
     expect(fixture.nativeElement.querySelector('.session-host__exit-clearance')).not.toBeNull();
-
-    footerButton?.click();
-    await fixture.whenStable();
-
-    expect(dialogOpenMock).toHaveBeenCalledWith(
-      SessionExpirationDialogComponent,
-      expect.objectContaining({
-        data: expect.objectContaining({ mode: 'INITIAL_CONFIGURATION' }),
-      }),
-    );
-
-    dialogOpenMock.mockClear();
-    const openQaSpy = vi
-      .spyOn(fixture.componentInstance, 'openQaConfigurationDialog')
-      .mockResolvedValue(undefined);
-    fixture.componentInstance.sessionLifecycle.set({
-      ...defaultLifecycle,
-      configurationAllowed: false,
-    });
-    fixture.detectChanges();
-    expect(expirationButton()).not.toBeNull();
-    expirationButton()?.click();
-    await fixture.whenStable();
-    expect(openQaSpy).toHaveBeenCalled();
-    expect(dialogOpenMock).not.toHaveBeenCalledWith(
-      SessionExpirationDialogComponent,
-      expect.anything(),
-    );
     fixture.destroy();
   });
 
@@ -14970,13 +14923,14 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
       /\.session-host__exit-anchor \{[^}]*surface-container-highest[^}]*primary-container/,
     );
     expect(styles).toMatch(/\.session-host__exit-clearance\s*\{[^}]*min-height:\s*var\(/);
-    expect(styles).toMatch(/exit-anchor-button--lifecycle[\s\S]*?session-host__exit-clearance/);
+    expect(styles).toMatch(/session-host__exit-anchor-button--end/);
+    expect(styles).not.toContain('exit-anchor-button--lifecycle');
     expect(styles).not.toContain('exit-anchor-button--retention');
     expect(styles).toMatch(
       /\.session-host__exit-anchor-button--skip,\s*\.session-host__exit-anchor-button--previous/,
     );
     expect(styles).toMatch(
-      /session-host__exit-anchor:not\(\.session-host__exit-anchor--with-primary\)[\s\S]*?exit-anchor-button--end,[\s\S]*?exit-anchor-button--lifecycle \{[^}]*mat-button-text-horizontal-padding:\s*1\.1rem[^}]*padding-block:\s*0\.75rem/,
+      /session-host__exit-anchor:not\(\.session-host__exit-anchor--with-primary\)[\s\S]*?exit-anchor-button--end \{[^}]*mat-button-text-horizontal-padding:\s*1\.1rem[^}]*padding-block:\s*0\.75rem/,
     );
 
     for (const [fileName, expectedLabel] of translations) {

@@ -89,13 +89,6 @@ mat-form-field {
   min-width: min(100%, 9rem);
 }
 
-.qa-config__calendar-legend {
-  margin: 0.35rem 0 0;
-  color: var(--mat-sys-on-surface-variant);
-  font: var(--mat-sys-body-small);
-  line-height: 1.4;
-}
-
 .qa-config__warning {
   @include lifecycle.lifecycle-notice;
 }

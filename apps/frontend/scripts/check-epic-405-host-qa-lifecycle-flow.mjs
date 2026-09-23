@@ -138,17 +138,6 @@ async function dismissJoinOverlay(page) {
   await overlay.waitFor({ state: 'hidden', timeout: 5_000 });
 }
 
-async function openAndCloseDialog(page, triggerTestId, heading) {
-  await page.locator(`[data-testid="${triggerTestId}"]`).click();
-  const panel = page.locator('mat-dialog-container').last();
-  await panel
-    .getByText(heading, { exact: false })
-    .first()
-    .waitFor({ state: 'visible', timeout: 10_000 });
-  await panel.getByRole('button', { name: /Abbrechen|Schließen/i }).click();
-  await panel.waitFor({ state: 'hidden', timeout: 10_000 });
-}
-
 async function main() {
   if (!(await waitForServer(BASE_URL))) {
     throw new Error(`Frontend nicht erreichbar unter ${BASE_URL}.`);
@@ -184,20 +173,24 @@ async function main() {
       failures.push(`Beitritts-Overlay: ${error instanceof Error ? error.message : String(error)}`);
     });
 
-    const expiration = host.locator('[data-testid="configure-session-expiration"]');
-    const footerOk = await expiration.isVisible().catch(() => false);
-    logStep(footerOk, 'Q&A-Footer zeigt Zugang für Teilnehmende');
-    if (!footerOk) {
-      failures.push('Action-Bar ohne »Zugang für Teilnehmende«.');
+    const qaSettings = host.getByRole('button', { name: /Q&A-Einstellungen/i });
+    const settingsOk = await qaSettings.isVisible().catch(() => false);
+    logStep(settingsOk, 'Q&A-Kanal zeigt Q&A-Einstellungen');
+    if (!settingsOk) {
+      failures.push('Q&A ohne »Q&A-Einstellungen«.');
     }
 
-    if (footerOk) {
+    if (settingsOk) {
       try {
-        await openAndCloseDialog(host, 'configure-session-expiration', 'Zugang für Teilnehmende');
-        logStep(true, 'Host öffnet den Teilnehmerzugang');
+        await qaSettings.click();
+        const dialog = host.locator('mat-dialog-container').filter({ hasText: /Fragerunde/i });
+        await dialog.waitFor({ state: 'visible', timeout: 10_000 });
+        await host.getByRole('button', { name: /Abbrechen/i }).click();
+        await dialog.waitFor({ state: 'hidden', timeout: 10_000 });
+        logStep(true, 'Host öffnet die Q&A-Einstellungen');
       } catch (error) {
         failures.push(
-          `Teilnehmerzugang-Dialog: ${error instanceof Error ? error.message : String(error)}`,
+          `Q&A-Einstellungen-Dialog: ${error instanceof Error ? error.message : String(error)}`,
         );
       }
     }

@@ -435,6 +435,7 @@ describe('session absolute lifecycle', () => {
         originalHost: true,
         timeZone: 'Europe/Berlin',
         serverNow: '2026-09-15T07:00:00.000Z',
+        projectedPostProcessingEndsAt: '2026-09-30T07:00:00.000Z',
       });
     },
   );
@@ -683,6 +684,8 @@ describe('session absolute lifecycle', () => {
       newQaClosesAt: '2026-09-15T06:30:00.123Z',
       newExpiresAt: '2026-09-16T06:00:00.000Z',
       requiresSessionExtension: false,
+      // Host-Leseende folgt qaClosesAt (+14 Tage), nicht dem unveränderten Sessionende.
+      projectedPostProcessingEndsAt: '2026-09-29T06:30:00.123Z',
     });
 
     await caller.configureQaChannel({

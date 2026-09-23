@@ -1619,9 +1619,6 @@ export class SessionHostComponent implements OnInit, OnDestroy {
     return this.isQaSession() && this.isChannelOpen('qa') && !this.qaDeadlineExpired();
   });
   /** Die Q&A-Obergrenze sitzt nur im Q&A-Kanal, nicht in der Quiz-/Blitzlicht-Live-Kapsel. */
-  readonly showQaChannelLifecycleChrome = computed(
-    () => this.activeChannel() === 'qa' && this.channels().qa,
-  );
   readonly isPlayfulPreset = computed(() => this.themePreset.preset() === 'spielerisch');
   readonly canShowFoyerEntrance = computed(() => {
     const session = this.session();
@@ -4621,34 +4618,6 @@ export class SessionHostComponent implements OnInit, OnDestroy {
     void this.openSessionExpirationDialog(
       { mode: 'GLOBAL_WARNING', warningMinutes, lifecycle },
       this.document.activeElement instanceof HTMLElement ? this.document.activeElement : null,
-    );
-  }
-
-  async openSessionLifecycleConfiguration(event?: Event): Promise<void> {
-    const lifecycle = this.sessionLifecycle();
-    if (!lifecycle || this.sessionLifecycleDialogOpen) {
-      return;
-    }
-    // Nach dem ersten Beitritt ist nur noch die Teilnehmer-Öffnungszeit änderbar
-    // (nicht die einmalige Session-Obergrenze) — dafür die Q&A-Einstellungen.
-    if (!lifecycle.configurationAllowed) {
-      await this.openQaConfigurationDialog();
-      return;
-    }
-    const focusReturn =
-      event?.currentTarget instanceof HTMLElement
-        ? event.currentTarget
-        : this.document.activeElement instanceof HTMLElement
-          ? this.document.activeElement
-          : null;
-    await this.openSessionExpirationDialog(
-      {
-        mode: 'INITIAL_CONFIGURATION',
-        lifecycle,
-        participantAccessEndsAt:
-          this.qaDeadlineInstant() ?? lifecycle.qaClosesAt ?? lifecycle.expiresAt,
-      },
-      focusReturn,
     );
   }
 

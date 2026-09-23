@@ -270,12 +270,17 @@ export class SessionExpirationDialogComponent {
       return;
     }
     const local = this.absoluteLocal();
+    if (!local) {
+      this.inputError.set(
+        $localize`:@@sessionLifecycle.absoluteRequired:Bitte wähle Datum und Uhrzeit.`,
+      );
+      return;
+    }
     if (
-      !local ||
       !isSessionLocalDateTimeWithinBounds(local, this.absoluteBounds.min, this.absoluteBounds.max)
     ) {
       this.inputError.set(
-        $localize`:@@sessionLifecycle.invalidLocalDate:Diese lokale Uhrzeit ist in der Sessionzeitzone nicht eindeutig oder ungültig.`,
+        $localize`:@@sessionLifecycle.absoluteOutOfBounds:Dieses Datum und diese Uhrzeit liegen außerhalb des zulässigen Zeitfensters.`,
       );
       return;
     }
@@ -295,7 +300,7 @@ export class SessionExpirationDialogComponent {
       }
     } catch {
       this.inputError.set(
-        $localize`:@@sessionLifecycle.invalidLocalDate:Diese lokale Uhrzeit ist in der Sessionzeitzone nicht eindeutig oder ungültig.`,
+        $localize`:@@sessionLifecycle.invalidLocalDate:Diese Uhrzeit gibt es in der Zeitzone der Session nicht oder sie kommt zweimal vor (Zeitumstellung). Wähle eine andere Minute.`,
       );
     }
   }

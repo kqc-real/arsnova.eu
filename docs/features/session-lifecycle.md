@@ -234,13 +234,11 @@ Die Join-Kapsel neben dem QR-Code bleibt kompakt: Code und Teilnehmerzahl,
 ohne Sessionende und ohne Löschtermin. Die Q&A-Fristzeile des Hosts nennt den
 Zugang für Teilnehmende und, darunter, bis wann der Host die Fragen noch
 einsehen kann. Vote zeigt nur die offene-bis-Zeile für Teilnehmende.
-Q&A-Einstellungen bleiben host-only. Quiz- und
-Blitzlichtansicht behalten dieselbe kompakte Kapsel. Die 30- und 5-Minuten-Warnung gilt weiter sessionweit. „Zugang für Teilnehmende“ sitzt nur im Q&A-Kanal in der
-unteren Host-Action-Bar neben „Session beenden“, nicht in der
-Kopfzeile. Vor dem ersten Beitritt öffnet es die Anfangskonfiguration
-(Sessionende und Teilnehmerzugang zusammen); danach die Q&A-Einstellungen
-für die Öffnungszeit. Der technische Löschtermin bleibt eine
-Betreiberangelegenheit und erscheint nicht in der Host-Ansicht.
+Q&A-Einstellungen bleiben host-only und sind der Einstieg, um die
+Teilnehmer-Öffnungszeit anzupassen. Quiz- und Blitzlichtansicht behalten
+dieselbe kompakte Kapsel. Die 30- und 5-Minuten-Warnung gilt weiter
+sessionweit für das globale Sessionende. Der technische Löschtermin bleibt
+eine Betreiberangelegenheit und erscheint nicht in der Host-Ansicht.
 
 Der Lifecyclevertrag projiziert und liefert:
 

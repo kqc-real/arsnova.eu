@@ -212,13 +212,13 @@ describe('QaChannelConfigurationDialogComponent', () => {
     });
     expect(fixture.nativeElement.textContent).toContain('Zugang für Teilnehmende endet');
     expect(fixture.nativeElement.textContent).toContain('Fragen einsehen kannst du bis');
-    expect(fixture.nativeElement.textContent).toContain('Session endet');
-    expect(fixture.nativeElement.textContent).toContain(
-      'Beim Bestätigen wird die globale Sessionfrist mit verlängert',
+    expect(fixture.nativeElement.textContent).not.toContain('Session endet');
+    expect(fixture.nativeElement.textContent).not.toContain('Bisheriges Sessionende');
+    expect(fixture.nativeElement.textContent).not.toContain('Neues Sessionende');
+    expect(fixture.nativeElement.textContent).not.toContain(
+      'Beim Bestätigen kannst du die Fragen danach länger einsehen',
     );
-    expect(fixture.nativeElement.textContent).toContain('Bisheriges Sessionende');
-    expect(fixture.nativeElement.textContent).toContain('Neues Sessionende');
-    expect(fixture.nativeElement.textContent).toContain('Fragen einsehen kannst du bis');
+    expect(fixture.nativeElement.textContent).not.toContain('Grün markierte Tage sind wählbar');
     expect(fixture.nativeElement.textContent).toContain('Titel der Fragenwand');
   });
 
@@ -646,13 +646,46 @@ describe('QaChannelConfigurationDialogComponent', () => {
         },
       },
     };
-    const { component } = configureTestBed(false, undefined, true, foldSession);
+    const foldMaxExpiresAt = '2026-10-28T10:00:00.000Z';
+    const foldServerNow = '2026-10-24T10:00:00.000Z';
+    previewMock.mockResolvedValue({
+      ...matchingSessionPreview,
+      mode: 'REPLAN' as const,
+      maxExpiresAt: foldMaxExpiresAt,
+      serverNow: foldServerNow,
+      oldExpiresAt: foldSession.expiresAt,
+      newExpiresAt: foldSession.expiresAt,
+      requiresSessionExtension: false,
+    });
+    TestBed.resetTestingModule();
+    const close = vi.fn();
+    TestBed.configureTestingModule({
+      imports: [QaChannelConfigurationDialogComponent],
+      providers: [
+        provideNativeDateAdapter(),
+        {
+          provide: MAT_DIALOG_DATA,
+          useValue: {
+            code: 'ABC123',
+            session: foldSession,
+            profileLocked: false,
+            maxExpiresAt: foldMaxExpiresAt,
+            serverNow: foldServerNow,
+          },
+        },
+        { provide: MatDialogRef, useValue: { close } },
+        { provide: MatDialog, useValue: { open: vi.fn() } },
+      ],
+    });
+    const fixture = TestBed.createComponent(QaChannelConfigurationDialogComponent);
+    const component = fixture.componentInstance;
+    fixture.detectChanges();
     component.deadlineKind = 'ABSOLUTE';
     component.absoluteLocal = '2026-10-25T02:45';
     await component.confirm();
 
     expect(configureMock).not.toHaveBeenCalled();
-    expect(component.error()).toContain('nicht eindeutig');
+    expect(component.error()).toContain('Zeitumstellung');
   });
 
   it('beschreibt eine Verlängerung ohne Wiederöffnen als Speichern', async () => {
@@ -704,11 +737,16 @@ describe('QaChannelConfigurationDialogComponent', () => {
       expect.objectContaining({
         data: expect.objectContaining({
           confirmLabel: 'Session verlängern und Änderungen speichern',
-          message: expect.stringContaining('Zugang für Teilnehmende liegt'),
+          title: 'Frist bestätigen',
+          message: '',
+          consequences: expect.arrayContaining([
+            expect.stringContaining('Zugang für Teilnehmende endet:'),
+            expect.stringContaining('Fragen einsehen kannst du bis:'),
+          ]),
         }),
       }),
     );
-    expect(dialogOpen.mock.calls[0]?.[1].data.message).not.toContain('Die Fragerunde läuft');
+    expect(dialogOpen.mock.calls[0]?.[1].data.consequences).toHaveLength(2);
     expect(configureMock).toHaveBeenCalledWith(expect.objectContaining({ reopenQa: false }));
   });
 
