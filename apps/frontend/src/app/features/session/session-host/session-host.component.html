@@ -4070,7 +4070,12 @@
                     <mat-icon aria-hidden="true">{{
                       qaDeadlineExpired() ? 'event_busy' : 'schedule'
                     }}</mat-icon>
-                    <span>{{ deadlineLabel }}</span>
+                    <span class="session-host__qa-deadline-copy">
+                      <span>{{ deadlineLabel }}</span>
+                      @if (qaHostReadLabel(); as hostRead) {
+                        <span>{{ hostRead }}</span>
+                      }
+                    </span>
                     @if (effectiveStatus() !== 'FINISHED') {
                       <button
                         mat-stroked-button
@@ -4088,13 +4093,8 @@
                   <p class="session-channel-card__info" role="status">{{ info }}</p>
                 }
                 @if (effectiveStatus() === 'FINISHED' && !qaHostWritesAllowed()) {
-                  <p
-                    class="session-channel-card__info"
-                    role="status"
-                    i18n="@@sessionQa.readOnlyPostProcessing"
-                  >
-                    Die Session ist beendet. Bis zum Ende der Nachbereitung kannst du vorhandene
-                    Inhalte ausschließlich lesen und exportieren.
+                  <p class="session-channel-card__info" role="status">
+                    {{ qaReadOnlyPostProcessingMessage() }}
                   </p>
                 }
 
@@ -4815,31 +4815,6 @@
             <span i18n="@@sessionHost.endGlobalSessionAnchor">Session beenden</span>
           }
         </button>
-        @if (showQaChannelLifecycleChrome() && sessionLifecycle()?.configurationAllowed) {
-          <button
-            mat-button
-            type="button"
-            class="session-host__exit-anchor-button session-host__exit-anchor-button--lifecycle"
-            data-testid="configure-session-expiration"
-            [disabled]="sessionLifecyclePending()"
-            (click)="openSessionLifecycleConfiguration($event)"
-          >
-            <mat-icon aria-hidden="true">schedule</mat-icon>
-            <span i18n="@@sessionLifecycle.configureAction">Maximales Q&A-Ende</span>
-          </button>
-        }
-        @if (showQaRetentionAction()) {
-          <button
-            mat-button
-            type="button"
-            class="session-host__exit-anchor-button session-host__exit-anchor-button--retention"
-            data-testid="session-retention-details"
-            (click)="openSessionRetentionDetails($event)"
-          >
-            <mat-icon aria-hidden="true">storage</mat-icon>
-            <span i18n="@@sessionLifecycle.retentionDetails">Löschtermin anzeigen</span>
-          </button>
-        }
         @if (
           showQuizAnchorActions() &&
           (effectiveStatus() === 'RESULTS' || effectiveStatus() === 'DISCUSSION') &&

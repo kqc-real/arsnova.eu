@@ -214,6 +214,11 @@ export class AppComponent implements OnInit, OnDestroy {
   isContentOverlayRoute = signal(
     typeof window !== 'undefined' && isContentOverlayPath(window.location.pathname),
   );
+  /** Startseite: Skip-Link zielt auf die Code-Eingabe statt auf den gesamten Hauptbereich. */
+  isHomeRoute = signal(
+    typeof window !== 'undefined' &&
+      (AppComponent.withoutLocalePath(window.location.pathname) || '/') === '/',
+  );
   /** Erstes NavigationEnd = Bootstrap; kein Scroll-Reset — sonst kurzer Sprung „richtig → nach oben“ nach dem ersten Layout. */
   private pendingInitialNavigationEnd = true;
 
@@ -393,7 +398,21 @@ export class AppComponent implements OnInit, OnDestroy {
     }
     main.scrollTop = 0;
     this.hasScrolled.set(false);
-    main.focus({ preventScroll: true });
+
+    // Startseite: direkt in die Code-Eingabe, nicht den Viewport-Rahmen um <main>.
+    if (this.isHomeRoute()) {
+      const codeInput = document.getElementById('home-session-code-input');
+      if (codeInput instanceof HTMLElement) {
+        try {
+          codeInput.focus({ preventScroll: true });
+        } catch {
+          codeInput.focus();
+        }
+        return;
+      }
+    }
+
+    this.focusPrimaryContent();
   }
 
   /** Folge-Navigationen werden für Tastatur und Screenreader am neuen Seitenanfang verankert. */
@@ -1158,6 +1177,7 @@ export class AppComponent implements OnInit, OnDestroy {
     this.isContentOverlayRoute.set(
       isContentOverlayPath(fromRouter) || isContentOverlayPath(fromWindow),
     );
+    this.isHomeRoute.set((fromRouter || fromWindow || '/') === '/');
     if (!this.isContentOverlayRoute()) {
       rememberNonOverlayPath(fromRouter || fromWindow);
     }

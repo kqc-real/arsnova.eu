@@ -157,7 +157,7 @@ Im Modus **Nicks** wählt der Dozent eine Altersgruppe, die den Nickname-Pool be
 | Theme            | Icon            | Beschreibung                                                    |
 | ---------------- | --------------- | --------------------------------------------------------------- |
 | Nobelpreisträger | `military_tech` | Namen berühmter Nobelpreisträger (häufige Wahl im Preset-Toast) |
-| Kita             | `child_care`    | Kindgerechte, einfache Tiernamen o.Ä.                           |
+| Tier-Icons       | `child_care`    | Kindgerechte, einfache Tiernamen o.Ä.                           |
 | Grundschule      | `abc`           | Altersgerechte Fantasienamen                                    |
 | Mittelstufe      | `calculate`     | Wissenschaftliche Begriffe                                      |
 | Oberstufe        | `school`        | Komplexere, akademische Pseudonyme                              |

@@ -217,8 +217,6 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
   private readonly snackBar = inject(MatSnackBar);
   private readonly focusService = inject(PresetSnackbarFocusService);
   @ViewChild('sessionCodeInput') private readonly sessionCodeInput?: ElementRef<HTMLInputElement>;
-  @ViewChild('codeEnterBtn', { read: ElementRef })
-  private readonly codeEnterBtn?: ElementRef<HTMLButtonElement>;
   @ViewChild('syncLinkInput') private readonly syncLinkInput?: ElementRef<HTMLInputElement>;
   @ViewChild('syncToggleBtn', { read: ElementRef })
   private readonly syncToggleBtn?: ElementRef<HTMLButtonElement>;
@@ -392,7 +390,7 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
     }
   }
 
-  /** Nach Sprachwechsel-Vollreload: Fokus auf Hero-CTA „Code eingeben“. */
+  /** Nach Sprachwechsel-Vollreload: Fokus auf das Codefeld, nicht auf den Texthinweis. */
   private restoreFocusAfterLocaleReload(): boolean {
     if (!isPlatformBrowser(this.platformId)) {
       return false;
@@ -402,7 +400,7 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
     }
     this.scheduleAnimationFrame(() =>
       this.scheduleAnimationFrame(() => {
-        this.codeEnterBtn?.nativeElement?.focus({ preventScroll: true });
+        this.focusSessionCodeInput();
       }),
     );
     return true;
@@ -1354,7 +1352,7 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
         ? activeElement
         : null;
     // Die MOTD öffnet automatisch: Ein zuvor aktives Codefeld ist daher kein
-    // Dialog-Öffner. Nach dem Schließen dient der sichtbare CTA als Rücksprungziel.
+    // Dialog-Öffner. Nach dem Schließen springt der Fokus auf das Codefeld.
     this.motdFocusReturn =
       focusReturnCandidate === this.sessionCodeInput?.nativeElement ? null : focusReturnCandidate;
     this.motd.set(motd);
@@ -1537,13 +1535,8 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
           return;
         }
         // Erst nach dem Render ist der Dialog-Fokus-Trap entfernt und der
-        // Hintergrund nicht mehr inert. Ohne Öffner erhält dann der sichtbare
-        // primäre Einstieg den Fokus, nie der Skip-Link.
-        const primaryAction = this.codeEnterBtn?.nativeElement;
-        if (primaryAction?.isConnected && !primaryAction.disabled) {
-          this.focusMonitor.focusVia(primaryAction, returnFocusOrigin, { preventScroll: true });
-          return;
-        }
+        // Hintergrund nicht mehr inert. Ohne Öffner erhält das Codefeld den
+        // Fokus, nie der Skip-Link und nie der Texthinweis darüber.
         const input = this.sessionCodeInput?.nativeElement;
         if (input) {
           this.focusMonitor.focusVia(input, returnFocusOrigin, { preventScroll: true });

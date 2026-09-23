@@ -5662,7 +5662,8 @@ const sessionCoreRouter = router({
       if (input.purpose === 'INITIAL_CONFIGURATION' && session.firstParticipantJoinedAt !== null) {
         throw new TRPCError({
           code: 'CONFLICT',
-          message: 'Nach dem ersten Beitritt kann die Anfangsfrist nicht mehr geändert werden.',
+          message:
+            'Nach dem ersten Beitritt kannst du den Zugang für Teilnehmende nur noch in den Q&A-Einstellungen anpassen.',
         });
       }
       const newExpiresAt =
@@ -5680,16 +5681,6 @@ const sessionCoreRouter = router({
               timeZone: session.timeZone,
               selection: input.selection,
             });
-      if (
-        input.purpose === 'INITIAL_CONFIGURATION' &&
-        session.qaClosesAt &&
-        session.qaClosesAt > newExpiresAt
-      ) {
-        throw new TRPCError({
-          code: 'BAD_REQUEST',
-          message: 'Die Sessionfrist kann nicht vor die bestehende Q&A-Frist gesetzt werden.',
-        });
-      }
       return {
         purpose: input.purpose,
         expectedLifecycleRevision: session.sessionLifecycleRevision,
@@ -5761,7 +5752,8 @@ const sessionCoreRouter = router({
           ) {
             throw new TRPCError({
               code: 'CONFLICT',
-              message: 'Nach dem ersten Beitritt kann die Anfangsfrist nicht mehr geändert werden.',
+              message:
+                'Nach dem ersten Beitritt kannst du den Zugang für Teilnehmende nur noch in den Q&A-Einstellungen anpassen.',
             });
           }
 
@@ -5780,16 +5772,6 @@ const sessionCoreRouter = router({
                   timeZone: session.timeZone,
                   selection: input.selection,
                 });
-          if (
-            input.purpose === 'INITIAL_CONFIGURATION' &&
-            session.qaClosesAt &&
-            session.qaClosesAt > newExpiresAt
-          ) {
-            throw new TRPCError({
-              code: 'BAD_REQUEST',
-              message: 'Die Sessionfrist kann nicht vor die bestehende Q&A-Frist gesetzt werden.',
-            });
-          }
           if (new Date(input.confirmedExpiresAt).getTime() !== newExpiresAt.getTime()) {
             throw new TRPCError({
               code: 'CONFLICT',
@@ -5797,6 +5779,8 @@ const sessionCoreRouter = router({
             });
           }
 
+          const qaFollowsSessionEnd =
+            input.purpose === 'INITIAL_CONFIGURATION' && session.qaClosesAt instanceof Date;
           return tx.session.update({
             where: { id: session.id },
             data: {
@@ -5807,6 +5791,7 @@ const sessionCoreRouter = router({
                     timeZone: input.timeZone,
                   }
                 : {}),
+              ...(qaFollowsSessionEnd ? { qaClosesAt: newExpiresAt } : {}),
             },
             select: {
               status: true,
@@ -5817,6 +5802,7 @@ const sessionCoreRouter = router({
               firstParticipantJoinedAt: true,
               timeZone: true,
               sessionLifecycleRevision: true,
+              legalHoldUntil: true,
             },
           });
         });
@@ -5824,11 +5810,13 @@ const sessionCoreRouter = router({
         invalidateSessionStatusCachesForCode(code);
         const serverNow = new Date();
         const maxExpiresAt = getSessionMaxExpiresAt(updated.createdAt);
+        const effectivelyFinished = isSessionEffectivelyFinished(updated, serverNow);
+        const retention = buildSessionRetentionTimeline(updated, serverNow);
         return {
-          status: updated.status,
+          status: effectivelyFinished ? 'FINISHED' : updated.status,
           createdAt: updated.createdAt.toISOString(),
           expiresAt: updated.expiresAt.toISOString(),
-          endedAt: updated.endedAt?.toISOString() ?? null,
+          endedAt: retention.endedAt?.toISOString() ?? null,
           qaClosesAt: updated.qaClosesAt?.toISOString() ?? null,
           firstParticipantJoinedAt: updated.firstParticipantJoinedAt?.toISOString() ?? null,
           timeZone: updated.timeZone,
@@ -5836,13 +5824,17 @@ const sessionCoreRouter = router({
           serverNow: serverNow.toISOString(),
           maxExpiresAt: maxExpiresAt.toISOString(),
           originalHost,
-          extensionAllowed: originalHost && updated.expiresAt.getTime() < maxExpiresAt.getTime(),
-          configurationAllowed: updated.firstParticipantJoinedAt === null,
-          postProcessingEndsAt: null,
-          purgeEligibleAt: null,
-          expectedDeletionAt: null,
-          deletionDelayedByLegalHold: false,
-          hostContentAccessAllowed: true,
+          extensionAllowed:
+            originalHost &&
+            !effectivelyFinished &&
+            updated.expiresAt.getTime() < maxExpiresAt.getTime(),
+          configurationAllowed: !effectivelyFinished && updated.firstParticipantJoinedAt === null,
+          postProcessingEndsAt: retention.postProcessingEndsAt?.toISOString() ?? null,
+          purgeEligibleAt: retention.purgeEligibleAt?.toISOString() ?? null,
+          expectedDeletionAt: retention.expectedDeletionAt?.toISOString() ?? null,
+          deletionDelayedByLegalHold: retention.deletionDelayedByLegalHold,
+          hostContentAccessAllowed:
+            !effectivelyFinished || retention.hostPostProcessingAccessAllowed,
         };
       } catch (error) {
         if (error instanceof TRPCError || !String(error).includes('ARSNOVA_SESSION_')) {
@@ -5913,6 +5905,7 @@ const sessionCoreRouter = router({
         timeZone: session.timeZone,
         maxExpiresAt: getSessionMaxExpiresAt(session.createdAt).toISOString(),
         serverNow: serverNow.toISOString(),
+        // Host-Leseende folgt dem Sessionende (+14 Tage), wie buildSessionRetentionTimeline.
         projectedPostProcessingEndsAt: getPostProcessingEndsAt(window.expiresAt).toISOString(),
         projectedPurgeEligibleAt: getPostProcessingEndsAt(window.expiresAt).toISOString(),
       };

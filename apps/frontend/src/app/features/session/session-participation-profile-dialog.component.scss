@@ -59,15 +59,6 @@
   }
 }
 
-.participation-profile-dialog__lock {
-  padding: 0.75rem;
-  border: 1px solid var(--mat-sys-outline-variant);
-  border-radius: var(--mat-sys-corner-medium);
-  background: var(--mat-sys-surface-container);
-  color: var(--mat-sys-on-surface-variant);
-  font: var(--mat-sys-body-small);
-}
-
 @media (max-width: 359px) {
   .participation-profile-dialog__content {
     width: auto;

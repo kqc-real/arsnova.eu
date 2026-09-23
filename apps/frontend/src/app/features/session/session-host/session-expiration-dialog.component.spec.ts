@@ -1,6 +1,8 @@
 import { TestBed } from '@angular/core/testing';
+import { provideNativeDateAdapter } from '@angular/material/core';
 import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
 import { describe, expect, it, vi } from 'vitest';
+import { sessionLocalDateTimeToIso } from '../session-local-datetime';
 import { SessionExpirationDialogComponent } from './session-expiration-dialog.component';
 
 const lifecycle = {
@@ -24,6 +26,7 @@ describe('SessionExpirationDialogComponent', () => {
     TestBed.configureTestingModule({
       imports: [SessionExpirationDialogComponent],
       providers: [
+        provideNativeDateAdapter(),
         {
           provide: MAT_DIALOG_DATA,
           useValue: {
@@ -49,6 +52,7 @@ describe('SessionExpirationDialogComponent', () => {
     TestBed.configureTestingModule({
       imports: [SessionExpirationDialogComponent],
       providers: [
+        provideNativeDateAdapter(),
         {
           provide: MAT_DIALOG_DATA,
           useValue: {
@@ -63,18 +67,28 @@ describe('SessionExpirationDialogComponent', () => {
     fixture.detectChanges();
 
     const text = fixture.nativeElement.textContent as string;
-    expect(text).toContain('Maximales Q&A-Ende');
-    expect(text).toContain('Damit setzt du das Sessionende');
-    expect(text).toContain('Aktuelles maximales Q&A-Ende');
+    expect(text).toContain('Zugang für Teilnehmende');
+    expect(text).toContain('Der erste Zeitpunkt beendet den Zugang für Teilnehmende');
+    expect(text).toContain('Zugang für Teilnehmende endet:');
+    expect(text).toContain('Fragen einsehen kannst du bis:');
     expect(text).toContain('Anzahl der Tage');
+    expect(text).toContain('Neuer Zugang für Teilnehmende');
+    expect(text).toContain('Fragen einsehen kannst du dann bis');
+    expect(text).not.toContain('Bis Datum und Uhrzeit');
     expect(text).not.toContain('Für Kalendertage');
     expect(text).not.toContain('Aktuelles Sessionende');
+    expect(fixture.nativeElement.querySelector('input[type="datetime-local"]')).toBeNull();
+    expect(fixture.componentInstance.days()).toBe(1);
+    expect(text).toContain(
+      fixture.componentInstance.formatDateTime(fixture.componentInstance.resolvedDaysEnd()!),
+    );
   });
 
   it('bietet kurz nach Erstellung weiter 14 Kalendertage ab createdAt', () => {
     TestBed.configureTestingModule({
       imports: [SessionExpirationDialogComponent],
       providers: [
+        provideNativeDateAdapter(),
         {
           provide: MAT_DIALOG_DATA,
           useValue: {
@@ -101,6 +115,7 @@ describe('SessionExpirationDialogComponent', () => {
     TestBed.configureTestingModule({
       imports: [SessionExpirationDialogComponent],
       providers: [
+        provideNativeDateAdapter(),
         {
           provide: MAT_DIALOG_DATA,
           useValue: {
@@ -132,6 +147,7 @@ describe('SessionExpirationDialogComponent', () => {
     TestBed.configureTestingModule({
       imports: [SessionExpirationDialogComponent],
       providers: [
+        provideNativeDateAdapter(),
         {
           provide: MAT_DIALOG_DATA,
           useValue: {
@@ -155,10 +171,94 @@ describe('SessionExpirationDialogComponent', () => {
     });
   });
 
+  it('lässt eine abgelehnte Frist im Dialog stehen', async () => {
+    const close = vi.fn();
+    const dialogRef = { close, disableClose: false };
+    TestBed.configureTestingModule({
+      imports: [SessionExpirationDialogComponent],
+      providers: [
+        provideNativeDateAdapter(),
+        {
+          provide: MAT_DIALOG_DATA,
+          useValue: {
+            mode: 'INITIAL_CONFIGURATION',
+            lifecycle: { ...lifecycle, firstParticipantJoinedAt: null, configurationAllowed: true },
+            submit: vi.fn(async () => {
+              throw new Error(
+                'Die Sessionfrist kann nicht vor die bestehende Q&A-Frist gesetzt werden.',
+              );
+            }),
+          },
+        },
+        { provide: MatDialogRef, useValue: dialogRef },
+      ],
+    });
+    const fixture = TestBed.createComponent(SessionExpirationDialogComponent);
+    fixture.componentInstance.days.set(7);
+
+    await fixture.componentInstance.chooseDays();
+
+    expect(close).not.toHaveBeenCalled();
+    expect(fixture.componentInstance.inputError()).toContain('bestehende Q&A-Frist');
+    expect(dialogRef.disableClose).toBe(false);
+  });
+
+  it('sperrt Abbrechen und disableClose während eines laufenden Speicherns', async () => {
+    let resolveSubmit!: (value: boolean) => void;
+    const submit = vi.fn(
+      () =>
+        new Promise<boolean>((resolve) => {
+          resolveSubmit = resolve;
+        }),
+    );
+    const close = vi.fn();
+    const dialogRef = { close, disableClose: false };
+    TestBed.configureTestingModule({
+      imports: [SessionExpirationDialogComponent],
+      providers: [
+        provideNativeDateAdapter(),
+        {
+          provide: MAT_DIALOG_DATA,
+          useValue: {
+            mode: 'INITIAL_CONFIGURATION',
+            lifecycle: { ...lifecycle, firstParticipantJoinedAt: null, configurationAllowed: true },
+            submit,
+          },
+        },
+        { provide: MatDialogRef, useValue: dialogRef },
+      ],
+    });
+    const fixture = TestBed.createComponent(SessionExpirationDialogComponent);
+    fixture.componentInstance.days.set(7);
+    fixture.detectChanges();
+
+    const pending = fixture.componentInstance.chooseDays();
+    await Promise.resolve();
+    fixture.detectChanges();
+
+    expect(fixture.componentInstance.checking()).toBe(true);
+    expect(dialogRef.disableClose).toBe(true);
+    const cancel = fixture.nativeElement.querySelector(
+      'mat-dialog-actions button',
+    ) as HTMLButtonElement;
+    expect(cancel.disabled).toBe(true);
+    fixture.componentInstance.close();
+    expect(close).not.toHaveBeenCalled();
+
+    resolveSubmit(false);
+    await pending;
+    fixture.detectChanges();
+
+    expect(fixture.componentInstance.checking()).toBe(false);
+    expect(dialogRef.disableClose).toBe(false);
+    expect(close).not.toHaveBeenCalled();
+  });
+
   it('erklärt dem Originalhost die erreichte Obergrenze ohne Verlängerungsbuttons', () => {
     TestBed.configureTestingModule({
       imports: [SessionExpirationDialogComponent],
       providers: [
+        provideNativeDateAdapter(),
         {
           provide: MAT_DIALOG_DATA,
           useValue: {
@@ -177,10 +277,11 @@ describe('SessionExpirationDialogComponent', () => {
     expect(fixture.nativeElement.textContent).not.toContain('Um 1 Stunde');
   });
 
-  it('stellt in der Warnung Sessionende und unveränderten Q&A-Schluss gegenüber', () => {
+  it('stellt in der Warnung Sessionende und unveränderten Teilnehmerzugang gegenüber', () => {
     TestBed.configureTestingModule({
       imports: [SessionExpirationDialogComponent],
       providers: [
+        provideNativeDateAdapter(),
         {
           provide: MAT_DIALOG_DATA,
           useValue: {
@@ -196,7 +297,8 @@ describe('SessionExpirationDialogComponent', () => {
     fixture.detectChanges();
 
     const text = fixture.nativeElement.textContent as string;
-    expect(text).toContain('Q&A schließt unabhängig davon weiterhin');
+    expect(text).toContain('Der Zugang für Teilnehmende bleibt unverändert');
+    expect(text).toContain('Zugang für Teilnehmende endet weiterhin');
     expect(text).toContain('1 Stunde');
     expect(text).toContain('1 Tag');
     expect(text).toContain('7 Tage');
@@ -207,6 +309,7 @@ describe('SessionExpirationDialogComponent', () => {
     TestBed.configureTestingModule({
       imports: [SessionExpirationDialogComponent],
       providers: [
+        provideNativeDateAdapter(),
         {
           provide: MAT_DIALOG_DATA,
           useValue: {
@@ -218,24 +321,29 @@ describe('SessionExpirationDialogComponent', () => {
       ],
     });
     const fixture = TestBed.createComponent(SessionExpirationDialogComponent);
+    fixture.componentInstance.onDeadlineKindChange('ABSOLUTE');
     fixture.detectChanges();
 
-    const input = fixture.nativeElement.querySelector(
-      'input[type="datetime-local"]',
-    ) as HTMLInputElement | null;
-    expect(input?.getAttribute('min')).toBe('2026-03-25T12:31');
-    expect(input?.getAttribute('max')).toBe('2026-04-07T14:00');
-    expect(input).not.toBeNull();
-    const showPicker = vi.fn();
-    Object.defineProperty(input, 'showPicker', { value: showPicker });
-    input?.click();
-    expect(showPicker).toHaveBeenCalled();
+    expect(fixture.nativeElement.querySelector('input[type="number"]')).toBeNull();
+    expect(fixture.nativeElement.querySelector('mat-datepicker')).not.toBeNull();
+    expect(fixture.nativeElement.querySelector('input[type="time"]')).not.toBeNull();
+    expect(fixture.componentInstance.absoluteBounds).toEqual({
+      min: '2026-03-25T12:31',
+      max: '2026-04-07T14:00',
+    });
+    expect(fixture.componentInstance.absoluteDateClass(new Date(2026, 2, 20), 'month')).toBe(
+      'session-deadline-day--blocked',
+    );
+    expect(fixture.componentInstance.absoluteDateClass(new Date(2026, 2, 26), 'month')).toBe(
+      'session-deadline-day--allowed',
+    );
   });
 
   it('begrenzt den Verlängerungs-Datepicker auf nach dem bisherigen Sessionende', () => {
     TestBed.configureTestingModule({
       imports: [SessionExpirationDialogComponent],
       providers: [
+        provideNativeDateAdapter(),
         {
           provide: MAT_DIALOG_DATA,
           useValue: {
@@ -250,18 +358,18 @@ describe('SessionExpirationDialogComponent', () => {
     const fixture = TestBed.createComponent(SessionExpirationDialogComponent);
     fixture.detectChanges();
 
-    const input = fixture.nativeElement.querySelector(
-      'input[type="datetime-local"]',
-    ) as HTMLInputElement | null;
-    expect(input?.getAttribute('min')).toBe('2026-03-25T13:01');
-    expect(input?.getAttribute('max')).toBe('2026-04-07T14:00');
+    expect(fixture.componentInstance.absoluteBounds).toEqual({
+      min: '2026-03-25T13:01',
+      max: '2026-04-07T14:00',
+    });
   });
 
-  it('bestätigt kein Datum außerhalb von min/max', () => {
+  it('klemmt Datum und Uhrzeit still auf min/max statt abzuweisen', async () => {
     const close = vi.fn();
     TestBed.configureTestingModule({
       imports: [SessionExpirationDialogComponent],
       providers: [
+        provideNativeDateAdapter(),
         {
           provide: MAT_DIALOG_DATA,
           useValue: {
@@ -273,14 +381,52 @@ describe('SessionExpirationDialogComponent', () => {
       ],
     });
     const fixture = TestBed.createComponent(SessionExpirationDialogComponent);
-    const input = document.createElement('input');
-    input.type = 'datetime-local';
-    vi.spyOn(input, 'checkValidity').mockReturnValue(false);
-    const reportValidity = vi.spyOn(input, 'reportValidity').mockReturnValue(false);
+    // Vor dem erlaubten Fenster → wird auf absoluteBounds.min geklemmt.
+    fixture.componentInstance.absoluteDate.set(new Date(2026, 2, 20));
+    fixture.componentInstance.absoluteTime.set('10:00');
 
-    fixture.componentInstance.chooseAbsolute(input);
+    await fixture.componentInstance.chooseAbsolute();
 
-    expect(reportValidity).toHaveBeenCalled();
-    expect(close).not.toHaveBeenCalled();
+    expect(close).toHaveBeenCalledWith({
+      purpose: 'INITIAL_CONFIGURATION',
+      selection: {
+        kind: 'ABSOLUTE',
+        expiresAt: sessionLocalDateTimeToIso('2026-03-25T12:31', 'Europe/Berlin'),
+      },
+      timeZone: 'Europe/Berlin',
+    });
+    expect(fixture.componentInstance.inputError()).toBeNull();
+  });
+
+  it('übernimmt das gewählte Datum und die Uhrzeit', async () => {
+    const close = vi.fn();
+    TestBed.configureTestingModule({
+      imports: [SessionExpirationDialogComponent],
+      providers: [
+        provideNativeDateAdapter(),
+        {
+          provide: MAT_DIALOG_DATA,
+          useValue: {
+            mode: 'INITIAL_CONFIGURATION',
+            lifecycle: { ...lifecycle, firstParticipantJoinedAt: null, configurationAllowed: true },
+          },
+        },
+        { provide: MatDialogRef, useValue: { close } },
+      ],
+    });
+    const fixture = TestBed.createComponent(SessionExpirationDialogComponent);
+    fixture.componentInstance.absoluteDate.set(new Date(2026, 3, 1));
+    fixture.componentInstance.absoluteTime.set('15:30');
+
+    await fixture.componentInstance.chooseAbsolute();
+
+    expect(close).toHaveBeenCalledWith({
+      purpose: 'INITIAL_CONFIGURATION',
+      selection: {
+        kind: 'ABSOLUTE',
+        expiresAt: sessionLocalDateTimeToIso('2026-04-01T15:30', 'Europe/Berlin'),
+      },
+      timeZone: 'Europe/Berlin',
+    });
   });
 });

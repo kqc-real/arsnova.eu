@@ -50,9 +50,15 @@ erlaubt weiter Beitritt und Forenbeiträge bis zum früheren Zeitpunkt aus
 laufen; der Sessionkern bleibt unveränderlich.
 
 Vor dem ersten Beitritt kann ein Host die Anfangsfrist als Kalendertage oder als
-absolutes Datum mit Uhrzeit festlegen. Kalendertage werden ab `createdAt` in der
-angezeigten Sessionzeitzone gerechnet; nicht existente oder doppelte lokale
-DST-Uhrzeiten werden abgelehnt. Der Server berechnet zunächst eine Vorschau mit
+absolutes Datum mit Uhrzeit festlegen. Der Dialog zeigt immer nur eine der
+beiden Arten. Kalendertage werden ab `createdAt` in der angezeigten
+Sessionzeitzone gerechnet und nennen das daraus folgende Ende; nicht existente
+oder doppelte lokale DST-Uhrzeiten werden abgelehnt. Dieselbe Speicherung setzt den
+Zugang für Teilnehmende auf diesen Zeitpunkt, auch wenn die bisherige
+Q&A-Frist später lag. Dialog und Q&A-Karte nennen beide
+Zeiten: wann Teilnehmende den Kanal nicht mehr nutzen können, und bis wann der
+Host die Fragen danach noch einsehen kann (`expiresAt` plus 14 Tage
+Nachbereitung). Der Server berechnet zunächst eine Vorschau mit
 eindeutigem UTC-Zeitpunkt. Erst eine zweite ausdrückliche Bestätigung speichert
 die Frist.
 
@@ -104,15 +110,13 @@ Verfügbar sind:
 - um eine Stunde;
 - um einen Kalendertag;
 - um sieben Kalendertage;
-- bis zu einem absoluten Datum mit Uhrzeit. Native `datetime-local`-Picker
-  begrenzen Tage, Monate und Jahre auf das zulässige Fenster: nach `serverNow`
-  (bei einer Verlängerung zusätzlich nach dem bisherigen `expiresAt`) bis
-  `maxExpiresAt`, jeweils in der Sessionzeitzone. Der Kalender-Indikator bleibt
-  sichtbar; ein Klick öffnet den nativen Picker in Chromium und Desktop-Safari.
-  Auf iOS öffnet ein Tipp auf das Feld die Systemräder (`showPicker` fehlt dort).
-  `min`/`max` beschränken die Räder in Chromium einschließlich Android. WebKit/iOS
-  zeigt oft weiter alle Daten; die Grenzen gelten dann als Gültigkeit vor dem
-  Bestätigen.
+- bis zu einem absoluten Datum mit Uhrzeit. Der Material-Datepicker zeigt
+  wählbare Tage grün, nicht wählbare rot und die aktuelle Auswahl anders
+  hervorgehoben (zusätzlich textlich erklärt). Zulässig sind Tage nach
+  `serverNow` (bei einer Verlängerung zusätzlich nach dem bisherigen
+  `expiresAt`) bis `maxExpiresAt`, jeweils in der Sessionzeitzone. Datum und
+  Uhrzeit werden getrennt gewählt; die Uhrzeit respektiert an den Randtagen
+  dieselben Minutengrenzen.
 
 Relative Verlängerungen rechnen ab dem bisherigen `expiresAt`. Die
 warnungsbasierte Aktion ändert ausschließlich `expiresAt`. Insbesondere bleiben
@@ -133,7 +137,10 @@ Globale Verlängerungen benötigen neben einem gültigen Hostnachweis ausdrückl
 den Nachweis des ursprünglichen Hosts. Route, Sessioncode, URL, Clientzustand
 und Participant-ID sind keine Berechtigungsquelle. Anfangskonfigurationen
 werden nach `firstParticipantJoinedAt` dauerhaft gesperrt, auch wenn später alle
-Teilnahmen gelöscht wurden.
+Teilnahmen gelöscht wurden. Den Zugang für Teilnehmende (`qaClosesAt`) kannst du
+danach weiter über die Q&A-Einstellungen anpassen. Die Auswahl reicht bis
+`maxExpiresAt`; liegt der neue Schluss nach dem aktuellen `expiresAt`, verlangt
+die Bestätigung eine Sessionverlängerung durch den ursprünglichen Host.
 
 ## Linearisierung und Ausfallverhalten
 
@@ -197,10 +204,14 @@ fristgebunden eingerichteten Kanal. Die erste Einrichtung und jede Neuplanung
 laufen über `configureQaChannel` inklusive serverseitiger Fristprüfung beim
 Bestätigen, nicht über einen zweiten Vorschaudialog. Die Host-UI zeigt die
 ausgerechnete Teilnahmefrist und eine eventuelle Sessionverlängerung direkt im
-Einrichtungsformular. Beim späteren Aktivieren in einer bestehenden Session
+Einrichtungsformular. Datum und Uhrzeit nutzen dasselbe native Fenster wie
+»Zugang für Teilnehmende«: nach `serverNow` bis `maxExpiresAt` aus der bereits
+geladenen Host-Lifecycle. Die Grenzen bleiben stehen, auch wenn die Vorschau
+scheitert. Beim späteren Aktivieren in einer bestehenden Session
 gehört das Teilnahmeprofil zur Einrichtung; beim Anlegen von der Startseite
-bleibt es in Schritt 1. Frist und optionales Teilnahmeprofil gelten vor dem
-ersten Beitritt.
+bleibt es in Schritt 1. Die einmalige Session-Obergrenze gilt vor dem
+ersten Beitritt; den Zugang für Teilnehmende kannst du danach weiter in den
+Q&A-Einstellungen anpassen.
 
 Im Anonymmodus liefert der Teilnehmervertrag keine sichtbare
 `authorNickname`-Angabe. Technische Session-, Teilnehmer- und
@@ -222,15 +233,14 @@ geschlossen. Nach `postProcessingEndsAt = endedAt + 14 Tage` endet auch der
 Inhaltszugriff des Hosts.
 
 Die Join-Kapsel neben dem QR-Code bleibt kompakt: Code und Teilnehmerzahl,
-ohne Sessionende und ohne Löschtermin. Das absolute Sessionende bleibt
-in der Q&A-Fristzeile. Host und Vote zeigen dieselbe offene-bis-Zeile mit
-relativer Restzeit; Q&A-Einstellungen bleiben host-only. Quiz- und
-Blitzlichtansicht behalten dieselbe kompakte Kapsel. Die 30- und 5-Minuten-Warnung gilt weiter sessionweit. Die Aktionen
-„Maximales Q&A-Ende“ und „Löschtermin anzeigen“ sitzen nur im Q&A-Kanal in der
-unteren Host-Action-Bar neben „Session beenden“, nicht in der
-Kopfzeile. „Maximales Q&A-Ende“ bezeichnet die Obergrenze des Q&A-Kanals,
-nicht das Quiz- oder Blitzlichtende. „Löschtermin anzeigen“ öffnet die
-Nachbereitungs- und Löschtermine in einem Dialog.
+ohne Sessionende und ohne Löschtermin. Die Q&A-Fristzeile des Hosts nennt den
+Zugang für Teilnehmende und, darunter, bis wann der Host die Fragen noch
+einsehen kann. Vote zeigt nur die offene-bis-Zeile für Teilnehmende.
+Q&A-Einstellungen bleiben host-only und sind der Einstieg, um die
+Teilnehmer-Öffnungszeit anzupassen. Quiz- und Blitzlichtansicht behalten
+dieselbe kompakte Kapsel. Die 30- und 5-Minuten-Warnung gilt weiter
+sessionweit für das globale Sessionende. Der technische Löschtermin bleibt
+eine Betreiberangelegenheit und erscheint nicht in der Host-Ansicht.
 
 Der Lifecyclevertrag projiziert und liefert:
 

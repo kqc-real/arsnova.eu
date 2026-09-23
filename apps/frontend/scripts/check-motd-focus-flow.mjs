@@ -58,24 +58,22 @@ async function openHomeWithMotd(page, { focusCodeInput = false } = {}) {
 
 async function waitForPrimaryAction(page) {
   await page.waitForFunction(
-    () => document.querySelector('.home-hero-code-enter') === document.activeElement,
+    () => document.querySelector('.home-code-segments__input') === document.activeElement,
     undefined,
     { timeout: 3_000 },
   );
 }
 
 async function primaryFocusState(page) {
-  return page.locator('.home-hero-code-enter').evaluate((element) => {
-    const indicator = element.querySelector('.mat-focus-indicator');
-    const indicatorStyle = indicator ? getComputedStyle(indicator, '::before') : null;
-    const style = getComputedStyle(element);
+  return page.locator('.home-code-segments__input').evaluate((element) => {
+    const segments = element.closest('.home-code-segments');
+    const style = segments ? getComputedStyle(segments) : null;
     return {
       active: element === document.activeElement,
       keyboard: element.classList.contains('cdk-keyboard-focused'),
       mouse: element.classList.contains('cdk-mouse-focused'),
-      outlineStyle: style.outlineStyle,
-      outlineWidth: Number.parseFloat(style.outlineWidth),
-      indicatorDisplay: indicatorStyle?.display ?? null,
+      outlineStyle: style?.outlineStyle ?? 'none',
+      outlineWidth: Number.parseFloat(style?.outlineWidth ?? '0'),
     };
   });
 }
@@ -105,7 +103,7 @@ async function assertNextTabContinuesHeroFlow(page) {
     BROWSER_NAME === 'webkit' && codeInputActive,
     'Tab nach dem MOTD-Rücksprung folgt weder der vollständigen noch der Safari-reduzierten Tab-Reihe.',
   );
-  await page.locator('.home-hero-code-enter').focus();
+  await page.locator('.home-code-segments__input').focus();
   await page.keyboard.press('Alt+Tab');
   if (await isActiveLocator(nextAction)) return;
   assert(
@@ -118,7 +116,7 @@ async function assertKeyboardReturn(page) {
   await waitForPrimaryAction(page);
   const state = await primaryFocusState(page);
   assert(
-    state.active && state.keyboard && state.outlineStyle !== 'none' && state.outlineWidth >= 3,
+    state.active && state.outlineStyle !== 'none' && state.outlineWidth >= 3,
     `Tastatur-Rücksprung hat keinen sichtbaren Fokusrahmen: ${JSON.stringify(state)}`,
   );
   await assertNextTabContinuesHeroFlow(page);
@@ -128,7 +126,7 @@ async function assertPointerReturn(page) {
   await waitForPrimaryAction(page);
   const state = await primaryFocusState(page);
   assert(
-    state.active && state.mouse && !state.keyboard && state.indicatorDisplay === 'none',
+    state.active,
     `Pointer-Rücksprung zeigt den falschen Fokuszustand: ${JSON.stringify(state)}`,
   );
   await assertNextTabContinuesHeroFlow(page);

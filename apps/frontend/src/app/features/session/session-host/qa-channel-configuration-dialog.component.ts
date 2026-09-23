@@ -1,6 +1,7 @@
 import { Component, ElementRef, LOCALE_ID, OnInit, inject, signal, viewChild } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { MatButton } from '@angular/material/button';
+import { MatDatepickerModule } from '@angular/material/datepicker';
 import {
   MAT_DIALOG_DATA,
   MatDialog,
@@ -10,7 +11,7 @@ import {
   MatDialogRef,
   MatDialogTitle,
 } from '@angular/material/dialog';
-import { MatFormField, MatHint, MatLabel } from '@angular/material/form-field';
+import { MatFormField, MatHint, MatLabel, MatSuffix } from '@angular/material/form-field';
 import { MatIcon } from '@angular/material/icon';
 import { MatInput } from '@angular/material/input';
 import { MatOption, MatSelect } from '@angular/material/select';
@@ -30,12 +31,20 @@ import {
   type ConfirmLeaveDialogData,
 } from '../../../shared/confirm-leave-dialog/confirm-leave-dialog.component';
 import {
+  calendarDateToSessionLocalDay,
+  clampSessionLocalDateTimeToBounds,
+  clampSessionLocalTimeToBounds,
+  combineSessionLocalDateAndTime,
   isoToSessionLocalDateTime,
   maxSelectableCalendarDays,
   openSessionDateTimePicker,
   reportSessionDateTimePickerValidity,
   sessionDateTimeLocalBounds,
+  sessionDeadlineDateClass,
+  sessionLocalDatePart,
   sessionLocalDateTimeToIso,
+  sessionLocalDayToCalendarDate,
+  sessionLocalTimePart,
 } from '../session-local-datetime';
 
 const QA_EXTENSION_DIALOG_OVERLAY = {
@@ -50,6 +59,9 @@ export interface QaChannelConfigurationDialogData {
   setupStep?: number;
   setupStepCount?: number;
   omitParticipationProfile?: boolean;
+  /** Harte Obergrenze und Serverzeit aus der Host-Lifecycle, unabhängig von der Vorschau. */
+  maxExpiresAt: string;
+  serverNow: string;
 }
 
 @Component({
@@ -58,6 +70,7 @@ export interface QaChannelConfigurationDialogData {
   imports: [
     FormsModule,
     MatButton,
+    MatDatepickerModule,
     MatDialogActions,
     MatDialogClose,
     MatDialogContent,
@@ -70,6 +83,7 @@ export interface QaChannelConfigurationDialogData {
     MatOption,
     MatSelect,
     MatSlideToggle,
+    MatSuffix,
   ],
   templateUrl: './qa-channel-configuration-dialog.component.html',
   styleUrls: [
@@ -85,14 +99,16 @@ export class QaChannelConfigurationDialogComponent implements OnInit {
     MatDialogRef<QaChannelConfigurationDialogComponent, SessionQaConfigurationDTO | null>,
   );
   private previewRequest = 0;
-  private readonly absoluteInput = viewChild<ElementRef<HTMLInputElement>>('absoluteInput');
+  private readonly absoluteTimeInput = viewChild<ElementRef<HTMLInputElement>>('absoluteTimeInput');
 
   readonly pending = signal(false);
   readonly error = signal<string | null>(null);
   readonly preview = signal<SessionQaConfigurationPreviewDTO | null>(null);
   readonly profileLocked = signal(this.data.profileLocked);
-  readonly maxSelectableDays = signal(0);
   readonly timeZone = this.data.session.timeZone ?? 'UTC';
+  readonly maxSelectableDays = signal(
+    maxSelectableCalendarDays(this.data.serverNow, this.data.maxExpiresAt, this.timeZone),
+  );
   readonly canReopen = this.isClosedOrExpired();
 
   qaTitle = this.resolveInitialTitle();
@@ -100,8 +116,28 @@ export class QaChannelConfigurationDialogComponent implements OnInit {
   identityMode: SessionParticipantIdentityMode = this.resolveIdentityMode();
   deadlineKind: SessionQaDeadlineSelection['kind'] = this.resolveInitialDeadlineKind();
   days = 1;
-  absoluteLocal = this.resolveInitialAbsoluteLocal();
+  absoluteDate: Date | null = null;
+  absoluteTime = '12:00';
   reopenQa = false;
+
+  /** Kompatibel für Tests und Preview: kombiniert Datum und Uhrzeit. */
+  get absoluteLocal(): string {
+    return combineSessionLocalDateAndTime(this.absoluteDate, this.absoluteTime);
+  }
+
+  set absoluteLocal(value: string) {
+    if (!value) {
+      this.absoluteDate = null;
+      this.absoluteTime = '12:00';
+      return;
+    }
+    this.absoluteDate = sessionLocalDayToCalendarDate(sessionLocalDatePart(value));
+    this.absoluteTime = sessionLocalTimePart(value);
+  }
+
+  constructor() {
+    this.absoluteLocal = this.resolveInitialAbsoluteLocal();
+  }
 
   ngOnInit(): void {
     void this.refreshPreview();
@@ -136,16 +172,19 @@ export class QaChannelConfigurationDialogComponent implements OnInit {
   }
 
   async confirm(): Promise<void> {
+    const timeField = this.absoluteTimeInput()?.nativeElement;
+    if (timeField?.value) {
+      this.absoluteTime = timeField.value;
+    }
     const selection = this.buildSelection();
     if (!selection) {
       return;
     }
-    const absoluteField = this.absoluteInput()?.nativeElement;
     if (
       selection.kind === 'ABSOLUTE' &&
       !this.unchangedSavedAbsoluteClosesAt() &&
-      absoluteField &&
-      !reportSessionDateTimePickerValidity(absoluteField)
+      timeField &&
+      !reportSessionDateTimePickerValidity(timeField)
     ) {
       return;
     }
@@ -228,22 +267,14 @@ export class QaChannelConfigurationDialogComponent implements OnInit {
   private async confirmRequiredSessionExtension(
     preview: SessionQaConfigurationPreviewDTO,
   ): Promise<boolean> {
-    const consequences: string[] = [];
-    if (preview.oldQaClosesAt) {
-      consequences.push(
-        $localize`:@@qaConfig.extensionOldQa:Bisheriger Frageschluss: ${this.formatDateTime(preview.oldQaClosesAt)}:date:`,
-      );
-    }
-    consequences.push(
-      $localize`:@@qaConfig.extensionNewQa:Neuer Frageschluss: ${this.formatDateTime(preview.newQaClosesAt)}:date:`,
-      $localize`:@@qaConfig.extensionOldExpires:Bisheriges Sessionende: ${this.formatDateTime(preview.oldExpiresAt)}:date:`,
-      $localize`:@@qaConfig.extensionNewExpires:Neues Sessionende: ${this.formatDateTime(preview.newExpiresAt)}:date:`,
-      $localize`:@@qaConfig.extensionPostProcessing:Host-Lesezugriff bis: ${this.formatDateTime(preview.projectedPostProcessingEndsAt)}:date:`,
-    );
+    const consequences = [
+      $localize`:@@qaConfig.extensionNewQa:Zugang für Teilnehmende endet: ${this.formatDateTime(preview.newQaClosesAt)}:date:`,
+      $localize`:@@qaConfig.extensionPostProcessing:Fragen einsehen kannst du bis: ${this.formatDateTime(preview.projectedPostProcessingEndsAt)}:date:`,
+    ];
     const dialogRef = this.dialog.open(ConfirmLeaveDialogComponent, {
       data: {
-        title: $localize`:@@qaConfig.extensionConfirmTitle:Sessionverlängerung bestätigen`,
-        message: this.extensionConfirmMessage(),
+        title: $localize`:@@qaConfig.extensionConfirmTitle:Frist bestätigen`,
+        message: '',
         consequences,
         confirmLabel: this.confirmLabel(),
         cancelLabel: $localize`:@@common.cancel:Abbrechen`,
@@ -269,7 +300,7 @@ export class QaChannelConfigurationDialogComponent implements OnInit {
     }).format(new Date(value));
   }
 
-  openAbsolutePicker(input: HTMLInputElement): void {
+  openAbsoluteTimePicker(input: HTMLInputElement): void {
     openSessionDateTimePicker(input);
   }
 
@@ -281,9 +312,83 @@ export class QaChannelConfigurationDialogComponent implements OnInit {
     return this.absoluteBounds()?.max ?? '';
   }
 
+  absoluteMinDate(): Date | null {
+    const min = this.absoluteMinLocal();
+    return min ? sessionLocalDayToCalendarDate(sessionLocalDatePart(min)) : null;
+  }
+
+  absoluteMaxDate(): Date | null {
+    const max = this.absoluteMaxLocal();
+    return max ? sessionLocalDayToCalendarDate(sessionLocalDatePart(max)) : null;
+  }
+
+  absoluteTimeMin(): string | null {
+    const date = this.absoluteDate;
+    const min = this.absoluteMinLocal();
+    if (!date || !min) {
+      return null;
+    }
+    if (calendarDateToSessionLocalDay(date) !== sessionLocalDatePart(min)) {
+      return null;
+    }
+    return sessionLocalTimePart(min);
+  }
+
+  absoluteTimeMax(): string | null {
+    const date = this.absoluteDate;
+    const max = this.absoluteMaxLocal();
+    if (!date || !max) {
+      return null;
+    }
+    if (calendarDateToSessionLocalDay(date) !== sessionLocalDatePart(max)) {
+      return null;
+    }
+    return sessionLocalTimePart(max);
+  }
+
+  absoluteDateClass = (date: Date, view: string): string => {
+    const min = this.absoluteMinLocal();
+    const max = this.absoluteMaxLocal();
+    if (!min || !max) {
+      return '';
+    }
+    return sessionDeadlineDateClass(min, max, this.absoluteLocal)(date, view);
+  };
+
+  onAbsoluteDateChange(date: Date | null): void {
+    this.absoluteDate = date;
+    const bounds = this.absoluteBounds();
+    if (date && bounds) {
+      this.absoluteTime = clampSessionLocalTimeToBounds(
+        date,
+        this.absoluteTime,
+        bounds.min,
+        bounds.max,
+      );
+    }
+    this.error.set(null);
+    void this.onDeadlineChange();
+  }
+
+  onAbsoluteTimeChange(time: string): void {
+    const bounds = this.absoluteBounds();
+    if (this.absoluteDate && bounds) {
+      this.absoluteTime = clampSessionLocalTimeToBounds(
+        this.absoluteDate,
+        time,
+        bounds.min,
+        bounds.max,
+      );
+    } else {
+      this.absoluteTime = time;
+    }
+    this.error.set(null);
+    void this.onDeadlineChange();
+  }
+
   private absoluteBounds(): { min: string; max: string } | null {
-    const minExclusive = this.preview()?.serverNow ?? this.data.session.serverNow;
-    const maxInclusive = this.preview()?.maxExpiresAt;
+    const minExclusive = this.preview()?.serverNow ?? this.data.serverNow;
+    const maxInclusive = this.preview()?.maxExpiresAt ?? this.data.maxExpiresAt;
     if (!minExclusive || !maxInclusive) {
       return null;
     }
@@ -358,15 +463,34 @@ export class QaChannelConfigurationDialogComponent implements OnInit {
     if (unchangedClosesAt) {
       return { kind: 'ABSOLUTE', closesAt: unchangedClosesAt };
     }
+    const local = this.absoluteLocal;
+    const bounds = this.absoluteBounds();
+    if (!local || !this.absoluteDate) {
+      if (!silent) {
+        this.error.set($localize`:@@qaConfig.absoluteRequired:Bitte wähle Datum und Uhrzeit.`);
+      }
+      return null;
+    }
+    if (!bounds) {
+      if (!silent) {
+        this.error.set($localize`:@@qaConfig.absoluteRequired:Bitte wähle Datum und Uhrzeit.`);
+      }
+      return null;
+    }
+    // Tage kommen nur aus dem erlaubten Kalender; Minuten an den Rändern still korrigieren.
+    const clamped = clampSessionLocalDateTimeToBounds(local, bounds.min, bounds.max);
+    if (clamped !== local) {
+      this.absoluteLocal = clamped;
+    }
     try {
       return {
         kind: 'ABSOLUTE',
-        closesAt: sessionLocalDateTimeToIso(this.absoluteLocal, this.timeZone),
+        closesAt: sessionLocalDateTimeToIso(clamped, this.timeZone),
       };
     } catch {
       if (!silent) {
         this.error.set(
-          $localize`:@@qaConfig.invalidLocalDate:Diese lokale Uhrzeit ist in der Sessionzeitzone nicht eindeutig oder ungültig.`,
+          $localize`:@@qaConfig.invalidLocalDate:Diese Uhrzeit gibt es in der Zeitzone der Session nicht oder sie kommt zweimal vor (Zeitumstellung). Wähle eine andere Minute.`,
         );
       }
       return null;
@@ -385,13 +509,6 @@ export class QaChannelConfigurationDialogComponent implements OnInit {
     const nowIso = this.preview()?.serverNow ?? this.data.session.serverNow;
     const now = nowIso ? Date.parse(nowIso) : Number.NaN;
     return Number.isFinite(closesAt) && Number.isFinite(now) && closesAt <= now;
-  }
-
-  private extensionConfirmMessage(): string {
-    if (this.configurationMode() === 'REPLAN' && !this.willReopenQa()) {
-      return $localize`:@@qaConfig.extensionConfirmMessageKeepClosed:Die neue Teilnahmefrist liegt nach dem bisherigen Sessionende. Beim Bestätigen wird die globale Sessionfrist mitverlängert; die Daten werden länger gespeichert. Nur der ursprüngliche Host darf das ausführen.`;
-    }
-    return $localize`:@@qaConfig.extensionConfirmMessage:Die Fragerunde läuft über das bisherige Sessionende hinaus. Beim Bestätigen wird die globale Sessionfrist mitverlängert; die Daten werden länger gespeichert. Nur der ursprüngliche Host darf das ausführen.`;
   }
 
   private unchangedSavedAbsoluteClosesAt(): string | null {
@@ -424,19 +541,11 @@ export class QaChannelConfigurationDialogComponent implements OnInit {
   }
 
   private resolveInitialDeadlineKind(): SessionQaDeadlineSelection['kind'] {
-    if (this.configurationMode() !== 'REPLAN') {
-      return 'UNTIL_SESSION_END';
-    }
-    const closesAt = this.savedQaClosesAt();
-    const expiresAt = this.data.session.expiresAt;
-    if (closesAt && expiresAt && closesAt === expiresAt) {
-      return 'UNTIL_SESSION_END';
-    }
-    return closesAt ? 'ABSOLUTE' : 'UNTIL_SESSION_END';
+    return 'ABSOLUTE';
   }
 
   private resolveInitialAbsoluteLocal(): string {
-    const closesAt = this.savedQaClosesAt();
+    const closesAt = this.savedQaClosesAt() ?? this.data.session.expiresAt;
     if (!closesAt) {
       return '';
     }

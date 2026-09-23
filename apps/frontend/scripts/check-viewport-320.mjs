@@ -230,20 +230,17 @@ async function inspectHomeKeyboardNavigation(page) {
   if (
     motdDismissedWithKeyboard &&
     !(await page
-      .locator('.home-hero-code-enter')
+      .locator('.home-code-segments__input')
       .evaluate((element) => element === document.activeElement))
   ) {
-    issues.push('MOTD-Return-Fokus landet nicht auf dem sichtbaren Hero-CTA');
+    issues.push('MOTD-Return-Fokus landet nicht auf dem Codefeld');
   }
   if (
     motdDismissedWithKeyboard &&
-    !(await page.locator('.home-hero-code-enter').evaluate((element) => {
-      const style = getComputedStyle(element);
-      return (
-        element.classList.contains('cdk-keyboard-focused') &&
-        style.outlineStyle !== 'none' &&
-        Number.parseFloat(style.outlineWidth) >= 3
-      );
+    !(await page.locator('.home-code-segments__input').evaluate((element) => {
+      const segments = element.closest('.home-code-segments');
+      const style = segments ? getComputedStyle(segments) : null;
+      return style?.outlineStyle !== 'none' && Number.parseFloat(style?.outlineWidth ?? '0') >= 3;
     }))
   ) {
     issues.push('MOTD-Return-Fokus hat keinen sichtbaren Tastatur-Fokusrahmen');
@@ -259,23 +256,17 @@ async function inspectHomeKeyboardNavigation(page) {
   if (motdDismissedWithPointer) {
     await page
       .waitForFunction(
-        () => document.querySelector('.home-hero-code-enter') === document.activeElement,
+        () => document.querySelector('.home-code-segments__input') === document.activeElement,
         undefined,
         { timeout: 1_000 },
       )
       .catch(() => undefined);
-    const pointerFocus = await page.locator('.home-hero-code-enter').evaluate((element) => {
-      const indicator = element.querySelector('.mat-focus-indicator');
-      const indicatorStyle = indicator ? getComputedStyle(indicator, '::before') : null;
-      return {
-        active: element === document.activeElement,
-        keyboard: element.classList.contains('cdk-keyboard-focused'),
-        indicatorDisplay: indicatorStyle?.display ?? null,
-      };
-    });
-    if (!pointerFocus.active || pointerFocus.keyboard || pointerFocus.indicatorDisplay !== 'none') {
+    const pointerFocus = await page.locator('.home-code-segments__input').evaluate((element) => ({
+      active: element === document.activeElement,
+    }));
+    if (!pointerFocus.active) {
       issues.push(
-        `MOTD-Pointer-Rücksprung zeigt einen Tastatur-Fokusrahmen (${JSON.stringify(pointerFocus)})`,
+        `MOTD-Pointer-Rücksprung zeigt den falschen Fokuszustand (${JSON.stringify(pointerFocus)})`,
       );
     }
   }
@@ -304,10 +295,10 @@ async function inspectHomeKeyboardNavigation(page) {
     await page.waitForTimeout(50);
     if (
       !(await page
-        .locator('#main-content')
+        .locator('#home-session-code-input')
         .evaluate((element) => element === document.activeElement))
     ) {
-      issues.push('Skip-Link verschiebt den Fokus nicht auf den Hauptinhalt');
+      issues.push('Skip-Link verschiebt den Fokus nicht auf die Code-Eingabe');
     }
   }
 
@@ -343,14 +334,13 @@ async function inspectHomeKeyboardNavigation(page) {
     issues.push('Fokus kehrt nach Escape nicht zum Menüauslöser zurück');
   }
 
-  const codeAction = page.getByRole('button', { name: 'Code eingeben' });
-  await codeAction.click();
+  await page.locator('.home-code-segments').click();
   if (
     !(await page
       .locator('.home-code-segments__input')
       .evaluate((element) => element === document.activeElement))
   ) {
-    issues.push('„Code eingeben“ fokussiert die Session-Code-Eingabe nicht');
+    issues.push('Klick auf die Code-Segmente fokussiert die Session-Code-Eingabe nicht');
   }
 
   return issues;

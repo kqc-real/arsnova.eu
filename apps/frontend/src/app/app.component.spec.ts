@@ -148,7 +148,7 @@ describe('AppComponent', () => {
     }
   });
 
-  it('macht das Main-Landmark zum verlässlichen Skip-Link-Ziel', () => {
+  it('hält das scrollbare Main-Landmark tastaturerreichbar', () => {
     configureAppTestBed();
     const fixture = TestBed.createComponent(AppComponent);
     fixture.detectChanges();
@@ -159,16 +159,44 @@ describe('AppComponent', () => {
     fixture.destroy();
   });
 
-  it('verschiebt den Fokus beim Aktivieren des Skip-Links auf den Hauptinhalt', () => {
+  it('springt auf der Startseite vom Skip-Link zur Code-Eingabe', () => {
+    configureAppTestBed();
+    const fixture = TestBed.createComponent(AppComponent);
+    fixture.componentInstance.isHomeRoute.set(true);
+    fixture.detectChanges();
+    const main = fixture.nativeElement.querySelector('#main-content') as HTMLElement;
+    const codeInput = document.createElement('input');
+    codeInput.id = 'home-session-code-input';
+    main.append(codeInput);
+    const skipLink = fixture.nativeElement.querySelector('.app-skip-link') as HTMLAnchorElement;
+
+    expect(skipLink.textContent).toContain('Zur Code-Eingabe springen');
+    expect(skipLink.getAttribute('href')).toBe('#home-session-code-input');
+    skipLink.click();
+
+    expect(document.activeElement).toBe(codeInput);
+    expect(document.activeElement).not.toBe(main);
+    fixture.destroy();
+  });
+
+  it('springt außerhalb der Startseite zum Seitenanfang statt zum Viewport-Rahmen', () => {
     configureAppTestBed();
     const fixture = TestBed.createComponent(AppComponent);
     fixture.detectChanges();
-    const skipLink = fixture.nativeElement.querySelector('.app-skip-link') as HTMLAnchorElement;
+    fixture.componentInstance.isHomeRoute.set(false);
+    fixture.detectChanges();
     const main = fixture.nativeElement.querySelector('#main-content') as HTMLElement;
+    const heading = document.createElement('h1');
+    heading.textContent = 'Quiz-Sammlung';
+    main.append(heading);
+    const skipLink = fixture.nativeElement.querySelector('.app-skip-link') as HTMLAnchorElement;
 
+    expect(skipLink.textContent).toContain('Zum Inhalt springen');
+    expect(skipLink.getAttribute('href')).toBe('#main-content');
     skipLink.click();
 
-    expect(document.activeElement).toBe(main);
+    expect(document.activeElement).toBe(heading);
+    expect(document.activeElement).not.toBe(main);
     fixture.destroy();
   });
 

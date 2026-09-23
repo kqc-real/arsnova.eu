@@ -279,27 +279,27 @@ describe('HomeComponent', () => {
 
       expect(segments.hasAttribute('tabindex')).toBe(false);
       expect(input).not.toBeNull();
+      const hint = fixture.nativeElement.querySelector('.home-code-prompt') as HTMLElement;
+      expect(hint.tagName).toBe('P');
+      expect(hint.hasAttribute('tabindex')).toBe(false);
     });
 
-    it('fokussiert die Code-Eingabe nach der expliziten Aktion „Code eingeben“', () => {
+    it('fokussiert die Code-Eingabe nach Klick auf die Segmente', () => {
       const fixture = createHomeFixture();
       fixture.detectChanges();
       const input = fixture.nativeElement.querySelector(
         '.home-code-segments__input',
       ) as HTMLInputElement;
       const focusSpy = vi.spyOn(input, 'focus');
-      const action = Array.from(
-        fixture.nativeElement.querySelectorAll<HTMLButtonElement>('button'),
-      ).find((button) => button.textContent?.includes('Code eingeben'));
+      const segments = fixture.nativeElement.querySelector('.home-code-segments') as HTMLElement;
 
-      action?.click();
+      segments.click();
 
-      expect(action).toBeDefined();
       expect(document.activeElement).toBe(input);
       expect(focusSpy).toHaveBeenCalledWith({ preventScroll: false });
     });
 
-    it('fokussiert „Code eingeben“ nach Locale-Reload', () => {
+    it('fokussiert das Codefeld nach Locale-Reload', () => {
       const animationFrames: FrameRequestCallback[] = [];
       vi.stubGlobal(
         'requestAnimationFrame',
@@ -311,10 +311,10 @@ describe('HomeComponent', () => {
       sessionStorage.setItem('arsnova-locale-reload-focus', 'home-code-enter');
       const fixture = createHomeFixture();
       fixture.detectChanges();
-      const button = fixture.nativeElement.querySelector(
-        '.home-hero-code-enter',
-      ) as HTMLButtonElement;
-      const focusSpy = vi.spyOn(button, 'focus');
+      const input = fixture.nativeElement.querySelector(
+        '.home-code-segments__input',
+      ) as HTMLInputElement;
+      const focusSpy = vi.spyOn(input, 'focus');
 
       const runFrames = (): void => {
         const callbacks = animationFrames.splice(0);
@@ -500,10 +500,14 @@ describe('HomeComponent', () => {
       expect(uspChips).toEqual(
         expect.arrayContaining(['Kostenlos', 'Open Source', 'Ohne Anmeldung', 'Made in Europe']),
       );
-      const codeEnterButtons = Array.from(fixture.nativeElement.querySelectorAll('button')).filter(
-        (button) => button.textContent?.includes('Code eingeben'),
+      expect(
+        Array.from(fixture.nativeElement.querySelectorAll('button')).some((button) =>
+          (button as HTMLButtonElement).textContent?.includes('Code eingeben'),
+        ),
+      ).toBe(false);
+      expect(fixture.nativeElement.querySelector('.home-code-prompt')?.textContent).toContain(
+        'Code eingeben',
       );
-      expect(codeEnterButtons).toHaveLength(1);
 
       fixture.componentInstance.themePreset.setPreset('serious');
       fixture.detectChanges();
@@ -2952,7 +2956,7 @@ describe('HomeComponent', () => {
       other.remove();
     });
 
-    it('setzt nach MOTD-Dismiss per Tastatur sichtbaren Fokus auf den Primaer-CTA', async () => {
+    it('setzt nach MOTD-Dismiss per Tastatur den Fokus auf das Codefeld', async () => {
       const skip = document.createElement('a');
       skip.href = '#main';
       skip.className = 'app-skip-link';
@@ -2969,9 +2973,9 @@ describe('HomeComponent', () => {
       });
       fixture.detectChanges();
 
-      const primaryAction = fixture.nativeElement.querySelector(
-        '.home-hero-code-enter',
-      ) as HTMLButtonElement;
+      const input = fixture.nativeElement.querySelector(
+        '.home-code-segments__input',
+      ) as HTMLInputElement;
       const closeInMotd = fixture.nativeElement.querySelector(
         '.home-motd-sheet button',
       ) as HTMLButtonElement | null;
@@ -2983,13 +2987,12 @@ describe('HomeComponent', () => {
       fixture.detectChanges();
       await Promise.resolve();
 
-      expect(document.activeElement).toBe(primaryAction);
+      expect(document.activeElement).toBe(input);
       expect(document.activeElement).not.toBe(skip);
-      expect(primaryAction.classList.contains('cdk-keyboard-focused')).toBe(true);
       skip.remove();
     });
 
-    it('kehrt vom automatisch überlagerten Code-Eingabefeld zum sichtbaren Primaer-CTA zurück', async () => {
+    it('kehrt vom automatisch überlagerten Codefeld nach dem Schließen dorthin zurück', async () => {
       const fixture = createHomeFixture();
       fixture.detectChanges();
       const comp = fixture.componentInstance;
@@ -3023,11 +3026,7 @@ describe('HomeComponent', () => {
       fixture.detectChanges();
       await Promise.resolve();
 
-      const primaryAction = fixture.nativeElement.querySelector(
-        '.home-hero-code-enter',
-      ) as HTMLButtonElement;
-      expect(document.activeElement).toBe(primaryAction);
-      expect(primaryAction.classList.contains('cdk-mouse-focused')).toBe(true);
+      expect(document.activeElement).toBe(input);
       expect(motdHeader.overlayOpen()).toBe(false);
     });
 
@@ -3079,16 +3078,15 @@ describe('HomeComponent', () => {
       });
       fixture.detectChanges();
 
-      const primaryAction = fixture.nativeElement.querySelector(
-        '.home-hero-code-enter',
-      ) as HTMLButtonElement;
+      const input = fixture.nativeElement.querySelector(
+        '.home-code-segments__input',
+      ) as HTMLInputElement;
       fixture.componentInstance['clearMotdOverlay']('mouse');
       fixture.detectChanges();
       await Promise.resolve();
 
-      expect(document.activeElement).toBe(primaryAction);
-      expect(primaryAction.classList.contains('cdk-keyboard-focused')).toBe(false);
-      expect(primaryAction.classList.contains('cdk-mouse-focused')).toBe(true);
+      expect(document.activeElement).toBe(input);
+      expect(input.classList.contains('cdk-keyboard-focused')).toBe(false);
     });
 
     it('schließt per Mausklick auch wenn Desktop-Safari keinen TouchEvent-Konstruktor anbietet', async () => {
@@ -3114,25 +3112,25 @@ describe('HomeComponent', () => {
 
       expect(comp.motd()).toBeNull();
       expect(fixture.nativeElement.querySelector('.home-motd-sheet')).toBeNull();
-      const primaryAction = fixture.nativeElement.querySelector(
-        '.home-hero-code-enter',
-      ) as HTMLButtonElement;
-      expect(document.activeElement).toBe(primaryAction);
-      expect(primaryAction.classList.contains('cdk-mouse-focused')).toBe(true);
+      const input = fixture.nativeElement.querySelector(
+        '.home-code-segments__input',
+      ) as HTMLInputElement;
+      expect(document.activeElement).toBe(input);
     });
 
-    it('definiert für den MOTD-Tastatur-Rücksprung einen sichtbaren Fokusrahmen', async () => {
+    it('zeichnet den Codefeld-Fokus nur um die Segmente', async () => {
       const { readFileSync } = await import('node:fs');
       const { fileURLToPath } = await import('node:url');
       const { dirname, join } = await import('node:path');
       const scssPath = join(dirname(fileURLToPath(import.meta.url)), 'home.component.scss');
       const scss = readFileSync(scssPath, 'utf8');
 
+      expect(scss).not.toMatch(/home-hero-code-enter/);
       expect(scss).toMatch(
-        /\.home-hero-code-enter\.cdk-keyboard-focused\s*\{[^}]*outline:\s*3px solid var\(--mat-sys-secondary\)/,
+        /\.home-code-segments--focused\s*\{[^}]*outline:\s*3px solid var\(--mat-sys-primary\)/,
       );
       expect(scss).toMatch(
-        /\.home-hero-code-enter:is\(\.cdk-mouse-focused, \.cdk-touch-focused\)\s*\{[^}]*--mat-focus-indicator-display:\s*none/,
+        /\.home-main a\.mat-mdc-button-base:focus-visible\s*\{[^}]*outline:\s*none/,
       );
     });
 

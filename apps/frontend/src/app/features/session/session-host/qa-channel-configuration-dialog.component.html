@@ -10,8 +10,8 @@
     }
     <span class="dialog-title-header__heading">{{ dialogTitle() }}</span>
     <span class="dialog-title-header__sub" i18n="@@qaConfig.intro">
-      Lege fest, wie Fragen eingereicht und veröffentlicht werden und wie lange die Fragerunde
-      geöffnet bleibt.
+      Lege fest, bis wann Teilnehmende den Q&A-Kanal nutzen können und bis wann du die Fragen danach
+      noch einsehen kannst.
     </span>
   </span>
 </h2>
@@ -55,17 +55,14 @@
   }
 
   <fieldset class="qa-config__group" [disabled]="pending()">
-    <legend i18n="@@qaConfig.deadlineLegend">Teilnahmefrist</legend>
+    <legend i18n="@@qaConfig.deadlineLegend">Zugang für Teilnehmende</legend>
     <mat-form-field appearance="outline" subscriptSizing="dynamic">
-      <mat-label i18n="@@qaConfig.deadlineKindLabel">Art der Teilnahmefrist</mat-label>
+      <mat-label i18n="@@qaConfig.deadlineKindLabel">Art des Zugangs</mat-label>
       <mat-select [(ngModel)]="deadlineKind" (ngModelChange)="onDeadlineChange()">
-        <mat-option value="UNTIL_SESSION_END" i18n="@@qaConfig.untilSessionEnd">
-          Bis zum Sessionende
-        </mat-option>
+        <mat-option value="ABSOLUTE" i18n="@@qaConfig.absolute"> Bis Datum und Uhrzeit </mat-option>
         <mat-option value="DURATION_DAYS" i18n="@@qaConfig.durationDays">
           Für eine Anzahl von Tagen
         </mat-option>
-        <mat-option value="ABSOLUTE" i18n="@@qaConfig.absolute"> Bis Datum und Uhrzeit </mat-option>
       </mat-select>
     </mat-form-field>
 
@@ -86,65 +83,50 @@
         Kein voller Kalendertag ist mehr zulässig. Wähle ein Datum und eine Uhrzeit.
       </p>
     } @else if (deadlineKind === 'ABSOLUTE') {
-      <mat-form-field appearance="outline" subscriptSizing="dynamic">
-        <mat-label i18n="@@qaConfig.absoluteLabel">Datum und Uhrzeit</mat-label>
-        <input
-          #absoluteInput
-          matInput
-          type="datetime-local"
-          [min]="absoluteMinLocal()"
-          [max]="absoluteMaxLocal()"
-          [(ngModel)]="absoluteLocal"
-          (ngModelChange)="onDeadlineChange()"
-          (click)="openAbsolutePicker(absoluteInput)"
-        />
-      </mat-form-field>
+      <div class="qa-config__absolute">
+        <mat-form-field appearance="outline" subscriptSizing="dynamic">
+          <mat-label i18n="@@qaConfig.absoluteDateLabel">Datum</mat-label>
+          <input
+            matInput
+            [matDatepicker]="absolutePicker"
+            [min]="absoluteMinDate()"
+            [max]="absoluteMaxDate()"
+            [ngModel]="absoluteDate"
+            (ngModelChange)="onAbsoluteDateChange($event)"
+          />
+          <mat-datepicker-toggle matIconSuffix [for]="absolutePicker" />
+          <mat-datepicker #absolutePicker [touchUi]="true" [dateClass]="absoluteDateClass" />
+        </mat-form-field>
+        <mat-form-field appearance="outline" subscriptSizing="dynamic">
+          <mat-label i18n="@@qaConfig.absoluteTimeLabel">Uhrzeit</mat-label>
+          <input
+            #absoluteTimeInput
+            matInput
+            type="time"
+            [min]="absoluteTimeMin() ?? undefined"
+            [max]="absoluteTimeMax() ?? undefined"
+            [ngModel]="absoluteTime"
+            (ngModelChange)="onAbsoluteTimeChange($event)"
+            (click)="openAbsoluteTimePicker(absoluteTimeInput)"
+          />
+        </mat-form-field>
+      </div>
     }
     <p class="qa-config__zone">
       <span i18n="@@qaConfig.timeZone">Zeitzone:</span>
       {{ timeZone }}
     </p>
     @if (preview(); as resolved) {
-      <p class="qa-config__resolved" role="status">
-        <span i18n="@@qaConfig.previewQaCloses">Offen für Fragen und Bewertungen bis</span>
-        {{ formatDateTime(resolved.newQaClosesAt) }}
-        @if (resolved.requiresSessionExtension) {
-          <span class="qa-config__resolved-end">
-            <span i18n="@@qaConfig.previewSessionEnds">Session endet</span>
-            {{ formatDateTime(resolved.newExpiresAt) }}
-          </span>
-        }
-      </p>
-      @if (resolved.requiresSessionExtension) {
-        <dl class="qa-config__compare">
-          @if (resolved.oldQaClosesAt) {
-            <div>
-              <dt i18n="@@qaConfig.extensionOldQaLabel">Bisheriger Frageschluss</dt>
-              <dd>{{ formatDateTime(resolved.oldQaClosesAt) }}</dd>
-            </div>
-          }
-          <div>
-            <dt i18n="@@qaConfig.extensionNewQaLabel">Neuer Frageschluss</dt>
-            <dd>{{ formatDateTime(resolved.newQaClosesAt) }}</dd>
-          </div>
-          <div>
-            <dt i18n="@@qaConfig.extensionOldExpiresLabel">Bisheriges Sessionende</dt>
-            <dd>{{ formatDateTime(resolved.oldExpiresAt) }}</dd>
-          </div>
-          <div>
-            <dt i18n="@@qaConfig.extensionNewExpiresLabel">Neues Sessionende</dt>
-            <dd>{{ formatDateTime(resolved.newExpiresAt) }}</dd>
-          </div>
-          <div>
-            <dt i18n="@@qaConfig.extensionPostProcessingLabel">Host-Lesezugriff bis</dt>
-            <dd>{{ formatDateTime(resolved.projectedPostProcessingEndsAt) }}</dd>
-          </div>
-        </dl>
-        <p class="qa-config__warning" role="status" i18n="@@qaConfig.extensionWarning">
-          Die Teilnahmefrist liegt nach dem bisherigen Sessionende. Beim Bestätigen wird die globale
-          Sessionfrist mit verlängert; nur der ursprüngliche Host darf das ausführen.
-        </p>
-      }
+      <dl class="qa-config__compare">
+        <div>
+          <dt i18n="@@qaConfig.previewQaCloses">Zugang für Teilnehmende endet</dt>
+          <dd>{{ formatDateTime(resolved.newQaClosesAt) }}</dd>
+        </div>
+        <div>
+          <dt i18n="@@qaConfig.previewHostRead">Fragen einsehen kannst du bis</dt>
+          <dd>{{ formatDateTime(resolved.projectedPostProcessingEndsAt) }}</dd>
+        </div>
+      </dl>
     }
     @if (canReopen) {
       <mat-slide-toggle

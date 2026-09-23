@@ -35,14 +35,6 @@ describe('Epic-405 Dialogflächen', () => {
       frontendSrc('app/features/session/session-host/session-expiration-dialog.component.html'),
       'utf8',
     );
-    const retentionHtml = readFileSync(
-      frontendSrc('app/features/session/session-host/session-retention-dialog.component.html'),
-      'utf8',
-    );
-    const retentionTs = readFileSync(
-      frontendSrc('app/features/session/session-host/session-retention-dialog.component.ts'),
-      'utf8',
-    );
     const recoveryHtml = readFileSync(
       frontendSrc('app/features/session/host-recovery/host-recovery-card-dialog.component.html'),
       'utf8',
@@ -59,9 +51,6 @@ describe('Epic-405 Dialogflächen', () => {
     expect(qaHtml).toContain('matButton="filled"');
     expect(qaHtml).not.toContain('mat-flat-button');
     expect(expirationHtml).toContain('dialog-title-header');
-    expect(retentionTs).toContain('dialog-title-header.scss');
-    expect(retentionHtml).toContain('dialog-title-header');
-    expect(retentionHtml).toContain('matButton="text"');
     expect(recoveryHtml).toContain('dialog-title-header');
     expect(recoveryPage).toContain('dialog-title-header--page');
     expect(recoveryPage).toContain('host-recovery-page__card');

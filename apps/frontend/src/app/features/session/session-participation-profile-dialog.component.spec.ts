@@ -35,7 +35,7 @@ describe('SessionParticipationProfileDialogComponent', () => {
     expect(host.textContent).toContain('Eigener Nickname');
     expect(host.textContent).toContain('Anonymmodus');
     expect(host.textContent).toContain('keine vollständige Anonymisierung');
-    expect(host.textContent).toContain('Nach dem ersten erfolgreichen Beitritt');
+    expect(host.textContent).not.toContain('Nach dem ersten erfolgreichen Beitritt');
     expect(host.textContent).not.toContain('Schritt 1 von 2');
   });
 

@@ -4,7 +4,7 @@
  *
  * Prüft:
  * - Q&A-Start zeigt die Host-Zugangskarte
- * - Maximales Q&A-Ende und Löschtermin sitzen in der Q&A-Action-Bar
+ * - Zugang für Teilnehmende sitzt in der Q&A-Action-Bar
  * - Self-Service-Wiederherstellung mit Session-Kennung und Recovery-Code
  *
  * Run:
@@ -138,17 +138,6 @@ async function dismissJoinOverlay(page) {
   await overlay.waitFor({ state: 'hidden', timeout: 5_000 });
 }
 
-async function openAndCloseDialog(page, triggerTestId, heading) {
-  await page.locator(`[data-testid="${triggerTestId}"]`).click();
-  const panel = page.locator('mat-dialog-container').last();
-  await panel
-    .getByText(heading, { exact: false })
-    .first()
-    .waitFor({ state: 'visible', timeout: 10_000 });
-  await panel.getByRole('button', { name: /Abbrechen|Schließen/i }).click();
-  await panel.waitFor({ state: 'hidden', timeout: 10_000 });
-}
-
 async function main() {
   if (!(await waitForServer(BASE_URL))) {
     throw new Error(`Frontend nicht erreichbar unter ${BASE_URL}.`);
@@ -184,29 +173,24 @@ async function main() {
       failures.push(`Beitritts-Overlay: ${error instanceof Error ? error.message : String(error)}`);
     });
 
-    const expiration = host.locator('[data-testid="configure-session-expiration"]');
-    const retention = host.locator('[data-testid="session-retention-details"]');
-    const footerOk =
-      (await expiration.isVisible().catch(() => false)) &&
-      (await retention.isVisible().catch(() => false));
-    logStep(footerOk, 'Q&A-Footer zeigt maximales Sessionende und Löschtermin');
-    if (!footerOk) {
-      failures.push('Action-Bar ohne Maximales Q&A-Ende oder Löschtermin anzeigen.');
+    const qaSettings = host.getByRole('button', { name: /Q&A-Einstellungen/i });
+    const settingsOk = await qaSettings.isVisible().catch(() => false);
+    logStep(settingsOk, 'Q&A-Kanal zeigt Q&A-Einstellungen');
+    if (!settingsOk) {
+      failures.push('Q&A ohne »Q&A-Einstellungen«.');
     }
 
-    if (footerOk) {
+    if (settingsOk) {
       try {
-        await openAndCloseDialog(host, 'configure-session-expiration', 'Maximales Q&A-Ende');
-        logStep(true, 'Host öffnet die Laufzeit');
-      } catch (error) {
-        failures.push(`Laufzeit-Dialog: ${error instanceof Error ? error.message : String(error)}`);
-      }
-      try {
-        await openAndCloseDialog(host, 'session-retention-details', 'Löschtermin anzeigen');
-        logStep(true, 'Host öffnet den Löschtermin');
+        await qaSettings.click();
+        const dialog = host.locator('mat-dialog-container').filter({ hasText: /Fragerunde/i });
+        await dialog.waitFor({ state: 'visible', timeout: 10_000 });
+        await host.getByRole('button', { name: /Abbrechen/i }).click();
+        await dialog.waitFor({ state: 'hidden', timeout: 10_000 });
+        logStep(true, 'Host öffnet die Q&A-Einstellungen');
       } catch (error) {
         failures.push(
-          `Löschtermin-Dialog: ${error instanceof Error ? error.message : String(error)}`,
+          `Q&A-Einstellungen-Dialog: ${error instanceof Error ? error.message : String(error)}`,
         );
       }
     }

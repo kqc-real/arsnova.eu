@@ -1,12 +1,17 @@
 import { describe, expect, it, vi } from 'vitest';
 import {
   addCalendarDays,
+  clampSessionLocalDateTimeToBounds,
+  clampSessionLocalTimeToBounds,
+  combineSessionLocalDateAndTime,
+  isSessionLocalDateTimeWithinBounds,
   isoToSessionLocalDateTime,
   laterIsoTimestamp,
   maxSelectableCalendarDays,
   openSessionDateTimePicker,
   reportSessionDateTimePickerValidity,
   sessionDateTimeLocalBounds,
+  sessionDeadlineDateClass,
   sessionLocalDateTimeToIso,
 } from './session-local-datetime';
 
@@ -84,6 +89,53 @@ describe('session-local-datetime', () => {
       min: '2026-03-25T13:01',
       max: '2026-04-07T14:00',
     });
+  });
+
+  it('färbt Kalenderzellen nach wählbar, blockiert und ausgewählt', () => {
+    const classify = sessionDeadlineDateClass(
+      '2026-03-25T12:31',
+      '2026-04-07T14:00',
+      '2026-03-26T10:00',
+    );
+    expect(classify(new Date(2026, 2, 20), 'month')).toBe('session-deadline-day--blocked');
+    expect(classify(new Date(2026, 2, 26), 'month')).toBe('session-deadline-day--selected');
+    expect(classify(new Date(2026, 2, 27), 'month')).toBe('session-deadline-day--allowed');
+    expect(classify(new Date(2026, 2, 27), 'year')).toBe('');
+  });
+
+  it('kombiniert Datepicker-Tag und Uhrzeit zum Session-Lokalwert', () => {
+    expect(combineSessionLocalDateAndTime(new Date(2026, 3, 1), '15:30')).toBe('2026-04-01T15:30');
+    expect(
+      isSessionLocalDateTimeWithinBounds(
+        '2026-03-25T12:31',
+        '2026-03-25T12:31',
+        '2026-04-07T14:00',
+      ),
+    ).toBe(true);
+    expect(
+      isSessionLocalDateTimeWithinBounds(
+        '2026-03-25T12:30',
+        '2026-03-25T12:31',
+        '2026-04-07T14:00',
+      ),
+    ).toBe(false);
+  });
+
+  it('klemmt Randzeiten und volle Lokalwerte still auf min/max', () => {
+    expect(
+      clampSessionLocalTimeToBounds(
+        new Date(2026, 2, 25),
+        '10:00',
+        '2026-03-25T12:31',
+        '2026-04-07T14:00',
+      ),
+    ).toBe('12:31');
+    expect(
+      clampSessionLocalDateTimeToBounds('2026-03-20T10:00', '2026-03-25T12:31', '2026-04-07T14:00'),
+    ).toBe('2026-03-25T12:31');
+    expect(
+      clampSessionLocalDateTimeToBounds('2026-04-07T18:00', '2026-03-25T12:31', '2026-04-07T14:00'),
+    ).toBe('2026-04-07T14:00');
   });
 
   it('öffnet den nativen Datepicker und schluckt fehlende Unterstützung', () => {

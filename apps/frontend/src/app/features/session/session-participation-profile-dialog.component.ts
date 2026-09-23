@@ -71,7 +71,7 @@ export interface SessionParticipationProfileDialogResult {
         <legend i18n="@@sessionParticipation.modeLegend">Namensdarstellung</legend>
         <mat-radio-group
           name="session-participation-mode"
-          aria-describedby="participation-profile-description participation-profile-lock"
+          aria-describedby="participation-profile-description"
           [ngModel]="identityMode()"
           (ngModelChange)="identityMode.set($event)"
         >
@@ -114,7 +114,7 @@ export interface SessionParticipationProfileDialogResult {
             aria-label="Pseudonymgruppe wählen"
           >
             <mat-option value="KINDERGARTEN" i18n="@@sessionParticipation.themeKindergarten"
-              >Kita</mat-option
+              >Tier-Icons</mat-option
             >
             <mat-option value="PRIMARY_SCHOOL" i18n="@@sessionParticipation.themePrimary"
               >Grundschule</mat-option
@@ -131,16 +131,6 @@ export interface SessionParticipationProfileDialogResult {
           </mat-select>
         </mat-form-field>
       }
-
-      <p
-        id="participation-profile-lock"
-        class="participation-profile-dialog__lock"
-        role="note"
-        i18n="@@sessionParticipation.lockHint"
-      >
-        Nach dem ersten erfolgreichen Beitritt ist diese Einstellung für die gesamte Session
-        gesperrt. Das gilt auch nach dem Löschen von Teilnahmen oder bei einem Gerätewechsel.
-      </p>
     </mat-dialog-content>
 
     <mat-dialog-actions align="end">

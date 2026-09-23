@@ -412,6 +412,41 @@ html .mdc-text-field__input[type='month']::-webkit-calendar-picker-indicator {
   opacity: 1;
 }
 
+/*
+ * Session-Frist-Kalender (Material Overlay): wählbar / blockiert / ausgewählt.
+ * Klassen kommen von sessionDeadlineDateClass(); Overlay liegt außerhalb der Komponente.
+ * Kein color-mix von --mat-sys-error auf Surface — das wird im Dark Theme braun.
+ */
+.mat-calendar-body-cell.session-deadline-day--allowed
+  .mat-calendar-body-cell-content:not(.mat-calendar-body-selected) {
+  background-color: color-mix(
+    in srgb,
+    var(--arsnova-bar-correct) 22%,
+    var(--mat-sys-surface-container-high)
+  );
+  color: var(--arsnova-bar-correct);
+  font-weight: 600;
+  opacity: 1;
+}
+
+.mat-calendar-body-cell.session-deadline-day--blocked .mat-calendar-body-cell-content,
+.mat-calendar-body-cell.session-deadline-day--blocked.mat-calendar-body-disabled
+  .mat-calendar-body-cell-content {
+  background-color: var(--mat-sys-error-container);
+  color: var(--mat-sys-on-error-container);
+  font-weight: 600;
+  opacity: 1;
+}
+
+.mat-calendar-body-cell.session-deadline-day--selected .mat-calendar-body-cell-content,
+.mat-calendar-body-cell.session-deadline-day--selected
+  .mat-calendar-body-cell-content.mat-calendar-body-selected {
+  background-color: var(--mat-sys-primary);
+  color: var(--mat-sys-on-primary);
+  box-shadow: inset 0 0 0 0.125rem color-mix(in srgb, var(--mat-sys-on-primary) 70%, transparent);
+  opacity: 1;
+}
+
 /* Vote: Timer-A11y Toggle – Material-Internals ohne ::ng-deep (enge Scope-Klassen). */
 .vote-timer-a11y__option .mat-button-toggle-button {
   display: flex;
