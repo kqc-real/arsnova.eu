@@ -4,7 +4,12 @@ import { TRPCError } from '@trpc/server';
 
 const QUIZ_ID = 'aaaaaaaa-bbbb-4ccc-dddd-eeeeeeeeeeee';
 
-const { prismaMock, invalidSessionCodeMock } = vi.hoisted(() => ({
+const {
+  prismaMock,
+  invalidSessionCodeMock,
+  extractHostTokenFromContextMock,
+  isHostSessionTokenValidMock,
+} = vi.hoisted(() => ({
   prismaMock: {
     session: {
       findUnique: vi.fn(),
@@ -12,8 +17,13 @@ const { prismaMock, invalidSessionCodeMock } = vi.hoisted(() => ({
     quiz: {
       findUnique: vi.fn(),
     },
+    qaQuestion: {
+      count: vi.fn(),
+    },
   },
   invalidSessionCodeMock: vi.fn(),
+  extractHostTokenFromContextMock: vi.fn(),
+  isHostSessionTokenValidMock: vi.fn(),
 }));
 
 vi.mock('../db', () => ({
@@ -28,6 +38,15 @@ vi.mock('../lib/invalidSessionCode', () => ({
   rejectInvalidSessionCode: invalidSessionCodeMock,
 }));
 
+vi.mock('../lib/hostAuth', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('../lib/hostAuth')>();
+  return {
+    ...actual,
+    extractHostTokenFromContext: extractHostTokenFromContextMock,
+    isHostSessionTokenValid: isHostSessionTokenValidMock,
+  };
+});
+
 import {
   invalidateSessionStatusCachesForCode,
   resetSessionReadCachesForTests,
@@ -41,6 +60,9 @@ describe('session.getInfo (ADR-0009)', () => {
     vi.clearAllMocks();
     resetSessionReadCachesForTests();
     invalidSessionCodeMock.mockRejectedValue(new TRPCError({ code: 'NOT_FOUND' }));
+    extractHostTokenFromContextMock.mockReturnValue(null);
+    isHostSessionTokenValidMock.mockResolvedValue(false);
+    prismaMock.qaQuestion.count.mockResolvedValue(0);
   });
 
   it('bucht einen fehlgeschlagenen Join-Lookup im zentralen Enumerationsschutz', async () => {
@@ -216,6 +238,8 @@ describe('session.getInfo (ADR-0009)', () => {
     const result = await caller.getInfo({ code: 'gungb5' });
 
     expect(result.qaQuestionCount).toBe(40);
+    expect(result.qaPendingQuestionCount).toBeUndefined();
+    expect(prismaMock.qaQuestion.count).not.toHaveBeenCalled();
     expect(prismaMock.session.findUnique).toHaveBeenCalledWith(
       expect.objectContaining({
         include: expect.objectContaining({
@@ -228,6 +252,62 @@ describe('session.getInfo (ADR-0009)', () => {
         }),
       }),
     );
+  });
+
+  it('liefert qaPendingQuestionCount nur mit gültigem Host-Token', async () => {
+    prismaMock.session.findUnique.mockResolvedValue({
+      id: '6a8edced-5f8f-4cfa-9176-454fac9570ad',
+      code: 'GUNGB5',
+      type: 'QUIZ',
+      status: 'ACTIVE',
+      title: null,
+      quizId: null,
+      qaEnabled: true,
+      qaOpen: true,
+      qaTitle: 'Fragen',
+      qaModerationMode: true,
+      quickFeedbackEnabled: false,
+      quickFeedbackOpen: false,
+      qaQuestionCount: 0,
+      _count: { participants: 2, qaQuestions: 40 },
+    });
+    extractHostTokenFromContextMock.mockReturnValue('host-token');
+    isHostSessionTokenValidMock.mockResolvedValue(true);
+    prismaMock.qaQuestion.count.mockResolvedValue(12);
+
+    const result = await caller.getInfo({ code: 'gungb5' });
+
+    expect(result.qaPendingQuestionCount).toBe(12);
+    expect(isHostSessionTokenValidMock).toHaveBeenCalledWith('GUNGB5', 'host-token');
+    expect(prismaMock.qaQuestion.count).toHaveBeenCalledWith({
+      where: { sessionId: '6a8edced-5f8f-4cfa-9176-454fac9570ad', status: 'PENDING' },
+    });
+  });
+
+  it('unterdrückt qaPendingQuestionCount bei ungültigem Host-Token', async () => {
+    prismaMock.session.findUnique.mockResolvedValue({
+      id: '6a8edced-5f8f-4cfa-9176-454fac9570ad',
+      code: 'GUNGB5',
+      type: 'QUIZ',
+      status: 'ACTIVE',
+      title: null,
+      quizId: null,
+      qaEnabled: true,
+      qaOpen: true,
+      qaTitle: 'Fragen',
+      qaModerationMode: true,
+      quickFeedbackEnabled: false,
+      quickFeedbackOpen: false,
+      qaQuestionCount: 0,
+      _count: { participants: 2, qaQuestions: 40 },
+    });
+    extractHostTokenFromContextMock.mockReturnValue('stale-token');
+    isHostSessionTokenValidMock.mockResolvedValue(false);
+
+    const result = await caller.getInfo({ code: 'gungb5' });
+
+    expect(result.qaPendingQuestionCount).toBeUndefined();
+    expect(prismaMock.qaQuestion.count).not.toHaveBeenCalled();
   });
 
   it('liefert nicknameTheme KINDERGARTEN aus dem Quiz (Join-Liste Kita)', async () => {

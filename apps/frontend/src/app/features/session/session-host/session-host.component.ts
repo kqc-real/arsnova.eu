@@ -134,6 +134,9 @@ import {
   isWordCloudPhraseAnalysisVariant,
   parseQaSummaryQuestionSourceId,
   isQaChannelJoinable,
+  QA_LIST_DEFAULT_PAGE_SIZE,
+  QA_LIST_PAGE_SIZE_OPTIONS,
+  type QaListPageSize,
   type WordCloudLemmaLocale,
   type ProductFeedbackInAppArea,
 } from '@arsnova/shared-types';
@@ -748,6 +751,8 @@ export class SessionHostComponent implements OnInit, OnDestroy {
   readonly qaListNextCursor = signal<string | null>(null);
   readonly qaListRankingRevision = signal<string | null>(null);
   readonly qaListPageIndex = signal(0);
+  readonly qaListPageSize = signal<QaListPageSize>(QA_LIST_DEFAULT_PAGE_SIZE);
+  readonly qaListPageSizeOptions = QA_LIST_PAGE_SIZE_OPTIONS;
   readonly qaListPageLoading = signal(false);
   private qaListCurrentCursor: string | null = null;
   private qaListCursorHistory: Array<string | null> = [];
@@ -2310,8 +2315,14 @@ export class SessionHostComponent implements OnInit, OnDestroy {
           wordLabelPlural: () => this.qaWordCloudWordLabelPlural(),
           weightingHint: () => this.qaWordCloudWeightingHint(),
           tooltipMetricLabel: () => this.qaWordCloudMetricLabel(),
-          analyzedQuestionCount: () => this.qaWordCloudCoverage()?.analyzedQuestionCount ?? 0,
-          eligibleQuestionCount: () => this.qaWordCloudCoverage()?.eligibleQuestionCount ?? 0,
+          analyzedQuestionCount: () =>
+            this.qaWordCloudCoverage()?.analyzedQuestionCount ??
+            Math.min(
+              this.qaListPageSize(),
+              this.qaListTotalCount() || this.qaWordCloudQuestions().length,
+            ),
+          eligibleQuestionCount: () =>
+            this.qaWordCloudCoverage()?.eligibleQuestionCount ?? this.qaListTotalCount(),
           analysisModelVersion: () => this.qaWordCloudThemeAnalysisResult()?.modelVersion ?? null,
           analysisVariant: () => this.qaWordCloudEffectiveAnalysisVariant(),
           setAnalysisVariant: (variant: WordCloudAnalysisVariant) =>
@@ -4499,7 +4510,7 @@ export class SessionHostComponent implements OnInit, OnDestroy {
           this.postProcessingEnded.set(false);
           this.scheduleHostPostProcessingCheck();
           this.ensureQaSubscription();
-          void this.refreshQaQuestions({ silent: true });
+          void this.refreshQaQuestions({ silent: true, preservePaging: true });
         }
         return;
       }
@@ -4574,7 +4585,7 @@ export class SessionHostComponent implements OnInit, OnDestroy {
             }
           : current,
       );
-      void this.refreshQaQuestions({ silent: true });
+      void this.refreshQaQuestions({ silent: true, preservePaging: true });
       return;
     }
     this.qaDeadlineTimer = setTimeout(
@@ -5046,7 +5057,7 @@ export class SessionHostComponent implements OnInit, OnDestroy {
       await this.refreshLiveFreetext();
     }
     if (this.shouldPollQaQuestions()) {
-      await this.refreshQaQuestions({ silent: true });
+      await this.refreshQaQuestions({ silent: true, preservePaging: true });
     }
     if (this.shouldPollQuickFeedback()) {
       await this.refreshQuickFeedbackResult();
@@ -9671,7 +9682,7 @@ export class SessionHostComponent implements OnInit, OnDestroy {
 
   /** Wie refreshQaQuestions, aber ohne Steering-Callout bei transienten Fehlern. */
   private async refreshQaQuestionsForChannelActivation(): Promise<void> {
-    await this.refreshQaQuestions({ silent: true });
+    await this.refreshQaQuestions({ silent: true, preservePaging: true });
   }
 
   private async chooseQuizForSession(): Promise<SessionQuizPickerResult | undefined> {
@@ -10238,8 +10249,9 @@ export class SessionHostComponent implements OnInit, OnDestroy {
     const sortMode = this.qaSortMode();
     const statuses = this.qaListStatuses();
     const search = this.qaSearch();
+    const pageSize = this.qaListPageSize();
     const subscriptionKey = sessionId
-      ? `${sessionId}:${sortMode}:${statuses.join(',')}:${search}`
+      ? `${sessionId}:${sortMode}:${statuses.join(',')}:${search}:${pageSize}`
       : null;
     if (!sessionId || !qaEnabled) {
       this.qaSub?.unsubscribe();
@@ -10258,7 +10270,7 @@ export class SessionHostComponent implements OnInit, OnDestroy {
         sessionId,
         moderatorView: true,
         sort: sortMode,
-        pageSize: 100,
+        pageSize,
         statuses,
         search: search || undefined,
       },
@@ -10296,7 +10308,7 @@ export class SessionHostComponent implements OnInit, OnDestroy {
         return;
       }
     }
-    void this.refreshQaQuestions({ silent: true });
+    void this.refreshQaQuestions({ silent: true, preservePaging: true });
   }
 
   private syncQaTitleDraftFromSession(): void {
@@ -10691,7 +10703,7 @@ export class SessionHostComponent implements OnInit, OnDestroy {
 
   private async applyHostQaQuestionsSnapshot(
     snapshot: QaQuestionsListDTO | QaQuestionDTO[],
-    options: { append?: boolean } = {},
+    options: { append?: boolean; preservePaging?: boolean } = {},
   ): Promise<boolean> {
     if (Array.isArray(snapshot)) {
       if (this.postProcessingEnded()) {
@@ -10746,7 +10758,9 @@ export class SessionHostComponent implements OnInit, OnDestroy {
     }
     this.postProcessingEnded.set(false);
     this.qaQuestions.set(snapshot.questions);
-    if (!options.append) {
+    // append/preservePaging: Seitennavigation nicht auf 0 zurücksetzen —
+    // sonst springt „Weiter“ nach Live-Invalidierung sofort wieder auf Seite 1.
+    if (!options.append && !options.preservePaging) {
       this.resetQaListPageNavigation();
     }
     this.qaListTotalCount.set(snapshot.totalCount ?? snapshot.questions.length);
@@ -10795,12 +10809,33 @@ export class SessionHostComponent implements OnInit, OnDestroy {
       sessionId: sessionId!,
       moderatorView: true as const,
       sort: this.qaSortMode(),
-      pageSize: 100,
+      pageSize: this.qaListPageSize(),
       statuses: this.qaListStatuses(),
       ...(search ? { search } : {}),
       ...(authorNickname ? { authorNickname } : {}),
       ...(cursor ? { cursor } : {}),
     };
+  }
+
+  async setQaListPageSize(pageSize: QaListPageSize): Promise<void> {
+    if (this.qaListPageSize() === pageSize) {
+      return;
+    }
+    this.qaListPageSize.set(pageSize);
+    this.qaWordCloudCoverage.set(null);
+    this.lastQaWordCloudAnalysisRequestKey = '';
+    this.lastQaWordCloudSemanticAnalyzedKey = null;
+    this.ensureQaSubscription();
+    await this.refreshQaQuestions({ replaceStale: true });
+    this.scrollQaListToTop();
+    if (this.qaWordCloudDialogOpen()) {
+      const request = this.qaWordCloudAnalysisRequest();
+      if (request?.mode === 'SEMANTIC') {
+        this.queueQaWordCloudSemanticAnalysis(request);
+      } else if (request) {
+        this.queueQaWordCloudThemeAnalysis(request);
+      }
+    }
   }
 
   async setQaPinnedFilter(pinnedOnly: boolean): Promise<void> {
@@ -10858,25 +10893,34 @@ export class SessionHostComponent implements OnInit, OnDestroy {
     const cursor = this.qaListNextCursor();
     if (!cursor || this.qaListPageLoading()) return;
     const previousCursor = this.qaListCurrentCursor;
+    const previousPageIndex = this.qaListPageIndex();
     const loaded = await this.loadQaQuestionsPage(cursor);
     if (loaded) {
       this.qaListCursorHistory.push(previousCursor);
       this.qaListCurrentCursor = cursor;
       this.qaListPageIndex.update((index) => index + 1);
       this.scrollQaListToTop();
+      return;
     }
+    // Ranking hat sich geändert: aktuelle Seite (vor dem Klick) neu aufbauen.
+    this.qaListPageIndex.set(previousPageIndex);
+    await this.refreshQaQuestions({ preservePaging: previousPageIndex > 0 });
   }
 
   async loadPreviousQaQuestions(): Promise<void> {
     if (this.qaListCursorHistory.length === 0 || this.qaListPageLoading()) return;
     const target = this.qaListCursorHistory[this.qaListCursorHistory.length - 1] ?? null;
+    const previousPageIndex = this.qaListPageIndex();
     const loaded = await this.loadQaQuestionsPage(target);
     if (loaded) {
       this.qaListCursorHistory.pop();
       this.qaListCurrentCursor = target;
       this.qaListPageIndex.update((index) => Math.max(0, index - 1));
       this.scrollQaListToTop();
+      return;
     }
+    this.qaListPageIndex.set(previousPageIndex);
+    await this.refreshQaQuestions({ preservePaging: previousPageIndex > 0 });
   }
 
   private async loadQaQuestionsPage(cursor: string | null): Promise<boolean> {
@@ -10889,22 +10933,21 @@ export class SessionHostComponent implements OnInit, OnDestroy {
       if (requestGeneration !== this.qaListRequestGeneration) {
         return false;
       }
-      const accepted = await this.applyHostQaQuestionsSnapshot(snapshot, { append: true });
-      if (!accepted) {
-        await this.refreshQaQuestions();
-      }
-      return accepted;
+      return await this.applyHostQaQuestionsSnapshot(snapshot, { append: true });
     } catch {
-      await this.refreshQaQuestions();
       return false;
     } finally {
-      this.qaListPageLoading.set(false);
+      if (requestGeneration === this.qaListRequestGeneration) {
+        this.qaListPageLoading.set(false);
+      }
     }
   }
 
   private async refreshQaQuestions(options?: {
     silent?: boolean;
     replaceStale?: boolean;
+    /** Aktuelle Fragenseite nach Live-Invalidierung behalten (nicht auf Seite 1 springen). */
+    preservePaging?: boolean;
   }): Promise<void> {
     const sessionId = this.session()?.id;
     const requestGeneration = ++this.qaListRequestGeneration;
@@ -10927,18 +10970,58 @@ export class SessionHostComponent implements OnInit, OnDestroy {
       this.qaListPageLoading.set(true);
     }
 
+    const targetPage =
+      options?.preservePaging && !options?.replaceStale ? Math.max(0, this.qaListPageIndex()) : 0;
+
     try {
-      const snapshot = await trpc.qa.list.query(this.hostQaListQueryInput());
-      if (requestGeneration !== this.qaListRequestGeneration) {
+      let cursor: string | null = null;
+      const cursorHistory: Array<string | null> = [];
+      let snapshot: QaQuestionsListDTO | null = null;
+      let pageReached = 0;
+
+      for (let page = 0; page <= targetPage; page += 1) {
+        snapshot = await trpc.qa.list.query(this.hostQaListQueryInput(cursor));
+        if (requestGeneration !== this.qaListRequestGeneration) {
+          return;
+        }
+        if (page === targetPage || !snapshot.nextCursor) {
+          pageReached = page;
+          break;
+        }
+        cursorHistory.push(cursor);
+        cursor = snapshot.nextCursor;
+        pageReached = page + 1;
+      }
+
+      if (!snapshot || requestGeneration !== this.qaListRequestGeneration) {
         return;
       }
-      await this.applyHostQaQuestionsSnapshot(snapshot);
+
+      const accepted = await this.applyHostQaQuestionsSnapshot(snapshot, {
+        preservePaging: targetPage > 0,
+      });
+      if (!accepted) {
+        return;
+      }
+      if (targetPage > 0) {
+        this.qaListCursorHistory = cursorHistory;
+        this.qaListCurrentCursor = cursor;
+        this.qaListPageIndex.set(pageReached);
+      }
       this.dismissQaSteeringCallout();
     } catch (error) {
       if (requestGeneration !== this.qaListRequestGeneration) {
         return;
       }
       if (this.consumeHostUnauthorized(error)) {
+        return;
+      }
+      // Veralteter Cursor nach Ranking-Wechsel: von vorn neu laden.
+      if (options?.preservePaging && targetPage > 0 && this.isQaListRankingConflict(error)) {
+        await this.refreshQaQuestions({
+          silent: options.silent,
+          preservePaging: false,
+        });
         return;
       }
       if (options?.silent) {
@@ -10950,6 +11033,22 @@ export class SessionHostComponent implements OnInit, OnDestroy {
         this.qaListPageLoading.set(false);
       }
     }
+  }
+
+  private isQaListRankingConflict(error: unknown): boolean {
+    if (!error || typeof error !== 'object') {
+      return false;
+    }
+    const record = error as {
+      data?: { code?: string };
+      shape?: { data?: { code?: string } };
+      message?: string;
+    };
+    const code = record.data?.code ?? record.shape?.data?.code;
+    if (code === 'CONFLICT') {
+      return true;
+    }
+    return /Rangliste hat sich geändert|CONFLICT/i.test(String(record.message ?? error));
   }
 
   private async refreshQaNlpRuntime(): Promise<void> {
@@ -11475,6 +11574,7 @@ export class SessionHostComponent implements OnInit, OnDestroy {
     const input = {
       ...canonical,
       filter: this.qaShowPinnedOnly() ? ('PINNED_ONLY' as const) : ('ALL_ELIGIBLE' as const),
+      limit: this.qaListPageSize(),
     };
     let lastError: unknown;
     for (let attempt = 0; attempt <= QA_WORD_CLOUD_ANALYZE_CONFLICT_RETRIES; attempt += 1) {
@@ -12195,7 +12295,7 @@ export class SessionHostComponent implements OnInit, OnDestroy {
         sessionId,
         moderatorView: true,
         sort: 'TIME',
-        pageSize: 100,
+        pageSize: 500,
         statuses,
         ...(cursor ? { cursor } : {}),
       });

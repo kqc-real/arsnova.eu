@@ -1529,11 +1529,26 @@ export const qaRouter = router({
       const updated = await prisma
         .$transaction(async (tx) => {
           await tx.$executeRaw`SELECT arsnova_lock_session_for_participant_join(${session.id})`;
-          return tx.session.update({
+          // Beide Felder syncen: arsnova_create_qa_question nutzt
+          // qaModerationMode OR moderationMode — sonst bleiben neue Fragen PENDING,
+          // obwohl die UI nur qaModerationMode umschaltet.
+          const next = await tx.session.update({
             where: { id: session.id },
-            data: { qaModerationMode: input.enabled },
+            data: {
+              qaModerationMode: input.enabled,
+              moderationMode: input.enabled,
+            },
             select: { qaModerationMode: true },
           });
+          // Ohne Vorab-Moderation müssen wartende Fragen sichtbar werden
+          // (Wortwolke/Listen filtern PENDING aus).
+          if (!input.enabled) {
+            await tx.qaQuestion.updateMany({
+              where: { sessionId: session.id, status: 'PENDING' },
+              data: { status: 'ACTIVE' },
+            });
+          }
+          return next;
         })
         .catch(rethrowQaContributionError);
       emitQaQuestionsSignal(session.id, { immediate: true });

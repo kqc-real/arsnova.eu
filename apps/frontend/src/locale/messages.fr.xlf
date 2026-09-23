@@ -9803,12 +9803,20 @@
           <context context-type="linenumber">593</context>
         </context-group>
       </trans-unit>
+      <trans-unit id="homeLiveCard.qaPendingCount" datatype="html">
+        <source>In Moderation: <x id="count" equiv-text="formatLocaleCount(item.pendingQuestionCount, this.localeId)"/></source>
+        <target>En modération : <x id="count" equiv-text="formatLocaleCount(item.pendingQuestionCount, this.localeId)"/></target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/home/home.component.ts</context>
+          <context context-type="linenumber">599</context>
+        </context-group>
+      </trans-unit>
       <trans-unit id="homeLiveCard.qaQuestionCountOne" datatype="html">
         <source>1 Frage</source>
         <target>1 question</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/home/home.component.ts</context>
-          <context context-type="linenumber">603</context>
+          <context context-type="linenumber">605</context>
         </context-group>
       </trans-unit>
       <trans-unit id="homeLiveCard.qaQuestionCountMany" datatype="html">
@@ -9816,7 +9824,7 @@
         <target><x id="count" equiv-text="formatLocaleCount(item.questionCount, this.localeId)"/> Questions</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/home/home.component.ts</context>
-          <context context-type="linenumber">605</context>
+          <context context-type="linenumber">607</context>
         </context-group>
       </trans-unit>
       <trans-unit id="homeLiveCard.removeCtaAria" datatype="html">
@@ -21785,6 +21793,22 @@
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-vote/session-vote.component.html</context>
           <context context-type="linenumber">2881</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="sessionQa.pageSizeAria" datatype="html">
+        <source>Fragen pro Seite</source>
+        <target>Questions par page</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.html</context>
+          <context context-type="linenumber">4524</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="sessionQa.pageSizeLabel" datatype="html">
+        <source>Pro Seite</source>
+        <target>Par page</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.html</context>
+          <context context-type="linenumber">4526</context>
         </context-group>
       </trans-unit>
       <trans-unit id="sessionQa.loadPrevious" datatype="html">

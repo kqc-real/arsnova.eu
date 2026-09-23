@@ -7386,6 +7386,178 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
     fixture.destroy();
   });
 
+  it('hält die Q&A-Seite nach Live-Invalidierung auf Seite 2', async () => {
+    getInfoQueryMock.mockResolvedValue({
+      ...defaultSession,
+      status: 'ACTIVE',
+      channels: {
+        quiz: { enabled: true },
+        qa: { enabled: true, open: true, title: 'Fragen aus dem Publikum', moderationMode: true },
+        quickFeedback: { enabled: false, open: false },
+      },
+    });
+    const page1 = {
+      questions: [
+        {
+          id: '11111111-1111-4111-8111-111111111111',
+          text: 'Seite eins',
+          upvoteCount: 5,
+          status: 'ACTIVE' as const,
+          createdAt: '2026-03-13T12:00:00.000Z',
+          myVote: null,
+          isOwn: false,
+          hasUpvoted: false,
+        },
+      ],
+      state: 'ACTIVE' as const,
+      sessionLifecycleRevision: 1,
+      serverNow: '2026-03-13T12:00:00.000Z',
+      expiresAt: '2026-03-14T12:00:00.000Z',
+      qaClosesAt: '2026-03-14T12:00:00.000Z',
+      endedAt: null,
+      postProcessingEndsAt: null,
+      rankingRevision: '1:TOP:',
+      nextCursor: 'cursor-page-2',
+      totalCount: 2,
+    };
+    const page2 = {
+      ...page1,
+      questions: [
+        {
+          id: '22222222-2222-4222-8222-222222222222',
+          text: 'Seite zwei',
+          upvoteCount: 1,
+          status: 'ACTIVE' as const,
+          createdAt: '2026-03-13T12:01:00.000Z',
+          myVote: null,
+          isOwn: false,
+          hasUpvoted: false,
+        },
+      ],
+      rankingRevision: '1:TOP:',
+      nextCursor: null,
+    };
+    const page2AfterInvalidation = {
+      ...page2,
+      sessionLifecycleRevision: 2,
+      rankingRevision: '2:TOP:',
+      questions: [
+        {
+          ...page2.questions[0]!,
+          text: 'Seite zwei aktualisiert',
+          upvoteCount: 3,
+        },
+      ],
+    };
+
+    let invalidationHandler: ((data: unknown) => void) | undefined;
+    qaOnQuestionsUpdatedSubscribeMock.mockImplementation(
+      (_input: unknown, handlers: { onData?: (data: unknown) => void }) => {
+        invalidationHandler = handlers.onData;
+        return { unsubscribe: unsubscribeMock };
+      },
+    );
+    qaListQueryMock.mockImplementation(async (input?: { cursor?: string }) => {
+      if (input?.cursor === 'cursor-page-2') return page2;
+      return page1;
+    });
+
+    const fixture = setup();
+    fixture.detectChanges();
+    await flushComponentAfterStable(fixture, 50);
+    const component = fixture.componentInstance;
+    component.activeChannel.set('qa');
+    fixture.detectChanges();
+    await flushComponentAfterStable(fixture, 50);
+
+    await component.loadMoreQaQuestions();
+    expect(component.qaListPageIndex()).toBe(1);
+    expect(component.qaQuestions()[0]?.text).toBe('Seite zwei');
+
+    qaListQueryMock.mockImplementation(async (input?: { cursor?: string }) => {
+      if (input?.cursor === 'cursor-page-2') return page2AfterInvalidation;
+      return {
+        ...page1,
+        sessionLifecycleRevision: 2,
+        rankingRevision: '2:TOP:',
+        nextCursor: 'cursor-page-2',
+      };
+    });
+
+    invalidationHandler?.({
+      kind: 'INVALIDATED',
+      state: 'ACTIVE',
+      sessionLifecycleRevision: 2,
+      rankingRevision: 2,
+      participantRevision: 1,
+      serverNow: '2026-03-13T12:02:00.000Z',
+      expiresAt: '2026-03-14T12:00:00.000Z',
+      qaClosesAt: '2026-03-14T12:00:00.000Z',
+      endedAt: null,
+      postProcessingEndsAt: null,
+    });
+    await flushComponentAfterStable(fixture, 50);
+
+    expect(component.qaListPageIndex()).toBe(1);
+    expect(component.qaQuestions()[0]?.text).toBe('Seite zwei aktualisiert');
+    fixture.destroy();
+  });
+
+  it('lädt die Q&A-Liste mit gewählter Seitengröße neu', async () => {
+    getInfoQueryMock.mockResolvedValue({
+      ...defaultSession,
+      status: 'ACTIVE',
+      channels: {
+        quiz: { enabled: true },
+        qa: { enabled: true, open: true, title: 'Fragen aus dem Publikum', moderationMode: true },
+        quickFeedback: { enabled: false, open: false },
+      },
+    });
+    qaListQueryMock.mockResolvedValue({
+      questions: [
+        {
+          id: '11111111-1111-4111-8111-111111111111',
+          text: 'Erste',
+          upvoteCount: 1,
+          status: 'ACTIVE' as const,
+          createdAt: '2026-03-13T12:00:00.000Z',
+          myVote: null,
+          isOwn: false,
+          hasUpvoted: false,
+        },
+      ],
+      state: 'ACTIVE' as const,
+      sessionLifecycleRevision: 1,
+      serverNow: '2026-03-13T12:00:00.000Z',
+      expiresAt: '2026-03-14T12:00:00.000Z',
+      qaClosesAt: '2026-03-14T12:00:00.000Z',
+      endedAt: null,
+      postProcessingEndsAt: null,
+      rankingRevision: '1:TOP:',
+      nextCursor: null,
+      totalCount: 1,
+    });
+
+    const fixture = setup();
+    fixture.detectChanges();
+    await flushComponentAfterStable(fixture, 50);
+    const component = fixture.componentInstance;
+    component.activeChannel.set('qa');
+    fixture.detectChanges();
+    await flushComponentAfterStable(fixture, 50);
+
+    qaListQueryMock.mockClear();
+    await component.setQaListPageSize(250);
+    expect(component.qaListPageSize()).toBe(250);
+    expect(qaListQueryMock).toHaveBeenCalledWith(
+      expect.objectContaining({
+        pageSize: 250,
+        moderatorView: true,
+      }),
+    );
+    fixture.destroy();
+  });
+
   it('kennzeichnet kontroverse Fragen in der Host-Liste sichtbar', async () => {
     getInfoQueryMock.mockResolvedValue({
       ...defaultSession,
@@ -8076,6 +8248,7 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
       filter: 'ALL_ELIGIBLE',
       normalization: 'NONE',
       maxEntries: 40,
+      limit: 100,
     });
     expect(fixture.componentInstance.qaWordCloudThemeFallbackHint()).toBeNull();
     expect(fixture.componentInstance.qaWordCloudAnalysisEntries()).toMatchObject([
@@ -17749,7 +17922,7 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
         expect.objectContaining({
           moderatorView: true,
           sort: 'TIME',
-          pageSize: 100,
+          pageSize: 500,
           statuses: ['PENDING', 'ACTIVE', 'PINNED', 'ARCHIVED', 'DELETED'],
         }),
       );
