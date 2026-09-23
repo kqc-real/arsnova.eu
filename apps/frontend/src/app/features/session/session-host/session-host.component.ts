@@ -3402,6 +3402,15 @@ export class SessionHostComponent implements OnInit, OnDestroy {
       untracked(() => this.ensureQaSubscription());
     });
     effect(() => {
+      const moderationEnabled = this.session()?.channels?.qa?.moderationMode === true;
+      if (moderationEnabled || !this.qaShowPendingOnly()) {
+        return;
+      }
+      untracked(() => {
+        void this.setQaPendingFilter(false);
+      });
+    });
+    effect(() => {
       const request = this.qaWordCloudAnalysisRequest();
       if (!request) {
         this.clearQaWordCloudThemeAnalysisTimer();
@@ -10022,6 +10031,9 @@ export class SessionHostComponent implements OnInit, OnDestroy {
           }
         : current,
     );
+    if (this.releaseQaPendingFilterIfModerationOff()) {
+      this.ensureQaSubscription();
+    }
     if (reopenedFromFinished) {
       this.statusUpdate.set({
         status: 'LOBBY',
@@ -10939,10 +10951,22 @@ export class SessionHostComponent implements OnInit, OnDestroy {
     if (this.qaShowPinnedOnly()) {
       return ['PINNED'];
     }
-    if (this.qaShowPendingOnly()) {
+    if (this.qaShowPendingOnly() && this.session()?.channels?.qa?.moderationMode === true) {
       return ['PENDING'];
     }
     return ['PENDING', 'ACTIVE', 'PINNED', 'ARCHIVED'];
+  }
+
+  /** Pending-Filter nur bei aktiver Vorab-Moderation; sonst Signal und Liste zurücksetzen. */
+  private releaseQaPendingFilterIfModerationOff(): boolean {
+    if (this.session()?.channels?.qa?.moderationMode === true) {
+      return false;
+    }
+    if (!this.qaShowPendingOnly()) {
+      return false;
+    }
+    this.qaShowPendingOnly.set(false);
+    return true;
   }
 
   private hostQaListQueryInput(cursor?: string | null) {
