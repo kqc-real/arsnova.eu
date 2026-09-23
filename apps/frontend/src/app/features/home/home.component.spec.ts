@@ -696,6 +696,36 @@ describe('HomeComponent', () => {
       restoreDefaultSessionGetInfo(vi.mocked(trpc.session.getInfo.query));
     });
 
+    it('erneuert das Host-Token aus der Capability auch wenn bereits ein Token gespeichert ist', async () => {
+      const { trpc, setHostToken: setHostTokenFromTrpc } = await import('../../core/trpc.client');
+      seedHostCapability();
+      setHostToken('ABC123', 'stale-host-token');
+      vi.mocked(trpc.session.issueHostAccessToken.mutate).mockClear();
+      vi.mocked(trpc.session.getInfo.query).mockResolvedValue(
+        hostSessionGetInfo('ABC123', true, { qaQuestionCount: 2, qaPendingQuestionCount: 1 }),
+      );
+
+      const fixture = createHomeFixture();
+      fixture.detectChanges();
+      await fixture.whenStable();
+      fixture.detectChanges();
+      await vi.waitUntil(
+        () =>
+          fixture.nativeElement.querySelector(
+            '.home-host-session-cta-row [data-testid="home-host-recovery"]',
+          ) !== null,
+        { timeout: 1000, interval: 10 },
+      );
+
+      expect(trpc.session.issueHostAccessToken.mutate).toHaveBeenCalledWith({
+        code: 'ABC123',
+        browserCapability: 'browser-capability-abcdefghijklmnopqrstuvwxyz',
+      });
+      expect(setHostTokenFromTrpc).toHaveBeenCalledWith('ABC123', 'issued-host-token');
+      clearHostToken('ABC123');
+      restoreDefaultSessionGetInfo(vi.mocked(trpc.session.getInfo.query));
+    });
+
     it('zeigt die sichtbare Fragenzahl, wenn keine Pending-Fragen vorliegen', async () => {
       const { trpc } = await import('../../core/trpc.client');
       seedHostCapability();

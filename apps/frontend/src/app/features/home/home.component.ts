@@ -735,26 +735,23 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
       .slice(0, limit);
   }
 
-  /** Stellt ein Host-Token aus der Browser-Capability aus, damit getInfo den Pending-Count liefert. */
+  /** Stellt ein frisches Host-Token aus der Browser-Capability aus (Pending-Count). */
   private async ensureHostTokenForHomeCta(code: string): Promise<boolean> {
-    if (hasHostToken(code)) {
-      return true;
-    }
     const capability = getHostBrowserCapability(code);
-    if (!capability) {
-      return false;
+    if (capability) {
+      try {
+        const issued = await trpc.session.issueHostAccessToken.mutate({
+          code,
+          browserCapability: capability,
+        });
+        setHostToken(code, issued.hostToken);
+        return true;
+      } catch {
+        // Capability vorhanden, Ausgabe fehlgeschlagen: gespeichertes Token als Fallback.
+        return hasHostToken(code);
+      }
     }
-    try {
-      const issued = await trpc.session.issueHostAccessToken.mutate({
-        code,
-        browserCapability: capability,
-      });
-      setHostToken(code, issued.hostToken);
-      return true;
-    } catch {
-      // Ohne Token bleibt der Pending-Count aus; CTA zeigt weiterhin Fristen.
-      return false;
-    }
+    return hasHostToken(code);
   }
 
   private async loadHostSessionCtas(): Promise<void> {

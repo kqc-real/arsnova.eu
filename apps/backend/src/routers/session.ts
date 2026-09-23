@@ -6104,10 +6104,13 @@ const sessionCoreRouter = router({
               qaOpen: nextQaOpen,
               qaClosesAt: window.qaClosesAt,
               qaTitle: title,
+              // Immer syncen: arsnova_create_qa_question nutzt qaModerationMode OR moderationMode.
+              // Sonst bleibt bei Quiz+Q&A das Legacy-Flag nach REPLAN/toggle desynchron.
               qaModerationMode: input.moderationMode,
+              moderationMode: input.moderationMode,
               ...(session.type === 'Q_AND_A' ||
               (session.quizId === null && !session.quickFeedbackEnabled)
-                ? { title, moderationMode: input.moderationMode }
+                ? { title }
                 : {}),
               preferredChannel: 'qa',
               ...(window.requiresSessionExtension ? { expiresAt: window.expiresAt } : {}),
