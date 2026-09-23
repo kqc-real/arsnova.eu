@@ -3858,6 +3858,21 @@
                           </button>
                         </div>
                       }
+                      @if (freetextWordCloudShowThemeRefresh()) {
+                        <button
+                          mat-button
+                          type="button"
+                          class="session-host__extra-action session-host__extra-action--refresh"
+                          data-testid="freetext-word-cloud-refresh-themes"
+                          [attr.aria-busy]="
+                            freetextWordCloudSemanticAnalysisPending() ? true : null
+                          "
+                          (click)="refreshFreetextWordCloudThemes()"
+                        >
+                          <mat-icon aria-hidden="true">refresh</mat-icon>
+                          <span>{{ freetextWordCloudThemeRefreshLabel }}</span>
+                        </button>
+                      }
                     </div>
                     @if (freetextWordCloudSemanticAnalysisPending()) {
                       <div
@@ -3887,7 +3902,9 @@
                           Es gelten Wörter und Phrasen.
                         </p>
                       </div>
-                    } @else if (freetextWordCloudSemanticHint()) {
+                    } @else if (
+                      freetextWordCloudSemanticHint() && !freetextWordCloudShowThemeRefresh()
+                    ) {
                       <p class="session-host__extra-note" role="status" aria-live="polite">
                         {{ freetextWordCloudSemanticHint() }}
                       </p>

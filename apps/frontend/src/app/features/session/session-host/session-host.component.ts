@@ -1059,6 +1059,7 @@ export class SessionHostComponent implements OnInit, OnDestroy {
   readonly freetextWordCloudMaximized = signal(false);
   readonly freetextWordCloudSemanticAnalysisPending = signal(false);
   readonly freetextWordCloudSemanticAnalysisResult = signal<AnalyzeWordCloudOutput | null>(null);
+  readonly freetextWordCloudSemanticStale = signal(false);
   private qaWordCloudAnalyzeTail: Promise<unknown> = Promise.resolve();
   private qaWordCloudThemeAnalysisRunId = 0;
   private qaWordCloudLemmaAnalysisRunId = 0;
@@ -1069,7 +1070,7 @@ export class SessionHostComponent implements OnInit, OnDestroy {
   private channelToggleSyncing = false;
   private lastQaWordCloudAnalysisRequestKey: string | null = null;
   private lastQaWordCloudSemanticAnalyzedKey: string | null = null;
-  private lastFreetextWordCloudSemanticRequestKey: string | null = null;
+  private lastFreetextWordCloudSemanticAnalyzedKey: string | null = null;
   private qaWordCloudThemeAnalysisTimer: ReturnType<typeof setTimeout> | null = null;
   private freetextWordCloudSemanticAnalysisTimer: ReturnType<typeof setTimeout> | null = null;
   private qaWordCloudSemanticPendingStartedAt = 0;
@@ -1374,8 +1375,34 @@ export class SessionHostComponent implements OnInit, OnDestroy {
       return $localize`:@@sessionQa.wordCloudSemanticPendingHint:Themen werden vorbereitet. Es gelten Wörter und Phrasen.`;
     }
 
+    if (this.freetextWordCloudSemanticStale()) {
+      return $localize`:@@sessionQa.wordCloudSemanticStaleHint:Neue Antworten seit letzter Themenanalyse`;
+    }
+
+    // Status wie Q&A-Theme-Fallback — auch bei Phrase-Fallback-Einträgen den Hinweis zeigen.
+    const status = this.freetextWordCloudSemanticAnalysisResult()?.status;
+    if (status === 'ready') {
+      return null;
+    }
+    if (status === 'uncertain') {
+      return $localize`:@@sessionQa.wordCloudSemanticUncertainHint:Einige Themen sind unsicher. Prüfe die Mitgliedsfragen.`;
+    }
+    if (status === 'failed') {
+      return $localize`:@@sessionQa.wordCloudSemanticFailedHint:Themenanalyse fehlgeschlagen. Es gelten Wörter und Phrasen.`;
+    }
+    if (status === 'fallback') {
+      return $localize`:@@sessionQa.wordCloudSemanticFallbackHint:Themen sind gerade nicht belastbar. Es gelten Wörter und Phrasen.`;
+    }
+
     return $localize`:@@sessionQa.wordCloudSemanticDisabledHint:Themen sind noch nicht verfügbar. Es gelten Wörter und Phrasen.`;
   });
+  readonly freetextWordCloudShowThemeRefresh = computed(
+    () =>
+      this.freetextWordCloudMode() === 'SEMANTIC' &&
+      this.freetextWordCloudSemanticStale() &&
+      !this.freetextWordCloudSemanticAnalysisPending(),
+  );
+  readonly freetextWordCloudThemeRefreshLabel = $localize`:@@sessionQa.wordCloudRefreshThemes:Themen aktualisieren`;
   readonly freetextWordCloudSemanticWaitHint = computed(() =>
     this.resolveSemanticWaitHint(
       this.freetextWordCloudMode() === 'SEMANTIC' &&
@@ -3381,7 +3408,6 @@ export class SessionHostComponent implements OnInit, OnDestroy {
       const request = this.freetextWordCloudSemanticAnalysisRequest();
       if (!request) {
         this.clearFreetextWordCloudSemanticAnalysisTimer();
-        this.lastFreetextWordCloudSemanticRequestKey = null;
         this.freetextWordCloudSemanticAnalysisPending.set(false);
         this.freetextWordCloudSemanticPendingStartedAt = 0;
         this.clearFreetextWordCloudSemanticWaitHint();
@@ -3389,7 +3415,7 @@ export class SessionHostComponent implements OnInit, OnDestroy {
       }
 
       untracked(() => {
-        this.queueFreetextWordCloudSemanticAnalysis(request);
+        this.syncFreetextWordCloudSemanticStale(request);
       });
     });
     effect(() => {
@@ -3727,6 +3753,7 @@ export class SessionHostComponent implements OnInit, OnDestroy {
       if (shouldRefreshLemmaSmoothing) {
         await this.requestFreetextWordCloudLemmaSmoothing();
       }
+      this.ensureFreetextWordCloudSemanticAnalysis();
       return;
     }
 
@@ -3782,7 +3809,15 @@ export class SessionHostComponent implements OnInit, OnDestroy {
   }
 
   async toggleFreetextWordCloudSmoothing(): Promise<void> {
-    if (this.freetextWordCloudMode() === 'SEMANTIC' || this.freetextWordCloudLemmaPending()) {
+    if (this.freetextWordCloudMode() === 'SEMANTIC') {
+      if (!this.freetextWordCloudShowThemeRefresh()) {
+        return;
+      }
+      this.refreshFreetextWordCloudThemes();
+      return;
+    }
+
+    if (this.freetextWordCloudLemmaPending()) {
       return;
     }
 
@@ -3802,10 +3837,13 @@ export class SessionHostComponent implements OnInit, OnDestroy {
 
   readonly maximizeFreetextWordCloud = (): void => {
     this.wordCloudExpanded.set(true);
-    this.syncWordCloudOverlayTop();
     this.freetextWordCloudMaximized.set(true);
     void this.activatePresenterSurface('freetextWordCloud', 'quiz');
+    // Sticky-Kanal-Leiste erst nach dem Overlay-Class messen — sonst liegt
+    // die Wolke unter der App-Bar, wenn der Host nach unten gescrollt hat.
+    this.scheduleWordCloudOverlayTopSync();
     this.scrollFreetextWordCloudIntoView();
+    this.ensureFreetextWordCloudSemanticAnalysis();
   };
 
   closeFreetextWordCloudMaximize(): void {
@@ -3823,18 +3861,66 @@ export class SessionHostComponent implements OnInit, OnDestroy {
     this.qaWordCloudDialogRef?.close?.();
   }
 
+  /** Sofort + nach Layout: Overlay-Top an die sticky Kanal-Leiste koppeln. */
+  private scheduleWordCloudOverlayTopSync(): void {
+    this.syncWordCloudOverlayTop();
+    afterNextRender(
+      () => {
+        if (this.destroyRef.destroyed) return;
+        this.syncWordCloudOverlayTop();
+      },
+      { injector: this.injector },
+    );
+  }
+
+  /**
+   * Freitext-Maximieren: sticky App-Bar bleibt sichtbar (z-index über der Wolke).
+   * `getBoundingClientRect().bottom` allein reicht nicht — nach Scrollen unter die
+   * Leiste (z. B. »Ergebnis zeigen«) ist rect.bottom ≤ 0 und die Wolke startet bei 0.
+   */
   private syncWordCloudOverlayTop(): void {
-    const marker = this.qaWordCloudDialogOpen()
-      ? this.document.querySelector('app-top-toolbar')
-      : this.document.querySelector('.session-channel-tabs-shell');
-    const top =
-      marker instanceof HTMLElement
-        ? Math.max(0, Math.round(marker.getBoundingClientRect().bottom))
-        : 0;
+    if (this.qaWordCloudDialogOpen()) {
+      const toolbar = this.document.querySelector('app-top-toolbar');
+      const top =
+        toolbar instanceof HTMLElement
+          ? Math.max(0, Math.round(toolbar.getBoundingClientRect().bottom))
+          : 0;
+      this.document.documentElement.style.setProperty(
+        '--session-host-word-cloud-overlay-top',
+        `${top}px`,
+      );
+      return;
+    }
+
+    const shell = this.document.querySelector('.session-channel-tabs-shell');
+    if (!(shell instanceof HTMLElement)) {
+      this.document.documentElement.style.setProperty(
+        '--session-host-word-cloud-overlay-top',
+        '0px',
+      );
+      return;
+    }
+
+    const rect = shell.getBoundingClientRect();
+    const measuredBottom = Math.round(rect.bottom);
+    const reservedBottom = this.freetextWordCloudMaximized()
+      ? Math.round(this.resolveFreetextWordCloudStickyTopPx() + shell.offsetHeight)
+      : 0;
+    const top = Math.max(0, measuredBottom, reservedBottom);
     this.document.documentElement.style.setProperty(
       '--session-host-word-cloud-overlay-top',
       `${top}px`,
     );
+  }
+
+  /** Entspricht `.session-host--word-cloud-overlay … { top: max(0.35rem, safe-area) }`. */
+  private resolveFreetextWordCloudStickyTopPx(): number {
+    const view = this.document.defaultView;
+    const rootFontSize = Number.parseFloat(
+      view?.getComputedStyle(this.document.documentElement).fontSize ?? '16',
+    );
+    const remPx = Number.isFinite(rootFontSize) && rootFontSize > 0 ? rootFontSize : 16;
+    return 0.35 * remPx;
   }
 
   private clearWordCloudOverlayTop(): void {
@@ -3855,6 +3941,7 @@ export class SessionHostComponent implements OnInit, OnDestroy {
     this.wordCloudExpanded.set(target.open);
     if (target.open) {
       this.scrollFreetextWordCloudIntoView(target);
+      this.ensureFreetextWordCloudSemanticAnalysis();
     }
   }
 
@@ -6619,6 +6706,9 @@ export class SessionHostComponent implements OnInit, OnDestroy {
   @HostListener('window:resize')
   onWindowResize(): void {
     this.syncExitAnchorClearance();
+    if (this.freetextWordCloudMaximized() || this.qaWordCloudDialogOpen()) {
+      this.syncWordCloudOverlayTop();
+    }
     if (!this.showTeamFoyerEntranceLayers()) {
       return;
     }
@@ -11378,18 +11468,50 @@ export class SessionHostComponent implements OnInit, OnDestroy {
     };
   }
 
-  private queueFreetextWordCloudSemanticAnalysis(request: AnalyzeWordCloudInput): void {
-    const requestKey = JSON.stringify(request);
-    if (requestKey === this.lastFreetextWordCloudSemanticRequestKey) {
+  private syncFreetextWordCloudSemanticStale(request: AnalyzeWordCloudInput): void {
+    const requestKey = wordCloudAnalysisRequestKey(request);
+    if (
+      this.lastFreetextWordCloudSemanticAnalyzedKey &&
+      requestKey !== this.lastFreetextWordCloudSemanticAnalyzedKey
+    ) {
+      this.freetextWordCloudSemanticStale.set(true);
+    }
+  }
+
+  private ensureFreetextWordCloudSemanticAnalysis(): void {
+    if (this.freetextWordCloudMode() !== 'SEMANTIC') {
       return;
     }
+    const request = this.buildFreetextWordCloudSemanticAnalysisRequest();
+    if (!request) {
+      return;
+    }
+    if (!this.freetextWordCloudSemanticAnalysisResult()) {
+      this.queueFreetextWordCloudSemanticAnalysis(request);
+      return;
+    }
+    this.syncFreetextWordCloudSemanticStale(request);
+  }
 
-    this.lastFreetextWordCloudSemanticRequestKey = requestKey;
+  refreshFreetextWordCloudThemes(): void {
+    if (this.freetextWordCloudSemanticAnalysisPending()) {
+      return;
+    }
+    const request = this.buildFreetextWordCloudSemanticAnalysisRequest();
+    if (!request) {
+      return;
+    }
+    this.queueFreetextWordCloudSemanticAnalysis(request);
+  }
+
+  private queueFreetextWordCloudSemanticAnalysis(request: AnalyzeWordCloudInput): void {
+    // Wie Q&A: Debounce neu starten; kein Early-Return — sonst blockiert »Themen aktualisieren«.
+    this.freetextWordCloudSemanticStale.set(false);
     this.markFreetextWordCloudSemanticPending();
     this.clearFreetextWordCloudSemanticAnalysisTimer();
     this.freetextWordCloudSemanticAnalysisTimer = setTimeout(() => {
       this.freetextWordCloudSemanticAnalysisTimer = null;
-      void this.refreshFreetextWordCloudSemanticAnalysis(request);
+      void this.refreshFreetextWordCloudSemanticAnalysis(request, { keepPrevious: true });
     }, QA_WORD_CLOUD_ANALYSIS_DEBOUNCE_MS);
   }
 
@@ -11404,9 +11526,12 @@ export class SessionHostComponent implements OnInit, OnDestroy {
 
   private async refreshFreetextWordCloudSemanticAnalysis(
     request: AnalyzeWordCloudInput,
+    options: { readonly keepPrevious?: boolean } = {},
   ): Promise<void> {
     const runId = ++this.freetextWordCloudSemanticAnalysisRunId;
-    this.freetextWordCloudSemanticAnalysisResult.set(null);
+    if (!options.keepPrevious) {
+      this.freetextWordCloudSemanticAnalysisResult.set(null);
+    }
     const pendingStartedAt = this.markFreetextWordCloudSemanticPending();
 
     try {
@@ -11421,6 +11546,8 @@ export class SessionHostComponent implements OnInit, OnDestroy {
       }
 
       this.freetextWordCloudSemanticAnalysisResult.set(result);
+      this.lastFreetextWordCloudSemanticAnalyzedKey = wordCloudAnalysisRequestKey(request);
+      this.freetextWordCloudSemanticStale.set(false);
     } catch {
       if (runId !== this.freetextWordCloudSemanticAnalysisRunId) {
         return;
@@ -11431,7 +11558,10 @@ export class SessionHostComponent implements OnInit, OnDestroy {
         return;
       }
 
-      this.freetextWordCloudSemanticAnalysisResult.set(null);
+      if (!options.keepPrevious) {
+        this.freetextWordCloudSemanticAnalysisResult.set(null);
+      }
+      // Fingerprint und Stale nur bei Erfolg – sonst bleibt der Refresh-Hinweis sichtbar.
     } finally {
       if (runId === this.freetextWordCloudSemanticAnalysisRunId) {
         this.freetextWordCloudSemanticAnalysisPending.set(false);
@@ -11823,11 +11953,10 @@ export class SessionHostComponent implements OnInit, OnDestroy {
       this.controlPending.set(false);
       await this.refreshCurrentQuestionForHost();
       if (!this.isCurrentStatusUpdate(result)) return;
-      const isFreetext = this.displayedCurrentQuestionForHost()?.type === 'FREETEXT';
-      const wordCloudAlreadyOpen = this.wordCloudExpanded() || this.freetextWordCloudMaximized();
-      if (isFreetext && !wordCloudAlreadyOpen) {
-        this.wordCloudExpanded.set(true);
-        this.scrollFreetextWordCloudIntoView();
+      // Freitext: Ergebnis = Beamer-Wortwolke (wie Host »Maximieren«), nicht die
+      // schmale Inline-Wolke neben der Ergebniskarte.
+      if (this.displayedCurrentQuestionForHost()?.type === 'FREETEXT') {
+        this.maximizeFreetextWordCloud();
       } else {
         this.scrollHostTargetIntoView(this.hostResultsSectionRef);
       }
