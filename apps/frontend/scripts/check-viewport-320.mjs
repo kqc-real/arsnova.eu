@@ -295,10 +295,10 @@ async function inspectHomeKeyboardNavigation(page) {
     await page.waitForTimeout(50);
     if (
       !(await page
-        .locator('#main-content')
+        .locator('#home-session-code-input')
         .evaluate((element) => element === document.activeElement))
     ) {
-      issues.push('Skip-Link verschiebt den Fokus nicht auf den Hauptinhalt');
+      issues.push('Skip-Link verschiebt den Fokus nicht auf die Code-Eingabe');
     }
   }
 
@@ -334,14 +334,13 @@ async function inspectHomeKeyboardNavigation(page) {
     issues.push('Fokus kehrt nach Escape nicht zum Menüauslöser zurück');
   }
 
-  const codeAction = page.getByRole('button', { name: 'Code eingeben' });
-  await codeAction.click();
+  await page.locator('.home-code-segments').click();
   if (
     !(await page
       .locator('.home-code-segments__input')
       .evaluate((element) => element === document.activeElement))
   ) {
-    issues.push('„Code eingeben“ fokussiert die Session-Code-Eingabe nicht');
+    issues.push('Klick auf die Code-Segmente fokussiert die Session-Code-Eingabe nicht');
   }
 
   return issues;

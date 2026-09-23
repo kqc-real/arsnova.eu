@@ -459,7 +459,7 @@
     },
     "session.changeExpiration": {
       "kind": "mutation",
-      "fingerprint": "sha256:4fcdddadc2f00c522aad084753d905be2689c19613dfc176b74921f23630602d",
+      "fingerprint": "sha256:1e32c5129ec7537fb476105d1ee5e1015574d9a045aa82cf7bf4b5e01ec964ef",
       "missing": []
     },
     "session.checkParticipantNickname": {
@@ -764,7 +764,7 @@
     },
     "session.previewExpiration": {
       "kind": "query",
-      "fingerprint": "sha256:5d2c4f410f41c1c1bb3d0d1b63c84cd6754dbcd9f9294d29cbcb286171fbe917",
+      "fingerprint": "sha256:3fe94950e36d1bfeeb02f0eecd0346f1eefad879875cfc8590b1ba007b703e1c",
       "missing": []
     },
     "session.previewQaConfiguration": {
