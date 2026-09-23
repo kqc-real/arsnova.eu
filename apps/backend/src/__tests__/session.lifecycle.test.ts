@@ -246,6 +246,12 @@ describe('session absolute lifecycle', () => {
         expiresAt: configuredExpiresAt.toISOString(),
         qaClosesAt: configuredExpiresAt.toISOString(),
         sessionLifecycleRevision: 3,
+        postProcessingEndsAt: new Date(
+          configuredExpiresAt.getTime() + 336 * 60 * 60 * 1000,
+        ).toISOString(),
+        purgeEligibleAt: new Date(
+          configuredExpiresAt.getTime() + 336 * 60 * 60 * 1000,
+        ).toISOString(),
       });
       expect(prismaMock.session.update).toHaveBeenCalledWith(
         expect.objectContaining({

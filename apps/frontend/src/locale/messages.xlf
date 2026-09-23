@@ -16873,7 +16873,7 @@
         </context-group>
       </trans-unit>
       <trans-unit id="qaConfig.untilSessionEnd" datatype="html">
-        <source> Bis zum spätesten Zugang </source>
+        <source> Bis zum Sessionende </source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-host/qa-channel-configuration-dialog.component.html</context>
           <context context-type="linenumber">62,64</context>

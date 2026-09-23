@@ -5800,6 +5800,7 @@ const sessionCoreRouter = router({
               firstParticipantJoinedAt: true,
               timeZone: true,
               sessionLifecycleRevision: true,
+              legalHoldUntil: true,
             },
           });
         });
@@ -5807,11 +5808,13 @@ const sessionCoreRouter = router({
         invalidateSessionStatusCachesForCode(code);
         const serverNow = new Date();
         const maxExpiresAt = getSessionMaxExpiresAt(updated.createdAt);
+        const effectivelyFinished = isSessionEffectivelyFinished(updated, serverNow);
+        const retention = buildSessionRetentionTimeline(updated, serverNow);
         return {
-          status: updated.status,
+          status: effectivelyFinished ? 'FINISHED' : updated.status,
           createdAt: updated.createdAt.toISOString(),
           expiresAt: updated.expiresAt.toISOString(),
-          endedAt: updated.endedAt?.toISOString() ?? null,
+          endedAt: retention.endedAt?.toISOString() ?? null,
           qaClosesAt: updated.qaClosesAt?.toISOString() ?? null,
           firstParticipantJoinedAt: updated.firstParticipantJoinedAt?.toISOString() ?? null,
           timeZone: updated.timeZone,
@@ -5819,13 +5822,17 @@ const sessionCoreRouter = router({
           serverNow: serverNow.toISOString(),
           maxExpiresAt: maxExpiresAt.toISOString(),
           originalHost,
-          extensionAllowed: originalHost && updated.expiresAt.getTime() < maxExpiresAt.getTime(),
-          configurationAllowed: updated.firstParticipantJoinedAt === null,
-          postProcessingEndsAt: null,
-          purgeEligibleAt: null,
-          expectedDeletionAt: null,
-          deletionDelayedByLegalHold: false,
-          hostContentAccessAllowed: true,
+          extensionAllowed:
+            originalHost &&
+            !effectivelyFinished &&
+            updated.expiresAt.getTime() < maxExpiresAt.getTime(),
+          configurationAllowed: !effectivelyFinished && updated.firstParticipantJoinedAt === null,
+          postProcessingEndsAt: retention.postProcessingEndsAt?.toISOString() ?? null,
+          purgeEligibleAt: retention.purgeEligibleAt?.toISOString() ?? null,
+          expectedDeletionAt: retention.expectedDeletionAt?.toISOString() ?? null,
+          deletionDelayedByLegalHold: retention.deletionDelayedByLegalHold,
+          hostContentAccessAllowed:
+            !effectivelyFinished || retention.hostPostProcessingAccessAllowed,
         };
       } catch (error) {
         if (error instanceof TRPCError || !String(error).includes('ARSNOVA_SESSION_')) {

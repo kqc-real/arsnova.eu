@@ -1146,6 +1146,7 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
     expect(confirmData.message).toContain('bis zum neuen Zeitpunkt nutzen');
     expect(confirmData.consequences.join('\n')).toContain('Zugang für Teilnehmende endet');
     expect(confirmData.consequences.join('\n')).toContain('Fragen einsehen kannst du bis');
+    expect(confirmData.consequences.join('\n')).not.toContain('löschbar');
     const session = fixture.componentInstance.session();
     expect(session?.expiresAt).toBe(newExpiresAt);
     expect(session?.qaClosesAt).toBe(newExpiresAt);
@@ -1153,6 +1154,78 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
     expect(fixture.componentInstance.sessionLifecycle()?.expiresAt).toBe(newExpiresAt);
     expect(fixture.componentInstance.qaDeadlineLabel()).toContain(
       fixture.componentInstance.formatSessionLifecycleDateTime(newExpiresAt, 'Europe/Berlin'),
+    );
+    fixture.destroy();
+  });
+
+  it('hält die Host-Lesefrist nach Speichern auch ohne postProcessingEndsAt sichtbar', async () => {
+    const newExpiresAt = '2026-10-01T10:00:00.000Z';
+    const selection = {
+      purpose: 'INITIAL_CONFIGURATION' as const,
+      selection: { kind: 'ABSOLUTE' as const, expiresAt: newExpiresAt },
+      timeZone: 'Europe/Berlin',
+    };
+    const preview = {
+      purpose: 'INITIAL_CONFIGURATION' as const,
+      expectedLifecycleRevision: 2,
+      oldExpiresAt: '2026-03-25T12:00:00.000Z',
+      newExpiresAt,
+      qaClosesAt: '2026-03-25T12:00:00.000Z',
+      timeZone: 'Europe/Berlin',
+      maxExpiresAt: '2026-04-07T12:00:00.000Z',
+      serverNow: '2026-03-24T12:00:00.000Z',
+      projectedPostProcessingEndsAt: '2026-10-15T10:00:00.000Z',
+      projectedPurgeEligibleAt: '2026-10-15T10:00:00.000Z',
+    };
+    previewExpirationQueryMock.mockResolvedValueOnce(preview);
+    changeExpirationMutateMock.mockResolvedValueOnce({
+      ...defaultLifecycle,
+      expiresAt: newExpiresAt,
+      qaClosesAt: newExpiresAt,
+      sessionLifecycleRevision: 3,
+      serverNow: preview.serverNow,
+      postProcessingEndsAt: null,
+      purgeEligibleAt: null,
+      expectedDeletionAt: null,
+    });
+    dialogOpenMock
+      .mockReturnValueOnce({ afterClosed: () => of(selection) })
+      .mockReturnValueOnce({ afterClosed: () => of(true) });
+    const fixture = setup();
+    fixture.componentInstance.session.set({
+      ...defaultSession,
+      timeZone: 'Europe/Berlin',
+      expiresAt: defaultLifecycle.expiresAt,
+      qaClosesAt: defaultLifecycle.qaClosesAt,
+    });
+    fixture.componentInstance.sessionLifecycle.set({
+      ...defaultLifecycle,
+      configurationAllowed: true,
+      firstParticipantJoinedAt: null,
+    });
+
+    await (
+      fixture.componentInstance as unknown as {
+        openSessionExpirationDialog(
+          data: {
+            mode: 'INITIAL_CONFIGURATION';
+            lifecycle: typeof defaultLifecycle;
+          },
+          focusReturn: HTMLElement | null,
+        ): Promise<void>;
+      }
+    ).openSessionExpirationDialog(
+      { mode: 'INITIAL_CONFIGURATION', lifecycle: defaultLifecycle },
+      null,
+    );
+
+    const label = fixture.componentInstance.qaHostReadLabel();
+    expect(label).toContain('Fragen einsehen kannst du bis');
+    expect(label).toContain(
+      fixture.componentInstance.formatSessionLifecycleDateTime(
+        '2026-10-15T10:00:00.000Z',
+        'Europe/Berlin',
+      ),
     );
     fixture.destroy();
   });

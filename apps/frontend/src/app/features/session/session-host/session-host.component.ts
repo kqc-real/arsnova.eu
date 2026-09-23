@@ -128,6 +128,7 @@ import {
   WORD_CLOUD_PHRASE_MAX_NGRAM_LENGTH,
   QA_WORD_CLOUD_MAX_OUTPUT_ENTRIES,
   SESSION_LOBBY_RECENT_ARRIVALS_MAX,
+  SESSION_POST_PROCESSING_HOURS,
   WordCloudAnalysisEntryDTOSchema,
   isWordCloudLemmaLocale,
   isWordCloudPhraseAnalysisVariant,
@@ -4818,10 +4819,6 @@ export class SessionHostComponent implements OnInit, OnDestroy {
         preview.projectedPostProcessingEndsAt,
         preview.timeZone,
       )}`,
-      $localize`:@@sessionLifecycle.previewPurgeEligible:Sessiondaten frühestens löschbar: ${this.formatSessionLifecycleDateTime(
-        preview.projectedPurgeEligibleAt,
-        preview.timeZone,
-      )}`,
     );
     const dialogRef = this.dialog.open(ConfirmLeaveDialogComponent, {
       data: {
@@ -8796,13 +8793,20 @@ export class SessionHostComponent implements OnInit, OnDestroy {
   }
 
   qaHostReadLabel(): string | null {
-    const until = this.sessionLifecycle()?.postProcessingEndsAt;
+    const lifecycle = this.sessionLifecycle();
+    const until =
+      lifecycle?.postProcessingEndsAt ??
+      (lifecycle?.expiresAt
+        ? new Date(
+            Date.parse(lifecycle.expiresAt) + SESSION_POST_PROCESSING_HOURS * 60 * 60 * 1000,
+          ).toISOString()
+        : null);
     if (!until) {
       return null;
     }
     const formatted = this.formatSessionLifecycleDateTime(
       until,
-      this.session()?.timeZone ?? this.sessionLifecycle()?.timeZone,
+      this.session()?.timeZone ?? lifecycle?.timeZone,
     );
     return $localize`:@@sessionQa.hostCanReadUntil:Fragen einsehen kannst du bis ${formatted}:deadline:`;
   }
