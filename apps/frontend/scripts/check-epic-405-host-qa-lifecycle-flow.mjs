@@ -4,7 +4,7 @@
  *
  * Prüft:
  * - Q&A-Start zeigt die Host-Zugangskarte
- * - Maximales Q&A-Ende und Löschtermin sitzen in der Q&A-Action-Bar
+ * - Zugang für Teilnehmende sitzt in der Q&A-Action-Bar
  * - Self-Service-Wiederherstellung mit Session-Kennung und Recovery-Code
  *
  * Run:
@@ -185,28 +185,19 @@ async function main() {
     });
 
     const expiration = host.locator('[data-testid="configure-session-expiration"]');
-    const retention = host.locator('[data-testid="session-retention-details"]');
-    const footerOk =
-      (await expiration.isVisible().catch(() => false)) &&
-      (await retention.isVisible().catch(() => false));
-    logStep(footerOk, 'Q&A-Footer zeigt maximales Sessionende und Löschtermin');
+    const footerOk = await expiration.isVisible().catch(() => false);
+    logStep(footerOk, 'Q&A-Footer zeigt Zugang für Teilnehmende');
     if (!footerOk) {
-      failures.push('Action-Bar ohne Maximales Q&A-Ende oder Löschtermin anzeigen.');
+      failures.push('Action-Bar ohne »Zugang für Teilnehmende«.');
     }
 
     if (footerOk) {
       try {
-        await openAndCloseDialog(host, 'configure-session-expiration', 'Maximales Q&A-Ende');
-        logStep(true, 'Host öffnet die Laufzeit');
-      } catch (error) {
-        failures.push(`Laufzeit-Dialog: ${error instanceof Error ? error.message : String(error)}`);
-      }
-      try {
-        await openAndCloseDialog(host, 'session-retention-details', 'Löschtermin anzeigen');
-        logStep(true, 'Host öffnet den Löschtermin');
+        await openAndCloseDialog(host, 'configure-session-expiration', 'Zugang für Teilnehmende');
+        logStep(true, 'Host öffnet den Teilnehmerzugang');
       } catch (error) {
         failures.push(
-          `Löschtermin-Dialog: ${error instanceof Error ? error.message : String(error)}`,
+          `Teilnehmerzugang-Dialog: ${error instanceof Error ? error.message : String(error)}`,
         );
       }
     }

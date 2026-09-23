@@ -139,7 +139,8 @@ Globale Verlängerungen benötigen neben einem gültigen Hostnachweis ausdrückl
 den Nachweis des ursprünglichen Hosts. Route, Sessioncode, URL, Clientzustand
 und Participant-ID sind keine Berechtigungsquelle. Anfangskonfigurationen
 werden nach `firstParticipantJoinedAt` dauerhaft gesperrt, auch wenn später alle
-Teilnahmen gelöscht wurden.
+Teilnahmen gelöscht wurden. Den Zugang für Teilnehmende (`qaClosesAt`) kannst du
+danach weiter über die Q&A-Einstellungen anpassen, begrenzt durch `expiresAt`.
 
 ## Linearisierung und Ausfallverhalten
 
@@ -204,12 +205,13 @@ laufen über `configureQaChannel` inklusive serverseitiger Fristprüfung beim
 Bestätigen, nicht über einen zweiten Vorschaudialog. Die Host-UI zeigt die
 ausgerechnete Teilnahmefrist und eine eventuelle Sessionverlängerung direkt im
 Einrichtungsformular. Datum und Uhrzeit nutzen dasselbe native Fenster wie
-»Maximales Q&A-Ende«: nach `serverNow` bis `maxExpiresAt` aus der bereits
+»Zugang für Teilnehmende«: nach `serverNow` bis `maxExpiresAt` aus der bereits
 geladenen Host-Lifecycle. Die Grenzen bleiben stehen, auch wenn die Vorschau
 scheitert. Beim späteren Aktivieren in einer bestehenden Session
 gehört das Teilnahmeprofil zur Einrichtung; beim Anlegen von der Startseite
-bleibt es in Schritt 1. Frist und optionales Teilnahmeprofil gelten vor dem
-ersten Beitritt.
+bleibt es in Schritt 1. Die einmalige Session-Obergrenze gilt vor dem
+ersten Beitritt; den Zugang für Teilnehmende kannst du danach weiter in den
+Q&A-Einstellungen anpassen.
 
 Im Anonymmodus liefert der Teilnehmervertrag keine sichtbare
 `authorNickname`-Angabe. Technische Session-, Teilnehmer- und
@@ -235,10 +237,11 @@ ohne Sessionende und ohne Löschtermin. Die Q&A-Fristzeile des Hosts nennt den
 Zugang für Teilnehmende und, darunter, bis wann der Host die Fragen noch
 einsehen kann. Vote zeigt nur die offene-bis-Zeile für Teilnehmende.
 Q&A-Einstellungen bleiben host-only. Quiz- und
-Blitzlichtansicht behalten dieselbe kompakte Kapsel. Die 30- und 5-Minuten-Warnung gilt weiter sessionweit. „Maximales Q&A-Ende“ sitzt nur im Q&A-Kanal in der
+Blitzlichtansicht behalten dieselbe kompakte Kapsel. Die 30- und 5-Minuten-Warnung gilt weiter sessionweit. „Zugang für Teilnehmende“ sitzt nur im Q&A-Kanal in der
 unteren Host-Action-Bar neben „Session beenden“, nicht in der
-Kopfzeile, und nur vor dem ersten Beitritt. Es bezeichnet die Obergrenze des Q&A-Kanals,
-nicht das Quiz- oder Blitzlichtende. Der technische Löschtermin bleibt eine
+Kopfzeile. Vor dem ersten Beitritt öffnet es die Anfangskonfiguration
+(Sessionende und Teilnehmerzugang zusammen); danach die Q&A-Einstellungen
+für die Öffnungszeit. Der technische Löschtermin bleibt eine
 Betreiberangelegenheit und erscheint nicht in der Host-Ansicht.
 
 Der Lifecyclevertrag projiziert und liefert:

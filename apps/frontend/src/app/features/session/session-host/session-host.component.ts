@@ -4626,7 +4626,13 @@ export class SessionHostComponent implements OnInit, OnDestroy {
 
   async openSessionLifecycleConfiguration(event?: Event): Promise<void> {
     const lifecycle = this.sessionLifecycle();
-    if (!lifecycle?.configurationAllowed || this.sessionLifecycleDialogOpen) {
+    if (!lifecycle || this.sessionLifecycleDialogOpen) {
+      return;
+    }
+    // Nach dem ersten Beitritt ist nur noch die Teilnehmer-Öffnungszeit änderbar
+    // (nicht die einmalige Session-Obergrenze) — dafür die Q&A-Einstellungen.
+    if (!lifecycle.configurationAllowed) {
+      await this.openQaConfigurationDialog();
       return;
     }
     const focusReturn =

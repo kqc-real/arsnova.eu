@@ -1298,8 +1298,8 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
     fixture.destroy();
   });
 
-  it('bietet Maximales Q&A-Ende nur im Q&A-Kanal in der unteren Action-Bar', async () => {
-    dialogOpenMock.mockReturnValue({ afterClosed: () => NEVER });
+  it('bietet Zugang für Teilnehmende im Q&A-Kanal und öffnet nach dem ersten Beitritt die Q&A-Einstellungen', async () => {
+    dialogOpenMock.mockReturnValue({ afterClosed: () => of(null) });
     const fixture = setup();
     getInfoQueryMock.mockResolvedValue({
       ...defaultSession,
@@ -1336,7 +1336,7 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
     const endButton = fixture.nativeElement.querySelector(
       '.session-host__exit-anchor-button--end',
     ) as HTMLButtonElement | null;
-    expect(footerButton?.textContent).toContain('Maximales Q&A-Ende');
+    expect(footerButton?.textContent).toContain('Zugang für Teilnehmende');
     expect(endButton?.textContent).toContain('Zur Startseite');
     expect(endButton?.nextElementSibling).toBe(footerButton);
     expect(fixture.nativeElement.querySelector('.session-host__exit-clearance')).not.toBeNull();
@@ -1351,12 +1351,23 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
       }),
     );
 
+    dialogOpenMock.mockClear();
+    const openQaSpy = vi
+      .spyOn(fixture.componentInstance, 'openQaConfigurationDialog')
+      .mockResolvedValue(undefined);
     fixture.componentInstance.sessionLifecycle.set({
       ...defaultLifecycle,
       configurationAllowed: false,
     });
     fixture.detectChanges();
-    expect(expirationButton()).toBeNull();
+    expect(expirationButton()).not.toBeNull();
+    expirationButton()?.click();
+    await fixture.whenStable();
+    expect(openQaSpy).toHaveBeenCalled();
+    expect(dialogOpenMock).not.toHaveBeenCalledWith(
+      SessionExpirationDialogComponent,
+      expect.anything(),
+    );
     fixture.destroy();
   });
 

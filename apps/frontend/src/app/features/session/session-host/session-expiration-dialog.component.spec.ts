@@ -64,7 +64,7 @@ describe('SessionExpirationDialogComponent', () => {
     fixture.detectChanges();
 
     const text = fixture.nativeElement.textContent as string;
-    expect(text).toContain('Maximales Q&A-Ende');
+    expect(text).toContain('Zugang für Teilnehmende');
     expect(text).toContain('Der erste Zeitpunkt beendet den Zugang für Teilnehmende');
     expect(text).toContain('Zugang für Teilnehmende endet:');
     expect(text).toContain('Fragen einsehen kannst du bis:');

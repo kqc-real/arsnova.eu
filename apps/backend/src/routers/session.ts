@@ -5662,7 +5662,8 @@ const sessionCoreRouter = router({
       if (input.purpose === 'INITIAL_CONFIGURATION' && session.firstParticipantJoinedAt !== null) {
         throw new TRPCError({
           code: 'CONFLICT',
-          message: 'Nach dem ersten Beitritt kann die Anfangsfrist nicht mehr geändert werden.',
+          message:
+            'Nach dem ersten Beitritt kannst du den Zugang für Teilnehmende nur noch in den Q&A-Einstellungen anpassen.',
         });
       }
       const newExpiresAt =
@@ -5751,7 +5752,8 @@ const sessionCoreRouter = router({
           ) {
             throw new TRPCError({
               code: 'CONFLICT',
-              message: 'Nach dem ersten Beitritt kann die Anfangsfrist nicht mehr geändert werden.',
+              message:
+                'Nach dem ersten Beitritt kannst du den Zugang für Teilnehmende nur noch in den Q&A-Einstellungen anpassen.',
             });
           }
 

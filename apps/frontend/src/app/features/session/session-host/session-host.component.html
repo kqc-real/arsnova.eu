@@ -4820,7 +4820,7 @@
             <span i18n="@@sessionHost.endGlobalSessionAnchor">Session beenden</span>
           }
         </button>
-        @if (showQaChannelLifecycleChrome() && sessionLifecycle()?.configurationAllowed) {
+        @if (showQaChannelLifecycleChrome()) {
           <button
             mat-button
             type="button"
@@ -4830,7 +4830,7 @@
             (click)="openSessionLifecycleConfiguration($event)"
           >
             <mat-icon aria-hidden="true">schedule</mat-icon>
-            <span i18n="@@sessionLifecycle.configureAction">Maximales Q&A-Ende</span>
+            <span i18n="@@sessionLifecycle.configureAction">Zugang für Teilnehmende</span>
           </button>
         }
         @if (
