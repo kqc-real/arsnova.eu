@@ -148,14 +148,14 @@ describe('AppComponent', () => {
     }
   });
 
-  it('macht das Main-Landmark zum programmatischen Skip-Link-Ziel', () => {
+  it('hält das scrollbare Main-Landmark tastaturerreichbar', () => {
     configureAppTestBed();
     const fixture = TestBed.createComponent(AppComponent);
     fixture.detectChanges();
 
     const main = fixture.nativeElement.querySelector('#main-content') as HTMLElement;
 
-    expect(main.getAttribute('tabindex')).toBe('-1');
+    expect(main.getAttribute('tabindex')).toBe('0');
     fixture.destroy();
   });
 
