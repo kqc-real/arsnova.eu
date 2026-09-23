@@ -1,6 +1,7 @@
 import { Component, ElementRef, LOCALE_ID, OnInit, inject, signal, viewChild } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { MatButton } from '@angular/material/button';
+import { MatDatepickerModule } from '@angular/material/datepicker';
 import {
   MAT_DIALOG_DATA,
   MatDialog,
@@ -10,7 +11,7 @@ import {
   MatDialogRef,
   MatDialogTitle,
 } from '@angular/material/dialog';
-import { MatFormField, MatHint, MatLabel } from '@angular/material/form-field';
+import { MatFormField, MatHint, MatLabel, MatSuffix } from '@angular/material/form-field';
 import { MatIcon } from '@angular/material/icon';
 import { MatInput } from '@angular/material/input';
 import { MatOption, MatSelect } from '@angular/material/select';
@@ -30,12 +31,19 @@ import {
   type ConfirmLeaveDialogData,
 } from '../../../shared/confirm-leave-dialog/confirm-leave-dialog.component';
 import {
+  calendarDateToSessionLocalDay,
+  combineSessionLocalDateAndTime,
+  isSessionLocalDateTimeWithinBounds,
   isoToSessionLocalDateTime,
   maxSelectableCalendarDays,
   openSessionDateTimePicker,
   reportSessionDateTimePickerValidity,
   sessionDateTimeLocalBounds,
+  sessionDeadlineDateClass,
+  sessionLocalDatePart,
   sessionLocalDateTimeToIso,
+  sessionLocalDayToCalendarDate,
+  sessionLocalTimePart,
 } from '../session-local-datetime';
 
 const QA_EXTENSION_DIALOG_OVERLAY = {
@@ -61,6 +69,7 @@ export interface QaChannelConfigurationDialogData {
   imports: [
     FormsModule,
     MatButton,
+    MatDatepickerModule,
     MatDialogActions,
     MatDialogClose,
     MatDialogContent,
@@ -73,6 +82,7 @@ export interface QaChannelConfigurationDialogData {
     MatOption,
     MatSelect,
     MatSlideToggle,
+    MatSuffix,
   ],
   templateUrl: './qa-channel-configuration-dialog.component.html',
   styleUrls: [
@@ -88,7 +98,7 @@ export class QaChannelConfigurationDialogComponent implements OnInit {
     MatDialogRef<QaChannelConfigurationDialogComponent, SessionQaConfigurationDTO | null>,
   );
   private previewRequest = 0;
-  private readonly absoluteInput = viewChild<ElementRef<HTMLInputElement>>('absoluteInput');
+  private readonly absoluteTimeInput = viewChild<ElementRef<HTMLInputElement>>('absoluteTimeInput');
 
   readonly pending = signal(false);
   readonly error = signal<string | null>(null);
@@ -105,8 +115,28 @@ export class QaChannelConfigurationDialogComponent implements OnInit {
   identityMode: SessionParticipantIdentityMode = this.resolveIdentityMode();
   deadlineKind: SessionQaDeadlineSelection['kind'] = this.resolveInitialDeadlineKind();
   days = 1;
-  absoluteLocal = this.resolveInitialAbsoluteLocal();
+  absoluteDate: Date | null = null;
+  absoluteTime = '12:00';
   reopenQa = false;
+
+  /** Kompatibel für Tests und Preview: kombiniert Datum und Uhrzeit. */
+  get absoluteLocal(): string {
+    return combineSessionLocalDateAndTime(this.absoluteDate, this.absoluteTime);
+  }
+
+  set absoluteLocal(value: string) {
+    if (!value) {
+      this.absoluteDate = null;
+      this.absoluteTime = '12:00';
+      return;
+    }
+    this.absoluteDate = sessionLocalDayToCalendarDate(sessionLocalDatePart(value));
+    this.absoluteTime = sessionLocalTimePart(value);
+  }
+
+  constructor() {
+    this.absoluteLocal = this.resolveInitialAbsoluteLocal();
+  }
 
   ngOnInit(): void {
     void this.refreshPreview();
@@ -141,9 +171,9 @@ export class QaChannelConfigurationDialogComponent implements OnInit {
   }
 
   async confirm(): Promise<void> {
-    const absoluteField = this.absoluteInput()?.nativeElement;
-    if (absoluteField?.value) {
-      this.absoluteLocal = absoluteField.value;
+    const timeField = this.absoluteTimeInput()?.nativeElement;
+    if (timeField?.value) {
+      this.absoluteTime = timeField.value;
     }
     const selection = this.buildSelection();
     if (!selection) {
@@ -152,8 +182,8 @@ export class QaChannelConfigurationDialogComponent implements OnInit {
     if (
       selection.kind === 'ABSOLUTE' &&
       !this.unchangedSavedAbsoluteClosesAt() &&
-      absoluteField &&
-      !reportSessionDateTimePickerValidity(absoluteField)
+      timeField &&
+      !reportSessionDateTimePickerValidity(timeField)
     ) {
       return;
     }
@@ -277,7 +307,7 @@ export class QaChannelConfigurationDialogComponent implements OnInit {
     }).format(new Date(value));
   }
 
-  openAbsolutePicker(input: HTMLInputElement): void {
+  openAbsoluteTimePicker(input: HTMLInputElement): void {
     openSessionDateTimePicker(input);
   }
 
@@ -287,6 +317,59 @@ export class QaChannelConfigurationDialogComponent implements OnInit {
 
   absoluteMaxLocal(): string {
     return this.absoluteBounds()?.max ?? '';
+  }
+
+  absoluteMinDate(): Date | null {
+    const min = this.absoluteMinLocal();
+    return min ? sessionLocalDayToCalendarDate(sessionLocalDatePart(min)) : null;
+  }
+
+  absoluteMaxDate(): Date | null {
+    const max = this.absoluteMaxLocal();
+    return max ? sessionLocalDayToCalendarDate(sessionLocalDatePart(max)) : null;
+  }
+
+  absoluteTimeMin(): string | null {
+    const date = this.absoluteDate;
+    const min = this.absoluteMinLocal();
+    if (!date || !min) {
+      return null;
+    }
+    if (calendarDateToSessionLocalDay(date) !== sessionLocalDatePart(min)) {
+      return null;
+    }
+    return sessionLocalTimePart(min);
+  }
+
+  absoluteTimeMax(): string | null {
+    const date = this.absoluteDate;
+    const max = this.absoluteMaxLocal();
+    if (!date || !max) {
+      return null;
+    }
+    if (calendarDateToSessionLocalDay(date) !== sessionLocalDatePart(max)) {
+      return null;
+    }
+    return sessionLocalTimePart(max);
+  }
+
+  absoluteDateClass = (date: Date, view: string): string => {
+    const min = this.absoluteMinLocal();
+    const max = this.absoluteMaxLocal();
+    if (!min || !max) {
+      return '';
+    }
+    return sessionDeadlineDateClass(min, max, this.absoluteLocal)(date, view);
+  };
+
+  onAbsoluteDateChange(date: Date | null): void {
+    this.absoluteDate = date;
+    void this.onDeadlineChange();
+  }
+
+  onAbsoluteTimeChange(time: string): void {
+    this.absoluteTime = time;
+    void this.onDeadlineChange();
   }
 
   private absoluteBounds(): { min: string; max: string } | null {
@@ -366,10 +449,20 @@ export class QaChannelConfigurationDialogComponent implements OnInit {
     if (unchangedClosesAt) {
       return { kind: 'ABSOLUTE', closesAt: unchangedClosesAt };
     }
+    const local = this.absoluteLocal;
+    const bounds = this.absoluteBounds();
+    if (!local || !bounds || !isSessionLocalDateTimeWithinBounds(local, bounds.min, bounds.max)) {
+      if (!silent) {
+        this.error.set(
+          $localize`:@@qaConfig.invalidLocalDate:Diese lokale Uhrzeit ist in der Sessionzeitzone nicht eindeutig oder ungültig.`,
+        );
+      }
+      return null;
+    }
     try {
       return {
         kind: 'ABSOLUTE',
-        closesAt: sessionLocalDateTimeToIso(this.absoluteLocal, this.timeZone),
+        closesAt: sessionLocalDateTimeToIso(local, this.timeZone),
       };
     } catch {
       if (!silent) {

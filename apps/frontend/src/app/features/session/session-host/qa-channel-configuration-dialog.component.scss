@@ -76,6 +76,26 @@ mat-form-field {
   @include lifecycle.lifecycle-notice-secondary;
 }
 
+.qa-config__absolute {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.65rem;
+  align-items: flex-start;
+}
+
+.qa-config__absolute mat-form-field {
+  flex: 1 1 9rem;
+  inline-size: auto;
+  min-width: min(100%, 9rem);
+}
+
+.qa-config__calendar-legend {
+  margin: 0.35rem 0 0;
+  color: var(--mat-sys-on-surface-variant);
+  font: var(--mat-sys-body-small);
+  line-height: 1.4;
+}
+
 .qa-config__warning {
   @include lifecycle.lifecycle-notice;
 }

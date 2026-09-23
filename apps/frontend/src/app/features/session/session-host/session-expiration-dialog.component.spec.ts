@@ -1,4 +1,5 @@
 import { TestBed } from '@angular/core/testing';
+import { provideNativeDateAdapter } from '@angular/material/core';
 import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
 import { describe, expect, it, vi } from 'vitest';
 import { sessionLocalDateTimeToIso } from '../session-local-datetime';
@@ -25,6 +26,7 @@ describe('SessionExpirationDialogComponent', () => {
     TestBed.configureTestingModule({
       imports: [SessionExpirationDialogComponent],
       providers: [
+        provideNativeDateAdapter(),
         {
           provide: MAT_DIALOG_DATA,
           useValue: {
@@ -50,6 +52,7 @@ describe('SessionExpirationDialogComponent', () => {
     TestBed.configureTestingModule({
       imports: [SessionExpirationDialogComponent],
       providers: [
+        provideNativeDateAdapter(),
         {
           provide: MAT_DIALOG_DATA,
           useValue: {
@@ -85,6 +88,7 @@ describe('SessionExpirationDialogComponent', () => {
     TestBed.configureTestingModule({
       imports: [SessionExpirationDialogComponent],
       providers: [
+        provideNativeDateAdapter(),
         {
           provide: MAT_DIALOG_DATA,
           useValue: {
@@ -111,6 +115,7 @@ describe('SessionExpirationDialogComponent', () => {
     TestBed.configureTestingModule({
       imports: [SessionExpirationDialogComponent],
       providers: [
+        provideNativeDateAdapter(),
         {
           provide: MAT_DIALOG_DATA,
           useValue: {
@@ -142,6 +147,7 @@ describe('SessionExpirationDialogComponent', () => {
     TestBed.configureTestingModule({
       imports: [SessionExpirationDialogComponent],
       providers: [
+        provideNativeDateAdapter(),
         {
           provide: MAT_DIALOG_DATA,
           useValue: {
@@ -171,6 +177,7 @@ describe('SessionExpirationDialogComponent', () => {
     TestBed.configureTestingModule({
       imports: [SessionExpirationDialogComponent],
       providers: [
+        provideNativeDateAdapter(),
         {
           provide: MAT_DIALOG_DATA,
           useValue: {
@@ -209,6 +216,7 @@ describe('SessionExpirationDialogComponent', () => {
     TestBed.configureTestingModule({
       imports: [SessionExpirationDialogComponent],
       providers: [
+        provideNativeDateAdapter(),
         {
           provide: MAT_DIALOG_DATA,
           useValue: {
@@ -250,6 +258,7 @@ describe('SessionExpirationDialogComponent', () => {
     TestBed.configureTestingModule({
       imports: [SessionExpirationDialogComponent],
       providers: [
+        provideNativeDateAdapter(),
         {
           provide: MAT_DIALOG_DATA,
           useValue: {
@@ -272,6 +281,7 @@ describe('SessionExpirationDialogComponent', () => {
     TestBed.configureTestingModule({
       imports: [SessionExpirationDialogComponent],
       providers: [
+        provideNativeDateAdapter(),
         {
           provide: MAT_DIALOG_DATA,
           useValue: {
@@ -299,6 +309,7 @@ describe('SessionExpirationDialogComponent', () => {
     TestBed.configureTestingModule({
       imports: [SessionExpirationDialogComponent],
       providers: [
+        provideNativeDateAdapter(),
         {
           provide: MAT_DIALOG_DATA,
           useValue: {
@@ -313,23 +324,26 @@ describe('SessionExpirationDialogComponent', () => {
     fixture.componentInstance.onDeadlineKindChange('ABSOLUTE');
     fixture.detectChanges();
 
-    const input = fixture.nativeElement.querySelector(
-      'input[type="datetime-local"]',
-    ) as HTMLInputElement | null;
     expect(fixture.nativeElement.querySelector('input[type="number"]')).toBeNull();
-    expect(input?.getAttribute('min')).toBe('2026-03-25T12:31');
-    expect(input?.getAttribute('max')).toBe('2026-04-07T14:00');
-    expect(input).not.toBeNull();
-    const showPicker = vi.fn();
-    Object.defineProperty(input, 'showPicker', { value: showPicker });
-    input?.click();
-    expect(showPicker).toHaveBeenCalled();
+    expect(fixture.nativeElement.querySelector('mat-datepicker')).not.toBeNull();
+    expect(fixture.nativeElement.querySelector('input[type="time"]')).not.toBeNull();
+    expect(fixture.componentInstance.absoluteBounds).toEqual({
+      min: '2026-03-25T12:31',
+      max: '2026-04-07T14:00',
+    });
+    expect(fixture.componentInstance.absoluteDateClass(new Date(2026, 2, 20), 'month')).toBe(
+      'session-deadline-day--blocked',
+    );
+    expect(fixture.componentInstance.absoluteDateClass(new Date(2026, 2, 26), 'month')).toBe(
+      'session-deadline-day--allowed',
+    );
   });
 
   it('begrenzt den Verlängerungs-Datepicker auf nach dem bisherigen Sessionende', () => {
     TestBed.configureTestingModule({
       imports: [SessionExpirationDialogComponent],
       providers: [
+        provideNativeDateAdapter(),
         {
           provide: MAT_DIALOG_DATA,
           useValue: {
@@ -344,18 +358,18 @@ describe('SessionExpirationDialogComponent', () => {
     const fixture = TestBed.createComponent(SessionExpirationDialogComponent);
     fixture.detectChanges();
 
-    const input = fixture.nativeElement.querySelector(
-      'input[type="datetime-local"]',
-    ) as HTMLInputElement | null;
-    expect(input?.getAttribute('min')).toBe('2026-03-25T13:01');
-    expect(input?.getAttribute('max')).toBe('2026-04-07T14:00');
+    expect(fixture.componentInstance.absoluteBounds).toEqual({
+      min: '2026-03-25T13:01',
+      max: '2026-04-07T14:00',
+    });
   });
 
-  it('bestätigt kein Datum außerhalb von min/max', () => {
+  it('bestätigt kein Datum außerhalb von min/max', async () => {
     const close = vi.fn();
     TestBed.configureTestingModule({
       imports: [SessionExpirationDialogComponent],
       providers: [
+        provideNativeDateAdapter(),
         {
           provide: MAT_DIALOG_DATA,
           useValue: {
@@ -367,22 +381,21 @@ describe('SessionExpirationDialogComponent', () => {
       ],
     });
     const fixture = TestBed.createComponent(SessionExpirationDialogComponent);
-    const input = document.createElement('input');
-    input.type = 'datetime-local';
-    vi.spyOn(input, 'checkValidity').mockReturnValue(false);
-    const reportValidity = vi.spyOn(input, 'reportValidity').mockReturnValue(false);
+    fixture.componentInstance.absoluteDate.set(new Date(2026, 2, 20));
+    fixture.componentInstance.absoluteTime.set('10:00');
 
-    fixture.componentInstance.chooseAbsolute(input);
+    await fixture.componentInstance.chooseAbsolute();
 
-    expect(reportValidity).toHaveBeenCalled();
     expect(close).not.toHaveBeenCalled();
+    expect(fixture.componentInstance.inputError()).toBeTruthy();
   });
 
-  it('übernimmt das sichtbare Datum statt eines älteren Modellwerts', () => {
+  it('übernimmt das gewählte Datum und die Uhrzeit', async () => {
     const close = vi.fn();
     TestBed.configureTestingModule({
       imports: [SessionExpirationDialogComponent],
       providers: [
+        provideNativeDateAdapter(),
         {
           provide: MAT_DIALOG_DATA,
           useValue: {
@@ -394,13 +407,10 @@ describe('SessionExpirationDialogComponent', () => {
       ],
     });
     const fixture = TestBed.createComponent(SessionExpirationDialogComponent);
-    fixture.componentInstance.absoluteLocal.set('2026-03-25T13:00');
-    const input = document.createElement('input');
-    input.type = 'datetime-local';
-    input.value = '2026-04-01T15:30';
-    vi.spyOn(input, 'checkValidity').mockReturnValue(true);
+    fixture.componentInstance.absoluteDate.set(new Date(2026, 3, 1));
+    fixture.componentInstance.absoluteTime.set('15:30');
 
-    fixture.componentInstance.chooseAbsolute(input);
+    await fixture.componentInstance.chooseAbsolute();
 
     expect(close).toHaveBeenCalledWith({
       purpose: 'INITIAL_CONFIGURATION',

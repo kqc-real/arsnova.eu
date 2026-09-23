@@ -151,18 +151,31 @@
             Kein voller Kalendertag ist mehr zulässig. Wähle ein Datum und eine Uhrzeit.
           </p>
         } @else {
-          <div class="lifecycle-dialog__row">
+          <div class="lifecycle-dialog__row lifecycle-dialog__row--absolute">
             <mat-form-field appearance="outline" subscriptSizing="dynamic">
-              <mat-label i18n="@@sessionLifecycle.absoluteLabel">Bis Datum und Uhrzeit</mat-label>
+              <mat-label i18n="@@sessionLifecycle.absoluteDateLabel">Datum</mat-label>
               <input
-                #absoluteInput
                 matInput
-                type="datetime-local"
-                [min]="absoluteBounds.min"
-                [max]="absoluteBounds.max"
-                [ngModel]="absoluteLocal()"
-                (ngModelChange)="absoluteLocal.set($event)"
-                (click)="openAbsolutePicker(absoluteInput)"
+                [matDatepicker]="absolutePicker"
+                [min]="absoluteMinDate"
+                [max]="absoluteMaxDate"
+                [ngModel]="absoluteDate()"
+                (ngModelChange)="onAbsoluteDateChange($event)"
+              />
+              <mat-datepicker-toggle matIconSuffix [for]="absolutePicker" />
+              <mat-datepicker #absolutePicker [touchUi]="true" [dateClass]="absoluteDateClass" />
+            </mat-form-field>
+            <mat-form-field appearance="outline" subscriptSizing="dynamic">
+              <mat-label i18n="@@sessionLifecycle.absoluteTimeLabel">Uhrzeit</mat-label>
+              <input
+                #absoluteTimeInput
+                matInput
+                type="time"
+                [min]="absoluteTimeMin() ?? undefined"
+                [max]="absoluteTimeMax() ?? undefined"
+                [ngModel]="absoluteTime()"
+                (ngModelChange)="onAbsoluteTimeChange($event)"
+                (click)="openAbsoluteTimePicker(absoluteTimeInput)"
               />
             </mat-form-field>
             <button
@@ -170,12 +183,16 @@
               type="button"
               class="lifecycle-dialog__action"
               [disabled]="checking() || !absoluteLocal()"
-              (click)="chooseAbsolute(absoluteInput)"
+              (click)="chooseAbsolute(absoluteTimeInput)"
               i18n="@@sessionLifecycle.checkDeadline"
             >
               Frist übernehmen
             </button>
           </div>
+          <p class="lifecycle-dialog__calendar-legend" i18n="@@sessionLifecycle.calendarLegend">
+            Grün markierte Tage sind wählbar, rot markierte nicht. Die aktuelle Auswahl ist anders
+            hervorgehoben.
+          </p>
           @if (draftAbsoluteEnd(); as resolvedEnd) {
             <div class="lifecycle-dialog__resolved" role="status">
               <span
@@ -248,18 +265,35 @@
 
       <fieldset class="lifecycle-dialog__group">
         <legend i18n="@@sessionLifecycle.absoluteLegend">Oder Datum und Uhrzeit wählen</legend>
-        <div class="lifecycle-dialog__row">
+        <div class="lifecycle-dialog__row lifecycle-dialog__row--absolute">
           <mat-form-field appearance="outline" subscriptSizing="dynamic">
-            <mat-label i18n="@@sessionLifecycle.absoluteLabel">Bis Datum und Uhrzeit</mat-label>
+            <mat-label i18n="@@sessionLifecycle.absoluteDateLabel">Datum</mat-label>
             <input
-              #absoluteInput
               matInput
-              type="datetime-local"
-              [min]="absoluteBounds.min"
-              [max]="absoluteBounds.max"
-              [ngModel]="absoluteLocal()"
-              (ngModelChange)="absoluteLocal.set($event)"
-              (click)="openAbsolutePicker(absoluteInput)"
+              [matDatepicker]="absolutePickerExtend"
+              [min]="absoluteMinDate"
+              [max]="absoluteMaxDate"
+              [ngModel]="absoluteDate()"
+              (ngModelChange)="onAbsoluteDateChange($event)"
+            />
+            <mat-datepicker-toggle matIconSuffix [for]="absolutePickerExtend" />
+            <mat-datepicker
+              #absolutePickerExtend
+              [touchUi]="true"
+              [dateClass]="absoluteDateClass"
+            />
+          </mat-form-field>
+          <mat-form-field appearance="outline" subscriptSizing="dynamic">
+            <mat-label i18n="@@sessionLifecycle.absoluteTimeLabel">Uhrzeit</mat-label>
+            <input
+              #absoluteTimeInputExtend
+              matInput
+              type="time"
+              [min]="absoluteTimeMin() ?? undefined"
+              [max]="absoluteTimeMax() ?? undefined"
+              [ngModel]="absoluteTime()"
+              (ngModelChange)="onAbsoluteTimeChange($event)"
+              (click)="openAbsoluteTimePicker(absoluteTimeInputExtend)"
             />
           </mat-form-field>
           <button
@@ -267,12 +301,16 @@
             type="button"
             class="lifecycle-dialog__action"
             [disabled]="checking() || !absoluteLocal()"
-            (click)="chooseAbsolute(absoluteInput)"
+            (click)="chooseAbsolute(absoluteTimeInputExtend)"
             i18n="@@sessionLifecycle.checkDeadline"
           >
             Frist übernehmen
           </button>
         </div>
+        <p class="lifecycle-dialog__calendar-legend" i18n="@@sessionLifecycle.calendarLegend">
+          Grün markierte Tage sind wählbar, rot markierte nicht. Die aktuelle Auswahl ist anders
+          hervorgehoben.
+        </p>
       </fieldset>
     }
 

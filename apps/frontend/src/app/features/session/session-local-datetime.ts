@@ -9,6 +9,80 @@ export function sessionLocalDateTimeToIso(localDateTime: string, timeZone: strin
     .toString();
 }
 
+/** Kalendertag `YYYY-MM-DD` aus einem Session-Lokalwert `YYYY-MM-DDTHH:mm`. */
+export function sessionLocalDatePart(localDateTime: string): string {
+  return localDateTime.slice(0, 10);
+}
+
+/** Uhrzeit `HH:mm` aus einem Session-Lokalwert `YYYY-MM-DDTHH:mm`. */
+export function sessionLocalTimePart(localDateTime: string): string {
+  return localDateTime.slice(11, 16);
+}
+
+/**
+ * Material-Datepicker-Datum aus einem Session-Kalendertag.
+ * Nutzt lokale Mitternacht des Browsers nur als Kalenderzelle, nicht als Instant.
+ */
+export function sessionLocalDayToCalendarDate(ymd: string): Date {
+  const [year, month, day] = ymd.split('-').map(Number);
+  return new Date(year, month - 1, day);
+}
+
+/** Session-Kalendertag `YYYY-MM-DD` aus einem Material-Datepicker-Datum. */
+export function calendarDateToSessionLocalDay(date: Date): string {
+  const year = String(date.getFullYear()).padStart(4, '0');
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+}
+
+/** Kombiniert Datepicker-Tag und Uhrzeit zum Session-Lokalwert. */
+export function combineSessionLocalDateAndTime(
+  date: Date | null | undefined,
+  time: string,
+): string {
+  if (!date || !/^\d{2}:\d{2}$/.test(time)) {
+    return '';
+  }
+  return `${calendarDateToSessionLocalDay(date)}T${time}`;
+}
+
+/** Prüft, ob der Session-Lokalwert im inklusiven min/max-Fenster liegt. */
+export function isSessionLocalDateTimeWithinBounds(
+  localDateTime: string,
+  minLocal: string,
+  maxLocal: string,
+): boolean {
+  return localDateTime >= minLocal && localDateTime <= maxLocal;
+}
+
+/**
+ * CSS-Klassen für Material-Kalenderzellen: grün = wählbar, rot = blockiert,
+ * selected = bisherige Auswahl (Vorrang vor grün).
+ */
+export function sessionDeadlineDateClass(
+  minLocal: string,
+  maxLocal: string,
+  selectedLocal: string | null | undefined,
+): (date: Date, view: string) => string {
+  const minDay = sessionLocalDatePart(minLocal);
+  const maxDay = sessionLocalDatePart(maxLocal);
+  const selectedDay = selectedLocal ? sessionLocalDatePart(selectedLocal) : null;
+  return (date: Date, view: string): string => {
+    if (view !== 'month') {
+      return '';
+    }
+    const day = calendarDateToSessionLocalDay(date);
+    if (selectedDay && day === selectedDay) {
+      return 'session-deadline-day--selected';
+    }
+    if (day >= minDay && day <= maxDay) {
+      return 'session-deadline-day--allowed';
+    }
+    return 'session-deadline-day--blocked';
+  };
+}
+
 /** Späteren der beiden ISO-Zeitpunkte, für die exklusive Picker-Untergrenze. */
 export function laterIsoTimestamp(leftIso: string, rightIso: string): string {
   return Temporal.Instant.from(leftIso).epochMilliseconds >=

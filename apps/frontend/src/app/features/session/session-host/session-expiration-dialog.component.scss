@@ -83,6 +83,18 @@
   min-width: min(100%, 15rem);
 }
 
+.lifecycle-dialog__row--absolute mat-form-field {
+  flex: 1 1 9rem;
+  min-width: min(100%, 9rem);
+}
+
+.lifecycle-dialog__calendar-legend {
+  margin: 0.35rem 0 0;
+  color: var(--mat-sys-on-surface-variant);
+  font: var(--mat-sys-body-small);
+  line-height: 1.4;
+}
+
 .lifecycle-dialog__action {
   min-height: 2.75rem;
 }

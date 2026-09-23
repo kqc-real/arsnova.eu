@@ -1,6 +1,7 @@
-import { Component, LOCALE_ID, inject, signal } from '@angular/core';
+import { Component, LOCALE_ID, computed, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { MatButton } from '@angular/material/button';
+import { MatDatepickerModule } from '@angular/material/datepicker';
 import {
   MAT_DIALOG_DATA,
   MatDialogActions,
@@ -8,7 +9,7 @@ import {
   MatDialogRef,
   MatDialogTitle,
 } from '@angular/material/dialog';
-import { MatFormField, MatLabel } from '@angular/material/form-field';
+import { MatFormField, MatLabel, MatSuffix } from '@angular/material/form-field';
 import { MatIcon } from '@angular/material/icon';
 import { MatInput } from '@angular/material/input';
 import { MatOption, MatSelect } from '@angular/material/select';
@@ -21,13 +22,20 @@ import {
 import { localizeKnownServerError } from '../../../core/localize-known-server-message';
 import {
   addCalendarDays,
+  calendarDateToSessionLocalDay,
+  combineSessionLocalDateAndTime,
+  isSessionLocalDateTimeWithinBounds,
   isoToSessionLocalDateTime,
   laterIsoTimestamp,
   maxSelectableCalendarDays,
   openSessionDateTimePicker,
   reportSessionDateTimePickerValidity,
   sessionDateTimeLocalBounds,
+  sessionDeadlineDateClass,
+  sessionLocalDatePart,
   sessionLocalDateTimeToIso,
+  sessionLocalDayToCalendarDate,
+  sessionLocalTimePart,
 } from '../session-local-datetime';
 
 type InitialDeadlineKind = 'DURATION_DAYS' | 'ABSOLUTE';
@@ -66,6 +74,7 @@ export type SessionExpirationDialogResult =
   imports: [
     FormsModule,
     MatButton,
+    MatDatepickerModule,
     MatDialogActions,
     MatDialogContent,
     MatDialogTitle,
@@ -75,6 +84,7 @@ export type SessionExpirationDialogResult =
     MatLabel,
     MatOption,
     MatSelect,
+    MatSuffix,
   ],
   templateUrl: './session-expiration-dialog.component.html',
   styleUrls: [
@@ -98,7 +108,11 @@ export class SessionExpirationDialogComponent {
   readonly deadlineKind = signal<InitialDeadlineKind>('DURATION_DAYS');
   /** Entspricht dem aktuellen Ende, wenn es genau N Kalendertage ab Erstellung sind. */
   readonly days = signal(this.initialDays());
-  readonly absoluteLocal = signal('');
+  readonly absoluteDate = signal<Date | null>(null);
+  readonly absoluteTime = signal('12:00');
+  readonly absoluteLocal = computed(() =>
+    combineSessionLocalDateAndTime(this.absoluteDate(), this.absoluteTime()),
+  );
   readonly inputError = signal<string | null>(null);
   readonly checking = signal(false);
   readonly absoluteBounds = sessionDateTimeLocalBounds(
@@ -108,6 +122,18 @@ export class SessionExpirationDialogComponent {
     this.data.lifecycle.maxExpiresAt,
     this.data.lifecycle.timeZone,
   );
+  readonly absoluteMinDate = sessionLocalDayToCalendarDate(
+    sessionLocalDatePart(this.absoluteBounds.min),
+  );
+  readonly absoluteMaxDate = sessionLocalDayToCalendarDate(
+    sessionLocalDatePart(this.absoluteBounds.max),
+  );
+  readonly absoluteDateClass = (date: Date, view: string): string =>
+    sessionDeadlineDateClass(
+      this.absoluteBounds.min,
+      this.absoluteBounds.max,
+      this.absoluteLocal(),
+    )(date, view);
 
   participantAccessEndsAt(): string {
     if (this.data.mode === 'INITIAL_CONFIGURATION' && this.data.participantAccessEndsAt) {
@@ -163,6 +189,38 @@ export class SessionExpirationDialogComponent {
     this.seedAbsoluteLocal(seed);
   }
 
+  onAbsoluteDateChange(date: Date | null): void {
+    this.absoluteDate.set(date);
+    this.inputError.set(null);
+  }
+
+  onAbsoluteTimeChange(time: string): void {
+    this.absoluteTime.set(time);
+    this.inputError.set(null);
+  }
+
+  absoluteTimeMin(): string | null {
+    const date = this.absoluteDate();
+    if (!date) {
+      return null;
+    }
+    if (calendarDateToSessionLocalDay(date) !== sessionLocalDatePart(this.absoluteBounds.min)) {
+      return null;
+    }
+    return sessionLocalTimePart(this.absoluteBounds.min);
+  }
+
+  absoluteTimeMax(): string | null {
+    const date = this.absoluteDate();
+    if (!date) {
+      return null;
+    }
+    if (calendarDateToSessionLocalDay(date) !== sessionLocalDatePart(this.absoluteBounds.max)) {
+      return null;
+    }
+    return sessionLocalTimePart(this.absoluteBounds.max);
+  }
+
   formatDateTime(value: string): string {
     return new Intl.DateTimeFormat(this.localeId, {
       year: 'numeric',
@@ -200,22 +258,29 @@ export class SessionExpirationDialogComponent {
     });
   }
 
-  openAbsolutePicker(input: HTMLInputElement): void {
+  openAbsoluteTimePicker(input: HTMLInputElement): void {
     openSessionDateTimePicker(input);
   }
 
-  async chooseAbsolute(input: HTMLInputElement): Promise<void> {
-    if (input.value) {
-      this.absoluteLocal.set(input.value);
+  async chooseAbsolute(timeInput?: HTMLInputElement): Promise<void> {
+    if (timeInput?.value) {
+      this.absoluteTime.set(timeInput.value);
     }
-    if (!reportSessionDateTimePickerValidity(input)) {
+    if (timeInput && !reportSessionDateTimePickerValidity(timeInput)) {
+      return;
+    }
+    const local = this.absoluteLocal();
+    if (
+      !local ||
+      !isSessionLocalDateTimeWithinBounds(local, this.absoluteBounds.min, this.absoluteBounds.max)
+    ) {
+      this.inputError.set(
+        $localize`:@@sessionLifecycle.invalidLocalDate:Diese lokale Uhrzeit ist in der Sessionzeitzone nicht eindeutig oder ungültig.`,
+      );
       return;
     }
     try {
-      const expiresAt = sessionLocalDateTimeToIso(
-        input.value || this.absoluteLocal(),
-        this.data.lifecycle.timeZone,
-      );
+      const expiresAt = sessionLocalDateTimeToIso(local, this.data.lifecycle.timeZone);
       if (this.data.mode === 'INITIAL_CONFIGURATION') {
         await this.submitSelection({
           purpose: 'INITIAL_CONFIGURATION',
@@ -299,8 +364,11 @@ export class SessionExpirationDialogComponent {
   private seedAbsoluteLocal(iso: string): void {
     try {
       const local = isoToSessionLocalDateTime(iso, this.data.lifecycle.timeZone);
-      if (local >= this.absoluteBounds.min && local <= this.absoluteBounds.max) {
-        this.absoluteLocal.set(local);
+      if (
+        isSessionLocalDateTimeWithinBounds(local, this.absoluteBounds.min, this.absoluteBounds.max)
+      ) {
+        this.absoluteDate.set(sessionLocalDayToCalendarDate(sessionLocalDatePart(local)));
+        this.absoluteTime.set(sessionLocalTimePart(local));
       }
     } catch {
       /* Zeitpunkt liegt außerhalb der Sessionzeitzone oder ist ungültig. */

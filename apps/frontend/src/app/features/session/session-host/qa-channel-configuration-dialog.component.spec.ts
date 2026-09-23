@@ -1,5 +1,6 @@
 import { TestBed } from '@angular/core/testing';
 import { MAT_DIALOG_DATA, MatDialog, MatDialogRef } from '@angular/material/dialog';
+import { provideNativeDateAdapter } from '@angular/material/core';
 import { of } from 'rxjs';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { sessionLocalDateTimeToIso } from '../session-local-datetime';
@@ -93,6 +94,7 @@ function configureTestBed(
   TestBed.configureTestingModule({
     imports: [QaChannelConfigurationDialogComponent],
     providers: [
+      provideNativeDateAdapter(),
       {
         provide: MAT_DIALOG_DATA,
         useValue: {
@@ -717,11 +719,16 @@ describe('QaChannelConfigurationDialogComponent', () => {
     await Promise.resolve();
     fixture.detectChanges();
 
-    const input = fixture.nativeElement.querySelector(
-      'input[type="datetime-local"]',
-    ) as HTMLInputElement | null;
-    expect(input?.getAttribute('min')).toBe('2026-09-15T09:01');
-    expect(input?.getAttribute('max')).toBe('2026-09-29T08:00');
+    expect(fixture.nativeElement.querySelector('mat-datepicker')).not.toBeNull();
+    expect(fixture.nativeElement.querySelector('input[type="time"]')).not.toBeNull();
+    expect(component.absoluteMinLocal()).toBe('2026-09-15T09:01');
+    expect(component.absoluteMaxLocal()).toBe('2026-09-29T08:00');
+    expect(component.absoluteDateClass(new Date(2026, 8, 10), 'month')).toBe(
+      'session-deadline-day--blocked',
+    );
+    expect(component.absoluteDateClass(new Date(2026, 8, 20), 'month')).toBe(
+      'session-deadline-day--allowed',
+    );
   });
 
   it('behält die Datepicker-Obergrenze, wenn die Vorschau scheitert', async () => {
@@ -732,11 +739,8 @@ describe('QaChannelConfigurationDialogComponent', () => {
     await component.onDeadlineChange();
     fixture.detectChanges();
 
-    const input = fixture.nativeElement.querySelector(
-      'input[type="datetime-local"]',
-    ) as HTMLInputElement | null;
-    expect(input?.getAttribute('min')).toBe('2026-09-15T09:01');
-    expect(input?.getAttribute('max')).toBe('2026-09-29T08:00');
+    expect(component.absoluteMinLocal()).toBe('2026-09-15T09:01');
+    expect(component.absoluteMaxLocal()).toBe('2026-09-29T08:00');
     expect(component.preview()).toBeNull();
   });
 
@@ -748,14 +752,14 @@ describe('QaChannelConfigurationDialogComponent', () => {
     await component.onDeadlineChange();
     fixture.detectChanges();
 
-    const input = fixture.nativeElement.querySelector(
-      'input[type="datetime-local"]',
-    ) as HTMLInputElement | null;
-    expect(input?.getAttribute('min')).toBe('2026-09-15T09:01');
-    expect(input?.getAttribute('max')).toBe('2026-09-29T08:00');
+    expect(component.absoluteMinLocal()).toBe('2026-09-15T09:01');
+    expect(component.absoluteMaxLocal()).toBe('2026-09-29T08:00');
+    expect(component.absoluteDateClass(new Date(2026, 8, 16), 'month')).toBe(
+      'session-deadline-day--selected',
+    );
   });
 
-  it('übernimmt das sichtbare Datum statt eines älteren Modellwerts', async () => {
+  it('übernimmt das gewählte Datum und die Uhrzeit', async () => {
     const visibleLocal = '2026-09-20T10:00';
     previewMock.mockResolvedValue({
       ...preview,
@@ -771,15 +775,10 @@ describe('QaChannelConfigurationDialogComponent', () => {
       sessionLifecycleRevision: 3,
       serverNow: preview.serverNow,
     });
-    const { fixture, component } = configureTestBed();
+    const { component } = configureTestBed();
     component.deadlineKind = 'ABSOLUTE';
-    component.absoluteLocal = '2026-09-16T10:00';
+    component.absoluteLocal = visibleLocal;
     await Promise.resolve();
-    fixture.detectChanges();
-    const input = fixture.nativeElement.querySelector(
-      'input[type="datetime-local"]',
-    ) as HTMLInputElement;
-    input.value = visibleLocal;
 
     await component.confirm();
 

@@ -110,15 +110,13 @@ Verfügbar sind:
 - um eine Stunde;
 - um einen Kalendertag;
 - um sieben Kalendertage;
-- bis zu einem absoluten Datum mit Uhrzeit. Native `datetime-local`-Picker
-  begrenzen Tage, Monate und Jahre auf das zulässige Fenster: nach `serverNow`
-  (bei einer Verlängerung zusätzlich nach dem bisherigen `expiresAt`) bis
-  `maxExpiresAt`, jeweils in der Sessionzeitzone. Der Kalender-Indikator bleibt
-  sichtbar; ein Klick öffnet den nativen Picker in Chromium und Desktop-Safari.
-  Auf iOS öffnet ein Tipp auf das Feld die Systemräder (`showPicker` fehlt dort).
-  `min`/`max` beschränken die Räder in Chromium einschließlich Android. WebKit/iOS
-  zeigt oft weiter alle Daten; die Grenzen gelten dann als Gültigkeit vor dem
-  Bestätigen.
+- bis zu einem absoluten Datum mit Uhrzeit. Der Material-Datepicker zeigt
+  wählbare Tage grün, nicht wählbare rot und die aktuelle Auswahl anders
+  hervorgehoben (zusätzlich textlich erklärt). Zulässig sind Tage nach
+  `serverNow` (bei einer Verlängerung zusätzlich nach dem bisherigen
+  `expiresAt`) bis `maxExpiresAt`, jeweils in der Sessionzeitzone. Datum und
+  Uhrzeit werden getrennt gewählt; die Uhrzeit respektiert an den Randtagen
+  dieselben Minutengrenzen.
 
 Relative Verlängerungen rechnen ab dem bisherigen `expiresAt`. Die
 warnungsbasierte Aktion ändert ausschließlich `expiresAt`. Insbesondere bleiben

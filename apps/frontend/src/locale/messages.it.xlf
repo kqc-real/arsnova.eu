@@ -19019,6 +19019,18 @@
           <context context-type="linenumber">349</context>
         </context-group>
       </trans-unit>
+            <trans-unit id="qaConfig.absoluteDateLabel" datatype="html">
+        <source>Datum</source>
+        <target state="translated">Data</target>
+      </trans-unit>
+      <trans-unit id="qaConfig.absoluteTimeLabel" datatype="html">
+        <source>Uhrzeit</source>
+        <target state="translated">Ora</target>
+      </trans-unit>
+      <trans-unit id="qaConfig.calendarLegend" datatype="html">
+        <source>Grün markierte Tage sind wählbar, rot markierte nicht. Die aktuelle Auswahl ist anders hervorgehoben.</source>
+        <target state="translated">I giorni in verde sono selezionabili, quelli in rosso no. La selezione attuale è evidenziata diversamente.</target>
+      </trans-unit>
       <trans-unit id="qaConfig.absoluteLabel" datatype="html">
         <source>Datum und Uhrzeit</source>
         <target>Data e ora</target>
@@ -19850,6 +19862,18 @@
           <context context-type="sourcefile">src/app/features/session/session-host/session-expiration-dialog.component.html</context>
           <context context-type="linenumber">155</context>
         </context-group>
+      </trans-unit>
+            <trans-unit id="sessionLifecycle.absoluteDateLabel" datatype="html">
+        <source>Datum</source>
+        <target state="translated">Data</target>
+      </trans-unit>
+      <trans-unit id="sessionLifecycle.absoluteTimeLabel" datatype="html">
+        <source>Uhrzeit</source>
+        <target state="translated">Ora</target>
+      </trans-unit>
+      <trans-unit id="sessionLifecycle.calendarLegend" datatype="html">
+        <source>Grün markierte Tage sind wählbar, rot markierte nicht. Die aktuelle Auswahl ist anders hervorgehoben.</source>
+        <target state="translated">I giorni in verde sono selezionabili, quelli in rosso no. La selezione attuale è evidenziata diversamente.</target>
       </trans-unit>
       <trans-unit id="sessionLifecycle.absoluteLabel" datatype="html">
         <source>Bis Datum und Uhrzeit</source>
