@@ -4293,7 +4293,7 @@
                         i18n-aria-label="@@sessionQa.filterPinnedAria"
                         aria-label="Nur hervorgehobene Fragen anzeigen"
                       >
-                        <mat-icon aria-hidden="true">shield</mat-icon>
+                        <mat-icon aria-hidden="true">push_pin</mat-icon>
                         <span i18n="@@sessionQa.filterPinnedLabel">Nur hervorgehobene</span>
                       </button>
                     }
@@ -4827,7 +4827,9 @@
                     </div>
                   } @else if (qaFilteredQuestions().length === 0 && qaShowPinnedOnly()) {
                     <div class="session-qa-empty session-qa-empty--filtered" role="status">
-                      <mat-icon class="session-qa-empty__icon" aria-hidden="true">shield</mat-icon>
+                      <mat-icon class="session-qa-empty__icon" aria-hidden="true"
+                        >push_pin</mat-icon
+                      >
                       <p class="session-qa-empty__text" i18n="@@sessionQa.filterEmptyHint">
                         Nur hervorgehobene aktiv – noch keine hervorgehobenen Fragen.
                       </p>
