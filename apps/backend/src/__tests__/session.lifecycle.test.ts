@@ -684,8 +684,8 @@ describe('session absolute lifecycle', () => {
       newQaClosesAt: '2026-09-15T06:30:00.123Z',
       newExpiresAt: '2026-09-16T06:00:00.000Z',
       requiresSessionExtension: false,
-      // Host-Leseende folgt qaClosesAt (+14 Tage), nicht dem unveränderten Sessionende.
-      projectedPostProcessingEndsAt: '2026-09-29T06:30:00.123Z',
+      // Host-Leseende folgt dem Sessionende (+14 Tage), wie getLifecycleForHost.
+      projectedPostProcessingEndsAt: '2026-09-30T06:00:00.000Z',
     });
 
     await caller.configureQaChannel({
