@@ -6137,6 +6137,13 @@ const sessionCoreRouter = router({
               quickFeedbackOpen: true,
             },
           });
+          // Wie qa.toggleModeration(false): wartende Fragen sichtbar machen.
+          if (input.moderationMode === false) {
+            await tx.qaQuestion.updateMany({
+              where: { sessionId: session.id, status: 'PENDING' },
+              data: { status: 'ACTIVE' },
+            });
+          }
           return { session: updated, serverNow };
         });
         invalidateSessionMetadataCachesForCode(code);

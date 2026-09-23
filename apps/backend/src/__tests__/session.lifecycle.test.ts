@@ -7,6 +7,9 @@ const { prismaMock, hostAuthMocks } = vi.hoisted(() => ({
       findUnique: vi.fn(),
       update: vi.fn(),
     },
+    qaQuestion: {
+      updateMany: vi.fn(),
+    },
     $executeRaw: vi.fn(),
     $transaction: vi.fn(),
   },
@@ -92,6 +95,7 @@ describe('session absolute lifecycle', () => {
     hostAuthMocks.isOriginalHostSessionToken.mockResolvedValue(true);
     process.env['MAX_SESSION_DURATION'] = 'P14D';
     prismaMock.$executeRaw.mockResolvedValue(1);
+    prismaMock.qaQuestion.updateMany.mockResolvedValue({ count: 0 });
     prismaMock.$transaction.mockImplementation(
       async (callback: (tx: typeof prismaMock) => Promise<unknown>) => callback(prismaMock),
     );
@@ -700,6 +704,86 @@ describe('session absolute lifecycle', () => {
       }),
     );
     expect(prismaMock.session.update.mock.calls[0]?.[0].data.title).toBeUndefined();
+    expect(prismaMock.qaQuestion.updateMany).toHaveBeenCalledWith({
+      where: { sessionId: 'session-1', status: 'PENDING' },
+      data: { status: 'ACTIVE' },
+    });
+  });
+
+  it('gibt PENDING-Fragen bei REPLAN ohne Moderation frei wie toggleModeration', async () => {
+    const quizPlusQa = qaConfigurationRow({
+      qaEnabled: true,
+      qaOpen: true,
+      qaClosesAt: new Date('2026-09-16T04:00:00.000Z'),
+      expiresAt: new Date('2026-09-16T06:00:00.000Z'),
+      qaTitle: 'Fragenwand',
+      qaModerationMode: true,
+      moderationMode: true,
+      preferredChannel: 'qa',
+    });
+    prismaMock.session.findUnique.mockResolvedValue(quizPlusQa);
+    prismaMock.session.update.mockResolvedValue({
+      ...quizPlusQa,
+      qaModerationMode: false,
+      moderationMode: false,
+      sessionLifecycleRevision: 3,
+    });
+    prismaMock.qaQuestion.updateMany.mockResolvedValue({ count: 2 });
+
+    await caller.configureQaChannel({
+      code: 'ABC123',
+      mode: 'REPLAN',
+      selection: { kind: 'ABSOLUTE', closesAt: '2026-09-16T04:00:00.000Z' },
+      expectedLifecycleRevision: 2,
+      previewServerNow: '2026-09-15T07:00:00.000Z',
+      confirmedQaClosesAt: '2026-09-16T04:00:00.000Z',
+      confirmedExpiresAt: '2026-09-16T06:00:00.000Z',
+      confirmSessionExtension: false,
+      reopenQa: false,
+      qaTitle: 'Fragenwand',
+      moderationMode: false,
+    });
+
+    expect(prismaMock.qaQuestion.updateMany).toHaveBeenCalledWith({
+      where: { sessionId: 'session-1', status: 'PENDING' },
+      data: { status: 'ACTIVE' },
+    });
+  });
+
+  it('lässt PENDING-Fragen bei REPLAN mit Moderation unangetastet', async () => {
+    const quizPlusQa = qaConfigurationRow({
+      qaEnabled: true,
+      qaOpen: true,
+      qaClosesAt: new Date('2026-09-16T04:00:00.000Z'),
+      expiresAt: new Date('2026-09-16T06:00:00.000Z'),
+      qaTitle: 'Fragenwand',
+      qaModerationMode: false,
+      moderationMode: false,
+      preferredChannel: 'qa',
+    });
+    prismaMock.session.findUnique.mockResolvedValue(quizPlusQa);
+    prismaMock.session.update.mockResolvedValue({
+      ...quizPlusQa,
+      qaModerationMode: true,
+      moderationMode: true,
+      sessionLifecycleRevision: 3,
+    });
+
+    await caller.configureQaChannel({
+      code: 'ABC123',
+      mode: 'REPLAN',
+      selection: { kind: 'ABSOLUTE', closesAt: '2026-09-16T04:00:00.000Z' },
+      expectedLifecycleRevision: 2,
+      previewServerNow: '2026-09-15T07:00:00.000Z',
+      confirmedQaClosesAt: '2026-09-16T04:00:00.000Z',
+      confirmedExpiresAt: '2026-09-16T06:00:00.000Z',
+      confirmSessionExtension: false,
+      reopenQa: false,
+      qaTitle: 'Fragenwand',
+      moderationMode: true,
+    });
+
+    expect(prismaMock.qaQuestion.updateMany).not.toHaveBeenCalled();
   });
 
   it('lässt eine abgelaufene Q&A-Frist bei reiner Titeländerung unverändert', async () => {
