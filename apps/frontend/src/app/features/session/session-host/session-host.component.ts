@@ -1526,8 +1526,9 @@ export class SessionHostComponent implements OnInit, OnDestroy {
     };
   });
   /**
-   * Eine Frist für Dialog und Q&A-Karte. Die automatische 24-Stunden-Frist
-   * folgt dem maximalen Q&A-Ende, eine kürzere Frist aus den Einstellungen bleibt.
+   * Autoritative Teilnehmerfrist für Dialog und Q&A-Karte.
+   * Zeigt nur persistierte Werte (ggf. auf Sessionende gekappt), nie eine
+   * rein clientseitige „Default folgt Maximum“-Darstellung.
    */
   readonly qaDeadlineInstant = computed((): string | null => {
     const session = this.session();
@@ -1535,21 +1536,8 @@ export class SessionHostComponent implements OnInit, OnDestroy {
     const stored =
       session?.channels?.qa.closesAt ?? session?.qaClosesAt ?? lifecycle?.qaClosesAt ?? null;
     const sessionEnd = lifecycle?.expiresAt ?? session?.expiresAt ?? null;
-    const createdAt = lifecycle?.createdAt ?? null;
-    const defaultCloseMs =
-      createdAt !== null ? Date.parse(createdAt) + 24 * 60 * 60 * 1000 : Number.NaN;
     const storedMs = stored !== null ? Date.parse(stored) : Number.NaN;
-    const followsMaximum =
-      lifecycle?.configurationAllowed === true &&
-      sessionEnd !== null &&
-      Number.isFinite(storedMs) &&
-      Number.isFinite(defaultCloseMs) &&
-      Math.abs(storedMs - defaultCloseMs) < 1000 &&
-      storedMs < Date.parse(sessionEnd);
-    if (followsMaximum) {
-      return sessionEnd;
-    }
-    if (stored && sessionEnd && storedMs > Date.parse(sessionEnd)) {
+    if (stored && sessionEnd && Number.isFinite(storedMs) && storedMs > Date.parse(sessionEnd)) {
       return sessionEnd;
     }
     return stored ?? sessionEnd;
@@ -4680,7 +4668,7 @@ export class SessionHostComponent implements OnInit, OnDestroy {
             data: {
               ...data,
               submit: (result: SessionExpirationDialogResult) =>
-                this.confirmAndChangeSessionExpiration(result, focusReturn),
+                this.confirmAndChangeSessionExpiration(result),
             },
             width: 'min(36rem, calc(100vw - 2rem))',
             maxWidth: '100vw',
@@ -4692,7 +4680,7 @@ export class SessionHostComponent implements OnInit, OnDestroy {
       );
       if (result) {
         try {
-          await this.confirmAndChangeSessionExpiration(result, focusReturn);
+          await this.confirmAndChangeSessionExpiration(result);
         } catch (error) {
           this.snackBar.open(
             localizeKnownServerError(
@@ -4745,7 +4733,6 @@ export class SessionHostComponent implements OnInit, OnDestroy {
 
   private async confirmAndChangeSessionExpiration(
     selection: SessionExpirationDialogResult,
-    focusReturn: HTMLElement | null,
   ): Promise<boolean> {
     try {
       const preview =
@@ -4761,7 +4748,7 @@ export class SessionHostComponent implements OnInit, OnDestroy {
               purpose: selection.purpose,
               selection: selection.selection,
             });
-      const confirmed = await this.confirmSessionExpirationPreview(preview, focusReturn);
+      const confirmed = await this.confirmSessionExpirationPreview(preview);
       if (!confirmed) return false;
 
       const updated =
@@ -4798,7 +4785,6 @@ export class SessionHostComponent implements OnInit, OnDestroy {
 
   private async confirmSessionExpirationPreview(
     preview: SessionExpirationPreviewDTO,
-    focusReturn: HTMLElement | null,
   ): Promise<boolean> {
     const consequences = [
       $localize`:@@sessionLifecycle.previewOld:Bislang: ${this.formatSessionLifecycleDateTime(
@@ -4853,14 +4839,11 @@ export class SessionHostComponent implements OnInit, OnDestroy {
       width: 'min(32rem, calc(100vw - 2rem))',
       maxWidth: '100vw',
       autoFocus: 'first-tabbable',
-      restoreFocus: false,
+      // Parent (Expiration-Dialog) bleibt bei Abbruch offen — Fokus dort lassen.
+      restoreFocus: true,
       ...SESSION_LIFECYCLE_DIALOG_OVERLAY,
     });
-    const confirmed = (await firstValueFrom(dialogRef.afterClosed())) === true;
-    if (!confirmed && focusReturn?.isConnected) {
-      focusReturn.focus({ preventScroll: true });
-    }
-    return confirmed;
+    return (await firstValueFrom(dialogRef.afterClosed())) === true;
   }
 
   formatSessionLifecycleDateTime(value: string, timeZone?: string): string {

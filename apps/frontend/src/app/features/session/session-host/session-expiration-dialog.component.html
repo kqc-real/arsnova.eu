@@ -283,5 +283,13 @@
 </mat-dialog-content>
 
 <mat-dialog-actions align="end" class="lifecycle-dialog__actions">
-  <button matButton="text" type="button" (click)="close()" i18n="@@common.cancel">Abbrechen</button>
+  <button
+    matButton="text"
+    type="button"
+    (click)="close()"
+    [disabled]="checking()"
+    i18n="@@common.cancel"
+  >
+    Abbrechen
+  </button>
 </mat-dialog-actions>

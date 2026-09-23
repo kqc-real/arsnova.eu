@@ -1056,6 +1056,7 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
       expect.objectContaining({
         panelClass: 'session-lifecycle-dialog-panel',
         backdropClass: 'session-lifecycle-dialog-backdrop',
+        restoreFocus: true,
         data: expect.objectContaining({
           consequences: expect.arrayContaining([expect.stringContaining('Q&A')]),
         }),
@@ -1156,7 +1157,7 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
     fixture.destroy();
   });
 
-  it('zeigt auf der Q&A-Karte das maximale Q&A-Ende, nicht die ältere 24-Stunden-Frist', () => {
+  it('zeigt auf der Q&A-Karte die persistierte Frist, nicht nur das Sessionende', () => {
     const fixture = setup();
     const createdAt = '2026-09-23T04:42:00.000Z';
     const sessionEnd = '2026-10-05T04:42:00.000Z';
@@ -1187,12 +1188,12 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
       qaClosesAt: staleClose,
     });
 
-    expect(fixture.componentInstance.qaDeadlineInstant()).toBe(sessionEnd);
+    expect(fixture.componentInstance.qaDeadlineInstant()).toBe(staleClose);
     expect(fixture.componentInstance.qaDeadlineLabel()).toContain(
-      fixture.componentInstance.formatSessionLifecycleDateTime(sessionEnd, 'Europe/Berlin'),
+      fixture.componentInstance.formatSessionLifecycleDateTime(staleClose, 'Europe/Berlin'),
     );
     expect(fixture.componentInstance.qaDeadlineLabel()).not.toContain(
-      fixture.componentInstance.formatSessionLifecycleDateTime(staleClose, 'Europe/Berlin'),
+      fixture.componentInstance.formatSessionLifecycleDateTime(sessionEnd, 'Europe/Berlin'),
     );
     fixture.destroy();
   });

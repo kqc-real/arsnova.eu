@@ -167,6 +167,7 @@ describe('SessionExpirationDialogComponent', () => {
 
   it('lässt eine abgelehnte Frist im Dialog stehen', async () => {
     const close = vi.fn();
+    const dialogRef = { close, disableClose: false };
     TestBed.configureTestingModule({
       imports: [SessionExpirationDialogComponent],
       providers: [
@@ -182,7 +183,7 @@ describe('SessionExpirationDialogComponent', () => {
             }),
           },
         },
-        { provide: MatDialogRef, useValue: { close } },
+        { provide: MatDialogRef, useValue: dialogRef },
       ],
     });
     const fixture = TestBed.createComponent(SessionExpirationDialogComponent);
@@ -192,6 +193,57 @@ describe('SessionExpirationDialogComponent', () => {
 
     expect(close).not.toHaveBeenCalled();
     expect(fixture.componentInstance.inputError()).toContain('bestehende Q&A-Frist');
+    expect(dialogRef.disableClose).toBe(false);
+  });
+
+  it('sperrt Abbrechen und disableClose während eines laufenden Speicherns', async () => {
+    let resolveSubmit!: (value: boolean) => void;
+    const submit = vi.fn(
+      () =>
+        new Promise<boolean>((resolve) => {
+          resolveSubmit = resolve;
+        }),
+    );
+    const close = vi.fn();
+    const dialogRef = { close, disableClose: false };
+    TestBed.configureTestingModule({
+      imports: [SessionExpirationDialogComponent],
+      providers: [
+        {
+          provide: MAT_DIALOG_DATA,
+          useValue: {
+            mode: 'INITIAL_CONFIGURATION',
+            lifecycle: { ...lifecycle, firstParticipantJoinedAt: null, configurationAllowed: true },
+            submit,
+          },
+        },
+        { provide: MatDialogRef, useValue: dialogRef },
+      ],
+    });
+    const fixture = TestBed.createComponent(SessionExpirationDialogComponent);
+    fixture.componentInstance.days.set(7);
+    fixture.detectChanges();
+
+    const pending = fixture.componentInstance.chooseDays();
+    await Promise.resolve();
+    fixture.detectChanges();
+
+    expect(fixture.componentInstance.checking()).toBe(true);
+    expect(dialogRef.disableClose).toBe(true);
+    const cancel = fixture.nativeElement.querySelector(
+      'mat-dialog-actions button',
+    ) as HTMLButtonElement;
+    expect(cancel.disabled).toBe(true);
+    fixture.componentInstance.close();
+    expect(close).not.toHaveBeenCalled();
+
+    resolveSubmit(false);
+    await pending;
+    fixture.detectChanges();
+
+    expect(fixture.componentInstance.checking()).toBe(false);
+    expect(dialogRef.disableClose).toBe(false);
+    expect(close).not.toHaveBeenCalled();
   });
 
   it('erklärt dem Originalhost die erreichte Obergrenze ohne Verlängerungsbuttons', () => {

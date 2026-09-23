@@ -236,6 +236,9 @@ export class SessionExpirationDialogComponent {
   }
 
   close(): void {
+    if (this.checking()) {
+      return;
+    }
     this.dialogRef.close(null);
   }
 
@@ -244,7 +247,11 @@ export class SessionExpirationDialogComponent {
       this.dialogRef.close(result);
       return;
     }
+    if (this.checking()) {
+      return;
+    }
     this.checking.set(true);
+    this.dialogRef.disableClose = true;
     this.inputError.set(null);
     try {
       const saved = await this.data.submit(result);
@@ -260,6 +267,7 @@ export class SessionExpirationDialogComponent {
       );
     } finally {
       this.checking.set(false);
+      this.dialogRef.disableClose = false;
     }
   }
 
