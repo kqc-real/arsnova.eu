@@ -5896,6 +5896,202 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
     fixture.destroy();
   });
 
+  it('behält nach fehlgeschlagenem Themen-Refresh die Wiederholungsaktion', async () => {
+    getInfoQueryMock.mockResolvedValue({ ...defaultSession, status: 'ACTIVE' });
+    getCurrentQuestionForHostQueryMock.mockResolvedValue({
+      questionId: '11111111-1111-4111-8111-111111111111',
+      order: 5,
+      text: 'Warum bleibt ein Satellit im Orbit?',
+      type: 'FREETEXT',
+      difficulty: 'EASY',
+      answers: [],
+    });
+    getLiveFreetextQueryMock.mockResolvedValue({
+      ...defaultLiveFreetext,
+      questionId: '11111111-1111-4111-8111-111111111111',
+      questionOrder: 5,
+      questionType: 'FREETEXT',
+      questionText: 'Warum bleibt ein Satellit im Orbit?',
+      responses: ['Lineare Regression im Projekt', 'Lineare Regression hilft'],
+    });
+    wordCloudAnalyzeQueryMock.mockResolvedValue(
+      wordCloudAnalyzeResult({
+        mode: 'SEMANTIC',
+        metric: 'TOP',
+        status: 'ready',
+        fallbackUsed: false,
+        entries: [
+          {
+            key: 'lineare-regression',
+            label: 'Lineare Regression',
+            count: 2,
+            basisLabel: 'Lineare Regression',
+            members: [
+              { sourceId: 'response-0', text: 'Lineare Regression im Projekt', weight: 1 },
+              { sourceId: 'response-1', text: 'Lineare Regression hilft', weight: 1 },
+            ],
+            variants: ['Lineare Regression'],
+            confidence: 0.9,
+          },
+        ],
+      }),
+    );
+
+    const fixture = setup();
+    fixture.detectChanges();
+    await fixture.whenStable();
+    await vi.waitUntil(() => fixture.componentInstance.displayedFreetextResponses().length === 2, {
+      timeout: 5000,
+      interval: 25,
+    });
+
+    const component = fixture.componentInstance;
+    component.wordCloudExpanded.set(true);
+    await component.setFreetextWordCloudMode('SEMANTIC');
+    fixture.detectChanges();
+    await vi.waitUntil(
+      () => component.freetextWordCloudSemanticAnalysisResult()?.status === 'ready',
+      { timeout: 5000, interval: 25 },
+    );
+
+    component.freetextResponses.set([
+      'Lineare Regression im Projekt',
+      'Lineare Regression hilft',
+      'Peer Instruction',
+    ]);
+    fixture.detectChanges();
+    await flushComponentAfterStable(fixture, 50);
+    expect(component.freetextWordCloudSemanticStale()).toBe(true);
+
+    wordCloudAnalyzeQueryMock.mockRejectedValueOnce(new Error('network'));
+    component.refreshFreetextWordCloudThemes();
+    await vi.waitUntil(() => component.freetextWordCloudSemanticAnalysisPending() === true, {
+      timeout: 5000,
+      interval: 25,
+    });
+    await vi.waitUntil(() => component.freetextWordCloudSemanticAnalysisPending() === false, {
+      timeout: 5000,
+      interval: 25,
+    });
+    fixture.detectChanges();
+
+    expect(component.freetextWordCloudSemanticAnalysisResult()?.status).toBe('ready');
+    expect(component.freetextWordCloudSemanticStale()).toBe(true);
+    expect(component.freetextWordCloudShowThemeRefresh()).toBe(true);
+    expect(
+      fixture.nativeElement.querySelector('[data-testid="freetext-word-cloud-refresh-themes"]'),
+    ).toBeTruthy();
+    fixture.destroy();
+  });
+
+  it('markiert Freitext-Themen als veraltet, wenn während der Analyse neue Antworten eintreffen', async () => {
+    getInfoQueryMock.mockResolvedValue({ ...defaultSession, status: 'ACTIVE' });
+    getCurrentQuestionForHostQueryMock.mockResolvedValue({
+      questionId: '11111111-1111-4111-8111-111111111111',
+      order: 5,
+      text: 'Warum bleibt ein Satellit im Orbit?',
+      type: 'FREETEXT',
+      difficulty: 'EASY',
+      answers: [],
+    });
+    getLiveFreetextQueryMock.mockResolvedValue({
+      ...defaultLiveFreetext,
+      questionId: '11111111-1111-4111-8111-111111111111',
+      questionOrder: 5,
+      questionType: 'FREETEXT',
+      questionText: 'Warum bleibt ein Satellit im Orbit?',
+      responses: ['Lineare Regression im Projekt', 'Lineare Regression hilft'],
+    });
+
+    let resolveAnalyze!: (value: unknown) => void;
+    const deferredAnalyze = new Promise((resolve) => {
+      resolveAnalyze = resolve;
+    });
+    wordCloudAnalyzeQueryMock.mockImplementation((input: { mode?: string }) => {
+      if (input?.mode === 'SEMANTIC') {
+        return deferredAnalyze;
+      }
+      return Promise.resolve(
+        wordCloudAnalyzeResult({
+          mode: input?.mode === 'THEME' ? 'THEME' : 'WORDS',
+          status: 'ready',
+          entries: [],
+        }),
+      );
+    });
+
+    const fixture = setup();
+    fixture.detectChanges();
+    await fixture.whenStable();
+    await vi.waitUntil(() => fixture.componentInstance.displayedFreetextResponses().length === 2, {
+      timeout: 5000,
+      interval: 25,
+    });
+
+    const component = fixture.componentInstance;
+    component.wordCloudExpanded.set(true);
+    await component.setFreetextWordCloudMode('SEMANTIC');
+    fixture.detectChanges();
+    await vi.waitUntil(() => component.freetextWordCloudSemanticAnalysisPending() === true, {
+      timeout: 5000,
+      interval: 25,
+    });
+
+    component.freetextResponses.set([
+      'Lineare Regression im Projekt',
+      'Lineare Regression hilft',
+      'Peer Instruction',
+    ]);
+    getLiveFreetextQueryMock.mockResolvedValue({
+      ...defaultLiveFreetext,
+      questionId: '11111111-1111-4111-8111-111111111111',
+      questionOrder: 5,
+      questionType: 'FREETEXT',
+      questionText: 'Warum bleibt ein Satellit im Orbit?',
+      responses: ['Lineare Regression im Projekt', 'Lineare Regression hilft', 'Peer Instruction'],
+    });
+    fixture.detectChanges();
+    await flushComponentAfterStable(fixture, 0);
+
+    expect(component.displayedFreetextResponses()).toHaveLength(3);
+
+    resolveAnalyze(
+      wordCloudAnalyzeResult({
+        mode: 'SEMANTIC',
+        metric: 'TOP',
+        status: 'ready',
+        fallbackUsed: false,
+        entries: [
+          {
+            key: 'lineare-regression',
+            label: 'Lineare Regression',
+            count: 2,
+            basisLabel: 'Lineare Regression',
+            members: [
+              { sourceId: 'response-0', text: 'Lineare Regression im Projekt', weight: 1 },
+              { sourceId: 'response-1', text: 'Lineare Regression hilft', weight: 1 },
+            ],
+            variants: ['Lineare Regression'],
+            confidence: 0.9,
+          },
+        ],
+      }),
+    );
+
+    await vi.waitUntil(() => component.freetextWordCloudSemanticAnalysisPending() === false, {
+      timeout: 5000,
+      interval: 25,
+    });
+    fixture.detectChanges();
+    await flushComponentAfterStable(fixture, 0);
+
+    expect(component.displayedFreetextResponses()).toHaveLength(3);
+    expect(component.freetextWordCloudSemanticAnalysisResult()?.status).toBe('ready');
+    expect(component.freetextWordCloudSemanticStale()).toBe(true);
+    expect(component.freetextWordCloudShowThemeRefresh()).toBe(true);
+    fixture.destroy();
+  });
+
   it('oeffnet die Freitext-Wortwolke ohne Vollbild mit Analyse-Toggle und Freeze-Steuerung', async () => {
     getInfoQueryMock.mockResolvedValue({ ...defaultSession, status: 'ACTIVE' });
     onStatusChangedSubscribeMock.mockImplementation(
