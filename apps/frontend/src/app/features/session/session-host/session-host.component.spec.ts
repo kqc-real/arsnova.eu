@@ -8112,6 +8112,13 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
       pendingCount: 1,
     });
 
+    const pendingButton = fixture.nativeElement.querySelector(
+      '[data-testid="qa-filter-pending"]',
+    ) as HTMLButtonElement | null;
+    expect(pendingButton).not.toBeNull();
+    pendingButton?.focus();
+    expect(document.activeElement).toBe(pendingButton);
+
     await component.setQaPendingFilter(true);
     fixture.detectChanges();
     await flushComponentAfterStable(fixture, 50);
@@ -8124,13 +8131,23 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
         moderatorView: true,
       }),
     );
-    expect(fixture.nativeElement.querySelector('[data-testid="qa-filter-pending"]')).toBeNull();
-    expect(
-      fixture.nativeElement.querySelector('[data-testid="qa-filter-pending-active"]'),
-    ).not.toBeNull();
+    const pendingButtonAfter = fixture.nativeElement.querySelector(
+      '[data-testid="qa-filter-pending"]',
+    ) as HTMLButtonElement | null;
+    expect(pendingButtonAfter).toBe(pendingButton);
+    expect(pendingButtonAfter?.getAttribute('aria-pressed')).toBe('true');
+    expect(pendingButtonAfter?.classList.contains('session-qa-filter-btn--active')).toBe(true);
+    expect(document.activeElement).toBe(pendingButtonAfter);
 
     qaListQueryMock.mockClear();
+    const pinnedButton = fixture.nativeElement.querySelector(
+      '[data-testid="qa-filter-pinned"]',
+    ) as HTMLButtonElement | null;
+    expect(pinnedButton).not.toBeNull();
+    pinnedButton?.focus();
     await component.setQaPinnedFilter(true);
+    fixture.detectChanges();
+    await flushComponentAfterStable(fixture, 50);
     expect(component.qaShowPinnedOnly()).toBe(true);
     expect(component.qaShowPendingOnly()).toBe(false);
     expect(qaListQueryMock).toHaveBeenCalledWith(
@@ -8139,6 +8156,96 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
         moderatorView: true,
       }),
     );
+    const pinnedButtonAfter = fixture.nativeElement.querySelector(
+      '[data-testid="qa-filter-pinned"]',
+    ) as HTMLButtonElement | null;
+    expect(pinnedButtonAfter).toBe(pinnedButton);
+    expect(pinnedButtonAfter?.getAttribute('aria-pressed')).toBe('true');
+    expect(document.activeElement).toBe(pinnedButtonAfter);
+    fixture.destroy();
+  });
+
+  it('hält den Tastaturfokus auf den Q&A-Filtern auch wenn qa.list fehlschlägt', async () => {
+    getInfoQueryMock.mockResolvedValue({
+      ...defaultSession,
+      status: 'ACTIVE',
+      channels: {
+        quiz: { enabled: true },
+        qa: { enabled: true, open: true, title: 'Fragen aus dem Publikum', moderationMode: true },
+        quickFeedback: { enabled: false, open: false },
+      },
+    });
+    qaListQueryMock.mockResolvedValue({
+      questions: [],
+      state: 'ACTIVE' as const,
+      sessionLifecycleRevision: 1,
+      serverNow: '2026-03-13T12:00:00.000Z',
+      expiresAt: '2026-03-14T12:00:00.000Z',
+      qaClosesAt: '2026-03-14T12:00:00.000Z',
+      endedAt: null,
+      postProcessingEndsAt: null,
+      rankingRevision: '1:TOP:',
+      nextCursor: null,
+      totalCount: 0,
+      pendingCount: 0,
+    });
+
+    const fixture = setup();
+    fixture.detectChanges();
+    await flushComponentAfterStable(fixture, 50);
+    const component = fixture.componentInstance;
+    component.activeChannel.set('qa');
+    fixture.detectChanges();
+    await flushComponentAfterStable(fixture, 50);
+
+    qaListQueryMock.mockRejectedValueOnce(new Error('Netzwerkfehler'));
+    const pendingButton = fixture.nativeElement.querySelector(
+      '[data-testid="qa-filter-pending"]',
+    ) as HTMLButtonElement | null;
+    expect(pendingButton).not.toBeNull();
+    pendingButton?.focus();
+    await component.setQaPendingFilter(true);
+    fixture.detectChanges();
+    await flushComponentAfterStable(fixture, 50);
+
+    expect(component.qaShowPendingOnly()).toBe(true);
+    const pendingAfterReject = fixture.nativeElement.querySelector(
+      '[data-testid="qa-filter-pending"]',
+    ) as HTMLButtonElement | null;
+    expect(pendingAfterReject).toBe(pendingButton);
+    expect(pendingAfterReject?.getAttribute('aria-pressed')).toBe('true');
+    // Bei Fehlschlag öffnet das Steering-Callout und darf den Fokus übernehmen;
+    // entscheidend ist ein sichtbares Bedienelement, nicht Fokusverlust auf body.
+    const activeAfterPending = document.activeElement as HTMLElement | null;
+    expect(activeAfterPending).not.toBeNull();
+    expect(activeAfterPending).not.toBe(document.body);
+    expect(
+      activeAfterPending === pendingAfterReject ||
+        Boolean(activeAfterPending?.closest('.session-host__steering-callout')),
+    ).toBe(true);
+
+    qaListQueryMock.mockRejectedValueOnce(new Error('Netzwerkfehler'));
+    const pinnedButton = fixture.nativeElement.querySelector(
+      '[data-testid="qa-filter-pinned"]',
+    ) as HTMLButtonElement | null;
+    expect(pinnedButton).not.toBeNull();
+    pinnedButton?.focus();
+    await component.setQaPinnedFilter(true);
+    fixture.detectChanges();
+    await flushComponentAfterStable(fixture, 50);
+
+    const pinnedAfterReject = fixture.nativeElement.querySelector(
+      '[data-testid="qa-filter-pinned"]',
+    ) as HTMLButtonElement | null;
+    expect(pinnedAfterReject).toBe(pinnedButton);
+    expect(pinnedAfterReject?.getAttribute('aria-pressed')).toBe('true');
+    const activeAfterPinned = document.activeElement as HTMLElement | null;
+    expect(activeAfterPinned).not.toBeNull();
+    expect(activeAfterPinned).not.toBe(document.body);
+    expect(
+      activeAfterPinned === pinnedAfterReject ||
+        Boolean(activeAfterPinned?.closest('.session-host__steering-callout')),
+    ).toBe(true);
     fixture.destroy();
   });
 

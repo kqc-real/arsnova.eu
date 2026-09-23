@@ -654,15 +654,25 @@ async function buildQaQuestionPayloadFromDb(options: {
     options.sortMode === 'CONTROVERSIAL' ||
     options.sortMode === 'TIME';
   // Host: PENDING zuerst, damit Moderationsbedarf nicht hinter großen ACTIVE-Seiten verschwindet.
+  // Host-TOP: PINNED vor ACTIVE (sonst begräbt upvoteCount angepinnte Fragen ohne Stimmen).
+  // Host BEST/CONTROVERSIAL/TIME: PINNED und ACTIVE teilen sich den Metrik-Bucket nach PENDING.
   // Teilnehmer: freigegebene/angepinnte vor PENDING (eigene PENDING bleiben sichtbar).
   const statusBucket = moderatorView
-    ? Prisma.sql`CASE question."status"
-        WHEN 'PENDING' THEN 0
-        WHEN 'PINNED' THEN 1
-        WHEN 'ACTIVE' THEN 1
-        WHEN 'ARCHIVED' THEN 2
-        ELSE 3
-      END`
+    ? options.sortMode === 'TOP'
+      ? Prisma.sql`CASE question."status"
+          WHEN 'PENDING' THEN 0
+          WHEN 'PINNED' THEN 1
+          WHEN 'ACTIVE' THEN 2
+          WHEN 'ARCHIVED' THEN 3
+          ELSE 4
+        END`
+      : Prisma.sql`CASE question."status"
+          WHEN 'PENDING' THEN 0
+          WHEN 'PINNED' THEN 1
+          WHEN 'ACTIVE' THEN 1
+          WHEN 'ARCHIVED' THEN 2
+          ELSE 3
+        END`
     : metricFirstRanking
       ? Prisma.sql`CASE question."status"
           WHEN 'PINNED' THEN 0

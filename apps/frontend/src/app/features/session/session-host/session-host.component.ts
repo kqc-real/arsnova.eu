@@ -1868,6 +1868,16 @@ export class SessionHostComponent implements OnInit, OnDestroy {
   readonly qaSortMode = signal<QaQuestionSortMode>('BEST');
   readonly qaShowPinnedOnly = signal(false);
   readonly qaShowPendingOnly = signal(false);
+  readonly qaPinnedFilterAriaLabel = computed(() =>
+    this.qaShowPinnedOnly()
+      ? $localize`:@@sessionQa.filterShowAllAria:Alle Fragen anzeigen`
+      : $localize`:@@sessionQa.filterPinnedAria:Nur hervorgehobene Fragen anzeigen`,
+  );
+  readonly qaPendingFilterAriaLabel = computed(() =>
+    this.qaShowPendingOnly()
+      ? $localize`:@@sessionQa.filterShowAllAria:Alle Fragen anzeigen`
+      : $localize`:@@sessionQa.filterPendingAria:Nur Fragen in Moderation anzeigen`,
+  );
   readonly qaSearchDraft = signal('');
   readonly qaSearch = signal('');
   readonly qaForumQuestions = computed(() =>

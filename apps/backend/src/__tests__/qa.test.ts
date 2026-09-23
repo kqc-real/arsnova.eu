@@ -1469,7 +1469,7 @@ describe('qa router (Epic 8)', () => {
     expect(result.pendingCount).toBe(1);
     expect(result.questions.every((question) => question.status === 'ACTIVE')).toBe(true);
     expect(rawSqlText(prismaMock.$queryRaw.mock.calls[0] ?? [])).toMatch(
-      /WHEN 'PENDING' THEN 0[\s\S]*WHEN 'ACTIVE' THEN 1/,
+      /WHEN 'PENDING' THEN 0[\s\S]*WHEN 'PINNED' THEN 1[\s\S]*WHEN 'ACTIVE' THEN 1/,
     );
     expect(prismaMock.qaQuestion.count).toHaveBeenCalledWith({
       where: {
@@ -1477,6 +1477,46 @@ describe('qa router (Epic 8)', () => {
         status: 'PENDING',
       },
     });
+  });
+
+  it('ordnet Host-TOP PINNED vor ACTIVE, auch ohne Stimmen und nach PENDING', async () => {
+    prismaMock.session.findUnique.mockResolvedValue({
+      ...ACTIVE_QA_SESSION,
+      id: SESSION_ID,
+      code: 'ABC123',
+      type: 'QUIZ',
+      qaEnabled: true,
+      qaOpen: true,
+      qaModerationMode: true,
+      qaQuestionCount: 120,
+    });
+    rawQueryResults.rankedQuestions.push([
+      rankedQaRow({
+        id: 'bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb',
+        text: 'Angepinnt ohne Stimmen',
+        status: 'PINNED',
+        upvoteCount: 0,
+        positiveVoteCount: 0,
+        totalCount: 120,
+      }),
+    ]);
+    prismaMock.qaQuestion.count.mockResolvedValue(2);
+
+    const result = await hostCaller.list({
+      sessionId: SESSION_ID,
+      moderatorView: true,
+      sort: 'TOP',
+      pageSize: 50,
+    });
+
+    expect(result.pendingCount).toBe(2);
+    expect(result.questions[0]?.status).toBe('PINNED');
+    expect(rawSqlText(prismaMock.$queryRaw.mock.calls[0] ?? [])).toMatch(
+      /WHEN 'PENDING' THEN 0[\s\S]*WHEN 'PINNED' THEN 1[\s\S]*WHEN 'ACTIVE' THEN 2/,
+    );
+    expect(rawSqlText(prismaMock.$queryRaw.mock.calls[0] ?? [])).not.toMatch(
+      /WHEN 'PINNED' THEN 1\s+WHEN 'ACTIVE' THEN 1/,
+    );
   });
   it('liefert einem autorisierten Host beendete Q&A-Inhalte innerhalb der 336h nur lesend', async () => {
     const endedAt = new Date(Date.now() - 13 * 24 * 60 * 60 * 1000);
