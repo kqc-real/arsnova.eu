@@ -32,8 +32,9 @@ import {
 } from '../../../shared/confirm-leave-dialog/confirm-leave-dialog.component';
 import {
   calendarDateToSessionLocalDay,
+  clampSessionLocalDateTimeToBounds,
+  clampSessionLocalTimeToBounds,
   combineSessionLocalDateAndTime,
-  isSessionLocalDateTimeWithinBounds,
   isoToSessionLocalDateTime,
   maxSelectableCalendarDays,
   openSessionDateTimePicker,
@@ -356,11 +357,32 @@ export class QaChannelConfigurationDialogComponent implements OnInit {
 
   onAbsoluteDateChange(date: Date | null): void {
     this.absoluteDate = date;
+    const bounds = this.absoluteBounds();
+    if (date && bounds) {
+      this.absoluteTime = clampSessionLocalTimeToBounds(
+        date,
+        this.absoluteTime,
+        bounds.min,
+        bounds.max,
+      );
+    }
+    this.error.set(null);
     void this.onDeadlineChange();
   }
 
   onAbsoluteTimeChange(time: string): void {
-    this.absoluteTime = time;
+    const bounds = this.absoluteBounds();
+    if (this.absoluteDate && bounds) {
+      this.absoluteTime = clampSessionLocalTimeToBounds(
+        this.absoluteDate,
+        time,
+        bounds.min,
+        bounds.max,
+      );
+    } else {
+      this.absoluteTime = time;
+    }
+    this.error.set(null);
     void this.onDeadlineChange();
   }
 
@@ -443,24 +465,27 @@ export class QaChannelConfigurationDialogComponent implements OnInit {
     }
     const local = this.absoluteLocal;
     const bounds = this.absoluteBounds();
-    if (!local) {
+    if (!local || !this.absoluteDate) {
       if (!silent) {
         this.error.set($localize`:@@qaConfig.absoluteRequired:Bitte wähle Datum und Uhrzeit.`);
       }
       return null;
     }
-    if (!bounds || !isSessionLocalDateTimeWithinBounds(local, bounds.min, bounds.max)) {
+    if (!bounds) {
       if (!silent) {
-        this.error.set(
-          $localize`:@@qaConfig.absoluteOutOfBounds:Dieses Datum und diese Uhrzeit liegen außerhalb des zulässigen Zeitfensters.`,
-        );
+        this.error.set($localize`:@@qaConfig.absoluteRequired:Bitte wähle Datum und Uhrzeit.`);
       }
       return null;
+    }
+    // Tage kommen nur aus dem erlaubten Kalender; Minuten an den Rändern still korrigieren.
+    const clamped = clampSessionLocalDateTimeToBounds(local, bounds.min, bounds.max);
+    if (clamped !== local) {
+      this.absoluteLocal = clamped;
     }
     try {
       return {
         kind: 'ABSOLUTE',
-        closesAt: sessionLocalDateTimeToIso(local, this.timeZone),
+        closesAt: sessionLocalDateTimeToIso(clamped, this.timeZone),
       };
     } catch {
       if (!silent) {

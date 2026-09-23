@@ -1,6 +1,8 @@
 import { describe, expect, it, vi } from 'vitest';
 import {
   addCalendarDays,
+  clampSessionLocalDateTimeToBounds,
+  clampSessionLocalTimeToBounds,
   combineSessionLocalDateAndTime,
   isSessionLocalDateTimeWithinBounds,
   isoToSessionLocalDateTime,
@@ -117,6 +119,23 @@ describe('session-local-datetime', () => {
         '2026-04-07T14:00',
       ),
     ).toBe(false);
+  });
+
+  it('klemmt Randzeiten und volle Lokalwerte still auf min/max', () => {
+    expect(
+      clampSessionLocalTimeToBounds(
+        new Date(2026, 2, 25),
+        '10:00',
+        '2026-03-25T12:31',
+        '2026-04-07T14:00',
+      ),
+    ).toBe('12:31');
+    expect(
+      clampSessionLocalDateTimeToBounds('2026-03-20T10:00', '2026-03-25T12:31', '2026-04-07T14:00'),
+    ).toBe('2026-03-25T12:31');
+    expect(
+      clampSessionLocalDateTimeToBounds('2026-04-07T18:00', '2026-03-25T12:31', '2026-04-07T14:00'),
+    ).toBe('2026-04-07T14:00');
   });
 
   it('öffnet den nativen Datepicker und schluckt fehlende Unterstützung', () => {

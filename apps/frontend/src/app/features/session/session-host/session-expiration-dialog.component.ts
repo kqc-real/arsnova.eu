@@ -23,6 +23,8 @@ import { localizeKnownServerError } from '../../../core/localize-known-server-me
 import {
   addCalendarDays,
   calendarDateToSessionLocalDay,
+  clampSessionLocalDateTimeToBounds,
+  clampSessionLocalTimeToBounds,
   combineSessionLocalDateAndTime,
   isSessionLocalDateTimeWithinBounds,
   isoToSessionLocalDateTime,
@@ -191,11 +193,31 @@ export class SessionExpirationDialogComponent {
 
   onAbsoluteDateChange(date: Date | null): void {
     this.absoluteDate.set(date);
+    if (date) {
+      this.absoluteTime.set(
+        clampSessionLocalTimeToBounds(
+          date,
+          this.absoluteTime(),
+          this.absoluteBounds.min,
+          this.absoluteBounds.max,
+        ),
+      );
+    }
     this.inputError.set(null);
   }
 
   onAbsoluteTimeChange(time: string): void {
-    this.absoluteTime.set(time);
+    const date = this.absoluteDate();
+    this.absoluteTime.set(
+      date
+        ? clampSessionLocalTimeToBounds(
+            date,
+            time,
+            this.absoluteBounds.min,
+            this.absoluteBounds.max,
+          )
+        : time,
+    );
     this.inputError.set(null);
   }
 
@@ -276,16 +298,17 @@ export class SessionExpirationDialogComponent {
       );
       return;
     }
-    if (
-      !isSessionLocalDateTimeWithinBounds(local, this.absoluteBounds.min, this.absoluteBounds.max)
-    ) {
-      this.inputError.set(
-        $localize`:@@sessionLifecycle.absoluteOutOfBounds:Dieses Datum und diese Uhrzeit liegen außerhalb des zulässigen Zeitfensters.`,
-      );
-      return;
+    const clamped = clampSessionLocalDateTimeToBounds(
+      local,
+      this.absoluteBounds.min,
+      this.absoluteBounds.max,
+    );
+    if (clamped !== local) {
+      this.absoluteDate.set(sessionLocalDayToCalendarDate(sessionLocalDatePart(clamped)));
+      this.absoluteTime.set(sessionLocalTimePart(clamped));
     }
     try {
-      const expiresAt = sessionLocalDateTimeToIso(local, this.data.lifecycle.timeZone);
+      const expiresAt = sessionLocalDateTimeToIso(clamped, this.data.lifecycle.timeZone);
       if (this.data.mode === 'INITIAL_CONFIGURATION') {
         await this.submitSelection({
           purpose: 'INITIAL_CONFIGURATION',

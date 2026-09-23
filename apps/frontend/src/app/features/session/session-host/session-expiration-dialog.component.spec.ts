@@ -364,7 +364,7 @@ describe('SessionExpirationDialogComponent', () => {
     });
   });
 
-  it('bestätigt kein Datum außerhalb von min/max', async () => {
+  it('klemmt Datum und Uhrzeit still auf min/max statt abzuweisen', async () => {
     const close = vi.fn();
     TestBed.configureTestingModule({
       imports: [SessionExpirationDialogComponent],
@@ -381,13 +381,21 @@ describe('SessionExpirationDialogComponent', () => {
       ],
     });
     const fixture = TestBed.createComponent(SessionExpirationDialogComponent);
+    // Vor dem erlaubten Fenster → wird auf absoluteBounds.min geklemmt.
     fixture.componentInstance.absoluteDate.set(new Date(2026, 2, 20));
     fixture.componentInstance.absoluteTime.set('10:00');
 
     await fixture.componentInstance.chooseAbsolute();
 
-    expect(close).not.toHaveBeenCalled();
-    expect(fixture.componentInstance.inputError()).toBeTruthy();
+    expect(close).toHaveBeenCalledWith({
+      purpose: 'INITIAL_CONFIGURATION',
+      selection: {
+        kind: 'ABSOLUTE',
+        expiresAt: sessionLocalDateTimeToIso('2026-03-25T12:31', 'Europe/Berlin'),
+      },
+      timeZone: 'Europe/Berlin',
+    });
+    expect(fixture.componentInstance.inputError()).toBeNull();
   });
 
   it('übernimmt das gewählte Datum und die Uhrzeit', async () => {

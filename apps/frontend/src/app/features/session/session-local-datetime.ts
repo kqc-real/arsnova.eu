@@ -57,6 +57,58 @@ export function isSessionLocalDateTimeWithinBounds(
 }
 
 /**
+ * Klemmt die Uhrzeit an den Randtagen auf das zulässige Minutenfenster.
+ * Kalendertage zwischen min und max sind ganz wählbar; nur am ersten/letzten Tag
+ * gelten die Minuten aus min/max.
+ */
+export function clampSessionLocalTimeToBounds(
+  date: Date,
+  time: string,
+  minLocal: string,
+  maxLocal: string,
+): string {
+  const day = calendarDateToSessionLocalDay(date);
+  const minDay = sessionLocalDatePart(minLocal);
+  const maxDay = sessionLocalDatePart(maxLocal);
+  let next = /^\d{2}:\d{2}$/.test(time) ? time : sessionLocalTimePart(minLocal);
+  if (day === minDay) {
+    const minTime = sessionLocalTimePart(minLocal);
+    if (next < minTime) {
+      next = minTime;
+    }
+  }
+  if (day === maxDay) {
+    const maxTime = sessionLocalTimePart(maxLocal);
+    if (next > maxTime) {
+      next = maxTime;
+    }
+  }
+  return next;
+}
+
+/**
+ * Klemmt einen vollständigen Session-Lokalwert inklusiv auf min/max.
+ * Der Datepicker gibt nur erlaubte Tage vor; Minuten an den Rändern werden
+ * still korrigiert statt mit einem „außerhalb“-Fehler abgewiesen.
+ */
+export function clampSessionLocalDateTimeToBounds(
+  localDateTime: string,
+  minLocal: string,
+  maxLocal: string,
+): string {
+  if (!localDateTime) {
+    return minLocal;
+  }
+  if (localDateTime < minLocal) {
+    return minLocal;
+  }
+  if (localDateTime > maxLocal) {
+    return maxLocal;
+  }
+  return localDateTime;
+}
+
+/**
  * CSS-Klassen für Material-Kalenderzellen: grün = wählbar, rot = blockiert,
  * selected = bisherige Auswahl (Vorrang vor grün).
  */
