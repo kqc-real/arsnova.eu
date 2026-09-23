@@ -21607,6 +21607,22 @@
           <context context-type="linenumber">4273</context>
         </context-group>
       </trans-unit>
+      <trans-unit id="sessionQa.filterPendingAria" datatype="html">
+        <source>Nur Fragen in Moderation anzeigen</source>
+        <target>Mostra solo le domande in moderazione</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.html</context>
+          <context context-type="linenumber">4315</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="sessionQa.filterPendingLabel" datatype="html">
+        <source>Nur in Moderation</source>
+        <target>Solo in moderazione</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.html</context>
+          <context context-type="linenumber">4318</context>
+        </context-group>
+      </trans-unit>
       <trans-unit id="sessionQa.exportAria" datatype="html">
         <source>Fragen als CSV exportieren</source>
         <target>Esporta le domande come CSV</target>
@@ -21865,6 +21881,14 @@
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.html</context>
           <context context-type="linenumber">4751,4753</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="sessionQa.filterPendingEmptyHint" datatype="html">
+        <source> Nur in Moderation aktiv – gerade wartet nichts auf Freigabe.</source>
+        <target>Vista moderazione attiva: al momento non c’è nulla in attesa di approvazione.</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.html</context>
+          <context context-type="linenumber">4760,4762</context>
         </context-group>
       </trans-unit>
       <trans-unit id="sessionQa.authorEmpty" datatype="html">

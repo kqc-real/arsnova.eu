@@ -4297,6 +4297,33 @@
                         <span i18n="@@sessionQa.filterPinnedLabel">Nur hervorgehobene</span>
                       </button>
                     }
+                    @if (session()?.channels?.qa?.moderationMode) {
+                      @if (qaShowPendingOnly()) {
+                        <button
+                          type="button"
+                          class="session-qa-filter-btn session-qa-filter-btn--active"
+                          data-testid="qa-filter-pending-active"
+                          (click)="setQaPendingFilter(false)"
+                          i18n-aria-label="@@sessionQa.filterShowAllAria"
+                          aria-label="Alle Fragen anzeigen"
+                        >
+                          <mat-icon aria-hidden="true">visibility</mat-icon>
+                          <span i18n="@@sessionQa.filterShowAllLabel">Alle anzeigen</span>
+                        </button>
+                      } @else {
+                        <button
+                          type="button"
+                          class="session-qa-filter-btn"
+                          data-testid="qa-filter-pending"
+                          (click)="setQaPendingFilter(true)"
+                          i18n-aria-label="@@sessionQa.filterPendingAria"
+                          aria-label="Nur Fragen in Moderation anzeigen"
+                        >
+                          <mat-icon aria-hidden="true">hourglass_top</mat-icon>
+                          <span i18n="@@sessionQa.filterPendingLabel">Nur in Moderation</span>
+                        </button>
+                      }
+                    }
                     <button
                       type="button"
                       class="session-qa-filter-btn"
@@ -4803,6 +4830,15 @@
                       <mat-icon class="session-qa-empty__icon" aria-hidden="true">shield</mat-icon>
                       <p class="session-qa-empty__text" i18n="@@sessionQa.filterEmptyHint">
                         Nur hervorgehobene aktiv – noch keine hervorgehobenen Fragen.
+                      </p>
+                    </div>
+                  } @else if (qaFilteredQuestions().length === 0 && qaShowPendingOnly()) {
+                    <div class="session-qa-empty session-qa-empty--filtered" role="status">
+                      <mat-icon class="session-qa-empty__icon" aria-hidden="true"
+                        >hourglass_top</mat-icon
+                      >
+                      <p class="session-qa-empty__text" i18n="@@sessionQa.filterPendingEmptyHint">
+                        Nur in Moderation aktiv – gerade wartet nichts auf Freigabe.
                       </p>
                     </div>
                   } @else if (qaFilteredQuestions().length === 0 && qaSelectedAuthorNickname()) {

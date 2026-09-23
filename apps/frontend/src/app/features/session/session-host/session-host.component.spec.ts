@@ -7802,6 +7802,118 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
     fixture.destroy();
   });
 
+  it('filtert die Host-Liste auf Nur in Moderation und schließt hervorgehobene aus', async () => {
+    getInfoQueryMock.mockResolvedValue({
+      ...defaultSession,
+      status: 'ACTIVE',
+      channels: {
+        quiz: { enabled: true },
+        qa: { enabled: true, open: true, title: 'Fragen aus dem Publikum', moderationMode: true },
+        quickFeedback: { enabled: false, open: false },
+      },
+    });
+    qaListQueryMock.mockResolvedValue({
+      questions: [
+        {
+          id: '11111111-1111-4111-8111-111111111111',
+          text: 'Freigegeben',
+          upvoteCount: 2,
+          status: 'ACTIVE' as const,
+          createdAt: '2026-03-13T12:00:00.000Z',
+          myVote: null,
+          isOwn: false,
+          hasUpvoted: false,
+        },
+        {
+          id: '22222222-2222-4222-8222-222222222222',
+          text: 'Wartet',
+          upvoteCount: 0,
+          status: 'PENDING' as const,
+          createdAt: '2026-03-13T12:01:00.000Z',
+          myVote: null,
+          isOwn: false,
+          hasUpvoted: false,
+        },
+      ],
+      state: 'ACTIVE' as const,
+      sessionLifecycleRevision: 1,
+      serverNow: '2026-03-13T12:00:00.000Z',
+      expiresAt: '2026-03-14T12:00:00.000Z',
+      qaClosesAt: '2026-03-14T12:00:00.000Z',
+      endedAt: null,
+      postProcessingEndsAt: null,
+      rankingRevision: '1:BEST:',
+      nextCursor: null,
+      totalCount: 2,
+      pendingCount: 1,
+    });
+
+    const fixture = setup();
+    fixture.detectChanges();
+    await flushComponentAfterStable(fixture, 50);
+    const component = fixture.componentInstance;
+    component.activeChannel.set('qa');
+    fixture.detectChanges();
+    await flushComponentAfterStable(fixture, 50);
+
+    expect(fixture.nativeElement.querySelector('[data-testid="qa-filter-pending"]')).not.toBeNull();
+    qaListQueryMock.mockClear();
+    qaListQueryMock.mockResolvedValue({
+      questions: [
+        {
+          id: '22222222-2222-4222-8222-222222222222',
+          text: 'Wartet',
+          upvoteCount: 0,
+          status: 'PENDING' as const,
+          createdAt: '2026-03-13T12:01:00.000Z',
+          myVote: null,
+          isOwn: false,
+          hasUpvoted: false,
+        },
+      ],
+      state: 'ACTIVE' as const,
+      sessionLifecycleRevision: 1,
+      serverNow: '2026-03-13T12:00:00.000Z',
+      expiresAt: '2026-03-14T12:00:00.000Z',
+      qaClosesAt: '2026-03-14T12:00:00.000Z',
+      endedAt: null,
+      postProcessingEndsAt: null,
+      rankingRevision: '1:BEST:',
+      nextCursor: null,
+      totalCount: 1,
+      pendingCount: 1,
+    });
+
+    await component.setQaPendingFilter(true);
+    fixture.detectChanges();
+    await flushComponentAfterStable(fixture, 50);
+
+    expect(component.qaShowPendingOnly()).toBe(true);
+    expect(component.qaShowPinnedOnly()).toBe(false);
+    expect(qaListQueryMock).toHaveBeenCalledWith(
+      expect.objectContaining({
+        statuses: ['PENDING'],
+        moderatorView: true,
+      }),
+    );
+    expect(fixture.nativeElement.querySelector('[data-testid="qa-filter-pending"]')).toBeNull();
+    expect(
+      fixture.nativeElement.querySelector('[data-testid="qa-filter-pending-active"]'),
+    ).not.toBeNull();
+
+    qaListQueryMock.mockClear();
+    await component.setQaPinnedFilter(true);
+    expect(component.qaShowPinnedOnly()).toBe(true);
+    expect(component.qaShowPendingOnly()).toBe(false);
+    expect(qaListQueryMock).toHaveBeenCalledWith(
+      expect.objectContaining({
+        statuses: ['PINNED'],
+        moderatorView: true,
+      }),
+    );
+    fixture.destroy();
+  });
+
   it('kennzeichnet kontroverse Fragen in der Host-Liste sichtbar', async () => {
     getInfoQueryMock.mockResolvedValue({
       ...defaultSession,

@@ -1867,6 +1867,7 @@ export class SessionHostComponent implements OnInit, OnDestroy {
   });
   readonly qaSortMode = signal<QaQuestionSortMode>('BEST');
   readonly qaShowPinnedOnly = signal(false);
+  readonly qaShowPendingOnly = signal(false);
   readonly qaSearchDraft = signal('');
   readonly qaSearch = signal('');
   readonly qaForumQuestions = computed(() =>
@@ -1881,7 +1882,13 @@ export class SessionHostComponent implements OnInit, OnDestroy {
   );
   readonly qaFilteredQuestions = computed(() => {
     const all = this.qaForumQuestions();
-    return this.qaShowPinnedOnly() ? all.filter((q) => q.status === 'PINNED') : all;
+    if (this.qaShowPinnedOnly()) {
+      return all.filter((q) => q.status === 'PINNED');
+    }
+    if (this.qaShowPendingOnly()) {
+      return all.filter((q) => q.status === 'PENDING');
+    }
+    return all;
   });
   readonly qaVisibleQuestions = computed(() => {
     const questions = this.qaFilteredQuestions();
@@ -1908,7 +1915,9 @@ export class SessionHostComponent implements OnInit, OnDestroy {
     );
     return this.qaShowPinnedOnly()
       ? visibleQuestions.filter((question) => question.status === 'PINNED')
-      : visibleQuestions;
+      : this.qaShowPendingOnly()
+        ? visibleQuestions.filter((question) => question.status === 'PENDING')
+        : visibleQuestions;
   });
   readonly qaWordCloudQuestions = computed(() =>
     this.qaWordCloudFrozen()
@@ -2591,6 +2600,7 @@ export class SessionHostComponent implements OnInit, OnDestroy {
     if (target.channel === 'qa') {
       await this.clearQaAuthorFilter();
       await this.setQaPinnedFilter(false);
+      await this.setQaPendingFilter(false);
     }
     await this.selectChannel(target.channel);
     if (target.surface === 'word-cloud') {
@@ -10904,7 +10914,13 @@ export class SessionHostComponent implements OnInit, OnDestroy {
   }
 
   private qaListStatuses(): Array<QaQuestionDTO['status']> {
-    return this.qaShowPinnedOnly() ? ['PINNED'] : ['PENDING', 'ACTIVE', 'PINNED', 'ARCHIVED'];
+    if (this.qaShowPinnedOnly()) {
+      return ['PINNED'];
+    }
+    if (this.qaShowPendingOnly()) {
+      return ['PENDING'];
+    }
+    return ['PENDING', 'ACTIVE', 'PINNED', 'ARCHIVED'];
   }
 
   private hostQaListQueryInput(cursor?: string | null) {
@@ -10947,6 +10963,20 @@ export class SessionHostComponent implements OnInit, OnDestroy {
   async setQaPinnedFilter(pinnedOnly: boolean): Promise<void> {
     if (this.qaShowPinnedOnly() === pinnedOnly) return;
     this.qaShowPinnedOnly.set(pinnedOnly);
+    if (pinnedOnly) {
+      this.qaShowPendingOnly.set(false);
+    }
+    this.ensureQaSubscription();
+    await this.refreshQaQuestions({ replaceStale: true });
+    this.scrollQaListToTop();
+  }
+
+  async setQaPendingFilter(pendingOnly: boolean): Promise<void> {
+    if (this.qaShowPendingOnly() === pendingOnly) return;
+    this.qaShowPendingOnly.set(pendingOnly);
+    if (pendingOnly) {
+      this.qaShowPinnedOnly.set(false);
+    }
     this.ensureQaSubscription();
     await this.refreshQaQuestions({ replaceStale: true });
     this.scrollQaListToTop();
@@ -11870,6 +11900,9 @@ export class SessionHostComponent implements OnInit, OnDestroy {
           ? $localize`:@@sessionQa.moderationEnabled:Vorab-Moderation aktiviert.`
           : $localize`:@@sessionQa.moderationDisabled:Vorab-Moderation deaktiviert.`,
       );
+      if (!result.enabled && this.qaShowPendingOnly()) {
+        await this.setQaPendingFilter(false);
+      }
       this.dismissHostSteeringCallout();
     } catch {
       this.openHostSteeringCalloutForQaFailure(() => void this.toggleQaModeration());
