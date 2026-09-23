@@ -2958,7 +2958,7 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
     fixture.destroy();
   });
 
-  it('erklärt angepinnte und archivierte Q&A-Pills per Tooltip', async () => {
+  it('erklärt Moderations-, Pin- und Archiv-Pills per Tooltip', async () => {
     getInfoQueryMock.mockResolvedValue({
       ...defaultSession,
       type: 'Q_AND_A',
@@ -2967,32 +2967,55 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
       status: 'ACTIVE',
       channels: {
         quiz: { enabled: false },
-        qa: { enabled: true, open: true, title: 'Fragen', moderationMode: false },
+        qa: { enabled: true, open: true, title: 'Fragen', moderationMode: true },
         quickFeedback: { enabled: false, open: false },
       },
     });
-    qaListQueryMock.mockResolvedValue([
-      {
-        id: '11111111-1111-4111-8111-111111111111',
-        text: 'Angepinnte Exportfrage',
-        upvoteCount: 4,
-        status: 'PINNED',
-        createdAt: '2026-03-24T12:00:00.000Z',
-        myVote: null,
-        isOwn: false,
-        hasUpvoted: false,
-      },
-      {
-        id: '22222222-2222-4222-8222-222222222222',
-        text: 'Archivierte Exportfrage',
-        upvoteCount: 1,
-        status: 'ARCHIVED',
-        createdAt: '2026-03-24T12:01:00.000Z',
-        myVote: null,
-        isOwn: false,
-        hasUpvoted: false,
-      },
-    ]);
+    qaListQueryMock.mockResolvedValue({
+      questions: [
+        {
+          id: '00000000-0000-4000-8000-000000000000',
+          text: 'Wartet auf Freigabe',
+          upvoteCount: 0,
+          status: 'PENDING' as const,
+          createdAt: '2026-03-24T11:59:00.000Z',
+          myVote: null,
+          isOwn: false,
+          hasUpvoted: false,
+        },
+        {
+          id: '11111111-1111-4111-8111-111111111111',
+          text: 'Angepinnte Exportfrage',
+          upvoteCount: 4,
+          status: 'PINNED' as const,
+          createdAt: '2026-03-24T12:00:00.000Z',
+          myVote: null,
+          isOwn: false,
+          hasUpvoted: false,
+        },
+        {
+          id: '22222222-2222-4222-8222-222222222222',
+          text: 'Archivierte Exportfrage',
+          upvoteCount: 1,
+          status: 'ARCHIVED' as const,
+          createdAt: '2026-03-24T12:01:00.000Z',
+          myVote: null,
+          isOwn: false,
+          hasUpvoted: false,
+        },
+      ],
+      state: 'ACTIVE' as const,
+      sessionLifecycleRevision: 1,
+      serverNow: '2026-03-24T12:02:00.000Z',
+      expiresAt: '2026-03-25T12:00:00.000Z',
+      qaClosesAt: '2026-03-25T12:00:00.000Z',
+      endedAt: null,
+      postProcessingEndsAt: null,
+      rankingRevision: '1:BEST:',
+      nextCursor: null,
+      totalCount: 3,
+      pendingCount: 1,
+    });
 
     const fixture = setup();
     fixture.detectChanges();
@@ -3004,19 +3027,26 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
 
     const host = fixture.nativeElement as HTMLElement;
     expect(fixture.componentInstance.qaPinnedSummaryTooltip()).toContain('Angepinnt');
+    expect(fixture.componentInstance.qaPendingSummaryTooltip()).toContain('In Moderation');
     expect(fixture.componentInstance.qaArchivedSummaryTooltip()).toContain('Archiviert');
     expect(fixture.componentInstance.qaStatusTooltip('PINNED')).toContain('Wird beantwortet');
     expect(fixture.componentInstance.qaStatusTooltip('ARCHIVED')).toContain('beantwortet');
+    const pendingChip = host.querySelector(
+      '.session-qa-summary__chip--pending',
+    ) as HTMLElement | null;
     const pinnedChip = host.querySelector(
       '.session-qa-summary__chip--pinned',
     ) as HTMLElement | null;
     const archivedChip = host.querySelector(
       '.session-qa-summary__chip--archived',
     ) as HTMLElement | null;
+    expect(pendingChip).not.toBeNull();
     expect(pinnedChip).not.toBeNull();
     expect(archivedChip).not.toBeNull();
+    expect(pendingChip?.getAttribute('aria-label')).toContain('Fragen in Moderation');
     expect(pinnedChip?.getAttribute('aria-label')).toContain('angepinnte Fragen');
     expect(archivedChip?.getAttribute('aria-label')).toContain('archivierte Fragen');
+    expect(pendingChip?.tabIndex).toBe(0);
     expect(pinnedChip?.tabIndex).toBe(0);
     expect(archivedChip?.tabIndex).toBe(0);
     fixture.destroy();
@@ -7797,7 +7827,9 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
     await flushComponentAfterStable(fixture, 50);
 
     expect(component.qaPendingCount()).toBe(1);
-    expect(fixture.nativeElement.textContent).toContain('Warten auf Freigabe: 1');
+    expect(
+      fixture.nativeElement.querySelector('[data-testid="qa-summary-pending"]'),
+    ).not.toBeNull();
     expect(fixture.nativeElement.textContent).toMatch(/Gesamt:\s*1([.,])553/);
     fixture.destroy();
   });

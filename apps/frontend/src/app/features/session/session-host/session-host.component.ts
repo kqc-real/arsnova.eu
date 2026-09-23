@@ -9110,12 +9110,20 @@ export class SessionHostComponent implements OnInit, OnDestroy {
     return $localize`:@@sessionQa.summaryPinnedTooltip:Angepinnt: Diese Fragen hebst du hervor. Sie gelten als »Wird beantwortet«.`;
   }
 
+  qaPendingSummaryTooltip(): string {
+    return $localize`:@@sessionQa.summaryPendingTooltip:In Moderation: Diese Fragen warten auf deine Freigabe.`;
+  }
+
   qaArchivedSummaryTooltip(): string {
     return $localize`:@@sessionQa.summaryArchivedTooltip:Archiviert: Diese Fragen sind als beantwortet markiert und bleiben nachlesbar.`;
   }
 
   qaPinnedSummaryAria(): string {
     return $localize`:@@sessionQa.summaryPinnedAria:${this.formatCount(this.qaPinnedCount())}:count: angepinnte Fragen`;
+  }
+
+  qaPendingSummaryAria(): string {
+    return $localize`:@@sessionQa.summaryPendingAria:${this.formatCount(this.qaPendingCount())}:count: Fragen in Moderation`;
   }
 
   qaArchivedSummaryAria(): string {

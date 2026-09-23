@@ -21459,14 +21459,6 @@
           <context context-type="linenumber">4119,4120</context>
         </context-group>
       </trans-unit>
-      <trans-unit id="sessionQa.summaryPending" datatype="html">
-        <source>Warten auf Freigabe: <x id="INTERPOLATION" equiv-text="{{ formatCount(qaPendingCount()) }}"/></source>
-        <target>Esperando aprobación: <x id="INTERPOLATION" equiv-text="qaPendingCount()"/></target>
-        <context-group purpose="location">
-          <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.html</context>
-          <context context-type="linenumber">4128,4129</context>
-        </context-group>
-      </trans-unit>
       <trans-unit id="sessionHost.participantDirectoryToggle" datatype="html">
         <source>Teilnahmen durchsuchen</source>
         <target>Buscar participaciones</target>
@@ -24837,12 +24829,20 @@
           <context context-type="linenumber">8902</context>
         </context-group>
       </trans-unit>
+      <trans-unit id="sessionQa.summaryPendingTooltip" datatype="html">
+        <source>In Moderation: Diese Fragen warten auf deine Freigabe.</source>
+        <target>En moderación: Estas preguntas esperan tu aprobación.</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.ts</context>
+          <context context-type="linenumber">8906</context>
+        </context-group>
+      </trans-unit>
       <trans-unit id="sessionQa.summaryArchivedTooltip" datatype="html">
         <source>Archiviert: Diese Fragen sind als beantwortet markiert und bleiben nachlesbar.</source>
         <target>Archivadas: Estas preguntas están marcadas como respondidas y siguen siendo consultables.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.ts</context>
-          <context context-type="linenumber">8906</context>
+          <context context-type="linenumber">8910</context>
         </context-group>
       </trans-unit>
       <trans-unit id="sessionQa.summaryPinnedAria" datatype="html">
@@ -24850,7 +24850,15 @@
         <target><x id="count" equiv-text="this.formatCount(this.qaPinnedCount())"/> preguntas fijadas</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.ts</context>
-          <context context-type="linenumber">8910</context>
+          <context context-type="linenumber">8914</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="sessionQa.summaryPendingAria" datatype="html">
+        <source><x id="count" equiv-text="this.formatCount(this.qaPendingCount())"/> Fragen in Moderation</source>
+        <target><x id="count" equiv-text="this.formatCount(this.qaPendingCount())"/> preguntas en moderación</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.ts</context>
+          <context context-type="linenumber">8918</context>
         </context-group>
       </trans-unit>
       <trans-unit id="sessionQa.summaryArchivedAria" datatype="html">
@@ -24858,7 +24866,7 @@
         <target><x id="count" equiv-text="this.formatCount(this.qaArchivedCount())"/> preguntas archivadas</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.ts</context>
-          <context context-type="linenumber">8914</context>
+          <context context-type="linenumber">8922</context>
         </context-group>
       </trans-unit>
       <trans-unit id="sessionQa.actionApprove" datatype="html">

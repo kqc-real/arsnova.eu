@@ -4144,13 +4144,18 @@
                         >
                       </span>
                       @if (qaPendingCount() > 0) {
-                        <span class="session-qa-summary__chip session-qa-summary__chip--pending">
+                        <span
+                          class="session-qa-summary__chip session-qa-summary__chip--pending"
+                          tabindex="0"
+                          [matTooltip]="qaPendingSummaryTooltip()"
+                          matTooltipPosition="above"
+                          [attr.aria-label]="qaPendingSummaryAria()"
+                          data-testid="qa-summary-pending"
+                        >
                           <mat-icon class="session-qa-summary__icon" aria-hidden="true"
                             >hourglass_top</mat-icon
                           >
-                          <span i18n="@@sessionQa.summaryPending"
-                            >Warten auf Freigabe: {{ formatCount(qaPendingCount()) }}</span
-                          >
+                          {{ formatCount(qaPendingCount()) }}
                         </span>
                       }
                       @if (qaPinnedCount() > 0) {
