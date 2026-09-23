@@ -323,13 +323,23 @@ describe('QaChannelConfigurationDialogComponent', () => {
     expect(previewMock).toHaveBeenCalledWith({
       code: 'ABC123',
       mode: 'INITIAL',
-      selection: { kind: 'UNTIL_SESSION_END' },
+      selection: {
+        kind: 'ABSOLUTE',
+        closesAt: sessionLocalDateTimeToIso(
+          // expiresAt → Session-Lokal → ISO (ohne Millisekunden)
+          '2026-09-16T08:00',
+          'Europe/Berlin',
+        ),
+      },
       reopenQa: false,
     });
     expect(previewMock).toHaveBeenCalledWith({
       code: 'ABC123',
       mode: 'REPLAN',
-      selection: { kind: 'UNTIL_SESSION_END' },
+      selection: {
+        kind: 'ABSOLUTE',
+        closesAt: sessionLocalDateTimeToIso('2026-09-16T08:00', 'Europe/Berlin'),
+      },
       reopenQa: false,
     });
     expect(component.error()).toBeNull();
@@ -813,10 +823,16 @@ describe('QaChannelConfigurationDialogComponent', () => {
       sessionLifecycleRevision: 3,
       serverNow: preview.serverNow,
     });
-    const { component } = configureTestBed();
+    const { component, fixture } = configureTestBed();
     component.deadlineKind = 'ABSOLUTE';
     component.absoluteLocal = visibleLocal;
-    await Promise.resolve();
+    // confirm() liest die Uhrzeit aus dem native time-Input (noch mit Seed-Wert).
+    const timeInput = fixture.nativeElement.querySelector(
+      'input[type="time"]',
+    ) as HTMLInputElement | null;
+    if (timeInput) {
+      timeInput.value = '10:00';
+    }
 
     await component.confirm();
 

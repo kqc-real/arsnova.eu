@@ -2818,6 +2818,7 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
     getInfoQueryMock.mockResolvedValue(finishedSession);
     const fixture = setup();
     await fixture.componentInstance.ngOnInit();
+    fixture.componentInstance.sessionLifecycle.set({ ...defaultLifecycle });
     fixture.componentInstance.postProcessingEnded.set(false);
     fixture.detectChanges();
 
@@ -2829,6 +2830,13 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
     ).not.toBeNull();
     expect(fixture.nativeElement.querySelector('.session-host__results')).toBeNull();
     expect(fixture.nativeElement.textContent).toContain('ausschließlich lesen und exportieren');
+    expect(fixture.nativeElement.textContent).toContain('Ende der Nachbereitung');
+    expect(fixture.nativeElement.textContent).toContain(
+      fixture.componentInstance.formatSessionLifecycleDateTime(
+        defaultLifecycle.postProcessingEndsAt,
+        defaultLifecycle.timeZone,
+      ),
+    );
     expect(enableQaChannelMutateMock).not.toHaveBeenCalled();
     fixture.destroy();
   });

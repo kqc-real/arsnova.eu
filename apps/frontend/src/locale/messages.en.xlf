@@ -19781,7 +19781,7 @@
       </trans-unit>
       <trans-unit id="sessionLifecycle.pairedHostNotice" datatype="html">
         <source> Nur der ursprüngliche Host kann die globale Sessionfrist verlängern.</source>
-        <target></target>
+        <target>Only the original host can extend the global session deadline.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-host/session-expiration-dialog.component.html</context>
           <context context-type="linenumber">64,66</context>
@@ -21469,11 +21469,19 @@
         </context-group>
       </trans-unit>
       <trans-unit id="sessionQa.readOnlyPostProcessing" datatype="html">
-        <source> Die Session ist beendet. Bis zum Ende der Nachbereitung kannst du vorhandene Inhalte ausschließlich lesen und exportieren.</source>
+        <source>Die Session ist beendet. Bis zum Ende der Nachbereitung kannst du vorhandene Inhalte ausschließlich lesen und exportieren.</source>
         <target>The session is over. Until the end of the follow-up, you can only read and export existing content.</target>
         <context-group purpose="location">
-          <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.html</context>
-          <context context-type="linenumber">4088,4091</context>
+          <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.ts</context>
+          <context context-type="linenumber">8786</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="sessionQa.readOnlyPostProcessingUntil" datatype="html">
+        <source>Die Session ist beendet. Bis <x id="deadline" equiv-text="formatted"/> (Ende der Nachbereitung) kannst du vorhandene Inhalte ausschließlich lesen und exportieren.</source>
+        <target>The session is over. Until <x id="deadline" equiv-text="formatted"/> (end of follow-up), you can only read and export existing content.</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.ts</context>
+          <context context-type="linenumber">8793</context>
         </context-group>
       </trans-unit>
       <trans-unit id="sessionQa.moderationToggleLabel" datatype="html">

@@ -138,7 +138,9 @@ den Nachweis des ursprünglichen Hosts. Route, Sessioncode, URL, Clientzustand
 und Participant-ID sind keine Berechtigungsquelle. Anfangskonfigurationen
 werden nach `firstParticipantJoinedAt` dauerhaft gesperrt, auch wenn später alle
 Teilnahmen gelöscht wurden. Den Zugang für Teilnehmende (`qaClosesAt`) kannst du
-danach weiter über die Q&A-Einstellungen anpassen, begrenzt durch `expiresAt`.
+danach weiter über die Q&A-Einstellungen anpassen. Die Auswahl reicht bis
+`maxExpiresAt`; liegt der neue Schluss nach dem aktuellen `expiresAt`, verlangt
+die Bestätigung eine Sessionverlängerung durch den ursprünglichen Host.
 
 ## Linearisierung und Ausfallverhalten
 

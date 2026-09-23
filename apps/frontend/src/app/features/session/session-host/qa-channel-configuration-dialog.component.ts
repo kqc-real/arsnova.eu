@@ -541,19 +541,11 @@ export class QaChannelConfigurationDialogComponent implements OnInit {
   }
 
   private resolveInitialDeadlineKind(): SessionQaDeadlineSelection['kind'] {
-    if (this.configurationMode() !== 'REPLAN') {
-      return 'UNTIL_SESSION_END';
-    }
-    const closesAt = this.savedQaClosesAt();
-    const expiresAt = this.data.session.expiresAt;
-    if (closesAt && expiresAt && closesAt === expiresAt) {
-      return 'UNTIL_SESSION_END';
-    }
-    return closesAt ? 'ABSOLUTE' : 'UNTIL_SESSION_END';
+    return 'ABSOLUTE';
   }
 
   private resolveInitialAbsoluteLocal(): string {
-    const closesAt = this.savedQaClosesAt();
+    const closesAt = this.savedQaClosesAt() ?? this.data.session.expiresAt;
     if (!closesAt) {
       return '';
     }

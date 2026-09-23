@@ -21412,11 +21412,19 @@
         </context-group>
       </trans-unit>
       <trans-unit id="sessionQa.readOnlyPostProcessing" datatype="html">
-        <source> Die Session ist beendet. Bis zum Ende der Nachbereitung kannst du vorhandene Inhalte ausschließlich lesen und exportieren.</source>
-        <target>La sesión ha terminado. Hasta el final del seguimiento, sólo podrás leer y exportar el contenido existente.</target>
+        <source>Die Session ist beendet. Bis zum Ende der Nachbereitung kannst du vorhandene Inhalte ausschließlich lesen und exportieren.</source>
+        <target>La sesión ha terminado. Hasta el final del seguimiento, solo puedes leer y exportar el contenido existente.</target>
         <context-group purpose="location">
-          <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.html</context>
-          <context context-type="linenumber">4088,4091</context>
+          <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.ts</context>
+          <context context-type="linenumber">8786</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="sessionQa.readOnlyPostProcessingUntil" datatype="html">
+        <source>Die Session ist beendet. Bis <x id="deadline" equiv-text="formatted"/> (Ende der Nachbereitung) kannst du vorhandene Inhalte ausschließlich lesen und exportieren.</source>
+        <target>La sesión ha terminado. Hasta el <x id="deadline" equiv-text="formatted"/> (fin del seguimiento), solo puedes leer y exportar el contenido existente.</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.ts</context>
+          <context context-type="linenumber">8793</context>
         </context-group>
       </trans-unit>
       <trans-unit id="sessionQa.moderationToggleLabel" datatype="html">

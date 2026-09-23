@@ -59,13 +59,10 @@
     <mat-form-field appearance="outline" subscriptSizing="dynamic">
       <mat-label i18n="@@qaConfig.deadlineKindLabel">Art des Zugangs</mat-label>
       <mat-select [(ngModel)]="deadlineKind" (ngModelChange)="onDeadlineChange()">
-        <mat-option value="UNTIL_SESSION_END" i18n="@@qaConfig.untilSessionEnd">
-          Bis zum Sessionende
-        </mat-option>
+        <mat-option value="ABSOLUTE" i18n="@@qaConfig.absolute"> Bis Datum und Uhrzeit </mat-option>
         <mat-option value="DURATION_DAYS" i18n="@@qaConfig.durationDays">
           Für eine Anzahl von Tagen
         </mat-option>
-        <mat-option value="ABSOLUTE" i18n="@@qaConfig.absolute"> Bis Datum und Uhrzeit </mat-option>
       </mat-select>
     </mat-form-field>
 

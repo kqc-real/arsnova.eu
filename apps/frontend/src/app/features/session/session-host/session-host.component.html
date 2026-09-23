@@ -4093,13 +4093,8 @@
                   <p class="session-channel-card__info" role="status">{{ info }}</p>
                 }
                 @if (effectiveStatus() === 'FINISHED' && !qaHostWritesAllowed()) {
-                  <p
-                    class="session-channel-card__info"
-                    role="status"
-                    i18n="@@sessionQa.readOnlyPostProcessing"
-                  >
-                    Die Session ist beendet. Bis zum Ende der Nachbereitung kannst du vorhandene
-                    Inhalte ausschließlich lesen und exportieren.
+                  <p class="session-channel-card__info" role="status">
+                    {{ qaReadOnlyPostProcessingMessage() }}
                   </p>
                 }
 

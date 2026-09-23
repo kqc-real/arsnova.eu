@@ -8768,22 +8768,39 @@ export class SessionHostComponent implements OnInit, OnDestroy {
   }
 
   qaHostReadLabel(): string | null {
-    const lifecycle = this.sessionLifecycle();
-    const until =
-      lifecycle?.postProcessingEndsAt ??
-      (lifecycle?.expiresAt
-        ? new Date(
-            Date.parse(lifecycle.expiresAt) + SESSION_POST_PROCESSING_HOURS * 60 * 60 * 1000,
-          ).toISOString()
-        : null);
+    const until = this.qaPostProcessingEndsAtInstant();
     if (!until) {
       return null;
     }
     const formatted = this.formatSessionLifecycleDateTime(
       until,
-      this.session()?.timeZone ?? lifecycle?.timeZone,
+      this.session()?.timeZone ?? this.sessionLifecycle()?.timeZone,
     );
     return $localize`:@@sessionQa.hostCanReadUntil:Fragen einsehen kannst du bis ${formatted}:deadline:`;
+  }
+
+  qaReadOnlyPostProcessingMessage(): string {
+    const until = this.qaPostProcessingEndsAtInstant();
+    if (!until) {
+      return $localize`:@@sessionQa.readOnlyPostProcessing:Die Session ist beendet. Bis zum Ende der Nachbereitung kannst du vorhandene Inhalte ausschließlich lesen und exportieren.`;
+    }
+    const formatted = this.formatSessionLifecycleDateTime(
+      until,
+      this.session()?.timeZone ?? this.sessionLifecycle()?.timeZone,
+    );
+    return $localize`:@@sessionQa.readOnlyPostProcessingUntil:Die Session ist beendet. Bis ${formatted}:deadline: (Ende der Nachbereitung) kannst du vorhandene Inhalte ausschließlich lesen und exportieren.`;
+  }
+
+  private qaPostProcessingEndsAtInstant(): string | null {
+    const lifecycle = this.sessionLifecycle();
+    return (
+      lifecycle?.postProcessingEndsAt ??
+      (lifecycle?.expiresAt
+        ? new Date(
+            Date.parse(lifecycle.expiresAt) + SESSION_POST_PROCESSING_HOURS * 60 * 60 * 1000,
+          ).toISOString()
+        : null)
+    );
   }
 
   isChannelBadgeAlert(channel: SessionChannelTab): boolean {
