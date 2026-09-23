@@ -47,7 +47,15 @@
         <target>Passer au contenu</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/app.component.html</context>
-          <context context-type="linenumber">51</context>
+          <context context-type="linenumber">55</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="app.skipToCodeEntry" datatype="html">
+        <source>Zur Code-Eingabe springen</source>
+        <target>Aller à la saisie du code</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/app.component.html</context>
+          <context context-type="linenumber">53</context>
         </context-group>
       </trans-unit>
       <trans-unit id="app.snackbar.presetCustomize" datatype="html">
@@ -10120,8 +10128,8 @@
         </context-group>
       </trans-unit>
       <trans-unit id="join.nicknameSelectLabelKita" datatype="html">
-        <source>Kita</source>
-        <target>École maternelle</target>
+        <source>Tier-Icons</source>
+        <target>Icônes d&apos;animaux</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/join/join.component.html</context>
           <context context-type="linenumber">186</context>
@@ -18872,8 +18880,8 @@
         </context-group>
       </trans-unit>
       <trans-unit id="qaConfig.intro" datatype="html">
-        <source> Lege fest, wie Fragen eingereicht und veröffentlicht werden und wie lange die Fragerunde geöffnet bleibt.</source>
-        <target>Définis comment les questions sont envoyées et publiées, et jusqu’à quand les questions-réponses restent ouvertes.</target>
+        <source> Lege fest, bis wann Teilnehmende den Q&amp;A-Kanal nutzen können und bis wann du die Fragen danach noch einsehen kannst.</source>
+        <target>Indique jusqu’à quand les participants peuvent utiliser le canal de questions-réponses et jusqu’à quand tu peux encore consulter les questions ensuite.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-host/qa-channel-configuration-dialog.component.html</context>
           <context context-type="linenumber">12,15</context>
@@ -18952,24 +18960,24 @@
         </context-group>
       </trans-unit>
       <trans-unit id="qaConfig.deadlineLegend" datatype="html">
-        <source>Teilnahmefrist</source>
-        <target>Délai de participation</target>
+        <source>Zugang für Teilnehmende</source>
+        <target>Accès des participants</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-host/qa-channel-configuration-dialog.component.html</context>
           <context context-type="linenumber">58</context>
         </context-group>
       </trans-unit>
       <trans-unit id="qaConfig.deadlineKindLabel" datatype="html">
-        <source>Art der Teilnahmefrist</source>
-        <target>Type de délai de participation</target>
+        <source>Art des Zugangs</source>
+        <target>Type d’accès</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-host/qa-channel-configuration-dialog.component.html</context>
           <context context-type="linenumber">60</context>
         </context-group>
       </trans-unit>
       <trans-unit id="qaConfig.untilSessionEnd" datatype="html">
-        <source> Bis zum Sessionende</source>
-        <target>Jusqu&apos;à la fin de la séance</target>
+        <source> Bis zum spätesten Zugang</source>
+        <target>Jusqu’à l’accès le plus tardif</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-host/qa-channel-configuration-dialog.component.html</context>
           <context context-type="linenumber">62,64</context>
@@ -19028,8 +19036,8 @@
         </context-group>
       </trans-unit>
       <trans-unit id="qaConfig.previewQaCloses" datatype="html">
-        <source>Offen für Fragen und Bewertungen bis</source>
-        <target>Questions et votes acceptés jusqu’au</target>
+        <source>Zugang für Teilnehmende endet</source>
+        <target>L’accès des participants se termine</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-host/qa-channel-configuration-dialog.component.html</context>
           <context context-type="linenumber">109</context>
@@ -19044,16 +19052,16 @@
         </context-group>
       </trans-unit>
       <trans-unit id="qaConfig.extensionOldQaLabel" datatype="html">
-        <source>Bisheriger Frageschluss</source>
-        <target>Ancienne clôture des questions-réponses</target>
+        <source>Bisheriger Zugang für Teilnehmende</source>
+        <target>Accès précédent des participants</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-host/qa-channel-configuration-dialog.component.html</context>
           <context context-type="linenumber">122</context>
         </context-group>
       </trans-unit>
       <trans-unit id="qaConfig.extensionNewQaLabel" datatype="html">
-        <source>Neuer Frageschluss</source>
-        <target>Nouvelle clôture des questions-réponses</target>
+        <source>Neuer Zugang für Teilnehmende</source>
+        <target>Nouvel accès des participants</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-host/qa-channel-configuration-dialog.component.html</context>
           <context context-type="linenumber">127</context>
@@ -19076,16 +19084,16 @@
         </context-group>
       </trans-unit>
       <trans-unit id="qaConfig.extensionPostProcessingLabel" datatype="html">
-        <source>Host-Lesezugriff bis</source>
-        <target>Accès hôte en lecture seule jusqu’au</target>
+        <source>Fragen einsehen kannst du bis</source>
+        <target>Tu peux consulter les questions jusqu’au</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-host/qa-channel-configuration-dialog.component.html</context>
           <context context-type="linenumber">139</context>
         </context-group>
       </trans-unit>
       <trans-unit id="qaConfig.extensionWarning" datatype="html">
-        <source> Die Teilnahmefrist liegt nach dem bisherigen Sessionende. Beim Bestätigen wird die globale Sessionfrist mit verlängert; nur der ursprüngliche Host darf das ausführen.</source>
-        <target>Le délai de participation est postérieur à la fin de session actuelle. En confirmant, tu prolonges aussi la durée globale de la session ; seul l&apos;hôte d&apos;origine peut le faire.</target>
+        <source> Der neue Zugang für Teilnehmende liegt nach dem bisherigen Sessionende. Beim Bestätigen wird die globale Sessionfrist mit verlängert; nur der ursprüngliche Host darf das ausführen.</source>
+        <target>Le nouvel accès des participants est postérieur à la fin de session actuelle. En confirmant, tu prolonges aussi la durée globale de la session ; seul l’hôte d’origine peut le faire.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-host/qa-channel-configuration-dialog.component.html</context>
           <context context-type="linenumber">143,146</context>
@@ -19196,16 +19204,16 @@
         </context-group>
       </trans-unit>
       <trans-unit id="qaConfig.extensionOldQa" datatype="html">
-        <source>Bisheriger Frageschluss: <x id="date" equiv-text="this.formatDateTime(preview.oldQaClosesAt)"/></source>
-        <target>Ancienne clôture des questions-réponses : <x id="date" equiv-text="this.formatDateTime(preview.oldQaClosesAt)"/></target>
+        <source>Bisheriger Zugang für Teilnehmende: <x id="date" equiv-text="this.formatDateTime(preview.oldQaClosesAt)"/></source>
+        <target>Accès précédent des participants : <x id="date" equiv-text="this.formatDateTime(preview.oldQaClosesAt)"/></target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-host/qa-channel-configuration-dialog.component.ts</context>
           <context context-type="linenumber">234</context>
         </context-group>
       </trans-unit>
       <trans-unit id="qaConfig.extensionNewQa" datatype="html">
-        <source>Neuer Frageschluss: <x id="date" equiv-text="this.formatDateTime(preview.newQaClosesAt)"/></source>
-        <target>Nouvelle clôture des questions-réponses : <x id="date" equiv-text="this.formatDateTime(preview.newQaClosesAt)"/></target>
+        <source>Neuer Zugang für Teilnehmende: <x id="date" equiv-text="this.formatDateTime(preview.newQaClosesAt)"/></source>
+        <target>Nouvel accès des participants : <x id="date" equiv-text="this.formatDateTime(preview.newQaClosesAt)"/></target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-host/qa-channel-configuration-dialog.component.ts</context>
           <context context-type="linenumber">238</context>
@@ -19228,8 +19236,8 @@
         </context-group>
       </trans-unit>
       <trans-unit id="qaConfig.extensionPostProcessing" datatype="html">
-        <source>Host-Lesezugriff bis: <x id="date" equiv-text="this.formatDateTime(preview.projectedPostProcessingEndsAt)"/></source>
-        <target>Accès hôte en lecture seule jusqu’au : <x id="date" equiv-text="this.formatDateTime(preview.projectedPostProcessingEndsAt)"/></target>
+        <source>Fragen einsehen kannst du bis: <x id="date" equiv-text="this.formatDateTime(preview.projectedPostProcessingEndsAt)"/></source>
+        <target>Tu peux consulter les questions jusqu’au : <x id="date" equiv-text="this.formatDateTime(preview.projectedPostProcessingEndsAt)"/></target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-host/qa-channel-configuration-dialog.component.ts</context>
           <context context-type="linenumber">241</context>
@@ -19260,8 +19268,8 @@
         </context-group>
       </trans-unit>
       <trans-unit id="qaConfig.extensionConfirmMessageKeepClosed" datatype="html">
-        <source>Die neue Teilnahmefrist liegt nach dem bisherigen Sessionende. Beim Bestätigen wird die globale Sessionfrist mitverlängert; die Daten werden länger gespeichert. Nur der ursprüngliche Host darf das ausführen.</source>
-        <target>La nouvelle échéance des questions dépasse la fin actuelle de la session. En confirmant, tu prolonges aussi l’échéance globale ; les données restent plus longtemps. Seul l’hôte d’origine peut le faire.</target>
+        <source>Der neue Zugang für Teilnehmende liegt nach dem bisherigen Sessionende. Beim Bestätigen wird die globale Sessionfrist mitverlängert; die Daten werden länger gespeichert. Nur der ursprüngliche Host darf das ausführen.</source>
+        <target>Le nouvel accès des participants est postérieur à la fin actuelle de la session. En confirmant, tu prolonges aussi l’échéance globale ; les données restent plus longtemps. Seul l’hôte d’origine peut le faire.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-host/qa-channel-configuration-dialog.component.ts</context>
           <context context-type="linenumber">392</context>
@@ -19628,8 +19636,8 @@
         </context-group>
       </trans-unit>
       <trans-unit id="sessionLifecycle.configureSubtitle" datatype="html">
-        <source> Damit setzt du das Sessionende. Die Fragerunde kann höchstens so lange offen bleiben; in den Einstellungen kannst du früher schließen.</source>
-        <target>Tu définis ainsi la fin de la session. Les questions-réponses peuvent rester ouvertes au plus tard jusqu’à ce moment ; tu peux les fermer plus tôt dans les réglages.</target>
+        <source> Der erste Zeitpunkt beendet den Zugang für Teilnehmende. Bis zum zweiten Zeitpunkt kannst du die Fragen noch einsehen.</source>
+        <target>Le premier moment met fin à l’accès des participants. Tu peux encore consulter les questions jusqu’au second moment.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-host/session-expiration-dialog.component.html</context>
           <context context-type="linenumber">14,17</context>
@@ -19644,8 +19652,8 @@
         </context-group>
       </trans-unit>
       <trans-unit id="sessionLifecycle.warningSubtitle" datatype="html">
-        <source> Eine Verlängerung verschiebt das Sessionende. Die Frist für Fragen und Bewertungen bleibt unverändert.</source>
-        <target>Prolonger la session modifie son heure de fin. La date limite des questions et des votes reste inchangée.</target>
+        <source> Eine Verlängerung verschiebt nur das Sessionende. Der Zugang für Teilnehmende bleibt unverändert.</source>
+        <target>Une prolongation ne décale que la fin de la session. L’accès des participants reste inchangé.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-host/session-expiration-dialog.component.html</context>
           <context context-type="linenumber">22,25</context>
@@ -19664,8 +19672,8 @@
         </context-group>
       </trans-unit>
       <trans-unit id="sessionLifecycle.currentQaEnd" datatype="html">
-        <source>Aktuelles maximales Q&amp;A-Ende:</source>
-        <target>Fin maximale actuelle de Q&amp;R :</target>
+        <source>Zugang für Teilnehmende endet:</source>
+        <target>L’accès des participants se termine :</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-host/session-expiration-dialog.component.html</context>
           <context context-type="linenumber">42</context>
@@ -19688,8 +19696,8 @@
         </context-group>
       </trans-unit>
       <trans-unit id="sessionLifecycle.qaUnchanged" datatype="html">
-        <source>Q&amp;A schließt unabhängig davon weiterhin:</source>
-        <target>Quoi qu’il en soit, les questions et réponses continuent de se clôturer :</target>
+        <source>Zugang für Teilnehmende endet weiterhin:</source>
+        <target>L’accès des participants se termine toujours :</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-host/session-expiration-dialog.component.html</context>
           <context context-type="linenumber">54</context>
@@ -19728,8 +19736,8 @@
         </context-group>
       </trans-unit>
       <trans-unit id="sessionLifecycle.checkDeadline" datatype="html">
-        <source> Termin prüfen</source>
-        <target>Vérifier la date et l’heure</target>
+        <source> Frist übernehmen</source>
+        <target>Appliquer le délai</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-host/session-expiration-dialog.component.html</context>
           <context context-type="linenumber">98,100</context>
@@ -19814,6 +19822,26 @@
           <context context-type="sourcefile">src/app/features/session/session-host/session-expiration-dialog.component.html</context>
           <context context-type="linenumber">147,149</context>
         </context-group>
+      </trans-unit>
+      <trans-unit id="sessionLifecycle.deadlineModeLegend" datatype="html">
+        <source>Art der Frist</source>
+        <target>Type de délai</target>
+      </trans-unit>
+      <trans-unit id="sessionLifecycle.deadlineModeLabel" datatype="html">
+        <source>Art der Frist</source>
+        <target>Type de délai</target>
+      </trans-unit>
+      <trans-unit id="sessionLifecycle.deadlineModeDays" datatype="html">
+        <source>Kalendertage</source>
+        <target>Jours calendaires</target>
+      </trans-unit>
+      <trans-unit id="sessionLifecycle.deadlineModeAbsolute" datatype="html">
+        <source>Datum und Uhrzeit</source>
+        <target>Date et heure</target>
+      </trans-unit>
+      <trans-unit id="sessionLifecycle.daysResolvedLabel" datatype="html">
+        <source>Neuer Zugang für Teilnehmende</source>
+        <target>Nouvel accès des participants</target>
       </trans-unit>
       <trans-unit id="sessionLifecycle.absoluteLegend" datatype="html">
         <source>Oder Datum und Uhrzeit wählen</source>
@@ -21799,18 +21827,6 @@
           <context context-type="linenumber">4821</context>
         </context-group>
       </trans-unit>
-      <trans-unit id="sessionLifecycle.retentionDetails" datatype="html">
-        <source>Löschtermin anzeigen</source>
-        <target>Afficher la date de suppression</target>
-        <context-group purpose="location">
-          <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.html</context>
-          <context context-type="linenumber">4833</context>
-        </context-group>
-        <context-group purpose="location">
-          <context context-type="sourcefile">src/app/features/session/session-host/session-retention-dialog.component.html</context>
-          <context context-type="linenumber">6,8</context>
-        </context-group>
-      </trans-unit>
       <trans-unit id="sessionHost.prevQuestionTooltip" datatype="html">
         <source>Zeigt die vorherige Frage mit ihrem Ergebnis erneut an (ohne neue Abstimmung).</source>
         <target>Réaffiche la question précédente avec son résultat (sans nouveau vote).</target>
@@ -23230,11 +23246,11 @@
         </context-group>
       </trans-unit>
       <trans-unit id="sessionLifecycle.previewPostProcessing" datatype="html">
-        <source>Host-Lesezugriff bis: <x id="PH" equiv-text="this.formatSessionLifecycleDateTime(
+        <source>Fragen einsehen kannst du bis: <x id="PH" equiv-text="this.formatSessionLifecycleDateTime(
         preview.projectedPostProcessingEndsAt,
         preview.timeZone,
       )"/></source>
-        <target>Accès hôte en lecture seule jusqu’au : <x id="PH" equiv-text="this.formatSessionLifecycleDateTime(
+        <target>Tu peux consulter les questions jusqu’au : <x id="PH" equiv-text="this.formatSessionLifecycleDateTime(
         preview.projectedPostProcessingEndsAt,
         preview.timeZone,
       )"/></target>
@@ -23273,9 +23289,23 @@
           <context context-type="linenumber">4786</context>
         </context-group>
       </trans-unit>
+      <trans-unit id="sessionLifecycle.previewQaFollows" datatype="html">
+        <source>Zugang für Teilnehmende endet: <x id="PH" equiv-text="this.formatSessionLifecycleDateTime(
+          preview.newExpiresAt,
+          preview.timeZone,
+        )"/></source>
+        <target>L’accès des participants se termine : <x id="PH" equiv-text="this.formatSessionLifecycleDateTime(
+          preview.newExpiresAt,
+          preview.timeZone,
+        )"/></target>
+      </trans-unit>
+      <trans-unit id="sessionLifecycle.previewInitialQaFollows" datatype="html">
+        <source>Teilnehmende können den Q&amp;A-Kanal bis zum neuen Zeitpunkt nutzen. Danach kannst du die Fragen noch bis zum genannten Zeitpunkt einsehen.</source>
+        <target>Les participants peuvent utiliser le canal de questions-réponses jusqu’au nouveau moment. Ensuite, tu peux encore consulter les questions jusqu’au moment indiqué.</target>
+      </trans-unit>
       <trans-unit id="sessionLifecycle.previewInitialMessage" datatype="html">
-        <source>Gespeichert wird nur das Sessionende. Es begrenzt, wie lange die Fragerunde höchstens offen bleiben kann; der konkrete Teilnahmeschluss wird damit nicht gesetzt.</source>
-        <target>Seule la fin de session est enregistrée. Elle limite jusqu’à quand les questions-réponses peuvent rester ouvertes ; elle ne fixe pas la date limite des questions et des votes.</target>
+        <source>Gespeichert wird der späteste Zugang für Teilnehmende. Die Fragen kannst du danach noch bis zum genannten Zeitpunkt einsehen.</source>
+        <target>C’est l’accès le plus tardif des participants qui est enregistré. Ensuite, tu peux encore consulter les questions jusqu’au moment indiqué.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.ts</context>
           <context context-type="linenumber">4787</context>
@@ -25288,27 +25318,11 @@
         </context-group>
       </trans-unit>
       <trans-unit id="sessionLifecycle.hostPostProcessingUntil" datatype="html">
-        <source>Host-Lesezugriff bis:</source>
-        <target>Accès hôte en lecture seule jusqu’au :</target>
+        <source>Fragen einsehen kannst du bis:</source>
+        <target>Tu peux consulter les questions jusqu’au :</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-host/session-retention-dialog.component.html</context>
           <context context-type="linenumber">24</context>
-        </context-group>
-      </trans-unit>
-      <trans-unit id="sessionLifecycle.expectedDeletion" datatype="html">
-        <source>Voraussichtliche technische Löschung:</source>
-        <target>Suppression technique attendue :</target>
-        <context-group purpose="location">
-          <context context-type="sourcefile">src/app/features/session/session-host/session-retention-dialog.component.html</context>
-          <context context-type="linenumber">30</context>
-        </context-group>
-      </trans-unit>
-      <trans-unit id="sessionLifecycle.retentionDoesNotExtendAccess" datatype="html">
-        <source> Eine begrenzte Aufbewahrung verzögert die technische Löschung, verlängert aber keinen regulären Zugriff.</source>
-        <target>La conservation limitée retarde la suppression technique mais n&apos;étend pas l&apos;accès régulier.</target>
-        <context-group purpose="location">
-          <context context-type="sourcefile">src/app/features/session/session-host/session-retention-dialog.component.html</context>
-          <context context-type="linenumber">40,43</context>
         </context-group>
       </trans-unit>
       <trans-unit id="sessionHost.wordCloudLemmaLocaleAria" datatype="html">
@@ -25416,8 +25430,8 @@
         </context-group>
       </trans-unit>
       <trans-unit id="sessionParticipation.themeKindergarten" datatype="html">
-        <source>Kita</source>
-        <target>École maternelle</target>
+        <source>Tier-Icons</source>
+        <target>Icônes d&apos;animaux</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-participation-profile-dialog.component.ts</context>
           <context context-type="linenumber">117</context>
@@ -25453,14 +25467,6 @@
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-participation-profile-dialog.component.ts</context>
           <context context-type="linenumber">129</context>
-        </context-group>
-      </trans-unit>
-      <trans-unit id="sessionParticipation.lockHint" datatype="html">
-        <source> Nach dem ersten erfolgreichen Beitritt ist diese Einstellung für die gesamte Session gesperrt. Das gilt auch nach dem Löschen von Teilnahmen oder bei einem Gerätewechsel.</source>
-        <target>Après la première participation réussie, ce réglage est verrouillé pour toute la session, même si des participations sont supprimées ou si un autre appareil est utilisé.</target>
-        <context-group purpose="location">
-          <context context-type="sourcefile">src/app/features/session/session-participation-profile-dialog.component.ts</context>
-          <context context-type="linenumber">140,143</context>
         </context-group>
       </trans-unit>
       <trans-unit id="sessionParticipation.startQa" datatype="html">
@@ -31352,6 +31358,27 @@
           <context context-type="sourcefile">src/app/shared/top-toolbar/top-toolbar.component.ts</context>
           <context context-type="linenumber">208</context>
         </context-group>
+      </trans-unit>
+
+      <trans-unit id="sessionLifecycle.draftHostReadLabel" datatype="html">
+        <source>Fragen einsehen kannst du dann bis</source>
+        <target>Tu peux ensuite consulter les questions jusqu’au</target>
+      </trans-unit>
+      <trans-unit id="qaConfig.previewHostRead" datatype="html">
+        <source>Fragen einsehen kannst du bis</source>
+        <target>Tu peux consulter les questions jusqu’au</target>
+      </trans-unit>
+      <trans-unit id="sessionQa.hostParticipantAccess" datatype="html">
+        <source>Zugang für Teilnehmende endet <x id="deadline" equiv-text="parts.formatted"/> · <x id="remaining" equiv-text="parts.relative"/></source>
+        <target>L’accès des participants se termine <x id="deadline" equiv-text="parts.formatted"/> · <x id="remaining" equiv-text="parts.relative"/></target>
+      </trans-unit>
+      <trans-unit id="sessionQa.hostParticipantAccessEnded" datatype="html">
+        <source>Zugang für Teilnehmende ist beendet · <x id="deadline" equiv-text="parts.formatted"/></source>
+        <target>L’accès des participants est terminé · <x id="deadline" equiv-text="parts.formatted"/></target>
+      </trans-unit>
+      <trans-unit id="sessionQa.hostCanReadUntil" datatype="html">
+        <source>Fragen einsehen kannst du bis <x id="deadline" equiv-text="formatted"/></source>
+        <target>Tu peux consulter les questions jusqu’au <x id="deadline" equiv-text="formatted"/></target>
       </trans-unit>
     </body>
   </file>

@@ -43,13 +43,17 @@
   }
   <ng-container connectionBannerHost></ng-container>
   <a
-    href="#main-content"
+    [attr.href]="isHomeRoute() ? '#home-session-code-input' : '#main-content'"
     class="app-skip-link"
     [attr.inert]="isContentOverlayRoute() ? '' : null"
     (click)="skipToMainContent($event)"
-    i18n
-    >Zum Inhalt springen</a
   >
+    @if (isHomeRoute()) {
+      <ng-container i18n="@@app.skipToCodeEntry">Zur Code-Eingabe springen</ng-container>
+    } @else {
+      <ng-container i18n>Zum Inhalt springen</ng-container>
+    }
+  </a>
 
   <ng-container presetToastHost></ng-container>
 
@@ -137,7 +141,7 @@
     [class.app-main--immersive-host]="hideAppChrome()"
     [class.app-main--present]="isPresentRoute()"
     role="main"
-    tabindex="0"
+    tabindex="-1"
     (scroll)="onPrimaryScroll($event)"
   >
     <div

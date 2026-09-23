@@ -2,6 +2,7 @@ import { TestBed } from '@angular/core/testing';
 import { MAT_DIALOG_DATA, MatDialog, MatDialogRef } from '@angular/material/dialog';
 import { of } from 'rxjs';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { sessionLocalDateTimeToIso } from '../session-local-datetime';
 import { QaChannelConfigurationDialogComponent } from './qa-channel-configuration-dialog.component';
 
 const { previewMock, configureMock, lifecycleMock } = vi.hoisted(() => ({
@@ -94,7 +95,14 @@ function configureTestBed(
     providers: [
       {
         provide: MAT_DIALOG_DATA,
-        useValue: { code: 'ABC123', session: sessionOverride, profileLocked, ...setup },
+        useValue: {
+          code: 'ABC123',
+          session: sessionOverride,
+          profileLocked,
+          maxExpiresAt: preview.maxExpiresAt,
+          serverNow: preview.serverNow,
+          ...setup,
+        },
       },
       { provide: MatDialogRef, useValue: { close } },
       { provide: MatDialog, useValue: { open: dialogOpen } },
@@ -124,7 +132,8 @@ describe('QaChannelConfigurationDialogComponent', () => {
     );
     expect(host.textContent).toContain('Fragerunde einrichten');
     expect(host.textContent).toContain('Fragerunde öffnen');
-    expect(host.textContent).toContain('Offen für Fragen und Bewertungen bis');
+    expect(host.textContent).toContain('Zugang für Teilnehmende endet');
+    expect(host.textContent).toContain('Fragen einsehen kannst du bis');
     expect(host.textContent).not.toContain('Schritt 1 von 2');
     expect(host.textContent).not.toContain('Verbindliche Vorschau');
     expect(host.textContent).not.toContain('Vorschau prüfen');
@@ -199,14 +208,15 @@ describe('QaChannelConfigurationDialogComponent', () => {
       selection: { kind: 'DURATION_DAYS', days: 1 },
       reopenQa: false,
     });
-    expect(fixture.nativeElement.textContent).toContain('Offen für Fragen und Bewertungen bis');
+    expect(fixture.nativeElement.textContent).toContain('Zugang für Teilnehmende endet');
+    expect(fixture.nativeElement.textContent).toContain('Fragen einsehen kannst du bis');
     expect(fixture.nativeElement.textContent).toContain('Session endet');
     expect(fixture.nativeElement.textContent).toContain(
       'Beim Bestätigen wird die globale Sessionfrist mit verlängert',
     );
     expect(fixture.nativeElement.textContent).toContain('Bisheriges Sessionende');
     expect(fixture.nativeElement.textContent).toContain('Neues Sessionende');
-    expect(fixture.nativeElement.textContent).toContain('Host-Lesezugriff bis');
+    expect(fixture.nativeElement.textContent).toContain('Fragen einsehen kannst du bis');
     expect(fixture.nativeElement.textContent).toContain('Titel der Fragenwand');
   });
 
@@ -692,12 +702,42 @@ describe('QaChannelConfigurationDialogComponent', () => {
       expect.objectContaining({
         data: expect.objectContaining({
           confirmLabel: 'Session verlängern und Änderungen speichern',
-          message: expect.stringContaining('neue Teilnahmefrist'),
+          message: expect.stringContaining('Zugang für Teilnehmende liegt'),
         }),
       }),
     );
     expect(dialogOpen.mock.calls[0]?.[1].data.message).not.toContain('Die Fragerunde läuft');
     expect(configureMock).toHaveBeenCalledWith(expect.objectContaining({ reopenQa: false }));
+  });
+
+  it('begrenzt den Datepicker schon vor der Vorschau auf die Lifecycle-Obergrenze', async () => {
+    previewMock.mockReturnValue(new Promise(() => undefined));
+    const { fixture, component } = configureTestBed();
+    component.deadlineKind = 'ABSOLUTE';
+    await Promise.resolve();
+    fixture.detectChanges();
+
+    const input = fixture.nativeElement.querySelector(
+      'input[type="datetime-local"]',
+    ) as HTMLInputElement | null;
+    expect(input?.getAttribute('min')).toBe('2026-09-15T09:01');
+    expect(input?.getAttribute('max')).toBe('2026-09-29T08:00');
+  });
+
+  it('behält die Datepicker-Obergrenze, wenn die Vorschau scheitert', async () => {
+    previewMock.mockRejectedValue(new Error('closesAt nach maxExpiresAt'));
+    const { fixture, component } = configureTestBed();
+    component.deadlineKind = 'ABSOLUTE';
+    component.absoluteLocal = '2027-06-24T06:43';
+    await component.onDeadlineChange();
+    fixture.detectChanges();
+
+    const input = fixture.nativeElement.querySelector(
+      'input[type="datetime-local"]',
+    ) as HTMLInputElement | null;
+    expect(input?.getAttribute('min')).toBe('2026-09-15T09:01');
+    expect(input?.getAttribute('max')).toBe('2026-09-29T08:00');
+    expect(component.preview()).toBeNull();
   });
 
   it('begrenzt den Datepicker auf Serverjetzt bis maxExpiresAt', async () => {
@@ -713,5 +753,43 @@ describe('QaChannelConfigurationDialogComponent', () => {
     ) as HTMLInputElement | null;
     expect(input?.getAttribute('min')).toBe('2026-09-15T09:01');
     expect(input?.getAttribute('max')).toBe('2026-09-29T08:00');
+  });
+
+  it('übernimmt das sichtbare Datum statt eines älteren Modellwerts', async () => {
+    const visibleLocal = '2026-09-20T10:00';
+    previewMock.mockResolvedValue({
+      ...preview,
+      newQaClosesAt: '2026-09-20T08:00:00.000Z',
+      newExpiresAt: '2026-09-20T08:00:00.000Z',
+      requiresSessionExtension: false,
+    });
+    configureMock.mockResolvedValue({
+      channels: session.channels,
+      preferredChannel: 'qa',
+      expiresAt: '2026-09-20T08:00:00.000Z',
+      qaClosesAt: '2026-09-20T08:00:00.000Z',
+      sessionLifecycleRevision: 3,
+      serverNow: preview.serverNow,
+    });
+    const { fixture, component } = configureTestBed();
+    component.deadlineKind = 'ABSOLUTE';
+    component.absoluteLocal = '2026-09-16T10:00';
+    await Promise.resolve();
+    fixture.detectChanges();
+    const input = fixture.nativeElement.querySelector(
+      'input[type="datetime-local"]',
+    ) as HTMLInputElement;
+    input.value = visibleLocal;
+
+    await component.confirm();
+
+    expect(configureMock).toHaveBeenCalledWith(
+      expect.objectContaining({
+        selection: {
+          kind: 'ABSOLUTE',
+          closesAt: sessionLocalDateTimeToIso(visibleLocal, 'Europe/Berlin'),
+        },
+      }),
+    );
   });
 });

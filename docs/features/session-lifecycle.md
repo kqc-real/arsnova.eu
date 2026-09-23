@@ -50,9 +50,15 @@ erlaubt weiter Beitritt und Forenbeiträge bis zum früheren Zeitpunkt aus
 laufen; der Sessionkern bleibt unveränderlich.
 
 Vor dem ersten Beitritt kann ein Host die Anfangsfrist als Kalendertage oder als
-absolutes Datum mit Uhrzeit festlegen. Kalendertage werden ab `createdAt` in der
-angezeigten Sessionzeitzone gerechnet; nicht existente oder doppelte lokale
-DST-Uhrzeiten werden abgelehnt. Der Server berechnet zunächst eine Vorschau mit
+absolutes Datum mit Uhrzeit festlegen. Der Dialog zeigt immer nur eine der
+beiden Arten. Kalendertage werden ab `createdAt` in der angezeigten
+Sessionzeitzone gerechnet und nennen das daraus folgende Ende; nicht existente
+oder doppelte lokale DST-Uhrzeiten werden abgelehnt. Dieselbe Speicherung setzt den
+Zugang für Teilnehmende auf diesen Zeitpunkt, auch wenn die bisherige
+Q&A-Frist später lag. Dialog und Q&A-Karte nennen beide
+Zeiten: wann Teilnehmende den Kanal nicht mehr nutzen können, und bis wann der
+Host die Fragen danach noch einsehen kann (`expiresAt` plus 14 Tage
+Nachbereitung). Der Server berechnet zunächst eine Vorschau mit
 eindeutigem UTC-Zeitpunkt. Erst eine zweite ausdrückliche Bestätigung speichert
 die Frist.
 
@@ -197,7 +203,10 @@ fristgebunden eingerichteten Kanal. Die erste Einrichtung und jede Neuplanung
 laufen über `configureQaChannel` inklusive serverseitiger Fristprüfung beim
 Bestätigen, nicht über einen zweiten Vorschaudialog. Die Host-UI zeigt die
 ausgerechnete Teilnahmefrist und eine eventuelle Sessionverlängerung direkt im
-Einrichtungsformular. Beim späteren Aktivieren in einer bestehenden Session
+Einrichtungsformular. Datum und Uhrzeit nutzen dasselbe native Fenster wie
+»Maximales Q&A-Ende«: nach `serverNow` bis `maxExpiresAt` aus der bereits
+geladenen Host-Lifecycle. Die Grenzen bleiben stehen, auch wenn die Vorschau
+scheitert. Beim späteren Aktivieren in einer bestehenden Session
 gehört das Teilnahmeprofil zur Einrichtung; beim Anlegen von der Startseite
 bleibt es in Schritt 1. Frist und optionales Teilnahmeprofil gelten vor dem
 ersten Beitritt.
@@ -222,15 +231,15 @@ geschlossen. Nach `postProcessingEndsAt = endedAt + 14 Tage` endet auch der
 Inhaltszugriff des Hosts.
 
 Die Join-Kapsel neben dem QR-Code bleibt kompakt: Code und Teilnehmerzahl,
-ohne Sessionende und ohne Löschtermin. Das absolute Sessionende bleibt
-in der Q&A-Fristzeile. Host und Vote zeigen dieselbe offene-bis-Zeile mit
-relativer Restzeit; Q&A-Einstellungen bleiben host-only. Quiz- und
-Blitzlichtansicht behalten dieselbe kompakte Kapsel. Die 30- und 5-Minuten-Warnung gilt weiter sessionweit. Die Aktionen
-„Maximales Q&A-Ende“ und „Löschtermin anzeigen“ sitzen nur im Q&A-Kanal in der
+ohne Sessionende und ohne Löschtermin. Die Q&A-Fristzeile des Hosts nennt den
+Zugang für Teilnehmende und, darunter, bis wann der Host die Fragen noch
+einsehen kann. Vote zeigt nur die offene-bis-Zeile für Teilnehmende.
+Q&A-Einstellungen bleiben host-only. Quiz- und
+Blitzlichtansicht behalten dieselbe kompakte Kapsel. Die 30- und 5-Minuten-Warnung gilt weiter sessionweit. „Maximales Q&A-Ende“ sitzt nur im Q&A-Kanal in der
 unteren Host-Action-Bar neben „Session beenden“, nicht in der
-Kopfzeile. „Maximales Q&A-Ende“ bezeichnet die Obergrenze des Q&A-Kanals,
-nicht das Quiz- oder Blitzlichtende. „Löschtermin anzeigen“ öffnet die
-Nachbereitungs- und Löschtermine in einem Dialog.
+Kopfzeile, und nur vor dem ersten Beitritt. Es bezeichnet die Obergrenze des Q&A-Kanals,
+nicht das Quiz- oder Blitzlichtende. Der technische Löschtermin bleibt eine
+Betreiberangelegenheit und erscheint nicht in der Host-Ansicht.
 
 Der Lifecyclevertrag projiziert und liefert:
 

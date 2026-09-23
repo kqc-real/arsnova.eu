@@ -5680,16 +5680,6 @@ const sessionCoreRouter = router({
               timeZone: session.timeZone,
               selection: input.selection,
             });
-      if (
-        input.purpose === 'INITIAL_CONFIGURATION' &&
-        session.qaClosesAt &&
-        session.qaClosesAt > newExpiresAt
-      ) {
-        throw new TRPCError({
-          code: 'BAD_REQUEST',
-          message: 'Die Sessionfrist kann nicht vor die bestehende Q&A-Frist gesetzt werden.',
-        });
-      }
       return {
         purpose: input.purpose,
         expectedLifecycleRevision: session.sessionLifecycleRevision,
@@ -5780,16 +5770,6 @@ const sessionCoreRouter = router({
                   timeZone: session.timeZone,
                   selection: input.selection,
                 });
-          if (
-            input.purpose === 'INITIAL_CONFIGURATION' &&
-            session.qaClosesAt &&
-            session.qaClosesAt > newExpiresAt
-          ) {
-            throw new TRPCError({
-              code: 'BAD_REQUEST',
-              message: 'Die Sessionfrist kann nicht vor die bestehende Q&A-Frist gesetzt werden.',
-            });
-          }
           if (new Date(input.confirmedExpiresAt).getTime() !== newExpiresAt.getTime()) {
             throw new TRPCError({
               code: 'CONFLICT',
@@ -5797,6 +5777,8 @@ const sessionCoreRouter = router({
             });
           }
 
+          const qaFollowsSessionEnd =
+            input.purpose === 'INITIAL_CONFIGURATION' && session.qaClosesAt instanceof Date;
           return tx.session.update({
             where: { id: session.id },
             data: {
@@ -5807,6 +5789,7 @@ const sessionCoreRouter = router({
                     timeZone: input.timeZone,
                   }
                 : {}),
+              ...(qaFollowsSessionEnd ? { qaClosesAt: newExpiresAt } : {}),
             },
             select: {
               status: true,

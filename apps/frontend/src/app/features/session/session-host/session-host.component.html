@@ -4070,7 +4070,12 @@
                     <mat-icon aria-hidden="true">{{
                       qaDeadlineExpired() ? 'event_busy' : 'schedule'
                     }}</mat-icon>
-                    <span>{{ deadlineLabel }}</span>
+                    <span class="session-host__qa-deadline-copy">
+                      <span>{{ deadlineLabel }}</span>
+                      @if (qaHostReadLabel(); as hostRead) {
+                        <span>{{ hostRead }}</span>
+                      }
+                    </span>
                     @if (effectiveStatus() !== 'FINISHED') {
                       <button
                         mat-stroked-button
@@ -4826,18 +4831,6 @@
           >
             <mat-icon aria-hidden="true">schedule</mat-icon>
             <span i18n="@@sessionLifecycle.configureAction">Maximales Q&A-Ende</span>
-          </button>
-        }
-        @if (showQaRetentionAction()) {
-          <button
-            mat-button
-            type="button"
-            class="session-host__exit-anchor-button session-host__exit-anchor-button--retention"
-            data-testid="session-retention-details"
-            (click)="openSessionRetentionDetails($event)"
-          >
-            <mat-icon aria-hidden="true">storage</mat-icon>
-            <span i18n="@@sessionLifecycle.retentionDetails">Löschtermin anzeigen</span>
           </button>
         }
         @if (

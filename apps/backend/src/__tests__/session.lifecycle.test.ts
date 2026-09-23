@@ -217,7 +217,7 @@ describe('session absolute lifecycle', () => {
       procedure: 'session.changeExpiration',
       case: 'happy',
       mode: 'direct',
-      title: 'speichert die globale Anfangsfrist und lässt eine Q&A-Frist unverändert',
+      title: 'speichert die Anfangsfrist und zieht eine ans Sessionende gebundene Q&A-Frist mit',
     },
     async () => {
       const configuredExpiresAt = new Date('2026-09-22T06:00:00.000Z');
@@ -227,6 +227,7 @@ describe('session absolute lifecycle', () => {
       prismaMock.session.update.mockResolvedValue(
         lifecycleRow({
           expiresAt: configuredExpiresAt,
+          qaClosesAt: configuredExpiresAt,
           timeZone: 'Europe/Berlin',
           sessionLifecycleRevision: 3,
         }),
@@ -243,7 +244,7 @@ describe('session absolute lifecycle', () => {
         }),
       ).resolves.toMatchObject({
         expiresAt: configuredExpiresAt.toISOString(),
-        qaClosesAt: qaClosesAt.toISOString(),
+        qaClosesAt: configuredExpiresAt.toISOString(),
         sessionLifecycleRevision: 3,
       });
       expect(prismaMock.session.update).toHaveBeenCalledWith(
@@ -252,11 +253,80 @@ describe('session absolute lifecycle', () => {
             expiresAt: configuredExpiresAt,
             sessionLifecycleRevision: { increment: 1 },
             timeZone: 'Europe/Berlin',
+            qaClosesAt: configuredExpiresAt,
           },
         }),
       );
     },
   );
+
+  it('zieht eine spätere Q&A-Frist bei der Anfangskonfiguration auf das neue Sessionende zurück', async () => {
+    const configuredExpiresAt = new Date('2026-09-22T06:00:00.000Z');
+    const laterQaClose = new Date('2026-09-25T06:00:00.000Z');
+    prismaMock.session.findUnique
+      .mockResolvedValueOnce({ id: 'session-1' })
+      .mockResolvedValueOnce(lifecycleRow({ qaClosesAt: laterQaClose, expiresAt: laterQaClose }));
+    prismaMock.session.update.mockResolvedValue(
+      lifecycleRow({
+        expiresAt: configuredExpiresAt,
+        qaClosesAt: configuredExpiresAt,
+        sessionLifecycleRevision: 3,
+      }),
+    );
+
+    await caller.changeExpiration({
+      code: 'ABC123',
+      purpose: 'INITIAL_CONFIGURATION',
+      selection: { kind: 'DURATION_DAYS', days: 7 },
+      timeZone: 'Europe/Berlin',
+      expectedLifecycleRevision: 2,
+      confirmedExpiresAt: configuredExpiresAt.toISOString(),
+    });
+
+    expect(prismaMock.session.update).toHaveBeenCalledWith(
+      expect.objectContaining({
+        data: expect.objectContaining({
+          expiresAt: configuredExpiresAt,
+          qaClosesAt: configuredExpiresAt,
+        }),
+      }),
+    );
+  });
+
+  it('zieht eine frühere Q&A-Frist bei der Anfangskonfiguration auf das neue Sessionende', async () => {
+    const configuredExpiresAt = new Date('2026-09-22T06:00:00.000Z');
+    const earlierQaClose = new Date('2026-09-16T04:00:00.000Z');
+    prismaMock.session.findUnique
+      .mockResolvedValueOnce({ id: 'session-1' })
+      .mockResolvedValueOnce(lifecycleRow({ qaClosesAt: earlierQaClose }));
+    prismaMock.session.update.mockResolvedValue(
+      lifecycleRow({
+        expiresAt: configuredExpiresAt,
+        qaClosesAt: configuredExpiresAt,
+        sessionLifecycleRevision: 3,
+      }),
+    );
+
+    await caller.changeExpiration({
+      code: 'ABC123',
+      purpose: 'INITIAL_CONFIGURATION',
+      selection: { kind: 'DURATION_DAYS', days: 7 },
+      timeZone: 'Europe/Berlin',
+      expectedLifecycleRevision: 2,
+      confirmedExpiresAt: configuredExpiresAt.toISOString(),
+    });
+
+    expect(prismaMock.session.update).toHaveBeenCalledWith(
+      expect.objectContaining({
+        data: {
+          expiresAt: configuredExpiresAt,
+          sessionLifecycleRevision: { increment: 1 },
+          timeZone: 'Europe/Berlin',
+          qaClosesAt: configuredExpiresAt,
+        },
+      }),
+    );
+  });
 
   trpcDodIt(
     {

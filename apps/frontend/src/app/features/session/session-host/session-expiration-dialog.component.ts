@@ -11,12 +11,17 @@ import {
 import { MatFormField, MatLabel } from '@angular/material/form-field';
 import { MatIcon } from '@angular/material/icon';
 import { MatInput } from '@angular/material/input';
-import type {
-  SessionExpirationExtensionSelection,
-  SessionInitialExpirationSelection,
-  SessionLifecycleHostDTO,
-} from '@arsnova/shared-types';
+import { MatOption, MatSelect } from '@angular/material/select';
 import {
+  SESSION_POST_PROCESSING_HOURS,
+  type SessionExpirationExtensionSelection,
+  type SessionInitialExpirationSelection,
+  type SessionLifecycleHostDTO,
+} from '@arsnova/shared-types';
+import { localizeKnownServerError } from '../../../core/localize-known-server-message';
+import {
+  addCalendarDays,
+  isoToSessionLocalDateTime,
   laterIsoTimestamp,
   maxSelectableCalendarDays,
   openSessionDateTimePicker,
@@ -25,16 +30,24 @@ import {
   sessionLocalDateTimeToIso,
 } from '../session-local-datetime';
 
-export type SessionExpirationDialogData =
+type InitialDeadlineKind = 'DURATION_DAYS' | 'ABSOLUTE';
+
+export type SessionExpirationDialogData = (
   | {
       mode: 'INITIAL_CONFIGURATION';
       lifecycle: SessionLifecycleHostDTO;
+      /** Dieselbe Frist wie auf der Q&A-Karte. */
+      participantAccessEndsAt?: string;
     }
   | {
       mode: 'GLOBAL_WARNING';
       lifecycle: SessionLifecycleHostDTO;
       warningMinutes: 30 | 5;
-    };
+    }
+) & {
+  /** Speichert erst nach der Bestätigung. Ein Fehler bleibt in diesem Dialog. */
+  submit?: (result: SessionExpirationDialogResult) => Promise<boolean>;
+};
 
 export type SessionExpirationDialogResult =
   | {
@@ -60,6 +73,8 @@ export type SessionExpirationDialogResult =
     MatIcon,
     MatInput,
     MatLabel,
+    MatOption,
+    MatSelect,
   ],
   templateUrl: './session-expiration-dialog.component.html',
   styleUrls: [
@@ -80,9 +95,12 @@ export class SessionExpirationDialogComponent {
       this.data.lifecycle.timeZone,
     ),
   );
-  readonly days = signal(this.maxSelectableDays() >= 1 ? Math.min(7, this.maxSelectableDays()) : 0);
+  readonly deadlineKind = signal<InitialDeadlineKind>('DURATION_DAYS');
+  /** Entspricht dem aktuellen Ende, wenn es genau N Kalendertage ab Erstellung sind. */
+  readonly days = signal(this.initialDays());
   readonly absoluteLocal = signal('');
   readonly inputError = signal<string | null>(null);
+  readonly checking = signal(false);
   readonly absoluteBounds = sessionDateTimeLocalBounds(
     this.data.mode === 'GLOBAL_WARNING'
       ? laterIsoTimestamp(this.data.lifecycle.expiresAt, this.data.lifecycle.serverNow)
@@ -90,6 +108,60 @@ export class SessionExpirationDialogComponent {
     this.data.lifecycle.maxExpiresAt,
     this.data.lifecycle.timeZone,
   );
+
+  participantAccessEndsAt(): string {
+    if (this.data.mode === 'INITIAL_CONFIGURATION' && this.data.participantAccessEndsAt) {
+      return this.data.participantAccessEndsAt;
+    }
+    const stored = this.data.lifecycle.qaClosesAt;
+    if (stored && Date.parse(stored) <= Date.parse(this.data.lifecycle.expiresAt)) {
+      return stored;
+    }
+    return this.data.lifecycle.expiresAt;
+  }
+
+  currentHostReadUntil(): string {
+    return (
+      this.data.lifecycle.postProcessingEndsAt ?? this.hostReadUntil(this.data.lifecycle.expiresAt)
+    );
+  }
+
+  hostReadUntil(accessEndsAt: string): string {
+    return new Date(
+      Date.parse(accessEndsAt) + SESSION_POST_PROCESSING_HOURS * 60 * 60 * 1000,
+    ).toISOString();
+  }
+
+  draftAbsoluteEnd(): string | null {
+    const local = this.absoluteLocal();
+    if (!local) {
+      return null;
+    }
+    try {
+      return sessionLocalDateTimeToIso(local, this.data.lifecycle.timeZone);
+    } catch {
+      return null;
+    }
+  }
+
+  resolvedDaysEnd(): string | null {
+    const days = Number(this.days());
+    const maxDays = this.maxSelectableDays();
+    if (!Number.isInteger(days) || days < 1 || days > maxDays) {
+      return null;
+    }
+    return addCalendarDays(this.data.lifecycle.createdAt, days, this.data.lifecycle.timeZone);
+  }
+
+  onDeadlineKindChange(kind: InitialDeadlineKind): void {
+    this.deadlineKind.set(kind);
+    this.inputError.set(null);
+    if (kind !== 'ABSOLUTE' || this.absoluteLocal()) {
+      return;
+    }
+    const seed = this.resolvedDaysEnd() ?? this.data.lifecycle.expiresAt;
+    this.seedAbsoluteLocal(seed);
+  }
 
   formatDateTime(value: string): string {
     return new Intl.DateTimeFormat(this.localeId, {
@@ -103,7 +175,7 @@ export class SessionExpirationDialogComponent {
     }).format(new Date(value));
   }
 
-  chooseDays(): void {
+  async chooseDays(): Promise<void> {
     const days = Number(this.days());
     const maxDays = this.maxSelectableDays();
     if (maxDays < 1 || !Number.isInteger(days) || days < 1 || days > maxDays) {
@@ -114,7 +186,7 @@ export class SessionExpirationDialogComponent {
       );
       return;
     }
-    this.dialogRef.close({
+    await this.submitSelection({
       purpose: 'INITIAL_CONFIGURATION',
       selection: { kind: 'DURATION_DAYS', days },
       timeZone: this.data.lifecycle.timeZone,
@@ -122,7 +194,7 @@ export class SessionExpirationDialogComponent {
   }
 
   chooseQuick(amount: 'ONE_HOUR' | 'ONE_DAY' | 'SEVEN_DAYS'): void {
-    this.dialogRef.close({
+    void this.submitSelection({
       purpose: 'GLOBAL_EXTENSION',
       selection: { kind: 'QUICK', amount },
     });
@@ -132,23 +204,26 @@ export class SessionExpirationDialogComponent {
     openSessionDateTimePicker(input);
   }
 
-  chooseAbsolute(input: HTMLInputElement): void {
+  async chooseAbsolute(input: HTMLInputElement): Promise<void> {
+    if (input.value) {
+      this.absoluteLocal.set(input.value);
+    }
     if (!reportSessionDateTimePickerValidity(input)) {
       return;
     }
     try {
       const expiresAt = sessionLocalDateTimeToIso(
-        this.absoluteLocal(),
+        input.value || this.absoluteLocal(),
         this.data.lifecycle.timeZone,
       );
       if (this.data.mode === 'INITIAL_CONFIGURATION') {
-        this.dialogRef.close({
+        await this.submitSelection({
           purpose: 'INITIAL_CONFIGURATION',
           selection: { kind: 'ABSOLUTE', expiresAt },
           timeZone: this.data.lifecycle.timeZone,
         });
       } else {
-        this.dialogRef.close({
+        await this.submitSelection({
           purpose: 'GLOBAL_EXTENSION',
           selection: { kind: 'ABSOLUTE', expiresAt },
         });
@@ -162,5 +237,65 @@ export class SessionExpirationDialogComponent {
 
   close(): void {
     this.dialogRef.close(null);
+  }
+
+  private async submitSelection(result: SessionExpirationDialogResult): Promise<void> {
+    if (!this.data.submit) {
+      this.dialogRef.close(result);
+      return;
+    }
+    this.checking.set(true);
+    this.inputError.set(null);
+    try {
+      const saved = await this.data.submit(result);
+      if (saved) {
+        this.dialogRef.close(null);
+      }
+    } catch (error) {
+      this.inputError.set(
+        localizeKnownServerError(
+          error,
+          $localize`:@@sessionLifecycle.changeError:Die Sessionfrist konnte nicht geändert werden.`,
+        ),
+      );
+    } finally {
+      this.checking.set(false);
+    }
+  }
+
+  private initialDays(): number {
+    const maxDays = this.maxSelectableDays();
+    if (maxDays < 1) {
+      return 0;
+    }
+    return this.calendarDaysMatching(this.data.lifecycle.expiresAt) ?? Math.min(7, maxDays);
+  }
+
+  private calendarDaysMatching(endIso: string): number | null {
+    const endMs = Date.parse(endIso);
+    if (!Number.isFinite(endMs)) {
+      return null;
+    }
+    const maxDays = this.maxSelectableDays();
+    for (let days = 1; days <= maxDays; days += 1) {
+      const candidateMs = Date.parse(
+        addCalendarDays(this.data.lifecycle.createdAt, days, this.data.lifecycle.timeZone),
+      );
+      if (candidateMs === endMs) {
+        return days;
+      }
+    }
+    return null;
+  }
+
+  private seedAbsoluteLocal(iso: string): void {
+    try {
+      const local = isoToSessionLocalDateTime(iso, this.data.lifecycle.timeZone);
+      if (local >= this.absoluteBounds.min && local <= this.absoluteBounds.max) {
+        this.absoluteLocal.set(local);
+      }
+    } catch {
+      /* Zeitpunkt liegt außerhalb der Sessionzeitzone oder ist ungültig. */
+    }
   }
 }

@@ -50,6 +50,9 @@ export interface QaChannelConfigurationDialogData {
   setupStep?: number;
   setupStepCount?: number;
   omitParticipationProfile?: boolean;
+  /** Harte Obergrenze und Serverzeit aus der Host-Lifecycle, unabhängig von der Vorschau. */
+  maxExpiresAt: string;
+  serverNow: string;
 }
 
 @Component({
@@ -91,8 +94,10 @@ export class QaChannelConfigurationDialogComponent implements OnInit {
   readonly error = signal<string | null>(null);
   readonly preview = signal<SessionQaConfigurationPreviewDTO | null>(null);
   readonly profileLocked = signal(this.data.profileLocked);
-  readonly maxSelectableDays = signal(0);
   readonly timeZone = this.data.session.timeZone ?? 'UTC';
+  readonly maxSelectableDays = signal(
+    maxSelectableCalendarDays(this.data.serverNow, this.data.maxExpiresAt, this.timeZone),
+  );
   readonly canReopen = this.isClosedOrExpired();
 
   qaTitle = this.resolveInitialTitle();
@@ -136,11 +141,14 @@ export class QaChannelConfigurationDialogComponent implements OnInit {
   }
 
   async confirm(): Promise<void> {
+    const absoluteField = this.absoluteInput()?.nativeElement;
+    if (absoluteField?.value) {
+      this.absoluteLocal = absoluteField.value;
+    }
     const selection = this.buildSelection();
     if (!selection) {
       return;
     }
-    const absoluteField = this.absoluteInput()?.nativeElement;
     if (
       selection.kind === 'ABSOLUTE' &&
       !this.unchangedSavedAbsoluteClosesAt() &&
@@ -231,14 +239,14 @@ export class QaChannelConfigurationDialogComponent implements OnInit {
     const consequences: string[] = [];
     if (preview.oldQaClosesAt) {
       consequences.push(
-        $localize`:@@qaConfig.extensionOldQa:Bisheriger Frageschluss: ${this.formatDateTime(preview.oldQaClosesAt)}:date:`,
+        $localize`:@@qaConfig.extensionOldQa:Bisheriger Zugang für Teilnehmende: ${this.formatDateTime(preview.oldQaClosesAt)}:date:`,
       );
     }
     consequences.push(
-      $localize`:@@qaConfig.extensionNewQa:Neuer Frageschluss: ${this.formatDateTime(preview.newQaClosesAt)}:date:`,
+      $localize`:@@qaConfig.extensionNewQa:Neuer Zugang für Teilnehmende: ${this.formatDateTime(preview.newQaClosesAt)}:date:`,
       $localize`:@@qaConfig.extensionOldExpires:Bisheriges Sessionende: ${this.formatDateTime(preview.oldExpiresAt)}:date:`,
       $localize`:@@qaConfig.extensionNewExpires:Neues Sessionende: ${this.formatDateTime(preview.newExpiresAt)}:date:`,
-      $localize`:@@qaConfig.extensionPostProcessing:Host-Lesezugriff bis: ${this.formatDateTime(preview.projectedPostProcessingEndsAt)}:date:`,
+      $localize`:@@qaConfig.extensionPostProcessing:Fragen einsehen kannst du bis: ${this.formatDateTime(preview.projectedPostProcessingEndsAt)}:date:`,
     );
     const dialogRef = this.dialog.open(ConfirmLeaveDialogComponent, {
       data: {
@@ -282,8 +290,8 @@ export class QaChannelConfigurationDialogComponent implements OnInit {
   }
 
   private absoluteBounds(): { min: string; max: string } | null {
-    const minExclusive = this.preview()?.serverNow ?? this.data.session.serverNow;
-    const maxInclusive = this.preview()?.maxExpiresAt;
+    const minExclusive = this.preview()?.serverNow ?? this.data.serverNow;
+    const maxInclusive = this.preview()?.maxExpiresAt ?? this.data.maxExpiresAt;
     if (!minExclusive || !maxInclusive) {
       return null;
     }
@@ -389,7 +397,7 @@ export class QaChannelConfigurationDialogComponent implements OnInit {
 
   private extensionConfirmMessage(): string {
     if (this.configurationMode() === 'REPLAN' && !this.willReopenQa()) {
-      return $localize`:@@qaConfig.extensionConfirmMessageKeepClosed:Die neue Teilnahmefrist liegt nach dem bisherigen Sessionende. Beim Bestätigen wird die globale Sessionfrist mitverlängert; die Daten werden länger gespeichert. Nur der ursprüngliche Host darf das ausführen.`;
+      return $localize`:@@qaConfig.extensionConfirmMessageKeepClosed:Der neue Zugang für Teilnehmende liegt nach dem bisherigen Sessionende. Beim Bestätigen wird die globale Sessionfrist mitverlängert; die Daten werden länger gespeichert. Nur der ursprüngliche Host darf das ausführen.`;
     }
     return $localize`:@@qaConfig.extensionConfirmMessage:Die Fragerunde läuft über das bisherige Sessionende hinaus. Beim Bestätigen wird die globale Sessionfrist mitverlängert; die Daten werden länger gespeichert. Nur der ursprüngliche Host darf das ausführen.`;
   }

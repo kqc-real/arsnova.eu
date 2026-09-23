@@ -14,7 +14,6 @@ import {
 } from '../../../../testing/component-test-utils';
 import { SessionHostComponent } from './session-host.component';
 import { SessionExpirationDialogComponent } from './session-expiration-dialog.component';
-import { SessionRetentionDialogComponent } from './session-retention-dialog.component';
 import { HostRecoveryCardDialogComponent } from '../host-recovery/host-recovery-card-dialog.component';
 import { QaChannelConfigurationDialogComponent } from './qa-channel-configuration-dialog.component';
 import { persistInitialHostRecovery } from '../../../core/host-recovery-access';
@@ -898,6 +897,8 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
           code: 'ABC123',
           setupStep: 1,
           setupStepCount: 2,
+          maxExpiresAt: defaultLifecycle.maxExpiresAt,
+          serverNow: defaultLifecycle.serverNow,
         }),
       }),
     );
@@ -1073,6 +1074,129 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
     fixture.destroy();
   });
 
+  it('übernimmt eine ans Sessionende gebundene Q&A-Frist gleichzeitig in Dialogdaten und Karte', async () => {
+    const newExpiresAt = '2026-10-01T10:00:00.000Z';
+    const selection = {
+      purpose: 'INITIAL_CONFIGURATION' as const,
+      selection: { kind: 'ABSOLUTE' as const, expiresAt: newExpiresAt },
+      timeZone: 'Europe/Berlin',
+    };
+    const preview = {
+      purpose: 'INITIAL_CONFIGURATION' as const,
+      expectedLifecycleRevision: 2,
+      oldExpiresAt: '2026-03-25T12:00:00.000Z',
+      newExpiresAt,
+      qaClosesAt: '2026-03-25T12:00:00.000Z',
+      timeZone: 'Europe/Berlin',
+      maxExpiresAt: '2026-04-07T12:00:00.000Z',
+      serverNow: '2026-03-24T12:00:00.000Z',
+      projectedPostProcessingEndsAt: '2026-10-15T10:00:00.000Z',
+      projectedPurgeEligibleAt: '2026-10-15T10:00:00.000Z',
+    };
+    previewExpirationQueryMock.mockResolvedValueOnce(preview);
+    changeExpirationMutateMock.mockResolvedValueOnce({
+      ...defaultLifecycle,
+      expiresAt: newExpiresAt,
+      qaClosesAt: newExpiresAt,
+      sessionLifecycleRevision: 3,
+      serverNow: preview.serverNow,
+    });
+    dialogOpenMock
+      .mockReturnValueOnce({ afterClosed: () => of(selection) })
+      .mockReturnValueOnce({ afterClosed: () => of(true) });
+    const fixture = setup();
+    fixture.componentInstance.session.set({
+      ...defaultSession,
+      timeZone: 'Europe/Berlin',
+      expiresAt: preview.oldExpiresAt,
+      qaClosesAt: preview.qaClosesAt,
+      serverNow: preview.serverNow,
+      sessionLifecycleRevision: 2,
+      channels: {
+        quiz: { enabled: true },
+        qa: {
+          enabled: true,
+          open: true,
+          title: 'Fragen',
+          moderationMode: false,
+          state: 'OPEN',
+          closesAt: preview.qaClosesAt,
+        },
+        quickFeedback: { enabled: false, open: false },
+      },
+    });
+
+    await (
+      fixture.componentInstance as unknown as {
+        openSessionExpirationDialog(
+          data: { mode: 'INITIAL_CONFIGURATION'; lifecycle: typeof defaultLifecycle },
+          focusReturn: HTMLElement | null,
+        ): Promise<void>;
+      }
+    ).openSessionExpirationDialog(
+      { mode: 'INITIAL_CONFIGURATION', lifecycle: defaultLifecycle },
+      null,
+    );
+
+    const confirmCall = dialogOpenMock.mock.calls.find(
+      ([component]) => component === ConfirmLeaveDialogComponent,
+    );
+    const confirmData = confirmCall?.[1]?.data as { message: string; consequences: string[] };
+    expect(confirmData.message).toContain('bis zum neuen Zeitpunkt nutzen');
+    expect(confirmData.consequences.join('\n')).toContain('Zugang für Teilnehmende endet');
+    expect(confirmData.consequences.join('\n')).toContain('Fragen einsehen kannst du bis');
+    const session = fixture.componentInstance.session();
+    expect(session?.expiresAt).toBe(newExpiresAt);
+    expect(session?.qaClosesAt).toBe(newExpiresAt);
+    expect(session?.channels?.qa.closesAt).toBe(newExpiresAt);
+    expect(fixture.componentInstance.sessionLifecycle()?.expiresAt).toBe(newExpiresAt);
+    expect(fixture.componentInstance.qaDeadlineLabel()).toContain(
+      fixture.componentInstance.formatSessionLifecycleDateTime(newExpiresAt, 'Europe/Berlin'),
+    );
+    fixture.destroy();
+  });
+
+  it('zeigt auf der Q&A-Karte das maximale Q&A-Ende, nicht die ältere 24-Stunden-Frist', () => {
+    const fixture = setup();
+    const createdAt = '2026-09-23T04:42:00.000Z';
+    const sessionEnd = '2026-10-05T04:42:00.000Z';
+    const staleClose = '2026-09-24T04:42:00.000Z';
+    fixture.componentInstance.session.set({
+      ...defaultSession,
+      timeZone: 'Europe/Berlin',
+      expiresAt: sessionEnd,
+      qaClosesAt: staleClose,
+      channels: {
+        quiz: { enabled: false },
+        qa: {
+          enabled: true,
+          open: true,
+          title: 'Fragen & Antworten',
+          moderationMode: true,
+          state: 'OPEN',
+          closesAt: staleClose,
+        },
+        quickFeedback: { enabled: false, open: false },
+      },
+    });
+    fixture.componentInstance.sessionLifecycle.set({
+      ...defaultLifecycle,
+      configurationAllowed: true,
+      createdAt,
+      expiresAt: sessionEnd,
+      qaClosesAt: staleClose,
+    });
+
+    expect(fixture.componentInstance.qaDeadlineInstant()).toBe(sessionEnd);
+    expect(fixture.componentInstance.qaDeadlineLabel()).toContain(
+      fixture.componentInstance.formatSessionLifecycleDateTime(sessionEnd, 'Europe/Berlin'),
+    );
+    expect(fixture.componentInstance.qaDeadlineLabel()).not.toContain(
+      fixture.componentInstance.formatSessionLifecycleDateTime(staleClose, 'Europe/Berlin'),
+    );
+    fixture.destroy();
+  });
+
   it('bricht die Fristauswahl ohne Mutation ab und gibt den Fokus zurück', async () => {
     dialogOpenMock.mockReturnValueOnce({ afterClosed: () => of(null) });
     const focusReturn = document.createElement('button');
@@ -1162,8 +1286,7 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
     fixture.destroy();
   });
 
-  it('bietet Löschtermin anzeigen nur im Q&A-Kanal in der unteren Action-Bar', async () => {
-    dialogOpenMock.mockReturnValue({ afterClosed: () => NEVER });
+  it('zeigt den technischen Löschtermin nicht in der Host-Action-Bar', async () => {
     const fixture = setup();
     getInfoQueryMock.mockResolvedValue({
       ...defaultSession,
@@ -1175,60 +1298,14 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
     });
     await fixture.componentInstance.ngOnInit();
     fixture.componentInstance.sessionLifecycle.set(defaultLifecycle);
-    fixture.componentInstance.activeChannel.set('quiz');
-    fixture.detectChanges();
-
-    const retentionButton = () =>
-      fixture.nativeElement.querySelector(
-        '.session-host__exit-anchor [data-testid="session-retention-details"]',
-      ) as HTMLButtonElement | null;
-
-    expect(retentionButton()).toBeNull();
-    expect(
-      fixture.nativeElement.querySelector('.session-host__live-code-block')?.textContent,
-    ).not.toContain('Löschtermin anzeigen');
-
-    fixture.componentInstance.activeChannel.set('quickFeedback');
-    fixture.detectChanges();
-    expect(retentionButton()).toBeNull();
-
-    fixture.componentInstance.activeChannel.set('qa');
-    fixture.detectChanges();
-    const footerButton = retentionButton();
-    const expirationButton = fixture.nativeElement.querySelector(
-      '.session-host__exit-anchor [data-testid="configure-session-expiration"]',
-    ) as HTMLButtonElement | null;
-    expect(footerButton?.textContent).toContain('Löschtermin anzeigen');
-    expect(expirationButton?.textContent).toContain('Maximales Q&A-Ende');
-    expect(expirationButton?.nextElementSibling).toBe(footerButton);
-    expect(
-      fixture.nativeElement.querySelector('.session-host__live-code-block')?.textContent,
-    ).not.toContain('Löschtermin anzeigen');
-
-    footerButton?.click();
-    await fixture.whenStable();
-
-    expect(dialogOpenMock).toHaveBeenCalledWith(
-      SessionRetentionDialogComponent,
-      expect.objectContaining({
-        data: expect.objectContaining({ lifecycle: defaultLifecycle }),
-      }),
-    );
-
-    fixture.componentInstance.sessionLifecycle.set({
-      ...defaultLifecycle,
-      configurationAllowed: false,
-    });
-    fixture.detectChanges();
-    expect(retentionButton()?.textContent).toContain('Löschtermin anzeigen');
-
-    fixture.componentInstance.sessionLifecycle.set({
-      ...defaultLifecycle,
-      postProcessingEndsAt: null,
-      expectedDeletionAt: null,
-    });
-    fixture.detectChanges();
-    expect(retentionButton()).toBeNull();
+    for (const channel of ['quiz', 'quickFeedback', 'qa'] as const) {
+      fixture.componentInstance.activeChannel.set(channel);
+      fixture.detectChanges();
+      expect(fixture.nativeElement.textContent).not.toContain('Löschtermin anzeigen');
+      expect(fixture.nativeElement.textContent).not.toContain(
+        'Voraussichtliche technische Löschung',
+      );
+    }
     fixture.destroy();
   });
 
@@ -14808,14 +14885,13 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
       /\.session-host__exit-anchor \{[^}]*surface-container-highest[^}]*primary-container/,
     );
     expect(styles).toMatch(/\.session-host__exit-clearance\s*\{[^}]*min-height:\s*var\(/);
-    expect(styles).toMatch(
-      /exit-anchor-button--lifecycle[\s\S]*?exit-anchor-button--retention[\s\S]*?session-host__exit-clearance/,
-    );
+    expect(styles).toMatch(/exit-anchor-button--lifecycle[\s\S]*?session-host__exit-clearance/);
+    expect(styles).not.toContain('exit-anchor-button--retention');
     expect(styles).toMatch(
       /\.session-host__exit-anchor-button--skip,\s*\.session-host__exit-anchor-button--previous/,
     );
     expect(styles).toMatch(
-      /session-host__exit-anchor:not\(\.session-host__exit-anchor--with-primary\)[\s\S]*?exit-anchor-button--end,[\s\S]*?exit-anchor-button--lifecycle,[\s\S]*?exit-anchor-button--retention \{[^}]*mat-button-text-horizontal-padding:\s*1\.1rem[^}]*padding-block:\s*0\.75rem/,
+      /session-host__exit-anchor:not\(\.session-host__exit-anchor--with-primary\)[\s\S]*?exit-anchor-button--end,[\s\S]*?exit-anchor-button--lifecycle \{[^}]*mat-button-text-horizontal-padding:\s*1\.1rem[^}]*padding-block:\s*0\.75rem/,
     );
 
     for (const [fileName, expectedLabel] of translations) {

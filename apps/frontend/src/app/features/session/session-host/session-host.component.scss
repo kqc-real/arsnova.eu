@@ -345,8 +345,7 @@
   color: var(--mat-sys-on-error-container);
 }
 
-.session-host__exit-anchor-button--lifecycle,
-.session-host__exit-anchor-button--retention {
+.session-host__exit-anchor-button--lifecycle {
   margin-inline-end: auto;
   border: 1px solid var(--mat-sys-outline-variant);
   background: var(--mat-sys-surface-container-high);
@@ -354,20 +353,14 @@
 }
 
 .session-host__exit-anchor:has(.session-host__exit-anchor-button--lifecycle)
-  .session-host__exit-anchor-button--end,
-.session-host__exit-anchor:has(.session-host__exit-anchor-button--retention)
-  .session-host__exit-anchor-button--end,
-.session-host__exit-anchor:has(.session-host__exit-anchor-button--retention)
-  .session-host__exit-anchor-button--lifecycle {
+  .session-host__exit-anchor-button--end {
   margin-inline-end: 0;
 }
 
 .session-host__exit-anchor:has(.session-host__exit-anchor-button--previous)
   .session-host__exit-anchor-button--end,
 .session-host__exit-anchor:has(.session-host__exit-anchor-button--previous)
-  .session-host__exit-anchor-button--lifecycle,
-.session-host__exit-anchor:has(.session-host__exit-anchor-button--previous)
-  .session-host__exit-anchor-button--retention {
+  .session-host__exit-anchor-button--lifecycle {
   margin-inline-end: 0;
 }
 
@@ -381,9 +374,7 @@
 .session-host__exit-anchor:has(.session-host__emoji-reactions)
   .session-host__exit-anchor-button--previous,
 .session-host__exit-anchor:has(.session-host__emoji-reactions)
-  .session-host__exit-anchor-button--lifecycle,
-.session-host__exit-anchor:has(.session-host__emoji-reactions)
-  .session-host__exit-anchor-button--retention {
+  .session-host__exit-anchor-button--lifecycle {
   margin-inline-end: 0;
 }
 
@@ -429,14 +420,8 @@
     );
   }
 
-  .session-host:has(.session-host__exit-anchor--with-primary) .session-host__exit-clearance,
-  .session-host:has(
-      .session-host__exit-anchor:not(.session-host__exit-anchor--with-primary):has(
-          > .session-host__exit-anchor-button--lifecycle
-        ):has(> .session-host__exit-anchor-button--retention)
-    )
-    .session-host__exit-clearance {
-    /* Zwei Button-Zeilen (Quiz-Primär oder Q&A-Frist/Löschtermin). */
+  .session-host:has(.session-host__exit-anchor--with-primary) .session-host__exit-clearance {
+    /* Zwei Button-Zeilen, wenn eine Quiz-Primäraktion über „Session beenden“ liegt. */
     min-height: var(
       --session-host-exit-clearance,
       calc(var(--host-mobile-safe-bottom) + var(--app-footer-visible-offset, 0px) + 13.5rem)
@@ -511,16 +496,13 @@
   .session-host__exit-anchor:not(.session-host__exit-anchor--with-primary)
     > .session-host__exit-anchor-button--end,
   .session-host__exit-anchor:not(.session-host__exit-anchor--with-primary)
-    > .session-host__exit-anchor-button--lifecycle,
-  .session-host__exit-anchor:not(.session-host__exit-anchor--with-primary)
-    > .session-host__exit-anchor-button--retention {
+    > .session-host__exit-anchor-button--lifecycle {
     --mat-button-text-horizontal-padding: 1.1rem;
     padding-block: 0.75rem;
     min-height: 3.25rem;
   }
 
-  .session-host__exit-anchor-button--lifecycle .mdc-button__label,
-  .session-host__exit-anchor-button--retention .mdc-button__label {
+  .session-host__exit-anchor-button--lifecycle .mdc-button__label {
     overflow-wrap: anywhere;
     hyphens: auto;
     line-height: 1.25;
@@ -597,8 +579,7 @@
     font-weight: 600;
   }
 
-  .session-host__exit-anchor--with-primary > .session-host__exit-anchor-button--lifecycle,
-  .session-host__exit-anchor--with-primary > .session-host__exit-anchor-button--retention {
+  .session-host__exit-anchor--with-primary > .session-host__exit-anchor-button--lifecycle {
     grid-column: 2;
     grid-row: 2;
     order: 3;
@@ -615,8 +596,6 @@
   }
 
   .session-host__exit-anchor--with-primary:has(.session-host__exit-anchor-button--lifecycle)
-    > .session-host__exit-anchor-button--end,
-  .session-host__exit-anchor--with-primary:has(.session-host__exit-anchor-button--retention)
     > .session-host__exit-anchor-button--end {
     grid-column: 1;
     justify-self: end;
@@ -624,19 +603,9 @@
 
   .session-host__exit-anchor:not(.session-host__exit-anchor--with-primary):has(
       > .session-host__exit-anchor-button--lifecycle
-    ),
-  .session-host__exit-anchor:not(.session-host__exit-anchor--with-primary):has(
-      > .session-host__exit-anchor-button--retention
     ) {
     display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-
-  .session-host__exit-anchor:not(.session-host__exit-anchor--with-primary):has(
-      > .session-host__exit-anchor-button--lifecycle
-    ):has(> .session-host__exit-anchor-button--retention)
-    > .session-host__exit-anchor-button--retention {
-    grid-column: 1 / -1;
   }
 
   .session-host__exit-anchor--with-primary > .session-host__exit-anchor-button--end:hover,
@@ -662,9 +631,7 @@
   .session-host__exit-anchor--with-primary:has(.session-host__emoji-reactions)
     > .session-host__exit-anchor-button--end,
   .session-host__exit-anchor--with-primary:has(.session-host__emoji-reactions)
-    > .session-host__exit-anchor-button--lifecycle,
-  .session-host__exit-anchor--with-primary:has(.session-host__emoji-reactions)
-    > .session-host__exit-anchor-button--retention {
+    > .session-host__exit-anchor-button--lifecycle {
     grid-row: 3;
     order: 4;
   }
@@ -1316,14 +1283,21 @@
   background: var(--mat-sys-secondary-container);
   color: var(--mat-sys-on-secondary-container);
 
-  > span {
+  > span,
+  .session-host__qa-deadline-copy {
     flex: 1 1 14rem;
+    min-width: 0;
   }
 
   &--expired {
     background: var(--mat-sys-error-container);
     color: var(--mat-sys-on-error-container);
   }
+}
+
+.session-host__qa-deadline-copy {
+  display: grid;
+  gap: 0.15rem;
 }
 
 .session-channel-card__eyebrow {

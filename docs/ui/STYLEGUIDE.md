@@ -438,7 +438,7 @@ Die App richtet sich auch an Trainer:innen, Workshop- und Event-Moderation sowie
 - **Kategorien:** "Spiel & Auswertung", "Teilnahme & Namen", "Ablauf & Zeit", "Team", "Ton & Musik". Kein Anglizismus "Nicknames".
 - **Optionen:** Aussagekraeftige Labels (z. B. "Teams automatisch oder manuell zuweisen", "Hintergrundmusik in der Lobby", "Zeitlimit pro Frage"). Kein redundanter Zusatz "(Countdown)".
 - **Namensmodus:** "Nicks", "Eigen", "Anonym" (kurz halten, damit auf kleinen Screens kein horizontales Scrollen noetig ist).
-- **Label fuer vorgegebene Namen:** "Altersgruppe:" (Select fuer Nobelpreisträger, Kita, Grundschule, etc.). Aria-Label: "Altersgruppe waehlen".
+- **Label fuer vorgegebene Namen:** "Altersgruppe:" (Select fuer Nobelpreisträger, Tier-Icons, Grundschule, etc.). Aria-Label: "Altersgruppe waehlen".
 - **Schliessen-Button:** aria-label "Einstellungen schliessen".
 
 ## Seitenuebergreifend: UX und Wording

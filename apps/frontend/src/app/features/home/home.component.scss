@@ -403,15 +403,6 @@
   font-weight: 700;
 }
 
-.home-hero-code-enter.cdk-keyboard-focused {
-  outline: 3px solid var(--mat-sys-secondary);
-  outline-offset: 3px;
-}
-
-.home-hero-code-enter:is(.cdk-mouse-focused, .cdk-touch-focused) {
-  --mat-focus-indicator-display: none;
-}
-
 .home-join-row {
   display: grid;
   grid-template-columns: minmax(0, 1fr);
@@ -518,6 +509,11 @@
   opacity: 0;
   font-size: 1rem;
   -webkit-text-fill-color: transparent;
+}
+
+.home-code-segments__input:focus,
+.home-code-segments__input:focus-visible {
+  outline: none;
 }
 
 .home-join-submit {
@@ -997,9 +993,9 @@
   --mdc-text-button-label-text-color: var(--mat-sys-on-surface-variant);
 }
 
-.home-card__sync-btn:focus-visible {
-  outline: 2px solid var(--mat-sys-primary);
-  outline-offset: 2px;
+/* Link-CTAs: globale Anker-Outline unterdrücken, sonst liegt sie auf dem MD3-Fokusring. */
+.home-main a.mat-mdc-button-base:focus-visible {
+  outline: none;
 }
 
 .home-card__cta-stack {

@@ -599,6 +599,7 @@ describe('TopToolbarComponent', () => {
     expect(scss).toContain('.top-toolbar__toggle');
     expect(scss).toMatch(/&:focus-visible\s*\{/);
     expect(scss).not.toContain('mat-button-toggle-button:focus-visible');
+    expect(scss).not.toMatch(/\.top-toolbar__lang-btn:focus-visible\s*\{[^}]*outline/);
     expect(scss).not.toContain('mat-button-toggle:focus-within');
     expect(scss).toMatch(
       /\.top-toolbar__mobile\s*\{[^}]*display:\s*grid[^}]*grid-template-columns:\s*minmax\(0,\s*1fr\) auto/,

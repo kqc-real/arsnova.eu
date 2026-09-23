@@ -112,7 +112,6 @@ import {
   SessionExpirationDialogComponent,
   type SessionExpirationDialogResult,
 } from './session-expiration-dialog.component';
-import { SessionRetentionDialogComponent } from './session-retention-dialog.component';
 import {
   QaChannelConfigurationDialogComponent,
   type QaChannelConfigurationDialogData,
@@ -1526,8 +1525,37 @@ export class SessionHostComponent implements OnInit, OnDestroy {
       quickFeedback: false,
     };
   });
+  /**
+   * Eine Frist für Dialog und Q&A-Karte. Die automatische 24-Stunden-Frist
+   * folgt dem maximalen Q&A-Ende, eine kürzere Frist aus den Einstellungen bleibt.
+   */
+  readonly qaDeadlineInstant = computed((): string | null => {
+    const session = this.session();
+    const lifecycle = this.sessionLifecycle();
+    const stored =
+      session?.channels?.qa.closesAt ?? session?.qaClosesAt ?? lifecycle?.qaClosesAt ?? null;
+    const sessionEnd = lifecycle?.expiresAt ?? session?.expiresAt ?? null;
+    const createdAt = lifecycle?.createdAt ?? null;
+    const defaultCloseMs =
+      createdAt !== null ? Date.parse(createdAt) + 24 * 60 * 60 * 1000 : Number.NaN;
+    const storedMs = stored !== null ? Date.parse(stored) : Number.NaN;
+    const followsMaximum =
+      lifecycle?.configurationAllowed === true &&
+      sessionEnd !== null &&
+      Number.isFinite(storedMs) &&
+      Number.isFinite(defaultCloseMs) &&
+      Math.abs(storedMs - defaultCloseMs) < 1000 &&
+      storedMs < Date.parse(sessionEnd);
+    if (followsMaximum) {
+      return sessionEnd;
+    }
+    if (stored && sessionEnd && storedMs > Date.parse(sessionEnd)) {
+      return sessionEnd;
+    }
+    return stored ?? sessionEnd;
+  });
   readonly qaDeadlineExpired = computed(() => {
-    const closesAt = this.session()?.channels?.qa.closesAt ?? this.session()?.qaClosesAt;
+    const closesAt = this.qaDeadlineInstant();
     return !!closesAt && this.qaDeadlineNow() >= Date.parse(closesAt);
   });
   readonly visibleChannels = computed<SessionChannelTab[]>(() => {
@@ -1601,18 +1629,10 @@ export class SessionHostComponent implements OnInit, OnDestroy {
     }
     return this.isQaSession() && this.isChannelOpen('qa') && !this.qaDeadlineExpired();
   });
-  /** Frist und Retention sind mehrtägiges Q&A-Chrome, nicht Teil der Quiz-/Blitzlicht-Live-Kapsel. */
+  /** Die Q&A-Obergrenze sitzt nur im Q&A-Kanal, nicht in der Quiz-/Blitzlicht-Live-Kapsel. */
   readonly showQaChannelLifecycleChrome = computed(
     () => this.activeChannel() === 'qa' && this.channels().qa,
   );
-  readonly showQaRetentionAction = computed(() => {
-    const lifecycle = this.sessionLifecycle();
-    return (
-      this.showQaChannelLifecycleChrome() &&
-      Boolean(lifecycle?.postProcessingEndsAt) &&
-      Boolean(lifecycle?.expectedDeletionAt)
-    );
-  });
   readonly isPlayfulPreset = computed(() => this.themePreset.preset() === 'spielerisch');
   readonly canShowFoyerEntrance = computed(() => {
     const session = this.session();
@@ -4463,18 +4483,7 @@ export class SessionHostComponent implements OnInit, OnDestroy {
       });
       this.sessionLifecycle.set(lifecycle);
       this.sessionDeadline.applySnapshot(lifecycle);
-      this.session.update((current) =>
-        current
-          ? {
-              ...current,
-              expiresAt: lifecycle.expiresAt,
-              qaClosesAt: lifecycle.qaClosesAt,
-              serverNow: lifecycle.serverNow,
-              sessionLifecycleRevision: lifecycle.sessionLifecycleRevision,
-            }
-          : current,
-      );
-      this.scheduleQaDeadlineCheck();
+      this.applyLifecycleDeadlineToSession(lifecycle);
       if (lifecycle.status === 'FINISHED' || this.sessionDeadline.isExpired()) {
         this.statusUpdate.set({
           status: 'FINISHED',
@@ -4558,7 +4567,7 @@ export class SessionHostComponent implements OnInit, OnDestroy {
       this.qaDeadlineTimer = null;
     }
     this.qaDeadlineNow.set(getSkewAdjustedNow());
-    const closesAt = this.session()?.channels?.qa.closesAt ?? this.session()?.qaClosesAt;
+    const closesAt = this.qaDeadlineInstant();
     if (!closesAt || (this.effectiveStatus() === 'FINISHED' && !this.qaHostWritesAllowed())) {
       return;
     }
@@ -4626,31 +4635,6 @@ export class SessionHostComponent implements OnInit, OnDestroy {
     );
   }
 
-  async openSessionRetentionDetails(event?: Event): Promise<void> {
-    const lifecycle = this.sessionLifecycle();
-    if (!lifecycle?.postProcessingEndsAt || !lifecycle.expectedDeletionAt) {
-      return;
-    }
-    const focusReturn =
-      event?.currentTarget instanceof HTMLElement
-        ? event.currentTarget
-        : this.document.activeElement instanceof HTMLElement
-          ? this.document.activeElement
-          : null;
-    const dialogRef = this.dialog.open(SessionRetentionDialogComponent, {
-      data: { lifecycle },
-      width: 'min(32rem, calc(100vw - 2rem))',
-      maxWidth: '100vw',
-      autoFocus: 'first-tabbable',
-      restoreFocus: false,
-      ...SESSION_LIFECYCLE_DIALOG_OVERLAY,
-    });
-    await firstValueFrom(dialogRef.afterClosed());
-    if (focusReturn?.isConnected) {
-      focusReturn.focus({ preventScroll: true });
-    }
-  }
-
   async openSessionLifecycleConfiguration(event?: Event): Promise<void> {
     const lifecycle = this.sessionLifecycle();
     if (!lifecycle?.configurationAllowed || this.sessionLifecycleDialogOpen) {
@@ -4663,7 +4647,12 @@ export class SessionHostComponent implements OnInit, OnDestroy {
           ? this.document.activeElement
           : null;
     await this.openSessionExpirationDialog(
-      { mode: 'INITIAL_CONFIGURATION', lifecycle },
+      {
+        mode: 'INITIAL_CONFIGURATION',
+        lifecycle,
+        participantAccessEndsAt:
+          this.qaDeadlineInstant() ?? lifecycle.qaClosesAt ?? lifecycle.expiresAt,
+      },
       focusReturn,
     );
   }
@@ -4673,6 +4662,7 @@ export class SessionHostComponent implements OnInit, OnDestroy {
       | {
           mode: 'INITIAL_CONFIGURATION';
           lifecycle: SessionLifecycleHostDTO;
+          participantAccessEndsAt?: string;
         }
       | {
           mode: 'GLOBAL_WARNING';
@@ -4687,7 +4677,11 @@ export class SessionHostComponent implements OnInit, OnDestroy {
       const result = await firstValueFrom(
         this.dialog
           .open(SessionExpirationDialogComponent, {
-            data,
+            data: {
+              ...data,
+              submit: (result: SessionExpirationDialogResult) =>
+                this.confirmAndChangeSessionExpiration(result, focusReturn),
+            },
             width: 'min(36rem, calc(100vw - 2rem))',
             maxWidth: '100vw',
             autoFocus: 'first-tabbable',
@@ -4697,7 +4691,18 @@ export class SessionHostComponent implements OnInit, OnDestroy {
           .afterClosed(),
       );
       if (result) {
-        await this.confirmAndChangeSessionExpiration(result, focusReturn);
+        try {
+          await this.confirmAndChangeSessionExpiration(result, focusReturn);
+        } catch (error) {
+          this.snackBar.open(
+            localizeKnownServerError(
+              error,
+              $localize`:@@sessionLifecycle.changeError:Die Sessionfrist konnte nicht geändert werden.`,
+            ),
+            $localize`:@@common.close:Schließen`,
+            { duration: 7000 },
+          );
+        }
       }
     } finally {
       this.sessionLifecycleDialogOpen = false;
@@ -4708,10 +4713,40 @@ export class SessionHostComponent implements OnInit, OnDestroy {
     }
   }
 
+  private applyLifecycleDeadlineToSession(lifecycle: {
+    expiresAt: string;
+    qaClosesAt: string | null;
+    serverNow: string;
+    sessionLifecycleRevision: number;
+    timeZone?: string;
+  }): void {
+    this.session.update((current) => {
+      if (!current) {
+        return current;
+      }
+      const channels = current.channels
+        ? {
+            ...current.channels,
+            qa: { ...current.channels.qa, closesAt: lifecycle.qaClosesAt },
+          }
+        : current.channels;
+      return {
+        ...current,
+        channels,
+        expiresAt: lifecycle.expiresAt,
+        qaClosesAt: lifecycle.qaClosesAt,
+        serverNow: lifecycle.serverNow,
+        sessionLifecycleRevision: lifecycle.sessionLifecycleRevision,
+        ...(lifecycle.timeZone ? { timeZone: lifecycle.timeZone } : {}),
+      };
+    });
+    this.scheduleQaDeadlineCheck();
+  }
+
   private async confirmAndChangeSessionExpiration(
     selection: SessionExpirationDialogResult,
     focusReturn: HTMLElement | null,
-  ): Promise<void> {
+  ): Promise<boolean> {
     try {
       const preview =
         selection.purpose === 'INITIAL_CONFIGURATION'
@@ -4727,7 +4762,7 @@ export class SessionHostComponent implements OnInit, OnDestroy {
               selection: selection.selection,
             });
       const confirmed = await this.confirmSessionExpirationPreview(preview, focusReturn);
-      if (!confirmed) return;
+      if (!confirmed) return false;
 
       const updated =
         selection.purpose === 'INITIAL_CONFIGURATION'
@@ -4748,31 +4783,16 @@ export class SessionHostComponent implements OnInit, OnDestroy {
             });
       this.sessionLifecycle.set(updated);
       this.sessionDeadline.applySnapshot(updated);
-      this.session.update((current) =>
-        current
-          ? {
-              ...current,
-              expiresAt: updated.expiresAt,
-              serverNow: updated.serverNow,
-              sessionLifecycleRevision: updated.sessionLifecycleRevision,
-            }
-          : current,
-      );
+      this.applyLifecycleDeadlineToSession(updated);
       this.snackBar.open(
         $localize`:@@sessionLifecycle.changedSuccess:Die Sessionfrist wurde gespeichert.`,
         $localize`:@@common.close:Schließen`,
         { duration: 5000 },
       );
+      return true;
     } catch (error) {
-      this.snackBar.open(
-        localizeKnownServerError(
-          error,
-          $localize`:@@sessionLifecycle.changeError:Die Sessionfrist konnte nicht geändert werden.`,
-        ),
-        $localize`:@@common.close:Schließen`,
-        { duration: 7000 },
-      );
       await this.refreshSessionLifecycle();
+      throw error;
     }
   }
 
@@ -4790,7 +4810,16 @@ export class SessionHostComponent implements OnInit, OnDestroy {
         preview.timeZone,
       )}`,
     ];
-    if (preview.purpose === 'GLOBAL_EXTENSION' && preview.qaClosesAt) {
+    const qaFollowsNewSessionEnd =
+      preview.purpose === 'INITIAL_CONFIGURATION' && preview.qaClosesAt !== null;
+    if (qaFollowsNewSessionEnd) {
+      consequences.push(
+        $localize`:@@sessionLifecycle.previewQaFollows:Zugang für Teilnehmende endet: ${this.formatSessionLifecycleDateTime(
+          preview.newExpiresAt,
+          preview.timeZone,
+        )}`,
+      );
+    } else if (preview.purpose === 'GLOBAL_EXTENSION' && preview.qaClosesAt) {
       consequences.push(
         $localize`:@@sessionLifecycle.previewQaUnchanged:Q&A bleibt unverändert bei: ${this.formatSessionLifecycleDateTime(
           preview.qaClosesAt,
@@ -4799,7 +4828,7 @@ export class SessionHostComponent implements OnInit, OnDestroy {
       );
     }
     consequences.push(
-      $localize`:@@sessionLifecycle.previewPostProcessing:Host-Lesezugriff bis: ${this.formatSessionLifecycleDateTime(
+      $localize`:@@sessionLifecycle.previewPostProcessing:Fragen einsehen kannst du bis: ${this.formatSessionLifecycleDateTime(
         preview.projectedPostProcessingEndsAt,
         preview.timeZone,
       )}`,
@@ -4814,7 +4843,9 @@ export class SessionHostComponent implements OnInit, OnDestroy {
         message:
           preview.purpose === 'GLOBAL_EXTENSION'
             ? $localize`:@@sessionLifecycle.previewExtensionMessage:Nur das globale Sessionende wird verlängert.`
-            : $localize`:@@sessionLifecycle.previewInitialMessage:Gespeichert wird nur das Sessionende. Es begrenzt, wie lange die Fragerunde höchstens offen bleiben kann; der konkrete Teilnahmeschluss wird damit nicht gesetzt.`,
+            : qaFollowsNewSessionEnd
+              ? $localize`:@@sessionLifecycle.previewInitialQaFollows:Teilnehmende können den Q&A-Kanal bis zum neuen Zeitpunkt nutzen. Danach kannst du die Fragen noch bis zum genannten Zeitpunkt einsehen.`
+              : $localize`:@@sessionLifecycle.previewInitialMessage:Gespeichert wird der späteste Zugang für Teilnehmende. Die Fragen kannst du danach noch bis zum genannten Zeitpunkt einsehen.`,
         consequences,
         confirmLabel: $localize`:@@sessionLifecycle.previewConfirm:Frist verbindlich speichern`,
         cancelLabel: $localize`:@@sessionLifecycle.previewCancel:Abbrechen`,
@@ -8767,7 +8798,7 @@ export class SessionHostComponent implements OnInit, OnDestroy {
 
   qaDeadlineLabel(): string | null {
     const parts = resolveQaDeadlineClockParts({
-      closesAt: this.session()?.channels?.qa.closesAt ?? this.session()?.qaClosesAt,
+      closesAt: this.qaDeadlineInstant(),
       nowMs: this.qaDeadlineNow(),
       localeId: this.localeId,
       timeZone: this.session()?.timeZone,
@@ -8776,9 +8807,21 @@ export class SessionHostComponent implements OnInit, OnDestroy {
       return null;
     }
     if (parts.remainingMs <= 0) {
-      return $localize`:@@sessionQa.deadlineExpired:Teilnahmefrist abgelaufen · ${parts.formatted}:deadline:`;
+      return $localize`:@@sessionQa.hostParticipantAccessEnded:Zugang für Teilnehmende ist beendet · ${parts.formatted}:deadline:`;
     }
-    return $localize`:@@sessionQa.deadlineOpen:Q&A offen bis ${parts.formatted}:deadline: · ${parts.relative}:remaining:`;
+    return $localize`:@@sessionQa.hostParticipantAccess:Zugang für Teilnehmende endet ${parts.formatted}:deadline: · ${parts.relative}:remaining:`;
+  }
+
+  qaHostReadLabel(): string | null {
+    const until = this.sessionLifecycle()?.postProcessingEndsAt;
+    if (!until) {
+      return null;
+    }
+    const formatted = this.formatSessionLifecycleDateTime(
+      until,
+      this.session()?.timeZone ?? this.sessionLifecycle()?.timeZone,
+    );
+    return $localize`:@@sessionQa.hostCanReadUntil:Fragen einsehen kannst du bis ${formatted}:deadline:`;
   }
 
   isChannelBadgeAlert(channel: SessionChannelTab): boolean {
@@ -9820,6 +9863,8 @@ export class SessionHostComponent implements OnInit, OnDestroy {
             code: this.code.toUpperCase(),
             session,
             profileLocked: Boolean(lifecycle.firstParticipantJoinedAt),
+            maxExpiresAt: lifecycle.maxExpiresAt,
+            serverNow: lifecycle.serverNow,
             ...(this.requestedQaCreateSetup && !this.qaCreateSetupCompleted
               ? { omitParticipationProfile: true }
               : {}),
