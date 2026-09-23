@@ -650,11 +650,56 @@ describe('session absolute lifecycle', () => {
         data: expect.objectContaining({
           qaOpen: false,
           qaModerationMode: false,
+          moderationMode: false,
           qaClosesAt: new Date('2026-09-16T04:00:00.000Z'),
           qaTitle: 'Nur Titel',
         }),
       }),
     );
+  });
+
+  it('synchronisiert bei Quiz+Q&A das Legacy-Moderationsflag bei REPLAN', async () => {
+    const quizPlusQa = qaConfigurationRow({
+      qaEnabled: true,
+      qaOpen: true,
+      qaClosesAt: new Date('2026-09-16T04:00:00.000Z'),
+      expiresAt: new Date('2026-09-16T06:00:00.000Z'),
+      qaTitle: 'Fragenwand',
+      qaModerationMode: true,
+      moderationMode: true,
+      preferredChannel: 'qa',
+    });
+    prismaMock.session.findUnique.mockResolvedValue(quizPlusQa);
+    prismaMock.session.update.mockResolvedValue({
+      ...quizPlusQa,
+      qaModerationMode: false,
+      moderationMode: false,
+      sessionLifecycleRevision: 3,
+    });
+
+    await caller.configureQaChannel({
+      code: 'ABC123',
+      mode: 'REPLAN',
+      selection: { kind: 'ABSOLUTE', closesAt: '2026-09-16T04:00:00.000Z' },
+      expectedLifecycleRevision: 2,
+      previewServerNow: '2026-09-15T07:00:00.000Z',
+      confirmedQaClosesAt: '2026-09-16T04:00:00.000Z',
+      confirmedExpiresAt: '2026-09-16T06:00:00.000Z',
+      confirmSessionExtension: false,
+      reopenQa: false,
+      qaTitle: 'Fragenwand',
+      moderationMode: false,
+    });
+
+    expect(prismaMock.session.update).toHaveBeenCalledWith(
+      expect.objectContaining({
+        data: expect.objectContaining({
+          qaModerationMode: false,
+          moderationMode: false,
+        }),
+      }),
+    );
+    expect(prismaMock.session.update.mock.calls[0]?.[0].data.title).toBeUndefined();
   });
 
   it('lässt eine abgelaufene Q&A-Frist bei reiner Titeländerung unverändert', async () => {
@@ -709,6 +754,7 @@ describe('session absolute lifecycle', () => {
           qaClosesAt: new Date('2026-09-15T06:30:00.123Z'),
           qaTitle: 'Nur Titel',
           qaModerationMode: true,
+          moderationMode: true,
         }),
       }),
     );

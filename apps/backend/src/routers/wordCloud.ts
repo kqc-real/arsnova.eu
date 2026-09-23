@@ -9,7 +9,6 @@ import {
   AnalyzeWordCloudInputSchema,
   AnalyzeWordCloudOutputSchema,
   type AnalyzeWordCloudOutput,
-  WORD_CLOUD_MAX_ANALYZE_ITEMS,
   isWordCloudPhraseAnalysisVariant,
 } from '@arsnova/shared-types';
 import { Prisma } from '@prisma/client';
@@ -348,7 +347,7 @@ export const wordCloudRouter = router({
         FROM ranked
         ORDER BY
           ${modeOrder}
-        LIMIT ${WORD_CLOUD_MAX_ANALYZE_ITEMS}
+        LIMIT ${input.limit}
       `;
       const current = await prisma.session.findUnique({
         where: { id: session.id },
@@ -395,7 +394,7 @@ export const wordCloudRouter = router({
           maxEntries: input.maxEntries,
           maxNgramLength: input.maxNgramLength,
           refresh: input.refresh,
-          corpusRevision,
+          corpusRevision: `${corpusRevision}:limit=${input.limit}`,
         },
         { compactOutput: compactQaWordCloudOutput },
       )) as Omit<AnalyzeWordCloudOutput, 'entries'> & {

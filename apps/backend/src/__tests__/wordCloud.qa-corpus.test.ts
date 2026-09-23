@@ -91,6 +91,7 @@ describe('wordCloud.analyzeQa – kanonisch begrenzter Korpus', () => {
         filter: 'ALL_ELIGIBLE',
         normalization: 'NONE',
         maxEntries: 40,
+        limit: 500,
       });
 
       expect(result.eligibleQuestionCount).toBe(eligibleCount);
@@ -114,6 +115,25 @@ describe('wordCloud.analyzeQa – kanonisch begrenzter Korpus', () => {
     });
   }
 
+  it('begrenzt den Korpus auf die Host-Forum-Seitengröße 100', async () => {
+    prismaMock.$queryRaw.mockResolvedValue(corpusRows(100, 250));
+
+    const result = await caller.analyzeQa({
+      sessionCode: 'ABC123',
+      mode: 'LEXICAL',
+      locale: 'de',
+      metric: 'TOP',
+      filter: 'ALL_ELIGIBLE',
+      normalization: 'NONE',
+      maxEntries: 40,
+      limit: 100,
+    });
+
+    expect(result.eligibleQuestionCount).toBe(250);
+    expect(result.analyzedQuestionCount).toBe(100);
+    expect(prismaMock.$queryRaw.mock.calls[0]?.slice(1)).toContain(100);
+  });
+
   it('wertet bei TIME alle berechtigten Fragen gleich und sortiert nach createdAt', async () => {
     prismaMock.$queryRaw.mockResolvedValue(corpusRows(120, 120));
 
@@ -125,6 +145,7 @@ describe('wordCloud.analyzeQa – kanonisch begrenzter Korpus', () => {
       filter: 'ALL_ELIGIBLE',
       normalization: 'NONE',
       maxEntries: 40,
+      limit: 500,
     });
 
     expect(result.eligibleQuestionCount).toBe(120);

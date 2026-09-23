@@ -3858,6 +3858,21 @@
                           </button>
                         </div>
                       }
+                      @if (freetextWordCloudShowThemeRefresh()) {
+                        <button
+                          mat-button
+                          type="button"
+                          class="session-host__extra-action session-host__extra-action--refresh"
+                          data-testid="freetext-word-cloud-refresh-themes"
+                          [attr.aria-busy]="
+                            freetextWordCloudSemanticAnalysisPending() ? true : null
+                          "
+                          (click)="refreshFreetextWordCloudThemes()"
+                        >
+                          <mat-icon aria-hidden="true">refresh</mat-icon>
+                          <span>{{ freetextWordCloudThemeRefreshLabel }}</span>
+                        </button>
+                      }
                     </div>
                     @if (freetextWordCloudSemanticAnalysisPending()) {
                       <div
@@ -3887,7 +3902,9 @@
                           Es gelten Wörter und Phrasen.
                         </p>
                       </div>
-                    } @else if (freetextWordCloudSemanticHint()) {
+                    } @else if (
+                      freetextWordCloudSemanticHint() && !freetextWordCloudShowThemeRefresh()
+                    ) {
                       <p class="session-host__extra-note" role="status" aria-live="polite">
                         {{ freetextWordCloudSemanticHint() }}
                       </p>
@@ -4511,6 +4528,62 @@
                       </button>
                     </div>
                   }
+                  @if (qaListTotalCount() > 0 || qaQuestions().length > 0) {
+                    <nav
+                      class="session-qa-paging session-qa-paging--before-list"
+                      i18n-aria-label="@@sessionQa.pagingAria"
+                      aria-label="Fragenseiten"
+                    >
+                      <div
+                        class="session-qa-paging__sizes"
+                        role="group"
+                        i18n-aria-label="@@sessionQa.pageSizeAria"
+                        aria-label="Fragen pro Seite"
+                      >
+                        <span
+                          class="session-qa-paging__sizes-label"
+                          i18n="@@sessionQa.pageSizeLabel"
+                          >Pro Seite</span
+                        >
+                        @for (size of qaListPageSizeOptions; track size) {
+                          <button
+                            mat-stroked-button
+                            type="button"
+                            class="session-qa-paging__size"
+                            [class.session-qa-paging__size--active]="qaListPageSize() === size"
+                            [attr.aria-pressed]="qaListPageSize() === size"
+                            [disabled]="qaListPageLoading()"
+                            (click)="setQaListPageSize(size)"
+                          >
+                            {{ size }}
+                          </button>
+                        }
+                      </div>
+                      @if (qaListPageIndex() > 0 || qaListNextCursor()) {
+                        <div class="session-qa-paging__nav">
+                          <button
+                            mat-stroked-button
+                            type="button"
+                            [disabled]="qaListPageLoading() || qaListPageIndex() === 0"
+                            (click)="loadPreviousQaQuestions()"
+                            i18n="@@sessionQa.loadPrevious"
+                          >
+                            Zurück
+                          </button>
+                          <span i18n="@@sessionQa.page">Seite {{ qaListPageIndex() + 1 }}</span>
+                          <button
+                            mat-stroked-button
+                            type="button"
+                            [disabled]="qaListPageLoading() || !qaListNextCursor()"
+                            (click)="loadMoreQaQuestions()"
+                            i18n="@@sessionQa.loadNext"
+                          >
+                            Weiter
+                          </button>
+                        </div>
+                      }
+                    </nav>
+                  }
                   <div
                     class="session-qa-list"
                     role="list"
@@ -4711,33 +4784,6 @@
                       </article>
                     }
                   </div>
-                  @if (qaListPageIndex() > 0 || qaListNextCursor()) {
-                    <nav
-                      class="session-qa-paging"
-                      i18n-aria-label="@@sessionQa.pagingAria"
-                      aria-label="Fragenseiten"
-                    >
-                      <button
-                        mat-stroked-button
-                        type="button"
-                        [disabled]="qaListPageLoading() || qaListPageIndex() === 0"
-                        (click)="loadPreviousQaQuestions()"
-                        i18n="@@sessionQa.loadPrevious"
-                      >
-                        Zurück
-                      </button>
-                      <span i18n="@@sessionQa.page">Seite {{ qaListPageIndex() + 1 }}</span>
-                      <button
-                        mat-stroked-button
-                        type="button"
-                        [disabled]="qaListPageLoading() || !qaListNextCursor()"
-                        (click)="loadMoreQaQuestions()"
-                        i18n="@@sessionQa.loadNext"
-                      >
-                        Weiter
-                      </button>
-                    </nav>
-                  }
                   @if (qaFilteredQuestions().length === 0 && qaSearch()) {
                     <div
                       class="session-qa-empty session-qa-empty--filtered"

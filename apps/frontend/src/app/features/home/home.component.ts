@@ -110,6 +110,7 @@ type HostSessionCta = {
   deadlineLabel: string | null;
   openUntilLabel: string | null;
   questionCount: number | null;
+  pendingQuestionCount: number | null;
   qaOpen: boolean | null;
   openUntilMs: number | null;
   accessUntilMs: number | null;
@@ -594,7 +595,10 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   hostSessionCtaQuestionDescription(item: HostSessionCta): string | null {
-    if (item.questionCount === null) {
+    if (item.pendingQuestionCount !== null && item.pendingQuestionCount > 0) {
+      return $localize`:@@homeLiveCard.qaPendingCount:In Moderation: ${formatLocaleCount(item.pendingQuestionCount, this.localeId)}:count:`;
+    }
+    if (item.questionCount === null || item.questionCount <= 0) {
       return null;
     }
     if (item.questionCount === 1) {
@@ -731,6 +735,25 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
       .slice(0, limit);
   }
 
+  /** Stellt ein frisches Host-Token aus der Browser-Capability aus (Pending-Count). */
+  private async ensureHostTokenForHomeCta(code: string): Promise<boolean> {
+    const capability = getHostBrowserCapability(code);
+    if (capability) {
+      try {
+        const issued = await trpc.session.issueHostAccessToken.mutate({
+          code,
+          browserCapability: capability,
+        });
+        setHostToken(code, issued.hostToken);
+        return true;
+      } catch {
+        // Capability vorhanden, Ausgabe fehlgeschlagen: gespeichertes Token als Fallback.
+        return hasHostToken(code);
+      }
+    }
+    return hasHostToken(code);
+  }
+
   private async loadHostSessionCtas(): Promise<void> {
     const generation = ++this.hostSessionCtaLoadGeneration;
     const fetchCodes = this.listHostSessionCtaCodes(HOST_SESSION_INFO_FETCH_LIMIT).filter(
@@ -745,39 +768,52 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
 
     const anonymousClientId = getAnonymousClientId();
     const lastHosted = getLastHostedSessionCode();
-    const resolved = await Promise.all(
-      fetchCodes.map(async (code): Promise<HostSessionCta | null> => {
-        try {
-          const session = await trpc.session.getInfo.query({ code, anonymousClientId });
-          if (!isQaConfiguredForHostResume(session)) {
-            return null;
-          }
-          const now = resolveSessionServerNow(session);
-          const iso = session.postProcessingEndsAt ?? session.expiresAt ?? null;
-          const accessUntilMs = iso ? Date.parse(iso) : Number.NaN;
-          if (Number.isFinite(accessUntilMs) && accessUntilMs <= now) {
-            return null;
-          }
-          const openIso = session.qaClosesAt ?? session.expiresAt ?? null;
-          const openUntilMs = openIso ? Date.parse(openIso) : Number.NaN;
-          return {
-            code,
-            deadlineLabel: iso ? this.formatHostAccessDeadline(iso, session.timeZone) : null,
-            openUntilLabel: openIso
-              ? this.formatHostAccessDeadline(openIso, session.timeZone)
-              : null,
-            questionCount:
-              typeof session.qaQuestionCount === 'number' ? session.qaQuestionCount : null,
-            qaOpen: isQaOpenForParticipants(session, new Date(now)),
-            openUntilMs: Number.isFinite(openUntilMs) ? openUntilMs : null,
-            accessUntilMs: Number.isFinite(accessUntilMs) ? accessUntilMs : null,
-            primary: false,
-          };
-        } catch {
-          return null;
+    // Sequentiell: pendingHostSessionCode ist global und darf nicht parallel überschrieben werden.
+    const resolved: Array<HostSessionCta | null> = [];
+    for (const code of fetchCodes) {
+      if (generation !== this.hostSessionCtaLoadGeneration) {
+        return;
+      }
+      try {
+        const hostReady = await this.ensureHostTokenForHomeCta(code);
+        if (hostReady) {
+          setPendingHostSessionCode(code);
         }
-      }),
-    );
+        const session = await trpc.session.getInfo.query({ code, anonymousClientId });
+        if (!isQaConfiguredForHostResume(session)) {
+          resolved.push(null);
+          continue;
+        }
+        const now = resolveSessionServerNow(session);
+        const iso = session.postProcessingEndsAt ?? session.expiresAt ?? null;
+        const accessUntilMs = iso ? Date.parse(iso) : Number.NaN;
+        if (Number.isFinite(accessUntilMs) && accessUntilMs <= now) {
+          resolved.push(null);
+          continue;
+        }
+        const openIso = session.qaClosesAt ?? session.expiresAt ?? null;
+        const openUntilMs = openIso ? Date.parse(openIso) : Number.NaN;
+        resolved.push({
+          code,
+          deadlineLabel: iso ? this.formatHostAccessDeadline(iso, session.timeZone) : null,
+          openUntilLabel: openIso ? this.formatHostAccessDeadline(openIso, session.timeZone) : null,
+          questionCount:
+            typeof session.qaQuestionCount === 'number' ? session.qaQuestionCount : null,
+          pendingQuestionCount:
+            typeof session.qaPendingQuestionCount === 'number'
+              ? session.qaPendingQuestionCount
+              : null,
+          qaOpen: isQaOpenForParticipants(session, new Date(now)),
+          openUntilMs: Number.isFinite(openUntilMs) ? openUntilMs : null,
+          accessUntilMs: Number.isFinite(accessUntilMs) ? accessUntilMs : null,
+          primary: false,
+        });
+      } catch {
+        resolved.push(null);
+      } finally {
+        setPendingHostSessionCode(null);
+      }
+    }
     if (generation !== this.hostSessionCtaLoadGeneration) {
       return;
     }

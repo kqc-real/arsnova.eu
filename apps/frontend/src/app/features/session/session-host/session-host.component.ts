@@ -134,6 +134,9 @@ import {
   isWordCloudPhraseAnalysisVariant,
   parseQaSummaryQuestionSourceId,
   isQaChannelJoinable,
+  QA_LIST_DEFAULT_PAGE_SIZE,
+  QA_LIST_PAGE_SIZE_OPTIONS,
+  type QaListPageSize,
   type WordCloudLemmaLocale,
   type ProductFeedbackInAppArea,
 } from '@arsnova/shared-types';
@@ -748,6 +751,8 @@ export class SessionHostComponent implements OnInit, OnDestroy {
   readonly qaListNextCursor = signal<string | null>(null);
   readonly qaListRankingRevision = signal<string | null>(null);
   readonly qaListPageIndex = signal(0);
+  readonly qaListPageSize = signal<QaListPageSize>(QA_LIST_DEFAULT_PAGE_SIZE);
+  readonly qaListPageSizeOptions = QA_LIST_PAGE_SIZE_OPTIONS;
   readonly qaListPageLoading = signal(false);
   private qaListCurrentCursor: string | null = null;
   private qaListCursorHistory: Array<string | null> = [];
@@ -1054,6 +1059,7 @@ export class SessionHostComponent implements OnInit, OnDestroy {
   readonly freetextWordCloudMaximized = signal(false);
   readonly freetextWordCloudSemanticAnalysisPending = signal(false);
   readonly freetextWordCloudSemanticAnalysisResult = signal<AnalyzeWordCloudOutput | null>(null);
+  readonly freetextWordCloudSemanticStale = signal(false);
   private qaWordCloudAnalyzeTail: Promise<unknown> = Promise.resolve();
   private qaWordCloudThemeAnalysisRunId = 0;
   private qaWordCloudLemmaAnalysisRunId = 0;
@@ -1064,7 +1070,7 @@ export class SessionHostComponent implements OnInit, OnDestroy {
   private channelToggleSyncing = false;
   private lastQaWordCloudAnalysisRequestKey: string | null = null;
   private lastQaWordCloudSemanticAnalyzedKey: string | null = null;
-  private lastFreetextWordCloudSemanticRequestKey: string | null = null;
+  private lastFreetextWordCloudSemanticAnalyzedKey: string | null = null;
   private qaWordCloudThemeAnalysisTimer: ReturnType<typeof setTimeout> | null = null;
   private freetextWordCloudSemanticAnalysisTimer: ReturnType<typeof setTimeout> | null = null;
   private qaWordCloudSemanticPendingStartedAt = 0;
@@ -1369,8 +1375,34 @@ export class SessionHostComponent implements OnInit, OnDestroy {
       return $localize`:@@sessionQa.wordCloudSemanticPendingHint:Themen werden vorbereitet. Es gelten Wörter und Phrasen.`;
     }
 
+    if (this.freetextWordCloudSemanticStale()) {
+      return $localize`:@@sessionQa.wordCloudSemanticStaleHint:Neue Antworten seit letzter Themenanalyse`;
+    }
+
+    // Status wie Q&A-Theme-Fallback — auch bei Phrase-Fallback-Einträgen den Hinweis zeigen.
+    const status = this.freetextWordCloudSemanticAnalysisResult()?.status;
+    if (status === 'ready') {
+      return null;
+    }
+    if (status === 'uncertain') {
+      return $localize`:@@sessionQa.wordCloudSemanticUncertainHint:Einige Themen sind unsicher. Prüfe die Mitgliedsfragen.`;
+    }
+    if (status === 'failed') {
+      return $localize`:@@sessionQa.wordCloudSemanticFailedHint:Themenanalyse fehlgeschlagen. Es gelten Wörter und Phrasen.`;
+    }
+    if (status === 'fallback') {
+      return $localize`:@@sessionQa.wordCloudSemanticFallbackHint:Themen sind gerade nicht belastbar. Es gelten Wörter und Phrasen.`;
+    }
+
     return $localize`:@@sessionQa.wordCloudSemanticDisabledHint:Themen sind noch nicht verfügbar. Es gelten Wörter und Phrasen.`;
   });
+  readonly freetextWordCloudShowThemeRefresh = computed(
+    () =>
+      this.freetextWordCloudMode() === 'SEMANTIC' &&
+      this.freetextWordCloudSemanticStale() &&
+      !this.freetextWordCloudSemanticAnalysisPending(),
+  );
+  readonly freetextWordCloudThemeRefreshLabel = $localize`:@@sessionQa.wordCloudRefreshThemes:Themen aktualisieren`;
   readonly freetextWordCloudSemanticWaitHint = computed(() =>
     this.resolveSemanticWaitHint(
       this.freetextWordCloudMode() === 'SEMANTIC' &&
@@ -2310,8 +2342,14 @@ export class SessionHostComponent implements OnInit, OnDestroy {
           wordLabelPlural: () => this.qaWordCloudWordLabelPlural(),
           weightingHint: () => this.qaWordCloudWeightingHint(),
           tooltipMetricLabel: () => this.qaWordCloudMetricLabel(),
-          analyzedQuestionCount: () => this.qaWordCloudCoverage()?.analyzedQuestionCount ?? 0,
-          eligibleQuestionCount: () => this.qaWordCloudCoverage()?.eligibleQuestionCount ?? 0,
+          analyzedQuestionCount: () =>
+            this.qaWordCloudCoverage()?.analyzedQuestionCount ??
+            Math.min(
+              this.qaListPageSize(),
+              this.qaListTotalCount() || this.qaWordCloudQuestions().length,
+            ),
+          eligibleQuestionCount: () =>
+            this.qaWordCloudCoverage()?.eligibleQuestionCount ?? this.qaListTotalCount(),
           analysisModelVersion: () => this.qaWordCloudThemeAnalysisResult()?.modelVersion ?? null,
           analysisVariant: () => this.qaWordCloudEffectiveAnalysisVariant(),
           setAnalysisVariant: (variant: WordCloudAnalysisVariant) =>
@@ -3370,7 +3408,6 @@ export class SessionHostComponent implements OnInit, OnDestroy {
       const request = this.freetextWordCloudSemanticAnalysisRequest();
       if (!request) {
         this.clearFreetextWordCloudSemanticAnalysisTimer();
-        this.lastFreetextWordCloudSemanticRequestKey = null;
         this.freetextWordCloudSemanticAnalysisPending.set(false);
         this.freetextWordCloudSemanticPendingStartedAt = 0;
         this.clearFreetextWordCloudSemanticWaitHint();
@@ -3378,7 +3415,7 @@ export class SessionHostComponent implements OnInit, OnDestroy {
       }
 
       untracked(() => {
-        this.queueFreetextWordCloudSemanticAnalysis(request);
+        this.syncFreetextWordCloudSemanticStale(request);
       });
     });
     effect(() => {
@@ -3716,6 +3753,7 @@ export class SessionHostComponent implements OnInit, OnDestroy {
       if (shouldRefreshLemmaSmoothing) {
         await this.requestFreetextWordCloudLemmaSmoothing();
       }
+      this.ensureFreetextWordCloudSemanticAnalysis();
       return;
     }
 
@@ -3771,7 +3809,15 @@ export class SessionHostComponent implements OnInit, OnDestroy {
   }
 
   async toggleFreetextWordCloudSmoothing(): Promise<void> {
-    if (this.freetextWordCloudMode() === 'SEMANTIC' || this.freetextWordCloudLemmaPending()) {
+    if (this.freetextWordCloudMode() === 'SEMANTIC') {
+      if (!this.freetextWordCloudShowThemeRefresh()) {
+        return;
+      }
+      this.refreshFreetextWordCloudThemes();
+      return;
+    }
+
+    if (this.freetextWordCloudLemmaPending()) {
       return;
     }
 
@@ -3791,10 +3837,13 @@ export class SessionHostComponent implements OnInit, OnDestroy {
 
   readonly maximizeFreetextWordCloud = (): void => {
     this.wordCloudExpanded.set(true);
-    this.syncWordCloudOverlayTop();
     this.freetextWordCloudMaximized.set(true);
     void this.activatePresenterSurface('freetextWordCloud', 'quiz');
+    // Sticky-Kanal-Leiste erst nach dem Overlay-Class messen — sonst liegt
+    // die Wolke unter der App-Bar, wenn der Host nach unten gescrollt hat.
+    this.scheduleWordCloudOverlayTopSync();
     this.scrollFreetextWordCloudIntoView();
+    this.ensureFreetextWordCloudSemanticAnalysis();
   };
 
   closeFreetextWordCloudMaximize(): void {
@@ -3812,18 +3861,66 @@ export class SessionHostComponent implements OnInit, OnDestroy {
     this.qaWordCloudDialogRef?.close?.();
   }
 
+  /** Sofort + nach Layout: Overlay-Top an die sticky Kanal-Leiste koppeln. */
+  private scheduleWordCloudOverlayTopSync(): void {
+    this.syncWordCloudOverlayTop();
+    afterNextRender(
+      () => {
+        if (this.destroyRef.destroyed) return;
+        this.syncWordCloudOverlayTop();
+      },
+      { injector: this.injector },
+    );
+  }
+
+  /**
+   * Freitext-Maximieren: sticky App-Bar bleibt sichtbar (z-index über der Wolke).
+   * `getBoundingClientRect().bottom` allein reicht nicht — nach Scrollen unter die
+   * Leiste (z. B. »Ergebnis zeigen«) ist rect.bottom ≤ 0 und die Wolke startet bei 0.
+   */
   private syncWordCloudOverlayTop(): void {
-    const marker = this.qaWordCloudDialogOpen()
-      ? this.document.querySelector('app-top-toolbar')
-      : this.document.querySelector('.session-channel-tabs-shell');
-    const top =
-      marker instanceof HTMLElement
-        ? Math.max(0, Math.round(marker.getBoundingClientRect().bottom))
-        : 0;
+    if (this.qaWordCloudDialogOpen()) {
+      const toolbar = this.document.querySelector('app-top-toolbar');
+      const top =
+        toolbar instanceof HTMLElement
+          ? Math.max(0, Math.round(toolbar.getBoundingClientRect().bottom))
+          : 0;
+      this.document.documentElement.style.setProperty(
+        '--session-host-word-cloud-overlay-top',
+        `${top}px`,
+      );
+      return;
+    }
+
+    const shell = this.document.querySelector('.session-channel-tabs-shell');
+    if (!(shell instanceof HTMLElement)) {
+      this.document.documentElement.style.setProperty(
+        '--session-host-word-cloud-overlay-top',
+        '0px',
+      );
+      return;
+    }
+
+    const rect = shell.getBoundingClientRect();
+    const measuredBottom = Math.round(rect.bottom);
+    const reservedBottom = this.freetextWordCloudMaximized()
+      ? Math.round(this.resolveFreetextWordCloudStickyTopPx() + shell.offsetHeight)
+      : 0;
+    const top = Math.max(0, measuredBottom, reservedBottom);
     this.document.documentElement.style.setProperty(
       '--session-host-word-cloud-overlay-top',
       `${top}px`,
     );
+  }
+
+  /** Entspricht `.session-host--word-cloud-overlay … { top: max(0.35rem, safe-area) }`. */
+  private resolveFreetextWordCloudStickyTopPx(): number {
+    const view = this.document.defaultView;
+    const rootFontSize = Number.parseFloat(
+      view?.getComputedStyle(this.document.documentElement).fontSize ?? '16',
+    );
+    const remPx = Number.isFinite(rootFontSize) && rootFontSize > 0 ? rootFontSize : 16;
+    return 0.35 * remPx;
   }
 
   private clearWordCloudOverlayTop(): void {
@@ -3844,6 +3941,7 @@ export class SessionHostComponent implements OnInit, OnDestroy {
     this.wordCloudExpanded.set(target.open);
     if (target.open) {
       this.scrollFreetextWordCloudIntoView(target);
+      this.ensureFreetextWordCloudSemanticAnalysis();
     }
   }
 
@@ -4499,7 +4597,7 @@ export class SessionHostComponent implements OnInit, OnDestroy {
           this.postProcessingEnded.set(false);
           this.scheduleHostPostProcessingCheck();
           this.ensureQaSubscription();
-          void this.refreshQaQuestions({ silent: true });
+          void this.refreshQaQuestions({ silent: true, preservePaging: true });
         }
         return;
       }
@@ -4574,7 +4672,7 @@ export class SessionHostComponent implements OnInit, OnDestroy {
             }
           : current,
       );
-      void this.refreshQaQuestions({ silent: true });
+      void this.refreshQaQuestions({ silent: true, preservePaging: true });
       return;
     }
     this.qaDeadlineTimer = setTimeout(
@@ -5046,7 +5144,7 @@ export class SessionHostComponent implements OnInit, OnDestroy {
       await this.refreshLiveFreetext();
     }
     if (this.shouldPollQaQuestions()) {
-      await this.refreshQaQuestions({ silent: true });
+      await this.refreshQaQuestions({ silent: true, preservePaging: true });
     }
     if (this.shouldPollQuickFeedback()) {
       await this.refreshQuickFeedbackResult();
@@ -6608,6 +6706,9 @@ export class SessionHostComponent implements OnInit, OnDestroy {
   @HostListener('window:resize')
   onWindowResize(): void {
     this.syncExitAnchorClearance();
+    if (this.freetextWordCloudMaximized() || this.qaWordCloudDialogOpen()) {
+      this.syncWordCloudOverlayTop();
+    }
     if (!this.showTeamFoyerEntranceLayers()) {
       return;
     }
@@ -9671,7 +9772,7 @@ export class SessionHostComponent implements OnInit, OnDestroy {
 
   /** Wie refreshQaQuestions, aber ohne Steering-Callout bei transienten Fehlern. */
   private async refreshQaQuestionsForChannelActivation(): Promise<void> {
-    await this.refreshQaQuestions({ silent: true });
+    await this.refreshQaQuestions({ silent: true, preservePaging: true });
   }
 
   private async chooseQuizForSession(): Promise<SessionQuizPickerResult | undefined> {
@@ -10238,8 +10339,9 @@ export class SessionHostComponent implements OnInit, OnDestroy {
     const sortMode = this.qaSortMode();
     const statuses = this.qaListStatuses();
     const search = this.qaSearch();
+    const pageSize = this.qaListPageSize();
     const subscriptionKey = sessionId
-      ? `${sessionId}:${sortMode}:${statuses.join(',')}:${search}`
+      ? `${sessionId}:${sortMode}:${statuses.join(',')}:${search}:${pageSize}`
       : null;
     if (!sessionId || !qaEnabled) {
       this.qaSub?.unsubscribe();
@@ -10258,7 +10360,7 @@ export class SessionHostComponent implements OnInit, OnDestroy {
         sessionId,
         moderatorView: true,
         sort: sortMode,
-        pageSize: 100,
+        pageSize,
         statuses,
         search: search || undefined,
       },
@@ -10296,7 +10398,7 @@ export class SessionHostComponent implements OnInit, OnDestroy {
         return;
       }
     }
-    void this.refreshQaQuestions({ silent: true });
+    void this.refreshQaQuestions({ silent: true, preservePaging: true });
   }
 
   private syncQaTitleDraftFromSession(): void {
@@ -10691,7 +10793,7 @@ export class SessionHostComponent implements OnInit, OnDestroy {
 
   private async applyHostQaQuestionsSnapshot(
     snapshot: QaQuestionsListDTO | QaQuestionDTO[],
-    options: { append?: boolean } = {},
+    options: { append?: boolean; preservePaging?: boolean } = {},
   ): Promise<boolean> {
     if (Array.isArray(snapshot)) {
       if (this.postProcessingEnded()) {
@@ -10746,7 +10848,9 @@ export class SessionHostComponent implements OnInit, OnDestroy {
     }
     this.postProcessingEnded.set(false);
     this.qaQuestions.set(snapshot.questions);
-    if (!options.append) {
+    // append/preservePaging: Seitennavigation nicht auf 0 zurücksetzen —
+    // sonst springt „Weiter“ nach Live-Invalidierung sofort wieder auf Seite 1.
+    if (!options.append && !options.preservePaging) {
       this.resetQaListPageNavigation();
     }
     this.qaListTotalCount.set(snapshot.totalCount ?? snapshot.questions.length);
@@ -10795,12 +10899,33 @@ export class SessionHostComponent implements OnInit, OnDestroy {
       sessionId: sessionId!,
       moderatorView: true as const,
       sort: this.qaSortMode(),
-      pageSize: 100,
+      pageSize: this.qaListPageSize(),
       statuses: this.qaListStatuses(),
       ...(search ? { search } : {}),
       ...(authorNickname ? { authorNickname } : {}),
       ...(cursor ? { cursor } : {}),
     };
+  }
+
+  async setQaListPageSize(pageSize: QaListPageSize): Promise<void> {
+    if (this.qaListPageSize() === pageSize) {
+      return;
+    }
+    this.qaListPageSize.set(pageSize);
+    this.qaWordCloudCoverage.set(null);
+    this.lastQaWordCloudAnalysisRequestKey = '';
+    this.lastQaWordCloudSemanticAnalyzedKey = null;
+    this.ensureQaSubscription();
+    await this.refreshQaQuestions({ replaceStale: true });
+    this.scrollQaListToTop();
+    if (this.qaWordCloudDialogOpen()) {
+      const request = this.qaWordCloudAnalysisRequest();
+      if (request?.mode === 'SEMANTIC') {
+        this.queueQaWordCloudSemanticAnalysis(request);
+      } else if (request) {
+        this.queueQaWordCloudThemeAnalysis(request);
+      }
+    }
   }
 
   async setQaPinnedFilter(pinnedOnly: boolean): Promise<void> {
@@ -10858,25 +10983,34 @@ export class SessionHostComponent implements OnInit, OnDestroy {
     const cursor = this.qaListNextCursor();
     if (!cursor || this.qaListPageLoading()) return;
     const previousCursor = this.qaListCurrentCursor;
+    const previousPageIndex = this.qaListPageIndex();
     const loaded = await this.loadQaQuestionsPage(cursor);
     if (loaded) {
       this.qaListCursorHistory.push(previousCursor);
       this.qaListCurrentCursor = cursor;
       this.qaListPageIndex.update((index) => index + 1);
       this.scrollQaListToTop();
+      return;
     }
+    // Ranking hat sich geändert: aktuelle Seite (vor dem Klick) neu aufbauen.
+    this.qaListPageIndex.set(previousPageIndex);
+    await this.refreshQaQuestions({ preservePaging: previousPageIndex > 0 });
   }
 
   async loadPreviousQaQuestions(): Promise<void> {
     if (this.qaListCursorHistory.length === 0 || this.qaListPageLoading()) return;
     const target = this.qaListCursorHistory[this.qaListCursorHistory.length - 1] ?? null;
+    const previousPageIndex = this.qaListPageIndex();
     const loaded = await this.loadQaQuestionsPage(target);
     if (loaded) {
       this.qaListCursorHistory.pop();
       this.qaListCurrentCursor = target;
       this.qaListPageIndex.update((index) => Math.max(0, index - 1));
       this.scrollQaListToTop();
+      return;
     }
+    this.qaListPageIndex.set(previousPageIndex);
+    await this.refreshQaQuestions({ preservePaging: previousPageIndex > 0 });
   }
 
   private async loadQaQuestionsPage(cursor: string | null): Promise<boolean> {
@@ -10889,22 +11023,21 @@ export class SessionHostComponent implements OnInit, OnDestroy {
       if (requestGeneration !== this.qaListRequestGeneration) {
         return false;
       }
-      const accepted = await this.applyHostQaQuestionsSnapshot(snapshot, { append: true });
-      if (!accepted) {
-        await this.refreshQaQuestions();
-      }
-      return accepted;
+      return await this.applyHostQaQuestionsSnapshot(snapshot, { append: true });
     } catch {
-      await this.refreshQaQuestions();
       return false;
     } finally {
-      this.qaListPageLoading.set(false);
+      if (requestGeneration === this.qaListRequestGeneration) {
+        this.qaListPageLoading.set(false);
+      }
     }
   }
 
   private async refreshQaQuestions(options?: {
     silent?: boolean;
     replaceStale?: boolean;
+    /** Aktuelle Fragenseite nach Live-Invalidierung behalten (nicht auf Seite 1 springen). */
+    preservePaging?: boolean;
   }): Promise<void> {
     const sessionId = this.session()?.id;
     const requestGeneration = ++this.qaListRequestGeneration;
@@ -10927,18 +11060,58 @@ export class SessionHostComponent implements OnInit, OnDestroy {
       this.qaListPageLoading.set(true);
     }
 
+    const targetPage =
+      options?.preservePaging && !options?.replaceStale ? Math.max(0, this.qaListPageIndex()) : 0;
+
     try {
-      const snapshot = await trpc.qa.list.query(this.hostQaListQueryInput());
-      if (requestGeneration !== this.qaListRequestGeneration) {
+      let cursor: string | null = null;
+      const cursorHistory: Array<string | null> = [];
+      let snapshot: QaQuestionsListDTO | null = null;
+      let pageReached = 0;
+
+      for (let page = 0; page <= targetPage; page += 1) {
+        snapshot = await trpc.qa.list.query(this.hostQaListQueryInput(cursor));
+        if (requestGeneration !== this.qaListRequestGeneration) {
+          return;
+        }
+        if (page === targetPage || !snapshot.nextCursor) {
+          pageReached = page;
+          break;
+        }
+        cursorHistory.push(cursor);
+        cursor = snapshot.nextCursor;
+        pageReached = page + 1;
+      }
+
+      if (!snapshot || requestGeneration !== this.qaListRequestGeneration) {
         return;
       }
-      await this.applyHostQaQuestionsSnapshot(snapshot);
+
+      const accepted = await this.applyHostQaQuestionsSnapshot(snapshot, {
+        preservePaging: targetPage > 0,
+      });
+      if (!accepted) {
+        return;
+      }
+      if (targetPage > 0) {
+        this.qaListCursorHistory = cursorHistory;
+        this.qaListCurrentCursor = cursor;
+        this.qaListPageIndex.set(pageReached);
+      }
       this.dismissQaSteeringCallout();
     } catch (error) {
       if (requestGeneration !== this.qaListRequestGeneration) {
         return;
       }
       if (this.consumeHostUnauthorized(error)) {
+        return;
+      }
+      // Veralteter Cursor nach Ranking-Wechsel: von vorn neu laden.
+      if (options?.preservePaging && targetPage > 0 && this.isQaListRankingConflict(error)) {
+        await this.refreshQaQuestions({
+          silent: options.silent,
+          preservePaging: false,
+        });
         return;
       }
       if (options?.silent) {
@@ -10950,6 +11123,22 @@ export class SessionHostComponent implements OnInit, OnDestroy {
         this.qaListPageLoading.set(false);
       }
     }
+  }
+
+  private isQaListRankingConflict(error: unknown): boolean {
+    if (!error || typeof error !== 'object') {
+      return false;
+    }
+    const record = error as {
+      data?: { code?: string };
+      shape?: { data?: { code?: string } };
+      message?: string;
+    };
+    const code = record.data?.code ?? record.shape?.data?.code;
+    if (code === 'CONFLICT') {
+      return true;
+    }
+    return /Rangliste hat sich geändert|CONFLICT/i.test(String(record.message ?? error));
   }
 
   private async refreshQaNlpRuntime(): Promise<void> {
@@ -11279,18 +11468,50 @@ export class SessionHostComponent implements OnInit, OnDestroy {
     };
   }
 
-  private queueFreetextWordCloudSemanticAnalysis(request: AnalyzeWordCloudInput): void {
-    const requestKey = JSON.stringify(request);
-    if (requestKey === this.lastFreetextWordCloudSemanticRequestKey) {
+  private syncFreetextWordCloudSemanticStale(request: AnalyzeWordCloudInput): void {
+    const requestKey = wordCloudAnalysisRequestKey(request);
+    if (
+      this.lastFreetextWordCloudSemanticAnalyzedKey &&
+      requestKey !== this.lastFreetextWordCloudSemanticAnalyzedKey
+    ) {
+      this.freetextWordCloudSemanticStale.set(true);
+    }
+  }
+
+  private ensureFreetextWordCloudSemanticAnalysis(): void {
+    if (this.freetextWordCloudMode() !== 'SEMANTIC') {
       return;
     }
+    const request = this.buildFreetextWordCloudSemanticAnalysisRequest();
+    if (!request) {
+      return;
+    }
+    if (!this.freetextWordCloudSemanticAnalysisResult()) {
+      this.queueFreetextWordCloudSemanticAnalysis(request);
+      return;
+    }
+    this.syncFreetextWordCloudSemanticStale(request);
+  }
 
-    this.lastFreetextWordCloudSemanticRequestKey = requestKey;
+  refreshFreetextWordCloudThemes(): void {
+    if (this.freetextWordCloudSemanticAnalysisPending()) {
+      return;
+    }
+    const request = this.buildFreetextWordCloudSemanticAnalysisRequest();
+    if (!request) {
+      return;
+    }
+    this.queueFreetextWordCloudSemanticAnalysis(request);
+  }
+
+  private queueFreetextWordCloudSemanticAnalysis(request: AnalyzeWordCloudInput): void {
+    // Wie Q&A: Debounce neu starten; kein Early-Return — sonst blockiert »Themen aktualisieren«.
+    this.freetextWordCloudSemanticStale.set(false);
     this.markFreetextWordCloudSemanticPending();
     this.clearFreetextWordCloudSemanticAnalysisTimer();
     this.freetextWordCloudSemanticAnalysisTimer = setTimeout(() => {
       this.freetextWordCloudSemanticAnalysisTimer = null;
-      void this.refreshFreetextWordCloudSemanticAnalysis(request);
+      void this.refreshFreetextWordCloudSemanticAnalysis(request, { keepPrevious: true });
     }, QA_WORD_CLOUD_ANALYSIS_DEBOUNCE_MS);
   }
 
@@ -11305,9 +11526,12 @@ export class SessionHostComponent implements OnInit, OnDestroy {
 
   private async refreshFreetextWordCloudSemanticAnalysis(
     request: AnalyzeWordCloudInput,
+    options: { readonly keepPrevious?: boolean } = {},
   ): Promise<void> {
     const runId = ++this.freetextWordCloudSemanticAnalysisRunId;
-    this.freetextWordCloudSemanticAnalysisResult.set(null);
+    if (!options.keepPrevious) {
+      this.freetextWordCloudSemanticAnalysisResult.set(null);
+    }
     const pendingStartedAt = this.markFreetextWordCloudSemanticPending();
 
     try {
@@ -11322,6 +11546,8 @@ export class SessionHostComponent implements OnInit, OnDestroy {
       }
 
       this.freetextWordCloudSemanticAnalysisResult.set(result);
+      this.lastFreetextWordCloudSemanticAnalyzedKey = wordCloudAnalysisRequestKey(request);
+      this.freetextWordCloudSemanticStale.set(false);
     } catch {
       if (runId !== this.freetextWordCloudSemanticAnalysisRunId) {
         return;
@@ -11332,7 +11558,10 @@ export class SessionHostComponent implements OnInit, OnDestroy {
         return;
       }
 
-      this.freetextWordCloudSemanticAnalysisResult.set(null);
+      if (!options.keepPrevious) {
+        this.freetextWordCloudSemanticAnalysisResult.set(null);
+      }
+      // Fingerprint und Stale nur bei Erfolg – sonst bleibt der Refresh-Hinweis sichtbar.
     } finally {
       if (runId === this.freetextWordCloudSemanticAnalysisRunId) {
         this.freetextWordCloudSemanticAnalysisPending.set(false);
@@ -11475,6 +11704,7 @@ export class SessionHostComponent implements OnInit, OnDestroy {
     const input = {
       ...canonical,
       filter: this.qaShowPinnedOnly() ? ('PINNED_ONLY' as const) : ('ALL_ELIGIBLE' as const),
+      limit: this.qaListPageSize(),
     };
     let lastError: unknown;
     for (let attempt = 0; attempt <= QA_WORD_CLOUD_ANALYZE_CONFLICT_RETRIES; attempt += 1) {
@@ -11723,11 +11953,10 @@ export class SessionHostComponent implements OnInit, OnDestroy {
       this.controlPending.set(false);
       await this.refreshCurrentQuestionForHost();
       if (!this.isCurrentStatusUpdate(result)) return;
-      const isFreetext = this.displayedCurrentQuestionForHost()?.type === 'FREETEXT';
-      const wordCloudAlreadyOpen = this.wordCloudExpanded() || this.freetextWordCloudMaximized();
-      if (isFreetext && !wordCloudAlreadyOpen) {
-        this.wordCloudExpanded.set(true);
-        this.scrollFreetextWordCloudIntoView();
+      // Freitext: Ergebnis = Beamer-Wortwolke (wie Host »Maximieren«), nicht die
+      // schmale Inline-Wolke neben der Ergebniskarte.
+      if (this.displayedCurrentQuestionForHost()?.type === 'FREETEXT') {
+        this.maximizeFreetextWordCloud();
       } else {
         this.scrollHostTargetIntoView(this.hostResultsSectionRef);
       }
@@ -12195,7 +12424,7 @@ export class SessionHostComponent implements OnInit, OnDestroy {
         sessionId,
         moderatorView: true,
         sort: 'TIME',
-        pageSize: 100,
+        pageSize: 500,
         statuses,
         ...(cursor ? { cursor } : {}),
       });

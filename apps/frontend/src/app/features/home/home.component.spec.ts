@@ -136,7 +136,12 @@ function seedHostCapability(): void {
 function hostSessionGetInfo(
   code: string,
   qaOpen: boolean,
-  options?: { qaClosesAt?: string; postProcessingEndsAt?: string; qaQuestionCount?: number },
+  options?: {
+    qaClosesAt?: string;
+    postProcessingEndsAt?: string;
+    qaQuestionCount?: number;
+    qaPendingQuestionCount?: number;
+  },
 ) {
   const closesAt =
     options?.qaClosesAt ?? (qaOpen ? '2026-09-20T06:07:00.000Z' : '2026-09-18T12:22:30.000Z');
@@ -150,6 +155,9 @@ function hostSessionGetInfo(
     title: null,
     participantCount: 1,
     qaQuestionCount: options?.qaQuestionCount ?? 0,
+    ...(typeof options?.qaPendingQuestionCount === 'number'
+      ? { qaPendingQuestionCount: options.qaPendingQuestionCount }
+      : {}),
     expiresAt: closesAt,
     qaClosesAt: closesAt,
     qaEnabled: true,
@@ -637,6 +645,7 @@ describe('HomeComponent', () => {
         title: null,
         participantCount: 2,
         qaQuestionCount: 5,
+        qaPendingQuestionCount: 5,
         expiresAt: '2026-09-20T06:07:00.000Z',
         qaClosesAt: '2026-09-20T06:07:00.000Z',
         qaEnabled: true,
@@ -675,7 +684,7 @@ describe('HomeComponent', () => {
       expect(descriptions[0]).toContain('2026');
       expect(descriptions[1]).toMatch(/^Offen bis /);
       expect(descriptions[1]).toContain('2026');
-      expect(descriptions[2]).toBe('5 Fragen');
+      expect(descriptions[2]).toBe('In Moderation: 5');
       expect(
         fixture.nativeElement
           .querySelector('.home-host-session-cta-row [data-testid="home-host-recovery"]')
@@ -684,6 +693,89 @@ describe('HomeComponent', () => {
       expect(trpc.session.getInfo.query).toHaveBeenCalledWith(
         expect.objectContaining({ code: 'ABC123' }),
       );
+      restoreDefaultSessionGetInfo(vi.mocked(trpc.session.getInfo.query));
+    });
+
+    it('erneuert das Host-Token aus der Capability auch wenn bereits ein Token gespeichert ist', async () => {
+      const { trpc, setHostToken: setHostTokenFromTrpc } = await import('../../core/trpc.client');
+      seedHostCapability();
+      setHostToken('ABC123', 'stale-host-token');
+      vi.mocked(trpc.session.issueHostAccessToken.mutate).mockClear();
+      vi.mocked(trpc.session.getInfo.query).mockResolvedValue(
+        hostSessionGetInfo('ABC123', true, { qaQuestionCount: 2, qaPendingQuestionCount: 1 }),
+      );
+
+      const fixture = createHomeFixture();
+      fixture.detectChanges();
+      await fixture.whenStable();
+      fixture.detectChanges();
+      await vi.waitUntil(
+        () =>
+          fixture.nativeElement.querySelector(
+            '.home-host-session-cta-row [data-testid="home-host-recovery"]',
+          ) !== null,
+        { timeout: 1000, interval: 10 },
+      );
+
+      expect(trpc.session.issueHostAccessToken.mutate).toHaveBeenCalledWith({
+        code: 'ABC123',
+        browserCapability: 'browser-capability-abcdefghijklmnopqrstuvwxyz',
+      });
+      expect(setHostTokenFromTrpc).toHaveBeenCalledWith('ABC123', 'issued-host-token');
+      clearHostToken('ABC123');
+      restoreDefaultSessionGetInfo(vi.mocked(trpc.session.getInfo.query));
+    });
+
+    it('zeigt die sichtbare Fragenzahl, wenn keine Pending-Fragen vorliegen', async () => {
+      const { trpc } = await import('../../core/trpc.client');
+      seedHostCapability();
+      vi.mocked(trpc.session.getInfo.query).mockResolvedValue({
+        id: 'sess-abc',
+        code: 'ABC123',
+        type: 'QUIZ',
+        status: 'ACTIVE',
+        serverTime: '2026-09-18T12:00:00.000Z',
+        quizName: 'Live',
+        title: null,
+        participantCount: 2,
+        qaQuestionCount: 5,
+        qaPendingQuestionCount: 0,
+        expiresAt: '2026-09-20T06:07:00.000Z',
+        qaClosesAt: '2026-09-20T06:07:00.000Z',
+        qaEnabled: true,
+        qaOpen: true,
+        postProcessingEndsAt: '2026-10-04T06:07:00.000Z',
+        timeZone: 'Europe/Berlin',
+        channels: {
+          qa: {
+            enabled: true,
+            open: true,
+            state: 'OPEN',
+            closesAt: '2026-09-20T06:07:00.000Z',
+          },
+        },
+      });
+      const fixture = createHomeFixture();
+      fixture.detectChanges();
+      await fixture.whenStable();
+      fixture.detectChanges();
+      await vi.waitUntil(
+        () =>
+          Array.from(
+            fixture.nativeElement.querySelectorAll<HTMLElement>(
+              '.home-host-session-cta-row [data-testid="home-host-recovery"] .home-choice-button__description',
+            ),
+          ).some((line) => line.textContent?.trim() === '5 Fragen') === true,
+        { timeout: 1000, interval: 10 },
+      );
+
+      const descriptions = Array.from(
+        fixture.nativeElement.querySelectorAll<HTMLElement>(
+          '.home-host-session-cta-row [data-testid="home-host-recovery"] .home-choice-button__description',
+        ),
+      ).map((line) => line.textContent?.trim());
+      expect(descriptions[2]).toBe('5 Fragen');
+      restoreDefaultSessionGetInfo(vi.mocked(trpc.session.getInfo.query));
     });
 
     it('zeigt Forum geschlossen, wenn die Q&A-Frist vorbei ist', async () => {
@@ -699,6 +791,7 @@ describe('HomeComponent', () => {
         title: null,
         participantCount: 2,
         qaQuestionCount: 1,
+        qaPendingQuestionCount: 1,
         expiresAt: '2026-09-18T12:22:30.000Z',
         qaClosesAt: '2026-09-18T12:22:30.000Z',
         qaEnabled: true,
@@ -727,7 +820,7 @@ describe('HomeComponent', () => {
       ).map((line) => line.textContent?.trim());
       expect(descriptions[0]).toMatch(/^Zugang bis /);
       expect(descriptions[1]).toBe('Forum geschlossen');
-      expect(descriptions[2]).toBe('1 Frage');
+      expect(descriptions[2]).toBe('In Moderation: 1');
       expect(
         fixture.nativeElement
           .querySelector('.home-host-session-cta-row [data-testid="home-host-recovery"]')
@@ -1079,7 +1172,7 @@ describe('HomeComponent', () => {
       const { trpc } = await import('../../core/trpc.client');
       seedHostCapability();
       vi.mocked(trpc.session.getInfo.query).mockResolvedValue(
-        hostSessionGetInfo('ABC123', true, { qaQuestionCount: 4 }),
+        hostSessionGetInfo('ABC123', true, { qaQuestionCount: 4, qaPendingQuestionCount: 4 }),
       );
       const fixture = createHomeFixture();
       fixture.detectChanges();
@@ -1118,7 +1211,7 @@ describe('HomeComponent', () => {
             note: expect.stringContaining('Wiederherstellungskarte'),
             consequences: expect.arrayContaining([
               expect.stringContaining('Offen bis'),
-              '4 Fragen',
+              'In Moderation: 4',
               expect.stringContaining('Zugang bis'),
             ]),
           }),
@@ -1185,7 +1278,7 @@ describe('HomeComponent', () => {
       const { trpc } = await import('../../core/trpc.client');
       seedHostCapability();
       vi.mocked(trpc.session.getInfo.query).mockResolvedValue(
-        hostSessionGetInfo('ABC123', true, { qaQuestionCount: 4 }),
+        hostSessionGetInfo('ABC123', true, { qaQuestionCount: 4, qaPendingQuestionCount: 4 }),
       );
       const fixture = createHomeFixture();
       fixture.detectChanges();
@@ -1235,6 +1328,7 @@ describe('HomeComponent', () => {
         deadlineLabel: '5.10.2026, 11:29',
         openUntilLabel: '21.9.2026, 12:29',
         questionCount: 0,
+        pendingQuestionCount: 0,
         qaOpen: true,
         openUntilMs: Date.parse('2026-09-21T10:29:00.000Z'),
         accessUntilMs: Date.parse('2026-10-05T09:29:00.000Z'),

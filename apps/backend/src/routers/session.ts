@@ -317,7 +317,13 @@ import {
 import { pdfConcurrencyLimiter } from '../lib/pdfConcurrencyLimiter';
 import { prisma } from '../db';
 import { getRedis } from '../redis';
-import { createCredentialBoundHostToken, isOriginalHostSessionToken } from '../lib/hostAuth';
+import {
+  createCredentialBoundHostToken,
+  extractHostTokenFromContext,
+  isHostSessionTokenValid,
+  isOriginalHostSessionToken,
+  type HostTokenContext,
+} from '../lib/hostAuth';
 import {
   activateHostCredential,
   createInitialHostCredentialMaterial,
@@ -5262,6 +5268,24 @@ async function resolvePublicSessionInfo(
   };
 }
 
+async function attachHostQaPendingQuestionCount<T extends { id: string; code: string }>(
+  payload: T,
+  ctx: HostTokenContext,
+): Promise<T & { qaPendingQuestionCount?: number }> {
+  const hostToken = extractHostTokenFromContext(ctx);
+  if (!hostToken) {
+    return payload;
+  }
+  const valid = await isHostSessionTokenValid(payload.code, hostToken);
+  if (!valid) {
+    return payload;
+  }
+  const qaPendingQuestionCount = await prisma.qaQuestion.count({
+    where: { sessionId: payload.id, status: 'PENDING' },
+  });
+  return { ...payload, qaPendingQuestionCount };
+}
+
 const sessionCoreRouter = router({
   /** Session erstellen (Story 2.1a). Grobes globales und Shared-NAT-IP-Budget. */
   create: publicProcedure
@@ -6080,10 +6104,13 @@ const sessionCoreRouter = router({
               qaOpen: nextQaOpen,
               qaClosesAt: window.qaClosesAt,
               qaTitle: title,
+              // Immer syncen: arsnova_create_qa_question nutzt qaModerationMode OR moderationMode.
+              // Sonst bleibt bei Quiz+Q&A das Legacy-Flag nach REPLAN/toggle desynchron.
               qaModerationMode: input.moderationMode,
+              moderationMode: input.moderationMode,
               ...(session.type === 'Q_AND_A' ||
               (session.quizId === null && !session.quickFeedbackEnabled)
-                ? { title, moderationMode: input.moderationMode }
+                ? { title }
                 : {}),
               preferredChannel: 'qa',
               ...(window.requiresSessionExtension ? { expiresAt: window.expiresAt } : {}),
@@ -6838,13 +6865,17 @@ const sessionCoreRouter = router({
   getInfo: publicProcedure
     .input(PublicSessionCodeLookupInputSchema)
     .output(SessionInfoDTOSchema)
-    .query(({ input }) => resolvePublicSessionInfo(input, 'lookup')),
+    .query(async ({ input, ctx }) =>
+      attachHostQaPendingQuestionCount(await resolvePublicSessionInfo(input, 'lookup'), ctx),
+    ),
 
   /** Session-Info für automatische Poll-/Reconnect-Pfade. */
   getInfoForReconnect: publicProcedure
     .input(PublicSessionCodeLookupInputSchema)
     .output(SessionInfoDTOSchema)
-    .query(({ input }) => resolvePublicSessionInfo(input, 'pollReconnect')),
+    .query(async ({ input, ctx }) =>
+      attachHostQaPendingQuestionCount(await resolvePublicSessionInfo(input, 'pollReconnect'), ctx),
+    ),
 
   /** Aggregierte Host-Lobby mit höchstens 20 jüngsten Ankünften. */
   getParticipantSummary: hostProcedure

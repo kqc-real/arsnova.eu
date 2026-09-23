@@ -5779,6 +5779,123 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
     fixture.destroy();
   });
 
+  it('markiert Freitext-Themen bei neuen Antworten als veraltet und analysiert erst nach Themen aktualisieren', async () => {
+    getInfoQueryMock.mockResolvedValue({ ...defaultSession, status: 'ACTIVE' });
+    getCurrentQuestionForHostQueryMock.mockResolvedValue({
+      questionId: '11111111-1111-4111-8111-111111111111',
+      order: 5,
+      text: 'Warum bleibt ein Satellit im Orbit?',
+      type: 'FREETEXT',
+      difficulty: 'EASY',
+      answers: [],
+    });
+    getLiveFreetextQueryMock.mockResolvedValue({
+      ...defaultLiveFreetext,
+      questionId: '11111111-1111-4111-8111-111111111111',
+      questionOrder: 5,
+      questionType: 'FREETEXT',
+      questionText: 'Warum bleibt ein Satellit im Orbit?',
+      responses: ['Lineare Regression im Projekt', 'Lineare Regression hilft'],
+    });
+    wordCloudAnalyzeQueryMock.mockResolvedValue(
+      wordCloudAnalyzeResult({
+        mode: 'SEMANTIC',
+        metric: 'TOP',
+        status: 'ready',
+        fallbackUsed: false,
+        modelVersion: 'intfloat/multilingual-e5-small@sha256:testdigest',
+        analysisVersion: '1.14d.1',
+        entries: [
+          {
+            key: 'lineare-regression',
+            label: 'Lineare Regression',
+            count: 2,
+            basisLabel: 'Lineare Regression',
+            members: [
+              {
+                sourceId: 'response-0',
+                text: 'Lineare Regression im Projekt',
+                weight: 1,
+              },
+              {
+                sourceId: 'response-1',
+                text: 'Lineare Regression hilft',
+                weight: 1,
+              },
+            ],
+            variants: ['Lineare Regression'],
+            confidence: 0.9,
+          },
+        ],
+      }),
+    );
+
+    const fixture = setup();
+    fixture.detectChanges();
+    await fixture.whenStable();
+    await vi.waitUntil(() => fixture.componentInstance.displayedFreetextResponses().length === 2, {
+      timeout: 5000,
+      interval: 25,
+    });
+
+    const component = fixture.componentInstance;
+    component.wordCloudExpanded.set(true);
+    await component.setFreetextWordCloudMode('SEMANTIC');
+    fixture.detectChanges();
+
+    await vi.waitUntil(
+      () => component.freetextWordCloudSemanticAnalysisResult()?.status === 'ready',
+      { timeout: 5000, interval: 25 },
+    );
+    const analyzeCallsAfterReady = wordCloudAnalyzeQueryMock.mock.calls.length;
+    expect(component.freetextWordCloudSemanticStale()).toBe(false);
+    expect(component.freetextWordCloudShowThemeRefresh()).toBe(false);
+
+    component.freetextResponses.set([
+      'Lineare Regression im Projekt',
+      'Lineare Regression hilft',
+      'Peer Instruction in der Gruppe',
+    ]);
+    fixture.detectChanges();
+    await flushComponentAfterStable(fixture, 50);
+
+    expect(wordCloudAnalyzeQueryMock.mock.calls.length).toBe(analyzeCallsAfterReady);
+    expect(component.freetextWordCloudSemanticStale()).toBe(true);
+    expect(component.freetextWordCloudShowThemeRefresh()).toBe(true);
+    expect(component.freetextWordCloudSemanticHint()).toContain(
+      'Neue Antworten seit letzter Themenanalyse',
+    );
+    expect(
+      fixture.nativeElement.querySelector('[data-testid="freetext-word-cloud-refresh-themes"]'),
+    ).toBeTruthy();
+    expect(fixture.nativeElement.textContent).toContain('Themen aktualisieren');
+
+    component.refreshFreetextWordCloudThemes();
+    await vi.waitUntil(() => wordCloudAnalyzeQueryMock.mock.calls.length > analyzeCallsAfterReady, {
+      timeout: 5000,
+      interval: 25,
+    });
+    await vi.waitUntil(() => component.freetextWordCloudSemanticStale() === false, {
+      timeout: 5000,
+      interval: 25,
+    });
+
+    const refreshedRequest = wordCloudAnalyzeQueryMock.mock.calls.at(-1)?.[0] as {
+      mode?: string;
+      channel?: string;
+      items?: unknown[];
+    };
+    expect(refreshedRequest).toEqual(
+      expect.objectContaining({
+        mode: 'SEMANTIC',
+        channel: 'FREETEXT',
+      }),
+    );
+    expect(refreshedRequest.items).toHaveLength(3);
+    expect(component.freetextWordCloudShowThemeRefresh()).toBe(false);
+    fixture.destroy();
+  });
+
   it('oeffnet die Freitext-Wortwolke ohne Vollbild mit Analyse-Toggle und Freeze-Steuerung', async () => {
     getInfoQueryMock.mockResolvedValue({ ...defaultSession, status: 'ACTIVE' });
     onStatusChangedSubscribeMock.mockImplementation(
@@ -6052,6 +6169,85 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
     });
     expect(component.session()?.preferredChannel).toBe('qa');
     expect(component.session()?.presenterSurface).toBe('default');
+    fixture.destroy();
+  });
+
+  it('hält die maximierte Freitext-Wortwolke unter der sticky Kanal-Leiste, auch wenn die Leiste aus dem Viewport gescrollt war', async () => {
+    getInfoQueryMock.mockResolvedValue({
+      ...defaultSession,
+      status: 'ACTIVE',
+      channels: {
+        quiz: { enabled: true },
+        qa: { enabled: true, open: true, title: 'Fragen aus dem Publikum', moderationMode: true },
+        quickFeedback: { enabled: false, open: false },
+      },
+    });
+    getCurrentQuestionForHostQueryMock.mockResolvedValue({
+      questionId: '11111111-1111-4111-8111-111111111111',
+      order: 5,
+      text: 'Warum bleibt ein Satellit im Orbit?',
+      type: 'FREETEXT',
+      difficulty: 'EASY',
+      answers: [],
+    });
+    getLiveFreetextQueryMock.mockResolvedValue({
+      ...defaultLiveFreetext,
+      questionId: '11111111-1111-4111-8111-111111111111',
+      questionOrder: 5,
+      questionType: 'FREETEXT',
+      questionText: 'Warum bleibt ein Satellit im Orbit?',
+      responses: ['Orbit', 'Gravitation'],
+    });
+
+    const fixture = setup();
+    fixture.detectChanges();
+    await fixture.whenStable();
+    await vi.waitUntil(() => fixture.componentInstance.displayedFreetextResponses().length === 2, {
+      timeout: 5000,
+      interval: 25,
+    });
+
+    const shell = fixture.nativeElement.querySelector(
+      '.session-channel-tabs-shell',
+    ) as HTMLElement | null;
+    expect(shell).toBeTruthy();
+    Object.defineProperty(shell!, 'offsetHeight', {
+      configurable: true,
+      get: () => 64,
+    });
+    Object.defineProperty(shell!, 'getBoundingClientRect', {
+      configurable: true,
+      value: () =>
+        ({
+          top: -120,
+          bottom: -56,
+          left: 0,
+          right: 400,
+          width: 400,
+          height: 64,
+          x: 0,
+          y: -120,
+          toJSON: () => ({}),
+        }) as DOMRect,
+    });
+
+    const component = fixture.componentInstance;
+    component.maximizeFreetextWordCloud();
+    fixture.detectChanges();
+    await flushComponentAfterStable(fixture, 0);
+
+    const overlayTop = document.documentElement.style.getPropertyValue(
+      '--session-host-word-cloud-overlay-top',
+    );
+    const overlayTopPx = Number.parseFloat(overlayTop);
+    expect(component.freetextWordCloudMaximized()).toBe(true);
+    expect(overlayTopPx).toBeGreaterThanOrEqual(64);
+    expect(
+      fixture.nativeElement.querySelector(
+        '.session-host__extra--freetext.session-host__extra--maximized',
+      ),
+    ).toBeTruthy();
+
     fixture.destroy();
   });
 
@@ -7386,6 +7582,178 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
     fixture.destroy();
   });
 
+  it('hält die Q&A-Seite nach Live-Invalidierung auf Seite 2', async () => {
+    getInfoQueryMock.mockResolvedValue({
+      ...defaultSession,
+      status: 'ACTIVE',
+      channels: {
+        quiz: { enabled: true },
+        qa: { enabled: true, open: true, title: 'Fragen aus dem Publikum', moderationMode: true },
+        quickFeedback: { enabled: false, open: false },
+      },
+    });
+    const page1 = {
+      questions: [
+        {
+          id: '11111111-1111-4111-8111-111111111111',
+          text: 'Seite eins',
+          upvoteCount: 5,
+          status: 'ACTIVE' as const,
+          createdAt: '2026-03-13T12:00:00.000Z',
+          myVote: null,
+          isOwn: false,
+          hasUpvoted: false,
+        },
+      ],
+      state: 'ACTIVE' as const,
+      sessionLifecycleRevision: 1,
+      serverNow: '2026-03-13T12:00:00.000Z',
+      expiresAt: '2026-03-14T12:00:00.000Z',
+      qaClosesAt: '2026-03-14T12:00:00.000Z',
+      endedAt: null,
+      postProcessingEndsAt: null,
+      rankingRevision: '1:TOP:',
+      nextCursor: 'cursor-page-2',
+      totalCount: 2,
+    };
+    const page2 = {
+      ...page1,
+      questions: [
+        {
+          id: '22222222-2222-4222-8222-222222222222',
+          text: 'Seite zwei',
+          upvoteCount: 1,
+          status: 'ACTIVE' as const,
+          createdAt: '2026-03-13T12:01:00.000Z',
+          myVote: null,
+          isOwn: false,
+          hasUpvoted: false,
+        },
+      ],
+      rankingRevision: '1:TOP:',
+      nextCursor: null,
+    };
+    const page2AfterInvalidation = {
+      ...page2,
+      sessionLifecycleRevision: 2,
+      rankingRevision: '2:TOP:',
+      questions: [
+        {
+          ...page2.questions[0]!,
+          text: 'Seite zwei aktualisiert',
+          upvoteCount: 3,
+        },
+      ],
+    };
+
+    let invalidationHandler: ((data: unknown) => void) | undefined;
+    qaOnQuestionsUpdatedSubscribeMock.mockImplementation(
+      (_input: unknown, handlers: { onData?: (data: unknown) => void }) => {
+        invalidationHandler = handlers.onData;
+        return { unsubscribe: unsubscribeMock };
+      },
+    );
+    qaListQueryMock.mockImplementation(async (input?: { cursor?: string }) => {
+      if (input?.cursor === 'cursor-page-2') return page2;
+      return page1;
+    });
+
+    const fixture = setup();
+    fixture.detectChanges();
+    await flushComponentAfterStable(fixture, 50);
+    const component = fixture.componentInstance;
+    component.activeChannel.set('qa');
+    fixture.detectChanges();
+    await flushComponentAfterStable(fixture, 50);
+
+    await component.loadMoreQaQuestions();
+    expect(component.qaListPageIndex()).toBe(1);
+    expect(component.qaQuestions()[0]?.text).toBe('Seite zwei');
+
+    qaListQueryMock.mockImplementation(async (input?: { cursor?: string }) => {
+      if (input?.cursor === 'cursor-page-2') return page2AfterInvalidation;
+      return {
+        ...page1,
+        sessionLifecycleRevision: 2,
+        rankingRevision: '2:TOP:',
+        nextCursor: 'cursor-page-2',
+      };
+    });
+
+    invalidationHandler?.({
+      kind: 'INVALIDATED',
+      state: 'ACTIVE',
+      sessionLifecycleRevision: 2,
+      rankingRevision: 2,
+      participantRevision: 1,
+      serverNow: '2026-03-13T12:02:00.000Z',
+      expiresAt: '2026-03-14T12:00:00.000Z',
+      qaClosesAt: '2026-03-14T12:00:00.000Z',
+      endedAt: null,
+      postProcessingEndsAt: null,
+    });
+    await flushComponentAfterStable(fixture, 50);
+
+    expect(component.qaListPageIndex()).toBe(1);
+    expect(component.qaQuestions()[0]?.text).toBe('Seite zwei aktualisiert');
+    fixture.destroy();
+  });
+
+  it('lädt die Q&A-Liste mit gewählter Seitengröße neu', async () => {
+    getInfoQueryMock.mockResolvedValue({
+      ...defaultSession,
+      status: 'ACTIVE',
+      channels: {
+        quiz: { enabled: true },
+        qa: { enabled: true, open: true, title: 'Fragen aus dem Publikum', moderationMode: true },
+        quickFeedback: { enabled: false, open: false },
+      },
+    });
+    qaListQueryMock.mockResolvedValue({
+      questions: [
+        {
+          id: '11111111-1111-4111-8111-111111111111',
+          text: 'Erste',
+          upvoteCount: 1,
+          status: 'ACTIVE' as const,
+          createdAt: '2026-03-13T12:00:00.000Z',
+          myVote: null,
+          isOwn: false,
+          hasUpvoted: false,
+        },
+      ],
+      state: 'ACTIVE' as const,
+      sessionLifecycleRevision: 1,
+      serverNow: '2026-03-13T12:00:00.000Z',
+      expiresAt: '2026-03-14T12:00:00.000Z',
+      qaClosesAt: '2026-03-14T12:00:00.000Z',
+      endedAt: null,
+      postProcessingEndsAt: null,
+      rankingRevision: '1:TOP:',
+      nextCursor: null,
+      totalCount: 1,
+    });
+
+    const fixture = setup();
+    fixture.detectChanges();
+    await flushComponentAfterStable(fixture, 50);
+    const component = fixture.componentInstance;
+    component.activeChannel.set('qa');
+    fixture.detectChanges();
+    await flushComponentAfterStable(fixture, 50);
+
+    qaListQueryMock.mockClear();
+    await component.setQaListPageSize(250);
+    expect(component.qaListPageSize()).toBe(250);
+    expect(qaListQueryMock).toHaveBeenCalledWith(
+      expect.objectContaining({
+        pageSize: 250,
+        moderatorView: true,
+      }),
+    );
+    fixture.destroy();
+  });
+
   it('kennzeichnet kontroverse Fragen in der Host-Liste sichtbar', async () => {
     getInfoQueryMock.mockResolvedValue({
       ...defaultSession,
@@ -8076,6 +8444,7 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
       filter: 'ALL_ELIGIBLE',
       normalization: 'NONE',
       maxEntries: 40,
+      limit: 100,
     });
     expect(fixture.componentInstance.qaWordCloudThemeFallbackHint()).toBeNull();
     expect(fixture.componentInstance.qaWordCloudAnalysisEntries()).toMatchObject([
@@ -12850,7 +13219,7 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
     fixture.destroy();
   });
 
-  it('öffnet bei Freitext-Ergebniszeigen die Wortwolke und scrollt dorthin, wenn sie noch zu war', async () => {
+  it('maximiert bei Freitext-Ergebniszeigen die Wortwolke wie »Maximieren«', async () => {
     getInfoQueryMock.mockResolvedValue({ ...defaultSession, status: 'ACTIVE' });
     getCurrentQuestionForHostQueryMock.mockResolvedValue({
       questionId: '11111111-1111-4111-8111-111111111111',
@@ -12882,17 +13251,25 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
 
     const component = fixture.componentInstance;
     expect(component.wordCloudExpanded()).toBe(false);
+    expect(component.freetextWordCloudMaximized()).toBe(false);
 
     await component.revealResults();
     await flushComponentAfterStable(fixture, 0);
+    fixture.detectChanges();
 
     expect(revealResultsMutateMock).toHaveBeenCalledWith({ code: 'ABC123' });
     expect(component.wordCloudExpanded()).toBe(true);
+    expect(component.freetextWordCloudMaximized()).toBe(true);
+    expect(
+      fixture.nativeElement.querySelector(
+        '.session-host__extra--freetext.session-host__extra--maximized',
+      ),
+    ).toBeTruthy();
     expect(fixture.nativeElement.querySelector('#host-freetext-word-cloud')).toBeTruthy();
     fixture.destroy();
   });
 
-  it('lässt bei Freitext-Ergebniszeigen eine bereits offene Wortwolke unverändert', async () => {
+  it('maximiert bei Freitext-Ergebniszeigen auch eine bereits aufgeklappte Wortwolke', async () => {
     getInfoQueryMock.mockResolvedValue({ ...defaultSession, status: 'ACTIVE' });
     getCurrentQuestionForHostQueryMock.mockResolvedValue({
       questionId: '11111111-1111-4111-8111-111111111111',
@@ -12926,8 +13303,15 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
 
     await component.revealResults();
     await flushComponentAfterStable(fixture, 0);
+    fixture.detectChanges();
 
     expect(component.wordCloudExpanded()).toBe(true);
+    expect(component.freetextWordCloudMaximized()).toBe(true);
+    expect(
+      fixture.nativeElement.querySelector(
+        '.session-host__extra--freetext.session-host__extra--maximized',
+      ),
+    ).toBeTruthy();
     fixture.destroy();
   });
 
@@ -17749,7 +18133,7 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
         expect.objectContaining({
           moderatorView: true,
           sort: 'TIME',
-          pageSize: 100,
+          pageSize: 500,
           statuses: ['PENDING', 'ACTIVE', 'PINNED', 'ARCHIVED', 'DELETED'],
         }),
       );

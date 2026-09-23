@@ -841,53 +841,53 @@ describe('qa router (Epic 8)', () => {
     expect(result.questions.map((question) => question.text)).toEqual(['Weiter auf der Leinwand']);
   });
 
-  it('begrenzt pageSize auf 100 und liefert einen fortsetzbaren nextCursor', async () => {
+  it('begrenzt pageSize auf 500 und liefert einen fortsetzbaren nextCursor', async () => {
     prismaMock.session.findUnique.mockResolvedValue({
       ...ACTIVE_QA_SESSION,
       type: 'QUIZ',
       qaEnabled: true,
       qaOpen: true,
       qaModerationMode: false,
-      qaQuestionCount: 101,
+      qaQuestionCount: 501,
     });
-    const rows = Array.from({ length: 101 }, (_, index) =>
+    const rows = Array.from({ length: 501 }, (_, index) =>
       rankedQaRow({
         id: `00000000-0000-4000-8000-${String(index + 1).padStart(12, '0')}`,
         text: `Frage ${index + 1}`,
-        totalCount: 101,
+        totalCount: 501,
       }),
     );
-    rawQueryResults.rankedQuestions.push(rows, [rows[100]!]);
+    rawQueryResults.rankedQuestions.push(rows, [rows[500]!]);
 
     const firstPage = await caller.list({
       sessionId: SESSION_ID,
       participantId: PARTICIPANT_ID,
-      pageSize: 100,
+      pageSize: 500,
     });
 
-    expect(firstPage.questions).toHaveLength(100);
-    expect(firstPage.totalCount).toBe(101);
+    expect(firstPage.questions).toHaveLength(500);
+    expect(firstPage.totalCount).toBe(501);
     expect(firstPage.nextCursor).toEqual(expect.any(String));
     const firstQueryCall = prismaMock.$queryRaw.mock.calls[0] ?? [];
-    expect(firstQueryCall.slice(1)).toEqual(expect.arrayContaining([101, 0]));
+    expect(firstQueryCall.slice(1)).toEqual(expect.arrayContaining([501, 0]));
 
     const secondPage = await caller.list({
       sessionId: SESSION_ID,
       participantId: PARTICIPANT_ID,
-      pageSize: 100,
+      pageSize: 500,
       cursor: firstPage.nextCursor!,
     });
 
-    expect(secondPage.questions.map((question) => question.text)).toEqual(['Frage 101']);
+    expect(secondPage.questions.map((question) => question.text)).toEqual(['Frage 501']);
     expect(secondPage.nextCursor).toBeNull();
     const secondQueryCall = prismaMock.$queryRaw.mock.calls[1] ?? [];
-    expect(secondQueryCall.slice(1)).toEqual(expect.arrayContaining([101, 100]));
+    expect(secondQueryCall.slice(1)).toEqual(expect.arrayContaining([501, 500]));
 
     await expect(
       caller.list({
         sessionId: SESSION_ID,
         participantId: PARTICIPANT_ID,
-        pageSize: 101,
+        pageSize: 501,
       }),
     ).rejects.toMatchObject({ code: 'BAD_REQUEST' });
     expect(prismaMock.$queryRaw).toHaveBeenCalledTimes(2);
@@ -1319,10 +1319,42 @@ describe('qa router (Epic 8)', () => {
 
       expect(prismaMock.session.update).toHaveBeenCalledWith({
         where: { id: SESSION_ID },
-        data: { qaModerationMode: true },
+        data: { qaModerationMode: true, moderationMode: true },
         select: { qaModerationMode: true },
       });
+      expect(prismaMock.qaQuestion.updateMany).not.toHaveBeenCalled();
       expect(result).toEqual({ enabled: true });
+    },
+  );
+
+  trpcDodIt(
+    {
+      procedure: 'qa.toggleModeration',
+      case: 'happy',
+      mode: 'direct',
+      title: 'gibt beim Deaktivieren wartende Fragen frei und syncronisiert Legacy-Moderation',
+    },
+    async () => {
+      prismaMock.session.findFirst.mockResolvedValue({
+        ...ACTIVE_QA_SESSION,
+        id: SESSION_ID,
+        status: 'ACTIVE',
+      });
+      prismaMock.session.update.mockResolvedValue({ qaModerationMode: false });
+      prismaMock.qaQuestion.updateMany.mockResolvedValue({ count: 12 });
+
+      const result = await hostCaller.toggleModeration({ sessionCode: 'ABC123', enabled: false });
+
+      expect(prismaMock.session.update).toHaveBeenCalledWith({
+        where: { id: SESSION_ID },
+        data: { qaModerationMode: false, moderationMode: false },
+        select: { qaModerationMode: true },
+      });
+      expect(prismaMock.qaQuestion.updateMany).toHaveBeenCalledWith({
+        where: { sessionId: SESSION_ID, status: 'PENDING' },
+        data: { status: 'ACTIVE' },
+      });
+      expect(result).toEqual({ enabled: false });
     },
   );
 

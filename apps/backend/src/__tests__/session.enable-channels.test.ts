@@ -7,6 +7,9 @@ const { prismaMock, hostAuthMocks } = vi.hoisted(() => ({
       findUnique: vi.fn(),
       update: vi.fn(),
     },
+    qaQuestion: {
+      count: vi.fn(),
+    },
     $executeRaw: vi.fn(),
     $transaction: vi.fn(),
   },
@@ -80,6 +83,7 @@ describe('session.enable channel mutations', () => {
     hostAuthMocks.extractHostTokenMock.mockReturnValue('host-token-123');
     hostAuthMocks.extractHostTokenFromConnectionParamsMock.mockReturnValue(null);
     hostAuthMocks.isHostSessionTokenValidMock.mockResolvedValue(true);
+    prismaMock.qaQuestion.count.mockResolvedValue(0);
     prismaMock.$executeRaw.mockResolvedValue(1);
     prismaMock.$transaction.mockImplementation(async (fn: (tx: typeof prismaMock) => unknown) =>
       fn(prismaMock),

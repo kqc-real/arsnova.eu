@@ -4076,6 +4076,11 @@ export const SessionInfoDTOSchema = z.object({
   participantCount: z.number(),
   /** Teilnehmendensichtbare Q&A-Fragen (ACTIVE/PINNED/ARCHIVED), nicht Quizfragen. Optional für Rolling Deploy. */
   qaQuestionCount: z.number().int().min(0).optional(),
+  /**
+   * Nur mit gültigem Host-Token: wartende Moderationsfragen (PENDING).
+   * Nie im öffentlichen Cache; fehlend für Teilnehmende.
+   */
+  qaPendingQuestionCount: z.number().int().min(0).optional(),
   nicknameTheme: NicknameThemeEnum.optional(),
   allowCustomNicknames: z.boolean().optional(),
   anonymousMode: z.boolean().optional(),
@@ -4282,12 +4287,28 @@ export const QA_WORD_CLOUD_MAX_OUTPUT_ENTRIES = 80;
 export const QA_WORD_CLOUD_MAX_EXPLANATION_MEMBERS = 1;
 export const QA_WORD_CLOUD_MAX_EXPLANATION_TEXT_CHARS = 128;
 
+/** Host-/Teilnehmer-Seitengrößen; Obergrenze = Wortwolken-Analysebudget. */
+export const QA_LIST_PAGE_SIZE_OPTIONS = [100, 250, 500] as const;
+export type QaListPageSize = (typeof QA_LIST_PAGE_SIZE_OPTIONS)[number];
+export const QA_LIST_DEFAULT_PAGE_SIZE: QaListPageSize = 100;
+
 export const AnalyzeQaWordCloudInputSchema = AnalyzeWordCloudInputSchema.omit({
   items: true,
   channel: true,
   corpusRevision: true,
 }).extend({
   filter: QaWordCloudFilterEnum.default('ALL_ELIGIBLE'),
+  /**
+   * Korpusgröße analog zur Host-Forum-Seitengröße (100/250/500).
+   * Obergrenze bleibt das Analysebudget der Wortwolke.
+   */
+  limit: z
+    .number()
+    .int()
+    .min(1)
+    .max(WORD_CLOUD_MAX_ANALYZE_ITEMS)
+    .optional()
+    .default(QA_LIST_DEFAULT_PAGE_SIZE),
 });
 export type AnalyzeQaWordCloudInput = z.infer<typeof AnalyzeQaWordCloudInputSchema>;
 
@@ -5773,7 +5794,7 @@ export type QaQuestionQuotaDTO = z.infer<typeof QaQuestionQuotaDTOSchema>;
 
 /** Autoritativer Q&A-Inhaltssnapshot mit Lifecycle-Revision gegen Reordering. */
 export const QaQuestionsListDTOSchema = z.object({
-  questions: z.array(QaQuestionDTOSchema).max(100),
+  questions: z.array(QaQuestionDTOSchema).max(WORD_CLOUD_MAX_ANALYZE_ITEMS),
   state: QaContentStateSchema,
   sessionLifecycleRevision: z.number().int().min(0),
   serverNow: z.string().datetime(),
@@ -5810,6 +5831,8 @@ export const QaQuestionsInvalidationDTOSchema = z.object({
 });
 export type QaQuestionsInvalidationDTO = z.infer<typeof QaQuestionsInvalidationDTOSchema>;
 
+/** Host-/Teilnehmer-Seitengrößen; siehe QA_LIST_PAGE_SIZE_OPTIONS weiter oben. */
+
 export const GetQaQuestionsInputSchema = z.object({
   sessionId: z.uuid(),
   participantId: z.uuid().optional(),
@@ -5818,7 +5841,13 @@ export const GetQaQuestionsInputSchema = z.object({
   search: z.string().trim().max(100).optional().default(''),
   authorNickname: z.string().trim().min(1).max(30).optional(),
   statuses: z.array(QaQuestionStatusEnum).max(5).optional(),
-  pageSize: z.number().int().min(1).max(100).optional().default(50),
+  pageSize: z
+    .number()
+    .int()
+    .min(1)
+    .max(WORD_CLOUD_MAX_ANALYZE_ITEMS)
+    .optional()
+    .default(QA_LIST_DEFAULT_PAGE_SIZE),
   cursor: z.string().min(1).max(1000).optional(),
 });
 export type GetQaQuestionsInput = z.infer<typeof GetQaQuestionsInputSchema>;
