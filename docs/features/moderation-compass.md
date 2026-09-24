@@ -11,6 +11,8 @@
 
 ## Zweck
 
+**Technisches Onboarding für Release 1.3:** [Architektur, Analyseverfahren, Datenverträge und Betrieb des Moderationskompasses](moderation-compass-onboarding-1.3.md). Die Dokumentation erläutert den Zielstand aus #463 und #456 und unterscheidet belegten Code von zusätzlichen Releaseverträgen.
+
 Der Host erhält während einer Live-Session eine **regelbasierte, quellenbelegte Lageeinschätzung** aus bereits geladenen Host-Signalen. Der Kompass schlägt vorsichtige nächste Schritte vor, führt aber **keine** Aktionen aus.
 
 Er ist die Fallback-Basis für 8.9b und 8.9c: ohne NLP, ohne LLM, ohne neuen Dauerpoller und ohne Teilnehmer-Fan-out. Presenter- und Teilnehmendenansicht zeigen den Kompass nicht.
