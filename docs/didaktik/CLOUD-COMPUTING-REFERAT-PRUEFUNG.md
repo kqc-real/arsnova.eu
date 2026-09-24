@@ -69,26 +69,31 @@ Der Prüfungsauftrag muss den verbindlichen Themenstichtag, das gewählte Format
 
 ### 4.1 Kanonischer Themenkatalog für die Fallstudie arsnova.eu
 
-**Generalthema beider Kurse:** Wie lässt sich der Moderationskompass von arsnova.eu so als Cloud-System gestalten und betreiben, dass Lehrende aus vielen Live-Signalen eine nachvollziehbare Lageeinschätzung gewinnen, die Kontrolle über ihre Lehrentscheidungen behalten und der Livebetrieb zuverlässig bleibt?
+**Generalthema beider Kurse:** Wie bewährt sich der produktive Moderationskompass von arsnova.eu Release 1.3 unter unterschiedlichen Cloud-Betriebsbedingungen, und welche begründeten Optimierungen ermöglichen es, dass Lehrende aus vielen Live-Signalen eine nachvollziehbare Lageeinschätzung gewinnen, die Kontrolle über ihre Lehrentscheidungen behalten und der Livebetrieb zuverlässig bleibt?
 
 Die sechs Themen untersuchen Architektur, Informationsqualität, Kapazität, Betrieb, Sicherheit und Wirtschaftlichkeit desselben Systems. Sie beziehen sich auf den Zyklus **Wahrnehmen → Einordnen → Handeln**: Das System verdichtet beobachtbare Signale; die Lehrperson interpretiert und entscheidet. Stimmen, Kategorien und Themen sind keine direkten Lernstandsmessungen. Weder ein gültiger Quellenverweis noch eine flüssige Modellantwort belegt didaktische Wirksamkeit.
 
-Verbindliche fachliche Grundlage ist [Issue #456: vollständigen, quellengebundenen LLM-Kontext für die Prompt-Erstellung vorbereiten](https://github.com/kqc-real/arsnova.eu/issues/456). Die [Roadmap #463 für Version 1.3.0](https://github.com/kqc-real/arsnova.eu/issues/463) ordnet diesen Auftrag in das Gesamtziel des Moderationskompasses ein. #456 spezifiziert Kontext und Lernziele; #463 ist die Releaseplanung. Beide ergänzen die [Backlog-Storys](../../Backlog.md) und die Architekturentscheidungen. Der endgültige Moderationsprompt und eine empirische Wirksamkeitsstudie sind Folgearbeit; eine Referatsprüfung nimmt weder das gesamte Issue noch einen Release ab.
+Verbindliche fachliche Grundlage ist [Issue #456: vollständigen, quellengebundenen LLM-Kontext für die Prompt-Erstellung vorbereiten](https://github.com/kqc-real/arsnova.eu/issues/456). Die [Roadmap #463 für Version 1.3.0](https://github.com/kqc-real/arsnova.eu/issues/463) ordnet diesen Auftrag in das Gesamtziel des Moderationskompasses ein. #456 spezifiziert Kontext und Lernziele; #463 beschreibt den zum Kursbeginn vollständig umgesetzten Releaseumfang. Die Aufträge setzen dessen Implementierung voraus und untersuchen ihre Eigenschaften und Grenzen. Beide ergänzen die [Backlog-Storys](../../Backlog.md) und die Architekturentscheidungen. Der endgültige Moderationsprompt und eine empirische Wirksamkeitsstudie sind Folgearbeit; eine Referatsprüfung nimmt weder das gesamte Issue noch einen Release ab.
 
 #### 4.1.1 Repositorybasis und verbindliche Systemgrenzen
 
-**Dokumentationsabgleich: 2026-09-24.** Bei der Themenvergabe werden ein konkreter Repository-Commit und datierte Fassungen der relevanten Issue-Abschnitte festgelegt. Ein Issue beschreibt einen Auftrag, kein implementiertes Verhalten. Jede Person trennt in ihrer Arbeit **vorhanden**, **geplant**, **eigener Laborprototyp** und **tatsächlich gemessen**.
+**Verbindliche Planungsannahme für den Kursbeginn:** Die Roadmap zu Release **1.3.0** einschließlich #456 ist vollständig umgesetzt und der produktive Stand 1.3 bildet die Ausgangsbasis sämtlicher Arbeiten. Diese Festlegung beschreibt den vorausgesetzten Kursstand, nicht eine bereits am Redaktionsdatum 2026-09-24 erfolgte Releaseabnahme. Frühere Offen-Vermerke in verlinkten Issue-/Dokufassungen sind Entwicklungsgeschichte und keine Ersatzaufträge an Studierende.
 
-| Baustein                                  | Ausgangslage und Bedeutung für den Moderationskompass                                                                                                                                                                                             | Kanonischer Einstieg                                                                                                                                                 |
-| ----------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| 8.9a – deterministischer Kompass          | Regelbasierte, quellenbelegte Host-Karten und nächster Schritt; ohne Inferenz nutzbar. Keine automatischen Moderationsaktionen oder Personenbewertungen.                                                                                          | [Moderationskompass](../features/moderation-compass.md); [Kartenlogik](../../apps/frontend/src/app/features/session/session-host/moderation-compass.ts)              |
-| 8.9b – optionale Q&A-Klassifikation       | Vorhandene asynchrone Kaskade mit `content`, `organization`, `technical`; Unsicherheit und Ausfall bleiben sichtbar. Kein Auftrag auf dem LLM-Slot.                                                                                               | [Q&A-NLP](../features/qa-nlp-moderation.md)                                                                                                                          |
-| 1.14a/b – lexikalische Begriffe und spaCy | Bestehende Wörter-/Phrasenbasis und optionale sprachliche Glättung; ergänzende Quellen für die Moderation, keine generative Lageeinschätzung.                                                                                                     | [spaCy-Glättung](../features/word-cloud-spacy.md)                                                                                                                    |
-| 1.14c – semantische Q&A-Themen            | Encoder, deterministisches Clustering und extraktive Labels sind vorhanden; LLM-Labels sind eine geplante weitere Stufe. Kategorie, Thema und Kompasskarte bleiben verschiedene Begriffe.                                                         | [Themenmodus](../features/word-cloud-semantic.md)                                                                                                                    |
-| 8.9c – Zusammenfassung                    | Vertrag, Host-UI, privater Adapter, Snapshot-Ranking und Entwicklungshilfsserver vorhanden. Echte private generative Integration und extraktiver Fallback in der App-Queue sind noch ausstehende Schritte.                                        | [Zusammenfassung](../features/qa-summary.md); [Snapshot](../../apps/backend/src/lib/qaSummarySnapshot.ts); [Adapter](../../apps/backend/src/lib/qaSummaryAdapter.ts) |
-| 8.9d – private Runtime                    | Geplante gemeinsame `llama-server`-Runtime für Labels, Zusammenfassung und Lernzielableitung; eine Dokumentations- oder HTTP-Adapteränderung ersetzt keinen Runtime-Nachweis.                                                                     | [ADR-0035 einschließlich Ergänzung zu #456](../architecture/decisions/0035-self-hosted-llm-runtime-llama-cpp-over-ollama.md)                                         |
-| #456 – reichhaltiger Kontext              | Versionierte Verträge, autorisierte Snapshots, Bewertungen, Themenaggregate, Kompasssignale, Lernziele, freigegebene Ergebnisse/Feedback, Quellenregister, Budgetierung, Vorschau und Adapterübergabe sind der spezifizierte Erweiterungsauftrag. | [Issue #456](https://github.com/kqc-real/arsnova.eu/issues/456), besonders Abschnitte 1–14 und abschließender Implementierungsauftrag                                |
-| #463 – gemeinsames Zielbild               | Drei Schichten aus Regelkern, optionaler NLP und privater generativer Unterstützung; Lehrendenkontrolle, Quellennachvollziehbarkeit und verlässlicher Livebetrieb sind die gemeinsamen Qualitätsziele.                                            | [Roadmap #463](https://github.com/kqc-real/arsnova.eu/issues/463)                                                                                                    |
+Bei der Themenvergabe fixiert die Lehrperson den tatsächlich produktiv eingesetzten **1.3-Release-Tag und Commit**, die dazugehörigen Dokumentations-/Schemasversionen sowie ein Referenzmanifest mit Hardware, Modell-/Image-Digests, Kontext- und Antwortlimits, Timeouts und Feature-Flags. Konkrete Funktionsnamen werden aus diesem Stand übernommen. Jede Person unterscheidet **unveränderte 1.3-Baseline**, **kontrollierte Versuchsvariante** und **gemessenes Ergebnis**. Alle Experimente starten mit einem nachvollziehbaren Baselinelauf.
+
+**Produktstand als Basis, isolierte Umgebung als Versuchsort:** Die Lehrperson stellt eine reproduzierbare Laborinstanz desselben Releasecodes einschließlich funktionsfähiger privater Runtime und freigegebener Testdaten bereit. Produktiv deaktivierte optionale Funktionen werden für die betreffenden Versuche gezielt in dieser Instanz aktiviert; der Release-Tag allein sagt nichts über die produktiven Flagwerte aus. Fehler-, Last-, Konfigurations- und Sicherheitsversuche laufen ausschließlich dort. Lehrveranstaltung und öffentliche Produktion werden nicht zum Testziel.
+
+| Baustein                                  | Ausgangslage und Bedeutung für den Moderationskompass                                                                                                                                                                                                                                                                             | Kanonischer Einstieg                                                                                                                                                 |
+| ----------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 8.9a – deterministischer Kompass          | Regelbasierte, quellenbelegte Host-Karten und nächster Schritt; ohne Inferenz nutzbar. Keine automatischen Moderationsaktionen oder Personenbewertungen.                                                                                                                                                                          | [Moderationskompass](../features/moderation-compass.md); [Kartenlogik](../../apps/frontend/src/app/features/session/session-host/moderation-compass.ts)              |
+| 8.9b – optionale Q&A-Klassifikation       | Vorhandene asynchrone Kaskade mit `content`, `organization`, `technical`; Unsicherheit und Ausfall bleiben sichtbar. Kein Auftrag auf dem LLM-Slot.                                                                                                                                                                               | [Q&A-NLP](../features/qa-nlp-moderation.md)                                                                                                                          |
+| 1.14a/b – lexikalische Begriffe und spaCy | Bestehende Wörter-/Phrasenbasis und optionale sprachliche Glättung; ergänzende Quellen für die Moderation, keine generative Lageeinschätzung.                                                                                                                                                                                     | [spaCy-Glättung](../features/word-cloud-spacy.md)                                                                                                                    |
+| 1.14c – semantische Q&A-Themen            | Encoder, deterministisches Clustering, extraktive und optionale generative Labels sind Bestandteil der vorausgesetzten 1.3-Baseline. Kategorie, Thema und Kompasskarte bleiben verschiedene Begriffe.                                                                                                                             | [Themenmodus](../features/word-cloud-semantic.md)                                                                                                                    |
+| 1.14d – Freitext-Themen                   | Der Freitext-Themenmodus verwendet den vorhandenen Encoder. Er ist Teil der 1.3-Baseline; Kanal-/Quellengrenzen und der Scope generativer Labels bleiben gemäß Releasevertrag getrennt.                                                                                                                                           | [Roadmap #463](https://github.com/kqc-real/arsnova.eu/issues/463); [Backlog](../../Backlog.md)                                                                       |
+| 8.9c – Zusammenfassung                    | Reale private generative Kurzfassung einschließlich Kontextübergabe, Quellenbindung und extraktivem Fallback in der App-Queue ist umgesetzt; der Dev-Helfer ist keine Ersatzbaseline.                                                                                                                                             | [Zusammenfassung](../features/qa-summary.md); [Snapshot](../../apps/backend/src/lib/qaSummarySnapshot.ts); [Adapter](../../apps/backend/src/lib/qaSummaryAdapter.ts) |
+| 8.9d – private Runtime                    | Implementierte und abgenommene gemeinsame `llama-server`-Runtime für Labels, Zusammenfassung und Lernzielableitung; reale Modellläufe und Slotsteuerung sind Untersuchungsgegenstand.                                                                                                                                             | [ADR-0035 einschließlich Ergänzung zu #456](../architecture/decisions/0035-self-hosted-llm-runtime-llama-cpp-over-ollama.md)                                         |
+| #456 – reichhaltiger Kontext              | Versionierte Verträge, autorisierte Snapshots, Bewertungen, Themenaggregate, Kompasssignale, Lernziele, freigegebene Ergebnisse/Feedback, Quellenregister, Budgetierung, Vorschau und Adapterübergabe sind als implementierte Funktionen der 1.3-Baseline vorausgesetzt und werden anhand ihres tatsächlichen Verhaltens geprüft. | [Issue #456](https://github.com/kqc-real/arsnova.eu/issues/456), besonders Abschnitte 1–14 und abschließender Implementierungsauftrag                                |
+| #463 – gemeinsames Zielbild               | Drei Schichten aus Regelkern, optionaler NLP und privater generativer Unterstützung; Lehrendenkontrolle, Quellennachvollziehbarkeit und verlässlicher Livebetrieb sind die gemeinsamen Qualitätsziele.                                                                                                                            | [Roadmap #463](https://github.com/kqc-real/arsnova.eu/issues/463)                                                                                                    |
 
 Für alle sechs Themen gelten folgende Leitplanken:
 
@@ -98,7 +103,7 @@ Für alle sechs Themen gelten folgende Leitplanken:
 4. **Daten und Autorisierung:** Vorbereitungsauftrag und Live-Kontext haben unterschiedliche Datengrenzen. Im Modellkontext stehen keine Tokens, IPs, Nicknames oder Teilnehmerprofile. Freitext kann dennoch Personenbezüge enthalten. Gesperrte Lösungen und Ergebnisse dürfen auch nicht mittelbar über Lernzieltexte unzulässig sichtbar werden.
 5. **Aussagekraft:** Best-Score bedeutet abgesicherte positive Bewertung, Kontroversität geteilte Bewertungen und `PENDING` Freigabestatus. Keine dieser Größen beweist Verständnis, fachliche Qualität oder einen individuellen Lernstand. Stimmen mehrerer Fragen sind keine Anzahl verschiedener Personen.
 6. **Begrenzung:** „Vollständiger Kontext“ bedeutet die unterstützten Kontextarten mit expliziten Lücken und Auswahlgrenzen; nicht das gesamte Forum im Prompt. Instruktionen, Nutzdaten, Antwortreserve und Sicherheitsreserve teilen sich das Modellbudget. Reale Token-/Prefill-Grenzen sind zu prüfen.
-7. **Fallback und Freigabe:** Der Regelkompass bleibt ohne optionale Module nutzbar. Der bisherige extraktive Summary-Helfer ist kein Nachweis eines Backend-Fallbacks. Modellfreie Tests, lokale Modellmessung, Produktionsnähe und Betreiberfreigabe sind getrennte Nachweise. Kein stiller SaaS- oder GPU-Ausbau.
+7. **Fallback und Freigabe:** Der Regelkompass bleibt ohne optionale Module nutzbar. Der extraktive Summary-Fallback liegt in 1.3 in der App-Queue und wird dort geprüft; der Entwicklungshilfsserver ersetzt diesen Nachweis nicht. Modellfreie Tests, lokale Modellmessung, Produktionsnähe und Betreiberfreigabe sind getrennte Nachweise. Kein stiller SaaS- oder GPU-Ausbau.
 
 #### 4.1.2 Zwei Kursgrößen, gleichwertige individuelle Prüfungsleistungen
 
@@ -122,20 +127,22 @@ Der kleine Kurs bearbeitet einen vergleichbar tiefen, aber engeren Ausschnitt. N
 Jeder individuelle Prüfungsauftrag hält vor Beginn fest:
 
 - Oberthema und individuellen Titel, eine überprüfbare Hypothese und eine ernsthafte Gegenalternative;
-- Repository-Commit, relevante Storys, datierten Issue-Stand und tatsächlich verfügbare Funktionen; vorgeschlagene Namen wie `ModerationPromptContextV1` gelten erst nach Codeabgleich als implementiert;
+- produktiven 1.3-Release-Tag/Commit, Referenzmanifest, relevante Storys und Release-Dokumentation; die tatsächlichen Kontext-, Quellen- und Adapterverträge aus diesem Stand;
 - Zielumgebung, Hardware, Daten-/Modellzugang, freigegebene Werkzeuge, Kostenobergrenze und erforderliche Vorleistungen;
 - mindestens einen eigenen ausführbaren Mess-, Vertrags-, Fehler- oder Sicherheitstest beziehungsweise eine reproduzierbare, begründet kalibrierte Simulation;
 - Messgrößen, Wiederholungen, Vergleichsbedingungen, erwartete Rohdaten und vorab begründete Entscheidungsschwellen;
 - erwartete technische Entscheidung mit wirtschaftlicher, betrieblicher oder verantwortungsbezogener Folge;
 - individuellen Anteil an gemeinsam genutzten Artefakten, Abgabeformat und Gegenstände der Befragung.
 
+**Verbindliches Nachweisformat für jeden der 24 Einzelaufträge (sechs Einzelreferate und 18 Gruppenbeiträge):** Release-Tag/Commit und Referenzmanifest → unveränderter eigener Baselinelauf → genau bezeichnete Gegenvariante oder Störung → vergleichbare Messdaten → Befund mit Gültigkeitsgrenze → konkrete Entscheidung. Vorhandene Releaseabnahmen sind Vergleichsmaterial, kein Ersatz für die eigene Untersuchung. Jede Entscheidung nennt die betroffene 1.3-Funktion oder Konfiguration, eine begründete Beibehaltung oder Änderung und deren Kosten-/Risiko-/Betriebsfolge. „Implementierung fehlt“ ist unter dieser Kursannahme kein Arbeitsauftrag. Für experimentelle Optimierungen bleibt der Rückweg zur unveränderten Baseline dokumentiert.
+
 Als gemeinsamer fachlicher Anker dient das **Sechs-Fragen-Szenario aus #456, Abschnitt 12**: zwei Wünsche nach Regressionsbeispielen, zwei Fragen zur Prüfungsrelevanz und zwei kontrovers bewertete Fragen zur Anwesenheitspflicht. Die vorgesehenen Paare A/B, C/D und E/F werden für Kontexttests als feste Fixture verwendet. Sie beweisen keinen Erfolg eines realen Encoders. Wer Clusteringqualität untersucht, braucht davon unabhängige, vorab begründete Referenzzuordnungen und zusätzliche Fälle. Raumbezugsgröße, Stimmenzahlen und optionale bestätigte Lernziele werden explizit dokumentiert.
 
 Jede Person ergänzt für ihre Frage geeignete Gegenfälle, etwa fehlende statt nullwertige Daten, neue unbewertete Anliegen, unbestätigte oder veraltete Ziele, Text-/Stimmenänderungen, Quellenlöschung, Budgetnot oder überlastete Inferenz. Eigene Experimente verwenden synthetische oder ausdrücklich freigegebene Daten und eine isolierte Laborumgebung. Last- und Angriffstests werden nicht gegen den öffentlichen Dienst ausgeführt.
 
-**Keine gegenseitige Blockade:** Vor Themenfeststellung stellt die Lehrperson die gemeinsamen Fixtures, Basisschnittstellen und nötigen Messprofile bereit. Ein Gruppenmitglied darf nicht auf eine noch ausstehende Implementierung eines anderen Mitglieds angewiesen sein. Ersatzweise dienen versionierte Testadapter oder freigegebene Messdatensätze; deren Aussagegrenze ist auszuweisen. Eine reine Simulation belegt weder reale Modellqualität noch Hardwareleistung. Ist ein für die These nötiger realer Lauf nicht verfügbar, wird der Auftrag vor Vergabe passend begrenzt.
+**Keine gegenseitige Blockade:** Alle Personen arbeiten auf derselben funktionsfähigen 1.3-Baseline und erhalten gemeinsame Fixtures, dokumentierte Schnittstellen und reproduzierbare Messprofile. Niemand implementiert zunächst einen fehlenden Releasebaustein für andere. Testadapter dienen ausschließlich gezielter Fault-Injection oder kontrollierten Gegenvarianten; sie ersetzen weder die Releaseintegration noch den realen privaten Baselinelauf. Simulationen für größere Lastprofile werden mit Messungen dieser Baseline kalibriert. Für externe GPU-/Managed-Vergleichsalternativen dürfen vorab freigegebene Rohdaten verwendet werden; der lokale 1.3-Referenzpfad bleibt praktisch zu untersuchen.
 
-Rohdaten, Skripte, Konfigurationen und Testprotokolle machen die Aussagen nachvollziehbar. Der Prüfungsauftrag legt einen zugänglichen, geheimnisfreien Evidenzort fest; das Handout enthält die entscheidenden Ergebnisse und verweist darauf. Diese Materialien dienen der Überprüfbarkeit der drei offiziellen Beiträge und sind keine zusätzliche benotete Abgabe. Ein vollständiger Produktivpatch, die gesamte Umsetzung von #456 oder ein Modelltraining werden nicht verlangt.
+Rohdaten, Skripte, Konfigurationen und Testprotokolle machen die Aussagen nachvollziehbar. Der Prüfungsauftrag legt einen zugänglichen, geheimnisfreien Evidenzort fest; das Handout enthält die entscheidenden Ergebnisse und verweist darauf. Diese Materialien dienen der Überprüfbarkeit der drei offiziellen Beiträge und sind keine zusätzliche benotete Abgabe. Ein vollständiger Produktivpatch, die erneute Umsetzung von #456 oder ein Modelltraining werden nicht verlangt. Die individuelle Leistung besteht in Analyse, Gegenprüfung, Messung und begründeter Beibehaltungs-, Konfigurations-, Betriebs- oder Verbesserungsempfehlung für Release 1.3. Ein bestätigter guter Ist-Zustand ist ebenso ein Ergebnis wie ein nachgewiesener Änderungsbedarf.
 
 ### 4.2 Überblick über die sechs Referatsthemen
 
@@ -152,9 +159,9 @@ Die QZ beziehen sich auf die [verbindlichen Qualifikationsziele](./CLOUD-COMPUTI
 
 ### 4.3 Thema 1: KI-Inferenz für den Moderationskompass – Systemgrenzen und entkoppelte Architektur
 
-**Leitfrage:** Wie müssen Anwendung, Kontextaufbau und private Inferenz getrennt sein, damit der Moderationskompass aussagekräftigere Informationen erhält, ohne die Interaktion der Veranstaltung zu beeinträchtigen?
+**Leitfrage:** Wie wirksam trennt die Architektur von Release 1.3 Anwendung, Kontextaufbau und private Inferenz unter realer Last, und welche Betriebsgrenzen ergeben sich für den Moderationskompass?
 
-**Fachlicher Zusammenhang:** Der Kompass nach 8.9a funktioniert lokal aus vorhandenen Host-Signalen. #456 ergänzt einen serverseitig autorisierten Kontext; 8.9d soll diesen und weitere Aufträge an eine private Runtime anbinden. Zu untersuchen ist die Grenze zwischen leichtgewichtiger Verarbeitung am App-Host und optionalen externen Ressourcen. Architekturentscheidungen werden an Ressourcen, Schnittstellen und Verhalten gemessen. Ein Diagramm allein genügt nicht.
+**Fachlicher Zusammenhang:** Der Kompass nach 8.9a funktioniert lokal aus vorhandenen Host-Signalen. Release 1.3 verbindet den serverseitig autorisierten Kontext aus #456 über 8.9d mit der privaten Runtime. Zu untersuchen ist die Grenze zwischen leichtgewichtiger Verarbeitung am App-Host und optionalen externen Ressourcen. Architekturentscheidungen werden an Ressourcen, Schnittstellen und Verhalten gemessen. Ein Diagramm allein genügt nicht.
 
 **Repo- und Issue-Basis:** 1.14b/c, 8.9a–d; #456 zu Kontextaufbau, Adapter und Betrieb; ADR-0035; die in 4.1.1 verlinkten Feature-Dokumente. Für das konkrete Deployment werden außerdem `docker-compose.prod.yml`, `.env.production.example` und `scripts/deploy.sh` am festgelegten Commit geprüft.
 
@@ -162,13 +169,13 @@ Die QZ beziehen sich auf die [verbindlichen Qualifikationsziele](./CLOUD-COMPUTI
 
 **Titel:** „Ein langsamer Analysedienst darf die Lehrveranstaltung nicht bremsen: Entkopplung der Moderationszusammenfassung.“
 
-Untersuchen Sie einen abgegrenzten Auftrag vom Host-Aufruf über Kontextbereitstellung und Adapter bis zur fertigen oder fehlgeschlagenen Summary. Zeichnen Sie den tatsächlichen und den geplanten Datenfluss getrennt. Vergleichen Sie im Labor einen synchron wartenden Testpfad mit einem entkoppelten Pfad bei identischer künstlicher Inferenzdauer. Verwenden Sie das #456-Szenario als Nutzlast, ohne dessen geplanten Vollkontext als bereits vorhanden auszugeben.
+Untersuchen Sie einen abgegrenzten Auftrag vom Host-Aufruf über Kontextbereitstellung und Adapter bis zur fertigen oder fehlgeschlagenen Summary. Rekonstruieren Sie den vollständigen implementierten 1.3-Datenfluss mit den tatsächlichen Funktionen und Verträgen. Messen Sie zunächst den regulären Pfad mit realer privater Inferenz. Vergleichen Sie danach die unveränderte Entkopplung mit einer ausschließlich im Labor synchron wartenden Gegenvariante unter identischer kontrollierter Verzögerung. Verwenden Sie den vollständigen zulässigen #456-Kontext aus dem Releasebuilder als Nutzlast.
 
-Messen Sie Rückkehrzeit der Host-Anfrage, Gesamtdauer der Analyse und Latenz/Fehlerrate ausgewählter Liveaktionen bei normalem, langsamem und nicht erreichbarem Analysedienst. Begründen Sie, wo Timeout, Abbruch und Fallback hingehören. Ergebnis ist eine begrenzte Architekturentscheidung für diesen Auftrag einschließlich Ressourcen-/Betriebsfolge; keine vollständige Neuentwicklung der Runtime.
+Messen Sie Rückkehrzeit der Host-Anfrage, Gesamtdauer der Analyse und Latenz/Fehlerrate ausgewählter Liveaktionen bei normalem, langsamem und nicht erreichbarem Analysedienst. Prüfen Sie die vorhandenen Timeout-, Abbruch- und Fallbackgrenzen und begründen Sie deren Beibehaltung oder gezielte Anpassung. Ergebnis ist eine begrenzte Architekturentscheidung für diesen Auftrag einschließlich Ressourcen-/Betriebsfolge; keine vollständige Neuentwicklung der Runtime.
 
 #### Gruppenauftrag 1A: Ressourcenisolation auf dem Anwendungshost
 
-**Eigene Leitfrage:** Welche bereits vorhandenen optionalen Analysearbeiten kann der App-Host tragen, ohne die für den Moderationskompass relevanten Live-Signale zu verzögern?
+**Eigene Leitfrage:** Welche Ressourcenreserve hat der App-Host von Release 1.3 für seine optionalen Analysearbeiten, ohne die für den Moderationskompass relevanten Live-Signale zu verzögern?
 
 1. Erfassen Sie die Dienste des App-Hosts und ordnen Sie spaCy, 8.9b, Kontextaufbau und Encoder fachlich richtig ein. Begründen Sie anhand ADR-0035, weshalb generative Inferenz keine normale weitere App-Host-Aufgabe ist.
 2. Wählen Sie einen vorhandenen Sidecar, vorzugsweise spaCy, und vergleichen Sie ausgeschaltet, normal belastet und künstlich langsam beziehungsweise ressourcenbegrenzt. Halten Sie Q&A-Daten und Live-Last konstant; benennen Sie alle übrigen aktivierten Dienste.
@@ -179,10 +186,10 @@ Messen Sie Rückkehrzeit der Host-Anfrage, Gesamtdauer der Analyse und Latenz/Fe
 
 #### Gruppenauftrag 1B: Private Inferenz als getrennte Serverrolle
 
-**Eigene Leitfrage:** Welchen nachweisbaren Isolationsgewinn und welchen zusätzlichen Aufwand bringt der zweite private Host für die Kompass-Inferenz?
+**Eigene Leitfrage:** Welchen messbaren Isolationsgewinn und Betriebsaufwand zeigt die in Release 1.3 umgesetzte zweite private Serverrolle für die Kompass-Inferenz?
 
-1. Entwerfen Sie aus ADR-0035 einen reproduzierbaren Zwei-Host-Laborzuschnitt mit privaten Schnittstellen, Authentisierung, Ressourcenlimits und gepinnten Artefakten. Unterscheiden Sie App-Adapter, Encoder und LLM-Server.
-2. Führen Sie den gewählten Label- oder Summary-Probeauftrag aus; bei fehlender Runtime verwenden Sie für Transport-/Isolationstests einen eindeutig bezeichneten Testdienst. Ein solcher Dienst belegt keine reale LLM-Leistung.
+1. Reproduzieren Sie das Zwei-Host-Deployment von Release 1.3 mit dessen privaten Schnittstellen, Authentisierung, Ressourcenlimits und gepinnten Artefakten; gleichen Sie es mit ADR-0035 und dem Referenzmanifest ab. Unterscheiden Sie App-Adapter, Encoder und LLM-Server.
+2. Führen Sie einen realen Label- oder Summary-Auftrag über die ausgelieferte private Runtime aus. Erfassen Sie Netzwerk-, Adapter- und Inferenzzeit getrennt. Für zusätzliche deterministische Störversuche darf ein Testdienst eingesetzt werden; Baseline und Leistungsurteil beruhen auf dem echten Releasepfad.
 3. Vergleichen Sie normalen Dienst, hohe Antwortlatenz und Ausfall. Messen Sie Transportanteil, Gesamtlatenz und die Rückwirkung auf den App-Host. Dokumentieren Sie Netz-/Firewallannahmen und Wiederholbarkeit.
 4. Bewerten Sie den Zusatzaufwand für zweite Serverrolle, Deployment und Betrieb gegen die Trennung von Fehler- und Ressourcenbereichen. Eine alternative Topologie darf im Labor verglichen werden; sie hebt die Produktionsleitplanke nicht auf.
 
@@ -190,20 +197,20 @@ Messen Sie Rückkehrzeit der Host-Anfrage, Gesamtdauer der Analyse und Latenz/Fe
 
 #### Gruppenauftrag 1C: Autorisierter Kontext und asynchroner Adapterpfad
 
-**Eigene Leitfrage:** Wie gelangt der reichere #456-Kontext konsistent und ohne Live-Abhängigkeit vom App-Zustand zur privaten Inferenz?
+**Eigene Leitfrage:** Wie zuverlässig hält der implementierte 1.3-Kontextpfad seine Vertrags-, Konsistenz- und Entkopplungszusagen vom App-Zustand bis zur privaten Inferenz ein?
 
-1. Rekonstruieren Sie den vorhandenen Summary-Snapshot und Adaptervertrag. Stellen Sie den geplanten Bereichen von #456 gegenüber, welche Daten heute vorhanden, neu zu projizieren oder noch zu implementieren sind.
-2. Entwickeln oder verwenden Sie einen begrenzten versionierten Laborvertrag und einen empfangenden Testadapter. Trennen Sie autorisierten internen Zustand, fachlichen Kontext und tatsächlich gepackten Modellauftrag.
+1. Rekonstruieren Sie den ausgelieferten Kontextbuilder, die Host-Vorschau, den Snapshot-/Hashmechanismus und den Adaptervertrag. Ordnen Sie jedem Bereich aus #456 seine tatsächliche Datenquelle, Funktion, Schemafassung und Berechtigungsprüfung in Release 1.3 zu.
+2. Verfolgen Sie einen realen Auftrag durch die vorhandenen versionierten Verträge bis zur privaten Runtime. Vergleichen Sie für denselben Revisionsstand Host-Vorschau und tatsächlich gepackte Nutzlast. Trennen Sie autorisierten internen Zustand, fachlichen Kontext und Modellauftrag; verändern Sie den Vertrag nur für eine gekennzeichnete Negativprobe.
 3. Prüfen Sie Erfolg, inkompatible Schemaversion, fehlenden Kontextbereich und langsamen Empfänger. Belegen Sie, dass kein stiller Feldverlust auftritt und der Host-Aufruf nicht auf die Modellantwort wartet.
 4. Prüfen Sie exemplarisch eine Stimmenänderung und eine Quellenlöschung zwischen Auftrag und Ergebnis. Begründen Sie Snapshot-/Hashgrenze, erneute Quellenprüfung und kontrollierten Legacy-/Regelfallback.
 
-**Individuelles Ergebnis:** Datenfluss, Vertragstest und Integrationsentscheidung mit Kosten der Validierung und Kontextbereitstellung. **Gültigkeitsgrenze:** Ein erfolgreicher Testadapter ist kein Nachweis fertiger Runtime oder optimierter Prompts. **Diskussionskern:** Konsistenz, Verträge und Entkopplung.
+**Individuelles Ergebnis:** Datenfluss am Releasecode, Ende-zu-Ende-/Vertragsnachweis und Beibehaltungs- oder Verbesserungsempfehlung einschließlich Kosten der Validierung und Kontextbereitstellung. **Gültigkeitsgrenze:** Ein formal korrekter Releasepfad belegt keine optimierten Prompts. **Diskussionskern:** Konsistenz, Verträge und Entkopplung.
 
-**Gruppensynthese:** A liefert die Ressourcengrenze des App-Hosts, B die private Inferenzrolle und C den kontrollierten Übergang. Zusammen entsteht eine nachvollziehbare Architektur für den Moderationskompass; Kapazitätsoptimierung und vollständige Sicherheitsprüfung bleiben die Schwerpunkte der Themen 3 und 5.
+**Gruppensynthese:** A bewertet die Ressourcengrenze des App-Hosts, B die Isolation der privaten Inferenzrolle und C den realen Kontextübergang. Zusammen entsteht eine evidenzbasierte Bewertung der 1.3-Architektur mit begründeten Betriebs- oder Änderungsempfehlungen; Kapazitätsoptimierung und vollständige Sicherheitsprüfung bleiben die Schwerpunkte der Themen 3 und 5.
 
 ### 4.4 Thema 2: Wie viel KI braucht der Moderationskompass? Informationsqualität und begrenzter Kontext
 
-**Leitfrage:** Welche zusätzlichen Informationen rechtfertigen optionale NLP und generative Kurzfassung gegenüber dem regelbasierten Kompass, und wie viel davon kann eine begrenzte private Runtime zuverlässig verarbeiten?
+**Leitfrage:** Welche zusätzlichen Informationen liefern die optionalen NLP- und generativen Funktionen von Release 1.3 gegenüber dessen regelbasiertem Kompass, und wie viel davon kann eine begrenzte private Runtime zuverlässig verarbeiten?
 
 **Fachlicher Zusammenhang:** Alle drei Gruppenaufträge untersuchen dieselben Moderationsfälle aus #456. Die gemeinsame Nutzungsfrage lautet: Kann die Lehrperson Übungswünsche, Prüfungsorganisation und geteilte Bewertungen unterscheiden und die Belege prüfen? Baseline, Kategorien/Themen und generative Kurzfassung erfüllen unterschiedliche Teilfunktionen. Sie werden anhand einer gemeinsamen Informationsrubrik verglichen, nicht als austauschbare Klassifikatoren behandelt.
 
@@ -213,48 +220,48 @@ Messen Sie Rückkehrzeit der Host-Anfrage, Gesamtdauer der Analyse und Latenz/Fe
 
 **Titel:** „Mehr Kontext oder mehr Ballast? Budgetierte Quellenwahl für die Moderationskurzfassung.“
 
-Vergleichen Sie für dieselben Moderationsfälle den bisherigen textorientierten Auftrag mit einer begrenzten, strukturierten Kontextvariante nach #456. Fixieren Sie dieselbe maximale Eingabegröße und weisen Sie aus, wie viele Fragetexte zugunsten von Metadaten entfallen. Prüfen Sie deterministisch Quellenauflösung, Themenabdeckung, Darstellung geteilter Bewertungen, fehlender Werte und bestätigter Lernziele.
+Vergleichen Sie für dieselben Moderationsfälle den vollständigen budgetierten 1.3-Kontext mit einer kontrollierten Ablationsvariante, die nur Fragetexte enthält. Beide werden aus demselben autorisierten Releasesnapshot gewonnen; die Textvariante ist eine Versuchskontrolle, kein vorausgesetzter alter Produktionspfad. Fixieren Sie dieselbe maximale Eingabegröße und weisen Sie aus, wie viele Fragetexte zugunsten von Metadaten entfallen. Prüfen Sie deterministisch Quellenauflösung, Themenabdeckung, Darstellung geteilter Bewertungen, fehlender Werte und bestätigter Lernziele.
 
-Messen Sie Tokenumfang und Aufwand der Auswahl; falls eine freigegebene private Runtime verfügbar ist, ergänzen Sie einen klar begrenzten Probeauftrag mit identischem Modell und festem Prompt. Entscheiden Sie, welche Kontextfelder unter dem Budget Vorrang erhalten. Ohne Modelllauf endet die Aussage bei Kontextqualität und technischer Übergabefähigkeit; daraus folgt keine bessere Moderationsentscheidung.
+Messen Sie Tokenumfang, Auswahlaufwand und reale private Inferenz beider Varianten mit identischem Modell und festem dokumentiertem Probe-Prompt. Prüfen Sie zuerst das in 1.3 ausgelieferte Auswahlverfahren und variieren Sie anschließend genau eine Prioritätsregel. Entscheiden Sie anhand von Qualität, Laufzeit und Auslassungen, ob die Releasekonfiguration beibehalten oder angepasst werden sollte. Der Versuch belegt keine allgemeine didaktische Wirksamkeit.
 
 #### Gruppenauftrag 2A: Regelbasierte und extraktive Referenz
 
-**Eigene Leitfrage:** Welche Lageeinschätzung ermöglicht der vorhandene Kompass ohne generative KI bereits, und wo bleiben nachweisbare Informationslücken?
+**Eigene Leitfrage:** Welche Lageeinschätzung liefern Regelkern und extraktiver Fallback von Release 1.3, wenn die generative Unterstützung gezielt ausgeschaltet wird?
 
 1. Operationalisieren Sie eine Rubrik mit Quellennachvollziehbarkeit, korrekter Bedeutung von Bewertungen, Trennung organisatorischer/fachlicher Anliegen, Darstellung von Unsicherheit und Informationsumfang.
-2. Führen Sie das gemeinsame Szenario und ausgewählte Gegenfälle durch die bestehende Kartenlogik. Nutzen Sie den extraktiven Entwicklungshilfsserver nur ausdrücklich als Laborreferenz; unterscheiden Sie ihn vom vorhandenen Backendverhalten.
+2. Führen Sie das gemeinsame Szenario und ausgewählte Gegenfälle durch die bestehende Kartenlogik. Untersuchen Sie zusätzlich den in 1.3 integrierten extraktiven App-Queue-Fallback bei deaktivierter beziehungsweise nicht verfügbarer generativer Inferenz; verwenden Sie dafür den Releasepfad statt des Entwicklungshilfsservers.
 3. Dokumentieren Sie, welche Quellen und regelbasierten Hinweise entstehen, welche Anliegen nicht sichtbar werden und ob fehlende Informationen korrekt offenbleiben. Vergleichen Sie mit einer einfachen ungefilterten Fragenliste als Gegenalternative.
-4. Messen Sie den begrenzten Rechen-/Speicheraufwand und diskutieren Sie den Betriebsnutzen der Modellfreiheit. Entscheiden Sie, welche Aussagen eine KI-Erweiterung zusätzlich belegen müsste, bevor sie Mehrwert beanspruchen darf.
+4. Messen Sie den begrenzten Rechen-/Speicheraufwand und diskutieren Sie den Betriebsnutzen der Modellfreiheit. Entscheiden Sie, in welchen untersuchten Fällen die bereits ausgelieferte generative Funktion einen messbaren Zusatznutzen bieten müsste, um ihre Aktivierung gegenüber Regelkern und Extraktion zu rechtfertigen.
 
-**Individuelles Ergebnis:** Eigene Baselineauswertung mit Fehlerfällen, Messung und begründeter Mindestanforderung. **Gültigkeitsgrenze:** Die regelbasierte Handlungsempfehlung ist kein empirisch bestätigtes didaktisches Optimum. **Diskussionskern:** Regel, Messsignal und Interpretation.
+**Individuelles Ergebnis:** Auswertung der 1.3-Regel-/Extraktionsbaseline mit Fehlerfällen, Messung und begründeten Kriterien für die optionale KI-Nutzung. **Gültigkeitsgrenze:** Die regelbasierte Handlungsempfehlung ist kein empirisch bestätigtes didaktisches Optimum. **Diskussionskern:** Regel, Messsignal und Interpretation.
 
 #### Gruppenauftrag 2B: Nichtgenerative Kategorien und semantische Themen
 
-**Eigene Leitfrage:** Verbessern vorhandene Klassifikation und Encoder-Themen die strukturierte Evidenz für den Moderationskompass ausreichend, um ihren Betriebsaufwand zu rechtfertigen?
+**Eigene Leitfrage:** Welchen nachweisbaren Qualitätsgewinn liefern Klassifikation und Encoder-Themen in Release 1.3 gegenüber dessen lexikalischer beziehungsweise regelbasierter Baseline?
 
 1. Trennen Sie das feste NLP-Labelset von semantischer Themenmitgliedschaft und extraktiven Clusterlabels. Wählen Sie entweder Klassifikation oder Clustering als Schwerpunkt der eigenen Messung; der andere Pfad wird als Schnittstelle eingeordnet.
 2. Erstellen Sie für zusätzliche, auch mehrsprachige Moderationsfälle eine vorab begründete Referenzzuordnung. Verwenden Sie die fixierten Themenpaare aus #456 nur für Kontexttests, nicht als behauptete Vorhersage des Modells.
 3. Messen Sie je nach Schwerpunkt Klassifikationsgüte und Abdeckung oder geeignete Clustermetriken samt konkreten Fehlzuordnungen. Untersuchen Sie Kurzfragen, Paraphrasen, Mehrdeutigkeit und unsichere Ergebnisse.
 4. Erfassen Sie Laufzeit und Ressourcen; erklären Sie, wie nur bereits verfügbare Kategorien/Themen in den #456-Kontext eingehen. Entscheiden Sie über Akzeptanzschwellen und Baseline-Fallback, ohne bei jedem Kontextabruf neue Analyse zu erzwingen.
 
-**Individuelles Ergebnis:** Referenzdaten, reproduzierbare Qualitäts-/Aufwandsmessung und Freigabeempfehlung. **Gültigkeitsgrenze:** Modellkonfidenz ist ohne Kalibrierung keine Erfolgswahrscheinlichkeit; Themenhäufigkeit ist kein Lernstandsmaß. **Diskussionskern:** Fehlerarten, Unsicherheit und Kosten zusätzlicher Information.
+**Individuelles Ergebnis:** Referenzdaten, reproduzierbare Messung der 1.3-Analysepfade und Empfehlung zur Beibehaltung oder Anpassung ihrer Aktivierungs-/Akzeptanzschwellen. **Gültigkeitsgrenze:** Modellkonfidenz ist ohne Kalibrierung keine Erfolgswahrscheinlichkeit; Themenhäufigkeit ist kein Lernstandsmaß. **Diskussionskern:** Fehlerarten, Unsicherheit und Kosten zusätzlicher Information.
 
 #### Gruppenauftrag 2C: Generative Kurzfassung unter Quellen- und Tokenbudget
 
-**Eigene Leitfrage:** Welche quellengebundene Verdichtung liefert eine private generative Kurzfassung zusätzlich, und welche Fehler entstehen durch mehr Kontext oder dessen Kürzung?
+**Eigene Leitfrage:** Welchen Zusatznutzen liefert die private generative Kurzfassung von Release 1.3, und wie verändern kontrollierte Kontextreduktionen Qualität und Aufwand?
 
-1. Vergleichen Sie „nur Texte“, „Texte plus Metadaten“ und „vollständige zulässige Kontextarten unter Budget“. Halten Sie Modell, technischen Probe-Prompt, Ausgabegrenze und Fallmenge konstant; dokumentieren Sie alle Kürzungen.
+1. Vergleichen Sie den ausgelieferten 1.3-Kontext mit zwei kontrollierten Ablationen desselben Snapshots: „nur Texte“ und „Texte plus Metadaten“. Die Baseline umfasst alle zulässigen Kontextarten unter dem realen Releasebudget. Halten Sie Modell, technischen Probe-Prompt, Ausgabegrenze und Fallmenge konstant; dokumentieren Sie alle Kürzungen.
 2. Prüfen Sie Schema-/Referenzgültigkeit und inhaltliche Quellentreue getrennt. Erfassen Sie erfundene Schlussfolgerungen, verwechselte Kennzahlen, ausgelassene Anliegen und unbegründete Lernstandsbehauptungen.
 3. Messen Sie Eingabe-/Ausgabetokens, Prefill beziehungsweise TTFT, Gesamtdauer und Speicher. Instruktionen und Antwortreserve zählen mit; ein vergrößertes Kontextfenster ist keine kostenfreie Verbesserung.
 4. Leiten Sie eine konservative Freigabegrenze und einen extraktiven beziehungsweise regelbasierten Rückfall ab. Bestätigte Lernziele dürfen einordnen helfen; sie dürfen keine organisatorischen oder technischen Anliegen unsichtbar machen.
 
-**Individuelles Ergebnis:** Kontrollierter privater Modellvergleich, Rubrikbewertung, Fehlersammlung und Einsatzentscheidung. **Voraussetzung:** Freigegebene Runtime oder vorab vereinbarte reale Messdaten mit eigener reproduzierbarer Auswertung; reine erfundene Modellantworten genügen nicht. **Gültigkeitsgrenze:** Der Versuch entwickelt keinen endgültigen Moderationsprompt und belegt keine Lernwirkung. **Diskussionskern:** Traceability gegenüber inhaltlicher Korrektheit und Nutzen je Ressourcenaufwand.
+**Individuelles Ergebnis:** Kontrollierter privater Modellvergleich, Rubrikbewertung, Fehlersammlung und Einsatzentscheidung. **Nachweisbasis:** Eigene Läufe auf der bereitgestellten privaten 1.3-Runtime; Modell, tatsächlicher technischer Prompt, Budgets und Rohantworten der synthetischen Fälle werden reproduzierbar dokumentiert. **Gültigkeitsgrenze:** Der Versuch entwickelt keinen endgültigen Moderationsprompt und belegt keine Lernwirkung. **Diskussionskern:** Traceability gegenüber inhaltlicher Korrektheit und Nutzen je Ressourcenaufwand.
 
-**Gruppensynthese:** Die Gruppe formuliert eine evidenzbasierte Stufenauswahl: Welche Moderationsinformation liefert die Baseline, wann tragen NLP/Themen zusätzlich und wann rechtfertigt generative Verdichtung ihre Fehler- und Betriebskosten? Ein negatives Ergebnis gegen eine KI-Erweiterung ist vollwertig.
+**Gruppensynthese:** Die Gruppe formuliert eine evidenzbasierte Stufenauswahl: Welche Moderationsinformation liefert der Regelkern von 1.3, wann tragen seine NLP-/Themenfunktionen zusätzlich und wann rechtfertigt die ausgelieferte generative Verdichtung ihre Fehler- und Betriebskosten? Die Empfehlung, eine vorhandene optionale Funktion für bestimmte Fälle deaktiviert zu lassen, ist vollwertig.
 
 ### 4.5 Thema 3: Begrenzte Inferenzkapazität für den Moderationskompass – Zulassung, Last und Skalierung
 
-**Leitfrage:** Wie bleibt der Moderationskompass bei konkurrierenden Analysewünschen nutzbar, wenn Labels, Zusammenfassungen und Lernzielableitung auf einen einzigen LLM-Slot angewiesen sind?
+**Leitfrage:** Welche Nutzbarkeit und Aktualität erreicht der Moderationskompass von Release 1.3 bei konkurrierenden Analysewünschen, wenn Labels, Zusammenfassungen und Lernzielableitung auf einen einzigen LLM-Slot angewiesen sind?
 
 **Fachlicher Zusammenhang:** Teilnehmendenzahl ist keine Inferenzrate. Last entsteht aus Host-Aktionen, Quellumfang, Kontext-/Antwortlänge, Änderungen, Cacheverhalten und Laufzeit der drei Auftragstypen. Der gemeinsame Slot begrenzt die Ausführung; vorhandene App-Queues dürfen nicht mit einer erlaubten unbegrenzten Modellwarteschlange verwechselt werden. Untersucht werden Zulassungsentscheidungen, Fallbackhäufigkeit und Aktualität der Moderationsinformationen.
 
@@ -264,13 +271,13 @@ Messen Sie Tokenumfang und Aufwand der Auswahl; falls eine freigegebene private 
 
 **Titel:** „Ein Slot, drei Aufträge: Wie verlässlich sind die Belegt- und Fallbackregeln des Moderationskompasses?“
 
-Erstellen Sie einen reproduzierbaren Test mit Label-, Summary- und Lernzielaufträgen und kontrollierten Bearbeitungszeiten. Prüfen Sie alle drei Auftragspaarungen in beiden Belegungsreihenfolgen sowie drei gleichzeitige Anfragen. Nachzuweisen sind höchstens ein laufender Modellaufruf, keine versteckte Warteschlange und die richtige Reaktion jedes abgewiesenen Auftrags.
+Untersuchen Sie die gemeinsame Slotsteuerung von Release 1.3 zunächst mit realen Label-, Summary- und Lernzielaufträgen. Ergänzen Sie reproduzierbare Konkurrenztests mit kontrollierten Bearbeitungszeiten auf demselben Releasepfad. Prüfen Sie alle drei Auftragspaarungen in beiden Belegungsreihenfolgen sowie drei gleichzeitige Anfragen. Nachzuweisen sind höchstens ein laufender Modellaufruf, keine versteckte Warteschlange und die richtige Reaktion jedes abgewiesenen Auftrags.
 
-Ergänzen Sie Abbruch oder Timeout eines Auftragstyps und prüfen Sie die tatsächliche Wiederverwendbarkeit des Slots. Bewerten Sie die Wirkung auf den Host: Live-Fallback, manueller Lernziel-Retry und erhaltene bestätigte Ziele. Ergebnis ist eine Zulassungs-/Abbruchentscheidung mit klarer Aussagegrenze; ein deterministischer Testserver belegt die Steuerlogik, keine reale Modellkapazität.
+Ergänzen Sie Abbruch oder Timeout eines Auftragstyps und prüfen Sie die tatsächliche Wiederverwendbarkeit des Slots. Bewerten Sie die Wirkung auf den Host: Live-Fallback, manueller Lernziel-Retry und erhaltene bestätigte Ziele. Ergebnis ist eine Zulassungs-/Abbruchentscheidung mit klarer Aussagegrenze; deterministische Störtests belegen die Steuerlogik, die zusätzlich gemessenen realen Releaseaufträge die beobachtete Modellkapazität.
 
 #### Gruppenauftrag 3A: Drei Auftragstypen und ein gemeinsamer Slot
 
-**Eigene Leitfrage:** Kann die gemeinsame Runtime ihre drei fachlich unterschiedlichen Aufträge ohne verdeckte Parallelität, Verdrängung oder unverständliche Wartezustände bedienen?
+**Eigene Leitfrage:** Hält die gemeinsame Runtime von Release 1.3 ihre Slot-, Abbruch- und Fallbackregeln für alle drei Auftragstypen unter Konkurrenz tatsächlich ein?
 
 1. Beschreiben Sie Label, Summary und Lernzielableitung mit Auslöser, Eingabegröße, Laufzeitprofil, Timeout und fachlicher Reaktion bei Belegung. Zeigen Sie ausdrücklich, warum 8.9b kein vierter Slotauftrag ist.
 2. Testen Sie die drei Paarungen jeweils in beiden Reihenfolgen, drei gleichzeitige Anfragen und Slotfreigabe nach Abbruch/Timeout jedes Auftragstyps. Erfassen Sie tatsächliche gleichzeitig laufende Aufträge statt nur Backendzähler.
@@ -281,10 +288,10 @@ Ergänzen Sie Abbruch oder Timeout eines Auftragstyps und prüfen Sie die tatsä
 
 #### Gruppenauftrag 3B: Viele parallele Veranstaltungen
 
-**Eigene Leitfrage:** Welche Aktualität der Moderationshilfe ist bei 100 Veranstaltungen mit jeweils 50 Teilnehmenden unter einem gemeinsamen Kapazitätslimit erreichbar?
+**Eigene Leitfrage:** Welche Aktualität und faire Verteilung erreicht die 1.3-Konfiguration bei einer aus realen Messungen abgeleiteten Last von 100 Veranstaltungen mit jeweils 50 Teilnehmenden?
 
 1. Leiten Sie ein transparentes Lastmodell ab: Hosts, Analyseaktionen pro Zeiteinheit, Anteil Label/Summary/Lernziel, mittlere und ungünstige Bearbeitungsdauer, Cachetreffer und zeitliche Synchronisation. Nicht 5.000 Teilnehmende mit 5.000 Modellaufrufen gleichsetzen.
-2. Vergleichen Sie gleichmäßig verteilte Aktionen mit einer plausiblen gemeinsamen Unterrichtsphase, in der viele Hosts zugleich eine Summary anfordern. Nutzen Sie reale Laufzeitdaten oder kennzeichnen Sie die Simulation und ihre Kalibrierung.
+2. Vergleichen Sie gleichmäßig verteilte Aktionen mit einer plausiblen gemeinsamen Unterrichtsphase, in der viele Hosts zugleich eine Summary anfordern. Kalibrieren Sie das Lastmodell mit eigenen realen Laufzeit-, Token- und Cachemessungen der 1.3-Baseline. Kennzeichnen Sie die darauf aufbauende Simulation und validieren Sie einen begrenzten Ausschnitt gegen die Laborinstanz.
 3. Messen Sie erfolgreiche Modelljobs, Fallback-/Retryanteile und Warte-/Antwortzeiten je Veranstaltung. Prüfen Sie, ob einzelne Veranstaltungen wiederholt leer ausgehen und welche begrenzten Host-Cooldowns oder bewussten Wiederholungen dagegen helfen.
 4. Entscheiden Sie über einen tragfähigen Lastbereich und den Punkt, an dem eine neue Kapazitätsentscheidung nötig wird. Geben Sie Kosten je erfolgreichem Job und die Folge für die Verfügbarkeit zusätzlicher Kompassinformationen an.
 
@@ -292,20 +299,20 @@ Ergänzen Sie Abbruch oder Timeout eines Auftragstyps und prüfen Sie die tatsä
 
 #### Gruppenauftrag 3C: Eine Großveranstaltung mit umfangreichem Kontext
 
-**Eigene Leitfrage:** Wie beeinflussen ein großes Forum und viele Signaländerungen die Aktualität und Kosten eines einzelnen Moderationskompasses?
+**Eigene Leitfrage:** Wie begrenzen Kontextauswahl und Cache von Release 1.3 die Kosten und das Analysealter eines Moderationskompasses in einer Großveranstaltung?
 
 1. Modellieren Sie für eine Veranstaltung mit 5.000 Teilnehmenden die Anzahl tatsächlicher Beiträge, Votes, Host-Aktionen und zulässiger Quellen. Beachten Sie die am Prüfungscommit dokumentierten Forumslimits und technischen Analysegrenzen.
 2. Vergleichen Sie zwei begründete Auswahl-/Cachekonfigurationen bei konstantem Tokenbudget. Variieren Sie Quellumfang und Änderungsrate; untersuchen Sie insbesondere Änderungen nur an Stimmen oder Lernzielbestätigung.
-3. Messen Sie Kontextaufbau, Tokenpacken, Cachetreffer, Prefill beziehungsweise simulierte Dienstzeit und Alter der angezeigten Analyse. Zeigen Sie, dass nicht alle Forumstexte an das Modell gehen und keine Inferenz pro Vote entsteht.
+3. Messen Sie Kontextaufbau, Tokenpacken, Cachetreffer, reale Prefill-Zeit und daraus kalibrierte simulierte Dienstzeiten und Alter der angezeigten Analyse. Zeigen Sie, dass nicht alle Forumstexte an das Modell gehen und keine Inferenz pro Vote entsteht.
 4. Entscheiden Sie, ob begrenzte Auswahl, bewusste Aktualisierung und Caching ausreichen oder welche Ressource zum Engpass wird. Diskutieren Sie CPU/GPU als gesonderte Kapazitätsalternative, ohne die aktuelle Architektur still zu ändern.
 
 **Individuelles Ergebnis:** Großveranstaltungs-Lastmodell, Sensitivitätsanalyse und begründete Aktualisierungs-/Skalierungsgrenze. **Gültigkeitsgrenze:** Ein Lasttest des Kontextbuilders belegt nicht die Qualität einer Analyse aller Forumsbeiträge. **Diskussionskern:** Datenmenge gegenüber Jobrate, Cachekonsistenz und Aktualität.
 
-**Gruppensynthese:** A liefert korrekte Zulassung, B untersucht Konkurrenz zwischen Veranstaltungen und C den umfangreichen Kontext innerhalb einer Veranstaltung. Gemeinsam benennt die Gruppe den nutzbaren Kapazitätsbereich und getrennt davon den Zeitpunkt einer neuen Betreiberentscheidung.
+**Gruppensynthese:** A prüft die ausgelieferte Zulassung, B untersucht Konkurrenz zwischen Veranstaltungen und C den umfangreichen Kontext innerhalb einer Veranstaltung. Gemeinsam benennt die Gruppe den nutzbaren Kapazitätsbereich und getrennt davon den Zeitpunkt einer neuen Betreiberentscheidung.
 
 ### 4.6 Thema 4: Verlässlicher Moderationskompass – Degradation, Beobachtbarkeit und Modelllebenszyklus
 
-**Leitfrage:** Wie erkennt und beherrscht arsnova.eu technische Fehler, veraltete Informationen und fehlerhafte Modelländerungen, ohne den regelbasierten Kompass und die Live-Session zu verlieren?
+**Leitfrage:** Wie zuverlässig erkennt und beherrscht Release 1.3 technische Fehler, veraltete Informationen und fehlerhafte Modelländerungen, ohne den regelbasierten Kompass und die Live-Session zu verlieren?
 
 **Fachlicher Zusammenhang:** „Der Server antwortet“ ist kein ausreichender Betriebsnachweis. Ein Ergebnis kann formal gültig, fachlich unbrauchbar, veraltet oder nicht mehr zulässig sein. #456 verlangt explizite Zustände, Revisionen, erneute Quellenprüfung und minimale Telemetrie. 8.9d ergänzt kontrollierte Abschaltung und Abbruch. Ziel ist ein nachvollziehbarer Betrieb vom Fehler über Erkennung und Rückfall bis zur sicheren Wiederaufnahme.
 
@@ -315,37 +322,37 @@ Ergänzen Sie Abbruch oder Timeout eines Auftragstyps und prüfen Sie die tatsä
 
 **Titel:** „Von Timeout zu nutzbarer Moderationshilfe: Ein vollständiger Störungsfall des Kompasses.“
 
-Wählen Sie einen konkreten Summary-Pfad und vergleichen Sie Normalbetrieb, Timeout und Wiederherstellung. Dokumentieren Sie zunächst das Verhalten am Prüfungscommit: Insbesondere darf der extraktive Dev-Helfer nicht als bereits vorhandener App-Queue-Fallback gelten. Falls nötig, verwenden Sie einen abgegrenzten Laborprototyp für die geplante Degradation.
+Wählen Sie einen konkreten Summary-Pfad und vergleichen Sie Normalbetrieb, Timeout und Wiederherstellung. Dokumentieren Sie zunächst den realen Normalbetrieb der 1.3-Baseline und lösen Sie dann kontrolliert den implementierten extraktiven Fallback in der App-Queue aus. Prüfen Sie Inhalt, Quellenbindung und sichtbaren Host-Zustand bis zum erfolgreichen erneuten Modelllauf; der Dev-Helfer ersetzt keinen dieser Nachweise.
 
 Messen Sie Fehlererkennung, Zeit bis zum verständlichen Host-Zustand, Slotfreigabe und erfolgreiche Wiederaufnahme. Prüfen Sie gleichzeitig, dass der Regelkompass und ausgewählte Liveaktionen nutzbar bleiben. Formulieren Sie ein kleines Betriebsverfahren mit messbaren Kriterien und einer begründeten Alternative; keine vollständige Observabilityplattform aufbauen.
 
 #### Gruppenauftrag 4A: Fehlerfälle und fachlich richtige Degradation
 
-**Eigene Leitfrage:** Welche Rückfallreaktion erhält bei Ausfall optionaler Analyse die jeweils noch belastbare Information des Moderationskompasses?
+**Eigene Leitfrage:** Erhalten die implementierten Fallbacks von Release 1.3 bei Ausfall optionaler Analyse die jeweils noch belastbaren Moderationsinformationen?
 
-1. Erstellen Sie eine Fehler-/Fallbackmatrix für Timeout, 503/Belegung, ungültige Ausgabe und Prozessausfall. Unterscheiden Sie Label, Summary und Lernzielauftrag; übernehmen Sie keine einheitliche Reaktion für alle drei.
+1. Leiten Sie aus den implementierten 1.3-Verträgen eine Soll-/Ist-Matrix für Timeout, 503/Belegung, ungültige Ausgabe und Prozessausfall ab. Unterscheiden Sie Label, Summary und Lernzielauftrag; übernehmen Sie keine einheitliche Reaktion für alle drei.
 2. Führen Sie eine begrenzte Auswahl dieser Fehler reproduzierbar aus. Prüfen Sie bei Labelausfall den Erhalt der vorhandenen Cluster mit extraktiven Labels; verwechseln Sie dies nicht mit dem lexikalischen Fallback bei Encoderverlust.
-3. Prüfen Sie Summary-Fehler und den tatsächlichen Ort des extraktiven Fallbacks. Für Lernziele müssen vorhandene bestätigte Ziele erhalten und manuelle Eingabe beziehungsweise Retry möglich bleiben.
+3. Prüfen Sie bei Summary-Fehlern den in 1.3 ausgelieferten extraktiven App-Queue-Fallback einschließlich Quellenbindung und Host-Anzeige. Für Lernziele müssen vorhandene bestätigte Ziele erhalten und manuelle Eingabe beziehungsweise Retry möglich bleiben.
 4. Messen Sie Fehler-/Recoveryzeiten und Hotpathverhalten. Legen Sie begründete SLI/SLO sowie Abbruchkriterien für das Labor fest und entscheiden Sie über einen sicheren Wiederanlauf ohne Wiederholungssturm.
 
-**Individuelles Ergebnis:** Ausgeführte Fault-Injection, Zustands-/Fallbacknachweise und Recoveryentscheidung. **Gültigkeitsgrenze:** SLOs sind begründete Prüfziele, keine im Repository bereits zugesagten Produktionswerte. **Diskussionskern:** Degradation statt Datenverlust und technisch gegenüber fachlich erfolgreicher Wiederherstellung.
+**Individuelles Ergebnis:** Ausgeführte Fault-Injection, Zustands-/Fallbacknachweise und Recoveryentscheidung. **Gültigkeitsgrenze:** Release-SLOs werden aus der 1.3-Betriebsdokumentation übernommen; zusätzlich selbst festgelegte Prüfziele werden ausdrücklich als solche begründet. **Diskussionskern:** Degradation statt Datenverlust und technisch gegenüber fachlich erfolgreicher Wiederherstellung.
 
 #### Gruppenauftrag 4B: Telemetrie, Aktualität und Diagnose
 
-**Eigene Leitfrage:** Welche minimale Telemetrie erkennt unbrauchbare oder veraltete Kompassanalysen rechtzeitig, ohne Rohtexte oder vollständige Prompts zu protokollieren?
+**Eigene Leitfrage:** Wie gut erkennt die vorhandene 1.3-Telemetrie unbrauchbare oder veraltete Kompassanalysen, und welche gezielte Ergänzung wäre ihren Aufwand wert?
 
-1. Definieren Sie einen Telemetrievertrag mit Auftragstyp, Schema-/Modell-/Prompt-/Runtimeversion, Tokenumfang, Dauer, Fallbackgrund und relevanten Revisionsbezügen. Personenkennungen und Inhaltsprotokolle gehören nicht hinein.
-2. Instrumentieren Sie einen abgegrenzten Laborpfad oder werten Sie passende vorhandene Ereignisse aus. Trennen Sie Warte-/Zulassungszeit, Modellzeit, Kontextaufwand und Ergebnisalter.
+1. Inventarisieren Sie die in 1.3 vorhandene Telemetrie und prüfen Sie ihre Abdeckung für Auftragstyp, Schema-/Modell-/Prompt-/Runtimeversion, Tokenumfang, Dauer, Fallbackgrund und relevante Revisionsbezüge. Personenkennungen und Inhaltsprotokolle gehören nicht hinein.
+2. Werten Sie reale Ereignisse der Releaseinstanz aus. Ergänzen Sie ausschließlich bei nachgewiesenen Messlücken eine gekennzeichnete Laborinstrumentierung und vergleichen Sie deren Diagnosegewinn und Aufwand. Trennen Sie Warte-/Zulassungszeit, Modellzeit, Kontextaufwand und Ergebnisalter.
 3. Erzeugen Sie langsame Inferenz, Budgetüberschreitung und einen nur fachlich veralteten Snapshot durch Stimmen- oder Lernzieländerung. Prüfen Sie Erkennungszeit, Fehlalarme und Fälle, die reine HTTP-Erfolgsraten übersehen.
-4. Begründen Sie Alarmgrenzen, Aufbewahrung und Zuständigkeit. Skizzieren Sie die hostgeschützte Kontextvorschau nach #456 als Diagnosemittel; technische Detaildaten gehören nicht in den normalen Live-Ablauf.
+4. Begründen Sie Alarmgrenzen, Aufbewahrung und Zuständigkeit. Prüfen Sie die in 1.3 vorhandene hostgeschützte Kontextvorschau nach #456 anhand derselben Störfälle als Diagnosemittel; technische Detaildaten gehören nicht in den normalen Live-Ablauf.
 
-**Individuelles Ergebnis:** Telemetrieschema, Ereignisdaten, Alarmvergleich und Betriebsentscheidung. **Gültigkeitsgrenze:** Laufzeitmetriken beweisen keine semantische Qualität; Qualitätsalarme benötigen geeignete Referenzfälle. **Diskussionskern:** Messbarkeit, Aktualität, Diagnose und datensparsame Beobachtung.
+**Individuelles Ergebnis:** Ist-Telemetrie von 1.3, reale Ereignisdaten, Alarmvergleich und begründete Entscheidung über Beibehaltung oder gezielte Ergänzung. **Gültigkeitsgrenze:** Laufzeitmetriken beweisen keine semantische Qualität; Qualitätsalarme benötigen geeignete Referenzfälle. **Diskussionskern:** Messbarkeit, Aktualität, Diagnose und datensparsame Beobachtung.
 
 #### Gruppenauftrag 4C: Versionierung, Rollout und Rollback
 
-**Eigene Leitfrage:** Wie lässt sich eine Änderung am Kompass-Inferenzpfad freigeben und zurücknehmen, ohne unbemerkt Quellenbindung oder bestehende Lernziele zu beschädigen?
+**Eigene Leitfrage:** Wie sicher lässt sich eine kontrollierte Änderung am 1.3-Inferenzpfad prüfen und auf die Releasebaseline zurückrollen, ohne Quellenbindung oder bestätigte Lernziele zu beschädigen?
 
-1. Wählen Sie genau eine Änderung an Modell, technischem Prompt, Kontextschema oder Auswahlverfahren. Versionieren Sie Alt-/Neuzustand einschließlich gemeinsam abhängiger Artefakte.
+1. Wählen Sie genau eine kontrollierte Änderung gegenüber der unveränderten 1.3-Baseline an Modell, technischem Prompt, Kontextschema oder Auswahlverfahren. Versionieren Sie Alt-/Neuzustand einschließlich gemeinsam abhängiger Artefakte.
 2. Führen Sie dieselben Referenzfälle gegen beide Zustände aus. Prüfen Sie Quellenauflösung, fachliche Rubrik, Laufzeit und Budget; ergänzen Sie einen gezielt regressiven Fall.
 3. Testen Sie einen begrenzten Rollout und Rückweg im Labor. Prüfen Sie Cacheinvalidierung, Schema-/Adapterkompatibilität und den Erhalt bestätigter oder manuell bearbeiteter Lernziele.
 4. Entscheiden Sie über Freigabe- und Rollbackschwellen, Kill-Switch-Nutzung und Verantwortlichkeit. Erläutern Sie, wann ein Rollback der Anwendung allein wegen geänderter Daten oder Verträge nicht genügt.
@@ -356,7 +363,7 @@ Messen Sie Fehlererkennung, Zeit bis zum verständlichen Host-Zustand, Slotfreig
 
 ### 4.7 Thema 5: Privater Moderationskompass – Daten-, Modell- und Lieferkettensicherheit
 
-**Leitfrage:** Welche Schutzmaßnahmen verhindern, dass der reichere Moderationskontext unzulässige Daten offenlegt, eingeschleuste Anweisungen übernimmt oder durch unsichere Artefakte und Ressourcenmissbrauch gefährdet wird?
+**Leitfrage:** Wie wirksam verhindern die Schutzmaßnahmen von Release 1.3, dass der Moderationskontext unzulässige Daten offenlegt, eingeschleuste Anweisungen übernimmt oder durch unsichere Artefakte und Ressourcenmissbrauch gefährdet wird?
 
 **Fachlicher Zusammenhang:** Private Inferenz reduziert bestimmte Übermittlungen, ersetzt aber weder Autorisierung noch Datenminimierung oder sichere Softwarebereitstellung. #456 verbindet Quellen, Bewertungen, Lernziele und freigegebene Aggregate. Genau diese Verknüpfung verlangt überprüfbare Zugriffs-, Lebenszyklus- und Interpretationsgrenzen. Sicherheit wird am konkreten Datenfluss und an ausgeführten Negativtests belegt.
 
@@ -366,13 +373,13 @@ Messen Sie Fehlererkennung, Zeit bis zum verständlichen Host-Zustand, Slotfreig
 
 **Titel:** „Eine Quelle verschwindet während der Analyse: Autorisierung und Lebenszyklus im Moderationskompass.“
 
-Untersuchen Sie einen begrenzten Fall vom autorisierten Snapshot bis zur Ausgabe: Während der Analyse wird eine Frage gelöscht, archiviert oder ihre Zulässigkeit geändert. Vergleichen Sie eine ausschließlich beim Start erfolgende Prüfung mit erneuter Prüfung vor Ergebnisanzeige. Verwenden Sie einen verzögerten Testadapter, um den zeitlichen Ablauf deterministisch nachzustellen.
+Untersuchen Sie einen begrenzten Fall vom autorisierten Snapshot bis zur Ausgabe: Während der Analyse wird eine Frage gelöscht, archiviert oder ihre Zulässigkeit geändert. Prüfen Sie die in 1.3 vorhandene erneute Quellenprüfung vor Ergebnisanzeige und vergleichen Sie sie mit einer ausschließlich im isolierten Labor absichtlich abgeschwächten Startprüfung. Verwenden Sie einen verzögerten Testadapter, um den zeitlichen Ablauf deterministisch nachzustellen.
 
 Ergänzen Sie einen unberechtigten Aufruf der Kontextvorschau oder Summary-Schnittstelle. Belegen Sie, dass alte Quellen weder direkt noch aus einem Cache unzulässig angezeigt werden. Ergebnis ist ein Bedrohungsmodell für diesen Pfad, ein ausgeführter Negativtest und eine begründete Schutzentscheidung samt Restrisiko; keine vollständige Datenschutzprüfung des Produkts.
 
 #### Gruppenauftrag 5A: Autorisierung, Freigaben und Datenminimierung
 
-**Eigene Leitfrage:** Wie werden Lernzielvorbereitung, Live-Kontext und Ergebnisanzeige so getrennt, dass nur die jeweils berechtigten Informationen genutzt werden?
+**Eigene Leitfrage:** Halten die in Release 1.3 implementierten Grenzen zwischen Lernzielvorbereitung, Live-Kontext und Ergebnisanzeige auch bei Freigabeänderungen und unberechtigten Zugriffen?
 
 1. Zeichnen Sie die Vertrauensgrenzen zwischen Host, Teilnehmeransicht, Backend, Quellenregister und Runtime. Session-Code oder Clientzustand allein dürfen keine Berechtigung begründen.
 2. Vergleichen Sie den Vorbereitungsauftrag, der bewusst bereitgestellte Lösungen enthalten darf, mit dem Live-Auftrag. Prüfen Sie, dass gesperrte Lösungen/Ergebnisse auch über abgeleitete Lernzieltexte nicht unzulässig durchgereicht werden.
@@ -383,20 +390,20 @@ Ergänzen Sie einen unberechtigten Aufruf der Kontextvorschau oder Summary-Schni
 
 #### Gruppenauftrag 5B: Injection, manipulierte Aussagen und Ressourcenmissbrauch
 
-**Eigene Leitfrage:** Wie robust ist der begrenzte Kompass-Auftrag gegen fremde Anweisungen in Fragen, Quiztexten oder manuellen Lernzielen?
+**Eigene Leitfrage:** Wie robust ist der reale 1.3-Kompass-Auftrag gegen fremde Anweisungen in Fragen, Quiztexten oder manuellen Lernzielen gegenüber einer kontrolliert abgeschwächten Variante?
 
 1. Entwickeln Sie ein fokussiertes Bedrohungsmodell und synthetische Angriffsfixtures: eingeschleuste Anweisungen, erfundene Quellenreferenzen und stark vergrößerte Eingaben. Trennen Sie manipulierte Eingabe von fehlerhafter Modellantwort.
-2. Vergleichen Sie einen unstrukturierten Probeauftrag mit strukturell getrennten Instruktionen und Daten sowie serverseitiger Schema-/Quellenprüfung. Nutzen Sie reale private Modellläufe, soweit Aussagen über Injectionwirkung beansprucht werden.
+2. Prüfen Sie zuerst die in 1.3 implementierte Trennung von Instruktionen und Daten sowie Schema-/Quellenprüfung. Vergleichen Sie diese Baseline mit genau einer kontrolliert abgeschwächten Laborvariante, etwa unstrukturierter Eingabe. Nutzen Sie reale private Release-Modellläufe für Aussagen über Injectionwirkung.
 3. Prüfen Sie Budgetgrenzen, Abbruch und begrenzte Wiederholungen anhand langer Eingaben und gleichzeitiger Anfragen. Zeigen Sie, dass Schutzmaßnahmen nicht bloß alle gültigen Anfragen blockieren.
 4. Bewerten Sie Erfolgs-/Fehlerraten und Betriebskosten der Gegenmaßnahmen. Begründen Sie, weshalb JSON-Schema und gültige IDs allein weder Quellentreue noch Injectionresistenz garantieren.
 
-**Individuelles Ergebnis:** Reproduzierbare Angriff-/Gegenproben, Wirksamkeitsanalyse und Restrisikobewertung. **Gültigkeitsgrenze:** Ohne Modelllauf sind nur Parser-, Quellen- und Ressourcengrenzen geprüft; eine allgemeine Aussage „prompt-injection-sicher“ ist unzulässig. **Diskussionskern:** untrusted content, gestaffelte Kontrollen und Fehlalarme.
+**Individuelles Ergebnis:** Reproduzierbare Angriff-/Gegenproben, Wirksamkeitsanalyse und Restrisikobewertung. **Gültigkeitsgrenze:** Die realen Modellläufe belegen nur die untersuchten Angriffs-/Kontextfälle; eine allgemeine Aussage „prompt-injection-sicher“ folgt daraus nicht. **Diskussionskern:** untrusted content, gestaffelte Kontrollen und Fehlalarme.
 
 #### Gruppenauftrag 5C: Lieferkette und gehärtete Bereitstellung
 
-**Eigene Leitfrage:** Wie wird sichergestellt, dass der private Moderationskompass genau die geprüften Modelle und Laufzeit-Artefakte unter den vorgesehenen Einschränkungen ausführt?
+**Eigene Leitfrage:** Wie wirksam sichern Artefaktbindung und Härtung des 1.3-Deployments die Identität und begrenzte Ausführung der geprüften Modelle und Runtime?
 
-1. Inventarisieren Sie ein begrenztes Deployment mit Runtime, Containerimage, Modellgewicht, Tokenizer und Lizenz-/NOTICE-Dateien. Trennen Sie Softwarelizenz, Modelllizenz und Sprachmodellpakete.
+1. Inventarisieren Sie das ausgelieferte 1.3-Deployment mit Runtime, Containerimage, Modellgewicht, Tokenizer und Lizenz-/NOTICE-Dateien; gleichen Sie die Laborinstanz mit dem produktiven Referenzmanifest ab. Trennen Sie Softwarelizenz, Modelllizenz und Sprachmodellpakete.
 2. Prüfen Sie Versions-/Digestbindung, Herkunft, Modellbezug und Wiederholbarkeit. Bei spaCy beachten Sie die im Repo dokumentierten unterschiedlichen Lizenzbedingungen der Sprachpakete; ein MIT-lizenziertes Projekt macht nicht alle Gewichte zu MIT.
 3. Führen Sie mindestens einen Negativtest mit verändertem Artefakt oder Digestabweichung sowie einen konkreten Härtungstest aus. Geeignet sind verbotene Schnittstellenerreichbarkeit, fehlende Authentisierung oder ein unzulässiger Endpunkt; Tests bleiben im Labor.
 4. Begründen Sie Image-/Modellmanifest, Updateverfahren und Betriebseinschränkungen wie nichtöffentliche Bindings, Ressourcenlimits und abgeschaltete Zusatzoberflächen. Bewerten Sie Wartungsaufwand und verbleibende Vertrauensannahmen.
@@ -407,7 +414,7 @@ Ergänzen Sie einen unberechtigten Aufruf der Kontextvorschau oder Summary-Schni
 
 ### 4.8 Thema 6: Cloud-Betriebsmodell für den Moderationskompass – CPU, GPU oder Managed AI?
 
-**Leitfrage:** Unter welchen überprüfbaren Leistungs-, Qualitäts- und Nutzungsannahmen ist die vorgesehene private CPU-Runtime für den Moderationskompass wirtschaftlich, und wann wären alternative Cloud-Angebote neu zu bewerten?
+**Leitfrage:** Unter welchen überprüfbaren Leistungs-, Qualitäts- und Nutzungsannahmen ist die mit Release 1.3 ausgelieferte private CPU-Runtime für den Moderationskompass wirtschaftlich, und wann wären alternative Cloud-Angebote neu zu bewerten?
 
 **Fachlicher Zusammenhang:** Die aktuelle Projektentscheidung lautet private CPU-Inferenz ohne stillen SaaS-Fallback. GPU und Managed AI sind ausdrücklich **Vergleichs- und Entscheidungsalternativen**, keine autorisierte Produktumstellung. Wirtschaftlichkeit wird für dieselbe nutzbare Moderationsleistung verglichen. Ein schneller, aber quellenuntreuer oder unzulässiger Output ist kein erfolgreicher Job.
 
@@ -419,16 +426,16 @@ Ergänzen Sie einen unberechtigten Aufruf der Kontextvorschau oder Summary-Schni
 
 **Titel:** „Was kostet eine brauchbare Moderationszusammenfassung auf der privaten CPU-Runtime?“
 
-Untersuchen Sie einen begrenzten Summary-Auftrag mit dem #456-Kontext unter einem nachgewiesenen Tokenbudget. Verwenden Sie einen realen freigegebenen CPU-Messlauf oder vorab bereitgestellte nachvollziehbare Messdaten; führen Sie eine eigene reproduzierbare Kosten- und Sensitivitätsauswertung durch.
+Untersuchen Sie einen begrenzten Summary-Auftrag mit dem #456-Kontext unter einem nachgewiesenen Tokenbudget. Führen Sie eigene reale CPU-Messläufe auf der reproduzierten 1.3-Runtime durch und verwenden Sie deren Daten für eine reproduzierbare Kosten- und Sensitivitätsauswertung.
 
 Berechnen Sie Kosten je erfolgreicher Summary, je definierter Veranstaltung und je 1.000 erfolgreicher Jobs für geringe, mittlere und hohe Nutzung. Vergleichen Sie dies mit einer konkreten, belegten Managed-Alternative unter derselben Leistungsanforderung. Unterscheiden Sie Preisvergleich von zulässiger Projektoption: Eine günstigere SaaS-Zahl hebt Daten-/Runtimevorgaben nicht auf. Ergebnis ist eine konditionale Betriebsentscheidung, keine Providerbeschaffung.
 
 #### Gruppenauftrag 6A: Private CPU-Inferenz als Referenzbetrieb
 
-**Eigene Leitfrage:** Welchen nutzbaren Leistungs- und Kostenbereich erreicht die vorgesehene private CPU-Runtime des Moderationskompasses?
+**Eigene Leitfrage:** Welchen nutzbaren Leistungs- und Kostenbereich erreicht die mit Release 1.3 ausgelieferte private CPU-Runtime des Moderationskompasses?
 
-1. Beschreiben Sie den zweiten privaten Host und ein gepinntes Modellprofil. Untersuchen Sie mindestens kurze Labels und einen begrenzten Summary-Kontext; Lernzielaufträge gehen mit explizitem Anteil oder als gesondertes Szenario in die Kostenrechnung ein.
-2. Ermitteln Sie Tokenumfang, Prefill/TTFT, Laufzeit, Speicher und Erfolgsquote aus einem realen Lauf oder freigegebenen Rohdaten. Bestimmen Sie die verfügbare Kapazität unter Ein-Slot-Betrieb; Best-Case-Tokens/s allein reichen nicht.
+1. Reproduzieren Sie den zweiten privaten Host und das tatsächlich ausgelieferte Modellprofil anhand des 1.3-Referenzmanifests. Untersuchen Sie mindestens kurze Labels und einen begrenzten Summary-Kontext; Lernzielaufträge gehen mit explizitem Anteil oder als gesondertes Szenario in die Kostenrechnung ein.
+2. Ermitteln Sie Tokenumfang, Prefill/TTFT, Laufzeit, Speicher und Erfolgsquote aus eigenen realen Läufen der 1.3-Laborinstanz. Bestimmen Sie die verfügbare Kapazität unter Ein-Slot-Betrieb; Best-Case-Tokens/s allein reichen nicht.
 3. Berechnen Sie fixe und variable Kosten einschließlich Leerlauf, Betriebspersonal und Fehlversuchen. Fallbacks und Retries werden als Betriebsaufwand erfasst, aber nicht als erfolgreiche generative Antworten gezählt.
 4. Vergleichen Sie mindestens drei Nutzungsprofile und eine konservative Worst-Case-Annahme. Entscheiden Sie, bis zu welcher Last und welchem Qualitätsniveau die CPU-Rolle vertretbar ist.
 
@@ -436,7 +443,7 @@ Berechnen Sie Kosten je erfolgreicher Summary, je definierter Veranstaltung und 
 
 #### Gruppenauftrag 6B: GPU-Inferenz als begründete Ausbaualternative
 
-**Eigene Leitfrage:** Ab wann könnte eine eigene oder gemietete GPU-Rolle dieselbe Moderationsleistung besser erfüllen, und ist ihr Mehrbedarf wirtschaftlich gerechtfertigt?
+**Eigene Leitfrage:** Ab welcher gemessenen 1.3-Last wäre eine eigene oder gemietete GPU gegenüber der ausgelieferten CPU-Rolle wirtschaftlich und betrieblich vorteilhaft?
 
 1. Wählen Sie eine konkrete GPU-Konfiguration und begründen Sie Speicher, Runtime und Modellprofil. Halten Sie möglichst dasselbe Modell und dieselbe Quantisierung; nötige Abweichungen werden samt Qualitätseinfluss dokumentiert.
 2. Prüfen Sie das gemeinsame Profil anhand realer freigegebener Messdaten. Trennen Sie Kaltstart, Laden, Prefill und Generierung; vergleichen Sie Kosten und Ende-zu-Ende-Zeit statt ausschließlich Tokens/s.
@@ -447,10 +454,10 @@ Berechnen Sie Kosten je erfolgreicher Summary, je definierter Veranstaltung und 
 
 #### Gruppenauftrag 6C: Managed AI und Verantwortungsteilung
 
-**Eigene Leitfrage:** Welches Managed-Angebot könnte die technische Leistung des Moderationskompasses erfüllen, und welche Verantwortung und Abhängigkeit würde arsnova.eu dafür verlagern?
+**Eigene Leitfrage:** Welches Managed-Angebot erfüllt dieselbe gemessene Moderationsleistung wie Release 1.3, und welche Kosten-, Verantwortungs- und Exitfolgen hätte ein Wechsel?
 
 1. Erstellen Sie eine knappe Vorauswahl geeigneter Angebote von AWS, Azure und GCP. Prüfen Sie Modell-/Kontextfähigkeit, strukturierte Ausgaben, Region, Netz-/Zugriffsoptionen, Datennutzung, Quoten und Abrechnung anhand aktueller Primärquellen.
-2. Vertiefen Sie genau einen geeigneten Dienst gegen dieselbe CPU-Referenz und dasselbe Qualitätsszenario. Ein freigegebener synthetischer Test oder eine belastbare dokumentierte Vergleichsmessung bildet die Evidenz; Produktionsdaten werden nicht hochgeladen.
+2. Vertiefen Sie genau einen geeigneten Dienst gegen die gemessene 1.3-CPU-Referenz und dasselbe Qualitätsszenario. Ein freigegebener synthetischer Test oder eine belastbare dokumentierte Vergleichsmessung bildet die Evidenz; Produktionsdaten werden nicht hochgeladen.
 3. Berechnen Sie Kosten einschließlich Eingabe-/Ausgabetokens, Fehlversuchen, gegebenenfalls provisionierter Kapazität, Netz und Integrationsbetrieb. Trennen Sie tatsächlich gemessene Latenz von Anbieter-SLO und Werbeaussage.
 4. Bewerten Sie Shared Responsibility, Datenresidenz, API-/Modellwechsel, Lock-in und Exit. Entscheiden Sie, ob überhaupt eine vertiefte Betreiberprüfung sinnvoll wäre; die bestehende Absage an SaaS-Fallback bleibt verbindlich.
 
@@ -479,8 +486,8 @@ Gemeinsame Messgrößen sind erwünscht, aber die zu beantwortende Frage und ind
 - [ ] Jeder individuelle Auftrag enthält den ausdrücklichen Bezug zum Moderationskompass und mindestens einen konkreten Bezug zu #456.
 - [ ] Jede Person hat einen vollständigen Argumentationsgang und eine eigenständige Mess-/Test-/Auswertungsleistung; niemand übernimmt nur Einleitung oder Zusammenfassung.
 - [ ] QZ-Bezug, These, Gegenalternative, Zielumgebung, Daten, Budget, Evidenz und Entscheidung sind schriftlich festgelegt.
-- [ ] Repository-Commit und Issue-Stand sind fixiert; implementierte und geplante Funktionen sind getrennt.
-- [ ] Runtime-, GPU- und Providerzugang beziehungsweise zulässige Ersatzdaten sind vor Vergabe geklärt; niemand hängt von der Lieferung eines anderen Prüflings ab.
+- [ ] Produktiver 1.3-Release-Tag/Commit und Referenzmanifest sind fixiert; Releasebaseline, Versuchsvarianten und spätere Erweiterungen sind getrennt.
+- [ ] Die vollständige 1.3-Laborinstanz einschließlich echter privater Runtime ist bereitgestellt; GPU-/Providerzugänge oder externe Vergleichsdaten sind geklärt; niemand hängt von der Lieferung eines anderen Prüflings ab.
 - [ ] Individuelles Handout, Folien, Evidenzverweise und 15 Minuten einschließlich Diskussion sind für alle gleichwertig vorgesehen.
 - [ ] Gruppensynthese, gemeinsame Artefakte und individuelle Anteile sind transparent; es entsteht keine zusätzliche Gruppenbewertung.
 - [ ] Mindestens vier Wochen Bearbeitungszeit, gemeinsamer PDF-Abgabetermin und zulässige Agentennutzung sind veröffentlicht.
