@@ -481,7 +481,7 @@ describe('HomeComponent', () => {
             '.home-card__icon-wrap .home-card__icon',
           ),
         ).map((icon) => icon.textContent?.trim()),
-      ).toEqual(['meeting_room', 'quiz', 'chat_bubble', 'bolt']);
+      ).toEqual(['meeting_room', 'quiz', 'chat_bubble_outline', 'bolt']);
       expect(fixture.nativeElement.querySelector('.home-card mat-card-subtitle')).toBeNull();
     });
 
