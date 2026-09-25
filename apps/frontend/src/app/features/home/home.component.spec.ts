@@ -610,11 +610,18 @@ describe('HomeComponent', () => {
         fixture.nativeElement.querySelector('[data-testid="home-host-recovery-link"]'),
       ).toBeNull();
       expect(
-        recoveryAction?.closest('.home-host-session-cta-row__item')?.querySelector('.home-host-session-cta__fact')?.textContent?.trim(),
+        recoveryAction
+          ?.closest('.home-host-session-cta-row__item')
+          ?.querySelector('.home-host-session-cta__fact')
+          ?.textContent?.trim(),
       ).toContain('Zugang bis');
 
       expect(recoveryAction?.querySelector('.home-host-session-cta__facts')).toBeNull();
-      expect(recoveryAction?.closest('.home-host-session-cta-row__item')?.querySelector('.home-host-session-cta__facts')).not.toBeNull();
+      expect(
+        recoveryAction
+          ?.closest('.home-host-session-cta-row__item')
+          ?.querySelector('.home-host-session-cta__facts'),
+      ).not.toBeNull();
 
       const liveGrid = fixture.nativeElement.querySelector('.home-live-grid') as HTMLElement | null;
       expect(liveGrid?.classList.contains('home-live-grid--with-recovery')).toBe(false);
