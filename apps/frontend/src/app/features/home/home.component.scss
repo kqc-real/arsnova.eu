@@ -1272,6 +1272,11 @@
     margin-inline: calc((100% - min(72rem, calc(100vw - 4rem))) / 2);
   }
 
+  .home-hero-band {
+    margin-block: 6rem calc(4rem - 1.25rem);
+    padding-block: 1.5rem 1.75rem;
+  }
+
   .home-card#participant-entry {
     max-width: 36rem;
     margin-inline: auto;
@@ -1520,13 +1525,6 @@
       transparent 92%
     );
     box-shadow: var(--mat-sys-level1);
-  }
-
-  @media (min-width: 1200px) {
-    .home-hero-band {
-      margin-block: 6rem calc(4rem - 1.25rem);
-      padding-block: 1.5rem 1.75rem;
-    }
   }
 
   .home-hero-band > * {
