@@ -633,6 +633,7 @@ describe('HomeComponent', () => {
         ),
       );
       expect(hostCtas).toHaveLength(1);
+      expect(hostCtas[0]?.classList.contains('mat-mdc-outlined-button')).toBe(true);
       expect(
         fixture.nativeElement.querySelector('[data-testid="home-qa-session-ghost"]'),
       ).toBeNull();
@@ -1762,9 +1763,7 @@ describe('HomeComponent', () => {
       expect(scss).toMatch(
         /\.home-card__icon-wrap\s*\{[^}]*background:\s*transparent[^}]*color:\s*var\(--mat-sys-primary\)/,
       );
-      expect(scss).toMatch(
-        /\.home-host-session-cta--open\s*\{[^}]*surface-container-highest[^}]*outline-variant/,
-      );
+      expect(scss).not.toMatch(/\.home-host-session-cta--open\s*\{/);
       expect(scss).toMatch(
         /\.home-card\s*\{[^}]*--mat-card-elevated-container-shape:\s*var\(--mat-sys-corner-extra-large\)/,
       );
