@@ -8239,6 +8239,24 @@
           <context context-type="linenumber">21</context>
         </context-group>
       </trans-unit>
+      <trans-unit id="homeQuizCard.eyebrow" datatype="html">
+        <source>Fragen ans Publikum</source>
+      </trans-unit>
+      <trans-unit id="homeQaCard.eyebrow" datatype="html">
+        <source>Fragen vom Publikum</source>
+      </trans-unit>
+      <trans-unit id="homeQaCard.sessionGhostAria" datatype="html">
+        <source>Hier erscheinen deine Q&amp;A-Sessions</source>
+      </trans-unit>
+      <trans-unit id="homeQaCard.sessionGhostLabel" datatype="html">
+        <source>Meine Q&amp;A-Sessions</source>
+      </trans-unit>
+      <trans-unit id="homeQaCard.sessionGhostDescription" datatype="html">
+        <source>Direktzugänge erscheinen hier</source>
+      </trans-unit>
+      <trans-unit id="homeBlitzlichtCard.eyebrow" datatype="html">
+        <source>Feedback vom Publikum</source>
+      </trans-unit>
       <trans-unit id="homeHero.channelBlitzlicht" datatype="html">
         <source>Blitzlicht</source>
         <context-group purpose="location">
@@ -8408,7 +8426,7 @@
         </context-group>
       </trans-unit>
       <trans-unit id="homeLiveCard.qaCreateLabel" datatype="html">
-        <source>Neue Q&amp;A</source>
+        <source>Neue Q&amp;A-Session</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/home/home.component.html</context>
           <context context-type="linenumber">328</context>
@@ -8478,7 +8496,7 @@
         </context-group>
       </trans-unit>
       <trans-unit id="homeHostCard.createQuizCta" datatype="html">
-        <source>Neues Quiz erstellen</source>
+        <source>Neues Quiz</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/home/home.component.html</context>
           <context context-type="linenumber">494</context>

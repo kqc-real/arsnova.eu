@@ -45,6 +45,7 @@ import {
   tempoTrendTone,
 } from './feedback.config';
 import {
+  QuickFeedbackTypeEnum,
   quickFeedbackDefaultsToLiveResults,
   type QuickFeedbackResult,
   type QuickFeedbackType,
@@ -303,6 +304,7 @@ export class FeedbackHostComponent implements OnInit, OnDestroy {
   async ngOnInit(): Promise<void> {
     await this.generateQrCode();
     await this.loadInitialResult();
+    await this.consumeRequestedFeedbackType();
     this.startPolling();
     if (this.result()) {
       this.subscribeToResults();
@@ -331,6 +333,27 @@ export class FeedbackHostComponent implements OnInit, OnDestroy {
       }
       void this.loadInitialResult();
     }, 3000);
+  }
+
+  /** Startseiten-Vorlage einmal anwenden und den Query-Parameter danach entfernen. */
+  private async consumeRequestedFeedbackType(): Promise<void> {
+    if (!this.embeddedInSession()) {
+      return;
+    }
+    const feedbackType = this.route.snapshot?.queryParamMap?.get('feedbackType');
+    const parsed = QuickFeedbackTypeEnum.safeParse(feedbackType);
+    if (!parsed.success) {
+      return;
+    }
+    if (this.result()?.type !== parsed.data) {
+      await this.startRound(parsed.data);
+    }
+    await this.router.navigate([], {
+      relativeTo: this.route,
+      queryParams: { feedbackType: null },
+      queryParamsHandling: 'merge',
+      replaceUrl: true,
+    });
   }
 
   /** Erste Daten per HTTP laden, damit die Seite nicht auf die WebSocket-Subscription warten muss. */

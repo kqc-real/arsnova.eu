@@ -9315,6 +9315,30 @@
           <context context-type="linenumber">21</context>
         </context-group>
       </trans-unit>
+      <trans-unit id="homeQuizCard.eyebrow" datatype="html">
+        <source>Fragen ans Publikum</source>
+        <target>Preguntas al público</target>
+      </trans-unit>
+      <trans-unit id="homeQaCard.eyebrow" datatype="html">
+        <source>Fragen vom Publikum</source>
+        <target>Preguntas del público</target>
+      </trans-unit>
+      <trans-unit id="homeQaCard.sessionGhostAria" datatype="html">
+        <source>Hier erscheinen deine Q&amp;A-Sessions</source>
+        <target>Tus sesiones de Q&amp;A aparecerán aquí</target>
+      </trans-unit>
+      <trans-unit id="homeQaCard.sessionGhostLabel" datatype="html">
+        <source>Meine Q&amp;A-Sessions</source>
+        <target>Mis sesiones de Q&amp;A</target>
+      </trans-unit>
+      <trans-unit id="homeQaCard.sessionGhostDescription" datatype="html">
+        <source>Direktzugänge erscheinen hier</source>
+        <target>Los accesos directos aparecen aquí</target>
+      </trans-unit>
+      <trans-unit id="homeBlitzlichtCard.eyebrow" datatype="html">
+        <source>Feedback vom Publikum</source>
+        <target>Feedback del público</target>
+      </trans-unit>
       <trans-unit id="homeHero.channelBlitzlicht" datatype="html">
         <source>Blitzlicht</source>
         <target>Sondeo rápido</target>
@@ -9508,8 +9532,8 @@
         </context-group>
       </trans-unit>
       <trans-unit id="homeLiveCard.qaCreateLabel" datatype="html">
-        <source>Neue Q&amp;A</source>
-        <target>Nuevo Q&amp;A</target>
+        <source>Neue Q&amp;A-Session</source>
+        <target>Nueva sesión de Q&amp;A</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/home/home.component.html</context>
           <context context-type="linenumber">328</context>
@@ -9588,8 +9612,8 @@
         </context-group>
       </trans-unit>
       <trans-unit id="homeHostCard.createQuizCta" datatype="html">
-        <source>Neues Quiz erstellen</source>
-        <target>Crear un nuevo quiz</target>
+        <source>Neues Quiz</source>
+        <target>Nuevo quiz</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/home/home.component.html</context>
           <context context-type="linenumber">494</context>

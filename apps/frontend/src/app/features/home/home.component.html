@@ -190,81 +190,23 @@
     <div class="home-host-stack">
       <mat-card
         appearance="raised"
-        class="home-card home-card--live home-card--stage-side"
-        [attr.inert]="syncLinkVisible() ? '' : null"
+        class="home-card home-card--create home-card--stage-side"
+        [class.home-card--sync-open]="syncLinkVisible()"
       >
         <mat-card-header class="home-card__header">
           <div class="home-card__heading">
             <span class="home-card__icon-wrap" aria-hidden="true">
-              <mat-icon class="home-card__icon">play_arrow</mat-icon>
+              <mat-icon class="home-card__icon">quiz</mat-icon>
             </span>
             <div class="home-card__header-copy">
-              <p class="home-card__eyebrow" i18n="@@homeLiveCard.eyebrow">Live</p>
-              <h3 mat-card-title class="home-card__title" i18n="@@homeLiveCard.title">
-                Session starten
-              </h3>
+              <p class="home-card__eyebrow" i18n="@@homeQuizCard.eyebrow">Fragen ans Publikum</p>
+              <h3 mat-card-title class="home-card__title" i18n="@@homeHero.channelQuiz">Quiz</h3>
             </div>
           </div>
         </mat-card-header>
 
-        <mat-card-actions class="home-card__actions home-card__actions--stack home-live-actions">
-          @if (showHostRecoveryCta()) {
-            <ul
-              class="home-host-session-cta-row"
-              i18n-aria-label="@@homeLiveCard.openHostSessionsAria"
-              aria-label="Deine Q&amp;A-Sessions"
-            >
-              @for (item of hostSessionCtas(); track item.code) {
-                <li class="home-host-session-cta-row__item">
-                  <a
-                    [matButton]="item.primary ? 'tonal' : 'outlined'"
-                    [routerLink]="hostSessionCtaLink(item.code)"
-                    [queryParams]="{ tab: 'qa' }"
-                    class="home-cta home-choice-button"
-                    [class.home-cta--secondary]="!item.primary"
-                    [class.home-library-button]="!item.primary"
-                    [class.home-host-session-cta--open]="item.primary"
-                    data-testid="home-host-recovery"
-                    [attr.data-session-code]="item.code"
-                  >
-                    <span class="home-choice-button__copy">
-                      <span class="home-choice-button__label">
-                        @if (item.qaOpen) {
-                          <span class="home-host-session-cta__dot" aria-hidden="true"></span>
-                        }
-                        {{ hostSessionCtaLabel(item.code) }}
-                      </span>
-                      <span class="home-choice-button__description">{{
-                        hostSessionCtaDescription(item.deadlineLabel)
-                      }}</span>
-                      @if (hostSessionCtaOpenDescription(item); as openLabel) {
-                        <span class="home-choice-button__description">{{ openLabel }}</span>
-                      }
-                      @if (hostSessionCtaApprovedQuestionDescription(item); as approvedLabel) {
-                        <span class="home-choice-button__description">{{ approvedLabel }}</span>
-                      }
-                      @if (hostSessionCtaPendingQuestionDescription(item); as pendingLabel) {
-                        <span class="home-choice-button__description">{{ pendingLabel }}</span>
-                      }
-                    </span>
-                  </a>
-                  <button
-                    mat-icon-button
-                    type="button"
-                    class="home-host-session-cta-row__remove"
-                    data-testid="home-host-session-remove"
-                    [attr.data-session-code]="item.code"
-                    [attr.aria-label]="hostSessionCtaRemoveAria(item)"
-                    [disabled]="hostSessionCtaBusy()"
-                    (click)="removeHostSessionCta(item, $event)"
-                  >
-                    <mat-icon aria-hidden="true">delete_outline</mat-icon>
-                  </button>
-                </li>
-              }
-            </ul>
-          }
-          <div class="home-live-grid">
+        <mat-card-actions class="home-card__actions home-card__actions--stack">
+          <div class="home-card__cta-stack" [attr.inert]="syncLinkVisible() ? '' : null">
             @if (hasHostedQuiz()) {
               <a
                 matButton="filled"
@@ -286,199 +228,6 @@
                 </span>
               </a>
             }
-            <button
-              matButton="tonal"
-              type="button"
-              class="home-cta home-cta--secondary home-choice-button home-live-quiz-primary"
-              data-testid="home-live-quiz-start"
-              (mouseenter)="preloadQuiz()"
-              (click)="openHeroHostTab('quiz')"
-              [disabled]="!!hostSessionStarting()"
-              [attr.aria-busy]="hostSessionStarting() === 'quiz' ? 'true' : null"
-            >
-              <span class="home-choice-button__copy">
-                <span class="home-choice-button__label" i18n="@@homeLiveCard.quizLabel"
-                  >Live-Quiz</span
-                >
-                <span class="home-choice-button__description" i18n="@@homeLiveCard.quizDescription"
-                  >Aus Sammlung wählen</span
-                >
-              </span>
-              @if (hostSessionStarting() === 'quiz') {
-                <mat-icon class="home-choice-button__busy home-spin" aria-hidden="true"
-                  >sync</mat-icon
-                >
-              }
-            </button>
-            <button
-              matButton="tonal"
-              type="button"
-              class="home-cta home-cta--secondary home-choice-button home-live-qa"
-              data-testid="home-live-qa-create"
-              (click)="openHeroHostTab('qa')"
-              [disabled]="!!hostSessionStarting()"
-              [attr.aria-busy]="hostSessionStarting() === 'qa' ? 'true' : null"
-            >
-              <span class="home-choice-button__copy">
-                <span class="home-choice-button__label">
-                  @if (showHostRecoveryCta()) {
-                    <ng-container i18n="@@homeLiveCard.qaCreateLabel">Neue Q&amp;A</ng-container>
-                  } @else {
-                    <ng-container i18n="@@homeLiveCard.qaLabel">Q&amp;A</ng-container>
-                  }
-                </span>
-                <span class="home-choice-button__description" i18n="@@homeLiveCard.qaDescription"
-                  >Fragen &amp; Wortwolke</span
-                >
-              </span>
-              @if (hostSessionStarting() === 'qa') {
-                <mat-icon class="home-choice-button__busy home-spin" aria-hidden="true"
-                  >sync</mat-icon
-                >
-              }
-            </button>
-            <button
-              matButton="outlined"
-              type="button"
-              class="home-cta home-cta--secondary home-choice-button"
-              (click)="openHeroHostTab('quickFeedback')"
-              [disabled]="!!hostSessionStarting()"
-              [attr.aria-busy]="hostSessionStarting() === 'quickFeedback' ? 'true' : null"
-            >
-              <span class="home-choice-button__copy">
-                <span class="home-choice-button__label" i18n="@@homeLiveCard.quickFeedbackLabel"
-                  >Blitzlicht</span
-                >
-                <span
-                  class="home-choice-button__description"
-                  i18n="@@homeLiveCard.quickFeedbackDescription"
-                  >Sofort-Feedback</span
-                >
-              </span>
-              @if (hostSessionStarting() === 'quickFeedback') {
-                <mat-icon class="home-choice-button__busy home-spin" aria-hidden="true"
-                  >sync</mat-icon
-                >
-              }
-            </button>
-          </div>
-        </mat-card-actions>
-        @if (hostSessionError()) {
-          <p class="home-error home-card__inline-error" role="alert">
-            <mat-icon class="home-error__icon" aria-hidden="true">warning</mat-icon>
-            <span class="home-error__text">{{ hostSessionError() }}</span>
-          </p>
-        }
-      </mat-card>
-
-      <mat-card
-        appearance="raised"
-        id="host-quick-feedback"
-        class="home-card home-card--feedback home-card--stage-side"
-        [attr.inert]="syncLinkVisible() ? '' : null"
-      >
-        <mat-card-header class="home-card__header">
-          <div class="home-card__heading">
-            <span class="home-card__icon-wrap" aria-hidden="true">
-              <mat-icon class="home-card__icon">bolt</mat-icon>
-            </span>
-            <div class="home-card__header-copy">
-              <p class="home-card__eyebrow" i18n="@@homeFeedbackCard.eyebrow">Direktes Feedback</p>
-              <h3 mat-card-title class="home-card__title" i18n="@@homeFeedbackCard.title">
-                Mit einem Klick
-              </h3>
-            </div>
-          </div>
-        </mat-card-header>
-
-        <mat-card-content class="home-card__content">
-          <div class="home-feedback-chip-grid">
-            @for (chip of quickFeedbackPresetChips; track chip.type) {
-              <button
-                matButton="tonal"
-                type="button"
-                class="home-feedback-chip"
-                (click)="startQuickFeedback(chip.type)"
-                [disabled]="!!quickFeedbackStarting()"
-                [attr.aria-busy]="quickFeedbackStarting() === chip.type"
-                [attr.aria-label]="chip.label"
-              >
-                <span class="home-feedback-chip__body">
-                  <span
-                    class="home-feedback-chip__icons"
-                    [class.home-feedback-chip__icons--rating]="chip.type === 'STARS'"
-                    aria-hidden="true"
-                  >
-                    @for (icon of chip.icons; track icon) {
-                      @if (icon.kind === 'mat') {
-                        <mat-icon
-                          class="home-feedback-chip__icon"
-                          [class.home-feedback-chip__icon--positive]="icon.tone === 'positive'"
-                          [class.home-feedback-chip__icon--negative]="icon.tone === 'negative'"
-                          [class.home-feedback-chip__icon--neutral]="icon.tone === 'neutral'"
-                          [class.home-feedback-chip__icon--rating]="icon.tone === 'rating'"
-                        >
-                          {{ icon.value }}
-                        </mat-icon>
-                      } @else {
-                        <span class="home-feedback-chip__icon">{{ icon.value }}</span>
-                      }
-                    }
-                  </span>
-                  @if (chip.showLabel !== false) {
-                    <span
-                      class="home-feedback-chip__label"
-                      [class.home-feedback-chip__label--wide-full]="chip.type === 'YESNO'"
-                      >{{ chip.label }}</span
-                    >
-                    @if (chip.type === 'YESNO') {
-                      <span
-                        class="home-feedback-chip__label home-feedback-chip__label--wide-compact"
-                        aria-hidden="true"
-                        i18n="@@homeFeedbackCard.yesNoMaybeCompact"
-                        >Ja · Nein · ?</span
-                      >
-                    }
-                  }
-                </span>
-                @if (quickFeedbackStarting() === chip.type) {
-                  <mat-icon class="home-feedback-chip__busy home-spin" aria-hidden="true"
-                    >sync</mat-icon
-                  >
-                }
-              </button>
-            }
-          </div>
-          @if (quickFeedbackError()) {
-            <p class="home-error" role="alert">
-              <mat-icon class="home-error__icon" aria-hidden="true">warning</mat-icon>
-              <span class="home-error__text">{{ quickFeedbackError() }}</span>
-            </p>
-          }
-        </mat-card-content>
-      </mat-card>
-
-      <mat-card
-        appearance="raised"
-        class="home-card home-card--create home-card--stage-side"
-        [class.home-card--sync-open]="syncLinkVisible()"
-      >
-        <mat-card-header class="home-card__header">
-          <div class="home-card__heading">
-            <span class="home-card__icon-wrap" aria-hidden="true">
-              <mat-icon class="home-card__icon">edit_note</mat-icon>
-            </span>
-            <div class="home-card__header-copy">
-              <p class="home-card__eyebrow" i18n="@@homeHostCard.eyebrow">Vorbereiten</p>
-              <h3 mat-card-title class="home-card__title" i18n="@@homeHostCard.title">
-                Quiz erstellen
-              </h3>
-            </div>
-          </div>
-        </mat-card-header>
-
-        <mat-card-actions class="home-card__actions home-card__actions--stack">
-          <div class="home-card__cta-stack" [attr.inert]="syncLinkVisible() ? '' : null">
             <div class="home-prepare-secondary-grid">
               <a
                 matButton="tonal"
@@ -488,7 +237,7 @@
               >
                 <span class="home-choice-button__copy">
                   <span class="home-choice-button__label" i18n="@@homeHostCard.createQuizCta"
-                    >Neues Quiz erstellen</span
+                    >Neues Quiz</span
                   >
                   <span
                     class="home-choice-button__description"
@@ -519,16 +268,6 @@
             </div>
           </div>
           <div class="home-prepare-text-actions">
-            <div class="home-card__tertiary" [attr.inert]="syncLinkVisible() ? '' : null">
-              <app-info-landing-link
-                class="home-card__info-landing home-prepare-text-action"
-                appearance="text"
-                leadIcon="help"
-                [anchor]="infoLandingWorkflowAnchor"
-                [label]="infoLandingWorkflowLabel"
-                [dense]="true"
-              />
-            </div>
             <button
               #syncToggleBtn
               type="button"
@@ -614,7 +353,228 @@
               </span>
             </output>
           }
+          <div class="home-card__tertiary" [attr.inert]="syncLinkVisible() ? '' : null">
+            <app-info-landing-link
+              class="home-card__info-landing home-prepare-text-action"
+              appearance="text"
+              leadIcon="help"
+              [anchor]="infoLandingWorkflowAnchor"
+              [label]="infoLandingWorkflowLabel"
+              [dense]="true"
+            />
+          </div>
         </mat-card-actions>
+      </mat-card>
+
+      <mat-card
+        appearance="raised"
+        class="home-card home-card--live home-card--stage-side"
+        [attr.inert]="syncLinkVisible() ? '' : null"
+      >
+        <mat-card-header class="home-card__header">
+          <div class="home-card__heading">
+            <span class="home-card__icon-wrap" aria-hidden="true">
+              <mat-icon class="home-card__icon">chat_bubble_outline</mat-icon>
+            </span>
+            <div class="home-card__header-copy">
+              <p class="home-card__eyebrow" i18n="@@homeQaCard.eyebrow">Fragen vom Publikum</p>
+              <h3 mat-card-title class="home-card__title" i18n="@@homeHero.channelQa">Q&amp;A</h3>
+            </div>
+          </div>
+        </mat-card-header>
+
+        <mat-card-actions class="home-card__actions home-card__actions--stack home-live-actions">
+          @if (showHostRecoveryCta()) {
+            <ul
+              class="home-host-session-cta-row"
+              i18n-aria-label="@@homeLiveCard.openHostSessionsAria"
+              aria-label="Deine Q&amp;A-Sessions"
+            >
+              @for (item of hostSessionCtas(); track item.code) {
+                <li class="home-host-session-cta-row__item">
+                  <a
+                    [matButton]="item.primary ? 'tonal' : 'outlined'"
+                    [routerLink]="hostSessionCtaLink(item.code)"
+                    [queryParams]="{ tab: 'qa' }"
+                    class="home-cta home-choice-button"
+                    [class.home-cta--secondary]="!item.primary"
+                    [class.home-library-button]="!item.primary"
+                    [class.home-host-session-cta--open]="item.primary"
+                    data-testid="home-host-recovery"
+                    [attr.data-session-code]="item.code"
+                  >
+                    <span class="home-choice-button__copy">
+                      <span class="home-choice-button__label">
+                        @if (item.qaOpen) {
+                          <span class="home-host-session-cta__dot" aria-hidden="true"></span>
+                        }
+                        {{ hostSessionCtaLabel(item.code) }}
+                      </span>
+                      <span class="home-choice-button__description">{{
+                        hostSessionCtaDescription(item.deadlineLabel)
+                      }}</span>
+                      @if (hostSessionCtaOpenDescription(item); as openLabel) {
+                        <span class="home-choice-button__description">{{ openLabel }}</span>
+                      }
+                      @if (hostSessionCtaApprovedQuestionDescription(item); as approvedLabel) {
+                        <span class="home-choice-button__description">{{ approvedLabel }}</span>
+                      }
+                      @if (hostSessionCtaPendingQuestionDescription(item); as pendingLabel) {
+                        <span class="home-choice-button__description">{{ pendingLabel }}</span>
+                      }
+                    </span>
+                  </a>
+                  <button
+                    mat-icon-button
+                    type="button"
+                    class="home-host-session-cta-row__remove"
+                    data-testid="home-host-session-remove"
+                    [attr.data-session-code]="item.code"
+                    [attr.aria-label]="hostSessionCtaRemoveAria(item)"
+                    [disabled]="hostSessionCtaBusy()"
+                    (click)="removeHostSessionCta(item, $event)"
+                  >
+                    <mat-icon aria-hidden="true">delete_outline</mat-icon>
+                  </button>
+                </li>
+              }
+            </ul>
+          }
+          <div class="home-live-grid">
+            <button
+              matButton="tonal"
+              type="button"
+              class="home-cta home-cta--secondary home-choice-button home-prepare-create"
+              data-testid="home-live-qa-create"
+              (click)="openHeroHostTab('qa')"
+              [disabled]="!!hostSessionStarting()"
+              [attr.aria-busy]="hostSessionStarting() === 'qa' ? 'true' : null"
+            >
+              <span class="home-choice-button__copy">
+                <span class="home-choice-button__label" i18n="@@homeLiveCard.qaCreateLabel"
+                  >Neue Q&amp;A-Session</span
+                >
+                <span class="home-choice-button__description" i18n="@@homeLiveCard.qaDescription"
+                  >Fragen &amp; Wortwolke</span
+                >
+              </span>
+              @if (hostSessionStarting() === 'qa') {
+                <mat-icon class="home-choice-button__busy home-spin" aria-hidden="true"
+                  >sync</mat-icon
+                >
+              }
+            </button>
+          </div>
+          @if (!showHostRecoveryCta()) {
+            <p class="home-qa-session-ghost" data-testid="home-qa-session-ghost">
+              <span class="home-choice-button__copy">
+                <span class="home-choice-button__label" i18n="@@homeQaCard.sessionGhostLabel"
+                  >Meine Q&amp;A-Sessions</span
+                >
+                <span
+                  class="home-choice-button__description"
+                  i18n="@@homeQaCard.sessionGhostDescription"
+                  >Direktzugänge erscheinen hier</span
+                >
+              </span>
+            </p>
+          }
+        </mat-card-actions>
+        @if (hostSessionErrorTab() === 'qa' && hostSessionError()) {
+          <p class="home-error home-card__inline-error" role="alert">
+            <mat-icon class="home-error__icon" aria-hidden="true">warning</mat-icon>
+            <span class="home-error__text">{{ hostSessionError() }}</span>
+          </p>
+        }
+      </mat-card>
+
+      <mat-card
+        appearance="raised"
+        id="host-quick-feedback"
+        class="home-card home-card--feedback home-card--stage-side"
+        [attr.inert]="syncLinkVisible() ? '' : null"
+      >
+        <mat-card-header class="home-card__header">
+          <div class="home-card__heading">
+            <span class="home-card__icon-wrap" aria-hidden="true">
+              <mat-icon class="home-card__icon">bolt</mat-icon>
+            </span>
+            <div class="home-card__header-copy">
+              <p class="home-card__eyebrow" i18n="@@homeBlitzlichtCard.eyebrow">
+                Feedback vom Publikum
+              </p>
+              <h3 mat-card-title class="home-card__title" i18n="@@homeHero.channelBlitzlicht">
+                Blitzlicht
+              </h3>
+            </div>
+          </div>
+        </mat-card-header>
+
+        <mat-card-content class="home-card__content">
+          <div class="home-feedback-chip-grid">
+            @for (chip of quickFeedbackPresetChips; track chip.type) {
+              <button
+                matButton="tonal"
+                type="button"
+                class="home-feedback-chip"
+                (click)="startSessionBoundQuickFeedback(chip.type)"
+                [disabled]="!!hostSessionStarting()"
+                [attr.aria-busy]="sessionBoundFeedbackType() === chip.type"
+                [attr.aria-label]="chip.label"
+              >
+                <span class="home-feedback-chip__body">
+                  <span
+                    class="home-feedback-chip__icons"
+                    [class.home-feedback-chip__icons--rating]="chip.type === 'STARS'"
+                    aria-hidden="true"
+                  >
+                    @for (icon of chip.icons; track icon) {
+                      @if (icon.kind === 'mat') {
+                        <mat-icon
+                          class="home-feedback-chip__icon"
+                          [class.home-feedback-chip__icon--positive]="icon.tone === 'positive'"
+                          [class.home-feedback-chip__icon--negative]="icon.tone === 'negative'"
+                          [class.home-feedback-chip__icon--neutral]="icon.tone === 'neutral'"
+                          [class.home-feedback-chip__icon--rating]="icon.tone === 'rating'"
+                        >
+                          {{ icon.value }}
+                        </mat-icon>
+                      } @else {
+                        <span class="home-feedback-chip__icon">{{ icon.value }}</span>
+                      }
+                    }
+                  </span>
+                  @if (chip.showLabel !== false) {
+                    <span
+                      class="home-feedback-chip__label"
+                      [class.home-feedback-chip__label--wide-full]="chip.type === 'YESNO'"
+                      >{{ chip.label }}</span
+                    >
+                    @if (chip.type === 'YESNO') {
+                      <span
+                        class="home-feedback-chip__label home-feedback-chip__label--wide-compact"
+                        aria-hidden="true"
+                        i18n="@@homeFeedbackCard.yesNoMaybeCompact"
+                        >Ja · Nein · ?</span
+                      >
+                    }
+                  }
+                </span>
+                @if (sessionBoundFeedbackType() === chip.type) {
+                  <mat-icon class="home-feedback-chip__busy home-spin" aria-hidden="true"
+                    >sync</mat-icon
+                  >
+                }
+              </button>
+            }
+          </div>
+          @if (hostSessionErrorTab() === 'quickFeedback' && hostSessionError()) {
+            <p class="home-error" role="alert">
+              <mat-icon class="home-error__icon" aria-hidden="true">warning</mat-icon>
+              <span class="home-error__text">{{ hostSessionError() }}</span>
+            </p>
+          }
+        </mat-card-content>
       </mat-card>
     </div>
   </div>

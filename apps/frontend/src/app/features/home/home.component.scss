@@ -218,14 +218,14 @@
   width: 100%;
   min-width: 0;
   overflow: visible;
+  --mdc-elevated-card-container-shape: var(--mat-sys-corner-extra-large);
+  --mat-card-elevated-container-shape: var(--mat-sys-corner-extra-large);
   box-shadow: var(--mat-sys-level2);
   cursor: default;
   user-select: none;
 }
 
 .home-card--stage-main#participant-entry {
-  --mdc-elevated-card-container-shape: var(--mat-sys-corner-extra-large);
-  --mat-card-elevated-container-shape: var(--mat-sys-corner-extra-large);
   --mdc-elevated-card-container-color: var(--mat-sys-surface-container-high);
   --mat-card-elevated-container-color: var(--mat-sys-surface-container-high);
   box-shadow: var(--mat-sys-level3);
@@ -724,6 +724,23 @@
   gap: 1rem;
 }
 
+.home-qa-session-ghost {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  min-height: var(--home-host-action-min-height, 4.75rem);
+  margin: 0;
+  padding: 0.75rem 1.15rem;
+  border: 1px dashed var(--mat-sys-outline);
+  border-radius: var(--mat-sys-corner-medium);
+  background: transparent;
+  color: var(--mat-sys-on-surface-variant);
+  font: inherit;
+  text-align: center;
+  cursor: default;
+}
+
 .home-host-session-cta-row {
   display: grid;
   grid-template-columns: minmax(0, 1fr);
@@ -824,13 +841,6 @@
   --mat-button-tonal-label-text-color: var(--mat-sys-on-primary-container);
 }
 
-.home-live-qa {
-  --mdc-protected-button-container-color: var(--mat-sys-surface-container-highest);
-  --mdc-protected-button-label-text-color: var(--mat-sys-on-surface);
-  --mat-button-tonal-container-color: var(--mat-sys-surface-container-highest);
-  --mat-button-tonal-label-text-color: var(--mat-sys-on-surface);
-}
-
 .home-live-grid > :last-child:not(.home-live-last-quiz) {
   grid-column: 1 / -1;
 }
@@ -857,6 +867,23 @@
 
   .home-live-grid > :last-child:not(.home-live-last-quiz) {
     grid-column: auto;
+  }
+}
+
+/* Einzelner Q&A-Button und Ghost: mittig, gleiche Zellenbreite und Mindesthöhe wie Quiz-Paar und Blitzlicht-Chips. */
+@media (min-width: 480px) and (max-width: 1199.98px) {
+  .home-live-grid {
+    grid-template-columns: minmax(0, 1fr);
+    row-gap: 0.75rem;
+  }
+
+  .home-live-grid > :only-child:not(.home-live-last-quiz),
+  .home-qa-session-ghost {
+    grid-column: auto;
+    justify-self: center;
+    align-self: center;
+    width: calc((100% - 0.75rem) / 2);
+    min-height: var(--home-host-action-min-height, 4.75rem);
   }
 }
 
@@ -1208,18 +1235,33 @@
 @media (min-width: 1200px) {
   :host.route-home .l-page:first-child {
     max-width: var(--app-toolbar-max-width);
+    margin-top: 0;
     padding-inline: 0;
+    padding-block: 0 1.5rem;
+  }
+
+  .home-main {
+    --home-host-card-bleed: 1.5rem;
+    --home-host-card-pad: calc(1rem + (var(--home-host-card-bleed) / 2));
+    gap: 1.25rem;
   }
 
   .home-host-stack {
     grid-template-columns: repeat(3, minmax(0, 1fr));
     align-items: stretch;
-    gap: 1rem;
+    gap: 5rem;
+    width: min(72rem, calc(100vw - 4rem));
+    margin-inline: calc((100% - min(72rem, calc(100vw - 4rem))) / 2);
   }
 
   .home-card#participant-entry {
     max-width: 36rem;
     margin-inline: auto;
+  }
+
+  .home-role-divider {
+    margin-top: calc(4rem - 1.25rem);
+    margin-bottom: calc(4rem - 1.25rem - 0.25rem);
   }
 
   .home-card .home-card__content,
@@ -1251,10 +1293,34 @@
     height: 100%;
   }
 
+  .home-card#participant-entry .home-card__header,
+  .home-card--create .home-card__header,
+  .home-card--live .home-card__header,
+  .home-card--feedback .home-card__header {
+    padding-top: var(--home-host-card-pad);
+    padding-inline: var(--home-host-card-pad);
+  }
+
+  .home-card#participant-entry .home-card__content,
+  .home-card--create .home-card__content,
+  .home-card--live .home-card__content,
+  .home-card--feedback .home-card__content,
+  .home-card--create .home-card__actions,
+  .home-card--live .home-card__actions,
+  .home-card--feedback .home-card__actions {
+    padding-inline: var(--home-host-card-pad);
+  }
+
+  .home-card#participant-entry .home-card__content,
+  .home-card--create .home-card__actions,
+  .home-card--live .home-card__actions,
+  .home-card--feedback .home-card__content {
+    padding-bottom: var(--home-host-card-pad);
+  }
+
   .home-card--feedback .home-card__content {
     flex: 1 1 auto;
     justify-content: center;
-    padding-block: 0.75rem 1.25rem;
   }
 
   .home-card--live .home-card__actions,
@@ -1413,13 +1479,6 @@
     --mat-button-tonal-label-text-color: var(--mat-sys-on-tertiary-container);
   }
 
-  .home-live-qa {
-    --mdc-protected-button-container-color: var(--mat-sys-surface-container-highest);
-    --mdc-protected-button-label-text-color: var(--mat-sys-on-surface);
-    --mat-button-tonal-container-color: var(--mat-sys-surface-container-highest);
-    --mat-button-tonal-label-text-color: var(--mat-sys-on-surface);
-  }
-
   .home-hero-band {
     position: relative;
     z-index: 0;
@@ -1438,6 +1497,13 @@
       transparent 92%
     );
     box-shadow: var(--mat-sys-level1);
+  }
+
+  @media (min-width: 1200px) {
+    .home-hero-band {
+      margin-block: 6rem calc(4rem - 1.25rem);
+      padding-block: 1.5rem 1.75rem;
+    }
   }
 
   .home-hero-band > * {
