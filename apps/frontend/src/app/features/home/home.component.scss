@@ -753,35 +753,30 @@
 }
 
 .home-host-session-cta-row__item {
-  display: flex;
-  align-items: center;
-  gap: 0.25rem;
+  position: relative;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 0.35rem;
   min-width: 0;
+  padding: 0.5rem 0;
 }
 
 .home-host-session-cta-row__item > .home-choice-button {
-  flex: 1 1 auto;
-  width: auto;
+  grid-column: 1;
+  grid-row: 1;
+  width: 100%;
   min-width: 0;
+  min-height: 2.75rem;
   height: auto;
   justify-content: center;
   text-align: center;
-  padding-inline: 1.15rem;
+  padding-inline: 0.75rem;
   --mdc-filled-button-container-shape: var(--mat-sys-corner-medium);
   --mdc-protected-button-container-shape: var(--mat-sys-corner-medium);
   --mdc-outlined-button-container-shape: var(--mat-sys-corner-medium);
   --mat-button-filled-container-shape: var(--mat-sys-corner-medium);
   --mat-button-tonal-container-shape: var(--mat-sys-corner-medium);
   --mat-button-outlined-container-shape: var(--mat-sys-corner-medium);
-}
-
-.home-host-session-cta--open {
-  --mdc-protected-button-container-color: var(--mat-sys-surface-container-highest);
-  --mdc-protected-button-label-text-color: var(--mat-sys-on-surface);
-  --mat-button-tonal-container-color: var(--mat-sys-surface-container-highest);
-  --mat-button-tonal-label-text-color: var(--mat-sys-on-surface);
-  box-shadow: none;
-  outline: 1px solid var(--mat-sys-outline-variant);
 }
 
 .home-host-session-cta-row__item > .home-choice-button .home-choice-button__label {
@@ -802,9 +797,32 @@
   align-items: center;
 }
 
+.home-host-session-cta__facts {
+  grid-column: 1 / -1;
+  grid-row: 2;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  min-width: 0;
+  padding: 0.4rem 0.5rem 0.5rem;
+  color: var(--mat-sys-on-surface-variant);
+}
+
+.home-host-session-cta__fact {
+  font: var(--mat-sys-body-small);
+  line-height: 1.5;
+  overflow-wrap: break-word;
+  text-wrap: pretty;
+}
+
+.home-host-session-cta__fact:last-child {
+  padding-inline-end: 2.75rem;
+}
+
 .home-host-session-cta-row__remove {
-  flex: 0 0 auto;
-  align-self: center;
+  position: absolute;
+  inset-inline-end: 0;
+  bottom: 0.5rem;
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -1254,6 +1272,12 @@
     margin-inline: calc((100% - min(72rem, calc(100vw - 4rem))) / 2);
   }
 
+  .home-hero-band {
+    margin-block: 3rem calc(4rem - 1.25rem);
+    padding: 0.75rem 1rem 0.9rem;
+    border: 1px solid transparent;
+  }
+
   .home-card#participant-entry {
     max-width: 36rem;
     margin-inline: auto;
@@ -1472,6 +1496,11 @@
 
 /* Spielerisch behält die bestehende Magenta/Violett-Palette und Bühnenflächen. */
 :host-context(html.preset-playful) {
+  .home-live-grid .home-prepare-create.mat-tonal-button {
+    --mat-button-tonal-container-color: var(--mat-sys-surface-container-highest);
+    --mat-button-tonal-label-text-color: var(--mat-sys-on-surface);
+  }
+
   .home-live-quiz-primary {
     --mdc-protected-button-container-color: var(--mat-sys-tertiary-container);
     --mdc-protected-button-label-text-color: var(--mat-sys-on-tertiary-container);
@@ -1497,13 +1526,6 @@
       transparent 92%
     );
     box-shadow: var(--mat-sys-level1);
-  }
-
-  @media (min-width: 1200px) {
-    .home-hero-band {
-      margin-block: 6rem calc(4rem - 1.25rem);
-      padding-block: 1.5rem 1.75rem;
-    }
   }
 
   .home-hero-band > * {
@@ -1640,9 +1662,43 @@
   }
 }
 
+/* Spielerisch Light: Tonal-Aktionen brauchen Abstand zu den hellen Kartenflächen. */
+:host-context(html.preset-playful.light) {
+  .home-card--create .home-prepare-create.mat-tonal-button,
+  .home-card--live .home-live-grid .home-prepare-create.mat-tonal-button,
+  .home-card--feedback .home-feedback-chip.mat-tonal-button {
+    --mat-button-tonal-container-color: color-mix(
+      in srgb,
+      var(--mat-sys-on-surface) 12%,
+      var(--mat-sys-surface-container-high)
+    );
+    --mat-button-tonal-label-text-color: var(--mat-sys-on-surface);
+  }
+}
+
 :host-context(html.preset-playful.light) .home-library-button.mat-mdc-outlined-button {
   color: var(--mat-sys-on-surface);
   border-color: var(--mat-sys-on-surface-variant);
+}
+
+@media (prefers-color-scheme: light) {
+  :host-context(html.preset-playful:not(.light):not(.dark)) {
+    .home-card--create .home-prepare-create.mat-tonal-button,
+    .home-card--live .home-live-grid .home-prepare-create.mat-tonal-button,
+    .home-card--feedback .home-feedback-chip.mat-tonal-button {
+      --mat-button-tonal-container-color: color-mix(
+        in srgb,
+        var(--mat-sys-on-surface) 12%,
+        var(--mat-sys-surface-container-high)
+      );
+      --mat-button-tonal-label-text-color: var(--mat-sys-on-surface);
+    }
+
+    .home-library-button.mat-mdc-outlined-button {
+      color: var(--mat-sys-on-surface);
+      border-color: var(--mat-sys-on-surface-variant);
+    }
+  }
 }
 
 @media (max-width: 599px) {

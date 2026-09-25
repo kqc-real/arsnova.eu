@@ -393,15 +393,14 @@
               @for (item of hostSessionCtas(); track item.code) {
                 <li class="home-host-session-cta-row__item">
                   <a
-                    [matButton]="item.primary ? 'tonal' : 'outlined'"
+                    matButton="outlined"
                     [routerLink]="hostSessionCtaLink(item.code)"
                     [queryParams]="{ tab: 'qa' }"
-                    class="home-cta home-choice-button"
-                    [class.home-cta--secondary]="!item.primary"
-                    [class.home-library-button]="!item.primary"
+                    class="home-cta home-choice-button home-cta--secondary home-library-button"
                     [class.home-host-session-cta--open]="item.primary"
                     data-testid="home-host-recovery"
                     [attr.data-session-code]="item.code"
+                    [attr.aria-describedby]="'home-host-session-facts-' + item.code"
                   >
                     <span class="home-choice-button__copy">
                       <span class="home-choice-button__label">
@@ -410,20 +409,25 @@
                         }
                         {{ hostSessionCtaLabel(item.code) }}
                       </span>
-                      <span class="home-choice-button__description">{{
-                        hostSessionCtaDescription(item.deadlineLabel)
-                      }}</span>
-                      @if (hostSessionCtaOpenDescription(item); as openLabel) {
-                        <span class="home-choice-button__description">{{ openLabel }}</span>
-                      }
-                      @if (hostSessionCtaApprovedQuestionDescription(item); as approvedLabel) {
-                        <span class="home-choice-button__description">{{ approvedLabel }}</span>
-                      }
-                      @if (hostSessionCtaPendingQuestionDescription(item); as pendingLabel) {
-                        <span class="home-choice-button__description">{{ pendingLabel }}</span>
-                      }
                     </span>
                   </a>
+                  <div
+                    class="home-host-session-cta__facts"
+                    [attr.id]="'home-host-session-facts-' + item.code"
+                  >
+                    <span class="home-host-session-cta__fact">{{
+                      hostSessionCtaDescription(item.deadlineLabel)
+                    }}</span>
+                    @if (hostSessionCtaOpenDescription(item); as openLabel) {
+                      <span class="home-host-session-cta__fact">{{ openLabel }}</span>
+                    }
+                    @if (hostSessionCtaApprovedQuestionDescription(item); as approvedLabel) {
+                      <span class="home-host-session-cta__fact">{{ approvedLabel }}</span>
+                    }
+                    @if (hostSessionCtaPendingQuestionDescription(item); as pendingLabel) {
+                      <span class="home-host-session-cta__fact">{{ pendingLabel }}</span>
+                    }
+                  </div>
                   <button
                     mat-icon-button
                     type="button"

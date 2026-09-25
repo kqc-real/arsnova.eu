@@ -610,8 +610,24 @@ describe('HomeComponent', () => {
         fixture.nativeElement.querySelector('[data-testid="home-host-recovery-link"]'),
       ).toBeNull();
       expect(
-        recoveryAction?.querySelector('.home-choice-button__description')?.textContent?.trim(),
+        recoveryAction
+          ?.closest('.home-host-session-cta-row__item')
+          ?.querySelector('.home-host-session-cta__fact')
+          ?.textContent?.trim(),
       ).toContain('Zugang bis');
+
+      expect(recoveryAction?.getAttribute('aria-describedby')).toBe(
+        'home-host-session-facts-ABC123',
+      );
+      expect(
+        fixture.nativeElement.querySelector('#home-host-session-facts-ABC123')?.textContent,
+      ).toContain('Zugang bis');
+      expect(recoveryAction?.querySelector('.home-host-session-cta__facts')).toBeNull();
+      expect(
+        recoveryAction
+          ?.closest('.home-host-session-cta-row__item')
+          ?.querySelector('.home-host-session-cta__facts'),
+      ).not.toBeNull();
 
       const liveGrid = fixture.nativeElement.querySelector('.home-live-grid') as HTMLElement | null;
       expect(liveGrid?.classList.contains('home-live-grid--with-recovery')).toBe(false);
@@ -623,6 +639,7 @@ describe('HomeComponent', () => {
         ),
       );
       expect(hostCtas).toHaveLength(1);
+      expect(hostCtas[0]?.classList.contains('mat-mdc-outlined-button')).toBe(true);
       expect(
         fixture.nativeElement.querySelector('[data-testid="home-qa-session-ghost"]'),
       ).toBeNull();
@@ -642,7 +659,7 @@ describe('HomeComponent', () => {
       restoreDefaultSessionGetInfo(vi.mocked(trpc.session.getInfo.query));
     });
 
-    it('zeigt die Zugangsfrist in der zweiten CTA-Zeile und die Offen-Frist in der dritten', async () => {
+    it('zeigt die Zugangsfrist und Offen-Frist als angehängte Fakten außerhalb des Öffnen-Buttons', async () => {
       const { trpc } = await import('../../core/trpc.client');
       seedHostCapability();
       vi.mocked(trpc.session.getInfo.query).mockResolvedValue({
@@ -679,7 +696,7 @@ describe('HomeComponent', () => {
         () =>
           Array.from(
             fixture.nativeElement.querySelectorAll<HTMLElement>(
-              '.home-host-session-cta-row [data-testid="home-host-recovery"] .home-choice-button__description',
+              '.home-host-session-cta-row__item .home-host-session-cta__fact',
             ),
           ).some((line) => line.textContent?.trim().startsWith('Offen bis ')) === true,
         { timeout: 1000, interval: 10 },
@@ -687,7 +704,7 @@ describe('HomeComponent', () => {
 
       const descriptions = Array.from(
         fixture.nativeElement.querySelectorAll<HTMLElement>(
-          '.home-host-session-cta-row [data-testid="home-host-recovery"] .home-choice-button__description',
+          '.home-host-session-cta-row__item .home-host-session-cta__fact',
         ),
       ).map((line) => line.textContent?.trim());
       expect(descriptions[0]).toMatch(/^Zugang bis /);
@@ -774,7 +791,7 @@ describe('HomeComponent', () => {
         () =>
           Array.from(
             fixture.nativeElement.querySelectorAll<HTMLElement>(
-              '.home-host-session-cta-row [data-testid="home-host-recovery"] .home-choice-button__description',
+              '.home-host-session-cta-row__item .home-host-session-cta__fact',
             ),
           ).some((line) => line.textContent?.trim() === '5 Fragen') === true,
         { timeout: 1000, interval: 10 },
@@ -782,7 +799,7 @@ describe('HomeComponent', () => {
 
       const descriptions = Array.from(
         fixture.nativeElement.querySelectorAll<HTMLElement>(
-          '.home-host-session-cta-row [data-testid="home-host-recovery"] .home-choice-button__description',
+          '.home-host-session-cta-row__item .home-host-session-cta__fact',
         ),
       ).map((line) => line.textContent?.trim());
       expect(descriptions[2]).toBe('5 Fragen');
@@ -818,7 +835,7 @@ describe('HomeComponent', () => {
         () =>
           Array.from(
             fixture.nativeElement.querySelectorAll<HTMLElement>(
-              '.home-host-session-cta-row [data-testid="home-host-recovery"] .home-choice-button__description',
+              '.home-host-session-cta-row__item .home-host-session-cta__fact',
             ),
           ).some((line) => line.textContent?.trim() === 'Forum geschlossen') === true,
         { timeout: 1000, interval: 10 },
@@ -826,7 +843,7 @@ describe('HomeComponent', () => {
 
       const descriptions = Array.from(
         fixture.nativeElement.querySelectorAll<HTMLElement>(
-          '.home-host-session-cta-row [data-testid="home-host-recovery"] .home-choice-button__description',
+          '.home-host-session-cta-row__item .home-host-session-cta__fact',
         ),
       ).map((line) => line.textContent?.trim());
       expect(descriptions[0]).toMatch(/^Zugang bis /);
@@ -842,7 +859,7 @@ describe('HomeComponent', () => {
       restoreDefaultSessionGetInfo(vi.mocked(trpc.session.getInfo.query));
     });
 
-    it('zeigt freigegebene Fragen und Moderationszähler gemeinsam im Host-CTA', async () => {
+    it('zeigt freigegebene Fragen und Moderationszähler gemeinsam in den Session-Details', async () => {
       const { trpc } = await import('../../core/trpc.client');
       seedHostCapability();
       vi.mocked(trpc.session.getInfo.query).mockResolvedValue(
@@ -859,7 +876,7 @@ describe('HomeComponent', () => {
         () =>
           Array.from(
             fixture.nativeElement.querySelectorAll<HTMLElement>(
-              '.home-host-session-cta-row [data-testid="home-host-recovery"] .home-choice-button__description',
+              '.home-host-session-cta-row__item .home-host-session-cta__fact',
             ),
           ).some((line) => line.textContent?.trim() === 'In Moderation: 1') === true,
         { timeout: 1000, interval: 10 },
@@ -867,7 +884,7 @@ describe('HomeComponent', () => {
 
       const descriptions = Array.from(
         fixture.nativeElement.querySelectorAll<HTMLElement>(
-          '.home-host-session-cta-row [data-testid="home-host-recovery"] .home-choice-button__description',
+          '.home-host-session-cta-row__item .home-host-session-cta__fact',
         ),
       ).map((line) => line.textContent?.trim());
       expect(descriptions).toEqual(
@@ -1487,8 +1504,8 @@ describe('HomeComponent', () => {
       expect(desktopLayout).toMatch(
         /:host\.route-home \.l-page:first-child\s*\{[^}]*margin-top:\s*0;/,
       );
-      expect(scss).toMatch(
-        /:host-context\(html\.preset-playful\)[\s\S]*@media \(min-width:\s*1200px\)\s*\{\s*\.home-hero-band\s*\{[^}]*margin-block:\s*6rem calc\(4rem - 1\.25rem\)/,
+      expect(desktopLayout).toMatch(
+        /\.home-hero-band\s*\{[^}]*margin-block:\s*3rem calc\(4rem - 1\.25rem\)[^}]*padding:\s*0\.75rem 1rem 0\.9rem/,
       );
       expect(desktopLayout).toMatch(
         /\.home-host-stack\s*\{[^}]*grid-template-columns:\s*repeat\(3,\s*minmax\(0,\s*1fr\)\)[^}]*gap:\s*5rem/,
@@ -1752,9 +1769,7 @@ describe('HomeComponent', () => {
       expect(scss).toMatch(
         /\.home-card__icon-wrap\s*\{[^}]*background:\s*transparent[^}]*color:\s*var\(--mat-sys-primary\)/,
       );
-      expect(scss).toMatch(
-        /\.home-host-session-cta--open\s*\{[^}]*surface-container-highest[^}]*outline-variant/,
-      );
+      expect(scss).not.toMatch(/\.home-host-session-cta--open\s*\{/);
       expect(scss).toMatch(
         /\.home-card\s*\{[^}]*--mat-card-elevated-container-shape:\s*var\(--mat-sys-corner-extra-large\)/,
       );
