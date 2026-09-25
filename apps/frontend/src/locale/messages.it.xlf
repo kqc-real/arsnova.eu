@@ -9315,6 +9315,30 @@
           <context context-type="linenumber">21</context>
         </context-group>
       </trans-unit>
+      <trans-unit id="homeQuizCard.eyebrow" datatype="html">
+        <source>Fragen ans Publikum</source>
+        <target>Domande al pubblico</target>
+      </trans-unit>
+      <trans-unit id="homeQaCard.eyebrow" datatype="html">
+        <source>Fragen vom Publikum</source>
+        <target>Domande dal pubblico</target>
+      </trans-unit>
+      <trans-unit id="homeQaCard.sessionGhostAria" datatype="html">
+        <source>Hier erscheinen deine Q&amp;A-Sessions</source>
+        <target>Le tue sessioni Q&amp;A compariranno qui</target>
+      </trans-unit>
+      <trans-unit id="homeQaCard.sessionGhostLabel" datatype="html">
+        <source>Meine Q&amp;A-Sessions</source>
+        <target>Le mie sessioni Q&amp;A</target>
+      </trans-unit>
+      <trans-unit id="homeQaCard.sessionGhostDescription" datatype="html">
+        <source>Direktzugänge erscheinen hier</source>
+        <target>Gli accessi diretti compaiono qui</target>
+      </trans-unit>
+      <trans-unit id="homeBlitzlichtCard.eyebrow" datatype="html">
+        <source>Feedback vom Publikum</source>
+        <target>Feedback dal pubblico</target>
+      </trans-unit>
       <trans-unit id="homeHero.channelBlitzlicht" datatype="html">
         <source>Blitzlicht</source>
         <target>Sondaggio rapido</target>
@@ -9508,8 +9532,8 @@
         </context-group>
       </trans-unit>
       <trans-unit id="homeLiveCard.qaCreateLabel" datatype="html">
-        <source>Neue Q&amp;A</source>
-        <target>Nuova Q&amp;A</target>
+        <source>Neue Q&amp;A-Session</source>
+        <target>Nuova sessione Q&amp;A</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/home/home.component.html</context>
           <context context-type="linenumber">328</context>
@@ -9588,8 +9612,8 @@
         </context-group>
       </trans-unit>
       <trans-unit id="homeHostCard.createQuizCta" datatype="html">
-        <source>Neues Quiz erstellen</source>
-        <target>Crea un nuovo quiz</target>
+        <source>Neues Quiz</source>
+        <target>Nuovo quiz</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/home/home.component.html</context>
           <context context-type="linenumber">494</context>
@@ -10062,6 +10086,10 @@
           <context context-type="sourcefile">src/app/features/home/home.component.ts</context>
           <context context-type="linenumber">1160</context>
         </context-group>
+      </trans-unit>
+      <trans-unit id="feedbackHost.loadFailed" datatype="html">
+        <source>Blitzlicht konnte nicht geladen werden. Bitte erneut versuchen.</source>
+        <target>Impossibile caricare il sondaggio rapido. Riprova.</target>
       </trans-unit>
       <trans-unit id="homeFeedbackCard.startError" datatype="html">
         <source>Blitzlicht konnte nicht gestartet werden. Bitte erneut versuchen.</source>

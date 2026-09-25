@@ -18,19 +18,19 @@ Der Footer (und damit Status-Einstieg sowie Banner) wird **nicht** angezeigt auf
 (`isImmersiveHostView`). Auf Join- und Session-Live-Routen bleibt der Status-Einstieg
 ausgeblendet (Polling unterdrückt).
 
-| Kennzahl                 | Icon              | Bedeutung                                                                                                 |
-| ------------------------ | ----------------- | --------------------------------------------------------------------------------------------------------- |
-| Offene Sessions          | ▶ play_circle     | Noch nicht beendete Sessions (Status ≠ `FINISHED`)                                                        |
-| Aktive Sessions          | ▶ play_circle     | Offene Sessions mit mindestens 5 aktiven Teilnehmenden in der Redis-Presence der letzten Minuten          |
-| Blitz-Runden             | ⚡ bolt           | Laufende Blitzlicht-/Quick-Feedback-Runden (Redis-Primärkeys `qf:<code>`, siehe Backend)                  |
-| Teilnehmende             | 👥 group          | Aktive Teilnahmen über laufende Sessions aus Redis-Presence                                               |
-| Abgeschlossene Quizzes   | ✅ check_circle   | Monotoner Gesamtzähler aus `PlatformStatistic.completedSessionsTotal` bzw. Fallback auf `FINISHED`-Zeilen |
-| Stimmen/Statuswechsel    | timeline          | Diagnosewerte der letzten Minute (`votesLastMinute`, `sessionTransitionsLastMinute`)                      |
-| Countdown-Sessions       | timer             | Sessions mit aktivem Countdown im aktuellen Zeitfenster                                                   |
-| Allzeit- und Tagesrekord | emoji_events      | `PlatformStatistic.maxParticipantsSingleSession` und 30 UTC-Tage aus `DailyStatistic`                     |
-| Aktive Q&A-Sessions      | forum             | Offene, nicht abgelaufene Q&A-Kanäle mit mindestens fünf eindeutigen Presence-Identitäten                 |
-| Q&A-Fragen/-Bewertungen  | question_answer   | Erfolgreiche persistierte Änderungen im rollierenden 60-Sekunden-Fenster                                  |
-| Q&A-Gesamt/-Rekord       | workspace_premium | Purge-sichere Projektion seit Beginn der Erfassung und größter gleichzeitiger Fragenbestand               |
+| Kennzahl                 | Icon                | Bedeutung                                                                                                 |
+| ------------------------ | ------------------- | --------------------------------------------------------------------------------------------------------- |
+| Offene Sessions          | ▶ play_circle       | Noch nicht beendete Sessions (Status ≠ `FINISHED`)                                                        |
+| Aktive Sessions          | ▶ play_circle       | Offene Sessions mit mindestens 5 aktiven Teilnehmenden in der Redis-Presence der letzten Minuten          |
+| Blitz-Runden             | ⚡ bolt             | Laufende Blitzlicht-/Quick-Feedback-Runden (Redis-Primärkeys `qf:<code>`, siehe Backend)                  |
+| Teilnehmende             | 👥 group            | Aktive Teilnahmen über laufende Sessions aus Redis-Presence                                               |
+| Abgeschlossene Quizzes   | ✅ check_circle     | Monotoner Gesamtzähler aus `PlatformStatistic.completedSessionsTotal` bzw. Fallback auf `FINISHED`-Zeilen |
+| Stimmen/Statuswechsel    | timeline            | Diagnosewerte der letzten Minute (`votesLastMinute`, `sessionTransitionsLastMinute`)                      |
+| Countdown-Sessions       | timer               | Sessions mit aktivem Countdown im aktuellen Zeitfenster                                                   |
+| Allzeit- und Tagesrekord | emoji_events        | `PlatformStatistic.maxParticipantsSingleSession` und 30 UTC-Tage aus `DailyStatistic`                     |
+| Aktive Q&A-Sessions      | chat_bubble_outline | Offene, nicht abgelaufene Q&A-Kanäle mit mindestens fünf eindeutigen Presence-Identitäten                 |
+| Q&A-Fragen/-Bewertungen  | question_answer     | Erfolgreiche persistierte Änderungen im rollierenden 60-Sekunden-Fenster                                  |
+| Q&A-Gesamt/-Rekord       | workspace_premium   | Purge-sichere Projektion seit Beginn der Erfassung und größter gleichzeitiger Fragenbestand               |
 
 Der Footer ruft alle 5 Minuten **`health.footerBundle`** ab. Dieser Endpoint kombiniert `health.check`
 mit einem schlanken `FooterStatusDTO` (`serviceStatus`, `loadStatus`). Beim Öffnen des Dialogs lädt

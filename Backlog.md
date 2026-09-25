@@ -119,6 +119,7 @@
 | 8    | 8.9b  | Optionale Q&A-NLP-Kaskade für Moderationssignale                                   | 🟡   | ✅ Fertig      |
 | 8    | 8.9c  | Optionale generative Moderationszusammenfassung                                    | 🟢   | ⬜ Offen       |
 | 8    | 8.9d  | Selbstgehosteter Open-Weight-LLM-Server (Runtime-Baustein 1.14c/8.9c)              | 🟢   | ⬜ Offen       |
+| 8    | 8.10  | Rückbau des kanallosen Standalone-Blitzlichts                                      | 🟡   | ⬜ Offen       |
 | 9    | 9.1   | Admin: Sessions & Quiz-Inhalte inspizieren                                         | 🟡   | ✅ Fertig      |
 | 9    | 9.2   | Admin: Session/Quiz löschen (rechtlich)                                            | 🟡   | ✅ Fertig      |
 | 9    | 9.3   | Admin: Auszug für Behörden/Staatsanwaltschaft                                      | 🟡   | ✅ Fertig      |
@@ -2110,6 +2111,18 @@ ist abgeschlossen ✅. Damit ist Epic 6 geschlossen.
     - Kein 8.9b-Auftrag auf dem llama.cpp-Slot.
     - Kein Ersatz für das eigenständige Mess-, ADR- und Referatsprogramm aus Story 1.14c.
   - **Abhängigkeiten:** Story 1.14c (Stufe 2 konsumiert den Baustein), Story 8.9c (Slice 4 konsumiert den Baustein), Issue #456 (Slice 1 spezifiziert den Kontext/Quellenvertrag; Slice 5 konsumiert die nach R abgenommene Lernziel-Runtime), [ADR-0032](docs/architecture/decisions/0032-optional-nlp-cascade-for-qa-moderation-signals.md), [ADR-0035](docs/architecture/decisions/0035-self-hosted-llm-runtime-llama-cpp-over-ollama.md), ADR-0025, ADR-0026.
+
+---
+
+- **Story 8.10 (Rückbau des kanallosen Standalone-Blitzlichts):** 🟡 Als Lehrperson starte ich Blitzlicht nur noch innerhalb einer Session. Das kanallose Standalone-Blitzlicht (`/feedback/:code` ohne Session, `quickFeedback.create` ohne `sessionCode`) wird nicht mehr angeboten.
+  - **Stand (2026-09-25):** Auf der Startseite ausgeblendet. Die vier Vorlagen starten ein sitzungsgebundenes Blitzlicht (`session.create` mit `quickFeedbackEnabled`, Host-Tab `quickFeedback`, Vorlage über `feedbackType`). Routen, Tokens und `startQuickFeedback` bleiben bis zum Rückbau im Code.
+  - **Akzeptanzkriterien:**
+    - Startseite, Hero-Chips und direkte Links legen kein kanalloses Blitzlicht mehr an.
+    - Join über einen alten Standalone-Code, Host-Route `feedback/:code`, Feedback-Host-Token und die zugehörigen tRPC-Prozeduren sind entfernt oder auf den Session-Kanal umgebogen.
+    - Bestehende Standalone-Runden laufen bis zum TTL aus; danach gibt es keinen neuen Einstieg.
+    - Tests, Styleguide und i18n beschreiben nur noch das sitzungsgebundene Blitzlicht.
+  - **Nicht-Ziele:** Kein Datenexport alter Standalone-Runden. Keine Änderung an Tempo, Vergleichsrunde oder Moderationskompass innerhalb einer Session.
+  - **Abhängigkeiten:** Story 8.8, ADR-0009.
 
 ---
 

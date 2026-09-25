@@ -240,7 +240,9 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
   quickFeedbackError = signal<string | null>(null);
   quickFeedbackStarting = signal<QuickFeedbackType | null>(null);
   hostSessionError = signal<string | null>(null);
+  hostSessionErrorTab = signal<'qa' | 'quickFeedback' | null>(null);
   hostSessionStarting = signal<'quiz' | 'qa' | 'quickFeedback' | null>(null);
+  sessionBoundFeedbackType = signal<QuickFeedbackType | null>(null);
 
   readonly themePreset = inject(ThemePresetService);
   private readonly quizStore = inject(QuizStoreService);
@@ -992,24 +994,33 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
     import('../quiz/quiz.component').then(() => {});
   }
 
-  async openHeroHostTab(tab: 'quiz' | 'qa' | 'quickFeedback'): Promise<void> {
+  async startSessionBoundQuickFeedback(type: QuickFeedbackType): Promise<void> {
+    await this.openHeroHostTab('quickFeedback', type);
+  }
+
+  async openHeroHostTab(
+    tab: 'quiz' | 'qa' | 'quickFeedback',
+    feedbackType?: QuickFeedbackType,
+  ): Promise<void> {
     if (this.hostSessionStarting()) return;
 
     this.joinError.set(null);
     this.joinErrorSessionFinished.set(false);
     this.quickFeedbackError.set(null);
     this.hostSessionError.set(null);
+    this.hostSessionErrorTab.set(null);
     this.hostSessionStarting.set(tab);
+    this.sessionBoundFeedbackType.set(tab === 'quickFeedback' ? (feedbackType ?? null) : null);
 
     try {
       if (tab === 'qa') {
-        await this.startHeroHostSession(tab);
+        await this.startHeroHostSession(tab, feedbackType);
         return;
       }
 
       const code = this.resolveHeroHostCode();
       if (!code) {
-        await this.startHeroHostSession(tab);
+        await this.startHeroHostSession(tab, feedbackType);
         return;
       }
 
@@ -1018,30 +1029,44 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
           code,
           anonymousClientId: getAnonymousClientId(),
         });
+        if (tab === 'quickFeedback' && session.status === 'FINISHED') {
+          await this.startHeroHostSession(tab, feedbackType);
+          return;
+        }
+        if (tab === 'quiz' && session.status === 'FINISHED' && !isQaChannelJoinable(session)) {
+          await this.startHeroHostSession(tab, feedbackType);
+          return;
+        }
         if (
-          (tab === 'quickFeedback' || tab === 'quiz') &&
-          session.status === 'FINISHED' &&
-          !isQaChannelJoinable(session)
+          tab === 'quickFeedback' &&
+          feedbackType &&
+          !this.isHeroTabAvailableForSession(session, tab)
         ) {
-          await this.startHeroHostSession(tab);
+          await this.startHeroHostSession(tab, feedbackType);
           return;
         }
         const queryParams =
-          tab === 'quiz' || this.isHeroTabAvailableForSession(session, tab) ? { tab } : undefined;
+          tab === 'quiz' || this.isHeroTabAvailableForSession(session, tab)
+            ? { tab, ...(feedbackType ? { feedbackType } : {}) }
+            : undefined;
         await this.router.navigate(this.localizedCommands(['session', code, 'host']), {
           queryParams,
         });
       } catch {
         await this.router.navigate(this.localizedCommands(['session', code, 'host']), {
-          queryParams: { tab },
+          queryParams: { tab, ...(feedbackType ? { feedbackType } : {}) },
         });
       }
     } finally {
       this.hostSessionStarting.set(null);
+      this.sessionBoundFeedbackType.set(null);
     }
   }
 
-  private async startHeroHostSession(tab: 'quiz' | 'qa' | 'quickFeedback'): Promise<void> {
+  private async startHeroHostSession(
+    tab: 'quiz' | 'qa' | 'quickFeedback',
+    feedbackType?: QuickFeedbackType,
+  ): Promise<void> {
     try {
       const onboardingProfile = createDefaultLiveSessionOnboardingProfile(
         this.themePreset.preset(),
@@ -1098,14 +1123,12 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
           { duration: 4500, horizontalPosition: 'center', verticalPosition: 'top' },
         );
       }
-      await navigateToHostSession(
-        this.router,
-        result.code,
-        tab,
-        undefined,
-        tab === 'qa' ? { qaSetup: '1' } : {},
-      );
+      await navigateToHostSession(this.router, result.code, tab, undefined, {
+        ...(tab === 'qa' ? { qaSetup: '1' } : {}),
+        ...(feedbackType ? { feedbackType } : {}),
+      });
     } catch (error) {
+      this.hostSessionErrorTab.set(tab === 'qa' || tab === 'quickFeedback' ? tab : null);
       this.hostSessionError.set(
         localizeKnownServerError(
           error,

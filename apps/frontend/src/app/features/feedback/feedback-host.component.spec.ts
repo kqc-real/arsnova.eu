@@ -13,6 +13,21 @@ const { clearHostTokenMock } = vi.hoisted(() => ({
   clearHostTokenMock: vi.fn(),
 }));
 
+const { onHostResultsSubscribeMock } = vi.hoisted(() => {
+  const impl = vi.fn(() => ({ unsubscribe: vi.fn() }));
+  return {
+    onHostResultsSubscribeMock: new Proxy(impl, {
+      get(target, prop, receiver) {
+        // Spiegelt tRPC-Proxy: `.bind` ist kein Function.prototype.bind, sondern ein Pfadsegment.
+        if (prop === 'bind') {
+          throw new TypeError('client[bind] is not a function');
+        }
+        return Reflect.get(target, prop, receiver);
+      },
+    }),
+  };
+});
+
 vi.mock('../../core/feedback-host-token', () => ({
   clearFeedbackHostToken: clearFeedbackHostTokenMock,
   setFeedbackHostToken: setFeedbackHostTokenMock,
@@ -32,7 +47,7 @@ vi.mock('../../core/trpc.client', () => ({
       results: { query: vi.fn().mockRejectedValue(new Error('not found')) },
       onResults: { subscribe: vi.fn() },
       hostResults: { query: vi.fn().mockRejectedValue(new Error('not found')) },
-      onHostResults: { subscribe: vi.fn() },
+      onHostResults: { subscribe: onHostResultsSubscribeMock },
       toggleLock: { mutate: vi.fn() },
       startDiscussion: { mutate: vi.fn() },
       startSecondRound: { mutate: vi.fn() },
@@ -269,6 +284,112 @@ describe('FeedbackHostComponent', () => {
     });
     expect(navigateSpy).not.toHaveBeenCalled();
     expect(navigateByUrlSpy).not.toHaveBeenCalled();
+  });
+
+  it('startet nach einem fehlgeschlagenen Ergebnisabruf keine neue Runde', async () => {
+    const { trpc } = await import('../../core/trpc.client');
+    const route = TestBed.inject(ActivatedRoute);
+    (route.snapshot as { queryParamMap: ReturnType<typeof convertToParamMap> }).queryParamMap =
+      convertToParamMap({ feedbackType: 'TEMPO' });
+    vi.mocked(trpc.quickFeedback.hostResults.query).mockRejectedValueOnce(
+      new Error('temporärer Fehler'),
+    );
+    vi.mocked(trpc.quickFeedback.create.mutate).mockClear();
+    vi.mocked(trpc.quickFeedback.changeType.mutate).mockClear();
+
+    const fixture = TestBed.createComponent(FeedbackHostComponent);
+    fixture.componentRef.setInput('embeddedInSession', true);
+    fixture.detectChanges();
+    await fixture.whenStable();
+
+    expect(trpc.quickFeedback.create.mutate).not.toHaveBeenCalled();
+    expect(trpc.quickFeedback.changeType.mutate).not.toHaveBeenCalled();
+    fixture.destroy();
+  });
+
+  it('abonniert Host-Ergebnisse nach erfolgreichem Abruf ohne Proxy-.bind', async () => {
+    expect(() =>
+      (
+        onHostResultsSubscribeMock as unknown as {
+          bind: (thisArg: unknown) => unknown;
+        }
+      ).bind(null),
+    ).toThrow(/client\[bind\] is not a function/);
+
+    const { trpc } = await import('../../core/trpc.client');
+    const hostResultsQuery = vi.mocked(trpc.quickFeedback.hostResults.query);
+    hostResultsQuery.mockReset();
+    hostResultsQuery.mockResolvedValue({
+      type: 'MOOD',
+      locked: false,
+      totalVotes: 2,
+      distribution: { POSITIVE: 1, NEUTRAL: 1, NEGATIVE: 0 },
+    });
+    onHostResultsSubscribeMock.mockClear();
+
+    const fixture = TestBed.createComponent(FeedbackHostComponent);
+    fixture.componentRef.setInput('embeddedInSession', true);
+    fixture.componentRef.setInput('sessionCode', 'ABC123');
+    const comp = fixture.componentInstance as FeedbackHostComponent & {
+      loadInitialResult(): Promise<void>;
+      subscription: { unsubscribe(): void } | null;
+    };
+    comp.subscription = null;
+    await comp.loadInitialResult();
+
+    expect(comp.result()?.type).toBe('MOOD');
+    expect(onHostResultsSubscribeMock).toHaveBeenCalledWith(
+      { sessionCode: 'ABC123' },
+      expect.objectContaining({ onData: expect.any(Function), onError: expect.any(Function) }),
+    );
+    fixture.destroy();
+  });
+
+  it('zeigt bei gesperrtem Formatwechsel den Hinweis nur einmal und wiederholt ihn nicht beim Polling', async () => {
+    const { trpc } = await import('../../core/trpc.client');
+    const route = TestBed.inject(ActivatedRoute);
+    (route.snapshot as { queryParamMap: ReturnType<typeof convertToParamMap> }).queryParamMap =
+      convertToParamMap({ feedbackType: 'STARS' });
+    vi.mocked(trpc.quickFeedback.hostResults.query).mockResolvedValue({
+      type: 'MOOD',
+      locked: false,
+      totalVotes: 1,
+      distribution: { POSITIVE: 1, NEUTRAL: 0, NEGATIVE: 0 },
+    });
+    vi.mocked(trpc.quickFeedback.create.mutate).mockClear();
+    vi.mocked(trpc.quickFeedback.changeType.mutate).mockClear();
+    const snackBarSpy = vi.spyOn(TestBed.inject(MatSnackBar), 'open').mockReturnValue({
+      onAction: () => ({ subscribe: vi.fn() }),
+    } as never);
+
+    const fixture = TestBed.createComponent(FeedbackHostComponent);
+    fixture.componentRef.setInput('embeddedInSession', true);
+    const comp = fixture.componentInstance as FeedbackHostComponent & {
+      consumeRequestedFeedbackType(): Promise<void>;
+      hostResultLoad: 'unknown' | 'ready' | 'missing' | 'failed';
+    };
+    comp.result.set({
+      type: 'MOOD',
+      locked: false,
+      totalVotes: 1,
+      distribution: { POSITIVE: 1, NEUTRAL: 0, NEGATIVE: 0 },
+    });
+    comp.hostResultLoad = 'ready';
+
+    await comp.consumeRequestedFeedbackType();
+
+    expect(snackBarSpy).toHaveBeenCalledTimes(1);
+    expect(trpc.quickFeedback.create.mutate).not.toHaveBeenCalled();
+    expect(trpc.quickFeedback.changeType.mutate).not.toHaveBeenCalled();
+
+    await comp.consumeRequestedFeedbackType();
+    await comp.consumeRequestedFeedbackType();
+    await comp.consumeRequestedFeedbackType();
+
+    expect(snackBarSpy).toHaveBeenCalledTimes(1);
+    expect(trpc.quickFeedback.create.mutate).not.toHaveBeenCalled();
+    expect(trpc.quickFeedback.changeType.mutate).not.toHaveBeenCalled();
+    fixture.destroy();
   });
 
   it('startet im eingebetteten Modus nach spaetem Start sofort die Live-Subscription', async () => {

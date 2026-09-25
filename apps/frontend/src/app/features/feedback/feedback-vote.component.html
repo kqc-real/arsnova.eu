@@ -278,7 +278,9 @@
         </div>
         @if (isTempoFeedback() && showAskQuestionButton()) {
           <button type="button" class="feedback-vote__ask-question" (click)="askQuestion.emit()">
-            <mat-icon class="feedback-vote__ask-question-icon" aria-hidden="true">forum</mat-icon>
+            <mat-icon class="feedback-vote__ask-question-icon" aria-hidden="true"
+              >chat_bubble_outline</mat-icon
+            >
             <span i18n="@@feedback.voteAskQuestion">Ich habe eine Frage</span>
           </button>
         }

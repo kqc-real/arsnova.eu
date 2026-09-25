@@ -80,6 +80,7 @@ const {
   endMutateMock,
   dismissFinishProjectionMutateMock,
   quickFeedbackHostResultsQueryMock,
+  quickFeedbackOnHostResultsSubscribeMock,
   quickFeedbackToggleLockMutateMock,
   updateQaTitleMutateMock,
   listPairedHostsQueryMock,
@@ -138,6 +139,7 @@ const {
   endMutateMock: vi.fn(),
   dismissFinishProjectionMutateMock: vi.fn(),
   quickFeedbackHostResultsQueryMock: vi.fn(),
+  quickFeedbackOnHostResultsSubscribeMock: vi.fn(() => ({ unsubscribe: unsubscribeMock })),
   quickFeedbackToggleLockMutateMock: vi.fn(),
   updateQaTitleMutateMock: vi.fn(),
   listPairedHostsQueryMock: vi.fn(),
@@ -217,6 +219,7 @@ vi.mock('../../../core/trpc.client', () => ({
     quickFeedback: {
       results: { query: vi.fn().mockResolvedValue({ totalVotes: 0, options: [] }) },
       hostResults: { query: quickFeedbackHostResultsQueryMock },
+      onHostResults: { subscribe: quickFeedbackOnHostResultsSubscribeMock },
       toggleLock: { mutate: quickFeedbackToggleLockMutateMock },
     },
     wordCloud: {

@@ -45,6 +45,7 @@ import {
   tempoTrendTone,
 } from './feedback.config';
 import {
+  QuickFeedbackTypeEnum,
   quickFeedbackDefaultsToLiveResults,
   type QuickFeedbackResult,
   type QuickFeedbackType,
@@ -98,6 +99,9 @@ export class FeedbackHostComponent implements OnInit, OnDestroy {
   private readonly productFeedbackLauncher = inject(ProductFeedbackLauncherService);
   private subscription: Unsubscribable | null = null;
   private pollTimer: ReturnType<typeof setInterval> | null = null;
+  private hostResultLoad: 'unknown' | 'ready' | 'missing' | 'failed' = 'unknown';
+  /** Startseiten-Vorlage wurde angewendet oder fachlich verworfen; Polling darf sie nicht erneut versuchen. */
+  private requestedFeedbackTypeHandled = false;
   readonly sessionCode = input('');
   readonly embeddedInSession = input(false);
 
@@ -303,6 +307,7 @@ export class FeedbackHostComponent implements OnInit, OnDestroy {
   async ngOnInit(): Promise<void> {
     await this.generateQrCode();
     await this.loadInitialResult();
+    await this.consumeRequestedFeedbackType();
     this.startPolling();
     if (this.result()) {
       this.subscribeToResults();
@@ -329,8 +334,61 @@ export class FeedbackHostComponent implements OnInit, OnDestroy {
       if (this.subscription && !this.embeddedInSession()) {
         return;
       }
-      void this.loadInitialResult();
+      void this.loadInitialResult().then(() => this.consumeRequestedFeedbackType());
     }, 3000);
+  }
+
+  /** Startseiten-Vorlage nur nach eindeutig geladener Runde anwenden. */
+  private async consumeRequestedFeedbackType(): Promise<void> {
+    if (
+      !this.embeddedInSession() ||
+      this.hostResultLoad === 'failed' ||
+      this.requestedFeedbackTypeHandled
+    ) {
+      return;
+    }
+    const feedbackType = this.route.snapshot?.queryParamMap?.get('feedbackType');
+    const parsed = QuickFeedbackTypeEnum.safeParse(feedbackType);
+    if (!parsed.success) {
+      return;
+    }
+    if (this.hostResultLoad !== 'ready' && this.hostResultLoad !== 'missing') {
+      return;
+    }
+    if (this.result()?.type !== parsed.data) {
+      const outcome = await this.startRound(parsed.data);
+      if (outcome === 'blocked') {
+        this.requestedFeedbackTypeHandled = true;
+        await this.clearRequestedFeedbackType();
+        return;
+      }
+      if (outcome !== 'applied' || this.result()?.type !== parsed.data) {
+        return;
+      }
+    }
+    this.requestedFeedbackTypeHandled = true;
+    await this.clearRequestedFeedbackType();
+  }
+
+  private async clearRequestedFeedbackType(): Promise<void> {
+    await this.router.navigate([], {
+      relativeTo: this.route,
+      queryParams: { feedbackType: null },
+      queryParamsHandling: 'merge',
+      replaceUrl: true,
+    });
+  }
+
+  private isMissingFeedbackRound(error: unknown): boolean {
+    if (!error || typeof error !== 'object') {
+      return false;
+    }
+    const code = (error as { data?: { code?: string } }).data?.code;
+    if (code === 'NOT_FOUND') {
+      return true;
+    }
+    const message = (error as { message?: string }).message ?? '';
+    return message.startsWith('NOT_FOUND');
   }
 
   /** Erste Daten per HTTP laden, damit die Seite nicht auf die WebSocket-Subscription warten muss. */
@@ -340,23 +398,52 @@ export class FeedbackHostComponent implements OnInit, OnDestroy {
       return;
     }
 
+    let data: QuickFeedbackResult | undefined;
     try {
-      const data = await trpc.quickFeedback.hostResults.query({ sessionCode: code });
-      this.applyHostResult(data);
-      this.error.set(null);
-      if (!this.subscription) {
-        this.subscribeToResults();
+      data = await trpc.quickFeedback.hostResults.query({ sessionCode: code });
+    } catch (error) {
+      if (!this.isMissingFeedbackRound(error)) {
+        if (this.result()?.type) {
+          return;
+        }
+        this.hostResultLoad = 'failed';
+        this.error.set(
+          this.embeddedInSession()
+            ? $localize`:@@feedbackHost.loadFailed:Blitzlicht konnte nicht geladen werden. Bitte erneut versuchen.`
+            : $localize`Feedback-Runde nicht gefunden oder abgelaufen.`,
+        );
+        return;
       }
-    } catch {
-      this.result.set(null);
-      this.locked.set(false);
-      if (!this.embeddedInSession()) {
-        clearFeedbackHostToken(code);
-      }
-      this.error.set(
-        this.embeddedInSession() ? null : $localize`Feedback-Runde nicht gefunden oder abgelaufen.`,
-      );
+      this.markFeedbackRoundMissing(code);
+      return;
     }
+
+    if (!data?.type) {
+      if (this.result()?.type) {
+        return;
+      }
+      this.markFeedbackRoundMissing(code);
+      return;
+    }
+
+    this.applyHostResult(data);
+    this.hostResultLoad = 'ready';
+    this.error.set(null);
+    if (!this.subscription) {
+      this.subscribeToResults();
+    }
+  }
+
+  private markFeedbackRoundMissing(code: string): void {
+    this.hostResultLoad = 'missing';
+    this.result.set(null);
+    this.locked.set(false);
+    if (!this.embeddedInSession()) {
+      clearFeedbackHostToken(code);
+    }
+    this.error.set(
+      this.embeddedInSession() ? null : $localize`Feedback-Runde nicht gefunden oder abgelaufen.`,
+    );
   }
 
   private subscribeToResults(): void {
@@ -787,24 +874,24 @@ export class FeedbackHostComponent implements OnInit, OnDestroy {
     }
   }
 
-  async startRound(type: QuickFeedbackType): Promise<void> {
+  async startRound(type: QuickFeedbackType): Promise<'applied' | 'blocked' | 'failed'> {
     const code = this.code();
-    try {
-      if (this.shouldBlockTypeChange(type)) {
-        const ref = this.snackBar.open(
-          $localize`:@@feedback.compareRoundFormatHint:Formatwechsel gesperrt. Sobald Stimmen vorliegen oder die Vergleichsrunde läuft, bleibt das aktuelle Blitzlicht-Format aktiv. Für einen Wechsel setze das Blitzlicht zuerst zurück. Dabei werden alle bisherigen Stimmen gelöscht.`,
-          $localize`Zurücksetzen`,
-          {
-            duration: 12000,
-            panelClass: 'feedback-compare-round-snackbar',
-          },
-        );
-        ref.onAction().subscribe(() => {
-          void this.resetRound();
-        });
-        return;
-      }
+    if (this.shouldBlockTypeChange(type)) {
+      const ref = this.snackBar.open(
+        $localize`:@@feedback.compareRoundFormatHint:Formatwechsel gesperrt. Sobald Stimmen vorliegen oder die Vergleichsrunde läuft, bleibt das aktuelle Blitzlicht-Format aktiv. Für einen Wechsel setze das Blitzlicht zuerst zurück. Dabei werden alle bisherigen Stimmen gelöscht.`,
+        $localize`Zurücksetzen`,
+        {
+          duration: 12000,
+          panelClass: 'feedback-compare-round-snackbar',
+        },
+      );
+      ref.onAction().subscribe(() => {
+        void this.resetRound();
+      });
+      return 'blocked';
+    }
 
+    try {
       if (this.result() && code) {
         await trpc.quickFeedback.changeType.mutate({
           sessionCode: code,
@@ -812,7 +899,7 @@ export class FeedbackHostComponent implements OnInit, OnDestroy {
         });
         await this.loadInitialResult();
         this.subscribeToResults();
-        return;
+        return 'applied';
       }
 
       const res = await trpc.quickFeedback.create.mutate({
@@ -822,7 +909,7 @@ export class FeedbackHostComponent implements OnInit, OnDestroy {
       if (code) {
         await this.loadInitialResult();
         this.subscribeToResults();
-        return;
+        return 'applied';
       }
 
       if (res.hostToken) {
@@ -831,8 +918,9 @@ export class FeedbackHostComponent implements OnInit, OnDestroy {
 
       await this.router.navigateByUrl(localizePath('/'), { skipLocationChange: true });
       await this.router.navigate(localizeCommands(['feedback', res.sessionCode]));
+      return 'applied';
     } catch {
-      // best-effort
+      return 'failed';
     }
   }
 

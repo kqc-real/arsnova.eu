@@ -3999,7 +3999,7 @@
               >
                 <div class="session-channel-card__header session-channel-card__header--qa-title">
                   <span class="session-channel-card__header-lead-icon" aria-hidden="true">
-                    <mat-icon>forum</mat-icon>
+                    <mat-icon>chat_bubble_outline</mat-icon>
                   </span>
                   <div class="session-host__qa-title-block">
                     <p class="session-channel-card__eyebrow">{{ channelLabel('qa') }}</p>
@@ -4490,7 +4490,9 @@
                   qaForumQuestionCount() === 0 && !qaSearch() && !qaSelectedAuthorNickname()
                 ) {
                   <div class="session-qa-empty">
-                    <mat-icon class="session-qa-empty__icon" aria-hidden="true">forum</mat-icon>
+                    <mat-icon class="session-qa-empty__icon" aria-hidden="true"
+                      >chat_bubble_outline</mat-icon
+                    >
                     <p class="session-qa-empty__text" i18n="@@sessionTabs.qaHostPlaceholder">
                       Noch keine Fragen.
                     </p>

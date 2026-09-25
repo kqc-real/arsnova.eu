@@ -124,7 +124,7 @@ export interface ServerStatusHelpDialogData {
                 </article>
                 <article class="status-help-dialog__metric status-help-dialog__metric--key">
                   <div class="status-help-dialog__metric-head">
-                    <mat-icon aria-hidden="true">forum</mat-icon>
+                    <mat-icon aria-hidden="true">chat_bubble_outline</mat-icon>
                     <span i18n="@@app.footer.statusMetricActiveQaSessions"
                       >Aktive Q&A-Sessions</span
                     >
@@ -274,7 +274,7 @@ export interface ServerStatusHelpDialogData {
               <div class="status-help-dialog__metrics">
                 <article class="status-help-dialog__metric status-help-dialog__metric--wide">
                   <div class="status-help-dialog__metric-head">
-                    <mat-icon aria-hidden="true">forum</mat-icon>
+                    <mat-icon aria-hidden="true">chat_bubble_outline</mat-icon>
                     <span i18n="@@app.footer.statusMetricQaQuestionsTotal">Q&A-Fragen gesamt</span>
                   </div>
                   <strong>{{ formatCount(s.qaQuestionsTotal) }}</strong>
