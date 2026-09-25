@@ -1663,6 +1663,20 @@
   }
 }
 
+/* Spielerisch Light: Tonal-Aktionen brauchen Abstand zu den hellen Kartenflächen. */
+:host-context(html.preset-playful.light) {
+  .home-card--create .home-prepare-create.mat-tonal-button,
+  .home-card--live .home-live-grid .home-prepare-create.mat-tonal-button,
+  .home-card--feedback .home-feedback-chip.mat-tonal-button {
+    --mat-button-tonal-container-color: color-mix(
+      in srgb,
+      var(--mat-sys-on-surface) 12%,
+      var(--mat-sys-surface-container-high)
+    );
+    --mat-button-tonal-label-text-color: var(--mat-sys-on-surface);
+  }
+}
+
 :host-context(html.preset-playful.light) .home-library-button.mat-mdc-outlined-button {
   color: var(--mat-sys-on-surface);
   border-color: var(--mat-sys-on-surface-variant);
