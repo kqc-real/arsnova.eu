@@ -452,14 +452,7 @@ export class FeedbackHostComponent implements OnInit, OnDestroy {
       return;
     }
 
-    const subscribe = trpc.quickFeedback.onHostResults?.subscribe?.bind(
-      trpc.quickFeedback.onHostResults,
-    );
-    if (!subscribe) {
-      return;
-    }
-
-    this.subscription = subscribe(
+    this.subscription = trpc.quickFeedback.onHostResults.subscribe(
       { sessionCode: code },
       {
         onData: (data) => {
