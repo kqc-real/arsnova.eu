@@ -9360,6 +9360,9 @@ const sessionCoreRouter = router({
           quizId: true,
           code: true,
           createdAt: true,
+          status: true,
+          endedAt: true,
+          expiresAt: true,
           _count: {
             select: {
               participants: true,
@@ -9368,32 +9371,31 @@ const sessionCoreRouter = router({
         },
       });
 
+      const now = new Date();
       const countsByQuizId = new Map<string, number>();
-      const newestSessionByQuizId = new Map<string, { code: string; createdAt: Date }>();
+      const sessionCodesByQuizId = new Map<string, Array<{ code: string; createdAt: Date }>>();
       for (const session of sessions) {
-        if (!session.quizId) {
+        if (!session.quizId || isSessionEffectivelyFinished(session, now)) {
           continue;
         }
         const current = countsByQuizId.get(session.quizId) ?? 0;
         // Für die Live-Chips wird der Host explizit mitgezählt.
         countsByQuizId.set(session.quizId, current + session._count.participants + 1);
-        const known = newestSessionByQuizId.get(session.quizId);
-        if (!known || session.createdAt.getTime() >= known.createdAt.getTime()) {
-          newestSessionByQuizId.set(session.quizId, {
-            code: session.code,
-            createdAt: session.createdAt,
-          });
-        }
+        const known = sessionCodesByQuizId.get(session.quizId) ?? [];
+        known.push({ code: session.code, createdAt: session.createdAt });
+        sessionCodesByQuizId.set(session.quizId, known);
       }
 
       return [...countsByQuizId.entries()]
         .sort(([a], [b]) => a.localeCompare(b))
         .flatMap(([quizId, participantCountIncludingHost]) => {
-          const sessionCode = newestSessionByQuizId.get(quizId)?.code;
-          if (!sessionCode) {
+          const sessionCodes = (sessionCodesByQuizId.get(quizId) ?? [])
+            .sort((left, right) => right.createdAt.getTime() - left.createdAt.getTime())
+            .map((session) => session.code);
+          if (sessionCodes.length === 0) {
             return [];
           }
-          return [{ quizId, participantCountIncludingHost, sessionCode }];
+          return [{ quizId, participantCountIncludingHost, sessionCodes }];
         });
     }),
 

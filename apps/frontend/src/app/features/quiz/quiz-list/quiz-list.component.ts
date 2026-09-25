@@ -61,6 +61,7 @@ import {
   persistInitialHostRecovery,
   getHostBrowserCapability,
 } from '../../../core/host-recovery-access';
+import { hasHostToken } from '../../../core/host-session-token';
 import { resolveBrowserSessionTimeZone } from '../../session/session-time-zone';
 import {
   buildKiQuizSystemPrompt,
@@ -174,7 +175,9 @@ export class QuizListComponent implements OnInit {
   );
   readonly actionError = signal<string | null>(null);
   readonly activeLiveQuizParticipants = signal<Map<string, number>>(new Map());
-  readonly activeLiveQuizSessionCodes = signal<Map<string, string>>(new Map());
+  readonly activeLiveQuizSessionCodes = signal<Map<string, string[]>>(new Map());
+  /** Fehlgeschlagene Live-Abfrage darf nicht als „keine Sitzung“ gelten. */
+  private readonly liveLookupFailed = signal(false);
   readonly quizHistoryAvailability = signal<
     Map<
       string,
@@ -432,22 +435,7 @@ export class QuizListComponent implements OnInit {
 
   async ngOnInit(): Promise<void> {
     this.quizStore.ensureHostLibraryReady?.();
-    try {
-      const activeQuizStates = await trpc.session.getActiveQuizIds.query(
-        await this.collectActiveQuizLookupEntries(),
-      );
-      this.activeLiveQuizParticipants.set(
-        new Map(
-          activeQuizStates.map((entry) => [entry.quizId, entry.participantCountIncludingHost]),
-        ),
-      );
-      this.activeLiveQuizSessionCodes.set(
-        new Map(activeQuizStates.map((entry) => [entry.quizId, entry.sessionCode])),
-      );
-    } catch {
-      this.activeLiveQuizParticipants.set(new Map());
-      this.activeLiveQuizSessionCodes.set(new Map());
-    }
+    await this.loadActiveQuizStates();
 
     await this.handleSyncImportNoticeIfRequested();
     await this.activateLiveStartShortcutIfRequested();
@@ -1185,19 +1173,52 @@ export class QuizListComponent implements OnInit {
     }).format(parsed);
   }
 
+  private async loadActiveQuizStates(): Promise<boolean> {
+    try {
+      const activeQuizStates = await trpc.session.getActiveQuizIds.query(
+        await this.collectActiveQuizLookupEntries(),
+      );
+      this.activeLiveQuizParticipants.set(
+        new Map(
+          activeQuizStates.map((entry) => [entry.quizId, entry.participantCountIncludingHost]),
+        ),
+      );
+      this.activeLiveQuizSessionCodes.set(
+        new Map(activeQuizStates.map((entry) => [entry.quizId, entry.sessionCodes])),
+      );
+      this.liveLookupFailed.set(false);
+      return true;
+    } catch {
+      this.liveLookupFailed.set(true);
+      return false;
+    }
+  }
+
   private async resumeLiveSessionIfCapable(localQuizId: string): Promise<boolean> {
+    if (this.liveLookupFailed()) {
+      const recovered = await this.loadActiveQuizStates();
+      if (!recovered) {
+        this.actionError.set(
+          $localize`:@@quizList.liveLookupFailed:Der Live-Status konnte nicht geprüft werden. Es wurde keine neue Sitzung gestartet.`,
+        );
+        return true;
+      }
+    }
     const serverQuizId = this.quizzes().find((quiz) => quiz.id === localQuizId)?.lastServerQuizId;
     if (typeof serverQuizId !== 'string' || !this.activeLiveQuizParticipants().has(serverQuizId)) {
       return false;
     }
-    const sessionCode = this.activeLiveQuizSessionCodes().get(serverQuizId);
-    if (!sessionCode || !getHostBrowserCapability(sessionCode)) {
+    const sessionCodes = this.activeLiveQuizSessionCodes().get(serverQuizId) ?? [];
+    const resumableCode = sessionCodes.find(
+      (sessionCode) => hasHostToken(sessionCode) || Boolean(getHostBrowserCapability(sessionCode)),
+    );
+    if (!resumableCode) {
       this.actionInfo.set(
         $localize`:@@quizList.liveResumeUnavailable:Dieses Quiz läuft bereits live. Die Moderation ist in diesem Browser nicht verfügbar.`,
       );
       return true;
     }
-    await navigateToHostSession(this.router, sessionCode, 'quiz');
+    await navigateToHostSession(this.router, resumableCode, 'quiz');
     return true;
   }
 

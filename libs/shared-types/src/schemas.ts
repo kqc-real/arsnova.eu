@@ -4371,10 +4371,10 @@ export const ActiveQuizLiveStateDTOSchema = z.object({
   /** Aktuell verbundene Personen inkl. Host/Dozent:in. */
   participantCountIncludingHost: z.number().int().min(1),
   /**
-   * Neueste noch nicht beendete Sitzung dieser Quizkopie.
+   * Noch wirksame Sitzungen dieser Quizkopie, neueste zuerst.
    * Der Code allein berechtigt nicht zur Moderation.
    */
-  sessionCode: z.string().length(6),
+  sessionCodes: z.array(z.string().length(6)).min(1),
 });
 export type ActiveQuizLiveStateDTO = z.infer<typeof ActiveQuizLiveStateDTOSchema>;
 

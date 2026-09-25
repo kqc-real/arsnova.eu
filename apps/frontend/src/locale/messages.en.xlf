@@ -15406,6 +15406,14 @@
           <context context-type="linenumber">2670</context>
         </context-group>
       </trans-unit>
+      <trans-unit id="quizList.liveResumeUnavailable" datatype="html">
+        <source>Dieses Quiz läuft bereits live. Die Moderation ist in diesem Browser nicht verfügbar.</source>
+        <target>This quiz is already live. Moderation is not available in this browser.</target>
+      </trans-unit>
+      <trans-unit id="quizList.liveLookupFailed" datatype="html">
+        <source>Der Live-Status konnte nicht geprüft werden. Es wurde keine neue Sitzung gestartet.</source>
+        <target>Live status could not be checked. No new session was started.</target>
+      </trans-unit>
       <trans-unit id="quizList.bonusCodesDialogHeading" datatype="html">
         <source>Bonus-Codes</source>
         <target>Bonus codes</target>

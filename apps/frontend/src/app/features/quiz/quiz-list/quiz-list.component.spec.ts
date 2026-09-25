@@ -15,6 +15,7 @@ import {
   clearHostBrowserCapability,
   storeHostBrowserCapability,
 } from '../../../core/host-recovery-access';
+import { clearHostToken, setHostToken } from '../../../core/host-session-token';
 
 const {
   getActiveQuizIdsQueryMock,
@@ -699,7 +700,7 @@ describe('QuizListComponent', () => {
     const navigateByUrl = vi.spyOn(router, 'navigateByUrl').mockResolvedValue(true);
     fixture.componentInstance['activeLiveQuizParticipants'].set(new Map([[serverQuizId, 2]]));
     fixture.componentInstance['activeLiveQuizSessionCodes'].set(
-      new Map([[serverQuizId, 'LIVE01']]),
+      new Map([[serverQuizId, ['LIVE01']]]),
     );
 
     await fixture.componentInstance.openLiveStartDialog(localQuizId, 'Datenbanken', 2);
@@ -731,12 +732,108 @@ describe('QuizListComponent', () => {
     const fixture = TestBed.createComponent(QuizListComponent);
     fixture.componentInstance['activeLiveQuizParticipants'].set(new Map([[serverQuizId, 2]]));
     fixture.componentInstance['activeLiveQuizSessionCodes'].set(
-      new Map([[serverQuizId, 'LIVE01']]),
+      new Map([[serverQuizId, ['LIVE01']]]),
     );
 
     await fixture.componentInstance.openLiveStartDialog(localQuizId, 'Datenbanken', 2);
 
     expect(fixture.componentInstance.actionInfo()).toContain('bereits live');
+    expect(mockStore.getUploadPayload).not.toHaveBeenCalled();
+  });
+
+  it('setzt die ältere Sitzung fort, für die dieser Browser eine Fähigkeit hat', async () => {
+    const localQuizId = 'e31fef3f-f7b1-4705-a739-28c8ec4486bf';
+    const serverQuizId = '11111111-1111-4111-8111-111111111111';
+    quizzesSignal.set([
+      {
+        id: localQuizId,
+        name: 'Datenbanken',
+        description: null,
+        createdAt: '2026-03-08T10:00:00.000Z',
+        updatedAt: '2026-03-08T11:30:00.000Z',
+        questionCount: 2,
+        teamMode: false,
+        hasBonus: false,
+        lastServerQuizId: serverQuizId,
+        lastServerQuizAccessProof: localQuizId,
+      },
+    ]);
+    storeHostBrowserCapability('OLD001', 'browser-capability');
+    const fixture = TestBed.createComponent(QuizListComponent);
+    const router = TestBed.inject(Router);
+    const navigateByUrl = vi.spyOn(router, 'navigateByUrl').mockResolvedValue(true);
+    fixture.componentInstance['activeLiveQuizParticipants'].set(new Map([[serverQuizId, 3]]));
+    fixture.componentInstance['activeLiveQuizSessionCodes'].set(
+      new Map([[serverQuizId, ['LIVE01', 'OLD001']]]),
+    );
+
+    await fixture.componentInstance.openLiveStartDialog(localQuizId, 'Datenbanken', 2);
+
+    expect(navigateByUrl).toHaveBeenCalledWith(
+      expect.stringContaining('/session/OLD001/host?tab=quiz'),
+    );
+    expect(mockStore.getUploadPayload).not.toHaveBeenCalled();
+    clearHostBrowserCapability('OLD001');
+  });
+
+  it('setzt eine Sitzung mit vorhandenem Host-Token fort', async () => {
+    const localQuizId = 'e31fef3f-f7b1-4705-a739-28c8ec4486bf';
+    const serverQuizId = '11111111-1111-4111-8111-111111111111';
+    quizzesSignal.set([
+      {
+        id: localQuizId,
+        name: 'Datenbanken',
+        description: null,
+        createdAt: '2026-03-08T10:00:00.000Z',
+        updatedAt: '2026-03-08T11:30:00.000Z',
+        questionCount: 2,
+        teamMode: false,
+        hasBonus: false,
+        lastServerQuizId: serverQuizId,
+        lastServerQuizAccessProof: localQuizId,
+      },
+    ]);
+    setHostToken('LIVE01', 'host-token');
+    const fixture = TestBed.createComponent(QuizListComponent);
+    const router = TestBed.inject(Router);
+    const navigateByUrl = vi.spyOn(router, 'navigateByUrl').mockResolvedValue(true);
+    fixture.componentInstance['activeLiveQuizParticipants'].set(new Map([[serverQuizId, 2]]));
+    fixture.componentInstance['activeLiveQuizSessionCodes'].set(
+      new Map([[serverQuizId, ['LIVE01']]]),
+    );
+
+    await fixture.componentInstance.openLiveStartDialog(localQuizId, 'Datenbanken', 2);
+
+    expect(navigateByUrl).toHaveBeenCalledWith(
+      expect.stringContaining('/session/LIVE01/host?tab=quiz'),
+    );
+    expect(mockStore.getUploadPayload).not.toHaveBeenCalled();
+    clearHostToken('LIVE01');
+  });
+
+  it('startet bei fehlgeschlagener Live-Abfrage keine zweite Sitzung', async () => {
+    const localQuizId = 'e31fef3f-f7b1-4705-a739-28c8ec4486bf';
+    quizzesSignal.set([
+      {
+        id: localQuizId,
+        name: 'Datenbanken',
+        description: null,
+        createdAt: '2026-03-08T10:00:00.000Z',
+        updatedAt: '2026-03-08T11:30:00.000Z',
+        questionCount: 2,
+        teamMode: false,
+        hasBonus: false,
+        lastServerQuizId: '11111111-1111-4111-8111-111111111111',
+        lastServerQuizAccessProof: localQuizId,
+      },
+    ]);
+    getActiveQuizIdsQueryMock.mockRejectedValue(new Error('lookup failed'));
+    const fixture = TestBed.createComponent(QuizListComponent);
+    fixture.componentInstance['liveLookupFailed'].set(true);
+
+    await fixture.componentInstance.openLiveStartDialog(localQuizId, 'Datenbanken', 2);
+
+    expect(fixture.componentInstance.actionError()).toContain('keine neue Sitzung');
     expect(mockStore.getUploadPayload).not.toHaveBeenCalled();
   });
 
