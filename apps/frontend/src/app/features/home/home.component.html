@@ -410,20 +410,22 @@
                         }
                         {{ hostSessionCtaLabel(item.code) }}
                       </span>
-                      <span class="home-choice-button__description">{{
-                        hostSessionCtaDescription(item.deadlineLabel)
-                      }}</span>
-                      @if (hostSessionCtaOpenDescription(item); as openLabel) {
-                        <span class="home-choice-button__description">{{ openLabel }}</span>
-                      }
-                      @if (hostSessionCtaApprovedQuestionDescription(item); as approvedLabel) {
-                        <span class="home-choice-button__description">{{ approvedLabel }}</span>
-                      }
-                      @if (hostSessionCtaPendingQuestionDescription(item); as pendingLabel) {
-                        <span class="home-choice-button__description">{{ pendingLabel }}</span>
-                      }
                     </span>
                   </a>
+                  <div class="home-host-session-cta__facts">
+                    <span class="home-host-session-cta__fact">{{
+                      hostSessionCtaDescription(item.deadlineLabel)
+                    }}</span>
+                    @if (hostSessionCtaOpenDescription(item); as openLabel) {
+                      <span class="home-host-session-cta__fact">{{ openLabel }}</span>
+                    }
+                    @if (hostSessionCtaApprovedQuestionDescription(item); as approvedLabel) {
+                      <span class="home-host-session-cta__fact">{{ approvedLabel }}</span>
+                    }
+                    @if (hostSessionCtaPendingQuestionDescription(item); as pendingLabel) {
+                      <span class="home-host-session-cta__fact">{{ pendingLabel }}</span>
+                    }
+                  </div>
                   <button
                     mat-icon-button
                     type="button"
