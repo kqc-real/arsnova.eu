@@ -393,12 +393,10 @@
               @for (item of hostSessionCtas(); track item.code) {
                 <li class="home-host-session-cta-row__item">
                   <a
-                    [matButton]="item.primary ? 'tonal' : 'outlined'"
+                    matButton="outlined"
                     [routerLink]="hostSessionCtaLink(item.code)"
                     [queryParams]="{ tab: 'qa' }"
-                    class="home-cta home-choice-button"
-                    [class.home-cta--secondary]="!item.primary"
-                    [class.home-library-button]="!item.primary"
+                    class="home-cta home-choice-button home-cta--secondary home-library-button"
                     [class.home-host-session-cta--open]="item.primary"
                     data-testid="home-host-recovery"
                     [attr.data-session-code]="item.code"
