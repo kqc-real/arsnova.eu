@@ -438,6 +438,10 @@
           <context context-type="linenumber">52</context>
         </context-group>
       </trans-unit>
+      <trans-unit id="errors.sessionAlreadyLive" datatype="html">
+        <source>Für dieses Quiz läuft bereits eine Sitzung.</source>
+        <target>Per questo quiz è già in corso una sessione.</target>
+      </trans-unit>
       <trans-unit id="errors.sessionCreateRateLimit" datatype="html">
         <source>Zu viele Session-Erstellungen. Bitte später erneut versuchen.</source>
         <target>Sono state create troppe sessioni. Riprova più tardi.</target>

@@ -5318,6 +5318,7 @@ const sessionCoreRouter = router({
                 teamCount: true,
                 teamAssignment: true,
                 teamNames: true,
+                historyScopeId: true,
                 _count: { select: { questions: true } },
               },
             })
@@ -5385,33 +5386,51 @@ const sessionCoreRouter = router({
             ...input,
           });
       const hostCredentialMaterial = createInitialHostCredentialMaterial(createdAt);
-      const session = await prisma.session.create({
-        data: {
-          code,
-          type: input.type ?? 'QUIZ',
-          quizId: input.quizId ?? null,
-          title: standaloneQaSession ? qaTitle : null,
-          moderationMode: standaloneQaSession ? qaModerationMode : false,
-          qaEnabled,
-          qaOpen,
-          qaTitle,
-          qaModerationMode,
-          qaClosesAt: qaConfiguredAtCreate ? expiresAt : null,
-          quickFeedbackEnabled,
-          quickFeedbackOpen,
-          preferredChannel,
-          createdAt,
-          expiresAt,
-          timeZone,
-          startedAt: rollbackSafeStartedAt,
-          ...buildSessionOnboardingUpdate(onboardingProfile),
-          status: 'LOBBY',
-          currentQuestion: initialCurrentQuestion,
-          quizStarted: false,
-          questionProgress: {},
-          questionProgressComplete: true,
-          ...hostCredentialMaterial.credentialData,
-        },
+      const session = await prisma.$transaction(async (tx) => {
+        if (quiz?.historyScopeId) {
+          await tx.$executeRaw`SELECT pg_advisory_xact_lock(hashtext(${quiz.historyScopeId}))`;
+          const openSessions = await tx.session.findMany({
+            where: {
+              status: { not: 'FINISHED' },
+              quiz: { historyScopeId: quiz.historyScopeId },
+            },
+            select: { status: true, endedAt: true, expiresAt: true },
+          });
+          if (openSessions.some((row) => !isSessionEffectivelyFinished(row, createdAt))) {
+            throw new TRPCError({
+              code: 'CONFLICT',
+              message: 'Für dieses Quiz läuft bereits eine Sitzung.',
+            });
+          }
+        }
+        return tx.session.create({
+          data: {
+            code,
+            type: input.type ?? 'QUIZ',
+            quizId: input.quizId ?? null,
+            title: standaloneQaSession ? qaTitle : null,
+            moderationMode: standaloneQaSession ? qaModerationMode : false,
+            qaEnabled,
+            qaOpen,
+            qaTitle,
+            qaModerationMode,
+            qaClosesAt: qaConfiguredAtCreate ? expiresAt : null,
+            quickFeedbackEnabled,
+            quickFeedbackOpen,
+            preferredChannel,
+            createdAt,
+            expiresAt,
+            timeZone,
+            startedAt: rollbackSafeStartedAt,
+            ...buildSessionOnboardingUpdate(onboardingProfile),
+            status: 'LOBBY',
+            currentQuestion: initialCurrentQuestion,
+            quizStarted: false,
+            questionProgress: {},
+            questionProgressComplete: true,
+            ...hostCredentialMaterial.credentialData,
+          },
+        });
       });
       if (onboardingProfile.teamMode) {
         await ensureSessionTeams(

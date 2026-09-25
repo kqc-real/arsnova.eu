@@ -11,6 +11,7 @@ const {
   prismaMock: {
     session: {
       findUnique: vi.fn(),
+      findMany: vi.fn(),
       create: vi.fn(),
     },
     quiz: {
@@ -20,6 +21,8 @@ const {
       findMany: vi.fn(),
       createMany: vi.fn(),
     },
+    $executeRaw: vi.fn(),
+    $transaction: vi.fn(async (fn: (tx: unknown) => unknown) => fn(prismaMock)),
   },
   checkSessionCreateRateMock: vi.fn(),
   shouldBypassSessionCreateRateMock: vi.fn(),
@@ -58,6 +61,7 @@ describe('session.create (Story 2.1a)', () => {
       expiresAt: HOST_TOKEN_EXPIRES_AT,
     });
     prismaMock.session.findUnique.mockResolvedValue(null);
+    prismaMock.session.findMany.mockResolvedValue([]);
     prismaMock.quiz.findUnique.mockResolvedValue({
       id: QUIZ_ID,
       name: 'Mein Quiz',
@@ -549,5 +553,71 @@ describe('session.create (Story 2.1a)', () => {
 
     expect(shouldBypassSessionCreateRateMock).toHaveBeenCalledWith('198.51.100.77');
     expect(checkSessionCreateRateMock).toHaveBeenCalledWith('198.51.100.77');
+  });
+
+  it('legt bei zwei parallelen Starts derselben Sammlung nur eine Sitzung an', async () => {
+    const historyScopeId = '22222222-2222-4222-8222-222222222222';
+    prismaMock.quiz.findUnique.mockResolvedValue({
+      id: QUIZ_ID,
+      name: 'Mein Quiz',
+      nicknameTheme: 'HIGH_SCHOOL',
+      allowCustomNicknames: false,
+      anonymousMode: false,
+      teamMode: false,
+      teamCount: null,
+      teamAssignment: 'AUTO',
+      teamNames: [],
+      historyScopeId,
+      _count: { questions: 3 },
+    });
+    const openSessions: Array<{ status: string; endedAt: Date | null; expiresAt: Date }> = [];
+    prismaMock.session.findMany.mockImplementation(async () => [...openSessions]);
+    prismaMock.session.create.mockImplementation(async () => {
+      openSessions.push({
+        status: 'LOBBY',
+        endedAt: null,
+        expiresAt: new Date(Date.now() + 86_400_000),
+      });
+      return {
+        id: SESSION_ID,
+        code: CODE,
+        type: 'QUIZ',
+        status: 'LOBBY',
+        quizId: QUIZ_ID,
+        qaEnabled: false,
+        qaOpen: false,
+        qaTitle: null,
+        qaModerationMode: false,
+        quickFeedbackEnabled: false,
+        quickFeedbackOpen: false,
+        quiz: { name: 'Mein Quiz', teamMode: false, teamCount: null, teamNames: [] },
+      };
+    });
+    // Der Advisory-Lock reiht die Transaktionen; der Mock bildet dieselbe Reihenfolge ab.
+    let chain = Promise.resolve();
+    prismaMock.$transaction.mockImplementation((fn) => {
+      const run = chain.then(() => (fn as (tx: typeof prismaMock) => Promise<unknown>)(prismaMock));
+      chain = run.then(
+        () => undefined,
+        () => undefined,
+      );
+      return run;
+    });
+
+    const [first, second] = await Promise.allSettled([
+      caller.create({ quizId: QUIZ_ID }),
+      caller.create({ quizId: QUIZ_ID }),
+    ]);
+
+    expect(first.status).toBe('fulfilled');
+    expect(second.status).toBe('rejected');
+    if (second.status === 'rejected') {
+      expect(second.reason).toMatchObject({
+        code: 'CONFLICT',
+        message: 'Für dieses Quiz läuft bereits eine Sitzung.',
+      });
+    }
+    expect(prismaMock.session.create).toHaveBeenCalledOnce();
+    expect(prismaMock.$executeRaw).toHaveBeenCalled();
   });
 });
