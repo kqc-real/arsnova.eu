@@ -1505,7 +1505,7 @@ describe('HomeComponent', () => {
         /:host\.route-home \.l-page:first-child\s*\{[^}]*margin-top:\s*0;/,
       );
       expect(desktopLayout).toMatch(
-        /\.home-hero-band\s*\{[^}]*margin-block:\s*6rem calc\(4rem - 1\.25rem\)[^}]*padding-block:\s*1\.5rem 1\.75rem/,
+        /\.home-hero-band\s*\{[^}]*margin-block:\s*3rem calc\(4rem - 1\.25rem\)[^}]*padding:\s*0\.75rem 1rem 0\.9rem/,
       );
       expect(desktopLayout).toMatch(
         /\.home-host-stack\s*\{[^}]*grid-template-columns:\s*repeat\(3,\s*minmax\(0,\s*1fr\)\)[^}]*gap:\s*5rem/,
