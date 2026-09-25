@@ -400,6 +400,7 @@
                     [class.home-host-session-cta--open]="item.primary"
                     data-testid="home-host-recovery"
                     [attr.data-session-code]="item.code"
+                    [attr.aria-describedby]="'home-host-session-facts-' + item.code"
                   >
                     <span class="home-choice-button__copy">
                       <span class="home-choice-button__label">
@@ -410,7 +411,7 @@
                       </span>
                     </span>
                   </a>
-                  <div class="home-host-session-cta__facts">
+                  <div class="home-host-session-cta__facts" [attr.id]="'home-host-session-facts-' + item.code">
                     <span class="home-host-session-cta__fact">{{
                       hostSessionCtaDescription(item.deadlineLabel)
                     }}</span>
