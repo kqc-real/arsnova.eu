@@ -753,6 +753,7 @@
 }
 
 .home-host-session-cta-row__item {
+  position: relative;
   display: grid;
   grid-template-columns: minmax(0, 1fr);
   gap: 0.35rem;
@@ -815,7 +816,7 @@
   flex-direction: column;
   gap: 0.25rem;
   min-width: 0;
-  padding: 0.4rem 0.5rem 0;
+  padding: 0.4rem 0.5rem 0.5rem;
   color: var(--mat-sys-on-surface-variant);
 }
 
@@ -826,11 +827,14 @@
   text-wrap: pretty;
 }
 
+.home-host-session-cta__fact:last-child {
+  padding-inline-end: 2.75rem;
+}
+
 .home-host-session-cta-row__remove {
-  grid-column: 1;
-  grid-row: 3;
-  justify-self: end;
-  align-self: center;
+  position: absolute;
+  inset-inline-end: 0.5rem;
+  bottom: 0.5rem;
   display: inline-flex;
   align-items: center;
   justify-content: center;
