@@ -779,15 +779,6 @@
   --mat-button-outlined-container-shape: var(--mat-sys-corner-medium);
 }
 
-.home-host-session-cta--open {
-  --mdc-protected-button-container-color: var(--mat-sys-surface-container-highest);
-  --mdc-protected-button-label-text-color: var(--mat-sys-on-surface);
-  --mat-button-tonal-container-color: var(--mat-sys-surface-container-highest);
-  --mat-button-tonal-label-text-color: var(--mat-sys-on-surface);
-  box-shadow: none;
-  outline: 1px solid var(--mat-sys-outline-variant);
-}
-
 .home-host-session-cta-row__item > .home-choice-button .home-choice-button__label {
   display: inline-flex;
   align-items: center;
@@ -1502,7 +1493,6 @@
   .home-live-grid .home-prepare-create.mat-tonal-button {
     --mat-button-tonal-container-color: var(--mat-sys-surface-container-highest);
     --mat-button-tonal-label-text-color: var(--mat-sys-on-surface);
-    outline: 1px solid color-mix(in srgb, var(--mat-sys-tertiary) 55%, var(--mat-sys-outline-variant));
   }
 
   .home-live-quiz-primary {
