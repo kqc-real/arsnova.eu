@@ -178,6 +178,8 @@ export class QuizListComponent implements OnInit {
   readonly activeLiveQuizSessionCodes = signal<Map<string, string[]>>(new Map());
   /** Fehlgeschlagene Live-Abfrage darf nicht als „keine Sitzung“ gelten. */
   private readonly liveLookupFailed = signal(false);
+  /** Server-Quizkopien, deren Zugangsnachweis vor der Abfrage fehlte. */
+  private readonly uncheckedLiveQuizIds = signal<ReadonlySet<string>>(new Set());
   readonly quizHistoryAvailability = signal<
     Map<
       string,
@@ -1175,9 +1177,8 @@ export class QuizListComponent implements OnInit {
 
   private async loadActiveQuizStates(): Promise<boolean> {
     try {
-      const activeQuizStates = await trpc.session.getActiveQuizIds.query(
-        await this.collectActiveQuizLookupEntries(),
-      );
+      const lookup = await this.collectActiveQuizLookupEntries();
+      const activeQuizStates = await trpc.session.getActiveQuizIds.query(lookup.entries);
       this.activeLiveQuizParticipants.set(
         new Map(
           activeQuizStates.map((entry) => [entry.quizId, entry.participantCountIncludingHost]),
@@ -1186,6 +1187,7 @@ export class QuizListComponent implements OnInit {
       this.activeLiveQuizSessionCodes.set(
         new Map(activeQuizStates.map((entry) => [entry.quizId, entry.sessionCodes])),
       );
+      this.uncheckedLiveQuizIds.set(lookup.uncheckedQuizIds);
       this.liveLookupFailed.set(false);
       return true;
     } catch {
@@ -1195,16 +1197,20 @@ export class QuizListComponent implements OnInit {
   }
 
   private async resumeLiveSessionIfCapable(localQuizId: string): Promise<boolean> {
-    if (this.liveLookupFailed()) {
-      const recovered = await this.loadActiveQuizStates();
-      if (!recovered) {
-        this.actionError.set(
-          $localize`:@@quizList.liveLookupFailed:Der Live-Status konnte nicht geprüft werden. Es wurde keine neue Sitzung gestartet.`,
-        );
-        return true;
-      }
+    const recovered = await this.loadActiveQuizStates();
+    if (!recovered) {
+      this.actionError.set(
+        $localize`:@@quizList.liveLookupFailed:Der Live-Status konnte nicht geprüft werden. Es wurde keine neue Sitzung gestartet.`,
+      );
+      return true;
     }
     const serverQuizId = this.quizzes().find((quiz) => quiz.id === localQuizId)?.lastServerQuizId;
+    if (typeof serverQuizId === 'string' && this.uncheckedLiveQuizIds().has(serverQuizId)) {
+      this.actionError.set(
+        $localize`:@@quizList.liveLookupFailed:Der Live-Status konnte nicht geprüft werden. Es wurde keine neue Sitzung gestartet.`,
+      );
+      return true;
+    }
     if (typeof serverQuizId !== 'string' || !this.activeLiveQuizParticipants().has(serverQuizId)) {
       return false;
     }
@@ -1402,9 +1408,11 @@ export class QuizListComponent implements OnInit {
     }
   }
 
-  private async collectActiveQuizLookupEntries(): Promise<
-    Array<{ quizId: string; accessProof: string }>
-  > {
+  private async collectActiveQuizLookupEntries(): Promise<{
+    entries: Array<{ quizId: string; accessProof: string }>;
+    uncheckedQuizIds: ReadonlySet<string>;
+  }> {
+    const uncheckedQuizIds = new Set<string>();
     const entries = await Promise.all(
       this.quizzes().map(async (quiz) => {
         if (!quiz.lastServerQuizId) {
@@ -1413,6 +1421,7 @@ export class QuizListComponent implements OnInit {
 
         const accessProof = await this.resolveQuizHistoryAccessProof(quiz);
         if (!accessProof) {
+          uncheckedQuizIds.add(quiz.lastServerQuizId);
           return null;
         }
 
@@ -1423,7 +1432,10 @@ export class QuizListComponent implements OnInit {
       }),
     );
 
-    return entries.filter((entry): entry is { quizId: string; accessProof: string } => !!entry);
+    return {
+      entries: entries.filter((entry): entry is { quizId: string; accessProof: string } => !!entry),
+      uncheckedQuizIds,
+    };
   }
 }
 

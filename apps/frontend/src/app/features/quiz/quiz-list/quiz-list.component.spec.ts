@@ -695,13 +695,16 @@ describe('QuizListComponent', () => {
       },
     ]);
     storeHostBrowserCapability('LIVE01', 'browser-capability');
+    getActiveQuizIdsQueryMock.mockResolvedValue([
+      {
+        quizId: serverQuizId,
+        participantCountIncludingHost: 2,
+        sessionCodes: ['LIVE01'],
+      },
+    ]);
     const fixture = TestBed.createComponent(QuizListComponent);
     const router = TestBed.inject(Router);
     const navigateByUrl = vi.spyOn(router, 'navigateByUrl').mockResolvedValue(true);
-    fixture.componentInstance['activeLiveQuizParticipants'].set(new Map([[serverQuizId, 2]]));
-    fixture.componentInstance['activeLiveQuizSessionCodes'].set(
-      new Map([[serverQuizId, ['LIVE01']]]),
-    );
 
     await fixture.componentInstance.openLiveStartDialog(localQuizId, 'Datenbanken', 2);
 
@@ -729,11 +732,14 @@ describe('QuizListComponent', () => {
       },
     ]);
     clearHostBrowserCapability('LIVE01');
+    getActiveQuizIdsQueryMock.mockResolvedValue([
+      {
+        quizId: serverQuizId,
+        participantCountIncludingHost: 2,
+        sessionCodes: ['LIVE01'],
+      },
+    ]);
     const fixture = TestBed.createComponent(QuizListComponent);
-    fixture.componentInstance['activeLiveQuizParticipants'].set(new Map([[serverQuizId, 2]]));
-    fixture.componentInstance['activeLiveQuizSessionCodes'].set(
-      new Map([[serverQuizId, ['LIVE01']]]),
-    );
 
     await fixture.componentInstance.openLiveStartDialog(localQuizId, 'Datenbanken', 2);
 
@@ -759,13 +765,16 @@ describe('QuizListComponent', () => {
       },
     ]);
     storeHostBrowserCapability('OLD001', 'browser-capability');
+    getActiveQuizIdsQueryMock.mockResolvedValue([
+      {
+        quizId: serverQuizId,
+        participantCountIncludingHost: 3,
+        sessionCodes: ['LIVE01', 'OLD001'],
+      },
+    ]);
     const fixture = TestBed.createComponent(QuizListComponent);
     const router = TestBed.inject(Router);
     const navigateByUrl = vi.spyOn(router, 'navigateByUrl').mockResolvedValue(true);
-    fixture.componentInstance['activeLiveQuizParticipants'].set(new Map([[serverQuizId, 3]]));
-    fixture.componentInstance['activeLiveQuizSessionCodes'].set(
-      new Map([[serverQuizId, ['LIVE01', 'OLD001']]]),
-    );
 
     await fixture.componentInstance.openLiveStartDialog(localQuizId, 'Datenbanken', 2);
 
@@ -794,13 +803,16 @@ describe('QuizListComponent', () => {
       },
     ]);
     setHostToken('LIVE01', 'host-token');
+    getActiveQuizIdsQueryMock.mockResolvedValue([
+      {
+        quizId: serverQuizId,
+        participantCountIncludingHost: 2,
+        sessionCodes: ['LIVE01'],
+      },
+    ]);
     const fixture = TestBed.createComponent(QuizListComponent);
     const router = TestBed.inject(Router);
     const navigateByUrl = vi.spyOn(router, 'navigateByUrl').mockResolvedValue(true);
-    fixture.componentInstance['activeLiveQuizParticipants'].set(new Map([[serverQuizId, 2]]));
-    fixture.componentInstance['activeLiveQuizSessionCodes'].set(
-      new Map([[serverQuizId, ['LIVE01']]]),
-    );
 
     await fixture.componentInstance.openLiveStartDialog(localQuizId, 'Datenbanken', 2);
 
@@ -835,6 +847,74 @@ describe('QuizListComponent', () => {
 
     expect(fixture.componentInstance.actionError()).toContain('keine neue Sitzung');
     expect(mockStore.getUploadPayload).not.toHaveBeenCalled();
+  });
+
+  it('startet keine Sitzung, wenn der Zugangsnachweis der Quizkopie fehlt', async () => {
+    const localQuizId = 'e31fef3f-f7b1-4705-a739-28c8ec4486bf';
+    const serverQuizId = '11111111-1111-4111-8111-111111111111';
+    quizzesSignal.set([
+      {
+        id: localQuizId,
+        name: 'Datenbanken',
+        description: null,
+        createdAt: '2026-03-08T10:00:00.000Z',
+        updatedAt: '2026-03-08T11:30:00.000Z',
+        questionCount: 2,
+        teamMode: false,
+        hasBonus: false,
+        lastServerQuizId: serverQuizId,
+        lastServerQuizAccessProof: 'legacy-content-hash',
+      },
+    ]);
+    bindQuizHistoryScopeMutationMock.mockRejectedValue(new Error('bind failed'));
+    getActiveQuizIdsQueryMock.mockResolvedValue([]);
+    const fixture = TestBed.createComponent(QuizListComponent);
+
+    await fixture.componentInstance.openLiveStartDialog(localQuizId, 'Datenbanken', 2);
+
+    expect(getActiveQuizIdsQueryMock).toHaveBeenCalledWith([]);
+    expect(fixture.componentInstance.actionError()).toContain('keine neue Sitzung');
+    expect(mockStore.getUploadPayload).not.toHaveBeenCalled();
+  });
+
+  it('prüft den Live-Status unmittelbar vor dem Start erneut', async () => {
+    const localQuizId = 'e31fef3f-f7b1-4705-a739-28c8ec4486bf';
+    const serverQuizId = '11111111-1111-4111-8111-111111111111';
+    quizzesSignal.set([
+      {
+        id: localQuizId,
+        name: 'Datenbanken',
+        description: null,
+        createdAt: '2026-03-08T10:00:00.000Z',
+        updatedAt: '2026-03-08T11:30:00.000Z',
+        questionCount: 2,
+        teamMode: false,
+        hasBonus: false,
+        lastServerQuizId: serverQuizId,
+        lastServerQuizAccessProof: localQuizId,
+      },
+    ]);
+    storeHostBrowserCapability('LIVE01', 'browser-capability');
+    getActiveQuizIdsQueryMock.mockResolvedValueOnce([]);
+    const fixture = TestBed.createComponent(QuizListComponent);
+    await fixture.componentInstance.ngOnInit();
+    getActiveQuizIdsQueryMock.mockResolvedValueOnce([
+      {
+        quizId: serverQuizId,
+        participantCountIncludingHost: 2,
+        sessionCodes: ['LIVE01'],
+      },
+    ]);
+    const router = TestBed.inject(Router);
+    const navigateByUrl = vi.spyOn(router, 'navigateByUrl').mockResolvedValue(true);
+
+    await fixture.componentInstance.openLiveStartDialog(localQuizId, 'Datenbanken', 2);
+
+    expect(navigateByUrl).toHaveBeenCalledWith(
+      expect.stringContaining('/session/LIVE01/host?tab=quiz'),
+    );
+    expect(mockStore.getUploadPayload).not.toHaveBeenCalled();
+    clearHostBrowserCapability('LIVE01');
   });
 
   it('graut Bonus-Codes und Nachbesprechungsplan aus, wenn noch keine Inhalte vorhanden sind', async () => {
