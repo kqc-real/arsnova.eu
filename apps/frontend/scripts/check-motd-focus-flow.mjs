@@ -83,32 +83,36 @@ async function isActiveLocator(locator) {
 }
 
 async function assertNextTabContinuesHeroFlow(page) {
-  const nextAction = page.locator('.home-live-grid .home-choice-button').first();
+  // Volle Tab-Reihe: erste Host-Aktion ist jetzt „Neues Quiz“ (Link).
+  // Reduziertes Safari-Tab überspringt Links und landet auf dem Q&A-Button.
+  const quizCreate = page.locator('.home-card--create .home-prepare-create').first();
+  const qaCreate = page.locator('.home-live-grid .home-choice-button').first();
+  const continues = async () =>
+    (await isActiveLocator(quizCreate)) || (await isActiveLocator(qaCreate));
+
   await page.keyboard.press('Tab');
-  if (await isActiveLocator(nextAction)) return;
+  if (await continues()) return;
 
   const codeInputActive = await page
     .locator('.home-code-segments__input')
     .evaluate((element) => element === document.activeElement);
   if (codeInputActive) {
     await page.keyboard.press('Tab');
-    if (await isActiveLocator(nextAction)) return;
+    if (await continues()) return;
   }
 
   // Safari überspringt bei deaktivierter vollständiger Tab-Navigation Links
-  // mit Tab. Die Live-Aktionen sind jetzt Buttons und bleiben tabbar;
-  // ⌥ Tab bleibt der Fallback für reduzierte Safari-Tabs.
-  // Andere Playwright-WebKit-Ports verwenden bereits Tab und kehren oben zurück.
+  // mit Tab. Der Q&A-Button bleibt tabbar; ⌥ Tab ist der Fallback.
   assert(
     BROWSER_NAME === 'webkit' && codeInputActive,
     'Tab nach dem MOTD-Rücksprung folgt weder der vollständigen noch der Safari-reduzierten Tab-Reihe.',
   );
   await page.locator('.home-code-segments__input').focus();
   await page.keyboard.press('Alt+Tab');
-  if (await isActiveLocator(nextAction)) return;
+  if (await continues()) return;
   assert(
-    await isActiveLocator(nextAction),
-    '⌥ Tab nach dem MOTD-Rücksprung setzt den Safari-Hero-Flow nicht bei der ersten Live-Aktion fort.',
+    await isActiveLocator(qaCreate),
+    '⌥ Tab nach dem MOTD-Rücksprung setzt den Safari-Hero-Flow nicht beim Q&A-Button fort.',
   );
 }
 
