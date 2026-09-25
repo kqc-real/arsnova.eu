@@ -494,7 +494,7 @@
     },
     "session.create": {
       "kind": "mutation",
-      "fingerprint": "sha256:8018e4a5009234e7731ce8f5103bf3298eff7f0295d77da08318468f25e48404",
+      "fingerprint": "sha256:f0a6c0c18f490047cd56a93254707f3214bca26fa6a888b78e7606a016efdc0e",
       "missing": []
     },
     "session.createHostPairingInvite": {
@@ -529,7 +529,7 @@
     },
     "session.getActiveQuizIds": {
       "kind": "query",
-      "fingerprint": "sha256:4673d694de8be7075cd6046faa8d1e2e3c189ab181113b658fd2799006bc4adc",
+      "fingerprint": "sha256:087856e13476b31ff179e953520407b5564c64c8e2fa785453bbe4eebf0e76e7",
       "missing": []
     },
     "session.getBonusTokens": {
