@@ -411,7 +411,10 @@
                       </span>
                     </span>
                   </a>
-                  <div class="home-host-session-cta__facts" [attr.id]="'home-host-session-facts-' + item.code">
+                  <div
+                    class="home-host-session-cta__facts"
+                    [attr.id]="'home-host-session-facts-' + item.code"
+                  >
                     <span class="home-host-session-cta__fact">{{
                       hostSessionCtaDescription(item.deadlineLabel)
                     }}</span>
