@@ -292,6 +292,53 @@ describe('FeedbackHostComponent', () => {
     fixture.destroy();
   });
 
+  it('zeigt bei gesperrtem Formatwechsel den Hinweis nur einmal und wiederholt ihn nicht beim Polling', async () => {
+    const { trpc } = await import('../../core/trpc.client');
+    const route = TestBed.inject(ActivatedRoute);
+    (route.snapshot as { queryParamMap: ReturnType<typeof convertToParamMap> }).queryParamMap =
+      convertToParamMap({ feedbackType: 'STARS' });
+    vi.mocked(trpc.quickFeedback.hostResults.query).mockResolvedValue({
+      type: 'MOOD',
+      locked: false,
+      totalVotes: 1,
+      distribution: { POSITIVE: 1, NEUTRAL: 0, NEGATIVE: 0 },
+    });
+    vi.mocked(trpc.quickFeedback.create.mutate).mockClear();
+    vi.mocked(trpc.quickFeedback.changeType.mutate).mockClear();
+    const snackBarSpy = vi.spyOn(TestBed.inject(MatSnackBar), 'open').mockReturnValue({
+      onAction: () => ({ subscribe: vi.fn() }),
+    } as never);
+
+    const fixture = TestBed.createComponent(FeedbackHostComponent);
+    fixture.componentRef.setInput('embeddedInSession', true);
+    const comp = fixture.componentInstance as FeedbackHostComponent & {
+      consumeRequestedFeedbackType(): Promise<void>;
+      hostResultLoad: 'unknown' | 'ready' | 'missing' | 'failed';
+    };
+    comp.result.set({
+      type: 'MOOD',
+      locked: false,
+      totalVotes: 1,
+      distribution: { POSITIVE: 1, NEUTRAL: 0, NEGATIVE: 0 },
+    });
+    comp.hostResultLoad = 'ready';
+
+    await comp.consumeRequestedFeedbackType();
+
+    expect(snackBarSpy).toHaveBeenCalledTimes(1);
+    expect(trpc.quickFeedback.create.mutate).not.toHaveBeenCalled();
+    expect(trpc.quickFeedback.changeType.mutate).not.toHaveBeenCalled();
+
+    await comp.consumeRequestedFeedbackType();
+    await comp.consumeRequestedFeedbackType();
+    await comp.consumeRequestedFeedbackType();
+
+    expect(snackBarSpy).toHaveBeenCalledTimes(1);
+    expect(trpc.quickFeedback.create.mutate).not.toHaveBeenCalled();
+    expect(trpc.quickFeedback.changeType.mutate).not.toHaveBeenCalled();
+    fixture.destroy();
+  });
+
   it('startet im eingebetteten Modus nach spaetem Start sofort die Live-Subscription', async () => {
     const { trpc } = await import('../../core/trpc.client');
     const onResultsSubscribeMock = vi

@@ -100,6 +100,8 @@ export class FeedbackHostComponent implements OnInit, OnDestroy {
   private subscription: Unsubscribable | null = null;
   private pollTimer: ReturnType<typeof setInterval> | null = null;
   private hostResultLoad: 'unknown' | 'ready' | 'missing' | 'failed' = 'unknown';
+  /** Startseiten-Vorlage wurde angewendet oder fachlich verworfen; Polling darf sie nicht erneut versuchen. */
+  private requestedFeedbackTypeHandled = false;
   readonly sessionCode = input('');
   readonly embeddedInSession = input(false);
 
@@ -338,7 +340,11 @@ export class FeedbackHostComponent implements OnInit, OnDestroy {
 
   /** Startseiten-Vorlage nur nach eindeutig geladener Runde anwenden. */
   private async consumeRequestedFeedbackType(): Promise<void> {
-    if (!this.embeddedInSession() || this.hostResultLoad === 'failed') {
+    if (
+      !this.embeddedInSession() ||
+      this.hostResultLoad === 'failed' ||
+      this.requestedFeedbackTypeHandled
+    ) {
       return;
     }
     const feedbackType = this.route.snapshot?.queryParamMap?.get('feedbackType');
@@ -350,11 +356,21 @@ export class FeedbackHostComponent implements OnInit, OnDestroy {
       return;
     }
     if (this.result()?.type !== parsed.data) {
-      await this.startRound(parsed.data);
+      const outcome = await this.startRound(parsed.data);
+      if (outcome === 'blocked') {
+        this.requestedFeedbackTypeHandled = true;
+        await this.clearRequestedFeedbackType();
+        return;
+      }
+      if (outcome !== 'applied' || this.result()?.type !== parsed.data) {
+        return;
+      }
     }
-    if (this.result()?.type !== parsed.data) {
-      return;
-    }
+    this.requestedFeedbackTypeHandled = true;
+    await this.clearRequestedFeedbackType();
+  }
+
+  private async clearRequestedFeedbackType(): Promise<void> {
     await this.router.navigate([], {
       relativeTo: this.route,
       queryParams: { feedbackType: null },
@@ -865,24 +881,24 @@ export class FeedbackHostComponent implements OnInit, OnDestroy {
     }
   }
 
-  async startRound(type: QuickFeedbackType): Promise<void> {
+  async startRound(type: QuickFeedbackType): Promise<'applied' | 'blocked' | 'failed'> {
     const code = this.code();
-    try {
-      if (this.shouldBlockTypeChange(type)) {
-        const ref = this.snackBar.open(
-          $localize`:@@feedback.compareRoundFormatHint:Formatwechsel gesperrt. Sobald Stimmen vorliegen oder die Vergleichsrunde läuft, bleibt das aktuelle Blitzlicht-Format aktiv. Für einen Wechsel setze das Blitzlicht zuerst zurück. Dabei werden alle bisherigen Stimmen gelöscht.`,
-          $localize`Zurücksetzen`,
-          {
-            duration: 12000,
-            panelClass: 'feedback-compare-round-snackbar',
-          },
-        );
-        ref.onAction().subscribe(() => {
-          void this.resetRound();
-        });
-        return;
-      }
+    if (this.shouldBlockTypeChange(type)) {
+      const ref = this.snackBar.open(
+        $localize`:@@feedback.compareRoundFormatHint:Formatwechsel gesperrt. Sobald Stimmen vorliegen oder die Vergleichsrunde läuft, bleibt das aktuelle Blitzlicht-Format aktiv. Für einen Wechsel setze das Blitzlicht zuerst zurück. Dabei werden alle bisherigen Stimmen gelöscht.`,
+        $localize`Zurücksetzen`,
+        {
+          duration: 12000,
+          panelClass: 'feedback-compare-round-snackbar',
+        },
+      );
+      ref.onAction().subscribe(() => {
+        void this.resetRound();
+      });
+      return 'blocked';
+    }
 
+    try {
       if (this.result() && code) {
         await trpc.quickFeedback.changeType.mutate({
           sessionCode: code,
@@ -890,7 +906,7 @@ export class FeedbackHostComponent implements OnInit, OnDestroy {
         });
         await this.loadInitialResult();
         this.subscribeToResults();
-        return;
+        return 'applied';
       }
 
       const res = await trpc.quickFeedback.create.mutate({
@@ -900,7 +916,7 @@ export class FeedbackHostComponent implements OnInit, OnDestroy {
       if (code) {
         await this.loadInitialResult();
         this.subscribeToResults();
-        return;
+        return 'applied';
       }
 
       if (res.hostToken) {
@@ -909,8 +925,9 @@ export class FeedbackHostComponent implements OnInit, OnDestroy {
 
       await this.router.navigateByUrl(localizePath('/'), { skipLocationChange: true });
       await this.router.navigate(localizeCommands(['feedback', res.sessionCode]));
+      return 'applied';
     } catch {
-      // best-effort
+      return 'failed';
     }
   }
 
