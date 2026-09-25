@@ -1411,10 +1411,11 @@
     box-shadow 0.15s;
 }
 
-.quiz-edit-question__content {
+.quiz-edit-question__content.mat-mdc-card-content {
   display: flex;
-  gap: 0.5rem;
+  flex-direction: row;
   align-items: flex-start;
+  gap: 0.5rem;
 }
 
 .quiz-edit-question__body {
@@ -1474,7 +1475,7 @@
 }
 
 @media (max-width: 599px) {
-  .quiz-edit-question__content {
+  .quiz-edit-question__content.mat-mdc-card-content {
     gap: 0.25rem;
   }
 
@@ -1484,11 +1485,9 @@
 }
 
 .quiz-edit-question__placeholder {
-  border: 2px dashed var(--mat-sys-outline-variant);
-  border-radius: var(--mat-sys-corner-medium);
-  background: var(--mat-sys-surface-container-lowest);
-  min-height: 4rem;
-  transition: transform 0.2s;
+  box-sizing: border-box;
+  border: 0;
+  background: transparent;
 }
 
 .quiz-edit-question.cdk-drag-preview {

@@ -175,11 +175,22 @@ async function joinParticipant(page, code) {
     waitUntil: 'domcontentloaded',
     timeout: 30_000,
   });
-  const nickname = page.locator('input[matinput], input[type="text"]').first();
+  const nickname = page.locator('#join-nickname-input');
+  const submit = page.locator('.join-card__submit');
   await nickname.waitFor({ state: 'visible', timeout: 15_000 });
-  await nickname.fill('SafariPhone');
-  await page.locator('.join-card__submit').click();
-  await waitForPathSuffix(page, `/session/${code}/vote`);
+  const startedAt = Date.now();
+  while (Date.now() - startedAt < 30_000) {
+    if ((await nickname.inputValue().catch(() => '')) !== 'SafariPhone') {
+      await nickname.fill('SafariPhone');
+    }
+    if (await submit.isEnabled().catch(() => false)) {
+      await submit.click();
+      await waitForPathSuffix(page, `/session/${code}/vote`);
+      return;
+    }
+    await page.waitForTimeout(250);
+  }
+  throw new Error('Beitritt bleibt deaktiviert, obwohl der Name gesetzt wurde.');
 }
 
 async function main() {

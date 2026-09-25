@@ -394,6 +394,9 @@
           <context context-type="linenumber">52</context>
         </context-group>
       </trans-unit>
+      <trans-unit id="errors.sessionAlreadyLive" datatype="html">
+        <source>Für dieses Quiz läuft bereits eine Sitzung.</source>
+      </trans-unit>
       <trans-unit id="errors.sessionCreateRateLimit" datatype="html">
         <source>Zu viele Session-Erstellungen. Bitte später erneut versuchen.</source>
         <context-group purpose="location">
@@ -1891,7 +1894,7 @@
         </context-group>
       </trans-unit>
       <trans-unit id="quizPreview.typeFreeText" datatype="html">
-        <source>Freitext</source>
+        <source>Freitext (Wortwolke)</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/core/session-results-report-labels.ts</context>
           <context context-type="linenumber">178</context>
@@ -7943,7 +7946,7 @@
         </context-group>
       </trans-unit>
       <trans-unit id="help.hostFormatsBody" datatype="html">
-        <source> Zur Verfügung stehen Single Choice, Multiple Choice, Kurzantwort, Freitext, Umfrage, Bewertungsskala und numerische Schätzfrage. Bei bewertbaren Fragen kann anschließend eine Selbsteinschätzung auf einer Skala von 1 bis 5 folgen. Sie verändert die Punktzahl nicht, macht aber gefestigtes Wissen, fragiles Wissen und mögliche Fehlkonzepte sichtbar. </source>
+        <source> Zur Verfügung stehen Single Choice, Multiple Choice, Kurzantwort, Freitext (Wortwolke), Umfrage, Bewertungsskala und numerische Schätzfrage. Bei bewertbaren Fragen kann anschließend eine Selbsteinschätzung auf einer Skala von 1 bis 5 folgen. Sie verändert die Punktzahl nicht, macht aber gefestigtes Wissen, fragiles Wissen und mögliche Fehlkonzepte sichtbar. </source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/help/help.component.html</context>
           <context context-type="linenumber">229,235</context>
@@ -12237,7 +12240,7 @@
         </context-group>
       </trans-unit>
       <trans-unit id="quiz.freeTextWordCloudHint" datatype="html">
-        <source> Freitext-Antwort als Wortwolke </source>
+        <source> Das Publikum antwortet frei. Die Antworten erscheinen als Wortwolke. </source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/quiz/quiz-edit/quiz-edit.component.html</context>
           <context context-type="linenumber">1981,1983</context>
@@ -12415,7 +12418,7 @@
         </context-group>
       </trans-unit>
       <trans-unit id="493996564238682027" datatype="html">
-        <source>Freitext</source>
+        <source>Freitext (Wortwolke)</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/quiz/quiz-edit/quiz-edit.component.ts</context>
           <context context-type="linenumber">448</context>
@@ -13650,6 +13653,12 @@
           <context context-type="sourcefile">src/app/features/quiz/quiz-edit/quiz-edit.component.ts</context>
           <context context-type="linenumber">2670</context>
         </context-group>
+      </trans-unit>
+      <trans-unit id="quizList.liveResumeUnavailable" datatype="html">
+        <source>Dieses Quiz läuft bereits live. Die Moderation ist in diesem Browser nicht verfügbar.</source>
+      </trans-unit>
+      <trans-unit id="quizList.liveLookupFailed" datatype="html">
+        <source>Der Live-Status konnte nicht geprüft werden. Es wurde keine neue Sitzung gestartet.</source>
       </trans-unit>
       <trans-unit id="quizList.bonusCodesDialogHeading" datatype="html">
         <source>Bonus-Codes</source>

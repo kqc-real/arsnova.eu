@@ -50,6 +50,7 @@ import { MatCheckbox } from '@angular/material/checkbox';
 import { MatExpansionModule } from '@angular/material/expansion';
 import { MatError, MatFormField, MatHint, MatLabel } from '@angular/material/form-field';
 import { MatIcon } from '@angular/material/icon';
+import { MatTooltip } from '@angular/material/tooltip';
 import { MatInput } from '@angular/material/input';
 import { MatOption } from '@angular/material/core';
 import { MatSelect } from '@angular/material/select';
@@ -356,6 +357,7 @@ type QuizMetadataComparable = {
     MatHint,
     MatIcon,
     MatInput,
+    MatTooltip,
     MatLabel,
     MatOption,
     MatSelect,
@@ -445,7 +447,7 @@ export class QuizEditComponent implements OnDestroy {
     },
     { value: 'SINGLE_CHOICE', label: $localize`Single Choice` },
     { value: 'MULTIPLE_CHOICE', label: $localize`Multiple Choice` },
-    { value: 'FREETEXT', label: $localize`Freitext` },
+    { value: 'FREETEXT', label: $localize`:@@quizPreview.typeFreeText:Freitext (Wortwolke)` },
     { value: 'SHORT_TEXT', label: $localize`:@@quizPreview.typeShortText:Kurzantwort` },
     { value: 'SURVEY', label: $localize`Umfrage` },
     { value: 'RATING', label: $localize`Bewertung (1–5 / 1–10)` },

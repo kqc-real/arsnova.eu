@@ -5,6 +5,7 @@
 const SESSION_NOT_FOUND_DE = 'Session nicht gefunden.';
 const SESSION_CREATE_RATE_LIMIT_DE =
   'Zu viele Session-Erstellungen. Bitte später erneut versuchen.';
+const SESSION_ALREADY_LIVE_DE = 'Für dieses Quiz läuft bereits eine Sitzung.';
 const SESSION_CODE_TOO_MANY_FAILURES_DE_PREFIX = 'Ungültiger Code.';
 const SESSION_CODE_TOO_MANY_FAILURES_DE_CONTAINS = 'Zu viele Fehlversuche';
 const SESSION_NICKNAME_CONFLICT_DE = 'Dieser Nickname ist in dieser Session bereits vergeben.';
@@ -103,6 +104,9 @@ export function localizeKnownServerMessage(message: string): string {
   }
   if (normalized === SESSION_CREATE_RATE_LIMIT_DE) {
     return sessionCreateRateLimitUiMessage();
+  }
+  if (normalized === SESSION_ALREADY_LIVE_DE) {
+    return $localize`:@@errors.sessionAlreadyLive:Für dieses Quiz läuft bereits eine Sitzung.`;
   }
   if (
     normalized.startsWith(SESSION_CODE_TOO_MANY_FAILURES_DE_PREFIX) &&

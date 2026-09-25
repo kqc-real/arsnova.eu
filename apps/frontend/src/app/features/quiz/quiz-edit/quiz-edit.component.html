@@ -542,12 +542,22 @@
                 <span i18n="@@quiz.edit.newQuestionTitle">Neue Frage</span>
               </mat-panel-title>
             </mat-expansion-panel-header>
-            <p
-              class="quiz-edit__form-subtitle dialog-title-header__sub"
-              i18n="@@quiz.edit.questionFormSubtitle"
-            >
-              Wähle einen Fragetyp und füge Antworten hinzu. Du kannst Markdown und KaTeX verwenden.
-            </p>
+            @if (typeControl.value === 'FREETEXT') {
+              <p
+                class="quiz-edit__form-subtitle dialog-title-header__sub"
+                i18n="@@quiz.freeTextWordCloudHint"
+              >
+                Das Publikum antwortet frei. Die Antworten erscheinen als Wortwolke.
+              </p>
+            } @else {
+              <p
+                class="quiz-edit__form-subtitle dialog-title-header__sub"
+                i18n="@@quiz.edit.questionFormSubtitle"
+              >
+                Wähle einen Fragetyp und füge Antworten hinzu. Du kannst Markdown und KaTeX
+                verwenden.
+              </p>
+            }
             <ng-container *ngTemplateOutlet="questionEditorFormTpl" />
           </mat-expansion-panel>
         </mat-card-content>
@@ -1845,15 +1855,18 @@
                     class="quiz-edit-question__reorder-button"
                     [disabled]="questionIndex === 0 || editingQuestionId() === question.id"
                     [attr.aria-label]="moveQuestionUpLabel(questionIndex + 1)"
+                    [matTooltip]="moveQuestionUpLabel(questionIndex + 1)"
                     (click)="moveQuestion(questionIndex, -1)"
                   >
                     <mat-icon aria-hidden="true">keyboard_arrow_up</mat-icon>
                   </button>
                   <button
+                    mat-icon-button
                     cdkDragHandle
                     class="quiz-edit-question__drag-handle"
                     type="button"
                     [attr.aria-label]="dragQuestionLabel(questionIndex + 1)"
+                    [matTooltip]="dragQuestionLabel(questionIndex + 1)"
                   >
                     <mat-icon aria-hidden="true">drag_indicator</mat-icon>
                   </button>
@@ -1866,6 +1879,7 @@
                       editingQuestionId() === question.id
                     "
                     [attr.aria-label]="moveQuestionDownLabel(questionIndex + 1)"
+                    [matTooltip]="moveQuestionDownLabel(questionIndex + 1)"
                     (click)="moveQuestion(questionIndex, 1)"
                   >
                     <mat-icon aria-hidden="true">keyboard_arrow_down</mat-icon>
@@ -1957,13 +1971,19 @@
                           >
                             Diese Frage bearbeiten
                           </h3>
-                          <p
-                            class="dialog-title-header__sub"
-                            i18n="@@quiz.edit.questionFormSubtitle"
-                          >
-                            Wähle einen Fragetyp und füge Antworten hinzu. Du kannst Markdown und
-                            KaTeX verwenden.
-                          </p>
+                          @if (typeControl.value === 'FREETEXT') {
+                            <p class="dialog-title-header__sub" i18n="@@quiz.freeTextWordCloudHint">
+                              Das Publikum antwortet frei. Die Antworten erscheinen als Wortwolke.
+                            </p>
+                          } @else {
+                            <p
+                              class="dialog-title-header__sub"
+                              i18n="@@quiz.edit.questionFormSubtitle"
+                            >
+                              Wähle einen Fragetyp und füge Antworten hinzu. Du kannst Markdown und
+                              KaTeX verwenden.
+                            </p>
+                          }
                         </div>
                       </div>
                       <ng-container *ngTemplateOutlet="questionEditorFormTpl" />
@@ -1979,7 +1999,7 @@
                         class="quiz-edit-question__text quiz-edit-question__text--hint"
                         i18n="@@quiz.freeTextWordCloudHint"
                       >
-                        Freitext-Antwort als Wortwolke
+                        Das Publikum antwortet frei. Die Antworten erscheinen als Wortwolke.
                       </p>
                     } @else if (question.type === 'SHORT_TEXT') {
                       <p

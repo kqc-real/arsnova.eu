@@ -438,6 +438,10 @@
           <context context-type="linenumber">52</context>
         </context-group>
       </trans-unit>
+      <trans-unit id="errors.sessionAlreadyLive" datatype="html">
+        <source>Für dieses Quiz läuft bereits eine Sitzung.</source>
+        <target>Per questo quiz è già in corso una sessione.</target>
+      </trans-unit>
       <trans-unit id="errors.sessionCreateRateLimit" datatype="html">
         <source>Zu viele Session-Erstellungen. Bitte später erneut versuchen.</source>
         <target>Sono state create troppe sessioni. Riprova più tardi.</target>
@@ -2147,8 +2151,8 @@
         </context-group>
       </trans-unit>
       <trans-unit id="quizPreview.typeFreeText" datatype="html">
-        <source>Freitext</source>
-        <target>Testo libero</target>
+        <source>Freitext (Wortwolke)</source>
+        <target>Testo libero (nuvola di parole)</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/core/session-results-report-labels.ts</context>
           <context context-type="linenumber">178</context>
@@ -8978,8 +8982,8 @@
         </context-group>
       </trans-unit>
       <trans-unit id="help.hostFormatsBody" datatype="html">
-        <source> Zur Verfügung stehen Single Choice, Multiple Choice, Kurzantwort, Freitext, Umfrage, Bewertungsskala und numerische Schätzfrage. Bei bewertbaren Fragen kann anschließend eine Selbsteinschätzung auf einer Skala von 1 bis 5 folgen. Sie verändert die Punktzahl nicht, macht aber gefestigtes Wissen, fragiles Wissen und mögliche Fehlkonzepte sichtbar.</source>
-        <target>Sono disponibili domande a risposta singola, domande a risposta multipla, risposta breve, testo libero, sondaggio, scala di valutazione e stima numerica. Le domande valutabili possono essere seguite da un’autovalutazione del grado di sicurezza su una scala da 1 a 5. Questa non modifica il punteggio, ma può evidenziare conoscenze consolidate, conoscenze non ancora consolidate e possibili concezioni errate.</target>
+        <source> Zur Verfügung stehen Single Choice, Multiple Choice, Kurzantwort, Freitext (Wortwolke), Umfrage, Bewertungsskala und numerische Schätzfrage. Bei bewertbaren Fragen kann anschließend eine Selbsteinschätzung auf einer Skala von 1 bis 5 folgen. Sie verändert die Punktzahl nicht, macht aber gefestigtes Wissen, fragiles Wissen und mögliche Fehlkonzepte sichtbar.</source>
+        <target>Sono disponibili domande a risposta singola, domande a risposta multipla, risposta breve, testo libero (nuvola di parole), sondaggio, scala di valutazione e stima numerica. Le domande valutabili possono essere seguite da un’autovalutazione del grado di sicurezza su una scala da 1 a 5. Questa non modifica il punteggio, ma può evidenziare conoscenze consolidate, conoscenze non ancora consolidate e possibili concezioni errate.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/help/help.component.html</context>
           <context context-type="linenumber">229,235</context>
@@ -13776,8 +13780,8 @@
         </context-group>
       </trans-unit>
       <trans-unit id="quiz.freeTextWordCloudHint" datatype="html">
-        <source> Freitext-Antwort als Wortwolke</source>
-        <target>Risposta a testo libero come nuvola di parole</target>
+        <source> Das Publikum antwortet frei. Die Antworten erscheinen als Wortwolke.</source>
+        <target>Il pubblico risponde liberamente. Le risposte compaiono come una nuvola di parole.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/quiz/quiz-edit/quiz-edit.component.html</context>
           <context context-type="linenumber">1981,1983</context>
@@ -13972,8 +13976,8 @@
         </context-group>
       </trans-unit>
       <trans-unit id="493996564238682027" datatype="html">
-        <source>Freitext</source>
-        <target>Testo libero</target>
+        <source>Freitext (Wortwolke)</source>
+        <target>Testo libero (nuvola di parole)</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/quiz/quiz-edit/quiz-edit.component.ts</context>
           <context context-type="linenumber">448</context>
@@ -15354,6 +15358,14 @@
           <context context-type="sourcefile">src/app/features/quiz/quiz-edit/quiz-edit.component.ts</context>
           <context context-type="linenumber">2670</context>
         </context-group>
+      </trans-unit>
+      <trans-unit id="quizList.liveResumeUnavailable" datatype="html">
+        <source>Dieses Quiz läuft bereits live. Die Moderation ist in diesem Browser nicht verfügbar.</source>
+        <target>Questo quiz è già in diretta. La moderazione non è disponibile in questo browser.</target>
+      </trans-unit>
+      <trans-unit id="quizList.liveLookupFailed" datatype="html">
+        <source>Der Live-Status konnte nicht geprüft werden. Es wurde keine neue Sitzung gestartet.</source>
+        <target>Non è stato possibile verificare lo stato in diretta. Non è stata avviata una nuova sessione.</target>
       </trans-unit>
       <trans-unit id="quizList.bonusCodesDialogHeading" datatype="html">
         <source>Bonus-Codes</source>

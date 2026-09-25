@@ -5318,6 +5318,7 @@ const sessionCoreRouter = router({
                 teamCount: true,
                 teamAssignment: true,
                 teamNames: true,
+                historyScopeId: true,
                 _count: { select: { questions: true } },
               },
             })
@@ -5385,33 +5386,51 @@ const sessionCoreRouter = router({
             ...input,
           });
       const hostCredentialMaterial = createInitialHostCredentialMaterial(createdAt);
-      const session = await prisma.session.create({
-        data: {
-          code,
-          type: input.type ?? 'QUIZ',
-          quizId: input.quizId ?? null,
-          title: standaloneQaSession ? qaTitle : null,
-          moderationMode: standaloneQaSession ? qaModerationMode : false,
-          qaEnabled,
-          qaOpen,
-          qaTitle,
-          qaModerationMode,
-          qaClosesAt: qaConfiguredAtCreate ? expiresAt : null,
-          quickFeedbackEnabled,
-          quickFeedbackOpen,
-          preferredChannel,
-          createdAt,
-          expiresAt,
-          timeZone,
-          startedAt: rollbackSafeStartedAt,
-          ...buildSessionOnboardingUpdate(onboardingProfile),
-          status: 'LOBBY',
-          currentQuestion: initialCurrentQuestion,
-          quizStarted: false,
-          questionProgress: {},
-          questionProgressComplete: true,
-          ...hostCredentialMaterial.credentialData,
-        },
+      const session = await prisma.$transaction(async (tx) => {
+        if (quiz?.historyScopeId) {
+          await tx.$executeRaw`SELECT pg_advisory_xact_lock(hashtext(${quiz.historyScopeId}))`;
+          const openSessions = await tx.session.findMany({
+            where: {
+              status: { not: 'FINISHED' },
+              quiz: { historyScopeId: quiz.historyScopeId },
+            },
+            select: { status: true, endedAt: true, expiresAt: true },
+          });
+          if (openSessions.some((row) => !isSessionEffectivelyFinished(row, createdAt))) {
+            throw new TRPCError({
+              code: 'CONFLICT',
+              message: 'Für dieses Quiz läuft bereits eine Sitzung.',
+            });
+          }
+        }
+        return tx.session.create({
+          data: {
+            code,
+            type: input.type ?? 'QUIZ',
+            quizId: input.quizId ?? null,
+            title: standaloneQaSession ? qaTitle : null,
+            moderationMode: standaloneQaSession ? qaModerationMode : false,
+            qaEnabled,
+            qaOpen,
+            qaTitle,
+            qaModerationMode,
+            qaClosesAt: qaConfiguredAtCreate ? expiresAt : null,
+            quickFeedbackEnabled,
+            quickFeedbackOpen,
+            preferredChannel,
+            createdAt,
+            expiresAt,
+            timeZone,
+            startedAt: rollbackSafeStartedAt,
+            ...buildSessionOnboardingUpdate(onboardingProfile),
+            status: 'LOBBY',
+            currentQuestion: initialCurrentQuestion,
+            quizStarted: false,
+            questionProgress: {},
+            questionProgressComplete: true,
+            ...hostCredentialMaterial.credentialData,
+          },
+        });
       });
       if (onboardingProfile.teamMode) {
         await ensureSessionTeams(
@@ -9358,6 +9377,11 @@ const sessionCoreRouter = router({
         },
         select: {
           quizId: true,
+          code: true,
+          createdAt: true,
+          status: true,
+          endedAt: true,
+          expiresAt: true,
           _count: {
             select: {
               participants: true,
@@ -9366,22 +9390,32 @@ const sessionCoreRouter = router({
         },
       });
 
+      const now = new Date();
       const countsByQuizId = new Map<string, number>();
+      const sessionCodesByQuizId = new Map<string, Array<{ code: string; createdAt: Date }>>();
       for (const session of sessions) {
-        if (!session.quizId) {
+        if (!session.quizId || isSessionEffectivelyFinished(session, now)) {
           continue;
         }
         const current = countsByQuizId.get(session.quizId) ?? 0;
         // Für die Live-Chips wird der Host explizit mitgezählt.
         countsByQuizId.set(session.quizId, current + session._count.participants + 1);
+        const known = sessionCodesByQuizId.get(session.quizId) ?? [];
+        known.push({ code: session.code, createdAt: session.createdAt });
+        sessionCodesByQuizId.set(session.quizId, known);
       }
 
       return [...countsByQuizId.entries()]
         .sort(([a], [b]) => a.localeCompare(b))
-        .map(([quizId, participantCountIncludingHost]) => ({
-          quizId,
-          participantCountIncludingHost,
-        }));
+        .flatMap(([quizId, participantCountIncludingHost]) => {
+          const sessionCodes = (sessionCodesByQuizId.get(quizId) ?? [])
+            .sort((left, right) => right.createdAt.getTime() - left.createdAt.getTime())
+            .map((session) => session.code);
+          if (sessionCodes.length === 0) {
+            return [];
+          }
+          return [{ quizId, participantCountIncludingHost, sessionCodes }];
+        });
     }),
 
   /** Live-Freitextdaten der aktuell aktiven Frage (Story 1.14, polling-ready). */

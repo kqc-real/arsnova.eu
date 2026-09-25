@@ -402,14 +402,12 @@ async function clickButton(page, name, timeout = 15_000) {
 async function chooseJoinIdentity(page, fallbackName, timeout = 15_000) {
   const startedAt = Date.now();
   while (Date.now() - startedAt < timeout) {
-    const textFields = page.locator(
-      'input[type="text"], input:not([type]), input[matinput], textarea',
-    );
-    const count = await textFields.count();
-    for (let index = 0; index < count; index += 1) {
-      const field = textFields.nth(index);
-      if (await field.isVisible().catch(() => false)) {
-        await field.fill(fallbackName);
+    const nickname = page.locator('#join-nickname-input');
+    if (await nickname.isVisible().catch(() => false)) {
+      if ((await nickname.inputValue().catch(() => '')) !== fallbackName) {
+        await nickname.fill(fallbackName);
+      }
+      if ((await nickname.inputValue().catch(() => '')) === fallbackName) {
         return { ok: true, mode: 'text' };
       }
     }
@@ -1015,11 +1013,16 @@ async function runOrderingFlow(
   } else {
     logStep(true, 'Participant ORDERING result view');
   }
-  const submittedOrderAfterReload = await participant
+  const orderingTexts = participant
     .locator('.structured-result-block')
     .first()
-    .locator('.vote-ordering__text')
-    .allTextContents();
+    .locator('.vote-ordering__text');
+  const restored = await orderingTexts
+    .nth(Math.max(submittedOrderBeforeReload.length - 1, 0))
+    .waitFor({ state: 'visible', timeout: 8_000 })
+    .then(() => true)
+    .catch(() => false);
+  const submittedOrderAfterReload = restored ? await orderingTexts.allTextContents() : [];
   if (
     submittedOrderBeforeReload.length === 0 ||
     JSON.stringify(submittedOrderAfterReload) !== JSON.stringify(submittedOrderBeforeReload)

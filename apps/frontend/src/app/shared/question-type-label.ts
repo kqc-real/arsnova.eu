@@ -8,7 +8,7 @@ export function questionTypeLabel(type: QuestionType): string {
     case 'MULTIPLE_CHOICE':
       return $localize`:@@quizPreview.typeMultipleChoice:Multiple Choice`;
     case 'FREETEXT':
-      return $localize`:@@quizPreview.typeFreeText:Freitext`;
+      return $localize`:@@quizPreview.typeFreeText:Freitext (Wortwolke)`;
     case 'SHORT_TEXT':
       return $localize`:@@quizPreview.typeShortText:Kurzantwort`;
     case 'SURVEY':

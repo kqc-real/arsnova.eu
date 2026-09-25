@@ -5836,6 +5836,16 @@ button.session-host__btn-discussion {
     justify-content: flex-start;
   }
 
+  .session-host__extra--maximized .session-host__extra-actions {
+    justify-content: flex-start;
+    padding-inline: 0 3.25rem;
+  }
+
+  .session-host__extra--maximized .session-host__extra-analysis-toggle {
+    width: auto;
+    max-width: 100%;
+  }
+
   .session-host__extra-note {
     text-align: left;
   }
