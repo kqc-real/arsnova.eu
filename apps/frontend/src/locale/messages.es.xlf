@@ -10087,6 +10087,10 @@
           <context context-type="linenumber">1160</context>
         </context-group>
       </trans-unit>
+      <trans-unit id="feedbackHost.loadFailed" datatype="html">
+        <source>Blitzlicht konnte nicht geladen werden. Bitte erneut versuchen.</source>
+        <target>No se pudo cargar el sondeo rápido. Vuelve a intentarlo.</target>
+      </trans-unit>
       <trans-unit id="homeFeedbackCard.startError" datatype="html">
         <source>Blitzlicht konnte nicht gestartet werden. Bitte erneut versuchen.</source>
         <target>No se pudo iniciar el sondeo rápido. Vuelve a intentarlo.</target>

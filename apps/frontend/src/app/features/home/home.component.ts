@@ -1029,11 +1029,11 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
           code,
           anonymousClientId: getAnonymousClientId(),
         });
-        if (
-          (tab === 'quickFeedback' || tab === 'quiz') &&
-          session.status === 'FINISHED' &&
-          !isQaChannelJoinable(session)
-        ) {
+        if (tab === 'quickFeedback' && session.status === 'FINISHED') {
+          await this.startHeroHostSession(tab, feedbackType);
+          return;
+        }
+        if (tab === 'quiz' && session.status === 'FINISHED' && !isQaChannelJoinable(session)) {
           await this.startHeroHostSession(tab, feedbackType);
           return;
         }

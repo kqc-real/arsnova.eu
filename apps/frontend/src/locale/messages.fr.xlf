@@ -10087,6 +10087,10 @@
           <context context-type="linenumber">1160</context>
         </context-group>
       </trans-unit>
+      <trans-unit id="feedbackHost.loadFailed" datatype="html">
+        <source>Blitzlicht konnte nicht geladen werden. Bitte erneut versuchen.</source>
+        <target>Impossible de charger le feedback express. Réessayez.</target>
+      </trans-unit>
       <trans-unit id="homeFeedbackCard.startError" datatype="html">
         <source>Blitzlicht konnte nicht gestartet werden. Bitte erneut versuchen.</source>
         <target>Impossible de lancer le feedback express. Réessayez.</target>

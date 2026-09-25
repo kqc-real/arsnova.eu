@@ -2214,6 +2214,45 @@ describe('HomeComponent', () => {
       clearHostToken('TEST01');
     });
 
+    it('legt bei beendeter Session trotz offenem Q&A ein neues Blitzlicht an', async () => {
+      const { trpc } = await import('../../core/trpc.client');
+      vi.mocked(trpc.session.create.mutate).mockResolvedValueOnce({
+        id: 'sess-qf-finished-qa',
+        code: 'QF0003',
+        hostToken: 'qf-finished-qa-token',
+      });
+      vi.mocked(trpc.session.getInfoForReconnect.query).mockResolvedValueOnce({
+        id: 'sess-finished-qa',
+        code: 'TEST01',
+        type: 'QUIZ',
+        status: 'FINISHED',
+        serverTime: '2026-09-19T12:00:00.000Z',
+        quizName: 'Live',
+        title: null,
+        participantCount: 2,
+        qaEnabled: true,
+        qaOpen: true,
+        qaClosesAt: '2026-09-20T12:00:00.000Z',
+        channels: {
+          quiz: { enabled: true },
+          qa: { enabled: true, open: true, state: 'OPEN' as const },
+          quickFeedback: { enabled: true, open: false },
+        },
+      });
+      setHostToken('TEST01', 'host-token-test01');
+      const comp = createHomeComponent();
+      comp.sessionCode.set('TEST01');
+      const navigateSpy = vi.spyOn(TestBed.inject(Router), 'navigateByUrl').mockResolvedValue(true);
+
+      await comp.openHeroHostTab('quickFeedback', 'MOOD');
+
+      expect(trpc.session.create.mutate).toHaveBeenCalled();
+      expect(navigateSpy).toHaveBeenCalledWith(
+        '/session/QF0003/host?tab=quickFeedback&feedbackType=MOOD',
+      );
+      clearHostToken('TEST01');
+    });
+
     it('legt ein neues Blitzlicht an, wenn die letzte Host-Session ohne Q&A beendet ist', async () => {
       const { trpc } = await import('../../core/trpc.client');
       vi.mocked(trpc.session.create.mutate).mockResolvedValueOnce({

@@ -271,6 +271,27 @@ describe('FeedbackHostComponent', () => {
     expect(navigateByUrlSpy).not.toHaveBeenCalled();
   });
 
+  it('startet nach einem fehlgeschlagenen Ergebnisabruf keine neue Runde', async () => {
+    const { trpc } = await import('../../core/trpc.client');
+    const route = TestBed.inject(ActivatedRoute);
+    (route.snapshot as { queryParamMap: ReturnType<typeof convertToParamMap> }).queryParamMap =
+      convertToParamMap({ feedbackType: 'TEMPO' });
+    vi.mocked(trpc.quickFeedback.hostResults.query).mockRejectedValueOnce(
+      new Error('temporärer Fehler'),
+    );
+    vi.mocked(trpc.quickFeedback.create.mutate).mockClear();
+    vi.mocked(trpc.quickFeedback.changeType.mutate).mockClear();
+
+    const fixture = TestBed.createComponent(FeedbackHostComponent);
+    fixture.componentRef.setInput('embeddedInSession', true);
+    fixture.detectChanges();
+    await fixture.whenStable();
+
+    expect(trpc.quickFeedback.create.mutate).not.toHaveBeenCalled();
+    expect(trpc.quickFeedback.changeType.mutate).not.toHaveBeenCalled();
+    fixture.destroy();
+  });
+
   it('startet im eingebetteten Modus nach spaetem Start sofort die Live-Subscription', async () => {
     const { trpc } = await import('../../core/trpc.client');
     const onResultsSubscribeMock = vi
