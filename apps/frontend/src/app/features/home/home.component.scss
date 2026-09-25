@@ -1273,8 +1273,8 @@
   }
 
   .home-hero-band {
-    margin-block: 6rem calc(4rem - 1.25rem);
-    padding-block: 1.5rem 1.75rem;
+    margin-block: 3rem calc(4rem - 1.25rem);
+    padding: 0.75rem 1rem 0.9rem;
   }
 
   .home-card#participant-entry {
@@ -1513,7 +1513,7 @@
     overflow: hidden;
     padding: 0.5rem 0.7rem 0.5rem;
 
-    @media (min-width: 600px) {
+    @media (min-width: 600px) and (max-width: 1199px) {
       padding: 0.75rem 1rem 0.9rem;
     }
     border: 1px solid color-mix(in srgb, var(--mat-sys-primary) 14%, transparent);
