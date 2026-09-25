@@ -610,8 +610,11 @@ describe('HomeComponent', () => {
         fixture.nativeElement.querySelector('[data-testid="home-host-recovery-link"]'),
       ).toBeNull();
       expect(
-        recoveryAction?.querySelector('.home-choice-button__description')?.textContent?.trim(),
+        recoveryAction?.closest('.home-host-session-cta-row__item')?.querySelector('.home-host-session-cta__fact')?.textContent?.trim(),
       ).toContain('Zugang bis');
+
+      expect(recoveryAction?.querySelector('.home-host-session-cta__facts')).toBeNull();
+      expect(recoveryAction?.closest('.home-host-session-cta-row__item')?.querySelector('.home-host-session-cta__facts')).not.toBeNull();
 
       const liveGrid = fixture.nativeElement.querySelector('.home-live-grid') as HTMLElement | null;
       expect(liveGrid?.classList.contains('home-live-grid--with-recovery')).toBe(false);
@@ -642,7 +645,7 @@ describe('HomeComponent', () => {
       restoreDefaultSessionGetInfo(vi.mocked(trpc.session.getInfo.query));
     });
 
-    it('zeigt die Zugangsfrist in der zweiten CTA-Zeile und die Offen-Frist in der dritten', async () => {
+    it('zeigt die Zugangsfrist und Offen-Frist als angehängte Fakten außerhalb des Öffnen-Buttons', async () => {
       const { trpc } = await import('../../core/trpc.client');
       seedHostCapability();
       vi.mocked(trpc.session.getInfo.query).mockResolvedValue({
@@ -679,7 +682,7 @@ describe('HomeComponent', () => {
         () =>
           Array.from(
             fixture.nativeElement.querySelectorAll<HTMLElement>(
-              '.home-host-session-cta-row [data-testid="home-host-recovery"] .home-choice-button__description',
+              '.home-host-session-cta-row__item .home-host-session-cta__fact',
             ),
           ).some((line) => line.textContent?.trim().startsWith('Offen bis ')) === true,
         { timeout: 1000, interval: 10 },
@@ -687,7 +690,7 @@ describe('HomeComponent', () => {
 
       const descriptions = Array.from(
         fixture.nativeElement.querySelectorAll<HTMLElement>(
-          '.home-host-session-cta-row [data-testid="home-host-recovery"] .home-choice-button__description',
+          '.home-host-session-cta-row__item .home-host-session-cta__fact',
         ),
       ).map((line) => line.textContent?.trim());
       expect(descriptions[0]).toMatch(/^Zugang bis /);
@@ -774,7 +777,7 @@ describe('HomeComponent', () => {
         () =>
           Array.from(
             fixture.nativeElement.querySelectorAll<HTMLElement>(
-              '.home-host-session-cta-row [data-testid="home-host-recovery"] .home-choice-button__description',
+              '.home-host-session-cta-row__item .home-host-session-cta__fact',
             ),
           ).some((line) => line.textContent?.trim() === '5 Fragen') === true,
         { timeout: 1000, interval: 10 },
@@ -782,7 +785,7 @@ describe('HomeComponent', () => {
 
       const descriptions = Array.from(
         fixture.nativeElement.querySelectorAll<HTMLElement>(
-          '.home-host-session-cta-row [data-testid="home-host-recovery"] .home-choice-button__description',
+          '.home-host-session-cta-row__item .home-host-session-cta__fact',
         ),
       ).map((line) => line.textContent?.trim());
       expect(descriptions[2]).toBe('5 Fragen');
@@ -818,7 +821,7 @@ describe('HomeComponent', () => {
         () =>
           Array.from(
             fixture.nativeElement.querySelectorAll<HTMLElement>(
-              '.home-host-session-cta-row [data-testid="home-host-recovery"] .home-choice-button__description',
+              '.home-host-session-cta-row__item .home-host-session-cta__fact',
             ),
           ).some((line) => line.textContent?.trim() === 'Forum geschlossen') === true,
         { timeout: 1000, interval: 10 },
@@ -826,7 +829,7 @@ describe('HomeComponent', () => {
 
       const descriptions = Array.from(
         fixture.nativeElement.querySelectorAll<HTMLElement>(
-          '.home-host-session-cta-row [data-testid="home-host-recovery"] .home-choice-button__description',
+          '.home-host-session-cta-row__item .home-host-session-cta__fact',
         ),
       ).map((line) => line.textContent?.trim());
       expect(descriptions[0]).toMatch(/^Zugang bis /);
@@ -842,7 +845,7 @@ describe('HomeComponent', () => {
       restoreDefaultSessionGetInfo(vi.mocked(trpc.session.getInfo.query));
     });
 
-    it('zeigt freigegebene Fragen und Moderationszähler gemeinsam im Host-CTA', async () => {
+    it('zeigt freigegebene Fragen und Moderationszähler gemeinsam in den Session-Details', async () => {
       const { trpc } = await import('../../core/trpc.client');
       seedHostCapability();
       vi.mocked(trpc.session.getInfo.query).mockResolvedValue(
@@ -859,7 +862,7 @@ describe('HomeComponent', () => {
         () =>
           Array.from(
             fixture.nativeElement.querySelectorAll<HTMLElement>(
-              '.home-host-session-cta-row [data-testid="home-host-recovery"] .home-choice-button__description',
+              '.home-host-session-cta-row__item .home-host-session-cta__fact',
             ),
           ).some((line) => line.textContent?.trim() === 'In Moderation: 1') === true,
         { timeout: 1000, interval: 10 },
@@ -867,7 +870,7 @@ describe('HomeComponent', () => {
 
       const descriptions = Array.from(
         fixture.nativeElement.querySelectorAll<HTMLElement>(
-          '.home-host-session-cta-row [data-testid="home-host-recovery"] .home-choice-button__description',
+          '.home-host-session-cta-row__item .home-host-session-cta__fact',
         ),
       ).map((line) => line.textContent?.trim());
       expect(descriptions).toEqual(
