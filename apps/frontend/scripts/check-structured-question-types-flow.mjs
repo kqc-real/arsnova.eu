@@ -1015,11 +1015,16 @@ async function runOrderingFlow(
   } else {
     logStep(true, 'Participant ORDERING result view');
   }
-  const submittedOrderAfterReload = await participant
+  const orderingTexts = participant
     .locator('.structured-result-block')
     .first()
-    .locator('.vote-ordering__text')
-    .allTextContents();
+    .locator('.vote-ordering__text');
+  const restored = await orderingTexts
+    .nth(Math.max(submittedOrderBeforeReload.length - 1, 0))
+    .waitFor({ state: 'visible', timeout: 8_000 })
+    .then(() => true)
+    .catch(() => false);
+  const submittedOrderAfterReload = restored ? await orderingTexts.allTextContents() : [];
   if (
     submittedOrderBeforeReload.length === 0 ||
     JSON.stringify(submittedOrderAfterReload) !== JSON.stringify(submittedOrderBeforeReload)
