@@ -1499,6 +1499,12 @@
 
 /* Spielerisch behält die bestehende Magenta/Violett-Palette und Bühnenflächen. */
 :host-context(html.preset-playful) {
+  .home-live-grid .home-prepare-create.mat-tonal-button {
+    --mat-button-tonal-container-color: var(--mat-sys-surface-container-highest);
+    --mat-button-tonal-label-text-color: var(--mat-sys-on-surface);
+    outline: 1px solid color-mix(in srgb, var(--mat-sys-tertiary) 55%, var(--mat-sys-outline-variant));
+  }
+
   .home-live-quiz-primary {
     --mdc-protected-button-container-color: var(--mat-sys-tertiary-container);
     --mdc-protected-button-label-text-color: var(--mat-sys-on-tertiary-container);
