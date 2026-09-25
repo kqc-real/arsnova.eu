@@ -758,10 +758,7 @@
   grid-template-columns: minmax(0, 1fr);
   gap: 0.35rem;
   min-width: 0;
-  padding: 0.5rem;
-  border: 1px solid var(--mat-sys-outline-variant);
-  border-radius: var(--mat-sys-corner-medium);
-  background: var(--mat-sys-surface-container-low);
+  padding: 0.5rem 0;
 }
 
 .home-host-session-cta-row__item > .home-choice-button {
@@ -833,7 +830,7 @@
 
 .home-host-session-cta-row__remove {
   position: absolute;
-  inset-inline-end: 0.5rem;
+  inset-inline-end: 0;
   bottom: 0.5rem;
   display: inline-flex;
   align-items: center;
