@@ -616,6 +616,12 @@ describe('HomeComponent', () => {
           ?.textContent?.trim(),
       ).toContain('Zugang bis');
 
+      expect(recoveryAction?.getAttribute('aria-describedby')).toBe(
+        'home-host-session-facts-ABC123',
+      );
+      expect(
+        fixture.nativeElement.querySelector('#home-host-session-facts-ABC123')?.textContent,
+      ).toContain('Zugang bis');
       expect(recoveryAction?.querySelector('.home-host-session-cta__facts')).toBeNull();
       expect(
         recoveryAction
