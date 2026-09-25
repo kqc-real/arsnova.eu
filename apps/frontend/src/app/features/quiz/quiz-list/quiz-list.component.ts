@@ -57,7 +57,10 @@ import {
   trpc,
 } from '../../../core/trpc.client';
 import { navigateToHostSession } from '../../../core/session-host-navigation';
-import { persistInitialHostRecovery } from '../../../core/host-recovery-access';
+import {
+  persistInitialHostRecovery,
+  getHostBrowserCapability,
+} from '../../../core/host-recovery-access';
 import { resolveBrowserSessionTimeZone } from '../../session/session-time-zone';
 import {
   buildKiQuizSystemPrompt,
@@ -171,6 +174,7 @@ export class QuizListComponent implements OnInit {
   );
   readonly actionError = signal<string | null>(null);
   readonly activeLiveQuizParticipants = signal<Map<string, number>>(new Map());
+  readonly activeLiveQuizSessionCodes = signal<Map<string, string>>(new Map());
   readonly quizHistoryAvailability = signal<
     Map<
       string,
@@ -437,8 +441,12 @@ export class QuizListComponent implements OnInit {
           activeQuizStates.map((entry) => [entry.quizId, entry.participantCountIncludingHost]),
         ),
       );
+      this.activeLiveQuizSessionCodes.set(
+        new Map(activeQuizStates.map((entry) => [entry.quizId, entry.sessionCode])),
+      );
     } catch {
       this.activeLiveQuizParticipants.set(new Map());
+      this.activeLiveQuizSessionCodes.set(new Map());
     }
 
     await this.handleSyncImportNoticeIfRequested();
@@ -1177,6 +1185,22 @@ export class QuizListComponent implements OnInit {
     }).format(parsed);
   }
 
+  private async resumeLiveSessionIfCapable(localQuizId: string): Promise<boolean> {
+    const serverQuizId = this.quizzes().find((quiz) => quiz.id === localQuizId)?.lastServerQuizId;
+    if (typeof serverQuizId !== 'string' || !this.activeLiveQuizParticipants().has(serverQuizId)) {
+      return false;
+    }
+    const sessionCode = this.activeLiveQuizSessionCodes().get(serverQuizId);
+    if (!sessionCode || !getHostBrowserCapability(sessionCode)) {
+      this.actionInfo.set(
+        $localize`:@@quizList.liveResumeUnavailable:Dieses Quiz läuft bereits live. Die Moderation ist in diesem Browser nicht verfügbar.`,
+      );
+      return true;
+    }
+    await navigateToHostSession(this.router, sessionCode, 'quiz');
+    return true;
+  }
+
   private async clearLiveStartShortcut(): Promise<void> {
     const hasShortcutParams =
       this.route.snapshot.queryParamMap.get('startLive') === '1' ||
@@ -1205,6 +1229,10 @@ export class QuizListComponent implements OnInit {
     this.liveStartPending.set(true);
     tryAutoRequestDocumentFullscreen(this.document);
     try {
+      const resumed = await this.resumeLiveSessionIfCapable(options.quizId);
+      if (resumed) {
+        return;
+      }
       let payload = this.quizStore.getUploadPayload(options.quizId);
       const presetKey = homePresetOptionsKeyForQuizPreset(payload.preset);
       try {

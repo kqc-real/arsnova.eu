@@ -2147,8 +2147,8 @@
         </context-group>
       </trans-unit>
       <trans-unit id="quizPreview.typeFreeText" datatype="html">
-        <source>Freitext</source>
-        <target>Texte libre</target>
+        <source>Freitext (Wortwolke)</source>
+        <target>Texte libre (nuage de mots)</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/core/session-results-report-labels.ts</context>
           <context context-type="linenumber">178</context>
@@ -8978,8 +8978,8 @@
         </context-group>
       </trans-unit>
       <trans-unit id="help.hostFormatsBody" datatype="html">
-        <source> Zur Verfügung stehen Single Choice, Multiple Choice, Kurzantwort, Freitext, Umfrage, Bewertungsskala und numerische Schätzfrage. Bei bewertbaren Fragen kann anschließend eine Selbsteinschätzung auf einer Skala von 1 bis 5 folgen. Sie verändert die Punktzahl nicht, macht aber gefestigtes Wissen, fragiles Wissen und mögliche Fehlkonzepte sichtbar.</source>
-        <target>Les formats disponibles sont : question à réponse unique, question à réponses multiples, réponse courte, texte libre, sondage, échelle d’évaluation et estimation numérique. Une question pouvant être notée peut être suivie d’une autoévaluation du degré de confiance sur une échelle de 1 à 5. Cette évaluation ne modifie pas le score, mais peut mettre en évidence des connaissances consolidées, des connaissances encore fragiles et de possibles conceptions erronées.</target>
+        <source> Zur Verfügung stehen Single Choice, Multiple Choice, Kurzantwort, Freitext (Wortwolke), Umfrage, Bewertungsskala und numerische Schätzfrage. Bei bewertbaren Fragen kann anschließend eine Selbsteinschätzung auf einer Skala von 1 bis 5 folgen. Sie verändert die Punktzahl nicht, macht aber gefestigtes Wissen, fragiles Wissen und mögliche Fehlkonzepte sichtbar.</source>
+        <target>Les formats disponibles sont : question à réponse unique, question à réponses multiples, réponse courte, texte libre (nuage de mots), sondage, échelle d’évaluation et estimation numérique. Une question pouvant être notée peut être suivie d’une autoévaluation du degré de confiance sur une échelle de 1 à 5. Cette évaluation ne modifie pas le score, mais peut mettre en évidence des connaissances consolidées, des connaissances encore fragiles et de possibles conceptions erronées.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/help/help.component.html</context>
           <context context-type="linenumber">229,235</context>
@@ -13776,8 +13776,8 @@
         </context-group>
       </trans-unit>
       <trans-unit id="quiz.freeTextWordCloudHint" datatype="html">
-        <source> Freitext-Antwort als Wortwolke</source>
-        <target>Réponse en texte libre sous forme de nuage de mots</target>
+        <source> Das Publikum antwortet frei. Die Antworten erscheinen als Wortwolke.</source>
+        <target>Le public répond librement. Les réponses apparaissent sous forme de nuage de mots.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/quiz/quiz-edit/quiz-edit.component.html</context>
           <context context-type="linenumber">1981,1983</context>
@@ -13972,8 +13972,8 @@
         </context-group>
       </trans-unit>
       <trans-unit id="493996564238682027" datatype="html">
-        <source>Freitext</source>
-        <target>Texte libre</target>
+        <source>Freitext (Wortwolke)</source>
+        <target>Texte libre (nuage de mots)</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/quiz/quiz-edit/quiz-edit.component.ts</context>
           <context context-type="linenumber">448</context>

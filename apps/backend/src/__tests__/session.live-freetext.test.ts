@@ -226,7 +226,12 @@ describe('session.getActiveQuizIds', () => {
         },
       ]);
       prismaMock.session.findMany.mockResolvedValue([
-        { quizId: ACTIVE_QUIZ_ID, _count: { participants: 5 } },
+        {
+          quizId: ACTIVE_QUIZ_ID,
+          code: 'LIVE01',
+          createdAt: new Date('2026-09-25T10:00:00.000Z'),
+          _count: { participants: 5 },
+        },
       ]);
 
       const result = await caller.getActiveQuizIds([
@@ -237,7 +242,9 @@ describe('session.getActiveQuizIds', () => {
         },
       ]);
 
-      expect(result).toEqual([{ quizId: ACTIVE_QUIZ_ID, participantCountIncludingHost: 6 }]);
+      expect(result).toEqual([
+        { quizId: ACTIVE_QUIZ_ID, participantCountIncludingHost: 6, sessionCode: 'LIVE01' },
+      ]);
       expect(prismaMock.session.findMany).toHaveBeenCalledWith({
         where: {
           status: { not: 'FINISHED' },
@@ -245,6 +252,8 @@ describe('session.getActiveQuizIds', () => {
         },
         select: {
           quizId: true,
+          code: true,
+          createdAt: true,
           _count: {
             select: {
               participants: true,

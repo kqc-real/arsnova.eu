@@ -1033,6 +1033,14 @@ describe('QuizEditComponent', { timeout: 30_000 }, () => {
     component.form.controls.type.setValue('FREETEXT');
     component.onTypeChanged();
     component.form.controls.text.setValue('Was nimmst du heute mit?');
+    fixture.detectChanges();
+
+    expect(fixture.nativeElement.textContent).toContain(
+      'Das Publikum antwortet frei. Die Antworten erscheinen als Wortwolke.',
+    );
+    expect(component.questionTypeOptions.find((option) => option.value === 'FREETEXT')?.label).toBe(
+      'Freitext (Wortwolke)',
+    );
 
     component.saveAll();
 

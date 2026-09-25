@@ -2147,8 +2147,8 @@
         </context-group>
       </trans-unit>
       <trans-unit id="quizPreview.typeFreeText" datatype="html">
-        <source>Freitext</source>
-        <target>Texto libre</target>
+        <source>Freitext (Wortwolke)</source>
+        <target>Texto libre (nube de palabras)</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/core/session-results-report-labels.ts</context>
           <context context-type="linenumber">178</context>
@@ -8978,8 +8978,8 @@
         </context-group>
       </trans-unit>
       <trans-unit id="help.hostFormatsBody" datatype="html">
-        <source> Zur Verfügung stehen Single Choice, Multiple Choice, Kurzantwort, Freitext, Umfrage, Bewertungsskala und numerische Schätzfrage. Bei bewertbaren Fragen kann anschließend eine Selbsteinschätzung auf einer Skala von 1 bis 5 folgen. Sie verändert die Punktzahl nicht, macht aber gefestigtes Wissen, fragiles Wissen und mögliche Fehlkonzepte sichtbar.</source>
-        <target>Están disponibles las preguntas de respuesta única, respuesta múltiple, respuesta corta, texto libre, encuesta, escala de valoración y estimación numérica. Las preguntas evaluables pueden ir seguidas de una autoevaluación del grado de seguridad en una escala del 1 al 5. Esta no modifica la puntuación, pero puede mostrar qué conocimientos están consolidados, cuáles aún no lo están y qué respuestas pueden indicar posibles concepciones erróneas.</target>
+        <source> Zur Verfügung stehen Single Choice, Multiple Choice, Kurzantwort, Freitext (Wortwolke), Umfrage, Bewertungsskala und numerische Schätzfrage. Bei bewertbaren Fragen kann anschließend eine Selbsteinschätzung auf einer Skala von 1 bis 5 folgen. Sie verändert die Punktzahl nicht, macht aber gefestigtes Wissen, fragiles Wissen und mögliche Fehlkonzepte sichtbar.</source>
+        <target>Están disponibles las preguntas de respuesta única, respuesta múltiple, respuesta corta, texto libre (nube de palabras), encuesta, escala de valoración y estimación numérica. Las preguntas evaluables pueden ir seguidas de una autoevaluación del grado de seguridad en una escala del 1 al 5. Esta no modifica la puntuación, pero puede mostrar qué conocimientos están consolidados, cuáles aún no lo están y qué respuestas pueden indicar posibles concepciones erróneas.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/help/help.component.html</context>
           <context context-type="linenumber">229,235</context>
@@ -13776,8 +13776,8 @@
         </context-group>
       </trans-unit>
       <trans-unit id="quiz.freeTextWordCloudHint" datatype="html">
-        <source> Freitext-Antwort als Wortwolke</source>
-        <target>Respuesta de texto libre como una nube de palabras</target>
+        <source> Das Publikum antwortet frei. Die Antworten erscheinen als Wortwolke.</source>
+        <target>El público responde con libertad. Las respuestas aparecen como una nube de palabras.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/quiz/quiz-edit/quiz-edit.component.html</context>
           <context context-type="linenumber">1981,1983</context>
@@ -13972,8 +13972,8 @@
         </context-group>
       </trans-unit>
       <trans-unit id="493996564238682027" datatype="html">
-        <source>Freitext</source>
-        <target>texto libre</target>
+        <source>Freitext (Wortwolke)</source>
+        <target>Texto libre (nube de palabras)</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/quiz/quiz-edit/quiz-edit.component.ts</context>
           <context context-type="linenumber">448</context>

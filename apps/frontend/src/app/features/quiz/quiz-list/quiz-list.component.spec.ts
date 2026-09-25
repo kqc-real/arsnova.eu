@@ -11,6 +11,10 @@ import {
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { QuizListComponent } from './quiz-list.component';
 import { DEMO_QUIZ_ID, QuizStoreService, type QuizSummary } from '../data/quiz-store.service';
+import {
+  clearHostBrowserCapability,
+  storeHostBrowserCapability,
+} from '../../../core/host-recovery-access';
 
 const {
   getActiveQuizIdsQueryMock,
@@ -670,6 +674,70 @@ describe('QuizListComponent', () => {
         'e31fef3f-f7b1-4705-a739-28c8ec4486bf',
       ),
     ).toBe(7);
+  });
+
+  it('öffnet eine laufende Sitzung wieder, wenn dieser Browser die Host-Fähigkeit hat', async () => {
+    const localQuizId = 'e31fef3f-f7b1-4705-a739-28c8ec4486bf';
+    const serverQuizId = '11111111-1111-4111-8111-111111111111';
+    quizzesSignal.set([
+      {
+        id: localQuizId,
+        name: 'Datenbanken',
+        description: null,
+        createdAt: '2026-03-08T10:00:00.000Z',
+        updatedAt: '2026-03-08T11:30:00.000Z',
+        questionCount: 2,
+        teamMode: false,
+        hasBonus: false,
+        lastServerQuizId: serverQuizId,
+        lastServerQuizAccessProof: localQuizId,
+      },
+    ]);
+    storeHostBrowserCapability('LIVE01', 'browser-capability');
+    const fixture = TestBed.createComponent(QuizListComponent);
+    const router = TestBed.inject(Router);
+    const navigateByUrl = vi.spyOn(router, 'navigateByUrl').mockResolvedValue(true);
+    fixture.componentInstance['activeLiveQuizParticipants'].set(new Map([[serverQuizId, 2]]));
+    fixture.componentInstance['activeLiveQuizSessionCodes'].set(
+      new Map([[serverQuizId, 'LIVE01']]),
+    );
+
+    await fixture.componentInstance.openLiveStartDialog(localQuizId, 'Datenbanken', 2);
+
+    expect(navigateByUrl).toHaveBeenCalledWith(
+      expect.stringContaining('/session/LIVE01/host?tab=quiz'),
+    );
+    clearHostBrowserCapability('LIVE01');
+  });
+
+  it('startet kein zweites Quiz, wenn die Host-Fähigkeit fehlt', async () => {
+    const localQuizId = 'e31fef3f-f7b1-4705-a739-28c8ec4486bf';
+    const serverQuizId = '11111111-1111-4111-8111-111111111111';
+    quizzesSignal.set([
+      {
+        id: localQuizId,
+        name: 'Datenbanken',
+        description: null,
+        createdAt: '2026-03-08T10:00:00.000Z',
+        updatedAt: '2026-03-08T11:30:00.000Z',
+        questionCount: 2,
+        teamMode: false,
+        hasBonus: false,
+        lastServerQuizId: serverQuizId,
+        lastServerQuizAccessProof: localQuizId,
+      },
+    ]);
+    clearHostBrowserCapability('LIVE01');
+    const fixture = TestBed.createComponent(QuizListComponent);
+    fixture.componentInstance['activeLiveQuizParticipants'].set(new Map([[serverQuizId, 2]]));
+    fixture.componentInstance['activeLiveQuizSessionCodes'].set(
+      new Map([[serverQuizId, 'LIVE01']]),
+    );
+
+    await fixture.componentInstance.openLiveStartDialog(localQuizId, 'Datenbanken', 2);
+
+    expect(fixture.componentInstance.actionInfo()).toContain('bereits live');
+    expect(mockStore.getUploadPayload).not.toHaveBeenCalled();
   });
 
   it('graut Bonus-Codes und Nachbesprechungsplan aus, wenn noch keine Inhalte vorhanden sind', async () => {

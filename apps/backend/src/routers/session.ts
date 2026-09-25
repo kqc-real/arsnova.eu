@@ -9358,6 +9358,8 @@ const sessionCoreRouter = router({
         },
         select: {
           quizId: true,
+          code: true,
+          createdAt: true,
           _count: {
             select: {
               participants: true,
@@ -9367,6 +9369,7 @@ const sessionCoreRouter = router({
       });
 
       const countsByQuizId = new Map<string, number>();
+      const newestSessionByQuizId = new Map<string, { code: string; createdAt: Date }>();
       for (const session of sessions) {
         if (!session.quizId) {
           continue;
@@ -9374,14 +9377,24 @@ const sessionCoreRouter = router({
         const current = countsByQuizId.get(session.quizId) ?? 0;
         // Für die Live-Chips wird der Host explizit mitgezählt.
         countsByQuizId.set(session.quizId, current + session._count.participants + 1);
+        const known = newestSessionByQuizId.get(session.quizId);
+        if (!known || session.createdAt.getTime() >= known.createdAt.getTime()) {
+          newestSessionByQuizId.set(session.quizId, {
+            code: session.code,
+            createdAt: session.createdAt,
+          });
+        }
       }
 
       return [...countsByQuizId.entries()]
         .sort(([a], [b]) => a.localeCompare(b))
-        .map(([quizId, participantCountIncludingHost]) => ({
-          quizId,
-          participantCountIncludingHost,
-        }));
+        .flatMap(([quizId, participantCountIncludingHost]) => {
+          const sessionCode = newestSessionByQuizId.get(quizId)?.code;
+          if (!sessionCode) {
+            return [];
+          }
+          return [{ quizId, participantCountIncludingHost, sessionCode }];
+        });
     }),
 
   /** Live-Freitextdaten der aktuell aktiven Frage (Story 1.14, polling-ready). */

@@ -2150,8 +2150,8 @@
         </context-group>
       </trans-unit>
       <trans-unit id="quizPreview.typeFreeText" datatype="html">
-        <source>Freitext</source>
-        <target>Free text</target>
+        <source>Freitext (Wortwolke)</source>
+        <target>Free text (word cloud)</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/core/session-results-report-labels.ts</context>
           <context context-type="linenumber">178</context>
@@ -8983,8 +8983,8 @@
         </context-group>
       </trans-unit>
       <trans-unit id="help.hostFormatsBody" datatype="html">
-        <source> Zur Verfügung stehen Single Choice, Multiple Choice, Kurzantwort, Freitext, Umfrage, Bewertungsskala und numerische Schätzfrage. Bei bewertbaren Fragen kann anschließend eine Selbsteinschätzung auf einer Skala von 1 bis 5 folgen. Sie verändert die Punktzahl nicht, macht aber gefestigtes Wissen, fragiles Wissen und mögliche Fehlkonzepte sichtbar.</source>
-        <target>Available question types include Single-answer question, Multiple-answer question, Short answer, Free text, Survey, Rating scale, and Numerical estimate. For scorable questions, participants can then rate their confidence on a scale from 1 to 5. This does not affect the score, but it can reveal solid understanding, understanding that is not yet secure, and possible misconceptions.</target>
+        <source> Zur Verfügung stehen Single Choice, Multiple Choice, Kurzantwort, Freitext (Wortwolke), Umfrage, Bewertungsskala und numerische Schätzfrage. Bei bewertbaren Fragen kann anschließend eine Selbsteinschätzung auf einer Skala von 1 bis 5 folgen. Sie verändert die Punktzahl nicht, macht aber gefestigtes Wissen, fragiles Wissen und mögliche Fehlkonzepte sichtbar.</source>
+        <target>Available question types include Single-answer question, Multiple-answer question, Short answer, Free text (word cloud), Survey, Rating scale, and Numerical estimate. For scorable questions, participants can then rate their confidence on a scale from 1 to 5. This does not affect the score, but it can reveal solid understanding, understanding that is not yet secure, and possible misconceptions.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/help/help.component.html</context>
           <context context-type="linenumber">229,235</context>
@@ -13821,8 +13821,8 @@
         </context-group>
       </trans-unit>
       <trans-unit id="quiz.freeTextWordCloudHint" datatype="html">
-        <source> Freitext-Antwort als Wortwolke</source>
-        <target>Free text answer as a word cloud</target>
+        <source> Das Publikum antwortet frei. Die Antworten erscheinen als Wortwolke.</source>
+        <target>The audience answers freely. The answers appear as a word cloud.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/quiz/quiz-edit/quiz-edit.component.html</context>
           <context context-type="linenumber">1981,1983</context>
@@ -14022,8 +14022,8 @@
         </context-group>
       </trans-unit>
       <trans-unit id="493996564238682027" datatype="html">
-        <source>Freitext</source>
-        <target>Free text</target>
+        <source>Freitext (Wortwolke)</source>
+        <target>Free text (word cloud)</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/quiz/quiz-edit/quiz-edit.component.ts</context>
           <context context-type="linenumber">448</context>

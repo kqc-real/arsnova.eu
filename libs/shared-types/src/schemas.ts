@@ -4370,6 +4370,11 @@ export const ActiveQuizLiveStateDTOSchema = z.object({
   quizId: z.uuid(),
   /** Aktuell verbundene Personen inkl. Host/Dozent:in. */
   participantCountIncludingHost: z.number().int().min(1),
+  /**
+   * Neueste noch nicht beendete Sitzung dieser Quizkopie.
+   * Der Code allein berechtigt nicht zur Moderation.
+   */
+  sessionCode: z.string().length(6),
 });
 export type ActiveQuizLiveStateDTO = z.infer<typeof ActiveQuizLiveStateDTOSchema>;
 
