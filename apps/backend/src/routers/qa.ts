@@ -1665,6 +1665,7 @@ export const qaRouter = router({
               qaClosesAt: true,
               qaModerationMode: true,
               moderationMode: true,
+              qaRankingRevision: true,
             },
           });
           if (!lockedSession) {
@@ -1687,6 +1688,13 @@ export const qaRouter = router({
             throw new TRPCError({
               code: 'CONFLICT',
               message: 'Deaktiviere zuerst die Vorab-Moderation.',
+            });
+          }
+          if (lockedSession.qaRankingRevision !== input.expectedRankingRevision) {
+            throw new TRPCError({
+              code: 'CONFLICT',
+              message:
+                'Der Fragenstand hat sich geändert. Bestätige die aktualisierte Sammelfreigabe erneut.',
             });
           }
           const released = await tx.qaQuestion.updateMany({

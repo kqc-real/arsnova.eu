@@ -8,7 +8,11 @@ import { MatTooltip } from '@angular/material/tooltip';
 import { By } from '@angular/platform-browser';
 import { NEVER, Subject, of } from 'rxjs';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import type { QaQuestionsInvalidationDTO } from '@arsnova/shared-types';
+import type {
+  QaQuestionDTO,
+  QaQuestionsInvalidationDTO,
+  QaQuestionsListDTO,
+} from '@arsnova/shared-types';
 import {
   flushComponentAfterStable,
   flushMacroTask,
@@ -31,6 +35,33 @@ function exitAnchorButtonLabel(button: Element): string {
     .replace(/^(logout|groups|stop|replay|home)/, '')
     .replace(/\s+/g, ' ')
     .trim();
+}
+
+function qaHostSnapshot(
+  questions: QaQuestionDTO[],
+  options: {
+    rankingRevision?: number;
+    sessionLifecycleRevision?: number;
+    sessionPendingCount?: number;
+  } = {},
+): QaQuestionsListDTO {
+  const rankingRevision = options.rankingRevision ?? 1;
+  const pendingCount = questions.filter((question) => question.status === 'PENDING').length;
+  return {
+    questions,
+    state: 'ACTIVE',
+    sessionLifecycleRevision: options.sessionLifecycleRevision ?? 1,
+    serverNow: '2026-03-13T12:00:00.000Z',
+    expiresAt: '2026-03-14T12:00:00.000Z',
+    qaClosesAt: '2026-03-14T12:00:00.000Z',
+    endedAt: null,
+    postProcessingEndsAt: null,
+    rankingRevision: `${rankingRevision}:TOP:`,
+    nextCursor: null,
+    totalCount: questions.length,
+    pendingCount,
+    sessionPendingCount: options.sessionPendingCount ?? pendingCount,
+  };
 }
 
 const unsubscribeMock = vi.fn();
@@ -7756,10 +7787,99 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
         }),
       }),
     );
-    expect(qaReleasePendingMutateMock).toHaveBeenCalledWith({ sessionCode: 'ABC123' });
+    expect(qaReleasePendingMutateMock).toHaveBeenCalledWith({
+      sessionCode: 'ABC123',
+      expectedRankingRevision: 1,
+    });
     expect(fixture.nativeElement.textContent ?? '').toContain('2 Fragen wurden freigegeben.');
     expect(fixture.componentInstance.qaShowPendingOnly()).toBe(false);
     expect(moderationToggleFocus).toHaveBeenCalledOnce();
+    fixture.destroy();
+  });
+
+  it('verlangt bei geändertem Pending-Stand eine neue Bestätigung', async () => {
+    getInfoQueryMock.mockResolvedValue({
+      ...defaultSession,
+      channels: {
+        quiz: { enabled: true },
+        qa: { enabled: true, open: true, title: 'Fragen aus dem Publikum', moderationMode: false },
+        quickFeedback: { enabled: false, open: false },
+      },
+    });
+    const firstQuestion: QaQuestionDTO = {
+      id: '44444444-4444-4444-8444-444444444444',
+      text: 'Erste wartende Frage',
+      upvoteCount: 0,
+      status: 'PENDING',
+      createdAt: '2026-03-13T12:00:00.000Z',
+      myVote: null,
+      isOwn: false,
+      hasUpvoted: false,
+    };
+    const secondQuestion: QaQuestionDTO = {
+      ...firstQuestion,
+      id: '55555555-5555-4555-8555-555555555555',
+      text: 'Neu hinzugekommene Frage',
+    };
+    let snapshot = qaHostSnapshot([firstQuestion]);
+    qaListQueryMock.mockImplementation(async () => snapshot);
+    let invalidationHandler: ((data: QaQuestionsInvalidationDTO) => void) | undefined;
+    qaOnQuestionsUpdatedSubscribeMock.mockImplementation(
+      (_input: unknown, handlers: { onData?: (data: QaQuestionsInvalidationDTO) => void }) => {
+        invalidationHandler = handlers.onData;
+        return { unsubscribe: unsubscribeMock };
+      },
+    );
+    const firstDialogClosed = new Subject<boolean>();
+    dialogOpenMock
+      .mockReturnValueOnce({ afterClosed: () => firstDialogClosed.asObservable() })
+      .mockReturnValueOnce({ afterClosed: () => of(false) });
+
+    const fixture = setup();
+    fixture.detectChanges();
+    await flushComponentAfterStable(fixture, 50);
+    const component = fixture.componentInstance;
+    component.activeChannel.set('qa');
+    fixture.detectChanges();
+
+    (
+      fixture.nativeElement.querySelector('.session-qa-release-pending') as HTMLButtonElement
+    ).click();
+    await vi.waitUntil(() => dialogOpenMock.mock.calls.length === 1);
+
+    snapshot = qaHostSnapshot([firstQuestion, secondQuestion], {
+      rankingRevision: 2,
+      sessionLifecycleRevision: 2,
+    });
+    invalidationHandler?.({
+      kind: 'INVALIDATED',
+      state: 'ACTIVE',
+      sessionLifecycleRevision: 2,
+      rankingRevision: 2,
+      participantRevision: 0,
+      serverNow: '2026-03-13T12:01:00.000Z',
+      expiresAt: '2026-03-14T12:00:00.000Z',
+      qaClosesAt: '2026-03-14T12:00:00.000Z',
+      endedAt: null,
+      postProcessingEndsAt: null,
+      moderationMode: false,
+    });
+    await vi.waitUntil(() => component.qaListRankingRevision() === '2:TOP:');
+
+    firstDialogClosed.next(true);
+    firstDialogClosed.complete();
+    await vi.waitUntil(() => dialogOpenMock.mock.calls.length === 2);
+
+    const [, repeatedConfig] = dialogOpenMock.mock.calls[1] as [
+      unknown,
+      { data: { title: string; message: string; confirmLabel: string } },
+    ];
+    expect(repeatedConfig.data).toMatchObject({
+      title: '2 Fragen freigeben?',
+      message: '2 Fragen in Moderation werden für Teilnehmende sichtbar.',
+      confirmLabel: '2 Fragen freigeben',
+    });
+    expect(qaReleasePendingMutateMock).not.toHaveBeenCalled();
     fixture.destroy();
   });
 
@@ -7772,18 +7892,20 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
         quickFeedback: { enabled: false, open: false },
       },
     });
-    qaListQueryMock.mockResolvedValue([
-      {
-        id: '44444444-4444-4444-8444-444444444444',
-        text: 'Was ist klausurrelevant?',
-        upvoteCount: 3,
-        status: 'PENDING',
-        createdAt: '2026-03-13T12:00:00.000Z',
-        myVote: null,
-        isOwn: false,
-        hasUpvoted: false,
-      },
-    ]);
+    qaListQueryMock.mockResolvedValue(
+      qaHostSnapshot([
+        {
+          id: '44444444-4444-4444-8444-444444444444',
+          text: 'Was ist klausurrelevant?',
+          upvoteCount: 3,
+          status: 'PENDING',
+          createdAt: '2026-03-13T12:00:00.000Z',
+          myVote: null,
+          isOwn: false,
+          hasUpvoted: false,
+        },
+      ]),
+    );
     dialogOpenMock.mockReturnValue({ afterClosed: () => of(false) });
 
     const fixture = setup();
@@ -7811,18 +7933,20 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
         quickFeedback: { enabled: false, open: false },
       },
     });
-    qaListQueryMock.mockResolvedValue([
-      {
-        id: '44444444-4444-4444-8444-444444444444',
-        text: 'Was ist klausurrelevant?',
-        upvoteCount: 3,
-        status: 'PENDING',
-        createdAt: '2026-03-13T12:00:00.000Z',
-        myVote: null,
-        isOwn: false,
-        hasUpvoted: false,
-      },
-    ]);
+    qaListQueryMock.mockResolvedValue(
+      qaHostSnapshot([
+        {
+          id: '44444444-4444-4444-8444-444444444444',
+          text: 'Was ist klausurrelevant?',
+          upvoteCount: 3,
+          status: 'PENDING',
+          createdAt: '2026-03-13T12:00:00.000Z',
+          myVote: null,
+          isOwn: false,
+          hasUpvoted: false,
+        },
+      ]),
+    );
     let invalidationHandler: ((data: QaQuestionsInvalidationDTO) => void) | undefined;
     qaOnQuestionsUpdatedSubscribeMock.mockImplementation(
       (_input: unknown, handlers: { onData?: (data: QaQuestionsInvalidationDTO) => void }) => {
@@ -7882,18 +8006,20 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
         quickFeedback: { enabled: false, open: false },
       },
     });
-    qaListQueryMock.mockResolvedValue([
-      {
-        id: '44444444-4444-4444-8444-444444444444',
-        text: 'Was ist klausurrelevant?',
-        upvoteCount: 3,
-        status: 'PENDING',
-        createdAt: '2026-03-13T12:00:00.000Z',
-        myVote: null,
-        isOwn: false,
-        hasUpvoted: false,
-      },
-    ]);
+    qaListQueryMock.mockResolvedValue(
+      qaHostSnapshot([
+        {
+          id: '44444444-4444-4444-8444-444444444444',
+          text: 'Was ist klausurrelevant?',
+          upvoteCount: 3,
+          status: 'PENDING',
+          createdAt: '2026-03-13T12:00:00.000Z',
+          myVote: null,
+          isOwn: false,
+          hasUpvoted: false,
+        },
+      ]),
+    );
     let rejectRelease!: (reason?: unknown) => void;
     qaReleasePendingMutateMock.mockReturnValueOnce(
       new Promise((_, reject) => {
@@ -8009,7 +8135,10 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
     const callout = fixture.nativeElement.querySelector(
       '.session-host__steering-callout',
     ) as HTMLElement | null;
-    expect(qaReleasePendingMutateMock).toHaveBeenCalledWith({ sessionCode: 'ABC123' });
+    expect(qaReleasePendingMutateMock).toHaveBeenCalledWith({
+      sessionCode: 'ABC123',
+      expectedRankingRevision: 1,
+    });
     expect(callout?.textContent ?? '').toContain('Mit den Fragen klappt es gerade nicht');
     expect(callout?.querySelector('[data-testid="host-steering-retry"]')).toBeTruthy();
     expect(fixture.componentInstance.qaInfo()).toBeNull();

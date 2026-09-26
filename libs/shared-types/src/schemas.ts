@@ -5933,6 +5933,8 @@ export type ToggleQaModerationInput = z.infer<typeof ToggleQaModerationInputSche
 /** Input: alle wartenden Q&A-Fragen freigeben (Host, nur ohne Vorab-Moderation) */
 export const ReleasePendingQaQuestionsInputSchema = z.object({
   sessionCode: z.string().trim().min(6).max(6),
+  /** Revisionsstand, dessen wartende Fragen der Host im Dialog bestätigt hat. */
+  expectedRankingRevision: z.number().int().nonnegative(),
 });
 export type ReleasePendingQaQuestionsInput = z.infer<typeof ReleasePendingQaQuestionsInputSchema>;
 

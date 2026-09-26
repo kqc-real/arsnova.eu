@@ -1380,13 +1380,51 @@ describe('qa router (Epic 8)', () => {
       });
       prismaMock.qaQuestion.updateMany.mockResolvedValue({ count: 12 });
 
-      await expect(hostCaller.releasePending({ sessionCode: 'ABC123' })).resolves.toEqual({
-        releasedCount: 12,
-      });
+      await expect(
+        hostCaller.releasePending({ sessionCode: 'ABC123', expectedRankingRevision: 7 }),
+      ).resolves.toEqual({ releasedCount: 12 });
       expect(prismaMock.qaQuestion.updateMany).toHaveBeenCalledWith({
         where: { sessionId: SESSION_ID, status: 'PENDING' },
         data: { status: 'ACTIVE' },
       });
+    },
+  );
+
+  trpcDodIt(
+    {
+      procedure: 'qa.releasePending',
+      case: 'error',
+      mode: 'direct',
+      contract: 'CONFLICT',
+      title: 'verlangt nach einer Änderung des Pending-Stands eine neue Bestätigung',
+    },
+    async () => {
+      prismaMock.session.findFirst.mockResolvedValue({
+        ...ACTIVE_QA_SESSION,
+        id: SESSION_ID,
+        type: 'QUIZ',
+        qaEnabled: true,
+        qaOpen: true,
+        status: 'ACTIVE',
+      });
+      prismaMock.session.findUnique.mockResolvedValue({
+        ...ACTIVE_QA_SESSION,
+        qaRankingRevision: 8,
+        type: 'QUIZ',
+        qaEnabled: true,
+        qaOpen: true,
+        qaModerationMode: false,
+        moderationMode: false,
+      });
+
+      await expect(
+        hostCaller.releasePending({ sessionCode: 'ABC123', expectedRankingRevision: 7 }),
+      ).rejects.toMatchObject({
+        code: 'CONFLICT',
+        message:
+          'Der Fragenstand hat sich geändert. Bestätige die aktualisierte Sammelfreigabe erneut.',
+      });
+      expect(prismaMock.qaQuestion.updateMany).not.toHaveBeenCalled();
     },
   );
 
@@ -1416,7 +1454,9 @@ describe('qa router (Epic 8)', () => {
         moderationMode: true,
       });
 
-      await expect(hostCaller.releasePending({ sessionCode: 'ABC123' })).rejects.toMatchObject({
+      await expect(
+        hostCaller.releasePending({ sessionCode: 'ABC123', expectedRankingRevision: 7 }),
+      ).rejects.toMatchObject({
         code: 'CONFLICT',
         message: 'Deaktiviere zuerst die Vorab-Moderation.',
       });
@@ -1450,7 +1490,9 @@ describe('qa router (Epic 8)', () => {
         moderationMode: false,
       });
 
-      await expect(hostCaller.releasePending({ sessionCode: 'ABC123' })).rejects.toMatchObject({
+      await expect(
+        hostCaller.releasePending({ sessionCode: 'ABC123', expectedRankingRevision: 7 }),
+      ).rejects.toMatchObject({
         code: 'FORBIDDEN',
         message: 'Der Q&A-Kanal ist aktuell geschlossen.',
       });
@@ -1467,7 +1509,9 @@ describe('qa router (Epic 8)', () => {
       title: 'lehnt die Sammelfreigabe ohne gültigen Host-Token ab',
     },
     async () => {
-      await expect(caller.releasePending({ sessionCode: 'ABC123' })).rejects.toMatchObject({
+      await expect(
+        caller.releasePending({ sessionCode: 'ABC123', expectedRankingRevision: 7 }),
+      ).rejects.toMatchObject({
         code: 'UNAUTHORIZED',
         message: 'Host-Authentifizierung erforderlich.',
       });

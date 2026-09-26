@@ -12135,6 +12135,15 @@ export class SessionHostComponent implements OnInit, OnDestroy {
     }
   }
 
+  private qaCurrentRankingRevision(): number | null {
+    const revision = this.qaListRankingRevision()?.split(':', 1)[0];
+    if (!revision || !/^\d+$/.test(revision)) {
+      return null;
+    }
+    const parsed = Number(revision);
+    return Number.isSafeInteger(parsed) ? parsed : null;
+  }
+
   async releaseAllPendingQaQuestions(): Promise<void> {
     if (
       !this.code ||
@@ -12144,6 +12153,16 @@ export class SessionHostComponent implements OnInit, OnDestroy {
       this.qaReleasePendingInProgress()
     ) {
       return;
+    }
+
+    let expectedRankingRevision = this.qaCurrentRankingRevision();
+    if (expectedRankingRevision === null) {
+      const refreshed = await this.refreshQaQuestions({ replaceStale: true });
+      expectedRankingRevision = this.qaCurrentRankingRevision();
+      if (!refreshed || expectedRankingRevision === null) {
+        this.openHostSteeringCalloutForQaFailure(() => void this.releaseAllPendingQaQuestions());
+        return;
+      }
     }
 
     const pendingCount = this.qaPendingCount();
@@ -12173,12 +12192,27 @@ export class SessionHostComponent implements OnInit, OnDestroy {
       this.restoreQaReleaseDialogFocusIfNeeded();
       return;
     }
+    if (this.qaCurrentRankingRevision() !== expectedRankingRevision) {
+      const refreshed = await this.refreshQaQuestions({ replaceStale: true });
+      if (
+        refreshed &&
+        this.qaHostWritesAllowed() &&
+        this.session()?.channels?.qa?.moderationMode === false &&
+        this.qaPendingCount() > 0
+      ) {
+        await this.releaseAllPendingQaQuestions();
+      } else {
+        this.restoreQaReleaseDialogFocusIfNeeded();
+      }
+      return;
+    }
 
     this.qaReleasePendingInProgress.set(true);
     this.qaInfo.set(null);
     try {
       const result = await trpc.qa.releasePending.mutate({
         sessionCode: this.code.toUpperCase(),
+        expectedRankingRevision,
       });
       this.qaShowPendingOnly.set(false);
       this.ensureQaSubscription();
@@ -12193,7 +12227,10 @@ export class SessionHostComponent implements OnInit, OnDestroy {
       );
       this.qaModerationToggle?.focus();
       this.dismissHostSteeringCallout();
-    } catch {
+    } catch (error) {
+      if (this.isTrpcConflictError(error)) {
+        await this.refreshQaQuestions({ replaceStale: true });
+      }
       this.openHostSteeringCalloutForQaFailure(() => void this.releaseAllPendingQaQuestions());
     } finally {
       this.qaReleasePendingInProgress.set(false);

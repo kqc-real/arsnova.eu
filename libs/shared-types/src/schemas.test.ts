@@ -61,12 +61,24 @@ describe('öffentliche Contract-Schemas', () => {
   };
 
   it('validiert den Vertrag für die Sammelfreigabe wartender Q&A-Fragen', () => {
-    expect(ReleasePendingQaQuestionsInputSchema.parse({ sessionCode: 'ABC123' })).toEqual({
-      sessionCode: 'ABC123',
-    });
+    expect(
+      ReleasePendingQaQuestionsInputSchema.parse({
+        sessionCode: 'ABC123',
+        expectedRankingRevision: 17,
+      }),
+    ).toEqual({ sessionCode: 'ABC123', expectedRankingRevision: 17 });
     expect(ReleasePendingQaQuestionsInputSchema.safeParse({ sessionCode: 'ZU-KURZ' }).success).toBe(
       false,
     );
+    expect(ReleasePendingQaQuestionsInputSchema.safeParse({ sessionCode: 'ABC123' }).success).toBe(
+      false,
+    );
+    expect(
+      ReleasePendingQaQuestionsInputSchema.safeParse({
+        sessionCode: 'ABC123',
+        expectedRankingRevision: -1,
+      }).success,
+    ).toBe(false);
     expect(ReleasePendingQaQuestionsOutputSchema.parse({ releasedCount: 12 })).toEqual({
       releasedCount: 12,
     });
