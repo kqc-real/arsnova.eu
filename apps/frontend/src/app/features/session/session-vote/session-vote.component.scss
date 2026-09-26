@@ -1188,7 +1188,10 @@
   color: var(--mat-sys-on-surface-variant);
   font: var(--mat-sys-label-small);
   font-weight: 600;
+  line-height: 1.4;
   letter-spacing: 0.02em;
+  max-width: 100%;
+  box-sizing: border-box;
 
   &--pinned {
     background: color-mix(in srgb, var(--mat-sys-tertiary) 14%, transparent);

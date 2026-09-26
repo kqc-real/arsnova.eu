@@ -126,7 +126,7 @@ Für Backend und Shared Types gilt:
 - `SessionInfoDTO` beschreibt künftig nicht nur Quiz-Metadaten, sondern die verfügbaren Session-Kanäle und ihre Konfiguration
 - Join- und Host-/Vote-Flows arbeiten mit **einem gemeinsamen Session-DTO**
 - Kanal-spezifische Daten bleiben in eigenen DTOs (`QuestionStudentDTO`, `QaQuestionDTO`, Blitzlicht-DTOs), werden aber unter derselben Session referenziert
-- **Q&A-Vorab-Moderation** (`qaModerationMode`): für **neue** Sessions standardmäßig **an**; der Host kann sie im Q&A-Tab jederzeit ausschalten (explizites Opt-out)
+- **Q&A-Vorab-Moderation** (`qaModerationMode`): für **neue** Sessions standardmäßig **an**; der Host kann sie im Q&A-Tab jederzeit ausschalten (explizites Opt-out). Bereits wartende Fragen bleiben dabei `PENDING`. Ihr Zähler und der Filter **Nur in Moderation** bleiben auch nach dem Ausschalten verfügbar. Erst die separate, bestätigte Sammelfreigabe setzt sie auf `ACTIVE`; Button und Dialog nennen die betroffene Anzahl, der Dialog weist außerdem auf die mögliche Teilnehmendensicht der Wortwolke hin. Solange Fragen warten, priorisiert der Q&A-Tab deshalb **„x zu prüfen“** vor dem allgemeinen Neu-Zähler. Teilnehmende sehen an der eigenen wartenden Frage, dass sie nur für sie selbst und die Moderation sichtbar ist. Auf kleinen Displays bündelt die Host-Werkzeugleiste Sortierung und Export im Menü **Mehr**, während Suche und Moderationsfilter direkt erreichbar bleiben.
 
 ## Konsequenzen
 

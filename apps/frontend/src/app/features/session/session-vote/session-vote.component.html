@@ -2841,7 +2841,7 @@
                         [class.session-qa-card__status--pinned]="question.status === 'PINNED'"
                         [class.session-qa-card__status--pending]="question.status === 'PENDING'"
                       >
-                        {{ qaStatusLabel(question.status) }}
+                        {{ qaStatusLabel(question.status, question.isOwn) }}
                       </span>
                       @if (question.isOwn) {
                         <span class="session-qa-card__own-badge">{{

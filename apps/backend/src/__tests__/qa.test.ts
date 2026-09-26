@@ -1,4 +1,5 @@
 import type { IncomingMessage } from 'node:http';
+import { createHash } from 'node:crypto';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { trpcDodIt } from './test-utils/trpc-dod-evidence';
 
@@ -107,6 +108,14 @@ const ACTIVE_QA_SESSION = {
   qaQuestionCount: 0,
   onboardingAnonymousMode: false,
 };
+
+function qaPendingSetFingerprint(...questionIds: string[]): string {
+  const fingerprint = createHash('sha256').update('arsnova:qa-pending-set:v1\0');
+  for (const questionId of [...questionIds].sort()) {
+    fingerprint.update(questionId).update('\0');
+  }
+  return fingerprint.digest('hex');
+}
 
 type SqlLike = {
   strings: readonly string[];
@@ -1332,7 +1341,7 @@ describe('qa router (Epic 8)', () => {
       procedure: 'qa.toggleModeration',
       case: 'happy',
       mode: 'direct',
-      title: 'gibt beim Deaktivieren wartende Fragen frei und syncronisiert Legacy-Moderation',
+      title: 'deaktiviert die Vorab-Moderation ohne wartende Fragen vorzeitig freizugeben',
     },
     async () => {
       prismaMock.session.findFirst.mockResolvedValue({
@@ -1341,7 +1350,6 @@ describe('qa router (Epic 8)', () => {
         status: 'ACTIVE',
       });
       prismaMock.session.update.mockResolvedValue({ qaModerationMode: false });
-      prismaMock.qaQuestion.updateMany.mockResolvedValue({ count: 12 });
 
       const result = await hostCaller.toggleModeration({ sessionCode: 'ABC123', enabled: false });
 
@@ -1350,11 +1358,245 @@ describe('qa router (Epic 8)', () => {
         data: { qaModerationMode: false, moderationMode: false },
         select: { qaModerationMode: true },
       });
+      expect(prismaMock.qaQuestion.updateMany).not.toHaveBeenCalled();
+      expect(result).toEqual({ enabled: false });
+    },
+  );
+
+  trpcDodIt(
+    {
+      procedure: 'qa.pendingReleaseSnapshot',
+      case: 'happy',
+      mode: 'direct',
+      title: 'liefert Anzahl und Fingerprint des aktuellen Pending-Bestands',
+    },
+    async () => {
+      prismaMock.session.findFirst.mockResolvedValue({
+        ...ACTIVE_QA_SESSION,
+        id: SESSION_ID,
+        type: 'QUIZ',
+        qaEnabled: true,
+        qaOpen: true,
+        qaModerationMode: false,
+        moderationMode: false,
+      });
+      prismaMock.qaQuestion.findMany.mockResolvedValue([
+        { id: QUESTION_ID },
+        { id: OTHER_PARTICIPANT_ID },
+      ]);
+
+      await expect(hostCaller.pendingReleaseSnapshot({ sessionCode: 'ABC123' })).resolves.toEqual({
+        pendingCount: 2,
+        pendingSetFingerprint: qaPendingSetFingerprint(QUESTION_ID, OTHER_PARTICIPANT_ID),
+      });
+      expect(prismaMock.qaQuestion.findMany).toHaveBeenCalledWith({
+        where: { sessionId: SESSION_ID, status: 'PENDING' },
+        select: { id: true },
+        orderBy: { id: 'asc' },
+      });
+    },
+  );
+
+  trpcDodIt(
+    {
+      procedure: 'qa.pendingReleaseSnapshot',
+      case: 'error',
+      mode: 'direct',
+      contract: 'UNAUTHORIZED',
+      title: 'lehnt den Pending-Fingerprint ohne gültigen Host-Token ab',
+    },
+    async () => {
+      await expect(caller.pendingReleaseSnapshot({ sessionCode: 'ABC123' })).rejects.toMatchObject({
+        code: 'UNAUTHORIZED',
+        message: 'Host-Authentifizierung erforderlich.',
+      });
+      expect(prismaMock.qaQuestion.findMany).not.toHaveBeenCalled();
+    },
+  );
+
+  trpcDodIt(
+    {
+      procedure: 'qa.releasePending',
+      case: 'happy',
+      mode: 'direct',
+      title: 'gibt denselben Pending-Bestand trotz zwischenzeitlicher Votes gesammelt frei',
+    },
+    async () => {
+      prismaMock.session.findFirst.mockResolvedValue({
+        ...ACTIVE_QA_SESSION,
+        id: SESSION_ID,
+        qaRankingRevision: 7,
+        type: 'QUIZ',
+        qaEnabled: true,
+        qaOpen: true,
+        status: 'ACTIVE',
+      });
+      prismaMock.session.findUnique.mockResolvedValue({
+        ...ACTIVE_QA_SESSION,
+        qaRankingRevision: 8,
+        type: 'QUIZ',
+        qaEnabled: true,
+        qaOpen: true,
+        qaModerationMode: false,
+        moderationMode: false,
+      });
+      prismaMock.qaQuestion.findMany.mockResolvedValue([{ id: QUESTION_ID }]);
+      prismaMock.qaQuestion.updateMany.mockResolvedValue({ count: 1 });
+
+      await expect(
+        hostCaller.releasePending({
+          sessionCode: 'ABC123',
+          expectedPendingSetFingerprint: qaPendingSetFingerprint(QUESTION_ID),
+        }),
+      ).resolves.toEqual({ releasedCount: 1 });
       expect(prismaMock.qaQuestion.updateMany).toHaveBeenCalledWith({
         where: { sessionId: SESSION_ID, status: 'PENDING' },
         data: { status: 'ACTIVE' },
       });
-      expect(result).toEqual({ enabled: false });
+    },
+  );
+
+  trpcDodIt(
+    {
+      procedure: 'qa.releasePending',
+      case: 'error',
+      mode: 'direct',
+      contract: 'CONFLICT',
+      title: 'verlangt nach einer Änderung des Pending-Stands eine neue Bestätigung',
+    },
+    async () => {
+      prismaMock.session.findFirst.mockResolvedValue({
+        ...ACTIVE_QA_SESSION,
+        id: SESSION_ID,
+        type: 'QUIZ',
+        qaEnabled: true,
+        qaOpen: true,
+        status: 'ACTIVE',
+      });
+      prismaMock.session.findUnique.mockResolvedValue({
+        ...ACTIVE_QA_SESSION,
+        type: 'QUIZ',
+        qaEnabled: true,
+        qaOpen: true,
+        qaModerationMode: false,
+        moderationMode: false,
+      });
+      prismaMock.qaQuestion.findMany.mockResolvedValue([
+        { id: QUESTION_ID },
+        { id: OTHER_PARTICIPANT_ID },
+      ]);
+
+      await expect(
+        hostCaller.releasePending({
+          sessionCode: 'ABC123',
+          expectedPendingSetFingerprint: qaPendingSetFingerprint(QUESTION_ID),
+        }),
+      ).rejects.toMatchObject({
+        code: 'CONFLICT',
+        message:
+          'Der Fragenstand hat sich geändert. Bestätige die aktualisierte Sammelfreigabe erneut.',
+      });
+      expect(prismaMock.qaQuestion.updateMany).not.toHaveBeenCalled();
+    },
+  );
+
+  trpcDodIt(
+    {
+      procedure: 'qa.releasePending',
+      case: 'error',
+      mode: 'direct',
+      contract: 'CONFLICT',
+      title: 'verhindert die Sammelfreigabe bei aktiver Vorab-Moderation',
+    },
+    async () => {
+      prismaMock.session.findFirst.mockResolvedValue({
+        ...ACTIVE_QA_SESSION,
+        id: SESSION_ID,
+        type: 'QUIZ',
+        qaEnabled: true,
+        qaOpen: true,
+        status: 'ACTIVE',
+      });
+      prismaMock.session.findUnique.mockResolvedValue({
+        ...ACTIVE_QA_SESSION,
+        type: 'QUIZ',
+        qaEnabled: true,
+        qaOpen: true,
+        qaModerationMode: true,
+        moderationMode: true,
+      });
+
+      await expect(
+        hostCaller.releasePending({
+          sessionCode: 'ABC123',
+          expectedPendingSetFingerprint: qaPendingSetFingerprint(QUESTION_ID),
+        }),
+      ).rejects.toMatchObject({
+        code: 'CONFLICT',
+        message: 'Deaktiviere zuerst die Vorab-Moderation.',
+      });
+      expect(prismaMock.qaQuestion.updateMany).not.toHaveBeenCalled();
+    },
+  );
+
+  trpcDodIt(
+    {
+      procedure: 'qa.releasePending',
+      case: 'error',
+      mode: 'direct',
+      contract: 'FORBIDDEN',
+      title: 'bricht die Sammelfreigabe ab wenn Q&A nach der Vorprüfung geschlossen wurde',
+    },
+    async () => {
+      prismaMock.session.findFirst.mockResolvedValue({
+        ...ACTIVE_QA_SESSION,
+        id: SESSION_ID,
+        type: 'QUIZ',
+        qaEnabled: true,
+        qaOpen: true,
+        status: 'ACTIVE',
+      });
+      prismaMock.session.findUnique.mockResolvedValue({
+        ...ACTIVE_QA_SESSION,
+        type: 'QUIZ',
+        qaEnabled: true,
+        qaOpen: false,
+        qaModerationMode: false,
+        moderationMode: false,
+      });
+
+      await expect(
+        hostCaller.releasePending({
+          sessionCode: 'ABC123',
+          expectedPendingSetFingerprint: qaPendingSetFingerprint(QUESTION_ID),
+        }),
+      ).rejects.toMatchObject({
+        code: 'FORBIDDEN',
+        message: 'Der Q&A-Kanal ist aktuell geschlossen.',
+      });
+      expect(prismaMock.qaQuestion.updateMany).not.toHaveBeenCalled();
+    },
+  );
+
+  trpcDodIt(
+    {
+      procedure: 'qa.releasePending',
+      case: 'error',
+      mode: 'direct',
+      contract: 'UNAUTHORIZED',
+      title: 'lehnt die Sammelfreigabe ohne gültigen Host-Token ab',
+    },
+    async () => {
+      await expect(
+        caller.releasePending({
+          sessionCode: 'ABC123',
+          expectedPendingSetFingerprint: qaPendingSetFingerprint(QUESTION_ID),
+        }),
+      ).rejects.toMatchObject({
+        code: 'UNAUTHORIZED',
+        message: 'Host-Authentifizierung erforderlich.',
+      });
+      expect(prismaMock.qaQuestion.updateMany).not.toHaveBeenCalled();
     },
   );
 
@@ -1475,6 +1717,46 @@ describe('qa router (Epic 8)', () => {
       where: {
         sessionId: SESSION_ID,
         status: 'PENDING',
+      },
+    });
+  });
+
+  it('liefert neben dem gefilterten auch den sitzungsweiten Pending-Zähler', async () => {
+    prismaMock.session.findUnique.mockResolvedValue({
+      ...ACTIVE_QA_SESSION,
+      id: SESSION_ID,
+      code: 'ABC123',
+      type: 'QUIZ',
+      qaEnabled: true,
+      qaOpen: true,
+      qaModerationMode: false,
+    });
+    rawQueryResults.rankedQuestions.push([
+      rankedQaRow({
+        id: QUESTION_ID,
+        text: 'Passender Suchtreffer',
+        status: 'PENDING',
+        totalCount: 1,
+      }),
+    ]);
+    prismaMock.qaQuestion.count.mockResolvedValueOnce(3).mockResolvedValueOnce(1);
+
+    const result = await hostCaller.list({
+      sessionId: SESSION_ID,
+      moderatorView: true,
+      search: 'Suchtreffer',
+    });
+
+    expect(result.pendingCount).toBe(1);
+    expect(result.sessionPendingCount).toBe(3);
+    expect(prismaMock.qaQuestion.count).toHaveBeenNthCalledWith(1, {
+      where: { sessionId: SESSION_ID, status: 'PENDING' },
+    });
+    expect(prismaMock.qaQuestion.count).toHaveBeenNthCalledWith(2, {
+      where: {
+        sessionId: SESSION_ID,
+        status: 'PENDING',
+        text: { contains: 'Suchtreffer', mode: 'insensitive' },
       },
     });
   });
@@ -1699,6 +1981,35 @@ describe('qa router (Epic 8)', () => {
 
     const sql = rawSqlText(prismaMock.$queryRaw.mock.calls[0] ?? []);
     expect(sql).not.toContain('author."nickname"');
+  });
+
+  it('verwendet bei deaktivierter Moderation mit wartenden Fragen den sichtbaren DB-Zähler', async () => {
+    prismaMock.session.findUnique.mockResolvedValue({
+      ...ACTIVE_QA_SESSION,
+      type: 'Q_AND_A',
+      qaEnabled: true,
+      qaOpen: true,
+      qaModerationMode: false,
+      qaQuestionCount: 3,
+    });
+    prismaMock.qaQuestion.count.mockResolvedValueOnce(2);
+    rawQueryResults.rankedQuestions.push([
+      rankedQaRow({
+        id: QUESTION_ID,
+        participantId: OTHER_PARTICIPANT_ID,
+        status: 'ACTIVE',
+        totalCount: 1,
+      }),
+    ]);
+
+    const result = await caller.list({
+      sessionId: SESSION_ID,
+      participantId: PARTICIPANT_ID,
+    });
+
+    const sql = rawSqlText(prismaMock.$queryRaw.mock.calls[0] ?? []);
+    expect(sql).toContain('COUNT(*) OVER() AS "totalCount"');
+    expect(result.totalCount).toBe(1);
   });
 
   it('liefert in der Teilnehmer-Q&A-Liste Autor und Team an den Fragen', async () => {
@@ -2180,6 +2491,39 @@ describe('qa router (Epic 8)', () => {
     expect(value).not.toHaveProperty('questions');
     expect(prismaMock.$queryRaw).not.toHaveBeenCalled();
 
+    await iterator.return?.(undefined);
+  });
+
+  it('meldet Hosts einen geänderten Moderationsmodus auch ohne neue Ranking-Revision', async () => {
+    let session = {
+      ...ACTIVE_QA_SESSION,
+      code: 'ABC123',
+      type: 'QUIZ',
+      qaEnabled: true,
+      qaOpen: true,
+      qaModerationMode: true,
+    };
+    prismaMock.session.findUnique.mockImplementation(async () => session);
+
+    const stream = await hostCaller.onQuestionsUpdated({
+      sessionId: SESSION_ID,
+      moderatorView: true,
+    });
+    const iterator = stream[Symbol.asyncIterator]();
+
+    await expect(iterator.next()).resolves.toMatchObject({
+      value: { kind: 'INVALIDATED', moderationMode: true, rankingRevision: 7 },
+      done: false,
+    });
+
+    const modeUpdate = iterator.next();
+    session = { ...session, qaModerationMode: false };
+    emitQaQuestionsSignal(SESSION_ID, { immediate: true });
+
+    await expect(modeUpdate).resolves.toMatchObject({
+      value: { kind: 'INVALIDATED', moderationMode: false, rankingRevision: 7 },
+      done: false,
+    });
     await iterator.return?.(undefined);
   });
 

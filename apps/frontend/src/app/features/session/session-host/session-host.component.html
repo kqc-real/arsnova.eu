@@ -4117,18 +4117,30 @@
 
                 @if (qaHostWritesAllowed()) {
                   <div class="session-qa-moderation-toggle">
-                    <mat-slide-toggle
-                      [checked]="!!session()?.channels?.qa?.moderationMode"
-                      (change)="toggleQaModeration()"
-                      i18n="@@sessionQa.moderationToggleLabel"
-                    >
-                      Vorab-Moderation
-                    </mat-slide-toggle>
-                    @if (session()?.channels?.qa?.moderationMode) {
-                      <p class="session-qa-moderation-hint" i18n="@@sessionQa.moderationModeHint">
-                        Neue Fragen warten erst auf deine Freigabe.
-                      </p>
-                    }
+                    <div class="session-qa-moderation-toggle__controls">
+                      <mat-slide-toggle
+                        #qaModerationToggle
+                        [checked]="!!session()?.channels?.qa?.moderationMode"
+                        (change)="toggleQaModeration()"
+                        i18n="@@sessionQa.moderationToggleLabel"
+                      >
+                        Vorab-Moderation
+                      </mat-slide-toggle>
+                      @if (qaPendingReleaseAllowed()) {
+                        <button
+                          #qaReleasePending
+                          mat-stroked-button
+                          type="button"
+                          class="session-qa-release-pending"
+                          [disabled]="qaSessionPendingCount() === 0 || qaReleasePendingInProgress()"
+                          (click)="releaseAllPendingQaQuestions()"
+                        >
+                          <mat-icon aria-hidden="true">done_all</mat-icon>
+                          <span>{{ qaReleasePendingActionLabel() }}</span>
+                        </button>
+                      }
+                    </div>
+                    <p class="session-qa-moderation-hint">{{ qaModerationHint() }}</p>
                   </div>
                 }
 
@@ -4144,19 +4156,22 @@
                         >
                       </span>
                       @if (qaPendingCount() > 0) {
-                        <span
+                        <button
+                          #qaPendingSummary
+                          type="button"
                           class="session-qa-summary__chip session-qa-summary__chip--pending"
-                          tabindex="0"
                           [matTooltip]="qaPendingSummaryTooltip()"
                           matTooltipPosition="above"
                           [attr.aria-label]="qaPendingSummaryAria()"
+                          [attr.aria-pressed]="qaShowPendingOnly()"
+                          (click)="toggleQaPendingFilterFromSummary()"
                           data-testid="qa-summary-pending"
                         >
                           <mat-icon class="session-qa-summary__icon" aria-hidden="true"
                             >hourglass_top</mat-icon
                           >
                           {{ formatCount(qaPendingCount()) }}
-                        </span>
+                        </button>
                       }
                       @if (qaPinnedCount() > 0) {
                         <span
@@ -4259,27 +4274,33 @@
                         >
                       </button>
                     }
-                    <mat-button-toggle-group
-                      class="session-qa-sort-toggle"
-                      [value]="qaSortMode()"
-                      (valueChange)="setQaSortMode($any($event))"
-                      aria-label="Q&A-Sortierung"
-                      i18n-aria-label="@@sessionQa.sortAria"
-                    >
-                      <mat-button-toggle value="TOP" i18n="@@sessionQa.sortTop"
-                        >Meist unterstützt</mat-button-toggle
+                    @if (!qaCompactToolbar()) {
+                      <mat-button-toggle-group
+                        #qaDesktopSort
+                        class="session-qa-sort-toggle"
+                        [value]="qaSortMode()"
+                        (valueChange)="setQaSortMode($any($event))"
+                        aria-label="Q&A-Sortierung"
+                        i18n-aria-label="@@sessionQa.sortAria"
                       >
-                      <mat-button-toggle value="BEST" i18n="@@sessionQa.sortBest"
-                        >Beste Fragen</mat-button-toggle
-                      >
-                      <mat-button-toggle value="CONTROVERSIAL" i18n="@@sessionQa.sortControversial"
-                        >Umstritten</mat-button-toggle
-                      >
-                      <mat-button-toggle value="TIME" i18n="@@sessionQa.sortTime"
-                        >Zeit</mat-button-toggle
-                      >
-                    </mat-button-toggle-group>
+                        <mat-button-toggle value="TOP" i18n="@@sessionQa.sortTop"
+                          >Meist unterstützt</mat-button-toggle
+                        >
+                        <mat-button-toggle value="BEST" i18n="@@sessionQa.sortBest"
+                          >Beste Fragen</mat-button-toggle
+                        >
+                        <mat-button-toggle
+                          value="CONTROVERSIAL"
+                          i18n="@@sessionQa.sortControversial"
+                          >Umstritten</mat-button-toggle
+                        >
+                        <mat-button-toggle value="TIME" i18n="@@sessionQa.sortTime"
+                          >Zeit</mat-button-toggle
+                        >
+                      </mat-button-toggle-group>
+                    }
                     <button
+                      #qaPinnedFilter
                       type="button"
                       class="session-qa-filter-btn"
                       [class.session-qa-filter-btn--active]="qaShowPinnedOnly()"
@@ -4296,8 +4317,13 @@
                         <span i18n="@@sessionQa.filterPinnedLabel">Nur hervorgehobene</span>
                       }
                     </button>
-                    @if (session()?.channels?.qa?.moderationMode) {
+                    @if (
+                      session()?.channels?.qa?.moderationMode ||
+                      qaPendingCount() > 0 ||
+                      qaShowPendingOnly()
+                    ) {
                       <button
+                        #qaPendingFilter
                         type="button"
                         class="session-qa-filter-btn"
                         [class.session-qa-filter-btn--active]="qaShowPendingOnly()"
@@ -4315,19 +4341,101 @@
                         }
                       </button>
                     }
-                    <button
-                      type="button"
-                      class="session-qa-filter-btn"
-                      data-testid="qa-questions-export"
-                      (click)="exportQaQuestionsCsv()"
-                      [disabled]="exportExporting()"
-                      [attr.aria-busy]="exportExporting()"
-                      i18n-aria-label="@@sessionQa.exportAria"
-                      aria-label="Fragen als CSV exportieren"
-                    >
-                      <mat-icon aria-hidden="true">download</mat-icon>
-                      <span i18n="@@sessionQa.exportLabel">Fragen exportieren</span>
-                    </button>
+                    @if (qaCompactToolbar()) {
+                      <button
+                        #qaMobileMore
+                        #qaMobileMoreTrigger="matMenuTrigger"
+                        type="button"
+                        class="session-qa-filter-btn session-qa-overflow-btn"
+                        data-testid="qa-mobile-more"
+                        [matMenuTriggerFor]="qaMobileMoreMenu"
+                        [attr.aria-label]="qaMobileMoreAriaLabel()"
+                      >
+                        <mat-icon aria-hidden="true">more_horiz</mat-icon>
+                        <span i18n="@@sessionQa.mobileMoreLabel">Mehr</span>
+                      </button>
+                      <mat-menu #qaMobileMoreMenu="matMenu" xPosition="before">
+                        <button
+                          mat-menu-item
+                          type="button"
+                          role="menuitemradio"
+                          data-testid="qa-mobile-sort-top"
+                          [attr.aria-checked]="qaSortMode() === 'TOP'"
+                          (click)="setQaSortMode('TOP')"
+                        >
+                          <mat-icon aria-hidden="true">{{
+                            qaSortMode() === 'TOP' ? 'check' : 'thumb_up'
+                          }}</mat-icon>
+                          <span i18n="@@sessionQa.sortTop">Meist unterstützt</span>
+                        </button>
+                        <button
+                          mat-menu-item
+                          type="button"
+                          role="menuitemradio"
+                          data-testid="qa-mobile-sort-time"
+                          [attr.aria-checked]="qaSortMode() === 'TIME'"
+                          (click)="setQaSortMode('TIME')"
+                        >
+                          <mat-icon aria-hidden="true">{{
+                            qaSortMode() === 'TIME' ? 'check' : 'schedule'
+                          }}</mat-icon>
+                          <span i18n="@@sessionQa.sortTime">Zeit</span>
+                        </button>
+                        <button
+                          mat-menu-item
+                          type="button"
+                          role="menuitemradio"
+                          data-testid="qa-mobile-sort-best"
+                          [attr.aria-checked]="qaSortMode() === 'BEST'"
+                          (click)="setQaSortMode('BEST')"
+                        >
+                          <mat-icon aria-hidden="true">{{
+                            qaSortMode() === 'BEST' ? 'check' : 'auto_awesome'
+                          }}</mat-icon>
+                          <span i18n="@@sessionQa.sortBest">Beste Fragen</span>
+                        </button>
+                        <button
+                          mat-menu-item
+                          type="button"
+                          role="menuitemradio"
+                          data-testid="qa-mobile-sort-controversial"
+                          [attr.aria-checked]="qaSortMode() === 'CONTROVERSIAL'"
+                          (click)="setQaSortMode('CONTROVERSIAL')"
+                        >
+                          <mat-icon aria-hidden="true">{{
+                            qaSortMode() === 'CONTROVERSIAL' ? 'check' : 'compare_arrows'
+                          }}</mat-icon>
+                          <span i18n="@@sessionQa.sortControversial">Umstritten</span>
+                        </button>
+                        <button
+                          mat-menu-item
+                          type="button"
+                          data-testid="qa-questions-export"
+                          (click)="exportQaQuestionsCsv()"
+                          [disabled]="exportExporting()"
+                          [attr.aria-busy]="exportExporting()"
+                          i18n-aria-label="@@sessionQa.exportAria"
+                          aria-label="Fragen als CSV exportieren"
+                        >
+                          <mat-icon aria-hidden="true">download</mat-icon>
+                          <span i18n="@@sessionQa.exportLabel">Fragen exportieren</span>
+                        </button>
+                      </mat-menu>
+                    } @else {
+                      <button
+                        type="button"
+                        class="session-qa-filter-btn"
+                        data-testid="qa-questions-export"
+                        (click)="exportQaQuestionsCsv()"
+                        [disabled]="exportExporting()"
+                        [attr.aria-busy]="exportExporting()"
+                        i18n-aria-label="@@sessionQa.exportAria"
+                        aria-label="Fragen als CSV exportieren"
+                      >
+                        <mat-icon aria-hidden="true">download</mat-icon>
+                        <span i18n="@@sessionQa.exportLabel">Fragen exportieren</span>
+                      </button>
+                    }
                   </div>
                   @if (exportExporting()) {
                     <p

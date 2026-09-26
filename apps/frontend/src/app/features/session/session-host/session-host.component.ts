@@ -750,6 +750,8 @@ export class SessionHostComponent implements OnInit, OnDestroy {
   readonly qaListTotalCount = signal(0);
   /** Host: PENDING-Zähler aus qa.list (filterweit, seitenunabhängig); null = Fallback auf geladene Seite. */
   private readonly qaListPendingCount = signal<number | null>(null);
+  /** Host: PENDING-Zähler der gesamten Session; null = Fallback auf den gefilterten Zähler. */
+  private readonly qaListSessionPendingCount = signal<number | null>(null);
   readonly qaListNextCursor = signal<string | null>(null);
   readonly qaListRankingRevision = signal<string | null>(null);
   readonly qaListPageIndex = signal(0);
@@ -769,6 +771,7 @@ export class SessionHostComponent implements OnInit, OnDestroy {
   private readonly qaUnfilteredChromeQuestions = signal<QaQuestionDTO[] | null>(null);
   readonly qaInfo = signal<string | null>(null);
   readonly qaPendingQuestionIds = signal<Set<string>>(new Set());
+  readonly qaReleasePendingInProgress = signal(false);
   readonly qaSeenQuestionIds = signal<Set<string>>(new Set());
   readonly qaScrolledDown = signal(false);
   @ViewChild('hostQuestionCard') hostQuestionCardRef?: ElementRef<HTMLElement>;
@@ -780,6 +783,17 @@ export class SessionHostComponent implements OnInit, OnDestroy {
   @ViewChild('qaListContainer') qaListContainerRef?: ElementRef<HTMLElement>;
   @ViewChild('qaTitleInput') qaTitleInputRef?: ElementRef<HTMLInputElement>;
   @ViewChild('qaChannelHeading') qaChannelHeadingRef?: ElementRef<HTMLElement>;
+  @ViewChild('qaModerationToggle') qaModerationToggle?: MatSlideToggle;
+  @ViewChild('qaReleasePending', { read: ElementRef })
+  private qaReleasePendingRef?: ElementRef<HTMLButtonElement>;
+  @ViewChild('qaDesktopSort', { read: ElementRef })
+  private qaDesktopSortRef?: ElementRef<HTMLElement>;
+  @ViewChild('qaMobileMore', { read: ElementRef })
+  private qaMobileMoreRef?: ElementRef<HTMLButtonElement>;
+  @ViewChild('qaMobileMoreTrigger') private qaMobileMoreTrigger?: MatMenuTrigger;
+  @ViewChild('qaPinnedFilter') private qaPinnedFilterRef?: ElementRef<HTMLButtonElement>;
+  @ViewChild('qaPendingFilter') qaPendingFilterRef?: ElementRef<HTMLButtonElement>;
+  @ViewChild('qaPendingSummary') qaPendingSummaryRef?: ElementRef<HTMLButtonElement>;
   @ViewChild('moderationCompassButton') moderationCompassButtonRef?: ElementRef<HTMLButtonElement>;
   @ViewChild('exitAnchor') private exitAnchorRef?: ElementRef<HTMLElement>;
   @ViewChild('freetextWordCloud') freetextWordCloud?: WordCloudComponent;
@@ -832,6 +846,7 @@ export class SessionHostComponent implements OnInit, OnDestroy {
     ? FOYER_CHIP_DEV_LIFETIME_MS
     : FOYER_CHIP_LIFETIME_MS;
   private readonly document = inject(DOCUMENT);
+  readonly qaCompactToolbar = signal(this.isQaCompactToolbarViewport());
   private readonly hostElement = inject<ElementRef<HTMLElement>>(ElementRef);
   private readonly destroyRef = inject(DestroyRef);
   private unloadWarningEnabled = !this.isLocalDevSession();
@@ -1639,6 +1654,13 @@ export class SessionHostComponent implements OnInit, OnDestroy {
     const session = this.session();
     return !!session && isQaChannelJoinable(session);
   });
+  readonly qaPendingReleaseAllowed = computed(
+    () =>
+      this.qaHostWritesAllowed() &&
+      this.isChannelOpen('qa') &&
+      !this.qaDeadlineExpired() &&
+      this.session()?.channels?.qa?.moderationMode === false,
+  );
   readonly canStartAnotherQuiz = computed(
     () => this.effectiveStatus() === 'FINISHED' && this.qaHostWritesAllowed(),
   );
@@ -2326,6 +2348,9 @@ export class SessionHostComponent implements OnInit, OnDestroy {
     }
     return this.qaForumQuestions().filter((question) => question.status === 'PENDING').length;
   });
+  readonly qaSessionPendingCount = computed(
+    () => this.qaListSessionPendingCount() ?? this.qaPendingCount(),
+  );
   readonly qaArchivedCount = computed(
     () => this.qaForumQuestions().filter((q) => q.status === 'ARCHIVED').length,
   );
@@ -3400,15 +3425,6 @@ export class SessionHostComponent implements OnInit, OnDestroy {
       void qaEnabled;
       void qaSortMode;
       untracked(() => this.ensureQaSubscription());
-    });
-    effect(() => {
-      const moderationEnabled = this.session()?.channels?.qa?.moderationMode === true;
-      if (moderationEnabled || !this.qaShowPendingOnly()) {
-        return;
-      }
-      untracked(() => {
-        void this.setQaPendingFilter(false);
-      });
     });
     effect(() => {
       const request = this.qaWordCloudAnalysisRequest();
@@ -6744,6 +6760,9 @@ export class SessionHostComponent implements OnInit, OnDestroy {
 
   @HostListener('window:resize')
   onWindowResize(): void {
+    const compactToolbar = this.isQaCompactToolbarViewport();
+    this.preserveQaToolbarFocusAcrossLayout(compactToolbar);
+    this.qaCompactToolbar.set(compactToolbar);
     this.syncExitAnchorClearance();
     if (this.freetextWordCloudMaximized() || this.qaWordCloudDialogOpen()) {
       this.syncWordCloudOverlayTop();
@@ -6753,6 +6772,43 @@ export class SessionHostComponent implements OnInit, OnDestroy {
     }
 
     this.recalculateTeamFoyerDirections();
+  }
+
+  private isQaCompactToolbarViewport(): boolean {
+    const viewportWidth = this.document.defaultView?.innerWidth;
+    return viewportWidth !== undefined && viewportWidth <= 599;
+  }
+
+  private preserveQaToolbarFocusAcrossLayout(compactToolbar: boolean): void {
+    if (compactToolbar === this.qaCompactToolbar()) {
+      return;
+    }
+    const activeElement = this.document.activeElement;
+    const focusMovesWithToolbar = compactToolbar
+      ? activeElement !== null &&
+        this.qaDesktopSortRef?.nativeElement.contains(activeElement) === true
+      : activeElement !== null &&
+        (this.qaMobileMoreRef?.nativeElement.contains(activeElement) === true ||
+          this.qaMobileMoreTrigger?.menuOpen === true);
+    if (!focusMovesWithToolbar) {
+      return;
+    }
+
+    afterNextRender(
+      () => {
+        if (this.destroyRef.destroyed) return;
+        const target = compactToolbar
+          ? this.qaMobileMoreRef?.nativeElement
+          : (this.qaDesktopSortRef?.nativeElement.querySelector<HTMLButtonElement>(
+              '.mat-button-toggle-checked button, button[aria-pressed="true"]',
+            ) ??
+            this.qaDesktopSortRef?.nativeElement.querySelector<HTMLButtonElement>(
+              'button:not([disabled])',
+            ));
+        target?.focus({ preventScroll: true });
+      },
+      { injector: this.injector },
+    );
   }
 
   private recalculateTeamFoyerDirections(): void {
@@ -8729,6 +8785,10 @@ export class SessionHostComponent implements OnInit, OnDestroy {
   }
 
   qaTabMetaLabel(): string | null {
+    if (this.qaSessionPendingCount() > 0) {
+      return $localize`:@@sessionTabs.questionsBadgeReview:${formatLocaleCount(this.qaSessionPendingCount(), this.localeId)}:count: zu prüfen`;
+    }
+
     if (this.activeChannel() !== 'qa' && this.qaUnseenCount() > 0) {
       return $localize`:@@sessionTabs.questionsBadgeNew:${formatLocaleCount(this.qaUnseenCount(), this.localeId)}:count: neu`;
     }
@@ -8948,7 +9008,10 @@ export class SessionHostComponent implements OnInit, OnDestroy {
       return false;
     }
     if (channel === 'qa') {
-      return this.activeChannel() !== 'qa' && this.qaUnseenCount() > 0;
+      return (
+        this.qaSessionPendingCount() > 0 ||
+        (this.activeChannel() !== 'qa' && this.qaUnseenCount() > 0)
+      );
     }
     if (channel === 'quickFeedback') {
       return this.activeChannel() !== 'quickFeedback' && this.quickFeedbackUnseenCount() > 0;
@@ -9134,7 +9197,9 @@ export class SessionHostComponent implements OnInit, OnDestroy {
   }
 
   qaPendingSummaryTooltip(): string {
-    return $localize`:@@sessionQa.summaryPendingTooltip:In Moderation: Diese Fragen warten auf deine Freigabe.`;
+    return this.qaShowPendingOnly()
+      ? $localize`:@@sessionQa.summaryPendingTooltipShowAll:Alle Fragen anzeigen.`
+      : $localize`:@@sessionQa.summaryPendingTooltip:In Moderation: Diese Fragen warten auf deine Freigabe. Zum Filtern auswählen.`;
   }
 
   qaArchivedSummaryTooltip(): string {
@@ -9146,7 +9211,54 @@ export class SessionHostComponent implements OnInit, OnDestroy {
   }
 
   qaPendingSummaryAria(): string {
-    return $localize`:@@sessionQa.summaryPendingAria:${this.formatCount(this.qaPendingCount())}:count: Fragen in Moderation`;
+    const pendingCount = this.qaPendingCount();
+    if (pendingCount === 1) {
+      return this.qaShowPendingOnly()
+        ? $localize`:@@sessionQa.summaryPendingAriaOneShowAll:1 Frage in Moderation. Alle Fragen anzeigen`
+        : $localize`:@@sessionQa.summaryPendingAriaOne:1 Frage in Moderation. Nur Fragen in Moderation anzeigen`;
+    }
+    const count = this.formatCount(pendingCount);
+    return this.qaShowPendingOnly()
+      ? $localize`:@@sessionQa.summaryPendingAriaShowAll:${count}:count: Fragen in Moderation. Alle Fragen anzeigen`
+      : $localize`:@@sessionQa.summaryPendingAria:${count}:count: Fragen in Moderation. Nur Fragen in Moderation anzeigen`;
+  }
+
+  qaModerationHint(): string {
+    if (this.session()?.channels?.qa?.moderationMode === true) {
+      return $localize`:@@sessionQa.moderationModeHint:Neue Fragen warten erst auf deine Freigabe.`;
+    }
+    const count = this.qaSessionPendingCount();
+    if (count === 1) {
+      return $localize`:@@sessionQa.moderationModeOffHintOne:Neue Fragen erscheinen sofort. 1 bereits eingereichte Frage wartet weiter auf Freigabe.`;
+    }
+    if (count > 1) {
+      return $localize`:@@sessionQa.moderationModeOffHintMany:Neue Fragen erscheinen sofort. ${formatLocaleCount(count, this.localeId)}:count: bereits eingereichte Fragen warten weiter auf Freigabe.`;
+    }
+    return $localize`:@@sessionQa.moderationModeOffHintEmpty:Neue Fragen erscheinen sofort.`;
+  }
+
+  qaReleasePendingActionLabel(count = this.qaSessionPendingCount()): string {
+    if (count === 0) {
+      return $localize`:@@sessionQa.releaseAllPendingEmpty:Keine Fragen freizugeben`;
+    }
+    if (count === 1) {
+      return $localize`:@@sessionQa.releaseAllPendingOne:1 Frage freigeben`;
+    }
+    return $localize`:@@sessionQa.releaseAllPendingMany:${formatLocaleCount(count, this.localeId)}:count: Fragen freigeben`;
+  }
+
+  private qaReleasePendingDialogTitle(count: number): string {
+    if (count === 1) {
+      return $localize`:@@sessionQa.releaseAllDialogTitleOne:1 Frage freigeben?`;
+    }
+    return $localize`:@@sessionQa.releaseAllDialogTitleMany:${formatLocaleCount(count, this.localeId)}:count: Fragen freigeben?`;
+  }
+
+  private qaReleasePendingDialogMessage(count: number): string {
+    if (count === 1) {
+      return $localize`:@@sessionQa.releaseAllDialogMessageOne:1 Frage in Moderation wird für Teilnehmende sichtbar.`;
+    }
+    return $localize`:@@sessionQa.releaseAllDialogMessageMany:${formatLocaleCount(count, this.localeId)}:count: Fragen in Moderation werden für Teilnehmende sichtbar.`;
   }
 
   qaArchivedSummaryAria(): string {
@@ -9447,6 +9559,23 @@ export class SessionHostComponent implements OnInit, OnDestroy {
 
   formatDecimal(value: number | null | undefined, maximumFractionDigits = 1): string {
     return formatLocaleNumber(value ?? 0, this.localeId, { maximumFractionDigits });
+  }
+
+  qaSortModeLabel(mode: QaQuestionSortMode = this.qaSortMode()): string {
+    switch (mode) {
+      case 'TOP':
+        return $localize`:@@sessionQa.sortTop:Meist unterstützt`;
+      case 'BEST':
+        return $localize`:@@sessionQa.sortBest:Beste Fragen`;
+      case 'CONTROVERSIAL':
+        return $localize`:@@sessionQa.sortControversial:Umstritten`;
+      case 'TIME':
+        return $localize`:@@sessionQa.sortTime:Zeit`;
+    }
+  }
+
+  qaMobileMoreAriaLabel(): string {
+    return $localize`:@@sessionQa.mobileMoreAria:Weitere Q&A-Aktionen. Aktuelle Sortierung: ${this.qaSortModeLabel()}:sort:`;
   }
 
   async setQaSortMode(
@@ -10031,7 +10160,7 @@ export class SessionHostComponent implements OnInit, OnDestroy {
           }
         : current,
     );
-    if (this.releaseQaPendingFilterIfModerationOff()) {
+    if (this.releaseQaPendingFilterIfUnavailable()) {
       this.ensureQaSubscription();
     }
     if (reopenedFromFinished) {
@@ -10432,6 +10561,19 @@ export class SessionHostComponent implements OnInit, OnDestroy {
       return;
     }
     this.latestQaLifecycleRevision = data.sessionLifecycleRevision;
+    const moderationMode = data.moderationMode;
+    if (typeof moderationMode === 'boolean') {
+      this.session.update((current) => {
+        if (!current?.channels?.qa) return current;
+        return {
+          ...current,
+          channels: {
+            ...current.channels,
+            qa: { ...current.channels.qa, moderationMode },
+          },
+        };
+      });
+    }
     if (data.state === 'POST_PROCESSING_ENDED') {
       this.closeHostPostProcessing();
       return;
@@ -10856,6 +10998,9 @@ export class SessionHostComponent implements OnInit, OnDestroy {
       this.qaListPendingCount.set(
         snapshot.filter((question) => question.status === 'PENDING').length,
       );
+      this.qaListSessionPendingCount.set(
+        snapshot.filter((question) => question.status === 'PENDING').length,
+      );
       this.qaListNextCursor.set(null);
       this.qaListRankingRevision.set(null);
       this.resetQaListPageNavigation();
@@ -10895,6 +11040,7 @@ export class SessionHostComponent implements OnInit, OnDestroy {
       this.qaQuestions.set([]);
       this.qaListTotalCount.set(0);
       this.qaListPendingCount.set(0);
+      this.qaListSessionPendingCount.set(0);
       this.qaListNextCursor.set(null);
       this.qaListRankingRevision.set(snapshot.rankingRevision ?? null);
       this.resetQaListPageNavigation();
@@ -10908,10 +11054,15 @@ export class SessionHostComponent implements OnInit, OnDestroy {
       this.resetQaListPageNavigation();
     }
     this.qaListTotalCount.set(snapshot.totalCount ?? snapshot.questions.length);
-    this.qaListPendingCount.set(
+    const filteredPendingCount =
       typeof snapshot.pendingCount === 'number'
         ? snapshot.pendingCount
-        : snapshot.questions.filter((question) => question.status === 'PENDING').length,
+        : snapshot.questions.filter((question) => question.status === 'PENDING').length;
+    this.qaListPendingCount.set(filteredPendingCount);
+    this.qaListSessionPendingCount.set(
+      typeof snapshot.sessionPendingCount === 'number'
+        ? snapshot.sessionPendingCount
+        : filteredPendingCount,
     );
     this.qaListNextCursor.set(snapshot.nextCursor ?? null);
     this.qaListRankingRevision.set(snapshot.rankingRevision ?? null);
@@ -10925,6 +11076,7 @@ export class SessionHostComponent implements OnInit, OnDestroy {
     this.qaQuestions.set([]);
     this.qaListTotalCount.set(0);
     this.qaListPendingCount.set(null);
+    this.qaListSessionPendingCount.set(null);
     this.qaListNextCursor.set(null);
     this.qaListRankingRevision.set(null);
     this.resetQaListPageNavigation();
@@ -10951,14 +11103,18 @@ export class SessionHostComponent implements OnInit, OnDestroy {
     if (this.qaShowPinnedOnly()) {
       return ['PINNED'];
     }
-    if (this.qaShowPendingOnly() && this.session()?.channels?.qa?.moderationMode === true) {
+    if (this.qaShowPendingOnly()) {
       return ['PENDING'];
     }
     return ['PENDING', 'ACTIVE', 'PINNED', 'ARCHIVED'];
   }
 
-  /** Pending-Filter nur bei aktiver Vorab-Moderation; sonst Signal und Liste zurücksetzen. */
-  private releaseQaPendingFilterIfModerationOff(): boolean {
+  /** Filter nur lösen, wenn weder Vorab-Moderation noch ein wartender Rückstau ihn rechtfertigen. */
+  private releaseQaPendingFilterIfUnavailable(): boolean {
+    if (this.qaPendingCount() > 0) {
+      return false;
+    }
+    this.preserveFocusBeforeRemovingQaPendingControls();
     if (this.session()?.channels?.qa?.moderationMode === true) {
       return false;
     }
@@ -10967,6 +11123,24 @@ export class SessionHostComponent implements OnInit, OnDestroy {
     }
     this.qaShowPendingOnly.set(false);
     return true;
+  }
+
+  private preserveFocusBeforeRemovingQaPendingControls(): void {
+    const activeElement = this.document.activeElement;
+    if (!activeElement) {
+      return;
+    }
+    const pendingSummaryHasFocus =
+      this.qaPendingSummaryRef?.nativeElement.contains(activeElement) === true;
+    const pendingFilterWillDisappear =
+      this.session()?.channels?.qa?.moderationMode !== true &&
+      this.qaPendingFilterRef?.nativeElement.contains(activeElement) === true;
+    if (!pendingSummaryHasFocus && !pendingFilterWillDisappear) {
+      return;
+    }
+    (this.qaPinnedFilterRef?.nativeElement ?? this.qaChannelHeadingRef?.nativeElement)?.focus({
+      preventScroll: true,
+    });
   }
 
   private hostQaListQueryInput(cursor?: string | null) {
@@ -11026,6 +11200,15 @@ export class SessionHostComponent implements OnInit, OnDestroy {
     this.ensureQaSubscription();
     await this.refreshQaQuestions({ replaceStale: true });
     this.scrollQaListToTop();
+  }
+
+  async toggleQaPendingFilterFromSummary(): Promise<void> {
+    const pendingOnly = !this.qaShowPendingOnly();
+    await this.setQaPendingFilter(pendingOnly);
+    const focusTarget = pendingOnly
+      ? this.qaPendingFilterRef?.nativeElement
+      : this.qaPendingSummaryRef?.nativeElement;
+    (focusTarget ?? this.qaChannelHeadingRef?.nativeElement)?.focus({ preventScroll: true });
   }
 
   onQaSearchInput(value: string): void {
@@ -11127,26 +11310,29 @@ export class SessionHostComponent implements OnInit, OnDestroy {
 
   private async refreshQaQuestions(options?: {
     silent?: boolean;
+    surfaceFailure?: boolean;
     replaceStale?: boolean;
     /** Aktuelle Fragenseite nach Live-Invalidierung behalten (nicht auf Seite 1 springen). */
     preservePaging?: boolean;
-  }): Promise<void> {
+  }): Promise<boolean> {
     const sessionId = this.session()?.id;
     const requestGeneration = ++this.qaListRequestGeneration;
     if (!sessionId || !this.channels().qa) {
       this.qaQuestions.set([]);
       this.qaListTotalCount.set(0);
       this.qaListPendingCount.set(null);
+      this.qaListSessionPendingCount.set(null);
       this.qaListNextCursor.set(null);
       this.resetQaListPageNavigation();
       this.qaListPageLoading.set(false);
-      return;
+      return true;
     }
 
     if (options?.replaceStale) {
       this.qaQuestions.set([]);
       this.qaListTotalCount.set(0);
       this.qaListPendingCount.set(null);
+      this.qaListSessionPendingCount.set(null);
       this.qaListNextCursor.set(null);
       this.resetQaListPageNavigation();
     }
@@ -11166,7 +11352,7 @@ export class SessionHostComponent implements OnInit, OnDestroy {
       for (let page = 0; page <= targetPage; page += 1) {
         snapshot = await trpc.qa.list.query(this.hostQaListQueryInput(cursor));
         if (requestGeneration !== this.qaListRequestGeneration) {
-          return;
+          return false;
         }
         if (page === targetPage || !snapshot.nextCursor) {
           pageReached = page;
@@ -11178,14 +11364,22 @@ export class SessionHostComponent implements OnInit, OnDestroy {
       }
 
       if (!snapshot || requestGeneration !== this.qaListRequestGeneration) {
-        return;
+        return false;
       }
 
       const accepted = await this.applyHostQaQuestionsSnapshot(snapshot, {
         preservePaging: targetPage > 0,
       });
       if (!accepted) {
-        return;
+        return false;
+      }
+      if (this.releaseQaPendingFilterIfUnavailable()) {
+        this.ensureQaSubscription();
+        return await this.refreshQaQuestions({
+          silent: options?.silent,
+          surfaceFailure: true,
+          replaceStale: true,
+        });
       }
       if (targetPage > 0) {
         this.qaListCursorHistory = cursorHistory;
@@ -11193,25 +11387,27 @@ export class SessionHostComponent implements OnInit, OnDestroy {
         this.qaListPageIndex.set(pageReached);
       }
       this.dismissQaSteeringCallout();
+      return true;
     } catch (error) {
       if (requestGeneration !== this.qaListRequestGeneration) {
-        return;
+        return false;
       }
       if (this.consumeHostUnauthorized(error)) {
-        return;
+        return false;
       }
       // Veralteter Cursor nach Ranking-Wechsel: von vorn neu laden.
       if (options?.preservePaging && targetPage > 0 && this.isQaListRankingConflict(error)) {
-        await this.refreshQaQuestions({
+        return await this.refreshQaQuestions({
           silent: options.silent,
+          surfaceFailure: options.surfaceFailure,
           preservePaging: false,
         });
-        return;
       }
-      if (options?.silent) {
-        return;
+      if (options?.silent && !options.surfaceFailure) {
+        return false;
       }
       this.openHostSteeringCalloutForQaFailure(() => void this.refreshQaQuestions());
+      return false;
     } finally {
       if (requestGeneration === this.qaListRequestGeneration) {
         this.qaListPageLoading.set(false);
@@ -11964,13 +12160,111 @@ export class SessionHostComponent implements OnInit, OnDestroy {
           ? $localize`:@@sessionQa.moderationEnabled:Vorab-Moderation aktiviert.`
           : $localize`:@@sessionQa.moderationDisabled:Vorab-Moderation deaktiviert.`,
       );
-      if (!result.enabled && this.qaShowPendingOnly()) {
+      if (!result.enabled && this.qaShowPendingOnly() && this.qaPendingCount() === 0) {
         await this.setQaPendingFilter(false);
       }
       this.dismissHostSteeringCallout();
     } catch {
       this.openHostSteeringCalloutForQaFailure(() => void this.toggleQaModeration());
     }
+  }
+
+  async releaseAllPendingQaQuestions(): Promise<void> {
+    if (
+      !this.code ||
+      !this.qaPendingReleaseAllowed() ||
+      this.qaSessionPendingCount() === 0 ||
+      this.qaReleasePendingInProgress()
+    ) {
+      return;
+    }
+
+    this.qaReleasePendingInProgress.set(true);
+    this.qaInfo.set(null);
+    try {
+      const pendingSnapshot = await trpc.qa.pendingReleaseSnapshot.query({
+        sessionCode: this.code.toUpperCase(),
+      });
+      this.qaListSessionPendingCount.set(pendingSnapshot.pendingCount);
+      if (pendingSnapshot.pendingCount === 0) {
+        this.restoreQaReleaseDialogFocusIfNeeded();
+        return;
+      }
+
+      const dialogRef = this.dialog.open(ConfirmLeaveDialogComponent, {
+        data: {
+          title: this.qaReleasePendingDialogTitle(pendingSnapshot.pendingCount),
+          message: this.qaReleasePendingDialogMessage(pendingSnapshot.pendingCount),
+          consequences: [
+            $localize`:@@sessionQa.releaseAllDialogWordCloudWarning:Die Wortwolke kann dadurch von Teilnehmenden eingesehen werden.`,
+          ],
+          confirmLabel: this.qaReleasePendingActionLabel(pendingSnapshot.pendingCount),
+          cancelLabel: $localize`:@@sessionQa.releaseAllDialogCancel:Abbrechen`,
+        } satisfies ConfirmLeaveDialogData,
+        width: 'min(26rem, calc(100vw - 1.5rem))',
+        maxWidth: '100vw',
+        autoFocus: 'dialog',
+      });
+      if ((await firstValueFrom(dialogRef.afterClosed())) !== true) {
+        this.restoreQaReleaseDialogFocusIfNeeded();
+        return;
+      }
+      if (!this.qaPendingReleaseAllowed() || this.qaSessionPendingCount() === 0) {
+        this.restoreQaReleaseDialogFocusIfNeeded();
+        return;
+      }
+
+      const result = await trpc.qa.releasePending.mutate({
+        sessionCode: this.code.toUpperCase(),
+        expectedPendingSetFingerprint: pendingSnapshot.pendingSetFingerprint,
+      });
+      this.qaShowPendingOnly.set(false);
+      this.ensureQaSubscription();
+      const refreshed = await this.refreshQaQuestions({ replaceStale: true });
+      if (!refreshed) {
+        return;
+      }
+      this.qaInfo.set(
+        result.releasedCount === 1
+          ? $localize`:@@sessionQa.releaseAllSuccessOne:1 Frage wurde freigegeben.`
+          : $localize`:@@sessionQa.releaseAllSuccessMany:${formatLocaleCount(result.releasedCount, this.localeId)}:count: Fragen wurden freigegeben.`,
+      );
+      this.qaModerationToggle?.focus();
+      this.dismissHostSteeringCallout();
+    } catch (error) {
+      if (this.isTrpcConflictError(error)) {
+        const refreshed = await this.refreshQaQuestions({ replaceStale: true });
+        if (!refreshed) {
+          return;
+        }
+        if (this.qaSessionPendingCount() === 0) {
+          this.restoreQaReleaseDialogFocusIfNeeded();
+          return;
+        }
+      }
+      this.openHostSteeringCalloutForQaFailure(() => void this.releaseAllPendingQaQuestions());
+    } finally {
+      this.qaReleasePendingInProgress.set(false);
+    }
+  }
+
+  private restoreQaReleaseDialogFocusIfNeeded(): void {
+    afterNextRender(
+      () => {
+        if (this.destroyRef.destroyed) return;
+        const releaseButton = this.qaReleasePendingRef?.nativeElement;
+        if (releaseButton?.isConnected && !releaseButton.disabled) {
+          releaseButton.focus();
+          return;
+        }
+        if (this.qaModerationToggle) {
+          this.qaModerationToggle.focus();
+          return;
+        }
+        this.qaChannelHeadingRef?.nativeElement.focus({ preventScroll: true });
+      },
+      { injector: this.injector },
+    );
   }
 
   async moderateQaQuestion(

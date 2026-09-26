@@ -4,6 +4,7 @@ import { createHash, randomUUID } from 'node:crypto';
 import { z } from 'zod';
 import {
   GetQaNlpRuntimeInputSchema,
+  GetQaPendingReleaseSnapshotInputSchema,
   GetQaPresentProjectionInputSchema,
   GetQaQuestionsInputSchema,
   GetQaSummaryRuntimeInputSchema,
@@ -11,12 +12,15 @@ import {
   QA_MAX_QUESTIONS_PER_PARTICIPANT,
   QA_MAX_QUESTIONS_PER_SESSION,
   QaNlpRuntimeDTOSchema,
+  QaPendingReleaseSnapshotOutputSchema,
   QaQuestionDTOSchema,
   QaQuestionsInvalidationDTOSchema,
   QaQuestionsListDTOSchema,
   QaSummaryRuntimeDTOSchema,
   QaVoteInputSchema,
   QaVoteOutputSchema,
+  ReleasePendingQaQuestionsInputSchema,
+  ReleasePendingQaQuestionsOutputSchema,
   RequestQaSummaryInputSchema,
   SubmitQaQuestionInputSchema,
   SubmitQaQuestionOutputSchema,
@@ -149,6 +153,7 @@ function buildQaQuestionsSnapshot(
     | 'nextCursor'
     | 'totalCount'
     | 'pendingCount'
+    | 'sessionPendingCount'
     | 'sessionQuestionCount'
     | 'sessionRemaining'
     | 'quota'
@@ -176,9 +181,11 @@ function buildQaQuestionsInvalidation(
   session: QaSessionLifecycleGate & {
     qaRankingRevision?: number | null;
     participantRevision?: number | null;
+    qaModerationMode?: boolean | null;
   },
   state: z.infer<typeof QaQuestionsListDTOSchema>['state'],
   now = new Date(),
+  includeModerationMode = false,
 ) {
   const expiresAt =
     session.expiresAt instanceof Date
@@ -196,6 +203,9 @@ function buildQaQuestionsInvalidation(
     qaClosesAt: session.qaClosesAt?.toISOString() ?? null,
     endedAt: retention.endedAt?.toISOString() ?? null,
     postProcessingEndsAt: retention.postProcessingEndsAt?.toISOString() ?? null,
+    ...(includeModerationMode && typeof session.qaModerationMode === 'boolean'
+      ? { moderationMode: session.qaModerationMode }
+      : {}),
   });
 }
 
@@ -441,6 +451,11 @@ type SharedQaRankingCacheEntry = {
   promise: Promise<RankedQaQuestionRow[]>;
 };
 const sharedQaRankingLoads = new Map<string, SharedQaRankingCacheEntry>();
+type SharedQaPendingCountCacheEntry = {
+  expiresAt: number;
+  promise: Promise<number>;
+};
+const sharedQaPendingCountLoads = new Map<string, SharedQaPendingCountCacheEntry>();
 
 function pruneSharedQaRankingCache(nowMs: number): void {
   for (const [key, entry] of sharedQaRankingLoads) {
@@ -455,11 +470,75 @@ function pruneSharedQaRankingCache(nowMs: number): void {
     }
     sharedQaRankingLoads.delete(oldestKey);
   }
+  for (const [key, entry] of sharedQaPendingCountLoads) {
+    if (entry.expiresAt <= nowMs) {
+      sharedQaPendingCountLoads.delete(key);
+    }
+  }
+  while (sharedQaPendingCountLoads.size >= QA_PAGE_CACHE_MAX_ENTRIES) {
+    const oldestKey = sharedQaPendingCountLoads.keys().next().value as string | undefined;
+    if (!oldestKey) {
+      break;
+    }
+    sharedQaPendingCountLoads.delete(oldestKey);
+  }
 }
 
 export function resetSharedQaRankingCacheForTests(): void {
   sharedQaRankingLoads.clear();
+  sharedQaPendingCountLoads.clear();
 }
+
+async function loadQaPendingCount(sessionId: string, rankingRevision: number): Promise<number> {
+  const key = `${sessionId}:${rankingRevision}`;
+  const nowMs = Date.now();
+  pruneSharedQaRankingCache(nowMs);
+  const cached = sharedQaPendingCountLoads.get(key);
+  if (cached && cached.expiresAt > nowMs) {
+    return cached.promise;
+  }
+
+  const entry: SharedQaPendingCountCacheEntry = {
+    expiresAt: Number.POSITIVE_INFINITY,
+    promise: prisma.qaQuestion.count({ where: { sessionId, status: 'PENDING' } }),
+  };
+  entry.promise = entry.promise.then(
+    (count) => {
+      if (sharedQaPendingCountLoads.get(key) === entry) {
+        entry.expiresAt = Date.now() + QA_PAGE_CACHE_TTL_MS;
+      }
+      return count;
+    },
+    (error: unknown) => {
+      if (sharedQaPendingCountLoads.get(key) === entry) {
+        sharedQaPendingCountLoads.delete(key);
+      }
+      throw error;
+    },
+  );
+  sharedQaPendingCountLoads.set(key, entry);
+  return entry.promise;
+}
+
+async function loadQaPendingReleaseSnapshot(
+  db: Pick<Prisma.TransactionClient, 'qaQuestion'>,
+  sessionId: string,
+) {
+  const pendingQuestions = await db.qaQuestion.findMany({
+    where: { sessionId, status: 'PENDING' },
+    select: { id: true },
+    orderBy: { id: 'asc' },
+  });
+  const fingerprint = createHash('sha256').update('arsnova:qa-pending-set:v1\0');
+  for (const question of pendingQuestions) {
+    fingerprint.update(question.id).update('\0');
+  }
+  return {
+    pendingCount: pendingQuestions.length,
+    pendingSetFingerprint: fingerprint.digest('hex'),
+  };
+}
+
 type QaOwnVoteLoad = {
   participantId: string;
   questionIds: string[];
@@ -1041,7 +1120,17 @@ export const qaRouter = router({
       const rankingRevision = `${session.qaRankingRevision}:${sortMode}:${
         sortMode === 'CONTROVERSIAL' ? (participantCountForControversy ?? 0) : ''
       }`;
-      const [page, participantQuestionCount] = await Promise.all([
+      const pendingCountWithoutModeration =
+        session.qaModerationMode === false
+          ? await loadQaPendingCount(session.id, session.qaRankingRevision)
+          : undefined;
+      const filteredSessionPendingCountPromise =
+        input.moderatorView && (input.search?.trim() || authorNickname)
+          ? typeof pendingCountWithoutModeration === 'number'
+            ? Promise.resolve(pendingCountWithoutModeration)
+            : loadQaPendingCount(session.id, session.qaRankingRevision)
+          : Promise.resolve<number | undefined>(undefined);
+      const [page, participantQuestionCount, filteredSessionPendingCount] = await Promise.all([
         buildQaQuestionPayloadFromDb({
           sessionId: session.id,
           participantId: input.participantId,
@@ -1059,7 +1148,8 @@ export const qaRouter = router({
             !input.search?.trim() &&
             !authorNickname &&
             (!input.statuses || input.statuses.length === 0) &&
-            (input.moderatorView === true || session.qaModerationMode === false)
+            (input.moderatorView === true ||
+              (session.qaModerationMode === false && pendingCountWithoutModeration === 0))
               ? session.qaQuestionCount
               : undefined,
         }),
@@ -1068,6 +1158,7 @@ export const qaRouter = router({
               where: { sessionId: session.id, participantId: input.participantId },
             })
           : Promise.resolve(0),
+        filteredSessionPendingCountPromise,
       ]);
       const [currentRevision, currentParticipantCount] = await Promise.all([
         prisma.session.findUnique({
@@ -1087,6 +1178,9 @@ export const qaRouter = router({
           message: 'Die Q&A-Rangliste hat sich geändert. Lade sie bitte neu.',
         });
       }
+      const sessionPendingCount = input.moderatorView
+        ? (filteredSessionPendingCount ?? page.pendingCount)
+        : undefined;
       const quota = input.participantId
         ? {
             participantQuestionCount,
@@ -1103,6 +1197,7 @@ export const qaRouter = router({
         nextCursor: page.nextCursor,
         totalCount: page.totalCount,
         ...(typeof page.pendingCount === 'number' ? { pendingCount: page.pendingCount } : {}),
+        ...(typeof sessionPendingCount === 'number' ? { sessionPendingCount } : {}),
         sessionQuestionCount: session.qaQuestionCount,
         sessionRemaining: Math.max(0, QA_MAX_QUESTIONS_PER_SESSION - session.qaQuestionCount),
         quota,
@@ -1151,6 +1246,10 @@ export const qaRouter = router({
             ? 'CHANNEL_CLOSED'
             : 'ACTIVE';
       const rankingRevision = `${session.qaRankingRevision}:`;
+      const pendingCountWithoutModeration =
+        session.qaModerationMode === false
+          ? await loadQaPendingCount(session.id, session.qaRankingRevision)
+          : undefined;
       const page = await buildQaQuestionPayloadFromDb({
         sessionId: session.id,
         moderatorView: false,
@@ -1158,7 +1257,10 @@ export const qaRouter = router({
         includeAuthorNickname: session.onboardingAnonymousMode !== true,
         pageSize: 100,
         rankingRevision,
-        totalCountHint: session.qaModerationMode === false ? session.qaQuestionCount : undefined,
+        totalCountHint:
+          session.qaModerationMode === false && pendingCountWithoutModeration === 0
+            ? session.qaQuestionCount
+            : undefined,
       });
       return buildQaQuestionsSnapshot(session, page.questions, state, serverNow, {
         rankingRevision,
@@ -1542,6 +1644,140 @@ export const qaRouter = router({
       };
     }),
 
+  pendingReleaseSnapshot: hostProcedure
+    .input(GetQaPendingReleaseSnapshotInputSchema)
+    .output(QaPendingReleaseSnapshotOutputSchema)
+    .query(async ({ input }) => {
+      const session = await prisma.session.findFirst({
+        where: { code: input.sessionCode.toUpperCase() },
+        select: {
+          id: true,
+          type: true,
+          status: true,
+          endedAt: true,
+          expiresAt: true,
+          qaEnabled: true,
+          qaOpen: true,
+          qaClosesAt: true,
+          qaModerationMode: true,
+          moderationMode: true,
+        },
+      });
+      if (!session) {
+        throw new TRPCError({ code: 'NOT_FOUND', message: 'Session nicht gefunden.' });
+      }
+      if (!isQaEnabled(session)) {
+        throw new TRPCError({
+          code: 'BAD_REQUEST',
+          message: 'Fragen sind in dieser Session nicht aktiviert.',
+        });
+      }
+      assertQaSessionOpenForParticipants(session);
+      if (session.qaModerationMode !== false || session.moderationMode !== false) {
+        throw new TRPCError({
+          code: 'CONFLICT',
+          message: 'Deaktiviere zuerst die Vorab-Moderation.',
+        });
+      }
+      return loadQaPendingReleaseSnapshot(prisma, session.id);
+    }),
+
+  releasePending: hostProcedure
+    .input(ReleasePendingQaQuestionsInputSchema)
+    .output(ReleasePendingQaQuestionsOutputSchema)
+    .mutation(async ({ input }) => {
+      const session = await prisma.session.findFirst({
+        where: { code: input.sessionCode.toUpperCase() },
+        select: {
+          id: true,
+          type: true,
+          status: true,
+          endedAt: true,
+          expiresAt: true,
+          qaEnabled: true,
+          qaOpen: true,
+          qaClosesAt: true,
+        },
+      });
+      if (!session) {
+        throw new TRPCError({ code: 'NOT_FOUND', message: 'Session nicht gefunden.' });
+      }
+      if (!isQaEnabled(session)) {
+        throw new TRPCError({
+          code: 'BAD_REQUEST',
+          message: 'Fragen sind in dieser Session nicht aktiviert.',
+        });
+      }
+      assertQaSessionOpenForParticipants(session);
+
+      const releasedCount = await prisma
+        .$transaction(async (tx) => {
+          await tx.$executeRaw`SELECT arsnova_lock_session_for_participant_join(${session.id})`;
+          const lockedSession = await tx.session.findUnique({
+            where: { id: session.id },
+            select: {
+              type: true,
+              status: true,
+              endedAt: true,
+              expiresAt: true,
+              qaEnabled: true,
+              qaOpen: true,
+              qaClosesAt: true,
+              qaModerationMode: true,
+              moderationMode: true,
+            },
+          });
+          if (!lockedSession) {
+            throw new TRPCError({ code: 'NOT_FOUND', message: 'Session nicht gefunden.' });
+          }
+          if (!isQaEnabled(lockedSession)) {
+            throw new TRPCError({
+              code: 'BAD_REQUEST',
+              message: 'Fragen sind in dieser Session nicht aktiviert.',
+            });
+          }
+          if (!isQaOpenForParticipants(lockedSession)) {
+            assertQaSessionOpenForParticipants(lockedSession);
+            throw new TRPCError({
+              code: 'FORBIDDEN',
+              message: 'Der Q&A-Kanal ist aktuell geschlossen.',
+            });
+          }
+          if (lockedSession.qaModerationMode !== false || lockedSession.moderationMode !== false) {
+            throw new TRPCError({
+              code: 'CONFLICT',
+              message: 'Deaktiviere zuerst die Vorab-Moderation.',
+            });
+          }
+          const pendingSnapshot = await loadQaPendingReleaseSnapshot(tx, session.id);
+          if (pendingSnapshot.pendingSetFingerprint !== input.expectedPendingSetFingerprint) {
+            throw new TRPCError({
+              code: 'CONFLICT',
+              message:
+                'Der Fragenstand hat sich geändert. Bestätige die aktualisierte Sammelfreigabe erneut.',
+            });
+          }
+          const released = await tx.qaQuestion.updateMany({
+            where: { sessionId: session.id, status: 'PENDING' },
+            data: { status: 'ACTIVE' },
+          });
+          if (released.count !== pendingSnapshot.pendingCount) {
+            throw new TRPCError({
+              code: 'CONFLICT',
+              message:
+                'Der Fragenstand hat sich geändert. Bestätige die aktualisierte Sammelfreigabe erneut.',
+            });
+          }
+          return released.count;
+        })
+        .catch(rethrowQaContributionError);
+
+      if (releasedCount > 0) {
+        emitQaQuestionsSignal(session.id, { immediate: true });
+      }
+      return { releasedCount };
+    }),
+
   toggleModeration: hostProcedure
     .input(ToggleQaModerationInputSchema)
     .output(z.object({ enabled: z.boolean() }))
@@ -1577,14 +1813,6 @@ export const qaRouter = router({
             },
             select: { qaModerationMode: true },
           });
-          // Ohne Vorab-Moderation müssen wartende Fragen sichtbar werden
-          // (Wortwolke/Listen filtern PENDING aus).
-          if (!input.enabled) {
-            await tx.qaQuestion.updateMany({
-              where: { sessionId: session.id, status: 'PENDING' },
-              data: { status: 'ACTIVE' },
-            });
-          }
           return next;
         })
         .catch(rethrowQaContributionError);
@@ -1614,6 +1842,7 @@ export const qaRouter = router({
           sessionLifecycleRevision: true,
           qaRankingRevision: true,
           participantRevision: true,
+          qaModerationMode: true,
         },
       });
       if (!gateSession) {
@@ -1628,7 +1857,12 @@ export const qaRouter = router({
           isSessionEffectivelyFinished(gateSession, gateNow) &&
           !retention.hostPostProcessingAccessAllowed
         ) {
-          yield buildQaQuestionsInvalidation(gateSession, 'POST_PROCESSING_ENDED', gateNow);
+          yield buildQaQuestionsInvalidation(
+            gateSession,
+            'POST_PROCESSING_ENDED',
+            gateNow,
+            input.moderatorView,
+          );
           return;
         }
       }
@@ -1645,12 +1879,22 @@ export const qaRouter = router({
           participantId: input.participantId,
         });
         if (isQaParticipantReadEnded(gateSession, gateNow)) {
-          yield buildQaQuestionsInvalidation(gateSession, 'SESSION_ENDED', gateNow);
+          yield buildQaQuestionsInvalidation(
+            gateSession,
+            'SESSION_ENDED',
+            gateNow,
+            input.moderatorView,
+          );
           return;
         }
       }
       if (!isQaEnabled(gateSession)) {
-        yield buildQaQuestionsInvalidation(gateSession, 'CHANNEL_CLOSED', gateNow);
+        yield buildQaQuestionsInvalidation(
+          gateSession,
+          'CHANNEL_CLOSED',
+          gateNow,
+          input.moderatorView,
+        );
         return;
       }
 
@@ -1695,6 +1939,7 @@ export const qaRouter = router({
             sessionLifecycleRevision: true,
             qaRankingRevision: true,
             participantRevision: true,
+            qaModerationMode: true,
           },
         });
         if (!session) {
@@ -1702,7 +1947,12 @@ export const qaRouter = router({
         }
 
         if (!isQaEnabled(session)) {
-          yield buildQaQuestionsInvalidation(session, 'CHANNEL_CLOSED');
+          yield buildQaQuestionsInvalidation(
+            session,
+            'CHANNEL_CLOSED',
+            new Date(),
+            input.moderatorView,
+          );
           return;
         }
         const snapshotNow = new Date();
@@ -1712,11 +1962,21 @@ export const qaRouter = router({
             isSessionEffectivelyFinished(session, snapshotNow) &&
             !retention.hostPostProcessingAccessAllowed
           ) {
-            yield buildQaQuestionsInvalidation(session, 'POST_PROCESSING_ENDED', snapshotNow);
+            yield buildQaQuestionsInvalidation(
+              session,
+              'POST_PROCESSING_ENDED',
+              snapshotNow,
+              input.moderatorView,
+            );
             return;
           }
         } else if (isQaParticipantReadEnded(session, snapshotNow)) {
-          yield buildQaQuestionsInvalidation(session, 'SESSION_ENDED', snapshotNow);
+          yield buildQaQuestionsInvalidation(
+            session,
+            'SESSION_ENDED',
+            snapshotNow,
+            input.moderatorView,
+          );
           return;
         }
 
@@ -1733,7 +1993,12 @@ export const qaRouter = router({
           const revisionKey = `${contentState}:${session.sessionLifecycleRevision}:${session.qaRankingRevision}:${session.participantRevision}`;
           if (revisionKey !== lastRevisionKey) {
             lastRevisionKey = revisionKey;
-            yield buildQaQuestionsInvalidation(session, contentState, snapshotNow);
+            yield buildQaQuestionsInvalidation(
+              session,
+              contentState,
+              snapshotNow,
+              input.moderatorView,
+            );
           }
           await waitForNextTick(session, signalVersion);
           continue;
@@ -1741,13 +2006,15 @@ export const qaRouter = router({
 
         const revisionKey = `${contentState}:${session.sessionLifecycleRevision}:${
           session.qaRankingRevision
-        }:${sortMode === 'CONTROVERSIAL' ? session.participantRevision : ''}`;
+        }:${sortMode === 'CONTROVERSIAL' ? session.participantRevision : ''}:${
+          input.moderatorView ? session.qaModerationMode : ''
+        }`;
         if (revisionKey === lastRevisionKey) {
           await waitForNextTick(session, signalVersion);
           continue;
         }
         lastRevisionKey = revisionKey;
-        yield buildQaQuestionsInvalidation(session, contentState, snapshotNow);
+        yield buildQaQuestionsInvalidation(session, contentState, snapshotNow, input.moderatorView);
 
         await waitForNextTick(session, signalVersion);
       }

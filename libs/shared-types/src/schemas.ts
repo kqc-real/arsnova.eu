@@ -5816,6 +5816,11 @@ export const QaQuestionsListDTOSchema = z.object({
    * Seitengröße und Statusfilter. Fehlt bei Teilnehmer-Snapshots.
    */
   pendingCount: z.number().int().min(0).optional(),
+  /**
+   * Host-only: alle PENDING-Fragen der Session, unabhängig von Such-, Autoren-
+   * und Statusfiltern. Fehlt bei Teilnehmer-Snapshots.
+   */
+  sessionPendingCount: z.number().int().min(0).optional(),
   /** Kanonischer physischer Bestand einschließlich archivierter und soft-gelöschter Fragen. */
   sessionQuestionCount: z.number().int().min(0).max(QA_MAX_QUESTIONS_PER_SESSION).optional(),
   sessionRemaining: z.number().int().min(0).max(QA_MAX_QUESTIONS_PER_SESSION).optional(),
@@ -5838,6 +5843,8 @@ export const QaQuestionsInvalidationDTOSchema = z.object({
   qaClosesAt: z.string().datetime().nullable(),
   endedAt: z.string().datetime().nullable(),
   postProcessingEndsAt: z.string().datetime().nullable(),
+  /** Host-only: aktueller Zustand der Vorab-Moderation. */
+  moderationMode: z.boolean().optional(),
 });
 export type QaQuestionsInvalidationDTO = z.infer<typeof QaQuestionsInvalidationDTOSchema>;
 
@@ -5922,6 +5929,31 @@ export const ToggleQaModerationInputSchema = z.object({
   enabled: z.boolean(),
 });
 export type ToggleQaModerationInput = z.infer<typeof ToggleQaModerationInputSchema>;
+
+export const GetQaPendingReleaseSnapshotInputSchema = z.object({
+  sessionCode: z.string().trim().min(6).max(6),
+});
+export type GetQaPendingReleaseSnapshotInput = z.infer<
+  typeof GetQaPendingReleaseSnapshotInputSchema
+>;
+
+export const QaPendingReleaseSnapshotOutputSchema = z.object({
+  pendingCount: z.number().int().nonnegative(),
+  pendingSetFingerprint: z.string().regex(/^[a-f0-9]{64}$/),
+});
+export type QaPendingReleaseSnapshotOutput = z.infer<typeof QaPendingReleaseSnapshotOutputSchema>;
+
+/** Input: den zuvor bestätigten Bestand wartender Q&A-Fragen freigeben (Host) */
+export const ReleasePendingQaQuestionsInputSchema = z.object({
+  sessionCode: z.string().trim().min(6).max(6),
+  expectedPendingSetFingerprint: z.string().regex(/^[a-f0-9]{64}$/),
+});
+export type ReleasePendingQaQuestionsInput = z.infer<typeof ReleasePendingQaQuestionsInputSchema>;
+
+export const ReleasePendingQaQuestionsOutputSchema = z.object({
+  releasedCount: z.number().int().nonnegative(),
+});
+export type ReleasePendingQaQuestionsOutput = z.infer<typeof ReleasePendingQaQuestionsOutputSchema>;
 
 export const ModerateQaQuestionActionEnum = z.enum([
   'APPROVE',
