@@ -36,6 +36,8 @@ import {
   AdminResetSessionHostAccessInputSchema,
   AdminSessionLookupInputSchema,
   parseAdminSessionLookup,
+  GetQaPendingReleaseSnapshotInputSchema,
+  QaPendingReleaseSnapshotOutputSchema,
   ReleasePendingQaQuestionsInputSchema,
   ReleasePendingQaQuestionsOutputSchema,
 } from './schemas.js';
@@ -61,12 +63,22 @@ describe('öffentliche Contract-Schemas', () => {
   };
 
   it('validiert den Vertrag für die Sammelfreigabe wartender Q&A-Fragen', () => {
+    const pendingSetFingerprint = 'a'.repeat(64);
+    expect(GetQaPendingReleaseSnapshotInputSchema.parse({ sessionCode: 'ABC123' })).toEqual({
+      sessionCode: 'ABC123',
+    });
+    expect(
+      QaPendingReleaseSnapshotOutputSchema.parse({
+        pendingCount: 17,
+        pendingSetFingerprint,
+      }),
+    ).toEqual({ pendingCount: 17, pendingSetFingerprint });
     expect(
       ReleasePendingQaQuestionsInputSchema.parse({
         sessionCode: 'ABC123',
-        expectedRankingRevision: 17,
+        expectedPendingSetFingerprint: pendingSetFingerprint,
       }),
-    ).toEqual({ sessionCode: 'ABC123', expectedRankingRevision: 17 });
+    ).toEqual({ sessionCode: 'ABC123', expectedPendingSetFingerprint: pendingSetFingerprint });
     expect(ReleasePendingQaQuestionsInputSchema.safeParse({ sessionCode: 'ZU-KURZ' }).success).toBe(
       false,
     );
@@ -76,7 +88,7 @@ describe('öffentliche Contract-Schemas', () => {
     expect(
       ReleasePendingQaQuestionsInputSchema.safeParse({
         sessionCode: 'ABC123',
-        expectedRankingRevision: -1,
+        expectedPendingSetFingerprint: 'not-a-fingerprint',
       }).success,
     ).toBe(false);
     expect(ReleasePendingQaQuestionsOutputSchema.parse({ releasedCount: 12 })).toEqual({

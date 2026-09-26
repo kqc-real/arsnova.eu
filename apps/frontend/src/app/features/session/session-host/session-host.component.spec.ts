@@ -88,6 +88,7 @@ const {
   qaSummaryRuntimeQueryMock,
   qaRequestSummaryMutateMock,
   qaModerateMutateMock,
+  qaPendingReleaseSnapshotQueryMock,
   qaReleasePendingMutateMock,
   qaToggleModerationMutateMock,
   qaOnQuestionsUpdatedSubscribeMock,
@@ -148,6 +149,7 @@ const {
   qaSummaryRuntimeQueryMock: vi.fn(),
   qaRequestSummaryMutateMock: vi.fn(),
   qaModerateMutateMock: vi.fn(),
+  qaPendingReleaseSnapshotQueryMock: vi.fn(),
   qaReleasePendingMutateMock: vi.fn(),
   qaToggleModerationMutateMock: vi.fn(),
   qaOnQuestionsUpdatedSubscribeMock: vi.fn(() => ({ unsubscribe: unsubscribeMock })),
@@ -247,6 +249,7 @@ vi.mock('../../../core/trpc.client', () => ({
       summaryRuntime: { query: qaSummaryRuntimeQueryMock },
       requestSummary: { mutate: qaRequestSummaryMutateMock },
       moderate: { mutate: qaModerateMutateMock },
+      pendingReleaseSnapshot: { query: qaPendingReleaseSnapshotQueryMock },
       releasePending: { mutate: qaReleasePendingMutateMock },
       toggleModeration: { mutate: qaToggleModerationMutateMock },
       onQuestionsUpdated: { subscribe: qaOnQuestionsUpdatedSubscribeMock },
@@ -561,6 +564,10 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
       result: null,
     });
     qaModerateMutateMock.mockResolvedValue({});
+    qaPendingReleaseSnapshotQueryMock.mockResolvedValue({
+      pendingCount: 0,
+      pendingSetFingerprint: '0'.repeat(64),
+    });
     qaReleasePendingMutateMock.mockResolvedValue({ releasedCount: 0 });
     qaOnQuestionsUpdatedSubscribeMock.mockImplementation(() => ({ unsubscribe: unsubscribeMock }));
     startQaMutateMock.mockResolvedValue({
@@ -7747,6 +7754,10 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
     };
     let releaseCompleted = false;
     qaListQueryMock.mockImplementation(async () => (releaseCompleted ? [] : pendingSnapshot));
+    qaPendingReleaseSnapshotQueryMock.mockResolvedValue({
+      pendingCount: 2,
+      pendingSetFingerprint: 'a'.repeat(64),
+    });
     qaReleasePendingMutateMock.mockImplementation(async () => {
       releaseCompleted = true;
       return { releasedCount: 2 };
@@ -7789,7 +7800,7 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
     );
     expect(qaReleasePendingMutateMock).toHaveBeenCalledWith({
       sessionCode: 'ABC123',
-      expectedRankingRevision: 1,
+      expectedPendingSetFingerprint: 'a'.repeat(64),
     });
     expect(fixture.nativeElement.textContent ?? '').toContain('2 Fragen wurden freigegeben.');
     expect(fixture.componentInstance.qaShowPendingOnly()).toBe(false);
@@ -7823,13 +7834,16 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
     };
     let snapshot = qaHostSnapshot([firstQuestion]);
     qaListQueryMock.mockImplementation(async () => snapshot);
-    let invalidationHandler: ((data: QaQuestionsInvalidationDTO) => void) | undefined;
-    qaOnQuestionsUpdatedSubscribeMock.mockImplementation(
-      (_input: unknown, handlers: { onData?: (data: QaQuestionsInvalidationDTO) => void }) => {
-        invalidationHandler = handlers.onData;
-        return { unsubscribe: unsubscribeMock };
-      },
-    );
+    qaPendingReleaseSnapshotQueryMock
+      .mockResolvedValueOnce({
+        pendingCount: 1,
+        pendingSetFingerprint: 'a'.repeat(64),
+      })
+      .mockResolvedValue({
+        pendingCount: 2,
+        pendingSetFingerprint: 'b'.repeat(64),
+      });
+    qaReleasePendingMutateMock.mockRejectedValueOnce({ data: { code: 'CONFLICT' } });
     const firstDialogClosed = new Subject<boolean>();
     dialogOpenMock
       .mockReturnValueOnce({ afterClosed: () => firstDialogClosed.asObservable() })
@@ -7851,23 +7865,19 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
       rankingRevision: 2,
       sessionLifecycleRevision: 2,
     });
-    invalidationHandler?.({
-      kind: 'INVALIDATED',
-      state: 'ACTIVE',
-      sessionLifecycleRevision: 2,
-      rankingRevision: 2,
-      participantRevision: 0,
-      serverNow: '2026-03-13T12:01:00.000Z',
-      expiresAt: '2026-03-14T12:00:00.000Z',
-      qaClosesAt: '2026-03-14T12:00:00.000Z',
-      endedAt: null,
-      postProcessingEndsAt: null,
-      moderationMode: false,
-    });
-    await vi.waitUntil(() => component.qaListRankingRevision() === '2:TOP:');
 
     firstDialogClosed.next(true);
     firstDialogClosed.complete();
+    await vi.waitUntil(() => !component.qaReleasePendingInProgress());
+
+    expect(qaReleasePendingMutateMock).toHaveBeenCalledOnce();
+    expect(qaReleasePendingMutateMock).toHaveBeenCalledWith({
+      sessionCode: 'ABC123',
+      expectedPendingSetFingerprint: 'a'.repeat(64),
+    });
+    expect(component.hostSteeringCallout()).not.toBeNull();
+
+    component.hostSteeringCallout()?.retry();
     await vi.waitUntil(() => dialogOpenMock.mock.calls.length === 2);
 
     const [, repeatedConfig] = dialogOpenMock.mock.calls[1] as [
@@ -7879,7 +7889,8 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
       message: '2 Fragen in Moderation werden für Teilnehmende sichtbar.',
       confirmLabel: '2 Fragen freigeben',
     });
-    expect(qaReleasePendingMutateMock).not.toHaveBeenCalled();
+    expect(qaPendingReleaseSnapshotQueryMock).toHaveBeenCalledTimes(2);
+    expect(qaReleasePendingMutateMock).toHaveBeenCalledOnce();
     fixture.destroy();
   });
 
@@ -7906,6 +7917,10 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
         },
       ]),
     );
+    qaPendingReleaseSnapshotQueryMock.mockResolvedValue({
+      pendingCount: 1,
+      pendingSetFingerprint: 'a'.repeat(64),
+    });
     dialogOpenMock.mockReturnValue({ afterClosed: () => of(false) });
 
     const fixture = setup();
@@ -7947,6 +7962,10 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
         },
       ]),
     );
+    qaPendingReleaseSnapshotQueryMock.mockResolvedValue({
+      pendingCount: 1,
+      pendingSetFingerprint: 'a'.repeat(64),
+    });
     let invalidationHandler: ((data: QaQuestionsInvalidationDTO) => void) | undefined;
     qaOnQuestionsUpdatedSubscribeMock.mockImplementation(
       (_input: unknown, handlers: { onData?: (data: QaQuestionsInvalidationDTO) => void }) => {
@@ -8020,6 +8039,10 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
         },
       ]),
     );
+    qaPendingReleaseSnapshotQueryMock.mockResolvedValue({
+      pendingCount: 1,
+      pendingSetFingerprint: 'a'.repeat(64),
+    });
     let rejectRelease!: (reason?: unknown) => void;
     qaReleasePendingMutateMock.mockReturnValueOnce(
       new Promise((_, reject) => {
@@ -8111,6 +8134,10 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
       releaseCompleted = true;
       return { releasedCount: 1 };
     });
+    qaPendingReleaseSnapshotQueryMock.mockResolvedValue({
+      pendingCount: 1,
+      pendingSetFingerprint: 'a'.repeat(64),
+    });
 
     const fixture = setup();
     fixture.detectChanges();
@@ -8137,7 +8164,7 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
     ) as HTMLElement | null;
     expect(qaReleasePendingMutateMock).toHaveBeenCalledWith({
       sessionCode: 'ABC123',
-      expectedRankingRevision: 1,
+      expectedPendingSetFingerprint: 'a'.repeat(64),
     });
     expect(callout?.textContent ?? '').toContain('Mit den Fragen klappt es gerade nicht');
     expect(callout?.querySelector('[data-testid="host-steering-retry"]')).toBeTruthy();

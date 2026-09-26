@@ -1,4 +1,5 @@
 import type { IncomingMessage } from 'node:http';
+import { createHash } from 'node:crypto';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { trpcDodIt } from './test-utils/trpc-dod-evidence';
 
@@ -107,6 +108,14 @@ const ACTIVE_QA_SESSION = {
   qaQuestionCount: 0,
   onboardingAnonymousMode: false,
 };
+
+function qaPendingSetFingerprint(...questionIds: string[]): string {
+  const fingerprint = createHash('sha256').update('arsnova:qa-pending-set:v1\0');
+  for (const questionId of [...questionIds].sort()) {
+    fingerprint.update(questionId).update('\0');
+  }
+  return fingerprint.digest('hex');
+}
 
 type SqlLike = {
   strings: readonly string[];
@@ -1356,10 +1365,10 @@ describe('qa router (Epic 8)', () => {
 
   trpcDodIt(
     {
-      procedure: 'qa.releasePending',
+      procedure: 'qa.pendingReleaseSnapshot',
       case: 'happy',
       mode: 'direct',
-      title: 'gibt bei deaktivierter Vorab-Moderation alle wartenden Fragen gesammelt frei',
+      title: 'liefert Anzahl und Fingerprint des aktuellen Pending-Bestands',
     },
     async () => {
       prismaMock.session.findFirst.mockResolvedValue({
@@ -1368,21 +1377,78 @@ describe('qa router (Epic 8)', () => {
         type: 'QUIZ',
         qaEnabled: true,
         qaOpen: true,
+        qaModerationMode: false,
+        moderationMode: false,
+      });
+      prismaMock.qaQuestion.findMany.mockResolvedValue([
+        { id: QUESTION_ID },
+        { id: OTHER_PARTICIPANT_ID },
+      ]);
+
+      await expect(hostCaller.pendingReleaseSnapshot({ sessionCode: 'ABC123' })).resolves.toEqual({
+        pendingCount: 2,
+        pendingSetFingerprint: qaPendingSetFingerprint(QUESTION_ID, OTHER_PARTICIPANT_ID),
+      });
+      expect(prismaMock.qaQuestion.findMany).toHaveBeenCalledWith({
+        where: { sessionId: SESSION_ID, status: 'PENDING' },
+        select: { id: true },
+        orderBy: { id: 'asc' },
+      });
+    },
+  );
+
+  trpcDodIt(
+    {
+      procedure: 'qa.pendingReleaseSnapshot',
+      case: 'error',
+      mode: 'direct',
+      contract: 'UNAUTHORIZED',
+      title: 'lehnt den Pending-Fingerprint ohne gültigen Host-Token ab',
+    },
+    async () => {
+      await expect(caller.pendingReleaseSnapshot({ sessionCode: 'ABC123' })).rejects.toMatchObject({
+        code: 'UNAUTHORIZED',
+        message: 'Host-Authentifizierung erforderlich.',
+      });
+      expect(prismaMock.qaQuestion.findMany).not.toHaveBeenCalled();
+    },
+  );
+
+  trpcDodIt(
+    {
+      procedure: 'qa.releasePending',
+      case: 'happy',
+      mode: 'direct',
+      title: 'gibt denselben Pending-Bestand trotz zwischenzeitlicher Votes gesammelt frei',
+    },
+    async () => {
+      prismaMock.session.findFirst.mockResolvedValue({
+        ...ACTIVE_QA_SESSION,
+        id: SESSION_ID,
+        qaRankingRevision: 7,
+        type: 'QUIZ',
+        qaEnabled: true,
+        qaOpen: true,
         status: 'ACTIVE',
       });
       prismaMock.session.findUnique.mockResolvedValue({
         ...ACTIVE_QA_SESSION,
+        qaRankingRevision: 8,
         type: 'QUIZ',
         qaEnabled: true,
         qaOpen: true,
         qaModerationMode: false,
         moderationMode: false,
       });
-      prismaMock.qaQuestion.updateMany.mockResolvedValue({ count: 12 });
+      prismaMock.qaQuestion.findMany.mockResolvedValue([{ id: QUESTION_ID }]);
+      prismaMock.qaQuestion.updateMany.mockResolvedValue({ count: 1 });
 
       await expect(
-        hostCaller.releasePending({ sessionCode: 'ABC123', expectedRankingRevision: 7 }),
-      ).resolves.toEqual({ releasedCount: 12 });
+        hostCaller.releasePending({
+          sessionCode: 'ABC123',
+          expectedPendingSetFingerprint: qaPendingSetFingerprint(QUESTION_ID),
+        }),
+      ).resolves.toEqual({ releasedCount: 1 });
       expect(prismaMock.qaQuestion.updateMany).toHaveBeenCalledWith({
         where: { sessionId: SESSION_ID, status: 'PENDING' },
         data: { status: 'ACTIVE' },
@@ -1409,16 +1475,22 @@ describe('qa router (Epic 8)', () => {
       });
       prismaMock.session.findUnique.mockResolvedValue({
         ...ACTIVE_QA_SESSION,
-        qaRankingRevision: 8,
         type: 'QUIZ',
         qaEnabled: true,
         qaOpen: true,
         qaModerationMode: false,
         moderationMode: false,
       });
+      prismaMock.qaQuestion.findMany.mockResolvedValue([
+        { id: QUESTION_ID },
+        { id: OTHER_PARTICIPANT_ID },
+      ]);
 
       await expect(
-        hostCaller.releasePending({ sessionCode: 'ABC123', expectedRankingRevision: 7 }),
+        hostCaller.releasePending({
+          sessionCode: 'ABC123',
+          expectedPendingSetFingerprint: qaPendingSetFingerprint(QUESTION_ID),
+        }),
       ).rejects.toMatchObject({
         code: 'CONFLICT',
         message:
@@ -1455,7 +1527,10 @@ describe('qa router (Epic 8)', () => {
       });
 
       await expect(
-        hostCaller.releasePending({ sessionCode: 'ABC123', expectedRankingRevision: 7 }),
+        hostCaller.releasePending({
+          sessionCode: 'ABC123',
+          expectedPendingSetFingerprint: qaPendingSetFingerprint(QUESTION_ID),
+        }),
       ).rejects.toMatchObject({
         code: 'CONFLICT',
         message: 'Deaktiviere zuerst die Vorab-Moderation.',
@@ -1491,7 +1566,10 @@ describe('qa router (Epic 8)', () => {
       });
 
       await expect(
-        hostCaller.releasePending({ sessionCode: 'ABC123', expectedRankingRevision: 7 }),
+        hostCaller.releasePending({
+          sessionCode: 'ABC123',
+          expectedPendingSetFingerprint: qaPendingSetFingerprint(QUESTION_ID),
+        }),
       ).rejects.toMatchObject({
         code: 'FORBIDDEN',
         message: 'Der Q&A-Kanal ist aktuell geschlossen.',
@@ -1510,7 +1588,10 @@ describe('qa router (Epic 8)', () => {
     },
     async () => {
       await expect(
-        caller.releasePending({ sessionCode: 'ABC123', expectedRankingRevision: 7 }),
+        caller.releasePending({
+          sessionCode: 'ABC123',
+          expectedPendingSetFingerprint: qaPendingSetFingerprint(QUESTION_ID),
+        }),
       ).rejects.toMatchObject({
         code: 'UNAUTHORIZED',
         message: 'Host-Authentifizierung erforderlich.',

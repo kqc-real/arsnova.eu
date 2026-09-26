@@ -4,6 +4,7 @@ import { createHash, randomUUID } from 'node:crypto';
 import { z } from 'zod';
 import {
   GetQaNlpRuntimeInputSchema,
+  GetQaPendingReleaseSnapshotInputSchema,
   GetQaPresentProjectionInputSchema,
   GetQaQuestionsInputSchema,
   GetQaSummaryRuntimeInputSchema,
@@ -11,6 +12,7 @@ import {
   QA_MAX_QUESTIONS_PER_PARTICIPANT,
   QA_MAX_QUESTIONS_PER_SESSION,
   QaNlpRuntimeDTOSchema,
+  QaPendingReleaseSnapshotOutputSchema,
   QaQuestionDTOSchema,
   QaQuestionsInvalidationDTOSchema,
   QaQuestionsListDTOSchema,
@@ -517,6 +519,26 @@ async function loadQaPendingCount(sessionId: string, rankingRevision: number): P
   sharedQaPendingCountLoads.set(key, entry);
   return entry.promise;
 }
+
+async function loadQaPendingReleaseSnapshot(
+  db: Pick<Prisma.TransactionClient, 'qaQuestion'>,
+  sessionId: string,
+) {
+  const pendingQuestions = await db.qaQuestion.findMany({
+    where: { sessionId, status: 'PENDING' },
+    select: { id: true },
+    orderBy: { id: 'asc' },
+  });
+  const fingerprint = createHash('sha256').update('arsnova:qa-pending-set:v1\0');
+  for (const question of pendingQuestions) {
+    fingerprint.update(question.id).update('\0');
+  }
+  return {
+    pendingCount: pendingQuestions.length,
+    pendingSetFingerprint: fingerprint.digest('hex'),
+  };
+}
+
 type QaOwnVoteLoad = {
   participantId: string;
   questionIds: string[];
@@ -1622,6 +1644,44 @@ export const qaRouter = router({
       };
     }),
 
+  pendingReleaseSnapshot: hostProcedure
+    .input(GetQaPendingReleaseSnapshotInputSchema)
+    .output(QaPendingReleaseSnapshotOutputSchema)
+    .query(async ({ input }) => {
+      const session = await prisma.session.findFirst({
+        where: { code: input.sessionCode.toUpperCase() },
+        select: {
+          id: true,
+          type: true,
+          status: true,
+          endedAt: true,
+          expiresAt: true,
+          qaEnabled: true,
+          qaOpen: true,
+          qaClosesAt: true,
+          qaModerationMode: true,
+          moderationMode: true,
+        },
+      });
+      if (!session) {
+        throw new TRPCError({ code: 'NOT_FOUND', message: 'Session nicht gefunden.' });
+      }
+      if (!isQaEnabled(session)) {
+        throw new TRPCError({
+          code: 'BAD_REQUEST',
+          message: 'Fragen sind in dieser Session nicht aktiviert.',
+        });
+      }
+      assertQaSessionOpenForParticipants(session);
+      if (session.qaModerationMode !== false || session.moderationMode !== false) {
+        throw new TRPCError({
+          code: 'CONFLICT',
+          message: 'Deaktiviere zuerst die Vorab-Moderation.',
+        });
+      }
+      return loadQaPendingReleaseSnapshot(prisma, session.id);
+    }),
+
   releasePending: hostProcedure
     .input(ReleasePendingQaQuestionsInputSchema)
     .output(ReleasePendingQaQuestionsOutputSchema)
@@ -1665,7 +1725,6 @@ export const qaRouter = router({
               qaClosesAt: true,
               qaModerationMode: true,
               moderationMode: true,
-              qaRankingRevision: true,
             },
           });
           if (!lockedSession) {
@@ -1690,7 +1749,8 @@ export const qaRouter = router({
               message: 'Deaktiviere zuerst die Vorab-Moderation.',
             });
           }
-          if (lockedSession.qaRankingRevision !== input.expectedRankingRevision) {
+          const pendingSnapshot = await loadQaPendingReleaseSnapshot(tx, session.id);
+          if (pendingSnapshot.pendingSetFingerprint !== input.expectedPendingSetFingerprint) {
             throw new TRPCError({
               code: 'CONFLICT',
               message:
@@ -1701,6 +1761,13 @@ export const qaRouter = router({
             where: { sessionId: session.id, status: 'PENDING' },
             data: { status: 'ACTIVE' },
           });
+          if (released.count !== pendingSnapshot.pendingCount) {
+            throw new TRPCError({
+              code: 'CONFLICT',
+              message:
+                'Der Fragenstand hat sich geändert. Bestätige die aktualisierte Sammelfreigabe erneut.',
+            });
+          }
           return released.count;
         })
         .catch(rethrowQaContributionError);

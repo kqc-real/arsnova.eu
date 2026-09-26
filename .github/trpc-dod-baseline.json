@@ -302,6 +302,11 @@
       "fingerprint": "sha256:12f03f9a622ef9836ee312317e3b7aa012b6d9aaf244248c66506d3d0d2d6236",
       "missing": []
     },
+    "qa.pendingReleaseSnapshot": {
+      "kind": "query",
+      "fingerprint": "sha256:e6cb1014e3f08ca6c6376023945ea80a45785ef59ff693db9b166836e509c232",
+      "missing": []
+    },
     "qa.presentProjection": {
       "kind": "query",
       "fingerprint": "sha256:04ff419cf3d3732f5739cd83eece572d849cd99230fe382cf5ac996e26421e65",
@@ -309,7 +314,7 @@
     },
     "qa.releasePending": {
       "kind": "mutation",
-      "fingerprint": "sha256:0941d5d33c948450944119b12dc3de28e72468000e0ee33a6b4a03763d5bf244",
+      "fingerprint": "sha256:cf36a801ed7de3470e3cf8725492bb557e2cfae1b74bcf23660cefcbc3613183",
       "missing": []
     },
     "qa.requestSummary": {
