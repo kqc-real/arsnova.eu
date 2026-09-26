@@ -11276,6 +11276,7 @@ export class SessionHostComponent implements OnInit, OnDestroy {
 
   private async refreshQaQuestions(options?: {
     silent?: boolean;
+    surfaceFailure?: boolean;
     replaceStale?: boolean;
     /** Aktuelle Fragenseite nach Live-Invalidierung behalten (nicht auf Seite 1 springen). */
     preservePaging?: boolean;
@@ -11342,6 +11343,7 @@ export class SessionHostComponent implements OnInit, OnDestroy {
         this.ensureQaSubscription();
         return await this.refreshQaQuestions({
           silent: options?.silent,
+          surfaceFailure: true,
           replaceStale: true,
         });
       }
@@ -11363,10 +11365,11 @@ export class SessionHostComponent implements OnInit, OnDestroy {
       if (options?.preservePaging && targetPage > 0 && this.isQaListRankingConflict(error)) {
         return await this.refreshQaQuestions({
           silent: options.silent,
+          surfaceFailure: options.surfaceFailure,
           preservePaging: false,
         });
       }
-      if (options?.silent) {
+      if (options?.silent && !options.surfaceFailure) {
         return false;
       }
       this.openHostSteeringCalloutForQaFailure(() => void this.refreshQaQuestions());

@@ -8111,7 +8111,7 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
     fixture.destroy();
   });
 
-  it('löst einen leeren Pending-Filter nach einer fremden Moderationsaktion automatisch', async () => {
+  it('meldet einen fehlgeschlagenen Folgeladevorgang nach einem automatisch gelösten Pending-Filter', async () => {
     getInfoQueryMock.mockResolvedValue({
       ...defaultSession,
       status: 'ACTIVE',
@@ -8138,9 +8138,13 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
       status: 'ACTIVE' as const,
     };
     let peerReleased = false;
+    let rejectUnfilteredReload = false;
     qaListQueryMock.mockImplementation(
       async (input?: { statuses?: Array<'PENDING' | 'ACTIVE' | 'PINNED' | 'ARCHIVED'> }) => {
         const pendingOnly = input?.statuses?.length === 1 && input.statuses[0] === 'PENDING';
+        if (peerReleased && !pendingOnly && rejectUnfilteredReload) {
+          throw new Error('follow-up list failed');
+        }
         const questions = peerReleased ? (pendingOnly ? [] : [activeQuestion]) : [pendingQuestion];
         return {
           questions,
@@ -8176,6 +8180,7 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
     expect(component.qaShowPendingOnly()).toBe(true);
 
     peerReleased = true;
+    rejectUnfilteredReload = true;
     invalidationHandler?.({
       kind: 'INVALIDATED',
       state: 'ACTIVE',
@@ -8190,14 +8195,23 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
       moderationMode: false,
     });
     await vi.waitUntil(() => component.qaShowPendingOnly() === false);
-    await vi.waitUntil(() => component.qaQuestions()[0]?.status === 'ACTIVE');
+    await vi.waitUntil(() => component.hostSteeringCallout() !== null);
 
+    expect(component.hostSteeringCallout()?.title).toContain(
+      'Mit den Fragen klappt es gerade nicht',
+    );
     expect(qaListQueryMock).toHaveBeenLastCalledWith(
       expect.objectContaining({
         statuses: ['PENDING', 'ACTIVE', 'PINNED', 'ARCHIVED'],
       }),
     );
+
+    rejectUnfilteredReload = false;
+    component.hostSteeringCallout()?.retry();
+    await vi.waitUntil(() => component.qaQuestions()[0]?.status === 'ACTIVE');
+
     expect(component.qaQuestions()[0]?.text).toBe('Sichtbare Frage');
+    expect(component.hostSteeringCallout()).toBeNull();
     fixture.destroy();
   });
 
