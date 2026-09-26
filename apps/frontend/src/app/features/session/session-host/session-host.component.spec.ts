@@ -8450,7 +8450,17 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
       expect(component.qaCompactToolbar()).toBe(true);
       expect(document.activeElement).toBe(moreButton);
 
-      moreButton?.focus();
+      moreButton?.click();
+      fixture.detectChanges();
+      await fixture.whenStable();
+      fixture.detectChanges();
+      const mobileMenuItem = document.body.querySelector(
+        '[data-testid="qa-mobile-sort-best"]',
+      ) as HTMLButtonElement | null;
+      expect(mobileMenuItem).toBeTruthy();
+      mobileMenuItem?.focus();
+      expect(document.activeElement).toBe(mobileMenuItem);
+
       Object.defineProperty(window, 'innerWidth', { configurable: true, value: 800 });
       component.onWindowResize();
       fixture.detectChanges();

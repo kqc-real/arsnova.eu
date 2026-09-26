@@ -790,6 +790,7 @@ export class SessionHostComponent implements OnInit, OnDestroy {
   private qaDesktopSortRef?: ElementRef<HTMLElement>;
   @ViewChild('qaMobileMore', { read: ElementRef })
   private qaMobileMoreRef?: ElementRef<HTMLButtonElement>;
+  @ViewChild('qaMobileMoreTrigger') private qaMobileMoreTrigger?: MatMenuTrigger;
   @ViewChild('qaPendingFilter') qaPendingFilterRef?: ElementRef<HTMLButtonElement>;
   @ViewChild('qaPendingSummary') qaPendingSummaryRef?: ElementRef<HTMLButtonElement>;
   @ViewChild('moderationCompassButton') moderationCompassButtonRef?: ElementRef<HTMLButtonElement>;
@@ -6776,7 +6777,8 @@ export class SessionHostComponent implements OnInit, OnDestroy {
       ? activeElement !== null &&
         this.qaDesktopSortRef?.nativeElement.contains(activeElement) === true
       : activeElement !== null &&
-        this.qaMobileMoreRef?.nativeElement.contains(activeElement) === true;
+        (this.qaMobileMoreRef?.nativeElement.contains(activeElement) === true ||
+          this.qaMobileMoreTrigger?.menuOpen === true);
     if (!focusMovesWithToolbar) {
       return;
     }
