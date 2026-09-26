@@ -12204,7 +12204,14 @@ export class SessionHostComponent implements OnInit, OnDestroy {
       this.dismissHostSteeringCallout();
     } catch (error) {
       if (this.isTrpcConflictError(error)) {
-        await this.refreshQaQuestions({ replaceStale: true });
+        const refreshed = await this.refreshQaQuestions({ replaceStale: true });
+        if (!refreshed) {
+          return;
+        }
+        if (this.qaPendingCount() === 0) {
+          this.restoreQaReleaseDialogFocusIfNeeded();
+          return;
+        }
       }
       this.openHostSteeringCalloutForQaFailure(() => void this.releaseAllPendingQaQuestions());
     } finally {

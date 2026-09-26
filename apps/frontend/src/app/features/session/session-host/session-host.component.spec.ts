@@ -7894,6 +7894,125 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
     fixture.destroy();
   });
 
+  it('behält nach einem Konflikt bei fehlgeschlagenem Nachladen den Listen-Retry', async () => {
+    getInfoQueryMock.mockResolvedValue({
+      ...defaultSession,
+      channels: {
+        quiz: { enabled: true },
+        qa: { enabled: true, open: true, title: 'Fragen aus dem Publikum', moderationMode: false },
+        quickFeedback: { enabled: false, open: false },
+      },
+    });
+    const pendingSnapshot = qaHostSnapshot([
+      {
+        id: '44444444-4444-4444-8444-444444444444',
+        text: 'Was ist klausurrelevant?',
+        upvoteCount: 3,
+        status: 'PENDING',
+        createdAt: '2026-03-13T12:00:00.000Z',
+        myVote: null,
+        isOwn: false,
+        hasUpvoted: false,
+      },
+    ]);
+    let rejectReload = false;
+    qaListQueryMock.mockImplementation(() =>
+      rejectReload ? Promise.reject(new Error('reload failed')) : Promise.resolve(pendingSnapshot),
+    );
+    qaPendingReleaseSnapshotQueryMock.mockResolvedValue({
+      pendingCount: 1,
+      pendingSetFingerprint: 'a'.repeat(64),
+    });
+    qaReleasePendingMutateMock.mockRejectedValueOnce({ data: { code: 'CONFLICT' } });
+
+    const fixture = setup();
+    fixture.detectChanges();
+    await flushComponentAfterStable(fixture, 50);
+    const component = fixture.componentInstance;
+    component.activeChannel.set('qa');
+    fixture.detectChanges();
+
+    rejectReload = true;
+    (
+      fixture.nativeElement.querySelector('.session-qa-release-pending') as HTMLButtonElement
+    ).click();
+    await vi.waitUntil(
+      () => !component.qaReleasePendingInProgress() && component.hostSteeringCallout() !== null,
+    );
+
+    rejectReload = false;
+    component.hostSteeringCallout()?.retry();
+    await vi.waitUntil(() => component.hostSteeringCallout() === null);
+
+    expect(component.qaQuestions()).toEqual(pendingSnapshot.questions);
+    expect(qaPendingReleaseSnapshotQueryMock).toHaveBeenCalledOnce();
+    expect(qaReleasePendingMutateMock).toHaveBeenCalledOnce();
+    fixture.destroy();
+  });
+
+  it('bietet nach einem Konflikt ohne verbliebene Pending-Fragen keine Freigabe erneut an', async () => {
+    getInfoQueryMock.mockResolvedValue({
+      ...defaultSession,
+      channels: {
+        quiz: { enabled: true },
+        qa: { enabled: true, open: true, title: 'Fragen aus dem Publikum', moderationMode: false },
+        quickFeedback: { enabled: false, open: false },
+      },
+    });
+    const pendingSnapshot = qaHostSnapshot([
+      {
+        id: '44444444-4444-4444-8444-444444444444',
+        text: 'Was ist klausurrelevant?',
+        upvoteCount: 3,
+        status: 'PENDING',
+        createdAt: '2026-03-13T12:00:00.000Z',
+        myVote: null,
+        isOwn: false,
+        hasUpvoted: false,
+      },
+    ]);
+    let peerReleased = false;
+    qaListQueryMock.mockImplementation(async () =>
+      peerReleased
+        ? qaHostSnapshot([], { rankingRevision: 2, sessionLifecycleRevision: 2 })
+        : pendingSnapshot,
+    );
+    qaPendingReleaseSnapshotQueryMock.mockResolvedValue({
+      pendingCount: 1,
+      pendingSetFingerprint: 'a'.repeat(64),
+    });
+    qaReleasePendingMutateMock.mockRejectedValueOnce({ data: { code: 'CONFLICT' } });
+    const closed$ = new Subject<boolean>();
+    dialogOpenMock.mockReturnValue({ afterClosed: () => closed$.asObservable() });
+
+    const fixture = setup();
+    fixture.detectChanges();
+    await flushComponentAfterStable(fixture, 50);
+    const component = fixture.componentInstance;
+    component.activeChannel.set('qa');
+    fixture.detectChanges();
+
+    (
+      fixture.nativeElement.querySelector('.session-qa-release-pending') as HTMLButtonElement
+    ).click();
+    await vi.waitUntil(() => dialogOpenMock.mock.calls.length > 0);
+    peerReleased = true;
+    closed$.next(true);
+    closed$.complete();
+    await vi.waitUntil(() => !component.qaReleasePendingInProgress());
+    fixture.detectChanges();
+
+    expect(component.qaPendingCount()).toBe(0);
+    expect(component.hostSteeringCallout()).toBeNull();
+    const releaseButton = fixture.nativeElement.querySelector(
+      '.session-qa-release-pending',
+    ) as HTMLButtonElement;
+    expect(releaseButton.disabled).toBe(true);
+    expect(releaseButton.textContent).toContain('Keine Fragen freizugeben');
+    expect(qaReleasePendingMutateMock).toHaveBeenCalledOnce();
+    fixture.destroy();
+  });
+
   it('bricht die Sammelfreigabe nach der Sicherheitsfrage ohne Mutation ab', async () => {
     getInfoQueryMock.mockResolvedValue({
       ...defaultSession,
