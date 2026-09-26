@@ -7865,6 +7865,84 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
     fixture.destroy();
   });
 
+  it('behält den Q&A-Fehlerhinweis bei, wenn die Liste nach der Sammelfreigabe nicht lädt', async () => {
+    getInfoQueryMock.mockResolvedValue({
+      ...defaultSession,
+      channels: {
+        quiz: { enabled: true },
+        qa: { enabled: true, open: true, title: 'Fragen aus dem Publikum', moderationMode: false },
+        quickFeedback: { enabled: false, open: false },
+      },
+    });
+    let releaseCompleted = false;
+    qaListQueryMock.mockImplementation(() => {
+      if (releaseCompleted) {
+        return Promise.reject(new Error('refresh failed'));
+      }
+      return Promise.resolve({
+        questions: [
+          {
+            id: '44444444-4444-4444-8444-444444444444',
+            text: 'Was ist klausurrelevant?',
+            upvoteCount: 3,
+            status: 'PENDING' as const,
+            createdAt: '2026-03-13T12:00:00.000Z',
+            myVote: null,
+            isOwn: false,
+            hasUpvoted: false,
+          },
+        ],
+        state: 'ACTIVE' as const,
+        sessionLifecycleRevision: 1,
+        serverNow: '2026-03-13T12:00:00.000Z',
+        expiresAt: '2026-03-14T12:00:00.000Z',
+        qaClosesAt: '2026-03-14T12:00:00.000Z',
+        endedAt: null,
+        postProcessingEndsAt: null,
+        rankingRevision: '1:TOP:',
+        nextCursor: null,
+        totalCount: 1,
+        pendingCount: 1,
+        sessionPendingCount: 1,
+      });
+    });
+    qaReleasePendingMutateMock.mockImplementationOnce(async () => {
+      releaseCompleted = true;
+      return { releasedCount: 1 };
+    });
+
+    const fixture = setup();
+    fixture.detectChanges();
+    await flushComponentAfterStable(fixture, 50);
+    fixture.componentInstance.activeChannel.set('qa');
+    fixture.detectChanges();
+
+    (
+      fixture.nativeElement.querySelector('.session-qa-release-pending') as HTMLButtonElement
+    ).click();
+    await vi.waitUntil(() => qaReleasePendingMutateMock.mock.calls.length === 1, {
+      timeout: 5000,
+      interval: 25,
+    });
+    await vi.waitUntil(() => !fixture.componentInstance.qaReleasePendingInProgress(), {
+      timeout: 5000,
+      interval: 25,
+    });
+    await flushComponentAfterStable(fixture, 0);
+    fixture.detectChanges();
+
+    const callout = fixture.nativeElement.querySelector(
+      '.session-host__steering-callout',
+    ) as HTMLElement | null;
+    expect(qaReleasePendingMutateMock).toHaveBeenCalledWith({ sessionCode: 'ABC123' });
+    expect(callout?.textContent ?? '').toContain('Mit den Fragen klappt es gerade nicht');
+    expect(callout?.querySelector('[data-testid="host-steering-retry"]')).toBeTruthy();
+    expect(fixture.componentInstance.qaInfo()).toBeNull();
+    expect(fixture.nativeElement.textContent ?? '').not.toContain('1 Frage wurde freigegeben.');
+    expect(document.activeElement).toBe(callout);
+    fixture.destroy();
+  });
+
   it('blendet die Sammelfreigabe bei aktiver Vorab-Moderation aus', async () => {
     getInfoQueryMock.mockResolvedValue({
       ...defaultSession,
@@ -8254,6 +8332,69 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
     expect(component.qaMobileMoreAriaLabel()).toContain('Meist unterstützt');
     expect(document.activeElement).toBe(moreButton);
     fixture.destroy();
+  });
+
+  it('erhält den Fokus beim Wechsel zwischen Desktop- und mobiler Q&A-Werkzeugleiste', async () => {
+    const originalViewportWidth = window.innerWidth;
+    Object.defineProperty(window, 'innerWidth', { configurable: true, value: 800 });
+    try {
+      getInfoQueryMock.mockResolvedValue({
+        ...defaultSession,
+        status: 'ACTIVE',
+        channels: {
+          quiz: { enabled: true },
+          qa: { enabled: true, open: true, title: 'Fragen aus dem Publikum', moderationMode: true },
+          quickFeedback: { enabled: false, open: false },
+        },
+      });
+      qaListQueryMock.mockResolvedValue([]);
+
+      const fixture = setup();
+      fixture.detectChanges();
+      await flushComponentAfterStable(fixture, 50);
+      const component = fixture.componentInstance;
+      component.activeChannel.set('qa');
+      fixture.detectChanges();
+      const host = fixture.nativeElement as HTMLElement;
+      const desktopButton = host.querySelector(
+        '.session-qa-sort-toggle button',
+      ) as HTMLButtonElement | null;
+      expect(desktopButton).toBeTruthy();
+      desktopButton?.focus();
+      expect(document.activeElement).toBe(desktopButton);
+
+      Object.defineProperty(window, 'innerWidth', { configurable: true, value: 599 });
+      component.onWindowResize();
+      fixture.detectChanges();
+      await flushComponentAfterStable(fixture, 0);
+      fixture.detectChanges();
+
+      const moreButton = host.querySelector(
+        '[data-testid="qa-mobile-more"]',
+      ) as HTMLButtonElement | null;
+      expect(component.qaCompactToolbar()).toBe(true);
+      expect(document.activeElement).toBe(moreButton);
+
+      moreButton?.focus();
+      Object.defineProperty(window, 'innerWidth', { configurable: true, value: 800 });
+      component.onWindowResize();
+      fixture.detectChanges();
+      await flushComponentAfterStable(fixture, 0);
+      fixture.detectChanges();
+
+      const selectedDesktopButton = host.querySelector(
+        '.session-qa-sort-toggle .mat-button-toggle-checked button',
+      ) as HTMLButtonElement | null;
+      expect(component.qaCompactToolbar()).toBe(false);
+      expect(selectedDesktopButton).toBeTruthy();
+      expect(document.activeElement).toBe(selectedDesktopButton);
+      fixture.destroy();
+    } finally {
+      Object.defineProperty(window, 'innerWidth', {
+        configurable: true,
+        value: originalViewportWidth,
+      });
+    }
   });
 
   it('hält die Q&A-Seite nach Live-Invalidierung auf Seite 2', async () => {

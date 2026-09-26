@@ -4275,6 +4275,7 @@
                     }
                     @if (!qaCompactToolbar()) {
                       <mat-button-toggle-group
+                        #qaDesktopSort
                         class="session-qa-sort-toggle"
                         [value]="qaSortMode()"
                         (valueChange)="setQaSortMode($any($event))"
@@ -4340,6 +4341,7 @@
                     }
                     @if (qaCompactToolbar()) {
                       <button
+                        #qaMobileMore
                         type="button"
                         class="session-qa-filter-btn session-qa-overflow-btn"
                         data-testid="qa-mobile-more"

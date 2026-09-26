@@ -784,6 +784,10 @@ export class SessionHostComponent implements OnInit, OnDestroy {
   @ViewChild('qaTitleInput') qaTitleInputRef?: ElementRef<HTMLInputElement>;
   @ViewChild('qaChannelHeading') qaChannelHeadingRef?: ElementRef<HTMLElement>;
   @ViewChild('qaModerationToggle') qaModerationToggle?: MatSlideToggle;
+  @ViewChild('qaDesktopSort', { read: ElementRef })
+  private qaDesktopSortRef?: ElementRef<HTMLElement>;
+  @ViewChild('qaMobileMore', { read: ElementRef })
+  private qaMobileMoreRef?: ElementRef<HTMLButtonElement>;
   @ViewChild('qaPendingFilter') qaPendingFilterRef?: ElementRef<HTMLButtonElement>;
   @ViewChild('qaPendingSummary') qaPendingSummaryRef?: ElementRef<HTMLButtonElement>;
   @ViewChild('moderationCompassButton') moderationCompassButtonRef?: ElementRef<HTMLButtonElement>;
@@ -6742,7 +6746,9 @@ export class SessionHostComponent implements OnInit, OnDestroy {
 
   @HostListener('window:resize')
   onWindowResize(): void {
-    this.qaCompactToolbar.set(this.isQaCompactToolbarViewport());
+    const compactToolbar = this.isQaCompactToolbarViewport();
+    this.preserveQaToolbarFocusAcrossLayout(compactToolbar);
+    this.qaCompactToolbar.set(compactToolbar);
     this.syncExitAnchorClearance();
     if (this.freetextWordCloudMaximized() || this.qaWordCloudDialogOpen()) {
       this.syncWordCloudOverlayTop();
@@ -6757,6 +6763,37 @@ export class SessionHostComponent implements OnInit, OnDestroy {
   private isQaCompactToolbarViewport(): boolean {
     const viewportWidth = this.document.defaultView?.innerWidth;
     return viewportWidth !== undefined && viewportWidth <= 599;
+  }
+
+  private preserveQaToolbarFocusAcrossLayout(compactToolbar: boolean): void {
+    if (compactToolbar === this.qaCompactToolbar()) {
+      return;
+    }
+    const activeElement = this.document.activeElement;
+    const focusMovesWithToolbar = compactToolbar
+      ? activeElement !== null &&
+        this.qaDesktopSortRef?.nativeElement.contains(activeElement) === true
+      : activeElement !== null &&
+        this.qaMobileMoreRef?.nativeElement.contains(activeElement) === true;
+    if (!focusMovesWithToolbar) {
+      return;
+    }
+
+    afterNextRender(
+      () => {
+        if (this.destroyRef.destroyed) return;
+        const target = compactToolbar
+          ? this.qaMobileMoreRef?.nativeElement
+          : (this.qaDesktopSortRef?.nativeElement.querySelector<HTMLButtonElement>(
+              '.mat-button-toggle-checked button, button[aria-pressed="true"]',
+            ) ??
+            this.qaDesktopSortRef?.nativeElement.querySelector<HTMLButtonElement>(
+              'button:not([disabled])',
+            ));
+        target?.focus({ preventScroll: true });
+      },
+      { injector: this.injector },
+    );
   }
 
   private recalculateTeamFoyerDirections(): void {
@@ -11238,7 +11275,7 @@ export class SessionHostComponent implements OnInit, OnDestroy {
     replaceStale?: boolean;
     /** Aktuelle Fragenseite nach Live-Invalidierung behalten (nicht auf Seite 1 springen). */
     preservePaging?: boolean;
-  }): Promise<void> {
+  }): Promise<boolean> {
     const sessionId = this.session()?.id;
     const requestGeneration = ++this.qaListRequestGeneration;
     if (!sessionId || !this.channels().qa) {
@@ -11249,7 +11286,7 @@ export class SessionHostComponent implements OnInit, OnDestroy {
       this.qaListNextCursor.set(null);
       this.resetQaListPageNavigation();
       this.qaListPageLoading.set(false);
-      return;
+      return true;
     }
 
     if (options?.replaceStale) {
@@ -11276,7 +11313,7 @@ export class SessionHostComponent implements OnInit, OnDestroy {
       for (let page = 0; page <= targetPage; page += 1) {
         snapshot = await trpc.qa.list.query(this.hostQaListQueryInput(cursor));
         if (requestGeneration !== this.qaListRequestGeneration) {
-          return;
+          return false;
         }
         if (page === targetPage || !snapshot.nextCursor) {
           pageReached = page;
@@ -11288,22 +11325,21 @@ export class SessionHostComponent implements OnInit, OnDestroy {
       }
 
       if (!snapshot || requestGeneration !== this.qaListRequestGeneration) {
-        return;
+        return false;
       }
 
       const accepted = await this.applyHostQaQuestionsSnapshot(snapshot, {
         preservePaging: targetPage > 0,
       });
       if (!accepted) {
-        return;
+        return false;
       }
       if (this.releaseQaPendingFilterIfUnavailable()) {
         this.ensureQaSubscription();
-        await this.refreshQaQuestions({
+        return await this.refreshQaQuestions({
           silent: options?.silent,
           replaceStale: true,
         });
-        return;
       }
       if (targetPage > 0) {
         this.qaListCursorHistory = cursorHistory;
@@ -11311,25 +11347,26 @@ export class SessionHostComponent implements OnInit, OnDestroy {
         this.qaListPageIndex.set(pageReached);
       }
       this.dismissQaSteeringCallout();
+      return true;
     } catch (error) {
       if (requestGeneration !== this.qaListRequestGeneration) {
-        return;
+        return false;
       }
       if (this.consumeHostUnauthorized(error)) {
-        return;
+        return false;
       }
       // Veralteter Cursor nach Ranking-Wechsel: von vorn neu laden.
       if (options?.preservePaging && targetPage > 0 && this.isQaListRankingConflict(error)) {
-        await this.refreshQaQuestions({
+        return await this.refreshQaQuestions({
           silent: options.silent,
           preservePaging: false,
         });
-        return;
       }
       if (options?.silent) {
-        return;
+        return false;
       }
       this.openHostSteeringCalloutForQaFailure(() => void this.refreshQaQuestions());
+      return false;
     } finally {
       if (requestGeneration === this.qaListRequestGeneration) {
         this.qaListPageLoading.set(false);
@@ -12132,7 +12169,10 @@ export class SessionHostComponent implements OnInit, OnDestroy {
       });
       this.qaShowPendingOnly.set(false);
       this.ensureQaSubscription();
-      await this.refreshQaQuestions({ replaceStale: true });
+      const refreshed = await this.refreshQaQuestions({ replaceStale: true });
+      if (!refreshed) {
+        return;
+      }
       this.qaInfo.set(
         result.releasedCount === 1
           ? $localize`:@@sessionQa.releaseAllSuccessOne:1 Frage wurde freigegeben.`
