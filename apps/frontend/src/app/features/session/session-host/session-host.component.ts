@@ -2342,12 +2342,15 @@ export class SessionHostComponent implements OnInit, OnDestroy {
     () => this.qaForumQuestions().filter((q) => q.status === 'PINNED').length,
   );
   readonly qaPendingCount = computed(() => {
-    const fromList = this.qaListSessionPendingCount() ?? this.qaListPendingCount();
+    const fromList = this.qaListPendingCount();
     if (fromList !== null) {
       return fromList;
     }
     return this.qaForumQuestions().filter((question) => question.status === 'PENDING').length;
   });
+  readonly qaSessionPendingCount = computed(
+    () => this.qaListSessionPendingCount() ?? this.qaPendingCount(),
+  );
   readonly qaArchivedCount = computed(
     () => this.qaForumQuestions().filter((q) => q.status === 'ARCHIVED').length,
   );
@@ -8782,8 +8785,8 @@ export class SessionHostComponent implements OnInit, OnDestroy {
   }
 
   qaTabMetaLabel(): string | null {
-    if (this.qaPendingCount() > 0) {
-      return $localize`:@@sessionTabs.questionsBadgeReview:${formatLocaleCount(this.qaPendingCount(), this.localeId)}:count: zu prüfen`;
+    if (this.qaSessionPendingCount() > 0) {
+      return $localize`:@@sessionTabs.questionsBadgeReview:${formatLocaleCount(this.qaSessionPendingCount(), this.localeId)}:count: zu prüfen`;
     }
 
     if (this.activeChannel() !== 'qa' && this.qaUnseenCount() > 0) {
@@ -9006,7 +9009,8 @@ export class SessionHostComponent implements OnInit, OnDestroy {
     }
     if (channel === 'qa') {
       return (
-        this.qaPendingCount() > 0 || (this.activeChannel() !== 'qa' && this.qaUnseenCount() > 0)
+        this.qaSessionPendingCount() > 0 ||
+        (this.activeChannel() !== 'qa' && this.qaUnseenCount() > 0)
       );
     }
     if (channel === 'quickFeedback') {
@@ -9223,7 +9227,7 @@ export class SessionHostComponent implements OnInit, OnDestroy {
     if (this.session()?.channels?.qa?.moderationMode === true) {
       return $localize`:@@sessionQa.moderationModeHint:Neue Fragen warten erst auf deine Freigabe.`;
     }
-    const count = this.qaPendingCount();
+    const count = this.qaSessionPendingCount();
     if (count === 1) {
       return $localize`:@@sessionQa.moderationModeOffHintOne:Neue Fragen erscheinen sofort. 1 bereits eingereichte Frage wartet weiter auf Freigabe.`;
     }
@@ -9233,7 +9237,7 @@ export class SessionHostComponent implements OnInit, OnDestroy {
     return $localize`:@@sessionQa.moderationModeOffHintEmpty:Neue Fragen erscheinen sofort.`;
   }
 
-  qaReleasePendingActionLabel(count = this.qaPendingCount()): string {
+  qaReleasePendingActionLabel(count = this.qaSessionPendingCount()): string {
     if (count === 0) {
       return $localize`:@@sessionQa.releaseAllPendingEmpty:Keine Fragen freizugeben`;
     }
@@ -12169,7 +12173,7 @@ export class SessionHostComponent implements OnInit, OnDestroy {
     if (
       !this.code ||
       !this.qaPendingReleaseAllowed() ||
-      this.qaPendingCount() === 0 ||
+      this.qaSessionPendingCount() === 0 ||
       this.qaReleasePendingInProgress()
     ) {
       return;
@@ -12205,7 +12209,7 @@ export class SessionHostComponent implements OnInit, OnDestroy {
         this.restoreQaReleaseDialogFocusIfNeeded();
         return;
       }
-      if (!this.qaPendingReleaseAllowed() || this.qaPendingCount() === 0) {
+      if (!this.qaPendingReleaseAllowed() || this.qaSessionPendingCount() === 0) {
         this.restoreQaReleaseDialogFocusIfNeeded();
         return;
       }
@@ -12233,7 +12237,7 @@ export class SessionHostComponent implements OnInit, OnDestroy {
         if (!refreshed) {
           return;
         }
-        if (this.qaPendingCount() === 0) {
+        if (this.qaSessionPendingCount() === 0) {
           this.restoreQaReleaseDialogFocusIfNeeded();
           return;
         }

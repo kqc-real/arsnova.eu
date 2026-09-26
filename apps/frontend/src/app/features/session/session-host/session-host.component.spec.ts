@@ -9187,6 +9187,73 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
     fixture.destroy();
   });
 
+  it('trennt den gefilterten Pending-Zähler vom sitzungsweiten Moderationsbedarf', async () => {
+    getInfoQueryMock.mockResolvedValue({
+      ...defaultSession,
+      status: 'ACTIVE',
+      channels: {
+        quiz: { enabled: true },
+        qa: { enabled: true, open: true, title: 'Fragen aus dem Publikum', moderationMode: false },
+        quickFeedback: { enabled: false, open: false },
+      },
+    });
+    qaListQueryMock.mockResolvedValue(
+      qaHostSnapshot(
+        [
+          {
+            id: '11111111-1111-4111-8111-111111111111',
+            text: 'Treffer ohne Moderationsstatus',
+            upvoteCount: 2,
+            status: 'ACTIVE',
+            createdAt: '2026-03-13T12:00:00.000Z',
+            myVote: null,
+            isOwn: false,
+            hasUpvoted: false,
+          },
+        ],
+        { sessionPendingCount: 2 },
+      ),
+    );
+
+    const fixture = setup();
+    const component = fixture.componentInstance;
+    component.qaSearch.set('Treffer');
+    component.qaSearchDraft.set('Treffer');
+    fixture.detectChanges();
+    await flushComponentAfterStable(fixture, 50);
+    component.activeChannel.set('qa');
+    fixture.detectChanges();
+
+    expect(component.qaPendingCount()).toBe(0);
+    expect(component.qaSessionPendingCount()).toBe(2);
+    expect(component.qaTabMetaLabel()).toBe('2 zu prüfen');
+    expect(component.qaModerationHint()).toContain(
+      '2 bereits eingereichte Fragen warten weiter auf Freigabe',
+    );
+    expect(fixture.nativeElement.querySelector('[data-testid="qa-summary-pending"]')).toBeNull();
+    expect(fixture.nativeElement.querySelector('[data-testid="qa-filter-pending"]')).toBeNull();
+    const releaseButton = fixture.nativeElement.querySelector(
+      '.session-qa-release-pending',
+    ) as HTMLButtonElement;
+    expect(releaseButton.textContent).toContain('2 Fragen freigeben');
+    expect(releaseButton.disabled).toBe(false);
+
+    qaListQueryMock.mockClear();
+    await component.setQaPendingFilter(true);
+
+    expect(qaListQueryMock).toHaveBeenCalledWith(
+      expect.objectContaining({ search: 'Treffer', statuses: ['PENDING'] }),
+    );
+    expect(component.qaShowPendingOnly()).toBe(false);
+    expect(qaListQueryMock).toHaveBeenLastCalledWith(
+      expect.objectContaining({
+        search: 'Treffer',
+        statuses: ['PENDING', 'ACTIVE', 'PINNED', 'ARCHIVED'],
+      }),
+    );
+    fixture.destroy();
+  });
+
   it('filtert die Host-Liste auf Nur in Moderation und schließt hervorgehobene aus', async () => {
     getInfoQueryMock.mockResolvedValue({
       ...defaultSession,

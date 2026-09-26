@@ -4132,7 +4132,7 @@
                           mat-stroked-button
                           type="button"
                           class="session-qa-release-pending"
-                          [disabled]="qaPendingCount() === 0 || qaReleasePendingInProgress()"
+                          [disabled]="qaSessionPendingCount() === 0 || qaReleasePendingInProgress()"
                           (click)="releaseAllPendingQaQuestions()"
                         >
                           <mat-icon aria-hidden="true">done_all</mat-icon>
