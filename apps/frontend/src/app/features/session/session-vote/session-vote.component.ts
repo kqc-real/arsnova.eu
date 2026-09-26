@@ -2776,13 +2776,16 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
     );
   }
 
-  qaStatusLabel(status: QaQuestionDTO['status']): string {
+  qaStatusLabel(status: QaQuestionDTO['status'], isOwn = false): string {
     switch (status) {
       case 'PINNED':
         return $localize`:@@sessionQa.statusPinned:Wird beantwortet`;
       case 'ACTIVE':
         return $localize`:@@sessionQa.statusActive:Freigegeben`;
       case 'PENDING':
+        if (isOwn) {
+          return $localize`:@@sessionVote.qaStatusPendingOwn:Wartet auf Freigabe – momentan nur für dich und die Moderation sichtbar.`;
+        }
         return $localize`:@@sessionQa.statusPending:Wartet auf Freigabe`;
       case 'ARCHIVED':
         return $localize`:@@sessionQa.statusArchived:Beantwortet`;

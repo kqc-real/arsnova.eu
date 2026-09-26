@@ -5923,6 +5923,17 @@ export const ToggleQaModerationInputSchema = z.object({
 });
 export type ToggleQaModerationInput = z.infer<typeof ToggleQaModerationInputSchema>;
 
+/** Input: alle wartenden Q&A-Fragen freigeben (Host, nur ohne Vorab-Moderation) */
+export const ReleasePendingQaQuestionsInputSchema = z.object({
+  sessionCode: z.string().trim().min(6).max(6),
+});
+export type ReleasePendingQaQuestionsInput = z.infer<typeof ReleasePendingQaQuestionsInputSchema>;
+
+export const ReleasePendingQaQuestionsOutputSchema = z.object({
+  releasedCount: z.number().int().nonnegative(),
+});
+export type ReleasePendingQaQuestionsOutput = z.infer<typeof ReleasePendingQaQuestionsOutputSchema>;
+
 export const ModerateQaQuestionActionEnum = z.enum([
   'APPROVE',
   'PIN',

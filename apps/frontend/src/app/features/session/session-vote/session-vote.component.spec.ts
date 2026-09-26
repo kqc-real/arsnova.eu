@@ -7708,6 +7708,16 @@ describe('SessionVoteComponent', { timeout: 30_000 }, () => {
         isOwn: false,
         hasUpvoted: false,
       },
+      {
+        id: '33333333-3333-4333-8333-333333333333',
+        text: 'Eigene wartende Frage',
+        upvoteCount: 0,
+        status: 'PENDING',
+        createdAt: '2026-03-13T12:02:00.000Z',
+        myVote: null,
+        isOwn: true,
+        hasUpvoted: false,
+      },
     ]);
     component.activeChannel.set('qa');
     fixture.detectChanges();
@@ -7715,6 +7725,9 @@ describe('SessionVoteComponent', { timeout: 30_000 }, () => {
     const text = fixture.nativeElement.textContent ?? '';
     expect(text).toContain('Freigegeben');
     expect(text).toContain('Wird beantwortet');
+    expect(text).toContain(
+      'Wartet auf Freigabe – momentan nur für dich und die Moderation sichtbar.',
+    );
     expect(text).not.toContain('Sessionweit noch');
     fixture.destroy();
   });

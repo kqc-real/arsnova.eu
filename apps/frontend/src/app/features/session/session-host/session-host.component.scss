@@ -2008,6 +2008,17 @@
   padding-block: 0.55rem 0.45rem;
 }
 
+.session-qa-moderation-toggle__controls {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.65rem 1rem;
+}
+
+.session-qa-release-pending {
+  max-width: 100%;
+}
+
 .session-host__qa-panel-actions {
   display: flex;
   justify-content: flex-start;
@@ -2125,11 +2136,27 @@
   box-sizing: border-box;
 
   &--pending {
+    appearance: none;
     background: color-mix(in srgb, var(--mat-sys-tertiary) 10%, var(--mat-sys-surface));
     border-color: color-mix(in srgb, var(--mat-sys-tertiary) 25%, transparent);
     color: var(--mat-sys-tertiary);
     font-weight: 600;
-    cursor: help;
+    cursor: pointer;
+
+    &:hover {
+      background: color-mix(in srgb, var(--mat-sys-tertiary) 16%, var(--mat-sys-surface));
+      border-color: color-mix(in srgb, var(--mat-sys-tertiary) 40%, transparent);
+    }
+
+    &:focus-visible {
+      outline: 2px solid var(--mat-sys-primary);
+      outline-offset: 2px;
+    }
+
+    &[aria-pressed='true'] {
+      background: color-mix(in srgb, var(--mat-sys-tertiary) 20%, var(--mat-sys-surface));
+      border-color: var(--mat-sys-tertiary);
+    }
   }
 }
 
@@ -2781,6 +2808,15 @@
   .session-qa-summary__actions {
     width: 100%;
     justify-content: flex-start;
+  }
+
+  .session-qa-summary__actions > .session-qa-filter-btn {
+    min-height: 2.75rem;
+  }
+
+  .session-qa-overflow-btn {
+    flex: 0 0 auto;
+    margin-inline-start: auto;
   }
 
   .session-participant-directory--toolbar {

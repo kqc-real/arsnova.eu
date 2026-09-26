@@ -36,6 +36,8 @@ import {
   AdminResetSessionHostAccessInputSchema,
   AdminSessionLookupInputSchema,
   parseAdminSessionLookup,
+  ReleasePendingQaQuestionsInputSchema,
+  ReleasePendingQaQuestionsOutputSchema,
 } from './schemas.js';
 
 const sessionId = '10000000-0000-4000-8000-000000000001';
@@ -57,6 +59,21 @@ describe('öffentliche Contract-Schemas', () => {
     teamMode: false,
     nicknameTheme: 'NOBEL_LAUREATES' as const,
   };
+
+  it('validiert den Vertrag für die Sammelfreigabe wartender Q&A-Fragen', () => {
+    expect(ReleasePendingQaQuestionsInputSchema.parse({ sessionCode: 'ABC123' })).toEqual({
+      sessionCode: 'ABC123',
+    });
+    expect(ReleasePendingQaQuestionsInputSchema.safeParse({ sessionCode: 'ZU-KURZ' }).success).toBe(
+      false,
+    );
+    expect(ReleasePendingQaQuestionsOutputSchema.parse({ releasedCount: 12 })).toEqual({
+      releasedCount: 12,
+    });
+    expect(ReleasePendingQaQuestionsOutputSchema.safeParse({ releasedCount: -1 }).success).toBe(
+      false,
+    );
+  });
 
   it('validiert den schema-first Vertrag für absolute Sessionfristen', () => {
     expect(

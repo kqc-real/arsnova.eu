@@ -704,13 +704,10 @@ describe('session absolute lifecycle', () => {
       }),
     );
     expect(prismaMock.session.update.mock.calls[0]?.[0].data.title).toBeUndefined();
-    expect(prismaMock.qaQuestion.updateMany).toHaveBeenCalledWith({
-      where: { sessionId: 'session-1', status: 'PENDING' },
-      data: { status: 'ACTIVE' },
-    });
+    expect(prismaMock.qaQuestion.updateMany).not.toHaveBeenCalled();
   });
 
-  it('gibt PENDING-Fragen bei REPLAN ohne Moderation frei wie toggleModeration', async () => {
+  it('bewahrt PENDING-Fragen bei REPLAN ohne Moderation für die bestätigte Sammelfreigabe', async () => {
     const quizPlusQa = qaConfigurationRow({
       qaEnabled: true,
       qaOpen: true,
@@ -728,8 +725,6 @@ describe('session absolute lifecycle', () => {
       moderationMode: false,
       sessionLifecycleRevision: 3,
     });
-    prismaMock.qaQuestion.updateMany.mockResolvedValue({ count: 2 });
-
     await caller.configureQaChannel({
       code: 'ABC123',
       mode: 'REPLAN',
@@ -744,10 +739,7 @@ describe('session absolute lifecycle', () => {
       moderationMode: false,
     });
 
-    expect(prismaMock.qaQuestion.updateMany).toHaveBeenCalledWith({
-      where: { sessionId: 'session-1', status: 'PENDING' },
-      data: { status: 'ACTIVE' },
-    });
+    expect(prismaMock.qaQuestion.updateMany).not.toHaveBeenCalled();
   });
 
   it('lässt PENDING-Fragen bei REPLAN mit Moderation unangetastet', async () => {
