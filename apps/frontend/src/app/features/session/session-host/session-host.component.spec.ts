@@ -7793,6 +7793,73 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
     fixture.destroy();
   });
 
+  it('hält die Sammelfreigabe während der Anfrage gesperrt und bietet nach einem Fehler Retry an', async () => {
+    getInfoQueryMock.mockResolvedValue({
+      ...defaultSession,
+      channels: {
+        quiz: { enabled: true },
+        qa: { enabled: true, open: true, title: 'Fragen aus dem Publikum', moderationMode: false },
+        quickFeedback: { enabled: false, open: false },
+      },
+    });
+    qaListQueryMock.mockResolvedValue([
+      {
+        id: '44444444-4444-4444-8444-444444444444',
+        text: 'Was ist klausurrelevant?',
+        upvoteCount: 3,
+        status: 'PENDING',
+        createdAt: '2026-03-13T12:00:00.000Z',
+        myVote: null,
+        isOwn: false,
+        hasUpvoted: false,
+      },
+    ]);
+    let rejectRelease!: (reason?: unknown) => void;
+    qaReleasePendingMutateMock.mockReturnValueOnce(
+      new Promise((_, reject) => {
+        rejectRelease = reject;
+      }),
+    );
+
+    const fixture = setup();
+    fixture.detectChanges();
+    await flushComponentAfterStable(fixture, 50);
+    fixture.componentInstance.activeChannel.set('qa');
+    fixture.detectChanges();
+
+    const releaseButton = fixture.nativeElement.querySelector(
+      '.session-qa-release-pending',
+    ) as HTMLButtonElement;
+    releaseButton.focus();
+    releaseButton.click();
+    await vi.waitUntil(() => qaReleasePendingMutateMock.mock.calls.length === 1, {
+      timeout: 5000,
+      interval: 25,
+    });
+    fixture.detectChanges();
+
+    expect(releaseButton.disabled).toBe(true);
+    expect(fixture.componentInstance.qaReleasePendingInProgress()).toBe(true);
+
+    rejectRelease(new Error('release failed'));
+    await vi.waitUntil(() => !fixture.componentInstance.qaReleasePendingInProgress(), {
+      timeout: 5000,
+      interval: 25,
+    });
+    fixture.detectChanges();
+
+    const callout = fixture.nativeElement.querySelector(
+      '.session-host__steering-callout',
+    ) as HTMLElement | null;
+    expect(callout?.getAttribute('role')).toBe('alert');
+    expect(callout?.textContent ?? '').toContain('Mit den Fragen klappt es gerade nicht');
+    expect(callout?.querySelector('[data-testid="host-steering-retry"]')).toBeTruthy();
+    expect(releaseButton.disabled).toBe(false);
+    expect(callout?.getAttribute('tabindex')).toBe('-1');
+    expect(document.activeElement).toBe(callout);
+    fixture.destroy();
+  });
+
   it('blendet die Sammelfreigabe bei aktiver Vorab-Moderation aus', async () => {
     getInfoQueryMock.mockResolvedValue({
       ...defaultSession,
