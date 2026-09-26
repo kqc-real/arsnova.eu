@@ -1596,6 +1596,46 @@ describe('qa router (Epic 8)', () => {
     });
   });
 
+  it('liefert neben dem gefilterten auch den sitzungsweiten Pending-Zähler', async () => {
+    prismaMock.session.findUnique.mockResolvedValue({
+      ...ACTIVE_QA_SESSION,
+      id: SESSION_ID,
+      code: 'ABC123',
+      type: 'QUIZ',
+      qaEnabled: true,
+      qaOpen: true,
+      qaModerationMode: false,
+    });
+    rawQueryResults.rankedQuestions.push([
+      rankedQaRow({
+        id: QUESTION_ID,
+        text: 'Passender Suchtreffer',
+        status: 'PENDING',
+        totalCount: 1,
+      }),
+    ]);
+    prismaMock.qaQuestion.count.mockResolvedValueOnce(3).mockResolvedValueOnce(1);
+
+    const result = await hostCaller.list({
+      sessionId: SESSION_ID,
+      moderatorView: true,
+      search: 'Suchtreffer',
+    });
+
+    expect(result.pendingCount).toBe(1);
+    expect(result.sessionPendingCount).toBe(3);
+    expect(prismaMock.qaQuestion.count).toHaveBeenNthCalledWith(1, {
+      where: { sessionId: SESSION_ID, status: 'PENDING' },
+    });
+    expect(prismaMock.qaQuestion.count).toHaveBeenNthCalledWith(2, {
+      where: {
+        sessionId: SESSION_ID,
+        status: 'PENDING',
+        text: { contains: 'Suchtreffer', mode: 'insensitive' },
+      },
+    });
+  });
+
   it('ordnet Host-TOP PINNED vor ACTIVE, auch ohne Stimmen und nach PENDING', async () => {
     prismaMock.session.findUnique.mockResolvedValue({
       ...ACTIVE_QA_SESSION,
@@ -2326,6 +2366,39 @@ describe('qa router (Epic 8)', () => {
     expect(value).not.toHaveProperty('questions');
     expect(prismaMock.$queryRaw).not.toHaveBeenCalled();
 
+    await iterator.return?.(undefined);
+  });
+
+  it('meldet Hosts einen geänderten Moderationsmodus auch ohne neue Ranking-Revision', async () => {
+    let session = {
+      ...ACTIVE_QA_SESSION,
+      code: 'ABC123',
+      type: 'QUIZ',
+      qaEnabled: true,
+      qaOpen: true,
+      qaModerationMode: true,
+    };
+    prismaMock.session.findUnique.mockImplementation(async () => session);
+
+    const stream = await hostCaller.onQuestionsUpdated({
+      sessionId: SESSION_ID,
+      moderatorView: true,
+    });
+    const iterator = stream[Symbol.asyncIterator]();
+
+    await expect(iterator.next()).resolves.toMatchObject({
+      value: { kind: 'INVALIDATED', moderationMode: true, rankingRevision: 7 },
+      done: false,
+    });
+
+    const modeUpdate = iterator.next();
+    session = { ...session, qaModerationMode: false };
+    emitQaQuestionsSignal(SESSION_ID, { immediate: true });
+
+    await expect(modeUpdate).resolves.toMatchObject({
+      value: { kind: 'INVALIDATED', moderationMode: false, rankingRevision: 7 },
+      done: false,
+    });
     await iterator.return?.(undefined);
   });
 

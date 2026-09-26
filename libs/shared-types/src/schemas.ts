@@ -5816,6 +5816,11 @@ export const QaQuestionsListDTOSchema = z.object({
    * Seitengröße und Statusfilter. Fehlt bei Teilnehmer-Snapshots.
    */
   pendingCount: z.number().int().min(0).optional(),
+  /**
+   * Host-only: alle PENDING-Fragen der Session, unabhängig von Such-, Autoren-
+   * und Statusfiltern. Fehlt bei Teilnehmer-Snapshots.
+   */
+  sessionPendingCount: z.number().int().min(0).optional(),
   /** Kanonischer physischer Bestand einschließlich archivierter und soft-gelöschter Fragen. */
   sessionQuestionCount: z.number().int().min(0).max(QA_MAX_QUESTIONS_PER_SESSION).optional(),
   sessionRemaining: z.number().int().min(0).max(QA_MAX_QUESTIONS_PER_SESSION).optional(),
@@ -5838,6 +5843,8 @@ export const QaQuestionsInvalidationDTOSchema = z.object({
   qaClosesAt: z.string().datetime().nullable(),
   endedAt: z.string().datetime().nullable(),
   postProcessingEndsAt: z.string().datetime().nullable(),
+  /** Host-only: aktueller Zustand der Vorab-Moderation. */
+  moderationMode: z.boolean().optional(),
 });
 export type QaQuestionsInvalidationDTO = z.infer<typeof QaQuestionsInvalidationDTOSchema>;
 

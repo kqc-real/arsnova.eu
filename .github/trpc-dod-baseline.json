@@ -284,7 +284,7 @@
     },
     "qa.list": {
       "kind": "query",
-      "fingerprint": "sha256:a02bf8dcba366369906482169d1f58c2eb3fe979cfac887e55ff814e1e66d0e7",
+      "fingerprint": "sha256:680cad4fa17abed0f2206e9f646501c0e371914290f256986bb29aa37cfb3735",
       "missing": []
     },
     "qa.moderate": {
@@ -299,7 +299,7 @@
     },
     "qa.onQuestionsUpdated": {
       "kind": "subscription",
-      "fingerprint": "sha256:305a4cc6028261987d07a45ed469f8d4dc3fe3c13f4ab6b999324896170e70a7",
+      "fingerprint": "sha256:12f03f9a622ef9836ee312317e3b7aa012b6d9aaf244248c66506d3d0d2d6236",
       "missing": []
     },
     "qa.presentProjection": {

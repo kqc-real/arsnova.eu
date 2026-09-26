@@ -151,6 +151,7 @@ function buildQaQuestionsSnapshot(
     | 'nextCursor'
     | 'totalCount'
     | 'pendingCount'
+    | 'sessionPendingCount'
     | 'sessionQuestionCount'
     | 'sessionRemaining'
     | 'quota'
@@ -178,9 +179,11 @@ function buildQaQuestionsInvalidation(
   session: QaSessionLifecycleGate & {
     qaRankingRevision?: number | null;
     participantRevision?: number | null;
+    qaModerationMode?: boolean | null;
   },
   state: z.infer<typeof QaQuestionsListDTOSchema>['state'],
   now = new Date(),
+  includeModerationMode = false,
 ) {
   const expiresAt =
     session.expiresAt instanceof Date
@@ -198,6 +201,9 @@ function buildQaQuestionsInvalidation(
     qaClosesAt: session.qaClosesAt?.toISOString() ?? null,
     endedAt: retention.endedAt?.toISOString() ?? null,
     postProcessingEndsAt: retention.postProcessingEndsAt?.toISOString() ?? null,
+    ...(includeModerationMode && typeof session.qaModerationMode === 'boolean'
+      ? { moderationMode: session.qaModerationMode }
+      : {}),
   });
 }
 
@@ -1096,7 +1102,13 @@ export const qaRouter = router({
         session.qaModerationMode === false
           ? await loadQaPendingCount(session.id, session.qaRankingRevision)
           : undefined;
-      const [page, participantQuestionCount] = await Promise.all([
+      const filteredSessionPendingCountPromise =
+        input.moderatorView && (input.search?.trim() || authorNickname)
+          ? typeof pendingCountWithoutModeration === 'number'
+            ? Promise.resolve(pendingCountWithoutModeration)
+            : loadQaPendingCount(session.id, session.qaRankingRevision)
+          : Promise.resolve<number | undefined>(undefined);
+      const [page, participantQuestionCount, filteredSessionPendingCount] = await Promise.all([
         buildQaQuestionPayloadFromDb({
           sessionId: session.id,
           participantId: input.participantId,
@@ -1124,6 +1136,7 @@ export const qaRouter = router({
               where: { sessionId: session.id, participantId: input.participantId },
             })
           : Promise.resolve(0),
+        filteredSessionPendingCountPromise,
       ]);
       const [currentRevision, currentParticipantCount] = await Promise.all([
         prisma.session.findUnique({
@@ -1143,6 +1156,9 @@ export const qaRouter = router({
           message: 'Die Q&A-Rangliste hat sich geändert. Lade sie bitte neu.',
         });
       }
+      const sessionPendingCount = input.moderatorView
+        ? (filteredSessionPendingCount ?? page.pendingCount)
+        : undefined;
       const quota = input.participantId
         ? {
             participantQuestionCount,
@@ -1159,6 +1175,7 @@ export const qaRouter = router({
         nextCursor: page.nextCursor,
         totalCount: page.totalCount,
         ...(typeof page.pendingCount === 'number' ? { pendingCount: page.pendingCount } : {}),
+        ...(typeof sessionPendingCount === 'number' ? { sessionPendingCount } : {}),
         sessionQuestionCount: session.qaQuestionCount,
         sessionRemaining: Math.max(0, QA_MAX_QUESTIONS_PER_SESSION - session.qaQuestionCount),
         quota,
@@ -1750,6 +1767,7 @@ export const qaRouter = router({
           sessionLifecycleRevision: true,
           qaRankingRevision: true,
           participantRevision: true,
+          qaModerationMode: true,
         },
       });
       if (!gateSession) {
@@ -1764,7 +1782,12 @@ export const qaRouter = router({
           isSessionEffectivelyFinished(gateSession, gateNow) &&
           !retention.hostPostProcessingAccessAllowed
         ) {
-          yield buildQaQuestionsInvalidation(gateSession, 'POST_PROCESSING_ENDED', gateNow);
+          yield buildQaQuestionsInvalidation(
+            gateSession,
+            'POST_PROCESSING_ENDED',
+            gateNow,
+            input.moderatorView,
+          );
           return;
         }
       }
@@ -1781,12 +1804,22 @@ export const qaRouter = router({
           participantId: input.participantId,
         });
         if (isQaParticipantReadEnded(gateSession, gateNow)) {
-          yield buildQaQuestionsInvalidation(gateSession, 'SESSION_ENDED', gateNow);
+          yield buildQaQuestionsInvalidation(
+            gateSession,
+            'SESSION_ENDED',
+            gateNow,
+            input.moderatorView,
+          );
           return;
         }
       }
       if (!isQaEnabled(gateSession)) {
-        yield buildQaQuestionsInvalidation(gateSession, 'CHANNEL_CLOSED', gateNow);
+        yield buildQaQuestionsInvalidation(
+          gateSession,
+          'CHANNEL_CLOSED',
+          gateNow,
+          input.moderatorView,
+        );
         return;
       }
 
@@ -1831,6 +1864,7 @@ export const qaRouter = router({
             sessionLifecycleRevision: true,
             qaRankingRevision: true,
             participantRevision: true,
+            qaModerationMode: true,
           },
         });
         if (!session) {
@@ -1838,7 +1872,12 @@ export const qaRouter = router({
         }
 
         if (!isQaEnabled(session)) {
-          yield buildQaQuestionsInvalidation(session, 'CHANNEL_CLOSED');
+          yield buildQaQuestionsInvalidation(
+            session,
+            'CHANNEL_CLOSED',
+            new Date(),
+            input.moderatorView,
+          );
           return;
         }
         const snapshotNow = new Date();
@@ -1848,11 +1887,21 @@ export const qaRouter = router({
             isSessionEffectivelyFinished(session, snapshotNow) &&
             !retention.hostPostProcessingAccessAllowed
           ) {
-            yield buildQaQuestionsInvalidation(session, 'POST_PROCESSING_ENDED', snapshotNow);
+            yield buildQaQuestionsInvalidation(
+              session,
+              'POST_PROCESSING_ENDED',
+              snapshotNow,
+              input.moderatorView,
+            );
             return;
           }
         } else if (isQaParticipantReadEnded(session, snapshotNow)) {
-          yield buildQaQuestionsInvalidation(session, 'SESSION_ENDED', snapshotNow);
+          yield buildQaQuestionsInvalidation(
+            session,
+            'SESSION_ENDED',
+            snapshotNow,
+            input.moderatorView,
+          );
           return;
         }
 
@@ -1869,7 +1918,12 @@ export const qaRouter = router({
           const revisionKey = `${contentState}:${session.sessionLifecycleRevision}:${session.qaRankingRevision}:${session.participantRevision}`;
           if (revisionKey !== lastRevisionKey) {
             lastRevisionKey = revisionKey;
-            yield buildQaQuestionsInvalidation(session, contentState, snapshotNow);
+            yield buildQaQuestionsInvalidation(
+              session,
+              contentState,
+              snapshotNow,
+              input.moderatorView,
+            );
           }
           await waitForNextTick(session, signalVersion);
           continue;
@@ -1877,13 +1931,15 @@ export const qaRouter = router({
 
         const revisionKey = `${contentState}:${session.sessionLifecycleRevision}:${
           session.qaRankingRevision
-        }:${sortMode === 'CONTROVERSIAL' ? session.participantRevision : ''}`;
+        }:${sortMode === 'CONTROVERSIAL' ? session.participantRevision : ''}:${
+          input.moderatorView ? session.qaModerationMode : ''
+        }`;
         if (revisionKey === lastRevisionKey) {
           await waitForNextTick(session, signalVersion);
           continue;
         }
         lastRevisionKey = revisionKey;
-        yield buildQaQuestionsInvalidation(session, contentState, snapshotNow);
+        yield buildQaQuestionsInvalidation(session, contentState, snapshotNow, input.moderatorView);
 
         await waitForNextTick(session, signalVersion);
       }

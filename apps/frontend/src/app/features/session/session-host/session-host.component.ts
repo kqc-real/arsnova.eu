@@ -750,6 +750,8 @@ export class SessionHostComponent implements OnInit, OnDestroy {
   readonly qaListTotalCount = signal(0);
   /** Host: PENDING-Zähler aus qa.list (filterweit, seitenunabhängig); null = Fallback auf geladene Seite. */
   private readonly qaListPendingCount = signal<number | null>(null);
+  /** Host: PENDING-Zähler der gesamten Session; null = Fallback auf den gefilterten Zähler. */
+  private readonly qaListSessionPendingCount = signal<number | null>(null);
   readonly qaListNextCursor = signal<string | null>(null);
   readonly qaListRankingRevision = signal<string | null>(null);
   readonly qaListPageIndex = signal(0);
@@ -2325,7 +2327,7 @@ export class SessionHostComponent implements OnInit, OnDestroy {
     () => this.qaForumQuestions().filter((q) => q.status === 'PINNED').length,
   );
   readonly qaPendingCount = computed(() => {
-    const fromList = this.qaListPendingCount();
+    const fromList = this.qaListSessionPendingCount() ?? this.qaListPendingCount();
     if (fromList !== null) {
       return fromList;
     }
@@ -10506,6 +10508,19 @@ export class SessionHostComponent implements OnInit, OnDestroy {
       return;
     }
     this.latestQaLifecycleRevision = data.sessionLifecycleRevision;
+    const moderationMode = data.moderationMode;
+    if (typeof moderationMode === 'boolean') {
+      this.session.update((current) => {
+        if (!current?.channels?.qa) return current;
+        return {
+          ...current,
+          channels: {
+            ...current.channels,
+            qa: { ...current.channels.qa, moderationMode },
+          },
+        };
+      });
+    }
     if (data.state === 'POST_PROCESSING_ENDED') {
       this.closeHostPostProcessing();
       return;
@@ -10930,6 +10945,9 @@ export class SessionHostComponent implements OnInit, OnDestroy {
       this.qaListPendingCount.set(
         snapshot.filter((question) => question.status === 'PENDING').length,
       );
+      this.qaListSessionPendingCount.set(
+        snapshot.filter((question) => question.status === 'PENDING').length,
+      );
       this.qaListNextCursor.set(null);
       this.qaListRankingRevision.set(null);
       this.resetQaListPageNavigation();
@@ -10969,6 +10987,7 @@ export class SessionHostComponent implements OnInit, OnDestroy {
       this.qaQuestions.set([]);
       this.qaListTotalCount.set(0);
       this.qaListPendingCount.set(0);
+      this.qaListSessionPendingCount.set(0);
       this.qaListNextCursor.set(null);
       this.qaListRankingRevision.set(snapshot.rankingRevision ?? null);
       this.resetQaListPageNavigation();
@@ -10982,10 +11001,15 @@ export class SessionHostComponent implements OnInit, OnDestroy {
       this.resetQaListPageNavigation();
     }
     this.qaListTotalCount.set(snapshot.totalCount ?? snapshot.questions.length);
-    this.qaListPendingCount.set(
+    const filteredPendingCount =
       typeof snapshot.pendingCount === 'number'
         ? snapshot.pendingCount
-        : snapshot.questions.filter((question) => question.status === 'PENDING').length,
+        : snapshot.questions.filter((question) => question.status === 'PENDING').length;
+    this.qaListPendingCount.set(filteredPendingCount);
+    this.qaListSessionPendingCount.set(
+      typeof snapshot.sessionPendingCount === 'number'
+        ? snapshot.sessionPendingCount
+        : filteredPendingCount,
     );
     this.qaListNextCursor.set(snapshot.nextCursor ?? null);
     this.qaListRankingRevision.set(snapshot.rankingRevision ?? null);
@@ -10999,6 +11023,7 @@ export class SessionHostComponent implements OnInit, OnDestroy {
     this.qaQuestions.set([]);
     this.qaListTotalCount.set(0);
     this.qaListPendingCount.set(null);
+    this.qaListSessionPendingCount.set(null);
     this.qaListNextCursor.set(null);
     this.qaListRankingRevision.set(null);
     this.resetQaListPageNavigation();
@@ -11220,6 +11245,7 @@ export class SessionHostComponent implements OnInit, OnDestroy {
       this.qaQuestions.set([]);
       this.qaListTotalCount.set(0);
       this.qaListPendingCount.set(null);
+      this.qaListSessionPendingCount.set(null);
       this.qaListNextCursor.set(null);
       this.resetQaListPageNavigation();
       this.qaListPageLoading.set(false);
@@ -11230,6 +11256,7 @@ export class SessionHostComponent implements OnInit, OnDestroy {
       this.qaQuestions.set([]);
       this.qaListTotalCount.set(0);
       this.qaListPendingCount.set(null);
+      this.qaListSessionPendingCount.set(null);
       this.qaListNextCursor.set(null);
       this.resetQaListPageNavigation();
     }
@@ -11268,6 +11295,14 @@ export class SessionHostComponent implements OnInit, OnDestroy {
         preservePaging: targetPage > 0,
       });
       if (!accepted) {
+        return;
+      }
+      if (this.releaseQaPendingFilterIfUnavailable()) {
+        this.ensureQaSubscription();
+        await this.refreshQaQuestions({
+          silent: options?.silent,
+          replaceStale: true,
+        });
         return;
       }
       if (targetPage > 0) {

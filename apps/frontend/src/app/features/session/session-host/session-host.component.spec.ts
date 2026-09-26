@@ -8,6 +8,7 @@ import { MatTooltip } from '@angular/material/tooltip';
 import { By } from '@angular/platform-browser';
 import { NEVER, Subject, of } from 'rxjs';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import type { QaQuestionsInvalidationDTO } from '@arsnova/shared-types';
 import {
   flushComponentAfterStable,
   flushMacroTask,
@@ -7688,28 +7689,32 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
       },
     });
     qaListQueryMock
-      .mockResolvedValueOnce([
-        {
-          id: '44444444-4444-4444-8444-444444444444',
-          text: 'Was ist klausurrelevant?',
-          upvoteCount: 3,
-          status: 'PENDING',
-          createdAt: '2026-03-13T12:00:00.000Z',
-          myVote: null,
-          isOwn: false,
-          hasUpvoted: false,
-        },
-        {
-          id: '55555555-5555-4555-8555-555555555555',
-          text: 'Wann ist die Prüfung?',
-          upvoteCount: 0,
-          status: 'PENDING',
-          createdAt: '2026-03-13T12:01:00.000Z',
-          myVote: null,
-          isOwn: false,
-          hasUpvoted: false,
-        },
-      ])
+      .mockResolvedValueOnce({
+        questions: [
+          {
+            id: '44444444-4444-4444-8444-444444444444',
+            text: 'Was ist klausurrelevant?',
+            upvoteCount: 3,
+            status: 'PENDING' as const,
+            createdAt: '2026-03-13T12:00:00.000Z',
+            myVote: null,
+            isOwn: false,
+            hasUpvoted: false,
+          },
+        ],
+        state: 'ACTIVE' as const,
+        sessionLifecycleRevision: 1,
+        serverNow: '2026-03-13T12:00:00.000Z',
+        expiresAt: '2026-03-14T12:00:00.000Z',
+        qaClosesAt: '2026-03-14T12:00:00.000Z',
+        endedAt: null,
+        postProcessingEndsAt: null,
+        rankingRevision: '1:TOP:',
+        nextCursor: null,
+        totalCount: 1,
+        pendingCount: 1,
+        sessionPendingCount: 2,
+      })
       .mockResolvedValue([]);
     qaReleasePendingMutateMock.mockResolvedValue({ releasedCount: 2 });
 
@@ -7877,6 +7882,169 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
     fixture.detectChanges();
 
     expect(fixture.nativeElement.querySelector('.session-qa-release-pending')).toBeNull();
+    fixture.destroy();
+  });
+
+  it('synchronisiert den Moderationsmodus eines gekoppelten Hosts per Q&A-Invalidierung', async () => {
+    getInfoQueryMock.mockResolvedValue({
+      ...defaultSession,
+      status: 'ACTIVE',
+      channels: {
+        quiz: { enabled: true },
+        qa: { enabled: true, open: true, title: 'Fragen aus dem Publikum', moderationMode: true },
+        quickFeedback: { enabled: false, open: false },
+      },
+    });
+    const snapshot = {
+      questions: [
+        {
+          id: '44444444-4444-4444-8444-444444444444',
+          text: 'Wartet weiterhin',
+          upvoteCount: 0,
+          status: 'PENDING' as const,
+          createdAt: '2026-03-13T12:00:00.000Z',
+          myVote: null,
+          isOwn: false,
+          hasUpvoted: false,
+        },
+      ],
+      state: 'ACTIVE' as const,
+      sessionLifecycleRevision: 1,
+      serverNow: '2026-03-13T12:00:00.000Z',
+      expiresAt: '2026-03-14T12:00:00.000Z',
+      qaClosesAt: '2026-03-14T12:00:00.000Z',
+      endedAt: null,
+      postProcessingEndsAt: null,
+      rankingRevision: '1:TOP:',
+      nextCursor: null,
+      totalCount: 1,
+      pendingCount: 1,
+      sessionPendingCount: 1,
+    };
+    qaListQueryMock.mockResolvedValue(snapshot);
+    type QaQuestionsInvalidationStub = (data: QaQuestionsInvalidationDTO) => void;
+    let invalidationHandler: QaQuestionsInvalidationStub | undefined;
+    qaOnQuestionsUpdatedSubscribeMock.mockImplementation(
+      (_input: unknown, handlers: { onData?: QaQuestionsInvalidationStub }) => {
+        invalidationHandler = handlers.onData;
+        return { unsubscribe: unsubscribeMock };
+      },
+    );
+
+    const fixture = setup();
+    fixture.detectChanges();
+    await flushComponentAfterStable(fixture, 50);
+    fixture.componentInstance.activeChannel.set('qa');
+    fixture.detectChanges();
+
+    invalidationHandler?.({
+      kind: 'INVALIDATED',
+      state: 'ACTIVE',
+      sessionLifecycleRevision: 1,
+      rankingRevision: 1,
+      participantRevision: 0,
+      serverNow: '2026-03-13T12:01:00.000Z',
+      expiresAt: '2026-03-14T12:00:00.000Z',
+      qaClosesAt: '2026-03-14T12:00:00.000Z',
+      endedAt: null,
+      postProcessingEndsAt: null,
+      moderationMode: false,
+    });
+    await flushComponentAfterStable(fixture, 50);
+    fixture.detectChanges();
+
+    expect(fixture.componentInstance.session()?.channels?.qa?.moderationMode).toBe(false);
+    expect(fixture.nativeElement.querySelector('.session-qa-release-pending')).not.toBeNull();
+    fixture.destroy();
+  });
+
+  it('löst einen leeren Pending-Filter nach einer fremden Moderationsaktion automatisch', async () => {
+    getInfoQueryMock.mockResolvedValue({
+      ...defaultSession,
+      status: 'ACTIVE',
+      channels: {
+        quiz: { enabled: true },
+        qa: { enabled: true, open: true, title: 'Fragen aus dem Publikum', moderationMode: false },
+        quickFeedback: { enabled: false, open: false },
+      },
+    });
+    const pendingQuestion = {
+      id: '44444444-4444-4444-8444-444444444444',
+      text: 'Wartende Frage',
+      upvoteCount: 0,
+      status: 'PENDING' as const,
+      createdAt: '2026-03-13T12:00:00.000Z',
+      myVote: null,
+      isOwn: false,
+      hasUpvoted: false,
+    };
+    const activeQuestion = {
+      ...pendingQuestion,
+      id: '55555555-5555-4555-8555-555555555555',
+      text: 'Sichtbare Frage',
+      status: 'ACTIVE' as const,
+    };
+    let peerReleased = false;
+    qaListQueryMock.mockImplementation(
+      async (input?: { statuses?: Array<'PENDING' | 'ACTIVE' | 'PINNED' | 'ARCHIVED'> }) => {
+        const pendingOnly = input?.statuses?.length === 1 && input.statuses[0] === 'PENDING';
+        const questions = peerReleased ? (pendingOnly ? [] : [activeQuestion]) : [pendingQuestion];
+        return {
+          questions,
+          state: 'ACTIVE' as const,
+          sessionLifecycleRevision: peerReleased ? 2 : 1,
+          serverNow: '2026-03-13T12:00:00.000Z',
+          expiresAt: '2026-03-14T12:00:00.000Z',
+          qaClosesAt: '2026-03-14T12:00:00.000Z',
+          endedAt: null,
+          postProcessingEndsAt: null,
+          rankingRevision: `${peerReleased ? 2 : 1}:TOP:`,
+          nextCursor: null,
+          totalCount: questions.length,
+          pendingCount: peerReleased ? 0 : 1,
+          sessionPendingCount: peerReleased ? 0 : 1,
+        };
+      },
+    );
+    let invalidationHandler: ((data: QaQuestionsInvalidationDTO) => void) | undefined;
+    qaOnQuestionsUpdatedSubscribeMock.mockImplementation(
+      (_input: unknown, handlers: { onData?: (data: QaQuestionsInvalidationDTO) => void }) => {
+        invalidationHandler = handlers.onData;
+        return { unsubscribe: unsubscribeMock };
+      },
+    );
+
+    const fixture = setup();
+    fixture.detectChanges();
+    await flushComponentAfterStable(fixture, 50);
+    const component = fixture.componentInstance;
+    component.activeChannel.set('qa');
+    await component.setQaPendingFilter(true);
+    expect(component.qaShowPendingOnly()).toBe(true);
+
+    peerReleased = true;
+    invalidationHandler?.({
+      kind: 'INVALIDATED',
+      state: 'ACTIVE',
+      sessionLifecycleRevision: 2,
+      rankingRevision: 2,
+      participantRevision: 0,
+      serverNow: '2026-03-13T12:01:00.000Z',
+      expiresAt: '2026-03-14T12:00:00.000Z',
+      qaClosesAt: '2026-03-14T12:00:00.000Z',
+      endedAt: null,
+      postProcessingEndsAt: null,
+      moderationMode: false,
+    });
+    await vi.waitUntil(() => component.qaShowPendingOnly() === false);
+    await vi.waitUntil(() => component.qaQuestions()[0]?.status === 'ACTIVE');
+
+    expect(qaListQueryMock).toHaveBeenLastCalledWith(
+      expect.objectContaining({
+        statuses: ['PENDING', 'ACTIVE', 'PINNED', 'ARCHIVED'],
+      }),
+    );
+    expect(component.qaQuestions()[0]?.text).toBe('Sichtbare Frage');
     fixture.destroy();
   });
 
