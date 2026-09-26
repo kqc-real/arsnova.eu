@@ -45,6 +45,7 @@ describe('ensure-schema MOTD runtime seeding', () => {
       'prisma/migrations/20260906143000_motd_product_feedback/migration.sql',
       'prisma/migrations/20260911140000_motd_personal_time/migration.sql',
       'prisma/migrations/20260916103000_motd_qa_live_channel/migration.sql',
+      'prisma/migrations/20260926120000_motd_host_ux_announcement/migration.sql',
     ]);
   });
 
@@ -189,6 +190,30 @@ describe('ensure-schema MOTD runtime seeding', () => {
     expect(localeBlocks[3]).toContain('«Crea un Q&A»');
     expect(localeBlocks[4]).toContain('«Crear un Q&A»');
     expect(sql).toContain("'c0888888-c888-4c88-8c88-c08888888888'");
+  });
+
+  it('kündigt die geplante Host-UX in allen fünf Locales mit Impressumslink an', () => {
+    const sql = readFileSync(
+      resolve(
+        process.cwd(),
+        '../../prisma/migrations/20260926120000_motd_host_ux_announcement/migration.sql',
+      ),
+      'utf8',
+    );
+    const localeBlocks = [...sql.matchAll(/'(de|en|fr|es|it)',\s*\$(md\1)\$([\s\S]*?)\$\2\$/g)];
+
+    expect(localeBlocks).toHaveLength(5);
+    expect(localeBlocks.map(([, locale]) => locale)).toEqual(['de', 'en', 'fr', 'es', 'it']);
+    for (const [, locale, , markdown] of localeBlocks) {
+      expect(markdown).toMatch(/^### .+\n\n.+\n\n.+/s);
+      expect(markdown).toContain(`https://arsnova.eu/${locale}/legal/imprint/`);
+      expect(markdown).not.toMatch(/#[0-9]{3}|https:\/\/github\.com/);
+    }
+    expect(sql.match(/ON CONFLICT \("motdId", "locale"\) DO UPDATE SET/g)).toHaveLength(5);
+    expect(sql).toContain("'c0999999-c999-4c99-8c99-c09999999999'");
+    expect(sql).toContain("'PUBLISHED'");
+    expect(sql).toContain("'2026-12-31 23:59:59.999'");
+    expect(sql).toContain('ON CONFLICT ("id") DO UPDATE SET');
   });
 
   it('seedet die Welcome-MOTD vor der Making-of-Kette', () => {
