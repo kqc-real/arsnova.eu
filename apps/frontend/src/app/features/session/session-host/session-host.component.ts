@@ -784,6 +784,8 @@ export class SessionHostComponent implements OnInit, OnDestroy {
   @ViewChild('qaTitleInput') qaTitleInputRef?: ElementRef<HTMLInputElement>;
   @ViewChild('qaChannelHeading') qaChannelHeadingRef?: ElementRef<HTMLElement>;
   @ViewChild('qaModerationToggle') qaModerationToggle?: MatSlideToggle;
+  @ViewChild('qaReleasePending', { read: ElementRef })
+  private qaReleasePendingRef?: ElementRef<HTMLButtonElement>;
   @ViewChild('qaDesktopSort', { read: ElementRef })
   private qaDesktopSortRef?: ElementRef<HTMLElement>;
   @ViewChild('qaMobileMore', { read: ElementRef })
@@ -12155,9 +12157,15 @@ export class SessionHostComponent implements OnInit, OnDestroy {
       autoFocus: 'dialog',
     });
     if ((await firstValueFrom(dialogRef.afterClosed())) !== true) {
+      this.restoreQaReleaseDialogFocusIfNeeded();
       return;
     }
-    if (!this.qaHostWritesAllowed() || this.session()?.channels?.qa?.moderationMode !== false) {
+    if (
+      !this.qaHostWritesAllowed() ||
+      this.session()?.channels?.qa?.moderationMode !== false ||
+      this.qaPendingCount() === 0
+    ) {
+      this.restoreQaReleaseDialogFocusIfNeeded();
       return;
     }
 
@@ -12185,6 +12193,24 @@ export class SessionHostComponent implements OnInit, OnDestroy {
     } finally {
       this.qaReleasePendingInProgress.set(false);
     }
+  }
+
+  private restoreQaReleaseDialogFocusIfNeeded(): void {
+    afterNextRender(
+      () => {
+        if (this.destroyRef.destroyed) return;
+        const releaseButton = this.qaReleasePendingRef?.nativeElement;
+        if (releaseButton?.isConnected && !releaseButton.disabled) {
+          return;
+        }
+        if (this.qaModerationToggle) {
+          this.qaModerationToggle.focus();
+          return;
+        }
+        this.qaChannelHeadingRef?.nativeElement.focus({ preventScroll: true });
+      },
+      { injector: this.injector },
+    );
   }
 
   async moderateQaQuestion(

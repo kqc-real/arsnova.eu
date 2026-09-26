@@ -4128,6 +4128,7 @@
                       </mat-slide-toggle>
                       @if (session()?.channels?.qa?.moderationMode === false) {
                         <button
+                          #qaReleasePending
                           mat-stroked-button
                           type="button"
                           class="session-qa-release-pending"

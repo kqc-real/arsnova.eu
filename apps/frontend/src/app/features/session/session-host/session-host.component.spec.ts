@@ -7688,35 +7688,38 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
         quickFeedback: { enabled: false, open: false },
       },
     });
-    qaListQueryMock
-      .mockResolvedValueOnce({
-        questions: [
-          {
-            id: '44444444-4444-4444-8444-444444444444',
-            text: 'Was ist klausurrelevant?',
-            upvoteCount: 3,
-            status: 'PENDING' as const,
-            createdAt: '2026-03-13T12:00:00.000Z',
-            myVote: null,
-            isOwn: false,
-            hasUpvoted: false,
-          },
-        ],
-        state: 'ACTIVE' as const,
-        sessionLifecycleRevision: 1,
-        serverNow: '2026-03-13T12:00:00.000Z',
-        expiresAt: '2026-03-14T12:00:00.000Z',
-        qaClosesAt: '2026-03-14T12:00:00.000Z',
-        endedAt: null,
-        postProcessingEndsAt: null,
-        rankingRevision: '1:TOP:',
-        nextCursor: null,
-        totalCount: 1,
-        pendingCount: 1,
-        sessionPendingCount: 2,
-      })
-      .mockResolvedValue([]);
-    qaReleasePendingMutateMock.mockResolvedValue({ releasedCount: 2 });
+    const pendingSnapshot = {
+      questions: [
+        {
+          id: '44444444-4444-4444-8444-444444444444',
+          text: 'Was ist klausurrelevant?',
+          upvoteCount: 3,
+          status: 'PENDING' as const,
+          createdAt: '2026-03-13T12:00:00.000Z',
+          myVote: null,
+          isOwn: false,
+          hasUpvoted: false,
+        },
+      ],
+      state: 'ACTIVE' as const,
+      sessionLifecycleRevision: 1,
+      serverNow: '2026-03-13T12:00:00.000Z',
+      expiresAt: '2026-03-14T12:00:00.000Z',
+      qaClosesAt: '2026-03-14T12:00:00.000Z',
+      endedAt: null,
+      postProcessingEndsAt: null,
+      rankingRevision: '1:TOP:',
+      nextCursor: null,
+      totalCount: 1,
+      pendingCount: 1,
+      sessionPendingCount: 2,
+    };
+    let releaseCompleted = false;
+    qaListQueryMock.mockImplementation(async () => (releaseCompleted ? [] : pendingSnapshot));
+    qaReleasePendingMutateMock.mockImplementation(async () => {
+      releaseCompleted = true;
+      return { releasedCount: 2 };
+    });
 
     const fixture = setup();
     fixture.detectChanges();
@@ -7795,6 +7798,78 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
     await flushComponentAfterStable(fixture, 0);
 
     expect(qaReleasePendingMutateMock).not.toHaveBeenCalled();
+    fixture.destroy();
+  });
+
+  it('fokussiert nach Abbruch die Moderation, wenn ein gekoppelter Host den Freigabe-Button entfernt', async () => {
+    getInfoQueryMock.mockResolvedValue({
+      ...defaultSession,
+      status: 'ACTIVE',
+      channels: {
+        quiz: { enabled: true },
+        qa: { enabled: true, open: true, title: 'Fragen aus dem Publikum', moderationMode: false },
+        quickFeedback: { enabled: false, open: false },
+      },
+    });
+    qaListQueryMock.mockResolvedValue([
+      {
+        id: '44444444-4444-4444-8444-444444444444',
+        text: 'Was ist klausurrelevant?',
+        upvoteCount: 3,
+        status: 'PENDING',
+        createdAt: '2026-03-13T12:00:00.000Z',
+        myVote: null,
+        isOwn: false,
+        hasUpvoted: false,
+      },
+    ]);
+    let invalidationHandler: ((data: QaQuestionsInvalidationDTO) => void) | undefined;
+    qaOnQuestionsUpdatedSubscribeMock.mockImplementation(
+      (_input: unknown, handlers: { onData?: (data: QaQuestionsInvalidationDTO) => void }) => {
+        invalidationHandler = handlers.onData;
+        return { unsubscribe: unsubscribeMock };
+      },
+    );
+    const closed$ = new Subject<boolean>();
+    dialogOpenMock.mockReturnValue({ afterClosed: () => closed$.asObservable() });
+
+    const fixture = setup();
+    fixture.detectChanges();
+    await flushComponentAfterStable(fixture, 50);
+    const component = fixture.componentInstance;
+    component.activeChannel.set('qa');
+    fixture.detectChanges();
+    const moderationToggleFocus = vi.spyOn(component.qaModerationToggle!, 'focus');
+
+    (
+      fixture.nativeElement.querySelector('.session-qa-release-pending') as HTMLButtonElement
+    ).click();
+    await vi.waitUntil(() => dialogOpenMock.mock.calls.length > 0);
+
+    invalidationHandler?.({
+      kind: 'INVALIDATED',
+      state: 'ACTIVE',
+      sessionLifecycleRevision: 2,
+      rankingRevision: 2,
+      participantRevision: 0,
+      serverNow: '2026-03-13T12:01:00.000Z',
+      expiresAt: '2026-03-14T12:00:00.000Z',
+      qaClosesAt: '2026-03-14T12:00:00.000Z',
+      endedAt: null,
+      postProcessingEndsAt: null,
+      moderationMode: true,
+    });
+    await flushComponentAfterStable(fixture, 0);
+    fixture.detectChanges();
+    expect(fixture.nativeElement.querySelector('.session-qa-release-pending')).toBeNull();
+
+    closed$.next(false);
+    closed$.complete();
+    await flushComponentAfterStable(fixture, 0);
+    fixture.detectChanges();
+
+    expect(qaReleasePendingMutateMock).not.toHaveBeenCalled();
+    expect(moderationToggleFocus).toHaveBeenCalledOnce();
     fixture.destroy();
   });
 
