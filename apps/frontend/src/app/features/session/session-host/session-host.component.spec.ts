@@ -7921,7 +7921,8 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
       pendingCount: 1,
       pendingSetFingerprint: 'a'.repeat(64),
     });
-    dialogOpenMock.mockReturnValue({ afterClosed: () => of(false) });
+    const closed$ = new Subject<boolean>();
+    dialogOpenMock.mockReturnValue({ afterClosed: () => closed$.asObservable() });
 
     const fixture = setup();
     fixture.detectChanges();
@@ -7929,12 +7930,20 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
     fixture.componentInstance.activeChannel.set('qa');
     fixture.detectChanges();
 
-    (
-      fixture.nativeElement.querySelector('.session-qa-release-pending') as HTMLButtonElement
-    ).click();
+    const releaseButton = fixture.nativeElement.querySelector(
+      '.session-qa-release-pending',
+    ) as HTMLButtonElement;
+    const releaseButtonFocus = vi.spyOn(releaseButton, 'focus');
+    releaseButton.click();
+    await vi.waitUntil(() => dialogOpenMock.mock.calls.length > 0);
+    releaseButtonFocus.mockClear();
+
+    closed$.next(false);
+    closed$.complete();
     await flushComponentAfterStable(fixture, 0);
 
     expect(qaReleasePendingMutateMock).not.toHaveBeenCalled();
+    expect(releaseButtonFocus).toHaveBeenCalledOnce();
     fixture.destroy();
   });
 

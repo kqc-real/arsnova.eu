@@ -12218,6 +12218,7 @@ export class SessionHostComponent implements OnInit, OnDestroy {
         if (this.destroyRef.destroyed) return;
         const releaseButton = this.qaReleasePendingRef?.nativeElement;
         if (releaseButton?.isConnected && !releaseButton.disabled) {
+          releaseButton.focus();
           return;
         }
         if (this.qaModerationToggle) {
