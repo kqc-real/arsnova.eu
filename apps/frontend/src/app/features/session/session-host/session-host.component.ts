@@ -791,6 +791,7 @@ export class SessionHostComponent implements OnInit, OnDestroy {
   @ViewChild('qaMobileMore', { read: ElementRef })
   private qaMobileMoreRef?: ElementRef<HTMLButtonElement>;
   @ViewChild('qaMobileMoreTrigger') private qaMobileMoreTrigger?: MatMenuTrigger;
+  @ViewChild('qaPinnedFilter') private qaPinnedFilterRef?: ElementRef<HTMLButtonElement>;
   @ViewChild('qaPendingFilter') qaPendingFilterRef?: ElementRef<HTMLButtonElement>;
   @ViewChild('qaPendingSummary') qaPendingSummaryRef?: ElementRef<HTMLButtonElement>;
   @ViewChild('moderationCompassButton') moderationCompassButtonRef?: ElementRef<HTMLButtonElement>;
@@ -1653,6 +1654,13 @@ export class SessionHostComponent implements OnInit, OnDestroy {
     const session = this.session();
     return !!session && isQaChannelJoinable(session);
   });
+  readonly qaPendingReleaseAllowed = computed(
+    () =>
+      this.qaHostWritesAllowed() &&
+      this.isChannelOpen('qa') &&
+      !this.qaDeadlineExpired() &&
+      this.session()?.channels?.qa?.moderationMode === false,
+  );
   readonly canStartAnotherQuiz = computed(
     () => this.effectiveStatus() === 'FINISHED' && this.qaHostWritesAllowed(),
   );
@@ -11099,7 +11107,11 @@ export class SessionHostComponent implements OnInit, OnDestroy {
 
   /** Filter nur lösen, wenn weder Vorab-Moderation noch ein wartender Rückstau ihn rechtfertigen. */
   private releaseQaPendingFilterIfUnavailable(): boolean {
-    if (this.session()?.channels?.qa?.moderationMode === true || this.qaPendingCount() > 0) {
+    if (this.qaPendingCount() > 0) {
+      return false;
+    }
+    this.preserveFocusBeforeRemovingQaPendingControls();
+    if (this.session()?.channels?.qa?.moderationMode === true) {
       return false;
     }
     if (!this.qaShowPendingOnly()) {
@@ -11107,6 +11119,24 @@ export class SessionHostComponent implements OnInit, OnDestroy {
     }
     this.qaShowPendingOnly.set(false);
     return true;
+  }
+
+  private preserveFocusBeforeRemovingQaPendingControls(): void {
+    const activeElement = this.document.activeElement;
+    if (!activeElement) {
+      return;
+    }
+    const pendingSummaryHasFocus =
+      this.qaPendingSummaryRef?.nativeElement.contains(activeElement) === true;
+    const pendingFilterWillDisappear =
+      this.session()?.channels?.qa?.moderationMode !== true &&
+      this.qaPendingFilterRef?.nativeElement.contains(activeElement) === true;
+    if (!pendingSummaryHasFocus && !pendingFilterWillDisappear) {
+      return;
+    }
+    (this.qaPinnedFilterRef?.nativeElement ?? this.qaChannelHeadingRef?.nativeElement)?.focus({
+      preventScroll: true,
+    });
   }
 
   private hostQaListQueryInput(cursor?: string | null) {
@@ -12138,8 +12168,7 @@ export class SessionHostComponent implements OnInit, OnDestroy {
   async releaseAllPendingQaQuestions(): Promise<void> {
     if (
       !this.code ||
-      !this.qaHostWritesAllowed() ||
-      this.session()?.channels?.qa?.moderationMode !== false ||
+      !this.qaPendingReleaseAllowed() ||
       this.qaPendingCount() === 0 ||
       this.qaReleasePendingInProgress()
     ) {
@@ -12176,11 +12205,7 @@ export class SessionHostComponent implements OnInit, OnDestroy {
         this.restoreQaReleaseDialogFocusIfNeeded();
         return;
       }
-      if (
-        !this.qaHostWritesAllowed() ||
-        this.session()?.channels?.qa?.moderationMode !== false ||
-        this.qaPendingCount() === 0
-      ) {
+      if (!this.qaPendingReleaseAllowed() || this.qaPendingCount() === 0) {
         this.restoreQaReleaseDialogFocusIfNeeded();
         return;
       }

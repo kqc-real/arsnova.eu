@@ -8322,6 +8322,72 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
     fixture.destroy();
   });
 
+  it('blendet die Sammelfreigabe bei geschlossenem oder abgelaufenem Q&A aus', async () => {
+    const pendingQuestion: QaQuestionDTO = {
+      id: '44444444-4444-4444-8444-444444444444',
+      text: 'Wartende Frage',
+      upvoteCount: 0,
+      status: 'PENDING',
+      createdAt: '2026-03-24T10:00:00.000Z',
+      myVote: null,
+      isOwn: false,
+      hasUpvoted: false,
+    };
+    getInfoQueryMock.mockResolvedValue({
+      ...defaultSession,
+      status: 'ACTIVE',
+      channels: {
+        quiz: { enabled: true },
+        qa: {
+          enabled: true,
+          open: false,
+          title: 'Fragen aus dem Publikum',
+          moderationMode: false,
+          closesAt: '2026-03-25T12:00:00.000Z',
+        },
+        quickFeedback: { enabled: false, open: false },
+      },
+    });
+    qaListQueryMock.mockResolvedValue(qaHostSnapshot([pendingQuestion]));
+
+    const fixture = setup();
+    fixture.detectChanges();
+    await flushComponentAfterStable(fixture, 50);
+    const component = fixture.componentInstance;
+    component.activeChannel.set('qa');
+    fixture.detectChanges();
+
+    expect(component.qaPendingCount()).toBe(1);
+    expect(fixture.nativeElement.querySelector('.session-qa-release-pending')).toBeNull();
+    await component.releaseAllPendingQaQuestions();
+
+    component.session.update((session) =>
+      session?.channels
+        ? {
+            ...session,
+            channels: {
+              ...session.channels,
+              qa: {
+                ...session.channels.qa,
+                open: true,
+                closesAt: '2026-03-24T11:00:00.000Z',
+              },
+            },
+          }
+        : session,
+    );
+    component.qaDeadlineNow.set(Date.parse('2026-03-24T12:00:00.000Z'));
+    fixture.detectChanges();
+
+    expect(component.qaDeadlineExpired()).toBe(true);
+    expect(fixture.nativeElement.querySelector('.session-qa-release-pending')).toBeNull();
+    await component.releaseAllPendingQaQuestions();
+    expect(qaPendingReleaseSnapshotQueryMock).not.toHaveBeenCalled();
+    expect(dialogOpenMock).not.toHaveBeenCalled();
+    expect(qaReleasePendingMutateMock).not.toHaveBeenCalled();
+    fixture.destroy();
+  });
+
   it('synchronisiert den Moderationsmodus eines gekoppelten Hosts per Q&A-Invalidierung', async () => {
     getInfoQueryMock.mockResolvedValue({
       ...defaultSession,
@@ -8392,6 +8458,102 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
 
     expect(fixture.componentInstance.session()?.channels?.qa?.moderationMode).toBe(false);
     expect(fixture.nativeElement.querySelector('.session-qa-release-pending')).not.toBeNull();
+    fixture.destroy();
+  });
+
+  it('verschiebt den Fokus bevor ein leerer Pending-Filter automatisch entfernt wird', async () => {
+    getInfoQueryMock.mockResolvedValue({
+      ...defaultSession,
+      status: 'ACTIVE',
+      channels: {
+        quiz: { enabled: true },
+        qa: { enabled: true, open: true, title: 'Fragen aus dem Publikum', moderationMode: false },
+        quickFeedback: { enabled: false, open: false },
+      },
+    });
+    const pendingQuestion: QaQuestionDTO = {
+      id: '44444444-4444-4444-8444-444444444444',
+      text: 'Wartende Frage',
+      upvoteCount: 0,
+      status: 'PENDING',
+      createdAt: '2026-03-13T12:00:00.000Z',
+      myVote: null,
+      isOwn: false,
+      hasUpvoted: false,
+    };
+    const activeQuestion: QaQuestionDTO = {
+      ...pendingQuestion,
+      id: '55555555-5555-4555-8555-555555555555',
+      text: 'Sichtbare Frage',
+      status: 'ACTIVE',
+    };
+    let peerReleased = false;
+    let resolveUnfilteredReload!: (snapshot: QaQuestionsListDTO) => void;
+    qaListQueryMock.mockImplementation(
+      (input?: { statuses?: Array<'PENDING' | 'ACTIVE' | 'PINNED' | 'ARCHIVED'> }) => {
+        const pendingOnly = input?.statuses?.length === 1 && input.statuses[0] === 'PENDING';
+        if (!peerReleased) {
+          return Promise.resolve(qaHostSnapshot([pendingQuestion]));
+        }
+        if (pendingOnly) {
+          return Promise.resolve(
+            qaHostSnapshot([], { rankingRevision: 2, sessionLifecycleRevision: 2 }),
+          );
+        }
+        return new Promise<QaQuestionsListDTO>((resolve) => {
+          resolveUnfilteredReload = resolve;
+        });
+      },
+    );
+    let invalidationHandler: ((data: QaQuestionsInvalidationDTO) => void) | undefined;
+    qaOnQuestionsUpdatedSubscribeMock.mockImplementation(
+      (_input: unknown, handlers: { onData?: (data: QaQuestionsInvalidationDTO) => void }) => {
+        invalidationHandler = handlers.onData;
+        return { unsubscribe: unsubscribeMock };
+      },
+    );
+
+    const fixture = setup();
+    fixture.detectChanges();
+    await flushComponentAfterStable(fixture, 50);
+    const component = fixture.componentInstance;
+    component.activeChannel.set('qa');
+    await component.setQaPendingFilter(true);
+    fixture.detectChanges();
+    const pendingFilter = fixture.nativeElement.querySelector(
+      '[data-testid="qa-filter-pending"]',
+    ) as HTMLButtonElement;
+    const pinnedFilter = fixture.nativeElement.querySelector(
+      '[data-testid="qa-filter-pinned"]',
+    ) as HTMLButtonElement;
+    pendingFilter.focus();
+    expect(document.activeElement).toBe(pendingFilter);
+
+    peerReleased = true;
+    invalidationHandler?.({
+      kind: 'INVALIDATED',
+      state: 'ACTIVE',
+      sessionLifecycleRevision: 2,
+      rankingRevision: 2,
+      participantRevision: 0,
+      serverNow: '2026-03-13T12:01:00.000Z',
+      expiresAt: '2026-03-14T12:00:00.000Z',
+      qaClosesAt: '2026-03-14T12:00:00.000Z',
+      endedAt: null,
+      postProcessingEndsAt: null,
+      moderationMode: false,
+    });
+    await vi.waitUntil(() => component.qaShowPendingOnly() === false);
+
+    expect(document.activeElement).toBe(pinnedFilter);
+    fixture.detectChanges();
+    expect(fixture.nativeElement.querySelector('[data-testid="qa-filter-pending"]')).toBeNull();
+    expect(document.activeElement).toBe(pinnedFilter);
+
+    resolveUnfilteredReload(
+      qaHostSnapshot([activeQuestion], { rankingRevision: 2, sessionLifecycleRevision: 2 }),
+    );
+    await vi.waitUntil(() => component.qaQuestions()[0]?.status === 'ACTIVE');
     fixture.destroy();
   });
 
