@@ -343,6 +343,35 @@ describe('QuizPreviewComponent', () => {
     );
   });
 
+  it.each(['destroy', 'close'] as const)(
+    'beendet verzögerte Editor-Scrolls nach %s',
+    async (action) => {
+      vi.useFakeTimers();
+      const fixture = TestBed.createComponent(QuizPreviewComponent);
+      fixture.nativeElement.classList.add('app-main');
+      const scrollTo = vi.fn();
+      fixture.nativeElement.scrollTo = scrollTo;
+      fixture.detectChanges();
+      fixture.componentInstance.enterInlineEditMode();
+      fixture.detectChanges();
+      TestBed.inject(ApplicationRef).tick();
+
+      expect(scrollTo).toHaveBeenCalled();
+      if (action === 'destroy') fixture.destroy();
+      else fixture.componentInstance.cancelInlineEditMode();
+      scrollTo.mockClear();
+      const findEditor = vi.spyOn(document, 'getElementById');
+      try {
+        await vi.advanceTimersByTimeAsync(600);
+        expect(findEditor).not.toHaveBeenCalledWith('quiz-preview-inline-editor');
+        expect(scrollTo).not.toHaveBeenCalled();
+      } finally {
+        findEditor.mockRestore();
+        fixture.destroy();
+      }
+    },
+  );
+
   it('speichert den Lesephasen-Override im Inline-Editor', () => {
     const fixture = TestBed.createComponent(QuizPreviewComponent);
     const component = fixture.componentInstance;
