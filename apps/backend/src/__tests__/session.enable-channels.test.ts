@@ -1012,6 +1012,31 @@ describe('session.enable channel mutations', () => {
     ).rejects.toMatchObject({ code: 'CONFLICT' });
   });
 
+  it('delivers a page change issued while the status subscription is yielding without waiting for polling', async () => {
+    prismaMock.session.findUnique.mockResolvedValue({
+      ...ACTIVE_SESSION,
+      quizId: '11111111-1111-4111-8111-111111111111',
+      type: 'QUIZ',
+      currentQuestion: 0,
+      currentRound: 1,
+      statusChangedAt: new Date(),
+    });
+    const stream = await caller.onStatusChanged({ code: 'ABC123' });
+    const iterator = stream[Symbol.asyncIterator]();
+    const first = await iterator.next();
+    const context = first.value!.presenterPage!.context;
+    await caller.setPresenterSurface({ code: 'ABC123', page: { context, count: 3 } });
+    const next = await Promise.race([
+      iterator.next(),
+      new Promise<never>((_, reject) => {
+        const timer = setTimeout(() => reject(new Error('status update waited for polling')), 250);
+        timer.unref();
+      }),
+    ]);
+    expect(next.value!.presenterPage).toMatchObject({ context, count: 3, index: 0 });
+    await iterator.return?.();
+  });
+
   it('requires validated host access for page reports and navigation', async () => {
     hostAuthMocks.isHostSessionTokenValidMock.mockResolvedValue(false);
     for (const page of [

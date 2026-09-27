@@ -72,8 +72,22 @@ export class ProjectionPagesComponent implements AfterViewInit {
       characterData: true,
       attributes: true,
     });
-    const resize = typeof ResizeObserver === 'undefined' ? null : new ResizeObserver(schedule);
+    const resize =
+      typeof ResizeObserver === 'undefined'
+        ? null
+        : new ResizeObserver(() => {
+            const viewport = this.viewport().nativeElement;
+            const page = this.page().nativeElement;
+            // Late fonts and fractional layout changes can alter a previously measured page.
+            if (
+              page.scrollHeight > viewport.clientHeight ||
+              page.scrollWidth > viewport.clientWidth
+            )
+              this.signature = '';
+            schedule();
+          });
     resize?.observe(this.viewport().nativeElement);
+    resize?.observe(this.page().nativeElement);
     source.addEventListener('load', schedule, true);
     void source.ownerDocument.fonts?.ready.then(schedule);
     this.destroyRef.onDestroy(() => {
@@ -107,9 +121,10 @@ export class ProjectionPagesComponent implements AfterViewInit {
     const target = this.page().nativeElement;
     this.pages = paginateProjection(snapshot, (candidate) => {
       target.replaceChildren(candidate);
+      // Leave room for fractional font/layout rounding when the fragment is cloned again.
       return (
-        target.scrollHeight <= viewport.clientHeight + 1 &&
-        target.scrollWidth <= viewport.clientWidth + 1
+        target.scrollHeight <= viewport.clientHeight - 8 &&
+        target.scrollWidth <= viewport.clientWidth
       );
     });
     this.count.set(this.pages.length);

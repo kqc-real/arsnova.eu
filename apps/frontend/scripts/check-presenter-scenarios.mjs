@@ -9,6 +9,7 @@ import { createTRPCProxyClient, httpBatchLink } from '@trpc/client';
 const base = process.env.BASE_URL || 'http://localhost:4301';
 const api = process.env.TRPC_URL || 'http://localhost:3100/trpc';
 const locales = (process.env.PROJECTION_LOCALES || 'de,en,fr').split(',');
+const scenarios = process.env.PROJECTION_SCENARIOS?.split(',');
 const sizes =
   process.env.PROJECTION_SMOKE === '1'
     ? [[1280, 720]]
@@ -34,6 +35,7 @@ const browser = await chromium.launch({ headless: true });
 await mkdir(artifacts, { recursive: true });
 
 async function check(session, host, preset, name, selector, verify = () => {}) {
+  if (scenarios && !scenarios.includes(name)) return;
   for (const locale of locales)
     for (const [width, height] of sizes) {
       const context = await browser.newContext({
@@ -266,6 +268,7 @@ try {
         assert.ok(text.includes('100'));
       },
     );
+    await new Promise((resolve) => setTimeout(resolve, 1100));
     await host.session.nextQuestion.mutate({ code: session.code });
     q = await host.session.getCurrentQuestionForHost.query({ code: session.code });
     const words = [
@@ -279,13 +282,53 @@ try {
       'Diskussion',
       'Austausch',
       'Erkenntnis',
+      'Mathematik',
+      'Physik',
+      'Chemie',
+      'Biologie',
+      'Kultur',
+      'Sprache',
+      'Geschichte',
+      'Freiheit',
+      'Forschung',
+      'Bewegung',
+      'Wissen',
+      'Erfahrung',
+      'Technik',
+      'Gesundheit',
+      'Kunst',
+      'Musik',
+      'Natur',
+      'Mut',
+      'Verantwortung',
+      'Energie',
+      'Handwerk',
+      'Wirtschaft',
+      'Gesellschaft',
+      'Nachhaltigkeit',
+      'Respekt',
+      'Offenheit',
+      'Geduld',
+      'Kreativität',
+      'Zusammenarbeit',
+      'Experiment',
+      'Praxis',
+      'Theorie',
+      'Beobachtung',
+      'Analyse',
+      'Konzentration',
+      'Erholung',
+      'Übung',
+      'Planung',
+      'Entwicklung',
+      'Struktur',
     ];
     for (let i = 0; i < 30; i++)
       await client({ 'x-participant-capability': participants[i].rejoinToken }).vote.submit.mutate({
         sessionId: session.sessionId,
         participantId: participants[i].participantId,
         questionId: q.questionId,
-        freeText: `${words[i % 10]} Beispielbegriff${i}`,
+        freeText: `${words[i]} ${words[(i + 30) % words.length]}`,
       });
     await host.session.revealResults.mutate({ code: session.code });
     await check(
@@ -401,6 +444,7 @@ try {
       async (_page, text) => assert.ok(text.includes('25')),
     );
     await host.session.setPreferredLiveChannel.mutate({ code: session.code, channel: 'quiz' });
+    await new Promise((resolve) => setTimeout(resolve, 1100));
     await host.session.nextQuestion.mutate({ code: session.code });
     q = await host.session.getCurrentQuestionForHost.query({ code: session.code });
     for (let i = 0; i < 30; i++)

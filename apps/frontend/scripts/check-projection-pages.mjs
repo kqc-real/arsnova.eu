@@ -9,6 +9,10 @@ import { createTRPCProxyClient, httpBatchLink } from '@trpc/client';
 const base = process.env.BASE_URL || 'http://localhost:4300';
 const api = process.env.TRPC_URL || 'http://localhost:3100/trpc';
 const locales = (process.env.PROJECTION_LOCALES || 'de').split(',');
+const presets = (process.env.PROJECTION_PRESETS || 'SERIOUS,PLAYFUL').split(',');
+const viewports = (process.env.PROJECTION_SIZES || '1280x720,1920x1080,1920x1200')
+  .split(',')
+  .map((size) => size.split('x').map(Number));
 const artifacts = resolve(process.env.SMOKE_ARTIFACT_DIR || 'tmp/projection-pages');
 const client = (token) =>
   createTRPCProxyClient({
@@ -37,7 +41,7 @@ const question = [
   'ENDE DER FRAGE',
 ].join('\n\n');
 try {
-  for (const preset of ['SERIOUS', 'PLAYFUL']) {
+  for (const preset of presets) {
     const publicApi = client();
     const { quizId } = await publicApi.quiz.upload.mutate({
       name: 'Projection regression',
@@ -73,11 +77,7 @@ try {
     const hostApi = client(session.hostToken);
     await hostApi.session.nextQuestion.mutate({ code: session.code });
     for (const locale of locales)
-      for (const [width, height] of [
-        [1280, 720],
-        [1920, 1080],
-        [1920, 1200],
-      ]) {
+      for (const [width, height] of viewports) {
         const context = await browser.newContext({ viewport: { width, height } });
         await context.addInitScript(
           ({ session, preset }) => {

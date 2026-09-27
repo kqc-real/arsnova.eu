@@ -7501,6 +7501,7 @@ const sessionCoreRouter = router({
       const token = ctx.hostToken;
       let lastJson = '';
       while (true) {
+        const currentVersion = getSessionParticipantSignalVersion(code);
         const payload = await fetchParticipantsSnapshot(code);
         const json = JSON.stringify(payload);
         if (json !== lastJson) {
@@ -7510,7 +7511,6 @@ const sessionCoreRouter = router({
         const waitMs = payload.readingReady
           ? PARTICIPANT_EVENT_WAIT_ACTIVE_MS
           : PARTICIPANT_EVENT_WAIT_IDLE_MS;
-        const currentVersion = getSessionParticipantSignalVersion(code);
         await waitWhileHostTokenValid(code, token, () =>
           waitForSessionParticipantSignal(code, currentVersion, waitMs),
         );
@@ -7723,7 +7723,9 @@ const sessionCoreRouter = router({
         const index = Math.max(0, Math.min(count - 1, currentPage.index + (input.page.delta ?? 0)));
         const presenterPage = { ...currentPage, count, index };
         presenterPageByCode.set(code, presenterPage);
-        invalidateSessionStatusCachesForCode(code);
+        clearSessionInfoCache(code);
+        clearStatusSnapshotCache(code);
+        emitSessionStatusSignal(code);
         return { presenterSurface: resolvePresenterSurface(code, preferredChannel), presenterPage };
       }
       if (input.surface === undefined) throw new TRPCError({ code: 'BAD_REQUEST' });
@@ -7971,6 +7973,8 @@ const sessionCoreRouter = router({
       const code = input.code.toUpperCase();
       let lastJson = '';
       while (true) {
+        // Capture before fetch/yield so a command during delivery cannot be missed.
+        const currentVersion = getSessionStatusSignalVersion(code);
         const payloadBase = await fetchStatusSnapshot(code).catch(async (error: unknown) => {
           if (error instanceof TRPCError && error.code === 'NOT_FOUND') {
             await rejectInvalidSessionCode(input.anonymousClientId, code, 'pollReconnect');
@@ -7985,7 +7989,6 @@ const sessionCoreRouter = router({
         const waitMs = FAST_STATUS_POLL_SET.has(payloadBase.status)
           ? STATUS_EVENT_WAIT_ACTIVE_MS
           : STATUS_EVENT_WAIT_IDLE_MS;
-        const currentVersion = getSessionStatusSignalVersion(code);
         await waitForSessionStatusSignal(code, currentVersion, waitMs);
       }
     }),
@@ -8951,6 +8954,7 @@ const sessionCoreRouter = router({
       const token = ctx.hostToken;
       let lastJson = '';
       while (true) {
+        const currentVersion = getSessionCurrentQuestionSignalVersion(code);
         const envelope = await fetchHostCurrentQuestionEnvelope(code);
         const payload = envelope.payload;
         const json = buildHostCurrentQuestionSubscriptionKey(envelope);
@@ -8958,7 +8962,6 @@ const sessionCoreRouter = router({
           lastJson = json;
           yield payload;
         }
-        const currentVersion = getSessionCurrentQuestionSignalVersion(code);
         await waitWhileHostTokenValid(code, token, () =>
           waitForSessionCurrentQuestionSignal(code, currentVersion, CURRENT_QUESTION_EVENT_WAIT_MS),
         );
@@ -8972,13 +8975,13 @@ const sessionCoreRouter = router({
       const token = ctx.hostToken;
       let lastJson = '';
       while (true) {
+        const currentVersion = getSessionVoteProgressSignalVersion(code);
         const payload = await fetchHostVoteProgress(code);
         const json = JSON.stringify(payload);
         if (json !== lastJson) {
           lastJson = json;
           yield payload;
         }
-        const currentVersion = getSessionVoteProgressSignalVersion(code);
         await waitWhileHostTokenValid(code, token, () =>
           waitForSessionVoteProgressSignal(code, currentVersion, CURRENT_QUESTION_EVENT_WAIT_MS),
         );
