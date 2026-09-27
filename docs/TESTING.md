@@ -888,3 +888,27 @@ Weitere aktuell relevante Regressionen:
 - [ENVIRONMENT.md](ENVIRONMENT.md) — lokale Ausführung
 - [deployment-debian-root-server.md](deployment-debian-root-server.md) — Produktions-Deployment und Go-Live-Checks
 - [README.md](../README.md) — `npm run dev`, Setup
+
+### Hörsaalprojektion und Host-Seitensteuerung (#473)
+
+Bei laufendem lokalem Backend und lokalisiertem Frontend-Build:
+
+```bash
+BASE_URL=http://localhost:4200 TRPC_URL=http://localhost:3000/trpc \
+  PROJECTION_LOCALES=de,en,fr npm run smoke:projection-pages -w @arsnova/frontend
+BASE_URL=http://localhost:4200 TRPC_URL=http://localhost:3000/trpc \
+  npm run smoke:presenter-scenarios -w @arsnova/frontend
+```
+
+Die Skripte erzeugen ausschließlich Test-Sessions auf der angegebenen Instanz.
+Nicht gegen Produktion ausführen. Sie prüfen 720p, 1080p und 1920 × 1200 in beiden
+Presets. Das erste prüft den vollständigen Text einschließlich Code, die
+Host-gesteuerte Navigation und Wiederherstellung nach Reload. Das zweite prüft
+Lobby 0/10/200, Schätzverteilung mit Statistik, Freitext-Wortwolke, angeheftete
+Q&A-Frage mit Warteschlange, verborgenes/freigegebenes Blitzlicht und Rangliste.
+Screenshots liegen unter `tmp/projection-pages` bzw. `tmp/presenter-scenarios`
+(im Arbeitsverzeichnis); `SMOKE_ARTIFACT_DIR` überschreibt den Pfad.
+`PROJECTION_SMOKE=1 PROJECTION_LOCALES=de` begrenzt den zweiten Lauf auf einen
+720p-Fall pro Zustand. Native Vollbildberechtigung wird in diesen
+Geometrieprüfungen simuliert; Dialog-/Popup-/Guard-Tests prüfen den Einstieg separat.
+Die reale HDMI-Probe aus der letzten Reihe bleibt eine zusätzliche manuelle Abnahme.

@@ -31925,6 +31925,70 @@
           <context context-type="linenumber">208</context>
         </context-group>
       </trans-unit>
+      <trans-unit id="presentationStart.screenHint" datatype="html">
+        <source>Öffne die Präsentation auf dem Projektionsbildschirm. Hier steuerst du weiter; die Smartphone-Verbindung ist optional.</source>
+        <target>Apri la presentazione sullo schermo di proiezione. Continua a gestirla qui; collegare uno smartphone è facoltativo.</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/host-pairing/presentation-start-dialog.component.html</context>
+          <context context-type="linenumber">13</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="sessionHost.projectionPages" datatype="html">
+        <source>Projektionsseiten</source>
+        <target>Pagine di proiezione</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.html</context>
+          <context context-type="linenumber">3</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="sessionHost.projectionPrevious" datatype="html">
+        <source>Vorherige Seite</source>
+        <target>Pagina precedente</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.html</context>
+          <context context-type="linenumber">4</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="sessionHost.projectionNext" datatype="html">
+        <source>Nächste Seite</source>
+        <target>Pagina successiva</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.html</context>
+          <context context-type="linenumber">6</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="sessionHost.projectionPageError" datatype="html">
+        <source>Seite konnte nicht gewechselt werden. Bitte erneut versuchen.</source>
+        <target>Impossibile cambiare pagina. Riprova.</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.ts</context>
+          <context context-type="linenumber">5614</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="sessionPresent.projectionPage" datatype="html">
+        <source>Seite <x id="INTERPOLATION" equiv-text="{{ visibleIndex() + 1 }}"/> / <x id="INTERPOLATION_1" equiv-text="{{ count() }}"/></source>
+        <target>Pagina <x id="INTERPOLATION" equiv-text="{{ visibleIndex() + 1 }}"/> / <x id="INTERPOLATION_1" equiv-text="{{ count() }}"/></target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/session-present/projection-pages.component.ts</context>
+          <context context-type="linenumber">15</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="sessionPresent.qaMore" datatype="html">
+        <source>+ <x id="INTERPOLATION" equiv-text="{{ remainingQaQuestions() }}"/> weitere</source>
+        <target>+ <x id="INTERPOLATION" equiv-text="{{ remainingQaQuestions() }}"/> altre</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/session-present/session-present.component.html</context>
+          <context context-type="linenumber">801</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="wordCloud.remainingTerms" datatype="html">
+        <source>+ <x id="INTERPOLATION" equiv-text="{{ words().length - visibleWordCount() }}"/> weitere Begriffe</source>
+        <target>+ <x id="INTERPOLATION" equiv-text="{{ words().length - visibleWordCount() }}"/> altri termini</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/session-present/word-cloud.component.html</context>
+          <context context-type="linenumber">2</context>
+        </context-group>
+      </trans-unit>
     </body>
   </file>
 </xliff>

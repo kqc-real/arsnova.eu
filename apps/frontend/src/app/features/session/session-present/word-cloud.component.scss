@@ -754,3 +754,13 @@
     padding: 0.15rem;
   }
 }
+
+:host(.word-cloud-host--output) .word-cloud__header h2 {
+  font-size: clamp(2rem, 3.34vh, 3rem);
+  line-height: 1.5;
+}
+:host(.word-cloud-host--output) .word-cloud__remaining {
+  margin: 0;
+  font-size: 1.25rem;
+  line-height: 1.5;
+}

@@ -1,6 +1,7 @@
 import { DOCUMENT } from '@angular/common';
 import {
   AfterViewInit,
+  afterEveryRender,
   Component,
   ElementRef,
   LOCALE_ID,
@@ -157,6 +158,7 @@ interface RoundedRectStyle {
   styleUrl: './word-cloud.component.scss',
   host: {
     '[class.word-cloud-host--presentation]': 'presentationMode()',
+    '[class.word-cloud-host--output]': 'outputOnly()',
   },
 })
 export class WordCloudComponent implements AfterViewInit, OnDestroy {
@@ -543,7 +545,11 @@ export class WordCloudComponent implements AfterViewInit, OnDestroy {
   });
 
   readonly displayWords = computed<CloudWord[]>(() => {
-    const words = this.words();
+    const words = this.outputOnly()
+      ? this.words()
+          .filter((word) => word.size >= 30)
+          .slice(0, 24)
+      : this.words();
     const width = this.stageWidth();
     if (this.disableCloudLayout() || !shouldUseWordCloudLayout(width, words.length)) {
       if (this.presentationMode() && this.disableCloudLayout()) {
@@ -801,6 +807,45 @@ export class WordCloudComponent implements AfterViewInit, OnDestroy {
   });
 
   constructor() {
+    afterEveryRender({
+      read: () => {
+        if (!this.outputOnly() || !this.cloudLayoutActive() || this.layoutPending()) return;
+        const stage = this.layoutStage()?.nativeElement;
+        if (!stage) return;
+        const bounds = stage.getBoundingClientRect();
+        if (!bounds.width || !bounds.height) return;
+        const words = this.positionedWords();
+        const nodes = Array.from(stage.querySelectorAll<HTMLElement>('.word-cloud__word--output'));
+        if (nodes.length !== words.length) return;
+        const accepted: DOMRect[] = [];
+        const visible = nodes
+          .map((node, index) => ({ word: words[index]!, rect: node.getBoundingClientRect() }))
+          .sort((a, b) => a.word.rank - b.word.rank)
+          .filter(({ rect }) => {
+            if (
+              rect.left < bounds.left ||
+              rect.right > bounds.right ||
+              rect.top < bounds.top ||
+              rect.bottom > bounds.bottom
+            )
+              return false;
+            if (
+              accepted.some(
+                (other) =>
+                  rect.left < other.right + 8 &&
+                  rect.right + 8 > other.left &&
+                  rect.top < other.bottom + 8 &&
+                  rect.bottom + 8 > other.top,
+              )
+            )
+              return false;
+            accepted.push(rect);
+            return true;
+          })
+          .map(({ word }) => word);
+        if (visible.length > 0 && visible.length < words.length) this.positionedWords.set(visible);
+      },
+    });
     effect(() => {
       const stage = this.layoutStage()?.nativeElement ?? null;
       queueMicrotask(() => this.observeStage(stage));
@@ -1483,6 +1528,7 @@ export class WordCloudComponent implements AfterViewInit, OnDestroy {
   }
 
   private resolveFontSizeRange(wordCount: number): { min: number; max: number } {
+    if (this.outputOnly()) return { min: 30, max: 80 };
     if (!this.presentationMode()) {
       return { min: 14, max: 48 };
     }
@@ -1793,7 +1839,9 @@ export class WordCloudComponent implements AfterViewInit, OnDestroy {
 
         this.activeCloudLayout = null;
         this.layoutPending.set(false);
-        this.positionedWords.set(contained);
+        this.positionedWords.set(
+          this.outputOnly() ? contained.filter((word) => word.size >= 30) : contained,
+        );
         this.renderedCloudStageWidth.set(Math.round(stageWidth));
         this.renderedCloudStageHeight.set(Math.round(stageHeight));
         this.activeLayoutSignature.set(contained.length > 0 ? signature : '');

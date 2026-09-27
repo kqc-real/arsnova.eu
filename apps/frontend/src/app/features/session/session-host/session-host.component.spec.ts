@@ -809,6 +809,60 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
     return TestBed.createComponent(SessionHostComponent);
   };
 
+  it('keeps projection navigation focus through pending, failure, retry and a shrinking page count', async () => {
+    const fixture = setup();
+    fixture.detectChanges();
+    await fixture.whenStable();
+    const component = fixture.componentInstance;
+    const presenterPage = { context: 'projection-test', index: 0, count: 3 };
+    component.session.set({ ...defaultSession, presenterPage });
+    fixture.detectChanges();
+    const nav = fixture.nativeElement.querySelector(
+      '.session-host__projection-pages',
+    ) as HTMLElement;
+    const [previous, next] = Array.from(nav.querySelectorAll('button'));
+    expect(previous!.getAttribute('aria-disabled')).toBe('true');
+    let reject!: (reason: Error) => void;
+    setPresenterSurfaceMutateMock.mockReturnValueOnce(
+      new Promise((_, fail) => {
+        reject = fail;
+      }),
+    );
+    next!.focus();
+    next!.click();
+    fixture.detectChanges();
+    expect(nav.getAttribute('aria-busy')).toBe('true');
+    expect(next!.getAttribute('aria-disabled')).toBe('true');
+    next!.click();
+    expect(setPresenterSurfaceMutateMock).toHaveBeenCalledTimes(1);
+    reject(new Error('offline'));
+    await fixture.whenStable();
+    fixture.detectChanges();
+    expect(fixture.nativeElement.querySelector('[role="alert"]').textContent).toContain(
+      'erneut versuchen',
+    );
+    expect(document.activeElement).toBe(next);
+    expect(next!.getAttribute('aria-disabled')).not.toBe('true');
+    expect(next!.disabled).toBe(false);
+    setPresenterSurfaceMutateMock.mockResolvedValueOnce({
+      presenterSurface: 'default',
+      presenterPage: { ...presenterPage, index: 1 },
+    });
+    next!.click();
+    await fixture.whenStable();
+    fixture.detectChanges();
+    expect(nav.textContent).toContain('2 / 3');
+    expect(document.activeElement).toBe(next);
+    component.session.update((session) => ({
+      ...session!,
+      presenterPage: { ...presenterPage, count: 1 },
+    }));
+    fixture.detectChanges();
+    expect(document.activeElement).toBe(next);
+    expect(next!.isConnected).toBe(true);
+    expect(next!.getAttribute('aria-disabled')).toBe('true');
+  });
+
   const clickAddChannel = async (
     fixture: ReturnType<typeof setup>,
     channel: 'quiz' | 'qa' | 'quickFeedback',

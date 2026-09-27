@@ -573,17 +573,17 @@ describe('SessionProjectionQuizComponent', () => {
     fixture.detectChanges();
 
     const image = fixture.nativeElement.querySelector(
-      '.session-projection-quiz__visual img',
+      '.session-projection-quiz__title img, .session-projection-quiz__visual img',
     ) as HTMLImageElement | null;
     expect(image?.getAttribute('src')).toContain('/assets/demo/Bettgestell');
     expect(fixture.nativeElement.textContent).toContain('Siehe');
     const stage = fixture.nativeElement.querySelector(
       '[data-testid="presenter-quiz-stage"]',
     ) as HTMLElement;
-    expect(stage.classList.contains('session-projection-quiz--with-visual')).toBe(true);
+    expect(stage.querySelector('img')).not.toBeNull();
   });
 
-  it('zeigt den [credit]-Bildnachweis unter dem extrahierten Presenter-Bild', () => {
+  it('erhält Bildnachweis und anschließende Hinweise im vollständigen Markdown', () => {
     fixture.componentRef.setInput(
       'question',
       choiceQuestion({
@@ -594,11 +594,11 @@ describe('SessionProjectionQuizComponent', () => {
     fixture.detectChanges();
 
     const credit = fixture.nativeElement.querySelector(
-      '.session-projection-quiz__visual-credit',
+      '.md-image-credit, .session-projection-quiz__visual-credit',
     ) as HTMLElement | null;
     expect(credit?.textContent?.trim()).toBe('Pass / Le Brun');
     expect(fixture.nativeElement.textContent).not.toContain('[credit]');
-    expect(fixture.nativeElement.textContent).not.toContain('Hinweis');
+    expect(fixture.nativeElement.textContent).toContain('Hinweis');
   });
 
   it('zeigt Matching-Ergebnisse als Paarliste statt als Matrix', () => {
@@ -645,7 +645,7 @@ describe('SessionProjectionQuizComponent', () => {
 
     const text = fixture.nativeElement.textContent as string;
     expect(text).toContain('Ordne die Daten zu');
-    expect(text).not.toContain('Nur links das Ereignis wählen');
+    expect(text).toContain('Nur links das Ereignis wählen');
     expect(text).toContain('9. November 1918');
     expect(text).toContain('Ausrufung der Republik');
     expect(text).toContain('75');
@@ -664,13 +664,13 @@ describe('SessionProjectionQuizComponent', () => {
     fixture.detectChanges();
 
     const img = fixture.nativeElement.querySelector(
-      '.session-projection-quiz__visual img',
+      '.session-projection-quiz__title img, .session-projection-quiz__visual img',
     ) as HTMLImageElement | null;
     expect(img?.getAttribute('src')).toBe('https://example.com/faces.jpg');
     expect(
       (fixture.nativeElement.querySelector('.session-projection-quiz__title') as HTMLElement | null)
         ?.innerHTML,
-    ).not.toContain('faces.jpg');
+    ).toContain('faces.jpg');
   });
 
   it('bricht den Dezimalstellen-Hinweis unter „Komma oder Punkt möglich,“ um', () => {
@@ -768,7 +768,7 @@ describe('SessionProjectionQuizComponent', () => {
     fixture.detectChanges();
 
     const math = fixture.nativeElement.querySelector(
-      '.session-projection-quiz__math',
+      '.session-projection-quiz__title',
     ) as HTMLElement | null;
     expect(math?.innerHTML).toContain('katex');
     expect(math?.textContent).toContain('Leonhard Euler');
@@ -776,20 +776,22 @@ describe('SessionProjectionQuizComponent', () => {
     expect(
       (fixture.nativeElement.querySelector('.session-projection-quiz__title') as HTMLElement | null)
         ?.innerHTML,
-    ).not.toContain('Leonhard Euler');
+    ).toContain('Leonhard Euler');
     expect(
       fixture.nativeElement
-        .querySelector('.session-projection-quiz__visual img')
+        .querySelector('.session-projection-quiz__title img, .session-projection-quiz__visual img')
         ?.getAttribute('src'),
     ).toBe('https://example.com/pi.gif');
 
     fixture.componentRef.setInput('status', 'RESULTS');
     fixture.detectChanges();
-    expect(fixture.nativeElement.querySelector('.session-projection-quiz__math')).toBeTruthy();
+    expect(fixture.nativeElement.querySelector('.session-projection-quiz__title')).toBeTruthy();
 
     fixture.componentRef.setInput('status', 'QUESTION_OPEN');
     fixture.detectChanges();
-    expect(fixture.nativeElement.querySelector('.session-projection-quiz__math')).toBeNull();
+    expect(
+      fixture.nativeElement.querySelector('.session-projection-quiz__title .katex'),
+    ).not.toBeNull();
     expect(
       (fixture.nativeElement.querySelector('.session-projection-quiz__title') as HTMLElement | null)
         ?.textContent,
@@ -804,11 +806,11 @@ describe('SessionProjectionQuizComponent', () => {
     fixture.detectChanges();
 
     const img = fixture.nativeElement.querySelector(
-      '.session-projection-quiz__visual img',
+      '.session-projection-quiz__title img, .session-projection-quiz__visual img',
     ) as HTMLImageElement | null;
     expect(img?.getAttribute('src')).toBe('https://example.com/motif.jpg');
     const credit = fixture.nativeElement.querySelector(
-      '.session-projection-quiz__visual-credit',
+      '.md-image-credit, .session-projection-quiz__visual-credit',
     ) as HTMLElement | null;
     expect(credit?.textContent?.trim()).toBe('Pass / Le Brun');
   });
@@ -819,10 +821,14 @@ describe('SessionProjectionQuizComponent', () => {
     fixture.componentRef.setInput('status', 'ACTIVE');
     fixture.detectChanges();
 
-    expect(fixture.nativeElement.querySelector('.session-projection-quiz__visual img')).toBeNull();
+    expect(
+      fixture.nativeElement.querySelector(
+        '.session-projection-quiz__title img, .session-projection-quiz__visual img',
+      ),
+    ).toBeNull();
   });
 
-  it('zeigt den Finger-Countdown als dritte Spalte in den letzten Sekunden', () => {
+  it('zeigt den Finger-Countdown mit lesbarer Zeit in der Statuszone', () => {
     TestBed.inject(ThemePresetService).setPreset('spielerisch', { silent: true });
     fixture.componentRef.setInput('question', choiceQuestion());
     fixture.componentRef.setInput('status', 'ACTIVE');
@@ -834,8 +840,12 @@ describe('SessionProjectionQuizComponent', () => {
     ) as HTMLElement;
     expect(stage.classList.contains('session-projection-quiz--fingers')).toBe(true);
     expect(fixture.nativeElement.querySelector('app-countdown-fingers')).toBeTruthy();
-    expect(fixture.nativeElement.querySelector('.session-projection-quiz__countdown')).toBeNull();
-    expect(fixture.nativeElement.querySelector('.session-projection-quiz__fingers')).toBeTruthy();
+    expect(
+      fixture.nativeElement.querySelector('.session-projection-quiz__countdown')?.textContent,
+    ).toContain('4');
+    expect(
+      fixture.nativeElement.querySelector('.session-projection-quiz__status-fingers'),
+    ).toBeTruthy();
     const styles = readFileSync(
       resolve(
         process.cwd(),
@@ -867,7 +877,7 @@ describe('SessionProjectionQuizComponent', () => {
     expect(readingTitleBlock).not.toMatch(/font-size\s*:/);
   });
 
-  it('legt Codefragen dreispaltig an: Frage, Code, Antworten', () => {
+  it('erhält Frage, Code und Antworten vollständig für die Seitenteilung', () => {
     TestBed.inject(ThemePresetService).setPreset('spielerisch', { silent: true });
     fixture.componentRef.setInput(
       'question',
@@ -892,11 +902,11 @@ describe('SessionProjectionQuizComponent', () => {
     expect(stage.querySelector('app-countdown-fingers')).toBeNull();
     expect(stage.querySelector('.session-projection-quiz__countdown')?.textContent).toContain('2');
     const title = stage.querySelector('.session-projection-quiz__title') as HTMLElement;
-    const code = stage.querySelector('.session-projection-quiz__code') as HTMLElement;
+    const code = stage.querySelector('pre') as HTMLElement;
     expect(title.textContent).toContain('Creative-Coding-Umgebung');
-    expect(title.textContent).not.toContain('OPENGL');
+    expect(title.textContent).toContain('OPENGL');
     expect(code.textContent).toContain('size(130, 130, OPENGL)');
-    expect(stage.querySelector('.session-projection-quiz__code-column')).toBeTruthy();
+    expect(stage.querySelector('pre code')).toBeTruthy();
     expect(stage.textContent).toContain('Groovy');
     expect(stage.textContent).toContain('Processing');
   });
@@ -921,9 +931,7 @@ describe('SessionProjectionQuizComponent', () => {
     expect(stage.classList.contains('session-projection-quiz--reading')).toBe(true);
     expect(stage.classList.contains('session-projection-quiz--code')).toBe(true);
     expect(stage.classList.contains('session-projection-quiz--split')).toBe(true);
-    expect(stage.querySelector('.session-projection-quiz__code')?.textContent).toContain(
-      'size(130, 130, OPENGL)',
-    );
+    expect(stage.querySelector('pre')?.textContent).toContain('size(130, 130, OPENGL)');
     expect(stage.textContent).toContain('Lesephase');
     expect(stage.textContent).toContain('menu_book');
     expect(stage.querySelector('.session-projection-quiz__reading-icon')).toBeTruthy();
@@ -1144,6 +1152,8 @@ describe('SessionProjectionQuizComponent', () => {
     fixture.detectChanges();
 
     const text = fixture.nativeElement.textContent as string;
+    expect(text).toContain('3 – 3,1');
+    expect(text).toContain('n=45');
     expect(text).toContain('Median');
     expect(text).toContain('Akzeptiert');
     expect(text).toContain('Toleranzband');

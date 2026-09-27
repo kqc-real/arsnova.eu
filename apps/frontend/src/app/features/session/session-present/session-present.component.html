@@ -278,8 +278,6 @@
               <ol
                 class="session-present__board-list"
                 [class.session-present__board-list--overflow]="personalBoardOverflows()"
-                [class.session-present__board-list--compact]="personalBoardDensity() === 'compact'"
-                [class.session-present__board-list--dense]="personalBoardDensity() === 'dense'"
                 [style.--board-cols]="personalBoardColumnCount()"
               >
                 @for (
@@ -501,7 +499,19 @@
                 lobbyAudienceCountLabel()
               }}</span>
             </h2>
-            @if (lobbyTeamsView().length > 0) {
+            @if (lobbyAudienceIsCrowd(lobbyParticipantCount())) {
+              <div
+                class="session-present__audience-summary"
+                data-testid="presenter-audience-summary"
+              >
+                <p class="session-present__audience-total">{{ lobbyAudienceCountLabel() }}</p>
+                @if (lobbyTeamsView().length > 0 && lobbyTeamsView().length <= 8) {
+                  @for (team of lobbyTeamsView(); track team.id) {
+                    <p>{{ team.name }} · {{ team.memberCount }}</p>
+                  }
+                }
+              </div>
+            } @else if (lobbyTeamsView().length > 0) {
               <div
                 class="session-present__lobby-teams-grid"
                 [style.grid-template-columns]="
@@ -712,6 +722,9 @@
 
     @if (showQuizProjection() && !showPresenterFreetextResultsStage()) {
       <app-session-projection-quiz
+        [pageContext]="session()?.presenterPage?.context ?? ''"
+        [pageIndex]="session()?.presenterPage?.index ?? 0"
+        (pageCount)="reportProjectionPages($event)"
         [question]="hostQuestion()"
         [status]="session()?.status ?? null"
         [voteProgress]="hostVoteProgress()"
@@ -724,72 +737,85 @@
     }
 
     @if (showQaProjection() || showQaWordCloud()) {
-      <section class="session-present__qa-stage">
-        @if (showPinnedQaQuestion() && pinnedQaQuestion(); as pinnedQuestion) {
-          <mat-card appearance="outlined" class="session-present__qa-card">
-            <mat-card-content>
-              <div class="session-present__qa-head">
-                <div>
-                  <p class="session-present__qa-label" i18n="@@sessionPresent.qaLabel">
-                    Frage aus dem Publikum
-                  </p>
-                  <h2 class="session-present__qa-title" i18n="@@sessionPresent.qaTitle">
-                    Wird gerade beantwortet
-                  </h2>
-                </div>
-                <div class="session-present__qa-votes">
-                  <mat-icon aria-hidden="true">thumb_up</mat-icon>
-                  <span>{{ formatCount(pinnedQuestion.upvoteCount) }}</span>
-                </div>
-              </div>
-              <div
-                class="session-present__qa-text"
-                [innerHTML]="renderMarkdown(pinnedQuestion.text)"
-              ></div>
-            </mat-card-content>
-          </mat-card>
-        }
-
-        @if (showQaQueue()) {
-          <mat-card appearance="outlined" class="session-present__qa-list-card">
-            <mat-card-content>
-              <div class="session-present__qa-list-head">
-                <div>
-                  <p class="session-present__qa-label" i18n="@@sessionPresent.qaQueueLabel">
-                    Fragen aus dem Publikum
-                  </p>
-                  <h2 class="session-present__qa-list-title" i18n="@@sessionPresent.qaQueueTitle">
-                    Als Nächstes im Raum
-                  </h2>
-                </div>
-                <span class="session-present__qa-list-count">
-                  {{ presenterQaQuestions().length }}
-                </span>
-              </div>
-
-              <div
-                class="session-present__qa-list"
-                [class.session-present__qa-list--dense]="qaQueueIsDense()"
-                role="list"
-              >
-                @for (question of visibleQaQueueQuestions(); track question.id) {
-                  <article class="session-present__qa-list-item" role="listitem">
-                    <div class="session-present__qa-list-votes">
-                      <mat-icon aria-hidden="true">thumb_up</mat-icon>
-                      <span>{{ formatCount(question.upvoteCount) }}</span>
+      @if (showQaProjection()) {
+        <app-projection-pages
+          [pageContext]="session()?.presenterPage?.context ?? ''"
+          [pageIndex]="session()?.presenterPage?.index ?? 0"
+          (pageCount)="reportProjectionPages($event)"
+        >
+          <section class="session-present__qa-stage">
+            @if (showPinnedQaQuestion() && pinnedQaQuestion(); as pinnedQuestion) {
+              <mat-card appearance="outlined" class="session-present__qa-card">
+                <mat-card-content>
+                  <div class="session-present__qa-head">
+                    <div>
+                      <p class="session-present__qa-label" i18n="@@sessionPresent.qaLabel">
+                        Frage aus dem Publikum
+                      </p>
+                      <h2 class="session-present__qa-title" i18n="@@sessionPresent.qaTitle">
+                        Wird gerade beantwortet
+                      </h2>
                     </div>
-                    <div
-                      class="session-present__qa-list-text"
-                      [innerHTML]="renderMarkdown(question.text)"
-                    ></div>
-                  </article>
-                }
-              </div>
-            </mat-card-content>
-          </mat-card>
-        }
+                    <div class="session-present__qa-votes">
+                      <mat-icon aria-hidden="true">thumb_up</mat-icon>
+                      <span>{{ formatCount(pinnedQuestion.upvoteCount) }}</span>
+                    </div>
+                  </div>
+                  <div
+                    class="session-present__qa-text"
+                    [innerHTML]="renderMarkdown(pinnedQuestion.text)"
+                  ></div>
+                </mat-card-content>
+              </mat-card>
+            }
 
-        @if (showQaWordCloud()) {
+            @if (showQaQueue()) {
+              <mat-card appearance="outlined" class="session-present__qa-list-card">
+                <mat-card-content>
+                  <div class="session-present__qa-list-head">
+                    <div>
+                      <p class="session-present__qa-label" i18n="@@sessionPresent.qaQueueLabel">
+                        Fragen aus dem Publikum
+                      </p>
+                      <h2
+                        class="session-present__qa-list-title"
+                        i18n="@@sessionPresent.qaQueueTitle"
+                      >
+                        Als Nächstes im Raum
+                      </h2>
+                    </div>
+                    <span class="session-present__qa-list-count">
+                      {{ presenterQaQuestions().length }}
+                    </span>
+                  </div>
+
+                  <div class="session-present__qa-list" role="list">
+                    @for (question of visibleQaQueueQuestions(); track question.id) {
+                      <article class="session-present__qa-list-item" role="listitem">
+                        <div class="session-present__qa-list-votes">
+                          <mat-icon aria-hidden="true">thumb_up</mat-icon>
+                          <span>{{ formatCount(question.upvoteCount) }}</span>
+                        </div>
+                        <div
+                          class="session-present__qa-list-text"
+                          [innerHTML]="renderMarkdown(question.text)"
+                        ></div>
+                      </article>
+                    }
+                  </div>
+                  @if (remainingQaQuestions() > 0) {
+                    <p class="session-present__qa-more" i18n="@@sessionPresent.qaMore">
+                      + {{ remainingQaQuestions() }} weitere
+                    </p>
+                  }
+                </mat-card-content>
+              </mat-card>
+            }
+          </section>
+        </app-projection-pages>
+      }
+      @if (showQaWordCloud()) {
+        <section class="session-present__qa-stage">
           <section class="session-present__word-cloud-card">
             <app-word-cloud
               [responses]="presenterQaWordCloudResponses()"
@@ -813,8 +839,8 @@
               [outputOnly]="true"
             />
           </section>
-        }
-      </section>
+        </section>
+      }
     }
 
     @if (showQuickFeedbackCard() && quickFeedbackResult(); as quickFeedback) {

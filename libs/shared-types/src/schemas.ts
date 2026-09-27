@@ -3273,6 +3273,32 @@ export const SessionPresenterSurfaceSchema = z.enum([
 ]);
 export type SessionPresenterSurface = z.infer<typeof SessionPresenterSurfaceSchema>;
 
+/** Ephemeral projection state; context rejects delayed requests for an earlier question. */
+export const PresenterPageSchema = z.object({
+  context: z.string().max(200),
+  index: z.number().int().min(0).max(9999),
+  count: z.number().int().min(1).max(10000),
+});
+export type PresenterPage = z.infer<typeof PresenterPageSchema>;
+export const SetPresenterSurfaceInputSchema = z
+  .object({
+    code: z.string().length(6),
+    surface: SessionPresenterSurfaceSchema.optional(),
+    page: z
+      .object({
+        context: z.string().max(200),
+        delta: z.union([z.literal(-1), z.literal(1)]).optional(),
+        count: z.number().int().min(1).max(10000).optional(),
+      })
+      .refine((value) => (value.delta !== undefined) !== (value.count !== undefined))
+      .optional(),
+  })
+  .refine((value) => (value.surface !== undefined) !== (value.page !== undefined));
+export const SetPresenterSurfaceOutputSchema = z.object({
+  presenterSurface: SessionPresenterSurfaceSchema,
+  presenterPage: PresenterPageSchema,
+});
+
 /** Beamer-Abschluss: Leaderboard nach FINISHED, Idle nach Host-Dismiss (Startseite). */
 export const SessionFinishProjectionSchema = z.enum(['leaderboard', 'idle']);
 export type SessionFinishProjection = z.infer<typeof SessionFinishProjectionSchema>;
@@ -3306,6 +3332,7 @@ export const SessionStatusUpdateSchema = z.object({
   channels: z.lazy(() => SessionChannelsDTOSchema).optional(),
   preferredChannel: SessionLiveChannelSchema.optional(),
   presenterSurface: SessionPresenterSurfaceSchema.optional(),
+  presenterPage: PresenterPageSchema.optional(),
   /** Nur bei FINISHED: Leaderboard vs. Exit-Branding auf dem Presenter. */
   finishProjection: SessionFinishProjectionSchema.optional(),
   /** Nur beim atomaren Übergang nach „Frage auslassen“ gesetzt. */
@@ -4071,6 +4098,7 @@ export const SessionInfoDTOSchema = z.object({
   channels: SessionChannelsDTOSchema.optional(), // ADR-0009: Übergangsweise optional für schrittweise Migration
   preferredChannel: SessionLiveChannelSchema.optional(),
   presenterSurface: SessionPresenterSurfaceSchema.optional(),
+  presenterPage: PresenterPageSchema.optional(),
   /** Nur bei FINISHED: Leaderboard vs. Exit-Branding auf dem Presenter. */
   finishProjection: SessionFinishProjectionSchema.optional(),
   participantCount: z.number(),

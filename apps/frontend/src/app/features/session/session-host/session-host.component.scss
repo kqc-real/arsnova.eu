@@ -8535,3 +8535,13 @@ $round2-color: var(--mat-sys-primary);
   white-space: normal;
   line-height: 1.4;
 }
+
+.session-host__projection-pages {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  align-items: center;
+  gap: 0.75rem;
+  margin: 1rem auto;
+  max-width: 100%;
+}

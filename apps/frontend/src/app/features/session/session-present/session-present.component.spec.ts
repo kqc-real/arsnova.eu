@@ -10,6 +10,7 @@ import { NICKNAME_LISTS } from '../../join/nickname-themes';
 
 const {
   liveQueryMock,
+  setPresenterSurfaceMutateMock,
   getInfoQueryMock,
   getLeaderboardQueryMock,
   getTeamLeaderboardQueryMock,
@@ -25,6 +26,7 @@ const {
   subscribeMock,
 } = vi.hoisted(() => ({
   liveQueryMock: vi.fn(),
+  setPresenterSurfaceMutateMock: vi.fn(),
   getInfoQueryMock: vi.fn(),
   getLeaderboardQueryMock: vi.fn(),
   getTeamLeaderboardQueryMock: vi.fn(),
@@ -43,6 +45,7 @@ const {
 vi.mock('../../../core/trpc.client', () => ({
   trpc: {
     session: {
+      setPresenterSurface: { mutate: setPresenterSurfaceMutateMock },
       getInfo: {
         query: getInfoQueryMock,
       },
@@ -125,6 +128,7 @@ describe('SessionPresentComponent', () => {
   });
 
   beforeEach(() => {
+    setPresenterSurfaceMutateMock.mockReset();
     getInfoQueryMock.mockResolvedValue({
       id: '6a8edced-5f8f-4cfa-9176-454fac9570ad',
       serverTime: MOCK_SERVER_TIME,
@@ -180,6 +184,46 @@ describe('SessionPresentComponent', () => {
       ],
     });
     TestBed.inject(ThemePresetService).setPreset('spielerisch', { silent: true });
+  });
+
+  it('retries a failed page measurement and ignores a delayed result from an old context', async () => {
+    vi.useFakeTimers();
+    const fixture = TestBed.createComponent(SessionPresentComponent);
+    const component = fixture.componentInstance;
+    const session = await getInfoQueryMock();
+    component.session.set({ ...session, presenterPage: { context: 'first', index: 0, count: 1 } });
+    getInfoQueryMock.mockImplementation(async () => component.session());
+    setPresenterSurfaceMutateMock.mockRejectedValueOnce(new Error('offline'));
+    setPresenterSurfaceMutateMock.mockResolvedValueOnce({
+      presenterSurface: 'default',
+      presenterPage: { context: 'first', index: 0, count: 3 },
+    });
+    try {
+      await component.reportProjectionPages(3);
+      expect(component.session()?.presenterPage?.count).toBe(1);
+      await vi.advanceTimersByTimeAsync(2000);
+      expect(component.session()?.presenterPage?.count).toBe(3);
+      let resolve!: (result: unknown) => void;
+      setPresenterSurfaceMutateMock.mockReturnValueOnce(
+        new Promise((done) => {
+          resolve = done;
+        }),
+      );
+      const pending = component.reportProjectionPages(4);
+      component.session.update((current) => ({
+        ...current!,
+        presenterPage: { context: 'second', index: 0, count: 1 },
+      }));
+      resolve({
+        presenterSurface: 'default',
+        presenterPage: { context: 'first', index: 0, count: 4 },
+      });
+      await pending;
+      expect(component.session()?.presenterPage).toEqual({ context: 'second', index: 0, count: 1 });
+    } finally {
+      fixture.destroy();
+      vi.useRealTimers();
+    }
   });
 
   it('leert die unauthentifizierte Projektion ohne Terminalevent am lokalen Deadline-Fallback', () => {
@@ -775,7 +819,7 @@ describe('SessionPresentComponent', () => {
     expect(
       fixture.nativeElement.querySelector('.session-present__board-list--overflow'),
     ).not.toBeNull();
-    expect(fixture.nativeElement.querySelectorAll('.session-present__board-item').length).toBe(9);
+    expect(fixture.nativeElement.querySelectorAll('.session-present__board-item').length).toBe(8);
     fixture.destroy();
   });
 
@@ -809,14 +853,15 @@ describe('SessionPresentComponent', () => {
     fixture.detectChanges();
 
     const items = fixture.nativeElement.querySelectorAll('.session-present__board-item');
-    expect(items.length).toBe(24);
-    expect(fixture.nativeElement.textContent).toContain('Spieler 24');
+    expect(items.length).toBe(8);
+    expect(fixture.componentInstance.personalBoardPageCount()).toBe(3);
+    expect(fixture.nativeElement.textContent).toContain('Spieler 8');
     const list = fixture.nativeElement.querySelector(
       '.session-present__board-list',
     ) as HTMLElement | null;
     expect(list?.classList.contains('session-present__board-list--overflow')).toBe(true);
-    expect(list?.classList.contains('session-present__board-list--compact')).toBe(true);
-    expect(list?.style.getPropertyValue('--board-cols').trim()).toBe('5');
+    expect(list?.classList.contains('session-present__board-list--compact')).toBe(false);
+    expect(list?.style.getPropertyValue('--board-cols').trim()).toBe('2');
     const finish = fixture.nativeElement.querySelector(
       '.session-present__finish',
     ) as HTMLElement | null;
@@ -827,21 +872,21 @@ describe('SessionPresentComponent', () => {
   });
 
   it('paginiert Leaderboards, die nicht auf eine Beamerseite passen', () => {
-    expect(SessionPresentComponent.columnCountForParticipantTotal(500)).toBe(12);
-    expect(SessionPresentComponent.pageSizeForParticipantTotal(24)).toBeGreaterThan(24);
-    expect(SessionPresentComponent.pageSizeForParticipantTotal(500)).toBe(216);
+    expect(SessionPresentComponent.columnCountForParticipantTotal(500)).toBe(2);
+    expect(SessionPresentComponent.pageSizeForParticipantTotal(24)).toBe(8);
+    expect(SessionPresentComponent.pageSizeForParticipantTotal(500)).toBe(8);
     expect(
       SessionPresentComponent.pageSlice(
         Array.from({ length: 500 }, (_, i) => i),
         0,
       ),
-    ).toHaveLength(216);
+    ).toHaveLength(8);
     expect(
       SessionPresentComponent.pageSlice(
         Array.from({ length: 500 }, (_, i) => i),
         2,
       ),
-    ).toEqual(Array.from({ length: 68 }, (_, i) => i + 432));
+    ).toEqual(Array.from({ length: 8 }, (_, i) => i + 16));
   });
 
   it('zeigt große Leaderboards seitenweise statt sie hinter overflow:hidden abzuschneiden', async () => {
@@ -1364,7 +1409,7 @@ describe('SessionPresentComponent', () => {
     fixture.destroy();
   });
 
-  it('begrenzt die Q&A-Projektion auf vier kommende Fragen', () => {
+  it('begrenzt die Q&A-Projektion auf zwei kommende Fragen mit Restzahl', () => {
     const fixture = TestBed.createComponent(SessionPresentComponent);
     fixture.componentInstance.presenterQaQuestions.set(
       Array.from({ length: 6 }, (_, index) => ({
@@ -1379,9 +1424,9 @@ describe('SessionPresentComponent', () => {
       })),
     );
 
-    expect(fixture.componentInstance.visibleQaQueueQuestions()).toHaveLength(4);
-    expect(fixture.componentInstance.visibleQaQueueQuestions()[3]?.text).toBe('Publikumsfrage 4');
-    expect(fixture.componentInstance.qaQueueIsDense()).toBe(true);
+    expect(fixture.componentInstance.visibleQaQueueQuestions()).toHaveLength(2);
+    expect(fixture.componentInstance.visibleQaQueueQuestions()[1]?.text).toBe('Publikumsfrage 2');
+    expect(fixture.componentInstance.remainingQaQuestions()).toBe(4);
     fixture.destroy();
   });
 
@@ -2468,31 +2513,16 @@ describe('SessionPresentComponent', () => {
     await new Promise((r) => setTimeout(r, 50));
     fixture.detectChanges();
 
-    const team = fixture.nativeElement.querySelector(
-      '.session-present__lobby-team',
-    ) as HTMLElement | null;
-    const nickTexts = [
-      ...fixture.nativeElement.querySelectorAll('.session-present__lobby-nick-text'),
-    ] as HTMLElement[];
-    expect(team?.classList.contains('session-present__lobby-team--crowd')).toBe(true);
-    expect(team?.classList.contains('session-present__lobby-team--packed')).toBe(true);
-    const members = fixture.nativeElement.querySelector(
-      '.session-present__lobby-team-members',
-    ) as HTMLElement | null;
-    expect(members?.style.gridTemplateColumns.replace(/\s+/g, ' ').trim()).toBe(
-      'repeat(4, minmax(0, 1fr))',
+    const summary = fixture.nativeElement.querySelector(
+      '[data-testid="presenter-audience-summary"]',
     );
-    expect(nickTexts).toHaveLength(20);
-    expect(nickTexts.every((node) => node.classList.contains('sr-only'))).toBe(true);
-    expect(nickTexts.map((node) => node.textContent?.trim())).not.toContain('Person 1');
-    expect(fixture.nativeElement.textContent).toContain('Person 11');
-    expect(fixture.nativeElement.textContent).toContain('Person 30');
+    expect(summary).not.toBeNull();
+    expect(summary.textContent).toContain('30');
     expect(
-      fixture.nativeElement.querySelectorAll('.session-present__lobby-placeholder').length,
-    ).toBe(10);
-    expect(
-      fixture.nativeElement.querySelectorAll('.session-present__lobby-team-members li').length,
-    ).toBe(30);
+      fixture.nativeElement.querySelector(
+        '.session-present__lobby-person-col, .session-present__lobby-team-members',
+      ),
+    ).toBeNull();
     fixture.destroy();
   });
 
@@ -2543,24 +2573,16 @@ describe('SessionPresentComponent', () => {
     await new Promise((r) => setTimeout(r, 50));
     fixture.detectChanges();
 
-    const teams = [
-      ...fixture.nativeElement.querySelectorAll('.session-present__lobby-team'),
-    ] as HTMLElement[];
-    expect(teams).toHaveLength(2);
-    expect(fixture.nativeElement.textContent).toContain('60 Teilnehmende');
+    const summary = fixture.nativeElement.querySelector(
+      '[data-testid="presenter-audience-summary"]',
+    );
+    expect(summary).not.toBeNull();
+    expect(summary.textContent).toContain('60');
     expect(
-      teams.every((team) => team.classList.contains('session-present__lobby-team--packed')),
-    ).toBe(true);
-    for (const team of teams) {
-      const members = team.querySelector(
-        '.session-present__lobby-team-members',
-      ) as HTMLElement | null;
-      expect(members?.style.gridTemplateColumns.replace(/\s+/g, ' ').trim()).toBe(
-        'repeat(4, minmax(0, 1fr))',
-      );
-      expect(team.querySelectorAll('.session-present__lobby-team-members li').length).toBe(30);
-      expect(team.querySelectorAll('.session-present__lobby-placeholder').length).toBe(20);
-    }
+      fixture.nativeElement.querySelector(
+        '.session-present__lobby-person-col, .session-present__lobby-team-members',
+      ),
+    ).toBeNull();
     fixture.destroy();
   });
 
@@ -2588,7 +2610,7 @@ describe('SessionPresentComponent', () => {
     },
   ])(
     'zeigt im Packed-Modus fuer $label höchstens 20 Theme-Icons mit stabilen Eingangsnummern',
-    async ({ nicknameTheme, anonymousMode, icon, themeClass }) => {
+    async ({ nicknameTheme, anonymousMode }) => {
       const participants = Array.from({ length: 26 }, (_, index) => ({
         id: `11111111-1111-4111-8111-${String(index + 1).padStart(12, '0')}`,
         nickname: `Person ${index + 1}`,
@@ -2620,26 +2642,13 @@ describe('SessionPresentComponent', () => {
       await new Promise((resolve) => setTimeout(resolve, 50));
       fixture.detectChanges();
 
-      const identities = [
-        ...fixture.nativeElement.querySelectorAll('.session-present__lobby-packed-identity'),
-      ] as HTMLElement[];
-      expect(identities).toHaveLength(20);
-      expect(identities.every((element) => element.classList.contains(themeClass))).toBe(true);
       expect(
-        identities.map((element) =>
-          (element.querySelector('.session-present__lobby-packed-icon')?.textContent ?? '').trim(),
-        ),
-      ).toEqual(Array.from({ length: 20 }, () => icon));
+        fixture.nativeElement.querySelector('.session-present__lobby-packed-identity'),
+      ).toBeNull();
       expect(
-        identities.map((element) =>
-          (
-            element.querySelector('.session-present__lobby-packed-number')?.textContent ?? ''
-          ).trim(),
-        ),
-      ).toEqual(Array.from({ length: 20 }, (_, index) => String(20 - index).padStart(2, '0')));
-
-      expect(identities[0]?.getAttribute('aria-label')).toBe('Person 26');
-      expect(identities.at(-1)?.getAttribute('aria-label')).toBe('Person 7');
+        fixture.nativeElement.querySelector('[data-testid="presenter-audience-summary"]')
+          ?.textContent,
+      ).toContain('26');
       fixture.destroy();
     },
   );
@@ -2919,21 +2928,16 @@ describe('SessionPresentComponent', () => {
     await new Promise((resolve) => setTimeout(resolve, 50));
     fixture.detectChanges();
 
-    const icons = Array.from(
-      fixture.nativeElement.querySelectorAll('.session-present__lobby-nick-icon'),
-      (el) => (el.textContent ?? '').trim(),
+    const summary = fixture.nativeElement.querySelector(
+      '[data-testid="presenter-audience-summary"]',
     );
-    expect(icons).toEqual(['🦉', '🦔']);
+    expect(summary).not.toBeNull();
+    expect(summary.textContent).toContain('20');
     expect(
-      fixture.nativeElement.querySelectorAll('.session-present__lobby-placeholder').length,
-    ).toBe(18);
-    expect(
-      fixture.nativeElement.querySelectorAll('.session-present__lobby-team-members li').length,
-    ).toBe(20);
-    expect(fixture.nativeElement.querySelector('.session-present__lobby-nick-mat-icon')).toBeNull();
-    expect(
-      fixture.nativeElement.querySelector('.session-present__lobby-audience--kindergarten'),
-    ).toBeTruthy();
+      fixture.nativeElement.querySelector(
+        '.session-present__lobby-person-col, .session-present__lobby-team-members',
+      ),
+    ).toBeNull();
     fixture.destroy();
   });
 
@@ -2995,8 +2999,12 @@ describe('SessionPresentComponent', () => {
     fixture.detectChanges();
 
     expect(fixture.nativeElement.querySelectorAll('.session-present__lobby-nick-icon').length).toBe(
-      81,
+      0,
     );
+    expect(
+      fixture.nativeElement.querySelector('[data-testid="presenter-audience-summary"]')
+        ?.textContent,
+    ).toContain('81');
     expect(
       fixture.nativeElement.querySelectorAll('.session-present__lobby-placeholder').length,
     ).toBe(0);

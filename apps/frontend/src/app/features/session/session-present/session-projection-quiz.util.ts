@@ -169,35 +169,25 @@ export function presenterMarkdownWithoutCode(markdown: string): string {
     .trim();
 }
 
-/** Externe Links und optionale Impulse sind auf dem Beamer nicht bedienbar. */
-const PRESENTER_STAGE_MARKDOWN_LINK_RE =
-  /(?<!!)\[[^\]]*]\(\s*<?(?:https?:\/\/|mailto:|\/\/)[^)\s>]+[^)]*\)/i;
-const PRESENTER_STAGE_BARE_URL_RE = /https?:\/\/[^\s)]+/i;
+/** Optional teaching impulses stay hidden; question prose, links and code remain complete. */
 const PRESENTER_STAGE_IMPULSE_RE =
   /^(optionaler\s+impuls|optional\s+(?:impulse|resource)|sugerencia\s+opcional|ressource\s+facultative|spunto\s+facoltativo)\b/i;
 
-export function presenterMarkdownWithoutStageLinks(markdown: string): string {
-  return String(markdown ?? '')
-    .split(/\n{2,}/)
-    .filter((block) => {
-      const trimmed = block.trim();
-      if (!trimmed) {
-        return false;
-      }
-      const withoutHeading = trimmed.replace(/^#{1,6}\s+/, '');
-      if (PRESENTER_STAGE_IMPULSE_RE.test(withoutHeading)) {
-        return false;
-      }
-      const withoutImages = trimmed.replace(/!\[[^\]]*]\([^)]*\)/g, '');
-      return (
-        !PRESENTER_STAGE_MARKDOWN_LINK_RE.test(withoutImages) &&
-        !PRESENTER_STAGE_BARE_URL_RE.test(withoutImages)
-      );
-    })
-    .join('\n\n')
-    .replace(/[ \t]+\n/g, '\n')
-    .replace(/\n{3,}/g, '\n\n')
-    .trim();
+export function presenterQuestionMarkdown(markdown: string): string {
+  const source = String(markdown ?? '');
+  const prose = (value: string): string =>
+    value
+      .split(/\n{2,}/)
+      .filter((block) => !PRESENTER_STAGE_IMPULSE_RE.test(block.trim().replace(/^#{1,6}\s+/, '')))
+      .join('\n\n');
+  let cursor = 0;
+  let result = '';
+  // Fenced code is copied verbatim, including URL examples and empty lines.
+  for (const match of source.matchAll(fencedCodeBlockRe())) {
+    result += prose(source.slice(cursor, match.index)) + match[0];
+    cursor = match.index! + match[0].length;
+  }
+  return (result + prose(source.slice(cursor))).trim();
 }
 
 export function presenterQuestionCodeMarkdown(markdown: string): string {

@@ -3463,6 +3463,9 @@ export class SessionHostComponent implements OnInit, OnDestroy {
 
   constructor() {
     effect(() => {
+      if ((this.session()?.presenterPage?.count ?? 1) > 1) this.projectionControlsVisible.set(true);
+    });
+    effect(() => {
       const reviewVisible = this.session()?.channels?.qa?.moderationMode === true;
       if (
         (!reviewVisible &&
@@ -5173,6 +5176,7 @@ export class SessionHostComponent implements OnInit, OnDestroy {
             channels: data.channels,
             preferredChannel: data.preferredChannel,
             presenterSurface: data.presenterSurface,
+            presenterPage: data.presenterPage,
             enableTimerAccommodation: data.enableTimerAccommodation,
           } satisfies SessionStatusUpdate;
           if (data.enableTimerAccommodation !== undefined) {
@@ -5194,6 +5198,7 @@ export class SessionHostComponent implements OnInit, OnDestroy {
                 ? {
                     ...current,
                     ...(data.channels ? { channels: data.channels } : {}),
+                    ...(data.presenterPage ? { presenterPage: data.presenterPage } : {}),
                     ...(data.preferredChannel ? { preferredChannel: data.preferredChannel } : {}),
                   }
                 : current,
@@ -5592,6 +5597,42 @@ export class SessionHostComponent implements OnInit, OnDestroy {
         '',
         { duration: 6000 },
       );
+    }
+  }
+
+  readonly projectionPagePending = signal(false);
+  readonly projectionControlsVisible = signal(false);
+  readonly projectionPageError = signal('');
+  async changeProjectionPage(delta: -1 | 1): Promise<void> {
+    const page = this.session()?.presenterPage;
+    if (
+      !page ||
+      this.projectionPagePending() ||
+      (delta < 0 && page.index === 0) ||
+      (delta > 0 && page.index >= page.count - 1)
+    )
+      return;
+    this.projectionPagePending.set(true);
+    this.projectionPageError.set('');
+    try {
+      const result = await trpc.session.setPresenterSurface.mutate(
+        {
+          code: this.code,
+          page: { context: page.context, delta },
+        },
+        { signal: AbortSignal.timeout(10000) },
+      );
+      this.session.update((current) =>
+        current?.presenterPage?.context === page.context
+          ? { ...current, presenterPage: result.presenterPage }
+          : current,
+      );
+    } catch {
+      this.projectionPageError.set(
+        $localize`:@@sessionHost.projectionPageError:Seite konnte nicht gewechselt werden. Bitte erneut versuchen.`,
+      );
+    } finally {
+      this.projectionPagePending.set(false);
     }
   }
 

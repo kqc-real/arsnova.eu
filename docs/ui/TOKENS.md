@@ -206,3 +206,12 @@ Quelle: M3 Window Size Classes.
 - Globale Tokens: `apps/frontend/src/styles.scss`
 - Landing-Tokens: `apps/landing/src/styles/landing-theme.css`
 - Spielerisch-Chrome: `apps/frontend/src/styles/playful-inner-chrome.scss`
+
+### Projektionsseiten (#473)
+
+`app-projection-pages` besitzt die lokal begrenzten Größen `--projection-title`,
+`--projection-copy` und `--projection-label`: bei 1920 × 1080 mindestens 36, 30
+und 26 CSS-Pixel. Haupttext und Code verwenden Zeilenhöhe 1,5; aufeinanderfolgende
+Absätze erhalten zusätzlich Abstand. Die gemessene Projektionsfläche bestimmt
+semantische Seiten, nicht eine weitere Schriftverkleinerung. Farben und Karten
+verwenden weiterhin die vorhandenen Material- und Preset-Tokens.

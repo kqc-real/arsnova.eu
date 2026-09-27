@@ -541,6 +541,22 @@ describe('WordCloudComponent', () => {
     expect(hint?.textContent).toContain('Je größer ein Wort, desto öfter wurde es genannt.');
   });
 
+  it('keeps projected words readable and counts the undisplayed terms', () => {
+    const fixture = TestBed.createComponent(WordCloudComponent);
+    fixture.componentRef.setInput(
+      'responses',
+      Array.from({ length: 60 }, (_, index) => `Wortbegriff${index}`),
+    );
+    fixture.componentRef.setInput('presentationMode', true);
+    fixture.componentRef.setInput('outputOnly', true);
+    fixture.componentRef.setInput('disableCloudLayout', true);
+    fixture.detectChanges();
+    const component = fixture.componentInstance;
+    expect(component.displayWords().length).toBeLessThanOrEqual(24);
+    expect(component.displayWords().every((word) => word.size >= 30)).toBe(true);
+    expect(fixture.nativeElement.textContent).toContain('weitere');
+  });
+
   it('fuellt im Presentation-Modus die verfuegbare Host-Hoehe', () => {
     const fixture = TestBed.createComponent(WordCloudComponent);
     fixture.componentRef.setInput('presentationMode', true);

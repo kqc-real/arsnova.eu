@@ -59,7 +59,7 @@ if (
   throw new Error('PRESENTER_PARTICIPANT_COUNT muss eine ganze Zahl zwischen 1 und 500 sein.');
 }
 const PARTICIPANT_COUNT = requestedParticipantCount;
-const EXPECTED_DISPLAY_COUNT = ANONYMOUS_MODE ? 0 : Math.min(PARTICIPANT_COUNT, 500);
+const EXPECTED_DISPLAY_COUNT = ANONYMOUS_MODE || PARTICIPANT_COUNT > 12 ? 0 : PARTICIPANT_COUNT;
 const GEOMETRY_TOLERANCE_PX = 1.5;
 const NOBEL_LAUREATE_NICKNAMES = [
   'Marie Curie',
@@ -221,7 +221,7 @@ function formatFailures(viewport, failures) {
 
 async function inspectPresenterGeometry(page, expectedDisplayCount) {
   return page.evaluate(
-    ({ expectedDisplayCount, expectedMotif, expectedPackedIcon, tolerance }) => {
+    ({ expectedDisplayCount, expectedTotal, expectedMotif, expectedPackedIcon, tolerance }) => {
       const rect = (element) => {
         const value = element.getBoundingClientRect();
         return {
@@ -254,7 +254,8 @@ async function inspectPresenterGeometry(page, expectedDisplayCount) {
       const stage = bySelector('.session-present__lobby-stage');
       const join = bySelector('.session-present__lobby-join-stack');
       const audience = bySelector('.session-present__lobby-audience');
-      const people = bySelector('.session-present__lobby-people-cols--packed');
+      const people = bySelector('.session-present__lobby-people-cols');
+      const summary = bySelector('[data-testid="presenter-audience-summary"]');
       const code = bySelector('.session-present__lobby-code');
       const qr = bySelector('.session-present__lobby-qr');
       const motif = bySelector('.session-present__lobby-motif');
@@ -282,6 +283,8 @@ async function inspectPresenterGeometry(page, expectedDisplayCount) {
       }
 
       const failures = [];
+      if (expectedTotal > 12 && (!summary || !summary.textContent.includes(String(expectedTotal))))
+        failures.push('Lesbare Publikumsübersicht fehlt');
       const viewport = {
         top: 0,
         left: 0,
@@ -307,7 +310,7 @@ async function inspectPresenterGeometry(page, expectedDisplayCount) {
           failures.push('Quiz-Motiv ist unsichtbar oder liegt außerhalb des Viewports');
         }
       }
-      if (expectedPackedIcon) {
+      if (expectedPackedIcon && expectedDisplayCount > 12) {
         const packedIcons = [...document.querySelectorAll('.session-present__lobby-packed-icon')];
         const packedNumbers = [
           ...document.querySelectorAll('.session-present__lobby-packed-number'),
@@ -428,6 +431,7 @@ async function inspectPresenterGeometry(page, expectedDisplayCount) {
       };
     },
     {
+      expectedTotal: PARTICIPANT_COUNT,
       expectedMotif: Boolean(MOTIF_IMAGE_URL),
       expectedDisplayCount,
       expectedPackedIcon: EXPECTED_PACKED_ICON,

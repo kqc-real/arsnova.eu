@@ -84,7 +84,6 @@
   place-items: center;
   padding: 1.25rem;
   background: color-mix(in srgb, var(--mat-sys-scrim) 52%, transparent);
-  backdrop-filter: blur(4px);
 }
 
 .session-present__fullscreen-gate-card {
@@ -1157,20 +1156,6 @@ app-session-projection-quiz,
   gap: 0.75rem;
 }
 
-.session-present__qa-list--dense {
-  gap: clamp(0.4rem, 1vh, 0.65rem);
-
-  .session-present__qa-list-item {
-    gap: 0.55rem;
-    padding: clamp(0.55rem, 1.2vh, 0.75rem) clamp(0.65rem, 1.2vw, 0.9rem);
-  }
-
-  .session-present__qa-list-text {
-    font-size: clamp(0.95rem, 1.6vw, 1.3rem);
-    line-height: 1.3;
-  }
-}
-
 .session-present__qa-list-item {
   display: grid;
   grid-template-columns: auto 1fr;
@@ -1894,92 +1879,6 @@ app-session-projection-quiz,
   line-height: 1.1;
 }
 
-.session-present__board-card:has(.session-present__board-list--compact)
-  .session-present__board-hint {
-  margin: 0 0 0.2rem;
-  font-size: 0.8rem;
-}
-
-.session-present__board-card:has(.session-present__board-list--dense) .session-present__board-hint {
-  display: none;
-}
-
-.session-present__board-card:has(.session-present__board-list--dense)
-  .session-present__board-title {
-  margin: 0 0 0.2rem;
-  font-size: clamp(1rem, 1.5vw, 1.25rem);
-}
-
-.session-present__board-list--compact {
-  gap: 0.28rem 0.55rem;
-}
-
-.session-present__board-list--compact .session-present__board-item {
-  padding: 0.22rem 0.5rem 0.25rem;
-  column-gap: 0.45rem;
-}
-
-.session-present__board-list--compact .session-present__board-lead,
-.session-present__board-list--compact .session-present__board-tail {
-  min-width: 2.6rem;
-  gap: 0.06rem;
-}
-
-.session-present__board-list--compact .session-present__board-medal--gold {
-  font-size: clamp(2.2rem, 4.2vw, 3.5rem);
-}
-
-.session-present__board-list--compact .session-present__board-medal--silver {
-  font-size: clamp(2rem, 3.8vw, 3.1rem);
-}
-
-.session-present__board-list--compact .session-present__board-medal--bronze {
-  font-size: clamp(1.85rem, 3.5vw, 2.85rem);
-}
-
-.session-present__board-list--compact .session-present__board-name {
-  font-size: clamp(0.95rem, 1.5vw, 1.25rem);
-}
-
-.session-present__board-list--dense {
-  gap: 0.16rem 0.38rem;
-}
-
-.session-present__board-list--dense .session-present__board-item {
-  padding: 0.1rem 0.38rem 0.12rem;
-  column-gap: 0.35rem;
-}
-
-.session-present__board-list--dense .session-present__board-lead,
-.session-present__board-list--dense .session-present__board-tail {
-  min-width: 2.2rem;
-  gap: 0.02rem;
-}
-
-.session-present__board-list--dense .session-present__board-medal--gold {
-  font-size: clamp(1.75rem, 3.2vw, 2.7rem);
-}
-
-.session-present__board-list--dense .session-present__board-medal--silver {
-  font-size: clamp(1.6rem, 2.9vw, 2.45rem);
-}
-
-.session-present__board-list--dense .session-present__board-medal--bronze {
-  font-size: clamp(1.5rem, 2.7vw, 2.25rem);
-}
-
-.session-present__board-list--dense .session-present__board-emoji {
-  font-size: clamp(1.05rem, 1.7vw, 1.4rem);
-}
-
-.session-present__board-list--dense .session-present__board-name {
-  font-size: clamp(0.82rem, 1.25vw, 1.05rem);
-}
-
-.session-present__board-list--dense .session-present__participant-team-icon {
-  font-size: clamp(1.05rem, 1.8vw, 1.45rem);
-}
-
 .session-present__winner-dot,
 .session-present__team-board-dot {
   width: 1.1rem;
@@ -2336,5 +2235,54 @@ app-session-projection-quiz,
       transform: translateY(8.5rem) rotate(320deg);
       opacity: 0;
     }
+  }
+}
+
+.session-present__audience-summary {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.75rem;
+  font-size: clamp(1.625rem, 2.6vh, 2rem);
+}
+.session-present__audience-total {
+  grid-column: 1 / -1;
+  font-size: clamp(2.25rem, 5vh, 4rem);
+}
+.session-present__qa-more {
+  font-size: 1.625rem;
+}
+
+.session-present__board-item {
+  font-size: clamp(1.625rem, 2.5vh, 2rem);
+}
+.session-present__board-page {
+  font-size: 1.375rem;
+}
+.session-present__board-name {
+  white-space: normal;
+  text-overflow: clip;
+  overflow: visible;
+}
+.session-present__feedback-row-label,
+.session-present__feedback-row-value {
+  font-size: clamp(1.625rem, 2.5vh, 2rem);
+}
+.session-present > app-projection-pages {
+  flex: 1;
+  min-height: 0;
+}
+
+@media (min-width: 1000px) {
+  .session-present--lobby .session-present__lobby-stage {
+    grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr);
+  }
+  .session-present--lobby .session-present__lobby-card {
+    --app-qr-size: min(28rem, 36vw, 46dvh);
+  }
+  .session-present--lobby .session-present__lobby-code {
+    font-size: clamp(3rem, 7vh, 6rem);
+  }
+  .session-present__lobby-audience:has(.session-present__audience-summary) {
+    justify-content: center;
   }
 }

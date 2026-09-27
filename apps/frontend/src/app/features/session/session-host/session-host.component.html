@@ -1,3 +1,38 @@
+@if (session()?.presenterPage; as page) {
+  @if (page.count > 1 || projectionControlsVisible()) {
+    <nav
+      class="session-host__projection-pages"
+      aria-label="Projektionsseiten"
+      i18n-aria-label="@@sessionHost.projectionPages"
+      [attr.aria-busy]="projectionPagePending()"
+    >
+      <button
+        matButton="outlined"
+        type="button"
+        (click)="changeProjectionPage(-1)"
+        [disabledInteractive]="true"
+        [disabled]="projectionPagePending() || page.index === 0"
+        i18n="@@sessionHost.projectionPrevious"
+      >
+        Vorherige Seite
+      </button>
+      <span aria-live="polite">{{ page.index + 1 }} / {{ page.count }}</span>
+      <button
+        matButton="outlined"
+        type="button"
+        (click)="changeProjectionPage(1)"
+        [disabledInteractive]="true"
+        [disabled]="projectionPagePending() || page.index >= page.count - 1"
+        i18n="@@sessionHost.projectionNext"
+      >
+        Nächste Seite
+      </button>
+    </nav>
+  }
+  @if (projectionPageError()) {
+    <p role="alert">{{ projectionPageError() }}</p>
+  }
+}
 <section
   class="session-host"
   appMarkdownImageLightbox

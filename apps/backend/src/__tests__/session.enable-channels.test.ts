@@ -37,7 +37,7 @@ vi.mock('../lib/hostAuth', async () => {
   });
 });
 
-import { sessionRouter } from '../routers/session';
+import { resetSessionReadCachesForTests, sessionRouter } from '../routers/session';
 
 const caller = sessionRouter.createCaller({ req: {} as never });
 const SESSION_ID = '6a8edced-5f8f-4cfa-9176-454fac9570ad';
@@ -80,6 +80,7 @@ const QA_WORD_CLOUD_PROJECTION = {
 describe('session.enable channel mutations', () => {
   beforeEach(() => {
     vi.resetAllMocks();
+    resetSessionReadCachesForTests();
     hostAuthMocks.extractHostTokenMock.mockReturnValue('host-token-123');
     hostAuthMocks.extractHostTokenFromConnectionParamsMock.mockReturnValue(null);
     hostAuthMocks.isHostSessionTokenValidMock.mockResolvedValue(true);
@@ -649,7 +650,10 @@ describe('session.enable channel mutations', () => {
       await caller.setPreferredLiveChannel({ code: 'ABC123', channel: 'qa' });
       await expect(
         caller.setPresenterSurface({ code: 'ABC123', surface: 'qaWordCloud' }),
-      ).resolves.toEqual({ presenterSurface: 'qaWordCloud' });
+      ).resolves.toMatchObject({
+        presenterSurface: 'qaWordCloud',
+        presenterPage: { index: 0, count: 1 },
+      });
 
       await caller.setPreferredLiveChannel({ code: 'ABC123', channel: 'quiz' });
       await expect(
@@ -688,7 +692,10 @@ describe('session.enable channel mutations', () => {
 
       await expect(
         caller.setPresenterSurface({ code: 'ABC123', surface: 'qaWordCloud' }),
-      ).resolves.toEqual({ presenterSurface: 'qaWordCloud' });
+      ).resolves.toMatchObject({
+        presenterSurface: 'qaWordCloud',
+        presenterPage: { index: 0, count: 1 },
+      });
     },
   );
 
@@ -736,7 +743,10 @@ describe('session.enable channel mutations', () => {
 
     await expect(
       caller.setPresenterSurface({ code: 'ABC123', surface: 'qaWordCloud' }),
-    ).resolves.toEqual({ presenterSurface: 'qaWordCloud' });
+    ).resolves.toMatchObject({
+      presenterSurface: 'qaWordCloud',
+      presenterPage: { index: 0, count: 1 },
+    });
 
     await expect(
       caller.setPreferredLiveChannel({ code: 'ABC123', channel: 'qa' }),
@@ -936,7 +946,10 @@ describe('session.enable channel mutations', () => {
 
       await expect(
         caller.setPresenterSurface({ code: 'ABC123', surface: 'qaWordCloud' }),
-      ).resolves.toEqual({ presenterSurface: 'qaWordCloud' });
+      ).resolves.toMatchObject({
+        presenterSurface: 'qaWordCloud',
+        presenterPage: { index: 0, count: 1 },
+      });
       await expect(
         caller.setQaWordCloudProjection({
           code: 'ABC123',
@@ -951,12 +964,75 @@ describe('session.enable channel mutations', () => {
 
       await expect(
         caller.setPresenterSurface({ code: 'ABC123', surface: 'default' }),
-      ).resolves.toEqual({ presenterSurface: 'default' });
+      ).resolves.toMatchObject({
+        presenterSurface: 'default',
+        presenterPage: { index: 0, count: 1 },
+      });
       await expect(caller.getQaWordCloudProjection({ code: 'ABC123' })).resolves.toEqual({
         projection: null,
       });
     },
   );
+  it('shares page navigation between hosts, clamps counts and rejects stale question commands', async () => {
+    let question = 0;
+    prismaMock.session.findUnique.mockImplementation(async () => ({
+      ...ACTIVE_SESSION,
+      quizId: '11111111-1111-4111-8111-111111111111',
+      type: 'QUIZ',
+      currentQuestion: question,
+      qaEnabled: true,
+      qaOpen: true,
+    }));
+    const initial = await caller.setPresenterSurface({ code: 'ABC123', surface: 'default' });
+    const context = initial.presenterPage.context;
+    await caller.setPresenterSurface({ code: 'ABC123', page: { context, count: 4 } });
+    const commands = await Promise.all(
+      [1, 2].map(() => caller.setPresenterSurface({ code: 'ABC123', page: { context, delta: 1 } })),
+    );
+    expect(commands.map((result) => result.presenterPage.index)).toEqual([1, 2]);
+    expect(prismaMock.session.update).not.toHaveBeenCalled();
+    const same = await caller.setPresenterSurface({ code: 'ABC123', surface: 'default' });
+    expect(same.presenterPage).toMatchObject({ index: 2, count: 4 });
+    const resized = await caller.setPresenterSurface({
+      code: 'ABC123',
+      page: { context, count: 2 },
+    });
+    expect(resized.presenterPage).toMatchObject({ index: 1, count: 2 });
+    question = 1;
+    await expect(
+      caller.setPresenterSurface({ code: 'ABC123', page: { context, delta: 1 } }),
+    ).rejects.toMatchObject({ code: 'CONFLICT' });
+    const next = await caller.setPresenterSurface({ code: 'ABC123', surface: 'default' });
+    expect(next.presenterPage).toMatchObject({ index: 0, count: 1 });
+    question = 0;
+    const returned = await caller.setPresenterSurface({ code: 'ABC123', surface: 'default' });
+    expect(returned.presenterPage.context).not.toBe(context);
+    await expect(
+      caller.setPresenterSurface({ code: 'ABC123', page: { context, delta: 1 } }),
+    ).rejects.toMatchObject({ code: 'CONFLICT' });
+  });
+
+  it('requires validated host access for page reports and navigation', async () => {
+    hostAuthMocks.isHostSessionTokenValidMock.mockResolvedValue(false);
+    for (const page of [
+      { context: 'old', count: 2 },
+      { context: 'old', delta: 1 as const },
+    ]) {
+      await expect(caller.setPresenterSurface({ code: 'ABC123', page })).rejects.toMatchObject({
+        code: 'UNAUTHORIZED',
+      });
+    }
+  });
+
+  it('rejects malformed page changes and finished sessions', async () => {
+    await expect(
+      caller.setPresenterSurface({ code: 'ABC123', page: { context: '', count: 0 } }),
+    ).rejects.toMatchObject({ code: 'BAD_REQUEST' });
+    prismaMock.session.findUnique.mockResolvedValue({ ...ACTIVE_SESSION, status: 'FINISHED' });
+    await expect(
+      caller.setPresenterSurface({ code: 'ABC123', page: { context: '', delta: 1 } }),
+    ).rejects.toMatchObject({ code: 'BAD_REQUEST' });
+  });
 });
 
 trpcDodIt(

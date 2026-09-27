@@ -1,0 +1,301 @@
+app-projection-pages {
+  display: grid;
+  grid-template-rows: minmax(0, 1fr) auto auto;
+  position: relative;
+  width: 100%;
+  height: 100%;
+  min-height: 0;
+  min-width: 0;
+  --projection-title: clamp(2rem, 3.34vh, 3rem);
+  --projection-copy: clamp(1.75rem, 2.78vh, 2.5rem);
+  --projection-label: clamp(1.5rem, 2.41vh, 2rem);
+}
+.projection-pages__source {
+  display: none;
+}
+.projection-pages__viewport {
+  min-height: 0;
+  min-width: 0;
+}
+.projection-pages__page {
+  display: flow-root;
+  width: 100%;
+}
+.projection-pages__status {
+  min-height: 3.5rem;
+}
+.projection-pages__indicator {
+  margin: 0;
+  text-align: center;
+  font-size: 1.25rem;
+  line-height: 1.5;
+}
+.projection-pages__source [data-projection-status] {
+  display: none;
+}
+
+// This output surface owns its rendered Markdown and Material card wrappers.
+.session-present app-projection-pages .session-projection-quiz,
+.session-present app-projection-pages .session-present__qa-stage {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  height: auto;
+  overflow: visible;
+  padding-bottom: 0;
+}
+.session-present
+  app-projection-pages
+  :is(
+    .session-projection-quiz__question,
+    .session-projection-quiz__stage,
+    .session-projection-quiz__code,
+    .session-projection-quiz__question-body,
+    .session-projection-quiz__code-body,
+    .session-projection-quiz__code-column,
+    .session-projection-quiz__answers,
+    .session-projection-quiz__answer,
+    .session-projection-quiz__title,
+    .session-projection-quiz__math,
+    .session-projection-quiz__matching,
+    .session-projection-quiz__ordering,
+    .session-projection-quiz__categorization,
+    .session-present__qa-text,
+    .session-present__qa-list,
+    .session-present__qa-list-text,
+    .session-present__qa-card,
+    .session-present__qa-list-card
+  ) {
+  height: auto;
+  max-height: none;
+  min-height: 0;
+  overflow: visible;
+  text-overflow: clip;
+  -webkit-line-clamp: unset;
+}
+.session-present app-projection-pages .mat-mdc-card-content {
+  height: auto;
+  overflow: visible;
+  padding: 1rem;
+}
+.session-present app-projection-pages .session-projection-quiz__question-body,
+.session-present app-projection-pages .session-projection-quiz__code-body,
+.session-present app-projection-pages .session-projection-quiz__answers {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+.session-present app-projection-pages .session-projection-quiz__title {
+  font-size: var(--projection-title);
+  line-height: 1.5;
+}
+.session-present
+  app-projection-pages
+  :is(.session-projection-quiz__answer, .session-present__qa-text, .session-present__qa-list-text) {
+  font-size: var(--projection-copy);
+  line-height: 1.5;
+}
+.session-present
+  app-projection-pages
+  :is(
+    .session-projection-quiz__bar,
+    .session-projection-quiz__stat,
+    .session-projection-quiz__rating-labels,
+    .session-projection-quiz__hist-bin,
+    .session-projection-quiz__matrix,
+    .session-projection-quiz__pair,
+    .session-projection-quiz__order-item,
+    .session-projection-quiz__category-item
+  ) {
+  font-size: var(--projection-label);
+}
+.session-present app-projection-pages .markdown-body pre {
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  font-size: var(--projection-copy);
+  max-height: none;
+  overflow: visible;
+}
+.session-present app-projection-pages .markdown-body pre code {
+  white-space: inherit;
+  font-size: inherit;
+}
+.session-present app-projection-pages .markdown-body .katex-display {
+  overflow: visible;
+}
+.session-present app-projection-pages .session-projection-quiz__visual img {
+  max-height: 35vh;
+  object-fit: contain;
+}
+.session-present app-projection-pages .session-projection-quiz__emoji-reactions {
+  position: static;
+  transform: none;
+  margin-inline: auto;
+}
+
+.session-present app-projection-pages .session-projection-quiz__status-fingers {
+  display: inline-flex;
+  width: 3.5rem;
+  height: 3.5rem;
+}
+.session-present
+  app-projection-pages
+  .session-projection-quiz__status-fingers
+  app-countdown-fingers {
+  width: 100%;
+  height: 100%;
+}
+.session-present app-projection-pages .session-projection-quiz__title :is(h1, h2, h3, h4, h5, h6) {
+  font-size: inherit;
+  line-height: inherit;
+}
+.session-present app-projection-pages .session-projection-quiz__title img {
+  max-height: 35vh;
+  width: auto;
+  object-fit: contain;
+}
+.session-present
+  app-projection-pages
+  .session-projection-quiz__title
+  .markdown-code-block
+  pre
+  code {
+  width: auto;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+app-projection-pages [data-markdown-code-copy] {
+  display: none;
+}
+
+.session-present .projection-pages__page .session-projection-quiz__answer-head .markdown-body,
+.projection-pages__page
+  .session-projection-quiz__answer-head
+  .markdown-body
+  :is(p, h1, h2, h3, h4) {
+  font-size: var(--projection-copy);
+  line-height: 1.5;
+  hyphens: none;
+}
+.session-present .projection-pages__page .session-projection-quiz__title {
+  font-weight: 400;
+}
+.session-present .projection-pages__page .session-projection-quiz__title :is(h1, h2, h3, h4) {
+  font-weight: 700;
+}
+.session-present
+  .projection-pages__page
+  .session-projection-quiz
+  .markdown-code-block
+  pre
+  code.hljs {
+  font-size: var(--projection-copy);
+}
+.projection-pages__status .session-projection-quiz__meta {
+  gap: 0.6rem;
+  display: flex;
+  flex-wrap: wrap;
+}
+
+// Projection text keeps a generous rhythm even inside rendered code and answer markup.
+.session-present
+  .projection-pages__page
+  .markdown-body
+  :is(p, li, pre, pre code, .answer-leading-emoji-text) {
+  line-height: 1.5;
+}
+.projection-pages__page
+  .markdown-body
+  :is(p, ul, ol, pre, .katex-display)
+  + :is(p, ul, ol, pre, .katex-display) {
+  margin-block-start: 0.65em;
+}
+.session-present .projection-pages__page .session-projection-quiz__answer-head .markdown-body {
+  --answer-leading-emoji-text-line-height: 1.5;
+}
+
+.session-present .projection-pages__page .session-projection-quiz__histogram {
+  display: flex;
+  flex-direction: column;
+  height: auto;
+  gap: 1rem;
+}
+.session-present .projection-pages__page .session-projection-quiz__hist-bin {
+  display: grid;
+  grid-template-columns: minmax(9rem, 1fr) minmax(8rem, 2fr) auto;
+  align-items: center;
+  gap: 1rem;
+  height: auto;
+  line-height: 1.5;
+}
+.session-present .projection-pages__page .session-projection-quiz__insights {
+  grid-template-columns: repeat(auto-fit, minmax(16rem, 1fr));
+}
+.projection-pages__page
+  :is(
+    .session-projection-quiz__insight-kicker,
+    .session-projection-quiz__insight-caption,
+    .session-projection-quiz__insight-value,
+    .session-projection-quiz__interpretation,
+    .session-projection-quiz__evaluation
+  ) {
+  font-size: var(--projection-label);
+  line-height: 1.5;
+}
+
+.session-present .projection-pages__page .distribution-matrix {
+  overflow: visible;
+}
+.session-present .projection-pages__page .projection-matrix {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+.session-present .projection-pages__page .projection-matrix__entry {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 1.5rem;
+  padding: 1rem;
+  border-block-start: 1px solid var(--mat-sys-outline-variant);
+}
+.projection-pages__page
+  .projection-matrix
+  :is(
+    .markdown-body,
+    p,
+    .distribution-matrix__count,
+    .distribution-matrix__percent,
+    .distribution-matrix__title
+  ) {
+  font-size: var(--projection-label);
+  line-height: 1.5;
+}
+.session-present .projection-pages__page .projection-matrix__label {
+  font-size: var(--projection-label);
+  line-height: 1.5;
+}
+.session-present .projection-pages__page .projection-matrix__label .markdown-body {
+  display: inline;
+}
+
+.session-present .projection-pages__page .session-projection-quiz__histogram {
+  align-items: stretch;
+  min-height: 0;
+}
+.session-present .projection-pages__page .session-projection-quiz__hist-bin {
+  width: 100%;
+}
+.projection-pages__page
+  .session-projection-quiz__answer-head
+  .markdown-body
+  .answer-leading-emoji-text {
+  line-height: 1.5;
+}
+.session-present
+  .projection-pages__page
+  :is(.session-present__qa-text, .session-present__qa-list-text)
+  :is(p, li) {
+  line-height: 1.5;
+}

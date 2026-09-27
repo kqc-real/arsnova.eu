@@ -17,6 +17,12 @@
     [class.word-cloud--presentation]="presentationMode()"
   >
     <div class="word-cloud__meta">
+      @if (outputOnly() && isWordCountPartial()) {
+        <p class="word-cloud__remaining" i18n="@@wordCloud.remainingTerms">
+          + {{ words().length - visibleWordCount() }} weitere Begriffe
+        </p>
+      }
+
       <p class="word-cloud__meta-line">
         <span class="word-cloud__meta-pill">
           @if (isWordCountPartial()) {

@@ -9,7 +9,7 @@ import {
   presenterCompactMarkdown,
   presenterCorrectPairResults,
   presenterMarkdownWithoutCode,
-  presenterMarkdownWithoutStageLinks,
+  presenterQuestionMarkdown,
   presenterQuestionCodeBlocks,
   presenterQuestionCodeColumnMarkdown,
   presenterQuestionCodeMarkdown,
@@ -148,21 +148,27 @@ describe('session-projection-quiz.util', () => {
   it('entfernt optionale Impulse und externe Links für die Beamer-Lesephase', () => {
     const markdown =
       '### Aus wie vielen Cubies besteht ein 3×3-Zauberwürfel?\n\nGemeint ist der klassische Rubik’s Cube.\n\nOptionaler Impuls: [Wie man einen 3×3 Zauberwürfel löst](https://www.youtube.com/watch?v=EoINieyz6gE).';
-    expect(presenterMarkdownWithoutStageLinks(markdown)).toBe(
+    expect(presenterQuestionMarkdown(markdown)).toBe(
       '### Aus wie vielen Cubies besteht ein 3×3-Zauberwürfel?\n\nGemeint ist der klassische Rubik’s Cube.',
     );
-    expect(presenterMarkdownWithoutStageLinks(markdown)).not.toContain('Optionaler Impuls');
-    expect(presenterMarkdownWithoutStageLinks(markdown)).not.toContain('youtube.com');
+    expect(presenterQuestionMarkdown(markdown)).not.toContain('Optionaler Impuls');
+    expect(presenterQuestionMarkdown(markdown)).not.toContain('youtube.com');
     expect(
-      presenterMarkdownWithoutStageLinks(
+      presenterQuestionMarkdown(
         '### Foto?\n\n![Dach](/assets/demo/bett.png)\n\n*[credit] Pass / Le Brun*',
       ),
     ).toContain('![Dach](/assets/demo/bett.png)');
     expect(
-      presenterMarkdownWithoutStageLinks(
+      presenterQuestionMarkdown(
         '### Diagramm?\n\n![Schema](https://example.org/image.png)\n\nBitte ablesen.',
       ),
     ).toContain('![Schema](https://example.org/image.png)');
+  });
+
+  it('preserves URL examples, blank code lines and linked question content', () => {
+    const source =
+      'Compare [this resource](https://example.org).\n\n```js\nfetch("https://example.org");\n\nconst done = true;\n```';
+    expect(presenterQuestionMarkdown(source)).toBe(source);
   });
 
   it('trennt Frage und Fenced-Code für die Beamer-Ansicht', () => {

@@ -1,3 +1,4 @@
+import { ProjectionPagesComponent } from './projection-pages.component';
 import { DecimalPipe, DOCUMENT, NgTemplateOutlet } from '@angular/common';
 import {
   Component,
@@ -171,6 +172,7 @@ type LobbyFoyerMotionProfile = {
     RouterLink,
     WordCloudComponent,
     SessionProjectionQuizComponent,
+    ProjectionPagesComponent,
     MarkdownImageLightboxDirective,
     FoyerEntranceLayerComponent,
   ],
@@ -428,11 +430,9 @@ export class SessionPresentComponent implements OnInit, OnDestroy {
   readonly showQaQueue = computed(
     () => this.showQaProjection() && this.presenterQaQuestions().length > 0,
   );
-  readonly visibleQaQueueQuestions = computed(() => this.presenterQaQuestions().slice(0, 4));
-  readonly qaQueueIsDense = computed(
-    () =>
-      this.visibleQaQueueQuestions().length >= 4 ||
-      this.visibleQaQueueQuestions().some((question) => question.text.length > 120),
+  readonly visibleQaQueueQuestions = computed(() => this.presenterQaQuestions().slice(0, 2));
+  readonly remainingQaQuestions = computed(() =>
+    Math.max(0, this.presenterQaQuestions().length - 2),
   );
   readonly showQaWordCloud = computed(() => {
     const session = this.session();
@@ -742,30 +742,13 @@ export class SessionPresentComponent implements OnInit, OnDestroy {
   readonly personalBoardColumnCount = computed(() =>
     SessionPresentComponent.columnCountForParticipantTotal(this.personalLeaderboard().length),
   );
-  readonly personalBoardDensity = computed(() => {
-    const count = this.personalLeaderboard().length;
-    if (count > 36) {
-      return 'dense' as const;
-    }
-    if (count > 16) {
-      return 'compact' as const;
-    }
-    return 'comfortable' as const;
-  });
 
   static columnCountForParticipantTotal(count: number): number {
-    if (count <= 6) return 2;
-    if (count <= 12) return 3;
-    if (count <= 20) return 4;
-    if (count <= 32) return 5;
-    if (count <= 48) return 6;
-    if (count <= 72) return 8;
-    if (count <= 96) return 10;
-    return 12;
+    return count <= 5 ? 1 : 2;
   }
 
-  private static readonly BOARD_PAGE_ROWS = 18;
-  private static readonly BOARD_PAGE_MS = 8_000;
+  private static readonly BOARD_PAGE_ROWS = 4;
+  private static readonly BOARD_PAGE_MS = 12_000;
 
   static pageSizeForParticipantTotal(count: number): number {
     return this.columnCountForParticipantTotal(count) * this.BOARD_PAGE_ROWS;
@@ -849,6 +832,7 @@ export class SessionPresentComponent implements OnInit, OnDestroy {
   }
 
   ngOnDestroy(): void {
+    if (this.projectionReportRetry) clearTimeout(this.projectionReportRetry);
     if (typeof document !== 'undefined') {
       document.removeEventListener('visibilitychange', this.onVisibilityChange);
       document.removeEventListener('fullscreenchange', this.onFullscreenChange);
@@ -863,6 +847,51 @@ export class SessionPresentComponent implements OnInit, OnDestroy {
     this.statusSub?.unsubscribe();
     this.clearLobbyAudience();
     this.hostDisplayMode.setHostSessionActive(false);
+  }
+
+  private measuredProjectionPage: { context: string; count: number } | null = null;
+  private reportingProjectionPage = false;
+  private projectionReportRetry: ReturnType<typeof setTimeout> | null = null;
+
+  async reportProjectionPages(count: number): Promise<void> {
+    const page = this.session()?.presenterPage;
+    if (!page || this.destroyRef.destroyed) return;
+    this.measuredProjectionPage = { context: page.context, count };
+    if (this.reportingProjectionPage) return;
+    this.reportingProjectionPage = true;
+    try {
+      while (!this.destroyRef.destroyed) {
+        const measured = this.measuredProjectionPage;
+        const current = this.session()?.presenterPage;
+        if (!measured || measured.context !== current?.context || measured.count === current.count)
+          break;
+        const result = await trpc.session.setPresenterSurface.mutate(
+          {
+            code: this.sessionCode,
+            page: measured,
+          },
+          { signal: AbortSignal.timeout(10000) },
+        );
+        if (this.destroyRef.destroyed) break;
+        this.session.update((session) =>
+          session?.presenterPage?.context === measured.context
+            ? { ...session, presenterPage: result.presenterPage }
+            : session,
+        );
+      }
+    } catch {
+      // Retry a lost measurement without requiring another resize or content change.
+      if (!this.destroyRef.destroyed) {
+        this.projectionReportRetry = setTimeout(() => {
+          const measured = this.measuredProjectionPage;
+          if (measured?.context === this.session()?.presenterPage?.context) {
+            void this.reportProjectionPages(measured!.count);
+          }
+        }, 2000);
+      }
+    } finally {
+      this.reportingProjectionPage = false;
+    }
   }
 
   enterPresenterFullscreen(): void {
@@ -1623,6 +1652,7 @@ export class SessionPresentComponent implements OnInit, OnDestroy {
                   pausedFromStatus: data.pausedFromStatus ?? null,
                   preferredChannel: data.preferredChannel ?? current.preferredChannel,
                   presenterSurface: data.presenterSurface ?? current.presenterSurface,
+                  presenterPage: data.presenterPage ?? current.presenterPage,
                   finishProjection:
                     data.status === 'FINISHED'
                       ? (data.finishProjection ?? current.finishProjection ?? 'leaderboard')

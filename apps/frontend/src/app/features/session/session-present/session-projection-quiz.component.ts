@@ -1,5 +1,14 @@
+import { ProjectionPagesComponent } from './projection-pages.component';
 import { DecimalPipe } from '@angular/common';
-import { Component, ViewEncapsulation, computed, inject, input, LOCALE_ID } from '@angular/core';
+import {
+  Component,
+  ViewEncapsulation,
+  computed,
+  inject,
+  input,
+  output,
+  LOCALE_ID,
+} from '@angular/core';
 import { DomSanitizer, type SafeHtml } from '@angular/platform-browser';
 import { MatCard, MatCardContent } from '@angular/material/card';
 import { MatIcon } from '@angular/material/icon';
@@ -33,14 +42,9 @@ import {
   orderingMatrixCells,
   orderingMatrixColumns,
   orderingMatrixRows,
-  presenterCodeColumnCount,
-  presenterCompactMarkdown,
-  presenterMarkdownWithoutCode,
-  presenterMarkdownWithoutStageLinks,
   presenterQuestionCodeBlocks,
-  presenterQuestionCodeColumnMarkdown,
+  presenterQuestionMarkdown,
   presenterQuestionImage,
-  presenterQuestionMathMarkdown,
   presenterCorrectPairResults,
   ratingScaleValues,
   stableSeededShuffle,
@@ -66,6 +70,7 @@ function countStoredFractionDigits(value: number): number {
   selector: 'app-session-projection-quiz',
   standalone: true,
   imports: [
+    ProjectionPagesComponent,
     DecimalPipe,
     MatCard,
     MatCardContent,
@@ -83,6 +88,9 @@ export class SessionProjectionQuizComponent {
   private readonly themePreset = inject(ThemePresetService);
   private readonly localeId = inject(LOCALE_ID);
 
+  readonly pageIndex = input(0);
+  readonly pageContext = input('');
+  readonly pageCount = output<number>();
   readonly question = input<HostCurrentQuestionDTO | null>(null);
   readonly status = input<SessionInfoDTO['status'] | null>(null);
   readonly voteProgress = input<HostVoteProgressDTO | null>(null);
@@ -269,8 +277,8 @@ export class SessionProjectionQuizComponent {
     ),
   );
 
-  readonly compactQuestionMarkdown = computed(() =>
-    presenterCompactMarkdown(this.question()?.text ?? ''),
+  readonly questionTitleMarkdown = computed(() =>
+    presenterQuestionMarkdown(this.question()?.text ?? ''),
   );
 
   readonly hasQuestionCode = computed(
@@ -286,38 +294,6 @@ export class SessionProjectionQuizComponent {
       seconds <= 5 &&
       this.themePreset.preset() === 'spielerisch'
     );
-  });
-
-  readonly questionCodeColumnMarkdown = computed(() =>
-    presenterQuestionCodeColumnMarkdown(this.question()?.text ?? ''),
-  );
-
-  readonly questionCodeColumnCount = computed(
-    () =>
-      this.questionCodeColumnMarkdown().length ||
-      presenterCodeColumnCount(this.question()?.text ?? ''),
-  );
-
-  readonly questionTitleMarkdown = computed(() => {
-    const text = this.question()?.text ?? '';
-    if (this.hasQuestionCode()) {
-      const withoutCode = presenterMarkdownWithoutCode(text);
-      if (this.isReadingPhase()) {
-        return presenterMarkdownWithoutStageLinks(withoutCode);
-      }
-      return presenterCompactMarkdown(withoutCode);
-    }
-    return this.isReadingPhase()
-      ? presenterMarkdownWithoutStageLinks(text)
-      : this.compactQuestionMarkdown();
-  });
-
-  /** Display-KaTeX nach dem Bild in Abstimmung/Ergebnis (in der Lesephase steckt es im Volltext). */
-  readonly questionMathMarkdown = computed(() => {
-    if (this.isReadingPhase()) {
-      return '';
-    }
-    return presenterQuestionMathMarkdown(this.question()?.text ?? '');
   });
 
   readonly showStageColumn = computed(() => {
@@ -340,7 +316,7 @@ export class SessionProjectionQuizComponent {
     }
     const fromQuestion = presenterQuestionImage(this.question()?.text ?? '');
     if (fromQuestion) {
-      return fromQuestion;
+      return null;
     }
     const isFirstQuestion = (this.question()?.order ?? -1) === 0;
     const motif = isFirstQuestion ? this.motifImageUrl()?.trim() : '';
@@ -745,7 +721,7 @@ export class SessionProjectionQuizComponent {
     return formatLocaleCount(value ?? 0, this.localeId);
   }
 
-  private formatNumericValue(value: number): string {
+  formatNumericValue(value: number): string {
     if (this.numericUsesYearFormat()) {
       return formatLocaleNumber(value, this.localeId, {
         maximumFractionDigits: 0,
