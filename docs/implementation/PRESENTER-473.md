@@ -10,7 +10,10 @@ Inhalt als Kontext erkennen.
 `app-projection-pages` misst gerenderten Inhalt auf der tatsächlichen Fläche.
 Absätze, Optionen und Codezeilen bilden bevorzugte Seitengrenzen; Formeln und
 Bilder bleiben zusammen. Fortsetzungen behalten Antwortkennzeichen und
-Listennummern. Verteilungsmatrizen werden für die Projektion in vollständig
+Listennummern. Später geladene Bilder und Schriften lösen eine Neumessung aus,
+auch wenn ihre Seite gerade nicht sichtbar ist. Während sie nach einem Reload
+noch laden, begrenzt eine vorläufige Messung den gespeicherten Index nicht.
+Verteilungsmatrizen werden für die Projektion in vollständig
 beschriftete Einträge umgebrochen. Quell-Markdown bleibt unverändert; als
 optional markierte Unterrichtsimpulse bleiben wie bisher ausgeblendet.
 

@@ -8,6 +8,7 @@ import { createTRPCProxyClient, httpBatchLink } from '@trpc/client';
 
 const base = process.env.BASE_URL || 'http://localhost:4200';
 const theme = process.env.PROJECTION_THEME || 'light';
+const delayedMedia = process.env.PROJECTION_DELAYED_MEDIA === '1';
 const api = process.env.TRPC_URL || 'http://localhost:3000/trpc';
 const locales = (process.env.PROJECTION_LOCALES || 'de').split(',');
 const presets = (process.env.PROJECTION_PRESETS || 'SERIOUS,PLAYFUL').split(',');
@@ -39,6 +40,12 @@ const question = [
   '```typescript\n' +
     Array.from({ length: 22 }, (_, index) => `const zeile${index + 1} = ${index + 1};`).join('\n') +
     '\n```',
+  ...(delayedMedia
+    ? Array.from(
+        { length: 3 },
+        (_, i) => `![Spätes Bild ${i + 1}](https://projection.test/projection-delayed.svg)`,
+      )
+    : []),
   'ENDE DER FRAGE',
 ].join('\n\n');
 try {
@@ -79,7 +86,10 @@ try {
     await hostApi.session.nextQuestion.mutate({ code: session.code });
     for (const locale of locales)
       for (const [width, height] of viewports) {
-        const context = await browser.newContext({ viewport: { width, height } });
+        const context = await browser.newContext({
+          viewport: { width, height },
+          serviceWorkers: 'block',
+        });
         await context.addInitScript(
           ({ session, preset, theme }) => {
             sessionStorage.setItem(`arsnova-host-token:${session.code}`, session.hostToken);
@@ -93,6 +103,20 @@ try {
           { session, preset, theme },
         );
         const page = await context.newPage();
+        let releaseImage;
+        if (delayedMedia) {
+          const ready = new Promise((resolve) => {
+            releaseImage = resolve;
+          });
+          await page.route('**/projection-delayed.svg', async (route) => {
+            await ready;
+            await route.fulfill({
+              contentType: 'image/svg+xml',
+              headers: { 'access-control-allow-origin': '*' },
+              body: '<svg xmlns="http://www.w3.org/2000/svg" width="960" height="640"><rect width="960" height="640" fill="navy"/></svg>',
+            });
+          });
+        }
         const subscriptionErrors = [];
         page.on('websocket', (socket) => {
           if (new URL(socket.url()).pathname !== '/trpc-ws') return;
@@ -105,7 +129,9 @@ try {
         page.setDefaultNavigationTimeout(20000);
         const name = `${preset}-${locale}-${width}x${height}`;
         try {
-          await page.goto(`${base}/${locale}/session/${session.code}/present`);
+          await page.goto(`${base}/${locale}/session/${session.code}/present`, {
+            waitUntil: 'domcontentloaded',
+          });
           await page.locator('.projection-pages__page .session-projection-quiz').waitFor();
           await page.waitForFunction(() =>
             document
@@ -119,6 +145,35 @@ try {
             info = await hostApi.session.getInfo.query({ code: session.code });
           }
           assert.ok(info.presenterPage.count > 1);
+          if (delayedMedia) {
+            await page.evaluate(() => document.fonts.ready);
+            await page.waitForTimeout(350);
+            const beforeCount = Number(
+              (await page.locator('.projection-pages__indicator').textContent()).split('/').at(-1),
+            );
+            assert.equal(
+              await page.locator('.projection-pages__page img').count(),
+              0,
+              'Delayed images start on another page',
+            );
+            releaseImage();
+            await page.waitForFunction(
+              (count) =>
+                Number(
+                  document
+                    .querySelector('.projection-pages__indicator')
+                    ?.textContent?.split('/')
+                    .at(-1),
+                ) > count,
+              beforeCount,
+            );
+            await page.waitForTimeout(200);
+            info = await hostApi.session.getInfo.query({ code: session.code });
+            assert.ok(
+              info.presenterPage.count > beforeCount,
+              'Hidden late images trigger a fresh page count',
+            );
+          }
           while (info.presenterPage.index > 0)
             info = {
               ...info,
@@ -128,6 +183,7 @@ try {
               })),
             };
           const content = [];
+          let renderedImages = 0;
           for (let index = 0; index < info.presenterPage.count; index++) {
             console.log(`${name}: checking page ${index + 1}/${info.presenterPage.count}`);
             await page.waitForFunction(
@@ -174,6 +230,9 @@ try {
                     const css = getComputedStyle(el);
                     return parseFloat(css.lineHeight) < parseFloat(css.fontSize) * 1.49;
                   }).length,
+                  images: Array.from(root.querySelectorAll('img')).filter(
+                    (image) => image.naturalWidth > 0,
+                  ).length,
                   correctness: root.querySelectorAll('.session-projection-quiz__answer--correct')
                     .length,
                 };
@@ -187,6 +246,7 @@ try {
             assert.equal(result.correctness, 0, 'No solutions before release');
             assert.equal(result.cramped, 0, 'Main text and code require line height 1.5');
             content.push(result.text);
+            renderedImages += result.images;
             if (index === 0 || index === info.presenterPage.count - 1)
               await page.screenshot({ path: `${artifacts}/${name}-${index + 1}.png` });
             if (index + 1 < info.presenterPage.count)
@@ -195,6 +255,8 @@ try {
                 page: { context: info.presenterPage.context, delta: 1 },
               });
           }
+          if (delayedMedia)
+            assert.equal(renderedImages, 3, 'Every late image is projected exactly once');
           const text = content.join('');
           for (let i = 1; i <= 5; i++) assert.ok(text.includes(`Absatz ${i}`));
           for (let i = 1; i <= 22; i++) assert.ok(text.includes(`const zeile${i} = ${i};`));

@@ -88,14 +88,35 @@ export class ProjectionPagesComponent implements AfterViewInit {
           });
     resize?.observe(this.viewport().nativeElement);
     resize?.observe(this.page().nativeElement);
-    source.addEventListener('load', schedule, true);
-    void source.ownerDocument.fonts?.ready.then(schedule);
+    const remeasure = (): void => {
+      this.signature = '';
+      schedule();
+    };
+    const loadedVisibleImages = new Set<string>();
+    const visibleImageLoaded = (event: Event): void => {
+      if (!(event.target instanceof HTMLImageElement)) return;
+      const image = event.target;
+      const key = `${image.currentSrc}:${image.naturalWidth}:${image.naturalHeight}`;
+      // Cached images also fire load when cloned; each intrinsic size needs only one extra pass.
+      if (loadedVisibleImages.has(key)) return;
+      loadedVisibleImages.add(key);
+      remeasure();
+    };
+    source.addEventListener('load', remeasure, true);
+    source.addEventListener('error', remeasure, true);
+    this.page().nativeElement.addEventListener('load', visibleImageLoaded, true);
+    const fonts = source.ownerDocument.fonts;
+    fonts?.addEventListener('loadingdone', remeasure);
+    void fonts?.ready.then(remeasure);
     this.destroyRef.onDestroy(() => {
       this.destroyed = true;
       mutations.disconnect();
       resize?.disconnect();
       cancelAnimationFrame(this.frame);
-      source.removeEventListener('load', schedule, true);
+      source.removeEventListener('load', remeasure, true);
+      source.removeEventListener('error', remeasure, true);
+      this.page().nativeElement.removeEventListener('load', visibleImageLoaded, true);
+      fonts?.removeEventListener('loadingdone', remeasure);
     });
     schedule();
   }
@@ -129,6 +150,11 @@ export class ProjectionPagesComponent implements AfterViewInit {
     });
     this.count.set(this.pages.length);
     this.showPage();
+    // A provisional short layout must not clamp the saved page while media/fonts reload.
+    const resourcesPending =
+      Array.from(root.querySelectorAll('img')).some((image) => !image.complete) ||
+      root.ownerDocument.fonts?.status === 'loading';
+    if (resourcesPending && this.pageIndex() >= this.pages.length) return;
     if (this.emittedCount !== `${this.pageContext()}:${this.pages.length}`) {
       this.emittedCount = `${this.pageContext()}:${this.pages.length}`;
       this.pageCount.emit(this.pages.length);

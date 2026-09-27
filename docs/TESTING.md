@@ -908,6 +908,8 @@ Lobby 0/10/200, Schätzverteilung mit Statistik, Freitext-Wortwolke, angeheftete
 Q&A-Frage mit Warteschlange, verborgenes/freigegebenes Blitzlicht und Rangliste.
 Screenshots liegen unter `tmp/projection-pages` bzw. `tmp/presenter-scenarios`
 (im Arbeitsverzeichnis); `SMOKE_ARTIFACT_DIR` überschreibt den Pfad.
+`PROJECTION_DELAYED_MEDIA=1` hält drei Bildantworten bis nach der ersten
+Seitenberechnung zurück und prüft Neumessung sowie vollständige Bilddarstellung.
 `PROJECTION_THEME=dark` prüft das dunkle Theme. `PROJECTION_PRESETS` und
 `PROJECTION_SIZES` begrenzen den ersten Lauf; `PROJECTION_SCENARIOS` wählt im
 zweiten Lauf einzelne Zustände aus (zum Beispiel `numeric-results,freetext-results`).
