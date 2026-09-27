@@ -714,7 +714,7 @@
     },
     "session.join": {
       "kind": "mutation",
-      "fingerprint": "sha256:bbceb3bda0a2668130377760ac378dfe073e6a49056fafddb272751f8498cda8",
+      "fingerprint": "sha256:d7768623bb1a3c64e8100b150120c10a612caf1c3ea465544508567589f252c0",
       "missing": []
     },
     "session.listPairedHosts": {
@@ -734,22 +734,22 @@
     },
     "session.onCurrentQuestionForHostChanged": {
       "kind": "subscription",
-      "fingerprint": "sha256:f6dda9b8e43891bc85c65eda512a09ebe6486f93d161fb07669244fa39b65361",
+      "fingerprint": "sha256:77c61090983476b028e0229213fdef0590811d35199fd136e7337b450f5281b2",
       "missing": []
     },
     "session.onHostVoteProgressChanged": {
       "kind": "subscription",
-      "fingerprint": "sha256:3ee5692ebbe4adb1941f0dd0f50523243642c7a2c8880981ae115051079bd531",
+      "fingerprint": "sha256:8a700195c859a016f16430096eb61f8f757940b5602cf4737f1367da4a895866",
       "missing": []
     },
     "session.onParticipantJoined": {
       "kind": "subscription",
-      "fingerprint": "sha256:3738b888198cd34f6019f6daf4c6a8b3af701249c42a6059b58e758bf7d5e427",
+      "fingerprint": "sha256:ed9b5edd2eed78a769f9f6ad4eaccbbcdba2ccd848bafc06b8b73ef2036885e9",
       "missing": []
     },
     "session.onStatusChanged": {
       "kind": "subscription",
-      "fingerprint": "sha256:22d8ebdec783e89d025d4cd1eb6084e4a7409e291493ca14b70f97ba4a6ccd63",
+      "fingerprint": "sha256:573e85590f5ff85e8b87a2af54e6d4f2da3788c30706ab268ce478a923c6717a",
       "missing": []
     },
     "session.pauseQuiz": {
@@ -834,12 +834,12 @@
     },
     "session.setPreferredLiveChannel": {
       "kind": "mutation",
-      "fingerprint": "sha256:9eb9ab3ff004efccb43291c82b22d1ac8dcb2c1ce393d8b17d7479616c94c81d",
+      "fingerprint": "sha256:1625d23c50bd5903c2f2ef42e8d1e34539ebf5262b1902645947542dff919dac",
       "missing": []
     },
     "session.setPresenterSurface": {
       "kind": "mutation",
-      "fingerprint": "sha256:b9655e2d0b37f441050a9ded0292a92a1cb381e98d928ce0f3b302c6622753f5",
+      "fingerprint": "sha256:7f3e0cc126a1729a34323fc9430fe3cc6fc7f36bb3df2b5cc63814b4f6e43717",
       "missing": []
     },
     "session.setQaWordCloudProjection": {
