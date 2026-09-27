@@ -615,7 +615,7 @@ async function captureLiveViews(browser, publicTrpc) {
   await clickChannelTab(hostPage, 1);
   await presentPage
     .locator(
-      '.session-present__qa-stage, .session-present__qa-card, .session-present__qa-list-card',
+      '.projection-pages__page .session-present__qa-stage, .projection-pages__page .session-present__qa-card, .projection-pages__page .session-present__qa-list-card',
     )
     .first()
     .waitFor({ state: 'visible', timeout: 20_000 })
@@ -627,7 +627,7 @@ async function captureLiveViews(browser, publicTrpc) {
     });
   const qaPresentVisible = await presentPage
     .locator(
-      '.session-present__qa-stage, .session-present__qa-card, .session-present__qa-list-card',
+      '.projection-pages__page .session-present__qa-stage, .projection-pages__page .session-present__qa-card, .projection-pages__page .session-present__qa-list-card',
     )
     .first()
     .isVisible()
@@ -759,7 +759,7 @@ async function captureLiveViews(browser, publicTrpc) {
 
   await presentPage.reload({ waitUntil: 'domcontentloaded' });
   await presentPage
-    .locator('.session-present__question, .session-projection-quiz')
+    .locator('.session-present__question, .projection-pages__page .session-projection-quiz')
     .first()
     .waitFor({ state: 'visible', timeout: 20_000 })
     .catch(() => {});

@@ -661,7 +661,9 @@ async function verifyPresenterView(host, presenter, code, hardFailures) {
   await waitForPathSuffix(presenter, `/session/${code}/present`);
 
   const pinnedQuestion = presenter
-    .locator('.session-present__qa-card', { hasText: SMOKE_QUESTIONS.participantFirst })
+    .locator('.projection-pages__page .session-present__qa-card', {
+      hasText: SMOKE_QUESTIONS.participantFirst,
+    })
     .first();
   const pinnedQuestionVisible = await waitForVisible(pinnedQuestion, 20_000)
     .then(() => true)
@@ -674,7 +676,9 @@ async function verifyPresenterView(host, presenter, code, hardFailures) {
   }
 
   const queueQuestion = presenter
-    .locator('.session-present__qa-list-card', { hasText: SMOKE_QUESTIONS.participantSecond })
+    .locator('.projection-pages__page .session-present__qa-list-card', {
+      hasText: SMOKE_QUESTIONS.participantSecond,
+    })
     .first();
   const queueQuestionVisible = await waitForVisible(queueQuestion, 20_000)
     .then(() => true)
@@ -688,12 +692,14 @@ async function verifyPresenterView(host, presenter, code, hardFailures) {
 
   const qaFitsViewport = await presenter.evaluate(() => {
     const root = document.querySelector('.session-present');
-    const stage = document.querySelector('.session-present__qa-stage');
+    const stage = document.querySelector('.projection-pages__page .session-present__qa-stage');
     if (!(root instanceof HTMLElement) || !(stage instanceof HTMLElement)) {
       return false;
     }
     const rect = stage.getBoundingClientRect();
     return (
+      rect.width > 0 &&
+      rect.height > 0 &&
       root.scrollHeight <= root.clientHeight + 1 &&
       rect.top >= -1 &&
       rect.left >= -1 &&
@@ -721,7 +727,9 @@ async function verifyPresenterView(host, presenter, code, hardFailures) {
     .waitFor({ state: 'visible', timeout: 10_000 })
     .then(async () => {
       const questionSurfaceVisible = await presenter
-        .locator('.session-present__qa-card, .session-present__qa-list-card')
+        .locator(
+          '.projection-pages__page .session-present__qa-card, .projection-pages__page .session-present__qa-list-card',
+        )
         .first()
         .isVisible()
         .catch(() => false);
@@ -749,7 +757,9 @@ async function verifyPresenterView(host, presenter, code, hardFailures) {
     await host.keyboard.press('Escape');
   }
   const questionsRestored = await presenter
-    .locator('.session-present__qa-card, .session-present__qa-list-card')
+    .locator(
+      '.projection-pages__page .session-present__qa-card, .projection-pages__page .session-present__qa-list-card',
+    )
     .first()
     .waitFor({ state: 'visible', timeout: 15_000 })
     .then(() => true)
@@ -825,7 +835,7 @@ async function verifyPresenterQuickFeedback(presenter, hardFailures) {
     .catch(() => false);
   const qaStillVisible = await presenter
     .locator(
-      '.session-present__qa-card, .session-present__qa-list-card, .session-present__word-cloud-card',
+      '.projection-pages__page .session-present__qa-card, .projection-pages__page .session-present__qa-list-card, .session-present__word-cloud-card',
     )
     .first()
     .isVisible()
@@ -869,6 +879,7 @@ async function verifyPresenterQuizChannel(host, presenter, hardFailures) {
   }
 
   const quizVisible = await presenter
+    .locator('.projection-pages__page')
     .getByText(SMOKE_QUESTIONS.quizPrompt, { exact: true })
     .first()
     .waitFor({ state: 'visible', timeout: 10_000 })
@@ -876,7 +887,7 @@ async function verifyPresenterQuizChannel(host, presenter, hardFailures) {
     .catch(() => false);
   const secondaryChannelVisible = await presenter
     .locator(
-      '.session-present__qa-stage, .session-present__feedback-card, .session-present__word-cloud-card',
+      '.projection-pages__page .session-present__qa-stage, .session-present__feedback-card, .session-present__word-cloud-card',
     )
     .first()
     .isVisible()
