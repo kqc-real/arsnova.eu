@@ -908,6 +908,9 @@ Lobby 0/10/200, Schätzverteilung mit Statistik, Freitext-Wortwolke, angeheftete
 Q&A-Frage mit Warteschlange, verborgenes/freigegebenes Blitzlicht und Rangliste.
 Screenshots liegen unter `tmp/projection-pages` bzw. `tmp/presenter-scenarios`
 (im Arbeitsverzeichnis); `SMOKE_ARTIFACT_DIR` überschreibt den Pfad.
+`PROJECTION_THEME=dark` prüft das dunkle Theme. `PROJECTION_PRESETS` und
+`PROJECTION_SIZES` begrenzen den ersten Lauf; `PROJECTION_SCENARIOS` wählt im
+zweiten Lauf einzelne Zustände aus (zum Beispiel `numeric-results,freetext-results`).
 `PROJECTION_SMOKE=1 PROJECTION_LOCALES=de` begrenzt den zweiten Lauf auf einen
 720p-Fall pro Zustand. Native Vollbildberechtigung wird in diesen
 Geometrieprüfungen simuliert; Dialog-/Popup-/Guard-Tests prüfen den Einstieg separat.

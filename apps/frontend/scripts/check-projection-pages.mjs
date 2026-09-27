@@ -6,8 +6,9 @@ import { resolve } from 'node:path';
 import { chromium } from 'playwright';
 import { createTRPCProxyClient, httpBatchLink } from '@trpc/client';
 
-const base = process.env.BASE_URL || 'http://localhost:4300';
-const api = process.env.TRPC_URL || 'http://localhost:3100/trpc';
+const base = process.env.BASE_URL || 'http://localhost:4200';
+const theme = process.env.PROJECTION_THEME || 'light';
+const api = process.env.TRPC_URL || 'http://localhost:3000/trpc';
 const locales = (process.env.PROJECTION_LOCALES || 'de').split(',');
 const presets = (process.env.PROJECTION_PRESETS || 'SERIOUS,PLAYFUL').split(',');
 const viewports = (process.env.PROJECTION_SIZES || '1280x720,1920x1080,1920x1200')
@@ -80,18 +81,26 @@ try {
       for (const [width, height] of viewports) {
         const context = await browser.newContext({ viewport: { width, height } });
         await context.addInitScript(
-          ({ session, preset }) => {
+          ({ session, preset, theme }) => {
             sessionStorage.setItem(`arsnova-host-token:${session.code}`, session.hostToken);
             localStorage.setItem('home-preset', preset === 'SERIOUS' ? 'serious' : 'spielerisch');
-            localStorage.setItem('home-theme', 'light');
+            localStorage.setItem('home-theme', theme);
             // Fullscreen permission is tested separately; here measure the entire projection viewport.
             Object.defineProperty(document, 'fullscreenElement', {
               get: () => document.documentElement,
             });
           },
-          { session, preset },
+          { session, preset, theme },
         );
         const page = await context.newPage();
+        const subscriptionErrors = [];
+        page.on('websocket', (socket) => {
+          if (new URL(socket.url()).pathname !== '/trpc-ws') return;
+          socket.on('framereceived', ({ payload }) => {
+            const message = JSON.parse(String(payload));
+            if (message.error) subscriptionErrors.push(message.error.data?.code ?? 'UNKNOWN');
+          });
+        });
         page.setDefaultTimeout(15000);
         page.setDefaultNavigationTimeout(20000);
         const name = `${preset}-${locale}-${width}x${height}`;
@@ -232,6 +241,7 @@ try {
             await hostPage.close();
           }
 
+          assert.deepEqual(subscriptionErrors, [], 'Authenticated presenter subscriptions');
           console.log(
             `OK ${name}: ${info.presenterPage.count} pages, complete content, no clipping, reload preserved`,
           );

@@ -31,7 +31,10 @@ Frage/Kanal/Fläche verhindert verspätete Befehle für alte Inhalte; beim
 Sessionende wird ebenfalls zurückgesetzt. Die Anzahl begrenzt den Index.
 Mehrere Host-Geräte ändern denselben flüchtigen Zustand. Reconnect/Reload
 bewahrt die Seite; ein Backend-Neustart setzt sie zurück, wie bei der bestehenden
-flüchtigen Presenter-Flächenwahl. Es gibt keine Datenbankmigration.
+flüchtigen Presenter-Flächenwahl. Es gibt keine Datenbankmigration. Seitenbefehle invalidieren nur Sessioninfo
+und Status. Die bestehenden Subscription-Schleifen erfassen ihre Signalversion
+vor dem Lesen und Ausliefern, damit dabei eintreffende Änderungen sofort
+nachgeliefert werden. Ein Regressionstest deckt diesen Übergang ab.
 
 Fehlgeschlagene Messmeldungen werden nach zwei Sekunden erneut versucht.
 Host-Navigation sperrt doppelte Klicks während der Anfrage, beendet sie nach

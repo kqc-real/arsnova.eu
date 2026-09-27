@@ -6,8 +6,9 @@ import { resolve } from 'node:path';
 import { chromium } from 'playwright';
 import { createTRPCProxyClient, httpBatchLink } from '@trpc/client';
 
-const base = process.env.BASE_URL || 'http://localhost:4301';
-const api = process.env.TRPC_URL || 'http://localhost:3100/trpc';
+const base = process.env.BASE_URL || 'http://localhost:4200';
+const theme = process.env.PROJECTION_THEME || 'light';
+const api = process.env.TRPC_URL || 'http://localhost:3000/trpc';
 const locales = (process.env.PROJECTION_LOCALES || 'de,en,fr').split(',');
 const scenarios = process.env.PROJECTION_SCENARIOS?.split(',');
 const sizes =
@@ -43,15 +44,15 @@ async function check(session, host, preset, name, selector, verify = () => {}) {
         reducedMotion: 'reduce',
       });
       await context.addInitScript(
-        ({ session, preset }) => {
+        ({ session, preset, theme }) => {
           sessionStorage.setItem(`arsnova-host-token:${session.code}`, session.hostToken);
           localStorage.setItem('home-preset', preset === 'SERIOUS' ? 'serious' : 'spielerisch');
-          localStorage.setItem('home-theme', 'light');
+          localStorage.setItem('home-theme', theme);
           Object.defineProperty(document, 'fullscreenElement', {
             get: () => document.documentElement,
           });
         },
-        { session, preset },
+        { session, preset, theme },
       );
       const page = await context.newPage();
       page.setDefaultTimeout(20000);

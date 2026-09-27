@@ -104,7 +104,8 @@ trpcWss.on('connection', (clientWs, req) => {
     clientWs.close();
     return;
   }
-  const backendWs = new WebSocket(BACKEND_WS_URL);
+  // tRPC signals its authenticated connectionParams handshake in the query string.
+  const backendWs = new WebSocket(BACKEND_WS_URL + new URL(req.url, 'http://localhost').search);
   const pendingMessages = [];
   clientWs.on('message', (data, isBinary) => {
     const message = { data: isBinary ? data : data.toString('utf8'), isBinary };
