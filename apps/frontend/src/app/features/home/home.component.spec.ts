@@ -421,6 +421,23 @@ describe('HomeComponent', () => {
       restoreDefaultSessionGetInfo(vi.mocked(trpc.session.getInfo.query));
     });
 
+    it.each(['CLASSROOM', 'EVENT', 'QUICK'] as const)(
+      'lässt die Teilnehmerkarte vor der Host-Fallwahl %s',
+      (scenario) => {
+        const fixture = createHomeFixture();
+        fixture.componentInstance.hostScenario.selectScenario(scenario);
+        fixture.detectChanges();
+        const host = fixture.nativeElement as HTMLElement;
+        const participant = host.querySelector('#participant-entry')!;
+        const hostEntry = host.querySelector('.home-host-intro')!;
+        expect(
+          participant.compareDocumentPosition(hostEntry) & Node.DOCUMENT_POSITION_FOLLOWING,
+        ).toBeTruthy();
+        expect(participant.querySelector('#home-session-code-input')).not.toBeNull();
+        fixture.destroy();
+      },
+    );
+
     it('ordnet einem wiederhergestellten Q&A ohne Code-Eintrag keine globale Präferenz zu', async () => {
       const { trpc } = await import('../../core/trpc.client');
       localStorage.setItem(

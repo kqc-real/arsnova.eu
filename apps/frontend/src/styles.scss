@@ -2580,3 +2580,14 @@ html.preset-playful
     color: var(--mat-sys-outline-variant);
   }
 }
+
+// Participant task labels can wrap without the toggle's single-line default padding.
+.vote-page .session-channel-tabs .mat-button-toggle-label-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.3rem;
+  padding: 0.5rem;
+  line-height: 1.4;
+  white-space: normal;
+}

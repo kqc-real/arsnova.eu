@@ -330,11 +330,8 @@ export function voteAllVotedLabel(playful: boolean): string {
   return $localize`:@@sessionVote.allVotedSerious:Alle haben abgestimmt`;
 }
 
-export function voteSubmitCta(playful: boolean): string {
-  if (playful) {
-    return $localize`:@@sessionVote.submitPlayful:Absenden!`;
-  }
-  return $localize`:@@sessionVote.submitSerious:Absenden`;
+export function voteSubmitCta(_playful: boolean): string {
+  return $localize`:@@participantTask.sendAnswer:Antwort senden`;
 }
 
 export function voteFreetextPlaceholder(playful: boolean): string {
@@ -526,10 +523,7 @@ export function voteQaPlaceholder(playful: boolean): string {
   return $localize`:@@sessionVote.qaPlaceholderSerious:Schreibe deine Frage hier`;
 }
 
-export function voteQaSubmit(playful: boolean): string {
-  if (playful) {
-    return $localize`:@@sessionVote.qaSubmitPlayful:Frage stellen`;
-  }
+export function voteQaSubmit(_playful: boolean): string {
   return $localize`:@@sessionVote.qaSubmitSerious:Frage senden`;
 }
 

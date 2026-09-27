@@ -71,7 +71,7 @@ Die Startseite ist nicht nur eine Landing-Ansicht, sondern ein echter **operativ
 - Validierung des Codes direkt in der UI
 - Weiterleitung je nach Ziel:
   - normale Quiz-/Q&A-Session: zu `/join/:code`
-  - Blitzlicht-Code: zu `/feedback/:code/vote`
+  - sessiongebundenes Blitzlicht: ebenfalls zu `/join/:code`; nur Legacy-Standalone-Codes nutzen noch `/feedback/:code/vote`
   - beendete Session: verständliche Fehlermeldung
 - Anzeige und Wiederverwendung **zuletzt genutzter Session-Codes**
 
@@ -436,6 +436,12 @@ Die Present-Ansicht ist damit nicht nur eine Kopie der Host-Ansicht, sondern ein
 ### 4.4 Teilnehmendenrolle
 
 Die Vote-Ansicht ist die aktive Interaktionsoberfläche für Teilnehmende.
+Die [Teilnehmerführung mit Zustandsmatrix](ui/TEILNEHMER-FUEHRUNG.md) beschreibt
+Aufgabenstatus und unterbrechungsfreie Kanalwechsel. Nur aktivierte Formate sind
+wählbar; bei genau einem Format entfällt die Tab-Leiste. Ungesendete Q&A- und
+Quizantworten sowie laufende Abgaben schieben automatische Wechsel auf. Nach
+Quizabschluss bleiben offene Nebenkanäle erreichbar. Bonuscode und Startseitenaktion
+stehen beim endgültigen Abschluss neben freiwilligen Feedback-Angeboten.
 
 Sie unterstützt:
 
@@ -480,7 +486,7 @@ Sie kann:
 - freie Nicknames zulassen oder verbieten
 - anonymen Beitritt unterstützen
 - Teamwahl bei manueller Zuweisung anzeigen
-- Teamvorschau bei automatischer Zuweisung zeigen
+- automatische Teamzuweisung ankündigen und die Übersicht optional unter **Teams ansehen** öffnen
 - Session- und Nicknamelisten periodisch aktualisieren
 
 Gerade der Join-Flow ist stark konfigurationsabhängig und übernimmt die vom Host vorgegebenen Regeln.
@@ -507,6 +513,11 @@ Teilnehmende können:
 - fremde Fragen bewerten
 - je nach Oberfläche aufwärts oder auf- und abwärts voten
 - eigene Fragen nicht selbst bewerten
+
+Suche und vier Sortierungen liegen im zunächst geschlossenen Bereich
+**Fragen finden & sortieren**. Aktive Kriterien bleiben außerhalb sichtbar und
+zurücksetzbar. Der Standard ist **Meist unterstützt** (`TOP`). Beim Schließen oder
+Fristablauf bleibt ein vorhandener Entwurf lesbar, ohne aktive Sendeaktion.
 
 ### 5.3 Moderation und Sichtbarkeit
 

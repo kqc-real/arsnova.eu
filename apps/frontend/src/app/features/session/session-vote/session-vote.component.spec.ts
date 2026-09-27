@@ -2,6 +2,8 @@ import { registerLocaleData } from '@angular/common';
 import localeDe from '@angular/common/locales/de';
 import { TestBed, type ComponentFixture } from '@angular/core/testing';
 import { ActivatedRoute, convertToParamMap, provideRouter, Router } from '@angular/router';
+import { By } from '@angular/platform-browser';
+import { FeedbackVoteComponent } from '../../feedback/feedback-vote.component';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import type { QaQuestionDTO } from '@arsnova/shared-types';
 import { readFileSync } from 'node:fs';
@@ -2285,6 +2287,7 @@ describe('SessionVoteComponent', { timeout: 30_000 }, () => {
     inst.status.set('FINISHED');
     inst.sessionSettings.set({
       type: 'QUIZ',
+      hostEnded: true,
       channels: {
         quiz: { enabled: true },
         qa: { enabled: true, open: true, title: 'Fragen', moderationMode: false },
@@ -2337,6 +2340,7 @@ describe('SessionVoteComponent', { timeout: 30_000 }, () => {
       inst.personalScore.set(42);
       inst.personalRank.set(2);
       inst.feedbackSubmitted.set(true);
+      inst.sessionSettings.update((current) => ({ ...current, hostEnded: true }));
       inst.status.set('FINISHED');
       fixture.detectChanges();
 
@@ -5622,7 +5626,7 @@ describe('SessionVoteComponent', { timeout: 30_000 }, () => {
 
     expect(mobileTabs).toBeTruthy();
     expect(mobileTabs).toContain('z-index: 8');
-    expect(mobileTabs).toContain('top: var(--vote-channel-tabs-sticky-top, 0.5rem)');
+    expect(mobileTabs).toContain('top: calc(var(--vote-channel-tabs-sticky-top, 0.5rem) + 1rem)');
     expect(mobileTabs).not.toContain('z-index: 10');
     expect(toolbarFixedBlock).toMatch(/padding-top:\s*calc\(/);
     expect(toolbarFixedBlock).toContain('4rem');
@@ -5839,7 +5843,8 @@ describe('SessionVoteComponent', { timeout: 30_000 }, () => {
 
     const text = fixture.nativeElement.textContent as string;
     expect(text).toContain('Blitzlicht');
-    expect(text).toContain('R2');
+    expect(text).toContain('Abstimmen');
+    expect(text).toContain('2. Runde');
     fixture.destroy();
   });
 
@@ -6482,11 +6487,9 @@ describe('SessionVoteComponent', { timeout: 30_000 }, () => {
       }
     ).ensureActiveChannel();
 
-    expect(component.activeChannel()).toBe('quickFeedback');
-
-    component.selectChannel('qa');
-
+    // Eine pausierte erste Runde verdrängt keine handlungsfähige Fragenwand.
     expect(component.activeChannel()).toBe('qa');
+    component.selectChannel('qa');
 
     (
       component as unknown as {
@@ -8938,4 +8941,281 @@ describe('SessionVoteComponent', { timeout: 30_000 }, () => {
       fixture.destroy();
     },
   );
+  describe('Teilnehmerführung #472', () => {
+    it.each([undefined, 'quickFeedback'] as const)(
+      'wählt ohne gültige Präferenz (%s) ein offenes Q&A vor dem wartenden Quiz',
+      async (preferredChannel) => {
+        getInfoQueryMock.mockResolvedValue({
+          id: '6a8edced-5f8f-4cfa-9176-454fac9570ad',
+          code: 'ABC123',
+          type: 'QUIZ',
+          status: 'LOBBY',
+          serverTime: MOCK_SERVER_TIME,
+          participantCount: 1,
+          preferredChannel,
+          channels: {
+            quiz: { enabled: true },
+            qa: { enabled: true, open: true, title: 'Fragen', moderationMode: false },
+            quickFeedback: { enabled: false, open: false },
+          },
+        });
+        currentQuestionQueryMock.mockResolvedValue(null);
+        const fixture = TestBed.createComponent(SessionVoteComponent);
+        fixture.detectChanges();
+        await fixture.whenStable();
+        fixture.detectChanges();
+        expect(fixture.componentInstance.activeChannel()).toBe('qa');
+        expect(fixture.nativeElement.querySelector('#qa-draft')).not.toBeNull();
+        fixture.destroy();
+      },
+    );
+
+    async function setup() {
+      getInfoQueryMock.mockResolvedValue({
+        id: '6a8edced-5f8f-4cfa-9176-454fac9570ad',
+        code: 'ABC123',
+        type: 'QUIZ',
+        status: 'ACTIVE',
+        serverTime: MOCK_SERVER_TIME,
+        participantCount: 1,
+        preferredChannel: 'qa',
+        channels: {
+          quiz: { enabled: true },
+          qa: { enabled: true, open: true, title: 'Fragen', moderationMode: true },
+          quickFeedback: { enabled: true, open: true },
+        },
+      });
+      currentQuestionQueryMock.mockResolvedValue(null);
+      const fixture = TestBed.createComponent(SessionVoteComponent);
+      fixture.detectChanges();
+      await fixture.whenStable();
+      fixture.detectChanges();
+      const c = fixture.componentInstance;
+      const navigation = c as unknown as {
+        applyPreferredChannelIfChanged: (channel: 'quiz' | 'qa' | 'quickFeedback') => void;
+        applyQuickFeedbackResult: (result: unknown) => void;
+        pullParticipantToQuizChannel: () => void;
+        ensureActiveChannel: () => void;
+      };
+      c.selectChannel('qa');
+      return { fixture, c, navigation };
+    }
+
+    it('schiebt Host-Präferenz über neue Blitzlichtrunde und Fehler bis zum erfolgreichen Q&A-Submit auf', async () => {
+      const { fixture, c, navigation } = await setup();
+      c.updateQaDraft('Meine angefangene Frage');
+      fixture.detectChanges();
+      const textarea = fixture.nativeElement.querySelector('#qa-draft') as HTMLTextAreaElement;
+      textarea.focus();
+      navigation.applyPreferredChannelIfChanged('quiz');
+      navigation.applyQuickFeedbackResult({
+        type: 'MOOD',
+        locked: false,
+        currentRound: 2,
+        totalVotes: 0,
+        distribution: {},
+      });
+      navigation.ensureActiveChannel();
+      fixture.detectChanges();
+      expect(c.activeChannel()).toBe('qa');
+      expect(document.activeElement).toBe(textarea);
+      expect(textarea.value).toBe('Meine angefangene Frage');
+      qaSubmitMutateMock.mockRejectedValueOnce(new Error('Verbindung unterbrochen'));
+      await c.submitQaQuestion();
+      fixture.detectChanges();
+      expect(c.activeChannel()).toBe('qa');
+      expect(c.qaDraft()).toBe('Meine angefangene Frage');
+      expect(c.qaError()).toBeTruthy();
+      (c as unknown as { lastQaSubmitAt: number }).lastQaSubmitAt = 0;
+      qaSubmitMutateMock.mockResolvedValueOnce({
+        quota: { participantRemaining: 9, sessionRemaining: 99 },
+      });
+      await c.submitQaQuestion();
+      fixture.detectChanges();
+      expect(c.qaDraft()).toBe('');
+      expect(c.activeChannel()).toBe('quiz');
+      expect(qaSubmitMutateMock.mock.calls[0]![0].idempotencyKey).toBe(
+        qaSubmitMutateMock.mock.calls[1]![0].idempotencyKey,
+      );
+      fixture.destroy();
+    });
+
+    it.each([
+      'Auswahl',
+      'Text',
+      'Zahl',
+      'Rating',
+      'Matching',
+      'Kategorien',
+      'Reihenfolge',
+      'Confidence',
+    ])('bewahrt ungesendete Quiz-Eingabe %s bei neuer Empfehlung', async (kind) => {
+      const { fixture, c, navigation } = await setup();
+      c.selectChannel('quiz');
+      if (kind === 'Auswahl') c.selectedAnswerIds.set(new Set(['a1']));
+      if (kind === 'Text') c.freeTextValue.set('Entwurf');
+      if (kind === 'Zahl') c.numericInputValue.set('-');
+      if (kind === 'Rating') c.ratingValue.set(0);
+      if (kind === 'Matching')
+        c.matchingSelectionsState.set([
+          { leftId: 'l', leftText: 'L', rightId: 'r' },
+          { leftId: 'l2', leftText: 'L2', rightId: '' },
+        ]);
+      if (kind === 'Kategorien')
+        c.categorizationSelectionsState.set([{ itemId: 'i', itemText: 'I', categoryId: 'c' }]);
+      if (kind === 'Reihenfolge') {
+        c.orderingItemsState.set([
+          { id: 'a', text: 'A' },
+          { id: 'b', text: 'B' },
+        ]);
+        c.moveOrderingItem(0, 'down');
+      }
+      if (kind === 'Confidence') c.confidenceValue.set(3);
+      navigation.applyPreferredChannelIfChanged('quickFeedback');
+      fixture.detectChanges();
+      expect(c.hasUnsentQuizAnswer()).toBe(true);
+      expect(c.activeChannel()).toBe('quiz');
+      c.voteSent.set(true);
+      c.voteSending.set(true);
+      fixture.detectChanges();
+      expect(c.activeChannel()).toBe('quiz');
+      c.voteSending.set(false);
+      await flushComponentAfterStable(fixture);
+      expect(c.activeChannel()).toBe('quickFeedback');
+      expect(voteSubmitMutateMock).not.toHaveBeenCalled();
+      fixture.destroy();
+    });
+
+    it('hält laufendes Blitzlicht fest und löst die Sperre nach Ablehnung', async () => {
+      const { fixture, c, navigation } = await setup();
+      c.selectChannel('quickFeedback');
+      await flushComponentAfterStable(fixture);
+      const feedback = fixture.debugElement.query(By.directive(FeedbackVoteComponent))
+        .componentInstance as FeedbackVoteComponent;
+      feedback.submitting.set(true);
+      await flushComponentAfterStable(fixture);
+      navigation.applyPreferredChannelIfChanged('quiz');
+      c.selectChannel('qa');
+      fixture.detectChanges();
+      expect(c.activeChannel()).toBe('quickFeedback');
+      expect(c.channelSubmitInProgress()).toBe(true);
+      feedback.submitting.set(false);
+      await flushComponentAfterStable(fixture);
+      expect(c.activeChannel()).toBe('quiz');
+      fixture.destroy();
+    });
+
+    it('deutet ein wiederhergestelltes Blitzlichtergebnis nicht als neue Runde', async () => {
+      const { fixture, c, navigation } = await setup();
+      const round = {
+        type: 'MOOD',
+        locked: false,
+        currentRound: 1,
+        totalVotes: 1,
+        distribution: {},
+      };
+      navigation.applyQuickFeedbackResult(round);
+      c.selectChannel('qa');
+      navigation.applyQuickFeedbackResult(null);
+      navigation.applyQuickFeedbackResult(round);
+      navigation.ensureActiveChannel();
+      expect(c.activeChannel()).toBe('qa');
+      fixture.destroy();
+    });
+
+    it('behält einen abgelaufenen Q&A-Entwurf lesbar und sperrt Submit und Tempo-Shortcut', async () => {
+      const { fixture, c, navigation } = await setup();
+      c.updateQaDraft('Nicht gesendeter Text');
+      c.sessionSettings.update((current) => ({ ...current, qaClosesAt: '2020-01-01T00:00:00Z' }));
+      fixture.detectChanges();
+      const editor = fixture.nativeElement.querySelector('#qa-draft') as HTMLTextAreaElement;
+      expect(editor.value).toBe('Nicht gesendeter Text');
+      expect(editor.readOnly).toBe(true);
+      expect(c.channelTabMetaLabel('qa')).toBe('Frist abgelaufen');
+      expect(c.qaCanSubmit()).toBe(false);
+      expect(c.showTempoAskQuestionShortcut()).toBe(false);
+      await c.submitQaQuestion();
+      expect(qaSubmitMutateMock).not.toHaveBeenCalled();
+      navigation.applyPreferredChannelIfChanged('quiz');
+      fixture.detectChanges();
+      expect(c.activeChannel()).toBe('qa');
+      c.discardQaDraft();
+      fixture.detectChanges();
+      expect(c.activeChannel()).toBe('quiz');
+      fixture.destroy();
+    });
+
+    it('bewahrt Suche und Sortierung beim Einklappen und setzt sie gemeinsam zurück', async () => {
+      const { fixture, c } = await setup();
+      const host = fixture.nativeElement as HTMLElement;
+      const details = host.querySelector<HTMLDetailsElement>('.session-qa-tools')!;
+      expect(details.open).toBe(false);
+      details.open = true;
+      c.onQaSearchInput('Prüfung');
+      await c.setQaSortMode('TIME');
+      await new Promise((resolve) => setTimeout(resolve, 350));
+      details.open = false;
+      c.onQaToolsToggle(details);
+      fixture.detectChanges();
+      expect(c.qaSearch()).toBe('Prüfung');
+      expect(c.qaSortMode()).toBe('TIME');
+      expect(host.querySelector('.session-qa-tools-status')?.textContent).toContain('Prüfung');
+      c.resetQaTools();
+      fixture.detectChanges();
+      expect(c.qaSearchDraft()).toBe('');
+      expect(c.qaSearch()).toBe('');
+      expect(c.qaSortMode()).toBe('TOP');
+      expect(host.querySelector('.session-qa-tools-status')).toBeNull();
+      fixture.destroy();
+    });
+
+    it('gibt deaktivierte Ansichten frei, erhält aber geschlossene aktivierte Tabs', async () => {
+      const { fixture, c, navigation } = await setup();
+      c.updateQaDraft('Entwurf');
+      c.sessionSettings.update((current) => ({
+        ...current,
+        channels: {
+          ...current.channels!,
+          qa: { ...current.channels!.qa, open: false },
+        },
+      }));
+      fixture.detectChanges();
+      expect(c.activeChannel()).toBe('qa');
+      expect(c.visibleChannels()).toEqual(['quiz', 'qa', 'quickFeedback']);
+      expect(c.channelTabMetaLabel('qa')).toBe('Geschlossen');
+      c.sessionSettings.update((current) => ({
+        ...current,
+        channels: {
+          ...current.channels!,
+          qa: { ...current.channels!.qa, enabled: false },
+        },
+      }));
+      navigation.ensureActiveChannel();
+      expect(c.activeChannel()).not.toBe('qa');
+      c.selectChannel('qa');
+      expect(c.activeChannel()).not.toBe('qa');
+      fixture.destroy();
+    });
+
+    it('lässt ein offenes Blitzlicht nach Quiz-Ende erreichbar', async () => {
+      const { fixture, c } = await setup();
+      c.sessionSettings.update((current) => ({
+        ...current,
+        channels: {
+          ...current.channels!,
+          qa: { ...current.channels!.qa, open: false },
+        },
+      }));
+      c.status.set('FINISHED');
+      c.selectChannel('quiz');
+      fixture.detectChanges();
+      expect(c.isFinished()).toBe(false);
+      expect(c.showChannelTabs()).toBe(true);
+      expect(c.showQuizFinishedWrapUp()).toBe(true);
+      c.selectChannel('quickFeedback');
+      expect(c.activeChannel()).toBe('quickFeedback');
+      expect(c.showSessionEndGate()).toBe(false);
+      fixture.destroy();
+    });
+  });
 });

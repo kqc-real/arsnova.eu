@@ -38,7 +38,7 @@ const START_QUESTION_RE = /start first question|erste frage starten|nächste fra
 const REVEAL_RESULTS_RE = /show results|ergebnis zeigen/i;
 const DISCUSSION_PHASE_RE = /diskussionsphase|discussion phase/i;
 const SECOND_ROUND_RE = /zweite abstimmung|second (vote|round)/i;
-const SUBMIT_ANSWER_RE = /submit|absenden/i;
+const SUBMIT_ANSWER_RE = /^(Antwort senden|Send answer)$/i;
 const PARTICIPANT_NAME = 'StrukturTester';
 const API_PARTICIPANT_PREFIX = 'StrukturShadow';
 const SHADOW_PARTICIPANT_COUNT = 4; // UI + 4 Shadows = 5 ≥ CONFIDENCE_SUMMARY_MIN_RESPONSES

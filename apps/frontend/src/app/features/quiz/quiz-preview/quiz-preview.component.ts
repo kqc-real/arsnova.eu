@@ -1,6 +1,7 @@
 import { DOCUMENT, Location, isPlatformBrowser } from '@angular/common';
 import {
   Component,
+  DestroyRef,
   HostListener,
   Injector,
   OnDestroy,
@@ -139,6 +140,7 @@ function parseOptionalNumber(raw: string): number | null {
 export class QuizPreviewComponent implements OnDestroy {
   private readonly location = inject(Location);
   private readonly document = inject(DOCUMENT);
+  private readonly destroyRef = inject(DestroyRef);
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
   private readonly sanitizer = inject(DomSanitizer);
@@ -506,7 +508,8 @@ export class QuizPreviewComponent implements OnDestroy {
     if (!isPlatformBrowser(this.platformId)) return;
 
     const run = (): void => {
-      const el = document.getElementById('quiz-preview-inline-editor') as HTMLElement | null;
+      if (this.destroyRef.destroyed || !this.inlineEditMode()) return;
+      const el = this.document.getElementById('quiz-preview-inline-editor') as HTMLElement | null;
       if (el) {
         this.scrollElementIntoAppShell(el);
       }
@@ -514,10 +517,12 @@ export class QuizPreviewComponent implements OnDestroy {
 
     afterNextRender(
       () => {
+        if (this.destroyRef.destroyed || !this.inlineEditMode()) return;
         run();
         queueMicrotask(run);
         setTimeout(run, 0);
         requestAnimationFrame(() => {
+          if (this.destroyRef.destroyed || !this.inlineEditMode()) return;
           run();
           requestAnimationFrame(run);
         });
@@ -542,6 +547,7 @@ export class QuizPreviewComponent implements OnDestroy {
       (el.closest('.app-main') as HTMLElement | null) ?? this.findScrollableOverflowParent(el);
 
     const applyToRoot = (root: HTMLElement, b: ScrollBehavior): void => {
+      if (this.destroyRef.destroyed || !this.inlineEditMode() || !el.isConnected) return;
       const rootRect = root.getBoundingClientRect();
       const elRect = el.getBoundingClientRect();
       /** Entspricht dem freien Streifen unter der Toolbar (Layout-Padding von `.app-main--toolbar-fixed`). */
@@ -557,7 +563,7 @@ export class QuizPreviewComponent implements OnDestroy {
       return;
     }
 
-    const se = document.scrollingElement;
+    const se = this.document.scrollingElement;
     if (se instanceof HTMLElement) {
       const elRect = el.getBoundingClientRect();
       const rootRect = se.getBoundingClientRect();

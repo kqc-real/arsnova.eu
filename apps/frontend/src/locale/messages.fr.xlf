@@ -31989,6 +31989,178 @@
           <context context-type="linenumber">2</context>
         </context-group>
       </trans-unit>
+      <trans-unit id="join.viewTeams" datatype="html">
+        <source>Teams ansehen</source>
+        <target>Voir les équipes</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/join/join.component.html</context>
+          <context context-type="linenumber">82</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="join.teamAssignmentHint" datatype="html">
+        <source>Das Team wird beim Beitritt zugeteilt.</source>
+        <target>Ton équipe sera attribuée à ton arrivée.</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/join/join.component.ts</context>
+          <context context-type="linenumber">334</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="participantTask.sendAnswer" datatype="html">
+        <source>Antwort senden</source>
+        <target>Envoyer la réponse</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/session-vote/session-vote-participant-copy.ts</context>
+          <context context-type="linenumber">334</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="participantTask.optionalFeedback" datatype="html">
+        <source> Deine Bewertung ist freiwillig. Du kannst jederzeit zur Startseite zurückkehren. </source>
+        <target>Ton avis est facultatif. Tu peux retourner à l’accueil à tout moment.</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/session-vote/session-vote.component.html</context>
+          <context context-type="linenumber">174,176</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="participantQa.findSort" datatype="html">
+        <source> Fragen finden &amp; sortieren </source>
+        <target>Rechercher et trier les questions</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/session-vote/session-vote.component.html</context>
+          <context context-type="linenumber">2685,2687</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="participantQa.reset" datatype="html">
+        <source> Zurücksetzen </source>
+        <target>Réinitialiser</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/session-vote/session-vote.component.html</context>
+          <context context-type="linenumber">2752,2754</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="participantTask.closed" datatype="html">
+        <source>Geschlossen</source>
+        <target>Fermé</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/session-vote/session-vote.component.ts</context>
+          <context context-type="linenumber">2752</context>
+        </context-group>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/session-vote/session-vote.component.ts</context>
+          <context context-type="linenumber">2774</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="participantTask.waiting" datatype="html">
+        <source>Warten</source>
+        <target>En attente</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/session-vote/session-vote.component.ts</context>
+          <context context-type="linenumber">2754</context>
+        </context-group>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/session-vote/session-vote.component.ts</context>
+          <context context-type="linenumber">2790</context>
+        </context-group>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/session-vote/session-vote.component.ts</context>
+          <context context-type="linenumber">2792</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="participantTask.paused" datatype="html">
+        <source>Pausiert</source>
+        <target>En pause</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/session-vote/session-vote.component.ts</context>
+          <context context-type="linenumber">2755</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="participantTask.alreadyVoted" datatype="html">
+        <source>Schon abgestimmt</source>
+        <target>Vote envoyé</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/session-vote/session-vote.component.ts</context>
+          <context context-type="linenumber">2762</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="participantTask.vote" datatype="html">
+        <source>Abstimmen</source>
+        <target>Voter</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/session-vote/session-vote.component.ts</context>
+          <context context-type="linenumber">2764</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="participantTask.expired" datatype="html">
+        <source>Frist abgelaufen</source>
+        <target>Délai expiré</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/session-vote/session-vote.component.ts</context>
+          <context context-type="linenumber">2771</context>
+        </context-group>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/session-vote/session-vote.component.ts</context>
+          <context context-type="linenumber">2788</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="participantTask.questionsOpen" datatype="html">
+        <source>Fragen offen</source>
+        <target>Questions ouvertes</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/session-vote/session-vote.component.ts</context>
+          <context context-type="linenumber">2773</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="participantTask.quizFinished" datatype="html">
+        <source>Quiz beendet</source>
+        <target>Quiz terminé</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/session-vote/session-vote.component.ts</context>
+          <context context-type="linenumber">2778</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="participantTask.result" datatype="html">
+        <source>Ergebnis</source>
+        <target>Résultat</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/session-vote/session-vote.component.ts</context>
+          <context context-type="linenumber">2780</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="participantTask.read" datatype="html">
+        <source>Lesen</source>
+        <target>Lire</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/session-vote/session-vote.component.ts</context>
+          <context context-type="linenumber">2782</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="participantTask.quizPaused" datatype="html">
+        <source>Quiz pausiert</source>
+        <target>Quiz en pause</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/session-vote/session-vote.component.ts</context>
+          <context context-type="linenumber">2784</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="participantTask.answerSent" datatype="html">
+        <source>Antwort gesendet</source>
+        <target>Réponse envoyée</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/session-vote/session-vote.component.ts</context>
+          <context context-type="linenumber">2786</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="participantTask.answerOpen" datatype="html">
+        <source>Antwort offen</source>
+        <target>Répondre</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/session-vote/session-vote.component.ts</context>
+          <context context-type="linenumber">2789</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="participantQa.discard" datatype="html">
+        <source>Entwurf verwerfen</source>
+        <target>Supprimer le brouillon</target>
+      </trans-unit>
     </body>
   </file>
 </xliff>

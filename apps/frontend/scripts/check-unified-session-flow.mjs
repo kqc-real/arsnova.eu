@@ -576,16 +576,37 @@ async function joinParticipantSession(participant, code, warnings, hardFailures)
   logStep(false, 'Participant sees all channel tabs', String(participantChannelCount));
 }
 
-async function submitParticipantQuestions(participant, hardFailures) {
+async function submitParticipantQuestions(participant, hardFailures, hostTrpc, code) {
   await clickChannelTab(participant, 1);
   await waitForVisible(participant.locator('#qa-draft'));
+  const tools = participant.locator('.session-qa-tools');
+  assert.equal(await tools.getAttribute('open'), null, 'Q&A tools start collapsed');
   await participant.locator('#qa-draft').fill(SMOKE_QUESTIONS.participantFirst);
+  await hostTrpc.session.setPreferredLiveChannel.mutate({ code, channel: 'quiz' });
+  await participant.waitForTimeout(600);
+  assert.equal(
+    await participant.locator('#qa-draft').inputValue(),
+    SMOKE_QUESTIONS.participantFirst,
+  );
+  assert.equal(
+    await participant.locator('#qa-draft').evaluate((el) => document.activeElement === el),
+    true,
+    'Host preference preserves the editor focus',
+  );
   await participant.locator('.session-qa-form__submit').click();
-  await participant.waitForTimeout(700);
+  await participant.locator('#qa-draft').waitFor({ state: 'hidden' });
+  await participant.waitForFunction(() => {
+    const target = document.querySelector('[data-testid="participant-task-status"]');
+    if (!target || document.activeElement !== target) return false;
+    const rect = target.getBoundingClientRect();
+    return document.elementFromPoint(rect.x + rect.width / 2, rect.y + rect.height / 2) === target;
+  });
+  await clickChannelTab(participant, 1);
   await participant.locator('#qa-draft').fill(SMOKE_QUESTIONS.participantSecond);
   await participant.locator('.session-qa-form__submit').click();
   await participant.waitForTimeout(1_200);
 
+  await hostTrpc.session.setPreferredLiveChannel.mutate({ code, channel: 'qa' });
   const participantQaText = await visibleText(participant);
   if (
     participantQaText.includes(SMOKE_QUESTIONS.participantFirst) &&
@@ -687,6 +708,7 @@ async function verifyPresenterView(host, presenter, code, hardFailures) {
     logStep(false, 'Presenter Q&A questions fit HDMI viewport');
   }
 
+  await dismissJoinOverlay(host);
   const qaTools = host.getByTestId('qa-tools-toggle');
   if ((await qaTools.getAttribute('aria-expanded')) !== 'true') await qaTools.click();
   const openWordCloud = host
@@ -1092,7 +1114,12 @@ async function main() {
     await scanA11y(host, 'host-qa-empty');
     await joinParticipantSession(participant, code, warnings, hardFailures);
     await scanA11y(participant, 'participant-lobby');
-    await submitParticipantQuestions(participant, hardFailures);
+    await submitParticipantQuestions(
+      participant,
+      hardFailures,
+      createBrowserTrpcClient(hostToken),
+      code,
+    );
     await scanA11y(participant, 'participant-qa');
     await verifyHostQuestions(host, hardFailures);
     await scanA11y(host, 'host-qa-moderation');

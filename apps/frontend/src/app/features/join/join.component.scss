@@ -558,3 +558,16 @@
     text-shadow: 0 0 0.75rem color-mix(in srgb, var(--mat-sys-tertiary) 34%, transparent);
   }
 }
+
+.join-card__team-details {
+  summary {
+    cursor: pointer;
+    padding-block: 0.65rem;
+    font: var(--mat-sys-title-small);
+    color: var(--mat-sys-primary);
+  }
+  summary:focus-visible {
+    outline: 2px solid var(--mat-sys-primary);
+    outline-offset: 2px;
+  }
+}

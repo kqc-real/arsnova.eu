@@ -1153,4 +1153,51 @@ describe('FeedbackVoteComponent', () => {
     ).toBeNull();
     fixture.destroy();
   });
+  it('meldet eingebettete Abgabe und Rundenzustand für den unterbrechungsfreien Kanalwechsel', async () => {
+    const fixture = TestBed.createComponent(FeedbackVoteComponent);
+    fixture.componentRef.setInput('sessionCode', 'ABC123');
+    fixture.componentRef.setInput('participantId', 'participant-1');
+    fixture.componentRef.setInput('embeddedInSession', true);
+    fixture.componentRef.setInput('sharedResult', {
+      type: 'MOOD',
+      locked: false,
+      totalVotes: 1,
+      distribution: {},
+      currentRound: 1,
+    });
+    const events = vi.fn();
+    fixture.componentInstance.activityChange.subscribe(events);
+    fixture.detectChanges();
+    await fixture.whenStable();
+    fixture.componentInstance.submitting.set(true);
+    fixture.detectChanges();
+    expect(events).toHaveBeenLastCalledWith({
+      voted: false,
+      submitting: true,
+      phase: 'MOOD:1:vote',
+    });
+    fixture.componentInstance.voted.set(true);
+    fixture.componentInstance.submitting.set(false);
+    fixture.detectChanges();
+    expect(events).toHaveBeenLastCalledWith({
+      voted: true,
+      submitting: false,
+      phase: 'MOOD:1:vote',
+    });
+    fixture.componentRef.setInput('sharedResult', {
+      type: 'MOOD',
+      locked: false,
+      totalVotes: 0,
+      distribution: {},
+      currentRound: 2,
+    });
+    fixture.detectChanges();
+    await fixture.whenStable();
+    expect(events).toHaveBeenLastCalledWith({
+      voted: false,
+      submitting: false,
+      phase: 'MOOD:2:vote',
+    });
+    fixture.destroy();
+  });
 });

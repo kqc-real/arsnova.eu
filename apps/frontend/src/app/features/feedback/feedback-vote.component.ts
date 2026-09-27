@@ -136,6 +136,7 @@ export class FeedbackVoteComponent implements OnInit, OnDestroy {
   /** Nur Session-Tempo: Shortcut zur Q&A-Fragenansicht (Kanal offen + Fragerunde gestartet). */
   readonly showAskQuestionButton = input(false);
   readonly askQuestion = output<void>();
+  readonly activityChange = output<{ voted: boolean; submitting: boolean; phase: string }>();
 
   readonly code = computed(() =>
     (this.sessionCode() || (this.route.snapshot.paramMap.get('code') ?? '')).toUpperCase(),
@@ -159,6 +160,14 @@ export class FeedbackVoteComponent implements OnInit, OnDestroy {
   readonly selectedTempoValue = signal<string | null>(null);
 
   constructor() {
+    effect(() => {
+      if (this.embeddedInSession())
+        this.activityChange.emit({
+          voted: this.voted(),
+          submitting: this.submitting(),
+          phase: `${this.feedbackType()}:${this.currentRound()}:${this.discussion() ? 'discussion' : 'vote'}`,
+        });
+    });
     effect(() => {
       if (!this.embeddedInSession()) {
         return;
