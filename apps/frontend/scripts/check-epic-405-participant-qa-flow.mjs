@@ -539,6 +539,25 @@ async function main() {
       failures.push('Die Frage erschien nicht in der Host-Ansicht.');
     }
 
+    const tools = participant.locator('.session-qa-tools');
+    if ((await tools.getAttribute('open')) !== null)
+      failures.push('Fragenwerkzeuge müssen zunächst eingeklappt sein.');
+    await participant.locator('#qa-tools-summary').press('Enter');
+    await participant.getByRole('searchbox').fill('zzznomatch472');
+    await participant.locator('.session-qa-empty--filtered').waitFor({ state: 'visible' });
+    await participant.locator('#qa-tools-summary').press('Enter');
+    if (
+      !(await participant.locator('.session-qa-tools-status').innerText()).includes('zzznomatch472')
+    )
+      failures.push('Aktive Suche ist nach Einklappen unsichtbar.');
+    await participant.locator('.session-qa-tools-status button').click();
+    const resetFocus = await participant
+      .locator('#qa-tools-summary')
+      .evaluate((el) => document.activeElement === el);
+    if (!resetFocus) failures.push('Reset verliert den Fokus.');
+    await participant.locator('.session-qa-card').first().waitFor({ state: 'visible' });
+    logStep(resetFocus, 'Suche: Tastatur, Einklappen, Status und Reset-Fokus');
+
     await seedRankedQaBoardAndAssertHostViews(host, hostTrpc, created, failures);
 
     await hostTrpc.session.end.mutate({ code: created.code });

@@ -75,78 +75,88 @@
               {{ teamInfoHeading() }}
             </p>
             <p class="join-card__nickname-hint">{{ teamInfoHint() }}</p>
-            <div class="join-card__team-grid">
-              @for (team of teams(); track team.id) {
-                @if (showTeamSelect()) {
-                  <button
-                    type="button"
-                    mat-stroked-button
-                    class="join-card__team-card"
-                    [class.join-card__team-card--selected]="selectedTeamId() === team.id"
-                    [attr.aria-label]="teamCardAriaLabel(team)"
-                    [attr.aria-pressed]="selectedTeamId() === team.id"
-                    (click)="selectTeam(team.id)"
-                  >
-                    <span class="join-card__team-card-name">
-                      @if (teamNameEmojiMarker(team.name); as teamEmoji) {
-                        @if (teamNameEmojiMarkerTrailing(team.name)) {
-                          <span>{{ teamNameLabelWithoutEmojiMarker(team.name) }}</span>
-                          <span class="join-card__team-card-emoji" aria-hidden="true">{{
-                            teamEmoji
-                          }}</span>
+            @if (showTeamSelect()) {
+              <ng-container [ngTemplateOutlet]="teamGrid" />
+            } @else {
+              <details class="join-card__team-details">
+                <summary i18n="@@join.viewTeams">Teams ansehen</summary>
+                <ng-container [ngTemplateOutlet]="teamGrid" />
+              </details>
+            }
+            <ng-template #teamGrid>
+              <div class="join-card__team-grid">
+                @for (team of teams(); track team.id) {
+                  @if (showTeamSelect()) {
+                    <button
+                      type="button"
+                      mat-stroked-button
+                      class="join-card__team-card"
+                      [class.join-card__team-card--selected]="selectedTeamId() === team.id"
+                      [attr.aria-label]="teamCardAriaLabel(team)"
+                      [attr.aria-pressed]="selectedTeamId() === team.id"
+                      (click)="selectTeam(team.id)"
+                    >
+                      <span class="join-card__team-card-name">
+                        @if (teamNameEmojiMarker(team.name); as teamEmoji) {
+                          @if (teamNameEmojiMarkerTrailing(team.name)) {
+                            <span>{{ teamNameLabelWithoutEmojiMarker(team.name) }}</span>
+                            <span class="join-card__team-card-emoji" aria-hidden="true">{{
+                              teamEmoji
+                            }}</span>
+                          } @else {
+                            <span class="join-card__team-card-emoji" aria-hidden="true">{{
+                              teamEmoji
+                            }}</span>
+                            <span>{{ teamNameLabelWithoutEmojiMarker(team.name) }}</span>
+                          }
                         } @else {
-                          <span class="join-card__team-card-emoji" aria-hidden="true">{{
-                            teamEmoji
-                          }}</span>
+                          <span
+                            class="join-card__team-card-dot"
+                            [style.background]="team.color || 'var(--mat-sys-primary)'"
+                            aria-hidden="true"
+                          ></span>
                           <span>{{ teamNameLabelWithoutEmojiMarker(team.name) }}</span>
                         }
-                      } @else {
-                        <span
-                          class="join-card__team-card-dot"
-                          [style.background]="team.color || 'var(--mat-sys-primary)'"
-                          aria-hidden="true"
-                        ></span>
-                        <span>{{ teamNameLabelWithoutEmojiMarker(team.name) }}</span>
-                      }
-                    </span>
-                    <span class="join-card__team-card-meta">{{
-                      teamMembersLabel(team.memberCount)
-                    }}</span>
-                  </button>
-                } @else {
-                  <div
-                    class="join-card__team-card join-card__team-card--readonly"
-                    [attr.aria-label]="teamCardAriaLabel(team)"
-                  >
-                    <span class="join-card__team-card-name">
-                      @if (teamNameEmojiMarker(team.name); as teamEmoji) {
-                        @if (teamNameEmojiMarkerTrailing(team.name)) {
-                          <span>{{ teamNameLabelWithoutEmojiMarker(team.name) }}</span>
-                          <span class="join-card__team-card-emoji" aria-hidden="true">{{
-                            teamEmoji
-                          }}</span>
+                      </span>
+                      <span class="join-card__team-card-meta">{{
+                        teamMembersLabel(team.memberCount)
+                      }}</span>
+                    </button>
+                  } @else {
+                    <div
+                      class="join-card__team-card join-card__team-card--readonly"
+                      [attr.aria-label]="teamCardAriaLabel(team)"
+                    >
+                      <span class="join-card__team-card-name">
+                        @if (teamNameEmojiMarker(team.name); as teamEmoji) {
+                          @if (teamNameEmojiMarkerTrailing(team.name)) {
+                            <span>{{ teamNameLabelWithoutEmojiMarker(team.name) }}</span>
+                            <span class="join-card__team-card-emoji" aria-hidden="true">{{
+                              teamEmoji
+                            }}</span>
+                          } @else {
+                            <span class="join-card__team-card-emoji" aria-hidden="true">{{
+                              teamEmoji
+                            }}</span>
+                            <span>{{ teamNameLabelWithoutEmojiMarker(team.name) }}</span>
+                          }
                         } @else {
-                          <span class="join-card__team-card-emoji" aria-hidden="true">{{
-                            teamEmoji
-                          }}</span>
+                          <span
+                            class="join-card__team-card-dot"
+                            [style.background]="team.color || 'var(--mat-sys-primary)'"
+                            aria-hidden="true"
+                          ></span>
                           <span>{{ teamNameLabelWithoutEmojiMarker(team.name) }}</span>
                         }
-                      } @else {
-                        <span
-                          class="join-card__team-card-dot"
-                          [style.background]="team.color || 'var(--mat-sys-primary)'"
-                          aria-hidden="true"
-                        ></span>
-                        <span>{{ teamNameLabelWithoutEmojiMarker(team.name) }}</span>
-                      }
-                    </span>
-                    <span class="join-card__team-card-meta">{{
-                      teamMembersLabel(team.memberCount)
-                    }}</span>
-                  </div>
+                      </span>
+                      <span class="join-card__team-card-meta">{{
+                        teamMembersLabel(team.memberCount)
+                      }}</span>
+                    </div>
+                  }
                 }
-              }
-            </div>
+              </div>
+            </ng-template>
             @if (selectedTeamLabel(); as selectedTeamLabelText) {
               <p class="join-card__team-selected" role="status">{{ selectedTeamLabelText }}</p>
             }

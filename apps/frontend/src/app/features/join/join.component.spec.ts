@@ -849,7 +849,7 @@ describe('JoinComponent', () => {
     expect(bottomAction?.textContent).toContain('Jetzt beitreten');
   });
 
-  it('zeigt Teamvorschau auch bei automatischer Zuweisung', async () => {
+  it('zeigt automatische Teams nur in einer optionalen Übersicht', async () => {
     vi.mocked(trpc.session.getInfo.query).mockResolvedValue({
       ...mockSession,
       teamMode: true,
@@ -872,6 +872,14 @@ describe('JoinComponent', () => {
     expect(comp.showTeamSelect()).toBe(false);
     expect(comp.teams().map((team) => team.name)).toEqual(['Rot', 'Blau']);
     expect(comp.selectedTeam()).toBeNull();
+    fixture.detectChanges();
+    const details = fixture.nativeElement.querySelector(
+      '.join-card__team-details',
+    ) as HTMLDetailsElement;
+    expect(details.open).toBe(false);
+    expect(details.querySelector('summary')?.textContent).toContain('Teams ansehen');
+    expect(details.querySelectorAll('.join-card__team-card').length).toBe(2);
+    expect(fixture.nativeElement.textContent).toContain('Das Team wird beim Beitritt zugeteilt.');
   });
 
   it('speichert nach bestaetigter Teamwahl das Team fuer den Vote-Header', async () => {

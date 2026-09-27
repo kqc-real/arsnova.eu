@@ -97,6 +97,7 @@ import { CountdownFingersComponent } from '../../../shared/countdown-fingers/cou
 import { MarkdownImageLightboxDirective } from '../../../shared/markdown-image-lightbox/markdown-image-lightbox.directive';
 import { remainingCountdownSeconds } from '../session-countdown.util';
 import {
+  resolveAppMainScrollRoot,
   scrollAndFocusInAppMain,
   scrollAppMainToTop,
   scrollIntoAppMain,
@@ -191,7 +192,6 @@ export type VoteAutoScrollPhase = 'read' | 'vote' | 'result';
 
 type CurrentQuestion = QuestionStudentDTO | QuestionPreviewDTO | QuestionRevealedDTO;
 type SessionChannelTab = 'quiz' | 'qa' | 'quickFeedback';
-type ParticipantLiveChannelTab = Extract<SessionChannelTab, 'qa' | 'quickFeedback'>;
 type QuickFeedbackPhaseKey = string | null;
 type ShortTextEvaluationResult =
   ReturnType<typeof evaluateShortAnswer> | ReturnType<typeof evaluateNumericAnswer>;
@@ -1037,13 +1037,54 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
   private readonly markdownCache = new Map<string, SafeHtml>();
   private feedbackStateLoaded = false;
   private lastAppliedPreferredChannel: SessionLiveChannel | null = null;
-  private participantLiveChannelOverride: ParticipantLiveChannelTab | null = null;
-  private participantLiveChannelOverrideQuickFeedbackPhase: QuickFeedbackPhaseKey = null;
+  private participantLiveChannelOverride: SessionChannelTab | null = null;
+  private readonly pendingPreferredChannel = signal<SessionChannelTab | null>(null);
+  private readonly pendingAutomaticChannel = signal<SessionChannelTab | null>(null);
+  readonly quickFeedbackActivity = signal<{
+    voted: boolean;
+    submitting: boolean;
+    phase: string;
+  } | null>(null);
+  private readonly orderingTouched = signal(false);
+
+  /** Only a participant's input counts; hydrated ordering defaults are not a draft. */
+  readonly hasUnsentQuizAnswer = computed(
+    () =>
+      !this.voteSent() &&
+      (this.selectedAnswerIds().size > 0 ||
+        this.freeTextValue().length > 0 ||
+        this.numericInputValue().length > 0 ||
+        this.ratingValue() !== null ||
+        this.confidenceValue() !== null ||
+        this.orderingTouched() ||
+        this.matchingSelectionsState().some((item) => !!item.rightId) ||
+        this.categorizationSelectionsState().some((item) => !!item.categoryId)),
+  );
+
+  readonly channelSubmitInProgress = computed(
+    () =>
+      this.qaSubmitting() ||
+      this.voteSending() ||
+      this.readingReadySubmitting() ||
+      (this.activeChannel() === 'quickFeedback' &&
+        this.isQuickFeedbackChannelOpen() &&
+        this.quickFeedbackActivity()?.submitting === true),
+  );
+
+  private channelTaskInProgress(): boolean {
+    if (this.channelSubmitInProgress()) return true;
+    return (
+      (this.activeChannel() === 'qa' && this.qaDraft().length > 0) ||
+      (this.activeChannel() === 'quiz' && this.hasUnsentQuizAnswer())
+    );
+  }
   /**
    * Erst nach dem ersten erfolgreichen `refreshQuestion` dürfen Fragewechsel den Quiz-Kanal
    * erzwingen – sonst überschreibt die Initial-Hydration `?tab=` / Preferred Channel.
    */
   private currentQuestionHydrated = false;
+  private quickFeedbackHydrated = false;
+  private lastKnownQuickFeedbackPhase: QuickFeedbackPhaseKey = null;
 
   /**
    * Nach Session-Ende: Bonus-Code sichern und/oder Session-Feedback, dann Startseite.
@@ -1106,7 +1147,7 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
     });
     effect(() => {
       const paused = this.isPaused();
-      if (paused && !this.previousPausedForAutoScroll) {
+      if (paused && !this.previousPausedForAutoScroll && this.activeChannel() === 'quiz') {
         untracked(() => this.scrollVotePausedIntoView());
       }
       this.previousPausedForAutoScroll = paused;
@@ -1114,7 +1155,7 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
     effect(() => {
       const qaOpen = this.isQaChannelOpen();
       const onQa = this.activeChannel() === 'qa';
-      if (onQa && this.previousQaOpenForAutoScroll === true && !qaOpen) {
+      if (onQa && this.previousQaOpenForAutoScroll === true && !qaOpen && !this.qaDraft()) {
         untracked(() => this.scrollVoteQaClosedIntoView());
       }
       this.previousQaOpenForAutoScroll = qaOpen;
@@ -1139,7 +1180,15 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
       expiresAt: this.sessionSettings().expiresAt,
     }),
   );
-  readonly isFinished = computed(() => this.status() === 'FINISHED' && !this.qaStillJoinable());
+  readonly isFinished = computed(
+    () =>
+      this.status() === 'FINISHED' &&
+      (this.sessionSettings().hostEnded === true ||
+        this.showSessionEndGate() ||
+        (!this.qaStillJoinable() &&
+          !(this.channels().quickFeedback && this.isQuickFeedbackChannelOpen()))),
+  );
+
   readonly showQuizFinishedWrapUp = computed(
     () =>
       this.status() === 'FINISHED' &&
@@ -1283,7 +1332,9 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
       this.sessionSettings().title ??
       $localize`:@@sessionTabs.qaTitleDefault:Fragen zur Veranstaltung...`,
   );
-  readonly isQaChannelOpen = computed(() => this.channelOpenState().qa);
+  readonly isQaChannelOpen = computed(
+    () => this.channelOpenState().qa && !this.qaDeadlineExpired() && !this.isQaDeadlineExpired(),
+  );
   readonly isQaDeadlineExpired = computed(
     () => this.sessionSettings().channels?.qa.state === 'DEADLINE_EXPIRED',
   );
@@ -1308,6 +1359,7 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
   );
   readonly qaCanSubmit = computed(
     () =>
+      this.isQaChannelOpen() &&
       this.qaDraft().trim().length > 0 &&
       this.qaDraft().trim().length <= 500 &&
       (this.qaQuota()?.participantRemaining ?? 1) > 0 &&
@@ -1357,11 +1409,9 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
       return;
     }
 
-    if (this.visibleChannels().includes(preferredChannel)) {
-      this.clearParticipantLiveChannelOverride();
-      this.setActiveChannelProgrammatically(preferredChannel);
-    }
     this.lastAppliedPreferredChannel = preferredChannel;
+    this.pendingPreferredChannel.set(preferredChannel);
+    this.ensureActiveChannel();
   }
 
   private quickFeedbackPhaseKey(result: QuickFeedbackResult | null): QuickFeedbackPhaseKey {
@@ -1373,38 +1423,54 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
 
   private clearParticipantLiveChannelOverride(): void {
     this.participantLiveChannelOverride = null;
-    this.participantLiveChannelOverrideQuickFeedbackPhase = null;
   }
 
   /** Programmatischer Kanalwechsel ohne valueChange→selectChannel-Override. */
   private setActiveChannelProgrammatically(channel: SessionChannelTab): void {
+    const changed = this.activeChannel() !== channel;
+    const host = this.el.nativeElement as HTMLElement;
+    // Disabling a submit button can already have returned focus to the body.
+    const restoreFocus =
+      changed &&
+      (host.contains(document.activeElement) || document.activeElement === document.body);
     this.suppressChannelTabWriteback = true;
     this.activeChannel.set(channel);
+    if (restoreFocus) {
+      afterNextRender(
+        () => {
+          if (this.activeChannel() !== channel) return;
+          this.focusParticipantTaskStatus();
+        },
+        { injector: this.injector },
+      );
+    }
     queueMicrotask(() => {
       this.suppressChannelTabWriteback = false;
     });
   }
 
   private rememberParticipantLiveChannelOverride(channel: SessionChannelTab): void {
-    if (channel === 'qa' || channel === 'quickFeedback') {
-      this.participantLiveChannelOverride = channel;
-      this.participantLiveChannelOverrideQuickFeedbackPhase = this.quickFeedbackPhaseKey(
-        this.quickFeedbackResult(),
-      );
-      return;
-    }
-    this.clearParticipantLiveChannelOverride();
+    this.participantLiveChannelOverride = channel;
   }
 
   private applyQuickFeedbackResult(result: QuickFeedbackResult | null): void {
-    const nextPhase = this.quickFeedbackPhaseKey(result);
-    if (
-      this.participantLiveChannelOverride &&
-      this.participantLiveChannelOverrideQuickFeedbackPhase !== nextPhase
-    ) {
-      this.clearParticipantLiveChannelOverride();
-    }
+    const previous = this.quickFeedbackResult();
+    const phase = this.quickFeedbackPhaseKey(result);
+    const changed = this.quickFeedbackPhaseKey(previous) !== phase;
+    const newRound = phase !== this.lastKnownQuickFeedbackPhase;
+    if (phase) this.lastKnownQuickFeedbackPhase = phase;
     this.quickFeedbackResult.set(result);
+    if (changed && !this.quickFeedbackActivity()?.submitting) this.quickFeedbackActivity.set(null);
+    if (
+      changed &&
+      newRound &&
+      result &&
+      !result.locked &&
+      !result.discussion &&
+      (previous !== null || this.quickFeedbackHydrated)
+    ) {
+      this.pendingAutomaticChannel.set('quickFeedback');
+    }
   }
   readonly ownTeamEntry = computed(() => {
     const teamName = this.participantTeam()?.teamName;
@@ -2698,43 +2764,59 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
     }
   }
 
-  quickFeedbackTabMetaLabel(): string | null {
-    if (this.channels().quickFeedback && !this.isQuickFeedbackChannelOpen()) {
-      return $localize`:@@sessionTabs.channelClosed:Zu`;
-    }
+  quickFeedbackTabMetaLabel(): string {
+    if (!this.isQuickFeedbackChannelOpen()) return $localize`:@@participantTask.closed:Geschlossen`;
     const result = this.quickFeedbackResult();
-    if (!result) {
-      return null;
+    if (!result) return $localize`:@@participantTask.waiting:Warten`;
+    if (result.locked || result.discussion) return $localize`:@@participantTask.paused:Pausiert`;
+    const activity = this.quickFeedbackActivity();
+    if (
+      result.type !== 'TEMPO' &&
+      activity?.voted &&
+      activity.phase === this.quickFeedbackPhaseKey(result)
+    ) {
+      return $localize`:@@participantTask.alreadyVoted:Schon abgestimmt`;
     }
-
-    if (result.discussion) {
-      return 'R1';
-    }
-
-    if ((result.currentRound ?? 1) === 2) {
-      return 'R2';
-    }
-
-    if (result.locked) {
-      return '||';
-    }
-
-    if (result.totalVotes > 0) {
-      return String(result.totalVotes);
-    }
-
-    return null;
+    return $localize`:@@participantTask.vote:Abstimmen`;
   }
 
-  channelTabMetaLabel(channel: SessionChannelTab): string | null {
-    if (channel === 'quickFeedback') {
-      return this.quickFeedbackTabMetaLabel();
+  channelTabMetaLabel(channel: SessionChannelTab): string {
+    if (channel === 'quickFeedback') return this.quickFeedbackTabMetaLabel();
+    if (channel === 'qa') {
+      if (this.qaDeadlineExpired() || this.isQaDeadlineExpired())
+        return $localize`:@@participantTask.expired:Frist abgelaufen`;
+      return this.isQaChannelOpen()
+        ? $localize`:@@participantTask.questionsOpen:Fragen offen`
+        : $localize`:@@participantTask.closed:Geschlossen`;
     }
-    return null;
+    switch (this.status()) {
+      case 'FINISHED':
+        return $localize`:@@participantTask.quizFinished:Quiz beendet`;
+      case 'RESULTS':
+        return $localize`:@@participantTask.result:Ergebnis`;
+      case 'QUESTION_OPEN':
+        return $localize`:@@participantTask.read:Lesen`;
+      case 'PAUSED':
+        return $localize`:@@participantTask.quizPaused:Quiz pausiert`;
+      case 'ACTIVE':
+        if (this.voteSent()) return $localize`:@@participantTask.answerSent:Antwort gesendet`;
+        if (this.voteClosed() || this.timerExpired())
+          return $localize`:@@participantTask.expired:Frist abgelaufen`;
+        if (this.currentQuestion()) return $localize`:@@participantTask.answerOpen:Antwort offen`;
+        return $localize`:@@participantTask.waiting:Warten`;
+      default:
+        return $localize`:@@participantTask.waiting:Warten`;
+    }
   }
 
   selectChannel(channel: string): void {
-    if (channel === 'quiz' || channel === 'qa' || channel === 'quickFeedback') {
+    if (this.channelSubmitInProgress()) return;
+    if (
+      (channel === 'quiz' || channel === 'qa' || channel === 'quickFeedback') &&
+      this.visibleChannels().includes(channel)
+    ) {
+      this.pendingAutomaticChannel.set(null);
+      this.pendingPreferredChannel.set(null);
       const prev = this.activeChannel();
       this.rememberParticipantLiveChannelOverride(channel);
       this.activeChannel.set(channel);
@@ -2750,7 +2832,7 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
 
   /** mat-button-toggle valueChange – ignoriert programmatische Writes. */
   onChannelTabValueChange(channel: string): void {
-    if (this.suppressChannelTabWriteback) {
+    if (this.suppressChannelTabWriteback || channel === this.activeChannel()) {
       return;
     }
     this.selectChannel(channel);
@@ -2792,6 +2874,36 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
       case 'DELETED':
         return $localize`:@@sessionQa.statusDeleted:Entfernt`;
     }
+  }
+
+  discardQaDraft(): void {
+    if (this.qaSubmitting()) return;
+    this.focusParticipantTaskStatus();
+    this.updateQaDraft('');
+    this.qaError.set(null);
+  }
+
+  private focusParticipantTaskStatus(): void {
+    const target = (this.el.nativeElement as HTMLElement).querySelector<HTMLElement>(
+      '[data-testid="participant-task-status"]',
+    );
+    if (!target || target.getClientRects().length === 0) return;
+    const root = resolveAppMainScrollRoot(target);
+    const tabs = (this.el.nativeElement as HTMLElement).querySelector(
+      '.session-channel-tabs-shell',
+    );
+    const toolbarClearance = root ? parseFloat(getComputedStyle(root).paddingTop) || 0 : 0;
+    const gapPx =
+      root && tabs
+        ? Math.max(
+            8,
+            tabs.getBoundingClientRect().bottom -
+              root.getBoundingClientRect().top -
+              toolbarClearance +
+              8,
+          )
+        : 8;
+    scrollAndFocusInAppMain(target, { gapPx, behavior: 'instant' });
   }
 
   updateQaDraft(value: string): void {
@@ -3675,6 +3787,7 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
       return false;
     }
 
+    this.lastAppliedPreferredChannel = this.sessionSettings().preferredChannel ?? null;
     this.rememberParticipantLiveChannelOverride(this.routeRequestedChannel);
     this.setActiveChannelProgrammatically(this.routeRequestedChannel);
     return true;
@@ -4469,13 +4582,9 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
    * (QUESTION_OPEN→ACTIVE), PI-Runde 2. Dazwischen freie Kanalwahl (ADR-0009).
    */
   private pullParticipantToQuizChannel(): void {
-    if (!this.visibleChannels().includes('quiz')) {
-      return;
-    }
-    this.clearParticipantLiveChannelOverride();
-    if (this.activeChannel() !== 'quiz') {
-      this.setActiveChannelProgrammatically('quiz');
-    }
+    if (!this.visibleChannels().includes('quiz')) return;
+    this.pendingAutomaticChannel.set('quiz');
+    this.ensureActiveChannel();
   }
 
   /** Frage-ID-Wechsel: nach Hydration immer; bei Initial-Load Tab/Preferred respektieren. */
@@ -4501,67 +4610,63 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
 
   private ensureActiveChannel(): void {
     const visible = this.visibleChannels();
-    if (visible.length === 0) {
-      return;
-    }
-
-    if (
-      this.participantLiveChannelOverride &&
-      !visible.includes(this.participantLiveChannelOverride)
-    ) {
-      this.clearParticipantLiveChannelOverride();
-    }
-
+    if (visible.length === 0) return;
     const active = this.activeChannel();
     if (!visible.includes(active)) {
-      this.setActiveChannelProgrammatically(visible[0]!);
+      this.clearParticipantLiveChannelOverride();
+      const preferred = this.sessionSettings().preferredChannel;
+      this.setActiveChannelProgrammatically(
+        preferred && visible.includes(preferred) ? preferred : this.firstActionableChannel(visible),
+      );
       return;
     }
+    if (this.channelTaskInProgress()) return;
 
-    if (this.participantLiveChannelOverride) {
-      if (active !== this.participantLiveChannelOverride) {
-        this.setActiveChannelProgrammatically(this.participantLiveChannelOverride);
+    const preferred = this.pendingPreferredChannel();
+    const automatic = this.pendingAutomaticChannel();
+    if (preferred || automatic) {
+      this.pendingPreferredChannel.set(null);
+      this.pendingAutomaticChannel.set(null);
+      const next = preferred && visible.includes(preferred) ? preferred : automatic;
+      if (next && visible.includes(next)) {
+        this.rememberParticipantLiveChannelOverride(next);
+        this.setActiveChannelProgrammatically(next);
+        return;
       }
-      return;
     }
+    if (
+      this.participantLiveChannelOverride ||
+      (this.lastAppliedPreferredChannel && visible.includes(this.lastAppliedPreferredChannel))
+    )
+      return;
+    if (
+      (active === 'quiz' && this.status() !== 'FINISHED') ||
+      (active === 'qa' && this.isQaChannelOpen() && this.quickFeedbackResult() !== null) ||
+      (active === 'quickFeedback' &&
+        this.isQuickFeedbackChannelOpen() &&
+        !this.quickFeedbackResult())
+    ) {
+      this.setActiveChannelProgrammatically(this.firstActionableChannel(visible));
+    }
+  }
 
-    const quizContentVisible =
+  private firstActionableChannel(visible: SessionChannelTab[]): SessionChannelTab {
+    if (
       visible.includes('quiz') &&
-      this.currentQuestion() !== null &&
-      (this.status() === 'QUESTION_OPEN' ||
-        this.status() === 'ACTIVE' ||
-        this.status() === 'DISCUSSION' ||
-        this.status() === 'RESULTS');
-    const quickFeedbackRoundVisible =
+      this.currentQuestion() &&
+      ['QUESTION_OPEN', 'ACTIVE', 'DISCUSSION', 'RESULTS'].includes(this.status())
+    )
+      return 'quiz';
+    if (
       visible.includes('quickFeedback') &&
       this.isQuickFeedbackChannelOpen() &&
-      this.quickFeedbackResult() !== null &&
-      !quizContentVisible;
-    const qaRoundVisible =
-      visible.includes('qa') &&
-      this.isQaChannelOpen() &&
-      this.status() === 'ACTIVE' &&
-      this.currentQuestion() === null;
-
-    if (active !== 'quickFeedback' && quickFeedbackRoundVisible) {
-      this.setActiveChannelProgrammatically('quickFeedback');
-      return;
-    }
-
-    if (
-      active === 'quickFeedback' &&
-      this.isQuickFeedbackChannelOpen() &&
-      !quickFeedbackRoundVisible &&
-      qaRoundVisible
-    ) {
-      this.setActiveChannelProgrammatically('qa');
-      return;
-    }
-
-    if (active === 'quiz' && qaRoundVisible) {
-      this.setActiveChannelProgrammatically('qa');
-      return;
-    }
+      this.quickFeedbackResult() &&
+      !this.quickFeedbackResult()?.locked &&
+      !this.quickFeedbackResult()?.discussion
+    )
+      return 'quickFeedback';
+    if (visible.includes('qa') && this.isQaChannelOpen()) return 'qa';
+    return visible[0]!;
   }
 
   private resetQaListPageNavigation(): void {
@@ -4580,6 +4685,50 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
       ...(search ? { search } : {}),
       ...(cursor ? { cursor } : {}),
     };
+  }
+
+  qaActiveSortLabel(): string {
+    switch (this.qaSortMode()) {
+      case 'BEST':
+        return $localize`:@@sessionQa.sortBest:Beste Fragen`;
+      case 'CONTROVERSIAL':
+        return $localize`:@@sessionQa.sortControversial:Umstritten`;
+      case 'TIME':
+        return $localize`:@@sessionQa.sortTime:Zeit`;
+      default:
+        return $localize`:@@sessionQa.sortTop:Meist unterstützt`;
+    }
+  }
+
+  readonly qaToolsActive = computed(
+    () =>
+      !!this.qaSearchDraft() || this.qaSortMode() !== 'TOP' || !!this.qaSelectedAuthorNickname(),
+  );
+
+  resetQaTools(): void {
+    const summary = (this.el.nativeElement as HTMLElement).querySelector<HTMLElement>(
+      '#qa-tools-summary',
+    );
+    if (summary && summary.getClientRects().length > 0) summary.focus();
+    if (this.qaSearchTimer) clearTimeout(this.qaSearchTimer);
+    this.qaSearchTimer = null;
+    this.qaSearchDraft.set('');
+    this.qaSearch.set('');
+    this.qaSortMode.set('TOP');
+    this.qaSelectedAuthorNickname.set(null);
+    this.resetQaListPageNavigation();
+    this.ensureQaSubscription();
+    void this.refreshQaQuestions({ notify: false, requireDeadline: false, animate: false });
+  }
+
+  onQaToolsToggle(details: HTMLDetailsElement): void {
+    if (
+      !details.open &&
+      details.contains(document.activeElement) &&
+      document.activeElement?.tagName !== 'SUMMARY'
+    ) {
+      details.querySelector('summary')?.focus();
+    }
   }
 
   onQaSearchInput(value: string): void {
@@ -4916,6 +5065,8 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
       this.applyQuickFeedbackResult(result);
     } catch {
       this.applyQuickFeedbackResult(null);
+    } finally {
+      this.quickFeedbackHydrated = true;
     }
   }
 
@@ -4951,7 +5102,7 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
       });
       this.qaQuota.set(result.quota);
       this.qaSubmitAttempt = null;
-      this.qaDraft.set('');
+      if (this.qaDraft().trim() === text) this.qaDraft.set('');
       this.collapseTextarea();
       this.showQaInfo($localize`:@@sessionQa.submitSuccess:Frage gesendet.`);
       await this.refreshQaQuestions();
@@ -5635,6 +5786,7 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
     if (!item) return;
     items.splice(nextIndex, 0, item);
     this.orderingItemsState.set(items);
+    this.orderingTouched.set(true);
     this.orderingSequenceState.set(items.map((item) => item.id));
     this.orderingAnnouncement.set(
       $localize`:@@sessionVote.orderingMovedAnnouncement:${item.text}:item: steht jetzt an Position ${
@@ -5924,6 +6076,7 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
   }
 
   private initStructuredQuestionState(question: CurrentQuestion | null): void {
+    this.orderingTouched.set(false);
     if (!question || !('type' in question)) {
       this.orderingItemsState.set([]);
       this.orderingSequenceState.set([]);

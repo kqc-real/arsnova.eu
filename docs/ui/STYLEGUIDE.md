@@ -287,6 +287,20 @@ Die vollständige [Host-Führung und Abnahmematrix](HOST-FUEHRUNG.md) verbindet 
 - Die Disclosure-Auslöser sind beschriftete Material-Buttons mit `aria-expanded` und `aria-controls`; ausgeblendete Inhalte sind weder sichtbar noch in der Tastaturfolge. Vor Einklappen oder Entfernen eines fokussierten Filters wird ein vorhandener sichtbarer Auslöser fokussiert. Spätere Listenantworten setzen keinen zweiten Fokus. Beim Q&A-Wechsel zwischen Desktop-Sortierung und mobilem Menü übernimmt derselbe stabile Werkzeugauslöser den Fokus.
 - Im sessiongebundenen Blitzlicht bleibt die bisherige Stopp-/Fortsetzen-Aktion einschließlich Musik- und Fehlerpfad erhalten und wird beim Ergebnis angezeigt. **Rundeneinstellungen** enthalten die bisherigen fachlichen Aktionen mit ihren Format- und Runden-Sperren. Der Legacy-Standalone-Einstieg wird nicht erweitert. Q&A-Setup, Profil-Sperre, Fristen und Verlängerungsbestätigung bleiben unverändert.
 
+### Teilnehmer-Aufgabenstatus (#472)
+
+- Die Kanalwahl zeigt Format und sichtbaren Aufgabenstatus übereinander. Der
+  Material-Auswahlhaken entfällt; `aria-checked` und Auswahlfläche bleiben erhalten.
+- Der eng begrenzte globale Selektor `.vote-page .session-channel-tabs
+.mat-button-toggle-label-content` in `styles.scss` erlaubt Zeilenumbruch und
+  reduziert den Innenabstand für drei lesbare Tabs auf 320 px. Material bietet
+  dafür keinen Padding-Override. Er gilt ausschließlich für Teilnehmer-Tabs und
+  entfällt, sobald Material diese Anpassung über einen öffentlichen Token anbietet.
+- Mobile Tabs halten auch beim Scrollen Abstand zur schwebenden Toolbar. Ein
+  automatischer Wechsel berechnet den Fokusabstand aus der sichtbaren Tab-Höhe.
+- Automatische Teams und Q&A-Suche/Sortierung verwenden native `details/summary`.
+  Zustands- und Fokusregeln stehen in [TEILNEHMER-FUEHRUNG.md](TEILNEHMER-FUEHRUNG.md).
+
 ### Bewusste Ausnahmen (nicht „fixen“)
 
 - Foyer-Einflug: Keyframes / `animation-*`-Longhands / `ViewEncapsulation.None` (Prod-Flug).

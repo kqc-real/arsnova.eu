@@ -171,6 +171,9 @@
     }
 
     @if (sessionFeedbackAvailable() && !feedbackSubmitted()) {
+      <p class="vote-session-end-gate__lead" i18n="@@participantTask.optionalFeedback">
+        Deine Bewertung ist freiwillig. Du kannst jederzeit zur Startseite zurückkehren.
+      </p>
       <section
         class="vote-feedback-card vote-feedback-card--session-end-gate"
         aria-labelledby="session-end-feedback-heading"
@@ -279,7 +282,7 @@
         </fieldset>
 
         <button
-          mat-flat-button
+          matButton="tonal"
           type="button"
           class="vote-feedback-card__submit"
           [disabled]="feedbackOverall() === 0 || feedbackSubmitting()"
@@ -362,6 +365,8 @@
       <div class="session-channel-tabs-shell">
         <mat-button-toggle-group
           class="session-channel-tabs"
+          hideSingleSelectionIndicator
+          [disabled]="channelSubmitInProgress()"
           [value]="activeChannel()"
           (valueChange)="onChannelTabValueChange($event)"
           i18n-aria-label="@@sessionTabs.voteAria"
@@ -564,6 +569,15 @@
       </div>
     }
 
+    <p
+      class="participant-task-status app-content-focus-target"
+      data-testid="participant-task-status"
+      tabindex="-1"
+      role="status"
+      aria-live="polite"
+    >
+      {{ channelTabMetaLabel(activeChannel()) }}
+    </p>
     @if (showPrimaryLiveView()) {
       @if (isLobby()) {
         <div
@@ -2596,7 +2610,7 @@
         }
 
         @if (!isQaChannelOpen()) {
-          @if (isQaDeadlineExpired()) {
+          @if (isQaDeadlineExpired() || qaDeadlineExpired()) {
             <p
               id="vote-qa-closed-notice"
               class="session-channel-card__text"
@@ -2626,7 +2640,7 @@
           </div>
         }
 
-        @if (isQaChannelOpen()) {
+        @if (isQaChannelOpen() || qaDraft()) {
           <div class="session-qa-form">
             <textarea
               id="qa-draft"
@@ -2635,11 +2649,24 @@
               rows="2"
               maxlength="500"
               [attr.aria-label]="vpc.voteQaFormLabel(isPlayfulPreset())"
+              [readOnly]="!isQaChannelOpen() || qaSubmitting()"
+              [attr.aria-describedby]="!isQaChannelOpen() ? 'vote-qa-closed-notice' : null"
               [value]="qaDraft()"
               (input)="updateQaDraft($any($event.target).value); autoResizeTextarea($event)"
               (focus)="autoResizeTextarea($event)"
               [placeholder]="vpc.voteQaPlaceholder(isPlayfulPreset())"
             ></textarea>
+            @if (qaDraft()) {
+              <button
+                mat-button
+                type="button"
+                [disabled]="qaSubmitting()"
+                (click)="discardQaDraft()"
+                i18n="@@participantQa.discard"
+              >
+                Entwurf verwerfen
+              </button>
+            }
             <div class="session-qa-form__meta">
               @if (qaQuota(); as quota) {
                 <span class="session-qa-form__quota" i18n="@@sessionQa.questionQuota">
@@ -2665,57 +2692,84 @@
           @if (qaInfo(); as info) {
             <p class="session-channel-card__info" role="status">{{ info }}</p>
           }
-
-          <div class="session-qa-search-row">
-            <mat-form-field
-              class="session-qa-search"
-              appearance="outline"
-              subscriptSizing="dynamic"
-            >
-              <mat-label i18n="@@sessionQa.searchLabel">Fragen durchsuchen</mat-label>
-              <input
-                matInput
-                type="search"
-                maxlength="100"
-                [value]="qaSearchDraft()"
-                (input)="onQaSearchInput($any($event.target).value)"
-                i18n-aria-label="@@sessionQa.searchAria"
-                aria-label="Q&A-Fragen durchsuchen"
-              />
-            </mat-form-field>
-            @if (qaSearchDraft()) {
-              <button
-                mat-icon-button
-                type="button"
-                (click)="clearQaSearch()"
-                i18n-aria-label="@@sessionQa.searchClearAria"
-                aria-label="Q&A-Suche leeren"
+        }
+        @if (isQaChannelOpen()) {
+          <details class="session-qa-tools" (toggle)="onQaToolsToggle($any($event.currentTarget))">
+            <summary id="qa-tools-summary" i18n="@@participantQa.findSort">
+              Fragen finden &amp; sortieren
+            </summary>
+            <div class="session-qa-search-row">
+              <mat-form-field
+                class="session-qa-search"
+                appearance="outline"
+                subscriptSizing="dynamic"
               >
-                <mat-icon>close</mat-icon>
-              </button>
-            }
-          </div>
+                <mat-label i18n="@@sessionQa.searchLabel">Fragen durchsuchen</mat-label>
+                <input
+                  matInput
+                  type="search"
+                  maxlength="100"
+                  [value]="qaSearchDraft()"
+                  (input)="onQaSearchInput($any($event.target).value)"
+                  i18n-aria-label="@@sessionQa.searchAria"
+                  aria-label="Q&A-Fragen durchsuchen"
+                />
+              </mat-form-field>
+              @if (qaSearchDraft()) {
+                <button
+                  mat-icon-button
+                  type="button"
+                  (click)="clearQaSearch()"
+                  i18n-aria-label="@@sessionQa.searchClearAria"
+                  aria-label="Q&A-Suche leeren"
+                >
+                  <mat-icon>close</mat-icon>
+                </button>
+              }
+            </div>
 
-          <mat-button-toggle-group
-            class="session-qa-sort-toggle"
-            [value]="qaSortMode()"
-            (valueChange)="setQaSortMode($any($event))"
-            hideSingleSelectionIndicator
-            aria-label="Q&A-Sortierung"
-            i18n-aria-label="@@sessionQa.sortAria"
-          >
-            <mat-button-toggle value="TOP" i18n="@@sessionQa.sortTop"
-              >Meist unterstützt</mat-button-toggle
+            <mat-button-toggle-group
+              class="session-qa-sort-toggle"
+              [value]="qaSortMode()"
+              (valueChange)="setQaSortMode($any($event))"
+              hideSingleSelectionIndicator
+              aria-label="Q&A-Sortierung"
+              i18n-aria-label="@@sessionQa.sortAria"
             >
-            <mat-button-toggle value="BEST" i18n="@@sessionQa.sortBest"
-              >Beste Fragen</mat-button-toggle
-            >
-            <mat-button-toggle value="CONTROVERSIAL" i18n="@@sessionQa.sortControversial"
-              >Umstritten</mat-button-toggle
-            >
-            <mat-button-toggle value="TIME" i18n="@@sessionQa.sortTime">Zeit</mat-button-toggle>
-          </mat-button-toggle-group>
-          <p class="session-qa-sort-hint">{{ qaSortHint() }}</p>
+              <mat-button-toggle value="TOP" i18n="@@sessionQa.sortTop"
+                >Meist unterstützt</mat-button-toggle
+              >
+              <mat-button-toggle value="BEST" i18n="@@sessionQa.sortBest"
+                >Beste Fragen</mat-button-toggle
+              >
+              <mat-button-toggle value="CONTROVERSIAL" i18n="@@sessionQa.sortControversial"
+                >Umstritten</mat-button-toggle
+              >
+              <mat-button-toggle value="TIME" i18n="@@sessionQa.sortTime">Zeit</mat-button-toggle>
+            </mat-button-toggle-group>
+            <p class="session-qa-sort-hint">{{ qaSortHint() }}</p>
+          </details>
+          @if (qaToolsActive()) {
+            <div class="session-qa-tools-status" role="status">
+              <span
+                >{{ qaSearchDraft() }}
+                @if (qaSortMode() !== 'TOP') {
+                  · {{ qaActiveSortLabel() }}
+                }
+                @if (qaSelectedAuthorNickname(); as author) {
+                  · {{ author }}
+                }
+              </span>
+              <button
+                mat-button
+                type="button"
+                (click)="resetQaTools()"
+                i18n="@@participantQa.reset"
+              >
+                Zurücksetzen
+              </button>
+            </div>
+          }
 
           @if (visibleQaQuestions().length === 0 && qaSearch()) {
             <div
@@ -2964,6 +3018,7 @@
             [showSessionCode]="false"
             [showAskQuestionButton]="showTempoAskQuestionShortcut()"
             (askQuestion)="openQaAskView()"
+            (activityChange)="quickFeedbackActivity.set($event)"
           />
         </section>
       }
@@ -2981,7 +3036,7 @@
       >
         @if (showFinishedFeedbackAction()) {
           <button
-            mat-flat-button
+            matButton="tonal"
             type="button"
             class="vote-feedback-card__submit vote-page__bottom-action vote-page__bottom-action--primary"
             [disabled]="feedbackOverall() === 0 || feedbackSubmitting()"

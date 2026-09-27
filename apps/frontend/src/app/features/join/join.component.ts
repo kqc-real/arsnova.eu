@@ -8,6 +8,7 @@ import {
   signal,
   computed,
 } from '@angular/core';
+import { NgTemplateOutlet } from '@angular/common';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { MatCard, MatCardContent } from '@angular/material/card';
 import { MatButton } from '@angular/material/button';
@@ -81,6 +82,7 @@ function toParticipantNicknameKey(value: string): string {
   selector: 'app-join',
   standalone: true,
   imports: [
+    NgTemplateOutlet,
     MatCard,
     MatCardContent,
     MatButton,
@@ -329,7 +331,7 @@ export class JoinComponent implements OnInit, OnDestroy {
   teamInfoHint = () =>
     this.showTeamSelect()
       ? $localize`:@@join.teamInfoHintManual:Wähle ein Team, bevor du beitrittst.`
-      : $localize`:@@join.teamInfoHintAuto:Teams werden beim Beitritt automatisch zugeteilt. Hier siehst du, welche Teams bereitstehen.`;
+      : $localize`:@@join.teamAssignmentHint:Das Team wird beim Beitritt zugeteilt.`;
   selectedTeamLabel = () => {
     const team = this.selectedTeam();
     return team ? $localize`Ausgewählt: ${this.teamNameDisplayLabel(team.name)}` : null;

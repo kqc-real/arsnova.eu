@@ -14,6 +14,7 @@ import { mkdir } from 'node:fs/promises';
 import { join } from 'node:path';
 import { createTRPCProxyClient, httpBatchLink } from '@trpc/client';
 import { webkit } from 'playwright';
+import { configureQaSessionIfNeeded } from '../../../scripts/load/lib/configure-qa-if-needed.mjs';
 
 const BASE_URL = (process.env.BASE_URL || 'http://localhost:4200/de').replace(/\/+$/, '');
 const TRPC_URL = (process.env.TRPC_URL || 'http://localhost:3000/trpc').replace(/\/+$/, '');
@@ -218,6 +219,7 @@ async function main() {
   ensure(code.length >= 4, 'session.create ohne Code');
   ensure(typeof hostToken === 'string' && hostToken.length > 10, 'session.create ohne hostToken');
   const hostTrpc = createHostTrpc(hostToken);
+  await configureQaSessionIfNeeded(hostTrpc, code, { qaTitle: 'WebKit Fragen' });
   logStep('Session', code);
 
   const browser = await webkit.launch({ headless: true });
@@ -262,8 +264,20 @@ async function main() {
         .locator('.session-channel-card--qa')
         .waitFor({ state: 'hidden', timeout: 10_000 });
       logStep('Kanal', 'zurück zum Quiz');
+      await clickChannelTab(votePage, 1);
+      await votePage.locator('#qa-draft').fill('Entwurf bleibt bei neuer Quizfrage sichtbar');
 
       await hostTrpc.session.nextQuestion.mutate({ code });
+      await votePage.waitForTimeout(500);
+      ensure(
+        await votePage.locator('#qa-draft').isVisible(),
+        'Neue Quizfrage unterbricht Q&A-Entwurf',
+      );
+      ensure(
+        (await votePage.locator('#qa-draft').inputValue()).includes('Entwurf bleibt'),
+        'Q&A-Entwurf verloren',
+      );
+      await votePage.locator('#qa-draft').fill('');
       await votePage.getByText(QUESTION_TEXT).waitFor({ state: 'visible', timeout: 20_000 });
       await votePage.locator('#vote-option-0').waitFor({ state: 'visible', timeout: 20_000 });
       await votePage.locator('.vote-countdown').waitFor({ state: 'visible', timeout: 10_000 });
