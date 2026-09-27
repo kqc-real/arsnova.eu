@@ -22,7 +22,7 @@ const HOST_TOKEN_STORAGE_PREFIX = 'arsnova-host-token:';
 const JOIN_BUTTON_RE = /join now|jetzt beitreten/i;
 const START_QUESTION_RE = /start first question|erste frage starten/i;
 const REVEAL_RESULTS_RE = /show results|ergebnis zeigen/i;
-const SUBMIT_ANSWER_RE = /submit|absenden/i;
+const SUBMIT_ANSWER_RE = /^(Antwort senden|Send answer)$/i;
 const PARTIAL_RESULT_RE = /(teilweise gewertet|partially scored)\s*\((\d{1,3})\s*%\)/i;
 const SHORT_TEXT_PROMPT =
   'Which teaching method lets learners vote, discuss briefly, and vote again?';

@@ -84,6 +84,9 @@ lokalen Zustände ab. Die Browserflows `check-unified-session-flow.mjs`,
 `check-epic-405-participant-qa-flow.mjs` und
 `check-webkit-participant-vote-flow.mjs` prüfen zusätzlich echte Teilnahme,
 Entwurfsschutz bei Host-Wechsel/neuer Frage und Q&A-Disclosure mit Reset-Fokus.
+Die Kurztext- und Strukturantwort-Smokes (`check-short-text-flow.mjs` und
+`check-structured-question-types-flow.mjs`) verwenden die neue Sendeaktion
+**Antwort senden** und prüfen weiterhin die tatsächliche Abgabe/Auswertung.
 Konkrete ausgeführte Prüfungen und visuelle Nachweise gehören in den Pull Request.
 
 ## Visuelle Abnahme zu #472
