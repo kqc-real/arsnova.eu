@@ -19169,6 +19169,7 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
     getParticipantsQueryMock.mockClear();
     getCurrentQuestionForHostQueryMock.mockClear();
     getHostVoteProgressQueryMock.mockClear();
+    getLifecycleForHostQueryMock.mockResolvedValue(defaultLifecycle);
     fixture.componentInstance.isPairedHostClient.set(true);
 
     await (
@@ -19180,6 +19181,54 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
     expect(getParticipantsQueryMock).toHaveBeenCalled();
     expect(getCurrentQuestionForHostQueryMock).toHaveBeenCalled();
     expect(getHostVoteProgressQueryMock).toHaveBeenCalled();
+    expect(
+      (fixture.componentInstance as unknown as { hostRealtimeFallbackActive: boolean })
+        .hostRealtimeFallbackActive,
+    ).toBe(false);
+    fixture.destroy();
+  });
+
+  it('begrenzt den gesamten manuellen Reconnect einschließlich Snapshot', async () => {
+    const fixture = setup();
+    fixture.detectChanges();
+    await flushComponentAfterStable(fixture, 50);
+    fixture.componentInstance.isPairedHostClient.set(true);
+    getLifecycleForHostQueryMock.mockResolvedValue(defaultLifecycle);
+    getInfoQueryMock.mockImplementationOnce(() => new Promise(() => undefined));
+    vi.useFakeTimers();
+
+    const reconnect = (
+      fixture.componentInstance as unknown as { reconnectPairedHostControl(): Promise<void> }
+    ).reconnectPairedHostControl();
+    const timedOut = expect(reconnect).rejects.toThrow('WebSocket reconnect timed out.');
+    await Promise.resolve();
+    await vi.advanceTimersByTimeAsync(12_000);
+
+    await timedOut;
+    expect(
+      (fixture.componentInstance as unknown as { hostRealtimeFallbackActive: boolean })
+        .hostRealtimeFallbackActive,
+    ).toBe(true);
+    fixture.destroy();
+  });
+
+  it('meldet einen manuellen Reconnect erst nach vollständigem Host-Snapshot als erfolgreich', async () => {
+    const fixture = setup();
+    fixture.detectChanges();
+    await flushComponentAfterStable(fixture, 50);
+    fixture.componentInstance.isPairedHostClient.set(true);
+    getLifecycleForHostQueryMock.mockResolvedValue(defaultLifecycle);
+    getParticipantsQueryMock.mockRejectedValueOnce(new Error('snapshot unavailable'));
+
+    const reconnect = (
+      fixture.componentInstance as unknown as { reconnectPairedHostControl(): Promise<void> }
+    ).reconnectPairedHostControl();
+
+    await expect(reconnect).rejects.toThrow('snapshot unavailable');
+    expect(
+      (fixture.componentInstance as unknown as { hostRealtimeFallbackActive: boolean })
+        .hostRealtimeFallbackActive,
+    ).toBe(true);
     fixture.destroy();
   });
 

@@ -4751,8 +4751,11 @@ export class SessionHostComponent implements OnInit, OnDestroy {
     return session;
   }
 
-  private async refreshSessionLifecycle(): Promise<void> {
+  private async refreshSessionLifecycle(options: { throwOnError?: boolean } = {}): Promise<void> {
     if (!this.code || this.sessionLifecyclePending() || this.hostAccessRevoked()) {
+      if (options.throwOnError) {
+        throw new Error('Session lifecycle snapshot is not available.');
+      }
       return;
     }
     this.sessionLifecyclePending.set(true);
@@ -4797,7 +4800,8 @@ export class SessionHostComponent implements OnInit, OnDestroy {
         return;
       }
       this.scheduleSessionLifecycleCheck();
-    } catch {
+    } catch (error: unknown) {
+      if (options.throwOnError) throw error;
       // Die Status-Subscription bleibt maßgeblich; Warnungen werden beim nächsten Snapshot erneut geplant.
     } finally {
       this.sessionLifecyclePending.set(false);
@@ -5473,16 +5477,21 @@ export class SessionHostComponent implements OnInit, OnDestroy {
       );
     });
 
-    try {
-      await Promise.race([forceReconnectTrpcWs(), reconnectTimeout]);
+    this.hostRealtimeFallbackActive = true;
+    const restoreSnapshot = async (): Promise<void> => {
+      await forceReconnectTrpcWs();
       await this.reloadSessionInfo();
       await Promise.all([
-        this.refreshParticipantsPayload(),
-        this.refreshCurrentQuestionForHost(),
-        this.refreshHostVoteProgress(),
-        this.refreshSessionLifecycle(),
+        this.refreshParticipantsPayload({ throwOnError: true }),
+        this.refreshCurrentQuestionForHost({ throwOnError: true }),
+        this.refreshHostVoteProgress({ throwOnError: true }),
+        this.refreshSessionLifecycle({ throwOnError: true }),
       ]);
       await this.refreshAuxiliaryHostData();
+    };
+
+    try {
+      await Promise.race([restoreSnapshot(), reconnectTimeout]);
       this.hostRealtimeFallbackActive = false;
     } catch (error: unknown) {
       this.consumeHostUnauthorized(error);
@@ -8080,7 +8089,9 @@ export class SessionHostComponent implements OnInit, OnDestroy {
     }
   }
 
-  private async refreshParticipantsPayload(): Promise<void> {
+  private async refreshParticipantsPayload(
+    options: { throwOnError?: boolean } = {},
+  ): Promise<void> {
     if (!this.code) {
       this.participantsPayload.set(null);
       this.participantBaselineReady = false;
@@ -8096,7 +8107,8 @@ export class SessionHostComponent implements OnInit, OnDestroy {
         this.participantSummaryToPayload(summary),
         this.participantBaselineReady,
       );
-    } catch {
+    } catch (error: unknown) {
+      if (options.throwOnError) throw error;
       // Subscription updates remain the primary live path; keep the last payload on transient failures.
     }
   }
@@ -13303,7 +13315,9 @@ export class SessionHostComponent implements OnInit, OnDestroy {
     }
   }
 
-  private async refreshCurrentQuestionForHost(): Promise<void> {
+  private async refreshCurrentQuestionForHost(
+    options: { throwOnError?: boolean } = {},
+  ): Promise<void> {
     if (!this.code || this.code.length !== 6) return;
     const runId = ++this.currentQuestionRefreshRunId;
     const expectedStatus = this.effectiveStatus();
@@ -13322,8 +13336,10 @@ export class SessionHostComponent implements OnInit, OnDestroy {
       this.syncCurrentQuestionForHost(q);
     } catch (error: unknown) {
       if (this.consumeHostUnauthorized(error)) {
+        if (options.throwOnError) throw error;
         return;
       }
+      if (options.throwOnError) throw error;
       if (
         runId !== this.currentQuestionRefreshRunId ||
         this.effectiveStatus() !== expectedStatus ||
@@ -13335,7 +13351,7 @@ export class SessionHostComponent implements OnInit, OnDestroy {
     }
   }
 
-  private async refreshHostVoteProgress(): Promise<void> {
+  private async refreshHostVoteProgress(options: { throwOnError?: boolean } = {}): Promise<void> {
     if (!this.code || this.code.length !== 6) return;
     const runId = ++this.hostVoteProgressRefreshRunId;
     const expectedStatus = this.effectiveStatus();
@@ -13354,7 +13370,8 @@ export class SessionHostComponent implements OnInit, OnDestroy {
         return;
       }
       this.syncHostVoteProgress(progress);
-    } catch {
+    } catch (error: unknown) {
+      if (options.throwOnError) throw error;
       if (
         runId !== this.hostVoteProgressRefreshRunId ||
         this.effectiveStatus() !== expectedStatus ||
