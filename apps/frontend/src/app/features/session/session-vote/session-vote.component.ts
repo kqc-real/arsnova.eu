@@ -175,6 +175,9 @@ const TIMER_ACCOMMODATION_MODES = [
 const VOTE_RESPONSE_STORAGE_KEY = 'arsnova-vote-response';
 const VOTE_FALLBACK_POLL_MS = 2000;
 const VOTE_FALLBACK_POLL_JITTER_MS = 800;
+const QA_REFRESH_RETRY_BASE_MS = 2000;
+const QA_REFRESH_RETRY_MAX_MS = 15_000;
+const QA_REFRESH_RETRY_JITTER_MS = 800;
 const STRUCTURED_ROUND_REFRESH_RETRY_BASE_MS = 500;
 const STRUCTURED_ROUND_REFRESH_RETRY_MAX_MS = 5000;
 const VOTE_ANCHOR_TOP = 'vote-top';
@@ -544,6 +547,8 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
   private qaListCursorHistory: Array<string | null> = [];
   private qaListRequestGeneration = 0;
   private qaRefreshInFlight: Promise<void> | null = null;
+  private qaRefreshRetryTimer: ReturnType<typeof setTimeout> | null = null;
+  private qaRefreshRetryAttempt = 0;
   private qaRefreshPending:
     | {
         generation: number;
@@ -4228,6 +4233,7 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
       clearTimeout(this.qaSearchTimer);
       this.qaSearchTimer = null;
     }
+    this.clearQaRefreshRetry();
   }
 
   private markParticipantOffline(): void {
@@ -4989,6 +4995,7 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
     const requestGeneration = ++this.qaListRequestGeneration;
     if (this.isFinished() || !this.channels().qa || !this.isQaChannelOpen() || !this.sessionId()) {
       this.qaRefreshPending = undefined;
+      this.clearQaRefreshRetry();
       this.qaQuestions.set([]);
       this.qaListTotalCount.set(0);
       this.qaListNextCursor.set(null);
@@ -5034,15 +5041,47 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
       if (requestGeneration !== this.qaListRequestGeneration) {
         return;
       }
+      this.clearQaRefreshRetry();
       this.applyQaQuestionsSnapshot(snapshot, {
         notify: options.notify,
         requireDeadline: options.requireDeadline,
         animate: options.animate,
       });
     } catch {
-      if (this.isFinished()) return;
+      if (requestGeneration !== this.qaListRequestGeneration || this.isFinished()) return;
       this.showQaError($localize`:@@sessionQa.voteLoadError:Fragen konnten nicht geladen werden.`);
+      this.scheduleQaRefreshRetry();
     }
+  }
+
+  private scheduleQaRefreshRetry(): void {
+    if (
+      this.qaRefreshRetryTimer ||
+      this.isFinished() ||
+      !this.channels().qa ||
+      !this.isQaChannelOpen() ||
+      !this.sessionId()
+    ) {
+      return;
+    }
+    const exponentialDelay = Math.min(
+      QA_REFRESH_RETRY_BASE_MS * 2 ** this.qaRefreshRetryAttempt,
+      QA_REFRESH_RETRY_MAX_MS,
+    );
+    const delay = exponentialDelay + Math.floor(Math.random() * QA_REFRESH_RETRY_JITTER_MS);
+    this.qaRefreshRetryAttempt += 1;
+    this.qaRefreshRetryTimer = setTimeout(() => {
+      this.qaRefreshRetryTimer = null;
+      void this.refreshQaQuestions({ notify: false, animate: false });
+    }, delay);
+  }
+
+  private clearQaRefreshRetry(): void {
+    if (this.qaRefreshRetryTimer) {
+      clearTimeout(this.qaRefreshRetryTimer);
+      this.qaRefreshRetryTimer = null;
+    }
+    this.qaRefreshRetryAttempt = 0;
   }
 
   private async refreshQuickFeedbackResult(): Promise<void> {

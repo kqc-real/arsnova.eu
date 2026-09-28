@@ -67,6 +67,12 @@ verarbeiteten Fristablauf gilt wieder der normale Fallback; es gibt keine
 Signal sofort sichtbar. Host-Tokens werden weiterhin eng geprüft, ohne den
 früheren 1-Sekunden-Datenpoll.
 
+Schlägt der begrenzte initiale Teilnehmerabruf vorübergehend fehl, wiederholt
+der Client ihn mit exponentiellem Backoff und Jitter bis zum nächsten Erfolg.
+Damit hängt die Wiederherstellung eines großen Forums nicht von einer neuen
+Frage, Bewertung oder anderen Realtime-Invalidierung ab; nach erfolgreichem
+Laden endet der Retry und es bleibt beim invalidierungsgetriebenen Betrieb.
+
 Öffentliche Q&A-Seiten derselben Revision, Sortierung und Cursorlage werden
 kurz im Prozess gecacht. Eigene Votes und eigene `PENDING`-Fragen bleiben
 getrennte Restabfragen. `arsnova_change_qa_vote` schreibt Richtungszähler und

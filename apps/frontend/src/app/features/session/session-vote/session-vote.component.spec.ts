@@ -7838,6 +7838,91 @@ describe('SessionVoteComponent', { timeout: 30_000 }, () => {
     fixture.destroy();
   });
 
+  it('lädt ein großes Q&A nach einem vorübergehenden Initialfehler ohne neue Frage erneut', async () => {
+    getInfoQueryMock.mockResolvedValue({
+      id: '6a8edced-5f8f-4cfa-9176-454fac9570ad',
+      serverTime: new Date().toISOString(),
+      expiresAt: '2099-09-15T12:00:00.000Z',
+      qaClosesAt: '2099-09-15T11:00:00.000Z',
+      code: 'ABC123',
+      type: 'Q_AND_A',
+      status: 'ACTIVE',
+      quizName: null,
+      title: 'Offene Fragen',
+      participantCount: 150,
+      channels: {
+        quiz: { enabled: false },
+        qa: {
+          enabled: true,
+          open: true,
+          title: 'Offene Fragen',
+          moderationMode: false,
+          closesAt: '2099-09-15T11:00:00.000Z',
+        },
+        quickFeedback: { enabled: false, open: false },
+      },
+    });
+    currentQuestionQueryMock.mockResolvedValue(null);
+    qaListQueryMock.mockResolvedValue([]);
+
+    const fixture = TestBed.createComponent(SessionVoteComponent);
+    fixture.detectChanges();
+    await flushComponentAfterStable(fixture, 50);
+
+    const recoveredSnapshot = {
+      questions: [
+        {
+          id: '44444444-4444-4444-8444-444444444444',
+          text: 'Frage aus dem großen Forum',
+          upvoteCount: 42,
+          status: 'ACTIVE' as const,
+          createdAt: '2026-09-15T08:00:00.000Z',
+          myVote: null,
+          isOwn: false,
+          hasUpvoted: false,
+        },
+      ],
+      state: 'ACTIVE' as const,
+      sessionLifecycleRevision: 1,
+      serverNow: new Date().toISOString(),
+      expiresAt: '2099-09-15T12:00:00.000Z',
+      qaClosesAt: '2099-09-15T11:00:00.000Z',
+      endedAt: null,
+      postProcessingEndsAt: null,
+      rankingRevision: '7:TOP:',
+      nextCursor: 'next-100',
+      totalCount: 1_500,
+    };
+
+    qaListQueryMock.mockClear();
+    qaListQueryMock
+      .mockRejectedValueOnce(new Error('temporary qa.list failure'))
+      .mockResolvedValue(recoveredSnapshot);
+    vi.useFakeTimers();
+    const randomSpy = vi.spyOn(Math, 'random').mockReturnValue(0);
+
+    await (
+      fixture.componentInstance as unknown as {
+        refreshQaQuestions(): Promise<void>;
+      }
+    ).refreshQaQuestions();
+
+    expect(qaListQueryMock).toHaveBeenCalledTimes(1);
+    expect(fixture.componentInstance.qaError()).toBe('Fragen konnten nicht geladen werden.');
+
+    await vi.advanceTimersByTimeAsync(1_999);
+    expect(qaListQueryMock).toHaveBeenCalledTimes(1);
+    await vi.advanceTimersByTimeAsync(1);
+
+    expect(qaListQueryMock).toHaveBeenCalledTimes(2);
+    expect(fixture.componentInstance.qaQuestions()).toEqual(recoveredSnapshot.questions);
+    expect(fixture.componentInstance.qaListTotalCount()).toBe(1_500);
+    expect(fixture.componentInstance.qaError()).toBeNull();
+
+    randomSpy.mockRestore();
+    fixture.destroy();
+  });
+
   it('informiert per Snackbar, wenn die Moderation eine eigene Frage entfernt', async () => {
     snackBarOpenMock.mockClear();
     getInfoQueryMock.mockResolvedValue({
