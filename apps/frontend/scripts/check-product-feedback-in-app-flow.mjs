@@ -318,8 +318,9 @@ async function main() {
     await hostPage.locator('.session-host').waitFor({ state: 'visible', timeout: 20_000 });
     await closeHostJoinOverlay(hostPage);
 
-    // Die Host-Aktion muss in der gemeinsamen Anzeige-Werkzeugleiste erreichbar sein
+    // Die Host-Aktion muss im gemeinsamen Menü »Weitere Aktionen« erreichbar sein
     // (kein Footer-Fallback).
+    await hostPage.getByTestId('host-more-actions').click();
     const hostFeedbackAction = hostPage.getByTestId('host-product-feedback-action');
     await hostFeedbackAction.waitFor({ state: 'visible', timeout: 20_000 });
     try {
