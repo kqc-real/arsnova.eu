@@ -4,7 +4,8 @@ export interface ProjectionBoundary {
   offset: number;
   semantic: boolean;
 }
-const ATOMIC = '.katex, img, svg, canvas, mat-icon, app-answer-option-badge';
+const ATOMIC =
+  '.session-projection-quiz__answer, [data-projection-unit], .katex, img, svg, canvas, mat-icon, app-answer-option-badge';
 const BLOCK = 'p, li, pre, tr, h1, h2, h3, h4, article, mat-card, [data-projection-unit]';
 
 export function projectionBoundaries(root: HTMLElement): ProjectionBoundary[] {
@@ -22,7 +23,12 @@ export function projectionBoundaries(root: HTMLElement): ProjectionBoundary[] {
     if (node instanceof HTMLElement || node instanceof SVGElement) {
       if (node.matches('[data-projection-status], [data-markdown-code-copy]')) return;
       if (node.matches(ATOMIC)) {
-        after(node, node.matches('.katex, img, svg, canvas'));
+        after(
+          node,
+          node.matches(
+            '.session-projection-quiz__answer, [data-projection-unit], .katex, img, svg, canvas',
+          ),
+        );
         return;
       }
     }

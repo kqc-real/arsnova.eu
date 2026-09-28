@@ -1582,7 +1582,7 @@ describe('HomeComponent', () => {
       restoreDefaultSessionGetInfo(vi.mocked(trpc.session.getInfo.query));
     });
 
-    it('bündelt ab drei offenen Sessions die offenen CTAs im Pulldown und lässt geschlossene direkt sichtbar', async () => {
+    it('bündelt ab drei offenen Sessions auch geschlossene CTAs im Pulldown', async () => {
       const { trpc } = await import('../../core/trpc.client');
       for (const code of ['AAA111', 'BBB222', 'CCC333', 'ZZZ999']) {
         storeHostBrowserCapability(code, `${code}-browser-capability-abcdefghijklmnopqrstuvwxyz`);
@@ -1611,9 +1611,9 @@ describe('HomeComponent', () => {
       ).map((action) => action.getAttribute('data-session-code'));
 
       expect(trigger.textContent).toContain('Deine Q&A-Sessions');
-      expect(trigger.textContent).toContain('(3)');
+      expect(trigger.textContent).toContain('(4)');
       expect(trigger.getAttribute('aria-haspopup')).toBe('menu');
-      expect(directCodes).toEqual(['ZZZ999']);
+      expect(directCodes).toEqual([]);
 
       trigger.click();
       fixture.detectChanges();
@@ -1622,10 +1622,15 @@ describe('HomeComponent', () => {
       const menuCodes = Array.from(
         document.querySelectorAll<HTMLElement>('[data-testid="home-host-recovery-menu"]'),
       ).map((action) => action.getAttribute('data-session-code'));
-      expect(menuCodes).toEqual(['AAA111', 'BBB222', 'CCC333']);
+      expect(menuCodes).toEqual(['AAA111', 'BBB222', 'CCC333', 'ZZZ999']);
       expect(
         document.querySelectorAll('[data-testid="home-host-session-menu-remove"]'),
-      ).toHaveLength(3);
+      ).toHaveLength(4);
+      const closedMenuAction = document.querySelector<HTMLElement>(
+        '[data-testid="home-host-recovery-menu"][data-session-code="ZZZ999"]',
+      );
+      expect(closedMenuAction?.textContent).toContain('Forum geschlossen');
+      expect(closedMenuAction?.querySelector('.home-host-session-cta__dot')).toBeNull();
       expect(document.querySelector('.cdk-overlay-container [role="menu"]')).not.toBeNull();
 
       restoreDefaultSessionGetInfo(vi.mocked(trpc.session.getInfo.query));

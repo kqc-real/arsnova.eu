@@ -4,9 +4,11 @@ import {
   Component,
   ViewEncapsulation,
   computed,
+  effect,
   inject,
   input,
   output,
+  signal,
   LOCALE_ID,
 } from '@angular/core';
 import { DomSanitizer, type SafeHtml } from '@angular/platform-browser';
@@ -16,9 +18,11 @@ import { EMOJI_REACTIONS } from '@arsnova/shared-types';
 import type {
   HostCurrentQuestionDTO,
   HostVoteProgressDTO,
+  LeaderboardEntryDTO,
   NumericRoundComparisonDTO,
   NumericStatsDTO,
   SessionInfoDTO,
+  TeamLeaderboardEntryDTO,
 } from '@arsnova/shared-types';
 import { AnswerOptionBadgeComponent } from '../../../shared/answer-option-badge/answer-option-badge.component';
 import { CountdownFingersComponent } from '../../../shared/countdown-fingers/countdown-fingers.component';
@@ -97,7 +101,21 @@ export class SessionProjectionQuizComponent {
   readonly participantCount = input(0);
   readonly countdownSeconds = input<number | null>(null);
   readonly emojiReactions = input<PresenterEmojiReactions | null>(null);
+  readonly leaderboard = input<LeaderboardEntryDTO[]>([]);
+  readonly teamLeaderboard = input<TeamLeaderboardEntryDTO[]>([]);
   readonly emojiOrder = EMOJI_REACTIONS;
+  readonly contentPageCount = signal(1);
+  private readonly measuredContentPageContext = signal<string | null>(null);
+  private emittedPageCount = '';
+  readonly currentContentPageCount = computed(() =>
+    this.measuredContentPageContext() === this.pageContext() ? this.contentPageCount() : 1,
+  );
+  readonly hasLeaderboardPage = computed(
+    () => this.isResults() && (this.leaderboard().length > 0 || this.teamLeaderboard().length > 0),
+  );
+  readonly showLeaderboardPage = computed(
+    () => this.hasLeaderboardPage() && this.pageIndex() >= this.currentContentPageCount(),
+  );
   readonly showEmojiReactions = computed(
     () =>
       (this.status() === 'ACTIVE' || this.status() === 'RESULTS') &&
@@ -106,6 +124,26 @@ export class SessionProjectionQuizComponent {
 
   readonly motifImageUrl = input<string | null>(null);
   readonly motifImageCredit = input<string | null>(null);
+
+  constructor() {
+    effect(() => {
+      if (this.measuredContentPageContext() !== this.pageContext()) return;
+      const total = this.currentContentPageCount() + (this.hasLeaderboardPage() ? 1 : 0);
+      const signature = `${this.pageContext()}:${total}`;
+      if (signature === this.emittedPageCount) return;
+      this.emittedPageCount = signature;
+      this.pageCount.emit(total);
+    });
+  }
+
+  onContentPageCount(count: number): void {
+    this.measuredContentPageContext.set(this.pageContext());
+    this.contentPageCount.set(Math.max(1, count));
+  }
+
+  contentPageIndex(): number {
+    return Math.min(this.pageIndex(), Math.max(0, this.currentContentPageCount() - 1));
+  }
 
   readonly isReadingPhase = computed(() => this.status() === 'QUESTION_OPEN');
   readonly isActive = computed(() => this.status() === 'ACTIVE');

@@ -8,22 +8,43 @@ Smartphone-Kopplung bleibt optional. Das Vollbild-Overlay lässt den aktuellen
 Inhalt als Kontext erkennen.
 
 `app-projection-pages` misst gerenderten Inhalt auf der tatsächlichen Fläche.
-Absätze, Optionen und Codezeilen bilden bevorzugte Seitengrenzen; Formeln und
-Bilder bleiben zusammen. Fortsetzungen behalten Antwortkennzeichen und
-Listennummern. Später geladene Bilder und Schriften lösen eine Neumessung aus,
+Absätze und Codezeilen bilden bevorzugte Seitengrenzen; Formeln, Bilder und
+vollständige Antwortoptionen bleiben zusammen. Das gilt auch für jedes
+Zuordnungspaar, jede Reihenfolgeoption sowie jedes Kategorisierungselement und
+jede Kategorie.
+Reicht der verbleibende Platz nicht, beginnt die gesamte Option auf der
+nächsten Seite. Fortsetzungen
+behalten Antwortkennzeichen und Listennummern. Später geladene Bilder und Schriften lösen eine Neumessung aus,
 auch wenn ihre Seite gerade nicht sichtbar ist. Während sie nach einem Reload
 noch laden, begrenzt eine vorläufige Messung den gespeicherten Index nicht.
 Verteilungsmatrizen werden für die Projektion in vollständig
 beschriftete Einträge umgebrochen. Quell-Markdown bleibt unverändert; als
 optional markierte Unterrichtsimpulse bleiben wie bisher ausgeblendet.
+Auch Antwortkarten mit Ergebnisbalken und Korrektheitsmarkierung bilden eine
+bevorzugte Seitengrenze; eine Karte wird in der Ergebnisansicht niemals zwischen
+zwei Projektionsseiten geteilt.
+In der Ergebnisphase folgt das persönliche und gegebenenfalls das Team-Leaderboard
+als eigene letzte Projektionsseite auf sämtliche Inhaltsseiten. Beim Sessionende
+verdrängt das Abschluss-Leaderboard weiterhin alle vorherigen Quizseiten und ist
+damit die terminale Präsentationsseite.
 
 Die lokal begrenzten Projektionsgrößen zielen bei 1080p auf mindestens 36 px
 Fragetext, 30 px Antworten/Q&A und 26 px Ergebnislabels. Text und Code haben
-Zeilenhöhe 1,5. Umfangreiche Inhalte erhalten zusätzliche Seiten. Quiz- und
+Zeilenhöhe 1,5. Antwortblöcke mit maximal acht Optionen erhalten vergrößerten
+vertikalen Abstand und werden auf jeder Seite vertikal zentriert. Umfangreiche Inhalte erhalten zusätzliche Seiten. Quiz- und
 Q&A-Seiten wechseln ausschließlich durch den Host; die Rangliste wechselt wie
 bisher automatisch, jetzt mit höchstens acht Einträgen und zwölf Sekunden pro
 Seite. Voting, Timer, Ergebnisfreigabe und effektive Wertungsrunde bleiben
 unabhängig von der Seite.
+
+In den letzten fünf Sekunden liegt die Fingeranzeige als nicht interaktive
+Viewport-Ebene über der Presenter-Fläche. Sie gehört weder zur Statuszeile noch
+zu einer Inhaltsseite, wird deshalb nicht vom Seitenlayout abgeschnitten und
+bleibt auch beim Seitenwechsel sichtbar. Das Bild steht mittig im rechten
+Viewport-Drittel und schließt bündig mit der unteren Viewportkante ab. Seine
+Höhe ist auf 41 Prozent der Projektionsfläche beziehungsweise 24 rem begrenzt;
+automatisch geglättete, vierfach aufgelöste Assets vermeiden dabei sichtbare
+Rasterkanten.
 
 Die bestehende Mutation `session.setPresenterSurface` akzeptiert entweder eine
 Projektionsfläche oder einen Seitenbefehl. Der Presenter meldet die gemessene

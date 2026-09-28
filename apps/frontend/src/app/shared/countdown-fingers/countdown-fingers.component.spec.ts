@@ -5,6 +5,20 @@ import { describe, expect, it } from 'vitest';
 import { CountdownFingersComponent } from './countdown-fingers.component';
 
 describe('CountdownFingersComponent', () => {
+  it('verwendet für die große Presenter-Darstellung vierfach aufgelöste Assets', () => {
+    for (let seconds = 0; seconds <= 5; seconds += 1) {
+      const png = readFileSync(
+        resolve(
+          process.cwd(),
+          `src/assets/countdown-fingers/countdown_poster_clean_${seconds}.png`,
+        ),
+      );
+
+      expect(png.readUInt32BE(16)).toBe(568);
+      expect(png.readUInt32BE(20)).toBe(1392);
+    }
+  });
+
   it('beschreibt die Fingergrafik ohne doppelten Alternativtext', () => {
     const fixture = TestBed.createComponent(CountdownFingersComponent);
     fixture.componentRef.setInput('seconds', 3);
@@ -65,6 +79,10 @@ describe('CountdownFingersComponent', () => {
     expect(styles).toMatch(/countdown-fingers--small[\s\S]*?width:\s*48px/);
     expect(styles).toMatch(/countdown-fingers--small[\s\S]*?height:\s*calc\(48px \* 348 \/ 142\)/);
     expect(styles).toMatch(/countdown-fingers--large[\s\S]*?height:\s*calc\(120px \* 348 \/ 142\)/);
-    expect(styles).toMatch(/countdown-fingers--present[\s\S]*?width:\s*fit-content/);
+    expect(styles).toMatch(/countdown-fingers--present[\s\S]*?height:\s*100%/);
+    expect(styles).toMatch(/countdown-fingers--present[\s\S]*?image-rendering:\s*auto/);
+    expect(styles).toMatch(/countdown-fingers__img[\s\S]*?transform-origin:\s*bottom center/);
+    expect(styles).toMatch(/countdown-fingers-host--present[\s\S]*?height:\s*min\(41%, 24rem\)/);
+    expect(styles).toMatch(/countdown-fingers-host--present[\s\S]*?max-width:\s*100%/);
   });
 });

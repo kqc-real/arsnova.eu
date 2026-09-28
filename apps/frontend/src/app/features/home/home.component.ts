@@ -302,7 +302,7 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
   readonly hostSessionCtas = signal<HostSessionCta[]>([]);
   readonly hostSessionMenuCtas = computed(() => {
     const openItems = this.hostSessionCtas().filter((item) => item.qaOpen === true);
-    return openItems.length > HOST_SESSION_DIRECT_OPEN_LIMIT ? openItems : [];
+    return openItems.length > HOST_SESSION_DIRECT_OPEN_LIMIT ? this.hostSessionCtas() : [];
   });
   readonly directHostSessionCtas = computed(() => {
     const menuItems = this.hostSessionMenuCtas();

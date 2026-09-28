@@ -205,7 +205,7 @@ oder Besitznachweis. Fehlende beziehungsweise ungültige Signale bleiben für
 Rolling Deployments unter den globalen W2.3a-Caps kompatibel. Der Produktclient
 reconnectet mit exponentiellem Backoff plus 0–349 ms Jitter.
 
-`quiz.upload` besitzt zusätzlich fachliche Zod-Caps: maximal **200 Fragen**, **10 Antwortoptionen je Frage** und **1.250.000 UTF-8-Bytes** für den validierten Quiz-Payload. Ein Classroom-Fixture mit 100 Fragen und je vier Optionen liegt darunter. Diese Grenze ergänzt das 2-MiB-Infrastrukturlimit und ist bewusst nicht per Env abschaltbar.
+`quiz.upload` besitzt zusätzlich fachliche Zod-Caps: maximal **200 Fragen**, **8 Antwortoptionen je Frage** und **1.250.000 UTF-8-Bytes** für den validierten Quiz-Payload. Ein Classroom-Fixture mit 100 Fragen und je vier Optionen liegt darunter. Diese Grenze ergänzt das 2-MiB-Infrastrukturlimit und ist bewusst nicht per Env abschaltbar.
 
 Vor dem Zod-Parser greift ein grobes atomisches Versuchslimit, damit auch
 ungültige knapp-2-MiB-Payloads Budget verbrauchen. Nach erfolgreicher

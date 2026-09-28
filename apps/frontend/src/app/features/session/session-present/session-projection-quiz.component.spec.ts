@@ -80,6 +80,7 @@ describe('SessionProjectionQuizComponent', () => {
     expect(styles).not.toMatch(
       /\.session-projection-quiz__answer\s*\{[^}]*align-self:\s*flex-start/s,
     );
+    expect(styles).toMatch(/\.session-projection-quiz__answer\s*\{[^}]*break-inside:\s*avoid/s);
     expect(styles).not.toMatch(/session-projection-quiz__answer-leading-emoji/);
     expect(playful).toMatch(
       /\.session-present mat-card\.session-projection-quiz__question\s*\{[^}]*primary-container/s,
@@ -93,8 +94,16 @@ describe('SessionProjectionQuizComponent', () => {
     expect(playful).toMatch(
       /\.session-present \.session-present__fullscreen-gate-card[\s\S]*?app-playful-inner-card-primary/,
     );
-    expect(playful).toMatch(
-      /\.session-present mat-card\.session-projection-quiz__fingers[\s\S]*?app-playful-inner-panel-muted/,
+  });
+
+  it('zentriert Presenter-Antwortseiten und gibt den Optionen deutlich mehr Abstand', () => {
+    const styles = readFileSync(resolve(__dirname, 'projection-pages.component.scss'), 'utf8');
+
+    expect(styles).toMatch(
+      /\.projection-pages__page:has\(\.session-projection-quiz__answers\)[^{]*\{[^}]*justify-content:\s*center/s,
+    );
+    expect(styles).toMatch(
+      /\.session-projection-quiz__answers\s*\{[^}]*gap:\s*clamp\(1\.75rem, 3\.6vh, 3rem\)/s,
     );
   });
 
@@ -358,6 +367,95 @@ describe('SessionProjectionQuizComponent', () => {
     expect(fixture.nativeElement.querySelector('.session-projection-quiz__answer-pct')).toBeNull();
   });
 
+  it('ordnet das Leaderboard nach allen Ergebnis-Inhaltsseiten als letzte Seite ein', async () => {
+    const emittedCounts: number[] = [];
+    fixture.componentInstance.pageCount.subscribe((count) => emittedCounts.push(count));
+    fixture.componentRef.setInput(
+      'question',
+      choiceQuestion({
+        voteDistribution: [
+          {
+            id: 'bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb',
+            text: 'Vier',
+            isCorrect: true,
+            voteCount: 6,
+            votePercentage: 100,
+          },
+        ],
+      }),
+    );
+    fixture.componentRef.setInput('status', 'RESULTS');
+    fixture.componentRef.setInput('pageContext', 'results-question-1');
+    fixture.componentRef.setInput('leaderboard', [
+      {
+        rank: 1,
+        nickname: 'Ada',
+        totalScore: 120,
+        correctCount: 1,
+        totalQuestions: 1,
+        totalResponseTimeMs: 900,
+      },
+    ]);
+    fixture.componentInstance.onContentPageCount(3);
+    fixture.componentRef.setInput('pageIndex', 2);
+    fixture.detectChanges();
+
+    expect(
+      fixture.nativeElement.querySelector('[data-testid="presenter-results-leaderboard"]'),
+    ).toBeNull();
+
+    fixture.componentRef.setInput('pageIndex', 3);
+    fixture.detectChanges();
+    await fixture.whenStable();
+    fixture.detectChanges();
+
+    const leaderboard = fixture.nativeElement.querySelector(
+      '[data-testid="presenter-results-leaderboard"]',
+    ) as HTMLElement | null;
+    expect(leaderboard?.textContent).toContain('Ada');
+    expect(leaderboard?.textContent).toContain('120');
+    expect(fixture.componentInstance.contentPageIndex()).toBe(2);
+    expect(emittedCounts).toContain(4);
+  });
+
+  it('meldet vor der Messung keine vorläufige Seitenzahl, die den Reload-Index zurücksetzt', () => {
+    const emittedCounts: number[] = [];
+    fixture.componentInstance.pageCount.subscribe((count) => emittedCounts.push(count));
+    fixture.componentRef.setInput('question', choiceQuestion());
+    fixture.componentRef.setInput('status', 'ACTIVE');
+    fixture.componentRef.setInput('pageContext', 'active-question-1');
+    fixture.detectChanges();
+
+    expect(emittedCounts).toEqual([]);
+
+    fixture.componentInstance.onContentPageCount(8);
+    fixture.detectChanges();
+    expect(emittedCounts).toEqual([8]);
+  });
+
+  it('hängt außerhalb der Ergebnisphase keine Leaderboard-Seite an', () => {
+    fixture.componentRef.setInput('question', choiceQuestion());
+    fixture.componentRef.setInput('status', 'ACTIVE');
+    fixture.componentRef.setInput('leaderboard', [
+      {
+        rank: 1,
+        nickname: 'Ada',
+        totalScore: 120,
+        correctCount: 1,
+        totalQuestions: 1,
+        totalResponseTimeMs: 900,
+      },
+    ]);
+    fixture.componentInstance.onContentPageCount(2);
+    fixture.componentRef.setInput('pageIndex', 2);
+    fixture.detectChanges();
+
+    expect(fixture.componentInstance.hasLeaderboardPage()).toBe(false);
+    expect(
+      fixture.nativeElement.querySelector('[data-testid="presenter-results-leaderboard"]'),
+    ).toBeNull();
+  });
+
   it('markiert die Lesephase als volle Projektionsbühne', () => {
     fixture.componentRef.setInput('question', choiceQuestion());
     fixture.componentRef.setInput('status', 'QUESTION_OPEN');
@@ -420,6 +518,11 @@ describe('SessionProjectionQuizComponent', () => {
     expect(text).toContain('Frankreich');
     expect(text).toContain('Links');
     expect(text).toContain('Rechts');
+    expect(
+      Array.from(
+        fixture.nativeElement.querySelectorAll('.session-projection-quiz__option-chip'),
+      ).every((option) => option.hasAttribute('data-projection-unit')),
+    ).toBe(true);
   });
 
   it('behält Datumsangaben in Matching-Chips und nummeriert sie nicht in 1. um', () => {
@@ -474,6 +577,11 @@ describe('SessionProjectionQuizComponent', () => {
       fixture.nativeElement.querySelector('.session-projection-quiz__option-board--single h2')
         ?.textContent,
     ).toContain('Unsortierte Reihenfolge');
+    expect(
+      Array.from(
+        fixture.nativeElement.querySelectorAll('.session-projection-quiz__option-chip'),
+      ).every((option) => option.hasAttribute('data-projection-unit')),
+    ).toBe(true);
 
     fixture.componentRef.setInput(
       'question',
@@ -505,6 +613,11 @@ describe('SessionProjectionQuizComponent', () => {
     expect(categorizationSections[1]?.querySelector('h2')?.textContent ?? '').toContain(
       'Kategorien',
     );
+    expect(
+      Array.from(
+        fixture.nativeElement.querySelectorAll('.session-projection-quiz__option-chip'),
+      ).every((option) => option.hasAttribute('data-projection-unit')),
+    ).toBe(true);
     const boardStyles = readFileSync(
       resolve(__dirname, 'session-projection-quiz.component.scss'),
       'utf8',
@@ -651,6 +764,24 @@ describe('SessionProjectionQuizComponent', () => {
     expect(text).toContain('75');
     expect(fixture.nativeElement.querySelector('app-presenter-distribution-matrix')).toBeNull();
     expect(fixture.nativeElement.querySelector('.session-projection-quiz__pair-list')).toBeTruthy();
+    expect(
+      fixture.nativeElement
+        .querySelector('.session-projection-quiz__pair')
+        ?.hasAttribute('data-projection-unit'),
+    ).toBe(true);
+  });
+
+  it('verhindert CSS-seitig Umbrüche innerhalb strukturierter Projektionsoptionen', () => {
+    const styles = readFileSync(
+      resolve(__dirname, 'session-projection-quiz.component.scss'),
+      'utf8',
+    );
+    expect(styles).toMatch(
+      /\.session-projection-quiz__option-chip\s*\{[^}]*break-inside:\s*avoid[^}]*page-break-inside:\s*avoid/s,
+    );
+    expect(styles).toMatch(
+      /\.session-projection-quiz__pair\s*\{[^}]*break-inside:\s*avoid[^}]*page-break-inside:\s*avoid/s,
+    );
   });
 
   it('zeigt das Fragenbild in der Abstimmung in der Visual-Spalte', () => {
@@ -828,7 +959,7 @@ describe('SessionProjectionQuizComponent', () => {
     ).toBeNull();
   });
 
-  it('zeigt den Finger-Countdown mit lesbarer Zeit in der Statuszone', () => {
+  it('zeigt den Finger-Countdown groß, vollständig und oberhalb der Präsentation', () => {
     TestBed.inject(ThemePresetService).setPreset('spielerisch', { silent: true });
     fixture.componentRef.setInput('question', choiceQuestion());
     fixture.componentRef.setInput('status', 'ACTIVE');
@@ -838,14 +969,18 @@ describe('SessionProjectionQuizComponent', () => {
     const stage = fixture.nativeElement.querySelector(
       '[data-testid="presenter-quiz-stage"]',
     ) as HTMLElement;
-    expect(stage.classList.contains('session-projection-quiz--fingers')).toBe(true);
-    expect(fixture.nativeElement.querySelector('app-countdown-fingers')).toBeTruthy();
+    expect(stage.classList.contains('session-projection-quiz--fingers')).toBe(false);
+    const overlay = fixture.nativeElement.querySelector(
+      '[data-testid="presenter-countdown-fingers"]',
+    ) as HTMLElement | null;
+    expect(overlay).toBeTruthy();
+    expect(overlay?.querySelector('.countdown-fingers--present')).toBeTruthy();
     expect(
       fixture.nativeElement.querySelector('.session-projection-quiz__countdown')?.textContent,
     ).toContain('4');
     expect(
       fixture.nativeElement.querySelector('.session-projection-quiz__status-fingers'),
-    ).toBeTruthy();
+    ).toBeNull();
     const styles = readFileSync(
       resolve(
         process.cwd(),
@@ -854,7 +989,18 @@ describe('SessionProjectionQuizComponent', () => {
       'utf8',
     );
     expect(styles).toMatch(
-      /\.session-projection-quiz__fingers\s*\{[\s\S]*?light-dark\(\s*var\(--mat-sys-primary\)/,
+      /\.session-projection-quiz__finger-overlay\s*\{[\s\S]*?position:\s*fixed/,
+    );
+    expect(styles).toMatch(/\.session-projection-quiz__finger-overlay\s*\{[\s\S]*?z-index:\s*1200/);
+    expect(styles).toMatch(/\.session-projection-quiz__finger-overlay\s*\{[\s\S]*?inset:\s*0/);
+    expect(styles).toMatch(
+      /\.session-projection-quiz__finger-overlay\s*\{[\s\S]*?grid-template-columns:\s*repeat\(3/,
+    );
+    expect(styles).toMatch(
+      /\.session-projection-quiz__finger-overlay\s*\{[\s\S]*?app-countdown-fingers\s*\{[\s\S]*?grid-column:\s*3/,
+    );
+    expect(styles).toMatch(
+      /\.session-projection-quiz__finger-overlay\s*\{[\s\S]*?app-countdown-fingers\s*\{[\s\S]*?align-self:\s*end/,
     );
   });
 

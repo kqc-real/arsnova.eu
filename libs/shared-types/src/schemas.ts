@@ -1427,7 +1427,7 @@ export type HostRecoveryCardDTO = z.infer<typeof HostRecoveryCardDTOSchema>;
 
 /** Schema für eine einzelne Antwortoption beim Hinzufügen/Bearbeiten */
 export const QUIZ_UPLOAD_MAX_QUESTIONS = 200;
-export const QUIZ_UPLOAD_MAX_OPTIONS_PER_QUESTION = 10;
+export const QUIZ_UPLOAD_MAX_OPTIONS_PER_QUESTION = 8;
 export const QUIZ_UPLOAD_MAX_PAYLOAD_BYTES = 1_250_000;
 /** KI-Paste-Import: produktseitig max. 30 Fragen (Hörsaal-taugliche Pakete). */
 export const QUIZ_AI_IMPORT_MAX_QUESTIONS = 30;
@@ -3268,6 +3268,7 @@ export type SessionQaConfigurationDTO = z.infer<typeof SessionQaConfigurationDTO
 
 export const SessionPresenterSurfaceSchema = z.enum([
   'default',
+  'ended',
   'qaWordCloud',
   'freetextWordCloud',
 ]);

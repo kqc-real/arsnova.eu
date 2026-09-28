@@ -1130,8 +1130,8 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
       this.scheduleResultContentScroll(token);
     });
     effect(() => {
-      const expandInLobby = this.status() === 'LOBBY';
-      untracked(() => this.timerAccommodationPanelExpanded.set(expandInLobby));
+      this.status();
+      untracked(() => this.timerAccommodationPanelExpanded.set(false));
     });
     effect(() => {
       const selectedNickname = this.qaSelectedAuthorNickname();

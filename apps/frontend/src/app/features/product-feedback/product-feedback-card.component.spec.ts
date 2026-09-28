@@ -60,6 +60,18 @@ describe('ProductFeedbackCard', () => {
     document.querySelector('[data-test-focus-origin]')?.remove();
   });
 
+  it('hält das mobile Sheet oberhalb der virtuellen Tastatur', async () => {
+    const { readFileSync } = await import('node:fs');
+    const { fileURLToPath } = await import('node:url');
+    const { dirname, join } = await import('node:path');
+    const dir = dirname(fileURLToPath(import.meta.url));
+    const index = readFileSync(join(dir, '../../../index.html'), 'utf8');
+
+    expect(index).toMatch(
+      /<meta\s+name="viewport"\s+content="[^"]*interactive-widget=resizes-content[^"]*"\s*\/>/,
+    );
+  });
+
   it('mappt positive Antworten auf strength und Reibung auf hurdle', () => {
     expect(resolveProductFeedbackAreaPromptKind('EASY')).toBe('strength');
     expect(resolveProductFeedbackAreaPromptKind('YES')).toBe('strength');

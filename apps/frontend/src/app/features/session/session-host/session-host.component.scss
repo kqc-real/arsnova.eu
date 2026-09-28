@@ -137,17 +137,6 @@
   justify-content: flex-end;
 }
 
-.session-host__product-feedback-utility {
-  display: flex;
-  justify-content: flex-end;
-  width: var(--session-host-shell-width);
-  max-width: 100%;
-}
-
-.session-host__product-feedback-utility button {
-  min-height: 2.75rem;
-}
-
 @media (min-width: 600px) {
   .session-host__steering-callout-actions {
     width: auto;
@@ -630,6 +619,11 @@
 
 .session-host__view-controls--inline {
   flex: 0 0 auto;
+  flex-wrap: wrap;
+}
+
+.session-host__product-feedback-action {
+  min-height: 2.75rem;
 }
 
 .session-host__view-toggle {
@@ -724,29 +718,22 @@
   }
 }
 
-.session-host__presenter-cta {
-  --app-presenter-icon-size: 1.75rem;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 0.5rem;
-
-  mat-icon,
-  app-presenter-icon {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    align-self: center;
-    width: var(--app-presenter-icon-size);
-    height: var(--app-presenter-icon-size);
-    font-size: var(--app-presenter-icon-size);
-    line-height: 0;
-    vertical-align: middle;
-  }
-}
-
 .session-host:has(.session-host__presenter-cta) .session-host__view-toggle--presenter {
   display: none;
+}
+
+.session-host__presenter-cta {
+  --app-presenter-icon-size: 1.125rem;
+}
+
+.session-host__presenter-cta > app-presenter-icon {
+  margin-right: var(--mat-button-text-icon-spacing, 8px);
+  margin-left: var(--mat-button-text-icon-offset, -4px);
+}
+
+[dir='rtl'] .session-host__presenter-cta > app-presenter-icon {
+  margin-right: var(--mat-button-text-icon-offset, -4px);
+  margin-left: var(--mat-button-text-icon-spacing, 8px);
 }
 
 .session-host__view-toggle-icon {
@@ -5541,18 +5528,6 @@ button.session-host__btn-discussion {
   margin-top: 0.6rem;
 }
 
-.session-host--word-cloud-overlay:not(.session-host--qa-word-cloud-overlay)
-  .session-channel-tabs-shell {
-  position: sticky;
-  top: max(0.35rem, env(safe-area-inset-top, 0px));
-  z-index: 1300;
-  padding: 0.35rem 0.55rem;
-  border-radius: var(--mat-sys-corner-large);
-  background: color-mix(in srgb, var(--mat-sys-surface) 88%, transparent);
-  box-shadow: var(--mat-sys-level2);
-  backdrop-filter: blur(12px) saturate(1.15);
-}
-
 .session-host--qa-word-cloud-overlay .session-channel-tabs-shell,
 .session-host--qa-word-cloud-overlay .session-host__live-shell-row {
   display: none;
@@ -5560,18 +5535,15 @@ button.session-host__btn-discussion {
 
 .session-host__extra--maximized {
   position: fixed;
-  top: var(--session-host-word-cloud-overlay-top, 0px);
-  right: 0;
-  bottom: 0;
-  left: 0;
-  z-index: 1200;
+  inset: 0;
+  z-index: 1400;
   display: block;
   margin: 0;
   padding: 0;
   box-sizing: border-box;
   overflow: hidden;
-  width: 100%;
-  height: auto;
+  width: 100vw;
+  height: 100dvh;
   max-height: none;
 }
 
@@ -8506,8 +8478,7 @@ $round2-color: var(--mat-sys-primary);
   text-align: center;
 }
 
-.session-host__display-tools,
-.session-host__sound-tools {
+.session-host__display-tools {
   min-width: 0;
   max-width: 100%;
 }
@@ -8537,11 +8508,45 @@ $round2-color: var(--mat-sys-primary);
 }
 
 .session-host__projection-pages {
+  --session-host-projection-pages-inline: 1rem;
+
+  position: sticky;
+  top: max(var(--host-mobile-toolbar-gap, 0.5rem), env(safe-area-inset-top, 0px));
+  z-index: 35;
   display: flex;
   flex-wrap: wrap;
   justify-content: center;
   align-items: center;
   gap: 0.75rem;
-  margin: 1rem auto;
+  box-sizing: border-box;
+  width: min(
+    var(--app-toolbar-max-width),
+    calc(100% - (2 * var(--session-host-projection-pages-inline)))
+  );
   max-width: 100%;
+  margin: 0.5rem auto 1rem;
+  padding: 0.55rem 0.75rem;
+  border: 1px solid var(--mat-sys-outline-variant);
+  border-radius: var(--mat-sys-corner-extra-large);
+  background: var(--mat-sys-surface-container-high);
+  box-shadow: var(--mat-sys-level2);
+}
+
+.session-host__projection-pages button {
+  max-width: 100%;
+}
+
+.session-host__projection-pages-error {
+  flex: 1 1 100%;
+  margin: 0;
+  color: var(--mat-sys-error);
+  font: var(--mat-sys-body-medium);
+  line-height: 1.4;
+  text-align: center;
+}
+
+@media (max-width: 599px) {
+  .session-host__projection-pages {
+    --session-host-projection-pages-inline: 0.5rem;
+  }
 }

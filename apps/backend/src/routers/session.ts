@@ -3768,6 +3768,7 @@ function resolvePresenterSurface(
   preferredChannel: z.infer<typeof SessionLiveChannelSchema>,
 ): z.infer<typeof SessionPresenterSurfaceSchema> {
   const stored = presenterSurfaceByCode.get(code.toUpperCase());
+  if (stored === 'ended') return stored;
   if (stored === 'qaWordCloud' && preferredChannel === 'qa') return stored;
   if (stored === 'freetextWordCloud' && preferredChannel === 'quiz') return stored;
   return 'default';
@@ -7649,7 +7650,11 @@ const sessionCoreRouter = router({
       // Nur bei echtem Kanalwechsel die Presenter-Fläche zurücksetzen – sonst würde
       // ein No-op die offene Wortwolken-Projektion still beenden.
       if (changed.channelChanged) {
-        presenterSurfaceByCode.set(code, 'default');
+        // Eine ausdrücklich beendete Projektionsansicht bleibt kanalübergreifend beendet,
+        // bis der Host sie wieder öffnet. Nur kanalspezifische Flächen zurücksetzen.
+        if (presenterSurfaceByCode.get(code) !== 'ended') {
+          presenterSurfaceByCode.set(code, 'default');
+        }
         presenterPageByCode.delete(code);
         presenterPageIdentityByCode.delete(code);
         qaWordCloudProjectionByCode.delete(code);

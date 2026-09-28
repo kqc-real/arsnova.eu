@@ -9,9 +9,13 @@
   [class.session-present--qa]="showQaProjection() || showQaWordCloud()"
   [class.session-present--word-cloud]="showQaWordCloud() || showPresenterFreetextResultsStage()"
   [class.session-present--feedback]="showQuickFeedbackCard()"
-  [class.session-present--standby]="presenterStandbyChannel() !== null || showQuizPauseProjection()"
+  [class.session-present--standby]="
+    showPresentationEndedProjection() ||
+    presenterStandbyChannel() !== null ||
+    showQuizPauseProjection()
+  "
 >
-  @if (needsFullscreenGate()) {
+  @if (needsFullscreenGate() && !showPresentationEndedProjection()) {
     <div
       class="session-present__fullscreen-gate"
       role="dialog"
@@ -94,7 +98,36 @@
     </div>
   }
 
-  @if (showFinishProjection()) {
+  @if (showPresentationEndedProjection()) {
+    <section
+      class="session-present__standby-stage"
+      data-state="ended"
+      data-testid="presenter-presentation-ended"
+      role="status"
+      aria-live="polite"
+      aria-labelledby="session-present-ended-title"
+    >
+      <div class="session-present__standby-copy">
+        <h1
+          id="session-present-ended-title"
+          class="session-present__standby-title"
+          i18n="@@sessionPresent.presentationEndedTitle"
+        >
+          Die Live-Präsentation wurde beendet.
+        </h1>
+        <p
+          class="session-present__standby-message"
+          i18n="@@sessionPresent.presentationEndedMessage"
+        >
+          Das Quiz läuft weiter.
+        </p>
+        <p class="session-present__standby-hint" i18n="@@sessionPresent.presentationEndedHint">
+          Bitte warte auf weitere Anweisungen.
+        </p>
+      </div>
+      <ng-container [ngTemplateOutlet]="presenterJoinCard" />
+    </section>
+  } @else if (showFinishProjection()) {
     <div
       class="session-present__finish"
       [class.session-present__finish--paged]="personalBoardPageCount() > 1"
@@ -733,6 +766,8 @@
         [motifImageUrl]="session()?.quizMotifImageUrl ?? null"
         [motifImageCredit]="session()?.quizMotifImageCredit ?? null"
         [emojiReactions]="emojiReactions()"
+        [leaderboard]="personalLeaderboard()"
+        [teamLeaderboard]="teamLeaderboard()"
       />
     }
 

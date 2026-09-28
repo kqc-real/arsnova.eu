@@ -7,6 +7,9 @@ const { prismaMock, hostAuthMocks } = vi.hoisted(() => ({
       findUnique: vi.fn(),
       update: vi.fn(),
     },
+    quiz: {
+      findUnique: vi.fn(),
+    },
     qaQuestion: {
       count: vi.fn(),
     },
@@ -85,6 +88,7 @@ describe('session.enable channel mutations', () => {
     hostAuthMocks.extractHostTokenFromConnectionParamsMock.mockReturnValue(null);
     hostAuthMocks.isHostSessionTokenValidMock.mockResolvedValue(true);
     prismaMock.qaQuestion.count.mockResolvedValue(0);
+    prismaMock.quiz.findUnique.mockResolvedValue(null);
     prismaMock.$executeRaw.mockResolvedValue(1);
     prismaMock.$transaction.mockImplementation(async (fn: (tx: typeof prismaMock) => unknown) =>
       fn(prismaMock),
@@ -754,6 +758,45 @@ describe('session.enable channel mutations', () => {
 
     const info = await caller.getInfoForReconnect({ code: 'ABC123' });
     expect(info.presenterSurface).toBe('qaWordCloud');
+  });
+
+  it('beendet nur die Projektionsansicht und behält diesen Zustand bei Kanalwechseln bei', async () => {
+    let preferredChannel = 'quiz';
+    let revision = 7;
+    prismaMock.session.findUnique.mockImplementation(async () => ({
+      ...ACTIVE_SESSION,
+      code: 'ABC123',
+      type: 'QUIZ',
+      quizId: '11111111-1111-4111-8111-111111111111',
+      qaEnabled: true,
+      qaOpen: true,
+      qaTitle: 'Fragen',
+      qaModerationMode: true,
+      quickFeedbackEnabled: false,
+      quickFeedbackOpen: false,
+      preferredChannel,
+      sessionLifecycleRevision: revision,
+      _count: { participants: 2 },
+    }));
+    prismaMock.session.update.mockImplementation(
+      async (args: { data: { preferredChannel?: string } }) => {
+        if (args.data.preferredChannel) {
+          preferredChannel = args.data.preferredChannel;
+          revision += 1;
+        }
+        return { preferredChannel, sessionLifecycleRevision: revision };
+      },
+    );
+
+    await expect(
+      caller.setPresenterSurface({ code: 'ABC123', surface: 'ended' }),
+    ).resolves.toMatchObject({ presenterSurface: 'ended' });
+    await expect(
+      caller.setPreferredLiveChannel({ code: 'ABC123', channel: 'qa' }),
+    ).resolves.toMatchObject({ preferredChannel: 'qa' });
+
+    const info = await caller.getInfoForReconnect({ code: 'ABC123' });
+    expect(info).toMatchObject({ status: 'ACTIVE', presenterSurface: 'ended' });
   });
 
   trpcDodIt(

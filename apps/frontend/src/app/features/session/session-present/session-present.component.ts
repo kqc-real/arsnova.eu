@@ -383,13 +383,19 @@ export class SessionPresentComponent implements OnInit, OnDestroy {
     }
     return grouped;
   });
-  readonly showSecondaryPresentSurfaces = computed(() => !this.showFinishProjection());
+  readonly showPresentationEndedProjection = computed(
+    () => this.session()?.presenterSurface === 'ended',
+  );
+  readonly showSecondaryPresentSurfaces = computed(
+    () => !this.showPresentationEndedProjection() && !this.showFinishProjection(),
+  );
   readonly showQuizPauseProjection = computed(
     () =>
       this.session()?.status === 'PAUSED' &&
       (this.session()?.pausedFromStatus === 'QUESTION_OPEN' ||
         this.session()?.pausedFromStatus === 'ACTIVE') &&
       this.session()?.preferredChannel === 'quiz' &&
+      !this.showPresentationEndedProjection() &&
       !this.showFinishProjection(),
   );
   readonly preferredSecondaryChannel = computed<'qa' | 'quickFeedback' | null>(() => {
@@ -621,6 +627,7 @@ export class SessionPresentComponent implements OnInit, OnDestroy {
   readonly showPresenterFreetextStage = computed(() => {
     if (
       !this.presenterFreetextActive() ||
+      this.showPresentationEndedProjection() ||
       this.showFinishProjection() ||
       this.showQuizPauseProjection() ||
       this.showLobbyProjection() ||
@@ -643,7 +650,9 @@ export class SessionPresentComponent implements OnInit, OnDestroy {
       this.session()?.status === 'RESULTS'
     );
   });
-  readonly showFinishProjection = computed(() => this.session()?.status === 'FINISHED');
+  readonly showFinishProjection = computed(
+    () => !this.showPresentationEndedProjection() && this.session()?.status === 'FINISHED',
+  );
   /** Verhindert Idle-Flash, solange Leaderboards für die Abschlussprojektion noch laden. */
   readonly finishBoardsResolved = signal(false);
   readonly hasFinishResults = computed(() => {
@@ -659,6 +668,7 @@ export class SessionPresentComponent implements OnInit, OnDestroy {
   readonly showTeamFinish = computed(() => {
     const session = this.session();
     return (
+      !this.showPresentationEndedProjection() &&
       session?.teamMode === true &&
       session.status === 'FINISHED' &&
       session.finishProjection !== 'idle' &&
@@ -679,6 +689,7 @@ export class SessionPresentComponent implements OnInit, OnDestroy {
   });
   readonly showLobbyProjection = computed(() => {
     if (
+      this.showPresentationEndedProjection() ||
       this.showFinishProjection() ||
       this.showQuizPauseProjection() ||
       this.showQaProjection() ||
@@ -700,6 +711,7 @@ export class SessionPresentComponent implements OnInit, OnDestroy {
   );
   readonly showQuizProjection = computed(() => {
     if (
+      this.showPresentationEndedProjection() ||
       this.showFinishProjection() ||
       this.showQuizPauseProjection() ||
       this.showLobbyProjection()
@@ -969,7 +981,7 @@ export class SessionPresentComponent implements OnInit, OnDestroy {
         this.syncBoardPageTimer();
         return;
       }
-      await this.loadFinishLeaderboards();
+      await this.loadPresenterLeaderboards();
       this.finishBoardsResolved.set(true);
       return;
     }
@@ -1208,11 +1220,15 @@ export class SessionPresentComponent implements OnInit, OnDestroy {
           return;
         }
         this.finishBoardsResolved.set(false);
-        await this.loadFinishLeaderboards();
+        await this.loadPresenterLeaderboards();
         this.finishBoardsResolved.set(true);
         return;
       }
       this.finishBoardsResolved.set(false);
+      if (session.status === 'RESULTS' && session.showLeaderboard !== false) {
+        await this.loadPresenterLeaderboards();
+        return;
+      }
       this.personalLeaderboard.set([]);
       this.teamLeaderboard.set([]);
     } catch (error: unknown) {
@@ -1318,15 +1334,23 @@ export class SessionPresentComponent implements OnInit, OnDestroy {
     );
   }
 
-  private async loadFinishLeaderboards(): Promise<void> {
+  private async loadPresenterLeaderboards(): Promise<void> {
     const code = this.code.toUpperCase();
     const anonymousClientId = getAnonymousClientId();
+    const requestedStatus = this.session()?.status;
     try {
       const [personal, teams] = await Promise.all([
         trpc.session.getLeaderboard.query({ code, anonymousClientId }),
         trpc.session.getTeamLeaderboard.query({ code, anonymousClientId }),
       ]);
-      if (this.session()?.finishProjection === 'idle') {
+      const current = this.session();
+      if (!current || current.status !== requestedStatus) {
+        return;
+      }
+      if (
+        (current.status === 'FINISHED' && current.finishProjection === 'idle') ||
+        (current.status === 'RESULTS' && current.showLeaderboard === false)
+      ) {
         this.personalLeaderboard.set([]);
         this.teamLeaderboard.set([]);
       } else {
@@ -1334,8 +1358,10 @@ export class SessionPresentComponent implements OnInit, OnDestroy {
         this.teamLeaderboard.set(teams);
       }
     } catch {
-      this.personalLeaderboard.set([]);
-      this.teamLeaderboard.set([]);
+      if (this.session()?.status === requestedStatus) {
+        this.personalLeaderboard.set([]);
+        this.teamLeaderboard.set([]);
+      }
     }
     this.syncBoardPageTimer();
   }
@@ -1670,10 +1696,15 @@ export class SessionPresentComponent implements OnInit, OnDestroy {
               this.syncBoardPageTimer();
             } else {
               this.finishBoardsResolved.set(false);
-              void this.loadFinishLeaderboards().finally(() => {
+              void this.loadPresenterLeaderboards().finally(() => {
                 this.finishBoardsResolved.set(true);
               });
             }
+          } else if (data.status === 'RESULTS' && this.session()?.showLeaderboard !== false) {
+            void this.loadPresenterLeaderboards();
+          } else {
+            this.personalLeaderboard.set([]);
+            this.teamLeaderboard.set([]);
           }
         },
         onError: () => {

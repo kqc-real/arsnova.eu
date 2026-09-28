@@ -834,7 +834,7 @@
     },
     "session.setPreferredLiveChannel": {
       "kind": "mutation",
-      "fingerprint": "sha256:1625d23c50bd5903c2f2ef42e8d1e34539ebf5262b1902645947542dff919dac",
+      "fingerprint": "sha256:cb37322c1d3cd7a21fc52c18fcbfbbd0fa98c5b9647ab2961ed7a21fc487cf4b",
       "missing": []
     },
     "session.setPresenterSurface": {

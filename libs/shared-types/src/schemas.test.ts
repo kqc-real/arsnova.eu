@@ -40,6 +40,9 @@ import {
   QaPendingReleaseSnapshotOutputSchema,
   ReleasePendingQaQuestionsInputSchema,
   ReleasePendingQaQuestionsOutputSchema,
+  SessionPresenterSurfaceSchema,
+  SetPresenterSurfaceInputSchema,
+  SetPresenterSurfaceOutputSchema,
   DEMO_QUIZ_HISTORY_SCOPE_ID,
   isDemoQuizHistoryScopeId,
 } from './schemas.js';
@@ -63,6 +66,20 @@ describe('öffentliche Contract-Schemas', () => {
     teamMode: false,
     nicknameTheme: 'NOBEL_LAUREATES' as const,
   };
+
+  it('validiert den beendeten Presenter-Zustand als eigenen Projektionszustand', () => {
+    expect(SessionPresenterSurfaceSchema.parse('ended')).toBe('ended');
+    expect(SetPresenterSurfaceInputSchema.parse({ code: 'ABC123', surface: 'ended' })).toEqual({
+      code: 'ABC123',
+      surface: 'ended',
+    });
+    expect(
+      SetPresenterSurfaceOutputSchema.parse({
+        presenterSurface: 'ended',
+        presenterPage: { context: 'quiz:0:ACTIVE', index: 0, count: 1 },
+      }),
+    ).toMatchObject({ presenterSurface: 'ended' });
+  });
 
   it('erkennt feste und instanzbezogene Showcase-Demo-Historienscopes', () => {
     expect(isDemoQuizHistoryScopeId(DEMO_QUIZ_HISTORY_SCOPE_ID)).toBe(true);
@@ -201,6 +218,7 @@ describe('öffentliche Contract-Schemas', () => {
   });
 
   it('weist zu viele Fragen und Antwortoptionen zurück', () => {
+    expect(QUIZ_UPLOAD_MAX_OPTIONS_PER_QUESTION).toBe(8);
     const question = {
       text: 'Frage',
       type: 'MULTIPLE_CHOICE' as const,

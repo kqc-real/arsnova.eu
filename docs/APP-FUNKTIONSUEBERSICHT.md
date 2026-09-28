@@ -82,7 +82,7 @@ Von der Startseite aus können Hosts direkt:
 - die **Quiz-Sammlung** öffnen
 - einen **Q&A-Kanal** starten
 - ein **Blitzlicht** starten
-- gespeicherte **Host-Zugänge** wieder öffnen (Live-Karte, höchstens 8 von 32 Capabilities; ab 3 offenen Sessions gebündelt im Pulldown)
+- gespeicherte **Host-Zugänge** wieder öffnen (Live-Karte, höchstens 8 von 32 Capabilities; ab 3 offenen Sessions werden offene und geschlossene Zugänge gemeinsam im Pulldown gebündelt)
 - ohne gespeicherte Capability über **Host-Zugang wiederherstellen** nach `/host-recovery`
 
 Die optionale Aufgabenwahl **Was hast du heute vor?** steht unmittelbar über den drei Host-Karten. **Meinen Kurs begleiten** priorisiert den Quizstart und das Sammeln von Kursfragen; **Eine Veranstaltung moderieren** bietet **Fragen sammeln**, **Stimmung/Tempo erfassen** und **Beides**; **Schnell ein Format einsetzen** lässt die direkten Formatstarts im Vordergrund. Nach der Auswahl scrollt die Startseite zur zugehörigen, visuell hervorgehobenen Karte; der Tastaturfokus bleibt auf der Auswahl. Alle drei Karten und bestehende Q&A-Zugänge bleiben erreichbar. Die Quiz-Sammlung priorisiert für Kurs- und Direktstarts **Starten** neben **Bearbeiten**; weitere Kartenaktionen bleiben in den bestehenden Menüs.
@@ -345,6 +345,9 @@ Der Host sieht zusätzlich:
 - Emoji-Reaktionen
 - Rangliste
 - Team-Rangliste
+- Presenter-Reihenfolge: In jeder Ergebnisphase folgt die Rangliste als eigene letzte
+  Projektionsseite auf alle fachlichen Ergebnisfolien; das Abschluss-Leaderboard ist
+  nach dem Sessionende die terminale Präsentationsseite.
 - aggregiertes Session-Feedback
 - Moderationskompass (Host-Button **Kompass** neben der Live-Leiste, alle
   Live-Kanäle; Dialog mit Hinweiskarten aus Quiz-Ergebnissen, Fragen, Wortwolken
@@ -734,7 +737,7 @@ Unterstützt werden:
 
 Strikte Trennung von Session-Feedback und Blitzlicht: Bewertung von **Bedienbarkeit und Nutzen von arsnova.eu**, nur für Plattform-Admins sichtbar.
 
-- **Post-Session (12.1):** rollenspezifische Zwei-Klick-Mikroumfrage nach genutzten Sessions (Host-Sheet / Vote-Ende); optionale kurze Ergänzung; Stichprobe und Einmal-Tokens.
+- **Post-Session (12.1):** rollenspezifische Zwei-Klick-Mikroumfrage nach genutzten Sessions (Host-Sheet / Vote-Ende); optionale kurze Ergänzung; Stichprobe und Einmal-Tokens. Auf Mobilgeräten verkleinert die virtuelle Tastatur den App-Viewport, damit Texteingabe und Sheet-Aktionen sichtbar und scrollbar bleiben.
 - **In-App (12.2):** jederzeit **„arsnova.eu verbessern“** (Footer-Utility, Hilfe, immersive Hostansicht, eigenständiges Blitzlicht); Icon `insights`; Offline-Outbox; Admin-Triage inkl. optionalem GitHub-Entwurf ohne Originalfreitext.
 - **LLM-Export (12.3):** Admin-Markdown mit Auswertungsprompt für ein externes Modell; kein serverseitiger LLM-Aufruf; Freitext nur als Opt-in.
 - **Massenlöschung (12.4):** Admin-Dialog löscht Rückmeldungen und den Einladungszähler bis einschließlich eines Datums oder vollständig; Sicherheitsphrase; kein Undo.

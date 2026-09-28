@@ -142,10 +142,12 @@ export class ProjectionPagesComponent implements AfterViewInit {
     const target = this.page().nativeElement;
     this.pages = paginateProjection(snapshot, (candidate) => {
       target.replaceChildren(candidate);
+      const content = target.firstElementChild as HTMLElement | null;
+      if (!content) return true;
       // Leave room for fractional font/layout rounding when the fragment is cloned again.
       return (
-        target.scrollHeight <= viewport.clientHeight - 8 &&
-        target.scrollWidth <= viewport.clientWidth
+        content.scrollHeight <= viewport.clientHeight - 8 &&
+        content.scrollWidth <= viewport.clientWidth
       );
     });
     this.count.set(this.pages.length);

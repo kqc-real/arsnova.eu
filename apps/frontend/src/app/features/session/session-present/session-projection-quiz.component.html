@@ -1,8 +1,9 @@
 @if (question(); as q) {
   <app-projection-pages
+    [hidden]="showLeaderboardPage()"
     [pageContext]="pageContext()"
-    [pageIndex]="pageIndex()"
-    (pageCount)="pageCount.emit($event)"
+    [pageIndex]="contentPageIndex()"
+    (pageCount)="onContentPageCount($event)"
   >
     <article
       class="session-projection-quiz"
@@ -14,7 +15,6 @@
       [class.session-projection-quiz--with-visual]="!!questionVisual()"
       [class.session-projection-quiz--results]="isResults()"
       [class.session-projection-quiz--discussion]="isDiscussion()"
-      [class.session-projection-quiz--fingers]="showFingerCountdown()"
       [class.session-projection-quiz--dense-answers]="hasDenseAnswerCopy()"
       [class.session-projection-quiz--with-reactions]="showEmojiReactions()"
     >
@@ -69,11 +69,6 @@
                   >{{ liveVoteCount() }} / {{ participantCount() }}</span
                 >
               </span>
-            }
-            @if (showFingerCountdown()) {
-              <span class="session-projection-quiz__status-fingers"
-                ><app-countdown-fingers [seconds]="countdownSeconds()!" size="large"
-              /></span>
             }
             @if (countdownSeconds() !== null && isActive()) {
               <span
@@ -316,7 +311,7 @@
               @if (isResults() && matchingResultPairs().length) {
                 <ul class="session-projection-quiz__pair-list">
                   @for (pair of matchingResultPairs(); track pair.id) {
-                    <li class="session-projection-quiz__pair">
+                    <li class="session-projection-quiz__pair" data-projection-unit>
                       <span
                         class="session-projection-quiz__pair-from markdown-body"
                         [innerHTML]="renderMarkdown(pair.from, 4)"
@@ -340,6 +335,7 @@
                       @for (item of matchingLeftOptions(); track item.id) {
                         <li
                           class="session-projection-quiz__option-chip markdown-body"
+                          data-projection-unit
                           [innerHTML]="renderMarkdown(item.text, 4)"
                         ></li>
                       }
@@ -351,6 +347,7 @@
                       @for (item of matchingRightOptions(); track item.id) {
                         <li
                           class="session-projection-quiz__option-chip markdown-body"
+                          data-projection-unit
                           [innerHTML]="renderMarkdown(item.text, 4)"
                         ></li>
                       }
@@ -364,7 +361,7 @@
               @if (isResults() && orderingResultPairs().length) {
                 <ul class="session-projection-quiz__pair-list">
                   @for (pair of orderingResultPairs(); track pair.id) {
-                    <li class="session-projection-quiz__pair">
+                    <li class="session-projection-quiz__pair" data-projection-unit>
                       <span
                         class="session-projection-quiz__pair-from markdown-body"
                         [innerHTML]="renderMarkdown(pair.from, 4)"
@@ -390,6 +387,7 @@
                       @for (item of orderingPreviewItems(); track item.id) {
                         <li
                           class="session-projection-quiz__option-chip markdown-body"
+                          data-projection-unit
                           [innerHTML]="renderMarkdown(item.text, 4)"
                         ></li>
                       }
@@ -403,7 +401,7 @@
               @if (isResults() && categorizationResultPairs().length) {
                 <ul class="session-projection-quiz__pair-list">
                   @for (pair of categorizationResultPairs(); track pair.id) {
-                    <li class="session-projection-quiz__pair">
+                    <li class="session-projection-quiz__pair" data-projection-unit>
                       <span
                         class="session-projection-quiz__pair-from markdown-body"
                         [innerHTML]="renderMarkdown(pair.from, 4)"
@@ -427,6 +425,7 @@
                       @for (item of categorizationPreviewItems(); track item.id) {
                         <li
                           class="session-projection-quiz__option-chip markdown-body"
+                          data-projection-unit
                           [innerHTML]="renderMarkdown(item.text, 4)"
                         ></li>
                       }
@@ -436,7 +435,9 @@
                     <h2 i18n="@@sessionVote.categoriesLabel">Kategorien</h2>
                     <ul>
                       @for (category of categorizationPreviewCategories(); track category.id) {
-                        <li class="session-projection-quiz__option-chip">{{ category.name }}</li>
+                        <li class="session-projection-quiz__option-chip" data-projection-unit>
+                          {{ category.name }}
+                        </li>
                       }
                     </ul>
                   </section>
@@ -755,4 +756,76 @@
       }
     </article>
   </app-projection-pages>
+
+  @if (showFingerCountdown()) {
+    <div class="session-projection-quiz__finger-overlay" data-testid="presenter-countdown-fingers">
+      <app-countdown-fingers [seconds]="countdownSeconds()!" size="present" />
+    </div>
+  }
+
+  @if (showLeaderboardPage()) {
+    <section
+      class="session-projection-quiz__leaderboard-page"
+      data-testid="presenter-results-leaderboard"
+      aria-labelledby="presenter-results-leaderboard-heading"
+    >
+      <header class="session-projection-quiz__leaderboard-head">
+        <mat-icon aria-hidden="true">leaderboard</mat-icon>
+        <h1 id="presenter-results-leaderboard-heading" i18n="@@sessionPresent.leaderboardTitle">
+          Leaderboard
+        </h1>
+      </header>
+      <div
+        class="session-projection-quiz__leaderboard-grid"
+        [class.session-projection-quiz__leaderboard-grid--teams]="teamLeaderboard().length > 0"
+      >
+        @if (leaderboard().length > 0) {
+          <mat-card appearance="outlined" class="session-projection-quiz__leaderboard-card">
+            <mat-card-content>
+              <ol class="session-projection-quiz__leaderboard-list">
+                @for (entry of leaderboard().slice(0, 5); track entry.rank + ':' + entry.nickname) {
+                  <li>
+                    <strong class="session-projection-quiz__leaderboard-rank">{{
+                      entry.rank
+                    }}</strong>
+                    <span class="session-projection-quiz__leaderboard-name">{{
+                      entry.nickname
+                    }}</span>
+                    <span class="session-projection-quiz__leaderboard-score">{{
+                      formatCount(entry.totalScore)
+                    }}</span>
+                  </li>
+                }
+              </ol>
+            </mat-card-content>
+          </mat-card>
+        }
+        @if (teamLeaderboard().length > 0) {
+          <mat-card appearance="outlined" class="session-projection-quiz__leaderboard-card">
+            <mat-card-content>
+              <h2 i18n="@@sessionPresent.teamLeaderboardTitle">Team-Leaderboard</h2>
+              <ol class="session-projection-quiz__leaderboard-list">
+                @for (
+                  entry of teamLeaderboard().slice(0, 5);
+                  track entry.rank + ':' + entry.teamName
+                ) {
+                  <li>
+                    <strong class="session-projection-quiz__leaderboard-rank">{{
+                      entry.rank
+                    }}</strong>
+                    <span class="session-projection-quiz__leaderboard-name">{{
+                      entry.teamName
+                    }}</span>
+                    <span class="session-projection-quiz__leaderboard-score">{{
+                      formatCount(entry.totalScore)
+                    }}</span>
+                  </li>
+                }
+              </ol>
+            </mat-card-content>
+          </mat-card>
+        }
+      </div>
+    </section>
+  }
 }

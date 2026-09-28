@@ -136,7 +136,7 @@ describe('getDemoQuizSeedFingerprint', () => {
         numericReferenceValue: 3.14,
         numericTolerancePercent: null,
         numericIntervalLeft: 3.135,
-        numericIntervalRight: 3.145,
+        numericIntervalRight: 3.15,
         numericInputType: 'DECIMAL',
         numericDecimalPlaces: 2,
         numericMin: 3,
@@ -281,7 +281,8 @@ describe('getDemoQuizSeedFingerprint', () => {
 
       expect(isInInterval(pi, 3.14)).toBe(true);
       expect(isInInterval(pi, 3.13)).toBe(false);
-      expect(isInInterval(pi, 3.15)).toBe(false);
+      expect(isInInterval(pi, 3.15)).toBe(true);
+      expect(isInInterval(pi, 3.16)).toBe(false);
       expect(isInInterval(revolution, 1789)).toBe(true);
       expect(isInInterval(revolution, 1788)).toBe(false);
       expect(isInInterval(revolution, 1790)).toBe(false);

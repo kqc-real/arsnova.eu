@@ -278,10 +278,22 @@ try {
             const controls = hostPage.locator('.session-host__projection-pages');
             await controls.waitFor();
             await controls.scrollIntoViewIfNeeded();
+            const position = await controls.evaluate(
+              (element) => getComputedStyle(element).position,
+            );
+            assert.equal(position, 'sticky', 'Host controls stay pinned in presentation mode');
+            await hostPage.locator('.app-main').evaluate((main) => {
+              main.scrollTop = main.scrollHeight;
+            });
+            await hostPage.waitForTimeout(100);
             const bounds = await controls.boundingBox();
             assert.ok(
-              bounds && bounds.x >= 0 && bounds.x + bounds.width <= 321,
-              'Host controls reflow at 320px',
+              bounds &&
+                bounds.x >= 0 &&
+                bounds.x + bounds.width <= 321 &&
+                bounds.y >= 0 &&
+                bounds.y + bounds.height <= 801,
+              'Pinned host controls remain visible and reflow at 320px after scrolling',
             );
             await controls.getByRole('button', { name: 'Vorherige Seite' }).click();
             await page.waitForFunction(

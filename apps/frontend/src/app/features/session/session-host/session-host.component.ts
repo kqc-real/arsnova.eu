@@ -1761,15 +1761,22 @@ export class SessionHostComponent implements OnInit, OnDestroy {
     return this.effectiveStatus() !== 'FINISHED' || this.liveChannelsRemainAfterQuiz();
   });
   readonly showHostViewControls = computed(() => this.isLiveHostSurface());
-  readonly pendingHostMoreAction = signal<'skip' | 'previous' | 'replace' | 'leave' | 'end' | null>(
-    null,
-  );
+  readonly presenterSurfacePending = signal(false);
+  readonly pendingHostMoreAction = signal<
+    'skip' | 'previous' | 'replace' | 'leave' | 'endPresentation' | 'end' | null
+  >(null);
 
   /** Material restores the persistent menu trigger before emitting menuClosed. */
   runHostMoreAction(): void {
     const action = this.pendingHostMoreAction();
     this.pendingHostMoreAction.set(null);
-    if (this.controlPending() || this.sessionEndPending() || this.channelNavigationBusy()) return;
+    if (
+      this.controlPending() ||
+      this.sessionEndPending() ||
+      this.channelNavigationBusy() ||
+      this.presenterSurfacePending()
+    )
+      return;
     switch (action) {
       case 'skip':
         void this.skipQuestion();
@@ -1782,6 +1789,9 @@ export class SessionHostComponent implements OnInit, OnDestroy {
         break;
       case 'leave':
         void this.onLeaveHostKeepingQaOpen();
+        break;
+      case 'endPresentation':
+        void this.endPresentationView();
         break;
       case 'end':
         void this.onSessionEndAnchorClick();
@@ -3954,11 +3964,8 @@ export class SessionHostComponent implements OnInit, OnDestroy {
   readonly maximizeFreetextWordCloud = (): void => {
     this.wordCloudExpanded.set(true);
     this.freetextWordCloudMaximized.set(true);
+    this.document.documentElement.style.removeProperty('--session-host-word-cloud-overlay-top');
     void this.activatePresenterSurface('freetextWordCloud', 'quiz');
-    // Sticky-Kanal-Leiste erst nach dem Overlay-Class messen — sonst liegt
-    // die Wolke unter der App-Bar, wenn der Host nach unten gescrollt hat.
-    this.scheduleWordCloudOverlayTopSync();
-    this.scrollFreetextWordCloudIntoView();
     this.ensureFreetextWordCloudSemanticAnalysis();
   };
 
@@ -3977,23 +3984,6 @@ export class SessionHostComponent implements OnInit, OnDestroy {
     this.qaWordCloudDialogRef?.close?.();
   }
 
-  /** Sofort + nach Layout: Overlay-Top an die sticky Kanal-Leiste koppeln. */
-  private scheduleWordCloudOverlayTopSync(): void {
-    this.syncWordCloudOverlayTop();
-    afterNextRender(
-      () => {
-        if (this.destroyRef.destroyed) return;
-        this.syncWordCloudOverlayTop();
-      },
-      { injector: this.injector },
-    );
-  }
-
-  /**
-   * Freitext-Maximieren: sticky App-Bar bleibt sichtbar (z-index über der Wolke).
-   * `getBoundingClientRect().bottom` allein reicht nicht — nach Scrollen unter die
-   * Leiste (z. B. »Ergebnis zeigen«) ist rect.bottom ≤ 0 und die Wolke startet bei 0.
-   */
   private syncWordCloudOverlayTop(): void {
     if (this.qaWordCloudDialogOpen()) {
       const toolbar = this.document.querySelector('app-top-toolbar');
@@ -4007,36 +3997,7 @@ export class SessionHostComponent implements OnInit, OnDestroy {
       );
       return;
     }
-
-    const shell = this.document.querySelector('.session-channel-tabs-shell');
-    if (!(shell instanceof HTMLElement)) {
-      this.document.documentElement.style.setProperty(
-        '--session-host-word-cloud-overlay-top',
-        '0px',
-      );
-      return;
-    }
-
-    const rect = shell.getBoundingClientRect();
-    const measuredBottom = Math.round(rect.bottom);
-    const reservedBottom = this.freetextWordCloudMaximized()
-      ? Math.round(this.resolveFreetextWordCloudStickyTopPx() + shell.offsetHeight)
-      : 0;
-    const top = Math.max(0, measuredBottom, reservedBottom);
-    this.document.documentElement.style.setProperty(
-      '--session-host-word-cloud-overlay-top',
-      `${top}px`,
-    );
-  }
-
-  /** Entspricht `.session-host--word-cloud-overlay … { top: max(0.35rem, safe-area) }`. */
-  private resolveFreetextWordCloudStickyTopPx(): number {
-    const view = this.document.defaultView;
-    const rootFontSize = Number.parseFloat(
-      view?.getComputedStyle(this.document.documentElement).fontSize ?? '16',
-    );
-    const remPx = Number.isFinite(rootFontSize) && rootFontSize > 0 ? rootFontSize : 16;
-    return 0.35 * remPx;
+    this.document.documentElement.style.removeProperty('--session-host-word-cloud-overlay-top');
   }
 
   private clearWordCloudOverlayTop(): void {
@@ -5600,6 +5561,32 @@ export class SessionHostComponent implements OnInit, OnDestroy {
     }
   }
 
+  async endPresentationView(): Promise<void> {
+    if (
+      !this.code ||
+      this.presenterSurfacePending() ||
+      this.session()?.presenterSurface === 'ended'
+    ) {
+      return;
+    }
+    this.presenterSurfacePending.set(true);
+    let ended = false;
+    try {
+      await this.enqueuePresenterProjectionSync(async () => {
+        ended = await this.mutatePresenterSurfaceNow('ended');
+      });
+      this.snackBar.open(
+        ended
+          ? $localize`:@@sessionHost.presentationViewEnded:Projektionsansicht beendet. Das Quiz läuft weiter.`
+          : $localize`:@@sessionHost.presentationViewEndError:Projektionsansicht konnte nicht beendet werden. Bitte erneut versuchen.`,
+        '',
+        { duration: ended ? 4000 : 6000 },
+      );
+    } finally {
+      this.presenterSurfacePending.set(false);
+    }
+  }
+
   readonly projectionPagePending = signal(false);
   readonly projectionControlsVisible = signal(false);
   readonly projectionPageError = signal('');
@@ -5642,11 +5629,30 @@ export class SessionHostComponent implements OnInit, OnDestroy {
     }
     this.presenterWindowOpenInFlight = true;
     try {
-      return await openPresenterViewWindow(
+      const opened = await openPresenterViewWindow(
         this.document.defaultView,
         this.code,
         this.sessionTokenStorage,
       );
+      if (opened && this.session()?.presenterSurface === 'ended') {
+        this.presenterSurfacePending.set(true);
+        let resumed = false;
+        try {
+          await this.enqueuePresenterProjectionSync(async () => {
+            resumed = await this.mutatePresenterSurfaceNow('default');
+          });
+        } finally {
+          this.presenterSurfacePending.set(false);
+        }
+        if (!resumed) {
+          this.snackBar.open(
+            $localize`:@@sessionHost.presentationViewResumeError:Die Projektionsansicht konnte nicht fortgesetzt werden. Bitte erneut versuchen.`,
+            '',
+            { duration: 6000 },
+          );
+        }
+      }
+      return opened;
     } finally {
       this.presenterWindowOpenInFlight = false;
     }
@@ -6972,7 +6978,7 @@ export class SessionHostComponent implements OnInit, OnDestroy {
     this.preserveQaToolbarFocusAcrossLayout(compactToolbar);
     this.qaCompactToolbar.set(compactToolbar);
     this.syncExitAnchorClearance();
-    if (this.freetextWordCloudMaximized() || this.qaWordCloudDialogOpen()) {
+    if (this.qaWordCloudDialogOpen()) {
       this.syncWordCloudOverlayTop();
     }
     if (!this.showTeamFoyerEntranceLayers()) {
@@ -8229,21 +8235,9 @@ export class SessionHostComponent implements OnInit, OnDestroy {
     return status === 'RESULTS' || status === 'DISCUSSION';
   }
 
-  readonly hasOverallEvaluation = computed(() => {
-    if ((this.participantsPayload()?.participantCount ?? 0) > 0) return true;
-    if (this.leaderboard().length > 0 || this.teamLeaderboard().length > 0) return true;
-    if (this.freetextResponses().length > 0) return true;
-    const q = this.displayedCurrentQuestionForHost();
-    if (!q) return false;
-    if ((q.totalVotes ?? 0) > 0) return true;
-    if ((q.freeTextResponses?.length ?? 0) > 0) return true;
-    if ((q.ratingCount ?? 0) > 0) return true;
-    return q.voteDistribution?.some((entry) => entry.voteCount > 0) === true;
-  });
-
   readonly showFinishEvaluationAnchor = computed(() => {
     if (this.displayedCurrentQuestionForHost() === null) return false;
-    return !this.canOpenFollowingQuestion() && this.hasOverallEvaluation();
+    return !this.canOpenFollowingQuestion();
   });
 
   /** Statischer Hinweis auf der Fragenkarte, nicht in der Aktionsleiste. */
@@ -10450,7 +10444,8 @@ export class SessionHostComponent implements OnInit, OnDestroy {
                 ...session,
                 preferredChannel: result.preferredChannel,
                 presenterSurface:
-                  session.preferredChannel === result.preferredChannel
+                  session.preferredChannel === result.preferredChannel ||
+                  session.presenterSurface === 'ended'
                     ? session.presenterSurface
                     : 'default',
                 sessionLifecycleRevision: result.sessionLifecycleRevision,
@@ -10484,6 +10479,16 @@ export class SessionHostComponent implements OnInit, OnDestroy {
     if (!this.code || this.session()?.presenterSurface === surface) {
       return;
     }
+    await this.mutatePresenterSurfaceNow(surface);
+  }
+
+  private async mutatePresenterSurfaceNow(surface: SessionPresenterSurface): Promise<boolean> {
+    if (!this.code) {
+      return false;
+    }
+    if (this.session()?.presenterSurface === surface) {
+      return true;
+    }
     try {
       const result = await trpc.session.setPresenterSurface.mutate({
         code: this.code.toUpperCase(),
@@ -10492,8 +10497,10 @@ export class SessionHostComponent implements OnInit, OnDestroy {
       this.session.update((session) =>
         session ? { ...session, presenterSurface: result.presenterSurface } : session,
       );
+      return true;
     } catch {
       // Die lokale Wortwolkenansicht bleibt bedienbar, auch wenn die Projektion nicht synchronisiert.
+      return false;
     }
   }
 

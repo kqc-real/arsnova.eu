@@ -215,3 +215,9 @@ und 26 CSS-Pixel. Haupttext und Code verwenden Zeilenhöhe 1,5; aufeinanderfolge
 Absätze erhalten zusätzlich Abstand. Die gemessene Projektionsfläche bestimmt
 semantische Seiten, nicht eine weitere Schriftverkleinerung. Farben und Karten
 verwenden weiterhin die vorhandenen Material- und Preset-Tokens.
+Antwortoptionen bilden dabei unteilbare Seiteneinheiten. Pro Frage sind höchstens
+acht Optionen zulässig; auf jeder Projektionsseite bleibt der Optionsblock mit
+vergrößertem Zeilenabstand vertikal zentriert.
+Die zugehörige Host-Seitennavigation nutzt als angepinnte obere Surface
+`surface-container-high`, `outline-variant`, `corner-extra-large` und Elevation
+`level2`; ihre Breite folgt `--app-toolbar-max-width` und reflowt bei 320 px.

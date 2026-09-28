@@ -66,6 +66,7 @@ import {
   NUMERIC_DEFAULT_TOLERANCE_MODE,
   NUMERIC_DEFAULT_UNIT_FAMILY,
   MotifImageUrlSchema,
+  QUIZ_UPLOAD_MAX_OPTIONS_PER_QUESTION,
   QUIZ_PRESETS,
   SC_FORMAT_PRESETS,
   SHORT_TEXT_DEFAULT_EVALUATION_KIND,
@@ -2217,7 +2218,9 @@ export class QuizEditComponent implements OnDestroy {
   }
 
   canAddAnswer(): boolean {
-    return this.hasAnswerOptions() && this.answersArray.length < 10;
+    return (
+      this.hasAnswerOptions() && this.answersArray.length < QUIZ_UPLOAD_MAX_OPTIONS_PER_QUESTION
+    );
   }
 
   canRemoveAnswer(): boolean {
@@ -3934,7 +3937,10 @@ export class QuizEditComponent implements OnDestroy {
     }
 
     if (question.type === 'SHORT_TEXT') {
-      if (question.answers.length < 1 || question.answers.length > 10) {
+      if (
+        question.answers.length < 1 ||
+        question.answers.length > QUIZ_UPLOAD_MAX_OPTIONS_PER_QUESTION
+      ) {
         return false;
       }
 
@@ -3961,7 +3967,10 @@ export class QuizEditComponent implements OnDestroy {
       return true;
     }
 
-    if (question.answers.length < 2 || question.answers.length > 10) {
+    if (
+      question.answers.length < 2 ||
+      question.answers.length > QUIZ_UPLOAD_MAX_OPTIONS_PER_QUESTION
+    ) {
       return false;
     }
 

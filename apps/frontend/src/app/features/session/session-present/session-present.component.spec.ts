@@ -226,6 +226,32 @@ describe('SessionPresentComponent', () => {
     }
   });
 
+  it('zeigt nach beendetem Presenter einen eindeutigen Standby mit Sessioncode statt Quizinhalt', async () => {
+    const endedSession = {
+      ...(await getInfoQueryMock()),
+      status: 'ACTIVE' as const,
+      presenterSurface: 'ended' as const,
+      presenterPage: { context: 'quiz:0:ACTIVE', index: 0, count: 3 },
+    };
+    getInfoQueryMock.mockResolvedValue(endedSession);
+    const fixture = TestBed.createComponent(SessionPresentComponent);
+    fixture.detectChanges();
+    await fixture.whenStable();
+    fixture.detectChanges();
+
+    const ended = fixture.nativeElement.querySelector(
+      '[data-testid="presenter-presentation-ended"]',
+    ) as HTMLElement | null;
+    expect(ended?.getAttribute('role')).toBe('status');
+    expect(ended?.textContent).toContain('Die Live-Präsentation wurde beendet.');
+    expect(ended?.textContent).toContain('Das Quiz läuft weiter.');
+    expect(ended?.textContent).toContain('Bitte warte auf weitere Anweisungen.');
+    expect(ended?.textContent).toContain('ABC123');
+    expect(fixture.nativeElement.querySelector('[data-testid="presenter-quiz-stage"]')).toBeNull();
+    expect(fixture.nativeElement.querySelector('.projection-pages')).toBeNull();
+    fixture.destroy();
+  });
+
   it('leert die unauthentifizierte Projektion ohne Terminalevent am lokalen Deadline-Fallback', () => {
     vi.useFakeTimers();
     const fixture = TestBed.createComponent(SessionPresentComponent);
@@ -586,6 +612,43 @@ describe('SessionPresentComponent', () => {
     expect(finish?.textContent).not.toContain('Zur Startseite');
     const teamTracks = fixture.nativeElement.querySelectorAll('.session-present__team-board-track');
     expect(teamTracks.length).toBe(2);
+    fixture.destroy();
+  });
+
+  it('lädt den Zwischenstand für die letzte Presenter-Seite der Ergebnisphase', async () => {
+    getInfoQueryMock.mockResolvedValue({
+      id: '6a8edced-5f8f-4cfa-9176-454fac9570ad',
+      serverTime: MOCK_SERVER_TIME,
+      code: 'ABC123',
+      type: 'QUIZ',
+      status: 'RESULTS',
+      quizName: 'Team-Quiz',
+      title: null,
+      participantCount: 3,
+      teamMode: false,
+      showLeaderboard: true,
+      currentQuestion: 0,
+      presenterPage: { context: 'results-question-1', index: 0, count: 1 },
+    });
+    getLeaderboardQueryMock.mockResolvedValue([
+      {
+        rank: 1,
+        nickname: 'Ada',
+        totalScore: 120,
+        correctCount: 1,
+        totalQuestions: 1,
+        totalResponseTimeMs: 900,
+      },
+    ]);
+
+    const fixture = TestBed.createComponent(SessionPresentComponent);
+    fixture.detectChanges();
+    await fixture.whenStable();
+    await new Promise((resolve) => setTimeout(resolve, 50));
+    fixture.detectChanges();
+
+    expect(getLeaderboardQueryMock).toHaveBeenCalled();
+    expect(fixture.componentInstance.personalLeaderboard()[0]?.nickname).toBe('Ada');
     fixture.destroy();
   });
 

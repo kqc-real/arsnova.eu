@@ -825,8 +825,7 @@ html.preset-playful {
   }
 
   .session-present mat-card.session-projection-quiz__stage,
-  .session-present mat-card.session-projection-quiz__code,
-  .session-present mat-card.session-projection-quiz__fingers {
+  .session-present mat-card.session-projection-quiz__code {
     @include app-playful-inner-panel-muted;
     --mat-card-outlined-container-color: transparent;
   }

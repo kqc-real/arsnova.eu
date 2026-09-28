@@ -292,8 +292,10 @@ vi.mock('qrcode', () => ({
 
 vi.mock('../../../core/host-session-token', () => ({
   clearHostToken: clearHostTokenMock,
+  getHostToken: () => 'host-token',
   getHostSessionRole: () => null,
   hasHostToken: () => true,
+  normalizeHostSessionCode: (code: string) => code.trim().toUpperCase(),
 }));
 
 const defaultSession = {
@@ -841,6 +843,7 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
     expect(fixture.nativeElement.querySelector('[role="alert"]').textContent).toContain(
       'erneut versuchen',
     );
+    expect(nav.querySelector('[role="alert"]')).not.toBeNull();
     expect(document.activeElement).toBe(next);
     expect(next!.getAttribute('aria-disabled')).not.toBe('true');
     expect(next!.disabled).toBe(false);
@@ -861,6 +864,37 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
     expect(document.activeElement).toBe(next);
     expect(next!.isConnected).toBe(true);
     expect(next!.getAttribute('aria-disabled')).toBe('true');
+  });
+
+  it('pinnt die Projektionsnavigation oben im scrollenden Host-Viewport an', async () => {
+    const fixture = setup();
+    fixture.componentInstance.session.set({
+      ...defaultSession,
+      presenterPage: { context: 'projection-sticky-test', index: 1, count: 3 },
+    });
+    fixture.detectChanges();
+
+    const nav = fixture.nativeElement.querySelector(
+      '.session-host__projection-pages',
+    ) as HTMLElement | null;
+    const { readFileSync } = await import('node:fs');
+    const { fileURLToPath } = await import('node:url');
+    const { dirname, join } = await import('node:path');
+    const styles = readFileSync(
+      join(dirname(fileURLToPath(import.meta.url)), 'session-host.component.scss'),
+      'utf8',
+    );
+
+    expect(nav).not.toBeNull();
+    expect(styles).toMatch(
+      /\.session-host__projection-pages\s*\{[^}]*position:\s*sticky[^}]*top:\s*max\(/s,
+    );
+    expect(styles).toMatch(
+      /\.session-host__projection-pages\s*\{[^}]*z-index:\s*35[^}]*background:\s*var\(--mat-sys-surface-container-high\)/s,
+    );
+    expect(styles).toMatch(
+      /@media \(max-width:\s*599px\)[\s\S]*?--session-host-projection-pages-inline:\s*0\.5rem/,
+    );
   });
 
   const clickAddChannel = async (
@@ -2237,20 +2271,46 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
       '[data-testid="open-presenter-view"]',
     );
     expect(host.querySelectorAll('[data-testid="open-presenter-view"]')).toHaveLength(1);
-    expect(presenter?.getAttribute('aria-label')).toBe('Präsentation starten');
-    expect(presenter?.textContent).toContain('Präsentation starten');
-    expect(presenter?.className).toMatch(/tonal/i);
+    expect(presenter?.getAttribute('aria-label')).toBe('Präsentationsansicht öffnen');
+    expect(presenter?.textContent).toContain('Präsentationsansicht öffnen');
     expect(presenter?.querySelector('app-presenter-icon')).not.toBeNull();
     expect(controls?.querySelector('.session-host__view-toggle--frame')?.textContent).toContain(
       'App-Rahmen',
     );
-    expect(host.querySelector('#host-display-heading')?.textContent).toContain(
+    const displayOptions = controls?.querySelector('.session-host__display-options');
+    const displayActions = Array.from(
+      displayOptions?.querySelectorAll<HTMLButtonElement>('button') ?? [],
+    );
+    const soundAction = controls?.querySelector('[data-testid="host-sound-action"]');
+    const fullscreenAction = controls?.querySelector('.session-host__view-toggle--fullscreen');
+    const frameAction = controls?.querySelector('.session-host__view-toggle--frame');
+    const feedbackAction = controls?.querySelector('[data-testid="host-product-feedback-action"]');
+    expect(soundAction?.getAttribute('aria-label')).toBe('Soundsteuerung öffnen');
+    expect(feedbackAction?.textContent).toContain('arsnova.eu verbessern');
+    expect(displayActions).toEqual([
+      presenter,
+      soundAction,
+      ...(fullscreenAction ? [fullscreenAction] : []),
+      frameAction,
+      feedbackAction,
+    ]);
+    expect(displayActions.every((action) => action.classList.contains('mat-mdc-button'))).toBe(
+      true,
+    );
+    expect(
+      displayActions.some((action) =>
+        /mat-mdc-(?:unelevated|raised|outlined)-button/.test(action.className),
+      ),
+    ).toBe(false);
+    expect(host.querySelector('.session-host__product-feedback-utility')).toBeNull();
+    expect(host.querySelector('#host-display-heading')).toBeNull();
+    expect(host.querySelector('.session-host__display-tools')?.getAttribute('aria-label')).toBe(
       'Auf Bildschirm zeigen',
     );
-    expect(host.querySelector('#host-sound-heading')?.textContent?.trim()).toBe('Ton');
-    expect(
-      host.querySelector('.session-host__sound-tools .session-host__live-sound-control'),
-    ).not.toBeNull();
+    expect(getComputedStyle(presenter!.querySelector('app-presenter-icon')!).width).toMatch(
+      /1\.125rem|18px|app-presenter-icon-size/,
+    );
+    expect(host.querySelector('#host-sound-heading')).toBeNull();
     const lobbyActions = host.querySelector('.session-lobby__actions--hero');
     expect(lobbyActions?.querySelector('[data-testid="open-presenter-view"]')).toBeNull();
     const startButton = Array.from(lobbyActions?.querySelectorAll('button') ?? []).find((button) =>
@@ -2325,6 +2385,48 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
     fixture.destroy();
   });
 
+  it('setzt eine beendete Projektionsansicht beim erneuten Öffnen fort', async () => {
+    getInfoQueryMock.mockResolvedValue({
+      ...defaultSession,
+      status: 'ACTIVE',
+      presenterSurface: 'ended',
+    });
+    setPresenterSurfaceMutateMock.mockResolvedValueOnce({
+      presenterSurface: 'default',
+      presenterPage: { context: 'quiz:0:ACTIVE', index: 0, count: 1 },
+    });
+    const existingPresenter = {
+      closed: false,
+      location: { pathname: '/session/ABC123/present' },
+      focus: vi.fn(),
+      moveTo: vi.fn(),
+      resizeTo: vi.fn(),
+      document,
+      sessionStorage,
+    } as unknown as Window;
+    const open = vi.spyOn(window, 'open').mockReturnValue(existingPresenter);
+    const fixture = setup();
+    fixture.detectChanges();
+    await fixture.whenStable();
+
+    const component = fixture.componentInstance as unknown as {
+      launchPresenterViewWindow(): Promise<Window | null>;
+      session: typeof fixture.componentInstance.session;
+    };
+    const opened = await component.launchPresenterViewWindow();
+
+    expect(opened).toBe(existingPresenter);
+    expect(open).toHaveBeenCalled();
+    expect(setPresenterSurfaceMutateMock).toHaveBeenCalledWith({
+      code: 'ABC123',
+      surface: 'default',
+    });
+    expect(component.session()?.presenterSurface).toBe('default');
+    expect(fixture.componentInstance.presenterSurfacePending()).toBe(false);
+    open.mockRestore();
+    fixture.destroy();
+  });
+
   it('trennt Quiz-Navigation und Pause von den beschrifteten Anzeigeoptionen', async () => {
     getInfoQueryMock.mockResolvedValue({
       ...defaultSession,
@@ -2389,6 +2491,9 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
     expect(styles).toMatch(
       /@media \(max-width: 839\.98px\)[\s\S]*?session-channel-tabs \{[^}]*width:\s*fit-content/,
     );
+    expect(styles).toMatch(
+      /\.session-host__presenter-cta\s*>\s*app-presenter-icon\s*\{[^}]*margin-right:\s*var\(--mat-button-text-icon-spacing,\s*8px\)[^}]*margin-left:\s*var\(--mat-button-text-icon-offset,\s*-4px\)/,
+    );
     expect(styles).not.toContain('session-channel-tabs__badge--inactive');
     fixture.destroy();
   });
@@ -2416,6 +2521,19 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
     expect(
       fixture.nativeElement.querySelector('[data-testid="open-presenter-view"]'),
     ).not.toBeNull();
+    const inlineControls = fixture.nativeElement.querySelector(
+      '.session-host__view-controls--inline',
+    ) as HTMLElement;
+    const frameAction = inlineControls.querySelector('.session-host__view-toggle--frame');
+    const feedbackAction = inlineControls.querySelector(
+      '[data-testid="host-product-feedback-action"]',
+    );
+    expect(feedbackAction?.textContent).toContain('arsnova.eu verbessern');
+    expect(
+      Array.from(inlineControls.querySelectorAll('button')).indexOf(feedbackAction as Element),
+    ).toBe(
+      Array.from(inlineControls.querySelectorAll('button')).indexOf(frameAction as Element) + 1,
+    );
     fixture.destroy();
   });
 
@@ -2473,7 +2591,7 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
     expect(toolbarIcon).not.toBeNull();
     expect(toolbarPresenter?.className ?? '').toMatch(/mat-mdc-icon-button/);
     expect(toolbarPresenter?.querySelector('.mdc-button__label')).toBeNull();
-    expect(toolbarPresenter?.getAttribute('aria-label')).toBe('Präsentation starten');
+    expect(toolbarPresenter?.getAttribute('aria-label')).toBe('Präsentationsansicht öffnen');
     expect(getComputedStyle(toolbarIcon!).width).toMatch(/1\.5rem|24px|app-presenter-icon-size/);
     expect(getComputedStyle(toolbarIcon!).height).toMatch(/1\.5rem|24px|app-presenter-icon-size/);
     fixture.destroy();
@@ -7371,7 +7489,7 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
     fixture.destroy();
   });
 
-  it('hält die maximierte Freitext-Wortwolke unter der sticky Kanal-Leiste, auch wenn die Leiste aus dem Viewport gescrollt war', async () => {
+  it('legt die maximierte Freitext-Wortwolke unabhängig von der Scrollposition über den gesamten Viewport', async () => {
     getInfoQueryMock.mockResolvedValue({
       ...defaultSession,
       status: 'ACTIVE',
@@ -7435,17 +7553,22 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
     fixture.detectChanges();
     await flushComponentAfterStable(fixture, 0);
 
-    const overlayTop = document.documentElement.style.getPropertyValue(
-      '--session-host-word-cloud-overlay-top',
-    );
-    const overlayTopPx = Number.parseFloat(overlayTop);
     expect(component.freetextWordCloudMaximized()).toBe(true);
-    expect(overlayTopPx).toBeGreaterThanOrEqual(64);
+    expect(
+      document.documentElement.style.getPropertyValue('--session-host-word-cloud-overlay-top'),
+    ).toBe('');
     expect(
       fixture.nativeElement.querySelector(
         '.session-host__extra--freetext.session-host__extra--maximized',
       ),
     ).toBeTruthy();
+
+    const { readFileSync } = await import('node:fs');
+    const { join } = await import('node:path');
+    const styles = readFileSync(join(__dirname, 'session-host.component.scss'), 'utf8');
+    expect(styles).toMatch(
+      /\.session-host__extra--maximized\s*\{[^}]*position:\s*fixed;[^}]*inset:\s*0;[^}]*width:\s*100vw;[^}]*height:\s*100dvh;/s,
+    );
 
     fixture.destroy();
   });
@@ -14943,6 +15066,36 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
     fixture.destroy();
   });
 
+  it('beendet im Menü nur die Projektionsansicht und lässt das Quiz weiterlaufen', async () => {
+    getInfoQueryMock.mockResolvedValue({
+      ...defaultSession,
+      status: 'ACTIVE',
+      presenterSurface: 'default',
+    });
+    const fixture = setup();
+    fixture.detectChanges();
+    await fixture.whenStable();
+    fixture.detectChanges();
+
+    const { menu } = await openHostMoreActions(fixture);
+    const endPresentation = Array.from(menu.querySelectorAll('button')).find((button) =>
+      button.textContent?.includes('Projektionsansicht beenden'),
+    );
+    expect(endPresentation).toBeTruthy();
+    endPresentation!.click();
+
+    await vi.waitUntil(() => fixture.componentInstance.session()?.presenterSurface === 'ended');
+    fixture.detectChanges();
+    expect(setPresenterSurfaceMutateMock).toHaveBeenCalledWith({
+      code: 'ABC123',
+      surface: 'ended',
+    });
+    expect(fixture.componentInstance.effectiveStatus()).toBe('ACTIVE');
+    expect(fixture.componentInstance.presenterSurfacePending()).toBe(false);
+    expect(fixture.nativeElement.querySelector('.session-host__projection-pages')).toBeNull();
+    fixture.destroy();
+  });
+
   it.each(['control', 'sessionEnd', 'channel'] as const)(
     'sperrt Weitere Aktionen während %s und verwirft eine überholte Menüauswahl',
     async (pending) => {
@@ -18074,7 +18227,7 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
     fixture.destroy();
   });
 
-  it('zeigt auf der letzten Frage ohne verwertbare Ergebnisse nur die Markierung "Letzte Frage"', async () => {
+  it('bietet auch auf der letzten Frage ohne Antworten den Weg zur Gesamtauswertung an', async () => {
     getInfoQueryMock.mockResolvedValue({ ...defaultSession, status: 'RESULTS' });
     onStatusChangedSubscribeMock.mockImplementation(
       (_input: unknown, opts: { onData: (d: unknown) => void }) => {
@@ -18137,7 +18290,7 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
       ).some((text) => text.includes('Letzte Frage')),
     ).toBe(false);
     expect(host.textContent).not.toContain('Nächste Frage');
-    expect(host.textContent).not.toContain('Zur Gesamtauswertung');
+    expect(exitAnchor.textContent).toContain('Zur Gesamtauswertung');
     fixture.destroy();
   });
 

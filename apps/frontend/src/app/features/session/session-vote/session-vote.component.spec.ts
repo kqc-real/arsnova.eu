@@ -924,7 +924,7 @@ describe('SessionVoteComponent', { timeout: 30_000 }, () => {
     fixture.destroy();
   });
 
-  it('bietet die Zeitanpassung bereits in der Quiz-Lobby an', () => {
+  it('bietet die Zeitanpassung in der Quiz-Lobby standardmäßig geschlossen an', () => {
     const fixture = TestBed.createComponent(SessionVoteComponent);
     const component = fixture.componentInstance;
     component.status.set('LOBBY');
@@ -933,12 +933,12 @@ describe('SessionVoteComponent', { timeout: 30_000 }, () => {
     fixture.detectChanges();
 
     expect(component.showLobbyTimerAccommodationControls()).toBe(true);
-    expect(component.timerAccommodationPanelExpanded()).toBe(true);
+    expect(component.timerAccommodationPanelExpanded()).toBe(false);
     const lobbyPanel = (fixture.nativeElement as HTMLElement).querySelector(
       '[data-testid="vote-timer-accommodation"]',
     ) as HTMLDetailsElement | null;
     expect(lobbyPanel).toBeTruthy();
-    expect(lobbyPanel?.open).toBe(true);
+    expect(lobbyPanel?.open).toBe(false);
     expect((fixture.nativeElement as HTMLElement).textContent).toContain(
       'Vor der Frage wählen · »10× Zeit« = zehnfacher Raum-Countdown',
     );

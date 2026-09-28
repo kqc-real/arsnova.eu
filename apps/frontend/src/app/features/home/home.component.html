@@ -544,7 +544,9 @@
                   [attr.aria-describedby]="'home-host-session-menu-facts-' + item.code"
                 >
                   <span class="home-host-session-menu__label">
-                    <span class="home-host-session-cta__dot" aria-hidden="true"></span>
+                    @if (item.qaOpen) {
+                      <span class="home-host-session-cta__dot" aria-hidden="true"></span>
+                    }
                     {{ hostSessionCtaLabel(item.code) }}
                   </span>
                   <span

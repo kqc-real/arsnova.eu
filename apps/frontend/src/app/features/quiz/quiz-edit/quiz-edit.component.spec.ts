@@ -1093,6 +1093,20 @@ describe('QuizEditComponent', { timeout: 30_000 }, () => {
     });
   });
 
+  it('begrenzt Antwortoptionen im Editor auf acht', () => {
+    const fixture = TestBed.createComponent(QuizEditComponent);
+    const component = fixture.componentInstance;
+
+    while (component.canAddAnswer()) {
+      component.addAnswer();
+    }
+
+    expect(component.answersArray.length).toBe(8);
+    expect(component.canAddAnswer()).toBe(false);
+    component.addAnswer();
+    expect(component.answersArray.length).toBe(8);
+  });
+
   it('speichert erweiterte SHORT_TEXT-Bewertungseinstellungen', () => {
     const fixture = TestBed.createComponent(QuizEditComponent);
     const component = fixture.componentInstance;

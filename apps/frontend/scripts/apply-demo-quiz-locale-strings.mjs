@@ -152,7 +152,7 @@ function buildPayload(locale) {
           numericReferenceValue: 3.14,
           numericTolerancePercent: null,
           numericIntervalLeft: 3.135,
-          numericIntervalRight: 3.145,
+          numericIntervalRight: 3.15,
           numericInputType: 'DECIMAL',
           numericDecimalPlaces: 2,
           numericMin: 3,
