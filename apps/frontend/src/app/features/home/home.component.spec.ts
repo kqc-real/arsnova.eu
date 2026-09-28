@@ -1441,7 +1441,7 @@ describe('HomeComponent', () => {
       restoreDefaultSessionGetInfo(vi.mocked(trpc.session.getInfo.query));
     });
 
-    it('ordnet offene Foren vor geschlossenen und früher schließende zuerst', async () => {
+    it('ordnet offene Foren vor geschlossenen über direkte CTAs und Pulldown hinweg', async () => {
       const { trpc } = await import('../../core/trpc.client');
       storeHostBrowserCapability('ZZZ999', 'later-browser-capability-abcdefghijklmnopqrstuvwxyz');
       storeHostBrowserCapability('MMM555', 'mid-browser-capability-abcdefghijklmnopqrstuvwxyz');
@@ -1468,24 +1468,33 @@ describe('HomeComponent', () => {
       fixture.detectChanges();
       await vi.waitUntil(
         () =>
-          fixture.nativeElement.querySelector(
-            '.home-host-session-cta-row [data-session-code="MMM555"].home-host-session-cta--open',
-          ) !== null,
+          fixture.nativeElement.querySelector('[data-testid="home-host-session-menu-trigger"]') !==
+          null,
         { timeout: 1000, interval: 10 },
       );
 
+      const trigger = fixture.nativeElement.querySelector<HTMLButtonElement>(
+        '[data-testid="home-host-session-menu-trigger"]',
+      )!;
       expect(
         Array.from(
-          fixture.nativeElement.querySelectorAll<HTMLElement>(
-            '.home-host-session-cta-row [data-testid="home-host-recovery"]',
-          ),
+          fixture.nativeElement.querySelectorAll<HTMLElement>('[data-testid="home-host-recovery"]'),
         ).map((action) => action.getAttribute('data-session-code')),
-      ).toEqual(['MMM555', 'ZZZ999', 'AAA111']);
+      ).toEqual(['MMM555', 'ZZZ999']);
+      trigger.click();
+      fixture.detectChanges();
+      await fixture.whenStable();
+
+      expect(
+        Array.from(
+          document.querySelectorAll<HTMLElement>('[data-testid="home-host-recovery-menu"]'),
+        ).map((action) => action.getAttribute('data-session-code')),
+      ).toEqual(['AAA111']);
 
       restoreDefaultSessionGetInfo(vi.mocked(trpc.session.getInfo.query));
     });
 
-    it('behält ein späteres offenes Forum in der Achterreihe', async () => {
+    it('behält ein späteres offenes Forum in der auf acht begrenzten Pulldown-Liste', async () => {
       const { trpc } = await import('../../core/trpc.client');
       const closedCodes = [
         'AAA111',
@@ -1511,17 +1520,25 @@ describe('HomeComponent', () => {
       fixture.detectChanges();
       await vi.waitUntil(
         () =>
-          fixture.nativeElement.querySelector(
-            '.home-host-session-cta-row [data-session-code="ZZZ999"]',
-          ) !== null,
+          fixture.nativeElement.querySelector('[data-testid="home-host-session-menu-trigger"]') !==
+          null,
         { timeout: 1000, interval: 10 },
       );
 
-      const codes = Array.from(
-        fixture.nativeElement.querySelectorAll<HTMLElement>(
-          '.home-host-session-cta-row [data-testid="home-host-recovery"]',
-        ),
+      const trigger = fixture.nativeElement.querySelector<HTMLButtonElement>(
+        '[data-testid="home-host-session-menu-trigger"]',
+      )!;
+      const directCodes = Array.from(
+        fixture.nativeElement.querySelectorAll<HTMLElement>('[data-testid="home-host-recovery"]'),
       ).map((action) => action.getAttribute('data-session-code'));
+      trigger.click();
+      fixture.detectChanges();
+      await fixture.whenStable();
+
+      const menuCodes = Array.from(
+        document.querySelectorAll<HTMLElement>('[data-testid="home-host-recovery-menu"]'),
+      ).map((action) => action.getAttribute('data-session-code'));
+      const codes = [...directCodes, ...menuCodes];
       expect(codes).toHaveLength(8);
       expect(codes[0]).toBe('ZZZ999');
       expect(codes).not.toContain('HHH888');
@@ -1582,13 +1599,13 @@ describe('HomeComponent', () => {
       restoreDefaultSessionGetInfo(vi.mocked(trpc.session.getInfo.query));
     });
 
-    it('bündelt ab drei offenen Sessions auch geschlossene CTAs im Pulldown', async () => {
+    it('zeigt unabhängig vom Forenstatus höchstens zwei CTAs direkt und den Rest im Pulldown', async () => {
       const { trpc } = await import('../../core/trpc.client');
-      for (const code of ['AAA111', 'BBB222', 'CCC333', 'ZZZ999']) {
+      for (const code of ['AAA111', 'BBB222', 'CCC333']) {
         storeHostBrowserCapability(code, `${code}-browser-capability-abcdefghijklmnopqrstuvwxyz`);
       }
       vi.mocked(trpc.session.getInfo.query).mockImplementation(async (input: { code: string }) =>
-        hostSessionGetInfo(input.code, input.code !== 'ZZZ999'),
+        hostSessionGetInfo(input.code, input.code === 'AAA111'),
       );
       const fixture = createHomeFixture();
       fixture.detectChanges();
@@ -1611,9 +1628,9 @@ describe('HomeComponent', () => {
       ).map((action) => action.getAttribute('data-session-code'));
 
       expect(trigger.textContent).toContain('Deine Q&A-Sessions');
-      expect(trigger.textContent).toContain('(4)');
+      expect(trigger.textContent).toContain('(1)');
       expect(trigger.getAttribute('aria-haspopup')).toBe('menu');
-      expect(directCodes).toEqual([]);
+      expect(directCodes).toEqual(['AAA111', 'BBB222']);
 
       trigger.click();
       fixture.detectChanges();
@@ -1622,12 +1639,12 @@ describe('HomeComponent', () => {
       const menuCodes = Array.from(
         document.querySelectorAll<HTMLElement>('[data-testid="home-host-recovery-menu"]'),
       ).map((action) => action.getAttribute('data-session-code'));
-      expect(menuCodes).toEqual(['AAA111', 'BBB222', 'CCC333', 'ZZZ999']);
+      expect(menuCodes).toEqual(['CCC333']);
       expect(
         document.querySelectorAll('[data-testid="home-host-session-menu-remove"]'),
-      ).toHaveLength(4);
+      ).toHaveLength(1);
       const closedMenuAction = document.querySelector<HTMLElement>(
-        '[data-testid="home-host-recovery-menu"][data-session-code="ZZZ999"]',
+        '[data-testid="home-host-recovery-menu"][data-session-code="CCC333"]',
       );
       expect(closedMenuAction?.textContent).toContain('Forum geschlossen');
       expect(closedMenuAction?.querySelector('.home-host-session-cta__dot')).toBeNull();
@@ -1669,9 +1686,7 @@ describe('HomeComponent', () => {
         return { afterClosed: () => closed };
       });
       document
-        .querySelector<HTMLButtonElement>(
-          '[data-testid="home-host-session-menu-remove"][data-session-code="AAA111"]',
-        )!
+        .querySelector<HTMLButtonElement>('[data-testid="home-host-session-menu-remove"]')!
         .click();
       await vi.waitUntil(() => matDialogMock.open.mock.calls.length === 1, {
         timeout: 1000,

@@ -121,7 +121,7 @@ type HostSessionCta = {
 
 const HOST_SESSION_CTA_LIMIT = 8;
 const HOST_SESSION_INFO_FETCH_LIMIT = 32;
-const HOST_SESSION_DIRECT_OPEN_LIMIT = 2;
+const HOST_SESSION_DIRECT_LIMIT = 2;
 const HOST_SCENARIO_CARD_IDS: Record<HostScenario, string> = {
   CLASSROOM: 'home-host-quiz',
   EVENT: 'home-host-qa',
@@ -300,18 +300,12 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
   });
   readonly hasHostedQuiz = computed(() => this.latestHostedQuizId() !== null);
   readonly hostSessionCtas = signal<HostSessionCta[]>([]);
-  readonly hostSessionMenuCtas = computed(() => {
-    const openItems = this.hostSessionCtas().filter((item) => item.qaOpen === true);
-    return openItems.length > HOST_SESSION_DIRECT_OPEN_LIMIT ? this.hostSessionCtas() : [];
-  });
-  readonly directHostSessionCtas = computed(() => {
-    const menuItems = this.hostSessionMenuCtas();
-    if (menuItems.length === 0) {
-      return this.hostSessionCtas();
-    }
-    const menuCodes = new Set(menuItems.map((item) => item.code));
-    return this.hostSessionCtas().filter((item) => !menuCodes.has(item.code));
-  });
+  readonly directHostSessionCtas = computed(() =>
+    this.hostSessionCtas().slice(0, HOST_SESSION_DIRECT_LIMIT),
+  );
+  readonly hostSessionMenuCtas = computed(() =>
+    this.hostSessionCtas().slice(HOST_SESSION_DIRECT_LIMIT),
+  );
   readonly showHostRecoveryCta = computed(() => this.hostSessionCtas().length > 0);
   readonly hostSessionCtaBusy = signal(false);
   private hostSessionCtaLoadGeneration = 0;
