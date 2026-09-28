@@ -7863,12 +7863,6 @@ describe('SessionVoteComponent', { timeout: 30_000 }, () => {
       },
     });
     currentQuestionQueryMock.mockResolvedValue(null);
-    qaListQueryMock.mockResolvedValue([]);
-
-    const fixture = TestBed.createComponent(SessionVoteComponent);
-    fixture.detectChanges();
-    await flushComponentAfterStable(fixture, 50);
-
     const recoveredSnapshot = {
       questions: [
         {
@@ -7894,18 +7888,15 @@ describe('SessionVoteComponent', { timeout: 30_000 }, () => {
       totalCount: 1_500,
     };
 
-    qaListQueryMock.mockClear();
     qaListQueryMock
       .mockRejectedValueOnce(new Error('temporary qa.list failure'))
       .mockResolvedValue(recoveredSnapshot);
     vi.useFakeTimers();
     const randomSpy = vi.spyOn(Math, 'random').mockReturnValue(0);
 
-    await (
-      fixture.componentInstance as unknown as {
-        refreshQaQuestions(): Promise<void>;
-      }
-    ).refreshQaQuestions();
+    const fixture = TestBed.createComponent(SessionVoteComponent);
+    fixture.detectChanges();
+    await vi.advanceTimersByTimeAsync(0);
 
     expect(qaListQueryMock).toHaveBeenCalledTimes(1);
     expect(fixture.componentInstance.qaError()).toBe('Fragen konnten nicht geladen werden.');
