@@ -5354,21 +5354,23 @@ export class SessionHostComponent implements OnInit, OnDestroy {
       });
   }
 
-  private async refreshAuxiliaryHostData(): Promise<void> {
+  private async refreshAuxiliaryHostData(
+    options: { isCurrent?: () => boolean } = {},
+  ): Promise<void> {
     if (typeof document !== 'undefined' && document.hidden) {
       return;
     }
     if (this.shouldPollLiveFreetext()) {
-      await this.refreshLiveFreetext();
+      await this.refreshLiveFreetext(options);
     }
     if (this.shouldPollQaQuestions()) {
-      await this.refreshQaQuestions({ silent: true, preservePaging: true });
+      await this.refreshQaQuestions({ silent: true, preservePaging: true, ...options });
     }
     if (this.shouldPollQuickFeedback()) {
-      await this.refreshQuickFeedbackResult();
+      await this.refreshQuickFeedbackResult(options);
     }
     if (this.shouldPollEmojiReactions()) {
-      await this.refreshEmojiReactions();
+      await this.refreshEmojiReactions(options);
     }
   }
 
@@ -5511,6 +5513,8 @@ export class SessionHostComponent implements OnInit, OnDestroy {
         this.refreshHostVoteProgress({ throwOnError: true, isCurrent }),
         this.refreshSessionLifecycle({ throwOnError: true, isCurrent }),
       ]);
+      assertCurrent();
+      await this.refreshAuxiliaryHostData({ isCurrent });
       assertCurrent();
     };
 
@@ -11756,6 +11760,7 @@ export class SessionHostComponent implements OnInit, OnDestroy {
     silent?: boolean;
     surfaceFailure?: boolean;
     replaceStale?: boolean;
+    isCurrent?: () => boolean;
     /** Aktuelle Fragenseite nach Live-Invalidierung behalten (nicht auf Seite 1 springen). */
     preservePaging?: boolean;
   }): Promise<boolean> {
@@ -11795,7 +11800,10 @@ export class SessionHostComponent implements OnInit, OnDestroy {
 
       for (let page = 0; page <= targetPage; page += 1) {
         snapshot = await trpc.qa.list.query(this.hostQaListQueryInput(cursor));
-        if (requestGeneration !== this.qaListRequestGeneration) {
+        if (
+          (options?.isCurrent && !options.isCurrent()) ||
+          requestGeneration !== this.qaListRequestGeneration
+        ) {
           return false;
         }
         if (page === targetPage || !snapshot.nextCursor) {
@@ -11807,7 +11815,11 @@ export class SessionHostComponent implements OnInit, OnDestroy {
         pageReached = page + 1;
       }
 
-      if (!snapshot || requestGeneration !== this.qaListRequestGeneration) {
+      if (
+        !snapshot ||
+        (options?.isCurrent && !options.isCurrent()) ||
+        requestGeneration !== this.qaListRequestGeneration
+      ) {
         return false;
       }
 
@@ -11823,6 +11835,7 @@ export class SessionHostComponent implements OnInit, OnDestroy {
           silent: options?.silent,
           surfaceFailure: true,
           replaceStale: true,
+          isCurrent: options?.isCurrent,
         });
       }
       if (targetPage > 0) {
@@ -11833,6 +11846,9 @@ export class SessionHostComponent implements OnInit, OnDestroy {
       this.dismissQaSteeringCallout();
       return true;
     } catch (error) {
+      if (options?.isCurrent && !options.isCurrent()) {
+        return false;
+      }
       if (requestGeneration !== this.qaListRequestGeneration) {
         return false;
       }
@@ -11845,6 +11861,7 @@ export class SessionHostComponent implements OnInit, OnDestroy {
           silent: options.silent,
           surfaceFailure: options.surfaceFailure,
           preservePaging: false,
+          isCurrent: options.isCurrent,
         });
       }
       if (options?.silent && !options.surfaceFailure) {
@@ -12567,7 +12584,9 @@ export class SessionHostComponent implements OnInit, OnDestroy {
     }
   }
 
-  private async refreshQuickFeedbackResult(): Promise<void> {
+  private async refreshQuickFeedbackResult(
+    options: { isCurrent?: () => boolean } = {},
+  ): Promise<void> {
     if (!this.channels().quickFeedback || this.code.length !== 6) {
       this.quickFeedbackResult.set(null);
       this.quickFeedbackSeenVoteCount.set(0);
@@ -12578,6 +12597,7 @@ export class SessionHostComponent implements OnInit, OnDestroy {
       const result = await trpc.quickFeedback.hostResults.query({
         sessionCode: this.code.toUpperCase(),
       });
+      if (options.isCurrent && !options.isCurrent()) return;
       this.quickFeedbackResult.set(result);
     } catch {
       // Keep the last snapshot visible during transient polling failures.
@@ -12897,7 +12917,7 @@ export class SessionHostComponent implements OnInit, OnDestroy {
     }
   }
 
-  async refreshEmojiReactions(): Promise<void> {
+  async refreshEmojiReactions(options: { isCurrent?: () => boolean } = {}): Promise<void> {
     if (
       (this.effectiveStatus() !== 'RESULTS' && this.effectiveStatus() !== 'ACTIVE') ||
       !this.session()?.enableEmojiReactions
@@ -12927,6 +12947,7 @@ export class SessionHostComponent implements OnInit, OnDestroy {
         questionId: qid,
         round,
       });
+      if (options.isCurrent && !options.isCurrent()) return;
       this.emojiReactions.set(data);
       const delta = data.total - previousTotal;
       if (delta > 0) {
@@ -12941,6 +12962,7 @@ export class SessionHostComponent implements OnInit, OnDestroy {
         }, 700);
       }
     } catch {
+      if (options.isCurrent && !options.isCurrent()) return;
       this.emojiReactions.set(null);
       this.clearEmojiNewBadge();
     }
@@ -13464,9 +13486,10 @@ export class SessionHostComponent implements OnInit, OnDestroy {
     this.hostQuestionDetailsRetryCount = 0;
   }
 
-  private async refreshLiveFreetext(): Promise<void> {
+  private async refreshLiveFreetext(options: { isCurrent?: () => boolean } = {}): Promise<void> {
     try {
       const data = await trpc.session.getLiveFreetext.query({ code: this.code.toUpperCase() });
+      if (options.isCurrent && !options.isCurrent()) return;
       this.freetextResponses.set(data.responses);
 
       if (data.questionType === 'FREETEXT') {
@@ -13490,6 +13513,7 @@ export class SessionHostComponent implements OnInit, OnDestroy {
         this.wordCloudExpanded.set(false);
       }
     } catch {
+      if (options.isCurrent && !options.isCurrent()) return;
       this.wordCloudInfo.set($localize`Live-Freitextdaten konnten nicht geladen werden.`);
     }
   }

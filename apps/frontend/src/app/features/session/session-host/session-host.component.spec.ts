@@ -19250,6 +19250,65 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
     fixture.destroy();
   });
 
+  it('verwirft verspätete Zusatzdaten eines abgelaufenen Reconnect-Versuchs', async () => {
+    const fixture = setup();
+    fixture.detectChanges();
+    await flushComponentAfterStable(fixture, 50);
+    fixture.componentInstance.isPairedHostClient.set(true);
+    getLifecycleForHostQueryMock.mockResolvedValue(defaultLifecycle);
+    const reconnectSession = {
+      ...defaultSession,
+      status: 'ACTIVE' as const,
+      channels: {
+        quiz: { enabled: true },
+        qa: { enabled: false, open: false, title: null, moderationMode: false },
+        quickFeedback: { enabled: true, open: true },
+      },
+    };
+    const staleResult = {
+      type: 'MOOD' as const,
+      locked: false,
+      totalVotes: 1,
+      distribution: { POSITIVE: 1, NEUTRAL: 0, NEGATIVE: 0 },
+    };
+    const currentResult = {
+      ...staleResult,
+      totalVotes: 2,
+      distribution: { POSITIVE: 2, NEUTRAL: 0, NEGATIVE: 0 },
+    };
+    let resolveFirstAuxiliary!: (result: typeof staleResult) => void;
+    getInfoQueryMock.mockResolvedValue(reconnectSession);
+    quickFeedbackHostResultsQueryMock
+      .mockImplementationOnce(
+        () =>
+          new Promise<typeof staleResult>((resolve) => {
+            resolveFirstAuxiliary = resolve;
+          }),
+      )
+      .mockResolvedValueOnce(currentResult);
+    vi.useFakeTimers();
+
+    const firstReconnect = (
+      fixture.componentInstance as unknown as { reconnectPairedHostControl(): Promise<void> }
+    ).reconnectPairedHostControl();
+    const firstTimedOut = expect(firstReconnect).rejects.toThrow('WebSocket reconnect timed out.');
+    await Promise.resolve();
+    await vi.advanceTimersByTimeAsync(12_000);
+    await firstTimedOut;
+
+    await (
+      fixture.componentInstance as unknown as { reconnectPairedHostControl(): Promise<void> }
+    ).reconnectPairedHostControl();
+    expect(fixture.componentInstance.quickFeedbackResult()?.totalVotes).toBe(2);
+
+    resolveFirstAuxiliary(staleResult);
+    await Promise.resolve();
+    await Promise.resolve();
+
+    expect(fixture.componentInstance.quickFeedbackResult()?.totalVotes).toBe(2);
+    fixture.destroy();
+  });
+
   it('meldet einen manuellen Reconnect erst nach vollständigem Host-Snapshot als erfolgreich', async () => {
     const fixture = setup();
     fixture.detectChanges();
