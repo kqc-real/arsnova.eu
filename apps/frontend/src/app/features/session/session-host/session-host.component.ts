@@ -73,7 +73,8 @@ import {
   localeIdToSupported,
   type SupportedLocale,
 } from '../../../core/locale-from-path';
-import { refreshTrpcWsBinding, trpc } from '../../../core/trpc.client';
+import { forceReconnectTrpcWs, refreshTrpcWsBinding, trpc } from '../../../core/trpc.client';
+import { WsConnectionService } from '../../../core/ws-connection.service';
 import {
   clearHostBrowserCapability,
   clearStagedHostRecoveryCard,
@@ -297,6 +298,7 @@ const SESSION_LIFECYCLE_DIALOG_OVERLAY = {
 const HOST_AUX_POLL_MS = 3000;
 const HOST_CLOCK_POLL_MS = 15000;
 const HOST_REALTIME_RESUBSCRIBE_MS = 5000;
+const HOST_MANUAL_RECONNECT_TIMEOUT_MS = 12000;
 const QA_WORD_CLOUD_ANALYSIS_DEBOUNCE_MS = 180;
 const QA_WORD_CLOUD_ANALYZE_CONFLICT_RETRIES = 3;
 const QA_WORD_CLOUD_ANALYZE_CONFLICT_RETRY_MS = 80;
@@ -823,6 +825,7 @@ export class SessionHostComponent implements OnInit, OnDestroy {
   private hostRealtimeFallbackActive = false;
   private hostRealtimeFallbackRefreshInFlight = false;
   private hostRealtimeSubscriptionRetryTimer: ReturnType<typeof setTimeout> | null = null;
+  private unregisterPairedHostManualReconnect: (() => void) | null = null;
   private currentQuestionRefreshRunId = 0;
   private hostVoteProgressRefreshRunId = 0;
   private participantBaselineReady = false;
@@ -872,6 +875,7 @@ export class SessionHostComponent implements OnInit, OnDestroy {
   private readonly wordCloudTermExtractor = inject(WordCloudTermExtractorService);
   private readonly sessionTokenStorage = inject(SessionTokenStorageService);
   private readonly hostScenario = inject(HostScenarioService);
+  private readonly wsConnection = inject(WsConnectionService);
   readonly contextualFeedbackOffer = inject(ContextualFeedbackOfferService);
   private presenterWindowOpenInFlight = false;
   private presenterWindowHandle: Window | null = null;
@@ -1766,7 +1770,15 @@ export class SessionHostComponent implements OnInit, OnDestroy {
   readonly showHostViewControls = computed(() => this.isLiveHostSurface());
   readonly presenterSurfacePending = signal(false);
   readonly pendingHostMoreAction = signal<
-    'skip' | 'previous' | 'replace' | 'leave' | 'endPresentation' | 'feedback' | 'end' | null
+    | 'skip'
+    | 'previous'
+    | 'replace'
+    | 'leave'
+    | 'openPresentation'
+    | 'endPresentation'
+    | 'feedback'
+    | 'end'
+    | null
   >(null);
 
   /** Material restores the persistent menu trigger before emitting menuClosed. */
@@ -1792,6 +1804,9 @@ export class SessionHostComponent implements OnInit, OnDestroy {
         break;
       case 'leave':
         void this.onLeaveHostKeepingQaOpen();
+        break;
+      case 'openPresentation':
+        void this.openPresenterView(true);
         break;
       case 'endPresentation':
         void this.endPresentationView();
@@ -4630,6 +4645,7 @@ export class SessionHostComponent implements OnInit, OnDestroy {
 
   async ngOnInit(): Promise<void> {
     if (this.code.length !== 6) return;
+    this.syncPairedHostManualReconnectRegistration();
     if (this.isPairedHostClient()) {
       this.sound.setOutputEnabled(false);
     }
@@ -5429,6 +5445,60 @@ export class SessionHostComponent implements OnInit, OnDestroy {
     this.hostRealtimeSubscriptionRetryTimer = null;
   }
 
+  private syncPairedHostManualReconnectRegistration(): void {
+    const shouldRegister = this.isPairedHostClient() && !this.hostAccessRevoked();
+    if (shouldRegister && !this.unregisterPairedHostManualReconnect) {
+      this.unregisterPairedHostManualReconnect = this.wsConnection.registerManualReconnect(() =>
+        this.reconnectPairedHostControl(),
+      );
+      return;
+    }
+    if (!shouldRegister && this.unregisterPairedHostManualReconnect) {
+      this.unregisterPairedHostManualReconnect();
+      this.unregisterPairedHostManualReconnect = null;
+    }
+  }
+
+  private async reconnectPairedHostControl(): Promise<void> {
+    if (!this.isPairedHostClient() || this.hostAccessRevoked()) {
+      throw new Error('Paired host control is no longer available.');
+    }
+
+    this.clearHostRealtimeSubscriptionRetry();
+    let timeout: ReturnType<typeof setTimeout> | null = null;
+    const reconnectTimeout = new Promise<never>((_, reject) => {
+      timeout = setTimeout(
+        () => reject(new Error('WebSocket reconnect timed out.')),
+        HOST_MANUAL_RECONNECT_TIMEOUT_MS,
+      );
+    });
+
+    try {
+      await Promise.race([forceReconnectTrpcWs(), reconnectTimeout]);
+      await this.reloadSessionInfo();
+      await Promise.all([
+        this.refreshParticipantsPayload(),
+        this.refreshCurrentQuestionForHost(),
+        this.refreshHostVoteProgress(),
+        this.refreshSessionLifecycle(),
+      ]);
+      await this.refreshAuxiliaryHostData();
+      this.hostRealtimeFallbackActive = false;
+    } catch (error: unknown) {
+      this.consumeHostUnauthorized(error);
+      throw error;
+    } finally {
+      if (timeout) clearTimeout(timeout);
+      if (!this.hostAccessRevoked()) {
+        this.ensureParticipantSubscription();
+        this.ensureStatusSubscription();
+        this.ensureCurrentQuestionSubscription();
+        this.ensureVoteProgressSubscription();
+        this.startHostPolling();
+      }
+    }
+  }
+
   /** Periodische Kalibrierung gegen die Serverzeit (Health), falls keine Status-Events kommen. */
   private async refreshServerClockSkew(): Promise<void> {
     try {
@@ -5441,6 +5511,8 @@ export class SessionHostComponent implements OnInit, OnDestroy {
   }
 
   ngOnDestroy(): void {
+    this.unregisterPairedHostManualReconnect?.();
+    this.unregisterPairedHostManualReconnect = null;
     this.unbindPresenterDesktopMedia();
     if (typeof document !== 'undefined') {
       document.removeEventListener('visibilitychange', this.onVisibilityChange);
@@ -5551,8 +5623,11 @@ export class SessionHostComponent implements OnInit, OnDestroy {
     this.hostDisplayMode.setPreferImmersiveHost(!this.isImmersiveMode());
   }
 
-  async openPresenterView(): Promise<void> {
-    if (!this.showPresenterViewButton() || this.presenterWindowOpenInFlight) {
+  async openPresenterView(allowCompactViewport = false): Promise<void> {
+    if (
+      (!allowCompactViewport && !this.showPresenterViewButton()) ||
+      this.presenterWindowOpenInFlight
+    ) {
       return;
     }
     if (this.syncPresenterWindowOpenState()) {
@@ -5613,6 +5688,12 @@ export class SessionHostComponent implements OnInit, OnDestroy {
   readonly projectionPagePending = signal(false);
   readonly projectionControlsVisible = signal(false);
   readonly projectionPageError = signal('');
+  readonly showProjectionPageNavigation = computed(() => {
+    const session = this.session();
+    const page = session?.presenterPage;
+    if (!page || session?.presenterSurface === 'ended') return false;
+    return page.count > 1 || this.projectionControlsVisible() || !this.showPresenterViewButton();
+  });
   async changeProjectionPage(delta: -1 | 1): Promise<void> {
     const page = this.session()?.presenterPage;
     if (
@@ -5724,6 +5805,7 @@ export class SessionHostComponent implements OnInit, OnDestroy {
 
   private applyHostTwinMode(paired: boolean): void {
     this.isPairedHostClient.set(paired);
+    this.syncPairedHostManualReconnectRegistration();
     this.sound.setOutputEnabled(!paired && !this.hostAccessRevoked());
     if (paired) {
       this.sound.stopAll();
@@ -5749,6 +5831,7 @@ export class SessionHostComponent implements OnInit, OnDestroy {
       return;
     }
     this.hostAccessRevoked.set(true);
+    this.syncPairedHostManualReconnectRegistration();
     this.canManagePairedHosts.set(false);
     this.participantSub?.unsubscribe();
     this.participantSub = null;

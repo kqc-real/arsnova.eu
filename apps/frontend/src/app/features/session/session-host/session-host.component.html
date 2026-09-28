@@ -1,5 +1,5 @@
 @if (session()?.presenterPage; as page) {
-  @if (session()?.presenterSurface !== 'ended' && (page.count > 1 || projectionControlsVisible())) {
+  @if (showProjectionPageNavigation()) {
     <nav
       class="session-host__projection-pages"
       [class.session-host__projection-pages--app-frame]="!isImmersiveMode()"
@@ -71,12 +71,16 @@
           >
             Die Verbindung wurde beendet.
           </h2>
-          <span
-            id="host-revoked-text"
-            class="dialog-title-header__sub"
-            i18n="@@hostAccess.revokedHint"
-          >
-            Dieses Gerät kann die Veranstaltung nicht mehr steuern.
+          <span id="host-revoked-text" class="dialog-title-header__sub">
+            @if (isPairedHostClient()) {
+              <span i18n="@@hostAccess.pairedRevokedHint">
+                Dieses Gerät muss erneut verbunden werden. Scanne am Hauptgerät einen neuen QR-Code.
+              </span>
+            } @else {
+              <span i18n="@@hostAccess.revokedHint">
+                Dieses Gerät kann die Veranstaltung nicht mehr steuern.
+              </span>
+            }
           </span>
         </span>
       </header>
@@ -5120,6 +5124,18 @@
             <span i18n="@@sessionHost.frameOption">App-Rahmen</span>
           </button>
         </div>
+      }
+      @if (!showPresenterViewButton()) {
+        <button
+          mat-menu-item
+          type="button"
+          data-testid="mobile-presenter-view-action"
+          (click)="pendingHostMoreAction.set('openPresentation')"
+          [disabled]="presenterSurfacePending()"
+        >
+          <mat-icon aria-hidden="true">present_to_all</mat-icon>
+          <span>{{ presenterViewActionLabel() }}</span>
+        </button>
       }
       @if (session()?.presenterSurface !== 'ended') {
         <button

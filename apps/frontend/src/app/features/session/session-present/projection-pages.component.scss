@@ -87,6 +87,47 @@ app-projection-pages {
   flex-direction: column;
   gap: clamp(1.75rem, 3.6vh, 3rem);
 }
+.session-present
+  app-projection-pages
+  .projection-source--many-units
+  .session-projection-quiz__answers {
+  gap: clamp(0.75rem, 1.6vh, 1.25rem);
+}
+.session-present
+  app-projection-pages
+  .projection-source--many-units
+  .session-projection-quiz__answer {
+  padding: clamp(0.65rem, 1.2vh, 0.9rem) clamp(0.85rem, 1.5vw, 1.2rem);
+  font-size: clamp(1.35rem, 2.4vh, 2rem);
+}
+.session-present
+  app-projection-pages
+  .projection-source--many-units
+  .session-projection-quiz__answer-head
+  .markdown-body,
+.session-present
+  app-projection-pages
+  .projection-source--many-units
+  .session-projection-quiz__answer-head
+  .markdown-body
+  :is(p, h1, h2, h3, h4) {
+  font-size: inherit;
+  line-height: 1.35;
+}
+.session-present
+  app-projection-pages
+  .projection-source--many-units
+  :is(
+    .session-projection-quiz__option-chip,
+    .session-projection-quiz__pair,
+    .session-projection-quiz__order-item,
+    .session-projection-quiz__category-item,
+    .projection-matrix__entry
+  ) {
+  padding-block: clamp(0.5rem, 1vh, 0.75rem);
+  font-size: clamp(1.25rem, 2.2vh, 1.8rem);
+  line-height: 1.35;
+}
 .session-present .projection-pages__page:has(.session-projection-quiz__answers) {
   display: flex;
   flex-direction: column;
@@ -139,12 +180,6 @@ app-projection-pages {
   max-height: 35vh;
   object-fit: contain;
 }
-.session-present app-projection-pages .session-projection-quiz__emoji-reactions {
-  position: static;
-  transform: none;
-  margin-inline: auto;
-}
-
 .session-present app-projection-pages .session-projection-quiz__title :is(h1, h2, h3, h4, h5, h6) {
   font-size: inherit;
   line-height: inherit;

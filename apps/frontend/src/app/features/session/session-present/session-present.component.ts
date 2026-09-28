@@ -257,11 +257,12 @@ export class SessionPresentComponent implements OnInit, OnDestroy {
   readonly joinUrl = resolveLocalizedJoinUrl(this.code);
   readonly sessionCode = this.code;
   readonly showHomeCta = signal(false);
-  readonly connectionDegraded = signal(false);
+  private readonly snapshotRefreshFailed = signal(false);
+  readonly connectionDegraded = this.snapshotRefreshFailed.asReadonly();
   readonly connectionStatusMessage = computed(() =>
     this.session()
-      ? $localize`:@@sessionPresent.reconnectingWithSnapshot:Verbindung wird wiederhergestellt. Der letzte Stand bleibt sichtbar.`
-      : $localize`:@@sessionPresent.reconnecting:Verbindung wird wiederhergestellt …`,
+      ? $localize`:@@sessionPresent.refreshDelayedWithSnapshot:Aktualisierung verzögert. Der letzte Stand bleibt sichtbar.`
+      : $localize`:@@sessionPresent.refreshDelayed:Daten konnten nicht aktualisiert werden. Neuer Versuch läuft …`,
   );
   readonly presenterInfo = signal($localize`Warte auf Live-Freitextdaten …`);
   readonly presenterFreetextActive = signal(false);
@@ -1183,7 +1184,7 @@ export class SessionPresentComponent implements OnInit, OnDestroy {
         anonymousClientId: getAnonymousClientId(),
       });
       recordServerTimeSample(session.serverTime, requestedAt);
-      this.connectionDegraded.set(false);
+      this.snapshotRefreshFailed.set(false);
       this.showHomeCta.set(false);
       if (!this.applySessionDeadlineSnapshot(session)) {
         if (
@@ -1200,6 +1201,7 @@ export class SessionPresentComponent implements OnInit, OnDestroy {
         return;
       }
       this.session.set(session);
+      this.ensurePresenterSubscriptions();
       if (session.status === 'FINISHED') {
         if (session.finishProjection === 'idle') {
           this.personalLeaderboard.set([]);
@@ -1222,14 +1224,14 @@ export class SessionPresentComponent implements OnInit, OnDestroy {
       this.teamLeaderboard.set([]);
     } catch (error: unknown) {
       if (!this.isDefinitiveSessionError(error)) {
-        this.connectionDegraded.set(true);
+        this.snapshotRefreshFailed.set(true);
         this.showHomeCta.set(false);
         if (!this.session()) {
           this.presenterInfo.set(this.connectionStatusMessage());
         }
         return;
       }
-      this.connectionDegraded.set(false);
+      this.snapshotRefreshFailed.set(false);
       this.session.set(null);
       this.showHomeCta.set(true);
       this.presenterInfo.set(localizeKnownServerError(error, sessionNotFoundUiMessage()));
@@ -1416,7 +1418,7 @@ export class SessionPresentComponent implements OnInit, OnDestroy {
         this.presenterInfo.set($localize`Noch keine aktive Frage.`);
       }
     } catch {
-      this.connectionDegraded.set(true);
+      // Einzelner Live-Abruf: letzten Stand behalten; Meta-Poll und WS melden den Gesamtzustand.
     }
   }
 
@@ -1479,7 +1481,7 @@ export class SessionPresentComponent implements OnInit, OnDestroy {
       this.pinnedQaQuestion.set(pinned);
       this.presenterQaQuestions.set(queue);
     } catch {
-      this.connectionDegraded.set(true);
+      // Einzelner Live-Abruf: letzten Stand behalten; Meta-Poll und WS melden den Gesamtzustand.
     }
   }
 
@@ -1518,8 +1520,6 @@ export class SessionPresentComponent implements OnInit, OnDestroy {
     } catch (error: unknown) {
       if (this.errorCode(error) === 'NOT_FOUND') {
         this.quickFeedbackResult.set(null);
-      } else {
-        this.connectionDegraded.set(true);
       }
     }
   }
@@ -1547,7 +1547,7 @@ export class SessionPresentComponent implements OnInit, OnDestroy {
         this.stopCountdown();
       }
     } catch {
-      this.connectionDegraded.set(true);
+      // Einzelner Live-Abruf: letzten Stand behalten; Meta-Poll und WS melden den Gesamtzustand.
     }
   }
 
@@ -1580,7 +1580,7 @@ export class SessionPresentComponent implements OnInit, OnDestroy {
       if (this.presentDeadlineClosed) return;
       this.emojiReactions.set(reactions);
     } catch {
-      this.connectionDegraded.set(true);
+      // Einzelner Live-Abruf: letzten Stand behalten; Meta-Poll und WS melden den Gesamtzustand.
     }
   }
 
@@ -1600,7 +1600,7 @@ export class SessionPresentComponent implements OnInit, OnDestroy {
       if (this.presentDeadlineClosed) return;
       this.hostVoteProgress.set(progress);
     } catch {
-      this.connectionDegraded.set(true);
+      // Einzelner Live-Abruf: letzten Stand behalten; Meta-Poll und WS melden den Gesamtzustand.
     }
   }
 
@@ -1619,9 +1619,6 @@ export class SessionPresentComponent implements OnInit, OnDestroy {
             }
           },
           onError: () => {
-            if (!this.showQaWordCloud()) {
-              this.connectionDegraded.set(true);
-            }
             this.currentQuestionSub?.unsubscribe();
             this.currentQuestionSub = null;
           },
@@ -1636,9 +1633,6 @@ export class SessionPresentComponent implements OnInit, OnDestroy {
             }
           },
           onError: () => {
-            if (!this.showQaWordCloud()) {
-              this.connectionDegraded.set(true);
-            }
             this.voteProgressSub?.unsubscribe();
             this.voteProgressSub = null;
           },
@@ -1697,7 +1691,6 @@ export class SessionPresentComponent implements OnInit, OnDestroy {
           }
         },
         onError: () => {
-          this.connectionDegraded.set(true);
           this.statusSub?.unsubscribe();
           this.statusSub = null;
         },

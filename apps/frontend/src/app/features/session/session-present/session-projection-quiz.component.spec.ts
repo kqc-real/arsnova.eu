@@ -102,6 +102,23 @@ describe('SessionProjectionQuizComponent', () => {
     expect(styles).toMatch(
       /\.session-projection-quiz__answers\s*\{[^}]*gap:\s*clamp\(1\.75rem, 3\.6vh, 3rem\)/s,
     );
+    expect(styles).toMatch(
+      /\.projection-source--many-units[\s\S]*?\.session-projection-quiz__answers\s*\{[^}]*gap:\s*clamp\(0\.75rem, 1\.6vh, 1\.25rem\)/s,
+    );
+  });
+
+  it('reserviert den unteren Reaktionsbereich auf Inhalts- und Scoreboard-Seiten', () => {
+    const styles = readFileSync(
+      resolve(__dirname, 'session-projection-quiz.component.scss'),
+      'utf8',
+    );
+
+    expect(styles).toMatch(
+      /app-projection-pages\.projection-pages--with-reactions\s*\{[^}]*padding-bottom:\s*var\(--pq-reactions-reserve\)/s,
+    );
+    expect(styles).toMatch(
+      /\.session-projection-quiz__leaderboard-page--with-reactions\s*\{[^}]*padding-block-end:\s*calc\([^}]*--pq-reactions-reserve/s,
+    );
   });
 
   it('zeigt in der Lesephase den Fragetext ohne Antwortoptionen', () => {
@@ -393,6 +410,20 @@ describe('SessionProjectionQuizComponent', () => {
         totalResponseTimeMs: 900,
       },
     ]);
+    fixture.componentRef.setInput('teamLeaderboard', [
+      {
+        rank: 1,
+        teamName: 'Team Blau',
+        teamColor: '#1565c0',
+        totalScore: 100,
+        memberCount: 3,
+        averageScore: 100,
+      },
+    ]);
+    fixture.componentRef.setInput('emojiReactions', {
+      reactions: { '👏': 2 },
+      total: 2,
+    });
     fixture.componentInstance.onContentPageCount(3);
     fixture.componentRef.setInput('pageIndex', 2);
     fixture.detectChanges();
@@ -400,6 +431,11 @@ describe('SessionProjectionQuizComponent', () => {
     expect(
       fixture.nativeElement.querySelector('[data-testid="presenter-results-leaderboard"]'),
     ).toBeNull();
+    expect(
+      fixture.nativeElement
+        .querySelector('app-projection-pages')
+        ?.classList.contains('projection-pages--with-reactions'),
+    ).toBe(true);
 
     fixture.componentRef.setInput('pageIndex', 3);
     fixture.detectChanges();
@@ -411,9 +447,59 @@ describe('SessionProjectionQuizComponent', () => {
     ) as HTMLElement | null;
     expect(leaderboard?.textContent).toContain('Ada');
     expect(leaderboard?.textContent).toContain('120');
+    expect(leaderboard?.textContent).toContain('Team Blau');
+    expect(
+      fixture.nativeElement.querySelectorAll('[data-testid="presenter-results-leaderboard"]'),
+    ).toHaveLength(1);
+    const reactions = fixture.nativeElement.querySelector(
+      '[data-testid="presenter-emoji-reactions"]',
+    ) as HTMLElement | null;
+    expect(reactions?.textContent).toContain('👏');
+    expect(reactions?.closest('app-projection-pages')).toBeNull();
+    expect(
+      leaderboard?.classList.contains('session-projection-quiz__leaderboard-page--with-reactions'),
+    ).toBe(true);
     expect(fixture.componentInstance.contentPageIndex()).toBe(2);
     expect(emittedCounts).toContain(4);
   });
+
+  it.each(['SURVEY', 'RATING'] as const)(
+    'hängt für den unbewerteten Fragetyp %s keine Leaderboard-Seite an',
+    (type) => {
+      const emittedCounts: number[] = [];
+      fixture.componentInstance.pageCount.subscribe((count) => emittedCounts.push(count));
+      fixture.componentRef.setInput(
+        'question',
+        choiceQuestion({
+          type,
+          answers: type === 'RATING' ? [] : choiceQuestion().answers,
+          ...(type === 'RATING' ? { ratingMin: 1, ratingMax: 5 } : {}),
+        }),
+      );
+      fixture.componentRef.setInput('status', 'RESULTS');
+      fixture.componentRef.setInput('pageContext', `results-${type.toLowerCase()}`);
+      fixture.componentRef.setInput('leaderboard', [
+        {
+          rank: 1,
+          nickname: 'Ada',
+          totalScore: 120,
+          correctCount: 1,
+          totalQuestions: 1,
+          totalResponseTimeMs: 900,
+        },
+      ]);
+      fixture.componentInstance.onContentPageCount(2);
+      fixture.componentRef.setInput('pageIndex', 2);
+      fixture.detectChanges();
+
+      expect(fixture.componentInstance.hasLeaderboardPage()).toBe(false);
+      expect(
+        fixture.nativeElement.querySelector('[data-testid="presenter-results-leaderboard"]'),
+      ).toBeNull();
+      expect(emittedCounts).toContain(2);
+      expect(emittedCounts).not.toContain(3);
+    },
+  );
 
   it('meldet vor der Messung keine vorläufige Seitenzahl, die den Reload-Index zurücksetzt', () => {
     const emittedCounts: number[] = [];

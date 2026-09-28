@@ -167,5 +167,11 @@ export function prepareProjectionSource(root: HTMLElement): HTMLElement {
     });
     table.replaceWith(section);
   });
+  const projectionUnitCount = copy.querySelectorAll(
+    '.session-projection-quiz__answer, [data-projection-unit]',
+  ).length;
+  if (projectionUnitCount >= 4 && projectionUnitCount <= 8) {
+    copy.classList.add('projection-source--many-units');
+  }
   return copy;
 }

@@ -147,6 +147,7 @@ const {
   dialogOpenMock,
   persistCurrentHostTokenMock,
   clearStoredHostTokenMock,
+  forceReconnectTrpcWsMock,
 } = vi.hoisted(() => ({
   healthCheckQueryMock: vi.fn(),
   getInfoQueryMock: vi.fn(),
@@ -208,9 +209,14 @@ const {
   dialogOpenMock: vi.fn(),
   persistCurrentHostTokenMock: vi.fn(async () => true),
   clearStoredHostTokenMock: vi.fn(async () => undefined),
+  forceReconnectTrpcWsMock: vi.fn(async () => undefined),
 }));
 
 vi.mock('../../../core/trpc.client', () => ({
+  forceReconnectTrpcWs: forceReconnectTrpcWsMock,
+  refreshTrpcWsBinding: vi.fn(),
+  getWsConnectionState: () => 'connected',
+  onWsStateChange: () => () => undefined,
   trpc: {
     health: {
       check: { query: healthCheckQueryMock },
@@ -865,6 +871,44 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
     expect(document.activeElement).toBe(next);
     expect(next!.isConnected).toBe(true);
     expect(next!.getAttribute('aria-disabled')).toBe('true');
+  });
+
+  it('zeigt die angepinnte Presenter-Navigation auf einem Steuer-Smartphone auch bei einer Seite', async () => {
+    vi.stubGlobal(
+      'matchMedia',
+      vi.fn((query: string) => ({
+        matches: false,
+        media: query,
+        addEventListener: vi.fn(),
+        removeEventListener: vi.fn(),
+        addListener: vi.fn(),
+        removeListener: vi.fn(),
+        dispatchEvent: vi.fn(),
+        onchange: null,
+      })),
+    );
+    getInfoQueryMock.mockResolvedValue({
+      ...defaultSession,
+      status: 'ACTIVE',
+      presenterSurface: 'default',
+      presenterPage: { context: 'projection-mobile-test', index: 0, count: 1 },
+    });
+
+    const fixture = setup();
+    fixture.detectChanges();
+    await flushComponentAfterStable(fixture, 50);
+
+    const nav = fixture.nativeElement.querySelector(
+      '.session-host__projection-pages',
+    ) as HTMLElement | null;
+    const buttons = Array.from(nav?.querySelectorAll('button') ?? []);
+    expect(fixture.componentInstance.showPresenterViewButton()).toBe(false);
+    expect(nav?.textContent).toContain('1 / 1');
+    expect(buttons).toHaveLength(2);
+    expect(buttons.every((button) => button.getAttribute('aria-disabled') === 'true')).toBe(true);
+
+    fixture.destroy();
+    vi.unstubAllGlobals();
   });
 
   it('pinnt die Projektionsnavigation oben im scrollenden Host-Viewport an', async () => {
@@ -2313,6 +2357,7 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
     expect(menu.querySelector('.session-host__view-toggle--frame')?.textContent).toContain(
       'App-Rahmen',
     );
+    expect(menu.querySelector('[data-testid="mobile-presenter-view-action"]')).toBeNull();
     expect(
       menu.querySelector('[data-testid="host-product-feedback-action"]')?.textContent,
     ).toContain('arsnova.eu verbessern');
@@ -2692,7 +2737,7 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
     fixture.destroy();
   });
 
-  it('blendet die Presenter-Ansicht auf Mobilgeräten aus', async () => {
+  it('verlegt den Presenter-Start auf Mobilgeräten nach Weitere Aktionen', async () => {
     vi.stubGlobal(
       'matchMedia',
       vi.fn((query: string) => ({
@@ -2723,6 +2768,53 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
 
     expect(fixture.componentInstance.showPresenterViewButton()).toBe(false);
     expect(fixture.nativeElement.querySelector('[data-testid="open-presenter-view"]')).toBeNull();
+    dialogOpenMock.mockClear();
+    const { menu } = await openHostMoreActions(fixture);
+    const mobilePresenterAction = menu.querySelector<HTMLButtonElement>(
+      '[data-testid="mobile-presenter-view-action"]',
+    );
+    expect(mobilePresenterAction?.textContent).toContain('Präsentationsansicht öffnen');
+    mobilePresenterAction!.click();
+    await vi.waitUntil(() => dialogOpenMock.mock.calls.length === 1);
+    expect(dialogOpenMock).toHaveBeenCalledWith(
+      PresentationStartDialogComponent,
+      expect.objectContaining({
+        data: expect.objectContaining({ startPresenterView: expect.any(Function) }),
+      }),
+    );
+    fixture.destroy();
+    vi.unstubAllGlobals();
+  });
+
+  it('bietet auf Mobilgeräten die beendete Präsentationsansicht zum Fortsetzen an', async () => {
+    vi.stubGlobal(
+      'matchMedia',
+      vi.fn((query: string) => ({
+        matches: false,
+        media: query,
+        addEventListener: vi.fn(),
+        removeEventListener: vi.fn(),
+        addListener: vi.fn(),
+        removeListener: vi.fn(),
+        dispatchEvent: vi.fn(),
+        onchange: null,
+      })),
+    );
+    getInfoQueryMock.mockResolvedValue({
+      ...defaultSession,
+      status: 'ACTIVE',
+      presenterSurface: 'ended',
+    });
+
+    const fixture = setup();
+    fixture.detectChanges();
+    await flushComponentAfterStable(fixture, 50);
+
+    const { menu } = await openHostMoreActions(fixture);
+    expect(
+      menu.querySelector('[data-testid="mobile-presenter-view-action"]')?.textContent,
+    ).toContain('Präsentationsansicht fortsetzen');
+    expect(menu.textContent).not.toContain('Projektionsansicht beenden');
     fixture.destroy();
     vi.unstubAllGlobals();
   });
@@ -5753,6 +5845,28 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
 
     await fixture.componentInstance.goHomeAfterHostRevoke();
     expect(navigateByUrlSpy).toHaveBeenCalledWith('/', { replaceUrl: true });
+    fixture.destroy();
+  });
+
+  it('fordert ein widerrufenes Steuergerät zum erneuten QR-Pairing auf', async () => {
+    const fixture = setup();
+    fixture.detectChanges();
+    await fixture.whenStable();
+    fixture.componentInstance.isPairedHostClient.set(true);
+
+    (
+      fixture.componentInstance as unknown as { markHostAccessRevoked(): void }
+    ).markHostAccessRevoked();
+    fixture.detectChanges();
+
+    const revoked = fixture.nativeElement.querySelector(
+      '[data-testid="host-access-revoked"]',
+    ) as HTMLElement;
+    expect(revoked.textContent).toContain('muss erneut verbunden werden');
+    expect(revoked.textContent).toContain('neuen QR-Code');
+    expect(revoked.textContent).not.toContain(
+      'Dieses Gerät kann die Veranstaltung nicht mehr steuern.',
+    );
     fixture.destroy();
   });
 
@@ -15204,8 +15318,18 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
       const previous = vi.spyOn(component, 'prevQuestion').mockResolvedValue(undefined);
       const replace = vi.spyOn(component, 'replaceQuizBeforeStart').mockResolvedValue(undefined);
       const leave = vi.spyOn(component, 'onLeaveHostKeepingQaOpen').mockResolvedValue(undefined);
+      const openPresentation = vi
+        .spyOn(component, 'openPresenterView')
+        .mockResolvedValue(undefined);
       const end = vi.spyOn(component, 'onSessionEndAnchorClick').mockResolvedValue(undefined);
-      for (const action of ['skip', 'previous', 'replace', 'leave', 'end'] as const) {
+      for (const action of [
+        'skip',
+        'previous',
+        'replace',
+        'leave',
+        'openPresentation',
+        'end',
+      ] as const) {
         component.pendingHostMoreAction.set(action);
         component.runHostMoreAction();
         expect(component.pendingHostMoreAction()).toBeNull();
@@ -15214,6 +15338,7 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
       expect(previous).not.toHaveBeenCalled();
       expect(replace).not.toHaveBeenCalled();
       expect(leave).not.toHaveBeenCalled();
+      expect(openPresentation).not.toHaveBeenCalled();
       expect(end).not.toHaveBeenCalled();
       fixture.destroy();
     },
@@ -19033,6 +19158,29 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
     );
     fixture.destroy();
     expect(unsubscribeMock).toHaveBeenCalledTimes(4);
+  });
+
+  it('lädt nach manuellem Reconnect eines Steuergeräts den Host-Snapshot neu', async () => {
+    const fixture = setup();
+    fixture.detectChanges();
+    await flushComponentAfterStable(fixture, 50);
+    forceReconnectTrpcWsMock.mockClear();
+    getInfoQueryMock.mockClear();
+    getParticipantsQueryMock.mockClear();
+    getCurrentQuestionForHostQueryMock.mockClear();
+    getHostVoteProgressQueryMock.mockClear();
+    fixture.componentInstance.isPairedHostClient.set(true);
+
+    await (
+      fixture.componentInstance as unknown as { reconnectPairedHostControl(): Promise<void> }
+    ).reconnectPairedHostControl();
+
+    expect(forceReconnectTrpcWsMock).toHaveBeenCalledTimes(1);
+    expect(getInfoQueryMock).toHaveBeenCalledTimes(1);
+    expect(getParticipantsQueryMock).toHaveBeenCalled();
+    expect(getCurrentQuestionForHostQueryMock).toHaveBeenCalled();
+    expect(getHostVoteProgressQueryMock).toHaveBeenCalled();
+    fixture.destroy();
   });
 
   it('zeigt im spielerischen Quiz-Foyer nur fuer echte Neuzugaenge einen Arrival-Chip', async () => {

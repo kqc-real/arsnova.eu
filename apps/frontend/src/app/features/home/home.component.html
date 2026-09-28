@@ -455,29 +455,6 @@
               i18n-aria-label="@@homeLiveCard.openHostSessionsAria"
               aria-label="Deine Q&amp;A-Sessions"
             >
-              @if (hostSessionMenuCtas().length > 0) {
-                <li class="home-host-session-cta-row__item home-host-session-cta-row__menu-trigger">
-                  <button
-                    #hostSessionMenuTrigger="matMenuTrigger"
-                    matButton="outlined"
-                    type="button"
-                    class="home-cta home-choice-button home-cta--secondary home-library-button"
-                    data-testid="home-host-session-menu-trigger"
-                    [matMenuTriggerFor]="hostSessionMenu"
-                  >
-                    <span class="home-choice-button__copy">
-                      <span class="home-choice-button__label">
-                        <span class="home-host-session-cta__dot" aria-hidden="true"></span>
-                        <span i18n="@@homeLiveCard.openHostSessionsAria"
-                          >Deine Q&amp;A-Sessions</span
-                        >
-                        <span>({{ hostSessionMenuCtas().length }})</span>
-                      </span>
-                    </span>
-                    <mat-icon aria-hidden="true">expand_more</mat-icon>
-                  </button>
-                </li>
-              }
               @for (item of directHostSessionCtas(); track item.code) {
                 <li class="home-host-session-cta-row__item">
                   <a
@@ -527,6 +504,29 @@
                     (click)="removeHostSessionCta(item, $event)"
                   >
                     <mat-icon aria-hidden="true">delete_outline</mat-icon>
+                  </button>
+                </li>
+              }
+              @if (hostSessionMenuCtas().length > 0) {
+                <li class="home-host-session-cta-row__item home-host-session-cta-row__menu-trigger">
+                  <button
+                    #hostSessionMenuTrigger="matMenuTrigger"
+                    matButton="outlined"
+                    type="button"
+                    class="home-cta home-choice-button home-cta--secondary home-library-button"
+                    data-testid="home-host-session-menu-trigger"
+                    [matMenuTriggerFor]="hostSessionMenu"
+                  >
+                    <span class="home-choice-button__copy">
+                      <span class="home-choice-button__label">
+                        <span class="home-host-session-cta__dot" aria-hidden="true"></span>
+                        <span i18n="@@homeLiveCard.openHostSessionsAria"
+                          >Deine Q&amp;A-Sessions</span
+                        >
+                        <span>({{ hostSessionMenuCtas().length }})</span>
+                      </span>
+                    </span>
+                    <mat-icon aria-hidden="true">expand_more</mat-icon>
                   </button>
                 </li>
               }

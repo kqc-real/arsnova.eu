@@ -262,6 +262,19 @@ export function refreshTrpcWsBinding(): boolean {
   return true;
 }
 
+/**
+ * Erzwingt einen neuen physischen WebSocket-Transport, ohne die beim tRPC-Client
+ * registrierten Subscription-Requests abzuschließen. Der lazy Client sendet
+ * aktive Requests nach dem Transportwechsel erneut.
+ */
+export function forceReconnectTrpcWs(): Promise<void> {
+  if (!wsClient) return Promise.resolve();
+  bindingRefreshPromise = bindingRefreshPromise
+    .catch(() => undefined)
+    .then(() => reconnectWsForBindingChange());
+  return bindingRefreshPromise;
+}
+
 function reconnectWsForBindingChange(): Promise<void> {
   if (!wsClient) return Promise.resolve();
   const connection = wsClient.connection;

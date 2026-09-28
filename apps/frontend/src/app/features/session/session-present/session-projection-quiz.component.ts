@@ -110,8 +110,15 @@ export class SessionProjectionQuizComponent {
   readonly currentContentPageCount = computed(() =>
     this.measuredContentPageContext() === this.pageContext() ? this.contentPageCount() : 1,
   );
+  readonly questionSupportsLeaderboard = computed(() => {
+    const type = this.question()?.type;
+    return type !== undefined && type !== 'SURVEY' && type !== 'RATING' && type !== 'FREETEXT';
+  });
   readonly hasLeaderboardPage = computed(
-    () => this.isResults() && (this.leaderboard().length > 0 || this.teamLeaderboard().length > 0),
+    () =>
+      this.isResults() &&
+      this.questionSupportsLeaderboard() &&
+      (this.leaderboard().length > 0 || this.teamLeaderboard().length > 0),
   );
   readonly showLeaderboardPage = computed(
     () => this.hasLeaderboardPage() && this.pageIndex() >= this.currentContentPageCount(),

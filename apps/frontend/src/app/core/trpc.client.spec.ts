@@ -353,6 +353,16 @@ describe('trpc.client host transport', () => {
     activeSubscription.unsubscribe();
   });
 
+  it('erzwingt einen Transport-Reconnect auch bei unverändertem Binding', async () => {
+    const { forceReconnectTrpcWs } = await loadClientModule('/de/session/abc123/host');
+
+    await forceReconnectTrpcWs();
+
+    expect(wsTransportCloseMock).toHaveBeenCalledTimes(1);
+    expect(wsClientCloseMock).not.toHaveBeenCalled();
+    expect(mockConnectionId).toBe(2);
+  });
+
   it('sendet Blitzlicht-Host-Token ueber WebSocket-Connection-Params fuer Standalone-Host-Subscriptions', async () => {
     getFeedbackHostTokenMock.mockReturnValue('feedback-token-456');
 

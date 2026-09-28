@@ -1631,6 +1631,15 @@ describe('HomeComponent', () => {
       expect(trigger.textContent).toContain('(1)');
       expect(trigger.getAttribute('aria-haspopup')).toBe('menu');
       expect(directCodes).toEqual(['AAA111', 'BBB222']);
+      expect(
+        Array.from(
+          trigger.closest('.home-host-session-cta-row')?.children ?? [],
+          (item) =>
+            item.querySelector<HTMLElement>(
+              '[data-testid="home-host-recovery"], [data-testid="home-host-session-menu-trigger"]',
+            )?.dataset['testid'],
+        ),
+      ).toEqual(['home-host-recovery', 'home-host-recovery', 'home-host-session-menu-trigger']);
 
       trigger.click();
       fixture.detectChanges();
@@ -2105,6 +2114,24 @@ describe('HomeComponent', () => {
       expect(scss).toMatch(
         /@media \(min-width:\s*600px\)\s*\{[\s\S]*?\.home-host-session-cta-row\s*\{[^}]*grid-template-columns:\s*repeat\(2,\s*minmax\(0,\s*1fr\)\)/,
       );
+      expect(scss).not.toMatch(
+        /\.home-host-session-cta-row__item > \.home-choice-button\s*\{[^}]*justify-content:\s*flex-start/,
+      );
+      expect(scss).not.toMatch(
+        /\.home-host-session-cta-row__item > \.home-choice-button\s*\{[^}]*text-align:\s*start/,
+      );
+      expect(scss).not.toMatch(
+        /\.home-host-session-cta-row__item > \.home-choice-button \.home-choice-button__copy\s*\{[^}]*align-items:\s*flex-start/,
+      );
+      expect(scss).toMatch(
+        /\.home-host-session-cta-row__item\.home-host-session-cta-row__menu-trigger > \.home-choice-button\s*\{[^}]*position:\s*relative[^}]*justify-content:\s*center[^}]*padding-inline:\s*2\.75rem[^}]*text-align:\s*center/,
+      );
+      expect(scss).toMatch(
+        /\.home-host-session-cta-row__item\.home-host-session-cta-row__menu-trigger\s*> \.home-choice-button\s*\.home-choice-button__copy\s*\{[^}]*width:\s*100%[^}]*align-items:\s*center/,
+      );
+      expect(scss).toMatch(
+        /\.home-host-session-cta-row__item\.home-host-session-cta-row__menu-trigger\s*> \.home-choice-button\s*> mat-icon\s*\{[^}]*position:\s*absolute[^}]*inset-inline-start:\s*0\.75rem/,
+      );
       expect(scss).toMatch(
         /\.home-card__cta-stack\s*\{[^}]*flex-direction:\s*column[^}]*gap:\s*1rem/,
       );
@@ -2252,7 +2279,7 @@ describe('HomeComponent', () => {
       expect(scss).toMatch(
         /\.home-host-session-cta-row__item > \.home-choice-button\s*\{[\s\S]*?justify-content:\s*center[\s\S]*?--mdc-filled-button-container-shape:\s*var\(--mat-sys-corner-medium\)/,
       );
-      expect(scss).toMatch(
+      expect(scss).not.toMatch(
         /@media \(min-width:\s*600px\)\s*\{[\s\S]*?\.home-host-session-cta-row__item > \.home-choice-button\s*\{[\s\S]*?justify-content:\s*flex-start[\s\S]*?text-align:\s*start/,
       );
       expect(scss).toMatch(

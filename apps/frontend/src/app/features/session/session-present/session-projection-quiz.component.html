@@ -1,6 +1,7 @@
 @if (question(); as q) {
   <app-projection-pages
     [hidden]="showLeaderboardPage()"
+    [class.projection-pages--with-reactions]="showEmojiReactions()"
     [pageContext]="pageContext()"
     [pageIndex]="contentPageIndex()"
     (pageCount)="onContentPageCount($event)"
@@ -16,7 +17,6 @@
       [class.session-projection-quiz--results]="isResults()"
       [class.session-projection-quiz--discussion]="isDiscussion()"
       [class.session-projection-quiz--dense-answers]="hasDenseAnswerCopy()"
-      [class.session-projection-quiz--with-reactions]="showEmojiReactions()"
     >
       @if (isDiscussion()) {
         <p class="session-projection-quiz__discussion" role="status">
@@ -725,35 +725,6 @@
           </mat-card-content>
         </mat-card>
       }
-
-      @if (showEmojiReactions() && emojiReactions(); as reactionData) {
-        <aside
-          class="session-projection-quiz__emoji-reactions"
-          role="status"
-          aria-live="polite"
-          aria-atomic="true"
-          data-testid="presenter-emoji-reactions"
-        >
-          <span class="session-projection-quiz__emoji-reactions-label">
-            <mat-icon aria-hidden="true">emoji_emotions</mat-icon>
-            <span i18n="@@sessionHost.emojiReactionsTitle">Reaktionen der Teilnehmenden</span>
-          </span>
-          <span class="session-projection-quiz__emoji-reactions-list" role="list">
-            @for (emoji of emojiOrder; track emoji) {
-              @if (reactionData.reactions[emoji] > 0) {
-                <span class="session-projection-quiz__emoji-reaction" role="listitem">
-                  <span class="session-projection-quiz__emoji-reaction-icon" aria-hidden="true">{{
-                    emoji
-                  }}</span>
-                  <span class="session-projection-quiz__emoji-reaction-count">{{
-                    reactionData.reactions[emoji]
-                  }}</span>
-                </span>
-              }
-            }
-          </span>
-        </aside>
-      }
     </article>
   </app-projection-pages>
 
@@ -766,6 +737,7 @@
   @if (showLeaderboardPage()) {
     <section
       class="session-projection-quiz__leaderboard-page"
+      [class.session-projection-quiz__leaderboard-page--with-reactions]="showEmojiReactions()"
       data-testid="presenter-results-leaderboard"
       aria-labelledby="presenter-results-leaderboard-heading"
     >
@@ -827,5 +799,34 @@
         }
       </div>
     </section>
+  }
+
+  @if (showEmojiReactions() && emojiReactions(); as reactionData) {
+    <aside
+      class="session-projection-quiz__emoji-reactions"
+      role="status"
+      aria-live="polite"
+      aria-atomic="true"
+      data-testid="presenter-emoji-reactions"
+    >
+      <span class="session-projection-quiz__emoji-reactions-label">
+        <mat-icon aria-hidden="true">emoji_emotions</mat-icon>
+        <span i18n="@@sessionHost.emojiReactionsTitle">Reaktionen der Teilnehmenden</span>
+      </span>
+      <span class="session-projection-quiz__emoji-reactions-list" role="list">
+        @for (emoji of emojiOrder; track emoji) {
+          @if (reactionData.reactions[emoji] > 0) {
+            <span class="session-projection-quiz__emoji-reaction" role="listitem">
+              <span class="session-projection-quiz__emoji-reaction-icon" aria-hidden="true">{{
+                emoji
+              }}</span>
+              <span class="session-projection-quiz__emoji-reaction-count">{{
+                reactionData.reactions[emoji]
+              }}</span>
+            </span>
+          }
+        }
+      </span>
+    </aside>
   }
 }

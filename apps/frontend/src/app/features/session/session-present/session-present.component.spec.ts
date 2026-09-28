@@ -165,6 +165,7 @@ describe('SessionPresentComponent', () => {
     getHostVoteProgressQueryMock.mockResolvedValue(null);
     getReactionsQueryMock.mockResolvedValue({ reactions: {}, total: 0 });
     getQaWordCloudProjectionQueryMock.mockResolvedValue({ projection: null });
+    subscribeMock.mockClear();
     subscribeMock.mockReturnValue({ unsubscribe: vi.fn() });
 
     TestBed.configureTestingModule({
@@ -1025,7 +1026,7 @@ describe('SessionPresentComponent', () => {
     fixture.destroy();
   });
 
-  it('behält bei einem transienten Reconnect den letzten Presenter-Stand sichtbar', async () => {
+  it('kennzeichnet einen fehlgeschlagenen Meta-Poll als verzögerte Aktualisierung', async () => {
     const fixture = TestBed.createComponent(SessionPresentComponent);
     fixture.detectChanges();
     await fixture.whenStable();
@@ -1041,16 +1042,51 @@ describe('SessionPresentComponent', () => {
     expect(fixture.componentInstance.session()).toEqual(stableSession);
     expect(fixture.componentInstance.showHomeCta()).toBe(false);
     expect(
-      fixture.nativeElement.querySelector('[data-testid="presenter-reconnect-status"]'),
+      fixture.nativeElement.querySelector('[data-testid="presenter-refresh-status"]'),
     ).not.toBeNull();
+    expect(fixture.nativeElement.textContent).toContain('Aktualisierung verzögert.');
     expect(fixture.nativeElement.textContent).toContain('Der letzte Stand bleibt sichtbar.');
+    expect(fixture.nativeElement.textContent).not.toContain('Verbindung wird wiederhergestellt.');
 
     await fixture.componentInstance['refreshSessionMeta']();
     fixture.detectChanges();
 
     expect(
-      fixture.nativeElement.querySelector('[data-testid="presenter-reconnect-status"]'),
+      fixture.nativeElement.querySelector('[data-testid="presenter-refresh-status"]'),
     ).toBeNull();
+    fixture.destroy();
+  });
+
+  it('zeigt bei einem einzelnen fehlgeschlagenen Live-Abruf keinen Reconnect-Hinweis', async () => {
+    const fixture = TestBed.createComponent(SessionPresentComponent);
+    fixture.detectChanges();
+    await fixture.whenStable();
+    liveQueryMock.mockRejectedValueOnce(new Error('Failed to fetch'));
+
+    await fixture.componentInstance['refreshPresenterLiveData']();
+    fixture.detectChanges();
+
+    expect(fixture.componentInstance.connectionDegraded()).toBe(false);
+    expect(
+      fixture.nativeElement.querySelector('[data-testid="presenter-refresh-status"]'),
+    ).toBeNull();
+    fixture.destroy();
+  });
+
+  it('abonniert eine beendete Status-Subscription nach erfolgreichem Meta-Poll erneut', async () => {
+    const fixture = TestBed.createComponent(SessionPresentComponent);
+    fixture.detectChanges();
+    await fixture.whenStable();
+    const statusCall = subscribeMock.mock.calls.find(
+      ([input]) => typeof input === 'object' && input !== null && 'anonymousClientId' in input,
+    );
+    expect(statusCall).toBeDefined();
+    const callsBeforeError = subscribeMock.mock.calls.length;
+
+    statusCall?.[1].onError();
+    await fixture.componentInstance['refreshSessionMeta']();
+
+    expect(subscribeMock).toHaveBeenCalledTimes(callsBeforeError + 1);
     fixture.destroy();
   });
 
@@ -2019,7 +2055,7 @@ describe('SessionPresentComponent', () => {
 
     expect(fixture.componentInstance.connectionDegraded()).toBe(false);
     expect(
-      fixture.nativeElement.querySelector('[data-testid="presenter-reconnect-status"]'),
+      fixture.nativeElement.querySelector('[data-testid="presenter-refresh-status"]'),
     ).toBeNull();
     expect(fixture.nativeElement.textContent as string).toContain('Q&A-Wortwolke');
     fixture.destroy();
@@ -2076,7 +2112,7 @@ describe('SessionPresentComponent', () => {
     expect(getHostVoteProgressQueryMock).not.toHaveBeenCalled();
     expect(fixture.componentInstance.connectionDegraded()).toBe(false);
     expect(
-      fixture.nativeElement.querySelector('[data-testid="presenter-reconnect-status"]'),
+      fixture.nativeElement.querySelector('[data-testid="presenter-refresh-status"]'),
     ).toBeNull();
     fixture.destroy();
   });

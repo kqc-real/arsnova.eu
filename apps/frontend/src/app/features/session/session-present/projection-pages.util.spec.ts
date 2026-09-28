@@ -107,6 +107,40 @@ describe('semantic projection pages', () => {
     ).toBe(true);
   });
 
+  it('marks four answer options for a compact single-page layout', () => {
+    const source = root(
+      '<ul class="session-projection-quiz__answers">' +
+        ['Alpha', 'Beta', 'Gamma', 'Delta']
+          .map((label) => `<li class="session-projection-quiz__answer"><div>${label}</div></li>`)
+          .join('') +
+        '</ul>',
+    );
+    const prepared = prepareProjectionSource(source);
+    const pages = paginateProjection(prepared, () => true);
+
+    expect(copy(pages)).toBe(source.textContent);
+    expect(prepared.classList.contains('projection-source--many-units')).toBe(true);
+    expect(pages).toHaveLength(1);
+    expect(pages[0]!.querySelectorAll('.session-projection-quiz__answer')).toHaveLength(4);
+  });
+
+  it('marks four structured projection units for a compact single-page layout', () => {
+    const source = root(
+      '<ul>' +
+        ['Matching', 'Ordering', 'Category A', 'Category B']
+          .map((label) => `<li data-projection-unit>${label}</li>`)
+          .join('') +
+        '</ul>',
+    );
+    const prepared = prepareProjectionSource(source);
+    const pages = paginateProjection(prepared, () => true);
+
+    expect(copy(pages)).toBe(source.textContent);
+    expect(prepared.classList.contains('projection-source--many-units')).toBe(true);
+    expect(pages).toHaveLength(1);
+    expect(pages[0]!.querySelectorAll('[data-projection-unit]')).toHaveLength(4);
+  });
+
   it('keeps matching pairs, ordering options and categorization options atomic', () => {
     const source = root(
       '<ul>' +

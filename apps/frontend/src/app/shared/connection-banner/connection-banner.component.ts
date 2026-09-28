@@ -3,20 +3,43 @@
  * Zeigt Hinweis + automatischer Reconnect-Status.
  */
 import { Component, inject } from '@angular/core';
+import { MatButton } from '@angular/material/button';
 import { MatIcon } from '@angular/material/icon';
 import { WsConnectionService } from '../../core/ws-connection.service';
 
 @Component({
   selector: 'app-connection-banner',
   standalone: true,
-  imports: [MatIcon],
+  imports: [MatIcon, MatButton],
   template: `
     @if (ws.disconnected()) {
       <div class="connection-banner" role="alert" aria-live="assertive">
         <mat-icon>wifi_off</mat-icon>
         <div class="connection-banner__copy">
           <span>{{ bannerStatusText() }}</span>
-          <span class="connection-banner__hint">{{ bannerReloadHint() }}</span>
+          @if (ws.manualReconnectOffered()) {
+            <button
+              mat-button
+              type="button"
+              class="connection-banner__action"
+              [disabled]="ws.manualReconnectPending()"
+              [attr.aria-busy]="ws.manualReconnectPending()"
+              (click)="reconnectNow()"
+            >
+              @if (ws.manualReconnectPending()) {
+                <span i18n="@@connectionBanner.reconnectingNow">Verbindung wird hergestellt …</span>
+              } @else {
+                <span i18n="@@connectionBanner.reconnectNow">Jetzt neu verbinden</span>
+              }
+            </button>
+            @if (ws.manualReconnectFailed()) {
+              <span class="connection-banner__hint" i18n="@@connectionBanner.reconnectFailed">
+                Verbindung konnte noch nicht hergestellt werden.
+              </span>
+            }
+          } @else {
+            <span class="connection-banner__hint">{{ bannerReloadHint() }}</span>
+          }
         </div>
       </div>
     }
@@ -54,6 +77,10 @@ import { WsConnectionService } from '../../core/ws-connection.service';
       font: var(--mat-sys-body-small);
       opacity: 0.9;
     }
+    .connection-banner__action {
+      min-height: 2.5rem;
+      color: inherit;
+    }
     @keyframes connection-banner-enter {
       from {
         transform: translateY(-100%);
@@ -78,5 +105,9 @@ export class ConnectionBannerComponent {
 
   protected bannerReloadHint(): string {
     return $localize`:@@connectionBanner.reloadHint:Wenn das bleibt: Seite neu laden.`;
+  }
+
+  protected reconnectNow(): void {
+    void this.ws.runManualReconnect();
   }
 }

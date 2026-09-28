@@ -44,14 +44,26 @@ Pro Phase hat die Quizführung eine visuell dominante nächste Aktion. Fachlich 
 | `RESULTS`                                  | »Nächste Frage« beziehungsweise »Zur Gesamtauswertung«              | Voriges Ergebnis unter »Weitere Aktionen«, soweit tatsächlich vorhanden und zulässig.         |
 | `FINISHED`                                 | »Nachbesprechungsplan ansehen«                                      | Abschlusskarte vor Details; »Zur Startseite« und »Exportieren« mit PDF-Varianten/CSV.         |
 
-»Präsentationsansicht öffnen« bleibt als einzige direkte Präsentationsaktion sichtbar und öffnet den Presenter-Dialog ohne einen Vollbildwechsel der Host-Ansicht. Nach erfolgreichem Start heißt dieselbe Aktion »Zur Präsentationsansicht wechseln« und holt das bestehende Fenster ohne erneuten Dialog nach vorn; nach beendetem Projektionsmodus heißt sie »Präsentationsansicht fortsetzen«. Die Primäraktion maximiert das Presenter-Fenster auf die verfügbare Bildschirmfläche. Echtes Browser-Vollbild wird nicht automatisch angefordert: Solange es verfügbar und inaktiv ist, sperrt stattdessen eine bildschirmfüllende Fläche die Projektion und zeigt mittig die große Primäraktion »Präsentation im Vollbild starten«. Sie verschwindet nach erfolgreichem Wechsel und erscheint beim Verlassen des Vollbilds erneut. Die kompakte Tonsteuerung sitzt jederzeit in der oberen Host-Leiste. »Vollbild« und »App-Rahmen« liegen als Darstellungsgruppe unter »Weitere Aktionen«; in der immersiven Host-Ansicht folgt »arsnova.eu verbessern« dort als abgesetzter letzter Eintrag. Im App-Rahmen bleibt der globale Footer-Einstieg sichtbar. »Weitere Aktionen« enthält außerdem unter den bestehenden Bedingungen Auslassen, Rückblick, Quizwechsel, »Projektionsansicht beenden« und die Verlassen-/Endeaktion. Das Beenden der Projektionsansicht verändert weder Quiz- noch Sessionstatus: Der Presenter zeigt »Die Live-Präsentation wurde beendet.«, »Das Quiz läuft weiter.«, den Sessioncode/QR sowie den Wartehinweis. Der Zustand bleibt bei Kanalwechseln erhalten und wird erst beim erneuten Öffnen der Präsentationsansicht aufgehoben. Es gibt keine doppelten Presenter-, Musik- oder Stopp-Auslöser.
+»Präsentationsansicht öffnen« bleibt als einzige direkte Präsentationsaktion sichtbar und öffnet den Presenter-Dialog ohne einen Vollbildwechsel der Host-Ansicht. Nach erfolgreichem Start heißt dieselbe Aktion »Zur Präsentationsansicht wechseln« und holt das bestehende Fenster ohne erneuten Dialog nach vorn; nach beendetem Projektionsmodus heißt sie »Präsentationsansicht fortsetzen«. Auf schmalen Smartphones steht diese zustandsabhängige Aktion statt der ausgeblendeten Direktaktion unter »Weitere Aktionen«; auf größeren Viewports wird sie dort nicht dupliziert. Die Primäraktion maximiert das Presenter-Fenster auf die verfügbare Bildschirmfläche. Echtes Browser-Vollbild wird nicht automatisch angefordert: Solange es verfügbar und inaktiv ist, sperrt stattdessen eine bildschirmfüllende Fläche die Projektion und zeigt mittig die große Primäraktion »Präsentation im Vollbild starten«. Sie verschwindet nach erfolgreichem Wechsel und erscheint beim Verlassen des Vollbilds erneut. Die kompakte Tonsteuerung sitzt jederzeit in der oberen Host-Leiste. »Vollbild« und »App-Rahmen« liegen als Darstellungsgruppe unter »Weitere Aktionen«; in der immersiven Host-Ansicht folgt »arsnova.eu verbessern« dort als abgesetzter letzter Eintrag. Im App-Rahmen bleibt der globale Footer-Einstieg sichtbar. »Weitere Aktionen« enthält außerdem unter den bestehenden Bedingungen Auslassen, Rückblick, Quizwechsel, »Projektionsansicht beenden« und die Verlassen-/Endeaktion. Das Beenden der Projektionsansicht verändert weder Quiz- noch Sessionstatus: Der Presenter zeigt »Die Live-Präsentation wurde beendet.«, »Das Quiz läuft weiter.«, den Sessioncode/QR sowie den Wartehinweis. Der Zustand bleibt bei Kanalwechseln erhalten und wird erst beim erneuten Öffnen der Präsentationsansicht aufgehoben. Es gibt keine doppelten Presenter-, Musik- oder Stopp-Auslöser.
 
 Sobald die Presenter-Fläche mehrere Projektionsseiten meldet, bleibt die
-Seitennavigation am oberen Rand des scrollenden Host-Viewports angepinnt. Im
-App-Rahmen sitzt sie vollständig unterhalb der Toolbar; in der immersiven Ansicht
+Seitennavigation am oberen Rand des scrollenden Host-Viewports angepinnt. Auf
+einem kompakten Steuer-Smartphone bleibt sie während der laufenden Projektion
+auch bei einer einzelnen Seite sichtbar; Vor und Zurück sind dann deaktiviert.
+Im App-Rahmen sitzt sie vollständig unterhalb der Toolbar; in der immersiven Ansicht
 nutzt sie den knappen Viewport-Abstand. Sie
 bleibt dadurch bei langen Fragen und Auswertungen ohne Zurückscrollen erreichbar;
 Pending-, Fehler- und Fokuszustand verbleiben in derselben sichtbaren Steuerung.
+
+Auf einem gekoppelten Steuer-Smartphone bleibt die automatische WebSocket-
+Wiederverbindung der Normalfall. Dauert die Unterbrechung mindestens acht
+Sekunden, bietet das globale Verbindungsbanner zusätzlich »Jetzt neu verbinden«
+an. Die Aktion ist während des Versuchs gesperrt, startet nur den physischen
+Transport neu und lädt danach einen autoritativen Host-Snapshot samt
+Teilnehmenden-, Fragen-, Abstimmungs- und Lifecycle-Stand. Schlägt der Versuch
+fehl, bleibt er wiederholbar. Ist das Pairing abgelaufen oder widerrufen, wird
+der Steuerzugang nicht lokal rekonstruiert: Das Gerät fordert stattdessen einen
+neuen QR-Code vom Hauptgerät an.
 
 Die Abschlussüberschrift lautet **»Quiz beendet«**, wenn `liveChannelsRemainAfterQuiz()` weitere Live-Nutzung zulässt, sonst **»Session beendet«**. `hostEnded` hat Vorrang vor einem älteren offenen Kanal-Snapshot. Die Überschrift bleibt dasselbe fokussierbare DOM-Element, wenn sich der Text ändert. Quizabschluss schließt offene Nebenformate nicht. `canStartAnotherQuiz` und die bestehenden Kohortenbedingungen entscheiden weiterhin, ob »Nächstes Quiz in diesem Raum« angeboten wird.
 
