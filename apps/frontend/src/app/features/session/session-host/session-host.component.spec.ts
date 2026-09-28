@@ -15096,6 +15096,42 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
     fixture.destroy();
   });
 
+  it.each(['qa', 'quickFeedback'] as const)(
+    'hält das Beenden der Projektionsansicht auch im %s-Kanal erreichbar',
+    async (channel) => {
+      getInfoQueryMock.mockResolvedValue({
+        ...defaultSession,
+        status: 'ACTIVE',
+        presenterSurface: 'default',
+        channels: {
+          quiz: { enabled: true },
+          qa: { enabled: true, open: true, title: 'Fragen', moderationMode: false },
+          quickFeedback: { enabled: true, open: true },
+        },
+      });
+      const fixture = setup();
+      fixture.detectChanges();
+      await fixture.whenStable();
+      fixture.componentInstance.activeChannel.set(channel);
+      fixture.detectChanges();
+
+      const { menu } = await openHostMoreActions(fixture);
+      const endPresentation = Array.from(menu.querySelectorAll('button')).find((button) =>
+        button.textContent?.includes('Projektionsansicht beenden'),
+      );
+      expect(endPresentation).toBeTruthy();
+      endPresentation!.click();
+
+      await vi.waitUntil(() => fixture.componentInstance.session()?.presenterSurface === 'ended');
+      expect(setPresenterSurfaceMutateMock).toHaveBeenCalledWith({
+        code: 'ABC123',
+        surface: 'ended',
+      });
+      expect(fixture.componentInstance.effectiveStatus()).toBe('ACTIVE');
+      fixture.destroy();
+    },
+  );
+
   it.each(['control', 'sessionEnd', 'channel'] as const)(
     'sperrt Weitere Aktionen während %s und verwirft eine überholte Menüauswahl',
     async (pending) => {
@@ -18778,7 +18814,7 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
     expect(exitAnchor.querySelectorAll('.session-host__exit-anchor-button--primary')).toHaveLength(
       0,
     );
-    expect(buttonTexts).toEqual(['Session beenden']);
+    expect(buttonTexts).toEqual(['Session beenden', 'Weitere Aktionen']);
     const roundControl = fixture.nativeElement.querySelector(
       '[data-testid="feedback-primary-round-control"]',
     ) as HTMLButtonElement;

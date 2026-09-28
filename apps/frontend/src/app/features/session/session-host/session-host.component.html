@@ -5505,34 +5505,32 @@
             }
           </div>
         }
-        @if (activeChannel() === 'quiz') {
-          <button
-            matButton="tonal"
-            type="button"
-            class="session-host__exit-anchor-button session-host__more-actions"
-            data-testid="host-more-actions"
-            [matMenuTriggerFor]="
-              controlPending() ||
-              sessionEndPending() ||
-              channelNavigationBusy() ||
-              presenterSurfacePending()
-                ? null
-                : hostMoreActionsMenu
-            "
-            (menuClosed)="runHostMoreAction()"
-            [disabled]="
-              controlPending() ||
-              sessionEndPending() ||
-              channelNavigationBusy() ||
-              presenterSurfacePending()
-            "
-            [disabledInteractive]="true"
-            [attr.aria-busy]="sessionEndPending() || presenterSurfacePending()"
-          >
-            <mat-icon aria-hidden="true">more_horiz</mat-icon>
-            <span i18n="@@sessionHost.moreActions">Weitere Aktionen</span>
-          </button>
-        }
+        <button
+          matButton="tonal"
+          type="button"
+          class="session-host__exit-anchor-button session-host__more-actions"
+          data-testid="host-more-actions"
+          [matMenuTriggerFor]="
+            controlPending() ||
+            sessionEndPending() ||
+            channelNavigationBusy() ||
+            presenterSurfacePending()
+              ? null
+              : hostMoreActionsMenu
+          "
+          (menuClosed)="runHostMoreAction()"
+          [disabled]="
+            controlPending() ||
+            sessionEndPending() ||
+            channelNavigationBusy() ||
+            presenterSurfacePending()
+          "
+          [disabledInteractive]="true"
+          [attr.aria-busy]="sessionEndPending() || presenterSurfacePending()"
+        >
+          <mat-icon aria-hidden="true">more_horiz</mat-icon>
+          <span i18n="@@sessionHost.moreActions">Weitere Aktionen</span>
+        </button>
       </div>
     }
   } @else {
