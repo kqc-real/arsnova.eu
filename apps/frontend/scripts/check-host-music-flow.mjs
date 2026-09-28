@@ -17,6 +17,8 @@ const BASE_URL = process.env.BASE_URL || 'http://localhost:4200/de';
 const TRPC_URL = process.env.TRPC_URL || 'http://localhost:3000/trpc';
 const DESKTOP = { width: 1440, height: 1000 };
 const HOST_TOKEN_STORAGE_PREFIX = 'arsnova-host-token:';
+const HOST_SOUND_CONTROL_SELECTOR =
+  '.session-host__sound-action, .session-host__live-sound-control';
 const QUIZ_PAYLOAD = {
   name: `Host Music Smoke ${Date.now()}`,
   description: undefined,
@@ -146,7 +148,7 @@ async function main() {
   try {
     const hostContext = await browser.newContext({ viewport: DESKTOP });
     await hostContext.addInitScript(
-      ({ sessionCode, token, prefix }) => {
+      ({ sessionCode, token, prefix, soundControlSelector }) => {
         globalThis.sessionStorage.setItem(`${prefix}${sessionCode}`, token);
         globalThis.localStorage.setItem('home-preset', 'spielerisch');
         globalThis.__arsnovaAudioResumeCalls = 0;
@@ -160,9 +162,7 @@ async function main() {
             const target = event.target;
             globalThis.__arsnovaAudioAllowResume =
               target instanceof Element &&
-              !!target.closest(
-                '.session-host__live-sound-control, .session-host__music-preview-btn',
-              );
+              !!target.closest(`${soundControlSelector}, .session-host__music-preview-btn`);
             queueMicrotask(() => {
               globalThis.__arsnovaAudioAllowResume = false;
             });
@@ -269,7 +269,12 @@ async function main() {
         globalThis.AudioContext = FakeAudioContext;
         globalThis.webkitAudioContext = FakeAudioContext;
       },
-      { sessionCode: code, token: hostToken, prefix: HOST_TOKEN_STORAGE_PREFIX },
+      {
+        sessionCode: code,
+        token: hostToken,
+        prefix: HOST_TOKEN_STORAGE_PREFIX,
+        soundControlSelector: HOST_SOUND_CONTROL_SELECTOR,
+      },
     );
 
     const hostPage = await hostContext.newPage();
@@ -278,7 +283,7 @@ async function main() {
       timeout: 30_000,
     });
     await waitForPathSuffix(hostPage, `/session/${code}/host`);
-    await waitForVisible(hostPage.locator('.session-host__live-sound-control'));
+    await waitForVisible(hostPage.locator(HOST_SOUND_CONTROL_SELECTOR));
 
     await hostPage.waitForFunction(() => (globalThis.__arsnovaAudioResumeCalls ?? 0) >= 1, {
       timeout: 10_000,
@@ -299,7 +304,7 @@ async function main() {
       );
     }
 
-    const musicControl = hostPage.locator('.session-host__live-sound-control').first();
+    const musicControl = hostPage.locator(HOST_SOUND_CONTROL_SELECTOR).first();
     await clickViaDom(musicControl);
     await hostPage.waitForTimeout(300);
     const unlockedAudio = await readAudioStats(hostPage);
