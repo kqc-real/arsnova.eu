@@ -312,7 +312,7 @@ describe('SessionPresentComponent', () => {
     vi.useRealTimers();
   });
 
-  it('zeigt den Vollbild-Gate und startet Vollbild per Klick', async () => {
+  it('bietet Vollbild direkt im Presenter an und fordert es erst nach Klick an', async () => {
     const { DOCUMENT } = await import('@angular/common');
     const documentRef = TestBed.inject(DOCUMENT);
     const requestFullscreenSpy = vi.fn(() => Promise.resolve());
@@ -328,9 +328,10 @@ describe('SessionPresentComponent', () => {
       configurable: true,
       value: true,
     });
+    let fullscreenElement: Element | null = null;
     Object.defineProperty(documentRef, 'fullscreenElement', {
       configurable: true,
-      get: () => null,
+      get: () => fullscreenElement,
     });
 
     try {
@@ -339,17 +340,35 @@ describe('SessionPresentComponent', () => {
       await fixture.whenStable();
       fixture.detectChanges();
 
-      const gate = fixture.nativeElement.querySelector(
+      const fullscreenGate = fixture.nativeElement.querySelector(
         '[data-testid="presenter-fullscreen-gate"]',
       ) as HTMLElement | null;
-      expect(gate).toBeTruthy();
-      expect(gate?.textContent).toContain('Tippe hier, um Vollbild zu erlauben.');
-      const button = fixture.nativeElement.querySelector(
+      const fullscreenAction = fullscreenGate?.querySelector(
         '[data-testid="presenter-fullscreen-enter"]',
       ) as HTMLButtonElement | null;
-      expect(button?.textContent).toContain('Präsentation im Vollbild starten');
-      button?.click();
-      expect(requestFullscreenSpy).toHaveBeenCalled();
+      expect(fullscreenGate?.getAttribute('role')).toBe('dialog');
+      expect(fullscreenGate?.getAttribute('aria-modal')).toBe('true');
+      expect(fullscreenAction?.textContent).toContain('Präsentation im Vollbild starten');
+      expect(fullscreenAction?.textContent).toContain(
+        'Gesamten Bildschirm für die Projektion nutzen',
+      );
+      expect(requestFullscreenSpy).not.toHaveBeenCalled();
+
+      fullscreenAction?.click();
+
+      expect(requestFullscreenSpy).toHaveBeenCalledWith({ navigationUI: 'hide' });
+      fullscreenElement = documentRef.documentElement;
+      documentRef.dispatchEvent(new Event('fullscreenchange'));
+      await Promise.resolve();
+      fixture.detectChanges();
+
+      const presenterSurface = fixture.nativeElement.querySelector(
+        '[data-testid="presenter-surface"]',
+      ) as HTMLElement;
+      expect(
+        fixture.nativeElement.querySelector('[data-testid="presenter-fullscreen-gate"]'),
+      ).toBeNull();
+      expect(documentRef.activeElement).toBe(presenterSurface);
       fixture.destroy();
     } finally {
       if (previousDescriptor) {

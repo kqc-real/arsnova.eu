@@ -2,6 +2,7 @@
   @if (session()?.presenterSurface !== 'ended' && (page.count > 1 || projectionControlsVisible())) {
     <nav
       class="session-host__projection-pages"
+      [class.session-host__projection-pages--app-frame]="!isImmersiveMode()"
       aria-label="Projektionsseiten"
       i18n-aria-label="@@sessionHost.projectionPages"
       [attr.aria-busy]="projectionPagePending()"
@@ -260,74 +261,20 @@
           }
         </div>
 
-        @if (showHostViewControls() && activeChannel() !== 'quiz') {
+        @if (showHostViewControls() && activeChannel() !== 'quiz' && showPresenterViewButton()) {
           <div class="session-host__view-controls session-host__view-controls--inline">
-            @if (showPresenterViewButton()) {
-              <button
-                mat-icon-button
-                type="button"
-                class="session-host__view-toggle session-host__view-toggle--presenter"
-                data-testid="open-presenter-view"
-                (click)="openPresenterView()"
-                i18n-aria-label="@@sessionHost.openPresentationView"
-                aria-label="Präsentationsansicht öffnen"
-                i18n-matTooltip="@@sessionHost.openPresentationView"
-                matTooltip="Präsentationsansicht öffnen"
-                matTooltipTouchGestures="off"
-              >
-                <app-presenter-icon class="session-host__view-toggle-icon" />
-              </button>
-            }
-
-            @if (isFullscreenSupported()) {
-              <button
-                mat-icon-button
-                type="button"
-                class="session-host__view-toggle session-host__view-toggle--fullscreen"
-                [class.session-host__view-toggle--active]="isFullscreenActive()"
-                (click)="toggleFullscreen()"
-                i18n-aria-label="@@sessionHost.fullscreenToggleAria"
-                aria-label="Vollbild umschalten"
-                i18n-matTooltip="@@sessionHost.fullscreenToggleAria"
-                matTooltip="Vollbild umschalten"
-                matTooltipTouchGestures="off"
-                [attr.aria-pressed]="isFullscreenActive()"
-              >
-                <mat-icon aria-hidden="true">{{
-                  isFullscreenActive() ? 'fullscreen_exit' : 'fullscreen'
-                }}</mat-icon>
-              </button>
-            }
-
             <button
               mat-icon-button
               type="button"
-              class="session-host__view-toggle session-host__view-toggle--frame"
-              [class.session-host__view-toggle--active]="!isImmersiveMode()"
-              (click)="toggleHostFrameMode()"
-              i18n-aria-label="@@sessionHost.frameToggleAria"
-              aria-label="App-Rahmen umschalten"
-              i18n-matTooltip="@@sessionHost.frameToggleAria"
-              matTooltip="App-Rahmen umschalten"
+              class="session-host__view-toggle session-host__view-toggle--presenter"
+              data-testid="open-presenter-view"
+              (click)="openPresenterView()"
+              [attr.aria-label]="presenterViewActionLabel()"
+              [matTooltip]="presenterViewActionLabel()"
               matTooltipTouchGestures="off"
-              [attr.aria-pressed]="!isImmersiveMode()"
             >
-              <mat-icon aria-hidden="true">{{
-                isImmersiveMode() ? 'web_asset' : 'center_focus_strong'
-              }}</mat-icon>
+              <app-presenter-icon class="session-host__view-toggle-icon" />
             </button>
-            @if (isImmersiveMode()) {
-              <button
-                mat-button
-                type="button"
-                class="session-host__product-feedback-action"
-                data-testid="host-product-feedback-action"
-                (click)="openHostProductFeedback($event)"
-              >
-                <mat-icon aria-hidden="true">insights</mat-icon>
-                <span i18n="@@productFeedback.inApp.action">arsnova.eu verbessern</span>
-              </button>
-            }
           </div>
         }
       </div>
@@ -515,29 +462,27 @@
                   </p>
                 }
               </div>
-              @if (activeChannel() !== 'quiz') {
-                <div class="session-host__live-actions">
-                  <button
-                    mat-icon-button
-                    type="button"
-                    class="session-host__meta-sound-control session-host__live-sound-control"
-                    [class.session-host__meta-sound-control--active]="
-                      !musicMuted() && !isCurrentMusicPhaseMuted()
-                    "
-                    [matMenuTriggerFor]="hostMusicMenu"
-                    (click)="onHostMusicMenuOpening()"
-                    i18n-aria-label="@@sessionHost.musicControlAria"
-                    aria-label="Soundsteuerung öffnen"
-                  >
-                    @if (musicMuted() || isCurrentMusicPhaseMuted()) {
-                      <mat-icon aria-hidden="true">volume_off</mat-icon>
-                    } @else {
-                      <app-music-equalizer-icon class="session-host__live-sound-icon" />
-                    }
-                    <span class="session-host__live-sound-label">{{ activeMusicLabel() }}</span>
-                  </button>
-                </div>
-              }
+              <div class="session-host__live-actions">
+                <button
+                  mat-icon-button
+                  type="button"
+                  class="session-host__meta-sound-control session-host__live-sound-control"
+                  [class.session-host__meta-sound-control--active]="
+                    !musicMuted() && !isCurrentMusicPhaseMuted()
+                  "
+                  [matMenuTriggerFor]="hostMusicMenu"
+                  (click)="onHostMusicMenuOpening()"
+                  i18n-aria-label="@@sessionHost.musicControlAria"
+                  aria-label="Soundsteuerung öffnen"
+                >
+                  @if (musicMuted() || isCurrentMusicPhaseMuted()) {
+                    <mat-icon aria-hidden="true">volume_off</mat-icon>
+                  } @else {
+                    <app-music-equalizer-icon class="session-host__live-sound-icon" />
+                  }
+                  <span class="session-host__live-sound-label">{{ activeMusicLabel() }}</span>
+                </button>
+              </div>
             </div>
           </div>
           @if (joinInfoPopoverOpen()) {
@@ -705,13 +650,10 @@
                       class="session-host__presenter-cta"
                       data-testid="open-presenter-view"
                       (click)="openPresenterView()"
-                      i18n-aria-label="@@sessionHost.openPresentationView"
-                      aria-label="Präsentationsansicht öffnen"
+                      [attr.aria-label]="presenterViewActionLabel()"
                     >
                       <app-presenter-icon matButtonIcon />
-                      <span i18n="@@sessionHost.openPresentationView"
-                        >Präsentationsansicht öffnen</span
-                      >
+                      <span>{{ presenterViewActionLabel() }}</span>
                     </button>
                   }
                   <button
@@ -5070,75 +5012,19 @@
           aria-label="Auf Bildschirm zeigen"
         >
           <div class="session-host__view-controls session-host__view-controls--labeled">
-            <div class="session-host__display-options">
-              @if (showPresenterViewButton()) {
-                <button
-                  mat-button
-                  type="button"
-                  class="session-host__presenter-cta"
-                  data-testid="open-presenter-view"
-                  (click)="openPresenterView()"
-                  i18n-aria-label="@@sessionHost.openPresentationView"
-                  aria-label="Präsentationsansicht öffnen"
-                >
-                  <app-presenter-icon matButtonIcon />
-                  <span i18n="@@sessionHost.openPresentationView">Präsentationsansicht öffnen</span>
-                </button>
-              }
+            @if (showPresenterViewButton()) {
               <button
                 mat-button
                 type="button"
-                class="session-host__sound-action"
-                data-testid="host-sound-action"
-                [matMenuTriggerFor]="hostMusicMenu"
-                (click)="onHostMusicMenuOpening()"
-                i18n-aria-label="@@sessionHost.musicControlAria"
-                aria-label="Soundsteuerung öffnen"
+                class="session-host__presenter-cta"
+                data-testid="open-presenter-view"
+                (click)="openPresenterView()"
+                [attr.aria-label]="presenterViewActionLabel()"
               >
-                <mat-icon aria-hidden="true">{{
-                  musicMuted() || isCurrentMusicPhaseMuted() ? 'volume_off' : 'volume_up'
-                }}</mat-icon>
-                <span>{{ activeMusicLabel() }}</span>
+                <app-presenter-icon matButtonIcon />
+                <span>{{ presenterViewActionLabel() }}</span>
               </button>
-              @if (isFullscreenSupported()) {
-                <button
-                  mat-button
-                  type="button"
-                  class="session-host__view-toggle--fullscreen"
-                  (click)="toggleFullscreen()"
-                  [attr.aria-pressed]="isFullscreenActive()"
-                >
-                  <mat-icon aria-hidden="true">{{
-                    isFullscreenActive() ? 'fullscreen_exit' : 'fullscreen'
-                  }}</mat-icon>
-                  <span i18n="@@sessionHost.fullscreenOption">Vollbild</span>
-                </button>
-              }
-              <button
-                mat-button
-                type="button"
-                class="session-host__view-toggle--frame"
-                (click)="toggleHostFrameMode()"
-                [attr.aria-pressed]="!isImmersiveMode()"
-              >
-                <mat-icon aria-hidden="true">{{
-                  isImmersiveMode() ? 'web_asset' : 'center_focus_strong'
-                }}</mat-icon>
-                <span i18n="@@sessionHost.frameOption">App-Rahmen</span>
-              </button>
-              @if (isImmersiveMode()) {
-                <button
-                  mat-button
-                  type="button"
-                  class="session-host__product-feedback-action"
-                  data-testid="host-product-feedback-action"
-                  (click)="openHostProductFeedback($event)"
-                >
-                  <mat-icon aria-hidden="true">insights</mat-icon>
-                  <span i18n="@@productFeedback.inApp.action">arsnova.eu verbessern</span>
-                </button>
-              }
-            </div>
+            }
           </div>
         </section>
       </div>
@@ -5200,6 +5086,41 @@
           <span i18n="@@sessionHost.leaveQaHostAnchor">Zur Startseite</span>
         </button>
       }
+      @if (showHostViewControls()) {
+        <div class="session-host__more-actions-divider" role="separator"></div>
+        <div
+          role="group"
+          i18n-aria-label="@@sessionHost.showOnScreen"
+          aria-label="Auf Bildschirm zeigen"
+        >
+          @if (isFullscreenSupported()) {
+            <button
+              mat-menu-item
+              type="button"
+              class="session-host__view-toggle--fullscreen"
+              (click)="toggleFullscreen()"
+              [attr.aria-pressed]="isFullscreenActive()"
+            >
+              <mat-icon aria-hidden="true">{{
+                isFullscreenActive() ? 'fullscreen_exit' : 'fullscreen'
+              }}</mat-icon>
+              <span i18n="@@sessionHost.fullscreenOption">Vollbild</span>
+            </button>
+          }
+          <button
+            mat-menu-item
+            type="button"
+            class="session-host__view-toggle--frame"
+            (click)="toggleHostFrameMode()"
+            [attr.aria-pressed]="!isImmersiveMode()"
+          >
+            <mat-icon aria-hidden="true">{{
+              isImmersiveMode() ? 'web_asset' : 'center_focus_strong'
+            }}</mat-icon>
+            <span i18n="@@sessionHost.frameOption">App-Rahmen</span>
+          </button>
+        </div>
+      }
       @if (session()?.presenterSurface !== 'ended') {
         <button
           mat-menu-item
@@ -5220,6 +5141,18 @@
         <mat-icon aria-hidden="true">logout</mat-icon>
         <span i18n="@@sessionHost.endGlobalSessionAnchor">Session beenden</span>
       </button>
+      @if (isImmersiveMode()) {
+        <div class="session-host__more-actions-divider" role="separator"></div>
+        <button
+          mat-menu-item
+          type="button"
+          data-testid="host-product-feedback-action"
+          (click)="pendingHostMoreAction.set('feedback')"
+        >
+          <mat-icon aria-hidden="true">insights</mat-icon>
+          <span i18n="@@productFeedback.inApp.action">arsnova.eu verbessern</span>
+        </button>
+      }
     </mat-menu>
 
     @if (isLiveHostSurface()) {

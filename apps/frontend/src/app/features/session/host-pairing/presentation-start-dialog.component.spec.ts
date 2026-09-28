@@ -132,7 +132,7 @@ describe('PresentationStartDialogComponent', () => {
     expect(
       current.nativeElement.querySelector('[data-testid="presentation-start-connected"]'),
     ).toBeNull();
-    current.nativeElement.querySelector('[data-testid="presentation-start-fullscreen"]')?.click();
+    current.nativeElement.querySelector('[data-testid="presentation-start-open"]')?.click();
     expect(dialogCloseMock).toHaveBeenCalledWith('start');
   });
 
@@ -158,7 +158,7 @@ describe('PresentationStartDialogComponent', () => {
     expect(
       current.nativeElement.querySelector('[data-testid="presentation-start-cohost"]'),
     ).not.toBeNull();
-    current.nativeElement.querySelector('[data-testid="presentation-start-fullscreen"]')?.click();
+    current.nativeElement.querySelector('[data-testid="presentation-start-open"]')?.click();
     expect(dialogCloseMock).toHaveBeenCalledWith('start');
   });
 
@@ -231,7 +231,7 @@ describe('PresentationStartDialogComponent', () => {
       current.nativeElement.querySelector('[data-testid="presentation-start-connect"]'),
     ).toBeNull();
     expect(current.nativeElement.textContent).not.toContain('Mit Smartphone steuern');
-    current.nativeElement.querySelector('[data-testid="presentation-start-fullscreen"]')?.click();
+    current.nativeElement.querySelector('[data-testid="presentation-start-open"]')?.click();
     expect(dialogCloseMock).toHaveBeenCalledWith('start');
   });
 
@@ -307,7 +307,7 @@ describe('PresentationStartDialogComponent', () => {
     const startPresenterView = vi.fn().mockResolvedValue({ closed: false });
     dialogData.startPresenterView = startPresenterView;
     const current = await render();
-    current.nativeElement.querySelector('[data-testid="presentation-start-fullscreen"]')?.click();
+    current.nativeElement.querySelector('[data-testid="presentation-start-open"]')?.click();
     await flush();
     expect(startPresenterView).toHaveBeenCalledTimes(1);
     expect(dialogCloseMock).toHaveBeenCalledWith('start');
@@ -316,7 +316,7 @@ describe('PresentationStartDialogComponent', () => {
   it('meldet ein blockiertes Presenter-Fenster', async () => {
     dialogData.startPresenterView = vi.fn().mockResolvedValue(null);
     const current = await render();
-    current.nativeElement.querySelector('[data-testid="presentation-start-fullscreen"]')?.click();
+    current.nativeElement.querySelector('[data-testid="presentation-start-open"]')?.click();
     await flush();
     expect(dialogCloseMock).toHaveBeenCalledWith('blocked');
   });

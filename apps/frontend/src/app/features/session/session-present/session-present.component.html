@@ -1,5 +1,7 @@
 <section
   class="session-present"
+  data-testid="presenter-surface"
+  tabindex="-1"
   appMarkdownImageLightbox
   [class.session-present--finish]="showFinishProjection()"
   [class.session-present--team-finale]="showTeamFinish()"
@@ -15,33 +17,38 @@
     showQuizPauseProjection()
   "
 >
-  @if (needsFullscreenGate() && !showPresentationEndedProjection()) {
+  @if (showFullscreenAction()) {
     <div
       class="session-present__fullscreen-gate"
       role="dialog"
       aria-modal="true"
-      aria-labelledby="session-present-fullscreen-title"
+      aria-labelledby="session-present-fullscreen-action-label"
       data-testid="presenter-fullscreen-gate"
+      cdkTrapFocus
+      [cdkTrapFocusAutoCapture]="true"
     >
-      <div class="session-present__fullscreen-gate-card">
-        <mat-icon class="session-present__fullscreen-gate-icon" aria-hidden="true"
-          >fullscreen</mat-icon
-        >
-        <h2 id="session-present-fullscreen-title" i18n="@@sessionPresent.fullscreenGateTitle">
-          Präsentation im Vollbild
-        </h2>
-        <p i18n="@@sessionPresent.fullscreenGateHint">Tippe hier, um Vollbild zu erlauben.</p>
-        <button
-          matButton="filled"
-          type="button"
-          class="session-present__fullscreen-gate-button"
-          data-testid="presenter-fullscreen-enter"
-          (click)="enterPresenterFullscreen()"
-          i18n="@@sessionPresent.fullscreenGateAction"
-        >
-          Präsentation im Vollbild starten
-        </button>
-      </div>
+      <button
+        matButton="filled"
+        type="button"
+        class="session-present__fullscreen-action"
+        data-testid="presenter-fullscreen-enter"
+        (click)="enterPresenterFullscreen()"
+      >
+        <span class="session-present__fullscreen-action-content">
+          <mat-icon aria-hidden="true">fullscreen</mat-icon>
+          <span
+            id="session-present-fullscreen-action-label"
+            class="session-present__fullscreen-action-label"
+            i18n="@@sessionPresent.enterFullscreen"
+            >Präsentation im Vollbild starten</span
+          >
+          <span
+            class="session-present__fullscreen-action-hint"
+            i18n="@@sessionPresent.enterFullscreenHint"
+            >Gesamten Bildschirm für die Projektion nutzen</span
+          >
+        </span>
+      </button>
     </div>
   }
 

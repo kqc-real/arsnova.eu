@@ -91,9 +91,6 @@ describe('SessionProjectionQuizComponent', () => {
     expect(playful).toMatch(
       /\.session-present mat-card\.session-present__board-card[\s\S]*?app-playful-inner-card-primary/,
     );
-    expect(playful).toMatch(
-      /\.session-present \.session-present__fullscreen-gate-card[\s\S]*?app-playful-inner-card-primary/,
-    );
   });
 
   it('zentriert Presenter-Antwortseiten und gibt den Optionen deutlich mehr Abstand', () => {

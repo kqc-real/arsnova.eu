@@ -28,6 +28,7 @@ import { WordCloudComponent } from '../session-present/word-cloud.component';
 import { SessionTokenStorageService } from '../session-present/session-token-storage.service';
 import { ThemePresetService } from '../../../core/theme-preset.service';
 import { HostScenarioService } from '../../../core/host-scenario.service';
+import { HostDisplayModeService } from '../../../core/host-display-mode.service';
 import { SessionResultsExportService } from '../../../core/session-results-export.service';
 import { QuizStoreService, DEMO_QUIZ_ID } from '../../quiz/data/quiz-store.service';
 import { getSkewAdjustedNow, resetServerClockSkew } from '../session-server-clock';
@@ -873,6 +874,10 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
       presenterPage: { context: 'projection-sticky-test', index: 1, count: 3 },
     });
     fixture.detectChanges();
+    const displayMode = TestBed.inject(HostDisplayModeService);
+    displayMode.setHostSessionActive(true);
+    displayMode.setPreferImmersiveHost(false);
+    fixture.detectChanges();
 
     const nav = fixture.nativeElement.querySelector(
       '.session-host__projection-pages',
@@ -886,8 +891,12 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
     );
 
     expect(nav).not.toBeNull();
+    expect(nav?.classList).toContain('session-host__projection-pages--app-frame');
     expect(styles).toMatch(
       /\.session-host__projection-pages\s*\{[^}]*position:\s*sticky[^}]*top:\s*max\(/s,
+    );
+    expect(styles).toMatch(
+      /\.session-host__projection-pages--app-frame\s*\{[^}]*top:\s*calc\(var\(--vote-channel-tabs-sticky-top,\s*0\.5rem\)\s*\+\s*1\.5rem\)/s,
     );
     expect(styles).toMatch(
       /\.session-host__projection-pages\s*\{[^}]*z-index:\s*35[^}]*background:\s*var\(--mat-sys-surface-container-high\)/s,
@@ -895,6 +904,8 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
     expect(styles).toMatch(
       /@media \(max-width:\s*599px\)[\s\S]*?--session-host-projection-pages-inline:\s*0\.5rem/,
     );
+
+    fixture.destroy();
   });
 
   const clickAddChannel = async (
@@ -2274,34 +2285,9 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
     expect(presenter?.getAttribute('aria-label')).toBe('Präsentationsansicht öffnen');
     expect(presenter?.textContent).toContain('Präsentationsansicht öffnen');
     expect(presenter?.querySelector('app-presenter-icon')).not.toBeNull();
-    expect(controls?.querySelector('.session-host__view-toggle--frame')?.textContent).toContain(
-      'App-Rahmen',
-    );
-    const displayOptions = controls?.querySelector('.session-host__display-options');
-    const displayActions = Array.from(
-      displayOptions?.querySelectorAll<HTMLButtonElement>('button') ?? [],
-    );
-    const soundAction = controls?.querySelector('[data-testid="host-sound-action"]');
-    const fullscreenAction = controls?.querySelector('.session-host__view-toggle--fullscreen');
-    const frameAction = controls?.querySelector('.session-host__view-toggle--frame');
-    const feedbackAction = controls?.querySelector('[data-testid="host-product-feedback-action"]');
+    expect(controls?.querySelectorAll('button')).toHaveLength(1);
+    const soundAction = host.querySelector('.session-host__live-sound-control');
     expect(soundAction?.getAttribute('aria-label')).toBe('Soundsteuerung öffnen');
-    expect(feedbackAction?.textContent).toContain('arsnova.eu verbessern');
-    expect(displayActions).toEqual([
-      presenter,
-      soundAction,
-      ...(fullscreenAction ? [fullscreenAction] : []),
-      frameAction,
-      feedbackAction,
-    ]);
-    expect(displayActions.every((action) => action.classList.contains('mat-mdc-button'))).toBe(
-      true,
-    );
-    expect(
-      displayActions.some((action) =>
-        /mat-mdc-(?:unelevated|raised|outlined)-button/.test(action.className),
-      ),
-    ).toBe(false);
     expect(host.querySelector('.session-host__product-feedback-utility')).toBeNull();
     expect(host.querySelector('#host-display-heading')).toBeNull();
     expect(host.querySelector('.session-host__display-tools')?.getAttribute('aria-label')).toBe(
@@ -2311,6 +2297,13 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
       /1\.125rem|18px|app-presenter-icon-size/,
     );
     expect(host.querySelector('#host-sound-heading')).toBeNull();
+    const { menu } = await openHostMoreActions(fixture);
+    expect(menu.querySelector('.session-host__view-toggle--frame')?.textContent).toContain(
+      'App-Rahmen',
+    );
+    expect(
+      menu.querySelector('[data-testid="host-product-feedback-action"]')?.textContent,
+    ).toContain('arsnova.eu verbessern');
     const lobbyActions = host.querySelector('.session-lobby__actions--hero');
     expect(lobbyActions?.querySelector('[data-testid="open-presenter-view"]')).toBeNull();
     const startButton = Array.from(lobbyActions?.querySelectorAll('button') ?? []).find((button) =>
@@ -2326,7 +2319,7 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
     fixture.destroy();
   });
 
-  it('öffnet den Dialog Präsentation starten vor dem Presenter-Fenster', async () => {
+  it('öffnet den Presenter-Dialog mit einem Klick, ohne die Host-Ansicht ins Vollbild zu setzen', async () => {
     getInfoQueryMock.mockResolvedValue({
       ...defaultSession,
       status: 'LOBBY',
@@ -2361,7 +2354,7 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
       presenterButton.click();
       await fixture.whenStable();
 
-      expect(requestFullscreenSpy).toHaveBeenCalledWith({ navigationUI: 'hide' });
+      expect(requestFullscreenSpy).not.toHaveBeenCalled();
     } finally {
       if (previousDescriptor) {
         Object.defineProperty(documentRef.documentElement, 'requestFullscreen', previousDescriptor);
@@ -2403,8 +2396,8 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
       resizeTo: vi.fn(),
       document,
       sessionStorage,
-    } as unknown as Window;
-    const open = vi.spyOn(window, 'open').mockReturnValue(existingPresenter);
+    };
+    const open = vi.spyOn(window, 'open').mockReturnValue(existingPresenter as unknown as Window);
     const fixture = setup();
     fixture.detectChanges();
     await fixture.whenStable();
@@ -2413,6 +2406,9 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
       launchPresenterViewWindow(): Promise<Window | null>;
       session: typeof fixture.componentInstance.session;
     };
+    expect(fixture.componentInstance.presenterViewActionLabel()).toBe(
+      'Präsentationsansicht fortsetzen',
+    );
     const opened = await component.launchPresenterViewWindow();
 
     expect(opened).toBe(existingPresenter);
@@ -2423,6 +2419,21 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
     });
     expect(component.session()?.presenterSurface).toBe('default');
     expect(fixture.componentInstance.presenterSurfacePending()).toBe(false);
+    expect(fixture.componentInstance.presenterViewActionLabel()).toBe(
+      'Zur Präsentationsansicht wechseln',
+    );
+
+    dialogOpenMock.mockClear();
+    open.mockClear();
+    await fixture.componentInstance.openPresenterView();
+    expect(open).toHaveBeenCalled();
+    expect(dialogOpenMock).not.toHaveBeenCalled();
+
+    existingPresenter.closed = true;
+    fixture.componentInstance.onHostWindowFocus();
+    expect(fixture.componentInstance.presenterViewActionLabel()).toBe(
+      'Präsentationsansicht öffnen',
+    );
     open.mockRestore();
     fixture.destroy();
   });
@@ -2481,7 +2492,10 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
 
     expect(channelNav?.contains(viewControls)).toBe(false);
     expect(viewControls?.querySelector('[data-testid="open-presenter-view"]')).not.toBeNull();
-    expect(viewControls?.querySelector('.session-host__view-toggle--frame')?.textContent).toContain(
+    expect(viewControls?.querySelectorAll('button')).toHaveLength(1);
+    expect(fixture.nativeElement.querySelector('.session-host__live-sound-control')).not.toBeNull();
+    const { menu } = await openHostMoreActions(fixture);
+    expect(menu.querySelector('.session-host__view-toggle--frame')?.textContent).toContain(
       'App-Rahmen',
     );
     expect(styles).toMatch(/\.session-channel-tabs \{[^}]*overflow:\s*hidden/);
@@ -2524,16 +2538,15 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
     const inlineControls = fixture.nativeElement.querySelector(
       '.session-host__view-controls--inline',
     ) as HTMLElement;
-    const frameAction = inlineControls.querySelector('.session-host__view-toggle--frame');
-    const feedbackAction = inlineControls.querySelector(
-      '[data-testid="host-product-feedback-action"]',
+    expect(inlineControls.querySelectorAll('button')).toHaveLength(1);
+    expect(fixture.nativeElement.querySelector('.session-host__live-sound-control')).not.toBeNull();
+    const { menu } = await openHostMoreActions(fixture);
+    expect(menu.querySelector('.session-host__view-toggle--frame')?.textContent).toContain(
+      'App-Rahmen',
     );
-    expect(feedbackAction?.textContent).toContain('arsnova.eu verbessern');
     expect(
-      Array.from(inlineControls.querySelectorAll('button')).indexOf(feedbackAction as Element),
-    ).toBe(
-      Array.from(inlineControls.querySelectorAll('button')).indexOf(frameAction as Element) + 1,
-    );
+      menu.querySelector('[data-testid="host-product-feedback-action"]')?.textContent,
+    ).toContain('arsnova.eu verbessern');
     fixture.destroy();
   });
 
@@ -2739,7 +2752,7 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
     vi.unstubAllGlobals();
   });
 
-  it('legt den Fokus auf die Rahmen-Umschaltung wenn der Presenter-Button verschwindet', async () => {
+  it('legt den Fokus auf ein verbleibendes Host-Control wenn der Presenter-Button verschwindet', async () => {
     let changeHandler: ((event: { matches: boolean }) => void) | undefined;
     vi.stubGlobal(
       'matchMedia',
@@ -2776,12 +2789,13 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
     const presenterButton = fixture.nativeElement.querySelector(
       '[data-testid="open-presenter-view"]',
     ) as HTMLButtonElement | null;
-    const viewControls = fixture.nativeElement.querySelector(
-      '.session-host__view-controls--labeled',
-    ) as HTMLElement | null;
-    const focusFallback = viewControls?.querySelector(
-      '.session-host__view-toggle--fullscreen, .session-host__view-toggle--frame',
-    ) as HTMLButtonElement | null;
+    const focusFallback =
+      (fixture.nativeElement.querySelector(
+        '[data-testid="add-channel-trigger"], .session-host__channel-visibility-action, .session-channel-tabs button',
+      ) as HTMLButtonElement | null) ??
+      (fixture.nativeElement.querySelector(
+        '.session-host__live-sound-control',
+      ) as HTMLButtonElement | null);
     expect(presenterButton).not.toBeNull();
     expect(focusFallback).not.toBeNull();
     presenterButton?.focus();
@@ -2796,7 +2810,7 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
     vi.unstubAllGlobals();
   });
 
-  it('legt den Fokus auf ein sichtbares Host-Control wenn View-Toggles ausgeblendet sind', async () => {
+  it('legt den Fokus auf die Host-Navigation wenn die Präsentationsaktion ausgeblendet wird', async () => {
     let changeHandler: ((event: { matches: boolean }) => void) | undefined;
     vi.stubGlobal(
       'matchMedia',
@@ -2833,17 +2847,6 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
     const presenterButton = fixture.nativeElement.querySelector(
       '[data-testid="open-presenter-view"]',
     ) as HTMLButtonElement | null;
-    const viewControls = fixture.nativeElement.querySelector(
-      '.session-host__view-controls--labeled',
-    ) as HTMLElement | null;
-    const hiddenToggles = Array.from(
-      viewControls?.querySelectorAll<HTMLElement>(
-        '.session-host__view-toggle--fullscreen, .session-host__view-toggle--frame',
-      ) ?? [],
-    );
-    for (const toggle of hiddenToggles) {
-      toggle.style.display = 'none';
-    }
     const visibleFallback = fixture.nativeElement.querySelector(
       '.session-host__channel-visibility-action, [data-testid="add-channel-trigger"], .session-channel-tabs button',
     ) as HTMLElement | null;
@@ -15063,6 +15066,41 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
     expect(skipQuestionMutateMock).not.toHaveBeenCalled();
     expect(prevQuestionMutateMock).not.toHaveBeenCalled();
     expect(endMutateMock).not.toHaveBeenCalled();
+    fixture.destroy();
+  });
+
+  it('öffnet das Produktfeedback als letzten Menüeintrag mit dem bleibenden Auslöser', async () => {
+    const fixture = setup();
+    fixture.detectChanges();
+    await fixture.whenStable();
+    fixture.detectChanges();
+    const feedbackOpen = vi
+      .spyOn(fixture.componentInstance.contextualFeedbackOffer, 'open')
+      .mockReturnValue(undefined);
+
+    const { trigger, menu } = await openHostMoreActions(fixture);
+    const menuItems = Array.from(menu.querySelectorAll<HTMLButtonElement>('button[mat-menu-item]'));
+    const feedbackAction = menu.querySelector<HTMLButtonElement>(
+      '[data-testid="host-product-feedback-action"]',
+    );
+    expect(feedbackAction).toBe(menuItems.at(-1));
+    feedbackAction!.click();
+    fixture.detectChanges();
+    await vi.waitUntil(() => feedbackOpen.mock.calls.length === 1, {
+      timeout: 1000,
+      interval: 10,
+    });
+
+    expect(feedbackOpen).toHaveBeenCalledWith(
+      'host.utility:manual',
+      expect.objectContaining({
+        role: 'HOST',
+        routeGroup: 'SESSION_HOST',
+        suggestedArea: 'LIVE_CONTROL',
+      }),
+      trigger,
+    );
+    expect(document.activeElement).toBe(trigger);
     fixture.destroy();
   });
 

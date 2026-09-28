@@ -56,12 +56,13 @@ describe('presenter-window.util', () => {
     expect(open).toHaveBeenCalledWith(
       'about:blank',
       presenterViewWindowName('xy9k2p'),
-      expect.stringContaining('fullscreen'),
+      expect.not.stringContaining('fullscreen'),
     );
     expect(open.mock.calls[1]?.[2]).toContain('width=1920');
     expect(open.mock.calls[1]?.[2]).toContain('height=1080');
     expect(tokenStorage.persistCurrentHostToken).toHaveBeenCalledWith('xy9k2p');
     expect(replace).toHaveBeenCalledWith(expect.stringContaining('/session/XY9K2P/present'));
+    expect(requestFullscreen).not.toHaveBeenCalled();
     expect(result).toBe(opened);
   });
 
@@ -71,7 +72,7 @@ describe('presenter-window.util', () => {
     const requestFullscreen = vi.fn(() => Promise.resolve());
     const existing = {
       closed: false,
-      location: { pathname: '/session/XY9K2P/present', replace },
+      location: { pathname: '/session/XY9K2P/present', hash: '', replace },
       sessionStorage: { setItem: vi.fn() },
       focus,
       document: {
@@ -91,11 +92,16 @@ describe('presenter-window.util', () => {
 
     const result = await openPresenterViewWindow(win, 'xy9k2p', tokenStorage);
 
-    expect(open).toHaveBeenCalledTimes(1);
-    expect(open).toHaveBeenCalledWith('', presenterViewWindowName('xy9k2p'));
+    expect(open).toHaveBeenCalledTimes(2);
+    expect(open).toHaveBeenNthCalledWith(1, '', presenterViewWindowName('xy9k2p'));
+    expect(open).toHaveBeenNthCalledWith(
+      2,
+      expect.stringMatching(/\/session\/XY9K2P\/present#arsnova-presenter-focus-a$/),
+      presenterViewWindowName('xy9k2p'),
+    );
     expect(replace).not.toHaveBeenCalled();
     expect(focus).toHaveBeenCalled();
-    expect(requestFullscreen).toHaveBeenCalled();
+    expect(requestFullscreen).not.toHaveBeenCalled();
     expect(existing.sessionStorage.setItem).toHaveBeenCalled();
     expect(result).toBe(existing);
   });
@@ -136,7 +142,7 @@ describe('presenter-window.util', () => {
     expect(open).toHaveBeenCalledWith(
       'about:blank',
       '_blank',
-      expect.stringContaining('fullscreen'),
+      expect.not.stringContaining('fullscreen'),
     );
     expect(callOrder).toEqual(['open', 'persist']);
     expect(replace).toHaveBeenCalledWith(expect.stringContaining('/session/XY9K2P/present'));
@@ -237,7 +243,7 @@ describe('presenter-window.util', () => {
     expect(await openPresenterViewWindow(null, 'ABC123', persistMock())).toBeNull();
   });
 
-  it('baut bildschirmfüllende Popup-Features inkl. fullscreen', () => {
+  it('baut bildschirmfüllende Popup-Features ohne Vollbild-Freigabe', () => {
     const win = {
       screen: { availWidth: 1600, availHeight: 900, availLeft: 10, availTop: 20 },
       innerWidth: 1200,
@@ -248,7 +254,7 @@ describe('presenter-window.util', () => {
     expect(features).toContain('height=900');
     expect(features).toContain('left=10');
     expect(features).toContain('top=20');
-    expect(features).toContain('fullscreen');
+    expect(features).not.toContain('fullscreen');
     expect(features).toContain('popup=yes');
   });
 

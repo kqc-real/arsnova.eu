@@ -17808,8 +17808,8 @@
         </context-group>
       </trans-unit>
       <trans-unit id="presentationStart.primaryAction" datatype="html">
-        <source> Präsentation im Vollbild starten</source>
-        <target>Lancer la présentation en plein écran</target>
+        <source> Präsentation starten</source>
+        <target>Lancer la présentation</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/host-pairing/presentation-start-dialog.component.html</context>
           <context context-type="linenumber">138,140</context>
@@ -20185,6 +20185,22 @@
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.html</context>
           <context context-type="linenumber">5086</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="sessionHost.resumePresentationView" datatype="html">
+        <source>Präsentationsansicht fortsetzen</source>
+        <target>Reprendre la vue Présentation</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.ts</context>
+          <context context-type="linenumber">1838</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="sessionHost.switchToPresentationView" datatype="html">
+        <source>Zur Präsentationsansicht wechseln</source>
+        <target>Passer à la vue Présentation</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.ts</context>
+          <context context-type="linenumber">1841</context>
         </context-group>
       </trans-unit>
       <trans-unit id="sessionHost.fullscreenToggleAria" datatype="html">
@@ -26111,36 +26127,28 @@
           <context context-type="linenumber">143,145</context>
         </context-group>
       </trans-unit>
+      <trans-unit id="sessionPresent.enterFullscreen" datatype="html">
+        <source>Präsentation im Vollbild starten</source>
+        <target>Démarrer la présentation en plein écran</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/session-present/session-present.component.html</context>
+          <context context-type="linenumber">38</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="sessionPresent.enterFullscreenHint" datatype="html">
+        <source>Gesamten Bildschirm für die Projektion nutzen</source>
+        <target>Utiliser tout l’écran pour la projection</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/session-present/session-present.component.html</context>
+          <context context-type="linenumber">45</context>
+        </context-group>
+      </trans-unit>
       <trans-unit id="sessionPresent.projectionPage" datatype="html">
         <source> Seite <x id="INTERPOLATION" equiv-text="{{ visibleIndex() + 1 }}"/> / <x id="INTERPOLATION_1" equiv-text="{{ count() }}"/></source>
         <target>Page <x id="INTERPOLATION" equiv-text="{{ visibleIndex() + 1 }}"/> / <x id="INTERPOLATION_1" equiv-text="{{ count() }}"/></target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-present/projection-pages.component.ts</context>
           <context context-type="linenumber">30,32</context>
-        </context-group>
-      </trans-unit>
-      <trans-unit id="sessionPresent.fullscreenGateTitle" datatype="html">
-        <source> Präsentation im Vollbild</source>
-        <target>Présentation en plein écran</target>
-        <context-group purpose="location">
-          <context context-type="sourcefile">src/app/features/session/session-present/session-present.component.html</context>
-          <context context-type="linenumber">30,32</context>
-        </context-group>
-      </trans-unit>
-      <trans-unit id="sessionPresent.fullscreenGateHint" datatype="html">
-        <source>Tippe hier, um Vollbild zu erlauben.</source>
-        <target>Touche ici pour autoriser le plein écran.</target>
-        <context-group purpose="location">
-          <context context-type="sourcefile">src/app/features/session/session-present/session-present.component.html</context>
-          <context context-type="linenumber">33</context>
-        </context-group>
-      </trans-unit>
-      <trans-unit id="sessionPresent.fullscreenGateAction" datatype="html">
-        <source> Präsentation im Vollbild starten</source>
-        <target>Lancer la présentation en plein écran</target>
-        <context-group purpose="location">
-          <context context-type="sourcefile">src/app/features/session/session-present/session-present.component.html</context>
-          <context context-type="linenumber">41,43</context>
         </context-group>
       </trans-unit>
       <trans-unit id="sessionPresent.presentationEndedTitle" datatype="html">

@@ -874,6 +874,8 @@ export class SessionHostComponent implements OnInit, OnDestroy {
   private readonly hostScenario = inject(HostScenarioService);
   readonly contextualFeedbackOffer = inject(ContextualFeedbackOfferService);
   private presenterWindowOpenInFlight = false;
+  private presenterWindowHandle: Window | null = null;
+  readonly presenterWindowOpen = signal(false);
   private auxPollTimer: ReturnType<typeof setInterval> | null = null;
   private clockPollTimer: ReturnType<typeof setInterval> | null = null;
   readonly code = this.route.parent?.snapshot.paramMap.get('code') ?? '';
@@ -1117,6 +1119,7 @@ export class SessionHostComponent implements OnInit, OnDestroy {
       this.stopHostPolling();
       return;
     }
+    this.syncPresenterWindowOpenState();
     void this.refreshDurableHostAccess();
     this.ensureParticipantSubscription();
     this.ensureStatusSubscription();
@@ -1763,7 +1766,7 @@ export class SessionHostComponent implements OnInit, OnDestroy {
   readonly showHostViewControls = computed(() => this.isLiveHostSurface());
   readonly presenterSurfacePending = signal(false);
   readonly pendingHostMoreAction = signal<
-    'skip' | 'previous' | 'replace' | 'leave' | 'endPresentation' | 'end' | null
+    'skip' | 'previous' | 'replace' | 'leave' | 'endPresentation' | 'feedback' | 'end' | null
   >(null);
 
   /** Material restores the persistent menu trigger before emitting menuClosed. */
@@ -1792,6 +1795,11 @@ export class SessionHostComponent implements OnInit, OnDestroy {
         break;
       case 'endPresentation':
         void this.endPresentationView();
+        break;
+      case 'feedback':
+        this.openHostProductFeedbackForTarget(
+          this.document.querySelector<HTMLElement>('[data-testid="host-more-actions"]'),
+        );
         break;
       case 'end':
         void this.onSessionEndAnchorClick();
@@ -1825,6 +1833,15 @@ export class SessionHostComponent implements OnInit, OnDestroy {
     return this.displayedCurrentQuestionForHost() === null;
   });
   readonly isImmersiveMode = computed(() => this.hostDisplayMode.immersiveHostActive());
+  readonly presenterViewActionLabel = computed(() => {
+    if (this.session()?.presenterSurface === 'ended') {
+      return $localize`:@@sessionHost.resumePresentationView:Präsentationsansicht fortsetzen`;
+    }
+    if (this.presenterWindowOpen()) {
+      return $localize`:@@sessionHost.switchToPresentationView:Zur Präsentationsansicht wechseln`;
+    }
+    return $localize`:@@sessionHost.openPresentationView:Präsentationsansicht öffnen`;
+  });
   readonly isFullscreenSupported = computed(() =>
     isDocumentFullscreenEnterAvailable(this.document),
   );
@@ -5535,7 +5552,10 @@ export class SessionHostComponent implements OnInit, OnDestroy {
     if (!this.showPresenterViewButton() || this.presenterWindowOpenInFlight) {
       return;
     }
-    this.tryEnterHostFullscreenFromUserGesture();
+    if (this.syncPresenterWindowOpenState()) {
+      await this.launchPresenterViewWindow();
+      return;
+    }
     const decision = await firstValueFrom(
       this.dialog
         .open(PresentationStartDialogComponent, {
@@ -5634,6 +5654,8 @@ export class SessionHostComponent implements OnInit, OnDestroy {
         this.code,
         this.sessionTokenStorage,
       );
+      this.presenterWindowHandle = opened;
+      this.syncPresenterWindowOpenState();
       if (opened && this.session()?.presenterSurface === 'ended') {
         this.presenterSurfacePending.set(true);
         let resumed = false;
@@ -5656,6 +5678,25 @@ export class SessionHostComponent implements OnInit, OnDestroy {
     } finally {
       this.presenterWindowOpenInFlight = false;
     }
+  }
+
+  @HostListener('window:focus')
+  onHostWindowFocus(): void {
+    this.syncPresenterWindowOpenState();
+  }
+
+  private syncPresenterWindowOpenState(): boolean {
+    let open = false;
+    try {
+      open = this.presenterWindowHandle !== null && !this.presenterWindowHandle.closed;
+    } catch {
+      // Cross-origin/gesperrter Handle gilt als nicht mehr kontrollierbar.
+    }
+    this.presenterWindowOpen.set(open);
+    if (!open) {
+      this.presenterWindowHandle = null;
+    }
+    return open;
   }
 
   private async refreshPairedHostStatus(): Promise<void> {
@@ -5758,13 +5799,7 @@ export class SessionHostComponent implements OnInit, OnDestroy {
     if (!active.closest('[data-testid="open-presenter-view"]')) {
       return;
     }
-    const toolbar = active.closest('.session-host__view-controls');
     const scope = active.closest('.session-host') ?? this.document.body;
-    const preferred = Array.from(
-      (toolbar ?? scope).querySelectorAll<HTMLElement>(
-        '.session-host__view-toggle--fullscreen, .session-host__view-toggle--frame',
-      ),
-    );
     const navigation = Array.from(
       scope.querySelectorAll<HTMLElement>(
         '[data-testid="add-channel-trigger"], .session-host__channel-visibility-action, .session-channel-tabs button',
@@ -5785,7 +5820,7 @@ export class SessionHostComponent implements OnInit, OnDestroy {
         ].join(', '),
       ),
     );
-    const fallback = [...preferred, ...navigation, ...broader].find(
+    const fallback = [...navigation, ...broader].find(
       (candidate) =>
         candidate !== active &&
         !candidate.closest('[data-testid="open-presenter-view"]') &&
@@ -6026,8 +6061,7 @@ export class SessionHostComponent implements OnInit, OnDestroy {
     );
   }
 
-  openHostProductFeedback(event: Event): void {
-    const target = event.currentTarget instanceof HTMLElement ? event.currentTarget : null;
+  private openHostProductFeedbackForTarget(target: HTMLElement | null): void {
     this.contextualFeedbackOffer.open(
       'host.utility:manual',
       {

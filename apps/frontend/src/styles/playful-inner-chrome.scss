@@ -745,10 +745,6 @@ html.preset-playful {
     @include app-playful-inner-card-primary;
   }
 
-  .session-present .session-present__fullscreen-gate-card {
-    @include app-playful-inner-card-primary;
-  }
-
   .session-present mat-card.session-placeholder,
   .session-host mat-card.session-placeholder {
     @include app-playful-inner-card-nested;

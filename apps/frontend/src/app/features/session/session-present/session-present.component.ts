@@ -1,10 +1,10 @@
 import { ProjectionPagesComponent } from './projection-pages.component';
+import { CdkTrapFocus } from '@angular/cdk/a11y';
 import { DecimalPipe, DOCUMENT, NgTemplateOutlet } from '@angular/common';
 import {
   Component,
   DestroyRef,
   ElementRef,
-  HostListener,
   Injector,
   LOCALE_ID,
   OnDestroy,
@@ -27,7 +27,6 @@ import { HostDisplayModeService } from '../../../core/host-display-mode.service'
 import {
   getDocumentFullscreenElement,
   isDocumentFullscreenEnterAvailable,
-  tryAutoRequestDocumentFullscreen,
   tryRequestDocumentFullscreen,
 } from '../../../core/document-fullscreen.util';
 import { remainingCountdownSeconds, stableCountdownDeadlineMs } from '../session-countdown.util';
@@ -164,6 +163,7 @@ type LobbyFoyerMotionProfile = {
   standalone: true,
   imports: [
     DecimalPipe,
+    CdkTrapFocus,
     MatButton,
     MatCard,
     MatCardContent,
@@ -225,13 +225,11 @@ export class SessionPresentComponent implements OnInit, OnDestroy {
     void this.refreshSessionMeta();
     void this.refreshPresenterLiveData();
   };
-  private readonly onFullscreenChange = () => {
-    this.syncFullscreenGate();
-  };
+  private readonly onFullscreenChange = () => this.syncFullscreenAction();
   readonly localizedPath = localizePath;
 
-  /** Browser-Vollbild fehlt → expliziter Gate (window.open verbraucht die User-Geste). */
-  readonly needsFullscreenGate = signal(false);
+  /** Verbindlicher Vollbild-Einstieg statt einer versteckten Browserfunktion. */
+  readonly showFullscreenAction = signal(false);
 
   readonly session = signal<SessionInfoDTO | null>(null);
   readonly personalLeaderboard = signal<LeaderboardEntryDTO[]>([]);
@@ -826,9 +824,7 @@ export class SessionPresentComponent implements OnInit, OnDestroy {
       document.addEventListener('fullscreenchange', this.onFullscreenChange);
       document.addEventListener('webkitfullscreenchange', this.onFullscreenChange);
     }
-    // Best effort: oft blockiert, Gate-Button bleibt als zuverlässiger Pfad.
-    tryAutoRequestDocumentFullscreen(this.document, () => this.syncFullscreenGate());
-    this.syncFullscreenGate();
+    this.syncFullscreenAction();
     if (this.code.length !== 6) {
       this.showHomeCta.set(true);
       this.presenterInfo.set($localize`Ungültiger Session-Code.`);
@@ -864,6 +860,29 @@ export class SessionPresentComponent implements OnInit, OnDestroy {
   private measuredProjectionPage: { context: string; count: number } | null = null;
   private reportingProjectionPage = false;
   private projectionReportRetry: ReturnType<typeof setTimeout> | null = null;
+
+  enterPresenterFullscreen(): void {
+    tryRequestDocumentFullscreen(this.document, () => this.syncFullscreenAction());
+  }
+
+  private syncFullscreenAction(): void {
+    const wasVisible = this.showFullscreenAction();
+    const shouldShow =
+      isDocumentFullscreenEnterAvailable(this.document) &&
+      getDocumentFullscreenElement(this.document) === null;
+    this.showFullscreenAction.set(shouldShow);
+    if (wasVisible && !shouldShow) {
+      queueMicrotask(() => {
+        if (this.destroyRef.destroyed) return;
+        const surface = this.hostElement.nativeElement.querySelector(
+          '[data-testid="presenter-surface"]',
+        ) as HTMLElement | null;
+        if (surface?.isConnected) {
+          surface.focus({ preventScroll: true });
+        }
+      });
+    }
+  }
 
   async reportProjectionPages(count: number): Promise<void> {
     const page = this.session()?.presenterPage;
@@ -904,36 +923,6 @@ export class SessionPresentComponent implements OnInit, OnDestroy {
     } finally {
       this.reportingProjectionPage = false;
     }
-  }
-
-  enterPresenterFullscreen(): void {
-    tryRequestDocumentFullscreen(this.document, () => this.syncFullscreenGate());
-  }
-
-  private syncFullscreenGate(): void {
-    if (!isDocumentFullscreenEnterAvailable(this.document)) {
-      this.needsFullscreenGate.set(false);
-      return;
-    }
-    this.needsFullscreenGate.set(!getDocumentFullscreenElement(this.document));
-  }
-
-  @HostListener('window:keydown', ['$event'])
-  onPresenterFullscreenShortcut(event: KeyboardEvent): void {
-    if (!this.needsFullscreenGate()) {
-      return;
-    }
-    if (event.key !== 'Enter' && event.key !== 'f' && event.key !== 'F') {
-      return;
-    }
-    if (event.target instanceof HTMLElement) {
-      const tag = event.target.tagName;
-      if (tag === 'INPUT' || tag === 'TEXTAREA' || event.target.isContentEditable) {
-        return;
-      }
-    }
-    event.preventDefault();
-    this.enterPresenterFullscreen();
   }
 
   private startPolling(): void {

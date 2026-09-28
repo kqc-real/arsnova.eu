@@ -622,10 +622,6 @@
   flex-wrap: wrap;
 }
 
-.session-host__product-feedback-action {
-  min-height: 2.75rem;
-}
-
 .session-host__view-toggle {
   width: 2.75rem;
   height: 2.75rem;
@@ -8483,16 +8479,16 @@ $round2-color: var(--mat-sys-primary);
   max-width: 100%;
 }
 
+.session-host__more-actions-divider {
+  height: 1px;
+  margin-block: 0.25rem;
+  background: var(--mat-sys-outline-variant);
+}
+
 .session-host__view-controls--labeled {
   display: flex;
   flex-direction: column;
   align-items: flex-start;
-  gap: 0.65rem;
-}
-
-.session-host__display-options {
-  display: flex;
-  flex-wrap: wrap;
   gap: 0.65rem;
 }
 
@@ -8530,6 +8526,13 @@ $round2-color: var(--mat-sys-primary);
   border-radius: var(--mat-sys-corner-extra-large);
   background: var(--mat-sys-surface-container-high);
   box-shadow: var(--mat-sys-level2);
+}
+
+.session-host__projection-pages--app-frame {
+  /* Die App-Shell hält den Toolbar-Platz über ihr Scrollport-Padding frei.
+     Der Zusatzabstand einschließlich Schatten-Clearance verhindert, dass die
+     angepinnte Navigation in die schwebende Toolbar hineinragt. */
+  top: calc(var(--vote-channel-tabs-sticky-top, 0.5rem) + 1.5rem);
 }
 
 .session-host__projection-pages button {

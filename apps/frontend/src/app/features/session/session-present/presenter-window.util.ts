@@ -1,6 +1,5 @@
 import { localizePath, resolveLocalizedAppUrl } from '../../../core/locale-router';
 import { getHostToken, normalizeHostSessionCode } from '../../../core/host-session-token';
-import { tryAutoRequestDocumentFullscreen } from '../../../core/document-fullscreen.util';
 
 /**
  * Presenter ab Tablet, nicht auf Smartphones.
@@ -72,9 +71,8 @@ export function shouldOpenPresenterInUnnamedTab(win: Window | null | undefined):
 /**
  * Bildschirmfüllende Popup-Features.
  *
- * Chromium verbraucht die User-Geste bei `window.open` — danach scheitert
- * `requestFullscreen` im Kindfenster. Deshalb: Fläche sofort maximieren und
- * zusätzlich `fullscreen` (Chrome mit window-management) mitschicken.
+ * Fläche sofort auf den verfügbaren Bildschirm maximieren. Bewusst kein
+ * `fullscreen`-Feature: Chromium fordert dafür eine zweite Browser-Freigabe an.
  */
 export function presenterWindowOpenFeatures(win: Window): string {
   const screen = win.screen;
@@ -92,14 +90,9 @@ export function presenterWindowOpenFeatures(win: Window): string {
   const top = Math.floor(
     Number((screen as (Screen & { availTop?: number }) | null)?.availTop) || 0,
   );
-  return [
-    'popup=yes',
-    `width=${width}`,
-    `height=${height}`,
-    `left=${left}`,
-    `top=${top}`,
-    'fullscreen',
-  ].join(',');
+  return ['popup=yes', `width=${width}`, `height=${height}`, `left=${left}`, `top=${top}`].join(
+    ',',
+  );
 }
 
 function copyHostTokenToOpenedSessionStorage(storage: Storage, sessionCode: string): boolean {
@@ -125,18 +118,22 @@ function isPresenterLocation(opened: Window, sessionCode: string): boolean {
 }
 
 /**
- * Best-effort Vollbild im Kindfenster. Nach `window.open` oft blockiert —
- * Present-Seite zeigt dann einen expliziten Gate-Button.
+ * Erzwingt fuer einen bereits offenen Presenter-Tab eine echte Same-Document-Navigation.
+ * Ein blosses `Window.focus()` darf der Browser ignorieren; die benannte Navigation aus
+ * dem Nutzer-Klick aktiviert den Ziel-Tab dagegen auch in Browsern mit strengerem
+ * Fokusverhalten. Der wechselnde Fragmentwert vermeidet einen Reload der Angular-App.
  */
-function tryEnterPresenterFullscreen(opened: Window): void {
+function presenterViewActivationUrl(opened: Window, sessionCode: string): string {
+  const firstFragment = '#arsnova-presenter-focus-a';
+  let fragment = firstFragment;
   try {
-    const doc = opened.document;
-    if (doc) {
-      tryAutoRequestDocumentFullscreen(doc);
+    if (opened.location.hash === firstFragment) {
+      fragment = '#arsnova-presenter-focus-b';
     }
   } catch {
-    // Cross-origin / restricted document.
+    // Same-Origin-Zugriff kann durch Browserrichtlinien gesperrt sein.
   }
+  return `${presenterViewUrl(sessionCode)}${fragment}`;
 }
 
 /**
@@ -145,7 +142,7 @@ function tryEnterPresenterFullscreen(opened: Window): void {
  * - Bestehendes Desktop-Fenster auf `/present` nur fokussieren (kein Reload → kein Home-/Reconnect-Flash).
  * - Sonst synchron `about:blank` öffnen (User-Geste + alte Startseite sofort weg), Token persistieren,
  *   danach auf `/present` navigieren.
- * - Fenster bildschirmfüllend (+ `fullscreen`-Feature, wo der Browser es erlaubt).
+ * - Fenster ohne zusätzliche Browser-Freigabe auf die verfügbare Bildschirmfläche maximieren.
  */
 export async function openPresenterViewWindow(
   win: Window | null | undefined,
@@ -170,24 +167,27 @@ export async function openPresenterViewWindow(
         existing !== win &&
         isPresenterLocation(existing, sessionCode)
       ) {
-        existing.focus();
+        // Eine benannte Same-Document-Navigation ist hier bewusst zusaetzlich zu focus()
+        // noetig: Browser duerfen focus() fuer bestehende Tabs stillschweigend ignorieren.
+        const activated =
+          win.open(presenterViewActivationUrl(existing, sessionCode), target) ?? existing;
+        activated.focus();
         try {
-          existing.moveTo?.(0, 0);
-          existing.resizeTo?.(
+          activated.moveTo?.(0, 0);
+          activated.resizeTo?.(
             Math.floor(win.screen?.availWidth || win.innerWidth || 1280),
             Math.floor(win.screen?.availHeight || win.innerHeight || 720),
           );
         } catch {
           // moveTo/resizeTo oft gesperrt.
         }
-        tryEnterPresenterFullscreen(existing);
         try {
-          copyHostTokenToOpenedSessionStorage(existing.sessionStorage, sessionCode);
+          copyHostTokenToOpenedSessionStorage(activated.sessionStorage, sessionCode);
         } catch {
           // Restricted sessionStorage: IndexedDB-Fallback bleibt.
         }
         void tokenStorage.persistCurrentHostToken(sessionCode);
-        return existing;
+        return activated;
       }
     } catch {
       // Handle gesperrt: neuer Blank-Pfad.
@@ -201,7 +201,6 @@ export async function openPresenterViewWindow(
     return null;
   }
   if (opened === win) {
-    tryEnterPresenterFullscreen(opened);
     await tokenStorage.persistCurrentHostToken(sessionCode);
     try {
       win.location.assign(url);
@@ -210,8 +209,6 @@ export async function openPresenterViewWindow(
     }
     return opened;
   }
-
-  tryEnterPresenterFullscreen(opened);
 
   // Persist vor der Present-Navigation, damit der Guard IndexedDB schon vorfindet.
   const persisted = await tokenStorage.persistCurrentHostToken(sessionCode);
@@ -244,6 +241,5 @@ export async function openPresenterViewWindow(
   } catch {
     // Fokus optional.
   }
-  tryEnterPresenterFullscreen(opened);
   return opened;
 }
