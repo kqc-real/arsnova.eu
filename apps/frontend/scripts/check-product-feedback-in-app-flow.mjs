@@ -318,11 +318,12 @@ async function main() {
     await hostPage.locator('.session-host').waitFor({ state: 'visible', timeout: 20_000 });
     await closeHostJoinOverlay(hostPage);
 
-    // Immersive Host-Utility ist Pflicht für Story 12.2 (kein Footer-Fallback)
-    const immersiveUtility = hostPage.locator('.session-host__product-feedback-utility');
-    await immersiveUtility.waitFor({ state: 'visible', timeout: 20_000 });
+    // Die Host-Aktion muss in der gemeinsamen Anzeige-Werkzeugleiste erreichbar sein
+    // (kein Footer-Fallback).
+    const hostFeedbackAction = hostPage.getByTestId('host-product-feedback-action');
+    await hostFeedbackAction.waitFor({ state: 'visible', timeout: 20_000 });
     try {
-      await immersiveUtility.getByRole('button', { name: IMPROVE_NAME }).click();
+      await hostFeedbackAction.click();
     } catch (error) {
       await shot(hostPage, '03-host-immersive-click-failed').catch(() => undefined);
       throw error;
