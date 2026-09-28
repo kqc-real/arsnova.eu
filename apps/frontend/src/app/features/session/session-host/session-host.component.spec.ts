@@ -19212,6 +19212,44 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
     fixture.destroy();
   });
 
+  it('verwirft einen verspäteten Snapshot eines abgelaufenen Reconnect-Versuchs', async () => {
+    const fixture = setup();
+    fixture.detectChanges();
+    await flushComponentAfterStable(fixture, 50);
+    fixture.componentInstance.isPairedHostClient.set(true);
+    getLifecycleForHostQueryMock.mockResolvedValue(defaultLifecycle);
+    let resolveFirstSnapshot!: (session: typeof defaultSession) => void;
+    getInfoQueryMock
+      .mockImplementationOnce(
+        () =>
+          new Promise<typeof defaultSession>((resolve) => {
+            resolveFirstSnapshot = resolve;
+          }),
+      )
+      .mockResolvedValueOnce({ ...defaultSession, title: 'Aktueller Snapshot' });
+    vi.useFakeTimers();
+
+    const firstReconnect = (
+      fixture.componentInstance as unknown as { reconnectPairedHostControl(): Promise<void> }
+    ).reconnectPairedHostControl();
+    const firstTimedOut = expect(firstReconnect).rejects.toThrow('WebSocket reconnect timed out.');
+    await Promise.resolve();
+    await vi.advanceTimersByTimeAsync(12_000);
+    await firstTimedOut;
+
+    await (
+      fixture.componentInstance as unknown as { reconnectPairedHostControl(): Promise<void> }
+    ).reconnectPairedHostControl();
+    expect(fixture.componentInstance.session()?.title).toBe('Aktueller Snapshot');
+
+    resolveFirstSnapshot({ ...defaultSession, title: 'Veralteter Snapshot' });
+    await Promise.resolve();
+    await Promise.resolve();
+
+    expect(fixture.componentInstance.session()?.title).toBe('Aktueller Snapshot');
+    fixture.destroy();
+  });
+
   it('meldet einen manuellen Reconnect erst nach vollständigem Host-Snapshot als erfolgreich', async () => {
     const fixture = setup();
     fixture.detectChanges();

@@ -826,8 +826,10 @@ export class SessionHostComponent implements OnInit, OnDestroy {
   private hostRealtimeFallbackRefreshInFlight = false;
   private hostRealtimeSubscriptionRetryTimer: ReturnType<typeof setTimeout> | null = null;
   private unregisterPairedHostManualReconnect: (() => void) | null = null;
+  private pairedHostManualReconnectGeneration = 0;
   private currentQuestionRefreshRunId = 0;
   private hostVoteProgressRefreshRunId = 0;
+  private sessionLifecycleRefreshRunId = 0;
   private participantBaselineReady = false;
   private knownParticipantIds = new Set<string>();
   private foyerArrivalSequence = 0;
@@ -4722,12 +4724,17 @@ export class SessionHostComponent implements OnInit, OnDestroy {
     }
   }
 
-  private async reloadSessionInfo(): Promise<SessionInfoDTO> {
+  private async reloadSessionInfo(
+    options: { isCurrent?: () => boolean } = {},
+  ): Promise<SessionInfoDTO> {
     const requestedAt = Date.now();
     const session = await trpc.session.getInfoForReconnect.query({
       code: this.code.toUpperCase(),
       anonymousClientId: getAnonymousClientId(),
     });
+    if (options.isCurrent && !options.isCurrent()) {
+      return session;
+    }
     recordServerTimeSample(session.serverTime, requestedAt);
     this.sessionUnavailable.set(false);
     this.keepHostTokenOnDeactivate = false;
@@ -4751,18 +4758,26 @@ export class SessionHostComponent implements OnInit, OnDestroy {
     return session;
   }
 
-  private async refreshSessionLifecycle(options: { throwOnError?: boolean } = {}): Promise<void> {
-    if (!this.code || this.sessionLifecyclePending() || this.hostAccessRevoked()) {
+  private async refreshSessionLifecycle(
+    options: { throwOnError?: boolean; isCurrent?: () => boolean } = {},
+  ): Promise<void> {
+    if (
+      !this.code ||
+      (this.sessionLifecyclePending() && !options.isCurrent) ||
+      this.hostAccessRevoked()
+    ) {
       if (options.throwOnError) {
         throw new Error('Session lifecycle snapshot is not available.');
       }
       return;
     }
+    const runId = ++this.sessionLifecycleRefreshRunId;
     this.sessionLifecyclePending.set(true);
     try {
       const lifecycle = await trpc.session.getLifecycleForHost.query({
         code: this.code.toUpperCase(),
       });
+      if (options.isCurrent && !options.isCurrent()) return;
       this.sessionLifecycle.set(lifecycle);
       this.sessionDeadline.applySnapshot(lifecycle);
       this.applyLifecycleDeadlineToSession(lifecycle);
@@ -4804,7 +4819,9 @@ export class SessionHostComponent implements OnInit, OnDestroy {
       if (options.throwOnError) throw error;
       // Die Status-Subscription bleibt maßgeblich; Warnungen werden beim nächsten Snapshot erneut geplant.
     } finally {
-      this.sessionLifecyclePending.set(false);
+      if (runId === this.sessionLifecycleRefreshRunId) {
+        this.sessionLifecyclePending.set(false);
+      }
     }
   }
 
@@ -5468,33 +5485,41 @@ export class SessionHostComponent implements OnInit, OnDestroy {
       throw new Error('Paired host control is no longer available.');
     }
 
+    const generation = ++this.pairedHostManualReconnectGeneration;
+    const isCurrent = (): boolean => generation === this.pairedHostManualReconnectGeneration;
+    const assertCurrent = (): void => {
+      if (!isCurrent()) throw new Error('WebSocket reconnect was superseded.');
+    };
     this.clearHostRealtimeSubscriptionRetry();
     let timeout: ReturnType<typeof setTimeout> | null = null;
     const reconnectTimeout = new Promise<never>((_, reject) => {
-      timeout = setTimeout(
-        () => reject(new Error('WebSocket reconnect timed out.')),
-        HOST_MANUAL_RECONNECT_TIMEOUT_MS,
-      );
+      timeout = setTimeout(() => {
+        if (isCurrent()) this.pairedHostManualReconnectGeneration += 1;
+        reject(new Error('WebSocket reconnect timed out.'));
+      }, HOST_MANUAL_RECONNECT_TIMEOUT_MS);
     });
 
     this.hostRealtimeFallbackActive = true;
     const restoreSnapshot = async (): Promise<void> => {
       await forceReconnectTrpcWs();
-      await this.reloadSessionInfo();
+      assertCurrent();
+      await this.reloadSessionInfo({ isCurrent });
+      assertCurrent();
       await Promise.all([
-        this.refreshParticipantsPayload({ throwOnError: true }),
-        this.refreshCurrentQuestionForHost({ throwOnError: true }),
-        this.refreshHostVoteProgress({ throwOnError: true }),
-        this.refreshSessionLifecycle({ throwOnError: true }),
+        this.refreshParticipantsPayload({ throwOnError: true, isCurrent }),
+        this.refreshCurrentQuestionForHost({ throwOnError: true, isCurrent }),
+        this.refreshHostVoteProgress({ throwOnError: true, isCurrent }),
+        this.refreshSessionLifecycle({ throwOnError: true, isCurrent }),
       ]);
-      await this.refreshAuxiliaryHostData();
+      assertCurrent();
     };
 
     try {
       await Promise.race([restoreSnapshot(), reconnectTimeout]);
+      assertCurrent();
       this.hostRealtimeFallbackActive = false;
     } catch (error: unknown) {
-      this.consumeHostUnauthorized(error);
+      if (isCurrent()) this.consumeHostUnauthorized(error);
       throw error;
     } finally {
       if (timeout) clearTimeout(timeout);
@@ -8090,7 +8115,7 @@ export class SessionHostComponent implements OnInit, OnDestroy {
   }
 
   private async refreshParticipantsPayload(
-    options: { throwOnError?: boolean } = {},
+    options: { throwOnError?: boolean; isCurrent?: () => boolean } = {},
   ): Promise<void> {
     if (!this.code) {
       this.participantsPayload.set(null);
@@ -8103,6 +8128,7 @@ export class SessionHostComponent implements OnInit, OnDestroy {
       const summary = await trpc.session.getParticipantSummary.query({
         code: this.code.toUpperCase(),
       });
+      if (options.isCurrent && !options.isCurrent()) return;
       this.updateParticipantsPayload(
         this.participantSummaryToPayload(summary),
         this.participantBaselineReady,
@@ -13316,7 +13342,7 @@ export class SessionHostComponent implements OnInit, OnDestroy {
   }
 
   private async refreshCurrentQuestionForHost(
-    options: { throwOnError?: boolean } = {},
+    options: { throwOnError?: boolean; isCurrent?: () => boolean } = {},
   ): Promise<void> {
     if (!this.code || this.code.length !== 6) return;
     const runId = ++this.currentQuestionRefreshRunId;
@@ -13327,6 +13353,7 @@ export class SessionHostComponent implements OnInit, OnDestroy {
         code: this.code.toUpperCase(),
       });
       if (
+        (options.isCurrent && !options.isCurrent()) ||
         runId !== this.currentQuestionRefreshRunId ||
         this.effectiveStatus() !== expectedStatus ||
         this.effectiveCurrentQuestionState() !== expectedQuestion
@@ -13335,6 +13362,10 @@ export class SessionHostComponent implements OnInit, OnDestroy {
       }
       this.syncCurrentQuestionForHost(q);
     } catch (error: unknown) {
+      if (options.isCurrent && !options.isCurrent()) {
+        if (options.throwOnError) throw error;
+        return;
+      }
       if (this.consumeHostUnauthorized(error)) {
         if (options.throwOnError) throw error;
         return;
@@ -13351,7 +13382,9 @@ export class SessionHostComponent implements OnInit, OnDestroy {
     }
   }
 
-  private async refreshHostVoteProgress(options: { throwOnError?: boolean } = {}): Promise<void> {
+  private async refreshHostVoteProgress(
+    options: { throwOnError?: boolean; isCurrent?: () => boolean } = {},
+  ): Promise<void> {
     if (!this.code || this.code.length !== 6) return;
     const runId = ++this.hostVoteProgressRefreshRunId;
     const expectedStatus = this.effectiveStatus();
@@ -13362,6 +13395,7 @@ export class SessionHostComponent implements OnInit, OnDestroy {
         code: this.code.toUpperCase(),
       });
       if (
+        (options.isCurrent && !options.isCurrent()) ||
         runId !== this.hostVoteProgressRefreshRunId ||
         this.effectiveStatus() !== expectedStatus ||
         this.effectiveCurrentQuestionState() !== expectedQuestion ||
