@@ -1646,12 +1646,24 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
     expect(overlayCode?.querySelector('.sr-only')?.textContent?.trim()).toBe('Session-Code ABC123');
     expect(overlayCode?.querySelector('[aria-hidden="true"]')?.textContent?.trim()).toBe('ABC123');
 
+    (
+      fixture.componentInstance as unknown as {
+        suppressJoinMenuAutopen: boolean;
+      }
+    ).suppressJoinMenuAutopen = false;
     closeButton?.click();
     await Promise.resolve();
     fixture.detectChanges();
     await Promise.resolve();
 
     expect(fixture.componentInstance.joinInfoPopoverOpen()).toBe(false);
+    expect(
+      (
+        fixture.componentInstance as unknown as {
+          suppressJoinMenuAutopen: boolean;
+        }
+      ).suppressJoinMenuAutopen,
+    ).toBe(true);
     expect(document.activeElement).toBe(trigger);
     fixture.destroy();
   });

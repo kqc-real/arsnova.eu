@@ -4388,6 +4388,9 @@ export class SessionHostComponent implements OnInit, OnDestroy {
       this.joinInfoFocusReturn ??
       this.document.querySelector<HTMLElement>('[aria-controls="session-host-join-info"]');
     this.joinInfoFocusReturn = null;
+    // An explicit dismissal must also cancel a queued lobby auto-open. The QR code can become
+    // ready between the click and the next render, otherwise reopening the dialog immediately.
+    this.suppressJoinMenuAutopen = true;
     this.joinInfoPopoverOpen.set(false);
     // Restore after the overlay's focus trap has restored its captured element.
     afterNextRender(

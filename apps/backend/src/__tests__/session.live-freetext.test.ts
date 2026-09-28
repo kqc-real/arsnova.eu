@@ -295,6 +295,7 @@ describe('session.getActiveQuizIds', () => {
   );
 
   it('ordnet eine laufende Session nach Löschen und erneutem Anlegen der Quizkarte dem aktuellen Quiz zu', async () => {
+    const now = Date.now();
     const scopedQuizInput = { ...QUIZ_INPUT, historyScopeId: HISTORY_SCOPE_ID };
     const accessProof = await createQuizHistoryAccessProof(scopedQuizInput);
     prismaMock.quiz.findMany
@@ -322,10 +323,10 @@ describe('session.getActiveQuizIds', () => {
       {
         quizId: INACTIVE_QUIZ_ID,
         code: 'LIVE01',
-        createdAt: new Date('2026-09-27T12:00:00.000Z'),
+        createdAt: new Date(now - 60_000),
         status: 'ACTIVE',
         endedAt: null,
-        expiresAt: new Date('2026-09-28T12:00:00.000Z'),
+        expiresAt: new Date(now + 60_000),
         _count: { participants: 4 },
       },
     ]);
@@ -350,6 +351,7 @@ describe('session.getActiveQuizIds', () => {
   });
 
   it('grenzt zwei unabhängige Demo-Karten mit dem öffentlichen Legacy-Scope voneinander ab', async () => {
+    const now = Date.now();
     const legacyDemoInput = { ...QUIZ_INPUT, historyScopeId: DEMO_QUIZ_HISTORY_SCOPE_ID };
     const accessProof = await createQuizHistoryAccessProof(legacyDemoInput);
     const authorizedQuiz = (id: string) => ({
@@ -377,10 +379,10 @@ describe('session.getActiveQuizIds', () => {
                 {
                   quizId: INACTIVE_QUIZ_ID,
                   code: 'OTHER1',
-                  createdAt: new Date('2026-09-27T12:00:00.000Z'),
+                  createdAt: new Date(now - 60_000),
                   status: 'ACTIVE',
                   endedAt: null,
-                  expiresAt: new Date('2026-09-28T12:00:00.000Z'),
+                  expiresAt: new Date(now + 60_000),
                   _count: { participants: 6 },
                 },
               ]
