@@ -860,6 +860,30 @@ describe('qa router (Epic 8)', () => {
     },
   );
 
+  trpcDodIt(
+    {
+      procedure: 'qa.setPresenterSortMode',
+      case: 'error',
+      mode: 'direct',
+      contract: 'BAD_REQUEST',
+      title: 'lehnt Presenter-Sortierung für beendete Sessions ab',
+    },
+    async () => {
+      prismaMock.session.findUnique.mockResolvedValue({
+        ...ACTIVE_QA_SESSION,
+        status: 'FINISHED',
+        type: 'QUIZ',
+        qaEnabled: true,
+      });
+
+      await expect(
+        hostCaller.setPresenterSortMode({ code: 'CODE12', sortMode: 'TOP' }),
+      ).rejects.toMatchObject({
+        code: 'BAD_REQUEST',
+      });
+    },
+  );
+
   it('liefert der Presenter-Projektion freigegebene Fragen auch bei geschlossenem Beitragskanal', async () => {
     prismaMock.session.findUnique.mockResolvedValue({
       ...ACTIVE_QA_SESSION,

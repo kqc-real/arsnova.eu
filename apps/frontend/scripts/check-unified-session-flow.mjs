@@ -660,8 +660,10 @@ async function verifyPresenterView(host, presenter, code, hardFailures) {
   });
   await waitForPathSuffix(presenter, `/session/${code}/present`);
 
+  // Q&A-Bühne navigiert frageweise (presenterPage.index), nicht über Layout-Seiten —
+  // daher kein `.projection-pages__page`-Wrapper wie beim Quiz.
   const pinnedQuestion = presenter
-    .locator('.projection-pages__page .session-present__qa-card', {
+    .locator('.session-present__qa-card', {
       hasText: SMOKE_QUESTIONS.participantFirst,
     })
     .first();
@@ -676,7 +678,7 @@ async function verifyPresenterView(host, presenter, code, hardFailures) {
   }
 
   const queueQuestion = presenter
-    .locator('.projection-pages__page .session-present__qa-list-card', {
+    .locator('.session-present__qa-list-card', {
       hasText: SMOKE_QUESTIONS.participantSecond,
     })
     .first();
@@ -692,7 +694,7 @@ async function verifyPresenterView(host, presenter, code, hardFailures) {
 
   const qaFitsViewport = await presenter.evaluate(() => {
     const root = document.querySelector('.session-present');
-    const stage = document.querySelector('.projection-pages__page .session-present__qa-stage');
+    const stage = document.querySelector('.session-present__qa-stage');
     if (!(root instanceof HTMLElement) || !(stage instanceof HTMLElement)) {
       return false;
     }
@@ -727,9 +729,7 @@ async function verifyPresenterView(host, presenter, code, hardFailures) {
     .waitFor({ state: 'visible', timeout: 10_000 })
     .then(async () => {
       const questionSurfaceVisible = await presenter
-        .locator(
-          '.projection-pages__page .session-present__qa-card, .projection-pages__page .session-present__qa-list-card',
-        )
+        .locator('.session-present__qa-card, .session-present__qa-list-card')
         .first()
         .isVisible()
         .catch(() => false);
@@ -757,9 +757,7 @@ async function verifyPresenterView(host, presenter, code, hardFailures) {
     await host.keyboard.press('Escape');
   }
   const questionsRestored = await presenter
-    .locator(
-      '.projection-pages__page .session-present__qa-card, .projection-pages__page .session-present__qa-list-card',
-    )
+    .locator('.session-present__qa-card, .session-present__qa-list-card')
     .first()
     .waitFor({ state: 'visible', timeout: 15_000 })
     .then(() => true)
@@ -835,7 +833,7 @@ async function verifyPresenterQuickFeedback(presenter, hardFailures) {
     .catch(() => false);
   const qaStillVisible = await presenter
     .locator(
-      '.projection-pages__page .session-present__qa-card, .projection-pages__page .session-present__qa-list-card, .session-present__word-cloud-card',
+      '.session-present__qa-card, .session-present__qa-list-card, .session-present__word-cloud-card',
     )
     .first()
     .isVisible()
@@ -887,7 +885,7 @@ async function verifyPresenterQuizChannel(host, presenter, hardFailures) {
     .catch(() => false);
   const secondaryChannelVisible = await presenter
     .locator(
-      '.projection-pages__page .session-present__qa-stage, .session-present__feedback-card, .session-present__word-cloud-card',
+      '.session-present__qa-stage, .session-present__feedback-card, .session-present__word-cloud-card',
     )
     .first()
     .isVisible()

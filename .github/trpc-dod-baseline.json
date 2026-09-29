@@ -309,7 +309,7 @@
     },
     "qa.presentProjection": {
       "kind": "query",
-      "fingerprint": "sha256:04ff419cf3d3732f5739cd83eece572d849cd99230fe382cf5ac996e26421e65",
+      "fingerprint": "sha256:c6d0a31a690129c79471088b805798ba564069ac310b2f0f75ef5168070d7ff9",
       "missing": []
     },
     "qa.redactPassages": {
@@ -325,6 +325,11 @@
     "qa.requestSummary": {
       "kind": "mutation",
       "fingerprint": "sha256:0cc9e9add2f73a8725ba7c1827242d34fef0f1a85a811ecded83330235ba461f",
+      "missing": []
+    },
+    "qa.setPresenterSortMode": {
+      "kind": "mutation",
+      "fingerprint": "sha256:fdd8b9e776e520568a84f5178edaad20e02141c7ff213a9b835c3ba78a49518f",
       "missing": []
     },
     "qa.submit": {
