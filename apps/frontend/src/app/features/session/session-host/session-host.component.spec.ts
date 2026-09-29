@@ -84,6 +84,22 @@ function qaHostSnapshot(
   };
 }
 
+/** Bühnen-Snapshot wie `qa.presentProjection` (PINNED vor ACTIVE). */
+function seedQaPresenterStage(component: SessionHostComponent, questions: QaQuestionDTO[]): void {
+  component.qaQuestions.set(questions);
+  const visible = questions.filter(
+    (question) => question.status === 'PINNED' || question.status === 'ACTIVE',
+  );
+  (
+    component as SessionHostComponent & {
+      qaPresenterStageOrderedQuestions: { set: (value: QaQuestionDTO[] | null) => void };
+    }
+  ).qaPresenterStageOrderedQuestions.set([
+    ...visible.filter((question) => question.status === 'PINNED'),
+    ...visible.filter((question) => question.status === 'ACTIVE'),
+  ]);
+}
+
 const unsubscribeMock = vi.fn();
 
 const {
@@ -104,6 +120,7 @@ const {
   getSessionConfidenceSummaryQueryMock,
   wordCloudAnalyzeQueryMock,
   qaListQueryMock,
+  qaPresentProjectionQueryMock,
   qaNlpRuntimeQueryMock,
   qaSummaryRuntimeQueryMock,
   qaRequestSummaryMutateMock,
@@ -167,6 +184,7 @@ const {
   getSessionConfidenceSummaryQueryMock: vi.fn(),
   wordCloudAnalyzeQueryMock: vi.fn(),
   qaListQueryMock: vi.fn(),
+  qaPresentProjectionQueryMock: vi.fn(),
   qaNlpRuntimeQueryMock: vi.fn(),
   qaSummaryRuntimeQueryMock: vi.fn(),
   qaRequestSummaryMutateMock: vi.fn(),
@@ -273,6 +291,7 @@ vi.mock('../../../core/trpc.client', () => ({
     },
     qa: {
       list: { query: qaListQueryMock },
+      presentProjection: { query: qaPresentProjectionQueryMock },
       nlpRuntime: { query: qaNlpRuntimeQueryMock },
       summaryRuntime: { query: qaSummaryRuntimeQueryMock },
       requestSummary: { mutate: qaRequestSummaryMutateMock },
@@ -586,6 +605,8 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
     getLeaderboardQueryMock.mockResolvedValue([]);
     getTeamLeaderboardQueryMock.mockResolvedValue([]);
     qaListQueryMock.mockResolvedValue([]);
+    // Default: kein Snapshot → Host fällt auf Forum-Liste zurück (Tests setzen oft nur qaQuestions).
+    qaPresentProjectionQueryMock.mockRejectedValue(new Error('presentProjection not stubbed'));
     qaNlpRuntimeQueryMock.mockResolvedValue({ enabled: false });
     qaSummaryRuntimeQueryMock.mockResolvedValue({
       enabled: false,
@@ -992,6 +1013,7 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
         hasUpvoted: false,
       },
     ] as never);
+    seedQaPresenterStage(component, component.qaQuestions());
     fixture.detectChanges();
 
     expect(component.isQaQuestionOnPresenterStage('pin-1')).toBe(true);
@@ -15798,7 +15820,7 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
       },
     });
     component.activeChannel.set('qa');
-    component.qaQuestions.set([
+    seedQaPresenterStage(component, [
       {
         id: 'pin-1',
         text: 'Hero',
@@ -15846,11 +15868,89 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
     expect(component.isQaPresenterHeroCard('active-1')).toBe(false);
     expect(component.isQaPresenterHeroCard('pin-1')).toBe(false);
     expect(component.isQaQuestionOnPresenterStage('active-1')).toBe(false);
+    expect(
+      (
+        component as SessionHostComponent & {
+          qaPresenterStageOrderedQuestions: { (): QaQuestionDTO[] | null };
+        }
+      ).qaPresenterStageOrderedQuestions(),
+    ).toBeNull();
     expect(fixture.nativeElement.querySelectorAll('.session-qa-card--pinned')).toHaveLength(0);
     expect(
       fixture.nativeElement.querySelectorAll('.session-qa-card__badge--on-presenter'),
     ).toHaveLength(0);
     expect(fixture.nativeElement.textContent).not.toContain('Aktuell in der Präsentation');
+    fixture.destroy();
+  });
+
+  it('leitet Hero und Bühne aus presentProjection, nicht aus gefilterter Forum-Liste', async () => {
+    const stageQuestions = [
+      {
+        id: 'pin-1',
+        text: 'Hero',
+        upvoteCount: 1,
+        status: 'PINNED' as const,
+        createdAt: '2026-03-13T12:00:00.000Z',
+        myVote: null,
+        isOwn: false,
+        hasUpvoted: false,
+      },
+      {
+        id: 'active-1',
+        text: 'Nur auf der Bühne',
+        upvoteCount: 3,
+        status: 'ACTIVE' as const,
+        createdAt: '2026-03-13T12:01:00.000Z',
+        myVote: null,
+        isOwn: false,
+        hasUpvoted: false,
+      },
+      {
+        id: 'active-2',
+        text: 'Queue',
+        upvoteCount: 2,
+        status: 'ACTIVE' as const,
+        createdAt: '2026-03-13T12:02:00.000Z',
+        myVote: null,
+        isOwn: false,
+        hasUpvoted: false,
+      },
+    ];
+    qaPresentProjectionQueryMock.mockResolvedValue({
+      questions: stageQuestions,
+      state: 'ACTIVE',
+    });
+    const fixture = setup();
+    fixture.detectChanges();
+    await fixture.whenStable();
+    const component = fixture.componentInstance;
+    component.session.set({
+      ...defaultSession,
+      preferredChannel: 'qa',
+      presenterSurface: 'default',
+      presenterPage: { context: 'qa-questions', index: 1, count: 3 },
+      channels: {
+        quiz: { enabled: true },
+        qa: { enabled: true, open: true, title: 'Fragen', moderationMode: false },
+        quickFeedback: { enabled: false, open: false },
+      },
+    });
+    // Forum-Seite ohne active-1 (Filter/Pagination) — Bühne kommt trotzdem aus presentProjection.
+    component.qaQuestions.set([stageQuestions[0]!, stageQuestions[2]!] as never);
+    component.activeChannel.set('qa');
+    fixture.detectChanges();
+    await vi.waitUntil(() => component.qaPresenterHeroQuestionId() === 'active-1');
+    fixture.detectChanges();
+
+    expect(component.isQaPresenterHeroCard('active-1')).toBe(true);
+    expect(component.isQaQuestionOnPresenterStage('active-1')).toBe(true);
+    expect(component.isQaQuestionOnPresenterStage('active-2')).toBe(true);
+    expect(component.qaProjectionQueuePageCount()).toBe(3);
+
+    await component.endPresentationView();
+    fixture.detectChanges();
+    expect(component.qaPresenterHeroQuestionId()).toBeNull();
+    expect(component.isQaPresenterHeroCard('active-1')).toBe(false);
     fixture.destroy();
   });
 

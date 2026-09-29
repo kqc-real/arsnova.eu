@@ -754,6 +754,11 @@ export class SessionHostComponent implements OnInit, OnDestroy {
   readonly qaQuickFeedbackPending = signal(false);
   readonly activeChannel = signal<SessionChannelTab>('quiz');
   readonly qaQuestions = signal<QaQuestionDTO[]>([]);
+  /**
+   * Ungefilterte ACTIVE+PINNED-Bühnenliste aus `qa.presentProjection`.
+   * `null` = noch kein Snapshot (Fallback auf Forum-Seite nur für Tests/Erstpaint).
+   */
+  private readonly qaPresenterStageOrderedQuestions = signal<QaQuestionDTO[] | null>(null);
   readonly qaListTotalCount = signal(0);
   /** Host: PENDING-Zähler aus qa.list (filterweit, seitenunabhängig); null = Fallback auf geladene Seite. */
   private readonly qaListPendingCount = signal<number | null>(null);
@@ -3623,7 +3628,7 @@ export class SessionHostComponent implements OnInit, OnDestroy {
         return;
       }
       // Erst nach Host-Overview syncen — sonst überschreibt active=0 die Presenter-Seitenzahl.
-      if (!this.qaHostStatusCounts()) {
+      if (!this.qaHostStatusCounts() && this.qaPresenterStageOrderedQuestions() === null) {
         return;
       }
       const page = this.session()?.presenterPage;
@@ -3633,6 +3638,19 @@ export class SessionHostComponent implements OnInit, OnDestroy {
       }
       untracked(() => {
         void this.syncQaProjectionPageCount(count);
+      });
+    });
+    effect(() => {
+      const projecting = this.projectionNavigationIsQaQuestions();
+      const sessionId = this.session()?.id ?? null;
+      void this.qaSortMode();
+      void this.qaListRankingRevision();
+      if (!projecting || !sessionId) {
+        untracked(() => this.qaPresenterStageOrderedQuestions.set(null));
+        return;
+      }
+      untracked(() => {
+        void this.refreshQaPresenterStageQuestions();
       });
     });
     effect(() => {
@@ -5885,8 +5903,13 @@ export class SessionHostComponent implements OnInit, OnDestroy {
   /**
    * Bühnenreihenfolge wie `qa.presentProjection`: PINNED vor ACTIVE, Host-Sortierung.
    * Navigator-Index = Hero; danach bis zu zwei wartende Fragen.
+   * Quelle: ungefilterter presentProjection-Snapshot (nicht Forum-Suche/Seite/Filter).
    */
   readonly qaProjectionStageQuestions = computed(() => {
+    const fromProjection = this.qaPresenterStageOrderedQuestions();
+    if (fromProjection !== null) {
+      return fromProjection.slice(0, SessionHostComponent.QA_PROJECTION_MAX_ACTIVE);
+    }
     const questions = this.qaQuestions().filter(
       (question) => question.status === 'PINNED' || question.status === 'ACTIVE',
     );
@@ -5899,9 +5922,16 @@ export class SessionHostComponent implements OnInit, OnDestroy {
   });
   /**
    * Eine Navigationsposition pro Bühnenfrage (Hero rückt vor).
-   * Host-Overview (active+pinned) bevorzugt, sonst geladene Forum-Liste.
+   * presentProjection-Länge bevorzugt, sonst Host-Overview (active+pinned).
    */
   readonly qaProjectionQueuePageCount = computed(() => {
+    const fromProjection = this.qaPresenterStageOrderedQuestions();
+    if (fromProjection !== null) {
+      return Math.max(
+        1,
+        Math.min(fromProjection.length, SessionHostComponent.QA_PROJECTION_MAX_ACTIVE),
+      );
+    }
     const fromHost = this.qaHostStatusCounts();
     if (fromHost) {
       const total = Math.min(
@@ -5941,20 +5971,25 @@ export class SessionHostComponent implements OnInit, OnDestroy {
     }
     return ids;
   });
-  /** Hero = Frage am aktuellen Navigator-Index (sonst erstes PINNED). */
+  /**
+   * Hero = Frage am Navigator-Index während der Q&A-Projektion.
+   * Bei `presenterSurface === 'ended'` (»Projektionsansicht beenden«) keine Auszeichnung.
+   */
   readonly qaPresenterHeroQuestionId = computed(() => {
     const session = this.session();
     if (!session || session.presenterSurface === 'ended') {
       return null;
     }
-    const questions = this.qaProjectionStageQuestions();
-    if (questions.length === 0) {
-      return null;
-    }
     if (!this.projectionNavigationIsQaQuestions()) {
+      // Ohne Fragen-Projektion: erstes PINNED als Forum-Hinweis (Status „wird besprochen“).
+      const questions = this.qaProjectionStageQuestions();
       return (
         questions.find((question) => question.status === 'PINNED')?.id ?? questions[0]?.id ?? null
       );
+    }
+    const questions = this.qaProjectionStageQuestions();
+    if (questions.length === 0) {
+      return null;
     }
     const pageIndex = Math.max(
       0,
@@ -11032,6 +11067,7 @@ export class SessionHostComponent implements OnInit, OnDestroy {
       if (surface === 'ended') {
         this.projectionControlsVisible.set(false);
         this.projectionPageError.set('');
+        this.qaPresenterStageOrderedQuestions.set(null);
       }
       return true;
     } catch {
@@ -11892,13 +11928,44 @@ export class SessionHostComponent implements OnInit, OnDestroy {
     this.qaListNextCursor.set(snapshot.nextCursor ?? null);
     this.qaListRankingRevision.set(snapshot.rankingRevision ?? null);
     this.dismissQaSteeringCallout();
+    if (this.projectionNavigationIsQaQuestions()) {
+      void this.refreshQaPresenterStageQuestions();
+    }
     return true;
+  }
+
+  /** Ungefilterte Bühnenliste — gleiche Quelle wie Presenter (`qa.presentProjection`). */
+  private async refreshQaPresenterStageQuestions(): Promise<void> {
+    const sessionId = this.session()?.id;
+    if (!sessionId || !this.projectionNavigationIsQaQuestions()) {
+      this.qaPresenterStageOrderedQuestions.set(null);
+      return;
+    }
+    try {
+      const snapshot: QaQuestionsListDTO | QaQuestionDTO[] = await trpc.qa.presentProjection.query({
+        sessionId,
+      });
+      if (!this.projectionNavigationIsQaQuestions() || this.session()?.id !== sessionId) {
+        return;
+      }
+      const questions = Array.isArray(snapshot) ? snapshot : snapshot.questions;
+      const visible = questions.filter(
+        (question) => question.status === 'PINNED' || question.status === 'ACTIVE',
+      );
+      this.qaPresenterStageOrderedQuestions.set([
+        ...visible.filter((question) => question.status === 'PINNED'),
+        ...visible.filter((question) => question.status === 'ACTIVE'),
+      ]);
+    } catch {
+      // Letzten Snapshot behalten; Meta-Poll und WS aktualisieren erneut.
+    }
   }
 
   private closeHostPostProcessing(): void {
     const wasAlreadyEnded = this.postProcessingEnded();
     this.postProcessingEnded.set(true);
     this.qaQuestions.set([]);
+    this.qaPresenterStageOrderedQuestions.set(null);
     this.qaListTotalCount.set(0);
     this.qaListPendingCount.set(null);
     this.qaListSessionPendingCount.set(null);
