@@ -284,7 +284,7 @@
     },
     "qa.list": {
       "kind": "query",
-      "fingerprint": "sha256:680cad4fa17abed0f2206e9f646501c0e371914290f256986bb29aa37cfb3735",
+      "fingerprint": "sha256:9ac0f8b1b827e716621fb06881497e70f7de06dcbf77a8590cea697a7986fed0",
       "missing": []
     },
     "qa.moderate": {
@@ -504,7 +504,7 @@
     },
     "session.create": {
       "kind": "mutation",
-      "fingerprint": "sha256:f0a6c0c18f490047cd56a93254707f3214bca26fa6a888b78e7606a016efdc0e",
+      "fingerprint": "sha256:990b3111c3293425f173e65b4b786183ac53d1e5ac299e17e4d212c69e7663ca",
       "missing": []
     },
     "session.createHostPairingInvite": {
@@ -879,7 +879,7 @@
     },
     "session.updateQaTitle": {
       "kind": "mutation",
-      "fingerprint": "sha256:507907d420b1b2b8d5341c85ecf8efc4d56eb3b5833841dc3d083b88b801c828",
+      "fingerprint": "sha256:5853ece5446481d8d5f2359b78b14468a8718fa107a8a55661667ab8438116d5",
       "missing": []
     },
     "session.verifyBonusTokenForQuiz": {
