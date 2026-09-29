@@ -1181,7 +1181,7 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
         ...(tab === 'qa'
           ? {
               qaEnabled: true,
-              qaTitle: $localize`:@@qaConfig.defaultTitle:Fragen & Antworten`,
+              qaTitle: $localize`:@@qaConfig.defaultTitle:Fragen der Teilnehmenden`,
             }
           : tab === 'quickFeedback'
             ? { quickFeedbackEnabled: true }

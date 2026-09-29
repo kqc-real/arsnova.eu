@@ -10113,8 +10113,8 @@
         </context-group>
       </trans-unit>
       <trans-unit id="qaConfig.defaultTitle" datatype="html">
-        <source>Fragen &amp; Antworten</source>
-        <target>Questions &amp; Answers</target>
+        <source>Fragen der Teilnehmenden</source>
+        <target>Participant questions</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/home/home.component.ts</context>
           <context context-type="linenumber">1184</context>
@@ -21651,6 +21651,46 @@
           <context context-type="linenumber">4071,4073</context>
         </context-group>
       </trans-unit>
+      <trans-unit id="sessionQa.hostStatusStripAria" datatype="html">
+        <source>Fragenstatus</source>
+        <target>Question status</target>
+      </trans-unit>
+      <trans-unit id="sessionQa.hostStatusActiveOne" datatype="html">
+        <source>1 freigegeben</source>
+        <target>1 released</target>
+      </trans-unit>
+      <trans-unit id="sessionQa.hostStatusActiveMany" datatype="html">
+        <source><x id="count" equiv-text="this.formatCount(count)"/> freigegeben</source>
+        <target><x id="count" equiv-text="this.formatCount(count)"/> released</target>
+      </trans-unit>
+      <trans-unit id="sessionQa.hostStatusPendingOne" datatype="html">
+        <source>1 in Prüfung</source>
+        <target>1 under review</target>
+      </trans-unit>
+      <trans-unit id="sessionQa.hostStatusPendingMany" datatype="html">
+        <source><x id="count" equiv-text="this.formatCount(count)"/> in Prüfung</source>
+        <target><x id="count" equiv-text="this.formatCount(count)"/> under review</target>
+      </trans-unit>
+      <trans-unit id="sessionQa.hostStatusPinnedOne" datatype="html">
+        <source>1 hervorgehoben</source>
+        <target>1 highlighted</target>
+      </trans-unit>
+      <trans-unit id="sessionQa.hostStatusPinnedMany" datatype="html">
+        <source><x id="count" equiv-text="this.formatCount(count)"/> hervorgehoben</source>
+        <target><x id="count" equiv-text="this.formatCount(count)"/> highlighted</target>
+      </trans-unit>
+      <trans-unit id="sessionQa.hostStatusArchivedOne" datatype="html">
+        <source>1 beantwortet</source>
+        <target>1 answered</target>
+      </trans-unit>
+      <trans-unit id="sessionQa.hostStatusArchivedMany" datatype="html">
+        <source><x id="count" equiv-text="this.formatCount(count)"/> beantwortet</source>
+        <target><x id="count" equiv-text="this.formatCount(count)"/> answered</target>
+      </trans-unit>
+      <trans-unit id="sessionQa.oldestPendingAge" datatype="html">
+        <source>Älteste ungeprüfte Frage: <x id="age" equiv-text="age"/></source>
+        <target>Oldest unchecked question: <x id="age" equiv-text="age"/></target>
+      </trans-unit>
       <trans-unit id="sessionQa.summaryTotal" datatype="html">
         <source>Gesamt: <x id="INTERPOLATION" equiv-text="{{ formatCount(qaForumQuestionCount()) }}"/></source>
         <target>Total: <x id="INTERPOLATION" equiv-text="qaQuestions().length"/></target>
@@ -21658,6 +21698,10 @@
           <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.html</context>
           <context context-type="linenumber">4100,4101</context>
         </context-group>
+      </trans-unit>
+      <trans-unit id="sessionQa.summaryTotalAria" datatype="html">
+        <source>Gesamt: <x id="count" equiv-text="this.formatCount(this.qaForumQuestionCount())"/></source>
+        <target>Total: <x id="count" equiv-text="this.formatCount(this.qaForumQuestionCount())"/></target>
       </trans-unit>
       <trans-unit id="sessionQa.activeFilters" datatype="html">
         <source>Aktive Filter</source>
@@ -25022,6 +25066,14 @@
           <context context-type="linenumber">2761</context>
         </context-group>
       </trans-unit>
+      <trans-unit id="sessionTabs.forumEyebrow" datatype="html">
+        <source>Forum</source>
+        <target>Forum</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/session-vote/session-vote.component.html</context>
+          <context context-type="linenumber">2594</context>
+        </context-group>
+      </trans-unit>
       <trans-unit id="sessionTabs.questionsBadgeReview" datatype="html">
         <source><x id="count" equiv-text="formatLocaleCount(this.qaSessionPendingCount(), this.localeId)"/> zu prüfen</source>
         <target><x id="count" equiv-text="formatLocaleCount(this.qaSessionPendingCount(), this.localeId)"/> to review</target>
@@ -25155,8 +25207,8 @@
         </context-group>
       </trans-unit>
       <trans-unit id="sessionQa.statusPinned" datatype="html">
-        <source>Wird beantwortet</source>
-        <target>Being answered</target>
+        <source>Wird gerade besprochen</source>
+        <target>Being discussed</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.ts</context>
           <context context-type="linenumber">9483</context>
@@ -25215,8 +25267,8 @@
         </context-group>
       </trans-unit>
       <trans-unit id="sessionQa.statusPinnedTooltip" datatype="html">
-        <source>Angepinnt: Diese Frage hebst du hervor. Sie gilt als »Wird beantwortet«.</source>
-        <target>Pinned: You highlight this question. It counts as “Being answered”.</target>
+        <source>Angepinnt: Diese Frage hebst du hervor. Sie gilt als »Wird gerade besprochen«.</source>
+        <target>Pinned: You highlight this question. It counts as “Being discussed”.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.ts</context>
           <context context-type="linenumber">9498</context>
@@ -25231,8 +25283,8 @@
         </context-group>
       </trans-unit>
       <trans-unit id="sessionQa.summaryPinnedTooltip" datatype="html">
-        <source>Angepinnt: Diese Fragen hebst du hervor. Sie gelten als »Wird beantwortet«.</source>
-        <target>Pinned: You highlight these questions. They count as “Being answered”.</target>
+        <source>Angepinnt: Diese Fragen hebst du hervor. Sie gelten als »Wird gerade besprochen«.</source>
+        <target>Pinned: You highlight these questions. They count as “Being discussed”.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.ts</context>
           <context context-type="linenumber">9507</context>
@@ -29437,6 +29489,90 @@
           <context context-type="linenumber">1393</context>
         </context-group>
       </trans-unit>
+      <trans-unit id="sessionQa.deadlineExpiredLead" datatype="html">
+        <source>Teilnahmefrist abgelaufen</source>
+        <target>Participation deadline expired</target>
+      </trans-unit>
+      <trans-unit id="sessionQa.deadlineOpenLead" datatype="html">
+        <source>Q&amp;A offen bis</source>
+        <target>Q&amp;A open until</target>
+      </trans-unit>
+      <trans-unit id="sessionQa.ownVisibleOne" datatype="html">
+        <source>1 sichtbar</source>
+        <target>1 visible</target>
+      </trans-unit>
+      <trans-unit id="sessionQa.ownVisibleMany" datatype="html">
+        <source><x id="count" equiv-text="this.formatCount(visible)"/> sichtbar</source>
+        <target><x id="count" equiv-text="this.formatCount(visible)"/> visible</target>
+      </trans-unit>
+      <trans-unit id="sessionQa.ownPendingOne" datatype="html">
+        <source>1 in Prüfung</source>
+        <target>1 under review</target>
+      </trans-unit>
+      <trans-unit id="sessionQa.ownPendingMany" datatype="html">
+        <source><x id="count" equiv-text="this.formatCount(pending)"/> in Prüfung</source>
+        <target><x id="count" equiv-text="this.formatCount(pending)"/> under review</target>
+      </trans-unit>
+      <trans-unit id="sessionQa.ownArchivedOne" datatype="html">
+        <source>1 beantwortet</source>
+        <target>1 answered</target>
+      </trans-unit>
+      <trans-unit id="sessionQa.ownArchivedMany" datatype="html">
+        <source><x id="count" equiv-text="this.formatCount(archived)"/> beantwortet</source>
+        <target><x id="count" equiv-text="this.formatCount(archived)"/> answered</target>
+      </trans-unit>
+      <trans-unit id="sessionQa.ownQuestionsSummary" datatype="html">
+        <source>Deine Fragen: <x id="detail" equiv-text="detail"/></source>
+        <target>Your questions: <x id="detail" equiv-text="detail"/></target>
+      </trans-unit>
+      <trans-unit id="sessionQa.emptyQuotaHint" datatype="html">
+        <source>Noch <x id="remaining" equiv-text="quota.participantRemaining"/> von 10 Fragen möglich.</source>
+        <target><x id="remaining" equiv-text="quota.participantRemaining"/> of 10 questions left.</target>
+      </trans-unit>
+      <trans-unit id="sessionQa.emptyDeadlineHint" datatype="html">
+        <source>Offen bis <x id="deadline" equiv-text="absolute"/>.</source>
+        <target>Open until <x id="deadline" equiv-text="absolute"/>.</target>
+      </trans-unit>
+      <trans-unit id="sessionQa.snackOwnArchived" datatype="html">
+        <source>Deine Frage wurde als beantwortet markiert.</source>
+        <target>Your question was marked as answered.</target>
+      </trans-unit>
+      <trans-unit id="sessionQa.snackOwnArchivedMany" datatype="html">
+        <source>Deine Fragen wurden als beantwortet markiert.</source>
+        <target>Your questions were marked as answered.</target>
+      </trans-unit>
+      <trans-unit id="sessionQa.forumVisibleCountOne" datatype="html">
+        <source>1 Frage</source>
+        <target>1 question</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/session-vote/session-vote.component.ts</context>
+          <context context-type="linenumber">1405</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="sessionQa.forumVisibleCountMany" datatype="html">
+        <source><x id="count" equiv-text="this.formatCount(count)"/> Fragen</source>
+        <target><x id="count" equiv-text="this.formatCount(count)"/> questions</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/session-vote/session-vote.component.ts</context>
+          <context context-type="linenumber">1407</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="sessionQa.votesBreakdownAria" datatype="html">
+        <source><x id="up" equiv-text="up"/> dafür, <x id="down" equiv-text="down"/> dagegen</source>
+        <target><x id="up" equiv-text="up"/> for, <x id="down" equiv-text="down"/> against</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/session-vote/session-vote.component.ts</context>
+          <context context-type="linenumber">1421</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="sessionQa.voteNetAria" datatype="html">
+        <source>Bewertungsdifferenz <x id="net" equiv-text="net"/></source>
+        <target>Rating difference <x id="net" equiv-text="net"/></target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/session-vote/session-vote.component.ts</context>
+          <context context-type="linenumber">1431</context>
+        </context-group>
+      </trans-unit>
       <trans-unit id="sessionVote.shortTextTooLong" datatype="html">
         <source>Maximal <x id="maxLength" equiv-text="maxLength"/> Zeichen erlaubt.</source>
         <target>Maximum <x id="maxLength" equiv-text="maxLength"/> characters allowed.</target>
@@ -29861,12 +29997,20 @@
           <context context-type="linenumber">2804</context>
         </context-group>
       </trans-unit>
-      <trans-unit id="participantTask.questionsOpen" datatype="html">
-        <source>Fragen offen</source>
-        <target>Questions open</target>
+      <trans-unit id="participantTask.forumOpen" datatype="html">
+        <source>Forum offen</source>
+        <target>Forum open</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-vote/session-vote.component.ts</context>
-          <context context-type="linenumber">2789</context>
+          <context context-type="linenumber">2831</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="participantTask.forumClosed" datatype="html">
+        <source>Forum geschlossen</source>
+        <target>Forum closed</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/session-vote/session-vote.component.ts</context>
+          <context context-type="linenumber">2832</context>
         </context-group>
       </trans-unit>
       <trans-unit id="participantTask.quizFinished" datatype="html">
@@ -30366,16 +30510,16 @@
         </context-group>
       </trans-unit>
       <trans-unit id="sessionQa.snackOwnPinnedMany" datatype="html">
-        <source>Deine Fragen wurden hervorgehoben.</source>
-        <target>Your questions were highlighted.</target>
+        <source>Deine Fragen werden gerade besprochen.</source>
+        <target>Your questions are being discussed.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-vote/session-vote.component.ts</context>
           <context context-type="linenumber">5358</context>
         </context-group>
       </trans-unit>
       <trans-unit id="sessionQa.snackOwnPinned" datatype="html">
-        <source>Deine Frage wurde hervorgehoben.</source>
-        <target>Your question was highlighted.</target>
+        <source>Deine Frage wird gerade besprochen.</source>
+        <target>Your question is being discussed.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-vote/session-vote.component.ts</context>
           <context context-type="linenumber">5359</context>

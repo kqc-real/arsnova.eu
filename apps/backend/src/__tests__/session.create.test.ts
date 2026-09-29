@@ -346,7 +346,7 @@ describe('session.create (Story 2.1a)', () => {
           onboardingAnonymousMode: profile.anonymousMode,
           onboardingNicknameTheme: profile.nicknameTheme,
           qaOpen: true,
-          qaTitle: 'Fragen & Antworten',
+          qaTitle: 'Fragen der Teilnehmenden',
         }),
       }),
     );

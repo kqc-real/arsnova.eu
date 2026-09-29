@@ -1128,6 +1128,27 @@
   gap: 0.15rem;
 }
 
+.session-host__qa-status-strip {
+  display: grid;
+  gap: 0.45rem;
+  margin: 0;
+  padding: 0.75rem 0.9rem;
+  border-radius: var(--mat-sys-corner-medium);
+  background: color-mix(in srgb, var(--mat-sys-primary) 8%, var(--mat-sys-surface));
+  border: 1px solid color-mix(in srgb, var(--mat-sys-primary) 16%, transparent);
+}
+
+.session-host__qa-status-strip .session-qa-summary__chips {
+  gap: 0.45rem;
+}
+
+.session-host__qa-status-strip-pending {
+  margin: 0;
+  font: var(--mat-sys-body-small);
+  color: var(--mat-sys-on-surface-variant);
+  line-height: 1.4;
+}
+
 .session-channel-card__eyebrow {
   margin: 0;
   font: var(--mat-sys-label-large);
@@ -2095,6 +2116,13 @@
       background: color-mix(in srgb, var(--mat-sys-tertiary) 20%, var(--mat-sys-surface));
       border-color: var(--mat-sys-tertiary);
     }
+  }
+
+  &--active {
+    background: color-mix(in srgb, var(--mat-sys-primary) 12%, var(--mat-sys-surface));
+    border-color: color-mix(in srgb, var(--mat-sys-primary) 22%, transparent);
+    color: var(--mat-sys-primary);
+    font-weight: 600;
   }
 }
 

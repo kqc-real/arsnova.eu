@@ -5443,7 +5443,7 @@ const sessionCoreRouter = router({
       const qaTitle = qaEnabled
         ? input.qaTitle?.trim() ||
           input.title?.trim() ||
-          (standaloneQaSession ? 'Fragen & Antworten' : null)
+          (standaloneQaSession ? 'Fragen der Teilnehmenden' : null)
         : null;
       const qaModerationMode = qaEnabled
         ? (input.qaModerationMode ?? input.moderationMode ?? true)
@@ -7555,9 +7555,10 @@ const sessionCoreRouter = router({
         select: { qaTitle: true, title: true },
       });
       invalidateSessionMetadataCachesForCode(code);
+      emitSessionStatusSignal(code);
       return {
         qaTitle: updated.qaTitle,
-        title: updated.title,
+        title: updated.title ?? null,
       };
     }),
 

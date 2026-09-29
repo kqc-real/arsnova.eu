@@ -2591,12 +2591,12 @@
             <mat-icon>chat_bubble_outline</mat-icon>
           </span>
           <div class="session-channel-card__header-main">
-            <p class="session-channel-card__eyebrow">{{ channelLabel('qa') }}</p>
+            <p class="session-channel-card__eyebrow" i18n="@@sessionTabs.forumEyebrow">Forum</p>
             <h2 class="session-channel-card__title" id="vote-qa-heading">{{ qaHeading() }}</h2>
           </div>
         </div>
 
-        @if (qaDeadlineLabel(); as deadlineLabel) {
+        @if (qaDeadlineAbsoluteLabel(); as absoluteDeadline) {
           <div
             class="session-vote__qa-deadline"
             [class.session-vote__qa-deadline--expired]="qaDeadlineExpired()"
@@ -2605,8 +2605,26 @@
             <mat-icon aria-hidden="true">{{
               qaDeadlineExpired() ? 'event_busy' : 'schedule'
             }}</mat-icon>
-            <span>{{ deadlineLabel }}</span>
+            <div class="session-vote__qa-deadline-text">
+              @if (qaDeadlineExpired()) {
+                <span i18n="@@sessionQa.deadlineExpiredLead">Teilnahmefrist abgelaufen</span>
+                <span class="session-vote__qa-deadline-absolute">{{ absoluteDeadline }}</span>
+              } @else {
+                <span i18n="@@sessionQa.deadlineOpenLead">Q&amp;A offen bis</span>
+                <strong class="session-vote__qa-deadline-absolute">{{ absoluteDeadline }}</strong>
+                @if (qaDeadlineRelativeLabel(); as relativeDeadline) {
+                  <span class="session-vote__qa-deadline-relative">{{ relativeDeadline }}</span>
+                }
+              }
+            </div>
+            <span class="session-vote__qa-deadline-count">{{ qaForumVisibleCountLabel() }}</span>
           </div>
+        }
+
+        @if (qaOwnQuestionsSummaryLabel(); as ownSummary) {
+          <p class="session-vote__qa-own-summary" role="status" data-testid="vote-qa-own-summary">
+            {{ ownSummary }}
+          </p>
         }
 
         @if (!isQaChannelOpen()) {
@@ -2784,11 +2802,14 @@
               </p>
             </div>
           } @else if (visibleQaQuestions().length === 0) {
-            <div class="session-qa-empty" role="status">
+            <div class="session-qa-empty" role="status" data-testid="vote-qa-empty">
               <mat-icon class="session-qa-empty__icon" aria-hidden="true"
                 >chat_bubble_outline</mat-icon
               >
               <p class="session-qa-empty__text">{{ vpc.voteQaEmpty(isPlayfulPreset()) }}</p>
+              @if (qaEmptyGuidanceLabel(); as emptyGuidance) {
+                <p class="session-qa-empty__hint">{{ emptyGuidance }}</p>
+              }
             </div>
           } @else {
             <div class="session-qa-list" role="list" [attr.aria-busy]="qaListPageLoading()">
@@ -2800,21 +2821,33 @@
                   [class.session-qa-card--author-selected]="isQaAuthorSelected(question)"
                   [class.session-qa-card--own]="question.isOwn"
                   [class.session-qa-card--pinned]="question.status === 'PINNED'"
+                  [class.session-qa-card--archived]="question.status === 'ARCHIVED'"
                 >
-                  @if (!question.isOwn) {
+                  @if (question.isOwn || question.status === 'ARCHIVED') {
+                    <div
+                      class="session-qa-card__vote-stepper session-qa-card__vote-stepper--readonly"
+                      [attr.aria-label]="qaVoteNetAriaLabel(question)"
+                    >
+                      <span
+                        class="session-qa-card__vote-count"
+                        [class.session-qa-card__vote-count--positive]="qaVoteNet(question) > 0"
+                        [class.session-qa-card__vote-count--negative]="qaVoteNet(question) < 0"
+                      >
+                        {{ formatCount(qaVoteNet(question)) }}
+                      </span>
+                    </div>
+                  } @else {
                     <div
                       class="session-qa-card__vote-stepper"
                       [class.session-qa-card__vote-stepper--disabled]="
-                        qaPendingQuestionIds().has(question.id) || question.status === 'PENDING'
+                        !qaCanVoteOnQuestion(question)
                       "
                     >
                       <button
                         type="button"
                         class="session-qa-card__vote-arrow session-qa-card__vote-arrow--up"
                         [class.session-qa-card__vote-arrow--active]="question.myVote === 'UP'"
-                        [disabled]="
-                          qaPendingQuestionIds().has(question.id) || question.status === 'PENDING'
-                        "
+                        [disabled]="!qaCanVoteOnQuestion(question)"
                         (click)="voteQa(question.id, 'UP')"
                         [attr.aria-label]="qaVoteAriaLabel(question, 'UP')"
                       >
@@ -2822,18 +2855,16 @@
                       </button>
                       <span
                         class="session-qa-card__vote-count"
-                        [class.session-qa-card__vote-count--positive]="question.upvoteCount > 0"
-                        [class.session-qa-card__vote-count--negative]="question.upvoteCount < 0"
+                        [class.session-qa-card__vote-count--positive]="qaVoteNet(question) > 0"
+                        [class.session-qa-card__vote-count--negative]="qaVoteNet(question) < 0"
                       >
-                        {{ formatCount(question.upvoteCount) }}
+                        {{ formatCount(qaVoteNet(question)) }}
                       </span>
                       <button
                         type="button"
                         class="session-qa-card__vote-arrow session-qa-card__vote-arrow--down"
                         [class.session-qa-card__vote-arrow--active]="question.myVote === 'DOWN'"
-                        [disabled]="
-                          qaPendingQuestionIds().has(question.id) || question.status === 'PENDING'
-                        "
+                        [disabled]="!qaCanVoteOnQuestion(question)"
                         (click)="voteQa(question.id, 'DOWN')"
                         [attr.aria-label]="qaVoteAriaLabel(question, 'DOWN')"
                       >
@@ -2894,7 +2925,13 @@
                         [class.session-qa-card__status--active]="question.status === 'ACTIVE'"
                         [class.session-qa-card__status--pinned]="question.status === 'PINNED'"
                         [class.session-qa-card__status--pending]="question.status === 'PENDING'"
+                        [class.session-qa-card__status--archived]="question.status === 'ARCHIVED'"
                       >
+                        @if (question.status === 'PINNED') {
+                          <mat-icon class="session-qa-card__status-icon" aria-hidden="true"
+                            >campaign</mat-icon
+                          >
+                        }
                         {{ qaStatusLabel(question.status, question.isOwn) }}
                       </span>
                       @if (question.isOwn) {
@@ -2903,15 +2940,31 @@
                         }}</span>
                       }
                       <span
-                        class="session-qa-card__score"
-                        [class.session-qa-card__score--positive]="question.upvoteCount > 0"
-                        [class.session-qa-card__score--negative]="question.upvoteCount < 0"
+                        class="session-qa-card__votes"
+                        [attr.aria-label]="qaVotesBreakdownAriaLabel(question)"
                       >
-                        <mat-icon class="session-qa-card__score-icon" aria-hidden="true"
-                          >thumb_up_off_alt</mat-icon
-                        >
-                        {{ formatCount(question.upvoteCount) }}
+                        <span class="session-qa-card__vote-stat session-qa-card__vote-stat--up">
+                          <mat-icon class="session-qa-card__vote-stat-icon" aria-hidden="true"
+                            >thumb_up</mat-icon
+                          >
+                          <span>{{ formatCount(qaPositiveVoteCount(question)) }}</span>
+                        </span>
+                        <span class="session-qa-card__vote-stat session-qa-card__vote-stat--down">
+                          <mat-icon class="session-qa-card__vote-stat-icon" aria-hidden="true"
+                            >thumb_down</mat-icon
+                          >
+                          <span>{{ formatCount(qaNegativeVoteCount(question)) }}</span>
+                        </span>
                       </span>
+                    </div>
+                    <div
+                      class="session-qa-card__text markdown-body"
+                      [innerHTML]="renderMarkdown(question.text)"
+                    ></div>
+                    <div class="session-qa-card__footer">
+                      <span class="session-qa-card__time">{{
+                        relativeTime(question.createdAt)
+                      }}</span>
                       @if (question.isOwn) {
                         <button
                           type="button"
@@ -2925,13 +2978,6 @@
                         </button>
                       }
                     </div>
-                    <div
-                      class="session-qa-card__text markdown-body"
-                      [innerHTML]="renderMarkdown(question.text)"
-                    ></div>
-                    <span class="session-qa-card__time">{{
-                      relativeTime(question.createdAt)
-                    }}</span>
                   </div>
                 </article>
               }

@@ -529,7 +529,8 @@ export class QaChannelConfigurationDialogComponent implements OnInit {
       return saved;
     }
     return (
-      this.data.session.title?.trim() || $localize`:@@qaConfig.defaultTitle:Fragen & Antworten`
+      this.data.session.title?.trim() ||
+      $localize`:@@qaConfig.defaultTitle:Fragen der Teilnehmenden`
     );
   }
 

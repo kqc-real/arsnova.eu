@@ -152,8 +152,12 @@ function buildQaQuestionsSnapshot(
     | 'rankingRevision'
     | 'nextCursor'
     | 'totalCount'
+    | 'forumVisibleCount'
+    | 'ownQuestionCounts'
     | 'pendingCount'
     | 'sessionPendingCount'
+    | 'hostStatusCounts'
+    | 'oldestPendingCreatedAt'
     | 'sessionQuestionCount'
     | 'sessionRemaining'
     | 'quota'
@@ -361,6 +365,74 @@ function shouldAttachQaNlp(includeNlp: boolean, question: QaQuestionRecord): boo
   );
 }
 
+/** Freigegebene Forum-Fragen für Teilnehmer-Zähler (ohne PENDING/ARCHIVED/DELETED). */
+async function countQaForumVisibleQuestions(sessionId: string): Promise<number> {
+  return prisma.qaQuestion.count({
+    where: { sessionId, status: { in: ['ACTIVE', 'PINNED'] } },
+  });
+}
+
+/** Eigene Fragen je Status für den Teilnehmer-Kurzstatus (max. 10 pro Person). */
+async function countOwnQaQuestionsByStatus(
+  sessionId: string,
+  participantId: string,
+): Promise<{ visible: number; pending: number; archived: number }> {
+  // Kein groupBy: findMany über höchstens QA_MAX_QUESTIONS_PER_PARTICIPANT Zeilen.
+  const rows = await prisma.qaQuestion.findMany({
+    where: {
+      sessionId,
+      participantId,
+      status: { in: ['PENDING', 'ACTIVE', 'PINNED', 'ARCHIVED'] },
+    },
+    select: { status: true },
+    take: QA_MAX_QUESTIONS_PER_PARTICIPANT,
+  });
+  let visible = 0;
+  let pending = 0;
+  let archived = 0;
+  for (const row of rows) {
+    if (row.status === 'PENDING') {
+      pending += 1;
+    } else if (row.status === 'ARCHIVED') {
+      archived += 1;
+    } else if (row.status === 'ACTIVE' || row.status === 'PINNED') {
+      visible += 1;
+    }
+  }
+  return { visible, pending, archived };
+}
+
+/** Host: sessionweite Statuszahlen und älteste PENDING-Frage. */
+async function loadHostQaStatusOverview(sessionId: string): Promise<{
+  hostStatusCounts: {
+    active: number;
+    pinned: number;
+    pending: number;
+    archived: number;
+  };
+  oldestPendingCreatedAt: string | null;
+}> {
+  const [active, pinned, pending, archived, oldestPending] = await Promise.all([
+    prisma.qaQuestion.count({ where: { sessionId, status: 'ACTIVE' } }),
+    prisma.qaQuestion.count({ where: { sessionId, status: 'PINNED' } }),
+    prisma.qaQuestion.count({ where: { sessionId, status: 'PENDING' } }),
+    prisma.qaQuestion.count({ where: { sessionId, status: 'ARCHIVED' } }),
+    prisma.qaQuestion.findFirst({
+      where: { sessionId, status: 'PENDING' },
+      orderBy: { createdAt: 'asc' },
+      select: { createdAt: true },
+    }),
+  ]);
+  return {
+    hostStatusCounts: { active, pinned, pending, archived },
+    oldestPendingCreatedAt: oldestPending?.createdAt
+      ? oldestPending.createdAt instanceof Date
+        ? oldestPending.createdAt.toISOString()
+        : new Date(oldestPending.createdAt).toISOString()
+      : null,
+  };
+}
+
 function mapQaQuestion(
   question: QaQuestionRecord,
   participantId?: string,
@@ -380,10 +452,11 @@ function mapQaQuestion(
           score: voteStats?.score ?? question.upvoteCount,
         }
       : {}),
-    ...(includeVoteMetrics && voteStats?.positiveVoteCount !== undefined
+    // Stimmen-Aufschlüsselung auch für Teilnehmende (Up/Down in der Voter-UI).
+    ...(voteStats?.positiveVoteCount !== undefined
       ? { positiveVoteCount: voteStats.positiveVoteCount }
       : {}),
-    ...(includeVoteMetrics && voteStats?.negativeVoteCount !== undefined
+    ...(voteStats?.negativeVoteCount !== undefined
       ? { negativeVoteCount: voteStats.negativeVoteCount }
       : {}),
     ...(includeVoteMetrics && voteStats?.voteCount !== undefined
@@ -1101,10 +1174,30 @@ export const qaRouter = router({
               : 'ACTIVE';
       }
       if (!isQaEnabled(session)) {
-        return buildQaQuestionsSnapshot(session, [], 'CHANNEL_CLOSED', serverNow);
+        return buildQaQuestionsSnapshot(session, [], 'CHANNEL_CLOSED', serverNow, {
+          forumVisibleCount: await countQaForumVisibleQuestions(session.id),
+          ...(input.participantId && !input.moderatorView
+            ? {
+                ownQuestionCounts: await countOwnQaQuestionsByStatus(
+                  session.id,
+                  input.participantId,
+                ),
+              }
+            : {}),
+        });
       }
       if (!input.moderatorView && contentState !== 'ACTIVE') {
-        return buildQaQuestionsSnapshot(session, [], contentState, serverNow);
+        return buildQaQuestionsSnapshot(session, [], contentState, serverNow, {
+          forumVisibleCount: await countQaForumVisibleQuestions(session.id),
+          ...(input.participantId
+            ? {
+                ownQuestionCounts: await countOwnQaQuestionsByStatus(
+                  session.id,
+                  input.participantId,
+                ),
+              }
+            : {}),
+        });
       }
 
       const participantCountForControversy =
@@ -1130,7 +1223,14 @@ export const qaRouter = router({
             ? Promise.resolve(pendingCountWithoutModeration)
             : loadQaPendingCount(session.id, session.qaRankingRevision)
           : Promise.resolve<number | undefined>(undefined);
-      const [page, participantQuestionCount, filteredSessionPendingCount] = await Promise.all([
+      const [
+        page,
+        participantQuestionCount,
+        filteredSessionPendingCount,
+        forumVisibleCount,
+        ownQuestionCounts,
+        hostOverview,
+      ] = await Promise.all([
         buildQaQuestionPayloadFromDb({
           sessionId: session.id,
           participantId: input.participantId,
@@ -1159,6 +1259,17 @@ export const qaRouter = router({
             })
           : Promise.resolve(0),
         filteredSessionPendingCountPromise,
+        countQaForumVisibleQuestions(session.id),
+        input.participantId && !input.moderatorView
+          ? countOwnQaQuestionsByStatus(session.id, input.participantId).catch(() => ({
+              visible: 0,
+              pending: 0,
+              archived: 0,
+            }))
+          : Promise.resolve(undefined),
+        input.moderatorView
+          ? loadHostQaStatusOverview(session.id).catch(() => undefined)
+          : Promise.resolve(undefined),
       ]);
       const [currentRevision, currentParticipantCount] = await Promise.all([
         prisma.session.findUnique({
@@ -1192,12 +1303,23 @@ export const qaRouter = router({
             sessionRemaining: Math.max(0, QA_MAX_QUESTIONS_PER_SESSION - session.qaQuestionCount),
           }
         : undefined;
+      const hasOwnQuestions =
+        !!ownQuestionCounts &&
+        ownQuestionCounts.visible + ownQuestionCounts.pending + ownQuestionCounts.archived > 0;
       return buildQaQuestionsSnapshot(session, page.questions, contentState, serverNow, {
         rankingRevision,
         nextCursor: page.nextCursor,
         totalCount: page.totalCount,
+        forumVisibleCount,
+        ...(hasOwnQuestions ? { ownQuestionCounts } : {}),
         ...(typeof page.pendingCount === 'number' ? { pendingCount: page.pendingCount } : {}),
         ...(typeof sessionPendingCount === 'number' ? { sessionPendingCount } : {}),
+        ...(hostOverview
+          ? {
+              hostStatusCounts: hostOverview.hostStatusCounts,
+              oldestPendingCreatedAt: hostOverview.oldestPendingCreatedAt,
+            }
+          : {}),
         sessionQuestionCount: session.qaQuestionCount,
         sessionRemaining: Math.max(0, QA_MAX_QUESTIONS_PER_SESSION - session.qaQuestionCount),
         quota,

@@ -69,9 +69,11 @@ früheren 1-Sekunden-Datenpoll.
 
 Schlägt der begrenzte initiale Teilnehmerabruf vorübergehend fehl, wiederholt
 der Client ihn mit exponentiellem Backoff und Jitter bis zum nächsten Erfolg.
-Damit hängt die Wiederherstellung eines großen Forums nicht von einer neuen
-Frage, Bewertung oder anderen Realtime-Invalidierung ab; nach erfolgreichem
-Laden endet der Retry und es bleibt beim invalidierungsgetriebenen Betrieb.
+Vor dem Abruf stellt er bei fehlender `participantId` die Teilnahme her
+(Deep-Link auf `/session/:code/vote` ohne vorherigen Join). Damit hängt die
+Wiederherstellung eines großen Forums weder von einer neuen Frage/Bewertung
+noch vom Tippen im Eingabefeld ab; nach erfolgreichem Laden endet der Retry und
+es bleibt beim invalidierungsgetriebenen Betrieb.
 
 Öffentliche Q&A-Seiten derselben Revision, Sortierung und Cursorlage werden
 kurz im Prozess gecacht. Eigene Votes und eigene `PENDING`-Fragen bleiben

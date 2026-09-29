@@ -73,7 +73,7 @@ abgehobene Overlay-Fläche (`session-lifecycle-dialog-panel`) mit kräftigerem
 Scrim, damit sie sich vom Live-Hintergrund lösen. Beim Anlegen von der Startseite (`Q&A erstellen`) erscheinen Teilnahmeprofil
 und Zugangskarte als Schritt 1 und 2 von 2. Die Einrichtung entfällt in dieser
 Sequenz: `session.create` öffnet den Standalone-Q&A-Kanal sofort mit den
-INITIAL-Defaults (Titel »Fragen & Antworten«, Vorab-Moderation an, Frist bis
+INITIAL-Defaults (Titel »Fragen der Teilnehmenden«, Vorab-Moderation an, Frist bis
 Sessionende). Quiz-Sessions mit zusätzlichem Q&A-Kanal bleiben
 `UNCONFIGURED`, bis der Host den Kanal ausdrücklich einrichtet. Abbrechen in
 der Teilnahme legt keine Session an. Abbrechen in der Zugangskarte lässt Q&A
@@ -235,7 +235,11 @@ Inhaltszugriff des Hosts.
 Die Join-Kapsel neben dem QR-Code bleibt kompakt: Code und Teilnehmerzahl,
 ohne Sessionende und ohne Löschtermin. Die Q&A-Fristzeile des Hosts nennt den
 Zugang für Teilnehmende und, darunter, bis wann der Host die Fragen noch
-einsehen kann. Vote zeigt nur die offene-bis-Zeile für Teilnehmende.
+einsehen kann. Vote zeigt die offene-bis-Zeile mit hervorgehobener absoluter
+Fristzeit und relativer Restzeit, den Kurzstatus eigener Fragen
+(sichtbar / in Prüfung / beantwortet), die Markierung »Wird gerade besprochen«
+für angepinnte Fragen sowie einen Leerzustand mit Quota- und Frist-Hinweis.
+Eigene archivierte Fragen bleiben nachvollziehbar (Status »Beantwortet«, Snackbar).
 Q&A-Einstellungen bleiben host-only und sind der Einstieg, um die
 Teilnehmer-Öffnungszeit anzupassen. Quiz- und Blitzlichtansicht behalten
 dieselbe kompakte Kapsel. Die 30- und 5-Minuten-Warnung gilt weiter

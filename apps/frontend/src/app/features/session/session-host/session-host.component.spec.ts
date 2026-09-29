@@ -1475,7 +1475,7 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
         qa: {
           enabled: true,
           open: true,
-          title: 'Fragen & Antworten',
+          title: 'Fragen der Teilnehmenden',
           moderationMode: true,
           state: 'OPEN',
           closesAt: staleClose,
@@ -3614,6 +3614,14 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
       nextCursor: null,
       totalCount: 3,
       pendingCount: 1,
+      sessionPendingCount: 1,
+      hostStatusCounts: {
+        active: 1,
+        pinned: 1,
+        pending: 1,
+        archived: 1,
+      },
+      oldestPendingCreatedAt: '2026-03-24T11:59:00.000Z',
     });
 
     const fixture = setup();
@@ -3628,26 +3636,40 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
     expect(fixture.componentInstance.qaPinnedSummaryTooltip()).toContain('Angepinnt');
     expect(fixture.componentInstance.qaPendingSummaryTooltip()).toContain('In Moderation');
     expect(fixture.componentInstance.qaArchivedSummaryTooltip()).toContain('Archiviert');
-    expect(fixture.componentInstance.qaStatusTooltip('PINNED')).toContain('Wird beantwortet');
+    expect(fixture.componentInstance.qaStatusTooltip('PINNED')).toContain('Wird gerade besprochen');
     expect(fixture.componentInstance.qaStatusTooltip('ARCHIVED')).toContain('beantwortet');
-    const pendingChip = host.querySelector(
-      '[data-testid="qa-review-pending"]',
+    const statusStrip = host.querySelector('[data-testid="host-qa-status-strip"]');
+    expect(statusStrip?.textContent).toContain('1 freigegeben');
+    expect(statusStrip?.textContent).toContain('1 in Prüfung');
+    expect(statusStrip?.textContent).toContain('1 hervorgehoben');
+    expect(statusStrip?.textContent).toContain('1 beantwortet');
+    expect(statusStrip?.textContent).toContain('Älteste ungeprüfte Frage:');
+    const totalChip = statusStrip?.querySelector(
+      '[data-testid="qa-summary-total"]',
     ) as HTMLElement | null;
-    const pinnedChip = host.querySelector(
-      '.session-qa-summary__chip--pinned',
+    expect(totalChip).not.toBeNull();
+    expect(totalChip?.querySelector('mat-icon')?.textContent?.trim()).toBe('chat_bubble_outline');
+    expect(totalChip?.getAttribute('aria-label')).toContain('Gesamt:');
+    expect(totalChip?.textContent).toMatch(/3/);
+    const pendingChip = statusStrip?.querySelector(
+      '[data-testid="qa-summary-pending-status"]',
     ) as HTMLElement | null;
-    const archivedChip = host.querySelector(
-      '.session-qa-summary__chip--archived',
+    const pinnedChip = statusStrip?.querySelector(
+      '[data-testid="qa-summary-pinned"]',
+    ) as HTMLElement | null;
+    const archivedChip = statusStrip?.querySelector(
+      '[data-testid="qa-summary-archived"]',
     ) as HTMLElement | null;
     expect(pendingChip).not.toBeNull();
     expect(pinnedChip).not.toBeNull();
     expect(archivedChip).not.toBeNull();
-    expect(pendingChip?.textContent).toContain('Fragen prüfen (1)');
+    expect(pendingChip?.textContent).toContain('1 in Prüfung');
     expect(pinnedChip?.getAttribute('aria-label')).toContain('angepinnte Fragen');
     expect(archivedChip?.getAttribute('aria-label')).toContain('archivierte Fragen');
-    expect(pendingChip?.tabIndex).toBe(0);
     expect(pinnedChip?.tabIndex).toBe(0);
     expect(archivedChip?.tabIndex).toBe(0);
+    expect(host.querySelectorAll('[data-testid="qa-summary-pinned"]').length).toBe(1);
+    expect(host.querySelector('.session-qa-summary > .session-qa-summary__chips')).toBeNull();
     fixture.destroy();
   });
 
@@ -4275,7 +4297,7 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
         qa: {
           enabled: true,
           open: true,
-          title: 'Fragen & Antworten',
+          title: 'Fragen der Teilnehmenden',
           moderationMode: true,
           state: 'OPEN',
           closesAt: '2026-03-25T12:00:00.000Z',
@@ -5639,7 +5661,7 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
         qa: {
           enabled: true,
           open: true,
-          title: 'Fragen & Antworten',
+          title: 'Fragen der Teilnehmenden',
           moderationMode: true,
           state: 'OPEN',
           closesAt: '2026-03-25T12:00:00.000Z',
@@ -5673,7 +5695,7 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
         qa: {
           enabled: true,
           open: true,
-          title: 'Fragen & Antworten',
+          title: 'Fragen der Teilnehmenden',
           moderationMode: true,
           state: 'OPEN',
           closesAt: '2026-03-25T12:00:00.000Z',
@@ -5710,7 +5732,7 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
         qa: {
           enabled: true,
           open: true,
-          title: 'Fragen & Antworten',
+          title: 'Fragen der Teilnehmenden',
           moderationMode: true,
           state: 'OPEN',
           closesAt: '2026-03-25T12:00:00.000Z',
@@ -5745,7 +5767,7 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
         qa: {
           enabled: true,
           open: true,
-          title: 'Fragen & Antworten',
+          title: 'Fragen der Teilnehmenden',
           moderationMode: true,
           state: 'OPEN',
           closesAt: '2026-03-25T12:00:00.000Z',
@@ -5767,7 +5789,7 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
       qa: {
         enabled: true,
         open: true,
-        title: 'Fragen & Antworten',
+        title: 'Fragen der Teilnehmenden',
         moderationMode: true,
         state: 'OPEN',
         closesAt: '2026-03-25T12:00:00.000Z',
@@ -9883,8 +9905,11 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
     fixture.detectChanges();
 
     const text = fixture.nativeElement.textContent ?? '';
-    expect(text).toContain('Gesamt: 1');
-    expect(text).not.toContain('Gesamt: 2');
+    const totalChip = fixture.nativeElement.querySelector(
+      '[data-testid="qa-summary-total"]',
+    ) as HTMLElement | null;
+    expect(totalChip?.textContent).toMatch(/1/);
+    expect(totalChip?.getAttribute('aria-label')).toContain('Gesamt: 1');
     expect(text).not.toContain('25.000');
     expect(text).not.toContain('Fragen gespeichert');
     expect(text).toContain('Sichtbare Frage');
@@ -10192,6 +10217,7 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
     const fixture = await setupQaWorkspace(false);
     const component = fixture.componentInstance;
     component.qaListPendingCount.set(3);
+    component.qaListSessionPendingCount.set(3);
     component.qaListTotalCount.set(3);
     fixture.detectChanges();
     fixture.nativeElement.querySelector('[data-testid="qa-summary-pending"]').focus();
@@ -10207,6 +10233,9 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
     );
     fixture.detectChanges();
     expect(fixture.nativeElement.querySelector('[data-testid="qa-summary-pending"]')).toBeNull();
+    expect(
+      fixture.nativeElement.querySelector('[data-testid="qa-summary-pending-status"]'),
+    ).not.toBeNull();
     expect(document.activeElement).toBe(
       fixture.nativeElement.querySelector('[data-testid="qa-tools-toggle"]'),
     );
@@ -10581,7 +10610,11 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
     expect(pendingSummary?.tagName).toBe('BUTTON');
     expect(pendingSummary?.getAttribute('aria-pressed')).toBe('false');
     expect(pendingSummary?.textContent).toContain('Fragen prüfen (1)');
-    expect(fixture.nativeElement.textContent).toMatch(/Gesamt:\s*1([.,])553/);
+    const totalChip = fixture.nativeElement.querySelector(
+      '[data-testid="qa-summary-total"]',
+    ) as HTMLElement | null;
+    expect(totalChip?.textContent).toMatch(/1([.,])553/);
+    expect(totalChip?.getAttribute('aria-label')).toMatch(/Gesamt:\s*1([.,])553/);
 
     qaListQueryMock.mockClear();
     pendingSummary?.focus();
@@ -10643,7 +10676,11 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
     expect(component.qaModerationHint()).toContain(
       '2 bereits eingereichte Fragen warten weiter auf Freigabe',
     );
-    expect(fixture.nativeElement.querySelector('[data-testid="qa-summary-pending"]')).toBeNull();
+    const pendingStatusChip = fixture.nativeElement.querySelector(
+      '[data-testid="qa-summary-pending"]',
+    ) as HTMLElement | null;
+    expect(pendingStatusChip).not.toBeNull();
+    expect(pendingStatusChip?.textContent).toContain('2 in Prüfung');
     expect(fixture.nativeElement.querySelector('[data-testid="qa-filter-pending"]')).toBeNull();
     const releaseButton = fixture.nativeElement.querySelector(
       '.session-qa-release-pending',

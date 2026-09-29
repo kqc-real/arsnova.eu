@@ -757,6 +757,13 @@ export class SessionHostComponent implements OnInit, OnDestroy {
   private readonly qaListPendingCount = signal<number | null>(null);
   /** Host: PENDING-Zähler der gesamten Session; null = Fallback auf den gefilterten Zähler. */
   private readonly qaListSessionPendingCount = signal<number | null>(null);
+  private readonly qaHostStatusCounts = signal<{
+    active: number;
+    pinned: number;
+    pending: number;
+    archived: number;
+  } | null>(null);
+  private readonly qaOldestPendingCreatedAt = signal<string | null>(null);
   readonly qaListNextCursor = signal<string | null>(null);
   readonly qaListRankingRevision = signal<string | null>(null);
   readonly qaListPageIndex = signal(0);
@@ -2429,9 +2436,13 @@ export class SessionHostComponent implements OnInit, OnDestroy {
     }
     return $localize`:@@sessionQa.wordCloudCountManyMetric:${count}:count: sichtbare Fragen`;
   });
-  readonly qaPinnedCount = computed(
-    () => this.qaForumQuestions().filter((q) => q.status === 'PINNED').length,
-  );
+  readonly qaPinnedCount = computed(() => {
+    const fromHost = this.qaHostStatusCounts()?.pinned;
+    if (typeof fromHost === 'number') {
+      return fromHost;
+    }
+    return this.qaForumQuestions().filter((q) => q.status === 'PINNED').length;
+  });
   readonly qaPendingCount = computed(() => {
     const fromList = this.qaListPendingCount();
     if (fromList !== null) {
@@ -2442,12 +2453,75 @@ export class SessionHostComponent implements OnInit, OnDestroy {
   readonly qaSessionPendingCount = computed(
     () => this.qaListSessionPendingCount() ?? this.qaPendingCount(),
   );
-  readonly qaArchivedCount = computed(
-    () => this.qaForumQuestions().filter((q) => q.status === 'ARCHIVED').length,
-  );
+  readonly qaActiveCount = computed(() => {
+    const fromHost = this.qaHostStatusCounts()?.active;
+    if (typeof fromHost === 'number') {
+      return fromHost;
+    }
+    return this.qaForumQuestions().filter((q) => q.status === 'ACTIVE').length;
+  });
+  readonly qaArchivedCount = computed(() => {
+    const fromHost = this.qaHostStatusCounts()?.archived;
+    if (typeof fromHost === 'number') {
+      return fromHost;
+    }
+    return this.qaForumQuestions().filter((q) => q.status === 'ARCHIVED').length;
+  });
   readonly qaDeletedCount = computed(
     () => this.qaQuestions().filter((q) => q.status === 'DELETED').length,
   );
+
+  /** Sessionweiter Status-Strip sichtbar, sobald Summe oder ein Status zählt. */
+  qaHostStatusStripVisible(): boolean {
+    return (
+      this.qaForumQuestionCount() > 0 ||
+      !!this.qaSearch() ||
+      this.qaActiveCount() +
+        this.qaSessionPendingCount() +
+        this.qaPinnedCount() +
+        this.qaArchivedCount() +
+        this.qaDeletedCount() >
+        0
+    );
+  }
+
+  qaHostStatusActiveChipLabel(): string {
+    const count = this.qaActiveCount();
+    return count === 1
+      ? $localize`:@@sessionQa.hostStatusActiveOne:1 freigegeben`
+      : $localize`:@@sessionQa.hostStatusActiveMany:${this.formatCount(count)}:count: freigegeben`;
+  }
+
+  qaHostStatusPendingChipLabel(): string {
+    const count = this.qaSessionPendingCount();
+    return count === 1
+      ? $localize`:@@sessionQa.hostStatusPendingOne:1 in Prüfung`
+      : $localize`:@@sessionQa.hostStatusPendingMany:${this.formatCount(count)}:count: in Prüfung`;
+  }
+
+  qaHostStatusPinnedChipLabel(): string {
+    const count = this.qaPinnedCount();
+    return count === 1
+      ? $localize`:@@sessionQa.hostStatusPinnedOne:1 hervorgehoben`
+      : $localize`:@@sessionQa.hostStatusPinnedMany:${this.formatCount(count)}:count: hervorgehoben`;
+  }
+
+  qaHostStatusArchivedChipLabel(): string {
+    const count = this.qaArchivedCount();
+    return count === 1
+      ? $localize`:@@sessionQa.hostStatusArchivedOne:1 beantwortet`
+      : $localize`:@@sessionQa.hostStatusArchivedMany:${this.formatCount(count)}:count: beantwortet`;
+  }
+
+  /** Relative Dauer der ältesten ungeprüften Frage; null wenn keine PENDING. */
+  qaOldestPendingAgeLabel(): string | null {
+    const createdAt = this.qaOldestPendingCreatedAt();
+    if (!createdAt || this.qaSessionPendingCount() <= 0) {
+      return null;
+    }
+    const age = this.relativeTime(createdAt);
+    return $localize`:@@sessionQa.oldestPendingAge:Älteste ungeprüfte Frage: ${age}:age:`;
+  }
   readonly openQaWordCloudDialog = async (focusedTerm: string | null = null): Promise<void> => {
     this.moderationCompassFocusedTerm.set(focusedTerm);
     this.qaWordCloudDialogOpen.set(true);
@@ -9518,7 +9592,7 @@ export class SessionHostComponent implements OnInit, OnDestroy {
   qaStatusLabel(status: QaQuestionDTO['status']): string {
     switch (status) {
       case 'PINNED':
-        return $localize`:@@sessionQa.statusPinned:Wird beantwortet`;
+        return $localize`:@@sessionQa.statusPinned:Wird gerade besprochen`;
       case 'ACTIVE':
         return $localize`:@@sessionQa.statusActive:Freigegeben`;
       case 'PENDING':
@@ -9533,7 +9607,7 @@ export class SessionHostComponent implements OnInit, OnDestroy {
   qaStatusTooltip(status: QaQuestionDTO['status']): string {
     switch (status) {
       case 'PINNED':
-        return $localize`:@@sessionQa.statusPinnedTooltip:Angepinnt: Diese Frage hebst du hervor. Sie gilt als »Wird beantwortet«.`;
+        return $localize`:@@sessionQa.statusPinnedTooltip:Angepinnt: Diese Frage hebst du hervor. Sie gilt als »Wird gerade besprochen«.`;
       case 'ARCHIVED':
         return $localize`:@@sessionQa.statusArchivedTooltip:Archiviert: Diese Frage ist als beantwortet markiert und bleibt nachlesbar.`;
       default:
@@ -9542,7 +9616,11 @@ export class SessionHostComponent implements OnInit, OnDestroy {
   }
 
   qaPinnedSummaryTooltip(): string {
-    return $localize`:@@sessionQa.summaryPinnedTooltip:Angepinnt: Diese Fragen hebst du hervor. Sie gelten als »Wird beantwortet«.`;
+    return $localize`:@@sessionQa.summaryPinnedTooltip:Angepinnt: Diese Fragen hebst du hervor. Sie gelten als »Wird gerade besprochen«.`;
+  }
+
+  qaTotalSummaryAria(): string {
+    return $localize`:@@sessionQa.summaryTotalAria:Gesamt: ${this.formatCount(this.qaForumQuestionCount())}:count:`;
   }
 
   qaPendingSummaryTooltip(): string {
@@ -9560,7 +9638,7 @@ export class SessionHostComponent implements OnInit, OnDestroy {
   }
 
   qaPendingSummaryAria(): string {
-    const pendingCount = this.qaPendingCount();
+    const pendingCount = this.qaSessionPendingCount();
     if (pendingCount === 1) {
       return this.qaShowPendingOnly()
         ? $localize`:@@sessionQa.summaryPendingAriaOneShowAll:1 Frage in Moderation. Alle Fragen anzeigen`
@@ -11448,6 +11526,16 @@ export class SessionHostComponent implements OnInit, OnDestroy {
       this.qaListTotalCount.set(0);
       this.qaListPendingCount.set(0);
       this.qaListSessionPendingCount.set(0);
+      if (snapshot.hostStatusCounts) {
+        this.qaHostStatusCounts.set(snapshot.hostStatusCounts);
+      } else {
+        this.qaHostStatusCounts.set(null);
+      }
+      this.qaOldestPendingCreatedAt.set(
+        typeof snapshot.oldestPendingCreatedAt === 'string'
+          ? snapshot.oldestPendingCreatedAt
+          : null,
+      );
       this.qaListNextCursor.set(null);
       this.qaListRankingRevision.set(snapshot.rankingRevision ?? null);
       this.resetQaListPageNavigation();
@@ -11471,6 +11559,14 @@ export class SessionHostComponent implements OnInit, OnDestroy {
         ? snapshot.sessionPendingCount
         : filteredPendingCount,
     );
+    if (snapshot.hostStatusCounts) {
+      this.qaHostStatusCounts.set(snapshot.hostStatusCounts);
+    } else {
+      this.qaHostStatusCounts.set(null);
+    }
+    this.qaOldestPendingCreatedAt.set(
+      typeof snapshot.oldestPendingCreatedAt === 'string' ? snapshot.oldestPendingCreatedAt : null,
+    );
     this.qaListNextCursor.set(snapshot.nextCursor ?? null);
     this.qaListRankingRevision.set(snapshot.rankingRevision ?? null);
     this.dismissQaSteeringCallout();
@@ -11484,6 +11580,8 @@ export class SessionHostComponent implements OnInit, OnDestroy {
     this.qaListTotalCount.set(0);
     this.qaListPendingCount.set(null);
     this.qaListSessionPendingCount.set(null);
+    this.qaHostStatusCounts.set(null);
+    this.qaOldestPendingCreatedAt.set(null);
     this.qaListNextCursor.set(null);
     this.qaListRankingRevision.set(null);
     this.resetQaListPageNavigation();
@@ -11771,6 +11869,8 @@ export class SessionHostComponent implements OnInit, OnDestroy {
       this.qaListTotalCount.set(0);
       this.qaListPendingCount.set(null);
       this.qaListSessionPendingCount.set(null);
+      this.qaHostStatusCounts.set(null);
+      this.qaOldestPendingCreatedAt.set(null);
       this.qaListNextCursor.set(null);
       this.resetQaListPageNavigation();
       this.qaListPageLoading.set(false);
@@ -11782,6 +11882,8 @@ export class SessionHostComponent implements OnInit, OnDestroy {
       this.qaListTotalCount.set(0);
       this.qaListPendingCount.set(null);
       this.qaListSessionPendingCount.set(null);
+      this.qaHostStatusCounts.set(null);
+      this.qaOldestPendingCreatedAt.set(null);
       this.qaListNextCursor.set(null);
       this.resetQaListPageNavigation();
     }
