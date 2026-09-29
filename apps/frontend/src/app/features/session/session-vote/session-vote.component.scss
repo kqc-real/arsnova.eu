@@ -1221,6 +1221,24 @@
   letter-spacing: 0.01em;
 }
 
+.session-qa-card__badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.3rem 0.65rem;
+  border-radius: var(--mat-sys-corner-full);
+  font: var(--mat-sys-label-medium);
+  font-weight: 600;
+}
+
+.session-qa-card__badge--redacted {
+  background: color-mix(in srgb, var(--mat-sys-tertiary) 14%, transparent);
+  color: var(--mat-sys-tertiary);
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--mat-sys-tertiary) 20%, transparent);
+  white-space: normal;
+  max-width: 100%;
+  line-height: 1.25;
+}
+
 .session-qa-card__delete-btn {
   display: flex;
   align-items: center;

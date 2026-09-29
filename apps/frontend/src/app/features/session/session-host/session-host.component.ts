@@ -5360,17 +5360,21 @@ export class SessionHostComponent implements OnInit, OnDestroy {
     if (typeof document !== 'undefined' && document.hidden) {
       return;
     }
+    const tasks: Array<Promise<unknown>> = [];
     if (this.shouldPollLiveFreetext()) {
-      await this.refreshLiveFreetext(options);
+      tasks.push(this.refreshLiveFreetext(options));
     }
     if (this.shouldPollQaQuestions()) {
-      await this.refreshQaQuestions({ silent: true, preservePaging: true, ...options });
+      tasks.push(this.refreshQaQuestions({ silent: true, preservePaging: true, ...options }));
     }
     if (this.shouldPollQuickFeedback()) {
-      await this.refreshQuickFeedbackResult(options);
+      tasks.push(this.refreshQuickFeedbackResult(options));
     }
     if (this.shouldPollEmojiReactions()) {
-      await this.refreshEmojiReactions(options);
+      tasks.push(this.refreshEmojiReactions(options));
+    }
+    if (tasks.length > 0) {
+      await Promise.all(tasks);
     }
   }
 
@@ -12770,6 +12774,91 @@ export class SessionHostComponent implements OnInit, OnDestroy {
     } catch {
       this.openHostSteeringCalloutForQaFailure(
         () => void this.moderateQaQuestion(questionId, action),
+      );
+    } finally {
+      const remaining = new Set(this.qaPendingQuestionIds());
+      remaining.delete(questionId);
+      this.qaPendingQuestionIds.set(remaining);
+    }
+  }
+
+  async openQaRedactPassagesDialog(questionId: string): Promise<void> {
+    if (!this.code || !this.qaHostWritesAllowed()) {
+      return;
+    }
+    const question = this.qaVisibleQuestions().find((entry) => entry.id === questionId);
+    if (!question) {
+      return;
+    }
+    if (!question.updatedAt) {
+      await this.refreshQaQuestions();
+    }
+    const current = this.qaVisibleQuestions().find((entry) => entry.id === questionId) ?? question;
+    if (!current.updatedAt) {
+      this.qaInfo.set(
+        $localize`:@@sessionQa.redactMissingVersion:Die Frageversion fehlt. Lade die Fragenliste neu und versuche es erneut.`,
+      );
+      return;
+    }
+
+    const { QaRedactPassagesDialogComponent } =
+      await import('./qa-redact-passages-dialog.component');
+    const dialogRef = this.dialog.open(QaRedactPassagesDialogComponent, {
+      width: 'min(42rem, calc(100vw - 1.5rem))',
+      autoFocus: 'dialog',
+      restoreFocus: true,
+      data: {
+        question: {
+          id: current.id,
+          text: current.text,
+          updatedAt: current.updatedAt,
+          passagesRedacted: current.passagesRedacted === true,
+        },
+      },
+    });
+    const result = await firstValueFrom(dialogRef.afterClosed());
+    if (!result?.ranges?.length) {
+      return;
+    }
+    await this.redactQaPassages(questionId, current.updatedAt, result.ranges);
+  }
+
+  async redactQaPassages(
+    questionId: string,
+    expectedUpdatedAt: string,
+    ranges: Array<{ start: number; end: number }>,
+  ): Promise<void> {
+    if (!this.code || !this.qaHostWritesAllowed()) {
+      return;
+    }
+    const pending = new Set(this.qaPendingQuestionIds());
+    if (pending.has(questionId)) {
+      return;
+    }
+    pending.add(questionId);
+    this.qaPendingQuestionIds.set(pending);
+    this.qaInfo.set($localize`:@@sessionQa.redactPending:Schwärzung wird gespeichert…`);
+
+    try {
+      await trpc.qa.redactPassages.mutate({
+        sessionCode: this.code.toUpperCase(),
+        questionId,
+        expectedUpdatedAt,
+        ranges,
+      });
+      await this.refreshQaQuestions();
+      this.qaInfo.set($localize`:@@sessionQa.redactSuccess:Passagen wurden dauerhaft geschwärzt.`);
+      this.dismissHostSteeringCallout();
+      this.scrollHostQaQuestionIntoView(questionId);
+    } catch (error) {
+      const conflict = this.isTrpcConflictError(error);
+      this.qaInfo.set(
+        conflict
+          ? $localize`:@@sessionQa.redactConflict:Die Frage wurde inzwischen geändert. Auswahl bleibt erhalten – bitte neu laden.`
+          : $localize`:@@sessionQa.redactFailed:Die Schwärzung konnte nicht gespeichert werden.`,
+      );
+      this.openHostSteeringCalloutForQaFailure(
+        () => void this.redactQaPassages(questionId, expectedUpdatedAt, ranges),
       );
     } finally {
       const remaining = new Set(this.qaPendingQuestionIds());

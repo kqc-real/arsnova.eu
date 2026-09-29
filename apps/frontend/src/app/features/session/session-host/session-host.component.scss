@@ -2581,6 +2581,15 @@
   box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--mat-sys-secondary) 18%, transparent);
 }
 
+.session-qa-card__badge--redacted {
+  background: color-mix(in srgb, var(--mat-sys-tertiary) 14%, transparent);
+  color: var(--mat-sys-tertiary);
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--mat-sys-tertiary) 20%, transparent);
+  white-space: normal;
+  max-width: 100%;
+  line-height: 1.25;
+}
+
 .session-qa-card__badge--compass {
   background: var(--mat-sys-primary);
   color: var(--mat-sys-on-primary);
@@ -2721,6 +2730,12 @@
   background: color-mix(in srgb, var(--mat-sys-error) 10%, transparent);
   color: var(--mat-sys-error);
   box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--mat-sys-error) 18%, transparent);
+}
+
+.session-qa-card__action-btn--redact {
+  background: color-mix(in srgb, var(--mat-sys-tertiary) 12%, transparent);
+  color: var(--mat-sys-tertiary);
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--mat-sys-tertiary) 18%, transparent);
 }
 
 @media (max-width: 599px) {

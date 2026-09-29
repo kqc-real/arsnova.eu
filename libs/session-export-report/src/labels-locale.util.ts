@@ -270,6 +270,7 @@ const EN_LABELS: SessionResultsReportLabels = {
   qaStatus: 'Status',
   qaUpvotes: 'Upvotes',
   qaControversial: 'Controversial',
+  qaPassagesRedacted: 'Passages redacted by moderation',
   qaPositive: 'positive',
   qaNegative: 'negative',
   blockquoteTeachingIdea: 'Teaching idea',

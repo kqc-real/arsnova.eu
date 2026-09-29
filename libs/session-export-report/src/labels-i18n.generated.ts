@@ -285,6 +285,7 @@ export const FR_LABEL_OVERRIDES: Partial<SessionResultsReportLabels> = {
   privacyNotice:
     'Confidentialité : ce rapport contient uniquement des résultats agrégés. Les noms réels, adresses IP et votes individuels ne sont pas exportés. Les pseudonymes apparaissent uniquement avec les codes bonus.',
   qaControversial: 'Controversé',
+  qaPassagesRedacted: 'Passages caviardées par la modération',
   qaCoverageTemplate:
     'Les {0} questions les mieux classées sur {1} questions exportables sont affichées.',
   qaFollowUpControversial: 'Discuté de manière controversée',
@@ -667,6 +668,7 @@ export const ES_LABEL_OVERRIDES: Partial<SessionResultsReportLabels> = {
   privacyNotice:
     'Privacidad: este informe contiene únicamente resultados agregados. No se exportan nombres reales, direcciones IP ni votos individuales. Los apodos seudónimos solo aparecen con códigos bonus.',
   qaControversial: 'Controvertida',
+  qaPassagesRedacted: 'Pasajes ocultados por moderación',
   qaCoverageTemplate:
     'Se muestran las {0} preguntas mejor clasificadas de {1} preguntas exportables.',
   qaFollowUpControversial: 'Discutido polémicamente',
@@ -1050,6 +1052,7 @@ export const IT_LABEL_OVERRIDES: Partial<SessionResultsReportLabels> = {
   privacyNotice:
     'Privacy: questo rapporto contiene esclusivamente risultati aggregati. Nomi reali, indirizzi IP e voti individuali non vengono esportati. I nickname pseudonimi compaiono solo con i codici bonus.',
   qaControversial: 'Controversa',
+  qaPassagesRedacted: 'Passaggi oscurati dalla moderazione',
   qaCoverageTemplate:
     'Vengono mostrate le {0} domande con il punteggio più alto su {1} domande esportabili.',
   qaFollowUpControversial: 'Discusso in modo controverso',

@@ -15,6 +15,11 @@ import {
   WORD_CLOUD_NORMALIZATION_VALUES,
 } from './word-cloud-normalization';
 import { WORD_CLOUD_ANALYSIS_CHANNEL_VALUES } from './word-cloud-semantic';
+import {
+  QA_REDACTION_MAX_RANGE_CODE_POINTS,
+  QA_REDACTION_MAX_RANGES,
+  QA_REDACTION_MIN_RANGE_CODE_POINTS,
+} from './qa-redaction';
 
 export const QA_MAX_QUESTIONS_PER_PARTICIPANT = 10;
 export const QA_MAX_QUESTIONS_PER_SESSION = 25_000;
@@ -5321,6 +5326,8 @@ export const QaExportEntrySchema = z.object({
   negativeVoteCount: z.number().int().optional(),
   voteCount: z.number().int().optional(),
   isControversial: z.boolean().optional(),
+  /** Dauerhaftes Moderationslabel; Inhalt steht bereits geschwärzt in `text`. */
+  passagesRedacted: z.boolean().optional(),
 });
 export type QaExportEntry = z.infer<typeof QaExportEntrySchema>;
 
@@ -5787,6 +5794,16 @@ export const QaQuestionDTOSchema = z.object({
   score: z.number().optional(),
   status: QaQuestionStatusEnum,
   createdAt: z.string(),
+  /**
+   * Textversions-Zeitstempel für optimistische Schwärzungskollisionen.
+   * Fehlt nur bei älteren Caches; Clients laden dann neu.
+   */
+  updatedAt: z.string().datetime().optional(),
+  /**
+   * Eigenes Moderationsmerkmal: Passagen wurden dauerhaft geschwärzt.
+   * Nicht aus dem Fragetext erraten.
+   */
+  passagesRedacted: z.boolean(),
   authorNickname: z.string().min(1).max(30).optional(),
   authorTeamName: z.string().trim().min(1).max(40).optional(),
   positiveVoteCount: z.number().int().min(0).optional(),
@@ -6000,6 +6017,34 @@ export const ModerateQaQuestionInputSchema = z.object({
   action: ModerateQaQuestionActionEnum,
 });
 export type ModerateQaQuestionInput = z.infer<typeof ModerateQaQuestionInputSchema>;
+
+/**
+ * Disjunkte Codepunkt-Bereiche im aktuellen Fragetext.
+ * Der Server erzeugt den Platzhalter; Clients senden keinen Ersatztext.
+ */
+export const QaRedactionRangeSchema = z
+  .object({
+    start: z.number().int().min(0).max(500),
+    end: z.number().int().min(1).max(500),
+  })
+  .refine(
+    (range) =>
+      range.end > range.start &&
+      range.end - range.start >= QA_REDACTION_MIN_RANGE_CODE_POINTS &&
+      range.end - range.start <= QA_REDACTION_MAX_RANGE_CODE_POINTS,
+    { message: 'Ungültiger Schwärzungsbereich.' },
+  );
+export type QaRedactionRangeInput = z.infer<typeof QaRedactionRangeSchema>;
+
+/** Host-only: konkrete Passagen einer Q&A-Frage dauerhaft schwärzen (#485). */
+export const RedactQaPassagesInputSchema = z.object({
+  sessionCode: z.string().trim().min(6).max(6),
+  questionId: z.uuid(),
+  /** Erwartete Textversion (`QaQuestion.updatedAt` als ISO). */
+  expectedUpdatedAt: z.string().datetime(),
+  ranges: z.array(QaRedactionRangeSchema).min(1).max(QA_REDACTION_MAX_RANGES),
+});
+export type RedactQaPassagesInput = z.infer<typeof RedactQaPassagesInputSchema>;
 
 // ---------------------------------------------------------------------------
 // SC-Schnellformate (Story 1.12) — clientseitig angewandt

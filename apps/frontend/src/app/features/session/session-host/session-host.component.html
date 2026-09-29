@@ -4844,6 +4844,13 @@
                                 >Umstritten</span
                               >
                             }
+                            @if (question.passagesRedacted) {
+                              <span
+                                class="session-qa-card__badge session-qa-card__badge--redacted"
+                                i18n="@@sessionQa.badgePassagesRedacted"
+                                >Passagen durch Moderation geschwärzt</span
+                              >
+                            }
                           </div>
                           <span
                             class="session-qa-card__votes"
@@ -4893,6 +4900,18 @@
                           }
                         </div>
                         <div class="session-qa-card__actions">
+                          @if (qaHostWritesAllowed()) {
+                            <button
+                              matButton="tonal"
+                              type="button"
+                              class="session-qa-card__action-btn session-qa-card__action-btn--redact"
+                              [disabled]="qaPendingQuestionIds().has(question.id)"
+                              (click)="openQaRedactPassagesDialog(question.id)"
+                            >
+                              <mat-icon class="session-qa-card__action-icon">ink_eraser</mat-icon>
+                              <span i18n="@@sessionQa.redactAction">Passagen schwärzen</span>
+                            </button>
+                          }
                           @for (
                             action of ['APPROVE', 'PIN', 'UNPIN', 'ARCHIVE', 'DELETE'];
                             track action

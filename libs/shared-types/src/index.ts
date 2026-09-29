@@ -7,6 +7,7 @@
 
 export * from './schemas.js';
 export * from './qa-joinable.js';
+export * from './qa-redaction.js';
 export * from './confidence.js';
 export * from './session-export-insights.js';
 export * from './word-cloud-normalization.js';

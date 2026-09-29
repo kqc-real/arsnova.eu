@@ -2575,6 +2575,7 @@ async function loadFinishedQuizSessionExportData(code: string): Promise<SessionE
             text: true,
             status: true,
             upvoteCount: true,
+            passagesRedacted: true,
           },
         }),
       ]),
@@ -2587,6 +2588,7 @@ async function loadFinishedQuizSessionExportData(code: string): Promise<SessionE
           text: row.text,
           status: row.status,
           upvoteCount: row.upvoteCount,
+          ...(row.passagesRedacted ? { passagesRedacted: true } : {}),
         }))
       : undefined;
 

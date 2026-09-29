@@ -7,6 +7,7 @@ const questionBase = {
   upvoteCount: 2,
   status: 'ACTIVE' as const,
   createdAt: '2026-08-19T10:00:00.000Z',
+  passagesRedacted: false,
   hasUpvoted: false,
   isOwn: false,
   myVote: null,

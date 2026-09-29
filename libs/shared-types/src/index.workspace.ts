@@ -6,6 +6,7 @@
  */
 export * from './schemas';
 export * from './qa-joinable';
+export * from './qa-redaction';
 export * from './confidence';
 export * from './session-export-insights';
 export * from './word-cloud-normalization';

@@ -145,7 +145,9 @@ export function renderQaSectionHtml(
     .map(
       (question, index) => `<tr>
         <td>${index + 1}</td>
-        <td>${escapeHtml(stripMarkdownToPlainText(question.text))}</td>
+        <td>${escapeHtml(stripMarkdownToPlainText(question.text))}${
+          question.passagesRedacted ? ` <em>(${escapeHtml(labels.qaPassagesRedacted)})</em>` : ''
+        }</td>
         <td>${escapeHtml(question.status)}</td>
         <td>${formatLocaleCountSafe(question.upvoteCount, localeId)}</td>
         <td>${question.isControversial ? escapeHtml(labels.qaControversial) : '—'}</td>

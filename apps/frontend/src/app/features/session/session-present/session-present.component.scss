@@ -1155,6 +1155,26 @@ app-session-projection-quiz,
   line-height: 1.4;
 }
 
+.session-present__qa-list-body {
+  display: grid;
+  gap: 0.35rem;
+  min-width: 0;
+}
+
+.session-present__qa-redacted {
+  display: inline-flex;
+  align-items: center;
+  width: fit-content;
+  max-width: 100%;
+  padding: 0.2rem 0.55rem;
+  border-radius: var(--mat-sys-corner-full);
+  background: color-mix(in srgb, var(--mat-sys-tertiary) 14%, transparent);
+  color: var(--mat-sys-tertiary);
+  font-size: clamp(0.75rem, 1.1vw, 0.9rem);
+  font-weight: 600;
+  line-height: 1.25;
+}
+
 .session-present__qa-list {
   display: grid;
   gap: 0.75rem;

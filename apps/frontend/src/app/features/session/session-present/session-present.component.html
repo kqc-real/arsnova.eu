@@ -839,10 +839,19 @@
                           <mat-icon aria-hidden="true">thumb_up</mat-icon>
                           <span>{{ formatCount(question.upvoteCount) }}</span>
                         </div>
-                        <div
-                          class="session-present__qa-list-text"
-                          [innerHTML]="renderMarkdown(question.text)"
-                        ></div>
+                        <div class="session-present__qa-list-body">
+                          @if (question.passagesRedacted) {
+                            <span
+                              class="session-present__qa-redacted"
+                              i18n="@@sessionQa.badgePassagesRedacted"
+                              >Passagen durch Moderation geschwärzt</span
+                            >
+                          }
+                          <div
+                            class="session-present__qa-list-text"
+                            [innerHTML]="renderMarkdown(question.text)"
+                          ></div>
+                        </div>
                       </article>
                     }
                   </div>

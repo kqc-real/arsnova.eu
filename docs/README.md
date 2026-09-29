@@ -101,6 +101,7 @@ Formale A11y-Abnahmedokumentation (2026-07-27):
 - **Session-Lebenszyklus, Teilnahmeprofil und Retention (Epic #405 / #407 / #409 / #412):** [features/session-lifecycle.md](features/session-lifecycle.md)
 - **Host- und Vote-Einstieg (Kombinationen, Guards, Speicher):** [features/session-entry-host-vote.md](features/session-entry-host-vote.md)
 - **Q&A- und Teilnahme-Skalierung (Epic #405 / #414 / #415):** [features/qa-scaling.md](features/qa-scaling.md)
+- **Q&A-Passagen schwärzen (#485):** [features/qa-passages-redaction.md](features/qa-passages-redaction.md)
 - **Eininstanzgrenze und Mehrinstanz-Plan (#428 AP7):** [operations/MULTI-INSTANCE-PLAN.md](operations/MULTI-INSTANCE-PLAN.md)
 - **Statistik-Modul:** [Studierendenbeschreibung](didaktik/Modulkonzept%20Statistik/Modulbeschreibung_Studierende.md) · [Modulkonzept](didaktik/Modulkonzept%20Statistik/Modulkonzept_48UE_BWL_Management_WI_Informatik.md) · [Materialpaket](didaktik/Modulkonzept%20Statistik/P0-03_Materialpaket_Pilotlauf.md) · [Runbook](didaktik/Modulkonzept%20Statistik/P0-03_Lehrenden_Runbook.md) · [QA-Status](didaktik/Modulkonzept%20Statistik/P0-03_QA_Freigabeprotokoll.md)
 

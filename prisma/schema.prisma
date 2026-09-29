@@ -647,6 +647,8 @@ model QaQuestion {
   positiveVoteCount        Int              @default(0)
   negativeVoteCount        Int              @default(0)
   status                   QaQuestionStatus @default(ACTIVE)
+  /** Dauerhaftes Label: Host hat Passagen unkenntlich gemacht (kein Originalwortlaut). */
+  passagesRedacted         Boolean          @default(false)
   sessionId                String
   session                  Session          @relation(fields: [sessionId], references: [id], onDelete: Cascade)
   participantId            String // Story 8.2: Autor (für 3-Fragen-Limit pro Student)

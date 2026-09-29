@@ -244,6 +244,8 @@ export interface SessionResultsReportLabels {
   qaStatus: string;
   qaUpvotes: string;
   qaControversial: string;
+  /** Label für geschwärzte Q&A-Passagen im Export. */
+  qaPassagesRedacted: string;
   qaPositive: string;
   qaNegative: string;
   blockquoteTeachingIdea: string;
@@ -635,6 +637,7 @@ export function getSessionResultsReportLabelsDe(): SessionResultsReportLabels {
     qaStatus: 'Status',
     qaUpvotes: 'Upvotes',
     qaControversial: 'Umstritten',
+    qaPassagesRedacted: 'Passagen durch Moderation geschwärzt',
     qaPositive: 'positiv',
     qaNegative: 'negativ',
     blockquoteTeachingIdea: 'Unterrichtsidee',

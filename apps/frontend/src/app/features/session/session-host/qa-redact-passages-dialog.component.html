@@ -1,0 +1,135 @@
+<h2 mat-dialog-title class="dialog-title-header">
+  <span class="dialog-title-header__icon" aria-hidden="true">
+    <mat-icon>ink_eraser</mat-icon>
+  </span>
+  <span class="dialog-title-header__copy">
+    <span class="dialog-title-header__heading" i18n="@@sessionQa.redactTitle"
+      >Passagen schwärzen</span
+    >
+  </span>
+</h2>
+
+<mat-dialog-content class="qa-redact__content">
+  <p class="qa-redact__intro" i18n="@@sessionQa.redactIntro">
+    Markiere konkrete Stellen im Klartext. Der übrige Wortlaut bleibt unverändert. Bereits
+    geschwärzte Platzhalter
+    <code>{{ placeholder }}</code>
+    sind nicht erneut auswählbar.
+  </p>
+
+  <label class="qa-redact__label" for="qa-redact-source" i18n="@@sessionQa.redactSourceLabel"
+    >Auswählbarer Klartext</label
+  >
+  <textarea
+    #sourceTextArea
+    id="qa-redact-source"
+    class="qa-redact__source"
+    readonly
+    rows="6"
+    [value]="sourceText"
+    [attr.aria-describedby]="statusMessage() ? 'qa-redact-status' : null"
+  ></textarea>
+  <div class="qa-redact__toolbar">
+    <button matButton="tonal" type="button" (click)="markCurrentSelection()">
+      <mat-icon>format_ink_highlighter</mat-icon>
+      <span i18n="@@sessionQa.redactMarkSelection">Markierung schwärzen</span>
+    </button>
+  </div>
+
+  <fieldset class="qa-redact__search">
+    <legend i18n="@@sessionQa.redactSearchLegend">Passage suchen</legend>
+    <p class="qa-redact__hint" i18n="@@sessionQa.redactSearchHint">
+      Mobile Alternative: Text eingeben, der bereits in der Frage steht. Bei mehreren Vorkommen die
+      konkrete Fundstelle auswählen. Kein Ersatztext, kein globales Ersetzen.
+    </p>
+    <mat-form-field appearance="outline" class="qa-redact__search-field">
+      <mat-label i18n="@@sessionQa.redactSearchLabel">Text in der Frage</mat-label>
+      <input
+        matInput
+        [ngModel]="searchNeedle()"
+        (ngModelChange)="searchNeedle.set($event)"
+        maxlength="80"
+        autocomplete="off"
+      />
+    </mat-form-field>
+    <div class="qa-redact__toolbar">
+      <button matButton type="button" (click)="runSearch()">
+        <mat-icon>search</mat-icon>
+        <span i18n="@@sessionQa.redactSearchAction">Suchen</span>
+      </button>
+      @if (searchOccurrences().length > 0) {
+        <button matButton="tonal" type="button" (click)="addSelectedOccurrences()">
+          <mat-icon>add</mat-icon>
+          <span i18n="@@sessionQa.redactSearchAdd">Fundstelle(n) übernehmen</span>
+        </button>
+      }
+    </div>
+    @if (searchOccurrences().length > 1) {
+      <mat-selection-list
+        [multiple]="true"
+        (selectionChange)="onOccurrenceSelectionChange($event)"
+        aria-label="Fundstellen"
+        i18n-aria-label="@@sessionQa.redactOccurrencesAria"
+      >
+        @for (occurrence of searchOccurrences(); track $index; let i = $index) {
+          <mat-list-option [value]="i" [selected]="selectedOccurrenceIndexes().includes(i)">
+            <span i18n="@@sessionQa.redactOccurrenceItem"
+              >Vorkommen {{ i + 1 }} (Position {{ occurrence.start + 1 }})</span
+            >
+          </mat-list-option>
+        }
+      </mat-selection-list>
+    }
+  </fieldset>
+
+  @if (pendingRanges().length > 0) {
+    <section class="qa-redact__pending" aria-labelledby="qa-redact-pending-heading">
+      <h3 id="qa-redact-pending-heading" i18n="@@sessionQa.redactPendingHeading">
+        Geplante Schwärzungen
+      </h3>
+      <ul class="qa-redact__pending-list">
+        @for (range of pendingRanges(); track range.id) {
+          <li class="qa-redact__pending-item">
+            <code class="qa-redact__excerpt">{{ range.excerpt }}</code>
+            <button
+              matButton
+              type="button"
+              (click)="removeRange(range.id)"
+              [attr.aria-label]="removeRangeAria(range.excerpt)"
+            >
+              <mat-icon>close</mat-icon>
+              <span i18n="@@sessionQa.redactRemove">Entfernen</span>
+            </button>
+          </li>
+        }
+      </ul>
+    </section>
+  }
+
+  <section class="qa-redact__preview" aria-labelledby="qa-redact-preview-heading">
+    <h3 id="qa-redact-preview-heading" i18n="@@sessionQa.redactPreviewHeading">Vorschau</h3>
+    <pre class="qa-redact__preview-text" tabindex="0">{{ previewText() }}</pre>
+  </section>
+
+  @if (statusMessage(); as message) {
+    <p
+      id="qa-redact-status"
+      class="qa-redact__status"
+      [class.qa-redact__status--error]="statusTone() === 'error'"
+      role="status"
+      aria-live="polite"
+    >
+      {{ message }}
+    </p>
+  }
+</mat-dialog-content>
+
+<mat-dialog-actions align="end">
+  <button mat-button type="button" mat-dialog-close i18n="@@sessionQa.redactCancel">
+    Abbrechen
+  </button>
+  <button matButton="filled" type="button" color="warn" (click)="confirmApply()">
+    <mat-icon>ink_eraser</mat-icon>
+    <span i18n="@@sessionQa.redactApply">Schwärzungen endgültig anwenden</span>
+  </button>
+</mat-dialog-actions>

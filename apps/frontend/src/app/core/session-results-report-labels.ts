@@ -239,6 +239,7 @@ export function getSessionResultsReportLabels(): SessionResultsReportLabels {
     qaStatus: $localize`:@@sessionReport.qaStatus:Status`,
     qaUpvotes: $localize`:@@sessionReport.qaUpvotes:Upvotes`,
     qaControversial: $localize`:@@sessionReport.qaControversial:Umstritten`,
+    qaPassagesRedacted: $localize`:@@sessionReport.qaPassagesRedacted:Passagen durch Moderation geschwärzt`,
     qaPositive: $localize`:@@sessionReport.qaPositive:positiv`,
     qaNegative: $localize`:@@sessionReport.qaNegative:negativ`,
     blockquoteTeachingIdea: $localize`:@@sessionReport.blockquoteTeachingIdea:Unterrichtsidee`,
