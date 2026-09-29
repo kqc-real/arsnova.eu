@@ -19380,15 +19380,17 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
       distribution: { POSITIVE: 2, NEUTRAL: 0, NEGATIVE: 0 },
     };
     let resolveFirstAuxiliary!: (result: typeof staleResult) => void;
+    let firstAuxiliaryPending = true;
     getInfoQueryMock.mockResolvedValue(reconnectSession);
-    quickFeedbackHostResultsQueryMock
-      .mockImplementationOnce(
-        () =>
-          new Promise<typeof staleResult>((resolve) => {
-            resolveFirstAuxiliary = resolve;
-          }),
-      )
-      .mockResolvedValueOnce(currentResult);
+    quickFeedbackHostResultsQueryMock.mockImplementation(() => {
+      if (firstAuxiliaryPending) {
+        firstAuxiliaryPending = false;
+        return new Promise<typeof staleResult>((resolve) => {
+          resolveFirstAuxiliary = resolve;
+        });
+      }
+      return Promise.resolve(currentResult);
+    });
     vi.useFakeTimers();
 
     const firstReconnect = (

@@ -5446,17 +5446,21 @@ export class SessionHostComponent implements OnInit, OnDestroy {
     if (typeof document !== 'undefined' && document.hidden) {
       return;
     }
+    const tasks: Array<Promise<unknown>> = [];
     if (this.shouldPollLiveFreetext()) {
-      await this.refreshLiveFreetext(options);
+      tasks.push(this.refreshLiveFreetext(options));
     }
     if (this.shouldPollQaQuestions()) {
-      await this.refreshQaQuestions({ silent: true, preservePaging: true, ...options });
+      tasks.push(this.refreshQaQuestions({ silent: true, preservePaging: true, ...options }));
     }
     if (this.shouldPollQuickFeedback()) {
-      await this.refreshQuickFeedbackResult(options);
+      tasks.push(this.refreshQuickFeedbackResult(options));
     }
     if (this.shouldPollEmojiReactions()) {
-      await this.refreshEmojiReactions(options);
+      tasks.push(this.refreshEmojiReactions(options));
+    }
+    if (tasks.length > 0) {
+      await Promise.all(tasks);
     }
   }
 
