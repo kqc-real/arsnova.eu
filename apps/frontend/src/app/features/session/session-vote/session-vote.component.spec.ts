@@ -5457,6 +5457,8 @@ describe('SessionVoteComponent', { timeout: 30_000 }, () => {
         id: 'question-1',
         text: 'Wie viel Stoff ist klausurrelevant?',
         upvoteCount: 2,
+        positiveVoteCount: 5,
+        negativeVoteCount: 3,
         status: 'ACTIVE',
         createdAt: '2026-03-13T12:00:00.000Z',
         authorNickname: 'Roter Drache 2',
@@ -5468,6 +5470,8 @@ describe('SessionVoteComponent', { timeout: 30_000 }, () => {
         id: 'question-2',
         text: 'Gibt es eine Musterlösung?',
         upvoteCount: 1,
+        positiveVoteCount: 1,
+        negativeVoteCount: 0,
         status: 'ACTIVE',
         createdAt: '2026-03-13T12:05:00.000Z',
         authorNickname: 'Grüner Frosch',
@@ -5480,6 +5484,17 @@ describe('SessionVoteComponent', { timeout: 30_000 }, () => {
 
     const host = fixture.nativeElement as HTMLElement;
     const voteArrows = host.querySelectorAll('.session-qa-card__vote-arrow');
+    expect(voteArrows).toHaveLength(4);
+    const netCount = host.querySelector('.session-qa-card__vote-count');
+    expect(netCount?.textContent?.trim()).toBe('2');
+    expect(netCount?.classList.contains('session-qa-card__vote-count--positive')).toBe(true);
+    const voteStats = host.querySelectorAll('.session-qa-card__vote-stat');
+    expect(voteStats[0]?.classList.contains('session-qa-card__vote-stat--up')).toBe(true);
+    expect(voteStats[0]?.textContent).toContain('5');
+    expect(voteStats[0]?.querySelector('mat-icon')?.textContent?.trim()).toBe('thumb_up');
+    expect(voteStats[1]?.classList.contains('session-qa-card__vote-stat--down')).toBe(true);
+    expect(voteStats[1]?.textContent).toContain('3');
+    expect(voteStats[1]?.querySelector('mat-icon')?.textContent?.trim()).toBe('thumb_down');
     expect(voteArrows[0]?.getAttribute('aria-label')).toBe('Positiv bewerten');
     expect(voteArrows[1]?.getAttribute('aria-label')).toBe('Negativ bewerten');
     expect(component.qaVoteAriaLabel({ ...component.qaQuestions()[0]!, myVote: 'UP' }, 'UP')).toBe(
@@ -5517,6 +5532,61 @@ describe('SessionVoteComponent', { timeout: 30_000 }, () => {
     expect(component.qaSelectedAuthorNickname()).toBeNull();
     expect(cards).toHaveLength(2);
     expect(cards[1]?.className).not.toContain('session-qa-card--author-selected');
+    fixture.destroy();
+  });
+
+  it('zeigt die Bewertungsdifferenz auch bei eigenen Fragen ohne Abstimm-Pfeile', () => {
+    const fixture = TestBed.createComponent(SessionVoteComponent);
+    const component = fixture.componentInstance;
+    component.status.set('ACTIVE');
+    component.activeChannel.set('qa');
+    component.sessionSettings.set({
+      type: 'Q_AND_A',
+      status: 'ACTIVE',
+      title: 'Offene Fragen',
+      nicknameTheme: 'KINDERGARTEN',
+      anonymousMode: false,
+    } as never);
+    component.qaQuestions.set([
+      {
+        id: 'own-question',
+        text: 'Meine Frage',
+        upvoteCount: -2,
+        positiveVoteCount: 1,
+        negativeVoteCount: 3,
+        status: 'ACTIVE',
+        createdAt: '2026-03-13T12:00:00.000Z',
+        myVote: null,
+        isOwn: true,
+        hasUpvoted: false,
+      },
+    ]);
+    fixture.detectChanges();
+
+    const host = fixture.nativeElement as HTMLElement;
+    const card = host.querySelector('.session-qa-card--own');
+    expect(card).not.toBeNull();
+    expect(card?.querySelector('.session-qa-card__vote-arrow')).toBeNull();
+    const net = card?.querySelector(
+      '.session-qa-card__vote-stepper--readonly .session-qa-card__vote-count',
+    );
+    expect(net?.textContent?.trim()).toBe('-2');
+    expect(net?.classList.contains('session-qa-card__vote-count--negative')).toBe(true);
+    expect(
+      card?.querySelector('.session-qa-card__vote-stepper--readonly')?.getAttribute('aria-label'),
+    ).toContain('Bewertungsdifferenz');
+    expect(
+      card?.querySelector('.session-qa-card__votes .session-qa-card__vote-stat--up'),
+    ).not.toBeNull();
+    expect(
+      card?.querySelector('.session-qa-card__votes .session-qa-card__vote-stat--down'),
+    ).not.toBeNull();
+    expect(
+      card?.querySelector('.session-qa-card__footer .session-qa-card__delete-btn'),
+    ).not.toBeNull();
+    expect(
+      card?.querySelector('.session-qa-card__status-row .session-qa-card__delete-btn'),
+    ).toBeNull();
     fixture.destroy();
   });
 
@@ -5920,6 +5990,7 @@ describe('SessionVoteComponent', { timeout: 30_000 }, () => {
       qaClosesAt: closesAt,
       endedAt: null,
       postProcessingEndsAt: null,
+      forumVisibleCount: 12,
     });
     currentQuestionQueryMock.mockResolvedValue(null);
 
@@ -5936,9 +6007,91 @@ describe('SessionVoteComponent', { timeout: 30_000 }, () => {
     expect(deadline).not.toBeNull();
     expect(deadline?.classList.contains('session-vote__qa-deadline--expired')).toBe(false);
     expect(deadline?.textContent).toContain('Q&A offen bis');
+    expect(
+      deadline?.querySelector('.session-vote__qa-deadline-absolute')?.textContent?.length,
+    ).toBeGreaterThan(0);
     expect(deadline?.textContent).toMatch(/in 23 (Stunden|hours)/i);
+    expect(component.qaForumVisibleCount()).toBe(12);
+    expect(deadline?.querySelector('.session-vote__qa-deadline-count')?.textContent).toContain(
+      '12 Fragen',
+    );
     expect(host.querySelector('.session-vote__qa-deadline button')).toBeNull();
     expect(host.textContent).not.toContain('Q&A-Einstellungen');
+    fixture.destroy();
+  });
+
+  it('zeigt Kurzstatus eigener Fragen und Leerzustand mit Quota-/Frist-Hinweis', async () => {
+    const closesAt = new Date(Date.parse(MOCK_SERVER_TIME) + 23 * 60 * 60_000).toISOString();
+    getInfoQueryMock.mockResolvedValue({
+      id: '6a8edced-5f8f-4cfa-9176-454fac9570ad',
+      serverTime: MOCK_SERVER_TIME,
+      serverNow: MOCK_SERVER_TIME,
+      sessionLifecycleRevision: 1,
+      expiresAt: '2099-01-01T00:00:00.000Z',
+      qaClosesAt: closesAt,
+      timeZone: 'Europe/Berlin',
+      code: 'ABC123',
+      type: 'QUIZ',
+      status: 'ACTIVE',
+      quizName: 'Team-Quiz',
+      title: null,
+      participantCount: 6,
+      channels: {
+        quiz: { enabled: true },
+        qa: {
+          enabled: true,
+          open: true,
+          title: 'Fragen',
+          moderationMode: true,
+          state: 'OPEN',
+          closesAt,
+        },
+        quickFeedback: { enabled: false, open: false },
+      },
+    });
+    qaListQueryMock.mockResolvedValue({
+      questions: [],
+      state: 'ACTIVE',
+      sessionLifecycleRevision: 1,
+      serverNow: MOCK_SERVER_TIME,
+      expiresAt: '2099-01-01T00:00:00.000Z',
+      qaClosesAt: closesAt,
+      endedAt: null,
+      postProcessingEndsAt: null,
+      forumVisibleCount: 0,
+      ownQuestionCounts: { visible: 1, pending: 1, archived: 1 },
+      quota: {
+        participantQuestionCount: 3,
+        participantRemaining: 7,
+        sessionQuestionCount: 3,
+        sessionRemaining: 197,
+      },
+    });
+    currentQuestionQueryMock.mockResolvedValue(null);
+
+    const fixture = TestBed.createComponent(SessionVoteComponent);
+    fixture.detectChanges();
+    await flushComponentAfterStable(fixture, 50);
+
+    const component = fixture.componentInstance;
+    component.activeChannel.set('qa');
+    fixture.detectChanges();
+
+    const host = fixture.nativeElement as HTMLElement;
+    expect(host.querySelector('[data-testid="vote-qa-own-summary"]')?.textContent).toContain(
+      'Deine Fragen:',
+    );
+    expect(host.textContent).toContain('1 sichtbar');
+    expect(host.textContent).toContain('1 in Prüfung');
+    expect(host.textContent).toContain('1 beantwortet');
+    expect(host.querySelector('[data-testid="vote-qa-empty"]')?.textContent).toMatch(
+      /Noch keine Fragen|Noch leer/,
+    );
+    expect(host.querySelector('.session-qa-empty__hint')?.textContent).toContain(
+      'Noch 7 von 10 Fragen möglich',
+    );
+    expect(host.querySelector('.session-qa-empty__hint')?.textContent).toContain('Offen bis');
+    expect(component.qaOwnQuestionsSummaryLabel()).toContain('Deine Fragen:');
     fixture.destroy();
   });
 
@@ -7727,7 +7880,7 @@ describe('SessionVoteComponent', { timeout: 30_000 }, () => {
 
     const text = fixture.nativeElement.textContent ?? '';
     expect(text).toContain('Freigegeben');
-    expect(text).toContain('Wird beantwortet');
+    expect(text).toContain('Wird gerade besprochen');
     expect(text).toContain(
       'Wartet auf Freigabe – momentan nur für dich und die Moderation sichtbar.',
     );
@@ -7911,6 +8064,87 @@ describe('SessionVoteComponent', { timeout: 30_000 }, () => {
     expect(fixture.componentInstance.qaError()).toBeNull();
 
     randomSpy.mockRestore();
+    fixture.destroy();
+  });
+
+  it('stellt bei Deep-Link ohne gespeicherte Teilnahme vor qa.list die Identität her', async () => {
+    localStorage.removeItem('arsnova-participant-ABC123');
+    localStorage.removeItem('arsnova-nickname-ABC123');
+    joinMutateMock.mockClear();
+    qaListQueryMock.mockClear();
+    joinMutateMock.mockResolvedValue({
+      id: '6a8edced-5f8f-4cfa-9176-454fac9570ad',
+      participantId: '22222222-2222-4222-8222-222222222222',
+      participantNickname: 'Deep Link Fuchs',
+      rejoinToken: 'participant-capability-abcdefghijklmnopqrstuvwxyz',
+    });
+    getInfoQueryMock.mockResolvedValue({
+      id: '6a8edced-5f8f-4cfa-9176-454fac9570ad',
+      serverTime: MOCK_SERVER_TIME,
+      serverNow: MOCK_SERVER_TIME,
+      sessionLifecycleRevision: 1,
+      expiresAt: '2099-09-15T12:00:00.000Z',
+      qaClosesAt: '2099-09-15T11:00:00.000Z',
+      code: 'ABC123',
+      type: 'Q_AND_A',
+      status: 'ACTIVE',
+      quizName: null,
+      title: 'Offene Fragen',
+      participantCount: 12,
+      allowCustomNicknames: false,
+      channels: {
+        quiz: { enabled: false },
+        qa: {
+          enabled: true,
+          open: true,
+          title: 'Offene Fragen',
+          moderationMode: false,
+          state: 'OPEN',
+          closesAt: '2099-09-15T11:00:00.000Z',
+        },
+        quickFeedback: { enabled: false, open: false },
+      },
+    });
+    qaListQueryMock.mockResolvedValue({
+      questions: [
+        {
+          id: '44444444-4444-4444-8444-444444444444',
+          text: 'Bereits gestellte Frage',
+          upvoteCount: 3,
+          status: 'ACTIVE' as const,
+          createdAt: '2026-09-15T08:00:00.000Z',
+          myVote: null,
+          isOwn: false,
+          hasUpvoted: false,
+        },
+      ],
+      state: 'ACTIVE' as const,
+      sessionLifecycleRevision: 1,
+      serverNow: MOCK_SERVER_TIME,
+      expiresAt: '2099-09-15T12:00:00.000Z',
+      qaClosesAt: '2099-09-15T11:00:00.000Z',
+      endedAt: null,
+      postProcessingEndsAt: null,
+      forumVisibleCount: 1,
+    });
+    currentQuestionQueryMock.mockResolvedValue(null);
+
+    const fixture = TestBed.createComponent(SessionVoteComponent);
+    fixture.detectChanges();
+    await flushComponentAfterStable(fixture, 50);
+
+    const component = fixture.componentInstance;
+    expect(joinMutateMock).toHaveBeenCalled();
+    expect(component.participantId()).toBe('22222222-2222-4222-8222-222222222222');
+    expect(qaListQueryMock).toHaveBeenCalled();
+    expect(
+      qaListQueryMock.mock.calls.some(
+        (call) => call[0]?.participantId === '22222222-2222-4222-8222-222222222222',
+      ),
+    ).toBe(true);
+    expect(component.qaQuestions()).toHaveLength(1);
+    expect(component.qaError()).toBeNull();
+    expect(fixture.nativeElement.textContent).not.toContain('Fragen konnten nicht geladen werden.');
     fixture.destroy();
   });
 
@@ -8108,7 +8342,7 @@ describe('SessionVoteComponent', { timeout: 30_000 }, () => {
 
     expect(snackBarOpenMock).toHaveBeenCalledTimes(1);
     expect(snackBarOpenMock.mock.calls[0]![0]).toMatch(
-      /hervorgehoben|highlighted|avant|destacada|evidenziata/i,
+      /besprochen|discussed|discussion|debatiendo|discussione|hervorgehoben|highlighted/i,
     );
     fixture.destroy();
   });
@@ -9207,7 +9441,7 @@ describe('SessionVoteComponent', { timeout: 30_000 }, () => {
       const editor = fixture.nativeElement.querySelector('#qa-draft') as HTMLTextAreaElement;
       expect(editor.value).toBe('Nicht gesendeter Text');
       expect(editor.readOnly).toBe(true);
-      expect(c.channelTabMetaLabel('qa')).toBe('Frist abgelaufen');
+      expect(c.channelTabMetaLabel('qa')).toBe('Forum geschlossen');
       expect(c.qaCanSubmit()).toBe(false);
       expect(c.showTempoAskQuestionShortcut()).toBe(false);
       await c.submitQaQuestion();
@@ -9258,7 +9492,7 @@ describe('SessionVoteComponent', { timeout: 30_000 }, () => {
       fixture.detectChanges();
       expect(c.activeChannel()).toBe('qa');
       expect(c.visibleChannels()).toEqual(['quiz', 'qa', 'quickFeedback']);
-      expect(c.channelTabMetaLabel('qa')).toBe('Geschlossen');
+      expect(c.channelTabMetaLabel('qa')).toBe('Forum geschlossen');
       c.sessionSettings.update((current) => ({
         ...current,
         channels: {

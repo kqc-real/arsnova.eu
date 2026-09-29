@@ -4030,6 +4030,115 @@
                   </p>
                 }
 
+                @if (qaHostStatusStripVisible()) {
+                  <div class="session-host__qa-status-strip" data-testid="host-qa-status-strip">
+                    <div
+                      class="session-qa-summary__chips"
+                      role="group"
+                      i18n-aria-label="@@sessionQa.hostStatusStripAria"
+                      aria-label="Fragenstatus"
+                    >
+                      @if (qaHostStatusStripTotalCount() > 0 || qaSearch()) {
+                        <span
+                          class="session-qa-summary__chip"
+                          data-testid="qa-summary-total"
+                          [attr.aria-label]="qaTotalSummaryAria()"
+                        >
+                          <mat-icon class="session-qa-summary__icon" aria-hidden="true"
+                            >chat_bubble_outline</mat-icon
+                          >
+                          <span>{{ formatCount(qaHostStatusStripTotalCount()) }}</span>
+                        </span>
+                      }
+                      @if (qaActiveCount() > 0) {
+                        <span
+                          class="session-qa-summary__chip session-qa-summary__chip--active"
+                          data-testid="qa-summary-active"
+                        >
+                          <mat-icon class="session-qa-summary__icon" aria-hidden="true"
+                            >check_circle</mat-icon
+                          >
+                          <span>{{ qaHostStatusActiveChipLabel() }}</span>
+                        </span>
+                      }
+                      @if (qaSessionPendingCount() > 0) {
+                        @if (!session()?.channels?.qa?.moderationMode) {
+                          <button
+                            #qaPendingSummary
+                            type="button"
+                            class="session-qa-summary__chip session-qa-summary__chip--pending"
+                            [matTooltip]="qaPendingSummaryTooltip()"
+                            matTooltipPosition="above"
+                            [attr.aria-label]="qaPendingSummaryAria()"
+                            [attr.aria-pressed]="qaShowPendingOnly()"
+                            (click)="toggleQaPendingFilterFromSummary()"
+                            data-testid="qa-summary-pending"
+                          >
+                            <mat-icon class="session-qa-summary__icon" aria-hidden="true"
+                              >hourglass_top</mat-icon
+                            >
+                            <span>{{ qaHostStatusPendingChipLabel() }}</span>
+                          </button>
+                        } @else {
+                          <span
+                            class="session-qa-summary__chip session-qa-summary__chip--pending"
+                            data-testid="qa-summary-pending-status"
+                          >
+                            <mat-icon class="session-qa-summary__icon" aria-hidden="true"
+                              >hourglass_top</mat-icon
+                            >
+                            <span>{{ qaHostStatusPendingChipLabel() }}</span>
+                          </span>
+                        }
+                      }
+                      @if (qaPinnedCount() > 0) {
+                        <span
+                          class="session-qa-summary__chip session-qa-summary__chip--pinned"
+                          tabindex="0"
+                          [matTooltip]="qaPinnedSummaryTooltip()"
+                          matTooltipPosition="above"
+                          [attr.aria-label]="qaPinnedSummaryAria()"
+                          data-testid="qa-summary-pinned"
+                        >
+                          <mat-icon class="session-qa-summary__icon" aria-hidden="true"
+                            >push_pin</mat-icon
+                          >
+                          <span>{{ qaHostStatusPinnedChipLabel() }}</span>
+                        </span>
+                      }
+                      @if (qaArchivedCount() > 0) {
+                        <span
+                          class="session-qa-summary__chip session-qa-summary__chip--archived"
+                          tabindex="0"
+                          [matTooltip]="qaArchivedSummaryTooltip()"
+                          matTooltipPosition="above"
+                          [attr.aria-label]="qaArchivedSummaryAria()"
+                          data-testid="qa-summary-archived"
+                        >
+                          <mat-icon class="session-qa-summary__icon" aria-hidden="true"
+                            >archive</mat-icon
+                          >
+                          <span>{{ qaHostStatusArchivedChipLabel() }}</span>
+                        </span>
+                      }
+                      @if (qaDeletedCount() > 0) {
+                        <span
+                          class="session-qa-summary__chip session-qa-summary__chip--deleted"
+                          data-testid="qa-summary-deleted"
+                        >
+                          <mat-icon class="session-qa-summary__icon" aria-hidden="true"
+                            >delete_outline</mat-icon
+                          >
+                          <span>{{ formatCount(qaDeletedCount()) }}</span>
+                        </span>
+                      }
+                    </div>
+                    @if (qaOldestPendingAgeLabel(); as oldestPending) {
+                      <p class="session-host__qa-status-strip-pending">{{ oldestPending }}</p>
+                    }
+                  </div>
+                }
+
                 @if (isChannelOpen('qa') && !qaDeadlineExpired()) {
                   <p class="session-channel-card__info" role="status" i18n="@@sessionQa.wallOpen">
                     Q&amp;A geöffnet: Teilnehmende können Fragen einreichen und bewerten
@@ -4085,74 +4194,6 @@
                   </div>
                 }
 
-                <div class="session-qa-summary">
-                  @if ((qaForumQuestionCount() > 0 || qaSearch()) && !qaSelectedAuthorNickname()) {
-                    <div class="session-qa-summary__chips">
-                      <span class="session-qa-summary__chip">
-                        <mat-icon class="session-qa-summary__icon" aria-hidden="true"
-                          >question_answer</mat-icon
-                        >
-                        <span i18n="@@sessionQa.summaryTotal"
-                          >Gesamt: {{ formatCount(qaForumQuestionCount()) }}</span
-                        >
-                      </span>
-                      @if (qaPendingCount() > 0 && !session()?.channels?.qa?.moderationMode) {
-                        <button
-                          #qaPendingSummary
-                          type="button"
-                          class="session-qa-summary__chip session-qa-summary__chip--pending"
-                          [matTooltip]="qaPendingSummaryTooltip()"
-                          matTooltipPosition="above"
-                          [attr.aria-label]="qaPendingSummaryAria()"
-                          [attr.aria-pressed]="qaShowPendingOnly()"
-                          (click)="toggleQaPendingFilterFromSummary()"
-                          data-testid="qa-summary-pending"
-                        >
-                          <mat-icon class="session-qa-summary__icon" aria-hidden="true"
-                            >hourglass_top</mat-icon
-                          >
-                          {{ formatCount(qaPendingCount()) }}
-                        </button>
-                      }
-                      @if (qaPinnedCount() > 0) {
-                        <span
-                          class="session-qa-summary__chip session-qa-summary__chip--pinned"
-                          tabindex="0"
-                          [matTooltip]="qaPinnedSummaryTooltip()"
-                          matTooltipPosition="above"
-                          [attr.aria-label]="qaPinnedSummaryAria()"
-                        >
-                          <mat-icon class="session-qa-summary__icon" aria-hidden="true"
-                            >push_pin</mat-icon
-                          >
-                          {{ formatCount(qaPinnedCount()) }}
-                        </span>
-                      }
-                      @if (qaArchivedCount() > 0) {
-                        <span
-                          class="session-qa-summary__chip session-qa-summary__chip--archived"
-                          tabindex="0"
-                          [matTooltip]="qaArchivedSummaryTooltip()"
-                          matTooltipPosition="above"
-                          [attr.aria-label]="qaArchivedSummaryAria()"
-                        >
-                          <mat-icon class="session-qa-summary__icon" aria-hidden="true"
-                            >archive</mat-icon
-                          >
-                          {{ formatCount(qaArchivedCount()) }}
-                        </span>
-                      }
-                      @if (qaDeletedCount() > 0) {
-                        <span class="session-qa-summary__chip session-qa-summary__chip--deleted">
-                          <mat-icon class="session-qa-summary__icon" aria-hidden="true"
-                            >delete_outline</mat-icon
-                          >
-                          {{ formatCount(qaDeletedCount()) }}
-                        </span>
-                      }
-                    </div>
-                  }
-                </div>
                 <div
                   class="session-qa-active-filters"
                   data-testid="qa-active-filters"

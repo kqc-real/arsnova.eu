@@ -539,6 +539,12 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
     }
   });
   readonly qaListTotalCount = signal(0);
+  readonly qaForumVisibleCount = signal(0);
+  readonly qaOwnQuestionCounts = signal<{
+    visible: number;
+    pending: number;
+    archived: number;
+  } | null>(null);
   readonly qaListNextCursor = signal<string | null>(null);
   readonly qaListRankingRevision = signal<string | null>(null);
   readonly qaListPageIndex = signal(0);
@@ -1331,12 +1337,13 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
 
     return false;
   });
-  readonly qaHeading = computed(
-    () =>
-      this.sessionSettings().channels?.qa.title ??
-      this.sessionSettings().title ??
-      $localize`:@@sessionTabs.qaTitleDefault:Fragen zur Veranstaltung...`,
-  );
+  readonly qaHeading = computed(() => {
+    const forumTitle = this.sessionSettings().channels?.qa.title?.trim();
+    if (forumTitle) {
+      return forumTitle;
+    }
+    return $localize`:@@sessionTabs.qaTitleDefault:Fragen zur Veranstaltung...`;
+  });
   readonly isQaChannelOpen = computed(
     () => this.channelOpenState().qa && !this.qaDeadlineExpired() && !this.isQaDeadlineExpired(),
   );
@@ -1382,20 +1389,122 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
     );
   });
 
-  qaDeadlineLabel(): string | null {
-    const parts = resolveQaDeadlineClockParts({
+  /** Absolute Fristzeit für die hervorgehobene Anzeige im Banner. */
+  qaDeadlineAbsoluteLabel(): string | null {
+    return this.qaDeadlineClockParts()?.formatted ?? null;
+  }
+
+  /** Relative Restzeit („in 23 Stunden“); leer wenn abgelaufen. */
+  qaDeadlineRelativeLabel(): string | null {
+    const parts = this.qaDeadlineClockParts();
+    if (!parts || parts.remainingMs <= 0 || !parts.relative) {
+      return null;
+    }
+    return parts.relative;
+  }
+
+  private qaDeadlineClockParts() {
+    return resolveQaDeadlineClockParts({
       closesAt: this.sessionSettings().channels?.qa.closesAt ?? this.sessionSettings().qaClosesAt,
       nowMs: this.qaDeadlineNow(),
       localeId: this.localeId,
       timeZone: this.sessionSettings().timeZone,
     });
-    if (!parts) {
+  }
+
+  qaForumVisibleCountLabel(): string {
+    const count = this.qaForumVisibleCount();
+    if (count === 1) {
+      return $localize`:@@sessionQa.forumVisibleCountOne:1 Frage`;
+    }
+    return $localize`:@@sessionQa.forumVisibleCountMany:${this.formatCount(count)}:count: Fragen`;
+  }
+
+  /** Kurzstatus eigener Fragen; null wenn der Teilnehmer noch keine gestellt hat. */
+  qaOwnQuestionsSummaryLabel(): string | null {
+    const counts = this.qaOwnQuestionCounts();
+    if (!counts) {
       return null;
     }
-    if (parts.remainingMs <= 0) {
-      return $localize`:@@sessionQa.deadlineExpired:Teilnahmefrist abgelaufen · ${parts.formatted}:deadline:`;
+    const { visible, pending, archived } = counts;
+    if (visible + pending + archived <= 0) {
+      return null;
     }
-    return $localize`:@@sessionQa.deadlineOpen:Q&A offen bis ${parts.formatted}:deadline: · ${parts.relative}:remaining:`;
+    const parts: string[] = [];
+    if (visible > 0) {
+      parts.push(
+        visible === 1
+          ? $localize`:@@sessionQa.ownVisibleOne:1 sichtbar`
+          : $localize`:@@sessionQa.ownVisibleMany:${this.formatCount(visible)}:count: sichtbar`,
+      );
+    }
+    if (pending > 0) {
+      parts.push(
+        pending === 1
+          ? $localize`:@@sessionQa.ownPendingOne:1 in Prüfung`
+          : $localize`:@@sessionQa.ownPendingMany:${this.formatCount(pending)}:count: in Prüfung`,
+      );
+    }
+    if (archived > 0) {
+      parts.push(
+        archived === 1
+          ? $localize`:@@sessionQa.ownArchivedOne:1 beantwortet`
+          : $localize`:@@sessionQa.ownArchivedMany:${this.formatCount(archived)}:count: beantwortet`,
+      );
+    }
+    if (parts.length === 0) {
+      return null;
+    }
+    const detail = parts.join(' · ');
+    return $localize`:@@sessionQa.ownQuestionsSummary:Deine Fragen: ${detail}:detail:`;
+  }
+
+  qaEmptyGuidanceLabel(): string | null {
+    if (!this.isQaChannelOpen()) {
+      return null;
+    }
+    const parts: string[] = [];
+    const quota = this.qaQuota();
+    if (quota) {
+      parts.push(
+        $localize`:@@sessionQa.emptyQuotaHint:Noch ${quota.participantRemaining}:remaining: von 10 Fragen möglich.`,
+      );
+    }
+    const absolute = this.qaDeadlineAbsoluteLabel();
+    if (absolute) {
+      parts.push($localize`:@@sessionQa.emptyDeadlineHint:Offen bis ${absolute}:deadline:.`);
+    }
+    return parts.length > 0 ? parts.join(' ') : null;
+  }
+
+  qaPositiveVoteCount(question: QaQuestionDTO): number {
+    return question.positiveVoteCount ?? 0;
+  }
+
+  qaNegativeVoteCount(question: QaQuestionDTO): number {
+    return question.negativeVoteCount ?? 0;
+  }
+
+  /** Netto-Differenz Up − Down für den Stepper zwischen den Pfeilen. */
+  qaVoteNet(question: QaQuestionDTO): number {
+    if (
+      typeof question.positiveVoteCount === 'number' &&
+      typeof question.negativeVoteCount === 'number'
+    ) {
+      return question.positiveVoteCount - question.negativeVoteCount;
+    }
+    return question.upvoteCount;
+  }
+
+  qaVoteNetAriaLabel(question: QaQuestionDTO): string {
+    const net = this.formatCount(this.qaVoteNet(question));
+    return $localize`:@@sessionQa.voteNetAria:Bewertungsdifferenz ${net}:net:`;
+  }
+
+  qaVotesBreakdownAriaLabel(question: QaQuestionDTO): string {
+    const up = this.formatCount(this.qaPositiveVoteCount(question));
+    const down = this.formatCount(this.qaNegativeVoteCount(question));
+    return $localize`:@@sessionQa.votesBreakdownAria:${up}:up: dafür, ${down}:down: dagegen`;
   }
 
   private patchSessionChannels(channels: SessionChannelsDTO): void {
@@ -2788,11 +2897,9 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
   channelTabMetaLabel(channel: SessionChannelTab): string {
     if (channel === 'quickFeedback') return this.quickFeedbackTabMetaLabel();
     if (channel === 'qa') {
-      if (this.qaDeadlineExpired() || this.isQaDeadlineExpired())
-        return $localize`:@@participantTask.expired:Frist abgelaufen`;
       return this.isQaChannelOpen()
-        ? $localize`:@@participantTask.questionsOpen:Fragen offen`
-        : $localize`:@@participantTask.closed:Geschlossen`;
+        ? $localize`:@@participantTask.forumOpen:Forum offen`
+        : $localize`:@@participantTask.forumClosed:Forum geschlossen`;
     }
     switch (this.status()) {
       case 'FINISHED':
@@ -2866,7 +2973,7 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
   qaStatusLabel(status: QaQuestionDTO['status'], isOwn = false): string {
     switch (status) {
       case 'PINNED':
-        return $localize`:@@sessionQa.statusPinned:Wird beantwortet`;
+        return $localize`:@@sessionQa.statusPinned:Wird gerade besprochen`;
       case 'ACTIVE':
         return $localize`:@@sessionQa.statusActive:Freigegeben`;
       case 'PENDING':
@@ -2879,6 +2986,17 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
       case 'DELETED':
         return $localize`:@@sessionQa.statusDeleted:Entfernt`;
     }
+  }
+
+  /** Votes nur bei freigegebenen, nicht archivierten Fremdfragen. */
+  qaCanVoteOnQuestion(question: QaQuestionDTO): boolean {
+    return (
+      !question.isOwn &&
+      question.status !== 'PENDING' &&
+      question.status !== 'ARCHIVED' &&
+      question.status !== 'DELETED' &&
+      !this.qaPendingQuestionIds().has(question.id)
+    );
   }
 
   discardQaDraft(): void {
@@ -3553,6 +3671,8 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
     this.reorderLockUntil = 0;
     this.qaQuestions.set([]);
     this.qaListTotalCount.set(0);
+    this.qaForumVisibleCount.set(0);
+    this.qaOwnQuestionCounts.set(null);
     this.qaListNextCursor.set(null);
     this.qaListRankingRevision.set(null);
     this.resetQaListPageNavigation();
@@ -3830,7 +3950,7 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
       return;
     }
 
-    const subscriptionKey = `${this.sessionId()}:${this.qaSortMode()}`;
+    const subscriptionKey = `${this.sessionId()}:${this.qaSortMode()}:${this.participantId() || ''}`;
     if (this.qaSub && this.qaSubscriptionKey === subscriptionKey) {
       return;
     }
@@ -4825,6 +4945,30 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
     );
   }
 
+  private countOwnQuestionsFromList(
+    questions: QaQuestionDTO[],
+  ): { visible: number; pending: number; archived: number } | null {
+    let visible = 0;
+    let pending = 0;
+    let archived = 0;
+    for (const question of questions) {
+      if (!question.isOwn) {
+        continue;
+      }
+      if (question.status === 'PENDING') {
+        pending += 1;
+      } else if (question.status === 'ARCHIVED') {
+        archived += 1;
+      } else if (question.status === 'ACTIVE' || question.status === 'PINNED') {
+        visible += 1;
+      }
+    }
+    if (visible + pending + archived === 0) {
+      return null;
+    }
+    return { visible, pending, archived };
+  }
+
   private applyQaQuestionsSnapshot(
     snapshot: QaQuestionsListDTO | QaQuestionDTO[],
     options: {
@@ -4844,6 +4988,11 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
       }
       this.setQaQuestionsAnimated(snapshot);
       this.qaListTotalCount.set(snapshot.length);
+      this.qaForumVisibleCount.set(
+        snapshot.filter((question) => question.status === 'ACTIVE' || question.status === 'PINNED')
+          .length,
+      );
+      this.qaOwnQuestionCounts.set(this.countOwnQuestionsFromList(snapshot));
       this.qaListNextCursor.set(null);
       this.qaListRankingRevision.set(null);
       this.resetQaListPageNavigation();
@@ -4910,6 +5059,17 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
         : settings,
     );
     this.scheduleQaDeadlineCheck();
+    if (typeof snapshot.forumVisibleCount === 'number') {
+      this.qaForumVisibleCount.set(snapshot.forumVisibleCount);
+    }
+    if (snapshot.ownQuestionCounts) {
+      this.qaOwnQuestionCounts.set(snapshot.ownQuestionCounts);
+    } else {
+      this.qaOwnQuestionCounts.set(this.countOwnQuestionsFromList(snapshot.questions));
+    }
+    if (snapshot.quota) {
+      this.qaQuota.set(snapshot.quota);
+    }
     if (snapshot.state !== 'ACTIVE') {
       this.qaQuestions.set([]);
       this.qaListTotalCount.set(0);
@@ -5017,11 +5177,13 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
     options: { notify?: boolean; requireDeadline?: boolean; animate?: boolean } = {},
   ): Promise<void> {
     const requestGeneration = ++this.qaListRequestGeneration;
-    if (this.isFinished() || !this.channels().qa || !this.isQaChannelOpen() || !this.sessionId()) {
+    if (this.isFinished() || !this.channels().qa || !this.sessionId()) {
       this.qaRefreshPending = undefined;
       this.clearQaRefreshRetry();
       this.qaQuestions.set([]);
       this.qaListTotalCount.set(0);
+      this.qaForumVisibleCount.set(0);
+      this.qaOwnQuestionCounts.set(null);
       this.qaListNextCursor.set(null);
       this.resetQaListPageNavigation();
       return;
@@ -5061,16 +5223,39 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
     options: { notify?: boolean; requireDeadline?: boolean; animate?: boolean },
   ): Promise<void> {
     try {
+      // Deep-Link auf /vote ohne Join: qa.list braucht eine participantId.
+      // Ohne vorherige Identität schlägt der Abruf dauerhaft fehl (Retry allein reicht nicht).
+      if (!isParticipantUuid(this.participantId())) {
+        const identity = await this.resolveParticipantIdentity();
+        if (requestGeneration !== this.qaListRequestGeneration) {
+          return;
+        }
+        if (!identity) {
+          this.showQaError(
+            $localize`:@@sessionQa.voteLoadError:Fragen konnten nicht geladen werden.`,
+          );
+          this.scheduleQaRefreshRetry();
+          return;
+        }
+        this.ensureQaSubscription();
+      }
+
       const snapshot = await trpc.qa.list.query(this.qaListQueryInput());
       if (requestGeneration !== this.qaListRequestGeneration) {
         return;
       }
-      this.clearQaRefreshRetry();
-      this.applyQaQuestionsSnapshot(snapshot, {
+      this.qaError.set(null);
+      const applied = this.applyQaQuestionsSnapshot(snapshot, {
         notify: options.notify,
         requireDeadline: options.requireDeadline,
         animate: options.animate,
       });
+      if (!applied) {
+        // Erfolgreicher Fetch, aber Snapshot verworfen (Revision/Frist) → weiter retryen.
+        this.scheduleQaRefreshRetry();
+        return;
+      }
+      this.clearQaRefreshRetry();
     } catch {
       if (requestGeneration !== this.qaListRequestGeneration || this.isFinished()) return;
       this.showQaError($localize`:@@sessionQa.voteLoadError:Fragen konnten nicht geladen werden.`);
@@ -5345,9 +5530,18 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
       questions.map((q) => {
         if (q.id !== questionId) return q;
         const wasVoted = q.myVote;
+        const positive = q.positiveVoteCount ?? 0;
+        const negative = q.negativeVoteCount ?? 0;
         if (wasVoted === direction) {
           const delta = direction === 'UP' ? -1 : 1;
-          return { ...q, myVote: null, hasUpvoted: false, upvoteCount: q.upvoteCount + delta };
+          return {
+            ...q,
+            myVote: null,
+            hasUpvoted: false,
+            upvoteCount: q.upvoteCount + delta,
+            positiveVoteCount: direction === 'UP' ? Math.max(0, positive - 1) : positive,
+            negativeVoteCount: direction === 'DOWN' ? Math.max(0, negative - 1) : negative,
+          };
         }
         if (wasVoted) {
           const delta = direction === 'UP' ? 2 : -2;
@@ -5356,6 +5550,8 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
             myVote: direction,
             hasUpvoted: direction === 'UP',
             upvoteCount: q.upvoteCount + delta,
+            positiveVoteCount: direction === 'UP' ? positive + 1 : Math.max(0, positive - 1),
+            negativeVoteCount: direction === 'DOWN' ? negative + 1 : Math.max(0, negative - 1),
           };
         }
         const delta = direction === 'UP' ? 1 : -1;
@@ -5364,6 +5560,8 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
           myVote: direction,
           hasUpvoted: direction === 'UP',
           upvoteCount: q.upvoteCount + delta,
+          positiveVoteCount: direction === 'UP' ? positive + 1 : positive,
+          negativeVoteCount: direction === 'DOWN' ? negative + 1 : negative,
         };
       }),
     );
@@ -5384,6 +5582,7 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
     const nextById = new Map(next.map((question) => [question.id, question]));
     const ownAccepted: QaQuestionDTO[] = [];
     const ownPinned: QaQuestionDTO[] = [];
+    const ownArchived: QaQuestionDTO[] = [];
     const ownRemoved: QaQuestionDTO[] = [];
     const otherRemoved: QaQuestionDTO[] = [];
 
@@ -5404,6 +5603,8 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
       }
       if (updated.status === 'PINNED') {
         ownPinned.push(question);
+      } else if (updated.status === 'ARCHIVED') {
+        ownArchived.push(question);
       } else if (updated.status === 'ACTIVE' && question.status === 'PENDING') {
         ownAccepted.push(question);
       }
@@ -5418,8 +5619,13 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
     } else if (ownPinned.length > 0) {
       msg =
         ownPinned.length > 1
-          ? $localize`:@@sessionQa.snackOwnPinnedMany:Deine Fragen wurden hervorgehoben.`
-          : $localize`:@@sessionQa.snackOwnPinned:Deine Frage wurde hervorgehoben.`;
+          ? $localize`:@@sessionQa.snackOwnPinnedMany:Deine Fragen werden gerade besprochen.`
+          : $localize`:@@sessionQa.snackOwnPinned:Deine Frage wird gerade besprochen.`;
+    } else if (ownArchived.length > 0) {
+      msg =
+        ownArchived.length > 1
+          ? $localize`:@@sessionQa.snackOwnArchivedMany:Deine Fragen wurden als beantwortet markiert.`
+          : $localize`:@@sessionQa.snackOwnArchived:Deine Frage wurde als beantwortet markiert.`;
     } else if (ownAccepted.length > 0) {
       msg =
         ownAccepted.length > 1
@@ -5444,6 +5650,8 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
     if (this.isFinished()) {
       this.qaQuestions.set([]);
       this.qaListTotalCount.set(0);
+      this.qaForumVisibleCount.set(0);
+      this.qaOwnQuestionCounts.set(null);
       this.qaListNextCursor.set(null);
       this.qaListRankingRevision.set(null);
       this.resetQaListPageNavigation();

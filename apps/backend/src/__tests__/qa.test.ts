@@ -22,9 +22,11 @@ const { prismaMock, hostAuthMocks, participantAuthMocks, qaTelemetryMocks, rawQu
       },
       qaQuestion: {
         findMany: vi.fn(),
+        findFirst: vi.fn(),
         aggregate: vi.fn(),
         create: vi.fn(),
         count: vi.fn(),
+        groupBy: vi.fn(),
         findUnique: vi.fn(),
         update: vi.fn(),
         updateMany: vi.fn(),
@@ -237,6 +239,9 @@ describe('qa router (Epic 8)', () => {
       _sum: { upvoteCount: 0 },
     });
     prismaMock.qaQuestion.count.mockResolvedValue(0);
+    prismaMock.qaQuestion.findMany.mockResolvedValue([]);
+    prismaMock.qaQuestion.findFirst.mockResolvedValue(null);
+    prismaMock.qaQuestion.groupBy.mockResolvedValue([]);
     prismaMock.participant.count.mockResolvedValue(0);
     prismaMock.qaUpvote.findMany.mockResolvedValue([]);
     prismaMock.qaUpvote.groupBy.mockResolvedValue([]);
@@ -272,17 +277,41 @@ describe('qa router (Epic 8)', () => {
       prismaMock.qaUpvote.findMany.mockResolvedValue([
         { participantId: PARTICIPANT_ID, qaQuestionId: QUESTION_ID, direction: 'UP' },
       ]);
+      prismaMock.qaQuestion.count.mockImplementation(
+        async (args?: { where?: { participantId?: string; status?: unknown } }) => {
+          if (args?.where?.participantId) {
+            return 4;
+          }
+          if (
+            args?.where?.status &&
+            typeof args.where.status === 'object' &&
+            Array.isArray((args.where.status as { in?: unknown }).in)
+          ) {
+            return 3;
+          }
+          return 0;
+        },
+      );
+      prismaMock.qaQuestion.findMany.mockResolvedValue([
+        { status: 'PENDING' },
+        { status: 'ACTIVE' },
+        { status: 'ACTIVE' },
+        { status: 'ARCHIVED' },
+      ]);
 
-      const { questions: result } = await caller.list({
+      const listResult = await caller.list({
         sessionId: SESSION_ID,
         participantId: PARTICIPANT_ID,
       });
+      const { questions: result } = listResult;
 
       expect(result).toEqual([
         {
           id: QUESTION_ID,
           text: 'Was ist klausurrelevant?',
           upvoteCount: 4,
+          positiveVoteCount: 4,
+          negativeVoteCount: 0,
           status: 'ACTIVE',
           createdAt: '2026-03-13T12:00:00.000Z',
           passagesRedacted: false,
@@ -291,11 +320,23 @@ describe('qa router (Epic 8)', () => {
           myVote: 'UP',
         },
       ]);
+      expect(listResult.ownQuestionCounts).toEqual({
+        visible: 2,
+        pending: 1,
+        archived: 1,
+      });
+      expect(prismaMock.qaQuestion.findMany).toHaveBeenCalledWith({
+        where: {
+          sessionId: SESSION_ID,
+          participantId: PARTICIPANT_ID,
+          status: { in: ['PENDING', 'ACTIVE', 'PINNED', 'ARCHIVED'] },
+        },
+        select: { status: true },
+        take: 10,
+      });
       expect(result[0]).not.toHaveProperty('controversyScore');
       expect(result[0]).not.toHaveProperty('isControversial');
       expect(result[0]).not.toHaveProperty('bestScore');
-      expect(result[0]).not.toHaveProperty('positiveVoteCount');
-      expect(result[0]).not.toHaveProperty('negativeVoteCount');
       expect(result[0]).not.toHaveProperty('moderationCompass');
       expect(result[0]).not.toHaveProperty('compassCards');
       const sql = rawSqlText(prismaMock.$queryRaw.mock.calls[0] ?? []);
@@ -1900,6 +1941,15 @@ describe('qa router (Epic 8)', () => {
       }),
     ]);
     prismaMock.qaQuestion.count.mockResolvedValue(1);
+    prismaMock.qaQuestion.groupBy.mockResolvedValue([
+      { status: 'ACTIVE', _count: { _all: 1 } },
+      { status: 'PINNED', _count: { _all: 1 } },
+      { status: 'PENDING', _count: { _all: 1 } },
+      { status: 'ARCHIVED', _count: { _all: 1 } },
+    ]);
+    prismaMock.qaQuestion.findFirst.mockResolvedValue({
+      createdAt: new Date('2026-03-13T11:50:00.000Z'),
+    });
 
     const result = await hostCaller.list({
       sessionId: SESSION_ID,
@@ -1909,15 +1959,29 @@ describe('qa router (Epic 8)', () => {
     });
 
     expect(result.pendingCount).toBe(1);
+    expect(result.hostStatusCounts).toEqual({
+      active: 1,
+      pinned: 1,
+      pending: 1,
+      archived: 1,
+    });
+    expect(result.oldestPendingCreatedAt).toBe('2026-03-13T11:50:00.000Z');
     expect(result.questions.every((question) => question.status === 'ACTIVE')).toBe(true);
     expect(rawSqlText(prismaMock.$queryRaw.mock.calls[0] ?? [])).toMatch(
       /WHEN 'PENDING' THEN 0[\s\S]*WHEN 'PINNED' THEN 1[\s\S]*WHEN 'ACTIVE' THEN 1/,
     );
-    expect(prismaMock.qaQuestion.count).toHaveBeenCalledWith({
+    expect(prismaMock.qaQuestion.groupBy).toHaveBeenCalledWith({
+      by: ['status'],
       where: {
         sessionId: SESSION_ID,
-        status: 'PENDING',
+        status: { in: ['ACTIVE', 'PINNED', 'PENDING', 'ARCHIVED'] },
       },
+      _count: { _all: true },
+    });
+    expect(prismaMock.qaQuestion.findFirst).toHaveBeenCalledWith({
+      where: { sessionId: SESSION_ID, status: 'PENDING' },
+      orderBy: { createdAt: 'asc' },
+      select: { createdAt: true },
     });
   });
 
@@ -1939,7 +2003,23 @@ describe('qa router (Epic 8)', () => {
         totalCount: 1,
       }),
     ]);
-    prismaMock.qaQuestion.count.mockResolvedValueOnce(3).mockResolvedValueOnce(1);
+    prismaMock.qaQuestion.count.mockImplementation(
+      async (args?: {
+        where?: { status?: string | { in: string[] }; text?: unknown; participantId?: string };
+      }) => {
+        const status = args?.where?.status;
+        if (status && typeof status === 'object' && Array.isArray(status.in)) {
+          return 0;
+        }
+        if (status === 'PENDING' && args?.where?.text) {
+          return 1;
+        }
+        if (status === 'PENDING') {
+          return 3;
+        }
+        return 0;
+      },
+    );
 
     const result = await hostCaller.list({
       sessionId: SESSION_ID,
@@ -1949,16 +2029,90 @@ describe('qa router (Epic 8)', () => {
 
     expect(result.pendingCount).toBe(1);
     expect(result.sessionPendingCount).toBe(3);
-    expect(prismaMock.qaQuestion.count).toHaveBeenNthCalledWith(1, {
+    expect(result.forumVisibleCount).toBe(0);
+    expect(prismaMock.qaQuestion.count).toHaveBeenCalledWith({
       where: { sessionId: SESSION_ID, status: 'PENDING' },
     });
-    expect(prismaMock.qaQuestion.count).toHaveBeenNthCalledWith(2, {
+    expect(prismaMock.qaQuestion.count).toHaveBeenCalledWith({
       where: {
         sessionId: SESSION_ID,
         status: 'PENDING',
         text: { contains: 'Suchtreffer', mode: 'insensitive' },
       },
     });
+    expect(prismaMock.qaQuestion.count).toHaveBeenCalledWith({
+      where: { sessionId: SESSION_ID, status: { in: ['ACTIVE', 'PINNED'] } },
+    });
+  });
+
+  it('teilt forumVisibleCount revisionsgebunden zwischen parallelen Teilnehmerabrufen', async () => {
+    prismaMock.session.findUnique.mockResolvedValue({
+      ...ACTIVE_QA_SESSION,
+      id: SESSION_ID,
+      code: 'ABC123',
+      type: 'Q_AND_A',
+      qaEnabled: true,
+      qaOpen: true,
+      qaModerationMode: false,
+      qaRankingRevision: 7,
+      qaQuestionCount: 50,
+    });
+    rawQueryResults.rankedQuestions.push(
+      [
+        rankedQaRow({
+          id: QUESTION_ID,
+          text: 'Freigegeben',
+          status: 'ACTIVE',
+          upvoteCount: 1,
+          positiveVoteCount: 1,
+          totalCount: 50,
+        }),
+      ],
+      [
+        rankedQaRow({
+          id: QUESTION_ID,
+          text: 'Freigegeben',
+          status: 'ACTIVE',
+          upvoteCount: 1,
+          positiveVoteCount: 1,
+          totalCount: 50,
+        }),
+      ],
+    );
+    let forumVisibleLoads = 0;
+    prismaMock.qaQuestion.count.mockImplementation(
+      async (args?: { where?: { status?: unknown } }) => {
+        const status = args?.where?.status;
+        if (
+          status &&
+          typeof status === 'object' &&
+          Array.isArray((status as { in?: unknown }).in)
+        ) {
+          forumVisibleLoads += 1;
+          return 42;
+        }
+        return 0;
+      },
+    );
+
+    const [first, second] = await Promise.all([
+      caller.list({
+        sessionId: SESSION_ID,
+        participantId: PARTICIPANT_ID,
+        sort: 'BEST',
+        pageSize: 100,
+      }),
+      caller.list({
+        sessionId: SESSION_ID,
+        participantId: OTHER_PARTICIPANT_ID,
+        sort: 'BEST',
+        pageSize: 100,
+      }),
+    ]);
+
+    expect(first.forumVisibleCount).toBe(42);
+    expect(second.forumVisibleCount).toBe(42);
+    expect(forumVisibleLoads).toBe(1);
   });
 
   it('ordnet Host-TOP PINNED vor ACTIVE, auch ohne Stimmen und nach PENDING', async () => {

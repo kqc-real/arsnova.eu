@@ -5865,6 +5865,22 @@ export const QaQuestionsListDTOSchema = z.object({
   nextCursor: z.string().min(1).max(1000).nullable().optional(),
   totalCount: z.number().int().min(0).optional(),
   /**
+   * Freigegebene Forum-Fragen (ACTIVE + PINNED), unabhängig von Suche, Seite,
+   * PENDING, Archiv oder Soft-Delete. Für Teilnehmer-Zähler im Frist-Hinweis.
+   */
+  forumVisibleCount: z.number().int().min(0).optional(),
+  /**
+   * Eigene Fragen des anfragenden Teilnehmers, unabhängig von Suche/Seite.
+   * Nur wenn `participantId` gesetzt ist; sonst weggelassen.
+   */
+  ownQuestionCounts: z
+    .object({
+      visible: z.number().int().min(0),
+      pending: z.number().int().min(0),
+      archived: z.number().int().min(0),
+    })
+    .optional(),
+  /**
    * Host-only: PENDING-Fragen im aktuellen Such-/Autorenfilter, unabhängig von
    * Seitengröße und Statusfilter. Fehlt bei Teilnehmer-Snapshots.
    */
@@ -5874,6 +5890,22 @@ export const QaQuestionsListDTOSchema = z.object({
    * und Statusfiltern. Fehlt bei Teilnehmer-Snapshots.
    */
   sessionPendingCount: z.number().int().min(0).optional(),
+  /**
+   * Host-only: sessionweite Statuszahlen (unabhängig von Suche/Seite/Filter).
+   * Fehlt bei Teilnehmer-Snapshots.
+   */
+  hostStatusCounts: z
+    .object({
+      active: z.number().int().min(0),
+      pinned: z.number().int().min(0),
+      pending: z.number().int().min(0),
+      archived: z.number().int().min(0),
+    })
+    .optional(),
+  /**
+   * Host-only: `createdAt` der ältesten PENDING-Frage; `null` wenn keine PENDING.
+   */
+  oldestPendingCreatedAt: z.string().datetime().nullable().optional(),
   /** Kanonischer physischer Bestand einschließlich archivierter und soft-gelöschter Fragen. */
   sessionQuestionCount: z.number().int().min(0).max(QA_MAX_QUESTIONS_PER_SESSION).optional(),
   sessionRemaining: z.number().int().min(0).max(QA_MAX_QUESTIONS_PER_SESSION).optional(),
