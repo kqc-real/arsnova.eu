@@ -19380,13 +19380,22 @@
         </context-group>
       </trans-unit>
       <trans-unit id="sessionQa.redactIntro" datatype="html">
-        <source> Markiere konkrete Stellen im Klartext. Der übrige Wortlaut bleibt unverändert. Bereits geschwärzte Platzhalter (<x id="INTERPOLATION" equiv-text="placeholder"/>) sind nicht erneut auswählbar.</source>
-        <target>Marque des passages concrets dans le texte en clair. Le reste du libellé reste inchangé. Les espaces réservés déjà masqués (<x id="INTERPOLATION" equiv-text="placeholder"/>) ne peuvent pas être sélectionnés à nouveau.</target>
+        <source> Markiere konkrete Stellen im Klartext. Der übrige Wortlaut bleibt unverändert. Bereits geschwärzte Stellen erscheinen als dunkle Balken und sind nicht erneut auswählbar. </source>
+        <target>Marque des passages concrets dans le texte en clair. Le reste du libellé reste inchangé. Les passages déjà masqués apparaissent comme des barres sombres et ne peuvent pas être sélectionnés à nouveau.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-host/qa-redact-passages-dialog.component.html</context>
           <context context-type="linenumber">13,18</context>
         </context-group>
       </trans-unit>
+      <trans-unit id="sessionQa.redactedPassageAria" datatype="html">
+        <source>Geschwärzte Passage</source>
+        <target>Passage masqué</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/shared/markdown-katex.util.ts</context>
+          <context context-type="linenumber">166</context>
+        </context-group>
+      </trans-unit>
+
       <trans-unit id="sessionQa.redactSourceLabel" datatype="html">
         <source>Auswählbarer Klartext</source>
         <target>Texte brut sélectionnable</target>
@@ -20388,7 +20397,15 @@
         <target>Page précédente</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.html</context>
-          <context context-type="linenumber">17,19</context>
+          <context context-type="linenumber">23</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="sessionHost.projectionQaPrevious" datatype="html">
+        <source>Vorherige Frage</source>
+        <target>Question précédente</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.html</context>
+          <context context-type="linenumber">21</context>
         </context-group>
       </trans-unit>
       <trans-unit id="sessionHost.projectionNext" datatype="html">
@@ -20396,7 +20413,15 @@
         <target>Page suivante</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.html</context>
-          <context context-type="linenumber">28,30</context>
+          <context context-type="linenumber">41</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="sessionHost.projectionQaNext" datatype="html">
+        <source>Nächste wartende Frage</source>
+        <target>Prochaine question en attente</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.html</context>
+          <context context-type="linenumber">38</context>
         </context-group>
       </trans-unit>
       <trans-unit id="hostAccess.pairedRevokedHint" datatype="html">
@@ -22399,7 +22424,15 @@
           <context context-type="linenumber">2968,2970</context>
         </context-group>
       </trans-unit>
-      <trans-unit id="sessionQa.badgeControversial" datatype="html">
+            <trans-unit id="sessionQa.badgeOnPresenter" datatype="html">
+        <source>Aktuell in der Präsentation</source>
+        <target>Actuellement dans la présentation</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.ts</context>
+          <context context-type="linenumber">1</context>
+        </context-group>
+      </trans-unit>
+<trans-unit id="sessionQa.badgeControversial" datatype="html">
         <source>Umstritten</source>
         <target>Controversée</target>
         <context-group purpose="location">
@@ -22454,6 +22487,14 @@
           <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.html</context>
           <context context-type="linenumber">4887,4888</context>
         </context-group>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/session-present/session-present.component.html</context>
+          <context context-type="linenumber">832</context>
+        </context-group>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/session-present/session-present.component.html</context>
+          <context context-type="linenumber">886</context>
+        </context-group>
       </trans-unit>
       <trans-unit id="sessionQa.controversyMetric" datatype="html">
         <source>Geteilte Reaktionen <x id="INTERPOLATION" equiv-text="{{ formatQaPercent(question.controversyScore) }}"/></source>
@@ -22461,6 +22502,14 @@
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.html</context>
           <context context-type="linenumber">4897,4899</context>
+        </context-group>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/session-present/session-present.component.html</context>
+          <context context-type="linenumber">839</context>
+        </context-group>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/session-present/session-present.component.html</context>
+          <context context-type="linenumber">893</context>
         </context-group>
       </trans-unit>
       <trans-unit id="sessionQa.redactAction" datatype="html">
@@ -23524,8 +23573,8 @@
         </context-group>
       </trans-unit>
       <trans-unit id="sessionQa.sortHintBest" datatype="html">
-        <source>Zeigt Fragen mit viel Zustimmung und genug Stimmen zuerst. Hervorgehobene Fragen sind markiert, aber nicht vorgezogen.</source>
-        <target>Affiche d’abord les questions avec beaucoup d’approbation et assez de votes. Les questions mises en avant restent signalées, sans être remontées.</target>
+        <source>Zeigt Fragen mit viel Zustimmung und genug Stimmen zuerst. Hervorgehobene Fragen erscheinen zuerst und sind markiert.</source>
+        <target>Affiche d’abord les questions avec beaucoup d’approbation et assez de votes. Les questions mises en avant apparaissent en premier et sont signalées.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.ts</context>
           <context context-type="linenumber">2408</context>
@@ -23536,8 +23585,8 @@
         </context-group>
       </trans-unit>
       <trans-unit id="sessionQa.sortHintControversial" datatype="html">
-        <source>Zeigt Fragen mit gemischter Reaktion zuerst. Hervorgehobene Fragen sind markiert, aber nicht vorgezogen.</source>
-        <target>Affiche d’abord les questions aux réactions partagées. Les questions mises en avant restent signalées, sans être remontées.</target>
+        <source>Zeigt Fragen mit gemischter Reaktion zuerst. Hervorgehobene Fragen erscheinen zuerst und sind markiert.</source>
+        <target>Affiche d’abord les questions aux réactions partagées. Les questions mises en avant apparaissent en premier et sont signalées.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.ts</context>
           <context context-type="linenumber">2410</context>
@@ -23548,8 +23597,8 @@
         </context-group>
       </trans-unit>
       <trans-unit id="sessionQa.sortHintTime" datatype="html">
-        <source>Zeigt die neuesten Fragen zuerst. Hervorgehobene Fragen sind markiert, aber nicht vorgezogen.</source>
-        <target>Affiche d’abord les questions les plus récentes. Les questions mises en avant restent signalées, sans être remontées.</target>
+        <source>Zeigt die neuesten Fragen zuerst. Hervorgehobene Fragen erscheinen zuerst und sind markiert.</source>
+        <target>Affiche d’abord les questions les plus récentes. Les questions mises en avant apparaissent en premier et sont signalées.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.ts</context>
           <context context-type="linenumber">2412</context>
@@ -23560,8 +23609,8 @@
         </context-group>
       </trans-unit>
       <trans-unit id="sessionQa.sortHintTop" datatype="html">
-        <source>Zeigt Fragen mit den meisten positiven Stimmen zuerst. Hervorgehobene Fragen sind markiert, aber nicht vorgezogen.</source>
-        <target>Affiche d’abord les questions avec le plus de votes positifs. Les questions mises en avant restent signalées, sans être remontées.</target>
+        <source>Zeigt Fragen mit den meisten positiven Stimmen zuerst. Hervorgehobene Fragen erscheinen zuerst und sind markiert.</source>
+        <target>Affiche d’abord les questions avec le plus de votes positifs. Les questions mises en avant apparaissent en premier et sont signalées.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.ts</context>
           <context context-type="linenumber">2414</context>
@@ -24159,6 +24208,22 @@
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.ts</context>
           <context context-type="linenumber">5761</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="sessionHost.projectionQaQuestions" datatype="html">
+        <source>Projektionsfragen</source>
+        <target>Questions de projection</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.ts</context>
+          <context context-type="linenumber">5850</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="sessionHost.projectionQaPageError" datatype="html">
+        <source>Fragen konnten nicht gewechselt werden. Bitte erneut versuchen.</source>
+        <target>Impossible de changer de question. Réessaie.</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.ts</context>
+          <context context-type="linenumber">6000</context>
         </context-group>
       </trans-unit>
       <trans-unit id="sessionHost.presentationViewResumeError" datatype="html">
@@ -26652,20 +26717,32 @@
         </context-group>
       </trans-unit>
       <trans-unit id="sessionPresent.qaQueueTitle" datatype="html">
-        <source> Als Nächstes im Raum</source>
-        <target>Ensuite dans la salle</target>
+        <source> Als Nächstes…</source>
+        <target>Ensuite…</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-present/session-present.component.html</context>
           <context context-type="linenumber">826,828</context>
         </context-group>
       </trans-unit>
-      <trans-unit id="sessionPresent.qaMore" datatype="html">
-        <source> + <x id="INTERPOLATION" equiv-text="{{ remainingQaQuestions() }}"/> weitere</source>
-        <target>+ <x id="INTERPOLATION" equiv-text="{{ remainingQaQuestions() }}"/> autres</target>
-        <context-group purpose="location">
-          <context context-type="sourcefile">src/app/features/session/session-present/session-present.component.html</context>
-          <context context-type="linenumber">859,861</context>
-        </context-group>
+      <trans-unit id="sessionPresent.qaQueueCountOne" datatype="html">
+        <source>1 Frage</source>
+        <target>1 question</target>
+      </trans-unit>
+      <trans-unit id="sessionPresent.qaQueueCountMany" datatype="html">
+        <source><x id="count" equiv-text="this.formatCount(count)"/> Fragen</source>
+        <target><x id="count" equiv-text="this.formatCount(count)"/> questions</target>
+      </trans-unit>
+      <trans-unit id="sessionPresent.qaQueueCountAriaOne" datatype="html">
+        <source>1 Frage in der Warteschlange</source>
+        <target>1 question dans la file</target>
+      </trans-unit>
+      <trans-unit id="sessionPresent.qaQueueCountAriaMany" datatype="html">
+        <source><x id="count" equiv-text="this.formatCount(count)"/> Fragen in der Warteschlange</source>
+        <target><x id="count" equiv-text="this.formatCount(count)"/> questions dans la file</target>
+      </trans-unit>
+      <trans-unit id="sessionPresent.qaSortCriteria" datatype="html">
+        <source>Sortierung: <x id="sort" equiv-text="this.qaSortModeLabel()"/></source>
+        <target>Tri : <x id="sort" equiv-text="this.qaSortModeLabel()"/></target>
       </trans-unit>
       <trans-unit id="sessionPresent.quickFeedbackVotes" datatype="html">
         <source>Stimmen</source>

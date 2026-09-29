@@ -529,11 +529,11 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
   readonly qaSortHint = computed(() => {
     switch (this.qaSortMode()) {
       case 'BEST':
-        return $localize`:@@sessionQa.sortHintBest:Zeigt Fragen mit viel Zustimmung und genug Stimmen zuerst. Hervorgehobene Fragen sind markiert, aber nicht vorgezogen.`;
+        return $localize`:@@sessionQa.sortHintBest:Zeigt Fragen mit viel Zustimmung und genug Stimmen zuerst. Hervorgehobene Fragen erscheinen zuerst und sind markiert.`;
       case 'CONTROVERSIAL':
-        return $localize`:@@sessionQa.sortHintControversial:Zeigt Fragen mit gemischter Reaktion zuerst. Hervorgehobene Fragen sind markiert, aber nicht vorgezogen.`;
+        return $localize`:@@sessionQa.sortHintControversial:Zeigt Fragen mit gemischter Reaktion zuerst. Hervorgehobene Fragen erscheinen zuerst und sind markiert.`;
       case 'TIME':
-        return $localize`:@@sessionQa.sortHintTime:Zeigt die neuesten Fragen zuerst. Hervorgehobene Fragen sind markiert, aber nicht vorgezogen.`;
+        return $localize`:@@sessionQa.sortHintTime:Zeigt die neuesten Fragen zuerst. Hervorgehobene Fragen erscheinen zuerst und sind markiert.`;
       default:
         return $localize`:@@sessionQa.sortHintTopVote:Hervorgehobene Fragen stehen zuerst. Danach kommen die mit den meisten Stimmen.`;
     }
@@ -860,6 +860,15 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
       selectedNickname !== null && this.qaQuestionAuthorNickname(question) === selectedNickname
     );
   }
+
+  /** Volle Hero-Fläche nur für die Presenter-Hero-Frage (erste PINNED). */
+  isQaPresenterHeroCard(questionId: string): boolean {
+    return this.qaPresenterHeroQuestionId() === questionId;
+  }
+
+  readonly qaPresenterHeroQuestionId = computed(
+    () => this.qaQuestions().find((question) => question.status === 'PINNED')?.id ?? null,
+  );
 
   @HostListener('document:keydown', ['$event'])
   onDocumentKeydownClearQaAuthorSelection(event: KeyboardEvent): void {
@@ -4938,8 +4947,11 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
     afterNextRender(
       () => {
         const host = this.el.nativeElement as HTMLElement;
+        const firstQuestion = host.querySelector(
+          '.session-qa-list .session-qa-card',
+        ) as HTMLElement | null;
         const heading = host.querySelector('#vote-qa-heading') as HTMLElement | null;
-        scrollIntoAppMain(heading, { block: 'start' });
+        scrollIntoAppMain(firstQuestion ?? heading, { block: 'start' });
       },
       { injector: this.injector },
     );

@@ -125,6 +125,7 @@ const {
   setPreferredLiveChannelMutateMock,
   setPresenterSurfaceMutateMock,
   setQaWordCloudProjectionMutateMock,
+  setQaPresenterSortModeMutateMock,
   pauseQuizMutateMock,
   resumeQuizMutateMock,
   closeQaChannelMutateMock,
@@ -187,6 +188,7 @@ const {
   setPreferredLiveChannelMutateMock: vi.fn(),
   setPresenterSurfaceMutateMock: vi.fn(),
   setQaWordCloudProjectionMutateMock: vi.fn(),
+  setQaPresenterSortModeMutateMock: vi.fn(),
   pauseQuizMutateMock: vi.fn(),
   resumeQuizMutateMock: vi.fn(),
   closeQaChannelMutateMock: vi.fn(),
@@ -278,6 +280,7 @@ vi.mock('../../../core/trpc.client', () => ({
       pendingReleaseSnapshot: { query: qaPendingReleaseSnapshotQueryMock },
       releasePending: { mutate: qaReleasePendingMutateMock },
       toggleModeration: { mutate: qaToggleModerationMutateMock },
+      setPresenterSortMode: { mutate: setQaPresenterSortModeMutateMock },
       onQuestionsUpdated: { subscribe: qaOnQuestionsUpdatedSubscribeMock },
     },
     quickFeedback: {
@@ -640,6 +643,9 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
     setQaWordCloudProjectionMutateMock.mockImplementation(
       async ({ projection }: { projection: unknown }) => ({ projection }),
     );
+    setQaPresenterSortModeMutateMock.mockImplementation(
+      async ({ sortMode }: { sortMode: string }) => ({ sortMode }),
+    );
     pauseQuizMutateMock.mockResolvedValue({
       status: 'PAUSED',
       currentQuestion: 0,
@@ -831,6 +837,8 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
     ) as HTMLElement;
     const [previous, next] = Array.from(nav.querySelectorAll('button'));
     expect(previous!.getAttribute('aria-disabled')).toBe('true');
+    expect(nav.getAttribute('aria-label')).toBe('Projektionsseiten');
+    expect(next!.textContent).toContain('Nächste Seite');
     let reject!: (reason: Error) => void;
     setPresenterSurfaceMutateMock.mockReturnValueOnce(
       new Promise((_, fail) => {
@@ -871,6 +879,304 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
     expect(document.activeElement).toBe(next);
     expect(next!.isConnected).toBe(true);
     expect(next!.getAttribute('aria-disabled')).toBe('true');
+  });
+
+  it('zeigt bei aktiver Q&A-Präsentation den Fragen-Navigator statt der Seitenbeschriftung', async () => {
+    const fixture = setup();
+    fixture.detectChanges();
+    await fixture.whenStable();
+    const component = fixture.componentInstance;
+    component.session.set({
+      ...defaultSession,
+      preferredChannel: 'qa',
+      presenterSurface: 'default',
+      presenterPage: { context: 'qa-questions', index: 0, count: 3 },
+      channels: {
+        quiz: { enabled: true },
+        qa: { enabled: true, open: true, title: 'Fragen', moderationMode: true },
+        quickFeedback: { enabled: false, open: false },
+      },
+    });
+    component.presenterWindowOpen.set(true);
+    fixture.detectChanges();
+
+    const nav = fixture.nativeElement.querySelector(
+      '.session-host__projection-pages',
+    ) as HTMLElement;
+    expect(nav.getAttribute('aria-label')).toBe('Projektionsfragen');
+    expect(nav.textContent).toContain('Vorherige Frage');
+    expect(nav.textContent).toContain('Nächste wartende Frage');
+    expect(nav.textContent).toContain('1 / 3');
+    expect(component.projectionNavigationIsQaQuestions()).toBe(true);
+
+    setPresenterSurfaceMutateMock.mockRejectedValueOnce(new Error('offline'));
+    const next = Array.from(nav.querySelectorAll('button'))[1] as HTMLButtonElement;
+    next.click();
+    await fixture.whenStable();
+    fixture.detectChanges();
+    expect(fixture.nativeElement.querySelector('[role="alert"]').textContent).toContain(
+      'Fragen konnten nicht gewechselt werden',
+    );
+    fixture.destroy();
+  });
+
+  it('markiert Hero und aktuelle Warteschlangen-Fragen als »Aktuell in der Präsentation«', async () => {
+    const fixture = setup();
+    fixture.detectChanges();
+    await fixture.whenStable();
+    const component = fixture.componentInstance;
+    component.session.set({
+      ...defaultSession,
+      preferredChannel: 'qa',
+      presenterSurface: 'default',
+      presenterPage: { context: 'qa-questions', index: 0, count: 2 },
+      channels: {
+        quiz: { enabled: true },
+        qa: { enabled: true, open: true, title: 'Fragen', moderationMode: false },
+        quickFeedback: { enabled: false, open: false },
+      },
+    });
+    component.qaQuestions.set([
+      {
+        id: 'pin-1',
+        text: 'Hero',
+        upvoteCount: 1,
+        status: 'PINNED',
+        createdAt: '2026-03-13T12:00:00.000Z',
+        myVote: null,
+        isOwn: false,
+        hasUpvoted: false,
+      },
+      {
+        id: 'active-1',
+        text: 'Queue 1',
+        upvoteCount: 3,
+        status: 'ACTIVE',
+        createdAt: '2026-03-13T12:01:00.000Z',
+        myVote: null,
+        isOwn: false,
+        hasUpvoted: false,
+      },
+      {
+        id: 'active-2',
+        text: 'Queue 2',
+        upvoteCount: 2,
+        status: 'ACTIVE',
+        createdAt: '2026-03-13T12:02:00.000Z',
+        myVote: null,
+        isOwn: false,
+        hasUpvoted: false,
+      },
+      {
+        id: 'active-3',
+        text: 'Queue 3',
+        upvoteCount: 1,
+        status: 'ACTIVE',
+        createdAt: '2026-03-13T12:03:00.000Z',
+        myVote: null,
+        isOwn: false,
+        hasUpvoted: false,
+      },
+    ] as never);
+    fixture.detectChanges();
+
+    expect(component.isQaQuestionOnPresenterStage('pin-1')).toBe(true);
+    expect(component.isQaQuestionOnPresenterStage('active-1')).toBe(true);
+    expect(component.isQaQuestionOnPresenterStage('active-2')).toBe(true);
+    expect(component.isQaQuestionOnPresenterStage('active-3')).toBe(false);
+    expect(fixture.nativeElement.textContent).toContain('Aktuell in der Präsentation');
+    expect(
+      fixture.nativeElement.querySelectorAll('.session-qa-card__badge--on-presenter'),
+    ).toHaveLength(3);
+    expect(fixture.nativeElement.querySelectorAll('.session-qa-card--pinned')).toHaveLength(1);
+    expect(component.isQaPresenterHeroCard('pin-1')).toBe(true);
+    expect(component.isQaPresenterHeroCard('active-1')).toBe(false);
+
+    component.session.update((session) =>
+      session
+        ? {
+            ...session,
+            presenterPage: { context: 'qa-questions', index: 1, count: 4 },
+          }
+        : session,
+    );
+    fixture.detectChanges();
+    // Index 1: Hero rückt auf active-1; pin-1 verlässt die Bühne; active-2/3 bleiben sichtbar.
+    expect(component.isQaQuestionOnPresenterStage('pin-1')).toBe(false);
+    expect(component.isQaPresenterHeroCard('active-1')).toBe(true);
+    expect(component.isQaQuestionOnPresenterStage('active-1')).toBe(true);
+    expect(component.isQaQuestionOnPresenterStage('active-2')).toBe(true);
+    expect(component.isQaQuestionOnPresenterStage('active-3')).toBe(true);
+    expect(component.qaVisibleQuestions()[0]?.id).toBe('active-1');
+    expect(
+      fixture.nativeElement
+        .querySelector('#host-qa-question-active-1')
+        ?.classList.contains('session-qa-card--pinned'),
+    ).toBe(true);
+    expect(
+      fixture.nativeElement
+        .querySelector('#host-qa-question-pin-1')
+        ?.classList.contains('session-qa-card--pinned'),
+    ).toBe(false);
+    expect(
+      fixture.nativeElement.querySelectorAll('.session-qa-card__badge--on-presenter'),
+    ).toHaveLength(3);
+    fixture.destroy();
+  });
+
+  it('bietet Löschen für jede sichtbare Frage unabhängig vom Status', async () => {
+    const fixture = setup();
+    fixture.detectChanges();
+    await fixture.whenStable();
+    const component = fixture.componentInstance;
+    component.session.set({
+      ...defaultSession,
+      preferredChannel: 'qa',
+      channels: {
+        quiz: { enabled: true },
+        qa: { enabled: true, open: true, title: 'Fragen', moderationMode: true },
+        quickFeedback: { enabled: false, open: false },
+      },
+    });
+    component.activeChannel.set('qa');
+    const statuses = ['PENDING', 'ACTIVE', 'PINNED', 'ARCHIVED'] as const;
+    component.qaQuestions.set(
+      statuses.map((status, index) => ({
+        id: `q-${status.toLowerCase()}`,
+        text: `Frage ${status}`,
+        upvoteCount: index,
+        status,
+        createdAt: `2026-03-13T12:0${index}:00.000Z`,
+        myVote: null,
+        isOwn: false,
+        hasUpvoted: false,
+      })) as never,
+    );
+    fixture.detectChanges();
+
+    for (const status of statuses) {
+      const question = component.qaQuestions().find((entry) => entry.status === status)!;
+      expect(component.canModerateQaQuestion(question, 'DELETE')).toBe(true);
+    }
+    const deleteButtons = Array.from(
+      fixture.nativeElement.querySelectorAll('.session-qa-card__action-btn--delete'),
+    ) as HTMLElement[];
+    expect(deleteButtons).toHaveLength(4);
+    for (const button of deleteButtons) {
+      expect(button.textContent).toContain('Löschen');
+      expect(button.disabled).toBe(false);
+    }
+    fixture.destroy();
+  });
+
+  it('färbt nur die Presenter-Hero-Frage im Hero-Dress, nicht jede PINNED-Karte', async () => {
+    const fixture = setup();
+    fixture.detectChanges();
+    await fixture.whenStable();
+    const component = fixture.componentInstance;
+    component.session.set({
+      ...defaultSession,
+      preferredChannel: 'qa',
+      presenterSurface: 'default',
+      presenterPage: { context: 'qa-questions', index: 0, count: 1 },
+      channels: {
+        quiz: { enabled: true },
+        qa: { enabled: true, open: true, title: 'Fragen', moderationMode: false },
+        quickFeedback: { enabled: false, open: false },
+      },
+    });
+    component.activeChannel.set('qa');
+    component.qaQuestions.set([
+      {
+        id: 'pin-hero',
+        text: 'Hero',
+        upvoteCount: 5,
+        status: 'PINNED',
+        createdAt: '2026-03-13T12:00:00.000Z',
+        myVote: null,
+        isOwn: false,
+        hasUpvoted: false,
+      },
+      {
+        id: 'pin-other',
+        text: 'Auch angepinnt',
+        upvoteCount: 1,
+        status: 'PINNED',
+        createdAt: '2026-03-13T12:01:00.000Z',
+        myVote: null,
+        isOwn: false,
+        hasUpvoted: false,
+      },
+      {
+        id: 'active-1',
+        text: 'Freigegeben',
+        upvoteCount: 2,
+        status: 'ACTIVE',
+        createdAt: '2026-03-13T12:02:00.000Z',
+        myVote: null,
+        isOwn: false,
+        hasUpvoted: false,
+      },
+    ] as never);
+    fixture.detectChanges();
+
+    expect(component.qaPresenterHeroQuestionId()).toBe('pin-hero');
+    expect(component.isQaPresenterHeroCard('pin-hero')).toBe(true);
+    expect(component.isQaPresenterHeroCard('pin-other')).toBe(false);
+    expect(fixture.nativeElement.querySelectorAll('.session-qa-card--pinned')).toHaveLength(1);
+    expect(
+      fixture.nativeElement
+        .querySelector('#host-qa-question-pin-other')
+        ?.classList.contains('session-qa-card--pinned'),
+    ).toBe(false);
+    fixture.destroy();
+  });
+
+  it('leitet den Fragen-Navigator aus Host-ACTIVE+PINNED-Zählung ab, auch wenn die Presenter-Seitenzahl noch 1 ist', async () => {
+    setPresenterSurfaceMutateMock.mockResolvedValue({
+      presenterSurface: 'default',
+      presenterPage: { context: 'qa-questions', index: 0, count: 5 },
+    });
+    const fixture = setup();
+    fixture.detectChanges();
+    await fixture.whenStable();
+    const component = fixture.componentInstance;
+    component.session.set({
+      ...defaultSession,
+      preferredChannel: 'qa',
+      presenterSurface: 'default',
+      presenterPage: { context: 'qa-questions', index: 0, count: 1 },
+      channels: {
+        quiz: { enabled: true },
+        qa: { enabled: true, open: true, title: 'Fragen', moderationMode: true },
+        quickFeedback: { enabled: false, open: false },
+      },
+    });
+    component['qaHostStatusCounts'].set({
+      active: 5,
+      pinned: 0,
+      pending: 0,
+      archived: 0,
+    });
+    component.presenterWindowOpen.set(true);
+    fixture.detectChanges();
+    await fixture.whenStable();
+    fixture.detectChanges();
+
+    expect(component.qaProjectionQueuePageCount()).toBe(5);
+    expect(component.projectionPageDisplayCount()).toBe(5);
+    expect(component.showProjectionPageNavigation()).toBe(true);
+    const nav = fixture.nativeElement.querySelector(
+      '.session-host__projection-pages',
+    ) as HTMLElement;
+    expect(nav.getAttribute('aria-label')).toBe('Projektionsfragen');
+    expect(nav.textContent).toContain('1 / 5');
+    await vi.waitUntil(() =>
+      setPresenterSurfaceMutateMock.mock.calls.some(
+        (call) => call[0]?.page?.context === 'qa-questions' && call[0]?.page?.count === 5,
+      ),
+    );
+    fixture.destroy();
   });
 
   it('zeigt die angepinnte Presenter-Navigation auf einem Steuer-Smartphone auch bei einer Seite', async () => {
@@ -2470,6 +2776,10 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
 
     expect(opened).toBe(existingPresenter);
     expect(open).toHaveBeenCalled();
+    expect(setQaPresenterSortModeMutateMock).toHaveBeenCalledWith({
+      code: 'ABC123',
+      sortMode: 'BEST',
+    });
     expect(setPresenterSurfaceMutateMock).toHaveBeenCalledWith({
       code: 'ABC123',
       surface: 'default',
@@ -3638,6 +3948,10 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
     expect(fixture.componentInstance.qaArchivedSummaryTooltip()).toContain('Archiviert');
     expect(fixture.componentInstance.qaStatusTooltip('PINNED')).toContain('Wird gerade besprochen');
     expect(fixture.componentInstance.qaStatusTooltip('ARCHIVED')).toContain('beantwortet');
+    const pinnedCard = host.querySelector('.session-qa-card--pinned');
+    expect(pinnedCard).not.toBeNull();
+    expect(pinnedCard?.textContent).toContain('Angepinnte Exportfrage');
+    expect(pinnedCard?.querySelector('.session-qa-card__status--pinned')).not.toBeNull();
     const statusStrip = host.querySelector('[data-testid="host-qa-status-strip"]');
     expect(statusStrip?.textContent).toContain('1 freigegeben');
     expect(statusStrip?.textContent).toContain('1 in Prüfung');
@@ -10063,9 +10377,18 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
     expect(component.qaWordCloudTitle()).toBe('Q&A-Wortwolke');
     expect(component.qaWordCloudInfo()).toBe('1 sichtbare Frage');
     expect(fixture.nativeElement.textContent ?? '').toContain(
-      'Zeigt Fragen mit viel Zustimmung und genug Stimmen zuerst. Hervorgehobene Fragen sind markiert, aber nicht vorgezogen.',
+      'Zeigt Fragen mit viel Zustimmung und genug Stimmen zuerst. Hervorgehobene Fragen erscheinen zuerst und sind markiert.',
     );
     expect(scrollToSpy).toHaveBeenCalledWith({ top: 0, behavior: 'auto' });
+    expect(setQaPresenterSortModeMutateMock).toHaveBeenCalledWith({
+      code: defaultSession.code,
+      sortMode: 'BEST',
+    });
+    expect(
+      fixture.nativeElement.querySelector(
+        `#host-qa-question-${component.qaVisibleQuestions()[0]!.id}`,
+      ),
+    ).toBeTruthy();
     scrollToSpy.mockRestore();
     fixture.destroy();
   });
@@ -10829,11 +11152,11 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
     qaListQueryMock.mockResolvedValue({
       questions: [
         {
-          id: '11111111-1111-4111-8111-111111111111',
-          text: 'Freigegeben',
-          upvoteCount: 2,
-          status: 'ACTIVE' as const,
-          createdAt: '2026-03-13T12:00:00.000Z',
+          id: '22222222-2222-4222-8222-222222222222',
+          text: 'Wartet',
+          upvoteCount: 0,
+          status: 'PENDING' as const,
+          createdAt: '2026-03-13T12:01:00.000Z',
           myVote: null,
           isOwn: false,
           hasUpvoted: false,
@@ -10871,6 +11194,10 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
         moderatorView: true,
       }),
     );
+    expect(fixture.nativeElement.querySelector('.session-qa-list')).toBeTruthy();
+    expect(
+      fixture.nativeElement.querySelector('#host-qa-question-22222222-2222-4222-8222-222222222222'),
+    ).toBeTruthy();
     const pendingButtonAfter = fixture.nativeElement.querySelector(
       '[data-testid="qa-filter-pending"]',
     ) as HTMLButtonElement | null;
@@ -10880,6 +11207,31 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
     expect(document.activeElement).toBe(pendingButtonAfter);
 
     qaListQueryMock.mockClear();
+    qaListQueryMock.mockResolvedValue({
+      questions: [
+        {
+          id: '33333333-3333-4333-8333-333333333333',
+          text: 'Hervorgehoben',
+          upvoteCount: 5,
+          status: 'PINNED' as const,
+          createdAt: '2026-03-13T12:02:00.000Z',
+          myVote: null,
+          isOwn: false,
+          hasUpvoted: false,
+        },
+      ],
+      state: 'ACTIVE' as const,
+      sessionLifecycleRevision: 1,
+      serverNow: '2026-03-13T12:00:00.000Z',
+      expiresAt: '2026-03-14T12:00:00.000Z',
+      qaClosesAt: '2026-03-14T12:00:00.000Z',
+      endedAt: null,
+      postProcessingEndsAt: null,
+      rankingRevision: '1:BEST:',
+      nextCursor: null,
+      totalCount: 1,
+      pendingCount: 1,
+    });
     const pinnedButton = fixture.nativeElement.querySelector(
       '[data-testid="qa-filter-pinned"]',
     ) as HTMLButtonElement | null;
@@ -10896,6 +11248,10 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
         moderatorView: true,
       }),
     );
+    expect(fixture.nativeElement.querySelector('.session-qa-list')).toBeTruthy();
+    expect(
+      fixture.nativeElement.querySelector('#host-qa-question-33333333-3333-4333-8333-333333333333'),
+    ).toBeTruthy();
     const pinnedButtonAfter = fixture.nativeElement.querySelector(
       '[data-testid="qa-filter-pinned"]',
     ) as HTMLButtonElement | null;
@@ -11158,6 +11514,48 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
     expect(text).toContain('8 positiv · 8 negativ');
     expect(text).toContain('Geteilte Reaktionen 80 %');
     fixture.destroy();
+  });
+
+  it('hebt die präsentierte Q&A-Frage mit primary-container und on-Tokens hervor', async () => {
+    const { readFileSync } = await import('node:fs');
+    const { fileURLToPath } = await import('node:url');
+    const { dirname, join } = await import('node:path');
+    const componentDir = dirname(fileURLToPath(import.meta.url));
+    const styles = readFileSync(join(componentDir, 'session-host.component.scss'), 'utf8');
+    const globalStyles = readFileSync(join(componentDir, '../../../../styles.scss'), 'utf8');
+
+    expect(styles).toMatch(
+      /\.session-qa-card--pinned \{[^}]*background:\s*var\(--mat-sys-primary-container\)/,
+    );
+    expect(styles).toMatch(
+      /\.session-qa-card--pinned \{[^}]*color:\s*var\(--mat-sys-on-primary-container\)/,
+    );
+    expect(styles).toContain('var(--mat-sys-on-primary-container)');
+    expect(styles).toMatch(/\.session-qa-card--highlight:not\(\.session-qa-card--pinned\)/);
+    expect(styles).not.toMatch(/^\s*\.session-qa-card--highlight \{/m);
+    expect(styles).not.toMatch(/\.session-qa-card--pinned \{[^}]*tertiary\) 4%/);
+    expect(globalStyles).toMatch(
+      /\.session-qa-card--pinned \.markdown-body[\s\S]*?color:\s*var\(--mat-sys-on-primary-container\)/,
+    );
+    const playfulStyles = readFileSync(
+      join(componentDir, '../../../../styles/playful-inner-chrome.scss'),
+      'utf8',
+    );
+    expect(playfulStyles).toMatch(
+      /\.session-host \.session-qa-card--pinned \{[\s\S]*?@include app-playful-qa-hero-card-light/,
+    );
+    expect(playfulStyles).toMatch(
+      /\.session-qa-card:not\(\.session-qa-card--pinned\):not\(\.session-qa-card--highlight\)/,
+    );
+    expect(playfulStyles).toContain('@mixin app-playful-qa-hero-card-dark');
+    expect(playfulStyles).toContain('html.preset-playful.dark');
+    expect(playfulStyles).toMatch(/--mat-sys-primary-container:\s*var\(--mat-sys-primary\)/);
+    expect(styles).toMatch(
+      /\.session-qa-card--pinned[\s\S]*?\.session-qa-card__action-btn--delete \{[\s\S]*?background:\s*var\(--mat-sys-error\)/,
+    );
+    expect(styles).toMatch(
+      /\.session-qa-card--pinned[\s\S]*?\.session-qa-card__action-btn--delete \{[\s\S]*?color:\s*var\(--mat-sys-on-error\)/,
+    );
   });
 
   it('hält Q&A-Sortierung in der Kartenbreite ohne ng-deep', async () => {

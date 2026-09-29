@@ -1128,15 +1128,90 @@
 }
 
 .session-qa-card--pinned {
-  border: 1.5px solid color-mix(in srgb, var(--mat-sys-tertiary) 50%, transparent);
-  background: linear-gradient(
-    180deg,
-    color-mix(in srgb, var(--mat-sys-tertiary) 4%, var(--mat-sys-surface)),
-    color-mix(in srgb, var(--mat-sys-tertiary) 2%, var(--mat-sys-surface-container-low))
-  );
+  /* MD3-Fokusfläche (wie Quiz-Frage): primary-container / on-primary-container.
+     Spielerisch: verstärkter Verlauf in playful-inner-chrome.scss. */
+  border-color: color-mix(in srgb, var(--mat-sys-primary) 48%, var(--mat-sys-outline-variant));
+  background: var(--mat-sys-primary-container);
+  color: var(--mat-sys-on-primary-container);
   box-shadow:
-    0 0 0 1px color-mix(in srgb, var(--mat-sys-tertiary) 10%, transparent),
-    0 0.75rem 1.5rem color-mix(in srgb, var(--mat-sys-tertiary) 8%, transparent);
+    var(--mat-sys-level2),
+    0 0 0 1px color-mix(in srgb, var(--mat-sys-primary) 22%, transparent),
+    0 0.85rem 1.6rem color-mix(in srgb, var(--mat-sys-primary) 18%, transparent);
+
+  .session-qa-card__text,
+  .session-qa-card__author-name,
+  .session-qa-card__author-name-text,
+  .session-qa-card__vote-count:not(.session-qa-card__vote-count--positive):not(
+      .session-qa-card__vote-count--negative
+    ),
+  .session-qa-card__time {
+    color: var(--mat-sys-on-primary-container);
+    opacity: 1;
+  }
+
+  .session-qa-card__author-team,
+  .session-qa-card__own-badge {
+    color: var(--mat-sys-on-primary-container);
+  }
+
+  .session-qa-card__author-icon,
+  .session-qa-card__author-name {
+    background: color-mix(in srgb, var(--mat-sys-on-primary-container) 12%, transparent);
+    border-color: color-mix(in srgb, var(--mat-sys-on-primary-container) 28%, transparent);
+    color: var(--mat-sys-on-primary-container);
+  }
+
+  .session-qa-card__author-icon--button:hover {
+    background: color-mix(in srgb, var(--mat-sys-on-primary-container) 18%, transparent);
+  }
+
+  .session-qa-card__author-icon--selected {
+    background: color-mix(in srgb, var(--mat-sys-on-primary-container) 22%, transparent);
+    border-color: color-mix(in srgb, var(--mat-sys-on-primary-container) 40%, transparent);
+    color: var(--mat-sys-on-primary-container);
+  }
+
+  .session-qa-card__status {
+    background: color-mix(in srgb, var(--mat-sys-on-primary-container) 14%, transparent);
+    color: var(--mat-sys-on-primary-container);
+  }
+
+  .session-qa-card__status--pinned,
+  .session-qa-card__status--active,
+  .session-qa-card__status--pending,
+  .session-qa-card__status--archived {
+    background: color-mix(in srgb, var(--mat-sys-on-primary-container) 18%, transparent);
+    color: var(--mat-sys-on-primary-container);
+  }
+
+  .session-qa-card__own-badge,
+  .session-qa-card__badge--redacted {
+    background: color-mix(in srgb, var(--mat-sys-on-primary-container) 14%, transparent);
+    color: var(--mat-sys-on-primary-container);
+    box-shadow: inset 0 0 0 1px
+      color-mix(in srgb, var(--mat-sys-on-primary-container) 22%, transparent);
+  }
+
+  .session-qa-card__vote-arrow {
+    color: var(--mat-sys-on-primary-container);
+
+    &:hover:not(:disabled) {
+      background: color-mix(in srgb, var(--mat-sys-on-primary-container) 12%, transparent);
+    }
+  }
+
+  .session-qa-card__vote-stat {
+    color: var(--mat-sys-on-primary-container);
+  }
+
+  .session-qa-card__delete-btn {
+    color: var(--mat-sys-on-primary-container);
+
+    &:hover:not(:disabled) {
+      background: color-mix(in srgb, var(--mat-sys-error) 16%, transparent);
+      color: var(--mat-sys-error);
+    }
+  }
 }
 
 .session-qa-card--archived {

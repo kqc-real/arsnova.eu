@@ -5910,6 +5910,11 @@ export const QaQuestionsListDTOSchema = z.object({
   sessionQuestionCount: z.number().int().min(0).max(QA_MAX_QUESTIONS_PER_SESSION).optional(),
   sessionRemaining: z.number().int().min(0).max(QA_MAX_QUESTIONS_PER_SESSION).optional(),
   quota: QaQuestionQuotaDTOSchema.optional(),
+  /**
+   * Presenter-Projektion: aktuelle Host-Sortierung der Warteschlange
+   * (`qa.setPresenterSortMode` → `qa.presentProjection`).
+   */
+  sortMode: QaQuestionSortModeEnum.optional(),
 });
 export type QaQuestionsListDTO = z.infer<typeof QaQuestionsListDTOSchema>;
 
@@ -5962,6 +5967,20 @@ export const GetQaPresentProjectionInputSchema = z.object({
   sessionId: z.uuid(),
 });
 export type GetQaPresentProjectionInput = z.infer<typeof GetQaPresentProjectionInputSchema>;
+
+/**
+ * Host publiziert die aktuelle Q&A-Sortierung an die Presenter-Projektion
+ * (ephemer, session-code-gebunden; analog zur Wortwolken-Projektion).
+ */
+export const SetQaPresenterSortModeInputSchema = GetSessionInfoInputSchema.extend({
+  sortMode: QaQuestionSortModeEnum,
+});
+export type SetQaPresenterSortModeInput = z.infer<typeof SetQaPresenterSortModeInputSchema>;
+
+export const SetQaPresenterSortModeOutputSchema = z.object({
+  sortMode: QaQuestionSortModeEnum,
+});
+export type SetQaPresenterSortModeOutput = z.infer<typeof SetQaPresenterSortModeOutputSchema>;
 
 /** Input: Q&A-Frage einreichen (Story 8.2) */
 export const SubmitQaQuestionInputSchema = z.object({

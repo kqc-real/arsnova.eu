@@ -268,8 +268,7 @@ describe('SessionPresentComponent', () => {
       participantCount: 2,
       teamMode: false,
     } as never);
-    component.presenterQaQuestions.set([{ id: 'qa-1', text: 'Noch sichtbar' } as never]);
-    component.pinnedQaQuestion.set({ id: 'qa-1', text: 'Noch sichtbar' } as never);
+    component.presenterQaOrderedQuestions.set([{ id: 'qa-1', text: 'Noch sichtbar' } as never]);
     component.quickFeedbackResult.set({ totalVotes: 1, options: [] } as never);
     component.freetextResponses.set(['Noch sichtbar']);
     component.hostQuestion.set({
@@ -1340,6 +1339,86 @@ describe('SessionPresentComponent', () => {
     fixture.destroy();
   });
 
+  it('zeigt auf der Q&A-Bühne Erstellungszeit und nur die Sortier-Metrik', async () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date('2026-03-13T12:12:00.000Z'));
+    getInfoQueryMock.mockResolvedValue({
+      id: '6a8edced-5f8f-4cfa-9176-454fac9570ad',
+      serverTime: MOCK_SERVER_TIME,
+      code: 'ABC123',
+      type: 'QUIZ',
+      status: 'LOBBY',
+      quizName: 'Team-Quiz',
+      title: null,
+      participantCount: 3,
+      teamMode: false,
+      preferredChannel: 'qa',
+      channels: {
+        quiz: { enabled: true },
+        qa: { enabled: true, title: 'Fragen', moderationMode: true },
+        quickFeedback: { enabled: false },
+      },
+    });
+    qaListQueryMock.mockResolvedValue([
+      {
+        id: '44444444-4444-4444-8444-444444444444',
+        text: 'Hero mit Metriken',
+        upvoteCount: 12,
+        positiveVoteCount: 10,
+        negativeVoteCount: 2,
+        bestScore: 0.71,
+        controversyScore: 0.42,
+        status: 'PINNED',
+        createdAt: '2026-03-13T12:00:00.000Z',
+        myVote: null,
+        isOwn: false,
+        hasUpvoted: false,
+      },
+      {
+        id: '55555555-5555-4555-8555-555555555555',
+        text: 'Queue mit Metriken',
+        upvoteCount: 4,
+        positiveVoteCount: 3,
+        negativeVoteCount: 1,
+        bestScore: 0.55,
+        controversyScore: 0.38,
+        status: 'ACTIVE',
+        createdAt: '2026-03-13T12:05:00.000Z',
+        myVote: null,
+        isOwn: false,
+        hasUpvoted: false,
+      },
+    ]);
+
+    const fixture = TestBed.createComponent(SessionPresentComponent);
+    try {
+      fixture.componentInstance.presenterQaSortMode.set('BEST');
+      fixture.detectChanges();
+      await fixture.whenStable();
+      await vi.advanceTimersByTimeAsync(50);
+      fixture.detectChanges();
+
+      let text = fixture.nativeElement.textContent ?? '';
+      expect(
+        fixture.nativeElement.querySelector('[data-testid="presenter-qa-hero-meta"]'),
+      ).not.toBeNull();
+      expect(text).toContain('vor 12\u00A0Min.');
+      expect(text).toContain('Zustimmung 71 %');
+      expect(text).toContain('Zustimmung 55 %');
+      expect(text).not.toContain('Geteilte Reaktionen');
+
+      fixture.componentInstance.presenterQaSortMode.set('CONTROVERSIAL');
+      fixture.detectChanges();
+      text = fixture.nativeElement.textContent ?? '';
+      expect(text).toContain('Geteilte Reaktionen 42 %');
+      expect(text).toContain('Geteilte Reaktionen 38 %');
+      expect(text).not.toContain('Zustimmung');
+    } finally {
+      fixture.destroy();
+      vi.useRealTimers();
+    }
+  });
+
   it('zeigt für einen leeren Q&A-Kanal eine Standby-Bühne mit Beitrittsdaten', async () => {
     getInfoQueryMock.mockResolvedValue({
       id: '6a8edced-5f8f-4cfa-9176-454fac9570ad',
@@ -1383,7 +1462,7 @@ describe('SessionPresentComponent', () => {
     expect(fixture.nativeElement.querySelector('.session-present__qa-stage')).toBeNull();
     expect(fixture.nativeElement.querySelector('[data-testid="presenter-quiz-stage"]')).toBeNull();
 
-    fixture.componentInstance.presenterQaQuestions.set([
+    fixture.componentInstance.presenterQaOrderedQuestions.set([
       {
         id: '11111111-1111-4111-8111-111111111111',
         text: 'Jetzt ist die Frage freigegeben.',
@@ -1426,7 +1505,7 @@ describe('SessionPresentComponent', () => {
     const fixture = TestBed.createComponent(SessionPresentComponent);
     fixture.detectChanges();
     await fixture.whenStable();
-    fixture.componentInstance.presenterQaQuestions.set([
+    fixture.componentInstance.presenterQaOrderedQuestions.set([
       {
         id: '11111111-1111-4111-8111-111111111111',
         text: 'Diese alte Frage darf geschlossen nicht sichtbar sein.',
@@ -1519,7 +1598,7 @@ describe('SessionPresentComponent', () => {
     fixture.detectChanges();
 
     const text = fixture.nativeElement.textContent as string;
-    expect(text).toContain('Als Nächstes im Raum');
+    expect(text).toContain('Als Nächstes…');
     expect(text).toContain('Kommt Kapitel 4 in der Klausur vor?');
     expect(text).toContain('Kannst du das Beispiel noch einmal erklären?');
     expect(text).not.toContain('Q&A-Wortwolke');
@@ -1527,9 +1606,45 @@ describe('SessionPresentComponent', () => {
     fixture.destroy();
   });
 
-  it('begrenzt die Q&A-Projektion auf zwei kommende Fragen mit Restzahl', () => {
+  it('ordnet die Q&A-Projektion im Landscape als Hero oben und Queue darunter an', () => {
+    const scss = readFileSync(
+      resolve(
+        process.cwd(),
+        'src/app/features/session/session-present/session-present.component.scss',
+      ),
+      'utf8',
+    );
+    expect(scss).toMatch(
+      /\.session-present__qa-stage\s*\{[^}]*grid-template-areas:\s*'criteria'\s*'pinned'\s*'queue'/s,
+    );
+    expect(scss).toMatch(
+      /\.session-present__qa-stage\s*\{[^}]*grid-template-rows:\s*auto\s*minmax\(0,\s*2\.35fr\)\s*minmax\(0,\s*1\.15fr\)/s,
+    );
+    expect(scss).toMatch(
+      /\.session-present__qa-stage\s*>\s*\.session-present__qa-card,\s*\.session-present__qa-stage\s*>\s*\.session-present__qa-list-card\s*\{[^}]*width:\s*100%/s,
+    );
+    expect(scss).toMatch(/--present-qa-vote-breakdown-w:\s*clamp\(14rem,\s*28vmin,\s*20rem\)/);
+    expect(scss).toMatch(
+      /\.session-present__qa-text\s*\{[^}]*font-size:\s*clamp\(2\.25rem,\s*4\.6vmin/s,
+    );
+    expect(scss).toMatch(/\.session-present__qa-vote-breakdown--hero\s*\{/);
+    expect(scss).toMatch(
+      /\.session-present__qa-vote-breakdown\s*\{[^}]*grid-template-columns:\s*repeat\(2,\s*minmax\(0,\s*1fr\)\)/s,
+    );
+    expect(scss).not.toMatch(/\.session-present__qa-list-votes\s*\{/);
+    expect(scss).not.toMatch(/\.session-present__qa-vote-breakdown--queue\s*\{/);
+    expect(scss).not.toMatch(
+      /\.session-present__qa-stage\s+\.session-present__qa-list\s*\{[^}]*grid-auto-rows:\s*1fr/s,
+    );
+    expect(scss).not.toMatch(/--present-qa-vote-badge-w/);
+    expect(scss).toMatch(/--present-qa-vote-breakdown-w/);
+    expect(scss).toMatch(/\.session-present__qa-text\s*\{[^}]*max-width:\s*min\(100%,\s*58rem\)/s);
+    expect(scss).not.toMatch(/grid-template-areas:\s*'pinned queue'/);
+  });
+
+  it('rückt den Hero per Host-Navigator vor und zeigt höchstens zwei wartende Fragen', () => {
     const fixture = TestBed.createComponent(SessionPresentComponent);
-    fixture.componentInstance.presenterQaQuestions.set(
+    fixture.componentInstance.presenterQaOrderedQuestions.set(
       Array.from({ length: 6 }, (_, index) => ({
         id: `00000000-0000-4000-8000-00000000000${index}`,
         text: `Publikumsfrage ${index + 1}`,
@@ -1541,10 +1656,209 @@ describe('SessionPresentComponent', () => {
         hasUpvoted: false,
       })),
     );
+    fixture.componentInstance.session.set({
+      id: '6a8edced-5f8f-4cfa-9176-454fac9570ad',
+      serverTime: MOCK_SERVER_TIME,
+      code: 'ABC123',
+      type: 'QUIZ',
+      status: 'ACTIVE',
+      preferredChannel: 'qa',
+      presenterSurface: 'default',
+      presenterPage: { context: 'qa-page', index: 0, count: 6 },
+      channels: {
+        quiz: { enabled: true },
+        qa: { enabled: true, open: true, title: null, moderationMode: false },
+        quickFeedback: { enabled: false, open: false },
+      },
+    } as never);
 
+    expect(fixture.componentInstance.qaQueuePageCount()).toBe(6);
+    expect(fixture.componentInstance.pinnedQaQuestion()?.text).toBe('Publikumsfrage 1');
     expect(fixture.componentInstance.visibleQaQueueQuestions()).toHaveLength(2);
-    expect(fixture.componentInstance.visibleQaQueueQuestions()[1]?.text).toBe('Publikumsfrage 2');
-    expect(fixture.componentInstance.remainingQaQuestions()).toBe(4);
+    expect(fixture.componentInstance.visibleQaQueueQuestions().map((q) => q.text)).toEqual([
+      'Publikumsfrage 2',
+      'Publikumsfrage 3',
+    ]);
+    expect(fixture.componentInstance.qaQueueCountLabel()).toBe('5 Fragen');
+
+    fixture.componentInstance.session.update((session) =>
+      session
+        ? {
+            ...session,
+            presenterPage: { context: 'qa-page', index: 1, count: 6 },
+          }
+        : session,
+    );
+    expect(fixture.componentInstance.pinnedQaQuestion()?.text).toBe('Publikumsfrage 2');
+    expect(fixture.componentInstance.visibleQaQueueQuestions().map((q) => q.text)).toEqual([
+      'Publikumsfrage 3',
+      'Publikumsfrage 4',
+    ]);
+    expect(fixture.componentInstance.qaQueueCountLabel()).toBe('4 Fragen');
+    fixture.destroy();
+  });
+
+  it('zeigt die Queue-Gesamtzahl nur im Badge und ohne Seiten-/Restzeile', async () => {
+    getInfoQueryMock.mockResolvedValue({
+      id: '6a8edced-5f8f-4cfa-9176-454fac9570ad',
+      serverTime: MOCK_SERVER_TIME,
+      code: 'ABC123',
+      type: 'QUIZ',
+      status: 'ACTIVE',
+      preferredChannel: 'qa',
+      presenterSurface: 'default',
+      presenterPage: { context: 'qa-page', index: 0, count: 2 },
+      channels: {
+        quiz: { enabled: true },
+        qa: { enabled: true, open: true, title: null, moderationMode: false },
+        quickFeedback: { enabled: false, open: false },
+      },
+    });
+    qaListQueryMock.mockResolvedValue([
+      {
+        id: '11111111-1111-4111-8111-111111111111',
+        text: 'Hero-Frage',
+        upvoteCount: 9,
+        positiveVoteCount: 12,
+        negativeVoteCount: 3,
+        status: 'PINNED',
+        createdAt: '2026-03-13T12:00:00.000Z',
+        myVote: null,
+        isOwn: false,
+        hasUpvoted: false,
+      },
+      {
+        id: '22222222-2222-4222-8222-222222222222',
+        text: 'Queue-Frage A',
+        upvoteCount: 4,
+        positiveVoteCount: 7,
+        negativeVoteCount: 3,
+        status: 'ACTIVE',
+        createdAt: '2026-03-13T12:01:00.000Z',
+        myVote: null,
+        isOwn: false,
+        hasUpvoted: false,
+      },
+      {
+        id: '33333333-3333-4333-8333-333333333333',
+        text: 'Queue-Frage B',
+        upvoteCount: 3,
+        positiveVoteCount: 5,
+        negativeVoteCount: 2,
+        status: 'ACTIVE',
+        createdAt: '2026-03-13T12:02:00.000Z',
+        myVote: null,
+        isOwn: false,
+        hasUpvoted: false,
+      },
+    ]);
+
+    const fixture = TestBed.createComponent(SessionPresentComponent);
+    fixture.detectChanges();
+    await fixture.whenStable();
+    await new Promise((r) => setTimeout(r, 50));
+    fixture.detectChanges();
+
+    const text = fixture.nativeElement.textContent as string;
+    expect(text).toContain('2 Fragen');
+    expect(text).toContain('Sortierung: Beste Fragen');
+    expect(text).toContain('Als Nächstes…');
+    expect(
+      fixture.nativeElement.querySelectorAll('.session-present__qa-vote-stat--up').length,
+    ).toBeGreaterThan(0);
+    expect(
+      fixture.nativeElement.querySelectorAll('.session-present__qa-vote-stat--down').length,
+    ).toBeGreaterThan(0);
+    expect(text).toContain('12');
+    expect(text).toContain('3');
+    expect(text).not.toContain('weitere');
+    expect(text).not.toMatch(/Fragen\s+\d+[–-]\d+\s+von/);
+    expect(text).not.toMatch(/Seite\s+\d+\s*\/\s*\d+/);
+    expect(fixture.nativeElement.querySelector('.session-present__qa-page')).toBeNull();
+    expect(fixture.nativeElement.querySelector('.session-present__qa-more')).toBeNull();
+    expect(fixture.nativeElement.querySelector('.session-present__qa-criteria')).not.toBeNull();
+    fixture.destroy();
+  });
+
+  it('hält die Q&A-Projektion mit maximal langen Fragen (500 Zeichen) stabil', async () => {
+    const maxText = 'A'.repeat(500);
+    expect(maxText).toHaveLength(500);
+    getInfoQueryMock.mockResolvedValue({
+      id: '6a8edced-5f8f-4cfa-9176-454fac9570ad',
+      serverTime: MOCK_SERVER_TIME,
+      code: 'ABC123',
+      type: 'QUIZ',
+      status: 'ACTIVE',
+      preferredChannel: 'qa',
+      presenterSurface: 'default',
+      presenterPage: { context: 'qa-page', index: 0, count: 2 },
+      channels: {
+        quiz: { enabled: true },
+        qa: { enabled: true, open: true, title: null, moderationMode: false },
+        quickFeedback: { enabled: false, open: false },
+      },
+    });
+    qaListQueryMock.mockResolvedValue([
+      {
+        id: '11111111-1111-4111-8111-111111111111',
+        text: maxText,
+        upvoteCount: 40,
+        positiveVoteCount: 56,
+        negativeVoteCount: 16,
+        status: 'PINNED',
+        createdAt: '2026-03-13T12:00:00.000Z',
+        myVote: null,
+        isOwn: false,
+        hasUpvoted: false,
+      },
+      {
+        id: '22222222-2222-4222-8222-222222222222',
+        text: maxText,
+        upvoteCount: 20,
+        positiveVoteCount: 30,
+        negativeVoteCount: 10,
+        status: 'ACTIVE',
+        createdAt: '2026-03-13T12:01:00.000Z',
+        myVote: null,
+        isOwn: false,
+        hasUpvoted: false,
+      },
+      {
+        id: '33333333-3333-4333-8333-333333333333',
+        text: maxText,
+        upvoteCount: 10,
+        positiveVoteCount: 18,
+        negativeVoteCount: 8,
+        status: 'ACTIVE',
+        createdAt: '2026-03-13T12:02:00.000Z',
+        myVote: null,
+        isOwn: false,
+        hasUpvoted: false,
+      },
+    ]);
+
+    const fixture = TestBed.createComponent(SessionPresentComponent);
+    fixture.detectChanges();
+    await fixture.whenStable();
+    await new Promise((r) => setTimeout(r, 50));
+    fixture.detectChanges();
+
+    const root = fixture.nativeElement as HTMLElement;
+    const heroText = root.querySelector('.session-present__qa-text');
+    const queueItems = root.querySelectorAll('.session-present__qa-list-item');
+    const queueVotes = root.querySelectorAll(
+      '.session-present__qa-list .session-present__qa-vote-breakdown--hero',
+    );
+
+    expect(heroText?.textContent).toContain(maxText);
+    expect(queueItems).toHaveLength(2);
+    expect(queueVotes).toHaveLength(2);
+    expect(root.querySelector('.session-present__qa-list-votes')).toBeNull();
+    expect(root.querySelector('.session-present__qa-stage')).not.toBeNull();
+    expect(root.textContent).toContain('56');
+    expect(root.textContent).toContain('16');
+    expect(root.textContent).toContain('30');
+    expect(root.textContent).toContain('10');
     fixture.destroy();
   });
 
@@ -1608,7 +1922,7 @@ describe('SessionPresentComponent', () => {
     expect(text).not.toContain('PNG speichern');
     expect(text).not.toContain('Antwort anzeigen');
     expect(text).not.toContain('Maximieren');
-    expect(text).not.toContain('Als Nächstes im Raum');
+    expect(text).not.toContain('Als Nächstes…');
     expect(text).not.toContain('Je größer ein Wort, desto öfter wurde es genannt.');
     expect(fixture.nativeElement.querySelector('.session-present__qa-list-card')).toBeNull();
     expectNoHostControls(fixture.nativeElement as HTMLElement);

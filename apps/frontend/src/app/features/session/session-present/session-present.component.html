@@ -781,107 +781,172 @@
 
     @if (showQaProjection() || showQaWordCloud()) {
       @if (showQaProjection()) {
-        <app-projection-pages
-          [pageContext]="session()?.presenterPage?.context ?? ''"
-          [pageIndex]="session()?.presenterPage?.index ?? 0"
-          (pageCount)="reportProjectionPages($event)"
-        >
-          <section class="session-present__qa-stage">
-            @if (showPinnedQaQuestion() && pinnedQaQuestion(); as pinnedQuestion) {
-              <mat-card appearance="outlined" class="session-present__qa-card">
-                <mat-card-content>
-                  <div class="session-present__qa-head">
-                    <div>
-                      <p class="session-present__qa-label" i18n="@@sessionPresent.qaLabel">
-                        Frage aus dem Publikum
-                      </p>
-                      <h2 class="session-present__qa-title" i18n="@@sessionPresent.qaTitle">
-                        Wird gerade beantwortet
-                      </h2>
-                    </div>
-                    <div class="session-present__qa-votes">
-                      <mat-icon aria-hidden="true">thumb_up</mat-icon>
-                      <span>{{ formatCount(pinnedQuestion.upvoteCount) }}</span>
-                    </div>
+        <section class="session-present__qa-stage">
+          <header class="session-present__qa-criteria" aria-live="polite">
+            <span class="session-present__qa-criteria-label">{{ qaSortCriteriaLabel() }}</span>
+          </header>
+          @if (showPinnedQaQuestion() && pinnedQaQuestion(); as pinnedQuestion) {
+            <mat-card appearance="outlined" class="session-present__qa-card">
+              <mat-card-content>
+                <div class="session-present__qa-head">
+                  <div>
+                    <p class="session-present__qa-label" i18n="@@sessionPresent.qaLabel">
+                      Frage aus dem Publikum
+                    </p>
+                    <h2 class="session-present__qa-title" i18n="@@sessionPresent.qaTitle">
+                      Wird gerade beantwortet
+                    </h2>
                   </div>
                   <div
-                    class="session-present__qa-text"
-                    [innerHTML]="renderMarkdown(pinnedQuestion.text)"
-                  ></div>
-                </mat-card-content>
-              </mat-card>
-            }
-
-            @if (showQaQueue()) {
-              <mat-card appearance="outlined" class="session-present__qa-list-card">
-                <mat-card-content>
-                  <div class="session-present__qa-list-head">
-                    <div>
-                      <p class="session-present__qa-label" i18n="@@sessionPresent.qaQueueLabel">
-                        Fragen aus dem Publikum
-                      </p>
-                      <h2
-                        class="session-present__qa-list-title"
-                        i18n="@@sessionPresent.qaQueueTitle"
-                      >
-                        Als Nächstes im Raum
-                      </h2>
-                    </div>
-                    <span class="session-present__qa-list-count">
-                      {{ presenterQaQuestions().length }}
+                    class="session-present__qa-vote-breakdown session-present__qa-vote-breakdown--hero"
+                    [attr.aria-label]="qaVotesBreakdownAriaLabel(pinnedQuestion)"
+                  >
+                    <span class="session-present__qa-vote-stat session-present__qa-vote-stat--up">
+                      <mat-icon aria-hidden="true">thumb_up</mat-icon>
+                      <span>{{ formatCount(qaPositiveVoteCount(pinnedQuestion)) }}</span>
+                    </span>
+                    <span class="session-present__qa-vote-stat session-present__qa-vote-stat--down">
+                      <mat-icon aria-hidden="true">thumb_down</mat-icon>
+                      <span>{{ formatCount(qaNegativeVoteCount(pinnedQuestion)) }}</span>
                     </span>
                   </div>
-
-                  <div class="session-present__qa-list" role="list">
-                    @for (question of visibleQaQueueQuestions(); track question.id) {
-                      <article class="session-present__qa-list-item" role="listitem">
-                        <div class="session-present__qa-list-votes">
-                          <mat-icon aria-hidden="true">thumb_up</mat-icon>
-                          <span>{{ formatCount(question.upvoteCount) }}</span>
-                        </div>
-                        <div class="session-present__qa-list-body">
-                          @if (question.passagesRedacted) {
-                            <span
-                              class="session-present__qa-redacted"
-                              [attr.aria-label]="
-                                qaPassagesRedactedAria(qaPassagesRedactedAt(question))
-                              "
-                            >
-                              <mat-icon class="session-present__qa-redacted-icon" aria-hidden="true"
-                                >visibility_off</mat-icon
-                              >
-                              <span class="session-present__qa-redacted-copy">
-                                <span i18n="@@sessionQa.badgePassagesRedacted"
-                                  >Passagen durch Moderation geschwärzt</span
-                                >
-                                @if (qaPassagesRedactedAt(question); as redactedAt) {
-                                  <time
-                                    class="session-present__qa-redacted-time"
-                                    [attr.datetime]="redactedAt"
-                                    >{{ formatQaRedactedAt(redactedAt) }}</time
-                                  >
-                                }
-                              </span>
-                            </span>
-                          }
-                          <div
-                            class="session-present__qa-list-text"
-                            [innerHTML]="renderMarkdown(question.text)"
-                          ></div>
-                        </div>
-                      </article>
-                    }
-                  </div>
-                  @if (remainingQaQuestions() > 0) {
-                    <p class="session-present__qa-more" i18n="@@sessionPresent.qaMore">
-                      + {{ remainingQaQuestions() }} weitere
-                    </p>
+                </div>
+                <div
+                  class="session-present__qa-text markdown-body"
+                  [innerHTML]="renderMarkdown(pinnedQuestion.text)"
+                ></div>
+                <div class="session-present__qa-meta" data-testid="presenter-qa-hero-meta">
+                  <time
+                    class="session-present__qa-meta-time"
+                    [attr.datetime]="pinnedQuestion.createdAt"
+                    [attr.title]="formatQaCreatedAt(pinnedQuestion.createdAt)"
+                  >
+                    {{ relativeTime(pinnedQuestion.createdAt) }}
+                  </time>
+                  @if (presenterQaSortMode() === 'BEST' && pinnedQuestion.bestScore !== undefined) {
+                    <span
+                      class="session-present__qa-meta-chip session-present__qa-meta-chip--best"
+                      i18n="@@sessionQa.bestMetric"
+                      >Zustimmung {{ formatQaPercent(pinnedQuestion.bestScore) }}</span
+                    >
                   }
-                </mat-card-content>
-              </mat-card>
-            }
-          </section>
-        </app-projection-pages>
+                  @if (
+                    presenterQaSortMode() === 'CONTROVERSIAL' &&
+                    pinnedQuestion.controversyScore !== undefined
+                  ) {
+                    <span
+                      class="session-present__qa-meta-chip session-present__qa-meta-chip--controversial"
+                      i18n="@@sessionQa.controversyMetric"
+                      >Geteilte Reaktionen
+                      {{ formatQaPercent(pinnedQuestion.controversyScore) }}</span
+                    >
+                  }
+                </div>
+              </mat-card-content>
+            </mat-card>
+          }
+
+          @if (showQaQueue()) {
+            <mat-card appearance="outlined" class="session-present__qa-list-card">
+              <mat-card-content>
+                <div class="session-present__qa-list-head">
+                  <h2 class="session-present__qa-list-title" i18n="@@sessionPresent.qaQueueTitle">
+                    Als Nächstes…
+                  </h2>
+                  <span
+                    class="session-present__qa-list-count"
+                    [attr.aria-label]="qaQueueCountAriaLabel()"
+                  >
+                    {{ qaQueueCountLabel() }}
+                  </span>
+                </div>
+
+                <div class="session-present__qa-list" role="list">
+                  @for (question of visibleQaQueueQuestions(); track question.id) {
+                    <article class="session-present__qa-list-item" role="listitem">
+                      <div
+                        class="session-present__qa-vote-breakdown session-present__qa-vote-breakdown--hero"
+                        [attr.aria-label]="qaVotesBreakdownAriaLabel(question)"
+                      >
+                        <span
+                          class="session-present__qa-vote-stat session-present__qa-vote-stat--up"
+                        >
+                          <mat-icon aria-hidden="true">thumb_up</mat-icon>
+                          <span>{{ formatCount(qaPositiveVoteCount(question)) }}</span>
+                        </span>
+                        <span
+                          class="session-present__qa-vote-stat session-present__qa-vote-stat--down"
+                        >
+                          <mat-icon aria-hidden="true">thumb_down</mat-icon>
+                          <span>{{ formatCount(qaNegativeVoteCount(question)) }}</span>
+                        </span>
+                      </div>
+                      <div class="session-present__qa-list-body">
+                        @if (question.passagesRedacted) {
+                          <span
+                            class="session-present__qa-redacted"
+                            [attr.aria-label]="
+                              qaPassagesRedactedAria(qaPassagesRedactedAt(question))
+                            "
+                          >
+                            <mat-icon class="session-present__qa-redacted-icon" aria-hidden="true"
+                              >visibility_off</mat-icon
+                            >
+                            <span class="session-present__qa-redacted-copy">
+                              <span i18n="@@sessionQa.badgePassagesRedacted"
+                                >Passagen durch Moderation geschwärzt</span
+                              >
+                              @if (qaPassagesRedactedAt(question); as redactedAt) {
+                                <time
+                                  class="session-present__qa-redacted-time"
+                                  [attr.datetime]="redactedAt"
+                                  >{{ formatQaRedactedAt(redactedAt) }}</time
+                                >
+                              }
+                            </span>
+                          </span>
+                        }
+                        <div
+                          class="session-present__qa-list-text markdown-body"
+                          [innerHTML]="renderMarkdown(question.text)"
+                        ></div>
+                        <div class="session-present__qa-list-meta">
+                          <time
+                            class="session-present__qa-list-meta-time"
+                            [attr.datetime]="question.createdAt"
+                            [attr.title]="formatQaCreatedAt(question.createdAt)"
+                          >
+                            {{ relativeTime(question.createdAt) }}
+                          </time>
+                          @if (
+                            presenterQaSortMode() === 'BEST' && question.bestScore !== undefined
+                          ) {
+                            <span
+                              class="session-present__qa-list-meta-chip session-present__qa-list-meta-chip--best"
+                              i18n="@@sessionQa.bestMetric"
+                              >Zustimmung {{ formatQaPercent(question.bestScore) }}</span
+                            >
+                          }
+                          @if (
+                            presenterQaSortMode() === 'CONTROVERSIAL' &&
+                            question.controversyScore !== undefined
+                          ) {
+                            <span
+                              class="session-present__qa-list-meta-chip session-present__qa-list-meta-chip--controversial"
+                              i18n="@@sessionQa.controversyMetric"
+                              >Geteilte Reaktionen
+                              {{ formatQaPercent(question.controversyScore) }}</span
+                            >
+                          }
+                        </div>
+                      </div>
+                    </article>
+                  }
+                </div>
+              </mat-card-content>
+            </mat-card>
+          }
+        </section>
       }
       @if (showQaWordCloud()) {
         <section class="session-present__qa-stage">

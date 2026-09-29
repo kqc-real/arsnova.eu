@@ -4909,6 +4909,11 @@ describe('SessionVoteComponent', { timeout: 30_000 }, () => {
       );
       expect(snackBarOpenMock).not.toHaveBeenCalled();
       expect(scrollIntoView).not.toHaveBeenCalled();
+      expect(
+        (fixture.nativeElement as HTMLElement).querySelector(
+          '.session-qa-list .session-qa-card[data-qa-id="question-2"]',
+        ),
+      ).toBeTruthy();
 
       qaListQueryMock.mockClear();
       qaListQueryMock.mockResolvedValue({
@@ -5704,6 +5709,36 @@ describe('SessionVoteComponent', { timeout: 30_000 }, () => {
     expect(toolbarFixedBlock).toContain('var(--app-service-status-banner-gap, 0px)');
     expect(toolbarFixedStickyTop).toBe('var(--host-mobile-toolbar-gap, 0.5rem)');
     expect(toolbarFixedStickyTop).not.toContain('4rem');
+  });
+
+  it('hebt die präsentierte Q&A-Frage mit primary-container und on-Tokens hervor', () => {
+    const voteStyles = readFileSync(
+      resolve(process.cwd(), 'src/app/features/session/session-vote/session-vote.component.scss'),
+      'utf8',
+    );
+    const globalStyles = readFileSync(resolve(process.cwd(), 'src/styles.scss'), 'utf8');
+    const playfulStyles = readFileSync(
+      resolve(process.cwd(), 'src/styles/playful-inner-chrome.scss'),
+      'utf8',
+    );
+
+    expect(voteStyles).toMatch(
+      /\.session-qa-card--pinned \{[^}]*background:\s*var\(--mat-sys-primary-container\)/,
+    );
+    expect(voteStyles).toMatch(
+      /\.session-qa-card--pinned \{[^}]*color:\s*var\(--mat-sys-on-primary-container\)/,
+    );
+    expect(voteStyles).toContain('var(--mat-sys-on-primary-container)');
+    expect(voteStyles).not.toMatch(/\.session-qa-card--pinned \{[^}]*tertiary\) 4%/);
+    expect(globalStyles).toMatch(
+      /\.session-qa-card--pinned \.markdown-body[\s\S]*?color:\s*var\(--mat-sys-on-primary-container\)/,
+    );
+    expect(playfulStyles).toMatch(
+      /\.vote-page \.session-qa-card--pinned \{[\s\S]*?@include app-playful-qa-hero-card-light/,
+    );
+    expect(playfulStyles).toMatch(/\.vote-page \.session-qa-card:not\(\.session-qa-card--pinned\)/);
+    expect(playfulStyles).toContain('@mixin app-playful-qa-hero-card-dark');
+    expect(playfulStyles).toContain('html.preset-playful.dark');
   });
 
   it('hält Vote-Tokens und Timer-Styles ohne ::ng-deep / 999px', () => {
@@ -7881,6 +7916,11 @@ describe('SessionVoteComponent', { timeout: 30_000 }, () => {
     const text = fixture.nativeElement.textContent ?? '';
     expect(text).toContain('Freigegeben');
     expect(text).toContain('Wird gerade besprochen');
+    const pinnedCard = fixture.nativeElement.querySelector(
+      '.session-qa-card--pinned',
+    ) as HTMLElement | null;
+    expect(pinnedCard).not.toBeNull();
+    expect(pinnedCard?.textContent).toContain('Hervorgehobene Frage');
     expect(text).toContain(
       'Wartet auf Freigabe – momentan nur für dich und die Moderation sichtbar.',
     );

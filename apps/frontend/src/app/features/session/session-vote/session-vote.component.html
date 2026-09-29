@@ -2820,7 +2820,7 @@
                   [attr.data-qa-id]="question.id"
                   [class.session-qa-card--author-selected]="isQaAuthorSelected(question)"
                   [class.session-qa-card--own]="question.isOwn"
-                  [class.session-qa-card--pinned]="question.status === 'PINNED'"
+                  [class.session-qa-card--pinned]="isQaPresenterHeroCard(question.id)"
                   [class.session-qa-card--archived]="question.status === 'ARCHIVED'"
                 >
                   @if (question.isOwn || question.status === 'ARCHIVED') {

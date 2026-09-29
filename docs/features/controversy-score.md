@@ -15,7 +15,7 @@ Die aktuelle Q&A-Implementierung in arsnova.eu hat bereits **bidirektionales Vot
 
 1. **8.6 und 8.7 sind im heutigen Produkt optionale Sortiermodi für den Host.** Vertrauenswürdige Tutor:innen oder Moderator:innen erhalten sie künftig über die vollständige Host-Ansicht eines Paired Hosts aus Story 2.10. Sie sind keine neuen globalen Standardsortierungen für alle Clients.
 2. **Teilnehmende behalten die heutige, leicht verständliche Standardsortierung**; die neuen Modi sind ein Werkzeug für Moderation, nicht das neue Default-Ranking der Teilnehmendenansicht.
-3. **Host-Ranking bleibt metrisch ehrlich.** In den Host-Sortiermodi werden `ACTIVE`- und `PINNED`-Fragen gemeinsam nach der gewählten Metrik sortiert; angeheftete Fragen bleiben sichtbar markiert, aber überstimmen das Ranking nicht. `PENDING`, `ARCHIVED` und `DELETED` folgen danach als eigene Statusgruppen. Die Teilnehmendenansicht behält `PINNED` nur bei `Meist unterstützt` oben, damit die gerade hervorgehobene Frage Vorrang hat. `Beste Fragen`, `Umstritten` und `Zeit` ziehen Hervorgehobene nicht vor.
+3. **Hervorgehobene Fragen bleiben Forum- und Presenter-Anker.** In allen Sortiermodi stehen `PINNED`-Fragen zuerst (Host: vor `PENDING` und `ACTIVE`); innerhalb jeder Statusgruppe gilt die gewählte Metrik. So bleibt die präsentierte Hero-Frage oben und mit MD3-`primary-container` markiert (Spielerisch Light: verstärkter Container-Verlauf; Spielerisch Dark: `primary`/`on-primary`, damit Hero und Nested nicht in denselben Magenta-Tönen verschwimmen). Die Hörsaalbühne zeigt zusätzlich Erstellungszeit und nur die aktive Sortier-Metrik (bei BEST Zustimmung %, bei CONTROVERSIAL geteilte Reaktionen %); `qa.presentProjection` liefert die Scores deshalb immer mit. `PENDING`, `ARCHIVED` und `DELETED` folgen als eigene Statusgruppen.
 4. **`QaQuestion.upvoteCount` ist im Ist-Stand ein Netto-Score, nicht die Zahl der Upvotes.** Für 8.6 und 8.7 müssen `U` und `D` aus den Einzelstimmen (`QaUpvote.direction`) aggregiert werden; der Netto-Score allein reicht fachlich nicht.
 5. **Die Q&A-UI braucht einen expliziten Sortiermodus**, z. B. `Meist unterstützt`, `Umstritten`, `Beste Fragen`, `Zeit`. Ohne sichtbaren Moduswechsel wären 8.6/8.7 nicht nachvollziehbar.
 
@@ -27,7 +27,7 @@ Der heutige Produktstand deckt die Storys 8.6 und 8.7 in der Host-Ansicht bereit
 - Die Router-/DTO-Schicht liefert neben dem bisherigen Nettofeld auch getrennte `UP`-/`DOWN`-Aggregate sowie `score`, `voteCount`, `bestScore`, `controversyScore` und `isControversial`.
 - Die Host-Liste aggregiert `QaUpvote.direction` serverseitig per DB-Gruppierung statt alle Einzelvotes in den Host-Poll zu laden; `QaQuestion.updatedAt` und ein Revisionsschluessel vermeiden volle Rebuilds, wenn sich seit dem letzten Poll nichts geaendert hat.
 - Im Host-Ranking werden `ACTIVE` und `PINNED` gemeinsam nach der gewaehlten Metrik sortiert; `PINNED` bleibt ein sichtbarer Status, aber kein globaler Sortier-Override.
-- Die Teilnehmendenansicht startet bei `Meist unterstützt` und kann dieselben vier Sortiermodi anfordern. Nur der Default belässt hervorgehobene Fragen oben; `Beste Fragen`, `Umstritten` und `Zeit` sortieren wie der Host nach der Metrik bzw. der Erstellungszeit. Die Fragen-Suche läuft wie beim Host entprellt (300 ms) über `qa.list` und durchsucht nicht die geladene Seite lokal. Der Host filtert in »Teilnahmen durchsuchen« eine Identität über `qa.list` (`authorNickname`) in PostgreSQL, nicht über die geladene Seite; die Liste und die Fragenkarten zeigen eine vorhandene Teamzugehörigkeit.
+- Die Teilnehmendenansicht startet bei `Meist unterstützt` und kann dieselben vier Sortiermodi anfordern. In allen Sortiermodi stehen hervorgehobene Fragen zuerst; danach sortieren `Beste Fragen`, `Umstritten` und `Zeit` nach Metrik bzw. Erstellungszeit. Die Fragen-Suche läuft wie beim Host entprellt (300 ms) über `qa.list` und durchsucht nicht die geladene Seite lokal. Der Host filtert in »Teilnahmen durchsuchen« eine Identität über `qa.list` (`authorNickname`) in PostgreSQL, nicht über die geladene Seite; die Liste und die Fragenkarten zeigen eine vorhandene Teamzugehörigkeit.
 - Die Q&A-Wortwolke im Host folgt demselben Sortiermodus, kann im Dialog eingefroren werden und zeigt im Tooltip neben dem Groessenwert auch die Zahl der zugehoerigen Fragen.
 - In der maximierten Host-Vollansicht bleibt der Sortierumschalter oberhalb der Wolke sichtbar.
 
@@ -123,7 +123,7 @@ Die Host-Q&A-Wortwolke nutzt denselben Modus: `Meist unterstützt` gewichtet nac
 - [x] **AC 3:** Gleicher Score → eindeutige Reihenfolge über `U`, dann Netto-Score, dann `created_at`, dann `id`.
 - [x] **AC 4:** Kein Absturz bei 0 Stimmen oder \(N = 0\); keine Division durch Null.
 - [x] **AC 5:** Fragen oberhalb der Badge-Schwellen werden in der Host-Ansicht sichtbar als kontrovers/umstritten gekennzeichnet (siehe Abschnitt UI).
-- [x] **AC 6:** `PINNED`-Fragen bleiben sichtbar markiert, werden in den Host-Sortiermodi aber gemeinsam mit `ACTIVE` nach der gewaehlten Metrik einsortiert.
+- [x] **AC 6:** `PINNED`-Fragen bleiben sichtbar markiert und stehen in allen Sortiermodi zuerst (Host: vor `PENDING` und `ACTIVE`); innerhalb der Statusgruppe gilt die gewählte Metrik.
 - [x] **AC 7:** Teilnehmende behalten die Standardsortierung; Story 8.6 ist kein globaler Default-Wechsel.
 
 ## Beispiel SQL (Kontroversität)

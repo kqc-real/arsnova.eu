@@ -3,7 +3,7 @@ import { MAT_DIALOG_DATA, MatDialog, MatDialogRef } from '@angular/material/dial
 import { NoopAnimationsModule } from '@angular/platform-browser/animations';
 import { of } from 'rxjs';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { QA_REDACTION_PLACEHOLDER } from '@arsnova/shared-types';
+import { QA_REDACTION_CHAR } from '@arsnova/shared-types';
 import {
   QaRedactPassagesDialogComponent,
   type QaRedactPassagesDialogData,
@@ -59,7 +59,7 @@ describe('QaRedactPassagesDialogComponent', () => {
     const firstId = component.pendingRanges()[0]!.id;
     component.removeRange(firstId);
     expect(component.pendingRanges()).toHaveLength(1);
-    expect(component.previewText()).toContain(QA_REDACTION_PLACEHOLDER);
+    expect(component.previewText()).toContain(QA_REDACTION_CHAR.repeat(3));
 
     await component.confirmApply();
     expect(dialogOpen).toHaveBeenCalled();
@@ -87,7 +87,7 @@ describe('QaRedactPassagesDialogComponent', () => {
     expect(component.pendingRanges()).toEqual([
       expect.objectContaining({ start: 6, end: 9, excerpt: 'Max' }),
     ]);
-    expect(component.previewText()).toContain(QA_REDACTION_PLACEHOLDER);
+    expect(component.previewText()).toContain(QA_REDACTION_CHAR.repeat(3));
   });
 
   it('hält bei Konflikt den Dialog offen, lädt den Text neu und verwirft die Auswahl', async () => {

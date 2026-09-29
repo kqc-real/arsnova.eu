@@ -3,8 +3,11 @@
     <nav
       class="session-host__projection-pages"
       [class.session-host__projection-pages--app-frame]="!isImmersiveMode()"
-      aria-label="Projektionsseiten"
-      i18n-aria-label="@@sessionHost.projectionPages"
+      [attr.aria-label]="
+        projectionNavigationIsQaQuestions()
+          ? projectionQaQuestionsAriaLabel
+          : projectionPagesAriaLabel
+      "
       [attr.aria-busy]="projectionPagePending()"
     >
       <button
@@ -13,20 +16,26 @@
         (click)="changeProjectionPage(-1)"
         [disabledInteractive]="true"
         [disabled]="projectionPagePending() || page.index === 0"
-        i18n="@@sessionHost.projectionPrevious"
       >
-        Vorherige Seite
+        @if (projectionNavigationIsQaQuestions()) {
+          <span i18n="@@sessionHost.projectionQaPrevious">Vorherige Frage</span>
+        } @else {
+          <span i18n="@@sessionHost.projectionPrevious">Vorherige Seite</span>
+        }
       </button>
-      <span aria-live="polite">{{ page.index + 1 }} / {{ page.count }}</span>
+      <span aria-live="polite">{{ page.index + 1 }} / {{ projectionPageDisplayCount() }}</span>
       <button
         matButton="outlined"
         type="button"
         (click)="changeProjectionPage(1)"
         [disabledInteractive]="true"
-        [disabled]="projectionPagePending() || page.index >= page.count - 1"
-        i18n="@@sessionHost.projectionNext"
+        [disabled]="projectionPagePending() || page.index >= projectionPageDisplayCount() - 1"
       >
-        Nächste Seite
+        @if (projectionNavigationIsQaQuestions()) {
+          <span i18n="@@sessionHost.projectionQaNext">Nächste wartende Frage</span>
+        } @else {
+          <span i18n="@@sessionHost.projectionNext">Nächste Seite</span>
+        }
       </button>
       @if (projectionPageError()) {
         <p class="session-host__projection-pages-error" role="alert">
@@ -4781,10 +4790,13 @@
                       <article
                         class="session-qa-card"
                         [attr.id]="'host-qa-question-' + question.id"
-                        [class.session-qa-card--highlight]="isQaQuestionHighlighted(question.id)"
+                        [class.session-qa-card--highlight]="
+                          isQaQuestionHighlighted(question.id) &&
+                          !isQaPresenterHeroCard(question.id)
+                        "
                         [class.session-qa-card--compass-focus]="isQaCompassFocused(question.id)"
                         [class.session-qa-card--author-selected]="isQaAuthorSelected(question)"
-                        [class.session-qa-card--pinned]="question.status === 'PINNED'"
+                        [class.session-qa-card--pinned]="isQaPresenterHeroCard(question.id)"
                         [class.session-qa-card--pending]="question.status === 'PENDING'"
                         [attr.aria-current]="isQaCompassFocusPrimary(question.id) ? 'true' : null"
                         role="listitem"
@@ -4867,6 +4879,16 @@
                                   qaStatusIcon(question.status)
                                 }}</mat-icon>
                                 {{ qaStatusLabel(question.status) }}
+                              </span>
+                            }
+                            @if (isQaQuestionOnPresenterStage(question.id)) {
+                              <span
+                                class="session-qa-card__badge session-qa-card__badge--on-presenter"
+                              >
+                                <mat-icon class="session-qa-card__badge-icon" aria-hidden="true"
+                                  >present_to_all</mat-icon
+                                >
+                                {{ qaPresenterStageBadgeLabel }}
                               </span>
                             }
                             @if (isQaQuestionHighlighted(question.id)) {

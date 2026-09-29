@@ -70,7 +70,28 @@ Tastaturfokus nicht verloren geht.
 
 - Crowd-Lobby: Gesamtzahl und bei höchstens acht Teams Teamzahlen ersetzen
   Nicknames; QR und Code erhalten Vorrang.
-- Q&A: angeheftete Frage, höchstens zwei weitere Fragen und Restzahl.
+- Q&A: oben die aktuelle Host-Sortierung (»Sortierung: …«), darunter die angeheftete
+  Frage dominant (vertikal mittig, hörsaaltaugliche Typografie ≥36 px bei 1080p),
+  darunter höchstens zwei Queue-Fragen untereinander (≥30 px); Gesamtsumme nur im
+  Queue-Badge (»… Fragen«), ohne Seitenindikator und Restzahl auf der Bühne;
+  Hero und Queue zeigen Erstellungszeit (relativ) sowie die passende Sortier-Metrik:
+  bei BEST Zustimmung (%), bei CONTROVERSIAL geteilte Reaktionen (%) – nie beides;
+  `qa.presentProjection` liefert die Scores dafür immer mit (ohne Moderator-NLP),
+  auch außerhalb von BEST/CONTROVERSIAL;
+  `qa.presentProjection` lädt bis zu 500 `ACTIVE`/`PINNED`-Fragen (Forum-Seitenmaximum),
+  damit Host-Fragen-Navigator und Presenter dieselbe Seitenzahl teilen;
+  Host publiziert den Sortiermodus beim Q&A-Abonnement und vor dem Öffnen der
+  Präsentation (`qa.setPresenterSortMode`), damit Forum und Bühne denselben Modus nutzen;
+  `PINNED` steht in der Presenter-Bühnenreihenfolge zuerst (Host vor `PENDING`/`ACTIVE`);
+  der aktuelle Navigator-Hero steht zusätzlich oben im Host-Forum und trägt allein die
+  Hero-Einfärbung (wandert mit dem Cursor); Hero nutzt MD3-`primary-container` (Spielerisch:
+  verstärkter Container-Verlauf bzw. Dark `primary`); der Neu-Hinweis (`--highlight`)
+  überschreibt die Hero-Fläche nicht; Host-Forum markiert Hero und die aktuelle
+  Warteschlangen-Fragen mit »Aktuell in der Präsentation«;
+  der Host rückt den Hero über denselben Projektionsnavigator wie beim Quiz vor
+  (Beschriftung »Vorherige Frage« / »Nächste wartende Frage«, solange der Q&A-Kanal
+  projiziert wird); die bisherige Hero-Frage wandert aus dem Fokus, die nächste
+  Bühnenfrage (PINNED/ACTIVE in Presenter-Reihenfolge) wird Hero.
 - Wortwolken: höchstens 24 Ausgangsbegriffe, mindestens 30 px nach Layout und
   eine sichtbare Restzahl. Tatsächliche Textflächen werden auf Überschneidung
   geprüft; nicht passend darstellbare Begriffe gehen in die Restzahl ein.

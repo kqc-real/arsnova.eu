@@ -8,11 +8,14 @@
  *
  * `--corpus semantic` füllt statt dessen Paraphrasencluster für Host-Q&A-Themen
  * (1.14c Stufe 1 Encoder, vorbereitet auf Stufe-2-LLM-Labels).
+ * `--corpus betriebsversammlung` nutzt die Screenshot-/Demo-Fragen aus
+ * `apps/frontend/scripts/lib/betriebsversammlung-screenshot-corpus.mjs`.
  *
  * Beispiele:
  *   npm run seed:qa-forum -w @arsnova/backend
  *   npm run seed:qa-forum -w @arsnova/backend -- --code CWDE5X --replace
  *   npm run seed:qa-forum -w @arsnova/backend -- --code 88XZMY --corpus semantic
+ *   npm run seed:qa-forum -w @arsnova/backend -- --code KK9MEA --corpus betriebsversammlung --replace
  *   npm run seed:qa-forum -w @arsnova/backend -- --dry-run
  *   macOS (Clean, Prod-Build aller Locales, Sidecar, Freitext, Q&A, Kompass): npm run spacy:macos-dev
  *
@@ -20,6 +23,8 @@
  * nicht für Produktivdaten.
  */
 import { randomUUID } from 'crypto';
+import { dirname, join } from 'node:path';
+import { fileURLToPath, pathToFileURL } from 'node:url';
 import { format } from 'node:util';
 import { promptChoice, resolveSessionCode } from './lib/prompt-session-code';
 import {
@@ -40,7 +45,7 @@ function log(...values: unknown[]): void {
 type QaQuestionStatus = 'ACTIVE' | 'PINNED';
 type QaVoteDirection = 'UP' | 'DOWN';
 
-type SeedCorpus = 'spacy' | 'semantic';
+type SeedCorpus = 'spacy' | 'semantic' | 'betriebsversammlung';
 
 type CliOptions = {
   code: string;
@@ -196,9 +201,12 @@ Usage:
 
 Optionen:
   --code <CODE>          Session-Code; ohne Angabe und im TTY wird er abgefragt
-  --corpus <NAME>        spacy (Default, 500 Flexions-/Phrasenfragen) oder semantic (Paraphrasen für Themen/Stufe 2)
-  --count <N>            Anzahl Fragen; spaCy Default ${DEFAULT_QUESTION_COUNT}, semantic Default ${SEMANTIC_QA_SEED_ITEM_COUNT}; max ${MAX_QUESTION_COUNT}
-  --participants <N>     Anzahl Seed-Teilnehmende; spaCy Default ${DEFAULT_PARTICIPANT_COUNT}, semantic Default ${SEMANTIC_QA_SEED_PARTICIPANT_COUNT}; max ${MAX_PARTICIPANT_COUNT}
+  --corpus <NAME>        spacy (Default, 500 Flexions-/Phrasenfragen), semantic (Paraphrasen für Themen/Stufe 2)
+                         oder betriebsversammlung (Demo-/Screenshot-Fragen an Vorstand und Betriebsrat)
+  --count <N>            Anzahl Fragen; spaCy Default ${DEFAULT_QUESTION_COUNT}, semantic Default ${SEMANTIC_QA_SEED_ITEM_COUNT},
+                         betriebsversammlung Default ${BETRIEBSVERSAMMLUNG_QA_SEED_ITEM_COUNT}; max ${MAX_QUESTION_COUNT}
+  --participants <N>     Anzahl Seed-Teilnehmende; spaCy Default ${DEFAULT_PARTICIPANT_COUNT}, semantic Default ${SEMANTIC_QA_SEED_PARTICIPANT_COUNT},
+                         betriebsversammlung Default ${BETRIEBSVERSAMMLUNG_QA_SEED_PARTICIPANT_COUNT}; max ${MAX_PARTICIPANT_COUNT}
   --replace              Vorhandene Q&A-Fragen der Session vorher löschen
   --append               Neue Fragen trotz vorhandener Q&A-Fragen hinzufügen
   --dry-run              Nur prüfen und geplante Mengen ausgeben
@@ -207,9 +215,37 @@ Optionen:
 Hinweise:
   - Das spaCy-Korpus mischt Flexionsformen, Kurzfragen, Phrasen und lange Texte.
   - Das semantic-Korpus bündelt Klausur-, Regression-, Folien- und Beamer-Paraphrasen plus längere Fragen für LLM-Kurzlabels.
+  - Das betriebsversammlung-Korpus stammt aus dem Screenshot-Corpus (realistische Fragen, Mitarbeiternamen).
   - Vote-Profile bleiben gemischt, damit Sortierung Meist unterstützt / Beste Fragen / Umstritten die Analyse neu anstößt.
 `);
 }
+
+const SCRIPT_DIR = dirname(fileURLToPath(import.meta.url));
+const BETRIEBSVERSAMMLUNG_CORPUS_URL = pathToFileURL(
+  join(SCRIPT_DIR, '../../frontend/scripts/lib/betriebsversammlung-screenshot-corpus.mjs'),
+).href;
+
+type BetriebsversammlungCorpusModule = {
+  QA_QUESTIONS: readonly string[];
+  EMPLOYEE_NAMES: readonly string[];
+  PARTICIPANT_COUNT: number;
+};
+
+let betriebsversammlungCorpus: BetriebsversammlungCorpusModule | null = null;
+
+async function loadBetriebsversammlungCorpus(): Promise<BetriebsversammlungCorpusModule> {
+  if (betriebsversammlungCorpus) {
+    return betriebsversammlungCorpus;
+  }
+  betriebsversammlungCorpus = (await import(
+    BETRIEBSVERSAMMLUNG_CORPUS_URL
+  )) as BetriebsversammlungCorpusModule;
+  return betriebsversammlungCorpus;
+}
+
+/** Sync-Fallback-Zahlen; echte Korpuslänge wird in main() nachgeladen. */
+const BETRIEBSVERSAMMLUNG_QA_SEED_ITEM_COUNT = 301;
+const BETRIEBSVERSAMMLUNG_QA_SEED_PARTICIPANT_COUNT = 120;
 
 function parseCliOptions(argv: string[]): CliOptions {
   const args = [...argv];
@@ -251,7 +287,12 @@ function parseCliOptions(argv: string[]): CliOptions {
     .trim()
     .toUpperCase();
   const count = readPositiveInteger(readValue('count') ?? process.env['QUESTION_COUNT'], {
-    fallback: corpus === 'semantic' ? SEMANTIC_QA_SEED_ITEM_COUNT : DEFAULT_QUESTION_COUNT,
+    fallback:
+      corpus === 'semantic'
+        ? SEMANTIC_QA_SEED_ITEM_COUNT
+        : corpus === 'betriebsversammlung'
+          ? BETRIEBSVERSAMMLUNG_QA_SEED_ITEM_COUNT
+          : DEFAULT_QUESTION_COUNT,
     max: MAX_QUESTION_COUNT,
     label: 'count',
   });
@@ -259,7 +300,11 @@ function parseCliOptions(argv: string[]): CliOptions {
     readValue('participants') ?? process.env['PARTICIPANT_COUNT'],
     {
       fallback:
-        corpus === 'semantic' ? SEMANTIC_QA_SEED_PARTICIPANT_COUNT : DEFAULT_PARTICIPANT_COUNT,
+        corpus === 'semantic'
+          ? SEMANTIC_QA_SEED_PARTICIPANT_COUNT
+          : corpus === 'betriebsversammlung'
+            ? BETRIEBSVERSAMMLUNG_QA_SEED_PARTICIPANT_COUNT
+            : DEFAULT_PARTICIPANT_COUNT,
       max: MAX_PARTICIPANT_COUNT,
       label: 'participants',
     },
@@ -276,7 +321,12 @@ function parseSeedCorpus(value: string | undefined): SeedCorpus {
   if (corpus === 'semantic') {
     return 'semantic';
   }
-  throw new Error(`Ungueltiges Korpus fuer --corpus: ${value}. Erlaubt: spacy, semantic.`);
+  if (corpus === 'betriebsversammlung') {
+    return 'betriebsversammlung';
+  }
+  throw new Error(
+    `Ungueltiges Korpus fuer --corpus: ${value}. Erlaubt: spacy, semantic, betriebsversammlung.`,
+  );
 }
 
 function readPositiveInteger(
@@ -339,8 +389,19 @@ function buildParticipantNicknames(
     allowCustomNicknames?: boolean | null;
     anonymousMode?: boolean | null;
     takenNicknames?: ReadonlySet<string>;
+    employeeNames?: readonly string[];
   },
 ): string[] {
+  if (options.employeeNames && options.employeeNames.length > 0) {
+    return Array.from({ length: count }, (_, index) => {
+      const base =
+        options.employeeNames![index % options.employeeNames!.length] ??
+        `Mitarbeitende ${index + 1}`;
+      const cycle = Math.floor(index / options.employeeNames!.length);
+      return cycle > 0 ? `${base} ${cycle + 1}` : base;
+    });
+  }
+
   if (
     options.nicknameTheme === 'KINDERGARTEN' &&
     options.allowCustomNicknames === false &&
@@ -356,9 +417,18 @@ function buildParticipantNicknames(
 }
 
 function buildQuestionTexts(corpus: SeedCorpus, count: number): string[] {
-  return corpus === 'semantic'
-    ? buildSemanticQaQuestionTexts(count)
-    : buildSpacyQaQuestionTexts(count);
+  if (corpus === 'semantic') {
+    return buildSemanticQaQuestionTexts(count);
+  }
+  if (corpus === 'betriebsversammlung') {
+    const corpusModule = betriebsversammlungCorpus;
+    if (!corpusModule) {
+      throw new Error('Betriebsversammlung-Korpus wurde nicht geladen.');
+    }
+    const texts = corpusModule.QA_QUESTIONS;
+    return Array.from({ length: count }, (_, index) => texts[index % texts.length]!);
+  }
+  return buildSpacyQaQuestionTexts(count);
 }
 
 function buildQuestions(
@@ -530,6 +600,9 @@ async function main(): Promise<void> {
   options.code = await resolveSessionCode(options.code);
   assertOptions(options);
 
+  const betriebsversammlung =
+    options.corpus === 'betriebsversammlung' ? await loadBetriebsversammlungCorpus() : null;
+
   const { prisma } = await import('../src/db');
   try {
     const session = await prisma.session.findUnique({
@@ -568,6 +641,7 @@ async function main(): Promise<void> {
       takenNicknames: new Set(
         existingSessionParticipants.map((participant) => participant.nickname),
       ),
+      employeeNames: betriebsversammlung?.EMPLOYEE_NAMES,
     });
     const planned = buildQuestions(
       options.count,

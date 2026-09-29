@@ -3,20 +3,39 @@
  *
  * Offsets sind Unicode-Codepunkte (`[...text]`), nicht UTF-16-Code Units.
  * Der Server erzeugt den Ersatz selbst; Clients senden nur disjunkte Bereiche.
+ * Jeder geschwärzte Original-Codepunkt wird durch ein Blockzeichen ersetzt
+ * (längenerhaltend → dunkle Balken in der UI).
  */
 
-/** Sichtbarer Platzhalter ohne Preisgabe der Originallänge. */
-export const QA_REDACTION_PLACEHOLDER = '[geschwärzt]';
+/**
+ * Blockzeichen pro geschwärztem Original-Codepunkt (FULL BLOCK).
+ * In der UI als dunkles Rechteck gerendert, nicht als lesbarer String.
+ */
+export const QA_REDACTION_CHAR = '\u2588';
+
+/**
+ * Legacy-Platzhalter ohne Längenerhalt (ältere Datensätze vor Balken-Darstellung).
+ * Wird weiter erkannt und als Balkenreihe der Platzhalterlänge gerendert.
+ */
+export const QA_REDACTION_PLACEHOLDER_LEGACY = '[geschwärzt]';
+
+/**
+ * @deprecated Alias für Legacy-Erkennung und ältere Imports.
+ * Neue Schwärzungen schreiben `QA_REDACTION_CHAR` × Originallänge.
+ */
+export const QA_REDACTION_PLACEHOLDER = QA_REDACTION_PLACEHOLDER_LEGACY;
 
 /** Einreichungslimit für Q&A-Fragetext (Codepunkte). */
 export const QA_QUESTION_TEXT_MAX_CODE_POINTS = 500;
 
 /**
- * Obergrenze für Schwärzungs-Offsets nach wiederholtem Ersetzen
- * (ein Zeichen → Platzhalter verlängert den Text).
+ * Obergrenze für Schwärzungs-Offsets.
+ * Legacy-Platzhalter können den Text über 500 Codepunkte wachsen lassen;
+ * längenerhaltende Blockzeichen bleiben im 500er-Fenster.
  */
 export const QA_REDACTION_MAX_OFFSET =
-  QA_QUESTION_TEXT_MAX_CODE_POINTS * Array.from(QA_REDACTION_PLACEHOLDER).length;
+  QA_QUESTION_TEXT_MAX_CODE_POINTS *
+  Math.max(1, Array.from(QA_REDACTION_PLACEHOLDER_LEGACY).length);
 
 /** Höchstzahl getrennter Stellen pro atomarer Schwärzung. */
 export const QA_REDACTION_MAX_RANGES = 10;
@@ -58,26 +77,58 @@ export function qaCodePointsToText(codePoints: readonly string[]): string {
   return codePoints.join('');
 }
 
-/** Alle Vorkommen des Platzhalters als Codepunkt-Spannen `[start, end)`. */
-export function findQaRedactionPlaceholderSpans(codePoints: readonly string[]): QaRedactionRange[] {
-  const needle = qaTextCodePoints(QA_REDACTION_PLACEHOLDER);
-  if (needle.length === 0 || codePoints.length < needle.length) {
+function findLiteralSpans(codePoints: readonly string[], needle: string): QaRedactionRange[] {
+  const needlePoints = qaTextCodePoints(needle);
+  if (needlePoints.length === 0 || codePoints.length < needlePoints.length) {
     return [];
   }
   const spans: QaRedactionRange[] = [];
-  for (let index = 0; index <= codePoints.length - needle.length; index += 1) {
+  for (let index = 0; index <= codePoints.length - needlePoints.length; index += 1) {
     let match = true;
-    for (let offset = 0; offset < needle.length; offset += 1) {
-      if (codePoints[index + offset] !== needle[offset]) {
+    for (let offset = 0; offset < needlePoints.length; offset += 1) {
+      if (codePoints[index + offset] !== needlePoints[offset]) {
         match = false;
         break;
       }
     }
     if (match) {
-      spans.push({ start: index, end: index + needle.length });
-      index += needle.length - 1;
+      spans.push({ start: index, end: index + needlePoints.length });
+      index += needlePoints.length - 1;
     }
   }
+  return spans;
+}
+
+/** Zusammenhängende Läufe von `QA_REDACTION_CHAR` als Spannen `[start, end)`. */
+export function findQaRedactionCharRuns(codePoints: readonly string[]): QaRedactionRange[] {
+  const spans: QaRedactionRange[] = [];
+  let runStart = -1;
+  for (let index = 0; index <= codePoints.length; index += 1) {
+    const isBlock = index < codePoints.length && codePoints[index] === QA_REDACTION_CHAR;
+    if (isBlock) {
+      if (runStart < 0) {
+        runStart = index;
+      }
+      continue;
+    }
+    if (runStart >= 0) {
+      spans.push({ start: runStart, end: index });
+      runStart = -1;
+    }
+  }
+  return spans;
+}
+
+/**
+ * Alle geschwärzten Spannen: Blockzeichen-Läufe und Legacy-`[geschwärzt]`.
+ * Sortiert, disjunkt (Legacy enthält kein Blockzeichen).
+ */
+export function findQaRedactionPlaceholderSpans(codePoints: readonly string[]): QaRedactionRange[] {
+  const spans = [
+    ...findQaRedactionCharRuns(codePoints),
+    ...findLiteralSpans(codePoints, QA_REDACTION_PLACEHOLDER_LEGACY),
+  ];
+  spans.sort((a, b) => a.start - b.start || a.end - b.end);
   return spans;
 }
 
@@ -87,7 +138,7 @@ function rangesOverlap(left: QaRedactionRange, right: QaRedactionRange): boolean
 
 /**
  * Prüft und wendet disjunkte Schwärzungsbereiche auf den aktuellen Fragetext an.
- * Erzeugt den Platzhalter serverseitig; kein Client-Ersatztext.
+ * Erzeugt Blockzeichen serverseitig (ein Zeichen pro Original-Codepunkt); kein Client-Ersatztext.
  */
 export function applyQaPassageRedaction(
   text: string,
@@ -143,12 +194,13 @@ export function applyQaPassageRedaction(
     }
   }
 
-  const placeholderPoints = qaTextCodePoints(QA_REDACTION_PLACEHOLDER);
   const result: string[] = [];
   let cursor = 0;
   for (const range of normalized) {
     result.push(...codePoints.slice(cursor, range.start));
-    result.push(...placeholderPoints);
+    for (let index = range.start; index < range.end; index += 1) {
+      result.push(QA_REDACTION_CHAR);
+    }
     cursor = range.end;
   }
   result.push(...codePoints.slice(cursor));

@@ -2391,22 +2391,127 @@
 }
 
 .session-qa-card--pinned {
-  border-color: color-mix(in srgb, var(--mat-sys-tertiary) 50%, transparent);
-  background: linear-gradient(
-    180deg,
-    color-mix(in srgb, var(--mat-sys-tertiary) 4%, var(--mat-sys-surface)),
-    color-mix(in srgb, var(--mat-sys-tertiary) 2%, var(--mat-sys-surface-container-low))
-  );
+  /* MD3-Fokusfläche (wie Quiz-Frage): primary-container / on-primary-container.
+     Gewinnt gegen --highlight (Neu-Hinweis). Spielerisch: verstärkter Verlauf in
+     playful-inner-chrome.scss. */
+  border-color: color-mix(in srgb, var(--mat-sys-primary) 48%, var(--mat-sys-outline-variant));
+  background: var(--mat-sys-primary-container);
+  color: var(--mat-sys-on-primary-container);
   box-shadow:
-    0 0 0 1px color-mix(in srgb, var(--mat-sys-tertiary) 10%, transparent),
-    0 0.5rem 1rem color-mix(in srgb, var(--mat-sys-tertiary) 8%, transparent);
+    var(--mat-sys-level2),
+    0 0 0 1px color-mix(in srgb, var(--mat-sys-primary) 22%, transparent),
+    0 0.85rem 1.6rem color-mix(in srgb, var(--mat-sys-primary) 18%, transparent);
+
+  .session-qa-card__text,
+  .session-qa-card__author-name,
+  .session-qa-card__author-name-text,
+  .session-qa-card__votes:not(.session-qa-card__votes--positive):not(
+      .session-qa-card__votes--negative
+    ),
+  .session-qa-card__votes-icon {
+    color: var(--mat-sys-on-primary-container);
+  }
+
+  .session-qa-card__author-team,
+  .session-qa-card__time,
+  .session-qa-card__metric:not(.session-qa-card__metric--best):not(
+      .session-qa-card__metric--controversial
+    ) {
+    color: var(--mat-sys-on-primary-container);
+    opacity: 1;
+  }
+
+  .session-qa-card__author-icon,
+  .session-qa-card__author-name {
+    background: color-mix(in srgb, var(--mat-sys-on-primary-container) 12%, transparent);
+    border-color: color-mix(in srgb, var(--mat-sys-on-primary-container) 28%, transparent);
+    color: var(--mat-sys-on-primary-container);
+  }
+
+  .session-qa-card__author-icon--button:hover {
+    background: color-mix(in srgb, var(--mat-sys-on-primary-container) 18%, transparent);
+  }
+
+  .session-qa-card__author-icon--selected {
+    background: color-mix(in srgb, var(--mat-sys-on-primary-container) 22%, transparent);
+    border-color: color-mix(in srgb, var(--mat-sys-on-primary-container) 40%, transparent);
+    color: var(--mat-sys-on-primary-container);
+  }
+
+  .session-qa-card__status {
+    background: color-mix(in srgb, var(--mat-sys-on-primary-container) 14%, transparent);
+    color: var(--mat-sys-on-primary-container);
+  }
+
+  .session-qa-card__status--pinned {
+    background: color-mix(in srgb, var(--mat-sys-on-primary-container) 18%, transparent);
+    color: var(--mat-sys-on-primary-container);
+  }
+
+  .session-qa-card__votes:not(.session-qa-card__votes--positive):not(
+      .session-qa-card__votes--negative
+    ) {
+    background: color-mix(in srgb, var(--mat-sys-on-primary-container) 12%, transparent);
+  }
+
+  .session-qa-card__metric {
+    background: color-mix(in srgb, var(--mat-sys-on-primary-container) 12%, transparent);
+  }
+
+  .session-qa-card__metric--best,
+  .session-qa-card__metric--controversial {
+    background: color-mix(in srgb, var(--mat-sys-on-primary-container) 16%, transparent);
+    color: var(--mat-sys-on-primary-container);
+  }
+
+  .session-qa-card__badge--controversial,
+  .session-qa-card__badge--redacted,
+  .session-qa-card__badge--compass,
+  .session-qa-card__badge--on-presenter {
+    background: color-mix(in srgb, var(--mat-sys-on-primary-container) 14%, transparent);
+    color: var(--mat-sys-on-primary-container);
+    box-shadow: inset 0 0 0 1px
+      color-mix(in srgb, var(--mat-sys-on-primary-container) 22%, transparent);
+  }
+
+  .session-qa-card__marker {
+    background: var(--mat-sys-on-primary-container);
+    box-shadow: 0 0 0 0.25rem
+      color-mix(in srgb, var(--mat-sys-on-primary-container) 18%, transparent);
+  }
+
+  .session-qa-card__action-btn--approve,
+  .session-qa-card__action-btn--pin,
+  .session-qa-card__action-btn--unpin,
+  .session-qa-card__action-btn--archive,
+  .session-qa-card__action-btn--redact {
+    background: color-mix(in srgb, var(--mat-sys-on-primary-container) 12%, transparent);
+    color: var(--mat-sys-on-primary-container);
+    box-shadow: inset 0 0 0 1px
+      color-mix(in srgb, var(--mat-sys-on-primary-container) 24%, transparent);
+  }
+
+  .session-qa-card__action-btn--unpin {
+    text-decoration-color: var(--mat-sys-on-primary-container);
+  }
+
+  .session-qa-card__action-btn--delete {
+    /* Auf primary/Hero sonst zu blass (error-Rosa ~16% auf Magenta). */
+    --mat-button-tonal-container-color: var(--mat-sys-error);
+    --mat-button-tonal-label-text-color: var(--mat-sys-on-error);
+    --mdc-filled-button-container-color: var(--mat-sys-error);
+    --mdc-filled-button-label-text-color: var(--mat-sys-on-error);
+    background: var(--mat-sys-error);
+    color: var(--mat-sys-on-error);
+    box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--mat-sys-on-error) 28%, transparent);
+  }
 }
 
 .session-qa-card--pending {
   border-left: 3px solid var(--mat-sys-tertiary);
 }
 
-.session-qa-card--highlight {
+.session-qa-card--highlight:not(.session-qa-card--pinned) {
   border-color: color-mix(in srgb, var(--mat-sys-primary) 42%, var(--mat-sys-outline-variant));
   background:
     radial-gradient(
@@ -2653,6 +2758,13 @@
   line-height: 1.25;
 }
 
+.session-qa-card__badge--on-presenter {
+  gap: 0.3rem;
+  background: color-mix(in srgb, var(--mat-sys-primary) 18%, transparent);
+  color: var(--mat-sys-primary);
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--mat-sys-primary) 28%, transparent);
+}
+
 .session-qa-card__votes {
   display: inline-flex;
   align-items: center;
@@ -2781,9 +2893,15 @@
 }
 
 .session-qa-card__action-btn--delete {
-  background: color-mix(in srgb, var(--mat-sys-error) 10%, transparent);
+  --mat-button-tonal-container-color: color-mix(
+    in srgb,
+    var(--mat-sys-error) 18%,
+    var(--mat-sys-surface)
+  );
+  --mat-button-tonal-label-text-color: var(--mat-sys-error);
+  background: color-mix(in srgb, var(--mat-sys-error) 18%, var(--mat-sys-surface));
   color: var(--mat-sys-error);
-  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--mat-sys-error) 18%, transparent);
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--mat-sys-error) 32%, transparent);
 }
 
 .session-qa-card__action-btn--redact {
@@ -2887,7 +3005,7 @@
 }
 
 @media (prefers-reduced-motion: no-preference) {
-  .session-qa-card--highlight {
+  .session-qa-card--highlight:not(.session-qa-card--pinned) {
     animation: session-qa-card-highlight-in 320ms cubic-bezier(0.2, 0, 0, 1);
   }
 

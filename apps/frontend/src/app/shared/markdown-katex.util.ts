@@ -1,13 +1,15 @@
 import katex from 'katex';
 import DOMPurify from 'dompurify';
 import { marked } from 'marked';
-import { QA_REDACTION_PLACEHOLDER } from '@arsnova/shared-types';
+import { QA_REDACTION_CHAR, QA_REDACTION_PLACEHOLDER_LEGACY } from '@arsnova/shared-types';
 
 import { renderMarkdownCodeBlockHtml } from './markdown-code-highlight';
 import { MARKDOWN_EMOJI_SHORTCODE_MAP } from './markdown-emoji-shortcodes';
 
-/** Markdown würde `[geschwärzt]` als Referenz-Link lesen; das Token bleibt wörtlicher Text. */
-const QA_REDACTION_MD_TOKEN = '\uE000ARSNOVA_QA_REDACTED\uE001';
+/** Markdown würde Legacy-`[geschwärzt]` als Referenz-Link lesen; Token bleibt wörtlicher Text. */
+const QA_REDACTION_MD_LEGACY_TOKEN = '\uE000ARSNOVA_QA_REDACTED_LEGACY\uE001';
+const QA_REDACTION_MD_RUN_TOKEN_PREFIX = '\uE000ARSNOVA_QA_REDACTED_RUN:';
+const QA_REDACTION_MD_RUN_TOKEN_SUFFIX = '\uE001';
 
 export interface MarkdownRenderResult {
   html: string;
@@ -160,20 +162,54 @@ export function renderMarkdownWithKatex(
   return { html: sanitizeMarkdownHtml(html), katexError };
 }
 
+function qaRedactedPassageAriaLabel(): string {
+  return $localize`:@@sessionQa.redactedPassageAria:Geschwärzte Passage`;
+}
+
+function renderQaRedactedPassageHtml(charCount: number): string {
+  const count = Math.max(1, Math.floor(charCount));
+  // Pro geschwärztem Codepunkt genau ein sichtbares Rechteck (■), kein durchgehender Balken.
+  const chars = Array.from(
+    { length: count },
+    () => '<span class="qa-redacted-char" aria-hidden="true">\u25A0</span>',
+  ).join('');
+  return `<span class="qa-redacted-passage" role="img" aria-label="${escapeHtml(qaRedactedPassageAriaLabel())}">${chars}</span>`;
+}
+
 function protectQaRedactionPlaceholders(source: string): string {
-  if (!source.includes(QA_REDACTION_PLACEHOLDER)) {
-    return source;
+  let next = source;
+  if (next.includes(QA_REDACTION_PLACEHOLDER_LEGACY)) {
+    next = next.split(QA_REDACTION_PLACEHOLDER_LEGACY).join(QA_REDACTION_MD_LEGACY_TOKEN);
   }
-  return source.split(QA_REDACTION_PLACEHOLDER).join(QA_REDACTION_MD_TOKEN);
+  if (next.includes(QA_REDACTION_CHAR)) {
+    const runPattern = new RegExp(`${QA_REDACTION_CHAR}+`, 'g');
+    next = next.replace(
+      runPattern,
+      (run) =>
+        `${QA_REDACTION_MD_RUN_TOKEN_PREFIX}${Array.from(run).length}${QA_REDACTION_MD_RUN_TOKEN_SUFFIX}`,
+    );
+  }
+  return next;
 }
 
 function restoreQaRedactionPlaceholders(html: string): string {
-  if (!html.includes(QA_REDACTION_MD_TOKEN)) {
-    return html;
+  let next = html;
+  if (next.includes(QA_REDACTION_MD_LEGACY_TOKEN)) {
+    const legacyBars = renderQaRedactedPassageHtml(
+      Array.from(QA_REDACTION_PLACEHOLDER_LEGACY).length,
+    );
+    next = next.split(QA_REDACTION_MD_LEGACY_TOKEN).join(legacyBars);
   }
-  return html
-    .split(QA_REDACTION_MD_TOKEN)
-    .join(`<span class="qa-redacted-passage">${escapeHtml(QA_REDACTION_PLACEHOLDER)}</span>`);
+  if (next.includes(QA_REDACTION_MD_RUN_TOKEN_PREFIX)) {
+    const runPattern = new RegExp(
+      `${QA_REDACTION_MD_RUN_TOKEN_PREFIX}(\\d+)${QA_REDACTION_MD_RUN_TOKEN_SUFFIX}`,
+      'g',
+    );
+    next = next.replace(runPattern, (_match, lengthText: string) =>
+      renderQaRedactedPassageHtml(Number(lengthText)),
+    );
+  }
+  return next;
 }
 
 function parseMarkdownEscapingInlineHtml(
@@ -616,6 +652,7 @@ function sanitizeMarkdownHtml(html: string): string {
         'align',
         'aria-hidden',
         'aria-label',
+        'role',
         'disabled',
         'focusable',
         'viewBox',

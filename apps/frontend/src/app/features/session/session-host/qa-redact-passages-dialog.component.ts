@@ -19,7 +19,6 @@ import type { QaQuestionDTO, QaRedactionRange } from '@arsnova/shared-types';
 import {
   QA_REDACTION_MAX_RANGE_CODE_POINTS,
   QA_REDACTION_MAX_RANGES,
-  QA_REDACTION_PLACEHOLDER,
   findQaRedactionSearchOccurrences,
   previewQaPassageRedaction,
   qaTextCodePoints,
@@ -85,7 +84,6 @@ export class QaRedactPassagesDialogComponent {
 
   private readonly sourceTextArea = viewChild<HTMLTextAreaElement>('sourceTextArea');
 
-  readonly placeholder = QA_REDACTION_PLACEHOLDER;
   readonly maxRanges = QA_REDACTION_MAX_RANGES;
   readonly maxRangeLength = QA_REDACTION_MAX_RANGE_CODE_POINTS;
 

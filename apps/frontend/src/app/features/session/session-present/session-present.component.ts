@@ -1,6 +1,5 @@
-import { ProjectionPagesComponent } from './projection-pages.component';
 import { CdkTrapFocus } from '@angular/cdk/a11y';
-import { DecimalPipe, DOCUMENT, NgTemplateOutlet } from '@angular/common';
+import { DecimalPipe, DOCUMENT, formatNumber, NgTemplateOutlet } from '@angular/common';
 import {
   Component,
   DestroyRef,
@@ -11,9 +10,11 @@ import {
   OnInit,
   afterNextRender,
   computed,
+  effect,
   inject,
   isDevMode,
   signal,
+  untracked,
 } from '@angular/core';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
@@ -55,6 +56,7 @@ import type {
   HostVoteProgressDTO,
   LeaderboardEntryDTO,
   QaQuestionDTO,
+  QaQuestionSortMode,
   QaQuestionsListDTO,
   QaWordCloudPresenterProjectionDTO,
   QuickFeedbackResult,
@@ -172,7 +174,6 @@ type LobbyFoyerMotionProfile = {
     RouterLink,
     WordCloudComponent,
     SessionProjectionQuizComponent,
-    ProjectionPagesComponent,
     MarkdownImageLightboxDirective,
     FoyerEntranceLayerComponent,
   ],
@@ -235,8 +236,12 @@ export class SessionPresentComponent implements OnInit, OnDestroy {
   readonly personalLeaderboard = signal<LeaderboardEntryDTO[]>([]);
   private readonly personalBoardPageIndex = signal(0);
   readonly teamLeaderboard = signal<TeamLeaderboardEntryDTO[]>([]);
-  readonly pinnedQaQuestion = signal<QaQuestionDTO | null>(null);
-  readonly presenterQaQuestions = signal<QaQuestionDTO[]>([]);
+  /**
+   * Presenter-Bühne: sortierte ACTIVE+PINNED-Liste (`qa.presentProjection`).
+   * `presenterPage.index` wählt die Hero-Frage; die nächsten bis zu 2 folgen in der Queue.
+   */
+  readonly presenterQaOrderedQuestions = signal<QaQuestionDTO[]>([]);
+  readonly presenterQaSortMode = signal<QaQuestionSortMode>('BEST');
   readonly quickFeedbackResult = signal<QuickFeedbackResult | null>(null);
   readonly freetextResponses = signal<string[]>([]);
   readonly freetextQuestionId = signal<string | null>(null);
@@ -433,12 +438,97 @@ export class SessionPresentComponent implements OnInit, OnDestroy {
     () => this.showQaProjection() && this.pinnedQaQuestion() !== null,
   );
   readonly showQaQueue = computed(
-    () => this.showQaProjection() && this.presenterQaQuestions().length > 0,
+    () => this.showQaProjection() && this.visibleQaQueueQuestions().length > 0,
   );
-  readonly visibleQaQueueQuestions = computed(() => this.presenterQaQuestions().slice(0, 2));
-  readonly remainingQaQuestions = computed(() =>
-    Math.max(0, this.presenterQaQuestions().length - 2),
+  /** Bis zu zwei wartende Fragen unter dem Hero. */
+  private static readonly QA_QUEUE_VISIBLE = 2;
+  /** Eine Navigationsposition pro Bühnenfrage (Hero rückt vor). */
+  readonly qaQueuePageCount = computed(() => {
+    const total = this.presenterQaOrderedQuestions().length;
+    return Math.max(1, total);
+  });
+  readonly qaQueuePageIndex = computed(() => {
+    const pageCount = this.qaQueuePageCount();
+    const index = this.session()?.presenterPage?.index ?? 0;
+    return Math.max(0, Math.min(pageCount - 1, index));
+  });
+  /** Aktuelle Hero-Frage (nicht fest PINNED, sondern Cursor in der Bühnenliste). */
+  readonly pinnedQaQuestion = computed(
+    () => this.presenterQaOrderedQuestions()[this.qaQueuePageIndex()] ?? null,
   );
+  /** Wartende Fragen nach dem Hero (für Badge-Gesamtzahl). */
+  readonly presenterQaQuestions = computed(() =>
+    this.presenterQaOrderedQuestions().slice(this.qaQueuePageIndex() + 1),
+  );
+  readonly visibleQaQueueQuestions = computed(() =>
+    this.presenterQaQuestions().slice(0, SessionPresentComponent.QA_QUEUE_VISIBLE),
+  );
+  /** Verbleibende Warteschlange; Seitenwechsel steuert der Host-Navigator. */
+  qaQueueCountLabel(): string {
+    const count = this.presenterQaQuestions().length;
+    return count === 1
+      ? $localize`:@@sessionPresent.qaQueueCountOne:1 Frage`
+      : $localize`:@@sessionPresent.qaQueueCountMany:${this.formatCount(count)}:count: Fragen`;
+  }
+  qaQueueCountAriaLabel(): string {
+    const count = this.presenterQaQuestions().length;
+    return count === 1
+      ? $localize`:@@sessionPresent.qaQueueCountAriaOne:1 Frage in der Warteschlange`
+      : $localize`:@@sessionPresent.qaQueueCountAriaMany:${this.formatCount(count)}:count: Fragen in der Warteschlange`;
+  }
+  qaSortModeLabel(mode: QaQuestionSortMode = this.presenterQaSortMode()): string {
+    switch (mode) {
+      case 'TOP':
+        return $localize`:@@sessionQa.sortTop:Meist unterstützt`;
+      case 'BEST':
+        return $localize`:@@sessionQa.sortBest:Beste Fragen`;
+      case 'CONTROVERSIAL':
+        return $localize`:@@sessionQa.sortControversial:Umstritten`;
+      case 'TIME':
+        return $localize`:@@sessionQa.sortTime:Zeit`;
+    }
+  }
+  qaSortCriteriaLabel(): string {
+    return $localize`:@@sessionPresent.qaSortCriteria:Sortierung: ${this.qaSortModeLabel()}:sort:`;
+  }
+  qaPositiveVoteCount(question: QaQuestionDTO): number {
+    return question.positiveVoteCount ?? 0;
+  }
+  qaNegativeVoteCount(question: QaQuestionDTO): number {
+    return question.negativeVoteCount ?? 0;
+  }
+  qaVotesBreakdownAriaLabel(question: QaQuestionDTO): string {
+    const up = this.formatCount(this.qaPositiveVoteCount(question));
+    const down = this.formatCount(this.qaNegativeVoteCount(question));
+    return $localize`:@@sessionQa.votesBreakdownAria:${up}:up: dafür, ${down}:down: dagegen`;
+  }
+
+  relativeTime(isoDate: string): string {
+    const diff = Date.now() - new Date(isoDate).getTime();
+    const seconds = Math.floor(diff / 1000);
+    if (seconds < 60) return $localize`gerade eben`;
+    const minutes = Math.floor(seconds / 60);
+    if (minutes < 60) return $localize`vor ${minutes}\u00A0Min.`;
+    const hours = Math.floor(minutes / 60);
+    if (hours < 24)
+      return hours === 1 ? $localize`vor 1\u00A0Std.` : $localize`vor ${hours}\u00A0Std.`;
+    const days = Math.floor(hours / 24);
+    return days === 1 ? $localize`vor 1\u00A0Tag` : $localize`vor ${days}\u00A0Tagen`;
+  }
+
+  formatQaCreatedAt(isoDate: string): string {
+    return new Intl.DateTimeFormat(this.localeId, {
+      dateStyle: 'medium',
+      timeStyle: 'short',
+    }).format(new Date(isoDate));
+  }
+
+  formatQaPercent(value: number | undefined): string {
+    if (!Number.isFinite(value)) {
+      return '0 %';
+    }
+    return `${formatNumber((value ?? 0) * 100, this.localeId, '1.0-0')} %`;
+  }
   readonly showQaWordCloud = computed(() => {
     const session = this.session();
     if (!this.showSecondaryPresentSurfaces() || session?.presenterSurface !== 'qaWordCloud') {
@@ -462,14 +552,7 @@ export class SessionPresentComponent implements OnInit, OnDestroy {
       },
     ),
   );
-  readonly presenterQaWordCloudQuestions = computed(() => {
-    const questions: QaQuestionDTO[] = [];
-    const pinned = this.pinnedQaQuestion();
-    if (pinned) {
-      questions.push(pinned);
-    }
-    return [...questions, ...this.presenterQaQuestions()];
-  });
+  readonly presenterQaWordCloudQuestions = computed(() => this.presenterQaOrderedQuestions());
   readonly presenterQaWordCloudResponses = computed(() =>
     this.presenterQaWordCloudQuestions().map((question) => question.text),
   );
@@ -820,6 +903,19 @@ export class SessionPresentComponent implements OnInit, OnDestroy {
   );
 
   async ngOnInit(): Promise<void> {
+    effect(
+      () => {
+        if (!this.showQaProjection()) {
+          return;
+        }
+        const count = this.qaQueuePageCount();
+        untracked(() => {
+          void this.reportProjectionPages(count);
+        });
+      },
+      { injector: this.injector },
+    );
+
     if (typeof document !== 'undefined') {
       document.addEventListener('visibilitychange', this.onVisibilityChange);
       document.addEventListener('fullscreenchange', this.onFullscreenChange);
@@ -1326,8 +1422,7 @@ export class SessionPresentComponent implements OnInit, OnDestroy {
     this.currentQuestionSub = null;
     this.voteProgressSub?.unsubscribe();
     this.voteProgressSub = null;
-    this.pinnedQaQuestion.set(null);
-    this.presenterQaQuestions.set([]);
+    this.presenterQaOrderedQuestions.set([]);
     this.quickFeedbackResult.set(null);
     this.freetextResponses.set([]);
     this.freetextQuestionId.set(null);
@@ -1450,8 +1545,7 @@ export class SessionPresentComponent implements OnInit, OnDestroy {
     const sessionId = this.session()?.id;
     const qaEnabled = this.session()?.channels?.qa.enabled ?? this.session()?.type === 'Q_AND_A';
     if (!sessionId || !qaEnabled || this.showFinishProjection() || this.presentDeadlineClosed) {
-      this.pinnedQaQuestion.set(null);
-      this.presenterQaQuestions.set([]);
+      this.presenterQaOrderedQuestions.set([]);
       return;
     }
 
@@ -1466,12 +1560,10 @@ export class SessionPresentComponent implements OnInit, OnDestroy {
         const visibleQuestions = snapshot.filter(
           (question) => question.status === 'PINNED' || question.status === 'ACTIVE',
         );
-        this.pinnedQaQuestion.set(
-          visibleQuestions.find((question) => question.status === 'PINNED') ?? null,
-        );
-        this.presenterQaQuestions.set(
-          visibleQuestions.filter((question) => question.status === 'ACTIVE'),
-        );
+        this.presenterQaOrderedQuestions.set([
+          ...visibleQuestions.filter((question) => question.status === 'PINNED'),
+          ...visibleQuestions.filter((question) => question.status === 'ACTIVE'),
+        ]);
         return;
       }
       const terminal = snapshot.state === 'SESSION_ENDED';
@@ -1488,22 +1580,23 @@ export class SessionPresentComponent implements OnInit, OnDestroy {
         return;
       }
       if (this.presentDeadlineClosed) {
-        this.pinnedQaQuestion.set(null);
-        this.presenterQaQuestions.set([]);
+        this.presenterQaOrderedQuestions.set([]);
         return;
       }
       if (snapshot.state === 'UNCONFIGURED') {
-        this.pinnedQaQuestion.set(null);
-        this.presenterQaQuestions.set([]);
+        this.presenterQaOrderedQuestions.set([]);
         return;
+      }
+      if (snapshot.sortMode) {
+        this.presenterQaSortMode.set(snapshot.sortMode);
       }
       const visibleQuestions = snapshot.questions.filter(
         (question) => question.status === 'PINNED' || question.status === 'ACTIVE',
       );
-      const pinned = visibleQuestions.find((question) => question.status === 'PINNED') ?? null;
-      const queue = visibleQuestions.filter((question) => question.status === 'ACTIVE');
-      this.pinnedQaQuestion.set(pinned);
-      this.presenterQaQuestions.set(queue);
+      this.presenterQaOrderedQuestions.set([
+        ...visibleQuestions.filter((question) => question.status === 'PINNED'),
+        ...visibleQuestions.filter((question) => question.status === 'ACTIVE'),
+      ]);
     } catch {
       // Einzelner Live-Abruf: letzten Stand behalten; Meta-Poll und WS melden den Gesamtzustand.
     }

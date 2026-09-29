@@ -81,8 +81,9 @@ vi.mock('../lib/qaTelemetry', () => ({
 }));
 
 import { emitQaQuestionsSignal, resetQaQuestionsSignalsForTests } from '../lib/qaQuestionsSignal';
+import { clearAllQaPresenterSortModes } from '../lib/qaPresenterSortMode';
 import { qaRouter, resetSharedQaRankingCacheForTests } from '../routers/qa';
-import { QA_REDACTION_PLACEHOLDER, qaQuestionTextVersion } from '@arsnova/shared-types';
+import { QA_REDACTION_CHAR, qaQuestionTextVersion } from '@arsnova/shared-types';
 
 function hostCtx(token: string | null) {
   return {
@@ -200,6 +201,7 @@ describe('qa router (Epic 8)', () => {
   beforeEach(() => {
     resetQaQuestionsSignalsForTests();
     resetSharedQaRankingCacheForTests();
+    clearAllQaPresenterSortModes();
     vi.resetAllMocks();
     rawQueryResults.createQuestion.length = 0;
     rawQueryResults.changeVote.length = 0;
@@ -562,7 +564,9 @@ describe('qa router (Epic 8)', () => {
     expect(rawSqlText(prismaMock.$queryRaw.mock.calls[0] ?? [])).toContain(
       'ranked."bestScore" DESC',
     );
-    expect(rawSqlText(prismaMock.$queryRaw.mock.calls[0] ?? [])).toContain(`WHEN 'ACTIVE' THEN 0`);
+    expect(rawSqlText(prismaMock.$queryRaw.mock.calls[0] ?? [])).toMatch(
+      /WHEN 'PINNED' THEN 0[\s\S]*WHEN 'ACTIVE' THEN 1/,
+    );
     expect(rawSqlText(prismaMock.$queryRaw.mock.calls[0] ?? [])).toContain('GREATEST(');
   });
 
@@ -614,7 +618,9 @@ describe('qa router (Epic 8)', () => {
     expect(rawSqlText(prismaMock.$queryRaw.mock.calls[0] ?? [])).toContain(
       'ranked."controversyScore" DESC',
     );
-    expect(rawSqlText(prismaMock.$queryRaw.mock.calls[0] ?? [])).toContain(`WHEN 'ACTIVE' THEN 0`);
+    expect(rawSqlText(prismaMock.$queryRaw.mock.calls[0] ?? [])).toMatch(
+      /WHEN 'PINNED' THEN 0[\s\S]*WHEN 'ACTIVE' THEN 1/,
+    );
   });
 
   it('sortiert die Teilnehmer-Q&A-Liste nach TIME in der Datenbank', async () => {
@@ -658,7 +664,7 @@ describe('qa router (Epic 8)', () => {
     ]);
     const sql = rawSqlText(prismaMock.$queryRaw.mock.calls[0] ?? []);
     expect(sql).toContain('ranked."createdAt" DESC');
-    expect(sql).toContain(`WHEN 'ACTIVE' THEN 0`);
+    expect(sql).toMatch(/WHEN 'PINNED' THEN 0[\s\S]*WHEN 'ACTIVE' THEN 1/);
     expect(sql).not.toContain('ranked."bestScore" DESC');
     expect(sql).not.toContain('GREATEST(');
     expect(sql).not.toContain('POWER(');
@@ -744,9 +750,113 @@ describe('qa router (Epic 8)', () => {
       const result = await caller.presentProjection({ sessionId: SESSION_ID });
 
       expect(result.questions.map((question) => question.text)).toEqual(['Öffentlich freigegeben']);
+      expect(result.sortMode).toBe('BEST');
+      expect(result.questions[0]).toMatchObject({
+        bestScore: 0,
+        controversyScore: 0,
+        positiveVoteCount: 0,
+        negativeVoteCount: 0,
+      });
       const sql = rawSqlText(prismaMock.$queryRaw.mock.calls[0] ?? []);
       expect(sql).toContain(`question."status" IN ('ACTIVE', 'PINNED', 'ARCHIVED')`);
+      expect(sql).toContain(`question."status"::TEXT IN (`);
       expect(sql).not.toContain(`question."status" = 'PENDING'`);
+      // Host-Default BEST, solange der Host keinen Sortiermodus publiziert hat.
+      expect(sql).toContain('ranked."bestScore" DESC');
+      // Presenter bekommt immer Wilson-/Controversy-Scores (Meta auf der Bühne).
+      expect(sql).toMatch(/CASE[\s\S]*AS "bestScore"/);
+      expect(prismaMock.participant.count).toHaveBeenCalled();
+      // pageSize 500 → LIMIT 501; Statusfilter ACTIVE+PINNED als Query-Werte.
+      expect(prismaMock.$queryRaw.mock.calls[0]?.slice(1)).toEqual(
+        expect.arrayContaining([expect.objectContaining({ values: ['ACTIVE', 'PINNED'] }), 501, 0]),
+      );
+    },
+  );
+
+  it('übernimmt die vom Host publizierte Sortierung in der Presenter-Projektion', async () => {
+    prismaMock.session.findUnique.mockResolvedValue({
+      ...ACTIVE_QA_SESSION,
+      type: 'QUIZ',
+      qaEnabled: true,
+      qaOpen: true,
+      qaModerationMode: false,
+    });
+
+    await hostCaller.setPresenterSortMode({ code: 'CODE12', sortMode: 'TOP' });
+
+    rawQueryResults.rankedQuestions.push([rankedQaRow({ text: 'Nach Stimmen', status: 'ACTIVE' })]);
+    const result = await caller.presentProjection({ sessionId: SESSION_ID });
+
+    expect(result.questions.map((question) => question.text)).toEqual(['Nach Stimmen']);
+    expect(result.sortMode).toBe('TOP');
+    expect(result.questions[0]).toMatchObject({
+      bestScore: 0,
+      controversyScore: 0,
+    });
+    const sql = rawSqlText(prismaMock.$queryRaw.mock.calls[0] ?? []);
+    expect(sql).toContain('ranked."upvoteCount" DESC');
+    expect(sql).not.toContain('ranked."bestScore" DESC');
+    // Auch bei TOP werden Scores für die Bühnen-Meta berechnet.
+    expect(sql).toMatch(/CASE[\s\S]*AS "bestScore"/);
+    expect(prismaMock.participant.count).toHaveBeenCalled();
+  });
+
+  it('lädt in der Presenter-Projektion bis zu 500 ACTIVE+PINNED statt nur der Forum-Defaultseite', async () => {
+    prismaMock.session.findUnique.mockResolvedValue({
+      ...ACTIVE_QA_SESSION,
+      type: 'QUIZ',
+      qaEnabled: true,
+      qaOpen: true,
+      qaModerationMode: false,
+      qaQuestionCount: 150,
+    });
+    const rows = Array.from({ length: 150 }, (_, index) =>
+      rankedQaRow({
+        id: `00000000-0000-4000-8000-${String(index + 1).padStart(12, '0')}`,
+        text: `Projektion ${index + 1}`,
+        status: index === 0 ? 'PINNED' : 'ACTIVE',
+        totalCount: 150,
+      }),
+    );
+    rawQueryResults.rankedQuestions.push(rows);
+
+    const result = await caller.presentProjection({ sessionId: SESSION_ID });
+
+    expect(result.questions).toHaveLength(150);
+    expect(result.totalCount).toBe(150);
+    expect(result.nextCursor).toBeNull();
+    expect(result.questions[0]?.status).toBe('PINNED');
+    expect(prismaMock.$queryRaw).toHaveBeenCalledTimes(1);
+    expect(prismaMock.$queryRaw.mock.calls[0]?.slice(1)).toEqual(expect.arrayContaining([501, 0]));
+  });
+
+  trpcDodIt(
+    {
+      procedure: 'qa.setPresenterSortMode',
+      case: 'happy',
+      mode: 'direct',
+      title: 'speichert die Host-Q&A-Sortierung für die Presenter-Projektion',
+    },
+    async () => {
+      prismaMock.session.findUnique.mockResolvedValue({
+        ...ACTIVE_QA_SESSION,
+        type: 'QUIZ',
+        qaEnabled: true,
+        qaOpen: true,
+        qaModerationMode: false,
+      });
+
+      await expect(
+        hostCaller.setPresenterSortMode({ code: 'CODE12', sortMode: 'CONTROVERSIAL' }),
+      ).resolves.toEqual({ sortMode: 'CONTROVERSIAL' });
+
+      prismaMock.participant.count.mockResolvedValue(12);
+      rawQueryResults.rankedQuestions.push([
+        rankedQaRow({ text: 'Umstritten', status: 'ACTIVE', controversyScore: 0.8 }),
+      ]);
+      await caller.presentProjection({ sessionId: SESSION_ID });
+      const sql = rawSqlText(prismaMock.$queryRaw.mock.calls[0] ?? []);
+      expect(sql).toContain('ranked."controversyScore" DESC');
     },
   );
 
@@ -1364,7 +1474,7 @@ describe('qa router (Epic 8)', () => {
       prismaMock.qaQuestion.update.mockResolvedValue({
         id: QUESTION_ID,
         participantId: PARTICIPANT_ID,
-        text: `Bitte ${QA_REDACTION_PLACEHOLDER} und ${QA_REDACTION_PLACEHOLDER} anonymisieren`,
+        text: `Bitte ${QA_REDACTION_CHAR.repeat(3)} und ${QA_REDACTION_CHAR.repeat(4)} anonymisieren`,
         upvoteCount: 2,
         status: 'PENDING',
         createdAt: updatedAt,
@@ -1387,7 +1497,7 @@ describe('qa router (Epic 8)', () => {
         expect.objectContaining({
           where: { id: QUESTION_ID },
           data: expect.objectContaining({
-            text: `Bitte ${QA_REDACTION_PLACEHOLDER} und ${QA_REDACTION_PLACEHOLDER} anonymisieren`,
+            text: `Bitte ${QA_REDACTION_CHAR.repeat(3)} und ${QA_REDACTION_CHAR.repeat(4)} anonymisieren`,
             passagesRedacted: true,
             passagesRedactedAt: expect.any(Date),
           }),
@@ -1399,7 +1509,7 @@ describe('qa router (Epic 8)', () => {
         passagesRedactedAt: '2026-03-13T12:01:00.000Z',
         status: 'PENDING',
         upvoteCount: 2,
-        text: `Bitte ${QA_REDACTION_PLACEHOLDER} und ${QA_REDACTION_PLACEHOLDER} anonymisieren`,
+        text: `Bitte ${QA_REDACTION_CHAR.repeat(3)} und ${QA_REDACTION_CHAR.repeat(4)} anonymisieren`,
       });
     },
   );
@@ -1409,12 +1519,12 @@ describe('qa router (Epic 8)', () => {
       procedure: 'qa.redactPassages',
       case: 'happy',
       mode: 'direct',
-      title: 'erlaubt zweite Schwärzung hinter dem ursprünglichen 500er-Offset',
+      title: 'erlaubt zweite Schwärzung bei längenerhaltenden Blockzeichen',
     },
     async () => {
       const updatedAt = new Date('2026-03-13T12:00:00.000Z');
       const original = `${'a'.repeat(499)}Z`;
-      const afterFirst = `${'a'.repeat(499)}${QA_REDACTION_PLACEHOLDER}`;
+      const afterFirst = `${'a'.repeat(499)}${QA_REDACTION_CHAR}`;
       prismaMock.session.findUnique.mockResolvedValue({
         ...ACTIVE_QA_SESSION,
         id: SESSION_ID,
@@ -1435,11 +1545,10 @@ describe('qa router (Epic 8)', () => {
         passagesRedacted: true,
         passagesRedactedAt: updatedAt,
       });
-      const grownEnd = Array.from(afterFirst).length;
       prismaMock.qaQuestion.update.mockResolvedValue({
         id: QUESTION_ID,
         participantId: PARTICIPANT_ID,
-        text: `${'a'.repeat(498)}${QA_REDACTION_PLACEHOLDER}${QA_REDACTION_PLACEHOLDER}`,
+        text: `${'a'.repeat(498)}${QA_REDACTION_CHAR}${QA_REDACTION_CHAR}`,
         upvoteCount: 0,
         status: 'ACTIVE',
         createdAt: updatedAt,
@@ -1455,8 +1564,14 @@ describe('qa router (Epic 8)', () => {
         ranges: [{ start: 498, end: 499 }],
       });
 
-      expect(grownEnd).toBeGreaterThan(500);
-      expect(prismaMock.qaQuestion.update).toHaveBeenCalled();
+      expect(Array.from(afterFirst).length).toBe(500);
+      expect(prismaMock.qaQuestion.update).toHaveBeenCalledWith(
+        expect.objectContaining({
+          data: expect.objectContaining({
+            text: `${'a'.repeat(498)}${QA_REDACTION_CHAR}${QA_REDACTION_CHAR}`,
+          }),
+        }),
+      );
       expect(result.passagesRedacted).toBe(true);
       expect(original.length).toBe(500);
     },
@@ -1914,7 +2029,7 @@ describe('qa router (Epic 8)', () => {
       },
     ]);
     expect(result.pendingCount).toBe(1);
-    expect(rawSqlText(prismaMock.$queryRaw.mock.calls[0] ?? [])).toContain("WHEN 'PENDING' THEN 0");
+    expect(rawSqlText(prismaMock.$queryRaw.mock.calls[0] ?? [])).toContain("WHEN 'PENDING' THEN 1");
     expect(rawSqlText(prismaMock.$queryRaw.mock.calls[0] ?? [])).toContain('GREATEST(');
   });
 
@@ -1968,7 +2083,7 @@ describe('qa router (Epic 8)', () => {
     expect(result.oldestPendingCreatedAt).toBe('2026-03-13T11:50:00.000Z');
     expect(result.questions.every((question) => question.status === 'ACTIVE')).toBe(true);
     expect(rawSqlText(prismaMock.$queryRaw.mock.calls[0] ?? [])).toMatch(
-      /WHEN 'PENDING' THEN 0[\s\S]*WHEN 'PINNED' THEN 1[\s\S]*WHEN 'ACTIVE' THEN 1/,
+      /WHEN 'PINNED' THEN 0[\s\S]*WHEN 'PENDING' THEN 1[\s\S]*WHEN 'ACTIVE' THEN 2/,
     );
     expect(prismaMock.qaQuestion.groupBy).toHaveBeenCalledWith({
       by: ['status'],
@@ -2115,7 +2230,7 @@ describe('qa router (Epic 8)', () => {
     expect(forumVisibleLoads).toBe(1);
   });
 
-  it('ordnet Host-TOP PINNED vor ACTIVE, auch ohne Stimmen und nach PENDING', async () => {
+  it('ordnet Host-TOP und Host-BEST PINNED vor PENDING und ACTIVE', async () => {
     prismaMock.session.findUnique.mockResolvedValue({
       ...ACTIVE_QA_SESSION,
       id: SESSION_ID,
@@ -2138,20 +2253,48 @@ describe('qa router (Epic 8)', () => {
     ]);
     prismaMock.qaQuestion.count.mockResolvedValue(2);
 
-    const result = await hostCaller.list({
+    const topResult = await hostCaller.list({
       sessionId: SESSION_ID,
       moderatorView: true,
       sort: 'TOP',
       pageSize: 50,
     });
 
-    expect(result.pendingCount).toBe(2);
-    expect(result.questions[0]?.status).toBe('PINNED');
+    expect(topResult.pendingCount).toBe(2);
+    expect(topResult.questions[0]?.status).toBe('PINNED');
     expect(rawSqlText(prismaMock.$queryRaw.mock.calls[0] ?? [])).toMatch(
-      /WHEN 'PENDING' THEN 0[\s\S]*WHEN 'PINNED' THEN 1[\s\S]*WHEN 'ACTIVE' THEN 2/,
+      /WHEN 'PINNED' THEN 0[\s\S]*WHEN 'PENDING' THEN 1[\s\S]*WHEN 'ACTIVE' THEN 2/,
     );
     expect(rawSqlText(prismaMock.$queryRaw.mock.calls[0] ?? [])).not.toMatch(
       /WHEN 'PINNED' THEN 1\s+WHEN 'ACTIVE' THEN 1/,
+    );
+
+    prismaMock.$queryRaw.mockClear();
+    rawQueryResults.rankedQuestions.push([
+      rankedQaRow({
+        id: 'bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb',
+        text: 'Angepinnt ohne Stimmen',
+        status: 'PINNED',
+        upvoteCount: 0,
+        positiveVoteCount: 0,
+        bestScore: 0,
+        totalCount: 120,
+      }),
+    ]);
+
+    const bestResult = await hostCaller.list({
+      sessionId: SESSION_ID,
+      moderatorView: true,
+      sort: 'BEST',
+      pageSize: 50,
+    });
+
+    expect(bestResult.questions[0]?.status).toBe('PINNED');
+    expect(rawSqlText(prismaMock.$queryRaw.mock.calls[0] ?? [])).toMatch(
+      /WHEN 'PINNED' THEN 0[\s\S]*WHEN 'PENDING' THEN 1[\s\S]*WHEN 'ACTIVE' THEN 2/,
+    );
+    expect(rawSqlText(prismaMock.$queryRaw.mock.calls[0] ?? [])).toContain(
+      'ranked."bestScore" DESC',
     );
   });
   it('liefert einem autorisierten Host beendete Q&A-Inhalte innerhalb der 336h nur lesend', async () => {
