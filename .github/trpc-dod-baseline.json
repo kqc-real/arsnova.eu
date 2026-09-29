@@ -289,7 +289,7 @@
     },
     "qa.moderate": {
       "kind": "mutation",
-      "fingerprint": "sha256:895ab9f34688f4155135ef2111676cf156011c994c05e1431cfbd40767c60085",
+      "fingerprint": "sha256:4bffc63105c58e37e03a170ca0e3e7528891a92e2887a23dc174e0719866e75f",
       "missing": []
     },
     "qa.nlpRuntime": {
@@ -310,6 +310,11 @@
     "qa.presentProjection": {
       "kind": "query",
       "fingerprint": "sha256:04ff419cf3d3732f5739cd83eece572d849cd99230fe382cf5ac996e26421e65",
+      "missing": []
+    },
+    "qa.redactPassages": {
+      "kind": "mutation",
+      "fingerprint": "sha256:df78a6d5660945eb1516712c1abbad835808ea47222ca0bd64a119a2ac30192c",
       "missing": []
     },
     "qa.releasePending": {
