@@ -80,7 +80,7 @@ vi.mock('../lib/qaTelemetry', () => ({
 
 import { emitQaQuestionsSignal, resetQaQuestionsSignalsForTests } from '../lib/qaQuestionsSignal';
 import { qaRouter, resetSharedQaRankingCacheForTests } from '../routers/qa';
-import { QA_REDACTION_PLACEHOLDER } from '@arsnova/shared-types';
+import { QA_REDACTION_PLACEHOLDER, qaQuestionTextVersion } from '@arsnova/shared-types';
 
 function hostCtx(token: string | null) {
   return {
@@ -1329,12 +1329,13 @@ describe('qa router (Epic 8)', () => {
         createdAt: updatedAt,
         updatedAt: new Date('2026-03-13T12:01:00.000Z'),
         passagesRedacted: true,
+        passagesRedactedAt: new Date('2026-03-13T12:01:00.000Z'),
       });
 
       const result = await hostCaller.redactPassages({
         sessionCode: 'ABC123',
         questionId: QUESTION_ID,
-        expectedUpdatedAt: updatedAt.toISOString(),
+        expectedTextVersion: qaQuestionTextVersion('Bitte Max und Anna anonymisieren'),
         ranges: [
           { start: 6, end: 9 },
           { start: 14, end: 18 },
@@ -1347,12 +1348,14 @@ describe('qa router (Epic 8)', () => {
           data: expect.objectContaining({
             text: `Bitte ${QA_REDACTION_PLACEHOLDER} und ${QA_REDACTION_PLACEHOLDER} anonymisieren`,
             passagesRedacted: true,
+            passagesRedactedAt: expect.any(Date),
           }),
         }),
       );
       expect(result).toMatchObject({
         id: QUESTION_ID,
         passagesRedacted: true,
+        passagesRedactedAt: '2026-03-13T12:01:00.000Z',
         status: 'PENDING',
         upvoteCount: 2,
         text: `Bitte ${QA_REDACTION_PLACEHOLDER} und ${QA_REDACTION_PLACEHOLDER} anonymisieren`,
@@ -1386,7 +1389,7 @@ describe('qa router (Epic 8)', () => {
       hostCaller.redactPassages({
         sessionCode: 'ABC123',
         questionId: QUESTION_ID,
-        expectedUpdatedAt: '2026-03-13T11:00:00.000Z',
+        expectedTextVersion: qaQuestionTextVersion('andere Fassung'),
         ranges: [{ start: 0, end: 2 }],
       }),
     ).rejects.toMatchObject({ code: 'CONFLICT' });
@@ -1395,7 +1398,7 @@ describe('qa router (Epic 8)', () => {
       hostCaller.redactPassages({
         sessionCode: 'ABC123',
         questionId: QUESTION_ID,
-        expectedUpdatedAt: updatedAt.toISOString(),
+        expectedTextVersion: qaQuestionTextVersion('abcdef'),
         ranges: [
           { start: 0, end: 3 },
           { start: 2, end: 5 },
@@ -1418,7 +1421,7 @@ describe('qa router (Epic 8)', () => {
         caller.redactPassages({
           sessionCode: 'ABC123',
           questionId: QUESTION_ID,
-          expectedUpdatedAt: '2026-03-13T12:00:00.000Z',
+          expectedTextVersion: qaQuestionTextVersion('ab'),
           ranges: [{ start: 0, end: 2 }],
         }),
       ).rejects.toMatchObject({ code: 'UNAUTHORIZED' });

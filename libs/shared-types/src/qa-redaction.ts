@@ -192,3 +192,16 @@ export function previewQaPassageRedaction(
   const result = applyQaPassageRedaction(text, ranges);
   return result.ok ? result.text : null;
 }
+
+/**
+ * Inhaltliche Textversion für optimistic concurrency.
+ * Unabhängig von `updatedAt` (Query-Raw vs. Prisma, Stimmen ohne Textänderung).
+ */
+export function qaQuestionTextVersion(text: string): string {
+  let hash = 2166136261;
+  for (const char of text) {
+    hash ^= char.codePointAt(0) ?? 0;
+    hash = Math.imul(hash, 16777619);
+  }
+  return `${qaTextCodePoints(text).length.toString(16)}:${(hash >>> 0).toString(16)}`;
+}

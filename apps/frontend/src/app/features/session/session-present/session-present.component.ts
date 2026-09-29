@@ -1176,6 +1176,30 @@ export class SessionPresentComponent implements OnInit, OnDestroy {
     return formatLocaleCount(value ?? 0, this.localeId);
   }
 
+  formatQaRedactedAt(isoDate: string): string {
+    return new Intl.DateTimeFormat(this.localeId, {
+      dateStyle: 'medium',
+      timeStyle: 'short',
+    }).format(new Date(isoDate));
+  }
+
+  qaPassagesRedactedAt(
+    question: Pick<QaQuestionDTO, 'passagesRedacted' | 'passagesRedactedAt' | 'updatedAt'>,
+  ): string | null {
+    if (!question.passagesRedacted) {
+      return null;
+    }
+    return question.passagesRedactedAt ?? question.updatedAt ?? null;
+  }
+
+  qaPassagesRedactedAria(isoDate?: string | null): string {
+    if (!isoDate) {
+      return $localize`:@@sessionQa.badgePassagesRedactedAria:Passagen durch Moderation geschwärzt`;
+    }
+    const when = this.formatQaRedactedAt(isoDate);
+    return $localize`:@@sessionQa.badgePassagesRedactedAriaAt:Passagen durch Moderation geschwärzt am ${when}:when:`;
+  }
+
   private async refreshSessionMeta(): Promise<void> {
     try {
       const requestedAt = Date.now();

@@ -27,6 +27,7 @@ import {
   SubmitQaQuestionOutputSchema,
   ToggleQaModerationInputSchema,
   applyQaPassageRedaction,
+  qaQuestionTextVersion,
   isQaOpenForParticipants,
   ToggleQaUpvoteOutputSchema,
   UpvoteQaQuestionInputSchema,
@@ -84,6 +85,7 @@ type QaQuestionRecord = {
   createdAt: Date;
   updatedAt?: Date | string | null;
   passagesRedacted?: boolean | null;
+  passagesRedactedAt?: Date | string | null;
   participantId: string;
   nlpStatus?: QaNlpPersistStatus | null;
   nlpCategory?: QaNlpPersistCategory | null;
@@ -419,6 +421,14 @@ function mapQaQuestion(
         : new Date(question.createdAt).toISOString(),
     ...(updatedAt ? { updatedAt } : {}),
     passagesRedacted: question.passagesRedacted === true,
+    ...(question.passagesRedacted === true && question.passagesRedactedAt
+      ? {
+          passagesRedactedAt:
+            question.passagesRedactedAt instanceof Date
+              ? question.passagesRedactedAt.toISOString()
+              : new Date(question.passagesRedactedAt).toISOString(),
+        }
+      : {}),
     ...(question.participant?.nickname?.trim()
       ? { authorNickname: question.participant.nickname.trim() }
       : {}),
@@ -1542,7 +1552,7 @@ export const qaRouter = router({
               message: 'Gelöschte Fragen können nicht geschwärzt werden.',
             });
           }
-          if (question.updatedAt.toISOString() !== input.expectedUpdatedAt) {
+          if (qaQuestionTextVersion(question.text) !== input.expectedTextVersion) {
             throw new TRPCError({
               code: 'CONFLICT',
               message:
@@ -1575,6 +1585,7 @@ export const qaRouter = router({
             data: {
               text: applied.text,
               passagesRedacted: true,
+              passagesRedactedAt: new Date(),
               nlpStatus: nlpEnabled ? 'PENDING' : 'DISABLED',
               nlpCategory: null,
               nlpConfidence: null,
@@ -1589,6 +1600,7 @@ export const qaRouter = router({
               createdAt: true,
               updatedAt: true,
               passagesRedacted: true,
+              passagesRedactedAt: true,
               participantId: true,
             },
           });

@@ -649,6 +649,8 @@ model QaQuestion {
   status                   QaQuestionStatus @default(ACTIVE)
   /** Dauerhaftes Label: Host hat Passagen unkenntlich gemacht (kein Originalwortlaut). */
   passagesRedacted         Boolean          @default(false)
+  /** Zeitpunkt der letzten Passagen-Schwärzung (Host); null wenn nie geschwärzt. */
+  passagesRedactedAt       DateTime?
   sessionId                String
   session                  Session          @relation(fields: [sessionId], references: [id], onDelete: Cascade)
   participantId            String // Story 8.2: Autor (für 3-Fragen-Limit pro Student)

@@ -1,9 +1,13 @@
 import katex from 'katex';
 import DOMPurify from 'dompurify';
 import { marked } from 'marked';
+import { QA_REDACTION_PLACEHOLDER } from '@arsnova/shared-types';
 
 import { renderMarkdownCodeBlockHtml } from './markdown-code-highlight';
 import { MARKDOWN_EMOJI_SHORTCODE_MAP } from './markdown-emoji-shortcodes';
+
+/** Markdown würde `[geschwärzt]` als Referenz-Link lesen; das Token bleibt wörtlicher Text. */
+const QA_REDACTION_MD_TOKEN = '\uE000ARSNOVA_QA_REDACTED\uE001';
 
 export interface MarkdownRenderResult {
   html: string;
@@ -156,10 +160,27 @@ export function renderMarkdownWithKatex(
   return { html: sanitizeMarkdownHtml(html), katexError };
 }
 
+function protectQaRedactionPlaceholders(source: string): string {
+  if (!source.includes(QA_REDACTION_PLACEHOLDER)) {
+    return source;
+  }
+  return source.split(QA_REDACTION_PLACEHOLDER).join(QA_REDACTION_MD_TOKEN);
+}
+
+function restoreQaRedactionPlaceholders(html: string): string {
+  if (!html.includes(QA_REDACTION_MD_TOKEN)) {
+    return html;
+  }
+  return html
+    .split(QA_REDACTION_MD_TOKEN)
+    .join(`<span class="qa-redacted-passage">${escapeHtml(QA_REDACTION_PLACEHOLDER)}</span>`);
+}
+
 function parseMarkdownEscapingInlineHtml(
   source: string,
   options: Required<Pick<MarkdownRenderOptions, 'imagePolicy' | 'headingStartLevel'>>,
 ): string {
+  source = protectQaRedactionPlaceholders(source);
   const renderer = new marked.Renderer();
   const shallowestHeadingDepth = marked.lexer(source).reduce<number | null>((minimum, token) => {
     if (token.type !== 'heading') {
@@ -510,114 +531,118 @@ function sanitizeMarkdownHtml(html: string): string {
   const withImageCredits = markMarkdownImageCredits(html);
   // SSR: Auf dem Server existiert kein DOM. Unsere Render-Pipeline escaped inline HTML (renderer.html)
   // und erzwingt URL-Policies für Links/Bilder; DOMPurify wird daher nur im Browser angewendet.
-  if (typeof window === 'undefined') return withImageCredits;
-  return DOMPurify.sanitize(withImageCredits, {
-    ALLOWED_TAGS: [
-      'p',
-      'br',
-      'hr',
-      'strong',
-      'b',
-      'em',
-      'i',
-      's',
-      'code',
-      'sub',
-      'sup',
-      'pre',
-      'blockquote',
-      'ul',
-      'ol',
-      'li',
-      'h1',
-      'h2',
-      'h3',
-      'h4',
-      'h5',
-      'h6',
-      'div',
-      'a',
-      'button',
-      'img',
-      'span',
-      'table',
-      'thead',
-      'tbody',
-      'tr',
-      'th',
-      'td',
-      'svg',
-      'path',
-      // KaTeX (MathML + Annotation) – für A11y und Tests.
-      'math',
-      'semantics',
-      'mrow',
-      'mi',
-      'mo',
-      'mn',
-      'msup',
-      'msub',
-      'mfrac',
-      'msqrt',
-      'mroot',
-      'mtext',
-      'mspace',
-      'mtable',
-      'mtr',
-      'mtd',
-      'mover',
-      'munder',
-      'munderover',
-      'mstyle',
-      'annotation',
-    ],
-    ALLOWED_ATTR: [
-      'href',
-      'title',
-      'src',
-      'alt',
-      'type',
-      'class',
-      'target',
-      'rel',
-      'data-markdown-code-block',
-      'data-markdown-code-copy',
-      'data-markdown-copy-state',
-      'data-markdown-image-lightbox',
-      'loading',
-      'decoding',
-      'crossorigin',
-      'referrerpolicy',
-      'data-markdown-link-kind',
-      'align',
-      'aria-hidden',
-      'aria-label',
-      'disabled',
-      'focusable',
-      'viewBox',
-      // KaTeX rendert Wurzelzeichen als SVG; ohne diese Geometrieattribute verschwindet das Radical.
-      'width',
-      'height',
-      'preserveAspectRatio',
-      'd',
-      'fill',
-      'stroke',
-      'stroke-width',
-      'stroke-linecap',
-      'stroke-linejoin',
-      'class',
-      'target',
-      'rel',
-      'xmlns',
-      'encoding',
-      // KaTeX: Layout über tausende inline style=… auf span; ohne diese wirken Formeln „kaputt“/abgeschnitten.
-      'style',
-      // MathML: <math display="block"> …
-      'display',
-    ],
-    // URL-Policies werden bereits vor dem HTML-Bau im Renderer erzwungen; hier müssen wir nur
-    // verhindern, dass DOMPurify zulässige Preview-Bildquellen wie `blob:` nachträglich entfernt.
-    ALLOWED_URI_REGEXP:
-      /^(?:(?:https?|mailto|tel|blob):|data:image\/(?:png|apng|avif|gif|jpeg|jpg|webp|bmp);base64,|[^a-z]|[a-z+.\-.]+(?:[^a-z+.\-:]|$))/i,
-  });
+  if (typeof window === 'undefined') {
+    return restoreQaRedactionPlaceholders(withImageCredits);
+  }
+  return restoreQaRedactionPlaceholders(
+    DOMPurify.sanitize(withImageCredits, {
+      ALLOWED_TAGS: [
+        'p',
+        'br',
+        'hr',
+        'strong',
+        'b',
+        'em',
+        'i',
+        's',
+        'code',
+        'sub',
+        'sup',
+        'pre',
+        'blockquote',
+        'ul',
+        'ol',
+        'li',
+        'h1',
+        'h2',
+        'h3',
+        'h4',
+        'h5',
+        'h6',
+        'div',
+        'a',
+        'button',
+        'img',
+        'span',
+        'table',
+        'thead',
+        'tbody',
+        'tr',
+        'th',
+        'td',
+        'svg',
+        'path',
+        // KaTeX (MathML + Annotation) – für A11y und Tests.
+        'math',
+        'semantics',
+        'mrow',
+        'mi',
+        'mo',
+        'mn',
+        'msup',
+        'msub',
+        'mfrac',
+        'msqrt',
+        'mroot',
+        'mtext',
+        'mspace',
+        'mtable',
+        'mtr',
+        'mtd',
+        'mover',
+        'munder',
+        'munderover',
+        'mstyle',
+        'annotation',
+      ],
+      ALLOWED_ATTR: [
+        'href',
+        'title',
+        'src',
+        'alt',
+        'type',
+        'class',
+        'target',
+        'rel',
+        'data-markdown-code-block',
+        'data-markdown-code-copy',
+        'data-markdown-copy-state',
+        'data-markdown-image-lightbox',
+        'loading',
+        'decoding',
+        'crossorigin',
+        'referrerpolicy',
+        'data-markdown-link-kind',
+        'align',
+        'aria-hidden',
+        'aria-label',
+        'disabled',
+        'focusable',
+        'viewBox',
+        // KaTeX rendert Wurzelzeichen als SVG; ohne diese Geometrieattribute verschwindet das Radical.
+        'width',
+        'height',
+        'preserveAspectRatio',
+        'd',
+        'fill',
+        'stroke',
+        'stroke-width',
+        'stroke-linecap',
+        'stroke-linejoin',
+        'class',
+        'target',
+        'rel',
+        'xmlns',
+        'encoding',
+        // KaTeX: Layout über tausende inline style=… auf span; ohne diese wirken Formeln „kaputt“/abgeschnitten.
+        'style',
+        // MathML: <math display="block"> …
+        'display',
+      ],
+      // URL-Policies werden bereits vor dem HTML-Bau im Renderer erzwungen; hier müssen wir nur
+      // verhindern, dass DOMPurify zulässige Preview-Bildquellen wie `blob:` nachträglich entfernt.
+      ALLOWED_URI_REGEXP:
+        /^(?:(?:https?|mailto|tel|blob):|data:image\/(?:png|apng|avif|gif|jpeg|jpg|webp|bmp);base64,|[^a-z]|[a-z+.\-.]+(?:[^a-z+.\-:]|$))/i,
+    }),
+  );
 }

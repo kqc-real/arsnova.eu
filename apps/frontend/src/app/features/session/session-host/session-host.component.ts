@@ -138,6 +138,7 @@ import {
   isQaChannelJoinable,
   QA_LIST_DEFAULT_PAGE_SIZE,
   QA_LIST_PAGE_SIZE_OPTIONS,
+  qaQuestionTextVersion,
   type QaListPageSize,
   type WordCloudLemmaLocale,
   type ProductFeedbackInAppArea,
@@ -9745,6 +9746,31 @@ export class SessionHostComponent implements OnInit, OnDestroy {
     return days === 1 ? $localize`vor 1\u00A0Tag` : $localize`vor ${days}\u00A0Tagen`;
   }
 
+  formatQaRedactedAt(isoDate: string): string {
+    return new Intl.DateTimeFormat(this.localeId, {
+      dateStyle: 'medium',
+      timeStyle: 'short',
+    }).format(new Date(isoDate));
+  }
+
+  /** Zeitpunkt der Schwärzung; Fallback auf updatedAt nur wenn das Feld noch fehlt. */
+  qaPassagesRedactedAt(
+    question: Pick<QaQuestionDTO, 'passagesRedacted' | 'passagesRedactedAt' | 'updatedAt'>,
+  ): string | null {
+    if (!question.passagesRedacted) {
+      return null;
+    }
+    return question.passagesRedactedAt ?? question.updatedAt ?? null;
+  }
+
+  qaPassagesRedactedAria(isoDate?: string | null): string {
+    if (!isoDate) {
+      return $localize`:@@sessionQa.badgePassagesRedactedAria:Passagen durch Moderation geschwärzt`;
+    }
+    const when = this.formatQaRedactedAt(isoDate);
+    return $localize`:@@sessionQa.badgePassagesRedactedAriaAt:Passagen durch Moderation geschwärzt am ${when}:when:`;
+  }
+
   qaActionLabel(
     action: 'APPROVE' | 'PIN' | 'UNPIN' | 'ARCHIVE' | 'DELETE',
     status?: QaQuestionDTO['status'],
@@ -12790,16 +12816,6 @@ export class SessionHostComponent implements OnInit, OnDestroy {
     if (!question) {
       return;
     }
-    if (!question.updatedAt) {
-      await this.refreshQaQuestions();
-    }
-    const current = this.qaVisibleQuestions().find((entry) => entry.id === questionId) ?? question;
-    if (!current.updatedAt) {
-      this.qaInfo.set(
-        $localize`:@@sessionQa.redactMissingVersion:Die Frageversion fehlt. Lade die Fragenliste neu und versuche es erneut.`,
-      );
-      return;
-    }
 
     const { QaRedactPassagesDialogComponent } =
       await import('./qa-redact-passages-dialog.component');
@@ -12809,10 +12825,10 @@ export class SessionHostComponent implements OnInit, OnDestroy {
       restoreFocus: true,
       data: {
         question: {
-          id: current.id,
-          text: current.text,
-          updatedAt: current.updatedAt,
-          passagesRedacted: current.passagesRedacted === true,
+          id: question.id,
+          text: question.text,
+          updatedAt: question.updatedAt,
+          passagesRedacted: question.passagesRedacted === true,
         },
       },
     });
@@ -12820,12 +12836,12 @@ export class SessionHostComponent implements OnInit, OnDestroy {
     if (!result?.ranges?.length) {
       return;
     }
-    await this.redactQaPassages(questionId, current.updatedAt, result.ranges);
+    await this.redactQaPassages(questionId, qaQuestionTextVersion(question.text), result.ranges);
   }
 
   async redactQaPassages(
     questionId: string,
-    expectedUpdatedAt: string,
+    expectedTextVersion: string,
     ranges: Array<{ start: number; end: number }>,
   ): Promise<void> {
     if (!this.code || !this.qaHostWritesAllowed()) {
@@ -12843,7 +12859,7 @@ export class SessionHostComponent implements OnInit, OnDestroy {
       await trpc.qa.redactPassages.mutate({
         sessionCode: this.code.toUpperCase(),
         questionId,
-        expectedUpdatedAt,
+        expectedTextVersion,
         ranges,
       });
       await this.refreshQaQuestions();
@@ -12858,7 +12874,7 @@ export class SessionHostComponent implements OnInit, OnDestroy {
           : $localize`:@@sessionQa.redactFailed:Die Schwärzung konnte nicht gespeichert werden.`,
       );
       this.openHostSteeringCalloutForQaFailure(
-        () => void this.redactQaPassages(questionId, expectedUpdatedAt, ranges),
+        () => void this.redactQaPassages(questionId, expectedTextVersion, ranges),
       );
     } finally {
       const remaining = new Set(this.qaPendingQuestionIds());

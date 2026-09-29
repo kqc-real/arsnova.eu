@@ -5804,6 +5804,11 @@ export const QaQuestionDTOSchema = z.object({
    * Nicht aus dem Fragetext erraten.
    */
   passagesRedacted: z.boolean(),
+  /**
+   * ISO-8601-Zeitpunkt der letzten Passagen-Schwärzung.
+   * Nur gesetzt, wenn `passagesRedacted` wahr ist (ältere Datensätze dürfen fehlen).
+   */
+  passagesRedactedAt: z.string().datetime().optional(),
   authorNickname: z.string().min(1).max(30).optional(),
   authorTeamName: z.string().trim().min(1).max(40).optional(),
   positiveVoteCount: z.number().int().min(0).optional(),
@@ -6040,8 +6045,8 @@ export type QaRedactionRangeInput = z.infer<typeof QaRedactionRangeSchema>;
 export const RedactQaPassagesInputSchema = z.object({
   sessionCode: z.string().trim().min(6).max(6),
   questionId: z.uuid(),
-  /** Erwartete Textversion (`QaQuestion.updatedAt` als ISO). */
-  expectedUpdatedAt: z.string().datetime(),
+  /** Inhaltliche Textversion, nicht `updatedAt` (Stimmen und Zeitstempel-Pfade). */
+  expectedTextVersion: z.string().min(1).max(80),
   ranges: z.array(QaRedactionRangeSchema).min(1).max(QA_REDACTION_MAX_RANGES),
 });
 export type RedactQaPassagesInput = z.infer<typeof RedactQaPassagesInputSchema>;

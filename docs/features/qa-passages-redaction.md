@@ -12,18 +12,21 @@ werden.
 
 ## Vertrag
 
-- Schema-first: `QaQuestion.passagesRedacted`, `QaQuestionDTO.passagesRedacted`,
-  `updatedAt` als Textversion, Mutation `qa.redactPassages`
-  (`RedactQaPassagesInputSchema`).
+- Schema-first: `QaQuestion.passagesRedacted`, `QaQuestion.passagesRedactedAt`,
+  `QaQuestionDTO.passagesRedacted` / `passagesRedactedAt`, Mutation
+  `qa.redactPassages` (`RedactQaPassagesInputSchema`).
 - Nur `hostProcedure` plus serverseitige Prüfung der Frage-Session-Zugehörigkeit.
-- Client sendet Frage-ID, `expectedUpdatedAt` und disjunkte Codepunkt-Bereiche —
-  **keinen** Ersatztext. Der Server erzeugt den Platzhalter
-  `[geschwärzt]` (`QA_REDACTION_PLACEHOLDER`).
+- Client sendet Frage-ID, `expectedTextVersion` (Hash des aktuellen Fragetexts)
+  und disjunkte Codepunkt-Bereiche — **keinen** Ersatztext. Der Server erzeugt
+  den Platzhalter `[geschwärzt]` (`QA_REDACTION_PLACEHOLDER`).
+- `expectedTextVersion` ist unabhängig von `updatedAt`, damit Stimmen und
+  abweichende Zeitstempel-Serialisierung die Schwärzung nicht blockieren.
 - Grenzen: max. 10 Bereiche, je 1–80 Codepunkte; keine Überlappung; keine
   Auswahl in bestehenden Platzhaltern; Ergebnis darf nicht leer sein.
-- Bei veralteter Version: `CONFLICT` und Reload statt alter Offsets.
+- Bei veralteter Textfassung: `CONFLICT` und Reload statt alter Offsets.
 - Stimmen, Autor und Moderationsstatus bleiben erhalten.
 - Kein Originalwortlaut in Historie, Audit, Fehlerantwort oder neuer Spalte.
+- `passagesRedactedAt` speichert den Zeitpunkt der **letzten** Schwärzung.
 
 ## Ableitungen
 
@@ -41,7 +44,8 @@ werden.
 - Host-Kartenaktion »Passagen schwärzen« (auch vor Freigabe).
 - Dialog mit auswählbarem Klartext, optionaler Suche für Touch, Vorschau und
   Bestätigung der Irreversibilität.
-- Label als eigenes DTO-Merkmal in Host-, Teilnehmer- und Present-Ansicht.
+- Label als eigenes DTO-Merkmal in Host-, Teilnehmer- und Present-Ansicht:
+  Icon `visibility_off` plus optional Datum/Uhrzeit aus `passagesRedactedAt`.
 
 ## Grenzen für Betrieb
 

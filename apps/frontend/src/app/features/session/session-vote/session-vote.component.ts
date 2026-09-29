@@ -2931,6 +2931,30 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
     return days === 1 ? $localize`vor 1\u00A0Tag` : $localize`vor ${days}\u00A0Tagen`;
   }
 
+  formatQaRedactedAt(isoDate: string): string {
+    return new Intl.DateTimeFormat(this.localeId, {
+      dateStyle: 'medium',
+      timeStyle: 'short',
+    }).format(new Date(isoDate));
+  }
+
+  qaPassagesRedactedAt(
+    question: Pick<QaQuestionDTO, 'passagesRedacted' | 'passagesRedactedAt' | 'updatedAt'>,
+  ): string | null {
+    if (!question.passagesRedacted) {
+      return null;
+    }
+    return question.passagesRedactedAt ?? question.updatedAt ?? null;
+  }
+
+  qaPassagesRedactedAria(isoDate?: string | null): string {
+    if (!isoDate) {
+      return $localize`:@@sessionQa.badgePassagesRedactedAria:Passagen durch Moderation geschwärzt`;
+    }
+    const when = this.formatQaRedactedAt(isoDate);
+    return $localize`:@@sessionQa.badgePassagesRedactedAriaAt:Passagen durch Moderation geschwärzt am ${when}:when:`;
+  }
+
   autoResizeTextarea(event: Event): void {
     const el = event.target as HTMLTextAreaElement;
     el.style.height = 'auto';

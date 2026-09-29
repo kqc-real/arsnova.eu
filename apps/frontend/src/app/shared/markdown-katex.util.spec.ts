@@ -59,6 +59,13 @@ describe('renderMarkdownWithKatex', () => {
     expect(withEscape.html).toContain('2. Transkription');
   });
 
+  it('stellt Q&A-Schwärzungsplatzhalter als sichtbare Spanne dar statt als Markdown-Link', () => {
+    const result = renderMarkdownWithKatex('Hallo [geschwärzt] Welt');
+    expect(result.html).toContain('class="qa-redacted-passage"');
+    expect(result.html).toContain('[geschwärzt]');
+    expect(result.html).not.toMatch(/<a\b[^>]*>\[geschwärzt\]<\/a>/);
+  });
+
   it('bewahrt führende Zahlen in Ordering-/Kurzlabels (kein Strip von „9. November“)', () => {
     expect(stripLeadingOrderedListLabel('1. Entwindung: DNA')).toBe('1. Entwindung: DNA');
     expect(stripLeadingOrderedListLabel('12. Kernexport')).toBe('12. Kernexport');

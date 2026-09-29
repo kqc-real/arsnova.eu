@@ -1,5 +1,5 @@
 import { firstValueFrom } from 'rxjs';
-import { Component, ElementRef, computed, inject, signal, viewChild } from '@angular/core';
+import { Component, computed, inject, signal, viewChild } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { MatButton } from '@angular/material/button';
 import {
@@ -69,7 +69,7 @@ export class QaRedactPassagesDialogComponent {
     MatDialogRef<QaRedactPassagesDialogComponent, QaRedactPassagesDialogResult | null>,
   );
 
-  private readonly sourceTextRef = viewChild<ElementRef<HTMLTextAreaElement>>('sourceTextArea');
+  private readonly sourceTextArea = viewChild<HTMLTextAreaElement>('sourceTextArea');
 
   readonly sourceText = this.data.question.text;
   readonly placeholder = QA_REDACTION_PLACEHOLDER;
@@ -84,6 +84,8 @@ export class QaRedactPassagesDialogComponent {
   readonly statusTone = signal<'info' | 'error'>('info');
 
   private nextRangeId = 1;
+  private sourceSelectionStart = 0;
+  private sourceSelectionEnd = 0;
 
   readonly previewText = computed(() => {
     const ranges = this.pendingRanges();
@@ -95,13 +97,21 @@ export class QaRedactPassagesDialogComponent {
 
   readonly canAddMore = computed(() => this.pendingRanges().length < this.maxRanges);
 
-  markCurrentSelection(): void {
-    const area = this.sourceTextRef()?.nativeElement;
+  captureSourceSelection(event: Event): void {
+    const area = event.target as HTMLTextAreaElement | null;
     if (!area) {
       return;
     }
-    const startUnit = area.selectionStart ?? 0;
-    const endUnit = area.selectionEnd ?? 0;
+    this.sourceSelectionStart = area.selectionStart ?? 0;
+    this.sourceSelectionEnd = area.selectionEnd ?? 0;
+  }
+
+  markCurrentSelection(): void {
+    const area = this.sourceTextArea();
+    const liveStart = area?.selectionStart ?? 0;
+    const liveEnd = area?.selectionEnd ?? 0;
+    const startUnit = liveEnd > liveStart ? liveStart : this.sourceSelectionStart;
+    const endUnit = liveEnd > liveStart ? liveEnd : this.sourceSelectionEnd;
     if (endUnit <= startUnit) {
       this.announce(
         $localize`:@@sessionQa.redactSelectHint:Markiere zuerst eine Passage im Klartext.`,

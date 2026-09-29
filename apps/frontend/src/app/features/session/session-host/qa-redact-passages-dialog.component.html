@@ -1,6 +1,6 @@
 <h2 mat-dialog-title class="dialog-title-header">
   <span class="dialog-title-header__icon" aria-hidden="true">
-    <mat-icon>ink_eraser</mat-icon>
+    <mat-icon>visibility_off</mat-icon>
   </span>
   <span class="dialog-title-header__copy">
     <span class="dialog-title-header__heading" i18n="@@sessionQa.redactTitle"
@@ -27,11 +27,19 @@
     readonly
     rows="6"
     [value]="sourceText"
+    (select)="captureSourceSelection($event)"
+    (keyup)="captureSourceSelection($event)"
+    (mouseup)="captureSourceSelection($event)"
     [attr.aria-describedby]="statusMessage() ? 'qa-redact-status' : null"
   ></textarea>
   <div class="qa-redact__toolbar">
-    <button matButton="tonal" type="button" (click)="markCurrentSelection()">
-      <mat-icon>format_ink_highlighter</mat-icon>
+    <button
+      matButton="tonal"
+      type="button"
+      (pointerdown)="$event.preventDefault()"
+      (click)="markCurrentSelection()"
+    >
+      <mat-icon>highlight</mat-icon>
       <span i18n="@@sessionQa.redactMarkSelection">Markierung schwärzen</span>
     </button>
   </div>
@@ -129,7 +137,7 @@
     Abbrechen
   </button>
   <button matButton="filled" type="button" color="warn" (click)="confirmApply()">
-    <mat-icon>ink_eraser</mat-icon>
+    <mat-icon>visibility_off</mat-icon>
     <span i18n="@@sessionQa.redactApply">Schwärzungen endgültig anwenden</span>
   </button>
 </mat-dialog-actions>

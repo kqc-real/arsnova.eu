@@ -22379,6 +22379,14 @@
           <context context-type="linenumber">2909</context>
         </context-group>
       </trans-unit>
+      <trans-unit id="sessionQa.badgePassagesRedactedAria" datatype="html">
+        <source>Passagen durch Moderation geschwärzt</source>
+        <target>Pasajes tachados por la moderación</target>
+      </trans-unit>
+      <trans-unit id="sessionQa.badgePassagesRedactedAriaAt" datatype="html">
+        <source>Passagen durch Moderation geschwärzt am <x id="when" equiv-text="when"/></source>
+        <target>Pasajes tachados por la moderación el <x id="when" equiv-text="when"/></target>
+      </trans-unit>
       <trans-unit id="sessionQa.voteBreakdown" datatype="html">
         <source><x id="INTERPOLATION" equiv-text="veVoteCount) }}"/> positiv · <x id="INTERPOLATION_1" equiv-text="{{ formatCount(question.negativeVoteCount) }}"/> negativ</source>
         <target><x id="INTERPOLATION" equiv-text="question.positiveVoteCount"/> positivas · <x id="INTERPOLATION_1" equiv-text="question.negativeVoteCount"/> negativas</target>

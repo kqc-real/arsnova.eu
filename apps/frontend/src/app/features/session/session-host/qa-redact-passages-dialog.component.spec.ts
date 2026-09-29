@@ -69,4 +69,17 @@ describe('QaRedactPassagesDialogComponent', () => {
     expect(close).not.toHaveBeenCalled();
     expect(component.statusTone()).toBe('error');
   });
+
+  it('übernimmt die Textauswahl auch nach Fokusverlust der Textarea', () => {
+    const area = fixture.nativeElement.querySelector('#qa-redact-source') as HTMLTextAreaElement;
+    area.focus();
+    area.setSelectionRange(6, 9);
+    component.captureSourceSelection({ target: area } as unknown as Event);
+    area.blur();
+    component.markCurrentSelection();
+    expect(component.pendingRanges()).toEqual([
+      expect.objectContaining({ start: 6, end: 9, excerpt: 'Max' }),
+    ]);
+    expect(component.previewText()).toContain(QA_REDACTION_PLACEHOLDER);
+  });
 });

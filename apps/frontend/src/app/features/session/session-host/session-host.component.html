@@ -4847,9 +4847,26 @@
                             @if (question.passagesRedacted) {
                               <span
                                 class="session-qa-card__badge session-qa-card__badge--redacted"
-                                i18n="@@sessionQa.badgePassagesRedacted"
-                                >Passagen durch Moderation geschwärzt</span
+                                [attr.aria-label]="
+                                  qaPassagesRedactedAria(qaPassagesRedactedAt(question))
+                                "
                               >
+                                <mat-icon class="session-qa-card__badge-icon" aria-hidden="true"
+                                  >visibility_off</mat-icon
+                                >
+                                <span class="session-qa-card__badge-copy">
+                                  <span i18n="@@sessionQa.badgePassagesRedacted"
+                                    >Passagen durch Moderation geschwärzt</span
+                                  >
+                                  @if (qaPassagesRedactedAt(question); as redactedAt) {
+                                    <time
+                                      class="session-qa-card__badge-time"
+                                      [attr.datetime]="redactedAt"
+                                      >{{ formatQaRedactedAt(redactedAt) }}</time
+                                    >
+                                  }
+                                </span>
+                              </span>
                             }
                           </div>
                           <span
@@ -4908,7 +4925,9 @@
                               [disabled]="qaPendingQuestionIds().has(question.id)"
                               (click)="openQaRedactPassagesDialog(question.id)"
                             >
-                              <mat-icon class="session-qa-card__action-icon">ink_eraser</mat-icon>
+                              <mat-icon class="session-qa-card__action-icon"
+                                >visibility_off</mat-icon
+                              >
                               <span i18n="@@sessionQa.redactAction">Passagen schwärzen</span>
                             </button>
                           }

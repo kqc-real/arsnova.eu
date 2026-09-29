@@ -4,6 +4,7 @@ import {
   applyQaPassageRedaction,
   findQaRedactionSearchOccurrences,
   previewQaPassageRedaction,
+  qaQuestionTextVersion,
   qaTextCodePoints,
 } from './qa-redaction';
 
@@ -44,5 +45,10 @@ describe('qa-redaction', () => {
     ]);
     const preview = previewQaPassageRedaction(text, [occurrences[1]!]);
     expect(preview).toBe(`Anna kennt ${QA_REDACTION_PLACEHOLDER} und Anna`);
+  });
+
+  it('ändert die Textversion nur bei inhaltlicher Änderung', () => {
+    expect(qaQuestionTextVersion('Anna')).toBe(qaQuestionTextVersion('Anna'));
+    expect(qaQuestionTextVersion('Anna')).not.toBe(qaQuestionTextVersion('Max'));
   });
 });

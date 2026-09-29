@@ -1262,6 +1262,15 @@ html {
   max-width: 100%;
 }
 
+.markdown-body .qa-redacted-passage {
+  display: inline;
+  padding: 0.05em 0.35em;
+  border-radius: var(--mat-sys-corner-small);
+  background: var(--mat-sys-surface-container-high);
+  color: var(--mat-sys-on-surface);
+  font-weight: 600;
+}
+
 .markdown-body pre {
   margin: 0.65rem 0;
   overflow-x: auto;

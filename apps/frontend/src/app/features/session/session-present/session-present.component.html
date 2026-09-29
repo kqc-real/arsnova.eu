@@ -843,9 +843,26 @@
                           @if (question.passagesRedacted) {
                             <span
                               class="session-present__qa-redacted"
-                              i18n="@@sessionQa.badgePassagesRedacted"
-                              >Passagen durch Moderation geschwärzt</span
+                              [attr.aria-label]="
+                                qaPassagesRedactedAria(qaPassagesRedactedAt(question))
+                              "
                             >
+                              <mat-icon class="session-present__qa-redacted-icon" aria-hidden="true"
+                                >visibility_off</mat-icon
+                              >
+                              <span class="session-present__qa-redacted-copy">
+                                <span i18n="@@sessionQa.badgePassagesRedacted"
+                                  >Passagen durch Moderation geschwärzt</span
+                                >
+                                @if (qaPassagesRedactedAt(question); as redactedAt) {
+                                  <time
+                                    class="session-present__qa-redacted-time"
+                                    [attr.datetime]="redactedAt"
+                                    >{{ formatQaRedactedAt(redactedAt) }}</time
+                                  >
+                                }
+                              </span>
+                            </span>
                           }
                           <div
                             class="session-present__qa-list-text"
